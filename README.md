@@ -14,9 +14,9 @@ Reference baseline:
 
 ## Nodes
 
-### EasyUse Anima NAIA Random Prompt
+### Anima NAIA Random Prompt
 
-Category: `EasyUse/Anima/NAIA`
+Category: `Anima/NAIA`
 
 Outputs:
 

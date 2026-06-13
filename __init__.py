@@ -6,7 +6,7 @@ NODE_CLASS_MAPPINGS = {
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
-    "EasyUseAnimaNAIARandomPrompt": "EasyUse Anima NAIA Random Prompt",
+    "EasyUseAnimaNAIARandomPrompt": "Anima NAIA Random Prompt",
 }
 
 WEB_DIRECTORY = "./web"
