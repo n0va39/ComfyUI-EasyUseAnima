@@ -293,6 +293,7 @@ class EasyUseAnimaNAIARandomPrompt:
                 "default": "skip",
                 "tooltip": pp_tooltip,
                 "advanced": key.startswith("remove_"),
+                "socketless": key.startswith("remove_"),
             })
 
         required["host"] = ("STRING", {
