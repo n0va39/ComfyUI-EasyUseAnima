@@ -74,6 +74,10 @@ def _clean_prompt(value: str) -> str:
     return value.strip(" ,\n\t")
 
 
+def _stable_change_key(payload: dict) -> str:
+    return json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+
+
 def _fit_to_1mp(width: int, height: int) -> tuple[int, int]:
     if width <= 0 or height <= 0:
         return width, height
@@ -331,6 +335,7 @@ class EasyUseAnimaNAIARandomPrompt:
         cls,
         use_naia_bridge: bool = True,
         freeze_naia_output: bool = False,
+        show_preview: bool = True,
         cached_prompt: str = "",
         cached_negative_prompt: str = "",
         cached_width: int = 0,
@@ -353,13 +358,13 @@ class EasyUseAnimaNAIARandomPrompt:
         **kwargs,
     ):
         if not _as_bool(use_naia_bridge, True):
-            return hash((
-                "disabled",
-                str(prompt),
-                str(negative_prompt),
-                _as_int(width, 1024),
-                _as_int(height, 1024),
-            ))
+            return _stable_change_key({
+                "mode": "disabled",
+                "prompt": str(prompt),
+                "negative_prompt": str(negative_prompt),
+                "width": _as_int(width, 1024),
+                "height": _as_int(height, 1024),
+            })
 
         signature = cls._make_signature(
             prompt,
@@ -387,7 +392,14 @@ class EasyUseAnimaNAIARandomPrompt:
                 cached_height,
             )
             if cached is not None and str(cached_signature) == signature:
-                return hash(("frozen", signature, cached))
+                return _stable_change_key({
+                    "mode": "frozen",
+                    "signature": signature,
+                    "prompt": cached[0],
+                    "negative_prompt": cached[1],
+                    "width": cached[2],
+                    "height": cached[3],
+                })
             return float("nan")
 
         return float("nan")
@@ -564,6 +576,7 @@ class EasyUseAnimaNAIARandomPrompt:
         self,
         use_naia_bridge: bool,
         freeze_naia_output: bool,
+        show_preview: bool,
         cached_prompt: str,
         cached_negative_prompt: str,
         cached_width: int,

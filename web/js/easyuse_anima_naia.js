@@ -53,6 +53,9 @@ function setWidgetValue(node, name, value) {
   if (!widget) {
     return;
   }
+  if (widget.value === value) {
+    return;
+  }
   widget.value = value;
   widget.callback?.(value);
 }
