@@ -108,6 +108,15 @@ Outputs:
 This node downloads AnimaDex character/artist CSV exports and builds local JSONL
 indexes for `Anima Prompt Corrector`.
 
+The same download can also be started from ComfyUI Settings:
+
+- `EasyUse Anima: AnimaDex Export Token`: stores the export token in this custom
+  node's local settings file.
+- `EasyUse Anima: Download AnimaDex Dataset`: downloads only when local indexes
+  are missing.
+- `EasyUse Anima: Force Refresh AnimaDex Dataset`: downloads again and rebuilds
+  indexes.
+
 Local storage:
 
 ```text
@@ -129,6 +138,8 @@ Token options:
 
 Avoid putting a real token directly into workflows. The download node reads the
 token from the ComfyUI settings/API storage, a token file, or the environment.
+The settings token is stored under `__animadex__/settings.json`, which is ignored
+by git with the downloaded dataset files.
 
 ## Requirements
 

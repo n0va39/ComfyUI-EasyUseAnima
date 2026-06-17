@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import os
 from pathlib import Path
 
 try:
@@ -65,7 +66,7 @@ def resolve_animadex_token() -> str:
         if not path.is_file():
             raise RuntimeError(f"[EasyUse Anima] token_file does not exist: {path}")
         return path.read_text(encoding="utf-8").strip()
-    return ""
+    return os.environ.get("ANIMADEX_IMPORT_TOKEN", "").strip()
 
 
 def resolve_animadex_site(site_override: str = "") -> str:

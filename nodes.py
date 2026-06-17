@@ -3,18 +3,19 @@ from __future__ import annotations
 
 import json
 import logging
-import os
 import re
 from typing import Optional
 
 try:
-    from .anima_prompt import AnimaDexDB, AnimaDexImportClient, correct_prompt, load_knowledge_base
+    from .animadex_dataset import download_animadex_dataset
+    from .anima_prompt import correct_prompt, load_knowledge_base
     from .anima_prompt.knowledge import PACKAGE_DATA_DIR
-    from .settings import resolve_animadex_site, resolve_animadex_token
+    from .settings import resolve_animadex_site
 except ImportError:  # allows simple local import tests outside ComfyUI's package loader
-    from anima_prompt import AnimaDexDB, AnimaDexImportClient, correct_prompt, load_knowledge_base
+    from animadex_dataset import download_animadex_dataset
+    from anima_prompt import correct_prompt, load_knowledge_base
     from anima_prompt.knowledge import PACKAGE_DATA_DIR
-    from settings import resolve_animadex_site, resolve_animadex_token
+    from settings import resolve_animadex_site
 
 logger = logging.getLogger("ComfyUI-EasyUseAnima")
 
@@ -395,43 +396,10 @@ class EasyUseAnimaAnimaDexDatasetDownload:
                 str(artist_index),
             )
 
-        token_value = resolve_animadex_token()
-        if not token_value:
-            token_value = os.environ.get("ANIMADEX_IMPORT_TOKEN", "").strip()
-        if not token_value:
-            raise RuntimeError(
-                "[EasyUse Anima] AnimaDex export token is required for first dataset download. "
-                "Set it in ComfyUI Settings, token_file, or ANIMADEX_IMPORT_TOKEN."
-            )
-
-        import_dir.mkdir(parents=True, exist_ok=True)
-        index_dir.mkdir(parents=True, exist_ok=True)
-
-        client = AnimaDexImportClient(
-            site=resolve_animadex_site(site_override),
-            token=token_value,
-        )
-        result = client.download_required_csvs(data_dir=data_dir, full=_as_bool(full_manifest, False))
-        db = AnimaDexDB.from_csvs(
-            characters_csv=result.characters_csv,
-            artists_csv=result.artists_csv,
-        )
-        character_index, artist_index = db.write_jsonl(index_dir)
-        report = {
-            "status": "downloaded",
-            "data_dir": str(data_dir),
-            "characters_csv": str(result.characters_csv),
-            "artists_csv": str(result.artists_csv),
-            "character_index": str(character_index),
-            "artist_index": str(artist_index),
-            "characters": len(db.characters),
-            "artists": len(db.artists),
-        }
-        return (
-            "downloaded",
-            json.dumps(report, ensure_ascii=False, indent=2),
-            str(character_index),
-            str(artist_index),
+        return download_animadex_dataset(
+            force_refresh=_as_bool(force_refresh, False),
+            full_manifest=_as_bool(full_manifest, False),
+            site_override=site_override,
         )
 
 
