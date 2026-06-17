@@ -11,13 +11,13 @@ try:
     from .anima_prompt import correct_prompt, load_knowledge_base
     from .anima_prompt.knowledge import PACKAGE_DATA_DIR
     from .anima_prompt.parser import parse_prompt
-    from .settings import resolve_animadex_site
+    from .settings import resolve_animadex_site, resolve_metadata_filter_words
 except ImportError:  # allows simple local import tests outside ComfyUI's package loader
     from animadex_dataset import download_animadex_dataset
     from anima_prompt import correct_prompt, load_knowledge_base
     from anima_prompt.knowledge import PACKAGE_DATA_DIR
     from anima_prompt.parser import parse_prompt
-    from settings import resolve_animadex_site
+    from settings import resolve_animadex_site, resolve_metadata_filter_words
 
 logger = logging.getLogger("ComfyUI-EasyUseAnima")
 
@@ -51,6 +51,7 @@ PP_STATE_CHOICES = ["skip", "on", "off"]
 _HASH_COMMENT_RE = re.compile(r"^[ \t]*#[^\n]*", re.MULTILINE)
 _MULTI_COMMA_RE = re.compile(r"(\s*,){2,}")
 _INLINE_SPACE_RE = re.compile(r"[ \t]+")
+_WEIGHTED_TOKEN_RE = re.compile(r"^\(([^(),]+):[-+]?\d+(?:\.\d+)?\)$")
 DEFAULT_ANIMADEX_SITE = "https://animadex.net"
 
 
@@ -133,6 +134,34 @@ def _correct_builder_prompt(prompt: str, artist_overrides: str = "") -> str:
         artist_overrides=_prompt_tokens(artist_overrides),
     )
     return result.text
+
+
+def _metadata_filter_key(value: str) -> str:
+    value = _INLINE_SPACE_RE.sub(" ", str(value or "").strip(" ,\n\t"))
+    return value.replace("_", " ").casefold()
+
+
+def _metadata_filter_keys(value: str) -> set[str]:
+    keys = {_metadata_filter_key(value)}
+    weighted = _WEIGHTED_TOKEN_RE.match(str(value or "").strip())
+    if weighted:
+        keys.add(_metadata_filter_key(weighted.group(1)))
+    return {key for key in keys if key}
+
+
+def _filter_metadata_prompt(prompt: str, filter_words: str) -> str:
+    filter_keys: set[str] = set()
+    for word in _prompt_tokens(filter_words):
+        filter_keys.update(_metadata_filter_keys(word))
+    if not prompt or not filter_keys:
+        return prompt
+
+    kept = [
+        token
+        for token in _prompt_tokens(prompt)
+        if _metadata_filter_keys(token).isdisjoint(filter_keys)
+    ]
+    return ", ".join(kept)
 
 
 def _fit_to_1mp(width: int, height: int) -> tuple[int, int]:
@@ -404,6 +433,7 @@ class EasyUseAnimaPromptBuilder:
     def IS_CHANGED(cls, **kwargs):
         return _stable_change_key({
             "mode": "prompt_builder",
+            "metadata_filter_words": resolve_metadata_filter_words(),
             **{key: str(value) for key, value in sorted(kwargs.items())},
         })
 
@@ -453,6 +483,10 @@ class EasyUseAnimaPromptBuilder:
             )
             amg_prompt = _join_prompt_tokens(amg_core, trailing_prompt)
 
+        metadata_prompt = _filter_metadata_prompt(
+            metadata_prompt,
+            resolve_metadata_filter_words(),
+        )
         output_prompt = amg_prompt if use_amg else regular_prompt
 
         return (

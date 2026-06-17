@@ -185,6 +185,29 @@ class PromptBuilderTests(unittest.TestCase):
         )
         self.assertEqual(prompt, metadata)
 
+    def test_metadata_filter_only_changes_metadata_prompt(self):
+        with patch("nodes.resolve_metadata_filter_words", return_value="best quality\nhigh detail"):
+            prompt, quality, use_amg, metadata = EasyUseAnimaPromptBuilder().build(
+                False,
+                False,
+                "masterpiece, best quality",
+                "@artist_name",
+                "",
+                "1girl, long hair",
+                "(high detail:0.6)",
+            )
+
+        self.assertFalse(use_amg)
+        self.assertEqual(quality, "masterpiece, best quality")
+        self.assertEqual(
+            prompt,
+            "masterpiece, best quality, 1girl, @artist_name, long hair, (high detail:0.6)",
+        )
+        self.assertEqual(
+            metadata,
+            "masterpiece, 1girl, @artist_name, long hair",
+        )
+
 
 class AnimaDexDatasetDownloadTests(unittest.TestCase):
     def test_dataset_status_reports_downloaded_indexes(self):
@@ -206,6 +229,7 @@ class AnimaDexDatasetDownloadTests(unittest.TestCase):
 
     def test_public_settings_does_not_expose_token_file(self):
         self.assertNotIn("animadex.token_file", public_settings())
+        self.assertIn("prompt.metadata_filter_words", public_settings())
 
     def test_cached_dataset_does_not_require_token(self):
         with tempfile.TemporaryDirectory() as tmp:

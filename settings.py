@@ -14,6 +14,7 @@ LEGACY_SETTINGS_FILE = LEGACY_PACKAGE_DATA_DIR / "settings.json"
 DEFAULT_SETTINGS = {
     "animadex.token": "",
     "animadex.site": "https://animadex.net",
+    "prompt.metadata_filter_words": "",
 }
 
 
@@ -51,6 +52,7 @@ def public_settings() -> dict:
     return {
         "animadex.token_configured": bool(settings.get("animadex.token")),
         "animadex.site": settings.get("animadex.site", DEFAULT_SETTINGS["animadex.site"]),
+        "prompt.metadata_filter_words": settings.get("prompt.metadata_filter_words", ""),
     }
 
 
@@ -67,3 +69,11 @@ def resolve_animadex_site(site_override: str = "") -> str:
         return str(site_override).strip()
     settings = get_settings()
     return settings.get("animadex.site", DEFAULT_SETTINGS["animadex.site"]).strip()
+
+
+def resolve_metadata_filter_words() -> str:
+    settings = get_settings()
+    return settings.get(
+        "prompt.metadata_filter_words",
+        DEFAULT_SETTINGS["prompt.metadata_filter_words"],
+    )

@@ -20,6 +20,15 @@ function setSetting(key, value) {
   });
 }
 
+async function saveSetting(key, value) {
+  const response = await setSetting(key, value);
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    throw new Error(data.message || `HTTP ${response.status}`);
+  }
+  return data;
+}
+
 async function getDatasetStatus() {
   const response = await fetch("/easyuse_anima/animadex_status");
   const data = await response.json().catch(() => ({}));
@@ -72,15 +81,94 @@ async function runDownload(forceRefresh = false, button = null) {
 
 const statusPanels = new Set();
 
+function sectionHeader(title, description) {
+  const container = document.createElement("div");
+  container.style.cssText =
+    "max-width: 760px; padding: 9px 0 4px; border-top: 1px solid rgba(128, 128, 128, 0.28);";
+
+  const heading = document.createElement("div");
+  heading.textContent = title;
+  heading.style.cssText = "font-weight: 700; margin-bottom: 3px;";
+  container.append(heading);
+
+  if (description) {
+    const text = document.createElement("div");
+    text.textContent = description;
+    text.style.cssText = "opacity: 0.74; line-height: 1.45; font-size: 0.92em;";
+    container.append(text);
+  }
+
+  return container;
+}
+
+function metadataFilterEditor(initialValue = "") {
+  const container = document.createElement("div");
+  container.style.cssText = "max-width: 760px; line-height: 1.45;";
+
+  const guide = document.createElement("div");
+  guide.textContent =
+    "Comma- or newline-separated prompt tags to remove only from Anima Prompt Builder metadata_prompt. The normal prompt output is not filtered.";
+  guide.style.cssText = "margin-bottom: 6px; opacity: 0.78;";
+  container.append(guide);
+
+  const textarea = document.createElement("textarea");
+  textarea.value = initialValue || "";
+  textarea.placeholder = "best quality\nlowres\nhigh detail";
+  textarea.rows = 4;
+  textarea.style.cssText =
+    "box-sizing: border-box; width: min(100%, 560px); min-height: 86px; resize: vertical;";
+  container.append(textarea);
+
+  const controls = document.createElement("div");
+  controls.style.cssText = "display: flex; align-items: center; gap: 8px; margin-top: 7px;";
+
+  const saveButton = document.createElement("button");
+  saveButton.textContent = "Save Metadata Filter";
+  saveButton.style.cssText = "padding: 5px 10px; cursor: pointer;";
+
+  const status = document.createElement("span");
+  status.style.cssText = "opacity: 0.76;";
+
+  saveButton.onclick = async () => {
+    const originalText = saveButton.textContent;
+    try {
+      saveButton.disabled = true;
+      saveButton.textContent = "Saving...";
+      await saveSetting("prompt.metadata_filter_words", textarea.value);
+      status.textContent = "Saved";
+      status.style.color = "#16a34a";
+    } catch (error) {
+      status.textContent = `Save failed: ${error.message || error}`;
+      status.style.color = "#dc2626";
+    } finally {
+      saveButton.disabled = false;
+      saveButton.textContent = originalText;
+    }
+  };
+
+  controls.append(saveButton, status);
+  container.append(controls);
+
+  return container;
+}
+
 function formatFileStatus(fileStatus) {
   if (!fileStatus?.exists) {
-    return `missing: ${fileStatus?.path || ""}`;
+    return {
+      state: "missing",
+      detail: "",
+      path: fileStatus?.path || "",
+    };
   }
   const size = Number(fileStatus.size || 0).toLocaleString();
   const mtime = fileStatus.mtime
     ? new Date(fileStatus.mtime * 1000).toLocaleString()
     : "unknown time";
-  return `found (${size} bytes, ${mtime}): ${fileStatus.path}`;
+  return {
+    state: "found",
+    detail: `${size} bytes, ${mtime}`,
+    path: fileStatus.path || "",
+  };
 }
 
 function appendLine(container, label, value, valueStyle = "") {
@@ -93,6 +181,29 @@ function appendLine(container, label, value, valueStyle = "") {
     span.style.cssText = valueStyle;
   }
   row.append(strong, span);
+  container.append(row);
+}
+
+function appendPathLine(container, label, value) {
+  appendLine(container, label, value, "opacity: 0.66; font-weight: 400;");
+}
+
+function appendFileStatusLine(container, label, fileStatus) {
+  const info = formatFileStatus(fileStatus);
+  const row = document.createElement("div");
+  row.style.cssText = "margin: 2px 0;";
+
+  const strong = document.createElement("strong");
+  strong.textContent = `${label}: `;
+
+  const status = document.createElement("span");
+  status.textContent = info.detail ? `${info.state} (${info.detail})` : info.state;
+
+  const path = document.createElement("span");
+  path.textContent = info.path ? ` - ${info.path}` : "";
+  path.style.cssText = "opacity: 0.58; font-weight: 400;";
+
+  row.append(strong, status, path);
   container.append(row);
 }
 
@@ -124,9 +235,9 @@ function renderStatusPanel(panel, status) {
       : "color: #ca8a04; font-weight: 700;",
   );
   appendLine(panel, "Token", status.token_configured ? "configured" : "not configured");
-  appendLine(panel, "Storage", status.data_dir || "");
-  appendLine(panel, "Character index", formatFileStatus(status.character_index));
-  appendLine(panel, "Artist index", formatFileStatus(status.artist_index));
+  appendPathLine(panel, "Storage", status.data_dir || "");
+  appendFileStatusLine(panel, "Character index", status.character_index);
+  appendFileStatusLine(panel, "Artist index", status.artist_index);
 
   const refresh = document.createElement("button");
   refresh.textContent = "Refresh Status";
@@ -172,6 +283,31 @@ app.registerExtension({
     const tokenConfigured = settings["animadex.token_configured"] === true;
 
     app.ui.settings.addSetting({
+      id: "EasyUseAnima.Section.Prompt",
+      name: "EasyUse Anima: Prompt",
+      type: () => sectionHeader(
+        "Prompt metadata",
+        "Controls that affect generated prompt text or metadata-only output.",
+      ),
+    });
+
+    app.ui.settings.addSetting({
+      id: "EasyUseAnima.Prompt.MetadataFilter",
+      name: "EasyUse Anima: Metadata Prompt Filter",
+      type: () => metadataFilterEditor(settings["prompt.metadata_filter_words"] || ""),
+      tooltip: "Remove these tags only from Anima Prompt Builder metadata_prompt.",
+    });
+
+    app.ui.settings.addSetting({
+      id: "EasyUseAnima.Section.AnimaDex",
+      name: "EasyUse Anima: AnimaDex",
+      type: () => sectionHeader(
+        "AnimaDex dataset",
+        "Token, download status, and dataset refresh controls.",
+      ),
+    });
+
+    app.ui.settings.addSetting({
       id: "EasyUseAnima.AnimaDex.Token",
       name: tokenConfigured
         ? "EasyUse Anima: AnimaDex Export Token (saved; enter to replace)"
@@ -179,7 +315,7 @@ app.registerExtension({
       type: "text",
       defaultValue: "",
       onChange: async (value) => {
-        await setSetting("animadex.token", value);
+        await saveSetting("animadex.token", value);
         await refreshStatusPanels();
       },
     });
@@ -195,7 +331,7 @@ app.registerExtension({
       name: "EasyUse Anima: AnimaDex Site",
       type: "text",
       defaultValue: settings["animadex.site"] || "https://animadex.net",
-      onChange: (value) => setSetting("animadex.site", value),
+      onChange: (value) => saveSetting("animadex.site", value),
     });
 
     app.ui.settings.addSetting({
