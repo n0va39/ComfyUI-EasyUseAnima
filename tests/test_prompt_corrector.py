@@ -451,6 +451,20 @@ class AutocompleteDatasetTests(unittest.TestCase):
         self.assertEqual(result["tokens"][6]["base"], "A highly aesthetic Pixiv style illustration, clean composition.")
         self.assertFalse(result["tokens"][7]["learned"])
 
+    def test_classifies_count_after_natural_language_sentence(self):
+        result = classify_prompt_text(
+            (
+                "An intelligent and neat girl with long silver hair and grey eyes wearing glasses "
+                "and an elegant white fantasy academy uniform. She has a sharp sword sheathed "
+                "at her waist, standing calmly inside a grand academy principal office next to "
+                "a large desk. The shot is captured from the thighs up. 1girl, silver hair"
+            )
+        )
+
+        sections = [token["section"] for token in result["tokens"][:4]]
+        self.assertEqual(sections, ["natural", "natural", "count", "unknown"])
+        self.assertEqual(result["tokens"][2]["base"], "1girl")
+
 
 if __name__ == "__main__":
     unittest.main()

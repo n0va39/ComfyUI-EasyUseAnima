@@ -30,7 +30,6 @@ const SECTION_STYLES = {
 };
 
 const LEGEND_ITEMS = ["count", "character", "artist", "copyright", "general", "meta", "natural", "artist_unknown", "unknown"];
-const LEGEND_HEIGHT = 45;
 const LEGEND_ROW_HEIGHT = 14;
 
 const WEIGHTED_TOKEN_RE = /^\((.*):[-+]?\d+(?:\.\d+)?\)$/s;
@@ -205,6 +204,70 @@ function tokenTitle(token) {
   return `${label}${learned}`;
 }
 
+function tokenSpanHtml(text, token) {
+  return `<span style="${tokenStyle(token)}" title="${escapeHtml(tokenTitle(token))}">`
+    + escapeHtml(text)
+    + "</span>";
+}
+
+function findTokenMatch(body, offset, token) {
+  let start = offset;
+  while (start < body.length && /\s/.test(body[start])) {
+    start += 1;
+  }
+
+  const candidates = [
+    String(token?.token || ""),
+    String(token?.base || ""),
+  ].filter(Boolean);
+  for (const candidate of candidates) {
+    if (body.slice(start, start + candidate.length) === candidate) {
+      return { start, end: start + candidate.length };
+    }
+    const normalized = normalize(candidate);
+    const maxEnd = Math.min(body.length, start + candidate.length + 32);
+    for (let end = start + 1; end <= maxEnd; end += 1) {
+      const prefix = normalize(body.slice(start, end));
+      if (prefix === normalized) {
+        return { start, end };
+      }
+      if (prefix.length > normalized.length + 8) {
+        break;
+      }
+    }
+  }
+  return null;
+}
+
+function renderSequentialBody(body, tokens, startIndex) {
+  let cursor = 0;
+  let index = startIndex;
+  let matched = 0;
+  const html = [];
+
+  while (index < (tokens?.length || 0)) {
+    const token = tokens[index];
+    const match = findTokenMatch(body, cursor, token);
+    if (!match) {
+      break;
+    }
+    html.push(escapeHtml(body.slice(cursor, match.start)));
+    html.push(tokenSpanHtml(body.slice(match.start, match.end), token));
+    cursor = match.end;
+    index += 1;
+    matched += 1;
+    if (!body.slice(cursor).trim()) {
+      break;
+    }
+  }
+
+  if (!matched) {
+    return null;
+  }
+  html.push(escapeHtml(body.slice(cursor)));
+  return { html: html.join(""), nextIndex: index };
+}
+
 function renderHighlightedText(text, tokens) {
   const byBase = new Map();
   for (const token of tokens || []) {
@@ -233,20 +296,25 @@ function renderHighlightedText(text, tokens) {
     const token = normalize(sequential?.base || sequential?.token) === baseKey
       ? sequential
       : byBase.get(baseKey);
-    tokenIndex += 1;
 
-    if (!token) {
-      html.push(escapeHtml(part.text));
+    if (token) {
+      tokenIndex += 1;
+      html.push(escapeHtml(leading));
+      html.push(tokenSpanHtml(body, token));
+      html.push(escapeHtml(trailing));
       continue;
     }
 
-    html.push(escapeHtml(leading));
-    html.push(
-      `<span style="${tokenStyle(token)}" title="${escapeHtml(tokenTitle(token))}">`
-      + escapeHtml(body)
-      + "</span>",
-    );
-    html.push(escapeHtml(trailing));
+    const rendered = renderSequentialBody(body, tokens, tokenIndex);
+    if (rendered) {
+      tokenIndex = rendered.nextIndex;
+      html.push(escapeHtml(leading));
+      html.push(rendered.html);
+      html.push(escapeHtml(trailing));
+      continue;
+    }
+
+    html.push(escapeHtml(part.text));
   }
   return html.join("") || " ";
 }
@@ -330,61 +398,33 @@ function ensureHighlightOverlay(input) {
   return overlay;
 }
 
-function desiredLegendHeight(ctx, width) {
-  let x = 14;
-  let rows = 1;
-  const right = Math.max(28, width - 18);
-  ctx.font = "9px sans-serif";
-  for (const key of LEGEND_ITEMS) {
-    const label = SECTION_STYLES[key].label;
-    const itemWidth = Math.min(ctx.measureText(label).width + 24, Math.max(24, right - 14));
-    if (x > 14 && x + itemWidth > right) {
-      x = 14;
-      rows += 1;
-    }
-    x += itemWidth + 6;
-  }
-  return Math.max(LEGEND_HEIGHT, 34 + rows * LEGEND_ROW_HEIGHT);
+function desiredLegendHeight() {
+  return 18 + LEGEND_ITEMS.length * LEGEND_ROW_HEIGHT;
 }
 
 function drawLegend(ctx, node, widget, width, y) {
-  const nextHeight = desiredLegendHeight(ctx, width);
+  const nextHeight = desiredLegendHeight();
   if (Math.abs(nextHeight - widget.__height) > 2) {
     widget.__height = nextHeight;
     refreshNodeSize(node);
   }
-  const height = widget.__height || LEGEND_HEIGHT;
   ctx.save();
-  ctx.fillStyle = "rgba(51, 51, 51, 0.82)";
-  ctx.strokeStyle = "rgba(255, 255, 255, 0.55)";
-  ctx.lineWidth = 1;
-  ctx.beginPath();
-  ctx.rect(8, y + 5, width - 16, height - 10);
-  ctx.fill();
-  ctx.stroke();
-  ctx.clip();
 
   ctx.font = "9px sans-serif";
   ctx.fillStyle = "#94a3b8";
-  ctx.fillText("Color legend", 14, y + 15);
+  ctx.fillText("Color legend", 14, y + 12);
 
-  let x = 14;
-  let rowY = y + 29;
-  const right = Math.max(28, width - 18);
+  const labelX = 28;
+  let rowY = y + 27;
   ctx.font = "9px sans-serif";
   for (const key of LEGEND_ITEMS) {
     const style = SECTION_STYLES[key];
     const label = style.label;
-    const itemWidth = Math.min(ctx.measureText(label).width + 24, Math.max(24, right - 14));
-    if (x > 14 && x + itemWidth > right) {
-      x = 14;
-      rowY += LEGEND_ROW_HEIGHT;
-    }
     ctx.fillStyle = style.background;
-    ctx.fillRect(x, rowY - 8, 10, 10);
+    ctx.fillRect(14, rowY - 8, 10, 10);
     ctx.fillStyle = style.color;
-    ctx.fillText(label, x + 14, rowY);
-    x += itemWidth + 6;
+    ctx.fillText(label, labelX, rowY);
+    rowY += LEGEND_ROW_HEIGHT;
   }
   ctx.restore();
 }
@@ -399,7 +439,7 @@ function ensureLegendWidget(node) {
     name,
     type: "easyuse_anima_color_legend",
     serialize: false,
-    __height: LEGEND_HEIGHT,
+    __height: desiredLegendHeight(),
     computeSize(width) {
       return [width, this.__height];
     },
