@@ -52,6 +52,7 @@ const cache = new Map();
 
 let popup = null;
 let activeState = null;
+let activeRefreshFrame = null;
 
 function ensureStyle() {
   if (document.getElementById("easyuse-anima-autocomplete-style")) {
@@ -124,6 +125,25 @@ function hidePopup() {
     popup.replaceChildren();
   }
   activeState = null;
+}
+
+function refreshActiveAutocomplete() {
+  if (!activeState?.input || document.activeElement !== activeState.input) {
+    hidePopup();
+    return;
+  }
+  activeState.reposition?.();
+  activeState.refresh?.();
+}
+
+function scheduleActiveRefresh() {
+  if (activeRefreshFrame != null) {
+    cancelAnimationFrame(activeRefreshFrame);
+  }
+  activeRefreshFrame = requestAnimationFrame(() => {
+    activeRefreshFrame = null;
+    refreshActiveAutocomplete();
+  });
 }
 
 function inputTypeName(inputSpec) {
@@ -390,24 +410,33 @@ function hookWidget(node, widget) {
     update.cancel();
     updateNow();
   };
+  const updateAfterCaretMove = () => {
+    update.cancel();
+    requestAnimationFrame(updateNow);
+    setTimeout(updateNow, 0);
+  };
+  state.refresh = updateFromCaret;
+  state.reposition = () => positionPopup(input);
 
   input.addEventListener("compositionstart", () => {
     composing = true;
   });
   input.addEventListener("compositionend", () => {
     composing = false;
-    updateFromCaret();
+    updateAfterCaretMove();
   });
   input.addEventListener("input", update);
   input.addEventListener("focus", updateFromCaret);
-  input.addEventListener("click", updateFromCaret);
-  input.addEventListener("mouseup", updateFromCaret);
+  input.addEventListener("click", updateAfterCaretMove);
+  input.addEventListener("mousedown", updateAfterCaretMove);
+  input.addEventListener("mouseup", updateAfterCaretMove);
+  input.addEventListener("pointerup", updateAfterCaretMove);
   input.addEventListener("keyup", (event) => {
     if (["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", "Home", "End", "PageUp", "PageDown"].includes(event.key)) {
-      updateFromCaret();
+      updateAfterCaretMove();
     }
   });
-  input.addEventListener("select", updateFromCaret);
+  input.addEventListener("select", updateAfterCaretMove);
   input.addEventListener("blur", () => {
     setTimeout(() => {
       if (activeState?.input === input) {
@@ -453,9 +482,16 @@ document.addEventListener("scroll", (event) => {
   if (popup?.contains(event.target)) {
     return;
   }
-  hidePopup();
+  scheduleActiveRefresh();
 }, true);
-window.addEventListener("resize", hidePopup);
+document.addEventListener("wheel", (event) => {
+  if (popup?.contains(event.target)) {
+    return;
+  }
+  scheduleActiveRefresh();
+}, true);
+document.addEventListener("selectionchange", scheduleActiveRefresh);
+window.addEventListener("resize", scheduleActiveRefresh);
 
 app.registerExtension({
   name: "easyuse-anima.autocomplete",
