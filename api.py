@@ -9,6 +9,7 @@ except ImportError:
 
 from .settings import public_settings, save_setting
 from .animadex_dataset import dataset_paths, dataset_status, download_animadex_dataset
+from .autocomplete_dataset import autocomplete_status, search_autocomplete
 
 
 if server is not None and web is not None:
@@ -62,3 +63,16 @@ if server is not None and web is not None:
     @server.PromptServer.instance.routes.get("/easyuse_anima/animadex_status")
     async def animadex_status_handler(request):
         return web.json_response(dataset_status())
+
+    @server.PromptServer.instance.routes.get("/easyuse_anima/autocomplete_status")
+    async def autocomplete_status_handler(request):
+        return web.json_response(autocomplete_status())
+
+    @server.PromptServer.instance.routes.get("/easyuse_anima/autocomplete")
+    async def autocomplete_handler(request):
+        query = request.query.get("q", "")
+        try:
+            limit = int(request.query.get("limit", "20"))
+        except ValueError:
+            limit = 20
+        return web.json_response(search_autocomplete(query, limit=limit))

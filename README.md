@@ -74,6 +74,17 @@ Behavior:
 - `pin_trigger_tags_to_front=true`: trigger fields are fixed at the front before
   quality tags instead of being placed after leading quality tags.
 
+Autocomplete:
+
+- Prompt Builder and Prompt Corrector text fields use the bundled Korean
+  Danbooru CSV under `__easyuse_anima__`.
+- Type English tags or Korean words from the description/keywords, then use
+  arrow keys and Enter/Tab to insert a suggestion.
+- Autocomplete is scoped to EasyUse Anima nodes and is not attached to LoRA
+  Manager / Lora Stacker nodes.
+
+The bundled Korean Danbooru CSV is included with permission from its author.
+
 ### Anima Prompt Corrector
 
 Category: `EasyUse Anima/Prompt`

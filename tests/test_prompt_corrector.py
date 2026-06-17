@@ -11,6 +11,7 @@ from nodes import (
     EasyUseAnimaPromptBuilder,
     EasyUseAnimaPromptCorrector,
 )
+from autocomplete_dataset import autocomplete_status, search_autocomplete
 from animadex_dataset import dataset_status
 from settings import public_settings
 
@@ -264,6 +265,32 @@ class AnimaDexDatasetDownloadTests(unittest.TestCase):
                         False,
                         False,
                     )
+
+
+class AutocompleteDatasetTests(unittest.TestCase):
+    def test_searches_english_tags_and_korean_descriptions(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "tags.csv"
+            path.write_text(
+                "\n".join(
+                    [
+                        '1girl,0,100,"[인물] 여성 캐릭터 한 명. 키워드: 여자 1명"',
+                        'long hair,0,90,"[패션] 긴 머리, 장발"',
+                        'blue eyes,0,80,"[신체] 파란 눈, 벽안"',
+                    ]
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+
+            english = search_autocomplete("long", path=path)
+            korean = search_autocomplete("장발", path=path)
+            status = autocomplete_status(path)
+
+        self.assertEqual(english["results"][0]["tag"], "long hair")
+        self.assertEqual(korean["results"][0]["tag"], "long hair")
+        self.assertTrue(status["exists"])
+        self.assertEqual(status["count"], 3)
 
 
 if __name__ == "__main__":
