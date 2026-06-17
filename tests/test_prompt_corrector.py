@@ -14,7 +14,12 @@ from nodes import (
     EasyUseAnimaPromptCorrector,
     EasyUseAnimaPromptStudio,
 )
-from autocomplete_dataset import autocomplete_status, classify_prompt_text, search_autocomplete
+from autocomplete_dataset import (
+    autocomplete_status,
+    available_autocomplete_sources,
+    classify_prompt_text,
+    search_autocomplete,
+)
 from animadex_dataset import dataset_status
 from settings import public_settings
 
@@ -271,6 +276,7 @@ class AnimaDexDatasetDownloadTests(unittest.TestCase):
     def test_public_settings_does_not_expose_token_file(self):
         self.assertNotIn("animadex.token_file", public_settings())
         self.assertIn("prompt.metadata_filter_words", public_settings())
+        self.assertIn("autocomplete.source", public_settings())
 
     def test_cached_dataset_does_not_require_token(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -331,6 +337,39 @@ class AutocompleteDatasetTests(unittest.TestCase):
         self.assertEqual(korean["results"][0]["tag"], "long hair")
         self.assertTrue(status["exists"])
         self.assertEqual(status["count"], 3)
+
+    def test_searches_header_csv_format(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "tags.csv"
+            path.write_text(
+                "\n".join(
+                    [
+                        "name,category,post_count,description",
+                        '1girl,0,100,"[인물 > 인원수] 여성 캐릭터 한 명. 키워드: 여자 1명"',
+                        'hatsune miku,4,90,"[캐릭터] 하츠네 미쿠"',
+                    ]
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+
+            korean = search_autocomplete("하츠네", path=path)
+            status = autocomplete_status(path)
+
+        self.assertEqual(korean["results"][0]["tag"], "hatsune miku")
+        self.assertEqual(korean["results"][0]["category"], "character")
+        self.assertEqual(status["count"], 2)
+
+    def test_lists_autocomplete_sources(self):
+        sources = available_autocomplete_sources("localsmile_kr_wiki")
+
+        self.assertTrue(any(source["key"] == "kr_modified" for source in sources))
+        self.assertTrue(
+            any(
+                source["key"] == "localsmile_kr_wiki" and source["selected"]
+                for source in sources
+            )
+        )
 
     def test_classifies_count_character_and_learned_tags(self):
         with tempfile.TemporaryDirectory() as tmp:

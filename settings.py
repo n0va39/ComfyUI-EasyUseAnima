@@ -15,6 +15,7 @@ DEFAULT_SETTINGS = {
     "animadex.token": "",
     "animadex.site": "https://animadex.net",
     "prompt.metadata_filter_words": "",
+    "autocomplete.source": "kr_modified",
 }
 
 
@@ -53,6 +54,10 @@ def public_settings() -> dict:
         "animadex.token_configured": bool(settings.get("animadex.token")),
         "animadex.site": settings.get("animadex.site", DEFAULT_SETTINGS["animadex.site"]),
         "prompt.metadata_filter_words": settings.get("prompt.metadata_filter_words", ""),
+        "autocomplete.source": settings.get(
+            "autocomplete.source",
+            DEFAULT_SETTINGS["autocomplete.source"],
+        ),
     }
 
 
@@ -77,3 +82,8 @@ def resolve_metadata_filter_words() -> str:
         "prompt.metadata_filter_words",
         DEFAULT_SETTINGS["prompt.metadata_filter_words"],
     )
+
+
+def resolve_autocomplete_source() -> str:
+    settings = get_settings()
+    return settings.get("autocomplete.source", DEFAULT_SETTINGS["autocomplete.source"])

@@ -38,6 +38,15 @@ async function getDatasetStatus() {
   return data;
 }
 
+async function getAutocompleteStatus() {
+  const response = await fetch("/easyuse_anima/autocomplete_status");
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    throw new Error(data.message || `HTTP ${response.status}`);
+  }
+  return data;
+}
+
 async function downloadAnimaDexDataset(forceRefresh = false) {
   const response = await fetch("/easyuse_anima/download_animadex", {
     method: "POST",
@@ -80,6 +89,7 @@ async function runDownload(forceRefresh = false, button = null) {
 }
 
 const statusPanels = new Set();
+const autocompletePanels = new Set();
 
 function sectionHeader(title, description) {
   const container = document.createElement("div");
@@ -152,6 +162,83 @@ function metadataFilterEditor(initialValue = "") {
   return container;
 }
 
+function autocompleteDatasetSelector(initialValue = "") {
+  const container = document.createElement("div");
+  container.style.cssText = "max-width: 760px; line-height: 1.45;";
+
+  const guide = document.createElement("div");
+  guide.textContent =
+    "Choose which bundled CSV is used for tag autocomplete and Prompt Studio tag highlighting. Korean searches use the selected CSV description text.";
+  guide.style.cssText = "margin-bottom: 7px; opacity: 0.78;";
+  container.append(guide);
+
+  const row = document.createElement("div");
+  row.style.cssText = "display: flex; align-items: center; flex-wrap: wrap; gap: 8px;";
+
+  const select = document.createElement("select");
+  select.style.cssText = "min-width: min(100%, 340px); padding: 4px 8px;";
+
+  const saveButton = document.createElement("button");
+  saveButton.textContent = "Save Autocomplete CSV";
+  saveButton.style.cssText = "padding: 5px 10px; cursor: pointer;";
+
+  const message = document.createElement("span");
+  message.style.cssText = "opacity: 0.76;";
+
+  row.append(select, saveButton, message);
+  container.append(row);
+
+  const panel = document.createElement("div");
+  panel.style.cssText = "margin-top: 8px;";
+  container.append(panel);
+  autocompletePanels.add(panel);
+
+  const renderOptions = (status) => {
+    const sources = Array.isArray(status.sources) ? status.sources : [];
+    const selected = status.source || initialValue;
+    select.replaceChildren();
+    for (const source of sources) {
+      const option = document.createElement("option");
+      option.value = source.key;
+      option.textContent = source.exists ? source.label : `${source.label} (missing)`;
+      option.selected = source.key === selected;
+      select.append(option);
+    }
+  };
+
+  const refresh = async () => {
+    try {
+      const status = await getAutocompleteStatus();
+      renderOptions(status);
+      renderAutocompletePanel(panel, status);
+    } catch (error) {
+      panel.textContent = `Could not read autocomplete CSV status: ${error.message || error}`;
+    }
+  };
+
+  saveButton.onclick = async () => {
+    const originalText = saveButton.textContent;
+    try {
+      saveButton.disabled = true;
+      saveButton.textContent = "Saving...";
+      const data = await saveSetting("autocomplete.source", select.value);
+      message.textContent = "Saved";
+      message.style.color = "#16a34a";
+      renderOptions({ sources: panel._easyuseSources || [], source: data["autocomplete.source"] });
+      await refreshAutocompletePanels();
+    } catch (error) {
+      message.textContent = `Save failed: ${error.message || error}`;
+      message.style.color = "#dc2626";
+    } finally {
+      saveButton.disabled = false;
+      saveButton.textContent = originalText;
+    }
+  };
+
+  refresh();
+  return container;
+}
+
 function formatFileStatus(fileStatus) {
   if (!fileStatus?.exists) {
     return {
@@ -207,6 +294,35 @@ function appendFileStatusLine(container, label, fileStatus) {
   container.append(row);
 }
 
+function renderAutocompletePanel(panel, status) {
+  panel.replaceChildren();
+  panel._easyuseSources = Array.isArray(status.sources) ? status.sources : [];
+
+  const selected = panel._easyuseSources.find((source) => source.key === status.source);
+  const banner = document.createElement("div");
+  banner.textContent = status.exists
+    ? `Autocomplete CSV is ready: ${selected?.label || status.source || "selected CSV"}`
+    : "Selected autocomplete CSV is missing.";
+  banner.style.cssText = status.exists
+    ? "margin: 8px 0; padding: 8px 10px; border-radius: 6px; background: rgba(22, 163, 74, 0.16); color: #16a34a; font-weight: 700;"
+    : "margin: 8px 0; padding: 8px 10px; border-radius: 6px; background: rgba(220, 38, 38, 0.14); color: #dc2626; font-weight: 700;";
+  panel.append(banner);
+
+  appendLine(panel, "Selected", selected?.label || status.source || "");
+  appendLine(panel, "Tag count", Number(status.count || 0).toLocaleString());
+  appendPathLine(panel, "Path", status.path || "");
+
+  if (selected?.source) {
+    appendLine(panel, "Source", selected.source, "opacity: 0.72; font-weight: 400;");
+  }
+
+  const refresh = document.createElement("button");
+  refresh.textContent = "Refresh Autocomplete Status";
+  refresh.style.cssText = "margin-top: 8px; padding: 4px 10px; cursor: pointer;";
+  refresh.onclick = () => refreshAutocompletePanel(panel);
+  panel.append(refresh);
+}
+
 function renderStatusPanel(panel, status) {
   panel.replaceChildren();
 
@@ -259,6 +375,19 @@ async function refreshStatusPanels() {
   await Promise.all([...statusPanels].map((panel) => refreshStatusPanel(panel)));
 }
 
+async function refreshAutocompletePanel(panel) {
+  try {
+    const status = await getAutocompleteStatus();
+    renderAutocompletePanel(panel, status);
+  } catch (error) {
+    panel.textContent = `Could not read autocomplete CSV status: ${error.message || error}`;
+  }
+}
+
+async function refreshAutocompletePanels() {
+  await Promise.all([...autocompletePanels].map((panel) => refreshAutocompletePanel(panel)));
+}
+
 function datasetStatusPanel() {
   const panel = document.createElement("div");
   panel.style.cssText = "max-width: 760px; line-height: 1.45; white-space: normal;";
@@ -296,6 +425,13 @@ app.registerExtension({
       name: "EasyUse Anima: Metadata Prompt Filter",
       type: () => metadataFilterEditor(settings["prompt.metadata_filter_words"] || ""),
       tooltip: "Remove these tags only from Anima Prompt Builder metadata_prompt.",
+    });
+
+    app.ui.settings.addSetting({
+      id: "EasyUseAnima.Prompt.AutocompleteCsv",
+      name: "EasyUse Anima: Autocomplete CSV",
+      type: () => autocompleteDatasetSelector(settings["autocomplete.source"] || ""),
+      tooltip: "Select which bundled Korean Danbooru CSV powers autocomplete and tag highlighting.",
     });
 
     app.ui.settings.addSetting({

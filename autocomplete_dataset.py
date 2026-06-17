@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import csv
+import itertools
 import re
 import time
 import unicodedata
@@ -15,6 +16,21 @@ except ImportError:
     from anima_prompt.parser import parse_prompt
 
 AUTOCOMPLETE_CSV = PACKAGE_DATA_DIR / "KR_danbooru_tags_with_description v3_modified.csv"
+LOCALSMILE_AUTOCOMPLETE_CSV = PACKAGE_DATA_DIR / "danbooru_tags_classified.csv"
+
+DEFAULT_AUTOCOMPLETE_SOURCE = "kr_modified"
+AUTOCOMPLETE_SOURCES = {
+    DEFAULT_AUTOCOMPLETE_SOURCE: {
+        "label": "KR danbooru tags with description v3 modified",
+        "path": AUTOCOMPLETE_CSV,
+        "source": "Bundled with author permission",
+    },
+    "localsmile_kr_wiki": {
+        "label": "Localsmile danbooru KR wiki tag search",
+        "path": LOCALSMILE_AUTOCOMPLETE_CSV,
+        "source": "https://github.com/Localsmile/danbooru_KR_wiki_tag_search",
+    },
+}
 
 _INLINE_SPACE_RE = re.compile(r"[ \t]+")
 _CATEGORY_NAMES = {
@@ -46,6 +62,31 @@ class AutocompleteEntry:
     count: int
     description: str
     search: str
+
+
+def resolve_autocomplete_source(source: str | None = None) -> tuple[str, Path]:
+    key = str(source or "").strip() or DEFAULT_AUTOCOMPLETE_SOURCE
+    if key not in AUTOCOMPLETE_SOURCES:
+        key = DEFAULT_AUTOCOMPLETE_SOURCE
+    return key, Path(AUTOCOMPLETE_SOURCES[key]["path"])
+
+
+def available_autocomplete_sources(selected: str | None = None) -> list[dict]:
+    selected_key, _ = resolve_autocomplete_source(selected)
+    sources = []
+    for key, data in AUTOCOMPLETE_SOURCES.items():
+        path = Path(data["path"])
+        sources.append(
+            {
+                "key": key,
+                "label": data["label"],
+                "source": data.get("source", ""),
+                "path": str(path),
+                "exists": path.is_file(),
+                "selected": key == selected_key,
+            }
+        )
+    return sources
 
 
 def _normalize(value: str) -> str:
@@ -87,6 +128,36 @@ def _safe_count(value: str) -> int:
         return 0
 
 
+def _normalize_category(value: str) -> str:
+    value = str(value or "").strip()
+    return _CATEGORY_NAMES.get(value, value or "general")
+
+
+def _entry_from_parts(tag: str, category: str, count: str, description: str) -> AutocompleteEntry | None:
+    tag = str(tag or "").strip()
+    if not tag:
+        return None
+    category = _normalize_category(category)
+    count_value = _safe_count(count)
+    description = _display_description(description)
+    category = _category_from_description(category, description)
+    search = _normalize(" ".join((tag, description)))
+    return AutocompleteEntry(
+        tag=tag,
+        category=category,
+        count=count_value,
+        description=description,
+        search=search,
+    )
+
+
+def _looks_like_header(row: list[str]) -> bool:
+    normalized = {str(column or "").strip().casefold() for column in row}
+    return bool({"name", "tag", "category"} & normalized) and (
+        "category" in normalized or "post_count" in normalized
+    )
+
+
 def _load_entries(path: Path = AUTOCOMPLETE_CSV) -> list[AutocompleteEntry]:
     entries: list[AutocompleteEntry] = []
     if not path.is_file():
@@ -94,26 +165,30 @@ def _load_entries(path: Path = AUTOCOMPLETE_CSV) -> list[AutocompleteEntry]:
 
     with path.open("r", encoding="utf-8-sig", newline="") as handle:
         reader = csv.reader(handle)
-        for row in reader:
-            if len(row) < 4:
-                continue
-            tag = row[0].strip()
-            if not tag:
-                continue
-            category = _CATEGORY_NAMES.get(row[1].strip(), row[1].strip())
-            count = _safe_count(row[2])
-            description = _display_description(row[3])
-            category = _category_from_description(category, description)
-            search = _normalize(" ".join((tag, description)))
-            entries.append(
-                AutocompleteEntry(
-                    tag=tag,
-                    category=category,
-                    count=count,
-                    description=description,
-                    search=search,
+        rows = iter(reader)
+        first_row = next(rows, None)
+        if first_row is None:
+            return entries
+
+        if _looks_like_header(first_row):
+            fieldnames = [str(column or "").strip() for column in first_row]
+            dict_reader = csv.DictReader(handle, fieldnames=fieldnames)
+            for row in dict_reader:
+                entry = _entry_from_parts(
+                    row.get("name") or row.get("tag") or "",
+                    row.get("category") or "",
+                    row.get("post_count") or row.get("count") or "",
+                    row.get("description") or row.get("wiki") or "",
                 )
-            )
+                if entry:
+                    entries.append(entry)
+        else:
+            for row in itertools.chain((first_row,), rows):
+                if len(row) < 4:
+                    continue
+                entry = _entry_from_parts(row[0], row[1], row[2], row[3])
+                if entry:
+                    entries.append(entry)
     entries.sort(key=lambda entry: entry.count, reverse=True)
     return entries
 

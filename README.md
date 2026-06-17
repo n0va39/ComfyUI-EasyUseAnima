@@ -76,8 +76,10 @@ Behavior:
 
 Autocomplete:
 
-- Prompt Builder and Prompt Corrector text fields use the bundled Korean
-  Danbooru CSV under `__easyuse_anima__`.
+- Prompt Builder and Prompt Corrector text fields use a bundled Korean Danbooru
+  CSV under `__easyuse_anima__`.
+- The CSV used for autocomplete and Prompt Studio tag highlighting can be
+  selected in ComfyUI Settings -> `EasyUse Anima: Autocomplete CSV`.
 - Generic multiline `STRING` prompt/text nodes, including primitive multiline
   string nodes, can also use the same autocomplete.
 - Type English tags or Korean words from the description/keywords, then use
@@ -85,7 +87,12 @@ Autocomplete:
 - Nodes or inputs that already expose LoRA/autocomplete-specific widgets, such
   as LoRA Manager / Lora Stacker nodes, are excluded.
 
-The bundled Korean Danbooru CSV is included with permission from its author.
+Bundled autocomplete CSV sources:
+
+- `KR_danbooru_tags_with_description v3_modified.csv`: included with
+  permission from its author.
+- `danbooru_tags_classified.csv`: from
+  `Localsmile/danbooru_KR_wiki_tag_search`.
 
 ### Anima Prompt Studio
 
