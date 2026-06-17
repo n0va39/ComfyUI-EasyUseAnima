@@ -365,7 +365,7 @@ function positionPopup(input) {
   const left = Math.min(window.innerWidth - width - 4, Math.max(4, caretRect.left));
   const lineHeight = Math.max(14, caretRect.height || Number.parseFloat(getComputedStyle(input).lineHeight) || 18);
   const visibleCaretBottom = Math.min(inputRect.bottom, Math.max(inputRect.top, caretRect.bottom));
-  const top = Math.max(visibleCaretBottom + 6, caretRect.top + lineHeight + 6);
+  const top = Math.max(visibleCaretBottom + lineHeight + 8, caretRect.top + lineHeight * 2 + 8);
   const maxHeight = Math.max(80, window.innerHeight - top - 4);
   menu.style.left = `${left}px`;
   menu.style.top = `${Math.max(4, top)}px`;
@@ -501,6 +501,9 @@ function renderResults(state, results) {
     }
 
     item.addEventListener("mousedown", (event) => {
+      if (event.button !== 0) {
+        return;
+      }
       event.preventDefault();
       commitSuggestion(activeState, entry);
     });
