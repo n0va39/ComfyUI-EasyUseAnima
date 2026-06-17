@@ -555,6 +555,38 @@ class EasyUseAnimaPromptStudio(EasyUseAnimaPromptBuilder):
 
     CATEGORY = "EasyUse Anima/Prompt"
 
+    def build(
+        self,
+        use_anima_mod_guidance: bool,
+        pin_trigger_tags_to_front: bool,
+        quality_tags: str,
+        trigger_and_artist_tags: str,
+        lora_trigger_tags: str,
+        prompt: str,
+        trailing_quality_tags: str,
+    ):
+        result = super().build(
+            use_anima_mod_guidance,
+            pin_trigger_tags_to_front,
+            quality_tags,
+            trigger_and_artist_tags,
+            lora_trigger_tags,
+            prompt,
+            trailing_quality_tags,
+        )
+        return {
+            "ui": {
+                "prompt_studio_inputs": [{
+                    "lora_trigger_tags": str(lora_trigger_tags or ""),
+                    "quality_tags": str(quality_tags or ""),
+                    "trigger_and_artist_tags": str(trigger_and_artist_tags or ""),
+                    "prompt": str(prompt or ""),
+                    "trailing_quality_tags": str(trailing_quality_tags or ""),
+                }]
+            },
+            "result": result,
+        }
+
 
 class EasyUseAnimaAnimaDexDatasetDownload:
     """Download AnimaDex CSV exports into the node pack local dataset store."""

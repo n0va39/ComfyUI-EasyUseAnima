@@ -252,7 +252,11 @@ class PromptBuilderTests(unittest.TestCase):
             "best quality",
         )
 
-        self.assertEqual(studio_output, builder_output)
+        self.assertEqual(studio_output["result"], builder_output)
+        self.assertEqual(
+            studio_output["ui"]["prompt_studio_inputs"][0]["prompt"],
+            "1girl, long hair",
+        )
 
 
 class AnimaDexDatasetDownloadTests(unittest.TestCase):

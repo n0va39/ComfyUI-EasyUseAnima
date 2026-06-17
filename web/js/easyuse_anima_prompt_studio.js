@@ -20,23 +20,34 @@ const FIELD_HEIGHTS = {
 const SECTION_STYLES = {
   count: { label: "인원수", color: "#60a5fa", background: "rgba(37, 99, 235, 0.18)", weight: 700 },
   character: { label: "캐릭터", color: "#f472b6", background: "rgba(219, 39, 119, 0.18)", weight: 700 },
-  artist: { label: "작가", color: "#a78bfa", background: "rgba(124, 58, 237, 0.18)", weight: 700 },
+  artist: { label: "@작가", color: "#a78bfa", background: "rgba(124, 58, 237, 0.18)", weight: 700 },
   copyright: { label: "작품", color: "#fb923c", background: "rgba(234, 88, 12, 0.18)", weight: 700 },
   meta: { label: "메타", color: "#94a3b8", background: "rgba(100, 116, 139, 0.18)", weight: 600 },
   general: { label: "학습 태그", color: "#4ade80", background: "rgba(22, 163, 74, 0.16)", weight: 600 },
   natural: { label: "자연어", color: "#cbd5e1", background: "rgba(71, 85, 105, 0.16)", weight: 400 },
-  unknown: { label: "미확인", color: "#f87171", background: "rgba(220, 38, 38, 0.18)", weight: 700 },
+  unknown: { label: "미확인", color: "#cbd5e1", background: "transparent", weight: 400 },
 };
 
 const LEGEND_ITEMS = ["count", "character", "artist", "copyright", "general", "meta", "natural", "unknown"];
-const LEGEND_HEIGHT = 58;
-const LEGEND_ROW_HEIGHT = 18;
+const LEGEND_HEIGHT = 45;
+const LEGEND_ROW_HEIGHT = 14;
 
 const WEIGHTED_TOKEN_RE = /^\((.*):[-+]?\d+(?:\.\d+)?\)$/s;
 const INLINE_SPACE_RE = /[ \t]+/g;
 
 function findWidget(node, name) {
   return node.widgets?.find((widget) => widget.name === name);
+}
+
+function firstValue(value, fallback = null) {
+  if (Array.isArray(value)) {
+    return value.length ? value[0] : fallback;
+  }
+  return value ?? fallback;
+}
+
+function isWidgetInputLinked(node, name) {
+  return !!node.inputs?.some((input) => input.widget?.name === name && input.link != null);
 }
 
 function ensureHighlightStyle() {
@@ -168,12 +179,14 @@ function splitPromptText(text) {
 function tokenStyle(token) {
   const style = SECTION_STYLES[token?.section] || SECTION_STYLES.unknown;
   const opacity = token?.learned || token?.section === "count" ? 1 : 0.88;
-  return [
+  const rules = [
     `color: ${style.color}`,
-    `background: ${style.background}`,
     `opacity: ${opacity}`,
-    "border-radius: 3px",
-  ].join("; ");
+  ];
+  if (style.background && style.background !== "transparent") {
+    rules.push(`background: ${style.background}`, "border-radius: 3px");
+  }
+  return rules.join("; ");
 }
 
 function tokenTitle(token) {
@@ -311,10 +324,10 @@ function ensureHighlightOverlay(input) {
 function desiredLegendHeight(ctx, width) {
   let x = 14;
   let rows = 1;
-  ctx.font = "11px sans-serif";
+  ctx.font = "9px sans-serif";
   for (const key of LEGEND_ITEMS) {
     const label = SECTION_STYLES[key].label;
-    const itemWidth = ctx.measureText(label).width + 36;
+    const itemWidth = ctx.measureText(label).width + 25;
     if (x + itemWidth > width - 12) {
       x = 14;
       rows += 1;
@@ -340,26 +353,26 @@ function drawLegend(ctx, node, widget, width, y) {
   }
   ctx.fill();
 
-  ctx.font = "10px sans-serif";
+  ctx.font = "9px sans-serif";
   ctx.fillStyle = "#94a3b8";
-  ctx.fillText("Color legend", 14, y + 18);
+  ctx.fillText("Color legend", 14, y + 15);
 
   let x = 14;
-  let rowY = y + 34;
-  ctx.font = "11px sans-serif";
+  let rowY = y + 29;
+  ctx.font = "9px sans-serif";
   for (const key of LEGEND_ITEMS) {
     const style = SECTION_STYLES[key];
     const label = style.label;
-    const itemWidth = ctx.measureText(label).width + 36;
+    const itemWidth = ctx.measureText(label).width + 25;
     if (x + itemWidth > width - 12) {
       x = 14;
       rowY += LEGEND_ROW_HEIGHT;
     }
     ctx.fillStyle = style.background;
-    ctx.fillRect(x, rowY - 10, 14, 14);
+    ctx.fillRect(x, rowY - 8, 10, 10);
     ctx.fillStyle = style.color;
-    ctx.fillText(label, x + 19, rowY + 1);
-    x += itemWidth + 10;
+    ctx.fillText(label, x + 14, rowY);
+    x += itemWidth + 6;
   }
   ctx.restore();
 }
@@ -387,7 +400,14 @@ function ensureLegendWidget(node) {
   return widget;
 }
 
-function updateHighlight(widget, tokens = widget.__easyuseAnimaTokens || []) {
+function displayText(node, widget) {
+  if (isWidgetInputLinked(node, widget.name) && widget.__easyuseAnimaExecutedText != null) {
+    return String(widget.__easyuseAnimaExecutedText);
+  }
+  return String(widget?.inputEl?.value ?? widget?.value ?? "");
+}
+
+function updateHighlight(node, widget, tokens = widget.__easyuseAnimaTokens || []) {
   const input = widget?.inputEl;
   if (!(input instanceof HTMLTextAreaElement || input instanceof HTMLInputElement)) {
     return;
@@ -398,7 +418,7 @@ function updateHighlight(widget, tokens = widget.__easyuseAnimaTokens || []) {
   }
   copyInputTextMetrics(input, overlay);
   syncOverlayBounds(input, overlay);
-  const value = input.value || widget.value || "";
+  const value = displayText(node, widget);
   overlay.innerHTML = value
     ? renderHighlightedText(value, tokens)
     : `<span style="opacity: 0.45">${escapeHtml(input.placeholder || "")}</span>`;
@@ -438,10 +458,10 @@ function enhanceResizableInput(node, widget) {
       input.style.height = `${height}px`;
       refreshNodeSize(node);
     }
-    updateHighlight(widget);
+    updateHighlight(node, widget);
   };
 
-  updateHighlight(widget);
+  updateHighlight(node, widget);
   if (input.__easyuseAnimaStudioResizable) {
     return;
   }
@@ -449,7 +469,7 @@ function enhanceResizableInput(node, widget) {
   input.addEventListener("mouseup", syncHeight);
   input.addEventListener("pointerup", syncHeight);
   input.addEventListener("input", syncHeight);
-  input.addEventListener("scroll", () => updateHighlight(widget));
+  input.addEventListener("scroll", () => updateHighlight(node, widget));
   input.__easyuseAnimaStudioResizable = true;
 }
 
@@ -466,10 +486,10 @@ function hookStudioNode(node) {
       if (!widget) {
         return;
       }
-      const text = String(widget.inputEl?.value ?? widget.value ?? "");
+      const text = displayText(node, widget);
       if (!text.trim()) {
         widget.__easyuseAnimaTokens = [];
-        updateHighlight(widget);
+        updateHighlight(node, widget);
         return;
       }
 
@@ -480,10 +500,10 @@ function hookStudioNode(node) {
           return;
         }
         widget.__easyuseAnimaTokens = tokens;
-        updateHighlight(widget, tokens);
+        updateHighlight(node, widget, tokens);
       } catch {
         widget.__easyuseAnimaTokens = [];
-        updateHighlight(widget);
+        updateHighlight(node, widget);
       }
     });
     updateByField.set(fieldName, update);
@@ -502,17 +522,19 @@ function hookStudioNode(node) {
       const callback = widget.callback;
       widget.callback = function (value) {
         const result = callback?.apply(this, arguments);
-        updateHighlight(widget);
+        widget.__easyuseAnimaExecutedText = null;
+        updateHighlight(node, widget);
         updateField();
         return result;
       };
       widget.inputEl?.addEventListener("input", () => {
         widget.value = widget.inputEl.value;
-        updateHighlight(widget);
+        widget.__easyuseAnimaExecutedText = null;
+        updateHighlight(node, widget);
         updateField();
       });
-      widget.inputEl?.addEventListener("click", () => updateHighlight(widget));
-      widget.inputEl?.addEventListener("keyup", () => updateHighlight(widget));
+      widget.inputEl?.addEventListener("click", () => updateHighlight(node, widget));
+      widget.inputEl?.addEventListener("keyup", () => updateHighlight(node, widget));
       widget.__easyuseAnimaStudioHooked = true;
     }
     updateField();
@@ -520,6 +542,21 @@ function hookStudioNode(node) {
 
   ensureLegendWidget(node);
   refreshNodeSize(node);
+}
+
+function applyExecutedInputs(node, message) {
+  const payload = firstValue(message?.prompt_studio_inputs, null);
+  if (!payload || typeof payload !== "object") {
+    return;
+  }
+  for (const name of FIELD_NAMES) {
+    const widget = findWidget(node, name);
+    if (!widget) {
+      continue;
+    }
+    widget.__easyuseAnimaExecutedText = String(payload[name] ?? "");
+  }
+  hookStudioNode(node);
 }
 
 app.registerExtension({
@@ -549,10 +586,16 @@ app.registerExtension({
         const input = widget?.inputEl;
         if (input && widget.__easyuseAnimaHeight) {
           input.style.height = `${widget.__easyuseAnimaHeight}px`;
-          updateHighlight(widget);
+          updateHighlight(this, widget);
         }
       }
       return result;
+    };
+
+    const onExecuted = nodeType.prototype.onExecuted;
+    nodeType.prototype.onExecuted = function (message) {
+      onExecuted?.apply(this, arguments);
+      applyExecutedInputs(this, message);
     };
   },
 });
