@@ -60,6 +60,7 @@ function ensureStyle() {
       min-width: 280px;
       max-height: 280px;
       overflow: auto;
+      overscroll-behavior: contain;
       border: 1px solid rgba(128, 128, 128, 0.45);
       border-radius: 7px;
       background: var(--comfy-menu-bg, #202124);
@@ -340,10 +341,12 @@ function renderResults(state, results) {
 
 function debounce(fn, delay = 120) {
   let timer = null;
-  return (...args) => {
+  const wrapped = (...args) => {
     clearTimeout(timer);
     timer = setTimeout(() => fn(...args), delay);
   };
+  wrapped.cancel = () => clearTimeout(timer);
+  return wrapped;
 }
 
 function hookWidget(node, widget) {
@@ -353,9 +356,10 @@ function hookWidget(node, widget) {
   }
 
   let composing = false;
+  let updateSeq = 0;
   const state = { node, widget, input };
 
-  const update = debounce(async () => {
+  const updateNow = async () => {
     if (composing || document.activeElement !== input) {
       return;
     }
@@ -364,25 +368,39 @@ function hookWidget(node, widget) {
       hidePopup();
       return;
     }
+    const seq = ++updateSeq;
     try {
       const results = await search(token.query);
-      if (document.activeElement === input) {
+      if (document.activeElement === input && seq === updateSeq) {
         renderResults(state, results);
       }
     } catch {
       hidePopup();
     }
-  });
+  };
+  const update = debounce(updateNow);
+  const updateFromCaret = () => {
+    update.cancel();
+    updateNow();
+  };
 
   input.addEventListener("compositionstart", () => {
     composing = true;
   });
   input.addEventListener("compositionend", () => {
     composing = false;
-    update();
+    updateFromCaret();
   });
   input.addEventListener("input", update);
-  input.addEventListener("focus", update);
+  input.addEventListener("focus", updateFromCaret);
+  input.addEventListener("click", updateFromCaret);
+  input.addEventListener("mouseup", updateFromCaret);
+  input.addEventListener("keyup", (event) => {
+    if (["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", "Home", "End", "PageUp", "PageDown"].includes(event.key)) {
+      updateFromCaret();
+    }
+  });
+  input.addEventListener("select", updateFromCaret);
   input.addEventListener("blur", () => {
     setTimeout(() => {
       if (activeState?.input === input) {
@@ -424,7 +442,12 @@ function hookNode(node, nodeData) {
   }
 }
 
-document.addEventListener("scroll", hidePopup, true);
+document.addEventListener("scroll", (event) => {
+  if (popup?.contains(event.target)) {
+    return;
+  }
+  hidePopup();
+}, true);
 window.addEventListener("resize", hidePopup);
 
 app.registerExtension({
