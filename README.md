@@ -67,6 +67,7 @@ Behavior:
 
 - Line breaks are treated as comma separators.
 - Empty comma groups and duplicate whitespace are cleaned.
+- Combined prompt text is passed through ANIMA prompt ordering.
 - `use_anima_mod_guidance=true`: `prompt` output excludes the quality fields;
   quality fields are returned through `anima_mod_guidance_quality_tags`.
 - `metadata_prompt` always includes quality fields regardless of AMG mode.

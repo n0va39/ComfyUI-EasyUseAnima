@@ -152,14 +152,14 @@ class PromptBuilderTests(unittest.TestCase):
         self.assertTrue(use_amg)
         self.assertEqual(
             prompt,
-            "@artist_name, model_trigger, lora trigger, A Girl with Sword, 1girl",
+            "1girl, @artist_name, model_trigger, lora trigger, A Girl with Sword",
         )
         self.assertEqual(quality, "masterpiece, best quality, (high detail:0.6)")
         self.assertEqual(
             metadata,
             (
-                "masterpiece, best quality, @artist_name, model_trigger, "
-                "lora trigger, A Girl with Sword, 1girl, (high detail:0.6)"
+                "masterpiece, best quality, 1girl, @artist_name, model_trigger, "
+                "lora trigger, A Girl with Sword, (high detail:0.6)"
             ),
         )
 
@@ -178,7 +178,7 @@ class PromptBuilderTests(unittest.TestCase):
         self.assertEqual(quality, "masterpiece, best quality")
         self.assertEqual(
             prompt,
-            "@artist_name, lora trigger, masterpiece, 1girl, best quality",
+            "@artist_name, lora trigger, masterpiece, best quality, 1girl",
         )
         self.assertEqual(prompt, metadata)
 

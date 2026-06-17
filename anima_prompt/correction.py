@@ -89,6 +89,8 @@ def _is_natural_language_token(text: str) -> bool:
     stripped = str(text or "").strip()
     if not stripped or stripped.startswith("@"):
         return False
+    if any(char.isupper() for char in stripped):
+        return True
     if any(char in stripped for char in ".!?"):
         return True
     if "," in stripped:
@@ -104,8 +106,14 @@ def _render_token(raw: str, section_name: str, *, preserve_text: bool = False) -
     return _escape_literal_parentheses(normalize_tag(raw))
 
 
-def _render_prompt_token(syntax: PromptSyntax, normalized: str, section_name: str) -> str:
-    preserve_text = _is_natural_language_token(syntax.tag_text)
+def _render_prompt_token(
+    syntax: PromptSyntax,
+    normalized: str,
+    section_name: str,
+    *,
+    preserve_override_text: bool = False,
+) -> str:
+    preserve_text = preserve_override_text or _is_natural_language_token(syntax.tag_text)
     rendered = _render_token(
         syntax.tag_text if preserve_text else normalized,
         section_name,
@@ -167,6 +175,7 @@ def inspect_prompt(
         key = lookup_key(normalized)
         info = kb.lookup(normalized)
         manual_known = key in override_keys
+        preserve_override_text = manual_known and not normalized.strip().startswith("@")
         section = _classify_with_artist_options(
             normalized,
             info=info,
@@ -187,7 +196,12 @@ def inspect_prompt(
                 raw=raw,
                 normalized=normalized,
                 lookup_key=key,
-                text=_render_prompt_token(syntax, normalized, section.value),
+                text=_render_prompt_token(
+                    syntax,
+                    normalized,
+                    section.value,
+                    preserve_override_text=preserve_override_text,
+                ),
                 known=info is not None or manual_known,
                 section=section,
                 category_path=info.category_path if info else (),

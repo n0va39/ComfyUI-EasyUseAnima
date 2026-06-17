@@ -122,6 +122,19 @@ def _join_prompt_tokens(*parts: str) -> str:
     return ", ".join(tokens)
 
 
+def _correct_builder_prompt(prompt: str, artist_overrides: str = "") -> str:
+    if not prompt:
+        return ""
+    result = correct_prompt(
+        prompt,
+        profile="prompt",
+        knowledge_base=load_knowledge_base(allow_missing=True),
+        validate_artist_tags=False,
+        artist_overrides=_prompt_tokens(artist_overrides),
+    )
+    return result.text
+
+
 def _fit_to_1mp(width: int, height: int) -> tuple[int, int]:
     if width <= 0 or height <= 0:
         return width, height
@@ -412,28 +425,31 @@ class EasyUseAnimaPromptBuilder:
         body_prompt = _join_prompt_tokens(prompt)
 
         if pin_triggers:
-            metadata_prompt = _join_prompt_tokens(
-                trigger_prompt,
-                quality_tags,
-                body_prompt,
-                trailing_quality_tags,
+            metadata_body = _correct_builder_prompt(
+                _join_prompt_tokens(quality_tags, body_prompt, trailing_quality_tags)
             )
-            regular_prompt = _join_prompt_tokens(
+            regular_prompt = _join_prompt_tokens(trigger_prompt, metadata_body)
+            amg_prompt = _join_prompt_tokens(
                 trigger_prompt,
-                quality_tags,
-                body_prompt,
-                trailing_quality_tags,
+                _correct_builder_prompt(body_prompt),
             )
+            metadata_prompt = regular_prompt
         else:
-            metadata_prompt = _join_prompt_tokens(
-                quality_tags,
-                trigger_prompt,
-                body_prompt,
-                trailing_quality_tags,
+            metadata_prompt = _correct_builder_prompt(
+                _join_prompt_tokens(
+                    quality_tags,
+                    trigger_prompt,
+                    body_prompt,
+                    trailing_quality_tags,
+                ),
+                artist_overrides=trigger_prompt,
             )
             regular_prompt = metadata_prompt
+            amg_prompt = _correct_builder_prompt(
+                _join_prompt_tokens(trigger_prompt, body_prompt),
+                artist_overrides=trigger_prompt,
+            )
 
-        amg_prompt = _join_prompt_tokens(trigger_prompt, body_prompt)
         output_prompt = amg_prompt if use_amg else regular_prompt
 
         return (
