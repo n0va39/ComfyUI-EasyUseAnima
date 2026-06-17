@@ -380,9 +380,11 @@ class AutocompleteDatasetTests(unittest.TestCase):
             )
 
             result = search_autocomplete("artist", path=path, category="artist")
+            fallback = search_autocomplete("same", path=path, category="artist,general")
 
         self.assertTrue(result["results"])
         self.assertTrue(all(item["category"] == "artist" for item in result["results"]))
+        self.assertTrue({item["category"] for item in fallback["results"]} <= {"artist", "general"})
 
     def test_lists_autocomplete_sources(self):
         sources = available_autocomplete_sources("localsmile_kr_wiki")
@@ -415,7 +417,8 @@ class AutocompleteDatasetTests(unittest.TestCase):
             result = classify_prompt_text(
                 (
                     "1girl, (hatsune miku:0.7), series name, "
-                    "(@registered_artist:0.5), @unregistered_artist, "
+                    "(@registered_artist:0.5), @long_hair, "
+                    "(@unregistered_artist:0.5), "
                     "(A highly aesthetic Pixiv style illustration, clean composition.:0.6), "
                     "unknown tag"
                 ),
@@ -430,6 +433,7 @@ class AutocompleteDatasetTests(unittest.TestCase):
                 "character",
                 "copyright",
                 "artist",
+                "general",
                 "artist_unknown",
                 "natural",
                 "unknown",
@@ -439,9 +443,13 @@ class AutocompleteDatasetTests(unittest.TestCase):
         self.assertTrue(result["tokens"][1]["learned"])
         self.assertEqual(result["tokens"][1]["base"], "hatsune miku")
         self.assertEqual(result["tokens"][3]["base"], "registered_artist")
-        self.assertEqual(result["tokens"][4]["base"], "unregistered_artist")
-        self.assertEqual(result["tokens"][5]["base"], "A highly aesthetic Pixiv style illustration, clean composition.")
-        self.assertFalse(result["tokens"][6]["learned"])
+        self.assertTrue(result["tokens"][3]["weighted"])
+        self.assertEqual(result["tokens"][4]["base"], "long_hair")
+        self.assertTrue(result["tokens"][4]["learned"])
+        self.assertEqual(result["tokens"][5]["base"], "unregistered_artist")
+        self.assertTrue(result["tokens"][5]["weighted"])
+        self.assertEqual(result["tokens"][6]["base"], "A highly aesthetic Pixiv style illustration, clean composition.")
+        self.assertFalse(result["tokens"][7]["learned"])
 
 
 if __name__ == "__main__":

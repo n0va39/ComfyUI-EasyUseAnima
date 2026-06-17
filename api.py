@@ -86,6 +86,10 @@ if server is not None and web is not None:
     async def autocomplete_handler(request):
         query = request.query.get("q", "")
         category = request.query.get("category", "")
+        category_filter = {
+            "artist": "artist",
+            "artist_or_general": "artist,general",
+        }.get(category)
         try:
             limit = int(request.query.get("limit", "20"))
         except ValueError:
@@ -96,7 +100,7 @@ if server is not None and web is not None:
                 query,
                 limit=limit,
                 path=path,
-                category=category if category == "artist" else None,
+                category=category_filter,
             )
         )
 

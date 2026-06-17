@@ -187,7 +187,7 @@ function tokenStyle(token) {
   if (style.background && style.background !== "transparent") {
     rules.push(`background: ${style.background}`, "border-radius: 3px");
   }
-  if (style.underline) {
+  if (style.underline && !token?.weighted) {
     rules.push(
       "text-decoration-line: underline",
       "text-decoration-style: wavy",
@@ -333,15 +333,16 @@ function ensureHighlightOverlay(input) {
 function desiredLegendHeight(ctx, width) {
   let x = 14;
   let rows = 1;
+  const right = Math.max(28, width - 18);
   ctx.font = "9px sans-serif";
   for (const key of LEGEND_ITEMS) {
     const label = SECTION_STYLES[key].label;
-    const itemWidth = ctx.measureText(label).width + 25;
-    if (x + itemWidth > width - 12) {
+    const itemWidth = Math.min(ctx.measureText(label).width + 24, Math.max(24, right - 14));
+    if (x > 14 && x + itemWidth > right) {
       x = 14;
       rows += 1;
     }
-    x += itemWidth + 10;
+    x += itemWidth + 6;
   }
   return Math.max(LEGEND_HEIGHT, 34 + rows * LEGEND_ROW_HEIGHT);
 }
@@ -361,6 +362,7 @@ function drawLegend(ctx, node, widget, width, y) {
   ctx.rect(8, y + 5, width - 16, height - 10);
   ctx.fill();
   ctx.stroke();
+  ctx.clip();
 
   ctx.font = "9px sans-serif";
   ctx.fillStyle = "#94a3b8";
@@ -368,12 +370,13 @@ function drawLegend(ctx, node, widget, width, y) {
 
   let x = 14;
   let rowY = y + 29;
+  const right = Math.max(28, width - 18);
   ctx.font = "9px sans-serif";
   for (const key of LEGEND_ITEMS) {
     const style = SECTION_STYLES[key];
     const label = style.label;
-    const itemWidth = ctx.measureText(label).width + 25;
-    if (x + itemWidth > width - 12) {
+    const itemWidth = Math.min(ctx.measureText(label).width + 24, Math.max(24, right - 14));
+    if (x > 14 && x + itemWidth > right) {
       x = 14;
       rowY += LEGEND_ROW_HEIGHT;
     }

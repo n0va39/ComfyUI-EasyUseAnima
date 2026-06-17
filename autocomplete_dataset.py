@@ -235,6 +235,10 @@ def _is_artist_request(token: str) -> bool:
     return bool(weighted and weighted.group(1).strip().startswith("@"))
 
 
+def _is_weighted_token(token: str) -> bool:
+    return bool(_WEIGHTED_TOKEN_RE.match(str(token or "").strip()))
+
+
 def _token_section(token: str, entry: AutocompleteEntry | None) -> tuple[str, str]:
     base = _token_base(token)
     is_artist_request = _is_artist_request(token)
@@ -243,6 +247,14 @@ def _token_section(token: str, entry: AutocompleteEntry | None) -> tuple[str, st
     if is_artist_request:
         if entry and entry.category == "artist":
             return ("artist", "작가")
+        if entry:
+            labels = {
+                "character": "캐릭터",
+                "copyright": "작품",
+                "meta": "메타",
+                "general": "학습 태그",
+            }
+            return (entry.category, labels.get(entry.category, entry.category or "태그"))
         return ("artist_unknown", "미등록 작가")
     if entry:
         labels = {
@@ -282,6 +294,7 @@ def classify_prompt_text(text: str, limit: int = 240, path: Path = AUTOCOMPLETE_
             "section": section,
             "label": label,
             "learned": entry is not None,
+            "weighted": _is_weighted_token(token),
             "count": entry.count if entry else 0,
             "description": entry.description if entry else "",
         })
@@ -312,6 +325,7 @@ def search_autocomplete(
     started = time.perf_counter()
     normalized_query = _normalize(query)
     category = str(category or "").strip()
+    categories = {item.strip() for item in category.split(",") if item.strip()}
     if not normalized_query:
         return {
             "query": query,
@@ -322,7 +336,7 @@ def search_autocomplete(
 
     results: list[tuple[int, AutocompleteEntry]] = []
     for entry in _entries(path):
-        if category and entry.category != category:
+        if categories and entry.category not in categories:
             continue
         tag_key = _normalize(entry.tag)
         if tag_key == normalized_query:

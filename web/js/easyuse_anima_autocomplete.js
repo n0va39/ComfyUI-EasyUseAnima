@@ -253,19 +253,35 @@ function currentToken(input) {
     end += 1;
   }
   const raw = value.slice(start, caret);
+  const segment = value.slice(start, end);
   return {
     value,
     start,
     end,
     caret,
+    segment,
     query: raw.trim(),
   };
 }
 
 function autocompleteQuery(token) {
   const raw = String(token.query || "");
-  const artistOnly = raw.startsWith("@");
-  const query = artistOnly ? raw.slice(1).trim() : raw;
+  const parsed = parseAutocompleteText(raw);
+  const query = parsed.artistOnly ? parsed.query : raw.trim();
+  return { query, artistOnly: parsed.artistOnly };
+}
+
+function parseAutocompleteText(value) {
+  let query = String(value || "").trim();
+  if (query.startsWith("(")) {
+    query = query.slice(1).trimStart();
+  }
+  const artistOnly = query.startsWith("@");
+  if (artistOnly) {
+    query = query.slice(1).trimStart();
+    query = query.replace(/:\s*[-+]?\d*(?:\.\d*)?\)?\s*$/, "");
+    query = query.replace(/\)+\s*$/, "");
+  }
   return { query, artistOnly };
 }
 
@@ -361,7 +377,7 @@ async function search(query, artistOnly = false) {
   if (cache.has(key)) {
     return cache.get(key);
   }
-  const category = artistOnly ? "&category=artist" : "";
+  const category = artistOnly ? "&category=artist_or_general" : "";
   const response = await fetch(
     `/easyuse_anima/autocomplete?q=${encodeURIComponent(query)}&limit=${MAX_RESULTS}${category}`,
   );
@@ -392,7 +408,7 @@ function commitSuggestion(state, entry) {
   const token = currentToken(state.input);
   const before = token.value.slice(0, token.start);
   const after = token.value.slice(token.end);
-  const insert = token.query.startsWith("@") ? `@${entry.tag}` : entry.tag;
+  const insert = completionText(token, entry);
   const prefix = normalizeInsertPrefix(before);
   const suffix = normalizeInsertSuffix(after);
   state.input.value = `${prefix}${insert}${suffix}`;
@@ -402,6 +418,20 @@ function commitSuggestion(state, entry) {
   state.widget.value = state.input.value;
   state.widget.callback?.(state.input.value);
   hidePopup();
+}
+
+function completionText(token, entry) {
+  const tag = String(entry?.tag || "");
+  const segment = String(token.segment || "").trim();
+  const query = parseAutocompleteText(token.query);
+  const weighted = /^\(\s*@?[\s\S]*(:\s*[-+]?\d+(?:\.\d+)?)\s*\)\s*$/.exec(segment);
+  if (query.artistOnly && weighted) {
+    return `(@${tag}${weighted[1]})`;
+  }
+  if (query.artistOnly) {
+    return `@${tag}`;
+  }
+  return tag;
 }
 
 function normalizeInsertPrefix(before) {
