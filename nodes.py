@@ -23,6 +23,13 @@ logger = logging.getLogger("ComfyUI-EasyUseAnima")
 
 DEFAULT_HOST = "127.0.0.1"
 DEFAULT_PORT = 7243
+DEFAULT_QUALITY_TAGS = (
+    "newest, masterpiece, best quality, score_8, score_7:, highres, absurdres, very aesthetic"
+)
+DEFAULT_TRAILING_QUALITY_TAGS = (
+    "location, (A highly aesthetic Pixiv style illustration, clean composition, "
+    "high-quality digital art, detailed background, sharp focus on facial expressions.:0.6)"
+)
 FIXED_TIMEOUT = 30.0
 HTTP_TIMEOUT = FIXED_TIMEOUT + 5.0
 
@@ -398,7 +405,7 @@ class EasyUseAnimaPromptBuilder:
                 }),
                 "quality_tags": ("STRING", {
                     "multiline": True,
-                    "default": "masterpiece, best quality",
+                    "default": DEFAULT_QUALITY_TAGS,
                     "tooltip": "Leading quality tags. With AMG enabled, these are excluded from prompt output.",
                 }),
                 "trigger_and_artist_tags": ("STRING", {
@@ -413,7 +420,7 @@ class EasyUseAnimaPromptBuilder:
                 }),
                 "trailing_quality_tags": ("STRING", {
                     "multiline": True,
-                    "default": "",
+                    "default": DEFAULT_TRAILING_QUALITY_TAGS,
                     "tooltip": "Trailing quality or style tags.",
                 }),
             }
@@ -525,7 +532,7 @@ class EasyUseAnimaPromptStudio(EasyUseAnimaPromptBuilder):
                 }),
                 "quality_tags": ("STRING", {
                     "multiline": True,
-                    "default": "masterpiece, best quality",
+                    "default": DEFAULT_QUALITY_TAGS,
                     "tooltip": "Leading quality tags. With AMG enabled, these are excluded from prompt output.",
                 }),
                 "trigger_and_artist_tags": ("STRING", {
@@ -540,7 +547,7 @@ class EasyUseAnimaPromptStudio(EasyUseAnimaPromptBuilder):
                 }),
                 "trailing_quality_tags": ("STRING", {
                     "multiline": True,
-                    "default": "",
+                    "default": DEFAULT_TRAILING_QUALITY_TAGS,
                     "tooltip": "Trailing quality or style tags.",
                 }),
             }

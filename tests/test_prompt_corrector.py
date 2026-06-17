@@ -7,6 +7,8 @@ from pathlib import Path
 from unittest.mock import patch
 
 from nodes import (
+    DEFAULT_QUALITY_TAGS,
+    DEFAULT_TRAILING_QUALITY_TAGS,
     EasyUseAnimaAnimaDexDatasetDownload,
     EasyUseAnimaPromptBuilder,
     EasyUseAnimaPromptCorrector,
@@ -140,6 +142,21 @@ class PromptCorrectorTests(unittest.TestCase):
 
 
 class PromptBuilderTests(unittest.TestCase):
+    def test_prompt_builder_and_studio_default_quality_tags(self):
+        builder_inputs = EasyUseAnimaPromptBuilder.INPUT_TYPES()["required"]
+        studio_inputs = EasyUseAnimaPromptStudio.INPUT_TYPES()["required"]
+
+        self.assertEqual(builder_inputs["quality_tags"][1]["default"], DEFAULT_QUALITY_TAGS)
+        self.assertEqual(
+            builder_inputs["trailing_quality_tags"][1]["default"],
+            DEFAULT_TRAILING_QUALITY_TAGS,
+        )
+        self.assertEqual(studio_inputs["quality_tags"][1]["default"], DEFAULT_QUALITY_TAGS)
+        self.assertEqual(
+            studio_inputs["trailing_quality_tags"][1]["default"],
+            DEFAULT_TRAILING_QUALITY_TAGS,
+        )
+
     def test_builds_amg_prompt_and_metadata_prompt(self):
         prompt, quality, use_amg, metadata = EasyUseAnimaPromptBuilder().build(
             True,
