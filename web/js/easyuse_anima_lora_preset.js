@@ -11,7 +11,7 @@ const WIDGET_INDEX = {
   loras: 4,
   profileData: 5,
 };
-const MIN_NODE_WIDTH = 560;
+const MIN_NODE_WIDTH = 460;
 let loraManagerModulesPromise = null;
 
 async function loadLoraManagerModules() {
@@ -399,13 +399,6 @@ function renameProfile(node, index) {
 function deleteProfile(node, index) {
   const count = profileCount(node);
   if (count <= 1) {
-    const dataWidget = findWidget(node, "profile_data");
-    writeProfileData(dataWidget, { "1": emptyProfile(1) });
-    setProfileCount(node, 1);
-    node.__easyuseAnimaActiveProfileIndex = 1;
-    setProfileIndex(node, 1);
-    loadProfile(node, 1);
-    renderTabs(node);
     return;
   }
 
@@ -489,7 +482,7 @@ function enforceNodeLayout(node) {
   const currentWidth = Number(node.size[0]) || 0;
   const currentHeight = Number(node.size[1]) || 0;
   const computed = typeof node.computeSize === "function" ? node.computeSize() : null;
-  const nextWidth = Math.max(currentWidth, MIN_NODE_WIDTH);
+  const nextWidth = currentWidth < MIN_NODE_WIDTH ? MIN_NODE_WIDTH : currentWidth;
   const nextHeight = Math.max(currentHeight, Number(computed?.[1]) || 0);
   if (nextWidth !== currentWidth || nextHeight !== currentHeight) {
     node.setSize([nextWidth, nextHeight]);
@@ -527,53 +520,149 @@ function styleProfileButton(button, width = "28px") {
   button.style.padding = "0";
 }
 
+function stopCanvasEvent(event) {
+  event.stopPropagation();
+}
+
+function closeProfileMenu(node) {
+  const state = node.__easyuseAnimaProfileMenu;
+  if (!state) {
+    return;
+  }
+  state.menu.remove();
+  document.removeEventListener("pointerdown", state.closeHandler, true);
+  window.removeEventListener("resize", state.closeHandler, true);
+  node.__easyuseAnimaProfileMenu = null;
+}
+
+function openProfileMenu(node, anchor) {
+  closeProfileMenu(node);
+  const count = profileCount(node);
+  const selected = activeProfileIndex(node);
+  const rect = anchor.getBoundingClientRect();
+  const menu = document.createElement("div");
+  menu.style.position = "fixed";
+  menu.style.left = `${rect.left}px`;
+  menu.style.top = `${rect.bottom + 4}px`;
+  menu.style.width = `${Math.max(180, rect.width)}px`;
+  menu.style.maxHeight = "220px";
+  menu.style.overflowY = "auto";
+  menu.style.boxSizing = "border-box";
+  menu.style.padding = "4px";
+  menu.style.border = "1px solid #555";
+  menu.style.borderRadius = "4px";
+  menu.style.background = "#202020";
+  menu.style.boxShadow = "0 8px 22px rgba(0, 0, 0, 0.42)";
+  menu.style.zIndex = "10000";
+  menu.addEventListener("pointerdown", stopCanvasEvent);
+  menu.addEventListener("mousedown", stopCanvasEvent);
+  menu.addEventListener("click", stopCanvasEvent);
+
+  for (let index = 1; index <= count; index += 1) {
+    const option = document.createElement("button");
+    option.type = "button";
+    option.textContent = `${index}. ${profileLabel(node, index)}`;
+    option.style.display = "block";
+    option.style.width = "100%";
+    option.style.height = "26px";
+    option.style.padding = "0 7px";
+    option.style.margin = "0";
+    option.style.border = "0";
+    option.style.borderRadius = "3px";
+    option.style.textAlign = "left";
+    option.style.overflow = "hidden";
+    option.style.textOverflow = "ellipsis";
+    option.style.whiteSpace = "nowrap";
+    option.style.background = index === selected ? "#2f6feb" : "transparent";
+    option.style.color = index === selected ? "#ffffff" : "#d4d4d4";
+    option.style.cursor = "pointer";
+    option.addEventListener("click", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      closeProfileMenu(node);
+      switchProfile(node, index);
+    });
+    menu.appendChild(option);
+  }
+
+  const closeHandler = (event) => {
+    if (event.target === anchor || menu.contains(event.target)) {
+      return;
+    }
+    closeProfileMenu(node);
+  };
+  document.body.appendChild(menu);
+  node.__easyuseAnimaProfileMenu = { menu, closeHandler };
+  setTimeout(() => {
+    document.addEventListener("pointerdown", closeHandler, true);
+    window.addEventListener("resize", closeHandler, true);
+  }, 0);
+}
+
 function renderTabs(node) {
   const container = node.__easyuseAnimaLoraPresetTabs;
   if (!container) {
     return;
   }
+  closeProfileMenu(node);
   const count = profileCount(node);
   const selected = activeProfileIndex(node);
   container.replaceChildren();
   styleTabsContainer(container);
+  container.addEventListener("pointerdown", stopCanvasEvent);
+  container.addEventListener("mousedown", stopCanvasEvent);
+  container.addEventListener("click", stopCanvasEvent);
 
-  const select = document.createElement("select");
-  select.title = "Select profile. Double click: rename. Right click: delete.";
-  select.value = String(selected);
-  select.style.flex = "1 1 auto";
-  select.style.minWidth = "0";
-  select.style.maxWidth = "100%";
-  select.style.height = "26px";
-  select.style.boxSizing = "border-box";
-  select.style.background = "#252525";
-  select.style.color = "#d4d4d4";
-  select.style.border = "1px solid #555";
-  select.style.borderRadius = "4px";
-  select.style.padding = "0 6px";
-  select.style.fontSize = "12px";
-  for (let index = 1; index <= count; index += 1) {
-    const option = document.createElement("option");
-    option.value = String(index);
-    option.textContent = `${index}. ${profileLabel(node, index)}`;
-    select.appendChild(option);
-  }
-  select.value = String(selected);
-  select.addEventListener("change", (event) => {
+  const selector = document.createElement("button");
+  selector.type = "button";
+  selector.textContent = `${selected}. ${profileLabel(node, selected)}`;
+  selector.title = "Open profile selector. Double click: rename. Right click: delete.";
+  selector.style.flex = "1 1 auto";
+  selector.style.minWidth = "0";
+  selector.style.maxWidth = "100%";
+  selector.style.height = "26px";
+  selector.style.boxSizing = "border-box";
+  selector.style.background = "#252525";
+  selector.style.color = "#d4d4d4";
+  selector.style.border = "1px solid #555";
+  selector.style.borderRadius = "4px";
+  selector.style.padding = "0 22px 0 7px";
+  selector.style.fontSize = "12px";
+  selector.style.textAlign = "left";
+  selector.style.overflow = "hidden";
+  selector.style.textOverflow = "ellipsis";
+  selector.style.whiteSpace = "nowrap";
+  selector.style.cursor = "pointer";
+  selector.style.position = "relative";
+  selector.addEventListener("click", (event) => {
     event.preventDefault();
     event.stopPropagation();
-    switchProfile(node, Number.parseInt(select.value, 10) || 1);
+    if (node.__easyuseAnimaProfileMenu) {
+      closeProfileMenu(node);
+    } else {
+      openProfileMenu(node, selector);
+    }
   });
-  select.addEventListener("dblclick", (event) => {
+  selector.addEventListener("dblclick", (event) => {
     event.preventDefault();
     event.stopPropagation();
+    closeProfileMenu(node);
     renameProfile(node, activeProfileIndex(node));
   });
-  select.addEventListener("contextmenu", (event) => {
+  selector.addEventListener("contextmenu", (event) => {
     event.preventDefault();
     event.stopPropagation();
+    closeProfileMenu(node);
     deleteProfile(node, activeProfileIndex(node));
   });
-  container.appendChild(select);
+  const arrow = document.createElement("span");
+  arrow.textContent = "▾";
+  arrow.style.position = "absolute";
+  arrow.style.right = "7px";
+  arrow.style.top = "3px";
+  arrow.style.pointerEvents = "none";
+  selector.appendChild(arrow);
+  container.appendChild(selector);
 
   if (count < MAX_PROFILES) {
     const addButton = document.createElement("button");
@@ -606,6 +695,11 @@ function renderTabs(node) {
   deleteButton.textContent = "X";
   deleteButton.title = "Delete selected profile";
   styleProfileButton(deleteButton);
+  deleteButton.disabled = count <= 1;
+  if (deleteButton.disabled) {
+    deleteButton.style.opacity = "0.45";
+    deleteButton.style.cursor = "not-allowed";
+  }
   deleteButton.addEventListener("click", (event) => {
     event.preventDefault();
     event.stopPropagation();
