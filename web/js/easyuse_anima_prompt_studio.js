@@ -479,8 +479,14 @@ function drawLegend(ctx, node, widget, width, y) {
 
   const left = 14;
   const availableWidth = Math.max(160, width - 28);
-  const columnWidth = availableWidth / LEGEND_COLUMNS;
   ctx.font = "9px sans-serif";
+  const maxItemWidth = Math.max(
+    ...LEGEND_ITEMS.map((key) => 14 + ctx.measureText(SECTION_STYLES[key].label).width),
+  );
+  const columnWidth = Math.min(
+    availableWidth / LEGEND_COLUMNS,
+    Math.ceil(maxItemWidth + 24),
+  );
   const rows = Math.ceil(LEGEND_ITEMS.length / LEGEND_COLUMNS);
   for (const [index, key] of LEGEND_ITEMS.entries()) {
     const style = SECTION_STYLES[key];
