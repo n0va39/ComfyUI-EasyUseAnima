@@ -18,9 +18,9 @@ except ImportError:
 AUTOCOMPLETE_CSV = PACKAGE_DATA_DIR / "KR_danbooru_tags_with_description v3_modified.csv"
 LOCALSMILE_AUTOCOMPLETE_CSV = PACKAGE_DATA_DIR / "danbooru_tags_classified.csv"
 
-DEFAULT_AUTOCOMPLETE_SOURCE = "kr_modified"
+DEFAULT_AUTOCOMPLETE_SOURCE = "localsmile_kr_wiki"
 AUTOCOMPLETE_SOURCES = {
-    DEFAULT_AUTOCOMPLETE_SOURCE: {
+    "kr_modified": {
         "label": "KR danbooru tags with description v3 modified",
         "path": AUTOCOMPLETE_CSV,
         "source": "Bundled with author permission",

@@ -11,7 +11,7 @@ SETTINGS_FILE = PACKAGE_DATA_DIR / "settings.json"
 
 DEFAULT_SETTINGS = {
     "prompt.metadata_filter_words": "",
-    "autocomplete.source": "kr_modified",
+    "autocomplete.source": "localsmile_kr_wiki",
     "prompt_studio.typo_indicator": "true",
     "prompt_studio.colors": "",
 }

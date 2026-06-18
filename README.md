@@ -89,6 +89,7 @@ Autocomplete:
 
 Bundled autocomplete CSV sources:
 
+- Default: `danbooru_tags_classified.csv`.
 - `KR_danbooru_tags_with_description v3_modified.csv`: included with
   permission from its author.
 - `danbooru_tags_classified.csv`: from

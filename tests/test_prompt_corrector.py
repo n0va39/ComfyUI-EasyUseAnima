@@ -17,6 +17,7 @@ from autocomplete_dataset import (
     autocomplete_status,
     available_autocomplete_sources,
     classify_prompt_text,
+    resolve_autocomplete_source,
     search_autocomplete,
 )
 from settings import public_settings
@@ -278,6 +279,12 @@ class AutocompleteDatasetTests(unittest.TestCase):
                 for source in sources
             )
         )
+
+    def test_default_autocomplete_source_uses_classified_csv(self):
+        key, path = resolve_autocomplete_source("")
+
+        self.assertEqual(key, "localsmile_kr_wiki")
+        self.assertEqual(path.name, "danbooru_tags_classified.csv")
 
     def test_classifies_count_character_and_learned_tags(self):
         with tempfile.TemporaryDirectory() as tmp:
