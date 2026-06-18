@@ -24,6 +24,9 @@ from .autocomplete_dataset import (
 )
 
 
+LORA_PREVIEW_EXTENSIONS = (".webp", ".png", ".jpg", ".jpeg")
+
+
 def _resolve_lora_preview_path(lora_name: str):
     try:
         import folder_paths  # type: ignore
@@ -38,17 +41,18 @@ def _resolve_lora_preview_path(lora_name: str):
         return None
 
     lora_abs = os.path.abspath(lora_path)
-    preview_path = os.path.splitext(lora_abs)[0] + ".webp"
-    preview_abs = os.path.abspath(preview_path)
     lora_dir = os.path.dirname(lora_abs)
-    try:
-        if os.path.commonpath((lora_dir, preview_abs)) != lora_dir:
-            return None
-    except ValueError:
-        return None
-    if not os.path.isfile(preview_abs):
-        return None
-    return preview_abs
+    preview_base = os.path.splitext(lora_abs)[0]
+    for extension in LORA_PREVIEW_EXTENSIONS:
+        preview_abs = os.path.abspath(preview_base + extension)
+        try:
+            if os.path.commonpath((lora_dir, preview_abs)) != lora_dir:
+                continue
+        except ValueError:
+            continue
+        if os.path.isfile(preview_abs):
+            return preview_abs
+    return None
 
 
 if server is not None and web is not None:
