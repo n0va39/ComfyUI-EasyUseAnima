@@ -20,7 +20,7 @@ from autocomplete_dataset import (
     resolve_autocomplete_source,
     search_autocomplete,
 )
-from settings import public_settings, resolve_autocomplete_limit
+from settings import NAIA_PREPROCESSING_KEYS, public_settings, resolve_autocomplete_limit
 
 
 class PromptCorrectorTests(unittest.TestCase):
@@ -215,6 +215,13 @@ class SettingsTests(unittest.TestCase):
                 "autocomplete.limit",
                 "prompt_studio.typo_indicator",
                 "prompt_studio.colors",
+                "naia.host",
+                "naia.port",
+                "naia.use_naia_settings",
+                "naia.pre_prompt",
+                "naia.post_prompt",
+                "naia.auto_hide",
+                *{f"naia.{key}" for key in NAIA_PREPROCESSING_KEYS},
             },
         )
 

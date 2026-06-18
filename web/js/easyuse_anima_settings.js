@@ -55,6 +55,24 @@ const PROMPT_STUDIO_COLOR_DEFAULTS = {
   unknown: { label: "미확인", color: "#cbd5e1" },
 };
 
+const NAIA_PREPROCESSING_OPTIONS = [
+  ["remove_author", "Remove author"],
+  ["remove_work_title", "Remove work title"],
+  ["remove_character_name", "Remove character name"],
+  ["remove_character_features", "Remove character features"],
+  ["remove_clothes", "Remove clothes"],
+  ["remove_color", "Remove color"],
+  ["remove_location_and_background_color", "Remove location/background color"],
+  ["remove_expression", "Remove expression"],
+  ["remove_pose_action", "Remove pose/action"],
+  ["remove_meta_tags", "Remove meta tags"],
+  ["remove_object_tags", "Remove object tags"],
+  ["remove_noise_tags", "Remove noise tags"],
+  ["e621_auto_boost", "e621 auto boost"],
+  ["danbooru_auto_weight", "Danbooru auto weight"],
+  ["tag_implication_compression", "Tag implication compression"],
+];
+
 function sectionHeader(title, description) {
   const container = document.createElement("div");
   container.style.cssText =
@@ -218,6 +236,147 @@ function promptStudioEditor(settings = {}) {
   };
 
   controls.append(saveButton, resetButton, status);
+  container.append(controls);
+  return container;
+}
+
+function naiaSettingsEditor(settings = {}) {
+  const container = document.createElement("div");
+  container.style.cssText = "max-width: 760px; line-height: 1.45;";
+
+  const guide = document.createElement("div");
+  guide.textContent =
+    "Controls Anima NAIA Random Prompt connection and Prompt Engineering override options. These values replace the advanced NAIA options that used to live on the node.";
+  guide.style.cssText = "margin-bottom: 8px; opacity: 0.78;";
+  container.append(guide);
+
+  const endpointRow = document.createElement("div");
+  endpointRow.style.cssText = "display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 8px;";
+
+  const hostLabel = document.createElement("label");
+  hostLabel.style.cssText = "display: flex; align-items: center; gap: 6px;";
+  const hostText = document.createElement("span");
+  hostText.textContent = "Host";
+  const hostInput = document.createElement("input");
+  hostInput.type = "text";
+  hostInput.value = settings["naia.host"] || "127.0.0.1";
+  hostInput.style.cssText = "width: 150px; padding: 4px 6px;";
+  hostLabel.append(hostText, hostInput);
+
+  const portLabel = document.createElement("label");
+  portLabel.style.cssText = "display: flex; align-items: center; gap: 6px;";
+  const portText = document.createElement("span");
+  portText.textContent = "Port";
+  const portInput = document.createElement("input");
+  portInput.type = "number";
+  portInput.min = "1";
+  portInput.max = "65535";
+  portInput.step = "1";
+  portInput.value = String(settings["naia.port"] || 7243);
+  portInput.style.cssText = "width: 86px; padding: 4px 6px;";
+  portLabel.append(portText, portInput);
+  endpointRow.append(hostLabel, portLabel);
+  container.append(endpointRow);
+
+  const useSettingsRow = document.createElement("label");
+  useSettingsRow.style.cssText = "display: flex; align-items: center; gap: 7px; margin-bottom: 8px;";
+  const useSettingsToggle = document.createElement("input");
+  useSettingsToggle.type = "checkbox";
+  useSettingsToggle.checked = settings["naia.use_naia_settings"] !== "false";
+  const useSettingsText = document.createElement("span");
+  useSettingsText.textContent = "Use NAIA desktop Prompt Engineering settings";
+  useSettingsRow.append(useSettingsToggle, useSettingsText);
+  container.append(useSettingsRow);
+
+  const textGrid = document.createElement("div");
+  textGrid.style.cssText = "display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 8px; max-width: 680px;";
+  const textareas = new Map();
+  for (const [key, labelText] of [
+    ["pre_prompt", "Pre prompt"],
+    ["post_prompt", "Post prompt"],
+    ["auto_hide", "Auto hide"],
+  ]) {
+    const label = document.createElement("label");
+    label.style.cssText = "display: flex; flex-direction: column; gap: 4px;";
+    const text = document.createElement("span");
+    text.textContent = labelText;
+    const textarea = document.createElement("textarea");
+    textarea.value = settings[`naia.${key}`] || "";
+    textarea.rows = 4;
+    textarea.style.cssText = "box-sizing: border-box; width: 100%; min-height: 76px; resize: vertical;";
+    label.append(text, textarea);
+    textGrid.append(label);
+    textareas.set(key, textarea);
+  }
+  container.append(textGrid);
+
+  const ppTitle = document.createElement("div");
+  ppTitle.textContent = "Preprocessing options";
+  ppTitle.style.cssText = "margin: 10px 0 5px; font-weight: 700;";
+  container.append(ppTitle);
+
+  const ppGrid = document.createElement("div");
+  ppGrid.style.cssText =
+    "display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 6px 12px; max-width: 680px;";
+  const preprocessingSelects = new Map();
+  for (const [key, labelText] of NAIA_PREPROCESSING_OPTIONS) {
+    const label = document.createElement("label");
+    label.style.cssText = "display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 0.92em;";
+    const text = document.createElement("span");
+    text.textContent = labelText;
+    const select = document.createElement("select");
+    select.style.cssText = "width: 76px; padding: 3px 4px;";
+    for (const value of ["skip", "on", "off"]) {
+      const option = document.createElement("option");
+      option.value = value;
+      option.textContent = value;
+      option.selected = (settings[`naia.${key}`] || "skip") === value;
+      select.append(option);
+    }
+    label.append(text, select);
+    ppGrid.append(label);
+    preprocessingSelects.set(key, select);
+  }
+  container.append(ppGrid);
+
+  const controls = document.createElement("div");
+  controls.style.cssText = "display: flex; align-items: center; gap: 8px; margin-top: 10px; flex-wrap: wrap;";
+
+  const saveButton = document.createElement("button");
+  saveButton.textContent = "Save NAIA Settings";
+  saveButton.style.cssText = "padding: 5px 10px; cursor: pointer;";
+
+  const status = document.createElement("span");
+  status.style.cssText = "opacity: 0.76;";
+
+  saveButton.onclick = async () => {
+    const originalText = saveButton.textContent;
+    try {
+      saveButton.disabled = true;
+      saveButton.textContent = "Saving...";
+      const port = Math.max(1, Math.min(65535, Number.parseInt(portInput.value || "7243", 10) || 7243));
+      portInput.value = String(port);
+      await saveSetting("naia.host", hostInput.value.trim() || "127.0.0.1");
+      await saveSetting("naia.port", String(port));
+      await saveSetting("naia.use_naia_settings", useSettingsToggle.checked ? "true" : "false");
+      for (const [key, textarea] of textareas.entries()) {
+        await saveSetting(`naia.${key}`, textarea.value);
+      }
+      for (const [key, select] of preprocessingSelects.entries()) {
+        await saveSetting(`naia.${key}`, select.value);
+      }
+      status.textContent = "Saved. Queue again to apply.";
+      status.style.color = "#16a34a";
+    } catch (error) {
+      status.textContent = `Save failed: ${error.message || error}`;
+      status.style.color = "#dc2626";
+    } finally {
+      saveButton.disabled = false;
+      saveButton.textContent = originalText;
+    }
+  };
+
+  controls.append(saveButton, status);
   container.append(controls);
   return container;
 }
@@ -419,6 +578,22 @@ app.registerExtension({
       name: "EasyUse Anima: Prompt Studio Highlighting",
       type: () => promptStudioEditor(settings),
       tooltip: "Configure Prompt Studio typo indicators and tag highlight colors.",
+    });
+
+    app.ui.settings.addSetting({
+      id: "EasyUseAnima.Section.NAIA",
+      name: "EasyUse Anima: NAIA",
+      type: () => sectionHeader(
+        "NAIA bridge",
+        "Connection and Prompt Engineering override settings used by Anima NAIA Random Prompt.",
+      ),
+    });
+
+    app.ui.settings.addSetting({
+      id: "EasyUseAnima.NAIA.Settings",
+      name: "EasyUse Anima: NAIA Settings",
+      type: () => naiaSettingsEditor(settings),
+      tooltip: "Configure NAIA host, port, Prompt Engineering override, and preprocessing options.",
     });
 
   },

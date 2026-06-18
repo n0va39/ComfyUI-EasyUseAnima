@@ -20,6 +20,15 @@ const TARGETS = {
     "artist_overrides",
     "artist_exclusions",
   ]),
+  EasyUseAnimaLoraPreset: new Set([
+    "style_prompt",
+  ]),
+};
+
+const ARTIST_ONLY_TARGETS = {
+  EasyUseAnimaLoraPreset: new Set([
+    "style_prompt",
+  ]),
 };
 
 const EXCLUDED_NODE_PATTERNS = [
@@ -257,6 +266,14 @@ function targetWidgets(nodeData) {
   return names.size ? names : null;
 }
 
+function hasExplicitTargets(nodeData) {
+  return !!TARGETS[nodeData?.name];
+}
+
+function artistOnlyWidgets(nodeData) {
+  return ARTIST_ONLY_TARGETS[nodeData.name] ?? new Set();
+}
+
 function shouldSkipNode(node, nodeData) {
   const values = [nodeData?.name, nodeData?.display_name, nodeData?.category, node?.type, node?.title]
     .filter(Boolean)
@@ -295,11 +312,13 @@ function currentToken(input) {
   };
 }
 
-function autocompleteQuery(token) {
+function autocompleteQuery(token, forceArtistOnly = false) {
   const raw = String(token.query || "");
   const parsed = parseAutocompleteText(raw);
-  const query = parsed.artistOnly ? parsed.query : raw.trim();
-  return { query, artistOnly: parsed.artistOnly };
+  const artistOnly = forceArtistOnly || parsed.artistOnly;
+  const query = artistOnly ? parsed.query : raw.trim();
+  const category = artistOnly ? "artist" : "";
+  return { query, artistOnly, category };
 }
 
 function parseAutocompleteText(value) {
@@ -426,14 +445,14 @@ function positionPopup(input) {
   menu.style.maxHeight = `${Math.min(280, maxHeight)}px`;
 }
 
-async function search(query, artistOnly = false) {
-  const key = `${artistOnly ? "artist" : "all"}:${maxResults}:${query.toLocaleLowerCase()}`;
+async function search(query, category = "") {
+  const key = `${category || "all"}:${maxResults}:${query.toLocaleLowerCase()}`;
   if (cache.has(key)) {
     return cache.get(key);
   }
-  const category = artistOnly ? "&category=artist_or_general" : "";
+  const categoryParam = category ? `&category=${encodeURIComponent(category)}` : "";
   const response = await fetch(
-    `/easyuse_anima/autocomplete?q=${encodeURIComponent(query)}&limit=${maxResults}${category}`,
+    `/easyuse_anima/autocomplete?q=${encodeURIComponent(query)}&limit=${maxResults}${categoryParam}`,
   );
   const data = await response.json().catch(() => ({}));
   if (!response.ok) {
@@ -462,7 +481,7 @@ function commitSuggestion(state, entry) {
   const token = currentToken(state.input);
   const before = token.value.slice(0, token.start);
   const after = token.value.slice(token.end);
-  const insert = completionText(token, entry);
+  const insert = completionText(token, entry, state.forceArtistOnly);
   const prefix = normalizeInsertPrefix(before);
   const suffix = normalizeInsertSuffix(after);
   state.input.value = `${prefix}${insert}${suffix}`;
@@ -484,15 +503,16 @@ function promptTagText(value) {
   return displayTagText(value).replace(/[()]/g, "\\$&");
 }
 
-function completionText(token, entry) {
+function completionText(token, entry, forceArtistOnly = false) {
   const tag = promptTagText(entry?.tag);
   const segment = String(token.segment || "").trim();
   const query = parseAutocompleteText(token.query);
   const weighted = /^\(\s*@?[\s\S]*(:\s*[-+]?\d+(?:\.\d+)?)\s*\)\s*$/.exec(segment);
-  if (query.artistOnly && weighted) {
+  const artistOnly = forceArtistOnly || query.artistOnly;
+  if (artistOnly && weighted) {
     return `(@${tag}${weighted[1]})`;
   }
-  if (query.artistOnly) {
+  if (artistOnly) {
     return `@${tag}`;
   }
   return tag;
@@ -595,21 +615,26 @@ function hookWidget(node, widget) {
 
   let composing = false;
   let updateSeq = 0;
-  const state = { node, widget, input };
+  const state = {
+    node,
+    widget,
+    input,
+    forceArtistOnly: !!node.__easyuseAnimaArtistOnlyWidgets?.has(widget.name),
+  };
 
   const updateNow = async () => {
     if (composing || document.activeElement !== input) {
       return;
     }
     const token = currentToken(input);
-    const context = autocompleteQuery(token);
+    const context = autocompleteQuery(token, state.forceArtistOnly);
     if (context.query.length < MIN_QUERY_LENGTH) {
       hidePopup();
       return;
     }
     const seq = ++updateSeq;
     try {
-      const results = await search(context.query, context.artistOnly);
+      const results = await search(context.query, context.category);
       if (document.activeElement === input && seq === updateSeq) {
         renderResults(state, results);
       }
@@ -680,9 +705,10 @@ function hookWidget(node, widget) {
 
 function hookNode(node, nodeData, attempt = 0) {
   const names = targetWidgets(nodeData);
-  if (!names || shouldSkipNode(node, nodeData)) {
+  if (!names || (!hasExplicitTargets(nodeData) && shouldSkipNode(node, nodeData))) {
     return;
   }
+  node.__easyuseAnimaArtistOnlyWidgets = artistOnlyWidgets(nodeData);
   let pendingInput = false;
   for (const widget of node.widgets || []) {
     if (names.has(widget.name)) {

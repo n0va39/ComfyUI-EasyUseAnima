@@ -3,17 +3,18 @@ from __future__ import annotations
 
 import json
 import logging
+import os
 import re
-from typing import Optional
+from typing import Any, Optional
 
 try:
     from .anima_prompt import correct_prompt, load_knowledge_base
     from .anima_prompt.parser import parse_prompt
-    from .settings import resolve_metadata_filter_words
+    from .settings import resolve_metadata_filter_words, resolve_naia_settings
 except ImportError:  # allows simple local import tests outside ComfyUI's package loader
     from anima_prompt import correct_prompt, load_knowledge_base
     from anima_prompt.parser import parse_prompt
-    from settings import resolve_metadata_filter_words
+    from settings import resolve_metadata_filter_words, resolve_naia_settings
 
 logger = logging.getLogger("ComfyUI-EasyUseAnima")
 
@@ -55,6 +56,29 @@ _HASH_COMMENT_RE = re.compile(r"^[ \t]*#[^\n]*", re.MULTILINE)
 _MULTI_COMMA_RE = re.compile(r"(\s*,){2,}")
 _INLINE_SPACE_RE = re.compile(r"[ \t]+")
 _WEIGHTED_TOKEN_RE = re.compile(r"^\(([^(),]+):[-+]?\d+(?:\.\d+)?\)$")
+_LORA_TAG_RE = re.compile(
+    r"<\s*lora\s*:\s*([^:>]+?)\s*:\s*([-+]?\d*\.?\d+)(?:\s*:\s*([-+]?\d*\.?\d+))?\s*>",
+    re.IGNORECASE,
+)
+
+
+class _AnyType(str):
+    def __ne__(self, __value: object) -> bool:
+        return False
+
+
+class _FlexibleOptionalInputType(dict):
+    def __init__(self, input_type):
+        self.input_type = input_type
+
+    def __getitem__(self, key):
+        return (self.input_type,)
+
+    def __contains__(self, key):
+        return True
+
+
+_ANY_TYPE = _AnyType("*")
 
 
 def _single_value(value):
@@ -266,6 +290,122 @@ def _get_workflow_node(extra_pnginfo, node_id: str):
             if isinstance(subgraph, dict) and isinstance(subgraph.get("nodes"), list):
                 nodes_list = subgraph["nodes"]
     return found
+
+
+def _profile_key(profile_index: int) -> str:
+    return str(max(1, _as_int(profile_index, 1)))
+
+
+def _wrap_profile_index(profile_index: int, profile_count: int) -> int:
+    count = max(1, min(16, _as_int(profile_count, 1)))
+    index = max(1, _as_int(profile_index, 1))
+    return ((index - 1) % count) + 1
+
+
+def _load_profile_data(profile_data: Any) -> dict[str, dict]:
+    if isinstance(profile_data, dict):
+        raw = profile_data
+    else:
+        try:
+            raw = json.loads(str(profile_data or "{}"))
+        except (TypeError, ValueError):
+            raw = {}
+    if not isinstance(raw, dict):
+        return {}
+    profiles: dict[str, dict] = {}
+    for key, value in raw.items():
+        if isinstance(value, dict):
+            profiles[str(key)] = value
+    return profiles
+
+
+def _get_loras_list(kwargs: dict) -> list[dict]:
+    loras_data = kwargs.get("loras")
+    if isinstance(loras_data, dict) and "__value__" in loras_data:
+        loras_data = loras_data["__value__"]
+    if not isinstance(loras_data, list):
+        return []
+    return [item for item in loras_data if isinstance(item, dict)]
+
+
+def _parse_lora_text(text: str) -> list[dict]:
+    loras: list[dict] = []
+    for match in _LORA_TAG_RE.finditer(str(text or "")):
+        model_strength = float(match.group(2))
+        clip_strength = float(match.group(3)) if match.group(3) is not None else model_strength
+        loras.append({
+            "name": match.group(1).strip(),
+            "strength": model_strength,
+            "clipStrength": clip_strength,
+            "active": True,
+        })
+    return loras
+
+
+def _apply_lora_syntax_format(name: str) -> str:
+    try:
+        from py.nodes.utils import apply_lora_syntax_format  # type: ignore
+
+        return str(apply_lora_syntax_format(name))
+    except Exception:
+        return str(name).replace("\\", "/").rstrip("/").split("/")[-1]
+
+
+def _fallback_lora_path(lora_name: str) -> str:
+    try:
+        import folder_paths  # type: ignore
+
+        for candidate in (
+            lora_name,
+            f"{lora_name}.safetensors",
+            f"{lora_name}.pt",
+            f"{lora_name}.ckpt",
+        ):
+            path = folder_paths.get_full_path("loras", candidate)
+            if path:
+                return path
+    except Exception:
+        pass
+    return lora_name
+
+
+def _get_lora_info(lora_name: str) -> tuple[str, list[str]]:
+    try:
+        from py.utils.utils import get_lora_info  # type: ignore
+
+        path, trigger_words = get_lora_info(lora_name)
+        if not isinstance(trigger_words, list):
+            trigger_words = []
+        return str(path), [str(word) for word in trigger_words if str(word).strip()]
+    except Exception:
+        return _fallback_lora_path(lora_name), []
+
+
+def _format_strength(value: float) -> str:
+    text = f"{float(value):.6f}".rstrip("0").rstrip(".")
+    return text or "0"
+
+
+def _select_profile_values(
+    profile_index: int,
+    profile_count: int,
+    profile_data: str,
+    style_prompt: str,
+    text: str,
+    kwargs: dict,
+) -> tuple[str, str, list[dict], int]:
+    selected_index = _wrap_profile_index(profile_index, profile_count)
+    profile = _load_profile_data(profile_data).get(_profile_key(selected_index), {})
+    selected_style = str(profile.get("style_prompt", style_prompt or ""))
+    selected_text = str(profile.get("text", text or ""))
+    profile_loras = profile.get("loras")
+    if isinstance(profile_loras, list):
+        loras = [item for item in profile_loras if isinstance(item, dict)]
+    else:
+        loras = _get_loras_list(kwargs)
+    if selected_text:
+        loras.extend(_parse_lora_text(selected_text))
+    return selected_style, selected_text, loras, selected_index
 
 
 class EasyUseAnimaPromptCorrector:
@@ -548,6 +688,143 @@ class EasyUseAnimaPromptStudio(EasyUseAnimaPromptBuilder):
         }
 
 
+class EasyUseAnimaLoraPreset:
+    """Multi-profile LoRA stack preset node for ANIMA style prompts."""
+
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {
+            "required": {
+                "style_prompt": ("STRING", {
+                    "multiline": True,
+                    "default": "",
+                    "tooltip": "Style prompt for artist tags, model triggers, or short style directions.",
+                }),
+                "profile_index": ("INT", {
+                    "default": 1,
+                    "min": 1,
+                    "max": 16,
+                    "step": 1,
+                    "tooltip": "Selected LoRA preset profile. Can be connected from another node.",
+                }),
+                "profile_count": ("INT", {
+                    "default": 4,
+                    "min": 1,
+                    "max": 16,
+                    "step": 1,
+                    "tooltip": "Number of saved profiles shown in the front-end tab bar.",
+                }),
+                "text": ("STRING", {
+                    "multiline": True,
+                    "default": "",
+                    "placeholder": "Search LoRAs or paste <lora:name:strength> syntax...",
+                    "tooltip": "LoRA search/paste field. Text LoRA syntax is also parsed into the stack.",
+                }),
+                "loras": ("LORAS", {
+                    "default": [],
+                    "tooltip": "LoRAManager-compatible LoRA list widget when LoraManager is installed.",
+                }),
+                "profile_data": ("STRING", {
+                    "multiline": True,
+                    "default": "{}",
+                    "tooltip": "Internal serialized profile data. Hidden by the EasyUse Anima front-end.",
+                }),
+            },
+            "optional": _FlexibleOptionalInputType(_ANY_TYPE),
+        }
+
+    RETURN_TYPES = ("STRING", "LORA_STACK", "STRING", "STRING", "INT")
+    RETURN_NAMES = ("style_prompt", "LORA_STACK", "trigger_words", "active_loras", "profile_index")
+    FUNCTION = "build"
+    CATEGORY = "EasyUse Anima/LoRA"
+
+    @classmethod
+    def IS_CHANGED(cls, **kwargs):
+        return _stable_change_key({
+            "mode": "lora_preset",
+            **{key: str(value) for key, value in sorted(kwargs.items())},
+        })
+
+    def build(
+        self,
+        style_prompt: str,
+        profile_index: int,
+        profile_count: int,
+        text: str,
+        loras,
+        profile_data: str,
+        **kwargs,
+    ):
+        kwargs = dict(kwargs)
+        if loras is not None:
+            kwargs["loras"] = loras
+
+        selected_style, _selected_text, selected_loras, selected_index = _select_profile_values(
+            profile_index,
+            profile_count,
+            profile_data,
+            style_prompt,
+            text,
+            kwargs,
+        )
+
+        stack = []
+        trigger_words: list[str] = []
+        active_loras: list[tuple[str, float, float]] = []
+
+        lora_stack = kwargs.get("lora_stack")
+        if lora_stack:
+            stack.extend(lora_stack)
+            for lora_path, _model_strength, _clip_strength in lora_stack:
+                lora_name = os.path.splitext(os.path.basename(str(lora_path).replace("\\", "/")))[0]
+                _path, existing_trigger_words = _get_lora_info(lora_name)
+                trigger_words.extend(existing_trigger_words)
+
+        seen: set[tuple[str, float, float]] = set()
+        for lora in selected_loras:
+            if not _as_bool(lora.get("active", True), True):
+                continue
+            raw_name = str(lora.get("name", "")).strip()
+            if not raw_name:
+                continue
+            lora_name = _apply_lora_syntax_format(raw_name)
+            try:
+                model_strength = float(lora.get("strength", 1.0))
+            except (TypeError, ValueError):
+                model_strength = 1.0
+            try:
+                clip_strength = float(lora.get("clipStrength", model_strength))
+            except (TypeError, ValueError):
+                clip_strength = model_strength
+
+            dedupe_key = (lora_name, model_strength, clip_strength)
+            if dedupe_key in seen:
+                continue
+            seen.add(dedupe_key)
+
+            lora_path, lora_trigger_words = _get_lora_info(lora_name)
+            stack.append((str(lora_path).replace("/", os.sep), model_strength, clip_strength))
+            trigger_words.extend(lora_trigger_words)
+            active_loras.append((lora_name, model_strength, clip_strength))
+
+        active_loras_text_parts = []
+        for name, model_strength, clip_strength in active_loras:
+            model_text = _format_strength(model_strength)
+            clip_text = _format_strength(clip_strength)
+            if abs(model_strength - clip_strength) > 0.001:
+                active_loras_text_parts.append(f"<lora:{name}:{model_text}:{clip_text}>")
+            else:
+                active_loras_text_parts.append(f"<lora:{name}:{model_text}>")
+
+        return (
+            str(selected_style or ""),
+            stack,
+            ",, ".join(trigger_words) if trigger_words else "",
+            " ".join(active_loras_text_parts),
+            selected_index,
+        )
+
+
 class EasyUseAnimaNAIARandomPrompt:
     """NAIA random prompt node with bypass and frozen-output cache."""
 
@@ -725,6 +1002,15 @@ class EasyUseAnimaNAIARandomPrompt:
         port: int = DEFAULT_PORT,
         **kwargs,
     ):
+        naia_settings = resolve_naia_settings()
+        use_naia_settings = naia_settings["use_naia_settings"]
+        pre_prompt = naia_settings["pre_prompt"]
+        post_prompt = naia_settings["post_prompt"]
+        auto_hide = naia_settings["auto_hide"]
+        host = naia_settings["host"]
+        port = naia_settings["port"]
+        pp_kwargs = naia_settings["preprocessing"]
+
         if not _as_bool(use_naia_bridge, True):
             return _stable_change_key({
                 "mode": "disabled",
@@ -749,7 +1035,7 @@ class EasyUseAnimaNAIARandomPrompt:
             auto_hide,
             host,
             port,
-            kwargs,
+            pp_kwargs,
         )
 
         if _as_bool(freeze_naia_output, False):
@@ -969,6 +1255,15 @@ class EasyUseAnimaNAIARandomPrompt:
         unique_id=None,
         **pp_kwargs,
     ):
+        naia_settings = resolve_naia_settings()
+        use_naia_settings = naia_settings["use_naia_settings"]
+        pre_prompt = naia_settings["pre_prompt"]
+        post_prompt = naia_settings["post_prompt"]
+        auto_hide = naia_settings["auto_hide"]
+        host = naia_settings["host"]
+        port = naia_settings["port"]
+        pp_kwargs = naia_settings["preprocessing"]
+
         bridge_enabled = _as_bool(use_naia_bridge, True)
         freeze_output = _as_bool(freeze_naia_output, False)
         use_settings = _as_bool(use_naia_settings, True)

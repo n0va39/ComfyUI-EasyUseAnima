@@ -11,7 +11,8 @@ const STORAGE_WIDGETS = [
   "cached_height",
   "cached_signature",
 ];
-const NAIA_OVERRIDE_WIDGETS = [
+const NAIA_SETTING_WIDGETS = [
+  "use_naia_settings",
   "pre_prompt",
   "post_prompt",
   "auto_hide",
@@ -30,6 +31,8 @@ const NAIA_OVERRIDE_WIDGETS = [
   "e621_auto_boost",
   "danbooru_auto_weight",
   "tag_implication_compression",
+  "host",
+  "port",
 ];
 
 function firstValue(value, fallback = "") {
@@ -68,10 +71,7 @@ function hideStorageWidgets(node) {
     if (!widget) {
       continue;
     }
-    widget.hidden = true;
-    if (widget.inputEl) {
-      widget.inputEl.style.display = "none";
-    }
+    hideWidget(widget);
   }
 }
 
@@ -79,6 +79,15 @@ function setWidgetVisible(widget, visible) {
   widget.hidden = !visible;
   if (widget.inputEl) {
     widget.inputEl.style.display = visible ? "" : "none";
+  }
+}
+
+function hideWidget(widget) {
+  widget.hidden = true;
+  widget.computeSize = () => [0, 0];
+  widget.draw = () => {};
+  if (widget.inputEl) {
+    widget.inputEl.style.display = "none";
   }
 }
 
@@ -124,32 +133,15 @@ function refreshNodeSize(node) {
   });
 }
 
-function updateNaiaSettingsVisibility(node) {
-  const useNaiaSettings = findWidget(node, "use_naia_settings");
-  const showOverrides = !useNaiaSettings || useNaiaSettings.value === false;
-
-  for (const name of NAIA_OVERRIDE_WIDGETS) {
+function hideNaiaSettingsWidgets(node) {
+  for (const name of NAIA_SETTING_WIDGETS) {
     const widget = findWidget(node, name);
     if (!widget) {
       continue;
     }
-    setWidgetVisible(widget, showOverrides);
+    hideWidget(widget);
   }
   refreshNodeSize(node);
-}
-
-function hookUseNaiaSettingsWidget(node) {
-  const widget = findWidget(node, "use_naia_settings");
-  if (!widget || widget.__easyuseAnimaHooked) {
-    return;
-  }
-  const callback = widget.callback;
-  widget.callback = function (value) {
-    const result = callback?.apply(this, arguments);
-    updateNaiaSettingsVisibility(node);
-    return result;
-  };
-  widget.__easyuseAnimaHooked = true;
 }
 
 function shouldShowPreview(node) {
@@ -281,9 +273,8 @@ app.registerExtension({
     nodeType.prototype.onNodeCreated = function () {
       onNodeCreated?.apply(this, arguments);
       hideStorageWidgets(this);
-      hookUseNaiaSettingsWidget(this);
       hookShowPreviewWidget(this);
-      updateNaiaSettingsVisibility(this);
+      hideNaiaSettingsWidgets(this);
       if (shouldShowPreview(this)) {
         ensurePreviewWidget(this);
       }
@@ -295,9 +286,8 @@ app.registerExtension({
     nodeType.prototype.onConfigure = function () {
       onConfigure?.apply(this, arguments);
       hideStorageWidgets(this);
-      hookUseNaiaSettingsWidget(this);
       hookShowPreviewWidget(this);
-      updateNaiaSettingsVisibility(this);
+      hideNaiaSettingsWidgets(this);
       updatePreviewVisibility(this);
       updatePreviewFromWidgets(this);
     };
