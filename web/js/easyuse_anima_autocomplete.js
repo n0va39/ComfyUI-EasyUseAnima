@@ -20,9 +20,15 @@ const TARGETS = {
     "artist_overrides",
     "artist_exclusions",
   ]),
+  EasyUseAnimaLoraPreset: new Set([
+    "style_prompt",
+  ]),
 };
 
 const ARTIST_ONLY_TARGETS = {
+  EasyUseAnimaLoraPreset: new Set([
+    "style_prompt",
+  ]),
 };
 
 const EXCLUDED_NODE_PATTERNS = [
