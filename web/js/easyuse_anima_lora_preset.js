@@ -14,7 +14,6 @@ const WIDGET_INDEX = {
 const MIN_NODE_WIDTH = 460;
 const LORA_STRENGTH_STEP = 0.05;
 const PROFILE_BAR_HEIGHT = 30;
-const LORA_PANEL_PADDING = 6;
 const LORA_PANEL_HEADER_HEIGHT = 24;
 const LORA_PANEL_ROW_HEIGHT = 24;
 const LORA_PANEL_ADD_HEIGHT = 34;
@@ -228,7 +227,7 @@ function lorasWidgetValue(node) {
   return [];
 }
 
-function setLorasWidgetValue(node, loras) {
+function setLorasWidgetValue(node, loras, options = {}) {
   const widget = findWidget(node, "loras");
   if (!widget) {
     return;
@@ -237,7 +236,11 @@ function setLorasWidgetValue(node, loras) {
   const serialized = JSON.stringify(value);
   widget.value = serialized;
   widget.callback?.(serialized);
-  renderLoraRows(node);
+  if (options.render !== false) {
+    renderLoraRows(node);
+  } else {
+    node.setDirtyCanvas?.(true, true);
+  }
 }
 
 function currentProfile(node) {
@@ -470,10 +473,10 @@ function formatStrength(value) {
   return roundStrength(value).toFixed(2);
 }
 
-function mutateLoras(node, mutator) {
+function mutateLoras(node, mutator, options = {}) {
   const loras = lorasWidgetValue(node).map((lora) => ({ ...lora }));
   mutator(loras);
-  setLorasWidgetValue(node, loras);
+  setLorasWidgetValue(node, loras, options);
   saveCurrentProfile(node);
 }
 
@@ -493,7 +496,7 @@ function addLoraEntry(node, entry) {
   });
 }
 
-function updateLoraEntry(node, index, patch) {
+function updateLoraEntry(node, index, patch, options = {}) {
   mutateLoras(node, (loras) => {
     const current = loras[index];
     if (!current) {
@@ -505,13 +508,7 @@ function updateLoraEntry(node, index, patch) {
     if (Object.prototype.hasOwnProperty.call(patch, "strength") && Math.abs(oldClip - oldStrength) < 0.0001) {
       current.clipStrength = patch.strength;
     }
-  });
-}
-
-function removeLoraEntry(node, index) {
-  mutateLoras(node, (loras) => {
-    loras.splice(index, 1);
-  });
+  }, options);
 }
 
 function loraEntryFromName(name, base = {}) {
@@ -627,6 +624,28 @@ function roundedRect(ctx, x, y, width, height, radius) {
   ctx.quadraticCurveTo(x, y + height, x, y + height - r);
   ctx.lineTo(x, y + r);
   ctx.quadraticCurveTo(x, y, x + r, y);
+}
+
+function pointInArea(pos, area) {
+  return !!area
+    && pos[0] >= area[0]
+    && pos[0] <= area[0] + area[2]
+    && pos[1] >= area[1]
+    && pos[1] <= area[1] + area[3];
+}
+
+function drawLoraToggle(ctx, x, y, active) {
+  const width = 34;
+  const height = 16;
+  const knob = 14;
+  ctx.fillStyle = active ? "#8fa1c9" : "#555a64";
+  ctx.beginPath();
+  roundedRect(ctx, x, y, width, height, height / 2);
+  ctx.fill();
+  ctx.fillStyle = active ? "#9badcf" : "#777b84";
+  ctx.beginPath();
+  ctx.arc(x + (active ? width - knob / 2 - 1 : knob / 2 + 1), y + height / 2, knob / 2, 0, Math.PI * 2);
+  ctx.fill();
 }
 
 function positionComboMenu(menu) {
@@ -762,189 +781,243 @@ function updateLoraNameComboMenu(menu, imageHost) {
   positionComboMenu(menu);
 }
 
-class EasyUseAnimaLoraPanelWidget {
+class EasyUseAnimaLoraHeaderWidget {
   constructor() {
-    this.name = "easyuse_anima_lora_panel";
+    this.name = "easyuse_anima_lora_header";
     this.type = "custom";
     this.options = { serialize: false };
     this.serialize = false;
     this.__easyuseAnimaLoraRowWidget = true;
     this.hitAreas = {};
-    this.rowHitAreas = [];
-    this.node = null;
   }
 
   computeSize(width) {
-    const rows = this.node ? lorasWidgetValue(this.node).length : 0;
-    return [width, LORA_PANEL_HEADER_HEIGHT + rows * LORA_PANEL_ROW_HEIGHT + LORA_PANEL_ADD_HEIGHT + 4];
+    return [width, LORA_PANEL_HEADER_HEIGHT];
   }
 
   draw(ctx, node, width, y, height) {
-    this.node = node;
-    this.hitAreas = {};
-    this.rowHitAreas = [];
     const loras = lorasWidgetValue(node);
-    const pad = LORA_PANEL_PADDING;
-    const panelX = 8;
-    const panelY = y + 2;
-    const panelW = width - 16;
-    const allActive = loras.length > 0 && loras.every((lora) => lora.active !== false);
+    if (!loras.length) {
+      return;
+    }
+    const allActive = loras.every((lora) => lora.active !== false);
+    const margin = 10;
+    const midY = y + height / 2;
+    this.hitAreas.toggleAll = [margin, y + 4, 34, 16];
 
     ctx.save();
-    const toggleSize = 18;
-    const headerY = panelY;
-    this.hitAreas.toggleAll = [panelX + 2, headerY + 4, toggleSize, toggleSize];
-    ctx.fillStyle = allActive ? "#8fa1c9" : "#4b4f57";
-    ctx.beginPath();
-    roundedRect(ctx, ...this.hitAreas.toggleAll, 4);
-    ctx.fill();
-
+    drawLoraToggle(ctx, margin, y + 4, allActive);
+    ctx.globalAlpha = app.canvas.editor_alpha * 0.65;
     ctx.fillStyle = LiteGraph.WIDGET_TEXT_COLOR;
     ctx.font = "16px sans-serif";
     ctx.textAlign = "left";
     ctx.textBaseline = "middle";
-    ctx.fillText("Toggle All", panelX + toggleSize + 12, headerY + LORA_PANEL_HEADER_HEIGHT / 2);
+    ctx.fillText("Toggle All", margin + 48, midY);
     ctx.textAlign = "right";
-    ctx.fillText("Strength", panelX + panelW - 2, headerY + LORA_PANEL_HEADER_HEIGHT / 2);
-
-    let rowY = headerY + LORA_PANEL_HEADER_HEIGHT;
-    for (let index = 0; index < loras.length; index += 1) {
-      const lora = loras[index] || {};
-      const active = lora.active !== false;
-      const rowX = panelX;
-      const rowW = panelW;
-      const rowH = LORA_PANEL_ROW_HEIGHT - 4;
-      const midY = rowY + rowH / 2;
-      const right = rowX + rowW;
-      const toggleW = 20;
-      const infoW = 22;
-      const arrowW = 20;
-      const valueW = 42;
-      const deleteW = 18;
-      const areas = {
-        toggle: [rowX + 5, rowY + 6, toggleW, 13],
-        info: [right - deleteW - arrowW * 2 - valueW - infoW - 10, rowY + 4, infoW, rowH - 4],
-        dec: [right - deleteW - arrowW * 2 - valueW, rowY + 4, arrowW, rowH - 4],
-        value: [right - deleteW - arrowW - valueW, rowY + 4, valueW, rowH - 4],
-        inc: [right - deleteW - arrowW, rowY + 4, arrowW, rowH - 4],
-        delete: [right - deleteW, rowY + 4, deleteW, rowH - 4],
-      };
-      const nameX = areas.toggle[0] + toggleW + 9;
-      const nameW = areas.info[0] - nameX - 8;
-      this.rowHitAreas[index] = areas;
-
-      ctx.globalAlpha = active ? 1 : 0.45;
-      ctx.fillStyle = "rgba(48, 53, 63, 0.65)";
-      ctx.beginPath();
-      roundedRect(ctx, rowX, rowY + 1, rowW, rowH, rowH / 2);
-      ctx.fill();
-      ctx.fillStyle = active ? "#8fa1c9" : "#555";
-      ctx.beginPath();
-      roundedRect(ctx, ...areas.toggle, 7);
-      ctx.fill();
-
-      ctx.fillStyle = LiteGraph.WIDGET_TEXT_COLOR;
-      ctx.font = "15px sans-serif";
-      ctx.textAlign = "left";
-      ctx.fillText(fitCanvasText(ctx, lora.name || "None", nameW), nameX, midY);
-      ctx.textAlign = "center";
-      ctx.font = "14px sans-serif";
-      ctx.fillText("ⓘ", areas.info[0] + infoW / 2, midY);
-      ctx.fillText("◀", areas.dec[0] + arrowW / 2, midY);
-      ctx.fillText(formatStrength(lora.strength ?? 1), areas.value[0] + valueW / 2, midY);
-      ctx.fillText("▶", areas.inc[0] + arrowW / 2, midY);
-      ctx.fillText("×", areas.delete[0] + deleteW / 2, midY);
-      ctx.globalAlpha = 1;
-      rowY += LORA_PANEL_ROW_HEIGHT;
-    }
-
-    const addY = rowY + 5;
-    this.hitAreas.add = [panelX, addY, panelW, LORA_PANEL_ADD_HEIGHT - 8];
-    ctx.strokeStyle = "rgba(180, 180, 185, 0.5)";
-    ctx.fillStyle = "rgba(30, 31, 35, 0.6)";
-    ctx.beginPath();
-    roundedRect(ctx, ...this.hitAreas.add, 5);
-    ctx.fill();
-    ctx.stroke();
-    ctx.fillStyle = LiteGraph.WIDGET_TEXT_COLOR;
-    ctx.font = "15px sans-serif";
-    ctx.textAlign = "center";
-    ctx.fillText("+ Add Lora", panelX + panelW / 2, addY + (LORA_PANEL_ADD_HEIGHT - 8) / 2);
+    ctx.fillText("Strength", width - margin, midY);
     ctx.restore();
   }
 
-  contains(pos, area) {
-    const hit = this.hitAreas[area];
-    return !!hit
-      && pos[0] >= hit[0]
-      && pos[0] <= hit[0] + hit[2]
-      && pos[1] >= hit[1]
-      && pos[1] <= hit[1] + hit[3];
+  mouse(event, pos, node) {
+    if (event.type !== "pointerdown" || event.button !== 0 || !pointInArea(pos, this.hitAreas.toggleAll)) {
+      return false;
+    }
+    const loras = lorasWidgetValue(node);
+    const nextActive = !(loras.length > 0 && loras.every((lora) => lora.active !== false));
+    mutateLoras(node, (items) => {
+      for (const item of items) {
+        item.active = nextActive;
+      }
+    });
+    return true;
+  }
+}
+
+class EasyUseAnimaLoraRowWidget {
+  constructor(index) {
+    this.name = `easyuse_anima_lora_row_${index}`;
+    this.type = "custom";
+    this.options = { serialize: false };
+    this.serialize = false;
+    this.__easyuseAnimaLoraRowWidget = true;
+    this.index = index;
+    this.hitAreas = {};
+    this.draggingStrength = false;
+    this.movedStrength = false;
+  }
+
+  computeSize(width) {
+    return [width, LORA_PANEL_ROW_HEIGHT];
+  }
+
+  draw(ctx, node, width, y, height) {
+    const lora = lorasWidgetValue(node)[this.index];
+    if (!lora) {
+      return;
+    }
+    const active = lora.active !== false;
+    const margin = 10;
+    const innerMargin = 4;
+    const rowH = Math.max(18, height - 2);
+    const rowY = y + 1;
+    const midY = rowY + rowH / 2;
+    const rowX = margin;
+    const rowW = width - margin * 2;
+    const right = rowX + rowW;
+    const toggleW = 34;
+    const infoW = 20;
+    const arrowW = 20;
+    const valueW = 48;
+    const nameX = rowX + toggleW + innerMargin;
+    const valueX = right - arrowW - valueW;
+    const decX = valueX - arrowW;
+    const infoX = decX - infoW - innerMargin;
+    const nameW = Math.max(20, infoX - nameX - innerMargin);
+
+    this.hitAreas = {
+      toggle: [rowX, rowY + 3, toggleW, 16],
+      lora: [nameX, y, nameW, height],
+      info: [infoX, y + 1, infoW, height - 2],
+      dec: [decX, y + 1, arrowW, height - 2],
+      value: [valueX, y + 1, valueW, height - 2],
+      inc: [right - arrowW, y + 1, arrowW, height - 2],
+      strengthAny: [decX, y, arrowW * 2 + valueW, height],
+    };
+
+    ctx.save();
+    if (!active) {
+      ctx.globalAlpha = app.canvas.editor_alpha * 0.4;
+    }
+    ctx.fillStyle = "rgba(48, 53, 63, 0.55)";
+    ctx.beginPath();
+    roundedRect(ctx, rowX, rowY, rowW, rowH, rowH / 2);
+    ctx.fill();
+
+    drawLoraToggle(ctx, rowX, rowY + 3, active);
+    ctx.fillStyle = LiteGraph.WIDGET_TEXT_COLOR;
+    ctx.font = "16px sans-serif";
+    ctx.textAlign = "left";
+    ctx.textBaseline = "middle";
+    ctx.fillText(fitCanvasText(ctx, lora.name || "None", nameW), nameX, midY);
+    ctx.textAlign = "center";
+    ctx.fillText("ⓘ", infoX + infoW / 2, midY);
+    ctx.fillText("◀", decX + arrowW / 2, midY);
+    ctx.fillText(formatStrength(lora.strength ?? 1), valueX + valueW / 2, midY);
+    ctx.fillText("▶", right - arrowW / 2, midY);
+    ctx.restore();
   }
 
   mouse(event, pos, node) {
-    if (event.type !== "pointerdown") {
+    const lora = lorasWidgetValue(node)[this.index];
+    if (!lora) {
       return false;
     }
-    if (this.contains(pos, "add")) {
-      openLoraMenu(node, event, (entry) => addLoraEntry(node, entry));
+    if (event.type === "pointermove" && this.draggingStrength) {
+      if (event.deltaX) {
+        this.movedStrength = true;
+        updateLoraEntry(
+          node,
+          this.index,
+          { strength: roundStrength((lora.strength ?? 1) + event.deltaX * LORA_STRENGTH_STEP) },
+          { render: false },
+        );
+      }
       return true;
     }
-    if (this.contains(pos, "toggleAll")) {
-      const loras = lorasWidgetValue(node);
-      const nextActive = !(loras.length > 0 && loras.every((lora) => lora.active !== false));
-      mutateLoras(node, (items) => {
-        for (const item of items) {
-          item.active = nextActive;
-        }
-      });
+    if (event.type === "pointerup" && this.draggingStrength) {
+      const shouldPrompt = !this.movedStrength && pointInArea(pos, this.hitAreas.value);
+      this.draggingStrength = false;
+      this.movedStrength = false;
+      if (shouldPrompt) {
+        this.promptStrength(event, node, lora);
+      }
       return true;
     }
-    for (let index = 0; index < this.rowHitAreas.length; index += 1) {
-      const areas = this.rowHitAreas[index];
-      const lora = lorasWidgetValue(node)[index];
-      if (!areas || !lora) {
-        continue;
-      }
-      const hit = (area) => {
-        const bounds = areas[area];
-        return bounds
-          && pos[0] >= bounds[0]
-          && pos[0] <= bounds[0] + bounds[2]
-          && pos[1] >= bounds[1]
-          && pos[1] <= bounds[1] + bounds[3];
-      };
-      if (hit("toggle")) {
-        updateLoraEntry(node, index, { active: lora.active === false });
-        return true;
-      }
-      if (hit("delete")) {
-        removeLoraEntry(node, index);
-        return true;
-      }
-      if (hit("info")) {
-        showLoraInfo(lora.name);
-        return true;
-      }
-      if (hit("dec")) {
-        updateLoraEntry(node, index, { strength: roundStrength((lora.strength ?? 1) - LORA_STRENGTH_STEP) });
-        return true;
-      }
-      if (hit("inc")) {
-        updateLoraEntry(node, index, { strength: roundStrength((lora.strength ?? 1) + LORA_STRENGTH_STEP) });
-        return true;
-      }
-      if (hit("value")) {
-        app.canvas.prompt("LoRA strength", lora.strength ?? 1, (value) => {
-          const next = Number(value);
-          if (Number.isFinite(next)) {
-            updateLoraEntry(node, index, { strength: roundStrength(next) });
-          }
-        }, event);
-        return true;
-      }
+    if (event.type !== "pointerdown" || event.button !== 0) {
+      return false;
+    }
+    if (pointInArea(pos, this.hitAreas.toggle)) {
+      updateLoraEntry(node, this.index, { active: lora.active === false });
+      return true;
+    }
+    if (pointInArea(pos, this.hitAreas.lora)) {
+      openLoraMenu(node, event, (entry) => updateLoraEntry(node, this.index, {
+        name: entry.name,
+        strength: lora.strength ?? entry.strength ?? 1,
+        trigger: entry.trigger || "",
+      }));
+      return true;
+    }
+    if (pointInArea(pos, this.hitAreas.info)) {
+      showLoraInfo(lora.name);
+      return true;
+    }
+    if (pointInArea(pos, this.hitAreas.dec)) {
+      updateLoraEntry(node, this.index, { strength: roundStrength((lora.strength ?? 1) - LORA_STRENGTH_STEP) });
+      return true;
+    }
+    if (pointInArea(pos, this.hitAreas.inc)) {
+      updateLoraEntry(node, this.index, { strength: roundStrength((lora.strength ?? 1) + LORA_STRENGTH_STEP) });
+      return true;
+    }
+    if (pointInArea(pos, this.hitAreas.strengthAny)) {
+      this.draggingStrength = true;
+      this.movedStrength = false;
+      return true;
     }
     return false;
+  }
+
+  promptStrength(event, node, lora) {
+    app.canvas.prompt("LoRA strength", lora.strength ?? 1, (value) => {
+      const next = Number(value);
+      if (Number.isFinite(next)) {
+        updateLoraEntry(node, this.index, { strength: roundStrength(next) });
+      }
+    }, event);
+  }
+}
+
+class EasyUseAnimaLoraAddButtonWidget {
+  constructor() {
+    this.name = "easyuse_anima_lora_add";
+    this.type = "custom";
+    this.options = { serialize: false };
+    this.serialize = false;
+    this.__easyuseAnimaLoraRowWidget = true;
+    this.hitArea = null;
+  }
+
+  computeSize(width) {
+    return [width, LORA_PANEL_ADD_HEIGHT];
+  }
+
+  draw(ctx, node, width, y, height) {
+    const margin = 10;
+    const buttonY = y + 5;
+    const buttonH = height - 10;
+    this.hitArea = [margin, buttonY, width - margin * 2, buttonH];
+    ctx.save();
+    ctx.strokeStyle = "rgba(180, 180, 185, 0.5)";
+    ctx.fillStyle = "rgba(30, 31, 35, 0.55)";
+    ctx.beginPath();
+    roundedRect(ctx, margin, buttonY, width - margin * 2, buttonH, 5);
+    ctx.fill();
+    ctx.stroke();
+    ctx.fillStyle = LiteGraph.WIDGET_TEXT_COLOR;
+    ctx.font = "18px sans-serif";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText("+ Add Lora", width / 2, buttonY + buttonH / 2);
+    ctx.restore();
+  }
+
+  mouse(event, pos, node) {
+    if (event.type !== "pointerdown" || event.button !== 0 || !pointInArea(pos, this.hitArea)) {
+      return false;
+    }
+    openLoraMenu(node, event, (entry) => addLoraEntry(node, entry));
+    return true;
   }
 }
 
@@ -1039,9 +1112,14 @@ function renderLoraRows(node) {
     return;
   }
   node.widgets = node.widgets.filter((widget) => !widget.__easyuseAnimaLoraRowWidget);
-  const panel = new EasyUseAnimaLoraPanelWidget();
-  panel.node = node;
-  node.widgets.push(panel);
+  const loras = lorasWidgetValue(node);
+  if (loras.length) {
+    node.widgets.push(new EasyUseAnimaLoraHeaderWidget());
+  }
+  for (let index = 0; index < loras.length; index += 1) {
+    node.widgets.push(new EasyUseAnimaLoraRowWidget(index));
+  }
+  node.widgets.push(new EasyUseAnimaLoraAddButtonWidget());
   enforceNodeLayout(node);
 }
 
