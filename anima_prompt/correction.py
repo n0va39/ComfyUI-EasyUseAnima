@@ -130,8 +130,6 @@ def _classify_with_artist_options(
     normalized: str,
     *,
     info,
-    kb: PromptKnowledgeBase,
-    validate_artist_tags: bool,
     artist_overrides: set[str],
     artist_exclusions: set[str],
 ):
@@ -141,11 +139,7 @@ def _classify_with_artist_options(
     if key in artist_overrides:
         return classify_tag(f"@{key}", info)
     if normalized.strip().startswith("@"):
-        if not validate_artist_tags:
-            return classify_tag(normalized, info)
-        if key in kb.animadex.artists:
-            return classify_tag(normalized, info)
-        return classify_tag(normalized.lstrip("@"), None)
+        return classify_tag(normalized, info)
     return classify_tag(normalized, info)
 
 
@@ -179,8 +173,6 @@ def inspect_prompt(
         section = _classify_with_artist_options(
             normalized,
             info=info,
-            kb=kb,
-            validate_artist_tags=validate_artist_tags,
             artist_overrides=override_keys,
             artist_exclusions=exclusion_keys,
         )

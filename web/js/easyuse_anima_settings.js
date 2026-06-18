@@ -29,15 +29,6 @@ async function saveSetting(key, value) {
   return data;
 }
 
-async function getDatasetStatus() {
-  const response = await fetch("/easyuse_anima/animadex_status");
-  const data = await response.json().catch(() => ({}));
-  if (!response.ok) {
-    throw new Error(data.message || `HTTP ${response.status}`);
-  }
-  return data;
-}
-
 async function getAutocompleteStatus() {
   const response = await fetch("/easyuse_anima/autocomplete_status");
   const data = await response.json().catch(() => ({}));
@@ -47,48 +38,6 @@ async function getAutocompleteStatus() {
   return data;
 }
 
-async function downloadAnimaDexDataset(forceRefresh = false) {
-  const response = await fetch("/easyuse_anima/download_animadex", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ force_refresh: forceRefresh }),
-  });
-  const data = await response.json().catch(() => ({}));
-  if (!response.ok) {
-    throw new Error(data.message || `HTTP ${response.status}`);
-  }
-  return data;
-}
-
-async function runDownload(forceRefresh = false, button = null) {
-  const originalText = button?.textContent;
-  try {
-    if (button) {
-      button.disabled = true;
-      button.textContent = forceRefresh ? "Refreshing..." : "Downloading...";
-    }
-    const result = await downloadAnimaDexDataset(forceRefresh);
-    alert(
-      [
-        `AnimaDex dataset ${result.status}.`,
-        "",
-        `Character index: ${result.character_index || ""}`,
-        `Artist index: ${result.artist_index || ""}`,
-      ].join("\n"),
-    );
-    await refreshStatusPanels();
-  } catch (error) {
-    alert(`AnimaDex dataset download failed:\n${error.message || error}`);
-    await refreshStatusPanels();
-  } finally {
-    if (button) {
-      button.disabled = false;
-      button.textContent = originalText;
-    }
-  }
-}
-
-const statusPanels = new Set();
 const autocompletePanels = new Set();
 
 const PROMPT_STUDIO_COLOR_DEFAULTS = {
@@ -347,25 +296,6 @@ function autocompleteDatasetSelector(initialValue = "") {
   return container;
 }
 
-function formatFileStatus(fileStatus) {
-  if (!fileStatus?.exists) {
-    return {
-      state: "missing",
-      detail: "",
-      path: fileStatus?.path || "",
-    };
-  }
-  const size = Number(fileStatus.size || 0).toLocaleString();
-  const mtime = fileStatus.mtime
-    ? new Date(fileStatus.mtime * 1000).toLocaleString()
-    : "unknown time";
-  return {
-    state: "found",
-    detail: `${size} bytes, ${mtime}`,
-    path: fileStatus.path || "",
-  };
-}
-
 function appendLine(container, label, value, valueStyle = "") {
   const row = document.createElement("div");
   const strong = document.createElement("strong");
@@ -381,25 +311,6 @@ function appendLine(container, label, value, valueStyle = "") {
 
 function appendPathLine(container, label, value) {
   appendLine(container, label, value, "opacity: 0.66; font-weight: 400;");
-}
-
-function appendFileStatusLine(container, label, fileStatus) {
-  const info = formatFileStatus(fileStatus);
-  const row = document.createElement("div");
-  row.style.cssText = "margin: 2px 0;";
-
-  const strong = document.createElement("strong");
-  strong.textContent = `${label}: `;
-
-  const status = document.createElement("span");
-  status.textContent = info.detail ? `${info.state} (${info.detail})` : info.state;
-
-  const path = document.createElement("span");
-  path.textContent = info.path ? ` - ${info.path}` : "";
-  path.style.cssText = "opacity: 0.58; font-weight: 400;";
-
-  row.append(strong, status, path);
-  container.append(row);
 }
 
 function renderAutocompletePanel(panel, status) {
@@ -431,58 +342,6 @@ function renderAutocompletePanel(panel, status) {
   panel.append(refresh);
 }
 
-function renderStatusPanel(panel, status) {
-  panel.replaceChildren();
-
-  const guide = document.createElement("div");
-  guide.style.cssText = "margin-bottom: 8px; line-height: 1.45;";
-  guide.textContent =
-    "Paste the AnimaDex export token above, then click Download. Dataset files are saved inside this custom node under __easyuse_anima__ and are ignored by git.";
-  panel.append(guide);
-
-  const banner = document.createElement("div");
-  banner.textContent = status.downloaded
-    ? "AnimaDex dataset is downloaded and ready."
-    : "AnimaDex dataset is not downloaded yet.";
-  banner.style.cssText = status.downloaded
-    ? "margin: 8px 0; padding: 8px 10px; border-radius: 6px; background: rgba(22, 163, 74, 0.16); color: #16a34a; font-weight: 700;"
-    : "margin: 8px 0; padding: 8px 10px; border-radius: 6px; background: rgba(234, 179, 8, 0.14); color: #ca8a04; font-weight: 700;";
-  panel.append(banner);
-
-  const statusText = status.downloaded ? "Downloaded" : "Not downloaded";
-  appendLine(
-    panel,
-    "Dataset",
-    statusText,
-    status.downloaded
-      ? "color: #16a34a; font-weight: 700;"
-      : "color: #ca8a04; font-weight: 700;",
-  );
-  appendLine(panel, "Token", status.token_configured ? "configured" : "not configured");
-  appendPathLine(panel, "Storage", status.data_dir || "");
-  appendFileStatusLine(panel, "Character index", status.character_index);
-  appendFileStatusLine(panel, "Artist index", status.artist_index);
-
-  const refresh = document.createElement("button");
-  refresh.textContent = "Refresh Status";
-  refresh.style.cssText = "margin-top: 8px; padding: 4px 10px; cursor: pointer;";
-  refresh.onclick = () => refreshStatusPanel(panel);
-  panel.append(refresh);
-}
-
-async function refreshStatusPanel(panel) {
-  try {
-    const status = await getDatasetStatus();
-    renderStatusPanel(panel, status);
-  } catch (error) {
-    panel.textContent = `Could not read AnimaDex dataset status: ${error.message || error}`;
-  }
-}
-
-async function refreshStatusPanels() {
-  await Promise.all([...statusPanels].map((panel) => refreshStatusPanel(panel)));
-}
-
 async function refreshAutocompletePanel(panel) {
   try {
     const status = await getAutocompleteStatus();
@@ -496,28 +355,10 @@ async function refreshAutocompletePanels() {
   await Promise.all([...autocompletePanels].map((panel) => refreshAutocompletePanel(panel)));
 }
 
-function datasetStatusPanel() {
-  const panel = document.createElement("div");
-  panel.style.cssText = "max-width: 760px; line-height: 1.45; white-space: normal;";
-  panel.textContent = "Checking AnimaDex dataset status...";
-  statusPanels.add(panel);
-  refreshStatusPanel(panel);
-  return panel;
-}
-
-function downloadButton(label, forceRefresh = false) {
-  const button = document.createElement("button");
-  button.textContent = label;
-  button.style.cssText = "padding: 6px 12px; cursor: pointer;";
-  button.onclick = () => runDownload(forceRefresh, button);
-  return button;
-}
-
 app.registerExtension({
   name: "easyuse-anima.settings",
   async setup() {
     const settings = await getSettings();
-    const tokenConfigured = settings["animadex.token_configured"] === true;
 
     app.ui.settings.addSetting({
       id: "EasyUseAnima.Section.Prompt",
@@ -549,54 +390,5 @@ app.registerExtension({
       tooltip: "Configure Prompt Studio typo indicators and tag highlight colors.",
     });
 
-    app.ui.settings.addSetting({
-      id: "EasyUseAnima.Section.AnimaDex",
-      name: "EasyUse Anima: AnimaDex",
-      type: () => sectionHeader(
-        "AnimaDex dataset",
-        "Token, download status, and dataset refresh controls.",
-      ),
-    });
-
-    app.ui.settings.addSetting({
-      id: "EasyUseAnima.AnimaDex.Token",
-      name: tokenConfigured
-        ? "EasyUse Anima: AnimaDex Export Token (saved; enter to replace)"
-        : "EasyUse Anima: AnimaDex Export Token",
-      type: "text",
-      defaultValue: "",
-      onChange: async (value) => {
-        await saveSetting("animadex.token", value);
-        await refreshStatusPanels();
-      },
-    });
-
-    app.ui.settings.addSetting({
-      id: "EasyUseAnima.AnimaDex.Status",
-      name: "EasyUse Anima: AnimaDex Dataset Status",
-      type: () => datasetStatusPanel(),
-    });
-
-    app.ui.settings.addSetting({
-      id: "EasyUseAnima.AnimaDex.Site",
-      name: "EasyUse Anima: AnimaDex Site",
-      type: "text",
-      defaultValue: settings["animadex.site"] || "https://animadex.net",
-      onChange: (value) => saveSetting("animadex.site", value),
-    });
-
-    app.ui.settings.addSetting({
-      id: "EasyUseAnima.AnimaDex.Download",
-      name: "EasyUse Anima: Download AnimaDex Dataset",
-      type: () => downloadButton("Download", false),
-      tooltip: "Download character/artist CSVs and build local indexes under this custom node.",
-    });
-
-    app.ui.settings.addSetting({
-      id: "EasyUseAnima.AnimaDex.Refresh",
-      name: "EasyUse Anima: Force Refresh AnimaDex Dataset",
-      type: () => downloadButton("Force Refresh", true),
-      tooltip: "Download again even if local indexes already exist.",
-    });
   },
 });

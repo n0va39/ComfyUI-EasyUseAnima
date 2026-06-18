@@ -10,8 +10,7 @@ does not import ComfyUI, torch, model loading code, taggers, or a general tag DB
 - Danbooru-style comma-separated prompt parsing
 - ComfyUI/NovelAI prompt weighting syntax preservation
 - tag normalization
-- AnimaDex character / copyright / artist lookup
-- character core tag lookup from AnimaDex exports
+- built-in ANIMA count tag recognition
 - ANIMA ordering
 - correction report data
 
@@ -51,54 +50,9 @@ aqua eyes, twintails, detached sleeves
 
 ## Data Sources
 
-This vendored MVP uses only local AnimaDex exports or indexes:
+This core does not load external character/artist exports or a general tag
+database. It uses only built-in ANIMA ordering rules and manual artist
+override/exclusion inputs.
 
-- `characters.csv`
-- `artists.csv`
-- `character_index.jsonl`
-- `artist_index.jsonl`
-
-Resolution order:
-
-1. Explicit ComfyUI node input path
-2. environment variable
-3. workspace-local default path
-
-Environment variables:
-
-- `ANIMADEX_CHARACTERS_CSV`
-- `ANIMADEX_ARTISTS_CSV`
-- `ANIMADEX_CHARACTER_INDEX`
-- `ANIMADEX_ARTIST_INDEX`
-
-Default local paths:
-
-- Package-local CSV: `__easyuse_anima__/import/characters.csv`,
-  `__easyuse_anima__/import/artists.csv`
-- Package-local index: `__easyuse_anima__/index/character_index.jsonl`,
-  `__easyuse_anima__/index/artist_index.jsonl`
-- CSV: `models/animadex/import/characters.csv`,
-  `models/animadex/import/artists.csv`
-- Index: `models/animadex/index/character_index.jsonl`,
-  `models/animadex/index/artist_index.jsonl`
-
-`__easyuse_anima__/` and `models/animadex/` are ignored by Registry packaging.
-Do not commit downloaded CSVs or tokens.
-
-## AnimaDex Fields
-
-Characters:
-
-- `character`
-- `copyright`
-- `trigger`
-- `core_tags`
-- `count`
-- `url`
-
-Artists:
-
-- `artist`
-- `trigger`
-- `count`
-- `url`
+Prompt Studio highlighting and autocomplete are implemented outside this core
+through the node pack's bundled Korean Danbooru CSV sources.

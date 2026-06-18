@@ -8,7 +8,6 @@ except ImportError:
     web = None
 
 from .settings import public_settings, resolve_autocomplete_source, save_setting
-from .animadex_dataset import dataset_paths, dataset_status, download_animadex_dataset
 from .autocomplete_dataset import (
     autocomplete_status,
     available_autocomplete_sources,
@@ -41,34 +40,6 @@ if server is not None and web is not None:
                 status=400,
             )
         return web.json_response({"status": "ok", **public_settings()})
-
-    @server.PromptServer.instance.routes.post("/easyuse_anima/download_animadex")
-    async def download_animadex_handler(request):
-        data = await request.json()
-        try:
-            status, report, character_index, artist_index = download_animadex_dataset(
-                force_refresh=bool(data.get("force_refresh", False)),
-                full_manifest=bool(data.get("full_manifest", False)),
-                site_override=str(data.get("site_override") or ""),
-            )
-            return web.json_response(
-                {
-                    "status": status,
-                    "report": report,
-                    "character_index": character_index,
-                    "artist_index": artist_index,
-                    **dataset_paths(),
-                }
-            )
-        except Exception as exc:
-            return web.json_response(
-                {"status": "error", "message": str(exc), **dataset_paths()},
-                status=500,
-            )
-
-    @server.PromptServer.instance.routes.get("/easyuse_anima/animadex_status")
-    async def animadex_status_handler(request):
-        return web.json_response(dataset_status())
 
     @server.PromptServer.instance.routes.get("/easyuse_anima/autocomplete_status")
     async def autocomplete_status_handler(request):

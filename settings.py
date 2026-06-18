@@ -1,19 +1,15 @@
 from __future__ import annotations
 
 import json
-import os
 
 try:
-    from .anima_prompt.knowledge import LEGACY_PACKAGE_DATA_DIR, PACKAGE_DATA_DIR
+    from .anima_prompt.knowledge import PACKAGE_DATA_DIR
 except ImportError:
-    from anima_prompt.knowledge import LEGACY_PACKAGE_DATA_DIR, PACKAGE_DATA_DIR
+    from anima_prompt.knowledge import PACKAGE_DATA_DIR
 
 SETTINGS_FILE = PACKAGE_DATA_DIR / "settings.json"
-LEGACY_SETTINGS_FILE = LEGACY_PACKAGE_DATA_DIR / "settings.json"
 
 DEFAULT_SETTINGS = {
-    "animadex.token": "",
-    "animadex.site": "https://animadex.net",
     "prompt.metadata_filter_words": "",
     "autocomplete.source": "kr_modified",
     "prompt_studio.typo_indicator": "true",
@@ -23,11 +19,10 @@ DEFAULT_SETTINGS = {
 
 def get_settings() -> dict:
     settings = dict(DEFAULT_SETTINGS)
-    source = SETTINGS_FILE if SETTINGS_FILE.is_file() else LEGACY_SETTINGS_FILE
-    if not source.is_file():
+    if not SETTINGS_FILE.is_file():
         return settings
     try:
-        data = json.loads(source.read_text(encoding="utf-8"))
+        data = json.loads(SETTINGS_FILE.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError):
         return settings
     if isinstance(data, dict):
@@ -53,8 +48,6 @@ def save_setting(key: str, value) -> dict:
 def public_settings() -> dict:
     settings = get_settings()
     return {
-        "animadex.token_configured": bool(settings.get("animadex.token")),
-        "animadex.site": settings.get("animadex.site", DEFAULT_SETTINGS["animadex.site"]),
         "prompt.metadata_filter_words": settings.get("prompt.metadata_filter_words", ""),
         "autocomplete.source": settings.get(
             "autocomplete.source",
@@ -69,21 +62,6 @@ def public_settings() -> dict:
             DEFAULT_SETTINGS["prompt_studio.colors"],
         ),
     }
-
-
-def resolve_animadex_token() -> str:
-    settings = get_settings()
-    token = settings.get("animadex.token", "").strip()
-    if token:
-        return token
-    return os.environ.get("ANIMADEX_IMPORT_TOKEN", "").strip()
-
-
-def resolve_animadex_site(site_override: str = "") -> str:
-    if str(site_override or "").strip():
-        return str(site_override).strip()
-    settings = get_settings()
-    return settings.get("animadex.site", DEFAULT_SETTINGS["animadex.site"]).strip()
 
 
 def resolve_metadata_filter_words() -> str:

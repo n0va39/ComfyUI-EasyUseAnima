@@ -123,13 +123,10 @@ Outputs:
 
 The node accepts a comma-separated prompt and returns a normalized
 ANIMA-ordered prompt plus a JSON report. It uses the vendored `anima_prompt`
-MVP core and only loads AnimaDex character/artist data. It does not load a
-general tag DB.
+MVP core and does not depend on external character/artist exports.
 
 Main controls:
 
-- `validate_artist_tags=true`: only AnimaDex artist triggers and manual
-  overrides are treated as `@artist` tags.
 - `artist_overrides`: manual comma- or newline-separated artist triggers.
 - `artist_exclusions`: tags that must not be treated as artists.
 
@@ -144,83 +141,9 @@ Prompt syntax:
 - If a natural-language sentence is immediately followed by a count tag such as
   `1girl`, the count tag is split out and reordered normally.
 
-AnimaDex data can be supplied with explicit paths:
-
-- `animadex_character_index`: `character_index.jsonl`
-- `animadex_artist_index`: `artist_index.jsonl`
-- `animadex_characters_csv`: `characters.csv`
-- `animadex_artists_csv`: `artists.csv`
-
-If explicit paths are empty, the node also checks these environment variables:
-
-- `ANIMADEX_CHARACTER_INDEX`
-- `ANIMADEX_ARTIST_INDEX`
-- `ANIMADEX_CHARACTERS_CSV`
-- `ANIMADEX_ARTISTS_CSV`
-
-Default local discovery also checks:
-
-```text
-__easyuse_anima__/index/character_index.jsonl
-__easyuse_anima__/index/artist_index.jsonl
-__easyuse_anima__/import/characters.csv
-__easyuse_anima__/import/artists.csv
-models/animadex/index/character_index.jsonl
-models/animadex/index/artist_index.jsonl
-models/animadex/import/characters.csv
-models/animadex/import/artists.csv
-```
-
-Do not commit downloaded AnimaDex exports or tokens.
-
-### AnimaDex Dataset Download
-
-Category: `EasyUse Anima/Data`
-
-Outputs:
-
-- `status`
-- `report`
-- `character_index`
-- `artist_index`
-
-This node downloads AnimaDex character/artist CSV exports and builds local JSONL
-indexes for `Anima Prompt Corrector`.
-
-The same download can also be started from ComfyUI Settings:
-
-- `EasyUse Anima: AnimaDex Export Token`: stores the export token in this custom
-  node's local settings file.
-- `EasyUse Anima: AnimaDex Dataset Status`: shows whether the local indexes are
-  present, where they are stored, and whether a token is configured.
-- `EasyUse Anima: Download AnimaDex Dataset`: downloads only when local indexes
-  are missing.
-- `EasyUse Anima: Force Refresh AnimaDex Dataset`: downloads again and rebuilds
-  indexes.
-
-Local storage:
-
-```text
-__easyuse_anima__/import/characters.csv
-__easyuse_anima__/import/artists.csv
-__easyuse_anima__/index/character_index.jsonl
-__easyuse_anima__/index/artist_index.jsonl
-```
-
-By default, if both index files already exist, the node returns `cached` and
-does not download again. Set `force_refresh=true` to download again.
-
-Token options:
-
-- ComfyUI Settings -> `EasyUse Anima: AnimaDex Export Token`
-- `ANIMADEX_IMPORT_TOKEN`: environment variable used when no settings token or
-  token is configured.
-
-Avoid putting a real token directly into workflows. The download node reads the
-token from the ComfyUI settings/API storage or the environment.
-The settings token is stored under `__easyuse_anima__/settings.json`, which is
-ignored by git with the downloaded dataset files. The old
-`__animadex__/settings.json` path is read as a fallback.
+Dataset download, token storage, and character/artist index loading are not
+included. Prompt Studio highlighting and autocomplete use the bundled Korean
+Danbooru CSV sources instead.
 
 ## Requirements
 

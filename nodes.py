@@ -7,17 +7,13 @@ import re
 from typing import Optional
 
 try:
-    from .animadex_dataset import download_animadex_dataset
     from .anima_prompt import correct_prompt, load_knowledge_base
-    from .anima_prompt.knowledge import PACKAGE_DATA_DIR
     from .anima_prompt.parser import parse_prompt
-    from .settings import resolve_animadex_site, resolve_metadata_filter_words
+    from .settings import resolve_metadata_filter_words
 except ImportError:  # allows simple local import tests outside ComfyUI's package loader
-    from animadex_dataset import download_animadex_dataset
     from anima_prompt import correct_prompt, load_knowledge_base
-    from anima_prompt.knowledge import PACKAGE_DATA_DIR
     from anima_prompt.parser import parse_prompt
-    from settings import resolve_animadex_site, resolve_metadata_filter_words
+    from settings import resolve_metadata_filter_words
 
 logger = logging.getLogger("ComfyUI-EasyUseAnima")
 
@@ -59,7 +55,6 @@ _HASH_COMMENT_RE = re.compile(r"^[ \t]*#[^\n]*", re.MULTILINE)
 _MULTI_COMMA_RE = re.compile(r"(\s*,){2,}")
 _INLINE_SPACE_RE = re.compile(r"[ \t]+")
 _WEIGHTED_TOKEN_RE = re.compile(r"^\(([^(),]+):[-+]?\d+(?:\.\d+)?\)$")
-DEFAULT_ANIMADEX_SITE = "https://animadex.net"
 
 
 def _single_value(value):
@@ -285,10 +280,6 @@ class EasyUseAnimaPromptCorrector:
                     "default": "",
                     "tooltip": "Comma-separated prompt text to normalize and reorder for ANIMA.",
                 }),
-                "validate_artist_tags": ("BOOLEAN", {
-                    "default": True,
-                    "tooltip": "Only AnimaDex artists and manual overrides are treated as @artist tags.",
-                }),
                 "artist_overrides": ("STRING", {
                     "multiline": True,
                     "default": "",
@@ -298,26 +289,6 @@ class EasyUseAnimaPromptCorrector:
                     "multiline": True,
                     "default": "",
                     "tooltip": "Comma- or newline-separated triggers that must not be treated as artists.",
-                }),
-                "animadex_characters_csv": ("STRING", {
-                    "multiline": False,
-                    "default": "",
-                    "tooltip": "Optional explicit AnimaDex characters.csv path.",
-                }),
-                "animadex_artists_csv": ("STRING", {
-                    "multiline": False,
-                    "default": "",
-                    "tooltip": "Optional explicit AnimaDex artists.csv path.",
-                }),
-                "animadex_character_index": ("STRING", {
-                    "multiline": False,
-                    "default": "",
-                    "tooltip": "Optional explicit AnimaDex character_index.jsonl path.",
-                }),
-                "animadex_artist_index": ("STRING", {
-                    "multiline": False,
-                    "default": "",
-                    "tooltip": "Optional explicit AnimaDex artist_index.jsonl path.",
                 }),
             }
         }
@@ -337,27 +308,16 @@ class EasyUseAnimaPromptCorrector:
     def correct(
         self,
         prompt: str,
-        validate_artist_tags: bool,
         artist_overrides: str,
         artist_exclusions: str,
-        animadex_characters_csv: str,
-        animadex_artists_csv: str,
-        animadex_character_index: str,
-        animadex_artist_index: str,
     ):
         try:
-            kb = load_knowledge_base(
-                animadex_characters_csv=animadex_characters_csv.strip() or None,
-                animadex_artists_csv=animadex_artists_csv.strip() or None,
-                animadex_character_index=animadex_character_index.strip() or None,
-                animadex_artist_index=animadex_artist_index.strip() or None,
-                allow_missing=True,
-            )
+            kb = load_knowledge_base(allow_missing=True)
             result = correct_prompt(
                 str(prompt or ""),
                 profile="prompt",
                 knowledge_base=kb,
-                validate_artist_tags=_as_bool(validate_artist_tags, True),
+                validate_artist_tags=False,
                 artist_overrides=_split_tag_text(artist_overrides),
                 artist_exclusions=_split_tag_text(artist_exclusions),
             )
@@ -586,93 +546,6 @@ class EasyUseAnimaPromptStudio(EasyUseAnimaPromptBuilder):
             },
             "result": result,
         }
-
-
-class EasyUseAnimaAnimaDexDatasetDownload:
-    """Download AnimaDex CSV exports into the node pack local dataset store."""
-
-    @classmethod
-    def INPUT_TYPES(cls):
-        return {
-            "required": {
-                "site_override": ("STRING", {
-                    "multiline": False,
-                    "default": "",
-                    "tooltip": "Optional AnimaDex site override. Empty uses the ComfyUI settings value.",
-                }),
-                "force_refresh": ("BOOLEAN", {
-                    "default": False,
-                    "tooltip": "Download again even if local index files already exist.",
-                }),
-                "full_manifest": ("BOOLEAN", {
-                    "default": False,
-                    "tooltip": "Request the full AnimaDex export manifest.",
-                }),
-            }
-        }
-
-    RETURN_TYPES = ("STRING", "STRING", "STRING", "STRING")
-    RETURN_NAMES = ("status", "report", "character_index", "artist_index")
-    FUNCTION = "download"
-    CATEGORY = "EasyUse Anima/Data"
-
-    @classmethod
-    def IS_CHANGED(
-        cls,
-        site_override: str = "",
-        force_refresh=False,
-        full_manifest=False,
-    ):
-        if _as_bool(force_refresh, False):
-            return float("nan")
-        data_dir = PACKAGE_DATA_DIR
-        character_index = data_dir / "index" / "character_index.jsonl"
-        artist_index = data_dir / "index" / "artist_index.jsonl"
-        return _stable_change_key({
-            "mode": "animadex_dataset",
-            "site": resolve_animadex_site(site_override),
-            "full_manifest": _as_bool(full_manifest, False),
-            "character_index_exists": character_index.is_file(),
-            "artist_index_exists": artist_index.is_file(),
-            "character_index_mtime": character_index.stat().st_mtime if character_index.is_file() else 0,
-            "artist_index_mtime": artist_index.stat().st_mtime if artist_index.is_file() else 0,
-        })
-
-    def download(
-        self,
-        site_override: str,
-        force_refresh: bool,
-        full_manifest: bool,
-    ):
-        data_dir = PACKAGE_DATA_DIR
-        import_dir = data_dir / "import"
-        index_dir = data_dir / "index"
-        character_index = index_dir / "character_index.jsonl"
-        artist_index = index_dir / "artist_index.jsonl"
-
-        if (
-            not _as_bool(force_refresh, False)
-            and character_index.is_file()
-            and artist_index.is_file()
-        ):
-            report = {
-                "status": "cached",
-                "data_dir": str(data_dir),
-                "character_index": str(character_index),
-                "artist_index": str(artist_index),
-            }
-            return (
-                "cached",
-                json.dumps(report, ensure_ascii=False, indent=2),
-                str(character_index),
-                str(artist_index),
-            )
-
-        return download_animadex_dataset(
-            force_refresh=_as_bool(force_refresh, False),
-            full_manifest=_as_bool(full_manifest, False),
-            site_override=site_override,
-        )
 
 
 class EasyUseAnimaNAIARandomPrompt:
