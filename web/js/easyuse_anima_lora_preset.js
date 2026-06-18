@@ -518,22 +518,11 @@ function hideInternalWidget(node, name) {
   widget.type = "hidden";
 }
 
-function detachInternalWidget(node, name) {
-  const widget = findWidget(node, name);
-  if (!widget || !node.widgets?.includes(widget)) {
-    return;
-  }
-  hideInternalWidget(node, name);
-  node.__easyuseAnimaHiddenWidgets ??= {};
-  node.__easyuseAnimaHiddenWidgets[name] = widget;
-  node.widgets.splice(node.widgets.indexOf(widget), 1);
-}
-
 function finalizeInternalWidgets(node) {
-  detachInternalWidget(node, "profile_data");
-  detachInternalWidget(node, "profile_count");
-  detachInternalWidget(node, "lora_name");
-  detachInternalWidget(node, "loras");
+  hideInternalWidget(node, "profile_data");
+  hideInternalWidget(node, "profile_count");
+  hideInternalWidget(node, "lora_name");
+  hideInternalWidget(node, "loras");
 }
 
 function enforceNodeLayout(node) {
@@ -1224,6 +1213,8 @@ function initializeNode(node) {
     originalOnSerialize?.apply(this, arguments);
     const dataWidget = findWidget(this, "profile_data");
     if (workflowNode?.widgets_values && dataWidget) {
+      workflowNode.widgets_values[WIDGET_INDEX.profileCount] = widgetValue(findWidget(this, "profile_count"), profileCount(this));
+      workflowNode.widgets_values[WIDGET_INDEX.loraName] = widgetValue(findWidget(this, "lora_name"), "None");
       workflowNode.widgets_values[WIDGET_INDEX.loras] = JSON.stringify(lorasWidgetValue(this));
       workflowNode.widgets_values[WIDGET_INDEX.profileData] = widgetValue(dataWidget, "{}");
     }
