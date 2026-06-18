@@ -346,11 +346,19 @@ function caretClientRect(input) {
   const mirror = document.createElement("div");
   const marker = document.createElement("span");
   const value = String(input.value || "");
+  const layoutWidth = input.offsetWidth || rect.width || 1;
+  const layoutHeight = input.offsetHeight || rect.height || 1;
+  const scaleX = rect.width > 0 ? rect.width / layoutWidth : 1;
+  const scaleY = rect.height > 0 ? rect.height / layoutHeight : scaleX;
 
   mirror.style.cssText = [
     "position: fixed",
     `left: ${rect.left}px`,
     `top: ${rect.top}px`,
+    `width: ${layoutWidth}px`,
+    `height: ${layoutHeight}px`,
+    `transform: scale(${scaleX}, ${scaleY})`,
+    "transform-origin: 0 0",
     "visibility: hidden",
     "overflow: hidden",
     "white-space: pre-wrap",
@@ -360,6 +368,10 @@ function caretClientRect(input) {
     "z-index: -1",
   ].join("; ");
   copyCaretMirrorStyle(input, mirror);
+  mirror.style.width = `${layoutWidth}px`;
+  mirror.style.height = `${layoutHeight}px`;
+  mirror.style.transform = `scale(${scaleX}, ${scaleY})`;
+  mirror.style.transformOrigin = "0 0";
 
   if (input instanceof HTMLInputElement) {
     mirror.style.whiteSpace = "pre";
