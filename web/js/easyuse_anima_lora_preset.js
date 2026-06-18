@@ -18,6 +18,8 @@ const LORA_ROW_HEIGHT = 28;
 const LORA_ADD_HEIGHT = 36;
 const STRENGTH_STEP = 0.05;
 const PREVIEW_SIZE = 360;
+const missingPreviewNames = new Set();
+let activeLoraMenuNode = null;
 
 function looksLikeProfileData(value) {
   if (typeof value !== "string") {
@@ -555,12 +557,72 @@ function ensureLoraStackInput(node) {
   }
 }
 
-function menuEvent(event) {
-  if (event instanceof Event) {
-    return event;
+function canvasPointToClient(point) {
+  const canvas = app.canvas?.canvas;
+  const rect = canvas?.getBoundingClientRect?.();
+  const ds = app.canvas?.ds;
+  const scale = Number(ds?.scale) || 1;
+  const offset = Array.isArray(ds?.offset) ? ds.offset : [0, 0];
+  if (!rect || !Array.isArray(point)) {
+    return [window.innerWidth / 2, window.innerHeight / 2];
   }
-  const mouse = app.canvas?.last_mouse || [window.innerWidth / 2, window.innerHeight / 2];
-  return new MouseEvent("click", { clientX: mouse[0], clientY: mouse[1] });
+  return [
+    rect.left + (Number(point[0]) + Number(offset[0] || 0)) * scale,
+    rect.top + (Number(point[1]) + Number(offset[1] || 0)) * scale,
+  ];
+}
+
+function nodePosToClient(node, pos) {
+  if (node?.pos && Array.isArray(pos)) {
+    return canvasPointToClient([
+      Number(node.pos[0] || 0) + Number(pos[0] || 0),
+      Number(node.pos[1] || 0) + Number(pos[1] || 0),
+    ]);
+  }
+  return null;
+}
+
+function makeMenuEvent(clientPoint) {
+  const x = Number(clientPoint?.[0]) || window.innerWidth / 2;
+  const y = Number(clientPoint?.[1]) || window.innerHeight / 2;
+  return new MouseEvent("click", {
+    clientX: x,
+    clientY: y,
+    screenX: x,
+    screenY: y,
+    bubbles: true,
+  });
+}
+
+function menuClientPoint(node, pos, event) {
+  const nodePoint = nodePosToClient(node, pos);
+  if (nodePoint) {
+    return [nodePoint[0] + 8, nodePoint[1] + 8];
+  }
+  if (Number.isFinite(event?.clientX) && Number.isFinite(event?.clientY)) {
+    return [event.clientX + 8, event.clientY + 8];
+  }
+  return [window.innerWidth / 2, window.innerHeight / 2];
+}
+
+function positionMenu(menu, clientPoint) {
+  if (!menu || !Array.isArray(clientPoint)) {
+    return;
+  }
+  const margin = 8;
+  const rect = menu.getBoundingClientRect();
+  const width = rect.width || 260;
+  const height = rect.height || 280;
+  let left = Number(clientPoint[0]) || margin;
+  let top = Number(clientPoint[1]) || margin;
+  if (left + width > window.innerWidth - margin) {
+    left = Math.max(margin, window.innerWidth - width - margin);
+  }
+  if (top + height > window.innerHeight - margin) {
+    top = Math.max(margin, window.innerHeight - height - margin);
+  }
+  menu.style.left = `${left}px`;
+  menu.style.top = `${top}px`;
 }
 
 function positionPreview(element, event) {
@@ -579,45 +641,69 @@ function positionPreview(element, event) {
 
 function showPreview(name, event) {
   if (!name || name === "None") {
+    hidePreview();
+    return;
+  }
+  if (missingPreviewNames.has(name)) {
+    hidePreview();
     return;
   }
   let preview = document.querySelector(".easyuse-anima-lora-preview");
   if (!preview) {
     preview = createEl("img", { className: "easyuse-anima-lora-preview" });
     preview.addEventListener("error", () => {
+      const failedName = preview.getAttribute("data-name");
+      if (failedName) {
+        missingPreviewNames.add(failedName);
+      }
       preview.style.display = "none";
       preview.removeAttribute("data-name");
+      preview.removeAttribute("data-loaded");
+      preview.removeAttribute("data-visible");
     });
     preview.addEventListener("load", () => {
-      preview.style.display = "block";
+      preview.setAttribute("data-loaded", "1");
+      if (preview.getAttribute("data-name") && preview.getAttribute("data-visible") === "1") {
+        preview.style.display = "block";
+      }
     });
     document.body.appendChild(preview);
   }
-  const src = `/easyuse_anima/lora_preview?name=${encodeRFC3986URIComponent(name)}&t=${Date.now()}`;
+  preview.setAttribute("data-visible", "1");
+  positionPreview(preview, event);
+  const src = `/easyuse_anima/lora_preview?name=${encodeRFC3986URIComponent(name)}`;
   if (preview.getAttribute("data-name") !== name) {
     preview.setAttribute("data-name", name);
+    preview.removeAttribute("data-loaded");
+    preview.style.display = "none";
     preview.src = src;
+    return;
   }
-  positionPreview(preview, event);
-  preview.style.display = "block";
+  if (preview.getAttribute("data-loaded") === "1" && preview.naturalWidth > 0) {
+    preview.style.display = "block";
+  }
 }
 
 function hidePreview() {
   const preview = document.querySelector(".easyuse-anima-lora-preview");
   if (preview) {
+    preview.removeAttribute("data-visible");
     preview.style.display = "none";
   }
 }
 
-function openLoraMenu(node, event, onChoose) {
+function openLoraMenu(node, event, pos, onChoose) {
   const values = loraNameValues(node);
   if (!values.length) {
     window.alert("No LoRA files found. Refresh ComfyUI after adding LoRAs.");
     return;
   }
+  const clientPoint = menuClientPoint(node, pos, event);
   node.__easyuseAnimaOpeningLoraMenu = true;
+  node.__easyuseAnimaLoraMenuPoint = clientPoint;
+  activeLoraMenuNode = node;
   new LiteGraph.ContextMenu(values, {
-    event: menuEvent(event),
+    event: makeMenuEvent(clientPoint),
     title: "Choose a LoRA",
     scale: Math.max(1, Number(app.canvas?.ds?.scale) || 1),
     className: "dark easyuse-anima-lora-menu",
@@ -630,7 +716,7 @@ function openLoraMenu(node, event, onChoose) {
   });
 }
 
-function updateLoraMenuTree(menu) {
+function updateLoraMenuTree(menu, node) {
   const items = Array.from(menu.querySelectorAll(".litemenu-entry"));
   if (!items.length || menu.__easyuseAnimaTreeReady) {
     return;
@@ -706,6 +792,7 @@ function updateLoraMenuTree(menu) {
   };
 
   insertFolders(parent, folderMap);
+  positionMenu(menu, node?.__easyuseAnimaLoraMenuPoint);
 }
 
 class ProfileBarWidget {
@@ -907,6 +994,12 @@ class LoraRowWidget {
     if (!lora.name) {
       return false;
     }
+    if (event.type === "pointerout" || event.type === "pointerleave" || event.type === "pointercancel") {
+      hidePreview();
+      this.dragging = false;
+      this.moved = false;
+      return false;
+    }
     if (event.type === "pointermove") {
       if (pointInArea(pos, this.hitAreas.info)) {
         showPreview(lora.name, event);
@@ -954,7 +1047,7 @@ class LoraRowWidget {
       return true;
     }
     if (pointInArea(pos, this.hitAreas.lora)) {
-      openLoraMenu(node, event, (entry) => updateLoraEntry(node, this.index, entry));
+      openLoraMenu(node, event, pos, (entry) => updateLoraEntry(node, this.index, entry));
       return true;
     }
     if (pointInArea(pos, this.hitAreas.info)) {
@@ -1024,7 +1117,7 @@ class AddLoraWidget {
     if (event.type !== "pointerdown" || event.button !== 0 || !pointInArea(pos, this.hitArea)) {
       return false;
     }
-    openLoraMenu(node, event, (entry) => addLoraEntry(node, entry));
+    openLoraMenu(node, event, pos, (entry) => addLoraEntry(node, entry));
     return true;
   }
 }
@@ -1203,7 +1296,7 @@ app.registerExtension({
     }));
 
     const observer = new MutationObserver((mutations) => {
-      const node = app.canvas?.current_node;
+      const node = activeLoraMenuNode || app.canvas?.current_node;
       if (!node || node.comfyClass !== NODE_TYPE) {
         return;
       }
@@ -1218,8 +1311,9 @@ app.registerExtension({
             continue;
           }
           window.requestAnimationFrame(() => {
-            updateLoraMenuTree(added);
+            updateLoraMenuTree(added, node);
             node.__easyuseAnimaOpeningLoraMenu = false;
+            activeLoraMenuNode = null;
           });
         }
       }
