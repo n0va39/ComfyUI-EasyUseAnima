@@ -11,15 +11,18 @@ const WIDGET_INDEX = {
   loras: 4,
   profileData: 5,
 };
-const MIN_NODE_WIDTH = 460;
+const MIN_NODE_WIDTH = 520;
 const PROFILE_BAR_HEIGHT = 30;
 const LORA_HEADER_HEIGHT = 24;
-const LORA_ROW_HEIGHT = 28;
+const LORA_ROW_HEIGHT = 24;
 const LORA_ADD_HEIGHT = 36;
 const STRENGTH_STEP = 0.05;
 const PREVIEW_SIZE = 360;
 const missingPreviewNames = new Set();
 let activeLoraMenuNode = null;
+const LORA_PRESET_SETTINGS = {
+  nameDisplay: "name",
+};
 const INTERNAL_WIDGET_DEFAULTS = {
   profile_count: "4",
   lora_name: "None",
@@ -79,6 +82,22 @@ function createEl(tagName, options = {}) {
     Object.assign(element.style, options.style);
   }
   return element;
+}
+
+function applyLoraPresetSettings(settings = {}) {
+  const value = String(settings?.["lora_preset.name_display"] || "name");
+  LORA_PRESET_SETTINGS.nameDisplay = value === "path" ? "path" : "name";
+}
+
+async function loadLoraPresetSettings() {
+  try {
+    const response = await fetch("/easyuse_anima/settings");
+    if (response.ok) {
+      applyLoraPresetSettings(await response.json());
+    }
+  } catch {
+    // Keep built-in defaults when settings are not available yet.
+  }
 }
 
 function firstValue(value, fallback = null) {
@@ -573,10 +592,7 @@ function enforceNodeLayout(node) {
 }
 
 function nodeWidgetWidth(node, fallbackWidth) {
-  return Math.max(
-    MIN_NODE_WIDTH,
-    Number(node?.size?.[0]) || Number(fallbackWidth) || MIN_NODE_WIDTH,
-  );
+  return Math.max(1, Number(node?.size?.[0]) || Number(fallbackWidth) || MIN_NODE_WIDTH);
 }
 
 function ensureLoraStackInput(node) {
@@ -718,6 +734,14 @@ function hidePreview() {
     preview.removeAttribute("data-visible");
     preview.style.display = "none";
   }
+}
+
+function loraDisplayName(name) {
+  const text = String(name || "");
+  if (LORA_PRESET_SETTINGS.nameDisplay === "path") {
+    return text;
+  }
+  return text.replace(/\\/g, "/").split("/").pop() || text;
 }
 
 function openLoraMenu(node, event, pos, onChoose) {
@@ -931,9 +955,9 @@ class LoraHeaderWidget {
     ctx.fillStyle = LiteGraph.WIDGET_TEXT_COLOR;
     ctx.textAlign = "left";
     ctx.textBaseline = "middle";
-    ctx.fillText("Toggle All", margin + this.toggleArea[2] + 4, midY);
+    ctx.fillText(drawWidth < 320 ? "All" : "Toggle All", margin + this.toggleArea[2] + 4, midY);
     ctx.textAlign = "center";
-    ctx.fillText("Strength", drawWidth - margin - 28, midY);
+    ctx.fillText(drawWidth < 320 ? "Str" : "Strength", Math.max(margin + 90, drawWidth - margin - 28), midY);
     ctx.restore();
   }
 
@@ -970,16 +994,17 @@ class LoraRowWidget {
 
   draw(ctx, node, width, y, height) {
     const drawWidth = nodeWidgetWidth(node, width);
+    this.hitAreas = {};
     const lora = normalizeLoraEntry(lorasWidgetValue(node)[this.index]);
     if (!lora.name) {
       return;
     }
-    const margin = 10;
-    const inner = 4;
+    const margin = drawWidth < 340 ? 6 : 10;
+    const inner = drawWidth < 340 ? 2 : 4;
     const rowX = margin;
     const rowW = Math.max(0, drawWidth - margin * 2);
-    const rowH = height - 4;
-    const rowY = y + 2;
+    const rowH = Math.max(16, height - 2);
+    const rowY = y + 1;
     const midY = y + height / 2;
     const right = rowX + rowW;
 
@@ -999,24 +1024,43 @@ class LoraRowWidget {
     }
     ctx.fillStyle = LiteGraph.WIDGET_TEXT_COLOR;
 
-    const number = drawNumberPart(ctx, right - inner, rowY, rowH, lora.strength);
-    this.hitAreas.dec = number.dec;
-    this.hitAreas.value = number.value;
-    this.hitAreas.inc = number.inc;
-    this.hitAreas.strengthAny = number.any;
+    const showStrength = drawWidth >= 230;
+    const showInfo = drawWidth >= 310;
+    let nameRight = right - inner;
+    if (showStrength) {
+      const number = drawNumberPart(ctx, right - inner, rowY, rowH, lora.strength);
+      this.hitAreas.dec = number.dec;
+      this.hitAreas.value = number.value;
+      this.hitAreas.inc = number.inc;
+      this.hitAreas.strengthAny = number.any;
+      nameRight = number.dec[0] - inner;
 
-    const infoSize = 18;
-    const infoX = number.dec[0] - infoSize - inner * 2;
-    this.hitAreas.info = [infoX, rowY + 2, infoSize, rowH - 4];
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
-    ctx.fillText("i", infoX + infoSize / 2, midY);
+      if (showInfo) {
+        const infoSize = 16;
+        const infoX = number.dec[0] - infoSize - inner * 2;
+        this.hitAreas.info = [infoX, rowY + 2, infoSize, Math.max(12, rowH - 4)];
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText("i", infoX + infoSize / 2, midY);
+        nameRight = infoX - inner;
+      } else {
+        this.hitAreas.info = null;
+      }
+    } else {
+      this.hitAreas.dec = null;
+      this.hitAreas.value = null;
+      this.hitAreas.inc = null;
+      this.hitAreas.strengthAny = null;
+      this.hitAreas.info = null;
+    }
 
-    const nameW = Math.max(20, infoX - posX - inner);
+    const nameW = Math.max(0, nameRight - posX - inner);
     this.hitAreas.lora = [posX, y, nameW, height];
     ctx.textAlign = "left";
     ctx.textBaseline = "middle";
-    ctx.fillText(fitCanvasText(ctx, lora.name, nameW), posX, midY);
+    if (nameW > 4) {
+      ctx.fillText(fitCanvasText(ctx, loraDisplayName(lora.name), nameW), posX, midY);
+    }
     ctx.restore();
   }
 
@@ -1238,6 +1282,18 @@ function applyExecutedProfile(node, message) {
   node.setDirtyCanvas?.(true, true);
 }
 
+function refreshLoraPresetNodes() {
+  const nodes = app.graph?._nodes || [];
+  for (const node of nodes) {
+    if (node?.comfyClass !== NODE_TYPE) {
+      continue;
+    }
+    renderLoraWidgets(node);
+    renderProfileBar(node);
+    node.setDirtyCanvas?.(true, true);
+  }
+}
+
 function initializeNode(node) {
   if (node.__easyuseAnimaLoraPresetInitialized) {
     return;
@@ -1312,6 +1368,13 @@ function initializeNode(node) {
 app.registerExtension({
   name: "EasyUseAnima.LoraPreset",
   init() {
+    loadLoraPresetSettings().then(refreshLoraPresetNodes);
+    window.addEventListener("easyuse-anima-settings-updated", (event) => {
+      applyLoraPresetSettings(event.detail || {});
+      refreshLoraPresetNodes();
+    });
+    document.addEventListener("pointerdown", hidePreview, true);
+
     document.head.appendChild(createEl("style", {
       textContent: `
         .easyuse-anima-lora-preview {

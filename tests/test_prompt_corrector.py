@@ -213,6 +213,7 @@ class SettingsTests(unittest.TestCase):
                 "prompt.metadata_filter_words",
                 "autocomplete.source",
                 "autocomplete.limit",
+                "lora_preset.name_display",
                 "prompt_studio.typo_indicator",
                 "prompt_studio.colors",
                 "naia.host",

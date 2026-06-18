@@ -240,6 +240,66 @@ function promptStudioEditor(settings = {}) {
   return container;
 }
 
+function loraPresetEditor(settings = {}) {
+  const container = document.createElement("div");
+  container.style.cssText = "max-width: 760px; line-height: 1.45;";
+
+  const guide = document.createElement("div");
+  guide.textContent = "Controls how LoRA names are displayed inside Anima LoRA Preset rows.";
+  guide.style.cssText = "margin-bottom: 8px; opacity: 0.78;";
+  container.append(guide);
+
+  const row = document.createElement("div");
+  row.style.cssText = "display: flex; align-items: center; flex-wrap: wrap; gap: 8px;";
+
+  const label = document.createElement("label");
+  label.style.cssText = "display: flex; align-items: center; gap: 7px;";
+  const text = document.createElement("span");
+  text.textContent = "LoRA display";
+  const select = document.createElement("select");
+  select.style.cssText = "min-width: 180px; padding: 4px 8px;";
+  for (const [value, labelText] of [
+    ["name", "Name only"],
+    ["path", "Full path"],
+  ]) {
+    const option = document.createElement("option");
+    option.value = value;
+    option.textContent = labelText;
+    option.selected = (settings["lora_preset.name_display"] || "name") === value;
+    select.append(option);
+  }
+  label.append(text, select);
+
+  const saveButton = document.createElement("button");
+  saveButton.textContent = "Save LoRA Preset";
+  saveButton.style.cssText = "padding: 5px 10px; cursor: pointer;";
+
+  const status = document.createElement("span");
+  status.style.cssText = "opacity: 0.76;";
+
+  saveButton.onclick = async () => {
+    const originalText = saveButton.textContent;
+    try {
+      saveButton.disabled = true;
+      saveButton.textContent = "Saving...";
+      const data = await saveSetting("lora_preset.name_display", select.value);
+      status.textContent = "Saved";
+      status.style.color = "#16a34a";
+      window.dispatchEvent(new CustomEvent("easyuse-anima-settings-updated", { detail: data }));
+    } catch (error) {
+      status.textContent = `Save failed: ${error.message || error}`;
+      status.style.color = "#dc2626";
+    } finally {
+      saveButton.disabled = false;
+      saveButton.textContent = originalText;
+    }
+  };
+
+  row.append(label, saveButton, status);
+  container.append(row);
+  return container;
+}
+
 function naiaSettingsEditor(settings = {}) {
   const container = document.createElement("div");
   container.style.cssText = "max-width: 760px; line-height: 1.45;";
@@ -578,6 +638,22 @@ app.registerExtension({
       name: "EasyUse Anima: Prompt Studio Highlighting",
       type: () => promptStudioEditor(settings),
       tooltip: "Configure Prompt Studio typo indicators and tag highlight colors.",
+    });
+
+    app.ui.settings.addSetting({
+      id: "EasyUseAnima.Section.LoraPreset",
+      name: "EasyUse Anima: LoRA Preset",
+      type: () => sectionHeader(
+        "LoRA preset",
+        "Display options for Anima LoRA Preset.",
+      ),
+    });
+
+    app.ui.settings.addSetting({
+      id: "EasyUseAnima.LoraPreset.Display",
+      name: "EasyUse Anima: LoRA Preset Display",
+      type: () => loraPresetEditor(settings),
+      tooltip: "Choose whether LoRA preset rows show only filenames or full relative paths.",
     });
 
     app.ui.settings.addSetting({

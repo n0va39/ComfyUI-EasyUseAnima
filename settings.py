@@ -13,6 +13,7 @@ DEFAULT_SETTINGS = {
     "prompt.metadata_filter_words": "",
     "autocomplete.source": "localsmile_kr_wiki",
     "autocomplete.limit": "20",
+    "lora_preset.name_display": "name",
     "prompt_studio.typo_indicator": "true",
     "prompt_studio.colors": "",
     "naia.host": "127.0.0.1",
@@ -94,6 +95,10 @@ def public_settings() -> dict:
             DEFAULT_SETTINGS["autocomplete.source"],
         ),
         "autocomplete.limit": resolve_autocomplete_limit(settings),
+        "lora_preset.name_display": settings.get(
+            "lora_preset.name_display",
+            DEFAULT_SETTINGS["lora_preset.name_display"],
+        ),
         "prompt_studio.typo_indicator": settings.get(
             "prompt_studio.typo_indicator",
             DEFAULT_SETTINGS["prompt_studio.typo_indicator"],
