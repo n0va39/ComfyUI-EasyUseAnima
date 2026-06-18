@@ -54,7 +54,7 @@ class LoraPresetTests(unittest.TestCase):
                 profile_index=1,
                 profile_count=4,
                 lora_name="None",
-                loras=[{"name": "test_lora", "strength": 1.2, "clipStrength": 1.2, "active": True}],
+                loras=json.dumps([{"name": "test_lora", "strength": 1.2, "clipStrength": 1.2, "active": True}]),
                 profile_data="{}",
             )
 

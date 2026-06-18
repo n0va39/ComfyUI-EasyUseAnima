@@ -139,13 +139,15 @@ function normalizeSerializedWidgets(info) {
     return;
   }
 
-  if (!Array.isArray(values[WIDGET_INDEX.loras])) {
+  if (Array.isArray(values[WIDGET_INDEX.loras])) {
+    values[WIDGET_INDEX.loras] = JSON.stringify(values[WIDGET_INDEX.loras]);
+  } else if (typeof values[WIDGET_INDEX.loras] !== "string") {
     const lorasIndex = values.findIndex((value, index) => (
       index > WIDGET_INDEX.loras
       && Array.isArray(value)
       && value.every((item) => item && typeof item === "object" && "name" in item)
     ));
-    values[WIDGET_INDEX.loras] = lorasIndex >= 0 ? values[lorasIndex] : [];
+    values[WIDGET_INDEX.loras] = JSON.stringify(lorasIndex >= 0 ? values[lorasIndex] : []);
   }
 
   if (!looksLikeProfileData(values[WIDGET_INDEX.profileData])) {
@@ -215,6 +217,14 @@ function lorasWidgetValue(node) {
   if (Array.isArray(value)) {
     return value;
   }
+  if (typeof value === "string") {
+    try {
+      const parsed = JSON.parse(value || "[]");
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
+  }
   return [];
 }
 
@@ -224,8 +234,9 @@ function setLorasWidgetValue(node, loras) {
     return;
   }
   const value = Array.isArray(loras) ? loras : [];
-  widget.value = value;
-  widget.callback?.(value);
+  const serialized = JSON.stringify(value);
+  widget.value = serialized;
+  widget.callback?.(serialized);
   renderLoraRows(node);
 }
 
@@ -1103,7 +1114,7 @@ function initializeNode(node) {
     originalOnSerialize?.apply(this, arguments);
     const dataWidget = findWidget(this, "profile_data");
     if (workflowNode?.widgets_values && dataWidget) {
-      workflowNode.widgets_values[WIDGET_INDEX.loras] = lorasWidgetValue(this);
+      workflowNode.widgets_values[WIDGET_INDEX.loras] = JSON.stringify(lorasWidgetValue(this));
       workflowNode.widgets_values[WIDGET_INDEX.profileData] = widgetValue(dataWidget, "{}");
     }
   };

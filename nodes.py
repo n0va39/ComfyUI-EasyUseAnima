@@ -317,6 +317,11 @@ def _get_loras_list(kwargs: dict) -> list[dict]:
     loras_data = kwargs.get("loras")
     if isinstance(loras_data, dict) and "__value__" in loras_data:
         loras_data = loras_data["__value__"]
+    if isinstance(loras_data, str):
+        try:
+            loras_data = json.loads(loras_data or "[]")
+        except (TypeError, ValueError):
+            loras_data = []
     if not isinstance(loras_data, list):
         return []
     return [item for item in loras_data if isinstance(item, dict)]
@@ -704,8 +709,9 @@ class EasyUseAnimaLoraPreset:
                 "lora_name": (_lora_combo_values(), {
                     "tooltip": "Select a LoRA file to add it to the current preset profile.",
                 }),
-                "loras": ("LORAS", {
-                    "default": [],
+                "loras": ("STRING", {
+                    "multiline": True,
+                    "default": "[]",
                     "tooltip": "Internal serialized LoRA rows used by the EasyUse Anima front-end.",
                 }),
                 "profile_data": ("STRING", {
