@@ -6,6 +6,14 @@ from unittest.mock import patch
 from nodes import EasyUseAnimaLoraPreset
 
 
+def unwrap_result(response):
+    return response["result"]
+
+
+def unwrap_ui(response):
+    return response["ui"]["lora_preset_profile"][0]
+
+
 class LoraPresetTests(unittest.TestCase):
     def test_build_wraps_profile_index_and_outputs_enabled_loras(self):
         profile_data = {
@@ -24,7 +32,7 @@ class LoraPresetTests(unittest.TestCase):
             patch("nodes._get_lora_info", lambda name: (f"/loras/{name}", [f"{name}_trigger"])),
             patch("nodes._apply_lora_syntax_format", lambda name: name.replace(".safetensors", "")),
         ):
-            result = EasyUseAnimaLoraPreset().build(
+            response = EasyUseAnimaLoraPreset().build(
                 style_prompt="fallback",
                 profile_index=4,
                 profile_count=2,
@@ -33,11 +41,13 @@ class LoraPresetTests(unittest.TestCase):
                 profile_data=json.dumps(profile_data),
             )
 
+        result = unwrap_result(response)
         self.assertEqual(result[0], "@artist")
         self.assertEqual(result[1], [(os.path.join(os.sep, "loras", "style", "foo.safetensors"), 0.75, 0.75)])
         self.assertEqual(result[2], "style/foo.safetensors_trigger")
         self.assertEqual(result[3], "<lora:style/foo:0.75>")
         self.assertEqual(result[4], 2)
+        self.assertEqual(unwrap_ui(response)["profile_index"], 2)
 
     def test_build_accepts_active_and_clip_strength_aliases(self):
         loras = [
@@ -48,7 +58,7 @@ class LoraPresetTests(unittest.TestCase):
             patch("nodes._get_lora_info", lambda name: (name, [])),
             patch("nodes._apply_lora_syntax_format", lambda name: "foo"),
         ):
-            result = EasyUseAnimaLoraPreset().build(
+            response = EasyUseAnimaLoraPreset().build(
                 style_prompt="style",
                 profile_index=1,
                 profile_count=1,
@@ -57,8 +67,24 @@ class LoraPresetTests(unittest.TestCase):
                 profile_data="{}",
             )
 
+        result = unwrap_result(response)
         self.assertEqual(result[1], [("foo.safetensors", 1.0, 0.5)])
         self.assertEqual(result[3], "<lora:foo:1:0.5>")
+
+    def test_build_accepts_missing_internal_profile_count(self):
+        response = EasyUseAnimaLoraPreset().build(
+            style_prompt="style",
+            profile_index=1,
+            profile_count=None,
+            lora_name="None",
+            loras="[]",
+            profile_data="{}",
+        )
+
+        result = unwrap_result(response)
+        self.assertEqual(result[0], "style")
+        self.assertEqual(result[4], 1)
+        self.assertEqual(unwrap_ui(response)["profile_index"], 1)
 
 
 if __name__ == "__main__":

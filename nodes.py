@@ -699,11 +699,8 @@ class EasyUseAnimaLoraPreset:
                     "step": 1,
                     "tooltip": "Selected LoRA preset profile. Can be connected from another node.",
                 }),
-                "profile_count": ("INT", {
-                    "default": 4,
-                    "min": 1,
-                    "max": 16,
-                    "step": 1,
+                "profile_count": ("STRING", {
+                    "default": "4",
                     "tooltip": "Internal profile count managed by the front-end profile buttons.",
                 }),
                 "lora_name": (_lora_combo_values(), {
@@ -739,10 +736,10 @@ class EasyUseAnimaLoraPreset:
         self,
         style_prompt: str,
         profile_index: int,
-        profile_count: int,
-        lora_name: str,
-        loras,
-        profile_data: str,
+        profile_count=4,
+        lora_name: str = "None",
+        loras="[]",
+        profile_data: str = "{}",
         **kwargs,
     ):
         kwargs = dict(kwargs)
@@ -808,13 +805,20 @@ class EasyUseAnimaLoraPreset:
             else:
                 active_loras_text_parts.append(f"<lora:{name}:{model_text}>")
 
-        return (
-            str(selected_style or ""),
-            stack,
-            ",, ".join(trigger_words) if trigger_words else "",
-            " ".join(active_loras_text_parts),
-            selected_index,
-        )
+        return {
+            "ui": {
+                "lora_preset_profile": [{
+                    "profile_index": selected_index,
+                }],
+            },
+            "result": (
+                str(selected_style or ""),
+                stack,
+                ",, ".join(trigger_words) if trigger_words else "",
+                " ".join(active_loras_text_parts),
+                selected_index,
+            ),
+        }
 
 
 class EasyUseAnimaNAIARandomPrompt:

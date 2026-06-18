@@ -20,6 +20,12 @@ const STRENGTH_STEP = 0.05;
 const PREVIEW_SIZE = 360;
 const missingPreviewNames = new Set();
 let activeLoraMenuNode = null;
+const INTERNAL_WIDGET_DEFAULTS = {
+  profile_count: "4",
+  lora_name: "None",
+  loras: "[]",
+  profile_data: "{}",
+};
 
 function looksLikeProfileData(value) {
   if (typeof value !== "string") {
@@ -38,13 +44,19 @@ function normalizeSerializedWidgets(info) {
   if (!Array.isArray(values)) {
     return;
   }
+  if (values[WIDGET_INDEX.profileCount] == null || values[WIDGET_INDEX.profileCount] === "") {
+    values[WIDGET_INDEX.profileCount] = INTERNAL_WIDGET_DEFAULTS.profile_count;
+  }
+  if (values[WIDGET_INDEX.loraName] == null || values[WIDGET_INDEX.loraName] === "") {
+    values[WIDGET_INDEX.loraName] = INTERNAL_WIDGET_DEFAULTS.lora_name;
+  }
   if (Array.isArray(values[WIDGET_INDEX.loras])) {
     values[WIDGET_INDEX.loras] = JSON.stringify(values[WIDGET_INDEX.loras]);
   } else if (typeof values[WIDGET_INDEX.loras] !== "string") {
-    values[WIDGET_INDEX.loras] = "[]";
+    values[WIDGET_INDEX.loras] = INTERNAL_WIDGET_DEFAULTS.loras;
   }
   if (!looksLikeProfileData(values[WIDGET_INDEX.profileData])) {
-    values[WIDGET_INDEX.profileData] = "{}";
+    values[WIDGET_INDEX.profileData] = INTERNAL_WIDGET_DEFAULTS.profile_data;
   }
 }
 
@@ -67,6 +79,13 @@ function createEl(tagName, options = {}) {
     Object.assign(element.style, options.style);
   }
   return element;
+}
+
+function firstValue(value, fallback = null) {
+  if (Array.isArray(value)) {
+    return value.length ? value[0] : fallback;
+  }
+  return value ?? fallback;
 }
 
 function findWidget(node, name) {
@@ -105,6 +124,19 @@ function setWidgetValue(widget, value) {
     input.dispatchEvent(new Event("change", { bubbles: true }));
   }
   widget.callback?.(value);
+}
+
+function ensureWidgetValue(node, name) {
+  const widget = findWidget(node, name);
+  if (!widget || !Object.prototype.hasOwnProperty.call(INTERNAL_WIDGET_DEFAULTS, name)) {
+    return;
+  }
+  const fallback = INTERNAL_WIDGET_DEFAULTS[name];
+  const input = findInputEl(widget);
+  const value = input ? input.value : widget.value;
+  if (value == null || value === "") {
+    setWidgetValue(widget, fallback);
+  }
 }
 
 function profileKey(index) {
@@ -510,12 +542,12 @@ function hideInternalWidget(node, name) {
   if (!widget || widget.__easyuseAnimaHidden) {
     return;
   }
+  ensureWidgetValue(node, name);
   widget.__easyuseAnimaHidden = true;
   widget.hidden = true;
   widget.serialize = true;
   widget.computeSize = () => [0, 0];
   widget.draw = () => {};
-  widget.type = "hidden";
 }
 
 function finalizeInternalWidgets(node) {
@@ -1185,6 +1217,27 @@ function syncAfterWidgetChange(node) {
   renderProfileBar(node);
 }
 
+function applyExecutedProfile(node, message) {
+  const payload = firstValue(message?.lora_preset_profile, null);
+  const index = Number.parseInt(payload?.profile_index, 10);
+  if (!Number.isFinite(index)) {
+    return;
+  }
+  const nextIndex = wrapProfileIndex(index, profileCount(node));
+  const currentIndex = activeProfileIndex(node);
+  if (nextIndex === currentIndex) {
+    renderProfileBar(node);
+    return;
+  }
+  saveProfile(node, currentIndex);
+  setProfileIndex(node, nextIndex);
+  node.__easyuseAnimaActiveProfileIndex = nextIndex;
+  loadProfile(node, nextIndex);
+  renderProfileBar(node);
+  renderLoraWidgets(node);
+  node.setDirtyCanvas?.(true, true);
+}
+
 function initializeNode(node) {
   if (node.__easyuseAnimaLoraPresetInitialized) {
     return;
@@ -1193,6 +1246,9 @@ function initializeNode(node) {
   node.serialize_widgets = true;
   ensureLoraStackInput(node);
   ensureProfileBar(node);
+  for (const name of Object.keys(INTERNAL_WIDGET_DEFAULTS)) {
+    ensureWidgetValue(node, name);
+  }
   hideInternalWidget(node, "profile_data");
   hideInternalWidget(node, "profile_count");
 
@@ -1224,7 +1280,7 @@ function initializeNode(node) {
     originalOnSerialize?.apply(this, arguments);
     const dataWidget = findWidget(this, "profile_data");
     if (workflowNode?.widgets_values && dataWidget) {
-      workflowNode.widgets_values[WIDGET_INDEX.profileCount] = widgetValue(findWidget(this, "profile_count"), profileCount(this));
+      workflowNode.widgets_values[WIDGET_INDEX.profileCount] = String(widgetValue(findWidget(this, "profile_count"), profileCount(this)) || "4");
       workflowNode.widgets_values[WIDGET_INDEX.loraName] = widgetValue(findWidget(this, "lora_name"), "None");
       workflowNode.widgets_values[WIDGET_INDEX.loras] = JSON.stringify(lorasWidgetValue(this));
       workflowNode.widgets_values[WIDGET_INDEX.profileData] = widgetValue(dataWidget, "{}");
@@ -1336,6 +1392,11 @@ app.registerExtension({
       const result = originalOnNodeCreated?.apply(this, args);
       initializeNode(this);
       return result;
+    };
+    const originalOnExecuted = nodeType.prototype.onExecuted;
+    nodeType.prototype.onExecuted = function (message) {
+      originalOnExecuted?.apply(this, arguments);
+      applyExecutedProfile(this, message);
     };
   },
 });
