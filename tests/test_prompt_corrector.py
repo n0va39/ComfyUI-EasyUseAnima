@@ -13,6 +13,7 @@ from nodes import (
     EasyUseAnimaPromptCorrector,
     EasyUseAnimaPromptStudio,
     EasyUseAnimaPromptStudioAdvanced,
+    EasyUseAnimaPromptStudioFixed,
 )
 from autocomplete_dataset import (
     autocomplete_status,
@@ -429,6 +430,102 @@ class PromptBuilderTests(unittest.TestCase):
         self.assertFalse(workflow_prompt["7"]["inputs"]["use_naia"])
         self.assertFalse(extra_pnginfo["workflow"]["nodes"][0]["widgets_values"][0])
         self.assertEqual(saved_image_fields[0]["text"], "1girl, silver hair")
+
+    def test_prompt_studio_fixed_uses_numbered_slot_order(self):
+        result = EasyUseAnimaPromptStudioFixed().build(
+            False,
+            True,
+            False,
+            quality_tags_1="masterpiece",
+            quality_tags_2="best quality",
+            naia_prompt_3="1girl",
+            general_tags_4="silver hair",
+            general_tags_5="grey eyes",
+            general_tags_6="",
+            general_tags_7="",
+            general_tags_8="",
+            general_tags_9="",
+            trailing_tags_10="location",
+            trailing_tags_11="highres",
+            negative_prompt_1="low quality",
+            negative_prompt_2="bad hands",
+            negative_prompt_3="",
+            negative_prompt_4="",
+        )
+
+        positive, negative, quality, use_amg, metadata, metadata_negative = result["result"]
+        payload = result["ui"]["prompt_studio_slots"][0]
+
+        self.assertTrue(use_amg)
+        self.assertEqual(quality, "masterpiece, best quality")
+        self.assertNotIn("masterpiece", positive)
+        self.assertIn("1girl", positive)
+        self.assertIn("location", positive)
+        self.assertEqual(negative, "low quality, bad hands")
+        self.assertIn("masterpiece", metadata)
+        self.assertEqual(metadata_negative, negative)
+        self.assertEqual(payload["naia_prompt_3"], "1girl")
+
+    def test_prompt_studio_fixed_naia_fill_stays_enabled_but_saved_metadata_is_off(self):
+        workflow_prompt = {
+            "11": {
+                "inputs": {
+                    "fill_naia_prompt": True,
+                    "naia_prompt_3": "old prompt",
+                }
+            }
+        }
+        extra_pnginfo = {
+            "workflow": {
+                "nodes": [
+                    {
+                        "id": 11,
+                        "widgets_values": [True, False, False, "", "", "old prompt"],
+                    }
+                ]
+            }
+        }
+        settings = {
+            "host": "127.0.0.1",
+            "port": 8188,
+            "use_naia_settings": True,
+            "pre_prompt": "",
+            "post_prompt": "",
+            "auto_hide": "",
+            "preprocessing": {},
+        }
+
+        with (
+            patch("nodes.resolve_naia_settings", return_value=settings),
+            patch(
+                "nodes._post_random",
+                return_value={
+                    "ok": True,
+                    "prompt": "1girl, blue eyes",
+                    "negative_prompt": "",
+                    "width": 1024,
+                    "height": 1024,
+                },
+            ),
+        ):
+            result = EasyUseAnimaPromptStudioFixed().build(
+                True,
+                False,
+                False,
+                workflow_prompt=workflow_prompt,
+                extra_pnginfo=extra_pnginfo,
+                unique_id="11",
+                naia_prompt_3="old prompt",
+            )
+
+        payload = result["ui"]["prompt_studio_slots"][0]
+        self.assertTrue(payload["fill_naia_prompt"])
+        self.assertEqual(payload["naia_prompt_3"], "1girl, blue eyes")
+        self.assertIn("1girl", result["result"][0])
+        self.assertFalse(workflow_prompt["11"]["inputs"]["fill_naia_prompt"])
+        self.assertEqual(workflow_prompt["11"]["inputs"]["naia_prompt_3"], "1girl, blue eyes")
+        self.assertFalse(extra_pnginfo["workflow"]["nodes"][0]["widgets_values"][0])
+        self.assertEqual(extra_pnginfo["workflow"]["nodes"][0]["widgets_values"][5], "1girl, blue eyes")
 
 
 class SettingsTests(unittest.TestCase):

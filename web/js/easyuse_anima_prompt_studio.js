@@ -2,12 +2,30 @@ import { app } from "../../../scripts/app.js";
 
 const NODE_TYPE = "EasyUseAnimaPromptStudio";
 const ADVANCED_NODE_TYPE = "EasyUseAnimaPromptStudioAdvanced";
+const FIXED_NODE_TYPE = "EasyUseAnimaPromptStudioFixed";
 const FIELD_NAMES = [
   "lora_trigger_tags",
   "quality_tags",
   "trigger_and_artist_tags",
   "prompt",
   "trailing_quality_tags",
+];
+const FIXED_FIELD_NAMES = [
+  "quality_tags_1",
+  "quality_tags_2",
+  "naia_prompt_3",
+  "general_tags_4",
+  "general_tags_5",
+  "general_tags_6",
+  "general_tags_7",
+  "general_tags_8",
+  "general_tags_9",
+  "trailing_tags_10",
+  "trailing_tags_11",
+  "negative_prompt_1",
+  "negative_prompt_2",
+  "negative_prompt_3",
+  "negative_prompt_4",
 ];
 
 const FIELD_HEIGHTS = {
@@ -16,6 +34,23 @@ const FIELD_HEIGHTS = {
   trigger_and_artist_tags: 72,
   prompt: 150,
   trailing_quality_tags: 72,
+};
+const FIXED_FIELD_HEIGHTS = {
+  quality_tags_1: 72,
+  quality_tags_2: 72,
+  naia_prompt_3: 150,
+  general_tags_4: 120,
+  general_tags_5: 120,
+  general_tags_6: 120,
+  general_tags_7: 120,
+  general_tags_8: 120,
+  general_tags_9: 120,
+  trailing_tags_10: 72,
+  trailing_tags_11: 72,
+  negative_prompt_1: 120,
+  negative_prompt_2: 120,
+  negative_prompt_3: 120,
+  negative_prompt_4: 120,
 };
 
 const SECTION_STYLES = {
@@ -810,6 +845,18 @@ function displayText(node, widget) {
   return String(widget?.inputEl?.value ?? widget?.value ?? "");
 }
 
+function isFixedNode(node) {
+  return node?.type === FIXED_NODE_TYPE || node?.comfyClass === FIXED_NODE_TYPE;
+}
+
+function studioFieldNames(node) {
+  return isFixedNode(node) ? FIXED_FIELD_NAMES : FIELD_NAMES;
+}
+
+function studioDefaultHeight(widget) {
+  return FIXED_FIELD_HEIGHTS[widget.name] || FIELD_HEIGHTS[widget.name] || 72;
+}
+
 function updateHighlight(node, widget, tokens = widget.__easyuseAnimaTokens || []) {
   const input = findInputEl(widget);
   if (!input) {
@@ -833,7 +880,7 @@ function enhanceResizableInput(node, widget) {
     return;
   }
 
-  const defaultHeight = FIELD_HEIGHTS[widget.name] || 72;
+  const defaultHeight = studioDefaultHeight(widget);
   const readInputHeight = () => {
     const styleHeight = Number.parseFloat(input.style.height || "");
     return Math.round(input.offsetHeight || input.clientHeight || styleHeight || defaultHeight);
@@ -890,7 +937,8 @@ function syncWidgetValue(widget) {
 }
 
 function syncStudioValues(node, serialized = null) {
-  for (const name of FIELD_NAMES) {
+  const fieldNames = studioFieldNames(node);
+  for (const name of fieldNames) {
     const widget = findWidget(node, name);
     if (widget) {
       syncWidgetValue(widget);
@@ -901,7 +949,7 @@ function syncStudioValues(node, serialized = null) {
     return;
   }
 
-  for (const name of FIELD_NAMES) {
+  for (const name of fieldNames) {
     const widgetIndex = node.widgets.findIndex((widget) => widget?.name === name);
     const widget = widgetIndex >= 0 ? node.widgets[widgetIndex] : null;
     if (widgetIndex >= 0 && widget) {
@@ -922,6 +970,7 @@ function restoreInputFromWidget(widget) {
 }
 
 function hookStudioNode(node, attempt = 0) {
+  const fieldNames = studioFieldNames(node);
   const updateByField = new Map();
   let pendingInput = false;
 
@@ -977,7 +1026,7 @@ function hookStudioNode(node, attempt = 0) {
     return update;
   };
 
-  for (const name of FIELD_NAMES) {
+  for (const name of fieldNames) {
     const widget = findWidget(node, name);
     if (!widget) {
       continue;
@@ -988,6 +1037,11 @@ function hookStudioNode(node, attempt = 0) {
       continue;
     }
     restoreInputFromWidget(widget);
+    if (isFixedNode(node) && name === "naia_prompt_3") {
+      input.readOnly = true;
+      input.placeholder = "NAIA result";
+      input.title = "Read-only NAIA result slot. Enable fill_naia_prompt to update it from NAIA.";
+    }
     enhanceResizableInput(node, widget);
     const updateField = getUpdateField(name);
 
@@ -1028,16 +1082,30 @@ function hookStudioNode(node, attempt = 0) {
 }
 
 function applyExecutedInputs(node, message) {
-  const payload = firstValue(message?.prompt_studio_inputs, null);
+  const slotPayload = firstValue(message?.prompt_studio_slots, null);
+  const payload = slotPayload || firstValue(message?.prompt_studio_inputs, null);
   if (!payload || typeof payload !== "object") {
     return;
   }
-  for (const name of FIELD_NAMES) {
+  const fieldNames = studioFieldNames(node);
+  for (const name of fieldNames) {
     const widget = findWidget(node, name);
     if (!widget) {
       continue;
     }
-    widget.__easyuseAnimaExecutedText = String(payload[name] ?? "");
+    if (slotPayload && Object.prototype.hasOwnProperty.call(payload, name)) {
+      widget.value = String(payload[name] ?? "");
+      restoreInputFromWidget(widget);
+      widget.__easyuseAnimaExecutedText = null;
+    } else {
+      widget.__easyuseAnimaExecutedText = String(payload[name] ?? "");
+    }
+  }
+  if (slotPayload) {
+    const fillNaia = findWidget(node, "fill_naia_prompt");
+    if (fillNaia && payload.fill_naia_prompt != null) {
+      fillNaia.value = !!payload.fill_naia_prompt;
+    }
   }
   hookStudioNode(node);
 }
@@ -1906,7 +1974,11 @@ app.registerExtension({
     await loadPromptStudioSettings();
   },
   async beforeRegisterNodeDef(nodeType, nodeData) {
-    if (nodeData.name !== NODE_TYPE && nodeData.name !== ADVANCED_NODE_TYPE) {
+    if (
+      nodeData.name !== NODE_TYPE
+      && nodeData.name !== ADVANCED_NODE_TYPE
+      && nodeData.name !== FIXED_NODE_TYPE
+    ) {
       return;
     }
 
@@ -1938,7 +2010,7 @@ app.registerExtension({
         syncAdvancedNodeSize(this);
         return result;
       }
-      for (const name of FIELD_NAMES) {
+      for (const name of studioFieldNames(this)) {
         const widget = findWidget(this, name);
         const input = findInputEl(widget);
         if (input && widget.__easyuseAnimaHeight) {

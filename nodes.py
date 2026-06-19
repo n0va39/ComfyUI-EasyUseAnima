@@ -35,6 +35,23 @@ ADVANCED_FIELD_LABELS = {
     "general": "General Tags",
     "naia": "NAIA Prompt",
 }
+FIXED_PROMPT_SLOT_SPECS = [
+    ("quality_tags_1", "positive", "quality", "Quality Tags 1", DEFAULT_QUALITY_TAGS, 72),
+    ("quality_tags_2", "positive", "quality", "Quality Tags 2", "", 72),
+    ("naia_prompt_3", "positive", "general", "NAIA Prompt 3", "", 150),
+    ("general_tags_4", "positive", "general", "General Tags 4", "", 120),
+    ("general_tags_5", "positive", "general", "General Tags 5", "", 120),
+    ("general_tags_6", "positive", "general", "General Tags 6", "", 120),
+    ("general_tags_7", "positive", "general", "General Tags 7", "", 120),
+    ("general_tags_8", "positive", "general", "General Tags 8", "", 120),
+    ("general_tags_9", "positive", "general", "General Tags 9", "", 120),
+    ("trailing_tags_10", "positive", "general", "Trailing Quality Tags 10", DEFAULT_TRAILING_QUALITY_TAGS, 72),
+    ("trailing_tags_11", "positive", "general", "Trailing Quality Tags 11", "", 72),
+    ("negative_prompt_1", "negative", "general", "Negative Prompt 1", "", 120),
+    ("negative_prompt_2", "negative", "general", "Negative Prompt 2", "", 120),
+    ("negative_prompt_3", "negative", "general", "Negative Prompt 3", "", 120),
+    ("negative_prompt_4", "negative", "general", "Negative Prompt 4", "", 120),
+]
 FIXED_TIMEOUT = 30.0
 HTTP_TIMEOUT = FIXED_TIMEOUT + 5.0
 
@@ -1198,6 +1215,197 @@ class EasyUseAnimaPromptStudioAdvanced:
         )
         return {
             "ui": self._ui(fields_json, live_use_naia, effective_field_inputs),
+            "result": result,
+        }
+
+
+class EasyUseAnimaPromptStudioFixed:
+    """Fixed-socket Prompt Studio with numbered positive/negative prompt rows."""
+
+    @classmethod
+    def INPUT_TYPES(cls):
+        required = {
+            "fill_naia_prompt": ("BOOLEAN", {
+                "default": False,
+                "tooltip": (
+                    "When enabled, slot 3 is filled from NAIA on each queue. "
+                    "Saved-image workflows are written with this off and the current slot 3 text stored."
+                ),
+            }),
+            "use_anima_mod_guidance": ("BOOLEAN", {
+                "default": False,
+                "tooltip": (
+                    "true: positive output excludes slots 1-2 quality tags and sends them "
+                    "through anima_mod_guidance_quality_tags."
+                ),
+            }),
+            "pin_trigger_tags_to_front": ("BOOLEAN", {
+                "default": False,
+                "tooltip": "true: keep prompt correction trigger-like tags at the front where applicable.",
+            }),
+        }
+        for name, _pane, _field_type, label, default, height in FIXED_PROMPT_SLOT_SPECS:
+            required[name] = ("STRING", {
+                "multiline": True,
+                "default": default,
+                "tooltip": label,
+                "placeholder": label,
+                "height": height,
+            })
+        return {
+            "required": required,
+            "hidden": {
+                "workflow_prompt": "PROMPT",
+                "extra_pnginfo": "EXTRA_PNGINFO",
+                "unique_id": "UNIQUE_ID",
+            },
+        }
+
+    RETURN_TYPES = ("STRING", "STRING", "STRING", "BOOLEAN", "STRING", "STRING")
+    RETURN_NAMES = (
+        "positive_prompt",
+        "negative_prompt",
+        "anima_mod_guidance_quality_tags",
+        "use_anima_mod_guidance",
+        "metadata_prompt",
+        "metadata_negative_prompt",
+    )
+    FUNCTION = "build"
+    CATEGORY = "EasyUse Anima/Prompt"
+
+    @classmethod
+    def _widget_input_names(cls) -> list[str]:
+        return list(cls.INPUT_TYPES()["required"].keys())
+
+    @classmethod
+    def IS_CHANGED(
+        cls,
+        fill_naia_prompt: bool = False,
+        use_anima_mod_guidance: bool = False,
+        pin_trigger_tags_to_front: bool = False,
+        **kwargs,
+    ):
+        if _as_bool(fill_naia_prompt, False):
+            return float("nan")
+        return _stable_change_key({
+            "mode": "prompt_studio_fixed",
+            "metadata_filter_words": resolve_metadata_filter_words(),
+            "use_anima_mod_guidance": _as_bool(use_anima_mod_guidance, False),
+            "pin_trigger_tags_to_front": _as_bool(pin_trigger_tags_to_front, False),
+            **{
+                name: str(kwargs.get(name, ""))
+                for name, *_rest in FIXED_PROMPT_SLOT_SPECS
+            },
+        })
+
+    @classmethod
+    def _update_metadata_slots(
+        cls,
+        workflow_prompt,
+        extra_pnginfo,
+        unique_id,
+        updates: dict[str, Any],
+    ) -> None:
+        node_id = _single_value(unique_id)
+        if node_id is None:
+            return
+        node_id = str(node_id)
+
+        if isinstance(workflow_prompt, dict):
+            prompt_node = workflow_prompt.get(node_id)
+            if isinstance(prompt_node, dict):
+                inputs = prompt_node.setdefault("inputs", {})
+                for name, value in updates.items():
+                    inputs[name] = value
+
+        workflow_node = _get_workflow_node(extra_pnginfo, node_id)
+        if workflow_node is None:
+            return
+
+        input_names = cls._widget_input_names()
+        widgets_values = workflow_node.setdefault("widgets_values", [])
+        for name, value in updates.items():
+            if name not in input_names:
+                continue
+            index = input_names.index(name)
+            while len(widgets_values) <= index:
+                widgets_values.append(None)
+            widgets_values[index] = value
+
+    @staticmethod
+    def _fields_from_slots(values: dict[str, str]) -> list[dict]:
+        fields = []
+        for name, pane, field_type, label, _default, height in FIXED_PROMPT_SLOT_SPECS:
+            text = str(values.get(name, "") or "")
+            fields.append({
+                "id": name,
+                "pane": pane,
+                "type": field_type,
+                "label": label,
+                "text": text,
+                "height": height,
+                "enabled": bool(text.strip()),
+            })
+        return fields
+
+    @staticmethod
+    def _ui(slot_values: dict[str, str], fill_naia_prompt: bool):
+        return {
+            "prompt_studio_slots": [{
+                **slot_values,
+                "fill_naia_prompt": _as_bool(fill_naia_prompt, False),
+            }]
+        }
+
+    def build(
+        self,
+        fill_naia_prompt: bool,
+        use_anima_mod_guidance: bool,
+        pin_trigger_tags_to_front: bool,
+        workflow_prompt=None,
+        extra_pnginfo=None,
+        unique_id=None,
+        **slot_values,
+    ):
+        values = {
+            name: str(slot_values.get(name, default) or "")
+            for name, _pane, _field_type, _label, default, _height in FIXED_PROMPT_SLOT_SPECS
+        }
+        live_fill_naia = _as_bool(fill_naia_prompt, False)
+        metadata_fill_naia = live_fill_naia
+
+        if live_fill_naia:
+            naia_settings = resolve_naia_settings()
+            body = EasyUseAnimaNAIARandomPrompt._make_request_body(
+                _as_bool(naia_settings["use_naia_settings"], True),
+                naia_settings["pre_prompt"],
+                naia_settings["post_prompt"],
+                naia_settings["auto_hide"],
+                naia_settings["preprocessing"],
+            )
+            resp = _post_random(naia_settings["host"], naia_settings["port"], body)
+            naia_prompt, _naia_negative, _naia_width, _naia_height = _parse_random_response(resp)
+            values["naia_prompt_3"] = naia_prompt
+            metadata_fill_naia = False
+
+        if live_fill_naia:
+            self._update_metadata_slots(
+                workflow_prompt,
+                extra_pnginfo,
+                unique_id,
+                {
+                    "fill_naia_prompt": metadata_fill_naia,
+                    "naia_prompt_3": values["naia_prompt_3"],
+                },
+            )
+
+        result = _build_advanced_prompts(
+            self._fields_from_slots(values),
+            use_anima_mod_guidance,
+            pin_trigger_tags_to_front,
+        )
+        return {
+            "ui": self._ui(values, live_fill_naia),
             "result": result,
         }
 
