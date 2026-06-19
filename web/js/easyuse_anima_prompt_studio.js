@@ -408,6 +408,7 @@ function ensureExtendSlotStyle() {
     .easyuse-anima-extend-slots {
       box-sizing: border-box;
       width: 100%;
+      padding-bottom: 4px;
       color: var(--fg-color, #ddd);
       font: 11px sans-serif;
       user-select: none;
@@ -1102,7 +1103,7 @@ function extendVisibleSlotsState(node) {
   if (propertyRaw != null) {
     return { slots: parseExtendSlots(propertyRaw), explicit: true };
   }
-  return { slots: new Set(EXTEND_DEFAULT_VISIBLE_FIELDS), explicit: false };
+  return { slots: new Set(EXTEND_DEFAULT_VISIBLE_FIELDS), explicit: true };
 }
 
 function extendVisibleSlots(node) {
@@ -1119,20 +1120,11 @@ function writeExtendVisibleSlots(node, slots) {
   }
 }
 
-function extendSlotHasValue(node, fieldName) {
-  const widget = findWidget(node, fieldName);
-  const value = String(widget?.inputEl?.value ?? widget?.value ?? "");
-  return value.trim().length > 0;
-}
-
 function extendSlotShouldShow(node, fieldName, state = extendVisibleSlotsState(node)) {
   if (isWidgetInputLinked(node, fieldName)) {
     return true;
   }
-  if (state.explicit) {
-    return state.slots.has(fieldName);
-  }
-  return state.slots.has(fieldName) || extendSlotHasValue(node, fieldName);
+  return state.slots.has(fieldName);
 }
 
 function setExtendWidgetHidden(widget, hidden) {
@@ -1198,6 +1190,43 @@ function applyExtendSlotVisibility(node) {
   writeExtendVisibleSlots(node, visible);
 }
 
+function measureExtendSlotControlsHeight(node) {
+  const container = node.__easyuseAnimaExtendSlotControlsEl;
+  if (!container) {
+    return 30;
+  }
+  return Math.max(
+    30,
+    Math.ceil(
+      Number(container.scrollHeight)
+      || Number(container.getBoundingClientRect?.().height)
+      || 0,
+    ) + 4,
+  );
+}
+
+function refreshExtendSlotControlsSize(node) {
+  const widget = findWidget(node, "easyuse_anima_extend_slot_controls");
+  if (widget) {
+    widget.__height = measureExtendSlotControlsHeight(node);
+  }
+}
+
+function refreshExtendLayoutAfterSlotChange(node) {
+  refreshExtendSlotControlsSize(node);
+  for (const widget of visibleStudioWidgets(node)) {
+    expandStudioInputToContent(node, widget);
+  }
+  refreshNodeSize(node, { immediate: true });
+  requestAnimationFrame(() => {
+    refreshExtendSlotControlsSize(node);
+    for (const widget of visibleStudioWidgets(node)) {
+      expandStudioInputToContent(node, widget);
+    }
+    refreshNodeSize(node, { immediate: true });
+  });
+}
+
 function addNextExtendSlot(node, group) {
   const visible = extendVisibleSlots(node);
   const next = group.fields.find((fieldName) => !extendSlotShouldShow(node, fieldName));
@@ -1208,7 +1237,7 @@ function addNextExtendSlot(node, group) {
   writeExtendVisibleSlots(node, visible);
   applyExtendSlotVisibility(node);
   renderExtendSlotControls(node);
-  rebalanceStudioInputHeights(node);
+  refreshExtendLayoutAfterSlotChange(node);
 }
 
 function hideExtendSlot(node, fieldName) {
@@ -1220,7 +1249,7 @@ function hideExtendSlot(node, fieldName) {
   writeExtendVisibleSlots(node, visible);
   applyExtendSlotVisibility(node);
   renderExtendSlotControls(node);
-  rebalanceStudioInputHeights(node);
+  refreshExtendLayoutAfterSlotChange(node);
 }
 
 function extendSlotShortLabel(fieldName) {
@@ -1289,6 +1318,7 @@ function renderExtendSlotControls(node) {
     }
     container.append(hideRow);
   }
+  refreshExtendSlotControlsSize(node);
 }
 
 function ensureExtendSlotControls(node) {
@@ -1303,7 +1333,7 @@ function ensureExtendSlotControls(node) {
     node.addDOMWidget?.("easyuse_anima_extend_slot_controls", "EasyUseAnimaExtendSlotControls", container, {
       serialize: false,
       hideOnZoom: false,
-      getMinHeight: () => 30,
+      getMinHeight: () => measureExtendSlotControlsHeight(node),
     });
   }
   renderExtendSlotControls(node);
