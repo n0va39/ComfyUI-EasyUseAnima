@@ -27,6 +27,14 @@ const FIXED_FIELD_NAMES = [
   "negative_prompt_3",
   "negative_prompt_4",
 ];
+const FIXED_VISIBLE_SLOTS_PROPERTY = "easyuse_anima_fixed_visible_slots";
+const FIXED_SLOT_GROUPS = [
+  { id: "quality", label: "Quality", fields: ["quality_tags_1", "quality_tags_2"] },
+  { id: "general", label: "General", fields: ["general_tags_4", "general_tags_5", "general_tags_6", "general_tags_7", "general_tags_8", "general_tags_9"] },
+  { id: "trailing", label: "Trailing", fields: ["trailing_tags_10", "trailing_tags_11"] },
+  { id: "negative", label: "Negative", fields: ["negative_prompt_1", "negative_prompt_2", "negative_prompt_3", "negative_prompt_4"] },
+];
+const FIXED_ALWAYS_VISIBLE_FIELDS = new Set(["naia_prompt_3"]);
 
 const FIELD_HEIGHTS = {
   lora_trigger_tags: 42,
@@ -383,6 +391,49 @@ function ensureAdvancedStyle() {
       padding: 10px 4px;
       color: rgba(148, 163, 184, 0.72);
       font-size: 11px;
+    }
+  `;
+  document.head.append(style);
+}
+
+function ensureFixedSlotStyle() {
+  if (document.getElementById("easyuse-anima-fixed-slot-style")) {
+    return;
+  }
+  const style = document.createElement("style");
+  style.id = "easyuse-anima-fixed-slot-style";
+  style.textContent = `
+    .easyuse-anima-fixed-slots {
+      box-sizing: border-box;
+      width: 100%;
+      color: var(--fg-color, #ddd);
+      font: 11px sans-serif;
+      user-select: none;
+    }
+    .easyuse-anima-fixed-slot-row {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 5px;
+      width: 100%;
+    }
+    .easyuse-anima-fixed-slot-row button {
+      box-sizing: border-box;
+      min-width: 0;
+      height: 24px;
+      border: 1px solid rgba(148, 163, 184, 0.38);
+      border-radius: 4px;
+      background: rgba(17, 24, 39, 0.7);
+      color: var(--fg-color, #ddd);
+      font: 11px sans-serif;
+      cursor: pointer;
+    }
+    .easyuse-anima-fixed-slot-row button:hover:not(:disabled) {
+      border-color: rgba(96, 165, 250, 0.74);
+      background: rgba(30, 64, 175, 0.5);
+    }
+    .easyuse-anima-fixed-slot-row button:disabled {
+      opacity: 0.42;
+      cursor: default;
     }
   `;
   document.head.append(style);
@@ -853,6 +904,145 @@ function studioFieldNames(node) {
   return isFixedNode(node) ? FIXED_FIELD_NAMES : FIELD_NAMES;
 }
 
+function fixedVisibleSlots(node) {
+  const raw = node?.properties?.[FIXED_VISIBLE_SLOTS_PROPERTY];
+  if (Array.isArray(raw)) {
+    return new Set(raw.filter((name) => FIXED_FIELD_NAMES.includes(name)));
+  }
+  if (typeof raw === "string" && raw.trim()) {
+    try {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) {
+        return new Set(parsed.filter((name) => FIXED_FIELD_NAMES.includes(name)));
+      }
+    } catch {
+      return new Set();
+    }
+  }
+  return new Set();
+}
+
+function writeFixedVisibleSlots(node, slots) {
+  node.properties ||= {};
+  node.properties[FIXED_VISIBLE_SLOTS_PROPERTY] = [...slots].filter((name) => FIXED_FIELD_NAMES.includes(name));
+}
+
+function fixedSlotHasValue(node, fieldName) {
+  const widget = findWidget(node, fieldName);
+  const value = String(widget?.inputEl?.value ?? widget?.value ?? "");
+  return value.trim().length > 0;
+}
+
+function fixedSlotShouldShow(node, fieldName) {
+  if (FIXED_ALWAYS_VISIBLE_FIELDS.has(fieldName)) {
+    return true;
+  }
+  const visible = fixedVisibleSlots(node);
+  return visible.has(fieldName) || fixedSlotHasValue(node, fieldName) || isWidgetInputLinked(node, fieldName);
+}
+
+function setFixedWidgetHidden(widget, hidden) {
+  if (!widget) {
+    return;
+  }
+  if (!widget.__easyuseAnimaFixedOriginalComputeSize) {
+    widget.__easyuseAnimaFixedOriginalComputeSize = widget.computeSize;
+  }
+  if (!widget.__easyuseAnimaFixedOriginalDraw) {
+    widget.__easyuseAnimaFixedOriginalDraw = widget.draw;
+  }
+
+  widget.__easyuseAnimaFixedHidden = hidden;
+  widget.hidden = hidden;
+  if (hidden) {
+    widget.computeSize = () => [0, 0];
+    widget.draw = () => {};
+  } else {
+    widget.computeSize = widget.__easyuseAnimaFixedOriginalComputeSize;
+    widget.draw = widget.__easyuseAnimaFixedOriginalDraw;
+  }
+
+  const input = findInputEl(widget);
+  if (input) {
+    input.style.display = hidden ? "none" : "";
+    if (input.__easyuseAnimaHighlightOverlay) {
+      input.__easyuseAnimaHighlightOverlay.style.display = hidden ? "none" : "";
+    }
+  }
+}
+
+function applyFixedSlotVisibility(node) {
+  if (!isFixedNode(node)) {
+    return;
+  }
+  const visible = fixedVisibleSlots(node);
+  for (const fieldName of FIXED_FIELD_NAMES) {
+    const shouldShow = fixedSlotShouldShow(node, fieldName);
+    if (shouldShow) {
+      visible.add(fieldName);
+    }
+    setFixedWidgetHidden(findWidget(node, fieldName), !shouldShow);
+  }
+  writeFixedVisibleSlots(node, visible);
+}
+
+function addNextFixedSlot(node, group) {
+  const visible = fixedVisibleSlots(node);
+  const next = group.fields.find((fieldName) => !fixedSlotShouldShow(node, fieldName));
+  if (!next) {
+    return;
+  }
+  visible.add(next);
+  writeFixedVisibleSlots(node, visible);
+  applyFixedSlotVisibility(node);
+  renderFixedSlotControls(node);
+  refreshNodeSize(node);
+}
+
+function renderFixedSlotControls(node) {
+  const container = node.__easyuseAnimaFixedSlotControlsEl;
+  if (!container) {
+    return;
+  }
+  container.innerHTML = "";
+  const row = document.createElement("div");
+  row.className = "easyuse-anima-fixed-slot-row";
+  for (const group of FIXED_SLOT_GROUPS) {
+    const shown = group.fields.filter((fieldName) => fixedSlotShouldShow(node, fieldName)).length;
+    const next = group.fields.find((fieldName) => !fixedSlotShouldShow(node, fieldName));
+    const button = document.createElement("button");
+    button.type = "button";
+    button.textContent = `+ ${group.label} ${shown}/${group.fields.length}`;
+    button.disabled = !next;
+    button.title = next ? `${next} input slot show` : "No hidden slots left";
+    button.addEventListener("click", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      addNextFixedSlot(node, group);
+    });
+    row.append(button);
+  }
+  container.append(row);
+}
+
+function ensureFixedSlotControls(node) {
+  if (!isFixedNode(node)) {
+    return;
+  }
+  ensureFixedSlotStyle();
+  if (!node.__easyuseAnimaFixedSlotControlsEl) {
+    const container = document.createElement("div");
+    container.className = "easyuse-anima-fixed-slots";
+    node.__easyuseAnimaFixedSlotControlsEl = container;
+    node.addDOMWidget?.("easyuse_anima_fixed_slot_controls", "EasyUseAnimaFixedSlotControls", container, {
+      serialize: false,
+      hideOnZoom: false,
+      getMinHeight: () => 30,
+    });
+  }
+  renderFixedSlotControls(node);
+}
+
 function studioDefaultHeight(widget) {
   return FIXED_FIELD_HEIGHTS[widget.name] || FIELD_HEIGHTS[widget.name] || 72;
 }
@@ -947,6 +1137,13 @@ function syncStudioValues(node, serialized = null) {
 
   if (!serialized || !Array.isArray(node.widgets) || !Array.isArray(serialized.widgets_values)) {
     return;
+  }
+  if (isFixedNode(node)) {
+    applyFixedSlotVisibility(node);
+    serialized.properties ||= {};
+    serialized.properties[FIXED_VISIBLE_SLOTS_PROPERTY] = [
+      ...fixedVisibleSlots(node),
+    ].filter((name) => FIXED_FIELD_NAMES.includes(name));
   }
 
   for (const name of fieldNames) {
@@ -1074,6 +1271,10 @@ function hookStudioNode(node, attempt = 0) {
     updateField();
   }
 
+  if (isFixedNode(node)) {
+    applyFixedSlotVisibility(node);
+    ensureFixedSlotControls(node);
+  }
   ensureLegendWidget(node);
   refreshNodeSize(node);
   if (pendingInput && attempt < 12) {
@@ -2009,6 +2210,10 @@ app.registerExtension({
       if (nodeData.name === ADVANCED_NODE_TYPE) {
         syncAdvancedNodeSize(this);
         return result;
+      }
+      if (isFixedNode(this)) {
+        applyFixedSlotVisibility(this);
+        renderFixedSlotControls(this);
       }
       for (const name of studioFieldNames(this)) {
         const widget = findWidget(this, name);
