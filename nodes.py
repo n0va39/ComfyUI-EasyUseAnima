@@ -905,7 +905,7 @@ class EasyUseAnimaLoraPreset:
             "result": (
                 corrected_style,
                 stack,
-                ",, ".join(trigger_words) if trigger_words else "",
+                ", ".join(trigger_words) if trigger_words else "",
                 " ".join(active_loras_text_parts),
                 selected_index,
             ),

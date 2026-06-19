@@ -123,7 +123,7 @@ class LoraPresetTests(unittest.TestCase):
                 )
 
         result = unwrap_result(response)
-        self.assertEqual(result[2], "@foo,, @bar")
+        self.assertEqual(result[2], "@foo, @bar")
 
 
 if __name__ == "__main__":
