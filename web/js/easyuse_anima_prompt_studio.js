@@ -1,6 +1,7 @@
 import { app } from "../../../scripts/app.js";
 
 const NODE_TYPE = "EasyUseAnimaPromptStudio";
+const ADVANCED_NODE_TYPE = "EasyUseAnimaPromptStudioAdvanced";
 const FIELD_NAMES = [
   "lora_trigger_tags",
   "quality_tags",
@@ -55,6 +56,55 @@ const INLINE_SPACE_RE = /[ \t]+/g;
 const PROMPT_STUDIO_SETTINGS = {
   typoIndicator: true,
 };
+const ADVANCED_FIELD_TYPES = ["quality", "artist", "general", "naia"];
+const ADVANCED_FIELD_LABELS = {
+  quality: "Quality Tags",
+  artist: "Artist Tags",
+  general: "General Tags",
+  naia: "NAIA Prompt",
+};
+const ADVANCED_DEFAULT_FIELDS = [
+  {
+    id: "positive_quality",
+    pane: "positive",
+    type: "quality",
+    label: "Quality Tags",
+    text: "newest, masterpiece, best quality, score_8, score_7:, highres, absurdres, very aesthetic",
+    height: 72,
+  },
+  {
+    id: "positive_artist",
+    pane: "positive",
+    type: "artist",
+    label: "Artist Tags",
+    text: "",
+    height: 72,
+  },
+  {
+    id: "positive_general",
+    pane: "positive",
+    type: "general",
+    label: "General Tags",
+    text: "",
+    height: 150,
+  },
+  {
+    id: "positive_trailing",
+    pane: "positive",
+    type: "general",
+    label: "Trailing Tags",
+    text: "location, (A highly aesthetic Pixiv style illustration, clean composition, high-quality digital art, detailed background, sharp focus on facial expressions.:0.6)",
+    height: 72,
+  },
+  {
+    id: "negative_general",
+    pane: "negative",
+    type: "general",
+    label: "General Tags",
+    text: "",
+    height: 120,
+  },
+];
 
 function findWidget(node, name) {
   return node.widgets?.find((widget) => widget.name === name);
@@ -96,6 +146,111 @@ function ensureHighlightStyle() {
       color: transparent !important;
       -webkit-text-fill-color: transparent !important;
       background: rgba(37, 99, 235, 0.28) !important;
+    }
+  `;
+  document.head.append(style);
+}
+
+function ensureAdvancedStyle() {
+  if (document.getElementById("easyuse-anima-advanced-style")) {
+    return;
+  }
+  const style = document.createElement("style");
+  style.id = "easyuse-anima-advanced-style";
+  style.textContent = `
+    .easyuse-anima-advanced-editor {
+      box-sizing: border-box;
+      width: 100%;
+      min-width: 280px;
+      color: var(--fg-color, #ddd);
+      font: 12px sans-serif;
+      user-select: none;
+    }
+    .easyuse-anima-advanced-panes {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+    .easyuse-anima-advanced-editor.is-narrow .easyuse-anima-advanced-panes {
+      grid-template-columns: 1fr;
+    }
+    .easyuse-anima-advanced-pane {
+      min-width: 0;
+      border: 1px solid rgba(148, 163, 184, 0.28);
+      background: rgba(15, 23, 42, 0.28);
+      padding: 6px;
+      box-sizing: border-box;
+    }
+    .easyuse-anima-advanced-pane-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+      margin-bottom: 6px;
+      color: rgba(226, 232, 240, 0.82);
+      font-weight: 700;
+    }
+    .easyuse-anima-advanced-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      justify-content: flex-end;
+    }
+    .easyuse-anima-advanced-actions button,
+    .easyuse-anima-field-tools button {
+      border: 1px solid rgba(148, 163, 184, 0.34);
+      background: rgba(30, 41, 59, 0.8);
+      color: rgba(226, 232, 240, 0.9);
+      font: 11px sans-serif;
+      min-height: 20px;
+      padding: 1px 6px;
+      cursor: pointer;
+    }
+    .easyuse-anima-advanced-actions button:disabled {
+      opacity: 0.35;
+      cursor: default;
+    }
+    .easyuse-anima-advanced-field {
+      margin: 0 0 6px;
+    }
+    .easyuse-anima-field-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+      min-height: 20px;
+      color: rgba(203, 213, 225, 0.86);
+    }
+    .easyuse-anima-field-label {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .easyuse-anima-field-tools {
+      display: flex;
+      gap: 3px;
+      flex: 0 0 auto;
+    }
+    .easyuse-anima-advanced-field textarea {
+      box-sizing: border-box;
+      width: 100%;
+      min-height: 42px;
+      resize: vertical;
+      border: 1px solid rgba(148, 163, 184, 0.28);
+      background: rgba(10, 10, 12, 0.78);
+      color: var(--input-text, #ddd);
+      padding: 6px;
+      font: 12px monospace;
+      line-height: 1.35;
+      outline: none;
+    }
+    .easyuse-anima-advanced-field textarea:focus {
+      border-color: rgba(96, 165, 250, 0.7);
+    }
+    .easyuse-anima-empty-pane {
+      padding: 10px 4px;
+      color: rgba(148, 163, 184, 0.72);
+      font-size: 11px;
     }
   `;
   document.head.append(style);
@@ -776,31 +931,358 @@ function applyExecutedInputs(node, message) {
   hookStudioNode(node);
 }
 
+function advancedDefaultFields() {
+  return JSON.parse(JSON.stringify(ADVANCED_DEFAULT_FIELDS));
+}
+
+function advancedWidget(node) {
+  return findWidget(node, "advanced_fields");
+}
+
+function hideAdvancedInternalWidget(node, name) {
+  const widget = findWidget(node, name);
+  if (!widget || widget.__easyuseAnimaAdvancedHidden) {
+    return;
+  }
+  widget.__easyuseAnimaAdvancedHidden = true;
+  widget.hidden = true;
+  widget.serialize = true;
+  widget.computeSize = () => [0, 0];
+  widget.draw = () => {};
+}
+
+function normalizeAdvancedField(field, index = 0) {
+  const pane = field?.pane === "negative" ? "negative" : "positive";
+  let type = ADVANCED_FIELD_TYPES.includes(field?.type) ? field.type : "general";
+  if (pane === "negative" && type === "naia") {
+    type = "general";
+  }
+  const label = String(field?.label || ADVANCED_FIELD_LABELS[type] || "General Tags");
+  return {
+    id: String(field?.id || `${pane}_${type}_${index + 1}`),
+    pane,
+    type,
+    label,
+    text: String(field?.text || ""),
+    height: Math.max(42, Math.min(420, Number(field?.height) || 72)),
+  };
+}
+
+function parseAdvancedFields(node) {
+  const widget = advancedWidget(node);
+  try {
+    const parsed = JSON.parse(String(widget?.value || "[]"));
+    if (Array.isArray(parsed) && parsed.length) {
+      const fields = [];
+      let seenNaia = false;
+      parsed.forEach((field, index) => {
+        const normalized = normalizeAdvancedField(field, index);
+        if (normalized.type === "naia") {
+          if (seenNaia) {
+            return;
+          }
+          seenNaia = true;
+          normalized.pane = "positive";
+        }
+        fields.push(normalized);
+      });
+      return fields.length ? fields : advancedDefaultFields();
+    }
+  } catch {
+    // Fall through to default fields.
+  }
+  return advancedDefaultFields();
+}
+
+function writeAdvancedFields(node, fields, { render = false } = {}) {
+  const widget = advancedWidget(node);
+  if (!widget) {
+    return;
+  }
+  widget.value = JSON.stringify(fields.map((field, index) => normalizeAdvancedField(field, index)));
+  node.__easyuseAnimaAdvancedFields = fields;
+  node.setDirtyCanvas?.(true, true);
+  app.graph?.setDirtyCanvas?.(true, true);
+  if (render) {
+    renderAdvancedEditor(node);
+  }
+}
+
+function advancedFieldLabel(field) {
+  const base = ADVANCED_FIELD_LABELS[field.type] || "General Tags";
+  return field.label && field.label !== base ? `${base} - ${field.label}` : base;
+}
+
+function advancedPaneFields(node, pane) {
+  return (node.__easyuseAnimaAdvancedFields || parseAdvancedFields(node))
+    .filter((field) => field.pane === pane);
+}
+
+function hasPositiveNaia(node) {
+  return (node.__easyuseAnimaAdvancedFields || parseAdvancedFields(node))
+    .some((field) => field.pane === "positive" && field.type === "naia");
+}
+
+function syncAdvancedNodeSize(node) {
+  requestAnimationFrame(() => {
+    const editor = node.__easyuseAnimaAdvancedEditorEl;
+    if (!editor || !node.size || typeof node.setSize !== "function") {
+      return;
+    }
+    const width = Number(node.size[0]) || 360;
+    editor.classList.toggle("is-narrow", width < 620);
+    const computed = node.computeSize?.();
+    const nextHeight = Math.max(Number(node.size[1]) || 0, Number(computed?.[1]) || 0);
+    if (nextHeight && Math.abs(nextHeight - Number(node.size[1] || 0)) > 2) {
+      node.setSize([width, nextHeight]);
+    }
+    app.graph?.setDirtyCanvas?.(true, true);
+  });
+}
+
+function createAdvancedFieldElement(node, field) {
+  const fields = node.__easyuseAnimaAdvancedFields || parseAdvancedFields(node);
+  const globalIndex = fields.findIndex((item) => item.id === field.id);
+  const samePane = fields.filter((item) => item.pane === field.pane);
+  const paneIndex = samePane.findIndex((item) => item.id === field.id);
+  const block = document.createElement("div");
+  block.className = "easyuse-anima-advanced-field";
+
+  const header = document.createElement("div");
+  header.className = "easyuse-anima-field-header";
+  const label = document.createElement("div");
+  label.className = "easyuse-anima-field-label";
+  label.textContent = advancedFieldLabel(field);
+  const tools = document.createElement("div");
+  tools.className = "easyuse-anima-field-tools";
+
+  const move = (direction) => {
+    const currentFields = node.__easyuseAnimaAdvancedFields || parseAdvancedFields(node);
+    const paneFields = currentFields
+      .map((item, index) => ({ item, index }))
+      .filter(({ item }) => item.pane === field.pane);
+    const current = paneFields.findIndex(({ item }) => item.id === field.id);
+    const target = current + direction;
+    if (current < 0 || target < 0 || target >= paneFields.length) {
+      return;
+    }
+    const from = paneFields[current].index;
+    const to = paneFields[target].index;
+    const [removed] = currentFields.splice(from, 1);
+    currentFields.splice(to, 0, removed);
+    writeAdvancedFields(node, currentFields, { render: true });
+  };
+
+  const addTool = (text, title, callback, disabled = false) => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.textContent = text;
+    button.title = title;
+    button.disabled = disabled;
+    button.addEventListener("click", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      if (!button.disabled) {
+        callback();
+      }
+    });
+    tools.append(button);
+  };
+
+  addTool("↑", "Move up", () => move(-1), paneIndex <= 0);
+  addTool("↓", "Move down", () => move(1), paneIndex >= samePane.length - 1);
+  addTool("X", "Delete field", () => {
+    const currentFields = node.__easyuseAnimaAdvancedFields || parseAdvancedFields(node);
+    currentFields.splice(globalIndex, 1);
+    writeAdvancedFields(node, currentFields, { render: true });
+  });
+
+  const textarea = document.createElement("textarea");
+  textarea.value = field.text || "";
+  textarea.style.height = `${field.height || 72}px`;
+  textarea.placeholder = field.type === "artist" ? "@artist_tag" : "prompt tags";
+  textarea.dataset.easyuseAnimaAdvancedFieldId = field.id;
+  textarea.addEventListener("input", () => {
+    field.text = textarea.value;
+    writeAdvancedFields(node, fields);
+  });
+  const syncHeight = () => {
+    field.height = Math.max(42, Math.min(420, Math.round(textarea.offsetHeight || field.height || 72)));
+    writeAdvancedFields(node, fields);
+    syncAdvancedNodeSize(node);
+  };
+  textarea.addEventListener("mouseup", syncHeight);
+  textarea.addEventListener("pointerup", syncHeight);
+  textarea.addEventListener("change", syncHeight);
+
+  header.append(label, tools);
+  block.append(header, textarea);
+  return block;
+}
+
+function addAdvancedField(node, pane, type) {
+  const fields = node.__easyuseAnimaAdvancedFields || parseAdvancedFields(node);
+  if (type === "naia" && hasPositiveNaia(node)) {
+    return;
+  }
+  const nextId = `${pane}_${type}_${Date.now().toString(36)}`;
+  fields.push({
+    id: nextId,
+    pane,
+    type,
+    label: ADVANCED_FIELD_LABELS[type] || "General Tags",
+    text: "",
+    height: type === "general" || type === "naia" ? 120 : 72,
+  });
+  writeAdvancedFields(node, fields, { render: true });
+}
+
+function createAdvancedPane(node, pane, title) {
+  const section = document.createElement("section");
+  section.className = "easyuse-anima-advanced-pane";
+
+  const header = document.createElement("div");
+  header.className = "easyuse-anima-advanced-pane-title";
+  const heading = document.createElement("span");
+  heading.textContent = title;
+  const actions = document.createElement("div");
+  actions.className = "easyuse-anima-advanced-actions";
+  const addButton = (type, label) => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.textContent = label;
+    button.disabled = type === "naia" && hasPositiveNaia(node);
+    button.addEventListener("click", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      addAdvancedField(node, pane, type);
+    });
+    actions.append(button);
+  };
+  addButton("quality", "+ Quality");
+  addButton("artist", "+ Artist");
+  addButton("general", "+ General");
+  if (pane === "positive") {
+    addButton("naia", "+ NAIA");
+  }
+  header.append(heading, actions);
+  section.append(header);
+
+  const fields = advancedPaneFields(node, pane);
+  if (!fields.length) {
+    const empty = document.createElement("div");
+    empty.className = "easyuse-anima-empty-pane";
+    empty.textContent = "No fields";
+    section.append(empty);
+  } else {
+    for (const field of fields) {
+      section.append(createAdvancedFieldElement(node, field));
+    }
+  }
+  return section;
+}
+
+function renderAdvancedEditor(node) {
+  const editor = node.__easyuseAnimaAdvancedEditorEl;
+  if (!editor) {
+    return;
+  }
+  node.__easyuseAnimaAdvancedFields = parseAdvancedFields(node);
+  editor.innerHTML = "";
+  editor.classList.toggle("is-narrow", Number(node.size?.[0] || 0) < 620);
+  const panes = document.createElement("div");
+  panes.className = "easyuse-anima-advanced-panes";
+  panes.append(
+    createAdvancedPane(node, "positive", "Positive Prompt"),
+    createAdvancedPane(node, "negative", "Negative Prompt"),
+  );
+  editor.append(panes);
+  writeAdvancedFields(node, node.__easyuseAnimaAdvancedFields);
+  syncAdvancedNodeSize(node);
+}
+
+function hookAdvancedNode(node) {
+  ensureAdvancedStyle();
+  hideAdvancedInternalWidget(node, "advanced_fields");
+  node.serialize_widgets = true;
+  if (!node.__easyuseAnimaAdvancedEditorEl) {
+    const editor = document.createElement("div");
+    editor.className = "easyuse-anima-advanced-editor";
+    node.__easyuseAnimaAdvancedEditorEl = editor;
+    node.addDOMWidget?.("easyuse_anima_advanced_editor", "EasyUseAnimaAdvancedEditor", editor, {
+      serialize: false,
+      hideOnZoom: false,
+      getMinHeight: () => Math.max(220, editor.scrollHeight || editor.offsetHeight || 220),
+    });
+  }
+  renderAdvancedEditor(node);
+}
+
+function syncAdvancedValues(node, serialized = null) {
+  const fields = node.__easyuseAnimaAdvancedFields || parseAdvancedFields(node);
+  writeAdvancedFields(node, fields);
+  if (!serialized || !Array.isArray(node.widgets) || !Array.isArray(serialized.widgets_values)) {
+    return;
+  }
+  const index = node.widgets.findIndex((widget) => widget?.name === "advanced_fields");
+  if (index >= 0) {
+    serialized.widgets_values[index] = advancedWidget(node)?.value || JSON.stringify(fields);
+  }
+}
+
+function applyAdvancedExecutedInputs(node, message) {
+  const payload = firstValue(message?.prompt_studio_advanced, null);
+  if (!payload || typeof payload !== "object") {
+    return;
+  }
+  const widget = advancedWidget(node);
+  if (widget && payload.advanced_fields != null) {
+    widget.value = String(payload.advanced_fields);
+  }
+  const useNaia = findWidget(node, "use_naia");
+  if (useNaia && payload.use_naia != null) {
+    useNaia.value = !!payload.use_naia;
+  }
+  renderAdvancedEditor(node);
+}
+
 app.registerExtension({
   name: "easyuse-anima.prompt-studio",
   async setup() {
     await loadPromptStudioSettings();
   },
   async beforeRegisterNodeDef(nodeType, nodeData) {
-    if (nodeData.name !== NODE_TYPE) {
+    if (nodeData.name !== NODE_TYPE && nodeData.name !== ADVANCED_NODE_TYPE) {
       return;
     }
 
     const onNodeCreated = nodeType.prototype.onNodeCreated;
     nodeType.prototype.onNodeCreated = function () {
       onNodeCreated?.apply(this, arguments);
-      hookStudioNode(this);
+      if (nodeData.name === ADVANCED_NODE_TYPE) {
+        hookAdvancedNode(this);
+      } else {
+        hookStudioNode(this);
+      }
     };
 
     const onConfigure = nodeType.prototype.onConfigure;
     nodeType.prototype.onConfigure = function () {
       onConfigure?.apply(this, arguments);
-      hookStudioNode(this);
+      if (nodeData.name === ADVANCED_NODE_TYPE) {
+        requestAnimationFrame(() => hookAdvancedNode(this));
+      } else {
+        hookStudioNode(this);
+      }
     };
 
     const onResize = nodeType.prototype.onResize;
     nodeType.prototype.onResize = function () {
       const result = onResize?.apply(this, arguments);
+      if (nodeData.name === ADVANCED_NODE_TYPE) {
+        syncAdvancedNodeSize(this);
+        return result;
+      }
       for (const name of FIELD_NAMES) {
         const widget = findWidget(this, name);
         const input = findInputEl(widget);
@@ -815,14 +1297,22 @@ app.registerExtension({
     const onSerialize = nodeType.prototype.onSerialize;
     nodeType.prototype.onSerialize = function (serialized) {
       const result = onSerialize?.apply(this, arguments);
-      syncStudioValues(this, serialized);
+      if (nodeData.name === ADVANCED_NODE_TYPE) {
+        syncAdvancedValues(this, serialized);
+      } else {
+        syncStudioValues(this, serialized);
+      }
       return result;
     };
 
     const onExecuted = nodeType.prototype.onExecuted;
     nodeType.prototype.onExecuted = function (message) {
       onExecuted?.apply(this, arguments);
-      applyExecutedInputs(this, message);
+      if (nodeData.name === ADVANCED_NODE_TYPE) {
+        applyAdvancedExecutedInputs(this, message);
+      } else {
+        applyExecutedInputs(this, message);
+      }
     };
   },
 });

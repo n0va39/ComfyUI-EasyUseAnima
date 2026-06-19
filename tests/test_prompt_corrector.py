@@ -12,6 +12,7 @@ from nodes import (
     EasyUseAnimaPromptBuilder,
     EasyUseAnimaPromptCorrector,
     EasyUseAnimaPromptStudio,
+    EasyUseAnimaPromptStudioAdvanced,
 )
 from autocomplete_dataset import (
     autocomplete_status,
@@ -202,6 +203,96 @@ class PromptBuilderTests(unittest.TestCase):
             studio_output["ui"]["prompt_studio_inputs"][0]["prompt"],
             "1girl, long hair",
         )
+
+    def test_prompt_studio_advanced_defaults_include_negative_output(self):
+        result = EasyUseAnimaPromptStudioAdvanced().build(
+            False,
+            True,
+            False,
+            False,
+            "",
+        )
+
+        fields = json.loads(result["ui"]["prompt_studio_advanced"][0]["advanced_fields"])
+        self.assertTrue(any(field["pane"] == "positive" for field in fields))
+        self.assertTrue(any(field["pane"] == "negative" for field in fields))
+        self.assertEqual(result["result"][1], "")
+        self.assertIn("masterpiece", result["result"][0])
+        self.assertIn("location", result["result"][0])
+
+    def test_prompt_studio_advanced_splits_positive_negative_and_amg_quality(self):
+        fields = [
+            {
+                "id": "q",
+                "pane": "positive",
+                "type": "quality",
+                "label": "Quality Tags",
+                "text": "masterpiece",
+                "height": 72,
+            },
+            {
+                "id": "a",
+                "pane": "positive",
+                "type": "artist",
+                "label": "Artist Tags",
+                "text": "@artist_name",
+                "height": 72,
+            },
+            {
+                "id": "p",
+                "pane": "positive",
+                "type": "general",
+                "label": "General Tags",
+                "text": "1girl, long hair",
+                "height": 120,
+            },
+            {
+                "id": "n",
+                "pane": "negative",
+                "type": "general",
+                "label": "General Tags",
+                "text": "low quality, bad hands",
+                "height": 120,
+            },
+        ]
+        result = EasyUseAnimaPromptStudioAdvanced().build(
+            False,
+            True,
+            True,
+            False,
+            json.dumps(fields),
+        )
+
+        positive, negative, quality, use_amg, metadata, metadata_negative = result["result"]
+        self.assertNotIn("masterpiece", positive)
+        self.assertEqual(quality, "masterpiece")
+        self.assertTrue(use_amg)
+        self.assertEqual(negative, "low quality, bad hands")
+        self.assertIn("masterpiece", metadata)
+        self.assertEqual(metadata_negative, negative)
+
+    def test_prompt_studio_advanced_drops_negative_naia_field(self):
+        fields = [
+            {
+                "id": "bad",
+                "pane": "negative",
+                "type": "naia",
+                "label": "NAIA Prompt",
+                "text": "bad prompt",
+                "height": 120,
+            }
+        ]
+        result = EasyUseAnimaPromptStudioAdvanced().build(
+            False,
+            True,
+            False,
+            False,
+            json.dumps(fields),
+        )
+
+        normalized = json.loads(result["ui"]["prompt_studio_advanced"][0]["advanced_fields"])
+        self.assertEqual(normalized[0]["pane"], "negative")
+        self.assertEqual(normalized[0]["type"], "general")
 
 
 class SettingsTests(unittest.TestCase):

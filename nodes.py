@@ -27,6 +27,14 @@ DEFAULT_TRAILING_QUALITY_TAGS = (
     "location, (A highly aesthetic Pixiv style illustration, clean composition, "
     "high-quality digital art, detailed background, sharp focus on facial expressions.:0.6)"
 )
+ADVANCED_FIELD_TYPES = {"quality", "artist", "general", "naia"}
+ADVANCED_FIELD_PANES = {"positive", "negative"}
+ADVANCED_FIELD_LABELS = {
+    "quality": "Quality Tags",
+    "artist": "Artist Tags",
+    "general": "General Tags",
+    "naia": "NAIA Prompt",
+}
 FIXED_TIMEOUT = 30.0
 HTTP_TIMEOUT = FIXED_TIMEOUT + 5.0
 
@@ -183,6 +191,194 @@ def _filter_metadata_prompt(prompt: str, filter_words: str) -> str:
         if _metadata_filter_keys(token).isdisjoint(filter_keys)
     ]
     return ", ".join(kept)
+
+
+def _advanced_default_fields() -> list[dict]:
+    return [
+        {
+            "id": "positive_quality",
+            "pane": "positive",
+            "type": "quality",
+            "label": ADVANCED_FIELD_LABELS["quality"],
+            "text": DEFAULT_QUALITY_TAGS,
+            "height": 72,
+        },
+        {
+            "id": "positive_artist",
+            "pane": "positive",
+            "type": "artist",
+            "label": ADVANCED_FIELD_LABELS["artist"],
+            "text": "",
+            "height": 72,
+        },
+        {
+            "id": "positive_general",
+            "pane": "positive",
+            "type": "general",
+            "label": ADVANCED_FIELD_LABELS["general"],
+            "text": "",
+            "height": 150,
+        },
+        {
+            "id": "positive_trailing",
+            "pane": "positive",
+            "type": "general",
+            "label": "Trailing Tags",
+            "text": DEFAULT_TRAILING_QUALITY_TAGS,
+            "height": 72,
+        },
+        {
+            "id": "negative_general",
+            "pane": "negative",
+            "type": "general",
+            "label": ADVANCED_FIELD_LABELS["general"],
+            "text": "",
+            "height": 120,
+        },
+    ]
+
+
+def _advanced_fields_json(fields: list[dict] | None = None) -> str:
+    return json.dumps(
+        fields if fields is not None else _advanced_default_fields(),
+        ensure_ascii=False,
+        separators=(",", ":"),
+    )
+
+
+def _as_advanced_height(value, default: int = 72) -> int:
+    return max(36, min(420, _as_int(value, default)))
+
+
+def _normalize_advanced_fields(value: str | list | None) -> list[dict]:
+    raw = value
+    if isinstance(value, str):
+        try:
+            raw = json.loads(value or "[]")
+        except json.JSONDecodeError:
+            raw = []
+    if not isinstance(raw, list):
+        raw = []
+    if not raw:
+        raw = _advanced_default_fields()
+
+    fields: list[dict] = []
+    seen_naia = False
+    for index, item in enumerate(raw):
+        if not isinstance(item, dict):
+            continue
+        pane = str(item.get("pane") or "positive").strip().lower()
+        if pane not in ADVANCED_FIELD_PANES:
+            pane = "positive"
+        field_type = str(item.get("type") or "general").strip().lower()
+        if field_type not in ADVANCED_FIELD_TYPES:
+            field_type = "general"
+        if pane == "negative" and field_type == "naia":
+            field_type = "general"
+        if field_type == "naia":
+            if seen_naia:
+                continue
+            seen_naia = True
+            pane = "positive"
+        default_label = ADVANCED_FIELD_LABELS.get(field_type, ADVANCED_FIELD_LABELS["general"])
+        label = str(item.get("label") or default_label).strip() or default_label
+        field_id = str(item.get("id") or f"{pane}_{field_type}_{index + 1}").strip()
+        if not field_id:
+            field_id = f"{pane}_{field_type}_{index + 1}"
+        fields.append({
+            "id": field_id,
+            "pane": pane,
+            "type": field_type,
+            "label": label,
+            "text": str(item.get("text") or ""),
+            "height": _as_advanced_height(item.get("height"), 72),
+        })
+
+    return fields or _advanced_default_fields()
+
+
+def _upsert_positive_naia_field(fields: list[dict], prompt: str) -> list[dict]:
+    normalized = _normalize_advanced_fields(fields)
+    for field in normalized:
+        if field["pane"] == "positive" and field["type"] == "naia":
+            field["text"] = prompt
+            return normalized
+    normalized.append({
+        "id": "positive_naia",
+        "pane": "positive",
+        "type": "naia",
+        "label": ADVANCED_FIELD_LABELS["naia"],
+        "text": prompt,
+        "height": 150,
+    })
+    return normalized
+
+
+def _advanced_pane_parts(fields: list[dict], pane: str) -> dict[str, list[str]]:
+    parts = {"quality": [], "artist": [], "body": []}
+    for field in fields:
+        if field.get("pane") != pane:
+            continue
+        field_type = field.get("type")
+        text = str(field.get("text") or "")
+        if field_type == "quality":
+            parts["quality"].append(text)
+        elif field_type == "artist":
+            parts["artist"].append(text)
+        else:
+            parts["body"].append(text)
+    return parts
+
+
+def _build_advanced_prompts(
+    fields: list[dict],
+    use_anima_mod_guidance: bool,
+    pin_trigger_tags_to_front: bool,
+) -> tuple[str, str, str, bool, str, str]:
+    use_amg = _as_bool(use_anima_mod_guidance, False)
+    pin_triggers = _as_bool(pin_trigger_tags_to_front, False)
+    positive = _advanced_pane_parts(fields, "positive")
+    negative = _advanced_pane_parts(fields, "negative")
+
+    quality_prompt = _join_prompt_tokens(*positive["quality"])
+    artist_prompt = _join_prompt_tokens(*positive["artist"])
+    body_prompt = _join_prompt_tokens(*positive["body"])
+
+    if pin_triggers:
+        metadata_body = _correct_builder_prompt(_join_prompt_tokens(quality_prompt, body_prompt))
+        regular_prompt = _join_prompt_tokens(artist_prompt, metadata_body)
+        amg_prompt = _join_prompt_tokens(artist_prompt, _correct_builder_prompt(body_prompt))
+        metadata_prompt = regular_prompt
+    else:
+        metadata_core = _correct_builder_prompt(
+            _join_prompt_tokens(quality_prompt, artist_prompt, body_prompt),
+            artist_overrides=artist_prompt,
+        )
+        metadata_prompt = metadata_core
+        amg_prompt = _correct_builder_prompt(
+            _join_prompt_tokens(artist_prompt, body_prompt),
+            artist_overrides=artist_prompt,
+        )
+        regular_prompt = metadata_prompt
+
+    negative_artist = _join_prompt_tokens(*negative["artist"])
+    negative_prompt = _correct_builder_prompt(
+        _join_prompt_tokens(*negative["quality"], negative_artist, *negative["body"]),
+        artist_overrides=negative_artist,
+    )
+
+    filter_words = resolve_metadata_filter_words()
+    metadata_prompt = _filter_metadata_prompt(metadata_prompt, filter_words)
+    metadata_negative_prompt = _filter_metadata_prompt(negative_prompt, filter_words)
+    output_prompt = amg_prompt if use_amg else regular_prompt
+    return (
+        output_prompt,
+        negative_prompt,
+        quality_prompt,
+        use_amg,
+        metadata_prompt,
+        metadata_negative_prompt,
+    )
 
 
 def _fit_to_1mp(width: int, height: int) -> tuple[int, int]:
@@ -766,6 +962,180 @@ class EasyUseAnimaPromptStudio(EasyUseAnimaPromptBuilder):
                     "trailing_quality_tags": str(trailing_quality_tags or ""),
                 }]
             },
+            "result": result,
+        }
+
+
+class EasyUseAnimaPromptStudioAdvanced:
+    """Dynamic positive/negative Prompt Studio with serialized field blocks."""
+
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {
+            "required": {
+                "use_naia": ("BOOLEAN", {
+                    "default": False,
+                    "tooltip": "Call NAIA once and write the returned prompt into the positive NAIA field.",
+                }),
+                "consume_naia_on_queue": ("BOOLEAN", {
+                    "default": True,
+                    "tooltip": "After a successful NAIA call, save the workflow with use_naia turned off.",
+                }),
+                "use_anima_mod_guidance": ("BOOLEAN", {
+                    "default": False,
+                    "tooltip": (
+                        "true: positive output excludes quality fields and sends them "
+                        "through anima_mod_guidance_quality_tags."
+                    ),
+                }),
+                "pin_trigger_tags_to_front": ("BOOLEAN", {
+                    "default": False,
+                    "tooltip": "true: keep positive artist/trigger fields at the front.",
+                }),
+                "advanced_fields": ("STRING", {
+                    "multiline": True,
+                    "default": _advanced_fields_json(),
+                    "tooltip": "Internal JSON payload for Advanced Prompt Studio fields.",
+                }),
+            },
+            "hidden": {
+                "workflow_prompt": "PROMPT",
+                "extra_pnginfo": "EXTRA_PNGINFO",
+                "unique_id": "UNIQUE_ID",
+            },
+        }
+
+    RETURN_TYPES = ("STRING", "STRING", "STRING", "BOOLEAN", "STRING", "STRING")
+    RETURN_NAMES = (
+        "positive_prompt",
+        "negative_prompt",
+        "anima_mod_guidance_quality_tags",
+        "use_anima_mod_guidance",
+        "metadata_prompt",
+        "metadata_negative_prompt",
+    )
+    FUNCTION = "build"
+    CATEGORY = "EasyUse Anima/Prompt"
+
+    @classmethod
+    def _widget_input_names(cls) -> list[str]:
+        return list(cls.INPUT_TYPES()["required"].keys())
+
+    @classmethod
+    def IS_CHANGED(
+        cls,
+        use_naia: bool = False,
+        consume_naia_on_queue: bool = True,
+        use_anima_mod_guidance: bool = False,
+        pin_trigger_tags_to_front: bool = False,
+        advanced_fields: str = "",
+        **kwargs,
+    ):
+        if _as_bool(use_naia, False):
+            return float("nan")
+        fields = _normalize_advanced_fields(advanced_fields)
+        return _stable_change_key({
+            "mode": "prompt_studio_advanced",
+            "metadata_filter_words": resolve_metadata_filter_words(),
+            "use_anima_mod_guidance": _as_bool(use_anima_mod_guidance, False),
+            "pin_trigger_tags_to_front": _as_bool(pin_trigger_tags_to_front, False),
+            "advanced_fields": _advanced_fields_json(fields),
+        })
+
+    @classmethod
+    def _update_metadata_fields(
+        cls,
+        workflow_prompt,
+        extra_pnginfo,
+        unique_id,
+        advanced_fields: str,
+        use_naia: bool,
+    ) -> None:
+        node_id = _single_value(unique_id)
+        if node_id is None:
+            return
+        node_id = str(node_id)
+        updates = {
+            "use_naia": _as_bool(use_naia, False),
+            "advanced_fields": advanced_fields,
+        }
+
+        if isinstance(workflow_prompt, dict):
+            prompt_node = workflow_prompt.get(node_id)
+            if isinstance(prompt_node, dict):
+                inputs = prompt_node.setdefault("inputs", {})
+                for name, value in updates.items():
+                    inputs[name] = value
+
+        workflow_node = _get_workflow_node(extra_pnginfo, node_id)
+        if workflow_node is None:
+            return
+
+        input_names = cls._widget_input_names()
+        widgets_values = workflow_node.setdefault("widgets_values", [])
+        for name, value in updates.items():
+            if name not in input_names:
+                continue
+            index = input_names.index(name)
+            while len(widgets_values) <= index:
+                widgets_values.append(None)
+            widgets_values[index] = value
+
+    @staticmethod
+    def _ui(advanced_fields: str, use_naia: bool):
+        return {
+            "prompt_studio_advanced": [{
+                "advanced_fields": advanced_fields,
+                "use_naia": _as_bool(use_naia, False),
+            }]
+        }
+
+    def build(
+        self,
+        use_naia: bool,
+        consume_naia_on_queue: bool,
+        use_anima_mod_guidance: bool,
+        pin_trigger_tags_to_front: bool,
+        advanced_fields: str,
+        workflow_prompt=None,
+        extra_pnginfo=None,
+        unique_id=None,
+    ):
+        fields = _normalize_advanced_fields(advanced_fields)
+        should_consume_naia = _as_bool(consume_naia_on_queue, True)
+        saved_use_naia = _as_bool(use_naia, False)
+
+        if _as_bool(use_naia, False):
+            naia_settings = resolve_naia_settings()
+            body = EasyUseAnimaNAIARandomPrompt._make_request_body(
+                _as_bool(naia_settings["use_naia_settings"], True),
+                naia_settings["pre_prompt"],
+                naia_settings["post_prompt"],
+                naia_settings["auto_hide"],
+                naia_settings["preprocessing"],
+            )
+            resp = _post_random(naia_settings["host"], naia_settings["port"], body)
+            naia_prompt, _naia_negative, _naia_width, _naia_height = _parse_random_response(resp)
+            fields = _upsert_positive_naia_field(fields, naia_prompt)
+            saved_use_naia = False if should_consume_naia else True
+
+        fields_json = _advanced_fields_json(fields)
+        if _as_bool(use_naia, False):
+            self._update_metadata_fields(
+                workflow_prompt,
+                extra_pnginfo,
+                unique_id,
+                fields_json,
+                saved_use_naia,
+            )
+
+        result = _build_advanced_prompts(
+            fields,
+            use_anima_mod_guidance,
+            pin_trigger_tags_to_front,
+        )
+        return {
+            "ui": self._ui(fields_json, saved_use_naia),
             "result": result,
         }
 
