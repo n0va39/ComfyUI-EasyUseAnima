@@ -844,8 +844,16 @@ function desiredTextareaHeight(input, currentHeight, minimumHeight, options = {}
   );
 }
 
+function studioVisualMinimumHeight(widget) {
+  return Math.min(studioDefaultHeight(widget), 54);
+}
+
 function studioMinimumHeight(widget, input = findInputEl(widget)) {
-  return desiredTextareaHeight(input, 0, Math.min(studioDefaultHeight(widget), 54), { includeCurrent: false });
+  return studioVisualMinimumHeight(widget);
+}
+
+function studioContentHeight(widget, input = findInputEl(widget)) {
+  return desiredTextareaHeight(input, 0, studioVisualMinimumHeight(widget), { includeCurrent: false });
 }
 
 function studioCurrentHeight(widget, input = findInputEl(widget)) {
@@ -870,12 +878,38 @@ function setStudioInputHeight(node, widget, height, refresh = false) {
     widget.__easyuseAnimaHeight = nextHeight;
     input.style.height = `${nextHeight}px`;
     if (refresh) {
-      refreshNodeSize(node);
+      refreshNodeSize(node, { immediate: refresh === "immediate" });
     }
   } else {
     input.style.height = `${nextHeight}px`;
+    if (refresh === "immediate") {
+      refreshNodeSize(node, { immediate: true });
+    }
   }
+  syncStudioOverflow(widget);
   updateHighlight(node, widget);
+}
+
+function syncStudioOverflow(widget) {
+  const input = findInputEl(widget);
+  if (!input) {
+    return;
+  }
+  const height = studioCurrentHeight(widget, input);
+  const contentHeight = textareaContentHeight(input, studioVisualMinimumHeight(widget));
+  input.style.overflowY = contentHeight > height + 2 ? "auto" : "hidden";
+  if (input.__easyuseAnimaHighlightOverlay) {
+    input.__easyuseAnimaHighlightOverlay.style.overflow = "hidden";
+  }
+}
+
+function setStudioManualHeight(node, widget) {
+  const input = findInputEl(widget);
+  if (!input || widget.__easyuseAnimaExtendHidden) {
+    return;
+  }
+  widget.__easyuseAnimaManualHeight = true;
+  setStudioInputHeight(node, widget, studioCurrentHeight(widget, input), "immediate");
 }
 
 function expandStudioInputToContent(node, widget, refresh = false) {
@@ -883,12 +917,12 @@ function expandStudioInputToContent(node, widget, refresh = false) {
   if (!input || widget.__easyuseAnimaExtendHidden) {
     return;
   }
-  const height = desiredTextareaHeight(
-    input,
-    0,
-    Math.min(studioDefaultHeight(widget), 54),
-    { includeCurrent: false },
-  );
+  if (widget.__easyuseAnimaManualHeight) {
+    syncStudioOverflow(widget);
+    updateHighlight(node, widget);
+    return;
+  }
+  const height = studioContentHeight(widget, input);
   setStudioInputHeight(node, widget, height, refresh);
 }
 
@@ -1199,12 +1233,27 @@ function enhanceResizableInput(node, widget) {
   }
 
   const syncHeight = () => {
-    const height = desiredTextareaHeight(
-      input,
-      Math.max(studioCurrentHeight(widget, input), widget.__easyuseAnimaHeight || 0),
-      minimumHeight,
-    );
-    setStudioInputHeight(node, widget, height, true);
+    if (widget.__easyuseAnimaManualHeight) {
+      syncStudioOverflow(widget);
+      updateHighlight(node, widget);
+      refreshNodeSize(node, { immediate: true });
+      return;
+    }
+    const height = desiredTextareaHeight(input, 0, minimumHeight, { includeCurrent: false });
+    setStudioInputHeight(node, widget, height, "immediate");
+  };
+  const rememberResizeStart = () => {
+    widget.__easyuseAnimaResizeStartHeight = studioCurrentHeight(widget, input);
+  };
+  const captureManualResize = () => {
+    const startHeight = Number(widget.__easyuseAnimaResizeStartHeight || widget.__easyuseAnimaHeight || 0);
+    const currentHeight = studioCurrentHeight(widget, input);
+    widget.__easyuseAnimaResizeStartHeight = currentHeight;
+    if (Math.abs(currentHeight - startHeight) > 2) {
+      setStudioManualHeight(node, widget);
+    } else {
+      updateHighlight(node, widget);
+    }
   };
 
   requestAnimationFrame(() => expandStudioInputToContent(node, widget, true));
@@ -1212,8 +1261,10 @@ function enhanceResizableInput(node, widget) {
     return;
   }
 
-  input.addEventListener("mouseup", syncHeight);
-  input.addEventListener("pointerup", syncHeight);
+  input.addEventListener("mousedown", rememberResizeStart);
+  input.addEventListener("pointerdown", rememberResizeStart);
+  input.addEventListener("mouseup", captureManualResize);
+  input.addEventListener("pointerup", captureManualResize);
   input.addEventListener("input", syncHeight);
   input.addEventListener("scroll", () => updateHighlight(node, widget));
   input.__easyuseAnimaStudioResizable = true;
