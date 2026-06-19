@@ -1127,6 +1127,30 @@ function parseAdvancedFields(node) {
   return advancedDefaultFields();
 }
 
+function collectAdvancedEditorFields(node) {
+  const fields = (node.__easyuseAnimaAdvancedFields || parseAdvancedFields(node))
+    .map((field, index) => normalizeAdvancedField(field, index));
+  const editor = node.__easyuseAnimaAdvancedEditorEl;
+  if (!editor) {
+    return fields;
+  }
+
+  const byId = new Map(fields.map((field) => [field.id, field]));
+  editor.querySelectorAll("textarea[data-easyuse-anima-advanced-field-id]").forEach((textarea) => {
+    const id = textarea.dataset.easyuseAnimaAdvancedFieldId;
+    const field = byId.get(id);
+    if (!field || advancedFieldInputLinked(node, field)) {
+      return;
+    }
+    field.text = textarea.value;
+    const height = Number.parseInt(textarea.style.height || "", 10);
+    if (Number.isFinite(height) && height > 0) {
+      field.height = Math.max(field.height || 42, height);
+    }
+  });
+  return fields;
+}
+
 function writeAdvancedFields(node, fields, { render = false } = {}) {
   const widget = advancedWidget(node);
   if (!widget) {
@@ -1160,6 +1184,21 @@ function advancedFieldIndexLabel(fields, field) {
 function isAdvancedFieldInput(input) {
   return !!input?.__easyuseAnimaAdvancedFieldInput
     || String(input?.name || "").startsWith(ADVANCED_FIELD_SOCKET_PREFIX);
+}
+
+function updateNodeInputLinkSlots(node) {
+  if (!node?.inputs || !app.graph?.links) {
+    return;
+  }
+  node.inputs.forEach((input, index) => {
+    if (input?.link == null) {
+      return;
+    }
+    const link = app.graph.links[input.link];
+    if (link) {
+      link.target_slot = index;
+    }
+  });
 }
 
 function syncAdvancedFieldInputs(node, fields) {
@@ -1203,6 +1242,7 @@ function syncAdvancedFieldInputs(node, fields) {
   }
   const otherInputs = (node.inputs || []).filter((input) => !isAdvancedFieldInput(input));
   node.inputs = [...fieldInputs, ...otherInputs];
+  updateNodeInputLinkSlots(node);
 }
 
 function advancedFieldInputLinked(node, field) {
@@ -1646,6 +1686,7 @@ function renderAdvancedEditor(node) {
 
 function hookAdvancedNode(node) {
   ensureAdvancedStyle();
+  installAdvancedSaveSync();
   ensureAdvancedWidgetValue(node);
   hideAdvancedInternalWidget(node, "advanced_fields");
   hideAdvancedControlWidgets(node);
@@ -1664,7 +1705,7 @@ function hookAdvancedNode(node) {
 }
 
 function syncAdvancedValues(node, serialized = null) {
-  const fields = node.__easyuseAnimaAdvancedFields || parseAdvancedFields(node);
+  const fields = collectAdvancedEditorFields(node);
   writeAdvancedFields(node, fields);
   if (!serialized || !Array.isArray(node.widgets) || !Array.isArray(serialized.widgets_values)) {
     return;
@@ -1707,10 +1748,45 @@ function applyAdvancedExecutedInputs(node, message) {
   renderAdvancedEditor(node);
 }
 
+function isAdvancedNode(node) {
+  return node?.type === ADVANCED_NODE_TYPE || node?.comfyClass === ADVANCED_NODE_TYPE;
+}
+
+function syncAllAdvancedNodes() {
+  const nodes = app.graph?._nodes || [];
+  for (const node of nodes) {
+    if (isAdvancedNode(node)) {
+      syncAdvancedValues(node);
+    }
+  }
+}
+
+function installAdvancedSaveSync() {
+  const graphProto = globalThis.LGraph?.prototype || app.graph?.constructor?.prototype;
+  if (graphProto?.serialize && !graphProto.serialize.__easyuseAnimaAdvancedWrapped) {
+    const serialize = graphProto.serialize;
+    graphProto.serialize = function () {
+      syncAllAdvancedNodes();
+      return serialize.apply(this, arguments);
+    };
+    graphProto.serialize.__easyuseAnimaAdvancedWrapped = true;
+  }
+
+  if (app.queuePrompt && !app.queuePrompt.__easyuseAnimaAdvancedWrapped) {
+    const queuePrompt = app.queuePrompt;
+    app.queuePrompt = function () {
+      syncAllAdvancedNodes();
+      return queuePrompt.apply(this, arguments);
+    };
+    app.queuePrompt.__easyuseAnimaAdvancedWrapped = true;
+  }
+}
+
 app.registerExtension({
   name: "easyuse-anima.prompt-studio",
   async setup() {
     installMiddlePanForwarder();
+    installAdvancedSaveSync();
     await loadPromptStudioSettings();
   },
   async beforeRegisterNodeDef(nodeType, nodeData) {
