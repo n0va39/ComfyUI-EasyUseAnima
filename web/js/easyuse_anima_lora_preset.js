@@ -12,7 +12,10 @@ const WIDGET_INDEX = {
   profileData: 5,
 };
 const MIN_NODE_WIDTH = 520;
-const PROFILE_BAR_HEIGHT = 30;
+const PROFILE_CONTROLS_HEIGHT = 30;
+const PROFILE_ROW_HEIGHT = 22;
+const PROFILE_LIST_PADDING = 4;
+const PROFILE_VISIBLE_ROWS = 6;
 const LORA_HEADER_HEIGHT = 24;
 const LORA_ROW_HEIGHT = 20;
 const LORA_ADD_HEIGHT = 36;
@@ -229,6 +232,21 @@ function setProfileCount(node, count) {
   }
 }
 
+function scrollProfileBarTo(node, index) {
+  const bar = node.__easyuseAnimaProfileBar;
+  if (!bar) {
+    return;
+  }
+  const count = profileCount(node);
+  const maxOffset = Math.max(0, count - PROFILE_VISIBLE_ROWS);
+  const target = wrapProfileIndex(index, count);
+  if (target <= (bar.scrollOffset || 0)) {
+    bar.scrollOffset = Math.max(0, target - 1);
+  } else if (target > (bar.scrollOffset || 0) + PROFILE_VISIBLE_ROWS) {
+    bar.scrollOffset = Math.max(0, Math.min(maxOffset, target - PROFILE_VISIBLE_ROWS));
+  }
+}
+
 function lorasWidgetValue(node) {
   const value = widgetValue(findWidget(node, "loras"), "[]");
   if (Array.isArray(value)) {
@@ -274,7 +292,40 @@ function setLorasWidgetValue(node, loras, options = {}) {
   }
 }
 
-function currentProfile(node) {
+function profileContent(profile) {
+  return {
+    style_prompt: String(profile?.style_prompt || ""),
+    loras: Array.isArray(profile?.loras)
+      ? profile.loras.map(normalizeLoraEntry).filter((entry) => entry.name)
+      : [],
+  };
+}
+
+function profileSnapshot(profile) {
+  return JSON.stringify(profileContent(profile));
+}
+
+function isMeaningfulProfile(profile) {
+  const content = profileContent(profile);
+  return !!content.style_prompt.trim() || content.loras.length > 0;
+}
+
+function profileSavedName(profile) {
+  return String(profile?.saved_name || "").trim();
+}
+
+function withSavedMeta(content, previous) {
+  const profile = profileContent(content);
+  const savedName = profileSavedName(previous);
+  const savedSnapshot = String(previous?.saved_snapshot || "");
+  if (savedName && savedSnapshot) {
+    profile.saved_name = savedName;
+    profile.saved_snapshot = savedSnapshot;
+  }
+  return profile;
+}
+
+function currentProfileContent(node) {
   return {
     style_prompt: String(widgetValue(findWidget(node, "style_prompt"), "")),
     loras: lorasWidgetValue(node).map(normalizeLoraEntry).filter((entry) => entry.name),
@@ -291,7 +342,7 @@ function saveProfile(node, index) {
   }
   const data = parseProfileData(dataWidget);
   const key = profileKey(index);
-  data[key] = currentProfile(node);
+  data[key] = withSavedMeta(currentProfileContent(node), data[key]);
   writeProfileData(dataWidget, data);
 }
 
@@ -314,7 +365,7 @@ function loadProfile(node, index, options = {}) {
   const data = parseProfileData(dataWidget);
   const key = profileKey(index);
   if (!Object.prototype.hasOwnProperty.call(data, key)) {
-    data[key] = options.initializeFromCurrent ? currentProfile(node) : emptyProfile(index);
+    data[key] = options.initializeFromCurrent ? currentProfileContent(node) : emptyProfile(index);
     writeProfileData(dataWidget, data);
   }
   const profile = data[key] || emptyProfile(index);
@@ -338,6 +389,7 @@ function switchProfile(node, index) {
   setProfileIndex(node, nextIndex);
   node.__easyuseAnimaActiveProfileIndex = nextIndex;
   loadProfile(node, nextIndex);
+  scrollProfileBarTo(node, nextIndex);
   renderProfileBar(node);
   node.setDirtyCanvas?.(true, true);
 }
@@ -381,6 +433,7 @@ function deleteProfile(node, index) {
   node.__easyuseAnimaActiveProfileIndex = nextActive;
   setProfileIndex(node, nextActive);
   loadProfile(node, nextActive);
+  scrollProfileBarTo(node, nextActive);
   renderProfileBar(node);
   node.setDirtyCanvas?.(true, true);
 }
@@ -394,50 +447,94 @@ function profilePayload(node) {
   };
 }
 
+function profileSaveStatus(node, index) {
+  const profile = parseProfileData(findWidget(node, "profile_data"))[profileKey(index)] || {};
+  const savedName = profileSavedName(profile);
+  if (!savedName) {
+    return { state: "unsaved", label: "unsaved", savedName: "" };
+  }
+  const dirty = String(profile.saved_snapshot || "") !== profileSnapshot(profile);
+  return {
+    state: dirty ? "changed" : "saved",
+    label: dirty ? "changed" : "saved",
+    savedName,
+  };
+}
+
+function markProfilesSaved(node, name) {
+  const savedName = String(name || "").trim();
+  if (!savedName) {
+    return;
+  }
+  saveCurrentProfile(node);
+  const dataWidget = findWidget(node, "profile_data");
+  const data = parseProfileData(dataWidget);
+  const count = profileCount(node);
+  for (let index = 1; index <= count; index += 1) {
+    const key = profileKey(index);
+    const content = profileContent(data[key]);
+    data[key] = {
+      ...content,
+      saved_name: savedName,
+      saved_snapshot: profileSnapshot(content),
+    };
+  }
+  writeProfileData(dataWidget, data);
+  loadProfile(node, activeProfileIndex(node));
+}
+
 function appendProfilePayload(node, payload) {
   saveCurrentProfile(node);
   const profile = payload?.profile || payload || {};
   const incomingData = normalizeProfileDataValue(profile.profile_data);
-  const incomingCount = Math.max(
-    1,
-    Math.min(
-      MAX_PROFILES,
-      Number.parseInt(profile.profile_count, 10) || Object.keys(incomingData).length || 1,
-    ),
-  );
+  const savedName = String(profile.name || "").trim();
+  const incomingCount = Math.max(1, Math.min(MAX_PROFILES, Number.parseInt(profile.profile_count, 10) || Object.keys(incomingData).length || 1));
+  const incomingProfiles = [];
+  for (let sourceIndex = 1; sourceIndex <= incomingCount; sourceIndex += 1) {
+    const sourceProfile = incomingData[profileKey(sourceIndex)];
+    if (isMeaningfulProfile(sourceProfile)) {
+      incomingProfiles.push({
+        sourceIndex,
+        content: profileContent(sourceProfile),
+      });
+    }
+  }
+  if (!incomingProfiles.length) {
+    window.alert("No non-empty profiles were found in this saved profile set.");
+    return;
+  }
   const currentCount = profileCount(node);
   const available = MAX_PROFILES - currentCount;
   if (available <= 0) {
     window.alert(`Cannot load more profiles. The maximum is ${MAX_PROFILES}.`);
     return;
   }
-  const appendCount = Math.min(incomingCount, available);
+  const appendCount = Math.min(incomingProfiles.length, available);
   const targetStart = currentCount + 1;
   const data = parseProfileData(findWidget(node, "profile_data"));
   for (let offset = 0; offset < appendCount; offset += 1) {
-    const sourceIndex = offset + 1;
     const targetIndex = targetStart + offset;
-    const sourceProfile = incomingData[profileKey(sourceIndex)] || emptyProfile(sourceIndex);
-    data[profileKey(targetIndex)] = {
-      style_prompt: String(sourceProfile.style_prompt || ""),
-      loras: Array.isArray(sourceProfile.loras)
-        ? sourceProfile.loras.map(normalizeLoraEntry).filter((entry) => entry.name)
-        : [],
-    };
+    const content = incomingProfiles[offset].content;
+    data[profileKey(targetIndex)] = savedName
+      ? {
+        ...content,
+        saved_name: savedName,
+        saved_snapshot: profileSnapshot(content),
+      }
+      : content;
   }
-  if (appendCount < incomingCount) {
+  if (appendCount < incomingProfiles.length) {
     window.alert(`Only ${appendCount} profile(s) were loaded because the maximum is ${MAX_PROFILES}.`);
   }
-  const sourceSelectedIndex = Math.min(
-    appendCount,
-    wrapProfileIndex(profile.profile_index || 1, incomingCount),
-  );
-  const nextIndex = targetStart + sourceSelectedIndex - 1;
+  const selectedSourceIndex = wrapProfileIndex(profile.profile_index || 1, incomingCount);
+  const selectedOffset = incomingProfiles.findIndex((item) => item.sourceIndex === selectedSourceIndex);
+  const nextIndex = targetStart + Math.max(0, Math.min(appendCount - 1, selectedOffset < 0 ? 0 : selectedOffset));
   setProfileCount(node, currentCount + appendCount);
   writeProfileData(findWidget(node, "profile_data"), data);
   setProfileIndex(node, nextIndex);
   node.__easyuseAnimaActiveProfileIndex = nextIndex;
   loadProfile(node, nextIndex);
+  scrollProfileBarTo(node, nextIndex);
   renderProfileBar(node);
   renderLoraWidgets(node);
   node.setDirtyCanvas?.(true, true);
@@ -454,7 +551,7 @@ async function saveProfileSet(node) {
     return;
   }
   try {
-    await fetchJson("/easyuse_anima/lora_profiles/save", {
+    const data = await fetchJson("/easyuse_anima/lora_profiles/save", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -462,6 +559,9 @@ async function saveProfileSet(node) {
         ...profilePayload(node),
       }),
     });
+    markProfilesSaved(node, data?.profile?.name || trimmedName);
+    renderProfileBar(node);
+    node.setDirtyCanvas?.(true, true);
   } catch (error) {
     window.alert(`Failed to save profile: ${error.message || error}`);
   }
@@ -957,29 +1057,46 @@ class ProfileBarWidget {
     this.serialize = false;
     this.__easyuseAnimaControlWidget = true;
     this.hitAreas = [];
+    this.scrollOffset = 0;
+    this.listArea = null;
   }
 
-  computeSize() {
-    return [MIN_NODE_WIDTH, PROFILE_BAR_HEIGHT];
+  computeSize(_width, node) {
+    const count = node || this.node ? profileCount(node || this.node) : 1;
+    const visibleRows = Math.max(1, Math.min(PROFILE_VISIBLE_ROWS, count));
+    return [
+      MIN_NODE_WIDTH,
+      PROFILE_CONTROLS_HEIGHT + PROFILE_LIST_PADDING * 2 + visibleRows * PROFILE_ROW_HEIGHT,
+    ];
   }
 
-  draw(ctx, node, width, y) {
+  draw(ctx, node, width, y, height) {
     const drawWidth = nodeWidgetWidth(node, width);
     this.hitAreas = [];
+    this.listArea = null;
     const active = activeProfileIndex(node);
     const count = profileCount(node);
-    let x = 8;
+    const maxOffset = Math.max(0, count - PROFILE_VISIBLE_ROWS);
+    this.scrollOffset = Math.max(0, Math.min(maxOffset, this.scrollOffset || 0));
+
     const buttonY = y + 4;
     const buttonH = 22;
     const gap = 4;
 
     ctx.save();
     ctx.font = "13px sans-serif";
-    ctx.textAlign = "center";
     ctx.textBaseline = "middle";
+    ctx.fillStyle = LiteGraph.WIDGET_TEXT_COLOR;
+    ctx.globalAlpha = app.canvas.editor_alpha * 0.75;
+    ctx.textAlign = "left";
+    ctx.fillText(`Profile ${active}/${count}`, 10, buttonY + buttonH / 2);
+    ctx.globalAlpha = 1;
+
+    let x = Math.max(120, drawWidth - 8);
 
     const drawButton = (id, label, buttonW, selected = false, disabled = false) => {
-      if (x + buttonW > drawWidth - 8) {
+      x -= buttonW;
+      if (x < 8) {
         return;
       }
       this.hitAreas.push([x, buttonY, buttonW, buttonH, id, disabled]);
@@ -991,22 +1108,82 @@ class ProfileBarWidget {
       ctx.fill();
       ctx.stroke();
       ctx.fillStyle = LiteGraph.WIDGET_TEXT_COLOR;
+      ctx.textAlign = "center";
       ctx.fillText(label, x + buttonW / 2, buttonY + buttonH / 2);
-      x += buttonW + gap;
+      x -= gap;
       ctx.globalAlpha = 1;
     };
 
-    for (let index = 1; index <= count; index += 1) {
-      drawButton(`profile:${index}`, String(index), 26, index === active);
-    }
-    drawButton("add", "+", 28);
-    drawButton("delete", "X", 28, false, count <= 1);
-    drawButton("save", "Save", 44);
     drawButton("load", "Load", 44);
+    drawButton("save", "Save", 44);
+    drawButton("delete", "X", 28, false, count <= 1);
+    drawButton("add", "+", 28);
+
+    const listX = 8;
+    const listY = y + PROFILE_CONTROLS_HEIGHT + PROFILE_LIST_PADDING;
+    const listW = Math.max(0, drawWidth - 16);
+    const visibleRows = Math.max(1, Math.min(PROFILE_VISIBLE_ROWS, count));
+    const listH = visibleRows * PROFILE_ROW_HEIGHT;
+    this.listArea = [listX, listY, listW, listH];
+
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(listX, listY, listW, listH);
+    ctx.clip();
+    for (let row = 0; row < visibleRows; row += 1) {
+      const index = this.scrollOffset + row + 1;
+      if (index > count) {
+        break;
+      }
+      const rowY = listY + row * PROFILE_ROW_HEIGHT;
+      const selected = index === active;
+      const status = profileSaveStatus(node, index);
+      const rowArea = [listX, rowY + 1, listW, PROFILE_ROW_HEIGHT - 2];
+      this.hitAreas.push([...rowArea, `profile:${index}`, false]);
+      ctx.fillStyle = selected ? "#3f79d8" : "rgba(255,255,255,0.045)";
+      ctx.strokeStyle = selected ? "#6fa2ff" : "rgba(255,255,255,0.12)";
+      ctx.beginPath();
+      roundedRect(ctx, ...rowArea, 4);
+      ctx.fill();
+      ctx.stroke();
+
+      const stateColor = {
+        saved: "#8ecf8e",
+        changed: "#e3ba66",
+        unsaved: "#b8b8b8",
+      }[status.state] || "#b8b8b8";
+      const leftText = `${index}. ${status.savedName || "unsaved"}`;
+      const rightText = status.label;
+      ctx.font = "12px sans-serif";
+      const rightWidth = Math.min(82, Math.max(58, ctx.measureText(rightText).width + 16));
+      ctx.textAlign = "left";
+      ctx.fillStyle = LiteGraph.WIDGET_TEXT_COLOR;
+      ctx.fillText(fitCanvasText(ctx, leftText, Math.max(20, listW - rightWidth - 18)), listX + 8, rowY + PROFILE_ROW_HEIGHT / 2);
+      ctx.textAlign = "right";
+      ctx.fillStyle = stateColor;
+      ctx.fillText(rightText, listX + listW - 8, rowY + PROFILE_ROW_HEIGHT / 2);
+    }
+    ctx.restore();
+
+    if (count > visibleRows) {
+      const barW = 3;
+      const barH = Math.max(14, listH * (visibleRows / count));
+      const barY = listY + (listH - barH) * (this.scrollOffset / Math.max(1, maxOffset));
+      ctx.fillStyle = "rgba(255,255,255,0.25)";
+      ctx.fillRect(listX + listW - barW - 2, barY, barW, barH);
+    }
     ctx.restore();
   }
 
   mouse(event, pos, node) {
+    if (event.type === "wheel" && pointInArea(pos, this.listArea)) {
+      const count = profileCount(node);
+      const maxOffset = Math.max(0, count - PROFILE_VISIBLE_ROWS);
+      const direction = Number(event.deltaY || 0) > 0 ? 1 : -1;
+      this.scrollOffset = Math.max(0, Math.min(maxOffset, (this.scrollOffset || 0) + direction));
+      node.setDirtyCanvas?.(true, true);
+      return true;
+    }
     if (event.type !== "pointerdown" || event.button !== 0) {
       return false;
     }
@@ -1382,6 +1559,7 @@ function applyExecutedProfile(node, message) {
   setProfileIndex(node, nextIndex);
   node.__easyuseAnimaActiveProfileIndex = nextIndex;
   loadProfile(node, nextIndex);
+  scrollProfileBarTo(node, nextIndex);
   renderProfileBar(node);
   renderLoraWidgets(node);
   node.setDirtyCanvas?.(true, true);
@@ -1432,6 +1610,7 @@ function initializeNode(node) {
     }
     node.__easyuseAnimaActiveProfileIndex = index;
     loadProfile(node, index);
+    scrollProfileBarTo(node, index);
     renderProfileBar(node);
   });
 
@@ -1456,6 +1635,7 @@ function initializeNode(node) {
       ensureProfileBar(this);
       this.__easyuseAnimaActiveProfileIndex = selectedProfileIndex(this);
       loadProfile(this, selectedProfileIndex(this), { initializeFromCurrent: true });
+      scrollProfileBarTo(this, selectedProfileIndex(this));
       renderProfileBar(this);
       enforceNodeLayout(this);
     });
@@ -1465,6 +1645,7 @@ function initializeNode(node) {
     finalizeInternalWidgets(node);
     node.__easyuseAnimaActiveProfileIndex = selectedProfileIndex(node);
     loadProfile(node, selectedProfileIndex(node), { initializeFromCurrent: true });
+    scrollProfileBarTo(node, selectedProfileIndex(node));
     renderProfileBar(node);
     enforceNodeLayout(node);
   });
