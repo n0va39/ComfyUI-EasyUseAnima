@@ -60,13 +60,15 @@ let middlePanForwardActive = false;
 const ADVANCED_CONTROL_WIDGETS = [
   {
     name: "use_naia",
-    label: "NAIA",
-    title: "Call NAIA once and write the result into the positive NAIA field.",
+    label: "Fill from NAIA",
+    title: "Fill the NAIA Prompt field with a fresh NAIA random prompt on the next queue.",
+    showInControlBar: false,
   },
   {
     name: "consume_naia_on_queue",
     label: "1x",
-    title: "After a successful NAIA call, save the workflow with use_naia turned off.",
+    title: "Save successful NAIA fills with the request flag turned off.",
+    showInControlBar: false,
   },
   {
     name: "use_anima_mod_guidance",
@@ -95,6 +97,10 @@ const ADVANCED_FIELD_LABELS = {
   general: "General Tags",
   naia: "NAIA Prompt",
 };
+const ADVANCED_NAIA_FILL_TITLE = (
+  "Queue once to fill this read-only NAIA Prompt field with a fresh NAIA random prompt. "
+  + "After success, saved workflows reuse the stored result with this request turned off."
+);
 const ADVANCED_DEFAULT_FIELDS = [
   {
     id: "positive_quality",
@@ -274,7 +280,8 @@ function ensureAdvancedStyle() {
       padding: 1px 6px;
       cursor: pointer;
     }
-    .easyuse-anima-advanced-actions button:disabled {
+    .easyuse-anima-advanced-actions button:disabled,
+    .easyuse-anima-field-tools button:disabled {
       opacity: 0.35;
       cursor: default;
     }
@@ -302,6 +309,10 @@ function ensureAdvancedStyle() {
       gap: 3px;
       flex: 0 0 auto;
     }
+    .easyuse-anima-field-tools button.easyuse-anima-naia-fill {
+      min-width: 78px;
+      font-weight: 700;
+    }
     .easyuse-anima-field-tools button.is-on {
       border-color: rgba(96, 165, 250, 0.78);
       background: rgba(37, 99, 235, 0.58);
@@ -326,6 +337,11 @@ function ensureAdvancedStyle() {
     .easyuse-anima-advanced-field textarea.is-linked {
       opacity: 0.72;
       border-style: dashed;
+      cursor: default;
+    }
+    .easyuse-anima-advanced-field.is-naia textarea {
+      border-style: dashed;
+      background: rgba(15, 23, 42, 0.74);
       cursor: default;
     }
     .easyuse-anima-empty-pane {
@@ -1273,6 +1289,9 @@ function syncAdvancedFieldInputs(node, fields) {
 
   const wanted = new Map();
   (fields || []).forEach((field) => {
+    if (field?.type === "naia") {
+      return;
+    }
     wanted.set(advancedFieldInputName(field), { field, indexLabel: advancedFieldIndexLabel(fields, field) });
   });
 
@@ -1332,18 +1351,22 @@ function advancedFieldLabel(field) {
 function setAdvancedControlValue(node, name, value) {
   const widget = findWidget(node, name);
   if (!widget || isWidgetInputLinked(node, name)) {
-    return;
+    return false;
   }
   widget.value = !!value;
   widget.callback?.(widget.value);
   node.setDirtyCanvas?.(true, true);
   app.graph?.setDirtyCanvas?.(true, true);
+  return true;
 }
 
 function createAdvancedControlBar(node) {
   const bar = document.createElement("div");
   bar.className = "easyuse-anima-advanced-controlbar";
   for (const control of ADVANCED_CONTROL_WIDGETS) {
+    if (control.showInControlBar === false) {
+      continue;
+    }
     const widget = findWidget(node, control.name);
     if (!widget) {
       continue;
@@ -1561,6 +1584,7 @@ function createAdvancedFieldElement(node, field) {
   const paneIndex = samePane.findIndex((item) => item.id === field.id);
   const block = document.createElement("div");
   block.className = "easyuse-anima-advanced-field";
+  block.classList.toggle("is-naia", field.type === "naia");
   block.classList.toggle("is-disabled", field.enabled === false);
 
   const header = document.createElement("div");
@@ -1617,6 +1641,23 @@ function createAdvancedFieldElement(node, field) {
     },
   );
   toggleButton.classList.toggle("is-on", field.enabled !== false);
+  if (field.type === "naia") {
+    const useNaiaWidget = findWidget(node, "use_naia");
+    const linkedUseNaia = isWidgetInputLinked(node, "use_naia");
+    const fillButton = addTool("Fill from NAIA", ADVANCED_NAIA_FILL_TITLE, () => {
+      const currentFields = node.__easyuseAnimaAdvancedFields || parseAdvancedFields(node);
+      const target = currentFields.find((item) => item.id === field.id);
+      if (target) {
+        target.enabled = true;
+      }
+      setAdvancedControlValue(node, "consume_naia_on_queue", true);
+      setAdvancedControlValue(node, "use_naia", true);
+      writeAdvancedFields(node, currentFields, { render: true });
+    }, linkedUseNaia);
+    fillButton.classList.add("easyuse-anima-naia-fill");
+    fillButton.classList.toggle("is-on", !!useNaiaWidget?.value);
+    fillButton.classList.toggle("is-linked", linkedUseNaia);
+  }
   addTool("↑", "Move up", () => move(-1), paneIndex <= 0);
   addTool("↓", "Move down", () => move(1), paneIndex >= samePane.length - 1);
   addTool("X", "Delete field", () => {
@@ -1627,13 +1668,18 @@ function createAdvancedFieldElement(node, field) {
 
   const textarea = document.createElement("textarea");
   const linked = advancedFieldInputLinked(node, field);
+  const readonly = linked || field.type === "naia";
   textarea.value = advancedFieldDisplayText(node, field);
   textarea.style.height = `${field.height || 72}px`;
   textarea.style.overflowY = "hidden";
-  textarea.placeholder = field.type === "artist" ? "@artist_tag" : "prompt tags";
-  textarea.readOnly = linked;
+  textarea.placeholder = field.type === "naia"
+    ? "NAIA result appears here after queue"
+    : field.type === "artist" ? "@artist_tag" : "prompt tags";
+  textarea.readOnly = readonly;
   textarea.classList.toggle("is-linked", linked);
-  textarea.title = linked ? "Connected STRING input controls this field during execution." : "";
+  textarea.title = field.type === "naia"
+    ? "Read-only NAIA result field. Use Fill from NAIA and queue the workflow to update it."
+    : linked ? "Connected STRING input controls this field during execution." : "";
   textarea.dataset.easyuseAnimaAdvancedFieldId = field.id;
   const syncHeight = () => {
     const height = desiredTextareaHeight(
@@ -1649,7 +1695,7 @@ function createAdvancedFieldElement(node, field) {
     syncAdvancedNodeSize(node);
   };
   textarea.addEventListener("input", () => {
-    if (linked) {
+    if (readonly) {
       return;
     }
     field.text = textarea.value;

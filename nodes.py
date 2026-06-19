@@ -346,6 +346,7 @@ def _upsert_positive_naia_field(fields: list[dict], prompt: str) -> list[dict]:
     for field in normalized:
         if field["pane"] == "positive" and field["type"] == "naia":
             field["text"] = prompt
+            field["enabled"] = True
             return normalized
     normalized.append({
         "id": "positive_naia",
@@ -1022,11 +1023,17 @@ class EasyUseAnimaPromptStudioAdvanced:
             "required": {
                 "use_naia": ("BOOLEAN", {
                     "default": False,
-                    "tooltip": "Call NAIA once and write the returned prompt into the positive NAIA field.",
+                    "tooltip": (
+                        "Internal request flag. The front-end exposes this as the NAIA Prompt field's "
+                        "'Fill from NAIA' button, which fills that field with a fresh NAIA random prompt."
+                    ),
                 }),
                 "consume_naia_on_queue": ("BOOLEAN", {
                     "default": True,
-                    "tooltip": "After a successful NAIA call, save the workflow with use_naia turned off.",
+                    "tooltip": (
+                        "Internal one-shot mode. Successful NAIA fills are saved with the request flag off "
+                        "so loaded workflows reuse the stored prompt."
+                    ),
                 }),
                 "use_anima_mod_guidance": ("BOOLEAN", {
                     "default": False,
@@ -1156,7 +1163,7 @@ class EasyUseAnimaPromptStudioAdvanced:
         saved_fields = _clone_advanced_fields(fields)
         effective_fields = _apply_advanced_field_inputs(fields, field_inputs)
         effective_field_inputs = _advanced_field_input_values(field_inputs)
-        should_consume_naia = _as_bool(consume_naia_on_queue, True)
+        should_consume_naia = True
         saved_use_naia = _as_bool(use_naia, False)
 
         if _as_bool(use_naia, False):
