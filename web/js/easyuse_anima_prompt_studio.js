@@ -95,6 +95,7 @@ const LEGEND_ITEMS = [
 const LEGEND_TOP_GAP = 14;
 const LEGEND_ROW_HEIGHT = 18;
 const LEGEND_COLUMNS = 2;
+const STUDIO_WIDGET_VERTICAL_GAP = 8;
 
 const WEIGHTED_TOKEN_RE = /^\((.*):[-+]?\d+(?:\.\d+)?\)$/s;
 const INLINE_SPACE_RE = /[ \t]+/g;
@@ -888,6 +889,7 @@ function setStudioInputHeight(node, widget, height, refresh = false) {
   }
   const minimumHeight = studioMinimumHeight(widget, input);
   const nextHeight = Math.max(minimumHeight, Math.round(Number(height) || 0));
+  widget.__easyuseAnimaLayoutHeight = nextHeight + STUDIO_WIDGET_VERTICAL_GAP;
   if (Math.abs(nextHeight - (widget.__easyuseAnimaHeight || 0)) > 1) {
     widget.__easyuseAnimaHeight = nextHeight;
     input.style.height = `${nextHeight}px`;
@@ -1140,8 +1142,10 @@ function setExtendWidgetHidden(widget, hidden) {
 
   widget.__easyuseAnimaExtendHidden = hidden;
   widget.hidden = hidden;
+  widget.options ||= {};
+  widget.options.hidden = hidden;
   if (hidden) {
-    widget.computeSize = () => [0, 0];
+    widget.computeSize = () => [0, -4];
     widget.draw = () => {};
   } else {
     widget.computeSize = widget.__easyuseAnimaExtendOriginalComputeSize;
@@ -1151,6 +1155,7 @@ function setExtendWidgetHidden(widget, hidden) {
   const input = findInputEl(widget);
   if (input) {
     input.style.display = hidden ? "none" : "";
+    input.style.pointerEvents = hidden ? "none" : "";
     if (input.__easyuseAnimaHighlightOverlay) {
       input.__easyuseAnimaHighlightOverlay.style.display = hidden ? "none" : "";
     }
@@ -1165,7 +1170,9 @@ function hideExtendStateWidget(node) {
   widget.__easyuseAnimaExtendStateHidden = true;
   widget.hidden = true;
   widget.serialize = true;
-  widget.computeSize = () => [0, 0];
+  widget.options ||= {};
+  widget.options.hidden = true;
+  widget.computeSize = () => [0, -4];
   widget.draw = () => {};
   const input = findInputEl(widget);
   if (input) {
@@ -1370,6 +1377,7 @@ function enhanceResizableInput(node, widget) {
   const minimumHeight = Math.min(defaultHeight, 54);
 
   widget.__easyuseAnimaHeight = Math.max(minimumHeight, widget.__easyuseAnimaHeight || defaultHeight);
+  widget.__easyuseAnimaLayoutHeight = widget.__easyuseAnimaHeight + STUDIO_WIDGET_VERTICAL_GAP;
   input.style.boxSizing = "border-box";
   input.style.resize = "vertical";
   input.style.overflowY = "hidden";
@@ -1380,7 +1388,9 @@ function enhanceResizableInput(node, widget) {
     const computeSize = widget.computeSize;
     widget.computeSize = function (width) {
       const base = computeSize?.apply(this, arguments) || [width, minimumHeight];
-      return [base[0], Math.max(base[1], this.__easyuseAnimaHeight || minimumHeight)];
+      const layoutHeight = (this.__easyuseAnimaHeight || minimumHeight) + STUDIO_WIDGET_VERTICAL_GAP;
+      this.__easyuseAnimaLayoutHeight = layoutHeight;
+      return [base[0], Math.max(base[1], layoutHeight)];
     };
     widget.__easyuseAnimaStudioComputeWrapped = true;
   }
