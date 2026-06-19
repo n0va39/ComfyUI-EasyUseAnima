@@ -633,6 +633,15 @@ function ensureHighlightOverlay(input) {
   return overlay;
 }
 
+function desiredTextareaHeight(input, currentHeight, minimumHeight) {
+  const scrollHeight = Math.ceil(Number(input?.scrollHeight) || 0);
+  return Math.max(
+    minimumHeight,
+    Math.round(Number(currentHeight) || 0),
+    scrollHeight,
+  );
+}
+
 function desiredLegendHeight() {
   return LEGEND_TOP_GAP + 16 + Math.ceil(LEGEND_ITEMS.length / LEGEND_COLUMNS) * LEGEND_ROW_HEIGHT;
 }
@@ -737,6 +746,7 @@ function enhanceResizableInput(node, widget) {
   widget.__easyuseAnimaHeight = Math.max(defaultHeight, widget.__easyuseAnimaHeight || 0);
   input.style.boxSizing = "border-box";
   input.style.resize = "vertical";
+  input.style.overflowY = "hidden";
   input.style.minHeight = `${Math.min(defaultHeight, 54)}px`;
   input.style.height = `${widget.__easyuseAnimaHeight}px`;
 
@@ -750,7 +760,11 @@ function enhanceResizableInput(node, widget) {
   }
 
   const syncHeight = () => {
-    const height = Math.max(defaultHeight, readInputHeight());
+    const height = desiredTextareaHeight(
+      input,
+      Math.max(readInputHeight(), widget.__easyuseAnimaHeight || 0),
+      defaultHeight,
+    );
     if (Math.abs(height - widget.__easyuseAnimaHeight) > 2) {
       widget.__easyuseAnimaHeight = height;
       input.style.height = `${height}px`;
@@ -965,7 +979,7 @@ function normalizeAdvancedField(field, index = 0) {
     type,
     label,
     text: String(field?.text || ""),
-    height: Math.max(42, Math.min(420, Number(field?.height) || 72)),
+    height: Math.max(42, Math.round(Number(field?.height) || 72)),
   };
 }
 
@@ -1253,20 +1267,30 @@ function createAdvancedFieldElement(node, field) {
   const textarea = document.createElement("textarea");
   textarea.value = field.text || "";
   textarea.style.height = `${field.height || 72}px`;
+  textarea.style.overflowY = "hidden";
   textarea.placeholder = field.type === "artist" ? "@artist_tag" : "prompt tags";
   textarea.dataset.easyuseAnimaAdvancedFieldId = field.id;
-  textarea.addEventListener("input", () => {
-    field.text = textarea.value;
-    writeAdvancedFields(node, fields);
-  });
   const syncHeight = () => {
-    field.height = Math.max(42, Math.min(420, Math.round(textarea.offsetHeight || field.height || 72)));
+    const height = desiredTextareaHeight(
+      textarea,
+      Math.max(textarea.offsetHeight || 0, field.height || 0),
+      42,
+    );
+    if (height > (field.height || 0)) {
+      textarea.style.height = `${height}px`;
+      field.height = height;
+    }
     writeAdvancedFields(node, fields);
     syncAdvancedNodeSize(node);
   };
+  textarea.addEventListener("input", () => {
+    field.text = textarea.value;
+    syncHeight();
+  });
   textarea.addEventListener("mouseup", syncHeight);
   textarea.addEventListener("pointerup", syncHeight);
   textarea.addEventListener("change", syncHeight);
+  requestAnimationFrame(syncHeight);
 
   header.append(label, tools);
   block.append(header, textarea);

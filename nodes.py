@@ -247,7 +247,7 @@ def _advanced_fields_json(fields: list[dict] | None = None) -> str:
 
 
 def _as_advanced_height(value, default: int = 72) -> int:
-    return max(36, min(420, _as_int(value, default)))
+    return max(36, _as_int(value, default))
 
 
 def _normalize_advanced_fields(value: str | list | None) -> list[dict]:
