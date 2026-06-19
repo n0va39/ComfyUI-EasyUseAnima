@@ -134,6 +134,7 @@ const ADVANCED_WIDGET_INDEX = {
   pin_trigger_tags_to_front: 3,
   advanced_fields: 4,
 };
+const ADVANCED_INTERNAL_WIDGET_NAMES = new Set(Object.keys(ADVANCED_WIDGET_INDEX));
 const ADVANCED_FIELDS_PROPERTY = "easyuse_anima_advanced_fields";
 const ADVANCED_FIELD_SOCKET_PREFIX = "field_";
 const ADVANCED_FIELD_TYPES = ["quality", "artist", "general", "naia"];
@@ -1823,6 +1824,23 @@ function hideAdvancedControlWidgets(node) {
   }
 }
 
+function removeAdvancedInternalInputSockets(node) {
+  if (!Array.isArray(node.inputs)) {
+    return;
+  }
+  for (let index = node.inputs.length - 1; index >= 0; index -= 1) {
+    const input = node.inputs[index];
+    const widgetName = input?.widget?.name || input?.name;
+    if (!ADVANCED_INTERNAL_WIDGET_NAMES.has(widgetName)) {
+      continue;
+    }
+    if (input?.link != null) {
+      node.disconnectInput?.(index);
+    }
+    node.removeInput?.(index);
+  }
+}
+
 function normalizeAdvancedField(field, index = 0) {
   const pane = field?.pane === "negative" ? "negative" : "positive";
   let type = ADVANCED_FIELD_TYPES.includes(field?.type) ? field.type : "general";
@@ -2487,6 +2505,7 @@ function hookAdvancedNode(node) {
   ensureAdvancedStyle();
   installAdvancedSaveSync();
   ensureAdvancedWidgetValue(node);
+  removeAdvancedInternalInputSockets(node);
   hideAdvancedInternalWidget(node, "advanced_fields");
   hideAdvancedControlWidgets(node);
   node.serialize_widgets = true;
@@ -2631,6 +2650,7 @@ app.registerExtension({
       this.__easyuseAnimaHandlingResize = true;
       try {
       if (nodeData.name === ADVANCED_NODE_TYPE) {
+        removeAdvancedInternalInputSockets(this);
         syncAdvancedNodeSize(this);
         return result;
       }
@@ -2652,6 +2672,7 @@ app.registerExtension({
     nodeType.prototype.onSerialize = function (serialized) {
       const result = onSerialize?.apply(this, arguments);
       if (nodeData.name === ADVANCED_NODE_TYPE) {
+        removeAdvancedInternalInputSockets(this);
         syncAdvancedValues(this, serialized);
       } else {
         syncStudioValues(this, serialized);
