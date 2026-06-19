@@ -466,6 +466,30 @@ class PromptBuilderTests(unittest.TestCase):
         self.assertEqual(metadata_negative, negative)
         self.assertEqual(payload["naia_prompt_3"], "1girl")
 
+    def test_prompt_studio_extend_active_slots_exclude_hidden_values(self):
+        result = EasyUseAnimaPromptStudioExtend().build(
+            False,
+            False,
+            False,
+            active_slots=json.dumps(["general_tags_4"]),
+            quality_tags_1="masterpiece",
+            naia_prompt_3="hidden naia",
+            general_tags_4="visible general",
+            trailing_tags_10="hidden trailing",
+            negative_prompt_1="hidden negative",
+        )
+
+        positive, negative, quality, use_amg, metadata, metadata_negative = result["result"]
+        payload = result["ui"]["prompt_studio_slots"][0]
+
+        self.assertFalse(use_amg)
+        self.assertEqual(positive, "visible general")
+        self.assertEqual(metadata, "visible general")
+        self.assertEqual(negative, "")
+        self.assertEqual(metadata_negative, "")
+        self.assertEqual(quality, "")
+        self.assertEqual(payload["active_slots"], json.dumps(["general_tags_4"]))
+
     def test_prompt_studio_extend_naia_fill_stays_enabled_but_saved_metadata_is_off(self):
         workflow_prompt = {
             "11": {

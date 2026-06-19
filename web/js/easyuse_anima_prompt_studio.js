@@ -28,13 +28,15 @@ const EXTEND_FIELD_NAMES = [
   "negative_prompt_4",
 ];
 const EXTEND_VISIBLE_SLOTS_PROPERTY = "easyuse_anima_extend_visible_slots";
+const EXTEND_ACTIVE_SLOTS_WIDGET = "active_slots";
 const EXTEND_SLOT_GROUPS = [
   { id: "quality", label: "Quality", fields: ["quality_tags_1", "quality_tags_2"] },
+  { id: "naia", label: "NAIA", fields: ["naia_prompt_3"] },
   { id: "general", label: "General", fields: ["general_tags_4", "general_tags_5", "general_tags_6", "general_tags_7", "general_tags_8", "general_tags_9"] },
   { id: "trailing", label: "Trailing", fields: ["trailing_tags_10", "trailing_tags_11"] },
   { id: "negative", label: "Negative", fields: ["negative_prompt_1", "negative_prompt_2", "negative_prompt_3", "negative_prompt_4"] },
 ];
-const EXTEND_ALWAYS_VISIBLE_FIELDS = new Set(["naia_prompt_3"]);
+const EXTEND_DEFAULT_VISIBLE_FIELDS = new Set(["quality_tags_1", "general_tags_4", "trailing_tags_10"]);
 
 const FIELD_HEIGHTS = {
   lora_trigger_tags: 42,
@@ -416,6 +418,11 @@ function ensureExtendSlotStyle() {
       gap: 5px;
       width: 100%;
     }
+    .easyuse-anima-extend-slot-hide-row {
+      display: flex;
+      flex-wrap: wrap;
+      margin-top: 5px;
+    }
     .easyuse-anima-extend-slot-row button {
       box-sizing: border-box;
       min-width: 0;
@@ -434,6 +441,12 @@ function ensureExtendSlotStyle() {
     .easyuse-anima-extend-slot-row button:disabled {
       opacity: 0.42;
       cursor: default;
+    }
+    .easyuse-anima-extend-slot-hide-row button {
+      flex: 0 1 auto;
+      height: 21px;
+      padding: 0 6px;
+      font-size: 10px;
     }
   `;
   document.head.append(style);
@@ -1067,8 +1080,7 @@ function studioFieldNames(node) {
   return isExtendNode(node) ? EXTEND_FIELD_NAMES : FIELD_NAMES;
 }
 
-function extendVisibleSlots(node) {
-  const raw = node?.properties?.[EXTEND_VISIBLE_SLOTS_PROPERTY];
+function parseExtendSlots(raw) {
   if (Array.isArray(raw)) {
     return new Set(raw.filter((name) => EXTEND_FIELD_NAMES.includes(name)));
   }
@@ -1085,9 +1097,26 @@ function extendVisibleSlots(node) {
   return new Set();
 }
 
+function extendVisibleSlotsState(node) {
+  const propertyRaw = node?.properties?.[EXTEND_VISIBLE_SLOTS_PROPERTY];
+  if (propertyRaw != null) {
+    return { slots: parseExtendSlots(propertyRaw), explicit: true };
+  }
+  return { slots: new Set(EXTEND_DEFAULT_VISIBLE_FIELDS), explicit: false };
+}
+
+function extendVisibleSlots(node) {
+  return extendVisibleSlotsState(node).slots;
+}
+
 function writeExtendVisibleSlots(node, slots) {
+  const filtered = [...slots].filter((name) => EXTEND_FIELD_NAMES.includes(name));
   node.properties ||= {};
-  node.properties[EXTEND_VISIBLE_SLOTS_PROPERTY] = [...slots].filter((name) => EXTEND_FIELD_NAMES.includes(name));
+  node.properties[EXTEND_VISIBLE_SLOTS_PROPERTY] = filtered;
+  const widget = findWidget(node, EXTEND_ACTIVE_SLOTS_WIDGET);
+  if (widget) {
+    widget.value = JSON.stringify(filtered);
+  }
 }
 
 function extendSlotHasValue(node, fieldName) {
@@ -1096,12 +1125,14 @@ function extendSlotHasValue(node, fieldName) {
   return value.trim().length > 0;
 }
 
-function extendSlotShouldShow(node, fieldName) {
-  if (EXTEND_ALWAYS_VISIBLE_FIELDS.has(fieldName)) {
+function extendSlotShouldShow(node, fieldName, state = extendVisibleSlotsState(node)) {
+  if (isWidgetInputLinked(node, fieldName)) {
     return true;
   }
-  const visible = extendVisibleSlots(node);
-  return visible.has(fieldName) || extendSlotHasValue(node, fieldName) || isWidgetInputLinked(node, fieldName);
+  if (state.explicit) {
+    return state.slots.has(fieldName);
+  }
+  return state.slots.has(fieldName) || extendSlotHasValue(node, fieldName);
 }
 
 function setExtendWidgetHidden(widget, hidden) {
@@ -1134,13 +1165,31 @@ function setExtendWidgetHidden(widget, hidden) {
   }
 }
 
+function hideExtendStateWidget(node) {
+  const widget = findWidget(node, EXTEND_ACTIVE_SLOTS_WIDGET);
+  if (!widget || widget.__easyuseAnimaExtendStateHidden) {
+    return;
+  }
+  widget.__easyuseAnimaExtendStateHidden = true;
+  widget.hidden = true;
+  widget.serialize = true;
+  widget.computeSize = () => [0, 0];
+  widget.draw = () => {};
+  const input = findInputEl(widget);
+  if (input) {
+    input.style.display = "none";
+  }
+}
+
 function applyExtendSlotVisibility(node) {
   if (!isExtendNode(node)) {
     return;
   }
-  const visible = extendVisibleSlots(node);
+  hideExtendStateWidget(node);
+  const state = extendVisibleSlotsState(node);
+  const visible = new Set(state.slots);
   for (const fieldName of EXTEND_FIELD_NAMES) {
-    const shouldShow = extendSlotShouldShow(node, fieldName);
+    const shouldShow = extendSlotShouldShow(node, fieldName, state);
     if (shouldShow) {
       visible.add(fieldName);
     }
@@ -1159,7 +1208,40 @@ function addNextExtendSlot(node, group) {
   writeExtendVisibleSlots(node, visible);
   applyExtendSlotVisibility(node);
   renderExtendSlotControls(node);
-  refreshNodeSize(node);
+  rebalanceStudioInputHeights(node);
+}
+
+function hideExtendSlot(node, fieldName) {
+  if (!EXTEND_FIELD_NAMES.includes(fieldName) || isWidgetInputLinked(node, fieldName)) {
+    return;
+  }
+  const visible = extendVisibleSlots(node);
+  visible.delete(fieldName);
+  writeExtendVisibleSlots(node, visible);
+  applyExtendSlotVisibility(node);
+  renderExtendSlotControls(node);
+  rebalanceStudioInputHeights(node);
+}
+
+function extendSlotShortLabel(fieldName) {
+  if (fieldName === "naia_prompt_3") {
+    return "NAIA3";
+  }
+  const match = /_(\d+)$/.exec(fieldName);
+  const index = match?.[1] || "";
+  if (fieldName.startsWith("quality_")) {
+    return `Q${index}`;
+  }
+  if (fieldName.startsWith("general_")) {
+    return `G${index}`;
+  }
+  if (fieldName.startsWith("trailing_")) {
+    return `T${index}`;
+  }
+  if (fieldName.startsWith("negative_")) {
+    return `N${index}`;
+  }
+  return fieldName;
 }
 
 function renderExtendSlotControls(node) {
@@ -1186,6 +1268,27 @@ function renderExtendSlotControls(node) {
     row.append(button);
   }
   container.append(row);
+
+  const visibleFields = EXTEND_SLOT_GROUPS
+    .flatMap((group) => group.fields)
+    .filter((fieldName) => extendSlotShouldShow(node, fieldName) && !isWidgetInputLinked(node, fieldName));
+  if (visibleFields.length) {
+    const hideRow = document.createElement("div");
+    hideRow.className = "easyuse-anima-extend-slot-row easyuse-anima-extend-slot-hide-row";
+    for (const fieldName of visibleFields) {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.textContent = `Hide ${extendSlotShortLabel(fieldName)}`;
+      button.title = `${fieldName} input slot hide`;
+      button.addEventListener("click", (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        hideExtendSlot(node, fieldName);
+      });
+      hideRow.append(button);
+    }
+    container.append(hideRow);
+  }
 }
 
 function ensureExtendSlotControls(node) {
@@ -1312,10 +1415,13 @@ function syncStudioValues(node, serialized = null) {
   }
   if (isExtendNode(node)) {
     applyExtendSlotVisibility(node);
+    const activeSlotsValue = JSON.stringify([...extendVisibleSlots(node)]);
+    const activeSlotsWidget = findWidget(node, EXTEND_ACTIVE_SLOTS_WIDGET);
+    if (activeSlotsWidget) {
+      activeSlotsWidget.value = activeSlotsValue;
+    }
     serialized.properties ||= {};
-    serialized.properties[EXTEND_VISIBLE_SLOTS_PROPERTY] = [
-      ...extendVisibleSlots(node),
-    ].filter((name) => EXTEND_FIELD_NAMES.includes(name));
+    serialized.properties[EXTEND_VISIBLE_SLOTS_PROPERTY] = [...parseExtendSlots(activeSlotsValue)];
   }
 
   for (const name of fieldNames) {
@@ -1323,6 +1429,14 @@ function syncStudioValues(node, serialized = null) {
     const widget = widgetIndex >= 0 ? node.widgets[widgetIndex] : null;
     if (widgetIndex >= 0 && widget) {
       serialized.widgets_values[widgetIndex] = widget.value ?? "";
+    }
+  }
+
+  if (isExtendNode(node)) {
+    const widgetIndex = node.widgets.findIndex((widget) => widget?.name === EXTEND_ACTIVE_SLOTS_WIDGET);
+    const widget = widgetIndex >= 0 ? node.widgets[widgetIndex] : null;
+    if (widgetIndex >= 0 && widget) {
+      serialized.widgets_values[widgetIndex] = widget.value ?? JSON.stringify([...extendVisibleSlots(node)]);
     }
   }
 }
@@ -1477,6 +1591,9 @@ function applyExecutedInputs(node, message) {
     }
   }
   if (slotPayload) {
+    if (payload.active_slots != null) {
+      writeExtendVisibleSlots(node, parseExtendSlots(payload.active_slots));
+    }
     const fillNaia = findWidget(node, "fill_naia_prompt");
     if (fillNaia && payload.fill_naia_prompt != null) {
       fillNaia.value = !!payload.fill_naia_prompt;

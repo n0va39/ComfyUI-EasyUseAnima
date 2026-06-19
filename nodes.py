@@ -1252,6 +1252,10 @@ class EasyUseAnimaPromptStudioExtend:
                 "placeholder": label,
                 "height": height,
             })
+        required["active_slots"] = ("STRING", {
+            "default": json.dumps(["quality_tags_1", "general_tags_4", "trailing_tags_10"]),
+            "tooltip": "Internal Prompt Studio Extend visible slot state.",
+        })
         return {
             "required": required,
             "hidden": {
@@ -1292,6 +1296,7 @@ class EasyUseAnimaPromptStudioExtend:
             "metadata_filter_words": resolve_metadata_filter_words(),
             "use_anima_mod_guidance": _as_bool(use_anima_mod_guidance, False),
             "pin_trigger_tags_to_front": _as_bool(pin_trigger_tags_to_front, False),
+            "active_slots": str(kwargs.get("active_slots", "")),
             **{
                 name: str(kwargs.get(name, ""))
                 for name, *_rest in EXTEND_PROMPT_SLOT_SPECS
@@ -1333,9 +1338,30 @@ class EasyUseAnimaPromptStudioExtend:
             widgets_values[index] = value
 
     @staticmethod
-    def _fields_from_slots(values: dict[str, str]) -> list[dict]:
+    @staticmethod
+    def _active_slot_set(active_slots: Any) -> set[str] | None:
+        if active_slots is None:
+            return None
+        parsed = active_slots
+        if isinstance(active_slots, str):
+            if not active_slots.strip():
+                return None
+            try:
+                parsed = json.loads(active_slots)
+            except json.JSONDecodeError:
+                return None
+        if not isinstance(parsed, list):
+            return None
+        valid_names = {name for name, *_rest in EXTEND_PROMPT_SLOT_SPECS}
+        return {str(name) for name in parsed if str(name) in valid_names}
+
+    @staticmethod
+    def _fields_from_slots(values: dict[str, str], active_slots: Any = None) -> list[dict]:
+        active_slot_names = EasyUseAnimaPromptStudioExtend._active_slot_set(active_slots)
         fields = []
         for name, pane, field_type, label, _default, height in EXTEND_PROMPT_SLOT_SPECS:
+            if active_slot_names is not None and name not in active_slot_names:
+                continue
             text = str(values.get(name, "") or "")
             fields.append({
                 "id": name,
@@ -1349,11 +1375,12 @@ class EasyUseAnimaPromptStudioExtend:
         return fields
 
     @staticmethod
-    def _ui(slot_values: dict[str, str], fill_naia_prompt: bool):
+    def _ui(slot_values: dict[str, str], fill_naia_prompt: bool, active_slots: Any = None):
         return {
             "prompt_studio_slots": [{
                 **slot_values,
                 "fill_naia_prompt": _as_bool(fill_naia_prompt, False),
+                "active_slots": active_slots,
             }]
         }
 
@@ -1367,6 +1394,7 @@ class EasyUseAnimaPromptStudioExtend:
         unique_id=None,
         **slot_values,
     ):
+        active_slots = slot_values.get("active_slots")
         values = {
             name: str(slot_values.get(name, default) or "")
             for name, _pane, _field_type, _label, default, _height in EXTEND_PROMPT_SLOT_SPECS
@@ -1400,12 +1428,12 @@ class EasyUseAnimaPromptStudioExtend:
             )
 
         result = _build_advanced_prompts(
-            self._fields_from_slots(values),
+            self._fields_from_slots(values, active_slots),
             use_anima_mod_guidance,
             pin_trigger_tags_to_front,
         )
         return {
-            "ui": self._ui(values, live_fill_naia),
+            "ui": self._ui(values, live_fill_naia, active_slots),
             "result": result,
         }
 
