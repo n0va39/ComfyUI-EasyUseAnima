@@ -56,6 +56,7 @@ const INLINE_SPACE_RE = /[ \t]+/g;
 const PROMPT_STUDIO_SETTINGS = {
   typoIndicator: true,
 };
+let middlePanForwardActive = false;
 const ADVANCED_FIELD_TYPES = ["quality", "artist", "general", "naia"];
 const ADVANCED_FIELD_LABELS = {
   quality: "Quality Tags",
@@ -1060,6 +1061,34 @@ function dispatchCanvasMouseEvent(type, sourceEvent, overrides = {}) {
     altKey: sourceEvent.altKey,
     metaKey: sourceEvent.metaKey,
   });
+  Object.defineProperty(event, "__easyuseAnimaForwarded", { value: true });
+  canvas.dispatchEvent(event);
+}
+
+function dispatchCanvasPointerEvent(type, sourceEvent, overrides = {}) {
+  const canvas = app.canvas?.canvas;
+  if (!canvas || typeof PointerEvent === "undefined") {
+    return;
+  }
+  const event = new PointerEvent(type, {
+    bubbles: true,
+    cancelable: true,
+    view: window,
+    clientX: sourceEvent.clientX,
+    clientY: sourceEvent.clientY,
+    screenX: sourceEvent.screenX,
+    screenY: sourceEvent.screenY,
+    button: overrides.button ?? sourceEvent.button,
+    buttons: overrides.buttons ?? sourceEvent.buttons,
+    ctrlKey: sourceEvent.ctrlKey,
+    shiftKey: sourceEvent.shiftKey,
+    altKey: sourceEvent.altKey,
+    metaKey: sourceEvent.metaKey,
+    pointerId: sourceEvent.pointerId || 1,
+    pointerType: sourceEvent.pointerType || "mouse",
+    isPrimary: sourceEvent.isPrimary ?? true,
+  });
+  Object.defineProperty(event, "__easyuseAnimaForwarded", { value: true });
   canvas.dispatchEvent(event);
 }
 
@@ -1094,7 +1123,8 @@ function isMiddlePanExcludedTarget(target) {
 
 function shouldForwardMiddlePan(event) {
   return (
-    event.button === 1
+    !event.__easyuseAnimaForwarded
+    && event.button === 1
     && isCanvasAreaEvent(event)
     && !isMiddlePanExcludedTarget(event.target)
   );
@@ -1104,23 +1134,45 @@ function startCanvasPanFromDom(event) {
   if (!shouldForwardMiddlePan(event)) {
     return false;
   }
+  if (middlePanForwardActive) {
+    event.preventDefault();
+    event.stopPropagation();
+    return true;
+  }
+  middlePanForwardActive = true;
   event.preventDefault();
   event.stopPropagation();
   document.activeElement?.blur?.();
+  dispatchCanvasPointerEvent("pointerdown", event, { button: 1, buttons: 4 });
   dispatchCanvasMouseEvent("mousedown", event, { button: 1, buttons: 4 });
 
   const move = (moveEvent) => {
+    if (moveEvent.__easyuseAnimaForwarded) {
+      return;
+    }
     moveEvent.preventDefault();
     moveEvent.stopPropagation();
+    dispatchCanvasPointerEvent("pointermove", moveEvent, { button: 1, buttons: 4 });
     dispatchCanvasMouseEvent("mousemove", moveEvent, { button: 1, buttons: 4 });
   };
   const stop = (upEvent) => {
+    if (upEvent.__easyuseAnimaForwarded) {
+      return;
+    }
     upEvent.preventDefault();
     upEvent.stopPropagation();
+    dispatchCanvasPointerEvent("pointerup", upEvent, { button: 1, buttons: 0 });
     dispatchCanvasMouseEvent("mouseup", upEvent, { button: 1, buttons: 0 });
+    middlePanForwardActive = false;
+    document.removeEventListener("pointermove", move, true);
+    document.removeEventListener("pointerup", stop, true);
+    document.removeEventListener("pointercancel", stop, true);
     document.removeEventListener("mousemove", move, true);
     document.removeEventListener("mouseup", stop, true);
   };
+  document.addEventListener("pointermove", move, true);
+  document.addEventListener("pointerup", stop, true);
+  document.addEventListener("pointercancel", stop, true);
   document.addEventListener("mousemove", move, true);
   document.addEventListener("mouseup", stop, true);
   return true;
@@ -1131,6 +1183,7 @@ function installMiddlePanForwarder() {
     return;
   }
   window.__easyuseAnimaMiddlePanForwarderInstalled = true;
+  document.addEventListener("pointerdown", startCanvasPanFromDom, true);
   document.addEventListener("mousedown", startCanvasPanFromDom, true);
   document.addEventListener("auxclick", (event) => {
     if (shouldForwardMiddlePan(event)) {
