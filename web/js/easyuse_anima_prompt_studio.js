@@ -2596,6 +2596,10 @@ app.registerExtension({
     ) {
       return;
     }
+    if (nodeType.prototype.__easyuseAnimaPromptStudioWrapped) {
+      return;
+    }
+    nodeType.prototype.__easyuseAnimaPromptStudioWrapped = true;
 
     const onNodeCreated = nodeType.prototype.onNodeCreated;
     nodeType.prototype.onNodeCreated = function () {
@@ -2621,6 +2625,11 @@ app.registerExtension({
     const onResize = nodeType.prototype.onResize;
     nodeType.prototype.onResize = function () {
       const result = onResize?.apply(this, arguments);
+      if (this.__easyuseAnimaHandlingResize) {
+        return result;
+      }
+      this.__easyuseAnimaHandlingResize = true;
+      try {
       if (nodeData.name === ADVANCED_NODE_TYPE) {
         syncAdvancedNodeSize(this);
         return result;
@@ -2634,6 +2643,9 @@ app.registerExtension({
         layoutExtendPromptWidgets(this);
       }
       return result;
+      } finally {
+        this.__easyuseAnimaHandlingResize = false;
+      }
     };
 
     const onSerialize = nodeType.prototype.onSerialize;
