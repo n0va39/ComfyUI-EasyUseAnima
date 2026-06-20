@@ -226,6 +226,7 @@ def _token_base(token: str) -> str:
     weighted = _WEIGHTED_TOKEN_RE.match(token)
     if weighted:
         token = weighted.group(1).strip(" ,\n\t")
+    token = token.rstrip(":").strip()
     if token.startswith("@"):
         return token[1:].strip()
     return token

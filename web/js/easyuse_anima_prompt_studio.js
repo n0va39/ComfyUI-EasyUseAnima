@@ -588,11 +588,12 @@ function normalize(value) {
 }
 
 function tokenBase(token) {
-  const value = String(token ?? "").trim();
+  let value = String(token ?? "").trim();
   const weighted = WEIGHTED_TOKEN_RE.exec(value);
   if (weighted) {
-    return weighted[1].trim().replace(/^@/, "");
+    value = weighted[1].trim();
   }
+  value = value.replace(/:+$/, "").trim();
   if (value.startsWith("@")) {
     return value.slice(1).trim();
   }
@@ -702,20 +703,50 @@ function findTokenMatch(body, offset, token) {
   return null;
 }
 
-function renderSequentialBody(body, tokens, startIndex) {
+function tokenKey(token) {
+  return normalize(token?.base || token?.token);
+}
+
+function nextUnconsumedToken(tokens, startIndex, consumed) {
+  let index = startIndex;
+  while (index < (tokens?.length || 0) && consumed.has(tokens[index])) {
+    index += 1;
+  }
+  return { token: tokens?.[index], index };
+}
+
+function takeTokenByBase(byBase, baseKey, consumed) {
+  const candidates = byBase.get(baseKey);
+  while (candidates?.length) {
+    const token = candidates.shift();
+    if (!consumed.has(token)) {
+      consumed.add(token);
+      return token;
+    }
+  }
+  return null;
+}
+
+function renderSequentialBody(body, tokens, startIndex, consumed) {
   let cursor = 0;
   let index = startIndex;
   let matched = 0;
   const html = [];
 
   while (index < (tokens?.length || 0)) {
-    const token = tokens[index];
+    const next = nextUnconsumedToken(tokens, index, consumed);
+    const token = next.token;
+    index = next.index;
+    if (!token) {
+      break;
+    }
     const match = findTokenMatch(body, cursor, token);
     if (!match) {
       break;
     }
     html.push(escapeHtml(body.slice(cursor, match.start)));
     html.push(tokenSpanHtml(body.slice(match.start, match.end), token));
+    consumed.add(token);
     cursor = match.end;
     index += 1;
     matched += 1;
@@ -734,10 +765,15 @@ function renderSequentialBody(body, tokens, startIndex) {
 function renderHighlightedText(text, tokens) {
   const byBase = new Map();
   for (const token of tokens || []) {
-    byBase.set(normalize(token.base || token.token), token);
+    const key = tokenKey(token);
+    if (!key) {
+      continue;
+    }
+    byBase.set(key, [...(byBase.get(key) || []), token]);
   }
 
   let tokenIndex = 0;
+  const consumed = new Set();
   const html = [];
   for (const part of splitPromptText(text)) {
     if (part.delimiter) {
@@ -755,20 +791,26 @@ function renderHighlightedText(text, tokens) {
     }
 
     const baseKey = normalize(tokenBase(body));
-    const sequential = tokens?.[tokenIndex];
-    const token = normalize(sequential?.base || sequential?.token) === baseKey
-      ? sequential
-      : byBase.get(baseKey);
+    const next = nextUnconsumedToken(tokens, tokenIndex, consumed);
+    const sequential = next.token;
+    tokenIndex = next.index;
+    let token = null;
+    if (tokenKey(sequential) === baseKey) {
+      token = sequential;
+      consumed.add(token);
+      tokenIndex += 1;
+    } else {
+      token = takeTokenByBase(byBase, baseKey, consumed);
+    }
 
     if (token) {
-      tokenIndex += 1;
       html.push(escapeHtml(leading));
       html.push(tokenSpanHtml(body, token));
       html.push(escapeHtml(trailing));
       continue;
     }
 
-    const rendered = renderSequentialBody(body, tokens, tokenIndex);
+    const rendered = renderSequentialBody(body, tokens, tokenIndex, consumed);
     if (rendered) {
       tokenIndex = rendered.nextIndex;
       html.push(escapeHtml(leading));

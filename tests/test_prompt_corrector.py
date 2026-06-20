@@ -824,16 +824,17 @@ class AutocompleteDatasetTests(unittest.TestCase):
             )
 
             classified = classify_prompt_text(
-                "rating_safe, score_9, year_2024, source_anime, lowres, very_aesthetic",
+                "rating_safe, score_9, score_7:, year_2024, source_anime, lowres, very_aesthetic",
                 path=path,
             )
             autocomplete = search_autocomplete("score", path=path)
 
         self.assertEqual(
             [token["section"] for token in classified["tokens"]],
-            ["safety", "quality", "year", "meta", "meta", "quality"],
+            ["safety", "quality", "quality", "year", "meta", "meta", "quality"],
         )
-        self.assertEqual([token["learned"] for token in classified["tokens"]], [False] * 6)
+        self.assertEqual(classified["tokens"][2]["base"], "score_7")
+        self.assertEqual([token["learned"] for token in classified["tokens"]], [False] * 7)
         self.assertEqual(autocomplete["results"], [])
 
 
