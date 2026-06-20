@@ -660,6 +660,30 @@ class PromptBuilderTests(unittest.TestCase):
                 self.assertEqual(width % 32, 0)
                 self.assertEqual(height % 32, 0)
 
+    def test_prompt_studio_advanced_resolution_buckets_have_mirrors(self):
+        for bucket, values in ADVANCED_RESOLUTION_BUCKETS.items():
+            value_set = set(values)
+            for width, height in values:
+                self.assertIn((height, width), value_set, (bucket, width, height))
+
+    def test_prompt_studio_advanced_resolution_buckets_use_nearest_area_tier(self):
+        bucket_edges = sorted(int(bucket) for bucket in ADVANCED_RESOLUTION_BUCKETS)
+        for bucket, values in ADVANCED_RESOLUTION_BUCKETS.items():
+            expected_edge = int(bucket)
+            for width, height in values:
+                area = width * height
+                nearest_edge = min(
+                    bucket_edges,
+                    key=lambda edge: (abs(area - edge * edge), edge),
+                )
+                self.assertEqual(nearest_edge, expected_edge, (bucket, width, height))
+
+    def test_prompt_studio_advanced_1024_by_1536_belongs_to_1280_bucket(self):
+        self.assertIn((1024, 1536), ADVANCED_RESOLUTION_BUCKETS["1280"])
+        self.assertIn((1536, 1024), ADVANCED_RESOLUTION_BUCKETS["1280"])
+        self.assertNotIn((1024, 1536), ADVANCED_RESOLUTION_BUCKETS["1536"])
+        self.assertNotIn((1536, 1024), ADVANCED_RESOLUTION_BUCKETS["1536"])
+
     def test_prompt_studio_extend_uses_numbered_slot_order(self):
         result = EasyUseAnimaPromptStudioExtend().build(
             False,

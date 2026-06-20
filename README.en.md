@@ -152,9 +152,9 @@ Field model:
 - The latent image resolution selector is shown below `mod guidance`. It uses a
   bucket selector plus a resolution selector formatted as `width * height
   (ratio)`, sorted by aspect ratio.
-- Resolution buckets follow the crop preprocess tier style (`512`, `768`,
-  `896`, `1024`, `1280`, `1536`) and only expose dimensions aligned to
-  multiples of 32.
+- Resolution buckets group sizes by area close to the bucket edge squared
+  (`512`, `768`, `896`, `1024`, `1280`, `1536`), expose only dimensions aligned
+  to multiples of 32, and keep landscape/portrait pairs together.
 - The `Custom` bucket stores editable width and height values in the workflow.
   Custom values are snapped to multiples of 32 so reloaded workflows keep a
   compatible latent size.

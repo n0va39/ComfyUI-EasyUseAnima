@@ -154,8 +154,9 @@ UI에서 편집하기 위한 기능을 추가한 버전입니다.
 - latent image 해상도 선택은 `mod guidance` 바로 아래에 표시됩니다. 첫 칸은
   bucket, 두 번째 칸은 `width * height (ratio)` 형식의 해상도이며, 비율
   오름차순으로 정렬됩니다.
-- 해상도 bucket은 crop preprocess tier 방식(`512`, `768`, `896`, `1024`,
-  `1280`, `1536`)을 따르며, 32배수 해상도만 노출합니다.
+- 해상도 bucket은 각 bucket 값의 제곱 픽셀 면적에 가까운 해상도를 묶습니다.
+  (`512`, `768`, `896`, `1024`, `1280`, `1536`) 32배수 해상도만 노출하며,
+  가로/세로 반전 쌍은 같은 bucket에 함께 둡니다.
 - `Custom` bucket에서는 width와 height를 직접 입력할 수 있습니다. Custom
   값은 워크플로우에 저장되며, 호환성을 위해 32배수로 보정됩니다.
 - `NAIA` bucket은 prompt field를 채우는 것과 같은 NAIA 응답에서 width와
