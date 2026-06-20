@@ -138,11 +138,27 @@ This node is the flexible Prompt Studio variant for larger workflows.
 
 Example UI:
 
+**Advanced node overview**
+Shows the full advanced prompt layout with connected outputs, prompt fields,
+resolution controls, and positive/negative prompt sections.
+
 ![Anima Prompt Studio Advanced overview](docs/images/prompt-studio-advanced-overview.png)
+
+**Inputs and top controls**
+Shows the main input sockets, `mod guidance` toggle, resolution bucket selector,
+and editable prompt field controls.
 
 ![Anima Prompt Studio Advanced inputs and controls](docs/images/prompt-studio-advanced-controls.png)
 
+**NAIA prompt field**
+Shows the NAIA field used to fill prompt text from a NAIA response while keeping
+the stored result editable and reproducible.
+
 ![Anima Prompt Studio Advanced NAIA field](docs/images/prompt-studio-advanced-naia.png)
+
+**Resolution bucket selector**
+Shows bucket and resolution selection, including the `NAIA` and `Custom` modes
+used for saved workflow reproduction.
 
 ![Anima Prompt Studio Advanced resolution bucket selector](docs/images/prompt-studio-advanced-resolution.png)
 
@@ -212,9 +228,21 @@ This node stores reusable LoRA/style profiles for ANIMA workflows.
 
 Example UI:
 
+**LoRA preset node**
+Shows a profile with selected LoRAs, strengths, active state, trigger-word output,
+and profile save/load controls.
+
 ![Anima LoRA Preset node](docs/images/lora-preset-node.png)
 
+**LoRA search**
+Shows the folder-tree LoRA chooser with search support for selecting LoRAs from
+ComfyUI LoRA paths.
+
 ![Anima LoRA Preset LoRA search](docs/images/lora-preset-search.png)
+
+**Profile load**
+Shows loading a saved profile from the node-pack profile folder and appending it
+as a new profile.
 
 ![Anima LoRA Preset profile load](docs/images/lora-preset-profile-load.png)
 
