@@ -5,6 +5,7 @@ import json
 import logging
 import os
 import re
+from math import gcd
 from typing import Any, Optional
 
 try:
@@ -58,6 +59,50 @@ HTTP_TIMEOUT = NAIA_REQUEST_TIMEOUT + 5.0
 
 NAI_1MP = 1024 * 1024
 LATENT_ALIGN = 8
+ADVANCED_RESOLUTION_BUCKETS = {
+    "1MP": (
+        (704, 1408),
+        (768, 1344),
+        (832, 1216),
+        (896, 1152),
+        (960, 1088),
+        (1024, 1024),
+        (1088, 960),
+        (1152, 896),
+        (1216, 832),
+        (1344, 768),
+        (1408, 704),
+    ),
+    "1.5MP": (
+        (832, 1856),
+        (896, 1728),
+        (960, 1600),
+        (1024, 1536),
+        (1088, 1408),
+        (1152, 1344),
+        (1216, 1216),
+        (1344, 1152),
+        (1408, 1088),
+        (1536, 1024),
+        (1600, 960),
+        (1728, 896),
+        (1856, 832),
+    ),
+    "2MP": (
+        (1024, 2048),
+        (1152, 1792),
+        (1216, 1728),
+        (1344, 1536),
+        (1408, 1472),
+        (1472, 1408),
+        (1536, 1344),
+        (1728, 1216),
+        (1792, 1152),
+        (2048, 1024),
+    ),
+}
+DEFAULT_ADVANCED_RESOLUTION_BUCKET = "1MP"
+DEFAULT_ADVANCED_RESOLUTION_SIZE = "1024 * 1024 (1:1)"
 
 PREPROCESSING_KEYS = [
     "remove_author",
@@ -82,6 +127,7 @@ _HASH_COMMENT_RE = re.compile(r"^[ \t]*#[^\n]*", re.MULTILINE)
 _MULTI_COMMA_RE = re.compile(r"(\s*,){2,}")
 _INLINE_SPACE_RE = re.compile(r"[ \t]+")
 _WEIGHTED_TOKEN_RE = re.compile(r"^\(([^(),]+):[-+]?\d+(?:\.\d+)?\)$")
+_RESOLUTION_LABEL_RE = re.compile(r"(\d+)\s*(?:\*|x|×)\s*(\d+)")
 _TRIGGER_WORD_KEYS = ("trainedWords", "trained_words", "trigger_words", "activation_text")
 _ADVANCED_FIELD_SOCKET_PREFIX = "field_"
 _ADVANCED_FIELD_SOCKET_RE = re.compile(r"[^A-Za-z0-9_]")
@@ -131,6 +177,39 @@ def _as_int(value, default: int = 0) -> int:
         return int(value)
     except (TypeError, ValueError):
         return default
+
+
+def _ratio_label(width: int, height: int) -> str:
+    divisor = gcd(max(1, int(width)), max(1, int(height)))
+    return f"{int(width) // divisor}:{int(height) // divisor}"
+
+
+def _resolution_label(width: int, height: int) -> str:
+    return f"{int(width)} * {int(height)} ({_ratio_label(width, height)})"
+
+
+def _sorted_resolution_options(bucket: str) -> list[tuple[int, int]]:
+    values = ADVANCED_RESOLUTION_BUCKETS.get(bucket) or ADVANCED_RESOLUTION_BUCKETS[DEFAULT_ADVANCED_RESOLUTION_BUCKET]
+    return sorted(values, key=lambda item: (item[0] / item[1], item[0], item[1]))
+
+
+def _normalize_resolution_bucket(value) -> str:
+    value = str(_single_value(value) or "").strip()
+    return value if value in ADVANCED_RESOLUTION_BUCKETS else DEFAULT_ADVANCED_RESOLUTION_BUCKET
+
+
+def _advanced_resolution_from_selection(bucket, size) -> tuple[int, int]:
+    bucket_name = _normalize_resolution_bucket(bucket)
+    raw_size = str(_single_value(size) or "").strip()
+    match = _RESOLUTION_LABEL_RE.search(raw_size)
+    if match:
+        width, height = int(match.group(1)), int(match.group(2))
+        if (width, height) in ADVANCED_RESOLUTION_BUCKETS.get(bucket_name, ()):
+            return width, height
+    default_width, default_height = 1024, 1024
+    if (default_width, default_height) in ADVANCED_RESOLUTION_BUCKETS.get(bucket_name, ()):
+        return default_width, default_height
+    return _sorted_resolution_options(bucket_name)[0]
 
 
 def _clean_prompt(value: str) -> str:
@@ -1134,6 +1213,14 @@ class EasyUseAnimaPromptStudioAdvanced:
                         "through the mod guidance quality output."
                     ),
                 }),
+                "resolution_bucket": ("STRING", {
+                    "default": DEFAULT_ADVANCED_RESOLUTION_BUCKET,
+                    "tooltip": "Internal selected latent resolution bucket.",
+                }),
+                "resolution_size": ("STRING", {
+                    "default": DEFAULT_ADVANCED_RESOLUTION_SIZE,
+                    "tooltip": "Internal selected latent resolution, formatted as width * height (ratio).",
+                }),
                 "pin_trigger_tags_to_front": ("BOOLEAN", {
                     "default": False,
                     "tooltip": "Legacy internal flag. Trigger field Pin buttons control trigger placement.",
@@ -1152,7 +1239,7 @@ class EasyUseAnimaPromptStudioAdvanced:
             },
         }
 
-    RETURN_TYPES = ("STRING", "STRING", "STRING", "BOOLEAN", "STRING", "STRING")
+    RETURN_TYPES = ("STRING", "STRING", "STRING", "BOOLEAN", "STRING", "STRING", "INT", "INT")
     RETURN_NAMES = (
         "positive_prompt",
         "negative_prompt",
@@ -1160,6 +1247,8 @@ class EasyUseAnimaPromptStudioAdvanced:
         "use_anima_mod_guidance",
         "metadata_prompt",
         "metadata_negative_prompt",
+        "width",
+        "height",
     )
     FUNCTION = "build"
     CATEGORY = "EasyUse Anima/Prompt"
@@ -1176,6 +1265,8 @@ class EasyUseAnimaPromptStudioAdvanced:
         use_anima_mod_guidance: bool = False,
         pin_trigger_tags_to_front: bool = False,
         advanced_fields: str = "",
+        resolution_bucket: str = DEFAULT_ADVANCED_RESOLUTION_BUCKET,
+        resolution_size: str = DEFAULT_ADVANCED_RESOLUTION_SIZE,
         **kwargs,
     ):
         fields = _normalize_advanced_fields(advanced_fields)
@@ -1186,6 +1277,7 @@ class EasyUseAnimaPromptStudioAdvanced:
             "mode": "prompt_studio_advanced",
             "metadata_filter_words": resolve_metadata_filter_words(),
             "use_anima_mod_guidance": _as_bool(use_anima_mod_guidance, False),
+            "resolution": _advanced_resolution_from_selection(resolution_bucket, resolution_size),
             "pin_trigger_tags_to_front": _as_bool(pin_trigger_tags_to_front, False),
             "advanced_fields": _advanced_fields_json(effective_fields),
         })
@@ -1246,6 +1338,8 @@ class EasyUseAnimaPromptStudioAdvanced:
         use_anima_mod_guidance: bool,
         pin_trigger_tags_to_front: bool,
         advanced_fields: str,
+        resolution_bucket: str = DEFAULT_ADVANCED_RESOLUTION_BUCKET,
+        resolution_size: str = DEFAULT_ADVANCED_RESOLUTION_SIZE,
         workflow_prompt=None,
         extra_pnginfo=None,
         unique_id=None,
@@ -1258,6 +1352,7 @@ class EasyUseAnimaPromptStudioAdvanced:
         requested_use_naia = _as_bool(use_naia, False)
         live_use_naia = requested_use_naia and _advanced_has_enabled_positive_naia(fields)
         metadata_use_naia = live_use_naia
+        width, height = _advanced_resolution_from_selection(resolution_bucket, resolution_size)
 
         if live_use_naia:
             naia_settings = resolve_naia_settings()
@@ -1291,7 +1386,7 @@ class EasyUseAnimaPromptStudioAdvanced:
         )
         return {
             "ui": self._ui(fields_json, requested_use_naia, effective_field_inputs),
-            "result": result,
+            "result": (*result, width, height),
         }
 
 

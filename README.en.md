@@ -125,12 +125,14 @@ Category: `EasyUse Anima/Prompt`
 
 Outputs:
 
-- `prompt`
+- `positive_prompt`
 - `negative_prompt`
 - `anima_mod_guidance_quality_tags`
 - `use_anima_mod_guidance`
 - `metadata_prompt`
 - `metadata_negative_prompt`
+- `width`
+- `height`
 
 This node is the flexible Prompt Studio variant for larger workflows.
 
@@ -142,9 +144,14 @@ Field model:
   NAIA.
 - Negative fields use the same prompt correction and metadata flow as positive
   fields where applicable.
-- The NAIA field is read-only and stores the last NAIA result in the workflow.
-- The trigger field is read-only for connected `trigger_words` input and can be
-  pinned to the front or allowed to follow ANIMA ordering.
+- The NAIA field stores the last NAIA result in the workflow and can be edited
+  after it has been filled.
+- The trigger field can display a connected `trigger_words` input, remains
+  editable after execution, and can be pinned to the front or allowed to follow
+  ANIMA ordering.
+- The latent image resolution selector is shown below `mod guidance`. It uses a
+  bucket selector plus a resolution selector formatted as `width * height
+  (ratio)`, sorted by aspect ratio.
 
 NAIA behavior:
 
@@ -152,7 +159,7 @@ NAIA behavior:
 - Saved-image workflows store the filled text and turn the request flag off, so
   reloaded workflows reuse the saved result.
 - A setting can automatically disable general fields above the NAIA field while
-  NAIA fill is enabled, then re-enable them when it is disabled.
+  the NAIA field is enabled, then re-enable them when the field is disabled.
 
 Highlighting and syntax:
 

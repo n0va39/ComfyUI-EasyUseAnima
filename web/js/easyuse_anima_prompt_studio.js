@@ -132,13 +132,60 @@ const ADVANCED_CONTROL_WIDGETS = [
     showInControlBar: false,
   },
 ];
+const ADVANCED_RESOLUTION_BUCKETS = {
+  "1MP": [
+    [704, 1408],
+    [768, 1344],
+    [832, 1216],
+    [896, 1152],
+    [960, 1088],
+    [1024, 1024],
+    [1088, 960],
+    [1152, 896],
+    [1216, 832],
+    [1344, 768],
+    [1408, 704],
+  ],
+  "1.5MP": [
+    [832, 1856],
+    [896, 1728],
+    [960, 1600],
+    [1024, 1536],
+    [1088, 1408],
+    [1152, 1344],
+    [1216, 1216],
+    [1344, 1152],
+    [1408, 1088],
+    [1536, 1024],
+    [1600, 960],
+    [1728, 896],
+    [1856, 832],
+  ],
+  "2MP": [
+    [1024, 2048],
+    [1152, 1792],
+    [1216, 1728],
+    [1344, 1536],
+    [1408, 1472],
+    [1472, 1408],
+    [1536, 1344],
+    [1728, 1216],
+    [1792, 1152],
+    [2048, 1024],
+  ],
+};
+const DEFAULT_ADVANCED_RESOLUTION_BUCKET = "1MP";
+const DEFAULT_ADVANCED_RESOLUTION_SIZE = "1024 * 1024 (1:1)";
 const ADVANCED_WIDGET_INDEX = {
   use_naia: 0,
   consume_naia_on_queue: 1,
   use_anima_mod_guidance: 2,
-  pin_trigger_tags_to_front: 3,
-  advanced_fields: 4,
+  resolution_bucket: 3,
+  resolution_size: 4,
+  pin_trigger_tags_to_front: 5,
+  advanced_fields: 6,
 };
+const ADVANCED_LEGACY_FIELDS_WIDGET_INDEX = 4;
 const ADVANCED_INTERNAL_WIDGET_NAMES = new Set(Object.keys(ADVANCED_WIDGET_INDEX));
 const ADVANCED_FIELDS_PROPERTY = "easyuse_anima_advanced_fields";
 const ADVANCED_FIELD_SOCKET_PREFIX = "field_";
@@ -310,6 +357,27 @@ function ensureAdvancedStyle() {
     .easyuse-anima-advanced-toggle.is-linked {
       opacity: 0.55;
       cursor: default;
+    }
+    .easyuse-anima-advanced-resolutionbar {
+      display: grid;
+      grid-template-columns: minmax(78px, 0.42fr) minmax(160px, 1fr);
+      gap: 5px;
+      margin: -2px 0 8px;
+    }
+    .easyuse-anima-advanced-resolutionbar select {
+      box-sizing: border-box;
+      min-width: 0;
+      width: 100%;
+      height: 23px;
+      border: 1px solid rgba(148, 163, 184, 0.34);
+      background: rgba(15, 23, 42, 0.88);
+      color: rgba(226, 232, 240, 0.9);
+      font: 11px sans-serif;
+      padding: 1px 6px;
+      outline: none;
+    }
+    .easyuse-anima-advanced-resolutionbar select:focus {
+      border-color: rgba(96, 165, 250, 0.76);
     }
     .easyuse-anima-advanced-pane {
       min-width: 0;
@@ -1996,7 +2064,10 @@ function serializedAdvancedFieldsValue(serialized) {
     return propertyValue;
   }
   const widgetsValue = normalizeAdvancedFieldsValue(serialized?.widgets_values?.[ADVANCED_WIDGET_INDEX.advanced_fields]);
-  return widgetsValue || "";
+  if (widgetsValue) {
+    return widgetsValue;
+  }
+  return normalizeAdvancedFieldsValue(serialized?.widgets_values?.[ADVANCED_LEGACY_FIELDS_WIDGET_INDEX]) || "";
 }
 
 function captureAdvancedConfigure(node, serialized) {
@@ -2046,7 +2117,7 @@ function hideAdvancedInternalWidget(node, name) {
 }
 
 function hideAdvancedControlWidgets(node) {
-  for (const { name } of ADVANCED_CONTROL_WIDGETS) {
+  for (const name of ADVANCED_INTERNAL_WIDGET_NAMES) {
     hideAdvancedInternalWidget(node, name);
   }
 }
@@ -2359,6 +2430,78 @@ function setAdvancedControlValue(node, name, value) {
   return true;
 }
 
+function setAdvancedWidgetValue(node, name, value) {
+  const widget = findWidget(node, name);
+  if (!widget) {
+    return false;
+  }
+  widget.value = String(value ?? "");
+  widget.callback?.(widget.value);
+  node.setDirtyCanvas?.(true, true);
+  app.graph?.setDirtyCanvas?.(true, true);
+  return true;
+}
+
+function gcdInt(a, b) {
+  let x = Math.abs(Math.trunc(a || 0));
+  let y = Math.abs(Math.trunc(b || 0));
+  while (y) {
+    const next = x % y;
+    x = y;
+    y = next;
+  }
+  return x || 1;
+}
+
+function resolutionRatioLabel(width, height) {
+  const divisor = gcdInt(width, height);
+  return `${Math.trunc(width / divisor)}:${Math.trunc(height / divisor)}`;
+}
+
+function advancedResolutionLabel(width, height) {
+  return `${width} * ${height} (${resolutionRatioLabel(width, height)})`;
+}
+
+function advancedResolutionOptions(bucket) {
+  const values = ADVANCED_RESOLUTION_BUCKETS[bucket] || ADVANCED_RESOLUTION_BUCKETS[DEFAULT_ADVANCED_RESOLUTION_BUCKET];
+  return [...values]
+    .sort((a, b) => (a[0] / a[1]) - (b[0] / b[1]) || a[0] - b[0] || a[1] - b[1])
+    .map(([width, height]) => advancedResolutionLabel(width, height));
+}
+
+function normalizeAdvancedResolutionBucket(value) {
+  const bucket = String(value || "").trim();
+  return Object.prototype.hasOwnProperty.call(ADVANCED_RESOLUTION_BUCKETS, bucket)
+    ? bucket
+    : DEFAULT_ADVANCED_RESOLUTION_BUCKET;
+}
+
+function resolutionRatioFromLabel(value) {
+  const match = String(value || "").match(/(\d+)\s*(?:\*|x|×)\s*(\d+)/);
+  if (!match) {
+    return "";
+  }
+  return resolutionRatioLabel(Number(match[1]), Number(match[2]));
+}
+
+function normalizeAdvancedResolutionSize(bucket, value) {
+  const options = advancedResolutionOptions(bucket);
+  const raw = String(value || "").trim();
+  if (options.includes(raw)) {
+    return raw;
+  }
+  const sameRatio = resolutionRatioFromLabel(raw);
+  if (sameRatio) {
+    const matched = options.find((option) => resolutionRatioFromLabel(option) === sameRatio);
+    if (matched) {
+      return matched;
+    }
+  }
+  return options.includes(DEFAULT_ADVANCED_RESOLUTION_SIZE)
+    ? DEFAULT_ADVANCED_RESOLUTION_SIZE
+    : options[0];
+}
+
 function createAdvancedControlBar(node) {
   const bar = document.createElement("div");
   bar.className = "easyuse-anima-advanced-controlbar";
@@ -2388,6 +2531,65 @@ function createAdvancedControlBar(node) {
     bar.append(button);
   }
   return bar;
+}
+
+function createAdvancedResolutionBar(node) {
+  const bucketWidget = findWidget(node, "resolution_bucket");
+  const sizeWidget = findWidget(node, "resolution_size");
+  if (!bucketWidget || !sizeWidget) {
+    return document.createDocumentFragment();
+  }
+
+  const bucketValue = normalizeAdvancedResolutionBucket(bucketWidget.value);
+  const sizeValue = normalizeAdvancedResolutionSize(bucketValue, sizeWidget.value);
+  if (bucketWidget.value !== bucketValue) {
+    setAdvancedWidgetValue(node, "resolution_bucket", bucketValue);
+  }
+  if (sizeWidget.value !== sizeValue) {
+    setAdvancedWidgetValue(node, "resolution_size", sizeValue);
+  }
+
+  const row = document.createElement("div");
+  row.className = "easyuse-anima-advanced-resolutionbar";
+  row.title = "Latent image resolution output. Resolutions are sorted by width/height ratio.";
+
+  const bucketSelect = document.createElement("select");
+  bucketSelect.setAttribute("aria-label", "resolution bucket");
+  for (const bucket of Object.keys(ADVANCED_RESOLUTION_BUCKETS)) {
+    const option = document.createElement("option");
+    option.value = bucket;
+    option.textContent = bucket;
+    option.selected = bucket === bucketValue;
+    bucketSelect.append(option);
+  }
+
+  const sizeSelect = document.createElement("select");
+  sizeSelect.setAttribute("aria-label", "resolution size");
+  const fillSizeOptions = (bucket, selected) => {
+    sizeSelect.innerHTML = "";
+    for (const label of advancedResolutionOptions(bucket)) {
+      const option = document.createElement("option");
+      option.value = label;
+      option.textContent = label;
+      option.selected = label === selected;
+      sizeSelect.append(option);
+    }
+  };
+  fillSizeOptions(bucketValue, sizeValue);
+
+  bucketSelect.addEventListener("change", () => {
+    const nextBucket = normalizeAdvancedResolutionBucket(bucketSelect.value);
+    const nextSize = normalizeAdvancedResolutionSize(nextBucket, sizeSelect.value);
+    setAdvancedWidgetValue(node, "resolution_bucket", nextBucket);
+    setAdvancedWidgetValue(node, "resolution_size", nextSize);
+    fillSizeOptions(nextBucket, nextSize);
+  });
+  sizeSelect.addEventListener("change", () => {
+    setAdvancedWidgetValue(node, "resolution_size", normalizeAdvancedResolutionSize(bucketSelect.value, sizeSelect.value));
+  });
+
+  row.append(bucketSelect, sizeSelect);
+  return row;
 }
 
 function advancedPaneFields(node, pane) {
@@ -2845,7 +3047,7 @@ function renderAdvancedEditor(node) {
     createAdvancedPane(node, "positive", "Positive Prompt"),
     createAdvancedPane(node, "negative", "Negative Prompt"),
   );
-  editor.append(createAdvancedControlBar(node), panes);
+  editor.append(createAdvancedControlBar(node), createAdvancedResolutionBar(node), panes);
   writeAdvancedFields(node, node.__easyuseAnimaAdvancedFields);
   syncAdvancedNodeSize(node);
   requestAnimationFrame(() => {

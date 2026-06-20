@@ -127,12 +127,14 @@ UI에서 편집하기 위한 기능을 추가한 버전입니다.
 
 출력:
 
-- `prompt`
+- `positive_prompt`
 - `negative_prompt`
 - `anima_mod_guidance_quality_tags`
 - `use_anima_mod_guidance`
 - `metadata_prompt`
 - `metadata_negative_prompt`
+- `width`
+- `height`
 
 큰 워크플로우를 위한 확장형 Prompt Studio 노드입니다.
 
@@ -143,9 +145,14 @@ UI에서 편집하기 위한 기능을 추가한 버전입니다.
 - positive field type은 quality, artist, trigger, general, NAIA를 지원합니다.
 - negative field도 가능한 범위에서 같은 prompt correction 및 metadata 흐름을
   사용합니다.
-- NAIA field는 읽기 전용이며 마지막 NAIA 결과를 워크플로우에 저장합니다.
-- trigger field는 연결된 `trigger_words` 입력을 표시하는 읽기 전용 field입니다.
-  front 고정 또는 ANIMA ordering 적용을 선택할 수 있습니다.
+- NAIA field는 마지막 NAIA 결과를 워크플로우에 저장하며, 채워진 뒤에도 직접
+  수정할 수 있습니다.
+- trigger field는 연결된 `trigger_words` 입력을 표시할 수 있고, 실행 후에도
+  직접 수정할 수 있습니다. front 고정 또는 ANIMA ordering 적용을 선택할 수
+  있습니다.
+- latent image 해상도 선택은 `mod guidance` 바로 아래에 표시됩니다. 첫 칸은
+  bucket, 두 번째 칸은 `width * height (ratio)` 형식의 해상도이며, 비율
+  오름차순으로 정렬됩니다.
 
 NAIA 동작:
 
@@ -154,7 +161,8 @@ NAIA 동작:
 - 저장 이미지 워크플로우에는 채워진 텍스트를 저장하고 요청 flag를 off로
   저장합니다. 다시 불러온 워크플로우는 저장된 결과를 재사용합니다.
 - 설정에서 NAIA field 위쪽의 general field를 자동으로 off/on 하는 옵션을
-  사용할 수 있습니다.
+  사용할 수 있습니다. 이 동작은 NAIA field 자체의 on/off 상태를 기준으로
+  합니다.
 
 하이라이트 및 문법:
 

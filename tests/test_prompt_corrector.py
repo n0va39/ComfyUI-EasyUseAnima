@@ -264,13 +264,14 @@ class PromptBuilderTests(unittest.TestCase):
             json.dumps(fields),
         )
 
-        positive, negative, quality, use_amg, metadata, metadata_negative = result["result"]
+        positive, negative, quality, use_amg, metadata, metadata_negative, width, height = result["result"]
         self.assertNotIn("masterpiece", positive)
         self.assertEqual(quality, "masterpiece")
         self.assertTrue(use_amg)
         self.assertEqual(negative, "low quality, bad hands")
         self.assertIn("masterpiece", metadata)
         self.assertEqual(metadata_negative, negative)
+        self.assertEqual((width, height), (1024, 1024))
 
     def test_prompt_studio_advanced_drops_negative_naia_field(self):
         fields = [
@@ -501,7 +502,7 @@ class PromptBuilderTests(unittest.TestCase):
 
         payload = result["ui"]["prompt_studio_advanced"][0]
         saved_fields = json.loads(payload["advanced_fields"])
-        saved_image_fields = json.loads(extra_pnginfo["workflow"]["nodes"][0]["widgets_values"][4])
+        saved_image_fields = json.loads(extra_pnginfo["workflow"]["nodes"][0]["widgets_values"][6])
 
         self.assertTrue(payload["use_naia"])
         self.assertEqual(saved_fields[0]["text"], "1girl, silver hair")
@@ -509,6 +510,19 @@ class PromptBuilderTests(unittest.TestCase):
         self.assertFalse(workflow_prompt["7"]["inputs"]["use_naia"])
         self.assertFalse(extra_pnginfo["workflow"]["nodes"][0]["widgets_values"][0])
         self.assertEqual(saved_image_fields[0]["text"], "1girl, silver hair")
+
+    def test_prompt_studio_advanced_outputs_selected_resolution(self):
+        result = EasyUseAnimaPromptStudioAdvanced().build(
+            False,
+            True,
+            False,
+            False,
+            "",
+            resolution_bucket="1.5MP",
+            resolution_size="896 * 1728 (14:27)",
+        )
+
+        self.assertEqual(result["result"][-2:], (896, 1728))
 
     def test_prompt_studio_extend_uses_numbered_slot_order(self):
         result = EasyUseAnimaPromptStudioExtend().build(
