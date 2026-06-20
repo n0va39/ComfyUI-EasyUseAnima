@@ -1469,6 +1469,80 @@ function updateHighlight(node, widget, tokens = widget.__easyuseAnimaTokens || [
     : `<span style="opacity: 0.45">${escapeHtml(input.placeholder || "")}</span>`;
 }
 
+function advancedHighlightState(node, field) {
+  node.__easyuseAnimaAdvancedHighlightStates ||= {};
+  const id = String(field?.id || "field");
+  node.__easyuseAnimaAdvancedHighlightStates[id] ||= {
+    seq: 0,
+    lastText: "",
+    pendingText: null,
+    tokens: [],
+  };
+  return node.__easyuseAnimaAdvancedHighlightStates[id];
+}
+
+function updateAdvancedFieldHighlight(node, field, textarea, tokens = null) {
+  if (!(textarea instanceof HTMLTextAreaElement)) {
+    return;
+  }
+  const overlay = ensureHighlightOverlay(textarea);
+  if (!overlay) {
+    return;
+  }
+  const state = advancedHighlightState(node, field);
+  const value = String(textarea.value || "");
+  copyInputTextMetrics(textarea, overlay);
+  syncOverlayBounds(textarea, overlay);
+  overlay.innerHTML = value
+    ? renderHighlightedText(value, tokens || state.tokens || [])
+    : `<span style="opacity: 0.45">${escapeHtml(textarea.placeholder || "")}</span>`;
+}
+
+function scheduleAdvancedFieldHighlight(node, field, textarea) {
+  const state = advancedHighlightState(node, field);
+  const text = String(textarea?.value || "");
+  if (!text.trim()) {
+    state.tokens = [];
+    state.lastText = "";
+    state.pendingText = null;
+    updateAdvancedFieldHighlight(node, field, textarea, []);
+    return;
+  }
+  if (state.lastText === text && Array.isArray(state.tokens)) {
+    updateAdvancedFieldHighlight(node, field, textarea, state.tokens);
+    return;
+  }
+  if (state.pendingText === text) {
+    updateAdvancedFieldHighlight(node, field, textarea, state.tokens);
+    return;
+  }
+
+  const seq = ++state.seq;
+  state.pendingText = text;
+  updateAdvancedFieldHighlight(node, field, textarea, state.tokens);
+  classifyPrompt(text)
+    .then((tokens) => {
+      if (seq !== state.seq || !textarea.isConnected) {
+        return;
+      }
+      state.lastText = text;
+      state.tokens = tokens;
+      updateAdvancedFieldHighlight(node, field, textarea, tokens);
+    })
+    .catch(() => {
+      if (seq !== state.seq || !textarea.isConnected) {
+        return;
+      }
+      state.tokens = [];
+      updateAdvancedFieldHighlight(node, field, textarea, []);
+    })
+    .finally(() => {
+      if (state.pendingText === text) {
+        state.pendingText = null;
+      }
+    });
+}
+
 function enhanceResizableInput(node, widget) {
   const input = findInputEl(widget);
   if (!input) {
@@ -2453,6 +2527,9 @@ function createAdvancedFieldElement(node, field) {
       ? "Read-only trigger field. Connect a STRING trigger_words output to this field."
     : linked ? "Connected STRING input controls this field during execution." : "";
   textarea.dataset.easyuseAnimaAdvancedFieldId = field.id;
+  const updateFieldHighlight = debounce(() => {
+    scheduleAdvancedFieldHighlight(node, field, textarea);
+  }, 180);
   const syncHeight = () => {
     const height = desiredTextareaHeight(
       textarea,
@@ -2464,6 +2541,8 @@ function createAdvancedFieldElement(node, field) {
       field.height = height;
     }
     writeAdvancedFields(node, fields);
+    updateAdvancedFieldHighlight(node, field, textarea);
+    updateFieldHighlight();
     syncAdvancedNodeSize(node);
   };
   textarea.addEventListener("input", () => {
@@ -2471,12 +2550,24 @@ function createAdvancedFieldElement(node, field) {
       return;
     }
     field.text = textarea.value;
+    updateAdvancedFieldHighlight(node, field, textarea);
+    updateFieldHighlight();
     syncHeight();
   });
+  textarea.addEventListener("scroll", () => updateAdvancedFieldHighlight(node, field, textarea));
   textarea.addEventListener("mouseup", syncHeight);
   textarea.addEventListener("pointerup", syncHeight);
-  textarea.addEventListener("change", syncHeight);
-  requestAnimationFrame(syncHeight);
+  textarea.addEventListener("change", () => {
+    updateAdvancedFieldHighlight(node, field, textarea);
+    updateFieldHighlight();
+    syncHeight();
+  });
+  textarea.addEventListener("click", () => updateAdvancedFieldHighlight(node, field, textarea));
+  textarea.addEventListener("keyup", () => updateAdvancedFieldHighlight(node, field, textarea));
+  requestAnimationFrame(() => {
+    syncHeight();
+    updateFieldHighlight();
+  });
 
   header.append(label, tools);
   block.append(header, textarea);
