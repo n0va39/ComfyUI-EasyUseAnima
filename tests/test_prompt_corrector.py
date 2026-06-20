@@ -786,6 +786,7 @@ class AutocompleteDatasetTests(unittest.TestCase):
                 "general",
                 "artist_unknown",
                 "natural",
+                "natural",
                 "unknown",
             ],
         )
@@ -798,8 +799,11 @@ class AutocompleteDatasetTests(unittest.TestCase):
         self.assertTrue(result["tokens"][4]["learned"])
         self.assertEqual(result["tokens"][5]["base"], "unregistered_artist")
         self.assertTrue(result["tokens"][5]["weighted"])
-        self.assertEqual(result["tokens"][6]["base"], "A highly aesthetic Pixiv style illustration, clean composition.")
-        self.assertFalse(result["tokens"][7]["learned"])
+        self.assertEqual(result["tokens"][6]["base"], "A highly aesthetic Pixiv style illustration")
+        self.assertEqual(result["tokens"][7]["base"], "clean composition.")
+        self.assertTrue(result["tokens"][6]["weighted"])
+        self.assertTrue(result["tokens"][7]["weighted"])
+        self.assertFalse(result["tokens"][8]["learned"])
 
     def test_classifies_count_after_natural_language_sentence(self):
         result = classify_prompt_text(
@@ -836,6 +840,26 @@ class AutocompleteDatasetTests(unittest.TestCase):
         self.assertEqual(classified["tokens"][2]["base"], "score_7")
         self.assertEqual([token["learned"] for token in classified["tokens"]], [False] * 7)
         self.assertEqual(autocomplete["results"], [])
+
+    def test_weighted_group_classifies_each_comma_separated_token(self):
+        classified = classify_prompt_text("(highres, absurdres, very aesthetic:0.8)")
+
+        self.assertEqual(
+            [token["base"] for token in classified["tokens"]],
+            ["highres", "absurdres", "very aesthetic"],
+        )
+        self.assertEqual(
+            [token["section"] for token in classified["tokens"]],
+            ["meta", "meta", "quality"],
+        )
+        self.assertEqual([token["weighted"] for token in classified["tokens"]], [True, True, True])
+
+    def test_unbalanced_parentheses_are_syntax_errors(self):
+        classified = classify_prompt_text("(highres, absurdres")
+
+        self.assertEqual(len(classified["tokens"]), 1)
+        self.assertEqual(classified["tokens"][0]["section"], "syntax")
+        self.assertEqual(classified["tokens"][0]["label"], "문법 오류")
 
 
 if __name__ == "__main__":

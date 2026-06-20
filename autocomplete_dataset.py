@@ -244,6 +244,45 @@ def _is_weighted_token(token: str) -> bool:
     return bool(_WEIGHTED_TOKEN_RE.match(str(token or "").strip()))
 
 
+def _is_escaped(value: str, index: int) -> bool:
+    slash_count = 0
+    cursor = index - 1
+    while cursor >= 0 and value[cursor] == "\\":
+        slash_count += 1
+        cursor -= 1
+    return slash_count % 2 == 1
+
+
+def _has_unbalanced_parentheses(token: str) -> bool:
+    depth = 0
+    value = str(token or "")
+    for index, char in enumerate(value):
+        if char == "(" and not _is_escaped(value, index):
+            depth += 1
+        elif char == ")" and not _is_escaped(value, index):
+            if depth <= 0:
+                return True
+            depth -= 1
+    return depth != 0
+
+
+def _classification_tokens(token: str) -> list[tuple[str, bool, bool]]:
+    token = _INLINE_SPACE_RE.sub(" ", str(token).strip(" ,\n\t"))
+    if not token:
+        return []
+    if _has_unbalanced_parentheses(token):
+        return [(token, False, True)]
+    weighted = _WEIGHTED_TOKEN_RE.match(token)
+    if not weighted:
+        return [(token, False, False)]
+    inner = weighted.group(1).strip(" ,\n\t")
+    parts = [
+        _INLINE_SPACE_RE.sub(" ", part.strip(" ,\n\t"))
+        for part in parse_prompt(inner, profile="prompt").tokens
+    ]
+    return [(part, True, False) for part in parts if part]
+
+
 def _token_section(token: str, entry: AutocompleteEntry | None) -> tuple[str, str]:
     base = _token_base(token)
     is_artist_request = _is_artist_request(token)
@@ -289,18 +328,29 @@ def _token_section(token: str, entry: AutocompleteEntry | None) -> tuple[str, st
 
 def classify_prompt_text(text: str, limit: int = 240, path: Path = AUTOCOMPLETE_CSV) -> dict:
     entries = _entry_map(path)
-    tokens: list[str] = []
+    tokens: list[tuple[str, bool, bool]] = []
     normalized = str(text or "").replace("\r\n", "\n").replace("\r", "\n")
     normalized = normalized.replace("，", ",").replace("\n", ",")
     for token in parse_prompt(normalized, profile="prompt").tokens:
-        token = _INLINE_SPACE_RE.sub(" ", str(token).strip(" ,\n\t"))
-        if token:
-            tokens.append(token)
+        tokens.extend(_classification_tokens(token))
         if len(tokens) >= max(1, min(limit, 500)):
+            tokens = tokens[: max(1, min(limit, 500))]
             break
 
     classified = []
-    for token in tokens:
+    for token, weighted, syntax_error in tokens:
+        if syntax_error:
+            classified.append({
+                "token": token,
+                "base": token,
+                "section": "syntax",
+                "label": "문법 오류",
+                "learned": False,
+                "weighted": False,
+                "count": 0,
+                "description": "Unbalanced prompt parentheses",
+            })
+            continue
         base = _token_base(token)
         key = _normalize(base)
         entry = entries.get(key)
@@ -311,7 +361,7 @@ def classify_prompt_text(text: str, limit: int = 240, path: Path = AUTOCOMPLETE_
             "section": section,
             "label": label,
             "learned": entry is not None,
-            "weighted": _is_weighted_token(token),
+            "weighted": weighted or _is_weighted_token(token),
             "count": entry.count if entry else 0,
             "description": entry.description if entry else "",
         })

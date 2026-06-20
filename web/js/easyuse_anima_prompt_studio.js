@@ -75,6 +75,7 @@ const SECTION_STYLES = {
   meta: { label: "메타", color: "#94a3b8", background: "rgba(100, 116, 139, 0.18)", weight: 600 },
   general: { label: "학습 태그", color: "#4ade80", background: "rgba(22, 163, 74, 0.16)", weight: 600 },
   natural: { label: "자연어", color: "#cbd5e1", background: "rgba(71, 85, 105, 0.16)", weight: 400 },
+  syntax: { label: "문법 오류", color: "#f87171", background: "transparent", underline: true, weight: 400 },
   unknown: { label: "미확인", color: "#cbd5e1", background: "transparent", underline: true, weight: 400 },
 };
 
@@ -89,6 +90,7 @@ const LEGEND_ITEMS = [
   "general",
   "meta",
   "natural",
+  "syntax",
   "artist_unknown",
   "unknown",
 ];
@@ -676,7 +678,14 @@ function tokenSpanHtml(text, token) {
 
 function findTokenMatch(body, offset, token) {
   let start = offset;
-  while (start < body.length && /\s/.test(body[start])) {
+  const skipWeightedSyntax = !!token?.weighted;
+  while (
+    start < body.length
+    && (
+      /\s/.test(body[start])
+      || (skipWeightedSyntax && (body[start] === "(" || body[start] === ","))
+    )
+  ) {
     start += 1;
   }
 
