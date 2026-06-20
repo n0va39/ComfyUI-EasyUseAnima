@@ -25,11 +25,14 @@ from .autocomplete_dataset import (
     resolve_autocomplete_source as resolve_autocomplete_source_path,
     search_autocomplete,
 )
+try:
+    from .storage import USER_DATA_DIR
+except ImportError:
+    from storage import USER_DATA_DIR
 
 
 LORA_PREVIEW_EXTENSIONS = (".webp", ".png", ".jpg", ".jpeg")
-PACKAGE_DATA_DIR = Path(__file__).resolve().parent / "__easyuse_anima__"
-LORA_PROFILE_DIR = PACKAGE_DATA_DIR / "profiles"
+LORA_PROFILE_DIR = USER_DATA_DIR / "profiles"
 MAX_LORA_PROFILES = 16
 INVALID_PROFILE_NAME_CHARS = re.compile(r'[<>:"/\\|?*\x00-\x1f]+')
 
@@ -41,11 +44,11 @@ def _sanitize_lora_profile_name(name: str) -> str:
     return safe_name[:80]
 
 
-def _lora_profile_path(name: str) -> Path:
+def _lora_profile_path(name: str, profile_dir: Path | None = None) -> Path:
     safe_name = _sanitize_lora_profile_name(name)
-    profile_dir = LORA_PROFILE_DIR.resolve()
-    path = (profile_dir / f"{safe_name}.json").resolve()
-    if os.path.commonpath((str(profile_dir), str(path))) != str(profile_dir):
+    root = (profile_dir or LORA_PROFILE_DIR).resolve()
+    path = (root / f"{safe_name}.json").resolve()
+    if os.path.commonpath((str(root), str(path))) != str(root):
         raise ValueError("Invalid profile path")
     return path
 

@@ -813,8 +813,49 @@ function hideInternalWidget(node, name) {
   widget.__easyuseAnimaHidden = true;
   widget.hidden = true;
   widget.serialize = true;
+  widget.options ||= {};
+  widget.options.hidden = true;
   widget.computeSize = () => [0, 0];
   widget.draw = () => {};
+  const input = findInputEl(widget);
+  if (input) {
+    input.style.display = "none";
+    input.style.pointerEvents = "none";
+    input.tabIndex = -1;
+  }
+  node.__easyuseAnimaHiddenWidgets ||= {};
+  node.__easyuseAnimaHiddenWidgets[name] = widget;
+  if (Array.isArray(node.widgets)) {
+    const index = node.widgets.indexOf(widget);
+    if (index >= 0) {
+      node.widgets.splice(index, 1);
+    }
+  }
+  node.setDirtyCanvas?.(true, true);
+}
+
+function restoreInternalWidgetsForConfigure(node) {
+  const hidden = node.__easyuseAnimaHiddenWidgets;
+  if (!hidden || !Array.isArray(node.widgets)) {
+    return;
+  }
+  const entries = [
+    ["profile_count", WIDGET_INDEX.profileCount],
+    ["lora_name", WIDGET_INDEX.loraName],
+    ["loras", WIDGET_INDEX.loras],
+    ["profile_data", WIDGET_INDEX.profileData],
+  ];
+  for (const [name, index] of entries) {
+    const widget = hidden[name];
+    if (!widget || node.widgets.includes(widget)) {
+      continue;
+    }
+    widget.__easyuseAnimaHidden = false;
+    widget.hidden = false;
+    widget.options ||= {};
+    widget.options.hidden = false;
+    node.widgets.splice(Math.min(index, node.widgets.length), 0, widget);
+  }
 }
 
 function finalizeInternalWidgets(node) {
@@ -1914,12 +1955,9 @@ function initializeNode(node) {
   node.__easyuseAnimaLoraPresetInitialized = true;
   node.serialize_widgets = true;
   ensureLoraStackInput(node);
-  ensureProfileBar(node);
   for (const name of Object.keys(INTERNAL_WIDGET_DEFAULTS)) {
     ensureWidgetValue(node, name);
   }
-  hideInternalWidget(node, "profile_data");
-  hideInternalWidget(node, "profile_count");
 
   wrapWidgetCallback(node, "style_prompt", () => syncAfterWidgetChange(node));
   wrapWidgetCallback(node, "loras", () => syncAfterWidgetChange(node));
@@ -2075,6 +2113,7 @@ app.registerExtension({
     }
     const originalConfigure = nodeType.prototype.configure;
     nodeType.prototype.configure = function (info) {
+      restoreInternalWidgetsForConfigure(this);
       normalizeSerializedWidgets(info);
       return originalConfigure?.apply(this, arguments);
     };

@@ -253,8 +253,8 @@ Main behavior:
   indexes wrap across the available profile count.
 - Profiles keep style prompt text, selected LoRAs, LoRA strengths, and enabled
   state in the workflow.
-- Profiles can also be saved to and loaded from JSON files under
-  `__easyuse_anima__/profiles`.
+- Profiles can also be saved to and loaded from JSON files under the ComfyUI
+  user data directory for `easyuse_anima`.
 - Loading a saved profile appends it as a new profile instead of overwriting the
   current profile.
 
@@ -337,10 +337,15 @@ pip install -r ComfyUI-EasyUseAnima/requirements.txt
 
 Restart ComfyUI after installation.
 
+Settings and LoRA preset profiles are stored in the ComfyUI user data directory
+through `folder_paths.get_system_user_directory("easyuse_anima")`, not inside the
+custom node installation folder. This keeps user data stable across Manager
+updates and git reinstalls.
+
 ## ComfyUI Manager / Registry
 
 This repository includes `pyproject.toml` metadata for future Comfy Registry
-registration. The Registry node id is `easyuse-anima`.
+registration. The Registry node id is `ComfyUI-EasyUseAnima`.
 
 Before publishing to the Registry, verify that `[tool.comfy].PublisherId` matches
 the actual Comfy Registry publisher id.

@@ -275,7 +275,8 @@ const ADVANCED_DEFAULT_FIELDS = [
 ];
 
 function findWidget(node, name) {
-  return node.widgets?.find((widget) => widget.name === name);
+  return node.__easyuseAnimaHiddenWidgets?.[name]
+    || node.widgets?.find((widget) => widget.name === name);
 }
 
 function findInputEl(widget) {
@@ -2213,8 +2214,25 @@ function hideAdvancedInternalWidget(node, name) {
   widget.__easyuseAnimaAdvancedHidden = true;
   widget.hidden = true;
   widget.serialize = true;
+  widget.options ||= {};
+  widget.options.hidden = true;
   widget.computeSize = () => [0, 0];
   widget.draw = () => {};
+  const input = findInputEl(widget);
+  if (input) {
+    input.style.display = "none";
+    input.style.pointerEvents = "none";
+    input.tabIndex = -1;
+  }
+  node.__easyuseAnimaHiddenWidgets ||= {};
+  node.__easyuseAnimaHiddenWidgets[name] = widget;
+  if (Array.isArray(node.widgets)) {
+    const index = node.widgets.indexOf(widget);
+    if (index >= 0) {
+      node.widgets.splice(index, 1);
+    }
+  }
+  node.setDirtyCanvas?.(true, true);
 }
 
 function hideAdvancedControlWidgets(node) {

@@ -255,8 +255,8 @@ ComfyUI LoRA 경로를 folder-tree로 보고, 검색해서 LoRA를 선택하는 
   넘는 index는 전체 개수 기준으로 wrap됩니다.
 - profile은 style prompt, 선택한 LoRA, LoRA strength, 활성화 상태를
   워크플로우에 저장합니다.
-- profile은 `__easyuse_anima__/profiles` 아래 JSON 파일로 저장하고 불러올 수
-  있습니다.
+- profile은 `easyuse_anima`용 ComfyUI 사용자 데이터 디렉토리 아래 JSON 파일로
+  저장하고 불러올 수 있습니다.
 - 저장된 profile을 불러오면 현재 profile을 덮어쓰지 않고 새 profile로
   추가합니다.
 
@@ -335,10 +335,15 @@ pip install -r ComfyUI-EasyUseAnima/requirements.txt
 
 설치 후 ComfyUI를 재시작합니다.
 
+설정값과 LoRA 프리셋 프로필은 커스텀 노드 설치 폴더가 아니라
+`folder_paths.get_system_user_directory("easyuse_anima")`로 얻은 ComfyUI 사용자
+데이터 디렉토리에 저장됩니다. 따라서 Manager 업데이트나 git 재설치로 노드팩
+폴더가 바뀌어도 사용자 데이터가 유지됩니다.
+
 ## ComfyUI Manager / Registry
 
 이 저장소는 향후 Comfy Registry 등록을 위한 `pyproject.toml` metadata를 포함합니다.
-Registry node id는 `easyuse-anima`입니다.
+Registry node id는 `ComfyUI-EasyUseAnima`입니다.
 
 Registry에 publish하기 전에 `[tool.comfy].PublisherId`가 실제 Comfy Registry
 publisher id와 일치하는지 확인해야 합니다.

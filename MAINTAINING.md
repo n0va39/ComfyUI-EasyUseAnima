@@ -12,7 +12,7 @@ This repository is prepared for future ComfyUI Manager / Comfy Registry registra
 
 ## Registry Rules
 
-- `pyproject.toml` `[project].name` is the Registry node id. Treat `easyuse-anima` as immutable.
+- `pyproject.toml` `[project].name` is the Registry node id. Keep it aligned with the GitHub repository name: `ComfyUI-EasyUseAnima`.
 - `[tool.comfy].PublisherId` must match the Comfy Registry publisher id. It is currently set to `n0va39`.
 - Comfy Registry display name for the publisher is `N0VA`; this is informational. The publish identity is the publisher id `n0va39`.
 - Keep `[project.urls].Repository` pointed at the public GitHub repository.
@@ -55,7 +55,7 @@ Use this procedure when publishing a release to Comfy Registry / ComfyUI Manager
 ### 1. Prepare Metadata
 
 - Confirm `pyproject.toml` has:
-  - `[project].name = "easyuse-anima"`
+  - `[project].name = "ComfyUI-EasyUseAnima"`
   - `[project].version = "X.Y.Z"` with semantic versioning.
   - `[project.urls].Repository = "https://github.com/n0va39/ComfyUI-EasyUseAnima"`
   - `[tool.comfy].PublisherId = "n0va39"`
@@ -140,5 +140,5 @@ If automatic publishing is wanted later, add a guarded `push` trigger for
 
 - Confirm the Registry page for publisher `n0va39` shows the new version.
 - Confirm install through ComfyUI Manager / Registry.
-- Create and push a matching Git tag, for example `v0.1.2`, unless the tag was already created before publishing.
+- Create and push a matching Git tag, for example `v0.1.0`, unless the tag was already created before publishing.
 - Do not rewrite the tag after public release. Use a new patch version for fixes.

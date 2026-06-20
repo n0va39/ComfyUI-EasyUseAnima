@@ -3,11 +3,11 @@ from __future__ import annotations
 import json
 
 try:
-    from .anima_prompt.knowledge import PACKAGE_DATA_DIR
+    from .storage import USER_DATA_DIR
 except ImportError:
-    from anima_prompt.knowledge import PACKAGE_DATA_DIR
+    from storage import USER_DATA_DIR
 
-SETTINGS_FILE = PACKAGE_DATA_DIR / "settings.json"
+SETTINGS_FILE = USER_DATA_DIR / "settings.json"
 
 DEFAULT_SETTINGS = {
     "ui.language": "en",
