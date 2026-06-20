@@ -990,8 +990,13 @@ function ensureHighlightOverlay(input) {
   input.setAttribute("autocapitalize", "off");
 
   if (input.__easyuseAnimaHighlightOverlay) {
-    syncOverlayBounds(input, input.__easyuseAnimaHighlightOverlay);
-    return input.__easyuseAnimaHighlightOverlay;
+    const overlay = input.__easyuseAnimaHighlightOverlay;
+    if (overlay.isConnected && overlay.parentElement === input.parentElement) {
+      syncOverlayBounds(input, overlay);
+      return overlay;
+    }
+    overlay.remove?.();
+    input.__easyuseAnimaHighlightOverlay = null;
   }
 
   const parent = input.parentElement;
@@ -1636,6 +1641,7 @@ function updateHighlight(node, widget, tokens = widget.__easyuseAnimaTokens || [
   if (!input) {
     return;
   }
+  input.__easyuseAnimaHighlightRefresh = () => updateHighlight(node, widget, widget.__easyuseAnimaTokens || []);
   const overlay = ensureHighlightOverlay(input);
   if (!overlay) {
     return;
@@ -1664,6 +1670,9 @@ function updateAdvancedFieldHighlight(node, field, textarea, tokens = null) {
   if (!(textarea instanceof HTMLTextAreaElement)) {
     return;
   }
+  textarea.__easyuseAnimaNode = node;
+  textarea.__easyuseAnimaField = field;
+  textarea.__easyuseAnimaHighlightRefresh = () => updateAdvancedFieldHighlight(node, field, textarea);
   const overlay = ensureHighlightOverlay(textarea);
   if (!overlay) {
     return;
@@ -1738,7 +1747,7 @@ function registerAdvancedAutocompleteInput(node, field, textarea) {
   window.__easyuseAnimaPendingAutocompleteInputs.push({ input: textarea, options });
 }
 
-function refreshAdvancedHighlights(node) {
+function refreshAdvancedHighlights(node, { classify = true } = {}) {
   const editor = node?.__easyuseAnimaAdvancedEditorEl;
   if (!editor) {
     return;
@@ -1751,8 +1760,67 @@ function refreshAdvancedHighlights(node) {
       return;
     }
     updateAdvancedFieldHighlight(node, field, textarea);
-    scheduleAdvancedFieldHighlight(node, field, textarea);
+    if (classify) {
+      scheduleAdvancedFieldHighlight(node, field, textarea);
+    }
   });
+}
+
+let promptHighlightRefreshRaf = 0;
+
+function refreshConnectedHighlightOverlays() {
+  document.querySelectorAll(".easyuse-anima-highlight-input").forEach((input) => {
+    if (!(input instanceof HTMLTextAreaElement || input instanceof HTMLInputElement)) {
+      return;
+    }
+    if (typeof input.__easyuseAnimaHighlightRefresh === "function") {
+      input.__easyuseAnimaHighlightRefresh();
+      return;
+    }
+    const overlay = ensureHighlightOverlay(input);
+    if (!overlay) {
+      return;
+    }
+    copyInputTextMetrics(input, overlay);
+    syncOverlayBounds(input, overlay);
+  });
+}
+
+function requestConnectedHighlightOverlayRefresh() {
+  if (promptHighlightRefreshRaf) {
+    return;
+  }
+  promptHighlightRefreshRaf = requestAnimationFrame(() => {
+    promptHighlightRefreshRaf = 0;
+    refreshConnectedHighlightOverlays();
+    setTimeout(refreshConnectedHighlightOverlays, 80);
+  });
+}
+
+function installPromptHighlightOverlayRefresh() {
+  if (window.__easyuseAnimaHighlightOverlayRefreshInstalled) {
+    return;
+  }
+  window.__easyuseAnimaHighlightOverlayRefreshInstalled = true;
+  const schedule = () => requestConnectedHighlightOverlayRefresh();
+  window.addEventListener("focus", schedule);
+  window.addEventListener("resize", schedule);
+  document.addEventListener("visibilitychange", () => {
+    if (!document.hidden) {
+      schedule();
+    }
+  });
+  const installCanvasListeners = () => {
+    const canvas = app?.canvas?.canvas;
+    if (!canvas || canvas.__easyuseAnimaHighlightRefreshInstalled) {
+      return;
+    }
+    canvas.__easyuseAnimaHighlightRefreshInstalled = true;
+    canvas.addEventListener("pointerup", schedule, { passive: true });
+    canvas.addEventListener("wheel", schedule, { passive: true });
+  };
+  installCanvasListeners();
+  setTimeout(installCanvasListeners, 250);
 }
 
 function refreshAllPromptHighlights() {
@@ -3315,6 +3383,7 @@ app.registerExtension({
   async setup() {
     installMiddlePanForwarder();
     installAdvancedSaveSync();
+    installPromptHighlightOverlayRefresh();
     await loadPromptStudioSettings();
     window.addEventListener("easyuse-anima-settings-updated", (event) => {
       if (!event?.detail) {
