@@ -682,6 +682,48 @@ function removeLoraEntry(node, index) {
   });
 }
 
+function moveLoraEntry(node, index, direction) {
+  mutateLoras(node, (loras) => {
+    const from = Number(index);
+    const to = from + Number(direction || 0);
+    if (!Number.isInteger(from) || !Number.isInteger(to) || !loras[from] || to < 0 || to >= loras.length) {
+      return;
+    }
+    const [entry] = loras.splice(from, 1);
+    loras.splice(to, 0, entry);
+  });
+}
+
+function openLoraEntryMenu(node, event, index) {
+  const lora = normalizeLoraEntry(lorasWidgetValue(node)[index]);
+  if (!lora.name) {
+    return;
+  }
+  const loras = lorasWidgetValue(node);
+  new LiteGraph.ContextMenu([
+    {
+      content: "Move Up",
+      disabled: index <= 0,
+      callback: () => moveLoraEntry(node, index, -1),
+    },
+    {
+      content: "Move Down",
+      disabled: index >= loras.length - 1,
+      callback: () => moveLoraEntry(node, index, 1),
+    },
+    null,
+    {
+      content: "Remove",
+      callback: () => removeLoraEntry(node, index),
+    },
+  ], {
+    event,
+    title: loraDisplayName(lora.name),
+    scale: Math.max(1, Number(app.canvas?.ds?.scale) || 1),
+    className: "dark",
+  });
+}
+
 function fitCanvasText(ctx, text, maxWidth) {
   const value = String(text || "");
   if (ctx.measureText(value).width <= maxWidth) {
@@ -893,6 +935,14 @@ function positionMenu(menu, clientPoint) {
   menu.style.top = `${top}px`;
 }
 
+function normalizeSearchText(value) {
+  return String(value || "")
+    .replace(/[\\/_-]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .toLowerCase();
+}
+
 function positionPreview(element, event) {
   const body = document.body.getBoundingClientRect();
   let left = Number(event?.clientX || body.width / 2) + 18;
@@ -992,6 +1042,58 @@ function openLoraMenu(node, event, pos, onChoose) {
   });
 }
 
+function ensureLoraMenuSearch(menu, node) {
+  if (!menu || menu.__easyuseAnimaSearchReady) {
+    return;
+  }
+  menu.__easyuseAnimaSearchReady = true;
+  const input = createEl("input", {
+    className: "easyuse-anima-lora-search",
+  });
+  input.type = "search";
+  input.placeholder = "Search LoRA";
+  input.autocomplete = "off";
+  input.spellcheck = false;
+  const stop = (event) => event.stopPropagation();
+  for (const eventName of ["pointerdown", "mousedown", "mouseup", "click", "dblclick", "keydown"]) {
+    input.addEventListener(eventName, stop);
+  }
+  input.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") {
+      input.value = "";
+      applyLoraMenuSearch(menu, "");
+      event.preventDefault();
+      event.stopPropagation();
+    }
+  });
+  input.addEventListener("input", () => {
+    applyLoraMenuSearch(menu, input.value);
+    positionMenu(menu, node?.__easyuseAnimaLoraMenuPoint);
+  });
+  const firstDirectEntry = Array.from(menu.children).find((child) => child.classList?.contains("litemenu-entry"));
+  menu.insertBefore(input, firstDirectEntry || menu.firstChild);
+  window.requestAnimationFrame(() => {
+    input.focus();
+    positionMenu(menu, node?.__easyuseAnimaLoraMenuPoint);
+  });
+}
+
+function applyLoraMenuSearch(menu, rawQuery) {
+  const query = normalizeSearchText(rawQuery);
+  const hasQuery = !!query;
+  const entries = Array.from(menu.querySelectorAll(".litemenu-entry:not(.easyuse-anima-combo-folder)"));
+  for (const entry of entries) {
+    const text = entry.getAttribute("data-search") || normalizeSearchText(entry.getAttribute("data-value") || entry.textContent);
+    entry.style.display = !hasQuery || text.includes(query) ? "" : "none";
+  }
+  for (const folder of menu.querySelectorAll(".easyuse-anima-combo-folder")) {
+    folder.style.display = hasQuery ? "none" : "";
+  }
+  for (const container of menu.querySelectorAll(".easyuse-anima-combo-folder-contents")) {
+    container.style.display = hasQuery ? "block" : (container.__easyuseAnimaOpen ? "block" : "none");
+  }
+}
+
 function updateLoraMenuTree(menu, node) {
   const items = Array.from(menu.querySelectorAll(".litemenu-entry"));
   if (!items.length || menu.__easyuseAnimaTreeReady) {
@@ -1009,6 +1111,7 @@ function updateLoraMenuTree(menu, node) {
     }
     item.setAttribute("data-value", value);
     const parts = value.split(splitBy).filter(Boolean);
+    item.setAttribute("data-search", normalizeSearchText([value, parts.join(" ")].join(" ")));
     item.textContent = parts[parts.length - 1] || value;
     if (parts.length > 1) {
       item.prepend(createEl("span", {
@@ -1059,6 +1162,7 @@ function updateLoraMenuTree(menu, node) {
       folderEl.addEventListener("click", (event) => {
         event.stopPropagation();
         const open = childContainer.style.display === "none";
+        childContainer.__easyuseAnimaOpen = open;
         childContainer.style.display = open ? "block" : "none";
         folderEl.querySelector(".easyuse-anima-combo-folder-arrow").textContent = open ? "▼" : "▶";
       });
@@ -1068,6 +1172,7 @@ function updateLoraMenuTree(menu, node) {
   };
 
   insertFolders(parent, folderMap);
+  ensureLoraMenuSearch(menu, node);
   positionMenu(menu, node?.__easyuseAnimaLoraMenuPoint);
 }
 
@@ -1431,6 +1536,7 @@ class LoraRowWidget {
 
     const showStrength = drawWidth >= 230;
     const showInfo = drawWidth >= 310;
+    const showMenu = drawWidth >= 280;
     let nameRight = right - inner;
     if (showStrength) {
       const number = drawNumberPart(ctx, right - inner, rowY, rowH, lora.strength);
@@ -1457,6 +1563,18 @@ class LoraRowWidget {
       this.hitAreas.inc = null;
       this.hitAreas.strengthAny = null;
       this.hitAreas.info = null;
+    }
+
+    if (showMenu) {
+      const menuSize = 14;
+      const menuX = nameRight - menuSize - inner;
+      this.hitAreas.menu = [menuX, rowY + 2, menuSize, Math.max(12, rowH - 4)];
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText("⋮", menuX + menuSize / 2, midY);
+      nameRight = menuX - inner;
+    } else {
+      this.hitAreas.menu = null;
     }
 
     const nameW = Math.max(0, nameRight - posX - inner);
@@ -1510,13 +1628,7 @@ class LoraRowWidget {
       return false;
     }
     if (event.button === 2 && pointInArea(pos, [0, this.hitAreas.lora?.[1] ?? 0, node.size[0], LORA_ROW_HEIGHT])) {
-      new LiteGraph.ContextMenu(["Delete"], {
-        event,
-        title: lora.name,
-        scale: Math.max(1, Number(app.canvas?.ds?.scale) || 1),
-        className: "dark",
-        callback: () => removeLoraEntry(node, this.index),
-      });
+      openLoraEntryMenu(node, event, this.index);
       return true;
     }
     if (event.button !== 0) {
@@ -1528,6 +1640,10 @@ class LoraRowWidget {
     }
     if (pointInArea(pos, this.hitAreas.lora)) {
       openLoraMenu(node, event, pos, (entry) => updateLoraEntry(node, this.index, entry));
+      return true;
+    }
+    if (pointInArea(pos, this.hitAreas.menu)) {
+      openLoraEntryMenu(node, event, this.index);
       return true;
     }
     if (pointInArea(pos, this.hitAreas.info)) {
@@ -1888,6 +2004,17 @@ app.registerExtension({
           z-index: 10000;
           pointer-events: none;
           display: none;
+        }
+        .easyuse-anima-lora-menu .easyuse-anima-lora-search {
+          box-sizing: border-box;
+          width: calc(100% - 10px);
+          margin: 4px 5px 6px;
+          padding: 4px 6px;
+          color: var(--input-text, #ddd);
+          background: var(--comfy-input-bg, #222);
+          border: 1px solid rgba(180, 180, 185, 0.45);
+          border-radius: 3px;
+          outline: none;
         }
         .easyuse-anima-lora-menu .easyuse-anima-combo-folder {
           opacity: 0.72;
