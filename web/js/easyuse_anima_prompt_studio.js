@@ -548,6 +548,7 @@ async function loadPromptStudioSettings() {
       return;
     }
     applyPromptStudioSettings(await response.json());
+    refreshAllPromptHighlights();
     app.graph?.setDirtyCanvas(true, true);
   } catch {
     // Keep built-in defaults if the settings endpoint is not available yet.
@@ -1541,6 +1542,38 @@ function scheduleAdvancedFieldHighlight(node, field, textarea) {
         state.pendingText = null;
       }
     });
+}
+
+function refreshAdvancedHighlights(node) {
+  const editor = node?.__easyuseAnimaAdvancedEditorEl;
+  if (!editor) {
+    return;
+  }
+  const fields = node.__easyuseAnimaAdvancedFields || parseAdvancedFields(node);
+  const byId = new Map(fields.map((field) => [String(field.id), field]));
+  editor.querySelectorAll("textarea[data-easyuse-anima-advanced-field-id]").forEach((textarea) => {
+    const field = byId.get(String(textarea.dataset.easyuseAnimaAdvancedFieldId || ""));
+    if (!field) {
+      return;
+    }
+    updateAdvancedFieldHighlight(node, field, textarea);
+    scheduleAdvancedFieldHighlight(node, field, textarea);
+  });
+}
+
+function refreshAllPromptHighlights() {
+  for (const node of app.graph?._nodes || []) {
+    if (isAdvancedNode(node)) {
+      refreshAdvancedHighlights(node);
+      continue;
+    }
+    for (const name of studioFieldNames(node)) {
+      const widget = findWidget(node, name);
+      if (widget) {
+        updateHighlight(node, widget);
+      }
+    }
+  }
 }
 
 function enhanceResizableInput(node, widget) {
@@ -2667,6 +2700,10 @@ function renderAdvancedEditor(node) {
   editor.append(createAdvancedControlBar(node), panes);
   writeAdvancedFields(node, node.__easyuseAnimaAdvancedFields);
   syncAdvancedNodeSize(node);
+  requestAnimationFrame(() => {
+    refreshAdvancedHighlights(node);
+    requestAnimationFrame(() => refreshAdvancedHighlights(node));
+  });
 }
 
 function hookAdvancedNode(node) {
