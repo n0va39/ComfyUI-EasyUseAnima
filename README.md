@@ -41,6 +41,35 @@ Main controls:
 
 The `remove_*` preprocessing options are marked as advanced inputs.
 
+### Anima Prompt Corrector
+
+Category: `EasyUse Anima/Prompt`
+
+Outputs:
+
+- `corrected_prompt`
+- `report`
+
+This node accepts a comma-separated prompt and returns a normalized
+ANIMA-ordered prompt plus a JSON report. It uses the vendored `anima_prompt`
+MVP core and does not depend on external character/artist exports.
+
+Main controls:
+
+- `artist_overrides`: manual comma- or newline-separated artist triggers.
+- `artist_exclusions`: tags that must not be treated as artists.
+
+Prompt syntax:
+
+- Unescaped parentheses are treated as prompt weighting syntax and are preserved,
+  for example `(long_hair:1.2)`.
+- Literal parentheses in tag names are escaped as `\(` and `\)`.
+- Commas inside unescaped weighted parentheses are not split as top-level prompt
+  separators by the corrector.
+- Natural-language prompt text keeps its original casing.
+- If a natural-language sentence is immediately followed by a count tag such as
+  `1girl`, the count tag is split out and reordered normally.
+
 ### Anima Prompt Builder
 
 Category: `EasyUse Anima/Prompt`
@@ -74,14 +103,125 @@ Behavior:
 - `pin_trigger_tags_to_front=true`: trigger fields are fixed at the front before
   quality tags instead of being placed after leading quality tags.
 
+### Anima Prompt Studio
+
+Category: `EasyUse Anima/Prompt`
+
+This node has the same outputs and prompt-building behavior as `Anima Prompt
+Builder`, but adds front-end editing helpers:
+
+- LoRA trigger input is placed near the top of the node.
+- Prompt text fields can be resized vertically in the node UI.
+- Text fields use tag autocomplete and category highlighting.
+- The preview/highlight overlay follows the current text, including externally
+  connected text after workflow execution.
+- The node keeps its text in workflow serialization.
+
+### Anima Prompt Studio Advanced
+
+Category: `EasyUse Anima/Prompt`
+
+Outputs:
+
+- `prompt`
+- `negative_prompt`
+- `anima_mod_guidance_quality_tags`
+- `use_anima_mod_guidance`
+- `metadata_prompt`
+- `metadata_negative_prompt`
+
+This node is the flexible Prompt Studio variant for larger workflows.
+
+Field model:
+
+- Positive and negative prompts are edited as separate field groups.
+- Fields can be added, removed, reordered, enabled, or disabled.
+- Supported positive field types are quality, artist, trigger, general, and
+  NAIA.
+- Negative fields use the same prompt correction and metadata flow as positive
+  fields where applicable.
+- The NAIA field is read-only and stores the last NAIA result in the workflow.
+- The trigger field is read-only for connected `trigger_words` input and can be
+  pinned to the front or allowed to follow ANIMA ordering.
+
+NAIA behavior:
+
+- `Fill from NAIA` keeps requesting fresh NAIA text while enabled.
+- Saved-image workflows store the filled text and turn the request flag off, so
+  reloaded workflows reuse the saved result.
+- A setting can automatically disable general fields above the NAIA field while
+  NAIA fill is enabled, then re-enable them when it is disabled.
+
+Highlighting and syntax:
+
+- Quality, safety/rating, year, count, character, artist, copyright, metadata,
+  learned general tags, natural language, syntax errors, and unknown tags use
+  separate colors.
+- The highlight color settings are shared with `Anima Prompt Studio`.
+- Escaped literal prompt characters such as `\(` and `\)` are treated as normal
+  tag text and are not considered typos.
+- Weighted groups such as `(score_8:0.65)` highlight only the tag text and the
+  weight number. Parentheses and `:` are left unhighlighted.
+- Weighted groups containing comma-separated tags, for example
+  `(highres, absurdres, very aesthetic:0.8)`, classify each inner tag
+  separately.
+- Unclosed prompt parentheses are shown as syntax errors.
+
+### Anima LoRA Preset
+
+Category: `EasyUse Anima/LoRA`
+
+Outputs:
+
+- `style_prompt`
+- `LORA_STACK`
+- `trigger_words`
+- `active_loras`
+- `profile_index`
+
+This node stores reusable LoRA/style profiles for ANIMA workflows.
+
+Main behavior:
+
+- Multiple profiles are stored in one node.
+- `profile_index` can be controlled manually or through an input. Out-of-range
+  indexes wrap across the available profile count.
+- Profiles keep style prompt text, selected LoRAs, LoRA strengths, and enabled
+  state in the workflow.
+- Profiles can also be saved to and loaded from JSON files under
+  `__easyuse_anima__/profiles`.
+- Loading a saved profile appends it as a new profile instead of overwriting the
+  current profile.
+
+LoRA UI:
+
+- `Add LoRA` opens a folder-tree chooser based on ComfyUI LoRA paths.
+- The chooser supports searching.
+- Selected LoRAs are shown in a compact list similar to rgthree Power Lora
+  Loader.
+- Rows support enable/disable, strength adjustment, right-click or menu-button
+  actions for move up, move down, and remove.
+- The `i` preview button looks for same-name image previews near the LoRA file,
+  such as `.webp` previews.
+- The row label can display either only the file name or the full relative path
+  through ComfyUI Settings.
+
+Trigger words:
+
+- Trigger words are read from LoRA Manager-style metadata JSON sidecars when
+  available.
+- Trigger words are deduplicated and output as a comma-separated string for
+  Prompt Studio trigger fields.
+
+## Shared Front-End Features
+
 Autocomplete:
 
-- Prompt Builder and Prompt Corrector text fields use a bundled Korean Danbooru
-  CSV under `__easyuse_anima__`.
-- The CSV used for autocomplete and Prompt Studio tag highlighting can be
-  selected in ComfyUI Settings -> `EasyUse Anima: Autocomplete CSV`.
-- Generic multiline `STRING` prompt/text nodes, including primitive multiline
-  string nodes, can also use the same autocomplete.
+- Prompt Builder, Prompt Corrector, Prompt Studio, Prompt Studio Advanced, and
+  generic multiline `STRING` prompt/text widgets can use the bundled Korean
+  Danbooru autocomplete.
+- The CSV used for autocomplete and Prompt Studio highlighting can be selected
+  in ComfyUI Settings -> `EasyUse Anima: Autocomplete CSV`.
 - Type English tags or Korean words from the description/keywords, then use
   arrow keys and Enter/Tab to insert a suggestion.
 - Nodes or inputs that already expose LoRA/autocomplete-specific widgets, such
@@ -95,56 +235,14 @@ Bundled autocomplete CSV sources:
 - `danbooru_tags_classified.csv`: from
   `Localsmile/danbooru_KR_wiki_tag_search`.
 
-### Anima Prompt Studio
+ComfyUI Settings:
 
-Category: `EasyUse Anima/Prompt`
-
-This node has the same outputs and prompt-building behavior as `Anima Prompt
-Builder`, but adds front-end editing helpers:
-
-- LoRA trigger input is placed near the top of the node.
-- Prompt text fields can be resized vertically in the node UI.
-- A tag analysis panel highlights detected tokens by category:
-  - `인원수`
-  - `캐릭터`
-  - `작가`
-  - `작품`
-  - `학습 태그`
-  - `미확인`
-- Tags found in the bundled Korean Danbooru CSV are marked as learned tags.
-
-### Anima Prompt Corrector
-
-Category: `EasyUse Anima/Prompt`
-
-Outputs:
-
-- `corrected_prompt`
-- `report`
-
-The node accepts a comma-separated prompt and returns a normalized
-ANIMA-ordered prompt plus a JSON report. It uses the vendored `anima_prompt`
-MVP core and does not depend on external character/artist exports.
-
-Main controls:
-
-- `artist_overrides`: manual comma- or newline-separated artist triggers.
-- `artist_exclusions`: tags that must not be treated as artists.
-
-Prompt syntax:
-
-- Unescaped parentheses are treated as prompt weighting syntax and are preserved,
-  for example `(long_hair:1.2)`.
-- Literal parentheses in tag names are escaped as `\(` and `\)` in the corrected
-  output.
-- Commas inside unescaped parentheses are not split as top-level tag separators.
-- Natural-language prompt text keeps its original casing.
-- If a natural-language sentence is immediately followed by a count tag such as
-  `1girl`, the count tag is split out and reordered normally.
-
-Dataset download, token storage, and character/artist index loading are not
-included. Prompt Studio highlighting and autocomplete use the bundled Korean
-Danbooru CSV sources instead.
+- NAIA request host, port, Prompt Engineering options, and preprocessing options
+  are configured in the EasyUse Anima settings panel.
+- Prompt metadata filter words are applied only to metadata prompt outputs.
+- Prompt Studio typo indicators and category colors can be changed manually.
+- Prompt Studio can auto-toggle general fields above the NAIA field.
+- LoRA Preset row labels can show file names only or full paths.
 
 ## Requirements
 
