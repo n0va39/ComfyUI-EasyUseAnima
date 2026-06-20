@@ -133,48 +133,47 @@ const ADVANCED_CONTROL_WIDGETS = [
   },
 ];
 const ADVANCED_RESOLUTION_BUCKETS = {
-  "1MP": [
-    [704, 1408],
-    [768, 1344],
-    [832, 1216],
-    [896, 1152],
-    [960, 1088],
+  "512": [
+    [256, 1024], [288, 896], [384, 672], [448, 576],
+    [512, 512],
+    [576, 448], [672, 384], [896, 288], [1024, 256],
+  ],
+  "768": [
+    [384, 1440], [480, 1152], [576, 960], [640, 864],
+    [768, 768],
+    [864, 640], [960, 576], [1152, 480], [1440, 384],
+  ],
+  "896": [
+    [448, 1728], [480, 1600], [576, 1344], [672, 1152],
+    [800, 960],
+    [896, 896],
+    [960, 800], [1152, 672], [1344, 576],
+    [1600, 480], [1728, 448],
+  ],
+  "1024": [
+    [512, 2016], [576, 1792], [672, 1536], [672, 1600], [768, 1344],
+    [800, 1344], [896, 1152], [960, 1120],
     [1024, 1024],
-    [1088, 960],
-    [1152, 896],
-    [1216, 832],
-    [1344, 768],
-    [1408, 704],
+    [1120, 960], [1152, 896], [1344, 800], [1344, 768], [1536, 672],
+    [1600, 672], [1792, 576], [2016, 512],
   ],
-  "1.5MP": [
-    [832, 1856],
-    [896, 1728],
-    [960, 1600],
-    [1024, 1536],
-    [1088, 1408],
-    [1152, 1344],
-    [1216, 1216],
-    [1344, 1152],
-    [1408, 1088],
-    [1536, 1024],
-    [1600, 960],
-    [1728, 896],
-    [1856, 832],
+  "1280": [
+    [672, 2400], [800, 2016],
+    [1120, 1440],
+    [1280, 1280],
+    [1440, 1120], [2016, 800],
+    [2400, 672],
   ],
-  "2MP": [
-    [1024, 2048],
-    [1152, 1792],
-    [1216, 1728],
-    [1344, 1536],
-    [1408, 1472],
-    [1472, 1408],
-    [1536, 1344],
-    [1728, 1216],
-    [1792, 1152],
-    [2048, 1024],
+  "1536": [
+    [768, 2880], [864, 2560], [960, 2304], [1024, 1536], [1152, 1920],
+    [1280, 1728], [1440, 1536],
+    [1536, 1536],
+    [1536, 1440], [1728, 1280], [1920, 1152], [2304, 960], [2560, 864],
+    [2880, 768],
   ],
 };
-const DEFAULT_ADVANCED_RESOLUTION_BUCKET = "1MP";
+const CUSTOM_ADVANCED_RESOLUTION_BUCKET = "Custom";
+const DEFAULT_ADVANCED_RESOLUTION_BUCKET = "1024";
 const DEFAULT_ADVANCED_RESOLUTION_SIZE = "1024 * 1024 (1:1)";
 const ADVANCED_WIDGET_INDEX = {
   use_naia: 0,
@@ -182,10 +181,12 @@ const ADVANCED_WIDGET_INDEX = {
   use_anima_mod_guidance: 2,
   resolution_bucket: 3,
   resolution_size: 4,
-  pin_trigger_tags_to_front: 5,
-  advanced_fields: 6,
+  resolution_custom_width: 5,
+  resolution_custom_height: 6,
+  pin_trigger_tags_to_front: 7,
+  advanced_fields: 8,
 };
-const ADVANCED_LEGACY_FIELDS_WIDGET_INDEX = 4;
+const ADVANCED_LEGACY_FIELDS_WIDGET_INDEXES = [6, 4];
 const ADVANCED_INTERNAL_WIDGET_NAMES = new Set(Object.keys(ADVANCED_WIDGET_INDEX));
 const ADVANCED_FIELDS_PROPERTY = "easyuse_anima_advanced_fields";
 const ADVANCED_FIELD_SOCKET_PREFIX = "field_";
@@ -360,24 +361,36 @@ function ensureAdvancedStyle() {
     }
     .easyuse-anima-advanced-resolutionbar {
       display: grid;
-      grid-template-columns: minmax(78px, 0.42fr) minmax(160px, 1fr);
-      gap: 5px;
-      margin: -2px 0 8px;
+      grid-template-columns: minmax(104px, 0.36fr) minmax(220px, 1fr);
+      gap: 8px;
+      margin: 0 0 10px;
     }
-    .easyuse-anima-advanced-resolutionbar select {
+    .easyuse-anima-advanced-resolutionbar select,
+    .easyuse-anima-advanced-resolutionbar input {
       box-sizing: border-box;
       min-width: 0;
       width: 100%;
-      height: 23px;
+      height: 27px;
       border: 1px solid rgba(148, 163, 184, 0.34);
       background: rgba(15, 23, 42, 0.88);
       color: rgba(226, 232, 240, 0.9);
       font: 11px sans-serif;
-      padding: 1px 6px;
+      padding: 2px 8px;
       outline: none;
     }
-    .easyuse-anima-advanced-resolutionbar select:focus {
+    .easyuse-anima-advanced-resolutionbar select:focus,
+    .easyuse-anima-advanced-resolutionbar input:focus {
       border-color: rgba(96, 165, 250, 0.76);
+    }
+    .easyuse-anima-advanced-resolution-custom {
+      display: grid;
+      grid-template-columns: minmax(72px, 1fr) auto minmax(72px, 1fr);
+      gap: 6px;
+      align-items: center;
+    }
+    .easyuse-anima-advanced-resolution-custom span {
+      color: rgba(203, 213, 225, 0.72);
+      font: 12px sans-serif;
     }
     .easyuse-anima-advanced-pane {
       min-width: 0;
@@ -2067,7 +2080,13 @@ function serializedAdvancedFieldsValue(serialized) {
   if (widgetsValue) {
     return widgetsValue;
   }
-  return normalizeAdvancedFieldsValue(serialized?.widgets_values?.[ADVANCED_LEGACY_FIELDS_WIDGET_INDEX]) || "";
+  for (const index of ADVANCED_LEGACY_FIELDS_WIDGET_INDEXES) {
+    const legacyValue = normalizeAdvancedFieldsValue(serialized?.widgets_values?.[index]);
+    if (legacyValue) {
+      return legacyValue;
+    }
+  }
+  return "";
 }
 
 function captureAdvancedConfigure(node, serialized) {
@@ -2471,6 +2490,9 @@ function advancedResolutionOptions(bucket) {
 
 function normalizeAdvancedResolutionBucket(value) {
   const bucket = String(value || "").trim();
+  if (bucket === CUSTOM_ADVANCED_RESOLUTION_BUCKET) {
+    return CUSTOM_ADVANCED_RESOLUTION_BUCKET;
+  }
   return Object.prototype.hasOwnProperty.call(ADVANCED_RESOLUTION_BUCKETS, bucket)
     ? bucket
     : DEFAULT_ADVANCED_RESOLUTION_BUCKET;
@@ -2485,6 +2507,9 @@ function resolutionRatioFromLabel(value) {
 }
 
 function normalizeAdvancedResolutionSize(bucket, value) {
+  if (bucket === CUSTOM_ADVANCED_RESOLUTION_BUCKET) {
+    return String(value || DEFAULT_ADVANCED_RESOLUTION_SIZE);
+  }
   const options = advancedResolutionOptions(bucket);
   const raw = String(value || "").trim();
   if (options.includes(raw)) {
@@ -2500,6 +2525,29 @@ function normalizeAdvancedResolutionSize(bucket, value) {
   return options.includes(DEFAULT_ADVANCED_RESOLUTION_SIZE)
     ? DEFAULT_ADVANCED_RESOLUTION_SIZE
     : options[0];
+}
+
+function snapResolution32(value, fallback = 1024) {
+  const raw = Number.parseInt(value, 10);
+  const base = Number.isFinite(raw) && raw > 0 ? raw : fallback;
+  return Math.max(32, Math.round(base / 32) * 32);
+}
+
+function advancedCustomResolution(node) {
+  return {
+    width: snapResolution32(findWidget(node, "resolution_custom_width")?.value, 1024),
+    height: snapResolution32(findWidget(node, "resolution_custom_height")?.value, 1024),
+  };
+}
+
+function setAdvancedCustomResolution(node, width, height, { normalize = false } = {}) {
+  const nextWidth = normalize ? snapResolution32(width, 1024) : String(width || "");
+  const nextHeight = normalize ? snapResolution32(height, 1024) : String(height || "");
+  setAdvancedWidgetValue(node, "resolution_custom_width", nextWidth);
+  setAdvancedWidgetValue(node, "resolution_custom_height", nextHeight);
+  if (normalize) {
+    setAdvancedWidgetValue(node, "resolution_size", advancedResolutionLabel(nextWidth, nextHeight));
+  }
 }
 
 function createAdvancedControlBar(node) {
@@ -2541,7 +2589,10 @@ function createAdvancedResolutionBar(node) {
   }
 
   const bucketValue = normalizeAdvancedResolutionBucket(bucketWidget.value);
-  const sizeValue = normalizeAdvancedResolutionSize(bucketValue, sizeWidget.value);
+  const customResolution = advancedCustomResolution(node);
+  const sizeValue = bucketValue === CUSTOM_ADVANCED_RESOLUTION_BUCKET
+    ? advancedResolutionLabel(customResolution.width, customResolution.height)
+    : normalizeAdvancedResolutionSize(bucketValue, sizeWidget.value);
   if (bucketWidget.value !== bucketValue) {
     setAdvancedWidgetValue(node, "resolution_bucket", bucketValue);
   }
@@ -2562,11 +2613,17 @@ function createAdvancedResolutionBar(node) {
     option.selected = bucket === bucketValue;
     bucketSelect.append(option);
   }
+  const customOption = document.createElement("option");
+  customOption.value = CUSTOM_ADVANCED_RESOLUTION_BUCKET;
+  customOption.textContent = CUSTOM_ADVANCED_RESOLUTION_BUCKET;
+  customOption.selected = bucketValue === CUSTOM_ADVANCED_RESOLUTION_BUCKET;
+  bucketSelect.append(customOption);
 
-  const sizeSelect = document.createElement("select");
-  sizeSelect.setAttribute("aria-label", "resolution size");
-  const fillSizeOptions = (bucket, selected) => {
-    sizeSelect.innerHTML = "";
+  const valueBox = document.createElement("div");
+  const renderPresetSelect = (bucket, selected) => {
+    valueBox.innerHTML = "";
+    const sizeSelect = document.createElement("select");
+    sizeSelect.setAttribute("aria-label", "resolution size");
     for (const label of advancedResolutionOptions(bucket)) {
       const option = document.createElement("option");
       option.value = label;
@@ -2574,21 +2631,68 @@ function createAdvancedResolutionBar(node) {
       option.selected = label === selected;
       sizeSelect.append(option);
     }
+    sizeSelect.addEventListener("change", () => {
+      setAdvancedWidgetValue(node, "resolution_size", normalizeAdvancedResolutionSize(bucketSelect.value, sizeSelect.value));
+    });
+    valueBox.append(sizeSelect);
+  };
+  const renderCustomInputs = () => {
+    valueBox.innerHTML = "";
+    valueBox.className = "easyuse-anima-advanced-resolution-custom";
+    const widthInput = document.createElement("input");
+    widthInput.type = "number";
+    widthInput.min = "32";
+    widthInput.step = "32";
+    widthInput.value = String(advancedCustomResolution(node).width);
+    widthInput.setAttribute("aria-label", "custom width");
+    const separator = document.createElement("span");
+    separator.textContent = "×";
+    const heightInput = document.createElement("input");
+    heightInput.type = "number";
+    heightInput.min = "32";
+    heightInput.step = "32";
+    heightInput.value = String(advancedCustomResolution(node).height);
+    heightInput.setAttribute("aria-label", "custom height");
+    const syncRaw = () => {
+      setAdvancedCustomResolution(node, widthInput.value, heightInput.value);
+    };
+    const normalize = () => {
+      const width = snapResolution32(widthInput.value, 1024);
+      const height = snapResolution32(heightInput.value, 1024);
+      widthInput.value = String(width);
+      heightInput.value = String(height);
+      setAdvancedCustomResolution(node, width, height, { normalize: true });
+    };
+    widthInput.addEventListener("input", syncRaw);
+    heightInput.addEventListener("input", syncRaw);
+    widthInput.addEventListener("change", normalize);
+    heightInput.addEventListener("change", normalize);
+    widthInput.addEventListener("blur", normalize);
+    heightInput.addEventListener("blur", normalize);
+    valueBox.append(widthInput, separator, heightInput);
+    setAdvancedCustomResolution(node, widthInput.value, heightInput.value, { normalize: true });
+  };
+  const fillSizeOptions = (bucket, selected) => {
+    valueBox.className = "";
+    if (bucket === CUSTOM_ADVANCED_RESOLUTION_BUCKET) {
+      renderCustomInputs();
+      return;
+    }
+    renderPresetSelect(bucket, selected);
   };
   fillSizeOptions(bucketValue, sizeValue);
 
   bucketSelect.addEventListener("change", () => {
     const nextBucket = normalizeAdvancedResolutionBucket(bucketSelect.value);
-    const nextSize = normalizeAdvancedResolutionSize(nextBucket, sizeSelect.value);
+    const nextSize = nextBucket === CUSTOM_ADVANCED_RESOLUTION_BUCKET
+      ? advancedResolutionLabel(advancedCustomResolution(node).width, advancedCustomResolution(node).height)
+      : normalizeAdvancedResolutionSize(nextBucket, sizeWidget.value);
     setAdvancedWidgetValue(node, "resolution_bucket", nextBucket);
     setAdvancedWidgetValue(node, "resolution_size", nextSize);
     fillSizeOptions(nextBucket, nextSize);
   });
-  sizeSelect.addEventListener("change", () => {
-    setAdvancedWidgetValue(node, "resolution_size", normalizeAdvancedResolutionSize(bucketSelect.value, sizeSelect.value));
-  });
 
-  row.append(bucketSelect, sizeSelect);
+  row.append(bucketSelect, valueBox);
   return row;
 }
 

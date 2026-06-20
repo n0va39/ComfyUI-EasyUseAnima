@@ -60,48 +60,47 @@ HTTP_TIMEOUT = NAIA_REQUEST_TIMEOUT + 5.0
 NAI_1MP = 1024 * 1024
 LATENT_ALIGN = 8
 ADVANCED_RESOLUTION_BUCKETS = {
-    "1MP": (
-        (704, 1408),
-        (768, 1344),
-        (832, 1216),
-        (896, 1152),
-        (960, 1088),
+    "512": (
+        (256, 1024), (288, 896), (384, 672), (448, 576),
+        (512, 512),
+        (576, 448), (672, 384), (896, 288), (1024, 256),
+    ),
+    "768": (
+        (384, 1440), (480, 1152), (576, 960), (640, 864),
+        (768, 768),
+        (864, 640), (960, 576), (1152, 480), (1440, 384),
+    ),
+    "896": (
+        (448, 1728), (480, 1600), (576, 1344), (672, 1152),
+        (800, 960),
+        (896, 896),
+        (960, 800), (1152, 672), (1344, 576),
+        (1600, 480), (1728, 448),
+    ),
+    "1024": (
+        (512, 2016), (576, 1792), (672, 1536), (672, 1600), (768, 1344),
+        (800, 1344), (896, 1152), (960, 1120),
         (1024, 1024),
-        (1088, 960),
-        (1152, 896),
-        (1216, 832),
-        (1344, 768),
-        (1408, 704),
+        (1120, 960), (1152, 896), (1344, 800), (1344, 768), (1536, 672),
+        (1600, 672), (1792, 576), (2016, 512),
     ),
-    "1.5MP": (
-        (832, 1856),
-        (896, 1728),
-        (960, 1600),
-        (1024, 1536),
-        (1088, 1408),
-        (1152, 1344),
-        (1216, 1216),
-        (1344, 1152),
-        (1408, 1088),
-        (1536, 1024),
-        (1600, 960),
-        (1728, 896),
-        (1856, 832),
+    "1280": (
+        (672, 2400), (800, 2016),
+        (1120, 1440),
+        (1280, 1280),
+        (1440, 1120), (2016, 800),
+        (2400, 672),
     ),
-    "2MP": (
-        (1024, 2048),
-        (1152, 1792),
-        (1216, 1728),
-        (1344, 1536),
-        (1408, 1472),
-        (1472, 1408),
-        (1536, 1344),
-        (1728, 1216),
-        (1792, 1152),
-        (2048, 1024),
+    "1536": (
+        (768, 2880), (864, 2560), (960, 2304), (1024, 1536), (1152, 1920),
+        (1280, 1728), (1440, 1536),
+        (1536, 1536),
+        (1536, 1440), (1728, 1280), (1920, 1152), (2304, 960), (2560, 864),
+        (2880, 768),
     ),
 }
-DEFAULT_ADVANCED_RESOLUTION_BUCKET = "1MP"
+CUSTOM_ADVANCED_RESOLUTION_BUCKET = "Custom"
+DEFAULT_ADVANCED_RESOLUTION_BUCKET = "1024"
 DEFAULT_ADVANCED_RESOLUTION_SIZE = "1024 * 1024 (1:1)"
 
 PREPROCESSING_KEYS = [
@@ -195,11 +194,30 @@ def _sorted_resolution_options(bucket: str) -> list[tuple[int, int]]:
 
 def _normalize_resolution_bucket(value) -> str:
     value = str(_single_value(value) or "").strip()
+    if value == CUSTOM_ADVANCED_RESOLUTION_BUCKET:
+        return CUSTOM_ADVANCED_RESOLUTION_BUCKET
     return value if value in ADVANCED_RESOLUTION_BUCKETS else DEFAULT_ADVANCED_RESOLUTION_BUCKET
 
 
-def _advanced_resolution_from_selection(bucket, size) -> tuple[int, int]:
+def _snap_resolution_32(value, default: int = 1024) -> int:
+    raw = _as_int(value, default)
+    if raw <= 0:
+        raw = default
+    return max(32, int(round(raw / 32)) * 32)
+
+
+def _advanced_resolution_from_selection(
+    bucket,
+    size,
+    custom_width: int | str = 1024,
+    custom_height: int | str = 1024,
+) -> tuple[int, int]:
     bucket_name = _normalize_resolution_bucket(bucket)
+    if bucket_name == CUSTOM_ADVANCED_RESOLUTION_BUCKET:
+        return (
+            _snap_resolution_32(custom_width, 1024),
+            _snap_resolution_32(custom_height, 1024),
+        )
     raw_size = str(_single_value(size) or "").strip()
     match = _RESOLUTION_LABEL_RE.search(raw_size)
     if match:
@@ -1221,6 +1239,20 @@ class EasyUseAnimaPromptStudioAdvanced:
                     "default": DEFAULT_ADVANCED_RESOLUTION_SIZE,
                     "tooltip": "Internal selected latent resolution, formatted as width * height (ratio).",
                 }),
+                "resolution_custom_width": ("INT", {
+                    "default": 1024,
+                    "min": 32,
+                    "max": 8192,
+                    "step": 32,
+                    "tooltip": "Internal custom latent width. Values are snapped to multiples of 32.",
+                }),
+                "resolution_custom_height": ("INT", {
+                    "default": 1024,
+                    "min": 32,
+                    "max": 8192,
+                    "step": 32,
+                    "tooltip": "Internal custom latent height. Values are snapped to multiples of 32.",
+                }),
                 "pin_trigger_tags_to_front": ("BOOLEAN", {
                     "default": False,
                     "tooltip": "Legacy internal flag. Trigger field Pin buttons control trigger placement.",
@@ -1267,6 +1299,8 @@ class EasyUseAnimaPromptStudioAdvanced:
         advanced_fields: str = "",
         resolution_bucket: str = DEFAULT_ADVANCED_RESOLUTION_BUCKET,
         resolution_size: str = DEFAULT_ADVANCED_RESOLUTION_SIZE,
+        resolution_custom_width: int = 1024,
+        resolution_custom_height: int = 1024,
         **kwargs,
     ):
         fields = _normalize_advanced_fields(advanced_fields)
@@ -1277,7 +1311,12 @@ class EasyUseAnimaPromptStudioAdvanced:
             "mode": "prompt_studio_advanced",
             "metadata_filter_words": resolve_metadata_filter_words(),
             "use_anima_mod_guidance": _as_bool(use_anima_mod_guidance, False),
-            "resolution": _advanced_resolution_from_selection(resolution_bucket, resolution_size),
+            "resolution": _advanced_resolution_from_selection(
+                resolution_bucket,
+                resolution_size,
+                resolution_custom_width,
+                resolution_custom_height,
+            ),
             "pin_trigger_tags_to_front": _as_bool(pin_trigger_tags_to_front, False),
             "advanced_fields": _advanced_fields_json(effective_fields),
         })
@@ -1340,6 +1379,8 @@ class EasyUseAnimaPromptStudioAdvanced:
         advanced_fields: str,
         resolution_bucket: str = DEFAULT_ADVANCED_RESOLUTION_BUCKET,
         resolution_size: str = DEFAULT_ADVANCED_RESOLUTION_SIZE,
+        resolution_custom_width: int = 1024,
+        resolution_custom_height: int = 1024,
         workflow_prompt=None,
         extra_pnginfo=None,
         unique_id=None,
@@ -1352,7 +1393,12 @@ class EasyUseAnimaPromptStudioAdvanced:
         requested_use_naia = _as_bool(use_naia, False)
         live_use_naia = requested_use_naia and _advanced_has_enabled_positive_naia(fields)
         metadata_use_naia = live_use_naia
-        width, height = _advanced_resolution_from_selection(resolution_bucket, resolution_size)
+        width, height = _advanced_resolution_from_selection(
+            resolution_bucket,
+            resolution_size,
+            resolution_custom_width,
+            resolution_custom_height,
+        )
 
         if live_use_naia:
             naia_settings = resolve_naia_settings()

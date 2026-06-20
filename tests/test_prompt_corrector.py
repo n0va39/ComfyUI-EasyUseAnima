@@ -7,6 +7,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 from nodes import (
+    ADVANCED_RESOLUTION_BUCKETS,
     DEFAULT_QUALITY_TAGS,
     DEFAULT_TRAILING_QUALITY_TAGS,
     EasyUseAnimaPromptBuilder,
@@ -502,7 +503,7 @@ class PromptBuilderTests(unittest.TestCase):
 
         payload = result["ui"]["prompt_studio_advanced"][0]
         saved_fields = json.loads(payload["advanced_fields"])
-        saved_image_fields = json.loads(extra_pnginfo["workflow"]["nodes"][0]["widgets_values"][6])
+        saved_image_fields = json.loads(extra_pnginfo["workflow"]["nodes"][0]["widgets_values"][8])
 
         self.assertTrue(payload["use_naia"])
         self.assertEqual(saved_fields[0]["text"], "1girl, silver hair")
@@ -518,11 +519,32 @@ class PromptBuilderTests(unittest.TestCase):
             False,
             False,
             "",
-            resolution_bucket="1.5MP",
-            resolution_size="896 * 1728 (14:27)",
+            resolution_bucket="1024",
+            resolution_size="896 * 1152 (7:9)",
         )
 
-        self.assertEqual(result["result"][-2:], (896, 1728))
+        self.assertEqual(result["result"][-2:], (896, 1152))
+
+    def test_prompt_studio_advanced_outputs_custom_resolution_snapped_to_32(self):
+        result = EasyUseAnimaPromptStudioAdvanced().build(
+            False,
+            True,
+            False,
+            False,
+            "",
+            resolution_bucket="Custom",
+            resolution_size="1000 * 777 (1000:777)",
+            resolution_custom_width=1000,
+            resolution_custom_height=777,
+        )
+
+        self.assertEqual(result["result"][-2:], (992, 768))
+
+    def test_prompt_studio_advanced_resolution_buckets_are_32_aligned(self):
+        for values in ADVANCED_RESOLUTION_BUCKETS.values():
+            for width, height in values:
+                self.assertEqual(width % 32, 0)
+                self.assertEqual(height % 32, 0)
 
     def test_prompt_studio_extend_uses_numbered_slot_order(self):
         result = EasyUseAnimaPromptStudioExtend().build(
