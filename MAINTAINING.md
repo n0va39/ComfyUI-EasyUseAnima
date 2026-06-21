@@ -10,6 +10,15 @@ This repository is prepared for future ComfyUI Manager / Comfy Registry registra
 - Major version: breaking node class names, input names, output types, or workflow behavior.
 - Once a version is published to Comfy Registry, do not rewrite that release. Publish a newer version instead.
 
+## Branch Rules
+
+- Keep `main` as the stable user/install branch.
+- Do regular development, UI experiments, Node 2.0 compatibility work, and compatibility investigations on `dev` or short-lived `feature/*` branches.
+- Merge into `main` only after local tests, custom-node checks, and at least one ComfyUI instance validation pass.
+- Create release tags only from `main` commits. Do not tag `dev`.
+- If `main` breaks after release, fix from a short-lived `hotfix/*` branch, merge into `main`, bump the patch version, and create a new tag.
+- Treat ComfyUI Manager nightly/latest installs as `main` consumers, so do not push unvalidated development work directly to `main`.
+
 ## Registry Rules
 
 - `pyproject.toml` `[project].name` is the Registry node id. Use the lowercase repository-style name: `comfyui-easyuse-anima`.
