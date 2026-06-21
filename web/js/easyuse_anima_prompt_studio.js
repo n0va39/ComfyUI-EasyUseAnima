@@ -485,8 +485,9 @@ function ensureAdvancedStyle() {
     .easyuse-anima-advanced-field textarea {
       box-sizing: border-box;
       width: 100%;
-      min-height: 42px;
+      min-height: 46px;
       resize: vertical;
+      overflow: hidden;
       border: 1px solid rgba(148, 163, 184, 0.28);
       background: rgba(10, 10, 12, 0.78);
       color: var(--input-text, #ddd);
@@ -2868,11 +2869,45 @@ function measureAdvancedEditorHeight(editor) {
   ));
 }
 
-function advancedTextareaMinimumHeight(textarea) {
+function advancedTextareaPixelMetric(textarea, property) {
   const style = textarea instanceof HTMLElement ? getComputedStyle(textarea) : null;
+  return Number.parseFloat(style?.[property] || "") || 0;
+}
+
+function advancedTextareaTwoLineHeight(textarea) {
+  const style = textarea instanceof HTMLElement ? getComputedStyle(textarea) : null;
+  const fontSize = Number.parseFloat(style?.fontSize || "") || 12;
+  const lineHeightRaw = Number.parseFloat(style?.lineHeight || "");
+  const lineHeight = Number.isFinite(lineHeightRaw) && lineHeightRaw > 0 ? lineHeightRaw : fontSize * 1.35;
+  const verticalPadding =
+    advancedTextareaPixelMetric(textarea, "paddingTop")
+    + advancedTextareaPixelMetric(textarea, "paddingBottom");
+  const verticalBorder =
+    advancedTextareaPixelMetric(textarea, "borderTopWidth")
+    + advancedTextareaPixelMetric(textarea, "borderBottomWidth");
+  return Math.ceil(lineHeight * 2 + verticalPadding + verticalBorder);
+}
+
+function advancedTextareaContentHeight(textarea) {
+  if (!(textarea instanceof HTMLTextAreaElement)) {
+    return 0;
+  }
+  const previousHeight = textarea.style.height;
+  textarea.style.height = "auto";
+  const contentHeight = Math.ceil(
+    (Number(textarea.scrollHeight) || 0)
+    + advancedTextareaPixelMetric(textarea, "borderTopWidth")
+    + advancedTextareaPixelMetric(textarea, "borderBottomWidth"),
+  );
+  textarea.style.height = previousHeight;
+  return contentHeight;
+}
+
+function advancedTextareaMinimumHeight(textarea) {
   return Math.max(
-    42,
-    Math.ceil(Number.parseFloat(style?.minHeight || "") || 0),
+    46,
+    advancedTextareaTwoLineHeight(textarea),
+    advancedTextareaContentHeight(textarea),
   );
 }
 
@@ -2897,7 +2932,7 @@ function advancedFieldByTextarea(node, textarea) {
 function setAdvancedTextareaHeight(node, textarea, height, options = {}) {
   const nextHeight = Math.max(advancedTextareaMinimumHeight(textarea), Math.round(Number(height) || 0));
   textarea.style.height = `${nextHeight}px`;
-  textarea.style.overflowY = (Number(textarea.scrollHeight) || 0) > nextHeight + 2 ? "auto" : "hidden";
+  textarea.style.overflowY = "hidden";
   let field = null;
   if (options.syncField !== false || options.refreshHighlight !== false) {
     field = advancedFieldByTextarea(node, textarea);
@@ -3139,6 +3174,32 @@ function dispatchCanvasMouseEvent(type, sourceEvent, overrides = {}) {
   canvas.dispatchEvent(event);
 }
 
+function dispatchCanvasWheelEvent(sourceEvent) {
+  const canvas = app.canvas?.canvas;
+  if (!canvas) {
+    return;
+  }
+  const event = new WheelEvent("wheel", {
+    bubbles: true,
+    cancelable: true,
+    view: window,
+    clientX: sourceEvent.clientX,
+    clientY: sourceEvent.clientY,
+    screenX: sourceEvent.screenX,
+    screenY: sourceEvent.screenY,
+    deltaX: sourceEvent.deltaX,
+    deltaY: sourceEvent.deltaY,
+    deltaZ: sourceEvent.deltaZ,
+    deltaMode: sourceEvent.deltaMode,
+    ctrlKey: sourceEvent.ctrlKey,
+    shiftKey: sourceEvent.shiftKey,
+    altKey: sourceEvent.altKey,
+    metaKey: sourceEvent.metaKey,
+  });
+  Object.defineProperty(event, "__easyuseAnimaForwarded", { value: true });
+  canvas.dispatchEvent(event);
+}
+
 function dispatchCanvasPointerEvent(type, sourceEvent, overrides = {}) {
   const canvas = app.canvas?.canvas;
   if (!canvas || typeof PointerEvent === "undefined") {
@@ -3250,6 +3311,15 @@ function startCanvasPanFromDom(event) {
   document.addEventListener("mousemove", move, true);
   document.addEventListener("mouseup", stop, true);
   return true;
+}
+
+function forwardAdvancedWheelToCanvas(event) {
+  if (event.__easyuseAnimaForwarded) {
+    return;
+  }
+  event.preventDefault();
+  event.stopPropagation();
+  dispatchCanvasWheelEvent(event);
 }
 
 function installMiddlePanForwarder() {
@@ -3400,11 +3470,7 @@ function createAdvancedFieldElement(node, field) {
       : 0;
     textarea.style.height = "auto";
     textarea.style.overflowY = "hidden";
-    const height = Math.max(
-      42,
-      Math.ceil(Number(textarea.scrollHeight) || 0),
-      manualHeight,
-    );
+    const height = Math.max(advancedTextareaMinimumHeight(textarea), manualHeight);
     textarea.style.height = `${height}px`;
     field.height = height;
     writeAdvancedFields(node, fields);
@@ -3546,6 +3612,7 @@ function hookAdvancedNode(node) {
   if (!node.__easyuseAnimaAdvancedEditorEl) {
     const editor = document.createElement("div");
     editor.className = "easyuse-anima-advanced-editor";
+    editor.addEventListener("wheel", forwardAdvancedWheelToCanvas, { capture: true, passive: false });
     node.__easyuseAnimaAdvancedEditorEl = editor;
     node.addDOMWidget?.("easyuse_anima_advanced_editor", "EasyUseAnimaAdvancedEditor", editor, {
       serialize: false,
