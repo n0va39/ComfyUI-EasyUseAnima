@@ -110,6 +110,21 @@ class LoraPresetTests(unittest.TestCase):
         self.assertEqual(result[4], 1)
         self.assertEqual(unwrap_ui(response)["profile_index"], 1)
 
+    def test_build_ignores_legacy_hidden_lora_name_widget(self):
+        response = EasyUseAnimaLoraPreset().build(
+            style_prompt="style",
+            profile_index=1,
+            profile_count=1,
+            lora_name="ANIMA_merge\\anima_SN0VA_Mix_BASE.safetensors",
+            loras="[]",
+            profile_data=json.dumps({"1": {"style_prompt": "style", "loras": []}}),
+        )
+
+        result = unwrap_result(response)
+        self.assertEqual(result[1], [])
+        self.assertEqual(result[2], "")
+        self.assertEqual(result[3], "")
+
     def test_build_corrects_style_prompt_output(self):
         with patch("nodes._correct_style_prompt", lambda prompt: f"corrected: {prompt}"):
             response = EasyUseAnimaLoraPreset().build(

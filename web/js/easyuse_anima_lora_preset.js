@@ -55,9 +55,7 @@ function normalizeSerializedWidgets(info) {
   if (values[WIDGET_INDEX.profileCount] == null || values[WIDGET_INDEX.profileCount] === "") {
     values[WIDGET_INDEX.profileCount] = INTERNAL_WIDGET_DEFAULTS.profile_count;
   }
-  if (values[WIDGET_INDEX.loraName] == null || values[WIDGET_INDEX.loraName] === "") {
-    values[WIDGET_INDEX.loraName] = INTERNAL_WIDGET_DEFAULTS.lora_name;
-  }
+  values[WIDGET_INDEX.loraName] = INTERNAL_WIDGET_DEFAULTS.lora_name;
   if (Array.isArray(values[WIDGET_INDEX.loras])) {
     values[WIDGET_INDEX.loras] = JSON.stringify(values[WIDGET_INDEX.loras]);
   } else if (typeof values[WIDGET_INDEX.loras] !== "string") {
@@ -174,6 +172,16 @@ function ensureWidgetValue(node, name) {
   const value = input ? input.value : widget.value;
   if (value == null || value === "") {
     setWidgetValue(widget, fallback);
+  }
+}
+
+function resetInternalLoraSelector(node) {
+  const widget = findWidget(node, "lora_name");
+  if (!widget) {
+    return;
+  }
+  if (widgetValue(widget, "") !== INTERNAL_WIDGET_DEFAULTS.lora_name) {
+    setWidgetValue(widget, INTERNAL_WIDGET_DEFAULTS.lora_name);
   }
 }
 
@@ -810,6 +818,9 @@ function hideInternalWidget(node, name) {
     return;
   }
   ensureWidgetValue(node, name);
+  if (name === "lora_name") {
+    resetInternalLoraSelector(node);
+  }
   widget.__easyuseAnimaHidden = true;
   widget.hidden = true;
   widget.serialize = true;
@@ -853,6 +864,7 @@ function restoreInternalWidgetsForConfigure(node) {
 }
 
 function finalizeInternalWidgets(node) {
+  resetInternalLoraSelector(node);
   hideInternalWidget(node, "profile_data");
   hideInternalWidget(node, "profile_count");
   hideInternalWidget(node, "lora_name");
@@ -1952,6 +1964,7 @@ function initializeNode(node) {
   for (const name of Object.keys(INTERNAL_WIDGET_DEFAULTS)) {
     ensureWidgetValue(node, name);
   }
+  resetInternalLoraSelector(node);
 
   wrapWidgetCallback(node, "style_prompt", () => syncAfterWidgetChange(node));
   wrapWidgetCallback(node, "loras", () => syncAfterWidgetChange(node));
@@ -1983,7 +1996,7 @@ function initializeNode(node) {
     const dataWidget = findWidget(this, "profile_data");
     if (workflowNode?.widgets_values && dataWidget) {
       workflowNode.widgets_values[WIDGET_INDEX.profileCount] = String(widgetValue(findWidget(this, "profile_count"), profileCount(this)) || "4");
-      workflowNode.widgets_values[WIDGET_INDEX.loraName] = widgetValue(findWidget(this, "lora_name"), "None");
+      workflowNode.widgets_values[WIDGET_INDEX.loraName] = INTERNAL_WIDGET_DEFAULTS.lora_name;
       workflowNode.widgets_values[WIDGET_INDEX.loras] = JSON.stringify(lorasWidgetValue(this));
       workflowNode.widgets_values[WIDGET_INDEX.profileData] = widgetValue(dataWidget, "{}");
     }
