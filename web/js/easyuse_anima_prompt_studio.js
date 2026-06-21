@@ -330,7 +330,8 @@ function ensureAdvancedStyle() {
     .easyuse-anima-advanced-editor {
       box-sizing: border-box;
       width: 100%;
-      min-width: 280px;
+      min-width: 0;
+      overflow: hidden;
       color: var(--fg-color, #ddd);
       font: 12px sans-serif;
       user-select: none;
@@ -376,7 +377,7 @@ function ensureAdvancedStyle() {
     }
     .easyuse-anima-advanced-resolutionbar {
       display: grid;
-      grid-template-columns: minmax(104px, 0.36fr) minmax(220px, 1fr);
+      grid-template-columns: minmax(82px, 0.34fr) minmax(0, 1fr);
       gap: 8px;
       margin: 0 0 10px;
     }
@@ -2852,7 +2853,7 @@ function hasPositiveTrigger(node) {
 }
 
 function advancedEditorWidth(node) {
-  return Math.max(280, Math.round((Number(node?.size?.[0]) || 360) - 24));
+  return Math.max(160, Math.round((Number(node?.size?.[0]) || 360) - 36));
 }
 
 function measureAdvancedEditorHeight(editor) {
@@ -2893,15 +2894,20 @@ function advancedFieldByTextarea(node, textarea) {
     .find((field) => field.id === id) || null;
 }
 
-function setAdvancedTextareaHeight(node, textarea, height) {
+function setAdvancedTextareaHeight(node, textarea, height, options = {}) {
   const nextHeight = Math.max(advancedTextareaMinimumHeight(textarea), Math.round(Number(height) || 0));
   textarea.style.height = `${nextHeight}px`;
   textarea.style.overflowY = (Number(textarea.scrollHeight) || 0) > nextHeight + 2 ? "auto" : "hidden";
-  const field = advancedFieldByTextarea(node, textarea);
-  if (field) {
+  let field = null;
+  if (options.syncField !== false || options.refreshHighlight !== false) {
+    field = advancedFieldByTextarea(node, textarea);
+  }
+  if (options.syncField !== false && field) {
     field.height = nextHeight;
   }
-  updateAdvancedFieldHighlight(node, field, textarea);
+  if (options.refreshHighlight !== false) {
+    updateAdvancedFieldHighlight(node, field, textarea);
+  }
 }
 
 function distributeAdvancedHeights(items, targetTotal) {
@@ -2951,7 +2957,11 @@ function distributeAdvancedHeights(items, targetTotal) {
   return items.reduce((sum, item) => sum + item.height, 0);
 }
 
-function balanceAdvancedTextareaHeights(node, targetEditorHeight, { allowShrink = true } = {}) {
+function balanceAdvancedTextareaHeights(node, targetEditorHeight, {
+  allowShrink = true,
+  syncFields = true,
+  refreshHighlights = true,
+} = {}) {
   const editor = node?.__easyuseAnimaAdvancedEditorEl;
   if (!editor) {
     return false;
@@ -2978,10 +2988,29 @@ function balanceAdvancedTextareaHeights(node, targetEditorHeight, { allowShrink 
     return false;
   }
   for (const item of items) {
-    setAdvancedTextareaHeight(node, item.textarea, item.height);
+    setAdvancedTextareaHeight(node, item.textarea, item.height, {
+      syncField: syncFields,
+      refreshHighlight: refreshHighlights,
+    });
   }
-  writeAdvancedFields(node, node.__easyuseAnimaAdvancedFields || parseAdvancedFields(node));
+  if (syncFields) {
+    writeAdvancedFields(node, node.__easyuseAnimaAdvancedFields || parseAdvancedFields(node));
+  }
   return true;
+}
+
+function scheduleAdvancedResizeStateSync(node) {
+  if (!node) {
+    return;
+  }
+  clearTimeout(node.__easyuseAnimaAdvancedResizeSyncTimer);
+  node.__easyuseAnimaAdvancedResizeSyncTimer = setTimeout(() => {
+    node.__easyuseAnimaAdvancedResizeSyncTimer = null;
+    const fields = collectAdvancedEditorFields(node);
+    writeAdvancedFields(node, fields);
+    scheduleAdvancedHighlights(node, { classify: false });
+    app.graph?.setDirtyCanvas?.(true, true);
+  }, 160);
 }
 
 function updateAdvancedEditorWidth(node) {
@@ -3034,10 +3063,18 @@ function applyAdvancedLayout(node, reason = "layout") {
       Math.round(computedHeight - initialEditorHeight),
     );
     const minEditorHeight = Math.max(0, currentHeight - chromeOffset);
+    let resizedFields = false;
     if (reason === "resize") {
-      balanceAdvancedTextareaHeights(node, minEditorHeight, { allowShrink: true });
+      resizedFields = balanceAdvancedTextareaHeights(node, minEditorHeight, {
+        allowShrink: true,
+        syncFields: false,
+        refreshHighlights: false,
+      });
     } else if (currentHeight > initialEditorHeight + chromeOffset + 2) {
-      balanceAdvancedTextareaHeights(node, minEditorHeight, { allowShrink: false });
+      resizedFields = balanceAdvancedTextareaHeights(node, minEditorHeight, { allowShrink: false });
+    }
+    if (resizedFields && reason === "resize") {
+      scheduleAdvancedResizeStateSync(node);
     }
     const editorHeight = measureAdvancedEditorHeight(editor);
     const afterComputed = advancedBaseComputeSize(node);
@@ -3059,7 +3096,7 @@ function applyAdvancedLayout(node, reason = "layout") {
   } finally {
     node.__easyuseAnimaApplyingLayout = false;
   }
-  scheduleAdvancedHighlights(node);
+  scheduleAdvancedHighlights(node, { classify: reason !== "resize" });
 }
 
 function scheduleAdvancedLayout(node, reason = "layout") {
