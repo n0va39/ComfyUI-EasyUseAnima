@@ -1767,6 +1767,25 @@ function refreshAdvancedHighlights(node, { classify = true } = {}) {
   });
 }
 
+function scheduleAdvancedHighlights(node, options = {}) {
+  if (!node?.__easyuseAnimaAdvancedEditorEl) {
+    return;
+  }
+  node.__easyuseAnimaAdvancedHighlightOptions = {
+    classify: options.classify !== false,
+  };
+  if (node.__easyuseAnimaAdvancedHighlightScheduled) {
+    return;
+  }
+  node.__easyuseAnimaAdvancedHighlightScheduled = true;
+  requestAnimationFrame(() => {
+    node.__easyuseAnimaAdvancedHighlightScheduled = false;
+    const refreshOptions = node.__easyuseAnimaAdvancedHighlightOptions || {};
+    refreshAdvancedHighlights(node, refreshOptions);
+    requestAnimationFrame(() => refreshAdvancedHighlights(node, { classify: false }));
+  });
+}
+
 let promptHighlightRefreshRaf = 0;
 
 function refreshConnectedHighlightOverlays() {
@@ -1827,7 +1846,7 @@ function installPromptHighlightOverlayRefresh() {
 function refreshAllPromptHighlights() {
   for (const node of app.graph?._nodes || []) {
     if (isAdvancedNode(node)) {
-      refreshAdvancedHighlights(node);
+      scheduleAdvancedHighlights(node);
       continue;
     }
     for (const name of studioFieldNames(node)) {
@@ -2208,7 +2227,7 @@ function ensureAdvancedWidgetValue(node) {
 
 function hideAdvancedInternalWidget(node, name) {
   const widget = findWidget(node, name);
-  if (!widget || widget.__easyuseAnimaAdvancedHidden) {
+  if (!widget) {
     return;
   }
   widget.__easyuseAnimaAdvancedHidden = true;
@@ -2836,23 +2855,101 @@ function advancedEditorWidth(node) {
   return Math.max(280, Math.round((Number(node?.size?.[0]) || 360) - 24));
 }
 
-function syncAdvancedNodeSize(node) {
-  requestAnimationFrame(() => {
-    const editor = node.__easyuseAnimaAdvancedEditorEl;
-    if (!editor || !node.size || typeof node.setSize !== "function") {
-      return;
+function measureAdvancedEditorHeight(editor) {
+  if (!editor) {
+    return 0;
+  }
+  const rectHeight = Number(editor.getBoundingClientRect?.().height) || 0;
+  return Math.ceil(Math.max(
+    Number(editor.scrollHeight) || 0,
+    Number(editor.offsetHeight) || 0,
+    rectHeight,
+  ));
+}
+
+function updateAdvancedEditorWidth(node) {
+  const editor = node?.__easyuseAnimaAdvancedEditorEl;
+  if (!editor) {
+    return;
+  }
+  const width = Number(node?.size?.[0]) || 360;
+  const editorWidth = advancedEditorWidth(node);
+  editor.style.width = `${editorWidth}px`;
+  editor.style.maxWidth = `${editorWidth}px`;
+  editor.classList.toggle("is-narrow", width < 620);
+}
+
+function advancedBaseComputeSize(node) {
+  if (!node || typeof node.computeSize !== "function") {
+    return [Number(node?.size?.[0]) || 360, 0];
+  }
+  try {
+    const size = node.computeSize();
+    return [
+      Number(size?.[0]) || Number(node?.size?.[0]) || 360,
+      Number(size?.[1]) || 0,
+    ];
+  } catch {
+    return [Number(node?.size?.[0]) || 360, 0];
+  }
+}
+
+function applyAdvancedLayout(node, reason = "layout") {
+  const editor = node?.__easyuseAnimaAdvancedEditorEl;
+  if (!editor || !node.size) {
+    return;
+  }
+  if (node.__easyuseAnimaApplyingLayout) {
+    return;
+  }
+
+  node.__easyuseAnimaApplyingLayout = true;
+  try {
+    updateAdvancedEditorWidth(node);
+
+    const currentWidth = Number(node.size[0]) || 360;
+    const currentHeight = Number(node.size[1]) || 0;
+    const computed = advancedBaseComputeSize(node);
+    const computedHeight = Number(computed[1]) || 0;
+    const editorHeight = measureAdvancedEditorHeight(editor);
+    const chromeOffset = Math.max(
+      72,
+      Math.round(computedHeight - editorHeight),
+    );
+    const minimumHeight = Math.max(
+      220,
+      Math.ceil(editorHeight + chromeOffset),
+      Math.ceil(computedHeight),
+    );
+    const nextHeight = Math.max(currentHeight, minimumHeight);
+    node.__easyuseAnimaAdvancedLastEditorHeight = editorHeight;
+    node.__easyuseAnimaAdvancedLastLayoutReason = reason;
+
+    if (typeof node.setSize === "function" && nextHeight > currentHeight + 1) {
+      node.setSize([currentWidth, nextHeight]);
     }
-    const width = Number(node.size[0]) || 360;
-    editor.style.width = `${advancedEditorWidth(node)}px`;
-    editor.style.maxWidth = `${advancedEditorWidth(node)}px`;
-    editor.classList.toggle("is-narrow", width < 620);
-    const computed = node.computeSize?.();
-    const nextHeight = Math.max(220, Number(computed?.[1]) || editor.scrollHeight || 0);
-    if (nextHeight && Math.abs(nextHeight - Number(node.size[1] || 0)) > 2) {
-      node.setSize([width, nextHeight]);
-    }
+
     app.graph?.setDirtyCanvas?.(true, true);
     requestAnimationFrame(() => app.graph?.setDirtyCanvas?.(true, true));
+  } finally {
+    node.__easyuseAnimaApplyingLayout = false;
+  }
+  scheduleAdvancedHighlights(node);
+}
+
+function scheduleAdvancedLayout(node, reason = "layout") {
+  if (!node?.__easyuseAnimaAdvancedEditorEl) {
+    return;
+  }
+  updateAdvancedEditorWidth(node);
+  node.__easyuseAnimaAdvancedLayoutReason = reason;
+  if (node.__easyuseAnimaAdvancedLayoutScheduled) {
+    return;
+  }
+  node.__easyuseAnimaAdvancedLayoutScheduled = true;
+  requestAnimationFrame(() => {
+    node.__easyuseAnimaAdvancedLayoutScheduled = false;
+    applyAdvancedLayout(node, node.__easyuseAnimaAdvancedLayoutReason || reason);
   });
 }
 
@@ -3135,20 +3232,23 @@ function createAdvancedFieldElement(node, field) {
   const updateFieldHighlight = debounce(() => {
     scheduleAdvancedFieldHighlight(node, field, textarea);
   }, 180);
-  const syncHeight = () => {
-    const height = desiredTextareaHeight(
-      textarea,
-      Math.max(textarea.offsetHeight || 0, field.height || 0),
+  const syncHeight = (options = {}) => {
+    const manualHeight = options.preserveUserHeight
+      ? Math.max(Number(textarea.offsetHeight) || 0, Number.parseFloat(textarea.style.height || "") || 0)
+      : 0;
+    textarea.style.height = "auto";
+    textarea.style.overflowY = "hidden";
+    const height = Math.max(
       42,
+      Math.ceil(Number(textarea.scrollHeight) || 0),
+      manualHeight,
     );
-    if (height > (field.height || 0)) {
-      textarea.style.height = `${height}px`;
-      field.height = height;
-    }
+    textarea.style.height = `${height}px`;
+    field.height = height;
     writeAdvancedFields(node, fields);
     updateAdvancedFieldHighlight(node, field, textarea);
     updateFieldHighlight();
-    syncAdvancedNodeSize(node);
+    scheduleAdvancedLayout(node, "textarea");
   };
   textarea.addEventListener("input", () => {
     if (linked) {
@@ -3161,8 +3261,8 @@ function createAdvancedFieldElement(node, field) {
     syncHeight();
   });
   textarea.addEventListener("scroll", () => updateAdvancedFieldHighlight(node, field, textarea));
-  textarea.addEventListener("mouseup", syncHeight);
-  textarea.addEventListener("pointerup", syncHeight);
+  textarea.addEventListener("mouseup", () => syncHeight({ preserveUserHeight: true }));
+  textarea.addEventListener("pointerup", () => syncHeight({ preserveUserHeight: true }));
   textarea.addEventListener("change", () => {
     updateAdvancedFieldHighlight(node, field, textarea);
     updateFieldHighlight();
@@ -3261,9 +3361,7 @@ function renderAdvancedEditor(node) {
   node.__easyuseAnimaAdvancedFields = parseAdvancedFields(node);
   applyAdvancedNaiaGeneralAutoToggle(node, node.__easyuseAnimaAdvancedFields);
   editor.innerHTML = "";
-  editor.style.width = `${advancedEditorWidth(node)}px`;
-  editor.style.maxWidth = `${advancedEditorWidth(node)}px`;
-  editor.classList.toggle("is-narrow", Number(node.size?.[0] || 0) < 620);
+  updateAdvancedEditorWidth(node);
   const panes = document.createElement("div");
   panes.className = "easyuse-anima-advanced-panes";
   panes.append(
@@ -3272,11 +3370,7 @@ function renderAdvancedEditor(node) {
   );
   editor.append(createAdvancedControlBar(node), createAdvancedResolutionBar(node), panes);
   writeAdvancedFields(node, node.__easyuseAnimaAdvancedFields);
-  syncAdvancedNodeSize(node);
-  requestAnimationFrame(() => {
-    refreshAdvancedHighlights(node);
-    requestAnimationFrame(() => refreshAdvancedHighlights(node));
-  });
+  scheduleAdvancedLayout(node, "render");
 }
 
 function hookAdvancedNode(node) {
@@ -3447,25 +3541,26 @@ app.registerExtension({
     const onResize = nodeType.prototype.onResize;
     nodeType.prototype.onResize = function () {
       const result = onResize?.apply(this, arguments);
-      if (this.__easyuseAnimaHandlingResize) {
+      if (this.__easyuseAnimaHandlingResize || this.__easyuseAnimaApplyingLayout) {
         return result;
       }
       this.__easyuseAnimaHandlingResize = true;
       try {
-      if (nodeData.name === ADVANCED_NODE_TYPE) {
-        removeAdvancedInternalInputSockets(this);
-        syncAdvancedNodeSize(this);
+        if (nodeData.name === ADVANCED_NODE_TYPE) {
+          removeAdvancedInternalInputSockets(this);
+          updateAdvancedEditorWidth(this);
+          scheduleAdvancedLayout(this, "resize");
+          return result;
+        }
+        if (isExtendNode(this)) {
+          applyExtendSlotVisibility(this);
+          renderExtendSlotControls(this);
+        }
+        rebalanceStudioInputHeights(this);
+        if (isExtendNode(this)) {
+          layoutExtendPromptWidgets(this);
+        }
         return result;
-      }
-      if (isExtendNode(this)) {
-        applyExtendSlotVisibility(this);
-        renderExtendSlotControls(this);
-      }
-      rebalanceStudioInputHeights(this);
-      if (isExtendNode(this)) {
-        layoutExtendPromptWidgets(this);
-      }
-      return result;
       } finally {
         this.__easyuseAnimaHandlingResize = false;
       }
