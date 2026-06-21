@@ -84,10 +84,15 @@ function setWidgetVisible(widget, visible) {
 
 function hideWidget(widget) {
   widget.hidden = true;
+  widget.serialize = true;
+  widget.options ||= {};
+  widget.options.hidden = true;
   widget.computeSize = () => [0, 0];
   widget.draw = () => {};
   if (widget.inputEl) {
     widget.inputEl.style.display = "none";
+    widget.inputEl.style.pointerEvents = "none";
+    widget.inputEl.tabIndex = -1;
   }
 }
 

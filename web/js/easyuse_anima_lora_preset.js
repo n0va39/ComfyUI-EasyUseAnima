@@ -814,7 +814,7 @@ function drawNumberPart(ctx, x, y, height, value) {
 
 function hideInternalWidget(node, name) {
   const widget = findWidget(node, name);
-  if (!widget || widget.__easyuseAnimaHidden) {
+  if (!widget) {
     return;
   }
   ensureWidgetValue(node, name);
@@ -855,10 +855,13 @@ function restoreInternalWidgetsForConfigure(node) {
     if (!widget || node.widgets.includes(widget)) {
       continue;
     }
-    widget.__easyuseAnimaHidden = false;
-    widget.hidden = false;
+    widget.__easyuseAnimaHidden = true;
+    widget.hidden = true;
+    widget.serialize = true;
     widget.options ||= {};
-    widget.options.hidden = false;
+    widget.options.hidden = true;
+    widget.computeSize = () => [0, 0];
+    widget.draw = () => {};
     node.widgets.splice(Math.min(index, node.widgets.length), 0, widget);
   }
 }
