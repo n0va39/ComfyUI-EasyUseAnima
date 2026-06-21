@@ -140,5 +140,5 @@ If automatic publishing is wanted later, add a guarded `push` trigger for
 
 - Confirm the Registry page for publisher `n0va39` shows the new version.
 - Confirm install through ComfyUI Manager / Registry.
-- Create and push a matching Git tag, for example `v0.1.0`, unless the tag was already created before publishing.
+- Create and push a matching Git tag, for example `v0.1.1`, unless the tag was already created before publishing.
 - Do not rewrite the tag after public release. Use a new patch version for fixes.
