@@ -2005,6 +2005,7 @@ function initializeNode(node) {
 
   window.requestAnimationFrame(() => {
     finalizeInternalWidgets(node);
+    ensureProfileBar(node);
     node.__easyuseAnimaActiveProfileIndex = selectedProfileIndex(node);
     loadProfile(node, selectedProfileIndex(node), { initializeFromCurrent: true });
     scrollProfileBarTo(node, selectedProfileIndex(node));
