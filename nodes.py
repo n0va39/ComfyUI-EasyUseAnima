@@ -995,16 +995,30 @@ def _lora_model_exists(lora_name: str) -> bool | None:
     return False
 
 
+def _missing_lora_display_name(input_name: str, stack_name: str) -> str:
+    input_text = str(input_name or "").strip()
+    stack_text = str(stack_name or "").strip()
+    if not input_text or input_text == stack_text:
+        return stack_text
+    normalized_input = input_text.replace("\\", "/").casefold()
+    normalized_stack = stack_text.replace("\\", "/").casefold()
+    if normalized_input == normalized_stack:
+        return stack_text
+    return f"{stack_text} (input: {input_text})"
+
+
 def _raise_missing_loras(profile_index: int, missing_loras: list[str]):
     if not missing_loras:
         return
     lines = "\n".join(f"- {name}" for name in missing_loras)
-    raise RuntimeError(
+    message = (
         "[EasyUse Anima] LoRA Preset profile "
         f"{profile_index} contains missing LoRA model(s):\n"
         f"{lines}\n"
         "Install the missing file under ComfyUI/models/loras or remove it from the profile."
     )
+    logger.error(message)
+    raise RuntimeError(message)
 
 
 class EasyUseAnimaPromptCorrector:
@@ -1889,7 +1903,7 @@ class EasyUseAnimaLoraPreset:
             seen.add(dedupe_key)
 
             if _lora_model_exists(stack_lora_name) is False:
-                missing_loras.append(stack_lora_name)
+                missing_loras.append(_missing_lora_display_name(raw_name, stack_lora_name))
                 continue
 
             _lora_path, lora_trigger_words = _get_lora_info(lora_name)

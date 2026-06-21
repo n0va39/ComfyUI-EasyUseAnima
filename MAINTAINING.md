@@ -26,6 +26,10 @@ This repository is prepared for future ComfyUI Manager / Comfy Registry registra
 - Keep node class ids stable unless a breaking release is intended.
 - Do not conflict with `comfyui-naia-bridge` class ids or display names.
 - Keep this node pack usable with or without `comfyui-naia-bridge` installed.
+- Test compatibility issues against both the active ComfyUI instance and an unused older instance when available.
+- When using Comfy CLI for compatibility checks, install into an unused instance and verify the installed git commit, `pyproject.toml` version, and Manager cache behavior separately.
+- Do not dereference `server.PromptServer.instance` at module import time without a guard. Some ComfyUI, Manager, or validation import paths can import custom nodes before `PromptServer.instance` exists.
+- If ComfyUI Manager reports a nightly/latest install, confirm the actual installed commit with `git rev-parse HEAD`; Registry versions and Manager nightly installs can point to different refs.
 
 ## Security Rules
 

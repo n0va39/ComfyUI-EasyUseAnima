@@ -147,22 +147,33 @@ class LoraPresetTests(unittest.TestCase):
     def test_build_reports_missing_profile_lora_names(self):
         loras = [
             {"name": "style/missing_lora.safetensors", "on": True, "strength": 1.0},
+            {"name": "style/disabled_missing.safetensors", "on": False, "strength": 1.0},
+            {
+                "name": "D:/ComfyUI/ComfyUI_main/models/loras/style/missing_abs.safetensors",
+                "on": True,
+                "strength": 0.5,
+            },
         ]
 
         with patch("nodes._lora_model_exists", lambda _name: False):
-            with self.assertRaises(RuntimeError) as raised:
-                EasyUseAnimaLoraPreset().build(
-                    style_prompt="style",
-                    profile_index=1,
-                    profile_count=1,
-                    lora_name="None",
-                    loras=json.dumps(loras),
-                    profile_data="{}",
-                )
+            with self.assertLogs("ComfyUI-EasyUseAnima", level="ERROR") as logs:
+                with self.assertRaises(RuntimeError) as raised:
+                    EasyUseAnimaLoraPreset().build(
+                        style_prompt="style",
+                        profile_index=1,
+                        profile_count=1,
+                        lora_name="None",
+                        loras=json.dumps(loras),
+                        profile_data="{}",
+                    )
 
         message = str(raised.exception)
         self.assertIn("LoRA Preset profile 1", message)
         self.assertIn("missing_lora.safetensors", message)
+        self.assertIn("missing_abs.safetensors", message)
+        self.assertIn("input: D:/ComfyUI/ComfyUI_main/models/loras/style/missing_abs.safetensors", message)
+        self.assertNotIn("disabled_missing.safetensors", message)
+        self.assertIn("missing_abs.safetensors", "\n".join(logs.output))
 
     def test_build_corrects_style_prompt_output(self):
         with patch("nodes._correct_style_prompt", lambda prompt: f"corrected: {prompt}"):
