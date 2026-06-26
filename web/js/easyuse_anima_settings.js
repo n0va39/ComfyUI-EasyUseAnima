@@ -743,6 +743,11 @@ function autocompleteDatasetSelector(initialValue = {}) {
   const panel = document.createElement("div");
   panel.style.cssText = "margin-top: 8px;";
   container.append(panel);
+  for (const p of autocompletePanels) {
+    if (!p.isConnected) {
+      autocompletePanels.delete(p);
+    }
+  }
   autocompletePanels.add(panel);
 
   const renderOptions = (status) => {
@@ -854,6 +859,11 @@ async function refreshAutocompletePanel(panel) {
 }
 
 async function refreshAutocompletePanels() {
+  for (const p of autocompletePanels) {
+    if (!p.isConnected) {
+      autocompletePanels.delete(p);
+    }
+  }
   await Promise.all([...autocompletePanels].map((panel) => refreshAutocompletePanel(panel)));
 }
 

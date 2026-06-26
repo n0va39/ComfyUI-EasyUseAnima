@@ -991,17 +991,34 @@ function copyInputTextMetrics(input, overlay) {
     "tabSize",
   ];
   for (const property of properties) {
-    overlay.style[property] = style[property];
+    const val = style[property];
+    if (overlay.style[property] !== val) {
+      overlay.style[property] = val;
+    }
   }
 }
 
 function syncOverlayBounds(input, overlay) {
-  overlay.style.left = `${input.offsetLeft}px`;
-  overlay.style.top = `${input.offsetTop}px`;
-  overlay.style.width = `${input.offsetWidth}px`;
-  overlay.style.height = `${input.offsetHeight}px`;
-  overlay.scrollTop = input.scrollTop;
-  overlay.scrollLeft = input.scrollLeft;
+  if (!overlay) return;
+  const left = `${input.offsetLeft}px`;
+  const top = `${input.offsetTop}px`;
+  const width = `${input.offsetWidth}px`;
+  const height = `${input.offsetHeight}px`;
+
+  if (overlay.style.left !== left) overlay.style.left = left;
+  if (overlay.style.top !== top) overlay.style.top = top;
+  if (overlay.style.width !== width) overlay.style.width = width;
+  if (overlay.style.height !== height) overlay.style.height = height;
+
+  if (overlay.scrollTop !== input.scrollTop) overlay.scrollTop = input.scrollTop;
+  if (overlay.scrollLeft !== input.scrollLeft) overlay.scrollLeft = input.scrollLeft;
+}
+
+function syncOverlayScroll(input, overlay) {
+  if (overlay) {
+    if (overlay.scrollTop !== input.scrollTop) overlay.scrollTop = input.scrollTop;
+    if (overlay.scrollLeft !== input.scrollLeft) overlay.scrollLeft = input.scrollLeft;
+  }
 }
 
 function ensureHighlightOverlay(input) {
@@ -1013,7 +1030,6 @@ function ensureHighlightOverlay(input) {
   if (input.__easyuseAnimaHighlightOverlay) {
     const overlay = input.__easyuseAnimaHighlightOverlay;
     if (overlay.isConnected && overlay.parentElement === input.parentElement) {
-      syncOverlayBounds(input, overlay);
       return overlay;
     }
     overlay.remove?.();
@@ -1056,9 +1072,8 @@ function ensureHighlightOverlay(input) {
   input.style.caretColor = "var(--input-text, #ddd)";
   input.style.webkitTextFillColor = "transparent";
 
-  input.addEventListener("scroll", () => syncOverlayBounds(input, overlay));
+  input.addEventListener("scroll", () => syncOverlayScroll(input, overlay));
   input.__easyuseAnimaHighlightOverlay = overlay;
-  syncOverlayBounds(input, overlay);
   return overlay;
 }
 
@@ -1657,17 +1672,19 @@ function studioDefaultHeight(widget) {
   return EXTEND_FIELD_HEIGHTS[widget.name] || FIELD_HEIGHTS[widget.name] || 72;
 }
 
-function updateHighlight(node, widget, tokens = widget.__easyuseAnimaTokens || []) {
+function updateHighlight(node, widget, tokens = widget.__easyuseAnimaTokens || [], forceCopyMetrics = false) {
   const input = findInputEl(widget);
   if (!input) {
     return;
   }
-  input.__easyuseAnimaHighlightRefresh = () => updateHighlight(node, widget, widget.__easyuseAnimaTokens || []);
+  input.__easyuseAnimaHighlightRefresh = (force = false) => updateHighlight(node, widget, widget.__easyuseAnimaTokens || [], force);
   const overlay = ensureHighlightOverlay(input);
   if (!overlay) {
     return;
   }
-  copyInputTextMetrics(input, overlay);
+  if (forceCopyMetrics) {
+    copyInputTextMetrics(input, overlay);
+  }
   syncOverlayBounds(input, overlay);
   const value = displayText(node, widget);
   overlay.innerHTML = value
@@ -1687,20 +1704,22 @@ function advancedHighlightState(node, field) {
   return node.__easyuseAnimaAdvancedHighlightStates[id];
 }
 
-function updateAdvancedFieldHighlight(node, field, textarea, tokens = null) {
+function updateAdvancedFieldHighlight(node, field, textarea, tokens = null, forceCopyMetrics = false) {
   if (!(textarea instanceof HTMLTextAreaElement)) {
     return;
   }
   textarea.__easyuseAnimaNode = node;
   textarea.__easyuseAnimaField = field;
-  textarea.__easyuseAnimaHighlightRefresh = () => updateAdvancedFieldHighlight(node, field, textarea);
+  textarea.__easyuseAnimaHighlightRefresh = (force = false) => updateAdvancedFieldHighlight(node, field, textarea, null, force);
   const overlay = ensureHighlightOverlay(textarea);
   if (!overlay) {
     return;
   }
   const state = advancedHighlightState(node, field);
   const value = String(textarea.value || "");
-  copyInputTextMetrics(textarea, overlay);
+  if (forceCopyMetrics) {
+    copyInputTextMetrics(textarea, overlay);
+  }
   syncOverlayBounds(textarea, overlay);
   overlay.innerHTML = value
     ? renderHighlightedText(value, tokens || state.tokens || [])
@@ -1775,16 +1794,69 @@ function refreshAdvancedHighlights(node, { classify = true } = {}) {
   }
   const fields = node.__easyuseAnimaAdvancedFields || parseAdvancedFields(node);
   const byId = new Map(fields.map((field) => [String(field.id), field]));
-  editor.querySelectorAll("textarea[data-easyuse-anima-advanced-field-id]").forEach((textarea) => {
+  const textareas = Array.from(editor.querySelectorAll("textarea[data-easyuse-anima-advanced-field-id]"));
+
+  const updates = [];
+
+  // Read DOM Sizes
+  for (const textarea of textareas) {
     const field = byId.get(String(textarea.dataset.easyuseAnimaAdvancedFieldId || ""));
     if (!field) {
-      return;
+      continue;
     }
-    updateAdvancedFieldHighlight(node, field, textarea);
-    if (classify) {
+    const overlay = ensureHighlightOverlay(textarea);
+    if (!overlay) {
+      continue;
+    }
+
+    const left = `${textarea.offsetLeft}px`;
+    const top = `${textarea.offsetTop}px`;
+    const width = `${textarea.offsetWidth}px`;
+    const height = `${textarea.offsetHeight}px`;
+    const scrollTop = textarea.scrollTop;
+    const scrollLeft = textarea.scrollLeft;
+
+    const state = advancedHighlightState(node, field);
+    const value = String(textarea.value || "");
+    const htmlContent = value
+      ? renderHighlightedText(value, state.tokens || [])
+      : `<span style="opacity: 0.45">${escapeHtml(textarea.placeholder || "")}</span>`;
+
+    updates.push({
+      overlay,
+      left,
+      top,
+      width,
+      height,
+      scrollTop,
+      scrollLeft,
+      htmlContent,
+      textarea,
+      field,
+      state,
+      value
+    });
+  }
+
+  // Write DOM
+  for (const update of updates) {
+    const { overlay, left, top, width, height, scrollTop, scrollLeft, htmlContent, textarea, field, state, value } = update;
+
+    if (overlay.style.left !== left) overlay.style.left = left;
+    if (overlay.style.top !== top) overlay.style.top = top;
+    if (overlay.style.width !== width) overlay.style.width = width;
+    if (overlay.style.height !== height) overlay.style.height = height;
+    if (overlay.scrollTop !== scrollTop) overlay.scrollTop = scrollTop;
+    if (overlay.scrollLeft !== scrollLeft) overlay.scrollLeft = scrollLeft;
+
+    if (overlay.innerHTML !== htmlContent) {
+      overlay.innerHTML = htmlContent;
+    }
+
+    if (classify && (state.lastText !== value || !Array.isArray(state.tokens))) {
       scheduleAdvancedFieldHighlight(node, field, textarea);
     }
-  });
+  }
 }
 
 function scheduleAdvancedHighlights(node, options = {}) {
@@ -1809,21 +1881,71 @@ function scheduleAdvancedHighlights(node, options = {}) {
 let promptHighlightRefreshRaf = 0;
 
 function refreshConnectedHighlightOverlays() {
-  document.querySelectorAll(".easyuse-anima-highlight-input").forEach((input) => {
+  const inputs = Array.from(document.querySelectorAll(".easyuse-anima-highlight-input"));
+  const updates = [];
+
+  // DOM Style Read
+  for (const input of inputs) {
     if (!(input instanceof HTMLTextAreaElement || input instanceof HTMLInputElement)) {
-      return;
-    }
-    if (typeof input.__easyuseAnimaHighlightRefresh === "function") {
-      input.__easyuseAnimaHighlightRefresh();
-      return;
+      continue;
     }
     const overlay = ensureHighlightOverlay(input);
     if (!overlay) {
-      return;
+      continue;
     }
-    copyInputTextMetrics(input, overlay);
-    syncOverlayBounds(input, overlay);
-  });
+
+    // Font metrics reads
+    const style = getComputedStyle(input);
+    const properties = [
+      "font", "fontFamily", "fontSize", "fontWeight", "fontStyle",
+      "lineHeight", "letterSpacing", "padding", "border", "borderRadius",
+      "textAlign", "textTransform", "tabSize"
+    ];
+    const metricValues = {};
+    for (const prop of properties) {
+      metricValues[prop] = style[prop];
+    }
+
+    // Bounds reads
+    const left = `${input.offsetLeft}px`;
+    const top = `${input.offsetTop}px`;
+    const width = `${input.offsetWidth}px`;
+    const height = `${input.offsetHeight}px`;
+    const scrollTop = input.scrollTop;
+    const scrollLeft = input.scrollLeft;
+
+    updates.push({
+      overlay,
+      metricValues,
+      left,
+      top,
+      width,
+      height,
+      scrollTop,
+      scrollLeft
+    });
+  }
+
+  // DOM Style Write
+  for (const update of updates) {
+    const { overlay, metricValues, left, top, width, height, scrollTop, scrollLeft } = update;
+
+    // Apply metrics (only if they changed)
+    for (const prop in metricValues) {
+      const val = metricValues[prop];
+      if (overlay.style[prop] !== val) {
+        overlay.style[prop] = val;
+      }
+    }
+
+    // Apply bounds styles (only if they changed)
+    if (overlay.style.left !== left) overlay.style.left = left;
+    if (overlay.style.top !== top) overlay.style.top = top;
+    if (overlay.style.width !== width) overlay.style.width = width;
+    if (overlay.style.height !== height) overlay.style.height = height;
+    if (overlay.scrollTop !== scrollTop) overlay.scrollTop = scrollTop;
+    if (overlay.scrollLeft !== scrollLeft) overlay.scrollLeft = scrollLeft;
+  }
 }
 
 function requestConnectedHighlightOverlayRefresh() {
@@ -1940,7 +2062,6 @@ function enhanceResizableInput(node, widget) {
   input.addEventListener("mouseup", captureManualResize);
   input.addEventListener("pointerup", captureManualResize);
   input.addEventListener("input", syncHeight);
-  input.addEventListener("scroll", () => updateHighlight(node, widget));
   input.__easyuseAnimaStudioResizable = true;
 }
 
@@ -3593,18 +3714,13 @@ function createAdvancedFieldElement(node, field) {
       node.__easyuseAnimaAdvancedFieldInputValues[inputName] = textarea.value;
     }
     field.text = textarea.value;
-    updateAdvancedFieldHighlight(node, field, textarea);
     updateFieldHighlight();
     syncHeight();
   });
-  textarea.addEventListener("scroll", () => updateAdvancedFieldHighlight(node, field, textarea));
   textarea.addEventListener("change", () => {
-    updateAdvancedFieldHighlight(node, field, textarea);
     updateFieldHighlight();
     syncHeight();
   });
-  textarea.addEventListener("click", () => updateAdvancedFieldHighlight(node, field, textarea));
-  textarea.addEventListener("keyup", () => updateAdvancedFieldHighlight(node, field, textarea));
   registerAdvancedAutocompleteInput(node, field, textarea);
   requestAnimationFrame(() => {
     setAdvancedTextareaHeight(node, textarea, field.height || 72, {
