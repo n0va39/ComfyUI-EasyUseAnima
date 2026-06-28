@@ -6,7 +6,7 @@ async function getSettings() {
     if (!response.ok) {
       return {};
     }
-    return await response.json();
+    return mergeComfySettingValues(await response.json());
   } catch {
     return {};
   }
@@ -21,12 +21,21 @@ function setSetting(key, value) {
 }
 
 async function saveSetting(key, value) {
+  const settingId = COMFY_SETTING_IDS[key];
+  if (settingId) {
+    await saveComfySetting(settingId, value);
+    return {
+      ...currentSettings(),
+      [key]: String(value ?? ""),
+    };
+  }
+
   const response = await setSetting(key, value);
   const data = await response.json().catch(() => ({}));
   if (!response.ok) {
     throw new Error(data.message || `HTTP ${response.status}`);
   }
-  return data;
+  return mergeComfySettingValues(data);
 }
 
 async function getAutocompleteStatus() {
@@ -72,6 +81,27 @@ const NAIA_PREPROCESSING_OPTIONS = [
   ["danbooru_auto_weight", { en: "Danbooru auto weight", ko: "Danbooru 자동 가중치" }],
   ["tag_implication_compression", { en: "Tag implication compression", ko: "태그 함의 압축" }],
 ];
+
+const COMFY_SETTING_IDS = {
+  "prompt.metadata_filter_words": "EasyUseAnima.Prompt.MetadataFilter",
+  "autocomplete.source": "EasyUseAnima.Prompt.AutocompleteSource",
+  "autocomplete.limit": "EasyUseAnima.Prompt.AutocompleteLimit",
+  "autocomplete.mode": "EasyUseAnima.Prompt.AutocompleteMode",
+  "prompt_studio.typo_indicator": "EasyUseAnima.Prompt.TypoIndicator",
+  "prompt_studio.colors": "EasyUseAnima.Prompt.HighlightColors",
+  "prompt_studio.naia_general_above_auto_toggle": "EasyUseAnima.Prompt.NaiaGeneralAutoToggle",
+  "lora_preset.name_display": "EasyUseAnima.LoraPreset.NameDisplay",
+  "naia.host": "EasyUseAnima.NAIA.Host",
+  "naia.port": "EasyUseAnima.NAIA.Port",
+  "naia.use_naia_settings": "EasyUseAnima.NAIA.UseDesktopPromptEngineering",
+  "naia.pre_prompt": "EasyUseAnima.NAIA.pre_prompt",
+  "naia.post_prompt": "EasyUseAnima.NAIA.post_prompt",
+  "naia.auto_hide": "EasyUseAnima.NAIA.auto_hide",
+};
+
+for (const [key] of NAIA_PREPROCESSING_OPTIONS) {
+  COMFY_SETTING_IDS[`naia.${key}`] = `EasyUseAnima.NAIA.${key}`;
+}
 
 const SETTINGS_PANEL_STYLE =
   "box-sizing: border-box; max-width: 560px; line-height: 1.45; display: flex; flex-direction: column; gap: 8px;";
@@ -310,6 +340,37 @@ function readComfySettingValue(key) {
   }
 
   return undefined;
+}
+
+async function saveComfySetting(settingId, value) {
+  const normalized = String(value ?? "");
+  const setter = app?.ui?.settings?.setSettingValue;
+  const settingsLookup = app?.ui?.settings?.settingsLookup;
+  const isRegisteredSetting = !settingsLookup || Boolean(settingsLookup[settingId]);
+  if (typeof setter === "function" && isRegisteredSetting) {
+    await setter.call(app.ui.settings, settingId, normalized);
+    return;
+  }
+
+  const response = await fetch(`/settings/${encodeURIComponent(settingId)}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(normalized),
+  });
+  if (!response.ok) {
+    throw new Error(`HTTP ${response.status}`);
+  }
+}
+
+function mergeComfySettingValues(settings = {}) {
+  const merged = { ...(settings || {}) };
+  for (const [internalKey, settingId] of Object.entries(COMFY_SETTING_IDS)) {
+    const value = readComfySettingValue(settingId);
+    if (value != null) {
+      merged[internalKey] = String(value);
+    }
+  }
+  return merged;
 }
 
 function readComfyLanguage() {
@@ -1160,24 +1221,22 @@ app.registerExtension({
     const settings = await getSettings();
     window.__easyuseAnimaSettings = { ...settings };
     const latestSettings = () => currentSettings(settings);
-    const addSetting = ({ id, categoryKey, name, tooltip = "", editor }) => app.ui.settings.addSetting({
+    const addSetting = ({ id, name, tooltip = "", defaultValue = "", editor }) => app.ui.settings.addSetting({
       id: `EasyUseAnima.${id}`,
-      category: ["EasyUse Anima", textFor(latestSettings(), categoryKey)],
       name: typeof name === "function" ? name(latestSettings()) : textFor(latestSettings(), name),
       tooltip: typeof tooltip === "function" ? tooltip(latestSettings()) : tooltip ? textFor(latestSettings(), tooltip) : undefined,
+      defaultValue,
       type: () => editor(latestSettings()),
     });
 
     addSetting({
       id: "Prompt.MetadataFilter",
-      categoryKey: "settingsPromptSectionName",
       name: "settingsPromptMetadataName",
       tooltip: "settingsPromptMetadataTooltip",
       editor: (settings) => textareaSettingEditor("prompt.metadata_filter_words", settings["prompt.metadata_filter_words"] || ""),
     });
     addSetting({
       id: "Prompt.AutocompleteMode",
-      categoryKey: "settingsPromptSectionName",
       name: "autocompleteMode",
       tooltip: "autocompleteModeGuide",
       editor: (settings) => selectSettingEditor(
@@ -1192,14 +1251,12 @@ app.registerExtension({
     });
     addSetting({
       id: "Prompt.AutocompleteSource",
-      categoryKey: "settingsPromptSectionName",
       name: "settingsAutocompleteCsvName",
       tooltip: "settingsAutocompleteCsvTooltip",
       editor: autocompleteSourceSettingEditor,
     });
     addSetting({
       id: "Prompt.AutocompleteLimit",
-      categoryKey: "settingsPromptSectionName",
       name: "autocompleteLimitName",
       tooltip: "autocompleteLimitTooltip",
       editor: (settings) => textSettingEditor("autocomplete.limit", settings["autocomplete.limit"] || 20, {
@@ -1213,14 +1270,12 @@ app.registerExtension({
     });
     addSetting({
       id: "Prompt.TypoIndicator",
-      categoryKey: "settingsPromptSectionName",
       name: "typoIndicators",
       tooltip: "settingsPromptStudioTooltip",
       editor: (settings) => checkboxSettingEditor("prompt_studio.typo_indicator", settings["prompt_studio.typo_indicator"] !== "false"),
     });
     addSetting({
       id: "Prompt.NaiaGeneralAutoToggle",
-      categoryKey: "settingsPromptSectionName",
       name: "naiaGeneralAutoToggle",
       tooltip: "promptStudioGuide",
       editor: (settings) => checkboxSettingEditor(
@@ -1231,7 +1286,6 @@ app.registerExtension({
     for (const [colorKey, item] of Object.entries(PROMPT_STUDIO_COLOR_DEFAULTS)) {
       addSetting({
         id: `Prompt.HighlightColor.${colorKey}`,
-        categoryKey: "settingsPromptSectionName",
         name: (settings) => `${textFor(settings, "colorSettingName")}: ${colorLabel(item, settings)}`,
         tooltip: "promptStudioGuide",
         editor: (settings) => colorSettingEditor(colorKey, settings),
@@ -1240,7 +1294,6 @@ app.registerExtension({
 
     addSetting({
       id: "LoraPreset.NameDisplay",
-      categoryKey: "settingsLoraSectionName",
       name: "settingsLoraDisplayName",
       tooltip: "settingsLoraDisplayTooltip",
       editor: (settings) => selectSettingEditor(
@@ -1255,14 +1308,12 @@ app.registerExtension({
 
     addSetting({
       id: "NAIA.Host",
-      categoryKey: "settingsNaiaSectionName",
       name: (settings) => `${textFor(settings, "naiaEndpoint")}: Host`,
       tooltip: "naiaSettingsGuide",
       editor: (settings) => textSettingEditor("naia.host", settings["naia.host"] || "127.0.0.1"),
     });
     addSetting({
       id: "NAIA.Port",
-      categoryKey: "settingsNaiaSectionName",
       name: (settings) => `${textFor(settings, "naiaEndpoint")}: Port`,
       tooltip: "naiaSettingsGuide",
       editor: (settings) => textSettingEditor("naia.port", settings["naia.port"] || 7243, {
@@ -1276,7 +1327,6 @@ app.registerExtension({
     });
     addSetting({
       id: "NAIA.UseDesktopPromptEngineering",
-      categoryKey: "settingsNaiaSectionName",
       name: (settings) => `${textFor(settings, "naiaPromptEngineering")}: ${textFor(settings, "useDesktopNaia")}`,
       tooltip: "naiaSettingsGuide",
       editor: (settings) => checkboxSettingEditor("naia.use_naia_settings", settings["naia.use_naia_settings"] !== "false"),
@@ -1288,7 +1338,6 @@ app.registerExtension({
     ]) {
       addSetting({
         id: `NAIA.${key}`,
-        categoryKey: "settingsNaiaSectionName",
         name: (settings) => `${textFor(settings, "naiaPromptEngineering")}: ${textFor(settings, labelKey)}`,
         tooltip: "naiaSettingsGuide",
         editor: (settings) => textSettingEditor(`naia.${key}`, settings[`naia.${key}`] || ""),
@@ -1297,7 +1346,6 @@ app.registerExtension({
     for (const [key, labelText] of NAIA_PREPROCESSING_OPTIONS) {
       addSetting({
         id: `NAIA.${key}`,
-        categoryKey: "settingsNaiaSectionName",
         name: (settings) => {
           const label = labelText?.[settingsLanguage(settings)] || labelText?.en || key;
           return `${textFor(settings, "preprocessingOptions")}: ${label}`;

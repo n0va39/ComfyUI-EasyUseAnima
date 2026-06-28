@@ -6,6 +6,7 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
+import settings as easyuse_settings
 from nodes import (
     ADVANCED_RESOLUTION_BUCKETS,
     DEFAULT_QUALITY_TAGS,
@@ -906,6 +907,27 @@ class SettingsTests(unittest.TestCase):
             resolve_autocomplete_mode({"autocomplete.mode": "bad"}),
             "compatible_global",
         )
+
+    def test_comfy_settings_override_legacy_settings(self):
+        with (
+            patch.object(easyuse_settings, "_read_json_file", return_value={}),
+            patch.object(
+                easyuse_settings,
+                "_load_comfy_settings",
+                return_value={
+                    "EasyUseAnima.Prompt.AutocompleteLimit": "7",
+                    "EasyUseAnima.Prompt.TypoIndicator": "false",
+                    "EasyUseAnima.LoraPreset.NameDisplay": "path",
+                    "EasyUseAnima.NAIA.Port": "8123",
+                },
+            ),
+        ):
+            settings = easyuse_settings.public_settings()
+
+        self.assertEqual(settings["autocomplete.limit"], 7)
+        self.assertEqual(settings["prompt_studio.typo_indicator"], "false")
+        self.assertEqual(settings["lora_preset.name_display"], "path")
+        self.assertEqual(settings["naia.port"], 8123)
 
 
 class AutocompleteDatasetTests(unittest.TestCase):
