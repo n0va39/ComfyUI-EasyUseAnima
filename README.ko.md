@@ -214,6 +214,11 @@ NAIA 동작:
 - `(highres, absurdres, very aesthetic:0.8)`처럼 쉼표로 구분된 가중치 그룹은
   내부 태그를 각각 분류합니다.
 - 닫히지 않은 괄호는 syntax error로 표시됩니다.
+- 긴 프롬프트는 개별 textarea 내부 스크롤바가 아니라 Advanced editor 전체
+  스크롤로 처리됩니다. textarea는 현재 텍스트 줄 수에 맞춰 높이를 유지하므로
+  스크롤바가 하이라이트나 글자를 덮지 않습니다.
+- 하이라이트 overlay는 입력칸의 font family, size, spacing, wrapping 관련
+  설정을 따라가도록 동기화됩니다.
 
 ### Anima LoRA Preset
 
@@ -318,6 +323,12 @@ Impact Pack `DetailerForEach`를 연결합니다.
 - Prompt Builder, Prompt Corrector, Prompt Studio, Prompt Studio Advanced,
   일반 multiline `STRING` prompt/text widget에서 bundled Korean Danbooru
   autocomplete를 사용할 수 있습니다.
+- 자동완성 적용 범위는 ComfyUI Settings에서 `off`, `easyuse_nodes`,
+  `compatible_global` 중 선택합니다.
+  - `off`: EasyUse Anima 자동완성과 API 요청을 끕니다.
+  - `easyuse_nodes`: EasyUse Anima 프롬프트 노드에만 적용합니다.
+  - `compatible_global`: 기본값이며 기존처럼 호환 가능한 일반 prompt/text
+    widget에도 적용합니다.
 - 자동완성과 Prompt Studio 하이라이트에 사용할 CSV는 ComfyUI Settings의
   `EasyUse Anima: Autocomplete CSV`에서 선택할 수 있습니다.
 - 영어 태그 또는 설명/키워드의 한국어 단어를 입력한 뒤 방향키와 Enter/Tab으로
@@ -338,10 +349,16 @@ ComfyUI Settings:
 
 - NAIA 요청 host, port, Prompt Engineering option, preprocessing option은
   EasyUse Anima settings panel에서 설정합니다.
+- EasyUse Anima는 별도 언어 설정을 저장하지 않습니다. 노드 정보, 입력/출력
+  힌트, 설정창, 커스텀 DOM 버튼과 툴팁은 ComfyUI 기본 언어 설정을 따릅니다.
 - Prompt metadata filter word는 metadata prompt output에만 적용됩니다.
 - Prompt Studio 오타 표시와 카테고리 색상을 수동으로 변경할 수 있습니다.
 - Prompt Studio는 NAIA field 위쪽 general field를 자동 토글할 수 있습니다.
 - LoRA Preset row label은 파일명만 표시하거나 전체 경로로 표시할 수 있습니다.
+
+## 릴리즈 노트
+
+버전별 변경 사항은 [RELEASE.md](RELEASE.md)를 참고하세요.
 
 ## 요구 사항
 

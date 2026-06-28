@@ -1,5 +1,6 @@
 import { app } from "../../../scripts/app.js";
 import { api } from "../../../scripts/api.js";
+import { easyuseAnimaText, easyuseAnimaWatchLocale } from "./easyuse_anima_i18n.js";
 
 const NODE_TYPE = "EasyUseAnimaLoraPreset";
 const MAX_PROFILES = 16;
@@ -28,12 +29,88 @@ let profileWheelListenerInstalled = false;
 const LORA_PRESET_SETTINGS = {
   nameDisplay: "name",
 };
+const LORA_PRESET_TEXT = {
+  en: {
+    "profile.deleteConfirm": "Delete profile {index}?",
+    "profile.unsaved": "unsaved",
+    "profile.changed": "changed",
+    "profile.saved": "saved",
+    "profile.noNonEmpty": "No non-empty profiles were found in this saved profile set.",
+    "profile.maxReached": "Cannot load more profiles. The maximum is {max}.",
+    "profile.partialLoad": "Only {count} profile(s) were loaded because the maximum is {max}.",
+    "profile.savePrompt": "Save LoRA profile set as",
+    "profile.nameRequired": "Profile name is required.",
+    "profile.saveFailed": "Failed to save profile: {message}",
+    "profile.loadFailed": "Failed to load profile: {message}",
+    "profile.listFailed": "Failed to list profiles: {message}",
+    "profile.noneSaved": "No saved LoRA profiles found.",
+    "profile.loadTitle": "Load Profile",
+    "profile.header": "Profile {active}/{count}",
+    "profile.load": "Load",
+    "profile.save": "Save",
+    "lora.moveUp": "Move Up",
+    "lora.moveDown": "Move Down",
+    "lora.remove": "Remove",
+    "lora.noneFound": "No LoRA files found. Refresh ComfyUI after adding LoRAs.",
+    "lora.chooseTitle": "Choose a LoRA",
+    "lora.search": "Search LoRA",
+    "lora.allShort": "All",
+    "lora.toggleAll": "Toggle All",
+    "lora.strengthShort": "Str",
+    "lora.strength": "Strength",
+    "lora.strengthPrompt": "LoRA strength",
+    "lora.add": "+ Add LoRA",
+  },
+  ko: {
+    "profile.deleteConfirm": "프로필 {index}을 삭제할까요?",
+    "profile.unsaved": "미저장",
+    "profile.changed": "변경됨",
+    "profile.saved": "저장됨",
+    "profile.noNonEmpty": "저장된 프로필 세트에서 비어 있지 않은 프로필을 찾지 못했습니다.",
+    "profile.maxReached": "프로필을 더 불러올 수 없습니다. 최대 개수는 {max}개입니다.",
+    "profile.partialLoad": "최대 {max}개 제한 때문에 {count}개 프로필만 불러왔습니다.",
+    "profile.savePrompt": "LoRA 프로필 세트 이름",
+    "profile.nameRequired": "프로필 이름이 필요합니다.",
+    "profile.saveFailed": "프로필 저장 실패: {message}",
+    "profile.loadFailed": "프로필 불러오기 실패: {message}",
+    "profile.listFailed": "프로필 목록 불러오기 실패: {message}",
+    "profile.noneSaved": "저장된 LoRA 프로필이 없습니다.",
+    "profile.loadTitle": "프로필 불러오기",
+    "profile.header": "프로필 {active}/{count}",
+    "profile.load": "불러오기",
+    "profile.save": "저장",
+    "lora.moveUp": "위로 이동",
+    "lora.moveDown": "아래로 이동",
+    "lora.remove": "제거",
+    "lora.noneFound": "LoRA 파일을 찾지 못했습니다. LoRA를 추가한 뒤 ComfyUI를 새로고침하세요.",
+    "lora.chooseTitle": "LoRA 선택",
+    "lora.search": "LoRA 검색",
+    "lora.allShort": "전체",
+    "lora.toggleAll": "전체 토글",
+    "lora.strengthShort": "강도",
+    "lora.strength": "강도",
+    "lora.strengthPrompt": "LoRA 강도",
+    "lora.add": "+ LoRA 추가",
+  },
+};
 const INTERNAL_WIDGET_DEFAULTS = {
   profile_count: "4",
   lora_name: "None",
   loras: "[]",
   profile_data: "{}",
 };
+
+function lpText(key) {
+  return easyuseAnimaText(LORA_PRESET_TEXT, key);
+}
+
+function lpFormat(key, values = {}) {
+  return lpText(key).replace(/\{(\w+)\}/g, (_match, name) => values[name] ?? "");
+}
+
+function errorMessage(error) {
+  return String(error?.message || error || "");
+}
 
 function looksLikeProfileData(value) {
   if (typeof value !== "string") {
@@ -425,7 +502,7 @@ function deleteProfile(node, index) {
   if (count <= 1) {
     return;
   }
-  if (!window.confirm(`Delete profile ${index}?`)) {
+  if (!window.confirm(lpFormat("profile.deleteConfirm", { index }))) {
     return;
   }
   const data = parseProfileData(findWidget(node, "profile_data"));
@@ -467,12 +544,12 @@ function profileSaveStatus(node, index) {
   const profile = parseProfileData(findWidget(node, "profile_data"))[profileKey(index)] || {};
   const savedName = profileSavedName(profile);
   if (!savedName) {
-    return { state: "unsaved", label: "unsaved", savedName: "" };
+    return { state: "unsaved", labelKey: "profile.unsaved", savedName: "" };
   }
   const dirty = String(profile.saved_snapshot || "") !== profileSnapshot(profile);
   return {
     state: dirty ? "changed" : "saved",
-    label: dirty ? "changed" : "saved",
+    labelKey: dirty ? "profile.changed" : "profile.saved",
     savedName,
   };
 }
@@ -513,13 +590,13 @@ function appendProfilePayload(node, payload) {
     }
   }
   if (!incomingProfiles.length) {
-    window.alert("No non-empty profiles were found in this saved profile set.");
+    window.alert(lpText("profile.noNonEmpty"));
     return;
   }
   const currentCount = profileCount(node);
   const available = MAX_PROFILES - currentCount;
   if (available <= 0) {
-    window.alert(`Cannot load more profiles. The maximum is ${MAX_PROFILES}.`);
+    window.alert(lpFormat("profile.maxReached", { max: MAX_PROFILES }));
     return;
   }
   const appendCount = Math.min(incomingProfiles.length, available);
@@ -537,7 +614,7 @@ function appendProfilePayload(node, payload) {
       : content;
   }
   if (appendCount < incomingProfiles.length) {
-    window.alert(`Only ${appendCount} profile(s) were loaded because the maximum is ${MAX_PROFILES}.`);
+    window.alert(lpFormat("profile.partialLoad", { count: appendCount, max: MAX_PROFILES }));
   }
   const selectedSourceIndex = wrapProfileIndex(profile.profile_index || 1, incomingCount);
   const selectedOffset = incomingProfiles.findIndex((item) => item.sourceIndex === selectedSourceIndex);
@@ -554,13 +631,13 @@ function appendProfilePayload(node, payload) {
 }
 
 async function saveProfileSet(node) {
-  const name = window.prompt("Save LoRA profile set as");
+  const name = window.prompt(lpText("profile.savePrompt"));
   if (name == null) {
     return;
   }
   const trimmedName = name.trim();
   if (!trimmedName) {
-    window.alert("Profile name is required.");
+    window.alert(lpText("profile.nameRequired"));
     return;
   }
   try {
@@ -576,7 +653,7 @@ async function saveProfileSet(node) {
     renderProfileBar(node);
     node.setDirtyCanvas?.(true, true);
   } catch (error) {
-    window.alert(`Failed to save profile: ${error.message || error}`);
+    window.alert(lpFormat("profile.saveFailed", { message: errorMessage(error) }));
   }
 }
 
@@ -585,7 +662,7 @@ async function loadProfileSet(node, name) {
     const data = await fetchJson(`/easyuse_anima/lora_profiles/load?name=${encodeRFC3986URIComponent(name)}`);
     appendProfilePayload(node, data.profile);
   } catch (error) {
-    window.alert(`Failed to load profile: ${error.message || error}`);
+    window.alert(lpFormat("profile.loadFailed", { message: errorMessage(error) }));
   }
 }
 
@@ -595,18 +672,18 @@ async function openProfileLoadMenu(node, event, pos) {
     const data = await fetchJson("/easyuse_anima/lora_profiles");
     profiles = Array.isArray(data?.profiles) ? data.profiles : [];
   } catch (error) {
-    window.alert(`Failed to list profiles: ${error.message || error}`);
+    window.alert(lpFormat("profile.listFailed", { message: errorMessage(error) }));
     return;
   }
   if (!profiles.length) {
-    window.alert("No saved LoRA profiles found.");
+    window.alert(lpText("profile.noneSaved"));
     return;
   }
   const values = profiles.map((profile) => String(profile.name || "")).filter(Boolean);
   const clientPoint = menuClientPoint(node, pos, event);
   new LiteGraph.ContextMenu(values, {
     event: makeMenuEvent(clientPoint),
-    title: "Load Profile",
+    title: lpText("profile.loadTitle"),
     scale: Math.max(1, Number(app.canvas?.ds?.scale) || 1),
     className: "dark",
     callback: (value) => {
@@ -768,18 +845,18 @@ function openLoraEntryMenu(node, event, index) {
   const loras = lorasWidgetValue(node);
   new LiteGraph.ContextMenu([
     {
-      content: "Move Up",
+      content: lpText("lora.moveUp"),
       disabled: index <= 0,
       callback: () => moveLoraEntry(node, index, -1),
     },
     {
-      content: "Move Down",
+      content: lpText("lora.moveDown"),
       disabled: index >= loras.length - 1,
       callback: () => moveLoraEntry(node, index, 1),
     },
     null,
     {
-      content: "Remove",
+      content: lpText("lora.remove"),
       callback: () => removeLoraEntry(node, index),
     },
   ], {
@@ -1130,7 +1207,7 @@ async function openLoraMenu(node, event, pos, onChoose) {
   const clientPoint = menuClientPoint(node, pos, event);
   const values = await fetchLoraNameValues(node);
   if (!values.length) {
-    window.alert("No LoRA files found. Refresh ComfyUI after adding LoRAs.");
+    window.alert(lpText("lora.noneFound"));
     return;
   }
   node.__easyuseAnimaOpeningLoraMenu = true;
@@ -1138,7 +1215,7 @@ async function openLoraMenu(node, event, pos, onChoose) {
   activeLoraMenuNode = node;
   new LiteGraph.ContextMenu(values, {
     event: makeMenuEvent(clientPoint),
-    title: "Choose a LoRA",
+    title: lpText("lora.chooseTitle"),
     scale: Math.max(1, Number(app.canvas?.ds?.scale) || 1),
     className: "dark easyuse-anima-lora-menu",
     callback: (value) => {
@@ -1172,7 +1249,7 @@ function ensureLoraMenuSearch(menu, node) {
     className: "easyuse-anima-lora-search",
   });
   input.type = "search";
-  input.placeholder = "Search LoRA";
+  input.placeholder = lpText("lora.search");
   input.autocomplete = "off";
   input.spellcheck = false;
   const stop = (event) => event.stopPropagation();
@@ -1345,7 +1422,7 @@ class ProfileBarWidget {
     ctx.fillStyle = LiteGraph.WIDGET_TEXT_COLOR;
     ctx.globalAlpha = app.canvas.editor_alpha * 0.75;
     ctx.textAlign = "left";
-    ctx.fillText(`Profile ${active}/${count}`, 10, buttonY + buttonH / 2);
+    ctx.fillText(lpFormat("profile.header", { active, count }), 10, buttonY + buttonH / 2);
     ctx.globalAlpha = 1;
 
     let x = Math.max(120, drawWidth - 8);
@@ -1370,8 +1447,8 @@ class ProfileBarWidget {
       ctx.globalAlpha = 1;
     };
 
-    drawButton("load", "Load", 44);
-    drawButton("save", "Save", 44);
+    drawButton("load", lpText("profile.load"), 44);
+    drawButton("save", lpText("profile.save"), 44);
     drawButton("delete", "X", 28, false, count <= 1);
     drawButton("add", "+", 28);
 
@@ -1421,8 +1498,8 @@ class ProfileBarWidget {
         changed: "#e3ba66",
         unsaved: "#b8b8b8",
       }[status.state] || "#b8b8b8";
-      const leftText = `${index}. ${status.savedName || "unsaved"}`;
-      const rightText = status.label;
+      const leftText = `${index}. ${status.savedName || lpText("profile.unsaved")}`;
+      const rightText = lpText(status.labelKey || `profile.${status.state}`);
       ctx.font = "12px sans-serif";
       const rightWidth = Math.min(82, Math.max(58, ctx.measureText(rightText).width + 16));
       ctx.textAlign = "left";
@@ -1586,9 +1663,9 @@ class LoraHeaderWidget {
     ctx.fillStyle = LiteGraph.WIDGET_TEXT_COLOR;
     ctx.textAlign = "left";
     ctx.textBaseline = "middle";
-    ctx.fillText(drawWidth < 320 ? "All" : "Toggle All", margin + this.toggleArea[2] + 4, midY);
+    ctx.fillText(drawWidth < 320 ? lpText("lora.allShort") : lpText("lora.toggleAll"), margin + this.toggleArea[2] + 4, midY);
     ctx.textAlign = "center";
-    ctx.fillText(drawWidth < 320 ? "Str" : "Strength", Math.max(margin + 90, drawWidth - margin - 28), midY);
+    ctx.fillText(drawWidth < 320 ? lpText("lora.strengthShort") : lpText("lora.strength"), Math.max(margin + 90, drawWidth - margin - 28), midY);
     ctx.restore();
   }
 
@@ -1788,7 +1865,7 @@ class LoraRowWidget {
   }
 
   promptStrength(event, node, lora) {
-    app.canvas.prompt("LoRA strength", lora.strength ?? 1, (value) => {
+    app.canvas.prompt(lpText("lora.strengthPrompt"), lora.strength ?? 1, (value) => {
       const next = Number(value);
       if (Number.isFinite(next)) {
         updateLoraEntry(node, this.index, { strength: roundStrength(next) });
@@ -1827,7 +1904,7 @@ class AddLoraWidget {
     ctx.fillStyle = LiteGraph.WIDGET_TEXT_COLOR;
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
-    ctx.fillText("+ Add LoRA", drawWidth / 2, buttonY + buttonH / 2);
+    ctx.fillText(lpText("lora.add"), drawWidth / 2, buttonY + buttonH / 2);
     ctx.restore();
   }
 
@@ -2105,6 +2182,7 @@ app.registerExtension({
   name: "EasyUseAnima.LoraPreset",
   init() {
     loadLoraPresetSettings().then(refreshLoraPresetNodes);
+    easyuseAnimaWatchLocale(refreshLoraPresetNodes);
     window.addEventListener("easyuse-anima-settings-updated", (event) => {
       applyLoraPresetSettings(event.detail || {});
       refreshLoraPresetNodes();

@@ -3,6 +3,7 @@ import {
   normalizePromptTagText,
   promptCompletionTagText,
 } from "./easyuse_anima_prompt_rules.js";
+import { easyuseAnimaText } from "./easyuse_anima_i18n.js";
 
 const TARGETS = {
   EasyUseAnimaPromptBuilder: new Set([
@@ -67,6 +68,26 @@ const AUTOCOMPLETE_MODES = new Set([
   "easyuse_nodes",
   "compatible_global",
 ]);
+const AUTOCOMPLETE_TEXT = {
+  en: {
+    "category.tag": "tag",
+    "category.quality": "quality",
+    "category.artist": "artist",
+    "category.character": "character",
+    "category.copyright": "copyright",
+    "category.general": "general",
+    "category.meta": "meta",
+  },
+  ko: {
+    "category.tag": "태그",
+    "category.quality": "품질",
+    "category.artist": "작가",
+    "category.character": "캐릭터",
+    "category.copyright": "작품",
+    "category.general": "일반",
+    "category.meta": "메타",
+  },
+};
 const MIN_QUERY_LENGTH = 1;
 const cache = new Map();
 
@@ -92,6 +113,19 @@ function clampMaxResults(value) {
 function normalizeAutocompleteMode(value) {
   const normalized = String(value || "").trim();
   return AUTOCOMPLETE_MODES.has(normalized) ? normalized : DEFAULT_AUTOCOMPLETE_MODE;
+}
+
+function autocompleteText(key) {
+  return easyuseAnimaText(AUTOCOMPLETE_TEXT, key);
+}
+
+function autocompleteCategoryLabel(category) {
+  const raw = String(category || "").trim();
+  if (!raw) {
+    return autocompleteText("category.tag");
+  }
+  const key = raw.toLocaleLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "");
+  return autocompleteText(`category.${key}`) || raw;
 }
 
 function setAutocompleteMode(value) {
@@ -638,7 +672,7 @@ function renderResults(state, results) {
     const meta = document.createElement("span");
     meta.className = "easyuse-anima-autocomplete-meta";
     const count = Number(entry.count || 0).toLocaleString();
-    meta.textContent = `${entry.category || "tag"} · ${count}`;
+    meta.textContent = `${autocompleteCategoryLabel(entry.category)} · ${count}`;
     top.append(tag, meta);
     item.append(top);
 

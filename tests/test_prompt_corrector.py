@@ -12,6 +12,7 @@ from nodes import (
     ADVANCED_RESOLUTION_BUCKETS,
     DEFAULT_QUALITY_TAGS,
     DEFAULT_TRAILING_QUALITY_TAGS,
+    EasyUseAnimaDetailerAlignHook,
     EasyUseAnimaPromptBuilder,
     EasyUseAnimaPromptCorrector,
     EasyUseAnimaPromptStudio,
@@ -149,6 +150,18 @@ class PromptCorrectorTests(unittest.TestCase):
         self.assertEqual(negative, "score_5, score_4")
         self.assertEqual(metadata_negative, "score_5, score_4")
 
+    def test_manual_override_trigger_text_keeps_literal_underscores(self):
+        corrected, report = EasyUseAnimaPromptCorrector().correct(
+            "1girl, model_trigger, custom_lora_token",
+            "model_trigger\ncustom_lora_token",
+            "",
+        )
+
+        self.assertEqual(corrected, "1girl, model_trigger, custom_lora_token")
+        data = json.loads(report)
+        self.assertNotIn("model trigger", data["unknown_tags"])
+        self.assertNotIn("custom lora token", data["unknown_tags"])
+
 
 class PromptBuilderTests(unittest.TestCase):
     def test_prompt_builder_and_studio_default_quality_tags(self):
@@ -212,6 +225,22 @@ class PromptBuilderTests(unittest.TestCase):
             "@artist_name, lora trigger, masterpiece, 1girl, best quality",
         )
         self.assertEqual(prompt, metadata)
+
+    def test_lora_trigger_field_keeps_literal_underscores(self):
+        prompt, quality, use_amg, metadata = EasyUseAnimaPromptBuilder().build(
+            False,
+            False,
+            "masterpiece",
+            "model_trigger",
+            "lora_model_trigger",
+            "1girl",
+            "",
+        )
+
+        self.assertFalse(use_amg)
+        self.assertEqual(quality, "masterpiece")
+        self.assertEqual(prompt, "masterpiece, 1girl, model_trigger, lora_model_trigger")
+        self.assertEqual(metadata, prompt)
 
     def test_metadata_filter_only_changes_metadata_prompt(self):
         with patch("nodes.resolve_metadata_filter_words", return_value="best quality\nhigh detail"):
@@ -469,6 +498,36 @@ class PromptBuilderTests(unittest.TestCase):
             result["ui"]["prompt_studio_advanced"][0]["field_inputs"],
             {"field_trigger_words": "@model_trigger"},
         )
+
+    def test_prompt_studio_advanced_trigger_field_keeps_literal_underscores(self):
+        fields = [
+            {
+                "id": "trigger_words",
+                "pane": "positive",
+                "type": "trigger",
+                "label": "Trigger Words",
+                "text": "model_trigger_lora",
+                "height": 72,
+                "pin": True,
+            },
+            {
+                "id": "body",
+                "pane": "positive",
+                "type": "general",
+                "label": "General Tags",
+                "text": "1girl",
+                "height": 72,
+            },
+        ]
+        result = EasyUseAnimaPromptStudioAdvanced().build(
+            False,
+            True,
+            False,
+            False,
+            json.dumps(fields),
+        )
+
+        self.assertEqual(result["result"][0], "model_trigger_lora, 1girl")
 
     def test_prompt_studio_advanced_keeps_only_one_positive_trigger_field(self):
         fields = [
@@ -995,6 +1054,22 @@ class SettingsTests(unittest.TestCase):
         self.assertEqual(naia_settings["pre_prompt"], "file pre")
         self.assertEqual(naia_settings["post_prompt"], "file post")
         self.assertEqual(naia_settings["auto_hide"], "file hide")
+
+
+class DetailerHookTests(unittest.TestCase):
+    def test_detailer_align_hook_alignment_values(self):
+        expected_sizes = {
+            "none": (1052, 1232),
+            "8": (1056, 1232),
+            "16": (1056, 1232),
+            "32": (1056, 1248),
+            "64": (1088, 1280),
+        }
+
+        for alignment, expected in expected_sizes.items():
+            with self.subTest(alignment=alignment):
+                hook, = EasyUseAnimaDetailerAlignHook().build(alignment)
+                self.assertEqual(hook.touch_scaled_size(1052, 1232), expected)
 
 
 class AutocompleteDatasetTests(unittest.TestCase):

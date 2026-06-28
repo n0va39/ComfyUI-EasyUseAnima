@@ -211,6 +211,12 @@ Highlighting and syntax:
   `(highres, absurdres, very aesthetic:0.8)`, classify each inner tag
   separately.
 - Unclosed prompt parentheses are shown as syntax errors.
+- Long prompts use the Advanced editor's main scroll area instead of per-textarea
+  vertical scrollbars. Each textarea keeps enough height for its current text,
+  so scrollbars do not cover the text or highlight overlay.
+- Highlight overlays copy font family, size, spacing, and wrapping-related
+  settings from the source input to keep highlights aligned across font
+  settings.
 
 ### Anima LoRA Preset
 
@@ -318,6 +324,12 @@ Autocomplete:
 - Prompt Builder, Prompt Corrector, Prompt Studio, Prompt Studio Advanced, and
   generic multiline `STRING` prompt/text widgets can use the bundled Korean
   Danbooru autocomplete.
+- The autocomplete scope can be selected in ComfyUI Settings with `off`,
+  `easyuse_nodes`, or `compatible_global`.
+  - `off`: disables EasyUse Anima autocomplete and autocomplete API requests.
+  - `easyuse_nodes`: enables autocomplete only for EasyUse Anima prompt nodes.
+  - `compatible_global`: default mode; also hooks compatible generic
+    prompt/text widgets as before.
 - The CSV used for autocomplete and Prompt Studio highlighting can be selected
   in ComfyUI Settings -> `EasyUse Anima: Autocomplete CSV`.
 - Type English tags or Korean words from the description/keywords, then use
@@ -340,10 +352,17 @@ ComfyUI Settings:
 
 - NAIA request host, port, Prompt Engineering options, and preprocessing options
   are configured in the EasyUse Anima settings panel.
+- EasyUse Anima does not store its own language setting. Node info, input/output
+  hints, settings entries, custom DOM buttons, and tooltips follow the ComfyUI
+  language setting.
 - Prompt metadata filter words are applied only to metadata prompt outputs.
 - Prompt Studio typo indicators and category colors can be changed manually.
 - Prompt Studio can auto-toggle general fields above the NAIA field.
 - LoRA Preset row labels can show file names only or full paths.
+
+## Release Notes
+
+See [RELEASE.md](RELEASE.md) for versioned release notes.
 
 ## Requirements
 

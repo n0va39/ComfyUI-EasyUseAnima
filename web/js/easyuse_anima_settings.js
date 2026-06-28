@@ -1,4 +1,8 @@
 import { app } from "../../../scripts/app.js";
+import {
+  easyuseAnimaLocaleText,
+  easyuseAnimaText,
+} from "./easyuse_anima_i18n.js";
 
 const ROOT_CATEGORY = "EASY USE ANIMA";
 
@@ -275,37 +279,16 @@ for (const [key] of NAIA_PREPROCESSING_OPTIONS) {
   INTERNAL_KEYS[`EasyUseAnima.NAIA.${key}`] = `naia.${key}`;
 }
 
-function readSettingValue(id) {
-  try {
-    if (typeof app?.ui?.settings?.getSettingValue === "function") {
-      const value = app.ui.settings.getSettingValue(id);
-      if (value && typeof value === "object" && "value" in value) {
-        return value.value;
-      }
-      if (value !== undefined) {
-        return value;
-      }
-    }
-  } catch {}
-  return undefined;
-}
-
-function isKorean() {
-  const value = String(readSettingValue("Comfy.Locale") || "").toLowerCase();
-  return value === "ko" || value.startsWith("ko-") || value.includes("korean") || value.includes("한국어");
-}
-
 function t(key) {
-  const language = isKorean() ? "ko" : "en";
-  return TEXT[language]?.[key] || TEXT.en[key] || key;
+  return easyuseAnimaText(TEXT, key);
 }
 
 function label(item) {
-  return item?.[isKorean() ? "ko" : "en"] || item?.en || "";
+  return easyuseAnimaLocaleText(item);
 }
 
 function tip(item) {
-  return item?.tip?.[isKorean() ? "ko" : "en"] || item?.tip?.en || "";
+  return easyuseAnimaLocaleText(item?.tip);
 }
 
 function parseColors(value) {
