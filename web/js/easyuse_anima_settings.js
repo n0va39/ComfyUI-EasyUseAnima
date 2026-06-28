@@ -400,9 +400,8 @@ const EASYUSE_ANIMA_SETTINGS = [
     section: "NAIA",
     group: t("naiaEndpoint"),
     name: "Port",
-    type: "number",
-    defaultValue: 7243,
-    attrs: { min: 1, max: 65535, step: 1 },
+    type: "text",
+    defaultValue: "7243",
   }),
   setting({
     id: "EasyUseAnima.NAIA.UseDesktopPromptEngineering",
