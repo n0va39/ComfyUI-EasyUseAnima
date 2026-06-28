@@ -85,6 +85,10 @@ const SETTINGS_STATUS_STYLE = "opacity: 0.76; font-size: 0.92em;";
 const SETTINGS_BLOCK_STYLE =
   "display: flex; flex-direction: column; gap: 6px; padding: 8px 0 0; border-top: 1px solid rgba(128, 128, 128, 0.22);";
 const SETTINGS_DESCRIPTION_STYLE = "opacity: 0.7; font-size: 0.92em; line-height: 1.45;";
+const SETTINGS_SETTING_ROW_STYLE =
+  "display: grid; grid-template-columns: minmax(160px, 240px) minmax(180px, 1fr); align-items: center; gap: 10px 24px; padding: 8px 0;";
+const SETTINGS_SETTING_LABEL_STYLE = "opacity: 0.78; min-width: 0;";
+const SETTINGS_SETTING_CONTROL_STYLE = "display: flex; justify-content: flex-end; min-width: 0;";
 const autoSaveTimers = new Map();
 
 const SETTINGS_TEXT = {
@@ -421,6 +425,27 @@ function appendDescription(container, description = "") {
   return text;
 }
 
+function createSettingsRow(labelText, control, description = "") {
+  const container = document.createElement("div");
+  container.style.cssText = "display: flex; flex-direction: column; gap: 4px;";
+
+  const row = document.createElement("label");
+  row.style.cssText = SETTINGS_SETTING_ROW_STYLE;
+
+  const label = document.createElement("span");
+  label.textContent = labelText;
+  label.style.cssText = SETTINGS_SETTING_LABEL_STYLE;
+
+  const controlWrap = document.createElement("div");
+  controlWrap.style.cssText = SETTINGS_SETTING_CONTROL_STYLE;
+  controlWrap.append(control);
+
+  row.append(label, controlWrap);
+  container.append(row);
+  appendDescription(container, description);
+  return container;
+}
+
 function metadataFilterEditor(initialValue = "") {
   const settings = currentSettings();
   const container = document.createElement("div");
@@ -627,80 +652,53 @@ function naiaSettingsEditor(settings = {}) {
   const promptBlock = createSettingBlock(textFor(settings, "naiaPromptEngineering"));
   const preprocessingBlock = createSettingBlock(textFor(settings, "preprocessingOptions"));
 
-  const endpointRow = document.createElement("div");
-  endpointRow.style.cssText = "display: grid; grid-template-columns: minmax(150px, 1fr) minmax(92px, 120px); gap: 8px;";
-
-  const hostLabel = document.createElement("label");
-  hostLabel.style.cssText = SETTINGS_FIELD_STYLE;
-  const hostText = document.createElement("span");
-  hostText.textContent = "Host";
   const hostInput = document.createElement("input");
   hostInput.type = "text";
   hostInput.value = settings["naia.host"] || "127.0.0.1";
-  hostInput.style.cssText = SETTINGS_INPUT_STYLE;
-  hostLabel.append(hostText, hostInput);
+  hostInput.style.cssText = `${SETTINGS_INPUT_STYLE} max-width: 360px;`;
 
-  const portLabel = document.createElement("label");
-  portLabel.style.cssText = SETTINGS_FIELD_STYLE;
-  const portText = document.createElement("span");
-  portText.textContent = "Port";
   const portInput = document.createElement("input");
   portInput.type = "number";
   portInput.min = "1";
   portInput.max = "65535";
   portInput.step = "1";
   portInput.value = String(settings["naia.port"] || 7243);
-  portInput.style.cssText = SETTINGS_INPUT_STYLE;
-  portLabel.append(portText, portInput);
-  endpointRow.append(hostLabel, portLabel);
-  endpointBlock.append(endpointRow);
+  portInput.style.cssText = `${SETTINGS_INPUT_STYLE} max-width: 180px;`;
+
+  endpointBlock.append(
+    createSettingsRow("Host", hostInput),
+    createSettingsRow("Port", portInput),
+  );
   appendDescription(endpointBlock, textFor(settings, "naiaSettingsGuide"));
 
-  const useSettingsRow = document.createElement("label");
-  useSettingsRow.style.cssText = SETTINGS_ROW_STYLE;
   const useSettingsToggle = document.createElement("input");
   useSettingsToggle.type = "checkbox";
   useSettingsToggle.checked = settings["naia.use_naia_settings"] !== "false";
-  const useSettingsText = document.createElement("span");
-  useSettingsText.textContent = textFor(settings, "useDesktopNaia");
-  useSettingsRow.append(useSettingsToggle, useSettingsText);
-  promptBlock.append(useSettingsRow);
+  promptBlock.append(createSettingsRow(textFor(settings, "useDesktopNaia"), useSettingsToggle));
 
   const textStack = document.createElement("div");
-  textStack.style.cssText = "display: flex; flex-direction: column; gap: 6px; width: 100%;";
+  textStack.style.cssText = "display: flex; flex-direction: column; gap: 2px; width: 100%;";
   const promptInputs = new Map();
   for (const [key, labelText] of [
     ["pre_prompt", textFor(settings, "prePrompt")],
     ["post_prompt", textFor(settings, "postPrompt")],
     ["auto_hide", textFor(settings, "autoHide")],
   ]) {
-    const label = document.createElement("label");
-    label.style.cssText = "display: grid; grid-template-columns: 94px minmax(0, 1fr); align-items: center; gap: 8px;";
-    const text = document.createElement("span");
-    text.textContent = labelText;
     const input = document.createElement("input");
     input.type = "text";
     input.value = settings[`naia.${key}`] || "";
-    input.style.cssText = SETTINGS_INPUT_STYLE;
-    label.append(text, input);
-    textStack.append(label);
+    input.style.cssText = `${SETTINGS_INPUT_STYLE} max-width: 420px;`;
+    textStack.append(createSettingsRow(labelText, input));
     promptInputs.set(key, input);
   }
   promptBlock.append(textStack);
 
-  const ppGrid = document.createElement("div");
-  ppGrid.style.cssText =
-    "display: grid; grid-template-columns: repeat(auto-fit, minmax(185px, 1fr)); gap: 6px 10px; width: 100%;";
+  const ppStack = document.createElement("div");
+  ppStack.style.cssText = "display: flex; flex-direction: column; gap: 2px; width: 100%;";
   const preprocessingSelects = new Map();
   for (const [key, labelText] of NAIA_PREPROCESSING_OPTIONS) {
-    const label = document.createElement("label");
-    label.style.cssText =
-      "display: grid; grid-template-columns: minmax(0, 1fr) 68px; align-items: center; gap: 7px; font-size: 0.92em;";
-    const text = document.createElement("span");
-    text.textContent = labelText?.[settingsLanguage(settings)] || labelText?.en || String(labelText || key);
-    text.style.cssText = "min-width: 0;";
     const select = document.createElement("select");
-    select.style.cssText = "width: 68px; padding: 3px 4px;";
+    select.style.cssText = "width: 96px; padding: 4px 6px;";
     for (const value of ["skip", "on", "off"]) {
       const option = document.createElement("option");
       option.value = value;
@@ -708,11 +706,10 @@ function naiaSettingsEditor(settings = {}) {
       option.selected = (settings[`naia.${key}`] || "skip") === value;
       select.append(option);
     }
-    label.append(text, select);
-    ppGrid.append(label);
+    ppStack.append(createSettingsRow(labelText?.[settingsLanguage(settings)] || labelText?.en || String(labelText || key), select));
     preprocessingSelects.set(key, select);
   }
-  preprocessingBlock.append(ppGrid);
+  preprocessingBlock.append(ppStack);
 
   const controls = document.createElement("div");
   controls.style.cssText = SETTINGS_ROW_STYLE;
