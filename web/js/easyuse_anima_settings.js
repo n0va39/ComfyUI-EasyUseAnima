@@ -146,6 +146,18 @@ const TEXT = {
     loraDisplayTip: "Choose whether LoRA preset rows show only filenames or full relative paths.",
     metadataFilter: "Metadata Prompt Filter",
     metadataFilterTip: "Remove these tags only from Anima Prompt Builder metadata_prompt.",
+    promptStudio: "PromptStudio",
+    editPromptStudioLongText: "Edit PromptStudio long text",
+    editPromptStudioLongTextTip:
+      "Open a multiline editor for Metadata Prompt Filter. Values are stored in EasyUse Anima's user data folder.",
+    editNaiaLongText: "Edit NAIA long text",
+    editNaiaLongTextTip:
+      "Open a multiline editor for NAIA Pre prompt, Post prompt, and Auto hide. Values are stored in EasyUse Anima's user data folder.",
+    openEditor: "Open editor",
+    save: "Save",
+    cancel: "Cancel",
+    saved: "Saved",
+    saveFailed: "Save failed",
     naiaGeneralAutoToggle: "Auto toggle General fields above NAIA",
     naiaGeneralAutoToggleTip:
       "In Anima Prompt Studio Advanced, when the positive NAIA Prompt field is ON, this disables only positive General fields placed above that NAIA field. When the NAIA field is OFF, those General fields are enabled again. Fields below NAIA and negative fields are not changed.",
@@ -175,6 +187,18 @@ const TEXT = {
     loraDisplayTip: "LoRA 프리셋 행에 파일명만 표시할지 상대 경로를 표시할지 선택합니다.",
     metadataFilter: "Metadata Prompt 필터",
     metadataFilterTip: "Anima Prompt Builder metadata_prompt에서만 지정 태그를 제거합니다.",
+    promptStudio: "PromptStudio",
+    editPromptStudioLongText: "PromptStudio 긴 텍스트 편집",
+    editPromptStudioLongTextTip:
+      "Metadata Prompt 필터를 여러 줄로 편집합니다. 값은 EasyUse Anima 사용자 데이터 폴더에 저장됩니다.",
+    editNaiaLongText: "NAIA 긴 텍스트 편집",
+    editNaiaLongTextTip:
+      "NAIA Pre prompt, Post prompt, Auto hide를 여러 줄로 편집합니다. 값은 EasyUse Anima 사용자 데이터 폴더에 저장됩니다.",
+    openEditor: "편집 열기",
+    save: "저장",
+    cancel: "취소",
+    saved: "저장됨",
+    saveFailed: "저장 실패",
     naiaGeneralAutoToggle: "NAIA 위쪽 General 자동 토글",
     naiaGeneralAutoToggleTip:
       "Anima Prompt Studio Advanced에서 긍정 프롬프트의 NAIA Prompt 필드가 켜지면, 그 NAIA 필드보다 위에 있는 긍정 General 필드만 자동으로 OFF합니다. NAIA 필드가 꺼지면 해당 General 필드를 다시 ON합니다. NAIA 아래 필드와 네거티브 필드는 건드리지 않습니다.",
@@ -206,6 +230,43 @@ const INTERNAL_KEYS = {
   "EasyUseAnima.NAIA.pre_prompt": "naia.pre_prompt",
   "EasyUseAnima.NAIA.post_prompt": "naia.post_prompt",
   "EasyUseAnima.NAIA.auto_hide": "naia.auto_hide",
+};
+
+const LONG_TEXT_FIELDS = [
+  {
+    key: "prompt.metadata_filter_words",
+    labelKey: "metadataFilter",
+    tipKey: "metadataFilterTip",
+  },
+  {
+    key: "naia.pre_prompt",
+    labelKey: "prePrompt",
+  },
+  {
+    key: "naia.post_prompt",
+    labelKey: "postPrompt",
+  },
+  {
+    key: "naia.auto_hide",
+    labelKey: "autoHide",
+  },
+];
+
+const LONG_TEXT_FIELD_GROUPS = {
+  promptStudio: {
+    settingId: "EasyUseAnima.PromptStudio.EditLongText",
+    section: "PromptStudio",
+    nameKey: "editPromptStudioLongText",
+    tipKey: "editPromptStudioLongTextTip",
+    fields: LONG_TEXT_FIELDS.filter((field) => field.key === "prompt.metadata_filter_words"),
+  },
+  naia: {
+    settingId: "EasyUseAnima.NAIA.EditLongText",
+    section: "NAIA",
+    nameKey: "editNaiaLongText",
+    tipKey: "editNaiaLongTextTip",
+    fields: LONG_TEXT_FIELDS.filter((field) => field.key !== "prompt.metadata_filter_words"),
+  },
 };
 
 for (const [key] of NAIA_PREPROCESSING_OPTIONS) {
@@ -287,6 +348,168 @@ function updateColorSetting(colorKey, value) {
   );
 }
 
+async function loadLongTextSettings() {
+  const response = await fetch("/easyuse_anima/long_text_settings");
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    throw new Error(data.message || `HTTP ${response.status}`);
+  }
+  const values = data.values || {};
+  window.__easyuseAnimaSettings ||= {};
+  Object.assign(window.__easyuseAnimaSettings, data.settings || {}, values);
+  return { ...window.__easyuseAnimaSettings };
+}
+
+async function saveLongTextSettings(values) {
+  const response = await fetch("/easyuse_anima/long_text_settings/save", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ values }),
+  });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    throw new Error(data.message || `HTTP ${response.status}`);
+  }
+  window.__easyuseAnimaSettings ||= {};
+  Object.assign(window.__easyuseAnimaSettings, data.settings || {}, data.values || {});
+  window.dispatchEvent(
+    new CustomEvent("easyuse-anima-settings-updated", {
+      detail: { ...window.__easyuseAnimaSettings },
+    }),
+  );
+  return data;
+}
+
+function createLongTextEditorButton(groupKey) {
+  const group = LONG_TEXT_FIELD_GROUPS[groupKey];
+  const container = document.createElement("div");
+  container.style.cssText = "display: flex; align-items: center; gap: 10px; min-width: 0;";
+
+  const button = document.createElement("button");
+  button.type = "button";
+  button.textContent = t("openEditor");
+  button.style.cssText = "padding: 6px 12px; cursor: pointer;";
+  button.onclick = () => openLongTextEditor(groupKey);
+
+  const hint = document.createElement("span");
+  hint.textContent = t(group.tipKey);
+  hint.style.cssText = "opacity: 0.68; font-size: 0.9em; line-height: 1.35;";
+
+  container.append(button, hint);
+  return container;
+}
+
+function openLongTextEditor(groupKey) {
+  const group = LONG_TEXT_FIELD_GROUPS[groupKey];
+  if (!group) {
+    return;
+  }
+  const Dialog = app?.ui?.dialog?.constructor;
+  if (typeof Dialog !== "function") {
+    alert(t("saveFailed"));
+    return;
+  }
+
+  const dialog = new Dialog();
+  dialog.element.classList.add("comfy-settings");
+
+  const closeButton = dialog.element.querySelector("button");
+  if (closeButton) {
+    closeButton.textContent = t("cancel");
+  }
+
+  const saveButton = document.createElement("button");
+  saveButton.textContent = t("save");
+  saveButton.style.marginRight = "8px";
+  if (closeButton?.parentNode) {
+    closeButton.parentNode.insertBefore(saveButton, closeButton);
+  }
+
+  const container = document.createElement("div");
+  container.style.cssText =
+    "box-sizing: border-box; width: min(760px, 78vw); max-height: 72vh; overflow: auto; display: flex; flex-direction: column; gap: 14px;";
+
+  const title = document.createElement("h3");
+  title.textContent = t(group.nameKey);
+  title.style.margin = "0 0 2px";
+
+  const description = document.createElement("div");
+  description.textContent = t(group.tipKey);
+  description.style.cssText = "opacity: 0.72; line-height: 1.45;";
+
+  const status = document.createElement("div");
+  status.style.cssText = "min-height: 1.4em; opacity: 0.76;";
+
+  const textareas = new Map();
+  for (const field of group.fields) {
+    const wrapper = document.createElement("label");
+    wrapper.style.cssText = "display: flex; flex-direction: column; gap: 6px;";
+
+    const labelText = document.createElement("span");
+    labelText.textContent = t(field.labelKey);
+    labelText.style.fontWeight = "600";
+
+    const textarea = document.createElement("textarea");
+    textarea.spellcheck = false;
+    textarea.rows = field.key === "prompt.metadata_filter_words" ? 8 : 7;
+    textarea.style.cssText =
+      "box-sizing: border-box; width: 100%; min-height: 130px; resize: vertical; padding: 8px; font-family: monospace; white-space: pre-wrap;";
+
+    const help = document.createElement("span");
+    help.textContent = field.tipKey ? t(field.tipKey) : "";
+    help.style.cssText = "opacity: 0.62; font-size: 0.9em;";
+
+    wrapper.append(labelText, textarea);
+    if (help.textContent) {
+      wrapper.append(help);
+    }
+    container.append(wrapper);
+    textareas.set(field.key, textarea);
+  }
+
+  container.prepend(title, description);
+  container.append(status);
+
+  const setStatus = (message, color = "") => {
+    status.textContent = message;
+    status.style.color = color;
+  };
+
+  saveButton.onclick = async () => {
+    const values = {};
+    for (const [key, textarea] of textareas.entries()) {
+      values[key] = textarea.value;
+    }
+    saveButton.disabled = true;
+    setStatus("...");
+    try {
+      await saveLongTextSettings(values);
+      setStatus(t("saved"), "#16a34a");
+      setTimeout(() => dialog.close(), 150);
+    } catch (error) {
+      setStatus(`${t("saveFailed")}: ${error.message || error}`, "#dc2626");
+    } finally {
+      saveButton.disabled = false;
+    }
+  };
+
+  dialog.show("");
+  if (dialog.textElement?.replaceChildren) {
+    dialog.textElement.replaceChildren(container);
+  } else {
+    dialog.element.append(container);
+  }
+  loadLongTextSettings()
+    .then((settings) => {
+      for (const [key, textarea] of textareas.entries()) {
+        textarea.value = settings[key] || "";
+      }
+    })
+    .catch((error) => {
+      setStatus(`${t("saveFailed")}: ${error.message || error}`, "#dc2626");
+    });
+}
+
 function setting({ id, section, group, name, tooltip, type, defaultValue, options, attrs, onChange }) {
   return {
     id,
@@ -305,11 +528,22 @@ function setting({ id, section, group, name, tooltip, type, defaultValue, option
   };
 }
 
+function customSetting({ id, section, name, tooltip, render }) {
+  return {
+    id,
+    name,
+    category: [ROOT_CATEGORY, section, name],
+    type: render,
+    defaultValue: "",
+    ...(tooltip ? { tooltip } : {}),
+  };
+}
+
 function colorSetting(colorKey, item) {
   const id = `EasyUseAnima.Prompt.HighlightColor.${colorKey}`;
   return setting({
     id,
-    section: "Prompt",
+    section: "PromptStudio",
     group: t("highlightColor"),
     name: `${t("highlightColor")}: ${label(item)}`,
     tooltip: tip(item),
@@ -320,18 +554,16 @@ function colorSetting(colorKey, item) {
 }
 
 const EASYUSE_ANIMA_SETTINGS = [
-  setting({
-    id: "EasyUseAnima.Prompt.MetadataFilter",
-    section: "Prompt",
-    group: t("promptMetadata"),
-    name: t("metadataFilter"),
-    tooltip: t("metadataFilterTip"),
-    type: "text",
-    defaultValue: "",
+  customSetting({
+    id: LONG_TEXT_FIELD_GROUPS.promptStudio.settingId,
+    section: LONG_TEXT_FIELD_GROUPS.promptStudio.section,
+    name: t(LONG_TEXT_FIELD_GROUPS.promptStudio.nameKey),
+    tooltip: t(LONG_TEXT_FIELD_GROUPS.promptStudio.tipKey),
+    render: () => createLongTextEditorButton("promptStudio"),
   }),
   setting({
     id: "EasyUseAnima.Prompt.AutocompleteMode",
-    section: "Prompt",
+    section: "Autocomplete",
     group: t("autocomplete"),
     name: t("autocompleteMode"),
     tooltip: t("autocompleteModeTip"),
@@ -341,7 +573,7 @@ const EASYUSE_ANIMA_SETTINGS = [
   }),
   setting({
     id: "EasyUseAnima.Prompt.AutocompleteSource",
-    section: "Prompt",
+    section: "Autocomplete",
     group: t("autocomplete"),
     name: t("autocompleteCsv"),
     tooltip: t("autocompleteCsvTip"),
@@ -351,7 +583,7 @@ const EASYUSE_ANIMA_SETTINGS = [
   }),
   setting({
     id: "EasyUseAnima.Prompt.AutocompleteLimit",
-    section: "Prompt",
+    section: "Autocomplete",
     group: t("autocomplete"),
     name: t("autocompleteLimit"),
     tooltip: t("autocompleteLimitTip"),
@@ -361,7 +593,7 @@ const EASYUSE_ANIMA_SETTINGS = [
   }),
   setting({
     id: "EasyUseAnima.Prompt.TypoIndicator",
-    section: "Prompt",
+    section: "PromptStudio",
     group: t("highlightBehavior"),
     name: t("showTypoIndicators"),
     type: "boolean",
@@ -369,7 +601,7 @@ const EASYUSE_ANIMA_SETTINGS = [
   }),
   setting({
     id: "EasyUseAnima.Prompt.NaiaGeneralAutoToggle",
-    section: "Prompt",
+    section: "PromptStudio",
     group: t("highlightBehavior"),
     name: t("naiaGeneralAutoToggle"),
     tooltip: t("naiaGeneralAutoToggleTip"),
@@ -412,20 +644,13 @@ const EASYUSE_ANIMA_SETTINGS = [
     type: "boolean",
     defaultValue: true,
   }),
-  ...[
-    ["pre_prompt", "prePrompt"],
-    ["post_prompt", "postPrompt"],
-    ["auto_hide", "autoHide"],
-  ].map(([key, textKey]) =>
-    setting({
-      id: `EasyUseAnima.NAIA.${key}`,
-      section: "NAIA",
-      group: t("naiaPromptEngineering"),
-      name: t(textKey),
-      type: "text",
-      defaultValue: "",
-    }),
-  ),
+  customSetting({
+    id: LONG_TEXT_FIELD_GROUPS.naia.settingId,
+    section: LONG_TEXT_FIELD_GROUPS.naia.section,
+    name: t(LONG_TEXT_FIELD_GROUPS.naia.nameKey),
+    tooltip: t(LONG_TEXT_FIELD_GROUPS.naia.tipKey),
+    render: () => createLongTextEditorButton("naia"),
+  }),
   ...NAIA_PREPROCESSING_OPTIONS.map(([key, item]) =>
     setting({
       id: `EasyUseAnima.NAIA.${key}`,

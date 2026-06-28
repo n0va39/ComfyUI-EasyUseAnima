@@ -13,10 +13,12 @@ except ImportError:
     web = None
 
 from .settings import (
+    load_long_text_settings,
     public_settings,
     resolve_autocomplete_limit,
     resolve_autocomplete_source,
     save_setting,
+    save_long_text_settings,
 )
 from .autocomplete_dataset import (
     autocomplete_status,
@@ -202,6 +204,34 @@ if web is not None and routes is not None:
                 status=400,
             )
         return web.json_response({"status": "ok", **public_settings()})
+
+    @routes.get("/easyuse_anima/long_text_settings")
+    async def get_long_text_settings_handler(request):
+        return web.json_response(
+            {
+                "status": "ok",
+                "values": load_long_text_settings(),
+                "settings": public_settings(),
+            }
+        )
+
+    @routes.post("/easyuse_anima/long_text_settings/save")
+    async def save_long_text_settings_handler(request):
+        data = await request.json()
+        values = data.get("values", data)
+        if not isinstance(values, dict):
+            return web.json_response(
+                {"status": "error", "message": "Long text values must be an object"},
+                status=400,
+            )
+        saved = save_long_text_settings(values)
+        return web.json_response(
+            {
+                "status": "ok",
+                "values": saved,
+                "settings": public_settings(),
+            }
+        )
 
     @routes.get("/easyuse_anima/autocomplete_status")
     async def autocomplete_status_handler(request):

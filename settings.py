@@ -9,6 +9,7 @@ except ImportError:
     from storage import USER_DATA_DIR
 
 SETTINGS_FILE = USER_DATA_DIR / "settings.json"
+LONG_TEXT_SETTINGS_FILE = USER_DATA_DIR / "long_text_settings.json"
 
 DEFAULT_SETTINGS = {
     "prompt.metadata_filter_words": "",
@@ -107,6 +108,28 @@ COMFY_COLOR_SETTING_KEYS = {
     for key in PROMPT_STUDIO_COLOR_KEYS
 }
 
+LONG_TEXT_SETTING_KEYS = {
+    "prompt.metadata_filter_words",
+    "naia.pre_prompt",
+    "naia.post_prompt",
+    "naia.auto_hide",
+}
+
+LONG_TEXT_SETTING_ALIASES = {
+    "metadata_filter": "prompt.metadata_filter_words",
+    "metadataFilter": "prompt.metadata_filter_words",
+    "EasyUseAnima.Prompt.MetadataFilter": "prompt.metadata_filter_words",
+    "pre_prompt": "naia.pre_prompt",
+    "prePrompt": "naia.pre_prompt",
+    "EasyUseAnima.NAIA.pre_prompt": "naia.pre_prompt",
+    "post_prompt": "naia.post_prompt",
+    "postPrompt": "naia.post_prompt",
+    "EasyUseAnima.NAIA.post_prompt": "naia.post_prompt",
+    "auto_hide": "naia.auto_hide",
+    "autoHide": "naia.auto_hide",
+    "EasyUseAnima.NAIA.auto_hide": "naia.auto_hide",
+}
+
 
 def _read_json_file(path: Path) -> dict:
     if not path.is_file():
@@ -116,6 +139,43 @@ def _read_json_file(path: Path) -> dict:
     except (OSError, json.JSONDecodeError):
         return {}
     return data if isinstance(data, dict) else {}
+
+
+def _normalize_long_text_settings(data: dict) -> dict:
+    values = data.get("values", data)
+    if not isinstance(values, dict):
+        return {}
+    normalized = {}
+    for key, value in values.items():
+        internal_key = LONG_TEXT_SETTING_ALIASES.get(str(key), str(key))
+        if internal_key in LONG_TEXT_SETTING_KEYS:
+            normalized[internal_key] = "" if value is None else str(value)
+    return normalized
+
+
+def load_long_text_settings() -> dict:
+    return _normalize_long_text_settings(_read_json_file(LONG_TEXT_SETTINGS_FILE))
+
+
+def save_long_text_settings(values: dict) -> dict:
+    if not isinstance(values, dict):
+        values = {}
+    settings = load_long_text_settings()
+    settings.update(_normalize_long_text_settings(values))
+    LONG_TEXT_SETTINGS_FILE.parent.mkdir(parents=True, exist_ok=True)
+    LONG_TEXT_SETTINGS_FILE.write_text(
+        json.dumps(
+            {
+                "version": 1,
+                "values": {key: settings.get(key, "") for key in sorted(LONG_TEXT_SETTING_KEYS)},
+            },
+            ensure_ascii=False,
+            indent=2,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    return settings
 
 
 def _comfy_settings_candidates() -> list[Path]:
@@ -186,6 +246,11 @@ def _apply_comfy_settings(settings: dict) -> dict:
     return settings
 
 
+def _apply_long_text_settings(settings: dict) -> dict:
+    settings.update(load_long_text_settings())
+    return settings
+
+
 def get_settings() -> dict:
     settings = dict(DEFAULT_SETTINGS)
     data = _read_json_file(SETTINGS_FILE)
@@ -194,7 +259,7 @@ def get_settings() -> dict:
             if key in data:
                 value = data[key]
                 settings[key] = "" if value is None else str(value)
-    return _apply_comfy_settings(settings)
+    return _apply_long_text_settings(_apply_comfy_settings(settings))
 
 
 def save_setting(key: str, value) -> dict:

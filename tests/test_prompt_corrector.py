@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import shutil
 import tempfile
 import unittest
 from pathlib import Path
@@ -950,6 +951,50 @@ class SettingsTests(unittest.TestCase):
         colors = json.loads(settings["prompt_studio.colors"])
         self.assertEqual(colors["quality"], "#222222")
         self.assertEqual(colors["artist"], "#333333")
+
+    def test_long_text_settings_override_comfy_settings(self):
+        root = Path(__file__).resolve().parents[1] / "__pycache__" / "long_text_settings_test"
+        shutil.rmtree(root, ignore_errors=True)
+        root.mkdir(parents=True, exist_ok=True)
+        try:
+            with (
+                patch.object(easyuse_settings, "SETTINGS_FILE", root / "settings.json"),
+                patch.object(
+                    easyuse_settings,
+                    "LONG_TEXT_SETTINGS_FILE",
+                    root / "long_text_settings.json",
+                ),
+                patch.object(
+                    easyuse_settings,
+                    "_load_comfy_settings",
+                    return_value={
+                        "EasyUseAnima.Prompt.MetadataFilter": "comfy filter",
+                        "EasyUseAnima.NAIA.pre_prompt": "comfy pre",
+                        "EasyUseAnima.NAIA.post_prompt": "comfy post",
+                        "EasyUseAnima.NAIA.auto_hide": "comfy hide",
+                    },
+                ),
+            ):
+                easyuse_settings.save_long_text_settings(
+                    {
+                        "prompt.metadata_filter_words": "file filter",
+                        "naia.pre_prompt": "file pre",
+                        "naia.post_prompt": "file post",
+                        "naia.auto_hide": "file hide",
+                    }
+                )
+                settings = easyuse_settings.public_settings()
+                naia_settings = easyuse_settings.resolve_naia_settings()
+        finally:
+            shutil.rmtree(root, ignore_errors=True)
+
+        self.assertEqual(settings["prompt.metadata_filter_words"], "file filter")
+        self.assertEqual(settings["naia.pre_prompt"], "file pre")
+        self.assertEqual(settings["naia.post_prompt"], "file post")
+        self.assertEqual(settings["naia.auto_hide"], "file hide")
+        self.assertEqual(naia_settings["pre_prompt"], "file pre")
+        self.assertEqual(naia_settings["post_prompt"], "file post")
+        self.assertEqual(naia_settings["auto_hide"], "file hide")
 
 
 class AutocompleteDatasetTests(unittest.TestCase):
