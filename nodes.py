@@ -356,6 +356,107 @@ def _call_impact_detailer(detailer, **kwargs):
     return method(**call_kwargs)
 
 
+def _alignment_value(value) -> Optional[int]:
+    text = str(_single_value(value) or "").strip().lower()
+    if text in ("", "impact", "none", "0"):
+        return None
+    try:
+        alignment = int(text)
+    except ValueError:
+        return None
+    return alignment if alignment > 1 else None
+
+
+def _align_up(value: int, alignment: int) -> int:
+    value = int(value)
+    alignment = int(alignment)
+    return max(alignment, ((value + alignment - 1) // alignment) * alignment)
+
+
+class _EasyUseAnimaAlignedDetailerHook:
+    def __init__(self, base_hook, alignment: int):
+        self.base_hook = base_hook
+        self.alignment = int(alignment)
+
+    def __getattr__(self, name):
+        if self.base_hook is not None:
+            return getattr(self.base_hook, name)
+        raise AttributeError(name)
+
+    def touch_scaled_size(self, width, height):
+        if self.base_hook is not None and hasattr(self.base_hook, "touch_scaled_size"):
+            width, height = self.base_hook.touch_scaled_size(width, height)
+        aligned_width = _align_up(width, self.alignment)
+        aligned_height = _align_up(height, self.alignment)
+        if aligned_width != width or aligned_height != height:
+            logger.info(
+                "[EasyUseAnima] Anima Detailer aligned crop size %sx%s -> %sx%s (alignment=%s)",
+                width,
+                height,
+                aligned_width,
+                aligned_height,
+                self.alignment,
+            )
+        return aligned_width, aligned_height
+
+    def post_upscale(self, image, noise_mask):
+        if self.base_hook is not None and hasattr(self.base_hook, "post_upscale"):
+            return self.base_hook.post_upscale(image, noise_mask)
+        return image
+
+    def get_skip_sampling(self):
+        if self.base_hook is not None and hasattr(self.base_hook, "get_skip_sampling"):
+            return self.base_hook.get_skip_sampling()
+        return False
+
+    def post_encode(self, latent):
+        if self.base_hook is not None and hasattr(self.base_hook, "post_encode"):
+            return self.base_hook.post_encode(latent)
+        return latent
+
+    def get_custom_sampler(self):
+        if self.base_hook is not None and hasattr(self.base_hook, "get_custom_sampler"):
+            return self.base_hook.get_custom_sampler()
+        return None
+
+    def set_steps(self, steps):
+        if self.base_hook is not None and hasattr(self.base_hook, "set_steps"):
+            return self.base_hook.set_steps(steps)
+        return None
+
+    def cycle_latent(self, latent):
+        if self.base_hook is not None and hasattr(self.base_hook, "cycle_latent"):
+            return self.base_hook.cycle_latent(latent)
+        return latent
+
+    def pre_ksample(self, model, seed, steps, cfg, sampler_name, scheduler, positive, negative, latent, denoise):
+        if self.base_hook is not None and hasattr(self.base_hook, "pre_ksample"):
+            return self.base_hook.pre_ksample(
+                model, seed, steps, cfg, sampler_name, scheduler, positive, negative, latent, denoise
+            )
+        return model, seed, steps, cfg, sampler_name, scheduler, positive, negative, latent, denoise
+
+    def get_custom_noise(self, seed, noise, is_touched):
+        if self.base_hook is not None and hasattr(self.base_hook, "get_custom_noise"):
+            return self.base_hook.get_custom_noise(seed, noise, is_touched)
+        return noise, is_touched
+
+    def pre_decode(self, latent):
+        if self.base_hook is not None and hasattr(self.base_hook, "pre_decode"):
+            return self.base_hook.pre_decode(latent)
+        return latent
+
+    def post_decode(self, image):
+        if self.base_hook is not None and hasattr(self.base_hook, "post_decode"):
+            return self.base_hook.post_decode(image)
+        return image
+
+    def post_paste(self, image):
+        if self.base_hook is not None and hasattr(self.base_hook, "post_paste"):
+            return self.base_hook.post_paste(image)
+        return image
+
+
 def _split_tag_text(value: str) -> list[str]:
     if not value:
         return []
@@ -2188,8 +2289,8 @@ class EasyUseAnimaDetailer:
                 "alignment": (["impact", "none", "8", "16", "32", "64"], {
                     "default": "impact",
                     "tooltip": (
-                        "Initial backend delegates to Impact Pack. Use impact/none for pass-through. "
-                        "Numeric alignment is reserved for the native ANIMA backend."
+                        "Align the Impact detail crop sampling size upward. "
+                        "Use 32 for ANIMA/Spectrum safety, or impact/none for pass-through."
                     ),
                 }),
                 "preserve_conditioning_metadata": ("BOOLEAN", {
@@ -2270,21 +2371,17 @@ class EasyUseAnimaDetailer:
         tiled_decode=False,
     ):
         alignment_text = str(alignment or "impact")
-        if alignment_text not in ("impact", "none"):
-            message = (
-                "[EasyUseAnima] Numeric alignment is planned for the native ANIMA detailer backend. "
-                "The current core implementation delegates to Impact Pack DetailerForEach, so alignment "
-                f"'{alignment_text}' cannot be applied yet."
-            )
-            if _as_bool(fail_on_unsupported_opt, False):
-                raise RuntimeError(message)
-            logger.warning(message)
+        alignment_int = _alignment_value(alignment_text)
 
         if not _as_bool(preserve_conditioning_metadata, True):
             logger.warning(
                 "[EasyUseAnima] preserve_conditioning_metadata=false is reserved for a native backend; "
                 "the Impact backend leaves conditioning handling to Impact Pack."
             )
+
+        effective_detailer_hook = detailer_hook
+        if alignment_int is not None:
+            effective_detailer_hook = _EasyUseAnimaAlignedDetailerHook(detailer_hook, alignment_int)
 
         detailer_cls = _find_impact_detailer_class()
         detailer = detailer_cls()
@@ -2311,7 +2408,7 @@ class EasyUseAnimaDetailer:
             force_inpaint=force_inpaint,
             wildcard=wildcard,
             cycle=cycle,
-            detailer_hook=detailer_hook,
+            detailer_hook=effective_detailer_hook,
             inpaint_model=inpaint_model,
             noise_mask_feather=noise_mask_feather,
             scheduler_func_opt=scheduler_func_opt,

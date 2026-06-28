@@ -297,7 +297,7 @@
       },
       "alignment": {
         "name": "정렬",
-        "tooltip": "현재 Impact 백엔드에서는 impact/none이 통과 모드입니다. 숫자 정렬은 native ANIMA 백엔드용 예약 옵션입니다."
+        "tooltip": "Impact 디테일 crop 샘플링 크기를 지정 배수로 올림 보정합니다. ANIMA/Spectrum 안전성을 위해 32를 권장하며, impact/none은 원본 Impact 동작을 유지합니다."
       },
       "preserve_conditioning_metadata": {
         "name": "conditioning 메타데이터 보존",
