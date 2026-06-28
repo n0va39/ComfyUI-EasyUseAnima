@@ -101,6 +101,8 @@ const SETTINGS_TEXT = {
     on: "on",
     off: "off",
     settingsPromptSectionName: "Prompt",
+    settingsPromptPanelName: "Prompt settings",
+    settingsPromptPanelTooltip: "Configure metadata filtering, autocomplete, and Prompt Studio highlighting.",
     settingsPromptMetadataName: "Metadata Prompt Filter",
     settingsPromptMetadataTooltip: "Remove these tags only from Anima Prompt Builder metadata_prompt.",
     settingsAutocompleteCsvName: "Autocomplete",
@@ -172,6 +174,8 @@ const SETTINGS_TEXT = {
     on: "켜짐",
     off: "꺼짐",
     settingsPromptSectionName: "Prompt",
+    settingsPromptPanelName: "프롬프트 설정",
+    settingsPromptPanelTooltip: "Metadata Prompt 필터, 자동완성, Prompt Studio 하이라이트를 설정합니다.",
     settingsPromptMetadataName: "Metadata Prompt 필터",
     settingsPromptMetadataTooltip: "Anima Prompt Builder metadata_prompt에서만 지정 태그를 제거합니다.",
     settingsAutocompleteCsvName: "자동완성",
@@ -656,23 +660,15 @@ function loraPresetEditor(settings = {}) {
     select.append(option);
   }
 
-  const current = currentValue("");
   const status = document.createElement("span");
   status.style.cssText = SETTINGS_STATUS_STYLE;
 
-  const refreshCurrent = () => {
-    current.textContent = `${textFor(settings, "current")}: ${select.selectedOptions[0]?.textContent || select.value}`;
-  };
-  refreshCurrent();
   select.addEventListener("change", () => {
-    refreshCurrent();
     saveSettingAndNotify("lora_preset.name_display", select.value, status).catch(() => {});
   });
 
   row.append(select, status);
   block.append(row);
-  appendDescription(block, textFor(settings, "loraDisplayGuide"));
-  block.append(current);
   container.append(block);
   return container;
 }
@@ -1008,16 +1004,41 @@ app.registerExtension({
     const settings = await getSettings();
     window.__easyuseAnimaSettings = { ...settings };
     const latestSettings = () => currentSettings(settings);
-    const sectionSetting = (idSuffix, labelKey, editor) => ({
+    const sectionSetting = (idSuffix, categoryKey, nameKey, tooltipKey, editor) => ({
       id: `EasyUseAnima.${idSuffix}.Panel`,
-      category: ["EasyUse Anima", textFor(latestSettings(), labelKey), "Panel"],
-      name: "",
+      category: ["EasyUse Anima", textFor(latestSettings(), categoryKey)],
+      name: textFor(latestSettings(), nameKey),
+      tooltip: textFor(latestSettings(), tooltipKey),
       type: () => editor(latestSettings()),
     });
 
-    app.ui.settings.addSetting(sectionSetting("Prompt", "settingsPromptSectionName", promptSettingsEditor));
-    app.ui.settings.addSetting(sectionSetting("LoraPreset", "settingsLoraSectionName", loraPresetEditor));
-    app.ui.settings.addSetting(sectionSetting("NAIA", "settingsNaiaSectionName", naiaSettingsEditor));
+    app.ui.settings.addSetting(
+      sectionSetting(
+        "Prompt",
+        "settingsPromptSectionName",
+        "settingsPromptPanelName",
+        "settingsPromptPanelTooltip",
+        promptSettingsEditor,
+      ),
+    );
+    app.ui.settings.addSetting(
+      sectionSetting(
+        "LoraPreset",
+        "settingsLoraSectionName",
+        "settingsLoraDisplayName",
+        "settingsLoraDisplayTooltip",
+        loraPresetEditor,
+      ),
+    );
+    app.ui.settings.addSetting(
+      sectionSetting(
+        "NAIA",
+        "settingsNaiaSectionName",
+        "settingsNaiaName",
+        "settingsNaiaTooltip",
+        naiaSettingsEditor,
+      ),
+    );
 
   },
 });
