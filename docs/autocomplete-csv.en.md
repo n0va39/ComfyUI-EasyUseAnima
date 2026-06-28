@@ -69,6 +69,15 @@ Prompt Studio highlighting uses both the selected CSV and built-in meta tag
 rules. Built-in meta/quality tags are not added as autocomplete candidates, but
 they are used for typo checks and color highlighting.
 
+## Artist Tag Policy
+
+Artist tags are treated as artist-category data.
+
+- The expected prompt form is `@artist name`.
+- General-category tags are not treated as artist candidates at runtime.
+- If an artist appears as a general-category tag, fix the CSV data or select a
+  better data source instead of adding a runtime fallback.
+
 ## Prompt Text Rules
 
 - Ordinary Danbooru/meta/artist tags use spaces in prompt output.
