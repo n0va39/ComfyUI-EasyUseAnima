@@ -414,6 +414,14 @@ function createSettingBlock(title) {
   return block;
 }
 
+function wrapEditorBlock(title, editor) {
+  const block = createSettingBlock(title);
+  for (const child of [...editor.childNodes]) {
+    block.append(child);
+  }
+  return block;
+}
+
 function appendDescription(container, description = "") {
   if (!description) {
     return null;
@@ -602,10 +610,35 @@ function promptStudioEditor(settings = {}) {
   return container;
 }
 
+function promptSettingsEditor(settings = {}) {
+  settings = currentSettings(settings);
+  const container = document.createElement("div");
+  container.style.cssText = `${SETTINGS_PANEL_STYLE} gap: 14px;`;
+
+  container.append(
+    wrapEditorBlock(
+      textFor(settings, "settingsPromptMetadataName"),
+      metadataFilterEditor(settings["prompt.metadata_filter_words"] || ""),
+    ),
+    wrapEditorBlock(
+      textFor(settings, "settingsAutocompleteCsvName"),
+      autocompleteDatasetSelector({
+        source: settings["autocomplete.source"] || "",
+        limit: settings["autocomplete.limit"] || 20,
+        mode: settings["autocomplete.mode"] || "compatible_global",
+      }),
+    ),
+    wrapEditorBlock(textFor(settings, "settingsPromptStudioName"), promptStudioEditor(settings)),
+  );
+
+  return container;
+}
+
 function loraPresetEditor(settings = {}) {
   settings = currentSettings(settings);
   const container = document.createElement("div");
   container.style.cssText = SETTINGS_PANEL_STYLE;
+  const block = createSettingBlock(textFor(settings, "settingsLoraDisplayName"));
 
   const row = document.createElement("div");
   row.style.cssText = SETTINGS_ROW_STYLE;
@@ -637,9 +670,10 @@ function loraPresetEditor(settings = {}) {
   });
 
   row.append(select, status);
-  container.append(row);
-  appendDescription(container, textFor(settings, "loraDisplayGuide"));
-  container.append(current);
+  block.append(row);
+  appendDescription(block, textFor(settings, "loraDisplayGuide"));
+  block.append(current);
+  container.append(block);
   return container;
 }
 
@@ -978,43 +1012,12 @@ app.registerExtension({
     app.ui.settings.addSetting({
       id: "EasyUseAnima.Section.Prompt",
       name: textFor(latestSettings(), "settingsPromptSectionName"),
-      type: () => document.createElement("div"),
-    });
-
-    app.ui.settings.addSetting({
-      id: "EasyUseAnima.Prompt.MetadataFilter",
-      name: textFor(latestSettings(), "settingsPromptMetadataName"),
-      type: () => metadataFilterEditor(latestSettings()["prompt.metadata_filter_words"] || ""),
-      tooltip: textFor(latestSettings(), "settingsPromptMetadataTooltip"),
-    });
-
-    app.ui.settings.addSetting({
-      id: "EasyUseAnima.Prompt.AutocompleteCsv",
-      name: textFor(latestSettings(), "settingsAutocompleteCsvName"),
-      type: () => autocompleteDatasetSelector({
-        source: latestSettings()["autocomplete.source"] || "",
-        limit: latestSettings()["autocomplete.limit"] || 20,
-        mode: latestSettings()["autocomplete.mode"] || "compatible_global",
-      }),
-      tooltip: textFor(latestSettings(), "settingsAutocompleteCsvTooltip"),
-    });
-
-    app.ui.settings.addSetting({
-      id: "EasyUseAnima.Prompt.PromptStudio",
-      name: textFor(latestSettings(), "settingsPromptStudioName"),
-      type: () => promptStudioEditor(latestSettings()),
-      tooltip: textFor(latestSettings(), "settingsPromptStudioTooltip"),
+      type: () => promptSettingsEditor(latestSettings()),
     });
 
     app.ui.settings.addSetting({
       id: "EasyUseAnima.Section.LoraPreset",
       name: textFor(latestSettings(), "settingsLoraSectionName"),
-      type: () => document.createElement("div"),
-    });
-
-    app.ui.settings.addSetting({
-      id: "EasyUseAnima.LoraPreset.Display",
-      name: textFor(latestSettings(), "settingsLoraDisplayName"),
       type: () => loraPresetEditor(latestSettings()),
       tooltip: textFor(latestSettings(), "settingsLoraDisplayTooltip"),
     });
@@ -1022,12 +1025,6 @@ app.registerExtension({
     app.ui.settings.addSetting({
       id: "EasyUseAnima.Section.NAIA",
       name: textFor(latestSettings(), "settingsNaiaSectionName"),
-      type: () => document.createElement("div"),
-    });
-
-    app.ui.settings.addSetting({
-      id: "EasyUseAnima.NAIA.Settings",
-      name: textFor(latestSettings(), "settingsNaiaName"),
       type: () => naiaSettingsEditor(latestSettings()),
       tooltip: textFor(latestSettings(), "settingsNaiaTooltip"),
     });
