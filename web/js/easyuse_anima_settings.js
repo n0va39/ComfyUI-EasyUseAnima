@@ -82,6 +82,10 @@ const SETTINGS_FIELD_STYLE =
 const SETTINGS_INPUT_STYLE =
   "box-sizing: border-box; width: 100%; min-width: 0; padding: 4px 7px;";
 const SETTINGS_STATUS_STYLE = "opacity: 0.76; font-size: 0.92em;";
+const SETTINGS_SUBSECTION_STYLE =
+  "display: flex; flex-direction: column; gap: 4px; padding: 8px 10px; border-left: 3px solid rgba(96, 165, 250, 0.72); background: rgba(148, 163, 184, 0.08);";
+const SETTINGS_BLOCK_STYLE =
+  "display: flex; flex-direction: column; gap: 6px; padding: 9px 0 0; border-top: 1px solid rgba(128, 128, 128, 0.22);";
 const autoSaveTimers = new Map();
 
 const SETTINGS_TEXT = {
@@ -136,6 +140,11 @@ const SETTINGS_TEXT = {
     autocompleteModeEasyUse: "EasyUse Anima nodes only",
     autocompleteModeCompatible: "Compatible global",
     autocompleteModeGuide: "Controls where EasyUse Anima autocomplete is active. Compatible global keeps the current behavior and avoids nodes that already provide their own autocomplete.",
+    autocompleteCsv: "Autocomplete CSV",
+    highlightBehavior: "Highlight behavior",
+    highlightColors: "Highlight colors",
+    naiaEndpoint: "Connection",
+    naiaPromptEngineering: "Prompt Engineering",
     suggestions: "Suggestions",
     autocompleteReady: "Autocomplete CSV is ready",
     autocompleteMissing: "Selected autocomplete CSV is missing.",
@@ -202,6 +211,11 @@ const SETTINGS_TEXT = {
     autocompleteModeEasyUse: "EasyUse Anima 노드에서만",
     autocompleteModeCompatible: "호환 전역 모드",
     autocompleteModeGuide: "EasyUse Anima 자동완성이 동작할 위치를 정합니다. 호환 전역 모드는 기존 방식이며 자체 자동완성을 가진 노드는 제외합니다.",
+    autocompleteCsv: "자동완성 CSV",
+    highlightBehavior: "하이라이트 동작",
+    highlightColors: "하이라이트 색상",
+    naiaEndpoint: "연결",
+    naiaPromptEngineering: "Prompt Engineering",
     suggestions: "추천 수",
     autocompleteReady: "자동완성 CSV 준비됨",
     autocompleteMissing: "선택한 자동완성 CSV가 없습니다.",
@@ -405,15 +419,56 @@ function sectionHeader(title, description) {
   return container;
 }
 
+function appendSubsectionHeader(container, title, description = "") {
+  const header = document.createElement("div");
+  header.style.cssText = SETTINGS_SUBSECTION_STYLE;
+
+  const heading = document.createElement("div");
+  heading.textContent = title;
+  heading.style.cssText = "font-weight: 700;";
+  header.append(heading);
+
+  if (description) {
+    const text = document.createElement("div");
+    text.textContent = description;
+    text.style.cssText = "opacity: 0.72; font-size: 0.92em;";
+    header.append(text);
+  }
+
+  container.append(header);
+  return header;
+}
+
+function createSettingBlock(title, description = "") {
+  const block = document.createElement("div");
+  block.style.cssText = SETTINGS_BLOCK_STYLE;
+
+  const heading = document.createElement("div");
+  heading.textContent = title;
+  heading.style.cssText = "font-weight: 650;";
+  block.append(heading);
+
+  if (description) {
+    const text = document.createElement("div");
+    text.textContent = description;
+    text.style.cssText = "opacity: 0.7; font-size: 0.92em;";
+    block.append(text);
+  }
+
+  return block;
+}
+
 function metadataFilterEditor(initialValue = "") {
   const settings = currentSettings();
   const container = document.createElement("div");
   container.style.cssText = SETTINGS_PANEL_STYLE;
 
-  const guide = document.createElement("div");
-  guide.textContent = textFor(settings, "metadataFilterGuide");
-  guide.style.cssText = "opacity: 0.78;";
-  container.append(guide);
+  appendSubsectionHeader(
+    container,
+    textFor(settings, "settingsPromptMetadataName"),
+    textFor(settings, "settingsPromptMetadataTooltip"),
+  );
+  const block = createSettingBlock(textFor(settings, "filterWords"), textFor(settings, "metadataFilterGuide"));
 
   const textarea = document.createElement("textarea");
   textarea.value = initialValue || "";
@@ -421,7 +476,7 @@ function metadataFilterEditor(initialValue = "") {
   textarea.rows = 4;
   textarea.style.cssText =
     "box-sizing: border-box; width: 100%; min-height: 86px; resize: vertical;";
-  container.append(textarea);
+  block.append(textarea);
 
   const current = currentValue("");
   const status = document.createElement("span");
@@ -441,7 +496,8 @@ function metadataFilterEditor(initialValue = "") {
     scheduleSettingSave("prompt.metadata_filter_words", textarea.value, status);
   });
 
-  container.append(current, status);
+  block.append(current, status);
+  container.append(block);
 
   return container;
 }
@@ -460,10 +516,15 @@ function promptStudioEditor(settings = {}) {
   const container = document.createElement("div");
   container.style.cssText = SETTINGS_PANEL_STYLE;
 
-  const guide = document.createElement("div");
-  guide.textContent = textFor(settings, "promptStudioGuide");
-  guide.style.cssText = "opacity: 0.78;";
-  container.append(guide);
+  appendSubsectionHeader(
+    container,
+    textFor(settings, "settingsPromptStudioName"),
+    textFor(settings, "settingsPromptStudioTooltip"),
+  );
+  const behaviorBlock = createSettingBlock(
+    textFor(settings, "highlightBehavior"),
+    textFor(settings, "promptStudioGuide"),
+  );
 
   const typoRow = document.createElement("label");
   typoRow.style.cssText = SETTINGS_ROW_STYLE;
@@ -473,7 +534,7 @@ function promptStudioEditor(settings = {}) {
   const typoText = document.createElement("span");
   typoText.textContent = textFor(settings, "typoIndicators");
   typoRow.append(typoToggle, typoText);
-  container.append(typoRow);
+  behaviorBlock.append(typoRow);
 
   const naiaGeneralRow = document.createElement("label");
   naiaGeneralRow.style.cssText = "display: flex; align-items: flex-start; flex-wrap: wrap; gap: 7px; min-width: 0;";
@@ -484,9 +545,10 @@ function promptStudioEditor(settings = {}) {
   naiaGeneralText.textContent = textFor(settings, "naiaGeneralAutoToggle");
   naiaGeneralText.style.cssText = "min-width: min(100%, 280px);";
   naiaGeneralRow.append(naiaGeneralToggle, naiaGeneralText);
-  container.append(naiaGeneralRow);
+  behaviorBlock.append(naiaGeneralRow);
 
   const colors = parseColorSettings(settings["prompt_studio.colors"]);
+  const colorBlock = createSettingBlock(textFor(settings, "highlightColors"));
   const grid = document.createElement("div");
   grid.style.cssText =
     "display: grid; grid-template-columns: repeat(auto-fit, minmax(118px, 1fr)); gap: 6px 10px; width: 100%;";
@@ -504,7 +566,7 @@ function promptStudioEditor(settings = {}) {
     grid.append(label);
     colorInputs.set(key, input);
   }
-  container.append(grid);
+  colorBlock.append(grid);
 
   const controls = document.createElement("div");
   controls.style.cssText = SETTINGS_ROW_STYLE;
@@ -559,8 +621,10 @@ function promptStudioEditor(settings = {}) {
   }
   refreshCurrent();
 
+  behaviorBlock.append(current);
   controls.append(resetButton, status);
-  container.append(current, controls);
+  colorBlock.append(controls);
+  container.append(behaviorBlock, colorBlock);
   return container;
 }
 
@@ -569,10 +633,12 @@ function loraPresetEditor(settings = {}) {
   const container = document.createElement("div");
   container.style.cssText = SETTINGS_PANEL_STYLE;
 
-  const guide = document.createElement("div");
-  guide.textContent = textFor(settings, "loraDisplayGuide");
-  guide.style.cssText = "opacity: 0.78;";
-  container.append(guide);
+  appendSubsectionHeader(
+    container,
+    textFor(settings, "settingsLoraDisplayName"),
+    textFor(settings, "settingsLoraDisplayTooltip"),
+  );
+  const block = createSettingBlock(textFor(settings, "loraDisplay"), textFor(settings, "loraDisplayGuide"));
 
   const row = document.createElement("div");
   row.style.cssText = SETTINGS_ROW_STYLE;
@@ -609,7 +675,8 @@ function loraPresetEditor(settings = {}) {
   });
 
   row.append(label, status);
-  container.append(row, current);
+  block.append(row, current);
+  container.append(block);
   return container;
 }
 
@@ -618,10 +685,14 @@ function naiaSettingsEditor(settings = {}) {
   const container = document.createElement("div");
   container.style.cssText = SETTINGS_PANEL_STYLE;
 
-  const guide = document.createElement("div");
-  guide.textContent = textFor(settings, "naiaSettingsGuide");
-  guide.style.cssText = "opacity: 0.78;";
-  container.append(guide);
+  appendSubsectionHeader(
+    container,
+    textFor(settings, "settingsNaiaName"),
+    textFor(settings, "settingsNaiaTooltip"),
+  );
+  const endpointBlock = createSettingBlock(textFor(settings, "naiaEndpoint"), textFor(settings, "naiaSettingsGuide"));
+  const promptBlock = createSettingBlock(textFor(settings, "naiaPromptEngineering"));
+  const preprocessingBlock = createSettingBlock(textFor(settings, "preprocessingOptions"));
 
   const endpointRow = document.createElement("div");
   endpointRow.style.cssText = "display: grid; grid-template-columns: minmax(150px, 1fr) minmax(92px, 120px); gap: 8px;";
@@ -649,7 +720,7 @@ function naiaSettingsEditor(settings = {}) {
   portInput.style.cssText = SETTINGS_INPUT_STYLE;
   portLabel.append(portText, portInput);
   endpointRow.append(hostLabel, portLabel);
-  container.append(endpointRow);
+  endpointBlock.append(endpointRow);
 
   const useSettingsRow = document.createElement("label");
   useSettingsRow.style.cssText = SETTINGS_ROW_STYLE;
@@ -659,7 +730,7 @@ function naiaSettingsEditor(settings = {}) {
   const useSettingsText = document.createElement("span");
   useSettingsText.textContent = textFor(settings, "useDesktopNaia");
   useSettingsRow.append(useSettingsToggle, useSettingsText);
-  container.append(useSettingsRow);
+  promptBlock.append(useSettingsRow);
 
   const textStack = document.createElement("div");
   textStack.style.cssText = "display: flex; flex-direction: column; gap: 6px; width: 100%;";
@@ -681,12 +752,7 @@ function naiaSettingsEditor(settings = {}) {
     textStack.append(label);
     promptInputs.set(key, input);
   }
-  container.append(textStack);
-
-  const ppTitle = document.createElement("div");
-  ppTitle.textContent = textFor(settings, "preprocessingOptions");
-  ppTitle.style.cssText = "font-weight: 700;";
-  container.append(ppTitle);
+  promptBlock.append(textStack);
 
   const ppGrid = document.createElement("div");
   ppGrid.style.cssText =
@@ -712,7 +778,7 @@ function naiaSettingsEditor(settings = {}) {
     ppGrid.append(label);
     preprocessingSelects.set(key, select);
   }
-  container.append(ppGrid);
+  preprocessingBlock.append(ppGrid);
 
   const controls = document.createElement("div");
   controls.style.cssText = SETTINGS_ROW_STYLE;
@@ -778,7 +844,7 @@ function naiaSettingsEditor(settings = {}) {
   }
 
   controls.append(status);
-  container.append(current, controls);
+  container.append(endpointBlock, promptBlock, preprocessingBlock, current, controls);
   return container;
 }
 
@@ -799,20 +865,16 @@ function autocompleteDatasetSelector(initialValue = {}) {
   const container = document.createElement("div");
   container.style.cssText = SETTINGS_PANEL_STYLE;
 
-  const guide = document.createElement("div");
-  guide.textContent = textFor(settings, "autocompleteGuide");
-  guide.style.cssText = "opacity: 0.78;";
-  container.append(guide);
-
-  const modeGuide = document.createElement("div");
-  modeGuide.textContent = textFor(settings, "autocompleteModeGuide");
-  modeGuide.style.cssText = "opacity: 0.68; font-size: 0.92em;";
-  container.append(modeGuide);
+  appendSubsectionHeader(
+    container,
+    textFor(settings, "settingsAutocompleteCsvName"),
+    textFor(settings, "settingsAutocompleteCsvTooltip"),
+  );
+  const modeBlock = createSettingBlock(textFor(settings, "autocompleteMode"), textFor(settings, "autocompleteModeGuide"));
+  const csvBlock = createSettingBlock(textFor(settings, "autocompleteCsv"), textFor(settings, "autocompleteGuide"));
 
   const modeRow = document.createElement("label");
   modeRow.style.cssText = "display: flex; flex-direction: column; gap: 4px; min-width: 0;";
-  const modeText = document.createElement("span");
-  modeText.textContent = textFor(settings, "autocompleteMode");
   const modeSelect = document.createElement("select");
   modeSelect.style.cssText = "box-sizing: border-box; width: min(100%, 340px); padding: 4px 8px;";
   for (const [value, labelKey] of [
@@ -826,8 +888,8 @@ function autocompleteDatasetSelector(initialValue = {}) {
     option.selected = value === initialMode;
     modeSelect.append(option);
   }
-  modeRow.append(modeText, modeSelect);
-  container.append(modeRow);
+  modeRow.append(modeSelect);
+  modeBlock.append(modeRow);
 
   const row = document.createElement("div");
   row.style.cssText = SETTINGS_ROW_STYLE;
@@ -852,11 +914,12 @@ function autocompleteDatasetSelector(initialValue = {}) {
   message.style.cssText = SETTINGS_STATUS_STYLE;
 
   row.append(select, limitLabel, message);
-  container.append(row);
+  csvBlock.append(row);
 
   const panel = document.createElement("div");
   panel.style.cssText = "margin-top: 8px;";
-  container.append(panel);
+  csvBlock.append(panel);
+  container.append(modeBlock, csvBlock);
   autocompletePanels.add(panel);
 
   const renderOptions = (status) => {
