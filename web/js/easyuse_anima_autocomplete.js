@@ -1,4 +1,8 @@
 import { app } from "../../../scripts/app.js";
+import {
+  normalizePromptTagText,
+  promptCompletionTagText,
+} from "./easyuse_anima_prompt_rules.js";
 
 const TARGETS = {
   EasyUseAnimaPromptBuilder: new Set([
@@ -558,13 +562,11 @@ function commitSuggestion(state, entry) {
 }
 
 function displayTagText(value) {
-  return String(value || "")
-    .replaceAll("_", " ")
-    .replace(/\\([()])/g, "$1");
+  return normalizePromptTagText(value);
 }
 
 function promptTagText(value) {
-  return displayTagText(value).replace(/[()]/g, "\\$&");
+  return promptCompletionTagText(value);
 }
 
 function completionText(token, entry, forceArtistOnly = false) {

@@ -1,4 +1,5 @@
 import { app } from "../../../scripts/app.js";
+import { normalizePromptTagText } from "./easyuse_anima_prompt_rules.js";
 
 const NODE_TYPE = "EasyUseAnimaPromptStudio";
 const ADVANCED_NODE_TYPE = "EasyUseAnimaPromptStudioAdvanced";
@@ -680,10 +681,7 @@ function escapeHtml(value) {
 }
 
 function normalize(value) {
-  return String(value ?? "")
-    .normalize("NFKC")
-    .replace(/\\(.)/g, "$1")
-    .replaceAll("_", " ")
+  return normalizePromptTagText(value, { unescapeAll: true })
     .toLocaleLowerCase()
     .replace(INLINE_SPACE_RE, " ")
     .trim();
