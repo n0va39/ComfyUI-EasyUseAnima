@@ -32,3 +32,18 @@ This document records decisions that supersede earlier experimental notes.
 - Old exploratory plans can be deleted or rewritten when they conflict with current implementation decisions.
 - Keep version plans focused on the current implementation path and explicit exclusions.
 - Reference workflows under `docs/workflows/` are implementation references, not authoritative product documentation.
+
+## Version Planning
+
+- Track what will be reflected in each upcoming package version under `docs/development/<version>.md`.
+- Treat these files as development plans, not release announcements.
+- `pyproject.toml` may be bumped early to the next intended Registry version to avoid reusing a published version number.
+- Do not publish to Comfy Registry, create release tags, or convert `RELEASE.md` entries into final release notes unless explicitly requested.
+
+## Release Workflow Management
+
+- Public workflow templates live under `example_workflows/`.
+- Release workflow filenames must use `_release_ko` or `_release_en` before `.json`.
+- Use the same release-suffixed basename for any matching copy under `docs/workflows/`.
+- Unsuffixed workflow names are treated as local working/user-edited files and must not be used as GitHub release workflow filenames.
+- Live ComfyUI syncs may overwrite release-suffixed files only. Do not overwrite user-edited workflow filenames.

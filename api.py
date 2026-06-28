@@ -158,6 +158,145 @@ def _list_loras() -> list[str]:
     return loras
 
 
+def _lora_full_path(name: str) -> str | None:
+    try:
+        import folder_paths  # type: ignore
+    except Exception:
+        return None
+
+    text = str(name or "").strip()
+    if not text or text == "None":
+        return None
+    candidates = _dedupe_text_values((
+        text,
+        text.replace("\\", "/"),
+        text.replace("/", os.sep),
+    ))
+    for candidate in candidates:
+        try:
+            path = folder_paths.get_full_path("loras", candidate)
+        except Exception:
+            path = None
+        if path:
+            return str(path)
+    return None
+
+
+def _dedupe_text_values(values) -> list[str]:
+    seen = set()
+    result = []
+    for value in values:
+        text = str(value or "").strip()
+        if not text:
+            continue
+        key = text.casefold()
+        if key in seen:
+            continue
+        seen.add(key)
+        result.append(text)
+    return result
+
+
+def _lora_file_key(value: str) -> str:
+    name = os.path.basename(str(value or "").replace("\\", "/").strip())
+    return name.casefold()
+
+
+def _put_unique(mapping: dict[str, str | None], key: str, value: str):
+    if not key:
+        return
+    if key not in mapping:
+        mapping[key] = value
+        return
+    current = mapping[key]
+    if current is None:
+        return
+    if current and current != value:
+        mapping[key] = None
+        return
+    mapping[key] = value
+
+
+def _lora_path_exists(name: str) -> bool:
+    path = _lora_full_path(name)
+    return bool(path and os.path.isfile(path))
+
+
+def _build_lora_fix_index(lora_names: list[str] | None = None) -> dict:
+    by_file: dict[str, str | None] = {}
+    names = list(lora_names) if lora_names is not None else _list_loras()
+
+    for name in names:
+        _put_unique(by_file, _lora_file_key(name), name)
+
+    return {
+        "by_file": by_file,
+        "names": names,
+    }
+
+
+def _resolve_lora_for_fix(entry: dict, index: dict) -> tuple[str, str]:
+    raw_name = str(entry.get("name", entry.get("lora", "")) or "").strip()
+    match = index["by_file"].get(_lora_file_key(raw_name))
+    return (match, "file") if match else ("", "")
+
+
+def _apply_lora_fix(next_lora: dict, profile_key: str, raw_name: str, match: str, reason: str, fixed: list):
+    changed = raw_name != match
+    next_lora["name"] = match
+    next_lora.pop("lora", None)
+    if changed:
+        fixed.append({
+            "profile": profile_key,
+            "from": raw_name,
+            "to": match,
+            "reason": reason,
+        })
+
+
+def _fix_lora_profile_payload(data: dict) -> dict:
+    payload = _normalize_lora_profile_payload(data if isinstance(data, dict) else {})
+    fixed = []
+    unresolved = []
+    missing_entries = []
+
+    for profile_key, profile in payload["profile_data"].items():
+        if not isinstance(profile, dict):
+            continue
+        next_loras = []
+        for lora in profile.get("loras") or []:
+            if not isinstance(lora, dict):
+                continue
+            next_lora = dict(lora)
+            raw_name = str(next_lora.get("name", next_lora.get("lora", "")) or "").strip()
+            if not raw_name:
+                continue
+            next_loras.append(next_lora)
+            if _lora_path_exists(raw_name):
+                if "name" not in next_lora and "lora" in next_lora:
+                    next_lora["name"] = raw_name
+                    next_lora.pop("lora", None)
+                continue
+            missing_entries.append((profile_key, next_lora, raw_name))
+        profile["loras"] = next_loras
+
+    if missing_entries:
+        lora_names = _list_loras()
+        index = _build_lora_fix_index(lora_names=lora_names)
+        for profile_key, next_lora, raw_name in missing_entries:
+            match, reason = _resolve_lora_for_fix(next_lora, index)
+            if match:
+                _apply_lora_fix(next_lora, profile_key, raw_name, match, reason, fixed)
+            else:
+                unresolved.append({"profile": profile_key, "name": raw_name})
+
+    payload["fixed"] = fixed
+    payload["unresolved"] = unresolved
+    payload["checked"] = sum(len(profile.get("loras") or []) for profile in payload["profile_data"].values() if isinstance(profile, dict))
+    payload["missing"] = len(missing_entries)
+    return payload
+
+
 def _save_lora_profile(name: str, data: dict) -> dict:
     safe_name = _sanitize_lora_profile_name(name)
     payload = _normalize_lora_profile_payload(data)
@@ -351,4 +490,10 @@ if web is not None and routes is not None:
             return web.json_response({"status": "error", "message": str(exc)}, status=400)
         except FileNotFoundError as exc:
             return web.json_response({"status": "error", "message": str(exc)}, status=404)
+        return web.json_response({"status": "ok", "profile": payload})
+
+    @routes.post("/easyuse_anima/lora_profiles/fix")
+    async def fix_lora_profile_handler(request):
+        data = await request.json()
+        payload = _fix_lora_profile_payload(data if isinstance(data, dict) else {})
         return web.json_response({"status": "ok", "profile": payload})

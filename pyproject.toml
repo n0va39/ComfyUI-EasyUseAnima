@@ -1,7 +1,7 @@
 [project]
 name = "comfyui-easyuse-anima"
 description = "Prompt editing, ANIMA prompt correction, NAIA prompt integration, and LoRA preset tools for ComfyUI."
-version = "0.1.6"
+version = "0.1.7"
 readme = "README.md"
 license = { file = "LICENSE" }
 requires-python = ">=3.10"

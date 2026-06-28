@@ -48,8 +48,16 @@ const LORA_PRESET_TEXT = {
     "profile.header": "Profile {active}/{count}",
     "profile.load": "Load",
     "profile.save": "Save",
+    "profile.fix": "FIX",
+    "profile.fixResult": "Fixed {fixed} LoRA path(s). {unresolved} unresolved.",
+    "profile.fixFailed": "Failed to fix LoRA paths: {message}",
+    "profile.fixNoIssue": "No missing LoRA paths found.",
     "lora.moveUp": "Move Up",
     "lora.moveDown": "Move Down",
+    "lora.fix": "FIX",
+    "lora.fixFailed": "Failed to fix LoRA path: {message}",
+    "lora.fixNoIssue": "This LoRA path exists.",
+    "lora.fixUnresolved": "No matching local LoRA was found.",
     "lora.remove": "Remove",
     "lora.noneFound": "No LoRA files found. Refresh ComfyUI after adding LoRAs.",
     "lora.chooseTitle": "Choose a LoRA",
@@ -79,8 +87,16 @@ const LORA_PRESET_TEXT = {
     "profile.header": "프로필 {active}/{count}",
     "profile.load": "불러오기",
     "profile.save": "저장",
+    "profile.fix": "FIX",
+    "profile.fixResult": "LoRA 경로 {fixed}개를 교정했습니다. 미해결 {unresolved}개.",
+    "profile.fixFailed": "LoRA 경로 교정 실패: {message}",
+    "profile.fixNoIssue": "누락된 LoRA 경로가 없습니다.",
     "lora.moveUp": "위로 이동",
     "lora.moveDown": "아래로 이동",
+    "lora.fix": "FIX",
+    "lora.fixFailed": "LoRA 경로 교정 실패: {message}",
+    "lora.fixNoIssue": "이 LoRA 경로는 존재합니다.",
+    "lora.fixUnresolved": "일치하는 로컬 LoRA를 찾지 못했습니다.",
     "lora.remove": "제거",
     "lora.noneFound": "LoRA 파일을 찾지 못했습니다. LoRA를 추가한 뒤 ComfyUI를 새로고침하세요.",
     "lora.chooseTitle": "LoRA 선택",
@@ -695,6 +711,169 @@ async function openProfileLoadMenu(node, event, pos) {
   });
 }
 
+function fullProfilePayload(node) {
+  saveCurrentProfile(node);
+  return {
+    profile_count: profileCount(node),
+    profile_index: activeProfileIndex(node),
+    profile_data: parseProfileData(findWidget(node, "profile_data")),
+  };
+}
+
+function profileHasLoraPathProblems(node) {
+  const data = parseProfileData(findWidget(node, "profile_data"));
+  const count = profileCount(node);
+  for (let index = 1; index <= count; index += 1) {
+    const profile = data[profileKey(index)];
+    const loras = Array.isArray(profile?.loras) ? profile.loras : [];
+    for (const lora of loras) {
+      if (hasLoraPathProblem(loraResolveState(node, lora))) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+async function refreshLoraLookupForFix(node) {
+  await fetchLoraNameValues(node);
+}
+
+function loraFixPendingSet(node) {
+  node.__easyuseAnimaLoraFixPending ||= new Set();
+  return node.__easyuseAnimaLoraFixPending;
+}
+
+function isLoraFixPending(node, index) {
+  return !!node?.__easyuseAnimaProfileFixPending || loraFixPendingSet(node).has(index);
+}
+
+function isAnyLoraFixPending(node) {
+  return !!node?.__easyuseAnimaProfileFixPending || loraFixPendingSet(node).size > 0;
+}
+
+function applyFixedProfilePayload(node, payload) {
+  const dataWidget = findWidget(node, "profile_data");
+  if (!dataWidget || !payload || typeof payload !== "object") {
+    return;
+  }
+  const previousData = parseProfileData(dataWidget);
+  const nextData = normalizeProfileDataValue(payload.profile_data);
+  for (const [key, profile] of Object.entries(nextData)) {
+    const previous = previousData[key];
+    const savedName = profileSavedName(previous);
+    const savedSnapshot = String(previous?.saved_snapshot || "");
+    if (savedName && savedSnapshot) {
+      profile.saved_name = savedName;
+      profile.saved_snapshot = savedSnapshot;
+    }
+  }
+  const nextCount = Math.max(1, Math.min(MAX_PROFILES, Number.parseInt(payload.profile_count, 10) || profileCount(node)));
+  const nextIndex = wrapProfileIndex(payload.profile_index || activeProfileIndex(node), nextCount);
+  setProfileCount(node, nextCount);
+  writeProfileData(dataWidget, nextData);
+  setProfileIndex(node, nextIndex);
+  node.__easyuseAnimaActiveProfileIndex = nextIndex;
+  loadProfile(node, nextIndex);
+  scrollProfileBarTo(node, nextIndex);
+  renderProfileBar(node);
+  renderLoraWidgets(node);
+  refreshLoraAvailability(node);
+  node.setDirtyCanvas?.(true, true);
+}
+
+async function fixProfileLoras(node) {
+  if (isAnyLoraFixPending(node)) {
+    return;
+  }
+  node.__easyuseAnimaProfileFixPending = true;
+  renderProfileBar(node);
+  renderLoraWidgets(node);
+  try {
+    await refreshLoraLookupForFix(node);
+    saveCurrentProfile(node);
+    if (!profileHasLoraPathProblems(node)) {
+      window.alert(lpText("profile.fixNoIssue"));
+      return;
+    }
+    const data = await fetchJson("/easyuse_anima/lora_profiles/fix", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(fullProfilePayload(node)),
+    });
+    const profile = data?.profile || data || {};
+    applyFixedProfilePayload(node, profile);
+    window.alert(lpFormat("profile.fixResult", {
+      fixed: Array.isArray(profile.fixed) ? profile.fixed.length : 0,
+      unresolved: Array.isArray(profile.unresolved) ? profile.unresolved.length : 0,
+    }));
+  } catch (error) {
+    window.alert(lpFormat("profile.fixFailed", { message: errorMessage(error) }));
+  } finally {
+    node.__easyuseAnimaProfileFixPending = false;
+    renderProfileBar(node);
+    renderLoraWidgets(node);
+  }
+}
+
+async function fixSingleLoraEntry(node, index) {
+  if (isLoraFixPending(node, index)) {
+    return;
+  }
+  loraFixPendingSet(node).add(index);
+  renderLoraWidgets(node);
+  saveCurrentProfile(node);
+  const loras = lorasWidgetValue(node).map(normalizeLoraEntry);
+  const lora = loras[index];
+  if (!lora?.name) {
+    loraFixPendingSet(node).delete(index);
+    renderLoraWidgets(node);
+    return;
+  }
+  try {
+    await refreshLoraLookupForFix(node);
+    if (!hasLoraPathProblem(loraResolveState(node, lora))) {
+      window.alert(lpText("lora.fixNoIssue"));
+      return;
+    }
+    const data = await fetchJson("/easyuse_anima/lora_profiles/fix", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        profile_count: 1,
+        profile_index: 1,
+        profile_data: {
+          "1": {
+            style_prompt: "",
+            loras: [lora],
+          },
+        },
+      }),
+    });
+    const profile = data?.profile || data || {};
+    const fixedLora = normalizeLoraEntry(profile?.profile_data?.["1"]?.loras?.[0] || {});
+    const fixedCount = Array.isArray(profile.fixed) ? profile.fixed.length : 0;
+    const unresolvedCount = Array.isArray(profile.unresolved) ? profile.unresolved.length : 0;
+    if (fixedLora.name && (fixedCount > 0 || fixedLora.name !== lora.name)) {
+      mutateLoras(node, (nextLoras) => {
+        if (nextLoras[index]) {
+          nextLoras[index] = fixedLora;
+        }
+      });
+      refreshLoraAvailability(node);
+      return;
+    }
+    if (unresolvedCount > 0 || hasLoraPathProblem(loraResolveState(node, lora))) {
+      window.alert(lpText("lora.fixUnresolved"));
+    }
+  } catch (error) {
+    window.alert(lpFormat("lora.fixFailed", { message: errorMessage(error) }));
+  } finally {
+    loraFixPendingSet(node).delete(index);
+    renderLoraWidgets(node);
+  }
+}
+
 function comboValues(widget) {
   const raw = widget?.options?.values || widget?.values || widget?.inputSpec?.[0] || [];
   if (Array.isArray(raw)) {
@@ -755,6 +934,90 @@ function loraNameValues(node) {
   return normalizeLoraNameList(comboValues(findWidget(node, "lora_name")));
 }
 
+function normalizeLoraKey(value) {
+  let text = String(value || "").trim().replace(/\\/g, "/");
+  const marker = "/models/loras/";
+  const markerIndex = text.toLowerCase().lastIndexOf(marker);
+  if (markerIndex >= 0) {
+    text = text.slice(markerIndex + marker.length);
+  }
+  return text.replace(/^\/+|\/+$/g, "").toLowerCase();
+}
+
+function loraFileKey(value) {
+  return (String(value || "").trim().replace(/\\/g, "/").split("/").pop() || "").toLowerCase();
+}
+
+function putUniqueLoraMatch(map, key, value) {
+  if (!key) {
+    return;
+  }
+  if (!map.has(key)) {
+    map.set(key, value);
+    return;
+  }
+  if (map.get(key) !== value) {
+    map.set(key, null);
+  }
+}
+
+function buildLoraLookup(values) {
+  const lookup = {
+    byName: new Map(),
+    byFile: new Map(),
+  };
+  for (const name of values || []) {
+    putUniqueLoraMatch(lookup.byName, normalizeLoraKey(name), name);
+    putUniqueLoraMatch(lookup.byFile, loraFileKey(name), name);
+  }
+  return lookup;
+}
+
+function localLoraMatch(lora, lookup) {
+  if (!lookup) {
+    return { state: "unknown", match: "", reason: "" };
+  }
+  const rawName = String(lora?.name || lora?.lora || "").trim();
+  if (!rawName) {
+    return { state: "unknown", match: "", reason: "" };
+  }
+  const slashName = rawName.replace(/\\/g, "/");
+  const exact = lookup.byName.get(normalizeLoraKey(rawName));
+  if (exact) {
+    const exactSlash = String(exact).replace(/\\/g, "/");
+    return {
+      state: exactSlash === slashName ? "ok" : "fixable",
+      match: exact,
+      reason: "name",
+    };
+  }
+  const byFile = lookup.byFile.get(loraFileKey(rawName));
+  if (byFile) {
+    return { state: "fixable", match: byFile, reason: "file" };
+  }
+  return {
+    state: "missing",
+    match: "",
+    reason: "",
+  };
+}
+
+function loraResolveState(node, lora) {
+  return localLoraMatch(normalizeLoraEntry(lora), node?.__easyuseAnimaLoraLookup);
+}
+
+function hasLoraPathProblem(state) {
+  return state?.state === "fixable" || state?.state === "missing";
+}
+
+function setLoraLookup(node, values) {
+  if (!node) {
+    return;
+  }
+  node.__easyuseAnimaLoraLookup = buildLoraLookup(values);
+  renderLoraWidgets(node);
+}
+
 async function fetchLoraNameValues(node) {
   try {
     const data = await fetchJson("/easyuse_anima/loras");
@@ -762,11 +1025,20 @@ async function fetchLoraNameValues(node) {
     for (const name of values) {
       missingPreviewNames.delete(name);
     }
+    setLoraLookup(node, values);
     return values;
   } catch (error) {
     console.warn("[EasyUse Anima] failed to refresh LoRA list; using cached widget values", error);
-    return loraNameValues(node);
+    const values = loraNameValues(node);
+    setLoraLookup(node, values);
+    return values;
   }
+}
+
+function refreshLoraAvailability(node) {
+  fetchLoraNameValues(node).catch((error) => {
+    console.warn("[EasyUse Anima] failed to refresh LoRA availability", error);
+  });
 }
 
 function roundStrength(value) {
@@ -843,7 +1115,8 @@ function openLoraEntryMenu(node, event, index) {
     return;
   }
   const loras = lorasWidgetValue(node);
-  new LiteGraph.ContextMenu([
+  const state = loraResolveState(node, lora);
+  const items = [
     {
       content: lpText("lora.moveUp"),
       disabled: index <= 0,
@@ -855,11 +1128,21 @@ function openLoraEntryMenu(node, event, index) {
       callback: () => moveLoraEntry(node, index, 1),
     },
     null,
+  ];
+  if (hasLoraPathProblem(state)) {
+    items.push({
+      content: lpText("lora.fix"),
+      disabled: isLoraFixPending(node, index),
+      callback: () => fixSingleLoraEntry(node, index),
+    }, null);
+  }
+  items.push(
     {
       content: lpText("lora.remove"),
       callback: () => removeLoraEntry(node, index),
     },
-  ], {
+  );
+  new LiteGraph.ContextMenu(items, {
     event,
     title: loraDisplayName(lora.name),
     scale: Math.max(1, Number(app.canvas?.ds?.scale) || 1),
@@ -1442,13 +1725,21 @@ class ProfileBarWidget {
       ctx.stroke();
       ctx.fillStyle = LiteGraph.WIDGET_TEXT_COLOR;
       ctx.textAlign = "center";
-      ctx.fillText(label, x + buttonW / 2, buttonY + buttonH / 2);
+      let fontSize = 13;
+      ctx.font = `${fontSize}px sans-serif`;
+      while (fontSize > 10 && ctx.measureText(label).width > buttonW - 8) {
+        fontSize -= 1;
+        ctx.font = `${fontSize}px sans-serif`;
+      }
+      ctx.fillText(fitCanvasText(ctx, label, buttonW - 8), x + buttonW / 2, buttonY + buttonH / 2);
+      ctx.font = "13px sans-serif";
       x -= gap;
       ctx.globalAlpha = 1;
     };
 
-    drawButton("load", lpText("profile.load"), 44);
-    drawButton("save", lpText("profile.save"), 44);
+    drawButton("load", lpText("profile.load"), 66);
+    drawButton("save", lpText("profile.save"), 46);
+    drawButton("fix", lpText("profile.fix"), 40, false, isAnyLoraFixPending(node));
     drawButton("delete", "X", 28, false, count <= 1);
     drawButton("add", "+", 28);
 
@@ -1625,6 +1916,8 @@ class ProfileBarWidget {
         saveProfileSet(node);
       } else if (id === "load") {
         openProfileLoadMenu(node, event, pos);
+      } else if (id === "fix") {
+        fixProfileLoras(node);
       } else if (String(id).startsWith("profile:")) {
         switchProfile(node, Number.parseInt(String(id).slice(8), 10));
       }
@@ -1715,10 +2008,13 @@ class LoraRowWidget {
     const rowY = y + 1;
     const midY = y + height / 2;
     const right = rowX + rowW;
+    const resolveState = loraResolveState(node, lora);
+    const pathProblem = hasLoraPathProblem(resolveState);
+    const fixPending = isLoraFixPending(node, this.index);
 
     ctx.save();
-    ctx.fillStyle = LiteGraph.WIDGET_BGCOLOR;
-    ctx.strokeStyle = LiteGraph.WIDGET_OUTLINE_COLOR;
+    ctx.fillStyle = pathProblem ? "rgba(95, 34, 34, 0.72)" : LiteGraph.WIDGET_BGCOLOR;
+    ctx.strokeStyle = pathProblem ? "#ff5f5f" : LiteGraph.WIDGET_OUTLINE_COLOR;
     ctx.beginPath();
     roundedRect(ctx, rowX, rowY, rowW, rowH, rowH / 2);
     ctx.fill();
@@ -1763,12 +2059,35 @@ class LoraRowWidget {
       this.hitAreas.info = null;
     }
 
+    const showFix = pathProblem && drawWidth >= 330;
+    if (showFix) {
+      const fixW = 28;
+      const fixX = nameRight - fixW - inner;
+      this.hitAreas.fix = [fixX, rowY + 2, fixW, Math.max(12, rowH - 4)];
+      ctx.fillStyle = fixPending ? "rgba(110, 80, 80, 0.7)" : "rgba(190, 58, 58, 0.8)";
+      ctx.strokeStyle = "#ff8989";
+      ctx.beginPath();
+      roundedRect(ctx, ...this.hitAreas.fix, 4);
+      ctx.fill();
+      ctx.stroke();
+      ctx.font = "10px sans-serif";
+      ctx.fillStyle = "#fff2f2";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText(lpText("lora.fix"), fixX + fixW / 2, midY);
+      ctx.font = "13px sans-serif";
+      nameRight = fixX - inner;
+    } else {
+      this.hitAreas.fix = null;
+    }
+
     if (showMenu) {
       const menuSize = 14;
       const menuX = nameRight - menuSize - inner;
       this.hitAreas.menu = [menuX, rowY + 2, menuSize, Math.max(12, rowH - 4)];
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
+      ctx.fillStyle = pathProblem ? "#ff9a9a" : LiteGraph.WIDGET_TEXT_COLOR;
       ctx.fillText("⋮", menuX + menuSize / 2, midY);
       nameRight = menuX - inner;
     } else {
@@ -1779,6 +2098,7 @@ class LoraRowWidget {
     this.hitAreas.lora = [posX, y, nameW, height];
     ctx.textAlign = "left";
     ctx.textBaseline = "middle";
+    ctx.fillStyle = pathProblem ? "#ffd8d8" : LiteGraph.WIDGET_TEXT_COLOR;
     if (nameW > 4) {
       ctx.fillText(fitCanvasText(ctx, loraDisplayName(lora.name), nameW), posX, midY);
     }
@@ -1834,6 +2154,10 @@ class LoraRowWidget {
     }
     if (pointInArea(pos, this.hitAreas.toggle)) {
       updateLoraEntry(node, this.index, { on: lora.on === false });
+      return true;
+    }
+    if (!fixPending && pointInArea(pos, this.hitAreas.fix)) {
+      fixSingleLoraEntry(node, this.index);
       return true;
     }
     if (pointInArea(pos, this.hitAreas.lora)) {
@@ -2163,6 +2487,7 @@ function initializeNode(node) {
       loadProfile(this, selectedProfileIndex(this), { initializeFromCurrent: true });
       scrollProfileBarTo(this, selectedProfileIndex(this));
       renderProfileBar(this);
+      refreshLoraAvailability(this);
       enforceNodeLayout(this);
     });
   };
@@ -2174,6 +2499,7 @@ function initializeNode(node) {
     loadProfile(node, selectedProfileIndex(node), { initializeFromCurrent: true });
     scrollProfileBarTo(node, selectedProfileIndex(node));
     renderProfileBar(node);
+    refreshLoraAvailability(node);
     enforceNodeLayout(node);
   });
 }
