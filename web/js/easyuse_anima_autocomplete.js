@@ -1,4 +1,9 @@
 import { app } from "../../../scripts/app.js";
+import {
+  normalizePromptTagText,
+  promptCompletionTagText,
+} from "./easyuse_anima_prompt_rules.js";
+import { easyuseAnimaText } from "./easyuse_anima_i18n.js";
 
 const TARGETS = {
   EasyUseAnimaPromptBuilder: new Set([
@@ -57,10 +62,37 @@ const GENERIC_NODE_PATTERNS = [
 
 const DEFAULT_MAX_RESULTS = 20;
 const MAX_RESULT_LIMIT = 100;
+const DEFAULT_AUTOCOMPLETE_MODE = "compatible_global";
+const AUTOCOMPLETE_MODES = new Set([
+  "off",
+  "easyuse_nodes",
+  "compatible_global",
+]);
+const AUTOCOMPLETE_TEXT = {
+  en: {
+    "category.tag": "tag",
+    "category.quality": "quality",
+    "category.artist": "artist",
+    "category.character": "character",
+    "category.copyright": "copyright",
+    "category.general": "general",
+    "category.meta": "meta",
+  },
+  ko: {
+    "category.tag": "태그",
+    "category.quality": "품질",
+    "category.artist": "작가",
+    "category.character": "캐릭터",
+    "category.copyright": "작품",
+    "category.general": "일반",
+    "category.meta": "메타",
+  },
+};
 const MIN_QUERY_LENGTH = 1;
 const cache = new Map();
 
 let maxResults = DEFAULT_MAX_RESULTS;
+let autocompleteMode = DEFAULT_AUTOCOMPLETE_MODE;
 let popup = null;
 let activeState = null;
 let activeRefreshFrame = null;
@@ -78,6 +110,71 @@ function clampMaxResults(value) {
   return clamp(parsed, 1, MAX_RESULT_LIMIT);
 }
 
+function normalizeAutocompleteMode(value) {
+  const normalized = String(value || "").trim();
+  return AUTOCOMPLETE_MODES.has(normalized) ? normalized : DEFAULT_AUTOCOMPLETE_MODE;
+}
+
+function autocompleteText(key) {
+  return easyuseAnimaText(AUTOCOMPLETE_TEXT, key);
+}
+
+function autocompleteCategoryLabel(category) {
+  const raw = String(category || "").trim();
+  if (!raw) {
+    return autocompleteText("category.tag");
+  }
+  const key = raw.toLocaleLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "");
+  return autocompleteText(`category.${key}`) || raw;
+}
+
+function setAutocompleteMode(value) {
+  const nextMode = normalizeAutocompleteMode(value);
+  if (nextMode === autocompleteMode) {
+    return;
+  }
+  autocompleteMode = nextMode;
+  if (!autocompleteEnabledForState(activeState)) {
+    hidePopup();
+  }
+  cache.clear();
+}
+
+function isEasyUseAnimaNode(node) {
+  const values = [
+    node?.type,
+    node?.comfyClass,
+    node?.title,
+    node?.constructor?.name,
+  ].filter(Boolean).map((value) => String(value));
+  return values.some((value) => /^EasyUseAnima/.test(value) || /Anima Prompt/i.test(value));
+}
+
+function autocompleteScope(options = {}) {
+  const scope = String(options.scope || "").trim();
+  if (scope === "easyuse" || scope === "compatible") {
+    return scope;
+  }
+  if (options.easyuseOnly || options.dedicated || isEasyUseAnimaNode(options.node)) {
+    return "easyuse";
+  }
+  return "compatible";
+}
+
+function autocompleteEnabledForScope(scope) {
+  if (autocompleteMode === "off") {
+    return false;
+  }
+  if (autocompleteMode === "easyuse_nodes") {
+    return scope === "easyuse";
+  }
+  return true;
+}
+
+function autocompleteEnabledForState(state) {
+  return !!state && autocompleteEnabledForScope(state.scope || "compatible");
+}
+
 async function refreshAutocompleteSettings() {
   try {
     const response = await fetch("/easyuse_anima/settings");
@@ -90,6 +187,7 @@ async function refreshAutocompleteSettings() {
       maxResults = nextMaxResults;
       cache.clear();
     }
+    setAutocompleteMode(settings["autocomplete.mode"]);
   } catch {
     // Keep the built-in default if settings cannot be read.
   }
@@ -169,7 +267,7 @@ function hidePopup() {
 }
 
 function refreshActiveAutocomplete() {
-  if (!activeState?.input || document.activeElement !== activeState.input) {
+  if (!activeState?.input || document.activeElement !== activeState.input || !autocompleteEnabledForState(activeState)) {
     hidePopup();
     return;
   }
@@ -498,13 +596,11 @@ function commitSuggestion(state, entry) {
 }
 
 function displayTagText(value) {
-  return String(value || "")
-    .replaceAll("_", " ")
-    .replace(/\\([()])/g, "$1");
+  return normalizePromptTagText(value);
 }
 
 function promptTagText(value) {
-  return displayTagText(value).replace(/[()]/g, "\\$&");
+  return promptCompletionTagText(value);
 }
 
 function completionText(token, entry, forceArtistOnly = false) {
@@ -576,7 +672,7 @@ function renderResults(state, results) {
     const meta = document.createElement("span");
     meta.className = "easyuse-anima-autocomplete-meta";
     const count = Number(entry.count || 0).toLocaleString();
-    meta.textContent = `${entry.category || "tag"} · ${count}`;
+    meta.textContent = `${autocompleteCategoryLabel(entry.category)} · ${count}`;
     top.append(tag, meta);
     item.append(top);
 
@@ -654,7 +750,18 @@ function debounce(fn, delay = 120) {
 }
 
 function hookInput(input, options = {}) {
-  if (!input || input.__easyuseAnimaAutocomplete) {
+  if (!input) {
+    return;
+  }
+  if (input.__easyuseAnimaAutocomplete) {
+    const existing = input.__easyuseAnimaAutocompleteState;
+    if (existing) {
+      existing.node = options.node || existing.node || null;
+      existing.widget = options.widget || existing.widget || null;
+      existing.scope = autocompleteScope(options);
+      existing.forceArtistOnly = !!options.forceArtistOnly;
+      existing.onCommit = typeof options.onCommit === "function" ? options.onCommit : existing.onCommit;
+    }
     return;
   }
 
@@ -664,12 +771,16 @@ function hookInput(input, options = {}) {
     node: options.node || null,
     widget: options.widget || null,
     input,
+    scope: autocompleteScope(options),
     forceArtistOnly: !!options.forceArtistOnly,
     onCommit: typeof options.onCommit === "function" ? options.onCommit : null,
   };
 
   const updateNow = async () => {
-    if (composing || document.activeElement !== input) {
+    if (composing || document.activeElement !== input || !autocompleteEnabledForState(state)) {
+      if (activeState?.input === input) {
+        hidePopup();
+      }
       return;
     }
     if (isCaretInComment(input.value || "", input.selectionStart ?? 0)) {
@@ -751,13 +862,15 @@ function hookInput(input, options = {}) {
   });
 
   input.__easyuseAnimaAutocomplete = true;
+  input.__easyuseAnimaAutocompleteState = state;
 }
 
-function hookWidget(node, widget) {
+function hookWidget(node, widget, scope = "compatible") {
   const input = findInputEl(widget);
   hookInput(input, {
     node,
     widget,
+    scope,
     forceArtistOnly: !!node.__easyuseAnimaArtistOnlyWidgets?.has(widget.name),
   });
 }
@@ -778,6 +891,7 @@ function hookNode(node, nodeData, attempt = 0) {
   if (!names || (!hasExplicitTargets(nodeData) && shouldSkipNode(node, nodeData))) {
     return;
   }
+  const scope = hasExplicitTargets(nodeData) ? "easyuse" : "compatible";
   node.__easyuseAnimaArtistOnlyWidgets = artistOnlyWidgets(nodeData);
   let pendingInput = false;
   for (const widget of node.widgets || []) {
@@ -785,7 +899,7 @@ function hookNode(node, nodeData, attempt = 0) {
       if (!findInputEl(widget)) {
         pendingInput = true;
       }
-      hookWidget(node, widget);
+      hookWidget(node, widget, scope);
     }
   }
   if (pendingInput && attempt < 12) {
@@ -808,11 +922,19 @@ document.addEventListener("wheel", (event) => {
 document.addEventListener("selectionchange", scheduleActiveRefresh);
 window.addEventListener("resize", scheduleActiveRefresh);
 window.addEventListener("easyuse-anima-settings-updated", (event) => {
-  if (event?.detail && "autocomplete.limit" in event.detail) {
-    maxResults = clampMaxResults(event.detail["autocomplete.limit"]);
-    cache.clear();
-    scheduleActiveRefresh();
+  const detail = event?.detail || {};
+  if ("autocomplete.mode" in detail) {
+    setAutocompleteMode(detail["autocomplete.mode"]);
   }
+  if ("autocomplete.limit" in detail) {
+    maxResults = clampMaxResults(detail["autocomplete.limit"]);
+    cache.clear();
+  }
+  if ("autocomplete.source" in detail) {
+    cache.clear();
+    hidePopup();
+  }
+  scheduleActiveRefresh();
 });
 
 app.registerExtension({

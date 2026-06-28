@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from pathlib import Path
 
 try:
     from .storage import USER_DATA_DIR
@@ -8,12 +9,13 @@ except ImportError:
     from storage import USER_DATA_DIR
 
 SETTINGS_FILE = USER_DATA_DIR / "settings.json"
+LONG_TEXT_SETTINGS_FILE = USER_DATA_DIR / "long_text_settings.json"
 
 DEFAULT_SETTINGS = {
-    "ui.language": "en",
     "prompt.metadata_filter_words": "",
     "autocomplete.source": "localsmile_kr_wiki",
     "autocomplete.limit": "20",
+    "autocomplete.mode": "compatible_global",
     "lora_preset.name_display": "name",
     "prompt_studio.typo_indicator": "true",
     "prompt_studio.colors": "",
@@ -41,6 +43,12 @@ DEFAULT_SETTINGS = {
     "naia.tag_implication_compression": "skip",
 }
 
+AUTOCOMPLETE_MODES = {
+    "off",
+    "easyuse_nodes",
+    "compatible_global",
+}
+
 NAIA_PREPROCESSING_KEYS = [
     "remove_author",
     "remove_work_title",
@@ -59,20 +67,199 @@ NAIA_PREPROCESSING_KEYS = [
     "tag_implication_compression",
 ]
 
+PROMPT_STUDIO_COLOR_KEYS = [
+    "quality",
+    "safety",
+    "year",
+    "count",
+    "character",
+    "artist",
+    "copyright",
+    "general",
+    "meta",
+    "natural",
+    "artist_unknown",
+    "unknown",
+]
+
+COMFY_SETTING_KEYS = {
+    "EasyUseAnima.Prompt.MetadataFilter": "prompt.metadata_filter_words",
+    "EasyUseAnima.Prompt.AutocompleteSource": "autocomplete.source",
+    "EasyUseAnima.Prompt.AutocompleteLimit": "autocomplete.limit",
+    "EasyUseAnima.Prompt.AutocompleteMode": "autocomplete.mode",
+    "EasyUseAnima.Prompt.TypoIndicator": "prompt_studio.typo_indicator",
+    "EasyUseAnima.Prompt.HighlightColors": "prompt_studio.colors",
+    "EasyUseAnima.Prompt.NaiaGeneralAutoToggle": "prompt_studio.naia_general_above_auto_toggle",
+    "EasyUseAnima.LoraPreset.NameDisplay": "lora_preset.name_display",
+    "EasyUseAnima.NAIA.Host": "naia.host",
+    "EasyUseAnima.NAIA.Port": "naia.port",
+    "EasyUseAnima.NAIA.UseDesktopPromptEngineering": "naia.use_naia_settings",
+    "EasyUseAnima.NAIA.pre_prompt": "naia.pre_prompt",
+    "EasyUseAnima.NAIA.post_prompt": "naia.post_prompt",
+    "EasyUseAnima.NAIA.auto_hide": "naia.auto_hide",
+    **{
+        f"EasyUseAnima.NAIA.{key}": f"naia.{key}"
+        for key in NAIA_PREPROCESSING_KEYS
+    },
+}
+
+COMFY_COLOR_SETTING_KEYS = {
+    f"EasyUseAnima.Prompt.HighlightColor.{key}": key
+    for key in PROMPT_STUDIO_COLOR_KEYS
+}
+
+LONG_TEXT_SETTING_KEYS = {
+    "prompt.metadata_filter_words",
+    "naia.pre_prompt",
+    "naia.post_prompt",
+    "naia.auto_hide",
+}
+
+LONG_TEXT_SETTING_ALIASES = {
+    "metadata_filter": "prompt.metadata_filter_words",
+    "metadataFilter": "prompt.metadata_filter_words",
+    "EasyUseAnima.Prompt.MetadataFilter": "prompt.metadata_filter_words",
+    "pre_prompt": "naia.pre_prompt",
+    "prePrompt": "naia.pre_prompt",
+    "EasyUseAnima.NAIA.pre_prompt": "naia.pre_prompt",
+    "post_prompt": "naia.post_prompt",
+    "postPrompt": "naia.post_prompt",
+    "EasyUseAnima.NAIA.post_prompt": "naia.post_prompt",
+    "auto_hide": "naia.auto_hide",
+    "autoHide": "naia.auto_hide",
+    "EasyUseAnima.NAIA.auto_hide": "naia.auto_hide",
+}
+
+
+def _read_json_file(path: Path) -> dict:
+    if not path.is_file():
+        return {}
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return {}
+    return data if isinstance(data, dict) else {}
+
+
+def _normalize_long_text_settings(data: dict) -> dict:
+    values = data.get("values", data)
+    if not isinstance(values, dict):
+        return {}
+    normalized = {}
+    for key, value in values.items():
+        internal_key = LONG_TEXT_SETTING_ALIASES.get(str(key), str(key))
+        if internal_key in LONG_TEXT_SETTING_KEYS:
+            normalized[internal_key] = "" if value is None else str(value)
+    return normalized
+
+
+def load_long_text_settings() -> dict:
+    return _normalize_long_text_settings(_read_json_file(LONG_TEXT_SETTINGS_FILE))
+
+
+def save_long_text_settings(values: dict) -> dict:
+    if not isinstance(values, dict):
+        values = {}
+    settings = load_long_text_settings()
+    settings.update(_normalize_long_text_settings(values))
+    LONG_TEXT_SETTINGS_FILE.parent.mkdir(parents=True, exist_ok=True)
+    LONG_TEXT_SETTINGS_FILE.write_text(
+        json.dumps(
+            {
+                "version": 1,
+                "values": {key: settings.get(key, "") for key in sorted(LONG_TEXT_SETTING_KEYS)},
+            },
+            ensure_ascii=False,
+            indent=2,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    return settings
+
+
+def _comfy_settings_candidates() -> list[Path]:
+    candidates: list[Path] = []
+    try:
+        import folder_paths  # type: ignore
+
+        get_user_directory = getattr(folder_paths, "get_user_directory", None)
+        if callable(get_user_directory):
+            user_dir = Path(get_user_directory())
+            candidates.extend(
+                [
+                    user_dir / "default" / "comfy.settings.json",
+                    user_dir / "comfy.settings.json",
+                ]
+            )
+    except Exception:
+        pass
+    return candidates
+
+
+def _load_comfy_settings() -> dict:
+    for path in _comfy_settings_candidates():
+        data = _read_json_file(path)
+        if data:
+            return data
+    return {}
+
+
+def _stringify_setting_value(value) -> str:
+    if value is None:
+        return ""
+    if isinstance(value, bool):
+        return "true" if value else "false"
+    return str(value)
+
+
+def _apply_prompt_studio_color_settings(settings: dict, comfy_settings: dict) -> None:
+    colors = {}
+    current = settings.get("prompt_studio.colors", "")
+    if current:
+        try:
+            parsed = json.loads(current)
+        except json.JSONDecodeError:
+            parsed = {}
+        if isinstance(parsed, dict):
+            colors.update({str(key): str(value) for key, value in parsed.items()})
+
+    changed = False
+    for comfy_key, color_key in COMFY_COLOR_SETTING_KEYS.items():
+        if comfy_key not in comfy_settings:
+            continue
+        value = _stringify_setting_value(comfy_settings[comfy_key]).strip()
+        if value:
+            colors[color_key] = value
+            changed = True
+
+    if changed:
+        settings["prompt_studio.colors"] = json.dumps(colors, ensure_ascii=False)
+
+
+def _apply_comfy_settings(settings: dict) -> dict:
+    comfy_settings = _load_comfy_settings()
+    for comfy_key, internal_key in COMFY_SETTING_KEYS.items():
+        if comfy_key in comfy_settings and internal_key in DEFAULT_SETTINGS:
+            settings[internal_key] = _stringify_setting_value(comfy_settings[comfy_key])
+    _apply_prompt_studio_color_settings(settings, comfy_settings)
+    return settings
+
+
+def _apply_long_text_settings(settings: dict) -> dict:
+    settings.update(load_long_text_settings())
+    return settings
+
 
 def get_settings() -> dict:
     settings = dict(DEFAULT_SETTINGS)
-    if not SETTINGS_FILE.is_file():
-        return settings
-    try:
-        data = json.loads(SETTINGS_FILE.read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError):
-        return settings
+    data = _read_json_file(SETTINGS_FILE)
     if isinstance(data, dict):
         for key in DEFAULT_SETTINGS:
             if key in data:
-                settings[key] = str(data[key] or "")
-    return settings
+                value = data[key]
+                settings[key] = "" if value is None else str(value)
+    return _apply_long_text_settings(_apply_comfy_settings(settings))
 
 
 def save_setting(key: str, value) -> dict:
@@ -91,13 +278,13 @@ def save_setting(key: str, value) -> dict:
 def public_settings() -> dict:
     settings = get_settings()
     return {
-        "ui.language": settings.get("ui.language", DEFAULT_SETTINGS["ui.language"]),
         "prompt.metadata_filter_words": settings.get("prompt.metadata_filter_words", ""),
         "autocomplete.source": settings.get(
             "autocomplete.source",
             DEFAULT_SETTINGS["autocomplete.source"],
         ),
         "autocomplete.limit": resolve_autocomplete_limit(settings),
+        "autocomplete.mode": resolve_autocomplete_mode(settings),
         "lora_preset.name_display": settings.get(
             "lora_preset.name_display",
             DEFAULT_SETTINGS["lora_preset.name_display"],
@@ -150,6 +337,17 @@ def resolve_autocomplete_limit(settings: dict | None = None) -> int:
     except (TypeError, ValueError):
         value = int(DEFAULT_SETTINGS["autocomplete.limit"])
     return max(1, min(100, value))
+
+
+def resolve_autocomplete_mode(settings: dict | None = None) -> str:
+    settings = settings or get_settings()
+    value = str(
+        settings.get("autocomplete.mode", DEFAULT_SETTINGS["autocomplete.mode"])
+        or DEFAULT_SETTINGS["autocomplete.mode"]
+    ).strip()
+    if value in AUTOCOMPLETE_MODES:
+        return value
+    return DEFAULT_SETTINGS["autocomplete.mode"]
 
 
 def resolve_naia_port(settings: dict | None = None) -> int:

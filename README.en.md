@@ -211,6 +211,12 @@ Highlighting and syntax:
   `(highres, absurdres, very aesthetic:0.8)`, classify each inner tag
   separately.
 - Unclosed prompt parentheses are shown as syntax errors.
+- Long prompts use the Advanced editor's main scroll area instead of per-textarea
+  vertical scrollbars. Each textarea keeps enough height for its current text,
+  so scrollbars do not cover the text or highlight overlay.
+- Highlight overlays copy font family, size, spacing, and wrapping-related
+  settings from the source input to keep highlights aligned across font
+  settings.
 
 ### Anima LoRA Preset
 
@@ -278,6 +284,39 @@ Trigger words:
 - Trigger words are deduplicated and output as a comma-separated string for
   Prompt Studio trigger fields.
 
+### Anima Detailer Align Hook
+
+Category: `EasyUse Anima/Detailer`
+
+Output:
+
+- `detailer_hook`
+
+Creates an Impact Pack compatible `DETAILER_HOOK` that aligns the crop sampling
+size used by Impact detailers. Connect it to `detailer_hook` on Impact
+`DetailerForEach` or other Impact-compatible SEGS detailers.
+
+Main behavior:
+
+- `alignment=32` rounds crop sampling width and height upward to 32-multiples.
+  This is intended for ANIMA/Spectrum workflows where 16-channel or special VAE
+  paths can fail on non-32-multiple crop sizes.
+- If another `detailer_hook` is connected, the existing hook runs first and the
+  alignment adjustment is applied afterward.
+- `alignment=none` keeps the original Impact Pack crop size.
+
+### Anima SAM3 Detailer
+
+Category: `EasyUse Anima/Detailer`
+
+This node is a convenience wrapper for SAM3-based Impact Pack detailer workflows.
+`Anima SAM3 Detailer` connects ComfyUI native SAM3 detection, Impact
+`MaskToSEGS`, and Impact Pack `DetailerForEach`.
+
+This node requires ComfyUI-Impact-Pack at runtime. The dependency is checked
+when the node runs so the rest of EasyUse Anima can still import without Impact
+Pack installed.
+
 ## Shared Front-End Features
 
 Autocomplete:
@@ -285,6 +324,12 @@ Autocomplete:
 - Prompt Builder, Prompt Corrector, Prompt Studio, Prompt Studio Advanced, and
   generic multiline `STRING` prompt/text widgets can use the bundled Korean
   Danbooru autocomplete.
+- The autocomplete scope can be selected in ComfyUI Settings with `off`,
+  `easyuse_nodes`, or `compatible_global`.
+  - `off`: disables EasyUse Anima autocomplete and autocomplete API requests.
+  - `easyuse_nodes`: enables autocomplete only for EasyUse Anima prompt nodes.
+  - `compatible_global`: default mode; also hooks compatible generic
+    prompt/text widgets as before.
 - The CSV used for autocomplete and Prompt Studio highlighting can be selected
   in ComfyUI Settings -> `EasyUse Anima: Autocomplete CSV`.
 - Type English tags or Korean words from the description/keywords, then use
@@ -300,18 +345,32 @@ Bundled autocomplete CSV sources:
 - `danbooru_tags_classified.csv`: from
   `Localsmile/danbooru_KR_wiki_tag_search`.
 
+For source selection, search behavior, and developer CSV format details, see the
+[Autocomplete CSV Guide](docs/autocomplete-csv.en.md).
+
 ComfyUI Settings:
 
 - NAIA request host, port, Prompt Engineering options, and preprocessing options
   are configured in the EasyUse Anima settings panel.
+- EasyUse Anima does not store its own language setting. Node info, input/output
+  hints, settings entries, custom DOM buttons, and tooltips follow the ComfyUI
+  language setting.
 - Prompt metadata filter words are applied only to metadata prompt outputs.
 - Prompt Studio typo indicators and category colors can be changed manually.
 - Prompt Studio can auto-toggle general fields above the NAIA field.
 - LoRA Preset row labels can show file names only or full paths.
 
+## Release Notes
+
+See [RELEASE.md](RELEASE.md) for versioned release notes.
+
 ## Requirements
 
 NAIA must expose the ComfyUI remote API used by `comfyui-naia-bridge`.
+
+SAM3 detailer nodes require `ComfyUI-Impact-Pack` at runtime. This is a ComfyUI
+custom-node dependency, not a Python package dependency, so it is not listed in
+`pyproject.toml` Python dependencies.
 
 Install Python dependency:
 

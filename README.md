@@ -10,6 +10,8 @@ Small ComfyUI custom node pack for NAIA/Anima workflows.
 ## Summary
 
 EasyUse Anima provides prompt editing, ANIMA prompt correction, NAIA prompt
-integration, and reusable LoRA preset tools for ComfyUI.
+integration, Impact-compatible detailer helpers, language-aware frontend UI, and
+reusable LoRA preset tools for ComfyUI.
 
 Detailed node documentation is kept in the language-specific README files above.
+Release notes are kept in [RELEASE.md](RELEASE.md).

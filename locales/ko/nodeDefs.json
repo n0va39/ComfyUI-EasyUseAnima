@@ -1,0 +1,646 @@
+{
+  "EasyUseAnimaPromptCorrector": {
+    "display_name": "Anima 프롬프트 교정기",
+    "description": "ANIMA 프롬프트 텍스트를 정리하고, 자연어 대소문자를 보존하며, 알려진 ANIMA 섹션 순서로 재배치하고, 미확인 태그와 중복 태그를 보고합니다.",
+    "inputs": {
+      "prompt": {
+        "name": "프롬프트",
+        "tooltip": "ANIMA용으로 정규화하고 순서를 교정할 쉼표 구분 프롬프트 텍스트입니다."
+      },
+      "artist_overrides": {
+        "name": "작가 취급 태그",
+        "tooltip": "작가 태그처럼 취급할 수동 트리거를 쉼표 또는 줄바꿈으로 입력합니다."
+      },
+      "artist_exclusions": {
+        "name": "작가 제외 태그",
+        "tooltip": "작가로 취급하면 안 되는 트리거를 쉼표 또는 줄바꿈으로 입력합니다."
+      }
+    },
+    "outputs": {
+      "0": {
+        "name": "교정된 프롬프트",
+        "tooltip": "ANIMA 순서와 문법 정리가 적용된 프롬프트 텍스트입니다."
+      },
+      "1": {
+        "name": "보고서",
+        "tooltip": "변경 여부, 미확인 태그, 중복 태그, 경고, 섹션 정보를 담은 JSON 보고서입니다."
+      }
+    }
+  },
+  "EasyUseAnimaPromptBuilder": {
+    "display_name": "Anima 프롬프트 빌더",
+    "description": "품질 태그, 트리거, LoRA 트리거, 본문, 후행 태그를 ANIMA에 맞게 결합하고, 메타데이터 및 Mod Guidance용 출력을 함께 만듭니다.",
+    "inputs": {
+      "use_anima_mod_guidance": {
+        "name": "Mod Guidance 사용",
+        "tooltip": "켜면 최종 프롬프트에서 품질 필드를 제외하고 anima_mod_guidance_quality_tags 출력으로 보냅니다."
+      },
+      "pin_trigger_tags_to_front": {
+        "name": "트리거 앞 고정",
+        "tooltip": "켜면 품질 태그보다 트리거/작가 태그와 LoRA 트리거 필드를 맨 앞에 유지합니다."
+      },
+      "lora_trigger_tags": {
+        "name": "LoRA 트리거 태그",
+        "tooltip": "LoRA 매니저에서 받거나 직접 붙여넣은 한 줄 트리거 태그입니다."
+      },
+      "quality_tags": {
+        "name": "품질 태그",
+        "tooltip": "선행 품질 태그입니다. Mod Guidance가 켜져 있으면 최종 프롬프트 출력에서 제외됩니다."
+      },
+      "trigger_and_artist_tags": {
+        "name": "트리거와 작가 태그",
+        "tooltip": "수동 모델 트리거와 @작가 태그입니다."
+      },
+      "prompt": {
+        "name": "프롬프트",
+        "tooltip": "주 프롬프트 본문입니다. NAIA 출력이 들어오는 기본 위치입니다."
+      },
+      "trailing_quality_tags": {
+        "name": "후행 품질 태그",
+        "tooltip": "프롬프트 뒤에 붙는 품질 또는 스타일 태그입니다."
+      }
+    },
+    "outputs": {
+      "0": {
+        "name": "프롬프트",
+        "tooltip": "최종 긍정 프롬프트입니다. Mod Guidance가 켜져 있으면 선행 품질 태그가 제외됩니다."
+      },
+      "1": {
+        "name": "Mod Guidance 품질 태그",
+        "tooltip": "Anima Mod Guidance에 전달할 품질 프롬프트 텍스트입니다."
+      },
+      "2": {
+        "name": "Mod Guidance 사용",
+        "tooltip": "Anima Mod Guidance 워크플로우 제어를 위한 Boolean 출력입니다."
+      },
+      "3": {
+        "name": "메타데이터 프롬프트",
+        "tooltip": "Mod Guidance 라우팅과 메타데이터 필터를 분리해서 저장용으로 쓰는 프롬프트입니다."
+      }
+    }
+  },
+  "EasyUseAnimaPromptStudio": {
+    "display_name": "Anima 프롬프트 스튜디오",
+    "description": "프롬프트 빌더에 프론트엔드 편집, 자동완성, 태그 하이라이트 보조 기능을 더한 노드입니다.",
+    "inputs": {
+      "use_anima_mod_guidance": {
+        "name": "Mod Guidance 사용",
+        "tooltip": "켜면 최종 프롬프트에서 품질 필드를 제외하고 anima_mod_guidance_quality_tags 출력으로 보냅니다."
+      },
+      "pin_trigger_tags_to_front": {
+        "name": "트리거 앞 고정",
+        "tooltip": "켜면 품질 태그보다 트리거/작가 태그와 LoRA 트리거 필드를 맨 앞에 유지합니다."
+      },
+      "lora_trigger_tags": {
+        "name": "LoRA 트리거 태그",
+        "tooltip": "LoRA 매니저에서 받거나 직접 붙여넣은 한 줄 트리거 태그입니다."
+      },
+      "quality_tags": {
+        "name": "품질 태그",
+        "tooltip": "선행 품질 태그입니다. Mod Guidance가 켜져 있으면 최종 프롬프트 출력에서 제외됩니다."
+      },
+      "trigger_and_artist_tags": {
+        "name": "트리거와 작가 태그",
+        "tooltip": "수동 모델 트리거와 @작가 태그입니다."
+      },
+      "prompt": {
+        "name": "프롬프트",
+        "tooltip": "주 프롬프트 본문입니다. NAIA 출력이 들어오는 기본 위치입니다."
+      },
+      "trailing_quality_tags": {
+        "name": "후행 품질 태그",
+        "tooltip": "프롬프트 뒤에 붙는 품질 또는 스타일 태그입니다."
+      }
+    },
+    "outputs": {
+      "0": {
+        "name": "프롬프트",
+        "tooltip": "최종 긍정 프롬프트입니다. Mod Guidance가 켜져 있으면 선행 품질 태그가 제외됩니다."
+      },
+      "1": {
+        "name": "Mod Guidance 품질 태그",
+        "tooltip": "Anima Mod Guidance에 전달할 품질 프롬프트 텍스트입니다."
+      },
+      "2": {
+        "name": "Mod Guidance 사용",
+        "tooltip": "Anima Mod Guidance 워크플로우 제어를 위한 Boolean 출력입니다."
+      },
+      "3": {
+        "name": "메타데이터 프롬프트",
+        "tooltip": "Mod Guidance 라우팅과 메타데이터 필터를 분리해서 저장용으로 쓰는 프롬프트입니다."
+      }
+    }
+  },
+  "EasyUseAnimaPromptStudioAdvanced": {
+    "display_name": "Anima 프롬프트 스튜디오 고급",
+    "description": "순서 변경 가능한 긍정/부정 입력 필드, NAIA 채우기, 트리거 입력, Mod Guidance 라우팅, 메타데이터 출력, 잠재 해상도 출력을 제공하는 고급 Prompt Studio입니다.",
+    "inputs": {
+      "use_naia": {
+        "name": "NAIA 사용",
+        "tooltip": "내부 요청 플래그입니다. 프론트엔드에서는 NAIA Prompt 필드의 'Fill from NAIA' 버튼으로 표시되며, 새 NAIA 랜덤 프롬프트로 해당 필드를 채웁니다."
+      },
+      "consume_naia_on_queue": {
+        "name": "NAIA 1회 적용",
+        "tooltip": "내부 1회 적용 모드입니다. NAIA 채우기가 성공하면 저장된 워크플로우에서는 요청 플래그를 끄고 저장된 프롬프트를 재사용합니다."
+      },
+      "use_anima_mod_guidance": {
+        "name": "Mod Guidance 사용",
+        "tooltip": "켜면 긍정 출력에서 품질 필드를 제외하고 Mod Guidance 품질 출력으로 보냅니다."
+      },
+      "resolution_bucket": {
+        "name": "해상도 버킷",
+        "tooltip": "내부 선택 잠재 해상도 버킷입니다."
+      },
+      "resolution_size": {
+        "name": "해상도 크기",
+        "tooltip": "내부 선택 잠재 해상도입니다. width * height (ratio) 형식입니다."
+      },
+      "resolution_custom_width": {
+        "name": "커스텀 너비",
+        "tooltip": "내부 커스텀 잠재 너비입니다. 값은 32의 배수로 맞춰집니다."
+      },
+      "resolution_custom_height": {
+        "name": "커스텀 높이",
+        "tooltip": "내부 커스텀 잠재 높이입니다. 값은 32의 배수로 맞춰집니다."
+      },
+      "pin_trigger_tags_to_front": {
+        "name": "트리거 앞 고정",
+        "tooltip": "레거시 내부 플래그입니다. 트리거 배치는 Trigger 필드의 Pin 버튼이 제어합니다."
+      },
+      "advanced_fields": {
+        "name": "고급 필드",
+        "tooltip": "Advanced Prompt Studio 필드를 저장하는 내부 JSON payload입니다."
+      }
+    },
+    "outputs": {
+      "0": {
+        "name": "긍정 프롬프트",
+        "tooltip": "활성화된 긍정 필드로 조합한 최종 긍정 프롬프트입니다."
+      },
+      "1": {
+        "name": "부정 프롬프트",
+        "tooltip": "활성화된 부정 필드로 조합한 최종 부정 프롬프트입니다."
+      },
+      "2": {
+        "name": "Mod Guidance 품질 태그",
+        "tooltip": "Anima Mod Guidance로 보낼 긍정 품질 필드입니다."
+      },
+      "3": {
+        "name": "Mod Guidance 사용",
+        "tooltip": "Anima Mod Guidance 워크플로우 제어를 위한 Boolean 출력입니다."
+      },
+      "4": {
+        "name": "메타데이터 프롬프트",
+        "tooltip": "메타데이터 필터가 적용된 긍정 메타데이터 프롬프트입니다."
+      },
+      "5": {
+        "name": "메타데이터 부정 프롬프트",
+        "tooltip": "메타데이터 필터가 적용된 부정 메타데이터 프롬프트입니다."
+      },
+      "6": {
+        "name": "너비",
+        "tooltip": "선택된 잠재 이미지 너비입니다."
+      },
+      "7": {
+        "name": "높이",
+        "tooltip": "선택된 잠재 이미지 높이입니다."
+      }
+    }
+  },
+  "EasyUseAnimaDetailerAlignHook": {
+    "display_name": "Anima 디테일러 정렬 Hook",
+    "description": "Impact Pack 디테일러의 detailer_hook 입력에 연결하는 크기 정렬 Hook입니다. Impact Pack의 touch_scaled_size 확장 지점을 사용해 crop sampling 크기를 지정 배수로 올림 보정합니다.",
+    "inputs": {
+      "alignment": {
+        "name": "정렬 배수",
+        "tooltip": "crop sampling 크기를 이 배수로 올림 보정합니다. ANIMA/Spectrum 워크플로우에서는 32를 권장하며, none은 Impact Pack 원본 크기를 유지합니다."
+      },
+      "detailer_hook": {
+        "name": "기존 디테일러 Hook",
+        "tooltip": "선택 입력입니다. 기존 Impact Pack detailer_hook을 연결하면 기존 hook 동작을 먼저 실행한 뒤 크기 정렬을 적용합니다."
+      }
+    },
+    "outputs": {
+      "0": {
+        "name": "디테일러 Hook",
+        "tooltip": "Impact Pack DetailerForEach 호환 detailer_hook 입력에 연결할 DETAILER_HOOK입니다."
+      }
+    }
+  },
+  "EasyUseAnimaSAM3Context": {
+    "display_name": "Anima SAM3 컨텍스트",
+    "description": "ComfyUI 네이티브 체크포인트 로더로 SAM3 체크포인트를 불러오고, SAM3 모델, CLIP, VAE를 담은 rgthree 호환 ctx_SAM3를 반환합니다.",
+    "inputs": {
+      "ckpt_name": {
+        "name": "SAM3 체크포인트",
+        "tooltip": "불러올 SAM3 체크포인트입니다. 예: sam3.1_multiplex_fp16.safetensors."
+      }
+    },
+    "outputs": {
+      "0": {
+        "name": "ctx_SAM3",
+        "tooltip": "SAM3 모델, CLIP, VAE, 체크포인트 이름을 담은 context입니다."
+      },
+      "1": {
+        "name": "SAM3 모델",
+        "tooltip": "선택한 체크포인트에서 로드한 SAM3 모델입니다."
+      },
+      "2": {
+        "name": "SAM3 CLIP",
+        "tooltip": "선택한 체크포인트에서 로드한 SAM3 CLIP입니다."
+      },
+      "3": {
+        "name": "SAM3 VAE",
+        "tooltip": "선택한 체크포인트에서 로드한 VAE입니다."
+      }
+    }
+  },
+  "EasyUseAnimaSAM3Detailer": {
+    "display_name": "Anima SAM3 디테일러",
+    "description": "ComfyUI 네이티브 SAM3 텍스트 감지, Impact Pack MASK to SEGS, Impact Pack DetailerForEach를 하나로 묶은 디테일러입니다.",
+    "inputs": {
+      "enabled": {
+        "name": "활성화",
+        "tooltip": "끄면 원본 이미지와 빈 SEGS를 반환합니다."
+      },
+      "image": {
+        "name": "이미지",
+        "tooltip": "SAM3 감지와 디테일링에 사용할 입력 이미지입니다."
+      },
+      "ctx_SAM3": {
+        "name": "ctx_SAM3",
+        "tooltip": "Anima SAM3 Context 또는 모델과 CLIP을 담은 rgthree 호환 context입니다."
+      },
+      "detect_prompt": {
+        "name": "감지 대상",
+        "tooltip": "SAM3 텍스트 감지 대상입니다. 쉼표로 여러 대상을 구분하거나 target:count 문법을 사용할 수 있습니다."
+      },
+      "detect_count": {
+        "name": "감지 개수",
+        "tooltip": "감지 대상에 :count가 없을 때 대상별 최대 감지 개수로 사용합니다."
+      },
+      "threshold": {
+        "name": "SAM3 임계값",
+        "tooltip": "SAM3 감지 임계값입니다."
+      },
+      "refine_iterations": {
+        "name": "SAM3 refine 반복",
+        "tooltip": "SAM decoder refinement 반복 횟수입니다. 0이면 raw detector mask를 사용합니다."
+      },
+      "individual_masks": {
+        "name": "개별 마스크",
+        "tooltip": "SAM3가 객체별 마스크를 반환하도록 요청합니다."
+      },
+      "combined": {
+        "name": "SEGS 결합",
+        "tooltip": "Impact MaskToSEGS combined 옵션입니다."
+      },
+      "crop_factor": {
+        "name": "SEGS crop 배율",
+        "tooltip": "Impact MaskToSEGS crop_factor 옵션입니다."
+      },
+      "bbox_fill": {
+        "name": "bbox 채우기",
+        "tooltip": "Impact MaskToSEGS bbox_fill 옵션입니다."
+      },
+      "drop_size": {
+        "name": "최소 영역",
+        "tooltip": "이 크기보다 작은 감지 영역을 버립니다."
+      },
+      "contour_fill": {
+        "name": "contour 채우기",
+        "tooltip": "Impact MaskToSEGS contour_fill 옵션입니다."
+      },
+      "model": {
+        "name": "모델",
+        "tooltip": "디테일링에 사용할 ANIMA 모델입니다."
+      },
+      "clip": {
+        "name": "CLIP",
+        "tooltip": "디테일링 conditioning에 사용할 CLIP입니다."
+      },
+      "vae": {
+        "name": "VAE",
+        "tooltip": "디테일링에 사용할 VAE입니다."
+      },
+      "guide_size": {
+        "name": "가이드 크기",
+        "tooltip": "디테일링 crop의 목표 가이드 크기입니다."
+      },
+      "guide_size_for": {
+        "name": "가이드 기준",
+        "tooltip": "bbox 또는 crop_region 중 어느 크기를 guide_size 기준으로 사용할지 선택합니다."
+      },
+      "max_size": {
+        "name": "최대 크기",
+        "tooltip": "샘플링 전 crop의 최대 크기입니다."
+      },
+      "seed": {
+        "name": "시드",
+        "tooltip": "디테일링 샘플링에 사용할 시드입니다."
+      },
+      "steps": {
+        "name": "스텝",
+        "tooltip": "디테일링 샘플링 스텝 수입니다."
+      },
+      "cfg": {
+        "name": "CFG",
+        "tooltip": "디테일링 샘플링 CFG 값입니다."
+      },
+      "sampler_name": {
+        "name": "샘플러",
+        "tooltip": "디테일링에 사용할 샘플러입니다."
+      },
+      "scheduler": {
+        "name": "스케줄러",
+        "tooltip": "디테일링에 사용할 스케줄러입니다."
+      },
+      "positive": {
+        "name": "긍정 조건",
+        "tooltip": "디테일링에 사용할 긍정 conditioning입니다."
+      },
+      "negative": {
+        "name": "부정 조건",
+        "tooltip": "디테일링에 사용할 부정 conditioning입니다."
+      },
+      "denoise": {
+        "name": "디노이즈",
+        "tooltip": "디테일링 샘플링 denoise 값입니다."
+      },
+      "feather": {
+        "name": "페더",
+        "tooltip": "최종 paste mask 경계에 적용할 feather 값입니다."
+      },
+      "noise_mask": {
+        "name": "노이즈 마스크",
+        "tooltip": "SEGS mask를 latent noise mask로 사용할지 선택합니다."
+      },
+      "force_inpaint": {
+        "name": "강제 인페인트",
+        "tooltip": "확대가 필요 없는 영역도 강제로 디테일링할지 선택합니다."
+      },
+      "wildcard": {
+        "name": "와일드카드",
+        "tooltip": "Impact Pack DetailerForEach에 전달할 segment별 wildcard 텍스트입니다."
+      },
+      "cycle": {
+        "name": "사이클",
+        "tooltip": "같은 crop에 반복 적용할 디테일링 cycle 수입니다."
+      },
+      "alignment": {
+        "name": "정렬",
+        "tooltip": "Impact 디테일 crop 샘플링 크기를 지정 배수로 올림 보정합니다. ANIMA/Spectrum 안전성을 위해 32를 권장하며, impact/none은 원본 Impact 동작을 유지합니다."
+      },
+      "preserve_conditioning_metadata": {
+        "name": "conditioning 메타데이터 보존",
+        "tooltip": "native ANIMA 백엔드용 안전 옵션입니다. 현재 Impact 백엔드는 conditioning 처리를 Impact Pack에 위임합니다."
+      },
+      "fail_on_unsupported_opt": {
+        "name": "미지원 옵션 오류 처리",
+        "tooltip": "native 백엔드 전용 옵션을 요청했을 때 경고 대신 오류를 발생시킵니다."
+      }
+    },
+    "outputs": {
+      "0": {
+        "name": "이미지",
+        "tooltip": "디테일링 결과 이미지입니다. 비활성화되었거나 감지된 SEGS가 없으면 원본 이미지입니다."
+      },
+      "1": {
+        "name": "SEGS",
+        "tooltip": "SAM3 mask에서 만든 Impact 호환 SEGS입니다."
+      },
+      "2": {
+        "name": "마스크",
+        "tooltip": "SEGS 생성에 사용한 SAM3 mask입니다."
+      },
+      "3": {
+        "name": "원본 이미지",
+        "tooltip": "디테일링 전 입력 이미지입니다."
+      }
+    }
+  },
+  "EasyUseAnimaLoraPreset": {
+    "display_name": "Anima LoRA 프리셋",
+    "description": "여러 ANIMA LoRA 프리셋 프로필을 저장하고, LoRA 스택과 트리거 워드를 만들며, 프로필 데이터를 워크플로우에 보존합니다.",
+    "inputs": {
+      "style_prompt": {
+        "name": "스타일 프롬프트",
+        "tooltip": "작가 태그, 모델 트리거, 짧은 스타일 지시문을 입력하는 스타일 프롬프트입니다."
+      },
+      "profile_index": {
+        "name": "프로필 인덱스",
+        "tooltip": "선택된 LoRA 프리셋 프로필입니다. 다른 노드에서 연결할 수 있습니다."
+      },
+      "profile_count": {
+        "name": "프로필 개수",
+        "tooltip": "프론트엔드 프로필 버튼이 관리하는 내부 프로필 개수입니다."
+      },
+      "lora_name": {
+        "name": "LoRA 이름",
+        "tooltip": "내부 LoRA 선택 소스입니다. EasyUse Anima 프론트엔드에서 숨겨집니다."
+      },
+      "loras": {
+        "name": "LoRA 목록",
+        "tooltip": "선택된 프로필의 LoRA 행을 직렬화한 내부 데이터입니다."
+      },
+      "profile_data": {
+        "name": "프로필 데이터",
+        "tooltip": "직렬화된 내부 프로필 데이터입니다."
+      }
+    },
+    "outputs": {
+      "0": {
+        "name": "스타일 프롬프트",
+        "tooltip": "작가 태그, 모델 트리거, 짧은 스타일 지시문을 교정한 스타일 프롬프트입니다."
+      },
+      "1": {
+        "name": "LoRA 스택",
+        "tooltip": "LoRA stack loader와 호환되는 LoRA 스택입니다."
+      },
+      "2": {
+        "name": "트리거 워드",
+        "tooltip": "선택된 LoRA 메타데이터에서 수집한 트리거 워드입니다."
+      },
+      "3": {
+        "name": "활성 LoRA",
+        "tooltip": "활성화된 LoRA와 가중치를 텍스트로 표현한 값입니다."
+      },
+      "4": {
+        "name": "프로필 인덱스",
+        "tooltip": "현재 사용 가능한 프로필 개수에 맞춰 보정된 선택 프로필 인덱스입니다."
+      }
+    }
+  },
+  "EasyUseAnimaNAIARandomPrompt": {
+    "display_name": "Anima NAIA 랜덤 프롬프트",
+    "description": "NAIA Remote API에서 랜덤 프롬프트를 요청하고, 우회와 고정 출력 재사용을 지원하며, 저장 이미지 워크플로우가 같은 결과를 재현할 수 있도록 생성 값을 저장합니다.",
+    "inputs": {
+      "use_naia_bridge": {
+        "name": "NAIA Bridge 사용",
+        "tooltip": "끄면 NAIA를 우회하고 prompt/negative_prompt/width/height 입력을 그대로 반환합니다. 입력이 같으면 ComfyUI 캐시가 안정적으로 유지됩니다."
+      },
+      "freeze_naia_output": {
+        "name": "NAIA 출력 고정",
+        "tooltip": "켜고 캐시된 출력이 유효하면 NAIA를 다시 호출하지 않고 저장된 값을 반환합니다. 저장 이미지 워크플로우에서는 이 값이 켜진 상태로 기록됩니다."
+      },
+      "show_preview": {
+        "name": "미리보기 표시",
+        "tooltip": "노드 UI에 큰 읽기 전용 미리보기 위젯을 표시합니다."
+      },
+      "cached_prompt": {
+        "name": "캐시된 프롬프트",
+        "tooltip": "고정 출력과 저장 이미지 재현에 사용할 저장된 프롬프트입니다."
+      },
+      "cached_negative_prompt": {
+        "name": "캐시된 부정 프롬프트",
+        "tooltip": "고정 출력과 저장 이미지 재현에 사용할 저장된 부정 프롬프트입니다."
+      },
+      "cached_width": {
+        "name": "캐시된 너비",
+        "tooltip": "고정 출력과 저장 이미지 재현에 사용할 저장된 너비입니다."
+      },
+      "cached_height": {
+        "name": "캐시된 높이",
+        "tooltip": "고정 출력과 저장 이미지 재현에 사용할 저장된 높이입니다."
+      },
+      "cached_signature": {
+        "name": "캐시 서명",
+        "tooltip": "캐시된 출력이 현재 입력과 일치하는지 확인하는 내부 서명입니다."
+      },
+      "prompt": {
+        "name": "프롬프트",
+        "tooltip": "우회하거나 override_prompt가 꺼져 있을 때 그대로 반환되는 입력입니다."
+      },
+      "override_prompt": {
+        "name": "프롬프트 덮어쓰기",
+        "tooltip": "켜면 NAIA 프롬프트를 사용합니다. 끄면 입력 prompt를 유지합니다."
+      },
+      "negative_prompt": {
+        "name": "부정 프롬프트",
+        "tooltip": "우회하거나 override_negative가 꺼져 있을 때 그대로 반환되는 입력입니다."
+      },
+      "override_negative": {
+        "name": "부정 프롬프트 덮어쓰기",
+        "tooltip": "켜면 NAIA 부정 프롬프트를 사용합니다. 끄면 입력 negative_prompt를 유지합니다."
+      },
+      "width": {
+        "name": "너비",
+        "tooltip": "우회하거나 override_width가 꺼져 있을 때 그대로 반환되는 입력입니다."
+      },
+      "override_width": {
+        "name": "너비 덮어쓰기",
+        "tooltip": "켜면 NAIA 너비를 사용합니다. 끄면 입력 width를 유지합니다."
+      },
+      "height": {
+        "name": "높이",
+        "tooltip": "우회하거나 override_height가 꺼져 있을 때 그대로 반환되는 입력입니다."
+      },
+      "override_height": {
+        "name": "높이 덮어쓰기",
+        "tooltip": "켜면 NAIA 높이를 사용합니다. 끄면 입력 height를 유지합니다."
+      },
+      "use_naia_settings": {
+        "name": "NAIA 데스크톱 설정 사용",
+        "tooltip": "켜면 NAIA 데스크톱 Prompt Engineering 설정을 사용합니다. 끄면 이 노드의 pre/post/auto_hide와 전처리 옵션을 전송합니다."
+      },
+      "pre_prompt": {
+        "name": "Pre prompt",
+        "tooltip": "use_naia_settings가 꺼져 있을 때만 사용됩니다."
+      },
+      "post_prompt": {
+        "name": "Post prompt",
+        "tooltip": "use_naia_settings가 꺼져 있을 때만 사용됩니다."
+      },
+      "auto_hide": {
+        "name": "Auto hide",
+        "tooltip": "use_naia_settings가 꺼져 있을 때만 사용됩니다."
+      },
+      "remove_author": {
+        "name": "작가 제거",
+        "tooltip": "use_naia_settings가 꺼져 있을 때만 사용됩니다.\nskip: 이 키를 보내지 않음\non: 이 범주 제거\noff: 이 범주 유지"
+      },
+      "remove_work_title": {
+        "name": "작품명 제거",
+        "tooltip": "use_naia_settings가 꺼져 있을 때만 사용됩니다.\nskip: 이 키를 보내지 않음\non: 이 범주 제거\noff: 이 범주 유지"
+      },
+      "remove_character_name": {
+        "name": "캐릭터명 제거",
+        "tooltip": "use_naia_settings가 꺼져 있을 때만 사용됩니다.\nskip: 이 키를 보내지 않음\non: 이 범주 제거\noff: 이 범주 유지"
+      },
+      "remove_character_features": {
+        "name": "캐릭터 특징 제거",
+        "tooltip": "use_naia_settings가 꺼져 있을 때만 사용됩니다.\nskip: 이 키를 보내지 않음\non: 이 범주 제거\noff: 이 범주 유지"
+      },
+      "remove_clothes": {
+        "name": "의상 제거",
+        "tooltip": "use_naia_settings가 꺼져 있을 때만 사용됩니다.\nskip: 이 키를 보내지 않음\non: 이 범주 제거\noff: 이 범주 유지"
+      },
+      "remove_color": {
+        "name": "색상 제거",
+        "tooltip": "use_naia_settings가 꺼져 있을 때만 사용됩니다.\nskip: 이 키를 보내지 않음\non: 이 범주 제거\noff: 이 범주 유지"
+      },
+      "remove_location_and_background_color": {
+        "name": "장소/배경색 제거",
+        "tooltip": "use_naia_settings가 꺼져 있을 때만 사용됩니다.\nskip: 이 키를 보내지 않음\non: 이 범주 제거\noff: 이 범주 유지"
+      },
+      "remove_expression": {
+        "name": "표정 제거",
+        "tooltip": "use_naia_settings가 꺼져 있을 때만 사용됩니다.\nskip: 이 키를 보내지 않음\non: 이 범주 제거\noff: 이 범주 유지"
+      },
+      "remove_pose_action": {
+        "name": "포즈/동작 제거",
+        "tooltip": "use_naia_settings가 꺼져 있을 때만 사용됩니다.\nskip: 이 키를 보내지 않음\non: 이 범주 제거\noff: 이 범주 유지"
+      },
+      "remove_meta_tags": {
+        "name": "메타 태그 제거",
+        "tooltip": "use_naia_settings가 꺼져 있을 때만 사용됩니다.\nskip: 이 키를 보내지 않음\non: 이 범주 제거\noff: 이 범주 유지"
+      },
+      "remove_object_tags": {
+        "name": "오브젝트 태그 제거",
+        "tooltip": "use_naia_settings가 꺼져 있을 때만 사용됩니다.\nskip: 이 키를 보내지 않음\non: 이 범주 제거\noff: 이 범주 유지"
+      },
+      "remove_noise_tags": {
+        "name": "노이즈 태그 제거",
+        "tooltip": "use_naia_settings가 꺼져 있을 때만 사용됩니다.\nskip: 이 키를 보내지 않음\non: 이 범주 제거\noff: 이 범주 유지"
+      },
+      "e621_auto_boost": {
+        "name": "e621 자동 강화",
+        "tooltip": "use_naia_settings가 꺼져 있을 때만 사용됩니다.\nskip: 이 키를 보내지 않음\non: 이 범주 제거\noff: 이 범주 유지"
+      },
+      "danbooru_auto_weight": {
+        "name": "Danbooru 자동 가중치",
+        "tooltip": "use_naia_settings가 꺼져 있을 때만 사용됩니다.\nskip: 이 키를 보내지 않음\non: 이 범주 제거\noff: 이 범주 유지"
+      },
+      "tag_implication_compression": {
+        "name": "태그 함의 압축",
+        "tooltip": "use_naia_settings가 꺼져 있을 때만 사용됩니다.\nskip: 이 키를 보내지 않음\non: 이 범주 제거\noff: 이 범주 유지"
+      },
+      "host": {
+        "name": "호스트",
+        "tooltip": "NAIA Remote API 호스트입니다."
+      },
+      "port": {
+        "name": "포트",
+        "tooltip": "NAIA Remote API 포트입니다."
+      }
+    },
+    "outputs": {
+      "0": {
+        "name": "프롬프트",
+        "tooltip": "NAIA 프롬프트 또는 우회/미덮어쓰기 상태의 원본 입력입니다."
+      },
+      "1": {
+        "name": "부정 프롬프트",
+        "tooltip": "NAIA 부정 프롬프트 또는 우회/미덮어쓰기 상태의 원본 입력입니다."
+      },
+      "2": {
+        "name": "너비",
+        "tooltip": "NAIA 너비 또는 우회/미덮어쓰기 상태의 원본 입력입니다."
+      },
+      "3": {
+        "name": "높이",
+        "tooltip": "NAIA 높이 또는 우회/미덮어쓰기 상태의 원본 입력입니다."
+      }
+    }
+  }
+}

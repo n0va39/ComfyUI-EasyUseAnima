@@ -214,6 +214,11 @@ NAIA 동작:
 - `(highres, absurdres, very aesthetic:0.8)`처럼 쉼표로 구분된 가중치 그룹은
   내부 태그를 각각 분류합니다.
 - 닫히지 않은 괄호는 syntax error로 표시됩니다.
+- 긴 프롬프트는 개별 textarea 내부 스크롤바가 아니라 Advanced editor 전체
+  스크롤로 처리됩니다. textarea는 현재 텍스트 줄 수에 맞춰 높이를 유지하므로
+  스크롤바가 하이라이트나 글자를 덮지 않습니다.
+- 하이라이트 overlay는 입력칸의 font family, size, spacing, wrapping 관련
+  설정을 따라가도록 동기화됩니다.
 
 ### Anima LoRA Preset
 
@@ -278,6 +283,39 @@ Trigger words:
 - trigger word는 중복 제거 후 쉼표로 구분된 문자열로 출력되어 Prompt Studio
   trigger field에 연결할 수 있습니다.
 
+### Anima Detailer Align Hook
+
+카테고리: `EasyUse Anima/Detailer`
+
+출력:
+
+- `detailer_hook`
+
+Impact Pack과 호환되는 `DETAILER_HOOK`을 만들어 Impact detailer의 crop
+sampling 크기를 정렬합니다. Impact `DetailerForEach` 또는 Impact 호환 SEGS
+detailer의 `detailer_hook` 입력에 연결합니다.
+
+주요 동작:
+
+- `alignment=32`는 crop sampling width/height를 32배수로 올림 보정합니다.
+  ANIMA/Spectrum 워크플로우에서 16채널 VAE나 특수 VAE 경로가 32배수가 아닌
+  crop 크기에서 실패하는 문제를 줄이기 위한 옵션입니다.
+- 기존 `detailer_hook`을 연결하면 기존 hook 동작을 먼저 실행한 뒤 크기
+  정렬을 적용합니다.
+- `alignment=none`은 Impact Pack 원본 crop 크기를 유지합니다.
+
+### Anima SAM3 Detailer
+
+카테고리: `EasyUse Anima/Detailer`
+
+SAM3 기반 Impact Pack detailer workflow를 편하게 쓰기 위한 노드입니다.
+`Anima SAM3 Detailer`는 ComfyUI native SAM3 detection, Impact `MaskToSEGS`,
+Impact Pack `DetailerForEach`를 연결합니다.
+
+이 노드는 실행 시점에 `ComfyUI-Impact-Pack`이 필요합니다. 의존성은 노드 실행
+시점에 확인하므로 Impact Pack이 없어도 EasyUse Anima의 다른 노드 import는
+실패하지 않습니다.
+
 ## 공통 프론트엔드 기능
 
 자동완성:
@@ -285,6 +323,12 @@ Trigger words:
 - Prompt Builder, Prompt Corrector, Prompt Studio, Prompt Studio Advanced,
   일반 multiline `STRING` prompt/text widget에서 bundled Korean Danbooru
   autocomplete를 사용할 수 있습니다.
+- 자동완성 적용 범위는 ComfyUI Settings에서 `off`, `easyuse_nodes`,
+  `compatible_global` 중 선택합니다.
+  - `off`: EasyUse Anima 자동완성과 API 요청을 끕니다.
+  - `easyuse_nodes`: EasyUse Anima 프롬프트 노드에만 적용합니다.
+  - `compatible_global`: 기본값이며 기존처럼 호환 가능한 일반 prompt/text
+    widget에도 적용합니다.
 - 자동완성과 Prompt Studio 하이라이트에 사용할 CSV는 ComfyUI Settings의
   `EasyUse Anima: Autocomplete CSV`에서 선택할 수 있습니다.
 - 영어 태그 또는 설명/키워드의 한국어 단어를 입력한 뒤 방향키와 Enter/Tab으로
@@ -298,18 +342,31 @@ Trigger words:
 - `KR_danbooru_tags_with_description v3_modified.csv`: 제작자 허가를 받아 포함
 - `danbooru_tags_classified.csv`: `Localsmile/danbooru_KR_wiki_tag_search` 기반
 
+자세한 CSV 선택 기준, 검색 방식, 개발자용 CSV 포맷은
+[자동완성 CSV 가이드](docs/autocomplete-csv.ko.md)를 참고하세요.
+
 ComfyUI Settings:
 
 - NAIA 요청 host, port, Prompt Engineering option, preprocessing option은
   EasyUse Anima settings panel에서 설정합니다.
+- EasyUse Anima는 별도 언어 설정을 저장하지 않습니다. 노드 정보, 입력/출력
+  힌트, 설정창, 커스텀 DOM 버튼과 툴팁은 ComfyUI 기본 언어 설정을 따릅니다.
 - Prompt metadata filter word는 metadata prompt output에만 적용됩니다.
 - Prompt Studio 오타 표시와 카테고리 색상을 수동으로 변경할 수 있습니다.
 - Prompt Studio는 NAIA field 위쪽 general field를 자동 토글할 수 있습니다.
 - LoRA Preset row label은 파일명만 표시하거나 전체 경로로 표시할 수 있습니다.
 
+## 릴리즈 노트
+
+버전별 변경 사항은 [RELEASE.md](RELEASE.md)를 참고하세요.
+
 ## 요구 사항
 
 NAIA는 `comfyui-naia-bridge`가 사용하는 ComfyUI remote API를 노출해야 합니다.
+
+SAM3 detailer 계열 노드는 실행 시점에 `ComfyUI-Impact-Pack`이 필요합니다. 이것은
+Python package dependency가 아니라 ComfyUI custom node dependency이므로
+`pyproject.toml`의 Python dependencies에는 넣지 않습니다.
 
 Python dependency 설치:
 

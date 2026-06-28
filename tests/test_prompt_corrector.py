@@ -1,15 +1,18 @@
 from __future__ import annotations
 
 import json
+import shutil
 import tempfile
 import unittest
 from pathlib import Path
 from unittest.mock import patch
 
+import settings as easyuse_settings
 from nodes import (
     ADVANCED_RESOLUTION_BUCKETS,
     DEFAULT_QUALITY_TAGS,
     DEFAULT_TRAILING_QUALITY_TAGS,
+    EasyUseAnimaDetailerAlignHook,
     EasyUseAnimaPromptBuilder,
     EasyUseAnimaPromptCorrector,
     EasyUseAnimaPromptStudio,
@@ -23,7 +26,12 @@ from autocomplete_dataset import (
     resolve_autocomplete_source,
     search_autocomplete,
 )
-from settings import NAIA_PREPROCESSING_KEYS, public_settings, resolve_autocomplete_limit
+from settings import (
+    NAIA_PREPROCESSING_KEYS,
+    public_settings,
+    resolve_autocomplete_limit,
+    resolve_autocomplete_mode,
+)
 
 
 class PromptCorrectorTests(unittest.TestCase):
@@ -142,6 +150,18 @@ class PromptCorrectorTests(unittest.TestCase):
         self.assertEqual(negative, "score_5, score_4")
         self.assertEqual(metadata_negative, "score_5, score_4")
 
+    def test_manual_override_trigger_text_keeps_literal_underscores(self):
+        corrected, report = EasyUseAnimaPromptCorrector().correct(
+            "1girl, model_trigger, custom_lora_token",
+            "model_trigger\ncustom_lora_token",
+            "",
+        )
+
+        self.assertEqual(corrected, "1girl, model_trigger, custom_lora_token")
+        data = json.loads(report)
+        self.assertNotIn("model trigger", data["unknown_tags"])
+        self.assertNotIn("custom lora token", data["unknown_tags"])
+
 
 class PromptBuilderTests(unittest.TestCase):
     def test_prompt_builder_and_studio_default_quality_tags(self):
@@ -205,6 +225,22 @@ class PromptBuilderTests(unittest.TestCase):
             "@artist_name, lora trigger, masterpiece, 1girl, best quality",
         )
         self.assertEqual(prompt, metadata)
+
+    def test_lora_trigger_field_keeps_literal_underscores(self):
+        prompt, quality, use_amg, metadata = EasyUseAnimaPromptBuilder().build(
+            False,
+            False,
+            "masterpiece",
+            "model_trigger",
+            "lora_model_trigger",
+            "1girl",
+            "",
+        )
+
+        self.assertFalse(use_amg)
+        self.assertEqual(quality, "masterpiece")
+        self.assertEqual(prompt, "masterpiece, 1girl, model_trigger, lora_model_trigger")
+        self.assertEqual(metadata, prompt)
 
     def test_metadata_filter_only_changes_metadata_prompt(self):
         with patch("nodes.resolve_metadata_filter_words", return_value="best quality\nhigh detail"):
@@ -462,6 +498,36 @@ class PromptBuilderTests(unittest.TestCase):
             result["ui"]["prompt_studio_advanced"][0]["field_inputs"],
             {"field_trigger_words": "@model_trigger"},
         )
+
+    def test_prompt_studio_advanced_trigger_field_keeps_literal_underscores(self):
+        fields = [
+            {
+                "id": "trigger_words",
+                "pane": "positive",
+                "type": "trigger",
+                "label": "Trigger Words",
+                "text": "model_trigger_lora",
+                "height": 72,
+                "pin": True,
+            },
+            {
+                "id": "body",
+                "pane": "positive",
+                "type": "general",
+                "label": "General Tags",
+                "text": "1girl",
+                "height": 72,
+            },
+        ]
+        result = EasyUseAnimaPromptStudioAdvanced().build(
+            False,
+            True,
+            False,
+            False,
+            json.dumps(fields),
+        )
+
+        self.assertEqual(result["result"][0], "model_trigger_lora, 1girl")
 
     def test_prompt_studio_advanced_keeps_only_one_positive_trigger_field(self):
         fields = [
@@ -860,10 +926,10 @@ class SettingsTests(unittest.TestCase):
         self.assertEqual(
             set(settings),
             {
-                "ui.language",
                 "prompt.metadata_filter_words",
                 "autocomplete.source",
                 "autocomplete.limit",
+                "autocomplete.mode",
                 "lora_preset.name_display",
                 "prompt_studio.typo_indicator",
                 "prompt_studio.colors",
@@ -883,6 +949,127 @@ class SettingsTests(unittest.TestCase):
         self.assertEqual(resolve_autocomplete_limit({"autocomplete.limit": "37"}), 37)
         self.assertEqual(resolve_autocomplete_limit({"autocomplete.limit": "200"}), 100)
         self.assertEqual(resolve_autocomplete_limit({"autocomplete.limit": "bad"}), 20)
+
+    def test_autocomplete_mode_is_validated(self):
+        self.assertEqual(
+            resolve_autocomplete_mode({"autocomplete.mode": "off"}),
+            "off",
+        )
+        self.assertEqual(
+            resolve_autocomplete_mode({"autocomplete.mode": "easyuse_nodes"}),
+            "easyuse_nodes",
+        )
+        self.assertEqual(
+            resolve_autocomplete_mode({"autocomplete.mode": "compatible_global"}),
+            "compatible_global",
+        )
+        self.assertEqual(
+            resolve_autocomplete_mode({"autocomplete.mode": "bad"}),
+            "compatible_global",
+        )
+
+    def test_comfy_settings_override_legacy_settings(self):
+        with (
+            patch.object(easyuse_settings, "_read_json_file", return_value={}),
+            patch.object(
+                easyuse_settings,
+                "_load_comfy_settings",
+                return_value={
+                    "EasyUseAnima.Prompt.AutocompleteLimit": "7",
+                    "EasyUseAnima.Prompt.TypoIndicator": "false",
+                    "EasyUseAnima.LoraPreset.NameDisplay": "path",
+                    "EasyUseAnima.NAIA.Port": "8123",
+                },
+            ),
+        ):
+            settings = easyuse_settings.public_settings()
+
+        self.assertEqual(settings["autocomplete.limit"], 7)
+        self.assertEqual(settings["prompt_studio.typo_indicator"], "false")
+        self.assertEqual(settings["lora_preset.name_display"], "path")
+        self.assertEqual(settings["naia.port"], 8123)
+
+    def test_comfy_color_settings_merge_into_prompt_studio_colors(self):
+        with (
+            patch.object(
+                easyuse_settings,
+                "_read_json_file",
+                return_value={"prompt_studio.colors": '{"quality":"#111111"}'},
+            ),
+            patch.object(
+                easyuse_settings,
+                "_load_comfy_settings",
+                return_value={
+                    "EasyUseAnima.Prompt.HighlightColor.quality": "#222222",
+                    "EasyUseAnima.Prompt.HighlightColor.artist": "#333333",
+                },
+            ),
+        ):
+            settings = easyuse_settings.public_settings()
+
+        colors = json.loads(settings["prompt_studio.colors"])
+        self.assertEqual(colors["quality"], "#222222")
+        self.assertEqual(colors["artist"], "#333333")
+
+    def test_long_text_settings_override_comfy_settings(self):
+        root = Path(__file__).resolve().parents[1] / "__pycache__" / "long_text_settings_test"
+        shutil.rmtree(root, ignore_errors=True)
+        root.mkdir(parents=True, exist_ok=True)
+        try:
+            with (
+                patch.object(easyuse_settings, "SETTINGS_FILE", root / "settings.json"),
+                patch.object(
+                    easyuse_settings,
+                    "LONG_TEXT_SETTINGS_FILE",
+                    root / "long_text_settings.json",
+                ),
+                patch.object(
+                    easyuse_settings,
+                    "_load_comfy_settings",
+                    return_value={
+                        "EasyUseAnima.Prompt.MetadataFilter": "comfy filter",
+                        "EasyUseAnima.NAIA.pre_prompt": "comfy pre",
+                        "EasyUseAnima.NAIA.post_prompt": "comfy post",
+                        "EasyUseAnima.NAIA.auto_hide": "comfy hide",
+                    },
+                ),
+            ):
+                easyuse_settings.save_long_text_settings(
+                    {
+                        "prompt.metadata_filter_words": "file filter",
+                        "naia.pre_prompt": "file pre",
+                        "naia.post_prompt": "file post",
+                        "naia.auto_hide": "file hide",
+                    }
+                )
+                settings = easyuse_settings.public_settings()
+                naia_settings = easyuse_settings.resolve_naia_settings()
+        finally:
+            shutil.rmtree(root, ignore_errors=True)
+
+        self.assertEqual(settings["prompt.metadata_filter_words"], "file filter")
+        self.assertEqual(settings["naia.pre_prompt"], "file pre")
+        self.assertEqual(settings["naia.post_prompt"], "file post")
+        self.assertEqual(settings["naia.auto_hide"], "file hide")
+        self.assertEqual(naia_settings["pre_prompt"], "file pre")
+        self.assertEqual(naia_settings["post_prompt"], "file post")
+        self.assertEqual(naia_settings["auto_hide"], "file hide")
+
+
+class DetailerHookTests(unittest.TestCase):
+    def test_detailer_align_hook_alignment_values(self):
+        expected_sizes = {
+            "none": (1052, 1232),
+            "8": (1056, 1232),
+            "16": (1056, 1232),
+            "32": (1056, 1248),
+            "64": (1088, 1280),
+        }
+
+        for alignment, expected in expected_sizes.items():
+            with self.subTest(alignment=alignment):
+                hook, = EasyUseAnimaDetailerAlignHook().build(alignment)
+                self.assertEqual(hook.touch_scaled_size(1052, 1232), expected)
 
 
 class AutocompleteDatasetTests(unittest.TestCase):

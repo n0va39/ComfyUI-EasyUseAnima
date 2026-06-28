@@ -75,6 +75,32 @@ class LoraProfileStorageTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             api._sanitize_lora_profile_name(" ")
 
+    def test_list_loras_refreshes_folder_paths_cache_and_normalizes_names(self):
+        api = load_api_module()
+        clear_calls = []
+        fake_folder_paths = types.SimpleNamespace(
+            filename_list_cache={"loras": "stale", "checkpoints": "keep"},
+            cache_helper=types.SimpleNamespace(
+                active=False,
+                clear=lambda: clear_calls.append("clear"),
+            ),
+            get_filename_list=lambda category: [
+                "None",
+                "style\\한글.safetensors",
+                "style/한글.safetensors",
+                "",
+                "extra/foo.pt",
+            ],
+        )
+
+        with patch.dict(sys.modules, {"folder_paths": fake_folder_paths}):
+            loras = api._list_loras()
+
+        self.assertEqual(loras, ["style\\한글.safetensors", "extra/foo.pt"])
+        self.assertNotIn("loras", fake_folder_paths.filename_list_cache)
+        self.assertEqual(fake_folder_paths.filename_list_cache["checkpoints"], "keep")
+        self.assertEqual(clear_calls, ["clear"])
+
 
 if __name__ == "__main__":
     unittest.main()

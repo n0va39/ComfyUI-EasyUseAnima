@@ -1,4 +1,6 @@
 import { app } from "../../../scripts/app.js";
+import { easyuseAnimaText, easyuseAnimaWatchLocale } from "./easyuse_anima_i18n.js";
+import { normalizePromptTagText } from "./easyuse_anima_prompt_rules.js";
 
 const NODE_TYPE = "EasyUseAnimaPromptStudio";
 const ADVANCED_NODE_TYPE = "EasyUseAnimaPromptStudioAdvanced";
@@ -30,13 +32,178 @@ const EXTEND_FIELD_NAMES = [
 const EXTEND_VISIBLE_SLOTS_PROPERTY = "easyuse_anima_extend_visible_slots";
 const EXTEND_ACTIVE_SLOTS_WIDGET = "active_slots";
 const EXTEND_SLOT_GROUPS = [
-  { id: "quality", label: "Quality", fields: ["quality_tags_1", "quality_tags_2"] },
-  { id: "naia", label: "NAIA", fields: ["naia_prompt_3"] },
-  { id: "general", label: "General", fields: ["general_tags_4", "general_tags_5", "general_tags_6", "general_tags_7", "general_tags_8", "general_tags_9"] },
-  { id: "trailing", label: "Trailing", fields: ["trailing_tags_10", "trailing_tags_11"] },
-  { id: "negative", label: "Negative", fields: ["negative_prompt_1", "negative_prompt_2", "negative_prompt_3", "negative_prompt_4"] },
+  { id: "quality", label: "Quality", labelKey: "extend.group.quality", fields: ["quality_tags_1", "quality_tags_2"] },
+  { id: "naia", label: "NAIA", labelKey: "extend.group.naia", fields: ["naia_prompt_3"] },
+  { id: "general", label: "General", labelKey: "extend.group.general", fields: ["general_tags_4", "general_tags_5", "general_tags_6", "general_tags_7", "general_tags_8", "general_tags_9"] },
+  { id: "trailing", label: "Trailing", labelKey: "extend.group.trailing", fields: ["trailing_tags_10", "trailing_tags_11"] },
+  { id: "negative", label: "Negative", labelKey: "extend.group.negative", fields: ["negative_prompt_1", "negative_prompt_2", "negative_prompt_3", "negative_prompt_4"] },
 ];
 const EXTEND_DEFAULT_VISIBLE_FIELDS = new Set(["quality_tags_1", "general_tags_4", "trailing_tags_10"]);
+
+const PROMPT_STUDIO_TEXT = {
+  en: {
+    "section.quality": "Quality",
+    "section.safety": "Rating",
+    "section.year": "Year",
+    "section.count": "Count",
+    "section.character": "Character",
+    "section.artist": "Artist",
+    "section.artist_unknown": "Unregistered artist",
+    "section.copyright": "Copyright",
+    "section.meta": "Meta",
+    "section.general": "Trained tag",
+    "section.natural": "Natural language",
+    "section.syntax": "Syntax error",
+    "section.unknown": "Unknown",
+    "tag.generic": "tag",
+    "tag.learned": "learned",
+    "legend.color": "Color legend",
+    "extend.group.quality": "Quality",
+    "extend.group.naia": "NAIA",
+    "extend.group.general": "General",
+    "extend.group.trailing": "Trailing",
+    "extend.group.negative": "Negative",
+    "extend.noHiddenSlots": "No hidden slots left",
+    "extend.showSlotTitle": "{name} input slot show",
+    "extend.hideSlot": "Hide {slot}",
+    "extend.hideSlotTitle": "{name} input slot hide",
+    "extend.naiaResult": "NAIA result",
+    "extend.naiaResultTitle": "Read-only NAIA result slot. Enable fill_naia_prompt to update it from NAIA.",
+    "advanced.fillFromNaia": "Fill from NAIA",
+    "advanced.fillFromNaiaTitle": "Keep filling the NAIA Prompt field with a fresh NAIA random prompt while this is enabled.",
+    "advanced.fillOnce": "1x",
+    "advanced.fillOnceTitle": "Save successful NAIA fills with the request flag turned off.",
+    "advanced.modGuidance": "mod guidance",
+    "advanced.modGuidanceTitle": "Send positive quality fields to Anima Mod Guidance output.",
+    "advanced.pin": "Pin",
+    "advanced.pinTitle": "Keep positive artist/trigger fields at the front.",
+    "advanced.linkedInputSuffix": "Linked input controls this value.",
+    "advanced.resolutionTitle": "Latent image resolution output. Resolutions are sorted by width/height ratio.",
+    "advanced.resolutionBucket": "resolution bucket",
+    "advanced.resolutionSize": "resolution size",
+    "advanced.customWidth": "custom width",
+    "advanced.customHeight": "custom height",
+    "advanced.naiaResolutionTitle": "Filled from NAIA on queue. Saved image workflows store this as Custom.",
+    "advanced.field.quality": "Quality Tags",
+    "advanced.field.artist": "Artist Tags",
+    "advanced.field.trigger": "Trigger Words",
+    "advanced.field.general": "General Tags",
+    "advanced.field.naia": "NAIA Prompt",
+    "advanced.on": "ON",
+    "advanced.off": "OFF",
+    "advanced.enableFieldTitle": "Enable or disable this field in prompt output",
+    "advanced.autoOrder": "Auto order",
+    "advanced.pinned": "Pinned",
+    "advanced.autoOrderTitle": "Let prompt correction place trigger words automatically.",
+    "advanced.pinnedTitle": "Keep trigger words fixed before corrected prompt text.",
+    "advanced.moveUp": "Move up",
+    "advanced.moveDown": "Move down",
+    "advanced.deleteField": "Delete field",
+    "advanced.placeholder.naia": "NAIA result appears here after queue",
+    "advanced.placeholder.trigger": "Connect trigger_words STRING input",
+    "advanced.placeholder.artist": "@artist_tag",
+    "advanced.placeholder.general": "prompt tags",
+    "advanced.title.naia": "Editable NAIA result field. Fill from NAIA can overwrite it on the next queue.",
+    "advanced.title.trigger": "Editable trigger field. A connected STRING input can overwrite it on the next queue.",
+    "advanced.title.linked": "Editable cached value. The connected STRING input can overwrite it on the next queue.",
+    "advanced.positivePrompt": "Positive Prompt",
+    "advanced.negativePrompt": "Negative Prompt",
+    "advanced.add.quality": "+ Quality",
+    "advanced.add.artist": "+ Artist",
+    "advanced.add.trigger": "+ Trigger",
+    "advanced.add.general": "+ General",
+    "advanced.add.naia": "+ NAIA",
+    "advanced.noFields": "No fields",
+  },
+  ko: {
+    "section.quality": "품질",
+    "section.safety": "등급",
+    "section.year": "연도",
+    "section.count": "인원수",
+    "section.character": "캐릭터",
+    "section.artist": "작가",
+    "section.artist_unknown": "미등록 작가",
+    "section.copyright": "작품",
+    "section.meta": "메타",
+    "section.general": "학습 태그",
+    "section.natural": "자연어",
+    "section.syntax": "문법 오류",
+    "section.unknown": "미확인",
+    "tag.generic": "태그",
+    "tag.learned": "학습됨",
+    "legend.color": "색상 범례",
+    "extend.group.quality": "품질",
+    "extend.group.naia": "NAIA",
+    "extend.group.general": "General",
+    "extend.group.trailing": "후행",
+    "extend.group.negative": "네거티브",
+    "extend.noHiddenSlots": "숨겨진 슬롯이 없습니다",
+    "extend.showSlotTitle": "{name} 입력 슬롯 표시",
+    "extend.hideSlot": "{slot} 숨김",
+    "extend.hideSlotTitle": "{name} 입력 슬롯 숨김",
+    "extend.naiaResult": "NAIA 결과",
+    "extend.naiaResultTitle": "읽기 전용 NAIA 결과 슬롯입니다. fill_naia_prompt를 켜면 NAIA 결과로 갱신됩니다.",
+    "advanced.fillFromNaia": "NAIA 채우기",
+    "advanced.fillFromNaiaTitle": "켜져 있으면 큐 실행 때마다 NAIA Prompt 필드를 새 NAIA 랜덤 프롬프트로 채웁니다.",
+    "advanced.fillOnce": "1회",
+    "advanced.fillOnceTitle": "NAIA 채우기에 성공하면 요청 플래그를 끈 상태로 저장합니다.",
+    "advanced.modGuidance": "mod guidance",
+    "advanced.modGuidanceTitle": "긍정 품질 필드를 Anima Mod Guidance 출력으로 보냅니다.",
+    "advanced.pin": "고정",
+    "advanced.pinTitle": "긍정 작가/트리거 필드를 앞쪽에 유지합니다.",
+    "advanced.linkedInputSuffix": "연결된 입력이 이 값을 제어합니다.",
+    "advanced.resolutionTitle": "Latent 이미지 해상도 출력입니다. 해상도는 가로/세로 비율 순으로 정렬됩니다.",
+    "advanced.resolutionBucket": "해상도 버킷",
+    "advanced.resolutionSize": "해상도 크기",
+    "advanced.customWidth": "사용자 너비",
+    "advanced.customHeight": "사용자 높이",
+    "advanced.naiaResolutionTitle": "큐 실행 때 NAIA에서 채워졌습니다. 저장된 이미지 워크플로우에는 Custom으로 저장됩니다.",
+    "advanced.field.quality": "품질 태그",
+    "advanced.field.artist": "작가 태그",
+    "advanced.field.trigger": "트리거",
+    "advanced.field.general": "일반 태그",
+    "advanced.field.naia": "NAIA 프롬프트",
+    "advanced.on": "ON",
+    "advanced.off": "OFF",
+    "advanced.enableFieldTitle": "이 필드를 프롬프트 출력에 포함하거나 제외합니다",
+    "advanced.autoOrder": "자동 배치",
+    "advanced.pinned": "고정됨",
+    "advanced.autoOrderTitle": "프롬프트 교정기가 트리거 위치를 자동으로 배치하게 합니다.",
+    "advanced.pinnedTitle": "트리거를 교정된 프롬프트 앞쪽에 고정합니다.",
+    "advanced.moveUp": "위로 이동",
+    "advanced.moveDown": "아래로 이동",
+    "advanced.deleteField": "필드 삭제",
+    "advanced.placeholder.naia": "큐 실행 후 NAIA 결과가 표시됩니다",
+    "advanced.placeholder.trigger": "trigger_words STRING 입력 연결",
+    "advanced.placeholder.artist": "@artist_tag",
+    "advanced.placeholder.general": "프롬프트 태그",
+    "advanced.title.naia": "편집 가능한 NAIA 결과 필드입니다. 다음 큐 실행에서 NAIA 채우기가 덮어쓸 수 있습니다.",
+    "advanced.title.trigger": "편집 가능한 트리거 필드입니다. 연결된 STRING 입력이 다음 큐 실행에서 덮어쓸 수 있습니다.",
+    "advanced.title.linked": "편집 가능한 캐시 값입니다. 연결된 STRING 입력이 다음 큐 실행에서 덮어쓸 수 있습니다.",
+    "advanced.positivePrompt": "긍정 프롬프트",
+    "advanced.negativePrompt": "네거티브 프롬프트",
+    "advanced.add.quality": "+ 품질",
+    "advanced.add.artist": "+ 작가",
+    "advanced.add.trigger": "+ 트리거",
+    "advanced.add.general": "+ 일반",
+    "advanced.add.naia": "+ NAIA",
+    "advanced.noFields": "필드 없음",
+  },
+};
+
+function psText(key) {
+  return easyuseAnimaText(PROMPT_STUDIO_TEXT, key);
+}
+
+function psFormat(key, values = {}) {
+  return psText(key).replace(/\{(\w+)\}/g, (_match, name) => values[name] ?? "");
+}
+
+function sectionLabel(section) {
+  const key = String(section || "unknown");
+  const style = SECTION_STYLES[key] || SECTION_STYLES.unknown;
+  return psText(`section.${key}`) || style?.label || key;
+}
 
 const FIELD_HEIGHTS = {
   lora_trigger_tags: 42,
@@ -111,25 +278,25 @@ let middlePanForwardActive = false;
 const ADVANCED_CONTROL_WIDGETS = [
   {
     name: "use_naia",
-    label: "Fill from NAIA",
-    title: "Keep filling the NAIA Prompt field with a fresh NAIA random prompt while this is enabled.",
+    labelKey: "advanced.fillFromNaia",
+    titleKey: "advanced.fillFromNaiaTitle",
     showInControlBar: false,
   },
   {
     name: "consume_naia_on_queue",
-    label: "1x",
-    title: "Save successful NAIA fills with the request flag turned off.",
+    labelKey: "advanced.fillOnce",
+    titleKey: "advanced.fillOnceTitle",
     showInControlBar: false,
   },
   {
     name: "use_anima_mod_guidance",
-    label: "mod guidance",
-    title: "Send positive quality fields to Anima Mod Guidance output.",
+    labelKey: "advanced.modGuidance",
+    titleKey: "advanced.modGuidanceTitle",
   },
   {
     name: "pin_trigger_tags_to_front",
-    label: "Pin",
-    title: "Keep positive artist/trigger fields at the front.",
+    labelKey: "advanced.pin",
+    titleKey: "advanced.pinTitle",
     showInControlBar: false,
   },
 ];
@@ -206,6 +373,8 @@ const ADVANCED_INTERNAL_WIDGET_NAMES = new Set(Object.keys(ADVANCED_WIDGET_INDEX
 const ADVANCED_FIELDS_PROPERTY = "easyuse_anima_advanced_fields";
 const ADVANCED_FIELD_SOCKET_PREFIX = "field_";
 const ADVANCED_FIELD_TYPES = ["quality", "artist", "trigger", "general", "naia"];
+const ADVANCED_EDITOR_MIN_VIEWPORT_HEIGHT = 360;
+const ADVANCED_EDITOR_MAX_AUTO_VIEWPORT_HEIGHT = 640;
 const ADVANCED_FIELD_LABELS = {
   quality: "Quality Tags",
   artist: "Artist Tags",
@@ -213,10 +382,6 @@ const ADVANCED_FIELD_LABELS = {
   general: "General Tags",
   naia: "NAIA Prompt",
 };
-const ADVANCED_NAIA_FILL_TITLE = (
-  "When enabled, every queue fills this read-only NAIA Prompt field with a fresh NAIA random prompt. "
-  + "Saved image workflows store the current result with this disabled, so reloaded images reuse it."
-);
 const ADVANCED_DEFAULT_FIELDS = [
   {
     id: "positive_quality",
@@ -332,7 +497,9 @@ function ensureAdvancedStyle() {
       box-sizing: border-box;
       width: 100%;
       min-width: 0;
-      overflow: hidden;
+      overflow-x: hidden;
+      overflow-y: auto;
+      overscroll-behavior: contain;
       color: var(--fg-color, #ddd);
       font: 12px sans-serif;
       user-select: none;
@@ -681,10 +848,7 @@ function escapeHtml(value) {
 }
 
 function normalize(value) {
-  return String(value ?? "")
-    .normalize("NFKC")
-    .replace(/\\(.)/g, "$1")
-    .replaceAll("_", " ")
+  return normalizePromptTagText(value, { unescapeAll: true })
     .toLocaleLowerCase()
     .replace(INLINE_SPACE_RE, " ")
     .trim();
@@ -784,8 +948,8 @@ function tokenStyle(token) {
 
 function tokenTitle(token) {
   const style = SECTION_STYLES[token?.section] || SECTION_STYLES.unknown;
-  const label = token?.label || style.label || token?.section || "태그";
-  const learned = token?.learned ? " / learned" : "";
+  const label = token?.label || sectionLabel(token?.section) || style.label || token?.section || psText("tag.generic");
+  const learned = token?.learned ? ` / ${psText("tag.learned")}` : "";
   return `${label}${learned}`;
 }
 
@@ -979,22 +1143,42 @@ function copyInputTextMetrics(input, overlay) {
     "font",
     "fontFamily",
     "fontSize",
+    "fontSizeAdjust",
+    "fontStretch",
     "fontWeight",
     "fontStyle",
+    "fontVariant",
+    "fontKerning",
+    "fontOpticalSizing",
+    "fontFeatureSettings",
+    "fontVariationSettings",
     "lineHeight",
     "letterSpacing",
+    "wordSpacing",
+    "textIndent",
     "padding",
     "border",
     "borderRadius",
     "textAlign",
     "textTransform",
+    "textRendering",
+    "direction",
     "tabSize",
+    "whiteSpace",
+    "overflowWrap",
+    "wordBreak",
   ];
   for (const property of properties) {
     const val = style[property];
     if (overlay.style[property] !== val) {
       overlay.style[property] = val;
     }
+  }
+  if (!overlay.style.whiteSpace || overlay.style.whiteSpace === "normal") {
+    overlay.style.whiteSpace = "pre-wrap";
+  }
+  if (!overlay.style.overflowWrap) {
+    overlay.style.overflowWrap = "break-word";
   }
 }
 
@@ -1337,13 +1521,13 @@ function drawLegend(ctx, node, widget, width, y) {
 
   ctx.font = "9px sans-serif";
   ctx.fillStyle = "#94a3b8";
-  ctx.fillText("Color legend", 14, y + LEGEND_TOP_GAP + 12);
+  ctx.fillText(psText("legend.color"), 14, y + LEGEND_TOP_GAP + 12);
 
   const left = 14;
   const availableWidth = Math.max(160, width - 28);
   ctx.font = "9px sans-serif";
   const maxItemWidth = Math.max(
-    ...LEGEND_ITEMS.map((key) => 14 + ctx.measureText(SECTION_STYLES[key].label).width),
+    ...LEGEND_ITEMS.map((key) => 14 + ctx.measureText(sectionLabel(key)).width),
   );
   const columnWidth = Math.min(
     availableWidth / LEGEND_COLUMNS,
@@ -1352,7 +1536,7 @@ function drawLegend(ctx, node, widget, width, y) {
   const rows = Math.ceil(LEGEND_ITEMS.length / LEGEND_COLUMNS);
   for (const [index, key] of LEGEND_ITEMS.entries()) {
     const style = SECTION_STYLES[key];
-    const label = style.label;
+    const label = sectionLabel(key);
     const column = Math.floor(index / rows);
     const row = index % rows;
     const x = left + column * columnWidth;
@@ -1602,6 +1786,10 @@ function extendSlotShortLabel(fieldName) {
   return fieldName;
 }
 
+function extendSlotGroupLabel(group) {
+  return group?.labelKey ? psText(group.labelKey) : String(group?.label || "");
+}
+
 function renderExtendSlotControls(node) {
   const container = node.__easyuseAnimaExtendSlotControlsEl;
   if (!container) {
@@ -1615,9 +1803,9 @@ function renderExtendSlotControls(node) {
     const next = group.fields.find((fieldName) => !extendSlotShouldShow(node, fieldName));
     const button = document.createElement("button");
     button.type = "button";
-    button.textContent = `+ ${group.label} ${shown}/${group.fields.length}`;
+    button.textContent = `+ ${extendSlotGroupLabel(group)} ${shown}/${group.fields.length}`;
     button.disabled = !next;
-    button.title = next ? `${next} input slot show` : "No hidden slots left";
+    button.title = next ? psFormat("extend.showSlotTitle", { name: next }) : psText("extend.noHiddenSlots");
     button.addEventListener("click", (event) => {
       event.preventDefault();
       event.stopPropagation();
@@ -1636,8 +1824,8 @@ function renderExtendSlotControls(node) {
     for (const fieldName of visibleFields) {
       const button = document.createElement("button");
       button.type = "button";
-      button.textContent = `Hide ${extendSlotShortLabel(fieldName)}`;
-      button.title = `${fieldName} input slot hide`;
+      button.textContent = psFormat("extend.hideSlot", { slot: extendSlotShortLabel(fieldName) });
+      button.title = psFormat("extend.hideSlotTitle", { name: fieldName });
       button.addEventListener("click", (event) => {
         event.preventDefault();
         event.stopPropagation();
@@ -2194,8 +2382,8 @@ function hookStudioNode(node, attempt = 0) {
     restoreInputFromWidget(widget);
     if (isExtendNode(node) && name === "naia_prompt_3") {
       input.readOnly = true;
-      input.placeholder = "NAIA result";
-      input.title = "Read-only NAIA result slot. Enable fill_naia_prompt to update it from NAIA.";
+      input.placeholder = psText("extend.naiaResult");
+      input.title = psText("extend.naiaResultTitle");
     }
     enhanceResizableInput(node, widget);
     const updateField = getUpdateField(name);
@@ -2690,7 +2878,10 @@ function pruneDisconnectedAdvancedFieldInputValues(node) {
 
 function advancedFieldLabel(field) {
   const base = ADVANCED_FIELD_LABELS[field.type] || "General Tags";
-  return field.label && field.label !== base ? `${base} - ${field.label}` : base;
+  const localizedBase = psText(`advanced.field.${field.type}`) || base;
+  return field.label && field.label !== base && field.label !== localizedBase
+    ? `${localizedBase} - ${field.label}`
+    : localizedBase;
 }
 
 function setAdvancedControlValue(node, name, value) {
@@ -2823,8 +3014,9 @@ function createAdvancedControlBar(node) {
     button.className = "easyuse-anima-advanced-toggle";
     button.classList.toggle("is-on", !!widget.value);
     button.classList.toggle("is-linked", linked);
-    button.textContent = control.label;
-    button.title = linked ? `${control.title} Linked input controls this value.` : control.title;
+    const title = psText(control.titleKey);
+    button.textContent = psText(control.labelKey);
+    button.title = linked ? `${title} ${psText("advanced.linkedInputSuffix")}` : title;
     button.disabled = linked;
     button.addEventListener("click", (event) => {
       event.preventDefault();
@@ -2858,10 +3050,10 @@ function createAdvancedResolutionBar(node) {
 
   const row = document.createElement("div");
   row.className = "easyuse-anima-advanced-resolutionbar";
-  row.title = "Latent image resolution output. Resolutions are sorted by width/height ratio.";
+  row.title = psText("advanced.resolutionTitle");
 
   const bucketSelect = document.createElement("select");
-  bucketSelect.setAttribute("aria-label", "resolution bucket");
+  bucketSelect.setAttribute("aria-label", psText("advanced.resolutionBucket"));
   for (const bucket of Object.keys(ADVANCED_RESOLUTION_BUCKETS)) {
     const option = document.createElement("option");
     option.value = bucket;
@@ -2884,7 +3076,7 @@ function createAdvancedResolutionBar(node) {
   const renderPresetSelect = (bucket, selected) => {
     valueBox.innerHTML = "";
     const sizeSelect = document.createElement("select");
-    sizeSelect.setAttribute("aria-label", "resolution size");
+    sizeSelect.setAttribute("aria-label", psText("advanced.resolutionSize"));
     for (const label of advancedResolutionOptions(bucket)) {
       const option = document.createElement("option");
       option.value = label;
@@ -2906,7 +3098,7 @@ function createAdvancedResolutionBar(node) {
     widthInput.min = "32";
     widthInput.step = "32";
     widthInput.value = String(advancedCustomResolution(node).width);
-    widthInput.setAttribute("aria-label", "custom width");
+    widthInput.setAttribute("aria-label", psText("advanced.customWidth"));
     const separator = document.createElement("span");
     separator.textContent = "×";
     const heightInput = document.createElement("input");
@@ -2914,7 +3106,7 @@ function createAdvancedResolutionBar(node) {
     heightInput.min = "32";
     heightInput.step = "32";
     heightInput.value = String(advancedCustomResolution(node).height);
-    heightInput.setAttribute("aria-label", "custom height");
+    heightInput.setAttribute("aria-label", psText("advanced.customHeight"));
     const syncRaw = () => {
       setAdvancedCustomResolution(node, widthInput.value, heightInput.value);
     };
@@ -2940,7 +3132,7 @@ function createAdvancedResolutionBar(node) {
     const current = advancedCustomResolution(node);
     const label = document.createElement("span");
     label.textContent = advancedResolutionLabel(current.width, current.height);
-    label.title = "Filled from NAIA on queue. Saved image workflows store this as Custom.";
+    label.title = psText("advanced.naiaResolutionTitle");
     valueBox.append(label);
     setAdvancedWidgetValue(node, "resolution_size", advancedResolutionLabel(current.width, current.height));
   };
@@ -2999,7 +3191,7 @@ function hasPositiveTrigger(node) {
 }
 
 function advancedEditorWidth(node) {
-  return Math.max(280, Math.round((Number(node?.size?.[0]) || 420) - 36));
+  return Math.max(280, Math.round((Number(node?.size?.[0]) || 420) - 18));
 }
 
 function measureAdvancedEditorHeight(editor) {
@@ -3057,13 +3249,19 @@ function advancedTextareaContentHeight(textarea) {
     return 0;
   }
   const previousHeight = textarea.style.height;
+  const previousMinHeight = textarea.style.minHeight;
+  const previousOverflow = textarea.style.overflowY;
+  textarea.style.minHeight = "0px";
   textarea.style.height = "auto";
+  textarea.style.overflowY = "hidden";
   const contentHeight = Math.ceil(
     (Number(textarea.scrollHeight) || 0)
     + advancedTextareaPixelMetric(textarea, "borderTopWidth")
     + advancedTextareaPixelMetric(textarea, "borderBottomWidth"),
   );
   textarea.style.height = previousHeight;
+  textarea.style.minHeight = previousMinHeight;
+  textarea.style.overflowY = previousOverflow;
   return contentHeight;
 }
 
@@ -3093,36 +3291,40 @@ function advancedEditorFixedHeight(editor, textareas = advancedEditorTextareas(e
   return Math.max(0, editorHeight - textareaTotal);
 }
 
-function advancedEditorMinimumHeight(node) {
+function advancedEditorContentMinimumHeight(node) {
   const editor = node?.__easyuseAnimaAdvancedEditorEl;
   if (!editor) {
-    return 220;
+    return ADVANCED_EDITOR_MIN_VIEWPORT_HEIGHT;
   }
   const textareas = advancedEditorTextareas(editor);
   const fixedHeight = advancedEditorFixedHeight(editor, textareas);
   const textareaMinTotal = advancedTextareaHeightTotal(textareas, advancedTextareaMinimumHeight);
-  return Math.ceil(Math.max(220, fixedHeight + textareaMinTotal));
+  return Math.ceil(Math.max(ADVANCED_EDITOR_MIN_VIEWPORT_HEIGHT, fixedHeight + textareaMinTotal));
 }
 
-function advancedEditorLayoutHeight(node) {
-  const editor = node?.__easyuseAnimaAdvancedEditorEl;
-  if (!editor) {
-    return 220;
-  }
+function advancedEditorAutoViewportCap() {
+  const viewportHeight = Number(globalThis.innerHeight) || 0;
+  const viewportCap = viewportHeight > 0 ? Math.floor(viewportHeight * 0.72) : ADVANCED_EDITOR_MAX_AUTO_VIEWPORT_HEIGHT;
   return Math.ceil(Math.max(
-    220,
-    measureAdvancedEditorHeight(editor),
-    measureAdvancedEditorContentHeight(editor),
-    advancedEditorMinimumHeight(node),
+    ADVANCED_EDITOR_MIN_VIEWPORT_HEIGHT,
+    Math.min(ADVANCED_EDITOR_MAX_AUTO_VIEWPORT_HEIGHT, viewportCap),
+  ));
+}
+
+function advancedEditorMinimumHeight(node) {
+  const contentMinimum = advancedEditorContentMinimumHeight(node);
+  return Math.ceil(Math.max(
+    ADVANCED_EDITOR_MIN_VIEWPORT_HEIGHT,
+    Math.min(contentMinimum, advancedEditorAutoViewportCap()),
   ));
 }
 
 function advancedAvailableEditorViewportHeight(node) {
-  const contentHeight = advancedEditorLayoutHeight(node);
+  const minimumHeight = advancedEditorMinimumHeight(node);
   const nodeHeight = Number(node?.size?.[1]) || 0;
-  const chromeOffset = advancedNodeChromeOffset(node, contentHeight);
+  const chromeOffset = advancedNodeChromeOffset(node, minimumHeight);
   const availableHeight = Math.max(0, nodeHeight - chromeOffset);
-  return Math.ceil(Math.max(contentHeight, availableHeight));
+  return Math.ceil(Math.max(minimumHeight, availableHeight));
 }
 
 function advancedEditorWidgetHeight(node) {
@@ -3153,13 +3355,13 @@ function advancedNodeChromeOffset(node, editorHeight = measureAdvancedEditorCont
 function advancedMinimumNodeHeight(node) {
   const editor = node?.__easyuseAnimaAdvancedEditorEl;
   if (!editor) {
-    return 220;
+    return ADVANCED_EDITOR_MIN_VIEWPORT_HEIGHT;
   }
-  const contentMinimum = advancedEditorMinimumHeight(node);
-  const chromeOffset = advancedNodeChromeOffset(node, contentMinimum);
+  const viewportMinimum = advancedEditorMinimumHeight(node);
+  const chromeOffset = advancedNodeChromeOffset(node, viewportMinimum);
   return Math.ceil(Math.max(
-    220,
-    contentMinimum + chromeOffset,
+    ADVANCED_EDITOR_MIN_VIEWPORT_HEIGHT,
+    viewportMinimum + chromeOffset,
   ));
 }
 
@@ -3192,9 +3394,14 @@ function advancedFieldByTextarea(node, textarea) {
 }
 
 function setAdvancedTextareaHeight(node, textarea, height, options = {}) {
-  const nextHeight = Math.max(advancedTextareaMinimumHeight(textarea), Math.round(Number(height) || 0));
+  const requiredHeight = Math.max(
+    advancedTextareaMinimumHeight(textarea),
+    advancedTextareaContentHeight(textarea),
+  );
+  const nextHeight = Math.max(requiredHeight, Math.round(Number(height) || 0));
+  textarea.style.minHeight = `${requiredHeight}px`;
   textarea.style.height = `${nextHeight}px`;
-  textarea.style.overflowY = nextHeight + 1 < advancedTextareaContentHeight(textarea) ? "auto" : "hidden";
+  textarea.style.overflowY = "hidden";
   let field = null;
   if (options.syncField !== false || options.refreshHighlight !== false) {
     field = advancedFieldByTextarea(node, textarea);
@@ -3205,6 +3412,7 @@ function setAdvancedTextareaHeight(node, textarea, height, options = {}) {
   if (options.refreshHighlight !== false) {
     updateAdvancedFieldHighlight(node, field, textarea);
   }
+  return nextHeight;
 }
 
 function clearAdvancedResizeEndListeners(node) {
@@ -3289,6 +3497,8 @@ function applyAdvancedLayout(node, reason = "layout") {
     const currentHeight = Number(node.size[1]) || 0;
     const minimumHeight = advancedMinimumNodeHeight(node);
     const widgetHeight = advancedEditorWidgetHeight(node);
+    editor.style.height = `${widgetHeight}px`;
+    editor.style.maxHeight = `${widgetHeight}px`;
     node.__easyuseAnimaAdvancedWidgetHeight = widgetHeight;
     node.__easyuseAnimaAdvancedLastEditorHeight = widgetHeight;
     node.__easyuseAnimaAdvancedLastLayoutReason = reason;
@@ -3506,7 +3716,29 @@ function startCanvasPanFromDom(event) {
   return true;
 }
 
-function shouldKeepAdvancedWheelEvent(event) {
+function advancedEditorMaxScrollTop(editor) {
+  if (!(editor instanceof HTMLElement)) {
+    return 0;
+  }
+  return Math.max(0, editor.scrollHeight - editor.clientHeight);
+}
+
+function canAdvancedEditorScroll(editor) {
+  return advancedEditorMaxScrollTop(editor) > 1;
+}
+
+function canAdvancedEditorScrollWheelDelta(editor, deltaY) {
+  const maxScrollTop = advancedEditorMaxScrollTop(editor);
+  if (maxScrollTop <= 1) {
+    return false;
+  }
+  return (deltaY < 0 && editor.scrollTop > 0) || (deltaY > 0 && editor.scrollTop < maxScrollTop - 1);
+}
+
+function shouldKeepAdvancedWheelEvent(event, editor) {
+  if (!canAdvancedEditorScroll(editor)) {
+    return false;
+  }
   const target = event?.target;
   if (!(target instanceof Element)) {
     return false;
@@ -3518,7 +3750,11 @@ function forwardAdvancedWheelToCanvas(event) {
   if (event.__easyuseAnimaForwarded) {
     return;
   }
-  if (shouldKeepAdvancedWheelEvent(event)) {
+  const editor = event.currentTarget;
+  if (shouldKeepAdvancedWheelEvent(event, editor)) {
+    return;
+  }
+  if (canAdvancedEditorScrollWheelDelta(editor, Number(event.deltaY) || 0)) {
     return;
   }
   event.preventDefault();
@@ -3577,7 +3813,7 @@ function createAdvancedFieldElement(node, field) {
     writeAdvancedFields(node, currentFields, { render: true });
   };
 
-  const addTool = (text, title, callback, disabled = false) => {
+  const addTool = (text, title, callback, disabled = false, active = false) => {
     const button = document.createElement("button");
     button.type = "button";
     button.textContent = text;
@@ -3590,7 +3826,7 @@ function createAdvancedFieldElement(node, field) {
         callback();
       }
     });
-    if (text === "ON") {
+    if (active) {
       button.classList.add("is-on");
     }
     tools.append(button);
@@ -3598,24 +3834,26 @@ function createAdvancedFieldElement(node, field) {
   };
 
   const toggleButton = addTool(
-    field.enabled === false ? "OFF" : "ON",
-    "Enable or disable this field in prompt output",
+    field.enabled === false ? psText("advanced.off") : psText("advanced.on"),
+    psText("advanced.enableFieldTitle"),
     () => {
       field.enabled = field.enabled === false;
       writeAdvancedFields(node, fields, { render: true });
     },
+    false,
+    field.enabled !== false,
   );
   toggleButton.classList.toggle("is-on", field.enabled !== false);
   if (field.type === "trigger") {
     const pinButton = addTool(
-      field.pin === false ? "Auto order" : "Pinned",
-      field.pin === false
-        ? "Let prompt correction place trigger words automatically."
-        : "Keep trigger words fixed before corrected prompt text.",
+      field.pin === false ? psText("advanced.autoOrder") : psText("advanced.pinned"),
+      field.pin === false ? psText("advanced.autoOrderTitle") : psText("advanced.pinnedTitle"),
       () => {
         field.pin = field.pin === false;
         writeAdvancedFields(node, fields, { render: true });
       },
+      false,
+      field.pin !== false,
     );
     pinButton.classList.add("easyuse-anima-trigger-pin");
     pinButton.classList.toggle("is-on", field.pin !== false);
@@ -3623,7 +3861,7 @@ function createAdvancedFieldElement(node, field) {
   if (field.type === "naia") {
     const useNaiaWidget = findWidget(node, "use_naia");
     const linkedUseNaia = isWidgetInputLinked(node, "use_naia");
-    const fillButton = addTool("Fill from NAIA", ADVANCED_NAIA_FILL_TITLE, () => {
+    const fillButton = addTool(psText("advanced.fillFromNaia"), psText("advanced.fillFromNaiaTitle"), () => {
       const currentFields = node.__easyuseAnimaAdvancedFields || parseAdvancedFields(node);
       const target = currentFields.find((item) => item.id === field.id);
       if (target?.enabled === false) {
@@ -3634,14 +3872,14 @@ function createAdvancedFieldElement(node, field) {
       setAdvancedControlValue(node, "use_naia", nextValue);
       applyAdvancedNaiaGeneralAutoToggle(node, currentFields);
       writeAdvancedFields(node, currentFields, { render: true });
-    }, linkedUseNaia || field.enabled === false);
+    }, linkedUseNaia || field.enabled === false, field.enabled !== false && !!useNaiaWidget?.value);
     fillButton.classList.add("easyuse-anima-naia-fill");
     fillButton.classList.toggle("is-on", field.enabled !== false && !!useNaiaWidget?.value);
     fillButton.classList.toggle("is-linked", linkedUseNaia);
   }
-  addTool("↑", "Move up", () => move(-1), paneIndex <= 0);
-  addTool("↓", "Move down", () => move(1), paneIndex >= samePane.length - 1);
-  addTool("X", "Delete field", () => {
+  addTool("↑", psText("advanced.moveUp"), () => move(-1), paneIndex <= 0);
+  addTool("↓", psText("advanced.moveDown"), () => move(1), paneIndex >= samePane.length - 1);
+  addTool("X", psText("advanced.deleteField"), () => {
     const currentFields = node.__easyuseAnimaAdvancedFields || parseAdvancedFields(node);
     currentFields.splice(globalIndex, 1);
     writeAdvancedFields(node, currentFields, { render: true });
@@ -3654,23 +3892,23 @@ function createAdvancedFieldElement(node, field) {
   textarea.style.height = `${field.height || 72}px`;
   textarea.style.overflowY = "hidden";
   textarea.placeholder = field.type === "naia"
-    ? "NAIA result appears here after queue"
-    : field.type === "trigger" ? "Connect trigger_words STRING input"
-    : field.type === "artist" ? "@artist_tag" : "prompt tags";
+    ? psText("advanced.placeholder.naia")
+    : field.type === "trigger" ? psText("advanced.placeholder.trigger")
+    : field.type === "artist" ? psText("advanced.placeholder.artist") : psText("advanced.placeholder.general");
   textarea.readOnly = false;
   textarea.classList.toggle("is-linked", linked);
   textarea.title = field.type === "naia"
-    ? "Editable NAIA result field. Fill from NAIA can overwrite it on the next queue."
+    ? psText("advanced.title.naia")
     : field.type === "trigger"
-      ? "Editable trigger field. A connected STRING input can overwrite it on the next queue."
-    : linked ? "Editable cached value. The connected STRING input can overwrite it on the next queue." : "";
+      ? psText("advanced.title.trigger")
+    : linked ? psText("advanced.title.linked") : "";
   textarea.dataset.easyuseAnimaAdvancedFieldId = field.id;
   const updateFieldHighlight = debounce(() => {
     scheduleAdvancedFieldHighlight(node, field, textarea);
   }, 180);
   const persistTextareaHeight = (height, mode = field.heightMode || "auto") => {
-    setAdvancedTextareaHeight(node, textarea, height);
-    field.height = Math.max(advancedTextareaMinimumHeight(textarea), Math.round(Number(height) || 0));
+    const nextHeight = setAdvancedTextareaHeight(node, textarea, height);
+    field.height = nextHeight;
     field.heightMode = mode === "manual" ? "manual" : "auto";
     writeAdvancedFields(node, fields, { syncInputs: false });
     updateAdvancedFieldHighlight(node, field, textarea);
@@ -3723,10 +3961,14 @@ function createAdvancedFieldElement(node, field) {
   });
   registerAdvancedAutocompleteInput(node, field, textarea);
   requestAnimationFrame(() => {
-    setAdvancedTextareaHeight(node, textarea, field.height || 72, {
+    const nextHeight = setAdvancedTextareaHeight(node, textarea, field.height || 72, {
       syncField: false,
       refreshHighlight: false,
     });
+    if (nextHeight !== field.height) {
+      field.height = nextHeight;
+      writeAdvancedFields(node, fields, { syncInputs: false });
+    }
     updateAdvancedFieldHighlight(node, field, textarea);
     updateFieldHighlight();
     scheduleAdvancedLayout(node, "render");
@@ -3762,14 +4004,14 @@ function addAdvancedField(node, pane, type) {
   writeAdvancedFields(node, fields, { render: true });
 }
 
-function createAdvancedPane(node, pane, title) {
+function createAdvancedPane(node, pane, titleKey) {
   const section = document.createElement("section");
   section.className = "easyuse-anima-advanced-pane";
 
   const header = document.createElement("div");
   header.className = "easyuse-anima-advanced-pane-title";
   const heading = document.createElement("span");
-  heading.textContent = title;
+  heading.textContent = psText(titleKey);
   const actions = document.createElement("div");
   actions.className = "easyuse-anima-advanced-actions";
   const addButton = (type, label) => {
@@ -3785,13 +4027,13 @@ function createAdvancedPane(node, pane, title) {
     });
     actions.append(button);
   };
-  addButton("quality", "+ Quality");
-  addButton("artist", "+ Artist");
+  addButton("quality", psText("advanced.add.quality"));
+  addButton("artist", psText("advanced.add.artist"));
   if (pane === "positive") {
-    addButton("trigger", "+ Trigger");
+    addButton("trigger", psText("advanced.add.trigger"));
   }
-  addButton("general", "+ General");
-  addButton("naia", "+ NAIA");
+  addButton("general", psText("advanced.add.general"));
+  addButton("naia", psText("advanced.add.naia"));
   header.append(heading, actions);
   section.append(header);
 
@@ -3799,7 +4041,7 @@ function createAdvancedPane(node, pane, title) {
   if (!fields.length) {
     const empty = document.createElement("div");
     empty.className = "easyuse-anima-empty-pane";
-    empty.textContent = "No fields";
+    empty.textContent = psText("advanced.noFields");
     section.append(empty);
   } else {
     for (const field of fields) {
@@ -3821,8 +4063,8 @@ function renderAdvancedEditor(node) {
   const panes = document.createElement("div");
   panes.className = "easyuse-anima-advanced-panes";
   panes.append(
-    createAdvancedPane(node, "positive", "Positive Prompt"),
-    createAdvancedPane(node, "negative", "Negative Prompt"),
+    createAdvancedPane(node, "positive", "advanced.positivePrompt"),
+    createAdvancedPane(node, "negative", "advanced.negativePrompt"),
   );
   editor.append(createAdvancedControlBar(node), createAdvancedResolutionBar(node), panes);
   writeAdvancedFields(node, node.__easyuseAnimaAdvancedFields);
@@ -3947,6 +4189,19 @@ function syncAllAdvancedNodes() {
   }
 }
 
+function refreshPromptStudioLocaleDom() {
+  for (const node of app.graph?._nodes || []) {
+    if (isAdvancedNode(node)) {
+      renderAdvancedEditor(node);
+    } else if (isExtendNode(node)) {
+      hookStudioNode(node);
+      renderExtendSlotControls(node);
+    }
+    node?.setDirtyCanvas?.(true, true);
+  }
+  app.graph?.setDirtyCanvas?.(true, true);
+}
+
 function installAdvancedSaveSync() {
   const graphProto = globalThis.LGraph?.prototype || app.graph?.constructor?.prototype;
   if (graphProto?.serialize && !graphProto.serialize.__easyuseAnimaAdvancedWrapped) {
@@ -3975,6 +4230,10 @@ app.registerExtension({
     installAdvancedSaveSync();
     installPromptHighlightOverlayRefresh();
     await loadPromptStudioSettings();
+    easyuseAnimaWatchLocale(() => {
+      refreshPromptStudioLocaleDom();
+      refreshAllPromptHighlights();
+    });
     window.addEventListener("easyuse-anima-settings-updated", (event) => {
       if (!event?.detail) {
         return;
