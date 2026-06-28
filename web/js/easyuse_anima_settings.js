@@ -82,10 +82,9 @@ const SETTINGS_FIELD_STYLE =
 const SETTINGS_INPUT_STYLE =
   "box-sizing: border-box; width: 100%; min-width: 0; padding: 4px 7px;";
 const SETTINGS_STATUS_STYLE = "opacity: 0.76; font-size: 0.92em;";
-const SETTINGS_SUBSECTION_STYLE =
-  "display: flex; flex-direction: column; gap: 4px; padding: 8px 10px; border-left: 3px solid rgba(96, 165, 250, 0.72); background: rgba(148, 163, 184, 0.08);";
 const SETTINGS_BLOCK_STYLE =
-  "display: flex; flex-direction: column; gap: 6px; padding: 9px 0 0; border-top: 1px solid rgba(128, 128, 128, 0.22);";
+  "display: flex; flex-direction: column; gap: 6px; padding: 8px 0 0; border-top: 1px solid rgba(128, 128, 128, 0.22);";
+const SETTINGS_DESCRIPTION_STYLE = "opacity: 0.7; font-size: 0.92em; line-height: 1.45;";
 const autoSaveTimers = new Map();
 
 const SETTINGS_TEXT = {
@@ -97,18 +96,18 @@ const SETTINGS_TEXT = {
     saveFailed: "Save failed",
     on: "on",
     off: "off",
-    settingsPromptSectionName: "EasyUse Anima: Prompt",
-    settingsPromptMetadataName: "EasyUse Anima: Metadata Prompt Filter",
+    settingsPromptSectionName: "Prompt",
+    settingsPromptMetadataName: "Metadata Prompt Filter",
     settingsPromptMetadataTooltip: "Remove these tags only from Anima Prompt Builder metadata_prompt.",
-    settingsAutocompleteCsvName: "EasyUse Anima: Autocomplete CSV",
+    settingsAutocompleteCsvName: "Autocomplete",
     settingsAutocompleteCsvTooltip: "Select which bundled Korean Danbooru CSV powers autocomplete and tag highlighting.",
-    settingsPromptStudioName: "EasyUse Anima: Prompt Studio Highlighting",
+    settingsPromptStudioName: "Prompt Studio Highlighting",
     settingsPromptStudioTooltip: "Configure Prompt Studio typo indicators and tag highlight colors.",
-    settingsLoraSectionName: "EasyUse Anima: LoRA Preset",
-    settingsLoraDisplayName: "EasyUse Anima: LoRA Preset Display",
+    settingsLoraSectionName: "LoraPreset",
+    settingsLoraDisplayName: "LoRA display",
     settingsLoraDisplayTooltip: "Choose whether LoRA preset rows show only filenames or full relative paths.",
-    settingsNaiaSectionName: "EasyUse Anima: NAIA",
-    settingsNaiaName: "EasyUse Anima: NAIA Settings",
+    settingsNaiaSectionName: "NAIA",
+    settingsNaiaName: "NAIA settings",
     settingsNaiaTooltip: "Configure NAIA host, port, Prompt Engineering override, and preprocessing options.",
     promptMetadataTitle: "Prompt metadata",
     promptMetadataGuide: "Controls that affect generated prompt text or metadata-only output.",
@@ -168,18 +167,18 @@ const SETTINGS_TEXT = {
     saveFailed: "저장 실패",
     on: "켜짐",
     off: "꺼짐",
-    settingsPromptSectionName: "EasyUse Anima: 프롬프트",
-    settingsPromptMetadataName: "EasyUse Anima: Metadata Prompt 필터",
+    settingsPromptSectionName: "Prompt",
+    settingsPromptMetadataName: "Metadata Prompt 필터",
     settingsPromptMetadataTooltip: "Anima Prompt Builder metadata_prompt에서만 지정 태그를 제거합니다.",
-    settingsAutocompleteCsvName: "EasyUse Anima: 자동완성 CSV",
+    settingsAutocompleteCsvName: "자동완성",
     settingsAutocompleteCsvTooltip: "자동완성과 태그 하이라이트에 사용할 한국어 Danbooru CSV를 선택합니다.",
-    settingsPromptStudioName: "EasyUse Anima: Prompt Studio 하이라이트",
+    settingsPromptStudioName: "Prompt Studio 하이라이트",
     settingsPromptStudioTooltip: "Prompt Studio 오타 표시와 태그 하이라이트 색상을 설정합니다.",
-    settingsLoraSectionName: "EasyUse Anima: LoRA 프리셋",
-    settingsLoraDisplayName: "EasyUse Anima: LoRA 프리셋 표시",
+    settingsLoraSectionName: "LoraPreset",
+    settingsLoraDisplayName: "LoRA 표시",
     settingsLoraDisplayTooltip: "LoRA 프리셋 행에 파일명만 표시할지 상대 경로를 표시할지 선택합니다.",
-    settingsNaiaSectionName: "EasyUse Anima: NAIA",
-    settingsNaiaName: "EasyUse Anima: NAIA 설정",
+    settingsNaiaSectionName: "NAIA",
+    settingsNaiaName: "NAIA 설정",
     settingsNaiaTooltip: "NAIA host, port, Prompt Engineering override, 전처리 옵션을 설정합니다.",
     promptMetadataTitle: "프롬프트 메타데이터",
     promptMetadataGuide: "생성 프롬프트 텍스트 또는 metadata 전용 출력에 영향을 주는 설정입니다.",
@@ -399,47 +398,7 @@ function scheduleSettingSave(key, value, status, delay = 400) {
   );
 }
 
-function sectionHeader(title, description) {
-  const container = document.createElement("div");
-  container.style.cssText =
-    "box-sizing: border-box; max-width: 560px; padding: 10px 0 4px; border-top: 1px solid rgba(128, 128, 128, 0.28);";
-
-  const heading = document.createElement("div");
-  heading.textContent = title;
-  heading.style.cssText = "font-weight: 700; margin-bottom: 3px;";
-  container.append(heading);
-
-  if (description) {
-    const text = document.createElement("div");
-    text.textContent = description;
-    text.style.cssText = "opacity: 0.74; line-height: 1.45; font-size: 0.92em;";
-    container.append(text);
-  }
-
-  return container;
-}
-
-function appendSubsectionHeader(container, title, description = "") {
-  const header = document.createElement("div");
-  header.style.cssText = SETTINGS_SUBSECTION_STYLE;
-
-  const heading = document.createElement("div");
-  heading.textContent = title;
-  heading.style.cssText = "font-weight: 700;";
-  header.append(heading);
-
-  if (description) {
-    const text = document.createElement("div");
-    text.textContent = description;
-    text.style.cssText = "opacity: 0.72; font-size: 0.92em;";
-    header.append(text);
-  }
-
-  container.append(header);
-  return header;
-}
-
-function createSettingBlock(title, description = "") {
+function createSettingBlock(title) {
   const block = document.createElement("div");
   block.style.cssText = SETTINGS_BLOCK_STYLE;
 
@@ -448,14 +407,18 @@ function createSettingBlock(title, description = "") {
   heading.style.cssText = "font-weight: 650;";
   block.append(heading);
 
-  if (description) {
-    const text = document.createElement("div");
-    text.textContent = description;
-    text.style.cssText = "opacity: 0.7; font-size: 0.92em;";
-    block.append(text);
-  }
-
   return block;
+}
+
+function appendDescription(container, description = "") {
+  if (!description) {
+    return null;
+  }
+  const text = document.createElement("div");
+  text.textContent = description;
+  text.style.cssText = SETTINGS_DESCRIPTION_STYLE;
+  container.append(text);
+  return text;
 }
 
 function metadataFilterEditor(initialValue = "") {
@@ -463,20 +426,14 @@ function metadataFilterEditor(initialValue = "") {
   const container = document.createElement("div");
   container.style.cssText = SETTINGS_PANEL_STYLE;
 
-  appendSubsectionHeader(
-    container,
-    textFor(settings, "settingsPromptMetadataName"),
-    textFor(settings, "settingsPromptMetadataTooltip"),
-  );
-  const block = createSettingBlock(textFor(settings, "filterWords"), textFor(settings, "metadataFilterGuide"));
-
   const textarea = document.createElement("textarea");
   textarea.value = initialValue || "";
   textarea.placeholder = "best quality\nlowres\nhigh detail";
   textarea.rows = 4;
   textarea.style.cssText =
     "box-sizing: border-box; width: 100%; min-height: 86px; resize: vertical;";
-  block.append(textarea);
+  container.append(textarea);
+  appendDescription(container, textFor(settings, "metadataFilterGuide"));
 
   const current = currentValue("");
   const status = document.createElement("span");
@@ -496,8 +453,7 @@ function metadataFilterEditor(initialValue = "") {
     scheduleSettingSave("prompt.metadata_filter_words", textarea.value, status);
   });
 
-  block.append(current, status);
-  container.append(block);
+  container.append(current, status);
 
   return container;
 }
@@ -516,15 +472,7 @@ function promptStudioEditor(settings = {}) {
   const container = document.createElement("div");
   container.style.cssText = SETTINGS_PANEL_STYLE;
 
-  appendSubsectionHeader(
-    container,
-    textFor(settings, "settingsPromptStudioName"),
-    textFor(settings, "settingsPromptStudioTooltip"),
-  );
-  const behaviorBlock = createSettingBlock(
-    textFor(settings, "highlightBehavior"),
-    textFor(settings, "promptStudioGuide"),
-  );
+  const behaviorBlock = createSettingBlock(textFor(settings, "highlightBehavior"));
 
   const typoRow = document.createElement("label");
   typoRow.style.cssText = SETTINGS_ROW_STYLE;
@@ -622,6 +570,7 @@ function promptStudioEditor(settings = {}) {
   refreshCurrent();
 
   behaviorBlock.append(current);
+  appendDescription(behaviorBlock, textFor(settings, "promptStudioGuide"));
   controls.append(resetButton, status);
   colorBlock.append(controls);
   container.append(behaviorBlock, colorBlock);
@@ -633,20 +582,9 @@ function loraPresetEditor(settings = {}) {
   const container = document.createElement("div");
   container.style.cssText = SETTINGS_PANEL_STYLE;
 
-  appendSubsectionHeader(
-    container,
-    textFor(settings, "settingsLoraDisplayName"),
-    textFor(settings, "settingsLoraDisplayTooltip"),
-  );
-  const block = createSettingBlock(textFor(settings, "loraDisplay"), textFor(settings, "loraDisplayGuide"));
-
   const row = document.createElement("div");
   row.style.cssText = SETTINGS_ROW_STYLE;
 
-  const label = document.createElement("label");
-  label.style.cssText = SETTINGS_FIELD_STYLE;
-  const text = document.createElement("span");
-  text.textContent = textFor(settings, "loraDisplay");
   const select = document.createElement("select");
   select.style.cssText = SETTINGS_INPUT_STYLE;
   for (const [value, labelText] of [
@@ -659,7 +597,6 @@ function loraPresetEditor(settings = {}) {
     option.selected = (settings["lora_preset.name_display"] || "name") === value;
     select.append(option);
   }
-  label.append(text, select);
 
   const current = currentValue("");
   const status = document.createElement("span");
@@ -674,9 +611,10 @@ function loraPresetEditor(settings = {}) {
     saveSettingAndNotify("lora_preset.name_display", select.value, status).catch(() => {});
   });
 
-  row.append(label, status);
-  block.append(row, current);
-  container.append(block);
+  row.append(select, status);
+  container.append(row);
+  appendDescription(container, textFor(settings, "loraDisplayGuide"));
+  container.append(current);
   return container;
 }
 
@@ -685,12 +623,7 @@ function naiaSettingsEditor(settings = {}) {
   const container = document.createElement("div");
   container.style.cssText = SETTINGS_PANEL_STYLE;
 
-  appendSubsectionHeader(
-    container,
-    textFor(settings, "settingsNaiaName"),
-    textFor(settings, "settingsNaiaTooltip"),
-  );
-  const endpointBlock = createSettingBlock(textFor(settings, "naiaEndpoint"), textFor(settings, "naiaSettingsGuide"));
+  const endpointBlock = createSettingBlock(textFor(settings, "naiaEndpoint"));
   const promptBlock = createSettingBlock(textFor(settings, "naiaPromptEngineering"));
   const preprocessingBlock = createSettingBlock(textFor(settings, "preprocessingOptions"));
 
@@ -721,6 +654,7 @@ function naiaSettingsEditor(settings = {}) {
   portLabel.append(portText, portInput);
   endpointRow.append(hostLabel, portLabel);
   endpointBlock.append(endpointRow);
+  appendDescription(endpointBlock, textFor(settings, "naiaSettingsGuide"));
 
   const useSettingsRow = document.createElement("label");
   useSettingsRow.style.cssText = SETTINGS_ROW_STYLE;
@@ -865,13 +799,8 @@ function autocompleteDatasetSelector(initialValue = {}) {
   const container = document.createElement("div");
   container.style.cssText = SETTINGS_PANEL_STYLE;
 
-  appendSubsectionHeader(
-    container,
-    textFor(settings, "settingsAutocompleteCsvName"),
-    textFor(settings, "settingsAutocompleteCsvTooltip"),
-  );
-  const modeBlock = createSettingBlock(textFor(settings, "autocompleteMode"), textFor(settings, "autocompleteModeGuide"));
-  const csvBlock = createSettingBlock(textFor(settings, "autocompleteCsv"), textFor(settings, "autocompleteGuide"));
+  const modeBlock = createSettingBlock(textFor(settings, "autocompleteMode"));
+  const csvBlock = createSettingBlock(textFor(settings, "autocompleteCsv"));
 
   const modeRow = document.createElement("label");
   modeRow.style.cssText = "display: flex; flex-direction: column; gap: 4px; min-width: 0;";
@@ -890,6 +819,7 @@ function autocompleteDatasetSelector(initialValue = {}) {
   }
   modeRow.append(modeSelect);
   modeBlock.append(modeRow);
+  appendDescription(modeBlock, textFor(settings, "autocompleteModeGuide"));
 
   const row = document.createElement("div");
   row.style.cssText = SETTINGS_ROW_STYLE;
@@ -915,6 +845,7 @@ function autocompleteDatasetSelector(initialValue = {}) {
 
   row.append(select, limitLabel, message);
   csvBlock.append(row);
+  appendDescription(csvBlock, textFor(settings, "autocompleteGuide"));
 
   const panel = document.createElement("div");
   panel.style.cssText = "margin-top: 8px;";
@@ -1050,10 +981,7 @@ app.registerExtension({
     app.ui.settings.addSetting({
       id: "EasyUseAnima.Section.Prompt",
       name: textFor(latestSettings(), "settingsPromptSectionName"),
-      type: () => sectionHeader(
-        textFor(latestSettings(), "promptMetadataTitle"),
-        textFor(latestSettings(), "promptMetadataGuide"),
-      ),
+      type: () => document.createElement("div"),
     });
 
     app.ui.settings.addSetting({
@@ -1084,10 +1012,7 @@ app.registerExtension({
     app.ui.settings.addSetting({
       id: "EasyUseAnima.Section.LoraPreset",
       name: textFor(latestSettings(), "settingsLoraSectionName"),
-      type: () => sectionHeader(
-        textFor(latestSettings(), "loraPresetTitle"),
-        textFor(latestSettings(), "loraPresetGuide"),
-      ),
+      type: () => document.createElement("div"),
     });
 
     app.ui.settings.addSetting({
@@ -1100,10 +1025,7 @@ app.registerExtension({
     app.ui.settings.addSetting({
       id: "EasyUseAnima.Section.NAIA",
       name: textFor(latestSettings(), "settingsNaiaSectionName"),
-      type: () => sectionHeader(
-        textFor(latestSettings(), "naiaBridgeTitle"),
-        textFor(latestSettings(), "naiaBridgeGuide"),
-      ),
+      type: () => document.createElement("div"),
     });
 
     app.ui.settings.addSetting({
