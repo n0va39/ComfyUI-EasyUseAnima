@@ -929,6 +929,28 @@ class SettingsTests(unittest.TestCase):
         self.assertEqual(settings["lora_preset.name_display"], "path")
         self.assertEqual(settings["naia.port"], 8123)
 
+    def test_comfy_color_settings_merge_into_prompt_studio_colors(self):
+        with (
+            patch.object(
+                easyuse_settings,
+                "_read_json_file",
+                return_value={"prompt_studio.colors": '{"quality":"#111111"}'},
+            ),
+            patch.object(
+                easyuse_settings,
+                "_load_comfy_settings",
+                return_value={
+                    "EasyUseAnima.Prompt.HighlightColor.quality": "#222222",
+                    "EasyUseAnima.Prompt.HighlightColor.artist": "#333333",
+                },
+            ),
+        ):
+            settings = easyuse_settings.public_settings()
+
+        colors = json.loads(settings["prompt_studio.colors"])
+        self.assertEqual(colors["quality"], "#222222")
+        self.assertEqual(colors["artist"], "#333333")
+
 
 class AutocompleteDatasetTests(unittest.TestCase):
     def test_searches_english_tags_and_korean_descriptions(self):

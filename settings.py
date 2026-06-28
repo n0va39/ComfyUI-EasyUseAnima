@@ -66,6 +66,21 @@ NAIA_PREPROCESSING_KEYS = [
     "tag_implication_compression",
 ]
 
+PROMPT_STUDIO_COLOR_KEYS = [
+    "quality",
+    "safety",
+    "year",
+    "count",
+    "character",
+    "artist",
+    "copyright",
+    "general",
+    "meta",
+    "natural",
+    "artist_unknown",
+    "unknown",
+]
+
 COMFY_SETTING_KEYS = {
     "EasyUseAnima.Prompt.MetadataFilter": "prompt.metadata_filter_words",
     "EasyUseAnima.Prompt.AutocompleteSource": "autocomplete.source",
@@ -85,6 +100,11 @@ COMFY_SETTING_KEYS = {
         f"EasyUseAnima.NAIA.{key}": f"naia.{key}"
         for key in NAIA_PREPROCESSING_KEYS
     },
+}
+
+COMFY_COLOR_SETTING_KEYS = {
+    f"EasyUseAnima.Prompt.HighlightColor.{key}": key
+    for key in PROMPT_STUDIO_COLOR_KEYS
 }
 
 
@@ -125,12 +145,44 @@ def _load_comfy_settings() -> dict:
     return {}
 
 
+def _stringify_setting_value(value) -> str:
+    if value is None:
+        return ""
+    if isinstance(value, bool):
+        return "true" if value else "false"
+    return str(value)
+
+
+def _apply_prompt_studio_color_settings(settings: dict, comfy_settings: dict) -> None:
+    colors = {}
+    current = settings.get("prompt_studio.colors", "")
+    if current:
+        try:
+            parsed = json.loads(current)
+        except json.JSONDecodeError:
+            parsed = {}
+        if isinstance(parsed, dict):
+            colors.update({str(key): str(value) for key, value in parsed.items()})
+
+    changed = False
+    for comfy_key, color_key in COMFY_COLOR_SETTING_KEYS.items():
+        if comfy_key not in comfy_settings:
+            continue
+        value = _stringify_setting_value(comfy_settings[comfy_key]).strip()
+        if value:
+            colors[color_key] = value
+            changed = True
+
+    if changed:
+        settings["prompt_studio.colors"] = json.dumps(colors, ensure_ascii=False)
+
+
 def _apply_comfy_settings(settings: dict) -> dict:
     comfy_settings = _load_comfy_settings()
     for comfy_key, internal_key in COMFY_SETTING_KEYS.items():
         if comfy_key in comfy_settings and internal_key in DEFAULT_SETTINGS:
-            value = comfy_settings[comfy_key]
-            settings[internal_key] = "" if value is None else str(value)
+            settings[internal_key] = _stringify_setting_value(comfy_settings[comfy_key])
+    _apply_prompt_studio_color_settings(settings, comfy_settings)
     return settings
 
 
