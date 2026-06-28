@@ -1008,26 +1008,16 @@ app.registerExtension({
     const settings = await getSettings();
     window.__easyuseAnimaSettings = { ...settings };
     const latestSettings = () => currentSettings(settings);
-
-    app.ui.settings.addSetting({
-      id: "EasyUseAnima.Section.Prompt",
-      name: textFor(latestSettings(), "settingsPromptSectionName"),
-      type: () => promptSettingsEditor(latestSettings()),
+    const sectionSetting = (idSuffix, labelKey, editor) => ({
+      id: `EasyUseAnima.${idSuffix}.Panel`,
+      category: ["EasyUse Anima", textFor(latestSettings(), labelKey), "Panel"],
+      name: "",
+      type: () => editor(latestSettings()),
     });
 
-    app.ui.settings.addSetting({
-      id: "EasyUseAnima.Section.LoraPreset",
-      name: textFor(latestSettings(), "settingsLoraSectionName"),
-      type: () => loraPresetEditor(latestSettings()),
-      tooltip: textFor(latestSettings(), "settingsLoraDisplayTooltip"),
-    });
-
-    app.ui.settings.addSetting({
-      id: "EasyUseAnima.Section.NAIA",
-      name: textFor(latestSettings(), "settingsNaiaSectionName"),
-      type: () => naiaSettingsEditor(latestSettings()),
-      tooltip: textFor(latestSettings(), "settingsNaiaTooltip"),
-    });
+    app.ui.settings.addSetting(sectionSetting("Prompt", "settingsPromptSectionName", promptSettingsEditor));
+    app.ui.settings.addSetting(sectionSetting("LoraPreset", "settingsLoraSectionName", loraPresetEditor));
+    app.ui.settings.addSetting(sectionSetting("NAIA", "settingsNaiaSectionName", naiaSettingsEditor));
 
   },
 });
