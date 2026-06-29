@@ -868,6 +868,14 @@ function tokenBase(token) {
   return value;
 }
 
+function isPromptLineCommentStart(value, index) {
+  if (value[index] !== "#") {
+    return false;
+  }
+  const lineStart = value.lastIndexOf("\n", index - 1) + 1;
+  return /^[ \t]*$/.test(value.slice(lineStart, index));
+}
+
 function splitPromptText(text) {
   const parts = [];
   let start = 0;
@@ -886,17 +894,7 @@ function splitPromptText(text) {
       continue;
     }
 
-    if (char === "/" && value[index + 1] === "/") {
-      const nextNewLine = value.indexOf("\n", index);
-      index = nextNewLine === -1 ? value.length : nextNewLine - 1;
-      continue;
-    }
-    if (char === "/" && value[index + 1] === "*") {
-      const endOfComment = value.indexOf("*/", index + 2);
-      index = endOfComment === -1 ? value.length : endOfComment + 1;
-      continue;
-    }
-    if (char === "#") {
+    if (isPromptLineCommentStart(value, index)) {
       const nextNewLine = value.indexOf("\n", index);
       index = nextNewLine === -1 ? value.length : nextNewLine - 1;
       continue;

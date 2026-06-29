@@ -57,7 +57,7 @@ _COUNT_RE = re.compile(
 )
 _WEIGHTED_TOKEN_RE = re.compile(r"^\((.*):[-+]?\d+(?:\.\d+)?\)$")
 _DESCRIPTION_PREFIX_RE = re.compile(r"^\[([^\]]+)\]")
-_COMMENT_RE = re.compile(r"(?://[^\n]*|/\*(?:[^*]|\*(?!/))*\*/|#[^\n]*)")
+_COMMENT_RE = re.compile(r"^[ \t]*#[^\n]*", re.MULTILINE)
 
 @dataclass(frozen=True)
 class AutocompleteEntry:
@@ -202,8 +202,12 @@ def _load_entries(path: Path = AUTOCOMPLETE_CSV) -> tuple[AutocompleteEntry, ...
 
 
 def _entries(path: Path = AUTOCOMPLETE_CSV) -> tuple[AutocompleteEntry, ...]:
-    if _CACHE["entries"] is None or _CACHE["path"] != str(path):
-        mtime = path.stat().st_mtime if path.is_file() else 0
+    mtime = path.stat().st_mtime_ns if path.is_file() else 0
+    if (
+        _CACHE["entries"] is None
+        or _CACHE["path"] != str(path)
+        or _CACHE["mtime"] != mtime
+    ):
         _CACHE["path"] = str(path)
         _CACHE["mtime"] = mtime
         _CACHE["entries"] = _load_entries(path)
@@ -285,10 +289,6 @@ def _classification_tokens(token: str) -> list[tuple[str, bool, bool]]:
 
 
 def _token_section(token: str, entry: AutocompleteEntry | None) -> tuple[str, str]:
-    trimmed_token = token.strip()
-    if trimmed_token.startswith("//") or trimmed_token.startswith("#") or (trimmed_token.startswith("/*") and trimmed_token.endswith("*/")):
-        return ("comment", "주석")
-
     base = _token_base(token)
     is_artist_request = _is_artist_request(token)
     if _COUNT_RE.match(_normalize(base)):
@@ -333,7 +333,7 @@ def _token_section(token: str, entry: AutocompleteEntry | None) -> tuple[str, st
 
 def classify_prompt_text(text: str, limit: int = 240, path: Path = AUTOCOMPLETE_CSV) -> dict:
     entries = _entry_map(path)
-    tokens: list[tuple[str, bool, bool]] = []
+    tokens: list[tuple[str, bool, bool, bool]] = []
 
     last_idx = 0
     chunks = []
@@ -348,12 +348,15 @@ def classify_prompt_text(text: str, limit: int = 240, path: Path = AUTOCOMPLETE_
 
     for chunk_text, is_comment in chunks:
         if is_comment:
-            tokens.append((chunk_text, False, False))
+            tokens.append((chunk_text, False, False, True))
         else:
             normalized = str(chunk_text).replace("\r\n", "\n").replace("\r", "\n")
             normalized = normalized.replace("，", ",").replace("\n", ",")
             for token in parse_prompt(normalized, profile="prompt").tokens:
-                tokens.extend(_classification_tokens(token))
+                tokens.extend(
+                    (classified_token, weighted, syntax_error, False)
+                    for classified_token, weighted, syntax_error in _classification_tokens(token)
+                )
 
         max_limit = max(1, min(limit, 500))
         if len(tokens) >= max_limit:
@@ -361,7 +364,7 @@ def classify_prompt_text(text: str, limit: int = 240, path: Path = AUTOCOMPLETE_
             break
 
     classified = []
-    for token, weighted, syntax_error in tokens:
+    for token, weighted, syntax_error, is_comment in tokens:
         if syntax_error:
             classified.append({
                 "token": token,
@@ -372,6 +375,18 @@ def classify_prompt_text(text: str, limit: int = 240, path: Path = AUTOCOMPLETE_
                 "weighted": False,
                 "count": 0,
                 "description": "Unbalanced prompt parentheses",
+            })
+            continue
+        if is_comment:
+            classified.append({
+                "token": token,
+                "base": token.strip(),
+                "section": "comment",
+                "label": "주석",
+                "learned": False,
+                "weighted": False,
+                "count": 0,
+                "description": "",
             })
             continue
         base = _token_base(token)

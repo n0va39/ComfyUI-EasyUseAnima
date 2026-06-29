@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import os
 import shutil
 import tempfile
 import unittest
@@ -18,6 +19,8 @@ from nodes import (
     EasyUseAnimaPromptStudio,
     EasyUseAnimaPromptStudioAdvanced,
     EasyUseAnimaPromptStudioExtend,
+    _clean_prompt,
+    _prompt_tokens,
 )
 from autocomplete_dataset import (
     autocomplete_status,
@@ -1119,6 +1122,20 @@ class AutocompleteDatasetTests(unittest.TestCase):
         self.assertEqual(korean["results"][0]["category"], "character")
         self.assertEqual(status["count"], 2)
 
+    def test_autocomplete_cache_reloads_when_csv_mtime_changes(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "tags.csv"
+            path.write_text('alpha tag,0,100,"[일반] 첫 태그"\n', encoding="utf-8")
+
+            first = search_autocomplete("alpha", path=path)
+            path.write_text('beta tag,0,100,"[일반] 두 번째 태그"\n', encoding="utf-8")
+            next_mtime = path.stat().st_mtime_ns + 1_000_000_000
+            os.utime(path, ns=(next_mtime, next_mtime))
+            second = search_autocomplete("beta", path=path)
+
+        self.assertEqual(first["results"][0]["tag"], "alpha tag")
+        self.assertEqual(second["results"][0]["tag"], "beta tag")
+
     def test_can_limit_autocomplete_to_artist_tags(self):
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "tags.csv"
@@ -1215,6 +1232,36 @@ class AutocompleteDatasetTests(unittest.TestCase):
         self.assertTrue(result["tokens"][6]["weighted"])
         self.assertTrue(result["tokens"][7]["weighted"])
         self.assertFalse(result["tokens"][8]["learned"])
+
+    def test_line_start_hash_comments_are_classified_and_removed_from_prompt_tokens(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "tags.csv"
+            path.write_text('blue eyes,0,100,"[신체] 파란 눈"\n', encoding="utf-8")
+            prompt = "# memo, with comma\n1girl, blue eyes\n  # second memo"
+
+            classified = classify_prompt_text(prompt, path=path)
+
+        self.assertEqual(
+            [(token["token"], token["section"]) for token in classified["tokens"]],
+            [
+                ("# memo, with comma", "comment"),
+                ("1girl", "count"),
+                ("blue eyes", "general"),
+                ("  # second memo", "comment"),
+            ],
+        )
+        self.assertEqual(_prompt_tokens(prompt), ["1girl", "blue eyes"])
+
+    def test_inline_hash_and_slash_sequences_stay_in_prompt_text(self):
+        prompt = "1girl, # not a line comment\nhttp://example.com/ref, foo//bar"
+        classified = classify_prompt_text(prompt)
+
+        self.assertNotIn("comment", [token["section"] for token in classified["tokens"]])
+        self.assertEqual(
+            _prompt_tokens(prompt),
+            ["1girl", "# not a line comment", "http://example.com/ref", "foo//bar"],
+        )
+        self.assertEqual(_clean_prompt(prompt), prompt)
 
     def test_classifies_count_after_natural_language_sentence(self):
         result = classify_prompt_text(

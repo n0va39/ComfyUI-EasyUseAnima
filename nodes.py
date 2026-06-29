@@ -140,7 +140,6 @@ PREPROCESSING_KEYS = [
 PP_STATE_CHOICES = ["skip", "on", "off"]
 
 _HASH_COMMENT_RE = re.compile(r"^[ \t]*#[^\n]*", re.MULTILINE)
-_JS_COMMENT_RE = re.compile(r"(?://[^\n]*|/\*(?:[^*]|\*(?!/))*\*/)", re.MULTILINE)
 _MULTI_COMMA_RE = re.compile(r"(\s*,){2,}")
 _INLINE_SPACE_RE = re.compile(r"[ \t]+")
 _WEIGHTED_TOKEN_RE = re.compile(r"^\(([^(),]+):[-+]?\d+(?:\.\d+)?\)$")
@@ -252,7 +251,6 @@ def _clean_prompt(value: str) -> str:
     if not value:
         return value
     value = _HASH_COMMENT_RE.sub("", value)
-    value = _JS_COMMENT_RE.sub("", value)
     value = _MULTI_COMMA_RE.sub(",", value)
     return value.strip(" ,\n\t")
 
@@ -639,7 +637,6 @@ def _prompt_tokens(value: str) -> list[str]:
     if not value:
         return []
     cleaned_val = _HASH_COMMENT_RE.sub("", value)
-    cleaned_val = _JS_COMMENT_RE.sub("", cleaned_val)
     normalized = str(cleaned_val).replace("\r\n", "\n").replace("\r", "\n")
     normalized = normalized.replace("，", ",").replace("\n", ",")
     tokens: list[str] = []

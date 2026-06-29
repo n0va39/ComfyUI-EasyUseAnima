@@ -698,45 +698,10 @@ function renderResults(state, results) {
 }
 
 function isCaretInComment(value, caret) {
-  let inSingleLineComment = false;
-  let inBlockComment = false;
-  let escaped = false;
-
-  for (let i = 0; i < caret; i++) {
-    const char = value[i];
-    if (escaped) {
-      escaped = false;
-      continue;
-    }
-    if (char === "\\") {
-      escaped = true;
-      continue;
-    }
-    if (inSingleLineComment) {
-      if (char === "\n") {
-        inSingleLineComment = false;
-      }
-      continue;
-    }
-    if (inBlockComment) {
-      if (char === "*" && value[i + 1] === "/") {
-        inBlockComment = false;
-        i++; // '/' 스킵
-      }
-      continue;
-    }
-
-    if (char === "/" && value[i + 1] === "/") {
-      inSingleLineComment = true;
-      i++; // '/' 스킵
-    } else if (char === "/" && value[i + 1] === "*") {
-      inBlockComment = true;
-      i++; // '*' 스킵
-    } else if (char === "#") {
-      inSingleLineComment = true;
-    }
-  }
-  return inSingleLineComment || inBlockComment;
+  const text = String(value ?? "");
+  const safeCaret = Math.max(0, Math.min(Number(caret) || 0, text.length));
+  const lineStart = text.lastIndexOf("\n", safeCaret - 1) + 1;
+  return /^[ \t]*#/.test(text.slice(lineStart, safeCaret));
 }
 
 function debounce(fn, delay = 120) {
