@@ -1989,7 +1989,12 @@ class EasyUseAnimaPromptStudioAdvanced:
                     "resolution_custom_width": width,
                     "resolution_custom_height": height,
                 })
-                ui_updates.update(metadata_updates)
+                ui_updates.update({
+                    "resolution_bucket": NAIA_ADVANCED_RESOLUTION_BUCKET,
+                    "resolution_size": resolution_label,
+                    "resolution_custom_width": width,
+                    "resolution_custom_height": height,
+                })
             metadata_use_naia = False
 
         fields_json = _advanced_fields_json(saved_fields)

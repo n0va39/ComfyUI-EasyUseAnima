@@ -24,8 +24,6 @@ RELEASE_WORKFLOWS = (
     ROOT / "example_workflows" / "EasyUse_Anima_feature_test_release_en.json",
     ROOT / "example_workflows" / "Anima_AiO_v6.0_release_ko.json",
     ROOT / "example_workflows" / "Anima_AiO_v6.0_release_en.json",
-    ROOT / "docs" / "workflows" / "Anima_AiO_v6.0_release_ko.json",
-    ROOT / "docs" / "workflows" / "Anima_AiO_v6.0_release_en.json",
 )
 MOJIBAKE_LATIN1_RE = re.compile(r"[\u0080-\u00ff]")
 

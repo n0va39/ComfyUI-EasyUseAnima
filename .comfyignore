@@ -3,7 +3,6 @@ tests/
 .github/
 MAINTAINING.md
 docs/development/
-docs/workflows/
 
 # Local caches and editor/runtime artifacts.
 __pycache__/

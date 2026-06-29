@@ -31,7 +31,9 @@ This document records decisions that supersede earlier experimental notes.
 
 - Old exploratory plans can be deleted or rewritten when they conflict with current implementation decisions.
 - Keep version plans focused on the current implementation path and explicit exclusions.
-- Reference workflows under `docs/workflows/` are implementation references, not authoritative product documentation.
+- Do not keep duplicated workflow JSON under `docs/`.
+- Public workflow JSON templates live under `example_workflows/`; readable workflow documentation lives under `docs/Anima AiO/`.
+- If an old workflow JSON was used only for implementation reference, keep the relevant node ids or decisions in a plan document instead of retaining the full JSON copy.
 
 ## Version Planning
 
@@ -44,10 +46,9 @@ This document records decisions that supersede earlier experimental notes.
 
 - Public workflow templates live under `example_workflows/`.
 - Release workflow filenames must use `_release_ko` or `_release_en` before `.json`.
-- Use the same release-suffixed basename for any matching copy under `docs/workflows/`.
 - User-facing AiO workflow documentation lives under `docs/Anima AiO/`.
 - AiO documentation files use version and language in the filename, for example `Anima_AiO_v5_1_EN.html`.
-- Keep `docs/Anima AiO/` for readable workflow documentation and `docs/workflows/` for JSON workflow reference copies.
+- Keep `docs/Anima AiO/` for readable workflow documentation only.
 - AiO release workflows should use one `MarkdownNote` guide at the top of each section group.
 - Do not use plain `Note` nodes for release workflow guide text.
 - Before shipping release workflows, clear session-local preview state such as rgthree comparison image URLs and PreviewBridge temporary ids.

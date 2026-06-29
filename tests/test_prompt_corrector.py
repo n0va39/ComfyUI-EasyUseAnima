@@ -835,15 +835,85 @@ class PromptBuilderTests(unittest.TestCase):
         self.assertEqual(result["result"][8:10], (992, 768))
         self.assertFalse(workflow_prompt["9"]["inputs"]["use_naia"])
         self.assertEqual(workflow_prompt["9"]["inputs"]["resolution_bucket"], "Custom")
+        self.assertEqual(workflow_prompt["9"]["inputs"]["resolution_size"], "992 * 768 (31:24)")
         self.assertEqual(workflow_prompt["9"]["inputs"]["resolution_custom_width"], 992)
         self.assertEqual(workflow_prompt["9"]["inputs"]["resolution_custom_height"], 768)
-        self.assertEqual(payload["resolution_bucket"], "Custom")
+        self.assertTrue(payload["use_naia"])
+        self.assertEqual(payload["resolution_bucket"], "NAIA")
+        self.assertEqual(payload["resolution_size"], "992 * 768 (31:24)")
         self.assertEqual(payload["resolution_custom_width"], 992)
         self.assertEqual(payload["resolution_custom_height"], 768)
         self.assertFalse(extra_pnginfo["workflow"]["nodes"][0]["widgets_values"][0])
         self.assertEqual(extra_pnginfo["workflow"]["nodes"][0]["widgets_values"][3], "Custom")
+        self.assertEqual(extra_pnginfo["workflow"]["nodes"][0]["widgets_values"][4], "992 * 768 (31:24)")
         self.assertEqual(extra_pnginfo["workflow"]["nodes"][0]["widgets_values"][5], 992)
         self.assertEqual(extra_pnginfo["workflow"]["nodes"][0]["widgets_values"][6], 768)
+
+    def test_prompt_studio_advanced_keeps_naia_resolution_live_after_execution(self):
+        calls = []
+        responses = [
+            {
+                "ok": True,
+                "prompt": "first prompt",
+                "negative_prompt": "first negative",
+                "width": 1000,
+                "height": 777,
+            },
+            {
+                "ok": True,
+                "prompt": "second prompt",
+                "negative_prompt": "second negative",
+                "width": 1216,
+                "height": 832,
+            },
+        ]
+        settings = {
+            "host": "127.0.0.1",
+            "port": 8188,
+            "use_naia_settings": True,
+            "pre_prompt": "",
+            "post_prompt": "",
+            "auto_hide": "",
+            "preprocessing": {},
+        }
+
+        def fake_post(host, port, body):
+            calls.append((host, port, body))
+            return responses[len(calls) - 1]
+
+        with (
+            patch("nodes.resolve_naia_settings", return_value=settings),
+            patch("nodes._post_random", fake_post),
+        ):
+            first = EasyUseAnimaPromptStudioAdvanced().build(
+                True,
+                True,
+                False,
+                False,
+                "[]",
+                resolution_bucket="NAIA",
+                resolution_size="1024 * 1024 (1:1)",
+                resolution_custom_width=1024,
+                resolution_custom_height=1024,
+            )
+            first_payload = first["ui"]["prompt_studio_advanced"][0]
+            second = EasyUseAnimaPromptStudioAdvanced().build(
+                first_payload["use_naia"],
+                True,
+                False,
+                False,
+                first_payload["advanced_fields"],
+                resolution_bucket=first_payload["resolution_bucket"],
+                resolution_size=first_payload["resolution_size"],
+                resolution_custom_width=first_payload["resolution_custom_width"],
+                resolution_custom_height=first_payload["resolution_custom_height"],
+            )
+
+        self.assertEqual(len(calls), 2)
+        self.assertEqual(first["result"][8:10], (992, 768))
+        self.assertEqual(second["result"][8:10], (1216, 832))
+        self.assertEqual(first_payload["resolution_bucket"], "NAIA")
+        self.assertEqual(second["ui"]["prompt_studio_advanced"][0]["resolution_bucket"], "NAIA")
 
     def test_prompt_studio_advanced_outputs_selected_resolution(self):
         result = EasyUseAnimaPromptStudioAdvanced().build(

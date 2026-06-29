@@ -8,7 +8,6 @@ documentation, and Civitai release metadata.
 | Purpose | Korean | English |
 |---|---|---|
 | Public workflow template | `example_workflows/Anima_AiO_v6.0_release_ko.json` | `example_workflows/Anima_AiO_v6.0_release_en.json` |
-| Reference workflow copy | `docs/workflows/Anima_AiO_v6.0_release_ko.json` | `docs/workflows/Anima_AiO_v6.0_release_en.json` |
 | Civitai model name | `Anima All in One workflow` | `Anima All in One workflow` |
 | Civitai version | `v6.0_kr` | `v6.0_en` |
 | Workflow metadata id | `anima-aio-v6.0-ko` | `anima-aio-v6.0-en` |
@@ -19,7 +18,7 @@ documentation, and Civitai release metadata.
 - For v6.0, the Korean live file is treated as the layout/source base:
   `D:\ComfyUI\ComfyUI_main\user\default\workflows\Anima_AiO_v6.0_release_ko.json`
 - After manual edits, sync the release-suffixed live file into:
-  `example_workflows/` and `docs/workflows/`.
+  `example_workflows/`.
 - Build the English workflow from the final Korean workflow so node ids, links,
   layout, group bounds, and preset LoRA guide placement stay identical.
 
@@ -51,7 +50,6 @@ or language-specific titles.
   - `docs/Anima AiO/Anima_AiO_v6.0_KO.md`
   - `docs/Anima AiO/Anima_AiO_v6.0_EN.md`
 - The root `README.md` should link to the user-facing workflow guide.
-- Workflow JSON reference copies live in `docs/workflows/`.
 - Civitai copy-paste notes for v6.0 live in:
   `docs/Anima AiO/Civitai_Release_Notes_v6.0.md`
 - Civitai release notes are release-maintainer material and should not be linked
@@ -98,9 +96,8 @@ git diff --check
 
 Also verify:
 
-- `example_workflows/` and `docs/workflows/` copies match for each language.
-- Live ComfyUI workflow copies match the corresponding repo release file when
-  they are intended to be updated.
+- Live ComfyUI workflow copies match the corresponding `example_workflows/`
+  release file when they are intended to be updated.
 - Link integrity check reports zero missing links.
 - No release workflow contains `view?filename=`, `clipspace`, `data:image/`, or
   local temp paths.
@@ -109,12 +106,11 @@ Also verify:
 ## Release Procedure
 
 1. Edit and test the Korean live release workflow in ComfyUI.
-2. Copy the final Korean release workflow to `example_workflows/` and
-   `docs/workflows/`.
+2. Copy the final Korean release workflow to `example_workflows/`.
 3. Generate the English release workflow from the final Korean workflow.
 4. Translate Markdown guide node text and user-facing group/title text.
 5. Set Civitai Hash Fetcher version to `v6.0_kr` or `v6.0_en`.
 6. Validate JSON syntax, link integrity, release hygiene, and SHA256 equality
-   between synced copies.
+   between live and repo copies when live sync was performed.
 7. Update `Civitai_Release_Notes_v6.0.md` when release-facing behavior changes.
 8. Commit only intended workflow and documentation files.
