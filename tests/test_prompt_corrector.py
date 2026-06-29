@@ -35,6 +35,7 @@ from settings import (
     resolve_autocomplete_commit_key,
     resolve_autocomplete_limit,
     resolve_autocomplete_mode,
+    resolve_lora_preset_menu_mode,
     resolve_lora_preset_strength_drag_step,
 )
 
@@ -1189,6 +1190,7 @@ class SettingsTests(unittest.TestCase):
                 "autocomplete.no_comma_after_period",
                 "autocomplete.detect_natural_sentences",
                 "lora_preset.name_display",
+                "lora_preset.menu_mode",
                 "lora_preset.strength_drag_step",
                 "prompt_studio.typo_indicator",
                 "prompt_studio.comment_italic",
@@ -1260,6 +1262,20 @@ class SettingsTests(unittest.TestCase):
             0.05,
         )
 
+    def test_lora_preset_menu_mode_is_validated(self):
+        self.assertEqual(
+            resolve_lora_preset_menu_mode({"lora_preset.menu_mode": "tree"}),
+            "tree",
+        )
+        self.assertEqual(
+            resolve_lora_preset_menu_mode({"lora_preset.menu_mode": "list"}),
+            "list",
+        )
+        self.assertEqual(
+            resolve_lora_preset_menu_mode({"lora_preset.menu_mode": "bad"}),
+            "tree",
+        )
+
     def test_comfy_settings_override_legacy_settings(self):
         with (
             patch.object(easyuse_settings, "_read_json_file", return_value={}),
@@ -1275,6 +1291,7 @@ class SettingsTests(unittest.TestCase):
                     "EasyUseAnima.Prompt.TypoIndicator": "false",
                     "EasyUseAnima.Prompt.CommentItalic": "false",
                     "EasyUseAnima.LoraPreset.NameDisplay": "path",
+                    "EasyUseAnima.LoraPreset.MenuMode": "list",
                     "EasyUseAnima.LoraPreset.StrengthDragStep": "0.012",
                     "EasyUseAnima.NAIA.Port": "8123",
                 },
@@ -1290,6 +1307,7 @@ class SettingsTests(unittest.TestCase):
         self.assertEqual(settings["prompt_studio.typo_indicator"], "false")
         self.assertEqual(settings["prompt_studio.comment_italic"], "false")
         self.assertEqual(settings["lora_preset.name_display"], "path")
+        self.assertEqual(settings["lora_preset.menu_mode"], "list")
         self.assertEqual(settings["lora_preset.strength_drag_step"], 0.012)
         self.assertEqual(settings["naia.port"], 8123)
 

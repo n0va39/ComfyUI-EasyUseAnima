@@ -25,7 +25,7 @@ class LoraPresetFrontendTests(unittest.TestCase):
             const sourcePath = process.argv[1];
             let source = fs.readFileSync(sourcePath, "utf8");
             source = source.replace(/^import\s+.*;\r?\n/gm, "");
-            source += "\nglobalThis.__loraPresetTest = { LoraRowWidget, LORA_PRESET_SETTINGS };\n";
+            source += "\nglobalThis.__loraPresetTest = { LoraRowWidget, LORA_PRESET_SETTINGS, applyLoraPresetSettings, loraMenuElementValue, loraMenuItems };\n";
 
             class StubElement {
               constructor(tagName = "div") {
@@ -108,7 +108,13 @@ class LoraPresetFrontendTests(unittest.TestCase):
             vm.createContext(context);
             vm.runInContext(source, context, { filename: sourcePath });
 
-            const { LoraRowWidget, LORA_PRESET_SETTINGS } = context.__loraPresetTest;
+            const {
+              LoraRowWidget,
+              LORA_PRESET_SETTINGS,
+              applyLoraPresetSettings,
+              loraMenuElementValue,
+              loraMenuItems,
+            } = context.__loraPresetTest;
 
             function widget(name, value) {
               return { name, value };
@@ -171,6 +177,32 @@ class LoraPresetFrontendTests(unittest.TestCase):
               assert.strictEqual(row.mouse({ type: "pointerdown", button: 0 }, [250, 10], node), true);
               assert.strictEqual(row.mouse({ type: "pointermove", deltaX: 2 }, [252, 10], node), true);
               assert.strictEqual(loras(node)[0].strength, 1.02);
+            }
+
+            {
+              const items = loraMenuItems(["style/foo.safetensors", "style/x<y.safetensors"]);
+              assert.strictEqual(items[0].content, "style/foo.safetensors");
+              assert.strictEqual(items[0].value, "style/foo.safetensors");
+              assert.strictEqual(items[1].content, "style/x&lt;y.safetensors");
+
+              const badDomItem = {
+                dataset: {},
+                textContent: "[object Object]",
+                value: null,
+                __value: null,
+                getAttribute(name) {
+                  return name === "data-value" ? "[object Object]" : null;
+                },
+              };
+              assert.strictEqual(
+                loraMenuElementValue(badDomItem, "fixed/path.safetensors"),
+                "fixed/path.safetensors",
+              );
+
+              applyLoraPresetSettings({ "lora_preset.menu_mode": "list" });
+              assert.strictEqual(LORA_PRESET_SETTINGS.menuMode, "list");
+              applyLoraPresetSettings({ "lora_preset.menu_mode": "bad" });
+              assert.strictEqual(LORA_PRESET_SETTINGS.menuMode, "tree");
             }
             """
         )

@@ -21,6 +21,7 @@ DEFAULT_SETTINGS = {
     "autocomplete.no_comma_after_period": "true",
     "autocomplete.detect_natural_sentences": "true",
     "lora_preset.name_display": "name",
+    "lora_preset.menu_mode": "tree",
     "lora_preset.strength_drag_step": "0.05",
     "prompt_studio.typo_indicator": "true",
     "prompt_studio.comment_italic": "true",
@@ -108,6 +109,7 @@ COMFY_SETTING_KEYS = {
     "EasyUseAnima.Prompt.HighlightColors": "prompt_studio.colors",
     "EasyUseAnima.Prompt.NaiaGeneralAutoToggle": "prompt_studio.naia_general_above_auto_toggle",
     "EasyUseAnima.LoraPreset.NameDisplay": "lora_preset.name_display",
+    "EasyUseAnima.LoraPreset.MenuMode": "lora_preset.menu_mode",
     "EasyUseAnima.LoraPreset.StrengthDragStep": "lora_preset.strength_drag_step",
     "EasyUseAnima.NAIA.Host": "naia.host",
     "EasyUseAnima.NAIA.Port": "naia.port",
@@ -320,6 +322,7 @@ def public_settings() -> dict:
             "lora_preset.name_display",
             DEFAULT_SETTINGS["lora_preset.name_display"],
         ),
+        "lora_preset.menu_mode": resolve_lora_preset_menu_mode(settings),
         "lora_preset.strength_drag_step": resolve_lora_preset_strength_drag_step(settings),
         "prompt_studio.typo_indicator": settings.get(
             "prompt_studio.typo_indicator",
@@ -407,6 +410,17 @@ def resolve_lora_preset_strength_drag_step(settings: dict | None = None) -> floa
     except (TypeError, ValueError):
         value = float(DEFAULT_SETTINGS["lora_preset.strength_drag_step"])
     return max(0.001, min(0.2, value))
+
+
+def resolve_lora_preset_menu_mode(settings: dict | None = None) -> str:
+    settings = settings or get_settings()
+    value = str(
+        settings.get("lora_preset.menu_mode", DEFAULT_SETTINGS["lora_preset.menu_mode"])
+        or DEFAULT_SETTINGS["lora_preset.menu_mode"]
+    ).strip()
+    if value in {"tree", "list"}:
+        return value
+    return DEFAULT_SETTINGS["lora_preset.menu_mode"]
 
 
 def resolve_naia_port(settings: dict | None = None) -> int:

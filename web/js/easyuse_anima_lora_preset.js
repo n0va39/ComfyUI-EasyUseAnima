@@ -29,6 +29,7 @@ let activeProfileWheelTarget = null;
 let profileWheelListenerInstalled = false;
 const LORA_PRESET_SETTINGS = {
   nameDisplay: "name",
+  menuMode: "tree",
   strengthDragStep: DEFAULT_STRENGTH_DRAG_STEP,
 };
 const LORA_PRESET_TEXT = {
@@ -185,6 +186,8 @@ function createEl(tagName, options = {}) {
 function applyLoraPresetSettings(settings = {}) {
   const value = String(settings?.["lora_preset.name_display"] || "name");
   LORA_PRESET_SETTINGS.nameDisplay = value === "path" ? "path" : "name";
+  const menuMode = String(settings?.["lora_preset.menu_mode"] || "tree");
+  LORA_PRESET_SETTINGS.menuMode = menuMode === "list" ? "list" : "tree";
   LORA_PRESET_SETTINGS.strengthDragStep = parseStrengthDragStep(settings?.["lora_preset.strength_drag_step"]);
 }
 
@@ -913,7 +916,7 @@ function comboEntryText(value, depth = 0) {
     return "";
   }
   if (typeof value === "object") {
-    for (const key of ["value", "content", "name", "title", "text", "label"]) {
+    for (const key of ["value", "content", "name", "title", "text", "label", "path", "filename"]) {
       const text = comboEntryText(value[key], depth + 1);
       if (text && text !== "[object Object]") {
         return text;
@@ -923,12 +926,20 @@ function comboEntryText(value, depth = 0) {
   return "";
 }
 
+function validComboEntryText(value, options = {}) {
+  const text = comboEntryText(value);
+  if (!text || text === "[object Object]" || (!options.allowNone && text === "None")) {
+    return "";
+  }
+  return text;
+}
+
 function normalizeLoraNameList(values) {
   const seen = new Set();
   const names = [];
   for (const value of values || []) {
-    const text = comboEntryText(value);
-    if (!text || text === "None" || text === "[object Object]") {
+    const text = validComboEntryText(value);
+    if (!text) {
       continue;
     }
     const key = text.replace(/\\/g, "/").toLowerCase();
@@ -1497,23 +1508,45 @@ function loraDisplayName(name) {
   return text.replace(/\\/g, "/").split("/").pop() || text;
 }
 
+function escapeHtml(value) {
+  return String(value || "").replace(/[&<>"']/g, (char) => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    "\"": "&quot;",
+    "'": "&#39;",
+  })[char]);
+}
+
+function loraMenuItems(values) {
+  return (values || [])
+    .map((value) => validComboEntryText(value))
+    .filter(Boolean)
+    .map((name) => ({
+      content: escapeHtml(name),
+      value: name,
+    }));
+}
+
 async function openLoraMenu(node, event, pos, onChoose) {
   const clientPoint = menuClientPoint(node, pos, event);
   const values = await fetchLoraNameValues(node);
-  if (!values.length) {
+  const menuItems = loraMenuItems(values);
+  if (!menuItems.length) {
     window.alert(lpText("lora.noneFound"));
     return;
   }
   node.__easyuseAnimaOpeningLoraMenu = true;
   node.__easyuseAnimaLoraMenuPoint = clientPoint;
+  node.__easyuseAnimaLoraMenuValues = menuItems.map((item) => item.value);
   activeLoraMenuNode = node;
-  new LiteGraph.ContextMenu(values, {
+  new LiteGraph.ContextMenu(menuItems, {
     event: makeMenuEvent(clientPoint),
     title: lpText("lora.chooseTitle"),
     scale: Math.max(1, Number(app.canvas?.ds?.scale) || 1),
     className: "dark easyuse-anima-lora-menu",
     callback: (value) => {
-      const name = comboEntryText(value);
+      const name = validComboEntryText(value);
       if (name) {
         onChoose(loraEntryFromName(name));
       }
@@ -1586,34 +1619,88 @@ function applyLoraMenuSearch(menu, rawQuery) {
   }
 }
 
-function updateLoraMenuTree(menu, node) {
-  const items = Array.from(menu.querySelectorAll(".litemenu-entry"));
-  if (!items.length || menu.__easyuseAnimaTreeReady) {
+function loraMenuElementValue(item, fallbackValue) {
+  const candidates = [
+    item?.getAttribute?.("data-value"),
+    item?.dataset?.value,
+    item?.value,
+    item?.__value,
+    fallbackValue,
+    item?.textContent,
+  ];
+  for (const candidate of candidates) {
+    const text = validComboEntryText(candidate);
+    if (text) {
+      return text;
+    }
+  }
+  return "";
+}
+
+function addLoraMenuEntryHandlers(item, value) {
+  if (item.__easyuseAnimaPreviewValue === value) {
     return;
   }
-  menu.__easyuseAnimaTreeReady = true;
-  const folderMap = new Map();
-  const itemsSymbol = Symbol("items");
-  const splitBy = /\/|\\/;
+  item.__easyuseAnimaPreviewValue = value;
+  item.addEventListener("mouseover", (event) => showPreview(value, event), { passive: true });
+  item.addEventListener("mousemove", (event) => showPreview(value, event), { passive: true });
+  item.addEventListener("mouseout", hidePreview, { passive: true });
+}
 
-  for (const item of items) {
-    const value = String(item.getAttribute("data-value") || item.textContent || "").trim();
+function normalizeLoraMenuEntries(menu, node, options = {}) {
+  const items = Array.from(menu.querySelectorAll(".litemenu-entry"));
+  const fallbackValues = node?.__easyuseAnimaLoraMenuValues || [];
+  const splitBy = /\/|\\/;
+  const entries = [];
+
+  items.forEach((item, index) => {
+    const value = loraMenuElementValue(item, fallbackValues[index]);
     if (!value) {
-      continue;
+      item.textContent = "";
+      item.style.display = "none";
+      return;
     }
     item.setAttribute("data-value", value);
+    item.setAttribute("title", value);
     const parts = value.split(splitBy).filter(Boolean);
     item.setAttribute("data-search", normalizeSearchText([value, parts.join(" ")].join(" ")));
-    item.textContent = parts[parts.length - 1] || value;
-    if (parts.length > 1) {
+    item.textContent = options.splitDisplay ? (parts[parts.length - 1] || value) : value;
+    if (options.splitDisplay && parts.length > 1) {
       item.prepend(createEl("span", {
         className: "easyuse-anima-combo-prefix",
         textContent: `${parts.slice(0, -1).join("/")}/`,
       }));
     }
-    item.addEventListener("mouseover", (event) => showPreview(value, event), { passive: true });
-    item.addEventListener("mousemove", (event) => showPreview(value, event), { passive: true });
-    item.addEventListener("mouseout", hidePreview, { passive: true });
+    addLoraMenuEntryHandlers(item, value);
+    entries.push({ item, value, parts });
+  });
+
+  return entries;
+}
+
+function updateLoraMenuList(menu, node) {
+  if (!menu || menu.__easyuseAnimaListReady) {
+    return;
+  }
+  menu.__easyuseAnimaListReady = true;
+  normalizeLoraMenuEntries(menu, node, { splitDisplay: false });
+  ensureLoraMenuSearch(menu, node);
+  positionMenu(menu, node?.__easyuseAnimaLoraMenuPoint);
+}
+
+function updateLoraMenuTree(menu, node) {
+  if (!menu || menu.__easyuseAnimaTreeReady) {
+    return;
+  }
+  menu.__easyuseAnimaTreeReady = true;
+  const entries = normalizeLoraMenuEntries(menu, node, { splitDisplay: true });
+  if (!entries.length) {
+    return;
+  }
+  const folderMap = new Map();
+  const itemsSymbol = Symbol("items");
+
+  for (const { item, parts } of entries) {
     if (parts.length <= 1) {
       continue;
     }
@@ -1631,7 +1718,7 @@ function updateLoraMenuTree(menu, node) {
     level.get(itemsSymbol).push(item);
   }
 
-  const parent = items[0]?.parentElement || menu;
+  const parent = entries[0]?.item?.parentElement || menu;
   const insertFolders = (target, map, depth = 0) => {
     for (const [folder, content] of map.entries()) {
       if (folder === itemsSymbol) {
@@ -1666,6 +1753,14 @@ function updateLoraMenuTree(menu, node) {
   insertFolders(parent, folderMap);
   ensureLoraMenuSearch(menu, node);
   positionMenu(menu, node?.__easyuseAnimaLoraMenuPoint);
+}
+
+function updateLoraMenu(menu, node) {
+  if (LORA_PRESET_SETTINGS.menuMode === "list") {
+    updateLoraMenuList(menu, node);
+    return;
+  }
+  updateLoraMenuTree(menu, node);
 }
 
 class ProfileBarWidget {
@@ -2631,7 +2726,7 @@ app.registerExtension({
             continue;
           }
           window.requestAnimationFrame(() => {
-            updateLoraMenuTree(added, node);
+            updateLoraMenu(added, node);
             node.__easyuseAnimaOpeningLoraMenu = false;
             activeLoraMenuNode = null;
           });

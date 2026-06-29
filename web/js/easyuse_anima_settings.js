@@ -165,6 +165,8 @@ const TEXT = {
     highlightColor: "Highlight color",
     loraDisplay: "LoRA display",
     loraDisplayTip: "Choose whether LoRA preset rows show only filenames or full relative paths.",
+    loraMenuMode: "LoRA menu mode",
+    loraMenuModeTip: "Tree groups LoRAs by folder. List keeps a flat menu and can be used as a fallback if another extension corrupts tree labels.",
     loraStrength: "LoRA strength",
     loraStrengthDragStep: "Drag sensitivity",
     loraStrengthDragStepTip:
@@ -219,6 +221,8 @@ const TEXT = {
     highlightColor: "하이라이트 색상",
     loraDisplay: "LoRA 표시",
     loraDisplayTip: "LoRA 프리셋 행에 파일명만 표시할지 상대 경로를 표시할지 선택합니다.",
+    loraMenuMode: "LoRA 메뉴 방식",
+    loraMenuModeTip: "tree는 폴더별 트리로 묶습니다. list는 평면 메뉴로 유지하며 다른 확장이 트리 이름을 오염시킬 때 우회용으로 사용할 수 있습니다.",
     loraStrength: "LoRA 강도",
     loraStrengthDragStep: "드래그 민감도",
     loraStrengthDragStepTip:
@@ -268,6 +272,7 @@ const INTERNAL_KEYS = {
   "EasyUseAnima.Prompt.CommentItalic": "prompt_studio.comment_italic",
   "EasyUseAnima.Prompt.NaiaGeneralAutoToggle": "prompt_studio.naia_general_above_auto_toggle",
   "EasyUseAnima.LoraPreset.NameDisplay": "lora_preset.name_display",
+  "EasyUseAnima.LoraPreset.MenuMode": "lora_preset.menu_mode",
   "EasyUseAnima.LoraPreset.StrengthDragStep": "lora_preset.strength_drag_step",
   "EasyUseAnima.NAIA.Host": "naia.host",
   "EasyUseAnima.NAIA.Port": "naia.port",
@@ -729,6 +734,16 @@ const EASYUSE_ANIMA_SETTINGS = [
     type: "combo",
     defaultValue: "name",
     options: ["name", "path"],
+  }),
+  setting({
+    id: "EasyUseAnima.LoraPreset.MenuMode",
+    section: "LoraPreset",
+    group: t("loraDisplay"),
+    name: t("loraMenuMode"),
+    tooltip: t("loraMenuModeTip"),
+    type: "combo",
+    defaultValue: "tree",
+    options: ["tree", "list"],
   }),
   setting({
     id: "EasyUseAnima.LoraPreset.StrengthDragStep",
