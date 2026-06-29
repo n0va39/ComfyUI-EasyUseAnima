@@ -114,6 +114,18 @@ class ReleaseWorkflowTests(unittest.TestCase):
                 for link_id in negative_output["links"]:
                     self.assertEqual(links[link_id][1:3], [node["id"], 3])
 
+    def test_feature_workflow_language_variants_use_same_socket_topology(self):
+        def topology(path: Path) -> list[tuple[int, int, int, int, str]]:
+            workflow = load_workflow(path)
+            return [
+                (int(link[1]), int(link[2]), int(link[3]), int(link[4]), str(link[5]))
+                for link in workflow.get("links") or []
+                if isinstance(link, list) and len(link) >= 6
+            ]
+
+        ko_path, en_path = RELEASE_WORKFLOWS[:2]
+        self.assertEqual(topology(en_path), topology(ko_path))
+
 
 if __name__ == "__main__":
     unittest.main()

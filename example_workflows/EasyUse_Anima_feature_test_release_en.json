@@ -2,7 +2,7 @@
   "id": "87d7cb2c-9bb7-4b3f-86d6-5c66bc6d70a1",
   "revision": 0,
   "last_node_id": 12,
-  "last_link_id": 9,
+  "last_link_id": 19,
   "nodes": [
     {
       "id": 1,
@@ -25,7 +25,7 @@
         "Node name for S&R": "MarkdownNote"
       },
       "widgets_values": [
-        "## EasyUse Anima Core Node Test\n\nThis sample checks the text flow of Prompt Corrector, LoRA Preset, and Prompt Studio Advanced without loading generation models.\n\n- Queue with the sample prompt in Prompt Corrector to preview the corrected prompt and report on the right.\n- Prompt Studio receives the Corrector output as general tags and splits positive, negative, metadata, and Mod Guidance quality outputs.\n- LoRA Preset FIX works by matching filenames. The sample LoRA row is disabled by default, so queueing does not fail when the file is missing.\n\nThe `Show Text` nodes on the right are result previews. They update after queue execution.\n"
+        "## EasyUse Anima Core Node Test\n\nThis sample checks the text flow of Prompt Corrector, LoRA Preset, and Prompt Studio Advanced without loading generation models.\n\n- Queue with the sample prompt in Prompt Corrector to preview the corrected prompt and report.\n- LoRA Preset feeds style and trigger outputs into Prompt Studio Advanced.\n- Prompt Studio splits positive, negative, metadata, Mod Guidance quality, and negative Mod Guidance prompt outputs.\n- LoRA Preset FIX works by matching filenames. The sample LoRA row is disabled by default, so queueing does not fail when the file is missing.\n\nThe `Show Text` nodes on the right are result previews. They update after queue execution.\n"
       ],
       "color": "#223",
       "bgcolor": "#335"
@@ -34,19 +34,19 @@
       "id": 2,
       "type": "EasyUseAnimaPromptCorrector",
       "pos": [
-        -320,
+        -330,
         -100
       ],
       "size": [
         410,
-        430
+        430.0000000000007
       ],
       "flags": {},
       "order": 1,
       "mode": 0,
       "inputs": [
         {
-          "localized_name": "프롬프트",
+          "localized_name": "Prompt",
           "name": "prompt",
           "type": "STRING",
           "widget": {
@@ -55,7 +55,7 @@
           "link": null
         },
         {
-          "localized_name": "작가 취급 태그",
+          "localized_name": "Artist Override Tags",
           "name": "artist_overrides",
           "type": "STRING",
           "widget": {
@@ -64,7 +64,7 @@
           "link": null
         },
         {
-          "localized_name": "작가 제외 태그",
+          "localized_name": "Artist Exclusion Tags",
           "name": "artist_exclusions",
           "type": "STRING",
           "widget": {
@@ -75,20 +75,19 @@
       ],
       "outputs": [
         {
-          "localized_name": "교정된 프롬프트",
+          "localized_name": "Corrected Prompt",
           "name": "corrected_prompt",
           "type": "STRING",
           "links": [
-            1,
-            2
+            9
           ]
         },
         {
-          "localized_name": "보고서",
+          "localized_name": "Report",
           "name": "report",
           "type": "STRING",
           "links": [
-            3
+            10
           ]
         }
       ],
@@ -106,8 +105,8 @@
       "id": 3,
       "type": "EasyUseAnimaLoraPreset",
       "pos": [
-        150,
-        -100
+        130,
+        -110
       ],
       "size": [
         430,
@@ -119,7 +118,7 @@
       "inputs": [
         {
           "label": "style_prompt",
-          "localized_name": "스타일 프롬프트",
+          "localized_name": "Style Prompt",
           "name": "style_prompt",
           "type": "STRING",
           "widget": {
@@ -128,7 +127,7 @@
           "link": null
         },
         {
-          "localized_name": "프로필 인덱스",
+          "localized_name": "Profile Index",
           "name": "profile_index",
           "type": "INT",
           "widget": {
@@ -137,7 +136,7 @@
           "link": null
         },
         {
-          "localized_name": "프로필 개수",
+          "localized_name": "Profile Count",
           "name": "profile_count",
           "type": "STRING",
           "widget": {
@@ -146,7 +145,7 @@
           "link": null
         },
         {
-          "localized_name": "LoRA 이름",
+          "localized_name": "LoRA Name",
           "name": "lora_name",
           "type": "COMBO",
           "widget": {
@@ -155,7 +154,7 @@
           "link": null
         },
         {
-          "localized_name": "LoRA 목록",
+          "localized_name": "LoRA List",
           "name": "loras",
           "type": "STRING",
           "widget": {
@@ -164,7 +163,7 @@
           "link": null
         },
         {
-          "localized_name": "프로필 데이터",
+          "localized_name": "Profile Data",
           "name": "profile_data",
           "type": "STRING",
           "widget": {
@@ -180,11 +179,12 @@
       ],
       "outputs": [
         {
-          "localized_name": "스타일 프롬프트",
+          "localized_name": "Style Prompt",
           "name": "style_prompt",
           "type": "STRING",
           "links": [
-            4
+            11,
+            18
           ]
         },
         {
@@ -194,19 +194,21 @@
           "links": null
         },
         {
-          "localized_name": "트리거 워드",
+          "localized_name": "Trigger Words",
           "name": "trigger_words",
           "type": "STRING",
-          "links": null
+          "links": [
+            12
+          ]
         },
         {
-          "localized_name": "활성 LoRA",
+          "localized_name": "Active LoRAs",
           "name": "active_loras",
           "type": "STRING",
           "links": null
         },
         {
-          "localized_name": "프로필 인덱스",
+          "localized_name": "Profile Index",
           "name": "profile_index",
           "type": "INT",
           "links": null
@@ -217,56 +219,138 @@
         "Node name for S&R": "EasyUseAnimaLoraPreset"
       },
       "widgets_values": [
-        "hatsune miku, aqua hair, twintails",
+        "@artist",
         1,
         "2",
         "None",
         "[{\"name\":\"example_style_lora.safetensors\",\"on\":false,\"strength\":0.75,\"strengthTwo\":null}]",
-        "{\"1\":{\"style_prompt\":\"hatsune miku, aqua hair, twintails\",\"loras\":[{\"name\":\"example_style_lora.safetensors\",\"on\":false,\"strength\":0.75,\"strengthTwo\":null}],\"saved_name\":\"Starter\",\"saved_snapshot\":\"{\\\"style_prompt\\\":\\\"hatsune miku, aqua hair, twintails\\\",\\\"loras\\\":[{\\\"name\\\":\\\"example_style_lora.safetensors\\\",\\\"on\\\":false,\\\"strength\\\":0.75,\\\"strengthTwo\\\":null}]}\"},\"2\":{\"style_prompt\":\"\",\"loras\":[],\"saved_name\":\"Blank\",\"saved_snapshot\":\"{\\\"style_prompt\\\":\\\"\\\",\\\"loras\\\":[]}\"}}",
-        "{\"1\":{\"style_prompt\":\"hatsune miku, aqua hair, twintails\",\"loras\":[{\"name\":\"example_style_lora.safetensors\",\"on\":false,\"strength\":0.75,\"strengthTwo\":null}],\"saved_name\":\"Starter\",\"saved_snapshot\":\"{\\\"style_prompt\\\":\\\"hatsune miku, aqua hair, twintails\\\",\\\"loras\\\":[{\\\"name\\\":\\\"example_style_lora.safetensors\\\",\\\"on\\\":false,\\\"strength\\\":0.75,\\\"strengthTwo\\\":null}]}\"},\"2\":{\"style_prompt\":\"\",\"loras\":[],\"saved_name\":\"Blank\",\"saved_snapshot\":\"{\\\"style_prompt\\\":\\\"\\\",\\\"loras\\\":[]}\"}}"
+        "{\"1\":{\"style_prompt\":\"@artist\",\"loras\":[{\"name\":\"example_style_lora.safetensors\",\"on\":false,\"strength\":0.75,\"strengthTwo\":null}],\"saved_name\":\"Starter\",\"saved_snapshot\":\"{\\\"style_prompt\\\":\\\"hatsune miku, aqua hair, twintails\\\",\\\"loras\\\":[{\\\"name\\\":\\\"example_style_lora.safetensors\\\",\\\"on\\\":false,\\\"strength\\\":0.75,\\\"strengthTwo\\\":null}]}\"},\"2\":{\"style_prompt\":\"\",\"loras\":[],\"saved_name\":\"Blank\",\"saved_snapshot\":\"{\\\"style_prompt\\\":\\\"\\\",\\\"loras\\\":[]}\"}}",
+        "{\"1\":{\"style_prompt\":\"@artist\",\"loras\":[{\"name\":\"example_style_lora.safetensors\",\"on\":false,\"strength\":0.75,\"strengthTwo\":null}],\"saved_name\":\"Starter\",\"saved_snapshot\":\"{\\\"style_prompt\\\":\\\"hatsune miku, aqua hair, twintails\\\",\\\"loras\\\":[{\\\"name\\\":\\\"example_style_lora.safetensors\\\",\\\"on\\\":false,\\\"strength\\\":0.75,\\\"strengthTwo\\\":null}]}\"},\"2\":{\"style_prompt\":\"\",\"loras\":[],\"saved_name\":\"Blank\",\"saved_snapshot\":\"{\\\"style_prompt\\\":\\\"\\\",\\\"loras\\\":[]}\"}}"
       ]
     },
     {
-      "id": 4,
-      "type": "EasyUseAnimaPromptStudioAdvanced",
+      "id": 5,
+      "type": "ShowText|pysssss",
       "pos": [
-        640,
-        -100
+        -330,
+        380
       ],
       "size": [
-        560,
-        900
+        410,
+        210
       ],
       "flags": {},
       "order": 3,
       "mode": 0,
       "inputs": [
         {
-          "label": "1. 트리거",
+          "localized_name": "text",
+          "name": "text",
+          "type": "STRING",
+          "link": 9
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "STRING",
+          "name": "STRING",
+          "shape": 6,
+          "type": "STRING",
+          "links": null
+        }
+      ],
+      "title": "Corrected Prompt Preview",
+      "properties": {
+        "Node name for S&R": "ShowText|pysssss"
+      },
+      "widgets_values": [
+        "1girl, solo, hatsune miku, absurdly long hair, aqua hair, black dress, black hairband, black ribbon, blue sky, blurry, bokeh, bud, choppy bangs, clear sky, closed eyes, closed mouth, cosmos \\(flower\\), day, depth of field, dot nose, elbow gloves, embroidered dress, embroidery, facing viewer, feet out of frame, grass, hair between eyes, hair flowing over, high collar, holding bouquet, leaf, light particles, light smile, medium dress, moss, neck ribbon, overgrown, pink flower, purple flower, sidelocks, simple butterfly, sitting, striped ribbon, succulent plant, sunlight, train interior, turtleneck capelet, twintails, two-tone dress, vegetation, very long hair, white butterfly, white dress, white flower, white gloves, white thighhighs, wisteria"
+      ],
+      "color": "#232",
+      "bgcolor": "#353"
+    },
+    {
+      "id": 6,
+      "type": "ShowText|pysssss",
+      "pos": [
+        -330,
+        640
+      ],
+      "size": [
+        410,
+        220
+      ],
+      "flags": {},
+      "order": 4,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "text",
+          "name": "text",
+          "type": "STRING",
+          "link": 10
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "STRING",
+          "name": "STRING",
+          "shape": 6,
+          "type": "STRING",
+          "links": null
+        }
+      ],
+      "title": "Corrector Report Preview",
+      "properties": {
+        "Node name for S&R": "ShowText|pysssss"
+      },
+      "widgets_values": [
+        "{\n  \"changed\": true,\n  \"unknown_tags\": [\n    \"hatsune miku\",\n    \"absurdly long hair\",\n    \"aqua hair\",\n    \"black dress\",\n    \"black hairband\",\n    \"black ribbon\",\n    \"blue sky\",\n    \"blurry\",\n    \"bokeh\",\n    \"bud\",\n    \"choppy bangs\",\n    \"clear sky\",\n    \"closed eyes\",\n    \"closed mouth\",\n    \"cosmos \\\\(flower\\\\)\",\n    \"day\",\n    \"depth of field\",\n    \"dot nose\",\n    \"elbow gloves\",\n    \"embroidered dress\",\n    \"embroidery\",\n    \"facing viewer\",\n    \"feet out of frame\",\n    \"grass\",\n    \"hair between eyes\",\n    \"hair flowing over\",\n    \"high collar\",\n    \"holding bouquet\",\n    \"leaf\",\n    \"light particles\",\n    \"light smile\",\n    \"medium dress\",\n    \"moss\",\n    \"neck ribbon\",\n    \"overgrown\",\n    \"pink flower\",\n    \"purple flower\",\n    \"sidelocks\",\n    \"simple butterfly\",\n    \"sitting\",\n    \"striped ribbon\",\n    \"succulent plant\",\n    \"sunlight\",\n    \"train interior\",\n    \"turtleneck capelet\",\n    \"twintails\",\n    \"two-tone dress\",\n    \"vegetation\",\n    \"very long hair\",\n    \"white butterfly\",\n    \"white dress\",\n    \"white flower\",\n    \"white gloves\",\n    \"white thighhighs\",\n    \"wisteria\"\n  ],\n  \"duplicate_tags\": [],\n  \"warnings\": [\n    \"unknown tags: hatsune miku, absurdly long hair, aqua hair, black dress, black hairband, black ribbon, blue sky, blurry, bokeh, bud, choppy bangs, clear sky, closed eyes, closed mouth, cosmos \\\\(flower\\\\), day, depth of field, dot nose, elbow gloves, embroidered dress, embroidery, facing viewer, feet out of frame, grass, hair between eyes, hair flowing over, high collar, holding bouquet, leaf, light particles, light smile, medium dress, moss, neck ribbon, overgrown, pink flower, purple flower, sidelocks, simple butterfly, sitting, striped ribbon, succulent plant, sunlight, train interior, turtleneck capelet, twintails, two-tone dress, vegetation, very long hair, white butterfly, white dress, white flower, white gloves, white thighhighs, wisteria\"\n  ],\n  \"sections\": [\n    \"count\",\n    \"count\",\n    \"unknown\",\n    \"unknown\",\n    \"unknown\",\n    \"unknown\",\n    \"unknown\",\n    \"unknown\",\n    \"unknown\",\n    \"unknown\",\n    \"unknown\",\n    \"unknown\",\n    \"unknown\",\n    \"unknown\",\n    \"unknown\",\n    \"unknown\",\n    \"unknown\",\n    \"unknown\",\n    \"unknown\",\n    \"unknown\",\n    \"unknown\",\n    \"unknown\",\n    \"unknown\",\n    \"unknown\",\n    \"unknown\",\n    \"unknown\",\n    \"unknown\",\n    \"unknown\",\n    \"unknown\",\n    \"unknown\",\n    \"unknown\",\n    \"unknown\",\n    \"unknown\",\n    \"unknown\",\n    \"unknown\",\n    \"unknown\",\n    \"unknown\",\n    \"unknown\",\n    \"unknown\",\n    \"unknown\",\n    \"unknown\",\n    \"unknown\",\n    \"unknown\",\n    \"unknown\",\n    \"unknown\",\n    \"unknown\",\n    \"unknown\",\n    \"unknown\",\n    \"unknown\",\n    \"unknown\",\n    \"unknown\",\n    \"unknown\",\n    \"unknown\",\n    \"unknown\",\n    \"unknown\",\n    \"unknown\",\n    \"unknown\"\n  ]\n}"
+      ],
+      "color": "#2a2633",
+      "bgcolor": "#433b55"
+    },
+    {
+      "id": 4,
+      "type": "EasyUseAnimaPromptStudioAdvanced",
+      "pos": [
+        610,
+        -110
+      ],
+      "size": [
+        560,
+        950
+      ],
+      "flags": {},
+      "order": 6,
+      "mode": 0,
+      "inputs": [
+        {
+          "label": "1. Trigger - Trigger Words",
           "name": "field_positive_trigger_demo",
           "type": "STRING",
-          "link": null
+          "link": 12
         },
         {
-          "label": "2. 품질 태그",
+          "label": "2. Quality Tags",
           "name": "field_positive_quality_demo",
           "type": "STRING",
           "link": null
         },
         {
-          "label": "3. 작가 태그 - Artist/Style Tags",
+          "label": "3. Artist Tags - Artist/Style Tags",
           "name": "field_positive_artist_demo",
+          "type": "STRING",
+          "link": 11
+        },
+        {
+          "label": "4. General Tags",
+          "name": "field_positive_general_demo",
           "type": "STRING",
           "link": null
         },
         {
-          "label": "4. 일반 태그",
-          "name": "field_positive_general_demo",
-          "type": "STRING",
-          "link": 1
-        },
-        {
-          "label": "neg1. 품질 태그 - Negative Quality Tags",
+          "label": "neg1. Quality Tags - Negative Quality Tags",
           "name": "field_negative_quality_demo",
           "type": "STRING",
           "link": null
@@ -274,7 +358,8 @@
         {
           "name": "field_negative_general_demo",
           "type": "STRING",
-          "link": null
+          "link": null,
+          "label": "neg2. General - Negative General Prompt"
         }
       ],
       "outputs": [
@@ -282,28 +367,28 @@
           "name": "positive_prompt",
           "type": "STRING",
           "links": [
-            5
+            14
           ]
         },
         {
           "name": "negative_prompt",
           "type": "STRING",
           "links": [
-            6
+            15
           ]
         },
         {
           "name": "anima_mod_guidance_quality_tags",
           "type": "STRING",
           "links": [
-            7
+            16
           ]
         },
         {
           "name": "anima_mod_guidance_negative_prompt",
           "type": "STRING",
           "links": [
-            9
+            19
           ]
         },
         {
@@ -320,7 +405,7 @@
           "name": "metadata_prompt",
           "type": "STRING",
           "links": [
-            8
+            17
           ]
         },
         {
@@ -342,7 +427,7 @@
       "title": "Anima Prompt Studio Advanced",
       "properties": {
         "Node name for S&R": "EasyUseAnimaPromptStudioAdvanced",
-        "easyuse_anima_advanced_fields": "[{\"id\":\"positive_trigger_demo\",\"pane\":\"positive\",\"type\":\"trigger\",\"label\":\"Trigger Words\",\"text\":\"\",\"height\":62,\"heightMode\":\"auto\",\"enabled\":false,\"pin\":true},{\"id\":\"positive_quality_demo\",\"pane\":\"positive\",\"type\":\"quality\",\"label\":\"Quality Tags\",\"text\":\"(newest:0.6), masterpiece, best quality, (score_8:0.65), (score_7:0.7)\",\"height\":52,\"heightMode\":\"auto\",\"enabled\":true,\"pin\":false},{\"id\":\"positive_artist_demo\",\"pane\":\"positive\",\"type\":\"artist\",\"label\":\"Artist/Style Tags\",\"text\":\"\",\"height\":52,\"heightMode\":\"auto\",\"enabled\":false,\"pin\":false},{\"id\":\"positive_general_demo\",\"pane\":\"positive\",\"type\":\"general\",\"label\":\"General Tags\",\"text\":\"1girl, hatsune miku, absurdly long hair, aqua hair, black dress, black hairband, black ribbon, blue sky, blurry, bokeh, bud, choppy bangs, clear sky, closed eyes, closed mouth, cosmos \\\\(flower\\\\), day, depth of field, dot nose, elbow gloves, embroidered dress, embroidery, facing viewer, feet out of frame, grass, hair between eyes, hair flowing over, high collar, holding bouquet, leaf, light particles, light smile, medium dress, moss, neck ribbon, overgrown, pink flower, purple flower, sidelocks, simple butterfly, sitting, solo, striped ribbon, succulent plant, sunlight, train interior, turtleneck capelet, twintails, two-tone dress, vegetation, very long hair, white butterfly, white dress, white flower, white gloves, white thighhighs, wisteria\",\"height\":180,\"heightMode\":\"auto\",\"enabled\":true,\"pin\":false},{\"id\":\"negative_quality_demo\",\"pane\":\"negative\",\"type\":\"quality\",\"label\":\"Negative Quality Tags\",\"text\":\"worst quality, low quality, score_1, score_2, score_3\",\"height\":84,\"heightMode\":\"auto\",\"enabled\":true,\"pin\":false},{\"id\":\"negative_general_demo\",\"pane\":\"negative\",\"type\":\"general\",\"label\":\"Negative General Prompt\",\"text\":\"blurry, watermark, text, bad anatomy\",\"height\":72,\"heightMode\":\"auto\",\"enabled\":true,\"pin\":false}]"
+        "easyuse_anima_advanced_fields": "[{\"id\":\"positive_trigger_demo\",\"pane\":\"positive\",\"type\":\"trigger\",\"label\":\"Trigger Words\",\"text\":\"\",\"height\":62,\"heightMode\":\"auto\",\"enabled\":false,\"pin\":true},{\"id\":\"positive_quality_demo\",\"pane\":\"positive\",\"type\":\"quality\",\"label\":\"Quality Tags\",\"text\":\"(newest:0.6), masterpiece, best quality, (score_8:0.65), (score_7:0.7)\",\"height\":52,\"heightMode\":\"auto\",\"enabled\":true,\"pin\":false},{\"id\":\"positive_artist_demo\",\"pane\":\"positive\",\"type\":\"artist\",\"label\":\"Artist/Style Tags\",\"text\":\"@artist\",\"height\":52,\"heightMode\":\"auto\",\"enabled\":false,\"pin\":false},{\"id\":\"positive_general_demo\",\"pane\":\"positive\",\"type\":\"general\",\"label\":\"General Tags\",\"text\":\"1girl, hatsune miku, absurdly long hair, aqua hair, black dress, black hairband, black ribbon, blue sky, blurry, bokeh, bud, choppy bangs, clear sky, closed eyes, closed mouth, cosmos \\\\(flower\\\\), day, depth of field, dot nose, elbow gloves, embroidered dress, embroidery, facing viewer, feet out of frame, grass, hair between eyes, hair flowing over, high collar, holding bouquet, leaf, light particles, light smile, medium dress, moss, neck ribbon, overgrown, pink flower, purple flower, sidelocks, simple butterfly, sitting, solo, striped ribbon, succulent plant, sunlight, train interior, turtleneck capelet, twintails, two-tone dress, vegetation, very long hair, white butterfly, white dress, white flower, white gloves, white thighhighs, wisteria\",\"height\":180,\"heightMode\":\"auto\",\"enabled\":true,\"pin\":false},{\"id\":\"negative_quality_demo\",\"pane\":\"negative\",\"type\":\"quality\",\"label\":\"Negative Quality Tags\",\"text\":\"worst quality, low quality, score_1, score_2, score_3\",\"height\":84,\"heightMode\":\"auto\",\"enabled\":true,\"pin\":false},{\"id\":\"negative_general_demo\",\"pane\":\"negative\",\"type\":\"general\",\"label\":\"Negative General Prompt\",\"text\":\"blurry, watermark, text, bad anatomy\",\"height\":72,\"heightMode\":\"auto\",\"enabled\":true,\"pin\":false}]"
       },
       "widgets_values": [
         false,
@@ -353,138 +438,15 @@
         1024,
         1024,
         false,
-        "[{\"id\":\"positive_trigger_demo\",\"pane\":\"positive\",\"type\":\"trigger\",\"label\":\"Trigger Words\",\"text\":\"\",\"height\":62,\"heightMode\":\"auto\",\"enabled\":false,\"pin\":true},{\"id\":\"positive_quality_demo\",\"pane\":\"positive\",\"type\":\"quality\",\"label\":\"Quality Tags\",\"text\":\"(newest:0.6), masterpiece, best quality, (score_8:0.65), (score_7:0.7)\",\"height\":52,\"heightMode\":\"auto\",\"enabled\":true,\"pin\":false},{\"id\":\"positive_artist_demo\",\"pane\":\"positive\",\"type\":\"artist\",\"label\":\"Artist/Style Tags\",\"text\":\"\",\"height\":52,\"heightMode\":\"auto\",\"enabled\":false,\"pin\":false},{\"id\":\"positive_general_demo\",\"pane\":\"positive\",\"type\":\"general\",\"label\":\"General Tags\",\"text\":\"1girl, hatsune miku, absurdly long hair, aqua hair, black dress, black hairband, black ribbon, blue sky, blurry, bokeh, bud, choppy bangs, clear sky, closed eyes, closed mouth, cosmos \\\\(flower\\\\), day, depth of field, dot nose, elbow gloves, embroidered dress, embroidery, facing viewer, feet out of frame, grass, hair between eyes, hair flowing over, high collar, holding bouquet, leaf, light particles, light smile, medium dress, moss, neck ribbon, overgrown, pink flower, purple flower, sidelocks, simple butterfly, sitting, solo, striped ribbon, succulent plant, sunlight, train interior, turtleneck capelet, twintails, two-tone dress, vegetation, very long hair, white butterfly, white dress, white flower, white gloves, white thighhighs, wisteria\",\"height\":180,\"heightMode\":\"auto\",\"enabled\":true,\"pin\":false},{\"id\":\"negative_quality_demo\",\"pane\":\"negative\",\"type\":\"quality\",\"label\":\"Negative Quality Tags\",\"text\":\"worst quality, low quality, score_1, score_2, score_3\",\"height\":84,\"heightMode\":\"auto\",\"enabled\":true,\"pin\":false},{\"id\":\"negative_general_demo\",\"pane\":\"negative\",\"type\":\"general\",\"label\":\"Negative General Prompt\",\"text\":\"blurry, watermark, text, bad anatomy\",\"height\":72,\"heightMode\":\"auto\",\"enabled\":true,\"pin\":false}]",
+        "[{\"id\":\"positive_trigger_demo\",\"pane\":\"positive\",\"type\":\"trigger\",\"label\":\"Trigger Words\",\"text\":\"\",\"height\":62,\"heightMode\":\"auto\",\"enabled\":false,\"pin\":true},{\"id\":\"positive_quality_demo\",\"pane\":\"positive\",\"type\":\"quality\",\"label\":\"Quality Tags\",\"text\":\"(newest:0.6), masterpiece, best quality, (score_8:0.65), (score_7:0.7)\",\"height\":52,\"heightMode\":\"auto\",\"enabled\":true,\"pin\":false},{\"id\":\"positive_artist_demo\",\"pane\":\"positive\",\"type\":\"artist\",\"label\":\"Artist/Style Tags\",\"text\":\"@artist\",\"height\":52,\"heightMode\":\"auto\",\"enabled\":false,\"pin\":false},{\"id\":\"positive_general_demo\",\"pane\":\"positive\",\"type\":\"general\",\"label\":\"General Tags\",\"text\":\"1girl, hatsune miku, absurdly long hair, aqua hair, black dress, black hairband, black ribbon, blue sky, blurry, bokeh, bud, choppy bangs, clear sky, closed eyes, closed mouth, cosmos \\\\(flower\\\\), day, depth of field, dot nose, elbow gloves, embroidered dress, embroidery, facing viewer, feet out of frame, grass, hair between eyes, hair flowing over, high collar, holding bouquet, leaf, light particles, light smile, medium dress, moss, neck ribbon, overgrown, pink flower, purple flower, sidelocks, simple butterfly, sitting, solo, striped ribbon, succulent plant, sunlight, train interior, turtleneck capelet, twintails, two-tone dress, vegetation, very long hair, white butterfly, white dress, white flower, white gloves, white thighhighs, wisteria\",\"height\":180,\"heightMode\":\"auto\",\"enabled\":true,\"pin\":false},{\"id\":\"negative_quality_demo\",\"pane\":\"negative\",\"type\":\"quality\",\"label\":\"Negative Quality Tags\",\"text\":\"worst quality, low quality, score_1, score_2, score_3\",\"height\":84,\"heightMode\":\"auto\",\"enabled\":true,\"pin\":false},{\"id\":\"negative_general_demo\",\"pane\":\"negative\",\"type\":\"general\",\"label\":\"Negative General Prompt\",\"text\":\"blurry, watermark, text, bad anatomy\",\"height\":72,\"heightMode\":\"auto\",\"enabled\":true,\"pin\":false}]",
         true
       ]
-    },
-    {
-      "id": 5,
-      "type": "ShowText|pysssss",
-      "pos": [
-        1240,
-        -100
-      ],
-      "size": [
-        460,
-        190
-      ],
-      "flags": {},
-      "order": 4,
-      "mode": 0,
-      "inputs": [
-        {
-          "localized_name": "text",
-          "name": "text",
-          "type": "STRING",
-          "link": 2
-        }
-      ],
-      "outputs": [
-        {
-          "localized_name": "문자열",
-          "name": "STRING",
-          "shape": 6,
-          "type": "STRING",
-          "links": null
-        }
-      ],
-      "title": "Corrected Prompt Preview",
-      "properties": {
-        "Node name for S&R": "ShowText|pysssss"
-      },
-      "widgets_values": [
-        "1girl, solo, hatsune miku, absurdly long hair, aqua hair, black dress, black hairband, black ribbon, blue sky, blurry, bokeh, bud, choppy bangs, clear sky, closed eyes, closed mouth, cosmos \\(flower\\), day, depth of field, dot nose, elbow gloves, embroidered dress, embroidery, facing viewer, feet out of frame, grass, hair between eyes, hair flowing over, high collar, holding bouquet, leaf, light particles, light smile, medium dress, moss, neck ribbon, overgrown, pink flower, purple flower, sidelocks, simple butterfly, sitting, striped ribbon, succulent plant, sunlight, train interior, turtleneck capelet, twintails, two-tone dress, vegetation, very long hair, white butterfly, white dress, white flower, white gloves, white thighhighs, wisteria"
-      ],
-      "color": "#232",
-      "bgcolor": "#353"
-    },
-    {
-      "id": 6,
-      "type": "ShowText|pysssss",
-      "pos": [
-        1240,
-        120
-      ],
-      "size": [
-        460,
-        210
-      ],
-      "flags": {},
-      "order": 5,
-      "mode": 0,
-      "inputs": [
-        {
-          "localized_name": "text",
-          "name": "text",
-          "type": "STRING",
-          "link": 3
-        }
-      ],
-      "outputs": [
-        {
-          "localized_name": "문자열",
-          "name": "STRING",
-          "shape": 6,
-          "type": "STRING",
-          "links": null
-        }
-      ],
-      "title": "Corrector Report Preview",
-      "properties": {
-        "Node name for S&R": "ShowText|pysssss"
-      },
-      "widgets_values": [
-        "{\n  \"changed\": true,\n  \"unknown_tags\": [\n    \"hatsune miku\",\n    \"absurdly long hair\",\n    \"aqua hair\",\n    \"black dress\",\n    \"black hairband\",\n    \"black ribbon\",\n    \"blue sky\",\n    \"blurry\",\n    \"bokeh\",\n    \"bud\",\n    \"choppy bangs\",\n    \"clear sky\",\n    \"closed eyes\",\n    \"closed mouth\",\n    \"cosmos \\\\(flower\\\\)\",\n    \"day\",\n    \"depth of field\",\n    \"dot nose\",\n    \"elbow gloves\",\n    \"embroidered dress\",\n    \"embroidery\",\n    \"facing viewer\",\n    \"feet out of frame\",\n    \"grass\",\n    \"hair between eyes\",\n    \"hair flowing over\",\n    \"high collar\",\n    \"holding bouquet\",\n    \"leaf\",\n    \"light particles\",\n    \"light smile\",\n    \"medium dress\",\n    \"moss\",\n    \"neck ribbon\",\n    \"overgrown\",\n    \"pink flower\",\n    \"purple flower\",\n    \"sidelocks\",\n    \"simple butterfly\",\n    \"sitting\",\n    \"striped ribbon\",\n    \"succulent plant\",\n    \"sunlight\",\n    \"train interior\",\n    \"turtleneck capelet\",\n    \"twintails\",\n    \"two-tone dress\",\n    \"vegetation\",\n    \"very long hair\",\n    \"white butterfly\",\n    \"white dress\",\n    \"white flower\",\n    \"white gloves\",\n    \"white thighhighs\",\n    \"wisteria\"\n  ],\n  \"duplicate_tags\": [],\n  \"warnings\": [\n    \"unknown tags: hatsune miku, absurdly long hair, aqua hair, black dress, black hairband, black ribbon, blue sky, blurry, bokeh, bud, choppy bangs, clear sky, closed eyes, closed mouth, cosmos \\\\(flower\\\\), day, depth of field, dot nose, elbow gloves, embroidered dress, embroidery, facing viewer, feet out of frame, grass, hair between eyes, hair flowing over, high collar, holding bouquet, leaf, light particles, light smile, medium dress, moss, neck ribbon, overgrown, pink flower, purple flower, sidelocks, simple butterfly, sitting, striped ribbon, succulent plant, sunlight, train interior, turtleneck capelet, twintails, two-tone dress, vegetation, very long hair, white butterfly, white dress, white flower, white gloves, white thighhighs, wisteria\"\n  ],\n  \"sections\": [\n    \"count\",\n    \"count\",\n    \"unknown\",\n    \"unknown\",\n    \"unknown\",\n    \"unknown\",\n    \"unknown\",\n    \"unknown\",\n    \"unknown\",\n    \"unknown\",\n    \"unknown\",\n    \"unknown\",\n    \"unknown\",\n    \"unknown\",\n    \"unknown\",\n    \"unknown\",\n    \"unknown\",\n    \"unknown\",\n    \"unknown\",\n    \"unknown\",\n    \"unknown\",\n    \"unknown\",\n    \"unknown\",\n    \"unknown\",\n    \"unknown\",\n    \"unknown\",\n    \"unknown\",\n    \"unknown\",\n    \"unknown\",\n    \"unknown\",\n    \"unknown\",\n    \"unknown\",\n    \"unknown\",\n    \"unknown\",\n    \"unknown\",\n    \"unknown\",\n    \"unknown\",\n    \"unknown\",\n    \"unknown\",\n    \"unknown\",\n    \"unknown\",\n    \"unknown\",\n    \"unknown\",\n    \"unknown\",\n    \"unknown\",\n    \"unknown\",\n    \"unknown\",\n    \"unknown\",\n    \"unknown\",\n    \"unknown\",\n    \"unknown\",\n    \"unknown\",\n    \"unknown\",\n    \"unknown\",\n    \"unknown\",\n    \"unknown\",\n    \"unknown\"\n  ]\n}"
-      ],
-      "color": "#2a2633",
-      "bgcolor": "#433b55"
-    },
-    {
-      "id": 7,
-      "type": "ShowText|pysssss",
-      "pos": [
-        1240,
-        360
-      ],
-      "size": [
-        460,
-        100
-      ],
-      "flags": {},
-      "order": 6,
-      "mode": 0,
-      "inputs": [
-        {
-          "localized_name": "text",
-          "name": "text",
-          "type": "STRING",
-          "link": 4
-        }
-      ],
-      "outputs": [
-        {
-          "localized_name": "문자열",
-          "name": "STRING",
-          "shape": 6,
-          "type": "STRING",
-          "links": null
-        }
-      ],
-      "title": "LoRA Preset Style Output",
-      "properties": {
-        "Node name for S&R": "ShowText|pysssss"
-      },
-      "widgets_values": [
-        "hatsune miku, aqua hair, twintails"
-      ],
-      "color": "#3f3f46",
-      "bgcolor": "#52525b"
     },
     {
       "id": 8,
       "type": "ShowText|pysssss",
       "pos": [
-        1740,
+        1220,
         -100
       ],
       "size": [
@@ -499,12 +461,12 @@
           "localized_name": "text",
           "name": "text",
           "type": "STRING",
-          "link": 5
+          "link": 14
         }
       ],
       "outputs": [
         {
-          "localized_name": "문자열",
+          "localized_name": "STRING",
           "name": "STRING",
           "shape": 6,
           "type": "STRING",
@@ -525,8 +487,8 @@
       "id": 9,
       "type": "ShowText|pysssss",
       "pos": [
-        1740,
-        180
+        1220,
+        200
       ],
       "size": [
         500,
@@ -540,12 +502,12 @@
           "localized_name": "text",
           "name": "text",
           "type": "STRING",
-          "link": 6
+          "link": 15
         }
       ],
       "outputs": [
         {
-          "localized_name": "문자열",
+          "localized_name": "STRING",
           "name": "STRING",
           "shape": 6,
           "type": "STRING",
@@ -566,8 +528,8 @@
       "id": 10,
       "type": "ShowText|pysssss",
       "pos": [
-        1740,
-        340
+        1220,
+        380
       ],
       "size": [
         500,
@@ -581,12 +543,12 @@
           "localized_name": "text",
           "name": "text",
           "type": "STRING",
-          "link": 7
+          "link": 16
         }
       ],
       "outputs": [
         {
-          "localized_name": "문자열",
+          "localized_name": "STRING",
           "name": "STRING",
           "shape": 6,
           "type": "STRING",
@@ -607,8 +569,8 @@
       "id": 11,
       "type": "ShowText|pysssss",
       "pos": [
-        1740,
-        640
+        1220,
+        700
       ],
       "size": [
         500,
@@ -622,12 +584,12 @@
           "localized_name": "text",
           "name": "text",
           "type": "STRING",
-          "link": 8
+          "link": 17
         }
       ],
       "outputs": [
         {
-          "localized_name": "문자열",
+          "localized_name": "STRING",
           "name": "STRING",
           "shape": 6,
           "type": "STRING",
@@ -645,11 +607,52 @@
       "bgcolor": "#374151"
     },
     {
+      "id": 7,
+      "type": "ShowText|pysssss",
+      "pos": [
+        130,
+        320
+      ],
+      "size": [
+        430,
+        110
+      ],
+      "flags": {},
+      "order": 5,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "text",
+          "name": "text",
+          "type": "STRING",
+          "link": 18
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "STRING",
+          "name": "STRING",
+          "shape": 6,
+          "type": "STRING",
+          "links": null
+        }
+      ],
+      "title": "LoRA Preset Style Output",
+      "properties": {
+        "Node name for S&R": "ShowText|pysssss"
+      },
+      "widgets_values": [
+        "@artist"
+      ],
+      "color": "#3f3f46",
+      "bgcolor": "#52525b"
+    },
+    {
       "id": 12,
       "type": "ShowText|pysssss",
       "pos": [
-        1740,
-        490
+        1220,
+        530
       ],
       "size": [
         500,
@@ -663,12 +666,12 @@
           "localized_name": "text",
           "name": "text",
           "type": "STRING",
-          "link": 9
+          "link": 19
         }
       ],
       "outputs": [
         {
-          "localized_name": "문자열",
+          "localized_name": "STRING",
           "name": "STRING",
           "shape": 6,
           "type": "STRING",
@@ -688,15 +691,7 @@
   ],
   "links": [
     [
-      1,
-      2,
-      0,
-      4,
-      3,
-      "STRING"
-    ],
-    [
-      2,
+      9,
       2,
       0,
       5,
@@ -704,7 +699,7 @@
       "STRING"
     ],
     [
-      3,
+      10,
       2,
       1,
       6,
@@ -712,15 +707,23 @@
       "STRING"
     ],
     [
-      4,
+      11,
       3,
       0,
-      7,
+      4,
+      2,
+      "STRING"
+    ],
+    [
+      12,
+      3,
+      2,
+      4,
       0,
       "STRING"
     ],
     [
-      5,
+      14,
       4,
       0,
       8,
@@ -728,7 +731,7 @@
       "STRING"
     ],
     [
-      6,
+      15,
       4,
       1,
       9,
@@ -736,7 +739,7 @@
       "STRING"
     ],
     [
-      7,
+      16,
       4,
       2,
       10,
@@ -744,7 +747,7 @@
       "STRING"
     ],
     [
-      8,
+      17,
       4,
       6,
       11,
@@ -752,7 +755,15 @@
       "STRING"
     ],
     [
-      9,
+      18,
+      3,
+      0,
+      7,
+      0,
+      "STRING"
+    ],
+    [
+      19,
       4,
       3,
       12,
@@ -777,10 +788,10 @@
       "id": 2,
       "title": "Prompt Corrector",
       "bounding": [
-        -340,
+        -350,
         -190,
         450,
-        560
+        1080
       ],
       "color": "#475569",
       "flags": {}
@@ -789,10 +800,10 @@
       "id": 3,
       "title": "LoRA Preset",
       "bounding": [
-        130,
+        110,
         -190,
         470,
-        750
+        650
       ],
       "color": "#3f3f46",
       "flags": {}
@@ -801,7 +812,7 @@
       "id": 4,
       "title": "Prompt Studio",
       "bounding": [
-        620,
+        590,
         -190,
         600,
         1040
@@ -813,10 +824,10 @@
       "id": 5,
       "title": "Result Preview",
       "bounding": [
-        1220,
+        1200,
         -190,
-        1040,
-        1040
+        530,
+        1050
       ],
       "color": "#164e63",
       "flags": {}
@@ -830,7 +841,7 @@
       "scale": 1,
       "offset": [
         980,
-        200
+        210
       ]
     },
     "easyuse_anima_workflow": {
