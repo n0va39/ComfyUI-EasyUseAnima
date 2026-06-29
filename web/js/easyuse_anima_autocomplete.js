@@ -725,6 +725,14 @@ function insertSuffixForAfter(after, appendSeparator = false) {
   return ", ";
 }
 
+function existingSeparatorCaretOffset(after, appendSeparator = false) {
+  if (!appendSeparator) {
+    return 0;
+  }
+  const match = /^,[ \t]+/.exec(String(after || ""));
+  return match ? match[0].length : 0;
+}
+
 function replaceInputRange(input, start, end, replacement, caretOffset) {
   input.focus?.();
   input.setSelectionRange(start, end);
@@ -749,7 +757,9 @@ function commitSuggestion(state, entry) {
   const prefix = insertPrefixForBefore(before);
   const suffix = insertSuffixForAfter(after, autocompleteAppendSeparator);
   const replacement = `${prefix}${insert}${suffix}`;
-  const caretOffset = prefix.length + insert.length + (!after ? suffix.length : 0);
+  const caretOffset = prefix.length
+    + insert.length
+    + (!after ? suffix.length : existingSeparatorCaretOffset(after, autocompleteAppendSeparator));
   replaceInputRange(state.input, token.start, token.end, replacement, caretOffset);
   if (state.widget) {
     state.widget.value = state.input.value;
