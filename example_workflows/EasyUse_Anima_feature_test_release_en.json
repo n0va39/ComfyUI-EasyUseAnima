@@ -1,5 +1,5 @@
 {
-  "id": "7c6b1f2e-4d19-4f0f-a18e-9ec6b7b64c01",
+  "id": "87d7cb2c-9bb7-4b3f-86d6-5c66bc6d70a1",
   "revision": 0,
   "last_node_id": 11,
   "last_link_id": 18,
@@ -20,12 +20,12 @@
       "mode": 0,
       "inputs": [],
       "outputs": [],
-      "title": "핵심 노드 테스트 가이드",
+      "title": "Core Node Test Guide",
       "properties": {
         "Node name for S&R": "MarkdownNote"
       },
       "widgets_values": [
-        "## EasyUse Anima 핵심 노드 테스트\n\n모델 로딩 없이 Prompt Corrector, LoRA Preset, Prompt Studio Advanced의 텍스트 처리 흐름을 확인하는 샘플입니다.\n\n- Prompt Corrector에 예시 프롬프트를 넣고 queue하면 보정 프롬프트와 리포트가 오른쪽에 표시됩니다.\n- Prompt Studio는 Corrector 출력을 일반 태그 입력으로 받아 positive, negative, metadata, Mod Guidance quality를 분리해 출력합니다.\n- LoRA Preset은 파일명이 맞아야 FIX가 가능합니다. 예시 LoRA row는 기본 비활성이라 모델 파일이 없어도 queue가 실패하지 않습니다.\n\n오른쪽 `Show Text` 노드는 결과 미리보기용입니다. queue 후 실제 출력값으로 갱신됩니다.\n"
+        "## EasyUse Anima Core Node Test\n\nThis sample checks the text flow of Prompt Corrector, LoRA Preset, and Prompt Studio Advanced without loading generation models.\n\n- Queue with the sample prompt in Prompt Corrector to preview the corrected prompt and report on the right.\n- Prompt Studio receives the Corrector output as general tags and splits positive, negative, metadata, and Mod Guidance quality outputs.\n- LoRA Preset FIX works only when the filename matches. The sample LoRA row is disabled by default, so queueing does not fail when the file is missing.\n\nThe `Show Text` nodes on the right are result previews. They update with actual output values after queue execution.\n"
       ],
       "color": "#223",
       "bgcolor": "#335"
@@ -731,7 +731,7 @@
   "groups": [
     {
       "id": 1,
-      "title": "가이드",
+      "title": "Guide",
       "bounding": [
         -900,
         -190,
@@ -802,15 +802,15 @@
       ]
     },
     "easyuse_anima_workflow": {
-      "workflow_id": "easyuse-anima-core-feature-test-ko",
-      "name": "EasyUse Anima 핵심 노드 테스트",
-      "language": "ko",
+      "workflow_id": "easyuse-anima-core-feature-test-en",
+      "name": "EasyUse Anima Core Node Test",
+      "language": "en",
       "kind": "feature-test-workflow",
       "package": "comfyui-easyuse-anima",
       "package_version": "0.1.7",
       "registry_folder": "example_workflows",
-      "release_filename": "EasyUse_Anima_feature_test_release_ko.json",
-      "release_suffix": "_release_ko",
+      "release_filename": "EasyUse_Anima_feature_test_release_en.json",
+      "release_suffix": "_release_en",
       "live_sync_policy": "overwrite release-suffixed copies only; never overwrite user-edited working filenames",
       "scope": "core-ui-nodes-with-text-previews",
       "preview_node_dependency": "ComfyUI-Custom-Scripts / ShowText|pysssss"
