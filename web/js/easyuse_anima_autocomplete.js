@@ -63,10 +63,15 @@ const GENERIC_NODE_PATTERNS = [
 const DEFAULT_MAX_RESULTS = 20;
 const MAX_RESULT_LIMIT = 100;
 const DEFAULT_AUTOCOMPLETE_MODE = "compatible_global";
+const DEFAULT_AUTOCOMPLETE_COMMIT_KEY = "enter";
 const AUTOCOMPLETE_MODES = new Set([
   "off",
   "easyuse_nodes",
   "compatible_global",
+]);
+const AUTOCOMPLETE_COMMIT_KEYS = new Set([
+  "enter",
+  "tab",
 ]);
 const AUTOCOMPLETE_TEXT = {
   en: {
@@ -93,6 +98,8 @@ const cache = new Map();
 
 let maxResults = DEFAULT_MAX_RESULTS;
 let autocompleteMode = DEFAULT_AUTOCOMPLETE_MODE;
+let autocompleteCommitKey = DEFAULT_AUTOCOMPLETE_COMMIT_KEY;
+let autocompleteAppendSeparator = false;
 let popup = null;
 let activeState = null;
 let activeRefreshFrame = null;
@@ -113,6 +120,19 @@ function clampMaxResults(value) {
 function normalizeAutocompleteMode(value) {
   const normalized = String(value || "").trim();
   return AUTOCOMPLETE_MODES.has(normalized) ? normalized : DEFAULT_AUTOCOMPLETE_MODE;
+}
+
+function normalizeAutocompleteCommitKey(value) {
+  const normalized = String(value || "").trim();
+  return AUTOCOMPLETE_COMMIT_KEYS.has(normalized) ? normalized : DEFAULT_AUTOCOMPLETE_COMMIT_KEY;
+}
+
+function setAutocompleteCommitKey(value) {
+  autocompleteCommitKey = normalizeAutocompleteCommitKey(value);
+}
+
+function setAutocompleteAppendSeparator(value) {
+  autocompleteAppendSeparator = value === true || String(value || "").trim().toLowerCase() === "true";
 }
 
 function autocompleteText(key) {
@@ -188,6 +208,8 @@ async function refreshAutocompleteSettings() {
       cache.clear();
     }
     setAutocompleteMode(settings["autocomplete.mode"]);
+    setAutocompleteCommitKey(settings["autocomplete.commit_key"]);
+    setAutocompleteAppendSeparator(settings["autocomplete.append_separator"]);
   } catch {
     // Keep the built-in default if settings cannot be read.
   }
@@ -582,9 +604,9 @@ function commitSuggestion(state, entry) {
   const after = token.value.slice(token.end);
   const insert = completionText(token, entry, state.forceArtistOnly);
   const prefix = normalizeInsertPrefix(before);
-  const suffix = normalizeInsertSuffix(after);
+  const suffix = normalizeInsertSuffix(after, autocompleteAppendSeparator);
   state.input.value = `${prefix}${insert}${suffix}`;
-  const caret = prefix.length + insert.length;
+  const caret = prefix.length + insert.length + (!after && autocompleteAppendSeparator ? suffix.length : 0);
   state.input.setSelectionRange(caret, caret);
   state.input.dispatchEvent(new Event("input", { bubbles: true }));
   if (state.widget) {
@@ -634,9 +656,9 @@ function normalizeInsertPrefix(before) {
   return `${before}, `;
 }
 
-function normalizeInsertSuffix(after) {
+function normalizeInsertSuffix(after, appendSeparator = false) {
   if (!after) {
-    return "";
+    return appendSeparator ? ", " : "";
   }
   if (after.startsWith("\n")) {
     return after;
@@ -811,13 +833,19 @@ function hookInput(input, options = {}) {
     if (!activeState || activeState.input !== input) {
       return;
     }
+    if (event.key === "Enter" && event.shiftKey) {
+      return;
+    }
     if (event.key === "ArrowDown") {
       event.preventDefault();
       setActive(activeState.index + 1);
     } else if (event.key === "ArrowUp") {
       event.preventDefault();
       setActive(activeState.index - 1);
-    } else if (event.key === "Enter" || event.key === "Tab") {
+    } else if (
+      (event.key === "Tab" && !event.shiftKey)
+      || (event.key === "Enter" && autocompleteCommitKey === "enter")
+    ) {
       event.preventDefault();
       commitSuggestion(activeState, activeState.results[activeState.index]);
     } else if (event.key === "Escape") {
@@ -890,6 +918,12 @@ window.addEventListener("easyuse-anima-settings-updated", (event) => {
   const detail = event?.detail || {};
   if ("autocomplete.mode" in detail) {
     setAutocompleteMode(detail["autocomplete.mode"]);
+  }
+  if ("autocomplete.commit_key" in detail) {
+    setAutocompleteCommitKey(detail["autocomplete.commit_key"]);
+  }
+  if ("autocomplete.append_separator" in detail) {
+    setAutocompleteAppendSeparator(detail["autocomplete.append_separator"]);
   }
   if ("autocomplete.limit" in detail) {
     maxResults = clampMaxResults(detail["autocomplete.limit"]);

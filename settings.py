@@ -16,8 +16,11 @@ DEFAULT_SETTINGS = {
     "autocomplete.source": "localsmile_kr_wiki",
     "autocomplete.limit": "20",
     "autocomplete.mode": "compatible_global",
+    "autocomplete.commit_key": "enter",
+    "autocomplete.append_separator": "false",
     "lora_preset.name_display": "name",
     "prompt_studio.typo_indicator": "true",
+    "prompt_studio.comment_italic": "true",
     "prompt_studio.colors": "",
     "prompt_studio.naia_general_above_auto_toggle": "false",
     "naia.host": "127.0.0.1",
@@ -49,6 +52,11 @@ AUTOCOMPLETE_MODES = {
     "compatible_global",
 }
 
+AUTOCOMPLETE_COMMIT_KEYS = {
+    "enter",
+    "tab",
+}
+
 NAIA_PREPROCESSING_KEYS = [
     "remove_author",
     "remove_work_title",
@@ -78,6 +86,7 @@ PROMPT_STUDIO_COLOR_KEYS = [
     "general",
     "meta",
     "natural",
+    "comment",
     "artist_unknown",
     "unknown",
 ]
@@ -87,7 +96,10 @@ COMFY_SETTING_KEYS = {
     "EasyUseAnima.Prompt.AutocompleteSource": "autocomplete.source",
     "EasyUseAnima.Prompt.AutocompleteLimit": "autocomplete.limit",
     "EasyUseAnima.Prompt.AutocompleteMode": "autocomplete.mode",
+    "EasyUseAnima.Prompt.AutocompleteCommitKey": "autocomplete.commit_key",
+    "EasyUseAnima.Prompt.AutocompleteAppendSeparator": "autocomplete.append_separator",
     "EasyUseAnima.Prompt.TypoIndicator": "prompt_studio.typo_indicator",
+    "EasyUseAnima.Prompt.CommentItalic": "prompt_studio.comment_italic",
     "EasyUseAnima.Prompt.HighlightColors": "prompt_studio.colors",
     "EasyUseAnima.Prompt.NaiaGeneralAutoToggle": "prompt_studio.naia_general_above_auto_toggle",
     "EasyUseAnima.LoraPreset.NameDisplay": "lora_preset.name_display",
@@ -285,6 +297,11 @@ def public_settings() -> dict:
         ),
         "autocomplete.limit": resolve_autocomplete_limit(settings),
         "autocomplete.mode": resolve_autocomplete_mode(settings),
+        "autocomplete.commit_key": resolve_autocomplete_commit_key(settings),
+        "autocomplete.append_separator": settings.get(
+            "autocomplete.append_separator",
+            DEFAULT_SETTINGS["autocomplete.append_separator"],
+        ),
         "lora_preset.name_display": settings.get(
             "lora_preset.name_display",
             DEFAULT_SETTINGS["lora_preset.name_display"],
@@ -292,6 +309,10 @@ def public_settings() -> dict:
         "prompt_studio.typo_indicator": settings.get(
             "prompt_studio.typo_indicator",
             DEFAULT_SETTINGS["prompt_studio.typo_indicator"],
+        ),
+        "prompt_studio.comment_italic": settings.get(
+            "prompt_studio.comment_italic",
+            DEFAULT_SETTINGS["prompt_studio.comment_italic"],
         ),
         "prompt_studio.colors": settings.get(
             "prompt_studio.colors",
@@ -348,6 +369,17 @@ def resolve_autocomplete_mode(settings: dict | None = None) -> str:
     if value in AUTOCOMPLETE_MODES:
         return value
     return DEFAULT_SETTINGS["autocomplete.mode"]
+
+
+def resolve_autocomplete_commit_key(settings: dict | None = None) -> str:
+    settings = settings or get_settings()
+    value = str(
+        settings.get("autocomplete.commit_key", DEFAULT_SETTINGS["autocomplete.commit_key"])
+        or DEFAULT_SETTINGS["autocomplete.commit_key"]
+    ).strip()
+    if value in AUTOCOMPLETE_COMMIT_KEYS:
+        return value
+    return DEFAULT_SETTINGS["autocomplete.commit_key"]
 
 
 def resolve_naia_port(settings: dict | None = None) -> int:

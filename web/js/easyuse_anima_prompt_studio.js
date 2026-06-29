@@ -242,7 +242,7 @@ const SECTION_STYLES = {
   meta: { label: "메타", color: "#94a3b8", background: "rgba(100, 116, 139, 0.18)", weight: 600 },
   general: { label: "학습 태그", color: "#4ade80", background: "rgba(22, 163, 74, 0.16)", weight: 600 },
   natural: { label: "자연어", color: "#cbd5e1", background: "rgba(71, 85, 105, 0.16)", weight: 400 },
-  comment: { label: "주석", color: "#94a3b8", background: "rgba(100, 116, 139, 0.16)", weight: 400 },
+  comment: { label: "주석", color: "#9ca3af", background: "rgba(156, 163, 175, 0.14)", weight: 400, italic: true },
   syntax: { label: "문법 오류", color: "#f87171", background: "transparent", underline: true, weight: 400 },
   unknown: { label: "미확인", color: "#cbd5e1", background: "transparent", underline: true, weight: 400 },
 };
@@ -258,6 +258,7 @@ const LEGEND_ITEMS = [
   "general",
   "meta",
   "natural",
+  "comment",
   "syntax",
   "artist_unknown",
   "unknown",
@@ -272,6 +273,7 @@ const WEIGHT_NUMBER_COLOR = "#fb923c";
 const INLINE_SPACE_RE = /[ \t]+/g;
 const PROMPT_STUDIO_SETTINGS = {
   typoIndicator: true,
+  commentItalic: true,
   naiaGeneralAboveAutoToggle: false,
 };
 let middlePanForwardActive = false;
@@ -799,6 +801,7 @@ function parseColorSettings(value) {
 
 function applyPromptStudioSettings(settings) {
   PROMPT_STUDIO_SETTINGS.typoIndicator = settings?.["prompt_studio.typo_indicator"] !== "false";
+  PROMPT_STUDIO_SETTINGS.commentItalic = settings?.["prompt_studio.comment_italic"] !== "false";
   PROMPT_STUDIO_SETTINGS.naiaGeneralAboveAutoToggle =
     settings?.["prompt_studio.naia_general_above_auto_toggle"] === "true";
   const colors = parseColorSettings(settings?.["prompt_studio.colors"]);
@@ -932,6 +935,9 @@ function tokenStyle(token) {
   ];
   if (style.background && style.background !== "transparent") {
     rules.push(`background: ${style.background}`, "border-radius: 3px");
+  }
+  if (style.italic && PROMPT_STUDIO_SETTINGS.commentItalic) {
+    rules.push("font-style: italic");
   }
   if (style.underline && PROMPT_STUDIO_SETTINGS.typoIndicator && !token?.weighted) {
     rules.push(

@@ -32,6 +32,7 @@ from autocomplete_dataset import (
 from settings import (
     NAIA_PREPROCESSING_KEYS,
     public_settings,
+    resolve_autocomplete_commit_key,
     resolve_autocomplete_limit,
     resolve_autocomplete_mode,
 )
@@ -933,8 +934,11 @@ class SettingsTests(unittest.TestCase):
                 "autocomplete.source",
                 "autocomplete.limit",
                 "autocomplete.mode",
+                "autocomplete.commit_key",
+                "autocomplete.append_separator",
                 "lora_preset.name_display",
                 "prompt_studio.typo_indicator",
+                "prompt_studio.comment_italic",
                 "prompt_studio.colors",
                 "prompt_studio.naia_general_above_auto_toggle",
                 "naia.host",
@@ -971,6 +975,20 @@ class SettingsTests(unittest.TestCase):
             "compatible_global",
         )
 
+    def test_autocomplete_commit_key_is_validated(self):
+        self.assertEqual(
+            resolve_autocomplete_commit_key({"autocomplete.commit_key": "enter"}),
+            "enter",
+        )
+        self.assertEqual(
+            resolve_autocomplete_commit_key({"autocomplete.commit_key": "tab"}),
+            "tab",
+        )
+        self.assertEqual(
+            resolve_autocomplete_commit_key({"autocomplete.commit_key": "bad"}),
+            "enter",
+        )
+
     def test_comfy_settings_override_legacy_settings(self):
         with (
             patch.object(easyuse_settings, "_read_json_file", return_value={}),
@@ -979,7 +997,10 @@ class SettingsTests(unittest.TestCase):
                 "_load_comfy_settings",
                 return_value={
                     "EasyUseAnima.Prompt.AutocompleteLimit": "7",
+                    "EasyUseAnima.Prompt.AutocompleteCommitKey": "tab",
+                    "EasyUseAnima.Prompt.AutocompleteAppendSeparator": "true",
                     "EasyUseAnima.Prompt.TypoIndicator": "false",
+                    "EasyUseAnima.Prompt.CommentItalic": "false",
                     "EasyUseAnima.LoraPreset.NameDisplay": "path",
                     "EasyUseAnima.NAIA.Port": "8123",
                 },
@@ -988,7 +1009,10 @@ class SettingsTests(unittest.TestCase):
             settings = easyuse_settings.public_settings()
 
         self.assertEqual(settings["autocomplete.limit"], 7)
+        self.assertEqual(settings["autocomplete.commit_key"], "tab")
+        self.assertEqual(settings["autocomplete.append_separator"], "true")
         self.assertEqual(settings["prompt_studio.typo_indicator"], "false")
+        self.assertEqual(settings["prompt_studio.comment_italic"], "false")
         self.assertEqual(settings["lora_preset.name_display"], "path")
         self.assertEqual(settings["naia.port"], 8123)
 
