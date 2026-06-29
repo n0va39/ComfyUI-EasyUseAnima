@@ -170,6 +170,10 @@
       "advanced_fields": {
         "name": "고급 필드",
         "tooltip": "Advanced Prompt Studio 필드를 저장하는 내부 JSON payload입니다."
+      },
+      "use_negative_anima_mod_guidance": {
+        "name": "부정 Mod Guidance 사용",
+        "tooltip": "켜면 부정 출력에서 부정 품질 필드를 제외하고 부정 Mod Guidance 출력으로 보냅니다."
       }
     },
     "outputs": {
@@ -204,6 +208,14 @@
       "7": {
         "name": "높이",
         "tooltip": "선택된 잠재 이미지 높이입니다."
+      },
+      "8": {
+        "name": "Mod Guidance 부정 프롬프트",
+        "tooltip": "Anima Mod Guidance로 보낼 부정 품질 필드입니다."
+      },
+      "9": {
+        "name": "부정 Mod Guidance 사용",
+        "tooltip": "부정 Anima Mod Guidance 워크플로우 제어를 위한 Boolean 출력입니다."
       }
     }
   },

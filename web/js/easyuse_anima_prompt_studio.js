@@ -75,6 +75,8 @@ const PROMPT_STUDIO_TEXT = {
     "advanced.fillOnceTitle": "Save successful NAIA fills with the request flag turned off.",
     "advanced.modGuidance": "mod guidance",
     "advanced.modGuidanceTitle": "Send positive quality fields to Anima Mod Guidance output.",
+    "advanced.negativeModGuidance": "negative mod",
+    "advanced.negativeModGuidanceTitle": "Send negative quality fields to Anima Mod Guidance negative output.",
     "advanced.pin": "Pin",
     "advanced.pinTitle": "Keep positive artist/trigger fields at the front.",
     "advanced.linkedInputSuffix": "Linked input controls this value.",
@@ -149,6 +151,8 @@ const PROMPT_STUDIO_TEXT = {
     "advanced.fillOnceTitle": "NAIA 채우기에 성공하면 요청 플래그를 끈 상태로 저장합니다.",
     "advanced.modGuidance": "mod guidance",
     "advanced.modGuidanceTitle": "긍정 품질 필드를 Anima Mod Guidance 출력으로 보냅니다.",
+    "advanced.negativeModGuidance": "negative mod",
+    "advanced.negativeModGuidanceTitle": "부정 품질 필드를 Anima Mod Guidance 네거티브 출력으로 보냅니다.",
     "advanced.pin": "고정",
     "advanced.pinTitle": "긍정 작가/트리거 필드를 앞쪽에 유지합니다.",
     "advanced.linkedInputSuffix": "연결된 입력이 이 값을 제어합니다.",
@@ -296,6 +300,11 @@ const ADVANCED_CONTROL_WIDGETS = [
     titleKey: "advanced.modGuidanceTitle",
   },
   {
+    name: "use_negative_anima_mod_guidance",
+    labelKey: "advanced.negativeModGuidance",
+    titleKey: "advanced.negativeModGuidanceTitle",
+  },
+  {
     name: "pin_trigger_tags_to_front",
     labelKey: "advanced.pin",
     titleKey: "advanced.pinTitle",
@@ -369,6 +378,7 @@ const ADVANCED_WIDGET_INDEX = {
   resolution_custom_height: 6,
   pin_trigger_tags_to_front: 7,
   advanced_fields: 8,
+  use_negative_anima_mod_guidance: 9,
 };
 const ADVANCED_LEGACY_FIELDS_WIDGET_INDEXES = [6, 4];
 const ADVANCED_INTERNAL_WIDGET_NAMES = new Set(Object.keys(ADVANCED_WIDGET_INDEX));

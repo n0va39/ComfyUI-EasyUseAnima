@@ -149,7 +149,18 @@ class PromptCorrectorTests(unittest.TestCase):
             json.dumps(fields),
         )
 
-        positive, negative, _quality, _use_amg, _metadata, metadata_negative, _width, _height = result["result"]
+        (
+            positive,
+            negative,
+            _quality,
+            _use_amg,
+            _metadata,
+            metadata_negative,
+            _width,
+            _height,
+            _negative_amg,
+            _use_negative_amg,
+        ) = result["result"]
         self.assertEqual(positive, "score_8, score_7")
         self.assertEqual(negative, "score_5, score_4")
         self.assertEqual(metadata_negative, "score_5, score_4")
@@ -354,13 +365,84 @@ class PromptBuilderTests(unittest.TestCase):
             json.dumps(fields),
         )
 
-        positive, negative, quality, use_amg, metadata, metadata_negative, width, height = result["result"]
+        (
+            positive,
+            negative,
+            quality,
+            use_amg,
+            metadata,
+            metadata_negative,
+            width,
+            height,
+            negative_amg,
+            use_negative_amg,
+        ) = result["result"]
         self.assertNotIn("masterpiece", positive)
         self.assertEqual(quality, "masterpiece")
         self.assertTrue(use_amg)
         self.assertEqual(negative, "low quality, bad hands")
         self.assertIn("masterpiece", metadata)
         self.assertEqual(metadata_negative, negative)
+        self.assertEqual(negative_amg, "")
+        self.assertFalse(use_negative_amg)
+        self.assertEqual((width, height), (1024, 1024))
+
+    def test_prompt_studio_advanced_can_route_negative_quality_to_amg(self):
+        fields = [
+            {
+                "id": "positive_general",
+                "pane": "positive",
+                "type": "general",
+                "label": "General Tags",
+                "text": "1girl",
+                "height": 120,
+            },
+            {
+                "id": "negative_quality",
+                "pane": "negative",
+                "type": "quality",
+                "label": "Quality Tags",
+                "text": "low quality",
+                "height": 72,
+            },
+            {
+                "id": "negative_general",
+                "pane": "negative",
+                "type": "general",
+                "label": "General Tags",
+                "text": "bad hands",
+                "height": 120,
+            },
+        ]
+        result = EasyUseAnimaPromptStudioAdvanced().build(
+            False,
+            True,
+            False,
+            False,
+            json.dumps(fields),
+            True,
+        )
+
+        (
+            positive,
+            negative,
+            quality,
+            use_amg,
+            metadata,
+            metadata_negative,
+            width,
+            height,
+            negative_amg,
+            use_negative_amg,
+        ) = result["result"]
+        self.assertEqual(positive, "1girl")
+        self.assertEqual(quality, "")
+        self.assertFalse(use_amg)
+        self.assertEqual(negative, "bad hands")
+        self.assertEqual(negative_amg, "low quality")
+        self.assertTrue(use_negative_amg)
+        self.assertEqual(metadata, "1girl")
+        self.assertEqual(metadata_negative, "low quality, bad hands")
         self.assertEqual((width, height), (1024, 1024))
 
     def test_prompt_studio_advanced_keeps_one_naia_field_per_pane(self):
@@ -732,7 +814,7 @@ class PromptBuilderTests(unittest.TestCase):
         self.assertEqual(saved_image_by_id["negative_naia"]["text"], "low quality, bad hands")
         self.assertEqual(result["result"][0], "1girl, silver hair")
         self.assertEqual(result["result"][1], "low quality, bad hands")
-        self.assertEqual(result["result"][-2:], (992, 768))
+        self.assertEqual(result["result"][6:8], (992, 768))
         self.assertFalse(workflow_prompt["9"]["inputs"]["use_naia"])
         self.assertEqual(workflow_prompt["9"]["inputs"]["resolution_bucket"], "Custom")
         self.assertEqual(workflow_prompt["9"]["inputs"]["resolution_custom_width"], 992)
@@ -756,7 +838,7 @@ class PromptBuilderTests(unittest.TestCase):
             resolution_size="896 * 1152 (7:9)",
         )
 
-        self.assertEqual(result["result"][-2:], (896, 1152))
+        self.assertEqual(result["result"][6:8], (896, 1152))
 
     def test_prompt_studio_advanced_outputs_custom_resolution_snapped_to_32(self):
         result = EasyUseAnimaPromptStudioAdvanced().build(
@@ -771,7 +853,7 @@ class PromptBuilderTests(unittest.TestCase):
             resolution_custom_height=777,
         )
 
-        self.assertEqual(result["result"][-2:], (992, 768))
+        self.assertEqual(result["result"][6:8], (992, 768))
 
     def test_prompt_studio_advanced_resolution_buckets_are_32_aligned(self):
         for values in ADVANCED_RESOLUTION_BUCKETS.values():
@@ -825,7 +907,16 @@ class PromptBuilderTests(unittest.TestCase):
             negative_prompt_4="",
         )
 
-        positive, negative, quality, use_amg, metadata, metadata_negative = result["result"]
+        (
+            positive,
+            negative,
+            quality,
+            use_amg,
+            metadata,
+            metadata_negative,
+            negative_amg,
+            use_negative_amg,
+        ) = result["result"]
         payload = result["ui"]["prompt_studio_slots"][0]
 
         self.assertTrue(use_amg)
@@ -836,7 +927,52 @@ class PromptBuilderTests(unittest.TestCase):
         self.assertEqual(negative, "low quality, bad hands")
         self.assertIn("masterpiece", metadata)
         self.assertEqual(metadata_negative, negative)
+        self.assertEqual(negative_amg, "low quality, bad hands")
+        self.assertFalse(use_negative_amg)
         self.assertEqual(payload["naia_prompt_3"], "1girl")
+
+    def test_prompt_studio_extend_can_route_negative_quality_slots_to_amg(self):
+        result = EasyUseAnimaPromptStudioExtend().build(
+            False,
+            False,
+            False,
+            True,
+            quality_tags_1="masterpiece",
+            quality_tags_2="",
+            naia_prompt_3="1girl",
+            general_tags_4="",
+            general_tags_5="",
+            general_tags_6="",
+            general_tags_7="",
+            general_tags_8="",
+            general_tags_9="",
+            trailing_tags_10="",
+            trailing_tags_11="",
+            negative_prompt_1="low quality",
+            negative_prompt_2="bad hands",
+            negative_prompt_3="bad anatomy",
+            negative_prompt_4="",
+        )
+
+        (
+            positive,
+            negative,
+            quality,
+            use_amg,
+            metadata,
+            metadata_negative,
+            negative_amg,
+            use_negative_amg,
+        ) = result["result"]
+
+        self.assertEqual(positive, "masterpiece, 1girl")
+        self.assertEqual(quality, "masterpiece")
+        self.assertFalse(use_amg)
+        self.assertEqual(negative, "bad anatomy")
+        self.assertEqual(negative_amg, "low quality, bad hands")
+        self.assertTrue(use_negative_amg)
+        self.assertEqual(metadata, "masterpiece, 1girl")
+        self.assertEqual(metadata_negative, "low quality, bad hands, bad anatomy")
 
     def test_prompt_studio_extend_active_slots_exclude_hidden_values(self):
         result = EasyUseAnimaPromptStudioExtend().build(
@@ -851,15 +987,26 @@ class PromptBuilderTests(unittest.TestCase):
             negative_prompt_1="hidden negative",
         )
 
-        positive, negative, quality, use_amg, metadata, metadata_negative = result["result"]
+        (
+            positive,
+            negative,
+            quality,
+            use_amg,
+            metadata,
+            metadata_negative,
+            negative_amg,
+            use_negative_amg,
+        ) = result["result"]
         payload = result["ui"]["prompt_studio_slots"][0]
 
         self.assertFalse(use_amg)
+        self.assertFalse(use_negative_amg)
         self.assertEqual(positive, "visible general")
         self.assertEqual(metadata, "visible general")
         self.assertEqual(negative, "")
         self.assertEqual(metadata_negative, "")
         self.assertEqual(quality, "")
+        self.assertEqual(negative_amg, "")
         self.assertEqual(payload["active_slots"], json.dumps(["general_tags_4"]))
 
     def test_prompt_studio_extend_naia_fill_stays_enabled_but_saved_metadata_is_off(self):
