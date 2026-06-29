@@ -442,6 +442,19 @@ function autocompleteQuery(token, forceArtistOnly = false) {
   return { query, artistOnly, category };
 }
 
+function autocompleteStateSignature(token, context, state) {
+  return JSON.stringify({
+    value: token.value,
+    start: token.start,
+    end: token.end,
+    caret: token.caret,
+    query: context.query,
+    category: context.category,
+    limit: maxResults,
+    forceArtistOnly: !!state.forceArtistOnly,
+  });
+}
+
 function parseAutocompleteText(value) {
   let query = String(value || "").trim();
   if (query.startsWith("(")) {
@@ -669,10 +682,18 @@ function normalizeInsertSuffix(after, appendSeparator = false) {
   return `, ${after.replace(/^[ \t]+/, "")}`;
 }
 
-function renderResults(state, results) {
+function renderResults(state, results, signature = "") {
   const menu = ensurePopup();
+  const previousIndex = activeState?.input === state.input && activeState?.signature === signature
+    ? activeState.index
+    : 0;
   menu.replaceChildren();
-  activeState = { ...state, results, index: 0 };
+  activeState = {
+    ...state,
+    results,
+    signature,
+    index: results.length ? clamp(previousIndex, 0, results.length - 1) : 0,
+  };
 
   if (!results.length) {
     hidePopup();
@@ -682,7 +703,7 @@ function renderResults(state, results) {
   for (const [index, entry] of results.entries()) {
     const item = document.createElement("div");
     item.className = "easyuse-anima-autocomplete-item";
-    if (index === 0) {
+    if (index === activeState.index) {
       item.classList.add("active");
     }
 
@@ -780,11 +801,16 @@ function hookInput(input, options = {}) {
       hidePopup();
       return;
     }
+    const signature = autocompleteStateSignature(token, context, state);
+    if (activeState?.input === input && activeState.signature === signature) {
+      positionPopup(input);
+      return;
+    }
     const seq = ++updateSeq;
     try {
       const results = await search(context.query, context.category);
       if (document.activeElement === input && seq === updateSeq) {
-        renderResults(state, results);
+        renderResults(state, results, signature);
       }
     } catch {
       hidePopup();
