@@ -936,6 +936,8 @@ class SettingsTests(unittest.TestCase):
                 "autocomplete.mode",
                 "autocomplete.commit_key",
                 "autocomplete.append_separator",
+                "autocomplete.no_comma_after_period",
+                "autocomplete.detect_natural_sentences",
                 "lora_preset.name_display",
                 "prompt_studio.typo_indicator",
                 "prompt_studio.comment_italic",
@@ -999,6 +1001,8 @@ class SettingsTests(unittest.TestCase):
                     "EasyUseAnima.Prompt.AutocompleteLimit": "7",
                     "EasyUseAnima.Prompt.AutocompleteCommitKey": "tab",
                     "EasyUseAnima.Prompt.AutocompleteAppendSeparator": "true",
+                    "EasyUseAnima.Prompt.AutocompleteNoCommaAfterPeriod": "false",
+                    "EasyUseAnima.Prompt.AutocompleteDetectNaturalSentences": "false",
                     "EasyUseAnima.Prompt.TypoIndicator": "false",
                     "EasyUseAnima.Prompt.CommentItalic": "false",
                     "EasyUseAnima.LoraPreset.NameDisplay": "path",
@@ -1011,6 +1015,8 @@ class SettingsTests(unittest.TestCase):
         self.assertEqual(settings["autocomplete.limit"], 7)
         self.assertEqual(settings["autocomplete.commit_key"], "tab")
         self.assertEqual(settings["autocomplete.append_separator"], "true")
+        self.assertEqual(settings["autocomplete.no_comma_after_period"], "false")
+        self.assertEqual(settings["autocomplete.detect_natural_sentences"], "false")
         self.assertEqual(settings["prompt_studio.typo_indicator"], "false")
         self.assertEqual(settings["prompt_studio.comment_italic"], "false")
         self.assertEqual(settings["lora_preset.name_display"], "path")

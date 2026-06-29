@@ -73,6 +73,8 @@ const AUTOCOMPLETE_COMMIT_KEYS = new Set([
   "enter",
   "tab",
 ]);
+const SENTENCE_PERIODS = new Set([".", "。", "．", "｡"]);
+const TEXT_EDITING_SHORTCUT_KEYS = new Set(["a", "c", "v", "x", "z", "y"]);
 const AUTOCOMPLETE_TEXT = {
   en: {
     "category.tag": "tag",
@@ -100,6 +102,8 @@ let maxResults = DEFAULT_MAX_RESULTS;
 let autocompleteMode = DEFAULT_AUTOCOMPLETE_MODE;
 let autocompleteCommitKey = DEFAULT_AUTOCOMPLETE_COMMIT_KEY;
 let autocompleteAppendSeparator = false;
+let autocompleteNoCommaAfterPeriod = true;
+let autocompleteDetectNaturalSentences = true;
 let popup = null;
 let activeState = null;
 let activeRefreshFrame = null;
@@ -131,8 +135,27 @@ function setAutocompleteCommitKey(value) {
   autocompleteCommitKey = normalizeAutocompleteCommitKey(value);
 }
 
+function parseBooleanSetting(value, defaultValue = false) {
+  if (value === true || value === false) {
+    return value;
+  }
+  const normalized = String(value ?? "").trim().toLowerCase();
+  if (!normalized) {
+    return defaultValue;
+  }
+  return normalized === "true" || normalized === "1" || normalized === "yes";
+}
+
 function setAutocompleteAppendSeparator(value) {
-  autocompleteAppendSeparator = value === true || String(value || "").trim().toLowerCase() === "true";
+  autocompleteAppendSeparator = parseBooleanSetting(value, false);
+}
+
+function setAutocompleteNoCommaAfterPeriod(value) {
+  autocompleteNoCommaAfterPeriod = parseBooleanSetting(value, true);
+}
+
+function setAutocompleteDetectNaturalSentences(value) {
+  autocompleteDetectNaturalSentences = parseBooleanSetting(value, true);
 }
 
 function autocompleteText(key) {
@@ -210,6 +233,8 @@ async function refreshAutocompleteSettings() {
     setAutocompleteMode(settings["autocomplete.mode"]);
     setAutocompleteCommitKey(settings["autocomplete.commit_key"]);
     setAutocompleteAppendSeparator(settings["autocomplete.append_separator"]);
+    setAutocompleteNoCommaAfterPeriod(settings["autocomplete.no_comma_after_period"]);
+    setAutocompleteDetectNaturalSentences(settings["autocomplete.detect_natural_sentences"]);
   } catch {
     // Keep the built-in default if settings cannot be read.
   }
@@ -410,6 +435,47 @@ function findInputEl(widget) {
   return null;
 }
 
+function isEscaped(value, index) {
+  let count = 0;
+  for (let cursor = index - 1; cursor >= 0 && value[cursor] === "\\"; cursor -= 1) {
+    count += 1;
+  }
+  return count % 2 === 1;
+}
+
+function isSentencePeriod(value, index) {
+  if (!SENTENCE_PERIODS.has(value[index]) || isEscaped(value, index)) {
+    return false;
+  }
+  return !(/\d/.test(value[index - 1] || "") && /\d/.test(value[index + 1] || ""));
+}
+
+function naturalSentenceStart(value, segmentStart, caret) {
+  if (!autocompleteDetectNaturalSentences) {
+    return segmentStart;
+  }
+  for (let index = caret - 1; index >= segmentStart; index -= 1) {
+    if (!isSentencePeriod(value, index)) {
+      continue;
+    }
+    let start = index + 1;
+    while (start < caret && /[ \t]/.test(value[start])) {
+      start += 1;
+    }
+    return start < caret ? start : segmentStart;
+  }
+  return segmentStart;
+}
+
+function naturalSentenceEnd(value, caret, segmentEnd) {
+  for (let index = caret; index < segmentEnd; index += 1) {
+    if (isSentencePeriod(value, index)) {
+      return index;
+    }
+  }
+  return segmentEnd;
+}
+
 function currentToken(input) {
   const value = input.value || "";
   const caret = input.selectionStart ?? value.length;
@@ -421,6 +487,12 @@ function currentToken(input) {
   while (end < value.length && value[end] !== "," && value[end] !== "\n") {
     end += 1;
   }
+  const naturalStart = naturalSentenceStart(value, start, caret);
+  const sentenceDelimited = naturalStart > start;
+  if (sentenceDelimited) {
+    start = naturalStart;
+    end = naturalSentenceEnd(value, caret, end);
+  }
   const raw = value.slice(start, caret);
   const segment = value.slice(start, end);
   return {
@@ -429,6 +501,7 @@ function currentToken(input) {
     end,
     caret,
     segment,
+    sentenceDelimited,
     query: raw.trim(),
   };
 }
@@ -452,6 +525,8 @@ function autocompleteStateSignature(token, context, state) {
     category: context.category,
     limit: maxResults,
     forceArtistOnly: !!state.forceArtistOnly,
+    noCommaAfterPeriod: autocompleteNoCommaAfterPeriod,
+    detectNaturalSentences: autocompleteDetectNaturalSentences,
   });
 }
 
@@ -611,17 +686,71 @@ function setActive(index) {
   });
 }
 
+function endsWithSentencePeriod(value) {
+  const text = String(value || "").replace(/[ \t]+$/g, "");
+  return text.length > 0 && isSentencePeriod(text, text.length - 1);
+}
+
+function startsWithSentencePeriod(value) {
+  const text = String(value || "").replace(/^[ \t]+/g, "");
+  return text.length > 0 && isSentencePeriod(text, 0);
+}
+
+function insertPrefixForBefore(before) {
+  if (!before || before.endsWith("\n")) {
+    return "";
+  }
+  if (before.endsWith(",")) {
+    return " ";
+  }
+  if (/[ \t]$/.test(before)) {
+    return "";
+  }
+  if (autocompleteNoCommaAfterPeriod && endsWithSentencePeriod(before)) {
+    return " ";
+  }
+  return ", ";
+}
+
+function insertSuffixForAfter(after, appendSeparator = false) {
+  if (!after) {
+    return appendSeparator ? ", " : "";
+  }
+  if (after.startsWith("\n") || after.startsWith(",")) {
+    return "";
+  }
+  if (autocompleteNoCommaAfterPeriod && startsWithSentencePeriod(after)) {
+    return "";
+  }
+  return ", ";
+}
+
+function replaceInputRange(input, start, end, replacement, caretOffset) {
+  input.focus?.();
+  input.setSelectionRange(start, end);
+  const beforeValue = input.value;
+  let changedByCommand = false;
+  if (typeof document.execCommand === "function") {
+    changedByCommand = document.execCommand("insertText", false, replacement);
+  }
+  if (!changedByCommand || input.value === beforeValue) {
+    input.setRangeText(replacement, start, end, "end");
+    input.dispatchEvent(new Event("input", { bubbles: true }));
+  }
+  const caret = start + caretOffset;
+  input.setSelectionRange(caret, caret);
+}
+
 function commitSuggestion(state, entry) {
   const token = currentToken(state.input);
   const before = token.value.slice(0, token.start);
   const after = token.value.slice(token.end);
   const insert = completionText(token, entry, state.forceArtistOnly);
-  const prefix = normalizeInsertPrefix(before);
-  const suffix = normalizeInsertSuffix(after, autocompleteAppendSeparator);
-  state.input.value = `${prefix}${insert}${suffix}`;
-  const caret = prefix.length + insert.length + (!after && autocompleteAppendSeparator ? suffix.length : 0);
-  state.input.setSelectionRange(caret, caret);
-  state.input.dispatchEvent(new Event("input", { bubbles: true }));
+  const prefix = insertPrefixForBefore(before);
+  const suffix = insertSuffixForAfter(after, autocompleteAppendSeparator);
+  const replacement = `${prefix}${insert}${suffix}`;
+  const caretOffset = prefix.length + insert.length + (!after ? suffix.length : 0);
+  replaceInputRange(state.input, token.start, token.end, replacement, caretOffset);
   if (state.widget) {
     state.widget.value = state.input.value;
     state.widget.callback?.(state.input.value);
@@ -651,35 +780,6 @@ function completionText(token, entry, forceArtistOnly = false) {
     return `@${tag}`;
   }
   return tag;
-}
-
-function normalizeInsertPrefix(before) {
-  if (!before) {
-    return "";
-  }
-  if (before.endsWith("\n")) {
-    return before;
-  }
-  if (before.endsWith(",")) {
-    return `${before} `;
-  }
-  if (/[ \t]$/.test(before)) {
-    return before;
-  }
-  return `${before}, `;
-}
-
-function normalizeInsertSuffix(after, appendSeparator = false) {
-  if (!after) {
-    return appendSeparator ? ", " : "";
-  }
-  if (after.startsWith("\n")) {
-    return after;
-  }
-  if (after.startsWith(",")) {
-    return `, ${after.slice(1).replace(/^[ \t]+/, "")}`;
-  }
-  return `, ${after.replace(/^[ \t]+/, "")}`;
 }
 
 function renderResults(state, results, signature = "") {
@@ -755,6 +855,13 @@ function debounce(fn, delay = 120) {
   };
   wrapped.cancel = () => clearTimeout(timer);
   return wrapped;
+}
+
+function isTextEditingShortcut(event) {
+  if (!(event.ctrlKey || event.metaKey) || event.altKey) {
+    return false;
+  }
+  return TEXT_EDITING_SHORTCUT_KEYS.has(String(event.key || "").toLocaleLowerCase());
 }
 
 function hookInput(input, options = {}) {
@@ -856,6 +963,11 @@ function hookInput(input, options = {}) {
     }, 120);
   });
   input.addEventListener("keydown", (event) => {
+    if (isTextEditingShortcut(event)) {
+      event.stopPropagation();
+    }
+  });
+  input.addEventListener("keydown", (event) => {
     if (!activeState || activeState.input !== input) {
       return;
     }
@@ -950,6 +1062,12 @@ window.addEventListener("easyuse-anima-settings-updated", (event) => {
   }
   if ("autocomplete.append_separator" in detail) {
     setAutocompleteAppendSeparator(detail["autocomplete.append_separator"]);
+  }
+  if ("autocomplete.no_comma_after_period" in detail) {
+    setAutocompleteNoCommaAfterPeriod(detail["autocomplete.no_comma_after_period"]);
+  }
+  if ("autocomplete.detect_natural_sentences" in detail) {
+    setAutocompleteDetectNaturalSentences(detail["autocomplete.detect_natural_sentences"]);
   }
   if ("autocomplete.limit" in detail) {
     maxResults = clampMaxResults(detail["autocomplete.limit"]);

@@ -18,6 +18,8 @@ DEFAULT_SETTINGS = {
     "autocomplete.mode": "compatible_global",
     "autocomplete.commit_key": "enter",
     "autocomplete.append_separator": "false",
+    "autocomplete.no_comma_after_period": "true",
+    "autocomplete.detect_natural_sentences": "true",
     "lora_preset.name_display": "name",
     "prompt_studio.typo_indicator": "true",
     "prompt_studio.comment_italic": "true",
@@ -98,6 +100,8 @@ COMFY_SETTING_KEYS = {
     "EasyUseAnima.Prompt.AutocompleteMode": "autocomplete.mode",
     "EasyUseAnima.Prompt.AutocompleteCommitKey": "autocomplete.commit_key",
     "EasyUseAnima.Prompt.AutocompleteAppendSeparator": "autocomplete.append_separator",
+    "EasyUseAnima.Prompt.AutocompleteNoCommaAfterPeriod": "autocomplete.no_comma_after_period",
+    "EasyUseAnima.Prompt.AutocompleteDetectNaturalSentences": "autocomplete.detect_natural_sentences",
     "EasyUseAnima.Prompt.TypoIndicator": "prompt_studio.typo_indicator",
     "EasyUseAnima.Prompt.CommentItalic": "prompt_studio.comment_italic",
     "EasyUseAnima.Prompt.HighlightColors": "prompt_studio.colors",
@@ -301,6 +305,14 @@ def public_settings() -> dict:
         "autocomplete.append_separator": settings.get(
             "autocomplete.append_separator",
             DEFAULT_SETTINGS["autocomplete.append_separator"],
+        ),
+        "autocomplete.no_comma_after_period": settings.get(
+            "autocomplete.no_comma_after_period",
+            DEFAULT_SETTINGS["autocomplete.no_comma_after_period"],
+        ),
+        "autocomplete.detect_natural_sentences": settings.get(
+            "autocomplete.detect_natural_sentences",
+            DEFAULT_SETTINGS["autocomplete.detect_natural_sentences"],
         ),
         "lora_preset.name_display": settings.get(
             "lora_preset.name_display",
