@@ -36,6 +36,8 @@ from settings import (
     resolve_autocomplete_limit,
     resolve_autocomplete_mode,
     resolve_lora_preset_menu_mode,
+    resolve_lora_preset_strength_button_step,
+    resolve_lora_preset_strength_drag_pixels,
     resolve_lora_preset_strength_drag_step,
 )
 
@@ -1191,7 +1193,9 @@ class SettingsTests(unittest.TestCase):
                 "autocomplete.detect_natural_sentences",
                 "lora_preset.name_display",
                 "lora_preset.menu_mode",
+                "lora_preset.strength_button_step",
                 "lora_preset.strength_drag_step",
+                "lora_preset.strength_drag_pixels",
                 "prompt_studio.typo_indicator",
                 "prompt_studio.comment_italic",
                 "prompt_studio.colors",
@@ -1262,6 +1266,42 @@ class SettingsTests(unittest.TestCase):
             0.05,
         )
 
+    def test_lora_preset_strength_button_step_is_clamped(self):
+        self.assertEqual(
+            resolve_lora_preset_strength_button_step({"lora_preset.strength_button_step": "0"}),
+            0.001,
+        )
+        self.assertEqual(
+            resolve_lora_preset_strength_button_step({"lora_preset.strength_button_step": "0.125"}),
+            0.125,
+        )
+        self.assertEqual(
+            resolve_lora_preset_strength_button_step({"lora_preset.strength_button_step": "1"}),
+            0.5,
+        )
+        self.assertEqual(
+            resolve_lora_preset_strength_button_step({"lora_preset.strength_button_step": "bad"}),
+            0.05,
+        )
+
+    def test_lora_preset_strength_drag_pixels_is_clamped(self):
+        self.assertEqual(
+            resolve_lora_preset_strength_drag_pixels({"lora_preset.strength_drag_pixels": "0"}),
+            1,
+        )
+        self.assertEqual(
+            resolve_lora_preset_strength_drag_pixels({"lora_preset.strength_drag_pixels": "12"}),
+            12,
+        )
+        self.assertEqual(
+            resolve_lora_preset_strength_drag_pixels({"lora_preset.strength_drag_pixels": "200"}),
+            100,
+        )
+        self.assertEqual(
+            resolve_lora_preset_strength_drag_pixels({"lora_preset.strength_drag_pixels": "bad"}),
+            8,
+        )
+
     def test_lora_preset_menu_mode_is_validated(self):
         self.assertEqual(
             resolve_lora_preset_menu_mode({"lora_preset.menu_mode": "tree"}),
@@ -1292,7 +1332,9 @@ class SettingsTests(unittest.TestCase):
                     "EasyUseAnima.Prompt.CommentItalic": "false",
                     "EasyUseAnima.LoraPreset.NameDisplay": "path",
                     "EasyUseAnima.LoraPreset.MenuMode": "list",
+                    "EasyUseAnima.LoraPreset.StrengthButtonStep": "0.025",
                     "EasyUseAnima.LoraPreset.StrengthDragStep": "0.012",
+                    "EasyUseAnima.LoraPreset.StrengthDragPixels": "12",
                     "EasyUseAnima.NAIA.Port": "8123",
                 },
             ),
@@ -1308,7 +1350,9 @@ class SettingsTests(unittest.TestCase):
         self.assertEqual(settings["prompt_studio.comment_italic"], "false")
         self.assertEqual(settings["lora_preset.name_display"], "path")
         self.assertEqual(settings["lora_preset.menu_mode"], "list")
+        self.assertEqual(settings["lora_preset.strength_button_step"], 0.025)
         self.assertEqual(settings["lora_preset.strength_drag_step"], 0.012)
+        self.assertEqual(settings["lora_preset.strength_drag_pixels"], 12)
         self.assertEqual(settings["naia.port"], 8123)
 
     def test_comfy_color_settings_merge_into_prompt_studio_colors(self):

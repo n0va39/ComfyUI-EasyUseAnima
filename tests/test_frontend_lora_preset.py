@@ -98,7 +98,7 @@ class LoraPresetFrontendTests(unittest.TestCase):
                 editor_alpha: 1,
                 ds: { scale: 1, offset: [0, 0] },
                 canvas: { getBoundingClientRect: () => ({ left: 0, top: 0, width: 1920, height: 1080 }) },
-                prompt() {},
+                prompt() { globalThis.__promptCount = (globalThis.__promptCount || 0) + 1; },
               },
               graph: { _nodes: [] },
               registerExtension(extension) { this.__extension = extension; },
@@ -159,6 +159,7 @@ class LoraPresetFrontendTests(unittest.TestCase):
             {
               const node = makeNode();
               const row = makeRow();
+              LORA_PRESET_SETTINGS.strengthButtonStep = 0.05;
               assert.strictEqual(row.mouse({ type: "pointerdown", button: 0 }, [282, 10], node), true);
               assert.strictEqual(loras(node)[0].strength, 1.05);
             }
@@ -166,6 +167,7 @@ class LoraPresetFrontendTests(unittest.TestCase):
             {
               const node = makeNode();
               const row = makeRow();
+              LORA_PRESET_SETTINGS.strengthButtonStep = 0.05;
               assert.strictEqual(row.mouse({ type: "pointerdown", button: 0 }, [234, 10], node), true);
               assert.strictEqual(loras(node)[0].strength, 0.95);
             }
@@ -173,10 +175,56 @@ class LoraPresetFrontendTests(unittest.TestCase):
             {
               const node = makeNode();
               const row = makeRow();
-              LORA_PRESET_SETTINGS.strengthDragStep = 0.01;
+              applyLoraPresetSettings({
+                "lora_preset.strength_drag_step": "0.01",
+                "lora_preset.strength_drag_pixels": "1",
+              });
               assert.strictEqual(row.mouse({ type: "pointerdown", button: 0 }, [250, 10], node), true);
-              assert.strictEqual(row.mouse({ type: "pointermove", deltaX: 2 }, [252, 10], node), true);
+              assert.strictEqual(row.mouse({ type: "pointermove" }, [252, 10], node), true);
               assert.strictEqual(loras(node)[0].strength, 1.02);
+            }
+
+            {
+              const node = makeNode();
+              const row = makeRow();
+              applyLoraPresetSettings({
+                "lora_preset.strength_drag_step": "0.05",
+                "lora_preset.strength_drag_pixels": "8",
+              });
+              assert.strictEqual(row.mouse({ type: "pointerdown", button: 0 }, [250, 10], node), true);
+              assert.strictEqual(row.mouse({ type: "pointermove" }, [257, 10], node), true);
+              assert.strictEqual(loras(node)[0].strength, 1);
+              assert.strictEqual(row.mouse({ type: "pointermove" }, [258, 10], node), true);
+              assert.strictEqual(loras(node)[0].strength, 1.05);
+            }
+
+            {
+              const node = makeNode();
+              const row = makeRow();
+              applyLoraPresetSettings({
+                "lora_preset.strength_button_step": "0.02",
+                "lora_preset.strength_drag_step": "0.05",
+                "lora_preset.strength_drag_pixels": "8",
+              });
+              assert.strictEqual(row.mouse({ type: "pointerdown", button: 0 }, [282, 10], node), true);
+              assert.strictEqual(loras(node)[0].strength, 1.02);
+            }
+
+            {
+              const node = makeNode();
+              const row = makeRow();
+              context.__promptCount = 0;
+              applyLoraPresetSettings({
+                "lora_preset.strength_button_step": "0.05",
+                "lora_preset.strength_drag_step": "0.05",
+                "lora_preset.strength_drag_pixels": "8",
+              });
+              assert.strictEqual(row.mouse({ type: "pointerdown", button: 0 }, [250, 10], node), true);
+              assert.strictEqual(row.mouse({ type: "pointermove" }, [282, 10], node), true);
+              assert.strictEqual(loras(node)[0].strength, 1.2);
+              assert.strictEqual(row.mouse({ type: "pointerup" }, [282, 10], node), true);
+              assert.strictEqual(loras(node)[0].strength, 1.2);
+              assert.strictEqual(context.__promptCount, 0);
             }
 
             {
@@ -203,6 +251,14 @@ class LoraPresetFrontendTests(unittest.TestCase):
               assert.strictEqual(LORA_PRESET_SETTINGS.menuMode, "list");
               applyLoraPresetSettings({ "lora_preset.menu_mode": "bad" });
               assert.strictEqual(LORA_PRESET_SETTINGS.menuMode, "tree");
+              applyLoraPresetSettings({
+                "lora_preset.strength_button_step": "0.2",
+                "lora_preset.strength_drag_step": "0.025",
+                "lora_preset.strength_drag_pixels": "12",
+              });
+              assert.strictEqual(LORA_PRESET_SETTINGS.strengthButtonStep, 0.2);
+              assert.strictEqual(LORA_PRESET_SETTINGS.strengthDragStep, 0.025);
+              assert.strictEqual(LORA_PRESET_SETTINGS.strengthDragPixels, 12);
             }
             """
         )

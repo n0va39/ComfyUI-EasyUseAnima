@@ -22,7 +22,9 @@ DEFAULT_SETTINGS = {
     "autocomplete.detect_natural_sentences": "true",
     "lora_preset.name_display": "name",
     "lora_preset.menu_mode": "tree",
+    "lora_preset.strength_button_step": "0.05",
     "lora_preset.strength_drag_step": "0.05",
+    "lora_preset.strength_drag_pixels": "8",
     "prompt_studio.typo_indicator": "true",
     "prompt_studio.comment_italic": "true",
     "prompt_studio.colors": "",
@@ -110,7 +112,9 @@ COMFY_SETTING_KEYS = {
     "EasyUseAnima.Prompt.NaiaGeneralAutoToggle": "prompt_studio.naia_general_above_auto_toggle",
     "EasyUseAnima.LoraPreset.NameDisplay": "lora_preset.name_display",
     "EasyUseAnima.LoraPreset.MenuMode": "lora_preset.menu_mode",
+    "EasyUseAnima.LoraPreset.StrengthButtonStep": "lora_preset.strength_button_step",
     "EasyUseAnima.LoraPreset.StrengthDragStep": "lora_preset.strength_drag_step",
+    "EasyUseAnima.LoraPreset.StrengthDragPixels": "lora_preset.strength_drag_pixels",
     "EasyUseAnima.NAIA.Host": "naia.host",
     "EasyUseAnima.NAIA.Port": "naia.port",
     "EasyUseAnima.NAIA.UseDesktopPromptEngineering": "naia.use_naia_settings",
@@ -323,7 +327,9 @@ def public_settings() -> dict:
             DEFAULT_SETTINGS["lora_preset.name_display"],
         ),
         "lora_preset.menu_mode": resolve_lora_preset_menu_mode(settings),
+        "lora_preset.strength_button_step": resolve_lora_preset_strength_button_step(settings),
         "lora_preset.strength_drag_step": resolve_lora_preset_strength_drag_step(settings),
+        "lora_preset.strength_drag_pixels": resolve_lora_preset_strength_drag_pixels(settings),
         "prompt_studio.typo_indicator": settings.get(
             "prompt_studio.typo_indicator",
             DEFAULT_SETTINGS["prompt_studio.typo_indicator"],
@@ -400,16 +406,34 @@ def resolve_autocomplete_commit_key(settings: dict | None = None) -> str:
     return DEFAULT_SETTINGS["autocomplete.commit_key"]
 
 
+def _resolve_lora_preset_strength_step(settings: dict, key: str, max_value: float) -> float:
+    try:
+        value = float(settings.get(key, DEFAULT_SETTINGS[key]))
+    except (TypeError, ValueError):
+        value = float(DEFAULT_SETTINGS[key])
+    return max(0.001, min(max_value, value))
+
+
+def resolve_lora_preset_strength_button_step(settings: dict | None = None) -> float:
+    settings = settings or get_settings()
+    return _resolve_lora_preset_strength_step(settings, "lora_preset.strength_button_step", 0.5)
+
+
 def resolve_lora_preset_strength_drag_step(settings: dict | None = None) -> float:
     settings = settings or get_settings()
+    return _resolve_lora_preset_strength_step(settings, "lora_preset.strength_drag_step", 0.2)
+
+
+def resolve_lora_preset_strength_drag_pixels(settings: dict | None = None) -> int:
+    settings = settings or get_settings()
     try:
-        value = float(settings.get(
-            "lora_preset.strength_drag_step",
-            DEFAULT_SETTINGS["lora_preset.strength_drag_step"],
-        ))
+        value = int(float(settings.get(
+            "lora_preset.strength_drag_pixels",
+            DEFAULT_SETTINGS["lora_preset.strength_drag_pixels"],
+        )))
     except (TypeError, ValueError):
-        value = float(DEFAULT_SETTINGS["lora_preset.strength_drag_step"])
-    return max(0.001, min(0.2, value))
+        value = int(DEFAULT_SETTINGS["lora_preset.strength_drag_pixels"])
+    return max(1, min(100, value))
 
 
 def resolve_lora_preset_menu_mode(settings: dict | None = None) -> str:

@@ -20,8 +20,9 @@ const PROFILE_VISIBLE_ROWS = 6;
 const LORA_HEADER_HEIGHT = 24;
 const LORA_ROW_HEIGHT = 20;
 const LORA_ADD_HEIGHT = 36;
-const STRENGTH_BUTTON_STEP = 0.05;
+const DEFAULT_STRENGTH_BUTTON_STEP = 0.05;
 const DEFAULT_STRENGTH_DRAG_STEP = 0.05;
+const DEFAULT_STRENGTH_DRAG_PIXELS = 8;
 const PREVIEW_SIZE = 360;
 const missingPreviewNames = new Set();
 let activeLoraMenuNode = null;
@@ -30,7 +31,9 @@ let profileWheelListenerInstalled = false;
 const LORA_PRESET_SETTINGS = {
   nameDisplay: "name",
   menuMode: "tree",
+  strengthButtonStep: DEFAULT_STRENGTH_BUTTON_STEP,
   strengthDragStep: DEFAULT_STRENGTH_DRAG_STEP,
+  strengthDragPixels: DEFAULT_STRENGTH_DRAG_PIXELS,
 };
 const LORA_PRESET_TEXT = {
   en: {
@@ -188,15 +191,33 @@ function applyLoraPresetSettings(settings = {}) {
   LORA_PRESET_SETTINGS.nameDisplay = value === "path" ? "path" : "name";
   const menuMode = String(settings?.["lora_preset.menu_mode"] || "tree");
   LORA_PRESET_SETTINGS.menuMode = menuMode === "list" ? "list" : "tree";
-  LORA_PRESET_SETTINGS.strengthDragStep = parseStrengthDragStep(settings?.["lora_preset.strength_drag_step"]);
+  LORA_PRESET_SETTINGS.strengthButtonStep = parseStrengthStep(
+    settings?.["lora_preset.strength_button_step"],
+    DEFAULT_STRENGTH_BUTTON_STEP,
+    0.5,
+  );
+  LORA_PRESET_SETTINGS.strengthDragStep = parseStrengthStep(
+    settings?.["lora_preset.strength_drag_step"],
+    DEFAULT_STRENGTH_DRAG_STEP,
+    0.2,
+  );
+  LORA_PRESET_SETTINGS.strengthDragPixels = parseStrengthDragPixels(settings?.["lora_preset.strength_drag_pixels"]);
 }
 
-function parseStrengthDragStep(value) {
+function parseStrengthStep(value, fallback, maxValue) {
   const number = Number(value);
   if (!Number.isFinite(number)) {
-    return DEFAULT_STRENGTH_DRAG_STEP;
+    return fallback;
   }
-  return Math.max(0.001, Math.min(0.2, number));
+  return Math.max(0.001, Math.min(maxValue, number));
+}
+
+function parseStrengthDragPixels(value) {
+  const number = Number(value);
+  if (!Number.isFinite(number)) {
+    return DEFAULT_STRENGTH_DRAG_PIXELS;
+  }
+  return Math.max(1, Math.min(100, Math.round(number)));
 }
 
 async function loadLoraPresetSettings() {
@@ -1064,7 +1085,70 @@ function refreshLoraAvailability(node) {
 }
 
 function roundStrength(value) {
-  return Math.round(Number(value || 0) * 100) / 100;
+  return Math.round(Number(value || 0) * 1000) / 1000;
+}
+
+function clearLoraStrengthDrag(node) {
+  if (node?.__easyuseAnimaStrengthDrag) {
+    node.__easyuseAnimaStrengthDrag = null;
+  }
+}
+
+function beginLoraStrengthDrag(node, index, pos, lora) {
+  node.__easyuseAnimaStrengthDrag = {
+    index,
+    startX: Number(pos?.[0]) || 0,
+    startStrength: Number(lora?.strength ?? 1) || 0,
+    lastSteps: 0,
+    moved: false,
+    promptOnClick: true,
+  };
+}
+
+function handleLoraStrengthDrag(node, event, pos) {
+  const drag = node?.__easyuseAnimaStrengthDrag;
+  if (!drag) {
+    return false;
+  }
+  if (event.type === "pointerleave" || event.type === "pointerout") {
+    return true;
+  }
+  if (event.type === "pointercancel") {
+    clearLoraStrengthDrag(node);
+    return true;
+  }
+  if (event.type === "pointermove") {
+    const currentX = Number(pos?.[0]);
+    const distance = Number.isFinite(currentX) ? currentX - drag.startX : Number(event.deltaX || 0);
+    const pixels = Math.max(1, LORA_PRESET_SETTINGS.strengthDragPixels);
+    const steps = Math.trunc(distance / pixels);
+    if (steps !== drag.lastSteps) {
+      drag.lastSteps = steps;
+      drag.moved = true;
+      updateLoraEntry(
+        node,
+        drag.index,
+        { strength: roundStrength(drag.startStrength + steps * LORA_PRESET_SETTINGS.strengthDragStep) },
+        { render: false },
+      );
+    }
+    return true;
+  }
+  if (event.type === "pointerup") {
+    const shouldPrompt = drag.promptOnClick && !drag.moved;
+    const lora = normalizeLoraEntry(lorasWidgetValue(node)[drag.index]);
+    clearLoraStrengthDrag(node);
+    if (shouldPrompt && lora.name) {
+      app.canvas.prompt(lpText("lora.strengthPrompt"), lora.strength ?? 1, (value) => {
+        const next = Number(value);
+        if (Number.isFinite(next)) {
+          updateLoraEntry(node, drag.index, { strength: roundStrength(next) });
+        }
+      }, event);
+    }
+    return true;
+  }
+  return false;
 }
 
 function loraEntryFromName(name, base = {}) {
@@ -1975,6 +2059,9 @@ class ProfileBarWidget {
   }
 
   mouse(event, pos, node) {
+    if (node?.__easyuseAnimaStrengthDrag) {
+      return handleLoraStrengthDrag(node, event, pos);
+    }
     if (event.type === "wheel" && pointInArea(pos, this.listArea)) {
       return this.scrollByWheel(event.deltaY, node);
     }
@@ -2069,6 +2156,9 @@ class LoraHeaderWidget {
   }
 
   mouse(event, pos, node) {
+    if (node?.__easyuseAnimaStrengthDrag) {
+      return handleLoraStrengthDrag(node, event, pos);
+    }
     if (event.type !== "pointerdown" || event.button !== 0 || !pointInArea(pos, this.toggleArea)) {
       return false;
     }
@@ -2091,8 +2181,6 @@ class LoraRowWidget {
     this.__easyuseAnimaLoraWidget = true;
     this.index = index;
     this.hitAreas = {};
-    this.dragging = false;
-    this.moved = false;
   }
 
   computeSize() {
@@ -2212,14 +2300,20 @@ class LoraRowWidget {
   }
 
   mouse(event, pos, node) {
+    if (node?.__easyuseAnimaStrengthDrag) {
+      return handleLoraStrengthDrag(node, event, pos);
+    }
     const lora = normalizeLoraEntry(lorasWidgetValue(node)[this.index]);
     if (!lora.name) {
       return false;
     }
-    if (event.type === "pointerout" || event.type === "pointerleave" || event.type === "pointercancel") {
+    if (event.type === "pointerout" || event.type === "pointerleave") {
       hidePreview();
-      this.dragging = false;
-      this.moved = false;
+      return false;
+    }
+    if (event.type === "pointercancel") {
+      hidePreview();
+      clearLoraStrengthDrag(node);
       return false;
     }
     if (event.type === "pointermove") {
@@ -2228,25 +2322,6 @@ class LoraRowWidget {
       } else {
         hidePreview();
       }
-      if (this.dragging && event.deltaX) {
-        this.moved = true;
-        updateLoraEntry(
-          node,
-          this.index,
-          { strength: roundStrength((lora.strength ?? 1) + event.deltaX * LORA_PRESET_SETTINGS.strengthDragStep) },
-          { render: false },
-        );
-        return true;
-      }
-    }
-    if (event.type === "pointerup" && this.dragging) {
-      const prompt = !this.moved && pointInArea(pos, this.hitAreas.value);
-      this.dragging = false;
-      this.moved = false;
-      if (prompt) {
-        this.promptStrength(event, node, lora);
-      }
-      return true;
     }
     if (event.type !== "pointerdown") {
       return false;
@@ -2280,16 +2355,15 @@ class LoraRowWidget {
       return true;
     }
     if (pointInArea(pos, this.hitAreas.dec)) {
-      updateLoraEntry(node, this.index, { strength: roundStrength((lora.strength ?? 1) - STRENGTH_BUTTON_STEP) });
+      updateLoraEntry(node, this.index, { strength: roundStrength((lora.strength ?? 1) - LORA_PRESET_SETTINGS.strengthButtonStep) });
       return true;
     }
     if (pointInArea(pos, this.hitAreas.inc)) {
-      updateLoraEntry(node, this.index, { strength: roundStrength((lora.strength ?? 1) + STRENGTH_BUTTON_STEP) });
+      updateLoraEntry(node, this.index, { strength: roundStrength((lora.strength ?? 1) + LORA_PRESET_SETTINGS.strengthButtonStep) });
       return true;
     }
     if (pointInArea(pos, this.hitAreas.strengthAny)) {
-      this.dragging = true;
-      this.moved = false;
+      beginLoraStrengthDrag(node, this.index, pos, lora);
       return true;
     }
     return false;
@@ -2340,6 +2414,9 @@ class AddLoraWidget {
   }
 
   mouse(event, pos, node) {
+    if (node?.__easyuseAnimaStrengthDrag) {
+      return handleLoraStrengthDrag(node, event, pos);
+    }
     if (event.type !== "pointerdown" || event.button !== 0 || !pointInArea(pos, this.hitArea)) {
       return false;
     }
