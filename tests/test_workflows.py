@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import re
 import unittest
 from pathlib import Path
 
@@ -26,6 +27,7 @@ RELEASE_WORKFLOWS = (
     ROOT / "docs" / "workflows" / "Anima_AiO_v6.0_release_ko.json",
     ROOT / "docs" / "workflows" / "Anima_AiO_v6.0_release_en.json",
 )
+MOJIBAKE_LATIN1_RE = re.compile(r"[\u0080-\u00ff]")
 
 
 def load_workflow(path: Path) -> dict:
@@ -41,6 +43,22 @@ def link_map(workflow: dict) -> dict[int, list]:
 
 
 class ReleaseWorkflowTests(unittest.TestCase):
+    def test_release_workflows_do_not_contain_latin1_mojibake(self):
+        def walk(value, path: str = ""):
+            if isinstance(value, dict):
+                for key, child in value.items():
+                    yield from walk(child, f"{path}.{key}" if path else str(key))
+            elif isinstance(value, list):
+                for index, child in enumerate(value):
+                    yield from walk(child, f"{path}[{index}]")
+            elif isinstance(value, str) and MOJIBAKE_LATIN1_RE.search(value):
+                yield path, value
+
+        for workflow_path in RELEASE_WORKFLOWS:
+            with self.subTest(path=workflow_path.name):
+                matches = list(walk(load_workflow(workflow_path)))
+                self.assertFalse(matches, matches[:5])
+
     def test_release_workflow_links_match_node_slots(self):
         for path in RELEASE_WORKFLOWS:
             with self.subTest(path=path.name):

@@ -46,7 +46,7 @@
       "mode": 0,
       "inputs": [
         {
-          "localized_name": "íë¡¬íí¸",
+          "localized_name": "프롬프트",
           "name": "prompt",
           "type": "STRING",
           "widget": {
@@ -55,7 +55,7 @@
           "link": null
         },
         {
-          "localized_name": "ìê° ì·¨ê¸ íê·¸",
+          "localized_name": "작가 취급 태그",
           "name": "artist_overrides",
           "type": "STRING",
           "widget": {
@@ -64,7 +64,7 @@
           "link": null
         },
         {
-          "localized_name": "ìê° ì ì¸ íê·¸",
+          "localized_name": "작가 제외 태그",
           "name": "artist_exclusions",
           "type": "STRING",
           "widget": {
@@ -75,7 +75,7 @@
       ],
       "outputs": [
         {
-          "localized_name": "êµì ë íë¡¬íí¸",
+          "localized_name": "교정된 프롬프트",
           "name": "corrected_prompt",
           "type": "STRING",
           "links": [
@@ -84,7 +84,7 @@
           ]
         },
         {
-          "localized_name": "ë³´ê³ ì",
+          "localized_name": "보고서",
           "name": "report",
           "type": "STRING",
           "links": [
@@ -119,7 +119,7 @@
       "inputs": [
         {
           "label": "style_prompt",
-          "localized_name": "ì¤íì¼ íë¡¬íí¸",
+          "localized_name": "스타일 프롬프트",
           "name": "style_prompt",
           "type": "STRING",
           "widget": {
@@ -128,7 +128,7 @@
           "link": null
         },
         {
-          "localized_name": "íë¡í ì¸ë±ì¤",
+          "localized_name": "프로필 인덱스",
           "name": "profile_index",
           "type": "INT",
           "widget": {
@@ -137,7 +137,7 @@
           "link": null
         },
         {
-          "localized_name": "íë¡í ê°ì",
+          "localized_name": "프로필 개수",
           "name": "profile_count",
           "type": "STRING",
           "widget": {
@@ -146,7 +146,7 @@
           "link": null
         },
         {
-          "localized_name": "LoRA ì´ë¦",
+          "localized_name": "LoRA 이름",
           "name": "lora_name",
           "type": "COMBO",
           "widget": {
@@ -155,7 +155,7 @@
           "link": null
         },
         {
-          "localized_name": "LoRA ëª©ë¡",
+          "localized_name": "LoRA 목록",
           "name": "loras",
           "type": "STRING",
           "widget": {
@@ -164,7 +164,7 @@
           "link": null
         },
         {
-          "localized_name": "íë¡í ë°ì´í°",
+          "localized_name": "프로필 데이터",
           "name": "profile_data",
           "type": "STRING",
           "widget": {
@@ -180,7 +180,7 @@
       ],
       "outputs": [
         {
-          "localized_name": "ì¤íì¼ íë¡¬íí¸",
+          "localized_name": "스타일 프롬프트",
           "name": "style_prompt",
           "type": "STRING",
           "links": [
@@ -194,19 +194,19 @@
           "links": null
         },
         {
-          "localized_name": "í¸ë¦¬ê±° ìë",
+          "localized_name": "트리거 워드",
           "name": "trigger_words",
           "type": "STRING",
           "links": null
         },
         {
-          "localized_name": "íì± LoRA",
+          "localized_name": "활성 LoRA",
           "name": "active_loras",
           "type": "STRING",
           "links": null
         },
         {
-          "localized_name": "íë¡í ì¸ë±ì¤",
+          "localized_name": "프로필 인덱스",
           "name": "profile_index",
           "type": "INT",
           "links": null
@@ -242,31 +242,31 @@
       "mode": 0,
       "inputs": [
         {
-          "label": "1. í¸ë¦¬ê±°",
+          "label": "1. 트리거",
           "name": "field_positive_trigger_demo",
           "type": "STRING",
           "link": null
         },
         {
-          "label": "2. íì§ íê·¸",
+          "label": "2. 품질 태그",
           "name": "field_positive_quality_demo",
           "type": "STRING",
           "link": null
         },
         {
-          "label": "3. ìê° íê·¸ - Artist/Style Tags",
+          "label": "3. 작가 태그 - Artist/Style Tags",
           "name": "field_positive_artist_demo",
           "type": "STRING",
           "link": null
         },
         {
-          "label": "4. ì¼ë° íê·¸",
+          "label": "4. 일반 태그",
           "name": "field_positive_general_demo",
           "type": "STRING",
           "link": 1
         },
         {
-          "label": "neg1. íì§ íê·¸ - Negative Quality Tags",
+          "label": "neg1. 품질 태그 - Negative Quality Tags",
           "name": "field_negative_quality_demo",
           "type": "STRING",
           "link": null
@@ -381,7 +381,7 @@
       ],
       "outputs": [
         {
-          "localized_name": "ë¬¸ìì´",
+          "localized_name": "문자열",
           "name": "STRING",
           "shape": 6,
           "type": "STRING",
@@ -422,7 +422,7 @@
       ],
       "outputs": [
         {
-          "localized_name": "ë¬¸ìì´",
+          "localized_name": "문자열",
           "name": "STRING",
           "shape": 6,
           "type": "STRING",
@@ -463,7 +463,7 @@
       ],
       "outputs": [
         {
-          "localized_name": "ë¬¸ìì´",
+          "localized_name": "문자열",
           "name": "STRING",
           "shape": 6,
           "type": "STRING",
@@ -504,7 +504,7 @@
       ],
       "outputs": [
         {
-          "localized_name": "ë¬¸ìì´",
+          "localized_name": "문자열",
           "name": "STRING",
           "shape": 6,
           "type": "STRING",
@@ -545,7 +545,7 @@
       ],
       "outputs": [
         {
-          "localized_name": "ë¬¸ìì´",
+          "localized_name": "문자열",
           "name": "STRING",
           "shape": 6,
           "type": "STRING",
@@ -586,7 +586,7 @@
       ],
       "outputs": [
         {
-          "localized_name": "ë¬¸ìì´",
+          "localized_name": "문자열",
           "name": "STRING",
           "shape": 6,
           "type": "STRING",
@@ -627,7 +627,7 @@
       ],
       "outputs": [
         {
-          "localized_name": "ë¬¸ìì´",
+          "localized_name": "문자열",
           "name": "STRING",
           "shape": 6,
           "type": "STRING",
@@ -668,7 +668,7 @@
       ],
       "outputs": [
         {
-          "localized_name": "ë¬¸ìì´",
+          "localized_name": "문자열",
           "name": "STRING",
           "shape": 6,
           "type": "STRING",
