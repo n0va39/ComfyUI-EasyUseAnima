@@ -1,8 +1,8 @@
 {
   "id": "7c6b1f2e-4d19-4f0f-a18e-9ec6b7b64c01",
   "revision": 0,
-  "last_node_id": 11,
-  "last_link_id": 18,
+  "last_node_id": 12,
+  "last_link_id": 19,
   "nodes": [
     {
       "id": 1,
@@ -354,11 +354,15 @@
           "name": "field_negative_quality_demo",
           "type": "STRING",
           "link": null
+        },
+        {
+          "name": "field_negative_general_demo",
+          "type": "STRING",
+          "link": null
         }
       ],
       "outputs": [
         {
-          "localized_name": "ê¸ì  íë¡¬íí¸",
           "name": "positive_prompt",
           "type": "STRING",
           "links": [
@@ -366,7 +370,6 @@
           ]
         },
         {
-          "localized_name": "ë¶ì  íë¡¬íí¸",
           "name": "negative_prompt",
           "type": "STRING",
           "links": [
@@ -374,7 +377,6 @@
           ]
         },
         {
-          "localized_name": "Mod Guidance íì§ íê·¸",
           "name": "anima_mod_guidance_quality_tags",
           "type": "STRING",
           "links": [
@@ -382,13 +384,23 @@
           ]
         },
         {
-          "localized_name": "Mod Guidance ì¬ì©",
+          "name": "anima_mod_guidance_negative_prompt",
+          "type": "STRING",
+          "links": [
+            19
+          ]
+        },
+        {
           "name": "use_anima_mod_guidance",
           "type": "BOOLEAN",
           "links": null
         },
         {
-          "localized_name": "ë©íë°ì´í° íë¡¬íí¸",
+          "name": "use_negative_anima_mod_guidance",
+          "type": "BOOLEAN",
+          "links": null
+        },
+        {
           "name": "metadata_prompt",
           "type": "STRING",
           "links": [
@@ -396,19 +408,16 @@
           ]
         },
         {
-          "localized_name": "ë©íë°ì´í° ë¶ì  íë¡¬íí¸",
           "name": "metadata_negative_prompt",
           "type": "STRING",
           "links": null
         },
         {
-          "localized_name": "ëë¹",
           "name": "width",
           "type": "INT",
           "links": null
         },
         {
-          "localized_name": "ëì´",
           "name": "height",
           "type": "INT",
           "links": null
@@ -417,7 +426,7 @@
       "title": "Anima Prompt Studio Advanced",
       "properties": {
         "Node name for S&R": "EasyUseAnimaPromptStudioAdvanced",
-        "easyuse_anima_advanced_fields": "[{\"id\":\"positive_trigger_demo\",\"pane\":\"positive\",\"type\":\"trigger\",\"label\":\"í¸ë¦¬ê±° ë¨ì´\",\"text\":\"\",\"height\":62,\"heightMode\":\"auto\",\"enabled\":false,\"pin\":true},{\"id\":\"positive_quality_demo\",\"pane\":\"positive\",\"type\":\"quality\",\"label\":\"íì§ íê·¸\",\"text\":\"(newest:0.6), masterpiece, best quality, (score_8:0.65), (score_7:0.7)\",\"height\":52,\"heightMode\":\"auto\",\"enabled\":true,\"pin\":false},{\"id\":\"positive_artist_demo\",\"pane\":\"positive\",\"type\":\"artist\",\"label\":\"ìê°/ì¤íì¼ íê·¸\",\"text\":\"@artist\",\"height\":52,\"heightMode\":\"auto\",\"enabled\":false,\"pin\":false},{\"id\":\"positive_general_demo\",\"pane\":\"positive\",\"type\":\"general\",\"label\":\"ì¼ë° íê·¸\",\"text\":\"1girl, hatsune miku, absurdly long hair, aqua hair, black dress, black hairband, black ribbon, blue sky, blurry, bokeh, bud, choppy bangs, clear sky, closed eyes, closed mouth, cosmos \\\\(flower\\\\), day, depth of field, dot nose, elbow gloves, embroidered dress, embroidery, facing viewer, feet out of frame, grass, hair between eyes, hair flowing over, high collar, holding bouquet, leaf, light particles, light smile, medium dress, moss, neck ribbon, overgrown, pink flower, purple flower, sidelocks, simple butterfly, sitting, solo, striped ribbon, succulent plant, sunlight, train interior, turtleneck capelet, twintails, two-tone dress, vegetation, very long hair, white butterfly, white dress, white flower, white gloves, white thighhighs, wisteria\",\"height\":180,\"heightMode\":\"auto\",\"enabled\":true,\"pin\":false},{\"id\":\"negative_quality_demo\",\"pane\":\"negative\",\"type\":\"quality\",\"label\":\"ë¤ê±°í°ë¸ íì§ íê·¸\",\"text\":\"worst quality, low quality, score_1, score_2, score_3, blurry, watermark, text, bad anatomy\",\"height\":84,\"heightMode\":\"auto\",\"enabled\":true,\"pin\":false}]"
+        "easyuse_anima_advanced_fields": "[{\"id\":\"positive_trigger_demo\",\"pane\":\"positive\",\"type\":\"trigger\",\"label\":\"í¸ë¦¬ê±° ë¨ì´\",\"text\":\"\",\"height\":62,\"heightMode\":\"auto\",\"enabled\":false,\"pin\":true},{\"id\":\"positive_quality_demo\",\"pane\":\"positive\",\"type\":\"quality\",\"label\":\"íì§ íê·¸\",\"text\":\"(newest:0.6), masterpiece, best quality, (score_8:0.65), (score_7:0.7)\",\"height\":52,\"heightMode\":\"auto\",\"enabled\":true,\"pin\":false},{\"id\":\"positive_artist_demo\",\"pane\":\"positive\",\"type\":\"artist\",\"label\":\"ìê°/ì¤íì¼ íê·¸\",\"text\":\"@artist\",\"height\":52,\"heightMode\":\"auto\",\"enabled\":false,\"pin\":false},{\"id\":\"positive_general_demo\",\"pane\":\"positive\",\"type\":\"general\",\"label\":\"ì¼ë° íê·¸\",\"text\":\"1girl, hatsune miku, absurdly long hair, aqua hair, black dress, black hairband, black ribbon, blue sky, blurry, bokeh, bud, choppy bangs, clear sky, closed eyes, closed mouth, cosmos \\\\(flower\\\\), day, depth of field, dot nose, elbow gloves, embroidered dress, embroidery, facing viewer, feet out of frame, grass, hair between eyes, hair flowing over, high collar, holding bouquet, leaf, light particles, light smile, medium dress, moss, neck ribbon, overgrown, pink flower, purple flower, sidelocks, simple butterfly, sitting, solo, striped ribbon, succulent plant, sunlight, train interior, turtleneck capelet, twintails, two-tone dress, vegetation, very long hair, white butterfly, white dress, white flower, white gloves, white thighhighs, wisteria\",\"height\":180,\"heightMode\":\"auto\",\"enabled\":true,\"pin\":false},{\"id\":\"negative_quality_demo\",\"pane\":\"negative\",\"type\":\"quality\",\"label\":\"ë¤ê±°í°ë¸ íì§ íê·¸\",\"text\":\"worst quality, low quality, score_1, score_2, score_3\",\"height\":84,\"heightMode\":\"auto\",\"enabled\":true,\"pin\":false},{\"id\":\"negative_general_demo\",\"pane\":\"negative\",\"type\":\"general\",\"label\":\"부정 일반 프롬프트\",\"text\":\"blurry, watermark, text, bad anatomy\",\"height\":72,\"heightMode\":\"auto\",\"enabled\":true,\"pin\":false}]"
       },
       "widgets_values": [
         false,
@@ -428,8 +437,8 @@
         1024,
         1024,
         false,
-        "[{\"id\":\"positive_trigger_demo\",\"pane\":\"positive\",\"type\":\"trigger\",\"label\":\"í¸ë¦¬ê±° ë¨ì´\",\"text\":\"\",\"height\":62,\"heightMode\":\"auto\",\"enabled\":false,\"pin\":true},{\"id\":\"positive_quality_demo\",\"pane\":\"positive\",\"type\":\"quality\",\"label\":\"íì§ íê·¸\",\"text\":\"(newest:0.6), masterpiece, best quality, (score_8:0.65), (score_7:0.7)\",\"height\":52,\"heightMode\":\"auto\",\"enabled\":true,\"pin\":false},{\"id\":\"positive_artist_demo\",\"pane\":\"positive\",\"type\":\"artist\",\"label\":\"ìê°/ì¤íì¼ íê·¸\",\"text\":\"@artist\",\"height\":52,\"heightMode\":\"auto\",\"enabled\":false,\"pin\":false},{\"id\":\"positive_general_demo\",\"pane\":\"positive\",\"type\":\"general\",\"label\":\"ì¼ë° íê·¸\",\"text\":\"1girl, hatsune miku, absurdly long hair, aqua hair, black dress, black hairband, black ribbon, blue sky, blurry, bokeh, bud, choppy bangs, clear sky, closed eyes, closed mouth, cosmos \\\\(flower\\\\), day, depth of field, dot nose, elbow gloves, embroidered dress, embroidery, facing viewer, feet out of frame, grass, hair between eyes, hair flowing over, high collar, holding bouquet, leaf, light particles, light smile, medium dress, moss, neck ribbon, overgrown, pink flower, purple flower, sidelocks, simple butterfly, sitting, solo, striped ribbon, succulent plant, sunlight, train interior, turtleneck capelet, twintails, two-tone dress, vegetation, very long hair, white butterfly, white dress, white flower, white gloves, white thighhighs, wisteria\",\"height\":180,\"heightMode\":\"auto\",\"enabled\":true,\"pin\":false},{\"id\":\"negative_quality_demo\",\"pane\":\"negative\",\"type\":\"quality\",\"label\":\"ë¤ê±°í°ë¸ íì§ íê·¸\",\"text\":\"worst quality, low quality, score_1, score_2, score_3, blurry, watermark, text, bad anatomy\",\"height\":84,\"heightMode\":\"auto\",\"enabled\":true,\"pin\":false}]",
-        ""
+        "[{\"id\":\"positive_trigger_demo\",\"pane\":\"positive\",\"type\":\"trigger\",\"label\":\"í¸ë¦¬ê±° ë¨ì´\",\"text\":\"\",\"height\":62,\"heightMode\":\"auto\",\"enabled\":false,\"pin\":true},{\"id\":\"positive_quality_demo\",\"pane\":\"positive\",\"type\":\"quality\",\"label\":\"íì§ íê·¸\",\"text\":\"(newest:0.6), masterpiece, best quality, (score_8:0.65), (score_7:0.7)\",\"height\":52,\"heightMode\":\"auto\",\"enabled\":true,\"pin\":false},{\"id\":\"positive_artist_demo\",\"pane\":\"positive\",\"type\":\"artist\",\"label\":\"ìê°/ì¤íì¼ íê·¸\",\"text\":\"@artist\",\"height\":52,\"heightMode\":\"auto\",\"enabled\":false,\"pin\":false},{\"id\":\"positive_general_demo\",\"pane\":\"positive\",\"type\":\"general\",\"label\":\"ì¼ë° íê·¸\",\"text\":\"1girl, hatsune miku, absurdly long hair, aqua hair, black dress, black hairband, black ribbon, blue sky, blurry, bokeh, bud, choppy bangs, clear sky, closed eyes, closed mouth, cosmos \\\\(flower\\\\), day, depth of field, dot nose, elbow gloves, embroidered dress, embroidery, facing viewer, feet out of frame, grass, hair between eyes, hair flowing over, high collar, holding bouquet, leaf, light particles, light smile, medium dress, moss, neck ribbon, overgrown, pink flower, purple flower, sidelocks, simple butterfly, sitting, solo, striped ribbon, succulent plant, sunlight, train interior, turtleneck capelet, twintails, two-tone dress, vegetation, very long hair, white butterfly, white dress, white flower, white gloves, white thighhighs, wisteria\",\"height\":180,\"heightMode\":\"auto\",\"enabled\":true,\"pin\":false},{\"id\":\"negative_quality_demo\",\"pane\":\"negative\",\"type\":\"quality\",\"label\":\"ë¤ê±°í°ë¸ íì§ íê·¸\",\"text\":\"worst quality, low quality, score_1, score_2, score_3\",\"height\":84,\"heightMode\":\"auto\",\"enabled\":true,\"pin\":false},{\"id\":\"negative_general_demo\",\"pane\":\"negative\",\"type\":\"general\",\"label\":\"부정 일반 프롬프트\",\"text\":\"blurry, watermark, text, bad anatomy\",\"height\":72,\"heightMode\":\"auto\",\"enabled\":true,\"pin\":false}]",
+        true
       ]
     },
     {
@@ -560,14 +569,14 @@
       "type": "ShowText|pysssss",
       "pos": [
         1220,
-        550
+        700
       ],
       "size": [
         500,
         290
       ],
       "flags": {},
-      "order": 10,
+      "order": 11,
       "mode": 0,
       "inputs": [
         {
@@ -636,6 +645,47 @@
       ],
       "color": "#3f3f46",
       "bgcolor": "#52525b"
+    },
+    {
+      "id": 12,
+      "type": "ShowText|pysssss",
+      "pos": [
+        1220,
+        530
+      ],
+      "size": [
+        500,
+        120
+      ],
+      "flags": {},
+      "order": 10,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "text",
+          "name": "text",
+          "type": "STRING",
+          "link": 19
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "ë¬¸ìì´",
+          "name": "STRING",
+          "shape": 6,
+          "type": "STRING",
+          "links": null
+        }
+      ],
+      "title": "Mod Guidance 부정 프롬프트",
+      "properties": {
+        "Node name for S&R": "ShowText|pysssss"
+      },
+      "widgets_values": [
+        "worst quality, low quality, score_1, score_2, score_3"
+      ],
+      "color": "#2a363b",
+      "bgcolor": "#3f5159"
     }
   ],
   "links": [
@@ -698,7 +748,7 @@
     [
       17,
       4,
-      4,
+      6,
       11,
       0,
       "STRING"
@@ -708,6 +758,14 @@
       3,
       0,
       7,
+      0,
+      "STRING"
+    ],
+    [
+      19,
+      4,
+      3,
+      12,
       0,
       "STRING"
     ]
@@ -791,7 +849,7 @@
       "language": "ko",
       "kind": "feature-test-workflow",
       "package": "comfyui-easyuse-anima",
-      "package_version": "0.1.7",
+      "package_version": "0.1.8",
       "registry_folder": "example_workflows",
       "release_filename": "EasyUse_Anima_feature_test_release_ko.json",
       "release_suffix": "_release_ko",

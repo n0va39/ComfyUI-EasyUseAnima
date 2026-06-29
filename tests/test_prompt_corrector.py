@@ -35,6 +35,7 @@ from settings import (
     resolve_autocomplete_commit_key,
     resolve_autocomplete_limit,
     resolve_autocomplete_mode,
+    resolve_lora_preset_strength_drag_step,
 )
 
 
@@ -153,13 +154,13 @@ class PromptCorrectorTests(unittest.TestCase):
             positive,
             negative,
             _quality,
+            _negative_amg,
             _use_amg,
+            _use_negative_amg,
             _metadata,
             metadata_negative,
             _width,
             _height,
-            _negative_amg,
-            _use_negative_amg,
         ) = result["result"]
         self.assertEqual(positive, "score_8, score_7")
         self.assertEqual(negative, "score_5, score_4")
@@ -322,6 +323,23 @@ class PromptBuilderTests(unittest.TestCase):
         self.assertIn("masterpiece", result["result"][0])
         self.assertIn("location", result["result"][0])
 
+    def test_prompt_studio_advanced_output_socket_order_groups_related_outputs(self):
+        self.assertEqual(
+            EasyUseAnimaPromptStudioAdvanced.RETURN_NAMES,
+            (
+                "positive_prompt",
+                "negative_prompt",
+                "anima_mod_guidance_quality_tags",
+                "anima_mod_guidance_negative_prompt",
+                "use_anima_mod_guidance",
+                "use_negative_anima_mod_guidance",
+                "metadata_prompt",
+                "metadata_negative_prompt",
+                "width",
+                "height",
+            ),
+        )
+
     def test_prompt_studio_advanced_splits_positive_negative_and_amg_quality(self):
         fields = [
             {
@@ -369,13 +387,13 @@ class PromptBuilderTests(unittest.TestCase):
             positive,
             negative,
             quality,
+            negative_amg,
             use_amg,
+            use_negative_amg,
             metadata,
             metadata_negative,
             width,
             height,
-            negative_amg,
-            use_negative_amg,
         ) = result["result"]
         self.assertNotIn("masterpiece", positive)
         self.assertEqual(quality, "masterpiece")
@@ -427,13 +445,13 @@ class PromptBuilderTests(unittest.TestCase):
             positive,
             negative,
             quality,
+            negative_amg,
             use_amg,
+            use_negative_amg,
             metadata,
             metadata_negative,
             width,
             height,
-            negative_amg,
-            use_negative_amg,
         ) = result["result"]
         self.assertEqual(positive, "1girl")
         self.assertEqual(quality, "")
@@ -814,7 +832,7 @@ class PromptBuilderTests(unittest.TestCase):
         self.assertEqual(saved_image_by_id["negative_naia"]["text"], "low quality, bad hands")
         self.assertEqual(result["result"][0], "1girl, silver hair")
         self.assertEqual(result["result"][1], "low quality, bad hands")
-        self.assertEqual(result["result"][6:8], (992, 768))
+        self.assertEqual(result["result"][8:10], (992, 768))
         self.assertFalse(workflow_prompt["9"]["inputs"]["use_naia"])
         self.assertEqual(workflow_prompt["9"]["inputs"]["resolution_bucket"], "Custom")
         self.assertEqual(workflow_prompt["9"]["inputs"]["resolution_custom_width"], 992)
@@ -838,7 +856,7 @@ class PromptBuilderTests(unittest.TestCase):
             resolution_size="896 * 1152 (7:9)",
         )
 
-        self.assertEqual(result["result"][6:8], (896, 1152))
+        self.assertEqual(result["result"][8:10], (896, 1152))
 
     def test_prompt_studio_advanced_outputs_custom_resolution_snapped_to_32(self):
         result = EasyUseAnimaPromptStudioAdvanced().build(
@@ -853,7 +871,7 @@ class PromptBuilderTests(unittest.TestCase):
             resolution_custom_height=777,
         )
 
-        self.assertEqual(result["result"][6:8], (992, 768))
+        self.assertEqual(result["result"][8:10], (992, 768))
 
     def test_prompt_studio_advanced_resolution_buckets_are_32_aligned(self):
         for values in ADVANCED_RESOLUTION_BUCKETS.values():
@@ -911,11 +929,11 @@ class PromptBuilderTests(unittest.TestCase):
             positive,
             negative,
             quality,
+            negative_amg,
             use_amg,
+            use_negative_amg,
             metadata,
             metadata_negative,
-            negative_amg,
-            use_negative_amg,
         ) = result["result"]
         payload = result["ui"]["prompt_studio_slots"][0]
 
@@ -930,6 +948,21 @@ class PromptBuilderTests(unittest.TestCase):
         self.assertEqual(negative_amg, "low quality, bad hands")
         self.assertFalse(use_negative_amg)
         self.assertEqual(payload["naia_prompt_3"], "1girl")
+
+    def test_prompt_studio_extend_output_socket_order_matches_advanced_prompt_outputs(self):
+        self.assertEqual(
+            EasyUseAnimaPromptStudioExtend.RETURN_NAMES,
+            (
+                "positive_prompt",
+                "negative_prompt",
+                "anima_mod_guidance_quality_tags",
+                "anima_mod_guidance_negative_prompt",
+                "use_anima_mod_guidance",
+                "use_negative_anima_mod_guidance",
+                "metadata_prompt",
+                "metadata_negative_prompt",
+            ),
+        )
 
     def test_prompt_studio_extend_can_route_negative_quality_slots_to_amg(self):
         result = EasyUseAnimaPromptStudioExtend().build(
@@ -958,11 +991,11 @@ class PromptBuilderTests(unittest.TestCase):
             positive,
             negative,
             quality,
+            negative_amg,
             use_amg,
+            use_negative_amg,
             metadata,
             metadata_negative,
-            negative_amg,
-            use_negative_amg,
         ) = result["result"]
 
         self.assertEqual(positive, "masterpiece, 1girl")
@@ -991,11 +1024,11 @@ class PromptBuilderTests(unittest.TestCase):
             positive,
             negative,
             quality,
+            negative_amg,
             use_amg,
+            use_negative_amg,
             metadata,
             metadata_negative,
-            negative_amg,
-            use_negative_amg,
         ) = result["result"]
         payload = result["ui"]["prompt_studio_slots"][0]
 
@@ -1086,6 +1119,7 @@ class SettingsTests(unittest.TestCase):
                 "autocomplete.no_comma_after_period",
                 "autocomplete.detect_natural_sentences",
                 "lora_preset.name_display",
+                "lora_preset.strength_drag_step",
                 "prompt_studio.typo_indicator",
                 "prompt_studio.comment_italic",
                 "prompt_studio.colors",
@@ -1138,6 +1172,24 @@ class SettingsTests(unittest.TestCase):
             "enter",
         )
 
+    def test_lora_preset_strength_drag_step_is_clamped(self):
+        self.assertEqual(
+            resolve_lora_preset_strength_drag_step({"lora_preset.strength_drag_step": "0"}),
+            0.001,
+        )
+        self.assertEqual(
+            resolve_lora_preset_strength_drag_step({"lora_preset.strength_drag_step": "0.012"}),
+            0.012,
+        )
+        self.assertEqual(
+            resolve_lora_preset_strength_drag_step({"lora_preset.strength_drag_step": "1"}),
+            0.2,
+        )
+        self.assertEqual(
+            resolve_lora_preset_strength_drag_step({"lora_preset.strength_drag_step": "bad"}),
+            0.05,
+        )
+
     def test_comfy_settings_override_legacy_settings(self):
         with (
             patch.object(easyuse_settings, "_read_json_file", return_value={}),
@@ -1153,6 +1205,7 @@ class SettingsTests(unittest.TestCase):
                     "EasyUseAnima.Prompt.TypoIndicator": "false",
                     "EasyUseAnima.Prompt.CommentItalic": "false",
                     "EasyUseAnima.LoraPreset.NameDisplay": "path",
+                    "EasyUseAnima.LoraPreset.StrengthDragStep": "0.012",
                     "EasyUseAnima.NAIA.Port": "8123",
                 },
             ),
@@ -1167,6 +1220,7 @@ class SettingsTests(unittest.TestCase):
         self.assertEqual(settings["prompt_studio.typo_indicator"], "false")
         self.assertEqual(settings["prompt_studio.comment_italic"], "false")
         self.assertEqual(settings["lora_preset.name_display"], "path")
+        self.assertEqual(settings["lora_preset.strength_drag_step"], 0.012)
         self.assertEqual(settings["naia.port"], 8123)
 
     def test_comfy_color_settings_merge_into_prompt_studio_colors(self):

@@ -20,7 +20,8 @@ const PROFILE_VISIBLE_ROWS = 6;
 const LORA_HEADER_HEIGHT = 24;
 const LORA_ROW_HEIGHT = 20;
 const LORA_ADD_HEIGHT = 36;
-const STRENGTH_STEP = 0.05;
+const STRENGTH_BUTTON_STEP = 0.05;
+const DEFAULT_STRENGTH_DRAG_STEP = 0.05;
 const PREVIEW_SIZE = 360;
 const missingPreviewNames = new Set();
 let activeLoraMenuNode = null;
@@ -28,6 +29,7 @@ let activeProfileWheelTarget = null;
 let profileWheelListenerInstalled = false;
 const LORA_PRESET_SETTINGS = {
   nameDisplay: "name",
+  strengthDragStep: DEFAULT_STRENGTH_DRAG_STEP,
 };
 const LORA_PRESET_TEXT = {
   en: {
@@ -183,6 +185,15 @@ function createEl(tagName, options = {}) {
 function applyLoraPresetSettings(settings = {}) {
   const value = String(settings?.["lora_preset.name_display"] || "name");
   LORA_PRESET_SETTINGS.nameDisplay = value === "path" ? "path" : "name";
+  LORA_PRESET_SETTINGS.strengthDragStep = parseStrengthDragStep(settings?.["lora_preset.strength_drag_step"]);
+}
+
+function parseStrengthDragStep(value) {
+  const number = Number(value);
+  if (!Number.isFinite(number)) {
+    return DEFAULT_STRENGTH_DRAG_STEP;
+  }
+  return Math.max(0.001, Math.min(0.2, number));
 }
 
 async function loadLoraPresetSettings() {
@@ -2127,7 +2138,7 @@ class LoraRowWidget {
         updateLoraEntry(
           node,
           this.index,
-          { strength: roundStrength((lora.strength ?? 1) + event.deltaX * STRENGTH_STEP) },
+          { strength: roundStrength((lora.strength ?? 1) + event.deltaX * LORA_PRESET_SETTINGS.strengthDragStep) },
           { render: false },
         );
         return true;
@@ -2156,6 +2167,7 @@ class LoraRowWidget {
       updateLoraEntry(node, this.index, { on: lora.on === false });
       return true;
     }
+    const fixPending = isLoraFixPending(node, this.index);
     if (!fixPending && pointInArea(pos, this.hitAreas.fix)) {
       fixSingleLoraEntry(node, this.index);
       return true;
@@ -2173,11 +2185,11 @@ class LoraRowWidget {
       return true;
     }
     if (pointInArea(pos, this.hitAreas.dec)) {
-      updateLoraEntry(node, this.index, { strength: roundStrength((lora.strength ?? 1) - STRENGTH_STEP) });
+      updateLoraEntry(node, this.index, { strength: roundStrength((lora.strength ?? 1) - STRENGTH_BUTTON_STEP) });
       return true;
     }
     if (pointInArea(pos, this.hitAreas.inc)) {
-      updateLoraEntry(node, this.index, { strength: roundStrength((lora.strength ?? 1) + STRENGTH_STEP) });
+      updateLoraEntry(node, this.index, { strength: roundStrength((lora.strength ?? 1) + STRENGTH_BUTTON_STEP) });
       return true;
     }
     if (pointInArea(pos, this.hitAreas.strengthAny)) {
@@ -2302,6 +2314,40 @@ function syncAfterWidgetChange(node) {
   }
   saveCurrentProfile(node);
   renderProfileBar(node);
+}
+
+function syncLoraPresetNode(node) {
+  if (!node || node.comfyClass !== NODE_TYPE) {
+    return;
+  }
+  saveCurrentProfile(node);
+}
+
+function syncAllLoraPresetNodes() {
+  for (const node of app.graph?._nodes || []) {
+    syncLoraPresetNode(node);
+  }
+}
+
+function installLoraPresetSaveSync() {
+  const graphProto = globalThis.LGraph?.prototype || app.graph?.constructor?.prototype;
+  if (graphProto?.serialize && !graphProto.serialize.__easyuseAnimaLoraPresetWrapped) {
+    const serialize = graphProto.serialize;
+    graphProto.serialize = function () {
+      syncAllLoraPresetNodes();
+      return serialize.apply(this, arguments);
+    };
+    graphProto.serialize.__easyuseAnimaLoraPresetWrapped = true;
+  }
+
+  if (app.queuePrompt && !app.queuePrompt.__easyuseAnimaLoraPresetWrapped) {
+    const queuePrompt = app.queuePrompt;
+    app.queuePrompt = function () {
+      syncAllLoraPresetNodes();
+      return queuePrompt.apply(this, arguments);
+    };
+    app.queuePrompt.__easyuseAnimaLoraPresetWrapped = true;
+  }
 }
 
 function applyExecutedProfile(node, message) {
@@ -2507,6 +2553,7 @@ function initializeNode(node) {
 app.registerExtension({
   name: "EasyUseAnima.LoraPreset",
   init() {
+    installLoraPresetSaveSync();
     loadLoraPresetSettings().then(refreshLoraPresetNodes);
     easyuseAnimaWatchLocale(refreshLoraPresetNodes);
     window.addEventListener("easyuse-anima-settings-updated", (event) => {
@@ -2592,6 +2639,9 @@ app.registerExtension({
       }
     });
     observer.observe(document.body, { childList: true, subtree: false });
+  },
+  setup() {
+    installLoraPresetSaveSync();
   },
   async beforeRegisterNodeDef(nodeType, nodeData) {
     if (nodeData.name !== NODE_TYPE) {

@@ -956,7 +956,7 @@ def _build_advanced_prompts(
     use_anima_mod_guidance: bool,
     use_negative_anima_mod_guidance: bool,
     pin_trigger_tags_to_front: bool,
-) -> tuple[str, str, str, bool, str, str, str, bool]:
+) -> tuple[str, str, str, str, bool, bool, str, str]:
     use_amg = _as_bool(use_anima_mod_guidance, False)
     use_negative_amg = _as_bool(use_negative_anima_mod_guidance, False)
     force_pin_triggers = _as_bool(pin_trigger_tags_to_front, False)
@@ -1003,11 +1003,11 @@ def _build_advanced_prompts(
         output_prompt,
         output_negative_prompt,
         quality_prompt,
+        negative_quality_prompt,
         use_amg,
+        use_negative_amg,
         metadata_prompt,
         metadata_negative_prompt,
-        negative_quality_prompt,
-        use_negative_amg,
     )
 
 
@@ -1718,13 +1718,13 @@ class EasyUseAnimaPromptStudioAdvanced:
         "Final positive prompt assembled from enabled positive fields.",
         "Final negative prompt assembled from enabled negative fields.",
         "Positive quality fields routed to Anima Mod Guidance.",
+        "Negative quality fields routed to Anima Mod Guidance.",
         "Boolean flag passed through for Anima Mod Guidance workflow control.",
+        "Boolean flag passed through for negative Anima Mod Guidance workflow control.",
         "Positive metadata prompt with metadata filters applied.",
         "Negative metadata prompt with metadata filters applied.",
         "Selected latent width.",
         "Selected latent height.",
-        "Negative quality fields routed to Anima Mod Guidance.",
-        "Boolean flag passed through for negative Anima Mod Guidance workflow control.",
     )
 
     @classmethod
@@ -1803,25 +1803,25 @@ class EasyUseAnimaPromptStudioAdvanced:
         "STRING",
         "STRING",
         "STRING",
+        "STRING",
+        "BOOLEAN",
         "BOOLEAN",
         "STRING",
         "STRING",
         "INT",
         "INT",
-        "STRING",
-        "BOOLEAN",
     )
     RETURN_NAMES = (
         "positive_prompt",
         "negative_prompt",
         "anima_mod_guidance_quality_tags",
+        "anima_mod_guidance_negative_prompt",
         "use_anima_mod_guidance",
+        "use_negative_anima_mod_guidance",
         "metadata_prompt",
         "metadata_negative_prompt",
         "width",
         "height",
-        "anima_mod_guidance_negative_prompt",
-        "use_negative_anima_mod_guidance",
     )
     FUNCTION = "build"
     CATEGORY = "EasyUse Anima/Prompt"
@@ -2009,11 +2009,9 @@ class EasyUseAnimaPromptStudioAdvanced:
             use_negative_anima_mod_guidance,
             pin_trigger_tags_to_front,
         )
-        base_result = result[:6]
-        negative_amg_result = result[6:]
         return {
             "ui": self._ui(fields_json, requested_use_naia, effective_field_inputs, ui_updates),
-            "result": (*base_result, width, height, *negative_amg_result),
+            "result": (*result, width, height),
         }
 
 
@@ -2074,21 +2072,21 @@ class EasyUseAnimaPromptStudioExtend:
         "STRING",
         "STRING",
         "STRING",
+        "STRING",
+        "BOOLEAN",
         "BOOLEAN",
         "STRING",
         "STRING",
-        "STRING",
-        "BOOLEAN",
     )
     RETURN_NAMES = (
         "positive_prompt",
         "negative_prompt",
         "anima_mod_guidance_quality_tags",
+        "anima_mod_guidance_negative_prompt",
         "use_anima_mod_guidance",
+        "use_negative_anima_mod_guidance",
         "metadata_prompt",
         "metadata_negative_prompt",
-        "anima_mod_guidance_negative_prompt",
-        "use_negative_anima_mod_guidance",
     )
     FUNCTION = "build"
     CATEGORY = "EasyUse Anima/Prompt"
