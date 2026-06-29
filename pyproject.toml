@@ -1,7 +1,7 @@
 [project]
 name = "comfyui-easyuse-anima"
 description = "Prompt editing, ANIMA prompt correction, NAIA prompt integration, LoRA preset management, and ANIMA DiT Detailer hooks for reducing latent-size errors in ComfyUI."
-version = "0.1.7"
+version = "0.1.8"
 readme = "README.md"
 license = { file = "LICENSE" }
 requires-python = ">=3.10"
