@@ -45,5 +45,11 @@ This document records decisions that supersede earlier experimental notes.
 - Public workflow templates live under `example_workflows/`.
 - Release workflow filenames must use `_release_ko` or `_release_en` before `.json`.
 - Use the same release-suffixed basename for any matching copy under `docs/workflows/`.
+- User-facing AiO workflow documentation lives under `docs/Anima AiO/`.
+- AiO documentation files use version and language in the filename, for example `Anima_AiO_v5_1_EN.html`.
+- Keep `docs/Anima AiO/` for readable workflow documentation and `docs/workflows/` for JSON workflow reference copies.
+- AiO release workflows should use one `MarkdownNote` guide at the top of each section group.
+- Do not use plain `Note` nodes for release workflow guide text.
+- Before shipping release workflows, clear session-local preview state such as rgthree comparison image URLs and PreviewBridge temporary ids.
 - Unsuffixed workflow names are treated as local working/user-edited files and must not be used as GitHub release workflow filenames.
 - Live ComfyUI syncs may overwrite release-suffixed files only. Do not overwrite user-edited workflow filenames.

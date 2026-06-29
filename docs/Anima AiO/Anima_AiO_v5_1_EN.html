@@ -1,0 +1,440 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Anima All-in-One Workflow v5.1 Guide</title>
+<style>
+  body {
+    margin: 0;
+    background: #0f1117;
+    color: #e8edf5;
+    font-family: Arial, Helvetica, sans-serif;
+    line-height: 1.7;
+  }
+
+  .page {
+    max-width: 920px;
+    margin: 0 auto;
+    padding: 36px 22px 64px;
+  }
+
+  h1 {
+    color: #ffffff;
+    font-size: 2.2rem;
+    line-height: 1.2;
+    margin: 0 0 24px;
+  }
+
+  h2 {
+    color: #9fc4ff;
+    font-size: 1.45rem;
+    margin: 34px 0 12px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid #333b4c;
+  }
+
+  h3 {
+    color: #f0c674;
+    font-size: 1.12rem;
+    margin: 24px 0 8px;
+  }
+
+  p {
+    margin: 10px 0;
+  }
+
+  ul, ol {
+    margin-top: 8px;
+    margin-bottom: 16px;
+    padding-left: 1.5rem;
+  }
+
+  li {
+    margin: 6px 0;
+  }
+
+  a {
+    color: #8fb7ff;
+    text-decoration: underline;
+  }
+
+  strong, b {
+    color: #ffffff;
+  }
+
+  mark {
+    background: #263247;
+    color: #ffffff;
+    padding: 0.08em 0.32em;
+    border-radius: 4px;
+  }
+
+  code {
+    background: #1b2130;
+    color: #d8e7ff;
+    padding: 0.16em 0.36em;
+    border-radius: 4px;
+    font-family: Consolas, Monaco, monospace;
+    font-size: 0.94em;
+  }
+
+  pre {
+    background: #111722;
+    color: #d8e7ff;
+    padding: 14px 16px;
+    border: 1px solid #333b4c;
+    border-radius: 8px;
+    overflow-x: auto;
+  }
+
+  pre code {
+    background: transparent;
+    padding: 0;
+  }
+
+  blockquote {
+    margin: 16px 0;
+    padding: 10px 14px;
+    border-left: 4px solid #f0c674;
+    background: #171d29;
+    color: #d8deea;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 14px 0;
+  }
+
+  th, td {
+    border: 1px solid #333b4c;
+    padding: 9px 11px;
+    vertical-align: top;
+  }
+
+  th {
+    background: #1b2130;
+    color: #ffffff;
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+<h1>Anima All-in-One Workflow v5.1: i2i, Inpainting, Highres, Detailer, and Metadata Save</h1>
+
+
+
+<p><strong>Recommended Civitai title:</strong> Anima All-in-One Workflow v5.1: i2i, Inpainting, Highres, Detailer, and Metadata Save</p>
+
+
+
+<h2>Overview</h2>
+
+
+<p>
+This is an English guide for the Anima All-in-One ComfyUI workflow. The workflow is built around Anima base generation and includes text-to-image, image-to-image, LLLite-based inpainting, <mark>HighRez</mark>, <mark>SAM3</mark> detailers, <mark>USDU</mark> upscaling, LoRA style presets, NAIA prompt assistance, and Civitai-friendly metadata saving.
+</p>
+
+<p>
+Version 5 focuses on making i2i and inpainting easier to use. Version 5.1 adds small fixes around Torch Compile and <mark>HighRez</mark> options, including a safer <code>disable_dynamic_vram</code> setting for compile-related stability.
+</p>
+
+
+
+
+<h2>Tested / Recommended ComfyUI Setup</h2>
+
+
+<ul>
+  <li><strong>Recommended ComfyUI version:</strong> 0.20.1.</li>
+  <li>ComfyUI versions below 0.20.0 may not support the <mark>SAM3</mark> nodes used in this workflow.</li>
+  <li>Some newer UI changes may break the layout of older node-based workflows, so check compatibility if you update ComfyUI.</li>
+  <li>Recommended launch option used by the author: <code>--disable-dynamic-vram</code>.</li>
+</ul>
+
+<p>
+The workflow also relies on several custom nodes. Make sure the <mark>Spectrum</mark> KSampler / Mod Guidance node, NAIA Bridge, DCW, Anima <mark>LLLite</mark>, rgthree, Impact Pack, KJNodes, and <mark>Image Saver</mark> nodes are installed and updated.
+</p>
+
+
+
+
+<h2>Optimization Stack</h2>
+
+
+<p>
+The workflow is designed to be used with the following optimization order:
+</p>
+
+<ol>
+  <li><strong>Disable dynamic VRAM</strong> — use ComfyUI with <code>--disable-dynamic-vram</code> and keep the workflow-side <code>disable_dynamic_vram</code> option enabled when using Torch Compile.</li>
+  <li><strong><mark>Sage Attention</mark></strong> — the model loader has a <mark>Sage Attention</mark> patch option. The default workflow setting uses <code>auto</code> with compile support enabled.</li>
+  <li><strong><mark>Anima block compile</mark></strong> — TorchCompileModelAdvanced is used around the Anima model path. It is configured for Anima block-oriented compilation rather than compiling every unrelated part of the workflow.</li>
+  <li><strong><mark>Spectrum</mark></strong> — <mark>Spectrum</mark> is used after the model-level optimizations, mainly around the sampler, <mark>HighRez</mark>, detailers, and <mark>USDU</mark> paths.</li>
+</ol>
+
+<p>
+If you get errors, disable optimization-related features one by one first. Start with <mark>Spectrum</mark>, then Torch Compile, then <mark>HighRez</mark> or detailers. The first run after compile can also be much slower because the model is being compiled.
+</p>
+
+
+
+
+<h2>Important Node Groups</h2>
+
+
+<h3>0. Prompt Area</h3>
+
+<p>
+The positive prompt is split into four parts for convenience. All parts are merged before generation unless <mark>Anima Mod Guidance</mark> changes the handling of the meta-tag section.
+</p>
+
+<ul>
+  <li><strong>positive_1:</strong> artist tags and LoRA trigger words. This is where the selected style preset text is usually inserted.</li>
+  <li><strong><mark>positive_2</mark>:</strong> meta / quality tags. This is also the input used by <mark>Anima Mod Guidance</mark>, so keep it separate from the normal prompt.</li>
+  <li><strong>positive_3:</strong> the main prompt. In normal use, this is the part you edit most often.</li>
+  <li><strong>positive_4:</strong> trailing quality or composition text.</li>
+  <li><strong>negative / negative_extra:</strong> the negative prompt is also split so extra exclusions can be added without rewriting the main negative prompt.</li>
+</ul>
+
+<p>
+If you do not like the split prompt structure, you can bypass it and send a single full prompt directly into <code>Set_promp_t_pos</code>.
+</p>
+
+<h3>1. LoRA Stack and Style Presets</h3>
+
+<p>
+The workflow uses a two-stage LoRA stack.
+</p>
+
+<ul>
+  <li><strong>LoRA_before:</strong> LoRAs that should always be applied.</li>
+  <li><strong>style profiles:</strong> the <code>profile select</code> / <code>style_num</code> value selects one of the prepared style profiles.</li>
+  <li><strong>Style_TEXT:</strong> the selected style profile also adds its matching artist tags and trigger words into the prompt.</li>
+  <li><strong>LoRA_after:</strong> the selected preset LoRA stack is passed forward and later converted into a metadata-friendly string for <mark>Image Saver</mark>.</li>
+</ul>
+
+<p>
+This means you can keep common LoRAs in the always-on stack and switch between style profiles by changing only the profile number.
+</p>
+
+<h3>2. Model Load: <mark>Set ANIMA Models</mark></h3>
+
+<p>
+The <strong><mark>Set ANIMA Models</mark></strong> group loads the Anima diffusion model, Qwen text encoder, VAE, LoRA stack, prompt conditioning, sampler settings, <mark>Sage Attention</mark>, <mark>Anima Mod Guidance</mark>, and Torch Compile settings into a shared <code>ctx_ANIMA</code> context.
+</p>
+
+<ul>
+  <li><strong>ANIMA load:</strong> choose the Anima diffusion model.</li>
+  <li><strong>clip_name:</strong> use the Qwen text encoder required by the Anima workflow.</li>
+  <li><strong>vae_name:</strong> use the Qwen image VAE used by the workflow.</li>
+  <li><strong>shift:</strong> the workflow uses the Anima default shift value of <code>3</code>.</li>
+  <li><strong>Sage_Attention:</strong> set to <code>auto</code> by default.</li>
+  <li><strong>Use <mark>TorchCompile</mark>:</strong> enable this for speed after the first compile pass. Disable it first when debugging model patch errors.</li>
+  <li><strong>disable_dynamic_vram:</strong> keep this enabled when using compile to avoid dynamic VRAM related instability.</li>
+</ul>
+
+<h3>3. Anima Generation: <mark>Ksampler +</mark></h3>
+
+<p>
+The first sampler is the main generation stage. The workflow uses <code>er_sde</code> with <code>sgm_uniform</code> in the main model settings, and the sampler group can apply DCW and <mark>Spectrum</mark> before sampling.
+</p>
+
+<ul>
+  <li><strong>denoise(only i2i):</strong> this matters mainly when i2i is enabled. For pure t2i, leaving it as-is is fine.</li>
+  <li><strong>Use DCW Node:</strong> applies the DCW model patch before sampling.</li>
+  <li><strong>Use <mark>Spectrum</mark> Node:</strong> applies <mark>Spectrum</mark> acceleration before sampling.</li>
+  <li><strong>Use i2i:</strong> this is passed from the i2i group so the sampler knows whether it is working from an image latent.</li>
+</ul>
+
+<p>
+If the sampler fails after a model patch, disable Torch Compile and <mark>Spectrum</mark> first. <mark>HighRez</mark> can also cause size-related issues when the image size is not compatible.
+</p>
+
+<h3>4. <mark>HighRez</mark></h3>
+
+<p>
+The <mark>HighRez</mark> group performs a second-pass upscale/refinement. In v5.1 it includes an option to convert the latent into an image before upscaling. Keeping this option enabled is recommended because very low denoise values can otherwise make the image look mushy.
+</p>
+
+<ul>
+  <li><strong>Use <mark>HighRez</mark>:</strong> turns the second pass on or off.</li>
+  <li><strong>HighRez_scale_by:</strong> controls the scale multiplier. The workflow commonly uses a modest multiplier such as <code>1.25</code>.</li>
+  <li><strong>Denoise Strength:</strong> controls how much the second pass changes the image.</li>
+  <li><strong>latent to image conversion:</strong> recommended to keep enabled.</li>
+</ul>
+
+<p>
+Be careful with image sizes. <mark>HighRez</mark> works best when the resulting resolution stays compatible with ComfyUI's expected size multiples. If you use i2i, <mark>HighRez</mark> is often not recommended because resolution scaling can become harder to control.
+</p>
+
+<h3>5. Inpainting: Anima <mark>LLLite</mark></h3>
+
+<p>
+The inpainting group uses Anima <mark>LLLite</mark>. It is designed to work by drawing a mask in the PreviewBridge area and rerunning only the inpaint path.
+</p>
+
+<ul>
+  <li><strong>Use <mark>LLLite</mark>:</strong> turns inpainting on or off.</li>
+  <li><strong>PreviewBridge:</strong> use this area to draw or edit the mask.</li>
+  <li><strong>Using New Seed:</strong> enable this if you want a separate seed for the inpaint result.</li>
+  <li><strong>positive / negative:</strong> use the inpainting prompt area to describe only what should be changed or repaired.</li>
+  <li><strong>Use <mark>Anima Mod Guidance</mark>:</strong> if enabled, the workflow handles the meta-tag section automatically, so you do not need to manually repeat <code><mark>positive_2</mark></code> in the inpainting prompt.</li>
+</ul>
+
+<p>
+Place the Anima <mark>LLLite</mark> inpainting model in <code>ComfyUI/models/controlnet/</code>.
+</p>
+
+<h3>6. <mark>SAM3</mark> Detailers</h3>
+
+<p>
+The workflow includes separate detailer groups for face and eyes. They use <mark>SAM3</mark> to detect the target part, convert it into SEGS, and then run a localized detail pass.
+</p>
+
+<ul>
+  <li><strong>Use Detailer:</strong> turns each detailer block on or off.</li>
+  <li><strong>Detect part:</strong> examples are <code>face</code> and <code>eyes</code>.</li>
+  <li><strong>Detect num:</strong> controls how many detected parts are processed. It is connected to the character count helper.</li>
+  <li><strong>SAM3_threshold / refine_iterations:</strong> adjust these if masks are too loose or too strict.</li>
+  <li><strong>SEGS_crop_factor:</strong> controls how much surrounding area is included around the detected part.</li>
+  <li><strong>Detailer_denoise:</strong> lower values preserve the original face/eyes; higher values redraw more aggressively.</li>
+  <li><strong>Use DCW Node / Use <mark>Spectrum</mark> Node:</strong> optional patches for the detailer pass.</li>
+</ul>
+
+<p>
+The original guide treats this as an optional feature. If you do not need face or eye repair, leave it off.
+</p>
+
+<h3>7. <mark>USDU</mark> Upscale</h3>
+
+<p>
+The <mark>USDU</mark> Upscale group is intended for larger images, especially when the final size is above roughly 2048 pixels on a side or when tile-based refinement is safer than a normal <mark>HighRez</mark> pass.
+</p>
+
+<ul>
+  <li><strong>Using <mark>USDU</mark>:</strong> turns <mark>USDU</mark> upscaling on or off.</li>
+  <li><strong>Upscale_scale:</strong> controls the final scale.</li>
+  <li><strong>tiles num:</strong> controls how many tiles are used per side.</li>
+  <li><strong>denoise:</strong> keep this low if you only want enhancement rather than a redraw.</li>
+  <li><strong>Use DCW Node / Use <mark>Spectrum</mark>:</strong> optional acceleration or guidance patches for the upscale pass.</li>
+</ul>
+
+<h3>8. <mark>Image Saver</mark> and Civitai Metadata</h3>
+
+<p>
+The workflow uses <mark>Image Saver</mark> to store generation metadata in a Civitai-friendly way. The LoRA stack is converted into a prompt-style LoRA string for metadata, and additional resource hashes can be added through the hash input.
+</p>
+
+<ul>
+  <li><strong>Keep metadata saving enabled</strong> if you want Civitai to recognize the workflow resources.</li>
+  <li><strong>Do not delete prompt metadata</strong> before upload. If you do not want it visible, hide it on Civitai instead.</li>
+  <li><strong>Use the additional hash input</strong> when you need to manually add a Civitai resource that is not automatically detected.</li>
+  <li><strong>Filename / path:</strong> change the version folder text, such as <code>V19</code>, if you want to keep outputs separated by workflow version.</li>
+</ul>
+
+
+
+
+<h2><mark>Anima Mod Guidance</mark></h2>
+
+
+<p>
+<mark>Anima Mod Guidance</mark> is a ComfyUI implementation of modulation guidance for Anima models. In simple terms, it adds an extra CLIP-based guidance signal to the Anima diffusion path. It uses the difference between positive and negative CLIP pooled embeddings and injects that signal into the model.
+</p>
+
+<p>
+In this workflow, the important practical rule is simple:
+</p>
+
+<ul>
+  <li><strong><mark>positive_2</mark> is for meta tags.</strong> Do not mix it with the main subject prompt.</li>
+  <li>When <strong>Use <mark>Anima Mod Guidance</mark></strong> is enabled, the workflow sends <code><mark>positive_2</mark></code> to the Mod Guidance node and removes it from the normal merged prompt to avoid double-applying the same quality tags.</li>
+  <li>Use <code>quality_tags</code> and <code>mod_w_profile</code> in the model and inpaint groups to control how strongly this guidance is applied.</li>
+</ul>
+
+<p>
+Expected effects can include better tag following, better character adherence, reduced color leakage, and sometimes improved visual quality. It may also weaken style strength in some cases, so compare outputs with the toggle on and off when building a new preset.
+</p>
+
+
+
+
+<h2>NAIA Prompt Assistance</h2>
+
+
+<p>
+The NAIA group can overwrite <code>positive_3</code> with the prompt generated by NAIA. Earlier versions could break workflow caching when NAIA was used, but this version is arranged so that inpainting can still be reused more comfortably.
+</p>
+
+<ul>
+  <li>Turn on the top NAIA toggle to use it.</li>
+  <li>NAIA output replaces the normal <code>positive_3</code> section.</li>
+  <li>If the node is missing after Manager installation, install <a href="https://github.com/DNT-LAB/comfyui-naia-bridge">comfyui-naia-bridge</a> manually.</li>
+</ul>
+
+
+
+
+<h2>i2i Usage</h2>
+
+
+<ol>
+  <li>Load an image in the i2i image input.</li>
+  <li>Turn on <strong>Use i2i</strong>.</li>
+  <li>Set an appropriate image size or megapixel value based on the input image.</li>
+  <li>Make sure the VAE is set correctly.</li>
+  <li>Adjust the first sampler denoise value. Higher denoise changes the source image more strongly.</li>
+  <li>For i2i, avoid <mark>HighRez</mark> unless you are carefully controlling the final resolution.</li>
+</ol>
+
+
+
+
+<h2>Recommended Troubleshooting Order</h2>
+
+
+<ol>
+  <li>Check missing custom nodes and update the custom nodes first.</li>
+  <li>Turn off <mark>Spectrum</mark> in the sampler / <mark>HighRez</mark> / detailer / <mark>USDU</mark> blocks.</li>
+  <li>Turn off Torch Compile.</li>
+  <li>Turn off <mark>HighRez</mark> and run the base sampler only.</li>
+  <li>Turn off detailers and <mark>USDU</mark>.</li>
+  <li>Check whether the image size is compatible with the required size multiples.</li>
+  <li>If i2i or inpainting fails, check that the VAE and mask are correctly connected.</li>
+</ol>
+
+
+
+
+<h2>Useful Links</h2>
+
+
+<ul>
+  <li><a href="https://github.com/sorryhyun/ComfyUI-Spectrum-KSampler">ComfyUI-Spectrum-KSampler</a></li>
+  <li><a href="https://github.com/ruwwww/ComfyUI-Spectrum-sdxl">ComfyUI-Spectrum-sdxl</a></li>
+  <li><a href="https://github.com/namemechan/ComfyUI-DCW">ComfyUI-DCW</a></li>
+  <li><a href="https://github.com/DNT-LAB/comfyui-naia-bridge">NAIA Bridge</a></li>
+  <li><a href="https://github.com/kohya-ss/ComfyUI-Anima-LLLite">ComfyUI-Anima-LLLite</a></li>
+  <li><a href="https://github.com/Anzhc/Anima-Mod-Guidance-ComfyUI-Node"><mark>Anima Mod Guidance</mark> for ComfyUI</a></li>
+  <li><a href="https://github.com/thu-ml/SageAttention">SageAttention</a></li>
+</ul>
+
+
+
+
+<h2>Notes</h2>
+
+
+<ul>
+  <li>This workflow does not require every optional block to be enabled. For basic generation, the model load, prompt, LoRA stack, first sampler, and image saver are enough.</li>
+  <li><mark>HighRez</mark>, detailers, inpainting, and <mark>USDU</mark> are optional post-processing paths.</li>
+  <li>The prepared style profiles are only examples. You can replace them with your own LoRA combinations and artist tags.</li>
+  <li>When sharing images on Civitai, keep the metadata generated by <mark>Image Saver</mark> so Easy Remix and resource detection can work more reliably.</li>
+</ul>
+
+</div>
+</body>
+</html>
