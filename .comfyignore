@@ -1,6 +1,9 @@
 # Development-only files kept in git but excluded from Comfy Registry archives.
 tests/
 .github/
+MAINTAINING.md
+docs/development/
+docs/workflows/
 
 # Local caches and editor/runtime artifacts.
 __pycache__/

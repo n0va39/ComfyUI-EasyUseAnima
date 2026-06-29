@@ -2,7 +2,7 @@
   "id": "87d7cb2c-9bb7-4b3f-86d6-5c66bc6d70a1",
   "revision": 0,
   "last_node_id": 11,
-  "last_link_id": 18,
+  "last_link_id": 8,
   "nodes": [
     {
       "id": 1,
@@ -25,7 +25,7 @@
         "Node name for S&R": "MarkdownNote"
       },
       "widgets_values": [
-        "## EasyUse Anima Core Node Test\n\nThis sample checks the text flow of Prompt Corrector, LoRA Preset, and Prompt Studio Advanced without loading generation models.\n\n- Queue with the sample prompt in Prompt Corrector to preview the corrected prompt and report on the right.\n- Prompt Studio receives the Corrector output as general tags and splits positive, negative, metadata, and Mod Guidance quality outputs.\n- LoRA Preset FIX works only when the filename matches. The sample LoRA row is disabled by default, so queueing does not fail when the file is missing.\n\nThe `Show Text` nodes on the right are result previews. They update with actual output values after queue execution.\n"
+        "## EasyUse Anima Core Node Test\n\nThis sample checks the text flow of Prompt Corrector, LoRA Preset, and Prompt Studio Advanced without loading generation models.\n\n- Queue with the sample prompt in Prompt Corrector to preview the corrected prompt and report on the right.\n- Prompt Studio receives the Corrector output as general tags and splits positive, negative, metadata, and Mod Guidance quality outputs.\n- LoRA Preset FIX works by matching filenames. The sample LoRA row is disabled by default, so queueing does not fail when the file is missing.\n\nThe `Show Text` nodes on the right are result previews. They update after queue execution.\n"
       ],
       "color": "#223",
       "bgcolor": "#335"
@@ -34,19 +34,19 @@
       "id": 2,
       "type": "EasyUseAnimaPromptCorrector",
       "pos": [
-        -330,
+        -320,
         -100
       ],
       "size": [
         410,
-        430.0000000000007
+        430
       ],
       "flags": {},
       "order": 1,
       "mode": 0,
       "inputs": [
         {
-          "localized_name": "프롬프트",
+          "localized_name": "íë¡¬íí¸",
           "name": "prompt",
           "type": "STRING",
           "widget": {
@@ -55,7 +55,7 @@
           "link": null
         },
         {
-          "localized_name": "작가 취급 태그",
+          "localized_name": "ìê° ì·¨ê¸ íê·¸",
           "name": "artist_overrides",
           "type": "STRING",
           "widget": {
@@ -64,7 +64,7 @@
           "link": null
         },
         {
-          "localized_name": "작가 제외 태그",
+          "localized_name": "ìê° ì ì¸ íê·¸",
           "name": "artist_exclusions",
           "type": "STRING",
           "widget": {
@@ -75,22 +75,20 @@
       ],
       "outputs": [
         {
-          "localized_name": "교정된 프롬프트",
+          "localized_name": "êµì ë íë¡¬íí¸",
           "name": "corrected_prompt",
           "type": "STRING",
           "links": [
             1,
-            2,
-            9
+            2
           ]
         },
         {
-          "localized_name": "보고서",
+          "localized_name": "ë³´ê³ ì",
           "name": "report",
           "type": "STRING",
           "links": [
-            3,
-            10
+            3
           ]
         }
       ],
@@ -105,134 +103,11 @@
       ]
     },
     {
-      "id": 9,
-      "type": "ShowText|pysssss",
-      "pos": [
-        1220,
-        200
-      ],
-      "size": [
-        500,
-        130
-      ],
-      "flags": {},
-      "order": 8,
-      "mode": 0,
-      "inputs": [
-        {
-          "localized_name": "text",
-          "name": "text",
-          "type": "STRING",
-          "link": 15
-        }
-      ],
-      "outputs": [
-        {
-          "localized_name": "문자열",
-          "name": "STRING",
-          "shape": 6,
-          "type": "STRING",
-          "links": null
-        }
-      ],
-      "title": "Studio negative 출력",
-      "properties": {
-        "Node name for S&R": "ShowText|pysssss"
-      },
-      "widgets_values": [
-        "worst quality, low quality, score_1, score_2, score_3, blurry, watermark, text, bad anatomy"
-      ],
-      "color": "#322",
-      "bgcolor": "#533"
-    },
-    {
-      "id": 10,
-      "type": "ShowText|pysssss",
-      "pos": [
-        1220,
-        380
-      ],
-      "size": [
-        500,
-        120
-      ],
-      "flags": {},
-      "order": 9,
-      "mode": 0,
-      "inputs": [
-        {
-          "localized_name": "text",
-          "name": "text",
-          "type": "STRING",
-          "link": 16
-        }
-      ],
-      "outputs": [
-        {
-          "localized_name": "문자열",
-          "name": "STRING",
-          "shape": 6,
-          "type": "STRING",
-          "links": null
-        }
-      ],
-      "title": "Mod Guidance 품질 태그",
-      "properties": {
-        "Node name for S&R": "ShowText|pysssss"
-      },
-      "widgets_values": [
-        "(newest:0.6), masterpiece, best quality, (score_8:0.65), (score_7:0.7)"
-      ],
-      "color": "#2a363b",
-      "bgcolor": "#3f5159"
-    },
-    {
-      "id": 11,
-      "type": "ShowText|pysssss",
-      "pos": [
-        1220,
-        550
-      ],
-      "size": [
-        500,
-        290
-      ],
-      "flags": {},
-      "order": 10,
-      "mode": 0,
-      "inputs": [
-        {
-          "localized_name": "text",
-          "name": "text",
-          "type": "STRING",
-          "link": 17
-        }
-      ],
-      "outputs": [
-        {
-          "localized_name": "문자열",
-          "name": "STRING",
-          "shape": 6,
-          "type": "STRING",
-          "links": null
-        }
-      ],
-      "title": "Metadata prompt 출력",
-      "properties": {
-        "Node name for S&R": "ShowText|pysssss"
-      },
-      "widgets_values": [
-        "masterpiece, best quality, (score_8:0.65), (score_7:0.7), (newest:0.6), 1girl, solo, hatsune miku, absurdly long hair, aqua hair, black dress, black hairband, black ribbon, blue sky, blurry, bokeh, bud, choppy bangs, clear sky, closed eyes, closed mouth, cosmos \\(flower\\), day, depth of field, dot nose, elbow gloves, embroidered dress, embroidery, facing viewer, feet out of frame, grass, hair between eyes, hair flowing over, high collar, holding bouquet, leaf, light particles, light smile, medium dress, moss, neck ribbon, overgrown, pink flower, purple flower, sidelocks, simple butterfly, sitting, striped ribbon, succulent plant, sunlight, train interior, turtleneck capelet, twintails, two-tone dress, vegetation, very long hair, white butterfly, white dress, white flower, white gloves, white thighhighs, wisteria"
-      ],
-      "color": "#1f2937",
-      "bgcolor": "#374151"
-    },
-    {
       "id": 3,
       "type": "EasyUseAnimaLoraPreset",
       "pos": [
-        130,
-        -110
+        150,
+        -100
       ],
       "size": [
         430,
@@ -244,7 +119,7 @@
       "inputs": [
         {
           "label": "style_prompt",
-          "localized_name": "스타일 프롬프트",
+          "localized_name": "ì¤íì¼ íë¡¬íí¸",
           "name": "style_prompt",
           "type": "STRING",
           "widget": {
@@ -253,7 +128,7 @@
           "link": null
         },
         {
-          "localized_name": "프로필 인덱스",
+          "localized_name": "íë¡í ì¸ë±ì¤",
           "name": "profile_index",
           "type": "INT",
           "widget": {
@@ -262,7 +137,7 @@
           "link": null
         },
         {
-          "localized_name": "프로필 개수",
+          "localized_name": "íë¡í ê°ì",
           "name": "profile_count",
           "type": "STRING",
           "widget": {
@@ -271,7 +146,7 @@
           "link": null
         },
         {
-          "localized_name": "LoRA 이름",
+          "localized_name": "LoRA ì´ë¦",
           "name": "lora_name",
           "type": "COMBO",
           "widget": {
@@ -280,7 +155,7 @@
           "link": null
         },
         {
-          "localized_name": "LoRA 목록",
+          "localized_name": "LoRA ëª©ë¡",
           "name": "loras",
           "type": "STRING",
           "widget": {
@@ -289,7 +164,7 @@
           "link": null
         },
         {
-          "localized_name": "프로필 데이터",
+          "localized_name": "íë¡í ë°ì´í°",
           "name": "profile_data",
           "type": "STRING",
           "widget": {
@@ -305,13 +180,11 @@
       ],
       "outputs": [
         {
-          "localized_name": "스타일 프롬프트",
+          "localized_name": "ì¤íì¼ íë¡¬íí¸",
           "name": "style_prompt",
           "type": "STRING",
           "links": [
-            4,
-            11,
-            18
+            4
           ]
         },
         {
@@ -321,21 +194,19 @@
           "links": null
         },
         {
-          "localized_name": "트리거 워드",
+          "localized_name": "í¸ë¦¬ê±° ìë",
           "name": "trigger_words",
           "type": "STRING",
-          "links": [
-            12
-          ]
+          "links": null
         },
         {
-          "localized_name": "활성 LoRA",
+          "localized_name": "íì± LoRA",
           "name": "active_loras",
           "type": "STRING",
           "links": null
         },
         {
-          "localized_name": "프로필 인덱스",
+          "localized_name": "íë¡í ì¸ë±ì¤",
           "name": "profile_index",
           "type": "INT",
           "links": null
@@ -346,88 +217,169 @@
         "Node name for S&R": "EasyUseAnimaLoraPreset"
       },
       "widgets_values": [
-        "@artist",
+        "hatsune miku, aqua hair, twintails",
         1,
         "2",
         "None",
         "[{\"name\":\"example_style_lora.safetensors\",\"on\":false,\"strength\":0.75,\"strengthTwo\":null}]",
-        "{\"1\":{\"style_prompt\":\"@artist\",\"loras\":[{\"name\":\"example_style_lora.safetensors\",\"on\":false,\"strength\":0.75,\"strengthTwo\":null}],\"saved_name\":\"Starter\",\"saved_snapshot\":\"{\\\"style_prompt\\\":\\\"hatsune miku, aqua hair, twintails\\\",\\\"loras\\\":[{\\\"name\\\":\\\"example_style_lora.safetensors\\\",\\\"on\\\":false,\\\"strength\\\":0.75,\\\"strengthTwo\\\":null}]}\"},\"2\":{\"style_prompt\":\"\",\"loras\":[],\"saved_name\":\"Blank\",\"saved_snapshot\":\"{\\\"style_prompt\\\":\\\"\\\",\\\"loras\\\":[]}\"}}",
-        "{\"1\":{\"style_prompt\":\"@artist\",\"loras\":[{\"name\":\"example_style_lora.safetensors\",\"on\":false,\"strength\":0.75,\"strengthTwo\":null}],\"saved_name\":\"Starter\",\"saved_snapshot\":\"{\\\"style_prompt\\\":\\\"hatsune miku, aqua hair, twintails\\\",\\\"loras\\\":[{\\\"name\\\":\\\"example_style_lora.safetensors\\\",\\\"on\\\":false,\\\"strength\\\":0.75,\\\"strengthTwo\\\":null}]}\"},\"2\":{\"style_prompt\":\"\",\"loras\":[],\"saved_name\":\"Blank\",\"saved_snapshot\":\"{\\\"style_prompt\\\":\\\"\\\",\\\"loras\\\":[]}\"}}"
+        "{\"1\":{\"style_prompt\":\"hatsune miku, aqua hair, twintails\",\"loras\":[{\"name\":\"example_style_lora.safetensors\",\"on\":false,\"strength\":0.75,\"strengthTwo\":null}],\"saved_name\":\"Starter\",\"saved_snapshot\":\"{\\\"style_prompt\\\":\\\"hatsune miku, aqua hair, twintails\\\",\\\"loras\\\":[{\\\"name\\\":\\\"example_style_lora.safetensors\\\",\\\"on\\\":false,\\\"strength\\\":0.75,\\\"strengthTwo\\\":null}]}\"},\"2\":{\"style_prompt\":\"\",\"loras\":[],\"saved_name\":\"Blank\",\"saved_snapshot\":\"{\\\"style_prompt\\\":\\\"\\\",\\\"loras\\\":[]}\"}}",
+        "{\"1\":{\"style_prompt\":\"hatsune miku, aqua hair, twintails\",\"loras\":[{\"name\":\"example_style_lora.safetensors\",\"on\":false,\"strength\":0.75,\"strengthTwo\":null}],\"saved_name\":\"Starter\",\"saved_snapshot\":\"{\\\"style_prompt\\\":\\\"hatsune miku, aqua hair, twintails\\\",\\\"loras\\\":[{\\\"name\\\":\\\"example_style_lora.safetensors\\\",\\\"on\\\":false,\\\"strength\\\":0.75,\\\"strengthTwo\\\":null}]}\"},\"2\":{\"style_prompt\":\"\",\"loras\":[],\"saved_name\":\"Blank\",\"saved_snapshot\":\"{\\\"style_prompt\\\":\\\"\\\",\\\"loras\\\":[]}\"}}"
       ]
     },
     {
-      "id": 7,
-      "type": "ShowText|pysssss",
+      "id": 4,
+      "type": "EasyUseAnimaPromptStudioAdvanced",
       "pos": [
-        130,
-        320
+        640,
+        -100
       ],
       "size": [
-        430,
-        110
-      ],
-      "flags": {},
-      "order": 5,
-      "mode": 0,
-      "inputs": [
-        {
-          "localized_name": "text",
-          "name": "text",
-          "type": "STRING",
-          "link": 18
-        }
-      ],
-      "outputs": [
-        {
-          "localized_name": "문자열",
-          "name": "STRING",
-          "shape": 6,
-          "type": "STRING",
-          "links": null
-        }
-      ],
-      "title": "LoRA Preset 스타일 출력",
-      "properties": {
-        "Node name for S&R": "ShowText|pysssss"
-      },
-      "widgets_values": [
-        "@artist"
-      ],
-      "color": "#3f3f46",
-      "bgcolor": "#52525b"
-    },
-    {
-      "id": 5,
-      "type": "ShowText|pysssss",
-      "pos": [
-        -330,
-        380
-      ],
-      "size": [
-        410,
-        210
+        560,
+        900
       ],
       "flags": {},
       "order": 3,
       "mode": 0,
       "inputs": [
         {
-          "localized_name": "text",
-          "name": "text",
+          "label": "1. í¸ë¦¬ê±°",
+          "name": "field_positive_trigger_demo",
           "type": "STRING",
-          "link": 9
+          "link": null
+        },
+        {
+          "label": "2. íì§ íê·¸",
+          "name": "field_positive_quality_demo",
+          "type": "STRING",
+          "link": null
+        },
+        {
+          "label": "3. ìê° íê·¸ - Artist/Style Tags",
+          "name": "field_positive_artist_demo",
+          "type": "STRING",
+          "link": null
+        },
+        {
+          "label": "4. ì¼ë° íê·¸",
+          "name": "field_positive_general_demo",
+          "type": "STRING",
+          "link": 1
+        },
+        {
+          "label": "neg1. íì§ íê·¸ - Negative Quality Tags",
+          "name": "field_negative_quality_demo",
+          "type": "STRING",
+          "link": null
         }
       ],
       "outputs": [
         {
-          "localized_name": "문자열",
+          "localized_name": "ê¸ì  íë¡¬íí¸",
+          "name": "positive_prompt",
+          "type": "STRING",
+          "links": [
+            5
+          ]
+        },
+        {
+          "localized_name": "ë¶ì  íë¡¬íí¸",
+          "name": "negative_prompt",
+          "type": "STRING",
+          "links": [
+            6
+          ]
+        },
+        {
+          "localized_name": "Mod Guidance íì§ íê·¸",
+          "name": "anima_mod_guidance_quality_tags",
+          "type": "STRING",
+          "links": [
+            7
+          ]
+        },
+        {
+          "localized_name": "Mod Guidance ì¬ì©",
+          "name": "use_anima_mod_guidance",
+          "type": "BOOLEAN",
+          "links": null
+        },
+        {
+          "localized_name": "ë©íë°ì´í° íë¡¬íí¸",
+          "name": "metadata_prompt",
+          "type": "STRING",
+          "links": [
+            8
+          ]
+        },
+        {
+          "localized_name": "ë©íë°ì´í° ë¶ì  íë¡¬íí¸",
+          "name": "metadata_negative_prompt",
+          "type": "STRING",
+          "links": null
+        },
+        {
+          "localized_name": "ëë¹",
+          "name": "width",
+          "type": "INT",
+          "links": null
+        },
+        {
+          "localized_name": "ëì´",
+          "name": "height",
+          "type": "INT",
+          "links": null
+        }
+      ],
+      "title": "Anima Prompt Studio Advanced",
+      "properties": {
+        "Node name for S&R": "EasyUseAnimaPromptStudioAdvanced",
+        "easyuse_anima_advanced_fields": "[{\"id\":\"positive_trigger_demo\",\"pane\":\"positive\",\"type\":\"trigger\",\"label\":\"Trigger Words\",\"text\":\"\",\"height\":62,\"heightMode\":\"auto\",\"enabled\":false,\"pin\":true},{\"id\":\"positive_quality_demo\",\"pane\":\"positive\",\"type\":\"quality\",\"label\":\"Quality Tags\",\"text\":\"(newest:0.6), masterpiece, best quality, (score_8:0.65), (score_7:0.7)\",\"height\":52,\"heightMode\":\"auto\",\"enabled\":true,\"pin\":false},{\"id\":\"positive_artist_demo\",\"pane\":\"positive\",\"type\":\"artist\",\"label\":\"Artist/Style Tags\",\"text\":\"\",\"height\":52,\"heightMode\":\"auto\",\"enabled\":false,\"pin\":false},{\"id\":\"positive_general_demo\",\"pane\":\"positive\",\"type\":\"general\",\"label\":\"General Tags\",\"text\":\"1girl, hatsune miku, absurdly long hair, aqua hair, black dress, black hairband, black ribbon, blue sky, blurry, bokeh, bud, choppy bangs, clear sky, closed eyes, closed mouth, cosmos \\\\(flower\\\\), day, depth of field, dot nose, elbow gloves, embroidered dress, embroidery, facing viewer, feet out of frame, grass, hair between eyes, hair flowing over, high collar, holding bouquet, leaf, light particles, light smile, medium dress, moss, neck ribbon, overgrown, pink flower, purple flower, sidelocks, simple butterfly, sitting, solo, striped ribbon, succulent plant, sunlight, train interior, turtleneck capelet, twintails, two-tone dress, vegetation, very long hair, white butterfly, white dress, white flower, white gloves, white thighhighs, wisteria\",\"height\":180,\"heightMode\":\"auto\",\"enabled\":true,\"pin\":false},{\"id\":\"negative_quality_demo\",\"pane\":\"negative\",\"type\":\"quality\",\"label\":\"Negative Quality Tags\",\"text\":\"worst quality, low quality, score_1, score_2, score_3, blurry, watermark, text, bad anatomy\",\"height\":84,\"heightMode\":\"auto\",\"enabled\":true,\"pin\":false}]"
+      },
+      "widgets_values": [
+        false,
+        true,
+        true,
+        "1024",
+        "1024 * 1024 (1:1)",
+        1024,
+        1024,
+        false,
+        "[{\"id\":\"positive_trigger_demo\",\"pane\":\"positive\",\"type\":\"trigger\",\"label\":\"Trigger Words\",\"text\":\"\",\"height\":62,\"heightMode\":\"auto\",\"enabled\":false,\"pin\":true},{\"id\":\"positive_quality_demo\",\"pane\":\"positive\",\"type\":\"quality\",\"label\":\"Quality Tags\",\"text\":\"(newest:0.6), masterpiece, best quality, (score_8:0.65), (score_7:0.7)\",\"height\":52,\"heightMode\":\"auto\",\"enabled\":true,\"pin\":false},{\"id\":\"positive_artist_demo\",\"pane\":\"positive\",\"type\":\"artist\",\"label\":\"Artist/Style Tags\",\"text\":\"\",\"height\":52,\"heightMode\":\"auto\",\"enabled\":false,\"pin\":false},{\"id\":\"positive_general_demo\",\"pane\":\"positive\",\"type\":\"general\",\"label\":\"General Tags\",\"text\":\"1girl, hatsune miku, absurdly long hair, aqua hair, black dress, black hairband, black ribbon, blue sky, blurry, bokeh, bud, choppy bangs, clear sky, closed eyes, closed mouth, cosmos \\\\(flower\\\\), day, depth of field, dot nose, elbow gloves, embroidered dress, embroidery, facing viewer, feet out of frame, grass, hair between eyes, hair flowing over, high collar, holding bouquet, leaf, light particles, light smile, medium dress, moss, neck ribbon, overgrown, pink flower, purple flower, sidelocks, simple butterfly, sitting, solo, striped ribbon, succulent plant, sunlight, train interior, turtleneck capelet, twintails, two-tone dress, vegetation, very long hair, white butterfly, white dress, white flower, white gloves, white thighhighs, wisteria\",\"height\":180,\"heightMode\":\"auto\",\"enabled\":true,\"pin\":false},{\"id\":\"negative_quality_demo\",\"pane\":\"negative\",\"type\":\"quality\",\"label\":\"Negative Quality Tags\",\"text\":\"worst quality, low quality, score_1, score_2, score_3, blurry, watermark, text, bad anatomy\",\"height\":84,\"heightMode\":\"auto\",\"enabled\":true,\"pin\":false}]",
+        ""
+      ]
+    },
+    {
+      "id": 5,
+      "type": "ShowText|pysssss",
+      "pos": [
+        1240,
+        -100
+      ],
+      "size": [
+        460,
+        190
+      ],
+      "flags": {},
+      "order": 4,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "text",
+          "name": "text",
+          "type": "STRING",
+          "link": 2
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "ë¬¸ìì´",
           "name": "STRING",
           "shape": 6,
           "type": "STRING",
           "links": null
         }
       ],
-      "title": "보정 프롬프트 미리보기",
+      "title": "Corrected Prompt Preview",
       "properties": {
         "Node name for S&R": "ShowText|pysssss"
       },
@@ -441,34 +393,34 @@
       "id": 6,
       "type": "ShowText|pysssss",
       "pos": [
-        -330,
-        640
+        1240,
+        120
       ],
       "size": [
-        410,
-        220
+        460,
+        210
       ],
       "flags": {},
-      "order": 4,
+      "order": 5,
       "mode": 0,
       "inputs": [
         {
           "localized_name": "text",
           "name": "text",
           "type": "STRING",
-          "link": 10
+          "link": 3
         }
       ],
       "outputs": [
         {
-          "localized_name": "문자열",
+          "localized_name": "ë¬¸ìì´",
           "name": "STRING",
           "shape": 6,
           "type": "STRING",
           "links": null
         }
       ],
-      "title": "Corrector 리포트 미리보기",
+      "title": "Corrector Report Preview",
       "properties": {
         "Node name for S&R": "ShowText|pysssss"
       },
@@ -479,136 +431,51 @@
       "bgcolor": "#433b55"
     },
     {
-      "id": 4,
-      "type": "EasyUseAnimaPromptStudioAdvanced",
+      "id": 7,
+      "type": "ShowText|pysssss",
       "pos": [
-        610,
-        -110
+        1240,
+        360
       ],
       "size": [
-        560,
-        950
+        460,
+        100
       ],
       "flags": {},
       "order": 6,
       "mode": 0,
       "inputs": [
         {
-          "label": "1. 트리거 - 트리거 단어",
-          "name": "field_positive_trigger_demo",
+          "localized_name": "text",
+          "name": "text",
           "type": "STRING",
-          "link": 12
-        },
-        {
-          "label": "2. 품질 태그",
-          "name": "field_positive_quality_demo",
-          "type": "STRING",
-          "link": null
-        },
-        {
-          "label": "3. 작가 태그 - 작가/스타일 태그",
-          "name": "field_positive_artist_demo",
-          "type": "STRING",
-          "link": 11
-        },
-        {
-          "label": "4. 일반 태그",
-          "name": "field_positive_general_demo",
-          "type": "STRING",
-          "link": null
-        },
-        {
-          "label": "neg1. 품질 태그 - 네거티브 품질 태그",
-          "name": "field_negative_quality_demo",
-          "type": "STRING",
-          "link": null
+          "link": 4
         }
       ],
       "outputs": [
         {
-          "localized_name": "긍정 프롬프트",
-          "name": "positive_prompt",
+          "localized_name": "ë¬¸ìì´",
+          "name": "STRING",
+          "shape": 6,
           "type": "STRING",
-          "links": [
-            5,
-            14
-          ]
-        },
-        {
-          "localized_name": "부정 프롬프트",
-          "name": "negative_prompt",
-          "type": "STRING",
-          "links": [
-            6,
-            15
-          ]
-        },
-        {
-          "localized_name": "Mod Guidance 품질 태그",
-          "name": "anima_mod_guidance_quality_tags",
-          "type": "STRING",
-          "links": [
-            7,
-            16
-          ]
-        },
-        {
-          "localized_name": "Mod Guidance 사용",
-          "name": "use_anima_mod_guidance",
-          "type": "BOOLEAN",
-          "links": null
-        },
-        {
-          "localized_name": "메타데이터 프롬프트",
-          "name": "metadata_prompt",
-          "type": "STRING",
-          "links": [
-            8,
-            17
-          ]
-        },
-        {
-          "localized_name": "메타데이터 부정 프롬프트",
-          "name": "metadata_negative_prompt",
-          "type": "STRING",
-          "links": null
-        },
-        {
-          "localized_name": "너비",
-          "name": "width",
-          "type": "INT",
-          "links": null
-        },
-        {
-          "localized_name": "높이",
-          "name": "height",
-          "type": "INT",
           "links": null
         }
       ],
-      "title": "Anima Prompt Studio Advanced",
+      "title": "LoRA Preset Style Output",
       "properties": {
-        "Node name for S&R": "EasyUseAnimaPromptStudioAdvanced",
-        "easyuse_anima_advanced_fields": "[{\"id\":\"positive_trigger_demo\",\"pane\":\"positive\",\"type\":\"trigger\",\"label\":\"트리거 단어\",\"text\":\"\",\"height\":62,\"heightMode\":\"auto\",\"enabled\":false,\"pin\":true},{\"id\":\"positive_quality_demo\",\"pane\":\"positive\",\"type\":\"quality\",\"label\":\"품질 태그\",\"text\":\"(newest:0.6), masterpiece, best quality, (score_8:0.65), (score_7:0.7)\",\"height\":52,\"heightMode\":\"auto\",\"enabled\":true,\"pin\":false},{\"id\":\"positive_artist_demo\",\"pane\":\"positive\",\"type\":\"artist\",\"label\":\"작가/스타일 태그\",\"text\":\"@artist\",\"height\":52,\"heightMode\":\"auto\",\"enabled\":false,\"pin\":false},{\"id\":\"positive_general_demo\",\"pane\":\"positive\",\"type\":\"general\",\"label\":\"일반 태그\",\"text\":\"1girl, hatsune miku, absurdly long hair, aqua hair, black dress, black hairband, black ribbon, blue sky, blurry, bokeh, bud, choppy bangs, clear sky, closed eyes, closed mouth, cosmos \\\\(flower\\\\), day, depth of field, dot nose, elbow gloves, embroidered dress, embroidery, facing viewer, feet out of frame, grass, hair between eyes, hair flowing over, high collar, holding bouquet, leaf, light particles, light smile, medium dress, moss, neck ribbon, overgrown, pink flower, purple flower, sidelocks, simple butterfly, sitting, solo, striped ribbon, succulent plant, sunlight, train interior, turtleneck capelet, twintails, two-tone dress, vegetation, very long hair, white butterfly, white dress, white flower, white gloves, white thighhighs, wisteria\",\"height\":180,\"heightMode\":\"auto\",\"enabled\":true,\"pin\":false},{\"id\":\"negative_quality_demo\",\"pane\":\"negative\",\"type\":\"quality\",\"label\":\"네거티브 품질 태그\",\"text\":\"worst quality, low quality, score_1, score_2, score_3, blurry, watermark, text, bad anatomy\",\"height\":84,\"heightMode\":\"auto\",\"enabled\":true,\"pin\":false}]"
+        "Node name for S&R": "ShowText|pysssss"
       },
       "widgets_values": [
-        false,
-        true,
-        true,
-        "1024",
-        "1024 * 1024 (1:1)",
-        1024,
-        1024,
-        false,
-        "[{\"id\":\"positive_trigger_demo\",\"pane\":\"positive\",\"type\":\"trigger\",\"label\":\"트리거 단어\",\"text\":\"\",\"height\":62,\"heightMode\":\"auto\",\"enabled\":false,\"pin\":true},{\"id\":\"positive_quality_demo\",\"pane\":\"positive\",\"type\":\"quality\",\"label\":\"품질 태그\",\"text\":\"(newest:0.6), masterpiece, best quality, (score_8:0.65), (score_7:0.7)\",\"height\":52,\"heightMode\":\"auto\",\"enabled\":true,\"pin\":false},{\"id\":\"positive_artist_demo\",\"pane\":\"positive\",\"type\":\"artist\",\"label\":\"작가/스타일 태그\",\"text\":\"@artist\",\"height\":52,\"heightMode\":\"auto\",\"enabled\":false,\"pin\":false},{\"id\":\"positive_general_demo\",\"pane\":\"positive\",\"type\":\"general\",\"label\":\"일반 태그\",\"text\":\"1girl, hatsune miku, absurdly long hair, aqua hair, black dress, black hairband, black ribbon, blue sky, blurry, bokeh, bud, choppy bangs, clear sky, closed eyes, closed mouth, cosmos \\\\(flower\\\\), day, depth of field, dot nose, elbow gloves, embroidered dress, embroidery, facing viewer, feet out of frame, grass, hair between eyes, hair flowing over, high collar, holding bouquet, leaf, light particles, light smile, medium dress, moss, neck ribbon, overgrown, pink flower, purple flower, sidelocks, simple butterfly, sitting, solo, striped ribbon, succulent plant, sunlight, train interior, turtleneck capelet, twintails, two-tone dress, vegetation, very long hair, white butterfly, white dress, white flower, white gloves, white thighhighs, wisteria\",\"height\":180,\"heightMode\":\"auto\",\"enabled\":true,\"pin\":false},{\"id\":\"negative_quality_demo\",\"pane\":\"negative\",\"type\":\"quality\",\"label\":\"네거티브 품질 태그\",\"text\":\"worst quality, low quality, score_1, score_2, score_3, blurry, watermark, text, bad anatomy\",\"height\":84,\"heightMode\":\"auto\",\"enabled\":true,\"pin\":false}]",
-        ""
-      ]
+        "hatsune miku, aqua hair, twintails"
+      ],
+      "color": "#3f3f46",
+      "bgcolor": "#52525b"
     },
     {
       "id": 8,
       "type": "ShowText|pysssss",
       "pos": [
-        1220,
+        1740,
         -100
       ],
       "size": [
@@ -623,19 +490,19 @@
           "localized_name": "text",
           "name": "text",
           "type": "STRING",
-          "link": 14
+          "link": 5
         }
       ],
       "outputs": [
         {
-          "localized_name": "문자열",
+          "localized_name": "ë¬¸ìì´",
           "name": "STRING",
           "shape": 6,
           "type": "STRING",
           "links": null
         }
       ],
-      "title": "Studio positive 출력",
+      "title": "Studio Positive Output",
       "properties": {
         "Node name for S&R": "ShowText|pysssss"
       },
@@ -644,19 +511,142 @@
       ],
       "color": "#232",
       "bgcolor": "#353"
+    },
+    {
+      "id": 9,
+      "type": "ShowText|pysssss",
+      "pos": [
+        1740,
+        180
+      ],
+      "size": [
+        500,
+        130
+      ],
+      "flags": {},
+      "order": 8,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "text",
+          "name": "text",
+          "type": "STRING",
+          "link": 6
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "ë¬¸ìì´",
+          "name": "STRING",
+          "shape": 6,
+          "type": "STRING",
+          "links": null
+        }
+      ],
+      "title": "Studio Negative Output",
+      "properties": {
+        "Node name for S&R": "ShowText|pysssss"
+      },
+      "widgets_values": [
+        "worst quality, low quality, score_1, score_2, score_3, blurry, watermark, text, bad anatomy"
+      ],
+      "color": "#322",
+      "bgcolor": "#533"
+    },
+    {
+      "id": 10,
+      "type": "ShowText|pysssss",
+      "pos": [
+        1740,
+        340
+      ],
+      "size": [
+        500,
+        120
+      ],
+      "flags": {},
+      "order": 9,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "text",
+          "name": "text",
+          "type": "STRING",
+          "link": 7
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "ë¬¸ìì´",
+          "name": "STRING",
+          "shape": 6,
+          "type": "STRING",
+          "links": null
+        }
+      ],
+      "title": "Mod Guidance Quality Tags",
+      "properties": {
+        "Node name for S&R": "ShowText|pysssss"
+      },
+      "widgets_values": [
+        "(newest:0.6), masterpiece, best quality, (score_8:0.65), (score_7:0.7)"
+      ],
+      "color": "#2a363b",
+      "bgcolor": "#3f5159"
+    },
+    {
+      "id": 11,
+      "type": "ShowText|pysssss",
+      "pos": [
+        1740,
+        490
+      ],
+      "size": [
+        500,
+        290
+      ],
+      "flags": {},
+      "order": 10,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "text",
+          "name": "text",
+          "type": "STRING",
+          "link": 8
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "ë¬¸ìì´",
+          "name": "STRING",
+          "shape": 6,
+          "type": "STRING",
+          "links": null
+        }
+      ],
+      "title": "Metadata Prompt Output",
+      "properties": {
+        "Node name for S&R": "ShowText|pysssss"
+      },
+      "widgets_values": [
+        "masterpiece, best quality, (score_8:0.65), (score_7:0.7), (newest:0.6), 1girl, solo, hatsune miku, absurdly long hair, aqua hair, black dress, black hairband, black ribbon, blue sky, blurry, bokeh, bud, choppy bangs, clear sky, closed eyes, closed mouth, cosmos \\(flower\\), day, depth of field, dot nose, elbow gloves, embroidered dress, embroidery, facing viewer, feet out of frame, grass, hair between eyes, hair flowing over, high collar, holding bouquet, leaf, light particles, light smile, medium dress, moss, neck ribbon, overgrown, pink flower, purple flower, sidelocks, simple butterfly, sitting, striped ribbon, succulent plant, sunlight, train interior, turtleneck capelet, twintails, two-tone dress, vegetation, very long hair, white butterfly, white dress, white flower, white gloves, white thighhighs, wisteria"
+      ],
+      "color": "#1f2937",
+      "bgcolor": "#374151"
     }
   ],
   "links": [
     [
-      null,
-      null,
-      null,
-      null,
-      null,
-      null
+      1,
+      2,
+      0,
+      4,
+      3,
+      "STRING"
     ],
     [
-      9,
+      2,
       2,
       0,
       5,
@@ -664,7 +654,7 @@
       "STRING"
     ],
     [
-      10,
+      3,
       2,
       1,
       6,
@@ -672,23 +662,15 @@
       "STRING"
     ],
     [
-      11,
+      4,
       3,
       0,
-      4,
-      2,
-      "STRING"
-    ],
-    [
-      12,
-      3,
-      2,
-      4,
+      7,
       0,
       "STRING"
     ],
     [
-      14,
+      5,
       4,
       0,
       8,
@@ -696,7 +678,7 @@
       "STRING"
     ],
     [
-      15,
+      6,
       4,
       1,
       9,
@@ -704,7 +686,7 @@
       "STRING"
     ],
     [
-      16,
+      7,
       4,
       2,
       10,
@@ -712,18 +694,10 @@
       "STRING"
     ],
     [
-      17,
+      8,
       4,
       4,
       11,
-      0,
-      "STRING"
-    ],
-    [
-      18,
-      3,
-      0,
-      7,
       0,
       "STRING"
     ]
@@ -745,10 +719,10 @@
       "id": 2,
       "title": "Prompt Corrector",
       "bounding": [
-        -350,
+        -340,
         -190,
         450,
-        1080
+        560
       ],
       "color": "#475569",
       "flags": {}
@@ -757,10 +731,10 @@
       "id": 3,
       "title": "LoRA Preset",
       "bounding": [
-        110,
+        130,
         -190,
         470,
-        650
+        750
       ],
       "color": "#3f3f46",
       "flags": {}
@@ -769,7 +743,7 @@
       "id": 4,
       "title": "Prompt Studio",
       "bounding": [
-        590,
+        620,
         -190,
         600,
         1040
@@ -779,12 +753,12 @@
     },
     {
       "id": 5,
-      "title": "결과 미리보기",
+      "title": "Result Preview",
       "bounding": [
-        1200,
+        1220,
         -190,
-        530,
-        1050
+        1040,
+        1040
       ],
       "color": "#164e63",
       "flags": {}
@@ -795,10 +769,10 @@
     "frontendVersion": "1.45.15",
     "workflowRendererVersion": "LG",
     "ds": {
-      "scale": 1.0285000000000026,
+      "scale": 1,
       "offset": [
-        -247.38612482785862,
-        372.4530961917512
+        980,
+        200
       ]
     },
     "easyuse_anima_workflow": {

@@ -26930,7 +26930,7 @@
       "language": "en",
       "kind": "release-workflow",
       "package": "comfyui-easyuse-anima",
-      "package_version": "0.1.6",
+      "package_version": "0.1.7",
       "registry_folder": "example_workflows",
       "release_filename": "Anima_AiO_v6.0_release_en.json",
       "release_suffix": "_release_en",
