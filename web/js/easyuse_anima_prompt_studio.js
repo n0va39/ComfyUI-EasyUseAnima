@@ -275,6 +275,36 @@ const STUDIO_WIDGET_VERTICAL_GAP = 8;
 const WEIGHTED_TOKEN_RE = /^\((.*):[-+]?\d+(?:\.\d+)?\)$/s;
 const WEIGHT_NUMBER_COLOR = "#fb923c";
 const INLINE_SPACE_RE = /[ \t]+/g;
+const HIGHLIGHT_TEXT_METRIC_PROPERTIES = [
+  "font",
+  "fontFamily",
+  "fontSize",
+  "fontSizeAdjust",
+  "fontStretch",
+  "fontWeight",
+  "fontStyle",
+  "fontVariant",
+  "fontKerning",
+  "fontOpticalSizing",
+  "fontFeatureSettings",
+  "fontVariationSettings",
+  "lineHeight",
+  "letterSpacing",
+  "wordSpacing",
+  "textIndent",
+  "padding",
+  "border",
+  "borderRadius",
+  "boxSizing",
+  "textAlign",
+  "textTransform",
+  "textRendering",
+  "direction",
+  "tabSize",
+  "whiteSpace",
+  "overflowWrap",
+  "wordBreak",
+];
 const PROMPT_STUDIO_SETTINGS = {
   typoIndicator: true,
   commentItalic: true,
@@ -488,11 +518,21 @@ function ensureHighlightStyle() {
       -webkit-text-fill-color: transparent !important;
       caret-color: var(--input-text, #ddd) !important;
       background: transparent !important;
+      white-space: pre-wrap !important;
+      overflow-wrap: break-word !important;
+      word-break: normal !important;
+      text-size-adjust: 100% !important;
+      -webkit-text-size-adjust: 100% !important;
     }
     .easyuse-anima-highlight-input::selection {
       color: transparent !important;
       -webkit-text-fill-color: transparent !important;
       background: rgba(37, 99, 235, 0.28) !important;
+    }
+    .easyuse-anima-highlight-overlay {
+      text-size-adjust: 100%;
+      -webkit-text-size-adjust: 100%;
+      contain: paint;
     }
   `;
   document.head.append(style);
@@ -1151,72 +1191,134 @@ function renderHighlightedText(text, tokens) {
   return html.join("") || " ";
 }
 
-function copyInputTextMetrics(input, overlay) {
-  const style = getComputedStyle(input);
-  const properties = [
-    "font",
-    "fontFamily",
-    "fontSize",
-    "fontSizeAdjust",
-    "fontStretch",
-    "fontWeight",
-    "fontStyle",
-    "fontVariant",
-    "fontKerning",
-    "fontOpticalSizing",
-    "fontFeatureSettings",
-    "fontVariationSettings",
-    "lineHeight",
-    "letterSpacing",
-    "wordSpacing",
-    "textIndent",
-    "padding",
-    "border",
-    "borderRadius",
-    "textAlign",
-    "textTransform",
-    "textRendering",
-    "direction",
-    "tabSize",
-    "whiteSpace",
-    "overflowWrap",
-    "wordBreak",
-  ];
-  for (const property of properties) {
+function cssPixelNumber(value) {
+  const parsed = Number.parseFloat(value);
+  return Number.isFinite(parsed) ? parsed : 0;
+}
+
+function cssPixel(value) {
+  const rounded = Math.round(Number(value || 0) * 100) / 100;
+  return `${rounded}px`;
+}
+
+function overlayScrollbarPadding(input, style = getComputedStyle(input)) {
+  const verticalGutter = Math.max(
+    0,
+    (Number(input.offsetWidth) || 0)
+      - (Number(input.clientWidth) || 0)
+      - cssPixelNumber(style.borderLeftWidth)
+      - cssPixelNumber(style.borderRightWidth),
+  );
+  const horizontalGutter = Math.max(
+    0,
+    (Number(input.offsetHeight) || 0)
+      - (Number(input.clientHeight) || 0)
+      - cssPixelNumber(style.borderTopWidth)
+      - cssPixelNumber(style.borderBottomWidth),
+  );
+  return {
+    right: cssPixel(cssPixelNumber(style.paddingRight) + verticalGutter),
+    bottom: cssPixel(cssPixelNumber(style.paddingBottom) + horizontalGutter),
+  };
+}
+
+function applyOverlayScrollbarPadding(input, overlay, style = getComputedStyle(input)) {
+  const padding = overlayScrollbarPadding(input, style);
+  if (overlay.style.paddingRight !== padding.right) overlay.style.paddingRight = padding.right;
+  if (overlay.style.paddingBottom !== padding.bottom) overlay.style.paddingBottom = padding.bottom;
+}
+
+function overlayBounds(input) {
+  return {
+    left: `${input.offsetLeft}px`,
+    top: `${input.offsetTop}px`,
+    width: `${input.offsetWidth}px`,
+    height: `${input.offsetHeight}px`,
+  };
+}
+
+function highlightOverlayHtml(value, tokens, placeholder = "") {
+  const text = String(value || "");
+  if (!text) {
+    return `<span style="opacity: 0.45">${escapeHtml(placeholder)}</span>`;
+  }
+  const html = renderHighlightedText(text, tokens);
+  return text.endsWith("\n") ? `${html} ` : html;
+}
+
+function copyInputTextMetrics(input, overlay, style = getComputedStyle(input)) {
+  for (const property of HIGHLIGHT_TEXT_METRIC_PROPERTIES) {
     const val = style[property];
     if (overlay.style[property] !== val) {
       overlay.style[property] = val;
     }
   }
-  if (!overlay.style.whiteSpace || overlay.style.whiteSpace === "normal") {
-    overlay.style.whiteSpace = "pre-wrap";
-  }
-  if (!overlay.style.overflowWrap) {
-    overlay.style.overflowWrap = "break-word";
-  }
+  overlay.style.boxSizing = "border-box";
+  overlay.style.whiteSpace = "pre-wrap";
+  overlay.style.overflowWrap = "break-word";
+  overlay.style.wordWrap = "break-word";
+  overlay.style.wordBreak = "normal";
+  overlay.style.margin = "0";
+  applyOverlayScrollbarPadding(input, overlay, style);
 }
 
 function syncOverlayBounds(input, overlay) {
   if (!overlay) return;
-  const left = `${input.offsetLeft}px`;
-  const top = `${input.offsetTop}px`;
-  const width = `${input.offsetWidth}px`;
-  const height = `${input.offsetHeight}px`;
+  const style = getComputedStyle(input);
+  const { left, top, width, height } = overlayBounds(input);
 
   if (overlay.style.left !== left) overlay.style.left = left;
   if (overlay.style.top !== top) overlay.style.top = top;
   if (overlay.style.width !== width) overlay.style.width = width;
   if (overlay.style.height !== height) overlay.style.height = height;
+  applyOverlayScrollbarPadding(input, overlay, style);
 
   if (overlay.scrollTop !== input.scrollTop) overlay.scrollTop = input.scrollTop;
   if (overlay.scrollLeft !== input.scrollLeft) overlay.scrollLeft = input.scrollLeft;
 }
 
-function syncOverlayScroll(input, overlay) {
-  if (overlay) {
-    if (overlay.scrollTop !== input.scrollTop) overlay.scrollTop = input.scrollTop;
-    if (overlay.scrollLeft !== input.scrollLeft) overlay.scrollLeft = input.scrollLeft;
+function requestOverlaySync(input, forceCopyMetrics = false) {
+  const overlay = input?.__easyuseAnimaHighlightOverlay;
+  if (!overlay) {
+    return;
   }
+  input.__easyuseAnimaHighlightForceCopyMetrics ||= forceCopyMetrics;
+  if (input.__easyuseAnimaHighlightSyncRaf) {
+    return;
+  }
+  input.__easyuseAnimaHighlightSyncRaf = requestAnimationFrame(() => {
+    input.__easyuseAnimaHighlightSyncRaf = 0;
+    const currentOverlay = input.__easyuseAnimaHighlightOverlay;
+    if (!input.isConnected || !currentOverlay?.isConnected) {
+      input.__easyuseAnimaHighlightForceCopyMetrics = false;
+      return;
+    }
+    if (input.__easyuseAnimaHighlightForceCopyMetrics) {
+      copyInputTextMetrics(input, currentOverlay);
+    }
+    input.__easyuseAnimaHighlightForceCopyMetrics = false;
+    syncOverlayBounds(input, currentOverlay);
+    requestAnimationFrame(() => {
+      if (input.isConnected && currentOverlay.isConnected) {
+        syncOverlayBounds(input, currentOverlay);
+      }
+    });
+  });
+}
+
+function installOverlaySyncListeners(input) {
+  if (input.__easyuseAnimaHighlightSyncInstalled) {
+    return;
+  }
+  const schedule = () => requestOverlaySync(input);
+  const scheduleMetrics = () => requestOverlaySync(input, true);
+  input.addEventListener("scroll", schedule, { passive: true });
+  input.addEventListener("input", schedule);
+  input.addEventListener("keyup", schedule);
+  input.addEventListener("click", schedule);
+  input.addEventListener("compositionupdate", schedule);
+  input.addEventListener("compositionend", scheduleMetrics);
+  input.__easyuseAnimaHighlightSyncInstalled = true;
 }
 
 function ensureHighlightOverlay(input) {
@@ -1269,9 +1371,14 @@ function ensureHighlightOverlay(input) {
   input.style.color = "transparent";
   input.style.caretColor = "var(--input-text, #ddd)";
   input.style.webkitTextFillColor = "transparent";
+  input.style.whiteSpace = "pre-wrap";
+  input.style.overflowWrap = "break-word";
+  input.style.wordBreak = "normal";
+  input.style.textSizeAdjust = "100%";
+  input.style.webkitTextSizeAdjust = "100%";
 
-  input.addEventListener("scroll", () => syncOverlayScroll(input, overlay));
   input.__easyuseAnimaHighlightOverlay = overlay;
+  installOverlaySyncListeners(input);
   return overlay;
 }
 
@@ -1338,9 +1445,6 @@ function setStudioInputHeight(node, widget, height, refresh = false) {
     }
   } else {
     input.style.height = `${nextHeight}px`;
-    if (refresh === "immediate") {
-      refreshNodeSize(node, { immediate: true });
-    }
   }
   syncStudioOverflow(widget);
   updateHighlight(node, widget);
@@ -1889,9 +1993,7 @@ function updateHighlight(node, widget, tokens = widget.__easyuseAnimaTokens || [
   }
   syncOverlayBounds(input, overlay);
   const value = displayText(node, widget);
-  overlay.innerHTML = value
-    ? renderHighlightedText(value, tokens)
-    : `<span style="opacity: 0.45">${escapeHtml(input.placeholder || "")}</span>`;
+  overlay.innerHTML = highlightOverlayHtml(value, tokens, input.placeholder || "");
 }
 
 function advancedHighlightState(node, field) {
@@ -1923,9 +2025,7 @@ function updateAdvancedFieldHighlight(node, field, textarea, tokens = null, forc
     copyInputTextMetrics(textarea, overlay);
   }
   syncOverlayBounds(textarea, overlay);
-  overlay.innerHTML = value
-    ? renderHighlightedText(value, tokens || state.tokens || [])
-    : `<span style="opacity: 0.45">${escapeHtml(textarea.placeholder || "")}</span>`;
+  overlay.innerHTML = highlightOverlayHtml(value, tokens || state.tokens || [], textarea.placeholder || "");
 }
 
 function scheduleAdvancedFieldHighlight(node, field, textarea) {
@@ -2011,18 +2111,14 @@ function refreshAdvancedHighlights(node, { classify = true } = {}) {
       continue;
     }
 
-    const left = `${textarea.offsetLeft}px`;
-    const top = `${textarea.offsetTop}px`;
-    const width = `${textarea.offsetWidth}px`;
-    const height = `${textarea.offsetHeight}px`;
+    const { left, top, width, height } = overlayBounds(textarea);
+    const padding = overlayScrollbarPadding(textarea);
     const scrollTop = textarea.scrollTop;
     const scrollLeft = textarea.scrollLeft;
 
     const state = advancedHighlightState(node, field);
     const value = String(textarea.value || "");
-    const htmlContent = value
-      ? renderHighlightedText(value, state.tokens || [])
-      : `<span style="opacity: 0.45">${escapeHtml(textarea.placeholder || "")}</span>`;
+    const htmlContent = highlightOverlayHtml(value, state.tokens || [], textarea.placeholder || "");
 
     updates.push({
       overlay,
@@ -2030,6 +2126,7 @@ function refreshAdvancedHighlights(node, { classify = true } = {}) {
       top,
       width,
       height,
+      padding,
       scrollTop,
       scrollLeft,
       htmlContent,
@@ -2042,12 +2139,14 @@ function refreshAdvancedHighlights(node, { classify = true } = {}) {
 
   // Write DOM
   for (const update of updates) {
-    const { overlay, left, top, width, height, scrollTop, scrollLeft, htmlContent, textarea, field, state, value } = update;
+    const { overlay, left, top, width, height, padding, scrollTop, scrollLeft, htmlContent, textarea, field, state, value } = update;
 
     if (overlay.style.left !== left) overlay.style.left = left;
     if (overlay.style.top !== top) overlay.style.top = top;
     if (overlay.style.width !== width) overlay.style.width = width;
     if (overlay.style.height !== height) overlay.style.height = height;
+    if (overlay.style.paddingRight !== padding.right) overlay.style.paddingRight = padding.right;
+    if (overlay.style.paddingBottom !== padding.bottom) overlay.style.paddingBottom = padding.bottom;
     if (overlay.scrollTop !== scrollTop) overlay.scrollTop = scrollTop;
     if (overlay.scrollLeft !== scrollLeft) overlay.scrollLeft = scrollLeft;
 
@@ -2098,21 +2197,14 @@ function refreshConnectedHighlightOverlays() {
 
     // Font metrics reads
     const style = getComputedStyle(input);
-    const properties = [
-      "font", "fontFamily", "fontSize", "fontWeight", "fontStyle",
-      "lineHeight", "letterSpacing", "padding", "border", "borderRadius",
-      "textAlign", "textTransform", "tabSize"
-    ];
     const metricValues = {};
-    for (const prop of properties) {
+    for (const prop of HIGHLIGHT_TEXT_METRIC_PROPERTIES) {
       metricValues[prop] = style[prop];
     }
 
     // Bounds reads
-    const left = `${input.offsetLeft}px`;
-    const top = `${input.offsetTop}px`;
-    const width = `${input.offsetWidth}px`;
-    const height = `${input.offsetHeight}px`;
+    const { left, top, width, height } = overlayBounds(input);
+    const padding = overlayScrollbarPadding(input, style);
     const scrollTop = input.scrollTop;
     const scrollLeft = input.scrollLeft;
 
@@ -2123,6 +2215,7 @@ function refreshConnectedHighlightOverlays() {
       top,
       width,
       height,
+      padding,
       scrollTop,
       scrollLeft
     });
@@ -2130,7 +2223,7 @@ function refreshConnectedHighlightOverlays() {
 
   // DOM Style Write
   for (const update of updates) {
-    const { overlay, metricValues, left, top, width, height, scrollTop, scrollLeft } = update;
+    const { overlay, metricValues, left, top, width, height, padding, scrollTop, scrollLeft } = update;
 
     // Apply metrics (only if they changed)
     for (const prop in metricValues) {
@@ -2145,6 +2238,13 @@ function refreshConnectedHighlightOverlays() {
     if (overlay.style.top !== top) overlay.style.top = top;
     if (overlay.style.width !== width) overlay.style.width = width;
     if (overlay.style.height !== height) overlay.style.height = height;
+    overlay.style.boxSizing = "border-box";
+    overlay.style.whiteSpace = "pre-wrap";
+    overlay.style.overflowWrap = "break-word";
+    overlay.style.wordWrap = "break-word";
+    overlay.style.wordBreak = "normal";
+    if (overlay.style.paddingRight !== padding.right) overlay.style.paddingRight = padding.right;
+    if (overlay.style.paddingBottom !== padding.bottom) overlay.style.paddingBottom = padding.bottom;
     if (overlay.scrollTop !== scrollTop) overlay.scrollTop = scrollTop;
     if (overlay.scrollLeft !== scrollLeft) overlay.scrollLeft = scrollLeft;
   }
@@ -2232,9 +2332,8 @@ function enhanceResizableInput(node, widget) {
 
   const syncHeight = () => {
     if (widget.__easyuseAnimaManualHeight) {
-      if (!growStudioManualHeightToContent(node, widget, "immediate")) {
-        refreshNodeSize(node, { immediate: true });
-      }
+      growStudioManualHeightToContent(node, widget, "immediate");
+      requestOverlaySync(input);
       return;
     }
     const height = desiredTextareaHeight(input, 0, minimumHeight, { includeCurrent: false });
@@ -3921,13 +4020,19 @@ function createAdvancedFieldElement(node, field) {
     scheduleAdvancedFieldHighlight(node, field, textarea);
   }, 180);
   const persistTextareaHeight = (height, mode = field.heightMode || "auto") => {
+    const previousHeight = Math.round(Number(field.height) || 0);
+    const previousMode = field.heightMode || "auto";
     const nextHeight = setAdvancedTextareaHeight(node, textarea, height);
     field.height = nextHeight;
     field.heightMode = mode === "manual" ? "manual" : "auto";
     writeAdvancedFields(node, fields, { syncInputs: false });
     updateAdvancedFieldHighlight(node, field, textarea);
     updateFieldHighlight();
-    scheduleAdvancedLayout(node, "textarea");
+    if (Math.abs(nextHeight - previousHeight) > 1 || field.heightMode !== previousMode) {
+      scheduleAdvancedLayout(node, "textarea");
+    } else {
+      requestOverlaySync(textarea);
+    }
   };
   const syncHeight = () => {
     if (field.heightMode === "manual") {
