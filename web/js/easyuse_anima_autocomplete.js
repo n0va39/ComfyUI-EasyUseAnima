@@ -725,12 +725,17 @@ function insertSuffixForAfter(after, appendSeparator = false) {
   return ", ";
 }
 
-function existingSeparatorCaretOffset(after, appendSeparator = false) {
-  if (!appendSeparator) {
-    return 0;
+function insertSuffixPlanForAfter(after, appendSeparator = false) {
+  const text = String(after || "");
+  const suffix = insertSuffixForAfter(text, appendSeparator);
+  if (!text) {
+    return { suffix, consumeAfter: 0, caretExtra: suffix.length };
   }
-  const match = /^,[ \t]+/.exec(String(after || ""));
-  return match ? match[0].length : 0;
+  if (appendSeparator && text.startsWith(",")) {
+    const match = /^,[ \t]*/.exec(text);
+    return { suffix: ", ", consumeAfter: match?.[0]?.length || 1, caretExtra: 2 };
+  }
+  return { suffix, consumeAfter: 0, caretExtra: 0 };
 }
 
 function replaceInputRange(input, start, end, replacement, caretOffset) {
@@ -755,12 +760,13 @@ function commitSuggestion(state, entry) {
   const after = token.value.slice(token.end);
   const insert = completionText(token, entry, state.forceArtistOnly);
   const prefix = insertPrefixForBefore(before);
-  const suffix = insertSuffixForAfter(after, autocompleteAppendSeparator);
+  const suffixPlan = insertSuffixPlanForAfter(after, autocompleteAppendSeparator);
+  const suffix = suffixPlan.suffix;
   const replacement = `${prefix}${insert}${suffix}`;
   const caretOffset = prefix.length
     + insert.length
-    + (!after ? suffix.length : existingSeparatorCaretOffset(after, autocompleteAppendSeparator));
-  replaceInputRange(state.input, token.start, token.end, replacement, caretOffset);
+    + suffixPlan.caretExtra;
+  replaceInputRange(state.input, token.start, token.end + suffixPlan.consumeAfter, replacement, caretOffset);
   if (state.widget) {
     state.widget.value = state.input.value;
     state.widget.callback?.(state.input.value);
