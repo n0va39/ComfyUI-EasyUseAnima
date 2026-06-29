@@ -2,7 +2,9 @@
 
 언어: [English](README.en.md) | [한국어](README.ko.md) | [Home](README.md)
 
-NAIA/Anima 워크플로우를 위한 ComfyUI 커스텀 노드팩입니다.
+프롬프트 편집, ANIMA 프롬프트 보정, NAIA 프롬프트 연동, LoRA 프리셋 관리,
+그리고 ComfyUI에서 latent-size 오류를 줄이기 위한 ANIMA DiT Detailer Hook을
+제공하는 커스텀 노드팩입니다.
 
 이 패키지는 `comfyui-naia-bridge`와 독립적으로 동작합니다. 해당 노드팩을
 import하거나 덮어쓰지 않으므로, 두 노드팩을 동시에 설치할 수 있습니다.

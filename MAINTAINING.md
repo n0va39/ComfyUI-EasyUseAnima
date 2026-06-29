@@ -82,10 +82,15 @@ Use this procedure when publishing a release to Comfy Registry / ComfyUI Manager
 - Confirm `pyproject.toml` has:
   - `[project].name = "comfyui-easyuse-anima"`
   - `[project].version = "X.Y.Z"` with semantic versioning.
+  - `[project].description` matches the intended Comfy Registry summary.
   - `[project.urls].Repository = "https://github.com/n0va39/ComfyUI-EasyUseAnima"`
   - `[tool.comfy].PublisherId = "n0va39"`
   - `[tool.comfy].DisplayName = "ComfyUI EasyUse Anima"`
 - If a version was already published, never reuse it. Bump to a new version.
+- Keep the top summary in `README.md`, `README.en.md`, and `README.ko.md`
+  aligned with `[project].description`.
+- Keep the GitHub repository description aligned with `[project].description`
+  before publishing, because external listing pages may display either source.
 - Keep `LICENSE`, `README.md`, `README.en.md`, and `README.ko.md` current.
 - Keep `.comfyignore` committed so Registry archives exclude development-only files consistently.
 
