@@ -57,11 +57,12 @@ _COUNT_RE = re.compile(
 )
 _WEIGHTED_TOKEN_RE = re.compile(r"^\((.*):[-+]?\d+(?:\.\d+)?\)$")
 _DESCRIPTION_PREFIX_RE = re.compile(r"^\[([^\]]+)\]")
-
+_COMMENT_RE = re.compile(r"(?://[^\n]*|/\*(?:[^*]|\*(?!/))*\*/|#[^\n]*)")
 
 @dataclass(frozen=True)
 class AutocompleteEntry:
     tag: str
+    tag_key: str
     category: str
     count: int
     description: str
@@ -147,8 +148,10 @@ def _entry_from_parts(tag: str, category: str, count: str, description: str) -> 
     description = _display_description(description)
     category = _category_from_description(category, description)
     search = _normalize(" ".join((tag, description)))
+    tag_key = _normalize(tag)
     return AutocompleteEntry(
         tag=tag,
+        tag_key=tag_key,
         category=category,
         count=count_value,
         description=description,
@@ -163,17 +166,17 @@ def _looks_like_header(row: list[str]) -> bool:
     )
 
 
-def _load_entries(path: Path = AUTOCOMPLETE_CSV) -> list[AutocompleteEntry]:
+def _load_entries(path: Path = AUTOCOMPLETE_CSV) -> tuple[AutocompleteEntry, ...]:
     entries: list[AutocompleteEntry] = []
     if not path.is_file():
-        return entries
+        return ()
 
     with path.open("r", encoding="utf-8-sig", newline="") as handle:
         reader = csv.reader(handle)
         rows = iter(reader)
         first_row = next(rows, None)
         if first_row is None:
-            return entries
+            return ()
 
         if _looks_like_header(first_row):
             fieldnames = [str(column or "").strip() for column in first_row]
@@ -195,21 +198,17 @@ def _load_entries(path: Path = AUTOCOMPLETE_CSV) -> list[AutocompleteEntry]:
                 if entry:
                     entries.append(entry)
     entries.sort(key=lambda entry: entry.count, reverse=True)
-    return entries
+    return tuple(entries)
 
 
-def _entries(path: Path = AUTOCOMPLETE_CSV) -> list[AutocompleteEntry]:
-    mtime = path.stat().st_mtime if path.is_file() else 0
-    if (
-        _CACHE["entries"] is None
-        or _CACHE["path"] != str(path)
-        or _CACHE["mtime"] != mtime
-    ):
+def _entries(path: Path = AUTOCOMPLETE_CSV) -> tuple[AutocompleteEntry, ...]:
+    if _CACHE["entries"] is None or _CACHE["path"] != str(path):
+        mtime = path.stat().st_mtime if path.is_file() else 0
         _CACHE["path"] = str(path)
         _CACHE["mtime"] = mtime
         _CACHE["entries"] = _load_entries(path)
         _CACHE["entry_map"] = None
-    return list(_CACHE["entries"] or [])
+    return _CACHE["entries"] or ()
 
 
 def _entry_map(path: Path = AUTOCOMPLETE_CSV) -> dict[str, AutocompleteEntry]:
@@ -286,6 +285,10 @@ def _classification_tokens(token: str) -> list[tuple[str, bool, bool]]:
 
 
 def _token_section(token: str, entry: AutocompleteEntry | None) -> tuple[str, str]:
+    trimmed_token = token.strip()
+    if trimmed_token.startswith("//") or trimmed_token.startswith("#") or (trimmed_token.startswith("/*") and trimmed_token.endswith("*/")):
+        return ("comment", "주석")
+
     base = _token_base(token)
     is_artist_request = _is_artist_request(token)
     if _COUNT_RE.match(_normalize(base)):
@@ -331,12 +334,30 @@ def _token_section(token: str, entry: AutocompleteEntry | None) -> tuple[str, st
 def classify_prompt_text(text: str, limit: int = 240, path: Path = AUTOCOMPLETE_CSV) -> dict:
     entries = _entry_map(path)
     tokens: list[tuple[str, bool, bool]] = []
-    normalized = str(text or "").replace("\r\n", "\n").replace("\r", "\n")
-    normalized = normalized.replace("，", ",").replace("\n", ",")
-    for token in parse_prompt(normalized, profile="prompt").tokens:
-        tokens.extend(_classification_tokens(token))
-        if len(tokens) >= max(1, min(limit, 500)):
-            tokens = tokens[: max(1, min(limit, 500))]
+
+    last_idx = 0
+    chunks = []
+    for match in _COMMENT_RE.finditer(text or ""):
+        start, end = match.span()
+        if start > last_idx:
+            chunks.append((text[last_idx:start], False))
+        chunks.append((text[start:end], True))
+        last_idx = end
+    if last_idx < len(text or ""):
+        chunks.append((text[last_idx:], False))
+
+    for chunk_text, is_comment in chunks:
+        if is_comment:
+            tokens.append((chunk_text, False, False))
+        else:
+            normalized = str(chunk_text).replace("\r\n", "\n").replace("\r", "\n")
+            normalized = normalized.replace("，", ",").replace("\n", ",")
+            for token in parse_prompt(normalized, profile="prompt").tokens:
+                tokens.extend(_classification_tokens(token))
+
+        max_limit = max(1, min(limit, 500))
+        if len(tokens) >= max_limit:
+            tokens = tokens[:max_limit]
             break
 
     classified = []
@@ -407,7 +428,7 @@ def search_autocomplete(
     for entry in _entries(path):
         if categories and entry.category not in categories:
             continue
-        tag_key = _normalize(entry.tag)
+        tag_key = entry.tag_key
         if tag_key == normalized_query:
             score = 0
         elif tag_key.startswith(normalized_query):
