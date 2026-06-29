@@ -40,6 +40,7 @@ ADVANCED_FIELD_LABELS = {
     "general": "General Tags",
     "naia": "NAIA Prompt",
 }
+ADVANCED_FIELDS_WORKFLOW_PROPERTY = "easyuse_anima_advanced_fields"
 EXTEND_PROMPT_SLOT_SPECS = [
     ("quality_tags_1", "positive", "quality", "Quality Tags 1", DEFAULT_QUALITY_TAGS, 72),
     ("quality_tags_2", "positive", "quality", "Quality Tags 2", "", 72),
@@ -1898,6 +1899,13 @@ class EasyUseAnimaPromptStudioAdvanced:
         workflow_node = _get_workflow_node(extra_pnginfo, node_id)
         if workflow_node is None:
             return
+
+        if "advanced_fields" in updates:
+            properties = workflow_node.setdefault("properties", {})
+            if not isinstance(properties, dict):
+                properties = {}
+                workflow_node["properties"] = properties
+            properties[ADVANCED_FIELDS_WORKFLOW_PROPERTY] = updates["advanced_fields"]
 
         input_names = cls._widget_input_names()
         widgets_values = workflow_node.setdefault("widgets_values", [])
