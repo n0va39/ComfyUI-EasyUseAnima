@@ -100,6 +100,26 @@ const AUTOCOMPLETE_TEXT = {
     "category.meta": "메타",
     "category.wildcard": "와일드카드",
   },
+  ja: {
+    "category.tag": "タグ",
+    "category.quality": "品質",
+    "category.artist": "作者",
+    "category.character": "キャラクター",
+    "category.copyright": "作品",
+    "category.general": "一般",
+    "category.meta": "メタ",
+    "category.wildcard": "ワイルドカード",
+  },
+  zh: {
+    "category.tag": "标签",
+    "category.quality": "质量",
+    "category.artist": "作者",
+    "category.character": "角色",
+    "category.copyright": "作品",
+    "category.general": "通用",
+    "category.meta": "元数据",
+    "category.wildcard": "通配符",
+  },
 };
 const MIN_QUERY_LENGTH = 1;
 const cache = new Map();

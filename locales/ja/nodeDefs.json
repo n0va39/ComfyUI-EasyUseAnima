@@ -1,0 +1,690 @@
+{
+  "EasyUseAnimaPromptCorrector": {
+    "display_name": "Anima プロンプト補正",
+    "description": "ANIMA プロンプトを整理し、自然文の大文字小文字を保持し、既知の ANIMA セクション順に並べ替え、不明タグと重複タグを報告します。",
+    "inputs": {
+      "prompt": {
+        "name": "プロンプト",
+        "tooltip": "Comma-separated prompt text to normalize and reorder for ANIMA."
+      },
+      "artist_overrides": {
+        "name": "作者扱いタグ",
+        "tooltip": "Comma- or newline-separated manual triggers to treat like artist tags."
+      },
+      "artist_exclusions": {
+        "name": "作者除外タグ",
+        "tooltip": "Comma- or newline-separated triggers that must not be treated as artists."
+      }
+    },
+    "outputs": {
+      "0": {
+        "name": "補正済みプロンプト",
+        "tooltip": "Prompt text after ANIMA ordering and syntax cleanup."
+      },
+      "1": {
+        "name": "レポート",
+        "tooltip": "JSON report containing changed state, unknown tags, duplicate tags, warnings, and sections."
+      }
+    }
+  },
+  "EasyUseAnimaWildcard": {
+    "display_name": "Anima ワイルドカード",
+    "description": "EasyUse Anima のワイルドカードファイルと動的プロンプト構文をシードベースで展開します。",
+    "inputs": {
+      "text": {
+        "name": "テキスト",
+        "tooltip": "Prompt text with wildcard syntax such as __style__ or {2::a|5::b|c}."
+      },
+      "populated_text": {
+        "name": "展開済みテキスト",
+        "tooltip": "Cached expanded prompt used by fixed and reproduce modes."
+      },
+      "mode": {
+        "name": "モード",
+        "tooltip": "一般塗りつぶしはシードベースのランダム展開です。固定/再現はキャッシュ済みテキストを使い、順次は seed % 項目数のインデックスを使います。"
+      },
+      "seed": {
+        "name": "シード",
+        "tooltip": "ワイルドカード選択シードです。順次モードでは各ワイルドカードの項目数で割った余りをインデックスとして使います。"
+      },
+      "seed_after_generate": {
+        "name": "生成後シード制御",
+        "tooltip": "生成後のシード制御です。固定、ランダム化、増加、減少を選べます。"
+      }
+    },
+    "outputs": {
+      "0": {
+        "name": "テキスト",
+        "tooltip": "Expanded prompt text."
+      },
+      "1": {
+        "name": "シード",
+        "tooltip": "Seed after applying the seed control option."
+      }
+    }
+  },
+  "EasyUseAnimaPromptBuilder": {
+    "display_name": "Anima プロンプトビルダー",
+    "description": "品質タグ、トリガー、LoRA トリガー、本文、後置タグを ANIMA 向けに結合し、メタデータと Mod Guidance 用出力も生成します。",
+    "inputs": {
+      "use_anima_mod_guidance": {
+        "name": "Mod Guidance を使用",
+        "tooltip": "true: output prompt excludes quality fields and sends them through anima_mod_guidance_quality_tags."
+      },
+      "pin_trigger_tags_to_front": {
+        "name": "トリガーを前方に固定",
+        "tooltip": "true: keep trigger/artist and LoRA trigger fields at the very front instead of placing quality tags before them."
+      },
+      "lora_trigger_tags": {
+        "name": "LoRA トリガータグ",
+        "tooltip": "One-line trigger tags received from a LoRA manager or pasted manually."
+      },
+      "quality_tags": {
+        "name": "品質タグ",
+        "tooltip": "Leading quality tags. With AMG enabled, these are excluded from prompt output."
+      },
+      "trigger_and_artist_tags": {
+        "name": "トリガーと作者タグ",
+        "tooltip": "Manual model triggers and @artist tags."
+      },
+      "prompt": {
+        "name": "プロンプト",
+        "tooltip": "Main prompt body. This is the expected place for NAIA output."
+      },
+      "trailing_quality_tags": {
+        "name": "後置品質タグ",
+        "tooltip": "Trailing quality or style tags."
+      }
+    },
+    "outputs": {
+      "0": {
+        "name": "プロンプト",
+        "tooltip": "Final positive prompt. When Mod Guidance is enabled, leading quality tags are excluded."
+      },
+      "1": {
+        "name": "Mod Guidance 品質タグ",
+        "tooltip": "Quality prompt text intended for Anima Mod Guidance."
+      },
+      "2": {
+        "name": "Mod Guidance を使用",
+        "tooltip": "Boolean flag passed through for Anima Mod Guidance workflow control."
+      },
+      "3": {
+        "name": "メタデータプロンプト",
+        "tooltip": "Prompt text for metadata, independent from Mod Guidance routing and metadata filters."
+      }
+    }
+  },
+  "EasyUseAnimaPromptStudio": {
+    "display_name": "Anima プロンプトスタジオ",
+    "description": "Prompt Builder にフロントエンド編集、自動補完、タグハイライト補助を加えたノードです。",
+    "inputs": {
+      "use_anima_mod_guidance": {
+        "name": "Mod Guidance を使用",
+        "tooltip": "true: output prompt excludes quality fields and sends them through anima_mod_guidance_quality_tags."
+      },
+      "pin_trigger_tags_to_front": {
+        "name": "トリガーを前方に固定",
+        "tooltip": "true: keep trigger/artist and LoRA trigger fields at the very front instead of placing quality tags before them."
+      },
+      "lora_trigger_tags": {
+        "name": "LoRA トリガータグ",
+        "tooltip": "One-line trigger tags received from a LoRA manager or pasted manually."
+      },
+      "quality_tags": {
+        "name": "品質タグ",
+        "tooltip": "Leading quality tags. With AMG enabled, these are excluded from prompt output."
+      },
+      "trigger_and_artist_tags": {
+        "name": "トリガーと作者タグ",
+        "tooltip": "Manual model triggers and @artist tags."
+      },
+      "prompt": {
+        "name": "プロンプト",
+        "tooltip": "Main prompt body. This is the expected place for NAIA output."
+      },
+      "trailing_quality_tags": {
+        "name": "後置品質タグ",
+        "tooltip": "Trailing quality or style tags."
+      }
+    },
+    "outputs": {
+      "0": {
+        "name": "プロンプト",
+        "tooltip": "Final positive prompt. When Mod Guidance is enabled, leading quality tags are excluded."
+      },
+      "1": {
+        "name": "Mod Guidance 品質タグ",
+        "tooltip": "Quality prompt text intended for Anima Mod Guidance."
+      },
+      "2": {
+        "name": "Mod Guidance を使用",
+        "tooltip": "Boolean flag passed through for Anima Mod Guidance workflow control."
+      },
+      "3": {
+        "name": "メタデータプロンプト",
+        "tooltip": "Prompt text for metadata, independent from Mod Guidance routing and metadata filters."
+      }
+    }
+  },
+  "EasyUseAnimaPromptStudioAdvanced": {
+    "display_name": "Anima プロンプトスタジオ Advanced",
+    "description": "並べ替え可能なポジティブ/ネガティブ入力フィールド、NAIA 入力、トリガー入力、Mod Guidance ルーティング、メタデータ出力、Latent 解像度出力を提供する高度な Prompt Studio です。",
+    "inputs": {
+      "use_naia": {
+        "name": "NAIA を使用",
+        "tooltip": "Internal request flag. The front-end exposes this as the NAIA Prompt field's 'Fill from NAIA' button, which fills that field with a fresh NAIA random prompt."
+      },
+      "consume_naia_on_queue": {
+        "name": "NAIA 1回適用",
+        "tooltip": "Internal one-shot mode. Successful NAIA fills are saved with the request flag off so loaded workflows reuse the stored prompt."
+      },
+      "use_anima_mod_guidance": {
+        "name": "Mod Guidance を使用",
+        "tooltip": "true: positive output excludes quality fields and sends them through the mod guidance quality output."
+      },
+      "resolution_bucket": {
+        "name": "解像度バケット",
+        "tooltip": "Internal selected latent resolution bucket."
+      },
+      "resolution_size": {
+        "name": "解像度サイズ",
+        "tooltip": "Internal selected latent resolution, formatted as width * height (ratio)."
+      },
+      "resolution_custom_width": {
+        "name": "カスタム幅",
+        "tooltip": "Internal custom latent width. Values are snapped to multiples of 32."
+      },
+      "resolution_custom_height": {
+        "name": "カスタム高さ",
+        "tooltip": "Internal custom latent height. Values are snapped to multiples of 32."
+      },
+      "pin_trigger_tags_to_front": {
+        "name": "トリガーを前方に固定",
+        "tooltip": "Legacy internal flag. Trigger field Pin buttons control trigger placement."
+      },
+      "advanced_fields": {
+        "name": "Advanced フィールド",
+        "tooltip": "Internal JSON payload for Advanced Prompt Studio fields."
+      },
+      "use_negative_anima_mod_guidance": {
+        "name": "ネガティブ Mod Guidance を使用",
+        "tooltip": "true: negative output excludes negative quality fields and sends them through the negative Mod Guidance output."
+      },
+      "wildcard_mode": {
+        "name": "ワイルドカードモード",
+        "tooltip": "ワイルドカードモードです。固定は互換性のための既定値で、順次は seed % 項目数を使い、キュー後にシードを増加させます。"
+      },
+      "wildcard_seed": {
+        "name": "ワイルドカードシード",
+        "tooltip": "Advanced Prompt Studio フィールドで使うワイルドカードシードです。"
+      },
+      "wildcard_seed_after_generate": {
+        "name": "ワイルドカードシード生成後制御",
+        "tooltip": "ワイルドカード生成後のシード制御です。"
+      }
+    },
+    "outputs": {
+      "0": {
+        "name": "ポジティブプロンプト",
+        "tooltip": "Final positive prompt assembled from enabled positive fields."
+      },
+      "1": {
+        "name": "ネガティブプロンプト",
+        "tooltip": "Final negative prompt assembled from enabled negative fields."
+      },
+      "2": {
+        "name": "Mod Guidance 品質タグ",
+        "tooltip": "Positive quality fields routed to Anima Mod Guidance."
+      },
+      "3": {
+        "name": "Anima Mod Guidance ネガティブプロンプト",
+        "tooltip": "Negative quality fields routed to Anima Mod Guidance."
+      },
+      "4": {
+        "name": "Mod Guidance を使用",
+        "tooltip": "Boolean flag passed through for Anima Mod Guidance workflow control."
+      },
+      "5": {
+        "name": "ネガティブ Mod Guidance を使用",
+        "tooltip": "Boolean flag passed through for negative Anima Mod Guidance workflow control."
+      },
+      "6": {
+        "name": "メタデータプロンプト",
+        "tooltip": "Positive metadata prompt with metadata filters applied."
+      },
+      "7": {
+        "name": "メタデータネガティブプロンプト",
+        "tooltip": "Negative metadata prompt with metadata filters applied."
+      },
+      "8": {
+        "name": "幅",
+        "tooltip": "Selected latent width."
+      },
+      "9": {
+        "name": "高さ",
+        "tooltip": "Selected latent height."
+      }
+    }
+  },
+  "EasyUseAnimaDetailerAlignHook": {
+    "display_name": "Anima ディテイラー整列 Hook",
+    "description": "Impact Pack ディテイラーの detailer_hook 入力に接続するサイズ整列 Hook です。Impact Pack の touch_scaled_size 拡張点を使い、crop sampling サイズを指定倍数へ切り上げ補正します。",
+    "inputs": {
+      "alignment": {
+        "name": "整列倍数",
+        "tooltip": "Crop sampling size alignment. 32 is recommended for ANIMA/Spectrum safety; none keeps the original Impact Pack size."
+      },
+      "detailer_hook": {
+        "name": "既存ディテイラー Hook",
+        "tooltip": "Optional existing Impact Pack detailer hook. It runs before the alignment adjustment."
+      }
+    },
+    "outputs": {
+      "0": {
+        "name": "既存ディテイラー Hook",
+        "tooltip": "Impact Pack compatible DETAILER_HOOK. Connect it to an Impact DetailerForEach-compatible detailer_hook input."
+      }
+    }
+  },
+  "EasyUseAnimaSAM3Context": {
+    "display_name": "Anima SAM3 コンテキスト",
+    "description": "ComfyUI ネイティブチェックポイントローダーで SAM3 チェックポイントを読み込み、SAM3 モデル、CLIP、VAE を含む rgthree 互換 ctx_SAM3 を返します。",
+    "inputs": {
+      "ckpt_name": {
+        "name": "SAM3 チェックポイント",
+        "tooltip": "SAM3 checkpoint to load, for example sam3.1_multiplex_fp16.safetensors."
+      }
+    },
+    "outputs": {
+      "0": {
+        "name": "ctx_SAM3",
+        "tooltip": "Context dict containing SAM3 model, CLIP, VAE, and checkpoint name."
+      },
+      "1": {
+        "name": "SAM3 モデル",
+        "tooltip": "SAM3 model loaded from the selected checkpoint."
+      },
+      "2": {
+        "name": "SAM3 CLIP",
+        "tooltip": "SAM3 CLIP loaded from the selected checkpoint."
+      },
+      "3": {
+        "name": "SAM3 VAE",
+        "tooltip": "VAE loaded from the selected checkpoint."
+      }
+    }
+  },
+  "EasyUseAnimaSAM3Detailer": {
+    "display_name": "Anima SAM3 ディテイラー",
+    "description": "ComfyUI ネイティブ SAM3 テキスト検出、Impact Pack MASK to SEGS、Impact Pack DetailerForEach をまとめたディテイラーです。",
+    "inputs": {
+      "enabled": {
+        "name": "有効",
+        "tooltip": "Disable to return the original image and an empty SEGS output."
+      },
+      "image": {
+        "name": "画像"
+      },
+      "ctx_SAM3": {
+        "name": "ctx_SAM3",
+        "tooltip": "ctx_SAM3 from Anima SAM3 Context or a compatible rgthree context containing model and clip."
+      },
+      "detect_prompt": {
+        "name": "検出対象",
+        "tooltip": "SAM3 text target. Use comma-separated targets or target:count for per-target detection count."
+      },
+      "detect_count": {
+        "name": "検出数",
+        "tooltip": "Maximum detections per target when detect_prompt does not already include :count."
+      },
+      "threshold": {
+        "name": "SAM3 しきい値",
+        "tooltip": "SAM3 detection threshold."
+      },
+      "refine_iterations": {
+        "name": "SAM3 refine 回数",
+        "tooltip": "SAM decoder refinement passes. 0 uses raw detector masks."
+      },
+      "individual_masks": {
+        "name": "個別マスク",
+        "tooltip": "Ask SAM3 for per-object masks. MaskToSEGS can still split a combined mask by contours."
+      },
+      "combined": {
+        "name": "SEGS 結合",
+        "tooltip": "Impact MaskToSEGS combined option."
+      },
+      "crop_factor": {
+        "name": "SEGS crop 倍率",
+        "tooltip": "Impact MaskToSEGS crop factor."
+      },
+      "bbox_fill": {
+        "name": "bbox 塗りつぶし",
+        "tooltip": "Impact MaskToSEGS bbox_fill option."
+      },
+      "drop_size": {
+        "name": "最小領域",
+        "tooltip": "Drop detected regions smaller than this size."
+      },
+      "contour_fill": {
+        "name": "contour 塗りつぶし",
+        "tooltip": "Impact MaskToSEGS contour_fill option."
+      },
+      "model": {
+        "name": "モデル",
+        "tooltip": "Model passed through to Impact Pack DetailerForEach."
+      },
+      "clip": {
+        "name": "CLIP"
+      },
+      "vae": {
+        "name": "VAE"
+      },
+      "guide_size": {
+        "name": "ガイドサイズ",
+        "tooltip": "Target guide size for the detailed crop."
+      },
+      "guide_size_for": {
+        "name": "ガイド基準",
+        "tooltip": "Use the bbox or crop region as the guide-size basis."
+      },
+      "max_size": {
+        "name": "最大サイズ",
+        "tooltip": "Maximum crop size before sampling."
+      },
+      "seed": {
+        "name": "シード"
+      },
+      "steps": {
+        "name": "ステップ"
+      },
+      "cfg": {
+        "name": "CFG"
+      },
+      "sampler_name": {
+        "name": "Sampler"
+      },
+      "scheduler": {
+        "name": "Scheduler"
+      },
+      "positive": {
+        "name": "ポジティブ条件"
+      },
+      "negative": {
+        "name": "ネガティブ条件"
+      },
+      "denoise": {
+        "name": "ディノイズ"
+      },
+      "feather": {
+        "name": "フェザー"
+      },
+      "noise_mask": {
+        "name": "ノイズマスク"
+      },
+      "force_inpaint": {
+        "name": "強制インペイント"
+      },
+      "wildcard": {
+        "name": "ワイルドカード"
+      },
+      "cycle": {
+        "name": "サイクル"
+      },
+      "alignment": {
+        "name": "整列倍数",
+        "tooltip": "Align the Impact detail crop sampling size upward. Use 32 for ANIMA/Spectrum safety, or impact/none for pass-through."
+      },
+      "preserve_conditioning_metadata": {
+        "name": "conditioning メタデータ保持",
+        "tooltip": "Reserved safety flag for the native ANIMA backend. The current Impact backend passes conditioning through to Impact Pack."
+      },
+      "fail_on_unsupported_opt": {
+        "name": "未対応オプションでエラー",
+        "tooltip": "Raise an error instead of warning when a native-backend-only option is requested."
+      }
+    },
+    "outputs": {
+      "0": {
+        "name": "画像",
+        "tooltip": "Detailed image. If disabled or no SEGS are detected, this is the original image."
+      },
+      "1": {
+        "name": "SEGS",
+        "tooltip": "Impact-compatible SEGS generated from the SAM3 mask."
+      },
+      "2": {
+        "name": "マスク",
+        "tooltip": "SAM3 mask used to build SEGS."
+      },
+      "3": {
+        "name": "元画像",
+        "tooltip": "Original input image before detailing."
+      }
+    }
+  },
+  "EasyUseAnimaLoraPreset": {
+    "display_name": "Anima LoRA プリセット",
+    "description": "複数の ANIMA LoRA プリセットプロファイルを保存し、LoRA スタックとトリガーワードを作成し、プロファイルデータをワークフローに保持します。",
+    "inputs": {
+      "style_prompt": {
+        "name": "スタイルプロンプト",
+        "tooltip": "Style prompt for artist tags, model triggers, or short style directions."
+      },
+      "profile_index": {
+        "name": "プロファイルインデックス",
+        "tooltip": "Selected LoRA preset profile. Can be connected from another node."
+      },
+      "profile_count": {
+        "name": "プロファイル数",
+        "tooltip": "Internal profile count managed by the front-end profile buttons."
+      },
+      "lora_name": {
+        "name": "LoRA 名",
+        "tooltip": "Internal LoRA selector source. Hidden by the EasyUse Anima front-end."
+      },
+      "loras": {
+        "name": "LoRA リスト",
+        "tooltip": "Internal serialized LoRA rows for the selected profile."
+      },
+      "profile_data": {
+        "name": "プロファイルデータ",
+        "tooltip": "Internal serialized profile data."
+      }
+    },
+    "outputs": {
+      "0": {
+        "name": "スタイルプロンプト",
+        "tooltip": "Corrected style prompt for artist tags, model triggers, or short style directions."
+      },
+      "1": {
+        "name": "LoRA スタック",
+        "tooltip": "LoRA stack compatible with LoRA stack loaders."
+      },
+      "2": {
+        "name": "トリガーワード",
+        "tooltip": "Trigger words collected from selected LoRA metadata."
+      },
+      "3": {
+        "name": "有効 LoRA",
+        "tooltip": "Text representation of enabled LoRAs and strengths."
+      },
+      "4": {
+        "name": "プロファイルインデックス",
+        "tooltip": "Currently selected profile index after wrapping to the available profile count."
+      }
+    }
+  },
+  "EasyUseAnimaNAIARandomPrompt": {
+    "display_name": "Anima NAIA ランダムプロンプト",
+    "description": "NAIA Remote API からランダムプロンプトを要求し、バイパスと固定出力再利用をサポートし、保存画像ワークフローが同じ結果を再現できるよう生成値を保存します。",
+    "inputs": {
+      "use_naia_bridge": {
+        "name": "NAIA Bridge を使用",
+        "tooltip": "false: bypass NAIA and return prompt/negative_prompt/width/height as-is. This mode keeps ComfyUI cache stable when inputs are unchanged."
+      },
+      "freeze_naia_output": {
+        "name": "NAIA 出力固定",
+        "tooltip": "true: if cached output is valid, return it without calling NAIA. Saved-image workflows are written with this enabled."
+      },
+      "show_preview": {
+        "name": "プレビュー表示",
+        "tooltip": "Show the large read-only preview widget in the node UI."
+      },
+      "cached_prompt": {
+        "name": "キャッシュ済みプロンプト",
+        "tooltip": "Stored prompt used for frozen output and saved-image reproduction."
+      },
+      "cached_negative_prompt": {
+        "name": "キャッシュ済みネガティブプロンプト",
+        "tooltip": "Stored negative prompt used for frozen output and saved-image reproduction."
+      },
+      "cached_width": {
+        "name": "キャッシュ済み幅",
+        "tooltip": "Stored width used for frozen output and saved-image reproduction."
+      },
+      "cached_height": {
+        "name": "キャッシュ済み高さ",
+        "tooltip": "Stored height used for frozen output and saved-image reproduction."
+      },
+      "cached_signature": {
+        "name": "キャッシュ署名",
+        "tooltip": "Internal signature for validating cached output."
+      },
+      "prompt": {
+        "name": "プロンプト",
+        "tooltip": "Returned as-is when bypassed or when override_prompt is false."
+      },
+      "override_prompt": {
+        "name": "プロンプトを上書き",
+        "tooltip": "true: use NAIA prompt. false: preserve input prompt."
+      },
+      "negative_prompt": {
+        "name": "ネガティブプロンプト",
+        "tooltip": "Returned as-is when bypassed or when override_negative is false."
+      },
+      "override_negative": {
+        "name": "ネガティブプロンプトを上書き",
+        "tooltip": "true: use NAIA negative prompt. false: preserve input negative_prompt."
+      },
+      "width": {
+        "name": "幅",
+        "tooltip": "Returned as-is when bypassed or when override_width is false."
+      },
+      "override_width": {
+        "name": "幅を上書き",
+        "tooltip": "true: use NAIA width. false: preserve input width."
+      },
+      "height": {
+        "name": "高さ",
+        "tooltip": "Returned as-is when bypassed or when override_height is false."
+      },
+      "override_height": {
+        "name": "高さを上書き",
+        "tooltip": "true: use NAIA height. false: preserve input height."
+      },
+      "use_naia_settings": {
+        "name": "NAIA デスクトップ設定を使用",
+        "tooltip": "true: use NAIA desktop Prompt Engineering settings. false: send this node's pre/post/auto_hide and preprocessing options."
+      },
+      "pre_prompt": {
+        "name": "Pre prompt",
+        "tooltip": "Used only when use_naia_settings is false."
+      },
+      "post_prompt": {
+        "name": "Post prompt",
+        "tooltip": "Used only when use_naia_settings is false."
+      },
+      "auto_hide": {
+        "name": "Auto hide",
+        "tooltip": "Used only when use_naia_settings is false."
+      },
+      "remove_author": {
+        "name": "作者を削除",
+        "tooltip": "Used only when use_naia_settings is false.\nskip: do not send this key\non: remove this category\noff: explicitly keep this category"
+      },
+      "remove_work_title": {
+        "name": "作品名を削除",
+        "tooltip": "Used only when use_naia_settings is false.\nskip: do not send this key\non: remove this category\noff: explicitly keep this category"
+      },
+      "remove_character_name": {
+        "name": "キャラクター名を削除",
+        "tooltip": "Used only when use_naia_settings is false.\nskip: do not send this key\non: remove this category\noff: explicitly keep this category"
+      },
+      "remove_character_features": {
+        "name": "キャラクター特徴を削除",
+        "tooltip": "Used only when use_naia_settings is false.\nskip: do not send this key\non: remove this category\noff: explicitly keep this category"
+      },
+      "remove_clothes": {
+        "name": "衣装を削除",
+        "tooltip": "Used only when use_naia_settings is false.\nskip: do not send this key\non: remove this category\noff: explicitly keep this category"
+      },
+      "remove_color": {
+        "name": "色を削除",
+        "tooltip": "Used only when use_naia_settings is false.\nskip: do not send this key\non: remove this category\noff: explicitly keep this category"
+      },
+      "remove_location_and_background_color": {
+        "name": "場所/背景色を削除",
+        "tooltip": "Used only when use_naia_settings is false.\nskip: do not send this key\non: remove this category\noff: explicitly keep this category"
+      },
+      "remove_expression": {
+        "name": "表情を削除",
+        "tooltip": "Used only when use_naia_settings is false.\nskip: do not send this key\non: remove this category\noff: explicitly keep this category"
+      },
+      "remove_pose_action": {
+        "name": "ポーズ/動作を削除",
+        "tooltip": "Used only when use_naia_settings is false.\nskip: do not send this key\non: remove this category\noff: explicitly keep this category"
+      },
+      "remove_meta_tags": {
+        "name": "メタタグを削除",
+        "tooltip": "Used only when use_naia_settings is false.\nskip: do not send this key\non: remove this category\noff: explicitly keep this category"
+      },
+      "remove_object_tags": {
+        "name": "オブジェクトタグを削除",
+        "tooltip": "Used only when use_naia_settings is false.\nskip: do not send this key\non: remove this category\noff: explicitly keep this category"
+      },
+      "remove_noise_tags": {
+        "name": "ノイズタグを削除",
+        "tooltip": "Used only when use_naia_settings is false.\nskip: do not send this key\non: remove this category\noff: explicitly keep this category"
+      },
+      "e621_auto_boost": {
+        "name": "e621 自動強化",
+        "tooltip": "Used only when use_naia_settings is false.\nskip: do not send this key\non: remove this category\noff: explicitly keep this category"
+      },
+      "danbooru_auto_weight": {
+        "name": "Danbooru 自動重み付け",
+        "tooltip": "Used only when use_naia_settings is false.\nskip: do not send this key\non: remove this category\noff: explicitly keep this category"
+      },
+      "tag_implication_compression": {
+        "name": "タグ含意圧縮",
+        "tooltip": "Used only when use_naia_settings is false.\nskip: do not send this key\non: remove this category\noff: explicitly keep this category"
+      },
+      "host": {
+        "name": "ホスト",
+        "tooltip": "NAIA Remote API host."
+      },
+      "port": {
+        "name": "ポート",
+        "tooltip": "NAIA Remote API port."
+      }
+    },
+    "outputs": {
+      "0": {
+        "name": "プロンプト",
+        "tooltip": "Prompt text from NAIA or the original input when bypassed or not overridden."
+      },
+      "1": {
+        "name": "ネガティブプロンプト",
+        "tooltip": "Negative prompt text from NAIA or the original input when bypassed or not overridden."
+      },
+      "2": {
+        "name": "幅",
+        "tooltip": "Width from NAIA or the original input when bypassed or not overridden."
+      },
+      "3": {
+        "name": "高さ",
+        "tooltip": "Height from NAIA or the original input when bypassed or not overridden."
+      }
+    }
+  }
+}

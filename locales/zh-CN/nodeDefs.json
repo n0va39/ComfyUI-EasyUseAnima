@@ -1,0 +1,690 @@
+{
+  "EasyUseAnimaPromptCorrector": {
+    "display_name": "Anima 提示词校正器",
+    "description": "整理 ANIMA 提示词文本，保留自然语言大小写，按已知 ANIMA 分区顺序重新排列，并报告未知标签和重复标签。",
+    "inputs": {
+      "prompt": {
+        "name": "提示词",
+        "tooltip": "Comma-separated prompt text to normalize and reorder for ANIMA."
+      },
+      "artist_overrides": {
+        "name": "作者处理标签",
+        "tooltip": "Comma- or newline-separated manual triggers to treat like artist tags."
+      },
+      "artist_exclusions": {
+        "name": "作者排除标签",
+        "tooltip": "Comma- or newline-separated triggers that must not be treated as artists."
+      }
+    },
+    "outputs": {
+      "0": {
+        "name": "校正后提示词",
+        "tooltip": "Prompt text after ANIMA ordering and syntax cleanup."
+      },
+      "1": {
+        "name": "报告",
+        "tooltip": "JSON report containing changed state, unknown tags, duplicate tags, warnings, and sections."
+      }
+    }
+  },
+  "EasyUseAnimaWildcard": {
+    "display_name": "Anima 通配符",
+    "description": "基于种子展开 EasyUse Anima 通配符文件和动态提示词语法。",
+    "inputs": {
+      "text": {
+        "name": "文本",
+        "tooltip": "Prompt text with wildcard syntax such as __style__ or {2::a|5::b|c}."
+      },
+      "populated_text": {
+        "name": "已填充文本",
+        "tooltip": "Cached expanded prompt used by fixed and reproduce modes."
+      },
+      "mode": {
+        "name": "模式",
+        "tooltip": "普通填充使用基于种子的随机展开。固定/复现使用缓存文本。顺序模式使用 seed % 项目数作为索引。"
+      },
+      "seed": {
+        "name": "种子",
+        "tooltip": "通配符选择种子。顺序模式会对每个通配符使用 seed % 项目数作为索引。"
+      },
+      "seed_after_generate": {
+        "name": "生成后种子控制",
+        "tooltip": "生成后的种子控制：固定、随机化、递增或递减。"
+      }
+    },
+    "outputs": {
+      "0": {
+        "name": "文本",
+        "tooltip": "Expanded prompt text."
+      },
+      "1": {
+        "name": "种子",
+        "tooltip": "Seed after applying the seed control option."
+      }
+    }
+  },
+  "EasyUseAnimaPromptBuilder": {
+    "display_name": "Anima 提示词构建器",
+    "description": "将质量标签、触发词、LoRA 触发词、正文和后置标签组合为适合 ANIMA 的提示词，并同时生成元数据和 Mod Guidance 输出。",
+    "inputs": {
+      "use_anima_mod_guidance": {
+        "name": "使用 Mod Guidance",
+        "tooltip": "true: output prompt excludes quality fields and sends them through anima_mod_guidance_quality_tags."
+      },
+      "pin_trigger_tags_to_front": {
+        "name": "将触发词固定到前方",
+        "tooltip": "true: keep trigger/artist and LoRA trigger fields at the very front instead of placing quality tags before them."
+      },
+      "lora_trigger_tags": {
+        "name": "LoRA 触发词标签",
+        "tooltip": "One-line trigger tags received from a LoRA manager or pasted manually."
+      },
+      "quality_tags": {
+        "name": "质量标签",
+        "tooltip": "Leading quality tags. With AMG enabled, these are excluded from prompt output."
+      },
+      "trigger_and_artist_tags": {
+        "name": "触发词和作者标签",
+        "tooltip": "Manual model triggers and @artist tags."
+      },
+      "prompt": {
+        "name": "提示词",
+        "tooltip": "Main prompt body. This is the expected place for NAIA output."
+      },
+      "trailing_quality_tags": {
+        "name": "后置质量标签",
+        "tooltip": "Trailing quality or style tags."
+      }
+    },
+    "outputs": {
+      "0": {
+        "name": "提示词",
+        "tooltip": "Final positive prompt. When Mod Guidance is enabled, leading quality tags are excluded."
+      },
+      "1": {
+        "name": "Mod Guidance 质量标签",
+        "tooltip": "Quality prompt text intended for Anima Mod Guidance."
+      },
+      "2": {
+        "name": "使用 Mod Guidance",
+        "tooltip": "Boolean flag passed through for Anima Mod Guidance workflow control."
+      },
+      "3": {
+        "name": "元数据提示词",
+        "tooltip": "Prompt text for metadata, independent from Mod Guidance routing and metadata filters."
+      }
+    }
+  },
+  "EasyUseAnimaPromptStudio": {
+    "display_name": "Anima 提示词工作室",
+    "description": "在 Prompt Builder 上增加前端编辑、自动补全和标签高亮辅助的节点。",
+    "inputs": {
+      "use_anima_mod_guidance": {
+        "name": "使用 Mod Guidance",
+        "tooltip": "true: output prompt excludes quality fields and sends them through anima_mod_guidance_quality_tags."
+      },
+      "pin_trigger_tags_to_front": {
+        "name": "将触发词固定到前方",
+        "tooltip": "true: keep trigger/artist and LoRA trigger fields at the very front instead of placing quality tags before them."
+      },
+      "lora_trigger_tags": {
+        "name": "LoRA 触发词标签",
+        "tooltip": "One-line trigger tags received from a LoRA manager or pasted manually."
+      },
+      "quality_tags": {
+        "name": "质量标签",
+        "tooltip": "Leading quality tags. With AMG enabled, these are excluded from prompt output."
+      },
+      "trigger_and_artist_tags": {
+        "name": "触发词和作者标签",
+        "tooltip": "Manual model triggers and @artist tags."
+      },
+      "prompt": {
+        "name": "提示词",
+        "tooltip": "Main prompt body. This is the expected place for NAIA output."
+      },
+      "trailing_quality_tags": {
+        "name": "后置质量标签",
+        "tooltip": "Trailing quality or style tags."
+      }
+    },
+    "outputs": {
+      "0": {
+        "name": "提示词",
+        "tooltip": "Final positive prompt. When Mod Guidance is enabled, leading quality tags are excluded."
+      },
+      "1": {
+        "name": "Mod Guidance 质量标签",
+        "tooltip": "Quality prompt text intended for Anima Mod Guidance."
+      },
+      "2": {
+        "name": "使用 Mod Guidance",
+        "tooltip": "Boolean flag passed through for Anima Mod Guidance workflow control."
+      },
+      "3": {
+        "name": "元数据提示词",
+        "tooltip": "Prompt text for metadata, independent from Mod Guidance routing and metadata filters."
+      }
+    }
+  },
+  "EasyUseAnimaPromptStudioAdvanced": {
+    "display_name": "Anima 提示词工作室高级版",
+    "description": "提供可排序的正向/负向输入字段、NAIA 填充、触发词输入、Mod Guidance 路由、元数据输出和 Latent 分辨率输出的高级 Prompt Studio。",
+    "inputs": {
+      "use_naia": {
+        "name": "使用 NAIA",
+        "tooltip": "Internal request flag. The front-end exposes this as the NAIA Prompt field's 'Fill from NAIA' button, which fills that field with a fresh NAIA random prompt."
+      },
+      "consume_naia_on_queue": {
+        "name": "应用 NAIA 一次",
+        "tooltip": "Internal one-shot mode. Successful NAIA fills are saved with the request flag off so loaded workflows reuse the stored prompt."
+      },
+      "use_anima_mod_guidance": {
+        "name": "使用 Mod Guidance",
+        "tooltip": "true: positive output excludes quality fields and sends them through the mod guidance quality output."
+      },
+      "resolution_bucket": {
+        "name": "分辨率桶",
+        "tooltip": "Internal selected latent resolution bucket."
+      },
+      "resolution_size": {
+        "name": "分辨率尺寸",
+        "tooltip": "Internal selected latent resolution, formatted as width * height (ratio)."
+      },
+      "resolution_custom_width": {
+        "name": "自定义宽度",
+        "tooltip": "Internal custom latent width. Values are snapped to multiples of 32."
+      },
+      "resolution_custom_height": {
+        "name": "自定义高度",
+        "tooltip": "Internal custom latent height. Values are snapped to multiples of 32."
+      },
+      "pin_trigger_tags_to_front": {
+        "name": "将触发词固定到前方",
+        "tooltip": "Legacy internal flag. Trigger field Pin buttons control trigger placement."
+      },
+      "advanced_fields": {
+        "name": "高级字段",
+        "tooltip": "Internal JSON payload for Advanced Prompt Studio fields."
+      },
+      "use_negative_anima_mod_guidance": {
+        "name": "使用负向 Mod Guidance",
+        "tooltip": "true: negative output excludes negative quality fields and sends them through the negative Mod Guidance output."
+      },
+      "wildcard_mode": {
+        "name": "通配符模式",
+        "tooltip": "通配符模式。固定是兼容默认值；顺序模式使用 seed % 项目数，并在队列执行后递增种子。"
+      },
+      "wildcard_seed": {
+        "name": "通配符种子",
+        "tooltip": "Advanced Prompt Studio 字段使用的通配符种子。"
+      },
+      "wildcard_seed_after_generate": {
+        "name": "通配符种子生成后控制",
+        "tooltip": "通配符生成后的种子控制。"
+      }
+    },
+    "outputs": {
+      "0": {
+        "name": "正向提示词",
+        "tooltip": "Final positive prompt assembled from enabled positive fields."
+      },
+      "1": {
+        "name": "负向提示词",
+        "tooltip": "Final negative prompt assembled from enabled negative fields."
+      },
+      "2": {
+        "name": "Mod Guidance 质量标签",
+        "tooltip": "Positive quality fields routed to Anima Mod Guidance."
+      },
+      "3": {
+        "name": "Anima Mod Guidance 负向提示词",
+        "tooltip": "Negative quality fields routed to Anima Mod Guidance."
+      },
+      "4": {
+        "name": "使用 Mod Guidance",
+        "tooltip": "Boolean flag passed through for Anima Mod Guidance workflow control."
+      },
+      "5": {
+        "name": "使用负向 Mod Guidance",
+        "tooltip": "Boolean flag passed through for negative Anima Mod Guidance workflow control."
+      },
+      "6": {
+        "name": "元数据提示词",
+        "tooltip": "Positive metadata prompt with metadata filters applied."
+      },
+      "7": {
+        "name": "元数据负向提示词",
+        "tooltip": "Negative metadata prompt with metadata filters applied."
+      },
+      "8": {
+        "name": "宽度",
+        "tooltip": "Selected latent width."
+      },
+      "9": {
+        "name": "高度",
+        "tooltip": "Selected latent height."
+      }
+    }
+  },
+  "EasyUseAnimaDetailerAlignHook": {
+    "display_name": "Anima 细节修复对齐 Hook",
+    "description": "连接到 Impact Pack 细节修复 detailer_hook 输入的尺寸对齐 Hook。使用 Impact Pack 的 touch_scaled_size 扩展点，将 crop sampling 尺寸向上修正到指定倍数。",
+    "inputs": {
+      "alignment": {
+        "name": "对齐倍数",
+        "tooltip": "Crop sampling size alignment. 32 is recommended for ANIMA/Spectrum safety; none keeps the original Impact Pack size."
+      },
+      "detailer_hook": {
+        "name": "现有细节修复 Hook",
+        "tooltip": "Optional existing Impact Pack detailer hook. It runs before the alignment adjustment."
+      }
+    },
+    "outputs": {
+      "0": {
+        "name": "现有细节修复 Hook",
+        "tooltip": "Impact Pack compatible DETAILER_HOOK. Connect it to an Impact DetailerForEach-compatible detailer_hook input."
+      }
+    }
+  },
+  "EasyUseAnimaSAM3Context": {
+    "display_name": "Anima SAM3 上下文",
+    "description": "通过 ComfyUI 原生检查点加载器加载 SAM3 检查点，并返回包含 SAM3 模型、CLIP、VAE 的 rgthree 兼容 ctx_SAM3。",
+    "inputs": {
+      "ckpt_name": {
+        "name": "SAM3 检查点",
+        "tooltip": "SAM3 checkpoint to load, for example sam3.1_multiplex_fp16.safetensors."
+      }
+    },
+    "outputs": {
+      "0": {
+        "name": "ctx_SAM3",
+        "tooltip": "Context dict containing SAM3 model, CLIP, VAE, and checkpoint name."
+      },
+      "1": {
+        "name": "SAM3 模型",
+        "tooltip": "SAM3 model loaded from the selected checkpoint."
+      },
+      "2": {
+        "name": "SAM3 CLIP",
+        "tooltip": "SAM3 CLIP loaded from the selected checkpoint."
+      },
+      "3": {
+        "name": "SAM3 VAE",
+        "tooltip": "VAE loaded from the selected checkpoint."
+      }
+    }
+  },
+  "EasyUseAnimaSAM3Detailer": {
+    "display_name": "Anima SAM3 细节修复",
+    "description": "将 ComfyUI 原生 SAM3 文本检测、Impact Pack MASK to SEGS 和 Impact Pack DetailerForEach 合并为一个细节修复节点。",
+    "inputs": {
+      "enabled": {
+        "name": "启用",
+        "tooltip": "Disable to return the original image and an empty SEGS output."
+      },
+      "image": {
+        "name": "图像"
+      },
+      "ctx_SAM3": {
+        "name": "ctx_SAM3",
+        "tooltip": "ctx_SAM3 from Anima SAM3 Context or a compatible rgthree context containing model and clip."
+      },
+      "detect_prompt": {
+        "name": "检测目标",
+        "tooltip": "SAM3 text target. Use comma-separated targets or target:count for per-target detection count."
+      },
+      "detect_count": {
+        "name": "检测数量",
+        "tooltip": "Maximum detections per target when detect_prompt does not already include :count."
+      },
+      "threshold": {
+        "name": "SAM3 阈值",
+        "tooltip": "SAM3 detection threshold."
+      },
+      "refine_iterations": {
+        "name": "SAM3 refine 次数",
+        "tooltip": "SAM decoder refinement passes. 0 uses raw detector masks."
+      },
+      "individual_masks": {
+        "name": "单独蒙版",
+        "tooltip": "Ask SAM3 for per-object masks. MaskToSEGS can still split a combined mask by contours."
+      },
+      "combined": {
+        "name": "合并 SEGS",
+        "tooltip": "Impact MaskToSEGS combined option."
+      },
+      "crop_factor": {
+        "name": "SEGS crop 倍率",
+        "tooltip": "Impact MaskToSEGS crop factor."
+      },
+      "bbox_fill": {
+        "name": "填充 bbox",
+        "tooltip": "Impact MaskToSEGS bbox_fill option."
+      },
+      "drop_size": {
+        "name": "最小区域",
+        "tooltip": "Drop detected regions smaller than this size."
+      },
+      "contour_fill": {
+        "name": "填充 contour",
+        "tooltip": "Impact MaskToSEGS contour_fill option."
+      },
+      "model": {
+        "name": "模型",
+        "tooltip": "Model passed through to Impact Pack DetailerForEach."
+      },
+      "clip": {
+        "name": "CLIP"
+      },
+      "vae": {
+        "name": "VAE"
+      },
+      "guide_size": {
+        "name": "导向尺寸",
+        "tooltip": "Target guide size for the detailed crop."
+      },
+      "guide_size_for": {
+        "name": "导向尺寸基准",
+        "tooltip": "Use the bbox or crop region as the guide-size basis."
+      },
+      "max_size": {
+        "name": "最大尺寸",
+        "tooltip": "Maximum crop size before sampling."
+      },
+      "seed": {
+        "name": "种子"
+      },
+      "steps": {
+        "name": "步数"
+      },
+      "cfg": {
+        "name": "CFG"
+      },
+      "sampler_name": {
+        "name": "Sampler"
+      },
+      "scheduler": {
+        "name": "Scheduler"
+      },
+      "positive": {
+        "name": "正向条件"
+      },
+      "negative": {
+        "name": "负向条件"
+      },
+      "denoise": {
+        "name": "去噪"
+      },
+      "feather": {
+        "name": "羽化"
+      },
+      "noise_mask": {
+        "name": "噪声蒙版"
+      },
+      "force_inpaint": {
+        "name": "强制重绘"
+      },
+      "wildcard": {
+        "name": "通配符"
+      },
+      "cycle": {
+        "name": "循环"
+      },
+      "alignment": {
+        "name": "对齐倍数",
+        "tooltip": "Align the Impact detail crop sampling size upward. Use 32 for ANIMA/Spectrum safety, or impact/none for pass-through."
+      },
+      "preserve_conditioning_metadata": {
+        "name": "保留 conditioning 元数据",
+        "tooltip": "Reserved safety flag for the native ANIMA backend. The current Impact backend passes conditioning through to Impact Pack."
+      },
+      "fail_on_unsupported_opt": {
+        "name": "未支持选项时报错",
+        "tooltip": "Raise an error instead of warning when a native-backend-only option is requested."
+      }
+    },
+    "outputs": {
+      "0": {
+        "name": "图像",
+        "tooltip": "Detailed image. If disabled or no SEGS are detected, this is the original image."
+      },
+      "1": {
+        "name": "SEGS",
+        "tooltip": "Impact-compatible SEGS generated from the SAM3 mask."
+      },
+      "2": {
+        "name": "蒙版",
+        "tooltip": "SAM3 mask used to build SEGS."
+      },
+      "3": {
+        "name": "原始图像",
+        "tooltip": "Original input image before detailing."
+      }
+    }
+  },
+  "EasyUseAnimaLoraPreset": {
+    "display_name": "Anima LoRA 预设",
+    "description": "保存多个 ANIMA LoRA 预设配置，构建 LoRA 堆栈和触发词，并在工作流中保留配置数据。",
+    "inputs": {
+      "style_prompt": {
+        "name": "风格提示词",
+        "tooltip": "Style prompt for artist tags, model triggers, or short style directions."
+      },
+      "profile_index": {
+        "name": "配置索引",
+        "tooltip": "Selected LoRA preset profile. Can be connected from another node."
+      },
+      "profile_count": {
+        "name": "配置数量",
+        "tooltip": "Internal profile count managed by the front-end profile buttons."
+      },
+      "lora_name": {
+        "name": "LoRA 名称",
+        "tooltip": "Internal LoRA selector source. Hidden by the EasyUse Anima front-end."
+      },
+      "loras": {
+        "name": "LoRA 列表",
+        "tooltip": "Internal serialized LoRA rows for the selected profile."
+      },
+      "profile_data": {
+        "name": "配置数据",
+        "tooltip": "Internal serialized profile data."
+      }
+    },
+    "outputs": {
+      "0": {
+        "name": "风格提示词",
+        "tooltip": "Corrected style prompt for artist tags, model triggers, or short style directions."
+      },
+      "1": {
+        "name": "LoRA 堆栈",
+        "tooltip": "LoRA stack compatible with LoRA stack loaders."
+      },
+      "2": {
+        "name": "触发词",
+        "tooltip": "Trigger words collected from selected LoRA metadata."
+      },
+      "3": {
+        "name": "启用的 LoRA",
+        "tooltip": "Text representation of enabled LoRAs and strengths."
+      },
+      "4": {
+        "name": "配置索引",
+        "tooltip": "Currently selected profile index after wrapping to the available profile count."
+      }
+    }
+  },
+  "EasyUseAnimaNAIARandomPrompt": {
+    "display_name": "Anima NAIA 随机提示词",
+    "description": "从 NAIA Remote API 请求随机提示词，支持绕过和固定输出复用，并保存生成值以便保存图像工作流复现相同结果。",
+    "inputs": {
+      "use_naia_bridge": {
+        "name": "使用 NAIA Bridge",
+        "tooltip": "false: bypass NAIA and return prompt/negative_prompt/width/height as-is. This mode keeps ComfyUI cache stable when inputs are unchanged."
+      },
+      "freeze_naia_output": {
+        "name": "固定 NAIA 输出",
+        "tooltip": "true: if cached output is valid, return it without calling NAIA. Saved-image workflows are written with this enabled."
+      },
+      "show_preview": {
+        "name": "显示预览",
+        "tooltip": "Show the large read-only preview widget in the node UI."
+      },
+      "cached_prompt": {
+        "name": "缓存提示词",
+        "tooltip": "Stored prompt used for frozen output and saved-image reproduction."
+      },
+      "cached_negative_prompt": {
+        "name": "缓存负向提示词",
+        "tooltip": "Stored negative prompt used for frozen output and saved-image reproduction."
+      },
+      "cached_width": {
+        "name": "缓存宽度",
+        "tooltip": "Stored width used for frozen output and saved-image reproduction."
+      },
+      "cached_height": {
+        "name": "缓存高度",
+        "tooltip": "Stored height used for frozen output and saved-image reproduction."
+      },
+      "cached_signature": {
+        "name": "缓存签名",
+        "tooltip": "Internal signature for validating cached output."
+      },
+      "prompt": {
+        "name": "提示词",
+        "tooltip": "Returned as-is when bypassed or when override_prompt is false."
+      },
+      "override_prompt": {
+        "name": "覆盖提示词",
+        "tooltip": "true: use NAIA prompt. false: preserve input prompt."
+      },
+      "negative_prompt": {
+        "name": "负向提示词",
+        "tooltip": "Returned as-is when bypassed or when override_negative is false."
+      },
+      "override_negative": {
+        "name": "覆盖负向提示词",
+        "tooltip": "true: use NAIA negative prompt. false: preserve input negative_prompt."
+      },
+      "width": {
+        "name": "宽度",
+        "tooltip": "Returned as-is when bypassed or when override_width is false."
+      },
+      "override_width": {
+        "name": "覆盖宽度",
+        "tooltip": "true: use NAIA width. false: preserve input width."
+      },
+      "height": {
+        "name": "高度",
+        "tooltip": "Returned as-is when bypassed or when override_height is false."
+      },
+      "override_height": {
+        "name": "覆盖高度",
+        "tooltip": "true: use NAIA height. false: preserve input height."
+      },
+      "use_naia_settings": {
+        "name": "使用 NAIA 桌面设置",
+        "tooltip": "true: use NAIA desktop Prompt Engineering settings. false: send this node's pre/post/auto_hide and preprocessing options."
+      },
+      "pre_prompt": {
+        "name": "Pre prompt",
+        "tooltip": "Used only when use_naia_settings is false."
+      },
+      "post_prompt": {
+        "name": "Post prompt",
+        "tooltip": "Used only when use_naia_settings is false."
+      },
+      "auto_hide": {
+        "name": "Auto hide",
+        "tooltip": "Used only when use_naia_settings is false."
+      },
+      "remove_author": {
+        "name": "移除作者",
+        "tooltip": "Used only when use_naia_settings is false.\nskip: do not send this key\non: remove this category\noff: explicitly keep this category"
+      },
+      "remove_work_title": {
+        "name": "移除作品名",
+        "tooltip": "Used only when use_naia_settings is false.\nskip: do not send this key\non: remove this category\noff: explicitly keep this category"
+      },
+      "remove_character_name": {
+        "name": "移除角色名",
+        "tooltip": "Used only when use_naia_settings is false.\nskip: do not send this key\non: remove this category\noff: explicitly keep this category"
+      },
+      "remove_character_features": {
+        "name": "移除角色特征",
+        "tooltip": "Used only when use_naia_settings is false.\nskip: do not send this key\non: remove this category\noff: explicitly keep this category"
+      },
+      "remove_clothes": {
+        "name": "移除服装",
+        "tooltip": "Used only when use_naia_settings is false.\nskip: do not send this key\non: remove this category\noff: explicitly keep this category"
+      },
+      "remove_color": {
+        "name": "移除颜色",
+        "tooltip": "Used only when use_naia_settings is false.\nskip: do not send this key\non: remove this category\noff: explicitly keep this category"
+      },
+      "remove_location_and_background_color": {
+        "name": "移除地点/背景色",
+        "tooltip": "Used only when use_naia_settings is false.\nskip: do not send this key\non: remove this category\noff: explicitly keep this category"
+      },
+      "remove_expression": {
+        "name": "移除表情",
+        "tooltip": "Used only when use_naia_settings is false.\nskip: do not send this key\non: remove this category\noff: explicitly keep this category"
+      },
+      "remove_pose_action": {
+        "name": "移除姿势/动作",
+        "tooltip": "Used only when use_naia_settings is false.\nskip: do not send this key\non: remove this category\noff: explicitly keep this category"
+      },
+      "remove_meta_tags": {
+        "name": "移除元数据标签",
+        "tooltip": "Used only when use_naia_settings is false.\nskip: do not send this key\non: remove this category\noff: explicitly keep this category"
+      },
+      "remove_object_tags": {
+        "name": "移除物体标签",
+        "tooltip": "Used only when use_naia_settings is false.\nskip: do not send this key\non: remove this category\noff: explicitly keep this category"
+      },
+      "remove_noise_tags": {
+        "name": "移除噪声标签",
+        "tooltip": "Used only when use_naia_settings is false.\nskip: do not send this key\non: remove this category\noff: explicitly keep this category"
+      },
+      "e621_auto_boost": {
+        "name": "e621 自动增强",
+        "tooltip": "Used only when use_naia_settings is false.\nskip: do not send this key\non: remove this category\noff: explicitly keep this category"
+      },
+      "danbooru_auto_weight": {
+        "name": "Danbooru 自动加权",
+        "tooltip": "Used only when use_naia_settings is false.\nskip: do not send this key\non: remove this category\noff: explicitly keep this category"
+      },
+      "tag_implication_compression": {
+        "name": "标签含义压缩",
+        "tooltip": "Used only when use_naia_settings is false.\nskip: do not send this key\non: remove this category\noff: explicitly keep this category"
+      },
+      "host": {
+        "name": "主机",
+        "tooltip": "NAIA Remote API host."
+      },
+      "port": {
+        "name": "端口",
+        "tooltip": "NAIA Remote API port."
+      }
+    },
+    "outputs": {
+      "0": {
+        "name": "提示词",
+        "tooltip": "Prompt text from NAIA or the original input when bypassed or not overridden."
+      },
+      "1": {
+        "name": "负向提示词",
+        "tooltip": "Negative prompt text from NAIA or the original input when bypassed or not overridden."
+      },
+      "2": {
+        "name": "宽度",
+        "tooltip": "Width from NAIA or the original input when bypassed or not overridden."
+      },
+      "3": {
+        "name": "高度",
+        "tooltip": "Height from NAIA or the original input when bypassed or not overridden."
+      }
+    }
+  }
+}

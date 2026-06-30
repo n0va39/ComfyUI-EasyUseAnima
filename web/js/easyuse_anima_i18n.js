@@ -24,6 +24,22 @@ export function easyuseAnimaLanguage() {
   if (value === "ko" || value.startsWith("ko-") || value.includes("korean") || value.includes("한국어")) {
     return "ko";
   }
+  if (value === "ja" || value.startsWith("ja-") || value === "jp" || value.includes("japanese") || value.includes("日本語")) {
+    return "ja";
+  }
+  if (
+    value === "zh" ||
+    value.startsWith("zh-") ||
+    value === "cn" ||
+    value.includes("chinese") ||
+    value.includes("中文") ||
+    value.includes("简体") ||
+    value.includes("簡體") ||
+    value.includes("繁体") ||
+    value.includes("繁體")
+  ) {
+    return "zh";
+  }
   return "en";
 }
 
