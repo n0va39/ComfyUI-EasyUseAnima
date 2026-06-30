@@ -559,7 +559,7 @@ function ensureRegionalWidgetValues(node) {
   delete node.__easyuseAnimaPendingRegionalConfig;
 }
 
-function writeRegionalFields(node, fields) {
+function writeRegionalFields(node, fields, { syncInputs = true } = {}) {
   const normalized = fields.map((field, index) => normalizeField(field, index));
   const value = JSON.stringify(normalized);
   const widget = regionalFieldsWidget(node);
@@ -568,6 +568,9 @@ function writeRegionalFields(node, fields) {
   }
   node.__easyuseAnimaRegionalFields = normalized;
   syncBackup(node, value, regionalConfigWidget(node)?.value || JSON.stringify(node.__easyuseAnimaRegionalConfig || defaultConfig(node)));
+  if (syncInputs) {
+    syncRegionalFieldInputs(node, normalized);
+  }
 }
 
 function writeRegionalConfig(node, config) {
@@ -618,8 +621,12 @@ function removeRegionalInternalInputSockets(node) {
     return;
   }
   for (let index = node.inputs.length - 1; index >= 0; index -= 1) {
-    const widgetName = node.inputs[index]?.widget?.name;
+    const input = node.inputs[index];
+    const widgetName = input?.widget?.name || input?.name;
     if (widgetName && REGIONAL_INTERNAL_WIDGET_NAMES.has(widgetName)) {
+      if (input?.link != null) {
+        node.disconnectInput?.(index);
+      }
       node.removeInput?.(index);
     }
   }
@@ -837,6 +844,154 @@ function fieldSocketName(field) {
   return `field_${String(field.id || "field").replace(/[^A-Za-z0-9_]/g, "_") || "field"}`;
 }
 
+function isRegionalFieldInput(input) {
+  return !!input?.__easyuseAnimaRegionalFieldInput
+    || String(input?.name || "").startsWith("field_");
+}
+
+function regionalFieldIndexLabel(fields, field) {
+  const paneFields = (fields || []).filter((item) => item.pane === field.pane);
+  const paneIndex = paneFields.findIndex((item) => item.id === field.id);
+  const number = Math.max(0, paneIndex) + 1;
+  return field.pane === "negative" ? `neg${number}` : `${number}`;
+}
+
+function updateRegionalNodeInputLinkSlots(node) {
+  if (!node?.inputs || !app.graph?.links) {
+    return;
+  }
+  const expectedLinks = new Set();
+  node.inputs.forEach((input, index) => {
+    if (input?.link == null) {
+      return;
+    }
+    const link = app.graph.links[input.link];
+    if (link) {
+      expectedLinks.add(Number(input.link));
+      link.target_id = node.id;
+      link.target_slot = index;
+    }
+  });
+
+  for (const [rawLinkId, link] of Object.entries(app.graph.links)) {
+    const linkId = Number(rawLinkId);
+    if (!link || Number(link.target_id) !== Number(node.id)) {
+      continue;
+    }
+    const targetInput = node.inputs?.[link.target_slot];
+    if (targetInput?.link === linkId) {
+      continue;
+    }
+    const originNode = app.graph.getNodeById?.(link.origin_id);
+    const originOutput = originNode?.outputs?.[link.origin_slot];
+    if (Array.isArray(originOutput?.links)) {
+      originOutput.links = originOutput.links.filter((id) => Number(id) !== linkId);
+    }
+    if (!expectedLinks.has(linkId)) {
+      delete app.graph.links[rawLinkId];
+    }
+  }
+}
+
+function syncRegionalFieldInputs(node, fields) {
+  if (!node || typeof node.addInput !== "function") {
+    return;
+  }
+
+  const wanted = new Map();
+  (fields || []).forEach((field) => {
+    const normalized = normalizeField(field, wanted.size);
+    const name = fieldSocketName(normalized);
+    wanted.set(name, {
+      field: normalized,
+      indexLabel: regionalFieldIndexLabel(fields, normalized),
+    });
+  });
+
+  for (let index = (node.inputs?.length || 0) - 1; index >= 0; index -= 1) {
+    const input = node.inputs[index];
+    if (isRegionalFieldInput(input) && !wanted.has(input.name)) {
+      node.removeInput?.(index);
+    }
+  }
+
+  for (const [name, { field, indexLabel }] of wanted) {
+    let input = node.inputs?.find((item) => item.name === name);
+    if (!input) {
+      node.addInput(name, "STRING");
+      input = node.inputs?.find((item) => item.name === name);
+    }
+    if (!input) {
+      continue;
+    }
+    input.type = "STRING";
+    input.label = `${indexLabel}. ${promptStudioFieldLabel(field)}`;
+    input.__easyuseAnimaRegionalFieldInput = true;
+    input.__easyuseAnimaRegionalFieldId = field.id;
+  }
+
+  const fieldInputs = [];
+  for (const [name] of wanted) {
+    const input = node.inputs?.find((item) => item.name === name);
+    if (input) {
+      fieldInputs.push(input);
+    }
+  }
+  const otherInputs = (node.inputs || []).filter((input) => !isRegionalFieldInput(input));
+  node.inputs = [...fieldInputs, ...otherInputs];
+  updateRegionalNodeInputLinkSlots(node);
+}
+
+function regionalFieldInputLinked(node, field) {
+  const name = fieldSocketName(field);
+  return !!node.inputs?.some((input) => input.name === name && input.link != null);
+}
+
+function regionalFieldDisplayText(node, field) {
+  const name = fieldSocketName(field);
+  const values = node.__easyuseAnimaRegionalFieldInputValues || {};
+  if (regionalFieldInputLinked(node, field) && Object.prototype.hasOwnProperty.call(values, name)) {
+    return String(values[name] ?? "");
+  }
+  return String(field?.text || "");
+}
+
+function mergeRegionalFieldInputValues(node, fields, values) {
+  if (!values || typeof values !== "object" || !Array.isArray(fields)) {
+    return false;
+  }
+  let changed = false;
+  for (const field of fields) {
+    const name = fieldSocketName(field);
+    if (!Object.prototype.hasOwnProperty.call(values, name)) {
+      continue;
+    }
+    const text = String(values[name] ?? "");
+    if (field.text !== text) {
+      field.text = text;
+      changed = true;
+    }
+  }
+  return changed;
+}
+
+function pruneDisconnectedRegionalFieldInputValues(node) {
+  const values = node.__easyuseAnimaRegionalFieldInputValues;
+  if (!values || typeof values !== "object") {
+    return;
+  }
+  const linkedNames = new Set(
+    (node.inputs || [])
+      .filter((input) => isRegionalFieldInput(input) && input.link != null)
+      .map((input) => input.name),
+  );
+  for (const name of Object.keys(values)) {
+    if (!linkedNames.has(name)) {
+      delete values[name];
+    }
+  }
+}
+
 function createButton(label, title, onClick) {
   return createPromptStudioActionButton(label, title, onClick);
 }
@@ -880,7 +1035,7 @@ function collectRegionalEditorFields(node) {
 function syncRegionalValues(node, serialized = null) {
   const fields = collectRegionalEditorFields(node);
   const config = node.__easyuseAnimaRegionalConfig || normalizeConfigValue(node, regionalConfigWidget(node)?.value);
-  writeRegionalFields(node, fields);
+  writeRegionalFields(node, fields, { syncInputs: false });
   writeRegionalConfig(node, config);
   if (!serialized || !Array.isArray(serialized.widgets_values)) {
     return;
@@ -1127,13 +1282,17 @@ function createFieldCard(node, field) {
   head.append(title, tools);
 
   const textarea = document.createElement("textarea");
+  const linked = regionalFieldInputLinked(node, field);
+  const inputName = fieldSocketName(field);
   textarea.dataset.role = "text";
   textarea.dataset.easyuseAnimaPromptStudioVariantFieldId = field.id;
-  textarea.value = field.text || "";
+  textarea.value = regionalFieldDisplayText(node, field);
   textarea.placeholder = field.type === "artist"
     ? "@artist_tag"
     : field.type === "trigger" ? "trigger words" : "prompt tags";
   textarea.style.height = `${Math.max(44, field.height || 72)}px`;
+  textarea.classList.toggle("is-linked", linked);
+  textarea.title = linked ? "Connected STRING input can overwrite this prompt on queue." : "";
   const syncTextareaHeight = () => {
     textarea.style.height = "auto";
     textarea.style.height = `${Math.max(44, textarea.scrollHeight)}px`;
@@ -1141,6 +1300,10 @@ function createFieldCard(node, field) {
   registerPromptStudioTextarea(node, field, textarea, {
     namespace: "regional",
     onInput: () => {
+      if (linked) {
+        node.__easyuseAnimaRegionalFieldInputValues ||= {};
+        node.__easyuseAnimaRegionalFieldInputValues[inputName] = textarea.value;
+      }
       syncTextareaHeight();
       writeRegionalFields(node, collectRegionalEditorFields(node));
       scheduleRegionalLayout(node);
@@ -1749,6 +1912,7 @@ function renderRegionalEditor(node) {
   ensureRegionalWidgetValues(node);
   const editor = node.__easyuseAnimaRegionalEditorEl;
   if (!editor) {
+    syncRegionalFieldInputs(node, node.__easyuseAnimaRegionalFields || defaultFields());
     return;
   }
   const fields = node.__easyuseAnimaRegionalFields || defaultFields();
@@ -2017,6 +2181,8 @@ function applyRegionalExecutedInputs(node, message) {
   if (!payload || typeof payload !== "object") {
     return;
   }
+  node.__easyuseAnimaRegionalFieldInputValues =
+    payload.field_inputs && typeof payload.field_inputs === "object" ? payload.field_inputs : {};
   if (payload.regional_fields != null) {
     const widget = regionalFieldsWidget(node);
     if (widget) {
@@ -2036,6 +2202,12 @@ function applyRegionalExecutedInputs(node, message) {
     }
   }
   ensureRegionalWidgetValues(node);
+  const fields = node.__easyuseAnimaRegionalFields || defaultFields();
+  if (mergeRegionalFieldInputValues(node, fields, node.__easyuseAnimaRegionalFieldInputValues)) {
+    writeRegionalFields(node, fields, { syncInputs: false });
+  } else {
+    syncRegionalFieldInputs(node, fields);
+  }
   renderRegionalEditor(node);
 }
 
@@ -2075,6 +2247,24 @@ app.registerExtension({
     nodeType.prototype.onResize = function () {
       const result = onResize?.apply(this, arguments);
       scheduleRegionalLayout(this, "resize");
+      return result;
+    };
+
+    const onConnectionsChange = nodeType.prototype.onConnectionsChange;
+    nodeType.prototype.onConnectionsChange = function () {
+      const result = onConnectionsChange?.apply(this, arguments);
+      if (!this.__easyuseAnimaRegionalHandlingConnectionsChange) {
+        this.__easyuseAnimaRegionalHandlingConnectionsChange = true;
+        requestAnimationFrame(() => {
+          try {
+            removeRegionalInternalInputSockets(this);
+            pruneDisconnectedRegionalFieldInputValues(this);
+            renderRegionalEditor(this);
+          } finally {
+            this.__easyuseAnimaRegionalHandlingConnectionsChange = false;
+          }
+        });
+      }
       return result;
     };
 

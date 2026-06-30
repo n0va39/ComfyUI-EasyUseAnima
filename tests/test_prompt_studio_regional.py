@@ -212,6 +212,48 @@ class PromptStudioRegionalTests(unittest.TestCase):
         self.assertEqual(regional_input[0], REGIONAL_PROMPT_DATA_TYPE)
         self.assertTrue(regional_input[1]["forceInput"])
 
+    def test_field_socket_overrides_masked_prompt_without_saving(self):
+        fields = [
+            {
+                "id": "masked_general",
+                "pane": "positive",
+                "type": "general",
+                "label": "Masked Prompt",
+                "text": "red hair girl",
+                "enabled": True,
+                "mask_ids": [1],
+            }
+        ]
+        config = {
+            "next_mask_id": 2,
+            "masks": [
+                {
+                    "mask_id": 1,
+                    "label": "Mask 1",
+                    "name": "left",
+                    "color": "#ef4444",
+                    "enabled": True,
+                    "geometry": {"type": "rect", "x": 0.0, "y": 0.0, "width": 0.5, "height": 1.0},
+                }
+            ],
+        }
+
+        result = EasyUseAnimaPromptStudioRegional().build(
+            json.dumps(fields),
+            json.dumps(config),
+            field_masked_general="blue hair girl",
+        )
+
+        self.assertIn("blue hair girl", result["result"][0])
+        regional_data = result["result"][4]
+        self.assertEqual(regional_data["mask_prompts"][0]["prompt"], "blue hair girl")
+        saved = json.loads(result["ui"]["prompt_studio_regional"][0]["regional_fields"])
+        self.assertEqual(saved[0]["text"], "red hair girl")
+        self.assertEqual(
+            result["ui"]["prompt_studio_regional"][0]["field_inputs"],
+            {"field_masked_general": "blue hair girl"},
+        )
+
 
 if __name__ == "__main__":
     unittest.main()
