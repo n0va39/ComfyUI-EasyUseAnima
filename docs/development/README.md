@@ -23,6 +23,9 @@ conversation.
 - Older implementation history: `docs/version-plans/`
 - Public workflow JSON templates: `example_workflows/`
 - User-facing workflow documentation: `docs/Anima AiO/`
+- User-facing node documentation: `docs/nodes/`
+- User-facing wildcard syntax: `docs/wildcards.ko.md` /
+  `docs/wildcards.en.md`
 
 ## Area-Specific Files
 
@@ -39,6 +42,8 @@ conversation.
   - `web/js/easyuse_anima_settings.js`
   - prompt-related tests
   - `tests/test_wildcards.py`
+  - `docs/nodes/anima-prompt-studio-advanced.*.md`
+  - `docs/nodes/anima-wildcard.*.md`
   - `docs/wildcards.ko.md` / `docs/wildcards.en.md`
   - workflow serialization paths
 - Workflow template work:

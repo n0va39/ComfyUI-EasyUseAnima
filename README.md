@@ -1,8 +1,8 @@
 # ComfyUI EasyUse Anima
 
 Prompt editing, ANIMA prompt correction, NAIA prompt integration, LoRA preset
-management, and ANIMA DiT Detailer hooks for reducing latent-size errors in
-ComfyUI.
+management, wildcard expansion, and detailer helpers for ANIMA/Spectrum
+workflows in ComfyUI.
 
 ## Language / 언어
 
@@ -18,8 +18,10 @@ ComfyUI.
 ## Summary
 
 EasyUse Anima provides prompt editing, ANIMA prompt correction, NAIA prompt
-integration, LoRA preset management, and ANIMA DiT Detailer hooks for reducing
-latent-size errors in ComfyUI.
+integration, LoRA preset management, wildcard expansion, and detailer helper
+nodes for ComfyUI.
 
-Detailed node documentation is kept in the language-specific README files above.
-Release notes are kept in [RELEASE.md](RELEASE.md).
+Detailed node documentation is kept under [docs/nodes](docs/nodes/README.en.md).
+Wildcard syntax is documented in [docs/wildcards.en.md](docs/wildcards.en.md)
+and [docs/wildcards.ko.md](docs/wildcards.ko.md). Release notes are kept in
+[RELEASE.md](RELEASE.md).

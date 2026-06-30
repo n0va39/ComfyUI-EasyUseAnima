@@ -3,6 +3,46 @@
 EasyUse Anima wildcards expand file-backed `__name__` tokens and dynamic prompt
 syntax such as `{a|b|c}` during queue execution.
 
+Where to use them:
+
+- `Anima Prompt Studio Advanced`: configure mode, seed, and seed after generate
+  in the wildcard controls below `mod guidance`.
+- `Anima Wildcard`: expand wildcard text without Prompt Studio.
+
+## Quick Syntax Reference
+
+| Syntax | Meaning |
+| --- | --- |
+| `__hair_color__` | Select one option from `hair_color.txt`, `hair_color.yaml`, or `hair_color.yml` |
+| `__style/anime__` | Select one option from the nested `style/anime` key |
+| `__*/hair_color__` | Search any subfolder for a key whose basename is `hair_color` |
+| `__style/*__` | Select from all keys under `style/` |
+| `3#__hair_color__` | Select 3 file wildcard options and join them with `, ` |
+| `{red|blue|green}` | Select one inline option |
+| `{2::red|5::blue|green}` | Select one weighted inline option. Missing weight is 1 |
+| `{2$$red|blue|green}` | Select 2 inline options with the default `, ` separator |
+| `{1-3$$, $$red|blue|green}` | Select 1 to 3 options and join them with `, ` |
+| `{2$$__hair_color__}` | Expand a file wildcard into options, then select 2 |
+
+Weighted example:
+
+```text
+{2::red|5::blue|3::green|white}
+```
+
+This gives red, blue, green, and white weights of 2, 5, 3, and 1.
+
+Multi-select examples:
+
+```text
+{2$$red|blue|green}
+{1-3$$, $$red|blue|green}
+3#__hair_color__
+```
+
+The value before `$$` is the selection count. A range such as `1-3` chooses the
+count from the seed. Use `count$$separator$$options` to set a custom separator.
+
 ## Default Folder
 
 When the node pack is loaded, it creates the default wildcard folder and a small
@@ -31,33 +71,48 @@ EasyUse Anima `Wildcard` section.
 - If multiple folders contain the same key, the first matching folder wins.
 - Autocomplete responses expose only relative keys, not local absolute paths.
 
-## Syntax
-
-File wildcards:
-
-```text
-__hair_color__
-__style/anime__
-__*/hair_color__
-__style/*__
-3#__hair_color__
-```
-
-Dynamic prompts:
-
-```text
-{red|blue|green}
-{2::red|5::blue|3::green|white}
-{2$$red|blue|green}
-{1-3$$, $$red|blue|green}
-{1-3$$__hair_color__}
-```
+## File Syntax
 
 Supported files:
 
 - `.txt`
 - `.yaml`
 - `.yml`
+
+Text file example:
+
+```text
+# wildcards/hair_color.txt
+black hair
+white hair
+2::pink hair
+```
+
+Usage:
+
+```text
+__hair_color__
+3#__hair_color__
+```
+
+YAML example:
+
+```yaml
+hair_color:
+  - black hair
+  - white hair
+style:
+  anime:
+    - cel shading
+    - flat color
+```
+
+Usage:
+
+```text
+__hair_color__
+__style/anime__
+```
 
 `N::candidate` is a weighted option. Populate mode uses the weight for weighted
 selection. Sequential mode counts it as one candidate and strips the `N::`
