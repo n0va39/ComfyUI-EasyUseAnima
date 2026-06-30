@@ -33,8 +33,13 @@ conversation.
   - `tests/test_frontend_lora_preset.py`
 - Prompt Studio or wildcard work:
   - `nodes.py`
+  - `wildcard_engine.py`
+  - `web/js/easyuse_anima_autocomplete.js`
   - `web/js/easyuse_anima_prompt_studio.js`
+  - `web/js/easyuse_anima_settings.js`
   - prompt-related tests
+  - `tests/test_wildcards.py`
+  - `docs/wildcards.ko.md` / `docs/wildcards.en.md`
   - workflow serialization paths
 - Workflow template work:
   - `example_workflows/`

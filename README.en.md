@@ -188,6 +188,10 @@ Field model:
   compatible latent size.
 - The `NAIA` bucket uses width and height from the same NAIA response that fills
   prompt fields. Saved-image workflows store that resolved size as `Custom`.
+- The wildcard control row below `mod guidance` sets mode, seed, and seed after
+  generate.
+- Saved-image workflows store expanded wildcard text in reproduction mode, while
+  the live workflow keeps the original wildcard text and next seed state.
 
 NAIA behavior:
 
@@ -212,6 +216,8 @@ Highlighting and syntax:
 - Weighted groups containing comma-separated tags, for example
   `(highres, absurdres, very aesthetic:0.8)`, classify each inner tag
   separately.
+- Wildcard syntax such as `__wildcard__`, `3#__wildcard__`, and `{a|b|c}` uses a
+  separate wildcard highlight color instead of normal tag colors.
 - Unclosed prompt parentheses are shown as syntax errors.
 - Long prompts use the Advanced editor's main scroll area instead of per-textarea
   vertical scrollbars. Each textarea keeps enough height for its current text,
@@ -219,6 +225,34 @@ Highlighting and syntax:
 - Highlight overlays copy font family, size, spacing, and wrapping-related
   settings from the source input to keep highlights aligned across font
   settings.
+
+### Anima Wildcard
+
+Category: `EasyUse Anima/Prompt`
+
+Outputs:
+
+- `text`
+- `seed`
+
+This node expands wildcard text without using Prompt Studio.
+
+Main behavior:
+
+- The default folder is `ComfyUI/user/__easyuse_anima/wildcards`.
+- Loading the node pack creates the default folder and an `easyuse_anima_test.txt`
+  test file.
+- Supports file wildcards such as `__name__`, `__*/name__`, `__folder/*__`, and
+  `N#__name__`.
+- Supports dynamic prompts such as `{a|b|c}`, `{2::a|5::b|c}`,
+  `{2$$a|b|c}`, and `{1-3$$, $$a|b|c}`.
+- Provides `일반 채우기`, `고정`, `순차`, and `재현` modes.
+- `순차` mode selects `seed % candidate_count` from each candidate list and uses
+  `increment` seed control.
+- Saved-image workflows store the expanded result in `populated_text` and record
+  the mode as `재현`.
+
+See the [Wildcard Guide](docs/wildcards.en.md) for syntax and usage details.
 
 ### Anima LoRA Preset
 
@@ -338,6 +372,8 @@ Autocomplete:
   arrow keys and Enter/Tab to insert a suggestion.
 - Nodes or inputs that already expose LoRA/autocomplete-specific widgets, such
   as LoRA Manager / Lora Stacker nodes, are excluded.
+- Typing `__` or `__partial` opens wildcard autocomplete and inserts
+  `__relative/key__`.
 
 Bundled autocomplete CSV sources:
 
@@ -360,6 +396,7 @@ ComfyUI Settings:
 - Prompt metadata filter words are applied only to metadata prompt outputs.
 - Prompt Studio typo indicators and category colors can be changed manually.
 - Prompt Studio can auto-toggle general fields above the NAIA field.
+- Wildcard extra paths can register existing user-managed wildcard folders.
 - LoRA Preset row labels can show file names only or full paths.
 
 ## Release Notes

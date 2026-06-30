@@ -190,6 +190,11 @@ NAIA 응답으로 프롬프트를 채우고, 저장된 결과를 워크플로우
 - `NAIA` bucket은 prompt field를 채우는 것과 같은 NAIA 응답에서 width와
   height를 가져옵니다. 저장 이미지 워크플로우에는 이 해상도를 `Custom`으로
   저장합니다.
+- `mod guidance` 아래의 와일드카드 제어 영역에서 mode, seed, seed after
+  generate를 설정할 수 있습니다.
+- 와일드카드가 확장된 저장 이미지 워크플로우는 확장 결과를 `재현` 모드로
+  저장하고, live workflow는 원본 와일드카드 텍스트와 다음 seed 상태를
+  유지합니다.
 
 NAIA 동작:
 
@@ -215,12 +220,41 @@ NAIA 동작:
   괄호와 `:`는 하이라이트하지 않습니다.
 - `(highres, absurdres, very aesthetic:0.8)`처럼 쉼표로 구분된 가중치 그룹은
   내부 태그를 각각 분류합니다.
+- `__wildcard__`, `3#__wildcard__`, `{a|b|c}` 같은 와일드카드 문법은
+  일반 태그와 별도의 와일드카드 색상으로 표시됩니다.
 - 닫히지 않은 괄호는 syntax error로 표시됩니다.
 - 긴 프롬프트는 개별 textarea 내부 스크롤바가 아니라 Advanced editor 전체
   스크롤로 처리됩니다. textarea는 현재 텍스트 줄 수에 맞춰 높이를 유지하므로
   스크롤바가 하이라이트나 글자를 덮지 않습니다.
 - 하이라이트 overlay는 입력칸의 font family, size, spacing, wrapping 관련
   설정을 따라가도록 동기화됩니다.
+
+### Anima Wildcard
+
+카테고리: `EasyUse Anima/Prompt`
+
+출력:
+
+- `text`
+- `seed`
+
+Prompt Studio 없이 와일드카드 문자열만 확장하는 노드입니다.
+
+주요 동작:
+
+- 기본 폴더는 `ComfyUI/user/__easyuse_anima/wildcards`입니다.
+- 노드팩 로드 시 기본 폴더와 `easyuse_anima_test.txt` 테스트 파일을 만듭니다.
+- `__name__`, `__*/name__`, `__folder/*__`, `N#__name__` 파일 와일드카드를
+  지원합니다.
+- `{a|b|c}`, `{2::a|5::b|c}`, `{2$$a|b|c}`,
+  `{1-3$$, $$a|b|c}` 동적 프롬프트를 지원합니다.
+- `일반 채우기`, `고정`, `순차`, `재현` 모드를 제공합니다.
+- `순차` 모드는 각 후보 목록에서 `seed % candidate_count` index를 사용하고
+  seed control을 `increment`로 운용합니다.
+- 저장 이미지 워크플로우에는 확장 결과가 `populated_text`에 저장되고,
+  모드는 `재현`으로 기록됩니다.
+
+자세한 사용법은 [와일드카드 가이드](docs/wildcards.ko.md)를 참고하세요.
 
 ### Anima LoRA Preset
 
@@ -337,6 +371,8 @@ Impact Pack `DetailerForEach`를 연결합니다.
   suggestion을 삽입합니다.
 - LoRA Manager / Lora Stacker처럼 자체 LoRA/autocomplete widget을 가진 노드나
   입력칸은 제외됩니다.
+- `__` 또는 `__partial`을 입력하면 와일드카드 자동완성이 열리고,
+  `__relative/key__` 형식으로 삽입합니다.
 
 포함된 autocomplete CSV:
 
@@ -356,6 +392,7 @@ ComfyUI Settings:
 - Prompt metadata filter word는 metadata prompt output에만 적용됩니다.
 - Prompt Studio 오타 표시와 카테고리 색상을 수동으로 변경할 수 있습니다.
 - Prompt Studio는 NAIA field 위쪽 general field를 자동 토글할 수 있습니다.
+- Wildcard extra paths에 기존 사용자 와일드카드 폴더를 추가할 수 있습니다.
 - LoRA Preset row label은 파일명만 표시하거나 전체 경로로 표시할 수 있습니다.
 
 ## 릴리즈 노트
