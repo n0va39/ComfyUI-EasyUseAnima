@@ -257,7 +257,7 @@ const SECTION_STYLES = {
   meta: { label: "메타", color: "#94a3b8", background: "rgba(100, 116, 139, 0.18)", weight: 600 },
   general: { label: "학습 태그", color: "#4ade80", background: "rgba(22, 163, 74, 0.16)", weight: 600 },
   natural: { label: "자연어", color: "#cbd5e1", background: "rgba(71, 85, 105, 0.16)", weight: 400 },
-  wildcard: { label: "와일드카드", color: "#22d3ee", background: "rgba(8, 145, 178, 0.2)", weight: 700 },
+  wildcard: { label: "와일드카드", color: "#c084fc", background: "rgba(126, 34, 206, 0.24)", weight: 700 },
   comment: { label: "주석", color: "#9ca3af", background: "rgba(156, 163, 175, 0.14)", weight: 400, italic: true },
   syntax: { label: "문법 오류", color: "#f87171", background: "transparent", underline: true, weight: 400 },
   unknown: { label: "미확인", color: "#cbd5e1", background: "transparent", underline: true, weight: 400 },
@@ -1004,6 +1004,13 @@ function splitPromptText(text) {
       depth -= 1;
       continue;
     }
+    if (char === "{") {
+      const dynamicEnd = findDynamicPromptEnd(value, index);
+      if (dynamicEnd > index) {
+        index = dynamicEnd - 1;
+      }
+      continue;
+    }
     if ((char === "," || char === "\n") && depth === 0) {
       if (index > start) {
         parts.push({ text: value.slice(start, index), delimiter: false });
@@ -1120,6 +1127,10 @@ function findWildcardSyntaxRange(value, offset) {
     return wildcard;
   }
   return dynamic;
+}
+
+function hasWildcardHighlightSyntax(text) {
+  return !!findWildcardSyntaxRange(String(text ?? ""), 0);
 }
 
 function syntaxHtml(text) {
@@ -1271,6 +1282,13 @@ function renderHighlightedText(text, tokens) {
     const trailing = match?.[3] || "";
     if (!body) {
       html.push(escapeHtml(part.text));
+      continue;
+    }
+
+    if (hasWildcardHighlightSyntax(body)) {
+      html.push(escapeHtml(leading));
+      html.push(syntaxHtml(body));
+      html.push(escapeHtml(trailing));
       continue;
     }
 
