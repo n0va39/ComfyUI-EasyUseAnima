@@ -97,6 +97,15 @@ const PROMPT_STUDIO_COLORS = {
       ko: "자연어 프롬프트 문장입니다. Danbooru 태그 카테고리가 아닙니다.",
     },
   },
+  wildcard: {
+    en: "Wildcard",
+    ko: "와일드카드",
+    color: "#c084fc",
+    tip: {
+      en: "Wildcard syntax such as __name__, 3#__name__, and {a|b|c}.",
+      ko: "__name__, 3#__name__, {a|b|c} 같은 와일드카드 문법입니다.",
+    },
+  },
   comment: {
     en: "Comment",
     ko: "주석",

@@ -93,6 +93,7 @@ PROMPT_STUDIO_COLOR_KEYS = [
     "general",
     "meta",
     "natural",
+    "wildcard",
     "comment",
     "artist_unknown",
     "unknown",

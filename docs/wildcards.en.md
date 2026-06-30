@@ -170,4 +170,5 @@ the mode to `재현`.
 - Typing `__` or `__partial` opens wildcard autocomplete.
 - Selecting an item replaces the current token with `__relative/key__`.
 - Prompt Studio highlighting uses a separate wildcard color instead of treating
-  wildcard syntax as normal tags.
+  wildcard syntax as normal tags, and the color can be changed in ComfyUI
+  Settings.

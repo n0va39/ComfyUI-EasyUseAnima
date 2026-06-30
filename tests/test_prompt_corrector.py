@@ -1466,6 +1466,7 @@ class SettingsTests(unittest.TestCase):
                 return_value={
                     "EasyUseAnima.Prompt.HighlightColor.quality": "#222222",
                     "EasyUseAnima.Prompt.HighlightColor.artist": "#333333",
+                    "EasyUseAnima.Prompt.HighlightColor.wildcard": "#444444",
                 },
             ),
         ):
@@ -1474,6 +1475,7 @@ class SettingsTests(unittest.TestCase):
         colors = json.loads(settings["prompt_studio.colors"])
         self.assertEqual(colors["quality"], "#222222")
         self.assertEqual(colors["artist"], "#333333")
+        self.assertEqual(colors["wildcard"], "#444444")
 
     def test_long_text_settings_override_comfy_settings(self):
         root = Path(__file__).resolve().parents[1] / "__pycache__" / "long_text_settings_test"
