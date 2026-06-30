@@ -5,6 +5,7 @@ import { normalizePromptTagText } from "./easyuse_anima_prompt_rules.js";
 const NODE_TYPE = "EasyUseAnimaPromptStudio";
 const ADVANCED_NODE_TYPE = "EasyUseAnimaPromptStudioAdvanced";
 const EXTEND_NODE_TYPE = "EasyUseAnimaPromptStudioExtend";
+const WILDCARD_NODE_TYPE = "EasyUseAnimaWildcard";
 const FIELD_NAMES = [
   "lora_trigger_tags",
   "quality_tags",
@@ -53,6 +54,7 @@ const PROMPT_STUDIO_TEXT = {
     "section.meta": "Meta",
     "section.general": "Trained tag",
     "section.natural": "Natural language",
+    "section.wildcard": "Wildcard",
     "section.syntax": "Syntax error",
     "section.unknown": "Unknown",
     "tag.generic": "tag",
@@ -77,6 +79,10 @@ const PROMPT_STUDIO_TEXT = {
     "advanced.modGuidanceTitle": "Send positive quality fields to Anima Mod Guidance output.",
     "advanced.negativeModGuidance": "negative mod",
     "advanced.negativeModGuidanceTitle": "Send negative quality fields to Anima Mod Guidance negative output.",
+    "advanced.wildcard": "wildcard",
+    "advanced.wildcardTitle": "Expand __wildcard__ and dynamic prompt syntax in Advanced Prompt Studio fields.",
+    "advanced.wildcardSeed": "wildcard seed",
+    "advanced.wildcardSeedControl": "seed control",
     "advanced.pin": "Pin",
     "advanced.pinTitle": "Keep positive artist/trigger fields at the front.",
     "advanced.linkedInputSuffix": "Linked input controls this value.",
@@ -129,6 +135,7 @@ const PROMPT_STUDIO_TEXT = {
     "section.meta": "메타",
     "section.general": "학습 태그",
     "section.natural": "자연어",
+    "section.wildcard": "와일드카드",
     "section.syntax": "문법 오류",
     "section.unknown": "미확인",
     "tag.generic": "태그",
@@ -153,6 +160,10 @@ const PROMPT_STUDIO_TEXT = {
     "advanced.modGuidanceTitle": "긍정 품질 필드를 Anima Mod Guidance 출력으로 보냅니다.",
     "advanced.negativeModGuidance": "negative mod",
     "advanced.negativeModGuidanceTitle": "부정 품질 필드를 Anima Mod Guidance 네거티브 출력으로 보냅니다.",
+    "advanced.wildcard": "와일드카드",
+    "advanced.wildcardTitle": "Advanced Prompt Studio 필드의 __wildcard__ 및 동적 프롬프트 문법을 확장합니다.",
+    "advanced.wildcardSeed": "와일드카드 시드",
+    "advanced.wildcardSeedControl": "시드 제어",
     "advanced.pin": "고정",
     "advanced.pinTitle": "긍정 작가/트리거 필드를 앞쪽에 유지합니다.",
     "advanced.linkedInputSuffix": "연결된 입력이 이 값을 제어합니다.",
@@ -246,6 +257,7 @@ const SECTION_STYLES = {
   meta: { label: "메타", color: "#94a3b8", background: "rgba(100, 116, 139, 0.18)", weight: 600 },
   general: { label: "학습 태그", color: "#4ade80", background: "rgba(22, 163, 74, 0.16)", weight: 600 },
   natural: { label: "자연어", color: "#cbd5e1", background: "rgba(71, 85, 105, 0.16)", weight: 400 },
+  wildcard: { label: "와일드카드", color: "#22d3ee", background: "rgba(8, 145, 178, 0.2)", weight: 700 },
   comment: { label: "주석", color: "#9ca3af", background: "rgba(156, 163, 175, 0.14)", weight: 400, italic: true },
   syntax: { label: "문법 오류", color: "#f87171", background: "transparent", underline: true, weight: 400 },
   unknown: { label: "미확인", color: "#cbd5e1", background: "transparent", underline: true, weight: 400 },
@@ -262,6 +274,7 @@ const LEGEND_ITEMS = [
   "general",
   "meta",
   "natural",
+  "wildcard",
   "comment",
   "syntax",
   "artist_unknown",
@@ -274,6 +287,7 @@ const STUDIO_WIDGET_VERTICAL_GAP = 8;
 
 const WEIGHTED_TOKEN_RE = /^\((.*):[-+]?\d+(?:\.\d+)?\)$/s;
 const WEIGHT_NUMBER_COLOR = "#fb923c";
+const WILDCARD_HIGHLIGHT_RE = /(?:\d+#)?__[\w.\-+/*\\]+?__/g;
 const INLINE_SPACE_RE = /[ \t]+/g;
 const HIGHLIGHT_TEXT_METRIC_PROPERTIES = [
   "font",
@@ -341,6 +355,9 @@ const ADVANCED_CONTROL_WIDGETS = [
     showInControlBar: false,
   },
 ];
+const ADVANCED_WILDCARD_MODES = ["일반 채우기", "고정", "순차", "재현"];
+const ADVANCED_WILDCARD_SEED_CONTROLS = ["fixed", "randomize", "increment", "decrement"];
+const ADVANCED_WILDCARD_DEFAULT_MODE = "고정";
 const ADVANCED_RESOLUTION_BUCKETS = {
   "512": [
     [256, 1024], [1024, 256],
@@ -409,6 +426,9 @@ const ADVANCED_WIDGET_INDEX = {
   pin_trigger_tags_to_front: 7,
   advanced_fields: 8,
   use_negative_anima_mod_guidance: 9,
+  wildcard_mode: 10,
+  wildcard_seed: 11,
+  wildcard_seed_after_generate: 12,
 };
 const ADVANCED_LEGACY_FIELDS_WIDGET_INDEXES = [6, 4];
 const ADVANCED_INTERNAL_WIDGET_NAMES = new Set(Object.keys(ADVANCED_WIDGET_INDEX));
@@ -600,6 +620,29 @@ function ensureAdvancedStyle() {
       grid-template-columns: minmax(82px, 0.34fr) minmax(0, 1fr);
       gap: 8px;
       margin: 0 0 10px;
+    }
+    .easyuse-anima-advanced-wildcardbar {
+      display: grid;
+      grid-template-columns: minmax(92px, 0.34fr) minmax(74px, 0.28fr) minmax(92px, 0.38fr);
+      gap: 8px;
+      margin: 0 0 10px;
+    }
+    .easyuse-anima-advanced-wildcardbar select,
+    .easyuse-anima-advanced-wildcardbar input {
+      box-sizing: border-box;
+      min-width: 0;
+      width: 100%;
+      height: 27px;
+      border: 1px solid rgba(148, 163, 184, 0.34);
+      background: rgba(15, 23, 42, 0.88);
+      color: rgba(226, 232, 240, 0.9);
+      font: 11px sans-serif;
+      padding: 2px 8px;
+      outline: none;
+    }
+    .easyuse-anima-advanced-wildcardbar select:focus,
+    .easyuse-anima-advanced-wildcardbar input:focus {
+      border-color: rgba(96, 165, 250, 0.76);
     }
     .easyuse-anima-advanced-resolutionbar select,
     .easyuse-anima-advanced-resolutionbar input {
@@ -1013,11 +1056,87 @@ function tokenSpanHtml(text, token) {
     + "</span>";
 }
 
-function syntaxHtml(text) {
+function basicSyntaxHtml(text) {
   return escapeHtml(text).replace(
     /(:)([-+]?\d+(?:\.\d+)?)(\))/g,
     `$1<span style="color: ${WEIGHT_NUMBER_COLOR}">$2</span>$3`,
   );
+}
+
+function wildcardSyntaxSpanHtml(text) {
+  return `<span style="${tokenStyle({ section: "wildcard" })}" title="${escapeHtml(sectionLabel("wildcard"))}">`
+    + escapeHtml(text)
+    + "</span>";
+}
+
+function isEscapedAt(value, index) {
+  let slashCount = 0;
+  for (let cursor = index - 1; cursor >= 0 && value[cursor] === "\\"; cursor -= 1) {
+    slashCount += 1;
+  }
+  return slashCount % 2 === 1;
+}
+
+function findDynamicPromptEnd(value, start) {
+  for (let cursor = start + 1; cursor < value.length; cursor += 1) {
+    if (value[cursor] === "\\" && cursor + 1 < value.length) {
+      cursor += 1;
+      continue;
+    }
+    if (value[cursor] === "{") {
+      return -1;
+    }
+    if (value[cursor] === "}") {
+      return cursor + 1;
+    }
+  }
+  return -1;
+}
+
+function findDynamicPromptRange(value, offset) {
+  for (let start = offset; start < value.length; start += 1) {
+    if (value[start] !== "{" || isEscapedAt(value, start)) {
+      continue;
+    }
+    const end = findDynamicPromptEnd(value, start);
+    if (end > start) {
+      return { start, end };
+    }
+  }
+  return null;
+}
+
+function findWildcardSyntaxRange(value, offset) {
+  WILDCARD_HIGHLIGHT_RE.lastIndex = offset;
+  const wildcardMatch = WILDCARD_HIGHLIGHT_RE.exec(value);
+  const wildcard = wildcardMatch
+    ? { start: wildcardMatch.index, end: wildcardMatch.index + wildcardMatch[0].length }
+    : null;
+  const dynamic = findDynamicPromptRange(value, offset);
+  if (!wildcard) {
+    return dynamic;
+  }
+  if (!dynamic || wildcard.start <= dynamic.start) {
+    return wildcard;
+  }
+  return dynamic;
+}
+
+function syntaxHtml(text) {
+  const value = String(text ?? "");
+  let cursor = 0;
+  const html = [];
+  while (cursor < value.length) {
+    const range = findWildcardSyntaxRange(value, cursor);
+    if (!range) {
+      break;
+    }
+    html.push(basicSyntaxHtml(value.slice(cursor, range.start)));
+    html.push(wildcardSyntaxSpanHtml(value.slice(range.start, range.end)));
+    cursor = range.end;
+  }
+  html.push(basicSyntaxHtml(value.slice(cursor)));
+  return html.join("");
 }
 
 function weightedTokenSpanHtml(text, token) {
@@ -1186,7 +1305,7 @@ function renderHighlightedText(text, tokens) {
       continue;
     }
 
-    html.push(escapeHtml(part.text));
+    html.push(syntaxHtml(part.text));
   }
   return html.join("") || " ";
 }
@@ -3142,6 +3261,88 @@ function createAdvancedControlBar(node) {
   return bar;
 }
 
+function normalizeAdvancedWildcardMode(value) {
+  return ADVANCED_WILDCARD_MODES.includes(String(value || ""))
+    ? String(value)
+    : ADVANCED_WILDCARD_DEFAULT_MODE;
+}
+
+function normalizeAdvancedSeedControl(value) {
+  return ADVANCED_WILDCARD_SEED_CONTROLS.includes(String(value || ""))
+    ? String(value)
+    : "fixed";
+}
+
+function createAdvancedWildcardBar(node) {
+  const modeWidget = findWidget(node, "wildcard_mode");
+  const seedWidget = findWidget(node, "wildcard_seed");
+  const controlWidget = findWidget(node, "wildcard_seed_after_generate");
+  if (!modeWidget || !seedWidget || !controlWidget) {
+    return document.createDocumentFragment();
+  }
+
+  const row = document.createElement("div");
+  row.className = "easyuse-anima-advanced-wildcardbar";
+  row.title = psText("advanced.wildcardTitle");
+
+  const modeSelect = document.createElement("select");
+  modeSelect.setAttribute("aria-label", psText("advanced.wildcard"));
+  const modeValue = normalizeAdvancedWildcardMode(modeWidget.value);
+  for (const mode of ADVANCED_WILDCARD_MODES) {
+    const option = document.createElement("option");
+    option.value = mode;
+    option.textContent = mode;
+    option.selected = mode === modeValue;
+    modeSelect.append(option);
+  }
+
+  const seedInput = document.createElement("input");
+  seedInput.type = "number";
+  seedInput.min = "0";
+  seedInput.step = "1";
+  seedInput.value = String(seedWidget.value ?? "0");
+  seedInput.setAttribute("aria-label", psText("advanced.wildcardSeed"));
+
+  const controlSelect = document.createElement("select");
+  controlSelect.setAttribute("aria-label", psText("advanced.wildcardSeedControl"));
+  const controlValue = modeValue === "순차"
+    ? "increment"
+    : normalizeAdvancedSeedControl(controlWidget.value);
+  for (const control of ADVANCED_WILDCARD_SEED_CONTROLS) {
+    const option = document.createElement("option");
+    option.value = control;
+    option.textContent = control;
+    option.selected = control === controlValue;
+    controlSelect.append(option);
+  }
+  controlSelect.disabled = modeValue === "순차";
+
+  const syncMode = () => {
+    const nextMode = normalizeAdvancedWildcardMode(modeSelect.value);
+    setAdvancedWidgetValue(node, "wildcard_mode", nextMode);
+    if (nextMode === "순차") {
+      setAdvancedWidgetValue(node, "wildcard_seed_after_generate", "increment");
+    }
+    renderAdvancedEditor(node);
+  };
+  const syncSeed = () => {
+    const seed = Math.max(0, Math.trunc(Number(seedInput.value) || 0));
+    seedInput.value = String(seed);
+    setAdvancedWidgetValue(node, "wildcard_seed", seed);
+  };
+  const syncControl = () => {
+    setAdvancedWidgetValue(node, "wildcard_seed_after_generate", normalizeAdvancedSeedControl(controlSelect.value));
+  };
+
+  modeSelect.addEventListener("change", syncMode);
+  seedInput.addEventListener("change", syncSeed);
+  seedInput.addEventListener("blur", syncSeed);
+  controlSelect.addEventListener("change", syncControl);
+
+  row.append(modeSelect, seedInput, controlSelect);
+  return row;
+}
+
 function createAdvancedResolutionBar(node) {
   const bucketWidget = findWidget(node, "resolution_bucket");
   const sizeWidget = findWidget(node, "resolution_size");
@@ -4185,7 +4386,12 @@ function renderAdvancedEditor(node) {
     createAdvancedPane(node, "positive", "advanced.positivePrompt"),
     createAdvancedPane(node, "negative", "advanced.negativePrompt"),
   );
-  editor.append(createAdvancedControlBar(node), createAdvancedResolutionBar(node), panes);
+  editor.append(
+    createAdvancedControlBar(node),
+    createAdvancedWildcardBar(node),
+    createAdvancedResolutionBar(node),
+    panes,
+  );
   writeAdvancedFields(node, node.__easyuseAnimaAdvancedFields);
   scheduleAdvancedLayout(node, "render");
 }
@@ -4292,11 +4498,53 @@ function applyAdvancedExecutedInputs(node, message) {
       widget.value = payload[name];
     }
   }
+  for (const name of ["wildcard_mode", "wildcard_seed", "wildcard_seed_after_generate"]) {
+    const widget = findWidget(node, name);
+    if (widget && payload[name] != null) {
+      widget.value = payload[name];
+    }
+  }
   renderAdvancedEditor(node);
+}
+
+function setRegularWidgetValue(node, name, value) {
+  const widget = findWidget(node, name);
+  if (!widget) {
+    return false;
+  }
+  widget.value = value;
+  const input = findInputEl(widget);
+  if (input) {
+    input.value = String(value ?? "");
+  }
+  widget.callback?.(widget.value);
+  node.setDirtyCanvas?.(true, true);
+  app.graph?.setDirtyCanvas?.(true, true);
+  return true;
+}
+
+function applyWildcardExecutedInputs(node, message) {
+  const payload = firstValue(message?.wildcard, null);
+  if (!payload || typeof payload !== "object") {
+    return;
+  }
+  if (payload.populated_text != null) {
+    setRegularWidgetValue(node, "populated_text", String(payload.populated_text));
+  }
+  if (payload.mode != null) {
+    setRegularWidgetValue(node, "mode", String(payload.mode));
+  }
+  if (payload.seed != null) {
+    setRegularWidgetValue(node, "seed", Number(payload.seed));
+  }
 }
 
 function isAdvancedNode(node) {
   return node?.type === ADVANCED_NODE_TYPE || node?.comfyClass === ADVANCED_NODE_TYPE;
+}
+
+function isWildcardNode(node) {
+  return node?.type === WILDCARD_NODE_TYPE || node?.comfyClass === WILDCARD_NODE_TYPE;
 }
 
 function syncAllAdvancedNodes() {
@@ -4371,6 +4619,7 @@ app.registerExtension({
       nodeData.name !== NODE_TYPE
       && nodeData.name !== ADVANCED_NODE_TYPE
       && nodeData.name !== EXTEND_NODE_TYPE
+      && nodeData.name !== WILDCARD_NODE_TYPE
     ) {
       return;
     }
@@ -4384,6 +4633,8 @@ app.registerExtension({
       onNodeCreated?.apply(this, arguments);
       if (nodeData.name === ADVANCED_NODE_TYPE) {
         scheduleHookAdvancedNode(this);
+      } else if (nodeData.name === WILDCARD_NODE_TYPE) {
+        return;
       } else {
         hookStudioNode(this);
       }
@@ -4395,6 +4646,8 @@ app.registerExtension({
       if (nodeData.name === ADVANCED_NODE_TYPE) {
         captureAdvancedConfigure(this, serialized);
         scheduleHookAdvancedNode(this);
+      } else if (nodeData.name === WILDCARD_NODE_TYPE) {
+        return;
       } else {
         hookStudioNode(this);
       }
@@ -4411,6 +4664,9 @@ app.registerExtension({
         if (nodeData.name === ADVANCED_NODE_TYPE) {
           updateAdvancedEditorWidth(this);
           scheduleAdvancedResizeFinalize(this);
+          return result;
+        }
+        if (nodeData.name === WILDCARD_NODE_TYPE) {
           return result;
         }
         if (isExtendNode(this)) {
@@ -4451,6 +4707,8 @@ app.registerExtension({
       if (nodeData.name === ADVANCED_NODE_TYPE) {
         removeAdvancedInternalInputSockets(this);
         syncAdvancedValues(this, serialized);
+      } else if (nodeData.name === WILDCARD_NODE_TYPE) {
+        return result;
       } else {
         syncStudioValues(this, serialized);
       }
@@ -4462,6 +4720,8 @@ app.registerExtension({
       onExecuted?.apply(this, arguments);
       if (nodeData.name === ADVANCED_NODE_TYPE) {
         applyAdvancedExecutedInputs(this, message);
+      } else if (nodeData.name === WILDCARD_NODE_TYPE) {
+        applyWildcardExecutedInputs(this, message);
       } else {
         applyExecutedInputs(this, message);
       }

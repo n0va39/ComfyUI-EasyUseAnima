@@ -27,6 +27,42 @@
       }
     }
   },
+  "EasyUseAnimaWildcard": {
+    "display_name": "Anima 와일드카드",
+    "description": "EasyUse Anima 와일드카드 파일과 동적 프롬프트 문법을 시드 기반으로 확장합니다.",
+    "inputs": {
+      "text": {
+        "name": "텍스트",
+        "tooltip": "__style__ 또는 {2::a|5::b|c} 같은 와일드카드 문법을 포함한 프롬프트입니다."
+      },
+      "populated_text": {
+        "name": "채워진 텍스트",
+        "tooltip": "고정/재현 모드에서 사용하는 확장 완료 프롬프트 캐시입니다."
+      },
+      "mode": {
+        "name": "모드",
+        "tooltip": "일반 채우기는 시드 기반 랜덤, 고정/재현은 채워진 텍스트, 순차는 seed % 항목 수 인덱스를 사용합니다."
+      },
+      "seed": {
+        "name": "시드",
+        "tooltip": "와일드카드 선택 시드입니다. 순차 모드는 각 와일드카드 항목 수로 나눈 나머지를 인덱스로 사용합니다."
+      },
+      "seed_after_generate": {
+        "name": "시드 생성 후 제어",
+        "tooltip": "생성 후 시드를 유지, 랜덤화, 증가, 감소할지 정합니다."
+      }
+    },
+    "outputs": {
+      "0": {
+        "name": "텍스트",
+        "tooltip": "와일드카드가 확장된 프롬프트 텍스트입니다."
+      },
+      "1": {
+        "name": "시드",
+        "tooltip": "시드 생성 후 제어가 적용된 다음 시드입니다."
+      }
+    }
+  },
   "EasyUseAnimaPromptBuilder": {
     "display_name": "Anima 프롬프트 빌더",
     "description": "품질 태그, 트리거, LoRA 트리거, 본문, 후행 태그를 ANIMA에 맞게 결합하고, 메타데이터 및 Mod Guidance용 출력을 함께 만듭니다.",
@@ -174,6 +210,18 @@
       "use_negative_anima_mod_guidance": {
         "name": "부정 Mod Guidance 사용",
         "tooltip": "켜면 부정 출력에서 부정 품질 필드를 제외하고 부정 Mod Guidance 출력으로 보냅니다."
+      },
+      "wildcard_mode": {
+        "name": "와일드카드 모드",
+        "tooltip": "고정은 기존 호환 기본값입니다. 일반 채우기/순차는 필드의 와일드카드 문법을 시드 기반으로 확장합니다."
+      },
+      "wildcard_seed": {
+        "name": "와일드카드 시드",
+        "tooltip": "Advanced Prompt Studio 필드의 와일드카드 확장에 사용할 시드입니다."
+      },
+      "wildcard_seed_after_generate": {
+        "name": "와일드카드 시드 생성 후 제어",
+        "tooltip": "와일드카드 생성 후 시드를 유지, 랜덤화, 증가, 감소할지 정합니다. 순차 모드는 자동으로 increment처럼 동작합니다."
       }
     },
     "outputs": {

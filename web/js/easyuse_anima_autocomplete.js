@@ -28,6 +28,10 @@ const TARGETS = {
   EasyUseAnimaLoraPreset: new Set([
     "style_prompt",
   ]),
+  EasyUseAnimaWildcard: new Set([
+    "text",
+    "populated_text",
+  ]),
 };
 
 const ARTIST_ONLY_TARGETS = {
@@ -84,6 +88,7 @@ const AUTOCOMPLETE_TEXT = {
     "category.copyright": "copyright",
     "category.general": "general",
     "category.meta": "meta",
+    "category.wildcard": "wildcard",
   },
   ko: {
     "category.tag": "태그",
@@ -93,10 +98,12 @@ const AUTOCOMPLETE_TEXT = {
     "category.copyright": "작품",
     "category.general": "일반",
     "category.meta": "메타",
+    "category.wildcard": "와일드카드",
   },
 };
 const MIN_QUERY_LENGTH = 1;
 const cache = new Map();
+let wildcardItemsCache = null;
 
 let maxResults = DEFAULT_MAX_RESULTS;
 let autocompleteMode = DEFAULT_AUTOCOMPLETE_MODE;
@@ -506,6 +513,39 @@ function currentToken(input) {
   };
 }
 
+function currentWildcardToken(input) {
+  const value = input.value || "";
+  const caret = input.selectionStart ?? value.length;
+  let opening = -1;
+  let index = 0;
+  while (index < caret) {
+    const found = value.indexOf("__", index);
+    if (found < 0 || found >= caret) {
+      break;
+    }
+    opening = opening < 0 ? found : -1;
+    index = found + 2;
+  }
+  if (opening < 0) {
+    return null;
+  }
+  const query = value.slice(opening + 2, caret);
+  if (!/^[\w.\-+/*\\]*$/i.test(query)) {
+    return null;
+  }
+  const closing = value.indexOf("__", caret);
+  const end = closing >= 0 ? closing + 2 : caret;
+  return {
+    value,
+    start: opening,
+    end,
+    caret,
+    segment: value.slice(opening, end),
+    query,
+    wildcard: true,
+  };
+}
+
 function autocompleteQuery(token, forceArtistOnly = false) {
   const raw = String(token.query || "");
   const parsed = parseAutocompleteText(raw);
@@ -515,8 +555,18 @@ function autocompleteQuery(token, forceArtistOnly = false) {
   return { query, artistOnly, category };
 }
 
+function wildcardAutocompleteQuery(token) {
+  return {
+    query: String(token?.query || "").toLocaleLowerCase(),
+    artistOnly: false,
+    category: "wildcard",
+    kind: "wildcard",
+  };
+}
+
 function autocompleteStateSignature(token, context, state) {
   return JSON.stringify({
+    kind: context.kind || "tag",
     value: token.value,
     start: token.start,
     end: token.end,
@@ -672,6 +722,39 @@ async function search(query, category = "") {
   return results;
 }
 
+async function loadWildcardItems() {
+  if (Array.isArray(wildcardItemsCache)) {
+    return wildcardItemsCache;
+  }
+  const response = await fetch("/easyuse_anima/wildcards");
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    throw new Error(data.message || `HTTP ${response.status}`);
+  }
+  wildcardItemsCache = Array.isArray(data.items) ? data.items.map((item) => String(item || "")).filter(Boolean) : [];
+  return wildcardItemsCache;
+}
+
+async function searchWildcards(query) {
+  const key = `wildcard:${maxResults}:${String(query || "").toLocaleLowerCase()}`;
+  if (cache.has(key)) {
+    return cache.get(key);
+  }
+  const normalized = String(query || "").replace("\\", "/").toLocaleLowerCase();
+  const items = await loadWildcardItems();
+  const results = items
+    .filter((item) => !normalized || item.toLocaleLowerCase().includes(normalized))
+    .slice(0, maxResults)
+    .map((item) => ({
+      tag: item,
+      category: "wildcard",
+      count: 0,
+      kind: "wildcard",
+    }));
+  cache.set(key, results);
+  return results;
+}
+
 function setActive(index) {
   if (!activeState) {
     return;
@@ -756,6 +839,18 @@ function replaceInputRange(input, start, end, replacement, caretOffset) {
 
 function commitSuggestion(state, entry) {
   const token = currentToken(state.input);
+  const wildcardToken = entry?.kind === "wildcard" ? currentWildcardToken(state.input) : null;
+  if (wildcardToken) {
+    const replacement = `__${String(entry.tag || "").replace(/^__|__$/g, "")}__`;
+    replaceInputRange(state.input, wildcardToken.start, wildcardToken.end, replacement, replacement.length);
+    if (state.widget) {
+      state.widget.value = state.input.value;
+      state.widget.callback?.(state.input.value);
+    }
+    state.onCommit?.(state.input.value);
+    hidePopup();
+    return;
+  }
   const before = token.value.slice(0, token.start);
   const after = token.value.slice(token.end);
   const insert = completionText(token, entry, state.forceArtistOnly);
@@ -784,6 +879,9 @@ function promptTagText(value) {
 }
 
 function completionText(token, entry, forceArtistOnly = false) {
+  if (entry?.kind === "wildcard") {
+    return `__${String(entry.tag || "").replace(/^__|__$/g, "")}__`;
+  }
   const tag = promptTagText(entry?.tag);
   const segment = String(token.segment || "").trim();
   const query = parseAutocompleteText(token.query);
@@ -831,7 +929,9 @@ function renderResults(state, results, signature = "") {
     const meta = document.createElement("span");
     meta.className = "easyuse-anima-autocomplete-meta";
     const count = Number(entry.count || 0).toLocaleString();
-    meta.textContent = `${autocompleteCategoryLabel(entry.category)} · ${count}`;
+    meta.textContent = entry.kind === "wildcard"
+      ? autocompleteCategoryLabel(entry.category)
+      : `${autocompleteCategoryLabel(entry.category)} · ${count}`;
     top.append(tag, meta);
     item.append(top);
 
@@ -918,9 +1018,12 @@ function hookInput(input, options = {}) {
       hidePopup();
       return;
     }
-    const token = currentToken(input);
-    const context = autocompleteQuery(token, state.forceArtistOnly);
-    if (context.query.length < MIN_QUERY_LENGTH) {
+    const wildcardToken = currentWildcardToken(input);
+    const token = wildcardToken || currentToken(input);
+    const context = wildcardToken
+      ? wildcardAutocompleteQuery(wildcardToken)
+      : autocompleteQuery(token, state.forceArtistOnly);
+    if (context.kind !== "wildcard" && context.query.length < MIN_QUERY_LENGTH) {
       hidePopup();
       return;
     }
@@ -931,7 +1034,9 @@ function hookInput(input, options = {}) {
     }
     const seq = ++updateSeq;
     try {
-      const results = await search(context.query, context.category);
+      const results = context.kind === "wildcard"
+        ? await searchWildcards(context.query)
+        : await search(context.query, context.category);
       if (document.activeElement === input && seq === updateSeq) {
         renderResults(state, results, signature);
       }
@@ -1090,6 +1195,11 @@ window.addEventListener("easyuse-anima-settings-updated", (event) => {
     cache.clear();
   }
   if ("autocomplete.source" in detail) {
+    cache.clear();
+    hidePopup();
+  }
+  if ("wildcard.extra_paths" in detail) {
+    wildcardItemsCache = null;
     cache.clear();
     hidePopup();
   }

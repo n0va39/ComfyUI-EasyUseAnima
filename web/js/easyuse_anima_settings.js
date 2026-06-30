@@ -194,6 +194,10 @@ const TEXT = {
     naiaGeneralAutoToggle: "Auto toggle General fields above NAIA",
     naiaGeneralAutoToggleTip:
       "In Anima Prompt Studio Advanced, when the positive NAIA Prompt field is ON, this disables only positive General fields placed above that NAIA field. When the NAIA field is OFF, those General fields are enabled again. Fields below NAIA and negative fields are not changed.",
+    wildcard: "Wildcard",
+    wildcardExtraPaths: "Additional wildcard paths",
+    wildcardExtraPathsTip:
+      "Optional semicolon-separated paths to existing wildcard folders. Relative paths are resolved from the ComfyUI root. EasyUse Anima's user wildcard folder is always searched last.",
     naiaEndpoint: "Connection",
     naiaPromptEngineering: "Prompt Engineering",
     naiaDesktopPromptEngineeringTip:
@@ -256,6 +260,10 @@ const TEXT = {
     naiaGeneralAutoToggle: "NAIA 위쪽 General 자동 토글",
     naiaGeneralAutoToggleTip:
       "Anima Prompt Studio Advanced에서 긍정 프롬프트의 NAIA Prompt 필드가 켜지면, 그 NAIA 필드보다 위에 있는 긍정 General 필드만 자동으로 OFF합니다. NAIA 필드가 꺼지면 해당 General 필드를 다시 ON합니다. NAIA 아래 필드와 네거티브 필드는 건드리지 않습니다.",
+    wildcard: "와일드카드",
+    wildcardExtraPaths: "추가 와일드카드 경로",
+    wildcardExtraPathsTip:
+      "기존 와일드카드 폴더가 있으면 세미콜론으로 구분해 추가합니다. 상대 경로는 ComfyUI 루트 기준이며 EasyUse Anima 사용자 와일드카드 폴더는 항상 마지막에 검색합니다.",
     naiaEndpoint: "연결",
     naiaPromptEngineering: "Prompt Engineering",
     naiaDesktopPromptEngineeringTip:
@@ -283,6 +291,7 @@ const INTERNAL_KEYS = {
   "EasyUseAnima.Prompt.TypoIndicator": "prompt_studio.typo_indicator",
   "EasyUseAnima.Prompt.CommentItalic": "prompt_studio.comment_italic",
   "EasyUseAnima.Prompt.NaiaGeneralAutoToggle": "prompt_studio.naia_general_above_auto_toggle",
+  "EasyUseAnima.Wildcard.ExtraPaths": "wildcard.extra_paths",
   "EasyUseAnima.LoraPreset.NameDisplay": "lora_preset.name_display",
   "EasyUseAnima.LoraPreset.MenuMode": "lora_preset.menu_mode",
   "EasyUseAnima.LoraPreset.StrengthButtonStep": "lora_preset.strength_button_step",
@@ -739,6 +748,15 @@ const EASYUSE_ANIMA_SETTINGS = [
     defaultValue: false,
   }),
   ...Object.entries(PROMPT_STUDIO_COLORS).map(([colorKey, item]) => colorSetting(colorKey, item)),
+  setting({
+    id: "EasyUseAnima.Wildcard.ExtraPaths",
+    section: "Wildcard",
+    group: t("wildcard"),
+    name: t("wildcardExtraPaths"),
+    tooltip: t("wildcardExtraPathsTip"),
+    type: "text",
+    defaultValue: "",
+  }),
   setting({
     id: "EasyUseAnima.LoraPreset.NameDisplay",
     section: "LoraPreset",

@@ -29,6 +29,7 @@ DEFAULT_SETTINGS = {
     "prompt_studio.comment_italic": "true",
     "prompt_studio.colors": "",
     "prompt_studio.naia_general_above_auto_toggle": "false",
+    "wildcard.extra_paths": "",
     "naia.host": "127.0.0.1",
     "naia.port": "7243",
     "naia.use_naia_settings": "true",
@@ -110,6 +111,7 @@ COMFY_SETTING_KEYS = {
     "EasyUseAnima.Prompt.CommentItalic": "prompt_studio.comment_italic",
     "EasyUseAnima.Prompt.HighlightColors": "prompt_studio.colors",
     "EasyUseAnima.Prompt.NaiaGeneralAutoToggle": "prompt_studio.naia_general_above_auto_toggle",
+    "EasyUseAnima.Wildcard.ExtraPaths": "wildcard.extra_paths",
     "EasyUseAnima.LoraPreset.NameDisplay": "lora_preset.name_display",
     "EasyUseAnima.LoraPreset.MenuMode": "lora_preset.menu_mode",
     "EasyUseAnima.LoraPreset.StrengthButtonStep": "lora_preset.strength_button_step",
@@ -345,6 +347,10 @@ def public_settings() -> dict:
         "prompt_studio.naia_general_above_auto_toggle": settings.get(
             "prompt_studio.naia_general_above_auto_toggle",
             DEFAULT_SETTINGS["prompt_studio.naia_general_above_auto_toggle"],
+        ),
+        "wildcard.extra_paths": settings.get(
+            "wildcard.extra_paths",
+            DEFAULT_SETTINGS["wildcard.extra_paths"],
         ),
         "naia.host": settings.get("naia.host", DEFAULT_SETTINGS["naia.host"]),
         "naia.port": resolve_naia_port(settings),

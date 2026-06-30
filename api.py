@@ -27,6 +27,7 @@ from .autocomplete_dataset import (
     resolve_autocomplete_source as resolve_autocomplete_source_path,
     search_autocomplete,
 )
+from .wildcard_engine import list_wildcards, resolve_wildcard_roots
 try:
     from .storage import USER_DATA_DIR
 except ImportError:
@@ -388,6 +389,18 @@ if web is not None and routes is not None:
                 "status": "ok",
                 "values": load_long_text_settings(),
                 "settings": public_settings(),
+            }
+        )
+
+    @routes.get("/easyuse_anima/wildcards")
+    async def get_wildcards_handler(request):
+        settings = public_settings()
+        extra_paths = settings.get("wildcard.extra_paths", "")
+        return web.json_response(
+            {
+                "status": "ok",
+                "items": list_wildcards(extra_paths=extra_paths),
+                "roots": [str(path) for path in resolve_wildcard_roots(extra_paths)],
             }
         )
 

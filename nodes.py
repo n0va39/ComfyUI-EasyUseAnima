@@ -15,10 +15,46 @@ try:
     from .anima_prompt import correct_prompt, load_knowledge_base
     from .anima_prompt.parser import parse_prompt
     from .settings import resolve_metadata_filter_words, resolve_naia_settings
+    from .wildcard_engine import (
+        MAX_SEED,
+        SEED_CONTROL_FIXED,
+        SEED_CONTROL_INCREMENT,
+        SEED_CONTROL_MODES,
+        SEED_CONTROL_RANDOMIZE,
+        WILDCARD_MODE_FIXED,
+        WILDCARD_MODE_LABELS,
+        WILDCARD_MODE_POPULATE,
+        WILDCARD_MODE_REPRODUCE,
+        WILDCARD_MODE_SEQUENTIAL,
+        expand_wildcards,
+        has_wildcard_syntax,
+        next_seed,
+        normalize_seed,
+        normalize_wildcard_mode,
+        wildcard_sources_signature,
+    )
 except ImportError:  # allows simple local import tests outside ComfyUI's package loader
     from anima_prompt import correct_prompt, load_knowledge_base
     from anima_prompt.parser import parse_prompt
     from settings import resolve_metadata_filter_words, resolve_naia_settings
+    from wildcard_engine import (
+        MAX_SEED,
+        SEED_CONTROL_FIXED,
+        SEED_CONTROL_INCREMENT,
+        SEED_CONTROL_MODES,
+        SEED_CONTROL_RANDOMIZE,
+        WILDCARD_MODE_FIXED,
+        WILDCARD_MODE_LABELS,
+        WILDCARD_MODE_POPULATE,
+        WILDCARD_MODE_REPRODUCE,
+        WILDCARD_MODE_SEQUENTIAL,
+        expand_wildcards,
+        has_wildcard_syntax,
+        next_seed,
+        normalize_seed,
+        normalize_wildcard_mode,
+        wildcard_sources_signature,
+    )
 
 logger = logging.getLogger("ComfyUI-EasyUseAnima")
 
@@ -1012,6 +1048,45 @@ def _build_advanced_prompts(
     )
 
 
+def _expand_advanced_wildcard_fields(
+    fields: list[dict],
+    seed: int,
+    mode: str,
+) -> tuple[list[dict], dict[str, Any]]:
+    mode_key = normalize_wildcard_mode(mode)
+    expanded_fields = _clone_advanced_fields(fields)
+    if mode_key in {WILDCARD_MODE_FIXED, WILDCARD_MODE_REPRODUCE}:
+        return expanded_fields, {
+            "changed": False,
+            "used_keys": (),
+            "missing_keys": (),
+        }
+
+    changed = False
+    used_keys: list[str] = []
+    missing_keys: list[str] = []
+    for field in expanded_fields:
+        text = str(field.get("text") or "")
+        if not has_wildcard_syntax(text):
+            continue
+        result = expand_wildcards(text, seed=seed, mode=mode_key)
+        if result.text != text:
+            field["text"] = result.text
+            changed = True
+        for key in result.used_keys:
+            if key not in used_keys:
+                used_keys.append(key)
+        for key in result.missing_keys:
+            if key not in missing_keys:
+                missing_keys.append(key)
+
+    return expanded_fields, {
+        "changed": changed,
+        "used_keys": tuple(used_keys),
+        "missing_keys": tuple(missing_keys),
+    }
+
+
 def _fit_to_1mp(width: int, height: int) -> tuple[int, int]:
     if width <= 0 or height <= 0:
         return width, height
@@ -1482,6 +1557,199 @@ class EasyUseAnimaPromptCorrector:
         )
 
 
+class EasyUseAnimaWildcard:
+    """Expand Impact Pack compatible wildcard and dynamic prompt syntax."""
+
+    DESCRIPTION = (
+        "Expands EasyUse Anima wildcard files and dynamic prompt syntax with fixed, sequential, "
+        "and reproducible modes."
+    )
+    OUTPUT_TOOLTIPS = (
+        "Expanded prompt text.",
+        "Seed after applying the seed control option.",
+    )
+
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {
+            "required": {
+                "text": ("STRING", {
+                    "multiline": True,
+                    "default": "",
+                    "tooltip": "Prompt text with wildcard syntax such as __style__ or {2::a|5::b|c}.",
+                }),
+                "populated_text": ("STRING", {
+                    "multiline": True,
+                    "default": "",
+                    "tooltip": "Cached expanded prompt used by fixed and reproduce modes.",
+                }),
+                "mode": (WILDCARD_MODE_LABELS, {
+                    "default": WILDCARD_MODE_LABELS[0],
+                    "tooltip": (
+                        "일반 채우기: seed-based random fill. 고정/재현: cached text. "
+                        "순차: seed modulo each wildcard option count."
+                    ),
+                }),
+                "seed": ("INT", {
+                    "default": 0,
+                    "min": 0,
+                    "max": MAX_SEED,
+                    "tooltip": "Wildcard seed. Sequential mode uses seed % option_count for each wildcard.",
+                }),
+                "seed_after_generate": (SEED_CONTROL_MODES, {
+                    "default": SEED_CONTROL_FIXED,
+                    "tooltip": "Seed control after generation: fixed, randomize, increment, or decrement.",
+                }),
+            },
+            "hidden": {
+                "workflow_prompt": "PROMPT",
+                "extra_pnginfo": "EXTRA_PNGINFO",
+                "unique_id": "UNIQUE_ID",
+            },
+        }
+
+    RETURN_TYPES = ("STRING", "INT")
+    RETURN_NAMES = ("text", "seed")
+    FUNCTION = "generate"
+    CATEGORY = "EasyUse Anima/Prompt"
+
+    @classmethod
+    def _widget_input_names(cls):
+        return tuple(cls.INPUT_TYPES().get("required", {}).keys())
+
+    @classmethod
+    def IS_CHANGED(cls, **kwargs):
+        mode = normalize_wildcard_mode(kwargs.get("mode", WILDCARD_MODE_LABELS[0]))
+        seed_control = str(kwargs.get("seed_after_generate", SEED_CONTROL_FIXED) or "")
+        text = str(kwargs.get("text", "") or "")
+        if (
+            mode in {WILDCARD_MODE_POPULATE, WILDCARD_MODE_SEQUENTIAL}
+            and seed_control == SEED_CONTROL_RANDOMIZE
+            and has_wildcard_syntax(text)
+        ):
+            return float("nan")
+        return _stable_change_key({
+            "mode": "wildcard",
+            "wildcard_sources": wildcard_sources_signature(),
+            **{key: str(value) for key, value in sorted(kwargs.items())},
+        })
+
+    @classmethod
+    def _update_metadata_cache(
+        cls,
+        workflow_prompt,
+        extra_pnginfo,
+        unique_id,
+        populated_text: str,
+        mode: str,
+        seed: int,
+    ) -> None:
+        node_id = _single_value(unique_id)
+        if node_id is None:
+            return
+        node_id = str(node_id)
+        updates = {
+            "populated_text": populated_text,
+            "mode": mode,
+            "seed": int(seed),
+        }
+
+        if isinstance(workflow_prompt, dict):
+            prompt_node = workflow_prompt.get(node_id)
+            if isinstance(prompt_node, dict):
+                inputs = prompt_node.setdefault("inputs", {})
+                for name, value in updates.items():
+                    inputs[name] = value
+
+        workflow_node = _get_workflow_node(extra_pnginfo, node_id)
+        if workflow_node is None:
+            return
+
+        input_names = cls._widget_input_names()
+        widgets_values = workflow_node.setdefault("widgets_values", [])
+        for name, value in updates.items():
+            if name not in input_names:
+                continue
+            index = input_names.index(name)
+            while len(widgets_values) <= index:
+                widgets_values.append(None)
+            widgets_values[index] = value
+
+    @staticmethod
+    def _ui(
+        populated_text: str,
+        mode: str,
+        seed: int,
+        status: str,
+        used_keys: tuple[str, ...],
+        missing_keys: tuple[str, ...],
+    ):
+        return {
+            "wildcard": [{
+                "populated_text": populated_text,
+                "mode": mode,
+                "seed": seed,
+                "status": status,
+                "used_keys": list(used_keys),
+                "missing_keys": list(missing_keys),
+            }]
+        }
+
+    def generate(
+        self,
+        text: str,
+        populated_text: str,
+        mode: str,
+        seed: int,
+        seed_after_generate: str,
+        workflow_prompt=None,
+        extra_pnginfo=None,
+        unique_id=None,
+    ):
+        mode_key = normalize_wildcard_mode(mode)
+        seed_value = normalize_seed(seed)
+        used_keys: tuple[str, ...] = ()
+        missing_keys: tuple[str, ...] = ()
+
+        if mode_key in {WILDCARD_MODE_FIXED, WILDCARD_MODE_REPRODUCE}:
+            output_text = str(populated_text if populated_text else text or "")
+            status = mode_key
+            metadata_mode = str(mode or WILDCARD_MODE_LABELS[3])
+        else:
+            expansion = expand_wildcards(str(text or ""), seed=seed_value, mode=mode_key)
+            output_text = expansion.text
+            used_keys = expansion.used_keys
+            missing_keys = expansion.missing_keys
+            status = WILDCARD_MODE_SEQUENTIAL if mode_key == WILDCARD_MODE_SEQUENTIAL else WILDCARD_MODE_POPULATE
+            metadata_mode = WILDCARD_MODE_LABELS[3]
+
+        effective_seed_control = (
+            SEED_CONTROL_INCREMENT
+            if mode_key == WILDCARD_MODE_SEQUENTIAL
+            else seed_after_generate
+        )
+        next_seed_value = next_seed(seed_value, effective_seed_control)
+        self._update_metadata_cache(
+            workflow_prompt,
+            extra_pnginfo,
+            unique_id,
+            output_text,
+            metadata_mode,
+            seed_value,
+        )
+        return {
+            "ui": self._ui(
+                output_text,
+                str(mode or WILDCARD_MODE_LABELS[0]),
+                next_seed_value,
+                status,
+                used_keys,
+                missing_keys,
+            ),
+            "result": (output_text, next_seed_value),
+        }
+
+
 class EasyUseAnimaPromptBuilder:
     """Build cleaned ANIMA prompts for NAIA and Anima Mod Guidance workflows."""
 
@@ -1791,6 +2059,20 @@ class EasyUseAnimaPromptStudioAdvanced:
                         "through the negative Mod Guidance output."
                     ),
                 }),
+                "wildcard_mode": (WILDCARD_MODE_LABELS, {
+                    "default": WILDCARD_MODE_LABELS[1],
+                    "tooltip": "Wildcard mode. 고정 is the compatibility default; 순차 uses seed % option_count and increments seed after queue.",
+                }),
+                "wildcard_seed": ("INT", {
+                    "default": 0,
+                    "min": 0,
+                    "max": MAX_SEED,
+                    "tooltip": "Wildcard seed used by Advanced Prompt Studio fields.",
+                }),
+                "wildcard_seed_after_generate": (SEED_CONTROL_MODES, {
+                    "default": SEED_CONTROL_FIXED,
+                    "tooltip": "Seed control after wildcard generation.",
+                }),
             },
             "optional": _FlexibleOptionalInputType("STRING"),
             "hidden": {
@@ -1844,6 +2126,9 @@ class EasyUseAnimaPromptStudioAdvanced:
         resolution_size: str = DEFAULT_ADVANCED_RESOLUTION_SIZE,
         resolution_custom_width: int = 1024,
         resolution_custom_height: int = 1024,
+        wildcard_mode: str = WILDCARD_MODE_LABELS[1],
+        wildcard_seed: int = 0,
+        wildcard_seed_after_generate: str = SEED_CONTROL_FIXED,
         **kwargs,
     ):
         fields = _normalize_advanced_fields(advanced_fields)
@@ -1853,9 +2138,22 @@ class EasyUseAnimaPromptStudioAdvanced:
         ):
             return float("nan")
         effective_fields = _apply_advanced_field_inputs(fields, kwargs)
+        wildcard_mode_key = normalize_wildcard_mode(wildcard_mode)
+        wildcard_active = wildcard_mode_key in {WILDCARD_MODE_POPULATE, WILDCARD_MODE_SEQUENTIAL}
+        wildcard_text = "\n".join(str(field.get("text") or "") for field in effective_fields)
+        if (
+            wildcard_active
+            and str(wildcard_seed_after_generate or "") == SEED_CONTROL_RANDOMIZE
+            and has_wildcard_syntax(wildcard_text)
+        ):
+            return float("nan")
         return _stable_change_key({
             "mode": "prompt_studio_advanced",
             "metadata_filter_words": resolve_metadata_filter_words(),
+            "wildcard_sources": wildcard_sources_signature() if wildcard_active else {},
+            "wildcard_mode": wildcard_mode_key,
+            "wildcard_seed": normalize_seed(wildcard_seed),
+            "wildcard_seed_after_generate": str(wildcard_seed_after_generate or SEED_CONTROL_FIXED),
             "use_anima_mod_guidance": _as_bool(use_anima_mod_guidance, False),
             "use_negative_anima_mod_guidance": _as_bool(use_negative_anima_mod_guidance, False),
             "resolution": _advanced_resolution_from_selection(
@@ -1943,6 +2241,9 @@ class EasyUseAnimaPromptStudioAdvanced:
         pin_trigger_tags_to_front: bool,
         advanced_fields: str,
         use_negative_anima_mod_guidance: bool = False,
+        wildcard_mode: str = WILDCARD_MODE_LABELS[1],
+        wildcard_seed: int = 0,
+        wildcard_seed_after_generate: str = SEED_CONTROL_FIXED,
         resolution_bucket: str = DEFAULT_ADVANCED_RESOLUTION_BUCKET,
         resolution_size: str = DEFAULT_ADVANCED_RESOLUTION_SIZE,
         resolution_custom_width: int = 1024,
@@ -1963,6 +2264,13 @@ class EasyUseAnimaPromptStudioAdvanced:
         metadata_use_naia = live_use_naia
         metadata_updates: dict[str, Any] = {}
         ui_updates: dict[str, Any] = {}
+        wildcard_mode_key = normalize_wildcard_mode(wildcard_mode)
+        wildcard_seed_value = normalize_seed(wildcard_seed)
+        wildcard_effective_seed_control = (
+            SEED_CONTROL_INCREMENT
+            if wildcard_mode_key == WILDCARD_MODE_SEQUENTIAL
+            else str(wildcard_seed_after_generate or SEED_CONTROL_FIXED)
+        )
         width, height = _advanced_resolution_from_selection(
             resolution_bucket,
             resolution_size,
@@ -2005,8 +2313,37 @@ class EasyUseAnimaPromptStudioAdvanced:
                 })
             metadata_use_naia = False
 
+        ui_fields = _clone_advanced_fields(saved_fields)
+        saved_fields, saved_wildcard = _expand_advanced_wildcard_fields(
+            saved_fields,
+            wildcard_seed_value,
+            wildcard_mode_key,
+        )
+        effective_fields, effective_wildcard = _expand_advanced_wildcard_fields(
+            effective_fields,
+            wildcard_seed_value,
+            wildcard_mode_key,
+        )
+        wildcard_changed = bool(saved_wildcard["changed"] or effective_wildcard["changed"])
+        if wildcard_mode_key in {WILDCARD_MODE_POPULATE, WILDCARD_MODE_SEQUENTIAL}:
+            next_wildcard_seed = next_seed(wildcard_seed_value, wildcard_effective_seed_control)
+            ui_updates.update({
+                "wildcard_mode": str(wildcard_mode or WILDCARD_MODE_LABELS[1]),
+                "wildcard_seed": next_wildcard_seed,
+                "wildcard_seed_after_generate": wildcard_effective_seed_control,
+                "wildcard_used_keys": list(effective_wildcard["used_keys"]),
+                "wildcard_missing_keys": list(effective_wildcard["missing_keys"]),
+            })
+            if wildcard_changed:
+                metadata_updates.update({
+                    "wildcard_mode": WILDCARD_MODE_LABELS[3],
+                    "wildcard_seed": wildcard_seed_value,
+                    "wildcard_seed_after_generate": SEED_CONTROL_FIXED,
+                })
+
         fields_json = _advanced_fields_json(saved_fields)
-        if live_use_naia:
+        ui_fields_json = _advanced_fields_json(ui_fields if wildcard_changed else saved_fields)
+        if live_use_naia or wildcard_changed:
             self._update_metadata_fields(
                 workflow_prompt,
                 extra_pnginfo,
@@ -2023,7 +2360,7 @@ class EasyUseAnimaPromptStudioAdvanced:
             pin_trigger_tags_to_front,
         )
         return {
-            "ui": self._ui(fields_json, requested_use_naia, effective_field_inputs, ui_updates),
+            "ui": self._ui(ui_fields_json, requested_use_naia, effective_field_inputs, ui_updates),
             "result": (*result, width, height),
         }
 

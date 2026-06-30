@@ -1297,6 +1297,7 @@ class SettingsTests(unittest.TestCase):
                 "prompt_studio.comment_italic",
                 "prompt_studio.colors",
                 "prompt_studio.naia_general_above_auto_toggle",
+                "wildcard.extra_paths",
                 "naia.host",
                 "naia.port",
                 "naia.use_naia_settings",
