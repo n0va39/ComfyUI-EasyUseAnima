@@ -483,9 +483,11 @@ function serializeWildcardExtraPathItems(items) {
 }
 
 function wildcardExtraPathsSettingValue(value) {
-  const loaded = window.__easyuseAnimaSettings?.["wildcard.extra_paths"];
-  if (loaded) {
-    return loaded;
+  if (
+    window.__easyuseAnimaSettings
+    && Object.prototype.hasOwnProperty.call(window.__easyuseAnimaSettings, "wildcard.extra_paths")
+  ) {
+    return window.__easyuseAnimaSettings["wildcard.extra_paths"];
   }
   return value ?? "";
 }
@@ -512,10 +514,21 @@ function createWildcardExtraPathsEditor(name, setter, value) {
   const list = document.createElement("div");
   list.style.cssText = "display: flex; flex-direction: column; gap: 6px;";
 
-  const sync = () => {
+  let persistedValue = serializeWildcardExtraPathItems(items);
+
+  const syncInternal = () => {
     const serialized = serializeWildcardExtraPathItems(items);
-    setter?.(serialized);
     updateInternalSetting(settingId, serialized, "text");
+  };
+
+  const persist = () => {
+    const serialized = serializeWildcardExtraPathItems(items);
+    updateInternalSetting(settingId, serialized, "text");
+    if (serialized === persistedValue) {
+      return;
+    }
+    persistedValue = serialized;
+    setter?.(serialized);
   };
 
   const render = () => {
@@ -536,7 +549,15 @@ function createWildcardExtraPathsEditor(name, setter, value) {
       input.style.cssText = "box-sizing: border-box; flex: 1 1 auto; min-width: 120px; padding: 4px 6px;";
       input.addEventListener("input", () => {
         items[index] = input.value;
-        sync();
+        syncInternal();
+      });
+      input.addEventListener("change", persist);
+      input.addEventListener("blur", persist);
+      input.addEventListener("keydown", (event) => {
+        if (event.key === "Enter") {
+          event.preventDefault();
+          input.blur();
+        }
       });
 
       const removeButton = document.createElement("button");
@@ -550,7 +571,7 @@ function createWildcardExtraPathsEditor(name, setter, value) {
         } else {
           items.splice(index, 1);
         }
-        sync();
+        persist();
         render();
       });
 
