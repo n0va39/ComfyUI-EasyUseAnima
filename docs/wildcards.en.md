@@ -65,7 +65,7 @@ Files are read as UTF-8 text. Empty lines and lines starting with `#` are skippe
 Additional wildcard folders can be registered in ComfyUI Settings under the
 EasyUse Anima `Wildcard` section.
 
-- Enter one folder per line or separate folders with `;`.
+- Add items in the settings UI and enter one folder path per item.
 - Absolute paths and paths relative to the ComfyUI root are supported.
 - Extra paths are searched before the default folder.
 - If multiple folders contain the same key, the first matching folder wins.

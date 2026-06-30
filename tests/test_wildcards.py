@@ -28,6 +28,12 @@ class WildcardEngineTests(unittest.TestCase):
                 self.assertEqual(root, Path(temp) / "wildcards")
                 self.assertTrue((root / DEFAULT_TEST_WILDCARD_FILE).is_file())
 
+    def test_extra_paths_are_parsed_one_path_per_line(self):
+        self.assertEqual(
+            wildcard_engine.parse_wildcard_extra_paths('D:/wildcards;E:/ignored\n"custom/wildcards"'),
+            ["D:/wildcards;E:/ignored", "custom/wildcards"],
+        )
+
     def test_dynamic_prompt_weight_prefixes_are_stripped(self):
         result = expand_wildcards("{0::a|1::b}", seed=0)
 

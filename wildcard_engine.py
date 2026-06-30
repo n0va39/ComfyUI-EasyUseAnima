@@ -143,7 +143,7 @@ def has_wildcard_syntax(text: str) -> bool:
 
 def parse_wildcard_extra_paths(value: str) -> list[str]:
     paths = []
-    for line in str(value or "").replace(";", "\n").splitlines():
+    for line in str(value or "").splitlines():
         path = line.strip().strip('"')
         if path:
             paths.append(path)

@@ -206,7 +206,10 @@ const TEXT = {
     wildcard: "Wildcard",
     wildcardExtraPaths: "Additional wildcard paths",
     wildcardExtraPathsTip:
-      "Optional semicolon-separated paths to existing wildcard folders. Relative paths are resolved from the ComfyUI root. EasyUse Anima's user wildcard folder is always searched last.",
+      "Optional paths to existing wildcard folders. Add one folder per item. Relative paths are resolved from the ComfyUI root. EasyUse Anima's user wildcard folder is always searched last.",
+    wildcardExtraPathPlaceholder: "Wildcard folder path",
+    addWildcardPath: "Add path",
+    removeWildcardPath: "Remove",
     naiaEndpoint: "Connection",
     naiaPromptEngineering: "Prompt Engineering",
     naiaDesktopPromptEngineeringTip:
@@ -272,7 +275,10 @@ const TEXT = {
     wildcard: "와일드카드",
     wildcardExtraPaths: "추가 와일드카드 경로",
     wildcardExtraPathsTip:
-      "기존 와일드카드 폴더가 있으면 세미콜론으로 구분해 추가합니다. 상대 경로는 ComfyUI 루트 기준이며 EasyUse Anima 사용자 와일드카드 폴더는 항상 마지막에 검색합니다.",
+      "기존 와일드카드 폴더가 있으면 항목별로 하나씩 추가합니다. 상대 경로는 ComfyUI 루트 기준이며 EasyUse Anima 사용자 와일드카드 폴더는 항상 마지막에 검색합니다.",
+    wildcardExtraPathPlaceholder: "와일드카드 폴더 경로",
+    addWildcardPath: "경로 추가",
+    removeWildcardPath: "삭제",
     naiaEndpoint: "연결",
     naiaPromptEngineering: "Prompt Engineering",
     naiaDesktopPromptEngineeringTip:
@@ -460,6 +466,115 @@ function createLongTextEditorButton(groupKey) {
 
   container.append(button, hint);
   return container;
+}
+
+function parseWildcardExtraPathItems(value) {
+  return String(value ?? "")
+    .split(/\r?\n/)
+    .map((item) => item.trim().replace(/^"|"$/g, ""))
+    .filter(Boolean);
+}
+
+function serializeWildcardExtraPathItems(items) {
+  return items
+    .map((item) => String(item ?? "").trim())
+    .filter(Boolean)
+    .join("\n");
+}
+
+function wildcardExtraPathsSettingValue(value) {
+  const loaded = window.__easyuseAnimaSettings?.["wildcard.extra_paths"];
+  if (loaded) {
+    return loaded;
+  }
+  return value ?? "";
+}
+
+function createWildcardExtraPathsEditor(name, setter, value) {
+  const settingId = "EasyUseAnima.Wildcard.ExtraPaths";
+  let items = parseWildcardExtraPathItems(wildcardExtraPathsSettingValue(value));
+  if (!items.length) {
+    items = [""];
+  }
+
+  const row = document.createElement("tr");
+
+  const labelCell = document.createElement("td");
+  const labelEl = document.createElement("label");
+  labelEl.textContent = name;
+  labelEl.title = t("wildcardExtraPathsTip");
+  labelCell.append(labelEl);
+
+  const controlCell = document.createElement("td");
+  const wrapper = document.createElement("div");
+  wrapper.style.cssText = "display: flex; flex-direction: column; gap: 6px; min-width: 260px;";
+
+  const list = document.createElement("div");
+  list.style.cssText = "display: flex; flex-direction: column; gap: 6px;";
+
+  const sync = () => {
+    const serialized = serializeWildcardExtraPathItems(items);
+    setter?.(serialized);
+    updateInternalSetting(settingId, serialized, "text");
+  };
+
+  const render = () => {
+    list.replaceChildren();
+    if (!items.length) {
+      items = [""];
+    }
+
+    items.forEach((item, index) => {
+      const itemRow = document.createElement("div");
+      itemRow.style.cssText = "display: flex; align-items: center; gap: 6px; min-width: 0;";
+
+      const input = document.createElement("input");
+      input.type = "text";
+      input.value = item;
+      input.placeholder = t("wildcardExtraPathPlaceholder");
+      input.spellcheck = false;
+      input.style.cssText = "box-sizing: border-box; flex: 1 1 auto; min-width: 120px; padding: 4px 6px;";
+      input.addEventListener("input", () => {
+        items[index] = input.value;
+        sync();
+      });
+
+      const removeButton = document.createElement("button");
+      removeButton.type = "button";
+      removeButton.textContent = "x";
+      removeButton.title = t("removeWildcardPath");
+      removeButton.style.cssText = "width: 28px; min-width: 28px; height: 28px; padding: 0; cursor: pointer;";
+      removeButton.addEventListener("click", () => {
+        if (items.length <= 1) {
+          items[0] = "";
+        } else {
+          items.splice(index, 1);
+        }
+        sync();
+        render();
+      });
+
+      itemRow.append(input, removeButton);
+      list.append(itemRow);
+    });
+  };
+
+  const addButton = document.createElement("button");
+  addButton.type = "button";
+  addButton.textContent = "+";
+  addButton.title = t("addWildcardPath");
+  addButton.style.cssText = "align-self: flex-start; min-width: 32px; height: 28px; padding: 0 10px; cursor: pointer;";
+  addButton.addEventListener("click", () => {
+    items.push("");
+    render();
+    list.lastElementChild?.querySelector("input")?.focus();
+  });
+
+  render();
+  wrapper.append(list, addButton);
+  controlCell.append(wrapper);
+  row.append(labelCell, controlCell);
+  return row;
 }
 
 function closeLongTextEditor() {
@@ -757,14 +872,12 @@ const EASYUSE_ANIMA_SETTINGS = [
     defaultValue: false,
   }),
   ...Object.entries(PROMPT_STUDIO_COLORS).map(([colorKey, item]) => colorSetting(colorKey, item)),
-  setting({
+  customSetting({
     id: "EasyUseAnima.Wildcard.ExtraPaths",
     section: "Wildcard",
-    group: t("wildcard"),
     name: t("wildcardExtraPaths"),
     tooltip: t("wildcardExtraPathsTip"),
-    type: "text",
-    defaultValue: "",
+    render: createWildcardExtraPathsEditor,
   }),
   setting({
     id: "EasyUseAnima.LoraPreset.NameDisplay",
