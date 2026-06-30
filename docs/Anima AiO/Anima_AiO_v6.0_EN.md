@@ -4,7 +4,7 @@ Anima AiO v6.0 is an ANIMA-based ComfyUI workflow. It includes T2I, I2I, HighRes
 
 ## Workflow File
 
-- [Anima_AiO_v6.0_release_en.json](../../example_workflows/Anima_AiO_v6.0_release_en.json)
+- [Anima_AiO_v6.0_release_en.json](../example_workflows/Anima_AiO_v6.0_release_en.json)
 
 After loading the workflow in ComfyUI, read the Markdown guide note at the top of each major section.
 

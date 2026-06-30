@@ -21,6 +21,7 @@ Reference baseline:
 - Per-node details: [Node Guide](docs/nodes/README.en.md)
 - Wildcard syntax and examples: [Wildcard Guide](docs/wildcards.en.md)
 - Autocomplete CSV selection: [Autocomplete CSV Guide](docs/autocomplete-csv.en.md)
+- Example workflows: [docs/example_workflows](docs/example_workflows/)
 - Versioned changes: [RELEASE.md](RELEASE.md)
 
 ## Nodes

@@ -21,6 +21,7 @@ import하거나 덮어쓰지 않으므로, 두 노드팩을 동시에 설치할 
 - 노드별 상세 설명: [노드 문서](docs/nodes/README.ko.md)
 - 와일드카드 문법과 예시: [와일드카드 가이드](docs/wildcards.ko.md)
 - 자동완성 CSV 선택 기준: [자동완성 CSV 가이드](docs/autocomplete-csv.ko.md)
+- 예시 워크플로우: [docs/example_workflows](docs/example_workflows/)
 - 버전별 변경 사항: [RELEASE.md](RELEASE.md)
 
 ## 노드

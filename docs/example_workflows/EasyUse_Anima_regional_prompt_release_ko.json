@@ -1,0 +1,699 @@
+{
+  "id": "d88a9501-ac9a-4e07-ba56-24b5a472c335",
+  "revision": 0,
+  "last_node_id": 9,
+  "last_link_id": 12,
+  "nodes": [
+    {
+      "id": 2,
+      "type": "CLIPLoader",
+      "pos": [
+        900,
+        -50
+      ],
+      "size": [
+        340,
+        120
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "CLIP 파일명",
+          "name": "clip_name",
+          "type": "COMBO",
+          "widget": {
+            "name": "clip_name"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "유형",
+          "name": "type",
+          "type": "COMBO",
+          "widget": {
+            "name": "type"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "장치",
+          "name": "device",
+          "shape": 7,
+          "type": "COMBO",
+          "widget": {
+            "name": "device"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "CLIP",
+          "name": "CLIP",
+          "type": "CLIP",
+          "links": [
+            2
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "CLIPLoader"
+      },
+      "widgets_values": [
+        "qwen_3_06b_base.safetensors",
+        "qwen_image",
+        "default"
+      ]
+    },
+    {
+      "id": 5,
+      "type": "UNETLoader",
+      "pos": [
+        900,
+        -410
+      ],
+      "size": [
+        340,
+        140
+      ],
+      "flags": {},
+      "order": 1,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "UNet 모델 파일명",
+          "name": "unet_name",
+          "type": "COMBO",
+          "widget": {
+            "name": "unet_name"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "가중치 데이터 유형",
+          "name": "weight_dtype",
+          "type": "COMBO",
+          "widget": {
+            "name": "weight_dtype"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "모델",
+          "name": "MODEL",
+          "type": "MODEL",
+          "links": [
+            6
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "UNETLoader"
+      },
+      "widgets_values": [
+        "ANIMA\\anima_baseV10.safetensors",
+        "default"
+      ]
+    },
+    {
+      "id": 4,
+      "type": "VAELoader",
+      "pos": [
+        900,
+        -210
+      ],
+      "size": [
+        340,
+        100
+      ],
+      "flags": {
+        "collapsed": false
+      },
+      "order": 2,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "vae 파일명",
+          "name": "vae_name",
+          "type": "COMBO",
+          "widget": {
+            "name": "vae_name"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "VAE",
+          "name": "VAE",
+          "type": "VAE",
+          "links": [
+            7
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "VAELoader",
+        "enableTabs": false,
+        "tabWidth": 65,
+        "tabXOffset": 10,
+        "hasSecondTab": false,
+        "secondTabText": "Send Back",
+        "secondTabOffset": 80,
+        "secondTabWidth": 65,
+        "cnr_id": "comfy-core",
+        "ver": "0.3.73",
+        "models": [
+          {
+            "name": "ae.safetensors",
+            "directory": "vae"
+          }
+        ],
+        "ue_properties": {
+          "widget_ue_connectable": {},
+          "version": "7.5.2",
+          "input_ue_unconnectable": {}
+        }
+      },
+      "widgets_values": [
+        "qwen_image_vae.safetensors"
+      ],
+      "color": "#332922",
+      "bgcolor": "#593930"
+    },
+    {
+      "id": 3,
+      "type": "EasyUseAnimaRegionalConditioning",
+      "pos": [
+        1300,
+        120
+      ],
+      "size": [
+        420,
+        110
+      ],
+      "flags": {},
+      "order": 5,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "CLIP",
+          "name": "clip",
+          "type": "CLIP",
+          "link": 2
+        },
+        {
+          "localized_name": "Regional 프롬프트 데이터",
+          "name": "regional_prompt_data",
+          "type": "EASYUSE_ANIMA_REGIONAL_PROMPT_DATA",
+          "link": 1
+        },
+        {
+          "localized_name": "마스크 강도",
+          "name": "mask_strength",
+          "type": "FLOAT",
+          "widget": {
+            "name": "mask_strength"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "컨디셔닝 영역",
+          "name": "set_cond_area",
+          "type": "COMBO",
+          "widget": {
+            "name": "set_cond_area"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "긍정",
+          "name": "positive",
+          "type": "CONDITIONING",
+          "links": [
+            4
+          ]
+        },
+        {
+          "localized_name": "부정",
+          "name": "negative",
+          "type": "CONDITIONING",
+          "links": [
+            5
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "EasyUseAnimaRegionalConditioning"
+      },
+      "widgets_values": [
+        1,
+        "mask bounds"
+      ]
+    },
+    {
+      "id": 1,
+      "type": "EasyUseAnimaPromptStudioRegional",
+      "pos": [
+        470,
+        150
+      ],
+      "size": [
+        760,
+        1320
+      ],
+      "flags": {},
+      "order": 3,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "localized_name": "메타데이터 프롬프트",
+          "name": "metadata_prompt",
+          "type": "STRING",
+          "links": null
+        },
+        {
+          "localized_name": "메타데이터 부정 프롬프트",
+          "name": "metadata_negative_prompt",
+          "type": "STRING",
+          "links": null
+        },
+        {
+          "localized_name": "너비",
+          "name": "width",
+          "type": "INT",
+          "links": [
+            10
+          ]
+        },
+        {
+          "localized_name": "높이",
+          "name": "height",
+          "type": "INT",
+          "links": [
+            11
+          ]
+        },
+        {
+          "localized_name": "Regional 프롬프트 데이터",
+          "name": "regional_prompt_data",
+          "type": "EASYUSE_ANIMA_REGIONAL_PROMPT_DATA",
+          "links": [
+            1
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "EasyUseAnimaPromptStudioRegional",
+        "easyuse_anima_regional_fields": "[{\"id\":\"positive_quality\",\"pane\":\"positive\",\"type\":\"quality\",\"label\":\"Quality Tags\",\"text\":\"(newest:0.6), masterpiece, best quality, (score_8:0.65), (score_7:0.7), (highres, absurdres, very aesthetic:0.8)\",\"height\":46,\"enabled\":true,\"pin\":false,\"collapsed\":false,\"mask_ids\":[]},{\"id\":\"positive_artist\",\"pane\":\"positive\",\"type\":\"artist\",\"label\":\"Artist Tags\",\"text\":\"(@sushispin:0.35)\",\"height\":46,\"enabled\":true,\"pin\":false,\"collapsed\":false,\"mask_ids\":[]},{\"id\":\"positive_trigger\",\"pane\":\"positive\",\"type\":\"trigger\",\"label\":\"Trigger Words\",\"text\":\"\",\"height\":46,\"enabled\":true,\"pin\":true,\"collapsed\":false,\"mask_ids\":[]},{\"id\":\"positive_global_scene\",\"pane\":\"positive\",\"type\":\"general\",\"label\":\"Global Scene\",\"text\":\"two girls, full body, standing side by side, split composition, simple background, looking at viewer\",\"height\":110,\"enabled\":true,\"pin\":false,\"collapsed\":false,\"mask_ids\":[]},{\"id\":\"positive_region_red_girl\",\"pane\":\"positive\",\"type\":\"general\",\"label\":\"Left Region - Red Hair Girl\",\"text\":\"red-haired girl, long red hair, red eyes, red dress, left side, solo focus in left region\",\"height\":90,\"enabled\":true,\"pin\":false,\"collapsed\":false,\"mask_ids\":[1]},{\"id\":\"positive_region_blue_girl\",\"pane\":\"positive\",\"type\":\"general\",\"label\":\"Right Region - Blue Hair Girl\",\"text\":\"blue-haired girl, long blue hair, blue eyes, blue dress, right side, solo focus in right region\",\"height\":90,\"enabled\":true,\"pin\":false,\"collapsed\":false,\"mask_ids\":[2]},{\"id\":\"negative_general\",\"pane\":\"negative\",\"type\":\"general\",\"label\":\"Negative Prompt\",\"text\":\"worst quality, low quality, score_1, score_2, score_3, jpeg artifacts, sepia, missing finger, extra digits, fewer digits, artistic error, unfinished, monochrome, anime coloring, comic, western comics \\\\(style\\\\), \",\"height\":46,\"enabled\":true,\"pin\":false,\"collapsed\":false,\"mask_ids\":[]}]",
+        "easyuse_anima_regional_config": "{\"version\":1,\"canvas\":{\"width\":1024,\"height\":1536,\"aspect_ratio\":\"2:3\",\"source\":\"resolution_fields\"},\"mask_authoring\":{\"render_space\":\"image_pixels\",\"storage_space\":\"normalized_canvas\",\"preview_enabled\":true,\"active_mask_id\":1},\"global_prompt\":\"\",\"negative_prompt\":\"\",\"next_mask_id\":3,\"masks\":[{\"mask_id\":1,\"label\":\"Mask 1 - Left red-haired girl\",\"name\":\"left_red_hair_girl\",\"color\":\"#ef4444\",\"enabled\":true,\"geometry\":{\"type\":\"rect\",\"x\":0.02,\"y\":0.06,\"width\":0.46,\"height\":0.88}},{\"mask_id\":2,\"label\":\"Mask 2 - Right blue-haired girl\",\"name\":\"right_blue_hair_girl\",\"color\":\"#3b82f6\",\"enabled\":true,\"geometry\":{\"type\":\"rect\",\"x\":0.52,\"y\":0.06,\"width\":0.46,\"height\":0.88}}],\"regional_enabled\":false,\"mask_prompts\":[],\"assignments\":[],\"artist_mix\":{},\"conditioning_settings\":{},\"regional_settings\":{}}"
+      },
+      "widgets_values": [
+        "[{\"id\":\"positive_quality\",\"pane\":\"positive\",\"type\":\"quality\",\"label\":\"Quality Tags\",\"text\":\"(newest:0.6), masterpiece, best quality, (score_8:0.65), (score_7:0.7), (highres, absurdres, very aesthetic:0.8)\",\"height\":46,\"enabled\":true,\"pin\":false,\"collapsed\":false,\"mask_ids\":[]},{\"id\":\"positive_artist\",\"pane\":\"positive\",\"type\":\"artist\",\"label\":\"Artist Tags\",\"text\":\"(@sushispin:0.35)\",\"height\":46,\"enabled\":true,\"pin\":false,\"collapsed\":false,\"mask_ids\":[]},{\"id\":\"positive_trigger\",\"pane\":\"positive\",\"type\":\"trigger\",\"label\":\"Trigger Words\",\"text\":\"\",\"height\":46,\"enabled\":true,\"pin\":true,\"collapsed\":false,\"mask_ids\":[]},{\"id\":\"positive_global_scene\",\"pane\":\"positive\",\"type\":\"general\",\"label\":\"Global Scene\",\"text\":\"two girls, full body, standing side by side, split composition, simple background, looking at viewer\",\"height\":110,\"enabled\":true,\"pin\":false,\"collapsed\":false,\"mask_ids\":[]},{\"id\":\"positive_region_red_girl\",\"pane\":\"positive\",\"type\":\"general\",\"label\":\"Left Region - Red Hair Girl\",\"text\":\"red-haired girl, long red hair, red eyes, red dress, left side, solo focus in left region\",\"height\":90,\"enabled\":true,\"pin\":false,\"collapsed\":false,\"mask_ids\":[1]},{\"id\":\"positive_region_blue_girl\",\"pane\":\"positive\",\"type\":\"general\",\"label\":\"Right Region - Blue Hair Girl\",\"text\":\"blue-haired girl, long blue hair, blue eyes, blue dress, right side, solo focus in right region\",\"height\":90,\"enabled\":true,\"pin\":false,\"collapsed\":false,\"mask_ids\":[2]},{\"id\":\"negative_general\",\"pane\":\"negative\",\"type\":\"general\",\"label\":\"Negative Prompt\",\"text\":\"worst quality, low quality, score_1, score_2, score_3, jpeg artifacts, sepia, missing finger, extra digits, fewer digits, artistic error, unfinished, monochrome, anime coloring, comic, western comics \\\\(style\\\\), \",\"height\":46,\"enabled\":true,\"pin\":false,\"collapsed\":false,\"mask_ids\":[]}]",
+        "{\"version\":1,\"canvas\":{\"width\":1024,\"height\":1536,\"aspect_ratio\":\"2:3\",\"source\":\"resolution_fields\"},\"mask_authoring\":{\"render_space\":\"image_pixels\",\"storage_space\":\"normalized_canvas\",\"preview_enabled\":true,\"active_mask_id\":1},\"global_prompt\":\"\",\"negative_prompt\":\"\",\"next_mask_id\":3,\"masks\":[{\"mask_id\":1,\"label\":\"Mask 1 - Left red-haired girl\",\"name\":\"left_red_hair_girl\",\"color\":\"#ef4444\",\"enabled\":true,\"geometry\":{\"type\":\"rect\",\"x\":0.02,\"y\":0.06,\"width\":0.46,\"height\":0.88}},{\"mask_id\":2,\"label\":\"Mask 2 - Right blue-haired girl\",\"name\":\"right_blue_hair_girl\",\"color\":\"#3b82f6\",\"enabled\":true,\"geometry\":{\"type\":\"rect\",\"x\":0.52,\"y\":0.06,\"width\":0.46,\"height\":0.88}}],\"regional_enabled\":false,\"mask_prompts\":[],\"assignments\":[],\"artist_mix\":{},\"conditioning_settings\":{},\"regional_settings\":{}}",
+        "1280",
+        "1024 * 1536 (2:3)",
+        1024,
+        1536,
+        "고정",
+        0,
+        "fixed",
+        ""
+      ]
+    },
+    {
+      "id": 9,
+      "type": "EmptyLatentImage",
+      "pos": [
+        1300,
+        300
+      ],
+      "size": [
+        270,
+        110
+      ],
+      "flags": {},
+      "order": 4,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "너비",
+          "name": "width",
+          "type": "INT",
+          "widget": {
+            "name": "width"
+          },
+          "link": 10
+        },
+        {
+          "localized_name": "높이",
+          "name": "height",
+          "type": "INT",
+          "widget": {
+            "name": "height"
+          },
+          "link": 11
+        },
+        {
+          "localized_name": "배치 크기",
+          "name": "batch_size",
+          "type": "INT",
+          "widget": {
+            "name": "batch_size"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "잠재 데이터",
+          "name": "LATENT",
+          "type": "LATENT",
+          "links": [
+            12
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "EmptyLatentImage"
+      },
+      "widgets_values": [
+        512,
+        512,
+        1
+      ]
+    },
+    {
+      "id": 8,
+      "type": "PreviewImage",
+      "pos": [
+        1310,
+        480
+      ],
+      "size": [
+        520,
+        580
+      ],
+      "flags": {},
+      "order": 8,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "이미지",
+          "name": "images",
+          "type": "IMAGE",
+          "link": 9
+        }
+      ],
+      "outputs": [],
+      "properties": {
+        "Node name for S&R": "PreviewImage"
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 6,
+      "type": "KSampler",
+      "pos": [
+        1740,
+        120
+      ],
+      "size": [
+        270,
+        270
+      ],
+      "flags": {},
+      "order": 6,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "모델",
+          "name": "model",
+          "type": "MODEL",
+          "link": 6
+        },
+        {
+          "localized_name": "긍정 조건",
+          "name": "positive",
+          "type": "CONDITIONING",
+          "link": 4
+        },
+        {
+          "localized_name": "부정 조건",
+          "name": "negative",
+          "type": "CONDITIONING",
+          "link": 5
+        },
+        {
+          "localized_name": "잠재 데이터",
+          "name": "latent_image",
+          "type": "LATENT",
+          "link": 12
+        },
+        {
+          "localized_name": "시드",
+          "name": "seed",
+          "type": "INT",
+          "widget": {
+            "name": "seed"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "스텝 수",
+          "name": "steps",
+          "type": "INT",
+          "widget": {
+            "name": "steps"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "cfg",
+          "name": "cfg",
+          "type": "FLOAT",
+          "widget": {
+            "name": "cfg"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "샘플러 이름",
+          "name": "sampler_name",
+          "type": "COMBO",
+          "widget": {
+            "name": "sampler_name"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "스케줄러",
+          "name": "scheduler",
+          "type": "COMBO",
+          "widget": {
+            "name": "scheduler"
+          },
+          "link": null
+        },
+        {
+          "label": "denoise(only i2i)",
+          "localized_name": "노이즈 제거양",
+          "name": "denoise",
+          "type": "FLOAT",
+          "widget": {
+            "name": "denoise"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "잠재 데이터",
+          "name": "LATENT",
+          "type": "LATENT",
+          "links": [
+            8
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "KSampler"
+      },
+      "widgets_values": [
+        138641164804756,
+        "randomize",
+        30,
+        5,
+        "euler",
+        "simple",
+        1
+      ]
+    },
+    {
+      "id": 7,
+      "type": "VAEDecode",
+      "pos": [
+        1870,
+        480
+      ],
+      "size": [
+        140,
+        50
+      ],
+      "flags": {},
+      "order": 7,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "잠재 데이터",
+          "name": "samples",
+          "type": "LATENT",
+          "link": 8
+        },
+        {
+          "localized_name": "vae",
+          "name": "vae",
+          "type": "VAE",
+          "link": 7
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "이미지",
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            9
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "VAEDecode"
+      },
+      "widgets_values": []
+    }
+  ],
+  "links": [
+    [
+      1,
+      1,
+      4,
+      3,
+      1,
+      "EASYUSE_ANIMA_REGIONAL_PROMPT_DATA"
+    ],
+    [
+      2,
+      2,
+      0,
+      3,
+      0,
+      "CLIP"
+    ],
+    [
+      4,
+      3,
+      0,
+      6,
+      1,
+      "CONDITIONING"
+    ],
+    [
+      5,
+      3,
+      1,
+      6,
+      2,
+      "CONDITIONING"
+    ],
+    [
+      6,
+      5,
+      0,
+      6,
+      0,
+      "MODEL"
+    ],
+    [
+      7,
+      4,
+      0,
+      7,
+      1,
+      "VAE"
+    ],
+    [
+      8,
+      6,
+      0,
+      7,
+      0,
+      "LATENT"
+    ],
+    [
+      9,
+      7,
+      0,
+      8,
+      0,
+      "IMAGE"
+    ],
+    [
+      10,
+      1,
+      2,
+      9,
+      0,
+      "INT"
+    ],
+    [
+      11,
+      1,
+      3,
+      9,
+      1,
+      "INT"
+    ],
+    [
+      12,
+      9,
+      0,
+      6,
+      3,
+      "LATENT"
+    ]
+  ],
+  "groups": [],
+  "config": {},
+  "extra": {
+    "ds": {
+      "scale": 1,
+      "offset": [
+        -370,
+        510
+      ]
+    },
+    "easyuse_anima_workflow": {
+      "workflow_id": "easyuse-anima-regional-prompt-ko",
+      "name": "EasyUse Anima Regional Prompt Example",
+      "language": "ko",
+      "kind": "regional-prompt-example-workflow",
+      "package": "comfyui-easyuse-anima",
+      "package_version": "0.2.0",
+      "registry_folder": "docs/example_workflows",
+      "release_filename": "EasyUse_Anima_regional_prompt_release_ko.json",
+      "release_suffix": "_release_ko",
+      "live_sync_policy": "overwrite release-suffixed copies only; never overwrite user-edited working filenames",
+      "scope": "regional-prompt-studio-two-mask-qwen-image-sample",
+      "source_image": "EasyUse_Anima_regional_prompt_release_ko.png"
+    }
+  },
+  "version": 0.4
+}

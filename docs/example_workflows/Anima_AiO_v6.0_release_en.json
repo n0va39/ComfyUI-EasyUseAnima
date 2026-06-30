@@ -680,7 +680,7 @@
           "links": null
         }
       ],
-      "title": "人数",
+      "title": "People Count",
       "properties": {
         "Node name for S&R": "ComfyMathExpression",
         "ue_properties": {
@@ -1804,7 +1804,7 @@
         }
       ],
       "outputs": [],
-      "title": "Upscale 完成",
+      "title": "Upscale FIN",
       "properties": {
         "comparer_mode": "Slide",
         "cnr_id": "rgthree-comfy",
@@ -3645,7 +3645,7 @@
       "mode": 0,
       "inputs": [],
       "outputs": [],
-      "title": "Anima LLLite インペイントガイド",
+      "title": "Anima LLLite Inpainting Guide",
       "properties": {
         "ue_properties": {
           "widget_ue_connectable": {},
@@ -3654,7 +3654,7 @@
         }
       },
       "widgets_values": [
-        "## 5. Inpainting / Anima LLLite\n\n- `PreviewBridge`: マスクを編集し、inpaint 経路へ渡します。リリース版ワークフローには一時 preview id を保存しません。\n- `lllite_name`: 推奨: `anima-lllite-inpainting-v1.safetensors`。\n- `strength`: Anima LLLite の強度です。`1.0` から始め、効果が強すぎる場合は下げます。\n- `start_percent` / `end_percent`: LLLite の適用範囲です。推奨: `0` / `1`。\n- `denoise`: マスク領域の再生成強度です。`1.0` は強い再生成で、保持したい場合は下げます。\n- `mod_w_profile`: Mod Guidance の上流既定値は `step_i8_skip27` です。崩れが出る場合は、より安全な `step_i14` と比較してください。\n- `seed`: inpaint 結果を再現するための基準シードです。\n\nNote: このセクションは `ComfyUI-Anima-LLLite` カスタムノードと controlnet モデルがないと実行できません。ComfyUI フロントエンドのバージョンによっては MaskEditor/PreviewBridge が console warning や 400/404 error を出す場合があります。その場合はマスクを再編集して再実行してください。\n"
+        "## 5. Inpainting / Anima LLLite\n\n- `PreviewBridge`: Edit the mask and pass it to the inpaint path. Release workflows do not store temporary preview ids.\n- `lllite_name`: Recommended: `anima-lllite-inpainting-v1.safetensors`.\n- `strength`: Anima LLLite strength. Start from `1.0`; lower it if the effect is too strong.\n- `start_percent` / `end_percent`: LLLite application range. Recommended: `0` / `1`.\n- `denoise`: Masked-area regeneration strength. `1.0` is strong regeneration; lower it when you need preservation.\n- `mod_w_profile`: Mod Guidance upstream default is `step_i8_skip27`. If drift appears, compare with the safer `step_i14`.\n- `seed`: Reproduction baseline for inpaint results.\n\nNote: This section cannot run without the `ComfyUI-Anima-LLLite` custom node and the controlnet model. MaskEditor/PreviewBridge can show console warnings or 400/404 errors depending on the ComfyUI frontend version. If that happens, edit the mask again and rerun.\n"
       ],
       "color": "#432",
       "bgcolor": "#000"
@@ -3800,7 +3800,7 @@
           "links": null
         }
       ],
-      "title": "人数",
+      "title": "People Count",
       "properties": {
         "Node name for S&R": "ComfyMathExpression",
         "ue_properties": {
@@ -3981,7 +3981,7 @@
       "mode": 0,
       "inputs": [],
       "outputs": [],
-      "title": "LoRA セクションガイド",
+      "title": "LoRA Section Guide",
       "properties": {
         "ue_properties": {
           "widget_ue_connectable": {},
@@ -3990,7 +3990,7 @@
         }
       },
       "widgets_values": [
-        "## LoRA\n\n- `lora_stack`: 実際に適用される LoRA 一覧です。プリセットのスタイルを再現したい場合は、共有されたプリセットのファイル名を合わせてください。\n- `strength`: LoRA の影響度です。高いほどスタイルが強くなり、ベースモデルの表現は弱くなります。\n- `trigger_words`: Prompt Studio に Trigger Words として渡されます。手動でプロンプトを編集する前にプリセットを確認してください。\n- `style_prompt`: Prompt Studio がスタイル/作者タグを組み立てるために使います。\n- `FIX`: 共有ワークフローでパスが異なる場合、ファイル名が一致すれば欠落した LoRA パスを修復します。\n\nNote: LoRA ファイルがない、またはパスが異なる場合、モデル読み込みではなく LoRA 適用ステップで失敗することがあります。\n"
+        "## LoRA\n\n- `lora_stack`: LoRAs that will actually be applied. To reproduce the preset style, match the shared preset filenames.\n- `strength`: LoRA influence. Higher values strengthen the style and reduce the base model expression.\n- `trigger_words`: Passed to Prompt Studio as Trigger Words. Check the preset first before editing prompts manually.\n- `style_prompt`: Used by Prompt Studio to assemble style/artist tags.\n- `FIX`: Repairs missing LoRA paths by filename when paths differ in a shared workflow.\n\nNote: If a LoRA file is missing or its path differs, failure can happen at the LoRA application step rather than model loading.\n"
       ],
       "color": "#432",
       "bgcolor": "#000"
@@ -4013,7 +4013,7 @@
       "mode": 0,
       "inputs": [],
       "outputs": [],
-      "title": "T2I セクションガイド",
+      "title": "T2I Section Guide",
       "properties": {
         "ue_properties": {
           "widget_ue_connectable": {},
@@ -4022,7 +4022,7 @@
         }
       },
       "widgets_values": [
-        "## T2I\n\n- `width` / `height`: 基本生成解像度です。まずリリース既定値で実行確認してから調整してください。\n- `Quality Tags`: Mod Guidance が有効な場合、positive prompt から分離され guidance 入力へ送られます。最初はリリース既定値を維持し、必要な場合だけ調整してください。\n- `use_anima_mod_guidance`: ANIMA guidance 用に品質タグを分離します。有効時は `Anima Mod Guidance` モデルパッチを使います。色や構図が固定されすぎる場合は OFF と比較してください。\n- `mod_w_profile`: 元の既定値は `step_i8_skip27` です。上流では全体品質が最も良い profile とされています。LoRA で人体崩れが出る場合は、より安全な `step_i14` を使ってください。`uniform_w3` は古い復旧用 mode で推奨しません。\n- Prompt field `enabled`: 無効なフィールドは最終プロンプトに含まれません。\n- Prompt field order: フィールドは上から下へ順に結合されます。\n\nNote: 大きい解像度、長いプロンプト、Mod Guidance はメモリ使用量と実行時間を増やします。エラーが出る場合は、まず既定解像度かつ Mod Guidance OFF で確認してください。\n"
+        "## T2I\n\n- `width` / `height`: Base generation resolution. First run the release defaults, then adjust.\n- `Quality Tags`: When Mod Guidance is enabled, these are separated from the positive prompt and sent to the guidance input. Keep the release defaults first, then tune only if needed.\n- `use_anima_mod_guidance`: Separates quality tags for ANIMA guidance. When enabled, it uses the `Anima Mod Guidance` model patch. If color or composition becomes too fixed, compare with OFF.\n- `mod_w_profile`: Original default is `step_i8_skip27`. Upstream describes it as the best overall quality profile. If a LoRA shows anatomy drift, use the safer `step_i14`. `uniform_w3` is a legacy recovery mode and is not recommended.\n- Prompt field `enabled`: Disabled fields are not included in the final prompt.\n- Prompt field order: fields are assembled from top to bottom.\n\nNote: Large resolutions, long prompts, and Mod Guidance increase memory use and runtime. If an error occurs, first test with the default resolution and Mod Guidance OFF.\n"
       ],
       "color": "#432",
       "bgcolor": "#000"
@@ -4045,7 +4045,7 @@
       "mode": 0,
       "inputs": [],
       "outputs": [],
-      "title": "I2I セクションガイド",
+      "title": "I2I Section Guide",
       "properties": {
         "ue_properties": {
           "widget_ue_connectable": {},
@@ -4054,7 +4054,7 @@
         }
       },
       "widgets_values": [
-        "## I2I\n\n- `LoadImage`: `example.png` を実際の入力画像に置き換えてください。\n- `width` / `height`: 入力画像を latent に変換するときの基準として使われます。\n- `megapixels`: 自動リサイズ上限です。高い値は細部を保持しやすい一方、VRAM 使用量が増えます。\n- `vae_name`: 入力画像の encode/decode に使います。モデル読み込みセクションの VAE と合わせてください。\n\nNote: T2I だけを使う場合でも、I2I 経路を有効にした状態で LoadImage が正しく設定されていないと即座に失敗します。\n"
+        "## I2I\n\n- `LoadImage`: Replace `example.png` with the actual input image.\n- `width` / `height`: Used as the reference when converting the input image to latent.\n- `megapixels`: Automatic resize limit. Higher values can preserve more detail but increase VRAM use.\n- `vae_name`: Used for input image encoding/decoding. Match it with the VAE in the model-load section.\n\nNote: Even if you use only T2I, the I2I path will fail immediately when enabled if LoadImage is not set correctly.\n"
       ],
       "color": "#432",
       "bgcolor": "#000"
@@ -4077,7 +4077,7 @@
       "mode": 0,
       "inputs": [],
       "outputs": [],
-      "title": "モデル読み込みガイド",
+      "title": "Model Load Guide",
       "properties": {
         "ue_properties": {
           "widget_ue_connectable": {},
@@ -4086,7 +4086,7 @@
         }
       },
       "widgets_values": [
-        "## 2. モデル読み込み\n\n- `unet_name`, `clip_name`, `vae_name`: ANIMA の中核モデルファイルです。まずリリースワークフローに指定されたファイル名をそのまま使ってください。\n- `steps_total` / `refiner_step`: 全体 sampling 長と後半 refinement の開始位置です。最初は既定値を維持してください。\n- `cfg`: プロンプト追従度です。`8` 付近から始めてください。高すぎると形が崩れることがあります。\n- `sampler_name` / `scheduler`: 推奨: `euler` / `simple`、またはセクション既定値。\n- `shift`: Qwen/Flow の timestep 補正です。最初は既定値を維持してください。\n\n### Anima DAVE 上流既定値\n\n- `strength`: 上流既定値 `0.30`。効果を軽くしたい場合は `0.20` から比較してください。\n- `tau`: 上流既定/推奨値 `0.10`。\n- `mask`: 上流既定 mask `dave_alpha.npz`。\n\n### KJNodes Optimization 上流既定値\n\n- `TorchCompileModelAdvanced`: `backend=inductor`, `mode=default`, `fullgraph=False`, `dynamic=auto`, `compile_transformer_blocks_only=True`, `dynamo_cache_size_limit=64`, `disable_dynamic_vram=False`。\n- `PathchSageAttentionKJ`: 既定値は `sage_attention=disabled`, `allow_compile=False` です。SageAttention ライブラリがインストール済みの場合だけ有効化してください。\n- SageAttention install: ComfyUI と同じ Python で `python -m pip install sageattention` を実行し、その後 ComfyUI を再起動してください。Windows portable では embedded Python で同じコマンドを実行します。`sageattn3` オプションは別途対応 GPU/package が必要な場合があります。\n- `enable_fp16_accumulation`: 上流既定値は OFF です。インストール済み PyTorch/CUDA stack が対応していない場合はエラーになることがあります。\n\nNote: `torch compile`, `fullgraph`, `dynamic`, `SageAttention`, `fp16 accumulation`, `disable_dynamic_vram` は GPU、CUDA、PyTorch、SageAttention のインストール状態に依存します。install/import エラーが出る場合は SageAttention/compile/fp16 options を無効化し、まず基本経路を確認してください。\n"
+        "## 2. Model Load\n\n- `unet_name`, `clip_name`, `vae_name`: Core ANIMA model files. Use the filenames provided in the release workflow first.\n- `steps_total` / `refiner_step`: Total sampling length and late-stage refinement start. Keep the defaults first.\n- `cfg`: Prompt adherence. Start near `8`; too high can break forms.\n- `sampler_name` / `scheduler`: Recommended: `euler` / `simple`, or the section default.\n- `shift`: Qwen/Flow timestep correction. Keep the default first.\n\n### Anima DAVE Upstream Defaults\n\n- `strength`: Upstream default `0.30`. For a lighter effect, compare from `0.20`.\n- `tau`: Upstream default/recommended value `0.10`.\n- `mask`: Upstream default mask `dave_alpha.npz`.\n\n### KJNodes Optimization Upstream Defaults\n\n- `TorchCompileModelAdvanced`: `backend=inductor`, `mode=default`, `fullgraph=False`, `dynamic=auto`, `compile_transformer_blocks_only=True`, `dynamo_cache_size_limit=64`, `disable_dynamic_vram=False`.\n- `PathchSageAttentionKJ`: default is `sage_attention=disabled`, `allow_compile=False`. Enable it only when the SageAttention library is installed.\n- SageAttention install: run `python -m pip install sageattention` with the same Python used by ComfyUI, then restart ComfyUI. For Windows portable, run the same command with embedded Python. `sageattn3` options may require a separately supported GPU/package.\n- `enable_fp16_accumulation`: upstream default is OFF. It can error if the installed PyTorch/CUDA stack does not support it.\n\nNote: `torch compile`, `fullgraph`, `dynamic`, `SageAttention`, `fp16 accumulation`, and `disable_dynamic_vram` depend on GPU, CUDA, PyTorch, and SageAttention installation state. If install/import errors occur, disable SageAttention/compile/fp16 options and verify the base path first.\n"
       ],
       "color": "#432",
       "bgcolor": "#000"
@@ -4109,7 +4109,7 @@
       "mode": 0,
       "inputs": [],
       "outputs": [],
-      "title": "ANIMA 生成ガイド",
+      "title": "ANIMA Generation Guide",
       "properties": {
         "ue_properties": {
           "widget_ue_connectable": {},
@@ -4118,7 +4118,7 @@
         }
       },
       "widgets_values": [
-        "## 3. ANIMA 生成\n\n### ComfyUI-DCW 上流既定値 / 開始点\n\n- `dcw_enabled`: 上流既定値 ON。\n- `lambda_l`: 上流既定値 `0.05`。tooltip の開始範囲は DDPM/EDM `0.04-0.07`; Flux/Flow は約 2x です。\n- `lambda_h`: 上流既定値 `0.01`。tooltip の開始範囲は DDPM/EDM `0.008-0.015`; Flux/Flow は約 2x です。\n- `cwm_enabled`: 上流既定値 ON。\n- `alpha_l` / `alpha_h`: 上流既定値 `0.0` / `0.0`。CWM 調整時の開始候補は `alpha_l 0.1-0.3`, `alpha_h 0.1-0.2` です。強すぎると過度な sharpening や構図制約が起きます。\n- `smc_preset`: 上流既定値 `Off`。`Auto` はモデルファミリーを検出して paper defaults を適用します。`Custom` だけが `smc_lambda` / `smc_k` を使います。\n- `smc_lambda` / `smc_k`: 上流既定値 `6.0` / `0.1`。上流 tooltip は lambda `2-8` を推奨します。\n\n### DiT Spectrum Patch 上流既定値 / 調整\n\n- `enabled`: 上流既定値 ON。\n- `window_size`: 上流既定値 `2.0`。\n- `flex_window`: 上流既定値 `0.25`。速度優先なら上げ、品質優先なら下げます。\n- `warmup_steps`: 上流既定値 `6`。これを増やすのが上流の品質優先 tuning tip です。\n- `tail_actual_steps`: 上流既定値 `3`。\n- `blend_w`: 上流既定値 `0.3`。強めの高速化例: `flex_window=1.0`, `blend_w=0.7`。\n- `cheby_degree` / `ridge_lambda`: 上流既定値 `3` / `0.1`。\n- `history_size`: 上流既定値 `100`。\n\nNote: DCW, CWM, SMC, Spectrum はカスタムノードのバージョンと GPU 環境に依存します。失敗する場合は `Spectrum OFF -> SMC Off -> CWM OFF -> DCW OFF` の順に切り分けてください。\n"
+        "## 3. ANIMA Generation\n\n### ComfyUI-DCW Upstream Defaults / Starting Points\n\n- `dcw_enabled`: upstream default ON.\n- `lambda_l`: upstream default `0.05`. Tooltip starting range is DDPM/EDM `0.04-0.07`; Flux/Flow is about 2x.\n- `lambda_h`: upstream default `0.01`. Tooltip starting range is DDPM/EDM `0.008-0.015`; Flux/Flow is about 2x.\n- `cwm_enabled`: upstream default ON.\n- `alpha_l` / `alpha_h`: upstream defaults `0.0` / `0.0`. When tuning CWM, suggested starts are `alpha_l 0.1-0.3`, `alpha_h 0.1-0.2`. Too much can over-sharpen or over-constrain composition.\n- `smc_preset`: upstream default `Off`. `Auto` detects the model family and applies paper defaults. `Custom` is the only mode that uses `smc_lambda` / `smc_k`.\n- `smc_lambda` / `smc_k`: upstream defaults `6.0` / `0.1`. The upstream tooltip recommends lambda in `2-8`.\n\n### DiT Spectrum Patch Upstream Defaults / Tuning\n\n- `enabled`: upstream default ON.\n- `window_size`: upstream default `2.0`.\n- `flex_window`: upstream default `0.25`. Increase for speed, decrease for quality.\n- `warmup_steps`: upstream default `6`. Increasing this is the upstream quality-first tuning tip.\n- `tail_actual_steps`: upstream default `3`.\n- `blend_w`: upstream default `0.3`. Aggressive acceleration example: `flex_window=1.0`, `blend_w=0.7`.\n- `cheby_degree` / `ridge_lambda`: upstream defaults `3` / `0.1`.\n- `history_size`: upstream default `100`.\n\nNote: DCW, CWM, SMC, and Spectrum depend on custom-node versions and GPU environment. If a failure occurs, isolate in this order: `Spectrum OFF -> SMC Off -> CWM OFF -> DCW OFF`.\n"
       ],
       "color": "#432",
       "bgcolor": "#000"
@@ -4141,7 +4141,7 @@
       "mode": 0,
       "inputs": [],
       "outputs": [],
-      "title": "HighRes ガイド",
+      "title": "HighRes Guide",
       "properties": {
         "ue_properties": {
           "widget_ue_connectable": {},
@@ -4150,7 +4150,7 @@
         }
       },
       "widgets_values": [
-        "## 4. HighRes\n\n- `switch`: HighRes を有効化します。推奨: 基本生成を確認してから ON にしてください。\n- `denoise`: 再生成強度です。低い値から始めてください。高い値は構図を変えることがあります。\n- `scale_by`: 解像度倍率です。VRAM に合わせて少しずつ上げてください。\n- DCW / CWM / SMC / Spectrum の詳細は `3. ANIMA 生成` ガイドに従ってください。\n\nNote: HighRes は特に VRAM を消費するセクションです。エラーが出る場合は `scale_by` を下げ、Spectrum/DCW を無効化して再試行してください。\n"
+        "## 4. HighRes\n\n- `switch`: Enables HighRes. Recommended: turn it ON after confirming base generation.\n- `denoise`: Regeneration strength. Start low; higher values can change composition.\n- `scale_by`: Resolution multiplier. Increase gradually according to VRAM.\n- DCW / CWM / SMC / Spectrum details follow the `3. ANIMA Generation` guide.\n\nNote: HighRes is one of the most VRAM-heavy sections. If an error occurs, lower `scale_by` and retry with Spectrum/DCW disabled.\n"
       ],
       "color": "#432",
       "bgcolor": "#000"
@@ -4173,7 +4173,7 @@
       "mode": 0,
       "inputs": [],
       "outputs": [],
-      "title": "顔ディテイラーガイド",
+      "title": "Face Detailer Guide",
       "properties": {
         "ue_properties": {
           "widget_ue_connectable": {},
@@ -4182,7 +4182,7 @@
         }
       },
       "widgets_values": [
-        "## 6.1 顔ディテイラー\n\n- `switch`: 顔ディテイラーを有効化します。推奨: 基本生成を確認してから ON にしてください。\n- `SAM3 threshold`: 顔検出感度です。まず既定値を維持し、検出漏れがあれば下げ、誤検出があれば上げてください。\n- `refine_iterations`: マスク refinement 回数です。まず既定値を維持してください。\n- `SEGS_crop_factor`: 顔 crop 範囲です。推奨: `4`。\n- `bbox_fill`: Bounding-box fill です。推奨: OFF。\n- `drop_size`: 小さい検出を除去します。推奨: `100`。\n- `contour_fill`: Contour fill です。推奨: ON。\n- `guide_size` / `max_size`: 推奨 `1024` / `2048`。\n- `denoise`: 顔の再生成強度です。推奨: `0.33`。\n- `feather`: 境界の柔らかさです。推奨: `5`。\n- DCW / CWM / SMC / Spectrum の詳細は `3. ANIMA 生成` ガイドに従ってください。\n\nNote: SAM3, Impact Pack, DCW/Spectrum options はインストール済みバージョンと VRAM に依存します。実行に失敗する場合は、preview disabled, Spectrum OFF, DCW OFF の順に確認してください。\n"
+        "## 6.1 Face Detailer\n\n- `switch`: Enables the face detailer. Recommended: turn it ON after confirming base generation.\n- `SAM3 threshold`: Face detection sensitivity. Keep the default first; lower it for missed faces and raise it for false positives.\n- `refine_iterations`: Mask refinement iterations. Keep the default first.\n- `SEGS_crop_factor`: Face crop range. Recommended: `4`.\n- `bbox_fill`: Bounding-box fill. Recommended: OFF.\n- `drop_size`: Removes small detections. Recommended: `100`.\n- `contour_fill`: Contour fill. Recommended: ON.\n- `guide_size` / `max_size`: Recommended `1024` / `2048`.\n- `denoise`: Face regeneration strength. Recommended: `0.33`.\n- `feather`: Edge softness. Recommended: `5`.\n- DCW / CWM / SMC / Spectrum details follow the `3. ANIMA Generation` guide.\n\nNote: SAM3, Impact Pack, and DCW/Spectrum options depend on installed versions and VRAM. If execution fails, check in this order: keep preview disabled, Spectrum OFF, DCW OFF.\n"
       ],
       "color": "#432",
       "bgcolor": "#000"
@@ -4205,7 +4205,7 @@
       "mode": 0,
       "inputs": [],
       "outputs": [],
-      "title": "目ディテイラーガイド",
+      "title": "Eye Detailer Guide",
       "properties": {
         "ue_properties": {
           "widget_ue_connectable": {},
@@ -4214,7 +4214,7 @@
         }
       },
       "widgets_values": [
-        "## 6.2 目ディテイラー\n\n- 顔ディテイラーと同じ構造ですが、より狭い目の領域を処理します。\n- `SAM3 threshold`: 目の検出感度です。まず既定値を維持してください。\n- `SEGS_crop_factor`: 目周辺の crop 範囲です。推奨: `6`。\n- `bbox_fill`: 推奨 OFF。\n- `drop_size`: 小さい誤検出を除去します。推奨: `40`。\n- `contour_fill`: 推奨 ON。\n- `guide_size` / `max_size`: 推奨 `1024` / `2048`。\n- `denoise`: 目の再生成強度です。推奨: `0.29`。\n- `feather`: 推奨 `6`。\n- DCW / CWM / SMC / Spectrum の詳細は `3. ANIMA 生成` ガイドに従ってください。\n\nNote: これは 6.1 の後に実行されます。エラーを切り分ける場合は、顔ディテイラーと目ディテイラーを別々に有効化してください。\n"
+        "## 6.2 Eye Detailer\n\n- Same structure as the face detailer, but it handles a narrower eye region.\n- `SAM3 threshold`: Eye detection sensitivity. Keep the default first.\n- `SEGS_crop_factor`: Crop range around the eyes. Recommended: `6`.\n- `bbox_fill`: Recommended OFF.\n- `drop_size`: Removes small false detections. Recommended: `40`.\n- `contour_fill`: Recommended ON.\n- `guide_size` / `max_size`: Recommended `1024` / `2048`.\n- `denoise`: Eye regeneration strength. Recommended: `0.29`.\n- `feather`: Recommended `6`.\n- DCW / CWM / SMC / Spectrum details follow the `3. ANIMA Generation` guide.\n\nNote: This runs after 6.1. For error isolation, enable the face detailer and eye detailer separately.\n"
       ],
       "color": "#432",
       "bgcolor": "#000"
@@ -4237,7 +4237,7 @@
       "mode": 0,
       "inputs": [],
       "outputs": [],
-      "title": "Upscale ガイド",
+      "title": "Upscale Guide",
       "properties": {
         "ue_properties": {
           "widget_ue_connectable": {},
@@ -4246,7 +4246,7 @@
         }
       },
       "widgets_values": [
-        "## 7. Upscale\n\n- `switch`: アップスケールを有効化します。推奨: 保存経路を確認してから ON にしてください。\n- `upscale model`: 推奨: `2x-AnimeSharpV4_Fast_RCAN_PU.safetensors`。\n- `upscale_by`: 推奨: `2`。\n- `steps` / `cfg`: 推奨 `15` / `8`。\n- `sampler` / `scheduler`: 推奨 `euler` / `sgm_uniform`。\n- `denoise`: 推奨 `0.11`。\n- `mode_type`: 推奨 `Chess`。\n- `tile_width` / `tile_height`: 推奨 `512` / `512`。\n- `mask_blur`: 推奨 `8`。\n- `tile_padding`: 推奨 `128`。VRAM が不足する場合は下げてください。\n- DCW / CWM / SMC / Spectrum の詳細は `3. ANIMA 生成` ガイドに従ってください。\n\nNote: upscale model の欠落、大きい解像度、高い `tile_padding` はエラーや VRAM 不足の一般的な原因です。エラーが出る場合は、このセクションを OFF にするか tile size/padding を下げてください。\n"
+        "## 7. Upscale\n\n- `switch`: Enables upscaling. Recommended: turn it ON after confirming the save path.\n- `upscale model`: Recommended: `2x-AnimeSharpV4_Fast_RCAN_PU.safetensors`.\n- `upscale_by`: Recommended: `2`.\n- `steps` / `cfg`: Recommended `15` / `8`.\n- `sampler` / `scheduler`: Recommended `euler` / `sgm_uniform`.\n- `denoise`: Recommended `0.11`.\n- `mode_type`: Recommended `Chess`.\n- `tile_width` / `tile_height`: Recommended `512` / `512`.\n- `mask_blur`: Recommended `8`.\n- `tile_padding`: Recommended `128`. Lower it if VRAM is insufficient.\n- DCW / CWM / SMC / Spectrum details follow the `3. ANIMA Generation` guide.\n\nNote: Missing upscale model, large resolution, and high `tile_padding` are common causes of errors or VRAM exhaustion. If an error occurs, switch this section OFF or lower tile size/padding.\n"
       ],
       "color": "#432",
       "bgcolor": "#000"
@@ -4269,7 +4269,7 @@
       "mode": 0,
       "inputs": [],
       "outputs": [],
-      "title": "画像保存ガイド",
+      "title": "Image Save Guide",
       "properties": {
         "ue_properties": {
           "widget_ue_connectable": {},
@@ -4278,7 +4278,7 @@
         }
       },
       "widgets_values": [
-        "## 8. 画像保存\n\n- `filename_prefix`: 保存ファイル名の規則です。`%time`、モデル名、スタイル名、その他フィールドを組み合わせられます。\n- `output folder`: 結果の保存先です。\n- `format`: リリース既定値は webp です。互換性が重要な場合は png に切り替えてください。\n- `quality` / `compression`: webp または png の出力品質とファイルサイズに影響します。\n- `metadata`: プロンプト、モデル、LoRA 情報を画像に書き込みます。\n- Preview nodes は保存前に最終画像を確認するためのものです。\n\nNote: フォルダ権限、無効なファイル名文字、画像形式サポートが原因で保存に失敗することがあります。\n"
+        "## 8. Image Save\n\n- `filename_prefix`: Save filename rule. You can combine `%time`, model name, style name, and other fields.\n- `output folder`: Result save location.\n- `format`: Release default is webp. Switch to png when compatibility matters.\n- `quality` / `compression`: Affects webp or png output quality and file size.\n- `metadata`: Writes prompt, model, and LoRA information into the image.\n- Preview nodes are for checking the final image before saving.\n\nNote: Saving can fail due to folder permissions, invalid filename characters, or image-format support.\n"
       ],
       "color": "#432",
       "bgcolor": "#000"
@@ -4301,7 +4301,7 @@
       "mode": 0,
       "inputs": [],
       "outputs": [],
-      "title": "メタデータガイド",
+      "title": "Metadata Guide",
       "properties": {
         "ue_properties": {
           "widget_ue_connectable": {},
@@ -4310,7 +4310,7 @@
         }
       },
       "widgets_values": [
-        "## 8.1 メタデータ\n\n- `Civitai Hash Fetcher`: Civitai モデル識別情報とワークフロー名を metadata に書き込みます。\n- Civitai 登録ルール: `model_name` は `Anima All in One workflow` のまま固定し、`version` だけを `v6.0_ja` として管理してください。\n- `metadata_prompt` / `metadata_negative_prompt`: 画像 metadata に保存される最終プロンプトです。\n- `LoRA Stack to String`: 使用した LoRA 一覧を文字列へ変換します。\n- `sampler` / `scheduler`: 再現に必要な sampling 情報を記録します。\n- `GetImageSize`: 最終画像サイズを metadata に含めます。\n\nNote: Civitai/hash 関連ノードはモデルファイルへのアクセスや拡張機能のバージョンに依存することがあります。保存が目的の場合、このセクションのエラーと画像保存エラーを分けて確認してください。\n"
+        "## 8.1 Metadata\n\n- `Civitai Hash Fetcher`: Writes Civitai model identification and workflow name into metadata.\n- Civitai registration rule: keep `model_name` fixed as `Anima All in One workflow`, and manage only `version` as `v6.0_en`.\n- `metadata_prompt` / `metadata_negative_prompt`: Final prompt text stored in the image metadata.\n- `LoRA Stack to String`: Converts the used LoRA list into a string.\n- `sampler` / `scheduler`: Records sampling information needed for reproduction.\n- `GetImageSize`: Includes final image size in metadata.\n\nNote: Civitai/hash-related nodes can depend on model file access and extension versions. If saving is the goal, separate errors in this section from image-save errors.\n"
       ],
       "color": "#432",
       "bgcolor": "#000"
@@ -4333,7 +4333,7 @@
       "mode": 0,
       "inputs": [],
       "outputs": [],
-      "title": "ワークフロー概要",
+      "title": "Workflow Overview",
       "properties": {
         "ue_properties": {
           "widget_ue_connectable": {},
@@ -4342,7 +4342,7 @@
         }
       },
       "widgets_values": [
-        "## ワークフロー概要\n\n各セクション上部のガイドノードを先に読み、必要な部分だけを有効化してください。\n\n1. `LoRA` でスタイル LoRA プリセットと trigger/style prompt を準備します。\n2. 入力経路として `T2I` または `I2I` のどちらかを使います。\n3. `2. モデル読み込み` と `3. ANIMA 生成` が基本生成経路です。\n4. 必要な場合だけ `HighRes`, `Inpainting`, `Face/Eye Detailer`, `Upscale` を有効化します。\n5. `Image Save` と `Metadata` で最終画像と再現用 metadata を保存します。\n\n### エラーが出やすい領域\n\n- 最適化オプション: `torch compile`, `SageAttention`, `fp16 accumulation`\n- カスタムノード依存セクション: `DCW`, `Spectrum`, `SAM3`, `Impact Pack`, `Anima LLLite`\n- セッション状態依存セクション: `PreviewBridge`, mask editor, temporary preview images\n\nエラーが出る場合は、まず該当セクションの switch や環境依存オプションを無効化し、基本経路が実行できることを確認してください。\n"
+        "## Workflow Overview\n\nRead the guide node at the top of each section first, then enable only the parts you need.\n\n1. Prepare the style LoRA preset and trigger/style prompt in `LoRA`.\n2. Use either `T2I` or `I2I` as the input path.\n3. `2. Model Load` and `3. ANIMA Generation` are the base generation path.\n4. Enable `HighRes`, `Inpainting`, `Face/Eye Detailer`, and `Upscale` only when needed.\n5. Save the final image and reproduction metadata in `Image Save` and `Metadata`.\n\n### Error-prone Areas\n\n- Optimization options: `torch compile`, `SageAttention`, `fp16 accumulation`\n- Custom-node dependent sections: `DCW`, `Spectrum`, `SAM3`, `Impact Pack`, `Anima LLLite`\n- Session-state dependent sections: `PreviewBridge`, mask editor, temporary preview images\n\nIf an error occurs, first disable the section switch or environment-dependent option and confirm that the base path runs.\n"
       ],
       "color": "#432",
       "bgcolor": "#000"
@@ -4365,7 +4365,7 @@
       "mode": 0,
       "inputs": [],
       "outputs": [],
-      "title": "必要モデル / ダウンロードリンク",
+      "title": "Required Models / Download Links",
       "properties": {
         "ue_properties": {
           "widget_ue_connectable": {},
@@ -4374,7 +4374,7 @@
         }
       },
       "widgets_values": [
-        "## 必要モデル / ダウンロードリンク\n\n使用するセクションに合わせて、次のファイルを対応する ComfyUI model フォルダへ配置してください。\n\n### Core ANIMA\n\n- [qwen_3_06b_base.safetensors](https://huggingface.co/circlestone-labs/Anima/resolve/main/split_files/text_encoders/qwen_3_06b_base.safetensors?download=true)\n- [anima-base-v1.0.safetensors](https://huggingface.co/circlestone-labs/Anima/resolve/main/split_files/diffusion_models/anima-base-v1.0.safetensors)\n- [qwen_image_vae.safetensors](https://huggingface.co/circlestone-labs/Anima/resolve/main/split_files/vae/qwen_image_vae.safetensors?download=true)\n\n### Optional / Section Models\n\n- Utility LoRA: [Cosmos-Predict2.5-2B-base-distilled-LoRA.safetensors](https://huggingface.co/hanzogak/Anima-Comradeship/resolve/main/LoRA/Cosmos-Predict2.5-2B-base-distilled-LoRA.safetensors?download=true)\n- Inpainting: [anima-lllite-inpainting-v1.safetensors](https://huggingface.co/kohya-ss/Anima-LLLite/resolve/main/anima-lllite-inpainting-v1.safetensors)\n- Upscale: [2x-AnimeSharpV4_Fast_RCAN_PU.safetensors](https://huggingface.co/Kim2091/2x-AnimeSharpV4/resolve/main/2x-AnimeSharpV4_Fast_RCAN_PU.safetensors?download=true)\n\n### 手動インストールが必要な場合があるカスタムノード\n\nComfyUI Manager / Registry の自動インストールで依存関係が漏れる場合は、repository を手動でインストールして ComfyUI を再起動してください。\n\n- [ComfyUI-Anima-DAVE](https://github.com/sorryhyun/ComfyUI-Anima-DAVE)\n- [ComfyUI-Anima-LLLite](https://github.com/kohya-ss/ComfyUI-Anima-LLLite)\n- [ComfyUI-DCW](https://github.com/namemechan/ComfyUI-DCW)\n- [ComfyUI-Spectrum-KSampler](https://github.com/sorryhyun/ComfyUI-Spectrum-KSampler)\n- [ComfyUI-Spectrum-sdxl](https://github.com/ruwwww/ComfyUI-Spectrum-sdxl)\n\n### 配置場所\n\n```text\nComfyUI/\n└── models/\n    ├── text_encoders/\n    │   └── qwen_3_06b_base.safetensors\n    ├── diffusion_models/\n    │   └── anima-base-v1.0.safetensors\n    ├── vae/\n    │   └── qwen_image_vae.safetensors\n    ├── loras/\n    │   └── Cosmos-Predict2.5-2B-base-distilled-LoRA.safetensors\n    ├── controlnet/\n    │   └── anima-lllite-inpainting-v1.safetensors\n    └── upscale_models/\n        └── 2x-AnimeSharpV4_Fast_RCAN_PU.safetensors\n```\n"
+        "## Required Models / Download Links\n\nPlace the following files in the matching ComfyUI model folders for the sections you use.\n\n### Core ANIMA\n\n- [qwen_3_06b_base.safetensors](https://huggingface.co/circlestone-labs/Anima/resolve/main/split_files/text_encoders/qwen_3_06b_base.safetensors?download=true)\n- [anima-base-v1.0.safetensors](https://huggingface.co/circlestone-labs/Anima/resolve/main/split_files/diffusion_models/anima-base-v1.0.safetensors)\n- [qwen_image_vae.safetensors](https://huggingface.co/circlestone-labs/Anima/resolve/main/split_files/vae/qwen_image_vae.safetensors?download=true)\n\n### Optional / Section Models\n\n- Utility LoRA: [Cosmos-Predict2.5-2B-base-distilled-LoRA.safetensors](https://huggingface.co/hanzogak/Anima-Comradeship/resolve/main/LoRA/Cosmos-Predict2.5-2B-base-distilled-LoRA.safetensors?download=true)\n- Inpainting: [anima-lllite-inpainting-v1.safetensors](https://huggingface.co/kohya-ss/Anima-LLLite/resolve/main/anima-lllite-inpainting-v1.safetensors)\n- Upscale: [2x-AnimeSharpV4_Fast_RCAN_PU.safetensors](https://huggingface.co/Kim2091/2x-AnimeSharpV4/resolve/main/2x-AnimeSharpV4_Fast_RCAN_PU.safetensors?download=true)\n\n### Custom Nodes That May Need Manual Install\n\nIf ComfyUI Manager / Registry automatic installation misses a dependency, install the repository manually and restart ComfyUI.\n\n- [ComfyUI-Anima-DAVE](https://github.com/sorryhyun/ComfyUI-Anima-DAVE)\n- [ComfyUI-Anima-LLLite](https://github.com/kohya-ss/ComfyUI-Anima-LLLite)\n- [ComfyUI-DCW](https://github.com/namemechan/ComfyUI-DCW)\n- [ComfyUI-Spectrum-KSampler](https://github.com/sorryhyun/ComfyUI-Spectrum-KSampler)\n- [ComfyUI-Spectrum-sdxl](https://github.com/ruwwww/ComfyUI-Spectrum-sdxl)\n\n### Storage Location\n\n```text\n📂 ComfyUI/\n└── 📂 models/\n    ├── 📂 text_encoders/\n    │   └── qwen_3_06b_base.safetensors\n    ├── 📂 diffusion_models/\n    │   └── anima-base-v1.0.safetensors\n    ├── 📂 vae/\n    │   └── qwen_image_vae.safetensors\n    ├── 📂 loras/\n    │   └── Cosmos-Predict2.5-2B-base-distilled-LoRA.safetensors\n    ├── 📂 controlnet/\n    │   └── anima-lllite-inpainting-v1.safetensors\n    └── 📂 upscale_models/\n        └── 2x-AnimeSharpV4_Fast_RCAN_PU.safetensors\n```\n"
       ],
       "color": "#432",
       "bgcolor": "#000"
@@ -4564,7 +4564,7 @@
       "mode": 0,
       "inputs": [],
       "outputs": [],
-      "title": "プリセット LoRA / Civitai リンク",
+      "title": "Preset LoRA / Civitai Links",
       "properties": {
         "ue_properties": {
           "widget_ue_connectable": {},
@@ -4573,7 +4573,7 @@
         }
       },
       "widgets_values": [
-        "## プリセット LoRA / Civitai リンク\n\nこれらの LoRA は必須の core model ではありません。リリースプリセットのスタイルを再現するために含めています。\n\n### LoRA Manager ダウンロードガイド\n\n1. ComfyUI で `LoRA Manager` を開いて Civitai を検索するか、下のリンクを開きます。\n2. ダウンロード先は任意の `loras` フォルダを使えます。\n3. `Anima LoRA Preset` の `FIX` は、ファイル名が一致する場合だけパスを修復できます。\n4. ダウンロード後、LoRA Manager で scan/refresh metadata を実行してください。\n\n### LoRA 一覧\n\n- [anima_ch9nb1n_v2.1-epoch36](https://civitai.com/models/2653156?modelVersionId=3006073) - `anima_ch9nb1n_v2.1-epoch36.safetensors` (N0VA39 / v2.1)\n- [anima_ci10ranko_v2.0-epoch36](https://civitai.com/models/2647381?modelVersionId=3025710) - `anima_ci10ranko_v2.0-epoch36.safetensors` (N0VA39 / v2.0)\n- [anima_fr8t_v2.0-epoch40](https://civitai.com/models/2629664?modelVersionId=3009307) - `anima_fr8t_v2.0-epoch40.safetensors` (N0VA39 / fr8t_v2.0)\n- [anima_fun91_v1.0-epoch24](https://civitai.com/models/2665850?modelVersionId=2993462) - `anima_fun91_v1.0-epoch24.safetensors` (N0VA39 / v1.0)\n- [anima_4rkj4ck_v1.0-epoch26](https://civitai.com/models/2654451?modelVersionId=2980626) - `anima_4rkj4ck_v1.0-epoch26.safetensors` (N0VA39 / v1.0)\n- [anima_k4nz4r1n_v1.3-epoch36](https://civitai.com/models/2670070?modelVersionId=2998155) - `anima_k4nz4r1n_v1.3-epoch36.safetensors` (N0VA39 / v1.3)\n- [anima_tu2h4te_v1.0-epoch40](https://civitai.com/models/2687055?modelVersionId=3017061) - `anima_tu2h4te_v1.0-epoch40.safetensors` (N0VA39 / v1.0)\n- [anima_m4ch1_v1.0-epoch16](https://civitai.com/models/2687040?modelVersionId=3017044) - `anima_m4ch1_v1.0-epoch16.safetensors` (N0VA39 / v1.0)\n- [anima_p0t7s_v1.1-epoch16](https://civitai.com/models/2645194?modelVersionId=2970110) - `anima_p0t7s_v1.1-epoch16.safetensors` (N0VA39 / v1.1)\n- [anima_m4me_v2.1-epoch20](https://civitai.com/models/2632362?modelVersionId=2993488) - `anima_m4me_v2.1-epoch20.safetensors` (N0VA39 / v2.1)\n- [anima_p4t1s1y_v2.2-epoch36](https://civitai.com/models/2634510?modelVersionId=2998131) - `anima_p4t1s1y_v2.2-epoch36.safetensors` (N0VA39 / v2.2)\n- [anima_qr4k_v2.0-epoch24](https://civitai.com/models/2629664?modelVersionId=3009319) - `anima_qr4k_v2.0-epoch24.safetensors` (N0VA39 / qr4k_v2.0)\n- [anima_fr9t_v2.1-epoch20](https://civitai.com/models/2629664?modelVersionId=3009315) - `anima_fr9t_v2.1-epoch20.safetensors` (N0VA39 / fr9t_v2.1)\n- [ogipote-NL](https://civitai.com/models/2529695?modelVersionId=2957262) - `ogipote-NL.safetensors` (ACatStick / NLTrained-base1.0)\n- [anima_ru60d_v1.0-epoch24](https://civitai.com/models/2634525?modelVersionId=2957967) - `anima_ru60d_v1.0-epoch24.safetensors` (N0VA39 / v1.0)\n- [anima_my8t_v1.1-epoch24](https://civitai.com/models/2632467?modelVersionId=2955652) - `anima_my8t_v1.1-epoch24.safetensors` (N0VA39 / v1.0)\n- [anima_k1m2b_v1.0-epoch24](https://civitai.com/models/2665838?modelVersionId=2993438) - `anima_k1m2b_v1.0-epoch24.safetensors` (N0VA39 / v1.0)\n- [anima_m1s0nye0_v1.0-epoch80](https://civitai.com/models/2691843?modelVersionId=3022455) - `anima_m1s0nye0_v1.0-epoch80.safetensors` (N0VA39 / v1.0)\n- [yzsss_anima1.0_v0.2](https://civitai.com/models/2423253?modelVersionId=2972473) - `yzsss_anima1.0_v0.2.safetensors` (BlueQ_ / v1.0)\n- [anima_mi1k_v1.3-epoch16](https://civitai.com/models/2624534?modelVersionId=2973605) - `anima_mi1k_v1.3-epoch16.safetensors` (N0VA39 / v1.3)\n- [anima_kn0r_v1.0-epoch26](https://civitai.com/models/2645212?modelVersionId=2970129) - `anima_kn0r_v1.0-epoch26.safetensors` (N0VA39 / v1.0)\n- [anima_mik4p1_v1.0-epoch20](https://civitai.com/models/2650086?modelVersionId=2975681) - `anima_mik4p1_v1.0-epoch20.safetensors` (N0VA39 / v1.0)\n"
+        "## Preset LoRA / Civitai Links\n\nThese LoRAs are not required core models. They are included to reproduce the style of the release preset.\n\n### LoRA Manager Download Guide\n\n1. Open `LoRA Manager` in ComfyUI and search Civitai, or open the links below.\n2. You may use any preferred `loras` folder as the download location.\n3. `Anima LoRA Preset` `FIX` can repair paths only when the filename matches.\n4. After downloading, run scan/refresh metadata in LoRA Manager.\n\n### LoRA List\n\n- [anima_ch9nb1n_v2.1-epoch36](https://civitai.com/models/2653156?modelVersionId=3006073) - `anima_ch9nb1n_v2.1-epoch36.safetensors` (N0VA39 / v2.1)\n- [anima_ci10ranko_v2.0-epoch36](https://civitai.com/models/2647381?modelVersionId=3025710) - `anima_ci10ranko_v2.0-epoch36.safetensors` (N0VA39 / v2.0)\n- [anima_fr8t_v2.0-epoch40](https://civitai.com/models/2629664?modelVersionId=3009307) - `anima_fr8t_v2.0-epoch40.safetensors` (N0VA39 / fr8t_v2.0)\n- [anima_fun91_v1.0-epoch24](https://civitai.com/models/2665850?modelVersionId=2993462) - `anima_fun91_v1.0-epoch24.safetensors` (N0VA39 / v1.0)\n- [anima_4rkj4ck_v1.0-epoch26](https://civitai.com/models/2654451?modelVersionId=2980626) - `anima_4rkj4ck_v1.0-epoch26.safetensors` (N0VA39 / v1.0)\n- [anima_k4nz4r1n_v1.3-epoch36](https://civitai.com/models/2670070?modelVersionId=2998155) - `anima_k4nz4r1n_v1.3-epoch36.safetensors` (N0VA39 / v1.3)\n- [anima_tu2h4te_v1.0-epoch40](https://civitai.com/models/2687055?modelVersionId=3017061) - `anima_tu2h4te_v1.0-epoch40.safetensors` (N0VA39 / v1.0)\n- [anima_m4ch1_v1.0-epoch16](https://civitai.com/models/2687040?modelVersionId=3017044) - `anima_m4ch1_v1.0-epoch16.safetensors` (N0VA39 / v1.0)\n- [anima_p0t7s_v1.1-epoch16](https://civitai.com/models/2645194?modelVersionId=2970110) - `anima_p0t7s_v1.1-epoch16.safetensors` (N0VA39 / v1.1)\n- [anima_m4me_v2.1-epoch20](https://civitai.com/models/2632362?modelVersionId=2993488) - `anima_m4me_v2.1-epoch20.safetensors` (N0VA39 / v2.1)\n- [anima_p4t1s1y_v2.2-epoch36](https://civitai.com/models/2634510?modelVersionId=2998131) - `anima_p4t1s1y_v2.2-epoch36.safetensors` (N0VA39 / v2.2)\n- [anima_qr4k_v2.0-epoch24](https://civitai.com/models/2629664?modelVersionId=3009319) - `anima_qr4k_v2.0-epoch24.safetensors` (N0VA39 / qr4k_v2.0)\n- [anima_fr9t_v2.1-epoch20](https://civitai.com/models/2629664?modelVersionId=3009315) - `anima_fr9t_v2.1-epoch20.safetensors` (N0VA39 / fr9t_v2.1)\n- [ogipote-NL](https://civitai.com/models/2529695?modelVersionId=2957262) - `ogipote-NL.safetensors` (ACatStick / NLTrained-base1.0)\n- [anima_ru60d_v1.0-epoch24](https://civitai.com/models/2634525?modelVersionId=2957967) - `anima_ru60d_v1.0-epoch24.safetensors` (N0VA39 / v1.0)\n- [anima_my8t_v1.1-epoch24](https://civitai.com/models/2632467?modelVersionId=2955652) - `anima_my8t_v1.1-epoch24.safetensors` (N0VA39 / v1.0)\n- [anima_k1m2b_v1.0-epoch24](https://civitai.com/models/2665838?modelVersionId=2993438) - `anima_k1m2b_v1.0-epoch24.safetensors` (N0VA39 / v1.0)\n- [anima_m1s0nye0_v1.0-epoch80](https://civitai.com/models/2691843?modelVersionId=3022455) - `anima_m1s0nye0_v1.0-epoch80.safetensors` (N0VA39 / v1.0)\n- [yzsss_anima1.0_v0.2](https://civitai.com/models/2423253?modelVersionId=2972473) - `yzsss_anima1.0_v0.2.safetensors` (BlueQ_ / v1.0)\n- [anima_mi1k_v1.3-epoch16](https://civitai.com/models/2624534?modelVersionId=2973605) - `anima_mi1k_v1.3-epoch16.safetensors` (N0VA39 / v1.3)\n- [anima_kn0r_v1.0-epoch26](https://civitai.com/models/2645212?modelVersionId=2970129) - `anima_kn0r_v1.0-epoch26.safetensors` (N0VA39 / v1.0)\n- [anima_mik4p1_v1.0-epoch20](https://civitai.com/models/2650086?modelVersionId=2975681) - `anima_mik4p1_v1.0-epoch20.safetensors` (N0VA39 / v1.0)\n"
       ],
       "color": "#432",
       "bgcolor": "#000"
@@ -4943,7 +4943,7 @@
         }
       ],
       "outputs": [],
-      "title": "目ディテイラー",
+      "title": "Eye Detailer",
       "properties": {
         "comparer_mode": "Slide",
         "cnr_id": "rgthree-comfy",
@@ -4996,7 +4996,7 @@
         }
       ],
       "outputs": [],
-      "title": "顔ディテイラー",
+      "title": "Face Detailer",
       "properties": {
         "comparer_mode": "Slide",
         "cnr_id": "rgthree-comfy",
@@ -6220,7 +6220,7 @@
       "widgets_values": [
         "N0VA39",
         "Anima All in One workflow",
-        "v6.0_ja"
+        "v6.0_en"
       ]
     },
     {
@@ -8451,7 +8451,7 @@
   "groups": [
     {
       "id": 2,
-      "title": "3. ANIMA 生成",
+      "title": "3. ANIMA Generation",
       "bounding": [
         -4910,
         1990,
@@ -8487,7 +8487,7 @@
     },
     {
       "id": 1,
-      "title": "2. モデル読み込み",
+      "title": "2. Model Load",
       "bounding": [
         -5330,
         1990,
@@ -8499,7 +8499,7 @@
     },
     {
       "id": 45,
-      "title": "8.1. メタデータ",
+      "title": "8.1. Metadata",
       "bounding": [
         -2030,
         1990,
@@ -8511,7 +8511,7 @@
     },
     {
       "id": 47,
-      "title": "8. 画像保存",
+      "title": "8. Image Save",
       "bounding": [
         -2480,
         1990,
@@ -8523,7 +8523,7 @@
     },
     {
       "id": 51,
-      "title": "6.1. 顔ディテイラー",
+      "title": "6.1. Face Detailer",
       "bounding": [
         -3650,
         1990,
@@ -8535,7 +8535,7 @@
     },
     {
       "id": 52,
-      "title": "6.2. 目ディテイラー",
+      "title": "6.2. Eye Detailer",
       "bounding": [
         -3270,
         1990,
@@ -27513,15 +27513,15 @@
     "PM_latentpreviewrate": 0,
     "groupNodes": {},
     "easyuse_anima_workflow": {
-      "workflow_id": "anima-aio-v6.0-ja",
+      "workflow_id": "anima-aio-v6.0-en",
       "name": "Anima AiO v6.0",
-      "language": "ja",
+      "language": "en",
       "kind": "release-workflow",
       "package": "comfyui-easyuse-anima",
       "package_version": "0.1.9",
-      "registry_folder": "example_workflows",
-      "release_filename": "Anima_AiO_v6.0_release_ja.json",
-      "release_suffix": "_release_ja",
+      "registry_folder": "docs/example_workflows",
+      "release_filename": "Anima_AiO_v6.0_release_en.json",
+      "release_suffix": "_release_en",
       "live_sync_policy": "overwrite release-suffixed copies only; never overwrite user-edited working filenames",
       "style_preset_included": true,
       "subject_prompt_slots_blank": [

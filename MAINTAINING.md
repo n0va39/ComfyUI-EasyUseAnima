@@ -31,13 +31,14 @@ This repository is prepared for future ComfyUI Manager / Comfy Registry registra
 
 ## Workflow File Rules
 
-- Store user-facing Registry workflow templates under `example_workflows/`.
+- Store user-facing Registry workflow templates and preview/source images under
+  `docs/example_workflows/`.
 - Use `docs/development/README.md` as the development-document entry point before changing workflow or release-template policy.
 - Keep workflow filenames release-suffixed so they do not collide with user-edited local workflow names:
   - Korean release files: `*_release_ko.json`
   - English release files: `*_release_en.json`
 - Do not commit bare working names such as `Anima_AiO_v6.0.json` for release workflows.
-- Do not keep duplicate workflow JSON under `docs/`; keep implementation notes or node ids in development docs instead.
+- Do not keep duplicate workflow JSON outside `docs/example_workflows/`; keep implementation notes or node ids in development docs instead.
 - When syncing to a live ComfyUI user workflow folder, copy from the release-suffixed repository file and keep the same basename. Overwrite only release-suffixed copies; never overwrite unsuffixed or user-named working files.
 - Keep `extra.easyuse_anima_workflow` metadata in release workflows current, including `workflow_id`, `language`, `kind`, `release_filename`, and `release_suffix`.
 - Before publishing or syncing, validate workflow JSON syntax, link integrity, and absence of local-only LoRA paths, temporary preview URLs, clipspace image references, or personal test filenames.

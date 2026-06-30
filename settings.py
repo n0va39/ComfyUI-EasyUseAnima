@@ -33,6 +33,8 @@ DEFAULT_SETTINGS = {
     "naia.host": "127.0.0.1",
     "naia.port": "7243",
     "naia.use_naia_settings": "true",
+    "naia.resolution_scale": "1.0",
+    "naia.resolution_max_long_edge": "0",
     "naia.pre_prompt": "",
     "naia.post_prompt": "",
     "naia.auto_hide": "",
@@ -121,6 +123,8 @@ COMFY_SETTING_KEYS = {
     "EasyUseAnima.NAIA.Host": "naia.host",
     "EasyUseAnima.NAIA.Port": "naia.port",
     "EasyUseAnima.NAIA.UseDesktopPromptEngineering": "naia.use_naia_settings",
+    "EasyUseAnima.NAIA.ResolutionScale": "naia.resolution_scale",
+    "EasyUseAnima.NAIA.ResolutionMaxLongEdge": "naia.resolution_max_long_edge",
     "EasyUseAnima.NAIA.pre_prompt": "naia.pre_prompt",
     "EasyUseAnima.NAIA.post_prompt": "naia.post_prompt",
     "EasyUseAnima.NAIA.auto_hide": "naia.auto_hide",
@@ -359,6 +363,8 @@ def public_settings() -> dict:
             "naia.use_naia_settings",
             DEFAULT_SETTINGS["naia.use_naia_settings"],
         ),
+        "naia.resolution_scale": resolve_naia_resolution_scale(settings),
+        "naia.resolution_max_long_edge": resolve_naia_resolution_max_long_edge(settings),
         "naia.pre_prompt": settings.get("naia.pre_prompt", ""),
         "naia.post_prompt": settings.get("naia.post_prompt", ""),
         "naia.auto_hide": settings.get("naia.auto_hide", ""),
@@ -463,6 +469,32 @@ def resolve_naia_port(settings: dict | None = None) -> int:
     return max(1, min(65535, value))
 
 
+def resolve_naia_resolution_scale(settings: dict | None = None) -> float:
+    settings = settings or get_settings()
+    try:
+        value = float(settings.get(
+            "naia.resolution_scale",
+            DEFAULT_SETTINGS["naia.resolution_scale"],
+        ))
+    except (TypeError, ValueError):
+        value = float(DEFAULT_SETTINGS["naia.resolution_scale"])
+    return max(0.25, min(4.0, value))
+
+
+def resolve_naia_resolution_max_long_edge(settings: dict | None = None) -> int:
+    settings = settings or get_settings()
+    try:
+        value = int(float(settings.get(
+            "naia.resolution_max_long_edge",
+            DEFAULT_SETTINGS["naia.resolution_max_long_edge"],
+        )))
+    except (TypeError, ValueError):
+        value = int(DEFAULT_SETTINGS["naia.resolution_max_long_edge"])
+    if value <= 0:
+        return 0
+    return max(32, min(16384, value))
+
+
 def resolve_naia_settings() -> dict:
     settings = get_settings()
     use_naia_settings = settings.get(
@@ -477,6 +509,8 @@ def resolve_naia_settings() -> dict:
         "host": settings.get("naia.host", DEFAULT_SETTINGS["naia.host"]) or DEFAULT_SETTINGS["naia.host"],
         "port": resolve_naia_port(settings),
         "use_naia_settings": use_naia_settings,
+        "resolution_scale": resolve_naia_resolution_scale(settings),
+        "resolution_max_long_edge": resolve_naia_resolution_max_long_edge(settings),
         "pre_prompt": settings.get("naia.pre_prompt", ""),
         "post_prompt": settings.get("naia.post_prompt", ""),
         "auto_hide": settings.get("naia.auto_hide", ""),

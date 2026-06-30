@@ -40,6 +40,8 @@ from settings import (
     resolve_lora_preset_strength_button_step,
     resolve_lora_preset_strength_drag_pixels,
     resolve_lora_preset_strength_drag_step,
+    resolve_naia_resolution_max_long_edge,
+    resolve_naia_resolution_scale,
 )
 
 
@@ -1015,6 +1017,121 @@ class PromptBuilderTests(unittest.TestCase):
         self.assertEqual(first_payload["resolution_bucket"], "NAIA")
         self.assertEqual(second["ui"]["prompt_studio_advanced"][0]["resolution_bucket"], "NAIA")
 
+    def test_prompt_studio_advanced_scales_naia_resolution_and_caps_long_edge(self):
+        workflow_prompt = {
+            "9": {
+                "inputs": {
+                    "use_naia": True,
+                    "advanced_fields": "[]",
+                    "resolution_bucket": "NAIA",
+                }
+            }
+        }
+        extra_pnginfo = {
+            "workflow": {
+                "nodes": [
+                    {
+                        "id": 9,
+                        "widgets_values": [True, True, False, "NAIA", "", 1024, 1024, False, "[]"],
+                    }
+                ]
+            }
+        }
+        settings = {
+            "host": "127.0.0.1",
+            "port": 8188,
+            "use_naia_settings": True,
+            "resolution_scale": 1.5,
+            "resolution_max_long_edge": 1280,
+            "pre_prompt": "",
+            "post_prompt": "",
+            "auto_hide": "",
+            "preprocessing": {},
+        }
+
+        def fake_post(_host, _port, _body):
+            return {
+                "ok": True,
+                "prompt": "prompt",
+                "negative_prompt": "negative",
+                "width": 1000,
+                "height": 777,
+            }
+
+        with (
+            patch("nodes.resolve_naia_settings", return_value=settings),
+            patch("nodes._post_random", fake_post),
+        ):
+            result = EasyUseAnimaPromptStudioAdvanced().build(
+                True,
+                True,
+                False,
+                False,
+                "[]",
+                resolution_bucket="NAIA",
+                resolution_size="1024 * 1024 (1:1)",
+                resolution_custom_width=1024,
+                resolution_custom_height=1024,
+                workflow_prompt=workflow_prompt,
+                extra_pnginfo=extra_pnginfo,
+                unique_id="9",
+            )
+
+        payload = result["ui"]["prompt_studio_advanced"][0]
+        self.assertEqual(result["result"][8:10], (1280, 992))
+        self.assertEqual(payload["resolution_bucket"], "NAIA")
+        self.assertEqual(payload["resolution_size"], "1280 * 992 (40:31)")
+        self.assertEqual(payload["resolution_custom_width"], 1280)
+        self.assertEqual(payload["resolution_custom_height"], 992)
+        self.assertEqual(workflow_prompt["9"]["inputs"]["resolution_bucket"], "Custom")
+        self.assertEqual(workflow_prompt["9"]["inputs"]["resolution_size"], "1280 * 992 (40:31)")
+        self.assertEqual(extra_pnginfo["workflow"]["nodes"][0]["widgets_values"][5], 1280)
+        self.assertEqual(extra_pnginfo["workflow"]["nodes"][0]["widgets_values"][6], 992)
+
+    def test_prompt_studio_advanced_naia_resolution_cap_does_not_round_past_limit(self):
+        settings = {
+            "host": "127.0.0.1",
+            "port": 8188,
+            "use_naia_settings": True,
+            "resolution_scale": 2,
+            "resolution_max_long_edge": 1000,
+            "pre_prompt": "",
+            "post_prompt": "",
+            "auto_hide": "",
+            "preprocessing": {},
+        }
+
+        def fake_post(_host, _port, _body):
+            return {
+                "ok": True,
+                "prompt": "prompt",
+                "negative_prompt": "negative",
+                "width": 1216,
+                "height": 832,
+            }
+
+        with (
+            patch("nodes.resolve_naia_settings", return_value=settings),
+            patch("nodes._post_random", fake_post),
+        ):
+            result = EasyUseAnimaPromptStudioAdvanced().build(
+                True,
+                True,
+                False,
+                False,
+                "[]",
+                resolution_bucket="NAIA",
+                resolution_size="1024 * 1024 (1:1)",
+                resolution_custom_width=1024,
+                resolution_custom_height=1024,
+            )
+
+        width, height = result["result"][8:10]
+        self.assertEqual((width, height), (992, 672))
+        self.assertLessEqual(max(width, height), 1000)
+        self.assertEqual(width % 32, 0)
+        self.assertEqual(height % 32, 0)
+
     def test_prompt_studio_advanced_outputs_selected_resolution(self):
         result = EasyUseAnimaPromptStudioAdvanced().build(
             False,
@@ -1301,6 +1418,8 @@ class SettingsTests(unittest.TestCase):
                 "naia.host",
                 "naia.port",
                 "naia.use_naia_settings",
+                "naia.resolution_scale",
+                "naia.resolution_max_long_edge",
                 "naia.pre_prompt",
                 "naia.post_prompt",
                 "naia.auto_hide",
@@ -1414,6 +1533,46 @@ class SettingsTests(unittest.TestCase):
             "tree",
         )
 
+    def test_naia_resolution_scale_is_clamped(self):
+        self.assertEqual(
+            resolve_naia_resolution_scale({"naia.resolution_scale": "0"}),
+            0.25,
+        )
+        self.assertEqual(
+            resolve_naia_resolution_scale({"naia.resolution_scale": "1.5"}),
+            1.5,
+        )
+        self.assertEqual(
+            resolve_naia_resolution_scale({"naia.resolution_scale": "9"}),
+            4.0,
+        )
+        self.assertEqual(
+            resolve_naia_resolution_scale({"naia.resolution_scale": "bad"}),
+            1.0,
+        )
+
+    def test_naia_resolution_max_long_edge_is_clamped(self):
+        self.assertEqual(
+            resolve_naia_resolution_max_long_edge({"naia.resolution_max_long_edge": "0"}),
+            0,
+        )
+        self.assertEqual(
+            resolve_naia_resolution_max_long_edge({"naia.resolution_max_long_edge": "17"}),
+            32,
+        )
+        self.assertEqual(
+            resolve_naia_resolution_max_long_edge({"naia.resolution_max_long_edge": "1280"}),
+            1280,
+        )
+        self.assertEqual(
+            resolve_naia_resolution_max_long_edge({"naia.resolution_max_long_edge": "99999"}),
+            16384,
+        )
+        self.assertEqual(
+            resolve_naia_resolution_max_long_edge({"naia.resolution_max_long_edge": "bad"}),
+            0,
+        )
+
     def test_comfy_settings_override_legacy_settings(self):
         with (
             patch.object(easyuse_settings, "_read_json_file", return_value={}),
@@ -1434,6 +1593,8 @@ class SettingsTests(unittest.TestCase):
                     "EasyUseAnima.LoraPreset.StrengthDragStep": "0.012",
                     "EasyUseAnima.LoraPreset.StrengthDragPixels": "12",
                     "EasyUseAnima.NAIA.Port": "8123",
+                    "EasyUseAnima.NAIA.ResolutionScale": "1.5",
+                    "EasyUseAnima.NAIA.ResolutionMaxLongEdge": "1280",
                 },
             ),
         ):
@@ -1452,6 +1613,8 @@ class SettingsTests(unittest.TestCase):
         self.assertEqual(settings["lora_preset.strength_drag_step"], 0.012)
         self.assertEqual(settings["lora_preset.strength_drag_pixels"], 12)
         self.assertEqual(settings["naia.port"], 8123)
+        self.assertEqual(settings["naia.resolution_scale"], 1.5)
+        self.assertEqual(settings["naia.resolution_max_long_edge"], 1280)
 
     def test_comfy_color_settings_merge_into_prompt_studio_colors(self):
         with (

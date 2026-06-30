@@ -3,12 +3,15 @@ import logging
 
 from .nodes import (
     EasyUseAnimaDetailerAlignHook,
+    EasyUseAnimaImageScaleByMultiple,
     EasyUseAnimaLoraPreset,
     EasyUseAnimaNAIARandomPrompt,
     EasyUseAnimaPromptBuilder,
     EasyUseAnimaPromptCorrector,
     EasyUseAnimaPromptStudio,
     EasyUseAnimaPromptStudioAdvanced,
+    EasyUseAnimaPromptStudioRegional,
+    EasyUseAnimaRegionalConditioning,
     EasyUseAnimaWildcard,
     EasyUseAnimaSAM3Context,
     EasyUseAnimaSAM3Detailer,
@@ -25,12 +28,15 @@ except OSError as exc:
 
 NODE_CLASS_MAPPINGS = {
     "EasyUseAnimaDetailerAlignHook": EasyUseAnimaDetailerAlignHook,
+    "EasyUseAnimaImageScaleByMultiple": EasyUseAnimaImageScaleByMultiple,
     "EasyUseAnimaLoraPreset": EasyUseAnimaLoraPreset,
     "EasyUseAnimaNAIARandomPrompt": EasyUseAnimaNAIARandomPrompt,
     "EasyUseAnimaPromptBuilder": EasyUseAnimaPromptBuilder,
     "EasyUseAnimaPromptCorrector": EasyUseAnimaPromptCorrector,
     "EasyUseAnimaPromptStudio": EasyUseAnimaPromptStudio,
     "EasyUseAnimaPromptStudioAdvanced": EasyUseAnimaPromptStudioAdvanced,
+    "EasyUseAnimaPromptStudioRegional": EasyUseAnimaPromptStudioRegional,
+    "EasyUseAnimaRegionalConditioning": EasyUseAnimaRegionalConditioning,
     "EasyUseAnimaWildcard": EasyUseAnimaWildcard,
     "EasyUseAnimaSAM3Context": EasyUseAnimaSAM3Context,
     "EasyUseAnimaSAM3Detailer": EasyUseAnimaSAM3Detailer,
@@ -38,12 +44,15 @@ NODE_CLASS_MAPPINGS = {
 
 NODE_DISPLAY_NAME_MAPPINGS = {
     "EasyUseAnimaDetailerAlignHook": "Anima Detailer Align Hook",
+    "EasyUseAnimaImageScaleByMultiple": "Anima Image Scale By Multiple",
     "EasyUseAnimaLoraPreset": "Anima LoRA Preset",
     "EasyUseAnimaNAIARandomPrompt": "Anima NAIA Random Prompt",
     "EasyUseAnimaPromptBuilder": "Anima Prompt Builder",
     "EasyUseAnimaPromptCorrector": "Anima Prompt Corrector",
     "EasyUseAnimaPromptStudio": "Anima Prompt Studio",
     "EasyUseAnimaPromptStudioAdvanced": "Anima Prompt Studio Advanced",
+    "EasyUseAnimaPromptStudioRegional": "Anima Prompt Studio Regional",
+    "EasyUseAnimaRegionalConditioning": "Anima Regional Conditioning",
     "EasyUseAnimaWildcard": "Anima Wildcard",
     "EasyUseAnimaSAM3Context": "Anima SAM3 Context",
     "EasyUseAnimaSAM3Detailer": "Anima SAM3 Detailer",

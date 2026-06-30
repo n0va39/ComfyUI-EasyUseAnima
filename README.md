@@ -14,6 +14,7 @@ workflows in ComfyUI.
 - [Workflow guide](docs/Anima%20AiO/README.md)
 - [Korean v6.0 guide](docs/Anima%20AiO/Anima_AiO_v6.0_KO.md)
 - [English v6.0 guide](docs/Anima%20AiO/Anima_AiO_v6.0_EN.md)
+- [Example workflows](docs/example_workflows/)
 
 ## Summary
 

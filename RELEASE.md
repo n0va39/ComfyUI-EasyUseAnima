@@ -1,5 +1,63 @@
 # Release Notes
 
+## 0.2.0
+
+### Added
+
+- Added `Anima Prompt Studio Regional`, a mask-scoped Prompt Studio variant
+  for authoring numbered masks, per-field mask assignments, and regional
+  prompt metadata.
+- Added `Anima Regional Conditioning`, which consumes `CLIP` plus the dedicated
+  `EASYUSE_ANIMA_REGIONAL_PROMPT_DATA` socket and produces positive/negative
+  `CONDITIONING` outputs for KSampler workflows.
+- Added a regional mask editor UI with numbered mask storage, mask preview,
+  shape controls, and per-positive-field mask selectors.
+- Added NAIA resolution scaling settings for `Anima Prompt Studio Advanced` so
+  NAIA-sourced dimensions can be scaled and clamped by a maximum long edge.
+- Added `Anima Image Scale By Multiple`, an image upscaling helper that aligns
+  output dimensions to a selected multiple and can clamp the long edge.
+- Added a regional prompt example workflow and source PNG under
+  `docs/example_workflows/`.
+
+### Changed
+
+- Bumped the package version to `0.2.0`.
+- Moved maintained example workflow assets from the root `example_workflows/`
+  directory to `docs/example_workflows/`.
+- Updated workflow metadata policy and workflow tests for the new
+  `docs/example_workflows/` location.
+- Regional Prompt Studio now outputs metadata prompt strings, width, height, and
+  a dedicated regional data socket instead of exposing regional runtime payloads
+  as plain string sockets.
+
+### Fixed
+
+- Fixed regional conditioning mask metadata for ComfyUI/Qwen/Wan-style latent
+  dimensions by attaching full image-space masks and explicit latent mask
+  bounds instead of relying on ComfyUI's `set_area_to_bounds` conversion path.
+- Fixed Regional Prompt Studio UI layout issues around field controls, mask
+  selector popups, and node sizing so prompt rows and selectors stay aligned.
+- Added regression coverage for regional prompt data sockets, mask bounds,
+  image scale option compatibility, and example workflow metadata.
+
+### Deferred
+
+- Regional Prompt Studio intentionally does not call NAIA in 0.2.0.
+- Per-region Mod Guidance and a dedicated Regional Model Patch node remain
+  deferred.
+- Mask-scoped negative prompts remain out of the initial regional conditioning
+  contract.
+
+### Validation
+
+- `node --check` for EasyUse Anima frontend JavaScript files
+- `.venv\Scripts\python.exe -m json.tool` for locale JSON files
+- `.venv\Scripts\python.exe -m unittest discover -s tests`
+- `.venv\Scripts\python.exe -m compileall -q .`
+- `git diff --check`
+- JSON parse and hygiene scan for `docs/example_workflows/*.json`
+- Live ComfyUI queue validation with a two-mask regional prompt sample
+
 ## 0.1.9
 
 ### Added
@@ -38,7 +96,7 @@
   when both features are used.
 - Top-level README files now act as entry points and link to per-node detail
   pages instead of carrying all node documentation inline.
-- Package and workflow documentation now use `example_workflows/` as the public
+- Package and workflow documentation now use `docs/example_workflows/` as the public
   workflow JSON source and avoid the removed duplicate `docs/workflows/` layout.
 - Wildcard extra path settings now use an add/remove list editor instead of a
   delimiter-based text field.

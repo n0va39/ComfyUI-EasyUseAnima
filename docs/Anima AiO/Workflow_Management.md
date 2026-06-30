@@ -7,7 +7,7 @@ documentation, and Civitai release metadata.
 
 | Purpose | Korean | English |
 |---|---|---|
-| Public workflow template | `example_workflows/Anima_AiO_v6.0_release_ko.json` | `example_workflows/Anima_AiO_v6.0_release_en.json` |
+| Public workflow template | `docs/example_workflows/Anima_AiO_v6.0_release_ko.json` | `docs/example_workflows/Anima_AiO_v6.0_release_en.json` |
 | Civitai model name | `Anima All in One workflow` | `Anima All in One workflow` |
 | Civitai version | `v6.0_kr` | `v6.0_en` |
 | Workflow metadata id | `anima-aio-v6.0-ko` | `anima-aio-v6.0-en` |
@@ -18,7 +18,7 @@ documentation, and Civitai release metadata.
 - For v6.0, the Korean live file is treated as the layout/source base:
   `D:\ComfyUI\ComfyUI_main\user\default\workflows\Anima_AiO_v6.0_release_ko.json`
 - After manual edits, sync the release-suffixed live file into:
-  `example_workflows/`.
+  `docs/example_workflows/`.
 - Build the English workflow from the final Korean workflow so node ids, links,
   layout, group bounds, and preset LoRA guide placement stay identical.
 
@@ -40,6 +40,18 @@ release-suffixed files such as `_release_ko` and `_release_en`.
 
 The Civitai model name is not a display title. Do not change it to `Anima AiO`
 or language-specific titles.
+
+## Example Workflow Directory
+
+- `docs/example_workflows/` is the canonical directory for example workflow
+  JSON files and their preview/source images.
+- Keep workflow JSON and matching PNG/JPG assets together in this directory.
+- When a workflow is extracted from a saved PNG, save the JSON with a meaningful
+  release-style basename and keep the source PNG with the same basename.
+- Add or update `extra.easyuse_anima_workflow` metadata before treating an
+  extracted workflow as a maintained sample.
+- Do not keep a separate root-level `example_workflows/` directory.
+- Do not use `docs/workflows/`; it is intentionally not used.
 
 ## Documentation Files
 
@@ -89,14 +101,14 @@ or language-specific titles.
 Run these checks before committing or posting to Civitai.
 
 ```powershell
-python -m json.tool example_workflows\Anima_AiO_v6.0_release_ko.json > $null
-python -m json.tool example_workflows\Anima_AiO_v6.0_release_en.json > $null
+python -m json.tool docs\example_workflows\Anima_AiO_v6.0_release_ko.json > $null
+python -m json.tool docs\example_workflows\Anima_AiO_v6.0_release_en.json > $null
 git diff --check
 ```
 
 Also verify:
 
-- Live ComfyUI workflow copies match the corresponding `example_workflows/`
+- Live ComfyUI workflow copies match the corresponding `docs/example_workflows/`
   release file when they are intended to be updated.
 - Link integrity check reports zero missing links.
 - No release workflow contains `view?filename=`, `clipspace`, `data:image/`, or
@@ -106,7 +118,7 @@ Also verify:
 ## Release Procedure
 
 1. Edit and test the Korean live release workflow in ComfyUI.
-2. Copy the final Korean release workflow to `example_workflows/`.
+2. Copy the final Korean release workflow to `docs/example_workflows/`.
 3. Generate the English release workflow from the final Korean workflow.
 4. Translate Markdown guide node text and user-facing group/title text.
 5. Set Civitai Hash Fetcher version to `v6.0_kr` or `v6.0_en`.

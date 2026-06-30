@@ -267,6 +267,102 @@
       }
     }
   },
+  "EasyUseAnimaPromptStudioRegional": {
+    "display_name": "Anima 提示詞工作室 Regional",
+    "description": "將指定正向提示詞欄位套用到編號使用者遮罩的 Regional Prompt Studio。Regional 提示詞資料由 Anima Regional Conditioning 節點轉換為 KSampler 用 CONDITIONING。",
+    "inputs": {
+      "regional_fields": {
+        "name": "Regional 欄位",
+        "tooltip": "Internal JSON payload for Regional Prompt Studio fields."
+      },
+      "regional_config": {
+        "name": "Regional 設定",
+        "tooltip": "Internal JSON payload for numbered masks and mask editor settings."
+      },
+      "resolution_bucket": {
+        "name": "解析度桶",
+        "tooltip": "Internal selected latent resolution bucket."
+      },
+      "resolution_size": {
+        "name": "解析度尺寸",
+        "tooltip": "Internal selected latent resolution, formatted as width * height (ratio)."
+      },
+      "resolution_custom_width": {
+        "name": "自訂寬度",
+        "tooltip": "Internal custom latent width. Values are snapped to multiples of 32."
+      },
+      "resolution_custom_height": {
+        "name": "自訂高度",
+        "tooltip": "Internal custom latent height. Values are snapped to multiples of 32."
+      },
+      "wildcard_mode": {
+        "name": "萬用字元模式",
+        "tooltip": "Wildcard mode for Regional Prompt Studio fields."
+      },
+      "wildcard_seed": {
+        "name": "萬用字元種子",
+        "tooltip": "Wildcard seed used by Regional Prompt Studio fields."
+      },
+      "wildcard_seed_after_generate": {
+        "name": "生成後萬用字元種子控制",
+        "tooltip": "Seed control after wildcard generation."
+      }
+    },
+    "outputs": {
+      "0": {
+        "name": "元資料提示詞",
+        "tooltip": "Metadata positive prompt with global and mask-scoped prompt fields included."
+      },
+      "1": {
+        "name": "元資料負向提示詞",
+        "tooltip": "Negative metadata prompt with metadata filters applied."
+      },
+      "2": {
+        "name": "寬度",
+        "tooltip": "Selected latent width used by the mask editor canvas."
+      },
+      "3": {
+        "name": "高度",
+        "tooltip": "Selected latent height used by the mask editor canvas."
+      },
+      "4": {
+        "name": "Regional 提示詞資料",
+        "tooltip": "Bundled regional prompt, mask, and model-patch data for Anima Regional Conditioning."
+      }
+    }
+  },
+  "EasyUseAnimaRegionalConditioning": {
+    "display_name": "Anima Regional Conditioning",
+    "description": "Encodes Anima Prompt Studio Regional data with CLIP and creates mask-scoped positive conditioning.",
+    "inputs": {
+      "regional_prompt_data": {
+        "name": "Regional 提示詞資料",
+        "tooltip": "從 Anima Prompt Studio Regional 傳遞的專用 Regional 提示資料。"
+      },
+      "clip": {
+        "name": "CLIP",
+        "tooltip": "CLIP model used to encode the global and regional prompts."
+      },
+      "mask_strength": {
+        "name": "遮罩強度",
+        "tooltip": "Strength applied to mask-scoped conditioning entries."
+      },
+      "set_cond_area": {
+        "name": "Conditioning area",
+        "tooltip": "mask bounds mirrors ComfyUI ConditioningSetMask area behavior."
+      }
+    },
+    "outputs": {
+      "0": {
+        "name": "正向",
+        "tooltip": "Positive CONDITIONING containing the global prompt plus mask-scoped regional entries."
+      },
+      "1": {
+        "name": "負向",
+        "tooltip": "Negative CONDITIONING encoded from the bundled negative prompt."
+      }
+    }
+  },
   "EasyUseAnimaDetailerAlignHook": {
     "display_name": "Anima 细节修复对齐 Hook",
     "description": "连接到 Impact Pack 细节修复 detailer_hook 输入的尺寸对齐 Hook。使用 Impact Pack 的 touch_scaled_size 扩展点，将 crop sampling 尺寸向上修正到指定倍数。",
@@ -284,6 +380,50 @@
       "0": {
         "name": "现有细节修复 Hook",
         "tooltip": "Impact Pack compatible DETAILER_HOOK. Connect it to an Impact DetailerForEach-compatible detailer_hook input."
+      }
+    }
+  },
+  "EasyUseAnimaImageScaleByMultiple": {
+    "display_name": "Anima 图像有效倍率缩放",
+    "description": "保持原始比例，并使用最接近的有效倍率放大图像，使输出宽度和高度成为指定倍数。设置最大长边后，只会选择不超过该限制的有效尺寸。Highres 或优化节点要求 32 倍数尺寸时使用。",
+    "inputs": {
+      "image": {
+        "name": "图像",
+        "tooltip": "Input image to upscale."
+      },
+      "scale_by": {
+        "name": "缩放倍率",
+        "tooltip": "Requested image scale ratio. The nearest valid ratio for the selected multiple is applied."
+      },
+      "upscale_method": {
+        "name": "缩放方法",
+        "tooltip": "Interpolation method used for resizing."
+      },
+      "multiple": {
+        "name": "尺寸倍数",
+        "tooltip": "Output width and height must be multiples of this value. Use 32 for highres safety."
+      },
+      "max_long_edge": {
+        "name": "最大长边",
+        "tooltip": "Maximum output long edge. Set 0 to disable this limit."
+      }
+    },
+    "outputs": {
+      "0": {
+        "name": "图像",
+        "tooltip": "Scaled image using the nearest valid ratio."
+      },
+      "1": {
+        "name": "宽度",
+        "tooltip": "Final valid image width."
+      },
+      "2": {
+        "name": "高度",
+        "tooltip": "Final valid image height."
+      },
+      "3": {
+        "name": "应用倍率",
+        "tooltip": "Actual scale ratio applied to the image."
       }
     }
   },

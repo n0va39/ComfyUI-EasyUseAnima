@@ -270,6 +270,13 @@ const TEXT = {
     naiaPromptEngineering: "Prompt Engineering",
     naiaDesktopPromptEngineeringTip:
       "ON: ComfyUI does not send Prompt Engineering override values and NAIA 2.0 uses its own desktop settings. OFF: ComfyUI sends the values below as overrides for this request.",
+    naiaResolution: "Resolution",
+    naiaResolutionScale: "Resolution scale",
+    naiaResolutionScaleTip:
+      "Multiplies the NAIA width and height when Anima Prompt Studio Advanced uses the NAIA resolution bucket. Decimal values such as 1.5 are supported. The final size is snapped to multiples of 32.",
+    naiaResolutionMaxLongEdge: "Max long edge",
+    naiaResolutionMaxLongEdgeTip:
+      "Caps the longer side after applying the NAIA resolution scale. 0 disables the cap. The final size stays on multiples of 32.",
     preprocessingOptions: "Preprocessing options",
     prePrompt: "Pre prompt",
     postPrompt: "Post prompt",
@@ -339,6 +346,13 @@ const TEXT = {
     naiaPromptEngineering: "Prompt Engineering",
     naiaDesktopPromptEngineeringTip:
       "ON: ComfyUI의 Prompt Engineering override 값을 보내지 않고 NAIA 2.0 프로그램의 자체 설정을 사용합니다. OFF: 아래 ComfyUI 설정값을 이번 요청의 override로 NAIA에 보냅니다.",
+    naiaResolution: "해상도",
+    naiaResolutionScale: "해상도 배율",
+    naiaResolutionScaleTip:
+      "Anima Prompt Studio Advanced에서 NAIA 해상도 버킷을 사용할 때 NAIA width/height에 곱할 배율입니다. 1.5 같은 소수값을 입력할 수 있습니다. 최종 크기는 32의 배수로 보정됩니다.",
+    naiaResolutionMaxLongEdge: "긴변 최댓값",
+    naiaResolutionMaxLongEdgeTip:
+      "NAIA 해상도 배율을 적용한 뒤 긴 변의 최대 크기를 제한합니다. 0이면 제한하지 않습니다. 최종 크기는 32의 배수로 유지됩니다.",
     preprocessingOptions: "전처리 옵션",
     prePrompt: "Pre prompt",
     postPrompt: "Post prompt",
@@ -408,6 +422,13 @@ const TEXT = {
     naiaPromptEngineering: "Prompt Engineering",
     naiaDesktopPromptEngineeringTip:
       "ON: ComfyUI の Prompt Engineering override 値を送信せず、NAIA 2.0 アプリの設定を使用します。OFF: 下の ComfyUI 設定値をこのリクエストの override として NAIA に送信します。",
+    naiaResolution: "解像度",
+    naiaResolutionScale: "解像度スケール",
+    naiaResolutionScaleTip:
+      "Anima Prompt Studio Advanced で NAIA 解像度バケットを使うとき、NAIA の width/height に掛ける倍率です。1.5 などの小数値を入力できます。最終サイズは 32 の倍数に補正されます。",
+    naiaResolutionMaxLongEdge: "長辺の最大値",
+    naiaResolutionMaxLongEdgeTip:
+      "NAIA 解像度スケール適用後に長辺の最大サイズを制限します。0 で無効です。最終サイズは 32 の倍数に維持されます。",
     preprocessingOptions: "前処理オプション",
     prePrompt: "Pre prompt",
     postPrompt: "Post prompt",
@@ -477,6 +498,13 @@ const TEXT = {
     naiaPromptEngineering: "Prompt Engineering",
     naiaDesktopPromptEngineeringTip:
       "ON：ComfyUI 不发送 Prompt Engineering override 值，NAIA 2.0 使用自己的桌面设置。OFF：将下方 ComfyUI 设置值作为本次请求的 override 发送给 NAIA。",
+    naiaResolution: "分辨率",
+    naiaResolutionScale: "分辨率倍率",
+    naiaResolutionScaleTip:
+      "Anima Prompt Studio Advanced 使用 NAIA 分辨率桶时，乘到 NAIA width/height 上的倍率。支持 1.5 等小数值。最终尺寸会对齐为 32 的倍数。",
+    naiaResolutionMaxLongEdge: "长边最大值",
+    naiaResolutionMaxLongEdgeTip:
+      "应用 NAIA 分辨率倍率后限制长边最大尺寸。0 表示不限制。最终尺寸保持为 32 的倍数。",
     preprocessingOptions: "预处理选项",
     prePrompt: "Pre prompt",
     postPrompt: "Post prompt",
@@ -509,6 +537,8 @@ const INTERNAL_KEYS = {
   "EasyUseAnima.NAIA.Host": "naia.host",
   "EasyUseAnima.NAIA.Port": "naia.port",
   "EasyUseAnima.NAIA.UseDesktopPromptEngineering": "naia.use_naia_settings",
+  "EasyUseAnima.NAIA.ResolutionScale": "naia.resolution_scale",
+  "EasyUseAnima.NAIA.ResolutionMaxLongEdge": "naia.resolution_max_long_edge",
   "EasyUseAnima.NAIA.pre_prompt": "naia.pre_prompt",
   "EasyUseAnima.NAIA.post_prompt": "naia.post_prompt",
   "EasyUseAnima.NAIA.auto_hide": "naia.auto_hide",
@@ -789,6 +819,76 @@ function createWildcardExtraPathsEditor(name, setter, value) {
   wrapper.append(list, addButton);
   controlCell.append(wrapper);
   row.append(labelCell, controlCell);
+  return row;
+}
+
+function naiaResolutionScaleSettingValue(value) {
+  if (
+    window.__easyuseAnimaSettings
+    && Object.prototype.hasOwnProperty.call(window.__easyuseAnimaSettings, "naia.resolution_scale")
+  ) {
+    return window.__easyuseAnimaSettings["naia.resolution_scale"];
+  }
+  return value ?? "1.0";
+}
+
+function normalizeNaiaResolutionScaleValue(value) {
+  const parsed = Number.parseFloat(String(value ?? "").replace(",", "."));
+  const clamped = Number.isFinite(parsed)
+    ? Math.min(4.0, Math.max(0.25, parsed))
+    : 1.0;
+  const rounded = Math.round(clamped * 1000) / 1000;
+  return Number.isInteger(rounded) ? `${rounded}.0` : String(rounded);
+}
+
+function createNaiaResolutionScaleEditor(name, setter, value) {
+  const settingId = "EasyUseAnima.NAIA.ResolutionScale";
+  let persistedValue = normalizeNaiaResolutionScaleValue(naiaResolutionScaleSettingValue(value));
+
+  const row = document.createElement("tr");
+
+  const labelCell = document.createElement("td");
+  const labelEl = document.createElement("label");
+  labelEl.textContent = name;
+  labelEl.title = t("naiaResolutionScaleTip");
+  labelCell.append(labelEl);
+
+  const controlCell = document.createElement("td");
+  const input = document.createElement("input");
+  input.type = "text";
+  input.inputMode = "decimal";
+  input.value = persistedValue;
+  input.placeholder = "1.5";
+  input.spellcheck = false;
+  input.style.cssText = "box-sizing: border-box; width: 92px; padding: 4px 6px;";
+
+  const syncRaw = () => {
+    updateInternalSetting(settingId, input.value.replace(",", "."), "text");
+  };
+  const persist = () => {
+    const normalized = normalizeNaiaResolutionScaleValue(input.value);
+    input.value = normalized;
+    updateInternalSetting(settingId, normalized, "text");
+    if (normalized === persistedValue) {
+      return;
+    }
+    persistedValue = normalized;
+    setter?.(normalized);
+  };
+
+  input.addEventListener("input", syncRaw);
+  input.addEventListener("change", persist);
+  input.addEventListener("blur", persist);
+  input.addEventListener("keydown", (event) => {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      input.blur();
+    }
+  });
+
+  controlCell.append(input);
+  row.append(labelCell, controlCell);
+  updateInternalSetting(settingId, persistedValue, "text");
   return row;
 }
 
@@ -1168,6 +1268,23 @@ const EASYUSE_ANIMA_SETTINGS = [
     tooltip: t("naiaDesktopPromptEngineeringTip"),
     type: "boolean",
     defaultValue: true,
+  }),
+  customSetting({
+    id: "EasyUseAnima.NAIA.ResolutionScale",
+    section: "NAIA",
+    name: t("naiaResolutionScale"),
+    tooltip: t("naiaResolutionScaleTip"),
+    render: createNaiaResolutionScaleEditor,
+  }),
+  setting({
+    id: "EasyUseAnima.NAIA.ResolutionMaxLongEdge",
+    section: "NAIA",
+    group: t("naiaResolution"),
+    name: t("naiaResolutionMaxLongEdge"),
+    tooltip: t("naiaResolutionMaxLongEdgeTip"),
+    type: "number",
+    defaultValue: 0,
+    attrs: { min: 0, max: 16384, step: 32 },
   }),
   customSetting({
     id: LONG_TEXT_FIELD_GROUPS.naia.settingId,

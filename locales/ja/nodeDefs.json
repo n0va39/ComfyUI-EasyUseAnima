@@ -267,6 +267,102 @@
       }
     }
   },
+  "EasyUseAnimaPromptStudioRegional": {
+    "display_name": "Anima プロンプトスタジオ Regional",
+    "description": "番号付きユーザーマスクに特定のポジティブプロンプトフィールドを適用する Regional Prompt Studio です。Regional prompt data は Anima Regional Conditioning ノードで KSampler 用 CONDITIONING に変換します。",
+    "inputs": {
+      "regional_fields": {
+        "name": "Regional フィールド",
+        "tooltip": "Internal JSON payload for Regional Prompt Studio fields."
+      },
+      "regional_config": {
+        "name": "Regional 設定",
+        "tooltip": "Internal JSON payload for numbered masks and mask editor settings."
+      },
+      "resolution_bucket": {
+        "name": "解像度バケット",
+        "tooltip": "Internal selected latent resolution bucket."
+      },
+      "resolution_size": {
+        "name": "解像度サイズ",
+        "tooltip": "Internal selected latent resolution, formatted as width * height (ratio)."
+      },
+      "resolution_custom_width": {
+        "name": "カスタム幅",
+        "tooltip": "Internal custom latent width. Values are snapped to multiples of 32."
+      },
+      "resolution_custom_height": {
+        "name": "カスタム高さ",
+        "tooltip": "Internal custom latent height. Values are snapped to multiples of 32."
+      },
+      "wildcard_mode": {
+        "name": "ワイルドカードモード",
+        "tooltip": "Wildcard mode for Regional Prompt Studio fields."
+      },
+      "wildcard_seed": {
+        "name": "ワイルドカードシード",
+        "tooltip": "Wildcard seed used by Regional Prompt Studio fields."
+      },
+      "wildcard_seed_after_generate": {
+        "name": "生成後のワイルドカードシード制御",
+        "tooltip": "Seed control after wildcard generation."
+      }
+    },
+    "outputs": {
+      "0": {
+        "name": "メタデータプロンプト",
+        "tooltip": "Metadata positive prompt with global and mask-scoped prompt fields included."
+      },
+      "1": {
+        "name": "メタデータネガティブプロンプト",
+        "tooltip": "Negative metadata prompt with metadata filters applied."
+      },
+      "2": {
+        "name": "幅",
+        "tooltip": "Selected latent width used by the mask editor canvas."
+      },
+      "3": {
+        "name": "高さ",
+        "tooltip": "Selected latent height used by the mask editor canvas."
+      },
+      "4": {
+        "name": "Regional プロンプトデータ",
+        "tooltip": "Bundled regional prompt, mask, and model-patch data for Anima Regional Conditioning."
+      }
+    }
+  },
+  "EasyUseAnimaRegionalConditioning": {
+    "display_name": "Anima Regional Conditioning",
+    "description": "Encodes Anima Prompt Studio Regional data with CLIP and creates mask-scoped positive conditioning.",
+    "inputs": {
+      "regional_prompt_data": {
+        "name": "Regional プロンプトデータ",
+        "tooltip": "Anima Prompt Studio Regional から渡される専用 Regional プロンプトデータです。"
+      },
+      "clip": {
+        "name": "CLIP",
+        "tooltip": "CLIP model used to encode the global and regional prompts."
+      },
+      "mask_strength": {
+        "name": "マスク強度",
+        "tooltip": "Strength applied to mask-scoped conditioning entries."
+      },
+      "set_cond_area": {
+        "name": "Conditioning area",
+        "tooltip": "mask bounds mirrors ComfyUI ConditioningSetMask area behavior."
+      }
+    },
+    "outputs": {
+      "0": {
+        "name": "ポジティブ",
+        "tooltip": "Positive CONDITIONING containing the global prompt plus mask-scoped regional entries."
+      },
+      "1": {
+        "name": "ネガティブ",
+        "tooltip": "Negative CONDITIONING encoded from the bundled negative prompt."
+      }
+    }
+  },
   "EasyUseAnimaDetailerAlignHook": {
     "display_name": "Anima ディテイラー整列 Hook",
     "description": "Impact Pack ディテイラーの detailer_hook 入力に接続するサイズ整列 Hook です。Impact Pack の touch_scaled_size 拡張点を使い、crop sampling サイズを指定倍数へ切り上げ補正します。",
@@ -284,6 +380,50 @@
       "0": {
         "name": "既存ディテイラー Hook",
         "tooltip": "Impact Pack compatible DETAILER_HOOK. Connect it to an Impact DetailerForEach-compatible detailer_hook input."
+      }
+    }
+  },
+  "EasyUseAnimaImageScaleByMultiple": {
+    "display_name": "Anima 画像有効倍率スケール",
+    "description": "元の比率を保ちながら、出力の幅と高さが指定倍数になる最も近い有効倍率で画像を拡大します。最大長辺を設定すると、その制限以下の有効サイズだけを選びます。Highres や最適化ノードが 32 の倍数を要求する場合に使います。",
+    "inputs": {
+      "image": {
+        "name": "画像",
+        "tooltip": "Input image to upscale."
+      },
+      "scale_by": {
+        "name": "拡大倍率",
+        "tooltip": "Requested image scale ratio. The nearest valid ratio for the selected multiple is applied."
+      },
+      "upscale_method": {
+        "name": "拡大方式",
+        "tooltip": "Interpolation method used for resizing."
+      },
+      "multiple": {
+        "name": "サイズ倍数",
+        "tooltip": "Output width and height must be multiples of this value. Use 32 for highres safety."
+      },
+      "max_long_edge": {
+        "name": "最大長辺",
+        "tooltip": "Maximum output long edge. Set 0 to disable this limit."
+      }
+    },
+    "outputs": {
+      "0": {
+        "name": "画像",
+        "tooltip": "Scaled image using the nearest valid ratio."
+      },
+      "1": {
+        "name": "幅",
+        "tooltip": "Final valid image width."
+      },
+      "2": {
+        "name": "高さ",
+        "tooltip": "Final valid image height."
+      },
+      "3": {
+        "name": "適用倍率",
+        "tooltip": "Actual scale ratio applied to the image."
       }
     }
   },

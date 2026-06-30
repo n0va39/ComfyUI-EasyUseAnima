@@ -71,8 +71,8 @@ For prompt metadata, LoRA information, and Civitai links, you can use an EXIF vi
 
 Before posting either version, confirm:
 
-- `example_workflows/Anima_AiO_v6.0_release_ko.json` is the file uploaded as `v6.0_kr`.
-- `example_workflows/Anima_AiO_v6.0_release_en.json` is the file uploaded as `v6.0_en`.
+- `docs/example_workflows/Anima_AiO_v6.0_release_ko.json` is the file uploaded as `v6.0_kr`.
+- `docs/example_workflows/Anima_AiO_v6.0_release_en.json` is the file uploaded as `v6.0_en`.
 - `Civitai Hash Fetcher (Image Saver)` uses the exact model name `Anima All in One workflow`.
 - The version field is `v6.0_kr` for Korean and `v6.0_en` for English.
 - Image Saver metadata is preserved in sample images used for Civitai posts.

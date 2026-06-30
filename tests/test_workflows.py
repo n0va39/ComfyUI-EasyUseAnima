@@ -20,11 +20,13 @@ PROMPT_STUDIO_ADVANCED_OUTPUTS = (
     "height",
 )
 RELEASE_WORKFLOWS = (
-    ROOT / "example_workflows" / "EasyUse_Anima_feature_test_release_ko.json",
-    ROOT / "example_workflows" / "EasyUse_Anima_feature_test_release_en.json",
-    ROOT / "example_workflows" / "Anima_AiO_v6.0_release_ko.json",
-    ROOT / "example_workflows" / "Anima_AiO_v6.0_release_en.json",
+    ROOT / "docs" / "example_workflows" / "EasyUse_Anima_feature_test_release_ko.json",
+    ROOT / "docs" / "example_workflows" / "EasyUse_Anima_feature_test_release_en.json",
+    ROOT / "docs" / "example_workflows" / "Anima_AiO_v6.0_release_ko.json",
+    ROOT / "docs" / "example_workflows" / "Anima_AiO_v6.0_release_en.json",
 )
+EXAMPLE_WORKFLOW_DIR = ROOT / "docs" / "example_workflows"
+EXAMPLE_WORKFLOWS = tuple(sorted(EXAMPLE_WORKFLOW_DIR.glob("*.json")))
 MOJIBAKE_LATIN1_RE = re.compile(r"[\u0080-\u00ff]")
 
 
@@ -41,6 +43,14 @@ def link_map(workflow: dict) -> dict[int, list]:
 
 
 class ReleaseWorkflowTests(unittest.TestCase):
+    def test_example_workflows_parse_as_json(self):
+        self.assertTrue(EXAMPLE_WORKFLOWS)
+        for workflow_path in EXAMPLE_WORKFLOWS:
+            with self.subTest(path=workflow_path.name):
+                workflow = load_workflow(workflow_path)
+                self.assertIsInstance(workflow.get("nodes"), list)
+                self.assertIsInstance(workflow.get("links"), list)
+
     def test_release_workflows_do_not_contain_latin1_mojibake(self):
         def walk(value, path: str = ""):
             if isinstance(value, dict):
@@ -52,13 +62,13 @@ class ReleaseWorkflowTests(unittest.TestCase):
             elif isinstance(value, str) and MOJIBAKE_LATIN1_RE.search(value):
                 yield path, value
 
-        for workflow_path in RELEASE_WORKFLOWS:
+        for workflow_path in EXAMPLE_WORKFLOWS:
             with self.subTest(path=workflow_path.name):
                 matches = list(walk(load_workflow(workflow_path)))
                 self.assertFalse(matches, matches[:5])
 
     def test_release_workflow_links_match_node_slots(self):
-        for path in RELEASE_WORKFLOWS:
+        for path in EXAMPLE_WORKFLOWS:
             with self.subTest(path=path.name):
                 workflow = load_workflow(path)
                 links = link_map(workflow)

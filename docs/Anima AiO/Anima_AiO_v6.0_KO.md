@@ -4,7 +4,7 @@ Anima AiO v6.0은 ANIMA 기반 ComfyUI 워크플로우입니다. T2I, I2I, HighR
 
 ## 워크플로우 파일
 
-- [Anima_AiO_v6.0_release_ko.json](../../example_workflows/Anima_AiO_v6.0_release_ko.json)
+- [Anima_AiO_v6.0_release_ko.json](../example_workflows/Anima_AiO_v6.0_release_ko.json)
 
 ComfyUI에서 워크플로우를 불러온 뒤, 각 섹션 상단의 Markdown 가이드 노드를 먼저 확인하세요.
 

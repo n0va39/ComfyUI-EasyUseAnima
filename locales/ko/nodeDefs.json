@@ -267,6 +267,102 @@
       }
     }
   },
+  "EasyUseAnimaPromptStudioRegional": {
+    "display_name": "Anima 프롬프트 스튜디오 Regional",
+    "description": "번호가 있는 사용자 마스크에 특정 긍정 프롬프트 필드를 적용하는 Regional Prompt Studio입니다. Regional 프롬프트 데이터는 Anima Regional Conditioning 노드에서 KSampler용 CONDITIONING으로 변환합니다.",
+    "inputs": {
+      "regional_fields": {
+        "name": "Regional 필드",
+        "tooltip": "Regional Prompt Studio 필드를 저장하는 내부 JSON payload입니다."
+      },
+      "regional_config": {
+        "name": "Regional 설정",
+        "tooltip": "번호가 있는 마스크와 마스크 편집기 설정을 저장하는 내부 JSON payload입니다."
+      },
+      "resolution_bucket": {
+        "name": "해상도 버킷",
+        "tooltip": "내부 선택 잠재 해상도 버킷입니다."
+      },
+      "resolution_size": {
+        "name": "해상도 크기",
+        "tooltip": "내부 선택 잠재 해상도입니다. width * height (ratio) 형식입니다."
+      },
+      "resolution_custom_width": {
+        "name": "커스텀 너비",
+        "tooltip": "내부 커스텀 잠재 너비입니다. 값은 32의 배수로 맞춰집니다."
+      },
+      "resolution_custom_height": {
+        "name": "커스텀 높이",
+        "tooltip": "내부 커스텀 잠재 높이입니다. 값은 32의 배수로 맞춰집니다."
+      },
+      "wildcard_mode": {
+        "name": "와일드카드 모드",
+        "tooltip": "Regional Prompt Studio 필드의 와일드카드 확장 모드입니다."
+      },
+      "wildcard_seed": {
+        "name": "와일드카드 시드",
+        "tooltip": "Regional Prompt Studio 필드의 와일드카드 확장에 사용할 시드입니다."
+      },
+      "wildcard_seed_after_generate": {
+        "name": "와일드카드 시드 생성 후 제어",
+        "tooltip": "와일드카드 생성 후 시드를 유지, 랜덤화, 증가, 감소할지 정합니다."
+      }
+    },
+    "outputs": {
+      "0": {
+        "name": "메타데이터 프롬프트",
+        "tooltip": "전역 및 마스크 지정 긍정 필드를 포함하는 메타데이터 프롬프트입니다."
+      },
+      "1": {
+        "name": "메타데이터 부정 프롬프트",
+        "tooltip": "메타데이터 필터가 적용된 부정 메타데이터 프롬프트입니다."
+      },
+      "2": {
+        "name": "너비",
+        "tooltip": "마스크 편집기 캔버스에 사용하는 선택 잠재 이미지 너비입니다."
+      },
+      "3": {
+        "name": "높이",
+        "tooltip": "마스크 편집기 캔버스에 사용하는 선택 잠재 이미지 높이입니다."
+      },
+      "4": {
+        "name": "Regional 프롬프트 데이터",
+        "tooltip": "Anima Regional Conditioning 노드가 읽는 bundled Regional 프롬프트, 마스크, 모델 패치 데이터입니다."
+      }
+    }
+  },
+  "EasyUseAnimaRegionalConditioning": {
+    "display_name": "Anima Regional Conditioning",
+    "description": "Anima Prompt Studio Regional 데이터를 CLIP으로 인코딩하고 마스크 지정 긍정 컨디셔닝을 생성합니다.",
+    "inputs": {
+      "regional_prompt_data": {
+        "name": "Regional 프롬프트 데이터",
+        "tooltip": "Anima Prompt Studio Regional에서 전달되는 전용 Regional 프롬프트 데이터입니다."
+      },
+      "clip": {
+        "name": "CLIP",
+        "tooltip": "전역 및 Regional 프롬프트를 인코딩할 CLIP입니다."
+      },
+      "mask_strength": {
+        "name": "마스크 강도",
+        "tooltip": "마스크 지정 컨디셔닝 항목에 적용할 강도입니다."
+      },
+      "set_cond_area": {
+        "name": "컨디셔닝 영역",
+        "tooltip": "mask bounds는 ComfyUI ConditioningSetMask의 mask bounds 동작과 맞춥니다."
+      }
+    },
+    "outputs": {
+      "0": {
+        "name": "긍정",
+        "tooltip": "전역 프롬프트와 마스크 지정 Regional 항목이 포함된 긍정 CONDITIONING입니다."
+      },
+      "1": {
+        "name": "부정",
+        "tooltip": "bundled 부정 프롬프트에서 인코딩한 부정 CONDITIONING입니다."
+      }
+    }
+  },
   "EasyUseAnimaDetailerAlignHook": {
     "display_name": "Anima 디테일러 정렬 Hook",
     "description": "Impact Pack 디테일러의 detailer_hook 입력에 연결하는 크기 정렬 Hook입니다. Impact Pack의 touch_scaled_size 확장 지점을 사용해 crop sampling 크기를 지정 배수로 올림 보정합니다.",
@@ -284,6 +380,50 @@
       "0": {
         "name": "디테일러 Hook",
         "tooltip": "Impact Pack DetailerForEach 호환 detailer_hook 입력에 연결할 DETAILER_HOOK입니다."
+      }
+    }
+  },
+  "EasyUseAnimaImageScaleByMultiple": {
+    "display_name": "Anima 이미지 유효 배율 확대",
+    "description": "원본 비율을 유지하면서 출력 너비와 높이가 지정 배수가 되는 가장 가까운 유효 배율로 이미지를 확대합니다. 긴 변 제한을 설정하면 제한 이하의 유효 크기만 선택합니다. Highres나 최적화 노드가 32 배수 크기를 요구할 때 사용합니다.",
+    "inputs": {
+      "image": {
+        "name": "이미지",
+        "tooltip": "확대할 입력 이미지입니다."
+      },
+      "scale_by": {
+        "name": "확대 배율",
+        "tooltip": "요청 이미지 확대 배율입니다. 선택한 크기 배수에 맞는 가장 가까운 유효 배율이 적용됩니다."
+      },
+      "upscale_method": {
+        "name": "확대 방법",
+        "tooltip": "이미지 리사이즈에 사용할 보간 방법입니다."
+      },
+      "multiple": {
+        "name": "크기 배수",
+        "tooltip": "출력 너비와 높이가 이 값의 배수가 되도록 유효 배율을 맞춥니다. Highres 안전성에는 32를 권장합니다."
+      },
+      "max_long_edge": {
+        "name": "긴 변 최대 길이",
+        "tooltip": "출력 이미지의 긴 변 최대 길이입니다. 0이면 제한하지 않습니다."
+      }
+    },
+    "outputs": {
+      "0": {
+        "name": "이미지",
+        "tooltip": "가장 가까운 유효 배율로 확대된 이미지입니다."
+      },
+      "1": {
+        "name": "너비",
+        "tooltip": "최종 유효 너비입니다."
+      },
+      "2": {
+        "name": "높이",
+        "tooltip": "최종 유효 높이입니다."
+      },
+      "3": {
+        "name": "적용 배율",
+        "tooltip": "실제로 이미지에 적용된 확대 배율입니다."
       }
     }
   },
