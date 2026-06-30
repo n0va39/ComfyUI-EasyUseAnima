@@ -69,7 +69,8 @@ expansion does not apply LoRAs to MODEL or CLIP.
 ## Modes
 
 - `일반 채우기`: expands the source text with seed-based selection.
-- `고정`: uses cached expanded text when present.
+- `고정`: produces the same expanded result for the same source text, seed, and
+  wildcard files.
 - `순차`: selects `seed % candidate_count` for each candidate list. The seed
   control is forced to `increment`.
 - `재현`: reuses expanded text stored in saved-result workflows.

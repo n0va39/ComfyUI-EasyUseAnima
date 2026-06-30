@@ -1055,7 +1055,7 @@ def _expand_advanced_wildcard_fields(
 ) -> tuple[list[dict], dict[str, Any]]:
     mode_key = normalize_wildcard_mode(mode)
     expanded_fields = _clone_advanced_fields(fields)
-    if mode_key in {WILDCARD_MODE_FIXED, WILDCARD_MODE_REPRODUCE}:
+    if mode_key == WILDCARD_MODE_REPRODUCE:
         return expanded_fields, {
             "changed": False,
             "used_keys": (),
@@ -1623,7 +1623,7 @@ class EasyUseAnimaWildcard:
         seed_control = str(kwargs.get("seed_after_generate", SEED_CONTROL_FIXED) or "")
         text = str(kwargs.get("text", "") or "")
         if (
-            mode in {WILDCARD_MODE_POPULATE, WILDCARD_MODE_SEQUENTIAL}
+            mode in {WILDCARD_MODE_POPULATE, WILDCARD_MODE_FIXED, WILDCARD_MODE_SEQUENTIAL}
             and seed_control == SEED_CONTROL_RANDOMIZE
             and has_wildcard_syntax(text)
         ):
@@ -1711,7 +1711,7 @@ class EasyUseAnimaWildcard:
         used_keys: tuple[str, ...] = ()
         missing_keys: tuple[str, ...] = ()
 
-        if mode_key in {WILDCARD_MODE_FIXED, WILDCARD_MODE_REPRODUCE}:
+        if mode_key == WILDCARD_MODE_REPRODUCE:
             output_text = str(populated_text if populated_text else text or "")
             status = mode_key
             metadata_mode = str(mode or WILDCARD_MODE_LABELS[3])
@@ -1720,7 +1720,7 @@ class EasyUseAnimaWildcard:
             output_text = expansion.text
             used_keys = expansion.used_keys
             missing_keys = expansion.missing_keys
-            status = WILDCARD_MODE_SEQUENTIAL if mode_key == WILDCARD_MODE_SEQUENTIAL else WILDCARD_MODE_POPULATE
+            status = WILDCARD_MODE_SEQUENTIAL if mode_key == WILDCARD_MODE_SEQUENTIAL else mode_key
             metadata_mode = WILDCARD_MODE_LABELS[3]
 
         effective_seed_control = (
@@ -2139,7 +2139,7 @@ class EasyUseAnimaPromptStudioAdvanced:
             return float("nan")
         effective_fields = _apply_advanced_field_inputs(fields, kwargs)
         wildcard_mode_key = normalize_wildcard_mode(wildcard_mode)
-        wildcard_active = wildcard_mode_key in {WILDCARD_MODE_POPULATE, WILDCARD_MODE_SEQUENTIAL}
+        wildcard_active = wildcard_mode_key in {WILDCARD_MODE_POPULATE, WILDCARD_MODE_FIXED, WILDCARD_MODE_SEQUENTIAL}
         wildcard_text = "\n".join(str(field.get("text") or "") for field in effective_fields)
         if (
             wildcard_active
@@ -2325,7 +2325,7 @@ class EasyUseAnimaPromptStudioAdvanced:
             wildcard_mode_key,
         )
         wildcard_changed = bool(saved_wildcard["changed"] or effective_wildcard["changed"])
-        if wildcard_mode_key in {WILDCARD_MODE_POPULATE, WILDCARD_MODE_SEQUENTIAL}:
+        if wildcard_mode_key in {WILDCARD_MODE_POPULATE, WILDCARD_MODE_FIXED, WILDCARD_MODE_SEQUENTIAL}:
             next_wildcard_seed = next_seed(wildcard_seed_value, wildcard_effective_seed_control)
             ui_updates.update({
                 "wildcard_mode": str(wildcard_mode or WILDCARD_MODE_LABELS[1]),

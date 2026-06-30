@@ -68,7 +68,8 @@ MODEL/CLIP에 LoRA를 직접 적용하지 않습니다.
 ## 모드
 
 - `일반 채우기`: 원본 텍스트를 seed 기반으로 확장합니다.
-- `고정`: cached expanded text가 있으면 그 값을 사용합니다.
+- `고정`: 같은 원문, 같은 seed, 같은 와일드카드 파일 상태에서 같은 확장 결과를
+  만듭니다.
 - `순차`: 각 후보 목록에서 `seed % candidate_count` index를 선택합니다.
   seed control은 자동으로 `increment`가 됩니다.
 - `재현`: 저장된 결과 workflow에서 확장된 텍스트를 그대로 재사용하기 위한

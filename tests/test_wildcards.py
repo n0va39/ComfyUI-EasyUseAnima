@@ -148,6 +148,19 @@ class WildcardNodeTests(unittest.TestCase):
         self.assertEqual(extra_pnginfo["workflow"]["nodes"][0]["widgets_values"][2], "재현")
         self.assertEqual(extra_pnginfo["workflow"]["nodes"][0]["widgets_values"][3], 5)
 
+    def test_fixed_mode_expands_inline_multiselect(self):
+        result = EasyUseAnimaWildcard().generate(
+            "{2$$red|blue|green}",
+            "",
+            "고정",
+            0,
+            "fixed",
+        )
+
+        self.assertNotEqual(result["result"][0], "{2$$red|blue|green}")
+        self.assertEqual(len([part.strip() for part in result["result"][0].split(",")]), 2)
+        self.assertEqual(result["ui"]["wildcard"][0]["status"], "fixed")
+
     def test_public_settings_include_wildcard_extra_paths(self):
         self.assertIn("wildcard.extra_paths", public_settings())
 
@@ -232,6 +245,35 @@ class WildcardNodeTests(unittest.TestCase):
         self.assertEqual(workflow_prompt["9"]["inputs"]["wildcard_mode"], "재현")
         self.assertEqual(workflow_prompt["9"]["inputs"]["wildcard_seed"], 2)
         self.assertEqual(result["ui"]["prompt_studio_advanced"][0]["wildcard_seed"], 3)
+
+    def test_prompt_studio_advanced_fixed_mode_expands_inline_multiselect(self):
+        fields = [
+            {
+                "id": "positive_general",
+                "pane": "positive",
+                "type": "general",
+                "label": "General Tags",
+                "text": "{2$$red|blue|green}",
+                "height": 120,
+                "enabled": True,
+            }
+        ]
+
+        result = EasyUseAnimaPromptStudioAdvanced().build(
+            False,
+            True,
+            False,
+            False,
+            json.dumps(fields),
+            wildcard_mode="고정",
+            wildcard_seed=0,
+            wildcard_seed_after_generate="fixed",
+        )
+
+        prompt = result["result"][0]
+        self.assertNotEqual(prompt, "{2$$red|blue|green}")
+        self.assertEqual(len([part.strip() for part in prompt.split(",")]), 2)
+        self.assertEqual(result["ui"]["prompt_studio_advanced"][0]["wildcard_seed"], 0)
 
 
 if __name__ == "__main__":
