@@ -22,9 +22,10 @@
 - Added default user wildcard folder creation with `easyuse_anima_test.txt`.
   The default folder is `ComfyUI/user/__easyuse_anima/wildcards`.
 - Added `wildcard.extra_paths` so existing user-managed wildcard folders can be
-  registered from EasyUse Anima settings.
+  registered from EasyUse Anima settings with one path per list item.
 - Added wildcard autocomplete for `__` input and a wildcard list API.
-- Added separate Prompt Studio wildcard highlighting.
+- Added separate Prompt Studio wildcard highlighting with a configurable
+  wildcard syntax color.
 - Added user documentation for wildcard syntax and split detailed node
   documentation into `docs/nodes/`.
 
@@ -39,6 +40,8 @@
   pages instead of carrying all node documentation inline.
 - Package and workflow documentation now use `example_workflows/` as the public
   workflow JSON source and avoid the removed duplicate `docs/workflows/` layout.
+- Wildcard extra path settings now use an add/remove list editor instead of a
+  delimiter-based text field.
 
 ### Fixed
 
@@ -52,6 +55,8 @@
 - Fixed wildcard highlight priority so wildcard syntax is rendered with the
   dedicated wildcard color instead of being swallowed by normal prompt tag
   highlighting.
+- Fixed wildcard extra path editing so typing in a path input does not lose
+  focus after the first character.
 
 ### Deferred
 

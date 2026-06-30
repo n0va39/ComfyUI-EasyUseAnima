@@ -59,7 +59,8 @@ Prompt Studio highlighting:
 - Quality, safety/rating, year, count, character, artist, copyright, metadata,
   learned general tags, natural language, syntax errors, and unknown tags use
   separate highlight classes.
-- Wildcard syntax uses a separate color instead of normal tag colors.
+- Wildcard syntax uses a separate color instead of normal tag colors, and the
+  color can be changed in Settings.
 
 ComfyUI Settings:
 
@@ -69,9 +70,11 @@ ComfyUI Settings:
   hints, settings entries, custom DOM buttons, and tooltips follow the ComfyUI
   language setting.
 - Prompt metadata filter words are applied only to metadata prompt outputs.
-- Prompt Studio typo indicators and category colors can be changed manually.
+- Prompt Studio typo indicators and category/wildcard colors can be changed
+  manually.
 - Prompt Studio can auto-toggle general fields above the NAIA field.
-- Wildcard extra paths can register existing user-managed wildcard folders.
+- Wildcard extra paths use an add-item editor to register existing
+  user-managed wildcard folders.
 - LoRA Preset row labels can show file names only or full paths.
 
 ## Requirements

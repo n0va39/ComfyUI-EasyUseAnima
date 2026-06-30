@@ -59,7 +59,8 @@ Prompt Studio 하이라이트:
 - quality, safety/rating, year, count, character, artist, copyright, metadata,
   learned general tag, natural language, syntax error, unknown tag를 구분해
   표시합니다.
-- 와일드카드 문법은 일반 태그와 별도의 색상으로 표시합니다.
+- 와일드카드 문법은 일반 태그와 별도의 색상으로 표시하며, Settings에서 색상을
+  변경할 수 있습니다.
 
 ComfyUI Settings:
 
@@ -68,9 +69,11 @@ ComfyUI Settings:
 - EasyUse Anima는 별도 언어 설정을 저장하지 않습니다. 노드 정보, 입력/출력
   힌트, 설정창, 커스텀 DOM 버튼과 툴팁은 ComfyUI 기본 언어 설정을 따릅니다.
 - Prompt metadata filter word는 metadata prompt output에만 적용됩니다.
-- Prompt Studio 오타 표시와 카테고리 색상을 수동으로 변경할 수 있습니다.
+- Prompt Studio 오타 표시와 카테고리/와일드카드 색상을 수동으로 변경할 수
+  있습니다.
 - Prompt Studio는 NAIA field 위쪽 general field를 자동 토글할 수 있습니다.
-- Wildcard extra paths에 기존 사용자 와일드카드 폴더를 추가할 수 있습니다.
+- Wildcard extra paths는 항목 추가 방식으로 기존 사용자 와일드카드 폴더를
+  등록합니다.
 - LoRA Preset row label은 파일명만 표시하거나 전체 경로로 표시할 수 있습니다.
 
 ## 요구 사항
