@@ -33,6 +33,8 @@ DEFAULT_SETTINGS = {
     "naia.host": "127.0.0.1",
     "naia.port": "7243",
     "naia.use_naia_settings": "true",
+    "naia.resolution_mode": "scale",
+    "naia.resolution_bucket": "1024",
     "naia.resolution_scale": "1.0",
     "naia.resolution_max_long_edge": "0",
     "naia.pre_prompt": "",
@@ -64,6 +66,20 @@ AUTOCOMPLETE_MODES = {
 AUTOCOMPLETE_COMMIT_KEYS = {
     "enter",
     "tab",
+}
+
+NAIA_RESOLUTION_MODES = {
+    "scale",
+    "bucket",
+}
+
+NAIA_RESOLUTION_BUCKETS = {
+    "512",
+    "768",
+    "896",
+    "1024",
+    "1280",
+    "1536",
 }
 
 NAIA_PREPROCESSING_KEYS = [
@@ -123,6 +139,8 @@ COMFY_SETTING_KEYS = {
     "EasyUseAnima.NAIA.Host": "naia.host",
     "EasyUseAnima.NAIA.Port": "naia.port",
     "EasyUseAnima.NAIA.UseDesktopPromptEngineering": "naia.use_naia_settings",
+    "EasyUseAnima.NAIA.ResolutionMode": "naia.resolution_mode",
+    "EasyUseAnima.NAIA.ResolutionBucket": "naia.resolution_bucket",
     "EasyUseAnima.NAIA.ResolutionScale": "naia.resolution_scale",
     "EasyUseAnima.NAIA.ResolutionMaxLongEdge": "naia.resolution_max_long_edge",
     "EasyUseAnima.NAIA.pre_prompt": "naia.pre_prompt",
@@ -363,6 +381,8 @@ def public_settings() -> dict:
             "naia.use_naia_settings",
             DEFAULT_SETTINGS["naia.use_naia_settings"],
         ),
+        "naia.resolution_mode": resolve_naia_resolution_mode(settings),
+        "naia.resolution_bucket": resolve_naia_resolution_bucket(settings),
         "naia.resolution_scale": resolve_naia_resolution_scale(settings),
         "naia.resolution_max_long_edge": resolve_naia_resolution_max_long_edge(settings),
         "naia.pre_prompt": settings.get("naia.pre_prompt", ""),
@@ -469,6 +489,28 @@ def resolve_naia_port(settings: dict | None = None) -> int:
     return max(1, min(65535, value))
 
 
+def resolve_naia_resolution_mode(settings: dict | None = None) -> str:
+    settings = settings or get_settings()
+    value = str(
+        settings.get("naia.resolution_mode", DEFAULT_SETTINGS["naia.resolution_mode"])
+        or DEFAULT_SETTINGS["naia.resolution_mode"]
+    ).strip().lower()
+    if value in NAIA_RESOLUTION_MODES:
+        return value
+    if value == "bucket_fit":
+        return "bucket"
+    return DEFAULT_SETTINGS["naia.resolution_mode"]
+
+
+def resolve_naia_resolution_bucket(settings: dict | None = None) -> str:
+    settings = settings or get_settings()
+    value = str(
+        settings.get("naia.resolution_bucket", DEFAULT_SETTINGS["naia.resolution_bucket"])
+        or DEFAULT_SETTINGS["naia.resolution_bucket"]
+    ).strip()
+    return value if value in NAIA_RESOLUTION_BUCKETS else DEFAULT_SETTINGS["naia.resolution_bucket"]
+
+
 def resolve_naia_resolution_scale(settings: dict | None = None) -> float:
     settings = settings or get_settings()
     try:
@@ -509,6 +551,8 @@ def resolve_naia_settings() -> dict:
         "host": settings.get("naia.host", DEFAULT_SETTINGS["naia.host"]) or DEFAULT_SETTINGS["naia.host"],
         "port": resolve_naia_port(settings),
         "use_naia_settings": use_naia_settings,
+        "resolution_mode": resolve_naia_resolution_mode(settings),
+        "resolution_bucket": resolve_naia_resolution_bucket(settings),
         "resolution_scale": resolve_naia_resolution_scale(settings),
         "resolution_max_long_edge": resolve_naia_resolution_max_long_edge(settings),
         "pre_prompt": settings.get("naia.pre_prompt", ""),
