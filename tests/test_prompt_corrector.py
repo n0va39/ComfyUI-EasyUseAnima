@@ -17,6 +17,7 @@ from nodes import (
     PROMPT_DATA_SCHEMA,
     PROMPT_DATA_TYPE,
     EasyUseAnimaDetailerAlignHook,
+    EasyUseAnimaPromptDataConditioning,
     EasyUseAnimaPromptDataUnpack,
     EasyUseAnimaPromptBuilder,
     EasyUseAnimaPromptCorrector,
@@ -363,6 +364,93 @@ class PromptBuilderTests(unittest.TestCase):
             self.assertIn(name, input_types["optional"])
         self.assertEqual(EasyUseAnimaPromptDataUnpack.RETURN_TYPES[0], PROMPT_DATA_TYPE)
         self.assertEqual(EasyUseAnimaPromptDataUnpack.RETURN_NAMES[0], PROMPT_DATA_TYPE)
+
+    def test_prompt_data_conditioning_uses_prompt_data_socket_and_sampler_outputs(self):
+        input_types = EasyUseAnimaPromptDataConditioning.INPUT_TYPES()
+
+        self.assertIn(PROMPT_DATA_TYPE, input_types["required"])
+        self.assertEqual(input_types["required"][PROMPT_DATA_TYPE][0], PROMPT_DATA_TYPE)
+        self.assertTrue(input_types["required"][PROMPT_DATA_TYPE][1]["forceInput"])
+        self.assertEqual(EasyUseAnimaPromptDataConditioning.RETURN_TYPES, ("MODEL", "CONDITIONING", "CONDITIONING"))
+        self.assertEqual(EasyUseAnimaPromptDataConditioning.RETURN_NAMES, ("model", "positive", "negative"))
+
+    def test_prompt_data_conditioning_encodes_prompt_data_without_mod_guidance(self):
+        model = object()
+        prompt_data = {
+            "positive_prompt": "1girl",
+            "negative_prompt": "bad hands",
+            "mod_guidance": {
+                "enabled": False,
+            },
+        }
+
+        with patch("nodes._encode_with_comfy_clip", lambda clip, text: [[f"cond:{text}", {"encoded_text": text}]]):
+            patched_model, positive, negative = EasyUseAnimaPromptDataConditioning().apply(
+                model,
+                clip=object(),
+                EASYUSE_ANIMA_PROMPT_DATA=prompt_data,
+            )
+
+        self.assertIs(patched_model, model)
+        self.assertEqual(positive[0][1]["encoded_text"], "1girl")
+        self.assertEqual(negative[0][1]["encoded_text"], "bad hands")
+
+    def test_prompt_data_conditioning_applies_spectrum_mod_guidance(self):
+        calls = []
+
+        class FakeAnimaModGuidance:
+            def patch(
+                self,
+                model,
+                clip,
+                quality_tags,
+                quality_neg,
+                mod_w_profile,
+                positive,
+                negative,
+            ):
+                calls.append({
+                    "model": model,
+                    "clip": clip,
+                    "quality_tags": quality_tags,
+                    "quality_neg": quality_neg,
+                    "mod_w_profile": mod_w_profile,
+                    "positive": positive,
+                    "negative": negative,
+                })
+                return ("patched-model",)
+
+        model = object()
+        clip = object()
+        prompt_data = {
+            "positive_prompt": "1girl",
+            "negative_prompt": "bad hands",
+            "mod_guidance": {
+                "enabled": True,
+                "negative_enabled": True,
+                "quality_tags": "masterpiece",
+                "negative_prompt": "worst quality",
+            },
+        }
+
+        with patch("nodes._encode_with_comfy_clip", lambda clip, text: [[f"cond:{text}", {"encoded_text": text}]]):
+            with patch("nodes._find_spectrum_anima_mod_guidance_class", lambda: FakeAnimaModGuidance):
+                patched_model, positive, negative = EasyUseAnimaPromptDataConditioning().apply(
+                    model,
+                    clip=clip,
+                    EASYUSE_ANIMA_PROMPT_DATA=prompt_data,
+                    mod_w_profile="step_i14",
+                )
+
+        self.assertEqual(patched_model, "patched-model")
+        self.assertEqual(len(calls), 1)
+        self.assertIs(calls[0]["model"], model)
+        self.assertIs(calls[0]["clip"], clip)
+        self.assertEqual(calls[0]["quality_tags"], "masterpiece")
+        self.assertEqual(calls[0]["quality_neg"], "worst quality")
+        self.assertEqual(calls[0]["mod_w_profile"], "step_i14")
+        self.assertEqual(calls[0]["positive"], positive)
+        self.assertEqual(calls[0]["negative"], negative)
 
     def test_prompt_studio_advanced_v2_returns_structured_prompt_data(self):
         fields = [

@@ -23,6 +23,9 @@
 - Added `EASYUSE_ANIMA_PROMPT_DATA` helper node to pass prompt data through,
   optionally override compatibility fields, and unfold it into the existing
   Prompt Studio compatibility outputs.
+- Added `Anima Prompt Data Conditioning` to consume `EASYUSE_ANIMA_PROMPT_DATA`,
+  encode positive/negative CONDITIONING, and apply the
+  `comfyui-spectrum-ksampler` `AnimaModGuidance` MODEL patch when enabled.
 - Prompt-data socket names are fixed to English identifiers across locales so
   displayed socket names match the Python node contract.
 - Added NAIA resolution bucket fit mode for `Anima Prompt Studio Advanced`.
@@ -43,6 +46,8 @@
 - Added regression coverage for the Advanced v2 prompt data socket, dict
   payload, `EASYUSE_ANIMA_PROMPT_DATA` helper outputs and overrides, and
   artist-field-only artist data extraction.
+- Added regression coverage for prompt-data conditioning and Spectrum
+  `AnimaModGuidance` patcher invocation.
 - Added regression coverage for Regional Prompt Studio field socket overrides.
 - Added regression coverage for NAIA resolution mode/bucket validation and
   bucket-fit output sizing.

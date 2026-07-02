@@ -387,6 +387,46 @@
       }
     }
   },
+  "EasyUseAnimaPromptDataConditioning": {
+    "display_name": "Anima Prompt Data Conditioning",
+    "description": "EASYUSE_ANIMA_PROMPT_DATA를 키로 읽어 positive/negative CONDITIONING을 만들고, 활성화된 경우 Spectrum Anima Mod Guidance 모델 패치를 적용합니다.",
+    "inputs": {
+      "model": {
+        "name": "model",
+        "tooltip": "통과시키거나 Anima Mod Guidance로 패치할 MODEL입니다."
+      },
+      "clip": {
+        "name": "clip",
+        "tooltip": "프롬프트 데이터와 Mod Guidance 품질 태그를 인코딩할 CLIP입니다."
+      },
+      "EASYUSE_ANIMA_PROMPT_DATA": {
+        "name": "EASYUSE_ANIMA_PROMPT_DATA",
+        "tooltip": "Anima Prompt Studio Advanced v2에서 나온 구조화 프롬프트 데이터입니다."
+      },
+      "mod_guidance_mode": {
+        "name": "mod_guidance_mode",
+        "tooltip": "prompt_data는 dict의 Boolean을 따르고, enabled는 강제 적용, disabled는 모델 패치를 생략합니다."
+      },
+      "mod_w_profile": {
+        "name": "mod_w_profile",
+        "tooltip": "Spectrum AnimaModGuidance per-block profile입니다. off는 모델 패치를 생략합니다."
+      }
+    },
+    "outputs": {
+      "0": {
+        "name": "model",
+        "tooltip": "프롬프트 데이터 기반 모델 패치를 적용한 MODEL입니다."
+      },
+      "1": {
+        "name": "positive",
+        "tooltip": "프롬프트 데이터에서 인코딩한 positive CONDITIONING입니다."
+      },
+      "2": {
+        "name": "negative",
+        "tooltip": "프롬프트 데이터에서 인코딩한 negative CONDITIONING입니다."
+      }
+    }
+  },
   "EasyUseAnimaPromptStudioRegional": {
     "display_name": "Anima 프롬프트 스튜디오 Regional",
     "description": "번호가 있는 사용자 마스크에 특정 긍정 프롬프트 필드를 적용하는 Regional Prompt Studio입니다. Regional 프롬프트 데이터는 Anima Regional Conditioning 노드에서 KSampler용 CONDITIONING으로 변환합니다.",

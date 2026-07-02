@@ -54,6 +54,7 @@ class LocaleTests(unittest.TestCase):
         node_ids = (
             "EasyUseAnimaPromptStudioAdvancedV2",
             "EasyUseAnimaPromptDataUnpack",
+            "EasyUseAnimaPromptDataConditioning",
         )
         for locale_code in LOCALE_CODES:
             data = json.loads((ROOT / "locales" / locale_code / "nodeDefs.json").read_text(encoding="utf-8"))
@@ -68,11 +69,13 @@ class LocaleTests(unittest.TestCase):
                     for index, name in enumerate(cls.RETURN_NAMES):
                         self.assertEqual(outputs[str(index)]["name"], name)
 
-            unpack_inputs = data["EasyUseAnimaPromptDataUnpack"]["inputs"]
-            self.assertEqual(
-                unpack_inputs[nodes.PROMPT_DATA_TYPE]["name"],
-                nodes.PROMPT_DATA_TYPE,
-            )
+                    required_inputs = cls.INPUT_TYPES().get("required", {})
+                    if nodes.PROMPT_DATA_TYPE in required_inputs:
+                        prompt_data_inputs = data[node_id]["inputs"]
+                        self.assertEqual(
+                            prompt_data_inputs[nodes.PROMPT_DATA_TYPE]["name"],
+                            nodes.PROMPT_DATA_TYPE,
+                        )
 
 
 if __name__ == "__main__":

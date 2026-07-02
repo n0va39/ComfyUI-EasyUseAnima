@@ -84,6 +84,22 @@ REGIONAL_CONFIG_VERSION = 1
 PROMPT_DATA_VERSION = 1
 PROMPT_DATA_TYPE = "EASYUSE_ANIMA_PROMPT_DATA"
 PROMPT_DATA_SCHEMA = "easyuse_anima_prompt_studio_advanced_v2"
+ANIMA_MOD_GUIDANCE_MODE_FROM_PROMPT_DATA = "prompt_data"
+ANIMA_MOD_GUIDANCE_MODE_ENABLED = "enabled"
+ANIMA_MOD_GUIDANCE_MODE_DISABLED = "disabled"
+ANIMA_MOD_GUIDANCE_MODES = (
+    ANIMA_MOD_GUIDANCE_MODE_FROM_PROMPT_DATA,
+    ANIMA_MOD_GUIDANCE_MODE_ENABLED,
+    ANIMA_MOD_GUIDANCE_MODE_DISABLED,
+)
+ANIMA_MOD_GUIDANCE_PROFILE_OFF = "off"
+ANIMA_MOD_GUIDANCE_DEFAULT_PROFILE = "step_i8_skip27"
+ANIMA_MOD_GUIDANCE_PROFILES = (
+    ANIMA_MOD_GUIDANCE_PROFILE_OFF,
+    ANIMA_MOD_GUIDANCE_DEFAULT_PROFILE,
+    "step_i14",
+    "uniform_w3",
+)
 REGIONAL_PROMPT_DATA_TYPE = "EASYUSE_ANIMA_REGIONAL_PROMPT_DATA"
 REGIONAL_PROMPT_DATA_SCHEMA = "easyuse_anima_prompt_studio_regional"
 REGIONAL_PROMPT_BUNDLE_SCHEMA = "easyuse_anima_prompt_studio_regional_bundle"
@@ -597,9 +613,83 @@ def _node_output_tuple(result) -> tuple:
     value = getattr(result, "result", None)
     if value is not None:
         return tuple(value)
+    if isinstance(result, dict) and "result" in result:
+        return tuple(result["result"])
     if isinstance(result, tuple):
         return result
     return (result,)
+
+
+def _find_loaded_node_class(node_id: str):
+    cls = _find_comfy_node_class(node_id)
+    if cls is not None:
+        return cls
+
+    for module in list(sys.modules.values()):
+        mappings = getattr(module, "NODE_CLASS_MAPPINGS", None)
+        if isinstance(mappings, dict):
+            cls = mappings.get(node_id)
+            if cls is not None:
+                return cls
+    return None
+
+
+def _find_spectrum_anima_mod_guidance_class():
+    cls = _find_loaded_node_class("AnimaModGuidance")
+    if cls is not None:
+        return cls
+    raise RuntimeError(
+        "[EasyUseAnima] Anima Prompt Data Conditioning requires "
+        "comfyui-spectrum-ksampler's AnimaModGuidance node. "
+        "Install/enable comfyui-spectrum-ksampler, then restart ComfyUI."
+    )
+
+
+def _resolve_anima_mod_guidance_enabled(prompt_data_enabled: bool, mode: str) -> bool:
+    mode = str(mode or ANIMA_MOD_GUIDANCE_MODE_FROM_PROMPT_DATA)
+    if mode == ANIMA_MOD_GUIDANCE_MODE_ENABLED:
+        return True
+    if mode == ANIMA_MOD_GUIDANCE_MODE_DISABLED:
+        return False
+    return bool(prompt_data_enabled)
+
+
+def _normalize_anima_mod_guidance_profile(profile: str) -> str:
+    profile = str(profile or ANIMA_MOD_GUIDANCE_DEFAULT_PROFILE)
+    if profile not in ANIMA_MOD_GUIDANCE_PROFILES:
+        return ANIMA_MOD_GUIDANCE_DEFAULT_PROFILE
+    return profile
+
+
+def _apply_spectrum_anima_mod_guidance(
+    model,
+    clip,
+    positive,
+    negative,
+    quality_tags: str,
+    quality_neg: str,
+    mod_w_profile: str,
+):
+    patcher_cls = _find_spectrum_anima_mod_guidance_class()
+    patcher = patcher_cls()
+    patch = getattr(patcher, "patch", None)
+    if patch is None:
+        raise RuntimeError(
+            "[EasyUseAnima] comfyui-spectrum-ksampler AnimaModGuidance does not expose patch()."
+        )
+    result = patch(
+        model,
+        clip,
+        str(quality_tags or ""),
+        str(quality_neg or ""),
+        str(mod_w_profile or ANIMA_MOD_GUIDANCE_DEFAULT_PROFILE),
+        positive,
+        negative,
+    )
+    values = _node_output_tuple(result)
+    if not values:
+        raise RuntimeError("[EasyUseAnima] AnimaModGuidance returned no MODEL.")
+    return values[0]
 
 
 def _format_sam3_detection_prompt(detect_prompt: str, detect_count: int) -> str:
@@ -3645,6 +3735,115 @@ class EasyUseAnimaPromptDataUnpack:
             overrides,
         )
         return (data, *_advanced_outputs_from_prompt_data(data))
+
+
+class EasyUseAnimaPromptDataConditioning:
+    """Encode EASYUSE_ANIMA_PROMPT_DATA and apply prompt-driven model patches."""
+
+    DESCRIPTION = (
+        "Reads EASYUSE_ANIMA_PROMPT_DATA by dict keys, encodes positive and negative "
+        "CONDITIONING with CLIP, and applies comfyui-spectrum-ksampler Anima Mod "
+        "Guidance to the MODEL when enabled."
+    )
+    OUTPUT_TOOLTIPS = (
+        "MODEL after prompt-data model patches.",
+        "Positive CONDITIONING encoded from prompt data.",
+        "Negative CONDITIONING encoded from prompt data.",
+    )
+
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {
+            "required": {
+                "model": ("MODEL", {
+                    "tooltip": "MODEL to pass through or patch with Anima Mod Guidance.",
+                }),
+                "clip": ("CLIP", {
+                    "tooltip": "CLIP used to encode prompt data and Mod Guidance quality tags.",
+                }),
+                PROMPT_DATA_TYPE: (PROMPT_DATA_TYPE, {
+                    "forceInput": True,
+                    "tooltip": "Structured prompt data from Anima Prompt Studio Advanced v2.",
+                }),
+                "mod_guidance_mode": (list(ANIMA_MOD_GUIDANCE_MODES), {
+                    "default": ANIMA_MOD_GUIDANCE_MODE_FROM_PROMPT_DATA,
+                    "tooltip": (
+                        "prompt_data uses the prompt-data boolean, enabled forces Anima "
+                        "Mod Guidance on, and disabled bypasses the model patch."
+                    ),
+                }),
+                "mod_w_profile": (list(ANIMA_MOD_GUIDANCE_PROFILES), {
+                    "default": ANIMA_MOD_GUIDANCE_DEFAULT_PROFILE,
+                    "tooltip": (
+                        "Spectrum AnimaModGuidance per-block profile. off bypasses "
+                        "the model patch."
+                    ),
+                }),
+            },
+        }
+
+    RETURN_TYPES = ("MODEL", "CONDITIONING", "CONDITIONING")
+    RETURN_NAMES = ("model", "positive", "negative")
+    FUNCTION = "apply"
+    CATEGORY = "EasyUse Anima/Prompt"
+
+    @classmethod
+    def IS_CHANGED(
+        cls,
+        EASYUSE_ANIMA_PROMPT_DATA: str | dict | None = None,
+        mod_guidance_mode: str = ANIMA_MOD_GUIDANCE_MODE_FROM_PROMPT_DATA,
+        mod_w_profile: str = ANIMA_MOD_GUIDANCE_DEFAULT_PROFILE,
+        **kwargs,
+    ):
+        return _stable_change_key({
+            "mode": "prompt_data_conditioning",
+            "prompt_data": _normalize_prompt_data(EASYUSE_ANIMA_PROMPT_DATA),
+            "mod_guidance_mode": str(mod_guidance_mode or ANIMA_MOD_GUIDANCE_MODE_FROM_PROMPT_DATA),
+            "mod_w_profile": _normalize_anima_mod_guidance_profile(mod_w_profile),
+        })
+
+    def apply(
+        self,
+        model,
+        clip,
+        EASYUSE_ANIMA_PROMPT_DATA: str | dict,
+        mod_guidance_mode: str = ANIMA_MOD_GUIDANCE_MODE_FROM_PROMPT_DATA,
+        mod_w_profile: str = ANIMA_MOD_GUIDANCE_DEFAULT_PROFILE,
+    ):
+        (
+            positive_prompt,
+            negative_prompt,
+            quality_tags,
+            quality_neg,
+            use_anima_mod_guidance,
+            use_negative_anima_mod_guidance,
+            _metadata_prompt,
+            _metadata_negative_prompt,
+            _width,
+            _height,
+        ) = _advanced_outputs_from_prompt_data(EASYUSE_ANIMA_PROMPT_DATA)
+
+        positive = _encode_with_comfy_clip(clip, positive_prompt)
+        negative = _encode_with_comfy_clip(clip, negative_prompt)
+        profile = _normalize_anima_mod_guidance_profile(mod_w_profile)
+        use_mod_guidance = _resolve_anima_mod_guidance_enabled(
+            use_anima_mod_guidance,
+            str(mod_guidance_mode or ANIMA_MOD_GUIDANCE_MODE_FROM_PROMPT_DATA),
+        )
+
+        patched_model = model
+        if use_mod_guidance and profile != ANIMA_MOD_GUIDANCE_PROFILE_OFF:
+            patched_model = _apply_spectrum_anima_mod_guidance(
+                model,
+                clip,
+                positive,
+                negative,
+                quality_tags,
+                quality_neg if use_negative_anima_mod_guidance else "",
+                profile,
+            )
+
+        return (patched_model, positive, negative)
 
 
 class EasyUseAnimaPromptStudioRegional:

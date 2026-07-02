@@ -387,6 +387,46 @@
       }
     }
   },
+  "EasyUseAnimaPromptDataConditioning": {
+    "display_name": "Anima Prompt Data Conditioning",
+    "description": "Reads EASYUSE_ANIMA_PROMPT_DATA by key, encodes positive/negative CONDITIONING, and applies Spectrum Anima Mod Guidance model patching when enabled.",
+    "inputs": {
+      "model": {
+        "name": "model",
+        "tooltip": "MODEL to pass through or patch with Anima Mod Guidance."
+      },
+      "clip": {
+        "name": "clip",
+        "tooltip": "CLIP used to encode prompt data and Mod Guidance quality tags."
+      },
+      "EASYUSE_ANIMA_PROMPT_DATA": {
+        "name": "EASYUSE_ANIMA_PROMPT_DATA",
+        "tooltip": "Structured prompt data from Anima Prompt Studio Advanced v2."
+      },
+      "mod_guidance_mode": {
+        "name": "mod_guidance_mode",
+        "tooltip": "prompt_data follows the dict boolean, enabled forces the patch, and disabled bypasses it."
+      },
+      "mod_w_profile": {
+        "name": "mod_w_profile",
+        "tooltip": "Spectrum AnimaModGuidance per-block profile. off bypasses the model patch."
+      }
+    },
+    "outputs": {
+      "0": {
+        "name": "model",
+        "tooltip": "MODEL after prompt-data model patches."
+      },
+      "1": {
+        "name": "positive",
+        "tooltip": "Positive CONDITIONING encoded from prompt data."
+      },
+      "2": {
+        "name": "negative",
+        "tooltip": "Negative CONDITIONING encoded from prompt data."
+      }
+    }
+  },
   "EasyUseAnimaPromptStudioRegional": {
     "display_name": "Anima 提示詞工作室 Regional",
     "description": "將指定正向提示詞欄位套用到編號使用者遮罩的 Regional Prompt Studio。Regional 提示詞資料由 Anima Regional Conditioning 節點轉換為 KSampler 用 CONDITIONING。",
