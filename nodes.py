@@ -100,6 +100,34 @@ ANIMA_MOD_GUIDANCE_PROFILES = (
     "step_i14",
     "uniform_w3",
 )
+ARTIST_MIX_MODE_FROM_PROMPT_DATA = "prompt_data"
+ARTIST_MIX_MODE_OFF = "off"
+ARTIST_MIX_MODE_PROMPT = "prompt"
+ARTIST_MIX_MODE_AVERAGE = "average"
+ARTIST_MIX_MODE_EXACT = "exact"
+ARTIST_MIX_MODE_COMPOSITE_EXACT = "composite_exact"
+ARTIST_MIX_MODE_LATE_EXACT = "late_exact"
+ARTIST_MIX_MODE_AVERAGE_LATE_EXACT = "average_late_exact"
+ARTIST_MIX_MODE_SCHEDULED_AVERAGE = "scheduled_average"
+ARTIST_MIX_MODES = (
+    ARTIST_MIX_MODE_PROMPT,
+    ARTIST_MIX_MODE_AVERAGE,
+    ARTIST_MIX_MODE_EXACT,
+    ARTIST_MIX_MODE_COMPOSITE_EXACT,
+    ARTIST_MIX_MODE_LATE_EXACT,
+    ARTIST_MIX_MODE_AVERAGE_LATE_EXACT,
+    ARTIST_MIX_MODE_SCHEDULED_AVERAGE,
+)
+ARTIST_MIX_INPUT_MODES = (
+    ARTIST_MIX_MODE_FROM_PROMPT_DATA,
+    ARTIST_MIX_MODE_OFF,
+    *ARTIST_MIX_MODES,
+)
+ARTIST_MIX_DEFAULT_START_PERCENT = 0.5
+ARTIST_MIX_DEFAULT_STRENGTH_SCALE = 1.0
+ARTIST_MIX_CONTROL_KEY = "anima_prompt_artist_mix_control"
+ARTIST_MIX_EXACT_KEY = "anima_prompt_artist_mix_exact"
+ARTIST_MIX_SCHEDULE_KEY = "anima_prompt_artist_mix_schedule"
 REGIONAL_PROMPT_DATA_TYPE = "EASYUSE_ANIMA_REGIONAL_PROMPT_DATA"
 REGIONAL_PROMPT_DATA_SCHEMA = "easyuse_anima_prompt_studio_regional"
 REGIONAL_PROMPT_BUNDLE_SCHEMA = "easyuse_anima_prompt_studio_regional_bundle"
@@ -210,6 +238,10 @@ _HASH_COMMENT_RE = re.compile(r"^[ \t]*#[^\n]*", re.MULTILINE)
 _MULTI_COMMA_RE = re.compile(r"(\s*,){2,}")
 _INLINE_SPACE_RE = re.compile(r"[ \t]+")
 _WEIGHTED_TOKEN_RE = re.compile(r"^\(([^(),]+):[-+]?\d+(?:\.\d+)?\)$")
+_WEIGHTED_ARTIST_RE = re.compile(
+    r"^\(\s*(?P<tag>.*?)\s*:\s*(?P<weight>[+-]?(?:\d+(?:\.\d*)?|\.\d+))\s*\)$"
+)
+_SECTION_SEPARATOR_RE = re.compile(r"^\s*-{6,}\s*$", re.MULTILINE)
 _RESOLUTION_LABEL_RE = re.compile(r"(\d+)\s*(?:\*|x|×)\s*(\d+)")
 _TRIGGER_WORD_KEYS = ("trainedWords", "trained_words", "trigger_words", "activation_text")
 _ADVANCED_FIELD_SOCKET_PREFIX = "field_"
@@ -1540,6 +1572,301 @@ def _advanced_artist_field_prompt(fields: list[dict], pane: str) -> str:
     )
 
 
+def _advanced_fields_with_artist_override(fields: list[dict], artist_prompt: str) -> list[dict]:
+    artist_text = _join_prompt_tokens(artist_prompt)
+    output: list[dict] = []
+    inserted = False
+    for field in fields:
+        if field.get("type") == "artist":
+            if artist_text and not inserted:
+                item = dict(field)
+                item["text"] = artist_text
+                output.append(item)
+                inserted = True
+            continue
+        output.append(dict(field))
+
+    if artist_text and not inserted:
+        insert_at = 0
+        for index, field in enumerate(output):
+            if field.get("type") == "quality":
+                insert_at = index + 1
+        output.insert(insert_at, {
+            "id": "artist_mix_override",
+            "pane": "positive",
+            "type": "artist",
+            "label": ADVANCED_FIELD_LABELS["artist"],
+            "text": artist_text,
+            "height": 72,
+            "enabled": True,
+            "pin": False,
+        })
+    return output
+
+
+def _advanced_prompt_with_artist_override(
+    fields: list[dict],
+    artist_prompt: str,
+    include_quality: bool,
+    force_pin_triggers: bool = False,
+) -> str:
+    return _correct_advanced_field_sequence(
+        _advanced_fields_with_artist_override(fields, artist_prompt),
+        include_quality=include_quality,
+        artist_overrides=artist_prompt,
+        force_pin_triggers=force_pin_triggers,
+    )
+
+
+def _split_artist_mix_items(text: str) -> list[str]:
+    items: list[str] = []
+    buffer: list[str] = []
+    depth = 0
+    escaped = False
+    for char in str(text or ""):
+        if escaped:
+            buffer.append(char)
+            escaped = False
+            continue
+        if char == "\\":
+            buffer.append(char)
+            escaped = True
+            continue
+        if char == "(":
+            depth += 1
+        elif char == ")" and depth > 0:
+            depth -= 1
+        if (char == "," or char == "\n") and depth == 0:
+            item = "".join(buffer).strip()
+            if item:
+                items.append(item)
+            buffer = []
+            continue
+        buffer.append(char)
+    item = "".join(buffer).strip()
+    if item:
+        items.append(item)
+    return items
+
+
+def _split_artist_mix_blocks(text: str) -> list[str]:
+    source = str(text or "").replace("\r\n", "\n").replace("\r", "\n")
+    if not _SECTION_SEPARATOR_RE.search(source):
+        return []
+    blocks: list[str] = []
+    current: list[str] = []
+    for line in source.split("\n"):
+        if _SECTION_SEPARATOR_RE.match(line):
+            block = "\n".join(current).strip(" ,\n")
+            if block:
+                blocks.append(block)
+            current = []
+            continue
+        current.append(line)
+    block = "\n".join(current).strip(" ,\n")
+    if block:
+        blocks.append(block)
+    return blocks
+
+
+def _parse_artist_mix_items(text: str) -> list[tuple[str, float]]:
+    parsed: list[tuple[str, float]] = []
+    blocks = _split_artist_mix_blocks(text)
+    source_items = blocks or _split_artist_mix_items(text)
+    for item in source_items:
+        raw_tag = item.strip()
+        weight = 1.0
+        weight_source = raw_tag
+        if blocks:
+            block_parts = _split_artist_mix_items(raw_tag)
+            if block_parts:
+                weight_source = block_parts[0].strip()
+        match = _WEIGHTED_ARTIST_RE.match(weight_source)
+        if match:
+            tag = raw_tag if blocks else match.group("tag").strip()
+            weight = _as_float(match.group("weight"), 1.0)
+        elif raw_tag.startswith("(") and raw_tag.endswith(")"):
+            tag = raw_tag[1:-1].strip()
+        else:
+            tag = raw_tag
+        if tag and isfinite(weight) and weight > 0:
+            parsed.append((tag, weight))
+    return parsed
+
+
+def _artist_tags_from_prompt(text: str, source: str = "artist_field") -> list[dict[str, Any]]:
+    return [
+        {
+            "tag": tag,
+            "weight": float(weight),
+            "source": source,
+        }
+        for tag, weight in _parse_artist_mix_items(text)
+    ]
+
+
+def _bounded_artist_mix_float(value, default: float, minimum: float, maximum: float) -> float:
+    result = _as_float(value, default)
+    if not isfinite(result):
+        result = default
+    return max(minimum, min(maximum, result))
+
+
+def _normalize_artist_mix_mode(value, default: str = ARTIST_MIX_MODE_PROMPT) -> str:
+    mode = str(value or default)
+    if mode == ARTIST_MIX_MODE_OFF:
+        return ARTIST_MIX_MODE_OFF
+    return mode if mode in ARTIST_MIX_MODES else default
+
+
+def _artist_mix_prompt_tags(artists: list[tuple[str, float]], include_weights: bool) -> str:
+    tags: list[str] = []
+    for tag, weight in artists:
+        if include_weights and "," not in tag and "\n" not in tag and abs(float(weight) - 1.0) >= 0.001:
+            tags.append(f"({tag}:{float(weight):g})")
+        else:
+            tags.append(tag)
+    return _join_prompt_tokens(*tags)
+
+
+def _normalized_artist_weights(artists: list[tuple[str, float]]) -> list[float]:
+    total = sum(weight for _tag, weight in artists)
+    if total <= 0:
+        return [1.0 / len(artists) for _tag, _weight in artists] if artists else []
+    return [weight / total for _tag, weight in artists]
+
+
+def _equal_artist_weights(artists: list[tuple[str, float]]) -> list[float]:
+    return [1.0 / len(artists) for _tag, _weight in artists] if artists else []
+
+
+def _normalize_weight_values(values) -> list[float]:
+    kept = [max(0.0, float(value)) for value in values]
+    total = sum(kept)
+    if total <= 0:
+        return [1.0 / len(kept) for _value in kept] if kept else []
+    return [value / total for value in kept]
+
+
+def _interpolate_artist_weights(start_weights: list[float], end_weights: list[float], amount: float) -> list[float]:
+    amount = max(0.0, min(1.0, float(amount)))
+    return _normalize_weight_values(
+        (1.0 - amount) * float(start) + amount * float(end)
+        for start, end in zip(start_weights, end_weights)
+    )
+
+
+def _copy_conditioning_metadata(metadata) -> dict[str, Any]:
+    try:
+        import torch  # type: ignore
+    except Exception:
+        torch = None  # type: ignore
+
+    result = dict(metadata or {})
+    if torch is None:
+        return result
+    for key, value in list(result.items()):
+        if torch.is_tensor(value):
+            result[key] = value.clone()
+    return result
+
+
+def _pad_conditioning_tensor(tensor, target_length: int):
+    if tensor.shape[1] >= target_length:
+        return tensor[:, :target_length]
+    try:
+        import torch  # type: ignore
+    except Exception as exc:
+        raise RuntimeError("[EasyUseAnima] torch is required for artist mix conditioning.") from exc
+    padding = torch.zeros(
+        (tensor.shape[0], target_length - tensor.shape[1], tensor.shape[2]),
+        dtype=tensor.dtype,
+        device=tensor.device,
+    )
+    return torch.cat([tensor, padding], dim=1)
+
+
+def _blend_conditionings(conditionings: list, weights: list[float], composite_conditioning=None) -> list:
+    if not conditionings:
+        return []
+    if len(conditionings) == 1:
+        return list(conditionings[0])
+    expected_len = len(conditionings[0])
+    if any(len(conditioning) != expected_len for conditioning in conditionings):
+        raise RuntimeError("[EasyUseAnima] artist mix average requires CLIP conditionings with the same length.")
+
+    try:
+        import torch  # type: ignore
+    except Exception as exc:
+        raise RuntimeError("[EasyUseAnima] torch is required for artist mix conditioning.") from exc
+
+    blended = []
+    for entry_index in range(expected_len):
+        first_tensor = conditionings[0][entry_index][0]
+        max_length = max(conditioning[entry_index][0].shape[1] for conditioning in conditionings)
+        if any(
+            conditioning[entry_index][0].shape[0] != first_tensor.shape[0]
+            or conditioning[entry_index][0].shape[2] != first_tensor.shape[2]
+            for conditioning in conditionings
+        ):
+            raise RuntimeError("[EasyUseAnima] artist mix average requires matching CLIP embedding sizes.")
+
+        tensor = torch.zeros(
+            (first_tensor.shape[0], max_length, first_tensor.shape[2]),
+            dtype=first_tensor.dtype,
+            device=first_tensor.device,
+        )
+        for conditioning, weight in zip(conditionings, weights):
+            tensor = tensor + _pad_conditioning_tensor(conditioning[entry_index][0], max_length) * float(weight)
+
+        metadata_source = (
+            composite_conditioning[entry_index][1]
+            if composite_conditioning and len(composite_conditioning) > entry_index
+            else conditionings[0][entry_index][1]
+        )
+        metadata = _copy_conditioning_metadata(metadata_source)
+        pooled_candidates = [
+            conditioning[entry_index][1].get("pooled_output")
+            for conditioning in conditionings
+            if isinstance(conditioning[entry_index][1], dict)
+        ]
+        if pooled_candidates and all(torch.is_tensor(value) for value in pooled_candidates):
+            pooled_shape = pooled_candidates[0].shape
+            if all(value.shape == pooled_shape for value in pooled_candidates):
+                pooled_output = torch.zeros_like(pooled_candidates[0])
+                for value, weight in zip(pooled_candidates, weights):
+                    pooled_output = pooled_output + value * float(weight)
+                metadata["pooled_output"] = pooled_output
+        elif torch.is_tensor(metadata.get("pooled_output")):
+            metadata.pop("pooled_output", None)
+        metadata.pop("strength", None)
+        blended.append([tensor, metadata])
+    return blended
+
+
+def _conditionings_with_values(conditioning, values: dict[str, Any]) -> list:
+    output = []
+    for tensor, metadata in conditioning or []:
+        item_metadata = _copy_conditioning_metadata(metadata)
+        item_metadata.update(values)
+        output.append([tensor, item_metadata])
+    return output
+
+
+def _conditionings_with_range(conditioning, start_percent: float, end_percent: float = 1.0) -> list:
+    start = max(0.0, min(1.0, float(start_percent)))
+    end = max(start, min(1.0, float(end_percent)))
+    return _conditionings_with_values(conditioning, {"start_percent": start, "end_percent": end})
+
+
+def _conditionings_with_strength(conditioning, strength: float) -> list:
+    return _conditionings_with_values(conditioning, {"strength": max(0.0, float(strength))})
+
+
+def _mark_artist_mix_conditioning(conditioning, key: str) -> list:
+    return _conditionings_with_values(conditioning, {key: True})
+
+
 def _normalize_prompt_data(value: str | dict | None) -> dict[str, Any]:
     if isinstance(value, dict):
         return dict(value)
@@ -1689,6 +2016,381 @@ def _apply_prompt_data_overrides(
     return data
 
 
+def _prompt_data_positive_fields(data: dict[str, Any]) -> list[dict]:
+    fields = data.get("fields")
+    if not isinstance(fields, list) or not fields:
+        return []
+    return _advanced_enabled_pane_fields(_normalize_advanced_fields(fields), "positive")
+
+
+def _prompt_data_artist_base_prompt(data: dict[str, Any], positive_prompt: str) -> str:
+    artist = _prompt_data_nested(data, "artist")
+    artist_mix = _prompt_data_nested(data, "artist_mix")
+    for source in (
+        artist_mix.get("base_prompt"),
+        data.get("positive_without_artist_section") if "positive_without_artist_section" in data else None,
+        data.get("global_prompt") if "global_prompt" in data else None,
+        artist.get("positive_prompt_without_artist") if "positive_prompt_without_artist" in artist else None,
+    ):
+        if source is not None:
+            return str(source or "")
+    return str(positive_prompt or "")
+
+
+def _artist_variant_prompt_from_prompt_data(
+    data: dict[str, Any],
+    base_prompt: str,
+    artist_prompt: str,
+) -> str:
+    artist_text = _join_prompt_tokens(artist_prompt)
+    base_text = _join_prompt_tokens(base_prompt)
+    if not artist_text:
+        return base_text
+    if not base_text:
+        return artist_text
+
+    fields = _prompt_data_positive_fields(data)
+    if fields:
+        prompt = _advanced_prompt_with_artist_override(
+            fields,
+            artist_text,
+            include_quality=not _as_bool(_prompt_data_output(data, "use_anima_mod_guidance", False), False),
+            force_pin_triggers=_as_bool(data.get("pin_trigger_tags_to_front"), False),
+        )
+        if prompt:
+            return prompt
+    return _join_prompt_tokens(base_text, artist_text)
+
+
+def _prompt_data_artist_mix_config(
+    data: dict[str, Any],
+    artist_mix_mode: str,
+    artist_mix_start_percent: float,
+    artist_mix_strength_scale: float,
+) -> dict[str, Any]:
+    source = _prompt_data_nested(data, "artist_mix")
+    artist = _prompt_data_nested(data, "artist")
+    mode = _normalize_artist_mix_mode(source.get("mode", ARTIST_MIX_MODE_PROMPT))
+    enabled = _as_bool(source.get("enabled"), False)
+    if mode == ARTIST_MIX_MODE_OFF:
+        mode = ARTIST_MIX_MODE_PROMPT
+        enabled = False
+
+    config = {
+        "enabled": enabled,
+        "mode": mode,
+        "base_source": str(source.get("base_source") or "positive_without_artist_section"),
+        "start_percent": _bounded_artist_mix_float(
+            source.get("start_percent"),
+            ARTIST_MIX_DEFAULT_START_PERCENT,
+            0.0,
+            1.0,
+        ),
+        "strength_scale": _bounded_artist_mix_float(
+            source.get("strength_scale"),
+            ARTIST_MIX_DEFAULT_STRENGTH_SCALE,
+            0.0,
+            5.0,
+        ),
+        "artist_prompt": str(
+            source.get("artist_prompt")
+            or artist.get("weighted_text")
+            or artist.get("text")
+            or artist.get("positive_prompt")
+            or ""
+        ),
+    }
+
+    override_mode = str(artist_mix_mode or ARTIST_MIX_MODE_FROM_PROMPT_DATA)
+    if override_mode != ARTIST_MIX_MODE_FROM_PROMPT_DATA:
+        override_mode = _normalize_artist_mix_mode(override_mode, ARTIST_MIX_MODE_OFF)
+        if override_mode == ARTIST_MIX_MODE_OFF:
+            config["enabled"] = False
+            config["mode"] = ARTIST_MIX_MODE_PROMPT
+        elif override_mode == ARTIST_MIX_MODE_PROMPT:
+            config["enabled"] = False
+            config["mode"] = ARTIST_MIX_MODE_PROMPT
+        else:
+            config["enabled"] = True
+            config["mode"] = override_mode
+        config["start_percent"] = _bounded_artist_mix_float(
+            artist_mix_start_percent,
+            ARTIST_MIX_DEFAULT_START_PERCENT,
+            0.0,
+            1.0,
+        )
+        config["strength_scale"] = _bounded_artist_mix_float(
+            artist_mix_strength_scale,
+            ARTIST_MIX_DEFAULT_STRENGTH_SCALE,
+            0.0,
+            5.0,
+        )
+    return config
+
+
+def _encode_artist_exact(
+    clip,
+    data: dict[str, Any],
+    base_prompt: str,
+    artists: list[tuple[str, float]],
+    start_percent: float | None = None,
+    end_percent: float | None = None,
+    strength_scale: float = 1.0,
+) -> list:
+    exact = []
+    for (tag, _weight), normalized_weight in zip(artists, _normalized_artist_weights(artists)):
+        variant_prompt = _artist_variant_prompt_from_prompt_data(data, base_prompt, tag)
+        for tensor, metadata in _encode_with_comfy_clip(clip, variant_prompt):
+            item_metadata = _copy_conditioning_metadata(metadata)
+            item_metadata["strength"] = float(normalized_weight) * float(strength_scale)
+            if start_percent is not None:
+                item_metadata["start_percent"] = max(0.0, min(1.0, float(start_percent)))
+            if end_percent is not None:
+                item_metadata["end_percent"] = max(
+                    item_metadata.get("start_percent", 0.0),
+                    min(1.0, float(end_percent)),
+                )
+            item_metadata[ARTIST_MIX_EXACT_KEY] = True
+            exact.append([tensor, item_metadata])
+    return exact or _encode_with_comfy_clip(clip, base_prompt)
+
+
+def _encode_artist_average(
+    clip,
+    data: dict[str, Any],
+    base_prompt: str,
+    artists: list[tuple[str, float]],
+    weights: list[float] | None = None,
+) -> list:
+    mix_weights = list(weights) if weights is not None else _normalized_artist_weights(artists)
+    encoded = [
+        _encode_with_comfy_clip(
+            clip,
+            _artist_variant_prompt_from_prompt_data(data, base_prompt, tag),
+        )
+        for tag, _weight in artists
+    ]
+    if any(len(conditioning) != 1 for conditioning in encoded):
+        return _encode_artist_exact(clip, data, base_prompt, artists)
+
+    composite_prompt = _artist_variant_prompt_from_prompt_data(
+        data,
+        base_prompt,
+        _artist_mix_prompt_tags(artists, include_weights=True),
+    )
+    composite = _encode_with_comfy_clip(clip, composite_prompt)
+    if len(composite) != 1:
+        composite = None
+    return _blend_conditionings(encoded, mix_weights, composite)
+
+
+def _encode_artist_composite_exact(
+    clip,
+    data: dict[str, Any],
+    base_prompt: str,
+    artists: list[tuple[str, float]],
+    start_percent: float | None = None,
+    strength_scale: float = 1.0,
+) -> list:
+    composite_prompt = _artist_variant_prompt_from_prompt_data(
+        data,
+        base_prompt,
+        _artist_mix_prompt_tags(artists, include_weights=True),
+    )
+    composite = _conditionings_with_strength(_encode_with_comfy_clip(clip, composite_prompt), 1.0)
+    exact = _encode_artist_exact(
+        clip,
+        data,
+        base_prompt,
+        artists,
+        start_percent=start_percent,
+        end_percent=1.0 if start_percent is not None else None,
+        strength_scale=strength_scale,
+    )
+    return composite + exact
+
+
+def _encode_artist_average_late_exact(
+    clip,
+    data: dict[str, Any],
+    base_prompt: str,
+    artists: list[tuple[str, float]],
+    artist_mix: dict[str, Any],
+) -> list:
+    late_start = _bounded_artist_mix_float(
+        artist_mix.get("start_percent"),
+        ARTIST_MIX_DEFAULT_START_PERCENT,
+        0.0,
+        1.0,
+    )
+    strength_scale = _bounded_artist_mix_float(
+        artist_mix.get("strength_scale"),
+        ARTIST_MIX_DEFAULT_STRENGTH_SCALE,
+        0.0,
+        5.0,
+    )
+    return _encode_artist_average(clip, data, base_prompt, artists) + _encode_artist_exact(
+        clip,
+        data,
+        base_prompt,
+        artists,
+        start_percent=late_start,
+        end_percent=1.0,
+        strength_scale=strength_scale,
+    )
+
+
+def _encode_artist_scheduled_average(
+    clip,
+    data: dict[str, Any],
+    base_prompt: str,
+    artists: list[tuple[str, float]],
+    artist_mix: dict[str, Any],
+) -> list:
+    late_start = _bounded_artist_mix_float(
+        artist_mix.get("start_percent"),
+        ARTIST_MIX_DEFAULT_START_PERCENT,
+        0.0,
+        1.0,
+    )
+    strength_scale = _bounded_artist_mix_float(
+        artist_mix.get("strength_scale"),
+        ARTIST_MIX_DEFAULT_STRENGTH_SCALE,
+        0.0,
+        5.0,
+    )
+    equal_weights = _equal_artist_weights(artists)
+    target_weights = _normalized_artist_weights(artists)
+    scheduled = []
+    if late_start > 0.0:
+        scheduled.extend(
+            _mark_artist_mix_conditioning(
+                _conditionings_with_range(
+                    _encode_artist_average(clip, data, base_prompt, artists, weights=equal_weights),
+                    0.0,
+                    late_start,
+                ),
+                ARTIST_MIX_SCHEDULE_KEY,
+            )
+        )
+
+    segments = 4
+    span = max(0.0, 1.0 - late_start)
+    for index in range(segments):
+        segment_start = late_start + span * (index / segments)
+        segment_end = late_start + span * ((index + 1) / segments)
+        amount = (index + 1) / segments
+        weights = _interpolate_artist_weights(equal_weights, target_weights, amount)
+        base = _conditionings_with_range(
+            _conditionings_with_strength(_encode_with_comfy_clip(clip, base_prompt), 1.0),
+            segment_start,
+            segment_end,
+        )
+        artist_only = _conditionings_with_range(
+            _conditionings_with_strength(
+                _encode_artist_average(clip, {}, "", artists, weights=weights),
+                max(0.0, strength_scale) * amount,
+            ),
+            segment_start,
+            segment_end,
+        )
+        scheduled.extend(_mark_artist_mix_conditioning(base + artist_only, ARTIST_MIX_SCHEDULE_KEY))
+    return scheduled
+
+
+def _encode_prompt_data_positive_conditioning(
+    clip,
+    data: dict[str, Any],
+    positive_prompt: str,
+    artist_mix_mode: str = ARTIST_MIX_MODE_FROM_PROMPT_DATA,
+    artist_mix_start_percent: float = ARTIST_MIX_DEFAULT_START_PERCENT,
+    artist_mix_strength_scale: float = ARTIST_MIX_DEFAULT_STRENGTH_SCALE,
+) -> list:
+    artist_mix = _prompt_data_artist_mix_config(
+        data,
+        artist_mix_mode,
+        artist_mix_start_percent,
+        artist_mix_strength_scale,
+    )
+    artists = _parse_artist_mix_items(str(artist_mix.get("artist_prompt") or ""))
+    if not artist_mix.get("enabled") or artist_mix.get("mode") == ARTIST_MIX_MODE_PROMPT:
+        return _encode_with_comfy_clip(clip, positive_prompt)
+
+    base_prompt = _prompt_data_artist_base_prompt(data, positive_prompt)
+    if not artists:
+        return _encode_with_comfy_clip(clip, base_prompt)
+
+    mode = _normalize_artist_mix_mode(artist_mix.get("mode"), ARTIST_MIX_MODE_PROMPT)
+    if mode == ARTIST_MIX_MODE_AVERAGE:
+        return _encode_artist_average(clip, data, base_prompt, artists)
+    if mode == ARTIST_MIX_MODE_EXACT:
+        return _mark_artist_mix_conditioning(
+            _encode_artist_exact(
+                clip,
+                data,
+                base_prompt,
+                artists,
+                strength_scale=_bounded_artist_mix_float(
+                    artist_mix.get("strength_scale"),
+                    ARTIST_MIX_DEFAULT_STRENGTH_SCALE,
+                    0.0,
+                    5.0,
+                ),
+            ),
+            ARTIST_MIX_CONTROL_KEY,
+        )
+    if mode == ARTIST_MIX_MODE_COMPOSITE_EXACT:
+        return _mark_artist_mix_conditioning(
+            _encode_artist_composite_exact(
+                clip,
+                data,
+                base_prompt,
+                artists,
+                strength_scale=_bounded_artist_mix_float(
+                    artist_mix.get("strength_scale"),
+                    ARTIST_MIX_DEFAULT_STRENGTH_SCALE,
+                    0.0,
+                    5.0,
+                ),
+            ),
+            ARTIST_MIX_CONTROL_KEY,
+        )
+    if mode == ARTIST_MIX_MODE_LATE_EXACT:
+        return _mark_artist_mix_conditioning(
+            _encode_with_comfy_clip(clip, base_prompt) + _encode_artist_exact(
+                clip,
+                data,
+                base_prompt,
+                artists,
+                start_percent=_bounded_artist_mix_float(
+                    artist_mix.get("start_percent"),
+                    ARTIST_MIX_DEFAULT_START_PERCENT,
+                    0.0,
+                    1.0,
+                ),
+                end_percent=1.0,
+                strength_scale=_bounded_artist_mix_float(
+                    artist_mix.get("strength_scale"),
+                    ARTIST_MIX_DEFAULT_STRENGTH_SCALE,
+                    0.0,
+                    5.0,
+                ),
+            ),
+            ARTIST_MIX_CONTROL_KEY,
+        )
+    if mode == ARTIST_MIX_MODE_AVERAGE_LATE_EXACT:
+        return _mark_artist_mix_conditioning(
+            _encode_artist_average_late_exact(clip, data, base_prompt, artists, artist_mix),
+            ARTIST_MIX_CONTROL_KEY,
+        )
+    if mode == ARTIST_MIX_MODE_SCHEDULED_AVERAGE:
+        return _mark_artist_mix_conditioning(
+            _encode_artist_scheduled_average(clip, data, base_prompt, artists, artist_mix),
+            ARTIST_MIX_CONTROL_KEY,
+        )
+    return _encode_with_comfy_clip(clip, positive_prompt)
+
+
 def _build_advanced_prompt_data(
     compat_result: tuple,
     effective_fields: list[dict],
@@ -1702,6 +2404,7 @@ def _build_advanced_prompt_data(
     wildcard_seed: int,
     wildcard_seed_after_generate: str,
     wildcard_updates: dict[str, Any] | None = None,
+    pin_trigger_tags_to_front: bool = False,
 ) -> dict[str, Any]:
     (
         positive_prompt,
@@ -1719,8 +2422,31 @@ def _build_advanced_prompt_data(
         name: value
         for name, value in zip(EasyUseAnimaPromptStudioAdvanced.RETURN_NAMES, compat_result)
     }
+    positive_fields = _advanced_enabled_pane_fields(effective_fields, "positive")
+    negative_fields = _advanced_enabled_pane_fields(effective_fields, "negative")
     positive_artist_prompt = _advanced_artist_field_prompt(effective_fields, "positive")
     negative_artist_prompt = _advanced_artist_field_prompt(effective_fields, "negative")
+    force_pin_triggers = _as_bool(pin_trigger_tags_to_front, False)
+    positive_without_artist = _advanced_prompt_with_artist_override(
+        positive_fields,
+        "",
+        include_quality=not bool(use_anima_mod_guidance),
+        force_pin_triggers=force_pin_triggers,
+    )
+    metadata_prompt_without_artist = _filter_metadata_prompt(
+        _advanced_prompt_with_artist_override(
+            positive_fields,
+            "",
+            include_quality=True,
+            force_pin_triggers=force_pin_triggers,
+        ),
+        resolve_metadata_filter_words(),
+    )
+    negative_without_artist = _advanced_prompt_with_artist_override(
+        negative_fields,
+        "",
+        include_quality=not bool(use_negative_anima_mod_guidance),
+    )
     wildcard_updates = wildcard_updates or {}
     return {
         "schema": PROMPT_DATA_SCHEMA,
@@ -1729,11 +2455,16 @@ def _build_advanced_prompt_data(
         "source": "EasyUseAnimaPromptStudioAdvancedV2",
         "prompt": positive_prompt,
         "positive_prompt": positive_prompt,
+        "global_prompt": positive_without_artist,
+        "positive_without_artist_section": positive_without_artist,
         "negative_prompt": negative_prompt,
+        "negative_without_artist_section": negative_without_artist,
         "metadata_prompt": metadata_prompt,
+        "metadata_prompt_without_artist": metadata_prompt_without_artist,
         "metadata_negative_prompt": metadata_negative_prompt,
         "width": int(width),
         "height": int(height),
+        "pin_trigger_tags_to_front": force_pin_triggers,
         "outputs": outputs,
         "mod_guidance": {
             "enabled": bool(use_anima_mod_guidance),
@@ -1749,15 +2480,25 @@ def _build_advanced_prompt_data(
         },
         "artist": {
             "source": "advanced_artist_field",
+            "handling": "inline",
+            "conditioning_mode": "none",
+            "include_in_positive": True,
+            "text": positive_artist_prompt,
+            "weighted_text": positive_artist_prompt,
+            "tags": _artist_tags_from_prompt(positive_artist_prompt),
             "positive_prompt": positive_artist_prompt,
             "negative_prompt": negative_artist_prompt,
+            "positive_prompt_without_artist": positive_without_artist,
+            "negative_prompt_without_artist": negative_without_artist,
             "positive_count_hint": len(_prompt_tokens(positive_artist_prompt)),
             "negative_count_hint": len(_prompt_tokens(negative_artist_prompt)),
         },
         "artist_mix": {
             "enabled": False,
             "mode": "prompt",
-            "base_source": "positive_prompt",
+            "base_source": "positive_without_artist_section",
+            "start_percent": ARTIST_MIX_DEFAULT_START_PERCENT,
+            "strength_scale": ARTIST_MIX_DEFAULT_STRENGTH_SCALE,
             "artist_prompt": positive_artist_prompt,
             "artist_count_hint": len(_prompt_tokens(positive_artist_prompt)),
         },
@@ -3647,6 +4388,7 @@ class EasyUseAnimaPromptStudioAdvancedV2(EasyUseAnimaPromptStudioAdvanced):
             normalize_seed(wildcard_seed),
             str(ui_payload.get("wildcard_seed_after_generate", wildcard_seed_after_generate)),
             ui_payload,
+            pin_trigger_tags_to_front,
         )
         return {
             **base,
@@ -3759,7 +4501,9 @@ class EasyUseAnimaPromptDataConditioning:
         "Reads EASYUSE_ANIMA_PROMPT_DATA by dict keys, encodes positive and negative "
         "CONDITIONING with CLIP, and applies comfyui-spectrum-ksampler Anima Mod "
         "Guidance to the MODEL when enabled. It also creates an empty latent image "
-        "from prompt-data width and height with batch size fixed to 1."
+        "from prompt-data width and height with batch size fixed to 1. Artist mix "
+        "modes use Advanced artist fields as artist data and rebuild artist variants "
+        "through the Anima prompt ordering rules."
     )
     OUTPUT_TOOLTIPS = (
         "MODEL after prompt-data model patches.",
@@ -3796,6 +4540,28 @@ class EasyUseAnimaPromptDataConditioning:
                         "the model patch."
                     ),
                 }),
+                "artist_mix_mode": (list(ARTIST_MIX_INPUT_MODES), {
+                    "default": ARTIST_MIX_MODE_FROM_PROMPT_DATA,
+                    "tooltip": (
+                        "prompt_data follows the dict artist_mix settings, off/prompt "
+                        "keeps the inline positive prompt, and average/exact separate "
+                        "artist-field text into conditioning variants."
+                    ),
+                }),
+                "artist_mix_start_percent": ("FLOAT", {
+                    "default": ARTIST_MIX_DEFAULT_START_PERCENT,
+                    "min": 0.0,
+                    "max": 1.0,
+                    "step": 0.01,
+                    "tooltip": "Start percent used by late/scheduled artist mix modes.",
+                }),
+                "artist_mix_strength_scale": ("FLOAT", {
+                    "default": ARTIST_MIX_DEFAULT_STRENGTH_SCALE,
+                    "min": 0.0,
+                    "max": 5.0,
+                    "step": 0.01,
+                    "tooltip": "Strength multiplier used by exact artist mix modes.",
+                }),
             },
         }
 
@@ -3810,6 +4576,9 @@ class EasyUseAnimaPromptDataConditioning:
         EASYUSE_ANIMA_PROMPT_DATA: str | dict | None = None,
         mod_guidance_mode: str = ANIMA_MOD_GUIDANCE_MODE_FROM_PROMPT_DATA,
         mod_w_profile: str = ANIMA_MOD_GUIDANCE_DEFAULT_PROFILE,
+        artist_mix_mode: str = ARTIST_MIX_MODE_FROM_PROMPT_DATA,
+        artist_mix_start_percent: float = ARTIST_MIX_DEFAULT_START_PERCENT,
+        artist_mix_strength_scale: float = ARTIST_MIX_DEFAULT_STRENGTH_SCALE,
         **kwargs,
     ):
         return _stable_change_key({
@@ -3817,6 +4586,19 @@ class EasyUseAnimaPromptDataConditioning:
             "prompt_data": _normalize_prompt_data(EASYUSE_ANIMA_PROMPT_DATA),
             "mod_guidance_mode": str(mod_guidance_mode or ANIMA_MOD_GUIDANCE_MODE_FROM_PROMPT_DATA),
             "mod_w_profile": _normalize_anima_mod_guidance_profile(mod_w_profile),
+            "artist_mix_mode": str(artist_mix_mode or ARTIST_MIX_MODE_FROM_PROMPT_DATA),
+            "artist_mix_start_percent": _bounded_artist_mix_float(
+                artist_mix_start_percent,
+                ARTIST_MIX_DEFAULT_START_PERCENT,
+                0.0,
+                1.0,
+            ),
+            "artist_mix_strength_scale": _bounded_artist_mix_float(
+                artist_mix_strength_scale,
+                ARTIST_MIX_DEFAULT_STRENGTH_SCALE,
+                0.0,
+                5.0,
+            ),
         })
 
     def apply(
@@ -3826,7 +4608,11 @@ class EasyUseAnimaPromptDataConditioning:
         EASYUSE_ANIMA_PROMPT_DATA: str | dict,
         mod_guidance_mode: str = ANIMA_MOD_GUIDANCE_MODE_FROM_PROMPT_DATA,
         mod_w_profile: str = ANIMA_MOD_GUIDANCE_DEFAULT_PROFILE,
+        artist_mix_mode: str = ARTIST_MIX_MODE_FROM_PROMPT_DATA,
+        artist_mix_start_percent: float = ARTIST_MIX_DEFAULT_START_PERCENT,
+        artist_mix_strength_scale: float = ARTIST_MIX_DEFAULT_STRENGTH_SCALE,
     ):
+        prompt_data = _normalize_prompt_data(EASYUSE_ANIMA_PROMPT_DATA)
         (
             positive_prompt,
             negative_prompt,
@@ -3840,7 +4626,14 @@ class EasyUseAnimaPromptDataConditioning:
             height,
         ) = _advanced_outputs_from_prompt_data(EASYUSE_ANIMA_PROMPT_DATA)
 
-        positive = _encode_with_comfy_clip(clip, positive_prompt)
+        positive = _encode_prompt_data_positive_conditioning(
+            clip,
+            prompt_data,
+            positive_prompt,
+            artist_mix_mode=artist_mix_mode,
+            artist_mix_start_percent=artist_mix_start_percent,
+            artist_mix_strength_scale=artist_mix_strength_scale,
+        )
         negative = _encode_with_comfy_clip(clip, negative_prompt)
         latent_image = _generate_empty_latent_with_comfy(width, height)
         profile = _normalize_anima_mod_guidance_profile(mod_w_profile)

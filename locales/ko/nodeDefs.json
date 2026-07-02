@@ -410,6 +410,18 @@
       "mod_w_profile": {
         "name": "mod_w_profile",
         "tooltip": "Spectrum AnimaModGuidance per-block profile입니다. off는 모델 패치를 생략합니다."
+      },
+      "artist_mix_mode": {
+        "name": "artist_mix_mode",
+        "tooltip": "prompt_data는 dict의 artist_mix 설정을 따르고, off/prompt는 기존 positive prompt를 유지하며, average/exact는 artist 필드를 별도 conditioning으로 처리합니다."
+      },
+      "artist_mix_start_percent": {
+        "name": "artist_mix_start_percent",
+        "tooltip": "late/scheduled artist mix 모드에서 사용할 시작 비율입니다."
+      },
+      "artist_mix_strength_scale": {
+        "name": "artist_mix_strength_scale",
+        "tooltip": "exact artist mix 모드에서 사용할 강도 배율입니다."
       }
     },
     "outputs": {

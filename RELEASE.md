@@ -27,6 +27,14 @@
   encode positive/negative CONDITIONING, create a batch-size-1 latent image
   from prompt-data width/height, and apply the `comfyui-spectrum-ksampler`
   `AnimaModGuidance` MODEL patch when enabled.
+- `Anima Prompt Data Conditioning` now supports artist mix modes from
+  prompt-data or node controls. `off`/`prompt` preserve the inline positive
+  prompt, while `average` and `exact` separate Advanced artist-field text from
+  the base prompt and rebuild artist variants through EasyUseAnima's Anima
+  prompt ordering rules.
+- Prompt data now stores `global_prompt` /
+  `positive_without_artist_section`, structured `artist.tags`, and
+  `artist_mix` routing values for artist-conditioning nodes.
 - Prompt-data socket names are fixed to English identifiers across locales so
   displayed socket names match the Python node contract.
 - Added NAIA resolution bucket fit mode for `Anima Prompt Studio Advanced`.
@@ -51,6 +59,9 @@
   `AnimaModGuidance` patcher invocation.
 - Added regression coverage for prompt-data latent image creation with fixed
   batch size 1.
+- Added regression coverage for artist-field-only prompt data, artist-free
+  base prompts, artist mix prompt rebuilding, and exact-mode conditioning
+  metadata.
 - Added regression coverage for Regional Prompt Studio field socket overrides.
 - Added regression coverage for NAIA resolution mode/bucket validation and
   bucket-fit output sizing.

@@ -12,6 +12,9 @@ import settings as easyuse_settings
 from nodes import (
     ADVANCED_FIELDS_WORKFLOW_PROPERTY,
     ADVANCED_RESOLUTION_BUCKETS,
+    ARTIST_MIX_CONTROL_KEY,
+    ARTIST_MIX_EXACT_KEY,
+    ARTIST_MIX_MODE_FROM_PROMPT_DATA,
     DEFAULT_QUALITY_TAGS,
     DEFAULT_TRAILING_QUALITY_TAGS,
     PROMPT_DATA_SCHEMA,
@@ -372,6 +375,8 @@ class PromptBuilderTests(unittest.TestCase):
         self.assertIn(PROMPT_DATA_TYPE, input_types["required"])
         self.assertEqual(input_types["required"][PROMPT_DATA_TYPE][0], PROMPT_DATA_TYPE)
         self.assertTrue(input_types["required"][PROMPT_DATA_TYPE][1]["forceInput"])
+        self.assertIn("artist_mix_mode", input_types["required"])
+        self.assertEqual(input_types["required"]["artist_mix_mode"][1]["default"], ARTIST_MIX_MODE_FROM_PROMPT_DATA)
         self.assertEqual(EasyUseAnimaPromptDataConditioning.RETURN_TYPES, ("MODEL", "CONDITIONING", "CONDITIONING", "LATENT"))
         self.assertEqual(EasyUseAnimaPromptDataConditioning.RETURN_NAMES, ("model", "positive", "negative", "latent_image"))
 
@@ -473,6 +478,121 @@ class PromptBuilderTests(unittest.TestCase):
         self.assertEqual(calls[0]["positive"], positive)
         self.assertEqual(calls[0]["negative"], negative)
 
+    def test_prompt_data_conditioning_average_artist_mix_rebuilds_artist_position(self):
+        fields = [
+            {
+                "id": "quality",
+                "pane": "positive",
+                "type": "quality",
+                "label": "Quality Tags",
+                "text": "masterpiece",
+                "height": 72,
+            },
+            {
+                "id": "artist",
+                "pane": "positive",
+                "type": "artist",
+                "label": "Artist Tags",
+                "text": "artist_a, artist_b",
+                "height": 72,
+            },
+            {
+                "id": "general",
+                "pane": "positive",
+                "type": "general",
+                "label": "General Tags",
+                "text": "1girl",
+                "height": 120,
+            },
+            {
+                "id": "trailing",
+                "pane": "positive",
+                "type": "general",
+                "label": "General Tags",
+                "text": "location",
+                "height": 72,
+            },
+        ]
+        prompt_data = EasyUseAnimaPromptStudioAdvancedV2().build(
+            False,
+            True,
+            False,
+            False,
+            json.dumps(fields),
+        )["result"][0]
+        encoded_texts = []
+
+        def fake_encode(_clip, text):
+            encoded_texts.append(text)
+            return [[f"cond:{text}", {"encoded_text": text}]]
+
+        def fake_blend(conditionings, weights, composite_conditioning=None):
+            return [[
+                "blended",
+                {
+                    "weights": tuple(weights),
+                    "composite": composite_conditioning[0][1]["encoded_text"],
+                    "encoded_text": conditionings[0][0][1]["encoded_text"],
+                },
+            ]]
+
+        with patch("nodes._encode_with_comfy_clip", fake_encode):
+            with patch("nodes._blend_conditionings", fake_blend):
+                with patch("nodes._generate_empty_latent_with_comfy", lambda width, height: {"samples": (width, height, 1)}):
+                    _model, positive, _negative, _latent = EasyUseAnimaPromptDataConditioning().apply(
+                        object(),
+                        clip=object(),
+                        EASYUSE_ANIMA_PROMPT_DATA=prompt_data,
+                        artist_mix_mode="average",
+                    )
+
+        self.assertEqual(len(positive), 1)
+        self.assertIn("artist_a", encoded_texts[0])
+        self.assertIn("1girl", encoded_texts[0])
+        self.assertIn("location", encoded_texts[0])
+        self.assertLess(encoded_texts[0].index("1girl"), encoded_texts[0].index("artist_a"))
+        self.assertLess(encoded_texts[0].index("artist_a"), encoded_texts[0].index("location"))
+        self.assertNotIn("artist_a", prompt_data["positive_without_artist_section"])
+        self.assertEqual(encoded_texts[-1], "")
+
+    def test_prompt_data_conditioning_exact_artist_mix_marks_conditioning(self):
+        prompt_data = {
+            "positive_prompt": "masterpiece, artist_a, 1girl",
+            "negative_prompt": "bad hands",
+            "positive_without_artist_section": "masterpiece, 1girl",
+            "artist_mix": {
+                "enabled": True,
+                "mode": "exact",
+                "base_source": "positive_without_artist_section",
+                "artist_prompt": "(artist_a:2), artist_b",
+                "strength_scale": 2.0,
+            },
+        }
+        encoded_texts = []
+
+        def fake_encode(_clip, text):
+            encoded_texts.append(text)
+            return [[f"cond:{text}", {"encoded_text": text}]]
+
+        with patch("nodes._encode_with_comfy_clip", fake_encode):
+            with patch("nodes._generate_empty_latent_with_comfy", lambda width, height: {"samples": (width, height, 1)}):
+                _model, positive, _negative, _latent = EasyUseAnimaPromptDataConditioning().apply(
+                    object(),
+                    clip=object(),
+                    EASYUSE_ANIMA_PROMPT_DATA=prompt_data,
+                    artist_mix_mode=ARTIST_MIX_MODE_FROM_PROMPT_DATA,
+                    artist_mix_strength_scale=0.25,
+                )
+
+        self.assertEqual(len(positive), 2)
+        self.assertTrue(all(item[1][ARTIST_MIX_CONTROL_KEY] for item in positive))
+        self.assertTrue(all(item[1][ARTIST_MIX_EXACT_KEY] for item in positive))
+        self.assertAlmostEqual(positive[0][1]["strength"], 4.0 / 3.0)
+        self.assertAlmostEqual(positive[1][1]["strength"], 2.0 / 3.0)
+        self.assertIn("masterpiece", encoded_texts[0])
+        self.assertIn("1girl", encoded_texts[0])
+        self.assertIn("artist_a", encoded_texts[0])
+
     def test_prompt_studio_advanced_v2_returns_structured_prompt_data(self):
         fields = [
             {
@@ -519,8 +639,19 @@ class PromptBuilderTests(unittest.TestCase):
         self.assertEqual(prompt_data["outputs"]["negative_prompt"], prompt_data["negative_prompt"])
         self.assertEqual(prompt_data["negative_prompt"], "bad hands")
         self.assertEqual(prompt_data["artist"]["positive_prompt"], "artist_a, artist_b")
+        self.assertEqual(prompt_data["artist"]["text"], "artist_a, artist_b")
+        self.assertEqual(prompt_data["artist"]["weighted_text"], "artist_a, artist_b")
+        self.assertEqual([entry["tag"] for entry in prompt_data["artist"]["tags"]], ["artist_a", "artist_b"])
+        self.assertTrue(prompt_data["artist"]["include_in_positive"])
+        self.assertEqual(prompt_data["artist"]["positive_prompt_without_artist"], prompt_data["positive_without_artist_section"])
+        self.assertIn("1girl", prompt_data["positive_without_artist_section"])
+        self.assertNotIn("artist_a", prompt_data["positive_without_artist_section"])
+        self.assertEqual(prompt_data["global_prompt"], prompt_data["positive_without_artist_section"])
         self.assertFalse(prompt_data["artist_mix"]["enabled"])
         self.assertEqual(prompt_data["artist_mix"]["mode"], "prompt")
+        self.assertEqual(prompt_data["artist_mix"]["base_source"], "positive_without_artist_section")
+        self.assertEqual(prompt_data["artist_mix"]["start_percent"], 0.5)
+        self.assertEqual(prompt_data["artist_mix"]["strength_scale"], 1.0)
         self.assertEqual(prompt_data["artist_mix"]["artist_prompt"], "artist_a, artist_b")
         self.assertEqual(prompt_data["width"], 896)
         self.assertEqual(prompt_data["height"], 1152)
