@@ -3018,6 +3018,7 @@ AIO_PREVIEW_STAGE_LABELS = {
     "detailer_eye": "Detailer: eye",
     "final": "Final",
 }
+AIO_PREVIEW_EVENT = "easyuse-anima-aio-preview"
 AIO_PREVIEW_CACHE_FORMAT = "webp"
 AIO_PREVIEW_CACHE_QUALITY = 90
 AIO_FIRST_PASS_CACHE_MAX_ENTRIES = 2
@@ -3087,6 +3088,34 @@ def _tag_aio_preview_images(
             item["bytes"] = int(file_size)
         tagged.append(item)
     return tagged
+
+
+def _send_aio_preview_event(
+    node_id,
+    run_id: str,
+    stage: str,
+    images: list[dict[str, Any]],
+) -> None:
+    node_id = _single_value(node_id)
+    if node_id is None or not images:
+        return
+    try:
+        from server import PromptServer  # type: ignore
+
+        prompt_server = getattr(PromptServer, "instance", None)
+        send_sync = getattr(prompt_server, "send_sync", None)
+        if prompt_server is None or send_sync is None:
+            return
+        payload = {
+            "node": str(node_id),
+            "run_id": str(run_id),
+            "stage": str(stage),
+            "images": _prompt_data_json_safe(images),
+        }
+        client_id = getattr(prompt_server, "client_id", None)
+        send_sync(AIO_PREVIEW_EVENT, payload, client_id)
+    except Exception as exc:
+        logger.debug("[EasyUseAnima] failed to send AiO preview event: %s", exc)
 
 
 def _save_aio_temp_preview_image(
@@ -8909,6 +8938,8 @@ class EasyUseAnimaAIOGenerator:
         save_sampler = sampler
         preview_settings = settings["preview"]
         preview_images: list[dict[str, Any]] = []
+        preview_node_id = _single_value(unique_id)
+        preview_run_id = f"{preview_node_id or 'aio'}:{random.getrandbits(64):016x}"
         will_run_highres = _as_bool(settings["highres"].get("enabled"), False)
         will_run_detailer = _aio_detailer_has_enabled_targets(settings["detailer"])
         first_pass_cache_key = _aio_first_pass_cache_key(
@@ -8929,14 +8960,15 @@ class EasyUseAnimaAIOGenerator:
         first_pass_cache_hit = False
 
         def add_preview(stage: str, stage_image):
-            preview_images.extend(
-                _save_aio_temp_preview_image(
-                    stage_image,
-                    stage,
-                    workflow_prompt=workflow_prompt,
-                    extra_pnginfo=extra_pnginfo,
-                )
+            images = _save_aio_temp_preview_image(
+                stage_image,
+                stage,
+                workflow_prompt=workflow_prompt,
+                extra_pnginfo=extra_pnginfo,
             )
+            if images:
+                preview_images.extend(images)
+                _send_aio_preview_event(preview_node_id, preview_run_id, stage, images)
 
         try:
             cached_first_pass = _get_aio_first_pass_cache(first_pass_cache_key)
@@ -9070,6 +9102,7 @@ class EasyUseAnimaAIOGenerator:
             "height": [int(height)],
             "unet_name": [str(context.get("resource_info", {}).get("unet_name", ""))],
             "sampler_backend": [str(sampler.get("backend") or "comfy_ksampler")],
+            "easyuse_anima_run_id": [preview_run_id],
         }
         preview_payload = preview_images + final_preview
         if preview_payload:

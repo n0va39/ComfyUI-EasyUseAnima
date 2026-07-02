@@ -779,6 +779,7 @@ class AIOGeneratorRuntimeTests(unittest.TestCase):
         self.assertNotIn("images", result["ui"])
         self.assertEqual(result["ui"]["easyuse_anima_preview"][0]["filename"], "preview.webp")
         self.assertEqual(result["ui"]["sampler_backend"], ["comfy_ksampler"])
+        self.assertIn("easyuse_anima_run_id", result["ui"])
 
     def test_generator_reuses_first_pass_cache_when_only_later_stages_change(self):
         context = {
@@ -923,6 +924,7 @@ class AIOGeneratorRuntimeTests(unittest.TestCase):
             patch.object(nodes, "_decode_latent_with_comfy", return_value="image"),
             patch.object(nodes, "_save_image_with_image_saver", return_value={"ui": {"images": [{"filename": "final.webp"}]}}),
             patch.object(nodes, "_save_aio_temp_preview_image", side_effect=fake_preview),
+            patch.object(nodes, "_send_aio_preview_event") as send_preview_event,
             patch.object(nodes, "_cleanup_aio_ephemeral_model"),
         ):
             result = nodes.EasyUseAnimaAIOGenerator().generate(
@@ -935,9 +937,14 @@ class AIOGeneratorRuntimeTests(unittest.TestCase):
                         "image_feed": True,
                     },
                 }),
+                unique_id=86,
             )
 
         self.assertEqual(preview_calls, [("first_pass", "image")])
+        send_preview_event.assert_called_once()
+        self.assertEqual(send_preview_event.call_args.args[0], 86)
+        self.assertEqual(send_preview_event.call_args.args[2], "first_pass")
+        self.assertEqual(send_preview_event.call_args.args[3][0]["filename"], "first_pass.webp")
         self.assertEqual(
             [item["stage"] for item in result["ui"]["easyuse_anima_preview"]],
             ["first_pass", "final"],

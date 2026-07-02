@@ -7,6 +7,7 @@ const GENERATOR_NODE_TYPE = "EasyUseAnimaAIOGenerator";
 const INPUT_SETTINGS_WIDGET = "input_settings";
 const GENERATOR_SETTINGS_WIDGET = "generation_settings";
 const GENERATOR_DOM_WIDGET = "easyuse_anima_generator_panel";
+const GENERATOR_PREVIEW_EVENT = "easyuse-anima-aio-preview";
 const GENERATOR_SEED_CONTROLS = ["fixed", "randomize", "increment", "decrement"];
 const GENERATOR_SPECIAL_SEED_RANDOM = -1;
 const GENERATOR_SPECIAL_SEED_INCREMENT = -2;
@@ -1751,6 +1752,10 @@ function generatorPreviewImages(message) {
   return images.filter((item) => item && typeof item === "object" && !Array.isArray(item));
 }
 
+function generatorPreviewRunId(message) {
+  return String(firstValue(message?.easyuse_anima_run_id ?? message?.run_id, "") || "");
+}
+
 function generatorPreviewFeedLimit(settings) {
   return Math.trunc(clampGeneratorNumber(
     settings?.preview?.feed_count,
@@ -1760,22 +1765,55 @@ function generatorPreviewFeedLimit(settings) {
   ));
 }
 
-function tagGeneratorPreviewRun(images) {
-  const runId = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+function generatorPreviewIdentity(image) {
+  return [
+    image?.stage || "",
+    image?.type || "",
+    image?.subfolder || "",
+    image?.filename || image?.name || "",
+  ].map((part) => String(part)).join("\u0001");
+}
+
+function tagGeneratorPreviewRun(images, runId = "", startIndex = 0) {
+  const normalizedRunId = runId || `${Date.now()}-${Math.random().toString(36).slice(2)}`;
   return images.map((image, index) => ({
     ...image,
-    __aio_run_id: runId,
-    __aio_run_index: index,
+    __aio_run_id: image.__aio_run_id || normalizedRunId,
+    __aio_run_index: Number.isInteger(image.__aio_run_index) ? image.__aio_run_index : startIndex + index,
   }));
 }
 
-function appendGeneratorPreviewFeed(existingImages, nextImages, settings) {
-  const limit = generatorPreviewFeedLimit(settings);
+function mergeGeneratorPreviewImages(existingImages, nextImages, runId = "", limit = 0) {
   const existing = Array.isArray(existingImages)
     ? existingImages.filter((item) => item && typeof item === "object" && !Array.isArray(item))
     : [];
-  const appended = [...existing, ...tagGeneratorPreviewRun(nextImages)];
-  return appended.slice(Math.max(0, appended.length - limit));
+  const tagged = tagGeneratorPreviewRun(nextImages, runId, existing.length);
+  const merged = [];
+  const indexByKey = new Map();
+  for (const item of [...existing, ...tagged]) {
+    const key = generatorPreviewIdentity(item);
+    if (!key.replace(/\u0001/g, "")) {
+      merged.push(item);
+      continue;
+    }
+    if (indexByKey.has(key)) {
+      const index = indexByKey.get(key);
+      merged[index] = { ...merged[index], ...item };
+    } else {
+      indexByKey.set(key, merged.length);
+      merged.push(item);
+    }
+  }
+  return limit > 0 ? merged.slice(Math.max(0, merged.length - limit)) : merged;
+}
+
+function appendGeneratorPreviewFeed(existingImages, nextImages, settings, runId = "") {
+  return mergeGeneratorPreviewImages(
+    existingImages,
+    nextImages,
+    runId,
+    generatorPreviewFeedLimit(settings),
+  );
 }
 
 function generatorImageUrl(image) {
@@ -4417,24 +4455,72 @@ function hookGeneratorNode(node) {
   });
 }
 
-function updateGeneratorExecutedStatus(node, message) {
-  if (!node) {
+function findGeneratorNodeByQualifiedId(rootGraph, nodeId) {
+  if (!rootGraph || nodeId == null) {
+    return null;
+  }
+  const textId = String(nodeId);
+  if (!textId.includes(":")) {
+    const numericId = Number(textId);
+    return rootGraph.getNodeById?.(Number.isFinite(numericId) ? numericId : textId)
+      || rootGraph.getNodeById?.(textId)
+      || rootGraph._nodes_by_id?.[textId]
+      || rootGraph._nodes_by_id?.[numericId]
+      || null;
+  }
+  const parts = textId.split(":");
+  let graph = rootGraph;
+  for (let index = 0; index < parts.length - 1; index += 1) {
+    const parentId = Number(parts[index]);
+    if (!Number.isFinite(parentId)) {
+      return null;
+    }
+    const parentNode = graph?.getNodeById?.(parentId) || graph?._nodes_by_id?.[parentId];
+    if (!parentNode?.subgraph) {
+      return null;
+    }
+    graph = parentNode.subgraph;
+  }
+  const leafId = Number(parts[parts.length - 1]);
+  if (!Number.isFinite(leafId)) {
+    return null;
+  }
+  return graph?.getNodeById?.(leafId) || graph?._nodes_by_id?.[leafId] || null;
+}
+
+function addGeneratorPreviewImagesToNode(node, nextImages, runId = "") {
+  if (!node || !Array.isArray(nextImages) || !nextImages.length) {
     return;
   }
-  const nextImages = generatorPreviewImages(message);
   const settings = generatorSettings(node);
-  node.__easyuseAnimaGeneratorCurrentRunImages = nextImages;
+  const currentImages = Array.isArray(node.__easyuseAnimaGeneratorCurrentRunImages)
+    ? node.__easyuseAnimaGeneratorCurrentRunImages
+    : [];
+  const currentRunId = String(currentImages[0]?.__aio_run_id || "");
+  const currentBase = runId && currentRunId && currentRunId !== runId ? [] : currentImages;
+  node.__easyuseAnimaGeneratorCurrentRunImages = mergeGeneratorPreviewImages(currentBase, nextImages, runId);
   if (settings.preview.image_feed) {
     node.__easyuseAnimaGeneratorPreviewFeedImages = appendGeneratorPreviewFeed(
       node.__easyuseAnimaGeneratorPreviewFeedImages,
       nextImages,
       settings,
+      runId,
     );
     node.__easyuseAnimaGeneratorPreviewImages = node.__easyuseAnimaGeneratorPreviewFeedImages;
   } else {
-    node.__easyuseAnimaGeneratorPreviewImages = tagGeneratorPreviewRun(nextImages);
+    node.__easyuseAnimaGeneratorPreviewImages = node.__easyuseAnimaGeneratorCurrentRunImages;
   }
   node.__easyuseAnimaSelectedPreviewIndex = generatorDefaultPreviewIndex(node.__easyuseAnimaGeneratorPreviewImages);
+  updateGeneratorDomSummary(node);
+}
+
+function updateGeneratorExecutedStatus(node, message) {
+  if (!node) {
+    return;
+  }
+  const nextImages = generatorPreviewImages(message);
+  const runId = generatorPreviewRunId(message);
+  addGeneratorPreviewImagesToNode(node, nextImages, runId);
   node.__easyuseAnimaGeneratorStatus = {
     status: String(firstValue(message?.status, "generated") || "generated"),
     width: Number(firstValue(message?.width, 0)),
@@ -4443,6 +4529,16 @@ function updateGeneratorExecutedStatus(node, message) {
     sampler_backend: String(firstValue(message?.sampler_backend, "")),
   };
   updateGeneratorDomSummary(node);
+}
+
+function handleGeneratorPreviewEvent(event) {
+  const detail = event?.detail || {};
+  const node = findGeneratorNodeByQualifiedId(app.graph, detail.node);
+  if (!node || node.type !== GENERATOR_NODE_TYPE) {
+    return;
+  }
+  const images = generatorPreviewImages({ easyuse_anima_preview: detail.images });
+  addGeneratorPreviewImagesToNode(node, images, String(detail.run_id || ""));
 }
 
 function hookNode(node, nodeData) {
@@ -4458,6 +4554,7 @@ app.registerExtension({
   async setup() {
     installGeneratorQueuePromptHook();
     easyuseAnimaWatchLocale(refreshGeneratorPanels);
+    api.addEventListener(GENERATOR_PREVIEW_EVENT, handleGeneratorPreviewEvent);
     loadGeneratorSamplerOptions().then(refreshGeneratorPanels);
   },
   async beforeRegisterNodeDef(nodeType, nodeData) {
