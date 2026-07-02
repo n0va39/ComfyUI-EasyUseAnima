@@ -50,6 +50,21 @@
 
 문법은 [와일드카드 가이드](../wildcards.ko.md)를 참고하세요.
 
+## Artist Mix
+
+`Anima Prompt Studio Advanced v2`는 기존 문자열 출력 대신
+`EASYUSE_ANIMA_PROMPT_DATA` 하나를 출력합니다. 이 prompt data 안에는 artist
+field 텍스트와 `artist_mix` 설정이 별도 key로 저장됩니다.
+
+- artist field는 `@`가 붙은 토큰을 찾는 방식이 아니라 Advanced의 작가 태그
+  입력 field를 의미합니다.
+- artist mix를 끄면 artist field 텍스트는 기존처럼 positive prompt에 포함됩니다.
+- artist mix를 켜면 base prompt에서는 artist field 텍스트를 분리하고,
+  `Anima Prompt Data Conditioning`이 선택한 artist mix mode로 positive
+  `CONDITIONING`을 만듭니다.
+- Prompt Data 없이 일반 prompt와 작가 태그만 처리하려면
+  [Anima Artist Mix Conditioning](anima-artist-mix-conditioning.ko.md)을 사용합니다.
+
 ## 하이라이트
 
 - quality, safety/rating, year, count, character, artist, copyright, metadata,

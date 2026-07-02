@@ -33,6 +33,7 @@ Reference baseline:
 | [Anima Prompt Builder](docs/nodes/anima-prompt-builder.en.md) | `EasyUse Anima/Prompt` | Combines prompt fields and separates AMG quality output. |
 | [Anima Prompt Studio](docs/nodes/anima-prompt-studio.en.md) | `EasyUse Anima/Prompt` | Adds UI editing, autocomplete, and highlighting to Prompt Builder. |
 | [Anima Prompt Studio Advanced](docs/nodes/anima-prompt-studio-advanced.en.md) | `EasyUse Anima/Prompt` | Provides positive/negative fields, NAIA, resolution, and wildcard controls. |
+| [Anima Artist Mix Conditioning](docs/nodes/anima-artist-mix-conditioning.en.md) | `EasyUse Anima/Prompt` | Outputs artist mix positive CONDITIONING from a prompt and separate artist_tags input. |
 | [Anima Wildcard](docs/nodes/anima-wildcard.en.md) | `EasyUse Anima/Prompt` | Expands wildcard text without Prompt Studio. |
 | [Anima LoRA Preset](docs/nodes/anima-lora-preset.en.md) | `EasyUse Anima/LoRA` | Stores and outputs LoRA profiles, style prompts, and trigger words. |
 | [Anima Detailer Align Hook](docs/nodes/anima-detailer-align-hook.en.md) | `EasyUse Anima/Detailer` | Aligns Impact detailer crop sampling sizes to a selected multiple. |

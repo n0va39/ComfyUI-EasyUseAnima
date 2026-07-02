@@ -41,6 +41,13 @@
   isolation.
 - Artist mix mode tooltips now describe the method and expected conditioning
   branch cost.
+- Added `Anima Artist Mix Conditioning` as a standalone artist mix node. It
+  accepts a regular prompt plus separate `artist_tags`, supports
+  `correct`/`front`/`back` artist positioning, and outputs positive
+  `CONDITIONING` without requiring Prompt Data.
+- Added user-facing artist mix documentation covering Advanced v2 Prompt Data
+  routing, standalone artist tag positioning, artist mix modes, and branch cost
+  tradeoffs.
 - Prompt data now stores `global_prompt` /
   `positive_without_artist_section`, structured `artist.tags`, and
   `artist_mix` routing values for artist-conditioning nodes.
@@ -91,6 +98,8 @@
 - Added regression coverage for duplicate artist coalescing, hybrid top-K tail
   compression, approximate artist mix mode routing, and prompt-data storage of
   artist mix tuning values.
+- Added regression coverage for the standalone artist mix conditioning node,
+  including default corrected placement and fixed front/back placement.
 - Added regression coverage for Regional Prompt Studio field socket overrides.
 - Added regression coverage for NAIA resolution mode/bucket validation and
   bucket-fit output sizing.

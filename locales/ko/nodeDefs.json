@@ -503,6 +503,70 @@
       }
     }
   },
+  "EasyUseAnimaArtistMixConditioning": {
+    "display_name": "Anima Artist Mix Conditioning",
+    "description": "일반 프롬프트와 작가 태그를 받아 위치를 교정하거나 앞/뒤에 고정한 뒤 artist mix 방식으로 positive CONDITIONING을 출력합니다.",
+    "inputs": {
+      "clip": {
+        "name": "clip",
+        "tooltip": "프롬프트와 작가 태그를 인코딩할 CLIP입니다."
+      },
+      "prompt": {
+        "name": "prompt",
+        "tooltip": "단독 작가 태그를 제외한 기본 positive prompt입니다."
+      },
+      "artist_tags": {
+        "name": "artist_tags",
+        "tooltip": "쉼표 또는 줄바꿈으로 구분한 작가 태그입니다. (artist:1.2) 가중치 문법을 지원합니다."
+      },
+      "artist_position": {
+        "name": "artist_position",
+        "tooltip": "correct는 ANIMA 순서로 교정하고, front는 작가 태그를 앞에 고정하며, back은 뒤에 고정합니다."
+      },
+      "artist_mix_mode": {
+        "name": "artist_mix_mode",
+        "tooltip": "prompt는 단일 positive branch, average/delta_rms는 positive 1 branch, hybrid는 top K + 1 branch, clustered는 cluster_count 중심 branch, exact는 작가 수 N branch를 사용합니다."
+      },
+      "artist_mix_start_percent": {
+        "name": "artist_mix_start_percent",
+        "tooltip": "late/scheduled artist mix 모드에서 사용할 시작 비율입니다."
+      },
+      "artist_mix_strength_scale": {
+        "name": "artist_mix_strength_scale",
+        "tooltip": "exact artist mix 모드에서 사용할 강도 배율입니다."
+      },
+      "artist_mix_style_gain": {
+        "name": "artist_mix_style_gain",
+        "tooltip": "delta_rms, hybrid tail, clustered 압축 branch에서 artist delta를 얼마나 강하게 반영할지 정합니다."
+      },
+      "artist_mix_rms_scale_cap": {
+        "name": "artist_mix_rms_scale_cap",
+        "tooltip": "delta_rms 계열 압축 branch의 RMS 스타일 에너지 복원 최대 배율입니다."
+      },
+      "artist_mix_exact_top_k": {
+        "name": "artist_mix_exact_top_k",
+        "tooltip": "hybrid 모드에서 weight가 큰 상위 작가를 이 개수만큼 exact positive branch로 유지합니다."
+      },
+      "artist_mix_cluster_count": {
+        "name": "artist_mix_cluster_count",
+        "tooltip": "clustered 모드에서 dominant가 아닌 작가를 압축할 positive branch 수입니다."
+      },
+      "artist_mix_dominant_isolation": {
+        "name": "artist_mix_dominant_isolation",
+        "tooltip": "clustered 모드에서 threshold 이상 weight의 작가를 cluster에 넣지 않고 exact branch로 유지합니다."
+      },
+      "artist_mix_dominant_threshold": {
+        "name": "artist_mix_dominant_threshold",
+        "tooltip": "clustered dominant isolation 기준입니다. 전체 artist weight에서 차지하는 비율로 판단합니다."
+      }
+    },
+    "outputs": {
+      "0": {
+        "name": "positive",
+        "tooltip": "프롬프트와 작가 태그에서 인코딩한 positive CONDITIONING입니다."
+      }
+    }
+  },
   "EasyUseAnimaPromptStudioRegional": {
     "display_name": "Anima 프롬프트 스튜디오 Regional",
     "description": "번호가 있는 사용자 마스크에 특정 긍정 프롬프트 필드를 적용하는 Regional Prompt Studio입니다. Regional 프롬프트 데이터는 Anima Regional Conditioning 노드에서 KSampler용 CONDITIONING으로 변환합니다.",

@@ -503,6 +503,70 @@
       }
     }
   },
+  "EasyUseAnimaArtistMixConditioning": {
+    "display_name": "Anima Artist Mix Conditioning",
+    "description": "Applies artist tags to a regular prompt, positions them with ANIMA ordering or fixed front/back placement, and outputs positive CONDITIONING.",
+    "inputs": {
+      "clip": {
+        "name": "clip",
+        "tooltip": "CLIP used to encode the prompt and artist tags."
+      },
+      "prompt": {
+        "name": "prompt",
+        "tooltip": "Base positive prompt without the standalone artist tags."
+      },
+      "artist_tags": {
+        "name": "artist_tags",
+        "tooltip": "Comma- or newline-separated artist tags. Weighted syntax such as (artist:1.2) is supported."
+      },
+      "artist_position": {
+        "name": "artist_position",
+        "tooltip": "correct applies ANIMA prompt ordering, front pins artists before the prompt, and back pins artists after the prompt."
+      },
+      "artist_mix_mode": {
+        "name": "artist_mix_mode",
+        "tooltip": "prompt uses 1 positive branch, average/delta_rms use 1 branch, hybrid uses top K + 1 branches, clustered uses cluster_count branches, and exact uses N artist branches."
+      },
+      "artist_mix_start_percent": {
+        "name": "artist_mix_start_percent",
+        "tooltip": "Start percent used by late/scheduled artist mix modes."
+      },
+      "artist_mix_strength_scale": {
+        "name": "artist_mix_strength_scale",
+        "tooltip": "Strength multiplier used by exact artist mix modes."
+      },
+      "artist_mix_style_gain": {
+        "name": "artist_mix_style_gain",
+        "tooltip": "Style delta gain used by delta_rms, hybrid tail, and clustered compressed branches."
+      },
+      "artist_mix_rms_scale_cap": {
+        "name": "artist_mix_rms_scale_cap",
+        "tooltip": "Maximum RMS energy restore scale for delta_rms compressed artist branches."
+      },
+      "artist_mix_exact_top_k": {
+        "name": "artist_mix_exact_top_k",
+        "tooltip": "Hybrid keeps this many strongest artists as exact positive branches."
+      },
+      "artist_mix_cluster_count": {
+        "name": "artist_mix_cluster_count",
+        "tooltip": "Clustered compresses non-dominant artists into this many positive branches."
+      },
+      "artist_mix_dominant_isolation": {
+        "name": "artist_mix_dominant_isolation",
+        "tooltip": "Clustered keeps artists above the dominant threshold as exact branches."
+      },
+      "artist_mix_dominant_threshold": {
+        "name": "artist_mix_dominant_threshold",
+        "tooltip": "Clustered dominant isolation threshold based on normalized artist weight."
+      }
+    },
+    "outputs": {
+      "0": {
+        "name": "positive",
+        "tooltip": "Positive CONDITIONING encoded from prompt plus artist tags."
+      }
+    }
+  },
   "EasyUseAnimaPromptStudioRegional": {
     "display_name": "Anima 提示詞工作室 Regional",
     "description": "將指定正向提示詞欄位套用到編號使用者遮罩的 Regional Prompt Studio。Regional 提示詞資料由 Anima Regional Conditioning 節點轉換為 KSampler 用 CONDITIONING。",

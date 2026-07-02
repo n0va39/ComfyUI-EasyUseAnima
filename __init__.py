@@ -3,6 +3,7 @@ import logging
 
 from .nodes import (
     EasyUseAnimaDetailerAlignHook,
+    EasyUseAnimaArtistMixConditioning,
     EasyUseAnimaImageScaleByMultiple,
     EasyUseAnimaLoraPreset,
     EasyUseAnimaNAIARandomPrompt,
@@ -31,6 +32,7 @@ except OSError as exc:
 
 NODE_CLASS_MAPPINGS = {
     "EasyUseAnimaDetailerAlignHook": EasyUseAnimaDetailerAlignHook,
+    "EasyUseAnimaArtistMixConditioning": EasyUseAnimaArtistMixConditioning,
     "EasyUseAnimaImageScaleByMultiple": EasyUseAnimaImageScaleByMultiple,
     "EasyUseAnimaLoraPreset": EasyUseAnimaLoraPreset,
     "EasyUseAnimaNAIARandomPrompt": EasyUseAnimaNAIARandomPrompt,
@@ -50,6 +52,7 @@ NODE_CLASS_MAPPINGS = {
 
 NODE_DISPLAY_NAME_MAPPINGS = {
     "EasyUseAnimaDetailerAlignHook": "Anima Detailer Align Hook",
+    "EasyUseAnimaArtistMixConditioning": "Anima Artist Mix Conditioning",
     "EasyUseAnimaImageScaleByMultiple": "Anima Image Scale By Multiple",
     "EasyUseAnimaLoraPreset": "Anima LoRA Preset",
     "EasyUseAnimaNAIARandomPrompt": "Anima NAIA Random Prompt",

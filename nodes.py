@@ -153,6 +153,14 @@ ARTIST_MIX_CONTROL_KEY = "anima_prompt_artist_mix_control"
 ARTIST_MIX_EXACT_KEY = "anima_prompt_artist_mix_exact"
 ARTIST_MIX_SCHEDULE_KEY = "anima_prompt_artist_mix_schedule"
 _SPECTRUM_ANIMA_MOD_GUIDANCE_OLD_SIGNATURE_WARNED: set[str] = set()
+ARTIST_TAG_POSITION_CORRECT = "correct"
+ARTIST_TAG_POSITION_FRONT = "front"
+ARTIST_TAG_POSITION_BACK = "back"
+ARTIST_TAG_POSITION_MODES = (
+    ARTIST_TAG_POSITION_CORRECT,
+    ARTIST_TAG_POSITION_FRONT,
+    ARTIST_TAG_POSITION_BACK,
+)
 ARTIST_MIX_MODE_DESCRIPTIONS = {
     ARTIST_MIX_MODE_OFF: "Cost: 1 positive branch. Keeps artist-field text inline in the positive prompt.",
     ARTIST_MIX_MODE_PROMPT: "Cost: 1 positive branch. Keeps artist-field text inline in the positive prompt.",
@@ -1817,6 +1825,11 @@ def _normalize_artist_mix_mode(value, default: str = ARTIST_MIX_MODE_PROMPT) -> 
     return mode if mode in ARTIST_MIX_MODES else default
 
 
+def _normalize_artist_tag_position(value: str) -> str:
+    mode = str(value or ARTIST_TAG_POSITION_CORRECT)
+    return mode if mode in ARTIST_TAG_POSITION_MODES else ARTIST_TAG_POSITION_CORRECT
+
+
 def _artist_mix_mode_tooltip(include_prompt_data: bool = False) -> str:
     lines = []
     if include_prompt_data:
@@ -1856,6 +1869,31 @@ def _artist_mix_prompt_tags(artists: list[tuple[str, float]], include_weights: b
         else:
             tags.append(tag)
     return _join_prompt_tokens(*tags)
+
+
+def _artist_prompt_with_position(
+    base_prompt: str,
+    artist_prompt: str,
+    artist_position: str = ARTIST_TAG_POSITION_CORRECT,
+) -> str:
+    artist_text = _join_prompt_tokens(artist_prompt)
+    base_text = _join_prompt_tokens(base_prompt)
+    if not artist_text:
+        return base_text
+    if not base_text:
+        if _normalize_artist_tag_position(artist_position) == ARTIST_TAG_POSITION_CORRECT:
+            return _correct_builder_prompt(artist_text, artist_overrides=artist_text)
+        return artist_text
+
+    position = _normalize_artist_tag_position(artist_position)
+    if position == ARTIST_TAG_POSITION_FRONT:
+        return _join_prompt_tokens(artist_text, base_text)
+    if position == ARTIST_TAG_POSITION_BACK:
+        return _join_prompt_tokens(base_text, artist_text)
+    return _correct_builder_prompt(
+        _join_prompt_tokens(base_text, artist_text),
+        artist_overrides=artist_text,
+    )
 
 
 def _normalized_artist_weights(artists: list[tuple[str, float]]) -> list[float]:
@@ -2336,11 +2374,15 @@ def _artist_variant_prompt_from_prompt_data(
     base_text = _join_prompt_tokens(base_prompt)
     if not artist_text:
         return base_text
+    artist_mix = _prompt_data_nested(data, "artist_mix")
+    artist_position = _normalize_artist_tag_position(
+        artist_mix.get("artist_position", data.get("artist_position", ARTIST_TAG_POSITION_CORRECT))
+    )
     if not base_text:
-        return artist_text
+        return _artist_prompt_with_position("", artist_text, artist_position)
 
     fields = _prompt_data_positive_fields(data)
-    if fields:
+    if artist_position == ARTIST_TAG_POSITION_CORRECT and fields:
         prompt = _advanced_prompt_with_artist_override(
             fields,
             artist_text,
@@ -2349,7 +2391,7 @@ def _artist_variant_prompt_from_prompt_data(
         )
         if prompt:
             return prompt
-    return _join_prompt_tokens(base_text, artist_text)
+    return _artist_prompt_with_position(base_text, artist_text, artist_position)
 
 
 def _prompt_data_artist_mix_config(
@@ -5521,6 +5563,277 @@ class EasyUseAnimaPromptDataUnpack:
             overrides,
         )
         return (data, *_advanced_outputs_from_prompt_data(data))
+
+
+class EasyUseAnimaArtistMixConditioning:
+    """Standalone artist-tag positioning and artist mix CONDITIONING node."""
+
+    DESCRIPTION = (
+        "Applies artist tags to a regular prompt, positions them with ANIMA ordering "
+        "or fixed front/back placement, and outputs positive CONDITIONING. Artist mix "
+        "modes can be used without Prompt Studio prompt data."
+    )
+    OUTPUT_TOOLTIPS = (
+        "Positive CONDITIONING encoded from prompt plus artist tags.",
+    )
+
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {
+            "required": {
+                "clip": ("CLIP", {
+                    "tooltip": "CLIP used to encode the prompt and artist tags.",
+                }),
+                "prompt": ("STRING", {
+                    "multiline": True,
+                    "default": "",
+                    "tooltip": "Base positive prompt without the standalone artist tags.",
+                }),
+                "artist_tags": ("STRING", {
+                    "multiline": True,
+                    "default": "",
+                    "tooltip": "Comma- or newline-separated artist tags. Weighted syntax such as (artist:1.2) is supported.",
+                }),
+                "artist_position": (list(ARTIST_TAG_POSITION_MODES), {
+                    "default": ARTIST_TAG_POSITION_CORRECT,
+                    "tooltip": (
+                        "correct applies ANIMA prompt ordering, front pins artists before "
+                        "the prompt, and back pins artists after the prompt."
+                    ),
+                }),
+                "artist_mix_mode": (list(ARTIST_MIX_MODES), {
+                    "default": ARTIST_MIX_MODE_PROMPT,
+                    "tooltip": _artist_mix_mode_tooltip(),
+                }),
+                "artist_mix_start_percent": ("FLOAT", {
+                    "default": ARTIST_MIX_DEFAULT_START_PERCENT,
+                    "min": 0.0,
+                    "max": 1.0,
+                    "step": 0.01,
+                    "tooltip": "Start percent used by late/scheduled artist mix modes.",
+                }),
+                "artist_mix_strength_scale": ("FLOAT", {
+                    "default": ARTIST_MIX_DEFAULT_STRENGTH_SCALE,
+                    "min": 0.0,
+                    "max": 5.0,
+                    "step": 0.01,
+                    "tooltip": "Strength multiplier used by exact artist mix modes.",
+                }),
+                "artist_mix_style_gain": ("FLOAT", {
+                    "default": ARTIST_MIX_DEFAULT_STYLE_GAIN,
+                    "min": 0.0,
+                    "max": 3.0,
+                    "step": 0.01,
+                    "tooltip": "Style delta gain used by delta_rms, hybrid tail, and clustered compressed branches.",
+                }),
+                "artist_mix_rms_scale_cap": ("FLOAT", {
+                    "default": ARTIST_MIX_DEFAULT_RMS_SCALE_CAP,
+                    "min": 1.0,
+                    "max": 5.0,
+                    "step": 0.01,
+                    "tooltip": "Maximum RMS energy restore scale for delta_rms compressed artist branches.",
+                }),
+                "artist_mix_exact_top_k": ("INT", {
+                    "default": ARTIST_MIX_DEFAULT_EXACT_TOP_K,
+                    "min": 0,
+                    "max": 64,
+                    "tooltip": "Hybrid mode keeps this many strongest artists as exact positive branches.",
+                }),
+                "artist_mix_cluster_count": ("INT", {
+                    "default": ARTIST_MIX_DEFAULT_CLUSTER_COUNT,
+                    "min": 1,
+                    "max": 32,
+                    "tooltip": "Clustered mode compresses non-dominant artists into this many positive branches.",
+                }),
+                "artist_mix_dominant_isolation": ("BOOLEAN", {
+                    "default": ARTIST_MIX_DEFAULT_DOMINANT_ISOLATION,
+                    "tooltip": "Clustered mode keeps artists above the dominant threshold as exact branches.",
+                }),
+                "artist_mix_dominant_threshold": ("FLOAT", {
+                    "default": ARTIST_MIX_DEFAULT_DOMINANT_THRESHOLD,
+                    "min": 0.0,
+                    "max": 1.0,
+                    "step": 0.01,
+                    "tooltip": "Clustered dominant isolation threshold based on normalized artist weight.",
+                }),
+            },
+        }
+
+    RETURN_TYPES = ("CONDITIONING",)
+    RETURN_NAMES = ("positive",)
+    FUNCTION = "encode"
+    CATEGORY = "EasyUse Anima/Prompt"
+
+    @classmethod
+    def IS_CHANGED(
+        cls,
+        prompt: str = "",
+        artist_tags: str = "",
+        artist_position: str = ARTIST_TAG_POSITION_CORRECT,
+        artist_mix_mode: str = ARTIST_MIX_MODE_PROMPT,
+        artist_mix_start_percent: float = ARTIST_MIX_DEFAULT_START_PERCENT,
+        artist_mix_strength_scale: float = ARTIST_MIX_DEFAULT_STRENGTH_SCALE,
+        artist_mix_style_gain: float = ARTIST_MIX_DEFAULT_STYLE_GAIN,
+        artist_mix_rms_scale_cap: float = ARTIST_MIX_DEFAULT_RMS_SCALE_CAP,
+        artist_mix_exact_top_k: int = ARTIST_MIX_DEFAULT_EXACT_TOP_K,
+        artist_mix_cluster_count: int = ARTIST_MIX_DEFAULT_CLUSTER_COUNT,
+        artist_mix_dominant_isolation: bool = ARTIST_MIX_DEFAULT_DOMINANT_ISOLATION,
+        artist_mix_dominant_threshold: float = ARTIST_MIX_DEFAULT_DOMINANT_THRESHOLD,
+        **_kwargs,
+    ):
+        return _stable_change_key({
+            "mode": "artist_mix_conditioning",
+            "prompt": str(prompt or ""),
+            "artist_tags": str(artist_tags or ""),
+            "artist_position": _normalize_artist_tag_position(artist_position),
+            "artist_mix_mode": _normalize_artist_mix_mode(artist_mix_mode, ARTIST_MIX_MODE_PROMPT),
+            "artist_mix_start_percent": _bounded_artist_mix_float(
+                artist_mix_start_percent,
+                ARTIST_MIX_DEFAULT_START_PERCENT,
+                0.0,
+                1.0,
+            ),
+            "artist_mix_strength_scale": _bounded_artist_mix_float(
+                artist_mix_strength_scale,
+                ARTIST_MIX_DEFAULT_STRENGTH_SCALE,
+                0.0,
+                5.0,
+            ),
+            "artist_mix_style_gain": _bounded_artist_mix_float(
+                artist_mix_style_gain,
+                ARTIST_MIX_DEFAULT_STYLE_GAIN,
+                0.0,
+                3.0,
+            ),
+            "artist_mix_rms_scale_cap": _bounded_artist_mix_float(
+                artist_mix_rms_scale_cap,
+                ARTIST_MIX_DEFAULT_RMS_SCALE_CAP,
+                1.0,
+                5.0,
+            ),
+            "artist_mix_exact_top_k": _bounded_artist_mix_int(
+                artist_mix_exact_top_k,
+                ARTIST_MIX_DEFAULT_EXACT_TOP_K,
+                0,
+                64,
+            ),
+            "artist_mix_cluster_count": _bounded_artist_mix_int(
+                artist_mix_cluster_count,
+                ARTIST_MIX_DEFAULT_CLUSTER_COUNT,
+                1,
+                32,
+            ),
+            "artist_mix_dominant_isolation": _as_bool(
+                artist_mix_dominant_isolation,
+                ARTIST_MIX_DEFAULT_DOMINANT_ISOLATION,
+            ),
+            "artist_mix_dominant_threshold": _bounded_artist_mix_float(
+                artist_mix_dominant_threshold,
+                ARTIST_MIX_DEFAULT_DOMINANT_THRESHOLD,
+                0.0,
+                1.0,
+            ),
+        })
+
+    def encode(
+        self,
+        clip,
+        prompt: str = "",
+        artist_tags: str = "",
+        artist_position: str = ARTIST_TAG_POSITION_CORRECT,
+        artist_mix_mode: str = ARTIST_MIX_MODE_PROMPT,
+        artist_mix_start_percent: float = ARTIST_MIX_DEFAULT_START_PERCENT,
+        artist_mix_strength_scale: float = ARTIST_MIX_DEFAULT_STRENGTH_SCALE,
+        artist_mix_style_gain: float = ARTIST_MIX_DEFAULT_STYLE_GAIN,
+        artist_mix_rms_scale_cap: float = ARTIST_MIX_DEFAULT_RMS_SCALE_CAP,
+        artist_mix_exact_top_k: int = ARTIST_MIX_DEFAULT_EXACT_TOP_K,
+        artist_mix_cluster_count: int = ARTIST_MIX_DEFAULT_CLUSTER_COUNT,
+        artist_mix_dominant_isolation: bool = ARTIST_MIX_DEFAULT_DOMINANT_ISOLATION,
+        artist_mix_dominant_threshold: float = ARTIST_MIX_DEFAULT_DOMINANT_THRESHOLD,
+    ):
+        position = _normalize_artist_tag_position(artist_position)
+        mode = _normalize_artist_mix_mode(artist_mix_mode, ARTIST_MIX_MODE_PROMPT)
+        base_prompt = _join_prompt_tokens(prompt)
+        artist_prompt = _join_prompt_tokens(artist_tags)
+        if mode == ARTIST_MIX_MODE_PROMPT:
+            return (_encode_with_comfy_clip(
+                clip,
+                _artist_prompt_with_position(base_prompt, artist_prompt, position),
+            ),)
+
+        prompt_data = {
+            "positive_prompt": base_prompt,
+            "positive_without_artist_section": base_prompt,
+            "artist_position": position,
+            "artist_mix": {
+                "enabled": True,
+                "mode": mode,
+                "artist_position": position,
+                "base_source": "positive_without_artist_section",
+                "base_prompt": base_prompt,
+                "artist_prompt": artist_prompt,
+                "start_percent": _bounded_artist_mix_float(
+                    artist_mix_start_percent,
+                    ARTIST_MIX_DEFAULT_START_PERCENT,
+                    0.0,
+                    1.0,
+                ),
+                "strength_scale": _bounded_artist_mix_float(
+                    artist_mix_strength_scale,
+                    ARTIST_MIX_DEFAULT_STRENGTH_SCALE,
+                    0.0,
+                    5.0,
+                ),
+                "style_gain": _bounded_artist_mix_float(
+                    artist_mix_style_gain,
+                    ARTIST_MIX_DEFAULT_STYLE_GAIN,
+                    0.0,
+                    3.0,
+                ),
+                "rms_scale_cap": _bounded_artist_mix_float(
+                    artist_mix_rms_scale_cap,
+                    ARTIST_MIX_DEFAULT_RMS_SCALE_CAP,
+                    1.0,
+                    5.0,
+                ),
+                "exact_top_k": _bounded_artist_mix_int(
+                    artist_mix_exact_top_k,
+                    ARTIST_MIX_DEFAULT_EXACT_TOP_K,
+                    0,
+                    64,
+                ),
+                "cluster_count": _bounded_artist_mix_int(
+                    artist_mix_cluster_count,
+                    ARTIST_MIX_DEFAULT_CLUSTER_COUNT,
+                    1,
+                    32,
+                ),
+                "dominant_isolation": _as_bool(
+                    artist_mix_dominant_isolation,
+                    ARTIST_MIX_DEFAULT_DOMINANT_ISOLATION,
+                ),
+                "dominant_threshold": _bounded_artist_mix_float(
+                    artist_mix_dominant_threshold,
+                    ARTIST_MIX_DEFAULT_DOMINANT_THRESHOLD,
+                    0.0,
+                    1.0,
+                ),
+            },
+        }
+        return (_encode_prompt_data_positive_conditioning(
+            clip,
+            prompt_data,
+            base_prompt,
+            artist_mix_mode=mode,
+            artist_mix_start_percent=artist_mix_start_percent,
+            artist_mix_strength_scale=artist_mix_strength_scale,
+            artist_mix_style_gain=artist_mix_style_gain,
+            artist_mix_rms_scale_cap=artist_mix_rms_scale_cap,
+            artist_mix_exact_top_k=artist_mix_exact_top_k,
+            artist_mix_cluster_count=artist_mix_cluster_count,
+            artist_mix_dominant_isolation=artist_mix_dominant_isolation,
+            artist_mix_dominant_threshold=artist_mix_dominant_threshold,
+        ),)
 
 
 class EasyUseAnimaPromptDataConditioning:

@@ -49,6 +49,22 @@ generate.
 
 See the [Wildcard Guide](../wildcards.en.md) for syntax.
 
+## Artist Mix
+
+`Anima Prompt Studio Advanced v2` outputs one `EASYUSE_ANIMA_PROMPT_DATA` socket
+instead of the older string outputs. The prompt data stores artist-field text
+and `artist_mix` settings under dedicated keys.
+
+- Artist field means the Advanced artist-tag input field, not tokens marked
+  with `@`.
+- When artist mix is disabled, artist-field text stays in the positive prompt.
+- When artist mix is enabled, artist-field text is removed from the base prompt,
+  and `Anima Prompt Data Conditioning` creates positive `CONDITIONING` with the
+  selected artist mix mode.
+- For workflows that do not use Prompt Data, use
+  [Anima Artist Mix Conditioning](anima-artist-mix-conditioning.en.md) with a
+  regular prompt and separate artist tags.
+
 ## Highlighting
 
 - Quality, safety/rating, year, count, character, artist, copyright, metadata,

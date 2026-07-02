@@ -18,10 +18,15 @@ from nodes import (
     ARTIST_MIX_MODE_DELTA_RMS,
     ARTIST_MIX_MODE_FROM_PROMPT_DATA,
     ARTIST_MIX_MODE_HYBRID,
+    ARTIST_MIX_MODE_PROMPT,
+    ARTIST_TAG_POSITION_BACK,
+    ARTIST_TAG_POSITION_CORRECT,
+    ARTIST_TAG_POSITION_FRONT,
     DEFAULT_QUALITY_TAGS,
     DEFAULT_TRAILING_QUALITY_TAGS,
     PROMPT_DATA_SCHEMA,
     PROMPT_DATA_TYPE,
+    EasyUseAnimaArtistMixConditioning,
     EasyUseAnimaDetailerAlignHook,
     EasyUseAnimaPromptDataConditioning,
     EasyUseAnimaPromptDataUnpack,
@@ -402,6 +407,91 @@ class PromptBuilderTests(unittest.TestCase):
         self.assertEqual(input_types["required"]["artist_mix_mode"][1]["default"], ARTIST_MIX_MODE_FROM_PROMPT_DATA)
         self.assertEqual(EasyUseAnimaPromptDataConditioning.RETURN_TYPES, ("MODEL", "CONDITIONING", "CONDITIONING", "LATENT"))
         self.assertEqual(EasyUseAnimaPromptDataConditioning.RETURN_NAMES, ("model", "positive", "negative", "latent_image"))
+
+    def test_artist_mix_conditioning_node_uses_standalone_prompt_inputs(self):
+        input_types = EasyUseAnimaArtistMixConditioning.INPUT_TYPES()
+
+        for name in (
+            "clip",
+            "prompt",
+            "artist_tags",
+            "artist_position",
+            "artist_mix_mode",
+        ):
+            self.assertIn(name, input_types["required"])
+        self.assertEqual(
+            input_types["required"]["artist_position"][1]["default"],
+            ARTIST_TAG_POSITION_CORRECT,
+        )
+        self.assertEqual(
+            input_types["required"]["artist_mix_mode"][1]["default"],
+            ARTIST_MIX_MODE_PROMPT,
+        )
+        self.assertEqual(EasyUseAnimaArtistMixConditioning.RETURN_TYPES, ("CONDITIONING",))
+        self.assertEqual(EasyUseAnimaArtistMixConditioning.RETURN_NAMES, ("positive",))
+
+    def test_artist_mix_conditioning_prompt_mode_uses_position_policy(self):
+        encoded_texts = []
+
+        def fake_encode(_clip, text):
+            encoded_texts.append(text)
+            return [[f"cond:{text}", {"encoded_text": text}]]
+
+        with patch("nodes._encode_with_comfy_clip", fake_encode):
+            with patch("nodes._correct_builder_prompt", return_value="corrected prompt") as correct_mock:
+                positive = EasyUseAnimaArtistMixConditioning().encode(
+                    object(),
+                    prompt="1girl",
+                    artist_tags="artist_a",
+                    artist_position=ARTIST_TAG_POSITION_CORRECT,
+                    artist_mix_mode=ARTIST_MIX_MODE_PROMPT,
+                )[0]
+
+        self.assertEqual(positive[0][1]["encoded_text"], "corrected prompt")
+        correct_mock.assert_called_once_with("1girl, artist_a", artist_overrides="artist_a")
+
+        encoded_texts.clear()
+        with patch("nodes._encode_with_comfy_clip", fake_encode):
+            with patch("nodes._correct_builder_prompt") as correct_mock:
+                front_positive = EasyUseAnimaArtistMixConditioning().encode(
+                    object(),
+                    prompt="1girl",
+                    artist_tags="artist_a",
+                    artist_position=ARTIST_TAG_POSITION_FRONT,
+                    artist_mix_mode=ARTIST_MIX_MODE_PROMPT,
+                )[0]
+                back_positive = EasyUseAnimaArtistMixConditioning().encode(
+                    object(),
+                    prompt="1girl",
+                    artist_tags="artist_a",
+                    artist_position=ARTIST_TAG_POSITION_BACK,
+                    artist_mix_mode=ARTIST_MIX_MODE_PROMPT,
+                )[0]
+
+        correct_mock.assert_not_called()
+        self.assertEqual(front_positive[0][1]["encoded_text"], "artist_a, 1girl")
+        self.assertEqual(back_positive[0][1]["encoded_text"], "1girl, artist_a")
+
+    def test_artist_mix_conditioning_exact_mode_keeps_position_policy(self):
+        encoded_texts = []
+
+        def fake_encode(_clip, text):
+            encoded_texts.append(text)
+            return [[f"cond:{text}", {"encoded_text": text}]]
+
+        with patch("nodes._encode_with_comfy_clip", fake_encode):
+            positive = EasyUseAnimaArtistMixConditioning().encode(
+                object(),
+                prompt="1girl",
+                artist_tags="artist_a, artist_b",
+                artist_position=ARTIST_TAG_POSITION_FRONT,
+                artist_mix_mode="exact",
+            )[0]
+
+        self.assertEqual(len(positive), 2)
+        self.assertTrue(all(item[1][ARTIST_MIX_CONTROL_KEY] for item in positive))
+        self.assertTrue(all(item[1][ARTIST_MIX_EXACT_KEY] for item in positive))
+        self.assertEqual(encoded_texts[:2], ["artist_a, 1girl", "artist_b, 1girl"])
 
     def test_empty_latent_generation_uses_comfy_node_with_batch_size_one(self):
         calls = []
