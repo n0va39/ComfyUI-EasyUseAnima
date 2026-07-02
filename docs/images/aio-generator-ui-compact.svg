@@ -1,0 +1,211 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1320" height="760" viewBox="0 0 1320 760" role="img" aria-labelledby="title desc">
+  <title id="title">Anima AiO compact UI draft with Easy Use Anima Input socket</title>
+  <desc id="desc">Compact fixed-size node UI draft. A separate Easy Use Anima Input node receives prompt data, loads model clip vae, and outputs an easy use anima input socket. The generator node keeps its base size fixed and manages detailed settings in a popup.</desc>
+  <defs>
+    <linearGradient id="canvasGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#11151a"/>
+      <stop offset="1" stop-color="#0d1014"/>
+    </linearGradient>
+    <linearGradient id="nodeGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#22262d"/>
+      <stop offset="1" stop-color="#181c21"/>
+    </linearGradient>
+    <linearGradient id="previewGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#232b2d"/>
+      <stop offset="0.55" stop-color="#1e2526"/>
+      <stop offset="1" stop-color="#2b2421"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="12" stdDeviation="18" flood-color="#000000" flood-opacity="0.38"/>
+    </filter>
+    <style>
+      .bg { fill: url(#canvasGrad); }
+      .node { fill: url(#nodeGrad); stroke: #3b434d; stroke-width: 1.5; }
+      .popup { fill: #171b20; stroke: #4b5661; stroke-width: 1.5; }
+      .panel { fill: #15191e; stroke: #333c45; stroke-width: 1; }
+      .panel2 { fill: #101419; stroke: #343d46; stroke-width: 1; }
+      .field { fill: #0f1318; stroke: #3b454f; stroke-width: 1; }
+      .tab { fill: #161b20; stroke: #3a444d; stroke-width: 1; }
+      .tab-on { fill: #244d43; stroke: #67bfa6; stroke-width: 1.2; }
+      .chip { fill: #222a31; stroke: #46525c; stroke-width: 1; }
+      .chip-on { fill: #173b33; stroke: #69c2a7; stroke-width: 1.2; }
+      .chip-amber { fill: #46351e; stroke: #d59a45; stroke-width: 1.2; }
+      .button { fill: #2b6655; stroke: #78c8aa; stroke-width: 1.2; }
+      .button2 { fill: #26313a; stroke: #526170; stroke-width: 1; }
+      .socket-in { fill: #67bfa6; stroke: #0d1014; stroke-width: 2; }
+      .socket-out { fill: #d59a45; stroke: #0d1014; stroke-width: 2; }
+      .socket-special { fill: #8fd8c4; stroke: #0d1014; stroke-width: 2.4; }
+      .wire { fill: none; stroke: #8fd8c4; stroke-width: 5; opacity: 0.72; }
+      .wire-shadow { fill: none; stroke: #0d1014; stroke-width: 9; opacity: 0.75; }
+      .title { fill: #f3f0e8; font: 700 20px "Segoe UI", Arial, sans-serif; }
+      .node-title { fill: #f3f0e8; font: 700 16px "Segoe UI", Arial, sans-serif; }
+      .section-title { fill: #ebe7df; font: 700 13px "Segoe UI", Arial, sans-serif; }
+      .label { fill: #c3ccd0; font: 500 11px "Segoe UI", Arial, sans-serif; }
+      .value { fill: #f3f0e8; font: 700 11px "Segoe UI", Arial, sans-serif; }
+      .muted { fill: #8f9aa0; font: 400 10px "Segoe UI", Arial, sans-serif; }
+      .small { fill: #d7dad8; font: 600 10px "Segoe UI", Arial, sans-serif; }
+      .mono { fill: #c9d2d2; font: 500 10px Consolas, "SF Mono", monospace; }
+    </style>
+  </defs>
+
+  <rect class="bg" width="1320" height="760"/>
+  <text x="54" y="48" class="title">Anima AiO 0.2.2 Compact UI Draft</text>
+  <text x="54" y="69" class="muted">Prompt text is handled upstream. This surface only shows generation, loaded resources, preview, save, and popup settings.</text>
+
+  <g transform="translate(64 116)" filter="url(#shadow)">
+    <rect x="0" y="0" width="360" height="322" rx="10" class="node"/>
+    <text x="24" y="38" class="node-title">Easy Use Anima Input</text>
+    <text x="24" y="59" class="muted">loads resources and enriches prompt data</text>
+
+    <circle cx="0" cy="104" r="8" class="socket-in"/>
+    <text x="18" y="108" class="label">prompt data</text>
+    <circle cx="0" cy="144" r="8" class="socket-in"/>
+    <text x="18" y="148" class="label">optional model preset</text>
+    <circle cx="360" cy="164" r="9" class="socket-special"/>
+    <text x="203" y="168" class="label">easy use anima input</text>
+
+    <rect x="24" y="82" width="312" height="54" rx="7" class="panel2"/>
+    <text x="40" y="104" class="section-title">Prompt Data</text>
+    <rect x="228" y="90" width="88" height="22" rx="5" class="chip-on"/>
+    <text x="246" y="105" class="small">linked</text>
+    <text x="40" y="124" class="muted">content hidden; consumed by key</text>
+
+    <rect x="24" y="154" width="312" height="94" rx="7" class="panel"/>
+    <text x="40" y="178" class="section-title">Resource Loader</text>
+    <rect x="40" y="194" width="132" height="24" rx="5" class="field"/>
+    <text x="52" y="211" class="label">Checkpoint</text>
+    <rect x="184" y="194" width="132" height="24" rx="5" class="field"/>
+    <text x="196" y="211" class="label">VAE</text>
+    <rect x="40" y="222" width="132" height="18" rx="4" class="chip-on"/>
+    <text x="56" y="235" class="muted">MODEL ready</text>
+    <rect x="184" y="222" width="62" height="18" rx="4" class="chip-on"/>
+    <text x="200" y="235" class="muted">CLIP</text>
+    <rect x="254" y="222" width="62" height="18" rx="4" class="chip-on"/>
+    <text x="271" y="235" class="muted">VAE</text>
+
+    <rect x="24" y="264" width="312" height="34" rx="7" class="panel2"/>
+    <text x="40" y="286" class="mono">output type: EASY_USE_ANIMA_INPUT</text>
+  </g>
+
+  <path d="M424 280 C492 280 506 280 574 280" class="wire-shadow"/>
+  <path d="M424 280 C492 280 506 280 574 280" class="wire"/>
+  <text x="456" y="266" class="small">easy use anima input</text>
+
+  <g transform="translate(574 104)" filter="url(#shadow)">
+    <rect x="0" y="0" width="520" height="388" rx="10" class="node"/>
+    <text x="24" y="38" class="node-title">Anima AiO Generator</text>
+    <text x="24" y="59" class="muted">fixed-size base node; detailed settings open in popup</text>
+
+    <circle cx="0" cy="176" r="9" class="socket-special"/>
+    <text x="18" y="180" class="label">easy use anima input</text>
+    <circle cx="520" cy="116" r="8" class="socket-out"/>
+    <text x="455" y="120" class="label">IMAGE</text>
+    <circle cx="520" cy="156" r="8" class="socket-out"/>
+    <text x="450" y="160" class="label">LATENT</text>
+    <circle cx="520" cy="196" r="8" class="socket-out"/>
+    <text x="430" y="200" class="label">METADATA</text>
+
+    <g transform="translate(334 24)">
+      <rect x="0" y="0" width="72" height="26" rx="6" class="tab-on"/>
+      <text x="19" y="18" class="small">txt2img</text>
+      <rect x="82" y="0" width="72" height="26" rx="6" class="tab"/>
+      <text x="104" y="18" class="small">i2i</text>
+    </g>
+
+    <rect x="24" y="80" width="188" height="58" rx="7" class="panel2"/>
+    <text x="40" y="103" class="section-title">Input</text>
+    <rect x="118" y="88" width="72" height="22" rx="5" class="chip-on"/>
+    <text x="134" y="103" class="small">ready</text>
+    <text x="40" y="124" class="muted">model, clip, vae, data resolved</text>
+
+    <rect x="228" y="80" width="268" height="58" rx="7" class="panel2"/>
+    <text x="244" y="103" class="section-title">Mode</text>
+    <rect x="304" y="90" width="62" height="20" rx="5" class="chip-on"/>
+    <text x="322" y="104" class="small">base</text>
+    <rect x="374" y="90" width="82" height="20" rx="5" class="chip"/>
+    <text x="392" y="104" class="small">highres</text>
+    <text x="244" y="124" class="muted">no prompt fields on this node</text>
+
+    <rect x="24" y="154" width="198" height="118" rx="7" class="panel"/>
+    <text x="40" y="178" class="section-title">Core Controls</text>
+    <rect x="40" y="192" width="72" height="26" rx="5" class="field"/>
+    <text x="52" y="209" class="label">Seed</text>
+    <rect x="122" y="192" width="84" height="26" rx="5" class="field"/>
+    <text x="138" y="209" class="value">fixed</text>
+    <rect x="40" y="226" width="72" height="26" rx="5" class="field"/>
+    <text x="52" y="243" class="label">Steps</text>
+    <rect x="122" y="226" width="84" height="26" rx="5" class="field"/>
+    <text x="151" y="243" class="value">28</text>
+
+    <rect x="242" y="154" width="254" height="118" rx="7" fill="url(#previewGrad)" stroke="#48545d"/>
+    <path d="M264 238 C304 198 330 208 356 184 C398 146 430 166 478 126" fill="none" stroke="#67bfa6" stroke-width="4" opacity="0.58"/>
+    <path d="M262 252 C304 230 320 256 356 220 C396 180 434 206 476 176" fill="none" stroke="#d59a45" stroke-width="4" opacity="0.54"/>
+    <circle cx="362" cy="210" r="28" fill="#67bfa6" opacity="0.2"/>
+    <circle cx="430" cy="208" r="34" fill="#d98279" opacity="0.16"/>
+    <text x="332" y="214" class="label">preview</text>
+    <text x="332" y="232" class="muted">latest image only</text>
+
+    <rect x="24" y="290" width="126" height="34" rx="7" class="button2"/>
+    <text x="55" y="312" class="small">Settings...</text>
+    <rect x="160" y="290" width="102" height="34" rx="7" class="button2"/>
+    <text x="191" y="312" class="small">Save</text>
+    <rect x="272" y="290" width="102" height="34" rx="7" class="button"/>
+    <text x="304" y="312" class="small">Queue</text>
+    <rect x="384" y="290" width="112" height="34" rx="7" class="button2"/>
+    <text x="414" y="312" class="small">Preview</text>
+
+    <rect x="24" y="342" width="472" height="22" rx="5" class="panel2"/>
+    <text x="40" y="357" class="mono">status: idle | settings stored in serialized hidden widgets</text>
+  </g>
+
+  <g transform="translate(862 260)" filter="url(#shadow)">
+    <rect x="0" y="0" width="392" height="390" rx="10" class="popup"/>
+    <text x="22" y="36" class="node-title">Generation Settings</text>
+    <text x="22" y="57" class="muted">popup dialog; generator node size does not change</text>
+    <rect x="22" y="76" width="64" height="26" rx="6" class="tab-on"/>
+    <text x="42" y="94" class="small">Base</text>
+    <rect x="94" y="76" width="74" height="26" rx="6" class="tab"/>
+    <text x="113" y="94" class="small">Patch</text>
+    <rect x="176" y="76" width="82" height="26" rx="6" class="tab"/>
+    <text x="194" y="94" class="small">Highres</text>
+    <rect x="266" y="76" width="96" height="26" rx="6" class="tab"/>
+    <text x="286" y="94" class="small">Detailer</text>
+
+    <rect x="22" y="122" width="348" height="62" rx="7" class="panel"/>
+    <text x="38" y="146" class="section-title">Sampler</text>
+    <rect x="128" y="134" width="104" height="24" rx="5" class="field"/>
+    <text x="143" y="151" class="label">euler_a</text>
+    <rect x="244" y="134" width="104" height="24" rx="5" class="field"/>
+    <text x="259" y="151" class="label">normal</text>
+    <text x="38" y="169" class="muted">base sampler and scheduler</text>
+
+    <rect x="22" y="198" width="166" height="62" rx="7" class="panel"/>
+    <text x="38" y="222" class="section-title">Highres</text>
+    <rect x="118" y="207" width="46" height="20" rx="10" class="chip-on"/>
+    <circle cx="151" cy="217" r="7" fill="#dcfff4"/>
+    <text x="38" y="246" class="muted">scale, denoise, upscaler</text>
+
+    <rect x="204" y="198" width="166" height="62" rx="7" class="panel"/>
+    <text x="220" y="222" class="section-title">Save</text>
+    <rect x="294" y="207" width="46" height="20" rx="10" class="chip-on"/>
+    <circle cx="327" cy="217" r="7" fill="#dcfff4"/>
+    <text x="220" y="246" class="muted">filename and metadata</text>
+
+    <rect x="22" y="274" width="348" height="64" rx="7" class="panel"/>
+    <text x="38" y="298" class="section-title">Detailers</text>
+    <rect x="126" y="286" width="62" height="22" rx="5" class="chip-on"/>
+    <text x="145" y="301" class="small">Face</text>
+    <rect x="198" y="286" width="62" height="22" rx="5" class="chip-on"/>
+    <text x="219" y="301" class="small">Eyes</text>
+    <rect x="270" y="286" width="62" height="22" rx="5" class="chip"/>
+    <text x="290" y="301" class="small">Hands</text>
+    <text x="38" y="322" class="muted">SAM3 + Impact delegation options</text>
+
+    <rect x="184" y="354" width="82" height="24" rx="6" class="button2"/>
+    <text x="210" y="371" class="small">Cancel</text>
+    <rect x="278" y="354" width="92" height="24" rx="6" class="button"/>
+    <text x="309" y="371" class="small">Apply</text>
+  </g>
+
+  <text x="64" y="704" class="muted">Design note: prompt contents are intentionally absent. The base generator stays fixed-size; all detailed controls live in a popup and must serialize through hidden widgets or backend inputs.</text>
+</svg>

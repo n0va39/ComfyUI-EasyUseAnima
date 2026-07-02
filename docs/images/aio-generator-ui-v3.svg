@@ -1,0 +1,129 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="760" height="560" viewBox="0 0 760 560">
+  <defs>
+    <linearGradient id="nodeBg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#20262b"/>
+      <stop offset="1" stop-color="#15191d"/>
+    </linearGradient>
+    <pattern id="checker" width="16" height="16" patternUnits="userSpaceOnUse">
+      <rect width="16" height="16" fill="#151a1f"/>
+      <rect width="8" height="8" fill="#1f262c"/>
+      <rect x="8" y="8" width="8" height="8" fill="#1f262c"/>
+    </pattern>
+    <style>
+      text { font-family: "Segoe UI", Arial, sans-serif; }
+      .title { font-size: 16px; fill: #f4efe6; font-weight: 700; }
+      .section { font-size: 12px; fill: #f4efe6; font-weight: 700; }
+      .label { font-size: 11px; fill: #aeb8bd; }
+      .value { font-size: 12px; fill: #f0ece4; font-weight: 600; }
+      .muted { font-size: 10px; fill: #87939a; }
+      .node { fill: url(#nodeBg); stroke: #55636c; stroke-width: 1.4; }
+      .bar { fill: #262d33; }
+      .panel { fill: #11171c; stroke: #34424a; stroke-width: 1; }
+      .field { fill: #0c1115; stroke: #3c4952; stroke-width: 1; }
+      .button { fill: #26323a; stroke: #566674; stroke-width: 1; }
+      .primary { fill: #245f50; stroke: #7bd0b1; stroke-width: 1; }
+      .socket { fill: #1d8a74; stroke: #76d4be; stroke-width: 1.2; }
+      .out { fill: #8661d1; stroke: #c6b3ff; stroke-width: 1.2; }
+      .dash { stroke: #62717b; stroke-dasharray: 5 5; fill: none; }
+    </style>
+  </defs>
+
+  <rect width="760" height="560" fill="#0d0f12"/>
+  <text x="40" y="34" class="title">Anima AiO Generator DOM UI Draft v3</text>
+  <text x="40" y="54" class="label">Top status removed. Main view = Highres/Detailer access, sampler column, generated-image preview, bottom option popups.</text>
+
+  <g transform="translate(64 78)">
+    <rect x="0" y="0" width="632" height="420" rx="10" class="node"/>
+    <rect x="0" y="0" width="632" height="36" rx="10" class="bar"/>
+    <rect x="0" y="24" width="632" height="12" class="bar"/>
+    <text x="18" y="24" class="title">Anima AiO Generator</text>
+
+    <circle cx="-8" cy="70" r="6" class="socket"/>
+    <text x="14" y="74" class="label">easy use anima input</text>
+    <circle cx="640" cy="70" r="6" class="out"/>
+    <text x="566" y="74" class="label">image</text>
+    <circle cx="640" cy="96" r="6" class="out"/>
+    <text x="568" y="100" class="label">latent</text>
+    <circle cx="640" cy="122" r="6" class="out"/>
+    <text x="507" y="126" class="label">metadata_json</text>
+
+    <g transform="translate(16 48)">
+      <rect x="0" y="0" width="600" height="44" rx="7" class="panel"/>
+      <rect x="12" y="8" width="178" height="28" rx="6" class="button"/>
+      <text x="41" y="27" class="value">Highres Settings</text>
+      <rect x="202" y="8" width="178" height="28" rx="6" class="button"/>
+      <text x="233" y="27" class="value">Detailer Settings</text>
+      <text x="400" y="26" class="muted">Both open popup panels. No status widgets here.</text>
+    </g>
+
+    <g transform="translate(16 104)">
+      <rect x="0" y="0" width="260" height="268" rx="7" class="panel"/>
+      <text x="12" y="22" class="section">SAMPLER</text>
+
+      <g transform="translate(12 36)">
+        <text x="0" y="12" class="label">Seed</text>
+        <rect x="0" y="18" width="154" height="28" rx="5" class="field"/>
+        <text x="10" y="37" class="value">123456789</text>
+        <rect x="162" y="18" width="32" height="28" rx="5" class="button"/>
+        <text x="174" y="37" class="value">R</text>
+        <rect x="202" y="18" width="34" height="28" rx="5" class="button"/>
+        <text x="214" y="37" class="value">L</text>
+      </g>
+
+      <g transform="translate(12 88)">
+        <text x="0" y="12" class="label">Seed mode</text>
+        <rect x="0" y="18" width="236" height="28" rx="5" class="field"/>
+        <text x="10" y="37" class="value">fixed / randomize / increment / decrement</text>
+      </g>
+
+      <g transform="translate(12 140)">
+        <text x="0" y="12" class="label">Steps</text>
+        <rect x="0" y="18" width="64" height="28" rx="5" class="field"/>
+        <text x="10" y="37" class="value">28</text>
+        <text x="78" y="12" class="label">CFG</text>
+        <rect x="78" y="18" width="64" height="28" rx="5" class="field"/>
+        <text x="88" y="37" class="value">5.0</text>
+        <text x="156" y="12" class="label">Denoise</text>
+        <rect x="156" y="18" width="80" height="28" rx="5" class="field"/>
+        <text x="166" y="37" class="value">1.00</text>
+      </g>
+
+      <g transform="translate(12 192)">
+        <text x="0" y="12" class="label">Sampler</text>
+        <rect x="0" y="18" width="112" height="28" rx="5" class="field"/>
+        <text x="10" y="37" class="value">euler_ancestral</text>
+        <text x="124" y="12" class="label">Scheduler</text>
+        <rect x="124" y="18" width="112" height="28" rx="5" class="field"/>
+        <text x="134" y="37" class="value">normal</text>
+      </g>
+
+      <g transform="translate(12 238)">
+        <rect x="0" y="0" width="236" height="22" rx="5" class="button"/>
+        <text x="73" y="15" class="value">Sampler Details...</text>
+      </g>
+    </g>
+
+    <g transform="translate(288 104)">
+      <rect x="0" y="0" width="328" height="268" rx="7" class="panel"/>
+      <text x="12" y="22" class="section">PREVIEW</text>
+      <rect x="12" y="36" width="304" height="204" rx="6" fill="url(#checker)" stroke="#3c4952"/>
+      <path d="M38 204 L112 130 L160 174 L208 104 L292 216" class="dash"/>
+      <circle cx="212" cy="92" r="18" fill="#d7b86a" opacity=".75"/>
+      <text x="108" y="146" class="value">Generated Image Preview</text>
+      <text x="108" y="164" class="muted">updates from this node output</text>
+      <text x="12" y="258" class="muted">Preview area replaces the old options panel.</text>
+    </g>
+
+    <g transform="translate(16 384)">
+      <rect x="0" y="0" width="600" height="24" rx="6" class="panel"/>
+      <rect x="12" y="3" width="278" height="18" rx="5" class="button"/>
+      <text x="112" y="16" class="value">Save Options...</text>
+      <rect x="310" y="3" width="278" height="18" rx="5" class="button"/>
+      <text x="407" y="16" class="value">Advanced Options...</text>
+    </g>
+  </g>
+
+  <g transform="translate(64 522)">
+    <text x="0" y="0" class="label">Implementation note: hidden required widgets stay serialized; popups write versioned settings before queue/save.</text>
+  </g>
+</svg>

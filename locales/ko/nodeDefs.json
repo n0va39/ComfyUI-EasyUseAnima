@@ -503,6 +503,70 @@
       }
     }
   },
+  "EasyUseAnimaInput": {
+    "display_name": "Easy Use Anima Input",
+    "description": "EASYUSE_ANIMA_PROMPT_DATA를 받아 ANIMA diffusion model, VAE, CLIP을 각각 로드하고 전용 easy use anima input 컨텍스트로 묶습니다. 상세 리소스 설정은 숨김 versioned JSON으로 저장합니다.",
+    "inputs": {
+      "EASYUSE_ANIMA_PROMPT_DATA": {
+        "name": "EASYUSE_ANIMA_PROMPT_DATA",
+        "tooltip": "Anima Prompt Studio Advanced v2에서 나온 구조화 프롬프트 데이터입니다."
+      },
+      "unet_name": {
+        "name": "unet_name",
+        "tooltip": "ComfyUI UNETLoader로 로드할 ANIMA diffusion model입니다."
+      },
+      "vae_name": {
+        "name": "vae_name",
+        "tooltip": "ComfyUI VAELoader로 로드할 VAE입니다."
+      },
+      "clip_name": {
+        "name": "clip_name",
+        "tooltip": "ComfyUI CLIPLoader로 로드할 text encoder입니다."
+      },
+      "clip_type": {
+        "name": "clip_type",
+        "tooltip": "ComfyUI CLIPLoader 타입입니다. Core ANIMA는 qwen_image를 사용합니다."
+      },
+      "input_settings": {
+        "name": "input_settings",
+        "tooltip": "향후 리소스 설정 확장을 위한 숨김 versioned JSON 저장소입니다. 워크플로우 호환성을 위해 직렬화합니다."
+      }
+    },
+    "outputs": {
+      "0": {
+        "name": "easy use anima input",
+        "tooltip": "프롬프트 데이터, MODEL, CLIP, VAE, 리소스 메타데이터, versioned 설정을 포함한 전용 컨텍스트입니다."
+      }
+    }
+  },
+  "EasyUseAnimaAIOGenerator": {
+    "display_name": "Anima AiO Generator",
+    "description": "easy use anima input 컨텍스트를 받아 기본 txt2img 생성 경로를 실행합니다. 자주 쓰는 생성값은 노드에 표시하고 상세 설정은 숨김 versioned JSON과 팝업 UI로 관리합니다.",
+    "inputs": {
+      "easy_use_anima_input": {
+        "name": "easy use anima input",
+        "tooltip": "Easy Use Anima Input 노드에서 나온 전용 컨텍스트입니다."
+      },
+      "generation_settings": {
+        "name": "generation_settings",
+        "tooltip": "생성 팝업 설정을 저장하는 숨김 versioned JSON입니다. 직렬화 상태를 유지해야 합니다."
+      }
+    },
+    "outputs": {
+      "0": {
+        "name": "image",
+        "tooltip": "VAE decode가 끝난 생성 이미지입니다."
+      },
+      "1": {
+        "name": "latent",
+        "tooltip": "KSampler가 반환한 LATENT입니다."
+      },
+      "2": {
+        "name": "metadata_json",
+        "tooltip": "디버깅과 다운스트림 연동을 위한 생성 메타데이터 JSON입니다."
+      }
+    }
+  },
   "EasyUseAnimaArtistMixConditioning": {
     "display_name": "Anima Artist Mix Conditioning",
     "description": "일반 프롬프트와 작가 태그를 받아 위치를 교정하거나 앞/뒤에 고정한 뒤 artist mix 방식으로 positive CONDITIONING을 출력합니다.",

@@ -503,6 +503,70 @@
       }
     }
   },
+  "EasyUseAnimaInput": {
+    "display_name": "Easy Use Anima Input",
+    "description": "Receives EASYUSE_ANIMA_PROMPT_DATA, loads the selected ANIMA diffusion model, VAE, and CLIP separately, and returns one dedicated easy use anima input context. Advanced resource settings are stored as hidden versioned JSON.",
+    "inputs": {
+      "EASYUSE_ANIMA_PROMPT_DATA": {
+        "name": "EASYUSE_ANIMA_PROMPT_DATA",
+        "tooltip": "Structured prompt data from Anima Prompt Studio Advanced v2."
+      },
+      "unet_name": {
+        "name": "unet_name",
+        "tooltip": "ANIMA diffusion model loaded with ComfyUI UNETLoader."
+      },
+      "vae_name": {
+        "name": "vae_name",
+        "tooltip": "VAE loaded with ComfyUI VAELoader."
+      },
+      "clip_name": {
+        "name": "clip_name",
+        "tooltip": "Text encoder loaded with ComfyUI CLIPLoader."
+      },
+      "clip_type": {
+        "name": "clip_type",
+        "tooltip": "ComfyUI CLIPLoader type. Core ANIMA uses qwen_image."
+      },
+      "input_settings": {
+        "name": "input_settings",
+        "tooltip": "Hidden versioned JSON storage for future resource settings. Keep it serialized for workflow compatibility."
+      }
+    },
+    "outputs": {
+      "0": {
+        "name": "easy use anima input",
+        "tooltip": "Dedicated context containing prompt data, MODEL, CLIP, VAE, resource metadata, and versioned settings."
+      }
+    }
+  },
+  "EasyUseAnimaAIOGenerator": {
+    "display_name": "Anima AiO Generator",
+    "description": "Consumes the easy use anima input context and runs the base txt2img generation path. Common generation parameters stay visible; advanced options are stored as hidden versioned JSON and managed by popup UI.",
+    "inputs": {
+      "easy_use_anima_input": {
+        "name": "easy use anima input",
+        "tooltip": "Dedicated context from Easy Use Anima Input."
+      },
+      "generation_settings": {
+        "name": "generation_settings",
+        "tooltip": "Hidden versioned JSON storage for popup generation settings. Keep this field serialized."
+      }
+    },
+    "outputs": {
+      "0": {
+        "name": "image",
+        "tooltip": "Decoded generated image."
+      },
+      "1": {
+        "name": "latent",
+        "tooltip": "Sampled latent image."
+      },
+      "2": {
+        "name": "metadata_json",
+        "tooltip": "JSON metadata summary for debugging or downstream integration."
+      }
+    }
+  },
   "EasyUseAnimaArtistMixConditioning": {
     "display_name": "Anima Artist Mix Conditioning",
     "description": "Applies artist tags to a regular prompt, positions them with ANIMA ordering or fixed front/back placement, and outputs positive CONDITIONING.",

@@ -6,6 +6,7 @@ import inspect
 import json
 import logging
 import os
+import random
 import re
 import sys
 from math import gcd, isfinite, lcm, log
@@ -84,6 +85,53 @@ REGIONAL_CONFIG_VERSION = 1
 PROMPT_DATA_VERSION = 1
 PROMPT_DATA_TYPE = "EASYUSE_ANIMA_PROMPT_DATA"
 PROMPT_DATA_SCHEMA = "easyuse_anima_prompt_studio_advanced_v2"
+EASY_USE_ANIMA_INPUT_TYPE = "EASY_USE_ANIMA_INPUT"
+EASY_USE_ANIMA_INPUT_SCHEMA = "easy_use_anima_input"
+EASY_USE_ANIMA_INPUT_SETTINGS_VERSION = 1
+AIO_GENERATION_SETTINGS_SCHEMA = "easyuse_anima_aio_generation_settings"
+AIO_GENERATION_SETTINGS_VERSION = 1
+ANIMA_DEFAULT_DIFFUSION_MODEL_CANDIDATES = (
+    "anima-base-v1.0.safetensors",
+    "ANIMA\\anima_baseV10.safetensors",
+)
+ANIMA_DEFAULT_VAE_CANDIDATES = (
+    "qwen_image_vae.safetensors",
+)
+ANIMA_DEFAULT_CLIP_CANDIDATES = (
+    "qwen_3_06b_base.safetensors",
+)
+ANIMA_CLIP_TYPES = (
+    "stable_diffusion",
+    "stable_cascade",
+    "sd3",
+    "stable_audio",
+    "mochi",
+    "ltxv",
+    "pixart",
+    "cosmos",
+    "lumina2",
+    "wan",
+    "hidream",
+    "chroma",
+    "ace",
+    "omnigen2",
+    "qwen_image",
+    "hunyuan_image",
+    "flux2",
+    "ovis",
+    "longcat_image",
+    "cogvideox",
+    "lens",
+    "pixeldit",
+    "ideogram4",
+)
+ANIMA_UNET_WEIGHT_DTYPES = (
+    "default",
+    "fp8_e4m3fn",
+    "fp8_e4m3fn_fast",
+    "fp8_e5m2",
+)
+ANIMA_CLIP_DEVICES = ("default", "cpu")
 ANIMA_MOD_GUIDANCE_MODE_FROM_PROMPT_DATA = "prompt_data"
 ANIMA_MOD_GUIDANCE_MODE_ENABLED = "enabled"
 ANIMA_MOD_GUIDANCE_MODE_DISABLED = "disabled"
@@ -153,6 +201,338 @@ ARTIST_MIX_CONTROL_KEY = "anima_prompt_artist_mix_control"
 ARTIST_MIX_EXACT_KEY = "anima_prompt_artist_mix_exact"
 ARTIST_MIX_SCHEDULE_KEY = "anima_prompt_artist_mix_schedule"
 _SPECTRUM_ANIMA_MOD_GUIDANCE_OLD_SIGNATURE_WARNED: set[str] = set()
+AIO_SPECIAL_SEED_RANDOM = -1
+AIO_SPECIAL_SEED_INCREMENT = -2
+AIO_SPECIAL_SEED_DECREMENT = -3
+AIO_SPECIAL_SEEDS = {
+    AIO_SPECIAL_SEED_RANDOM,
+    AIO_SPECIAL_SEED_INCREMENT,
+    AIO_SPECIAL_SEED_DECREMENT,
+}
+AIO_INPUT_DEFAULT_SETTINGS = {
+    "schema": EASY_USE_ANIMA_INPUT_SCHEMA,
+    "version": EASY_USE_ANIMA_INPUT_SETTINGS_VERSION,
+    "resources": {
+        "loader_mode": "split",
+        "clip_loader": "single",
+        "unet_weight_dtype": "default",
+        "clip_device": "default",
+    },
+    "metadata": {},
+}
+AIO_GENERATION_DEFAULT_SETTINGS = {
+    "schema": AIO_GENERATION_SETTINGS_SCHEMA,
+    "version": AIO_GENERATION_SETTINGS_VERSION,
+    "mode": "txt2img",
+    "sampler": {
+        "backend": "comfy_ksampler",
+        "seed": AIO_SPECIAL_SEED_RANDOM,
+        "seed_after_generate": SEED_CONTROL_FIXED,
+        "steps": 28,
+        "cfg": 5.0,
+        "sampler_name": "euler_ancestral",
+        "scheduler": "normal",
+        "denoise": 1.0,
+        "spectrum": {
+            "enabled": False,
+            "window_size": 2.0,
+            "flex_window": 0.25,
+            "warmup_steps": 6,
+            "tail_actual_steps": 3,
+            "blend_w": 0.3,
+            "cheby_degree": 3,
+            "ridge_lambda": 0.1,
+            "history_size": 100,
+            "one_sampler_only": False,
+            "verbose": False,
+            "compat_policy": "conservative",
+        },
+        "spd": {
+            "split_mode": "single",
+            "scale": 0.5,
+            "sigma": 0.7,
+            "adaptive_smc_alpha": 0.0,
+        },
+        "dit_corrections": {
+            "enabled": False,
+            "dcw_mode": "off",
+            "dcw_lambda": 0.01,
+            "dcw_band_mask": "LL",
+            "dcw_calibrator": "(auto-download default)",
+            "smc_cfg": False,
+            "adaptive_smc_alpha": 0.0,
+            "smc_cfg_lambda": 6.0,
+            "cfgpp": False,
+            "cfgpp_lambda": 0.0,
+            "fsg": False,
+            "fsg_band_lo": 0.59,
+            "fsg_band_hi": 0.75,
+            "fsg_k": 3,
+            "fsg_d_sigma": 0.1,
+            "fsg_gamma": 0.0,
+            "replace_existing_cfg": False,
+        },
+    },
+    "model_patches": {
+        "aura_flow": {
+            "shift": 3.0,
+        },
+        "kj": {
+            "fp16_accumulation": False,
+            "sage_attention": "disabled",
+            "sage_allow_compile": False,
+            "torch_compile": {
+                "enabled": False,
+                "backend": "inductor",
+                "fullgraph": False,
+                "mode": "max-autotune-no-cudagraphs",
+                "dynamic": "false",
+                "compile_transformer_blocks_only": True,
+                "dynamo_cache_size_limit": 64,
+                "debug_compile_keys": False,
+                "disable_dynamic_vram": True,
+            },
+        },
+    },
+    "mod_guidance": {
+        "mode": ANIMA_MOD_GUIDANCE_MODE_FROM_PROMPT_DATA,
+        "profile": ANIMA_MOD_GUIDANCE_DEFAULT_PROFILE,
+        "advanced": {
+            "adapter": "(auto-download default)",
+            "quality_tags": "highres, best quality, score_7",
+            "quality_neg": "score_1, score_2, score_3, worst quality, lowres, old, bad hands, bad anatomy",
+            "mod_w": 3.0,
+            "mod_start_layer": 8,
+            "mod_end_layer": 27,
+            "mod_taper": 0,
+            "mod_taper_scale": 0.25,
+            "mod_final_w": 0.0,
+        },
+    },
+    "artist_mix": {
+        "mode": ARTIST_MIX_MODE_FROM_PROMPT_DATA,
+        "start_percent": ARTIST_MIX_DEFAULT_START_PERCENT,
+        "strength_scale": ARTIST_MIX_DEFAULT_STRENGTH_SCALE,
+        "style_gain": ARTIST_MIX_DEFAULT_STYLE_GAIN,
+        "rms_scale_cap": ARTIST_MIX_DEFAULT_RMS_SCALE_CAP,
+        "exact_top_k": ARTIST_MIX_DEFAULT_EXACT_TOP_K,
+        "cluster_count": ARTIST_MIX_DEFAULT_CLUSTER_COUNT,
+        "dominant_isolation": ARTIST_MIX_DEFAULT_DOMINANT_ISOLATION,
+        "dominant_threshold": ARTIST_MIX_DEFAULT_DOMINANT_THRESHOLD,
+    },
+    "highres": {
+        "enabled": False,
+        "scale_by": 1.25,
+        "upscale_method": "bicubic",
+        "multiple": "32",
+        "max_long_edge": 2560,
+        "steps": 20,
+        "inherit_sampler_settings": True,
+        "cfg": 8.0,
+        "sampler_name": "euler",
+        "scheduler": "simple",
+        "denoise": 0.31,
+        "spectrum": {
+            "enabled": True,
+            "window_size": 2.0,
+            "flex_window": 0.2,
+            "warmup_steps": 7,
+            "tail_actual_steps": 4,
+            "blend_w": 0.3,
+            "cheby_degree": 3,
+            "ridge_lambda": 0.1,
+            "history_size": 100,
+            "one_sampler_only": False,
+            "verbose": False,
+            "compat_policy": "conservative",
+        },
+        "dit_corrections": {
+            "enabled": False,
+            "dcw_mode": "off",
+            "dcw_lambda": 0.02,
+            "dcw_band_mask": "LL",
+            "dcw_calibrator": "(auto-download default)",
+            "smc_cfg": False,
+            "adaptive_smc_alpha": 0.0,
+            "smc_cfg_lambda": 6.0,
+            "cfgpp": False,
+            "cfgpp_lambda": 0.0,
+            "fsg": False,
+            "fsg_band_lo": 0.59,
+            "fsg_band_hi": 0.75,
+            "fsg_k": 3,
+            "fsg_d_sigma": 0.1,
+            "fsg_gamma": 0.0,
+            "replace_existing_cfg": False,
+        },
+    },
+    "detailer": {
+        "enabled": False,
+        "order": ["face", "eye"],
+        "sam3": {
+            "context": "load_checkpoint",
+            "checkpoint": "sam3.1_multiplex_fp16.safetensors",
+        },
+        "face": {
+            "enabled": False,
+            "detect_prompt": "face",
+            "detect_count": 1,
+            "threshold": 0.52,
+            "refine_iterations": 2,
+            "individual_masks": True,
+            "combined": False,
+            "crop_factor": 4.0,
+            "bbox_fill": False,
+            "drop_size": 100,
+            "contour_fill": True,
+            "guide_size": 1024,
+            "guide_size_for": False,
+            "max_size": 2048,
+            "steps": 20,
+            "inherit_sampler_settings": True,
+            "cfg": 8.0,
+            "sampler_name": "euler",
+            "scheduler": "sgm_uniform",
+            "denoise": 0.33,
+            "feather": 5,
+            "noise_mask": True,
+            "force_inpaint": True,
+            "wildcard": "",
+            "cycle": 1,
+            "alignment": "32",
+            "inpaint_model": False,
+            "noise_mask_feather": 10,
+            "tiled_encode": False,
+            "tiled_decode": False,
+            "spectrum": {
+                "enabled": True,
+                "window_size": 2.0,
+                "flex_window": 0.15,
+                "warmup_steps": 6,
+                "tail_actual_steps": 3,
+                "blend_w": 0.3,
+                "cheby_degree": 3,
+                "ridge_lambda": 0.1,
+                "history_size": 100,
+                "one_sampler_only": False,
+                "verbose": False,
+                "compat_policy": "conservative",
+            },
+            "dit_corrections": {
+                "enabled": False,
+                "dcw_mode": "off",
+                "dcw_lambda": 0.02,
+                "dcw_band_mask": "LL",
+                "dcw_calibrator": "(auto-download default)",
+                "smc_cfg": False,
+                "adaptive_smc_alpha": 0.0,
+                "smc_cfg_lambda": 6.0,
+                "cfgpp": False,
+                "cfgpp_lambda": 0.0,
+                "fsg": False,
+                "fsg_band_lo": 0.59,
+                "fsg_band_hi": 0.75,
+                "fsg_k": 3,
+                "fsg_d_sigma": 0.1,
+                "fsg_gamma": 0.0,
+                "replace_existing_cfg": False,
+            },
+        },
+        "eye": {
+            "enabled": False,
+            "detect_prompt": "eyes",
+            "detect_count": 1,
+            "threshold": 0.5,
+            "refine_iterations": 2,
+            "individual_masks": True,
+            "combined": False,
+            "crop_factor": 6.0,
+            "bbox_fill": False,
+            "drop_size": 40,
+            "contour_fill": True,
+            "guide_size": 1024,
+            "guide_size_for": False,
+            "max_size": 2048,
+            "steps": 20,
+            "inherit_sampler_settings": True,
+            "cfg": 8.0,
+            "sampler_name": "euler",
+            "scheduler": "sgm_uniform",
+            "denoise": 0.29,
+            "feather": 6,
+            "noise_mask": True,
+            "force_inpaint": True,
+            "wildcard": "",
+            "cycle": 1,
+            "alignment": "32",
+            "inpaint_model": False,
+            "noise_mask_feather": 20,
+            "tiled_encode": False,
+            "tiled_decode": False,
+            "spectrum": {
+                "enabled": True,
+                "window_size": 2.0,
+                "flex_window": 0.15,
+                "warmup_steps": 6,
+                "tail_actual_steps": 3,
+                "blend_w": 0.3,
+                "cheby_degree": 3,
+                "ridge_lambda": 0.1,
+                "history_size": 100,
+                "one_sampler_only": False,
+                "verbose": False,
+                "compat_policy": "conservative",
+            },
+            "dit_corrections": {
+                "enabled": False,
+                "dcw_mode": "off",
+                "dcw_lambda": 0.02,
+                "dcw_band_mask": "LL",
+                "dcw_calibrator": "(auto-download default)",
+                "smc_cfg": False,
+                "adaptive_smc_alpha": 0.0,
+                "smc_cfg_lambda": 6.0,
+                "cfgpp": False,
+                "cfgpp_lambda": 0.0,
+                "fsg": False,
+                "fsg_band_lo": 0.59,
+                "fsg_band_hi": 0.75,
+                "fsg_k": 3,
+                "fsg_d_sigma": 0.1,
+                "fsg_gamma": 0.0,
+                "replace_existing_cfg": False,
+            },
+        },
+    },
+    "save": {
+        "enabled": True,
+        "backend": "image_saver",
+        "image_saver": {
+            "filename": "%time_%basemodelname",
+            "path": "EasyUseAnima/AiO",
+            "extension": "webp",
+            "lossless_webp": False,
+            "quality_jpeg_or_webp": 97,
+            "optimize_png": True,
+            "counter": 0,
+            "clip_skip": 0,
+            "time_format": "%Y-%m-%d-%H%M%S",
+            "save_workflow_as_json": False,
+            "embed_workflow": True,
+            "additional_hashes": "",
+            "additional_hash_bundles": [],
+            "civitai_hash_fetchers": [],
+            "download_civitai_data": True,
+            "easy_remix": True,
+            "custom": "",
+        },
+    },
+    "preview": {
+        "intermediate_images": False,
+        "compare_previous": False,
+        "image_feed": True,
+    },
+}
 ARTIST_TAG_POSITION_CORRECT = "correct"
 ARTIST_TAG_POSITION_FRONT = "front"
 ARTIST_TAG_POSITION_BACK = "back"
@@ -355,6 +735,21 @@ def _as_int(value, default: int = 0) -> int:
         return default
 
 
+def _normalize_aio_seed(value, default: int = AIO_SPECIAL_SEED_RANDOM) -> int:
+    return max(AIO_SPECIAL_SEED_DECREMENT, min(MAX_SEED, _as_int(value, default)))
+
+
+def _new_aio_random_seed() -> int:
+    return random.randint(0, MAX_SEED)
+
+
+def _resolve_aio_runtime_seed(value) -> int:
+    seed = _normalize_aio_seed(value)
+    if seed in AIO_SPECIAL_SEEDS:
+        return _new_aio_random_seed()
+    return max(0, min(MAX_SEED, seed))
+
+
 def _as_float(value, default: float = 0.0) -> float:
     value = _single_value(value)
     if value is None:
@@ -515,6 +910,750 @@ def _stable_change_key(payload: dict) -> str:
     return json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
 
 
+def _json_clone(value):
+    return json.loads(json.dumps(value, ensure_ascii=False))
+
+
+def _json_object(value) -> dict[str, Any]:
+    if isinstance(value, dict):
+        return dict(value)
+    if isinstance(value, str):
+        try:
+            parsed = json.loads(value or "{}")
+        except json.JSONDecodeError:
+            parsed = {}
+        if isinstance(parsed, dict):
+            return parsed
+    return {}
+
+
+def _merge_versioned_settings(defaults: dict[str, Any], value) -> dict[str, Any]:
+    merged = _json_clone(defaults)
+    incoming = _json_object(value)
+
+    def merge_dict(base: dict[str, Any], update: dict[str, Any]) -> dict[str, Any]:
+        for key, update_value in update.items():
+            base_value = base.get(key)
+            if isinstance(base_value, dict) and isinstance(update_value, dict):
+                base[key] = merge_dict(dict(base_value), update_value)
+            else:
+                base[key] = _prompt_data_json_safe(update_value)
+        return base
+
+    return merge_dict(merged, incoming)
+
+
+def _settings_json(defaults: dict[str, Any]) -> str:
+    return json.dumps(defaults, ensure_ascii=False, indent=2)
+
+
+def _choice(value, choices, default: str) -> str:
+    choices = tuple(choices or ())
+    value = str(_single_value(value) or "").strip()
+    if value in choices:
+        return value
+    if default in choices:
+        return default
+    return choices[0] if choices else default
+
+
+def _normalize_aio_input_settings(value) -> dict[str, Any]:
+    settings = _merge_versioned_settings(AIO_INPUT_DEFAULT_SETTINGS, value)
+    settings["schema"] = EASY_USE_ANIMA_INPUT_SCHEMA
+    settings["version"] = _as_int(
+        settings.get("version"),
+        EASY_USE_ANIMA_INPUT_SETTINGS_VERSION,
+    )
+    resources = settings.setdefault("resources", {})
+    if not isinstance(resources, dict):
+        resources = {}
+        settings["resources"] = resources
+    resources["loader_mode"] = "split"
+    resources["clip_loader"] = _choice(resources.get("clip_loader"), ("single",), "single")
+    resources["unet_weight_dtype"] = _choice(
+        resources.get("unet_weight_dtype"),
+        ANIMA_UNET_WEIGHT_DTYPES,
+        "default",
+    )
+    resources["clip_device"] = _choice(
+        resources.get("clip_device"),
+        ANIMA_CLIP_DEVICES,
+        "default",
+    )
+    return settings
+
+
+def _normalize_aio_spectrum_settings(value, defaults: dict[str, Any]) -> dict[str, Any]:
+    spectrum = value if isinstance(value, dict) else {}
+    spectrum["enabled"] = _as_bool(spectrum.get("enabled"), _as_bool(defaults.get("enabled"), False))
+    spectrum["window_size"] = max(
+        1.0,
+        min(10.0, _as_float(spectrum.get("window_size"), _as_float(defaults.get("window_size"), 2.0))),
+    )
+    spectrum["flex_window"] = max(
+        0.0,
+        min(2.0, _as_float(spectrum.get("flex_window"), _as_float(defaults.get("flex_window"), 0.25))),
+    )
+    spectrum["warmup_steps"] = max(
+        0,
+        min(10000, _as_int(spectrum.get("warmup_steps"), _as_int(defaults.get("warmup_steps"), 6))),
+    )
+    spectrum["tail_actual_steps"] = max(
+        0,
+        min(10000, _as_int(spectrum.get("tail_actual_steps"), _as_int(defaults.get("tail_actual_steps"), 3))),
+    )
+    spectrum["blend_w"] = max(
+        0.0,
+        min(1.0, _as_float(spectrum.get("blend_w"), _as_float(defaults.get("blend_w"), 0.3))),
+    )
+    spectrum["cheby_degree"] = max(
+        1,
+        min(10, _as_int(spectrum.get("cheby_degree"), _as_int(defaults.get("cheby_degree"), 3))),
+    )
+    spectrum["ridge_lambda"] = max(
+        0.001,
+        min(10.0, _as_float(spectrum.get("ridge_lambda"), _as_float(defaults.get("ridge_lambda"), 0.1))),
+    )
+    spectrum["history_size"] = max(
+        5,
+        min(10000, _as_int(spectrum.get("history_size"), _as_int(defaults.get("history_size"), 100))),
+    )
+    spectrum["one_sampler_only"] = _as_bool(
+        spectrum.get("one_sampler_only"),
+        _as_bool(defaults.get("one_sampler_only"), False),
+    )
+    spectrum["verbose"] = _as_bool(spectrum.get("verbose"), _as_bool(defaults.get("verbose"), False))
+    spectrum["compat_policy"] = _choice(
+        spectrum.get("compat_policy"),
+        ("legacy", "conservative", "strict"),
+        str(defaults.get("compat_policy") or "conservative"),
+    )
+    return spectrum
+
+
+def _normalize_aio_dit_corrections_settings(value, defaults: dict[str, Any]) -> dict[str, Any]:
+    corrections = value if isinstance(value, dict) else {}
+    corrections["enabled"] = _as_bool(corrections.get("enabled"), _as_bool(defaults.get("enabled"), False))
+    corrections["dcw_mode"] = _choice(
+        corrections.get("dcw_mode"),
+        ("off", "manual", "auto"),
+        str(defaults.get("dcw_mode") or "off"),
+    )
+    corrections["dcw_lambda"] = max(
+        -1.0,
+        min(1.0, _as_float(corrections.get("dcw_lambda"), _as_float(defaults.get("dcw_lambda"), 0.01))),
+    )
+    corrections["dcw_band_mask"] = _choice(
+        corrections.get("dcw_band_mask"),
+        ("LL", "all", "HH", "LH+HL+HH"),
+        str(defaults.get("dcw_band_mask") or "LL"),
+    )
+    corrections["dcw_calibrator"] = str(
+        corrections.get("dcw_calibrator") or defaults.get("dcw_calibrator") or "(auto-download default)"
+    )
+    corrections["smc_cfg"] = _as_bool(corrections.get("smc_cfg"), _as_bool(defaults.get("smc_cfg"), False))
+    corrections["adaptive_smc_alpha"] = max(
+        0.0,
+        min(
+            1.0,
+            _as_float(
+                corrections.get("adaptive_smc_alpha"),
+                _as_float(defaults.get("adaptive_smc_alpha"), 0.0),
+            ),
+        ),
+    )
+    corrections["smc_cfg_lambda"] = max(
+        0.0,
+        min(20.0, _as_float(corrections.get("smc_cfg_lambda"), _as_float(defaults.get("smc_cfg_lambda"), 6.0))),
+    )
+    corrections["cfgpp"] = _as_bool(corrections.get("cfgpp"), _as_bool(defaults.get("cfgpp"), False))
+    corrections["cfgpp_lambda"] = max(
+        0.0,
+        min(8.0, _as_float(corrections.get("cfgpp_lambda"), _as_float(defaults.get("cfgpp_lambda"), 0.0))),
+    )
+    corrections["fsg"] = _as_bool(corrections.get("fsg"), _as_bool(defaults.get("fsg"), False))
+    corrections["fsg_band_lo"] = max(
+        0.0,
+        min(1.0, _as_float(corrections.get("fsg_band_lo"), _as_float(defaults.get("fsg_band_lo"), 0.59))),
+    )
+    corrections["fsg_band_hi"] = max(
+        0.0,
+        min(1.0, _as_float(corrections.get("fsg_band_hi"), _as_float(defaults.get("fsg_band_hi"), 0.75))),
+    )
+    corrections["fsg_k"] = max(0, min(32, _as_int(corrections.get("fsg_k"), _as_int(defaults.get("fsg_k"), 3))))
+    corrections["fsg_d_sigma"] = max(
+        0.0,
+        min(1.0, _as_float(corrections.get("fsg_d_sigma"), _as_float(defaults.get("fsg_d_sigma"), 0.1))),
+    )
+    corrections["fsg_gamma"] = max(
+        0.0,
+        min(10.0, _as_float(corrections.get("fsg_gamma"), _as_float(defaults.get("fsg_gamma"), 0.0))),
+    )
+    corrections["replace_existing_cfg"] = _as_bool(
+        corrections.get("replace_existing_cfg"),
+        _as_bool(defaults.get("replace_existing_cfg"), False),
+    )
+    return corrections
+
+
+def _normalize_aio_generation_settings(value) -> dict[str, Any]:
+    settings = _merge_versioned_settings(AIO_GENERATION_DEFAULT_SETTINGS, value)
+    settings["schema"] = AIO_GENERATION_SETTINGS_SCHEMA
+    settings["version"] = _as_int(
+        settings.get("version"),
+        AIO_GENERATION_SETTINGS_VERSION,
+    )
+    settings["mode"] = _choice(settings.get("mode"), ("txt2img", "img2img", "inpaint"), "txt2img")
+
+    sampler = settings.setdefault("sampler", {})
+    if not isinstance(sampler, dict):
+        sampler = {}
+        settings["sampler"] = sampler
+    sampler["backend"] = _choice(
+        sampler.get("backend"),
+        ("comfy_ksampler", "spectrum_mod_guidance_advanced", "spectrum_spd_speed"),
+        "comfy_ksampler",
+    )
+    sampler["seed"] = _normalize_aio_seed(sampler.get("seed"))
+    sampler["seed_after_generate"] = _choice(
+        sampler.get("seed_after_generate"),
+        SEED_CONTROL_MODES,
+        SEED_CONTROL_FIXED,
+    )
+    sampler["steps"] = max(1, min(75, _as_int(sampler.get("steps"), 28)))
+    sampler["cfg"] = max(1.0, min(10.0, _as_float(sampler.get("cfg"), 5.0)))
+    sampler["denoise"] = max(0.0, min(1.0, _as_float(sampler.get("denoise"), 1.0)))
+    sampler["sampler_name"] = _choice(
+        sampler.get("sampler_name"),
+        _comfy_sampler_names(),
+        "euler_ancestral",
+    )
+    sampler["scheduler"] = _choice(
+        sampler.get("scheduler"),
+        _comfy_scheduler_names(),
+        "normal",
+    )
+    spectrum = sampler.setdefault("spectrum", {})
+    if not isinstance(spectrum, dict):
+        spectrum = {}
+        sampler["spectrum"] = spectrum
+    default_spectrum = AIO_GENERATION_DEFAULT_SETTINGS["sampler"]["spectrum"]
+    spectrum["enabled"] = _as_bool(spectrum.get("enabled"), default_spectrum["enabled"])
+    spectrum["window_size"] = max(1.0, min(10.0, _as_float(spectrum.get("window_size"), 2.0)))
+    spectrum["flex_window"] = max(0.0, min(2.0, _as_float(spectrum.get("flex_window"), 0.25)))
+    spectrum["warmup_steps"] = max(0, min(10000, _as_int(spectrum.get("warmup_steps"), 6)))
+    spectrum["tail_actual_steps"] = max(0, min(10000, _as_int(spectrum.get("tail_actual_steps"), 3)))
+    spectrum["blend_w"] = max(0.0, min(1.0, _as_float(spectrum.get("blend_w"), 0.3)))
+    spectrum["cheby_degree"] = max(1, min(10, _as_int(spectrum.get("cheby_degree"), 3)))
+    spectrum["ridge_lambda"] = max(0.001, min(10.0, _as_float(spectrum.get("ridge_lambda"), 0.1)))
+    spectrum["history_size"] = max(5, min(10000, _as_int(spectrum.get("history_size"), 100)))
+    spectrum["one_sampler_only"] = _as_bool(
+        spectrum.get("one_sampler_only"),
+        default_spectrum["one_sampler_only"],
+    )
+    spectrum["verbose"] = _as_bool(spectrum.get("verbose"), default_spectrum["verbose"])
+    spectrum["compat_policy"] = _choice(
+        spectrum.get("compat_policy"),
+        ("legacy", "conservative", "strict"),
+        default_spectrum["compat_policy"],
+    )
+    spd = sampler.setdefault("spd", {})
+    if not isinstance(spd, dict):
+        spd = {}
+        sampler["spd"] = spd
+    spd["split_mode"] = _choice(spd.get("split_mode"), ("single",), "single")
+    spd["scale"] = max(0.25, min(1.0, _as_float(spd.get("scale"), 0.5)))
+    spd["sigma"] = max(0.0, min(1.0, _as_float(spd.get("sigma"), 0.7)))
+    spd["adaptive_smc_alpha"] = max(0.0, min(1.0, _as_float(spd.get("adaptive_smc_alpha"), 0.0)))
+    corrections = sampler.setdefault("dit_corrections", {})
+    if not isinstance(corrections, dict):
+        corrections = {}
+        sampler["dit_corrections"] = corrections
+    default_corrections = AIO_GENERATION_DEFAULT_SETTINGS["sampler"]["dit_corrections"]
+    corrections["enabled"] = _as_bool(corrections.get("enabled"), default_corrections["enabled"])
+    corrections["dcw_mode"] = _choice(corrections.get("dcw_mode"), ("off", "manual", "auto"), "off")
+    corrections["dcw_lambda"] = max(-1.0, min(1.0, _as_float(corrections.get("dcw_lambda"), 0.01)))
+    corrections["dcw_band_mask"] = _choice(
+        corrections.get("dcw_band_mask"),
+        ("LL", "all", "HH", "LH+HL+HH"),
+        "LL",
+    )
+    corrections["dcw_calibrator"] = str(
+        corrections.get("dcw_calibrator") or default_corrections["dcw_calibrator"]
+    )
+    corrections["smc_cfg"] = _as_bool(corrections.get("smc_cfg"), default_corrections["smc_cfg"])
+    corrections["adaptive_smc_alpha"] = max(
+        0.0,
+        min(1.0, _as_float(corrections.get("adaptive_smc_alpha"), 0.0)),
+    )
+    corrections["smc_cfg_lambda"] = max(0.0, min(20.0, _as_float(corrections.get("smc_cfg_lambda"), 6.0)))
+    corrections["cfgpp"] = _as_bool(corrections.get("cfgpp"), default_corrections["cfgpp"])
+    corrections["cfgpp_lambda"] = max(0.0, min(8.0, _as_float(corrections.get("cfgpp_lambda"), 0.0)))
+    corrections["fsg"] = _as_bool(corrections.get("fsg"), default_corrections["fsg"])
+    corrections["fsg_band_lo"] = max(0.0, min(1.0, _as_float(corrections.get("fsg_band_lo"), 0.59)))
+    corrections["fsg_band_hi"] = max(0.0, min(1.0, _as_float(corrections.get("fsg_band_hi"), 0.75)))
+    corrections["fsg_k"] = max(0, min(32, _as_int(corrections.get("fsg_k"), 3)))
+    corrections["fsg_d_sigma"] = max(0.0, min(1.0, _as_float(corrections.get("fsg_d_sigma"), 0.1)))
+    corrections["fsg_gamma"] = max(0.0, min(10.0, _as_float(corrections.get("fsg_gamma"), 0.0)))
+    corrections["replace_existing_cfg"] = _as_bool(
+        corrections.get("replace_existing_cfg"),
+        default_corrections["replace_existing_cfg"],
+    )
+
+    model_patches = settings.setdefault("model_patches", {})
+    if not isinstance(model_patches, dict):
+        model_patches = {}
+        settings["model_patches"] = model_patches
+    aura_flow = model_patches.setdefault("aura_flow", {})
+    if not isinstance(aura_flow, dict):
+        aura_flow = {}
+        model_patches["aura_flow"] = aura_flow
+    aura_flow.pop("enabled", None)
+    aura_flow["shift"] = max(1.0, min(10.0, _as_float(aura_flow.get("shift"), 3.0)))
+    kj = model_patches.setdefault("kj", {})
+    if not isinstance(kj, dict):
+        kj = {}
+        model_patches["kj"] = kj
+    kj["fp16_accumulation"] = _as_bool(kj.get("fp16_accumulation"), False)
+    kj["sage_attention"] = _choice(
+        kj.get("sage_attention"),
+        (
+            "disabled",
+            "auto",
+            "sageattn_qk_int8_pv_fp16_cuda",
+            "sageattn_qk_int8_pv_fp16_triton",
+            "sageattn_qk_int8_pv_fp8_cuda",
+            "sageattn_qk_int8_pv_fp8_cuda++",
+            "sageattn3",
+            "sageattn3_per_block_mean",
+        ),
+        "disabled",
+    )
+    kj["sage_allow_compile"] = _as_bool(kj.get("sage_allow_compile"), False)
+    torch_compile = kj.setdefault("torch_compile", {})
+    if not isinstance(torch_compile, dict):
+        torch_compile = {}
+        kj["torch_compile"] = torch_compile
+    torch_compile["enabled"] = _as_bool(torch_compile.get("enabled"), False)
+    torch_compile["backend"] = _choice(torch_compile.get("backend"), ("inductor", "cudagraphs"), "inductor")
+    torch_compile["fullgraph"] = _as_bool(torch_compile.get("fullgraph"), False)
+    torch_compile["mode"] = _choice(
+        torch_compile.get("mode"),
+        ("default", "max-autotune", "max-autotune-no-cudagraphs", "reduce-overhead"),
+        "max-autotune-no-cudagraphs",
+    )
+    torch_compile["dynamic"] = _choice(torch_compile.get("dynamic"), ("auto", "true", "false"), "false")
+    torch_compile["compile_transformer_blocks_only"] = _as_bool(
+        torch_compile.get("compile_transformer_blocks_only"),
+        True,
+    )
+    torch_compile["dynamo_cache_size_limit"] = max(
+        0,
+        min(1024, _as_int(torch_compile.get("dynamo_cache_size_limit"), 64)),
+    )
+    torch_compile["debug_compile_keys"] = _as_bool(torch_compile.get("debug_compile_keys"), False)
+    torch_compile["disable_dynamic_vram"] = _as_bool(torch_compile.get("disable_dynamic_vram"), True)
+
+    mod_guidance = settings.setdefault("mod_guidance", {})
+    if not isinstance(mod_guidance, dict):
+        mod_guidance = {}
+        settings["mod_guidance"] = mod_guidance
+    mod_guidance["mode"] = _choice(
+        mod_guidance.get("mode"),
+        ANIMA_MOD_GUIDANCE_MODES,
+        ANIMA_MOD_GUIDANCE_MODE_FROM_PROMPT_DATA,
+    )
+    mod_guidance["profile"] = _normalize_anima_mod_guidance_profile(
+        mod_guidance.get("profile", ANIMA_MOD_GUIDANCE_DEFAULT_PROFILE)
+    )
+    advanced_mod = mod_guidance.setdefault("advanced", {})
+    if not isinstance(advanced_mod, dict):
+        advanced_mod = {}
+        mod_guidance["advanced"] = advanced_mod
+    default_advanced_mod = AIO_GENERATION_DEFAULT_SETTINGS["mod_guidance"]["advanced"]
+    advanced_mod["adapter"] = str(advanced_mod.get("adapter") or default_advanced_mod["adapter"])
+    advanced_mod["quality_tags"] = str(advanced_mod.get("quality_tags") or default_advanced_mod["quality_tags"])
+    advanced_mod["quality_neg"] = str(advanced_mod.get("quality_neg") or default_advanced_mod["quality_neg"])
+    advanced_mod["mod_w"] = max(-20.0, min(20.0, _as_float(advanced_mod.get("mod_w"), 3.0)))
+    advanced_mod["mod_start_layer"] = max(0, min(999, _as_int(advanced_mod.get("mod_start_layer"), 8)))
+    advanced_mod["mod_end_layer"] = max(-1, min(999, _as_int(advanced_mod.get("mod_end_layer"), 27)))
+    advanced_mod["mod_taper"] = max(0, min(999, _as_int(advanced_mod.get("mod_taper"), 0)))
+    advanced_mod["mod_taper_scale"] = max(
+        0.0,
+        min(1.0, _as_float(advanced_mod.get("mod_taper_scale"), 0.25)),
+    )
+    advanced_mod["mod_final_w"] = max(-20.0, min(20.0, _as_float(advanced_mod.get("mod_final_w"), 0.0)))
+
+    artist_mix = settings.setdefault("artist_mix", {})
+    if not isinstance(artist_mix, dict):
+        artist_mix = {}
+        settings["artist_mix"] = artist_mix
+    artist_mix["mode"] = _choice(
+        artist_mix.get("mode"),
+        ARTIST_MIX_INPUT_MODES,
+        ARTIST_MIX_MODE_FROM_PROMPT_DATA,
+    )
+    artist_mix["start_percent"] = _bounded_artist_mix_float(
+        artist_mix.get("start_percent"),
+        ARTIST_MIX_DEFAULT_START_PERCENT,
+        0.0,
+        1.0,
+    )
+    artist_mix["strength_scale"] = _bounded_artist_mix_float(
+        artist_mix.get("strength_scale"),
+        ARTIST_MIX_DEFAULT_STRENGTH_SCALE,
+        0.0,
+        5.0,
+    )
+    artist_mix["style_gain"] = _bounded_artist_mix_float(
+        artist_mix.get("style_gain"),
+        ARTIST_MIX_DEFAULT_STYLE_GAIN,
+        0.0,
+        3.0,
+    )
+    artist_mix["rms_scale_cap"] = _bounded_artist_mix_float(
+        artist_mix.get("rms_scale_cap"),
+        ARTIST_MIX_DEFAULT_RMS_SCALE_CAP,
+        1.0,
+        5.0,
+    )
+    artist_mix["exact_top_k"] = _bounded_artist_mix_int(
+        artist_mix.get("exact_top_k"),
+        ARTIST_MIX_DEFAULT_EXACT_TOP_K,
+        0,
+        64,
+    )
+    artist_mix["cluster_count"] = _bounded_artist_mix_int(
+        artist_mix.get("cluster_count"),
+        ARTIST_MIX_DEFAULT_CLUSTER_COUNT,
+        1,
+        32,
+    )
+    artist_mix["dominant_isolation"] = _as_bool(
+        artist_mix.get("dominant_isolation"),
+        ARTIST_MIX_DEFAULT_DOMINANT_ISOLATION,
+    )
+    artist_mix["dominant_threshold"] = _bounded_artist_mix_float(
+        artist_mix.get("dominant_threshold"),
+        ARTIST_MIX_DEFAULT_DOMINANT_THRESHOLD,
+        0.0,
+        1.0,
+    )
+
+    for key in ("highres", "detailer", "save"):
+        section = settings.setdefault(key, {})
+        if not isinstance(section, dict):
+            section = {}
+            settings[key] = section
+        section["enabled"] = _as_bool(section.get("enabled"), False)
+    highres = settings["highres"]
+    default_highres = AIO_GENERATION_DEFAULT_SETTINGS["highres"]
+    highres["scale_by"] = max(0.01, min(8.0, _as_float(highres.get("scale_by"), default_highres["scale_by"])))
+    highres["upscale_method"] = _choice(
+        highres.get("upscale_method"),
+        IMAGE_UPSCALE_METHODS,
+        default_highres["upscale_method"],
+    )
+    highres["multiple"] = _choice(highres.get("multiple"), IMAGE_SCALE_MULTIPLES, default_highres["multiple"])
+    highres["max_long_edge"] = max(
+        0,
+        min(16384, _as_int(highres.get("max_long_edge"), default_highres["max_long_edge"])),
+    )
+    highres["steps"] = max(1, min(75, _as_int(highres.get("steps"), default_highres["steps"])))
+    highres["inherit_sampler_settings"] = _as_bool(
+        highres.get("inherit_sampler_settings"),
+        default_highres["inherit_sampler_settings"],
+    )
+    highres["cfg"] = max(1.0, min(10.0, _as_float(highres.get("cfg"), default_highres["cfg"])))
+    highres["sampler_name"] = _choice(
+        highres.get("sampler_name"),
+        _comfy_sampler_names(),
+        default_highres["sampler_name"],
+    )
+    highres["scheduler"] = _choice(
+        highres.get("scheduler"),
+        _comfy_scheduler_names(),
+        default_highres["scheduler"],
+    )
+    highres["denoise"] = max(0.0, min(1.0, _as_float(highres.get("denoise"), default_highres["denoise"])))
+    highres["spectrum"] = _normalize_aio_spectrum_settings(
+        highres.get("spectrum"),
+        default_highres["spectrum"],
+    )
+    highres["dit_corrections"] = _normalize_aio_dit_corrections_settings(
+        highres.get("dit_corrections"),
+        default_highres["dit_corrections"],
+    )
+    detailer = settings["detailer"]
+    sam3 = detailer.setdefault("sam3", {})
+    if not isinstance(sam3, dict):
+        sam3 = {}
+        detailer["sam3"] = sam3
+    order = detailer.get("order")
+    if not isinstance(order, list):
+        order = AIO_GENERATION_DEFAULT_SETTINGS["detailer"]["order"]
+    normalized_order = []
+    for name in order:
+        text = str(name or "").strip()
+        if text in ("face", "eye") and text not in normalized_order:
+            normalized_order.append(text)
+    for name in ("face", "eye"):
+        if name not in normalized_order:
+            normalized_order.append(name)
+    detailer["order"] = normalized_order
+    sam3["context"] = _choice(sam3.get("context"), ("load_checkpoint",), "load_checkpoint")
+    sam3["checkpoint"] = str(sam3.get("checkpoint") or "sam3.1_multiplex_fp16.safetensors")
+    for target_name, defaults in (
+        ("face", AIO_GENERATION_DEFAULT_SETTINGS["detailer"]["face"]),
+        ("eye", AIO_GENERATION_DEFAULT_SETTINGS["detailer"]["eye"]),
+    ):
+        target = detailer.setdefault(target_name, {})
+        if not isinstance(target, dict):
+            target = {}
+            detailer[target_name] = target
+        target["enabled"] = _as_bool(target.get("enabled"), defaults["enabled"])
+        target["detect_prompt"] = str(target.get("detect_prompt") or defaults["detect_prompt"])
+        target["detect_count"] = max(1, min(20, _as_int(target.get("detect_count"), defaults["detect_count"])))
+        target["threshold"] = max(0.0, min(1.0, _as_float(target.get("threshold"), defaults["threshold"])))
+        target["refine_iterations"] = max(
+            0,
+            min(16, _as_int(target.get("refine_iterations"), defaults["refine_iterations"])),
+        )
+        target["individual_masks"] = _as_bool(target.get("individual_masks"), defaults["individual_masks"])
+        target["combined"] = _as_bool(target.get("combined"), defaults["combined"])
+        target["crop_factor"] = max(1.0, min(16.0, _as_float(target.get("crop_factor"), defaults["crop_factor"])))
+        target["bbox_fill"] = _as_bool(target.get("bbox_fill"), defaults["bbox_fill"])
+        target["drop_size"] = max(1, min(4096, _as_int(target.get("drop_size"), defaults["drop_size"])))
+        target["contour_fill"] = _as_bool(target.get("contour_fill"), defaults["contour_fill"])
+        target["guide_size"] = max(64, min(4096, _as_int(target.get("guide_size"), defaults["guide_size"])))
+        target["guide_size_for"] = _as_bool(target.get("guide_size_for"), defaults["guide_size_for"])
+        target["max_size"] = max(64, min(8192, _as_int(target.get("max_size"), defaults["max_size"])))
+        target["steps"] = max(1, min(75, _as_int(target.get("steps"), defaults["steps"])))
+        target["inherit_sampler_settings"] = _as_bool(
+            target.get("inherit_sampler_settings"),
+            defaults["inherit_sampler_settings"],
+        )
+        target["cfg"] = max(1.0, min(10.0, _as_float(target.get("cfg"), defaults["cfg"])))
+        target["sampler_name"] = _choice(
+            target.get("sampler_name"),
+            _comfy_sampler_names(),
+            defaults["sampler_name"],
+        )
+        target["scheduler"] = _choice(
+            target.get("scheduler"),
+            _impact_scheduler_names(),
+            defaults["scheduler"],
+        )
+        target["denoise"] = max(0.0, min(1.0, _as_float(target.get("denoise"), defaults["denoise"])))
+        target["feather"] = max(0, min(256, _as_int(target.get("feather"), defaults["feather"])))
+        target["noise_mask"] = _as_bool(target.get("noise_mask"), defaults["noise_mask"])
+        target["force_inpaint"] = _as_bool(target.get("force_inpaint"), defaults["force_inpaint"])
+        target["wildcard"] = str(target.get("wildcard") or "")
+        target["cycle"] = max(1, min(16, _as_int(target.get("cycle"), defaults["cycle"])))
+        target["alignment"] = _choice(str(target.get("alignment") or defaults["alignment"]), ("impact", "none", "32", "64"), "32")
+        target["inpaint_model"] = _as_bool(target.get("inpaint_model"), defaults["inpaint_model"])
+        target["noise_mask_feather"] = max(
+            0,
+            min(256, _as_int(target.get("noise_mask_feather"), defaults["noise_mask_feather"])),
+        )
+        target["tiled_encode"] = _as_bool(target.get("tiled_encode"), defaults["tiled_encode"])
+        target["tiled_decode"] = _as_bool(target.get("tiled_decode"), defaults["tiled_decode"])
+        target["spectrum"] = _normalize_aio_spectrum_settings(target.get("spectrum"), defaults["spectrum"])
+        target["dit_corrections"] = _normalize_aio_dit_corrections_settings(
+            target.get("dit_corrections"),
+            defaults["dit_corrections"],
+        )
+    settings["save"]["backend"] = _choice(
+        settings["save"].get("backend"),
+        ("image_saver", "comfy_save_image"),
+        "image_saver",
+    )
+    settings["save"].pop("filename_prefix", None)
+    image_saver = settings["save"].setdefault("image_saver", {})
+    if not isinstance(image_saver, dict):
+        image_saver = {}
+        settings["save"]["image_saver"] = image_saver
+    default_image_saver = AIO_GENERATION_DEFAULT_SETTINGS["save"]["image_saver"]
+    image_saver["filename"] = str(image_saver.get("filename") or default_image_saver["filename"])
+    image_saver["path"] = str(image_saver.get("path") or default_image_saver["path"])
+    image_saver["extension"] = _choice(
+        image_saver.get("extension"),
+        ("png", "jpeg", "jpg", "webp"),
+        default_image_saver["extension"],
+    )
+    image_saver["lossless_webp"] = _as_bool(
+        image_saver.get("lossless_webp"),
+        default_image_saver["lossless_webp"],
+    )
+    image_saver["quality_jpeg_or_webp"] = max(
+        1,
+        min(100, _as_int(image_saver.get("quality_jpeg_or_webp"), default_image_saver["quality_jpeg_or_webp"])),
+    )
+    image_saver["optimize_png"] = _as_bool(
+        image_saver.get("optimize_png"),
+        default_image_saver["optimize_png"],
+    )
+    image_saver["counter"] = max(0, _as_int(image_saver.get("counter"), default_image_saver["counter"]))
+    image_saver["clip_skip"] = max(
+        -24,
+        min(24, _as_int(image_saver.get("clip_skip"), default_image_saver["clip_skip"])),
+    )
+    image_saver["time_format"] = str(image_saver.get("time_format") or default_image_saver["time_format"])
+    image_saver["save_workflow_as_json"] = _as_bool(
+        image_saver.get("save_workflow_as_json"),
+        default_image_saver["save_workflow_as_json"],
+    )
+    image_saver["embed_workflow"] = _as_bool(
+        image_saver.get("embed_workflow"),
+        default_image_saver["embed_workflow"],
+    )
+    image_saver["additional_hashes"] = str(image_saver.get("additional_hashes") or "")
+    image_saver["additional_hash_bundles"] = _normalize_aio_hash_bundles(
+        image_saver.get("additional_hash_bundles")
+    )
+    image_saver["civitai_hash_fetchers"] = _normalize_aio_civitai_hash_fetchers(
+        image_saver.get("civitai_hash_fetchers")
+    )
+    image_saver["download_civitai_data"] = _as_bool(
+        image_saver.get("download_civitai_data"),
+        default_image_saver["download_civitai_data"],
+    )
+    image_saver["easy_remix"] = _as_bool(
+        image_saver.get("easy_remix"),
+        default_image_saver["easy_remix"],
+    )
+    image_saver.pop("show_preview", None)
+    image_saver["custom"] = str(image_saver.get("custom") or "")
+    preview = settings.setdefault("preview", {})
+    if not isinstance(preview, dict):
+        preview = {}
+        settings["preview"] = preview
+    default_preview = AIO_GENERATION_DEFAULT_SETTINGS["preview"]
+    preview["intermediate_images"] = _as_bool(
+        preview.get("intermediate_images"),
+        default_preview["intermediate_images"],
+    )
+    preview["compare_previous"] = (
+        _as_bool(preview.get("compare_previous"), default_preview["compare_previous"])
+        and preview["intermediate_images"]
+    )
+    preview["image_feed"] = _as_bool(
+        preview.get("image_feed"),
+        default_preview["image_feed"],
+    )
+    return settings
+
+
+def _normalize_aio_hash_bundles(value) -> list[str]:
+    if isinstance(value, str):
+        try:
+            value = json.loads(value or "[]")
+        except json.JSONDecodeError:
+            value = [value]
+    if not isinstance(value, list):
+        return []
+    bundles: list[str] = []
+    for item in value:
+        text = str(item or "").strip(" ,\n\r\t")
+        if text:
+            bundles.append(text)
+    return bundles
+
+
+def _normalize_aio_civitai_hash_fetchers(value) -> list[dict[str, Any]]:
+    if isinstance(value, str):
+        try:
+            value = json.loads(value or "[]")
+        except json.JSONDecodeError:
+            value = []
+    if not isinstance(value, list):
+        return []
+    fetchers: list[dict[str, Any]] = []
+    for item in value:
+        if not isinstance(item, dict):
+            continue
+        username = str(item.get("username") or "").strip()
+        model_name = str(item.get("model_name") or "").strip()
+        version = str(item.get("version") or "").strip()
+        if not any((username, model_name, version)):
+            continue
+        fetchers.append({
+            "enabled": _as_bool(item.get("enabled"), True),
+            "username": username,
+            "model_name": model_name,
+            "version": version,
+        })
+    return fetchers
+
+
+def _aio_image_saver_civitai_hash_fetcher_entries(image_saver: dict[str, Any]) -> list[str]:
+    fetcher_settings = [
+        item
+        for item in _normalize_aio_civitai_hash_fetchers(image_saver.get("civitai_hash_fetchers"))
+        if _as_bool(item.get("enabled"), True)
+    ]
+    if not fetcher_settings:
+        return []
+
+    fetcher_cls = _require_custom_node_class(
+        "Civitai Hash Fetcher (Image Saver)",
+        "ComfyUI-Image-Saver",
+        "Required for AiO Save Options > Civitai Hash Fetcher rows.",
+    )
+    fetcher = fetcher_cls()
+    get_hash = getattr(fetcher, "get_autov3_hash", None)
+    if get_hash is None:
+        raise RuntimeError(
+            "[EasyUseAnima] Civitai Hash Fetcher (Image Saver) does not expose get_autov3_hash()."
+        )
+
+    entries: list[str] = []
+    for item in fetcher_settings:
+        username = str(item.get("username") or "").strip()
+        model_name = str(item.get("model_name") or "").strip()
+        version = str(item.get("version") or "").strip()
+        if not username and not model_name:
+            continue
+        if not username or not model_name:
+            raise RuntimeError(
+                "[EasyUseAnima] Civitai Hash Fetcher requires both username and model_name."
+            )
+        result = get_hash(username, model_name, version)
+        hash_value = _single_value(result)
+        hash_text = str(hash_value or "").strip()
+        if (
+            not hash_text
+            or hash_text.lower().startswith("error:")
+            or hash_text.lower().startswith("no ")
+        ):
+            raise RuntimeError(
+                "[EasyUseAnima] Civitai Hash Fetcher failed for "
+                f"'{username}/{model_name}'"
+                + (f" version '{version}'" if version else "")
+                + f": {hash_text or 'empty hash'}"
+            )
+        entries.append(f"{model_name}:{hash_text}")
+    return entries
+
+
+def _aio_image_saver_additional_hashes(image_saver: dict[str, Any]) -> str:
+    parts = []
+    base = str(image_saver.get("additional_hashes") or "").strip(" ,\n\r\t")
+    if base:
+        parts.append(base)
+    parts.extend(_normalize_aio_hash_bundles(image_saver.get("additional_hash_bundles")))
+    parts.extend(_aio_image_saver_civitai_hash_fetcher_entries(image_saver))
+    return ",".join(part for part in parts if part)
+
+
+def _aio_input_settings_json() -> str:
+    return json.dumps(AIO_INPUT_DEFAULT_SETTINGS, ensure_ascii=False, separators=(",", ":"))
+
+
+def _aio_generation_settings_json() -> str:
+    return json.dumps(AIO_GENERATION_DEFAULT_SETTINGS, ensure_ascii=False, separators=(",", ":"))
+
+
 def _comfy_max_resolution() -> int:
     try:
         import nodes as comfy_nodes  # type: ignore
@@ -542,6 +1681,33 @@ def _comfy_sampler_names() -> list[str]:
         ]
 
 
+def _comfy_scheduler_names() -> list[str]:
+    try:
+        import comfy.samplers  # type: ignore
+
+        return list(comfy.samplers.KSampler.SCHEDULERS)
+    except Exception:
+        return [
+            "simple",
+            "sgm_uniform",
+            "karras",
+            "exponential",
+            "ddim_uniform",
+            "beta",
+            "normal",
+            "linear_quadratic",
+            "kl_optimal",
+            "AYS SDXL",
+            "AYS SD1",
+            "AYS SVD",
+            "GITS[coeff=1.2]",
+            "LTXV[default]",
+            "OSS FLUX",
+            "OSS Wan",
+            "OSS Chroma",
+        ]
+
+
 def _comfy_checkpoint_names() -> list[str]:
     try:
         import folder_paths  # type: ignore
@@ -554,8 +1720,75 @@ def _comfy_checkpoint_names() -> list[str]:
     return ["sam3.1_multiplex_fp16.safetensors"]
 
 
+def _folder_path_names(folder_name: str, fallback: list[str]) -> list[str]:
+    try:
+        import folder_paths  # type: ignore
+
+        names = [str(name) for name in folder_paths.get_filename_list(folder_name)]
+        if names:
+            return names
+    except Exception:
+        pass
+    return list(fallback)
+
+
+def _comfy_diffusion_model_names() -> list[str]:
+    return _folder_path_names("diffusion_models", list(ANIMA_DEFAULT_DIFFUSION_MODEL_CANDIDATES))
+
+
+def _comfy_text_encoder_names() -> list[str]:
+    return _folder_path_names("text_encoders", list(ANIMA_DEFAULT_CLIP_CANDIDATES))
+
+
+def _comfy_vae_names() -> list[str]:
+    loader_cls = _find_comfy_node_class("VAELoader")
+    if loader_cls is not None:
+        try:
+            required = loader_cls.INPUT_TYPES().get("required", {})
+            names = [str(name) for name in required.get("vae_name", ([],))[0]]
+            if names:
+                return names
+        except Exception:
+            pass
+    return _folder_path_names("vae", list(ANIMA_DEFAULT_VAE_CANDIDATES))
+
+
+def _comfy_clip_loader_types() -> list[str]:
+    loader_cls = _find_comfy_node_class("CLIPLoader")
+    if loader_cls is not None:
+        try:
+            required = loader_cls.INPUT_TYPES().get("required", {})
+            names = [str(name) for name in required.get("type", ([],))[0]]
+            if names:
+                return names
+        except Exception:
+            pass
+    return list(ANIMA_CLIP_TYPES)
+
+
+def _preferred_name_default(names: list[str], candidates: tuple[str, ...]) -> str:
+    if not names:
+        return candidates[0] if candidates else ""
+    for candidate in candidates:
+        if candidate in names:
+            return candidate
+    normalized = {
+        str(name).replace("/", "\\").rsplit("\\", 1)[-1].lower(): str(name)
+        for name in names
+    }
+    for candidate in candidates:
+        basename = candidate.replace("/", "\\").rsplit("\\", 1)[-1].lower()
+        if basename in normalized:
+            return normalized[basename]
+    return names[0]
+
+
 def _preferred_checkpoint_default(names: list[str], preferred: str) -> str:
     return preferred if preferred in names else names[0]
+
+
+def _preferred_clip_type_default(names: list[str]) -> str:
+    return "qwen_image" if "qwen_image" in names else _choice("", names, "stable_diffusion")
 
 
 def _impact_core_module():
@@ -630,7 +1863,23 @@ def _find_comfy_node_class(node_id: str):
             return cls
     except Exception:
         pass
+    for module in list(sys.modules.values()):
+        mappings = getattr(module, "NODE_CLASS_MAPPINGS", None)
+        if isinstance(mappings, dict):
+            cls = mappings.get(node_id)
+            if cls is not None:
+                return cls
     return None
+
+
+def _require_custom_node_class(node_id: str, node_pack: str, install_hint: str):
+    cls = _find_comfy_node_class(node_id)
+    if cls is not None:
+        return cls
+    raise RuntimeError(
+        f"[EasyUseAnima] Missing required custom node '{node_id}'. "
+        f"Install/enable {node_pack}, then restart ComfyUI. {install_hint}"
+    )
 
 
 def _load_checkpoint_with_comfy(ckpt_name: str):
@@ -642,6 +1891,48 @@ def _load_checkpoint_with_comfy(ckpt_name: str):
     if method is None:
         raise RuntimeError("[EasyUseAnima] CheckpointLoaderSimple does not expose load_checkpoint.")
     return method(ckpt_name)
+
+
+def _load_diffusion_model_with_comfy(unet_name: str, weight_dtype: str = "default"):
+    loader_cls = _find_comfy_node_class("UNETLoader")
+    if loader_cls is None:
+        raise RuntimeError("[EasyUseAnima] Could not find ComfyUI UNETLoader.")
+    loader = loader_cls()
+    method = getattr(loader, "load_unet", None)
+    if method is None:
+        raise RuntimeError("[EasyUseAnima] UNETLoader does not expose load_unet.")
+    values = _node_output_tuple(method(str(unet_name), str(weight_dtype or "default")))
+    if not values:
+        raise RuntimeError("[EasyUseAnima] UNETLoader returned no MODEL.")
+    return values[0]
+
+
+def _load_vae_with_comfy(vae_name: str):
+    loader_cls = _find_comfy_node_class("VAELoader")
+    if loader_cls is None:
+        raise RuntimeError("[EasyUseAnima] Could not find ComfyUI VAELoader.")
+    loader = loader_cls()
+    method = getattr(loader, "load_vae", None)
+    if method is None:
+        raise RuntimeError("[EasyUseAnima] VAELoader does not expose load_vae.")
+    values = _node_output_tuple(method(str(vae_name)))
+    if not values:
+        raise RuntimeError("[EasyUseAnima] VAELoader returned no VAE.")
+    return values[0]
+
+
+def _load_clip_with_comfy(clip_name: str, clip_type: str = "qwen_image", device: str = "default"):
+    loader_cls = _find_comfy_node_class("CLIPLoader")
+    if loader_cls is None:
+        raise RuntimeError("[EasyUseAnima] Could not find ComfyUI CLIPLoader.")
+    loader = loader_cls()
+    method = getattr(loader, "load_clip", None)
+    if method is None:
+        raise RuntimeError("[EasyUseAnima] CLIPLoader does not expose load_clip.")
+    values = _node_output_tuple(method(str(clip_name), str(clip_type or "qwen_image"), str(device or "default")))
+    if not values:
+        raise RuntimeError("[EasyUseAnima] CLIPLoader returned no CLIP.")
+    return values[0]
 
 
 def _encode_with_comfy_clip(clip, text: str):
@@ -839,6 +2130,1022 @@ def _generate_empty_latent_with_comfy(width: int, height: int):
     if not values:
         raise RuntimeError("[EasyUseAnima] EmptyLatentImage returned no LATENT.")
     return values[0]
+
+
+def _sample_latent_with_comfy(
+    model,
+    seed: int,
+    steps: int,
+    cfg: float,
+    sampler_name: str,
+    scheduler: str,
+    positive,
+    negative,
+    latent_image,
+    denoise: float,
+):
+    sampler_cls = _find_comfy_node_class("KSampler")
+    if sampler_cls is None:
+        raise RuntimeError("[EasyUseAnima] Could not find ComfyUI KSampler.")
+    sampler = sampler_cls()
+    sample = getattr(sampler, "sample", None)
+    if sample is None:
+        raise RuntimeError("[EasyUseAnima] KSampler does not expose sample().")
+    result = sample(
+        model,
+        _resolve_aio_runtime_seed(seed),
+        max(1, int(steps)),
+        float(cfg),
+        str(sampler_name),
+        str(scheduler),
+        positive,
+        negative,
+        latent_image,
+        float(denoise),
+    )
+    values = _node_output_tuple(result)
+    if not values:
+        raise RuntimeError("[EasyUseAnima] KSampler returned no LATENT.")
+    return values[0]
+
+
+def _patch_model_sampling_aura_flow(model, aura_settings: dict[str, Any]):
+    aura_cls = _find_comfy_node_class("ModelSamplingAuraFlow")
+    if aura_cls is None:
+        raise RuntimeError(
+            "[EasyUseAnima] Missing required core node 'ModelSamplingAuraFlow'. "
+            "Use a ComfyUI build that includes ModelSamplingAuraFlow, then restart ComfyUI."
+        )
+    patcher = aura_cls()
+    patch = getattr(patcher, "patch_aura", None)
+    if patch is None:
+        raise RuntimeError("[EasyUseAnima] ModelSamplingAuraFlow does not expose patch_aura().")
+    values = _node_output_tuple(patch(model, _as_float(aura_settings.get("shift"), 3.0)))
+    if not values:
+        raise RuntimeError("[EasyUseAnima] ModelSamplingAuraFlow returned no MODEL.")
+    return values[0]
+
+
+def _apply_aio_kj_model_patches(model, kj_settings: dict[str, Any]):
+    patched = model
+    if kj_settings.get("fp16_accumulation"):
+        torch_settings_cls = _require_custom_node_class(
+            "ModelPatchTorchSettings",
+            "ComfyUI-KJNodes",
+            "Repository: https://github.com/kijai/ComfyUI-KJNodes",
+        )
+        values = _node_output_tuple(
+            torch_settings_cls().patch(patched, True)
+        )
+        if not values:
+            raise RuntimeError("[EasyUseAnima] ModelPatchTorchSettings returned no MODEL.")
+        patched = values[0]
+
+    sage_attention = str(kj_settings.get("sage_attention") or "disabled")
+    if sage_attention != "disabled":
+        sage_cls = _require_custom_node_class(
+            "PathchSageAttentionKJ",
+            "ComfyUI-KJNodes",
+            "Repository: https://github.com/kijai/ComfyUI-KJNodes",
+        )
+        values = _node_output_tuple(
+            sage_cls().patch(
+                patched,
+                sage_attention,
+                _as_bool(kj_settings.get("sage_allow_compile"), False),
+            )
+        )
+        if not values:
+            raise RuntimeError("[EasyUseAnima] PathchSageAttentionKJ returned no MODEL.")
+        patched = values[0]
+
+    compile_settings = kj_settings.get("torch_compile", {})
+    if isinstance(compile_settings, dict) and compile_settings.get("enabled"):
+        compile_cls = _require_custom_node_class(
+            "TorchCompileModelAdvanced",
+            "ComfyUI-KJNodes",
+            "Repository: https://github.com/kijai/ComfyUI-KJNodes",
+        )
+        values = _node_output_tuple(
+            compile_cls().patch(
+                patched,
+                str(compile_settings.get("backend") or "inductor"),
+                _as_bool(compile_settings.get("fullgraph"), False),
+                str(compile_settings.get("mode") or "default"),
+                str(compile_settings.get("dynamic") or "auto"),
+                _as_int(compile_settings.get("dynamo_cache_size_limit"), 64),
+                _as_bool(compile_settings.get("compile_transformer_blocks_only"), True),
+                _as_bool(compile_settings.get("debug_compile_keys"), False),
+                _as_bool(compile_settings.get("disable_dynamic_vram"), False),
+            )
+        )
+        if not values:
+            raise RuntimeError("[EasyUseAnima] TorchCompileModelAdvanced returned no MODEL.")
+        patched = values[0]
+    return patched
+
+
+def _apply_aio_model_patches(model, settings: dict[str, Any]):
+    model_patches = settings.get("model_patches", {})
+    if not isinstance(model_patches, dict):
+        return model
+    patched = _patch_model_sampling_aura_flow(
+        model,
+        model_patches.get("aura_flow", {}) if isinstance(model_patches.get("aura_flow"), dict) else {},
+    )
+    kj_settings = model_patches.get("kj", {})
+    if isinstance(kj_settings, dict):
+        patched = _apply_aio_kj_model_patches(patched, kj_settings)
+    return patched
+
+
+def _normalize_aio_lora_stack(lora_stack) -> list[tuple[str, float, float]]:
+    if isinstance(lora_stack, dict) and "__value__" in lora_stack:
+        lora_stack = lora_stack["__value__"]
+    if isinstance(lora_stack, str):
+        try:
+            lora_stack = json.loads(lora_stack or "[]")
+        except json.JSONDecodeError:
+            lora_stack = []
+    if not isinstance(lora_stack, list):
+        return []
+
+    entries: list[tuple[str, float, float]] = []
+    for item in lora_stack:
+        if isinstance(item, dict):
+            raw_name = item.get("name", item.get("lora", item.get("lora_name", "")))
+            model_strength = item.get("strength_model", item.get("model_strength", item.get("strength", 1.0)))
+            clip_strength = item.get("strength_clip", item.get("clip_strength", item.get("strengthTwo", model_strength)))
+        elif isinstance(item, (list, tuple)) and len(item) >= 3:
+            raw_name, model_strength, clip_strength = item[:3]
+        else:
+            continue
+        name = str(raw_name or "").strip()
+        if not name or name.lower() == "none":
+            continue
+        entries.append((
+            _lora_stack_name(name),
+            _as_float(model_strength, 1.0),
+            _as_float(clip_strength, _as_float(model_strength, 1.0)),
+        ))
+    return entries
+
+
+def _aio_lora_stack_signature(lora_stack) -> list[dict[str, Any]]:
+    return [
+        {
+            "name": name,
+            "strength_model": model_strength,
+            "strength_clip": clip_strength,
+        }
+        for name, model_strength, clip_strength in _normalize_aio_lora_stack(lora_stack)
+    ]
+
+
+def _apply_aio_lora_stack(model, clip, lora_stack):
+    entries = _normalize_aio_lora_stack(lora_stack)
+    if not entries:
+        return model, clip, []
+
+    loader_cls = _find_comfy_node_class("LoraLoader")
+    if loader_cls is None:
+        raise RuntimeError("[EasyUseAnima] Could not find ComfyUI core LoraLoader.")
+    loader = loader_cls()
+    load_lora = getattr(loader, "load_lora", None)
+    if load_lora is None:
+        raise RuntimeError("[EasyUseAnima] LoraLoader does not expose load_lora().")
+
+    patched_model = model
+    patched_clip = clip
+    applied: list[dict[str, Any]] = []
+    for name, model_strength, clip_strength in entries:
+        if model_strength == 0 and clip_strength == 0:
+            continue
+        values = _node_output_tuple(load_lora(patched_model, patched_clip, name, model_strength, clip_strength))
+        if len(values) < 2:
+            raise RuntimeError("[EasyUseAnima] LoraLoader returned no MODEL/CLIP pair.")
+        patched_model, patched_clip = values[0], values[1]
+        applied.append({
+            "name": name,
+            "strength_model": model_strength,
+            "strength_clip": clip_strength,
+        })
+    return patched_model, patched_clip, applied
+
+
+def _cleanup_aio_ephemeral_model(model, base_model=None) -> None:
+    if model is None or model is base_model:
+        return
+    detach = getattr(model, "detach", None)
+    if callable(detach):
+        try:
+            detach(unpatch_all=False)
+            return
+        except Exception as exc:
+            logger.debug("[EasyUseAnima] failed to detach ephemeral AiO model clone: %s", exc)
+    try:
+        import comfy.model_management as model_management  # type: ignore
+
+        unload = getattr(model_management, "unload_model_and_clones", None)
+        if callable(unload):
+            unload(model, unload_additional_models=True)
+            return
+    except Exception as exc:
+        logger.debug("[EasyUseAnima] failed to unload ephemeral AiO model clone: %s", exc)
+
+
+def _apply_aio_spectrum_correction_patch_for_comfy_sampler(
+    model,
+    clip,
+    positive,
+    sampler_settings: dict[str, Any],
+):
+    corrections = sampler_settings.get("dit_corrections", {})
+    if not isinstance(corrections, dict) or not _as_bool(corrections.get("enabled"), False):
+        return model
+    patch_cls = _require_custom_node_class(
+        "DiTCFGFSGPatch",
+        "ComfyUI-Spectrum-KSampler",
+        "Repository: https://github.com/blepping/ComfyUI-Spectrum-KSampler",
+    )
+    use_smc = _as_bool(corrections.get("smc_cfg"), False)
+    use_cfgpp = _as_bool(corrections.get("cfgpp"), False)
+    use_fsg = _as_bool(corrections.get("fsg"), False)
+    values = _node_output_tuple(
+        patch_cls().patch(
+            model,
+            True,
+            str(corrections.get("dcw_mode") or "off"),
+            _as_float(corrections.get("dcw_lambda"), 0.01),
+            str(corrections.get("dcw_band_mask") or "LL"),
+            str(corrections.get("dcw_calibrator") or "(auto-download default)"),
+            use_smc,
+            _as_float(corrections.get("adaptive_smc_alpha"), 0.0) if use_smc else 0.0,
+            _as_float(corrections.get("smc_cfg_lambda"), 6.0) if use_smc else 0.0,
+            use_cfgpp,
+            _as_float(corrections.get("cfgpp_lambda"), 0.0) if use_cfgpp else 0.0,
+            use_fsg,
+            _as_float(corrections.get("fsg_band_lo"), 0.59),
+            _as_float(corrections.get("fsg_band_hi"), 0.75),
+            _as_int(corrections.get("fsg_k"), 3),
+            _as_float(corrections.get("fsg_d_sigma"), 0.1),
+            _as_float(corrections.get("fsg_gamma"), 0.0),
+            _as_bool(corrections.get("replace_existing_cfg"), False),
+            steps=_as_int(sampler_settings.get("steps"), 28),
+            cfg=_as_float(sampler_settings.get("cfg"), 5.0),
+            sampler_name=str(sampler_settings.get("sampler_name") or "euler_ancestral"),
+            scheduler=str(sampler_settings.get("scheduler") or "normal"),
+            denoise=_as_float(sampler_settings.get("denoise"), 1.0),
+            clip=clip,
+            positive=positive,
+        )
+    )
+    if not values:
+        raise RuntimeError("[EasyUseAnima] DiTCFGFSGPatch returned no MODEL.")
+    return values[0]
+
+
+def _apply_aio_spectrum_forecast_patch_for_comfy_sampler(
+    model,
+    sampler_settings: dict[str, Any],
+):
+    spectrum = sampler_settings.get("spectrum", {})
+    if not isinstance(spectrum, dict) or not _as_bool(spectrum.get("enabled"), False):
+        return model
+    patch_cls = _require_custom_node_class(
+        "DiTSpectrumPatchAdvanced",
+        "ComfyUI-Spectrum-KSampler",
+        "Repository: https://github.com/blepping/ComfyUI-Spectrum-KSampler",
+    )
+    values = _node_output_tuple(
+        patch_cls().patch(
+            model,
+            _as_int(sampler_settings.get("steps"), 28),
+            _as_float(spectrum.get("window_size"), 2.0),
+            _as_float(spectrum.get("flex_window"), 0.25),
+            _as_int(spectrum.get("warmup_steps"), 6),
+            _as_int(spectrum.get("tail_actual_steps"), 3),
+            _as_float(spectrum.get("blend_w"), 0.3),
+            _as_int(spectrum.get("cheby_degree"), 3),
+            _as_float(spectrum.get("ridge_lambda"), 0.1),
+            _as_int(spectrum.get("history_size"), 100),
+            True,
+            _as_bool(spectrum.get("one_sampler_only"), False),
+            _as_bool(spectrum.get("verbose"), False),
+            str(spectrum.get("compat_policy") or "conservative"),
+        )
+    )
+    if not values:
+        raise RuntimeError("[EasyUseAnima] DiTSpectrumPatchAdvanced returned no MODEL.")
+    return values[0]
+
+
+def _apply_aio_spectrum_model_patches_for_comfy_sampler(
+    model,
+    clip,
+    positive,
+    sampler_settings: dict[str, Any],
+):
+    patched = _apply_aio_spectrum_correction_patch_for_comfy_sampler(
+        model,
+        clip,
+        positive,
+        sampler_settings,
+    )
+    return _apply_aio_spectrum_forecast_patch_for_comfy_sampler(
+        patched,
+        sampler_settings,
+    )
+
+
+def _sample_latent_with_spectrum_mod_guidance_advanced(
+    model,
+    clip,
+    sampler_settings: dict[str, Any],
+    mod_guidance_settings: dict[str, Any],
+    use_mod_guidance: bool,
+    positive,
+    negative,
+    latent_image,
+    quality_tags: str,
+    quality_neg: str,
+):
+    sampler_cls = _require_custom_node_class(
+        "SpectrumKSamplerAdvanced",
+        "ComfyUI-Spectrum-KSampler",
+        "Repository: https://github.com/blepping/ComfyUI-Spectrum-KSampler",
+    )
+    spectrum = sampler_settings.get("spectrum", {})
+    if not isinstance(spectrum, dict):
+        spectrum = {}
+    corrections = sampler_settings.get("dit_corrections", {})
+    if not isinstance(corrections, dict):
+        corrections = {}
+    use_corrections = _as_bool(corrections.get("enabled"), False)
+    use_smc = use_corrections and _as_bool(corrections.get("smc_cfg"), False)
+    use_cfgpp = use_corrections and _as_bool(corrections.get("cfgpp"), False)
+    use_fsg = use_corrections and _as_bool(corrections.get("fsg"), False)
+    advanced_mod = mod_guidance_settings.get("advanced", {})
+    if not isinstance(advanced_mod, dict):
+        advanced_mod = {}
+    profile = _normalize_anima_mod_guidance_profile(
+        mod_guidance_settings.get("profile", ANIMA_MOD_GUIDANCE_DEFAULT_PROFILE)
+    )
+    mod_w = _as_float(advanced_mod.get("mod_w"), 3.0)
+    if not use_mod_guidance or profile == ANIMA_MOD_GUIDANCE_PROFILE_OFF:
+        mod_w = 0.0
+    values = _node_output_tuple(
+        sampler_cls().sample(
+            model,
+            clip,
+            _resolve_aio_runtime_seed(sampler_settings.get("seed")),
+            _as_int(sampler_settings.get("steps"), 28),
+            _as_float(sampler_settings.get("cfg"), 5.0),
+            str(sampler_settings.get("sampler_name") or "euler_ancestral"),
+            str(sampler_settings.get("scheduler") or "normal"),
+            positive,
+            negative,
+            latent_image,
+            str(advanced_mod.get("adapter") or "(auto-download default)"),
+            str(quality_tags or advanced_mod.get("quality_tags") or ""),
+            mod_w,
+            quality_neg=str(quality_neg or ""),
+            mod_start_layer=_as_int(advanced_mod.get("mod_start_layer"), 8),
+            mod_end_layer=_as_int(advanced_mod.get("mod_end_layer"), 27),
+            mod_taper=_as_int(advanced_mod.get("mod_taper"), 0),
+            mod_taper_scale=_as_float(advanced_mod.get("mod_taper_scale"), 0.25),
+            mod_final_w=_as_float(advanced_mod.get("mod_final_w"), 0.0),
+            denoise=_as_float(sampler_settings.get("denoise"), 1.0),
+            window_size=_as_float(spectrum.get("window_size"), 2.0),
+            flex_window=_as_float(spectrum.get("flex_window"), 0.25),
+            warmup_steps=_as_int(spectrum.get("warmup_steps"), 6),
+            blend_w=_as_float(spectrum.get("blend_w"), 0.3),
+            cheby_degree=_as_int(spectrum.get("cheby_degree"), 3),
+            ridge_lambda=_as_float(spectrum.get("ridge_lambda"), 0.1),
+            dcw_mode=str(corrections.get("dcw_mode") or "off") if use_corrections else "off",
+            dcw_lambda=_as_float(corrections.get("dcw_lambda"), 0.01) if use_corrections else 0.0,
+            dcw_band_mask=str(corrections.get("dcw_band_mask") or "LL") if use_corrections else "LL",
+            dcw_calibrator=str(corrections.get("dcw_calibrator") or "(auto-download default)"),
+            cfgpp_lambda=_as_float(corrections.get("cfgpp_lambda"), 0.0) if use_cfgpp else 0.0,
+            fsg=use_fsg,
+            fsg_band_lo=_as_float(corrections.get("fsg_band_lo"), 0.59) if use_fsg else 0.59,
+            fsg_band_hi=_as_float(corrections.get("fsg_band_hi"), 0.75) if use_fsg else 0.75,
+            fsg_k=_as_int(corrections.get("fsg_k"), 3) if use_fsg else 3,
+            fsg_d_sigma=_as_float(corrections.get("fsg_d_sigma"), 0.1) if use_fsg else 0.1,
+            fsg_gamma=_as_float(corrections.get("fsg_gamma"), 0.0) if use_fsg else 0.0,
+            adaptive_smc_alpha=_as_float(corrections.get("adaptive_smc_alpha"), 0.0) if use_smc else 0.0,
+            smc_cfg_lambda=_as_float(corrections.get("smc_cfg_lambda"), 5.0) if use_smc else 0.0,
+        )
+    )
+    if not values:
+        raise RuntimeError("[EasyUseAnima] SpectrumKSamplerAdvanced returned no LATENT.")
+    return values[0]
+
+
+def _sample_latent_with_spectrum_spd(
+    model,
+    sampler_settings: dict[str, Any],
+    positive,
+    negative,
+    latent_image,
+):
+    spd_cls = _require_custom_node_class(
+        "SpectrumSPDKSampler",
+        "ComfyUI-Spectrum-KSampler",
+        "Repository: https://github.com/blepping/ComfyUI-Spectrum-KSampler",
+    )
+    spd = sampler_settings.get("spd", {})
+    if not isinstance(spd, dict):
+        spd = {}
+    values = _node_output_tuple(
+        spd_cls().sample(
+            model,
+            _resolve_aio_runtime_seed(sampler_settings.get("seed")),
+            _as_int(sampler_settings.get("steps"), 28),
+            _as_float(sampler_settings.get("cfg"), 5.0),
+            str(sampler_settings.get("sampler_name") or "euler"),
+            str(sampler_settings.get("scheduler") or "simple"),
+            positive,
+            negative,
+            latent_image,
+            str(spd.get("split_mode") or "single"),
+            _as_float(spd.get("scale"), 0.5),
+            _as_float(spd.get("sigma"), 0.7),
+            denoise=_as_float(sampler_settings.get("denoise"), 1.0),
+            adaptive_smc_alpha=_as_float(spd.get("adaptive_smc_alpha"), 0.0),
+        )
+    )
+    if not values:
+        raise RuntimeError("[EasyUseAnima] SpectrumSPDKSampler returned no LATENT.")
+    return values[0]
+
+
+def _sample_latent_with_aio_backend(
+    model,
+    clip,
+    positive,
+    negative,
+    latent_image,
+    sampler_settings: dict[str, Any],
+    mod_guidance_settings: dict[str, Any],
+    use_mod_guidance: bool,
+    quality_tags: str,
+    quality_neg: str,
+):
+    backend = str(sampler_settings.get("backend") or "comfy_ksampler")
+    if backend == "spectrum_mod_guidance_advanced":
+        return _sample_latent_with_spectrum_mod_guidance_advanced(
+            model,
+            clip,
+            sampler_settings,
+            mod_guidance_settings,
+            use_mod_guidance,
+            positive,
+            negative,
+            latent_image,
+            quality_tags,
+            quality_neg,
+        )
+    if backend == "spectrum_spd_speed":
+        return _sample_latent_with_spectrum_spd(
+            model,
+            sampler_settings,
+            positive,
+            negative,
+            latent_image,
+        )
+    return _sample_latent_with_comfy(
+        model,
+        sampler_settings["seed"],
+        sampler_settings["steps"],
+        sampler_settings["cfg"],
+        sampler_settings["sampler_name"],
+        sampler_settings["scheduler"],
+        positive,
+        negative,
+        latent_image,
+        sampler_settings["denoise"],
+    )
+
+
+def _decode_latent_with_comfy(vae, samples):
+    decoder_cls = _find_comfy_node_class("VAEDecode")
+    if decoder_cls is None:
+        raise RuntimeError("[EasyUseAnima] Could not find ComfyUI VAEDecode.")
+    decoder = decoder_cls()
+    decode = getattr(decoder, "decode", None)
+    if decode is None:
+        raise RuntimeError("[EasyUseAnima] VAEDecode does not expose decode().")
+    result = decode(vae, samples)
+    values = _node_output_tuple(result)
+    if not values:
+        raise RuntimeError("[EasyUseAnima] VAEDecode returned no IMAGE.")
+    return values[0]
+
+
+def _encode_image_with_comfy_vae(vae, image):
+    encoder_cls = _find_comfy_node_class("VAEEncode")
+    if encoder_cls is None:
+        raise RuntimeError("[EasyUseAnima] Could not find ComfyUI VAEEncode.")
+    encoder = encoder_cls()
+    encode = getattr(encoder, "encode", None)
+    if encode is None:
+        raise RuntimeError("[EasyUseAnima] VAEEncode does not expose encode().")
+    values = _node_output_tuple(encode(vae, image))
+    if not values:
+        raise RuntimeError("[EasyUseAnima] VAEEncode returned no LATENT.")
+    return values[0]
+
+
+def _image_tensor_size(image, fallback_width: int, fallback_height: int) -> tuple[int, int]:
+    try:
+        return int(image.shape[2]), int(image.shape[1])
+    except Exception:
+        return int(fallback_width), int(fallback_height)
+
+
+def _aio_stage_sampler_settings(
+    base_sampler: dict[str, Any],
+    stage_settings: dict[str, Any],
+    *,
+    scheduler_default: str,
+) -> dict[str, Any]:
+    inherit_sampler = _as_bool(stage_settings.get("inherit_sampler_settings"), False)
+    return {
+        "backend": "comfy_ksampler",
+        "seed": _resolve_aio_runtime_seed(base_sampler.get("seed")),
+        "seed_after_generate": SEED_CONTROL_FIXED,
+        "steps": _as_int(stage_settings.get("steps"), _as_int(base_sampler.get("steps"), 28)),
+        "cfg": (
+            _as_float(base_sampler.get("cfg"), 5.0)
+            if inherit_sampler
+            else _as_float(stage_settings.get("cfg"), _as_float(base_sampler.get("cfg"), 5.0))
+        ),
+        "sampler_name": (
+            str(base_sampler.get("sampler_name") or "euler")
+            if inherit_sampler
+            else str(stage_settings.get("sampler_name") or base_sampler.get("sampler_name") or "euler")
+        ),
+        "scheduler": (
+            str(base_sampler.get("scheduler") or scheduler_default)
+            if inherit_sampler
+            else str(stage_settings.get("scheduler") or scheduler_default)
+        ),
+        "denoise": _as_float(stage_settings.get("denoise"), 1.0),
+        "spectrum": _json_clone(stage_settings.get("spectrum") or {}),
+        "dit_corrections": _json_clone(stage_settings.get("dit_corrections") or {}),
+    }
+
+
+def _run_aio_highres_stage(
+    model,
+    clip,
+    vae,
+    positive,
+    negative,
+    image,
+    base_latent,
+    base_width: int,
+    base_height: int,
+    sampler_settings: dict[str, Any],
+    highres_settings: dict[str, Any],
+) -> tuple[Any, Any, int, int, dict[str, Any]]:
+    if not _as_bool(highres_settings.get("enabled"), False):
+        return base_latent, image, int(base_width), int(base_height), {"enabled": False}
+
+    scaled_image, width, height, applied_scale = EasyUseAnimaImageScaleByMultiple().upscale(
+        image,
+        highres_settings.get("scale_by", 1.25),
+        highres_settings.get("upscale_method", "bicubic"),
+        highres_settings.get("multiple", "32"),
+        highres_settings.get("max_long_edge", 2560),
+    )
+    latent_image = _encode_image_with_comfy_vae(vae, scaled_image)
+    stage_sampler = _aio_stage_sampler_settings(
+        sampler_settings,
+        highres_settings,
+        scheduler_default="simple",
+    )
+    stage_model = _apply_aio_spectrum_model_patches_for_comfy_sampler(
+        model,
+        clip,
+        positive,
+        stage_sampler,
+    )
+    try:
+        latent = _sample_latent_with_comfy(
+            stage_model,
+            stage_sampler["seed"],
+            stage_sampler["steps"],
+            stage_sampler["cfg"],
+            stage_sampler["sampler_name"],
+            stage_sampler["scheduler"],
+            positive,
+            negative,
+            latent_image,
+            stage_sampler["denoise"],
+        )
+    finally:
+        _cleanup_aio_ephemeral_model(stage_model, model)
+    decoded = _decode_latent_with_comfy(vae, latent)
+    return latent, decoded, int(width), int(height), {
+        "enabled": True,
+        "width": int(width),
+        "height": int(height),
+        "applied_scale": float(applied_scale),
+        "sampler": _prompt_data_json_safe(stage_sampler),
+    }
+
+
+def _load_aio_sam3_context(detailer_settings: dict[str, Any]) -> dict[str, Any]:
+    sam3 = detailer_settings.get("sam3", {})
+    if not isinstance(sam3, dict):
+        sam3 = {}
+    checkpoint = str(sam3.get("checkpoint") or "sam3.1_multiplex_fp16.safetensors")
+    model, clip, vae = _load_checkpoint_with_comfy(checkpoint)
+    return _sam3_context(model, clip, vae, checkpoint)
+
+
+def _run_aio_detailer_target(
+    target_name: str,
+    target_settings: dict[str, Any],
+    image,
+    model,
+    clip,
+    vae,
+    positive,
+    negative,
+    sampler_settings: dict[str, Any],
+    sam3_context: dict[str, Any],
+) -> tuple[Any, dict[str, Any]]:
+    if not _as_bool(target_settings.get("enabled"), False):
+        return image, {"enabled": False}
+
+    stage_sampler = _aio_stage_sampler_settings(
+        sampler_settings,
+        target_settings,
+        scheduler_default="sgm_uniform",
+    )
+    stage_model = _apply_aio_spectrum_model_patches_for_comfy_sampler(
+        model,
+        clip,
+        positive,
+        stage_sampler,
+    )
+    try:
+        result = EasyUseAnimaSAM3Detailer().doit(
+            enabled=True,
+            image=image,
+            ctx_SAM3=sam3_context,
+            detect_prompt=target_settings.get("detect_prompt", target_name),
+            detect_count=_as_int(target_settings.get("detect_count"), 1),
+            threshold=_as_float(target_settings.get("threshold"), 0.5),
+            refine_iterations=_as_int(target_settings.get("refine_iterations"), 2),
+            individual_masks=_as_bool(target_settings.get("individual_masks"), True),
+            combined=_as_bool(target_settings.get("combined"), False),
+            crop_factor=_as_float(target_settings.get("crop_factor"), 4.0),
+            bbox_fill=_as_bool(target_settings.get("bbox_fill"), False),
+            drop_size=_as_int(target_settings.get("drop_size"), 100),
+            contour_fill=_as_bool(target_settings.get("contour_fill"), True),
+            model=stage_model,
+            clip=clip,
+            vae=vae,
+            guide_size=_as_int(target_settings.get("guide_size"), 1024),
+            guide_size_for=_as_bool(target_settings.get("guide_size_for"), False),
+            max_size=_as_int(target_settings.get("max_size"), 2048),
+            seed=stage_sampler["seed"],
+            steps=stage_sampler["steps"],
+            cfg=stage_sampler["cfg"],
+            sampler_name=stage_sampler["sampler_name"],
+            scheduler=stage_sampler["scheduler"],
+            positive=positive,
+            negative=negative,
+            denoise=stage_sampler["denoise"],
+            feather=_as_int(target_settings.get("feather"), 5),
+            noise_mask=_as_bool(target_settings.get("noise_mask"), True),
+            force_inpaint=_as_bool(target_settings.get("force_inpaint"), True),
+            wildcard=str(target_settings.get("wildcard") or ""),
+            cycle=_as_int(target_settings.get("cycle"), 1),
+            alignment=str(target_settings.get("alignment") or "32"),
+            preserve_conditioning_metadata=True,
+            fail_on_unsupported_opt=False,
+            detailer_hook=None,
+            inpaint_model=_as_bool(target_settings.get("inpaint_model"), False),
+            noise_mask_feather=_as_int(target_settings.get("noise_mask_feather"), 0),
+            scheduler_func_opt=None,
+            tiled_encode=_as_bool(target_settings.get("tiled_encode"), False),
+            tiled_decode=_as_bool(target_settings.get("tiled_decode"), False),
+        )
+    finally:
+        _cleanup_aio_ephemeral_model(stage_model, model)
+
+    detailed_image = result[0]
+    segs = result[1] if len(result) > 1 else None
+    return detailed_image, {
+        "enabled": True,
+        "detected": _segs_has_items(segs),
+        "sampler": _prompt_data_json_safe(stage_sampler),
+    }
+
+
+def _run_aio_detailer_stage(
+    model,
+    clip,
+    vae,
+    positive,
+    negative,
+    image,
+    sampler_settings: dict[str, Any],
+    detailer_settings: dict[str, Any],
+    preview_callback=None,
+) -> tuple[Any, dict[str, Any]]:
+    if not _as_bool(detailer_settings.get("enabled"), False):
+        return image, {"enabled": False}
+    enabled_targets = [
+        name
+        for name in ("face", "eye")
+        if isinstance(detailer_settings.get(name), dict)
+        and _as_bool(detailer_settings[name].get("enabled"), False)
+    ]
+    if not enabled_targets:
+        return image, {"enabled": False, "reason": "no target enabled"}
+
+    sam3_context = _load_aio_sam3_context(detailer_settings)
+    output = image
+    target_results: dict[str, Any] = {}
+    for target_name in detailer_settings.get("order", ("face", "eye")):
+        if target_name not in enabled_targets:
+            continue
+        output, target_results[target_name] = _run_aio_detailer_target(
+            target_name,
+            detailer_settings[target_name],
+            output,
+            model,
+            clip,
+            vae,
+            positive,
+            negative,
+            sampler_settings,
+            sam3_context,
+        )
+        if preview_callback is not None:
+            preview_callback(f"detailer_{target_name}", output)
+    return output, {
+        "enabled": True,
+        "sam3_checkpoint": _context_value(sam3_context, "ckpt_name"),
+        "order": list(detailer_settings.get("order", ("face", "eye"))),
+        "targets": target_results,
+    }
+
+
+def _save_image_with_comfy(images, filename_prefix: str, workflow_prompt=None, extra_pnginfo=None):
+    save_cls = _find_comfy_node_class("SaveImage")
+    if save_cls is None:
+        raise RuntimeError("[EasyUseAnima] Could not find ComfyUI SaveImage.")
+    saver = save_cls()
+    save_images = getattr(saver, "save_images", None)
+    if save_images is None:
+        raise RuntimeError("[EasyUseAnima] SaveImage does not expose save_images().")
+    return save_images(
+        images,
+        str(filename_prefix or "EasyUseAnima/AiO"),
+        prompt=workflow_prompt,
+        extra_pnginfo=extra_pnginfo,
+    )
+
+
+AIO_PREVIEW_STAGE_LABELS = {
+    "first_pass": "First pass",
+    "highres": "Highres",
+    "detailer_face": "Detailer: face",
+    "detailer_eye": "Detailer: eye",
+    "final": "Final",
+}
+AIO_PREVIEW_CACHE_FORMAT = "webp"
+AIO_PREVIEW_CACHE_QUALITY = 90
+
+
+def _aio_detailer_has_enabled_targets(detailer_settings: dict[str, Any]) -> bool:
+    if not _as_bool(detailer_settings.get("enabled"), False):
+        return False
+    return any(
+        isinstance(detailer_settings.get(name), dict)
+        and _as_bool(detailer_settings[name].get("enabled"), False)
+        for name in ("face", "eye")
+    )
+
+
+def _aio_preview_base_directory(image_type: str) -> str:
+    try:
+        import folder_paths  # type: ignore
+
+        if image_type == "temp":
+            return folder_paths.get_temp_directory()
+        if image_type == "input":
+            return folder_paths.get_input_directory()
+        return folder_paths.get_output_directory()
+    except Exception:
+        return ""
+
+
+def _aio_preview_file_size_bytes(image_info: dict[str, Any]) -> int:
+    filename = str(image_info.get("filename") or "")
+    if not filename:
+        return 0
+    base_dir = _aio_preview_base_directory(str(image_info.get("type") or "output"))
+    if not base_dir:
+        return 0
+    subfolder = str(image_info.get("subfolder") or "")
+    path = os.path.join(base_dir, subfolder, filename)
+    try:
+        return os.path.getsize(path) if os.path.isfile(path) else 0
+    except OSError:
+        return 0
+
+
+def _tag_aio_preview_images(
+    images,
+    stage: str,
+    *,
+    width: int = 0,
+    height: int = 0,
+) -> list[dict[str, Any]]:
+    label = AIO_PREVIEW_STAGE_LABELS.get(stage, stage)
+    tagged: list[dict[str, Any]] = []
+    for image in images or ():
+        if not isinstance(image, dict):
+            continue
+        item = dict(image)
+        item["stage"] = stage
+        item["label"] = label
+        if width > 0:
+            item["width"] = int(width)
+        if height > 0:
+            item["height"] = int(height)
+        file_size = _aio_preview_file_size_bytes(item)
+        if file_size > 0:
+            item["bytes"] = int(file_size)
+        tagged.append(item)
+    return tagged
+
+
+def _save_aio_temp_preview_image(
+    image,
+    stage: str,
+    *,
+    workflow_prompt=None,
+    extra_pnginfo=None,
+) -> list[dict[str, Any]]:
+    width, height = _image_tensor_size(image, 0, 0)
+    try:
+        import folder_paths  # type: ignore
+        import numpy as np  # type: ignore
+        from PIL import Image  # type: ignore
+
+        temp_dir = folder_paths.get_temp_directory()
+        prefix = f"EasyUseAnima_AiO_{stage}_temp_{''.join(random.choice('abcdefghijklmnopqrstupvxyz') for _ in range(5))}"
+        full_output_folder, filename, counter, subfolder, _ = folder_paths.get_save_image_path(
+            prefix,
+            temp_dir,
+            width,
+            height,
+        )
+        results: list[dict[str, Any]] = []
+        for batch_number, batch_image in enumerate(image):
+            pixels = 255.0 * batch_image.detach().cpu().numpy()
+            img = Image.fromarray(np.clip(pixels, 0, 255).astype(np.uint8))
+            filename_with_batch_num = filename.replace("%batch_num%", str(batch_number))
+            file = f"{filename_with_batch_num}_{counter:05}_.{AIO_PREVIEW_CACHE_FORMAT}"
+            path = os.path.join(full_output_folder, file)
+            img.save(path, format="WEBP", quality=AIO_PREVIEW_CACHE_QUALITY, method=4)
+            results.append({
+                "filename": file,
+                "subfolder": subfolder,
+                "type": "temp",
+            })
+            counter += 1
+        if results:
+            return _tag_aio_preview_images(results, stage, width=width, height=height)
+    except Exception as exc:
+        logger.warning(
+            "[EasyUseAnima] Failed to save AiO WebP preview stage %s; falling back to ComfyUI PreviewImage PNG: %s",
+            stage,
+            exc,
+        )
+
+    preview_cls = _find_comfy_node_class("PreviewImage")
+    if preview_cls is None:
+        logger.warning("[EasyUseAnima] Could not find ComfyUI PreviewImage for AiO preview stage %s.", stage)
+        return []
+    saver = preview_cls()
+    save_images = getattr(saver, "save_images", None)
+    if save_images is None:
+        logger.warning("[EasyUseAnima] PreviewImage does not expose save_images() for AiO preview stage %s.", stage)
+        return []
+    try:
+        result = save_images(
+            image,
+            filename_prefix=f"EasyUseAnima_AiO_{stage}",
+            prompt=workflow_prompt,
+            extra_pnginfo=extra_pnginfo,
+        )
+    except TypeError:
+        try:
+            result = save_images(image)
+        except Exception as exc:
+            logger.warning("[EasyUseAnima] Failed to save AiO preview stage %s: %s", stage, exc)
+            return []
+    except Exception as exc:
+        logger.warning("[EasyUseAnima] Failed to save AiO preview stage %s: %s", stage, exc)
+        return []
+    if not isinstance(result, dict):
+        return []
+    ui = result.get("ui", {})
+    if not isinstance(ui, dict):
+        return []
+    return _tag_aio_preview_images(ui.get("images", []), stage, width=width, height=height)
+
+
+def _aio_save_filename_prefix(save_settings: dict[str, Any]) -> str:
+    image_saver = save_settings.get("image_saver", {})
+    if not isinstance(image_saver, dict):
+        image_saver = {}
+    defaults = AIO_GENERATION_DEFAULT_SETTINGS["save"]["image_saver"]
+    path = str(image_saver.get("path") or defaults["path"]).strip().strip("/\\")
+    filename = str(image_saver.get("filename") or defaults["filename"]).strip().strip("/\\")
+    if path and filename:
+        return f"{path}/{filename}"
+    return filename or path or f"{defaults['path']}/{defaults['filename']}"
+
+
+def _save_image_with_image_saver(
+    images,
+    save_settings: dict[str, Any],
+    positive_prompt: str,
+    negative_prompt: str,
+    width: int,
+    height: int,
+    sampler_settings: dict[str, Any],
+    resource_info: dict[str, Any] | None = None,
+    workflow_prompt=None,
+    extra_pnginfo=None,
+):
+    image_saver_cls = _require_custom_node_class(
+        "Image Saver",
+        "ComfyUI-Image-Saver",
+        "Repository: https://github.com/alexopus/ComfyUI-Image-Saver",
+    )
+    saver = image_saver_cls()
+    save_files = getattr(saver, "save_files", None)
+    if save_files is None:
+        raise RuntimeError("[EasyUseAnima] Image Saver node does not expose save_files().")
+
+    image_saver = save_settings.get("image_saver", {})
+    if not isinstance(image_saver, dict):
+        image_saver = {}
+    defaults = AIO_GENERATION_DEFAULT_SETTINGS["save"]["image_saver"]
+    modelname = str((resource_info or {}).get("unet_name") or "")
+    return save_files(
+        images=images,
+        filename=str(image_saver.get("filename") or defaults["filename"]),
+        path=str(image_saver.get("path") or defaults["path"]),
+        extension=str(image_saver.get("extension") or defaults["extension"]),
+        steps=_as_int(sampler_settings.get("steps"), 28),
+        cfg=_as_float(sampler_settings.get("cfg"), 5.0),
+        modelname=modelname,
+        sampler_name=str(sampler_settings.get("sampler_name") or ""),
+        scheduler_name=str(sampler_settings.get("scheduler") or "normal"),
+        positive=str(positive_prompt or "unknown"),
+        negative=str(negative_prompt or "unknown"),
+        seed_value=_resolve_aio_runtime_seed(sampler_settings.get("seed")),
+        width=_as_int(width, 512),
+        height=_as_int(height, 512),
+        lossless_webp=_as_bool(image_saver.get("lossless_webp"), defaults["lossless_webp"]),
+        quality_jpeg_or_webp=max(
+            1,
+            min(100, _as_int(image_saver.get("quality_jpeg_or_webp"), defaults["quality_jpeg_or_webp"])),
+        ),
+        optimize_png=_as_bool(image_saver.get("optimize_png"), defaults["optimize_png"]),
+        counter=max(0, _as_int(image_saver.get("counter"), defaults["counter"])),
+        denoise=_as_float(sampler_settings.get("denoise"), 1.0),
+        clip_skip=_as_int(image_saver.get("clip_skip"), defaults["clip_skip"]),
+        time_format=str(image_saver.get("time_format") or defaults["time_format"]),
+        save_workflow_as_json=_as_bool(
+            image_saver.get("save_workflow_as_json"),
+            defaults["save_workflow_as_json"],
+        ),
+        embed_workflow=_as_bool(image_saver.get("embed_workflow"), defaults["embed_workflow"]),
+        additional_hashes=_aio_image_saver_additional_hashes(image_saver),
+        download_civitai_data=_as_bool(
+            image_saver.get("download_civitai_data"),
+            defaults["download_civitai_data"],
+        ),
+        easy_remix=_as_bool(image_saver.get("easy_remix"), defaults["easy_remix"]),
+        show_preview=False,
+        custom=str(image_saver.get("custom") or ""),
+        prompt=workflow_prompt,
+        extra_pnginfo=extra_pnginfo,
+    )
 
 
 def _format_sam3_detection_prompt(detect_prompt: str, detect_count: int) -> str:
@@ -6168,6 +8475,483 @@ class EasyUseAnimaPromptDataConditioning:
             )
 
         return (patched_model, positive, negative, latent_image)
+
+
+def _easy_use_anima_input_signature(value) -> dict[str, Any]:
+    if not isinstance(value, dict):
+        return {"type": str(type(value).__name__)}
+    return {
+        "schema": value.get("schema"),
+        "version": value.get("version"),
+        "resource_info": _prompt_data_json_safe(value.get("resource_info", {})),
+        "input_settings": _prompt_data_json_safe(value.get("input_settings", {})),
+        "prompt_data": _prompt_data_json_safe(value.get("prompt_data", {})),
+    }
+
+
+def _require_easy_use_anima_input(value) -> dict[str, Any]:
+    if not isinstance(value, dict):
+        raise RuntimeError("[EasyUseAnima] easy use anima input is missing or invalid.")
+    missing = [key for key in ("prompt_data", "resource_info", "input_settings") if key not in value]
+    if missing:
+        raise RuntimeError(
+            "[EasyUseAnima] easy use anima input is missing required value(s): "
+            + ", ".join(missing)
+        )
+    return value
+
+
+def _load_aio_resources_from_input_context(context: dict[str, Any]):
+    resource_info = context.get("resource_info", {})
+    if not isinstance(resource_info, dict):
+        resource_info = {}
+    settings = _normalize_aio_input_settings(context.get("input_settings", {}))
+    resources = settings.get("resources", {})
+    if not isinstance(resources, dict):
+        resources = {}
+
+    unet_name = str(resource_info.get("unet_name") or "").strip()
+    vae_name = str(resource_info.get("vae_name") or "").strip()
+    clip_name = str(resource_info.get("clip_name") or "").strip()
+    clip_type = str(resource_info.get("clip_type") or "qwen_image")
+    missing = [
+        label
+        for label, value in (
+            ("unet_name", unet_name),
+            ("vae_name", vae_name),
+            ("clip_name", clip_name),
+        )
+        if not value
+    ]
+    if missing:
+        raise RuntimeError(
+            "[EasyUseAnima] easy use anima input resource_info is missing required value(s): "
+            + ", ".join(missing)
+        )
+
+    model = _load_diffusion_model_with_comfy(
+        unet_name,
+        str(resources.get("unet_weight_dtype") or resource_info.get("unet_weight_dtype") or "default"),
+    )
+    vae = _load_vae_with_comfy(vae_name)
+    clip = _load_clip_with_comfy(
+        clip_name,
+        clip_type,
+        str(resources.get("clip_device") or resource_info.get("clip_device") or "default"),
+    )
+    return model, clip, vae
+
+
+class EasyUseAnimaInput:
+    """Bundle prompt data and resource loader settings for the AiO generator."""
+
+    DESCRIPTION = (
+        "Receives EASYUSE_ANIMA_PROMPT_DATA and selected ANIMA resource names, then returns "
+        "one dedicated easy use anima input context. The context stores only serializable "
+        "prompt/resource data; the AiO Generator loads MODEL, CLIP, and VAE at execution "
+        "time so model patches and Torch compile do not live inside a custom dict socket."
+    )
+    OUTPUT_TOOLTIPS = (
+        "Dedicated context containing prompt data, resource metadata, and versioned loader settings.",
+    )
+
+    @classmethod
+    def INPUT_TYPES(cls):
+        unet_names = _comfy_diffusion_model_names()
+        vae_names = _comfy_vae_names()
+        clip_names = _comfy_text_encoder_names()
+        clip_types = _comfy_clip_loader_types()
+        return {
+            "required": {
+                PROMPT_DATA_TYPE: (PROMPT_DATA_TYPE, {
+                    "forceInput": True,
+                    "tooltip": "Structured prompt data from Anima Prompt Studio Advanced v2.",
+                }),
+                "unet_name": (unet_names, {
+                    "default": _preferred_name_default(unet_names, ANIMA_DEFAULT_DIFFUSION_MODEL_CANDIDATES),
+                    "tooltip": "ANIMA diffusion model loaded with ComfyUI UNETLoader.",
+                }),
+                "vae_name": (vae_names, {
+                    "default": _preferred_name_default(vae_names, ANIMA_DEFAULT_VAE_CANDIDATES),
+                    "tooltip": "VAE loaded with ComfyUI VAELoader.",
+                }),
+                "clip_name": (clip_names, {
+                    "default": _preferred_name_default(clip_names, ANIMA_DEFAULT_CLIP_CANDIDATES),
+                    "tooltip": "Text encoder loaded with ComfyUI CLIPLoader.",
+                }),
+                "clip_type": (clip_types, {
+                    "default": _preferred_clip_type_default(clip_types),
+                    "tooltip": "ComfyUI CLIPLoader type. Core ANIMA uses qwen_image.",
+                }),
+                "input_settings": ("STRING", {
+                    "multiline": True,
+                    "default": _aio_input_settings_json(),
+                    "hidden": True,
+                    "tooltip": "Hidden versioned JSON storage for future resource settings. Kept serialized for workflow compatibility.",
+                }),
+            },
+        }
+
+    RETURN_TYPES = (EASY_USE_ANIMA_INPUT_TYPE,)
+    RETURN_NAMES = ("easy use anima input",)
+    FUNCTION = "build"
+    CATEGORY = "EasyUse Anima/AiO"
+
+    @classmethod
+    def IS_CHANGED(
+        cls,
+        EASYUSE_ANIMA_PROMPT_DATA: str | dict | None = None,
+        unet_name: str = "",
+        vae_name: str = "",
+        clip_name: str = "",
+        clip_type: str = "",
+        input_settings: str | dict | None = None,
+        **kwargs,
+    ):
+        return _stable_change_key({
+            "mode": "easy_use_anima_input",
+            "prompt_data": _prompt_data_json_safe(_normalize_prompt_data(EASYUSE_ANIMA_PROMPT_DATA)),
+            "unet_name": str(unet_name or ""),
+            "vae_name": str(vae_name or ""),
+            "clip_name": str(clip_name or ""),
+            "clip_type": str(clip_type or ""),
+            "input_settings": _normalize_aio_input_settings(input_settings),
+        })
+
+    def build(
+        self,
+        EASYUSE_ANIMA_PROMPT_DATA: str | dict,
+        unet_name: str,
+        vae_name: str,
+        clip_name: str,
+        clip_type: str = "qwen_image",
+        input_settings: str | dict | None = None,
+    ):
+        settings = _normalize_aio_input_settings(input_settings)
+        prompt_data = _copy_prompt_data_for_update(EASYUSE_ANIMA_PROMPT_DATA)
+        resources = settings.get("resources", {})
+        resource_info = {
+            "loader_mode": "split",
+            "unet_name": str(unet_name),
+            "vae_name": str(vae_name),
+            "clip_name": str(clip_name),
+            "clip_type": str(clip_type or "qwen_image"),
+            "unet_weight_dtype": str(resources.get("unet_weight_dtype") or "default"),
+            "clip_device": str(resources.get("clip_device") or "default"),
+        }
+        prompt_data["easy_use_anima_input"] = {
+            "schema": EASY_USE_ANIMA_INPUT_SCHEMA,
+            "version": EASY_USE_ANIMA_INPUT_SETTINGS_VERSION,
+            "resource_info": dict(resource_info),
+        }
+        return ({
+            "schema": EASY_USE_ANIMA_INPUT_SCHEMA,
+            "version": EASY_USE_ANIMA_INPUT_SETTINGS_VERSION,
+            "prompt_data": prompt_data,
+            "resource_info": resource_info,
+            "input_settings": settings,
+        },)
+
+
+class EasyUseAnimaAIOGenerator:
+    """Draft all-in-one generator that consumes one easy use anima input context."""
+
+    DESCRIPTION = (
+        "Consumes the dedicated easy use anima input context and runs the base txt2img "
+        "generation path: prompt-data conditioning, optional Mod Guidance model patch, "
+        "KSampler, VAE decode, and optional image saving. Generation options are stored in "
+        "one versioned JSON field for future-compatible popup settings."
+    )
+    OUTPUT_TOOLTIPS = (
+        "Decoded generated image.",
+        "Sampled latent image.",
+        "JSON metadata summary for debugging or downstream integration.",
+    )
+
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {
+            "required": {
+                "easy_use_anima_input": (EASY_USE_ANIMA_INPUT_TYPE, {
+                    "forceInput": True,
+                    "tooltip": "Context from Easy Use Anima Input.",
+                }),
+                "generation_settings": ("STRING", {
+                    "multiline": True,
+                    "default": _aio_generation_settings_json(),
+                    "hidden": True,
+                    "tooltip": "Hidden versioned JSON storage for popup generation settings. Keep this field serialized.",
+                }),
+            },
+            "hidden": {
+                "workflow_prompt": "PROMPT",
+                "extra_pnginfo": "EXTRA_PNGINFO",
+                "unique_id": "UNIQUE_ID",
+            },
+            "optional": {
+                "lora_stack": ("LORA_STACK", {
+                    "forceInput": True,
+                    "tooltip": "Optional LoRA stack applied to MODEL and CLIP before conditioning and sampling.",
+                }),
+            },
+        }
+
+    RETURN_TYPES = ("IMAGE", "LATENT", "STRING")
+    RETURN_NAMES = ("image", "latent", "metadata_json")
+    FUNCTION = "generate"
+    OUTPUT_NODE = True
+    CATEGORY = "EasyUse Anima/AiO"
+
+    @classmethod
+    def IS_CHANGED(
+        cls,
+        easy_use_anima_input=None,
+        lora_stack=None,
+        generation_settings: str | dict | None = None,
+        **kwargs,
+    ):
+        settings = _normalize_aio_generation_settings(generation_settings)
+        if settings.get("sampler", {}).get("seed") in AIO_SPECIAL_SEEDS:
+            change_settings = _json_clone(settings)
+            change_settings["sampler"]["seed"] = _resolve_aio_runtime_seed(
+                change_settings["sampler"].get("seed")
+            )
+        else:
+            change_settings = settings
+        return _stable_change_key({
+            "mode": "easy_use_anima_generator",
+            "input": _easy_use_anima_input_signature(easy_use_anima_input),
+            "lora_stack": _aio_lora_stack_signature(lora_stack),
+            "generation_settings": change_settings,
+        })
+
+    def generate(
+        self,
+        easy_use_anima_input,
+        generation_settings: str | dict | None = None,
+        lora_stack=None,
+        workflow_prompt=None,
+        extra_pnginfo=None,
+        unique_id=None,
+    ):
+        context = _require_easy_use_anima_input(easy_use_anima_input)
+        settings = _normalize_aio_generation_settings(generation_settings)
+        settings["sampler"]["seed"] = _resolve_aio_runtime_seed(settings["sampler"].get("seed"))
+        if settings["mode"] != "txt2img":
+            raise RuntimeError("[EasyUseAnima] AiO Generator draft currently supports txt2img only.")
+
+        base_model, base_clip, vae = _load_aio_resources_from_input_context(context)
+        model_with_lora, clip, applied_loras = _apply_aio_lora_stack(
+            base_model,
+            base_clip,
+            lora_stack,
+        )
+        model = _apply_aio_model_patches(model_with_lora, settings)
+        prompt_data = _normalize_prompt_data(context["prompt_data"])
+        (
+            positive_prompt,
+            negative_prompt,
+            quality_tags,
+            quality_neg,
+            use_anima_mod_guidance,
+            use_negative_anima_mod_guidance,
+            _metadata_prompt,
+            _metadata_negative_prompt,
+            width,
+            height,
+        ) = _advanced_outputs_from_prompt_data(prompt_data)
+
+        artist_mix = settings["artist_mix"]
+        positive = _encode_prompt_data_positive_conditioning(
+            clip,
+            prompt_data,
+            positive_prompt,
+            artist_mix_mode=artist_mix["mode"],
+            artist_mix_start_percent=artist_mix["start_percent"],
+            artist_mix_strength_scale=artist_mix["strength_scale"],
+            artist_mix_style_gain=artist_mix["style_gain"],
+            artist_mix_rms_scale_cap=artist_mix["rms_scale_cap"],
+            artist_mix_exact_top_k=artist_mix["exact_top_k"],
+            artist_mix_cluster_count=artist_mix["cluster_count"],
+            artist_mix_dominant_isolation=artist_mix["dominant_isolation"],
+            artist_mix_dominant_threshold=artist_mix["dominant_threshold"],
+        )
+        negative = _encode_with_comfy_clip(clip, negative_prompt)
+
+        sampler = settings["sampler"]
+        mod_guidance = settings["mod_guidance"]
+        profile = _normalize_anima_mod_guidance_profile(mod_guidance["profile"])
+        use_mod_guidance = _resolve_anima_mod_guidance_enabled(
+            use_anima_mod_guidance,
+            mod_guidance["mode"],
+        )
+        mod_guidance_model = model
+        if use_mod_guidance and profile != ANIMA_MOD_GUIDANCE_PROFILE_OFF:
+            mod_guidance_model = _apply_spectrum_anima_mod_guidance(
+                model,
+                clip,
+                positive,
+                negative,
+                quality_tags,
+                quality_neg if use_negative_anima_mod_guidance else "",
+                profile,
+            )
+        base_sample_model = model if sampler.get("backend") == "spectrum_mod_guidance_advanced" else mod_guidance_model
+        if sampler.get("backend") == "comfy_ksampler":
+            base_sample_model = _apply_aio_spectrum_model_patches_for_comfy_sampler(
+                base_sample_model,
+                clip,
+                positive,
+                sampler,
+            )
+
+        stage_metadata: dict[str, Any] = {}
+        save_sampler = sampler
+        preview_settings = settings["preview"]
+        preview_images: list[dict[str, Any]] = []
+        will_run_highres = _as_bool(settings["highres"].get("enabled"), False)
+        will_run_detailer = _aio_detailer_has_enabled_targets(settings["detailer"])
+
+        def add_preview(stage: str, stage_image):
+            preview_images.extend(
+                _save_aio_temp_preview_image(
+                    stage_image,
+                    stage,
+                    workflow_prompt=workflow_prompt,
+                    extra_pnginfo=extra_pnginfo,
+                )
+            )
+
+        try:
+            latent_image = _generate_empty_latent_with_comfy(width, height)
+            latent = _sample_latent_with_aio_backend(
+                base_sample_model,
+                clip,
+                positive,
+                negative,
+                latent_image,
+                sampler,
+                mod_guidance,
+                use_mod_guidance,
+                quality_tags,
+                quality_neg if use_negative_anima_mod_guidance else "",
+            )
+            image = _decode_latent_with_comfy(vae, latent)
+            if preview_settings["intermediate_images"] and (will_run_highres or will_run_detailer):
+                add_preview("first_pass", image)
+            latent, image, width, height, highres_metadata = _run_aio_highres_stage(
+                mod_guidance_model,
+                clip,
+                vae,
+                positive,
+                negative,
+                image,
+                latent,
+                width,
+                height,
+                sampler,
+                settings["highres"],
+            )
+            stage_metadata["highres"] = highres_metadata
+            if highres_metadata.get("enabled") and isinstance(highres_metadata.get("sampler"), dict):
+                if preview_settings["intermediate_images"] and will_run_detailer:
+                    add_preview("highres", image)
+                save_sampler = highres_metadata["sampler"]
+            image, detailer_metadata = _run_aio_detailer_stage(
+                mod_guidance_model,
+                clip,
+                vae,
+                positive,
+                negative,
+                image,
+                sampler,
+                settings["detailer"],
+                add_preview if preview_settings["intermediate_images"] else None,
+            )
+            stage_metadata["detailer"] = detailer_metadata
+            if detailer_metadata.get("enabled"):
+                width, height = _image_tensor_size(image, width, height)
+                targets = detailer_metadata.get("targets", {})
+                if isinstance(targets, dict):
+                    for target_name in ("face", "eye"):
+                        target_data = targets.get(target_name)
+                        if isinstance(target_data, dict) and isinstance(target_data.get("sampler"), dict):
+                            save_sampler = target_data["sampler"]
+        finally:
+            seen_model_ids: set[int] = set()
+            for ephemeral_model in (base_sample_model, mod_guidance_model, model, model_with_lora):
+                if ephemeral_model is None:
+                    continue
+                key = id(ephemeral_model)
+                if key in seen_model_ids:
+                    continue
+                seen_model_ids.add(key)
+                _cleanup_aio_ephemeral_model(ephemeral_model, base_model)
+
+        save_settings = settings["save"]
+        save_ui = {}
+        if save_settings.get("enabled"):
+            if save_settings.get("backend") == "image_saver":
+                save_result = _save_image_with_image_saver(
+                    image,
+                    save_settings,
+                    positive_prompt=positive_prompt,
+                    negative_prompt=negative_prompt,
+                    width=width,
+                    height=height,
+                    sampler_settings=save_sampler,
+                    resource_info=context.get("resource_info", {}),
+                    workflow_prompt=workflow_prompt,
+                    extra_pnginfo=extra_pnginfo,
+                )
+            else:
+                save_result = _save_image_with_comfy(
+                    image,
+                    _aio_save_filename_prefix(save_settings),
+                    workflow_prompt=workflow_prompt,
+                    extra_pnginfo=extra_pnginfo,
+                )
+            if isinstance(save_result, dict) and isinstance(save_result.get("ui"), dict):
+                save_ui = save_result["ui"]
+        final_preview = _tag_aio_preview_images(save_ui.get("images", []), "final", width=width, height=height)
+        if not final_preview:
+            final_preview = _save_aio_temp_preview_image(
+                image,
+                "final",
+                workflow_prompt=workflow_prompt,
+                extra_pnginfo=extra_pnginfo,
+            )
+        if final_preview and preview_images and str(preview_images[-1].get("stage") or "").startswith("detailer_"):
+            preview_images[-1] = final_preview[0]
+            final_preview = final_preview[1:]
+
+        metadata = {
+            "schema": "easyuse_anima_aio_generation_result",
+            "version": 1,
+            "width": int(width),
+            "height": int(height),
+            "resource_info": _prompt_data_json_safe(context.get("resource_info", {})),
+            "input_settings": _prompt_data_json_safe(context.get("input_settings", {})),
+            "lora_stack": _prompt_data_json_safe(applied_loras),
+            "generation_settings": _prompt_data_json_safe(settings),
+            "stages": _prompt_data_json_safe(stage_metadata),
+            "prompt_data": _prompt_data_json_safe(prompt_data),
+        }
+        metadata_json = json.dumps(metadata, ensure_ascii=False, sort_keys=True)
+        ui = {
+            "status": ["generated"],
+            "width": [int(width)],
+            "height": [int(height)],
+            "unet_name": [str(context.get("resource_info", {}).get("unet_name", ""))],
+            "sampler_backend": [str(sampler.get("backend") or "comfy_ksampler")],
+        }
+        preview_payload = preview_images + final_preview
+        if preview_payload:
+            ui["easyuse_anima_preview"] = preview_payload
+        return {
+            "ui": ui,
+            "result": (image, latent, metadata_json),
+        }
 
 
 class EasyUseAnimaPromptStudioRegional:

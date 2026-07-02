@@ -2,8 +2,10 @@
 import logging
 
 from .nodes import (
+    EasyUseAnimaAIOGenerator,
     EasyUseAnimaDetailerAlignHook,
     EasyUseAnimaArtistMixConditioning,
+    EasyUseAnimaInput,
     EasyUseAnimaImageScaleByMultiple,
     EasyUseAnimaLoraPreset,
     EasyUseAnimaNAIARandomPrompt,
@@ -31,8 +33,10 @@ except OSError as exc:
     logger.warning("EasyUse Anima wildcard folder could not be initialized: %s", exc)
 
 NODE_CLASS_MAPPINGS = {
+    "EasyUseAnimaAIOGenerator": EasyUseAnimaAIOGenerator,
     "EasyUseAnimaDetailerAlignHook": EasyUseAnimaDetailerAlignHook,
     "EasyUseAnimaArtistMixConditioning": EasyUseAnimaArtistMixConditioning,
+    "EasyUseAnimaInput": EasyUseAnimaInput,
     "EasyUseAnimaImageScaleByMultiple": EasyUseAnimaImageScaleByMultiple,
     "EasyUseAnimaLoraPreset": EasyUseAnimaLoraPreset,
     "EasyUseAnimaNAIARandomPrompt": EasyUseAnimaNAIARandomPrompt,
@@ -51,8 +55,10 @@ NODE_CLASS_MAPPINGS = {
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
+    "EasyUseAnimaAIOGenerator": "Anima AiO Generator",
     "EasyUseAnimaDetailerAlignHook": "Anima Detailer Align Hook",
     "EasyUseAnimaArtistMixConditioning": "Anima Artist Mix Conditioning",
+    "EasyUseAnimaInput": "Easy Use Anima Input",
     "EasyUseAnimaImageScaleByMultiple": "Anima Image Scale By Multiple",
     "EasyUseAnimaLoraPreset": "Anima LoRA Preset",
     "EasyUseAnimaNAIARandomPrompt": "Anima NAIA Random Prompt",

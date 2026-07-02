@@ -710,6 +710,52 @@ const ADVANCED_WIDGET_INDEX = {
 };
 const ADVANCED_LEGACY_FIELDS_WIDGET_INDEXES = [6, 4];
 const ADVANCED_INTERNAL_WIDGET_NAMES = new Set(Object.keys(ADVANCED_WIDGET_INDEX));
+const ADVANCED_WIDGET_VALUE_DEFAULTS = {
+  use_naia: true,
+  consume_naia_on_queue: false,
+  use_anima_mod_guidance: true,
+  resolution_bucket: DEFAULT_ADVANCED_RESOLUTION_BUCKET,
+  resolution_size: DEFAULT_ADVANCED_RESOLUTION_SIZE,
+  resolution_custom_width: 1024,
+  resolution_custom_height: 1024,
+  pin_trigger_tags_to_front: true,
+  advanced_fields: "",
+  use_negative_anima_mod_guidance: true,
+  wildcard_mode: "고정",
+  wildcard_seed: 0,
+  wildcard_seed_after_generate: "fixed",
+  artist_mix_mode: "prompt_data",
+  artist_mix_start_percent: 0.5,
+  artist_mix_strength_scale: 1.0,
+  artist_mix_style_gain: 1.35,
+  artist_mix_rms_scale_cap: 2.0,
+  artist_mix_exact_top_k: 4,
+  artist_mix_cluster_count: 4,
+  artist_mix_dominant_isolation: true,
+  artist_mix_dominant_threshold: 0.25,
+};
+const ADVANCED_BOOLEAN_WIDGET_NAMES = new Set([
+  "use_naia",
+  "consume_naia_on_queue",
+  "use_anima_mod_guidance",
+  "pin_trigger_tags_to_front",
+  "use_negative_anima_mod_guidance",
+  "artist_mix_dominant_isolation",
+]);
+const ADVANCED_INT_WIDGET_NAMES = new Set([
+  "resolution_custom_width",
+  "resolution_custom_height",
+  "wildcard_seed",
+  "artist_mix_exact_top_k",
+  "artist_mix_cluster_count",
+]);
+const ADVANCED_FLOAT_WIDGET_NAMES = new Set([
+  "artist_mix_start_percent",
+  "artist_mix_strength_scale",
+  "artist_mix_style_gain",
+  "artist_mix_rms_scale_cap",
+  "artist_mix_dominant_threshold",
+]);
 const ADVANCED_FIELDS_PROPERTY = "easyuse_anima_advanced_fields";
 const ADVANCED_FIELD_SOCKET_PREFIX = "field_";
 const ADVANCED_FIELD_TYPES = ["quality", "artist", "trigger", "general", "naia"];
@@ -798,6 +844,83 @@ function firstValue(value, fallback = null) {
     return value.length ? value[0] : fallback;
   }
   return value ?? fallback;
+}
+
+function normalizeAdvancedBooleanValue(value, fallback) {
+  if (typeof value === "boolean") {
+    return value;
+  }
+  if (typeof value === "string") {
+    const normalized = value.trim().toLowerCase();
+    if (["true", "1", "yes", "on", "enabled"].includes(normalized)) {
+      return true;
+    }
+    if (["false", "0", "no", "off", "disabled"].includes(normalized)) {
+      return false;
+    }
+    if (!normalized) {
+      return !!fallback;
+    }
+  }
+  return value == null ? !!fallback : !!value;
+}
+
+function normalizeAdvancedWidgetQueueValue(name, value) {
+  const fallback = ADVANCED_WIDGET_VALUE_DEFAULTS[name];
+  if (name === "advanced_fields") {
+    return String(value || fallback || advancedDefaultFieldsValue());
+  }
+  if (ADVANCED_BOOLEAN_WIDGET_NAMES.has(name)) {
+    return normalizeAdvancedBooleanValue(value, fallback);
+  }
+  if (ADVANCED_INT_WIDGET_NAMES.has(name)) {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? Math.trunc(parsed) : fallback;
+  }
+  if (ADVANCED_FLOAT_WIDGET_NAMES.has(name)) {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : fallback;
+  }
+  if (name === "artist_mix_mode") {
+    return normalizeArtistMixMode(value || fallback);
+  }
+  if (name === "resolution_bucket") {
+    return normalizeAdvancedResolutionBucket(value || fallback);
+  }
+  if (name === "resolution_size") {
+    return String(value || fallback || DEFAULT_ADVANCED_RESOLUTION_SIZE);
+  }
+  if (name === "wildcard_seed_after_generate") {
+    return String(value || fallback || "fixed");
+  }
+  return value == null || value === "" ? fallback : value;
+}
+
+function repairAdvancedInternalWidgetValues(node) {
+  let changed = false;
+  for (const name of Object.keys(ADVANCED_WIDGET_INDEX)) {
+    if (name === "advanced_fields") {
+      continue;
+    }
+    const widget = findWidget(node, name);
+    if (!widget) {
+      continue;
+    }
+    const next = normalizeAdvancedWidgetQueueValue(name, widget.value);
+    if (widget.value !== next) {
+      widget.value = next;
+      const input = findInputEl(widget);
+      if (input) {
+        input.value = String(next ?? "");
+      }
+      changed = true;
+    }
+  }
+  if (changed) {
+    node.setDirtyCanvas?.(true, true);
+    app.graph?.setDirtyCanvas?.(true, true);
+  }
+  return changed;
 }
 
 function isWidgetInputLinked(node, name) {
@@ -3187,6 +3310,7 @@ function hideAdvancedControlWidgets(node) {
   for (const name of ADVANCED_INTERNAL_WIDGET_NAMES) {
     hideAdvancedInternalWidget(node, name);
   }
+  repairAdvancedInternalWidgetValues(node);
 }
 
 function removeAdvancedInternalInputSockets(node) {
@@ -3507,7 +3631,11 @@ function setAdvancedWidgetValue(node, name, value) {
   if (!widget) {
     return false;
   }
-  widget.value = String(value ?? "");
+  widget.value = normalizeAdvancedWidgetQueueValue(name, value);
+  const input = findInputEl(widget);
+  if (input) {
+    input.value = String(widget.value ?? "");
+  }
   widget.callback?.(widget.value);
   node.setDirtyCanvas?.(true, true);
   app.graph?.setDirtyCanvas?.(true, true);
@@ -5149,6 +5277,7 @@ function scheduleHookAdvancedNode(node) {
 }
 
 function syncAdvancedValues(node, serialized = null) {
+  repairAdvancedInternalWidgetValues(node);
   const fields = collectAdvancedEditorFields(node);
   writeAdvancedFields(node, fields, { syncInputs: false });
   if (!serialized || !Array.isArray(node.widgets) || !Array.isArray(serialized.widgets_values)) {
@@ -5171,7 +5300,9 @@ function syncAdvancedValues(node, serialized = null) {
     if (name === "advanced_fields") {
       serialized.widgets_values[index] = fieldsValue;
     } else if (widget) {
-      serialized.widgets_values[index] = widget.value;
+      const value = normalizeAdvancedWidgetQueueValue(name, widget.value);
+      widget.value = value;
+      serialized.widgets_values[index] = value;
     }
   }
 }

@@ -77,6 +77,26 @@ class LocaleTests(unittest.TestCase):
                             nodes.PROMPT_DATA_TYPE,
                         )
 
+    def test_easy_use_anima_input_socket_names_are_not_localized(self):
+        for locale_code in LOCALE_CODES:
+            data = json.loads((ROOT / "locales" / locale_code / "nodeDefs.json").read_text(encoding="utf-8"))
+            self.assertEqual(
+                data["EasyUseAnimaInput"]["outputs"]["0"]["name"],
+                "easy use anima input",
+            )
+            self.assertEqual(
+                data["EasyUseAnimaAIOGenerator"]["inputs"]["easy_use_anima_input"]["name"],
+                "easy use anima input",
+            )
+            self.assertEqual(
+                data["EasyUseAnimaAIOGenerator"]["outputs"]["2"]["name"],
+                "metadata_json",
+            )
+            input_names = data["EasyUseAnimaInput"]["inputs"]
+            self.assertNotIn("ckpt_name", input_names)
+            for key in ("unet_name", "vae_name", "clip_name", "clip_type"):
+                self.assertIn(key, input_names)
+
 
 if __name__ == "__main__":
     unittest.main()

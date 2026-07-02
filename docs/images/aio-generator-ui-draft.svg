@@ -1,0 +1,265 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1320" height="900" viewBox="0 0 1320 900" role="img" aria-labelledby="title desc">
+  <title id="title">Anima AiO Generator WebUI-style UI draft</title>
+  <desc id="desc">A wide custom node UI draft with WebUI-like tabs, prompt data summary, generation settings, preview, pipeline, advanced foldouts, and ComfyUI sockets.</desc>
+  <defs>
+    <linearGradient id="panelGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#20242a"/>
+      <stop offset="1" stop-color="#171a1f"/>
+    </linearGradient>
+    <linearGradient id="previewGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#282d31"/>
+      <stop offset="0.52" stop-color="#1f2624"/>
+      <stop offset="1" stop-color="#2b2421"/>
+    </linearGradient>
+    <filter id="softShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="12" stdDeviation="18" flood-color="#000000" flood-opacity="0.35"/>
+    </filter>
+    <style>
+      .bg { fill: #101216; }
+      .node { fill: url(#panelGrad); stroke: #3a4048; stroke-width: 1.5; }
+      .title { fill: #f3f1ec; font: 700 22px "Segoe UI", Arial, sans-serif; }
+      .subtitle { fill: #aeb6ba; font: 400 12px "Segoe UI", Arial, sans-serif; }
+      .section-title { fill: #eee9df; font: 700 13px "Segoe UI", Arial, sans-serif; }
+      .label { fill: #c7ced0; font: 500 11px "Segoe UI", Arial, sans-serif; }
+      .muted { fill: #8f999d; font: 400 10px "Segoe UI", Arial, sans-serif; }
+      .value { fill: #f4f0e8; font: 600 11px "Segoe UI", Arial, sans-serif; }
+      .small { fill: #d5d7d6; font: 600 10px "Segoe UI", Arial, sans-serif; }
+      .mono { fill: #cdd7d5; font: 500 10px Consolas, "SF Mono", monospace; }
+      .panel { fill: #1b1f24; stroke: #343b43; stroke-width: 1; }
+      .panel2 { fill: #181c20; stroke: #313840; stroke-width: 1; }
+      .field { fill: #101317; stroke: #3c454d; stroke-width: 1; }
+      .field2 { fill: #15191e; stroke: #3a4248; stroke-width: 1; }
+      .tab { fill: #191e23; stroke: #3a4248; stroke-width: 1; }
+      .tab-active { fill: #2a5b50; stroke: #64b6a5; stroke-width: 1; }
+      .button { fill: #2d614f; stroke: #78c5a2; stroke-width: 1; }
+      .button-alt { fill: #513f2c; stroke: #d49c58; stroke-width: 1; }
+      .button-warn { fill: #5c3233; stroke: #e17e79; stroke-width: 1; }
+      .chip { fill: #263038; stroke: #48535c; stroke-width: 1; }
+      .chip-on { fill: #223c36; stroke: #6fc2a7; stroke-width: 1; }
+      .chip-amber { fill: #403321; stroke: #cf9a4a; stroke-width: 1; }
+      .chip-coral { fill: #49302f; stroke: #db8179; stroke-width: 1; }
+      .socket-in { fill: #64b6a5; stroke: #111519; stroke-width: 2; }
+      .socket-out { fill: #d49c58; stroke: #111519; stroke-width: 2; }
+      .line { stroke: #44505a; stroke-width: 1; }
+      .stage { fill: #171b20; stroke: #46515a; stroke-width: 1; }
+      .stage-on { fill: #18352f; stroke: #69b79e; stroke-width: 1.2; }
+      .stage-muted { fill: #1c2025; stroke: #3b434a; stroke-width: 1; }
+    </style>
+  </defs>
+
+  <rect class="bg" width="1320" height="900"/>
+  <rect x="30" y="24" width="1260" height="846" rx="12" class="node" filter="url(#softShadow)"/>
+
+  <text x="62" y="65" class="title">Anima AiO Generator</text>
+  <text x="62" y="86" class="subtitle">WebUI-style compact generation surface for EASYUSE_ANIMA_PROMPT_DATA</text>
+
+  <g transform="translate(820 40)">
+    <rect x="0" y="0" width="104" height="30" rx="6" class="tab-active"/>
+    <text x="28" y="20" class="small">txt2img</text>
+    <rect x="112" y="0" width="104" height="30" rx="6" class="tab"/>
+    <text x="142" y="20" class="small">img2img</text>
+    <rect x="224" y="0" width="104" height="30" rx="6" class="tab"/>
+    <text x="254" y="20" class="small">inpaint</text>
+    <rect x="336" y="0" width="84" height="30" rx="6" class="button"/>
+    <text x="356" y="20" class="small">Queue</text>
+  </g>
+
+  <g transform="translate(46 108)">
+    <rect x="0" y="0" width="1228" height="82" rx="8" class="panel"/>
+    <text x="16" y="25" class="section-title">Top Bar</text>
+    <rect x="116" y="14" width="292" height="24" rx="5" class="field"/>
+    <text x="128" y="31" class="label">Checkpoint</text>
+    <text x="220" y="31" class="value">anima_pencil-XL.safetensors</text>
+    <rect x="422" y="14" width="166" height="24" rx="5" class="field"/>
+    <text x="434" y="31" class="label">VAE</text>
+    <text x="476" y="31" class="value">from checkpoint</text>
+    <rect x="602" y="14" width="174" height="24" rx="5" class="field"/>
+    <text x="614" y="31" class="label">Preset</text>
+    <text x="668" y="31" class="value">balanced</text>
+    <rect x="790" y="14" width="144" height="24" rx="5" class="chip-on"/>
+    <text x="808" y="31" class="small">Prompt Data linked</text>
+    <rect x="948" y="14" width="122" height="24" rx="5" class="chip-amber"/>
+    <text x="966" y="31" class="small">Save on</text>
+    <rect x="1084" y="14" width="126" height="24" rx="5" class="chip"/>
+    <text x="1101" y="31" class="small">Preview image</text>
+
+    <rect x="116" y="48" width="740" height="22" rx="5" class="field2"/>
+    <text x="128" y="63" class="mono">prompt data: positive, negative, width, height, artist_mix, mod_guidance</text>
+    <rect x="870" y="48" width="340" height="22" rx="5" class="field2"/>
+    <text x="882" y="63" class="mono">metadata: prompt data + workflow snapshot</text>
+  </g>
+
+  <g transform="translate(46 210)">
+    <rect x="0" y="0" width="282" height="456" rx="8" class="panel"/>
+    <text x="16" y="27" class="section-title">Main Parameters</text>
+
+    <rect x="16" y="46" width="250" height="42" rx="6" class="field"/>
+    <text x="28" y="65" class="label">Seed</text>
+    <text x="188" y="65" class="value">381482191</text>
+    <rect x="180" y="73" width="36" height="10" rx="5" class="chip"/>
+    <rect x="222" y="73" width="36" height="10" rx="5" class="chip-amber"/>
+
+    <rect x="16" y="98" width="120" height="42" rx="6" class="field"/>
+    <text x="28" y="117" class="label">Width</text>
+    <text x="82" y="117" class="value">1024</text>
+    <rect x="146" y="98" width="120" height="42" rx="6" class="field"/>
+    <text x="158" y="117" class="label">Height</text>
+    <text x="216" y="117" class="value">1536</text>
+
+    <rect x="16" y="150" width="120" height="42" rx="6" class="field"/>
+    <text x="28" y="169" class="label">Steps</text>
+    <text x="92" y="169" class="value">28</text>
+    <rect x="146" y="150" width="120" height="42" rx="6" class="field"/>
+    <text x="158" y="169" class="label">CFG</text>
+    <text x="222" y="169" class="value">5.0</text>
+
+    <rect x="16" y="202" width="250" height="42" rx="6" class="field"/>
+    <text x="28" y="221" class="label">Sampler</text>
+    <text x="144" y="221" class="value">euler_ancestral</text>
+    <text x="28" y="237" class="muted">Scheduler: normal</text>
+
+    <rect x="16" y="264" width="250" height="74" rx="6" class="panel2"/>
+    <text x="28" y="286" class="section-title">Highres</text>
+    <rect x="188" y="271" width="56" height="22" rx="11" class="chip-on"/>
+    <circle cx="228" cy="282" r="8" fill="#d8fff2"/>
+    <text x="28" y="310" class="label">Scale</text>
+    <text x="86" y="310" class="value">1.50</text>
+    <text x="146" y="310" class="label">Denoise</text>
+    <text x="218" y="310" class="value">0.35</text>
+    <text x="28" y="326" class="muted">2nd pass uses prompt-data conditioning</text>
+
+    <rect x="16" y="350" width="250" height="90" rx="6" class="panel2"/>
+    <text x="28" y="372" class="section-title">Detailers</text>
+    <rect x="28" y="386" width="92" height="22" rx="5" class="chip-on"/>
+    <text x="48" y="401" class="small">Face</text>
+    <rect x="130" y="386" width="92" height="22" rx="5" class="chip-on"/>
+    <text x="153" y="401" class="small">Eyes</text>
+    <rect x="28" y="414" width="194" height="18" rx="4" class="chip"/>
+    <text x="42" y="427" class="muted">SAM3 + Impact detailer delegation</text>
+  </g>
+
+  <g transform="translate(348 210)">
+    <rect x="0" y="0" width="430" height="456" rx="8" class="panel"/>
+    <text x="16" y="27" class="section-title">Prompt Data Summary</text>
+
+    <rect x="16" y="46" width="398" height="106" rx="6" class="field"/>
+    <text x="28" y="66" class="label">Positive prompt</text>
+    <text x="28" y="86" class="mono">1girl, solo, black hair, painterly lighting,</text>
+    <text x="28" y="103" class="mono">soft shading, detailed eyes, elegant pose...</text>
+    <rect x="28" y="121" width="82" height="18" rx="4" class="chip-on"/>
+    <text x="42" y="134" class="muted">corrected</text>
+    <rect x="118" y="121" width="92" height="18" rx="4" class="chip-amber"/>
+    <text x="132" y="134" class="muted">artist mix</text>
+
+    <rect x="16" y="166" width="398" height="72" rx="6" class="field"/>
+    <text x="28" y="186" class="label">Negative prompt</text>
+    <text x="28" y="207" class="mono">lowres, bad anatomy, watermark, text, jpeg artifacts...</text>
+
+    <rect x="16" y="254" width="190" height="72" rx="6" class="panel2"/>
+    <text x="28" y="276" class="section-title">Artist Mix</text>
+    <text x="28" y="298" class="label">Mode</text>
+    <text x="94" y="298" class="value">hybrid</text>
+    <text x="28" y="314" class="muted">Exact top 2 + RMS tail</text>
+
+    <rect x="224" y="254" width="190" height="72" rx="6" class="panel2"/>
+    <text x="236" y="276" class="section-title">Mod Guidance</text>
+    <text x="236" y="298" class="label">Mode</text>
+    <text x="306" y="298" class="value">prompt_data</text>
+    <text x="236" y="314" class="muted">Spectrum patch if available</text>
+
+    <text x="16" y="354" class="section-title">Pipeline</text>
+    <g transform="translate(16 374)">
+      <rect x="0" y="0" width="74" height="42" rx="6" class="stage-on"/>
+      <text x="13" y="25" class="small">Prompt</text>
+      <line x1="74" y1="21" x2="94" y2="21" class="line"/>
+      <rect x="94" y="0" width="70" height="42" rx="6" class="stage-on"/>
+      <text x="111" y="25" class="small">Patch</text>
+      <line x1="164" y1="21" x2="184" y2="21" class="line"/>
+      <rect x="184" y="0" width="82" height="42" rx="6" class="stage-on"/>
+      <text x="198" y="25" class="small">Sample</text>
+      <line x1="266" y1="21" x2="286" y2="21" class="line"/>
+      <rect x="286" y="0" width="74" height="42" rx="6" class="stage"/>
+      <text x="304" y="25" class="small">Save</text>
+    </g>
+
+    <rect x="16" y="430" width="398" height="14" rx="7" fill="#0f1216" stroke="#303840"/>
+    <rect x="16" y="430" width="256" height="14" rx="7" fill="#66b99f"/>
+  </g>
+
+  <g transform="translate(798 210)">
+    <rect x="0" y="0" width="476" height="456" rx="8" class="panel"/>
+    <text x="16" y="27" class="section-title">Preview</text>
+    <rect x="300" y="12" width="72" height="24" rx="5" class="chip-on"/>
+    <text x="318" y="29" class="small">Image</text>
+    <rect x="382" y="12" width="76" height="24" rx="5" class="chip"/>
+    <text x="397" y="29" class="small">Stages</text>
+
+    <rect x="16" y="46" width="444" height="286" rx="8" fill="url(#previewGrad)" stroke="#48515a"/>
+    <rect x="52" y="74" width="160" height="220" rx="8" fill="#30333a" opacity="0.65"/>
+    <rect x="232" y="74" width="190" height="220" rx="8" fill="#22282b" opacity="0.78"/>
+    <path d="M64 284 C112 232 140 248 174 206 C202 172 212 144 252 128 C304 108 346 138 408 92" fill="none" stroke="#d49c58" stroke-width="5" opacity="0.55"/>
+    <path d="M62 116 C112 92 152 124 198 106 C242 90 268 58 330 70" fill="none" stroke="#64b6a5" stroke-width="4" opacity="0.52"/>
+    <circle cx="172" cy="154" r="36" fill="#6fc2a7" opacity="0.22"/>
+    <circle cx="306" cy="210" r="54" fill="#e17e79" opacity="0.16"/>
+    <text x="172" y="184" text-anchor="middle" class="label">latest output preview</text>
+    <text x="172" y="203" text-anchor="middle" class="muted">no heavy refresh during typing</text>
+
+    <rect x="16" y="350" width="214" height="82" rx="6" class="panel2"/>
+    <text x="28" y="372" class="section-title">Save</text>
+    <text x="28" y="394" class="label">Mode</text>
+    <text x="92" y="394" class="value">image + metadata</text>
+    <text x="28" y="414" class="muted">workflow + prompt data snapshot</text>
+
+    <rect x="246" y="350" width="214" height="82" rx="6" class="panel2"/>
+    <text x="258" y="372" class="section-title">Outputs</text>
+    <rect x="258" y="386" width="64" height="22" rx="5" class="chip-amber"/>
+    <text x="275" y="401" class="small">IMAGE</text>
+    <rect x="330" y="386" width="64" height="22" rx="5" class="chip"/>
+    <text x="347" y="401" class="small">LATENT</text>
+    <rect x="402" y="386" width="44" height="22" rx="5" class="chip"/>
+    <text x="414" y="401" class="small">JSON</text>
+  </g>
+
+  <g transform="translate(46 686)">
+    <rect x="0" y="0" width="1228" height="140" rx="8" class="panel"/>
+    <text x="16" y="27" class="section-title">Advanced Options Foldouts</text>
+    <g transform="translate(16 46)">
+      <rect x="0" y="0" width="220" height="72" rx="6" class="stage-on"/>
+      <text x="14" y="24" class="section-title">Model Patch</text>
+      <text x="14" y="45" class="muted">Anima Mod Guidance, profile, offload</text>
+      <rect x="236" y="0" width="220" height="72" rx="6" class="stage"/>
+      <text x="250" y="24" class="section-title">Highres</text>
+      <text x="250" y="45" class="muted">scale, upscaler, second sampler</text>
+      <rect x="472" y="0" width="220" height="72" rx="6" class="stage"/>
+      <text x="486" y="24" class="section-title">SAM3 Detailer</text>
+      <text x="486" y="45" class="muted">targets, threshold, crop alignment</text>
+      <rect x="708" y="0" width="220" height="72" rx="6" class="stage"/>
+      <text x="722" y="24" class="section-title">Artist Mix</text>
+      <text x="722" y="45" class="muted">exact, hybrid, clustered tuning</text>
+      <rect x="944" y="0" width="220" height="72" rx="6" class="stage"/>
+      <text x="958" y="24" class="section-title">Metadata Save</text>
+      <text x="958" y="45" class="muted">filename, WEBP/PNG, reproducibility</text>
+    </g>
+  </g>
+
+  <g>
+    <circle cx="30" cy="250" r="7" class="socket-in"/>
+    <text x="45" y="254" class="muted">MODEL</text>
+    <circle cx="30" cy="286" r="7" class="socket-in"/>
+    <text x="45" y="290" class="muted">CLIP</text>
+    <circle cx="30" cy="322" r="7" class="socket-in"/>
+    <text x="45" y="326" class="muted">VAE</text>
+    <circle cx="30" cy="358" r="7" class="socket-in"/>
+    <text x="45" y="362" class="muted">PROMPT_DATA</text>
+    <circle cx="1290" cy="250" r="7" class="socket-out"/>
+    <text x="1238" y="254" class="muted">IMAGE</text>
+    <circle cx="1290" cy="286" r="7" class="socket-out"/>
+    <text x="1238" y="290" class="muted">LATENT</text>
+    <circle cx="1290" cy="322" r="7" class="socket-out"/>
+    <text x="1212" y="326" class="muted">PROMPT_DATA</text>
+    <circle cx="1290" cy="358" r="7" class="socket-out"/>
+    <text x="1228" y="362" class="muted">METADATA</text>
+  </g>
+
+  <text x="46" y="852" class="subtitle">Draft note: wide DOM widget concept, not final ComfyUI node dimensions. Required widgets must still serialize for queue and saved workflow reproduction.</text>
+</svg>
