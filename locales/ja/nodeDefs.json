@@ -326,48 +326,64 @@
     },
     "outputs": {
       "0": {
-        "name": "Prompt data",
+        "name": "EASYUSE_ANIMA_PROMPT_DATA",
         "tooltip": "EASYUSE_ANIMA_PROMPT_DATA dict for downstream nodes."
+      }
+    }
+  },
+  "EasyUseAnimaPromptDataUnpack": {
+    "display_name": "EASYUSE_ANIMA_PROMPT_DATA Unpack",
+    "description": "Passes EASYUSE_ANIMA_PROMPT_DATA through and unpacks it into Prompt Studio compatibility outputs.",
+    "inputs": {
+      "EASYUSE_ANIMA_PROMPT_DATA": {
+        "name": "EASYUSE_ANIMA_PROMPT_DATA",
+        "tooltip": "Structured prompt data from Anima Prompt Studio Advanced v2."
+      }
+    },
+    "outputs": {
+      "0": {
+        "name": "EASYUSE_ANIMA_PROMPT_DATA",
+        "tooltip": "Pass-through prompt data for downstream prompt-data nodes."
       },
       "1": {
-        "name": "Positive prompt",
-        "tooltip": "Final positive prompt assembled from enabled positive fields."
+        "name": "positive_prompt",
+        "tooltip": "Positive prompt read from prompt data."
       },
       "2": {
-        "name": "Negative prompt",
-        "tooltip": "Final negative prompt assembled from enabled negative fields."
+        "name": "negative_prompt",
+        "tooltip": "Negative prompt read from prompt data."
       },
       "3": {
-        "name": "Mod Guidance quality tags",
-        "tooltip": "Positive quality fields routed to Anima Mod Guidance."
+        "name": "anima_mod_guidance_quality_tags",
+        "tooltip": "Mod Guidance quality tags read from prompt data."
       },
       "4": {
-        "name": "Mod Guidance negative prompt",
-        "tooltip": "Negative quality fields routed to Anima Mod Guidance."
+        "name": "anima_mod_guidance_negative_prompt",
+        "tooltip": "Mod Guidance negative prompt read from prompt data."
       },
       "5": {
-        "name": "Use Mod Guidance",
-        "tooltip": "Boolean flag passed through for Anima Mod Guidance workflow control."
+        "name": "use_anima_mod_guidance",
+        "tooltip": "Mod Guidance boolean read from prompt data."
       },
       "6": {
-        "name": "Use negative Mod Guidance",
-        "tooltip": "Boolean flag passed through for negative Anima Mod Guidance workflow control."
+        "name": "use_negative_anima_mod_guidance",
+        "tooltip": "Negative Mod Guidance boolean read from prompt data."
       },
       "7": {
-        "name": "Metadata prompt",
-        "tooltip": "Positive metadata prompt with metadata filters applied."
+        "name": "metadata_prompt",
+        "tooltip": "Metadata positive prompt read from prompt data."
       },
       "8": {
-        "name": "Metadata negative prompt",
-        "tooltip": "Negative metadata prompt with metadata filters applied."
+        "name": "metadata_negative_prompt",
+        "tooltip": "Metadata negative prompt read from prompt data."
       },
       "9": {
-        "name": "Width",
-        "tooltip": "Selected latent width."
+        "name": "width",
+        "tooltip": "Latent width read from prompt data."
       },
       "10": {
-        "name": "Height",
-        "tooltip": "Selected latent height."
+        "name": "height",
+        "tooltip": "Latent height read from prompt data."
       }
     }
   },

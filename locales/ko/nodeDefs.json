@@ -326,48 +326,64 @@
     },
     "outputs": {
       "0": {
-        "name": "프롬프트 데이터",
+        "name": "EASYUSE_ANIMA_PROMPT_DATA",
         "tooltip": "하위 노드에서 키로 참조할 수 있는 EASYUSE_ANIMA_PROMPT_DATA dict입니다."
+      }
+    }
+  },
+  "EasyUseAnimaPromptDataUnpack": {
+    "display_name": "EASYUSE_ANIMA_PROMPT_DATA Unpack",
+    "description": "EASYUSE_ANIMA_PROMPT_DATA dict를 context처럼 통과시키고 기존 Prompt Studio 호환 출력으로 펼치는 노드입니다.",
+    "inputs": {
+      "EASYUSE_ANIMA_PROMPT_DATA": {
+        "name": "EASYUSE_ANIMA_PROMPT_DATA",
+        "tooltip": "Anima Prompt Studio Advanced v2에서 나온 구조화 프롬프트 데이터입니다."
+      }
+    },
+    "outputs": {
+      "0": {
+        "name": "EASYUSE_ANIMA_PROMPT_DATA",
+        "tooltip": "다른 프롬프트 데이터 노드로 이어 쓸 수 있는 pass-through 출력입니다."
       },
       "1": {
-        "name": "긍정 프롬프트",
-        "tooltip": "활성화된 긍정 필드로 조합한 최종 긍정 프롬프트입니다."
+        "name": "positive_prompt",
+        "tooltip": "프롬프트 데이터에서 꺼낸 긍정 프롬프트입니다."
       },
       "2": {
-        "name": "부정 프롬프트",
-        "tooltip": "활성화된 부정 필드로 조합한 최종 부정 프롬프트입니다."
+        "name": "negative_prompt",
+        "tooltip": "프롬프트 데이터에서 꺼낸 부정 프롬프트입니다."
       },
       "3": {
-        "name": "Mod Guidance 품질 태그",
-        "tooltip": "Anima Mod Guidance로 보낼 긍정 품질 필드입니다."
+        "name": "anima_mod_guidance_quality_tags",
+        "tooltip": "프롬프트 데이터에서 꺼낸 Mod Guidance 품질 태그입니다."
       },
       "4": {
-        "name": "Mod Guidance 부정 프롬프트",
-        "tooltip": "Anima Mod Guidance로 보낼 부정 품질 필드입니다."
+        "name": "anima_mod_guidance_negative_prompt",
+        "tooltip": "프롬프트 데이터에서 꺼낸 Mod Guidance 부정 프롬프트입니다."
       },
       "5": {
-        "name": "Mod Guidance 사용",
-        "tooltip": "Anima Mod Guidance 워크플로우 제어를 위한 Boolean 출력입니다."
+        "name": "use_anima_mod_guidance",
+        "tooltip": "프롬프트 데이터에서 꺼낸 Mod Guidance Boolean 출력입니다."
       },
       "6": {
-        "name": "부정 Mod Guidance 사용",
-        "tooltip": "부정 Anima Mod Guidance 워크플로우 제어를 위한 Boolean 출력입니다."
+        "name": "use_negative_anima_mod_guidance",
+        "tooltip": "프롬프트 데이터에서 꺼낸 부정 Mod Guidance Boolean 출력입니다."
       },
       "7": {
-        "name": "메타데이터 프롬프트",
-        "tooltip": "메타데이터 필터가 적용된 긍정 메타데이터 프롬프트입니다."
+        "name": "metadata_prompt",
+        "tooltip": "프롬프트 데이터에서 꺼낸 메타데이터 긍정 프롬프트입니다."
       },
       "8": {
-        "name": "메타데이터 부정 프롬프트",
-        "tooltip": "메타데이터 필터가 적용된 부정 메타데이터 프롬프트입니다."
+        "name": "metadata_negative_prompt",
+        "tooltip": "프롬프트 데이터에서 꺼낸 메타데이터 부정 프롬프트입니다."
       },
       "9": {
-        "name": "너비",
-        "tooltip": "선택된 잠재 이미지 너비입니다."
+        "name": "width",
+        "tooltip": "프롬프트 데이터에서 꺼낸 잠재 이미지 너비입니다."
       },
       "10": {
-        "name": "높이",
-        "tooltip": "선택된 잠재 이미지 높이입니다."
+        "name": "height",
+        "tooltip": "프롬프트 데이터에서 꺼낸 잠재 이미지 높이입니다."
       }
     }
   },

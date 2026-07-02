@@ -1448,6 +1448,61 @@ def _normalize_prompt_data(value: str | dict | None) -> dict[str, Any]:
     return {}
 
 
+def _prompt_data_nested(data: dict[str, Any], key: str) -> dict[str, Any]:
+    value = data.get(key)
+    return value if isinstance(value, dict) else {}
+
+
+def _prompt_data_output(data: dict[str, Any], name: str, default=None):
+    outputs = _prompt_data_nested(data, "outputs")
+    if name in outputs:
+        return outputs[name]
+    if name in data:
+        return data[name]
+
+    mod_guidance = _prompt_data_nested(data, "mod_guidance")
+    anima_mod_guidance = _prompt_data_nested(data, "anima_mod_guidance")
+    resolution = _prompt_data_nested(data, "resolution")
+    fallbacks = {
+        "positive_prompt": data.get("prompt", default),
+        "anima_mod_guidance_quality_tags": mod_guidance.get(
+            "quality_tags",
+            anima_mod_guidance.get("quality_tags", default),
+        ),
+        "anima_mod_guidance_negative_prompt": mod_guidance.get(
+            "negative_prompt",
+            anima_mod_guidance.get("negative_prompt", default),
+        ),
+        "use_anima_mod_guidance": mod_guidance.get(
+            "enabled",
+            anima_mod_guidance.get("use_positive", default),
+        ),
+        "use_negative_anima_mod_guidance": mod_guidance.get(
+            "negative_enabled",
+            anima_mod_guidance.get("use_negative", default),
+        ),
+        "width": resolution.get("width", default),
+        "height": resolution.get("height", default),
+    }
+    return fallbacks.get(name, default)
+
+
+def _advanced_outputs_from_prompt_data(value: str | dict | None) -> tuple:
+    data = _normalize_prompt_data(value)
+    return (
+        str(_prompt_data_output(data, "positive_prompt", "") or ""),
+        str(_prompt_data_output(data, "negative_prompt", "") or ""),
+        str(_prompt_data_output(data, "anima_mod_guidance_quality_tags", "") or ""),
+        str(_prompt_data_output(data, "anima_mod_guidance_negative_prompt", "") or ""),
+        _as_bool(_prompt_data_output(data, "use_anima_mod_guidance", False), False),
+        _as_bool(_prompt_data_output(data, "use_negative_anima_mod_guidance", False), False),
+        str(_prompt_data_output(data, "metadata_prompt", "") or ""),
+        str(_prompt_data_output(data, "metadata_negative_prompt", "") or ""),
+        _as_int(_prompt_data_output(data, "width", 1024), 1024),
+        _as_int(_prompt_data_output(data, "height", 1024), 1024),
+    )
+
+
 def _build_advanced_prompt_data(
     compat_result: tuple,
     effective_fields: list[dict],
@@ -1491,7 +1546,15 @@ def _build_advanced_prompt_data(
         "negative_prompt": negative_prompt,
         "metadata_prompt": metadata_prompt,
         "metadata_negative_prompt": metadata_negative_prompt,
+        "width": int(width),
+        "height": int(height),
         "outputs": outputs,
+        "mod_guidance": {
+            "enabled": bool(use_anima_mod_guidance),
+            "negative_enabled": bool(use_negative_anima_mod_guidance),
+            "quality_tags": quality_tags,
+            "negative_prompt": negative_quality_tags,
+        },
         "anima_mod_guidance": {
             "use_positive": bool(use_anima_mod_guidance),
             "use_negative": bool(use_negative_anima_mod_guidance),
@@ -3328,15 +3391,12 @@ class EasyUseAnimaPromptStudioAdvancedV2(EasyUseAnimaPromptStudioAdvanced):
     """Advanced Prompt Studio v2 with structured prompt data output."""
 
     DESCRIPTION = (
-        "Advanced Prompt Studio v2. It keeps the Advanced compatibility outputs and prepends "
-        "an EASYUSE_ANIMA_PROMPT_DATA dict socket for downstream nodes."
+        "Advanced Prompt Studio v2. It outputs a single EASYUSE_ANIMA_PROMPT_DATA "
+        "dict socket for downstream nodes."
     )
-    OUTPUT_TOOLTIPS = (
-        "Structured prompt data dict for downstream EasyUse Anima nodes.",
-        *EasyUseAnimaPromptStudioAdvanced.OUTPUT_TOOLTIPS,
-    )
-    RETURN_TYPES = (PROMPT_DATA_TYPE, *EasyUseAnimaPromptStudioAdvanced.RETURN_TYPES)
-    RETURN_NAMES = ("prompt_data", *EasyUseAnimaPromptStudioAdvanced.RETURN_NAMES)
+    OUTPUT_TOOLTIPS = ("Structured prompt data dict for downstream EasyUse Anima nodes.",)
+    RETURN_TYPES = (PROMPT_DATA_TYPE,)
+    RETURN_NAMES = (PROMPT_DATA_TYPE,)
 
     def build(
         self,
@@ -3404,8 +3464,61 @@ class EasyUseAnimaPromptStudioAdvancedV2(EasyUseAnimaPromptStudioAdvanced):
         )
         return {
             **base,
-            "result": (prompt_data, *compat_result),
+            "result": (prompt_data,),
         }
+
+
+class EasyUseAnimaPromptDataUnpack:
+    """Unpack EASYUSE_ANIMA_PROMPT_DATA into compatibility outputs."""
+
+    DESCRIPTION = (
+        "Unpacks an EASYUSE_ANIMA_PROMPT_DATA dict into Prompt Studio compatibility "
+        "outputs while passing the prompt data through for context-style chaining."
+    )
+    OUTPUT_TOOLTIPS = (
+        "Pass-through prompt data for downstream prompt-data nodes.",
+        *EasyUseAnimaPromptStudioAdvanced.OUTPUT_TOOLTIPS,
+    )
+
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {
+            "required": {
+                PROMPT_DATA_TYPE: (PROMPT_DATA_TYPE, {
+                    "forceInput": True,
+                    "tooltip": "Structured prompt data from Anima Prompt Studio Advanced v2.",
+                }),
+            },
+        }
+
+    RETURN_TYPES = (PROMPT_DATA_TYPE, *EasyUseAnimaPromptStudioAdvanced.RETURN_TYPES)
+    RETURN_NAMES = (PROMPT_DATA_TYPE, *EasyUseAnimaPromptStudioAdvanced.RETURN_NAMES)
+    FUNCTION = "unpack"
+    CATEGORY = "EasyUse Anima/Prompt"
+
+    @classmethod
+    def IS_CHANGED(
+        cls,
+        EASYUSE_ANIMA_PROMPT_DATA: str | dict | None = None,
+        prompt_data: str | dict | None = None,
+        **kwargs,
+    ):
+        data = EASYUSE_ANIMA_PROMPT_DATA if EASYUSE_ANIMA_PROMPT_DATA is not None else prompt_data
+        return _stable_change_key({
+            "mode": "prompt_data_unpack",
+            "prompt_data": _normalize_prompt_data(data),
+        })
+
+    def unpack(
+        self,
+        EASYUSE_ANIMA_PROMPT_DATA: str | dict | None = None,
+        prompt_data: str | dict | None = None,
+        **kwargs,
+    ):
+        data = _normalize_prompt_data(
+            EASYUSE_ANIMA_PROMPT_DATA if EASYUSE_ANIMA_PROMPT_DATA is not None else prompt_data
+        )
+        return (data, *_advanced_outputs_from_prompt_data(data))
 
 
 class EasyUseAnimaPromptStudioRegional:

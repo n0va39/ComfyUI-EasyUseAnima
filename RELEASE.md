@@ -16,10 +16,14 @@
 
 ### Added
 
-- Added `Anima Prompt Studio Advanced v2` with a first output socket of type
+- Added `Anima Prompt Studio Advanced v2` with a single output socket of type
   `EASYUSE_ANIMA_PROMPT_DATA`.
 - The v2 prompt data output is a Python dict with keyed compatibility outputs,
   resolution data, wildcard state, Mod Guidance flags, and artist-field data.
+- Added `EASYUSE_ANIMA_PROMPT_DATA Unpack` to pass prompt data through and
+  unfold it into the existing Prompt Studio compatibility outputs.
+- Prompt-data socket names are fixed to English identifiers across locales so
+  displayed socket names match the Python node contract.
 - Added NAIA resolution bucket fit mode for `Anima Prompt Studio Advanced`.
   NAIA width/height can now resolve to the nearest aspect ratio inside a
   configured saved resolution bucket.
@@ -36,7 +40,8 @@
 ### Validation Notes
 
 - Added regression coverage for the Advanced v2 prompt data socket, dict
-  payload, and artist-field-only artist data extraction.
+  payload, `EASYUSE_ANIMA_PROMPT_DATA Unpack` outputs, and artist-field-only
+  artist data extraction.
 - Added regression coverage for Regional Prompt Studio field socket overrides.
 - Added regression coverage for NAIA resolution mode/bucket validation and
   bucket-fit output sizing.

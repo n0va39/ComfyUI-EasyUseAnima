@@ -17,6 +17,7 @@ from nodes import (
     PROMPT_DATA_SCHEMA,
     PROMPT_DATA_TYPE,
     EasyUseAnimaDetailerAlignHook,
+    EasyUseAnimaPromptDataUnpack,
     EasyUseAnimaPromptBuilder,
     EasyUseAnimaPromptCorrector,
     EasyUseAnimaPromptStudio,
@@ -351,13 +352,14 @@ class PromptBuilderTests(unittest.TestCase):
             ),
         )
 
-    def test_prompt_studio_advanced_v2_prepends_prompt_data_socket(self):
-        self.assertEqual(EasyUseAnimaPromptStudioAdvancedV2.RETURN_TYPES[0], PROMPT_DATA_TYPE)
-        self.assertEqual(EasyUseAnimaPromptStudioAdvancedV2.RETURN_NAMES[0], "prompt_data")
-        self.assertEqual(
-            EasyUseAnimaPromptStudioAdvancedV2.RETURN_NAMES[1:],
-            EasyUseAnimaPromptStudioAdvanced.RETURN_NAMES,
-        )
+    def test_prompt_studio_advanced_v2_outputs_only_prompt_data_socket(self):
+        self.assertEqual(EasyUseAnimaPromptStudioAdvancedV2.RETURN_TYPES, (PROMPT_DATA_TYPE,))
+        self.assertEqual(EasyUseAnimaPromptStudioAdvancedV2.RETURN_NAMES, (PROMPT_DATA_TYPE,))
+
+    def test_prompt_data_unpack_uses_prompt_data_type_as_socket_name(self):
+        self.assertIn(PROMPT_DATA_TYPE, EasyUseAnimaPromptDataUnpack.INPUT_TYPES()["required"])
+        self.assertEqual(EasyUseAnimaPromptDataUnpack.RETURN_TYPES[0], PROMPT_DATA_TYPE)
+        self.assertEqual(EasyUseAnimaPromptDataUnpack.RETURN_NAMES[0], PROMPT_DATA_TYPE)
 
     def test_prompt_studio_advanced_v2_returns_structured_prompt_data(self):
         fields = [
@@ -397,20 +399,85 @@ class PromptBuilderTests(unittest.TestCase):
         )
 
         prompt_data = result["result"][0]
-        compat_result = result["result"][1:]
         self.assertIsInstance(prompt_data, dict)
+        self.assertEqual(len(result["result"]), 1)
         self.assertEqual(prompt_data["schema"], PROMPT_DATA_SCHEMA)
         self.assertEqual(prompt_data["type"], PROMPT_DATA_TYPE)
-        self.assertEqual(prompt_data["outputs"]["positive_prompt"], compat_result[0])
-        self.assertEqual(prompt_data["outputs"]["negative_prompt"], compat_result[1])
-        self.assertEqual(prompt_data["positive_prompt"], compat_result[0])
+        self.assertEqual(prompt_data["outputs"]["positive_prompt"], prompt_data["positive_prompt"])
+        self.assertEqual(prompt_data["outputs"]["negative_prompt"], prompt_data["negative_prompt"])
         self.assertEqual(prompt_data["negative_prompt"], "bad hands")
         self.assertEqual(prompt_data["artist"]["positive_prompt"], "artist_a, artist_b")
         self.assertFalse(prompt_data["artist_mix"]["enabled"])
         self.assertEqual(prompt_data["artist_mix"]["mode"], "prompt")
         self.assertEqual(prompt_data["artist_mix"]["artist_prompt"], "artist_a, artist_b")
+        self.assertEqual(prompt_data["width"], 896)
+        self.assertEqual(prompt_data["height"], 1152)
         self.assertEqual(prompt_data["resolution"]["width"], 896)
         self.assertEqual(prompt_data["resolution"]["height"], 1152)
+
+    def test_prompt_data_unpack_expands_context_style_prompt_data(self):
+        result = EasyUseAnimaPromptStudioAdvancedV2().build(
+            False,
+            True,
+            True,
+            False,
+            json.dumps([
+                {
+                    "id": "quality",
+                    "pane": "positive",
+                    "type": "quality",
+                    "label": "Quality Tags",
+                    "text": "masterpiece",
+                    "height": 72,
+                },
+                {
+                    "id": "general",
+                    "pane": "positive",
+                    "type": "general",
+                    "label": "General Tags",
+                    "text": "1girl",
+                    "height": 120,
+                },
+            ]),
+            resolution_bucket="1024",
+            resolution_size="896 * 1152 (7:9)",
+        )
+        prompt_data = result["result"][0]
+
+        unpacked = EasyUseAnimaPromptDataUnpack().unpack(prompt_data)
+
+        self.assertEqual(unpacked[0], prompt_data)
+        self.assertEqual(unpacked[1:], tuple(prompt_data["outputs"][name] for name in EasyUseAnimaPromptStudioAdvanced.RETURN_NAMES))
+        self.assertEqual(unpacked[1], prompt_data["positive_prompt"])
+        self.assertEqual(unpacked[3], "masterpiece")
+        self.assertTrue(unpacked[5])
+        self.assertEqual(unpacked[9:11], (896, 1152))
+
+    def test_prompt_data_unpack_uses_key_fallbacks(self):
+        prompt_data = {
+            "schema": PROMPT_DATA_SCHEMA,
+            "positive_prompt": "1girl",
+            "negative_prompt": "bad hands",
+            "mod_guidance": {
+                "enabled": True,
+                "quality_tags": "masterpiece",
+                "negative_enabled": False,
+                "negative_prompt": "",
+            },
+            "resolution": {
+                "width": 832,
+                "height": 1216,
+            },
+        }
+
+        unpacked = EasyUseAnimaPromptDataUnpack().unpack(prompt_data)
+
+        self.assertEqual(unpacked[1], "1girl")
+        self.assertEqual(unpacked[2], "bad hands")
+        self.assertEqual(unpacked[3], "masterpiece")
+        self.assertTrue(unpacked[5])
+        self.assertFalse(unpacked[6])
+        self.assertEqual(unpacked[9:11], (832, 1216))
 
     def test_prompt_studio_advanced_v2_artist_data_uses_artist_field_not_at_prefix(self):
         fields = [

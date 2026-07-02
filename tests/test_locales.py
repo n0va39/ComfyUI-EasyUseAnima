@@ -50,6 +50,26 @@ class LocaleTests(unittest.TestCase):
                 text = (ROOT / "locales" / locale_code / "nodeDefs.json").read_text(encoding="utf-8")
                 self.assertIsNone(HANGUL_RE.search(text))
 
+    def test_prompt_data_socket_names_are_not_localized(self):
+        node_ids = (
+            "EasyUseAnimaPromptStudioAdvancedV2",
+            "EasyUseAnimaPromptDataUnpack",
+        )
+        for locale_code in LOCALE_CODES:
+            data = json.loads((ROOT / "locales" / locale_code / "nodeDefs.json").read_text(encoding="utf-8"))
+            for node_id in node_ids:
+                with self.subTest(locale=locale_code, node=node_id):
+                    cls = getattr(nodes, node_id)
+                    outputs = data[node_id]["outputs"]
+                    for index, name in enumerate(cls.RETURN_NAMES):
+                        self.assertEqual(outputs[str(index)]["name"], name)
+
+            unpack_inputs = data["EasyUseAnimaPromptDataUnpack"]["inputs"]
+            self.assertEqual(
+                unpack_inputs[nodes.PROMPT_DATA_TYPE]["name"],
+                nodes.PROMPT_DATA_TYPE,
+            )
+
 
 if __name__ == "__main__":
     unittest.main()
