@@ -325,7 +325,7 @@
       },
       "artist_mix_mode": {
         "name": "artist_mix_mode",
-        "tooltip": "off keeps Advanced artist fields in the positive prompt. Other modes separate them into artist_mix data."
+        "tooltip": "off keeps artists inline. average/delta_rms use 1 positive branch, hybrid uses top K + 1 branches, clustered compresses many artists into cluster_count branches, and exact uses N artist branches."
       },
       "artist_mix_start_percent": {
         "name": "artist_mix_start_percent",
@@ -334,6 +334,30 @@
       "artist_mix_strength_scale": {
         "name": "artist_mix_strength_scale",
         "tooltip": "Strength multiplier used by exact artist mix modes."
+      },
+      "artist_mix_style_gain": {
+        "name": "artist_mix_style_gain",
+        "tooltip": "Style delta gain used by delta_rms, hybrid tail, and clustered compressed branches."
+      },
+      "artist_mix_rms_scale_cap": {
+        "name": "artist_mix_rms_scale_cap",
+        "tooltip": "Maximum RMS energy restore scale for delta_rms compressed artist branches."
+      },
+      "artist_mix_exact_top_k": {
+        "name": "artist_mix_exact_top_k",
+        "tooltip": "Hybrid keeps this many strongest artists as exact positive branches."
+      },
+      "artist_mix_cluster_count": {
+        "name": "artist_mix_cluster_count",
+        "tooltip": "Clustered compresses non-dominant artists into this many positive branches."
+      },
+      "artist_mix_dominant_isolation": {
+        "name": "artist_mix_dominant_isolation",
+        "tooltip": "Clustered keeps artists above the dominant threshold as exact branches."
+      },
+      "artist_mix_dominant_threshold": {
+        "name": "artist_mix_dominant_threshold",
+        "tooltip": "Clustered dominant isolation threshold based on normalized artist weight."
       }
     },
     "outputs": {
@@ -425,7 +449,7 @@
       },
       "artist_mix_mode": {
         "name": "artist_mix_mode",
-        "tooltip": "prompt_data follows dict artist_mix settings, off/prompt keeps the inline positive prompt, and average/exact separates artist fields into conditioning variants."
+        "tooltip": "prompt_data follows the dict settings. average/delta_rms use 1 positive branch, hybrid uses top K + 1 branches, clustered uses cluster_count branches, and exact uses N artist branches."
       },
       "artist_mix_start_percent": {
         "name": "artist_mix_start_percent",
@@ -434,6 +458,30 @@
       "artist_mix_strength_scale": {
         "name": "artist_mix_strength_scale",
         "tooltip": "Strength multiplier used by exact artist mix modes."
+      },
+      "artist_mix_style_gain": {
+        "name": "artist_mix_style_gain",
+        "tooltip": "Style delta gain used by delta_rms, hybrid tail, and clustered compressed branches."
+      },
+      "artist_mix_rms_scale_cap": {
+        "name": "artist_mix_rms_scale_cap",
+        "tooltip": "Maximum RMS energy restore scale for delta_rms compressed artist branches."
+      },
+      "artist_mix_exact_top_k": {
+        "name": "artist_mix_exact_top_k",
+        "tooltip": "Hybrid keeps this many strongest artists as exact positive branches."
+      },
+      "artist_mix_cluster_count": {
+        "name": "artist_mix_cluster_count",
+        "tooltip": "Clustered compresses non-dominant artists into this many positive branches."
+      },
+      "artist_mix_dominant_isolation": {
+        "name": "artist_mix_dominant_isolation",
+        "tooltip": "Clustered keeps artists above the dominant threshold as exact branches."
+      },
+      "artist_mix_dominant_threshold": {
+        "name": "artist_mix_dominant_threshold",
+        "tooltip": "Clustered dominant isolation threshold based on normalized artist weight."
       }
     },
     "outputs": {

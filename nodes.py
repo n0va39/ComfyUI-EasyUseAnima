@@ -104,6 +104,9 @@ ARTIST_MIX_MODE_FROM_PROMPT_DATA = "prompt_data"
 ARTIST_MIX_MODE_OFF = "off"
 ARTIST_MIX_MODE_PROMPT = "prompt"
 ARTIST_MIX_MODE_AVERAGE = "average"
+ARTIST_MIX_MODE_DELTA_RMS = "delta_rms"
+ARTIST_MIX_MODE_HYBRID = "hybrid"
+ARTIST_MIX_MODE_CLUSTERED = "clustered"
 ARTIST_MIX_MODE_EXACT = "exact"
 ARTIST_MIX_MODE_COMPOSITE_EXACT = "composite_exact"
 ARTIST_MIX_MODE_LATE_EXACT = "late_exact"
@@ -112,6 +115,9 @@ ARTIST_MIX_MODE_SCHEDULED_AVERAGE = "scheduled_average"
 ARTIST_MIX_MODES = (
     ARTIST_MIX_MODE_PROMPT,
     ARTIST_MIX_MODE_AVERAGE,
+    ARTIST_MIX_MODE_DELTA_RMS,
+    ARTIST_MIX_MODE_HYBRID,
+    ARTIST_MIX_MODE_CLUSTERED,
     ARTIST_MIX_MODE_EXACT,
     ARTIST_MIX_MODE_COMPOSITE_EXACT,
     ARTIST_MIX_MODE_LATE_EXACT,
@@ -126,6 +132,9 @@ ARTIST_MIX_INPUT_MODES = (
 ARTIST_MIX_STUDIO_MODES = (
     ARTIST_MIX_MODE_OFF,
     ARTIST_MIX_MODE_AVERAGE,
+    ARTIST_MIX_MODE_DELTA_RMS,
+    ARTIST_MIX_MODE_HYBRID,
+    ARTIST_MIX_MODE_CLUSTERED,
     ARTIST_MIX_MODE_EXACT,
     ARTIST_MIX_MODE_COMPOSITE_EXACT,
     ARTIST_MIX_MODE_LATE_EXACT,
@@ -134,10 +143,44 @@ ARTIST_MIX_STUDIO_MODES = (
 )
 ARTIST_MIX_DEFAULT_START_PERCENT = 0.5
 ARTIST_MIX_DEFAULT_STRENGTH_SCALE = 1.0
+ARTIST_MIX_DEFAULT_STYLE_GAIN = 1.35
+ARTIST_MIX_DEFAULT_RMS_SCALE_CAP = 2.0
+ARTIST_MIX_DEFAULT_EXACT_TOP_K = 4
+ARTIST_MIX_DEFAULT_CLUSTER_COUNT = 4
+ARTIST_MIX_DEFAULT_DOMINANT_ISOLATION = True
+ARTIST_MIX_DEFAULT_DOMINANT_THRESHOLD = 0.25
 ARTIST_MIX_CONTROL_KEY = "anima_prompt_artist_mix_control"
 ARTIST_MIX_EXACT_KEY = "anima_prompt_artist_mix_exact"
 ARTIST_MIX_SCHEDULE_KEY = "anima_prompt_artist_mix_schedule"
 _SPECTRUM_ANIMA_MOD_GUIDANCE_OLD_SIGNATURE_WARNED: set[str] = set()
+ARTIST_MIX_MODE_DESCRIPTIONS = {
+    ARTIST_MIX_MODE_OFF: "Cost: 1 positive branch. Keeps artist-field text inline in the positive prompt.",
+    ARTIST_MIX_MODE_PROMPT: "Cost: 1 positive branch. Keeps artist-field text inline in the positive prompt.",
+    ARTIST_MIX_MODE_AVERAGE: "Cost: 1 positive branch. Weighted average of artist conditionings; fastest stable mix.",
+    ARTIST_MIX_MODE_DELTA_RMS: (
+        "Cost: 1 positive branch. Mixes artist deltas from the base prompt and restores RMS style energy; "
+        "usually stronger than average."
+    ),
+    ARTIST_MIX_MODE_HYBRID: (
+        "Cost: top_k + 1 positive branches. Keeps strongest artists as exact branches and compresses the tail "
+        "with delta_rms; recommended balance."
+    ),
+    ARTIST_MIX_MODE_CLUSTERED: (
+        "Cost: about cluster_count plus dominant artists. Groups similar artist deltas and compresses each "
+        "cluster; useful for many artists."
+    ),
+    ARTIST_MIX_MODE_EXACT: "Cost: N positive branches. Most faithful artist-specific model output mix.",
+    ARTIST_MIX_MODE_COMPOSITE_EXACT: (
+        "Cost: N + 1 positive branches. Adds one composite prompt branch plus exact artist branches."
+    ),
+    ARTIST_MIX_MODE_LATE_EXACT: "Cost: base + N late exact branches. Applies exact mixing only after start.",
+    ARTIST_MIX_MODE_AVERAGE_LATE_EXACT: (
+        "Cost: 1 average branch plus N late exact branches. Fast early mix, exact late refinement."
+    ),
+    ARTIST_MIX_MODE_SCHEDULED_AVERAGE: (
+        "Cost: scheduled average branches. Changes artist weights across timestep ranges."
+    ),
+}
 REGIONAL_PROMPT_DATA_TYPE = "EASYUSE_ANIMA_REGIONAL_PROMPT_DATA"
 REGIONAL_PROMPT_DATA_SCHEMA = "easyuse_anima_prompt_studio_regional"
 REGIONAL_PROMPT_BUNDLE_SCHEMA = "easyuse_anima_prompt_studio_regional_bundle"
@@ -1763,11 +1806,46 @@ def _bounded_artist_mix_float(value, default: float, minimum: float, maximum: fl
     return max(minimum, min(maximum, result))
 
 
+def _bounded_artist_mix_int(value, default: int, minimum: int, maximum: int) -> int:
+    return max(minimum, min(maximum, _as_int(value, default)))
+
+
 def _normalize_artist_mix_mode(value, default: str = ARTIST_MIX_MODE_PROMPT) -> str:
     mode = str(value or default)
     if mode == ARTIST_MIX_MODE_OFF:
         return ARTIST_MIX_MODE_OFF
     return mode if mode in ARTIST_MIX_MODES else default
+
+
+def _artist_mix_mode_tooltip(include_prompt_data: bool = False) -> str:
+    lines = []
+    if include_prompt_data:
+        lines.append("prompt_data follows EASYUSE_ANIMA_PROMPT_DATA, off/prompt keeps artists inline.")
+    lines.append(f"{ARTIST_MIX_MODE_OFF}: {ARTIST_MIX_MODE_DESCRIPTIONS[ARTIST_MIX_MODE_OFF]}")
+    for mode in ARTIST_MIX_MODES:
+        lines.append(f"{mode}: {ARTIST_MIX_MODE_DESCRIPTIONS[mode]}")
+    return "\n".join(lines)
+
+
+def _coalesce_artist_mix_items(artists: list[tuple[str, float]]) -> list[tuple[str, float]]:
+    coalesced: dict[str, float] = {}
+    order: list[str] = []
+    for tag, weight in artists:
+        normalized_tag = str(tag or "").strip()
+        if not normalized_tag:
+            continue
+        value = float(weight)
+        if not isfinite(value) or value <= 0:
+            continue
+        if normalized_tag not in coalesced:
+            order.append(normalized_tag)
+            coalesced[normalized_tag] = 0.0
+        coalesced[normalized_tag] += value
+    return [
+        (tag, weight)
+        for tag in order
+        if (weight := coalesced.get(tag, 0.0)) > 0
+    ]
 
 
 def _artist_mix_prompt_tags(artists: list[tuple[str, float]], include_weights: bool) -> str:
@@ -1893,6 +1971,167 @@ def _blend_conditionings(conditionings: list, weights: list[float], composite_co
         metadata.pop("strength", None)
         blended.append([tensor, metadata])
     return blended
+
+
+def _encoded_artist_conditionings(clip, data: dict[str, Any], base_prompt: str, artists: list[tuple[str, float]]) -> list:
+    return [
+        (
+            tag,
+            float(weight),
+            _encode_with_comfy_clip(
+                clip,
+                _artist_variant_prompt_from_prompt_data(data, base_prompt, tag),
+            ),
+        )
+        for tag, weight in artists
+    ]
+
+
+def _artist_delta_rms_from_encoded(
+    base_conditioning,
+    encoded_artists: list,
+    weights: list[float],
+    composite_conditioning=None,
+    style_gain: float = ARTIST_MIX_DEFAULT_STYLE_GAIN,
+    rms_scale_cap: float = ARTIST_MIX_DEFAULT_RMS_SCALE_CAP,
+    branch_strength: float | None = None,
+) -> list | None:
+    if not encoded_artists or len(base_conditioning) != 1:
+        return None
+    if any(len(conditioning) != 1 for _tag, _weight, conditioning in encoded_artists):
+        return None
+
+    try:
+        import torch  # type: ignore
+    except Exception as exc:
+        raise RuntimeError("[EasyUseAnima] torch is required for artist mix delta_rms conditioning.") from exc
+
+    base_tensor, base_meta = base_conditioning[0]
+    if not torch.is_tensor(base_tensor) or base_tensor.ndim != 3:
+        return None
+    artist_tensors = [conditioning[0][0] for _tag, _weight, conditioning in encoded_artists]
+    if any(
+        not torch.is_tensor(tensor)
+        or tensor.ndim != 3
+        or tensor.shape[0] != base_tensor.shape[0]
+        or tensor.shape[2] != base_tensor.shape[2]
+        for tensor in artist_tensors
+    ):
+        return None
+
+    max_length = max([base_tensor.shape[1], *(tensor.shape[1] for tensor in artist_tensors)])
+    base_padded = _pad_conditioning_tensor(base_tensor, max_length)
+    mixed_delta = torch.zeros_like(base_padded)
+    target_rms = None
+    for (_tag, _weight, conditioning), alpha in zip(encoded_artists, weights):
+        cond_padded = _pad_conditioning_tensor(conditioning[0][0], max_length)
+        delta = cond_padded - base_padded
+        mixed_delta = mixed_delta + delta * float(alpha)
+        rms = delta.float().pow(2).mean().sqrt()
+        target_rms = rms * float(alpha) if target_rms is None else target_rms + rms * float(alpha)
+
+    if target_rms is None:
+        return None
+    actual_rms = mixed_delta.float().pow(2).mean().sqrt().clamp_min(1e-6)
+    rms_scale = torch.clamp(
+        target_rms / actual_rms,
+        1.0,
+        max(1.0, float(rms_scale_cap)),
+    )
+    mixed_tensor = base_padded + mixed_delta * float(style_gain) * rms_scale
+
+    metadata_source = (
+        composite_conditioning[0][1]
+        if composite_conditioning and len(composite_conditioning) == 1
+        else base_meta
+    )
+    metadata = _copy_conditioning_metadata(metadata_source)
+    metadata.pop("strength", None)
+    if branch_strength is not None:
+        metadata["strength"] = max(0.0, float(branch_strength))
+
+    base_pool = base_meta.get("pooled_output") if isinstance(base_meta, dict) else None
+    artist_pools = [
+        conditioning[0][1].get("pooled_output")
+        for _tag, _weight, conditioning in encoded_artists
+        if isinstance(conditioning[0][1], dict)
+    ]
+    if torch.is_tensor(base_pool) and len(artist_pools) == len(encoded_artists) and all(
+        torch.is_tensor(pool) and pool.shape == base_pool.shape for pool in artist_pools
+    ):
+        mixed_pool_delta = torch.zeros_like(base_pool)
+        target_pool_rms = None
+        for pool, alpha in zip(artist_pools, weights):
+            delta = pool - base_pool
+            mixed_pool_delta = mixed_pool_delta + delta * float(alpha)
+            rms = delta.float().pow(2).mean().sqrt()
+            target_pool_rms = rms * float(alpha) if target_pool_rms is None else target_pool_rms + rms * float(alpha)
+        if target_pool_rms is not None:
+            actual_pool_rms = mixed_pool_delta.float().pow(2).mean().sqrt().clamp_min(1e-6)
+            pool_scale = torch.clamp(
+                target_pool_rms / actual_pool_rms,
+                1.0,
+                max(1.0, float(rms_scale_cap)),
+            )
+            metadata["pooled_output"] = base_pool + mixed_pool_delta * float(style_gain) * pool_scale
+    elif isinstance(metadata, dict):
+        metadata.pop("pooled_output", None)
+
+    return [[mixed_tensor, metadata]]
+
+
+def _fallback_artist_average_or_exact(
+    clip,
+    data: dict[str, Any],
+    base_prompt: str,
+    artists: list[tuple[str, float]],
+) -> list:
+    try:
+        return _encode_artist_average(clip, data, base_prompt, artists)
+    except Exception:
+        return _encode_artist_exact(clip, data, base_prompt, artists)
+
+
+def _encode_artist_delta_rms(
+    clip,
+    data: dict[str, Any],
+    base_prompt: str,
+    artists: list[tuple[str, float]],
+    weights: list[float] | None = None,
+    style_gain: float = ARTIST_MIX_DEFAULT_STYLE_GAIN,
+    rms_scale_cap: float = ARTIST_MIX_DEFAULT_RMS_SCALE_CAP,
+    branch_strength: float | None = None,
+) -> list:
+    artists = _coalesce_artist_mix_items(artists)
+    if not artists:
+        return _encode_with_comfy_clip(clip, base_prompt)
+    mix_weights = list(weights) if weights is not None else _normalized_artist_weights(artists)
+    try:
+        base_conditioning = _encode_with_comfy_clip(clip, base_prompt)
+        encoded = _encoded_artist_conditionings(clip, data, base_prompt, artists)
+        composite_prompt = _artist_variant_prompt_from_prompt_data(
+            data,
+            base_prompt,
+            _artist_mix_prompt_tags(artists, include_weights=True),
+        )
+        composite = _encode_with_comfy_clip(clip, composite_prompt)
+        result = _artist_delta_rms_from_encoded(
+            base_conditioning,
+            encoded,
+            mix_weights,
+            composite if len(composite) == 1 else None,
+            style_gain=style_gain,
+            rms_scale_cap=rms_scale_cap,
+            branch_strength=branch_strength,
+        )
+        if result is not None:
+            return result
+    except Exception:
+        pass
+    fallback = _fallback_artist_average_or_exact(clip, data, base_prompt, artists)
+    if branch_strength is not None:
+        return _conditionings_with_strength(fallback, branch_strength)
+    return fallback
 
 
 def _conditionings_with_values(conditioning, values: dict[str, Any]) -> list:
@@ -2118,6 +2357,12 @@ def _prompt_data_artist_mix_config(
     artist_mix_mode: str,
     artist_mix_start_percent: float,
     artist_mix_strength_scale: float,
+    artist_mix_style_gain: float,
+    artist_mix_rms_scale_cap: float,
+    artist_mix_exact_top_k: int,
+    artist_mix_cluster_count: int,
+    artist_mix_dominant_isolation: bool,
+    artist_mix_dominant_threshold: float,
 ) -> dict[str, Any]:
     source = _prompt_data_nested(data, "artist_mix")
     artist = _prompt_data_nested(data, "artist")
@@ -2142,6 +2387,40 @@ def _prompt_data_artist_mix_config(
             ARTIST_MIX_DEFAULT_STRENGTH_SCALE,
             0.0,
             5.0,
+        ),
+        "style_gain": _bounded_artist_mix_float(
+            source.get("style_gain"),
+            ARTIST_MIX_DEFAULT_STYLE_GAIN,
+            0.0,
+            3.0,
+        ),
+        "rms_scale_cap": _bounded_artist_mix_float(
+            source.get("rms_scale_cap"),
+            ARTIST_MIX_DEFAULT_RMS_SCALE_CAP,
+            1.0,
+            5.0,
+        ),
+        "exact_top_k": _bounded_artist_mix_int(
+            source.get("exact_top_k"),
+            ARTIST_MIX_DEFAULT_EXACT_TOP_K,
+            0,
+            64,
+        ),
+        "cluster_count": _bounded_artist_mix_int(
+            source.get("cluster_count"),
+            ARTIST_MIX_DEFAULT_CLUSTER_COUNT,
+            1,
+            32,
+        ),
+        "dominant_isolation": _as_bool(
+            source.get("dominant_isolation"),
+            ARTIST_MIX_DEFAULT_DOMINANT_ISOLATION,
+        ),
+        "dominant_threshold": _bounded_artist_mix_float(
+            source.get("dominant_threshold"),
+            ARTIST_MIX_DEFAULT_DOMINANT_THRESHOLD,
+            0.0,
+            1.0,
         ),
         "artist_prompt": str(
             source.get("artist_prompt")
@@ -2176,6 +2455,40 @@ def _prompt_data_artist_mix_config(
             0.0,
             5.0,
         )
+        config["style_gain"] = _bounded_artist_mix_float(
+            artist_mix_style_gain,
+            ARTIST_MIX_DEFAULT_STYLE_GAIN,
+            0.0,
+            3.0,
+        )
+        config["rms_scale_cap"] = _bounded_artist_mix_float(
+            artist_mix_rms_scale_cap,
+            ARTIST_MIX_DEFAULT_RMS_SCALE_CAP,
+            1.0,
+            5.0,
+        )
+        config["exact_top_k"] = _bounded_artist_mix_int(
+            artist_mix_exact_top_k,
+            ARTIST_MIX_DEFAULT_EXACT_TOP_K,
+            0,
+            64,
+        )
+        config["cluster_count"] = _bounded_artist_mix_int(
+            artist_mix_cluster_count,
+            ARTIST_MIX_DEFAULT_CLUSTER_COUNT,
+            1,
+            32,
+        )
+        config["dominant_isolation"] = _as_bool(
+            artist_mix_dominant_isolation,
+            ARTIST_MIX_DEFAULT_DOMINANT_ISOLATION,
+        )
+        config["dominant_threshold"] = _bounded_artist_mix_float(
+            artist_mix_dominant_threshold,
+            ARTIST_MIX_DEFAULT_DOMINANT_THRESHOLD,
+            0.0,
+            1.0,
+        )
     return config
 
 
@@ -2187,13 +2500,19 @@ def _encode_artist_exact(
     start_percent: float | None = None,
     end_percent: float | None = None,
     strength_scale: float = 1.0,
+    branch_strengths: list[float] | None = None,
 ) -> list:
     exact = []
-    for (tag, _weight), normalized_weight in zip(artists, _normalized_artist_weights(artists)):
+    strengths = (
+        [max(0.0, float(value)) for value in branch_strengths]
+        if branch_strengths is not None
+        else [float(weight) * float(strength_scale) for weight in _normalized_artist_weights(artists)]
+    )
+    for (tag, _weight), strength in zip(artists, strengths):
         variant_prompt = _artist_variant_prompt_from_prompt_data(data, base_prompt, tag)
         for tensor, metadata in _encode_with_comfy_clip(clip, variant_prompt):
             item_metadata = _copy_conditioning_metadata(metadata)
-            item_metadata["strength"] = float(normalized_weight) * float(strength_scale)
+            item_metadata["strength"] = float(strength)
             if start_percent is not None:
                 item_metadata["start_percent"] = max(0.0, min(1.0, float(start_percent)))
             if end_percent is not None:
@@ -2233,6 +2552,260 @@ def _encode_artist_average(
     if len(composite) != 1:
         composite = None
     return _blend_conditionings(encoded, mix_weights, composite)
+
+
+def _encode_artist_hybrid(
+    clip,
+    data: dict[str, Any],
+    base_prompt: str,
+    artists: list[tuple[str, float]],
+    exact_top_k: int = ARTIST_MIX_DEFAULT_EXACT_TOP_K,
+    style_gain: float = ARTIST_MIX_DEFAULT_STYLE_GAIN,
+    rms_scale_cap: float = ARTIST_MIX_DEFAULT_RMS_SCALE_CAP,
+    strength_scale: float = ARTIST_MIX_DEFAULT_STRENGTH_SCALE,
+) -> list:
+    artists = _coalesce_artist_mix_items(artists)
+    if not artists:
+        return _encode_with_comfy_clip(clip, base_prompt)
+    total_weight = sum(weight for _tag, weight in artists)
+    if total_weight <= 0:
+        return _encode_with_comfy_clip(clip, base_prompt)
+
+    sorted_artists = sorted(artists, key=lambda item: item[1], reverse=True)
+    top_k = _bounded_artist_mix_int(exact_top_k, ARTIST_MIX_DEFAULT_EXACT_TOP_K, 0, 64)
+    if top_k >= len(sorted_artists):
+        return _encode_artist_exact(clip, data, base_prompt, sorted_artists, strength_scale=strength_scale)
+
+    top = sorted_artists[:top_k]
+    tail = sorted_artists[top_k:]
+    output = []
+    if top:
+        output.extend(
+            _encode_artist_exact(
+                clip,
+                data,
+                base_prompt,
+                top,
+                branch_strengths=[
+                    (weight / total_weight) * float(strength_scale)
+                    for _tag, weight in top
+                ],
+            )
+        )
+    if tail:
+        tail_total = sum(weight for _tag, weight in tail)
+        if tail_total <= 0:
+            return _encode_artist_exact(clip, data, base_prompt, sorted_artists, strength_scale=strength_scale)
+        try:
+            output.extend(
+                _encode_artist_delta_rms(
+                    clip,
+                    data,
+                    base_prompt,
+                    tail,
+                    weights=[weight / tail_total for _tag, weight in tail],
+                    style_gain=style_gain,
+                    rms_scale_cap=rms_scale_cap,
+                    branch_strength=(tail_total / total_weight) * float(strength_scale),
+                )
+            )
+        except Exception:
+            return _encode_artist_exact(clip, data, base_prompt, sorted_artists, strength_scale=strength_scale)
+    return output or _encode_artist_exact(clip, data, base_prompt, sorted_artists, strength_scale=strength_scale)
+
+
+def _artist_conditioning_feature(torch, base_conditioning, encoded_artist, use_pooled: bool):
+    if len(base_conditioning) != 1 or len(encoded_artist[2]) != 1:
+        return None
+    base_tensor, base_meta = base_conditioning[0]
+    cond_tensor, metadata = encoded_artist[2][0]
+    if not torch.is_tensor(base_tensor) or not torch.is_tensor(cond_tensor):
+        return None
+    base_pool = base_meta.get("pooled_output") if isinstance(base_meta, dict) else None
+    pool = metadata.get("pooled_output") if isinstance(metadata, dict) else None
+    if use_pooled and torch.is_tensor(base_pool) and torch.is_tensor(pool) and base_pool.shape == pool.shape:
+        feature = (pool - base_pool).float().flatten()
+    elif (
+        base_tensor.ndim == 3
+        and cond_tensor.ndim == 3
+        and base_tensor.shape[0] == cond_tensor.shape[0]
+        and base_tensor.shape[2] == cond_tensor.shape[2]
+    ):
+        max_length = max(base_tensor.shape[1], cond_tensor.shape[1])
+        feature = (
+            _pad_conditioning_tensor(cond_tensor, max_length)
+            - _pad_conditioning_tensor(base_tensor, max_length)
+        ).float().mean(dim=1).flatten()
+    else:
+        return None
+    norm = torch.linalg.vector_norm(feature).clamp_min(1e-6)
+    return feature / norm
+
+
+def _greedy_cluster_encoded_artists(torch, encoded_artists: list, features: list, cluster_count: int) -> list:
+    clusters = [
+        {
+            "items": [encoded],
+            "weight": max(0.0, float(encoded[1])),
+            "feature": feature,
+        }
+        for encoded, feature in zip(encoded_artists, features)
+    ]
+    target_count = max(1, min(int(cluster_count), len(clusters)))
+    while len(clusters) > target_count:
+        best_pair = (0, 1)
+        best_similarity = None
+        for left in range(len(clusters)):
+            for right in range(left + 1, len(clusters)):
+                similarity = torch.dot(clusters[left]["feature"], clusters[right]["feature"]).item()
+                if best_similarity is None or similarity > best_similarity:
+                    best_similarity = similarity
+                    best_pair = (left, right)
+        left, right = best_pair
+        first = clusters[left]
+        second = clusters[right]
+        merged_weight = first["weight"] + second["weight"]
+        merged_feature = first["feature"] * first["weight"] + second["feature"] * second["weight"]
+        merged_norm = torch.linalg.vector_norm(merged_feature).clamp_min(1e-6)
+        clusters[left] = {
+            "items": [*first["items"], *second["items"]],
+            "weight": merged_weight,
+            "feature": merged_feature / merged_norm,
+        }
+        del clusters[right]
+    return clusters
+
+
+def _encode_artist_clustered(
+    clip,
+    data: dict[str, Any],
+    base_prompt: str,
+    artists: list[tuple[str, float]],
+    cluster_count: int = ARTIST_MIX_DEFAULT_CLUSTER_COUNT,
+    style_gain: float = ARTIST_MIX_DEFAULT_STYLE_GAIN,
+    rms_scale_cap: float = ARTIST_MIX_DEFAULT_RMS_SCALE_CAP,
+    dominant_isolation: bool = ARTIST_MIX_DEFAULT_DOMINANT_ISOLATION,
+    dominant_threshold: float = ARTIST_MIX_DEFAULT_DOMINANT_THRESHOLD,
+    strength_scale: float = ARTIST_MIX_DEFAULT_STRENGTH_SCALE,
+) -> list:
+    artists = _coalesce_artist_mix_items(artists)
+    if not artists:
+        return _encode_with_comfy_clip(clip, base_prompt)
+    total_weight = sum(weight for _tag, weight in artists)
+    if total_weight <= 0:
+        return _encode_with_comfy_clip(clip, base_prompt)
+
+    threshold = _bounded_artist_mix_float(
+        dominant_threshold,
+        ARTIST_MIX_DEFAULT_DOMINANT_THRESHOLD,
+        0.0,
+        1.0,
+    )
+    dominant = [
+        (tag, weight)
+        for tag, weight in artists
+        if dominant_isolation and (weight / total_weight) >= threshold
+    ]
+    remaining = [
+        (tag, weight)
+        for tag, weight in artists
+        if not dominant_isolation or (weight / total_weight) < threshold
+    ]
+    target_cluster_count = _bounded_artist_mix_int(
+        cluster_count,
+        ARTIST_MIX_DEFAULT_CLUSTER_COUNT,
+        1,
+        32,
+    )
+    output = []
+    if dominant:
+        output.extend(
+            _encode_artist_exact(
+                clip,
+                data,
+                base_prompt,
+                dominant,
+                branch_strengths=[
+                    (weight / total_weight) * float(strength_scale)
+                    for _tag, weight in dominant
+                ],
+            )
+        )
+    if not remaining:
+        return output or _encode_artist_exact(clip, data, base_prompt, artists, strength_scale=strength_scale)
+    if len(remaining) <= target_cluster_count:
+        output.extend(
+            _encode_artist_exact(
+                clip,
+                data,
+                base_prompt,
+                remaining,
+                branch_strengths=[
+                    (weight / total_weight) * float(strength_scale)
+                    for _tag, weight in remaining
+                ],
+            )
+        )
+        return output
+
+    try:
+        import torch  # type: ignore
+
+        base_conditioning = _encode_with_comfy_clip(clip, base_prompt)
+        encoded = _encoded_artist_conditionings(clip, data, base_prompt, remaining)
+        base_meta = base_conditioning[0][1] if len(base_conditioning) == 1 else {}
+        base_pool = base_meta.get("pooled_output") if isinstance(base_meta, dict) else None
+        use_pooled = torch.is_tensor(base_pool) and all(
+            len(encoded_artist[2]) == 1
+            and isinstance(encoded_artist[2][0][1], dict)
+            and torch.is_tensor(encoded_artist[2][0][1].get("pooled_output"))
+            and encoded_artist[2][0][1].get("pooled_output").shape == base_pool.shape
+            for encoded_artist in encoded
+        )
+        features = [
+            _artist_conditioning_feature(torch, base_conditioning, encoded_artist, use_pooled)
+            for encoded_artist in encoded
+        ]
+        if any(feature is None for feature in features):
+            raise RuntimeError("missing cluster feature")
+        clusters = _greedy_cluster_encoded_artists(torch, encoded, features, target_cluster_count)
+        for cluster in clusters:
+            cluster_weight = max(0.0, float(cluster["weight"]))
+            if cluster_weight <= 0:
+                continue
+            cluster_result = _artist_delta_rms_from_encoded(
+                base_conditioning,
+                cluster["items"],
+                [item[1] / cluster_weight for item in cluster["items"]],
+                None,
+                style_gain=style_gain,
+                rms_scale_cap=rms_scale_cap,
+                branch_strength=(cluster_weight / total_weight) * float(strength_scale),
+            )
+            if cluster_result is None:
+                raise RuntimeError("cluster delta_rms failed")
+            output.extend(cluster_result)
+        return output or _encode_artist_hybrid(
+            clip,
+            data,
+            base_prompt,
+            artists,
+            exact_top_k=ARTIST_MIX_DEFAULT_EXACT_TOP_K,
+            style_gain=style_gain,
+            rms_scale_cap=rms_scale_cap,
+            strength_scale=strength_scale,
+        )
+    except Exception:
+        return _encode_artist_hybrid(
+            clip,
+            data,
+            base_prompt,
+            artists,
+            exact_top_k=ARTIST_MIX_DEFAULT_EXACT_TOP_K,
+            style_gain=style_gain,
+            rms_scale_cap=rms_scale_cap,
+            strength_scale=strength_scale,
+        )
 
 
 def _encode_artist_composite_exact(
@@ -2356,14 +2929,26 @@ def _encode_prompt_data_positive_conditioning(
     artist_mix_mode: str = ARTIST_MIX_MODE_FROM_PROMPT_DATA,
     artist_mix_start_percent: float = ARTIST_MIX_DEFAULT_START_PERCENT,
     artist_mix_strength_scale: float = ARTIST_MIX_DEFAULT_STRENGTH_SCALE,
+    artist_mix_style_gain: float = ARTIST_MIX_DEFAULT_STYLE_GAIN,
+    artist_mix_rms_scale_cap: float = ARTIST_MIX_DEFAULT_RMS_SCALE_CAP,
+    artist_mix_exact_top_k: int = ARTIST_MIX_DEFAULT_EXACT_TOP_K,
+    artist_mix_cluster_count: int = ARTIST_MIX_DEFAULT_CLUSTER_COUNT,
+    artist_mix_dominant_isolation: bool = ARTIST_MIX_DEFAULT_DOMINANT_ISOLATION,
+    artist_mix_dominant_threshold: float = ARTIST_MIX_DEFAULT_DOMINANT_THRESHOLD,
 ) -> list:
     artist_mix = _prompt_data_artist_mix_config(
         data,
         artist_mix_mode,
         artist_mix_start_percent,
         artist_mix_strength_scale,
+        artist_mix_style_gain,
+        artist_mix_rms_scale_cap,
+        artist_mix_exact_top_k,
+        artist_mix_cluster_count,
+        artist_mix_dominant_isolation,
+        artist_mix_dominant_threshold,
     )
-    artists = _parse_artist_mix_items(str(artist_mix.get("artist_prompt") or ""))
+    artists = _coalesce_artist_mix_items(_parse_artist_mix_items(str(artist_mix.get("artist_prompt") or "")))
     if not artist_mix.get("enabled") or artist_mix.get("mode") == ARTIST_MIX_MODE_PROMPT:
         return _encode_with_comfy_clip(clip, positive_prompt)
 
@@ -2374,6 +2959,106 @@ def _encode_prompt_data_positive_conditioning(
     mode = _normalize_artist_mix_mode(artist_mix.get("mode"), ARTIST_MIX_MODE_PROMPT)
     if mode == ARTIST_MIX_MODE_AVERAGE:
         return _encode_artist_average(clip, data, base_prompt, artists)
+    if mode == ARTIST_MIX_MODE_DELTA_RMS:
+        return _mark_artist_mix_conditioning(
+            _encode_artist_delta_rms(
+                clip,
+                data,
+                base_prompt,
+                artists,
+                style_gain=_bounded_artist_mix_float(
+                    artist_mix.get("style_gain"),
+                    ARTIST_MIX_DEFAULT_STYLE_GAIN,
+                    0.0,
+                    3.0,
+                ),
+                rms_scale_cap=_bounded_artist_mix_float(
+                    artist_mix.get("rms_scale_cap"),
+                    ARTIST_MIX_DEFAULT_RMS_SCALE_CAP,
+                    1.0,
+                    5.0,
+                ),
+            ),
+            ARTIST_MIX_CONTROL_KEY,
+        )
+    if mode == ARTIST_MIX_MODE_HYBRID:
+        return _mark_artist_mix_conditioning(
+            _encode_artist_hybrid(
+                clip,
+                data,
+                base_prompt,
+                artists,
+                exact_top_k=_bounded_artist_mix_int(
+                    artist_mix.get("exact_top_k"),
+                    ARTIST_MIX_DEFAULT_EXACT_TOP_K,
+                    0,
+                    64,
+                ),
+                style_gain=_bounded_artist_mix_float(
+                    artist_mix.get("style_gain"),
+                    ARTIST_MIX_DEFAULT_STYLE_GAIN,
+                    0.0,
+                    3.0,
+                ),
+                rms_scale_cap=_bounded_artist_mix_float(
+                    artist_mix.get("rms_scale_cap"),
+                    ARTIST_MIX_DEFAULT_RMS_SCALE_CAP,
+                    1.0,
+                    5.0,
+                ),
+                strength_scale=_bounded_artist_mix_float(
+                    artist_mix.get("strength_scale"),
+                    ARTIST_MIX_DEFAULT_STRENGTH_SCALE,
+                    0.0,
+                    5.0,
+                ),
+            ),
+            ARTIST_MIX_CONTROL_KEY,
+        )
+    if mode == ARTIST_MIX_MODE_CLUSTERED:
+        return _mark_artist_mix_conditioning(
+            _encode_artist_clustered(
+                clip,
+                data,
+                base_prompt,
+                artists,
+                cluster_count=_bounded_artist_mix_int(
+                    artist_mix.get("cluster_count"),
+                    ARTIST_MIX_DEFAULT_CLUSTER_COUNT,
+                    1,
+                    32,
+                ),
+                style_gain=_bounded_artist_mix_float(
+                    artist_mix.get("style_gain"),
+                    ARTIST_MIX_DEFAULT_STYLE_GAIN,
+                    0.0,
+                    3.0,
+                ),
+                rms_scale_cap=_bounded_artist_mix_float(
+                    artist_mix.get("rms_scale_cap"),
+                    ARTIST_MIX_DEFAULT_RMS_SCALE_CAP,
+                    1.0,
+                    5.0,
+                ),
+                dominant_isolation=_as_bool(
+                    artist_mix.get("dominant_isolation"),
+                    ARTIST_MIX_DEFAULT_DOMINANT_ISOLATION,
+                ),
+                dominant_threshold=_bounded_artist_mix_float(
+                    artist_mix.get("dominant_threshold"),
+                    ARTIST_MIX_DEFAULT_DOMINANT_THRESHOLD,
+                    0.0,
+                    1.0,
+                ),
+                strength_scale=_bounded_artist_mix_float(
+                    artist_mix.get("strength_scale"),
+                    ARTIST_MIX_DEFAULT_STRENGTH_SCALE,
+                    0.0,
+                    5.0,
+                ),
+            ),
+            ARTIST_MIX_CONTROL_KEY,
+        )
     if mode == ARTIST_MIX_MODE_EXACT:
         return _mark_artist_mix_conditioning(
             _encode_artist_exact(
@@ -2459,6 +3144,12 @@ def _build_advanced_prompt_data(
     artist_mix_mode: str = ARTIST_MIX_MODE_OFF,
     artist_mix_start_percent: float = ARTIST_MIX_DEFAULT_START_PERCENT,
     artist_mix_strength_scale: float = ARTIST_MIX_DEFAULT_STRENGTH_SCALE,
+    artist_mix_style_gain: float = ARTIST_MIX_DEFAULT_STYLE_GAIN,
+    artist_mix_rms_scale_cap: float = ARTIST_MIX_DEFAULT_RMS_SCALE_CAP,
+    artist_mix_exact_top_k: int = ARTIST_MIX_DEFAULT_EXACT_TOP_K,
+    artist_mix_cluster_count: int = ARTIST_MIX_DEFAULT_CLUSTER_COUNT,
+    artist_mix_dominant_isolation: bool = ARTIST_MIX_DEFAULT_DOMINANT_ISOLATION,
+    artist_mix_dominant_threshold: float = ARTIST_MIX_DEFAULT_DOMINANT_THRESHOLD,
 ) -> dict[str, Any]:
     (
         positive_prompt,
@@ -2572,6 +3263,40 @@ def _build_advanced_prompt_data(
                 ARTIST_MIX_DEFAULT_STRENGTH_SCALE,
                 0.0,
                 5.0,
+            ),
+            "style_gain": _bounded_artist_mix_float(
+                artist_mix_style_gain,
+                ARTIST_MIX_DEFAULT_STYLE_GAIN,
+                0.0,
+                3.0,
+            ),
+            "rms_scale_cap": _bounded_artist_mix_float(
+                artist_mix_rms_scale_cap,
+                ARTIST_MIX_DEFAULT_RMS_SCALE_CAP,
+                1.0,
+                5.0,
+            ),
+            "exact_top_k": _bounded_artist_mix_int(
+                artist_mix_exact_top_k,
+                ARTIST_MIX_DEFAULT_EXACT_TOP_K,
+                0,
+                64,
+            ),
+            "cluster_count": _bounded_artist_mix_int(
+                artist_mix_cluster_count,
+                ARTIST_MIX_DEFAULT_CLUSTER_COUNT,
+                1,
+                32,
+            ),
+            "dominant_isolation": _as_bool(
+                artist_mix_dominant_isolation,
+                ARTIST_MIX_DEFAULT_DOMINANT_ISOLATION,
+            ),
+            "dominant_threshold": _bounded_artist_mix_float(
+                artist_mix_dominant_threshold,
+                ARTIST_MIX_DEFAULT_DOMINANT_THRESHOLD,
+                0.0,
+                1.0,
             ),
             "artist_prompt": positive_artist_prompt,
             "artist_count_hint": len(_prompt_tokens(positive_artist_prompt)),
@@ -4406,10 +5131,7 @@ class EasyUseAnimaPromptStudioAdvancedV2(EasyUseAnimaPromptStudioAdvanced):
         required.update({
             "artist_mix_mode": (list(ARTIST_MIX_STUDIO_MODES), {
                 "default": ARTIST_MIX_MODE_OFF,
-                "tooltip": (
-                    "off keeps Advanced artist-field text inline. Other modes "
-                    "separate artist-field text into prompt-data artist_mix fields."
-                ),
+                "tooltip": _artist_mix_mode_tooltip(),
             }),
             "artist_mix_start_percent": ("FLOAT", {
                 "default": ARTIST_MIX_DEFAULT_START_PERCENT,
@@ -4424,6 +5146,43 @@ class EasyUseAnimaPromptStudioAdvancedV2(EasyUseAnimaPromptStudioAdvanced):
                 "max": 5.0,
                 "step": 0.01,
                 "tooltip": "Strength multiplier used by exact artist mix modes.",
+            }),
+            "artist_mix_style_gain": ("FLOAT", {
+                "default": ARTIST_MIX_DEFAULT_STYLE_GAIN,
+                "min": 0.0,
+                "max": 3.0,
+                "step": 0.01,
+                "tooltip": "Style delta gain used by delta_rms, hybrid tail, and clustered compressed branches.",
+            }),
+            "artist_mix_rms_scale_cap": ("FLOAT", {
+                "default": ARTIST_MIX_DEFAULT_RMS_SCALE_CAP,
+                "min": 1.0,
+                "max": 5.0,
+                "step": 0.01,
+                "tooltip": "Maximum RMS energy restore scale for delta_rms compressed artist branches.",
+            }),
+            "artist_mix_exact_top_k": ("INT", {
+                "default": ARTIST_MIX_DEFAULT_EXACT_TOP_K,
+                "min": 0,
+                "max": 64,
+                "tooltip": "Hybrid mode keeps this many strongest artists as exact positive branches.",
+            }),
+            "artist_mix_cluster_count": ("INT", {
+                "default": ARTIST_MIX_DEFAULT_CLUSTER_COUNT,
+                "min": 1,
+                "max": 32,
+                "tooltip": "Clustered mode compresses non-dominant artists into this many positive branches.",
+            }),
+            "artist_mix_dominant_isolation": ("BOOLEAN", {
+                "default": ARTIST_MIX_DEFAULT_DOMINANT_ISOLATION,
+                "tooltip": "Clustered mode keeps artists above the dominant threshold as exact branches.",
+            }),
+            "artist_mix_dominant_threshold": ("FLOAT", {
+                "default": ARTIST_MIX_DEFAULT_DOMINANT_THRESHOLD,
+                "min": 0.0,
+                "max": 1.0,
+                "step": 0.01,
+                "tooltip": "Clustered dominant isolation threshold based on normalized artist weight.",
             }),
         })
         return {
@@ -4450,6 +5209,12 @@ class EasyUseAnimaPromptStudioAdvancedV2(EasyUseAnimaPromptStudioAdvanced):
         artist_mix_mode: str = ARTIST_MIX_MODE_OFF,
         artist_mix_start_percent: float = ARTIST_MIX_DEFAULT_START_PERCENT,
         artist_mix_strength_scale: float = ARTIST_MIX_DEFAULT_STRENGTH_SCALE,
+        artist_mix_style_gain: float = ARTIST_MIX_DEFAULT_STYLE_GAIN,
+        artist_mix_rms_scale_cap: float = ARTIST_MIX_DEFAULT_RMS_SCALE_CAP,
+        artist_mix_exact_top_k: int = ARTIST_MIX_DEFAULT_EXACT_TOP_K,
+        artist_mix_cluster_count: int = ARTIST_MIX_DEFAULT_CLUSTER_COUNT,
+        artist_mix_dominant_isolation: bool = ARTIST_MIX_DEFAULT_DOMINANT_ISOLATION,
+        artist_mix_dominant_threshold: float = ARTIST_MIX_DEFAULT_DOMINANT_THRESHOLD,
         **field_inputs,
     ):
         base_key = EasyUseAnimaPromptStudioAdvanced.IS_CHANGED(
@@ -4485,6 +5250,40 @@ class EasyUseAnimaPromptStudioAdvancedV2(EasyUseAnimaPromptStudioAdvanced):
                 0.0,
                 5.0,
             ),
+            "artist_mix_style_gain": _bounded_artist_mix_float(
+                artist_mix_style_gain,
+                ARTIST_MIX_DEFAULT_STYLE_GAIN,
+                0.0,
+                3.0,
+            ),
+            "artist_mix_rms_scale_cap": _bounded_artist_mix_float(
+                artist_mix_rms_scale_cap,
+                ARTIST_MIX_DEFAULT_RMS_SCALE_CAP,
+                1.0,
+                5.0,
+            ),
+            "artist_mix_exact_top_k": _bounded_artist_mix_int(
+                artist_mix_exact_top_k,
+                ARTIST_MIX_DEFAULT_EXACT_TOP_K,
+                0,
+                64,
+            ),
+            "artist_mix_cluster_count": _bounded_artist_mix_int(
+                artist_mix_cluster_count,
+                ARTIST_MIX_DEFAULT_CLUSTER_COUNT,
+                1,
+                32,
+            ),
+            "artist_mix_dominant_isolation": _as_bool(
+                artist_mix_dominant_isolation,
+                ARTIST_MIX_DEFAULT_DOMINANT_ISOLATION,
+            ),
+            "artist_mix_dominant_threshold": _bounded_artist_mix_float(
+                artist_mix_dominant_threshold,
+                ARTIST_MIX_DEFAULT_DOMINANT_THRESHOLD,
+                0.0,
+                1.0,
+            ),
         })
 
     def build(
@@ -4505,6 +5304,12 @@ class EasyUseAnimaPromptStudioAdvancedV2(EasyUseAnimaPromptStudioAdvanced):
         artist_mix_mode: str = ARTIST_MIX_MODE_OFF,
         artist_mix_start_percent: float = ARTIST_MIX_DEFAULT_START_PERCENT,
         artist_mix_strength_scale: float = ARTIST_MIX_DEFAULT_STRENGTH_SCALE,
+        artist_mix_style_gain: float = ARTIST_MIX_DEFAULT_STYLE_GAIN,
+        artist_mix_rms_scale_cap: float = ARTIST_MIX_DEFAULT_RMS_SCALE_CAP,
+        artist_mix_exact_top_k: int = ARTIST_MIX_DEFAULT_EXACT_TOP_K,
+        artist_mix_cluster_count: int = ARTIST_MIX_DEFAULT_CLUSTER_COUNT,
+        artist_mix_dominant_isolation: bool = ARTIST_MIX_DEFAULT_DOMINANT_ISOLATION,
+        artist_mix_dominant_threshold: float = ARTIST_MIX_DEFAULT_DOMINANT_THRESHOLD,
         workflow_prompt=None,
         extra_pnginfo=None,
         unique_id=None,
@@ -4547,6 +5352,40 @@ class EasyUseAnimaPromptStudioAdvancedV2(EasyUseAnimaPromptStudioAdvanced):
                     0.0,
                     5.0,
                 ),
+                "artist_mix_style_gain": _bounded_artist_mix_float(
+                    artist_mix_style_gain,
+                    ARTIST_MIX_DEFAULT_STYLE_GAIN,
+                    0.0,
+                    3.0,
+                ),
+                "artist_mix_rms_scale_cap": _bounded_artist_mix_float(
+                    artist_mix_rms_scale_cap,
+                    ARTIST_MIX_DEFAULT_RMS_SCALE_CAP,
+                    1.0,
+                    5.0,
+                ),
+                "artist_mix_exact_top_k": _bounded_artist_mix_int(
+                    artist_mix_exact_top_k,
+                    ARTIST_MIX_DEFAULT_EXACT_TOP_K,
+                    0,
+                    64,
+                ),
+                "artist_mix_cluster_count": _bounded_artist_mix_int(
+                    artist_mix_cluster_count,
+                    ARTIST_MIX_DEFAULT_CLUSTER_COUNT,
+                    1,
+                    32,
+                ),
+                "artist_mix_dominant_isolation": _as_bool(
+                    artist_mix_dominant_isolation,
+                    ARTIST_MIX_DEFAULT_DOMINANT_ISOLATION,
+                ),
+                "artist_mix_dominant_threshold": _bounded_artist_mix_float(
+                    artist_mix_dominant_threshold,
+                    ARTIST_MIX_DEFAULT_DOMINANT_THRESHOLD,
+                    0.0,
+                    1.0,
+                ),
             })
         saved_fields = _normalize_advanced_fields(ui_payload.get("advanced_fields", advanced_fields))
         effective_field_inputs = _advanced_field_input_values(ui_payload.get("field_inputs") or field_inputs)
@@ -4573,6 +5412,12 @@ class EasyUseAnimaPromptStudioAdvancedV2(EasyUseAnimaPromptStudioAdvanced):
             artist_mix_mode=artist_mix_mode,
             artist_mix_start_percent=artist_mix_start_percent,
             artist_mix_strength_scale=artist_mix_strength_scale,
+            artist_mix_style_gain=artist_mix_style_gain,
+            artist_mix_rms_scale_cap=artist_mix_rms_scale_cap,
+            artist_mix_exact_top_k=artist_mix_exact_top_k,
+            artist_mix_cluster_count=artist_mix_cluster_count,
+            artist_mix_dominant_isolation=artist_mix_dominant_isolation,
+            artist_mix_dominant_threshold=artist_mix_dominant_threshold,
         )
         return {
             **base,
@@ -4726,11 +5571,7 @@ class EasyUseAnimaPromptDataConditioning:
                 }),
                 "artist_mix_mode": (list(ARTIST_MIX_INPUT_MODES), {
                     "default": ARTIST_MIX_MODE_FROM_PROMPT_DATA,
-                    "tooltip": (
-                        "prompt_data follows the dict artist_mix settings, off/prompt "
-                        "keeps the inline positive prompt, and average/exact separate "
-                        "artist-field text into conditioning variants."
-                    ),
+                    "tooltip": _artist_mix_mode_tooltip(include_prompt_data=True),
                 }),
                 "artist_mix_start_percent": ("FLOAT", {
                     "default": ARTIST_MIX_DEFAULT_START_PERCENT,
@@ -4745,6 +5586,43 @@ class EasyUseAnimaPromptDataConditioning:
                     "max": 5.0,
                     "step": 0.01,
                     "tooltip": "Strength multiplier used by exact artist mix modes.",
+                }),
+                "artist_mix_style_gain": ("FLOAT", {
+                    "default": ARTIST_MIX_DEFAULT_STYLE_GAIN,
+                    "min": 0.0,
+                    "max": 3.0,
+                    "step": 0.01,
+                    "tooltip": "Style delta gain used by delta_rms, hybrid tail, and clustered compressed branches.",
+                }),
+                "artist_mix_rms_scale_cap": ("FLOAT", {
+                    "default": ARTIST_MIX_DEFAULT_RMS_SCALE_CAP,
+                    "min": 1.0,
+                    "max": 5.0,
+                    "step": 0.01,
+                    "tooltip": "Maximum RMS energy restore scale for delta_rms compressed artist branches.",
+                }),
+                "artist_mix_exact_top_k": ("INT", {
+                    "default": ARTIST_MIX_DEFAULT_EXACT_TOP_K,
+                    "min": 0,
+                    "max": 64,
+                    "tooltip": "Hybrid mode keeps this many strongest artists as exact positive branches.",
+                }),
+                "artist_mix_cluster_count": ("INT", {
+                    "default": ARTIST_MIX_DEFAULT_CLUSTER_COUNT,
+                    "min": 1,
+                    "max": 32,
+                    "tooltip": "Clustered mode compresses non-dominant artists into this many positive branches.",
+                }),
+                "artist_mix_dominant_isolation": ("BOOLEAN", {
+                    "default": ARTIST_MIX_DEFAULT_DOMINANT_ISOLATION,
+                    "tooltip": "Clustered mode keeps artists above the dominant threshold as exact branches.",
+                }),
+                "artist_mix_dominant_threshold": ("FLOAT", {
+                    "default": ARTIST_MIX_DEFAULT_DOMINANT_THRESHOLD,
+                    "min": 0.0,
+                    "max": 1.0,
+                    "step": 0.01,
+                    "tooltip": "Clustered dominant isolation threshold based on normalized artist weight.",
                 }),
             },
         }
@@ -4763,6 +5641,12 @@ class EasyUseAnimaPromptDataConditioning:
         artist_mix_mode: str = ARTIST_MIX_MODE_FROM_PROMPT_DATA,
         artist_mix_start_percent: float = ARTIST_MIX_DEFAULT_START_PERCENT,
         artist_mix_strength_scale: float = ARTIST_MIX_DEFAULT_STRENGTH_SCALE,
+        artist_mix_style_gain: float = ARTIST_MIX_DEFAULT_STYLE_GAIN,
+        artist_mix_rms_scale_cap: float = ARTIST_MIX_DEFAULT_RMS_SCALE_CAP,
+        artist_mix_exact_top_k: int = ARTIST_MIX_DEFAULT_EXACT_TOP_K,
+        artist_mix_cluster_count: int = ARTIST_MIX_DEFAULT_CLUSTER_COUNT,
+        artist_mix_dominant_isolation: bool = ARTIST_MIX_DEFAULT_DOMINANT_ISOLATION,
+        artist_mix_dominant_threshold: float = ARTIST_MIX_DEFAULT_DOMINANT_THRESHOLD,
         **kwargs,
     ):
         return _stable_change_key({
@@ -4783,6 +5667,40 @@ class EasyUseAnimaPromptDataConditioning:
                 0.0,
                 5.0,
             ),
+            "artist_mix_style_gain": _bounded_artist_mix_float(
+                artist_mix_style_gain,
+                ARTIST_MIX_DEFAULT_STYLE_GAIN,
+                0.0,
+                3.0,
+            ),
+            "artist_mix_rms_scale_cap": _bounded_artist_mix_float(
+                artist_mix_rms_scale_cap,
+                ARTIST_MIX_DEFAULT_RMS_SCALE_CAP,
+                1.0,
+                5.0,
+            ),
+            "artist_mix_exact_top_k": _bounded_artist_mix_int(
+                artist_mix_exact_top_k,
+                ARTIST_MIX_DEFAULT_EXACT_TOP_K,
+                0,
+                64,
+            ),
+            "artist_mix_cluster_count": _bounded_artist_mix_int(
+                artist_mix_cluster_count,
+                ARTIST_MIX_DEFAULT_CLUSTER_COUNT,
+                1,
+                32,
+            ),
+            "artist_mix_dominant_isolation": _as_bool(
+                artist_mix_dominant_isolation,
+                ARTIST_MIX_DEFAULT_DOMINANT_ISOLATION,
+            ),
+            "artist_mix_dominant_threshold": _bounded_artist_mix_float(
+                artist_mix_dominant_threshold,
+                ARTIST_MIX_DEFAULT_DOMINANT_THRESHOLD,
+                0.0,
+                1.0,
+            ),
         })
 
     def apply(
@@ -4795,6 +5713,12 @@ class EasyUseAnimaPromptDataConditioning:
         artist_mix_mode: str = ARTIST_MIX_MODE_FROM_PROMPT_DATA,
         artist_mix_start_percent: float = ARTIST_MIX_DEFAULT_START_PERCENT,
         artist_mix_strength_scale: float = ARTIST_MIX_DEFAULT_STRENGTH_SCALE,
+        artist_mix_style_gain: float = ARTIST_MIX_DEFAULT_STYLE_GAIN,
+        artist_mix_rms_scale_cap: float = ARTIST_MIX_DEFAULT_RMS_SCALE_CAP,
+        artist_mix_exact_top_k: int = ARTIST_MIX_DEFAULT_EXACT_TOP_K,
+        artist_mix_cluster_count: int = ARTIST_MIX_DEFAULT_CLUSTER_COUNT,
+        artist_mix_dominant_isolation: bool = ARTIST_MIX_DEFAULT_DOMINANT_ISOLATION,
+        artist_mix_dominant_threshold: float = ARTIST_MIX_DEFAULT_DOMINANT_THRESHOLD,
     ):
         prompt_data = _normalize_prompt_data(EASYUSE_ANIMA_PROMPT_DATA)
         (
@@ -4817,6 +5741,12 @@ class EasyUseAnimaPromptDataConditioning:
             artist_mix_mode=artist_mix_mode,
             artist_mix_start_percent=artist_mix_start_percent,
             artist_mix_strength_scale=artist_mix_strength_scale,
+            artist_mix_style_gain=artist_mix_style_gain,
+            artist_mix_rms_scale_cap=artist_mix_rms_scale_cap,
+            artist_mix_exact_top_k=artist_mix_exact_top_k,
+            artist_mix_cluster_count=artist_mix_cluster_count,
+            artist_mix_dominant_isolation=artist_mix_dominant_isolation,
+            artist_mix_dominant_threshold=artist_mix_dominant_threshold,
         )
         negative = _encode_with_comfy_clip(clip, negative_prompt)
         latent_image = _generate_empty_latent_with_comfy(width, height)

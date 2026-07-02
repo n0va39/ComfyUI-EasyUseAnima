@@ -32,6 +32,15 @@
   prompt, while `average` and `exact` separate Advanced artist-field text from
   the base prompt and rebuild artist variants through EasyUseAnima's Anima
   prompt ordering rules.
+- Added approximate artist mix modes for cheaper exact-like mixing:
+  `delta_rms`, `hybrid`, and `clustered`. These reduce positive conditioning
+  branch count by compressing artist deltas while preserving the existing
+  `average` and `exact` behavior.
+- Artist mix controls now expose tuning values for style gain, RMS scale cap,
+  hybrid top-K, clustered branch count, and clustered dominant-artist
+  isolation.
+- Artist mix mode tooltips now describe the method and expected conditioning
+  branch cost.
 - Prompt data now stores `global_prompt` /
   `positive_without_artist_section`, structured `artist.tags`, and
   `artist_mix` routing values for artist-conditioning nodes.
@@ -79,6 +88,9 @@
 - Added regression coverage for artist-field-only prompt data, artist-free
   base prompts, artist mix prompt rebuilding, and exact-mode conditioning
   metadata.
+- Added regression coverage for duplicate artist coalescing, hybrid top-K tail
+  compression, approximate artist mix mode routing, and prompt-data storage of
+  artist mix tuning values.
 - Added regression coverage for Regional Prompt Studio field socket overrides.
 - Added regression coverage for NAIA resolution mode/bucket validation and
   bucket-fit output sizing.

@@ -14,7 +14,10 @@ from nodes import (
     ADVANCED_RESOLUTION_BUCKETS,
     ARTIST_MIX_CONTROL_KEY,
     ARTIST_MIX_EXACT_KEY,
+    ARTIST_MIX_MODE_CLUSTERED,
+    ARTIST_MIX_MODE_DELTA_RMS,
     ARTIST_MIX_MODE_FROM_PROMPT_DATA,
+    ARTIST_MIX_MODE_HYBRID,
     DEFAULT_QUALITY_TAGS,
     DEFAULT_TRAILING_QUALITY_TAGS,
     PROMPT_DATA_SCHEMA,
@@ -363,8 +366,18 @@ class PromptBuilderTests(unittest.TestCase):
         self.assertEqual(EasyUseAnimaPromptStudioAdvancedV2.RETURN_NAMES, (PROMPT_DATA_TYPE,))
         required_names = list(EasyUseAnimaPromptStudioAdvancedV2.INPUT_TYPES()["required"])
         self.assertEqual(
-            required_names[-3:],
-            ["artist_mix_mode", "artist_mix_start_percent", "artist_mix_strength_scale"],
+            required_names[-9:],
+            [
+                "artist_mix_mode",
+                "artist_mix_start_percent",
+                "artist_mix_strength_scale",
+                "artist_mix_style_gain",
+                "artist_mix_rms_scale_cap",
+                "artist_mix_exact_top_k",
+                "artist_mix_cluster_count",
+                "artist_mix_dominant_isolation",
+                "artist_mix_dominant_threshold",
+            ],
         )
         self.assertEqual(
             EasyUseAnimaPromptStudioAdvancedV2.INPUT_TYPES()["required"]["artist_mix_mode"][1]["default"],
@@ -656,6 +669,135 @@ class PromptBuilderTests(unittest.TestCase):
         self.assertIn("1girl", encoded_texts[0])
         self.assertIn("artist_a", encoded_texts[0])
 
+    def test_prompt_data_conditioning_exact_artist_mix_coalesces_duplicate_artists(self):
+        prompt_data = {
+            "positive_prompt": "masterpiece, 1girl",
+            "negative_prompt": "",
+            "positive_without_artist_section": "masterpiece, 1girl",
+            "artist_mix": {
+                "enabled": True,
+                "mode": "exact",
+                "artist_prompt": "(artist_a:2), artist_a, artist_b",
+            },
+        }
+        encoded_texts = []
+
+        def fake_encode(_clip, text):
+            encoded_texts.append(text)
+            return [[f"cond:{text}", {"encoded_text": text}]]
+
+        with patch("nodes._encode_with_comfy_clip", fake_encode):
+            with patch("nodes._generate_empty_latent_with_comfy", lambda width, height: {"samples": (width, height, 1)}):
+                _model, positive, _negative, _latent = EasyUseAnimaPromptDataConditioning().apply(
+                    object(),
+                    clip=object(),
+                    EASYUSE_ANIMA_PROMPT_DATA=prompt_data,
+                    artist_mix_mode=ARTIST_MIX_MODE_FROM_PROMPT_DATA,
+                )
+
+        self.assertEqual(len(positive), 2)
+        self.assertAlmostEqual(positive[0][1]["strength"], 0.75)
+        self.assertAlmostEqual(positive[1][1]["strength"], 0.25)
+        self.assertEqual(sum("artist_a" in text for text in encoded_texts), 1)
+
+    def test_prompt_data_conditioning_hybrid_artist_mix_keeps_top_k_and_compresses_tail(self):
+        prompt_data = {
+            "positive_prompt": "masterpiece, 1girl",
+            "negative_prompt": "",
+            "positive_without_artist_section": "masterpiece, 1girl",
+            "artist_mix": {
+                "enabled": True,
+                "mode": "exact",
+                "artist_prompt": "(artist_a:4), (artist_b:3), (artist_c:2), artist_d",
+            },
+        }
+        delta_calls = []
+
+        def fake_encode(_clip, text):
+            return [[f"cond:{text}", {"encoded_text": text}]]
+
+        def fake_delta(_clip, _data, _base_prompt, artists, weights=None, **kwargs):
+            delta_calls.append((artists, list(weights or []), kwargs))
+            return [["tail", {"strength": kwargs.get("branch_strength")}]]
+
+        with patch("nodes._encode_with_comfy_clip", fake_encode):
+            with patch("nodes._encode_artist_delta_rms", fake_delta):
+                with patch("nodes._generate_empty_latent_with_comfy", lambda width, height: {"samples": (width, height, 1)}):
+                    _model, positive, _negative, _latent = EasyUseAnimaPromptDataConditioning().apply(
+                        object(),
+                        clip=object(),
+                        EASYUSE_ANIMA_PROMPT_DATA=prompt_data,
+                        artist_mix_mode=ARTIST_MIX_MODE_HYBRID,
+                        artist_mix_exact_top_k=2,
+                    )
+
+        self.assertEqual(len(positive), 3)
+        self.assertTrue(all(item[1][ARTIST_MIX_CONTROL_KEY] for item in positive))
+        self.assertTrue(positive[0][1][ARTIST_MIX_EXACT_KEY])
+        self.assertTrue(positive[1][1][ARTIST_MIX_EXACT_KEY])
+        self.assertAlmostEqual(positive[0][1]["strength"], 0.4)
+        self.assertAlmostEqual(positive[1][1]["strength"], 0.3)
+        self.assertAlmostEqual(positive[2][1]["strength"], 0.3)
+        self.assertEqual(delta_calls[0][0], [("artist_c", 2.0), ("artist_d", 1.0)])
+        self.assertAlmostEqual(delta_calls[0][1][0], 2.0 / 3.0)
+        self.assertAlmostEqual(delta_calls[0][1][1], 1.0 / 3.0)
+
+    def test_prompt_data_conditioning_new_artist_mix_modes_route_to_approximation_helpers(self):
+        prompt_data = {
+            "positive_prompt": "masterpiece, 1girl",
+            "negative_prompt": "",
+            "positive_without_artist_section": "masterpiece, 1girl",
+            "artist_mix": {
+                "enabled": True,
+                "mode": "prompt",
+                "artist_prompt": "artist_a, artist_b",
+            },
+        }
+        calls = []
+
+        def fake_encode(_clip, text):
+            return [[f"cond:{text}", {"encoded_text": text}]]
+
+        def fake_delta(*_args, **kwargs):
+            calls.append(("delta", kwargs))
+            return [["delta", {}]]
+
+        def fake_clustered(*_args, **kwargs):
+            calls.append(("clustered", kwargs))
+            return [["clustered", {}]]
+
+        with patch("nodes._encode_with_comfy_clip", fake_encode):
+            with patch("nodes._encode_artist_delta_rms", fake_delta):
+                with patch("nodes._encode_artist_clustered", fake_clustered):
+                    with patch("nodes._generate_empty_latent_with_comfy", lambda width, height: {"samples": (width, height, 1)}):
+                        _model, delta_positive, _negative, _latent = EasyUseAnimaPromptDataConditioning().apply(
+                            object(),
+                            clip=object(),
+                            EASYUSE_ANIMA_PROMPT_DATA=prompt_data,
+                            artist_mix_mode=ARTIST_MIX_MODE_DELTA_RMS,
+                            artist_mix_style_gain=1.5,
+                            artist_mix_rms_scale_cap=2.5,
+                        )
+                        _model, clustered_positive, _negative, _latent = EasyUseAnimaPromptDataConditioning().apply(
+                            object(),
+                            clip=object(),
+                            EASYUSE_ANIMA_PROMPT_DATA=prompt_data,
+                            artist_mix_mode=ARTIST_MIX_MODE_CLUSTERED,
+                            artist_mix_cluster_count=5,
+                            artist_mix_dominant_isolation=False,
+                            artist_mix_dominant_threshold=0.2,
+                        )
+
+        self.assertEqual(delta_positive[0][0], "delta")
+        self.assertEqual(clustered_positive[0][0], "clustered")
+        self.assertEqual(calls[0][0], "delta")
+        self.assertEqual(calls[0][1]["style_gain"], 1.5)
+        self.assertEqual(calls[0][1]["rms_scale_cap"], 2.5)
+        self.assertEqual(calls[1][0], "clustered")
+        self.assertEqual(calls[1][1]["cluster_count"], 5)
+        self.assertFalse(calls[1][1]["dominant_isolation"])
+        self.assertEqual(calls[1][1]["dominant_threshold"], 0.2)
+
     def test_prompt_studio_advanced_v2_returns_structured_prompt_data(self):
         fields = [
             {
@@ -715,6 +857,12 @@ class PromptBuilderTests(unittest.TestCase):
         self.assertEqual(prompt_data["artist_mix"]["base_source"], "positive_without_artist_section")
         self.assertEqual(prompt_data["artist_mix"]["start_percent"], 0.5)
         self.assertEqual(prompt_data["artist_mix"]["strength_scale"], 1.0)
+        self.assertEqual(prompt_data["artist_mix"]["style_gain"], 1.35)
+        self.assertEqual(prompt_data["artist_mix"]["rms_scale_cap"], 2.0)
+        self.assertEqual(prompt_data["artist_mix"]["exact_top_k"], 4)
+        self.assertEqual(prompt_data["artist_mix"]["cluster_count"], 4)
+        self.assertTrue(prompt_data["artist_mix"]["dominant_isolation"])
+        self.assertEqual(prompt_data["artist_mix"]["dominant_threshold"], 0.25)
         self.assertEqual(prompt_data["artist_mix"]["artist_prompt"], "artist_a, artist_b")
         self.assertEqual(prompt_data["width"], 896)
         self.assertEqual(prompt_data["height"], 1152)
@@ -764,6 +912,53 @@ class PromptBuilderTests(unittest.TestCase):
         self.assertEqual(prompt_data["artist_mix"]["strength_scale"], 1.5)
         ui_payload = result["ui"]["prompt_studio_advanced"][0]
         self.assertEqual(ui_payload["artist_mix_mode"], "average")
+
+    def test_prompt_studio_advanced_v2_artist_mix_tuning_values_are_stored(self):
+        fields = [
+            {
+                "id": "artist",
+                "pane": "positive",
+                "type": "artist",
+                "label": "Artist Tags",
+                "text": "artist_a, artist_b",
+                "height": 72,
+            },
+            {
+                "id": "general",
+                "pane": "positive",
+                "type": "general",
+                "label": "General Tags",
+                "text": "1girl",
+                "height": 120,
+            },
+        ]
+        result = EasyUseAnimaPromptStudioAdvancedV2().build(
+            False,
+            True,
+            False,
+            False,
+            json.dumps(fields),
+            artist_mix_mode=ARTIST_MIX_MODE_HYBRID,
+            artist_mix_style_gain=1.5,
+            artist_mix_rms_scale_cap=2.5,
+            artist_mix_exact_top_k=3,
+            artist_mix_cluster_count=5,
+            artist_mix_dominant_isolation=False,
+            artist_mix_dominant_threshold=0.2,
+        )
+
+        prompt_data = result["result"][0]
+        self.assertTrue(prompt_data["artist_mix"]["enabled"])
+        self.assertEqual(prompt_data["artist_mix"]["mode"], ARTIST_MIX_MODE_HYBRID)
+        self.assertEqual(prompt_data["artist_mix"]["style_gain"], 1.5)
+        self.assertEqual(prompt_data["artist_mix"]["rms_scale_cap"], 2.5)
+        self.assertEqual(prompt_data["artist_mix"]["exact_top_k"], 3)
+        self.assertEqual(prompt_data["artist_mix"]["cluster_count"], 5)
+        self.assertFalse(prompt_data["artist_mix"]["dominant_isolation"])
+        self.assertEqual(prompt_data["artist_mix"]["dominant_threshold"], 0.2)
+        ui_payload = result["ui"]["prompt_studio_advanced"][0]
+        self.assertEqual(ui_payload["artist_mix_exact_top_k"], 3)
+        self.assertEqual(ui_payload["artist_mix_cluster_count"], 5)
 
     def test_prompt_data_unpack_expands_context_style_prompt_data(self):
         result = EasyUseAnimaPromptStudioAdvancedV2().build(

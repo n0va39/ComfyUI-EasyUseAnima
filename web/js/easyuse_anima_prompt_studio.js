@@ -87,6 +87,22 @@ const PROMPT_STUDIO_TEXT = {
     "advanced.artistMixMode": "mode",
     "advanced.artistMixStart": "start",
     "advanced.artistMixStrength": "strength",
+    "advanced.artistMixStyleGain": "style",
+    "advanced.artistMixRmsCap": "rms cap",
+    "advanced.artistMixTopK": "top K",
+    "advanced.artistMixClusters": "clusters",
+    "advanced.artistMixDominant": "dominant",
+    "advanced.artistMixDominantThreshold": "threshold",
+    "advanced.artistMixMode.offTitle": "Cost: 1 positive branch. Keep artist-field text inline in the positive prompt.",
+    "advanced.artistMixMode.averageTitle": "Cost: 1 positive branch. Weighted average of artist conditionings; fastest stable mix.",
+    "advanced.artistMixMode.delta_rmsTitle": "Cost: 1 positive branch. Mix artist deltas from the base prompt and restore RMS style energy; stronger than average.",
+    "advanced.artistMixMode.hybridTitle": "Cost: top K + 1 positive branches. Keep strongest artists exact and compress the tail with delta_rms.",
+    "advanced.artistMixMode.clusteredTitle": "Cost: about cluster count plus dominant artists. Cluster similar artist deltas; useful for many artists.",
+    "advanced.artistMixMode.exactTitle": "Cost: N positive branches. Most faithful artist-specific model output mix.",
+    "advanced.artistMixMode.composite_exactTitle": "Cost: N + 1 positive branches. Add one composite prompt branch plus exact artist branches.",
+    "advanced.artistMixMode.late_exactTitle": "Cost: base + N late exact branches. Apply exact mixing only after start.",
+    "advanced.artistMixMode.average_late_exactTitle": "Cost: 1 average branch plus N late exact branches. Fast early mix, exact late refinement.",
+    "advanced.artistMixMode.scheduled_averageTitle": "Cost: scheduled average branches. Change artist weights across timestep ranges.",
     "advanced.wildcard": "wildcard",
     "advanced.wildcardTitle": "Expand __wildcard__ and dynamic prompt syntax in Advanced Prompt Studio fields.",
     "advanced.wildcardSeed": "wildcard seed",
@@ -175,6 +191,22 @@ const PROMPT_STUDIO_TEXT = {
     "advanced.artistMixMode": "mode",
     "advanced.artistMixStart": "start",
     "advanced.artistMixStrength": "strength",
+    "advanced.artistMixStyleGain": "style",
+    "advanced.artistMixRmsCap": "rms cap",
+    "advanced.artistMixTopK": "top K",
+    "advanced.artistMixClusters": "clusters",
+    "advanced.artistMixDominant": "dominant",
+    "advanced.artistMixDominantThreshold": "threshold",
+    "advanced.artistMixMode.offTitle": "Cost: positive 1 branch. 작가 필드를 기존 positive prompt 안에 유지합니다.",
+    "advanced.artistMixMode.averageTitle": "Cost: positive 1 branch. 작가 conditioning을 가중 평균합니다. 안정적인 고속 모드입니다.",
+    "advanced.artistMixMode.delta_rmsTitle": "Cost: positive 1 branch. base prompt에서 작가 delta를 섞고 RMS 스타일 에너지를 복원합니다. average보다 강합니다.",
+    "advanced.artistMixMode.hybridTitle": "Cost: top K + 1 positive branches. 강한 작가는 exact로 유지하고 나머지는 delta_rms로 압축합니다.",
+    "advanced.artistMixMode.clusteredTitle": "Cost: cluster 수 + dominant 작가 정도. 비슷한 작가 delta를 묶어 압축합니다. 작가가 많을 때 유용합니다.",
+    "advanced.artistMixMode.exactTitle": "Cost: 작가 수 N positive branches. 작가별 모델 출력을 가장 충실하게 섞습니다.",
+    "advanced.artistMixMode.composite_exactTitle": "Cost: N + 1 positive branches. composite prompt branch와 exact branch를 함께 씁니다.",
+    "advanced.artistMixMode.late_exactTitle": "Cost: base + N late exact branches. start 이후에만 exact mix를 적용합니다.",
+    "advanced.artistMixMode.average_late_exactTitle": "Cost: average 1 branch + N late exact branches. 초반은 빠르게, 후반은 exact로 보강합니다.",
+    "advanced.artistMixMode.scheduled_averageTitle": "Cost: scheduled average branches. timestep 구간별로 artist weight를 바꿉니다.",
     "advanced.wildcard": "와일드카드",
     "advanced.wildcardTitle": "Advanced Prompt Studio 필드의 __wildcard__ 및 동적 프롬프트 문법을 확장합니다.",
     "advanced.wildcardSeed": "와일드카드 시드",
@@ -263,6 +295,22 @@ const PROMPT_STUDIO_TEXT = {
     "advanced.artistMixMode": "mode",
     "advanced.artistMixStart": "start",
     "advanced.artistMixStrength": "strength",
+    "advanced.artistMixStyleGain": "style",
+    "advanced.artistMixRmsCap": "rms cap",
+    "advanced.artistMixTopK": "top K",
+    "advanced.artistMixClusters": "clusters",
+    "advanced.artistMixDominant": "dominant",
+    "advanced.artistMixDominantThreshold": "threshold",
+    "advanced.artistMixMode.offTitle": "Cost: 1 positive branch. Keep artist-field text inline in the positive prompt.",
+    "advanced.artistMixMode.averageTitle": "Cost: 1 positive branch. Weighted average of artist conditionings; fastest stable mix.",
+    "advanced.artistMixMode.delta_rmsTitle": "Cost: 1 positive branch. Mix artist deltas from the base prompt and restore RMS style energy; stronger than average.",
+    "advanced.artistMixMode.hybridTitle": "Cost: top K + 1 positive branches. Keep strongest artists exact and compress the tail with delta_rms.",
+    "advanced.artistMixMode.clusteredTitle": "Cost: about cluster count plus dominant artists. Cluster similar artist deltas; useful for many artists.",
+    "advanced.artistMixMode.exactTitle": "Cost: N positive branches. Most faithful artist-specific model output mix.",
+    "advanced.artistMixMode.composite_exactTitle": "Cost: N + 1 positive branches. Add one composite prompt branch plus exact artist branches.",
+    "advanced.artistMixMode.late_exactTitle": "Cost: base + N late exact branches. Apply exact mixing only after start.",
+    "advanced.artistMixMode.average_late_exactTitle": "Cost: 1 average branch plus N late exact branches. Fast early mix, exact late refinement.",
+    "advanced.artistMixMode.scheduled_averageTitle": "Cost: scheduled average branches. Change artist weights across timestep ranges.",
     "advanced.wildcard": "ワイルドカード",
     "advanced.wildcardTitle": "Advanced Prompt Studio フィールド内の __wildcard__ と動的プロンプト構文を展開します。",
     "advanced.wildcardSeed": "ワイルドカードシード",
@@ -351,6 +399,22 @@ const PROMPT_STUDIO_TEXT = {
     "advanced.artistMixMode": "mode",
     "advanced.artistMixStart": "start",
     "advanced.artistMixStrength": "strength",
+    "advanced.artistMixStyleGain": "style",
+    "advanced.artistMixRmsCap": "rms cap",
+    "advanced.artistMixTopK": "top K",
+    "advanced.artistMixClusters": "clusters",
+    "advanced.artistMixDominant": "dominant",
+    "advanced.artistMixDominantThreshold": "threshold",
+    "advanced.artistMixMode.offTitle": "Cost: 1 positive branch. Keep artist-field text inline in the positive prompt.",
+    "advanced.artistMixMode.averageTitle": "Cost: 1 positive branch. Weighted average of artist conditionings; fastest stable mix.",
+    "advanced.artistMixMode.delta_rmsTitle": "Cost: 1 positive branch. Mix artist deltas from the base prompt and restore RMS style energy; stronger than average.",
+    "advanced.artistMixMode.hybridTitle": "Cost: top K + 1 positive branches. Keep strongest artists exact and compress the tail with delta_rms.",
+    "advanced.artistMixMode.clusteredTitle": "Cost: about cluster count plus dominant artists. Cluster similar artist deltas; useful for many artists.",
+    "advanced.artistMixMode.exactTitle": "Cost: N positive branches. Most faithful artist-specific model output mix.",
+    "advanced.artistMixMode.composite_exactTitle": "Cost: N + 1 positive branches. Add one composite prompt branch plus exact artist branches.",
+    "advanced.artistMixMode.late_exactTitle": "Cost: base + N late exact branches. Apply exact mixing only after start.",
+    "advanced.artistMixMode.average_late_exactTitle": "Cost: 1 average branch plus N late exact branches. Fast early mix, exact late refinement.",
+    "advanced.artistMixMode.scheduled_averageTitle": "Cost: scheduled average branches. Change artist weights across timestep ranges.",
     "advanced.wildcard": "通配符",
     "advanced.wildcardTitle": "展开 Advanced Prompt Studio 字段中的 __wildcard__ 和动态提示词语法。",
     "advanced.wildcardSeed": "通配符种子",
@@ -554,6 +618,9 @@ const ADVANCED_WILDCARD_DEFAULT_MODE = "고정";
 const ARTIST_MIX_MODES = [
   "off",
   "average",
+  "delta_rms",
+  "hybrid",
+  "clustered",
   "exact",
   "composite_exact",
   "late_exact",
@@ -634,6 +701,12 @@ const ADVANCED_WIDGET_INDEX = {
   artist_mix_mode: 13,
   artist_mix_start_percent: 14,
   artist_mix_strength_scale: 15,
+  artist_mix_style_gain: 16,
+  artist_mix_rms_scale_cap: 17,
+  artist_mix_exact_top_k: 18,
+  artist_mix_cluster_count: 19,
+  artist_mix_dominant_isolation: 20,
+  artist_mix_dominant_threshold: 21,
 };
 const ADVANCED_LEGACY_FIELDS_WIDGET_INDEXES = [6, 4];
 const ADVANCED_INTERNAL_WIDGET_NAMES = new Set(Object.keys(ADVANCED_WIDGET_INDEX));
@@ -3676,6 +3749,10 @@ function normalizeArtistMixMode(value) {
   return ARTIST_MIX_MODES.includes(mode) ? mode : "off";
 }
 
+function artistMixModeTitle(mode) {
+  return psText(`advanced.artistMixMode.${normalizeArtistMixMode(mode)}Title`);
+}
+
 function clampAdvancedNumber(value, fallback, min, max) {
   const parsed = Number(value);
   const next = Number.isFinite(parsed) ? parsed : fallback;
@@ -3716,6 +3793,30 @@ function createArtistMixNumberInput(node, name, labelKey, min, max, step, fallba
   return createAdvancedControlRow(labelKey, input);
 }
 
+function createArtistMixBooleanInput(node, name, labelKey, fallback) {
+  const widget = findWidget(node, name);
+  if (!widget) {
+    return null;
+  }
+  const button = document.createElement("button");
+  protectAdvancedNativeControl(button);
+  button.type = "button";
+  button.className = "easyuse-anima-advanced-toggle";
+  const initial = widget.value ?? fallback;
+  button.classList.toggle("is-on", !!initial);
+  button.textContent = initial ? psText("advanced.on") : psText("advanced.off");
+  button.setAttribute("aria-label", psText(labelKey));
+  button.addEventListener("click", (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    const next = !(widget.value ?? fallback);
+    setAdvancedControlValue(node, name, next);
+    button.classList.toggle("is-on", next);
+    button.textContent = next ? psText("advanced.on") : psText("advanced.off");
+  });
+  return createAdvancedControlRow(labelKey, button);
+}
+
 function createAdvancedArtistMixGroup(node) {
   const modeWidget = findWidget(node, "artist_mix_mode");
   if (!modeWidget) {
@@ -3735,16 +3836,19 @@ function createAdvancedArtistMixGroup(node) {
       const modeSelect = document.createElement("select");
       protectAdvancedNativeControl(modeSelect);
       modeSelect.setAttribute("aria-label", psText("advanced.artistMixMode"));
+      modeSelect.title = artistMixModeTitle(modeValue);
       for (const mode of ARTIST_MIX_MODES) {
         const option = document.createElement("option");
         option.value = mode;
         option.textContent = mode;
         option.selected = mode === modeValue;
+        option.title = artistMixModeTitle(mode);
         modeSelect.append(option);
       }
       modeSelect.addEventListener("change", () => {
         const nextMode = normalizeArtistMixMode(modeSelect.value);
         setAdvancedWidgetValue(node, "artist_mix_mode", nextMode);
+        modeSelect.title = artistMixModeTitle(nextMode);
         modeSelect.closest(".easyuse-anima-advanced-controlgroup")?.classList.toggle("is-active", nextMode !== "off");
         node.__easyuseAnimaAdvancedEditorEl
           ?.querySelector?.('[data-easyuse-anima-control-summary="artist_mix"]')
@@ -3769,11 +3873,67 @@ function createAdvancedArtistMixGroup(node) {
         0.01,
         1,
       );
+      const styleGainRow = createArtistMixNumberInput(
+        node,
+        "artist_mix_style_gain",
+        "advanced.artistMixStyleGain",
+        0,
+        3,
+        0.01,
+        1.35,
+      );
+      const rmsScaleCapRow = createArtistMixNumberInput(
+        node,
+        "artist_mix_rms_scale_cap",
+        "advanced.artistMixRmsCap",
+        1,
+        5,
+        0.01,
+        2,
+      );
+      const exactTopKRow = createArtistMixNumberInput(
+        node,
+        "artist_mix_exact_top_k",
+        "advanced.artistMixTopK",
+        0,
+        64,
+        1,
+        4,
+      );
+      const clusterCountRow = createArtistMixNumberInput(
+        node,
+        "artist_mix_cluster_count",
+        "advanced.artistMixClusters",
+        1,
+        32,
+        1,
+        4,
+      );
+      const dominantRow = createArtistMixBooleanInput(
+        node,
+        "artist_mix_dominant_isolation",
+        "advanced.artistMixDominant",
+        true,
+      );
+      const dominantThresholdRow = createArtistMixNumberInput(
+        node,
+        "artist_mix_dominant_threshold",
+        "advanced.artistMixDominantThreshold",
+        0,
+        1,
+        0.01,
+        0.25,
+      );
       if (startRow) {
         body.append(startRow);
       }
       if (strengthRow) {
         body.append(strengthRow);
+      }
+      for (const row of [styleGainRow, rmsScaleCapRow, exactTopKRow, clusterCountRow, dominantRow, dominantThresholdRow]) {
+        if (row) {
+          body.append(row);
+        }
       }
       return body;
     },
@@ -5050,7 +5210,17 @@ function applyAdvancedExecutedInputs(node, message) {
       widget.value = payload[name];
     }
   }
-  for (const name of ["artist_mix_mode", "artist_mix_start_percent", "artist_mix_strength_scale"]) {
+  for (const name of [
+    "artist_mix_mode",
+    "artist_mix_start_percent",
+    "artist_mix_strength_scale",
+    "artist_mix_style_gain",
+    "artist_mix_rms_scale_cap",
+    "artist_mix_exact_top_k",
+    "artist_mix_cluster_count",
+    "artist_mix_dominant_isolation",
+    "artist_mix_dominant_threshold",
+  ]) {
     const widget = findWidget(node, name);
     if (widget && payload[name] != null) {
       widget.value = payload[name];
