@@ -2,7 +2,7 @@
 
 ## 0.2.1
 
-### Planned
+### Highlights
 
 - Prepare `Anima Prompt Studio Advanced v2` with structured prompt data output.
 - Downstream nodes should read Prompt Studio data by dict keys instead of
@@ -19,7 +19,8 @@
 - Added `Anima Prompt Studio Advanced v2` with a single output socket of type
   `EASYUSE_ANIMA_PROMPT_DATA`.
 - The v2 prompt data output is a Python dict with keyed compatibility outputs,
-  resolution data, wildcard state, Mod Guidance flags, and artist-field data.
+  node parameter state, resolution data, wildcard state, Mod Guidance flags,
+  and artist-field data.
 - Added `EASYUSE_ANIMA_PROMPT_DATA` helper node to pass prompt data through,
   optionally override compatibility fields, and unfold it into the existing
   Prompt Studio compatibility outputs.
@@ -53,6 +54,9 @@
 - Prompt data now stores `global_prompt` /
   `positive_without_artist_section`, structured `artist.tags`, and
   `artist_mix` routing values for artist-conditioning nodes.
+- Prompt data now stores a `parameters` dict generated from every required
+  `Anima Prompt Studio Advanced v2` input, so new v2 parameters are caught by
+  tests instead of being silently omitted from `EASYUSE_ANIMA_PROMPT_DATA`.
 - `Anima Prompt Studio Advanced v2` now exposes inline foldout controls for
   Mod Guidance and Artist Mix, with Artist Mix mode written into prompt data.
 - Prompt-data socket names are fixed to English identifiers across locales so
@@ -62,6 +66,11 @@
   configured saved resolution bucket.
 - Added `naia.resolution_mode` and `naia.resolution_bucket` settings plus
   localized frontend controls for original-scale and bucket-fit modes.
+
+### Changed
+
+- Bumped package metadata and maintained example workflow `package_version`
+  metadata to `0.2.1`.
 
 ### Fixed
 
@@ -86,6 +95,8 @@
 - Added regression coverage for the Advanced v2 prompt data socket, dict
   payload, `EASYUSE_ANIMA_PROMPT_DATA` helper outputs and overrides, and
   artist-field-only artist data extraction.
+- Added regression coverage that every required Advanced v2 input is present
+  in prompt data `parameters`.
 - Added regression coverage for prompt-data conditioning and Spectrum
   `AnimaModGuidance` patcher invocation.
 - Added regression coverage for current Spectrum `AnimaModGuidance` invocation

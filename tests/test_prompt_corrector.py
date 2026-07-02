@@ -959,6 +959,58 @@ class PromptBuilderTests(unittest.TestCase):
         self.assertEqual(prompt_data["resolution"]["width"], 896)
         self.assertEqual(prompt_data["resolution"]["height"], 1152)
 
+    def test_prompt_studio_advanced_v2_tracks_required_parameters_in_prompt_data(self):
+        fields = [
+            {
+                "id": "general",
+                "pane": "positive",
+                "type": "general",
+                "label": "General Tags",
+                "text": "1girl",
+                "height": 120,
+            },
+        ]
+        result = EasyUseAnimaPromptStudioAdvancedV2().build(
+            True,
+            False,
+            True,
+            True,
+            json.dumps(fields),
+            use_negative_anima_mod_guidance=True,
+            wildcard_mode="순차",
+            wildcard_seed=123,
+            wildcard_seed_after_generate="increment",
+            resolution_bucket="1024",
+            resolution_size="896 * 1152 (7:9)",
+            artist_mix_mode=ARTIST_MIX_MODE_CLUSTERED,
+            artist_mix_start_percent=0.25,
+            artist_mix_strength_scale=1.5,
+            artist_mix_style_gain=1.6,
+            artist_mix_rms_scale_cap=2.5,
+            artist_mix_exact_top_k=3,
+            artist_mix_cluster_count=5,
+            artist_mix_dominant_isolation=False,
+            artist_mix_dominant_threshold=0.2,
+        )
+
+        prompt_data = result["result"][0]
+        required_inputs = set(EasyUseAnimaPromptStudioAdvancedV2.INPUT_TYPES()["required"])
+
+        self.assertFalse(required_inputs - set(prompt_data["parameters"]))
+        self.assertTrue(prompt_data["parameters"]["use_naia"])
+        self.assertFalse(prompt_data["parameters"]["consume_naia_on_queue"])
+        self.assertTrue(prompt_data["parameters"]["use_anima_mod_guidance"])
+        self.assertTrue(prompt_data["parameters"]["use_negative_anima_mod_guidance"])
+        self.assertTrue(prompt_data["parameters"]["pin_trigger_tags_to_front"])
+        self.assertEqual(prompt_data["parameters"]["resolution_bucket"], "1024")
+        self.assertEqual(prompt_data["parameters"]["resolution_size"], "896 * 1152 (7:9)")
+        self.assertEqual(prompt_data["parameters"]["wildcard_mode"], "순차")
+        self.assertEqual(prompt_data["parameters"]["artist_mix_mode"], ARTIST_MIX_MODE_CLUSTERED)
+        self.assertEqual(prompt_data["parameters"]["artist_mix_cluster_count"], 5)
+        self.assertFalse(prompt_data["parameters"]["artist_mix_dominant_isolation"])
+        self.assertTrue(prompt_data["naia"]["use_naia"])
+        self.assertFalse(prompt_data["naia"]["consume_on_queue"])
+
     def test_prompt_studio_advanced_v2_artist_mix_mode_separates_artist_prompt(self):
         fields = [
             {

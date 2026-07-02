@@ -7,7 +7,9 @@
 - `positive_prompt`
 - `negative_prompt`
 - `anima_mod_guidance_quality_tags`
+- `anima_mod_guidance_negative_prompt`
 - `use_anima_mod_guidance`
+- `use_negative_anima_mod_guidance`
 - `metadata_prompt`
 - `metadata_negative_prompt`
 - `width`
@@ -56,6 +58,10 @@
 `EASYUSE_ANIMA_PROMPT_DATA` 하나를 출력합니다. 이 prompt data 안에는 artist
 field 텍스트와 `artist_mix` 설정이 별도 key로 저장됩니다.
 
+Prompt data에는 기존 호환 출력값을 담은 `outputs`와 v2 노드의 required 입력값을
+키로 저장한 `parameters`가 함께 들어갑니다. downstream 노드는 새 항목이 추가되어도
+출력 순서가 아니라 dict key로 값을 읽어야 합니다.
+
 - artist field는 `@`가 붙은 토큰을 찾는 방식이 아니라 Advanced의 작가 태그
   입력 field를 의미합니다.
 - artist mix를 끄면 artist field 텍스트는 기존처럼 positive prompt에 포함됩니다.
@@ -64,6 +70,15 @@ field 텍스트와 `artist_mix` 설정이 별도 key로 저장됩니다.
   `CONDITIONING`을 만듭니다.
 - Prompt Data 없이 일반 prompt와 작가 태그만 처리하려면
   [Anima Artist Mix Conditioning](anima-artist-mix-conditioning.ko.md)을 사용합니다.
+
+## Prompt Data Helper Nodes
+
+- `Anima Prompt Studio Advanced v2`: `EASYUSE_ANIMA_PROMPT_DATA` 하나를 출력합니다.
+- `EASYUSE_ANIMA_PROMPT_DATA`: prompt data를 context처럼 통과시키고, 선택 입력으로
+  기존 호환 출력값을 덮어쓴 뒤 문자열, boolean, width, height 출력으로 펼칩니다.
+- `Anima Prompt Data Conditioning`: prompt data를 읽어 positive/negative
+  `CONDITIONING`, batch size 1 `latent_image`, Spectrum Mod Guidance 적용 모델을
+  출력합니다.
 
 ## 하이라이트
 

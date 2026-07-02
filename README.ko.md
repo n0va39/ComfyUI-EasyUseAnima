@@ -33,6 +33,9 @@ import하거나 덮어쓰지 않으므로, 두 노드팩을 동시에 설치할 
 | [Anima Prompt Builder](docs/nodes/anima-prompt-builder.ko.md) | `EasyUse Anima/Prompt` | 여러 프롬프트 필드를 조합하고 AMG용 quality 출력을 분리합니다. |
 | [Anima Prompt Studio](docs/nodes/anima-prompt-studio.ko.md) | `EasyUse Anima/Prompt` | Prompt Builder에 UI 편집, 자동완성, 하이라이트를 추가합니다. |
 | [Anima Prompt Studio Advanced](docs/nodes/anima-prompt-studio-advanced.ko.md) | `EasyUse Anima/Prompt` | positive/negative field, NAIA, 해상도, 와일드카드 제어를 포함합니다. |
+| [Anima Prompt Studio Advanced v2](docs/nodes/anima-prompt-studio-advanced.ko.md) | `EasyUse Anima/Prompt` | `EASYUSE_ANIMA_PROMPT_DATA` dict 출력으로 downstream 노드가 key 기반으로 값을 읽게 합니다. |
+| [EASYUSE_ANIMA_PROMPT_DATA](docs/nodes/anima-prompt-studio-advanced.ko.md) | `EasyUse Anima/Prompt` | prompt data를 통과시키고 필요한 호환 출력으로 펼칩니다. |
+| [Anima Prompt Data Conditioning](docs/nodes/anima-prompt-studio-advanced.ko.md) | `EasyUse Anima/Prompt` | prompt data에서 conditioning, 모델 패치, latent image를 생성합니다. |
 | [Anima Artist Mix Conditioning](docs/nodes/anima-artist-mix-conditioning.ko.md) | `EasyUse Anima/Prompt` | 일반 prompt와 별도 artist_tags 입력으로 artist mix positive CONDITIONING을 출력합니다. |
 | [Anima Wildcard](docs/nodes/anima-wildcard.ko.md) | `EasyUse Anima/Prompt` | Prompt Studio 없이 와일드카드 문자열만 확장합니다. |
 | [Anima LoRA Preset](docs/nodes/anima-lora-preset.ko.md) | `EasyUse Anima/LoRA` | LoRA profile, style prompt, trigger word를 저장하고 출력합니다. |

@@ -7,7 +7,9 @@ Outputs:
 - `positive_prompt`
 - `negative_prompt`
 - `anima_mod_guidance_quality_tags`
+- `anima_mod_guidance_negative_prompt`
 - `use_anima_mod_guidance`
+- `use_negative_anima_mod_guidance`
 - `metadata_prompt`
 - `metadata_negative_prompt`
 - `width`
@@ -55,6 +57,10 @@ See the [Wildcard Guide](../wildcards.en.md) for syntax.
 instead of the older string outputs. The prompt data stores artist-field text
 and `artist_mix` settings under dedicated keys.
 
+Prompt data also includes `outputs` for old compatibility values and
+`parameters` keyed by every required v2 node input. Downstream nodes should read
+dict keys instead of relying on output slot order when new fields are added.
+
 - Artist field means the Advanced artist-tag input field, not tokens marked
   with `@`.
 - When artist mix is disabled, artist-field text stays in the positive prompt.
@@ -64,6 +70,17 @@ and `artist_mix` settings under dedicated keys.
 - For workflows that do not use Prompt Data, use
   [Anima Artist Mix Conditioning](anima-artist-mix-conditioning.en.md) with a
   regular prompt and separate artist tags.
+
+## Prompt Data Helper Nodes
+
+- `Anima Prompt Studio Advanced v2`: outputs one `EASYUSE_ANIMA_PROMPT_DATA`
+  socket.
+- `EASYUSE_ANIMA_PROMPT_DATA`: passes prompt data through, applies optional
+  compatibility-output overrides, and unfolds strings, booleans, width, and
+  height.
+- `Anima Prompt Data Conditioning`: reads prompt data and outputs
+  positive/negative `CONDITIONING`, a batch-size-1 `latent_image`, and the model
+  after Spectrum Mod Guidance patching when enabled.
 
 ## Highlighting
 

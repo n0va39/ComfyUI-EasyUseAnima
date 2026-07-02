@@ -2247,6 +2247,54 @@ def _prompt_data_output(data: dict[str, Any], name: str, default=None):
     return fallbacks.get(name, default)
 
 
+def _prompt_data_input_default(input_spec):
+    if not isinstance(input_spec, tuple):
+        return None
+    options = input_spec[1] if len(input_spec) > 1 and isinstance(input_spec[1], dict) else {}
+    if "default" in options:
+        return options["default"]
+    input_type = input_spec[0] if input_spec else None
+    if isinstance(input_type, (list, tuple)) and input_type:
+        return input_type[0]
+    if input_type == "BOOLEAN":
+        return False
+    if input_type == "INT":
+        return 0
+    if input_type == "FLOAT":
+        return 0.0
+    if input_type == "STRING":
+        return ""
+    return None
+
+
+def _prompt_data_json_safe(value):
+    if value is None or isinstance(value, (str, int, float, bool)):
+        return value
+    if isinstance(value, (list, tuple)):
+        return [_prompt_data_json_safe(item) for item in value]
+    if isinstance(value, dict):
+        return {str(key): _prompt_data_json_safe(item) for key, item in value.items()}
+    return str(value)
+
+
+def _prompt_data_parameter_snapshot(
+    input_defs: dict[str, Any],
+    values: dict[str, Any],
+    ui_payload: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    ui_payload = ui_payload if isinstance(ui_payload, dict) else {}
+    snapshot: dict[str, Any] = {}
+    for name, input_spec in input_defs.items():
+        if name in ui_payload:
+            value = ui_payload[name]
+        elif name in values:
+            value = values[name]
+        else:
+            value = _prompt_data_input_default(input_spec)
+        snapshot[name] = _prompt_data_json_safe(value)
+    return snapshot
+
+
 def _advanced_outputs_from_prompt_data(value: str | dict | None) -> tuple:
     data = _normalize_prompt_data(value)
     return (
@@ -3183,6 +3231,7 @@ def _build_advanced_prompt_data(
     wildcard_seed_after_generate: str,
     wildcard_updates: dict[str, Any] | None = None,
     pin_trigger_tags_to_front: bool = False,
+    parameters: dict[str, Any] | None = None,
     artist_mix_mode: str = ARTIST_MIX_MODE_OFF,
     artist_mix_start_percent: float = ARTIST_MIX_DEFAULT_START_PERCENT,
     artist_mix_strength_scale: float = ARTIST_MIX_DEFAULT_STRENGTH_SCALE,
@@ -3244,11 +3293,13 @@ def _build_advanced_prompt_data(
     prompt_data_positive_prompt = positive_without_artist if artist_mix_enabled else positive_prompt
     outputs["positive_prompt"] = prompt_data_positive_prompt
     wildcard_updates = wildcard_updates or {}
+    parameters = parameters or {}
     return {
         "schema": PROMPT_DATA_SCHEMA,
         "version": PROMPT_DATA_VERSION,
         "type": PROMPT_DATA_TYPE,
         "source": "EasyUseAnimaPromptStudioAdvancedV2",
+        "parameters": dict(parameters),
         "prompt": prompt_data_positive_prompt,
         "positive_prompt": prompt_data_positive_prompt,
         "global_prompt": positive_without_artist,
@@ -3350,6 +3401,11 @@ def _build_advanced_prompt_data(
             "size": str(resolution_size or ""),
             "custom_width": _as_int(resolution_custom_width, int(width)),
             "custom_height": _as_int(resolution_custom_height, int(height)),
+        },
+        "naia": {
+            "use_naia": _as_bool(parameters.get("use_naia"), False),
+            "consume_on_queue": _as_bool(parameters.get("consume_naia_on_queue"), True),
+            "resolution_bucket": str(parameters.get("resolution_bucket") or ""),
         },
         "fields": _advanced_prompt_data_fields(effective_fields),
         "saved_fields": _advanced_prompt_data_fields(saved_fields),
@@ -5437,6 +5493,35 @@ class EasyUseAnimaPromptStudioAdvancedV2(EasyUseAnimaPromptStudioAdvanced):
             normalize_seed(wildcard_seed),
             normalize_wildcard_mode(wildcard_mode),
         )
+        prompt_data_parameters = _prompt_data_parameter_snapshot(
+            self.INPUT_TYPES().get("required", {}),
+            {
+                "use_naia": use_naia,
+                "consume_naia_on_queue": consume_naia_on_queue,
+                "use_anima_mod_guidance": use_anima_mod_guidance,
+                "pin_trigger_tags_to_front": pin_trigger_tags_to_front,
+                "advanced_fields": advanced_fields,
+                "use_negative_anima_mod_guidance": use_negative_anima_mod_guidance,
+                "wildcard_mode": wildcard_mode,
+                "wildcard_seed": wildcard_seed,
+                "wildcard_seed_after_generate": wildcard_seed_after_generate,
+                "resolution_bucket": resolution_bucket,
+                "resolution_size": resolution_size,
+                "resolution_custom_width": resolution_custom_width,
+                "resolution_custom_height": resolution_custom_height,
+                "artist_mix_mode": artist_mix_mode,
+                "artist_mix_start_percent": artist_mix_start_percent,
+                "artist_mix_strength_scale": artist_mix_strength_scale,
+                "artist_mix_style_gain": artist_mix_style_gain,
+                "artist_mix_rms_scale_cap": artist_mix_rms_scale_cap,
+                "artist_mix_exact_top_k": artist_mix_exact_top_k,
+                "artist_mix_cluster_count": artist_mix_cluster_count,
+                "artist_mix_dominant_isolation": artist_mix_dominant_isolation,
+                "artist_mix_dominant_threshold": artist_mix_dominant_threshold,
+                **field_inputs,
+            },
+            ui_payload,
+        )
         prompt_data = _build_advanced_prompt_data(
             compat_result,
             effective_fields,
@@ -5451,6 +5536,7 @@ class EasyUseAnimaPromptStudioAdvancedV2(EasyUseAnimaPromptStudioAdvanced):
             str(ui_payload.get("wildcard_seed_after_generate", wildcard_seed_after_generate)),
             ui_payload,
             pin_trigger_tags_to_front,
+            parameters=prompt_data_parameters,
             artist_mix_mode=artist_mix_mode,
             artist_mix_start_percent=artist_mix_start_percent,
             artist_mix_strength_scale=artist_mix_strength_scale,
