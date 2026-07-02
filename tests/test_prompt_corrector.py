@@ -360,6 +360,15 @@ class PromptBuilderTests(unittest.TestCase):
     def test_prompt_studio_advanced_v2_outputs_only_prompt_data_socket(self):
         self.assertEqual(EasyUseAnimaPromptStudioAdvancedV2.RETURN_TYPES, (PROMPT_DATA_TYPE,))
         self.assertEqual(EasyUseAnimaPromptStudioAdvancedV2.RETURN_NAMES, (PROMPT_DATA_TYPE,))
+        required_names = list(EasyUseAnimaPromptStudioAdvancedV2.INPUT_TYPES()["required"])
+        self.assertEqual(
+            required_names[-3:],
+            ["artist_mix_mode", "artist_mix_start_percent", "artist_mix_strength_scale"],
+        )
+        self.assertEqual(
+            EasyUseAnimaPromptStudioAdvancedV2.INPUT_TYPES()["required"]["artist_mix_mode"][1]["default"],
+            "off",
+        )
 
     def test_prompt_data_unpack_uses_prompt_data_type_as_socket_name(self):
         input_types = EasyUseAnimaPromptDataUnpack.INPUT_TYPES()
@@ -657,6 +666,50 @@ class PromptBuilderTests(unittest.TestCase):
         self.assertEqual(prompt_data["height"], 1152)
         self.assertEqual(prompt_data["resolution"]["width"], 896)
         self.assertEqual(prompt_data["resolution"]["height"], 1152)
+
+    def test_prompt_studio_advanced_v2_artist_mix_mode_separates_artist_prompt(self):
+        fields = [
+            {
+                "id": "artist",
+                "pane": "positive",
+                "type": "artist",
+                "label": "Artist Tags",
+                "text": "artist_a, artist_b",
+                "height": 72,
+            },
+            {
+                "id": "general",
+                "pane": "positive",
+                "type": "general",
+                "label": "General Tags",
+                "text": "1girl",
+                "height": 120,
+            },
+        ]
+        result = EasyUseAnimaPromptStudioAdvancedV2().build(
+            False,
+            True,
+            False,
+            False,
+            json.dumps(fields),
+            artist_mix_mode="average",
+            artist_mix_start_percent=0.25,
+            artist_mix_strength_scale=1.5,
+        )
+
+        prompt_data = result["result"][0]
+        self.assertEqual(prompt_data["positive_prompt"], prompt_data["positive_without_artist_section"])
+        self.assertEqual(prompt_data["outputs"]["positive_prompt"], prompt_data["positive_without_artist_section"])
+        self.assertNotIn("artist_a", prompt_data["positive_prompt"])
+        self.assertIn("artist_a", prompt_data["artist_mix"]["artist_prompt"])
+        self.assertFalse(prompt_data["artist"]["include_in_positive"])
+        self.assertEqual(prompt_data["artist"]["handling"], "separate")
+        self.assertTrue(prompt_data["artist_mix"]["enabled"])
+        self.assertEqual(prompt_data["artist_mix"]["mode"], "average")
+        self.assertEqual(prompt_data["artist_mix"]["start_percent"], 0.25)
+        self.assertEqual(prompt_data["artist_mix"]["strength_scale"], 1.5)
+        ui_payload = result["ui"]["prompt_studio_advanced"][0]
+        self.assertEqual(ui_payload["artist_mix_mode"], "average")
 
     def test_prompt_data_unpack_expands_context_style_prompt_data(self):
         result = EasyUseAnimaPromptStudioAdvancedV2().build(

@@ -35,6 +35,8 @@
 - Prompt data now stores `global_prompt` /
   `positive_without_artist_section`, structured `artist.tags`, and
   `artist_mix` routing values for artist-conditioning nodes.
+- `Anima Prompt Studio Advanced v2` now exposes inline foldout controls for
+  Mod Guidance and Artist Mix, with Artist Mix mode written into prompt data.
 - Prompt-data socket names are fixed to English identifiers across locales so
   displayed socket names match the Python node contract.
 - Added NAIA resolution bucket fit mode for `Anima Prompt Studio Advanced`.
@@ -49,6 +51,11 @@
   synchronized with node fields and connection changes.
 - Connected Regional Prompt Studio `STRING` inputs can now override masked
   prompt text at queue time without overwriting the saved field text.
+- Foldout controls in Prompt Studio keep their open state across internal
+  re-renders so clicks inside the control do not immediately collapse them.
+- Advanced Prompt Studio native controls such as resolution bucket, wildcard,
+  and Artist Mix dropdowns now consistently stop canvas event propagation so
+  opened dropdowns stay open while selecting values.
 
 ### Validation Notes
 

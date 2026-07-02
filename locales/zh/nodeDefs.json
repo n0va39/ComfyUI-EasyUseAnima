@@ -322,6 +322,18 @@
       "wildcard_seed_after_generate": {
         "name": "Wildcard seed after generate",
         "tooltip": "Seed control after wildcard generation."
+      },
+      "artist_mix_mode": {
+        "name": "artist_mix_mode",
+        "tooltip": "off keeps Advanced artist fields in the positive prompt. Other modes separate them into artist_mix data."
+      },
+      "artist_mix_start_percent": {
+        "name": "artist_mix_start_percent",
+        "tooltip": "Start percent used by late/scheduled artist mix modes."
+      },
+      "artist_mix_strength_scale": {
+        "name": "artist_mix_strength_scale",
+        "tooltip": "Strength multiplier used by exact artist mix modes."
       }
     },
     "outputs": {

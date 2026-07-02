@@ -123,6 +123,15 @@ ARTIST_MIX_INPUT_MODES = (
     ARTIST_MIX_MODE_OFF,
     *ARTIST_MIX_MODES,
 )
+ARTIST_MIX_STUDIO_MODES = (
+    ARTIST_MIX_MODE_OFF,
+    ARTIST_MIX_MODE_AVERAGE,
+    ARTIST_MIX_MODE_EXACT,
+    ARTIST_MIX_MODE_COMPOSITE_EXACT,
+    ARTIST_MIX_MODE_LATE_EXACT,
+    ARTIST_MIX_MODE_AVERAGE_LATE_EXACT,
+    ARTIST_MIX_MODE_SCHEDULED_AVERAGE,
+)
 ARTIST_MIX_DEFAULT_START_PERCENT = 0.5
 ARTIST_MIX_DEFAULT_STRENGTH_SCALE = 1.0
 ARTIST_MIX_CONTROL_KEY = "anima_prompt_artist_mix_control"
@@ -2405,6 +2414,9 @@ def _build_advanced_prompt_data(
     wildcard_seed_after_generate: str,
     wildcard_updates: dict[str, Any] | None = None,
     pin_trigger_tags_to_front: bool = False,
+    artist_mix_mode: str = ARTIST_MIX_MODE_OFF,
+    artist_mix_start_percent: float = ARTIST_MIX_DEFAULT_START_PERCENT,
+    artist_mix_strength_scale: float = ARTIST_MIX_DEFAULT_STRENGTH_SCALE,
 ) -> dict[str, Any]:
     (
         positive_prompt,
@@ -2447,14 +2459,23 @@ def _build_advanced_prompt_data(
         "",
         include_quality=not bool(use_negative_anima_mod_guidance),
     )
+    selected_artist_mix_mode = _normalize_artist_mix_mode(artist_mix_mode, ARTIST_MIX_MODE_OFF)
+    artist_mix_enabled = selected_artist_mix_mode not in {ARTIST_MIX_MODE_OFF, ARTIST_MIX_MODE_PROMPT}
+    prompt_data_artist_mix_mode = (
+        ARTIST_MIX_MODE_PROMPT
+        if selected_artist_mix_mode == ARTIST_MIX_MODE_OFF
+        else selected_artist_mix_mode
+    )
+    prompt_data_positive_prompt = positive_without_artist if artist_mix_enabled else positive_prompt
+    outputs["positive_prompt"] = prompt_data_positive_prompt
     wildcard_updates = wildcard_updates or {}
     return {
         "schema": PROMPT_DATA_SCHEMA,
         "version": PROMPT_DATA_VERSION,
         "type": PROMPT_DATA_TYPE,
         "source": "EasyUseAnimaPromptStudioAdvancedV2",
-        "prompt": positive_prompt,
-        "positive_prompt": positive_prompt,
+        "prompt": prompt_data_positive_prompt,
+        "positive_prompt": prompt_data_positive_prompt,
         "global_prompt": positive_without_artist,
         "positive_without_artist_section": positive_without_artist,
         "negative_prompt": negative_prompt,
@@ -2480,9 +2501,9 @@ def _build_advanced_prompt_data(
         },
         "artist": {
             "source": "advanced_artist_field",
-            "handling": "inline",
-            "conditioning_mode": "none",
-            "include_in_positive": True,
+            "handling": "separate" if artist_mix_enabled else "inline",
+            "conditioning_mode": prompt_data_artist_mix_mode if artist_mix_enabled else "none",
+            "include_in_positive": not artist_mix_enabled,
             "text": positive_artist_prompt,
             "weighted_text": positive_artist_prompt,
             "tags": _artist_tags_from_prompt(positive_artist_prompt),
@@ -2494,11 +2515,22 @@ def _build_advanced_prompt_data(
             "negative_count_hint": len(_prompt_tokens(negative_artist_prompt)),
         },
         "artist_mix": {
-            "enabled": False,
-            "mode": "prompt",
+            "enabled": artist_mix_enabled,
+            "mode": prompt_data_artist_mix_mode,
             "base_source": "positive_without_artist_section",
-            "start_percent": ARTIST_MIX_DEFAULT_START_PERCENT,
-            "strength_scale": ARTIST_MIX_DEFAULT_STRENGTH_SCALE,
+            "base_prompt": positive_without_artist,
+            "start_percent": _bounded_artist_mix_float(
+                artist_mix_start_percent,
+                ARTIST_MIX_DEFAULT_START_PERCENT,
+                0.0,
+                1.0,
+            ),
+            "strength_scale": _bounded_artist_mix_float(
+                artist_mix_strength_scale,
+                ARTIST_MIX_DEFAULT_STRENGTH_SCALE,
+                0.0,
+                5.0,
+            ),
             "artist_prompt": positive_artist_prompt,
             "artist_count_hint": len(_prompt_tokens(positive_artist_prompt)),
         },
@@ -4325,6 +4357,94 @@ class EasyUseAnimaPromptStudioAdvancedV2(EasyUseAnimaPromptStudioAdvanced):
     RETURN_TYPES = (PROMPT_DATA_TYPE,)
     RETURN_NAMES = (PROMPT_DATA_TYPE,)
 
+    @classmethod
+    def INPUT_TYPES(cls):
+        base = EasyUseAnimaPromptStudioAdvanced.INPUT_TYPES()
+        required = dict(base["required"])
+        required.update({
+            "artist_mix_mode": (list(ARTIST_MIX_STUDIO_MODES), {
+                "default": ARTIST_MIX_MODE_OFF,
+                "tooltip": (
+                    "off keeps Advanced artist-field text inline. Other modes "
+                    "separate artist-field text into prompt-data artist_mix fields."
+                ),
+            }),
+            "artist_mix_start_percent": ("FLOAT", {
+                "default": ARTIST_MIX_DEFAULT_START_PERCENT,
+                "min": 0.0,
+                "max": 1.0,
+                "step": 0.01,
+                "tooltip": "Start percent used by late/scheduled artist mix modes.",
+            }),
+            "artist_mix_strength_scale": ("FLOAT", {
+                "default": ARTIST_MIX_DEFAULT_STRENGTH_SCALE,
+                "min": 0.0,
+                "max": 5.0,
+                "step": 0.01,
+                "tooltip": "Strength multiplier used by exact artist mix modes.",
+            }),
+        })
+        return {
+            **base,
+            "required": required,
+        }
+
+    @classmethod
+    def IS_CHANGED(
+        cls,
+        use_naia: bool = False,
+        consume_naia_on_queue: bool = True,
+        use_anima_mod_guidance: bool = False,
+        pin_trigger_tags_to_front: bool = False,
+        use_negative_anima_mod_guidance: bool = False,
+        advanced_fields: str = "",
+        resolution_bucket: str = DEFAULT_ADVANCED_RESOLUTION_BUCKET,
+        resolution_size: str = DEFAULT_ADVANCED_RESOLUTION_SIZE,
+        resolution_custom_width: int = 1024,
+        resolution_custom_height: int = 1024,
+        wildcard_mode: str = WILDCARD_MODE_LABELS[1],
+        wildcard_seed: int = 0,
+        wildcard_seed_after_generate: str = SEED_CONTROL_FIXED,
+        artist_mix_mode: str = ARTIST_MIX_MODE_OFF,
+        artist_mix_start_percent: float = ARTIST_MIX_DEFAULT_START_PERCENT,
+        artist_mix_strength_scale: float = ARTIST_MIX_DEFAULT_STRENGTH_SCALE,
+        **field_inputs,
+    ):
+        base_key = EasyUseAnimaPromptStudioAdvanced.IS_CHANGED(
+            use_naia=use_naia,
+            consume_naia_on_queue=consume_naia_on_queue,
+            use_anima_mod_guidance=use_anima_mod_guidance,
+            pin_trigger_tags_to_front=pin_trigger_tags_to_front,
+            use_negative_anima_mod_guidance=use_negative_anima_mod_guidance,
+            advanced_fields=advanced_fields,
+            resolution_bucket=resolution_bucket,
+            resolution_size=resolution_size,
+            resolution_custom_width=resolution_custom_width,
+            resolution_custom_height=resolution_custom_height,
+            wildcard_mode=wildcard_mode,
+            wildcard_seed=wildcard_seed,
+            wildcard_seed_after_generate=wildcard_seed_after_generate,
+            **field_inputs,
+        )
+        if base_key != base_key:
+            return base_key
+        return _stable_change_key({
+            "base": base_key,
+            "artist_mix_mode": _normalize_artist_mix_mode(artist_mix_mode, ARTIST_MIX_MODE_OFF),
+            "artist_mix_start_percent": _bounded_artist_mix_float(
+                artist_mix_start_percent,
+                ARTIST_MIX_DEFAULT_START_PERCENT,
+                0.0,
+                1.0,
+            ),
+            "artist_mix_strength_scale": _bounded_artist_mix_float(
+                artist_mix_strength_scale,
+                ARTIST_MIX_DEFAULT_STRENGTH_SCALE,
+                0.0,
+                5.0,
+            ),
+        })
+
     def build(
         self,
         use_naia: bool,
@@ -4340,6 +4460,9 @@ class EasyUseAnimaPromptStudioAdvancedV2(EasyUseAnimaPromptStudioAdvanced):
         resolution_size: str = DEFAULT_ADVANCED_RESOLUTION_SIZE,
         resolution_custom_width: int = 1024,
         resolution_custom_height: int = 1024,
+        artist_mix_mode: str = ARTIST_MIX_MODE_OFF,
+        artist_mix_start_percent: float = ARTIST_MIX_DEFAULT_START_PERCENT,
+        artist_mix_strength_scale: float = ARTIST_MIX_DEFAULT_STRENGTH_SCALE,
         workflow_prompt=None,
         extra_pnginfo=None,
         unique_id=None,
@@ -4367,6 +4490,22 @@ class EasyUseAnimaPromptStudioAdvancedV2(EasyUseAnimaPromptStudioAdvanced):
         compat_result = tuple(base.get("result") or ())
         ui_payloads = base.get("ui", {}).get("prompt_studio_advanced", [])
         ui_payload = ui_payloads[0] if ui_payloads and isinstance(ui_payloads[0], dict) else {}
+        if isinstance(ui_payload, dict):
+            ui_payload.update({
+                "artist_mix_mode": _normalize_artist_mix_mode(artist_mix_mode, ARTIST_MIX_MODE_OFF),
+                "artist_mix_start_percent": _bounded_artist_mix_float(
+                    artist_mix_start_percent,
+                    ARTIST_MIX_DEFAULT_START_PERCENT,
+                    0.0,
+                    1.0,
+                ),
+                "artist_mix_strength_scale": _bounded_artist_mix_float(
+                    artist_mix_strength_scale,
+                    ARTIST_MIX_DEFAULT_STRENGTH_SCALE,
+                    0.0,
+                    5.0,
+                ),
+            })
         saved_fields = _normalize_advanced_fields(ui_payload.get("advanced_fields", advanced_fields))
         effective_field_inputs = _advanced_field_input_values(ui_payload.get("field_inputs") or field_inputs)
         effective_fields = _apply_advanced_field_inputs(saved_fields, effective_field_inputs)
@@ -4389,6 +4528,9 @@ class EasyUseAnimaPromptStudioAdvancedV2(EasyUseAnimaPromptStudioAdvanced):
             str(ui_payload.get("wildcard_seed_after_generate", wildcard_seed_after_generate)),
             ui_payload,
             pin_trigger_tags_to_front,
+            artist_mix_mode=artist_mix_mode,
+            artist_mix_start_percent=artist_mix_start_percent,
+            artist_mix_strength_scale=artist_mix_strength_scale,
         )
         return {
             **base,
