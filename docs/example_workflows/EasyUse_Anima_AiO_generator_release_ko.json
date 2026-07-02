@@ -1,0 +1,566 @@
+{
+  "id": "54d8b312-73d5-4291-8ce8-92365102d183",
+  "revision": 0,
+  "last_node_id": 89,
+  "last_link_id": 88,
+  "nodes": [
+    {
+      "id": 88,
+      "type": "MarkdownNote",
+      "pos": [
+        310,
+        790
+      ],
+      "size": [
+        500,
+        840
+      ],
+      "flags": {
+        "collapsed": false
+      },
+      "order": 0,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [],
+      "title": "프리셋용 LoRA / Civitai 링크",
+      "properties": {
+        "ue_properties": {
+          "widget_ue_connectable": {},
+          "version": "7.8",
+          "input_ue_unconnectable": {}
+        }
+      },
+      "widgets_values": [
+        "## 프리셋용 LoRA / Civitai 링크\n\n이 LoRA들은 필수 모델이 아니라 배포 프리셋의 그림체 재현용입니다.\n\n### LoRA Manager 다운로드 가이드\n\n1. ComfyUI에서 `LoRA Manager`를 열고 Civitai 검색 또는 아래 링크를 엽니다.\n2. 다운로드 위치는 원하는 `loras` 폴더를 사용해도 됩니다.\n3. 단, `Anima LoRA Preset`의 `FIX`는 파일명이 같아야 복구할 수 있습니다.\n4. 다운로드 후 LoRA Manager에서 scan/refresh metadata를 실행하세요.\n\n### LoRA 목록\n\n- [anima_ch9nb1n_v2.1-epoch36](https://civitai.com/models/2653156?modelVersionId=3006073) - `anima_ch9nb1n_v2.1-epoch36.safetensors` (N0VA39 / v2.1)\n- [anima_ci10ranko_v2.0-epoch36](https://civitai.com/models/2647381?modelVersionId=3025710) - `anima_ci10ranko_v2.0-epoch36.safetensors` (N0VA39 / v2.0)\n- [anima_fr8t_v2.0-epoch40](https://civitai.com/models/2629664?modelVersionId=3009307) - `anima_fr8t_v2.0-epoch40.safetensors` (N0VA39 / fr8t_v2.0)\n- [anima_fun91_v1.0-epoch24](https://civitai.com/models/2665850?modelVersionId=2993462) - `anima_fun91_v1.0-epoch24.safetensors` (N0VA39 / v1.0)\n- [anima_4rkj4ck_v1.0-epoch26](https://civitai.com/models/2654451?modelVersionId=2980626) - `anima_4rkj4ck_v1.0-epoch26.safetensors` (N0VA39 / v1.0)\n- [anima_k4nz4r1n_v1.3-epoch36](https://civitai.com/models/2670070?modelVersionId=2998155) - `anima_k4nz4r1n_v1.3-epoch36.safetensors` (N0VA39 / v1.3)\n- [anima_tu2h4te_v1.0-epoch40](https://civitai.com/models/2687055?modelVersionId=3017061) - `anima_tu2h4te_v1.0-epoch40.safetensors` (N0VA39 / v1.0)\n- [anima_m4ch1_v1.0-epoch16](https://civitai.com/models/2687040?modelVersionId=3017044) - `anima_m4ch1_v1.0-epoch16.safetensors` (N0VA39 / v1.0)\n- [anima_p0t7s_v1.1-epoch16](https://civitai.com/models/2645194?modelVersionId=2970110) - `anima_p0t7s_v1.1-epoch16.safetensors` (N0VA39 / v1.1)\n- [anima_m4me_v2.1-epoch20](https://civitai.com/models/2632362?modelVersionId=2993488) - `anima_m4me_v2.1-epoch20.safetensors` (N0VA39 / v2.1)\n- [anima_p4t1s1y_v2.2-epoch36](https://civitai.com/models/2634510?modelVersionId=2998131) - `anima_p4t1s1y_v2.2-epoch36.safetensors` (N0VA39 / v2.2)\n- [anima_qr4k_v2.0-epoch24](https://civitai.com/models/2629664?modelVersionId=3009319) - `anima_qr4k_v2.0-epoch24.safetensors` (N0VA39 / qr4k_v2.0)\n- [anima_fr9t_v2.1-epoch20](https://civitai.com/models/2629664?modelVersionId=3009315) - `anima_fr9t_v2.1-epoch20.safetensors` (N0VA39 / fr9t_v2.1)\n- [ogipote-NL](https://civitai.com/models/2529695?modelVersionId=2957262) - `ogipote-NL.safetensors` (ACatStick / NLTrained-base1.0)\n- [anima_ru60d_v1.0-epoch24](https://civitai.com/models/2634525?modelVersionId=2957967) - `anima_ru60d_v1.0-epoch24.safetensors` (N0VA39 / v1.0)\n- [anima_my8t_v1.1-epoch24](https://civitai.com/models/2632467?modelVersionId=2955652) - `anima_my8t_v1.1-epoch24.safetensors` (N0VA39 / v1.0)\n- [anima_k1m2b_v1.0-epoch24](https://civitai.com/models/2665838?modelVersionId=2993438) - `anima_k1m2b_v1.0-epoch24.safetensors` (N0VA39 / v1.0)\n- [anima_m1s0nye0_v1.0-epoch80](https://civitai.com/models/2691843?modelVersionId=3022455) - `anima_m1s0nye0_v1.0-epoch80.safetensors` (N0VA39 / v1.0)\n- [yzsss_anima1.0_v0.2](https://civitai.com/models/2423253?modelVersionId=2972473) - `yzsss_anima1.0_v0.2.safetensors` (BlueQ_ / v1.0)\n- [anima_mi1k_v1.3-epoch16](https://civitai.com/models/2624534?modelVersionId=2973605) - `anima_mi1k_v1.3-epoch16.safetensors` (N0VA39 / v1.3)\n- [anima_kn0r_v1.0-epoch26](https://civitai.com/models/2645212?modelVersionId=2970129) - `anima_kn0r_v1.0-epoch26.safetensors` (N0VA39 / v1.0)\n- [anima_mik4p1_v1.0-epoch20](https://civitai.com/models/2650086?modelVersionId=2975681) - `anima_mik4p1_v1.0-epoch20.safetensors` (N0VA39 / v1.0)\n"
+      ],
+      "color": "#432",
+      "bgcolor": "#000"
+    },
+    {
+      "id": 38,
+      "type": "EasyUseAnimaPromptStudioAdvancedV2",
+      "pos": [
+        1270,
+        790
+      ],
+      "size": [
+        640,
+        1210
+      ],
+      "flags": {},
+      "order": 3,
+      "mode": 0,
+      "inputs": [
+        {
+          "label": "1. 트리거",
+          "name": "field_positive_trigger",
+          "type": "STRING",
+          "link": 78
+        },
+        {
+          "label": "2. 품질 태그",
+          "name": "field_positive_quality",
+          "type": "STRING",
+          "link": null
+        },
+        {
+          "label": "3. 작가 태그",
+          "name": "field_positive_artist",
+          "type": "STRING",
+          "link": 77
+        },
+        {
+          "label": "4. 일반 태그",
+          "name": "field_positive_general",
+          "type": "STRING",
+          "link": null
+        },
+        {
+          "label": "neg1. 품질 태그",
+          "name": "field_negative_quality_mr2sjzuc",
+          "type": "STRING",
+          "link": null
+        },
+        {
+          "label": "neg2. 일반 태그",
+          "name": "field_negative_general",
+          "type": "STRING",
+          "link": null
+        },
+        {
+          "label": "neg3. 일반 태그",
+          "name": "field_negative_general_mr2sk5j8",
+          "type": "STRING",
+          "link": null
+        },
+        {
+          "label": "6. 일반 태그",
+          "name": "field_positive_trailing",
+          "type": "STRING",
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "EASYUSE_ANIMA_PROMPT_DATA",
+          "name": "EASYUSE_ANIMA_PROMPT_DATA",
+          "type": "EASYUSE_ANIMA_PROMPT_DATA",
+          "links": [
+            72
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "EasyUseAnimaPromptStudioAdvancedV2",
+        "easyuse_anima_advanced_fields": "[{\"id\":\"positive_trigger\",\"pane\":\"positive\",\"type\":\"trigger\",\"label\":\"Trigger Words\",\"text\":\"@m4me, @kn0r, @mik4p1, @p0t7s, @yzsss, @4rkj4ck\",\"height\":79,\"heightMode\":\"auto\",\"enabled\":true,\"pin\":true},{\"id\":\"positive_quality\",\"pane\":\"positive\",\"type\":\"quality\",\"label\":\"Quality Tags\",\"text\":\"(newest:0.6), masterpiece, best quality, (score_8:0.65), (score_7:0.7), (highres, absurdres, very aesthetic:0.8)\",\"height\":47,\"heightMode\":\"auto\",\"enabled\":true,\"pin\":false},{\"id\":\"positive_artist\",\"pane\":\"positive\",\"type\":\"artist\",\"label\":\"Artist Tags\",\"text\":\"(@sushispin:0.35)\",\"height\":46,\"heightMode\":\"auto\",\"enabled\":true,\"pin\":false},{\"id\":\"positive_general\",\"pane\":\"positive\",\"type\":\"general\",\"label\":\"General Tags\",\"text\":\"#미쿠다요 \\n1girl, hatsune miku, absurdly long hair, aqua hair, aqua eyes, black dress, black hairband, black ribbon, blue sky, blurry, bokeh, bud, choppy bangs, clear sky, closed mouth, cosmos \\\\(flower\\\\), day, depth of field, dot nose, elbow gloves, embroidered dress, embroidery, facing viewer, feet out of frame, grass, hair between eyes, hair flowing over, high collar, holding bouquet, leaf, light particles, light smile, medium dress, moss, neck ribbon, overgrown, pink flower, purple flower, sidelocks, simple butterfly, sitting, solo, striped ribbon, succulent plant, sunlight, train interior, turtleneck capelet, twintails, two-tone dress, vegetation, very long hair, white butterfly, white dress, white flower, white gloves, white thighhighs, wisteria\",\"height\":160,\"heightMode\":\"auto\",\"enabled\":true,\"pin\":false},{\"id\":\"negative_quality_mr2sjzuc\",\"pane\":\"negative\",\"type\":\"quality\",\"label\":\"Quality Tags\",\"text\":\"worst quality, low quality, score_1, score_2, score_3, jpeg artifacts, sepia, missing finger, extra digits, fewer digits, artistic error, unfinished, monochrome, anime coloring, comic, western comics \\\\(style\\\\), \",\"height\":63,\"heightMode\":\"auto\",\"enabled\":true,\"pin\":false},{\"id\":\"negative_general\",\"pane\":\"negative\",\"type\":\"general\",\"label\":\"General Tags\",\"text\":\"(simple background, outside border, white border), (ai-generated), work-in-progress, construction lines, (blank, border, letterboxed:1.2), (outside border:0.7), blurry, unusual anatomy, distorted anatomy, anatomically incorrect, mutated digits, (artist name, watermark, patreon username, web address, patreon logo, weibo username, weibo logo, watermark:1.25), multiple views, (anime screenshot:0.75), furry, english text, spot color, doodle on background,  \",\"height\":95,\"heightMode\":\"auto\",\"enabled\":true,\"pin\":false},{\"id\":\"negative_general_mr2sk5j8\",\"pane\":\"negative\",\"type\":\"general\",\"label\":\"General Tags\",\"text\":\"(chibi:1.1), (mature female:0.3), (sweat:0.5), \",\"height\":47,\"heightMode\":\"auto\",\"enabled\":true,\"pin\":false},{\"id\":\"positive_naia_mr39d0uc\",\"pane\":\"positive\",\"type\":\"naia\",\"label\":\"NAIA Prompt\",\"text\":\"\",\"height\":46,\"heightMode\":\"auto\",\"enabled\":false,\"pin\":false},{\"id\":\"positive_trailing\",\"pane\":\"positive\",\"type\":\"general\",\"label\":\"General Tags\",\"text\":\", location, (A highly aesthetic Pixiv style illustration, clean composition, high-quality digital art, detailed background, sharp focus on facial expressions.:0.6)\",\"height\":47,\"heightMode\":\"auto\",\"enabled\":true,\"pin\":false}]"
+      },
+      "widgets_values": [
+        false,
+        true,
+        true,
+        "1280",
+        "1024 * 1536 (2:3)",
+        1024,
+        1024,
+        false,
+        "[{\"id\":\"positive_trigger\",\"pane\":\"positive\",\"type\":\"trigger\",\"label\":\"Trigger Words\",\"text\":\"@m4me, @kn0r, @mik4p1, @p0t7s, @yzsss, @4rkj4ck\",\"height\":79,\"heightMode\":\"auto\",\"enabled\":true,\"pin\":true},{\"id\":\"positive_quality\",\"pane\":\"positive\",\"type\":\"quality\",\"label\":\"Quality Tags\",\"text\":\"(newest:0.6), masterpiece, best quality, (score_8:0.65), (score_7:0.7), (highres, absurdres, very aesthetic:0.8)\",\"height\":47,\"heightMode\":\"auto\",\"enabled\":true,\"pin\":false},{\"id\":\"positive_artist\",\"pane\":\"positive\",\"type\":\"artist\",\"label\":\"Artist Tags\",\"text\":\"(@sushispin:0.35)\",\"height\":46,\"heightMode\":\"auto\",\"enabled\":true,\"pin\":false},{\"id\":\"positive_general\",\"pane\":\"positive\",\"type\":\"general\",\"label\":\"General Tags\",\"text\":\"#미쿠다요 \\n1girl, hatsune miku, absurdly long hair, aqua hair, aqua eyes, black dress, black hairband, black ribbon, blue sky, blurry, bokeh, bud, choppy bangs, clear sky, closed mouth, cosmos \\\\(flower\\\\), day, depth of field, dot nose, elbow gloves, embroidered dress, embroidery, facing viewer, feet out of frame, grass, hair between eyes, hair flowing over, high collar, holding bouquet, leaf, light particles, light smile, medium dress, moss, neck ribbon, overgrown, pink flower, purple flower, sidelocks, simple butterfly, sitting, solo, striped ribbon, succulent plant, sunlight, train interior, turtleneck capelet, twintails, two-tone dress, vegetation, very long hair, white butterfly, white dress, white flower, white gloves, white thighhighs, wisteria\",\"height\":160,\"heightMode\":\"auto\",\"enabled\":true,\"pin\":false},{\"id\":\"negative_quality_mr2sjzuc\",\"pane\":\"negative\",\"type\":\"quality\",\"label\":\"Quality Tags\",\"text\":\"worst quality, low quality, score_1, score_2, score_3, jpeg artifacts, sepia, missing finger, extra digits, fewer digits, artistic error, unfinished, monochrome, anime coloring, comic, western comics \\\\(style\\\\), \",\"height\":63,\"heightMode\":\"auto\",\"enabled\":true,\"pin\":false},{\"id\":\"negative_general\",\"pane\":\"negative\",\"type\":\"general\",\"label\":\"General Tags\",\"text\":\"(simple background, outside border, white border), (ai-generated), work-in-progress, construction lines, (blank, border, letterboxed:1.2), (outside border:0.7), blurry, unusual anatomy, distorted anatomy, anatomically incorrect, mutated digits, (artist name, watermark, patreon username, web address, patreon logo, weibo username, weibo logo, watermark:1.25), multiple views, (anime screenshot:0.75), furry, english text, spot color, doodle on background,  \",\"height\":95,\"heightMode\":\"auto\",\"enabled\":true,\"pin\":false},{\"id\":\"negative_general_mr2sk5j8\",\"pane\":\"negative\",\"type\":\"general\",\"label\":\"General Tags\",\"text\":\"(chibi:1.1), (mature female:0.3), (sweat:0.5), \",\"height\":47,\"heightMode\":\"auto\",\"enabled\":true,\"pin\":false},{\"id\":\"positive_naia_mr39d0uc\",\"pane\":\"positive\",\"type\":\"naia\",\"label\":\"NAIA Prompt\",\"text\":\"\",\"height\":46,\"heightMode\":\"auto\",\"enabled\":false,\"pin\":false},{\"id\":\"positive_trailing\",\"pane\":\"positive\",\"type\":\"general\",\"label\":\"General Tags\",\"text\":\", location, (A highly aesthetic Pixiv style illustration, clean composition, high-quality digital art, detailed background, sharp focus on facial expressions.:0.6)\",\"height\":47,\"heightMode\":\"auto\",\"enabled\":true,\"pin\":false}]",
+        true,
+        "고정",
+        0,
+        "fixed",
+        "off",
+        0.5,
+        1,
+        0,
+        2,
+        4,
+        4,
+        false,
+        0.25,
+        ""
+      ]
+    },
+    {
+      "id": 89,
+      "type": "MarkdownNote",
+      "pos": [
+        -260,
+        790
+      ],
+      "size": [
+        560,
+        840
+      ],
+      "flags": {
+        "collapsed": false
+      },
+      "order": 1,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [],
+      "title": "필수 모델 / 다운로드 링크",
+      "properties": {
+        "ue_properties": {
+          "widget_ue_connectable": {},
+          "version": "7.8",
+          "input_ue_unconnectable": {}
+        }
+      },
+      "widgets_values": [
+        "## 필수 모델 / 다운로드 링크\n\n아래 파일은 ComfyUI 모델 폴더에 배치해야 합니다.\n\n### Core ANIMA\n\n- [qwen_3_06b_base.safetensors](https://huggingface.co/circlestone-labs/Anima/resolve/main/split_files/text_encoders/qwen_3_06b_base.safetensors?download=true)\n- [anima-base-v1.0.safetensors](https://huggingface.co/circlestone-labs/Anima/resolve/main/split_files/diffusion_models/anima-base-v1.0.safetensors)\n- [qwen_image_vae.safetensors](https://huggingface.co/circlestone-labs/Anima/resolve/main/split_files/vae/qwen_image_vae.safetensors?download=true)\n\n### 이 샘플 워크플로우에 필요한 커스텀 노드팩\n\n- ComfyUI-EasyUseAnima: Easy Use Anima Input, Anima 프롬프트 스튜디오 고급 v2, Anima LoRA 프리셋, Anima AiO Generator\n- ComfyUI-Spectrum-KSampler: 기본 선택된 Spectrum Mod Guidance Advanced 샘플러와 Spectrum 패치/보정 옵션\n- ComfyUI-Image-Saver: AiO Save Options의 기본 저장 backend, workflow metadata embedding, Civitai resource 저장\n\n### 선택 기능에 필요한 노드팩\n\n설치되어 있지 않은 선택 기능은 AiO UI에서 잠기며, Queue 직전에도 해당 설정이 자동으로 비활성화됩니다.\n\n- ComfyUI-Anima-DAVE: Advanced Options의 Anima DAVE 모델 패치\n- ComfyUI-KJNodes: SageAttention, Torch Compile, FP16 accumulation 등 AiO 모델 최적화 옵션\n- ComfyUI-Impact-Pack: AiO Detailer의 SAM3 -> MaskToSEGS -> DetailerForEach 경로\n\n### 저장 메타데이터 기준\n\n- Image Saver 메타데이터의 Steps, CFG, Sampler, Scheduler, Seed는 1차 샘플러 값을 사용합니다.\n- Size는 Highres와 Detailer 이후의 최종 이미지 해상도를 사용합니다.\n- `lora_stack`으로 실제 적용된 LoRA는 저장 시 `<lora:name:weight>` 형식으로 Image Saver 메타데이터에 전달되어 Civitai LoRA resource와 weight가 저장됩니다.\n\n### Storage Location\n\n```text\nComfyUI/\n└── models/\n    ├── text_encoders/\n    │   └── qwen_3_06b_base.safetensors\n    ├── diffusion_models/\n    │   └── anima-base-v1.0.safetensors\n    └── vae/\n        └── qwen_image_vae.safetensors\n```\n"
+      ],
+      "color": "#432",
+      "bgcolor": "#000"
+    },
+    {
+      "id": 86,
+      "type": "EasyUseAnimaAIOGenerator",
+      "pos": [
+        1940,
+        790
+      ],
+      "size": [
+        1120,
+        1210
+      ],
+      "flags": {},
+      "order": 5,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "easy use anima input",
+          "name": "easy_use_anima_input",
+          "type": "EASY_USE_ANIMA_INPUT",
+          "link": 87
+        },
+        {
+          "localized_name": "lora_stack",
+          "name": "lora_stack",
+          "shape": 7,
+          "type": "LORA_STACK",
+          "link": 88
+        },
+        {
+          "localized_name": "generation_settings",
+          "name": "generation_settings",
+          "type": "STRING",
+          "widget": {
+            "name": "generation_settings"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "image",
+          "name": "image",
+          "type": "IMAGE",
+          "links": null
+        },
+        {
+          "localized_name": "latent",
+          "name": "latent",
+          "type": "LATENT",
+          "links": null
+        },
+        {
+          "localized_name": "metadata_json",
+          "name": "metadata_json",
+          "type": "STRING",
+          "links": null
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "EasyUseAnimaAIOGenerator"
+      },
+      "widgets_values": [
+        "{\"schema\":\"easyuse_anima_aio_generation_settings\",\"version\":1,\"mode\":\"txt2img\",\"sampler\":{\"backend\":\"spectrum_mod_guidance_advanced\",\"seed\":-1,\"seed_after_generate\":\"fixed\",\"steps\":32,\"cfg\":5,\"sampler_name\":\"er_sde\",\"scheduler\":\"simple\",\"denoise\":1,\"spectrum\":{\"enabled\":true,\"window_size\":2,\"flex_window\":0.2,\"warmup_steps\":6,\"tail_actual_steps\":3,\"blend_w\":0.3,\"cheby_degree\":3,\"ridge_lambda\":0.1,\"history_size\":100,\"one_sampler_only\":false,\"verbose\":false,\"compat_policy\":\"conservative\"},\"spd\":{\"split_mode\":\"single\",\"scale\":0.5,\"sigma\":0.7,\"adaptive_smc_alpha\":0},\"dit_corrections\":{\"enabled\":false,\"dcw_mode\":\"auto\",\"dcw_lambda\":0.01,\"dcw_band_mask\":\"LL\",\"dcw_calibrator\":\"(auto-download default)\",\"smc_cfg\":false,\"adaptive_smc_alpha\":0,\"smc_cfg_lambda\":6,\"cfgpp\":false,\"cfgpp_lambda\":0,\"fsg\":false,\"fsg_band_lo\":0.59,\"fsg_band_hi\":0.75,\"fsg_k\":3,\"fsg_d_sigma\":0.1,\"fsg_gamma\":0,\"replace_existing_cfg\":false}},\"model_patches\":{\"aura_flow\":{\"shift\":3.0},\"kj\":{\"fp16_accumulation\":false,\"sage_attention\":\"auto\",\"sage_allow_compile\":true,\"torch_compile\":{\"enabled\":false,\"backend\":\"inductor\",\"fullgraph\":false,\"mode\":\"max-autotune-no-cudagraphs\",\"dynamic\":\"false\",\"compile_transformer_blocks_only\":true,\"dynamo_cache_size_limit\":64,\"debug_compile_keys\":false,\"disable_dynamic_vram\":true}},\"dave\":{\"enabled\":false,\"mask\":\"dave_alpha.npz\",\"strength\":0.3,\"tau\":0.1}},\"mod_guidance\":{\"mode\":\"prompt_data\",\"profile\":\"step_i8_skip27\",\"advanced\":{\"adapter\":\"(auto-download default)\",\"quality_tags\":\"highres, best quality, score_7\",\"quality_neg\":\"score_1, score_2, score_3, worst quality, lowres, old, bad hands, bad anatomy\",\"mod_w\":3,\"mod_start_layer\":8,\"mod_end_layer\":27,\"mod_taper\":0,\"mod_taper_scale\":0.25,\"mod_final_w\":0}},\"artist_mix\":{\"mode\":\"prompt_data\",\"start_percent\":0.5,\"strength_scale\":1,\"style_gain\":1.35,\"rms_scale_cap\":2,\"exact_top_k\":4,\"cluster_count\":4,\"dominant_isolation\":true,\"dominant_threshold\":0.25},\"highres\":{\"enabled\":true,\"scale_by\":1.5,\"upscale_method\":\"bicubic\",\"multiple\":\"32\",\"max_long_edge\":2560,\"steps\":19,\"inherit_sampler_settings\":true,\"cfg\":8,\"sampler_name\":\"euler\",\"scheduler\":\"simple\",\"denoise\":0.25,\"spectrum\":{\"enabled\":true,\"window_size\":2,\"flex_window\":0.2,\"warmup_steps\":6,\"tail_actual_steps\":3,\"blend_w\":0.3,\"cheby_degree\":3,\"ridge_lambda\":0.1,\"history_size\":100,\"one_sampler_only\":false,\"verbose\":false,\"compat_policy\":\"conservative\"},\"dit_corrections\":{\"enabled\":false,\"dcw_mode\":\"off\",\"dcw_lambda\":0.02,\"dcw_band_mask\":\"LL\",\"dcw_calibrator\":\"(auto-download default)\",\"smc_cfg\":false,\"adaptive_smc_alpha\":0,\"smc_cfg_lambda\":6,\"cfgpp\":false,\"cfgpp_lambda\":0,\"fsg\":false,\"fsg_band_lo\":0.59,\"fsg_band_hi\":0.75,\"fsg_k\":3,\"fsg_d_sigma\":0.1,\"fsg_gamma\":0,\"replace_existing_cfg\":false}},\"detailer\":{\"enabled\":false,\"order\":[\"face\",\"eye\"],\"sam3\":{\"context\":\"external\",\"checkpoint\":\"sam3.1_multiplex_fp16.safetensors\"},\"face\":{\"enabled\":true,\"detect_prompt\":\"face\",\"detect_count\":1,\"threshold\":0.52,\"refine_iterations\":2,\"individual_masks\":true,\"combined\":false,\"crop_factor\":4,\"bbox_fill\":false,\"drop_size\":100,\"contour_fill\":true,\"guide_size\":1024,\"guide_size_for\":false,\"max_size\":2048,\"steps\":20,\"inherit_sampler_settings\":true,\"cfg\":8,\"sampler_name\":\"euler\",\"scheduler\":\"sgm_uniform\",\"denoise\":0.33,\"feather\":5,\"noise_mask\":true,\"force_inpaint\":true,\"wildcard\":\"\",\"cycle\":1,\"alignment\":\"32\",\"inpaint_model\":false,\"noise_mask_feather\":10,\"tiled_encode\":false,\"tiled_decode\":false,\"spectrum\":{\"enabled\":true,\"window_size\":2,\"flex_window\":0.15,\"warmup_steps\":6,\"tail_actual_steps\":3,\"blend_w\":0.3,\"cheby_degree\":3,\"ridge_lambda\":0.1,\"history_size\":100,\"one_sampler_only\":false,\"verbose\":false,\"compat_policy\":\"conservative\"},\"dit_corrections\":{\"enabled\":false,\"dcw_mode\":\"off\",\"dcw_lambda\":0.02,\"dcw_band_mask\":\"LL\",\"dcw_calibrator\":\"(auto-download default)\",\"smc_cfg\":false,\"adaptive_smc_alpha\":0,\"smc_cfg_lambda\":6,\"cfgpp\":false,\"cfgpp_lambda\":0,\"fsg\":false,\"fsg_band_lo\":0.59,\"fsg_band_hi\":0.75,\"fsg_k\":3,\"fsg_d_sigma\":0.1,\"fsg_gamma\":0,\"replace_existing_cfg\":false},\"label\":\"Face Detailer\"},\"eye\":{\"enabled\":true,\"detect_prompt\":\"eyes\",\"detect_count\":1,\"threshold\":0.5,\"refine_iterations\":2,\"individual_masks\":true,\"combined\":false,\"crop_factor\":6,\"bbox_fill\":false,\"drop_size\":40,\"contour_fill\":true,\"guide_size\":1024,\"guide_size_for\":false,\"max_size\":2048,\"steps\":20,\"inherit_sampler_settings\":true,\"cfg\":8,\"sampler_name\":\"euler\",\"scheduler\":\"sgm_uniform\",\"denoise\":0.29,\"feather\":6,\"noise_mask\":true,\"force_inpaint\":true,\"wildcard\":\"\",\"cycle\":1,\"alignment\":\"32\",\"inpaint_model\":false,\"noise_mask_feather\":20,\"tiled_encode\":false,\"tiled_decode\":false,\"spectrum\":{\"enabled\":true,\"window_size\":2,\"flex_window\":0.15,\"warmup_steps\":6,\"tail_actual_steps\":3,\"blend_w\":0.3,\"cheby_degree\":3,\"ridge_lambda\":0.1,\"history_size\":100,\"one_sampler_only\":false,\"verbose\":false,\"compat_policy\":\"conservative\"},\"dit_corrections\":{\"enabled\":false,\"dcw_mode\":\"off\",\"dcw_lambda\":0.02,\"dcw_band_mask\":\"LL\",\"dcw_calibrator\":\"(auto-download default)\",\"smc_cfg\":false,\"adaptive_smc_alpha\":0,\"smc_cfg_lambda\":6,\"cfgpp\":false,\"cfgpp_lambda\":0,\"fsg\":false,\"fsg_band_lo\":0.59,\"fsg_band_hi\":0.75,\"fsg_k\":3,\"fsg_d_sigma\":0.1,\"fsg_gamma\":0,\"replace_existing_cfg\":false},\"label\":\"Eye Detailer\"}},\"save\":{\"enabled\":true,\"backend\":\"image_saver\",\"image_saver\":{\"filename\":\"%time_%basemodelname\",\"path\":\"EasyUseAnima/AiO\",\"extension\":\"webp\",\"lossless_webp\":false,\"quality_jpeg_or_webp\":97,\"optimize_png\":true,\"counter\":0,\"clip_skip\":0,\"time_format\":\"%Y-%m-%d-%H%M%S\",\"save_workflow_as_json\":false,\"embed_workflow\":true,\"additional_hashes\":\"\",\"additional_hash_bundles\":[],\"civitai_hash_fetchers\":[],\"download_civitai_data\":true,\"easy_remix\":true,\"custom\":\"\"}},\"preview\":{\"intermediate_images\":true,\"compare_previous\":true,\"image_feed\":true,\"feed_count\":12}}"
+      ]
+    },
+    {
+      "id": 77,
+      "type": "EasyUseAnimaLoraPreset",
+      "pos": [
+        820,
+        990
+      ],
+      "size": [
+        440,
+        602
+      ],
+      "flags": {},
+      "order": 2,
+      "mode": 0,
+      "inputs": [
+        {
+          "label": "style_prompt",
+          "localized_name": "스타일 프롬프트",
+          "name": "style_prompt",
+          "type": "STRING",
+          "widget": {
+            "name": "style_prompt"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "프로필 인덱스",
+          "name": "profile_index",
+          "type": "INT",
+          "widget": {
+            "name": "profile_index"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "프로필 개수",
+          "name": "profile_count",
+          "type": "STRING",
+          "widget": {
+            "name": "profile_count"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "LoRA 이름",
+          "name": "lora_name",
+          "type": "COMBO",
+          "widget": {
+            "name": "lora_name"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "LoRA 목록",
+          "name": "loras",
+          "type": "STRING",
+          "widget": {
+            "name": "loras"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "프로필 데이터",
+          "name": "profile_data",
+          "type": "STRING",
+          "widget": {
+            "name": "profile_data"
+          },
+          "link": null
+        },
+        {
+          "name": "lora_stack",
+          "type": "LORA_STACK",
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "스타일 프롬프트",
+          "name": "style_prompt",
+          "type": "STRING",
+          "links": [
+            77
+          ]
+        },
+        {
+          "localized_name": "LORA_STACK",
+          "name": "LORA_STACK",
+          "type": "LORA_STACK",
+          "links": [
+            88
+          ]
+        },
+        {
+          "localized_name": "트리거 워드",
+          "name": "trigger_words",
+          "type": "STRING",
+          "links": [
+            78
+          ]
+        },
+        {
+          "localized_name": "활성 LoRA",
+          "name": "active_loras",
+          "type": "STRING",
+          "links": []
+        },
+        {
+          "localized_name": "프로필 인덱스",
+          "name": "profile_index",
+          "type": "INT",
+          "links": []
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "EasyUseAnimaLoraPreset"
+      },
+      "widgets_values": [
+        "(@sushispin:0.35),",
+        7,
+        "9",
+        "None",
+        "[{\"name\":\"style\\\\MY_ANI\\\\ningen_mame\\\\anima_m4me_v2.1-epoch20.safetensors\",\"on\":true,\"strength\":0.61,\"strengthTwo\":null},{\"name\":\"style\\\\MY_ANI\\\\kerno\\\\anima_kn0r_v1.0-epoch26.safetensors\",\"on\":true,\"strength\":0.6,\"strengthTwo\":null},{\"name\":\"style\\\\MY_ANI\\\\mika_pikazo\\\\anima_mik4p1_v1.0-epoch20.safetensors\",\"on\":true,\"strength\":0.36,\"strengthTwo\":null},{\"name\":\"style\\\\MY_ANI\\\\pottsness\\\\anima_p0t7s_v1.1-epoch16.safetensors\",\"on\":true,\"strength\":0.69,\"strengthTwo\":null},{\"name\":\"style\\\\ANI\\\\B1\\\\yzsss_anima1.0_v0.2.safetensors\",\"on\":true,\"strength\":0.29,\"strengthTwo\":null},{\"name\":\"style\\\\MY_ANI\\\\jacknife\\\\anima_4rkj4ck_v1.0-epoch26.safetensors\",\"on\":true,\"strength\":0.6,\"strengthTwo\":null},{\"name\":\"style\\\\ANI\\\\B1\\\\ogipote-NL.safetensors\",\"on\":true,\"strength\":0.4,\"strengthTwo\":null}]",
+        "{\"1\":{\"style_prompt\":\"(@sushispin:0.7),\",\"loras\":[{\"name\":\"style\\\\MY_ANI\\\\ningen_mame\\\\anima_m4me_v2.1-epoch20.safetensors\",\"on\":true,\"strength\":0.91,\"strengthTwo\":null},{\"name\":\"style\\\\MY_ANI\\\\parsley-f\\\\anima_p4t1s1y_v2.2-epoch36.safetensors\",\"on\":true,\"strength\":0.6,\"strengthTwo\":null},{\"name\":\"style\\\\MY_ANI\\\\quasarcake\\\\anima_qr4k_v2.0-epoch24.safetensors\",\"on\":true,\"strength\":0.27,\"strengthTwo\":null},{\"name\":\"style\\\\MY_ANI\\\\fymrie\\\\anima_fr9t_v2.1-epoch20.safetensors\",\"on\":true,\"strength\":0.45,\"strengthTwo\":null},{\"name\":\"style\\\\ANI\\\\B1\\\\ogipote-NL.safetensors\",\"on\":true,\"strength\":0.22,\"strengthTwo\":null},{\"name\":\"style\\\\MY_ANI\\\\freng\\\\anima_fr8t_v2.0-epoch40.safetensors\",\"on\":true,\"strength\":0.5,\"strengthTwo\":null}],\"saved_name\":\"1\",\"saved_snapshot\":\"{\\\"style_prompt\\\":\\\"(@sushispin:0.7),\\\",\\\"loras\\\":[{\\\"name\\\":\\\"style\\\\\\\\MY_ANI\\\\\\\\ningen_mame\\\\\\\\anima_m4me_v2.1-epoch20.safetensors\\\",\\\"on\\\":true,\\\"strength\\\":0.91,\\\"strengthTwo\\\":null},{\\\"name\\\":\\\"style\\\\\\\\MY_ANI\\\\\\\\parsley-f\\\\\\\\anima_p4t1s1y_v2.2-epoch36.safetensors\\\",\\\"on\\\":true,\\\"strength\\\":0.6,\\\"strengthTwo\\\":null},{\\\"name\\\":\\\"style\\\\\\\\MY_ANI\\\\\\\\quasarcake\\\\\\\\anima_qr4k_v2.0-epoch24.safetensors\\\",\\\"on\\\":true,\\\"strength\\\":0.27,\\\"strengthTwo\\\":null},{\\\"name\\\":\\\"style\\\\\\\\MY_ANI\\\\\\\\fymrie\\\\\\\\anima_fr9t_v2.1-epoch20.safetensors\\\",\\\"on\\\":true,\\\"strength\\\":0.45,\\\"strengthTwo\\\":null},{\\\"name\\\":\\\"style\\\\\\\\ANI\\\\\\\\B1\\\\\\\\ogipote-NL.safetensors\\\",\\\"on\\\":true,\\\"strength\\\":0.22,\\\"strengthTwo\\\":null},{\\\"name\\\":\\\"style\\\\\\\\MY_ANI\\\\\\\\freng\\\\\\\\anima_fr8t_v2.0-epoch40.safetensors\\\",\\\"on\\\":true,\\\"strength\\\":0.5,\\\"strengthTwo\\\":null}]}\"},\"2\":{\"style_prompt\":\"(@sushispin:0.74)\",\"loras\":[{\"name\":\"style\\\\MY_ANI\\\\rurudo\\\\anima_ru60d_v1.0-epoch24.safetensors\",\"on\":true,\"strength\":0.6,\"strengthTwo\":null},{\"name\":\"style\\\\MY_ANI\\\\fymrie\\\\anima_fr9t_v2.1-epoch20.safetensors\",\"on\":true,\"strength\":0.9,\"strengthTwo\":null},{\"name\":\"style\\\\MY_ANI\\\\myung_yi\\\\anima_my8t_v1.1-epoch24.safetensors\",\"on\":true,\"strength\":0.6,\"strengthTwo\":null},{\"name\":\"style\\\\MY_ANI\\\\kim_eb\\\\anima_k1m2b_v1.0-epoch24.safetensors\",\"on\":true,\"strength\":0.4,\"strengthTwo\":null},{\"name\":\"style\\\\MY_ANI\\\\misa_(misonyeo_s2)\\\\anima_m1s0nye0_v1.0-epoch80.safetensors\",\"on\":true,\"strength\":0.4,\"strengthTwo\":null},{\"name\":\"style\\\\MY_ANI\\\\quasarcake\\\\anima_qr4k_v2.0-epoch24.safetensors\",\"on\":true,\"strength\":0.3,\"strengthTwo\":null},{\"name\":\"style\\\\MY_ANI\\\\freng\\\\anima_fr8t_v2.0-epoch40.safetensors\",\"on\":true,\"strength\":0.7,\"strengthTwo\":null}],\"saved_name\":\"2\",\"saved_snapshot\":\"{\\\"style_prompt\\\":\\\"(@sushispin:0.74)\\\",\\\"loras\\\":[{\\\"name\\\":\\\"style\\\\\\\\MY_ANI\\\\\\\\rurudo\\\\\\\\anima_ru60d_v1.0-epoch24.safetensors\\\",\\\"on\\\":true,\\\"strength\\\":0.6,\\\"strengthTwo\\\":null},{\\\"name\\\":\\\"style\\\\\\\\MY_ANI\\\\\\\\fymrie\\\\\\\\anima_fr9t_v2.1-epoch20.safetensors\\\",\\\"on\\\":true,\\\"strength\\\":0.9,\\\"strengthTwo\\\":null},{\\\"name\\\":\\\"style\\\\\\\\MY_ANI\\\\\\\\myung_yi\\\\\\\\anima_my8t_v1.1-epoch24.safetensors\\\",\\\"on\\\":true,\\\"strength\\\":0.6,\\\"strengthTwo\\\":null},{\\\"name\\\":\\\"style\\\\\\\\MY_ANI\\\\\\\\kim_eb\\\\\\\\anima_k1m2b_v1.0-epoch24.safetensors\\\",\\\"on\\\":true,\\\"strength\\\":0.4,\\\"strengthTwo\\\":null},{\\\"name\\\":\\\"style\\\\\\\\MY_ANI\\\\\\\\misa_(misonyeo_s2)\\\\\\\\anima_m1s0nye0_v1.0-epoch80.safetensors\\\",\\\"on\\\":true,\\\"strength\\\":0.4,\\\"strengthTwo\\\":null},{\\\"name\\\":\\\"style\\\\\\\\MY_ANI\\\\\\\\quasarcake\\\\\\\\anima_qr4k_v2.0-epoch24.safetensors\\\",\\\"on\\\":true,\\\"strength\\\":0.3,\\\"strengthTwo\\\":null},{\\\"name\\\":\\\"style\\\\\\\\MY_ANI\\\\\\\\freng\\\\\\\\anima_fr8t_v2.0-epoch40.safetensors\\\",\\\"on\\\":true,\\\"strength\\\":0.7,\\\"strengthTwo\\\":null}]}\"},\"3\":{\"style_prompt\":\"(@sushispin:0.74),\",\"loras\":[{\"name\":\"style\\\\MY_ANI\\\\parsley-f\\\\anima_p4t1s1y_v2.2-epoch36.safetensors\",\"on\":true,\"strength\":0.75,\"strengthTwo\":null},{\"name\":\"style\\\\MY_ANI\\\\kim_eb\\\\anima_k1m2b_v1.0-epoch24.safetensors\",\"on\":true,\"strength\":0.53,\"strengthTwo\":null},{\"name\":\"style\\\\MY_ANI\\\\misa_(misonyeo_s2)\\\\anima_m1s0nye0_v1.0-epoch80.safetensors\",\"on\":true,\"strength\":0.5,\"strengthTwo\":null},{\"name\":\"style\\\\MY_ANI\\\\pottsness\\\\anima_p0t7s_v1.1-epoch16.safetensors\",\"on\":true,\"strength\":0.38,\"strengthTwo\":null},{\"name\":\"style\\\\MY_ANI\\\\freng\\\\anima_fr8t_v2.0-epoch40.safetensors\",\"on\":true,\"strength\":0.75,\"strengthTwo\":null},{\"name\":\"style\\\\MY_ANI\\\\fymrie\\\\anima_fr9t_v2.1-epoch20.safetensors\",\"on\":true,\"strength\":0.85,\"strengthTwo\":null},{\"name\":\"style\\\\MY_ANI\\\\quasarcake\\\\anima_qr4k_v2.0-epoch24.safetensors\",\"on\":true,\"strength\":0.3,\"strengthTwo\":null}],\"saved_name\":\"3\",\"saved_snapshot\":\"{\\\"style_prompt\\\":\\\"(@sushispin:0.74),\\\",\\\"loras\\\":[{\\\"name\\\":\\\"style\\\\\\\\MY_ANI\\\\\\\\parsley-f\\\\\\\\anima_p4t1s1y_v2.2-epoch36.safetensors\\\",\\\"on\\\":true,\\\"strength\\\":0.75,\\\"strengthTwo\\\":null},{\\\"name\\\":\\\"style\\\\\\\\MY_ANI\\\\\\\\kim_eb\\\\\\\\anima_k1m2b_v1.0-epoch24.safetensors\\\",\\\"on\\\":true,\\\"strength\\\":0.53,\\\"strengthTwo\\\":null},{\\\"name\\\":\\\"style\\\\\\\\MY_ANI\\\\\\\\misa_(misonyeo_s2)\\\\\\\\anima_m1s0nye0_v1.0-epoch80.safetensors\\\",\\\"on\\\":true,\\\"strength\\\":0.5,\\\"strengthTwo\\\":null},{\\\"name\\\":\\\"style\\\\\\\\MY_ANI\\\\\\\\pottsness\\\\\\\\anima_p0t7s_v1.1-epoch16.safetensors\\\",\\\"on\\\":true,\\\"strength\\\":0.38,\\\"strengthTwo\\\":null},{\\\"name\\\":\\\"style\\\\\\\\MY_ANI\\\\\\\\freng\\\\\\\\anima_fr8t_v2.0-epoch40.safetensors\\\",\\\"on\\\":true,\\\"strength\\\":0.75,\\\"strengthTwo\\\":null},{\\\"name\\\":\\\"style\\\\\\\\MY_ANI\\\\\\\\fymrie\\\\\\\\anima_fr9t_v2.1-epoch20.safetensors\\\",\\\"on\\\":true,\\\"strength\\\":0.85,\\\"strengthTwo\\\":null},{\\\"name\\\":\\\"style\\\\\\\\MY_ANI\\\\\\\\quasarcake\\\\\\\\anima_qr4k_v2.0-epoch24.safetensors\\\",\\\"on\\\":true,\\\"strength\\\":0.3,\\\"strengthTwo\\\":null}]}\"},\"4\":{\"style_prompt\":\"(@sushispin:0.45)\",\"loras\":[{\"name\":\"style\\\\MY_ANI\\\\ningen_mame\\\\anima_m4me_v2.1-epoch20.safetensors\",\"on\":true,\"strength\":1,\"strengthTwo\":null},{\"name\":\"style\\\\MY_ANI\\\\parsley-f\\\\anima_p4t1s1y_v2.2-epoch36.safetensors\",\"on\":true,\"strength\":0.7,\"strengthTwo\":null},{\"name\":\"style\\\\MY_ANI\\\\fymrie\\\\anima_fr9t_v2.1-epoch20.safetensors\",\"on\":true,\"strength\":0.75,\"strengthTwo\":null},{\"name\":\"style\\\\MY_ANI\\\\quasarcake\\\\anima_qr4k_v2.0-epoch24.safetensors\",\"on\":true,\"strength\":0.35,\"strengthTwo\":null},{\"name\":\"style\\\\MY_ANI\\\\rurudo\\\\anima_ru60d_v1.0-epoch24.safetensors\",\"on\":true,\"strength\":0.7,\"strengthTwo\":null},{\"name\":\"style\\\\MY_ANI\\\\ciloranko\\\\anima_ci10ranko_v2.0-epoch36.safetensors\",\"on\":true,\"strength\":0.6,\"strengthTwo\":null}],\"saved_name\":\"4\",\"saved_snapshot\":\"{\\\"style_prompt\\\":\\\"(@sushispin:0.45)\\\",\\\"loras\\\":[{\\\"name\\\":\\\"style\\\\\\\\MY_ANI\\\\\\\\ningen_mame\\\\\\\\anima_m4me_v2.1-epoch20.safetensors\\\",\\\"on\\\":true,\\\"strength\\\":1,\\\"strengthTwo\\\":null},{\\\"name\\\":\\\"style\\\\\\\\MY_ANI\\\\\\\\parsley-f\\\\\\\\anima_p4t1s1y_v2.2-epoch36.safetensors\\\",\\\"on\\\":true,\\\"strength\\\":0.7,\\\"strengthTwo\\\":null},{\\\"name\\\":\\\"style\\\\\\\\MY_ANI\\\\\\\\fymrie\\\\\\\\anima_fr9t_v2.1-epoch20.safetensors\\\",\\\"on\\\":true,\\\"strength\\\":0.75,\\\"strengthTwo\\\":null},{\\\"name\\\":\\\"style\\\\\\\\MY_ANI\\\\\\\\quasarcake\\\\\\\\anima_qr4k_v2.0-epoch24.safetensors\\\",\\\"on\\\":true,\\\"strength\\\":0.35,\\\"strengthTwo\\\":null},{\\\"name\\\":\\\"style\\\\\\\\MY_ANI\\\\\\\\rurudo\\\\\\\\anima_ru60d_v1.0-epoch24.safetensors\\\",\\\"on\\\":true,\\\"strength\\\":0.7,\\\"strengthTwo\\\":null},{\\\"name\\\":\\\"style\\\\\\\\MY_ANI\\\\\\\\ciloranko\\\\\\\\anima_ci10ranko_v2.0-epoch36.safetensors\\\",\\\"on\\\":true,\\\"strength\\\":0.6,\\\"strengthTwo\\\":null}]}\"},\"5\":{\"style_prompt\":\"(@sushispin:0.65)\",\"loras\":[{\"name\":\"style\\\\MY_ANI\\\\ningen_mame\\\\anima_m4me_v2.1-epoch20.safetensors\",\"on\":true,\"strength\":0.62,\"strengthTwo\":null},{\"name\":\"style\\\\MY_ANI\\\\pottsness\\\\anima_p0t7s_v1.1-epoch16.safetensors\",\"on\":true,\"strength\":0.39,\"strengthTwo\":null},{\"name\":\"style\\\\ANI\\\\B1\\\\yzsss_anima1.0_v0.2.safetensors\",\"on\":true,\"strength\":0.2,\"strengthTwo\":null},{\"name\":\"style\\\\MY_ANI\\\\jacknife\\\\anima_4rkj4ck_v1.0-epoch26.safetensors\",\"on\":true,\"strength\":0.45,\"strengthTwo\":null},{\"name\":\"style\\\\MY_ANI\\\\kedama_milk\\\\anima_mi1k_v1.3-epoch16.safetensors\",\"on\":true,\"strength\":0.32,\"strengthTwo\":null},{\"name\":\"style\\\\MY_ANI\\\\parsley-f\\\\anima_p4t1s1y_v2.2-epoch36.safetensors\",\"on\":true,\"strength\":0.38,\"strengthTwo\":null},{\"name\":\"style\\\\MY_ANI\\\\kim_eb\\\\anima_k1m2b_v1.0-epoch24.safetensors\",\"on\":true,\"strength\":0.33,\"strengthTwo\":null},{\"name\":\"style\\\\MY_ANI\\\\myung_yi\\\\anima_my8t_v1.1-epoch24.safetensors\",\"on\":true,\"strength\":0.5,\"strengthTwo\":null}],\"saved_name\":\"5\",\"saved_snapshot\":\"{\\\"style_prompt\\\":\\\"(@sushispin:0.65)\\\",\\\"loras\\\":[{\\\"name\\\":\\\"style\\\\\\\\MY_ANI\\\\\\\\ningen_mame\\\\\\\\anima_m4me_v2.1-epoch20.safetensors\\\",\\\"on\\\":true,\\\"strength\\\":0.62,\\\"strengthTwo\\\":null},{\\\"name\\\":\\\"style\\\\\\\\MY_ANI\\\\\\\\pottsness\\\\\\\\anima_p0t7s_v1.1-epoch16.safetensors\\\",\\\"on\\\":true,\\\"strength\\\":0.39,\\\"strengthTwo\\\":null},{\\\"name\\\":\\\"style\\\\\\\\ANI\\\\\\\\B1\\\\\\\\yzsss_anima1.0_v0.2.safetensors\\\",\\\"on\\\":true,\\\"strength\\\":0.2,\\\"strengthTwo\\\":null},{\\\"name\\\":\\\"style\\\\\\\\MY_ANI\\\\\\\\jacknife\\\\\\\\anima_4rkj4ck_v1.0-epoch26.safetensors\\\",\\\"on\\\":true,\\\"strength\\\":0.45,\\\"strengthTwo\\\":null},{\\\"name\\\":\\\"style\\\\\\\\MY_ANI\\\\\\\\kedama_milk\\\\\\\\anima_mi1k_v1.3-epoch16.safetensors\\\",\\\"on\\\":true,\\\"strength\\\":0.32,\\\"strengthTwo\\\":null},{\\\"name\\\":\\\"style\\\\\\\\MY_ANI\\\\\\\\parsley-f\\\\\\\\anima_p4t1s1y_v2.2-epoch36.safetensors\\\",\\\"on\\\":true,\\\"strength\\\":0.38,\\\"strengthTwo\\\":null},{\\\"name\\\":\\\"style\\\\\\\\MY_ANI\\\\\\\\kim_eb\\\\\\\\anima_k1m2b_v1.0-epoch24.safetensors\\\",\\\"on\\\":true,\\\"strength\\\":0.33,\\\"strengthTwo\\\":null},{\\\"name\\\":\\\"style\\\\\\\\MY_ANI\\\\\\\\myung_yi\\\\\\\\anima_my8t_v1.1-epoch24.safetensors\\\",\\\"on\\\":true,\\\"strength\\\":0.5,\\\"strengthTwo\\\":null}]}\"},\"6\":{\"style_prompt\":\"(@sushispin:0.75), \",\"loras\":[{\"name\":\"style\\\\MY_ANI\\\\ningen_mame\\\\anima_m4me_v2.1-epoch20.safetensors\",\"on\":true,\"strength\":0.85,\"strengthTwo\":null},{\"name\":\"style\\\\MY_ANI\\\\kerno\\\\anima_kn0r_v1.0-epoch26.safetensors\",\"on\":true,\"strength\":0.63,\"strengthTwo\":null},{\"name\":\"style\\\\ANI\\\\B1\\\\yzsss_anima1.0_v0.2.safetensors\",\"on\":true,\"strength\":0.35,\"strengthTwo\":null},{\"name\":\"style\\\\MY_ANI\\\\ciloranko\\\\anima_ci10ranko_v2.0-epoch36.safetensors\",\"on\":true,\"strength\":0.36,\"strengthTwo\":null},{\"name\":\"style\\\\MY_ANI\\\\chen_bin\\\\anima_ch9nb1n_v2.1-epoch36.safetensors\",\"on\":true,\"strength\":0.34,\"strengthTwo\":null},{\"name\":\"style\\\\MY_ANI\\\\pottsness\\\\anima_p0t7s_v1.1-epoch16.safetensors\",\"on\":true,\"strength\":0.36,\"strengthTwo\":null},{\"name\":\"style\\\\MY_ANI\\\\mika_pikazo\\\\anima_mik4p1_v1.0-epoch20.safetensors\",\"on\":true,\"strength\":0.28,\"strengthTwo\":null},{\"name\":\"style\\\\ANI\\\\B1\\\\ogipote-NL.safetensors\",\"on\":true,\"strength\":0.28,\"strengthTwo\":null}],\"saved_name\":\"6\",\"saved_snapshot\":\"{\\\"style_prompt\\\":\\\"(@sushispin:0.75), \\\",\\\"loras\\\":[{\\\"name\\\":\\\"style\\\\\\\\MY_ANI\\\\\\\\ningen_mame\\\\\\\\anima_m4me_v2.1-epoch20.safetensors\\\",\\\"on\\\":true,\\\"strength\\\":0.85,\\\"strengthTwo\\\":null},{\\\"name\\\":\\\"style\\\\\\\\MY_ANI\\\\\\\\kerno\\\\\\\\anima_kn0r_v1.0-epoch26.safetensors\\\",\\\"on\\\":true,\\\"strength\\\":0.63,\\\"strengthTwo\\\":null},{\\\"name\\\":\\\"style\\\\\\\\ANI\\\\\\\\B1\\\\\\\\yzsss_anima1.0_v0.2.safetensors\\\",\\\"on\\\":true,\\\"strength\\\":0.35,\\\"strengthTwo\\\":null},{\\\"name\\\":\\\"style\\\\\\\\MY_ANI\\\\\\\\ciloranko\\\\\\\\anima_ci10ranko_v2.0-epoch36.safetensors\\\",\\\"on\\\":true,\\\"strength\\\":0.36,\\\"strengthTwo\\\":null},{\\\"name\\\":\\\"style\\\\\\\\MY_ANI\\\\\\\\chen_bin\\\\\\\\anima_ch9nb1n_v2.1-epoch36.safetensors\\\",\\\"on\\\":true,\\\"strength\\\":0.34,\\\"strengthTwo\\\":null},{\\\"name\\\":\\\"style\\\\\\\\MY_ANI\\\\\\\\pottsness\\\\\\\\anima_p0t7s_v1.1-epoch16.safetensors\\\",\\\"on\\\":true,\\\"strength\\\":0.36,\\\"strengthTwo\\\":null},{\\\"name\\\":\\\"style\\\\\\\\MY_ANI\\\\\\\\mika_pikazo\\\\\\\\anima_mik4p1_v1.0-epoch20.safetensors\\\",\\\"on\\\":true,\\\"strength\\\":0.28,\\\"strengthTwo\\\":null},{\\\"name\\\":\\\"style\\\\\\\\ANI\\\\\\\\B1\\\\\\\\ogipote-NL.safetensors\\\",\\\"on\\\":true,\\\"strength\\\":0.28,\\\"strengthTwo\\\":null}]}\"},\"7\":{\"style_prompt\":\"(@sushispin:0.35),\",\"loras\":[{\"name\":\"style\\\\MY_ANI\\\\ningen_mame\\\\anima_m4me_v2.1-epoch20.safetensors\",\"on\":true,\"strength\":0.61,\"strengthTwo\":null},{\"name\":\"style\\\\MY_ANI\\\\kerno\\\\anima_kn0r_v1.0-epoch26.safetensors\",\"on\":true,\"strength\":0.6,\"strengthTwo\":null},{\"name\":\"style\\\\MY_ANI\\\\mika_pikazo\\\\anima_mik4p1_v1.0-epoch20.safetensors\",\"on\":true,\"strength\":0.36,\"strengthTwo\":null},{\"name\":\"style\\\\MY_ANI\\\\pottsness\\\\anima_p0t7s_v1.1-epoch16.safetensors\",\"on\":true,\"strength\":0.69,\"strengthTwo\":null},{\"name\":\"style\\\\ANI\\\\B1\\\\yzsss_anima1.0_v0.2.safetensors\",\"on\":true,\"strength\":0.29,\"strengthTwo\":null},{\"name\":\"style\\\\MY_ANI\\\\jacknife\\\\anima_4rkj4ck_v1.0-epoch26.safetensors\",\"on\":true,\"strength\":0.6,\"strengthTwo\":null},{\"name\":\"style\\\\ANI\\\\B1\\\\ogipote-NL.safetensors\",\"on\":true,\"strength\":0.4,\"strengthTwo\":null}],\"saved_name\":\"7\",\"saved_snapshot\":\"{\\\"style_prompt\\\":\\\"(@sushispin:0.35),\\\",\\\"loras\\\":[{\\\"name\\\":\\\"style\\\\\\\\MY_ANI\\\\\\\\ningen_mame\\\\\\\\anima_m4me_v2.1-epoch20.safetensors\\\",\\\"on\\\":true,\\\"strength\\\":0.61,\\\"strengthTwo\\\":null},{\\\"name\\\":\\\"style\\\\\\\\MY_ANI\\\\\\\\kerno\\\\\\\\anima_kn0r_v1.0-epoch26.safetensors\\\",\\\"on\\\":true,\\\"strength\\\":0.6,\\\"strengthTwo\\\":null},{\\\"name\\\":\\\"style\\\\\\\\MY_ANI\\\\\\\\mika_pikazo\\\\\\\\anima_mik4p1_v1.0-epoch20.safetensors\\\",\\\"on\\\":true,\\\"strength\\\":0.36,\\\"strengthTwo\\\":null},{\\\"name\\\":\\\"style\\\\\\\\MY_ANI\\\\\\\\pottsness\\\\\\\\anima_p0t7s_v1.1-epoch16.safetensors\\\",\\\"on\\\":true,\\\"strength\\\":0.69,\\\"strengthTwo\\\":null},{\\\"name\\\":\\\"style\\\\\\\\ANI\\\\\\\\B1\\\\\\\\yzsss_anima1.0_v0.2.safetensors\\\",\\\"on\\\":true,\\\"strength\\\":0.29,\\\"strengthTwo\\\":null},{\\\"name\\\":\\\"style\\\\\\\\MY_ANI\\\\\\\\jacknife\\\\\\\\anima_4rkj4ck_v1.0-epoch26.safetensors\\\",\\\"on\\\":true,\\\"strength\\\":0.6,\\\"strengthTwo\\\":null},{\\\"name\\\":\\\"style\\\\\\\\ANI\\\\\\\\B1\\\\\\\\ogipote-NL.safetensors\\\",\\\"on\\\":true,\\\"strength\\\":0.4,\\\"strengthTwo\\\":null}]}\"},\"8\":{\"style_prompt\":\"(@akazawa kureha:0.35),\",\"loras\":[{\"name\":\"style\\\\MY_ANI\\\\ningen_mame\\\\anima_m4me_v2.1-epoch20.safetensors\",\"on\":true,\"strength\":0.82,\"strengthTwo\":null},{\"name\":\"style\\\\MY_ANI\\\\pottsness\\\\anima_p0t7s_v1.1-epoch16.safetensors\",\"on\":true,\"strength\":0.62,\"strengthTwo\":null},{\"name\":\"style\\\\ANI\\\\B1\\\\yzsss_anima1.0_v0.2.safetensors\",\"on\":true,\"strength\":0.3,\"strengthTwo\":null},{\"name\":\"style\\\\MY_ANI\\\\jacknife\\\\anima_4rkj4ck_v1.0-epoch26.safetensors\",\"on\":true,\"strength\":0.67,\"strengthTwo\":null},{\"name\":\"style\\\\MY_ANI\\\\kedama_milk\\\\anima_mi1k_v1.3-epoch16.safetensors\",\"on\":true,\"strength\":0.52,\"strengthTwo\":null},{\"name\":\"style\\\\MY_ANI\\\\parsley-f\\\\anima_p4t1s1y_v2.2-epoch36.safetensors\",\"on\":true,\"strength\":0.64,\"strengthTwo\":null},{\"name\":\"style\\\\MY_ANI\\\\kim_eb\\\\anima_k1m2b_v1.0-epoch24.safetensors\",\"on\":true,\"strength\":0.46,\"strengthTwo\":null}],\"saved_name\":\"8\",\"saved_snapshot\":\"{\\\"style_prompt\\\":\\\"(@akazawa kureha:0.35),\\\",\\\"loras\\\":[{\\\"name\\\":\\\"style\\\\\\\\MY_ANI\\\\\\\\ningen_mame\\\\\\\\anima_m4me_v2.1-epoch20.safetensors\\\",\\\"on\\\":true,\\\"strength\\\":0.82,\\\"strengthTwo\\\":null},{\\\"name\\\":\\\"style\\\\\\\\MY_ANI\\\\\\\\pottsness\\\\\\\\anima_p0t7s_v1.1-epoch16.safetensors\\\",\\\"on\\\":true,\\\"strength\\\":0.62,\\\"strengthTwo\\\":null},{\\\"name\\\":\\\"style\\\\\\\\ANI\\\\\\\\B1\\\\\\\\yzsss_anima1.0_v0.2.safetensors\\\",\\\"on\\\":true,\\\"strength\\\":0.3,\\\"strengthTwo\\\":null},{\\\"name\\\":\\\"style\\\\\\\\MY_ANI\\\\\\\\jacknife\\\\\\\\anima_4rkj4ck_v1.0-epoch26.safetensors\\\",\\\"on\\\":true,\\\"strength\\\":0.67,\\\"strengthTwo\\\":null},{\\\"name\\\":\\\"style\\\\\\\\MY_ANI\\\\\\\\kedama_milk\\\\\\\\anima_mi1k_v1.3-epoch16.safetensors\\\",\\\"on\\\":true,\\\"strength\\\":0.52,\\\"strengthTwo\\\":null},{\\\"name\\\":\\\"style\\\\\\\\MY_ANI\\\\\\\\parsley-f\\\\\\\\anima_p4t1s1y_v2.2-epoch36.safetensors\\\",\\\"on\\\":true,\\\"strength\\\":0.64,\\\"strengthTwo\\\":null},{\\\"name\\\":\\\"style\\\\\\\\MY_ANI\\\\\\\\kim_eb\\\\\\\\anima_k1m2b_v1.0-epoch24.safetensors\\\",\\\"on\\\":true,\\\"strength\\\":0.46,\\\"strengthTwo\\\":null}]}\"},\"9\":{\"style_prompt\":\"(@sushispin:0.35),\",\"loras\":[{\"name\":\"style\\\\MY_ANI\\\\chen_bin\\\\anima_ch9nb1n_v2.1-epoch36.safetensors\",\"on\":true,\"strength\":0.65,\"strengthTwo\":null},{\"name\":\"style\\\\MY_ANI\\\\ciloranko\\\\anima_ci10ranko_v2.0-epoch36.safetensors\",\"on\":true,\"strength\":0.32,\"strengthTwo\":null},{\"name\":\"style\\\\MY_ANI\\\\freng\\\\anima_fr8t_v2.0-epoch40.safetensors\",\"on\":true,\"strength\":0.45,\"strengthTwo\":null},{\"name\":\"style\\\\MY_ANI\\\\fungi542\\\\anima_fun91_v1.0-epoch24.safetensors\",\"on\":true,\"strength\":0.55,\"strengthTwo\":null},{\"name\":\"style\\\\MY_ANI\\\\jacknife\\\\anima_4rkj4ck_v1.0-epoch26.safetensors\",\"on\":true,\"strength\":0.4,\"strengthTwo\":null},{\"name\":\"style\\\\MY_ANI\\\\kanzarin\\\\anima_k4nz4r1n_v1.3-epoch36.safetensors\",\"on\":true,\"strength\":0.4,\"strengthTwo\":null},{\"name\":\"style\\\\MY_ANI\\\\tuzhate\\\\anima_tu2h4te_v1.0-epoch40.safetensors\",\"on\":true,\"strength\":0.26,\"strengthTwo\":null},{\"name\":\"style\\\\MY_ANI\\\\machi_(machi0910)\\\\anima_m4ch1_v1.0-epoch16.safetensors\",\"on\":true,\"strength\":0.45,\"strengthTwo\":null},{\"name\":\"style\\\\MY_ANI\\\\pottsness\\\\anima_p0t7s_v1.1-epoch16.safetensors\",\"on\":true,\"strength\":0.35,\"strengthTwo\":null}],\"saved_name\":\"9\",\"saved_snapshot\":\"{\\\"style_prompt\\\":\\\"(@sushispin:0.35),\\\",\\\"loras\\\":[{\\\"name\\\":\\\"style\\\\\\\\MY_ANI\\\\\\\\chen_bin\\\\\\\\anima_ch9nb1n_v2.1-epoch36.safetensors\\\",\\\"on\\\":true,\\\"strength\\\":0.65,\\\"strengthTwo\\\":null},{\\\"name\\\":\\\"style\\\\\\\\MY_ANI\\\\\\\\ciloranko\\\\\\\\anima_ci10ranko_v2.0-epoch36.safetensors\\\",\\\"on\\\":true,\\\"strength\\\":0.32,\\\"strengthTwo\\\":null},{\\\"name\\\":\\\"style\\\\\\\\MY_ANI\\\\\\\\freng\\\\\\\\anima_fr8t_v2.0-epoch40.safetensors\\\",\\\"on\\\":true,\\\"strength\\\":0.45,\\\"strengthTwo\\\":null},{\\\"name\\\":\\\"style\\\\\\\\MY_ANI\\\\\\\\fungi542\\\\\\\\anima_fun91_v1.0-epoch24.safetensors\\\",\\\"on\\\":true,\\\"strength\\\":0.55,\\\"strengthTwo\\\":null},{\\\"name\\\":\\\"style\\\\\\\\MY_ANI\\\\\\\\jacknife\\\\\\\\anima_4rkj4ck_v1.0-epoch26.safetensors\\\",\\\"on\\\":true,\\\"strength\\\":0.4,\\\"strengthTwo\\\":null},{\\\"name\\\":\\\"style\\\\\\\\MY_ANI\\\\\\\\kanzarin\\\\\\\\anima_k4nz4r1n_v1.3-epoch36.safetensors\\\",\\\"on\\\":true,\\\"strength\\\":0.4,\\\"strengthTwo\\\":null},{\\\"name\\\":\\\"style\\\\\\\\MY_ANI\\\\\\\\tuzhate\\\\\\\\anima_tu2h4te_v1.0-epoch40.safetensors\\\",\\\"on\\\":true,\\\"strength\\\":0.26,\\\"strengthTwo\\\":null},{\\\"name\\\":\\\"style\\\\\\\\MY_ANI\\\\\\\\machi_(machi0910)\\\\\\\\anima_m4ch1_v1.0-epoch16.safetensors\\\",\\\"on\\\":true,\\\"strength\\\":0.45,\\\"strengthTwo\\\":null},{\\\"name\\\":\\\"style\\\\\\\\MY_ANI\\\\\\\\pottsness\\\\\\\\anima_p0t7s_v1.1-epoch16.safetensors\\\",\\\"on\\\":true,\\\"strength\\\":0.35,\\\"strengthTwo\\\":null}]}\"}}",
+        "{\"1\":{\"style_prompt\":\"(@sushispin:0.7),\",\"loras\":[{\"name\":\"style\\\\MY_ANI\\\\ningen_mame\\\\anima_m4me_v2.1-epoch20.safetensors\",\"on\":true,\"strength\":0.91,\"strengthTwo\":null},{\"name\":\"style\\\\MY_ANI\\\\parsley-f\\\\anima_p4t1s1y_v2.2-epoch36.safetensors\",\"on\":true,\"strength\":0.6,\"strengthTwo\":null},{\"name\":\"style\\\\MY_ANI\\\\quasarcake\\\\anima_qr4k_v2.0-epoch24.safetensors\",\"on\":true,\"strength\":0.27,\"strengthTwo\":null},{\"name\":\"style\\\\MY_ANI\\\\fymrie\\\\anima_fr9t_v2.1-epoch20.safetensors\",\"on\":true,\"strength\":0.45,\"strengthTwo\":null},{\"name\":\"style\\\\ANI\\\\B1\\\\ogipote-NL.safetensors\",\"on\":true,\"strength\":0.22,\"strengthTwo\":null},{\"name\":\"style\\\\MY_ANI\\\\freng\\\\anima_fr8t_v2.0-epoch40.safetensors\",\"on\":true,\"strength\":0.5,\"strengthTwo\":null}],\"saved_name\":\"1\",\"saved_snapshot\":\"{\\\"style_prompt\\\":\\\"(@sushispin:0.7),\\\",\\\"loras\\\":[{\\\"name\\\":\\\"style\\\\\\\\MY_ANI\\\\\\\\ningen_mame\\\\\\\\anima_m4me_v2.1-epoch20.safetensors\\\",\\\"on\\\":true,\\\"strength\\\":0.91,\\\"strengthTwo\\\":null},{\\\"name\\\":\\\"style\\\\\\\\MY_ANI\\\\\\\\parsley-f\\\\\\\\anima_p4t1s1y_v2.2-epoch36.safetensors\\\",\\\"on\\\":true,\\\"strength\\\":0.6,\\\"strengthTwo\\\":null},{\\\"name\\\":\\\"style\\\\\\\\MY_ANI\\\\\\\\quasarcake\\\\\\\\anima_qr4k_v2.0-epoch24.safetensors\\\",\\\"on\\\":true,\\\"strength\\\":0.27,\\\"strengthTwo\\\":null},{\\\"name\\\":\\\"style\\\\\\\\MY_ANI\\\\\\\\fymrie\\\\\\\\anima_fr9t_v2.1-epoch20.safetensors\\\",\\\"on\\\":true,\\\"strength\\\":0.45,\\\"strengthTwo\\\":null},{\\\"name\\\":\\\"style\\\\\\\\ANI\\\\\\\\B1\\\\\\\\ogipote-NL.safetensors\\\",\\\"on\\\":true,\\\"strength\\\":0.22,\\\"strengthTwo\\\":null},{\\\"name\\\":\\\"style\\\\\\\\MY_ANI\\\\\\\\freng\\\\\\\\anima_fr8t_v2.0-epoch40.safetensors\\\",\\\"on\\\":true,\\\"strength\\\":0.5,\\\"strengthTwo\\\":null}]}\"},\"2\":{\"style_prompt\":\"(@sushispin:0.74)\",\"loras\":[{\"name\":\"style\\\\MY_ANI\\\\rurudo\\\\anima_ru60d_v1.0-epoch24.safetensors\",\"on\":true,\"strength\":0.6,\"strengthTwo\":null},{\"name\":\"style\\\\MY_ANI\\\\fymrie\\\\anima_fr9t_v2.1-epoch20.safetensors\",\"on\":true,\"strength\":0.9,\"strengthTwo\":null},{\"name\":\"style\\\\MY_ANI\\\\myung_yi\\\\anima_my8t_v1.1-epoch24.safetensors\",\"on\":true,\"strength\":0.6,\"strengthTwo\":null},{\"name\":\"style\\\\MY_ANI\\\\kim_eb\\\\anima_k1m2b_v1.0-epoch24.safetensors\",\"on\":true,\"strength\":0.4,\"strengthTwo\":null},{\"name\":\"style\\\\MY_ANI\\\\misa_(misonyeo_s2)\\\\anima_m1s0nye0_v1.0-epoch80.safetensors\",\"on\":true,\"strength\":0.4,\"strengthTwo\":null},{\"name\":\"style\\\\MY_ANI\\\\quasarcake\\\\anima_qr4k_v2.0-epoch24.safetensors\",\"on\":true,\"strength\":0.3,\"strengthTwo\":null},{\"name\":\"style\\\\MY_ANI\\\\freng\\\\anima_fr8t_v2.0-epoch40.safetensors\",\"on\":true,\"strength\":0.7,\"strengthTwo\":null}],\"saved_name\":\"2\",\"saved_snapshot\":\"{\\\"style_prompt\\\":\\\"(@sushispin:0.74)\\\",\\\"loras\\\":[{\\\"name\\\":\\\"style\\\\\\\\MY_ANI\\\\\\\\rurudo\\\\\\\\anima_ru60d_v1.0-epoch24.safetensors\\\",\\\"on\\\":true,\\\"strength\\\":0.6,\\\"strengthTwo\\\":null},{\\\"name\\\":\\\"style\\\\\\\\MY_ANI\\\\\\\\fymrie\\\\\\\\anima_fr9t_v2.1-epoch20.safetensors\\\",\\\"on\\\":true,\\\"strength\\\":0.9,\\\"strengthTwo\\\":null},{\\\"name\\\":\\\"style\\\\\\\\MY_ANI\\\\\\\\myung_yi\\\\\\\\anima_my8t_v1.1-epoch24.safetensors\\\",\\\"on\\\":true,\\\"strength\\\":0.6,\\\"strengthTwo\\\":null},{\\\"name\\\":\\\"style\\\\\\\\MY_ANI\\\\\\\\kim_eb\\\\\\\\anima_k1m2b_v1.0-epoch24.safetensors\\\",\\\"on\\\":true,\\\"strength\\\":0.4,\\\"strengthTwo\\\":null},{\\\"name\\\":\\\"style\\\\\\\\MY_ANI\\\\\\\\misa_(misonyeo_s2)\\\\\\\\anima_m1s0nye0_v1.0-epoch80.safetensors\\\",\\\"on\\\":true,\\\"strength\\\":0.4,\\\"strengthTwo\\\":null},{\\\"name\\\":\\\"style\\\\\\\\MY_ANI\\\\\\\\quasarcake\\\\\\\\anima_qr4k_v2.0-epoch24.safetensors\\\",\\\"on\\\":true,\\\"strength\\\":0.3,\\\"strengthTwo\\\":null},{\\\"name\\\":\\\"style\\\\\\\\MY_ANI\\\\\\\\freng\\\\\\\\anima_fr8t_v2.0-epoch40.safetensors\\\",\\\"on\\\":true,\\\"strength\\\":0.7,\\\"strengthTwo\\\":null}]}\"},\"3\":{\"style_prompt\":\"(@sushispin:0.74),\",\"loras\":[{\"name\":\"style\\\\MY_ANI\\\\parsley-f\\\\anima_p4t1s1y_v2.2-epoch36.safetensors\",\"on\":true,\"strength\":0.75,\"strengthTwo\":null},{\"name\":\"style\\\\MY_ANI\\\\kim_eb\\\\anima_k1m2b_v1.0-epoch24.safetensors\",\"on\":true,\"strength\":0.53,\"strengthTwo\":null},{\"name\":\"style\\\\MY_ANI\\\\misa_(misonyeo_s2)\\\\anima_m1s0nye0_v1.0-epoch80.safetensors\",\"on\":true,\"strength\":0.5,\"strengthTwo\":null},{\"name\":\"style\\\\MY_ANI\\\\pottsness\\\\anima_p0t7s_v1.1-epoch16.safetensors\",\"on\":true,\"strength\":0.38,\"strengthTwo\":null},{\"name\":\"style\\\\MY_ANI\\\\freng\\\\anima_fr8t_v2.0-epoch40.safetensors\",\"on\":true,\"strength\":0.75,\"strengthTwo\":null},{\"name\":\"style\\\\MY_ANI\\\\fymrie\\\\anima_fr9t_v2.1-epoch20.safetensors\",\"on\":true,\"strength\":0.85,\"strengthTwo\":null},{\"name\":\"style\\\\MY_ANI\\\\quasarcake\\\\anima_qr4k_v2.0-epoch24.safetensors\",\"on\":true,\"strength\":0.3,\"strengthTwo\":null}],\"saved_name\":\"3\",\"saved_snapshot\":\"{\\\"style_prompt\\\":\\\"(@sushispin:0.74),\\\",\\\"loras\\\":[{\\\"name\\\":\\\"style\\\\\\\\MY_ANI\\\\\\\\parsley-f\\\\\\\\anima_p4t1s1y_v2.2-epoch36.safetensors\\\",\\\"on\\\":true,\\\"strength\\\":0.75,\\\"strengthTwo\\\":null},{\\\"name\\\":\\\"style\\\\\\\\MY_ANI\\\\\\\\kim_eb\\\\\\\\anima_k1m2b_v1.0-epoch24.safetensors\\\",\\\"on\\\":true,\\\"strength\\\":0.53,\\\"strengthTwo\\\":null},{\\\"name\\\":\\\"style\\\\\\\\MY_ANI\\\\\\\\misa_(misonyeo_s2)\\\\\\\\anima_m1s0nye0_v1.0-epoch80.safetensors\\\",\\\"on\\\":true,\\\"strength\\\":0.5,\\\"strengthTwo\\\":null},{\\\"name\\\":\\\"style\\\\\\\\MY_ANI\\\\\\\\pottsness\\\\\\\\anima_p0t7s_v1.1-epoch16.safetensors\\\",\\\"on\\\":true,\\\"strength\\\":0.38,\\\"strengthTwo\\\":null},{\\\"name\\\":\\\"style\\\\\\\\MY_ANI\\\\\\\\freng\\\\\\\\anima_fr8t_v2.0-epoch40.safetensors\\\",\\\"on\\\":true,\\\"strength\\\":0.75,\\\"strengthTwo\\\":null},{\\\"name\\\":\\\"style\\\\\\\\MY_ANI\\\\\\\\fymrie\\\\\\\\anima_fr9t_v2.1-epoch20.safetensors\\\",\\\"on\\\":true,\\\"strength\\\":0.85,\\\"strengthTwo\\\":null},{\\\"name\\\":\\\"style\\\\\\\\MY_ANI\\\\\\\\quasarcake\\\\\\\\anima_qr4k_v2.0-epoch24.safetensors\\\",\\\"on\\\":true,\\\"strength\\\":0.3,\\\"strengthTwo\\\":null}]}\"},\"4\":{\"style_prompt\":\"(@sushispin:0.45)\",\"loras\":[{\"name\":\"style\\\\MY_ANI\\\\ningen_mame\\\\anima_m4me_v2.1-epoch20.safetensors\",\"on\":true,\"strength\":1,\"strengthTwo\":null},{\"name\":\"style\\\\MY_ANI\\\\parsley-f\\\\anima_p4t1s1y_v2.2-epoch36.safetensors\",\"on\":true,\"strength\":0.7,\"strengthTwo\":null},{\"name\":\"style\\\\MY_ANI\\\\fymrie\\\\anima_fr9t_v2.1-epoch20.safetensors\",\"on\":true,\"strength\":0.75,\"strengthTwo\":null},{\"name\":\"style\\\\MY_ANI\\\\quasarcake\\\\anima_qr4k_v2.0-epoch24.safetensors\",\"on\":true,\"strength\":0.35,\"strengthTwo\":null},{\"name\":\"style\\\\MY_ANI\\\\rurudo\\\\anima_ru60d_v1.0-epoch24.safetensors\",\"on\":true,\"strength\":0.7,\"strengthTwo\":null},{\"name\":\"style\\\\MY_ANI\\\\ciloranko\\\\anima_ci10ranko_v2.0-epoch36.safetensors\",\"on\":true,\"strength\":0.6,\"strengthTwo\":null}],\"saved_name\":\"4\",\"saved_snapshot\":\"{\\\"style_prompt\\\":\\\"(@sushispin:0.45)\\\",\\\"loras\\\":[{\\\"name\\\":\\\"style\\\\\\\\MY_ANI\\\\\\\\ningen_mame\\\\\\\\anima_m4me_v2.1-epoch20.safetensors\\\",\\\"on\\\":true,\\\"strength\\\":1,\\\"strengthTwo\\\":null},{\\\"name\\\":\\\"style\\\\\\\\MY_ANI\\\\\\\\parsley-f\\\\\\\\anima_p4t1s1y_v2.2-epoch36.safetensors\\\",\\\"on\\\":true,\\\"strength\\\":0.7,\\\"strengthTwo\\\":null},{\\\"name\\\":\\\"style\\\\\\\\MY_ANI\\\\\\\\fymrie\\\\\\\\anima_fr9t_v2.1-epoch20.safetensors\\\",\\\"on\\\":true,\\\"strength\\\":0.75,\\\"strengthTwo\\\":null},{\\\"name\\\":\\\"style\\\\\\\\MY_ANI\\\\\\\\quasarcake\\\\\\\\anima_qr4k_v2.0-epoch24.safetensors\\\",\\\"on\\\":true,\\\"strength\\\":0.35,\\\"strengthTwo\\\":null},{\\\"name\\\":\\\"style\\\\\\\\MY_ANI\\\\\\\\rurudo\\\\\\\\anima_ru60d_v1.0-epoch24.safetensors\\\",\\\"on\\\":true,\\\"strength\\\":0.7,\\\"strengthTwo\\\":null},{\\\"name\\\":\\\"style\\\\\\\\MY_ANI\\\\\\\\ciloranko\\\\\\\\anima_ci10ranko_v2.0-epoch36.safetensors\\\",\\\"on\\\":true,\\\"strength\\\":0.6,\\\"strengthTwo\\\":null}]}\"},\"5\":{\"style_prompt\":\"(@sushispin:0.65)\",\"loras\":[{\"name\":\"style\\\\MY_ANI\\\\ningen_mame\\\\anima_m4me_v2.1-epoch20.safetensors\",\"on\":true,\"strength\":0.62,\"strengthTwo\":null},{\"name\":\"style\\\\MY_ANI\\\\pottsness\\\\anima_p0t7s_v1.1-epoch16.safetensors\",\"on\":true,\"strength\":0.39,\"strengthTwo\":null},{\"name\":\"style\\\\ANI\\\\B1\\\\yzsss_anima1.0_v0.2.safetensors\",\"on\":true,\"strength\":0.2,\"strengthTwo\":null},{\"name\":\"style\\\\MY_ANI\\\\jacknife\\\\anima_4rkj4ck_v1.0-epoch26.safetensors\",\"on\":true,\"strength\":0.45,\"strengthTwo\":null},{\"name\":\"style\\\\MY_ANI\\\\kedama_milk\\\\anima_mi1k_v1.3-epoch16.safetensors\",\"on\":true,\"strength\":0.32,\"strengthTwo\":null},{\"name\":\"style\\\\MY_ANI\\\\parsley-f\\\\anima_p4t1s1y_v2.2-epoch36.safetensors\",\"on\":true,\"strength\":0.38,\"strengthTwo\":null},{\"name\":\"style\\\\MY_ANI\\\\kim_eb\\\\anima_k1m2b_v1.0-epoch24.safetensors\",\"on\":true,\"strength\":0.33,\"strengthTwo\":null},{\"name\":\"style\\\\MY_ANI\\\\myung_yi\\\\anima_my8t_v1.1-epoch24.safetensors\",\"on\":true,\"strength\":0.5,\"strengthTwo\":null}],\"saved_name\":\"5\",\"saved_snapshot\":\"{\\\"style_prompt\\\":\\\"(@sushispin:0.65)\\\",\\\"loras\\\":[{\\\"name\\\":\\\"style\\\\\\\\MY_ANI\\\\\\\\ningen_mame\\\\\\\\anima_m4me_v2.1-epoch20.safetensors\\\",\\\"on\\\":true,\\\"strength\\\":0.62,\\\"strengthTwo\\\":null},{\\\"name\\\":\\\"style\\\\\\\\MY_ANI\\\\\\\\pottsness\\\\\\\\anima_p0t7s_v1.1-epoch16.safetensors\\\",\\\"on\\\":true,\\\"strength\\\":0.39,\\\"strengthTwo\\\":null},{\\\"name\\\":\\\"style\\\\\\\\ANI\\\\\\\\B1\\\\\\\\yzsss_anima1.0_v0.2.safetensors\\\",\\\"on\\\":true,\\\"strength\\\":0.2,\\\"strengthTwo\\\":null},{\\\"name\\\":\\\"style\\\\\\\\MY_ANI\\\\\\\\jacknife\\\\\\\\anima_4rkj4ck_v1.0-epoch26.safetensors\\\",\\\"on\\\":true,\\\"strength\\\":0.45,\\\"strengthTwo\\\":null},{\\\"name\\\":\\\"style\\\\\\\\MY_ANI\\\\\\\\kedama_milk\\\\\\\\anima_mi1k_v1.3-epoch16.safetensors\\\",\\\"on\\\":true,\\\"strength\\\":0.32,\\\"strengthTwo\\\":null},{\\\"name\\\":\\\"style\\\\\\\\MY_ANI\\\\\\\\parsley-f\\\\\\\\anima_p4t1s1y_v2.2-epoch36.safetensors\\\",\\\"on\\\":true,\\\"strength\\\":0.38,\\\"strengthTwo\\\":null},{\\\"name\\\":\\\"style\\\\\\\\MY_ANI\\\\\\\\kim_eb\\\\\\\\anima_k1m2b_v1.0-epoch24.safetensors\\\",\\\"on\\\":true,\\\"strength\\\":0.33,\\\"strengthTwo\\\":null},{\\\"name\\\":\\\"style\\\\\\\\MY_ANI\\\\\\\\myung_yi\\\\\\\\anima_my8t_v1.1-epoch24.safetensors\\\",\\\"on\\\":true,\\\"strength\\\":0.5,\\\"strengthTwo\\\":null}]}\"},\"6\":{\"style_prompt\":\"(@sushispin:0.75), \",\"loras\":[{\"name\":\"style\\\\MY_ANI\\\\ningen_mame\\\\anima_m4me_v2.1-epoch20.safetensors\",\"on\":true,\"strength\":0.85,\"strengthTwo\":null},{\"name\":\"style\\\\MY_ANI\\\\kerno\\\\anima_kn0r_v1.0-epoch26.safetensors\",\"on\":true,\"strength\":0.63,\"strengthTwo\":null},{\"name\":\"style\\\\ANI\\\\B1\\\\yzsss_anima1.0_v0.2.safetensors\",\"on\":true,\"strength\":0.35,\"strengthTwo\":null},{\"name\":\"style\\\\MY_ANI\\\\ciloranko\\\\anima_ci10ranko_v2.0-epoch36.safetensors\",\"on\":true,\"strength\":0.36,\"strengthTwo\":null},{\"name\":\"style\\\\MY_ANI\\\\chen_bin\\\\anima_ch9nb1n_v2.1-epoch36.safetensors\",\"on\":true,\"strength\":0.34,\"strengthTwo\":null},{\"name\":\"style\\\\MY_ANI\\\\pottsness\\\\anima_p0t7s_v1.1-epoch16.safetensors\",\"on\":true,\"strength\":0.36,\"strengthTwo\":null},{\"name\":\"style\\\\MY_ANI\\\\mika_pikazo\\\\anima_mik4p1_v1.0-epoch20.safetensors\",\"on\":true,\"strength\":0.28,\"strengthTwo\":null},{\"name\":\"style\\\\ANI\\\\B1\\\\ogipote-NL.safetensors\",\"on\":true,\"strength\":0.28,\"strengthTwo\":null}],\"saved_name\":\"6\",\"saved_snapshot\":\"{\\\"style_prompt\\\":\\\"(@sushispin:0.75), \\\",\\\"loras\\\":[{\\\"name\\\":\\\"style\\\\\\\\MY_ANI\\\\\\\\ningen_mame\\\\\\\\anima_m4me_v2.1-epoch20.safetensors\\\",\\\"on\\\":true,\\\"strength\\\":0.85,\\\"strengthTwo\\\":null},{\\\"name\\\":\\\"style\\\\\\\\MY_ANI\\\\\\\\kerno\\\\\\\\anima_kn0r_v1.0-epoch26.safetensors\\\",\\\"on\\\":true,\\\"strength\\\":0.63,\\\"strengthTwo\\\":null},{\\\"name\\\":\\\"style\\\\\\\\ANI\\\\\\\\B1\\\\\\\\yzsss_anima1.0_v0.2.safetensors\\\",\\\"on\\\":true,\\\"strength\\\":0.35,\\\"strengthTwo\\\":null},{\\\"name\\\":\\\"style\\\\\\\\MY_ANI\\\\\\\\ciloranko\\\\\\\\anima_ci10ranko_v2.0-epoch36.safetensors\\\",\\\"on\\\":true,\\\"strength\\\":0.36,\\\"strengthTwo\\\":null},{\\\"name\\\":\\\"style\\\\\\\\MY_ANI\\\\\\\\chen_bin\\\\\\\\anima_ch9nb1n_v2.1-epoch36.safetensors\\\",\\\"on\\\":true,\\\"strength\\\":0.34,\\\"strengthTwo\\\":null},{\\\"name\\\":\\\"style\\\\\\\\MY_ANI\\\\\\\\pottsness\\\\\\\\anima_p0t7s_v1.1-epoch16.safetensors\\\",\\\"on\\\":true,\\\"strength\\\":0.36,\\\"strengthTwo\\\":null},{\\\"name\\\":\\\"style\\\\\\\\MY_ANI\\\\\\\\mika_pikazo\\\\\\\\anima_mik4p1_v1.0-epoch20.safetensors\\\",\\\"on\\\":true,\\\"strength\\\":0.28,\\\"strengthTwo\\\":null},{\\\"name\\\":\\\"style\\\\\\\\ANI\\\\\\\\B1\\\\\\\\ogipote-NL.safetensors\\\",\\\"on\\\":true,\\\"strength\\\":0.28,\\\"strengthTwo\\\":null}]}\"},\"7\":{\"style_prompt\":\"(@sushispin:0.35),\",\"loras\":[{\"name\":\"style\\\\MY_ANI\\\\ningen_mame\\\\anima_m4me_v2.1-epoch20.safetensors\",\"on\":true,\"strength\":0.61,\"strengthTwo\":null},{\"name\":\"style\\\\MY_ANI\\\\kerno\\\\anima_kn0r_v1.0-epoch26.safetensors\",\"on\":true,\"strength\":0.6,\"strengthTwo\":null},{\"name\":\"style\\\\MY_ANI\\\\mika_pikazo\\\\anima_mik4p1_v1.0-epoch20.safetensors\",\"on\":true,\"strength\":0.36,\"strengthTwo\":null},{\"name\":\"style\\\\MY_ANI\\\\pottsness\\\\anima_p0t7s_v1.1-epoch16.safetensors\",\"on\":true,\"strength\":0.69,\"strengthTwo\":null},{\"name\":\"style\\\\ANI\\\\B1\\\\yzsss_anima1.0_v0.2.safetensors\",\"on\":true,\"strength\":0.29,\"strengthTwo\":null},{\"name\":\"style\\\\MY_ANI\\\\jacknife\\\\anima_4rkj4ck_v1.0-epoch26.safetensors\",\"on\":true,\"strength\":0.6,\"strengthTwo\":null},{\"name\":\"style\\\\ANI\\\\B1\\\\ogipote-NL.safetensors\",\"on\":true,\"strength\":0.4,\"strengthTwo\":null}],\"saved_name\":\"7\",\"saved_snapshot\":\"{\\\"style_prompt\\\":\\\"(@sushispin:0.35),\\\",\\\"loras\\\":[{\\\"name\\\":\\\"style\\\\\\\\MY_ANI\\\\\\\\ningen_mame\\\\\\\\anima_m4me_v2.1-epoch20.safetensors\\\",\\\"on\\\":true,\\\"strength\\\":0.61,\\\"strengthTwo\\\":null},{\\\"name\\\":\\\"style\\\\\\\\MY_ANI\\\\\\\\kerno\\\\\\\\anima_kn0r_v1.0-epoch26.safetensors\\\",\\\"on\\\":true,\\\"strength\\\":0.6,\\\"strengthTwo\\\":null},{\\\"name\\\":\\\"style\\\\\\\\MY_ANI\\\\\\\\mika_pikazo\\\\\\\\anima_mik4p1_v1.0-epoch20.safetensors\\\",\\\"on\\\":true,\\\"strength\\\":0.36,\\\"strengthTwo\\\":null},{\\\"name\\\":\\\"style\\\\\\\\MY_ANI\\\\\\\\pottsness\\\\\\\\anima_p0t7s_v1.1-epoch16.safetensors\\\",\\\"on\\\":true,\\\"strength\\\":0.69,\\\"strengthTwo\\\":null},{\\\"name\\\":\\\"style\\\\\\\\ANI\\\\\\\\B1\\\\\\\\yzsss_anima1.0_v0.2.safetensors\\\",\\\"on\\\":true,\\\"strength\\\":0.29,\\\"strengthTwo\\\":null},{\\\"name\\\":\\\"style\\\\\\\\MY_ANI\\\\\\\\jacknife\\\\\\\\anima_4rkj4ck_v1.0-epoch26.safetensors\\\",\\\"on\\\":true,\\\"strength\\\":0.6,\\\"strengthTwo\\\":null},{\\\"name\\\":\\\"style\\\\\\\\ANI\\\\\\\\B1\\\\\\\\ogipote-NL.safetensors\\\",\\\"on\\\":true,\\\"strength\\\":0.4,\\\"strengthTwo\\\":null}]}\"},\"8\":{\"style_prompt\":\"(@akazawa kureha:0.35),\",\"loras\":[{\"name\":\"style\\\\MY_ANI\\\\ningen_mame\\\\anima_m4me_v2.1-epoch20.safetensors\",\"on\":true,\"strength\":0.82,\"strengthTwo\":null},{\"name\":\"style\\\\MY_ANI\\\\pottsness\\\\anima_p0t7s_v1.1-epoch16.safetensors\",\"on\":true,\"strength\":0.62,\"strengthTwo\":null},{\"name\":\"style\\\\ANI\\\\B1\\\\yzsss_anima1.0_v0.2.safetensors\",\"on\":true,\"strength\":0.3,\"strengthTwo\":null},{\"name\":\"style\\\\MY_ANI\\\\jacknife\\\\anima_4rkj4ck_v1.0-epoch26.safetensors\",\"on\":true,\"strength\":0.67,\"strengthTwo\":null},{\"name\":\"style\\\\MY_ANI\\\\kedama_milk\\\\anima_mi1k_v1.3-epoch16.safetensors\",\"on\":true,\"strength\":0.52,\"strengthTwo\":null},{\"name\":\"style\\\\MY_ANI\\\\parsley-f\\\\anima_p4t1s1y_v2.2-epoch36.safetensors\",\"on\":true,\"strength\":0.64,\"strengthTwo\":null},{\"name\":\"style\\\\MY_ANI\\\\kim_eb\\\\anima_k1m2b_v1.0-epoch24.safetensors\",\"on\":true,\"strength\":0.46,\"strengthTwo\":null}],\"saved_name\":\"8\",\"saved_snapshot\":\"{\\\"style_prompt\\\":\\\"(@akazawa kureha:0.35),\\\",\\\"loras\\\":[{\\\"name\\\":\\\"style\\\\\\\\MY_ANI\\\\\\\\ningen_mame\\\\\\\\anima_m4me_v2.1-epoch20.safetensors\\\",\\\"on\\\":true,\\\"strength\\\":0.82,\\\"strengthTwo\\\":null},{\\\"name\\\":\\\"style\\\\\\\\MY_ANI\\\\\\\\pottsness\\\\\\\\anima_p0t7s_v1.1-epoch16.safetensors\\\",\\\"on\\\":true,\\\"strength\\\":0.62,\\\"strengthTwo\\\":null},{\\\"name\\\":\\\"style\\\\\\\\ANI\\\\\\\\B1\\\\\\\\yzsss_anima1.0_v0.2.safetensors\\\",\\\"on\\\":true,\\\"strength\\\":0.3,\\\"strengthTwo\\\":null},{\\\"name\\\":\\\"style\\\\\\\\MY_ANI\\\\\\\\jacknife\\\\\\\\anima_4rkj4ck_v1.0-epoch26.safetensors\\\",\\\"on\\\":true,\\\"strength\\\":0.67,\\\"strengthTwo\\\":null},{\\\"name\\\":\\\"style\\\\\\\\MY_ANI\\\\\\\\kedama_milk\\\\\\\\anima_mi1k_v1.3-epoch16.safetensors\\\",\\\"on\\\":true,\\\"strength\\\":0.52,\\\"strengthTwo\\\":null},{\\\"name\\\":\\\"style\\\\\\\\MY_ANI\\\\\\\\parsley-f\\\\\\\\anima_p4t1s1y_v2.2-epoch36.safetensors\\\",\\\"on\\\":true,\\\"strength\\\":0.64,\\\"strengthTwo\\\":null},{\\\"name\\\":\\\"style\\\\\\\\MY_ANI\\\\\\\\kim_eb\\\\\\\\anima_k1m2b_v1.0-epoch24.safetensors\\\",\\\"on\\\":true,\\\"strength\\\":0.46,\\\"strengthTwo\\\":null}]}\"},\"9\":{\"style_prompt\":\"(@sushispin:0.35),\",\"loras\":[{\"name\":\"style\\\\MY_ANI\\\\chen_bin\\\\anima_ch9nb1n_v2.1-epoch36.safetensors\",\"on\":true,\"strength\":0.65,\"strengthTwo\":null},{\"name\":\"style\\\\MY_ANI\\\\ciloranko\\\\anima_ci10ranko_v2.0-epoch36.safetensors\",\"on\":true,\"strength\":0.32,\"strengthTwo\":null},{\"name\":\"style\\\\MY_ANI\\\\freng\\\\anima_fr8t_v2.0-epoch40.safetensors\",\"on\":true,\"strength\":0.45,\"strengthTwo\":null},{\"name\":\"style\\\\MY_ANI\\\\fungi542\\\\anima_fun91_v1.0-epoch24.safetensors\",\"on\":true,\"strength\":0.55,\"strengthTwo\":null},{\"name\":\"style\\\\MY_ANI\\\\jacknife\\\\anima_4rkj4ck_v1.0-epoch26.safetensors\",\"on\":true,\"strength\":0.4,\"strengthTwo\":null},{\"name\":\"style\\\\MY_ANI\\\\kanzarin\\\\anima_k4nz4r1n_v1.3-epoch36.safetensors\",\"on\":true,\"strength\":0.4,\"strengthTwo\":null},{\"name\":\"style\\\\MY_ANI\\\\tuzhate\\\\anima_tu2h4te_v1.0-epoch40.safetensors\",\"on\":true,\"strength\":0.26,\"strengthTwo\":null},{\"name\":\"style\\\\MY_ANI\\\\machi_(machi0910)\\\\anima_m4ch1_v1.0-epoch16.safetensors\",\"on\":true,\"strength\":0.45,\"strengthTwo\":null},{\"name\":\"style\\\\MY_ANI\\\\pottsness\\\\anima_p0t7s_v1.1-epoch16.safetensors\",\"on\":true,\"strength\":0.35,\"strengthTwo\":null}],\"saved_name\":\"9\",\"saved_snapshot\":\"{\\\"style_prompt\\\":\\\"(@sushispin:0.35),\\\",\\\"loras\\\":[{\\\"name\\\":\\\"style\\\\\\\\MY_ANI\\\\\\\\chen_bin\\\\\\\\anima_ch9nb1n_v2.1-epoch36.safetensors\\\",\\\"on\\\":true,\\\"strength\\\":0.65,\\\"strengthTwo\\\":null},{\\\"name\\\":\\\"style\\\\\\\\MY_ANI\\\\\\\\ciloranko\\\\\\\\anima_ci10ranko_v2.0-epoch36.safetensors\\\",\\\"on\\\":true,\\\"strength\\\":0.32,\\\"strengthTwo\\\":null},{\\\"name\\\":\\\"style\\\\\\\\MY_ANI\\\\\\\\freng\\\\\\\\anima_fr8t_v2.0-epoch40.safetensors\\\",\\\"on\\\":true,\\\"strength\\\":0.45,\\\"strengthTwo\\\":null},{\\\"name\\\":\\\"style\\\\\\\\MY_ANI\\\\\\\\fungi542\\\\\\\\anima_fun91_v1.0-epoch24.safetensors\\\",\\\"on\\\":true,\\\"strength\\\":0.55,\\\"strengthTwo\\\":null},{\\\"name\\\":\\\"style\\\\\\\\MY_ANI\\\\\\\\jacknife\\\\\\\\anima_4rkj4ck_v1.0-epoch26.safetensors\\\",\\\"on\\\":true,\\\"strength\\\":0.4,\\\"strengthTwo\\\":null},{\\\"name\\\":\\\"style\\\\\\\\MY_ANI\\\\\\\\kanzarin\\\\\\\\anima_k4nz4r1n_v1.3-epoch36.safetensors\\\",\\\"on\\\":true,\\\"strength\\\":0.4,\\\"strengthTwo\\\":null},{\\\"name\\\":\\\"style\\\\\\\\MY_ANI\\\\\\\\tuzhate\\\\\\\\anima_tu2h4te_v1.0-epoch40.safetensors\\\",\\\"on\\\":true,\\\"strength\\\":0.26,\\\"strengthTwo\\\":null},{\\\"name\\\":\\\"style\\\\\\\\MY_ANI\\\\\\\\machi_(machi0910)\\\\\\\\anima_m4ch1_v1.0-epoch16.safetensors\\\",\\\"on\\\":true,\\\"strength\\\":0.45,\\\"strengthTwo\\\":null},{\\\"name\\\":\\\"style\\\\\\\\MY_ANI\\\\\\\\pottsness\\\\\\\\anima_p0t7s_v1.1-epoch16.safetensors\\\",\\\"on\\\":true,\\\"strength\\\":0.35,\\\"strengthTwo\\\":null}]}\"}}"
+      ]
+    },
+    {
+      "id": 69,
+      "type": "EasyUseAnimaInput",
+      "pos": [
+        820,
+        790
+      ],
+      "size": [
+        440,
+        160
+      ],
+      "flags": {},
+      "order": 4,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "EASYUSE_ANIMA_PROMPT_DATA",
+          "name": "EASYUSE_ANIMA_PROMPT_DATA",
+          "type": "EASYUSE_ANIMA_PROMPT_DATA",
+          "link": 72
+        },
+        {
+          "localized_name": "unet_name",
+          "name": "unet_name",
+          "type": "COMBO",
+          "widget": {
+            "name": "unet_name"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "vae_name",
+          "name": "vae_name",
+          "type": "COMBO",
+          "widget": {
+            "name": "vae_name"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "clip_name",
+          "name": "clip_name",
+          "type": "COMBO",
+          "widget": {
+            "name": "clip_name"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "clip_type",
+          "name": "clip_type",
+          "type": "COMBO",
+          "widget": {
+            "name": "clip_type"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "input_settings",
+          "name": "input_settings",
+          "type": "STRING",
+          "widget": {
+            "name": "input_settings"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "easy use anima input",
+          "name": "easy use anima input",
+          "type": "EASY_USE_ANIMA_INPUT",
+          "links": [
+            87
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "EasyUseAnimaInput"
+      },
+      "widgets_values": [
+        "ANIMA\\anima_baseV10.safetensors",
+        "qwen_image_vae.safetensors",
+        "qwen_3_06b_base.safetensors",
+        "qwen_image",
+        "{\n  \"schema\": \"easy_use_anima_input\",\n  \"version\": 1,\n  \"resources\": {\n    \"loader_mode\": \"split\",\n    \"clip_loader\": \"single\",\n    \"unet_weight_dtype\": \"default\",\n    \"clip_device\": \"default\"\n  },\n  \"metadata\": {}\n}"
+      ]
+    }
+  ],
+  "links": [
+    [
+      72,
+      38,
+      0,
+      69,
+      0,
+      "EASYUSE_ANIMA_PROMPT_DATA"
+    ],
+    [
+      77,
+      77,
+      0,
+      38,
+      2,
+      "STRING"
+    ],
+    [
+      78,
+      77,
+      2,
+      38,
+      0,
+      "STRING"
+    ],
+    [
+      87,
+      69,
+      0,
+      86,
+      0,
+      "EASY_USE_ANIMA_INPUT"
+    ],
+    [
+      88,
+      77,
+      1,
+      86,
+      1,
+      "LORA_STACK"
+    ]
+  ],
+  "groups": [],
+  "config": {},
+  "extra": {
+    "ds": {
+      "scale": 1.4172488000001422,
+      "offset": [
+        -549.4973617111548,
+        -437.4276656804392
+      ]
+    },
+    "easyuse_anima_workflow": {
+      "workflow_id": "easyuse-anima-aio-generator-0.2.2-ko",
+      "name": "EasyUse Anima AiO Generator sample",
+      "language": "ko",
+      "kind": "release-workflow",
+      "package": "comfyui-easyuse-anima",
+      "package_version": "0.2.2",
+      "registry_folder": "docs/example_workflows",
+      "release_filename": "EasyUse_Anima_AiO_generator_release_ko.json",
+      "release_suffix": "_release_ko",
+      "source_workflow": "D:/ComfyUI/ComfyUI_main/user/default/workflows/codex works.json",
+      "required_node_packs": [
+        {
+          "name": "ComfyUI-EasyUseAnima",
+          "reason": "Easy Use Anima Input, Prompt Studio Advanced v2, LoRA Preset, and AiO Generator nodes.",
+          "repository": "https://github.com/N0VA-39/ComfyUI-EasyUseAnima",
+          "required_for_sample": true
+        },
+        {
+          "name": "ComfyUI-Spectrum-KSampler",
+          "reason": "Default sample sampler path is Spectrum Mod Guidance Advanced; Spectrum model patch options also use this pack.",
+          "repository": "https://github.com/blepping/ComfyUI-Spectrum-KSampler",
+          "required_for_sample": true
+        },
+        {
+          "name": "ComfyUI-Image-Saver",
+          "reason": "Default AiO Save Options backend, workflow embedding, Civitai resources, and LoRA metadata saving.",
+          "repository": "https://github.com/alexopus/ComfyUI-Image-Saver",
+          "required_for_sample": true
+        },
+        {
+          "name": "ComfyUI-Anima-DAVE",
+          "reason": "Optional Anima DAVE model patch in Advanced Options. The UI locks this option when the pack is absent.",
+          "repository": "https://github.com/sorryhyun/ComfyUI-Anima-DAVE",
+          "required_for_sample": false
+        },
+        {
+          "name": "ComfyUI-KJNodes",
+          "reason": "Optional AiO model optimization settings such as SageAttention, Torch Compile, and FP16 accumulation.",
+          "repository": "https://github.com/kijai/ComfyUI-KJNodes",
+          "required_for_sample": false
+        },
+        {
+          "name": "ComfyUI-Impact-Pack",
+          "reason": "Optional AiO SAM3 detailer path uses MaskToSEGS and DetailerForEach.",
+          "repository": "https://github.com/ltdrdata/ComfyUI-Impact-Pack",
+          "required_for_sample": false
+        }
+      ],
+      "sampler_paths": [
+        "comfy_ksampler",
+        "spectrum_mod_guidance_advanced",
+        "spectrum_spd_speed"
+      ],
+      "notes": "AiO Generator stores settings in keyed generation_settings JSON. Missing optional node packs are locked in the UI and disabled before queue execution."
+    }
+  },
+  "version": 0.4
+}

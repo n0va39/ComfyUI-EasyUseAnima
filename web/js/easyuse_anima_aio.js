@@ -23,6 +23,7 @@ const GENERATOR_NODE_DEFAULT_WIDTH = 620;
 const GENERATOR_PANEL_MIN_HEIGHT = 430;
 const GENERATOR_PANEL_CONTROL_SELECTOR = "input, select, textarea, button";
 const GENERATOR_FALLBACK_SAMPLER_NAMES = [
+  "er_sde",
   "euler",
   "euler_ancestral",
   "heun",
@@ -51,6 +52,52 @@ const GENERATOR_FALLBACK_SCHEDULER_NAMES = [
   "OSS Wan",
   "OSS Chroma",
 ];
+const GENERATOR_OPTIONAL_DEPENDENCY_SPECS = {
+  spectrumAdvanced: {
+    nodeId: "SpectrumKSamplerAdvanced",
+    pack: "ComfyUI-Spectrum-KSampler",
+  },
+  spectrumSpd: {
+    nodeId: "SpectrumSPDKSampler",
+    pack: "ComfyUI-Spectrum-KSampler",
+  },
+  spectrumPatch: {
+    nodeId: "DiTSpectrumPatchAdvanced",
+    pack: "ComfyUI-Spectrum-KSampler",
+  },
+  dave: {
+    nodeId: "AnimaDAVE",
+    pack: "ComfyUI-Anima-DAVE",
+  },
+  imageSaver: {
+    nodeId: "Image Saver",
+    pack: "ComfyUI-Image-Saver",
+  },
+  kjFp16: {
+    nodeId: "ModelPatchTorchSettings",
+    pack: "ComfyUI-KJNodes",
+  },
+  kjSage: {
+    nodeId: "PathchSageAttentionKJ",
+    pack: "ComfyUI-KJNodes",
+  },
+  kjTorchCompile: {
+    nodeId: "TorchCompileModelAdvanced",
+    pack: "ComfyUI-KJNodes",
+  },
+  impactDetailer: {
+    nodeId: "DetailerForEach",
+    pack: "ComfyUI-Impact-Pack",
+  },
+  impactMaskToSegs: {
+    nodeId: "MaskToSEGS",
+    pack: "ComfyUI-Impact-Pack",
+  },
+};
+const GENERATOR_BACKEND_DEPENDENCIES = {
+  spectrum_mod_guidance_advanced: "spectrumAdvanced",
+  spectrum_spd_speed: "spectrumSpd",
+};
 
 const DEFAULT_GENERATION_SETTINGS = {
   schema: "easyuse_anima_aio_generation_settings",
@@ -60,10 +107,10 @@ const DEFAULT_GENERATION_SETTINGS = {
     backend: "comfy_ksampler",
     seed: GENERATOR_SPECIAL_SEED_RANDOM,
     seed_after_generate: "fixed",
-    steps: 28,
+    steps: 32,
     cfg: 5.0,
-    sampler_name: "euler_ancestral",
-    scheduler: "normal",
+    sampler_name: "er_sde",
+    scheduler: "simple",
     denoise: 1.0,
     spectrum: {
       enabled: false,
@@ -108,6 +155,12 @@ const DEFAULT_GENERATION_SETTINGS = {
   model_patches: {
     aura_flow: {
       shift: 3.0,
+    },
+    dave: {
+      enabled: false,
+      mask: "dave_alpha.npz",
+      strength: 0.30,
+      tau: 0.10,
     },
     kj: {
       fp16_accumulation: false,
@@ -154,7 +207,7 @@ const DEFAULT_GENERATION_SETTINGS = {
   },
   highres: {
     enabled: false,
-    scale_by: 1.25,
+    scale_by: 1.5,
     upscale_method: "bicubic",
     multiple: "32",
     max_long_edge: 2560,
@@ -163,7 +216,7 @@ const DEFAULT_GENERATION_SETTINGS = {
     cfg: 8.0,
     sampler_name: "euler",
     scheduler: "simple",
-    denoise: 0.31,
+    denoise: 0.25,
     spectrum: {
       enabled: true,
       window_size: 2.0,
@@ -206,6 +259,7 @@ const DEFAULT_GENERATION_SETTINGS = {
       checkpoint: "sam3.1_multiplex_fp16.safetensors",
     },
     face: {
+      label: "Face Detailer",
       enabled: false,
       detect_prompt: "face",
       detect_count: 1,
@@ -271,6 +325,7 @@ const DEFAULT_GENERATION_SETTINGS = {
       },
     },
     eye: {
+      label: "Eye Detailer",
       enabled: false,
       detect_prompt: "eyes",
       detect_count: 1,
@@ -430,7 +485,7 @@ const AIO_TEXT = {
     "tip.useLast": "Reuse the last seed resolved for this node at queue time.",
     "tip.steps": "Main sampler steps. The compact slider range is 1 to 75.",
     "tip.cfg": "Main classifier-free guidance scale. Range is 1.0 to 10.0.",
-    "tip.shift": "AuraFlow model sampling shift. Always applied; range is 1.0 to 10.0.",
+    "tip.shift": "AuraFlow model sampling shift. Always applied; 3.0 is the Anima model-recommended default.",
     "tip.denoise": "Main denoise strength for the first sampling pass.",
     "tip.sampler": "Main ComfyUI sampler name used by the first pass.",
     "tip.scheduler": "Main ComfyUI scheduler used by the first pass.",
@@ -446,10 +501,11 @@ const AIO_TEXT = {
     "tip.detailerSteps": "Impact Detailer sampling steps for this block.",
     "tip.detailerDenoise": "Impact Detailer denoise strength for this block.",
     "tip.detailerOrder": "Move this image-processing block earlier or later.",
-    "tip.samplerDetails": "Open sampler backend, model patch, Mod Guidance, and Spectrum options.",
+    "tip.detailerName": "Display name for this detailer tab. It is saved with the workflow for UI organization.",
+    "tip.samplerDetails": "Open sampler backend, Mod Guidance, and Spectrum options.",
     "tip.highresSettings": "Open all Highres scaling and optimization options.",
     "tip.detailerSettings": "Open all SAM3 and Impact Detailer options.",
-    "tip.advancedOptions": "Open prompt-data driven advanced options.",
+    "tip.advancedOptions": "Open model patch, optimization, and prompt-data driven advanced options.",
     "tip.saveOptions": "Open image saver and metadata options.",
     "tip.previewOptions": "Open node preview, comparison, and image feed options.",
     "tip.previewIntermediate": "Save temp previews for first pass, Highres, and Detailer stages.",
@@ -520,7 +576,7 @@ const AIO_TEXT = {
     "tip.useLast": "이 노드가 마지막 큐 실행에서 사용한 실제 시드를 다시 사용합니다.",
     "tip.steps": "1차 샘플러 스텝입니다. 기본 슬라이더 범위는 1부터 75까지입니다.",
     "tip.cfg": "1차 CFG 값입니다. 범위는 1.0부터 10.0까지입니다.",
-    "tip.shift": "AuraFlow 모델 샘플링 시프트입니다. 항상 적용되며 범위는 1.0부터 10.0까지입니다.",
+    "tip.shift": "AuraFlow 모델 샘플링 시프트입니다. 항상 적용되며 3.0이 Anima 모델 권장 기본값입니다.",
     "tip.denoise": "1차 샘플링 디노이즈 강도입니다.",
     "tip.sampler": "1차 패스에 사용할 ComfyUI 샘플러 이름입니다.",
     "tip.scheduler": "1차 패스에 사용할 ComfyUI 스케줄러입니다.",
@@ -536,10 +592,11 @@ const AIO_TEXT = {
     "tip.detailerSteps": "이 블럭의 Impact Detailer 샘플링 스텝입니다.",
     "tip.detailerDenoise": "이 블럭의 Impact Detailer 디노이즈 강도입니다.",
     "tip.detailerOrder": "이 이미지 처리 블럭의 실행 순서를 앞뒤로 이동합니다.",
-    "tip.samplerDetails": "샘플러 백엔드, 모델 패치, Mod Guidance, Spectrum 옵션을 엽니다.",
+    "tip.detailerName": "이 디테일러 탭의 표시 이름입니다. UI 정리를 위해 워크플로우에 저장됩니다.",
+    "tip.samplerDetails": "샘플러 백엔드, Mod Guidance, Spectrum 옵션을 엽니다.",
     "tip.highresSettings": "Highres 확대와 최적화 전체 옵션을 엽니다.",
     "tip.detailerSettings": "SAM3와 Impact Detailer 전체 옵션을 엽니다.",
-    "tip.advancedOptions": "Prompt Data 기반 고급 옵션을 엽니다.",
+    "tip.advancedOptions": "모델 패치, 최적화, Prompt Data 기반 고급 옵션을 엽니다.",
     "tip.saveOptions": "이미지 저장과 메타데이터 옵션을 엽니다.",
     "tip.previewOptions": "노드 프리뷰, 비교, 이미지 피드 옵션을 엽니다.",
     "tip.previewIntermediate": "1차, Highres, Detailer 단계의 temp 미리보기를 저장합니다.",
@@ -603,7 +660,7 @@ const AIO_TEXT = {
     "tip.useLast": "このノードで最後にキューされた実シードを再利用します。",
     "tip.steps": "一回目サンプラーのステップです。範囲は 1 から 75 です。",
     "tip.cfg": "一回目の CFG 値です。範囲は 1.0 から 10.0 です。",
-    "tip.shift": "AuraFlow のモデルサンプリングシフトです。常に適用されます。",
+    "tip.shift": "AuraFlow のモデルサンプリングシフトです。常に適用され、3.0 が Anima model 推奨既定値です。",
     "tip.denoise": "一回目サンプリングのデノイズ強度です。",
     "tip.sampler": "一回目に使う ComfyUI サンプラー名です。",
     "tip.scheduler": "一回目に使う ComfyUI スケジューラーです。",
@@ -619,10 +676,11 @@ const AIO_TEXT = {
     "tip.detailerSteps": "このブロックの Impact Detailer ステップです。",
     "tip.detailerDenoise": "このブロックの Impact Detailer デノイズ強度です。",
     "tip.detailerOrder": "この画像処理ブロックの実行順を移動します。",
-    "tip.samplerDetails": "サンプラーバックエンド、モデルパッチ、Mod Guidance、Spectrum オプションを開きます。",
+    "tip.detailerName": "この detailer tab の表示名です。UI 整理用に workflow へ保存されます。",
+    "tip.samplerDetails": "サンプラーバックエンド、Mod Guidance、Spectrum オプションを開きます。",
     "tip.highresSettings": "Highres の拡大と最適化オプションを開きます。",
     "tip.detailerSettings": "SAM3 と Impact Detailer の全オプションを開きます。",
-    "tip.advancedOptions": "Prompt Data ベースの詳細オプションを開きます。",
+    "tip.advancedOptions": "モデルパッチ、最適化、Prompt Data ベースの詳細オプションを開きます。",
     "tip.saveOptions": "画像保存とメタデータオプションを開きます。",
     "tip.size": "このノードが最後に生成した画像サイズです。",
   },
@@ -681,7 +739,7 @@ const AIO_TEXT = {
     "tip.useLast": "复用此节点上次排队时解析出的真实种子。",
     "tip.steps": "第一次采样步数。紧凑滑条范围为 1 到 75。",
     "tip.cfg": "第一次 CFG 值。范围为 1.0 到 10.0。",
-    "tip.shift": "AuraFlow 模型采样 Shift。始终应用，范围为 1.0 到 10.0。",
+    "tip.shift": "AuraFlow 模型采样 Shift。始终应用，3.0 是 Anima model 推荐默认值。",
     "tip.denoise": "第一次采样的降噪强度。",
     "tip.sampler": "第一次使用的 ComfyUI 采样器名称。",
     "tip.scheduler": "第一次使用的 ComfyUI 调度器。",
@@ -697,13 +755,515 @@ const AIO_TEXT = {
     "tip.detailerSteps": "此块的 Impact Detailer 采样步数。",
     "tip.detailerDenoise": "此块的 Impact Detailer 降噪强度。",
     "tip.detailerOrder": "移动此图像处理块的执行顺序。",
-    "tip.samplerDetails": "打开采样后端、模型补丁、Mod Guidance 和 Spectrum 选项。",
+    "tip.detailerName": "此 detailer tab 的显示名称，会随 workflow 保存用于 UI 管理。",
+    "tip.samplerDetails": "打开采样后端、Mod Guidance 和 Spectrum 选项。",
     "tip.highresSettings": "打开 Highres 放大和优化选项。",
     "tip.detailerSettings": "打开 SAM3 和 Impact Detailer 全部选项。",
-    "tip.advancedOptions": "打开基于 Prompt Data 的高级选项。",
+    "tip.advancedOptions": "打开模型补丁、优化和基于 Prompt Data 的高级选项。",
     "tip.saveOptions": "打开图像保存和元数据选项。",
     "tip.size": "此节点最近生成图像的尺寸。",
   },
+};
+
+const AIO_TOOLTIP_TEXT = {
+  en: {
+    "button.close": "Close",
+    "button.cancel": "Cancel",
+    "button.apply": "Apply",
+    "tip.inputUnetDtype": "Weight dtype used when Easy Use Anima Input loads the diffusion model. Keep default unless VRAM or speed tuning requires another dtype.",
+    "tip.inputClipDevice": "Device preference for loading CLIP. CPU can reduce VRAM use at the cost of slower prompt encoding.",
+    "tip.seedMode": "After queue behavior for the seed value. This mirrors rgthree Seed controls.",
+    "tip.kjFp16Accum": "Applies KJNodes FP16 accumulation patch to the model before sampling.",
+    "tip.kjSageMode": "Selects the KJNodes SageAttention patch implementation. Disabled leaves attention unchanged.",
+    "tip.kjSageCompile": "Allows SageAttention to participate in compile-related optimization when the selected KJNodes patch supports it.",
+    "tip.torchCompileEnabled": "Runs KJNodes TorchCompileModelAdvanced before sampling. First run can be slower while graphs compile.",
+    "tip.torchCompileBackend": "Backend passed to torch.compile through KJNodes.",
+    "tip.torchCompileFullgraph": "Requests full-graph compilation. Use only when the model path is stable enough to compile fully.",
+    "tip.torchCompileMode": "torch.compile tuning profile. Max-autotune can improve later runs but increases compile time.",
+    "tip.torchCompileDynamic": "Dynamic-shape setting passed to torch.compile.",
+    "tip.torchCompileBlocks": "Compile only transformer blocks instead of the whole model wrapper.",
+    "tip.torchCompileCache": "Torch Dynamo cache size limit used by the compile node.",
+    "tip.torchCompileDebug": "Enables debug compile keys in KJNodes for troubleshooting compile cache behavior.",
+    "tip.torchCompileVram": "Disables ComfyUI dynamic VRAM handling around compiled model execution when enabled.",
+    "tip.samplerBackend": "Selects the actual first-pass execution path. Model patches selected in Advanced Options are applied before this backend runs. SPD/SPEED is Euler-only, so its sampler is normalized to euler.",
+    "warning.optionalDependencyMissing": "{backend} is locked because {pack} is not installed.",
+    "tip.modMode": "Controls whether Mod Guidance follows prompt_data, is forced on, or is disabled.",
+    "tip.modProfile": "Preset layer profile for Anima Mod Guidance. Off disables Mod Guidance even when prompt_data asks for it.",
+    "tip.modAdapter": "Adapter name passed to Spectrum Mod Guidance. Auto-download default uses the node pack default adapter.",
+    "tip.modW": "Main Mod Guidance strength sent to the integrated Spectrum sampler.",
+    "tip.modStartLayer": "First transformer layer affected by Mod Guidance.",
+    "tip.modEndLayer": "Last transformer layer affected by Mod Guidance.",
+    "tip.modTaper": "Number of taper layers used to fade Mod Guidance.",
+    "tip.modTaperScale": "Strength scale applied during the taper portion.",
+    "tip.modFinalW": "Final-layer Mod Guidance strength override.",
+    "tip.spectrumEnabled": "For Comfy KSampler mode, applies DiT Spectrum Patch before sampling. Integrated Spectrum sampler modes use their own Spectrum controls.",
+    "tip.spectrumWindow": "Spectrum window size used by DiTSpectrumPatchAdvanced or SpectrumKSamplerAdvanced.",
+    "tip.spectrumFlex": "Flexible window ratio for Spectrum forecast sampling.",
+    "tip.spectrumWarmup": "Number of early steps before Spectrum forecast correction starts.",
+    "tip.spectrumTail": "Number of actual sampler steps kept near the end of the schedule.",
+    "tip.spectrumBlend": "Blend weight between forecast and actual sampling behavior.",
+    "tip.spectrumCheby": "Chebyshev polynomial degree used by the Spectrum forecast path.",
+    "tip.spectrumRidge": "Ridge regularization lambda for Spectrum forecast fitting.",
+    "tip.spectrumCompat": "Compatibility policy for Spectrum patch behavior. Conservative is safest for mixed sampler setups.",
+    "tip.correctionsEnabled": "Enables Spectrum advanced corrections such as DCW, SMC-CFG, CFG++, and FSG.",
+    "tip.dcwMode": "DCW correction mode passed to Spectrum correction nodes.",
+    "tip.dcwLambda": "DCW correction strength.",
+    "tip.dcwBand": "Frequency band mask used by DCW correction.",
+    "tip.smcCfg": "Enables adaptive SMC-CFG correction.",
+    "tip.smcAlpha": "Adaptive SMC alpha value for Spectrum correction.",
+    "tip.smcLambda": "SMC-CFG lambda strength.",
+    "tip.cfgpp": "Enables CFG++ correction in Spectrum correction nodes.",
+    "tip.cfgppLambda": "CFG++ lambda strength.",
+    "tip.fsg": "Enables FSG correction in Spectrum correction nodes.",
+    "tip.spdScale": "SPD/SPEED scale value sent to SpectrumSPDKSampler.",
+    "tip.spdSigma": "SPD/SPEED sigma value sent to SpectrumSPDKSampler.",
+    "tip.daveEnabled": "Apply the optional AnimaDAVE model patch before sampler execution.",
+    "tip.daveMask": "DAVE pool mask file passed to AnimaDAVE. The bundled default is dave_alpha.npz.",
+    "tip.daveStrength": "DAVE DC-removal dose. Start near 0.30, or sweep lower values for layout diversity.",
+    "tip.daveTau": "Early denoising fraction where DAVE is active. Keep at or below 0.10 for legibility.",
+    "tip.highresMethod": "Upscale method used before the Highres second pass.",
+    "tip.highresMultiple": "Snaps Highres dimensions to this multiple before resampling.",
+    "tip.detailerPrompt": "SAM3 text prompt used to detect the target region for this block.",
+    "tip.detailerCount": "Maximum number of detected regions to process.",
+    "tip.detailerThreshold": "SAM3 detection threshold. Higher values keep only stronger detections.",
+    "tip.detailerRefine": "SAM3 mask refinement iterations before MaskToSEGS conversion.",
+    "tip.detailerIndividual": "Processes detected masks independently instead of only as one combined mask.",
+    "tip.detailerCombined": "Adds a combined SEGS entry from all detected masks.",
+    "tip.detailerCropFactor": "Impact MaskToSEGS crop factor around the detected region.",
+    "tip.detailerBboxFill": "Fills the bounding box area during MaskToSEGS conversion.",
+    "tip.detailerDropSize": "Drops detected regions smaller than this size.",
+    "tip.detailerContourFill": "Fills mask contours before detailer sampling.",
+    "tip.detailerGuideSize": "Impact Detailer guide size for the inpaint crop.",
+    "tip.detailerMaxSize": "Maximum Impact Detailer processing size.",
+    "tip.detailerFeather": "Feather amount around the inpaint mask.",
+    "tip.detailerNoiseMask": "Use a noise mask for detailer sampling.",
+    "tip.detailerForceInpaint": "Forces inpaint behavior for the detailer crop.",
+    "tip.detailerMaskFeather": "Extra feather applied to the noise mask.",
+    "tip.detailerCycle": "Number of Impact Detailer cycles for this target.",
+    "tip.detailerAlignment": "Aligns detailer crop sizes. 32 is the Anima default to avoid odd crop dimensions.",
+    "tip.detailerCheckpoint": "SAM3 checkpoint loaded by the AiO detailer stage.",
+    "tip.saveEnabled": "Controls whether this output node saves the final image during queue execution.",
+    "tip.saveBackend": "Image Saver writes metadata-rich files. Comfy SaveImage uses ComfyUI's built-in saver.",
+    "tip.saveFilename": "Filename pattern sent to Image Saver. Image Saver tokens such as %time and %basemodelname are preserved.",
+    "tip.savePath": "Output subfolder passed to Image Saver.",
+    "tip.saveExtension": "Image file extension for Image Saver output.",
+    "tip.saveQuality": "JPEG/WebP quality value passed to Image Saver.",
+    "tip.saveLosslessWebp": "Writes lossless WebP when WebP output is selected.",
+    "tip.saveOptimizePng": "Runs PNG optimization when PNG output is selected.",
+    "tip.saveCounter": "Image Saver counter value.",
+    "tip.saveTimeFormat": "strftime-style time format used by Image Saver filename tokens.",
+    "tip.saveClipSkip": "Clip skip metadata value written by Image Saver.",
+    "tip.saveEmbedWorkflow": "Embeds the ComfyUI workflow in the saved image so it can be reloaded.",
+    "tip.saveWorkflowJson": "Also writes a sidecar workflow JSON file.",
+    "tip.saveCivitaiData": "Lets Image Saver download and embed Civitai model metadata.",
+    "tip.saveEasyRemix": "Enables Image Saver easy-remix metadata fields.",
+    "tip.saveCustom": "Custom metadata text passed directly to Image Saver.",
+    "tip.artistMixMode": "Controls how artist tags from prompt_data are mixed into conditioning.",
+    "tip.artistMixStart": "Start percent for late or scheduled artist-mix modes.",
+    "tip.artistMixStrength": "Strength multiplier for artist-mix conditioning.",
+  },
+  ko: {
+    "button.close": "닫기",
+    "button.cancel": "취소",
+    "button.apply": "적용",
+    "tip.inputUnetDtype": "Easy Use Anima Input이 디퓨전 모델을 로드할 때 사용할 weight dtype입니다. VRAM/속도 튜닝이 필요 없으면 default를 유지합니다.",
+    "tip.inputClipDevice": "CLIP 로드 장치 설정입니다. CPU는 VRAM을 줄일 수 있지만 프롬프트 인코딩이 느려질 수 있습니다.",
+    "tip.seedMode": "큐 실행 후 시드 처리 방식입니다. rgthree Seed 컨트롤과 같은 의미로 동작합니다.",
+    "tip.kjFp16Accum": "샘플링 전에 KJNodes FP16 accumulation 모델 패치를 적용합니다.",
+    "tip.kjSageMode": "KJNodes SageAttention 패치 구현을 선택합니다. disabled는 attention을 변경하지 않습니다.",
+    "tip.kjSageCompile": "선택한 SageAttention 패치가 지원할 때 compile 최적화에 포함되도록 허용합니다.",
+    "tip.torchCompileEnabled": "샘플링 전에 KJNodes TorchCompileModelAdvanced를 실행합니다. 첫 실행은 컴파일 때문에 느릴 수 있습니다.",
+    "tip.torchCompileBackend": "KJNodes를 통해 torch.compile에 전달할 backend입니다.",
+    "tip.torchCompileFullgraph": "fullgraph 컴파일을 요청합니다. 모델 경로가 안정적일 때만 사용합니다.",
+    "tip.torchCompileMode": "torch.compile 튜닝 프로필입니다. max-autotune은 이후 실행을 빠르게 할 수 있지만 컴파일 시간이 늘어납니다.",
+    "tip.torchCompileDynamic": "torch.compile에 전달할 dynamic shape 설정입니다.",
+    "tip.torchCompileBlocks": "모델 전체 대신 transformer block만 컴파일합니다.",
+    "tip.torchCompileCache": "compile 노드가 사용할 Torch Dynamo cache size limit입니다.",
+    "tip.torchCompileDebug": "컴파일 캐시 문제를 추적하기 위한 KJNodes debug compile keys를 켭니다.",
+    "tip.torchCompileVram": "켜면 compiled model 실행 중 ComfyUI dynamic VRAM 처리를 끕니다.",
+    "tip.samplerBackend": "실제 1차 샘플링 경로를 선택합니다. Advanced Options에서 선택한 모델 패치는 이 백엔드 실행 전에 적용됩니다. SPD/SPEED는 Euler 전용이라 내부 sampler는 euler로 정규화됩니다.",
+    "warning.optionalDependencyMissing": "{pack}이 설치되지 않아 {backend} 옵션을 잠갔습니다.",
+    "tip.modMode": "Mod Guidance를 prompt_data에 따르게 할지, 강제로 켤지, 끌지 정합니다.",
+    "tip.modProfile": "Anima Mod Guidance 레이어 프리셋입니다. off는 prompt_data가 켜져 있어도 Mod Guidance를 비활성화합니다.",
+    "tip.modAdapter": "Spectrum Mod Guidance에 전달할 adapter입니다. auto-download default는 노드팩 기본 adapter를 사용합니다.",
+    "tip.modW": "통합 Spectrum 샘플러에 전달할 Mod Guidance 주 강도입니다.",
+    "tip.modStartLayer": "Mod Guidance를 적용할 첫 transformer layer입니다.",
+    "tip.modEndLayer": "Mod Guidance를 적용할 마지막 transformer layer입니다.",
+    "tip.modTaper": "Mod Guidance를 서서히 줄일 taper layer 수입니다.",
+    "tip.modTaperScale": "taper 구간에 적용할 강도 배율입니다.",
+    "tip.modFinalW": "마지막 layer의 Mod Guidance 강도 override입니다.",
+    "tip.spectrumEnabled": "Comfy KSampler 모드에서 샘플링 전에 DiT Spectrum Patch를 적용합니다. 통합 Spectrum 모드는 자체 Spectrum 설정을 사용합니다.",
+    "tip.spectrumWindow": "DiTSpectrumPatchAdvanced 또는 SpectrumKSamplerAdvanced의 window size입니다.",
+    "tip.spectrumFlex": "Spectrum forecast sampling의 flexible window 비율입니다.",
+    "tip.spectrumWarmup": "Spectrum forecast 보정이 시작되기 전 warmup step 수입니다.",
+    "tip.spectrumTail": "스케줄 마지막에 실제 sampler step으로 유지할 step 수입니다.",
+    "tip.spectrumBlend": "forecast와 실제 sampling 동작의 blend weight입니다.",
+    "tip.spectrumCheby": "Spectrum forecast 경로에서 사용하는 Chebyshev polynomial degree입니다.",
+    "tip.spectrumRidge": "Spectrum forecast fitting의 ridge regularization lambda입니다.",
+    "tip.spectrumCompat": "Spectrum patch 호환성 정책입니다. conservative가 혼합 샘플러 구성에서 가장 안전합니다.",
+    "tip.correctionsEnabled": "DCW, SMC-CFG, CFG++, FSG 같은 Spectrum 고급 보정을 켭니다.",
+    "tip.dcwMode": "Spectrum correction 노드에 전달할 DCW correction mode입니다.",
+    "tip.dcwLambda": "DCW correction 강도입니다.",
+    "tip.dcwBand": "DCW correction에 사용할 frequency band mask입니다.",
+    "tip.smcCfg": "adaptive SMC-CFG 보정을 켭니다.",
+    "tip.smcAlpha": "Spectrum correction의 adaptive SMC alpha 값입니다.",
+    "tip.smcLambda": "SMC-CFG lambda 강도입니다.",
+    "tip.cfgpp": "Spectrum correction 노드의 CFG++ 보정을 켭니다.",
+    "tip.cfgppLambda": "CFG++ lambda 강도입니다.",
+    "tip.fsg": "Spectrum correction 노드의 FSG 보정을 켭니다.",
+    "tip.spdScale": "SpectrumSPDKSampler에 전달할 SPD/SPEED scale 값입니다.",
+    "tip.spdSigma": "SpectrumSPDKSampler에 전달할 SPD/SPEED sigma 값입니다.",
+    "tip.daveEnabled": "샘플러 실행 전에 선택 AnimaDAVE 모델 패치를 적용합니다.",
+    "tip.daveMask": "AnimaDAVE에 전달할 DAVE pool mask 파일입니다. 기본 번들 파일은 dave_alpha.npz입니다.",
+    "tip.daveStrength": "DAVE DC 제거 강도입니다. 기본은 0.30이며, 레이아웃 다양성 비교는 더 낮은 값부터 스윕합니다.",
+    "tip.daveTau": "DAVE가 활성화되는 초기 denoising 비율입니다. 가독성을 위해 0.10 이하를 권장합니다.",
+    "tip.highresMethod": "Highres 2차 패스 전에 사용할 업스케일 방법입니다.",
+    "tip.highresMultiple": "Highres 크기를 이 배수에 맞춰 보정합니다.",
+    "tip.detailerPrompt": "이 블럭의 대상 영역을 찾기 위해 SAM3에 전달할 텍스트 프롬프트입니다.",
+    "tip.detailerCount": "처리할 최대 감지 영역 개수입니다.",
+    "tip.detailerThreshold": "SAM3 감지 threshold입니다. 높을수록 강한 감지만 남습니다.",
+    "tip.detailerRefine": "MaskToSEGS 변환 전 SAM3 mask refinement 반복 수입니다.",
+    "tip.detailerIndividual": "감지된 mask를 하나씩 독립 처리합니다.",
+    "tip.detailerCombined": "감지된 모든 mask를 합친 SEGS 항목을 추가합니다.",
+    "tip.detailerCropFactor": "감지 영역 주변 Impact MaskToSEGS crop factor입니다.",
+    "tip.detailerBboxFill": "MaskToSEGS 변환 중 bounding box 영역을 채웁니다.",
+    "tip.detailerDropSize": "이 크기보다 작은 감지 영역을 버립니다.",
+    "tip.detailerContourFill": "detailer 샘플링 전 mask contour를 채웁니다.",
+    "tip.detailerGuideSize": "inpaint crop에 사용할 Impact Detailer guide size입니다.",
+    "tip.detailerMaxSize": "Impact Detailer 처리 최대 크기입니다.",
+    "tip.detailerFeather": "inpaint mask 경계 feather 값입니다.",
+    "tip.detailerNoiseMask": "detailer 샘플링에 noise mask를 사용합니다.",
+    "tip.detailerForceInpaint": "detailer crop을 inpaint 방식으로 강제 처리합니다.",
+    "tip.detailerMaskFeather": "noise mask에 추가 feather를 적용합니다.",
+    "tip.detailerCycle": "이 대상에 실행할 Impact Detailer cycle 수입니다.",
+    "tip.detailerAlignment": "detailer crop 크기를 정렬합니다. Anima 기본값은 홀수 crop을 피하는 32입니다.",
+    "tip.detailerCheckpoint": "AiO 디테일러 단계에서 로드할 SAM3 checkpoint입니다.",
+    "tip.saveEnabled": "큐 실행 중 이 출력 노드가 최종 이미지를 저장할지 정합니다.",
+    "tip.saveBackend": "Image Saver는 메타데이터가 풍부한 저장을 수행합니다. Comfy SaveImage는 기본 저장 노드를 사용합니다.",
+    "tip.saveFilename": "Image Saver에 전달할 filename 패턴입니다. %time, %basemodelname 같은 Image Saver 토큰을 유지합니다.",
+    "tip.savePath": "Image Saver에 전달할 출력 하위 폴더입니다.",
+    "tip.saveExtension": "Image Saver 출력 이미지 확장자입니다.",
+    "tip.saveQuality": "Image Saver에 전달할 JPEG/WebP quality 값입니다.",
+    "tip.saveLosslessWebp": "WebP 출력 선택 시 lossless WebP로 저장합니다.",
+    "tip.saveOptimizePng": "PNG 출력 선택 시 PNG 최적화를 실행합니다.",
+    "tip.saveCounter": "Image Saver counter 값입니다.",
+    "tip.saveTimeFormat": "Image Saver filename 토큰에 사용할 strftime 형식입니다.",
+    "tip.saveClipSkip": "Image Saver가 기록할 clip skip 메타데이터 값입니다.",
+    "tip.saveEmbedWorkflow": "저장 이미지에 ComfyUI workflow를 임베드해 다시 불러올 수 있게 합니다.",
+    "tip.saveWorkflowJson": "workflow JSON sidecar 파일도 같이 저장합니다.",
+    "tip.saveCivitaiData": "Image Saver가 Civitai 모델 메타데이터를 다운로드해 임베드하도록 합니다.",
+    "tip.saveEasyRemix": "Image Saver easy-remix 메타데이터 필드를 켭니다.",
+    "tip.saveCustom": "Image Saver에 그대로 전달할 custom metadata입니다.",
+    "tip.artistMixMode": "prompt_data의 작가 태그를 conditioning에 혼합하는 방식을 정합니다.",
+    "tip.artistMixStart": "late/scheduled artist mix 모드의 시작 percent입니다.",
+    "tip.artistMixStrength": "artist mix conditioning 강도 배율입니다.",
+  },
+  ja: {
+    "button.close": "閉じる",
+    "button.cancel": "キャンセル",
+    "button.apply": "適用",
+    "tip.inputUnetDtype": "Easy Use Anima Input が diffusion model を読み込むときの weight dtype です。VRAM や速度調整が不要なら default を使います。",
+    "tip.inputClipDevice": "CLIP の読み込みデバイスです。CPU は VRAM を抑えますが、プロンプトエンコードが遅くなります。",
+    "tip.seedMode": "キュー後のシード制御です。rgthree Seed と同じ考え方で動作します。",
+    "tip.kjFp16Accum": "サンプリング前に KJNodes FP16 accumulation パッチをモデルへ適用します。",
+    "tip.kjSageMode": "KJNodes SageAttention の実装を選択します。disabled は attention を変更しません。",
+    "tip.kjSageCompile": "選択した SageAttention パッチが対応する場合、compile 最適化への参加を許可します。",
+    "tip.torchCompileEnabled": "サンプリング前に KJNodes TorchCompileModelAdvanced を実行します。初回は compile により遅くなる場合があります。",
+    "tip.torchCompileBackend": "KJNodes 経由で torch.compile に渡す backend です。",
+    "tip.torchCompileFullgraph": "fullgraph compile を要求します。モデル経路が安定している場合のみ使用してください。",
+    "tip.torchCompileMode": "torch.compile の調整プロファイルです。max-autotune は後続実行を速くできますが compile 時間が増えます。",
+    "tip.torchCompileDynamic": "torch.compile に渡す dynamic shape 設定です。",
+    "tip.torchCompileBlocks": "モデル全体ではなく transformer block のみを compile します。",
+    "tip.torchCompileCache": "compile ノードが使う Torch Dynamo cache size limit です。",
+    "tip.torchCompileDebug": "compile cache の確認用に KJNodes debug compile keys を有効化します。",
+    "tip.torchCompileVram": "有効時、compiled model 実行中の ComfyUI dynamic VRAM 処理を無効化します。",
+    "tip.samplerBackend": "一回目の実行経路を選択します。Advanced Options で選んだ model patch は、この backend 実行前に適用されます。SPD/SPEED は Euler 専用のため、sampler は内部で euler に正規化されます。",
+    "warning.optionalDependencyMissing": "{pack} が未インストールのため {backend} をロックしました。",
+    "tip.modMode": "Mod Guidance を prompt_data に従わせるか、強制有効または無効にするかを選択します。",
+    "tip.modProfile": "Anima Mod Guidance の layer profile です。off は prompt_data が有効でも Mod Guidance を無効化します。",
+    "tip.modAdapter": "Spectrum Mod Guidance に渡す adapter です。auto-download default は node pack の既定 adapter を使います。",
+    "tip.modW": "統合 Spectrum sampler に渡す Mod Guidance の主強度です。",
+    "tip.modStartLayer": "Mod Guidance を適用する最初の transformer layer です。",
+    "tip.modEndLayer": "Mod Guidance を適用する最後の transformer layer です。",
+    "tip.modTaper": "Mod Guidance をフェードする taper layer 数です。",
+    "tip.modTaperScale": "taper 区間に適用する強度スケールです。",
+    "tip.modFinalW": "最終 layer の Mod Guidance 強度 override です。",
+    "tip.spectrumEnabled": "Comfy KSampler mode でサンプリング前に DiT Spectrum Patch を適用します。統合 Spectrum mode は専用の Spectrum 設定を使います。",
+    "tip.spectrumWindow": "DiTSpectrumPatchAdvanced または SpectrumKSamplerAdvanced の window size です。",
+    "tip.spectrumFlex": "Spectrum forecast sampling の flexible window 比率です。",
+    "tip.spectrumWarmup": "Spectrum forecast 補正を開始する前の warmup step 数です。",
+    "tip.spectrumTail": "スケジュール末尾で実 sampler step として残す step 数です。",
+    "tip.spectrumBlend": "forecast と実 sampling 動作の blend weight です。",
+    "tip.spectrumCheby": "Spectrum forecast 経路で使う Chebyshev polynomial degree です。",
+    "tip.spectrumRidge": "Spectrum forecast fitting の ridge regularization lambda です。",
+    "tip.spectrumCompat": "Spectrum patch の互換性ポリシーです。混在構成では conservative が最も安全です。",
+    "tip.correctionsEnabled": "DCW、SMC-CFG、CFG++、FSG などの Spectrum 高度補正を有効化します。",
+    "tip.dcwMode": "Spectrum correction node に渡す DCW correction mode です。",
+    "tip.dcwLambda": "DCW correction の強度です。",
+    "tip.dcwBand": "DCW correction で使う frequency band mask です。",
+    "tip.smcCfg": "adaptive SMC-CFG 補正を有効化します。",
+    "tip.smcAlpha": "Spectrum correction の adaptive SMC alpha 値です。",
+    "tip.smcLambda": "SMC-CFG lambda 強度です。",
+    "tip.cfgpp": "Spectrum correction node の CFG++ 補正を有効化します。",
+    "tip.cfgppLambda": "CFG++ lambda 強度です。",
+    "tip.fsg": "Spectrum correction node の FSG 補正を有効化します。",
+    "tip.spdScale": "SpectrumSPDKSampler に渡す SPD/SPEED scale 値です。",
+    "tip.spdSigma": "SpectrumSPDKSampler に渡す SPD/SPEED sigma 値です。",
+    "tip.daveEnabled": "Sampler 実行前に任意の AnimaDAVE model patch を適用します。",
+    "tip.daveMask": "AnimaDAVE に渡す DAVE pool mask ファイルです。既定の同梱ファイルは dave_alpha.npz です。",
+    "tip.daveStrength": "DAVE の DC 除去量です。既定は 0.30、レイアウト多様性の比較は低めの値から始めます。",
+    "tip.daveTau": "DAVE が有効になる初期 denoising 比率です。可読性のため 0.10 以下を推奨します。",
+    "tip.highresMethod": "Highres 二回目パス前に使う upscaler 方式です。",
+    "tip.highresMultiple": "Highres の寸法をこの倍数に揃えます。",
+    "tip.detailerPrompt": "この block の対象領域を検出するため SAM3 に渡す text prompt です。",
+    "tip.detailerCount": "処理する検出領域の最大数です。",
+    "tip.detailerThreshold": "SAM3 検出 threshold です。高いほど強い検出だけを残します。",
+    "tip.detailerRefine": "MaskToSEGS 変換前の SAM3 mask refinement 回数です。",
+    "tip.detailerIndividual": "検出 mask を個別に処理します。",
+    "tip.detailerCombined": "検出 mask 全体を結合した SEGS を追加します。",
+    "tip.detailerCropFactor": "検出領域周辺の Impact MaskToSEGS crop factor です。",
+    "tip.detailerBboxFill": "MaskToSEGS 変換時に bounding box 領域を塗りつぶします。",
+    "tip.detailerDropSize": "このサイズ未満の検出領域を破棄します。",
+    "tip.detailerContourFill": "detailer sampling 前に mask contour を塗りつぶします。",
+    "tip.detailerGuideSize": "inpaint crop に使う Impact Detailer guide size です。",
+    "tip.detailerMaxSize": "Impact Detailer の最大処理サイズです。",
+    "tip.detailerFeather": "inpaint mask 境界の feather 量です。",
+    "tip.detailerNoiseMask": "detailer sampling に noise mask を使用します。",
+    "tip.detailerForceInpaint": "detailer crop を inpaint 処理に強制します。",
+    "tip.detailerMaskFeather": "noise mask に追加 feather を適用します。",
+    "tip.detailerCycle": "この対象で実行する Impact Detailer cycle 数です。",
+    "tip.detailerAlignment": "detailer crop size を整列します。Anima 既定は奇数 crop を避ける 32 です。",
+    "tip.detailerCheckpoint": "AiO detailer stage で読み込む SAM3 checkpoint です。",
+    "tip.saveEnabled": "キュー実行中、この出力 node が最終画像を保存するかを制御します。",
+    "tip.saveBackend": "Image Saver は metadata 付き保存を行います。Comfy SaveImage は標準 saver を使います。",
+    "tip.saveFilename": "Image Saver に渡す filename pattern です。%time や %basemodelname などの token を保持します。",
+    "tip.savePath": "Image Saver に渡す出力 subfolder です。",
+    "tip.saveExtension": "Image Saver の出力画像拡張子です。",
+    "tip.saveQuality": "Image Saver に渡す JPEG/WebP quality 値です。",
+    "tip.saveLosslessWebp": "WebP 出力時に lossless WebP で保存します。",
+    "tip.saveOptimizePng": "PNG 出力時に PNG optimization を実行します。",
+    "tip.saveCounter": "Image Saver counter 値です。",
+    "tip.saveTimeFormat": "Image Saver filename token に使う strftime 形式です。",
+    "tip.saveClipSkip": "Image Saver が記録する clip skip metadata 値です。",
+    "tip.saveEmbedWorkflow": "保存画像に ComfyUI workflow を埋め込み、再読み込み可能にします。",
+    "tip.saveWorkflowJson": "workflow JSON sidecar も保存します。",
+    "tip.saveCivitaiData": "Image Saver が Civitai model metadata を取得して埋め込むようにします。",
+    "tip.saveEasyRemix": "Image Saver easy-remix metadata fields を有効化します。",
+    "tip.saveCustom": "Image Saver にそのまま渡す custom metadata です。",
+    "tip.artistMixMode": "prompt_data の artist tags を conditioning に混合する方式です。",
+    "tip.artistMixStart": "late/scheduled artist mix mode の開始 percent です。",
+    "tip.artistMixStrength": "artist mix conditioning の強度倍率です。",
+  },
+  zh: {
+    "button.close": "关闭",
+    "button.cancel": "取消",
+    "button.apply": "应用",
+    "tip.inputUnetDtype": "Easy Use Anima Input 加载 diffusion model 时使用的 weight dtype。除非需要显存或速度调优，否则保持 default。",
+    "tip.inputClipDevice": "CLIP 加载设备。CPU 可减少显存占用，但会降低提示词编码速度。",
+    "tip.seedMode": "排队后的种子控制方式，行为与 rgthree Seed 控件一致。",
+    "tip.kjFp16Accum": "采样前对模型应用 KJNodes FP16 accumulation patch。",
+    "tip.kjSageMode": "选择 KJNodes SageAttention patch 实现。disabled 不改变 attention。",
+    "tip.kjSageCompile": "所选 SageAttention patch 支持时，允许参与 compile 优化。",
+    "tip.torchCompileEnabled": "采样前运行 KJNodes TorchCompileModelAdvanced。首次运行可能因编译变慢。",
+    "tip.torchCompileBackend": "通过 KJNodes 传给 torch.compile 的 backend。",
+    "tip.torchCompileFullgraph": "请求 fullgraph compile。仅在模型路径足够稳定时使用。",
+    "tip.torchCompileMode": "torch.compile 调优配置。max-autotune 可加速后续运行，但会增加编译时间。",
+    "tip.torchCompileDynamic": "传给 torch.compile 的 dynamic shape 设置。",
+    "tip.torchCompileBlocks": "只编译 transformer blocks，而不是整个模型包装。",
+    "tip.torchCompileCache": "compile 节点使用的 Torch Dynamo cache size limit。",
+    "tip.torchCompileDebug": "启用 KJNodes debug compile keys，用于排查 compile cache 行为。",
+    "tip.torchCompileVram": "启用后，在 compiled model 执行期间关闭 ComfyUI dynamic VRAM 处理。",
+    "tip.samplerBackend": "选择第一次采样的实际执行路径。Advanced Options 中选择的 model patch 会在此 backend 执行前应用。SPD/SPEED 仅支持 Euler，因此内部 sampler 会规范化为 euler。",
+    "warning.optionalDependencyMissing": "{pack} 未安装，因此已锁定 {backend} 选项。",
+    "tip.modMode": "选择 Mod Guidance 跟随 prompt_data、强制开启或关闭。",
+    "tip.modProfile": "Anima Mod Guidance layer profile。off 会禁用 Mod Guidance，即使 prompt_data 要求启用。",
+    "tip.modAdapter": "传给 Spectrum Mod Guidance 的 adapter。auto-download default 使用节点包默认 adapter。",
+    "tip.modW": "传给集成 Spectrum sampler 的 Mod Guidance 主强度。",
+    "tip.modStartLayer": "Mod Guidance 影响的第一个 transformer layer。",
+    "tip.modEndLayer": "Mod Guidance 影响的最后一个 transformer layer。",
+    "tip.modTaper": "Mod Guidance 渐隐使用的 taper layer 数。",
+    "tip.modTaperScale": "taper 区间的强度倍率。",
+    "tip.modFinalW": "最终 layer 的 Mod Guidance 强度 override。",
+    "tip.spectrumEnabled": "在 Comfy KSampler mode 中，采样前应用 DiT Spectrum Patch。集成 Spectrum mode 使用自己的 Spectrum 设置。",
+    "tip.spectrumWindow": "DiTSpectrumPatchAdvanced 或 SpectrumKSamplerAdvanced 的 window size。",
+    "tip.spectrumFlex": "Spectrum forecast sampling 的 flexible window 比例。",
+    "tip.spectrumWarmup": "Spectrum forecast correction 开始前的 warmup step 数。",
+    "tip.spectrumTail": "调度末尾保留为实际 sampler step 的步数。",
+    "tip.spectrumBlend": "forecast 与实际 sampling 行为的 blend weight。",
+    "tip.spectrumCheby": "Spectrum forecast 路径使用的 Chebyshev polynomial degree。",
+    "tip.spectrumRidge": "Spectrum forecast fitting 的 ridge regularization lambda。",
+    "tip.spectrumCompat": "Spectrum patch 兼容策略。混合采样器配置中 conservative 最安全。",
+    "tip.correctionsEnabled": "启用 DCW、SMC-CFG、CFG++、FSG 等 Spectrum 高级校正。",
+    "tip.dcwMode": "传给 Spectrum correction node 的 DCW correction mode。",
+    "tip.dcwLambda": "DCW correction 强度。",
+    "tip.dcwBand": "DCW correction 使用的 frequency band mask。",
+    "tip.smcCfg": "启用 adaptive SMC-CFG correction。",
+    "tip.smcAlpha": "Spectrum correction 的 adaptive SMC alpha 值。",
+    "tip.smcLambda": "SMC-CFG lambda 强度。",
+    "tip.cfgpp": "启用 Spectrum correction node 的 CFG++ correction。",
+    "tip.cfgppLambda": "CFG++ lambda 强度。",
+    "tip.fsg": "启用 Spectrum correction node 的 FSG correction。",
+    "tip.spdScale": "传给 SpectrumSPDKSampler 的 SPD/SPEED scale 值。",
+    "tip.spdSigma": "传给 SpectrumSPDKSampler 的 SPD/SPEED sigma 值。",
+    "tip.daveEnabled": "在 sampler 执行前应用可选的 AnimaDAVE model patch。",
+    "tip.daveMask": "传给 AnimaDAVE 的 DAVE pool mask 文件。默认内置文件是 dave_alpha.npz。",
+    "tip.daveStrength": "DAVE DC removal 强度。默认 0.30；比较布局多样性时先从较低值扫起。",
+    "tip.daveTau": "DAVE 生效的早期 denoising 比例。为保持可读性，建议不超过 0.10。",
+    "tip.highresMethod": "Highres 第二次采样前使用的放大方法。",
+    "tip.highresMultiple": "将 Highres 尺寸对齐到该倍数。",
+    "tip.detailerPrompt": "传给 SAM3 的文本提示词，用于检测此 block 的目标区域。",
+    "tip.detailerCount": "要处理的最大检测区域数。",
+    "tip.detailerThreshold": "SAM3 检测 threshold。越高只保留越强的检测。",
+    "tip.detailerRefine": "MaskToSEGS 转换前的 SAM3 mask refinement 次数。",
+    "tip.detailerIndividual": "单独处理检测到的每个 mask。",
+    "tip.detailerCombined": "添加由所有检测 mask 合并得到的 SEGS。",
+    "tip.detailerCropFactor": "检测区域周围的 Impact MaskToSEGS crop factor。",
+    "tip.detailerBboxFill": "MaskToSEGS 转换时填充 bounding box 区域。",
+    "tip.detailerDropSize": "丢弃小于此尺寸的检测区域。",
+    "tip.detailerContourFill": "detailer sampling 前填充 mask contour。",
+    "tip.detailerGuideSize": "inpaint crop 使用的 Impact Detailer guide size。",
+    "tip.detailerMaxSize": "Impact Detailer 最大处理尺寸。",
+    "tip.detailerFeather": "inpaint mask 边缘 feather 值。",
+    "tip.detailerNoiseMask": "detailer sampling 使用 noise mask。",
+    "tip.detailerForceInpaint": "强制 detailer crop 使用 inpaint 行为。",
+    "tip.detailerMaskFeather": "对 noise mask 应用额外 feather。",
+    "tip.detailerCycle": "此目标运行的 Impact Detailer cycle 数。",
+    "tip.detailerAlignment": "对齐 detailer crop size。Anima 默认 32，用于避免异常 crop 尺寸。",
+    "tip.detailerCheckpoint": "AiO detailer stage 加载的 SAM3 checkpoint。",
+    "tip.saveEnabled": "控制此输出节点在排队执行时是否保存最终图像。",
+    "tip.saveBackend": "Image Saver 写入带丰富 metadata 的文件。Comfy SaveImage 使用 ComfyUI 内置 saver。",
+    "tip.saveFilename": "传给 Image Saver 的 filename pattern。保留 %time、%basemodelname 等 token。",
+    "tip.savePath": "传给 Image Saver 的输出子文件夹。",
+    "tip.saveExtension": "Image Saver 输出图像扩展名。",
+    "tip.saveQuality": "传给 Image Saver 的 JPEG/WebP quality 值。",
+    "tip.saveLosslessWebp": "选择 WebP 输出时保存为 lossless WebP。",
+    "tip.saveOptimizePng": "选择 PNG 输出时运行 PNG optimization。",
+    "tip.saveCounter": "Image Saver counter 值。",
+    "tip.saveTimeFormat": "Image Saver filename token 使用的 strftime 格式。",
+    "tip.saveClipSkip": "Image Saver 写入的 clip skip metadata 值。",
+    "tip.saveEmbedWorkflow": "将 ComfyUI workflow 嵌入保存图像，便于重新加载。",
+    "tip.saveWorkflowJson": "同时保存 workflow JSON sidecar 文件。",
+    "tip.saveCivitaiData": "让 Image Saver 下载并嵌入 Civitai model metadata。",
+    "tip.saveEasyRemix": "启用 Image Saver easy-remix metadata fields。",
+    "tip.saveCustom": "直接传给 Image Saver 的 custom metadata。",
+    "tip.artistMixMode": "控制如何将 prompt_data 的 artist tags 混入 conditioning。",
+    "tip.artistMixStart": "late/scheduled artist mix mode 的 start percent。",
+    "tip.artistMixStrength": "artist mix conditioning 强度倍率。",
+  },
+};
+
+for (const [language, entries] of Object.entries(AIO_TOOLTIP_TEXT)) {
+  AIO_TEXT[language] = {
+    ...AIO_TEXT.en,
+    ...(AIO_TEXT[language] || {}),
+    ...entries,
+  };
+}
+
+const AIO_FIELD_TOOLTIP_KEYS = {
+  "UNET weight dtype": "tip.inputUnetDtype",
+  "CLIP device": "tip.inputClipDevice",
+  "Seed": "tip.seed",
+  "Seed mode": "tip.seedMode",
+  "Steps": "tip.steps",
+  "CFG": "tip.cfg",
+  "AuraFlow shift": "tip.shift",
+  "Denoise": "tip.denoise",
+  "KJNodes FP16 accum": "tip.kjFp16Accum",
+  "Mode": "tip.samplerBackend",
+  "Allow compile": "tip.kjSageCompile",
+  "Use Torch compile": "tip.torchCompileEnabled",
+  "Backend": "tip.saveBackend",
+  "Fullgraph": "tip.torchCompileFullgraph",
+  "Dynamic": "tip.torchCompileDynamic",
+  "Transformer blocks only": "tip.torchCompileBlocks",
+  "Dynamo cache limit": "tip.torchCompileCache",
+  "Debug keys": "tip.torchCompileDebug",
+  "Disable dynamic VRAM": "tip.torchCompileVram",
+  "Sampler": "tip.sampler",
+  "Scheduler": "tip.scheduler",
+  "Profile": "tip.modProfile",
+  "Adapter": "tip.modAdapter",
+  "Mod W": "tip.modW",
+  "Start layer": "tip.modStartLayer",
+  "End layer": "tip.modEndLayer",
+  "Taper": "tip.modTaper",
+  "Taper scale": "tip.modTaperScale",
+  "Final W": "tip.modFinalW",
+  "Block name": "tip.detailerName",
+  "Use Spectrum patch": "tip.spectrumEnabled",
+  "Spectrum patch": "tip.spectrumEnabled",
+  "Window size": "tip.spectrumWindow",
+  "Flex window": "tip.spectrumFlex",
+  "Warmup steps": "tip.spectrumWarmup",
+  "Warmup": "tip.spectrumWarmup",
+  "Tail actual": "tip.spectrumTail",
+  "Blend W": "tip.spectrumBlend",
+  "Cheby degree": "tip.spectrumCheby",
+  "Cheby": "tip.spectrumCheby",
+  "Ridge lambda": "tip.spectrumRidge",
+  "Compat policy": "tip.spectrumCompat",
+  "Compat": "tip.spectrumCompat",
+  "Use corrections": "tip.correctionsEnabled",
+  "DCW mode": "tip.dcwMode",
+  "DCW lambda": "tip.dcwLambda",
+  "DCW band": "tip.dcwBand",
+  "SMC-CFG": "tip.smcCfg",
+  "SMC alpha": "tip.smcAlpha",
+  "SMC lambda": "tip.smcLambda",
+  "CFG++": "tip.cfgpp",
+  "CFG++ lambda": "tip.cfgppLambda",
+  "FSG": "tip.fsg",
+  "Scale": "tip.spdScale",
+  "Sigma": "tip.spdSigma",
+  "Use DAVE": "tip.daveEnabled",
+  "Mask": "tip.daveMask",
+  "DAVE strength": "tip.daveStrength",
+  "DAVE tau": "tip.daveTau",
+  "Enable highres": "tip.highresEnabled",
+  "Scale by": "tip.highresScale",
+  "Method": "tip.highresMethod",
+  "Multiple": "tip.highresMultiple",
+  "Max long edge": "tip.highresMaxEdge",
+  "Follow main sampler": "tip.highresFollow",
+  "Enable": "tip.detailerBlock",
+  "Prompt": "tip.detailerPrompt",
+  "Count": "tip.detailerCount",
+  "Threshold": "tip.detailerThreshold",
+  "Refine": "tip.detailerRefine",
+  "Individual": "tip.detailerIndividual",
+  "Combined": "tip.detailerCombined",
+  "Crop factor": "tip.detailerCropFactor",
+  "BBox fill": "tip.detailerBboxFill",
+  "Drop size": "tip.detailerDropSize",
+  "Contour fill": "tip.detailerContourFill",
+  "Guide size": "tip.detailerGuideSize",
+  "Max size": "tip.detailerMaxSize",
+  "Feather": "tip.detailerFeather",
+  "Noise mask": "tip.detailerNoiseMask",
+  "Force inpaint": "tip.detailerForceInpaint",
+  "Mask feather": "tip.detailerMaskFeather",
+  "Cycle": "tip.detailerCycle",
+  "Alignment": "tip.detailerAlignment",
+  "Enable detailer": "tip.detailerEnabled",
+  "SAM3 checkpoint": "tip.detailerCheckpoint",
+  "Save image": "tip.saveEnabled",
+  "Filename": "tip.saveFilename",
+  "Path": "tip.savePath",
+  "Extension": "tip.saveExtension",
+  "JPEG/WebP quality": "tip.saveQuality",
+  "Lossless WebP": "tip.saveLosslessWebp",
+  "Optimize PNG": "tip.saveOptimizePng",
+  "Counter": "tip.saveCounter",
+  "Time format": "tip.saveTimeFormat",
+  "Clip skip": "tip.saveClipSkip",
+  "Embed workflow": "tip.saveEmbedWorkflow",
+  "Workflow JSON": "tip.saveWorkflowJson",
+  "Civitai data": "tip.saveCivitaiData",
+  "Easy remix": "tip.saveEasyRemix",
+  "Custom metadata": "tip.saveCustom",
+  "Start": "tip.artistMixStart",
+  "Strength": "tip.artistMixStrength",
 };
 
 function aioText(key) {
@@ -754,6 +1314,11 @@ const generatorSamplerOptionState = {
   loading: null,
   samplerNames: [...GENERATOR_FALLBACK_SAMPLER_NAMES],
   schedulerNames: [...GENERATOR_FALLBACK_SCHEDULER_NAMES],
+};
+const generatorOptionalDependencyState = {
+  loaded: false,
+  loading: null,
+  available: {},
 };
 
 function uniqueStrings(values) {
@@ -818,6 +1383,106 @@ function loadGeneratorSamplerOptions() {
       .then(() => generatorSamplerOptionState);
   }
   return generatorSamplerOptionState.loading;
+}
+
+async function fetchGeneratorOptionalDependencies() {
+  const next = {};
+  for (const [key, spec] of Object.entries(GENERATOR_OPTIONAL_DEPENDENCY_SPECS)) {
+    try {
+      const response = api?.fetchApi
+        ? await api.fetchApi(`/object_info/${encodeURIComponent(spec.nodeId)}`)
+        : await fetch(`/object_info/${encodeURIComponent(spec.nodeId)}`);
+      const data = await response.json();
+      next[key] = !!data?.[spec.nodeId];
+    } catch {
+      next[key] = false;
+    }
+  }
+  generatorOptionalDependencyState.available = next;
+}
+
+function loadGeneratorOptionalDependencies() {
+  if (generatorOptionalDependencyState.loaded) {
+    return Promise.resolve(generatorOptionalDependencyState);
+  }
+  if (!generatorOptionalDependencyState.loading) {
+    generatorOptionalDependencyState.loading = fetchGeneratorOptionalDependencies()
+      .catch((error) => {
+        console.warn("[EasyUseAnima] Failed to load optional dependency status.", error);
+      })
+      .finally(() => {
+        generatorOptionalDependencyState.loaded = true;
+      })
+      .then(() => generatorOptionalDependencyState);
+  }
+  return generatorOptionalDependencyState.loading;
+}
+
+function optionalDependencyAvailable(key) {
+  if (!key || !generatorOptionalDependencyState.loaded) {
+    return true;
+  }
+  return !!generatorOptionalDependencyState.available[key];
+}
+
+function backendDependencyMissing(backend) {
+  const dependencyKey = GENERATOR_BACKEND_DEPENDENCIES[backend];
+  return dependencyKey && !optionalDependencyAvailable(dependencyKey);
+}
+
+function optionalDependencyPack(key) {
+  return GENERATOR_OPTIONAL_DEPENDENCY_SPECS[key]?.pack || key || "";
+}
+
+function disableGeneratorSpectrumOptions(target) {
+  if (!target || typeof target !== "object") {
+    return;
+  }
+  if (target.spectrum && typeof target.spectrum === "object") {
+    target.spectrum.enabled = false;
+  }
+  if (target.dit_corrections && typeof target.dit_corrections === "object") {
+    target.dit_corrections.enabled = false;
+  }
+}
+
+function sanitizeGeneratorSettingsForOptionalDependencies(settings) {
+  const next = mergeDefaults(DEFAULT_GENERATION_SETTINGS, settings);
+  delete next.sampler.dave;
+  const backendDependency = GENERATOR_BACKEND_DEPENDENCIES[next.sampler.backend];
+  if (backendDependency && !optionalDependencyAvailable(backendDependency)) {
+    next.sampler.backend = "comfy_ksampler";
+  }
+  if (!optionalDependencyAvailable("spectrumPatch")) {
+    disableGeneratorSpectrumOptions(next.sampler);
+    disableGeneratorSpectrumOptions(next.highres);
+    disableGeneratorSpectrumOptions(next.detailer?.face);
+    disableGeneratorSpectrumOptions(next.detailer?.eye);
+  }
+  if (!optionalDependencyAvailable("kjFp16")) {
+    next.model_patches.kj.fp16_accumulation = false;
+  }
+  if (!optionalDependencyAvailable("kjSage")) {
+    next.model_patches.kj.sage_attention = "disabled";
+    next.model_patches.kj.sage_allow_compile = false;
+  }
+  if (!optionalDependencyAvailable("kjTorchCompile")) {
+    next.model_patches.kj.torch_compile.enabled = false;
+  }
+  if (!optionalDependencyAvailable("dave")) {
+    next.model_patches.dave.enabled = false;
+  }
+  if (!optionalDependencyAvailable("imageSaver") && next.save.backend === "image_saver") {
+    next.save.backend = "comfy_save_image";
+  }
+  const impactMissing = !optionalDependencyAvailable("impactDetailer")
+    || !optionalDependencyAvailable("impactMaskToSegs");
+  if (impactMissing) {
+    next.detailer.enabled = false;
+    next.detailer.face.enabled = false;
+    next.detailer.eye.enabled = false;
+  }
+  return next;
 }
 
 function samplerNameOptions(current) {
@@ -965,6 +1630,10 @@ function ensureStyle() {
       grid-template-columns: minmax(0, 1fr);
       overflow-x: hidden;
     }
+    .easyuse-anima-aio-body.easyuse-anima-aio-one-column {
+      grid-template-columns: minmax(0, 1fr);
+      overflow-x: hidden;
+    }
     .easyuse-anima-aio-section {
       min-width: 0;
       padding: 14px;
@@ -1000,6 +1669,84 @@ function ensureStyle() {
     }
     .easyuse-anima-aio-subsection.hidden {
       display: none;
+    }
+    .easyuse-anima-aio-tabs {
+      display: flex;
+      gap: 6px;
+      align-items: flex-end;
+      min-width: 0;
+      overflow-x: auto;
+      padding: 0 0 8px;
+      margin: 0 0 12px;
+      border-bottom: 1px solid #34404a;
+    }
+    .easyuse-anima-aio-tab {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      min-width: 118px;
+      max-width: 220px;
+      padding: 7px 8px;
+      color: #d7dde0;
+      background: #151b21;
+      border: 1px solid #34404a;
+      border-bottom-color: #4b5661;
+      border-radius: 7px 7px 0 0;
+      font: inherit;
+      cursor: pointer;
+    }
+    .easyuse-anima-aio-tab.active {
+      color: #f3f0e8;
+      background: #24313a;
+      border-color: #5b6b78;
+      border-bottom-color: #24313a;
+    }
+    .easyuse-anima-aio-tab-label {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      flex: 1 1 auto;
+      text-align: left;
+    }
+    .easyuse-anima-aio-tab-tools {
+      display: inline-flex;
+      gap: 3px;
+      flex: 0 0 auto;
+    }
+    .easyuse-anima-aio-tab-tools button {
+      width: 20px;
+      height: 20px;
+      padding: 0;
+      color: #f3f0e8;
+      background: #26313a;
+      border: 1px solid #526170;
+      border-radius: 4px;
+      font: 11px "Segoe UI", sans-serif;
+      cursor: pointer;
+    }
+    .easyuse-anima-aio-tab-tools button:disabled {
+      opacity: 0.45;
+      cursor: default;
+    }
+    .easyuse-anima-aio-tab-panel {
+      min-width: 0;
+    }
+    .easyuse-anima-aio-detailer-target-panel {
+      min-width: 0;
+    }
+    .easyuse-anima-aio-detailer-target-panel > .easyuse-anima-aio-node-stage-mini-header {
+      margin-top: 0;
+    }
+    .easyuse-anima-aio-warning {
+      grid-column: 1 / -1;
+      margin: 8px 0 0;
+      padding: 8px 10px;
+      color: #f3d39a;
+      background: rgba(163, 111, 37, 0.16);
+      border: 1px solid rgba(221, 164, 82, 0.45);
+      border-radius: 6px;
+      line-height: 1.35;
     }
     .easyuse-anima-aio-field {
       display: grid;
@@ -1685,10 +2432,19 @@ function checkbox(value) {
 
 function selectInput(options, value) {
   const select = document.createElement("select");
-  for (const optionValue of options) {
+  for (const optionSpec of options) {
+    const optionValue = typeof optionSpec === "object" && optionSpec
+      ? String(optionSpec.value ?? "")
+      : String(optionSpec ?? "");
     const option = document.createElement("option");
     option.value = optionValue;
-    option.textContent = optionValue;
+    option.textContent = typeof optionSpec === "object" && optionSpec
+      ? String(optionSpec.label ?? optionValue)
+      : optionValue;
+    option.disabled = !!(typeof optionSpec === "object" && optionSpec?.disabled);
+    if (typeof optionSpec === "object" && optionSpec?.title) {
+      option.title = String(optionSpec.title);
+    }
     if (optionValue === value) {
       option.selected = true;
     }
@@ -1814,6 +2570,14 @@ function appendGeneratorPreviewFeed(existingImages, nextImages, settings, runId 
     runId,
     generatorPreviewFeedLimit(settings),
   );
+}
+
+function generatorPreviewEventDetail(event) {
+  const detail = event?.detail || {};
+  if (detail?.data && typeof detail.data === "object") {
+    return detail.data;
+  }
+  return detail;
 }
 
 function generatorImageUrl(image) {
@@ -1958,11 +2722,11 @@ function normalizeGeneratorInputValues(node, settings = DEFAULT_GENERATION_SETTI
   const merged = mergeDefaults(DEFAULT_GENERATION_SETTINGS, settings);
   return {
     seed: normalizeSeedValue(widgetValue(node, "seed", merged.sampler.seed)),
-    steps: Math.trunc(clampGeneratorNumber(widgetValue(node, "steps", merged.sampler.steps), 28, 1, 75)),
-    cfg: clampGeneratorNumber(widgetValue(node, "cfg", merged.sampler.cfg), 5.0, 1.0, 10.0),
+    steps: Math.trunc(clampGeneratorNumber(widgetValue(node, "steps", merged.sampler.steps), DEFAULT_GENERATION_SETTINGS.sampler.steps, 1, 75)),
+    cfg: clampGeneratorNumber(widgetValue(node, "cfg", merged.sampler.cfg), DEFAULT_GENERATION_SETTINGS.sampler.cfg, 1.0, 10.0),
     sampler_name: String(widgetValue(node, "sampler_name", merged.sampler.sampler_name) || merged.sampler.sampler_name),
     scheduler: String(widgetValue(node, "scheduler", merged.sampler.scheduler) || merged.sampler.scheduler),
-    denoise: clampGeneratorNumber(widgetValue(node, "denoise", merged.sampler.denoise), 1.0, 0.0, 1.0),
+    denoise: clampGeneratorNumber(widgetValue(node, "denoise", merged.sampler.denoise), DEFAULT_GENERATION_SETTINGS.sampler.denoise, 0.0, 1.0),
     save_image: asBool(widgetValue(node, "save_image", merged.save.enabled), merged.save.enabled),
   };
 }
@@ -1977,6 +2741,7 @@ function mergeVisibleGeneratorSettings(node, settings) {
   next.sampler.sampler_name = inputs.sampler_name;
   next.sampler.scheduler = inputs.scheduler;
   next.sampler.denoise = inputs.denoise;
+  delete next.sampler.dave;
   next.model_patches.aura_flow ||= {};
   delete next.model_patches.aura_flow.enabled;
   next.model_patches.aura_flow.shift = clampGeneratorNumber(
@@ -2400,6 +3165,7 @@ function updateGeneratorDomPreview(node) {
   if (feed.hidden) {
     return;
   }
+  let selectedThumb = null;
   for (const [index, image] of images.entries()) {
     const thumbUrl = generatorImageUrl(image);
     if (!thumbUrl) {
@@ -2410,6 +3176,7 @@ function updateGeneratorDomPreview(node) {
     thumb.className = "easyuse-anima-aio-node-preview-thumb";
     if (index === selectedIndex) {
       thumb.classList.add("active");
+      selectedThumb = thumb;
     }
     thumb.title = generatorPreviewImageLabel(image);
     const thumbImage = document.createElement("img");
@@ -2425,6 +3192,7 @@ function updateGeneratorDomPreview(node) {
     });
     feed.append(thumb);
   }
+  selectedThumb?.scrollIntoView?.({ block: "nearest", inline: "nearest" });
 }
 
 function suppressGeneratorDefaultPreview(node) {
@@ -2792,7 +3560,7 @@ function renderGeneratorPanel(node) {
 
   const samplerCard = document.createElement("section");
   samplerCard.className = "easyuse-anima-aio-node-card easyuse-anima-aio-node-settings";
-  const saveIcon = makeIconButton("▣", () => openSaveSettings(node), "tip.saveOptions");
+  const saveIcon = makeIconButton("💾", () => openSaveSettings(node), "tip.saveOptions");
   saveIcon.setAttribute("data-aio-save-button", "");
   const samplerHeader = makeCardHeader(aioText("title.sampler"), [
     makeIconButton("⚙", () => openSamplerSettings(node), "tip.samplerDetails"),
@@ -3194,8 +3962,9 @@ function field(section, label, control, tooltipKey = "") {
   row.className = "easyuse-anima-aio-field";
   const labelEl = document.createElement("label");
   labelEl.textContent = label;
-  const tooltipText = tooltipKey
-    ? aioText(tooltipKey)
+  const resolvedTooltipKey = tooltipKey || AIO_FIELD_TOOLTIP_KEYS[label] || "";
+  const tooltipText = resolvedTooltipKey
+    ? aioText(resolvedTooltipKey)
     : aioFormat("tip.fieldGeneric", { label });
   applyTooltipText(row, tooltipText);
   applyTooltipText(labelEl, tooltipText);
@@ -3220,7 +3989,7 @@ function createDialog(title, subtitle) {
   titleBox.append(heading, desc);
   const close = document.createElement("button");
   close.className = "easyuse-anima-aio-close";
-  close.textContent = "Close";
+  close.textContent = aioText("button.close");
   header.append(titleBox, close);
   const body = document.createElement("div");
   body.className = "easyuse-anima-aio-body";
@@ -3264,10 +4033,10 @@ function openInputSettings(node) {
   body.append(section);
 
   const cancel = document.createElement("button");
-  cancel.textContent = "Cancel";
+  cancel.textContent = aioText("button.cancel");
   const apply = document.createElement("button");
   apply.className = "primary";
-  apply.textContent = "Apply";
+  apply.textContent = aioText("button.apply");
   actions.append(cancel, apply);
   cancel.addEventListener("click", () => backdrop.remove());
   apply.addEventListener("click", () => {
@@ -3286,7 +4055,7 @@ function openSamplerSettings(node) {
   const settings = mergeVisibleGeneratorSettings(node, parseSettings(widget, DEFAULT_GENERATION_SETTINGS));
   const { backdrop, body, actions } = createDialog(
     "Sampler Details",
-    "Choose one of three sampler paths. Missing custom node packs are reported at queue time."
+    "Choose one of three sampler paths. Missing optional node packs are locked before queue execution."
   );
 
   const makeSection = (title, className = "easyuse-anima-aio-section full") => {
@@ -3315,83 +4084,23 @@ function openSamplerSettings(node) {
   const cfg = field(base, "CFG", numberInput(settings.sampler.cfg, "0.1"));
   cfg.min = "1";
   cfg.max = "10";
-  const auraShift = field(
-    base,
-    "AuraFlow shift",
-    numberInput(settings.model_patches.aura_flow.shift ?? 3.0, "0.5")
-  );
-  auraShift.min = "1";
-  auraShift.max = "10";
   const denoise = field(base, "Denoise", numberInput(settings.sampler.denoise, "0.01"));
 
-  const modelPatches = makeSection("Model Patch / Optimization");
-  const fp16Accum = field(modelPatches, "KJNodes FP16 accum", checkbox(settings.model_patches.kj.fp16_accumulation));
-  const sage = makeSubsection("KJNodes: SageAttention");
-  const sageAttention = field(
-    sage,
-    "Mode",
-    selectInput([
-      "disabled",
-      "auto",
-      "sageattn_qk_int8_pv_fp16_cuda",
-      "sageattn_qk_int8_pv_fp16_triton",
-      "sageattn_qk_int8_pv_fp8_cuda",
-      "sageattn_qk_int8_pv_fp8_cuda++",
-      "sageattn3",
-      "sageattn3_per_block_mean",
-    ], settings.model_patches.kj.sage_attention)
-  );
-  const sageAllowCompile = field(sage, "Allow compile", checkbox(settings.model_patches.kj.sage_allow_compile));
-  modelPatches.append(sage);
-
-  const torch = makeSubsection("KJNodes: Torch Compile");
-  const torchCompileEnabled = field(torch, "Use Torch compile", checkbox(settings.model_patches.kj.torch_compile.enabled));
-  const torchDetails = document.createElement("div");
-  torch.append(torchDetails);
-  const torchCompileBackend = field(
-    torchDetails,
-    "Backend",
-    selectInput(["inductor", "cudagraphs"], settings.model_patches.kj.torch_compile.backend)
-  );
-  const torchCompileFullgraph = field(torchDetails, "Fullgraph", checkbox(settings.model_patches.kj.torch_compile.fullgraph));
-  const torchCompileMode = field(
-    torchDetails,
-    "Mode",
-    selectInput(["default", "max-autotune", "max-autotune-no-cudagraphs", "reduce-overhead"], settings.model_patches.kj.torch_compile.mode)
-  );
-  const torchCompileDynamic = field(
-    torchDetails,
-    "Dynamic",
-    selectInput(["auto", "true", "false"], settings.model_patches.kj.torch_compile.dynamic)
-  );
-  const torchCompileBlocksOnly = field(
-    torchDetails,
-    "Transformer blocks only",
-    checkbox(settings.model_patches.kj.torch_compile.compile_transformer_blocks_only)
-  );
-  const torchCompileCache = field(
-    torchDetails,
-    "Dynamo cache limit",
-    numberInput(settings.model_patches.kj.torch_compile.dynamo_cache_size_limit, "1")
-  );
-  const torchCompileDebug = field(torchDetails, "Debug keys", checkbox(settings.model_patches.kj.torch_compile.debug_compile_keys));
-  const torchCompileDisableVram = field(
-    torchDetails,
-    "Disable dynamic VRAM",
-    checkbox(settings.model_patches.kj.torch_compile.disable_dynamic_vram)
-  );
-  modelPatches.append(torch);
-
   const sampler = makeSection("Sampler Backend");
+  const backendValues = [
+    "comfy_ksampler",
+    "spectrum_mod_guidance_advanced",
+    "spectrum_spd_speed",
+  ];
   const backend = field(
     sampler,
-    "Sampler path",
-    selectInput([
-      "comfy_ksampler",
-      "spectrum_mod_guidance_advanced",
-      "spectrum_spd_speed",
-    ], settings.sampler.backend || "comfy_ksampler")
+    "Mode",
+    selectInput(backendValues, settings.sampler.backend || "comfy_ksampler")
   );
+  const dependencyWarning = document.createElement("div");
+  dependencyWarning.className = "easyuse-anima-aio-warning";
+  dependencyWarning.hidden = true;
+  sampler.append(dependencyWarning);
   const samplerName = field(
     sampler,
     "Sampler",
@@ -3407,7 +4116,8 @@ function openSamplerSettings(node) {
   const modMode = field(
     modGuidance,
     "Mode",
-    selectInput(["prompt_data", "enabled", "disabled"], settings.mod_guidance.mode)
+    selectInput(["prompt_data", "enabled", "disabled"], settings.mod_guidance.mode),
+    "tip.modMode",
   );
   const modProfile = field(
     modGuidance,
@@ -3460,7 +4170,7 @@ function openSamplerSettings(node) {
   const spdSmc = field(spd, "SMC alpha", numberInput(settings.sampler.spd.adaptive_smc_alpha, "0.01"));
   backendDetails.append(spectrum, spd);
   sampler.append(backendDetails);
-  body.append(base, modelPatches, sampler);
+  body.append(base, sampler);
 
   const refreshBackendDetails = () => {
     const isComfy = backend.value === "comfy_ksampler";
@@ -3471,39 +4181,63 @@ function openSamplerSettings(node) {
     modAdvanced.style.display = isSpectrumAdvanced ? "" : "none";
     spd.classList.toggle("hidden", backend.value !== "spectrum_spd_speed");
   };
-  const refreshSageDetails = () => {
-    sageAllowCompile.parentElement.style.display = sageAttention.value === "disabled" ? "none" : "";
-  };
-  const refreshTorchDetails = () => {
-    torchDetails.style.display = torchCompileEnabled.checked ? "" : "none";
+  const refreshDependencyLocks = () => {
+    const messages = [];
+    for (const option of Array.from(backend.options)) {
+      const dependencyKey = GENERATOR_BACKEND_DEPENDENCIES[option.value];
+      const pack = optionalDependencyPack(dependencyKey);
+      const missing = !!dependencyKey && !optionalDependencyAvailable(dependencyKey);
+      option.disabled = missing;
+      option.textContent = missing ? `${option.value} (${pack} missing)` : option.value;
+      if (missing && option.selected) {
+        messages.push(aioFormat("warning.optionalDependencyMissing", {
+          backend: option.value,
+          pack,
+        }));
+        backend.value = "comfy_ksampler";
+      }
+    }
+    const spectrumPatchMissing = !optionalDependencyAvailable("spectrumPatch");
+    spectrumPatchEnabled.disabled = spectrumPatchMissing;
+    correctionsEnabled.disabled = spectrumPatchMissing;
+    if (spectrumPatchMissing && (spectrumPatchEnabled.checked || correctionsEnabled.checked)) {
+      messages.push(aioFormat("warning.optionalDependencyMissing", {
+        backend: "Spectrum Patch",
+        pack: optionalDependencyPack("spectrumPatch"),
+      }));
+      spectrumPatchEnabled.checked = false;
+      correctionsEnabled.checked = false;
+    }
+    dependencyWarning.hidden = messages.length === 0;
+    dependencyWarning.textContent = messages.join(" ");
+    refreshBackendDetails();
   };
   backend.addEventListener("change", refreshBackendDetails);
-  sageAttention.addEventListener("change", refreshSageDetails);
-  torchCompileEnabled.addEventListener("change", refreshTorchDetails);
   refreshBackendDetails();
-  refreshSageDetails();
-  refreshTorchDetails();
+  refreshDependencyLocks();
+  loadGeneratorOptionalDependencies().then(refreshDependencyLocks);
 
   const cancel = document.createElement("button");
-  cancel.textContent = "Cancel";
+  cancel.textContent = aioText("button.cancel");
   const apply = document.createElement("button");
   apply.className = "primary";
-  apply.textContent = "Apply";
+  apply.textContent = aioText("button.apply");
   actions.append(cancel, apply);
   cancel.addEventListener("click", () => backdrop.remove());
   apply.addEventListener("click", () => {
     const next = mergeDefaults(DEFAULT_GENERATION_SETTINGS, settings);
+    delete next.sampler.dave;
     next.sampler.backend = backend.value || "comfy_ksampler";
     next.sampler.seed = normalizeSeedValue(seed.value, GENERATOR_SPECIAL_SEED_RANDOM);
     next.sampler.seed_after_generate = normalizeSeedControl(seedControl.value);
-    next.sampler.steps = Math.trunc(clampGeneratorNumber(steps.value, 28, 1, 75));
-    next.sampler.cfg = clampGeneratorNumber(cfg.value, 5, 1, 10);
-    next.sampler.denoise = Number(denoise.value || 1);
-    next.sampler.sampler_name = samplerName.value || "euler_ancestral";
-    next.sampler.scheduler = scheduler.value || "normal";
+    next.sampler.steps = Math.trunc(clampGeneratorNumber(steps.value, DEFAULT_GENERATION_SETTINGS.sampler.steps, 1, 75));
+    next.sampler.cfg = clampGeneratorNumber(cfg.value, DEFAULT_GENERATION_SETTINGS.sampler.cfg, 1, 10);
+    next.sampler.denoise = clampGeneratorNumber(denoise.value, DEFAULT_GENERATION_SETTINGS.sampler.denoise, 0, 1);
+    next.sampler.sampler_name = samplerName.value || DEFAULT_GENERATION_SETTINGS.sampler.sampler_name;
+    next.sampler.scheduler = scheduler.value || DEFAULT_GENERATION_SETTINGS.sampler.scheduler;
     next.sampler.spectrum.enabled = (
       next.sampler.backend === "spectrum_mod_guidance_advanced"
-      || (next.sampler.backend === "comfy_ksampler" && spectrumPatchEnabled.checked)
+      || (next.sampler.backend === "comfy_ksampler" && spectrumPatchEnabled.checked && !spectrumPatchEnabled.disabled)
     );
     next.sampler.spectrum.window_size = Number(windowSize.value || 2);
     next.sampler.spectrum.flex_window = Number(flexWindow.value || 0.25);
@@ -3516,7 +4250,7 @@ function openSamplerSettings(node) {
     next.sampler.spd.scale = Number(spdScale.value || 0.5);
     next.sampler.spd.sigma = Number(spdSigma.value || 0.7);
     next.sampler.spd.adaptive_smc_alpha = Number(spdSmc.value || 0);
-    next.sampler.dit_corrections.enabled = correctionsEnabled.checked;
+    next.sampler.dit_corrections.enabled = correctionsEnabled.checked && !correctionsEnabled.disabled;
     next.sampler.dit_corrections.dcw_mode = dcwMode.value || "off";
     next.sampler.dit_corrections.dcw_lambda = Number(dcwLambda.value || 0.01);
     next.sampler.dit_corrections.dcw_band_mask = dcwBand.value || "LL";
@@ -3535,20 +4269,6 @@ function openSamplerSettings(node) {
     next.mod_guidance.advanced.mod_taper = Number(modTaper.value || 0);
     next.mod_guidance.advanced.mod_taper_scale = Number(modTaperScale.value || 0.25);
     next.mod_guidance.advanced.mod_final_w = Number(modFinalW.value || 0);
-    delete next.model_patches.aura_flow.enabled;
-    next.model_patches.aura_flow.shift = clampGeneratorNumber(auraShift.value, 3, 1, 10);
-    next.model_patches.kj.fp16_accumulation = fp16Accum.checked;
-    next.model_patches.kj.sage_attention = sageAttention.value || "disabled";
-    next.model_patches.kj.sage_allow_compile = sageAllowCompile.checked;
-    next.model_patches.kj.torch_compile.enabled = torchCompileEnabled.checked;
-    next.model_patches.kj.torch_compile.backend = torchCompileBackend.value || "inductor";
-    next.model_patches.kj.torch_compile.fullgraph = torchCompileFullgraph.checked;
-    next.model_patches.kj.torch_compile.mode = torchCompileMode.value || "max-autotune-no-cudagraphs";
-    next.model_patches.kj.torch_compile.dynamic = torchCompileDynamic.value || "false";
-    next.model_patches.kj.torch_compile.compile_transformer_blocks_only = torchCompileBlocksOnly.checked;
-    next.model_patches.kj.torch_compile.dynamo_cache_size_limit = Number(torchCompileCache.value || 64);
-    next.model_patches.kj.torch_compile.debug_compile_keys = torchCompileDebug.checked;
-    next.model_patches.kj.torch_compile.disable_dynamic_vram = torchCompileDisableVram.checked;
     applyVisibleGeneratorSettings(node, next);
     writeSettings(node, widget, next);
     renderGeneratorPanel(node);
@@ -3591,13 +4311,36 @@ function createStageOptimizationEditor(title, values, defaults) {
   const cfgppLambda = field(corrections, "CFG++ lambda", numberInput(correctionValues.cfgpp_lambda, "0.1"));
   const fsg = field(corrections, "FSG", checkbox(correctionValues.fsg));
   section.append(corrections);
+  const dependencyWarning = document.createElement("div");
+  dependencyWarning.className = "easyuse-anima-aio-warning";
+  dependencyWarning.hidden = true;
+  section.append(dependencyWarning);
+  const refreshDependencyLocks = () => {
+    const spectrumPatchMissing = !optionalDependencyAvailable("spectrumPatch");
+    spectrumEnabled.disabled = spectrumPatchMissing;
+    correctionsEnabled.disabled = spectrumPatchMissing;
+    if (spectrumPatchMissing) {
+      spectrumEnabled.checked = false;
+      correctionsEnabled.checked = false;
+      dependencyWarning.hidden = false;
+      dependencyWarning.textContent = aioFormat("warning.optionalDependencyMissing", {
+        backend: title,
+        pack: optionalDependencyPack("spectrumPatch"),
+      });
+    } else {
+      dependencyWarning.hidden = true;
+      dependencyWarning.textContent = "";
+    }
+  };
+  refreshDependencyLocks();
+  loadGeneratorOptionalDependencies().then(refreshDependencyLocks);
 
   return {
     section,
     values() {
       return {
         spectrum: {
-          enabled: spectrumEnabled.checked,
+          enabled: spectrumEnabled.checked && !spectrumEnabled.disabled,
           window_size: Number(windowSize.value || defaults.spectrum.window_size || 2),
           flex_window: Number(flexWindow.value || defaults.spectrum.flex_window || 0.25),
           warmup_steps: Number(warmupSteps.value || defaults.spectrum.warmup_steps || 6),
@@ -3611,7 +4354,7 @@ function createStageOptimizationEditor(title, values, defaults) {
           compat_policy: compatPolicy.value || "conservative",
         },
         dit_corrections: {
-          enabled: correctionsEnabled.checked,
+          enabled: correctionsEnabled.checked && !correctionsEnabled.disabled,
           dcw_mode: dcwMode.value || "off",
           dcw_lambda: Number(dcwLambda.value || defaults.dit_corrections.dcw_lambda || 0.01),
           dcw_band_mask: dcwBand.value || "LL",
@@ -3642,6 +4385,7 @@ function openHighresSettings(node) {
     "Highres Settings",
     "Image scaling, highres resampling, and Spectrum optimization are saved with the node."
   );
+  body.classList.add("easyuse-anima-aio-one-column");
 
   const image = document.createElement("section");
   image.className = "easyuse-anima-aio-section";
@@ -3696,10 +4440,10 @@ function openHighresSettings(node) {
   body.append(image, sampler, optimization.section);
 
   const cancel = document.createElement("button");
-  cancel.textContent = "Cancel";
+  cancel.textContent = aioText("button.cancel");
   const apply = document.createElement("button");
   apply.className = "primary";
-  apply.textContent = "Apply";
+  apply.textContent = aioText("button.apply");
   actions.append(cancel, apply);
   cancel.addEventListener("click", () => backdrop.remove());
   apply.addEventListener("click", () => {
@@ -3708,7 +4452,7 @@ function openHighresSettings(node) {
     next.highres = {
       ...next.highres,
       enabled: enabled.checked,
-      scale_by: clampGeneratorNumber(scaleBy.value, 1.25, 0.01, 8),
+      scale_by: clampGeneratorNumber(scaleBy.value, DEFAULT_GENERATION_SETTINGS.highres.scale_by, 0.01, 8),
       upscale_method: upscaleMethod.value || "bicubic",
       multiple: multiple.value || "32",
       max_long_edge: Math.trunc(clampGeneratorNumber(maxLongEdge.value, 2560, 0, 16384)),
@@ -3717,7 +4461,7 @@ function openHighresSettings(node) {
       cfg: clampGeneratorNumber(cfg.value, 8, 1, 10),
       sampler_name: samplerName.value || "euler",
       scheduler: scheduler.value || "simple",
-      denoise: clampGeneratorNumber(denoise.value, 0.31, 0, 1),
+      denoise: clampGeneratorNumber(denoise.value, DEFAULT_GENERATION_SETTINGS.highres.denoise, 0, 1),
       ...optimized,
     };
     writeSettings(node, widget, next);
@@ -3726,17 +4470,21 @@ function openHighresSettings(node) {
   });
 }
 
-function createDetailerTargetEditor(node, title, values, defaults, moveControls = null) {
+function createDetailerTargetEditor(node, title, values, defaults, onLabelChange = null) {
   const target = mergeDefaults(defaults, values || {});
   const section = document.createElement("section");
-  section.className = "easyuse-anima-aio-section";
+  section.className = "easyuse-anima-aio-detailer-target-panel";
   const header = document.createElement("div");
   header.className = "easyuse-anima-aio-node-stage-mini-header";
   header.append(Object.assign(document.createElement("h3"), { textContent: title }));
-  if (moveControls) {
-    header.append(moveControls);
-  }
   section.append(header);
+  const labelInput = field(
+    section,
+    "Block name",
+    textInput(target.label || defaults.label || title),
+    "tip.detailerName",
+  );
+  labelInput.addEventListener("input", () => onLabelChange?.());
   const enabled = field(section, "Enable", checkbox(target.enabled));
 
   const detect = document.createElement("div");
@@ -3802,10 +4550,14 @@ function createDetailerTargetEditor(node, title, values, defaults, moveControls 
 
   return {
     section,
+    label() {
+      return String(labelInput.value || defaults.label || title).trim() || title;
+    },
     values() {
       const optimized = optimization.values();
       return {
         ...target,
+        label: String(labelInput.value || defaults.label || title).trim() || title,
         enabled: enabled.checked,
         detect_prompt: detectPrompt.value || defaults.detect_prompt,
         detect_count: Number(detectCount.value || defaults.detect_count),
@@ -3850,92 +4602,163 @@ function openDetailerSettings(node) {
     "Detailer Settings",
     "SAM3 detection and Impact detailer settings are saved with the node."
   );
+  body.classList.add("easyuse-anima-aio-one-column");
   const main = document.createElement("section");
   main.className = "easyuse-anima-aio-section full";
   main.append(Object.assign(document.createElement("h3"), { textContent: "Detailer" }));
   const enabled = field(main, "Enable detailer", checkbox(detailer.enabled));
   const checkpoint = field(main, "SAM3 checkpoint", textInput(detailer.sam3.checkpoint));
+  const dependencyWarning = document.createElement("div");
+  dependencyWarning.className = "easyuse-anima-aio-warning";
+  dependencyWarning.hidden = true;
+  main.append(dependencyWarning);
   body.append(main);
 
   const currentOrder = normalizeDetailerOrder(detailer.order);
-  const moveButtons = {};
-  const makeMoveControls = (targetName) => {
-    const tools = document.createElement("div");
-    tools.className = "easyuse-anima-aio-node-stage-tools";
-    const moveUp = document.createElement("button");
-    moveUp.type = "button";
-    moveUp.className = "easyuse-anima-aio-node-icon-button";
-    moveUp.textContent = "↑";
-    applyTooltip(moveUp, "tip.detailerOrder");
-    const moveDown = document.createElement("button");
-    moveDown.type = "button";
-    moveDown.className = "easyuse-anima-aio-node-icon-button";
-    moveDown.textContent = "↓";
-    applyTooltip(moveDown, "tip.detailerOrder");
-    moveButtons[targetName] = { moveUp, moveDown };
-    const move = (delta) => {
-      const index = currentOrder.indexOf(targetName);
-      const nextIndex = index + delta;
-      if (index < 0 || nextIndex < 0 || nextIndex >= currentOrder.length) {
-        return;
-      }
-      [currentOrder[index], currentOrder[nextIndex]] = [currentOrder[nextIndex], currentOrder[index]];
-      renderTargetOrder();
-    };
-    moveUp.addEventListener("click", () => move(-1));
-    moveDown.addEventListener("click", () => move(1));
-    tools.append(moveUp, moveDown);
-    return tools;
+  let activeTargetName = currentOrder[0] || "face";
+  const tabsSection = document.createElement("section");
+  tabsSection.className = "easyuse-anima-aio-section full";
+  tabsSection.append(Object.assign(document.createElement("h3"), { textContent: "Detailer Blocks" }));
+  const tabBar = document.createElement("div");
+  tabBar.className = "easyuse-anima-aio-tabs";
+  const tabPanel = document.createElement("div");
+  tabPanel.className = "easyuse-anima-aio-tab-panel";
+  tabsSection.append(tabBar, tabPanel);
+  body.append(tabsSection);
+
+  let editors = {};
+  const moveTarget = (targetName, delta) => {
+    const index = currentOrder.indexOf(targetName);
+    const nextIndex = index + delta;
+    if (index < 0 || nextIndex < 0 || nextIndex >= currentOrder.length) {
+      return;
+    }
+    [currentOrder[index], currentOrder[nextIndex]] = [currentOrder[nextIndex], currentOrder[index]];
+    renderDetailerTabs();
   };
+  const selectTarget = (targetName) => {
+    activeTargetName = targetName;
+    renderDetailerTabs();
+  };
+  function renderDetailerTabs() {
+    tabBar.replaceChildren();
+    for (const [index, targetName] of currentOrder.entries()) {
+      const editor = editors[targetName];
+      if (!editor) {
+        continue;
+      }
+      const tab = document.createElement("div");
+      tab.className = "easyuse-anima-aio-tab";
+      tab.classList.toggle("active", targetName === activeTargetName);
+      tab.tabIndex = 0;
+      tab.setAttribute("role", "button");
+      tab.setAttribute("aria-selected", targetName === activeTargetName ? "true" : "false");
+      applyTooltip(tab, "tip.detailerBlock");
+      const label = document.createElement("span");
+      label.className = "easyuse-anima-aio-tab-label";
+      label.textContent = editor.label();
+      const tools = document.createElement("span");
+      tools.className = "easyuse-anima-aio-tab-tools";
+      const moveLeft = document.createElement("button");
+      moveLeft.type = "button";
+      moveLeft.textContent = "<";
+      moveLeft.disabled = index === 0;
+      applyTooltip(moveLeft, "tip.detailerOrder");
+      const moveRight = document.createElement("button");
+      moveRight.type = "button";
+      moveRight.textContent = ">";
+      moveRight.disabled = index === currentOrder.length - 1;
+      applyTooltip(moveRight, "tip.detailerOrder");
+      moveLeft.addEventListener("click", (event) => {
+        event.stopPropagation();
+        moveTarget(targetName, -1);
+      });
+      moveRight.addEventListener("click", (event) => {
+        event.stopPropagation();
+        moveTarget(targetName, 1);
+      });
+      tools.append(moveLeft, moveRight);
+      tab.append(label, tools);
+      tab.addEventListener("click", () => selectTarget(targetName));
+      tab.addEventListener("keydown", (event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          selectTarget(targetName);
+        }
+      });
+      tabBar.append(tab);
+    }
+    if (!editors[activeTargetName]) {
+      activeTargetName = currentOrder[0] || "face";
+    }
+    tabPanel.replaceChildren(editors[activeTargetName]?.section || document.createElement("div"));
+  }
   const face = createDetailerTargetEditor(
     node,
     "Face Detailer",
     detailer.face,
     DEFAULT_GENERATION_SETTINGS.detailer.face,
-    makeMoveControls("face"),
+    renderDetailerTabs,
   );
   const eye = createDetailerTargetEditor(
     node,
     "Eye Detailer",
     detailer.eye,
     DEFAULT_GENERATION_SETTINGS.detailer.eye,
-    makeMoveControls("eye"),
+    renderDetailerTabs,
   );
-  const editors = { face, eye };
-  function renderTargetOrder() {
-    for (const targetName of currentOrder) {
-      body.append(editors[targetName].section);
+  editors = { face, eye };
+  renderDetailerTabs();
+  const refreshDetailerDependencyLocks = () => {
+    const missingPacks = [];
+    if (!optionalDependencyAvailable("impactDetailer")) {
+      missingPacks.push(optionalDependencyPack("impactDetailer"));
     }
-    for (const [index, targetName] of currentOrder.entries()) {
-      const buttons = moveButtons[targetName];
-      if (!buttons) {
-        continue;
-      }
-      buttons.moveUp.disabled = index === 0;
-      buttons.moveDown.disabled = index === currentOrder.length - 1;
+    if (!optionalDependencyAvailable("impactMaskToSegs")) {
+      missingPacks.push(optionalDependencyPack("impactMaskToSegs"));
     }
-  }
-  renderTargetOrder();
+    const missing = missingPacks.length > 0;
+    enabled.disabled = missing;
+    if (missing && enabled.checked) {
+      enabled.checked = false;
+    }
+    dependencyWarning.hidden = !missing;
+    dependencyWarning.textContent = missing
+      ? aioFormat("warning.optionalDependencyMissing", {
+          backend: "Detailer",
+          pack: [...new Set(missingPacks)].join(", "),
+        })
+      : "";
+  };
+  refreshDetailerDependencyLocks();
+  loadGeneratorOptionalDependencies().then(refreshDetailerDependencyLocks);
 
   const cancel = document.createElement("button");
-  cancel.textContent = "Cancel";
+  cancel.textContent = aioText("button.cancel");
   const apply = document.createElement("button");
   apply.className = "primary";
-  apply.textContent = "Apply";
+  apply.textContent = aioText("button.apply");
   actions.append(cancel, apply);
   cancel.addEventListener("click", () => backdrop.remove());
   apply.addEventListener("click", () => {
     const next = mergeDefaults(DEFAULT_GENERATION_SETTINGS, settings);
+    const detailerEnabled = enabled.checked && !enabled.disabled;
+    const faceValues = face.values();
+    const eyeValues = eye.values();
+    if (!detailerEnabled) {
+      faceValues.enabled = false;
+      eyeValues.enabled = false;
+    }
     next.detailer = {
       ...next.detailer,
-      enabled: enabled.checked,
+      enabled: detailerEnabled,
       sam3: {
         context: "load_checkpoint",
         checkpoint: checkpoint.value || "sam3.1_multiplex_fp16.safetensors",
       },
       order: normalizeDetailerOrder(currentOrder),
-      face: face.values(),
-      eye: eye.values(),
+      face: faceValues,
+      eye: eyeValues,
     };
     writeSettings(node, widget, next);
     renderGeneratorPanel(node);
@@ -4176,10 +4999,10 @@ function openPreviewSettings(node) {
   body.append(section);
 
   const cancel = document.createElement("button");
-  cancel.textContent = "Cancel";
+  cancel.textContent = aioText("button.cancel");
   const apply = document.createElement("button");
   apply.className = "primary";
-  apply.textContent = "Apply";
+  apply.textContent = aioText("button.apply");
   actions.append(cancel, apply);
   cancel.addEventListener("click", () => backdrop.remove());
   apply.addEventListener("click", () => {
@@ -4227,6 +5050,32 @@ function openSaveSettings(node) {
     "Backend",
     selectInput(["image_saver", "comfy_save_image"], settings.save.backend || "image_saver"),
   );
+  const dependencyWarning = document.createElement("div");
+  dependencyWarning.className = "easyuse-anima-aio-warning";
+  dependencyWarning.hidden = true;
+  main.append(dependencyWarning);
+  const refreshSaveDependencyLocks = () => {
+    const imageSaverMissing = !optionalDependencyAvailable("imageSaver");
+    for (const option of Array.from(backend.options)) {
+      if (option.value === "image_saver") {
+        option.disabled = imageSaverMissing;
+        option.textContent = imageSaverMissing
+          ? `image_saver (${optionalDependencyPack("imageSaver")} missing)`
+          : "image_saver";
+      }
+    }
+    if (imageSaverMissing && backend.value === "image_saver") {
+      backend.value = "comfy_save_image";
+      dependencyWarning.hidden = false;
+      dependencyWarning.textContent = aioFormat("warning.optionalDependencyMissing", {
+        backend: "image_saver",
+        pack: optionalDependencyPack("imageSaver"),
+      });
+    } else {
+      dependencyWarning.hidden = true;
+      dependencyWarning.textContent = "";
+    }
+  };
 
   const files = document.createElement("section");
   files.className = "easyuse-anima-aio-section full";
@@ -4255,12 +5104,14 @@ function openSaveSettings(node) {
   const easyRemix = field(metadata, "Easy remix", checkbox(imageSaver.easy_remix));
   const custom = field(metadata, "Custom metadata", textareaInput(imageSaver.custom));
   body.append(main, files, metadata);
+  refreshSaveDependencyLocks();
+  loadGeneratorOptionalDependencies().then(refreshSaveDependencyLocks);
 
   const cancel = document.createElement("button");
-  cancel.textContent = "Cancel";
+  cancel.textContent = aioText("button.cancel");
   const apply = document.createElement("button");
   apply.className = "primary";
-  apply.textContent = "Apply";
+  apply.textContent = aioText("button.apply");
   actions.append(cancel, apply);
   cancel.addEventListener("click", () => backdrop.remove());
   apply.addEventListener("click", () => {
@@ -4301,6 +5152,116 @@ function openAdvancedSettings(node) {
     "Advanced generation options stay in a popup and are serialized as versioned settings."
   );
 
+  const makeSubsection = (title) => {
+    const section = document.createElement("div");
+    section.className = "easyuse-anima-aio-subsection";
+    section.append(Object.assign(document.createElement("h4"), { textContent: title }));
+    return section;
+  };
+
+  const modelPatches = document.createElement("section");
+  modelPatches.className = "easyuse-anima-aio-section full";
+  modelPatches.append(Object.assign(document.createElement("h3"), { textContent: "Model Patch / Optimization" }));
+
+  const auraShift = field(
+    modelPatches,
+    "AuraFlow shift",
+    numberInput(settings.model_patches.aura_flow.shift, "0.5"),
+    "tip.shift",
+  );
+  auraShift.min = "1";
+  auraShift.max = "10";
+
+  const dave = makeSubsection("Anima DAVE");
+  const daveEnabled = field(dave, "Use DAVE", checkbox(settings.model_patches.dave.enabled), "tip.daveEnabled");
+  const daveMask = field(dave, "Mask", textInput(settings.model_patches.dave.mask || "dave_alpha.npz"), "tip.daveMask");
+  const daveStrength = field(dave, "DAVE strength", numberInput(settings.model_patches.dave.strength ?? 0.30, "0.01"), "tip.daveStrength");
+  const daveTau = field(dave, "DAVE tau", numberInput(settings.model_patches.dave.tau ?? 0.10, "0.01"), "tip.daveTau");
+  daveStrength.min = "0";
+  daveTau.min = "0";
+  daveTau.max = "1";
+
+  const kj = makeSubsection("KJNodes Optimization");
+  const fp16Accum = field(kj, "KJNodes FP16 accum", checkbox(settings.model_patches.kj.fp16_accumulation), "tip.kjFp16Accum");
+
+  const sage = makeSubsection("SageAttention (KJNodes)");
+  const sageAttention = field(
+    sage,
+    "Mode",
+    selectInput([
+      "disabled",
+      "auto",
+      "sageattn",
+      "sageattn_qk_int8_pv_fp16_cuda",
+      "sageattn_qk_int8_pv_fp8_cuda",
+    ], settings.model_patches.kj.sage_attention),
+    "tip.kjSageMode",
+  );
+  const sageAllowCompile = field(sage, "Allow compile", checkbox(settings.model_patches.kj.sage_allow_compile), "tip.kjSageCompile");
+  kj.append(sage);
+
+  const torch = makeSubsection("Torch Compile (KJNodes)");
+  const torchCompileEnabled = field(
+    torch,
+    "Use Torch compile",
+    checkbox(settings.model_patches.kj.torch_compile.enabled),
+    "tip.torchCompileEnabled",
+  );
+  const torchDetails = document.createElement("div");
+  torchDetails.className = "easyuse-anima-aio-subsection";
+  torchDetails.append(Object.assign(document.createElement("h4"), { textContent: "Torch Compile Parameters" }));
+  const torchCompileBackend = field(torchDetails, "Backend", textInput(settings.model_patches.kj.torch_compile.backend), "tip.torchCompileBackend");
+  const torchCompileFullgraph = field(torchDetails, "Fullgraph", checkbox(settings.model_patches.kj.torch_compile.fullgraph), "tip.torchCompileFullgraph");
+  const torchCompileMode = field(
+    torchDetails,
+    "Mode",
+    selectInput([
+      "default",
+      "reduce-overhead",
+      "max-autotune",
+      "max-autotune-no-cudagraphs",
+    ], settings.model_patches.kj.torch_compile.mode),
+    "tip.torchCompileMode",
+  );
+  const torchCompileDynamic = field(
+    torchDetails,
+    "Dynamic",
+    selectInput(["false", "true", "default"], settings.model_patches.kj.torch_compile.dynamic),
+    "tip.torchCompileDynamic",
+  );
+  const torchCompileBlocksOnly = field(
+    torchDetails,
+    "Transformer blocks only",
+    checkbox(settings.model_patches.kj.torch_compile.compile_transformer_blocks_only),
+    "tip.torchCompileBlocks",
+  );
+  const torchCompileCache = field(
+    torchDetails,
+    "Dynamo cache limit",
+    numberInput(settings.model_patches.kj.torch_compile.dynamo_cache_size_limit, "1"),
+    "tip.torchCompileCache",
+  );
+  const torchCompileDebug = field(
+    torchDetails,
+    "Debug keys",
+    checkbox(settings.model_patches.kj.torch_compile.debug_compile_keys),
+    "tip.torchCompileDebug",
+  );
+  const torchCompileDisableVram = field(
+    torchDetails,
+    "Disable dynamic VRAM",
+    checkbox(settings.model_patches.kj.torch_compile.disable_dynamic_vram),
+    "tip.torchCompileVram",
+  );
+  torch.append(torchDetails);
+  kj.append(torch);
+
+  const modelWarning = document.createElement("div");
+  modelWarning.className = "easyuse-anima-aio-warning";
+  modelWarning.hidden = true;
+  modelPatches.append(dave, kj, modelWarning);
+  body.append(modelPatches);
+
   const artistMix = document.createElement("section");
   artistMix.className = "easyuse-anima-aio-section full";
   artistMix.append(Object.assign(document.createElement("h3"), { textContent: "Artist Mix" }));
@@ -4320,21 +5281,133 @@ function openAdvancedSettings(node) {
       "late_exact",
       "average_late_exact",
       "scheduled_average",
-    ], settings.artist_mix.mode)
+    ], settings.artist_mix.mode),
+    "tip.artistMixMode",
   );
   const artistStart = field(artistMix, "Start", numberInput(settings.artist_mix.start_percent, "0.01"));
   const artistStrength = field(artistMix, "Strength", numberInput(settings.artist_mix.strength_scale, "0.01"));
   body.append(artistMix);
 
+  const refreshSageDetails = () => {
+    sageAllowCompile.parentElement.style.display = sageAttention.value === "disabled" ? "none" : "grid";
+  };
+  const refreshTorchDetails = () => {
+    torchDetails.style.display = torchCompileEnabled.checked ? "" : "none";
+  };
+  const setControlsDisabled = (controls, disabled) => {
+    for (const control of controls) {
+      if (control) {
+        control.disabled = disabled;
+      }
+    }
+  };
+  const refreshAdvancedDependencyLocks = () => {
+    const messages = [];
+
+    const daveMissing = !optionalDependencyAvailable("dave");
+    setControlsDisabled([daveEnabled, daveMask, daveStrength, daveTau], daveMissing);
+    if (daveMissing && daveEnabled.checked) {
+      daveEnabled.checked = false;
+    }
+    if (daveMissing) {
+      messages.push(aioFormat("warning.optionalDependencyMissing", {
+        backend: "Anima DAVE",
+        pack: optionalDependencyPack("dave"),
+      }));
+    }
+
+    const kjFp16Missing = !optionalDependencyAvailable("kjFp16");
+    fp16Accum.disabled = kjFp16Missing;
+    if (kjFp16Missing && fp16Accum.checked) {
+      fp16Accum.checked = false;
+    }
+    if (kjFp16Missing) {
+      messages.push(aioFormat("warning.optionalDependencyMissing", {
+        backend: "KJNodes FP16 accum",
+        pack: optionalDependencyPack("kjFp16"),
+      }));
+    }
+
+    const kjSageMissing = !optionalDependencyAvailable("kjSage");
+    setControlsDisabled([sageAttention, sageAllowCompile], kjSageMissing);
+    if (kjSageMissing && sageAttention.value !== "disabled") {
+      sageAttention.value = "disabled";
+      sageAllowCompile.checked = false;
+    }
+    if (kjSageMissing) {
+      messages.push(aioFormat("warning.optionalDependencyMissing", {
+        backend: "SageAttention",
+        pack: optionalDependencyPack("kjSage"),
+      }));
+    }
+
+    const kjCompileMissing = !optionalDependencyAvailable("kjTorchCompile");
+    setControlsDisabled([
+      torchCompileEnabled,
+      torchCompileBackend,
+      torchCompileFullgraph,
+      torchCompileMode,
+      torchCompileDynamic,
+      torchCompileBlocksOnly,
+      torchCompileCache,
+      torchCompileDebug,
+      torchCompileDisableVram,
+    ], kjCompileMissing);
+    if (kjCompileMissing && torchCompileEnabled.checked) {
+      torchCompileEnabled.checked = false;
+    }
+    if (kjCompileMissing) {
+      messages.push(aioFormat("warning.optionalDependencyMissing", {
+        backend: "Torch Compile",
+        pack: optionalDependencyPack("kjTorchCompile"),
+      }));
+    }
+
+    modelWarning.hidden = messages.length === 0;
+    modelWarning.textContent = messages.join(" ");
+    refreshSageDetails();
+    refreshTorchDetails();
+  };
+  sageAttention.addEventListener("change", refreshSageDetails);
+  torchCompileEnabled.addEventListener("change", refreshTorchDetails);
+  refreshSageDetails();
+  refreshTorchDetails();
+  refreshAdvancedDependencyLocks();
+  loadGeneratorOptionalDependencies().then(refreshAdvancedDependencyLocks);
+
   const cancel = document.createElement("button");
-  cancel.textContent = "Cancel";
+  cancel.textContent = aioText("button.cancel");
   const apply = document.createElement("button");
   apply.className = "primary";
-  apply.textContent = "Apply";
+  apply.textContent = aioText("button.apply");
   actions.append(cancel, apply);
   cancel.addEventListener("click", () => backdrop.remove());
   apply.addEventListener("click", () => {
     const next = mergeDefaults(DEFAULT_GENERATION_SETTINGS, settings);
+    delete next.sampler.dave;
+    delete next.model_patches.aura_flow.enabled;
+    next.model_patches.aura_flow.shift = clampGeneratorNumber(
+      auraShift.value,
+      DEFAULT_GENERATION_SETTINGS.model_patches.aura_flow.shift,
+      1,
+      10,
+    );
+    next.model_patches.dave.enabled = daveEnabled.checked && !daveEnabled.disabled;
+    next.model_patches.dave.mask = daveMask.value || "dave_alpha.npz";
+    next.model_patches.dave.strength = Number(daveStrength.value || 0.30);
+    next.model_patches.dave.tau = Number(daveTau.value || 0.10);
+    next.model_patches.kj.fp16_accumulation = fp16Accum.checked && !fp16Accum.disabled;
+    next.model_patches.kj.sage_attention = sageAttention.disabled ? "disabled" : (sageAttention.value || "disabled");
+    next.model_patches.kj.sage_allow_compile = sageAllowCompile.checked && !sageAttention.disabled;
+    next.model_patches.kj.torch_compile.enabled = torchCompileEnabled.checked && !torchCompileEnabled.disabled;
+    next.model_patches.kj.torch_compile.backend = torchCompileBackend.value || "inductor";
+    next.model_patches.kj.torch_compile.fullgraph = torchCompileFullgraph.checked;
+    next.model_patches.kj.torch_compile.mode = torchCompileMode.value || "max-autotune-no-cudagraphs";
+    next.model_patches.kj.torch_compile.dynamic = torchCompileDynamic.value || "false";
+    next.model_patches.kj.torch_compile.compile_transformer_blocks_only = torchCompileBlocksOnly.checked;
+    next.model_patches.kj.torch_compile.dynamo_cache_size_limit = Number(torchCompileCache.value || 64);
+    next.model_patches.kj.torch_compile.debug_compile_keys = torchCompileDebug.checked;
+    next.model_patches.kj.torch_compile.disable_dynamic_vram = torchCompileDisableVram.checked;
     next.artist_mix.mode = artistMode.value || "prompt_data";
     next.artist_mix.start_percent = Number(artistStart.value || 0.5);
     next.artist_mix.strength_scale = Number(artistStrength.value || 1.0);
@@ -4399,7 +5472,7 @@ function prepareGeneratorPromptForQueue(prompt) {
       continue;
     }
     syncGeneratorStateFromDom(node);
-    const settings = generatorSettings(node);
+    const settings = sanitizeGeneratorSettingsForOptionalDependencies(generatorSettings(node));
     const inputSeed = normalizeSeedValue(settings.sampler.seed, GENERATOR_SPECIAL_SEED_RANDOM);
     const seedToUse = resolveGeneratorSeedForQueue(node, inputSeed);
     settings.sampler.seed = seedToUse;
@@ -4407,6 +5480,10 @@ function prepareGeneratorPromptForQueue(prompt) {
 
     const workflowNode = findWorkflowNode(prompt.workflow, node.id);
     setWorkflowWidgetValue(node, workflowNode, GENERATOR_SETTINGS_WIDGET, outputInputs.generation_settings);
+    const settingsWidget = findWidget(node, GENERATOR_SETTINGS_WIDGET);
+    if (settingsWidget) {
+      writeSettings(node, settingsWidget, settings, false);
+    }
 
     node.__easyuseAnimaLastQueuedSeed = seedToUse;
     refreshGeneratorSeedButtons(node);
@@ -4419,6 +5496,7 @@ function installGeneratorQueuePromptHook() {
   }
   const queuePrompt = api.queuePrompt;
   api.queuePrompt = async function (number, prompt, ...args) {
+    await loadGeneratorOptionalDependencies();
     prepareGeneratorPromptForQueue(prompt);
     return queuePrompt.call(this, number, prompt, ...args);
   };
@@ -4498,11 +5576,12 @@ function addGeneratorPreviewImagesToNode(node, nextImages, runId = "") {
     : [];
   const currentRunId = String(currentImages[0]?.__aio_run_id || "");
   const currentBase = runId && currentRunId && currentRunId !== runId ? [] : currentImages;
-  node.__easyuseAnimaGeneratorCurrentRunImages = mergeGeneratorPreviewImages(currentBase, nextImages, runId);
+  const taggedNextImages = tagGeneratorPreviewRun(nextImages, runId, currentBase.length);
+  node.__easyuseAnimaGeneratorCurrentRunImages = mergeGeneratorPreviewImages(currentBase, taggedNextImages, runId);
   if (settings.preview.image_feed) {
     node.__easyuseAnimaGeneratorPreviewFeedImages = appendGeneratorPreviewFeed(
       node.__easyuseAnimaGeneratorPreviewFeedImages,
-      nextImages,
+      taggedNextImages,
       settings,
       runId,
     );
@@ -4512,6 +5591,9 @@ function addGeneratorPreviewImagesToNode(node, nextImages, runId = "") {
   }
   node.__easyuseAnimaSelectedPreviewIndex = generatorDefaultPreviewIndex(node.__easyuseAnimaGeneratorPreviewImages);
   updateGeneratorDomSummary(node);
+  requestAnimationFrame(() => updateGeneratorDomSummary(node));
+  scheduleGeneratorLayout(node);
+  markNodeDirty(node);
 }
 
 function updateGeneratorExecutedStatus(node, message) {
@@ -4532,7 +5614,7 @@ function updateGeneratorExecutedStatus(node, message) {
 }
 
 function handleGeneratorPreviewEvent(event) {
-  const detail = event?.detail || {};
+  const detail = generatorPreviewEventDetail(event);
   const node = findGeneratorNodeByQualifiedId(app.graph, detail.node);
   if (!node || node.type !== GENERATOR_NODE_TYPE) {
     return;

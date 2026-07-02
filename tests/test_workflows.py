@@ -27,6 +27,7 @@ RELEASE_WORKFLOWS = (
 )
 EXAMPLE_WORKFLOW_DIR = ROOT / "docs" / "example_workflows"
 EXAMPLE_WORKFLOWS = tuple(sorted(EXAMPLE_WORKFLOW_DIR.glob("*.json")))
+AIO_GENERATOR_WORKFLOW = EXAMPLE_WORKFLOW_DIR / "EasyUse_Anima_AiO_generator_release_ko.json"
 MOJIBAKE_LATIN1_RE = re.compile(r"[\u0080-\u00ff]")
 
 
@@ -43,6 +44,12 @@ def link_map(workflow: dict) -> dict[int, list]:
 
 
 class ReleaseWorkflowTests(unittest.TestCase):
+    def project_version(self) -> str:
+        text = (ROOT / "pyproject.toml").read_text(encoding="utf-8")
+        match = re.search(r'^version\s*=\s*"([^"]+)"', text, re.MULTILINE)
+        self.assertIsNotNone(match)
+        return match.group(1)
+
     def test_example_workflows_parse_as_json(self):
         self.assertTrue(EXAMPLE_WORKFLOWS)
         for workflow_path in EXAMPLE_WORKFLOWS:
@@ -133,6 +140,42 @@ class ReleaseWorkflowTests(unittest.TestCase):
 
         ko_path, en_path = RELEASE_WORKFLOWS[:2]
         self.assertEqual(topology(en_path), topology(ko_path))
+
+    def test_example_workflow_package_versions_match_project(self):
+        version = self.project_version()
+        for path in EXAMPLE_WORKFLOWS:
+            with self.subTest(path=path.name):
+                metadata = load_workflow(path).get("extra", {}).get("easyuse_anima_workflow")
+                if not isinstance(metadata, dict):
+                    continue
+                self.assertEqual(metadata.get("package_version"), version)
+
+    def test_aio_generator_sample_lists_required_node_packs(self):
+        workflow = load_workflow(AIO_GENERATOR_WORKFLOW)
+        metadata = workflow.get("extra", {}).get("easyuse_anima_workflow")
+        self.assertIsInstance(metadata, dict)
+        packs = metadata.get("required_node_packs")
+        self.assertIsInstance(packs, list)
+        names = {str(item.get("name")) for item in packs if isinstance(item, dict)}
+        self.assertIn("ComfyUI-Spectrum-KSampler", names)
+        self.assertIn("ComfyUI-Image-Saver", names)
+        self.assertIn("ComfyUI-Anima-DAVE", names)
+        self.assertIn("ComfyUI-KJNodes", names)
+        self.assertIn("ComfyUI-Impact-Pack", names)
+        required = {
+            str(item.get("name")): bool(item.get("required_for_sample"))
+            for item in packs
+            if isinstance(item, dict)
+        }
+        self.assertTrue(required["ComfyUI-Spectrum-KSampler"])
+        self.assertTrue(required["ComfyUI-Image-Saver"])
+        self.assertFalse(required["ComfyUI-Anima-DAVE"])
+        self.assertFalse(required["ComfyUI-KJNodes"])
+        self.assertFalse(required["ComfyUI-Impact-Pack"])
+        self.assertEqual(
+            metadata.get("sampler_paths"),
+            ["comfy_ksampler", "spectrum_mod_guidance_advanced", "spectrum_spd_speed"],
+        )
 
 
 if __name__ == "__main__":

@@ -1,5 +1,93 @@
 # Release Notes
 
+## 0.2.2
+
+### Highlights
+
+- Added the first release-ready `Anima AiO Generator` path: `Easy Use Anima
+  Input` loads ANIMA diffusion model, VAE, and CLIP separately, then passes a
+  dedicated context socket into the generator.
+- The generator keeps the compact node UI focused on seed, steps, CFG, denoise,
+  sampler/scheduler, Highres, Detailer, preview, and save controls. Sampler
+  backend controls, model patch/optimization controls, save metadata, and
+  detailer controls stay in popup settings.
+- AiO generation settings are stored as keyed versioned JSON so changing
+  parameter order does not shift saved workflow data.
+
+### Added
+
+- Added `Anima AiO Generator` with three sampler execution modes:
+  `comfy_ksampler`, `spectrum_mod_guidance_advanced`, and
+  `spectrum_spd_speed`.
+- Added optional Anima DAVE model patch controls in Advanced Options.
+- Added `Easy Use Anima Input`, which consumes prompt data and stores split
+  ANIMA resource selections for diffusion model, VAE, and CLIP.
+- Added optional `LORA_STACK` support on the AiO generator, including Image
+  Saver-compatible Civitai LoRA resource/weight metadata.
+- Added Image Saver integration with default saving enabled, workflow embedding,
+  manual `additional_hashes`, and Civitai Hash Fetcher bundle rows.
+- Added AiO preview UI with WebP temp previews, current/previous comparison,
+  image feed history, selected image metadata, and feed-count settings.
+- Added Highres and SAM3/Impact Detailer settings to the AiO generator.
+- Added Chrome-style Detailer tabs with user-editable block names and left/right
+  order controls.
+- Added a maintained AiO generator sample workflow:
+  `docs/example_workflows/EasyUse_Anima_AiO_generator_release_ko.json`.
+- Added user-facing AiO node documentation in Korean and English.
+
+### Changed
+
+- Bumped package metadata to `0.2.2`.
+- Updated AiO defaults: first-pass steps `32`, sampler `er_sde`, scheduler
+  `simple`, AuraFlow shift `3.0` as the Anima model-recommended default,
+  Highres scale `1.5`, and Highres denoise `0.25`.
+- Moved KJNodes FP16 accumulation, SageAttention, Torch Compile, AuraFlow shift,
+  and optional DAVE controls into `Advanced Options`. `Sampler Details` now
+  keeps only sampler backend, Mod Guidance, Spectrum, and SPD/SPEED controls.
+- Changed Highres and Detailer popup bodies to a single-column layout so long
+  settings stay readable and scroll vertically instead of forming cramped grids.
+- Updated AiO frontend tooltips so popup settings describe the actual runtime
+  effect instead of only saying that a value is saved. The new tooltip keys are
+  available in English, Korean, Japanese, and Chinese.
+- Split AiO dependencies into required and optional feature packs. Missing
+  optional packs are locked in the settings UI and sanitized out of queued
+  `generation_settings` before execution.
+
+### Fixed
+
+- Fixed AiO sampler dispatch so the selected sampler mode is the only first-pass
+  sampler path called.
+- Fixed the `spectrum_mod_guidance_advanced` mode so it no longer creates an
+  unused standalone Mod Guidance model clone for the first pass. Standalone Mod
+  Guidance is still retained when later Highres or Detailer stages need it.
+- Fixed AiO preview result handling so ComfyUI's default `images` UI payload is
+  suppressed and only the dedicated `easyuse_anima_preview` payload is used.
+- Hardened intermediate preview feed updates so live preview events are tagged
+  by run and displayed in the node feed immediately.
+- Fixed Image Saver metadata routing so `Steps`, `CFG`, `Sampler`,
+  `Scheduler`, `Seed`, and `Denoise` come from the first-pass sampler while
+  `Size` uses the final Highres/Detailer output resolution.
+
+### Required And Optional Node Packs
+
+- Required for this package: `ComfyUI-EasyUseAnima`.
+- Required by the included AiO sample defaults: `ComfyUI-Spectrum-KSampler`
+  and `ComfyUI-Image-Saver`.
+- Optional: `ComfyUI-Anima-DAVE` for the DAVE model patch in Advanced Options.
+- Optional: `ComfyUI-KJNodes` for SageAttention and Torch Compile options.
+- Optional: `ComfyUI-Impact-Pack` for AiO SAM3 Detailer.
+
+### Validation Notes
+
+- Added regression coverage for all three AiO sampler modes so
+  `comfy_ksampler`, `spectrum_mod_guidance_advanced`,
+  and `spectrum_spd_speed` dispatch to their intended paths only.
+- Added regression coverage for generator-level sampler/model-patch routing,
+  including the integrated Spectrum Mod Guidance sampler and Highres stage
+  model reuse.
+- Ran `python -m unittest discover -s tests`, `python -m py_compile`, and
+  `node --check web/js/easyuse_anima_aio.js` during release validation.
+
 ## 0.2.1
 
 ### Highlights

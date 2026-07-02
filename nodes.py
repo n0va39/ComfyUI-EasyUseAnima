@@ -228,10 +228,10 @@ AIO_GENERATION_DEFAULT_SETTINGS = {
         "backend": "comfy_ksampler",
         "seed": AIO_SPECIAL_SEED_RANDOM,
         "seed_after_generate": SEED_CONTROL_FIXED,
-        "steps": 28,
+        "steps": 32,
         "cfg": 5.0,
-        "sampler_name": "euler_ancestral",
-        "scheduler": "normal",
+        "sampler_name": "er_sde",
+        "scheduler": "simple",
         "denoise": 1.0,
         "spectrum": {
             "enabled": False,
@@ -276,6 +276,12 @@ AIO_GENERATION_DEFAULT_SETTINGS = {
     "model_patches": {
         "aura_flow": {
             "shift": 3.0,
+        },
+        "dave": {
+            "enabled": False,
+            "mask": "dave_alpha.npz",
+            "strength": 0.30,
+            "tau": 0.10,
         },
         "kj": {
             "fp16_accumulation": False,
@@ -322,7 +328,7 @@ AIO_GENERATION_DEFAULT_SETTINGS = {
     },
     "highres": {
         "enabled": False,
-        "scale_by": 1.25,
+        "scale_by": 1.5,
         "upscale_method": "bicubic",
         "multiple": "32",
         "max_long_edge": 2560,
@@ -331,7 +337,7 @@ AIO_GENERATION_DEFAULT_SETTINGS = {
         "cfg": 8.0,
         "sampler_name": "euler",
         "scheduler": "simple",
-        "denoise": 0.31,
+        "denoise": 0.25,
         "spectrum": {
             "enabled": True,
             "window_size": 2.0,
@@ -374,6 +380,7 @@ AIO_GENERATION_DEFAULT_SETTINGS = {
             "checkpoint": "sam3.1_multiplex_fp16.safetensors",
         },
         "face": {
+            "label": "Face Detailer",
             "enabled": False,
             "detect_prompt": "face",
             "detect_count": 1,
@@ -439,6 +446,7 @@ AIO_GENERATION_DEFAULT_SETTINGS = {
             },
         },
         "eye": {
+            "label": "Eye Detailer",
             "enabled": False,
             "detect_prompt": "eyes",
             "detect_count": 1,
@@ -1121,18 +1129,19 @@ def _normalize_aio_generation_settings(value) -> dict[str, Any]:
         SEED_CONTROL_MODES,
         SEED_CONTROL_FIXED,
     )
-    sampler["steps"] = max(1, min(75, _as_int(sampler.get("steps"), 28)))
-    sampler["cfg"] = max(1.0, min(10.0, _as_float(sampler.get("cfg"), 5.0)))
-    sampler["denoise"] = max(0.0, min(1.0, _as_float(sampler.get("denoise"), 1.0)))
+    default_sampler = AIO_GENERATION_DEFAULT_SETTINGS["sampler"]
+    sampler["steps"] = max(1, min(75, _as_int(sampler.get("steps"), default_sampler["steps"])))
+    sampler["cfg"] = max(1.0, min(10.0, _as_float(sampler.get("cfg"), default_sampler["cfg"])))
+    sampler["denoise"] = max(0.0, min(1.0, _as_float(sampler.get("denoise"), default_sampler["denoise"])))
     sampler["sampler_name"] = _choice(
         sampler.get("sampler_name"),
         _comfy_sampler_names(),
-        "euler_ancestral",
+        default_sampler["sampler_name"],
     )
     sampler["scheduler"] = _choice(
         sampler.get("scheduler"),
         _comfy_scheduler_names(),
-        "normal",
+        default_sampler["scheduler"],
     )
     spectrum = sampler.setdefault("spectrum", {})
     if not isinstance(spectrum, dict):
@@ -1166,6 +1175,7 @@ def _normalize_aio_generation_settings(value) -> dict[str, Any]:
     spd["scale"] = max(0.25, min(1.0, _as_float(spd.get("scale"), 0.5)))
     spd["sigma"] = max(0.0, min(1.0, _as_float(spd.get("sigma"), 0.7)))
     spd["adaptive_smc_alpha"] = max(0.0, min(1.0, _as_float(spd.get("adaptive_smc_alpha"), 0.0)))
+    sampler.pop("dave", None)
     corrections = sampler.setdefault("dit_corrections", {})
     if not isinstance(corrections, dict):
         corrections = {}
@@ -1211,6 +1221,21 @@ def _normalize_aio_generation_settings(value) -> dict[str, Any]:
         model_patches["aura_flow"] = aura_flow
     aura_flow.pop("enabled", None)
     aura_flow["shift"] = max(1.0, min(10.0, _as_float(aura_flow.get("shift"), 3.0)))
+    dave = model_patches.setdefault("dave", {})
+    if not isinstance(dave, dict):
+        dave = {}
+        model_patches["dave"] = dave
+    default_dave = AIO_GENERATION_DEFAULT_SETTINGS["model_patches"]["dave"]
+    dave["enabled"] = _as_bool(dave.get("enabled"), default_dave["enabled"])
+    dave["mask"] = str(dave.get("mask") or default_dave["mask"])
+    dave["strength"] = max(
+        0.0,
+        min(1.0, _as_float(dave.get("strength"), default_dave["strength"])),
+    )
+    dave["tau"] = max(
+        0.0,
+        min(1.0, _as_float(dave.get("tau"), default_dave["tau"])),
+    )
     kj = model_patches.setdefault("kj", {})
     if not isinstance(kj, dict):
         kj = {}
@@ -1412,6 +1437,7 @@ def _normalize_aio_generation_settings(value) -> dict[str, Any]:
         if not isinstance(target, dict):
             target = {}
             detailer[target_name] = target
+        target["label"] = str(target.get("label") or defaults.get("label") or target_name.title())
         target["enabled"] = _as_bool(target.get("enabled"), defaults["enabled"])
         target["detect_prompt"] = str(target.get("detect_prompt") or defaults["detect_prompt"])
         target["detect_count"] = max(1, min(20, _as_int(target.get("detect_count"), defaults["detect_count"])))
@@ -1675,6 +1701,7 @@ def _comfy_sampler_names() -> list[str]:
         return list(comfy.samplers.KSampler.SAMPLERS)
     except Exception:
         return [
+            "er_sde",
             "euler",
             "euler_ancestral",
             "heun",
@@ -2258,6 +2285,9 @@ def _apply_aio_model_patches(model, settings: dict[str, Any]):
         model,
         model_patches.get("aura_flow", {}) if isinstance(model_patches.get("aura_flow"), dict) else {},
     )
+    dave_settings = model_patches.get("dave", {})
+    if isinstance(dave_settings, dict) and _as_bool(dave_settings.get("enabled"), False):
+        patched = _apply_aio_anima_dave_patch(patched, dave_settings)
     kj_settings = model_patches.get("kj", {})
     if isinstance(kj_settings, dict):
         patched = _apply_aio_kj_model_patches(patched, kj_settings)
@@ -2428,6 +2458,41 @@ def _apply_aio_lora_stack(model, clip, lora_stack):
             "strength_clip": clip_strength,
         })
     return patched_model, patched_clip, applied
+
+
+def _aio_lora_metadata_name(name: str) -> str:
+    value = str(name or "").strip().replace("\\", "/").strip("/")
+    if not value:
+        return ""
+    root, ext = os.path.splitext(value)
+    try:
+        import folder_paths  # type: ignore
+
+        supported = set(getattr(folder_paths, "supported_pt_extensions", ()))
+    except Exception:
+        supported = {".safetensors", ".pt", ".ckpt", ".bin", ".pth"}
+    if ext.lower() in supported:
+        value = root
+    return value
+
+
+def _aio_prompt_with_lora_metadata(prompt: str, applied_loras) -> str:
+    tags: list[str] = []
+    if not isinstance(applied_loras, list):
+        applied_loras = []
+    for item in applied_loras:
+        if not isinstance(item, dict):
+            continue
+        name = _aio_lora_metadata_name(str(item.get("name") or ""))
+        if not name:
+            continue
+        strength = _format_strength(_as_float(item.get("strength_model"), 1.0))
+        tags.append(f"<lora:{name}:{strength}>")
+    if not tags:
+        return str(prompt or "")
+    base = str(prompt or "").strip()
+    suffix = " ".join(tags)
+    return f"{base} {suffix}".strip() if base else suffix
 
 
 def _cleanup_aio_ephemeral_model(model, base_model=None) -> None:
@@ -2654,13 +2719,16 @@ def _sample_latent_with_spectrum_spd(
     spd = sampler_settings.get("spd", {})
     if not isinstance(spd, dict):
         spd = {}
+    # Spectrum SPEED/SPD is Euler-only. Normalize before calling the node so
+    # saved workflows do not emit a misleading "ignoring requested sampler" warning.
+    sampler_name = "euler"
     values = _node_output_tuple(
         spd_cls().sample(
             model,
             _resolve_aio_runtime_seed(sampler_settings.get("seed")),
             _as_int(sampler_settings.get("steps"), 28),
             _as_float(sampler_settings.get("cfg"), 5.0),
-            str(sampler_settings.get("sampler_name") or "euler"),
+            sampler_name,
             str(sampler_settings.get("scheduler") or "simple"),
             positive,
             negative,
@@ -2674,6 +2742,30 @@ def _sample_latent_with_spectrum_spd(
     )
     if not values:
         raise RuntimeError("[EasyUseAnima] SpectrumSPDKSampler returned no LATENT.")
+    return values[0]
+
+
+def _apply_aio_anima_dave_patch(model, dave_settings: dict[str, Any]):
+    dave_cls = _require_custom_node_class(
+        "AnimaDAVE",
+        "ComfyUI-Anima-DAVE",
+        "Repository: https://github.com/sorryhyun/ComfyUI-Anima-DAVE",
+    )
+    if not isinstance(dave_settings, dict):
+        dave_settings = {}
+    patcher = dave_cls()
+    patch = getattr(patcher, "patch", None)
+    if patch is None:
+        raise RuntimeError("[EasyUseAnima] AnimaDAVE does not expose patch().")
+    result = patch(
+        model,
+        str(dave_settings.get("mask") or "dave_alpha.npz"),
+        _as_float(dave_settings.get("strength"), 0.30),
+        _as_float(dave_settings.get("tau"), 0.10),
+    )
+    values = _node_output_tuple(result)
+    if not values:
+        raise RuntimeError("[EasyUseAnima] AnimaDAVE returned no MODEL.")
     return values[0]
 
 
@@ -3215,6 +3307,7 @@ def _save_image_with_image_saver(
     width: int,
     height: int,
     sampler_settings: dict[str, Any],
+    applied_loras=None,
     resource_info: dict[str, Any] | None = None,
     workflow_prompt=None,
     extra_pnginfo=None,
@@ -3244,7 +3337,10 @@ def _save_image_with_image_saver(
         modelname=modelname,
         sampler_name=str(sampler_settings.get("sampler_name") or ""),
         scheduler_name=str(sampler_settings.get("scheduler") or "normal"),
-        positive=str(positive_prompt or "unknown"),
+        positive=_aio_prompt_with_lora_metadata(
+            str(positive_prompt or "unknown"),
+            applied_loras,
+        ),
         negative=str(negative_prompt or "unknown"),
         seed_value=_resolve_aio_runtime_seed(sampler_settings.get("seed")),
         width=_as_int(width, 512),
@@ -8909,13 +9005,25 @@ class EasyUseAnimaAIOGenerator:
 
         sampler = settings["sampler"]
         mod_guidance = settings["mod_guidance"]
+        will_run_highres = _as_bool(settings["highres"].get("enabled"), False)
+        will_run_detailer = _aio_detailer_has_enabled_targets(settings["detailer"])
         profile = _normalize_anima_mod_guidance_profile(mod_guidance["profile"])
         use_mod_guidance = _resolve_anima_mod_guidance_enabled(
             use_anima_mod_guidance,
             mod_guidance["mode"],
         )
+        sampler_backend = str(sampler.get("backend") or "comfy_ksampler")
+        needs_standalone_mod_guidance_model = (
+            sampler_backend != "spectrum_mod_guidance_advanced"
+            or will_run_highres
+            or will_run_detailer
+        )
         mod_guidance_model = model
-        if use_mod_guidance and profile != ANIMA_MOD_GUIDANCE_PROFILE_OFF:
+        if (
+            use_mod_guidance
+            and profile != ANIMA_MOD_GUIDANCE_PROFILE_OFF
+            and needs_standalone_mod_guidance_model
+        ):
             mod_guidance_model = _apply_spectrum_anima_mod_guidance(
                 model,
                 clip,
@@ -8925,8 +9033,8 @@ class EasyUseAnimaAIOGenerator:
                 quality_neg if use_negative_anima_mod_guidance else "",
                 profile,
             )
-        base_sample_model = model if sampler.get("backend") == "spectrum_mod_guidance_advanced" else mod_guidance_model
-        if sampler.get("backend") == "comfy_ksampler":
+        base_sample_model = model if sampler_backend == "spectrum_mod_guidance_advanced" else mod_guidance_model
+        if sampler_backend == "comfy_ksampler":
             base_sample_model = _apply_aio_spectrum_model_patches_for_comfy_sampler(
                 base_sample_model,
                 clip,
@@ -8935,13 +9043,10 @@ class EasyUseAnimaAIOGenerator:
             )
 
         stage_metadata: dict[str, Any] = {}
-        save_sampler = sampler
         preview_settings = settings["preview"]
         preview_images: list[dict[str, Any]] = []
         preview_node_id = _single_value(unique_id)
         preview_run_id = f"{preview_node_id or 'aio'}:{random.getrandbits(64):016x}"
-        will_run_highres = _as_bool(settings["highres"].get("enabled"), False)
-        will_run_detailer = _aio_detailer_has_enabled_targets(settings["detailer"])
         first_pass_cache_key = _aio_first_pass_cache_key(
             cache_scope=str(unique_id or id(self)),
             context=context,
@@ -9014,7 +9119,6 @@ class EasyUseAnimaAIOGenerator:
             if highres_metadata.get("enabled") and isinstance(highres_metadata.get("sampler"), dict):
                 if preview_settings["intermediate_images"] and will_run_detailer:
                     add_preview("highres", image)
-                save_sampler = highres_metadata["sampler"]
             image, detailer_metadata = _run_aio_detailer_stage(
                 mod_guidance_model,
                 clip,
@@ -9029,12 +9133,6 @@ class EasyUseAnimaAIOGenerator:
             stage_metadata["detailer"] = detailer_metadata
             if detailer_metadata.get("enabled"):
                 width, height = _image_tensor_size(image, width, height)
-                targets = detailer_metadata.get("targets", {})
-                if isinstance(targets, dict):
-                    for target_name in ("face", "eye"):
-                        target_data = targets.get(target_name)
-                        if isinstance(target_data, dict) and isinstance(target_data.get("sampler"), dict):
-                            save_sampler = target_data["sampler"]
         finally:
             seen_model_ids: set[int] = set()
             for ephemeral_model in (base_sample_model, mod_guidance_model, model, model_with_lora):
@@ -9057,7 +9155,8 @@ class EasyUseAnimaAIOGenerator:
                     negative_prompt=negative_prompt,
                     width=width,
                     height=height,
-                    sampler_settings=save_sampler,
+                    sampler_settings=sampler,
+                    applied_loras=applied_loras,
                     resource_info=context.get("resource_info", {}),
                     workflow_prompt=workflow_prompt,
                     extra_pnginfo=extra_pnginfo,

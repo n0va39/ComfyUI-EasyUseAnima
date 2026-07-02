@@ -18,6 +18,8 @@
 | Anima Artist Mix Conditioning | 일반 prompt와 별도 artist_tags 입력으로 artist mix positive CONDITIONING을 출력 | [문서](anima-artist-mix-conditioning.ko.md) |
 | Anima Wildcard | Prompt Studio 없이 와일드카드 문자열만 확장 | [문서](anima-wildcard.ko.md) |
 | Anima LoRA Preset | LoRA profile, style prompt, trigger word를 저장 및 출력 | [문서](anima-lora-preset.ko.md) |
+| Easy Use Anima Input | ANIMA diffusion model, VAE, CLIP과 prompt data를 AiO 전용 context로 묶음 | [문서](anima-aio-generator.ko.md) |
+| Anima AiO Generator | prompt data context를 받아 샘플링, Highres, Detailer, 저장을 한 노드에서 실행 | [문서](anima-aio-generator.ko.md) |
 | Anima Detailer Align Hook | Impact detailer crop sampling 크기 정렬 hook | [문서](anima-detailer-align-hook.ko.md) |
 | Anima SAM3 Context | SAM3 checkpoint를 rgthree-compatible context로 로드 | [문서](anima-sam3-context.ko.md) |
 | Anima SAM3 Detailer | SAM3 text detection과 Impact detailer를 연결 | [문서](anima-sam3-detailer.ko.md) |

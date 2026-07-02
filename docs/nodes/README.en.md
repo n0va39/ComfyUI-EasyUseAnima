@@ -18,6 +18,8 @@ shared settings, start with the top-level [README](../../README.en.md).
 | Anima Artist Mix Conditioning | Outputs artist mix positive CONDITIONING from a prompt and separate artist_tags input | [Guide](anima-artist-mix-conditioning.en.md) |
 | Anima Wildcard | Expands wildcard text without Prompt Studio | [Guide](anima-wildcard.en.md) |
 | Anima LoRA Preset | Stores and outputs LoRA profiles, style prompts, and trigger words | [Guide](anima-lora-preset.en.md) |
+| Easy Use Anima Input | Bundles ANIMA diffusion model, VAE, CLIP, and prompt data into an AiO context | [Guide](anima-aio-generator.en.md) |
+| Anima AiO Generator | Runs sampling, Highres, Detailer, and saving from the prompt-data context | [Guide](anima-aio-generator.en.md) |
 | Anima Detailer Align Hook | Aligns Impact detailer crop sampling sizes | [Guide](anima-detailer-align-hook.en.md) |
 | Anima SAM3 Context | Loads a SAM3 checkpoint as an rgthree-compatible context | [Guide](anima-sam3-context.en.md) |
 | Anima SAM3 Detailer | Connects SAM3 text detection to Impact detailer processing | [Guide](anima-sam3-detailer.en.md) |

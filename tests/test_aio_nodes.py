@@ -193,7 +193,9 @@ class AIOSettingsStorageTests(unittest.TestCase):
         self.assertEqual(settings["schema"], nodes.AIO_GENERATION_SETTINGS_SCHEMA)
         self.assertEqual(settings["version"], nodes.AIO_GENERATION_SETTINGS_VERSION)
         self.assertEqual(settings["mode"], "txt2img")
-        self.assertEqual(settings["sampler"]["steps"], 28)
+        self.assertEqual(settings["sampler"]["steps"], 32)
+        self.assertEqual(settings["sampler"]["sampler_name"], "er_sde")
+        self.assertEqual(settings["sampler"]["scheduler"], "simple")
         self.assertEqual(settings["sampler"]["seed"], nodes.AIO_SPECIAL_SEED_RANDOM)
         self.assertTrue(settings["save"]["enabled"])
 
@@ -247,7 +249,7 @@ class AIOSettingsStorageTests(unittest.TestCase):
         self.assertNotIn("\n", value)
         self.assertEqual(json.loads(value)["schema"], nodes.AIO_GENERATION_SETTINGS_SCHEMA)
 
-    def test_sampler_backend_is_limited_to_three_supported_paths(self):
+    def test_sampler_backend_is_limited_to_supported_paths(self):
         settings = nodes._normalize_aio_generation_settings(json.dumps({
             "sampler": {
                 "backend": "not_supported",
@@ -255,6 +257,16 @@ class AIOSettingsStorageTests(unittest.TestCase):
         }))
 
         self.assertEqual(settings["sampler"]["backend"], "comfy_ksampler")
+
+        settings = nodes._normalize_aio_generation_settings(json.dumps({
+            "sampler": {
+                "backend": "anima_dave",
+            },
+        }))
+
+        self.assertEqual(settings["sampler"]["backend"], "comfy_ksampler")
+        self.assertFalse(settings["model_patches"]["dave"]["enabled"])
+        self.assertEqual(settings["model_patches"]["dave"]["mask"], "dave_alpha.npz")
 
     def test_aio_seed_accepts_rgthree_special_values(self):
         settings = nodes._normalize_aio_generation_settings(json.dumps({
@@ -294,6 +306,21 @@ class AIOSettingsStorageTests(unittest.TestCase):
             }))
 
         self.assertEqual(settings["sampler"]["scheduler"], "normal")
+
+    def test_detailer_labels_are_saved_as_ui_metadata(self):
+        settings = nodes._normalize_aio_generation_settings(json.dumps({
+            "detailer": {
+                "face": {
+                    "label": "Portrait pass",
+                },
+                "eye": {
+                    "label": "",
+                },
+            },
+        }))
+
+        self.assertEqual(settings["detailer"]["face"]["label"], "Portrait pass")
+        self.assertEqual(settings["detailer"]["eye"]["label"], "Eye Detailer")
 
 
 class AIOImageSaverDependencyTests(unittest.TestCase):
@@ -415,6 +442,35 @@ class AIOImageSaverDependencyTests(unittest.TestCase):
             calls[0]["additional_hashes"],
             "Base:AAAAAAAA,LoraA:BBBBBBBB:0.8,CCCCCCCC:1.0,Anima All in One workflow:ABCDEF1234",
         )
+
+    def test_image_saver_metadata_prompt_includes_applied_loras(self):
+        calls = []
+
+        class FakeImageSaver:
+            def save_files(self, **kwargs):
+                calls.append(kwargs)
+                return {"ui": {"images": [{"filename": "preview.webp"}]}}
+
+        with patch.object(nodes, "_find_comfy_node_class", return_value=FakeImageSaver):
+            nodes._save_image_with_image_saver(
+                images="images",
+                save_settings=nodes._normalize_aio_generation_settings("{}")["save"],
+                positive_prompt="positive prompt",
+                negative_prompt="negative prompt",
+                width=768,
+                height=1024,
+                sampler_settings=nodes._normalize_aio_generation_settings("{}")["sampler"],
+                applied_loras=[
+                    {"name": "styles\\foo.safetensors", "strength_model": 0.75, "strength_clip": 1.0},
+                    {"name": "bar", "strength_model": 1.0, "strength_clip": 1.0},
+                ],
+                resource_info={"unet_name": "anima"},
+                workflow_prompt=None,
+                extra_pnginfo=None,
+            )
+
+        self.assertIn("<lora:styles/foo:0.75>", calls[0]["positive"])
+        self.assertIn("<lora:bar:1>", calls[0]["positive"])
 
 
 class AIOLoraStackTests(unittest.TestCase):
@@ -550,30 +606,119 @@ class AIOSamplerDependencyTests(unittest.TestCase):
                 )
 
     def test_sampler_backend_dispatches_only_selected_path(self):
-        settings = nodes._normalize_aio_generation_settings("{}")
-        settings["sampler"]["backend"] = "comfy_ksampler"
+        cases = (
+            ("comfy_ksampler", "comfy"),
+            ("spectrum_mod_guidance_advanced", "advanced"),
+            ("spectrum_spd_speed", "spd"),
+        )
+
+        for backend, expected_call in cases:
+            with self.subTest(backend=backend):
+                settings = nodes._normalize_aio_generation_settings(json.dumps({
+                    "sampler": {
+                        "backend": backend,
+                    },
+                }))
+                calls = []
+
+                with (
+                    patch.object(nodes, "_sample_latent_with_comfy", side_effect=lambda *args: calls.append("comfy") or f"{backend}_latent"),
+                    patch.object(nodes, "_sample_latent_with_spectrum_spd", side_effect=lambda *args: calls.append("spd") or f"{backend}_latent"),
+                    patch.object(nodes, "_sample_latent_with_spectrum_mod_guidance_advanced", side_effect=lambda *args: calls.append("advanced") or f"{backend}_latent"),
+                ):
+                    result = nodes._sample_latent_with_aio_backend(
+                        model="model",
+                        clip="clip",
+                        positive="positive",
+                        negative="negative",
+                        latent_image="latent_image",
+                        sampler_settings=settings["sampler"],
+                        mod_guidance_settings=settings["mod_guidance"],
+                        use_mod_guidance=False,
+                        quality_tags="",
+                        quality_neg="",
+                    )
+
+                self.assertEqual(result, f"{backend}_latent")
+                self.assertEqual(calls, [expected_call])
+
+    def test_spectrum_spd_sampler_is_normalized_to_euler(self):
         calls = []
 
-        with (
-            patch.object(nodes, "_sample_latent_with_comfy", side_effect=lambda *args: calls.append("comfy") or "latent"),
-            patch.object(nodes, "_sample_latent_with_spectrum_spd", side_effect=lambda *args: calls.append("spd") or "latent"),
-            patch.object(nodes, "_sample_latent_with_spectrum_mod_guidance_advanced", side_effect=lambda *args: calls.append("advanced") or "latent"),
-        ):
-            result = nodes._sample_latent_with_aio_backend(
+        class FakeSpectrumSPDKSampler:
+            def sample(self, *args, **kwargs):
+                calls.append((args, kwargs))
+                return ("latent",)
+
+        settings = nodes._normalize_aio_generation_settings(json.dumps({
+            "sampler": {
+                "sampler_name": "er_sde",
+                "scheduler": "sgm_uniform",
+            },
+        }))
+
+        with patch.object(nodes, "_require_custom_node_class", return_value=FakeSpectrumSPDKSampler):
+            result = nodes._sample_latent_with_spectrum_spd(
                 model="model",
-                clip="clip",
+                sampler_settings=settings["sampler"],
                 positive="positive",
                 negative="negative",
                 latent_image="latent_image",
-                sampler_settings=settings["sampler"],
-                mod_guidance_settings=settings["mod_guidance"],
-                use_mod_guidance=False,
-                quality_tags="",
-                quality_neg="",
             )
 
         self.assertEqual(result, "latent")
-        self.assertEqual(calls, ["comfy"])
+        self.assertEqual(calls[0][0][4], "euler")
+        self.assertEqual(calls[0][0][5], "sgm_uniform")
+
+    def test_anima_dave_patch_uses_dave_node_pack_settings(self):
+        calls = []
+
+        class FakeAnimaDAVE:
+            def patch(self, *args):
+                calls.append(args)
+                return ("dave_model",)
+
+        settings = nodes._normalize_aio_generation_settings(json.dumps({
+            "model_patches": {
+                "dave": {
+                    "enabled": True,
+                    "mask": "custom_mask.npz",
+                    "strength": 0.42,
+                    "tau": 0.08,
+                },
+            },
+        }))
+
+        with patch.object(nodes, "_require_custom_node_class", return_value=FakeAnimaDAVE):
+            result = nodes._apply_aio_anima_dave_patch("base_model", settings["model_patches"]["dave"])
+
+        self.assertEqual(result, "dave_model")
+        self.assertEqual(calls, [("base_model", "custom_mask.npz", 0.42, 0.08)])
+
+    def test_model_patches_apply_anima_dave_as_advanced_option(self):
+        settings = nodes._normalize_aio_generation_settings(json.dumps({
+            "model_patches": {
+                "dave": {
+                    "enabled": True,
+                    "mask": "custom_mask.npz",
+                    "strength": 0.42,
+                    "tau": 0.08,
+                },
+            },
+        }))
+
+        with (
+            patch.object(nodes, "_patch_model_sampling_aura_flow", return_value="aura_model") as aura,
+            patch.object(nodes, "_apply_aio_anima_dave_patch", return_value="dave_model") as dave,
+            patch.object(nodes, "_apply_aio_kj_model_patches", return_value="kj_model") as kj,
+        ):
+            result = nodes._apply_aio_model_patches("base_model", settings)
+
+        self.assertEqual(result, "kj_model")
+        self.assertEqual(aura.call_args.args[0], "base_model")
+        self.assertEqual(dave.call_args.args[0], "aura_model")
+        self.assertEqual(dave.call_args.args[1]["mask"], "custom_mask.npz")
+        self.assertEqual(kj.call_args.args[0], "dave_model")
 
 
 class AIOHighresDetailerStageTests(unittest.TestCase):
@@ -619,7 +764,7 @@ class AIOHighresDetailerStageTests(unittest.TestCase):
         self.assertEqual(calls[0][4], settings["sampler"]["sampler_name"])
         self.assertEqual(calls[0][5], settings["sampler"]["scheduler"])
         self.assertEqual(calls[0][8], "high_latent_image")
-        self.assertEqual(calls[0][9], 0.31)
+        self.assertEqual(calls[0][9], 0.25)
 
     def test_highres_stage_can_override_main_sampler_when_inherit_is_disabled(self):
         settings = nodes._normalize_aio_generation_settings(json.dumps({
@@ -745,8 +890,8 @@ class AIOGeneratorRuntimeTests(unittest.TestCase):
     def setUp(self):
         nodes._clear_aio_first_pass_cache()
 
-    def test_generator_uses_custom_preview_key_instead_of_default_images(self):
-        context = {
+    def _context(self):
+        return {
             "prompt_data": {},
             "resource_info": {
                 "unet_name": "anima_model.safetensors",
@@ -756,6 +901,9 @@ class AIOGeneratorRuntimeTests(unittest.TestCase):
             },
             "input_settings": {},
         }
+
+    def test_generator_uses_custom_preview_key_instead_of_default_images(self):
+        context = self._context()
 
         with (
             patch.object(nodes, "_load_aio_resources_from_input_context", return_value=("base_model", "base_clip", "vae")),
@@ -780,6 +928,165 @@ class AIOGeneratorRuntimeTests(unittest.TestCase):
         self.assertEqual(result["ui"]["easyuse_anima_preview"][0]["filename"], "preview.webp")
         self.assertEqual(result["ui"]["sampler_backend"], ["comfy_ksampler"])
         self.assertIn("easyuse_anima_run_id", result["ui"])
+
+    def test_generator_sampler_backend_applies_only_selected_model_path(self):
+        cases = (
+            ("comfy_ksampler", "sampler_patch_model", True, True),
+            ("spectrum_mod_guidance_advanced", "patched_model", False, False),
+            ("spectrum_spd_speed", "mod_guidance_model", True, False),
+        )
+
+        for index, (backend, expected_model, expect_standalone_mod, expect_comfy_patch) in enumerate(cases):
+            with self.subTest(backend=backend):
+                nodes._clear_aio_first_pass_cache()
+                context = self._context()
+
+                with (
+                    patch.object(nodes, "_load_aio_resources_from_input_context", return_value=("base_model", "base_clip", "vae")),
+                    patch.object(nodes, "_apply_aio_lora_stack", return_value=("lora_model", "lora_clip", [])),
+                    patch.object(nodes, "_apply_aio_model_patches", return_value="patched_model"),
+                    patch.object(nodes, "_advanced_outputs_from_prompt_data", return_value=("p", "n", "q", "qn", True, False, "", "", 512, 768)),
+                    patch.object(nodes, "_encode_prompt_data_positive_conditioning", return_value="positive"),
+                    patch.object(nodes, "_encode_with_comfy_clip", return_value="negative"),
+                    patch.object(nodes, "_generate_empty_latent_with_comfy", return_value="latent_image"),
+                    patch.object(nodes, "_apply_spectrum_anima_mod_guidance", return_value="mod_guidance_model") as standalone_mod,
+                    patch.object(nodes, "_apply_aio_spectrum_model_patches_for_comfy_sampler", return_value="sampler_patch_model") as comfy_patch,
+                    patch.object(nodes, "_sample_latent_with_aio_backend", return_value="latent") as sample,
+                    patch.object(nodes, "_decode_latent_with_comfy", return_value="image"),
+                    patch.object(nodes, "_save_image_with_image_saver", return_value={"ui": {"images": [{"filename": "final.webp"}]}}),
+                    patch.object(nodes, "_cleanup_aio_ephemeral_model"),
+                ):
+                    result = nodes.EasyUseAnimaAIOGenerator().generate(
+                        context,
+                        generation_settings=json.dumps({
+                            "sampler": {
+                                "backend": backend,
+                                "spectrum": {
+                                    "enabled": True,
+                                },
+                                "dit_corrections": {
+                                    "enabled": True,
+                                },
+                            },
+                            "save": {
+                                "enabled": True,
+                            },
+                        }),
+                        unique_id=200 + index,
+                    )
+
+                self.assertEqual(result["ui"]["sampler_backend"], [backend])
+                self.assertEqual(sample.call_args.args[0], expected_model)
+                self.assertEqual(sample.call_args.args[5]["backend"], backend)
+                self.assertTrue(sample.call_args.args[7])
+                self.assertEqual(standalone_mod.called, expect_standalone_mod)
+                self.assertEqual(comfy_patch.called, expect_comfy_patch)
+                if expect_comfy_patch:
+                    self.assertEqual(comfy_patch.call_args.args[0], "mod_guidance_model")
+
+    def test_generator_integrated_sampler_keeps_standalone_mod_guidance_for_highres_stage(self):
+        context = self._context()
+        stage_sampler = nodes._normalize_aio_generation_settings("{}")["sampler"]
+
+        with (
+            patch.object(nodes, "_load_aio_resources_from_input_context", return_value=("base_model", "base_clip", "vae")),
+            patch.object(nodes, "_apply_aio_lora_stack", return_value=("lora_model", "lora_clip", [])),
+            patch.object(nodes, "_apply_aio_model_patches", return_value="patched_model"),
+            patch.object(nodes, "_advanced_outputs_from_prompt_data", return_value=("p", "n", "q", "qn", True, False, "", "", 512, 768)),
+            patch.object(nodes, "_encode_prompt_data_positive_conditioning", return_value="positive"),
+            patch.object(nodes, "_encode_with_comfy_clip", return_value="negative"),
+            patch.object(nodes, "_generate_empty_latent_with_comfy", return_value="latent_image"),
+            patch.object(nodes, "_apply_spectrum_anima_mod_guidance", return_value="mod_guidance_model") as standalone_mod,
+            patch.object(nodes, "_apply_aio_spectrum_model_patches_for_comfy_sampler") as comfy_patch,
+            patch.object(nodes, "_sample_latent_with_aio_backend", return_value="latent") as sample,
+            patch.object(nodes, "_decode_latent_with_comfy", return_value="image"),
+            patch.object(nodes, "_run_aio_highres_stage", return_value=("high_latent", "high_image", 640, 960, {"enabled": True, "sampler": stage_sampler})) as highres,
+            patch.object(nodes, "_save_image_with_image_saver", return_value={"ui": {"images": [{"filename": "final.webp"}]}}),
+            patch.object(nodes, "_cleanup_aio_ephemeral_model"),
+        ):
+            nodes.EasyUseAnimaAIOGenerator().generate(
+                context,
+                generation_settings=json.dumps({
+                    "sampler": {
+                        "backend": "spectrum_mod_guidance_advanced",
+                    },
+                    "highres": {
+                        "enabled": True,
+                    },
+                    "save": {
+                        "enabled": True,
+                    },
+                }),
+                unique_id=210,
+            )
+
+        standalone_mod.assert_called_once()
+        comfy_patch.assert_not_called()
+        self.assertEqual(sample.call_args.args[0], "patched_model")
+        self.assertEqual(highres.call_args.args[0], "mod_guidance_model")
+
+    def test_generator_save_metadata_uses_first_pass_sampler_and_final_size(self):
+        context = self._context()
+        save_calls = []
+        highres_sampler = nodes._normalize_aio_generation_settings(json.dumps({
+            "sampler": {
+                "seed": 999,
+                "steps": 12,
+                "cfg": 3.0,
+                "sampler_name": "ddim",
+                "scheduler": "simple",
+                "denoise": 0.4,
+            }
+        }))["sampler"]
+
+        def fake_save(*args, **kwargs):
+            save_calls.append(kwargs)
+            return {"ui": {"images": [{"filename": "final.webp"}]}}
+
+        with (
+            patch.object(nodes, "_load_aio_resources_from_input_context", return_value=("base_model", "base_clip", "vae")),
+            patch.object(nodes, "_apply_aio_lora_stack", return_value=("lora_model", "lora_clip", [{"name": "style/foo.safetensors", "strength_model": 0.8}])),
+            patch.object(nodes, "_apply_aio_model_patches", return_value="patched_model"),
+            patch.object(nodes, "_advanced_outputs_from_prompt_data", return_value=("p", "n", "q", "qn", False, False, "", "", 512, 768)),
+            patch.object(nodes, "_encode_prompt_data_positive_conditioning", return_value="positive"),
+            patch.object(nodes, "_encode_with_comfy_clip", return_value="negative"),
+            patch.object(nodes, "_generate_empty_latent_with_comfy", return_value="latent_image"),
+            patch.object(nodes, "_sample_latent_with_aio_backend", return_value="latent"),
+            patch.object(nodes, "_decode_latent_with_comfy", return_value="image"),
+            patch.object(nodes, "_run_aio_highres_stage", return_value=("high_latent", "high_image", 1024, 1536, {"enabled": True, "sampler": highres_sampler})),
+            patch.object(nodes, "_save_image_with_image_saver", side_effect=fake_save),
+            patch.object(nodes, "_cleanup_aio_ephemeral_model"),
+        ):
+            nodes.EasyUseAnimaAIOGenerator().generate(
+                context,
+                generation_settings=json.dumps({
+                    "sampler": {
+                        "seed": 123,
+                        "steps": 32,
+                        "cfg": 5.5,
+                        "sampler_name": "euler_ancestral",
+                        "scheduler": "sgm_uniform",
+                        "denoise": 1.0,
+                    },
+                    "highres": {
+                        "enabled": True,
+                    },
+                    "save": {
+                        "enabled": True,
+                    },
+                }),
+                unique_id=211,
+            )
+
+        self.assertEqual(save_calls[0]["width"], 1024)
+        self.assertEqual(save_calls[0]["height"], 1536)
+        self.assertEqual(save_calls[0]["sampler_settings"]["seed"], 123)
+        self.assertEqual(save_calls[0]["sampler_settings"]["steps"], 32)
+        self.assertEqual(save_calls[0]["sampler_settings"]["cfg"], 5.5)
+        self.assertEqual(save_calls[0]["sampler_settings"]["sampler_name"], "euler_ancestral")
+        self.assertEqual(save_calls[0]["sampler_settings"]["scheduler"], "sgm_uniform")
+        self.assertEqual(save_calls[0]["sampler_settings"]["denoise"], 1.0)
+        self.assertEqual(save_calls[0]["applied_loras"], [{"name": "style/foo.safetensors", "strength_model": 0.8}])
 
     def test_generator_reuses_first_pass_cache_when_only_later_stages_change(self):
         context = {

@@ -849,7 +849,7 @@
       "language": "ko",
       "kind": "feature-test-workflow",
       "package": "comfyui-easyuse-anima",
-      "package_version": "0.2.1",
+      "package_version": "0.2.2",
       "registry_folder": "docs/example_workflows",
       "release_filename": "EasyUse_Anima_feature_test_release_ko.json",
       "release_suffix": "_release_ko",
