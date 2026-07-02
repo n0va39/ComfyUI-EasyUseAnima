@@ -21,7 +21,6 @@ const GENERATOR_NODE_MIN_WIDTH = 560;
 const GENERATOR_NODE_DEFAULT_WIDTH = 620;
 const GENERATOR_PANEL_MIN_HEIGHT = 430;
 const GENERATOR_PANEL_CONTROL_SELECTOR = "input, select, textarea, button";
-const GENERATOR_DEFAULT_DRAG_PIXELS = 8;
 const GENERATOR_FALLBACK_SAMPLER_NAMES = [
   "euler",
   "euler_ancestral",
@@ -363,6 +362,7 @@ const DEFAULT_GENERATION_SETTINGS = {
     intermediate_images: false,
     compare_previous: false,
     image_feed: true,
+    feed_count: 12,
   },
 };
 
@@ -452,8 +452,9 @@ const AIO_TEXT = {
     "tip.saveOptions": "Open image saver and metadata options.",
     "tip.previewOptions": "Open node preview, comparison, and image feed options.",
     "tip.previewIntermediate": "Save temp previews for first pass, Highres, and Detailer stages.",
-    "tip.previewComparePrevious": "When intermediate previews are enabled, compare the current preview with the previous queued result.",
+    "tip.previewComparePrevious": "When intermediate previews are enabled, compare the selected preview with the previous item in this run.",
     "tip.previewImageFeed": "Show the current run's preview images as a compact feed at the bottom of the preview panel.",
+    "tip.previewFeedCount": "Maximum number of preview images kept in this node's feed history.",
     "tip.size": "Size of the latest generated image for this node.",
   },
   ko: {
@@ -541,8 +542,9 @@ const AIO_TEXT = {
     "tip.saveOptions": "이미지 저장과 메타데이터 옵션을 엽니다.",
     "tip.previewOptions": "노드 프리뷰, 비교, 이미지 피드 옵션을 엽니다.",
     "tip.previewIntermediate": "1차, Highres, Detailer 단계의 temp 미리보기를 저장합니다.",
-    "tip.previewComparePrevious": "중간 이미지 미리보기가 켜져 있을 때 현재 프리뷰와 이전 큐 결과를 비교합니다.",
+    "tip.previewComparePrevious": "중간 이미지 미리보기가 켜져 있을 때 선택한 프리뷰와 현재 실행의 직전 항목을 비교합니다.",
     "tip.previewImageFeed": "현재 실행의 프리뷰 이미지들을 프리뷰 패널 하단에 작은 피드로 표시합니다.",
+    "tip.previewFeedCount": "이 노드의 프리뷰 피드에 유지할 최대 이미지 개수입니다.",
     "tip.size": "이 노드가 마지막으로 생성한 이미지 크기입니다.",
   },
   ja: {
@@ -753,10 +755,6 @@ const generatorSamplerOptionState = {
   schedulerNames: [...GENERATOR_FALLBACK_SCHEDULER_NAMES],
 };
 
-const generatorUiSettings = {
-  sliderDragPixels: GENERATOR_DEFAULT_DRAG_PIXELS,
-};
-
 function uniqueStrings(values) {
   const output = [];
   for (const value of values || []) {
@@ -785,42 +783,6 @@ function optionsWithCurrent(options, current) {
     merged.unshift(normalized);
   }
   return merged;
-}
-
-function parseDragPixels(value) {
-  const number = Number(value);
-  if (!Number.isFinite(number)) {
-    return GENERATOR_DEFAULT_DRAG_PIXELS;
-  }
-  return Math.max(1, Math.min(100, Math.round(number)));
-}
-
-function applyGeneratorUiSettings(settings = {}) {
-  generatorUiSettings.sliderDragPixels = parseDragPixels(settings?.["lora_preset.strength_drag_pixels"]);
-}
-
-async function loadGeneratorUiSettings() {
-  if (window.__easyuseAnimaSettings) {
-    applyGeneratorUiSettings(window.__easyuseAnimaSettings);
-  }
-  try {
-    const response = await fetch("/easyuse_anima/settings");
-    if (response.ok) {
-      const settings = await response.json();
-      const values = {
-        ...(settings?.settings || {}),
-        ...(settings?.values || {}),
-        ...(settings || {}),
-      };
-      delete values.settings;
-      delete values.values;
-      window.__easyuseAnimaSettings ||= {};
-      Object.assign(window.__easyuseAnimaSettings, values);
-      applyGeneratorUiSettings(values);
-    }
-  } catch {
-    // Keep built-in defaults when settings are unavailable.
-  }
 }
 
 async function fetchGeneratorSamplerOptions() {
@@ -1559,7 +1521,7 @@ function ensureStyle() {
       overflow: hidden;
     }
     .easyuse-anima-aio-node-preview-layer.after {
-      clip-path: inset(0 calc(100% - var(--aio-compare-x, 50%)) 0 0);
+      clip-path: inset(0 0 0 var(--aio-compare-x, 50%));
     }
     .easyuse-anima-aio-node-preview-layer img {
       position: absolute;
@@ -1594,6 +1556,11 @@ function ensureStyle() {
       font-size: 10px;
       text-overflow: ellipsis;
       white-space: nowrap;
+    }
+    .easyuse-anima-aio-node-preview-layer.after .easyuse-anima-aio-node-preview-pane-label {
+      right: 6px;
+      left: auto;
+      text-align: right;
     }
     .easyuse-anima-aio-node-preview-placeholder {
       position: absolute;
@@ -1637,6 +1604,8 @@ function ensureStyle() {
       padding: 6px;
       overflow-x: auto;
       overflow-y: hidden;
+      overscroll-behavior-x: contain;
+      scrollbar-gutter: stable;
       background: rgba(255, 255, 255, 0.035);
       border: 1px solid rgba(255, 255, 255, 0.1);
       border-radius: 5px;
@@ -1782,6 +1751,33 @@ function generatorPreviewImages(message) {
   return images.filter((item) => item && typeof item === "object" && !Array.isArray(item));
 }
 
+function generatorPreviewFeedLimit(settings) {
+  return Math.trunc(clampGeneratorNumber(
+    settings?.preview?.feed_count,
+    DEFAULT_GENERATION_SETTINGS.preview.feed_count,
+    1,
+    100,
+  ));
+}
+
+function tagGeneratorPreviewRun(images) {
+  const runId = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  return images.map((image, index) => ({
+    ...image,
+    __aio_run_id: runId,
+    __aio_run_index: index,
+  }));
+}
+
+function appendGeneratorPreviewFeed(existingImages, nextImages, settings) {
+  const limit = generatorPreviewFeedLimit(settings);
+  const existing = Array.isArray(existingImages)
+    ? existingImages.filter((item) => item && typeof item === "object" && !Array.isArray(item))
+    : [];
+  const appended = [...existing, ...tagGeneratorPreviewRun(nextImages)];
+  return appended.slice(Math.max(0, appended.length - limit));
+}
+
 function generatorImageUrl(image) {
   if (!image || typeof image !== "object") {
     return "";
@@ -1900,14 +1896,20 @@ function normalizeGeneratorPreviewSettings(settings) {
     settings.preview.intermediate_images,
     DEFAULT_GENERATION_SETTINGS.preview.intermediate_images,
   );
-  settings.preview.compare_previous = (
-    asBool(settings.preview.compare_previous, DEFAULT_GENERATION_SETTINGS.preview.compare_previous)
-    && settings.preview.intermediate_images
+  settings.preview.compare_previous = asBool(
+    settings.preview.compare_previous,
+    DEFAULT_GENERATION_SETTINGS.preview.compare_previous,
   );
   settings.preview.image_feed = asBool(
     settings.preview.image_feed,
     DEFAULT_GENERATION_SETTINGS.preview.image_feed,
   );
+  settings.preview.feed_count = Math.trunc(clampGeneratorNumber(
+    settings.preview.feed_count,
+    DEFAULT_GENERATION_SETTINGS.preview.feed_count,
+    1,
+    100,
+  ));
   if (settings.save?.image_saver) {
     delete settings.save.image_saver.show_preview;
   }
@@ -2067,6 +2069,13 @@ function stopGeneratorControlPropagation(root) {
     root.addEventListener(eventName, stop);
   }
   root.addEventListener("wheel", (event) => {
+    const previewFeed = event.target?.closest?.(".easyuse-anima-aio-node-preview-feed");
+    if (previewFeed && previewFeed.scrollWidth > previewFeed.clientWidth) {
+      event.preventDefault();
+      event.stopPropagation();
+      previewFeed.scrollLeft += event.deltaX || event.deltaY;
+      return;
+    }
     const scrollArea = event.target?.closest?.(".easyuse-anima-aio-node-settings-scroll");
     if (scrollArea && scrollArea.scrollHeight > scrollArea.clientHeight) {
       event.stopPropagation();
@@ -2314,8 +2323,7 @@ function updateGeneratorDomPreview(node) {
   };
   const previousImage = selectedIndex > 0 ? images[selectedIndex - 1] : null;
   const canCompare = (
-    settings.preview.intermediate_images
-    && settings.preview.compare_previous
+    settings.preview.compare_previous
     && previousImage
     && generatorImageUrl(previousImage)
   );
@@ -2427,9 +2435,16 @@ function createDomSliderNumberControl(node, name, value, options = {}) {
   const step = Number(options.step ?? 1);
   const decimals = Number(options.decimals ?? 0);
   const clamp = (next) => Math.max(min, Math.min(max, Number(next)));
+  const snap = (next) => {
+    const clamped = clamp(next);
+    if (!Number.isFinite(step) || step <= 0) {
+      return clamped;
+    }
+    return min + Math.round((clamped - min) / step) * step;
+  };
   const round = (next) => {
     const factor = 10 ** decimals;
-    return Math.round(clamp(next) * factor) / factor;
+    return Math.round(clamp(snap(next)) * factor) / factor;
   };
   const currentValue = round(value);
   const wrapper = document.createElement("div");
@@ -2471,28 +2486,27 @@ function createDomSliderNumberControl(node, name, value, options = {}) {
     fill.style.width = `${clampedPercent}%`;
     thumb.style.left = `${clampedPercent}%`;
   };
+  const valueFromPointer = (pointerEvent) => {
+    const rect = track.getBoundingClientRect();
+    const relative = rect.width > 0 ? (pointerEvent.clientX - rect.left) / rect.width : 0;
+    return round(min + Math.max(0, Math.min(1, relative)) * (max - min));
+  };
 
   input.addEventListener("input", () => commit(input.value));
   track.addEventListener("pointerdown", (event) => {
     event.preventDefault();
     event.stopPropagation();
-    track.setPointerCapture?.(event.pointerId);
-    const rect = track.getBoundingClientRect();
-    const relative = rect.width > 0 ? (event.clientX - rect.left) / rect.width : 0;
-    const clicked = round(min + Math.max(0, Math.min(1, relative)) * (max - min));
-    commit(clicked);
-    const startX = event.clientX;
-    const startValue = Number(input.value || clicked);
-    const dragPixels = Math.max(1, generatorUiSettings.sliderDragPixels);
+    const pointerId = event.pointerId;
+    track.setPointerCapture?.(pointerId);
+    commit(valueFromPointer(event));
     const move = (moveEvent) => {
       moveEvent.preventDefault();
       moveEvent.stopPropagation();
-      const deltaSteps = Math.trunc((moveEvent.clientX - startX) / dragPixels);
-      commit(startValue + deltaSteps * step);
+      commit(valueFromPointer(moveEvent));
     };
     const up = (upEvent) => {
       upEvent.stopPropagation();
-      track.releasePointerCapture?.(event.pointerId);
+      track.releasePointerCapture?.(pointerId);
       window.removeEventListener("pointermove", move, true);
       window.removeEventListener("pointerup", up, true);
     };
@@ -4108,14 +4122,19 @@ function openPreviewSettings(node) {
     checkbox(preview.image_feed),
     "tip.previewImageFeed",
   );
-  const syncCompare = () => {
-    comparePrevious.disabled = !intermediate.checked;
-    if (comparePrevious.disabled) {
-      comparePrevious.checked = false;
-    }
+  const feedCount = field(
+    section,
+    "Feed count",
+    numberInput(preview.feed_count, "1"),
+    "tip.previewFeedCount",
+  );
+  feedCount.min = "1";
+  feedCount.max = "100";
+  const syncFeedCount = () => {
+    feedCount.disabled = !imageFeed.checked;
   };
-  intermediate.addEventListener("change", syncCompare);
-  syncCompare();
+  imageFeed.addEventListener("change", syncFeedCount);
+  syncFeedCount();
   body.append(section);
 
   const cancel = document.createElement("button");
@@ -4129,9 +4148,19 @@ function openPreviewSettings(node) {
     const next = mergeDefaults(DEFAULT_GENERATION_SETTINGS, settings);
     next.preview = {
       intermediate_images: intermediate.checked,
-      compare_previous: intermediate.checked && comparePrevious.checked,
+      compare_previous: comparePrevious.checked,
       image_feed: imageFeed.checked,
+      feed_count: Math.trunc(clampGeneratorNumber(feedCount.value, preview.feed_count, 1, 100)),
     };
+    if (Array.isArray(node.__easyuseAnimaGeneratorPreviewFeedImages)) {
+      node.__easyuseAnimaGeneratorPreviewFeedImages = node.__easyuseAnimaGeneratorPreviewFeedImages.slice(
+        -next.preview.feed_count,
+      );
+    }
+    node.__easyuseAnimaGeneratorPreviewImages = next.preview.image_feed
+      ? (node.__easyuseAnimaGeneratorPreviewFeedImages || [])
+      : (node.__easyuseAnimaGeneratorCurrentRunImages || []);
+    node.__easyuseAnimaSelectedPreviewIndex = generatorDefaultPreviewIndex(node.__easyuseAnimaGeneratorPreviewImages);
     applyVisibleGeneratorSettings(node, next);
     writeSettings(node, widget, next);
     renderGeneratorPanel(node);
@@ -4393,8 +4422,19 @@ function updateGeneratorExecutedStatus(node, message) {
     return;
   }
   const nextImages = generatorPreviewImages(message);
-  node.__easyuseAnimaGeneratorPreviewImages = nextImages;
-  node.__easyuseAnimaSelectedPreviewIndex = generatorDefaultPreviewIndex(nextImages);
+  const settings = generatorSettings(node);
+  node.__easyuseAnimaGeneratorCurrentRunImages = nextImages;
+  if (settings.preview.image_feed) {
+    node.__easyuseAnimaGeneratorPreviewFeedImages = appendGeneratorPreviewFeed(
+      node.__easyuseAnimaGeneratorPreviewFeedImages,
+      nextImages,
+      settings,
+    );
+    node.__easyuseAnimaGeneratorPreviewImages = node.__easyuseAnimaGeneratorPreviewFeedImages;
+  } else {
+    node.__easyuseAnimaGeneratorPreviewImages = tagGeneratorPreviewRun(nextImages);
+  }
+  node.__easyuseAnimaSelectedPreviewIndex = generatorDefaultPreviewIndex(node.__easyuseAnimaGeneratorPreviewImages);
   node.__easyuseAnimaGeneratorStatus = {
     status: String(firstValue(message?.status, "generated") || "generated"),
     width: Number(firstValue(message?.width, 0)),
@@ -4418,13 +4458,7 @@ app.registerExtension({
   async setup() {
     installGeneratorQueuePromptHook();
     easyuseAnimaWatchLocale(refreshGeneratorPanels);
-    window.addEventListener("easyuse-anima-settings-updated", (event) => {
-      applyGeneratorUiSettings(event.detail || {});
-    });
-    Promise.all([
-      loadGeneratorSamplerOptions(),
-      loadGeneratorUiSettings(),
-    ]).then(refreshGeneratorPanels);
+    loadGeneratorSamplerOptions().then(refreshGeneratorPanels);
   },
   async beforeRegisterNodeDef(nodeType, nodeData) {
     if (nodeData.name !== INPUT_NODE_TYPE && nodeData.name !== GENERATOR_NODE_TYPE) {

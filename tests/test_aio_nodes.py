@@ -130,6 +130,7 @@ class AIOSettingsStorageTests(unittest.TestCase):
         self.assertFalse(settings["preview"]["intermediate_images"])
         self.assertFalse(settings["preview"]["compare_previous"])
         self.assertTrue(settings["preview"]["image_feed"])
+        self.assertEqual(settings["preview"]["feed_count"], 12)
         self.assertEqual(settings["future_section"]["value"], 42)
 
     def test_legacy_filename_prefix_is_not_kept_in_generation_settings(self):
@@ -171,18 +172,20 @@ class AIOSettingsStorageTests(unittest.TestCase):
 
         self.assertNotIn("show_preview", settings["save"]["image_saver"])
 
-    def test_preview_compare_requires_intermediate_previews(self):
+    def test_preview_compare_can_use_feed_history_without_intermediate_previews(self):
         settings = nodes._normalize_aio_generation_settings(json.dumps({
             "preview": {
                 "intermediate_images": False,
                 "compare_previous": True,
                 "image_feed": False,
+                "feed_count": 0,
             },
         }))
 
         self.assertFalse(settings["preview"]["intermediate_images"])
-        self.assertFalse(settings["preview"]["compare_previous"])
+        self.assertTrue(settings["preview"]["compare_previous"])
         self.assertFalse(settings["preview"]["image_feed"])
+        self.assertEqual(settings["preview"]["feed_count"], 1)
 
     def test_invalid_generation_settings_fall_back_to_versioned_defaults(self):
         settings = nodes._normalize_aio_generation_settings("{")
@@ -739,6 +742,9 @@ class AIOHighresDetailerStageTests(unittest.TestCase):
 
 
 class AIOGeneratorRuntimeTests(unittest.TestCase):
+    def setUp(self):
+        nodes._clear_aio_first_pass_cache()
+
     def test_generator_uses_custom_preview_key_instead_of_default_images(self):
         context = {
             "prompt_data": {},
@@ -773,6 +779,56 @@ class AIOGeneratorRuntimeTests(unittest.TestCase):
         self.assertNotIn("images", result["ui"])
         self.assertEqual(result["ui"]["easyuse_anima_preview"][0]["filename"], "preview.webp")
         self.assertEqual(result["ui"]["sampler_backend"], ["comfy_ksampler"])
+
+    def test_generator_reuses_first_pass_cache_when_only_later_stages_change(self):
+        context = {
+            "prompt_data": {},
+            "resource_info": {
+                "unet_name": "anima_model.safetensors",
+                "vae_name": "anima_vae.safetensors",
+                "clip_name": "anima_clip.safetensors",
+                "clip_type": "qwen_image",
+            },
+            "input_settings": {},
+        }
+
+        with (
+            patch.object(nodes, "_load_aio_resources_from_input_context", return_value=("base_model", "base_clip", "vae")),
+            patch.object(nodes, "_apply_aio_lora_stack", return_value=("lora_model", "lora_clip", [])),
+            patch.object(nodes, "_apply_aio_model_patches", return_value="patched_model"),
+            patch.object(nodes, "_advanced_outputs_from_prompt_data", return_value=("p", "n", "q", "qn", False, False, "", "", 512, 768)),
+            patch.object(nodes, "_encode_prompt_data_positive_conditioning", return_value="positive"),
+            patch.object(nodes, "_encode_with_comfy_clip", return_value="negative"),
+            patch.object(nodes, "_generate_empty_latent_with_comfy", return_value="latent_image") as empty_latent,
+            patch.object(nodes, "_sample_latent_with_aio_backend", return_value="latent") as sample,
+            patch.object(nodes, "_decode_latent_with_comfy", return_value="image") as decode,
+            patch.object(nodes, "_run_aio_highres_stage", side_effect=[
+                ("high_latent_1", "high_image_1", 640, 960, {"enabled": True, "sampler": nodes._normalize_aio_generation_settings("{}")["sampler"]}),
+                ("high_latent_2", "high_image_2", 768, 1152, {"enabled": True, "sampler": nodes._normalize_aio_generation_settings("{}")["sampler"]}),
+            ]) as highres,
+            patch.object(nodes, "_save_image_with_image_saver", return_value={"ui": {"images": [{"filename": "final.webp"}]}}),
+            patch.object(nodes, "_cleanup_aio_ephemeral_model"),
+        ):
+            generator = nodes.EasyUseAnimaAIOGenerator()
+            for scale in (1.25, 1.5):
+                generator.generate(
+                    context,
+                    generation_settings=json.dumps({
+                        "sampler": {
+                            "seed": 123,
+                        },
+                        "highres": {
+                            "enabled": True,
+                            "scale_by": scale,
+                        },
+                    }),
+                    unique_id=86,
+                )
+
+        self.assertEqual(empty_latent.call_count, 1)
+        self.assertEqual(sample.call_count, 1)
+        self.assertEqual(decode.call_count, 1)
+        self.assertEqual(highres.call_count, 2)
 
     def test_generator_preview_avoids_duplicate_highres_and_final_images(self):
         context = {
@@ -837,6 +893,55 @@ class AIOGeneratorRuntimeTests(unittest.TestCase):
             ["first_pass", "final"],
         )
         self.assertEqual(result["ui"]["easyuse_anima_preview"][1]["filename"], "final.webp")
+
+    def test_generator_intermediate_preview_includes_first_pass_when_enabled(self):
+        context = {
+            "prompt_data": {},
+            "resource_info": {
+                "unet_name": "anima_model.safetensors",
+                "vae_name": "anima_vae.safetensors",
+                "clip_name": "anima_clip.safetensors",
+                "clip_type": "qwen_image",
+            },
+            "input_settings": {},
+        }
+        preview_calls = []
+
+        def fake_preview(image, stage, **kwargs):
+            preview_calls.append((stage, image))
+            return [{"filename": f"{stage}.webp", "type": "temp", "stage": stage, "label": stage}]
+
+        with (
+            patch.object(nodes, "_load_aio_resources_from_input_context", return_value=("base_model", "base_clip", "vae")),
+            patch.object(nodes, "_apply_aio_lora_stack", return_value=("lora_model", "lora_clip", [])),
+            patch.object(nodes, "_apply_aio_model_patches", return_value="patched_model"),
+            patch.object(nodes, "_advanced_outputs_from_prompt_data", return_value=("p", "n", "q", "qn", False, False, "", "", 512, 768)),
+            patch.object(nodes, "_encode_prompt_data_positive_conditioning", return_value="positive"),
+            patch.object(nodes, "_encode_with_comfy_clip", return_value="negative"),
+            patch.object(nodes, "_generate_empty_latent_with_comfy", return_value="latent_image"),
+            patch.object(nodes, "_sample_latent_with_aio_backend", return_value="latent"),
+            patch.object(nodes, "_decode_latent_with_comfy", return_value="image"),
+            patch.object(nodes, "_save_image_with_image_saver", return_value={"ui": {"images": [{"filename": "final.webp"}]}}),
+            patch.object(nodes, "_save_aio_temp_preview_image", side_effect=fake_preview),
+            patch.object(nodes, "_cleanup_aio_ephemeral_model"),
+        ):
+            result = nodes.EasyUseAnimaAIOGenerator().generate(
+                context,
+                generation_settings=json.dumps({
+                    "save": {"enabled": True},
+                    "preview": {
+                        "intermediate_images": True,
+                        "compare_previous": True,
+                        "image_feed": True,
+                    },
+                }),
+            )
+
+        self.assertEqual(preview_calls, [("first_pass", "image")])
+        self.assertEqual(
+            [item["stage"] for item in result["ui"]["easyuse_anima_preview"]],
+            ["first_pass", "final"],
+        )
 
 
 if __name__ == "__main__":

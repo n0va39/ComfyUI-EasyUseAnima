@@ -531,6 +531,7 @@ AIO_GENERATION_DEFAULT_SETTINGS = {
         "intermediate_images": False,
         "compare_previous": False,
         "image_feed": True,
+        "feed_count": 12,
     },
 }
 ARTIST_TAG_POSITION_CORRECT = "correct"
@@ -1533,13 +1534,17 @@ def _normalize_aio_generation_settings(value) -> dict[str, Any]:
         preview.get("intermediate_images"),
         default_preview["intermediate_images"],
     )
-    preview["compare_previous"] = (
-        _as_bool(preview.get("compare_previous"), default_preview["compare_previous"])
-        and preview["intermediate_images"]
+    preview["compare_previous"] = _as_bool(
+        preview.get("compare_previous"),
+        default_preview["compare_previous"],
     )
     preview["image_feed"] = _as_bool(
         preview.get("image_feed"),
         default_preview["image_feed"],
+    )
+    preview["feed_count"] = max(
+        1,
+        min(100, _as_int(preview.get("feed_count"), default_preview["feed_count"])),
     )
     return settings
 
@@ -2302,6 +2307,98 @@ def _aio_lora_stack_signature(lora_stack) -> list[dict[str, Any]]:
     ]
 
 
+def _clone_aio_cache_value(value):
+    if isinstance(value, dict):
+        return {key: _clone_aio_cache_value(item) for key, item in value.items()}
+    if isinstance(value, list):
+        return [_clone_aio_cache_value(item) for item in value]
+    if isinstance(value, tuple):
+        return tuple(_clone_aio_cache_value(item) for item in value)
+    detach = getattr(value, "detach", None)
+    clone = getattr(value, "clone", None)
+    if callable(detach) and callable(clone):
+        tensor = detach().clone()
+        cpu = getattr(tensor, "cpu", None)
+        if callable(cpu):
+            try:
+                tensor = cpu()
+            except Exception:
+                pass
+        return tensor
+    return value
+
+
+def _clear_aio_first_pass_cache() -> None:
+    _AIO_FIRST_PASS_CACHE.clear()
+    _AIO_FIRST_PASS_CACHE_ORDER.clear()
+
+
+def _aio_first_pass_cache_key(
+    *,
+    cache_scope: str,
+    context: dict[str, Any],
+    prompt_data: dict[str, Any],
+    lora_stack,
+    settings: dict[str, Any],
+    positive_prompt: str,
+    negative_prompt: str,
+    quality_tags: str,
+    quality_neg: str,
+    use_anima_mod_guidance: bool,
+    use_negative_anima_mod_guidance: bool,
+    width: int,
+    height: int,
+) -> str:
+    return _stable_change_key({
+        "schema": "easyuse_anima_aio_first_pass_cache",
+        "version": 1,
+        "scope": str(cache_scope or ""),
+        "mode": settings.get("mode"),
+        "resource_info": _prompt_data_json_safe(context.get("resource_info", {})),
+        "input_settings": _prompt_data_json_safe(context.get("input_settings", {})),
+        "prompt_data": _prompt_data_json_safe(prompt_data),
+        "lora_stack": _aio_lora_stack_signature(lora_stack),
+        "sampler": _prompt_data_json_safe(settings.get("sampler", {})),
+        "model_patches": _prompt_data_json_safe(settings.get("model_patches", {})),
+        "mod_guidance": _prompt_data_json_safe(settings.get("mod_guidance", {})),
+        "artist_mix": _prompt_data_json_safe(settings.get("artist_mix", {})),
+        "positive_prompt": str(positive_prompt or ""),
+        "negative_prompt": str(negative_prompt or ""),
+        "quality_tags": str(quality_tags or ""),
+        "quality_neg": str(quality_neg or ""),
+        "use_anima_mod_guidance": bool(use_anima_mod_guidance),
+        "use_negative_anima_mod_guidance": bool(use_negative_anima_mod_guidance),
+        "width": int(width),
+        "height": int(height),
+    })
+
+
+def _get_aio_first_pass_cache(cache_key: str):
+    entry = _AIO_FIRST_PASS_CACHE.get(cache_key)
+    if not entry:
+        return None
+    if cache_key in _AIO_FIRST_PASS_CACHE_ORDER:
+        _AIO_FIRST_PASS_CACHE_ORDER.remove(cache_key)
+    _AIO_FIRST_PASS_CACHE_ORDER.append(cache_key)
+    return (
+        _clone_aio_cache_value(entry["latent"]),
+        _clone_aio_cache_value(entry["image"]),
+    )
+
+
+def _put_aio_first_pass_cache(cache_key: str, latent, image) -> None:
+    _AIO_FIRST_PASS_CACHE[cache_key] = {
+        "latent": _clone_aio_cache_value(latent),
+        "image": _clone_aio_cache_value(image),
+    }
+    if cache_key in _AIO_FIRST_PASS_CACHE_ORDER:
+        _AIO_FIRST_PASS_CACHE_ORDER.remove(cache_key)
+    _AIO_FIRST_PASS_CACHE_ORDER.append(cache_key)
+    while len(_AIO_FIRST_PASS_CACHE_ORDER) > AIO_FIRST_PASS_CACHE_MAX_ENTRIES:
+        old_key = _AIO_FIRST_PASS_CACHE_ORDER.pop(0)
+        _AIO_FIRST_PASS_CACHE.pop(old_key, None)
+
+
 def _apply_aio_lora_stack(model, clip, lora_stack):
     entries = _normalize_aio_lora_stack(lora_stack)
     if not entries:
@@ -2923,6 +3020,9 @@ AIO_PREVIEW_STAGE_LABELS = {
 }
 AIO_PREVIEW_CACHE_FORMAT = "webp"
 AIO_PREVIEW_CACHE_QUALITY = 90
+AIO_FIRST_PASS_CACHE_MAX_ENTRIES = 2
+_AIO_FIRST_PASS_CACHE: dict[str, dict[str, Any]] = {}
+_AIO_FIRST_PASS_CACHE_ORDER: list[str] = []
 
 
 def _aio_detailer_has_enabled_targets(detailer_settings: dict[str, Any]) -> bool:
@@ -8811,6 +8911,22 @@ class EasyUseAnimaAIOGenerator:
         preview_images: list[dict[str, Any]] = []
         will_run_highres = _as_bool(settings["highres"].get("enabled"), False)
         will_run_detailer = _aio_detailer_has_enabled_targets(settings["detailer"])
+        first_pass_cache_key = _aio_first_pass_cache_key(
+            cache_scope=str(unique_id or id(self)),
+            context=context,
+            prompt_data=prompt_data,
+            lora_stack=lora_stack,
+            settings=settings,
+            positive_prompt=positive_prompt,
+            negative_prompt=negative_prompt,
+            quality_tags=quality_tags,
+            quality_neg=quality_neg,
+            use_anima_mod_guidance=use_anima_mod_guidance,
+            use_negative_anima_mod_guidance=use_negative_anima_mod_guidance,
+            width=width,
+            height=height,
+        )
+        first_pass_cache_hit = False
 
         def add_preview(stage: str, stage_image):
             preview_images.extend(
@@ -8823,21 +8939,31 @@ class EasyUseAnimaAIOGenerator:
             )
 
         try:
-            latent_image = _generate_empty_latent_with_comfy(width, height)
-            latent = _sample_latent_with_aio_backend(
-                base_sample_model,
-                clip,
-                positive,
-                negative,
-                latent_image,
-                sampler,
-                mod_guidance,
-                use_mod_guidance,
-                quality_tags,
-                quality_neg if use_negative_anima_mod_guidance else "",
-            )
-            image = _decode_latent_with_comfy(vae, latent)
-            if preview_settings["intermediate_images"] and (will_run_highres or will_run_detailer):
+            cached_first_pass = _get_aio_first_pass_cache(first_pass_cache_key)
+            if cached_first_pass is not None:
+                latent, image = cached_first_pass
+                first_pass_cache_hit = True
+            else:
+                latent_image = _generate_empty_latent_with_comfy(width, height)
+                latent = _sample_latent_with_aio_backend(
+                    base_sample_model,
+                    clip,
+                    positive,
+                    negative,
+                    latent_image,
+                    sampler,
+                    mod_guidance,
+                    use_mod_guidance,
+                    quality_tags,
+                    quality_neg if use_negative_anima_mod_guidance else "",
+                )
+                image = _decode_latent_with_comfy(vae, latent)
+                try:
+                    _put_aio_first_pass_cache(first_pass_cache_key, latent, image)
+                except Exception as exc:
+                    logger.debug("[EasyUseAnima] failed to store AiO first-pass cache: %s", exc)
+            stage_metadata["first_pass"] = {"cache_hit": first_pass_cache_hit}
+            if preview_settings["intermediate_images"]:
                 add_preview("first_pass", image)
             latent, image, width, height, highres_metadata = _run_aio_highres_stage(
                 mod_guidance_model,
