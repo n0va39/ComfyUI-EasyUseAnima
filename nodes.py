@@ -2263,6 +2263,52 @@ def _advanced_outputs_from_prompt_data(value: str | dict | None) -> tuple:
     )
 
 
+PROMPT_DATA_STRING_RETURN_NAMES = (
+    "positive_prompt",
+    "negative_prompt",
+    "anima_mod_guidance_quality_tags",
+    "anima_mod_guidance_negative_prompt",
+    "metadata_prompt",
+    "metadata_negative_prompt",
+    "global_prompt",
+    "positive_without_artist_section",
+    "negative_without_artist_section",
+    "artist_tags",
+    "artist_weighted_tags",
+    "artist_mix_prompt",
+    "artist_mix_mode",
+)
+
+
+def _prompt_data_string_outputs(value: str | dict | None) -> tuple[str, ...]:
+    data = _normalize_prompt_data(value)
+    artist = _prompt_data_nested(data, "artist")
+    artist_mix = _prompt_data_nested(data, "artist_mix")
+    positive_without_artist = str(
+        data.get("positive_without_artist_section")
+        or artist.get("positive_prompt_without_artist")
+        or ""
+    )
+    artist_text = str(artist.get("text") or artist_mix.get("artist_prompt") or "")
+    artist_weighted_text = str(artist.get("weighted_text") or artist_text)
+    artist_mix_prompt = str(artist_mix.get("artist_prompt") or artist_weighted_text)
+    return (
+        str(_prompt_data_output(data, "positive_prompt", "") or ""),
+        str(_prompt_data_output(data, "negative_prompt", "") or ""),
+        str(_prompt_data_output(data, "anima_mod_guidance_quality_tags", "") or ""),
+        str(_prompt_data_output(data, "anima_mod_guidance_negative_prompt", "") or ""),
+        str(_prompt_data_output(data, "metadata_prompt", "") or ""),
+        str(_prompt_data_output(data, "metadata_negative_prompt", "") or ""),
+        str(data.get("global_prompt") or positive_without_artist or ""),
+        positive_without_artist,
+        str(data.get("negative_without_artist_section") or ""),
+        artist_text,
+        artist_weighted_text,
+        artist_mix_prompt,
+        str(artist_mix.get("mode") or ""),
+    )
+
+
 def _copy_prompt_data_for_update(value: str | dict | None) -> dict[str, Any]:
     data = dict(_normalize_prompt_data(value))
     for key in ("outputs", "mod_guidance", "anima_mod_guidance", "resolution"):
@@ -5563,6 +5609,68 @@ class EasyUseAnimaPromptDataUnpack:
             overrides,
         )
         return (data, *_advanced_outputs_from_prompt_data(data))
+
+
+class EasyUseAnimaPromptDataStrings:
+    """Extract prompt strings from EASYUSE_ANIMA_PROMPT_DATA."""
+
+    DESCRIPTION = (
+        "Reads EASYUSE_ANIMA_PROMPT_DATA by dict keys and outputs the commonly "
+        "needed prompt strings for older string-based workflow sections."
+    )
+    OUTPUT_TOOLTIPS = (
+        "Positive prompt string from prompt data.",
+        "Negative prompt string from prompt data.",
+        "Positive Mod Guidance quality tag string from prompt data.",
+        "Negative Mod Guidance quality tag string from prompt data.",
+        "Positive metadata prompt string from prompt data.",
+        "Negative metadata prompt string from prompt data.",
+        "Base global positive prompt string without separately routed artist data when available.",
+        "Positive prompt string with Advanced artist fields removed.",
+        "Negative prompt string with metadata-only negative sections removed when available.",
+        "Artist tag text from Advanced artist fields.",
+        "Weighted artist tag text from Advanced artist fields.",
+        "Artist mix prompt string used by artist conditioning modes.",
+        "Artist mix mode string stored in prompt data.",
+    )
+
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {
+            "required": {
+                PROMPT_DATA_TYPE: (PROMPT_DATA_TYPE, {
+                    "forceInput": True,
+                    "tooltip": "Structured prompt data from Anima Prompt Studio Advanced v2.",
+                }),
+            },
+        }
+
+    RETURN_TYPES = tuple("STRING" for _name in PROMPT_DATA_STRING_RETURN_NAMES)
+    RETURN_NAMES = PROMPT_DATA_STRING_RETURN_NAMES
+    FUNCTION = "extract"
+    CATEGORY = "EasyUse Anima/Prompt"
+
+    @classmethod
+    def IS_CHANGED(
+        cls,
+        EASYUSE_ANIMA_PROMPT_DATA: str | dict | None = None,
+        prompt_data: str | dict | None = None,
+        **_kwargs,
+    ):
+        data = EASYUSE_ANIMA_PROMPT_DATA if EASYUSE_ANIMA_PROMPT_DATA is not None else prompt_data
+        return _stable_change_key({
+            "mode": "prompt_data_strings",
+            "prompt_data": _normalize_prompt_data(data),
+        })
+
+    def extract(
+        self,
+        EASYUSE_ANIMA_PROMPT_DATA: str | dict | None = None,
+        prompt_data: str | dict | None = None,
+    ):
+        return _prompt_data_string_outputs(
+            EASYUSE_ANIMA_PROMPT_DATA if EASYUSE_ANIMA_PROMPT_DATA is not None else prompt_data
+        )
 
 
 class EasyUseAnimaArtistMixConditioning:

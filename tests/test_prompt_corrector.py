@@ -29,6 +29,7 @@ from nodes import (
     EasyUseAnimaArtistMixConditioning,
     EasyUseAnimaDetailerAlignHook,
     EasyUseAnimaPromptDataConditioning,
+    EasyUseAnimaPromptDataStrings,
     EasyUseAnimaPromptDataUnpack,
     EasyUseAnimaPromptBuilder,
     EasyUseAnimaPromptCorrector,
@@ -396,6 +397,55 @@ class PromptBuilderTests(unittest.TestCase):
             self.assertIn(name, input_types["optional"])
         self.assertEqual(EasyUseAnimaPromptDataUnpack.RETURN_TYPES[0], PROMPT_DATA_TYPE)
         self.assertEqual(EasyUseAnimaPromptDataUnpack.RETURN_NAMES[0], PROMPT_DATA_TYPE)
+
+    def test_prompt_data_strings_extracts_string_outputs_by_key(self):
+        input_types = EasyUseAnimaPromptDataStrings.INPUT_TYPES()
+        self.assertIn(PROMPT_DATA_TYPE, input_types["required"])
+        self.assertTrue(input_types["required"][PROMPT_DATA_TYPE][1]["forceInput"])
+        self.assertTrue(all(return_type == "STRING" for return_type in EasyUseAnimaPromptDataStrings.RETURN_TYPES))
+        self.assertIn("positive_without_artist_section", EasyUseAnimaPromptDataStrings.RETURN_NAMES)
+        self.assertIn("artist_mix_prompt", EasyUseAnimaPromptDataStrings.RETURN_NAMES)
+
+        prompt_data = {
+            "outputs": {
+                "positive_prompt": "positive from outputs",
+                "negative_prompt": "negative from outputs",
+                "anima_mod_guidance_quality_tags": "quality tags",
+                "anima_mod_guidance_negative_prompt": "quality negative",
+                "metadata_prompt": "metadata positive",
+                "metadata_negative_prompt": "metadata negative",
+            },
+            "global_prompt": "global base",
+            "positive_without_artist_section": "base without artist",
+            "negative_without_artist_section": "negative without metadata",
+            "artist": {
+                "text": "artist_a, artist_b",
+                "weighted_text": "(artist_a:1.5), artist_b",
+            },
+            "artist_mix": {
+                "artist_prompt": "(artist_a:1.5), artist_b",
+                "mode": "exact",
+            },
+        }
+
+        values = dict(zip(
+            EasyUseAnimaPromptDataStrings.RETURN_NAMES,
+            EasyUseAnimaPromptDataStrings().extract(prompt_data),
+        ))
+
+        self.assertEqual(values["positive_prompt"], "positive from outputs")
+        self.assertEqual(values["negative_prompt"], "negative from outputs")
+        self.assertEqual(values["anima_mod_guidance_quality_tags"], "quality tags")
+        self.assertEqual(values["anima_mod_guidance_negative_prompt"], "quality negative")
+        self.assertEqual(values["metadata_prompt"], "metadata positive")
+        self.assertEqual(values["metadata_negative_prompt"], "metadata negative")
+        self.assertEqual(values["global_prompt"], "global base")
+        self.assertEqual(values["positive_without_artist_section"], "base without artist")
+        self.assertEqual(values["negative_without_artist_section"], "negative without metadata")
+        self.assertEqual(values["artist_tags"], "artist_a, artist_b")
+        self.assertEqual(values["artist_weighted_tags"], "(artist_a:1.5), artist_b")
+        self.assertEqual(values["artist_mix_prompt"], "(artist_a:1.5), artist_b")
+        self.assertEqual(values["artist_mix_mode"], "exact")
 
     def test_prompt_data_conditioning_uses_prompt_data_socket_and_sampler_outputs(self):
         input_types = EasyUseAnimaPromptDataConditioning.INPUT_TYPES()

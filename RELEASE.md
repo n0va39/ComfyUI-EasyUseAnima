@@ -23,6 +23,8 @@
 - Added `EASYUSE_ANIMA_PROMPT_DATA` helper node to pass prompt data through,
   optionally override compatibility fields, and unfold it into the existing
   Prompt Studio compatibility outputs.
+- Added `Anima Prompt Data Strings` to extract commonly needed string outputs
+  from `EASYUSE_ANIMA_PROMPT_DATA` for older string-based workflow sections.
 - Added `Anima Prompt Data Conditioning` to consume `EASYUSE_ANIMA_PROMPT_DATA`,
   encode positive/negative CONDITIONING, create a batch-size-1 latent image
   from prompt-data width/height, and apply the `comfyui-spectrum-ksampler`
