@@ -389,7 +389,7 @@
   },
   "EasyUseAnimaPromptDataConditioning": {
     "display_name": "Anima Prompt Data Conditioning",
-    "description": "EASYUSE_ANIMA_PROMPT_DATA를 키로 읽어 positive/negative CONDITIONING을 만들고, 활성화된 경우 Spectrum Anima Mod Guidance 모델 패치를 적용합니다.",
+    "description": "EASYUSE_ANIMA_PROMPT_DATA를 키로 읽어 positive/negative CONDITIONING과 batch size 1의 latent_image를 만들고, 활성화된 경우 Spectrum Anima Mod Guidance 모델 패치를 적용합니다.",
     "inputs": {
       "model": {
         "name": "model",
@@ -424,6 +424,10 @@
       "2": {
         "name": "negative",
         "tooltip": "프롬프트 데이터에서 인코딩한 negative CONDITIONING입니다."
+      },
+      "3": {
+        "name": "latent_image",
+        "tooltip": "프롬프트 데이터의 width/height로 만든 batch size 1 LATENT입니다."
       }
     }
   },

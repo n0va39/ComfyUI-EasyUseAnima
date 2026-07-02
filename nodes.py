@@ -692,6 +692,21 @@ def _apply_spectrum_anima_mod_guidance(
     return values[0]
 
 
+def _generate_empty_latent_with_comfy(width: int, height: int):
+    latent_cls = _find_comfy_node_class("EmptyLatentImage")
+    if latent_cls is None:
+        raise RuntimeError("[EasyUseAnima] Could not find ComfyUI EmptyLatentImage.")
+    latent_node = latent_cls()
+    generate = getattr(latent_node, "generate", None)
+    if generate is None:
+        raise RuntimeError("[EasyUseAnima] EmptyLatentImage does not expose generate().")
+    result = generate(max(16, int(width)), max(16, int(height)), 1)
+    values = _node_output_tuple(result)
+    if not values:
+        raise RuntimeError("[EasyUseAnima] EmptyLatentImage returned no LATENT.")
+    return values[0]
+
+
 def _format_sam3_detection_prompt(detect_prompt: str, detect_count: int) -> str:
     prompt = str(detect_prompt or "").strip()
     if not prompt:
@@ -3743,12 +3758,14 @@ class EasyUseAnimaPromptDataConditioning:
     DESCRIPTION = (
         "Reads EASYUSE_ANIMA_PROMPT_DATA by dict keys, encodes positive and negative "
         "CONDITIONING with CLIP, and applies comfyui-spectrum-ksampler Anima Mod "
-        "Guidance to the MODEL when enabled."
+        "Guidance to the MODEL when enabled. It also creates an empty latent image "
+        "from prompt-data width and height with batch size fixed to 1."
     )
     OUTPUT_TOOLTIPS = (
         "MODEL after prompt-data model patches.",
         "Positive CONDITIONING encoded from prompt data.",
         "Negative CONDITIONING encoded from prompt data.",
+        "Empty latent image created from prompt-data width and height with batch size 1.",
     )
 
     @classmethod
@@ -3782,8 +3799,8 @@ class EasyUseAnimaPromptDataConditioning:
             },
         }
 
-    RETURN_TYPES = ("MODEL", "CONDITIONING", "CONDITIONING")
-    RETURN_NAMES = ("model", "positive", "negative")
+    RETURN_TYPES = ("MODEL", "CONDITIONING", "CONDITIONING", "LATENT")
+    RETURN_NAMES = ("model", "positive", "negative", "latent_image")
     FUNCTION = "apply"
     CATEGORY = "EasyUse Anima/Prompt"
 
@@ -3819,12 +3836,13 @@ class EasyUseAnimaPromptDataConditioning:
             use_negative_anima_mod_guidance,
             _metadata_prompt,
             _metadata_negative_prompt,
-            _width,
-            _height,
+            width,
+            height,
         ) = _advanced_outputs_from_prompt_data(EASYUSE_ANIMA_PROMPT_DATA)
 
         positive = _encode_with_comfy_clip(clip, positive_prompt)
         negative = _encode_with_comfy_clip(clip, negative_prompt)
+        latent_image = _generate_empty_latent_with_comfy(width, height)
         profile = _normalize_anima_mod_guidance_profile(mod_w_profile)
         use_mod_guidance = _resolve_anima_mod_guidance_enabled(
             use_anima_mod_guidance,
@@ -3843,7 +3861,7 @@ class EasyUseAnimaPromptDataConditioning:
                 profile,
             )
 
-        return (patched_model, positive, negative)
+        return (patched_model, positive, negative, latent_image)
 
 
 class EasyUseAnimaPromptStudioRegional:

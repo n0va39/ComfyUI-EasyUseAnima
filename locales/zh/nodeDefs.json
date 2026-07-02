@@ -389,7 +389,7 @@
   },
   "EasyUseAnimaPromptDataConditioning": {
     "display_name": "Anima Prompt Data Conditioning",
-    "description": "Reads EASYUSE_ANIMA_PROMPT_DATA by key, encodes positive/negative CONDITIONING, and applies Spectrum Anima Mod Guidance model patching when enabled.",
+    "description": "Reads EASYUSE_ANIMA_PROMPT_DATA by key, encodes positive/negative CONDITIONING, creates a batch-size-1 latent_image, and applies Spectrum Anima Mod Guidance model patching when enabled.",
     "inputs": {
       "model": {
         "name": "model",
@@ -424,6 +424,10 @@
       "2": {
         "name": "negative",
         "tooltip": "Negative CONDITIONING encoded from prompt data."
+      },
+      "3": {
+        "name": "latent_image",
+        "tooltip": "Batch-size-1 LATENT created from prompt-data width and height."
       }
     }
   },

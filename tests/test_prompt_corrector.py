@@ -26,6 +26,7 @@ from nodes import (
     EasyUseAnimaPromptStudioAdvancedV2,
     EasyUseAnimaPromptStudioExtend,
     _clean_prompt,
+    _generate_empty_latent_with_comfy,
     _prompt_tokens,
 )
 from autocomplete_dataset import (
@@ -371,29 +372,47 @@ class PromptBuilderTests(unittest.TestCase):
         self.assertIn(PROMPT_DATA_TYPE, input_types["required"])
         self.assertEqual(input_types["required"][PROMPT_DATA_TYPE][0], PROMPT_DATA_TYPE)
         self.assertTrue(input_types["required"][PROMPT_DATA_TYPE][1]["forceInput"])
-        self.assertEqual(EasyUseAnimaPromptDataConditioning.RETURN_TYPES, ("MODEL", "CONDITIONING", "CONDITIONING"))
-        self.assertEqual(EasyUseAnimaPromptDataConditioning.RETURN_NAMES, ("model", "positive", "negative"))
+        self.assertEqual(EasyUseAnimaPromptDataConditioning.RETURN_TYPES, ("MODEL", "CONDITIONING", "CONDITIONING", "LATENT"))
+        self.assertEqual(EasyUseAnimaPromptDataConditioning.RETURN_NAMES, ("model", "positive", "negative", "latent_image"))
+
+    def test_empty_latent_generation_uses_comfy_node_with_batch_size_one(self):
+        calls = []
+
+        class FakeEmptyLatentImage:
+            def generate(self, width, height, batch_size=1):
+                calls.append((width, height, batch_size))
+                return ({"samples": "latent"},)
+
+        with patch("nodes._find_comfy_node_class", lambda node_id: FakeEmptyLatentImage if node_id == "EmptyLatentImage" else None):
+            latent = _generate_empty_latent_with_comfy(832, 1216)
+
+        self.assertEqual(latent, {"samples": "latent"})
+        self.assertEqual(calls, [(832, 1216, 1)])
 
     def test_prompt_data_conditioning_encodes_prompt_data_without_mod_guidance(self):
         model = object()
         prompt_data = {
             "positive_prompt": "1girl",
             "negative_prompt": "bad hands",
+            "width": 832,
+            "height": 1216,
             "mod_guidance": {
                 "enabled": False,
             },
         }
 
         with patch("nodes._encode_with_comfy_clip", lambda clip, text: [[f"cond:{text}", {"encoded_text": text}]]):
-            patched_model, positive, negative = EasyUseAnimaPromptDataConditioning().apply(
-                model,
-                clip=object(),
-                EASYUSE_ANIMA_PROMPT_DATA=prompt_data,
-            )
+            with patch("nodes._generate_empty_latent_with_comfy", lambda width, height: {"samples": (width, height, 1)}):
+                patched_model, positive, negative, latent_image = EasyUseAnimaPromptDataConditioning().apply(
+                    model,
+                    clip=object(),
+                    EASYUSE_ANIMA_PROMPT_DATA=prompt_data,
+                )
 
         self.assertIs(patched_model, model)
         self.assertEqual(positive[0][1]["encoded_text"], "1girl")
         self.assertEqual(negative[0][1]["encoded_text"], "bad hands")
+        self.assertEqual(latent_image, {"samples": (832, 1216, 1)})
 
     def test_prompt_data_conditioning_applies_spectrum_mod_guidance(self):
         calls = []
@@ -434,15 +453,17 @@ class PromptBuilderTests(unittest.TestCase):
         }
 
         with patch("nodes._encode_with_comfy_clip", lambda clip, text: [[f"cond:{text}", {"encoded_text": text}]]):
-            with patch("nodes._find_spectrum_anima_mod_guidance_class", lambda: FakeAnimaModGuidance):
-                patched_model, positive, negative = EasyUseAnimaPromptDataConditioning().apply(
-                    model,
-                    clip=clip,
-                    EASYUSE_ANIMA_PROMPT_DATA=prompt_data,
-                    mod_w_profile="step_i14",
-                )
+            with patch("nodes._generate_empty_latent_with_comfy", lambda width, height: {"samples": (width, height, 1)}):
+                with patch("nodes._find_spectrum_anima_mod_guidance_class", lambda: FakeAnimaModGuidance):
+                    patched_model, positive, negative, latent_image = EasyUseAnimaPromptDataConditioning().apply(
+                        model,
+                        clip=clip,
+                        EASYUSE_ANIMA_PROMPT_DATA=prompt_data,
+                        mod_w_profile="step_i14",
+                    )
 
         self.assertEqual(patched_model, "patched-model")
+        self.assertEqual(latent_image, {"samples": (1024, 1024, 1)})
         self.assertEqual(len(calls), 1)
         self.assertIs(calls[0]["model"], model)
         self.assertIs(calls[0]["clip"], clip)
