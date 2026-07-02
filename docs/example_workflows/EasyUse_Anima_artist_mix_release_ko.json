@@ -1,0 +1,1532 @@
+{
+  "id": "eaf1766f-2963-4221-b919-aa96b26f46e5",
+  "revision": 0,
+  "last_node_id": 62,
+  "last_link_id": 66,
+  "nodes": [
+    {
+      "id": 26,
+      "type": "VAELoader",
+      "pos": [
+        260,
+        300
+      ],
+      "size": [
+        340,
+        100
+      ],
+      "flags": {
+        "collapsed": false
+      },
+      "order": 0,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "vae 파일명",
+          "name": "vae_name",
+          "type": "COMBO",
+          "widget": {
+            "name": "vae_name"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "VAE",
+          "name": "VAE",
+          "type": "VAE",
+          "links": [
+            37
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "VAELoader",
+        "enableTabs": false,
+        "tabWidth": 65,
+        "tabXOffset": 10,
+        "hasSecondTab": false,
+        "secondTabText": "Send Back",
+        "secondTabOffset": 80,
+        "secondTabWidth": 65,
+        "cnr_id": "comfy-core",
+        "ver": "0.3.73",
+        "models": [
+          {
+            "name": "ae.safetensors",
+            "directory": "vae"
+          }
+        ],
+        "ue_properties": {
+          "widget_ue_connectable": {},
+          "version": "7.5.2",
+          "input_ue_unconnectable": {}
+        }
+      },
+      "widgets_values": [
+        "qwen_image_vae.safetensors"
+      ],
+      "color": "#332922",
+      "bgcolor": "#593930"
+    },
+    {
+      "id": 36,
+      "type": "easy showAnything",
+      "pos": [
+        2120,
+        320
+      ],
+      "size": [
+        210,
+        40
+      ],
+      "flags": {
+        "collapsed": true
+      },
+      "order": 5,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "anything",
+          "name": "anything",
+          "shape": 7,
+          "type": "*",
+          "link": 44
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "output",
+          "name": "output",
+          "type": "*",
+          "links": [
+            45
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "easy showAnything"
+      },
+      "widgets_values": [
+        "sgm_uniform"
+      ]
+    },
+    {
+      "id": 25,
+      "type": "CLIPLoader",
+      "pos": [
+        260,
+        460
+      ],
+      "size": [
+        340,
+        120
+      ],
+      "flags": {},
+      "order": 1,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "CLIP 파일명",
+          "name": "clip_name",
+          "type": "COMBO",
+          "widget": {
+            "name": "clip_name"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "유형",
+          "name": "type",
+          "type": "COMBO",
+          "widget": {
+            "name": "type"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "장치",
+          "name": "device",
+          "shape": 7,
+          "type": "COMBO",
+          "widget": {
+            "name": "device"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "CLIP",
+          "name": "CLIP",
+          "type": "CLIP",
+          "links": [
+            46
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "CLIPLoader"
+      },
+      "widgets_values": [
+        "qwen_3_06b_base.safetensors",
+        "qwen_image",
+        "default"
+      ]
+    },
+    {
+      "id": 34,
+      "type": "VAEDecode",
+      "pos": [
+        2380,
+        620
+      ],
+      "size": [
+        140,
+        50
+      ],
+      "flags": {
+        "collapsed": true
+      },
+      "order": 12,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "잠재 데이터",
+          "name": "samples",
+          "type": "LATENT",
+          "link": 36
+        },
+        {
+          "localized_name": "vae",
+          "name": "vae",
+          "type": "VAE",
+          "link": 37
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "이미지",
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            38
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "VAEDecode"
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 27,
+      "type": "UNETLoader",
+      "pos": [
+        260,
+        100
+      ],
+      "size": [
+        340,
+        140
+      ],
+      "flags": {},
+      "order": 2,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "UNet 모델 파일명",
+          "name": "unet_name",
+          "type": "COMBO",
+          "widget": {
+            "name": "unet_name"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "가중치 데이터 유형",
+          "name": "weight_dtype",
+          "type": "COMBO",
+          "widget": {
+            "name": "weight_dtype"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "모델",
+          "name": "MODEL",
+          "type": "MODEL",
+          "links": [
+            27
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "UNETLoader"
+      },
+      "widgets_values": [
+        "ANIMA\\anima_baseV10.safetensors",
+        "default"
+      ]
+    },
+    {
+      "id": 28,
+      "type": "easy loraStackApply",
+      "pos": [
+        650,
+        100
+      ],
+      "size": [
+        190,
+        70
+      ],
+      "flags": {
+        "collapsed": false
+      },
+      "order": 6,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "lora_stack",
+          "name": "lora_stack",
+          "type": "LORA_STACK",
+          "link": 39
+        },
+        {
+          "localized_name": "model",
+          "name": "model",
+          "type": "MODEL",
+          "link": 27
+        },
+        {
+          "localized_name": "optional_clip",
+          "name": "optional_clip",
+          "shape": 7,
+          "type": "CLIP",
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "model",
+          "name": "model",
+          "type": "MODEL",
+          "links": [
+            28
+          ]
+        },
+        {
+          "localized_name": "clip",
+          "name": "clip",
+          "type": "CLIP",
+          "links": []
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "easy loraStackApply"
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 29,
+      "type": "DCWModelPatch",
+      "pos": [
+        910,
+        130
+      ],
+      "size": [
+        330,
+        250
+      ],
+      "flags": {
+        "collapsed": true
+      },
+      "order": 8,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "model",
+          "name": "model",
+          "type": "MODEL",
+          "link": 28
+        },
+        {
+          "localized_name": "lambda_l",
+          "name": "lambda_l",
+          "type": "FLOAT",
+          "widget": {
+            "name": "lambda_l"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "lambda_h",
+          "name": "lambda_h",
+          "type": "FLOAT",
+          "widget": {
+            "name": "lambda_h"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "dcw_enabled",
+          "name": "dcw_enabled",
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "dcw_enabled"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "alpha_l",
+          "name": "alpha_l",
+          "type": "FLOAT",
+          "widget": {
+            "name": "alpha_l"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "alpha_h",
+          "name": "alpha_h",
+          "type": "FLOAT",
+          "widget": {
+            "name": "alpha_h"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "cwm_enabled",
+          "name": "cwm_enabled",
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "cwm_enabled"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "smc_preset",
+          "name": "smc_preset",
+          "type": "COMBO",
+          "widget": {
+            "name": "smc_preset"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "smc_lambda",
+          "name": "smc_lambda",
+          "type": "FLOAT",
+          "widget": {
+            "name": "smc_lambda"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "smc_k",
+          "name": "smc_k",
+          "type": "FLOAT",
+          "widget": {
+            "name": "smc_k"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "model",
+          "name": "model",
+          "type": "MODEL",
+          "links": [
+            40
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "DCWModelPatch"
+      },
+      "widgets_values": [
+        0.07,
+        0.02,
+        true,
+        0.01,
+        0.06,
+        false,
+        "Auto",
+        6,
+        0.15
+      ]
+    },
+    {
+      "id": 38,
+      "type": "EasyUseAnimaPromptStudioAdvancedV2",
+      "pos": [
+        760,
+        640
+      ],
+      "size": [
+        640,
+        1460
+      ],
+      "flags": {},
+      "order": 7,
+      "mode": 0,
+      "inputs": [
+        {
+          "label": "1. 트리거",
+          "name": "field_positive_trigger",
+          "type": "STRING",
+          "link": 53
+        },
+        {
+          "label": "2. 품질 태그",
+          "name": "field_positive_quality",
+          "type": "STRING",
+          "link": null
+        },
+        {
+          "label": "3. 작가 태그",
+          "name": "field_positive_artist",
+          "type": "STRING",
+          "link": 54
+        },
+        {
+          "label": "4. 일반 태그",
+          "name": "field_positive_general",
+          "type": "STRING",
+          "link": null
+        },
+        {
+          "label": "5. 일반 태그",
+          "name": "field_positive_trailing",
+          "type": "STRING",
+          "link": null
+        },
+        {
+          "label": "neg1. 품질 태그",
+          "name": "field_negative_quality_mr2sjzuc",
+          "type": "STRING",
+          "link": null
+        },
+        {
+          "label": "neg2. 일반 태그",
+          "name": "field_negative_general",
+          "type": "STRING",
+          "link": null
+        },
+        {
+          "label": "neg3. 일반 태그",
+          "name": "field_negative_general_mr2sk5j8",
+          "type": "STRING",
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "EASYUSE_ANIMA_PROMPT_DATA",
+          "name": "EASYUSE_ANIMA_PROMPT_DATA",
+          "type": "EASYUSE_ANIMA_PROMPT_DATA",
+          "links": [
+            57
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "EasyUseAnimaPromptStudioAdvancedV2",
+        "easyuse_anima_advanced_fields": "[{\"id\":\"positive_trigger\",\"pane\":\"positive\",\"type\":\"trigger\",\"label\":\"Trigger Words\",\"text\":\"\",\"height\":72,\"heightMode\":\"auto\",\"enabled\":true,\"pin\":true},{\"id\":\"positive_quality\",\"pane\":\"positive\",\"type\":\"quality\",\"label\":\"Quality Tags\",\"text\":\"(newest:0.6), masterpiece, best quality, (score_8:0.65), (score_7:0.7), (highres, absurdres, very aesthetic:0.8)\",\"height\":47,\"heightMode\":\"auto\",\"enabled\":true,\"pin\":false},{\"id\":\"positive_artist\",\"pane\":\"positive\",\"type\":\"artist\",\"label\":\"Artist Tags\",\"text\":\"(@freng:0.5), @ningen mame, (@fymrie:0.7), (@sushispin:0.8)\",\"height\":72,\"heightMode\":\"auto\",\"enabled\":true,\"pin\":false},{\"id\":\"positive_general\",\"pane\":\"positive\",\"type\":\"general\",\"label\":\"General Tags\",\"text\":\"#미쿠다요 \\n1girl, hatsune miku, absurdly long hair, aqua hair, aqua eyes, black dress, black hairband, black ribbon, blue sky, blurry, bokeh, bud, choppy bangs, clear sky, closed mouth, cosmos \\\\(flower\\\\), day, depth of field, dot nose, elbow gloves, embroidered dress, embroidery, facing viewer, feet out of frame, grass, hair between eyes, hair flowing over, high collar, holding bouquet, leaf, light particles, light smile, medium dress, moss, neck ribbon, overgrown, pink flower, purple flower, sidelocks, simple butterfly, sitting, solo, striped ribbon, succulent plant, sunlight, train interior, turtleneck capelet, twintails, two-tone dress, vegetation, very long hair, white butterfly, white dress, white flower, white gloves, white thighhighs, wisteria\",\"height\":160,\"heightMode\":\"auto\",\"enabled\":true,\"pin\":false},{\"id\":\"positive_trailing\",\"pane\":\"positive\",\"type\":\"general\",\"label\":\"General Tags\",\"text\":\", location, (A highly aesthetic Pixiv style illustration, clean composition, high-quality digital art, detailed background, sharp focus on facial expressions.:0.6)\",\"height\":47,\"heightMode\":\"auto\",\"enabled\":true,\"pin\":false},{\"id\":\"negative_quality_mr2sjzuc\",\"pane\":\"negative\",\"type\":\"quality\",\"label\":\"Quality Tags\",\"text\":\"worst quality, low quality, score_1, score_2, score_3, jpeg artifacts, sepia, missing finger, extra digits, fewer digits, artistic error, unfinished, monochrome, anime coloring, comic, western comics \\\\(style\\\\), \",\"height\":63,\"heightMode\":\"auto\",\"enabled\":true,\"pin\":false},{\"id\":\"negative_general\",\"pane\":\"negative\",\"type\":\"general\",\"label\":\"General Tags\",\"text\":\"(simple background, outside border, white border), (ai-generated), work-in-progress, construction lines, (blank, border, letterboxed:1.2), (outside border:0.7), blurry, unusual anatomy, distorted anatomy, anatomically incorrect, mutated digits, (artist name, watermark, patreon username, web address, patreon logo, weibo username, weibo logo, watermark:1.25), multiple views, (anime screenshot:0.75), furry, english text, spot color, doodle on background,  \",\"height\":95,\"heightMode\":\"auto\",\"enabled\":true,\"pin\":false},{\"id\":\"negative_general_mr2sk5j8\",\"pane\":\"negative\",\"type\":\"general\",\"label\":\"General Tags\",\"text\":\"(chibi:1.1), (mature female:0.3), (sweat:0.5), \",\"height\":47,\"heightMode\":\"auto\",\"enabled\":true,\"pin\":false}]"
+      },
+      "widgets_values": [
+        false,
+        true,
+        true,
+        "1280",
+        "1024 * 1536 (2:3)",
+        1024,
+        1024,
+        false,
+        "[{\"id\":\"positive_trigger\",\"pane\":\"positive\",\"type\":\"trigger\",\"label\":\"Trigger Words\",\"text\":\"\",\"height\":72,\"heightMode\":\"auto\",\"enabled\":true,\"pin\":true},{\"id\":\"positive_quality\",\"pane\":\"positive\",\"type\":\"quality\",\"label\":\"Quality Tags\",\"text\":\"(newest:0.6), masterpiece, best quality, (score_8:0.65), (score_7:0.7), (highres, absurdres, very aesthetic:0.8)\",\"height\":47,\"heightMode\":\"auto\",\"enabled\":true,\"pin\":false},{\"id\":\"positive_artist\",\"pane\":\"positive\",\"type\":\"artist\",\"label\":\"Artist Tags\",\"text\":\"(@freng:0.5), @ningen mame, (@fymrie:0.7), (@sushispin:0.8)\",\"height\":72,\"heightMode\":\"auto\",\"enabled\":true,\"pin\":false},{\"id\":\"positive_general\",\"pane\":\"positive\",\"type\":\"general\",\"label\":\"General Tags\",\"text\":\"#미쿠다요 \\n1girl, hatsune miku, absurdly long hair, aqua hair, aqua eyes, black dress, black hairband, black ribbon, blue sky, blurry, bokeh, bud, choppy bangs, clear sky, closed mouth, cosmos \\\\(flower\\\\), day, depth of field, dot nose, elbow gloves, embroidered dress, embroidery, facing viewer, feet out of frame, grass, hair between eyes, hair flowing over, high collar, holding bouquet, leaf, light particles, light smile, medium dress, moss, neck ribbon, overgrown, pink flower, purple flower, sidelocks, simple butterfly, sitting, solo, striped ribbon, succulent plant, sunlight, train interior, turtleneck capelet, twintails, two-tone dress, vegetation, very long hair, white butterfly, white dress, white flower, white gloves, white thighhighs, wisteria\",\"height\":160,\"heightMode\":\"auto\",\"enabled\":true,\"pin\":false},{\"id\":\"positive_trailing\",\"pane\":\"positive\",\"type\":\"general\",\"label\":\"General Tags\",\"text\":\", location, (A highly aesthetic Pixiv style illustration, clean composition, high-quality digital art, detailed background, sharp focus on facial expressions.:0.6)\",\"height\":47,\"heightMode\":\"auto\",\"enabled\":true,\"pin\":false},{\"id\":\"negative_quality_mr2sjzuc\",\"pane\":\"negative\",\"type\":\"quality\",\"label\":\"Quality Tags\",\"text\":\"worst quality, low quality, score_1, score_2, score_3, jpeg artifacts, sepia, missing finger, extra digits, fewer digits, artistic error, unfinished, monochrome, anime coloring, comic, western comics \\\\(style\\\\), \",\"height\":63,\"heightMode\":\"auto\",\"enabled\":true,\"pin\":false},{\"id\":\"negative_general\",\"pane\":\"negative\",\"type\":\"general\",\"label\":\"General Tags\",\"text\":\"(simple background, outside border, white border), (ai-generated), work-in-progress, construction lines, (blank, border, letterboxed:1.2), (outside border:0.7), blurry, unusual anatomy, distorted anatomy, anatomically incorrect, mutated digits, (artist name, watermark, patreon username, web address, patreon logo, weibo username, weibo logo, watermark:1.25), multiple views, (anime screenshot:0.75), furry, english text, spot color, doodle on background,  \",\"height\":95,\"heightMode\":\"auto\",\"enabled\":true,\"pin\":false},{\"id\":\"negative_general_mr2sk5j8\",\"pane\":\"negative\",\"type\":\"general\",\"label\":\"General Tags\",\"text\":\"(chibi:1.1), (mature female:0.3), (sweat:0.5), \",\"height\":47,\"heightMode\":\"auto\",\"enabled\":true,\"pin\":false}]",
+        true,
+        "고정",
+        0,
+        "fixed",
+        "exact",
+        0.5,
+        1,
+        "",
+        2,
+        4,
+        4,
+        true,
+        0.25,
+        ""
+      ]
+    },
+    {
+      "id": 31,
+      "type": "KSampler Config (rgthree)",
+      "pos": [
+        2040,
+        170
+      ],
+      "size": [
+        230,
+        340
+      ],
+      "flags": {
+        "collapsed": false
+      },
+      "order": 3,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "steps_total",
+          "name": "steps_total",
+          "type": "INT",
+          "widget": {
+            "name": "steps_total"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "refiner_step",
+          "name": "refiner_step",
+          "type": "INT",
+          "widget": {
+            "name": "refiner_step"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "cfg",
+          "name": "cfg",
+          "type": "FLOAT",
+          "widget": {
+            "name": "cfg"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "sampler_name",
+          "name": "sampler_name",
+          "type": "COMBO",
+          "widget": {
+            "name": "sampler_name"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "scheduler",
+          "name": "scheduler",
+          "type": "COMBO",
+          "widget": {
+            "name": "scheduler"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "STEPS",
+          "name": "STEPS",
+          "type": "INT",
+          "links": [
+            33,
+            65
+          ]
+        },
+        {
+          "localized_name": "REFINER_STEP",
+          "name": "REFINER_STEP",
+          "type": "INT",
+          "links": []
+        },
+        {
+          "localized_name": "CFG",
+          "name": "CFG",
+          "type": "FLOAT",
+          "links": [
+            34
+          ]
+        },
+        {
+          "localized_name": "SAMPLER",
+          "name": "SAMPLER",
+          "type": "COMBO",
+          "links": [
+            35
+          ]
+        },
+        {
+          "localized_name": "SCHEDULER",
+          "name": "SCHEDULER",
+          "type": "COMBO",
+          "links": [
+            44
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "KSampler Config (rgthree)",
+        "ue_properties": {
+          "widget_ue_connectable": {
+            "steps_total": true,
+            "refiner_step": true,
+            "cfg": true,
+            "sampler_name": true,
+            "scheduler": true
+          },
+          "version": "7.8",
+          "input_ue_unconnectable": {}
+        }
+      },
+      "widgets_values": [
+        30,
+        16,
+        5,
+        "er_sde",
+        "sgm_uniform"
+      ],
+      "color": "#233",
+      "bgcolor": "#355"
+    },
+    {
+      "id": 24,
+      "type": "EasyUseAnimaPromptDataConditioning",
+      "pos": [
+        1460,
+        600
+      ],
+      "size": [
+        350,
+        360
+      ],
+      "flags": {},
+      "order": 9,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "model",
+          "name": "model",
+          "type": "MODEL",
+          "link": 40
+        },
+        {
+          "localized_name": "clip",
+          "name": "clip",
+          "type": "CLIP",
+          "link": 46
+        },
+        {
+          "localized_name": "EASYUSE_ANIMA_PROMPT_DATA",
+          "name": "EASYUSE_ANIMA_PROMPT_DATA",
+          "type": "EASYUSE_ANIMA_PROMPT_DATA",
+          "link": 57
+        },
+        {
+          "localized_name": "mod_guidance_mode",
+          "name": "mod_guidance_mode",
+          "type": "COMBO",
+          "widget": {
+            "name": "mod_guidance_mode"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "mod_w_profile",
+          "name": "mod_w_profile",
+          "type": "COMBO",
+          "widget": {
+            "name": "mod_w_profile"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "artist_mix_mode",
+          "name": "artist_mix_mode",
+          "type": "COMBO",
+          "widget": {
+            "name": "artist_mix_mode"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "artist_mix_start_percent",
+          "name": "artist_mix_start_percent",
+          "type": "FLOAT",
+          "widget": {
+            "name": "artist_mix_start_percent"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "artist_mix_strength_scale",
+          "name": "artist_mix_strength_scale",
+          "type": "FLOAT",
+          "widget": {
+            "name": "artist_mix_strength_scale"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "artist_mix_style_gain",
+          "name": "artist_mix_style_gain",
+          "type": "FLOAT",
+          "widget": {
+            "name": "artist_mix_style_gain"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "artist_mix_rms_scale_cap",
+          "name": "artist_mix_rms_scale_cap",
+          "type": "FLOAT",
+          "widget": {
+            "name": "artist_mix_rms_scale_cap"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "artist_mix_exact_top_k",
+          "name": "artist_mix_exact_top_k",
+          "type": "INT",
+          "widget": {
+            "name": "artist_mix_exact_top_k"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "artist_mix_cluster_count",
+          "name": "artist_mix_cluster_count",
+          "type": "INT",
+          "widget": {
+            "name": "artist_mix_cluster_count"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "artist_mix_dominant_isolation",
+          "name": "artist_mix_dominant_isolation",
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "artist_mix_dominant_isolation"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "artist_mix_dominant_threshold",
+          "name": "artist_mix_dominant_threshold",
+          "type": "FLOAT",
+          "widget": {
+            "name": "artist_mix_dominant_threshold"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "model",
+          "name": "model",
+          "type": "MODEL",
+          "links": [
+            63
+          ]
+        },
+        {
+          "localized_name": "positive",
+          "name": "positive",
+          "type": "CONDITIONING",
+          "links": [
+            47
+          ]
+        },
+        {
+          "localized_name": "negative",
+          "name": "negative",
+          "type": "CONDITIONING",
+          "links": [
+            48
+          ]
+        },
+        {
+          "localized_name": "latent_image",
+          "name": "latent_image",
+          "type": "LATENT",
+          "links": [
+            55
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "EasyUseAnimaPromptDataConditioning"
+      },
+      "widgets_values": [
+        "prompt_data",
+        "step_i8_skip27",
+        "prompt_data",
+        0.5,
+        1,
+        1.35,
+        2,
+        4,
+        4,
+        true,
+        0.25
+      ]
+    },
+    {
+      "id": 32,
+      "type": "KSampler",
+      "pos": [
+        2240,
+        620
+      ],
+      "size": [
+        270,
+        270
+      ],
+      "flags": {
+        "collapsed": true
+      },
+      "order": 11,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "모델",
+          "name": "model",
+          "type": "MODEL",
+          "link": 64
+        },
+        {
+          "localized_name": "긍정 조건",
+          "name": "positive",
+          "type": "CONDITIONING",
+          "link": 47
+        },
+        {
+          "localized_name": "부정 조건",
+          "name": "negative",
+          "type": "CONDITIONING",
+          "link": 48
+        },
+        {
+          "localized_name": "잠재 데이터",
+          "name": "latent_image",
+          "type": "LATENT",
+          "link": 55
+        },
+        {
+          "localized_name": "시드",
+          "name": "seed",
+          "type": "INT",
+          "widget": {
+            "name": "seed"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "스텝 수",
+          "name": "steps",
+          "type": "INT",
+          "widget": {
+            "name": "steps"
+          },
+          "link": 33
+        },
+        {
+          "localized_name": "cfg",
+          "name": "cfg",
+          "type": "FLOAT",
+          "widget": {
+            "name": "cfg"
+          },
+          "link": 34
+        },
+        {
+          "localized_name": "샘플러 이름",
+          "name": "sampler_name",
+          "type": "COMBO",
+          "widget": {
+            "name": "sampler_name"
+          },
+          "link": 35
+        },
+        {
+          "localized_name": "스케줄러",
+          "name": "scheduler",
+          "type": "COMBO",
+          "widget": {
+            "name": "scheduler"
+          },
+          "link": 45
+        },
+        {
+          "label": "denoise(only i2i)",
+          "localized_name": "노이즈 제거양",
+          "name": "denoise",
+          "type": "FLOAT",
+          "widget": {
+            "name": "denoise"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "잠재 데이터",
+          "name": "LATENT",
+          "type": "LATENT",
+          "links": [
+            36
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "KSampler"
+      },
+      "widgets_values": [
+        39,
+        "fixed",
+        30,
+        5,
+        "er_sde",
+        "simple",
+        1
+      ]
+    },
+    {
+      "id": 35,
+      "type": "SaveImage",
+      "pos": [
+        1920,
+        1040
+      ],
+      "size": [
+        570,
+        550
+      ],
+      "flags": {},
+      "order": 13,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "이미지",
+          "name": "images",
+          "type": "IMAGE",
+          "link": 38
+        },
+        {
+          "localized_name": "파일명 접두사",
+          "name": "filename_prefix",
+          "type": "STRING",
+          "widget": {
+            "name": "filename_prefix"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [],
+      "properties": {
+        "Node name for S&R": "SaveImage"
+      },
+      "widgets_values": [
+        "EasyUseAnima\\ArtistMix"
+      ]
+    },
+    {
+      "id": 44,
+      "type": "DiTSpectrumPatchAdvanced",
+      "pos": [
+        1880,
+        600
+      ],
+      "size": [
+        310,
+        350
+      ],
+      "flags": {},
+      "order": 10,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "model",
+          "name": "model",
+          "type": "MODEL",
+          "link": 63
+        },
+        {
+          "localized_name": "steps",
+          "name": "steps",
+          "type": "INT",
+          "widget": {
+            "name": "steps"
+          },
+          "link": 65
+        },
+        {
+          "localized_name": "window_size",
+          "name": "window_size",
+          "type": "FLOAT",
+          "widget": {
+            "name": "window_size"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "flex_window",
+          "name": "flex_window",
+          "type": "FLOAT",
+          "widget": {
+            "name": "flex_window"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "warmup_steps",
+          "name": "warmup_steps",
+          "type": "INT",
+          "widget": {
+            "name": "warmup_steps"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "tail_actual_steps",
+          "name": "tail_actual_steps",
+          "type": "INT",
+          "widget": {
+            "name": "tail_actual_steps"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "blend_w",
+          "name": "blend_w",
+          "type": "FLOAT",
+          "widget": {
+            "name": "blend_w"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "cheby_degree",
+          "name": "cheby_degree",
+          "type": "INT",
+          "widget": {
+            "name": "cheby_degree"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "ridge_lambda",
+          "name": "ridge_lambda",
+          "type": "FLOAT",
+          "widget": {
+            "name": "ridge_lambda"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "history_size",
+          "name": "history_size",
+          "type": "INT",
+          "widget": {
+            "name": "history_size"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "enabled",
+          "name": "enabled",
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "enabled"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "one_sampler_only",
+          "name": "one_sampler_only",
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "one_sampler_only"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "verbose",
+          "name": "verbose",
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "verbose"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "compat_policy",
+          "name": "compat_policy",
+          "type": "COMBO",
+          "widget": {
+            "name": "compat_policy"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "모델",
+          "name": "MODEL",
+          "type": "MODEL",
+          "links": [
+            64
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "DiTSpectrumPatchAdvanced"
+      },
+      "widgets_values": [
+        30,
+        2,
+        0.25,
+        6,
+        3,
+        0.3,
+        3,
+        0.1,
+        100,
+        true,
+        false,
+        false,
+        "strict"
+      ]
+    },
+    {
+      "id": 20,
+      "type": "EasyUseAnimaLoraPreset",
+      "pos": [
+        260,
+        640
+      ],
+      "size": [
+        440,
+        296
+      ],
+      "flags": {},
+      "order": 4,
+      "mode": 0,
+      "inputs": [
+        {
+          "label": "style_prompt",
+          "localized_name": "스타일 프롬프트",
+          "name": "style_prompt",
+          "type": "STRING",
+          "widget": {
+            "name": "style_prompt"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "프로필 인덱스",
+          "name": "profile_index",
+          "type": "INT",
+          "widget": {
+            "name": "profile_index"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "프로필 개수",
+          "name": "profile_count",
+          "type": "STRING",
+          "widget": {
+            "name": "profile_count"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "LoRA 이름",
+          "name": "lora_name",
+          "type": "COMBO",
+          "widget": {
+            "name": "lora_name"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "LoRA 목록",
+          "name": "loras",
+          "type": "STRING",
+          "widget": {
+            "name": "loras"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "프로필 데이터",
+          "name": "profile_data",
+          "type": "STRING",
+          "widget": {
+            "name": "profile_data"
+          },
+          "link": null
+        },
+        {
+          "name": "lora_stack",
+          "type": "LORA_STACK",
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "스타일 프롬프트",
+          "name": "style_prompt",
+          "type": "STRING",
+          "links": [
+            54
+          ]
+        },
+        {
+          "localized_name": "LORA_STACK",
+          "name": "LORA_STACK",
+          "type": "LORA_STACK",
+          "links": [
+            39
+          ]
+        },
+        {
+          "localized_name": "트리거 워드",
+          "name": "trigger_words",
+          "type": "STRING",
+          "links": [
+            53
+          ]
+        },
+        {
+          "localized_name": "활성 LoRA",
+          "name": "active_loras",
+          "type": "STRING",
+          "links": []
+        },
+        {
+          "localized_name": "프로필 인덱스",
+          "name": "profile_index",
+          "type": "INT",
+          "links": []
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "EasyUseAnimaLoraPreset"
+      },
+      "widgets_values": [
+        "(@freng:0.5), @ningen mame, (@fymrie:0.7), (@sushispin:0.8), ",
+        1,
+        "1",
+        "None",
+        "[]",
+        "{\"1\":{\"style_prompt\":\"(@freng:0.5), @ningen mame, (@fymrie:0.7), (@sushispin:0.8), \",\"loras\":[]}}",
+        "{\"1\":{\"style_prompt\":\"(@freng:0.5), @ningen mame, (@fymrie:0.7), (@sushispin:0.8), \",\"loras\":[]}}"
+      ]
+    }
+  ],
+  "links": [
+    [
+      27,
+      27,
+      0,
+      28,
+      1,
+      "MODEL"
+    ],
+    [
+      28,
+      28,
+      0,
+      29,
+      0,
+      "MODEL"
+    ],
+    [
+      33,
+      31,
+      0,
+      32,
+      5,
+      "INT"
+    ],
+    [
+      34,
+      31,
+      2,
+      32,
+      6,
+      "FLOAT"
+    ],
+    [
+      35,
+      31,
+      3,
+      32,
+      7,
+      "COMBO"
+    ],
+    [
+      36,
+      32,
+      0,
+      34,
+      0,
+      "LATENT"
+    ],
+    [
+      37,
+      26,
+      0,
+      34,
+      1,
+      "VAE"
+    ],
+    [
+      38,
+      34,
+      0,
+      35,
+      0,
+      "IMAGE"
+    ],
+    [
+      39,
+      20,
+      1,
+      28,
+      0,
+      "LORA_STACK"
+    ],
+    [
+      40,
+      29,
+      0,
+      24,
+      0,
+      "MODEL"
+    ],
+    [
+      44,
+      31,
+      4,
+      36,
+      0,
+      "COMBO"
+    ],
+    [
+      45,
+      36,
+      0,
+      32,
+      8,
+      "COMBO"
+    ],
+    [
+      46,
+      25,
+      0,
+      24,
+      1,
+      "CLIP"
+    ],
+    [
+      47,
+      24,
+      1,
+      32,
+      1,
+      "CONDITIONING"
+    ],
+    [
+      48,
+      24,
+      2,
+      32,
+      2,
+      "CONDITIONING"
+    ],
+    [
+      53,
+      20,
+      2,
+      38,
+      0,
+      "STRING"
+    ],
+    [
+      54,
+      20,
+      0,
+      38,
+      2,
+      "STRING"
+    ],
+    [
+      55,
+      24,
+      3,
+      32,
+      3,
+      "LATENT"
+    ],
+    [
+      57,
+      38,
+      0,
+      24,
+      2,
+      "EASYUSE_ANIMA_PROMPT_DATA"
+    ],
+    [
+      63,
+      24,
+      0,
+      44,
+      0,
+      "MODEL"
+    ],
+    [
+      64,
+      44,
+      0,
+      32,
+      0,
+      "MODEL"
+    ],
+    [
+      65,
+      31,
+      0,
+      44,
+      1,
+      "INT"
+    ]
+  ],
+  "groups": [],
+  "config": {},
+  "extra": {
+    "ds": {
+      "scale": 0.9680000000000432,
+      "offset": [
+        -529.1593796524736,
+        142.30859800129167
+      ]
+    },
+    "easyuse_anima_workflow": {
+      "id": "easyuse-anima-artist-mix",
+      "title": "EasyUse Anima Artist Mix",
+      "language": "ko",
+      "package_version": "0.2.1",
+      "release_filename": "EasyUse_Anima_artist_mix_release_ko.json",
+      "source": "user/default/workflows/EasyUseAnima_Artist-Mix.json"
+    }
+  },
+  "version": 0.4
+}

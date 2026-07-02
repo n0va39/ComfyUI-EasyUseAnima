@@ -37,18 +37,46 @@ conditioning workflow requires a fixed artist-tag position.
 
 ## Artist Mix Mode
 
-| Value | Cost | Behavior |
-| --- | --- | --- |
-| `prompt` | 1 positive branch | Inserts artist tags into the prompt and encodes once. |
-| `average` | 1 positive branch | Blends per-artist conditionings by weighted average. |
-| `delta_rms` | 1 positive branch | Mixes artist deltas from the base prompt and restores RMS style energy. |
-| `hybrid` | top K + 1 branches | Keeps strongest artists as exact branches and compresses the tail. |
-| `clustered` | cluster_count branches | Groups similar artist deltas into compressed branches. |
-| `exact` | N artist branches | Creates one conditioning branch per artist. Most faithful, highest cost. |
+Artist mix controls whether artist tags are simply inserted into one prompt or
+encoded as separate CLIP conditionings before being mixed. The cost column uses
+the number of positive conditioning branches. More branches keep artist effects
+more separated, but they also give the sampler more conditioning work.
 
-`composite_exact`, `late_exact`, `average_late_exact`, and
-`scheduled_average` are compatibility modes shared with Prompt Data
-Conditioning.
+Start with `prompt` or `average`. Use `hybrid` when a few artists should stay
+distinct but full `exact` is too expensive. Use `exact` only when the artist
+count is small or faithful per-artist separation matters more than cost.
+
+| Value | Cost | When To Use |
+| --- | --- | --- |
+| `prompt` | 1 positive branch | Inserts artist tags into the prompt and encodes once. This is closest to normal prompt writing and is a useful baseline. |
+| `average` | 1 positive branch | Encodes each artist and blends the conditionings. Use it when you want clearer artist-field weighting without increasing branch count. |
+| `delta_rms` | 1 positive branch | Treats the difference between the base prompt and artist prompts as a compressed style delta. Try it when `average` feels too weak. |
+| `hybrid` | top K + 1 branches | Keeps the strongest artists as exact branches and compresses the remaining tail. This is the practical middle ground when `exact` is too heavy. |
+| `clustered` | cluster_count branches | Groups similar artist deltas into several compressed branches. Use it for many artists when `average` is too blended and `exact` is too expensive. |
+| `exact` | N artist branches | Creates one conditioning branch per artist. It is the most direct and separated mode, but cost grows with the artist count. |
+
+Compatibility modes:
+
+- `composite_exact`: uses exact branches plus a full artist-prompt branch.
+- `late_exact`: starts from the base prompt, then adds exact branches after the selected sampling percent.
+- `average_late_exact`: behaves closer to average early and closer to exact late.
+- `scheduled_average`: applies averaged artist conditioning over a sampling range.
+
+These compatibility modes are shared with Prompt Data Conditioning. For most
+workflows, choose among `prompt`, `average`, `hybrid`, and `exact` first.
+
+## Example Workflow
+
+![EasyUse Anima Artist Mix workflow](../example_workflows/EasyUse_Anima_artist_mix_release_ko.png)
+
+- Workflow JSON: [EasyUse_Anima_artist_mix_release_ko.json](../example_workflows/EasyUse_Anima_artist_mix_release_ko.json)
+- Preview PNG: [EasyUse_Anima_artist_mix_release_ko.png](../example_workflows/EasyUse_Anima_artist_mix_release_ko.png)
+
+This example sends the artist field from `Anima Prompt Studio Advanced v2`
+through `EASYUSE_ANIMA_PROMPT_DATA`, then applies `artist_mix_mode` `exact` in
+`Anima Prompt Data Conditioning`. The sample artist strings include `@`-prefixed
+items, but artist mix identifies artist tags by the artist field or
+`artist_tags` input, not by the `@` prefix.
 
 ## Tuning Inputs
 

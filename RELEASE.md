@@ -48,6 +48,8 @@
 - Added user-facing artist mix documentation covering Advanced v2 Prompt Data
   routing, standalone artist tag positioning, artist mix modes, and branch cost
   tradeoffs.
+- Added an Artist Mix example workflow and preview under
+  `docs/example_workflows/`.
 - Prompt data now stores `global_prompt` /
   `positive_without_artist_section`, structured `artist.tags`, and
   `artist_mix` routing values for artist-conditioning nodes.

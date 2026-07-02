@@ -30,3 +30,15 @@ workflow assets.
 - `EasyUse_Anima_feature_test_release_en.jpg`
 - `EasyUse_Anima_regional_prompt_release_ko.json`
 - `EasyUse_Anima_regional_prompt_release_ko.png`
+- `EasyUse_Anima_artist_mix_release_ko.json`
+- `EasyUse_Anima_artist_mix_release_ko.png`
+
+## Artist Mix Example
+
+- Workflow: [EasyUse_Anima_artist_mix_release_ko.json](EasyUse_Anima_artist_mix_release_ko.json)
+- Preview: [EasyUse_Anima_artist_mix_release_ko.png](EasyUse_Anima_artist_mix_release_ko.png)
+- Node guide: [Anima Artist Mix Conditioning](../nodes/anima-artist-mix-conditioning.ko.md)
+
+This workflow shows the Advanced v2 prompt-data route: artist fields are stored
+in `EASYUSE_ANIMA_PROMPT_DATA`, then `Anima Prompt Data Conditioning` applies an
+artist mix mode before the sampler.
