@@ -446,6 +446,144 @@ const AIO_TEXT = {
     "label.image": "image",
     "label.resolution": "resolution",
     "label.fileSize": "file size",
+    "dialog.input.title": "Easy Use Anima Input Settings",
+    "dialog.input.subtitle": "Advanced resource options are saved internally with the workflow.",
+    "dialog.sampler.title": "Sampler Details",
+    "dialog.sampler.subtitle": "Choose one of three sampler paths. Missing optional node packs are locked before queue execution.",
+    "dialog.highres.title": "Highres Settings",
+    "dialog.highres.subtitle": "Image scaling, highres resampling, and Spectrum optimization are saved with the node.",
+    "dialog.detailer.title": "Detailer Settings",
+    "dialog.detailer.subtitle": "SAM3 detection and Impact detailer settings are saved with the node.",
+    "dialog.preview.title": "Preview Options",
+    "dialog.save.title": "Save Options",
+    "dialog.save.subtitle": "Image Saver requires ComfyUI-Image-Saver. Missing node packs are reported during queue execution.",
+    "dialog.advanced.title": "Advanced Options",
+    "dialog.advanced.subtitle": "Advanced generation options stay in a popup and are serialized as versioned settings.",
+    "section.loaderOptions": "Loader Options",
+    "section.baseParameters": "Base Parameters",
+    "section.samplerBackend": "Sampler Backend",
+    "section.modGuidance": "Mod Guidance",
+    "section.spectrumPatchAdvancedSampler": "Spectrum Patch / Advanced Sampler",
+    "section.spectrumAdvancedCorrections": "Spectrum Advanced Corrections",
+    "section.spectrumDcwCorrections": "Spectrum DCW / Corrections",
+    "section.spdSpeed": "Spectrum + SPD / SPEED",
+    "section.imageScale": "Image Scale",
+    "section.highresSampler": "Highres Sampler",
+    "section.highresOptimization": "Highres Optimization",
+    "section.detailer": "Detailer",
+    "section.detailerBlocks": "Detailer Blocks",
+    "section.sam3Detect": "SAM3 Detect",
+    "section.maskToSegs": "MaskToSEGS",
+    "section.impactDetailer": "Impact Detailer",
+    "section.nodePreview": "Node Preview",
+    "section.saveBackend": "Save Backend",
+    "section.imageSaverFiles": "Image Saver Files",
+    "section.imageSaverMetadata": "Image Saver Metadata",
+    "section.modelPatchOptimization": "Model Patch / Optimization",
+    "section.animaDave": "Anima DAVE",
+    "section.kjNodesOptimization": "KJNodes Optimization",
+    "section.sageAttention": "SageAttention (KJNodes)",
+    "section.torchCompile": "Torch Compile (KJNodes)",
+    "section.torchCompileParameters": "Torch Compile Parameters",
+    "section.artistMix": "Artist Mix",
+    "field.unetWeightDtype": "UNET weight dtype",
+    "field.clipDevice": "CLIP device",
+    "field.seedMode": "Seed mode",
+    "field.auraFlowShift": "AuraFlow shift",
+    "field.profile": "Profile",
+    "field.adapter": "Adapter",
+    "field.modW": "Mod W",
+    "field.startLayer": "Start layer",
+    "field.endLayer": "End layer",
+    "field.taper": "Taper",
+    "field.taperScale": "Taper scale",
+    "field.finalW": "Final W",
+    "field.useSpectrumPatch": "Use Spectrum patch",
+    "field.spectrumPatch": "Spectrum patch",
+    "field.windowSize": "Window size",
+    "field.flexWindow": "Flex window",
+    "field.warmupSteps": "Warmup steps",
+    "field.warmup": "Warmup",
+    "field.tailActual": "Tail actual",
+    "field.blendW": "Blend W",
+    "field.chebyDegree": "Cheby degree",
+    "field.cheby": "Cheby",
+    "field.ridgeLambda": "Ridge lambda",
+    "field.compatPolicy": "Compat policy",
+    "field.compat": "Compat",
+    "field.useCorrections": "Use corrections",
+    "field.dcwMode": "DCW mode",
+    "field.dcwLambda": "DCW lambda",
+    "field.dcwBand": "DCW band",
+    "field.smcCfg": "SMC-CFG",
+    "field.smcAlpha": "SMC alpha",
+    "field.smcLambda": "SMC lambda",
+    "field.cfgppLambda": "CFG++ lambda",
+    "field.sigma": "Sigma",
+    "field.enableHighres": "Enable highres",
+    "field.scaleBy": "Scale by",
+    "field.method": "Method",
+    "field.multiple": "Multiple",
+    "field.maxLongEdge": "Max long edge",
+    "field.blockName": "Block name",
+    "field.prompt": "Prompt",
+    "field.count": "Count",
+    "field.threshold": "Threshold",
+    "field.refine": "Refine",
+    "field.individual": "Individual",
+    "field.combined": "Combined",
+    "field.cropFactor": "Crop factor",
+    "field.bboxFill": "BBox fill",
+    "field.dropSize": "Drop size",
+    "field.contourFill": "Contour fill",
+    "field.guideSize": "Guide size",
+    "field.maxSize": "Max size",
+    "field.feather": "Feather",
+    "field.noiseMask": "Noise mask",
+    "field.forceInpaint": "Force inpaint",
+    "field.maskFeather": "Mask feather",
+    "field.cycle": "Cycle",
+    "field.alignment": "Alignment",
+    "field.enableDetailer": "Enable detailer",
+    "field.sam3Checkpoint": "SAM3 checkpoint",
+    "field.intermediateImages": "Intermediate images",
+    "field.comparePrevious": "Compare previous",
+    "field.imageFeed": "Image feed",
+    "field.feedCount": "Feed count",
+    "field.saveImage": "Save image",
+    "field.backend": "Backend",
+    "field.filename": "Filename",
+    "field.path": "Path",
+    "field.extension": "Extension",
+    "field.quality": "JPEG/WebP quality",
+    "field.losslessWebp": "Lossless WebP",
+    "field.optimizePng": "Optimize PNG",
+    "field.counter": "Counter",
+    "field.timeFormat": "Time format",
+    "field.clipSkip": "Clip skip",
+    "field.embedWorkflow": "Embed workflow",
+    "field.workflowJson": "Workflow JSON",
+    "field.additionalHashes": "Additional hashes",
+    "field.manualHashBundles": "Manual hash bundles",
+    "field.civitaiHashFetchers": "Civitai Hash Fetchers",
+    "field.civitaiData": "Civitai data",
+    "field.easyRemix": "Easy remix",
+    "field.customMetadata": "Custom metadata",
+    "field.useDave": "Use DAVE",
+    "field.mask": "Mask",
+    "field.daveStrength": "DAVE strength",
+    "field.daveTau": "DAVE tau",
+    "field.kjFp16Accum": "KJNodes FP16 accum",
+    "field.allowCompile": "Allow compile",
+    "field.useTorchCompile": "Use Torch compile",
+    "field.fullgraph": "Fullgraph",
+    "field.dynamic": "Dynamic",
+    "field.transformerBlocksOnly": "Transformer blocks only",
+    "field.dynamoCacheLimit": "Dynamo cache limit",
+    "field.debugKeys": "Debug keys",
+    "field.disableDynamicVram": "Disable dynamic VRAM",
+    "field.start": "Start",
+    "field.strength": "Strength",
     "button.randomEach": "Randomize Each Time",
     "button.newFixed": "New Fixed Random",
     "button.useLast": "Use Last Queued: {seed}",
@@ -459,6 +597,7 @@ const AIO_TEXT = {
     "button.previewOptions": "Preview Options...",
     "button.moveUp": "Up",
     "button.moveDown": "Down",
+    "button.addHashBundle": "+ Add Hash Fetcher Bundle",
     "button.addCivitaiFetcher": "+ Add Civitai Hash Fetcher",
     "button.remove": "Remove",
     "text.previewTitle": "Generated Image Preview",
@@ -466,6 +605,7 @@ const AIO_TEXT = {
     "text.previewOptionsSubtitle": "Preview settings control only this node UI. They do not change saved image metadata.",
     "text.previewPrevious": "Previous",
     "text.previewCurrent": "Current",
+    "text.inputLoaderMode": "Loader mode: split diffusion model + VAE + CLIP",
     "text.highresDisabled": "Enable Highres to expose resize and second-pass controls.",
     "text.detailerDisabled": "Enable Detailer to configure ordered processing blocks.",
     "text.inheritsMainSampler": "Uses main CFG, sampler, and scheduler.",
@@ -537,6 +677,144 @@ const AIO_TEXT = {
     "label.image": "이미지",
     "label.resolution": "해상도",
     "label.fileSize": "저장용량",
+    "dialog.input.title": "Easy Use Anima Input 설정",
+    "dialog.input.subtitle": "고급 리소스 옵션은 워크플로우 내부 설정으로 저장됩니다.",
+    "dialog.sampler.title": "샘플러 상세 설정",
+    "dialog.sampler.subtitle": "세 가지 샘플러 경로 중 하나를 선택합니다. 없는 선택 의존성은 큐 실행 전에 잠깁니다.",
+    "dialog.highres.title": "Highres 설정",
+    "dialog.highres.subtitle": "이미지 확대, Highres 재샘플링, Spectrum 최적화 설정이 노드에 저장됩니다.",
+    "dialog.detailer.title": "디테일러 설정",
+    "dialog.detailer.subtitle": "SAM3 감지와 Impact Detailer 설정이 노드에 저장됩니다.",
+    "dialog.preview.title": "프리뷰 옵션",
+    "dialog.save.title": "저장 옵션",
+    "dialog.save.subtitle": "Image Saver는 ComfyUI-Image-Saver가 필요합니다. 누락된 노드팩은 큐 실행 중 명확히 보고됩니다.",
+    "dialog.advanced.title": "고급 옵션",
+    "dialog.advanced.subtitle": "고급 생성 옵션은 팝업에서 관리되며 버전이 있는 설정으로 저장됩니다.",
+    "section.loaderOptions": "로드 옵션",
+    "section.baseParameters": "기본 파라미터",
+    "section.samplerBackend": "샘플러 백엔드",
+    "section.modGuidance": "Mod Guidance",
+    "section.spectrumPatchAdvancedSampler": "Spectrum Patch / 고급 샘플러",
+    "section.spectrumAdvancedCorrections": "Spectrum 고급 보정",
+    "section.spectrumDcwCorrections": "Spectrum DCW / 보정",
+    "section.spdSpeed": "Spectrum + SPD / SPEED",
+    "section.imageScale": "이미지 확대",
+    "section.highresSampler": "Highres 샘플러",
+    "section.highresOptimization": "Highres 최적화",
+    "section.detailer": "디테일러",
+    "section.detailerBlocks": "디테일러 블럭",
+    "section.sam3Detect": "SAM3 감지",
+    "section.maskToSegs": "MaskToSEGS",
+    "section.impactDetailer": "Impact Detailer",
+    "section.nodePreview": "노드 프리뷰",
+    "section.saveBackend": "저장 백엔드",
+    "section.imageSaverFiles": "Image Saver 파일",
+    "section.imageSaverMetadata": "Image Saver 메타데이터",
+    "section.modelPatchOptimization": "모델 패치 / 최적화",
+    "section.animaDave": "Anima DAVE",
+    "section.kjNodesOptimization": "KJNodes 최적화",
+    "section.sageAttention": "SageAttention (KJNodes)",
+    "section.torchCompile": "Torch Compile (KJNodes)",
+    "section.torchCompileParameters": "Torch Compile 파라미터",
+    "section.artistMix": "작가 태그 혼합",
+    "field.unetWeightDtype": "UNET weight dtype",
+    "field.clipDevice": "CLIP 장치",
+    "field.seedMode": "시드 제어",
+    "field.auraFlowShift": "AuraFlow 시프트",
+    "field.profile": "프로필",
+    "field.adapter": "어댑터",
+    "field.modW": "Mod W",
+    "field.startLayer": "시작 레이어",
+    "field.endLayer": "끝 레이어",
+    "field.taper": "테이퍼",
+    "field.taperScale": "테이퍼 배율",
+    "field.finalW": "Final W",
+    "field.useSpectrumPatch": "Spectrum 패치 사용",
+    "field.spectrumPatch": "Spectrum 패치",
+    "field.windowSize": "윈도우 크기",
+    "field.flexWindow": "Flex 윈도우",
+    "field.warmupSteps": "웜업 스텝",
+    "field.warmup": "웜업",
+    "field.tailActual": "Tail 실제 스텝",
+    "field.blendW": "Blend W",
+    "field.chebyDegree": "Cheby 차수",
+    "field.cheby": "Cheby",
+    "field.ridgeLambda": "Ridge lambda",
+    "field.compatPolicy": "호환 정책",
+    "field.compat": "호환",
+    "field.useCorrections": "보정 사용",
+    "field.dcwMode": "DCW 모드",
+    "field.dcwLambda": "DCW lambda",
+    "field.dcwBand": "DCW 밴드",
+    "field.smcCfg": "SMC-CFG",
+    "field.smcAlpha": "SMC alpha",
+    "field.smcLambda": "SMC lambda",
+    "field.cfgppLambda": "CFG++ lambda",
+    "field.sigma": "Sigma",
+    "field.enableHighres": "Highres 활성화",
+    "field.scaleBy": "확대 배율",
+    "field.method": "방식",
+    "field.multiple": "배수 정렬",
+    "field.maxLongEdge": "최대 긴 변",
+    "field.blockName": "블럭 이름",
+    "field.prompt": "프롬프트",
+    "field.count": "개수",
+    "field.threshold": "임계값",
+    "field.refine": "정제",
+    "field.individual": "개별 마스크",
+    "field.combined": "통합 마스크",
+    "field.cropFactor": "Crop factor",
+    "field.bboxFill": "BBox 채우기",
+    "field.dropSize": "Drop size",
+    "field.contourFill": "Contour 채우기",
+    "field.guideSize": "Guide size",
+    "field.maxSize": "최대 크기",
+    "field.feather": "Feather",
+    "field.noiseMask": "노이즈 마스크",
+    "field.forceInpaint": "인페인트 강제",
+    "field.maskFeather": "마스크 Feather",
+    "field.cycle": "반복",
+    "field.alignment": "정렬",
+    "field.enableDetailer": "디테일러 활성화",
+    "field.sam3Checkpoint": "SAM3 체크포인트",
+    "field.intermediateImages": "중간 이미지",
+    "field.comparePrevious": "이전 이미지와 비교",
+    "field.imageFeed": "이미지 피드",
+    "field.feedCount": "피드 개수",
+    "field.saveImage": "이미지 저장",
+    "field.backend": "백엔드",
+    "field.filename": "파일명",
+    "field.path": "경로",
+    "field.extension": "확장자",
+    "field.quality": "JPEG/WebP 품질",
+    "field.losslessWebp": "무손실 WebP",
+    "field.optimizePng": "PNG 최적화",
+    "field.counter": "카운터",
+    "field.timeFormat": "시간 형식",
+    "field.clipSkip": "Clip skip",
+    "field.embedWorkflow": "워크플로우 임베드",
+    "field.workflowJson": "워크플로우 JSON",
+    "field.additionalHashes": "추가 해시",
+    "field.manualHashBundles": "수동 해시 묶음",
+    "field.civitaiHashFetchers": "Civitai Hash Fetcher",
+    "field.civitaiData": "Civitai 데이터",
+    "field.easyRemix": "Easy remix",
+    "field.customMetadata": "사용자 메타데이터",
+    "field.useDave": "DAVE 사용",
+    "field.mask": "마스크",
+    "field.daveStrength": "DAVE 강도",
+    "field.daveTau": "DAVE tau",
+    "field.kjFp16Accum": "KJNodes FP16 accumulation",
+    "field.allowCompile": "컴파일 허용",
+    "field.useTorchCompile": "Torch compile 사용",
+    "field.fullgraph": "Fullgraph",
+    "field.dynamic": "Dynamic",
+    "field.transformerBlocksOnly": "Transformer block만",
+    "field.dynamoCacheLimit": "Dynamo cache limit",
+    "field.debugKeys": "Debug keys",
+    "field.disableDynamicVram": "Dynamic VRAM 비활성화",
+    "field.start": "시작",
+    "field.strength": "강도",
     "button.randomEach": "매번 랜덤",
     "button.newFixed": "새 랜덤 고정",
     "button.useLast": "Last Queued: {seed}",
@@ -550,6 +828,7 @@ const AIO_TEXT = {
     "button.previewOptions": "프리뷰 옵션...",
     "button.moveUp": "위",
     "button.moveDown": "아래",
+    "button.addHashBundle": "+ Hash Fetcher 묶음 추가",
     "button.addCivitaiFetcher": "+ Civitai Hash Fetcher 추가",
     "button.remove": "삭제",
     "text.previewTitle": "생성 이미지 미리보기",
@@ -557,6 +836,7 @@ const AIO_TEXT = {
     "text.previewOptionsSubtitle": "프리뷰 설정은 이 노드 UI에만 적용됩니다. 저장 이미지 메타데이터는 바꾸지 않습니다.",
     "text.previewPrevious": "이전",
     "text.previewCurrent": "현재",
+    "text.inputLoaderMode": "로드 방식: 디퓨전 모델 + VAE + CLIP 분리 로드",
     "text.highresDisabled": "Highres를 켜면 확대와 2차 샘플링 기본 설정이 표시됩니다.",
     "text.detailerDisabled": "디테일러를 켜면 순서 조정 가능한 처리 블럭이 표시됩니다.",
     "text.inheritsMainSampler": "메인 CFG, 샘플러, 스케줄러를 사용합니다.",
@@ -1266,8 +1546,175 @@ const AIO_FIELD_TOOLTIP_KEYS = {
   "Strength": "tip.artistMixStrength",
 };
 
+const AIO_STATIC_TEXT_KEYS = {
+  "Easy Use Anima Input Settings": "dialog.input.title",
+  "Advanced resource options are saved internally with the workflow.": "dialog.input.subtitle",
+  "Sampler Details": "dialog.sampler.title",
+  "Choose one of three sampler paths. Missing optional node packs are locked before queue execution.": "dialog.sampler.subtitle",
+  "Highres Settings": "dialog.highres.title",
+  "Image scaling, highres resampling, and Spectrum optimization are saved with the node.": "dialog.highres.subtitle",
+  "Detailer Settings": "dialog.detailer.title",
+  "SAM3 detection and Impact detailer settings are saved with the node.": "dialog.detailer.subtitle",
+  "Preview Options": "dialog.preview.title",
+  "Save Options": "dialog.save.title",
+  "Image Saver requires ComfyUI-Image-Saver. Missing node packs are reported during queue execution.": "dialog.save.subtitle",
+  "Advanced Options": "dialog.advanced.title",
+  "Advanced generation options stay in a popup and are serialized as versioned settings.": "dialog.advanced.subtitle",
+  "Loader Options": "section.loaderOptions",
+  "Base Parameters": "section.baseParameters",
+  "Sampler Backend": "section.samplerBackend",
+  "Mod Guidance": "section.modGuidance",
+  "Spectrum Patch / Advanced Sampler": "section.spectrumPatchAdvancedSampler",
+  "Spectrum Advanced Corrections": "section.spectrumAdvancedCorrections",
+  "Spectrum DCW / Corrections": "section.spectrumDcwCorrections",
+  "Spectrum + SPD / SPEED": "section.spdSpeed",
+  "Image Scale": "section.imageScale",
+  "Highres Sampler": "section.highresSampler",
+  "Highres Optimization": "section.highresOptimization",
+  "Detailer": "section.detailer",
+  "Detailer Blocks": "section.detailerBlocks",
+  "SAM3 Detect": "section.sam3Detect",
+  "MaskToSEGS": "section.maskToSegs",
+  "Impact Detailer": "section.impactDetailer",
+  "Node Preview": "section.nodePreview",
+  "Save Backend": "section.saveBackend",
+  "Image Saver Files": "section.imageSaverFiles",
+  "Image Saver Metadata": "section.imageSaverMetadata",
+  "Model Patch / Optimization": "section.modelPatchOptimization",
+  "Anima DAVE": "section.animaDave",
+  "KJNodes Optimization": "section.kjNodesOptimization",
+  "SageAttention (KJNodes)": "section.sageAttention",
+  "Torch Compile (KJNodes)": "section.torchCompile",
+  "Torch Compile Parameters": "section.torchCompileParameters",
+  "Artist Mix": "section.artistMix",
+};
+
+const AIO_FIELD_LABEL_KEYS = {
+  "UNET weight dtype": "field.unetWeightDtype",
+  "CLIP device": "field.clipDevice",
+  "Seed": "label.seed",
+  "Seed mode": "field.seedMode",
+  "Steps": "label.steps",
+  "CFG": "label.cfg",
+  "AuraFlow shift": "field.auraFlowShift",
+  "Denoise": "label.denoise",
+  "Mode": "label.mode",
+  "Sampler": "label.sampler",
+  "Scheduler": "label.scheduler",
+  "Profile": "field.profile",
+  "Adapter": "field.adapter",
+  "Mod W": "field.modW",
+  "Start layer": "field.startLayer",
+  "End layer": "field.endLayer",
+  "Taper": "field.taper",
+  "Taper scale": "field.taperScale",
+  "Final W": "field.finalW",
+  "Use Spectrum patch": "field.useSpectrumPatch",
+  "Spectrum patch": "field.spectrumPatch",
+  "Window size": "field.windowSize",
+  "Flex window": "field.flexWindow",
+  "Warmup steps": "field.warmupSteps",
+  "Warmup": "field.warmup",
+  "Tail actual": "field.tailActual",
+  "Blend W": "field.blendW",
+  "Cheby degree": "field.chebyDegree",
+  "Cheby": "field.cheby",
+  "Ridge lambda": "field.ridgeLambda",
+  "Compat policy": "field.compatPolicy",
+  "Compat": "field.compat",
+  "Use corrections": "field.useCorrections",
+  "DCW mode": "field.dcwMode",
+  "DCW lambda": "field.dcwLambda",
+  "DCW band": "field.dcwBand",
+  "SMC-CFG": "field.smcCfg",
+  "SMC alpha": "field.smcAlpha",
+  "SMC lambda": "field.smcLambda",
+  "CFG++ lambda": "field.cfgppLambda",
+  "Scale": "label.scaleBy",
+  "Sigma": "field.sigma",
+  "Enable highres": "field.enableHighres",
+  "Scale by": "field.scaleBy",
+  "Method": "field.method",
+  "Multiple": "field.multiple",
+  "Max long edge": "field.maxLongEdge",
+  "Follow main sampler": "label.followMainSampler",
+  "Block name": "field.blockName",
+  "Enable": "label.enabled",
+  "Prompt": "field.prompt",
+  "Count": "field.count",
+  "Threshold": "field.threshold",
+  "Refine": "field.refine",
+  "Individual": "field.individual",
+  "Combined": "field.combined",
+  "Crop factor": "field.cropFactor",
+  "BBox fill": "field.bboxFill",
+  "Drop size": "field.dropSize",
+  "Contour fill": "field.contourFill",
+  "Guide size": "field.guideSize",
+  "Max size": "field.maxSize",
+  "Feather": "field.feather",
+  "Noise mask": "field.noiseMask",
+  "Force inpaint": "field.forceInpaint",
+  "Mask feather": "field.maskFeather",
+  "Cycle": "field.cycle",
+  "Alignment": "field.alignment",
+  "Enable detailer": "field.enableDetailer",
+  "SAM3 checkpoint": "field.sam3Checkpoint",
+  "Intermediate images": "field.intermediateImages",
+  "Compare previous": "field.comparePrevious",
+  "Image feed": "field.imageFeed",
+  "Feed count": "field.feedCount",
+  "Save image": "field.saveImage",
+  "Backend": "field.backend",
+  "Filename": "field.filename",
+  "Path": "field.path",
+  "Extension": "field.extension",
+  "JPEG/WebP quality": "field.quality",
+  "Lossless WebP": "field.losslessWebp",
+  "Optimize PNG": "field.optimizePng",
+  "Counter": "field.counter",
+  "Time format": "field.timeFormat",
+  "Clip skip": "field.clipSkip",
+  "Embed workflow": "field.embedWorkflow",
+  "Workflow JSON": "field.workflowJson",
+  "Additional hashes": "field.additionalHashes",
+  "Manual hash bundles": "field.manualHashBundles",
+  "Civitai Hash Fetchers": "field.civitaiHashFetchers",
+  "Civitai data": "field.civitaiData",
+  "Easy remix": "field.easyRemix",
+  "Custom metadata": "field.customMetadata",
+  "Use DAVE": "field.useDave",
+  "Mask": "field.mask",
+  "DAVE strength": "field.daveStrength",
+  "DAVE tau": "field.daveTau",
+  "KJNodes FP16 accum": "field.kjFp16Accum",
+  "Allow compile": "field.allowCompile",
+  "Use Torch compile": "field.useTorchCompile",
+  "Fullgraph": "field.fullgraph",
+  "Dynamic": "field.dynamic",
+  "Transformer blocks only": "field.transformerBlocksOnly",
+  "Dynamo cache limit": "field.dynamoCacheLimit",
+  "Debug keys": "field.debugKeys",
+  "Disable dynamic VRAM": "field.disableDynamicVram",
+  "Start": "field.start",
+  "Strength": "field.strength",
+};
+
 function aioText(key) {
   return easyuseAnimaText(AIO_TEXT, key);
+}
+
+function aioTextOr(key, fallback) {
+  const text = key ? aioText(key) : "";
+  return text && text !== key ? text : fallback;
+}
+
+function aioStaticText(text) {
+  return aioTextOr(AIO_STATIC_TEXT_KEYS[text], text);
+}
+
+function aioFieldLabel(label) {
+  return aioTextOr(AIO_FIELD_LABEL_KEYS[label], label);
 }
 
 function aioFormat(key, values = {}) {
@@ -1762,6 +2209,25 @@ function ensureStyle() {
     .easyuse-anima-aio-field label {
       color: #c7ced0;
     }
+    .easyuse-anima-aio-field.checkbox {
+      grid-template-columns: minmax(0, 1fr);
+      justify-items: start;
+    }
+    .easyuse-anima-aio-field.checkbox label {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+      line-height: 1.35;
+      cursor: pointer;
+    }
+    .easyuse-anima-aio-field.checkbox input[type="checkbox"] {
+      width: 16px;
+      height: 16px;
+      flex: 0 0 auto;
+      margin: 0;
+      padding: 0;
+    }
     .easyuse-anima-aio-field input,
     .easyuse-anima-aio-field select,
     .easyuse-anima-aio-field textarea {
@@ -2079,6 +2545,17 @@ function ensureStyle() {
       font-size: 10px;
       line-height: 1;
     }
+    .easyuse-anima-aio-node-field.checkbox label {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      width: auto;
+      margin: 0;
+      cursor: pointer;
+    }
+    .easyuse-anima-aio-node-field.checkbox label span {
+      min-width: 0;
+    }
     .easyuse-anima-aio-node-field input,
     .easyuse-anima-aio-node-field select {
       width: 100%;
@@ -2278,6 +2755,15 @@ function ensureStyle() {
       height: 100%;
       object-fit: contain;
     }
+    .easyuse-anima-aio-node-preview-compare-labels {
+      position: absolute;
+      inset: 6px 6px auto 6px;
+      z-index: 2;
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      pointer-events: none;
+    }
     .easyuse-anima-aio-node-preview-divider {
       position: absolute;
       top: 0;
@@ -2290,11 +2776,7 @@ function ensureStyle() {
       pointer-events: none;
     }
     .easyuse-anima-aio-node-preview-pane-label {
-      position: absolute;
-      left: 6px;
-      top: 6px;
-      z-index: 1;
-      max-width: calc(100% - 12px);
+      max-width: min(44%, 260px);
       padding: 3px 6px;
       overflow: hidden;
       color: #f4efe5;
@@ -2305,9 +2787,7 @@ function ensureStyle() {
       text-overflow: ellipsis;
       white-space: nowrap;
     }
-    .easyuse-anima-aio-node-preview-layer.after .easyuse-anima-aio-node-preview-pane-label {
-      right: 6px;
-      left: auto;
+    .easyuse-anima-aio-node-preview-pane-label.previous {
       text-align: right;
     }
     .easyuse-anima-aio-node-preview-placeholder {
@@ -2570,6 +3050,14 @@ function appendGeneratorPreviewFeed(existingImages, nextImages, settings, runId 
     runId,
     generatorPreviewFeedLimit(settings),
   );
+}
+
+function removeGeneratorPreviewRun(images, runId = "") {
+  const normalizedRunId = String(runId || "");
+  if (!normalizedRunId || !Array.isArray(images)) {
+    return Array.isArray(images) ? images : [];
+  }
+  return images.filter((item) => String(item?.__aio_run_id || "") !== normalizedRunId);
 }
 
 function generatorPreviewEventDetail(event) {
@@ -3115,14 +3603,18 @@ function updateGeneratorDomPreview(node) {
     img.loading = "lazy";
     return img;
   };
-  const makeLayer = (className, label, image) => {
+  const makeLayer = (className, image) => {
     const pane = document.createElement("div");
     pane.className = `easyuse-anima-aio-node-preview-layer ${className}`.trim();
-    const labelEl = document.createElement("div");
-    labelEl.className = "easyuse-anima-aio-node-preview-pane-label";
-    labelEl.textContent = label;
-    pane.append(labelEl, makeImage(image));
+    pane.append(makeImage(image));
     return pane;
+  };
+  const makeCompareLabel = (className, label) => {
+    const labelEl = document.createElement("div");
+    labelEl.className = `easyuse-anima-aio-node-preview-pane-label ${className}`.trim();
+    labelEl.textContent = label;
+    labelEl.title = label;
+    return labelEl;
   };
   const previousImage = selectedIndex > 0 ? images[selectedIndex - 1] : null;
   const canCompare = (
@@ -3146,10 +3638,17 @@ function updateGeneratorDomPreview(node) {
         updateCompareX(event);
       });
     }
+    const labels = document.createElement("div");
+    labels.className = "easyuse-anima-aio-node-preview-compare-labels";
+    labels.append(
+      makeCompareLabel("current", `${aioText("text.previewCurrent")} · ${generatorPreviewImageLabel(currentImage)}`),
+      makeCompareLabel("previous", `${aioText("text.previewPrevious")} · ${generatorPreviewImageLabel(previousImage)}`),
+    );
     compare.append(
-      makeLayer("before", `${aioText("text.previewPrevious")} · ${generatorPreviewImageLabel(previousImage)}`, previousImage),
-      makeLayer("after", `${aioText("text.previewCurrent")} · ${generatorPreviewImageLabel(currentImage)}`, currentImage),
+      makeLayer("before", currentImage),
+      makeLayer("after", previousImage),
       Object.assign(document.createElement("div"), { className: "easyuse-anima-aio-node-preview-divider" }),
+      labels,
     );
     previewBox.replaceChildren(compare);
   } else {
@@ -3210,11 +3709,19 @@ function createNodeField(label, control, className = "", tooltipKey = "") {
   const wrapper = document.createElement("div");
   wrapper.className = `easyuse-anima-aio-node-field ${className}`.trim();
   const labelEl = document.createElement("label");
-  labelEl.textContent = label;
   applyTooltip(wrapper, tooltipKey);
   applyTooltip(labelEl, tooltipKey);
   applyTooltip(control, tooltipKey);
-  wrapper.append(labelEl, control);
+  if (control?.type === "checkbox") {
+    wrapper.classList.add("checkbox");
+    const text = document.createElement("span");
+    text.textContent = label;
+    labelEl.append(text, control);
+    wrapper.append(labelEl);
+  } else {
+    labelEl.textContent = label;
+    wrapper.append(labelEl, control);
+  }
   return wrapper;
 }
 
@@ -3961,15 +4468,24 @@ function field(section, label, control, tooltipKey = "") {
   const row = document.createElement("div");
   row.className = "easyuse-anima-aio-field";
   const labelEl = document.createElement("label");
-  labelEl.textContent = label;
+  const displayLabel = aioFieldLabel(label);
   const resolvedTooltipKey = tooltipKey || AIO_FIELD_TOOLTIP_KEYS[label] || "";
   const tooltipText = resolvedTooltipKey
     ? aioText(resolvedTooltipKey)
-    : aioFormat("tip.fieldGeneric", { label });
+    : aioFormat("tip.fieldGeneric", { label: displayLabel });
   applyTooltipText(row, tooltipText);
   applyTooltipText(labelEl, tooltipText);
   applyTooltipText(control, tooltipText);
-  row.append(labelEl, control);
+  if (control?.type === "checkbox") {
+    row.classList.add("checkbox");
+    const text = document.createElement("span");
+    text.textContent = displayLabel;
+    labelEl.append(text, control);
+    row.append(labelEl);
+  } else {
+    labelEl.textContent = displayLabel;
+    row.append(labelEl, control);
+  }
   section.append(row);
   return control;
 }
@@ -3983,9 +4499,9 @@ function createDialog(title, subtitle) {
   const header = document.createElement("header");
   const titleBox = document.createElement("div");
   const heading = document.createElement("h2");
-  heading.textContent = title;
+  heading.textContent = aioStaticText(title);
   const desc = document.createElement("p");
-  desc.textContent = subtitle;
+  desc.textContent = aioStaticText(subtitle);
   titleBox.append(heading, desc);
   const close = document.createElement("button");
   close.className = "easyuse-anima-aio-close";
@@ -4016,7 +4532,7 @@ function openInputSettings(node) {
   );
   const section = document.createElement("section");
   section.className = "easyuse-anima-aio-section full";
-  section.append(Object.assign(document.createElement("h3"), { textContent: "Loader Options" }));
+  section.append(Object.assign(document.createElement("h3"), { textContent: aioStaticText("Loader Options") }));
   const weightDtype = field(
     section,
     "UNET weight dtype",
@@ -4028,7 +4544,7 @@ function openInputSettings(node) {
     selectInput(["default", "cpu"], settings.resources.clip_device)
   );
   const loaderMode = document.createElement("p");
-  loaderMode.textContent = "Loader mode: split diffusion model + VAE + CLIP";
+  loaderMode.textContent = aioText("text.inputLoaderMode");
   section.append(loaderMode);
   body.append(section);
 
@@ -4061,13 +4577,13 @@ function openSamplerSettings(node) {
   const makeSection = (title, className = "easyuse-anima-aio-section full") => {
     const section = document.createElement("section");
     section.className = className;
-    section.append(Object.assign(document.createElement("h3"), { textContent: title }));
+    section.append(Object.assign(document.createElement("h3"), { textContent: aioStaticText(title) }));
     return section;
   };
   const makeSubsection = (title) => {
     const section = document.createElement("div");
     section.className = "easyuse-anima-aio-subsection";
-    section.append(Object.assign(document.createElement("h4"), { textContent: title }));
+    section.append(Object.assign(document.createElement("h4"), { textContent: aioStaticText(title) }));
     return section;
   };
 
@@ -4279,7 +4795,7 @@ function openSamplerSettings(node) {
 function createStageOptimizationEditor(title, values, defaults) {
   const section = document.createElement("section");
   section.className = "easyuse-anima-aio-section";
-  section.append(Object.assign(document.createElement("h3"), { textContent: title }));
+  section.append(Object.assign(document.createElement("h3"), { textContent: aioStaticText(title) }));
   const spectrumValues = mergeDefaults(defaults.spectrum || {}, values.spectrum || {});
   const correctionValues = mergeDefaults(defaults.dit_corrections || {}, values.dit_corrections || {});
 
@@ -4299,7 +4815,7 @@ function createStageOptimizationEditor(title, values, defaults) {
 
   const corrections = document.createElement("div");
   corrections.className = "easyuse-anima-aio-subsection";
-  corrections.append(Object.assign(document.createElement("h4"), { textContent: "Spectrum DCW / Corrections" }));
+  corrections.append(Object.assign(document.createElement("h4"), { textContent: aioStaticText("Spectrum DCW / Corrections") }));
   const correctionsEnabled = field(corrections, "Use corrections", checkbox(correctionValues.enabled));
   const dcwMode = field(corrections, "DCW mode", selectInput(["off", "manual", "auto"], correctionValues.dcw_mode || "off"));
   const dcwLambda = field(corrections, "DCW lambda", numberInput(correctionValues.dcw_lambda, "0.001"));
@@ -4389,7 +4905,7 @@ function openHighresSettings(node) {
 
   const image = document.createElement("section");
   image.className = "easyuse-anima-aio-section";
-  image.append(Object.assign(document.createElement("h3"), { textContent: "Image Scale" }));
+  image.append(Object.assign(document.createElement("h3"), { textContent: aioStaticText("Image Scale") }));
   const enabled = field(image, "Enable highres", checkbox(highres.enabled));
   const scaleBy = field(image, "Scale by", numberInput(highres.scale_by, "0.01"));
   const upscaleMethod = field(image, "Method", selectInput(["bicubic", "nearest-exact", "bilinear", "area", "lanczos"], highres.upscale_method));
@@ -4398,7 +4914,7 @@ function openHighresSettings(node) {
 
   const sampler = document.createElement("section");
   sampler.className = "easyuse-anima-aio-section";
-  sampler.append(Object.assign(document.createElement("h3"), { textContent: "Highres Sampler" }));
+  sampler.append(Object.assign(document.createElement("h3"), { textContent: aioStaticText("Highres Sampler") }));
   const steps = field(sampler, "Steps", numberInput(highres.steps, "1"));
   steps.min = "1";
   steps.max = "75";
@@ -4423,7 +4939,7 @@ function openHighresSettings(node) {
   );
   const denoise = field(sampler, "Denoise", numberInput(highres.denoise, "0.01"));
   const updateInheritedRows = () => {
-    const display = inheritSampler.checked ? "none" : "grid";
+    const display = inheritSampler.checked ? "none" : "";
     for (const control of [cfg, samplerName, scheduler]) {
       if (control?.parentElement) {
         control.parentElement.style.display = display;
@@ -4476,7 +4992,7 @@ function createDetailerTargetEditor(node, title, values, defaults, onLabelChange
   section.className = "easyuse-anima-aio-detailer-target-panel";
   const header = document.createElement("div");
   header.className = "easyuse-anima-aio-node-stage-mini-header";
-  header.append(Object.assign(document.createElement("h3"), { textContent: title }));
+  header.append(Object.assign(document.createElement("h3"), { textContent: aioStaticText(title) }));
   section.append(header);
   const labelInput = field(
     section,
@@ -4489,7 +5005,7 @@ function createDetailerTargetEditor(node, title, values, defaults, onLabelChange
 
   const detect = document.createElement("div");
   detect.className = "easyuse-anima-aio-subsection";
-  detect.append(Object.assign(document.createElement("h4"), { textContent: "SAM3 Detect" }));
+  detect.append(Object.assign(document.createElement("h4"), { textContent: aioStaticText("SAM3 Detect") }));
   const detectPrompt = field(detect, "Prompt", textInput(target.detect_prompt));
   const detectCount = field(detect, "Count", numberInput(target.detect_count, "1"));
   const threshold = field(detect, "Threshold", numberInput(target.threshold, "0.01"));
@@ -4500,7 +5016,7 @@ function createDetailerTargetEditor(node, title, values, defaults, onLabelChange
 
   const segs = document.createElement("div");
   segs.className = "easyuse-anima-aio-subsection";
-  segs.append(Object.assign(document.createElement("h4"), { textContent: "MaskToSEGS" }));
+  segs.append(Object.assign(document.createElement("h4"), { textContent: aioStaticText("MaskToSEGS") }));
   const cropFactor = field(segs, "Crop factor", numberInput(target.crop_factor, "0.1"));
   const bboxFill = field(segs, "BBox fill", checkbox(target.bbox_fill));
   const dropSize = field(segs, "Drop size", numberInput(target.drop_size, "1"));
@@ -4509,7 +5025,7 @@ function createDetailerTargetEditor(node, title, values, defaults, onLabelChange
 
   const detail = document.createElement("div");
   detail.className = "easyuse-anima-aio-subsection";
-  detail.append(Object.assign(document.createElement("h4"), { textContent: "Impact Detailer" }));
+  detail.append(Object.assign(document.createElement("h4"), { textContent: aioStaticText("Impact Detailer") }));
   const guideSize = field(detail, "Guide size", numberInput(target.guide_size, "8"));
   const maxSize = field(detail, "Max size", numberInput(target.max_size, "8"));
   const steps = field(detail, "Steps", numberInput(target.steps, "1"));
@@ -4534,7 +5050,7 @@ function createDetailerTargetEditor(node, title, values, defaults, onLabelChange
   const cycle = field(detail, "Cycle", numberInput(target.cycle, "1"));
   const alignment = field(detail, "Alignment", selectInput(["impact", "none", "32", "64"], target.alignment || "32"));
   const updateInheritedRows = () => {
-    const display = inheritSampler.checked ? "none" : "grid";
+    const display = inheritSampler.checked ? "none" : "";
     for (const control of [cfg, samplerName, scheduler]) {
       if (control?.parentElement) {
         control.parentElement.style.display = display;
@@ -4605,7 +5121,7 @@ function openDetailerSettings(node) {
   body.classList.add("easyuse-anima-aio-one-column");
   const main = document.createElement("section");
   main.className = "easyuse-anima-aio-section full";
-  main.append(Object.assign(document.createElement("h3"), { textContent: "Detailer" }));
+  main.append(Object.assign(document.createElement("h3"), { textContent: aioStaticText("Detailer") }));
   const enabled = field(main, "Enable detailer", checkbox(detailer.enabled));
   const checkpoint = field(main, "SAM3 checkpoint", textInput(detailer.sam3.checkpoint));
   const dependencyWarning = document.createElement("div");
@@ -4618,7 +5134,7 @@ function openDetailerSettings(node) {
   let activeTargetName = currentOrder[0] || "face";
   const tabsSection = document.createElement("section");
   tabsSection.className = "easyuse-anima-aio-section full";
-  tabsSection.append(Object.assign(document.createElement("h3"), { textContent: "Detailer Blocks" }));
+  tabsSection.append(Object.assign(document.createElement("h3"), { textContent: aioStaticText("Detailer Blocks") }));
   const tabBar = document.createElement("div");
   tabBar.className = "easyuse-anima-aio-tabs";
   const tabPanel = document.createElement("div");
@@ -4811,7 +5327,7 @@ function createImageSaverHashBundleEditor(initialBundles) {
   const addButton = document.createElement("button");
   addButton.type = "button";
   addButton.className = "easyuse-anima-aio-add-row";
-  addButton.textContent = "+ Add Hash Fetcher Bundle";
+  addButton.textContent = aioText("button.addHashBundle");
 
   const addRow = (value = "") => {
     const row = document.createElement("div");
@@ -4964,7 +5480,7 @@ function openPreviewSettings(node) {
   );
   const section = document.createElement("section");
   section.className = "easyuse-anima-aio-section full";
-  section.append(Object.assign(document.createElement("h3"), { textContent: "Node Preview" }));
+  section.append(Object.assign(document.createElement("h3"), { textContent: aioStaticText("Node Preview") }));
   const intermediate = field(
     section,
     "Intermediate images",
@@ -5043,7 +5559,7 @@ function openSaveSettings(node) {
   body.classList.add("easyuse-anima-aio-save-body");
   const main = document.createElement("section");
   main.className = "easyuse-anima-aio-section full";
-  main.append(Object.assign(document.createElement("h3"), { textContent: "Save Backend" }));
+  main.append(Object.assign(document.createElement("h3"), { textContent: aioStaticText("Save Backend") }));
   const save = field(main, "Save image", checkbox(settings.save.enabled));
   const backend = field(
     main,
@@ -5079,7 +5595,7 @@ function openSaveSettings(node) {
 
   const files = document.createElement("section");
   files.className = "easyuse-anima-aio-section full";
-  files.append(Object.assign(document.createElement("h3"), { textContent: "Image Saver Files" }));
+  files.append(Object.assign(document.createElement("h3"), { textContent: aioStaticText("Image Saver Files") }));
   const filename = field(files, "Filename", textInput(imageSaver.filename));
   const path = field(files, "Path", textInput(imageSaver.path));
   const extension = field(files, "Extension", selectInput(["webp", "png", "jpeg", "jpg"], imageSaver.extension));
@@ -5090,7 +5606,7 @@ function openSaveSettings(node) {
 
   const metadata = document.createElement("section");
   metadata.className = "easyuse-anima-aio-section full";
-  metadata.append(Object.assign(document.createElement("h3"), { textContent: "Image Saver Metadata" }));
+  metadata.append(Object.assign(document.createElement("h3"), { textContent: aioStaticText("Image Saver Metadata") }));
   const timeFormat = field(metadata, "Time format", textInput(imageSaver.time_format));
   const clipSkip = field(metadata, "Clip skip", numberInput(imageSaver.clip_skip, "1"));
   const embedWorkflow = field(metadata, "Embed workflow", checkbox(imageSaver.embed_workflow));
@@ -5155,13 +5671,13 @@ function openAdvancedSettings(node) {
   const makeSubsection = (title) => {
     const section = document.createElement("div");
     section.className = "easyuse-anima-aio-subsection";
-    section.append(Object.assign(document.createElement("h4"), { textContent: title }));
+    section.append(Object.assign(document.createElement("h4"), { textContent: aioStaticText(title) }));
     return section;
   };
 
   const modelPatches = document.createElement("section");
   modelPatches.className = "easyuse-anima-aio-section full";
-  modelPatches.append(Object.assign(document.createElement("h3"), { textContent: "Model Patch / Optimization" }));
+  modelPatches.append(Object.assign(document.createElement("h3"), { textContent: aioStaticText("Model Patch / Optimization") }));
 
   const auraShift = field(
     modelPatches,
@@ -5209,7 +5725,7 @@ function openAdvancedSettings(node) {
   );
   const torchDetails = document.createElement("div");
   torchDetails.className = "easyuse-anima-aio-subsection";
-  torchDetails.append(Object.assign(document.createElement("h4"), { textContent: "Torch Compile Parameters" }));
+  torchDetails.append(Object.assign(document.createElement("h4"), { textContent: aioStaticText("Torch Compile Parameters") }));
   const torchCompileBackend = field(torchDetails, "Backend", textInput(settings.model_patches.kj.torch_compile.backend), "tip.torchCompileBackend");
   const torchCompileFullgraph = field(torchDetails, "Fullgraph", checkbox(settings.model_patches.kj.torch_compile.fullgraph), "tip.torchCompileFullgraph");
   const torchCompileMode = field(
@@ -5264,7 +5780,7 @@ function openAdvancedSettings(node) {
 
   const artistMix = document.createElement("section");
   artistMix.className = "easyuse-anima-aio-section full";
-  artistMix.append(Object.assign(document.createElement("h3"), { textContent: "Artist Mix" }));
+  artistMix.append(Object.assign(document.createElement("h3"), { textContent: aioStaticText("Artist Mix") }));
   const artistMode = field(
     artistMix,
     "Mode",
@@ -5289,7 +5805,7 @@ function openAdvancedSettings(node) {
   body.append(artistMix);
 
   const refreshSageDetails = () => {
-    sageAllowCompile.parentElement.style.display = sageAttention.value === "disabled" ? "none" : "grid";
+    sageAllowCompile.parentElement.style.display = sageAttention.value === "disabled" ? "none" : "";
   };
   const refreshTorchDetails = () => {
     torchDetails.style.display = torchCompileEnabled.checked ? "" : "none";
@@ -5566,21 +6082,27 @@ function findGeneratorNodeByQualifiedId(rootGraph, nodeId) {
   return graph?.getNodeById?.(leafId) || graph?._nodes_by_id?.[leafId] || null;
 }
 
-function addGeneratorPreviewImagesToNode(node, nextImages, runId = "") {
+function addGeneratorPreviewImagesToNode(node, nextImages, runId = "", options = {}) {
   if (!node || !Array.isArray(nextImages) || !nextImages.length) {
     return;
   }
   const settings = generatorSettings(node);
+  const replaceCurrentRun = !!options.replaceCurrentRun;
   const currentImages = Array.isArray(node.__easyuseAnimaGeneratorCurrentRunImages)
     ? node.__easyuseAnimaGeneratorCurrentRunImages
     : [];
   const currentRunId = String(currentImages[0]?.__aio_run_id || "");
-  const currentBase = runId && currentRunId && currentRunId !== runId ? [] : currentImages;
+  const currentBase = replaceCurrentRun || (runId && currentRunId && currentRunId !== runId)
+    ? []
+    : currentImages;
   const taggedNextImages = tagGeneratorPreviewRun(nextImages, runId, currentBase.length);
   node.__easyuseAnimaGeneratorCurrentRunImages = mergeGeneratorPreviewImages(currentBase, taggedNextImages, runId);
   if (settings.preview.image_feed) {
+    const feedBase = replaceCurrentRun
+      ? removeGeneratorPreviewRun(node.__easyuseAnimaGeneratorPreviewFeedImages, runId)
+      : node.__easyuseAnimaGeneratorPreviewFeedImages;
     node.__easyuseAnimaGeneratorPreviewFeedImages = appendGeneratorPreviewFeed(
-      node.__easyuseAnimaGeneratorPreviewFeedImages,
+      feedBase,
       taggedNextImages,
       settings,
       runId,
@@ -5602,7 +6124,7 @@ function updateGeneratorExecutedStatus(node, message) {
   }
   const nextImages = generatorPreviewImages(message);
   const runId = generatorPreviewRunId(message);
-  addGeneratorPreviewImagesToNode(node, nextImages, runId);
+  addGeneratorPreviewImagesToNode(node, nextImages, runId, { replaceCurrentRun: true });
   node.__easyuseAnimaGeneratorStatus = {
     status: String(firstValue(message?.status, "generated") || "generated"),
     width: Number(firstValue(message?.width, 0)),

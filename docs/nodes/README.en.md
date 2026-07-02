@@ -9,6 +9,7 @@ shared settings, start with the top-level [README](../../README.en.md).
 | --- | --- | --- |
 | Anima NAIA Random Prompt | Requests prompt, negative prompt, and resolution from the NAIA remote API | [Guide](anima-naia-random-prompt.en.md) |
 | Anima Prompt Corrector | Normalizes comma-separated prompts into ANIMA order | [Guide](anima-prompt-corrector.en.md) |
+| Anima Prompt Corrector Simple | Takes one prompt and outputs only the corrected prompt string | [Guide](anima-prompt-corrector.en.md) |
 | Anima Prompt Builder | Combines multiple prompt fields into one prompt | [Guide](anima-prompt-builder.en.md) |
 | Anima Prompt Studio | Adds UI editing, autocomplete, and highlighting to Prompt Builder | [Guide](anima-prompt-studio.en.md) |
 | Anima Prompt Studio Advanced | Advanced editor with positive/negative fields, NAIA, resolution, and wildcard controls | [Guide](anima-prompt-studio-advanced.en.md) |

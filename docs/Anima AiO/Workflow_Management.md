@@ -16,7 +16,7 @@ documentation, and Civitai release metadata.
 
 - The editable live workflow can be updated in ComfyUI first.
 - For v6.0, the Korean live file is treated as the layout/source base:
-  `D:\ComfyUI\ComfyUI_main\user\default\workflows\Anima_AiO_v6.0_release_ko.json`
+  `ComfyUI/user/default/workflows/Anima_AiO_v6.0_release_ko.json`
 - After manual edits, sync the release-suffixed live file into:
   `docs/example_workflows/`.
 - Build the English workflow from the final Korean workflow so node ids, links,

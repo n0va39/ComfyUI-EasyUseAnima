@@ -3,7 +3,7 @@
 Language: [English](README.en.md) | [한국어](README.ko.md) | [Home](README.md)
 
 ComfyUI custom nodes for prompt editing, ANIMA prompt correction, NAIA prompt
-integration, LoRA preset management, wildcard expansion, and detailer helpers
+integration, LoRA preset management, wildcard expansion, AiO generation, and detailer helpers
 for ANIMA/Spectrum workflows.
 
 This package is independent from `comfyui-naia-bridge`. It does not import or
@@ -22,7 +22,56 @@ Reference baseline:
 - Wildcard syntax and examples: [Wildcard Guide](docs/wildcards.en.md)
 - Autocomplete CSV selection: [Autocomplete CSV Guide](docs/autocomplete-csv.en.md)
 - Example workflows: [docs/example_workflows](docs/example_workflows/)
+- ANIMA Easy Use workflow v1: [Korean guide](docs/Anima%20AiO/ANIMA_Easy_Use_workflow_v1_KO.md) / [workflow JSON](docs/example_workflows/ANIMA_Easy_Use_workflow_v1_release_ko.json)
 - Versioned changes: [RELEASE.md](RELEASE.md)
+
+## Quick Guide: Anima AiO Generation
+
+![Anima AiO Generator](docs/images/aio-generator-node.png)
+
+`Anima AiO Generator` consumes a prompt-data context and runs first-pass
+sampling, Highres, Detailer, preview, and image saving in one node. Prompt
+editing stays upstream in `Anima Prompt Studio Advanced v2` and
+`Easy Use Anima Input`, so the generator surface stays focused on generation
+settings.
+
+Basic wiring:
+
+1. Connect `EASYUSE_ANIMA_PROMPT_DATA` from `Anima Prompt Studio Advanced v2` to `Easy Use Anima Input`.
+2. In `Easy Use Anima Input`, select the ANIMA diffusion model, VAE, and CLIP separately.
+3. Connect `Easy Use Anima Input` to the generator's `easy use anima input` socket.
+4. If LoRA presets are used, connect `LORA_STACK` from `Anima LoRA Preset` to `lora_stack`.
+
+The compact node surface exposes seed, steps, CFG, shift, denoise, sampler,
+scheduler, Highres, Detailer, Preview, and Save. Model patches and optimization
+belong in `Advanced Options`, save metadata belongs in `Save Options`, and image
+comparison/feed controls live in Preview settings. Saving is enabled by default;
+with Image Saver, workflow embedding and Civitai/LoRA metadata are handled in
+the same output path.
+
+Detailed settings: [Anima AiO Generator guide](docs/nodes/anima-aio-generator.en.md)
+
+Compact release workflow:
+[ANIMA_Easy_Use_workflow_v1_release_ko.json](docs/example_workflows/ANIMA_Easy_Use_workflow_v1_release_ko.json)
+/
+[Korean usage draft](docs/Anima%20AiO/ANIMA_Easy_Use_workflow_v1_KO.md)
+
+## Quick Guide: Artist Mix Conditioning
+
+![Anima Artist Mix Conditioning](docs/images/artist-mix-conditioning-node.png)
+
+`Anima Artist Mix Conditioning` is a standalone node that creates artist-mixed
+positive `CONDITIONING` from a normal prompt plus separate `artist_tags`. Use it
+when a workflow does not use Prompt Data, or when artist-tag conditioning needs
+to be tested independently.
+
+Start with `artist_position=correct` and `artist_mix_mode` `prompt` or
+`average`. Use `hybrid` when several artists need clearer separation, and use
+`exact` only when the artist count is small or per-artist separation matters
+more than conditioning cost. Check whether the selected mode increases branch
+count before raising tuning strength.
+
+Mode details: [Anima Artist Mix Conditioning guide](docs/nodes/anima-artist-mix-conditioning.en.md)
 
 ## Nodes
 
@@ -30,6 +79,7 @@ Reference baseline:
 | --- | --- | --- |
 | [Anima NAIA Random Prompt](docs/nodes/anima-naia-random-prompt.en.md) | `NAIA Bridge/API` | Requests prompt, negative prompt, and resolution from the NAIA remote API. |
 | [Anima Prompt Corrector](docs/nodes/anima-prompt-corrector.en.md) | `EasyUse Anima/Prompt` | Normalizes comma-separated prompts into ANIMA order and returns a JSON report. |
+| [Anima Prompt Corrector Simple](docs/nodes/anima-prompt-corrector.en.md#simple-version) | `EasyUse Anima/Prompt` | Takes one prompt and outputs only the corrected prompt string. |
 | [Anima Prompt Builder](docs/nodes/anima-prompt-builder.en.md) | `EasyUse Anima/Prompt` | Combines prompt fields and separates AMG quality output. |
 | [Anima Prompt Studio](docs/nodes/anima-prompt-studio.en.md) | `EasyUse Anima/Prompt` | Adds UI editing, autocomplete, and highlighting to Prompt Builder. |
 | [Anima Prompt Studio Advanced](docs/nodes/anima-prompt-studio-advanced.en.md) | `EasyUse Anima/Prompt` | Provides positive/negative fields, NAIA, resolution, and wildcard controls. |
@@ -39,6 +89,8 @@ Reference baseline:
 | [Anima Artist Mix Conditioning](docs/nodes/anima-artist-mix-conditioning.en.md) | `EasyUse Anima/Prompt` | Outputs artist mix positive CONDITIONING from a prompt and separate artist_tags input. |
 | [Anima Wildcard](docs/nodes/anima-wildcard.en.md) | `EasyUse Anima/Prompt` | Expands wildcard text without Prompt Studio. |
 | [Anima LoRA Preset](docs/nodes/anima-lora-preset.en.md) | `EasyUse Anima/LoRA` | Stores and outputs LoRA profiles, style prompts, and trigger words. |
+| [Easy Use Anima Input](docs/nodes/anima-aio-generator.en.md) | `EasyUse Anima/AiO` | Bundles prompt data plus ANIMA diffusion model, VAE, and CLIP selections into an AiO context. |
+| [Anima AiO Generator](docs/nodes/anima-aio-generator.en.md) | `EasyUse Anima/AiO` | Runs sampling, Highres, Detailer, preview, and saving from the prompt-data context. |
 | [Anima Detailer Align Hook](docs/nodes/anima-detailer-align-hook.en.md) | `EasyUse Anima/Detailer` | Aligns Impact detailer crop sampling sizes to a selected multiple. |
 | [Anima SAM3 Context](docs/nodes/anima-sam3-context.en.md) | `EasyUse Anima/Detailer` | Loads a SAM3 checkpoint as an rgthree-compatible context. |
 | [Anima SAM3 Detailer](docs/nodes/anima-sam3-detailer.en.md) | `EasyUse Anima/Detailer` | Connects SAM3 text detection, Impact MaskToSEGS, and DetailerForEach. |

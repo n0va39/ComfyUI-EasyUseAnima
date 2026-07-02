@@ -28,6 +28,7 @@ RELEASE_WORKFLOWS = (
 EXAMPLE_WORKFLOW_DIR = ROOT / "docs" / "example_workflows"
 EXAMPLE_WORKFLOWS = tuple(sorted(EXAMPLE_WORKFLOW_DIR.glob("*.json")))
 AIO_GENERATOR_WORKFLOW = EXAMPLE_WORKFLOW_DIR / "EasyUse_Anima_AiO_generator_release_ko.json"
+ANIMA_EASY_USE_WORKFLOW = EXAMPLE_WORKFLOW_DIR / "ANIMA_Easy_Use_workflow_v1_release_ko.json"
 MOJIBAKE_LATIN1_RE = re.compile(r"[\u0080-\u00ff]")
 
 
@@ -150,32 +151,51 @@ class ReleaseWorkflowTests(unittest.TestCase):
                     continue
                 self.assertEqual(metadata.get("package_version"), version)
 
-    def test_aio_generator_sample_lists_required_node_packs(self):
-        workflow = load_workflow(AIO_GENERATOR_WORKFLOW)
-        metadata = workflow.get("extra", {}).get("easyuse_anima_workflow")
-        self.assertIsInstance(metadata, dict)
-        packs = metadata.get("required_node_packs")
-        self.assertIsInstance(packs, list)
-        names = {str(item.get("name")) for item in packs if isinstance(item, dict)}
-        self.assertIn("ComfyUI-Spectrum-KSampler", names)
-        self.assertIn("ComfyUI-Image-Saver", names)
-        self.assertIn("ComfyUI-Anima-DAVE", names)
-        self.assertIn("ComfyUI-KJNodes", names)
-        self.assertIn("ComfyUI-Impact-Pack", names)
-        required = {
-            str(item.get("name")): bool(item.get("required_for_sample"))
-            for item in packs
-            if isinstance(item, dict)
-        }
-        self.assertTrue(required["ComfyUI-Spectrum-KSampler"])
-        self.assertTrue(required["ComfyUI-Image-Saver"])
-        self.assertFalse(required["ComfyUI-Anima-DAVE"])
-        self.assertFalse(required["ComfyUI-KJNodes"])
-        self.assertFalse(required["ComfyUI-Impact-Pack"])
-        self.assertEqual(
-            metadata.get("sampler_paths"),
-            ["comfy_ksampler", "spectrum_mod_guidance_advanced", "spectrum_spd_speed"],
+    def test_aio_generator_samples_list_required_node_packs(self):
+        for workflow_path in (AIO_GENERATOR_WORKFLOW, ANIMA_EASY_USE_WORKFLOW):
+            with self.subTest(path=workflow_path.name):
+                workflow = load_workflow(workflow_path)
+                metadata = workflow.get("extra", {}).get("easyuse_anima_workflow")
+                self.assertIsInstance(metadata, dict)
+                packs = metadata.get("required_node_packs")
+                self.assertIsInstance(packs, list)
+                names = {str(item.get("name")) for item in packs if isinstance(item, dict)}
+                self.assertIn("ComfyUI-Spectrum-KSampler", names)
+                self.assertIn("ComfyUI-Image-Saver", names)
+                self.assertIn("ComfyUI-Anima-DAVE", names)
+                self.assertIn("ComfyUI-KJNodes", names)
+                self.assertIn("ComfyUI-Impact-Pack", names)
+                required = {
+                    str(item.get("name")): bool(item.get("required_for_sample"))
+                    for item in packs
+                    if isinstance(item, dict)
+                }
+                self.assertTrue(required["ComfyUI-Spectrum-KSampler"])
+                self.assertTrue(required["ComfyUI-Image-Saver"])
+                self.assertFalse(required["ComfyUI-Anima-DAVE"])
+                self.assertFalse(required["ComfyUI-KJNodes"])
+                self.assertFalse(required["ComfyUI-Impact-Pack"])
+                self.assertEqual(
+                    metadata.get("sampler_paths"),
+                    ["comfy_ksampler", "spectrum_mod_guidance_advanced", "spectrum_spd_speed"],
+                )
+
+    def test_example_workflows_do_not_contain_local_release_blockers(self):
+        blocked_patterns = (
+            "D:/",
+            "D:\\",
+            "C:/",
+            "C:\\",
+            "view?filename=",
+            "clipspace",
+            "data:image/",
+            "codex works",
         )
+        for path in EXAMPLE_WORKFLOWS:
+            text = path.read_text(encoding="utf-8")
+            with self.subTest(path=path.name):
+                for pattern in blocked_patterns:
+                    self.assertNotIn(pattern, text, pattern)
 
 
 if __name__ == "__main__":

@@ -12,6 +12,26 @@
 
 ![Anima Prompt Corrector](../images/nodes/anima-prompt-corrector.png)
 
+## Simple 버전
+
+`Anima Prompt Corrector Simple`은 일반 멀티스트링 노드처럼 쓰기 위한 간략화
+노드입니다.
+
+![Anima Prompt Corrector Simple](../images/nodes/anima-prompt-corrector-simple.png)
+
+입력:
+
+- `prompt`
+
+출력:
+
+- `prompt`
+
+교정 규칙은 기존 `Anima Prompt Corrector`와 같지만, `artist_overrides`,
+`artist_exclusions`, JSON `report`를 노출하지 않습니다. 프롬프트만 연결해서
+다음 노드로 넘길 때는 Simple 버전을 사용하고, 미확인 태그나 중복 태그를
+확인해야 할 때는 기존 교정기를 사용합니다.
+
 ## 주요 입력
 
 - `prompt`: 정리할 원본 프롬프트입니다.

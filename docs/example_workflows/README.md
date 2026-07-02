@@ -33,6 +33,22 @@ workflow assets.
 - `EasyUse_Anima_artist_mix_release_ko.json`
 - `EasyUse_Anima_artist_mix_release_ko.png`
 - `EasyUse_Anima_AiO_generator_release_ko.json`
+- `ANIMA_Easy_Use_workflow_v1_release_ko.json`
+
+## ANIMA Easy Use Workflow v1
+
+- Workflow: [ANIMA_Easy_Use_workflow_v1_release_ko.json](ANIMA_Easy_Use_workflow_v1_release_ko.json)
+- Usage draft: [ANIMA Easy Use workflow v1](../Anima%20AiO/ANIMA_Easy_Use_workflow_v1_KO.md)
+- Node guide: [Anima AiO Generator](../nodes/anima-aio-generator.ko.md)
+
+This compact release workflow uses `Anima Prompt Studio Advanced v2`,
+`Anima LoRA Preset`, `Easy Use Anima Input`, and `Anima AiO Generator`.
+The workflow metadata lists required node packs under
+`extra.easyuse_anima_workflow.required_node_packs`.
+
+The default execution path uses split ANIMA model loading, LoRA Stack routing,
+`spectrum_mod_guidance_advanced` sampling, Image Saver WebP output, embedded
+workflow metadata, and the AiO node's preview feed.
 
 ## AiO Generator Example
 
@@ -53,10 +69,6 @@ Required sample defaults are `ComfyUI-EasyUseAnima`,
 `ComfyUI-Spectrum-KSampler`, and `ComfyUI-Image-Saver`. Optional features are
 listed in the same metadata with `required_for_sample: false`, including
 `ComfyUI-Anima-DAVE`, `ComfyUI-KJNodes`, and `ComfyUI-Impact-Pack`.
-
-A local validation copy based on `codex works.json` is written to
-`D:\ComfyUI\ComfyUI_main\user\default\workflows\EasyUse_Anima_AiO_generator_0.2.2_test.json`
-when preparing the 0.2.2 AiO release candidate.
 
 ## Artist Mix Example
 

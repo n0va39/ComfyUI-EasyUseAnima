@@ -19,6 +19,8 @@
 - Added `Anima AiO Generator` with three sampler execution modes:
   `comfy_ksampler`, `spectrum_mod_guidance_advanced`, and
   `spectrum_spd_speed`.
+- Added `Anima Prompt Corrector Simple`, a compact one-input and one-output
+  prompt correction node for regular multiline string workflows.
 - Added optional Anima DAVE model patch controls in Advanced Options.
 - Added `Easy Use Anima Input`, which consumes prompt data and stores split
   ANIMA resource selections for diffusion model, VAE, and CLIP.
@@ -33,7 +35,11 @@
   order controls.
 - Added a maintained AiO generator sample workflow:
   `docs/example_workflows/EasyUse_Anima_AiO_generator_release_ko.json`.
+- Added the compact release workflow:
+  `docs/example_workflows/ANIMA_Easy_Use_workflow_v1_release_ko.json`.
 - Added user-facing AiO node documentation in Korean and English.
+- Added an ANIMA Easy Use workflow v1 usage draft and Simple prompt corrector
+  node screenshot.
 
 ### Changed
 

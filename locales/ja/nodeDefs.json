@@ -27,6 +27,22 @@
       }
     }
   },
+  "EasyUseAnimaPromptCorrectorSimple": {
+    "display_name": "Anima Prompt Corrector Simple",
+    "description": "Takes one prompt input and outputs only the corrected ANIMA prompt string.",
+    "inputs": {
+      "prompt": {
+        "name": "プロンプト",
+        "tooltip": "Comma-separated prompt text to normalize and reorder for ANIMA."
+      }
+    },
+    "outputs": {
+      "0": {
+        "name": "プロンプト",
+        "tooltip": "Prompt text after ANIMA ordering and syntax cleanup."
+      }
+    }
+  },
   "EasyUseAnimaWildcard": {
     "display_name": "Anima ワイルドカード",
     "description": "EasyUse Anima のワイルドカードファイルと動的プロンプト構文をシードベースで展開します。",

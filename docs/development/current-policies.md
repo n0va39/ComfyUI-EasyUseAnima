@@ -42,6 +42,16 @@ This document records decisions that supersede earlier experimental notes.
 - `pyproject.toml` may be bumped early to the next intended Registry version to avoid reusing a published version number.
 - Do not publish to Comfy Registry, create release tags, or convert `RELEASE.md` entries into final release notes unless explicitly requested.
 
+## Local ComfyUI Instance Usage
+
+- Use the ComfyUI 0.24 instance for Codex agent implementation and queue
+  validation only.
+- Reserve the ComfyUI 0.25 instance for user-side manual testing.
+- When both instances may be running, use separate ports and state clearly which
+  instance was used for validation.
+- Do not overwrite user-edited workflow files while syncing to an agent-only
+  instance.
+
 ## Release Workflow Management
 
 - Public workflow templates live under `docs/example_workflows/`.

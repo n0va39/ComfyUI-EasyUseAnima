@@ -32,6 +32,7 @@ from nodes import (
     EasyUseAnimaPromptDataUnpack,
     EasyUseAnimaPromptBuilder,
     EasyUseAnimaPromptCorrector,
+    EasyUseAnimaPromptCorrectorSimple,
     EasyUseAnimaPromptStudio,
     EasyUseAnimaPromptStudioAdvanced,
     EasyUseAnimaPromptStudioAdvancedV2,
@@ -66,6 +67,22 @@ from settings import (
 
 
 class PromptCorrectorTests(unittest.TestCase):
+    def test_simple_node_has_single_prompt_input_and_output(self):
+        input_types = EasyUseAnimaPromptCorrectorSimple.INPUT_TYPES()
+
+        self.assertEqual(list(input_types["required"].keys()), ["prompt"])
+        self.assertEqual(EasyUseAnimaPromptCorrectorSimple.RETURN_TYPES, ("STRING",))
+        self.assertEqual(EasyUseAnimaPromptCorrectorSimple.RETURN_NAMES, ("prompt",))
+
+    def test_simple_node_uses_same_correction_rules_without_report(self):
+        prompt = "long_hair, 1girl, long_hair"
+
+        simple = EasyUseAnimaPromptCorrectorSimple().correct(prompt)[0]
+        full = EasyUseAnimaPromptCorrector().correct(prompt, "", "")[0]
+
+        self.assertEqual(simple, full)
+        self.assertEqual(simple, "1girl, long hair")
+
     def test_corrects_without_external_data(self):
         corrected, report = EasyUseAnimaPromptCorrector().correct(
             "long_hair, 1girl, long_hair",

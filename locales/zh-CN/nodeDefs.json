@@ -27,6 +27,22 @@
       }
     }
   },
+  "EasyUseAnimaPromptCorrectorSimple": {
+    "display_name": "Anima Prompt Corrector Simple",
+    "description": "只接收一个提示词输入，并只输出校正后的 ANIMA 提示词字符串。",
+    "inputs": {
+      "prompt": {
+        "name": "提示词",
+        "tooltip": "Comma-separated prompt text to normalize and reorder for ANIMA."
+      }
+    },
+    "outputs": {
+      "0": {
+        "name": "提示词",
+        "tooltip": "Prompt text after ANIMA ordering and syntax cleanup."
+      }
+    }
+  },
   "EasyUseAnimaWildcard": {
     "display_name": "Anima 通配符",
     "description": "基于种子展开 EasyUse Anima 通配符文件和动态提示词语法。",

@@ -67,4 +67,9 @@ weight 저장에 사용됩니다.
 선택 노드팩이 설치되어 있지 않으면 해당 UI는 잠기고, Queue 직전에도 해당
 옵션이 비활성화되어 누락된 선택 기능으로 인한 실행 오류를 피합니다.
 
-예제 워크플로우: [EasyUse_Anima_AiO_generator_release_ko.json](../example_workflows/EasyUse_Anima_AiO_generator_release_ko.json)
+예제 워크플로우:
+
+- [ANIMA_Easy_Use_workflow_v1_release_ko.json](../example_workflows/ANIMA_Easy_Use_workflow_v1_release_ko.json)
+- [EasyUse_Anima_AiO_generator_release_ko.json](../example_workflows/EasyUse_Anima_AiO_generator_release_ko.json)
+
+사용법 초안: [ANIMA Easy Use workflow v1](../Anima%20AiO/ANIMA_Easy_Use_workflow_v1_KO.md)

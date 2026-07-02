@@ -6936,6 +6936,50 @@ class EasyUseAnimaPromptCorrector:
         )
 
 
+class EasyUseAnimaPromptCorrectorSimple:
+    """Single-input ANIMA prompt correction node."""
+
+    DESCRIPTION = (
+        "Simplified ANIMA prompt correction node. It accepts one multiline prompt "
+        "and returns only the corrected prompt string."
+    )
+    OUTPUT_TOOLTIPS = (
+        "Prompt text after ANIMA ordering and syntax cleanup.",
+    )
+
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {
+            "required": {
+                "prompt": ("STRING", {
+                    "multiline": True,
+                    "default": "",
+                    "tooltip": "Comma-separated prompt text to normalize and reorder for ANIMA.",
+                }),
+            }
+        }
+
+    RETURN_TYPES = ("STRING",)
+    RETURN_NAMES = ("prompt",)
+    FUNCTION = "correct"
+    CATEGORY = "EasyUse Anima/Prompt"
+
+    @classmethod
+    def IS_CHANGED(cls, **kwargs):
+        return _stable_change_key({
+            "mode": "prompt_corrector_simple",
+            **{key: str(value) for key, value in sorted(kwargs.items())},
+        })
+
+    def correct(self, prompt: str):
+        corrected, _report = EasyUseAnimaPromptCorrector().correct(
+            prompt,
+            "",
+            "",
+        )
+        return (corrected,)
+
+
 class EasyUseAnimaWildcard:
     """Expand Impact Pack compatible wildcard and dynamic prompt syntax."""
 

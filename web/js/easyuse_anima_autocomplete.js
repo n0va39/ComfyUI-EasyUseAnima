@@ -25,6 +25,9 @@ const TARGETS = {
     "artist_overrides",
     "artist_exclusions",
   ]),
+  EasyUseAnimaPromptCorrectorSimple: new Set([
+    "prompt",
+  ]),
   EasyUseAnimaLoraPreset: new Set([
     "style_prompt",
   ]),

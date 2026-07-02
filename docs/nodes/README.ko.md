@@ -9,6 +9,7 @@
 | --- | --- | --- |
 | Anima NAIA Random Prompt | NAIA remote API에서 prompt, negative prompt, 해상도를 받음 | [문서](anima-naia-random-prompt.ko.md) |
 | Anima Prompt Corrector | 쉼표 프롬프트를 ANIMA 순서로 정규화 | [문서](anima-prompt-corrector.ko.md) |
+| Anima Prompt Corrector Simple | 프롬프트 하나를 받아 교정된 프롬프트 하나만 출력 | [문서](anima-prompt-corrector.ko.md) |
 | Anima Prompt Builder | 여러 프롬프트 필드를 하나로 조합 | [문서](anima-prompt-builder.ko.md) |
 | Anima Prompt Studio | Prompt Builder에 UI 편집, 자동완성, 하이라이트를 추가 | [문서](anima-prompt-studio.ko.md) |
 | Anima Prompt Studio Advanced | positive/negative field, NAIA, 해상도, 와일드카드 제어를 포함한 확장형 편집 노드 | [문서](anima-prompt-studio-advanced.ko.md) |

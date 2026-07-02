@@ -27,6 +27,22 @@
       }
     }
   },
+  "EasyUseAnimaPromptCorrectorSimple": {
+    "display_name": "Anima 프롬프트 교정기 Simple",
+    "description": "프롬프트 하나만 받아 ANIMA 순서와 문법을 교정한 프롬프트 문자열만 출력합니다.",
+    "inputs": {
+      "prompt": {
+        "name": "프롬프트",
+        "tooltip": "ANIMA용으로 정규화하고 순서를 교정할 쉼표 구분 프롬프트 텍스트입니다."
+      }
+    },
+    "outputs": {
+      "0": {
+        "name": "프롬프트",
+        "tooltip": "ANIMA 순서와 문법 정리가 적용된 프롬프트 텍스트입니다."
+      }
+    }
+  },
   "EasyUseAnimaWildcard": {
     "display_name": "Anima 와일드카드",
     "description": "EasyUse Anima 와일드카드 파일과 동적 프롬프트 문법을 시드 기반으로 확장합니다.",

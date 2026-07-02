@@ -12,6 +12,26 @@ plus a JSON report.
 
 ![Anima Prompt Corrector](../images/nodes/anima-prompt-corrector.png)
 
+## Simple Version
+
+`Anima Prompt Corrector Simple` is the compact variant for regular multiline
+string workflows.
+
+![Anima Prompt Corrector Simple](../images/nodes/anima-prompt-corrector-simple.png)
+
+Input:
+
+- `prompt`
+
+Output:
+
+- `prompt`
+
+It uses the same correction rules as `Anima Prompt Corrector`, but it does not
+expose `artist_overrides`, `artist_exclusions`, or the JSON `report`. Use the
+Simple version when only the corrected prompt string needs to be passed onward;
+use the full corrector when unknown or duplicate tag reporting is needed.
+
 ## Main Inputs
 
 - `prompt`: source prompt to normalize.
