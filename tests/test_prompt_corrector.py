@@ -437,7 +437,6 @@ class PromptBuilderTests(unittest.TestCase):
                 model,
                 clip,
                 quality_tags,
-                quality_neg,
                 mod_w_profile,
                 positive,
                 negative,
@@ -446,7 +445,6 @@ class PromptBuilderTests(unittest.TestCase):
                     "model": model,
                     "clip": clip,
                     "quality_tags": quality_tags,
-                    "quality_neg": quality_neg,
                     "mod_w_profile": mod_w_profile,
                     "positive": positive,
                     "negative": negative,
@@ -482,10 +480,58 @@ class PromptBuilderTests(unittest.TestCase):
         self.assertIs(calls[0]["model"], model)
         self.assertIs(calls[0]["clip"], clip)
         self.assertEqual(calls[0]["quality_tags"], "masterpiece")
-        self.assertEqual(calls[0]["quality_neg"], "worst quality")
         self.assertEqual(calls[0]["mod_w_profile"], "step_i14")
         self.assertEqual(calls[0]["positive"], positive)
         self.assertEqual(calls[0]["negative"], negative)
+
+    def test_prompt_data_conditioning_supports_future_mod_guidance_quality_neg(self):
+        calls = []
+
+        class FakeAnimaModGuidance:
+            def patch(
+                self,
+                model,
+                clip,
+                quality_tags,
+                quality_neg,
+                mod_w_profile,
+                positive,
+                negative,
+            ):
+                calls.append({
+                    "quality_tags": quality_tags,
+                    "quality_neg": quality_neg,
+                    "mod_w_profile": mod_w_profile,
+                })
+                return ("patched-model",)
+
+        prompt_data = {
+            "positive_prompt": "1girl",
+            "negative_prompt": "bad hands",
+            "mod_guidance": {
+                "enabled": True,
+                "negative_enabled": True,
+                "quality_tags": "masterpiece",
+                "negative_prompt": "worst quality",
+            },
+        }
+
+        with patch("nodes._encode_with_comfy_clip", lambda clip, text: [[f"cond:{text}", {"encoded_text": text}]]):
+            with patch("nodes._generate_empty_latent_with_comfy", lambda width, height: {"samples": (width, height, 1)}):
+                with patch("nodes._find_spectrum_anima_mod_guidance_class", lambda: FakeAnimaModGuidance):
+                    patched_model, _positive, _negative, _latent_image = EasyUseAnimaPromptDataConditioning().apply(
+                        object(),
+                        clip=object(),
+                        EASYUSE_ANIMA_PROMPT_DATA=prompt_data,
+                        mod_w_profile="step_i14",
+                    )
+
+        self.assertEqual(patched_model, "patched-model")
+        self.assertEqual(calls, [{
+            "quality_tags": "masterpiece",
+            "quality_neg": "worst quality",
+            "mod_w_profile": "step_i14",
+        }])
 
     def test_prompt_data_conditioning_average_artist_mix_rebuilds_artist_position(self):
         fields = [

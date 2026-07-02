@@ -718,15 +718,39 @@ def _apply_spectrum_anima_mod_guidance(
         raise RuntimeError(
             "[EasyUseAnima] comfyui-spectrum-ksampler AnimaModGuidance does not expose patch()."
         )
-    result = patch(
-        model,
-        clip,
-        str(quality_tags or ""),
-        str(quality_neg or ""),
-        str(mod_w_profile or ANIMA_MOD_GUIDANCE_DEFAULT_PROFILE),
-        positive,
-        negative,
+    quality_tags = str(quality_tags or "")
+    quality_neg = str(quality_neg or "")
+    mod_w_profile = str(mod_w_profile or ANIMA_MOD_GUIDANCE_DEFAULT_PROFILE)
+    patch_parameters = inspect.signature(patch).parameters
+    patch_parameter_values = list(patch_parameters.values())
+    patch_positional_count = sum(
+        1 for param in patch_parameter_values
+        if param.kind in (inspect.Parameter.POSITIONAL_ONLY, inspect.Parameter.POSITIONAL_OR_KEYWORD)
     )
+    patch_accepts_quality_neg = (
+        any(name in patch_parameters for name in ("quality_neg", "quality_negative", "negative_quality_tags"))
+        or any(param.kind == inspect.Parameter.VAR_POSITIONAL for param in patch_parameter_values)
+        or patch_positional_count >= 7
+    )
+    if patch_accepts_quality_neg:
+        result = patch(
+            model,
+            clip,
+            quality_tags,
+            quality_neg,
+            mod_w_profile,
+            positive,
+            negative,
+        )
+    else:
+        result = patch(
+            model,
+            clip,
+            quality_tags,
+            mod_w_profile,
+            positive,
+            negative,
+        )
     values = _node_output_tuple(result)
     if not values:
         raise RuntimeError("[EasyUseAnima] AnimaModGuidance returned no MODEL.")

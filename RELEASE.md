@@ -56,6 +56,9 @@
 - Advanced Prompt Studio native controls such as resolution bucket, wildcard,
   and Artist Mix dropdowns now consistently stop canvas event propagation so
   opened dropdowns stay open while selecting values.
+- `Anima Prompt Data Conditioning` now calls Spectrum
+  `AnimaModGuidance.patch()` with the installed node's supported signature, so
+  current Spectrum builds no longer raise an argument-count `TypeError`.
 
 ### Validation Notes
 
@@ -64,6 +67,9 @@
   artist-field-only artist data extraction.
 - Added regression coverage for prompt-data conditioning and Spectrum
   `AnimaModGuidance` patcher invocation.
+- Added regression coverage for current Spectrum `AnimaModGuidance` invocation
+  without a separate negative quality-tag argument and for future-compatible
+  invocation when that argument is supported.
 - Added regression coverage for prompt-data latent image creation with fixed
   batch size 1.
 - Added regression coverage for artist-field-only prompt data, artist-free
