@@ -1503,6 +1503,87 @@ def _advanced_outputs_from_prompt_data(value: str | dict | None) -> tuple:
     )
 
 
+def _copy_prompt_data_for_update(value: str | dict | None) -> dict[str, Any]:
+    data = dict(_normalize_prompt_data(value))
+    for key in ("outputs", "mod_guidance", "anima_mod_guidance", "resolution"):
+        nested = data.get(key)
+        if isinstance(nested, dict):
+            data[key] = dict(nested)
+    return data
+
+
+def _set_prompt_data_output(data: dict[str, Any], name: str, value) -> None:
+    outputs = data.setdefault("outputs", {})
+    if not isinstance(outputs, dict):
+        outputs = {}
+        data["outputs"] = outputs
+    outputs[name] = value
+
+    if name == "positive_prompt":
+        data["positive_prompt"] = str(value or "")
+        data["prompt"] = data["positive_prompt"]
+    elif name == "negative_prompt":
+        data["negative_prompt"] = str(value or "")
+    elif name == "metadata_prompt":
+        data["metadata_prompt"] = str(value or "")
+    elif name == "metadata_negative_prompt":
+        data["metadata_negative_prompt"] = str(value or "")
+    elif name == "width":
+        width = _as_int(value, 1024)
+        data["width"] = width
+        resolution = data.setdefault("resolution", {})
+        if isinstance(resolution, dict):
+            resolution["width"] = width
+    elif name == "height":
+        height = _as_int(value, 1024)
+        data["height"] = height
+        resolution = data.setdefault("resolution", {})
+        if isinstance(resolution, dict):
+            resolution["height"] = height
+    elif name == "anima_mod_guidance_quality_tags":
+        mod_guidance = data.setdefault("mod_guidance", {})
+        anima_mod_guidance = data.setdefault("anima_mod_guidance", {})
+        if isinstance(mod_guidance, dict):
+            mod_guidance["quality_tags"] = str(value or "")
+        if isinstance(anima_mod_guidance, dict):
+            anima_mod_guidance["quality_tags"] = str(value or "")
+    elif name == "anima_mod_guidance_negative_prompt":
+        mod_guidance = data.setdefault("mod_guidance", {})
+        anima_mod_guidance = data.setdefault("anima_mod_guidance", {})
+        if isinstance(mod_guidance, dict):
+            mod_guidance["negative_prompt"] = str(value or "")
+        if isinstance(anima_mod_guidance, dict):
+            anima_mod_guidance["negative_prompt"] = str(value or "")
+    elif name == "use_anima_mod_guidance":
+        enabled = _as_bool(value, False)
+        mod_guidance = data.setdefault("mod_guidance", {})
+        anima_mod_guidance = data.setdefault("anima_mod_guidance", {})
+        if isinstance(mod_guidance, dict):
+            mod_guidance["enabled"] = enabled
+        if isinstance(anima_mod_guidance, dict):
+            anima_mod_guidance["use_positive"] = enabled
+    elif name == "use_negative_anima_mod_guidance":
+        enabled = _as_bool(value, False)
+        mod_guidance = data.setdefault("mod_guidance", {})
+        anima_mod_guidance = data.setdefault("anima_mod_guidance", {})
+        if isinstance(mod_guidance, dict):
+            mod_guidance["negative_enabled"] = enabled
+        if isinstance(anima_mod_guidance, dict):
+            anima_mod_guidance["use_negative"] = enabled
+
+
+def _apply_prompt_data_overrides(
+    value: str | dict | None,
+    overrides: dict[str, Any],
+) -> dict[str, Any]:
+    data = _copy_prompt_data_for_update(value)
+    for name in EasyUseAnimaPromptStudioAdvanced.RETURN_NAMES:
+        if name not in overrides:
+            continue
+        _set_prompt_data_output(data, name, overrides[name])
+    return data
+
+
 def _build_advanced_prompt_data(
     compat_result: tuple,
     effective_fields: list[dict],
@@ -3469,11 +3550,12 @@ class EasyUseAnimaPromptStudioAdvancedV2(EasyUseAnimaPromptStudioAdvanced):
 
 
 class EasyUseAnimaPromptDataUnpack:
-    """Unpack EASYUSE_ANIMA_PROMPT_DATA into compatibility outputs."""
+    """Expand EASYUSE_ANIMA_PROMPT_DATA into compatibility outputs."""
 
     DESCRIPTION = (
-        "Unpacks an EASYUSE_ANIMA_PROMPT_DATA dict into Prompt Studio compatibility "
-        "outputs while passing the prompt data through for context-style chaining."
+        "Expands an EASYUSE_ANIMA_PROMPT_DATA dict into Prompt Studio compatibility "
+        "outputs, accepts optional override inputs, and passes prompt data through "
+        "for context-style chaining."
     )
     OUTPUT_TOOLTIPS = (
         "Pass-through prompt data for downstream prompt-data nodes.",
@@ -3482,6 +3564,48 @@ class EasyUseAnimaPromptDataUnpack:
 
     @classmethod
     def INPUT_TYPES(cls):
+        optional = {
+            "positive_prompt": ("STRING", {
+                "forceInput": True,
+                "tooltip": "Optional override for prompt_data positive_prompt.",
+            }),
+            "negative_prompt": ("STRING", {
+                "forceInput": True,
+                "tooltip": "Optional override for prompt_data negative_prompt.",
+            }),
+            "anima_mod_guidance_quality_tags": ("STRING", {
+                "forceInput": True,
+                "tooltip": "Optional override for prompt_data Mod Guidance quality tags.",
+            }),
+            "anima_mod_guidance_negative_prompt": ("STRING", {
+                "forceInput": True,
+                "tooltip": "Optional override for prompt_data Mod Guidance negative prompt.",
+            }),
+            "use_anima_mod_guidance": ("BOOLEAN", {
+                "forceInput": True,
+                "tooltip": "Optional override for prompt_data Mod Guidance enabled flag.",
+            }),
+            "use_negative_anima_mod_guidance": ("BOOLEAN", {
+                "forceInput": True,
+                "tooltip": "Optional override for prompt_data negative Mod Guidance enabled flag.",
+            }),
+            "metadata_prompt": ("STRING", {
+                "forceInput": True,
+                "tooltip": "Optional override for prompt_data metadata_prompt.",
+            }),
+            "metadata_negative_prompt": ("STRING", {
+                "forceInput": True,
+                "tooltip": "Optional override for prompt_data metadata_negative_prompt.",
+            }),
+            "width": ("INT", {
+                "forceInput": True,
+                "tooltip": "Optional override for prompt_data latent width.",
+            }),
+            "height": ("INT", {
+                "forceInput": True,
+                "tooltip": "Optional override for prompt_data latent height.",
+            }),
+        }
         return {
             "required": {
                 PROMPT_DATA_TYPE: (PROMPT_DATA_TYPE, {
@@ -3489,6 +3613,7 @@ class EasyUseAnimaPromptDataUnpack:
                     "tooltip": "Structured prompt data from Anima Prompt Studio Advanced v2.",
                 }),
             },
+            "optional": optional,
         }
 
     RETURN_TYPES = (PROMPT_DATA_TYPE, *EasyUseAnimaPromptStudioAdvanced.RETURN_TYPES)
@@ -3506,17 +3631,18 @@ class EasyUseAnimaPromptDataUnpack:
         data = EASYUSE_ANIMA_PROMPT_DATA if EASYUSE_ANIMA_PROMPT_DATA is not None else prompt_data
         return _stable_change_key({
             "mode": "prompt_data_unpack",
-            "prompt_data": _normalize_prompt_data(data),
+            "prompt_data": _apply_prompt_data_overrides(data, kwargs),
         })
 
     def unpack(
         self,
         EASYUSE_ANIMA_PROMPT_DATA: str | dict | None = None,
         prompt_data: str | dict | None = None,
-        **kwargs,
+        **overrides,
     ):
-        data = _normalize_prompt_data(
-            EASYUSE_ANIMA_PROMPT_DATA if EASYUSE_ANIMA_PROMPT_DATA is not None else prompt_data
+        data = _apply_prompt_data_overrides(
+            EASYUSE_ANIMA_PROMPT_DATA if EASYUSE_ANIMA_PROMPT_DATA is not None else prompt_data,
+            overrides,
         )
         return (data, *_advanced_outputs_from_prompt_data(data))
 

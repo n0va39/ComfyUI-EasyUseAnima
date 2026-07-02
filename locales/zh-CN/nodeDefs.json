@@ -332,8 +332,8 @@
     }
   },
   "EasyUseAnimaPromptDataUnpack": {
-    "display_name": "EASYUSE_ANIMA_PROMPT_DATA Unpack",
-    "description": "Passes EASYUSE_ANIMA_PROMPT_DATA through and unpacks it into Prompt Studio compatibility outputs.",
+    "display_name": "EASYUSE_ANIMA_PROMPT_DATA",
+    "description": "Passes EASYUSE_ANIMA_PROMPT_DATA through, applies optional override inputs, and expands it into Prompt Studio compatibility outputs.",
     "inputs": {
       "EASYUSE_ANIMA_PROMPT_DATA": {
         "name": "EASYUSE_ANIMA_PROMPT_DATA",

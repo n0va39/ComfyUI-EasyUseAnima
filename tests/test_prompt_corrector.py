@@ -357,7 +357,10 @@ class PromptBuilderTests(unittest.TestCase):
         self.assertEqual(EasyUseAnimaPromptStudioAdvancedV2.RETURN_NAMES, (PROMPT_DATA_TYPE,))
 
     def test_prompt_data_unpack_uses_prompt_data_type_as_socket_name(self):
-        self.assertIn(PROMPT_DATA_TYPE, EasyUseAnimaPromptDataUnpack.INPUT_TYPES()["required"])
+        input_types = EasyUseAnimaPromptDataUnpack.INPUT_TYPES()
+        self.assertIn(PROMPT_DATA_TYPE, input_types["required"])
+        for name in EasyUseAnimaPromptStudioAdvanced.RETURN_NAMES:
+            self.assertIn(name, input_types["optional"])
         self.assertEqual(EasyUseAnimaPromptDataUnpack.RETURN_TYPES[0], PROMPT_DATA_TYPE)
         self.assertEqual(EasyUseAnimaPromptDataUnpack.RETURN_NAMES[0], PROMPT_DATA_TYPE)
 
@@ -478,6 +481,54 @@ class PromptBuilderTests(unittest.TestCase):
         self.assertTrue(unpacked[5])
         self.assertFalse(unpacked[6])
         self.assertEqual(unpacked[9:11], (832, 1216))
+
+    def test_prompt_data_unpack_optional_inputs_override_prompt_data(self):
+        prompt_data = {
+            "schema": PROMPT_DATA_SCHEMA,
+            "positive_prompt": "old positive",
+            "negative_prompt": "old negative",
+            "outputs": {
+                "positive_prompt": "old positive",
+                "negative_prompt": "old negative",
+                "anima_mod_guidance_quality_tags": "",
+                "anima_mod_guidance_negative_prompt": "",
+                "use_anima_mod_guidance": False,
+                "use_negative_anima_mod_guidance": False,
+                "metadata_prompt": "old positive",
+                "metadata_negative_prompt": "old negative",
+                "width": 1024,
+                "height": 1024,
+            },
+            "resolution": {
+                "width": 1024,
+                "height": 1024,
+            },
+        }
+
+        unpacked = EasyUseAnimaPromptDataUnpack().unpack(
+            prompt_data,
+            positive_prompt="new positive",
+            negative_prompt="new negative",
+            anima_mod_guidance_quality_tags="masterpiece",
+            use_anima_mod_guidance=True,
+            width=768,
+            height=1152,
+        )
+        updated = unpacked[0]
+
+        self.assertEqual(updated["positive_prompt"], "new positive")
+        self.assertEqual(updated["prompt"], "new positive")
+        self.assertEqual(updated["negative_prompt"], "new negative")
+        self.assertEqual(updated["outputs"]["positive_prompt"], "new positive")
+        self.assertEqual(updated["outputs"]["anima_mod_guidance_quality_tags"], "masterpiece")
+        self.assertTrue(updated["outputs"]["use_anima_mod_guidance"])
+        self.assertEqual(updated["resolution"]["width"], 768)
+        self.assertEqual(updated["resolution"]["height"], 1152)
+        self.assertEqual(unpacked[1], "new positive")
+        self.assertEqual(unpacked[2], "new negative")
+        self.assertEqual(unpacked[3], "masterpiece")
+        self.assertTrue(unpacked[5])
+        self.assertEqual(unpacked[9:11], (768, 1152))
 
     def test_prompt_studio_advanced_v2_artist_data_uses_artist_field_not_at_prefix(self):
         fields = [

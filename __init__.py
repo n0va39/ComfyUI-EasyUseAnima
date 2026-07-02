@@ -51,7 +51,7 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "EasyUseAnimaImageScaleByMultiple": "Anima Image Scale By Multiple",
     "EasyUseAnimaLoraPreset": "Anima LoRA Preset",
     "EasyUseAnimaNAIARandomPrompt": "Anima NAIA Random Prompt",
-    "EasyUseAnimaPromptDataUnpack": "EASYUSE_ANIMA_PROMPT_DATA Unpack",
+    "EasyUseAnimaPromptDataUnpack": "EASYUSE_ANIMA_PROMPT_DATA",
     "EasyUseAnimaPromptBuilder": "Anima Prompt Builder",
     "EasyUseAnimaPromptCorrector": "Anima Prompt Corrector",
     "EasyUseAnimaPromptStudio": "Anima Prompt Studio",

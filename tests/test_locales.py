@@ -57,6 +57,10 @@ class LocaleTests(unittest.TestCase):
         )
         for locale_code in LOCALE_CODES:
             data = json.loads((ROOT / "locales" / locale_code / "nodeDefs.json").read_text(encoding="utf-8"))
+            self.assertEqual(
+                data["EasyUseAnimaPromptDataUnpack"]["display_name"],
+                nodes.PROMPT_DATA_TYPE,
+            )
             for node_id in node_ids:
                 with self.subTest(locale=locale_code, node=node_id):
                     cls = getattr(nodes, node_id)

@@ -332,8 +332,8 @@
     }
   },
   "EasyUseAnimaPromptDataUnpack": {
-    "display_name": "EASYUSE_ANIMA_PROMPT_DATA Unpack",
-    "description": "EASYUSE_ANIMA_PROMPT_DATA dict를 context처럼 통과시키고 기존 Prompt Studio 호환 출력으로 펼치는 노드입니다.",
+    "display_name": "EASYUSE_ANIMA_PROMPT_DATA",
+    "description": "EASYUSE_ANIMA_PROMPT_DATA dict를 context처럼 통과시키고, 선택 입력으로 값을 덮어쓴 뒤 기존 Prompt Studio 호환 출력으로 펼치는 노드입니다.",
     "inputs": {
       "EASYUSE_ANIMA_PROMPT_DATA": {
         "name": "EASYUSE_ANIMA_PROMPT_DATA",
