@@ -27,8 +27,6 @@ Reference baseline:
 
 ## Quick Guide: Anima AiO Generation
 
-![Anima AiO Generator](docs/images/aio-generator-node.png)
-
 `Anima AiO Generator` consumes a prompt-data context and runs first-pass
 sampling, Highres, Detailer, preview, and image saving in one node. Prompt
 editing stays upstream in `Anima Prompt Studio Advanced v2` and
@@ -57,8 +55,6 @@ Compact release workflow:
 [Korean usage draft](docs/Anima%20AiO/ANIMA_Easy_Use_workflow_v1_KO.md)
 
 ## Quick Guide: Artist Mix Conditioning
-
-![Anima Artist Mix Conditioning](docs/images/artist-mix-conditioning-node.png)
 
 `Anima Artist Mix Conditioning` is a standalone node that creates artist-mixed
 positive `CONDITIONING` from a normal prompt plus separate `artist_tags`. Use it

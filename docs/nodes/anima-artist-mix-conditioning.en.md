@@ -2,6 +2,8 @@
 
 Category: `EasyUse Anima/Prompt`
 
+![Anima Artist Mix Conditioning](../images/artist-mix-conditioning-node.png)
+
 Inputs:
 
 - `clip`

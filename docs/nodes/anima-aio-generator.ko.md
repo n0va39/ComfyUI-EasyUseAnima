@@ -2,6 +2,8 @@
 
 카테고리: `EasyUse Anima/AiO`
 
+![Anima AiO Generator](../images/aio-generator-node.png)
+
 `Anima AiO Generator`는 `Easy Use Anima Input`에서 전달받은 전용 context를
 사용해 프롬프트 인코딩, 1차 샘플링, 선택적 Highres, 선택적 Detailer, 이미지
 저장을 한 노드에서 실행합니다. Prompt Studio에서 만든 prompt data는 upstream에서

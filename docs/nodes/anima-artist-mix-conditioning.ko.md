@@ -2,6 +2,8 @@
 
 카테고리: `EasyUse Anima/Prompt`
 
+![Anima Artist Mix Conditioning](../images/artist-mix-conditioning-node.png)
+
 입력:
 
 - `clip`

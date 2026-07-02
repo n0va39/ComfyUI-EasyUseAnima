@@ -2,6 +2,8 @@
 
 Category: `EasyUse Anima/AiO`
 
+![Anima AiO Generator](../images/aio-generator-node.png)
+
 `Anima AiO Generator` consumes the dedicated context from `Easy Use Anima Input`
 and runs prompt encoding, first-pass sampling, optional Highres, optional
 Detailer, and image saving in one output node. Prompt editing stays upstream in
