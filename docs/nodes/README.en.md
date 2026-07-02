@@ -12,7 +12,6 @@ shared settings, start with the top-level [README](../../README.en.md).
 | Anima Prompt Builder | Combines multiple prompt fields into one prompt | [Guide](anima-prompt-builder.en.md) |
 | Anima Prompt Studio | Adds UI editing, autocomplete, and highlighting to Prompt Builder | [Guide](anima-prompt-studio.en.md) |
 | Anima Prompt Studio Advanced | Advanced editor with positive/negative fields, NAIA, resolution, and wildcard controls | [Guide](anima-prompt-studio-advanced.en.md) |
-| Anima Prompt Data Strings | Extracts needed string values from EASYUSE_ANIMA_PROMPT_DATA | [Guide](anima-prompt-data-strings.en.md) |
 | Anima Artist Mix Conditioning | Outputs artist mix positive CONDITIONING from a prompt and separate artist_tags input | [Guide](anima-artist-mix-conditioning.en.md) |
 | Anima Wildcard | Expands wildcard text without Prompt Studio | [Guide](anima-wildcard.en.md) |
 | Anima LoRA Preset | Stores and outputs LoRA profiles, style prompts, and trigger words | [Guide](anima-lora-preset.en.md) |

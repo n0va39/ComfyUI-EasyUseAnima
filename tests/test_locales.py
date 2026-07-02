@@ -54,7 +54,6 @@ class LocaleTests(unittest.TestCase):
         node_ids = (
             "EasyUseAnimaPromptStudioAdvancedV2",
             "EasyUseAnimaPromptDataUnpack",
-            "EasyUseAnimaPromptDataStrings",
             "EasyUseAnimaPromptDataConditioning",
         )
         for locale_code in LOCALE_CODES:
