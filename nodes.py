@@ -137,6 +137,7 @@ ARTIST_MIX_DEFAULT_STRENGTH_SCALE = 1.0
 ARTIST_MIX_CONTROL_KEY = "anima_prompt_artist_mix_control"
 ARTIST_MIX_EXACT_KEY = "anima_prompt_artist_mix_exact"
 ARTIST_MIX_SCHEDULE_KEY = "anima_prompt_artist_mix_schedule"
+_SPECTRUM_ANIMA_MOD_GUIDANCE_OLD_SIGNATURE_WARNED: set[str] = set()
 REGIONAL_PROMPT_DATA_TYPE = "EASYUSE_ANIMA_REGIONAL_PROMPT_DATA"
 REGIONAL_PROMPT_DATA_SCHEMA = "easyuse_anima_prompt_studio_regional"
 REGIONAL_PROMPT_BUNDLE_SCHEMA = "easyuse_anima_prompt_studio_regional_bundle"
@@ -702,6 +703,22 @@ def _normalize_anima_mod_guidance_profile(profile: str) -> str:
     return profile
 
 
+def _warn_old_spectrum_anima_mod_guidance_once(patcher_cls) -> None:
+    class_name = getattr(patcher_cls, "__qualname__", getattr(patcher_cls, "__name__", "AnimaModGuidance"))
+    module_name = getattr(patcher_cls, "__module__", "")
+    warning_key = f"{module_name}.{class_name}"
+    if warning_key in _SPECTRUM_ANIMA_MOD_GUIDANCE_OLD_SIGNATURE_WARNED:
+        return
+    _SPECTRUM_ANIMA_MOD_GUIDANCE_OLD_SIGNATURE_WARNED.add(warning_key)
+    logger.warning(
+        "[EasyUseAnima] Installed comfyui-spectrum-ksampler AnimaModGuidance "
+        "uses an old patch() signature without separate negative quality-tag "
+        "support. Generation will continue, but negative Mod Guidance quality "
+        "tags are ignored by the model patch. Update comfyui-spectrum-ksampler "
+        "to enable separate negative quality tags."
+    )
+
+
 def _apply_spectrum_anima_mod_guidance(
     model,
     clip,
@@ -743,6 +760,7 @@ def _apply_spectrum_anima_mod_guidance(
             negative,
         )
     else:
+        _warn_old_spectrum_anima_mod_guidance_once(patcher_cls)
         result = patch(
             model,
             clip,

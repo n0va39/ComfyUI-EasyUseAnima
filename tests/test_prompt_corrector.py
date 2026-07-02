@@ -28,6 +28,7 @@ from nodes import (
     EasyUseAnimaPromptStudioAdvanced,
     EasyUseAnimaPromptStudioAdvancedV2,
     EasyUseAnimaPromptStudioExtend,
+    _SPECTRUM_ANIMA_MOD_GUIDANCE_OLD_SIGNATURE_WARNED,
     _clean_prompt,
     _generate_empty_latent_with_comfy,
     _prompt_tokens,
@@ -464,15 +465,17 @@ class PromptBuilderTests(unittest.TestCase):
             },
         }
 
+        _SPECTRUM_ANIMA_MOD_GUIDANCE_OLD_SIGNATURE_WARNED.clear()
         with patch("nodes._encode_with_comfy_clip", lambda clip, text: [[f"cond:{text}", {"encoded_text": text}]]):
             with patch("nodes._generate_empty_latent_with_comfy", lambda width, height: {"samples": (width, height, 1)}):
                 with patch("nodes._find_spectrum_anima_mod_guidance_class", lambda: FakeAnimaModGuidance):
-                    patched_model, positive, negative, latent_image = EasyUseAnimaPromptDataConditioning().apply(
-                        model,
-                        clip=clip,
-                        EASYUSE_ANIMA_PROMPT_DATA=prompt_data,
-                        mod_w_profile="step_i14",
-                    )
+                    with patch("nodes.logger.warning") as warning_mock:
+                        patched_model, positive, negative, latent_image = EasyUseAnimaPromptDataConditioning().apply(
+                            model,
+                            clip=clip,
+                            EASYUSE_ANIMA_PROMPT_DATA=prompt_data,
+                            mod_w_profile="step_i14",
+                        )
 
         self.assertEqual(patched_model, "patched-model")
         self.assertEqual(latent_image, {"samples": (1024, 1024, 1)})
@@ -483,6 +486,8 @@ class PromptBuilderTests(unittest.TestCase):
         self.assertEqual(calls[0]["mod_w_profile"], "step_i14")
         self.assertEqual(calls[0]["positive"], positive)
         self.assertEqual(calls[0]["negative"], negative)
+        warning_mock.assert_called_once()
+        self.assertIn("old patch() signature", warning_mock.call_args.args[0])
 
     def test_prompt_data_conditioning_supports_future_mod_guidance_quality_neg(self):
         calls = []
@@ -516,15 +521,17 @@ class PromptBuilderTests(unittest.TestCase):
             },
         }
 
+        _SPECTRUM_ANIMA_MOD_GUIDANCE_OLD_SIGNATURE_WARNED.clear()
         with patch("nodes._encode_with_comfy_clip", lambda clip, text: [[f"cond:{text}", {"encoded_text": text}]]):
             with patch("nodes._generate_empty_latent_with_comfy", lambda width, height: {"samples": (width, height, 1)}):
                 with patch("nodes._find_spectrum_anima_mod_guidance_class", lambda: FakeAnimaModGuidance):
-                    patched_model, _positive, _negative, _latent_image = EasyUseAnimaPromptDataConditioning().apply(
-                        object(),
-                        clip=object(),
-                        EASYUSE_ANIMA_PROMPT_DATA=prompt_data,
-                        mod_w_profile="step_i14",
-                    )
+                    with patch("nodes.logger.warning") as warning_mock:
+                        patched_model, _positive, _negative, _latent_image = EasyUseAnimaPromptDataConditioning().apply(
+                            object(),
+                            clip=object(),
+                            EASYUSE_ANIMA_PROMPT_DATA=prompt_data,
+                            mod_w_profile="step_i14",
+                        )
 
         self.assertEqual(patched_model, "patched-model")
         self.assertEqual(calls, [{
@@ -532,6 +539,7 @@ class PromptBuilderTests(unittest.TestCase):
             "quality_neg": "worst quality",
             "mod_w_profile": "step_i14",
         }])
+        warning_mock.assert_not_called()
 
     def test_prompt_data_conditioning_average_artist_mix_rebuilds_artist_position(self):
         fields = [

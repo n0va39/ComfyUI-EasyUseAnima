@@ -59,6 +59,9 @@
 - `Anima Prompt Data Conditioning` now calls Spectrum
   `AnimaModGuidance.patch()` with the installed node's supported signature, so
   current Spectrum builds no longer raise an argument-count `TypeError`.
+- Older Spectrum `AnimaModGuidance` builds now emit a warning when their
+  signature cannot receive separate negative quality tags. Execution continues,
+  but negative Mod Guidance quality tags are ignored by that model patch.
 
 ### Validation Notes
 
@@ -70,6 +73,7 @@
 - Added regression coverage for current Spectrum `AnimaModGuidance` invocation
   without a separate negative quality-tag argument and for future-compatible
   invocation when that argument is supported.
+- Added regression coverage for the old Spectrum warning path.
 - Added regression coverage for prompt-data latent image creation with fixed
   batch size 1.
 - Added regression coverage for artist-field-only prompt data, artist-free
