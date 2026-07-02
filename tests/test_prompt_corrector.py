@@ -14,11 +14,14 @@ from nodes import (
     ADVANCED_RESOLUTION_BUCKETS,
     DEFAULT_QUALITY_TAGS,
     DEFAULT_TRAILING_QUALITY_TAGS,
+    PROMPT_DATA_SCHEMA,
+    PROMPT_DATA_TYPE,
     EasyUseAnimaDetailerAlignHook,
     EasyUseAnimaPromptBuilder,
     EasyUseAnimaPromptCorrector,
     EasyUseAnimaPromptStudio,
     EasyUseAnimaPromptStudioAdvanced,
+    EasyUseAnimaPromptStudioAdvancedV2,
     EasyUseAnimaPromptStudioExtend,
     _clean_prompt,
     _prompt_tokens,
@@ -347,6 +350,91 @@ class PromptBuilderTests(unittest.TestCase):
                 "height",
             ),
         )
+
+    def test_prompt_studio_advanced_v2_prepends_prompt_data_socket(self):
+        self.assertEqual(EasyUseAnimaPromptStudioAdvancedV2.RETURN_TYPES[0], PROMPT_DATA_TYPE)
+        self.assertEqual(EasyUseAnimaPromptStudioAdvancedV2.RETURN_NAMES[0], "prompt_data")
+        self.assertEqual(
+            EasyUseAnimaPromptStudioAdvancedV2.RETURN_NAMES[1:],
+            EasyUseAnimaPromptStudioAdvanced.RETURN_NAMES,
+        )
+
+    def test_prompt_studio_advanced_v2_returns_structured_prompt_data(self):
+        fields = [
+            {
+                "id": "artist",
+                "pane": "positive",
+                "type": "artist",
+                "label": "Artist Tags",
+                "text": "artist_a, artist_b",
+                "height": 72,
+            },
+            {
+                "id": "general",
+                "pane": "positive",
+                "type": "general",
+                "label": "General Tags",
+                "text": "1girl",
+                "height": 120,
+            },
+            {
+                "id": "negative",
+                "pane": "negative",
+                "type": "general",
+                "label": "General Tags",
+                "text": "bad hands",
+                "height": 120,
+            },
+        ]
+        result = EasyUseAnimaPromptStudioAdvancedV2().build(
+            False,
+            True,
+            False,
+            False,
+            json.dumps(fields),
+            resolution_bucket="1024",
+            resolution_size="896 * 1152 (7:9)",
+        )
+
+        prompt_data = result["result"][0]
+        compat_result = result["result"][1:]
+        self.assertIsInstance(prompt_data, dict)
+        self.assertEqual(prompt_data["schema"], PROMPT_DATA_SCHEMA)
+        self.assertEqual(prompt_data["type"], PROMPT_DATA_TYPE)
+        self.assertEqual(prompt_data["outputs"]["positive_prompt"], compat_result[0])
+        self.assertEqual(prompt_data["outputs"]["negative_prompt"], compat_result[1])
+        self.assertEqual(prompt_data["positive_prompt"], compat_result[0])
+        self.assertEqual(prompt_data["negative_prompt"], "bad hands")
+        self.assertEqual(prompt_data["artist"]["positive_prompt"], "artist_a, artist_b")
+        self.assertFalse(prompt_data["artist_mix"]["enabled"])
+        self.assertEqual(prompt_data["artist_mix"]["mode"], "prompt")
+        self.assertEqual(prompt_data["artist_mix"]["artist_prompt"], "artist_a, artist_b")
+        self.assertEqual(prompt_data["resolution"]["width"], 896)
+        self.assertEqual(prompt_data["resolution"]["height"], 1152)
+
+    def test_prompt_studio_advanced_v2_artist_data_uses_artist_field_not_at_prefix(self):
+        fields = [
+            {
+                "id": "general",
+                "pane": "positive",
+                "type": "general",
+                "label": "General Tags",
+                "text": "@looks_like_artist, 1girl",
+                "height": 120,
+            },
+        ]
+        result = EasyUseAnimaPromptStudioAdvancedV2().build(
+            False,
+            True,
+            False,
+            False,
+            json.dumps(fields),
+        )
+
+        prompt_data = result["result"][0]
+        self.assertIn("1girl", prompt_data["positive_prompt"])
+        self.assertEqual(prompt_data["artist"]["positive_prompt"], "")
+        self.assertEqual(prompt_data["artist_mix"]["artist_prompt"], "")
 
     def test_prompt_studio_advanced_splits_positive_negative_and_amg_quality(self):
         fields = [

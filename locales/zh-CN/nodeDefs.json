@@ -267,6 +267,110 @@
       }
     }
   },
+  "EasyUseAnimaPromptStudioAdvancedV2": {
+    "display_name": "Anima Prompt Studio Advanced v2",
+    "description": "Advanced Prompt Studio v2 with compatibility outputs and an EASYUSE_ANIMA_PROMPT_DATA dict output.",
+    "inputs": {
+      "use_naia": {
+        "name": "Use NAIA",
+        "tooltip": "Internal request flag for filling NAIA Prompt fields."
+      },
+      "consume_naia_on_queue": {
+        "name": "Apply NAIA once",
+        "tooltip": "Turns the saved request flag off after a successful NAIA fill."
+      },
+      "use_anima_mod_guidance": {
+        "name": "Use Mod Guidance",
+        "tooltip": "Routes positive quality fields to the Mod Guidance quality output."
+      },
+      "resolution_bucket": {
+        "name": "Resolution bucket",
+        "tooltip": "Internal selected latent resolution bucket."
+      },
+      "resolution_size": {
+        "name": "Resolution size",
+        "tooltip": "Internal selected latent resolution."
+      },
+      "resolution_custom_width": {
+        "name": "Custom width",
+        "tooltip": "Internal custom latent width."
+      },
+      "resolution_custom_height": {
+        "name": "Custom height",
+        "tooltip": "Internal custom latent height."
+      },
+      "pin_trigger_tags_to_front": {
+        "name": "Pin triggers front",
+        "tooltip": "Legacy internal trigger placement flag."
+      },
+      "advanced_fields": {
+        "name": "Advanced fields",
+        "tooltip": "Internal JSON payload for Advanced Prompt Studio fields."
+      },
+      "use_negative_anima_mod_guidance": {
+        "name": "Use negative Mod Guidance",
+        "tooltip": "Routes negative quality fields to the negative Mod Guidance output."
+      },
+      "wildcard_mode": {
+        "name": "Wildcard mode",
+        "tooltip": "Wildcard expansion mode for Advanced Prompt Studio fields."
+      },
+      "wildcard_seed": {
+        "name": "Wildcard seed",
+        "tooltip": "Seed for wildcard expansion."
+      },
+      "wildcard_seed_after_generate": {
+        "name": "Wildcard seed after generate",
+        "tooltip": "Seed control after wildcard generation."
+      }
+    },
+    "outputs": {
+      "0": {
+        "name": "Prompt data",
+        "tooltip": "EASYUSE_ANIMA_PROMPT_DATA dict for downstream nodes."
+      },
+      "1": {
+        "name": "Positive prompt",
+        "tooltip": "Final positive prompt assembled from enabled positive fields."
+      },
+      "2": {
+        "name": "Negative prompt",
+        "tooltip": "Final negative prompt assembled from enabled negative fields."
+      },
+      "3": {
+        "name": "Mod Guidance quality tags",
+        "tooltip": "Positive quality fields routed to Anima Mod Guidance."
+      },
+      "4": {
+        "name": "Mod Guidance negative prompt",
+        "tooltip": "Negative quality fields routed to Anima Mod Guidance."
+      },
+      "5": {
+        "name": "Use Mod Guidance",
+        "tooltip": "Boolean flag passed through for Anima Mod Guidance workflow control."
+      },
+      "6": {
+        "name": "Use negative Mod Guidance",
+        "tooltip": "Boolean flag passed through for negative Anima Mod Guidance workflow control."
+      },
+      "7": {
+        "name": "Metadata prompt",
+        "tooltip": "Positive metadata prompt with metadata filters applied."
+      },
+      "8": {
+        "name": "Metadata negative prompt",
+        "tooltip": "Negative metadata prompt with metadata filters applied."
+      },
+      "9": {
+        "name": "Width",
+        "tooltip": "Selected latent width."
+      },
+      "10": {
+        "name": "Height",
+        "tooltip": "Selected latent height."
+      }
+    }
+  },
   "EasyUseAnimaPromptStudioRegional": {
     "display_name": "Anima 提示词工作室 Regional",
     "description": "将指定正向提示词字段应用到编号用户蒙版的 Regional Prompt Studio。Regional 提示词数据由 Anima Regional Conditioning 节点转换为 KSampler 用 CONDITIONING。",

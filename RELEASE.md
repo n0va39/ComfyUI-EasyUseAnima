@@ -1,5 +1,46 @@
 # Release Notes
 
+## 0.2.1
+
+### Planned
+
+- Prepare `Anima Prompt Studio Advanced v2` with structured prompt data output.
+- Downstream nodes should read Prompt Studio data by dict keys instead of
+  positional output indexes so future output changes remain compatible.
+- Add artist-field handling modes so text from Prompt Studio's artist-tag input
+  fields can stay inline or be routed as separate structured data for
+  artist-conditioning nodes, following the `ComfyUI-AnimaPromptEditor`
+  artist-mix payload as the default compatibility target.
+- Keep the existing `Anima Prompt Studio Advanced` node compatible while v2
+  output contracts are introduced.
+
+### Added
+
+- Added `Anima Prompt Studio Advanced v2` with a first output socket of type
+  `EASYUSE_ANIMA_PROMPT_DATA`.
+- The v2 prompt data output is a Python dict with keyed compatibility outputs,
+  resolution data, wildcard state, Mod Guidance flags, and artist-field data.
+- Added NAIA resolution bucket fit mode for `Anima Prompt Studio Advanced`.
+  NAIA width/height can now resolve to the nearest aspect ratio inside a
+  configured saved resolution bucket.
+- Added `naia.resolution_mode` and `naia.resolution_bucket` settings plus
+  localized frontend controls for original-scale and bucket-fit modes.
+
+### Fixed
+
+- Fixed Regional Prompt Studio dynamic field sockets so field input sockets stay
+  synchronized with node fields and connection changes.
+- Connected Regional Prompt Studio `STRING` inputs can now override masked
+  prompt text at queue time without overwriting the saved field text.
+
+### Validation Notes
+
+- Added regression coverage for the Advanced v2 prompt data socket, dict
+  payload, and artist-field-only artist data extraction.
+- Added regression coverage for Regional Prompt Studio field socket overrides.
+- Added regression coverage for NAIA resolution mode/bucket validation and
+  bucket-fit output sizing.
+
 ## 0.2.0
 
 ### Added

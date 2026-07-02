@@ -267,6 +267,110 @@
       }
     }
   },
+  "EasyUseAnimaPromptStudioAdvancedV2": {
+    "display_name": "Anima 프롬프트 스튜디오 고급 v2",
+    "description": "고급 Prompt Studio 호환 출력과 EASYUSE_ANIMA_PROMPT_DATA dict 출력을 함께 제공하는 v2 노드입니다.",
+    "inputs": {
+      "use_naia": {
+        "name": "NAIA 사용",
+        "tooltip": "NAIA Prompt 필드를 새 NAIA 랜덤 프롬프트로 채우는 내부 요청 플래그입니다."
+      },
+      "consume_naia_on_queue": {
+        "name": "NAIA 1회 적용",
+        "tooltip": "NAIA 채우기 성공 후 저장 워크플로우에서는 요청 플래그를 끕니다."
+      },
+      "use_anima_mod_guidance": {
+        "name": "Mod Guidance 사용",
+        "tooltip": "켜면 긍정 출력에서 품질 필드를 제외하고 Mod Guidance 품질 출력으로 보냅니다."
+      },
+      "resolution_bucket": {
+        "name": "해상도 버킷",
+        "tooltip": "내부 선택 잠재 해상도 버킷입니다."
+      },
+      "resolution_size": {
+        "name": "해상도 크기",
+        "tooltip": "내부 선택 잠재 해상도입니다."
+      },
+      "resolution_custom_width": {
+        "name": "커스텀 너비",
+        "tooltip": "내부 커스텀 잠재 너비입니다."
+      },
+      "resolution_custom_height": {
+        "name": "커스텀 높이",
+        "tooltip": "내부 커스텀 잠재 높이입니다."
+      },
+      "pin_trigger_tags_to_front": {
+        "name": "트리거 앞 고정",
+        "tooltip": "레거시 내부 플래그입니다."
+      },
+      "advanced_fields": {
+        "name": "고급 필드",
+        "tooltip": "Advanced Prompt Studio 필드를 저장하는 내부 JSON payload입니다."
+      },
+      "use_negative_anima_mod_guidance": {
+        "name": "부정 Mod Guidance 사용",
+        "tooltip": "켜면 부정 출력에서 부정 품질 필드를 제외하고 부정 Mod Guidance 출력으로 보냅니다."
+      },
+      "wildcard_mode": {
+        "name": "와일드카드 모드",
+        "tooltip": "Advanced Prompt Studio 필드의 와일드카드 확장 모드입니다."
+      },
+      "wildcard_seed": {
+        "name": "와일드카드 시드",
+        "tooltip": "Advanced Prompt Studio 필드의 와일드카드 확장에 사용할 시드입니다."
+      },
+      "wildcard_seed_after_generate": {
+        "name": "와일드카드 시드 생성 후 제어",
+        "tooltip": "와일드카드 생성 후 시드 제어입니다."
+      }
+    },
+    "outputs": {
+      "0": {
+        "name": "프롬프트 데이터",
+        "tooltip": "하위 노드에서 키로 참조할 수 있는 EASYUSE_ANIMA_PROMPT_DATA dict입니다."
+      },
+      "1": {
+        "name": "긍정 프롬프트",
+        "tooltip": "활성화된 긍정 필드로 조합한 최종 긍정 프롬프트입니다."
+      },
+      "2": {
+        "name": "부정 프롬프트",
+        "tooltip": "활성화된 부정 필드로 조합한 최종 부정 프롬프트입니다."
+      },
+      "3": {
+        "name": "Mod Guidance 품질 태그",
+        "tooltip": "Anima Mod Guidance로 보낼 긍정 품질 필드입니다."
+      },
+      "4": {
+        "name": "Mod Guidance 부정 프롬프트",
+        "tooltip": "Anima Mod Guidance로 보낼 부정 품질 필드입니다."
+      },
+      "5": {
+        "name": "Mod Guidance 사용",
+        "tooltip": "Anima Mod Guidance 워크플로우 제어를 위한 Boolean 출력입니다."
+      },
+      "6": {
+        "name": "부정 Mod Guidance 사용",
+        "tooltip": "부정 Anima Mod Guidance 워크플로우 제어를 위한 Boolean 출력입니다."
+      },
+      "7": {
+        "name": "메타데이터 프롬프트",
+        "tooltip": "메타데이터 필터가 적용된 긍정 메타데이터 프롬프트입니다."
+      },
+      "8": {
+        "name": "메타데이터 부정 프롬프트",
+        "tooltip": "메타데이터 필터가 적용된 부정 메타데이터 프롬프트입니다."
+      },
+      "9": {
+        "name": "너비",
+        "tooltip": "선택된 잠재 이미지 너비입니다."
+      },
+      "10": {
+        "name": "높이",
+        "tooltip": "선택된 잠재 이미지 높이입니다."
+      }
+    }
+  },
   "EasyUseAnimaPromptStudioRegional": {
     "display_name": "Anima 프롬프트 스튜디오 Regional",
     "description": "번호가 있는 사용자 마스크에 특정 긍정 프롬프트 필드를 적용하는 Regional Prompt Studio입니다. Regional 프롬프트 데이터는 Anima Regional Conditioning 노드에서 KSampler용 CONDITIONING으로 변환합니다.",

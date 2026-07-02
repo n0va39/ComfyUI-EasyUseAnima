@@ -81,6 +81,9 @@ REGIONAL_FIELDS_WORKFLOW_PROPERTY = "easyuse_anima_regional_fields"
 REGIONAL_CONFIG_WORKFLOW_PROPERTY = "easyuse_anima_regional_config"
 REGIONAL_FIELD_TYPES = {"quality", "artist", "trigger", "general"}
 REGIONAL_CONFIG_VERSION = 1
+PROMPT_DATA_VERSION = 1
+PROMPT_DATA_TYPE = "EASYUSE_ANIMA_PROMPT_DATA"
+PROMPT_DATA_SCHEMA = "easyuse_anima_prompt_studio_advanced_v2"
 REGIONAL_PROMPT_DATA_TYPE = "EASYUSE_ANIMA_REGIONAL_PROMPT_DATA"
 REGIONAL_PROMPT_DATA_SCHEMA = "easyuse_anima_prompt_studio_regional"
 REGIONAL_PROMPT_BUNDLE_SCHEMA = "easyuse_anima_prompt_studio_regional_bundle"
@@ -1400,6 +1403,138 @@ def _expand_advanced_wildcard_fields(
         "changed": changed,
         "used_keys": tuple(used_keys),
         "missing_keys": tuple(missing_keys),
+    }
+
+
+def _advanced_prompt_data_fields(fields: list[dict]) -> list[dict[str, Any]]:
+    output = []
+    for field in fields:
+        output.append({
+            "id": str(field.get("id") or ""),
+            "pane": str(field.get("pane") or "positive"),
+            "type": str(field.get("type") or "general"),
+            "label": str(field.get("label") or ""),
+            "text": str(field.get("text") or ""),
+            "height": _as_advanced_height(field.get("height"), 72),
+            "enabled": _as_bool(field.get("enabled"), True),
+            "pin": _as_bool(field.get("pin"), field.get("type") == "trigger"),
+        })
+    return output
+
+
+def _advanced_artist_field_prompt(fields: list[dict], pane: str) -> str:
+    # Artist data is sourced only from Advanced artist fields, not from @ tags in other fields.
+    return _join_prompt_tokens(
+        *(
+            str(field.get("text") or "")
+            for field in fields
+            if field.get("pane") == pane
+            and field.get("type") == "artist"
+            and _as_bool(field.get("enabled"), True)
+        )
+    )
+
+
+def _normalize_prompt_data(value: str | dict | None) -> dict[str, Any]:
+    if isinstance(value, dict):
+        return dict(value)
+    if isinstance(value, str):
+        try:
+            parsed = json.loads(value or "{}")
+        except json.JSONDecodeError:
+            parsed = {}
+        if isinstance(parsed, dict):
+            return parsed
+    return {}
+
+
+def _build_advanced_prompt_data(
+    compat_result: tuple,
+    effective_fields: list[dict],
+    saved_fields: list[dict],
+    field_inputs: dict[str, str],
+    resolution_bucket: str,
+    resolution_size: str,
+    resolution_custom_width: int,
+    resolution_custom_height: int,
+    wildcard_mode: str,
+    wildcard_seed: int,
+    wildcard_seed_after_generate: str,
+    wildcard_updates: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    (
+        positive_prompt,
+        negative_prompt,
+        quality_tags,
+        negative_quality_tags,
+        use_anima_mod_guidance,
+        use_negative_anima_mod_guidance,
+        metadata_prompt,
+        metadata_negative_prompt,
+        width,
+        height,
+    ) = compat_result
+    outputs = {
+        name: value
+        for name, value in zip(EasyUseAnimaPromptStudioAdvanced.RETURN_NAMES, compat_result)
+    }
+    positive_artist_prompt = _advanced_artist_field_prompt(effective_fields, "positive")
+    negative_artist_prompt = _advanced_artist_field_prompt(effective_fields, "negative")
+    wildcard_updates = wildcard_updates or {}
+    return {
+        "schema": PROMPT_DATA_SCHEMA,
+        "version": PROMPT_DATA_VERSION,
+        "type": PROMPT_DATA_TYPE,
+        "source": "EasyUseAnimaPromptStudioAdvancedV2",
+        "prompt": positive_prompt,
+        "positive_prompt": positive_prompt,
+        "negative_prompt": negative_prompt,
+        "metadata_prompt": metadata_prompt,
+        "metadata_negative_prompt": metadata_negative_prompt,
+        "outputs": outputs,
+        "anima_mod_guidance": {
+            "use_positive": bool(use_anima_mod_guidance),
+            "use_negative": bool(use_negative_anima_mod_guidance),
+            "quality_tags": quality_tags,
+            "negative_prompt": negative_quality_tags,
+        },
+        "artist": {
+            "source": "advanced_artist_field",
+            "positive_prompt": positive_artist_prompt,
+            "negative_prompt": negative_artist_prompt,
+            "positive_count_hint": len(_prompt_tokens(positive_artist_prompt)),
+            "negative_count_hint": len(_prompt_tokens(negative_artist_prompt)),
+        },
+        "artist_mix": {
+            "enabled": False,
+            "mode": "prompt",
+            "base_source": "positive_prompt",
+            "artist_prompt": positive_artist_prompt,
+            "artist_count_hint": len(_prompt_tokens(positive_artist_prompt)),
+        },
+        "resolution": {
+            "width": int(width),
+            "height": int(height),
+            "bucket": str(resolution_bucket or DEFAULT_ADVANCED_RESOLUTION_BUCKET),
+            "size": str(resolution_size or ""),
+            "custom_width": _as_int(resolution_custom_width, int(width)),
+            "custom_height": _as_int(resolution_custom_height, int(height)),
+        },
+        "fields": _advanced_prompt_data_fields(effective_fields),
+        "saved_fields": _advanced_prompt_data_fields(saved_fields),
+        "field_inputs": dict(field_inputs),
+        "wildcard": {
+            "mode": str(wildcard_mode or WILDCARD_MODE_LABELS[1]),
+            "seed": normalize_seed(wildcard_seed),
+            "seed_after_generate": str(wildcard_seed_after_generate or SEED_CONTROL_FIXED),
+            "next_seed": wildcard_updates.get("wildcard_seed"),
+            "used_keys": list(wildcard_updates.get("wildcard_used_keys") or []),
+            "missing_keys": list(wildcard_updates.get("wildcard_missing_keys") or []),
+        },
+        "compatibility": {
+            "return_names": list(EasyUseAnimaPromptStudioAdvanced.RETURN_NAMES),
+            "return_types": list(EasyUseAnimaPromptStudioAdvanced.RETURN_TYPES),
+        },
     }
 
 
@@ -3186,6 +3321,90 @@ class EasyUseAnimaPromptStudioAdvanced:
         return {
             "ui": self._ui(ui_fields_json, requested_use_naia, effective_field_inputs, ui_updates),
             "result": (*result, width, height),
+        }
+
+
+class EasyUseAnimaPromptStudioAdvancedV2(EasyUseAnimaPromptStudioAdvanced):
+    """Advanced Prompt Studio v2 with structured prompt data output."""
+
+    DESCRIPTION = (
+        "Advanced Prompt Studio v2. It keeps the Advanced compatibility outputs and prepends "
+        "an EASYUSE_ANIMA_PROMPT_DATA dict socket for downstream nodes."
+    )
+    OUTPUT_TOOLTIPS = (
+        "Structured prompt data dict for downstream EasyUse Anima nodes.",
+        *EasyUseAnimaPromptStudioAdvanced.OUTPUT_TOOLTIPS,
+    )
+    RETURN_TYPES = (PROMPT_DATA_TYPE, *EasyUseAnimaPromptStudioAdvanced.RETURN_TYPES)
+    RETURN_NAMES = ("prompt_data", *EasyUseAnimaPromptStudioAdvanced.RETURN_NAMES)
+
+    def build(
+        self,
+        use_naia: bool,
+        consume_naia_on_queue: bool,
+        use_anima_mod_guidance: bool,
+        pin_trigger_tags_to_front: bool,
+        advanced_fields: str,
+        use_negative_anima_mod_guidance: bool = False,
+        wildcard_mode: str = WILDCARD_MODE_LABELS[1],
+        wildcard_seed: int = 0,
+        wildcard_seed_after_generate: str = SEED_CONTROL_FIXED,
+        resolution_bucket: str = DEFAULT_ADVANCED_RESOLUTION_BUCKET,
+        resolution_size: str = DEFAULT_ADVANCED_RESOLUTION_SIZE,
+        resolution_custom_width: int = 1024,
+        resolution_custom_height: int = 1024,
+        workflow_prompt=None,
+        extra_pnginfo=None,
+        unique_id=None,
+        **field_inputs,
+    ):
+        base = super().build(
+            use_naia,
+            consume_naia_on_queue,
+            use_anima_mod_guidance,
+            pin_trigger_tags_to_front,
+            advanced_fields,
+            use_negative_anima_mod_guidance=use_negative_anima_mod_guidance,
+            wildcard_mode=wildcard_mode,
+            wildcard_seed=wildcard_seed,
+            wildcard_seed_after_generate=wildcard_seed_after_generate,
+            resolution_bucket=resolution_bucket,
+            resolution_size=resolution_size,
+            resolution_custom_width=resolution_custom_width,
+            resolution_custom_height=resolution_custom_height,
+            workflow_prompt=workflow_prompt,
+            extra_pnginfo=extra_pnginfo,
+            unique_id=unique_id,
+            **field_inputs,
+        )
+        compat_result = tuple(base.get("result") or ())
+        ui_payloads = base.get("ui", {}).get("prompt_studio_advanced", [])
+        ui_payload = ui_payloads[0] if ui_payloads and isinstance(ui_payloads[0], dict) else {}
+        saved_fields = _normalize_advanced_fields(ui_payload.get("advanced_fields", advanced_fields))
+        effective_field_inputs = _advanced_field_input_values(ui_payload.get("field_inputs") or field_inputs)
+        effective_fields = _apply_advanced_field_inputs(saved_fields, effective_field_inputs)
+        effective_fields, _wildcard = _expand_advanced_wildcard_fields(
+            effective_fields,
+            normalize_seed(wildcard_seed),
+            normalize_wildcard_mode(wildcard_mode),
+        )
+        prompt_data = _build_advanced_prompt_data(
+            compat_result,
+            effective_fields,
+            saved_fields,
+            effective_field_inputs,
+            str(ui_payload.get("resolution_bucket", resolution_bucket)),
+            str(ui_payload.get("resolution_size", resolution_size)),
+            _as_int(ui_payload.get("resolution_custom_width", resolution_custom_width), resolution_custom_width),
+            _as_int(ui_payload.get("resolution_custom_height", resolution_custom_height), resolution_custom_height),
+            str(ui_payload.get("wildcard_mode", wildcard_mode)),
+            normalize_seed(wildcard_seed),
+            str(ui_payload.get("wildcard_seed_after_generate", wildcard_seed_after_generate)),
+            ui_payload,
+        )
+        return {
+            **base,
+            "result": (prompt_data, *compat_result),
         }
 
 

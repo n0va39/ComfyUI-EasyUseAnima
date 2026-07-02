@@ -4,6 +4,7 @@ import { normalizePromptTagText } from "./easyuse_anima_prompt_rules.js";
 
 const NODE_TYPE = "EasyUseAnimaPromptStudio";
 const ADVANCED_NODE_TYPE = "EasyUseAnimaPromptStudioAdvanced";
+const ADVANCED_V2_NODE_TYPE = "EasyUseAnimaPromptStudioAdvancedV2";
 const EXTEND_NODE_TYPE = "EasyUseAnimaPromptStudioExtend";
 const WILDCARD_NODE_TYPE = "EasyUseAnimaWildcard";
 const FIELD_NAMES = [
@@ -4719,8 +4720,12 @@ function applyWildcardExecutedInputs(node, message) {
   }
 }
 
+function isAdvancedNodeName(name) {
+  return name === ADVANCED_NODE_TYPE || name === ADVANCED_V2_NODE_TYPE;
+}
+
 function isAdvancedNode(node) {
-  return node?.type === ADVANCED_NODE_TYPE || node?.comfyClass === ADVANCED_NODE_TYPE;
+  return isAdvancedNodeName(node?.type) || isAdvancedNodeName(node?.comfyClass);
 }
 
 function isWildcardNode(node) {
@@ -4797,7 +4802,7 @@ app.registerExtension({
   async beforeRegisterNodeDef(nodeType, nodeData) {
     if (
       nodeData.name !== NODE_TYPE
-      && nodeData.name !== ADVANCED_NODE_TYPE
+      && !isAdvancedNodeName(nodeData.name)
       && nodeData.name !== EXTEND_NODE_TYPE
       && nodeData.name !== WILDCARD_NODE_TYPE
     ) {
@@ -4811,7 +4816,7 @@ app.registerExtension({
     const onNodeCreated = nodeType.prototype.onNodeCreated;
     nodeType.prototype.onNodeCreated = function () {
       onNodeCreated?.apply(this, arguments);
-      if (nodeData.name === ADVANCED_NODE_TYPE) {
+      if (isAdvancedNodeName(nodeData.name)) {
         scheduleHookAdvancedNode(this);
       } else if (nodeData.name === WILDCARD_NODE_TYPE) {
         return;
@@ -4823,7 +4828,7 @@ app.registerExtension({
     const onConfigure = nodeType.prototype.onConfigure;
     nodeType.prototype.onConfigure = function (serialized) {
       onConfigure?.apply(this, arguments);
-      if (nodeData.name === ADVANCED_NODE_TYPE) {
+      if (isAdvancedNodeName(nodeData.name)) {
         captureAdvancedConfigure(this, serialized);
         scheduleHookAdvancedNode(this);
       } else if (nodeData.name === WILDCARD_NODE_TYPE) {
@@ -4841,7 +4846,7 @@ app.registerExtension({
       }
       this.__easyuseAnimaHandlingResize = true;
       try {
-        if (nodeData.name === ADVANCED_NODE_TYPE) {
+        if (isAdvancedNodeName(nodeData.name)) {
           updateAdvancedEditorWidth(this);
           scheduleAdvancedResizeFinalize(this);
           return result;
@@ -4866,7 +4871,7 @@ app.registerExtension({
     const onConnectionsChange = nodeType.prototype.onConnectionsChange;
     nodeType.prototype.onConnectionsChange = function () {
       const result = onConnectionsChange?.apply(this, arguments);
-      if (nodeData.name === ADVANCED_NODE_TYPE && !this.__easyuseAnimaHandlingConnectionsChange) {
+      if (isAdvancedNodeName(nodeData.name) && !this.__easyuseAnimaHandlingConnectionsChange) {
         this.__easyuseAnimaHandlingConnectionsChange = true;
         requestAnimationFrame(() => {
           try {
@@ -4884,7 +4889,7 @@ app.registerExtension({
     const onSerialize = nodeType.prototype.onSerialize;
     nodeType.prototype.onSerialize = function (serialized) {
       const result = onSerialize?.apply(this, arguments);
-      if (nodeData.name === ADVANCED_NODE_TYPE) {
+      if (isAdvancedNodeName(nodeData.name)) {
         removeAdvancedInternalInputSockets(this);
         syncAdvancedValues(this, serialized);
       } else if (nodeData.name === WILDCARD_NODE_TYPE) {
@@ -4898,7 +4903,7 @@ app.registerExtension({
     const onExecuted = nodeType.prototype.onExecuted;
     nodeType.prototype.onExecuted = function (message) {
       onExecuted?.apply(this, arguments);
-      if (nodeData.name === ADVANCED_NODE_TYPE) {
+      if (isAdvancedNodeName(nodeData.name)) {
         applyAdvancedExecutedInputs(this, message);
       } else if (nodeData.name === WILDCARD_NODE_TYPE) {
         applyWildcardExecutedInputs(this, message);
