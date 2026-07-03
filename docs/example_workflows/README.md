@@ -40,8 +40,9 @@ workflow assets.
 
 - Workflow: [ANIMA_Easy_Use_workflow_v1_release_ko.json](ANIMA_Easy_Use_workflow_v1_release_ko.json)
 - English workflow: [ANIMA_Easy_Use_workflow_v1_release_en.json](ANIMA_Easy_Use_workflow_v1_release_en.json)
-- Usage guide: [ANIMA Easy Use workflow v1](../Anima%20AiO/ANIMA_Easy_Use_workflow_v1_KO.md)
-- Node guide: [Anima AiO Generator](../nodes/anima-aio-generator.ko.md)
+- Korean guide: [ANIMA Easy Use workflow v1 Korean](../Anima%20AiO/ANIMA_Easy_Use_workflow_v1_KO.md)
+- English guide: [ANIMA Easy Use workflow v1 English](../Anima%20AiO/ANIMA_Easy_Use_workflow_v1_EN.md)
+- Node guide: [Anima AiO Generator](../nodes/anima-aio-generator.en.md)
 
 This compact release workflow uses `Anima Prompt Studio Advanced v2`,
 `Anima LoRA Preset`, `Easy Use Anima Input`, and `Anima AiO Generator`.

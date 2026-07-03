@@ -22,7 +22,7 @@ import하거나 덮어쓰지 않으므로, 두 노드팩을 동시에 설치할 
 - 와일드카드 문법과 예시: [와일드카드 가이드](docs/wildcards.ko.md)
 - 자동완성 CSV 선택 기준: [자동완성 CSV 가이드](docs/autocomplete-csv.ko.md)
 - 예시 워크플로우: [docs/example_workflows](docs/example_workflows/)
-- ANIMA Easy Use workflow v1: [사용 가이드](docs/Anima%20AiO/ANIMA_Easy_Use_workflow_v1_KO.md) / [workflow JSON](docs/example_workflows/ANIMA_Easy_Use_workflow_v1_release_ko.json)
+- ANIMA Easy Use workflow v1: [사용 가이드](docs/Anima%20AiO/ANIMA_Easy_Use_workflow_v1_KO.md) / [English guide](docs/Anima%20AiO/ANIMA_Easy_Use_workflow_v1_EN.md) / [workflow JSON](docs/example_workflows/ANIMA_Easy_Use_workflow_v1_release_ko.json)
 - 버전별 변경 사항: [RELEASE.md](RELEASE.md)
 
 ## 주요 기능

@@ -22,7 +22,7 @@ Reference baseline:
 - Wildcard syntax and examples: [Wildcard Guide](docs/wildcards.en.md)
 - Autocomplete CSV selection: [Autocomplete CSV Guide](docs/autocomplete-csv.en.md)
 - Example workflows: [docs/example_workflows](docs/example_workflows/)
-- ANIMA Easy Use workflow v1: [Korean guide](docs/Anima%20AiO/ANIMA_Easy_Use_workflow_v1_KO.md) / [workflow JSON](docs/example_workflows/ANIMA_Easy_Use_workflow_v1_release_ko.json)
+- ANIMA Easy Use workflow v1: [English guide](docs/Anima%20AiO/ANIMA_Easy_Use_workflow_v1_EN.md) / [English workflow JSON](docs/example_workflows/ANIMA_Easy_Use_workflow_v1_release_en.json)
 - Versioned changes: [RELEASE.md](RELEASE.md)
 
 ## Main Features
@@ -82,9 +82,9 @@ the same output path.
 Detailed settings: [Anima AiO Generator guide](docs/nodes/anima-aio-generator.en.md)
 
 Compact release workflow:
-[ANIMA_Easy_Use_workflow_v1_release_ko.json](docs/example_workflows/ANIMA_Easy_Use_workflow_v1_release_ko.json)
+[ANIMA_Easy_Use_workflow_v1_release_en.json](docs/example_workflows/ANIMA_Easy_Use_workflow_v1_release_en.json)
 /
-[Korean usage guide](docs/Anima%20AiO/ANIMA_Easy_Use_workflow_v1_KO.md)
+[English usage guide](docs/Anima%20AiO/ANIMA_Easy_Use_workflow_v1_EN.md)
 
 ## Quick Guide: Artist Mix Conditioning
 

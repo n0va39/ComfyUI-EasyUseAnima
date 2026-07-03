@@ -7,6 +7,7 @@ This folder contains the user guide for the Anima All in One ComfyUI workflow.
 - [Korean guide](Anima_AiO_v6.0_KO.md)
 - [English guide](Anima_AiO_v6.0_EN.md)
 - [ANIMA Easy Use workflow v1 Korean guide](ANIMA_Easy_Use_workflow_v1_KO.md)
+- [ANIMA Easy Use workflow v1 English guide](ANIMA_Easy_Use_workflow_v1_EN.md)
 
 ## Workflow Files
 

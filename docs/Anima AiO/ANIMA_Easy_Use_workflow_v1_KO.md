@@ -6,6 +6,9 @@
 English workflow:
 [ANIMA_Easy_Use_workflow_v1_release_en.json](../example_workflows/ANIMA_Easy_Use_workflow_v1_release_en.json)
 
+English guide:
+[ANIMA_Easy_Use_workflow_v1_EN.md](ANIMA_Easy_Use_workflow_v1_EN.md)
+
 이 workflow는 ANIMA 생성에 필요한 입력을 네 노드로 줄인 간단 생성 흐름입니다.
 `Anima Prompt Studio Advanced v2`에서 프롬프트를 만들고,
 `Anima LoRA Preset`에서 LoRA stack과 trigger word를 관리한 뒤,
