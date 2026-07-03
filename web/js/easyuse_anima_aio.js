@@ -663,6 +663,7 @@ const AIO_TEXT = {
     "button.previewOptions": "Preview Options...",
     "button.moveUp": "Up",
     "button.moveDown": "Down",
+    "button.addDetailerBlock": "+ Add Detailer Block",
     "button.addHashBundle": "+ Add Hash Fetcher Bundle",
     "button.addCivitaiFetcher": "+ Add Civitai Hash Fetcher",
     "button.remove": "Remove",
@@ -675,8 +676,8 @@ const AIO_TEXT = {
     "text.highresDisabled": "Enable Highres to expose resize and second-pass controls.",
     "text.highresSpdManualRequired": "Spectrum SPD / SPEED is not reused by Highres. Highres uses the general KSampler path.",
     "text.detailerDisabled": "Enable Detailer to configure ordered processing blocks.",
-    "text.inheritsMainSampler": "Reuses the main sampler path. Highres changes only steps and denoise.",
-    "text.usesStageSamplerOverride": "Uses the general KSampler path for Highres.",
+    "text.inheritsMainSampler": "Reuses main CFG, sampler, and scheduler. Stage Spectrum/DCW stays independent.",
+    "text.usesStageSamplerOverride": "Uses stage CFG, sampler, and scheduler with stage Spectrum/DCW.",
     "text.civitaiHashPreview": "Adds as {model}:AutoV3",
     "tip.fieldGeneric": "{label} setting. This value is saved with the node workflow.",
     "tip.additionalHashes": "Manual Image Saver additional_hashes string. Supports Name:HASH, HASH:Weight, and Name:HASH:Weight.",
@@ -697,7 +698,7 @@ const AIO_TEXT = {
     "tip.sampler": "Main ComfyUI sampler name used by the first pass.",
     "tip.scheduler": "Main ComfyUI scheduler used by the first pass.",
     "tip.highresEnabled": "Run a second pass after upscaling the first-pass image.",
-    "tip.highresFollow": "When enabled, Highres reuses the main sampler path and overrides only Highres steps and denoise. SPD/SPEED falls back to general KSampler.",
+    "tip.highresFollow": "When enabled, Highres reuses the main CFG, sampler, and scheduler. Highres steps, denoise, Spectrum, and DCW remain stage-specific. SPD/SPEED falls back to general KSampler.",
     "tip.highresBackend": "Highres manual mode uses the general KSampler path to avoid second-pass model-patch conflicts.",
     "tip.highresScale": "Upscale ratio before the Highres second pass.",
     "tip.highresMaxEdge": "Maximum long edge after upscaling. Use 0 to disable this cap.",
@@ -705,11 +706,12 @@ const AIO_TEXT = {
     "tip.highresDenoise": "Highres second-pass denoise strength.",
     "tip.detailerEnabled": "Run SAM3 and Impact Detailer stages after generation.",
     "tip.detailerBlock": "Each block can be enabled, reordered, and tuned independently.",
-    "tip.detailerFollow": "When enabled, this detailer block uses the main CFG, sampler, and scheduler.",
+    "tip.detailerFollow": "When enabled, this detailer block uses the main CFG, sampler, and scheduler. Spectrum/DCW remain block-specific.",
     "tip.detailerSteps": "Impact Detailer sampling steps for this block.",
     "tip.detailerDenoise": "Impact Detailer denoise strength for this block.",
     "tip.detailerOrder": "Move this image-processing block earlier or later.",
     "tip.detailerName": "Display name for this detailer tab. It is saved with the workflow for UI organization.",
+    "tip.addDetailerBlock": "Add a custom detailer block using the face detailer defaults.",
     "tip.samplerDetails": "Open sampler backend, Mod Guidance, and Spectrum options.",
     "tip.highresSettings": "Open all Highres scaling and optimization options.",
     "tip.detailerSettings": "Open all SAM3 and Impact Detailer options.",
@@ -896,6 +898,7 @@ const AIO_TEXT = {
     "button.previewOptions": "프리뷰 옵션...",
     "button.moveUp": "위",
     "button.moveDown": "아래",
+    "button.addDetailerBlock": "+ 디테일러 블럭 추가",
     "button.addHashBundle": "+ Hash Fetcher 묶음 추가",
     "button.addCivitaiFetcher": "+ Civitai Hash Fetcher 추가",
     "button.remove": "삭제",
@@ -908,8 +911,8 @@ const AIO_TEXT = {
     "text.highresDisabled": "Highres를 켜면 확대와 2차 샘플링 기본 설정이 표시됩니다.",
     "text.highresSpdManualRequired": "Spectrum SPD / SPEED는 Highres에서 재사용하지 않습니다. Highres는 일반 KSampler 경로를 사용합니다.",
     "text.detailerDisabled": "디테일러를 켜면 순서 조정 가능한 처리 블럭이 표시됩니다.",
-    "text.inheritsMainSampler": "메인 샘플러 경로를 재사용하고, Highres 스텝과 디노이즈만 바꿉니다.",
-    "text.usesStageSamplerOverride": "Highres에 일반 KSampler 경로를 사용합니다.",
+    "text.inheritsMainSampler": "메인 CFG, 샘플러, 스케줄러를 따릅니다. Spectrum/DCW는 이 stage 설정을 사용합니다.",
+    "text.usesStageSamplerOverride": "이 stage의 CFG, 샘플러, 스케줄러와 Spectrum/DCW를 사용합니다.",
     "text.civitaiHashPreview": "{model}:AutoV3 형식으로 추가됩니다.",
     "tip.fieldGeneric": "{label} 설정입니다. 이 값은 노드 워크플로우에 저장됩니다.",
     "tip.additionalHashes": "Image Saver의 additional_hashes 수동 문자열입니다. Name:HASH, HASH:Weight, Name:HASH:Weight를 지원합니다.",
@@ -930,7 +933,7 @@ const AIO_TEXT = {
     "tip.sampler": "1차 패스에 사용할 ComfyUI 샘플러 이름입니다.",
     "tip.scheduler": "1차 패스에 사용할 ComfyUI 스케줄러입니다.",
     "tip.highresEnabled": "1차 이미지 확대 후 2차 샘플링을 실행합니다.",
-    "tip.highresFollow": "켜져 있으면 Highres가 메인 샘플러 경로를 재사용하고 Highres 스텝과 디노이즈만 덮어씁니다. SPD/SPEED는 일반 KSampler로 대체됩니다.",
+    "tip.highresFollow": "켜져 있으면 Highres가 메인 CFG, 샘플러, 스케줄러를 따릅니다. Highres 스텝, 디노이즈, Spectrum, DCW는 stage별로 적용됩니다. SPD/SPEED는 일반 KSampler로 대체됩니다.",
     "tip.highresBackend": "Highres 수동 모드는 2차 모델패치 충돌을 피하기 위해 일반 KSampler 경로를 사용합니다.",
     "tip.highresScale": "Highres 2차 패스 전에 적용할 확대 배율입니다.",
     "tip.highresMaxEdge": "확대 후 긴 변 제한입니다. 0이면 제한하지 않습니다.",
@@ -938,11 +941,12 @@ const AIO_TEXT = {
     "tip.highresDenoise": "Highres 2차 패스 디노이즈 강도입니다.",
     "tip.detailerEnabled": "생성 후 SAM3와 Impact Detailer 단계를 실행합니다.",
     "tip.detailerBlock": "각 블럭은 개별 활성화, 순서 변경, 기본 설정 조정이 가능합니다.",
-    "tip.detailerFollow": "켜져 있으면 이 디테일러 블럭이 메인 CFG, 샘플러, 스케줄러를 따릅니다.",
+    "tip.detailerFollow": "켜져 있으면 이 디테일러 블럭이 메인 CFG, 샘플러, 스케줄러를 따릅니다. Spectrum/DCW는 블럭별 설정을 사용합니다.",
     "tip.detailerSteps": "이 블럭의 Impact Detailer 샘플링 스텝입니다.",
     "tip.detailerDenoise": "이 블럭의 Impact Detailer 디노이즈 강도입니다.",
     "tip.detailerOrder": "이 이미지 처리 블럭의 실행 순서를 앞뒤로 이동합니다.",
     "tip.detailerName": "이 디테일러 탭의 표시 이름입니다. UI 정리를 위해 워크플로우에 저장됩니다.",
+    "tip.addDetailerBlock": "얼굴 디테일러 기본값으로 커스텀 디테일러 블럭을 추가합니다.",
     "tip.samplerDetails": "샘플러 백엔드, Mod Guidance, Spectrum 옵션을 엽니다.",
     "tip.highresSettings": "Highres 확대와 최적화 전체 옵션을 엽니다.",
     "tip.detailerSettings": "SAM3와 Impact Detailer 전체 옵션을 엽니다.",
@@ -987,6 +991,7 @@ const AIO_TEXT = {
     "button.saveOff": "保存オプション: OFF",
     "button.moveUp": "上へ",
     "button.moveDown": "下へ",
+    "button.addDetailerBlock": "+ Detailer ブロックを追加",
     "button.addCivitaiFetcher": "+ Civitai Hash Fetcher を追加",
     "button.remove": "削除",
     "text.previewTitle": "生成画像プレビュー",
@@ -994,8 +999,8 @@ const AIO_TEXT = {
     "text.highresDisabled": "Highres を有効にすると拡大と二回目サンプリングの基本設定を表示します。",
     "text.highresSpdManualRequired": "Spectrum SPD / SPEED は Highres では再利用しません。Highres は通常 KSampler 経路を使います。",
     "text.detailerDisabled": "Detailer を有効にすると順序変更できる処理ブロックを表示します。",
-    "text.inheritsMainSampler": "メインのサンプラー経路を再利用し、Highres のステップとデノイズだけを変更します。",
-    "text.usesStageSamplerOverride": "Highres には通常 KSampler 経路を使います。",
+    "text.inheritsMainSampler": "メイン CFG、サンプラー、スケジューラーに追従します。Spectrum/DCW はこの stage の設定を使います。",
+    "text.usesStageSamplerOverride": "この stage の CFG、サンプラー、スケジューラーと Spectrum/DCW を使います。",
     "text.civitaiHashPreview": "{model}:AutoV3 として追加されます。",
     "tip.fieldGeneric": "{label} の設定です。この値はノードのワークフローに保存されます。",
     "tip.additionalHashes": "Image Saver の additional_hashes 手動文字列です。Name:HASH、HASH:Weight、Name:HASH:Weight を使用できます。",
@@ -1016,7 +1021,7 @@ const AIO_TEXT = {
     "tip.sampler": "一回目に使う ComfyUI サンプラー名です。",
     "tip.scheduler": "一回目に使う ComfyUI スケジューラーです。",
     "tip.highresEnabled": "一回目画像を拡大して二回目サンプリングを実行します。",
-    "tip.highresFollow": "有効時、Highres はメインサンプラー経路を再利用し、Highres ステップとデノイズだけを上書きします。SPD/SPEED は通常 KSampler に置き換えます。",
+    "tip.highresFollow": "有効時、Highres はメイン CFG、サンプラー、スケジューラーに追従します。Highres ステップ、デノイズ、Spectrum、DCW は stage 別に適用されます。SPD/SPEED は通常 KSampler に置き換えます。",
     "tip.highresBackend": "Highres 手動モードは二回目の model patch 衝突を避けるため通常 KSampler 経路を使います。",
     "tip.highresScale": "Highres 二回目パス前の拡大倍率です。",
     "tip.highresMaxEdge": "拡大後の長辺上限です。0 で上限なしです。",
@@ -1024,11 +1029,12 @@ const AIO_TEXT = {
     "tip.highresDenoise": "Highres 二回目パスのデノイズ強度です。",
     "tip.detailerEnabled": "生成後に SAM3 と Impact Detailer を実行します。",
     "tip.detailerBlock": "各ブロックは個別に有効化、並べ替え、調整できます。",
-    "tip.detailerFollow": "有効時、この Detailer ブロックはメインサンプラー設定に追従します。",
+    "tip.detailerFollow": "有効時、この Detailer ブロックはメイン CFG、サンプラー、スケジューラーに追従します。Spectrum/DCW はブロック別設定を使います。",
     "tip.detailerSteps": "このブロックの Impact Detailer ステップです。",
     "tip.detailerDenoise": "このブロックの Impact Detailer デノイズ強度です。",
     "tip.detailerOrder": "この画像処理ブロックの実行順を移動します。",
     "tip.detailerName": "この detailer tab の表示名です。UI 整理用に workflow へ保存されます。",
+    "tip.addDetailerBlock": "顔 Detailer の既定値でカスタム Detailer ブロックを追加します。",
     "tip.samplerDetails": "サンプラーバックエンド、Mod Guidance、Spectrum オプションを開きます。",
     "tip.highresSettings": "Highres の拡大と最適化オプションを開きます。",
     "tip.detailerSettings": "SAM3 と Impact Detailer の全オプションを開きます。",
@@ -1068,6 +1074,7 @@ const AIO_TEXT = {
     "button.saveOff": "保存选项: OFF",
     "button.moveUp": "上移",
     "button.moveDown": "下移",
+    "button.addDetailerBlock": "+ 添加 Detailer 块",
     "button.addCivitaiFetcher": "+ 添加 Civitai Hash Fetcher",
     "button.remove": "删除",
     "text.previewTitle": "生成图像预览",
@@ -1075,8 +1082,8 @@ const AIO_TEXT = {
     "text.highresDisabled": "启用 Highres 后显示放大和第二次采样基础设置。",
     "text.highresSpdManualRequired": "Spectrum SPD / SPEED 不会被 Highres 复用。Highres 使用普通 KSampler 路径。",
     "text.detailerDisabled": "启用 Detailer 后显示可排序的处理块。",
-    "text.inheritsMainSampler": "复用主采样器路径，仅覆盖 Highres 步数和降噪。",
-    "text.usesStageSamplerOverride": "Highres 使用普通 KSampler 路径。",
+    "text.inheritsMainSampler": "跟随主 CFG、采样器和调度器。Spectrum/DCW 使用此 stage 的设置。",
+    "text.usesStageSamplerOverride": "使用此 stage 的 CFG、采样器、调度器和 Spectrum/DCW。",
     "text.civitaiHashPreview": "将以 {model}:AutoV3 形式追加。",
     "tip.fieldGeneric": "{label} 设置。该值会随节点工作流保存。",
     "tip.additionalHashes": "Image Saver additional_hashes 手动字符串。支持 Name:HASH、HASH:Weight、Name:HASH:Weight。",
@@ -1097,7 +1104,7 @@ const AIO_TEXT = {
     "tip.sampler": "第一次使用的 ComfyUI 采样器名称。",
     "tip.scheduler": "第一次使用的 ComfyUI 调度器。",
     "tip.highresEnabled": "放大第一次图像后执行第二次采样。",
-    "tip.highresFollow": "启用时，Highres 复用主采样器路径，并仅覆盖 Highres 步数和降噪。SPD/SPEED 会回退到普通 KSampler。",
+    "tip.highresFollow": "启用时，Highres 跟随主 CFG、采样器和调度器。Highres 步数、降噪、Spectrum 和 DCW 按 stage 独立应用。SPD/SPEED 会回退到普通 KSampler。",
     "tip.highresBackend": "Highres 手动模式使用普通 KSampler 路径，以避免第二次模型补丁冲突。",
     "tip.highresScale": "Highres 第二次采样前的放大倍率。",
     "tip.highresMaxEdge": "放大后的最长边上限。0 表示不限制。",
@@ -1105,11 +1112,12 @@ const AIO_TEXT = {
     "tip.highresDenoise": "Highres 第二次采样的降噪强度。",
     "tip.detailerEnabled": "生成后运行 SAM3 和 Impact Detailer 阶段。",
     "tip.detailerBlock": "每个块都可单独启用、排序和调整。",
-    "tip.detailerFollow": "启用时，此 Detailer 块跟随主采样器设置。",
+    "tip.detailerFollow": "启用时，此 Detailer 块跟随主 CFG、采样器和调度器。Spectrum/DCW 使用块级设置。",
     "tip.detailerSteps": "此块的 Impact Detailer 采样步数。",
     "tip.detailerDenoise": "此块的 Impact Detailer 降噪强度。",
     "tip.detailerOrder": "移动此图像处理块的执行顺序。",
     "tip.detailerName": "此 detailer tab 的显示名称，会随 workflow 保存用于 UI 管理。",
+    "tip.addDetailerBlock": "使用面部 Detailer 默认值添加自定义 Detailer 块。",
     "tip.samplerDetails": "打开采样后端、Mod Guidance 和 Spectrum 选项。",
     "tip.highresSettings": "打开 Highres 放大和优化选项。",
     "tip.detailerSettings": "打开 SAM3 和 Impact Detailer 全部选项。",
@@ -2139,8 +2147,9 @@ function sanitizeGeneratorSettingsForOptionalDependencies(settings) {
   if (!optionalDependencyAvailable("spectrumPatch")) {
     disableGeneratorSpectrumOptions(next.sampler);
     disableGeneratorSpectrumOptions(next.highres);
-    disableGeneratorSpectrumOptions(next.detailer?.face);
-    disableGeneratorSpectrumOptions(next.detailer?.eye);
+    for (const targetName of normalizeDetailerOrder(next.detailer?.order, next.detailer)) {
+      disableGeneratorSpectrumOptions(next.detailer?.[targetName]);
+    }
   }
   if (!optionalDependencyAvailable("kjFp16")) {
     next.model_patches.kj.fp16_accumulation = false;
@@ -2162,8 +2171,11 @@ function sanitizeGeneratorSettingsForOptionalDependencies(settings) {
     || !optionalDependencyAvailable("impactMaskToSegs");
   if (impactMissing) {
     next.detailer.enabled = false;
-    next.detailer.face.enabled = false;
-    next.detailer.eye.enabled = false;
+    for (const targetName of normalizeDetailerOrder(next.detailer?.order, next.detailer)) {
+      if (next.detailer[targetName]) {
+        next.detailer[targetName].enabled = false;
+      }
+    }
   }
   return next;
 }
@@ -3403,20 +3415,79 @@ function clampGeneratorNumber(value, fallback, min, max) {
   return Math.max(min, Math.min(max, next));
 }
 
-function normalizeDetailerOrder(order) {
+function isDetailerTargetName(name) {
+  return name === "face" || name === "eye" || /^custom_\d+$/.test(name);
+}
+
+function isCustomDetailerTargetName(name) {
+  return /^custom_\d+$/.test(String(name || ""));
+}
+
+function detailerTargetDefaults(targetName) {
+  const defaults = targetName === "eye"
+    ? DEFAULT_GENERATION_SETTINGS.detailer.eye
+    : DEFAULT_GENERATION_SETTINGS.detailer.face;
+  const output = clone(defaults);
+  if (isCustomDetailerTargetName(targetName)) {
+    const suffix = String(targetName).split("_").pop();
+    output.label = `Detailer Block ${suffix}`;
+  }
+  return output;
+}
+
+function detailerTargetTitle(targetName, target, index = 0) {
+  if (target?.label) {
+    return String(target.label);
+  }
+  if (targetName === "face") {
+    return aioText("label.face");
+  }
+  if (targetName === "eye") {
+    return aioText("label.eye");
+  }
+  const suffix = String(targetName || "").split("_").pop();
+  return `Detailer Block ${suffix || index + 1}`;
+}
+
+function normalizeDetailerOrder(order, detailer = null) {
   const output = [];
-  for (const name of Array.isArray(order) ? order : DEFAULT_GENERATION_SETTINGS.detailer.order) {
+  const appendTarget = (name) => {
     const normalized = String(name || "").trim();
-    if ((normalized === "face" || normalized === "eye") && !output.includes(normalized)) {
+    if (isDetailerTargetName(normalized) && !output.includes(normalized)) {
       output.push(normalized);
+    }
+  };
+  for (const name of Array.isArray(order) ? order : DEFAULT_GENERATION_SETTINGS.detailer.order) {
+    appendTarget(name);
+  }
+  if (detailer && typeof detailer === "object") {
+    for (const [name, value] of Object.entries(detailer)) {
+      if (["enabled", "order", "sam3"].includes(name) || !value || typeof value !== "object" || Array.isArray(value)) {
+        continue;
+      }
+      appendTarget(name);
     }
   }
   for (const name of DEFAULT_GENERATION_SETTINGS.detailer.order) {
-    if (!output.includes(name)) {
-      output.push(name);
-    }
+    appendTarget(name);
   }
   return output;
+}
+
+function nextDetailerTargetName(order, detailer = null) {
+  const used = new Set(normalizeDetailerOrder(order, detailer));
+  if (detailer && typeof detailer === "object") {
+    for (const key of Object.keys(detailer)) {
+      used.add(key);
+    }
+  }
+  for (let index = 1; index < 1000; index += 1) {
+    const candidate = `custom_${index}`;
+    if (!used.has(candidate)) {
+      return candidate;
+    }
+  }
+  return `custom_${Date.now()}`;
 }
 
 function normalizeGeneratorPreviewSettings(settings) {
@@ -4289,7 +4360,7 @@ function renderGeneratorPanel(node) {
   };
   const moveDetailerTarget = (targetName, delta) => {
     updateGeneratorSettings(node, (nextSettings) => {
-      const order = normalizeDetailerOrder(nextSettings.detailer?.order);
+      const order = normalizeDetailerOrder(nextSettings.detailer?.order, nextSettings.detailer);
       const currentIndex = order.indexOf(targetName);
       const nextIndex = currentIndex + delta;
       if (currentIndex < 0 || nextIndex < 0 || nextIndex >= order.length) {
@@ -4555,9 +4626,9 @@ function renderGeneratorPanel(node) {
   const detailerBody = document.createElement("div");
   detailerBody.className = "easyuse-anima-aio-node-stage-body";
   if (settings.detailer.enabled) {
-    const order = normalizeDetailerOrder(settings.detailer.order);
+    const order = normalizeDetailerOrder(settings.detailer.order, settings.detailer);
     for (const [index, targetName] of order.entries()) {
-      const defaults = DEFAULT_GENERATION_SETTINGS.detailer[targetName];
+      const defaults = detailerTargetDefaults(targetName);
       const target = mergeDefaults(defaults, settings.detailer[targetName] || {});
       const targetBlock = document.createElement("div");
       targetBlock.className = "easyuse-anima-aio-node-stage-mini";
@@ -4566,7 +4637,7 @@ function renderGeneratorPanel(node) {
       targetHeader.className = "easyuse-anima-aio-node-stage-mini-header";
       const targetTitle = document.createElement("div");
       targetTitle.className = "easyuse-anima-aio-node-stage-mini-title";
-      targetTitle.textContent = `${index + 1}. ${aioText(targetName === "face" ? "label.face" : "label.eye")}`;
+      targetTitle.textContent = `${index + 1}. ${detailerTargetTitle(targetName, target, index)}`;
       applyTooltip(targetTitle, "tip.detailerBlock");
       const targetTools = document.createElement("div");
       targetTools.className = "easyuse-anima-aio-node-stage-tools";
@@ -5250,6 +5321,7 @@ function openHighresSettings(node) {
     selectInput(widgetOptions(node, "scheduler", GENERATOR_FALLBACK_SCHEDULER_NAMES), highres.scheduler)
   );
   const denoise = field(sampler, "Denoise", numberInput(highres.denoise, "0.01"));
+  const optimization = createStageOptimizationEditor("Highres Optimization", highres, DEFAULT_GENERATION_SETTINGS.highres);
   const updateInheritedRows = () => {
     const usesMain = inheritSampler.checked;
     const display = usesMain ? "none" : "";
@@ -5271,7 +5343,7 @@ function openHighresSettings(node) {
   inheritSampler.addEventListener("change", refreshDependencyLocks);
   updateInheritedRows();
   refreshDependencyLocks();
-  body.append(image, sampler);
+  body.append(image, sampler, optimization.section);
 
   const cancel = document.createElement("button");
   cancel.textContent = aioText("button.cancel");
@@ -5282,6 +5354,7 @@ function openHighresSettings(node) {
   cancel.addEventListener("click", () => backdrop.remove());
   apply.addEventListener("click", () => {
     const next = mergeDefaults(DEFAULT_GENERATION_SETTINGS, settings);
+    const optimized = optimization.values();
     next.highres = {
       ...next.highres,
       enabled: enabled.checked,
@@ -5295,9 +5368,8 @@ function openHighresSettings(node) {
       sampler_name: samplerName.value || "euler",
       scheduler: scheduler.value || "simple",
       denoise: clampGeneratorNumber(denoise.value, DEFAULT_GENERATION_SETTINGS.highres.denoise, 0, 1),
+      ...optimized,
     };
-    next.highres.spectrum = mergeDefaults(DEFAULT_GENERATION_SETTINGS.highres.spectrum, {});
-    next.highres.dit_corrections = mergeDefaults(DEFAULT_GENERATION_SETTINGS.highres.dit_corrections, {});
     writeSettings(node, widget, next);
     renderGeneratorPanel(node);
     backdrop.remove();
@@ -5375,7 +5447,6 @@ function createDetailerTargetEditor(node, title, values, defaults, onLabelChange
         control.parentElement.style.display = display;
       }
     }
-    optimization.section.classList.toggle("hidden", !!inheritSampler.checked);
   };
   inheritSampler.addEventListener("change", updateInheritedRows);
   updateInheritedRows();
@@ -5449,19 +5520,35 @@ function openDetailerSettings(node) {
   main.append(dependencyWarning);
   body.append(main);
 
-  const currentOrder = normalizeDetailerOrder(detailer.order);
+  const currentOrder = normalizeDetailerOrder(detailer.order, detailer);
   let activeTargetName = currentOrder[0] || "face";
   const tabsSection = document.createElement("section");
   tabsSection.className = "easyuse-anima-aio-section full";
   tabsSection.append(Object.assign(document.createElement("h3"), { textContent: aioStaticText("Detailer Blocks") }));
+  const addBlock = document.createElement("button");
+  addBlock.type = "button";
+  addBlock.className = "easyuse-anima-aio-add-row";
+  addBlock.textContent = aioText("button.addDetailerBlock");
+  applyTooltip(addBlock, "tip.addDetailerBlock");
   const tabBar = document.createElement("div");
   tabBar.className = "easyuse-anima-aio-tabs";
   const tabPanel = document.createElement("div");
   tabPanel.className = "easyuse-anima-aio-tab-panel";
-  tabsSection.append(tabBar, tabPanel);
+  tabsSection.append(addBlock, tabBar, tabPanel);
   body.append(tabsSection);
 
   let editors = {};
+  const createEditor = (targetName, values = null) => {
+    const defaults = detailerTargetDefaults(targetName);
+    const targetValues = mergeDefaults(defaults, values || detailer[targetName] || {});
+    return createDetailerTargetEditor(
+      node,
+      detailerTargetTitle(targetName, targetValues),
+      targetValues,
+      defaults,
+      renderDetailerTabs,
+    );
+  };
   const moveTarget = (targetName, delta) => {
     const index = currentOrder.indexOf(targetName);
     const nextIndex = index + delta;
@@ -5475,6 +5562,34 @@ function openDetailerSettings(node) {
     activeTargetName = targetName;
     renderDetailerTabs();
   };
+  const removeTarget = (targetName) => {
+    if (!isCustomDetailerTargetName(targetName)) {
+      return;
+    }
+    const index = currentOrder.indexOf(targetName);
+    if (index < 0) {
+      return;
+    }
+    currentOrder.splice(index, 1);
+    delete editors[targetName];
+    if (activeTargetName === targetName) {
+      activeTargetName = currentOrder[Math.min(index, currentOrder.length - 1)] || "face";
+    }
+    renderDetailerTabs();
+  };
+  const addTarget = () => {
+    const targetName = nextDetailerTargetName(currentOrder, detailer);
+    const defaults = detailerTargetDefaults(targetName);
+    const targetValues = {
+      ...defaults,
+      enabled: true,
+    };
+    currentOrder.push(targetName);
+    editors[targetName] = createEditor(targetName, targetValues);
+    activeTargetName = targetName;
+    renderDetailerTabs();
+  };
+  addBlock.addEventListener("click", addTarget);
   function renderDetailerTabs() {
     tabBar.replaceChildren();
     for (const [index, targetName] of currentOrder.entries()) {
@@ -5512,7 +5627,16 @@ function openDetailerSettings(node) {
         event.stopPropagation();
         moveTarget(targetName, 1);
       });
-      tools.append(moveLeft, moveRight);
+      const remove = document.createElement("button");
+      remove.type = "button";
+      remove.textContent = "x";
+      remove.disabled = !isCustomDetailerTargetName(targetName);
+      applyTooltip(remove, "button.remove");
+      remove.addEventListener("click", (event) => {
+        event.stopPropagation();
+        removeTarget(targetName);
+      });
+      tools.append(moveLeft, moveRight, remove);
       tab.append(label, tools);
       tab.addEventListener("click", () => selectTarget(targetName));
       tab.addEventListener("keydown", (event) => {
@@ -5528,21 +5652,7 @@ function openDetailerSettings(node) {
     }
     tabPanel.replaceChildren(editors[activeTargetName]?.section || document.createElement("div"));
   }
-  const face = createDetailerTargetEditor(
-    node,
-    "Face Detailer",
-    detailer.face,
-    DEFAULT_GENERATION_SETTINGS.detailer.face,
-    renderDetailerTabs,
-  );
-  const eye = createDetailerTargetEditor(
-    node,
-    "Eye Detailer",
-    detailer.eye,
-    DEFAULT_GENERATION_SETTINGS.detailer.eye,
-    renderDetailerTabs,
-  );
-  editors = { face, eye };
+  editors = Object.fromEntries(currentOrder.map((targetName) => [targetName, createEditor(targetName)]));
   renderDetailerTabs();
   const refreshDetailerDependencyLocks = () => {
     const missingPacks = [];
@@ -5578,23 +5688,32 @@ function openDetailerSettings(node) {
   apply.addEventListener("click", () => {
     const next = mergeDefaults(DEFAULT_GENERATION_SETTINGS, settings);
     const detailerEnabled = enabled.checked && !enabled.disabled;
-    const faceValues = face.values();
-    const eyeValues = eye.values();
-    if (!detailerEnabled) {
-      faceValues.enabled = false;
-      eyeValues.enabled = false;
-    }
-    next.detailer = {
+    const nextDetailer = {
       ...next.detailer,
       enabled: detailerEnabled,
       sam3: {
         context: "load_checkpoint",
         checkpoint: checkpoint.value || "sam3.1_multiplex_fp16.safetensors",
       },
-      order: normalizeDetailerOrder(currentOrder),
-      face: faceValues,
-      eye: eyeValues,
     };
+    for (const targetName of Object.keys(nextDetailer)) {
+      if (isCustomDetailerTargetName(targetName)) {
+        delete nextDetailer[targetName];
+      }
+    }
+    for (const targetName of currentOrder) {
+      const editor = editors[targetName];
+      if (!editor) {
+        continue;
+      }
+      const values = editor.values();
+      if (!detailerEnabled) {
+        values.enabled = false;
+      }
+      nextDetailer[targetName] = values;
+    }
+    nextDetailer.order = normalizeDetailerOrder(currentOrder, nextDetailer);
+    next.detailer = nextDetailer;
     writeSettings(node, widget, next);
     renderGeneratorPanel(node);
     backdrop.remove();

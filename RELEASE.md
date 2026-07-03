@@ -6,6 +6,11 @@
 
 - Fixed `Anima AiO Generator` Detailer Settings so Face/Eye detailer blocks
   render again after opening the popup.
+- Fixed Detailer Settings so custom detailer blocks can be added, saved,
+  reordered, and executed after the built-in Face/Eye blocks.
+- Fixed Highres and Detailer stage optimization so Spectrum/DCW settings are
+  saved and applied per stage/block even when CFG, sampler, and scheduler follow
+  the main sampler.
 - Restored broader autocomplete suggestions when inline autocomplete preview is
   disabled, while keeping strict token-range behavior for preview mode.
 - Fixed inline autocomplete preview filtering so Korean description/keyword
@@ -30,6 +35,8 @@
 - Added regression coverage for IME autocomplete refresh, arrow-key menu
   scrolling, wildcard autocomplete token detection, Korean wildcard keys, and
   wildcard/dynamic-prompt highlight classification.
+- Added regression coverage for custom Detailer blocks and stage-specific
+  Highres/Detailer Spectrum/DCW settings.
 
 ## 0.2.2
 

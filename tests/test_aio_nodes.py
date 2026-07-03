@@ -133,6 +133,34 @@ class AIOSettingsStorageTests(unittest.TestCase):
         self.assertEqual(settings["preview"]["feed_count"], 12)
         self.assertEqual(settings["future_section"]["value"], 42)
 
+    def test_generation_settings_preserve_custom_detailer_blocks(self):
+        settings = nodes._normalize_aio_generation_settings(json.dumps({
+            "detailer": {
+                "enabled": True,
+                "order": ["custom_1", "eye", "face"],
+                "custom_1": {
+                    "label": "Hand Detailer",
+                    "enabled": True,
+                    "detect_prompt": "hand",
+                    "spectrum": {
+                        "enabled": True,
+                        "window_size": 4.0,
+                    },
+                    "dit_corrections": {
+                        "enabled": True,
+                        "dcw_mode": "manual",
+                    },
+                },
+            },
+        }))
+
+        self.assertEqual(settings["detailer"]["order"], ["custom_1", "eye", "face"])
+        self.assertEqual(settings["detailer"]["custom_1"]["label"], "Hand Detailer")
+        self.assertEqual(settings["detailer"]["custom_1"]["detect_prompt"], "hand")
+        self.assertTrue(settings["detailer"]["custom_1"]["spectrum"]["enabled"])
+        self.assertEqual(settings["detailer"]["custom_1"]["spectrum"]["window_size"], 4.0)
+        self.assertEqual(settings["detailer"]["custom_1"]["dit_corrections"]["dcw_mode"], "manual")
+
     def test_legacy_filename_prefix_is_not_kept_in_generation_settings(self):
         settings = nodes._normalize_aio_generation_settings(json.dumps({
             "save": {
@@ -973,6 +1001,13 @@ class AIOHighresDetailerStageTests(unittest.TestCase):
             },
             "highres": {
                 "enabled": True,
+                "spectrum": {
+                    "window_size": 4,
+                },
+                "dit_corrections": {
+                    "enabled": True,
+                    "dcw_mode": "manual",
+                },
             },
         }))
 
@@ -1006,10 +1041,65 @@ class AIOHighresDetailerStageTests(unittest.TestCase):
         self.assertEqual(sample.call_args.args[0], "model")
         self.assertEqual(sample.call_args.args[5]["backend"], "spectrum_mod_guidance_advanced")
         self.assertEqual(sample.call_args.args[5]["steps"], settings["highres"]["steps"])
-        self.assertEqual(sample.call_args.args[5]["spectrum"]["window_size"], 3.0)
+        self.assertEqual(sample.call_args.args[5]["spectrum"]["window_size"], 4.0)
+        self.assertEqual(sample.call_args.args[5]["dit_corrections"]["dcw_mode"], "manual")
         self.assertEqual(sample.call_args.args[7], True)
         self.assertEqual(sample.call_args.args[8], "quality")
         self.assertEqual(sample.call_args.args[9], "quality_neg")
+
+    def test_highres_stage_keeps_stage_spectrum_when_following_main_sampler(self):
+        settings = nodes._normalize_aio_generation_settings(json.dumps({
+            "sampler": {
+                "spectrum": {
+                    "enabled": False,
+                    "window_size": 2,
+                },
+                "dit_corrections": {
+                    "enabled": False,
+                    "dcw_mode": "off",
+                },
+            },
+            "highres": {
+                "enabled": True,
+                "inherit_sampler_settings": True,
+                "spectrum": {
+                    "enabled": True,
+                    "window_size": 5,
+                },
+                "dit_corrections": {
+                    "enabled": True,
+                    "dcw_mode": "manual",
+                },
+            },
+        }))
+
+        with (
+            patch.object(nodes.EasyUseAnimaImageScaleByMultiple, "upscale", return_value=("scaled_image", 640, 960, 1.25)),
+            patch.object(nodes, "_encode_image_with_comfy_vae", return_value="high_latent_image"),
+            patch.object(nodes, "_apply_aio_spectrum_model_patches_for_comfy_sampler", return_value="stage_model") as comfy_patch,
+            patch.object(nodes, "_sample_latent_with_aio_backend", return_value="high_latent"),
+            patch.object(nodes, "_decode_latent_with_comfy", return_value="high_image"),
+            patch.object(nodes, "_cleanup_aio_ephemeral_model"),
+        ):
+            nodes._run_aio_highres_stage(
+                "model",
+                "clip",
+                "vae",
+                "positive",
+                "negative",
+                "base_image",
+                "base_latent",
+                512,
+                768,
+                settings["sampler"],
+                settings["highres"],
+            )
+
+        stage_sampler = comfy_patch.call_args.args[3]
+        self.assertTrue(stage_sampler["spectrum"]["enabled"])
+        self.assertEqual(stage_sampler["spectrum"]["window_size"], 5.0)
+        self.assertTrue(stage_sampler["dit_corrections"]["enabled"])
+        self.assertEqual(stage_sampler["dit_corrections"]["dcw_mode"], "manual")
 
     def test_highres_stage_falls_back_to_comfy_when_main_sampler_is_spd(self):
         settings = nodes._normalize_aio_generation_settings(json.dumps({
@@ -1094,15 +1184,29 @@ class AIOHighresDetailerStageTests(unittest.TestCase):
 
     def test_detailer_target_uses_stage_spectrum_patched_model(self):
         settings = nodes._normalize_aio_generation_settings(json.dumps({
+            "sampler": {
+                "spectrum": {
+                    "enabled": False,
+                    "window_size": 2,
+                },
+            },
             "detailer": {
                 "face": {
                     "enabled": True,
+                    "spectrum": {
+                        "enabled": True,
+                        "window_size": 4,
+                    },
+                    "dit_corrections": {
+                        "enabled": True,
+                        "dcw_mode": "manual",
+                    },
                 },
             },
         }))
 
         with (
-            patch.object(nodes, "_apply_aio_spectrum_model_patches_for_comfy_sampler", return_value="detail_model"),
+            patch.object(nodes, "_apply_aio_spectrum_model_patches_for_comfy_sampler", return_value="detail_model") as comfy_patch,
             patch.object(nodes.EasyUseAnimaSAM3Detailer, "doit", return_value=("detailed_image", ((1, 1), ["seg"]), "mask", "raw_image")) as detailer,
             patch.object(nodes, "_cleanup_aio_ephemeral_model"),
         ):
@@ -1124,6 +1228,11 @@ class AIOHighresDetailerStageTests(unittest.TestCase):
         self.assertTrue(metadata["detected"])
         self.assertEqual(detailer.call_args.kwargs["model"], "detail_model")
         self.assertEqual(detailer.call_args.kwargs["scheduler"], settings["sampler"]["scheduler"])
+        stage_sampler = comfy_patch.call_args.args[3]
+        self.assertTrue(stage_sampler["spectrum"]["enabled"])
+        self.assertEqual(stage_sampler["spectrum"]["window_size"], 4.0)
+        self.assertTrue(stage_sampler["dit_corrections"]["enabled"])
+        self.assertEqual(stage_sampler["dit_corrections"]["dcw_mode"], "manual")
 
     def test_detailer_stage_runs_targets_in_saved_order(self):
         settings = nodes._normalize_aio_generation_settings(json.dumps({
@@ -1163,6 +1272,50 @@ class AIOHighresDetailerStageTests(unittest.TestCase):
         self.assertEqual(calls[1][1], "eye_image")
         self.assertEqual(image, "face_image")
         self.assertEqual(metadata["order"], ["eye", "face"])
+
+    def test_detailer_stage_runs_custom_targets_in_saved_order(self):
+        settings = nodes._normalize_aio_generation_settings(json.dumps({
+            "detailer": {
+                "enabled": True,
+                "order": ["face", "custom_1", "eye"],
+                "face": {
+                    "enabled": True,
+                },
+                "custom_1": {
+                    "label": "Hand Detailer",
+                    "enabled": True,
+                    "detect_prompt": "hand",
+                },
+                "eye": {
+                    "enabled": True,
+                },
+            },
+        }))
+        calls = []
+
+        def fake_detailer_target(target_name, target_settings, image, *args):
+            calls.append((target_name, target_settings.get("detect_prompt"), image))
+            return f"{target_name}_image", {"enabled": True}
+
+        with (
+            patch.object(nodes, "_load_aio_sam3_context", return_value={"ckpt_name": "sam3"}),
+            patch.object(nodes, "_run_aio_detailer_target", side_effect=fake_detailer_target),
+        ):
+            image, metadata = nodes._run_aio_detailer_stage(
+                "model",
+                "clip",
+                "vae",
+                "positive",
+                "negative",
+                "base_image",
+                settings["sampler"],
+                settings["detailer"],
+            )
+
+        self.assertEqual([call[0] for call in calls], ["face", "custom_1", "eye"])
+        self.assertEqual(calls[1], ("custom_1", "hand", "face_image"))
+        self.assertEqual(image, "eye_image")
+        self.assertEqual(metadata["order"], ["face", "custom_1", "eye"])
 
 
 class AIOGeneratorRuntimeTests(unittest.TestCase):

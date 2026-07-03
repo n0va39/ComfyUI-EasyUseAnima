@@ -1111,6 +1111,45 @@ def _normalize_aio_dit_corrections_settings(value, defaults: dict[str, Any]) -> 
     return corrections
 
 
+_AIO_DETAILER_RESERVED_KEYS = {"enabled", "order", "sam3"}
+_AIO_DETAILER_CUSTOM_RE = re.compile(r"^custom_\d+$")
+
+
+def _is_aio_detailer_target_name(name: str) -> bool:
+    return name in ("face", "eye") or bool(_AIO_DETAILER_CUSTOM_RE.fullmatch(name))
+
+
+def _aio_detailer_target_defaults(target_name: str) -> dict[str, Any]:
+    if target_name == "eye":
+        return _json_clone(AIO_GENERATION_DEFAULT_SETTINGS["detailer"]["eye"])
+    defaults = _json_clone(AIO_GENERATION_DEFAULT_SETTINGS["detailer"]["face"])
+    if target_name not in ("face", "eye"):
+        suffix = target_name.rsplit("_", 1)[-1]
+        defaults["label"] = f"Detailer Block {suffix}" if suffix.isdigit() else "Detailer Block"
+    return defaults
+
+
+def _aio_detailer_target_order(detailer_settings: dict[str, Any]) -> list[str]:
+    output: list[str] = []
+
+    def append_target(name) -> None:
+        text = str(name or "").strip()
+        if _is_aio_detailer_target_name(text) and text not in output:
+            output.append(text)
+
+    order = detailer_settings.get("order")
+    if isinstance(order, list):
+        for name in order:
+            append_target(name)
+    for name, value in detailer_settings.items():
+        if name in _AIO_DETAILER_RESERVED_KEYS or not isinstance(value, dict):
+            continue
+        append_target(name)
+    for name in ("face", "eye"):
+        append_target(name)
+    return output
+
+
 def _normalize_aio_generation_settings(value) -> dict[str, Any]:
     settings = _merge_versioned_settings(AIO_GENERATION_DEFAULT_SETTINGS, value)
     settings["schema"] = AIO_GENERATION_SETTINGS_SCHEMA
@@ -1431,24 +1470,12 @@ def _normalize_aio_generation_settings(value) -> dict[str, Any]:
     if not isinstance(sam3, dict):
         sam3 = {}
         detailer["sam3"] = sam3
-    order = detailer.get("order")
-    if not isinstance(order, list):
-        order = AIO_GENERATION_DEFAULT_SETTINGS["detailer"]["order"]
-    normalized_order = []
-    for name in order:
-        text = str(name or "").strip()
-        if text in ("face", "eye") and text not in normalized_order:
-            normalized_order.append(text)
-    for name in ("face", "eye"):
-        if name not in normalized_order:
-            normalized_order.append(name)
+    normalized_order = _aio_detailer_target_order(detailer)
     detailer["order"] = normalized_order
     sam3["context"] = _choice(sam3.get("context"), ("load_checkpoint",), "load_checkpoint")
     sam3["checkpoint"] = str(sam3.get("checkpoint") or "sam3.1_multiplex_fp16.safetensors")
-    for target_name, defaults in (
-        ("face", AIO_GENERATION_DEFAULT_SETTINGS["detailer"]["face"]),
-        ("eye", AIO_GENERATION_DEFAULT_SETTINGS["detailer"]["eye"]),
-    ):
+    for target_name in normalized_order:
+        defaults = _aio_detailer_target_defaults(target_name)
         target = detailer.setdefault(target_name, {})
         if not isinstance(target, dict):
             target = {}
@@ -2982,7 +3009,6 @@ def _aio_stage_sampler_settings(
         backend = "comfy_ksampler"
     else:
         backend = "comfy_ksampler"
-    inherit_backend_settings = bool(inherit_backend and inherit_sampler and not inherited_spd_fallback)
     return {
         "backend": backend,
         "seed": _resolve_aio_runtime_seed(base_sampler.get("seed")),
@@ -3004,23 +3030,11 @@ def _aio_stage_sampler_settings(
             else str(stage_settings.get("scheduler") or scheduler_default)
         ),
         "denoise": _as_float(stage_settings.get("denoise"), 1.0),
-        "spectrum": _json_clone(
-            base_sampler.get("spectrum") if inherit_backend_settings else stage_settings.get("spectrum") or {}
-        ),
-        "dit_corrections": _json_clone(
-            base_sampler.get("dit_corrections")
-            if inherit_backend_settings
-            else stage_settings.get("dit_corrections") or {}
-        ),
-        "spd": _json_clone(
-            base_sampler.get("spd") if inherit_backend_settings else stage_settings.get("spd") or {}
-        ),
-        "spectrum_extra": _json_clone(
-            base_sampler.get("spectrum_extra") if inherit_backend_settings else {}
-        ),
-        "spd_extra": _json_clone(
-            base_sampler.get("spd_extra") if inherit_backend_settings else {}
-        ),
+        "spectrum": _json_clone(stage_settings.get("spectrum") or {}),
+        "dit_corrections": _json_clone(stage_settings.get("dit_corrections") or {}),
+        "spd": _json_clone(stage_settings.get("spd") or {}),
+        "spectrum_extra": {},
+        "spd_extra": {},
     }
 
 
@@ -3215,9 +3229,10 @@ def _run_aio_detailer_stage(
 ) -> tuple[Any, dict[str, Any]]:
     if not _as_bool(detailer_settings.get("enabled"), False):
         return image, {"enabled": False}
+    target_order = _aio_detailer_target_order(detailer_settings)
     enabled_targets = [
         name
-        for name in ("face", "eye")
+        for name in target_order
         if isinstance(detailer_settings.get(name), dict)
         and _as_bool(detailer_settings[name].get("enabled"), False)
     ]
@@ -3227,7 +3242,7 @@ def _run_aio_detailer_stage(
     sam3_context = _load_aio_sam3_context(detailer_settings)
     output = image
     target_results: dict[str, Any] = {}
-    for target_name in detailer_settings.get("order", ("face", "eye")):
+    for target_name in target_order:
         if target_name not in enabled_targets:
             continue
         output, target_results[target_name] = _run_aio_detailer_target(
@@ -3247,7 +3262,7 @@ def _run_aio_detailer_stage(
     return output, {
         "enabled": True,
         "sam3_checkpoint": _context_value(sam3_context, "ckpt_name"),
-        "order": list(detailer_settings.get("order", ("face", "eye"))),
+        "order": target_order,
         "targets": target_results,
     }
 
@@ -3289,7 +3304,7 @@ def _aio_detailer_has_enabled_targets(detailer_settings: dict[str, Any]) -> bool
     return any(
         isinstance(detailer_settings.get(name), dict)
         and _as_bool(detailer_settings[name].get("enabled"), False)
-        for name in ("face", "eye")
+        for name in _aio_detailer_target_order(detailer_settings)
     )
 
 

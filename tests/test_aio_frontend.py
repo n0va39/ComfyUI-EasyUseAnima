@@ -21,6 +21,31 @@ class AIOFrontendSourceTests(unittest.TestCase):
             body.index("const optimization = createStageOptimizationEditor"),
             body.index("updateInheritedRows();"),
         )
+        self.assertNotIn('optimization.section.classList.toggle("hidden"', body)
+
+    def test_highres_settings_save_stage_optimization(self):
+        source = AIO_JS.read_text(encoding="utf-8")
+        start = source.index("function openHighresSettings")
+        end = source.index("\nfunction createDetailerTargetEditor", start)
+        body = source[start:end]
+
+        self.assertIn('createStageOptimizationEditor("Highres Optimization"', body)
+        self.assertIn("const optimized = optimization.values();", body)
+        self.assertIn("...optimized,", body)
+        self.assertNotIn("next.highres.spectrum = mergeDefaults", body)
+        self.assertNotIn("next.highres.dit_corrections = mergeDefaults", body)
+
+    def test_detailer_settings_support_custom_blocks(self):
+        source = AIO_JS.read_text(encoding="utf-8")
+        start = source.index("function openDetailerSettings")
+        end = source.index("\nfunction normalizeImageSaverHashBundles", start)
+        body = source[start:end]
+
+        self.assertIn('addBlock.textContent = aioText("button.addDetailerBlock");', body)
+        self.assertIn("nextDetailerTargetName(currentOrder, detailer)", body)
+        self.assertIn("Object.fromEntries(currentOrder.map", body)
+        self.assertIn("isCustomDetailerTargetName(targetName)", body)
+        self.assertIn("nextDetailer.order = normalizeDetailerOrder(currentOrder, nextDetailer);", body)
 
     def test_autocomplete_preview_filter_keeps_description_matches(self):
         source = AUTOCOMPLETE_JS.read_text(encoding="utf-8")
