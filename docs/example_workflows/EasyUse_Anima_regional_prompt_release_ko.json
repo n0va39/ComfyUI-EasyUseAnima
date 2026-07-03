@@ -692,7 +692,15 @@
       "release_suffix": "_release_ko",
       "live_sync_policy": "overwrite release-suffixed copies only; never overwrite user-edited working filenames",
       "scope": "regional-prompt-studio-two-mask-qwen-image-sample",
-      "source_image": "EasyUse_Anima_regional_prompt_release_ko.png"
+      "source_image": "EasyUse_Anima_regional_prompt_release_ko.png",
+      "required_node_packs": [
+        {
+          "name": "ComfyUI-EasyUseAnima",
+          "reason": "Provides the EasyUse Anima custom nodes used by this workflow.",
+          "repository": "https://github.com/N0VA-39/ComfyUI-EasyUseAnima",
+          "required_for_sample": true
+        }
+      ]
     }
   },
   "version": 0.4

@@ -27528,7 +27528,69 @@
         "positive_general",
         "positive_naia_mqkoo1n1"
       ],
-      "detailer_structure_policy": "1530 and 1836 share the same subgraph topology; only detail parameters differ."
+      "detailer_structure_policy": "1530 and 1836 share the same subgraph topology; only detail parameters differ.",
+      "required_node_packs": [
+        {
+          "name": "ComfyUI-EasyUseAnima",
+          "reason": "Provides the EasyUse Anima custom nodes used by this workflow.",
+          "repository": "https://github.com/N0VA-39/ComfyUI-EasyUseAnima",
+          "required_for_sample": true
+        },
+        {
+          "name": "ComfyUI-Spectrum-KSampler",
+          "reason": "Provides Spectrum KSampler, Mod Guidance, and Spectrum model patch nodes used by this workflow.",
+          "repository": "https://github.com/blepping/ComfyUI-Spectrum-KSampler",
+          "required_for_sample": true
+        },
+        {
+          "name": "ComfyUI-Image-Saver",
+          "reason": "Provides Image Saver, Image Saver selectors, and Civitai hash metadata nodes used by this workflow.",
+          "repository": "https://github.com/alexopus/ComfyUI-Image-Saver",
+          "required_for_sample": true
+        },
+        {
+          "name": "rgthree-comfy",
+          "reason": "Provides Context and KSampler Config helper nodes used by this workflow.",
+          "repository": "https://github.com/rgthree/rgthree-comfy",
+          "required_for_sample": true
+        },
+        {
+          "name": "ComfyUI-Easy-Use",
+          "reason": "Provides LoRA stack helper nodes used by this workflow.",
+          "repository": "https://github.com/yolain/ComfyUI-Easy-Use",
+          "required_for_sample": true
+        },
+        {
+          "name": "ComfyUI-RvTools",
+          "reason": "Provides LoRA Stack to String helper nodes used by this workflow.",
+          "repository": "https://github.com/Rvage0815/ComfyUI-RvTools",
+          "required_for_sample": true
+        },
+        {
+          "name": "ComfyUI-Impact-Pack",
+          "reason": "Provides SAM3 detection, MaskToSEGS, and DetailerForEach nodes used by detailer sections.",
+          "repository": "https://github.com/ltdrdata/ComfyUI-Impact-Pack",
+          "required_for_sample": true
+        },
+        {
+          "name": "ComfyUI-KJNodes",
+          "reason": "Provides TorchCompileModelAdvanced and SageAttention optimization nodes used by this workflow.",
+          "repository": "https://github.com/kijai/ComfyUI-KJNodes",
+          "required_for_sample": true
+        },
+        {
+          "name": "ComfyUI-Anima-DAVE",
+          "reason": "Provides the AnimaDAVE model patch node used by this workflow.",
+          "repository": "https://github.com/sorryhyun/ComfyUI-Anima-DAVE",
+          "required_for_sample": true
+        },
+        {
+          "name": "ComfyUI-Anima-LLLite",
+          "reason": "Provides AnimaLLLiteApply nodes used by inpainting sections.",
+          "repository": "https://github.com/kohya-ss/ComfyUI-Anima-LLLite",
+          "required_for_sample": true
+        }
+      ]
     },
     "ds": {
       "scale": 1.499226826462748,

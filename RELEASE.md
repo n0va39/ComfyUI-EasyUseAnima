@@ -47,6 +47,8 @@
   `docs/example_workflows/EasyUse_Anima_AiO_generator_release_ko.json`.
 - Added the compact release workflow:
   `docs/example_workflows/ANIMA_Easy_Use_workflow_v1_release_ko.json`.
+- Added `required_node_packs` metadata to release workflow templates so
+  required custom nodes are visible from the workflow JSON itself.
 - Added user-facing AiO node documentation in Korean and English.
 - Added an ANIMA Easy Use workflow v1 usage draft and Simple prompt corrector
   node screenshot.
@@ -92,6 +94,11 @@
   `SpectrumKSamplerAdvanced` and `SpectrumSPDKSampler` keyword arguments against
   the installed `sample()` signature. Sampler Details also reads `/object_info`
   to show detected extra inputs and node-pack tooltips when available.
+- Fixed general KSampler + Spectrum Patch routing so installed node packs that
+  expose `DiTSpectrumPatch` instead of `DiTSpectrumPatchAdvanced` are supported.
+- Fixed AiO SPD/SPEED preview and Highres handoff sizing so the node output,
+  preview feed, and Highres target resolution stay aligned with the requested
+  workflow resolution.
 - Fixed AiO preview result handling so ComfyUI's default `images` UI payload is
   suppressed and only the dedicated `easyuse_anima_preview` payload is used.
 - Hardened intermediate preview feed updates so live preview events are tagged

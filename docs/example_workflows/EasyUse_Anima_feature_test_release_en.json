@@ -856,7 +856,15 @@
       "release_suffix": "_release_en",
       "live_sync_policy": "overwrite release-suffixed copies only; never overwrite user-edited working filenames",
       "scope": "core-ui-nodes-with-text-previews",
-      "preview_node_dependency": "ComfyUI-Custom-Scripts / ShowText|pysssss"
+      "preview_node_dependency": "ComfyUI-Custom-Scripts / ShowText|pysssss",
+      "required_node_packs": [
+        {
+          "name": "ComfyUI-EasyUseAnima",
+          "reason": "Provides the EasyUse Anima custom nodes used by this workflow.",
+          "repository": "https://github.com/N0VA-39/ComfyUI-EasyUseAnima",
+          "required_for_sample": true
+        }
+      ]
     }
   },
   "version": 0.4

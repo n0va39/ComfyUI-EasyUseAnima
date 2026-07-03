@@ -1930,6 +1930,18 @@ def _require_custom_node_class(node_id: str, node_pack: str, install_hint: str):
     )
 
 
+def _require_any_custom_node_class(node_ids: tuple[str, ...], node_pack: str, install_hint: str):
+    for node_id in node_ids:
+        cls = _find_comfy_node_class(node_id)
+        if cls is not None:
+            return node_id, cls
+    joined = "', '".join(node_ids)
+    raise RuntimeError(
+        f"[EasyUseAnima] Missing required custom node. Tried '{joined}'. "
+        f"Install/enable {node_pack}, then restart ComfyUI. {install_hint}"
+    )
+
+
 def _load_checkpoint_with_comfy(ckpt_name: str):
     loader_cls = _find_comfy_node_class("CheckpointLoaderSimple")
     if loader_cls is None:
@@ -2590,31 +2602,41 @@ def _apply_aio_spectrum_forecast_patch_for_comfy_sampler(
     spectrum = sampler_settings.get("spectrum", {})
     if not isinstance(spectrum, dict) or not _as_bool(spectrum.get("enabled"), False):
         return model
-    patch_cls = _require_custom_node_class(
-        "DiTSpectrumPatchAdvanced",
+    node_id, patch_cls = _require_any_custom_node_class(
+        ("DiTSpectrumPatchAdvanced", "DiTSpectrumPatch"),
         "ComfyUI-Spectrum-KSampler",
         "Repository: https://github.com/blepping/ComfyUI-Spectrum-KSampler",
     )
+    patcher = patch_cls()
+    patch = getattr(patcher, "patch", None)
+    if patch is None:
+        raise RuntimeError(f"[EasyUseAnima] {node_id} does not expose patch().")
+    patch_kwargs = {
+        "model": model,
+        "steps": _as_int(sampler_settings.get("steps"), 28),
+        "window_size": _as_float(spectrum.get("window_size"), 2.0),
+        "flex_window": _as_float(spectrum.get("flex_window"), 0.25),
+        "warmup_steps": _as_int(spectrum.get("warmup_steps"), 6),
+        "tail_actual_steps": _as_int(spectrum.get("tail_actual_steps"), 3),
+        "blend_w": _as_float(spectrum.get("blend_w"), 0.3),
+        "cheby_degree": _as_int(spectrum.get("cheby_degree"), 3),
+        "ridge_lambda": _as_float(spectrum.get("ridge_lambda"), 0.1),
+        "history_size": _as_int(spectrum.get("history_size"), 100),
+        "enabled": True,
+        "one_sampler_only": _as_bool(spectrum.get("one_sampler_only"), False),
+        "verbose": _as_bool(spectrum.get("verbose"), False),
+        "compat_policy": str(spectrum.get("compat_policy") or "conservative"),
+    }
     values = _node_output_tuple(
-        patch_cls().patch(
-            model,
-            _as_int(sampler_settings.get("steps"), 28),
-            _as_float(spectrum.get("window_size"), 2.0),
-            _as_float(spectrum.get("flex_window"), 0.25),
-            _as_int(spectrum.get("warmup_steps"), 6),
-            _as_int(spectrum.get("tail_actual_steps"), 3),
-            _as_float(spectrum.get("blend_w"), 0.3),
-            _as_int(spectrum.get("cheby_degree"), 3),
-            _as_float(spectrum.get("ridge_lambda"), 0.1),
-            _as_int(spectrum.get("history_size"), 100),
-            True,
-            _as_bool(spectrum.get("one_sampler_only"), False),
-            _as_bool(spectrum.get("verbose"), False),
-            str(spectrum.get("compat_policy") or "conservative"),
+        _call_with_supported_kwargs(
+            patch,
+            (),
+            patch_kwargs,
+            f"{node_id}.patch()",
         )
     )
     if not values:
-        raise RuntimeError("[EasyUseAnima] DiTSpectrumPatchAdvanced returned no MODEL.")
+        raise RuntimeError(f"[EasyUseAnima] {node_id} returned no MODEL.")
     return values[0]
 
 
@@ -2924,6 +2946,22 @@ def _image_tensor_size(image, fallback_width: int, fallback_height: int) -> tupl
         return int(fallback_width), int(fallback_height)
 
 
+def _resize_image_to_size_if_needed(
+    image,
+    target_width: int,
+    target_height: int,
+    upscale_method: str = "bicubic",
+) -> tuple[Any, bool]:
+    target_width = max(1, int(target_width))
+    target_height = max(1, int(target_height))
+    width, height = _image_tensor_size(image, target_width, target_height)
+    if width == target_width and height == target_height:
+        return image, False
+    samples = image.movedim(-1, 1)
+    resized = _common_upscale_image(samples, target_width, target_height, str(upscale_method or "bicubic"))
+    return resized.movedim(1, -1), True
+
+
 def _aio_stage_sampler_settings(
     base_sampler: dict[str, Any],
     stage_settings: dict[str, Any],
@@ -3056,6 +3094,14 @@ def _run_aio_highres_stage(
     finally:
         _cleanup_aio_ephemeral_model(stage_model, model)
     decoded = _decode_latent_with_comfy(vae, latent)
+    decoded, resized = _resize_image_to_size_if_needed(
+        decoded,
+        width,
+        height,
+        highres_settings.get("upscale_method", "bicubic"),
+    )
+    if resized:
+        latent = _encode_image_with_comfy_vae(vae, decoded)
     return latent, decoded, int(width), int(height), {
         "enabled": True,
         "width": int(width),
@@ -9357,6 +9403,15 @@ class EasyUseAnimaAIOGenerator:
                     quality_neg if use_negative_anima_mod_guidance else "",
                 )
                 image = _decode_latent_with_comfy(vae, latent)
+            image, first_pass_resized = _resize_image_to_size_if_needed(
+                image,
+                width,
+                height,
+                "bicubic",
+            )
+            if first_pass_resized:
+                latent = _encode_image_with_comfy_vae(vae, image)
+            if not first_pass_cache_hit or first_pass_resized:
                 try:
                     _put_aio_first_pass_cache(first_pass_cache_key, latent, image)
                 except Exception as exc:

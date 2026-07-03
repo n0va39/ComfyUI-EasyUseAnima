@@ -1525,7 +1525,33 @@
       "language": "ko",
       "package_version": "0.2.2",
       "release_filename": "EasyUse_Anima_artist_mix_release_ko.json",
-      "source": "user/default/workflows/EasyUseAnima_Artist-Mix.json"
+      "source": "user/default/workflows/EasyUseAnima_Artist-Mix.json",
+      "required_node_packs": [
+        {
+          "name": "ComfyUI-EasyUseAnima",
+          "reason": "Provides the EasyUse Anima custom nodes used by this workflow.",
+          "repository": "https://github.com/N0VA-39/ComfyUI-EasyUseAnima",
+          "required_for_sample": true
+        },
+        {
+          "name": "ComfyUI-Spectrum-KSampler",
+          "reason": "Provides Spectrum KSampler, Mod Guidance, and Spectrum model patch nodes used by this workflow.",
+          "repository": "https://github.com/blepping/ComfyUI-Spectrum-KSampler",
+          "required_for_sample": true
+        },
+        {
+          "name": "rgthree-comfy",
+          "reason": "Provides Context and KSampler Config helper nodes used by this workflow.",
+          "repository": "https://github.com/rgthree/rgthree-comfy",
+          "required_for_sample": true
+        },
+        {
+          "name": "ComfyUI-Easy-Use",
+          "reason": "Provides LoRA stack helper nodes used by this workflow.",
+          "repository": "https://github.com/yolain/ComfyUI-Easy-Use",
+          "required_for_sample": true
+        }
+      ]
     }
   },
   "version": 0.4

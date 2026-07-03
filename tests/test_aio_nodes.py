@@ -562,7 +562,46 @@ class AIOSamplerDependencyTests(unittest.TestCase):
         self.assertEqual([call[0] for call in calls], ["correction", "spectrum"])
         self.assertEqual(calls[0][1], "base_model")
         self.assertEqual(calls[1][1], "corrected_model")
-        self.assertEqual(calls[1][2][-1], "strict")
+        self.assertEqual(calls[1][3]["compat_policy"], "strict")
+
+    def test_comfy_ksampler_spectrum_patch_falls_back_to_legacy_node_id(self):
+        calls = []
+
+        class LegacySpectrumPatch:
+            def patch(self, *, model, steps, window_size):
+                calls.append(locals())
+                return ("spectrum_model",)
+
+        def fake_find(node_id):
+            return {
+                "DiTSpectrumPatch": LegacySpectrumPatch,
+            }.get(node_id)
+
+        settings = nodes._normalize_aio_generation_settings(json.dumps({
+            "sampler": {
+                "backend": "comfy_ksampler",
+                "steps": 32,
+                "spectrum": {
+                    "enabled": True,
+                    "window_size": 2.5,
+                    "compat_policy": "strict",
+                },
+            },
+        }))
+
+        with patch.object(nodes, "_find_comfy_node_class", side_effect=fake_find):
+            result = nodes._apply_aio_spectrum_model_patches_for_comfy_sampler(
+                "base_model",
+                "clip",
+                "positive",
+                settings["sampler"],
+            )
+
+        self.assertEqual(result, "spectrum_model")
+        self.assertEqual(calls[0]["model"], "base_model")
+        self.assertEqual(calls[0]["steps"], 32)
+        self.assertEqual(calls[0]["window_size"], 2.5)
+        self.assertNotIn("compat_policy", calls[0])
 
     def test_missing_spectrum_model_patch_dependency_names_required_node_pack(self):
         settings = nodes._normalize_aio_generation_settings(json.dumps({
@@ -1016,6 +1055,43 @@ class AIOHighresDetailerStageTests(unittest.TestCase):
         self.assertEqual(stage_sampler["denoise"], 0.22)
         self.assertFalse(stage_sampler["spectrum"].get("enabled", False))
 
+    def test_highres_stage_reencodes_when_decoded_image_size_needs_correction(self):
+        settings = nodes._normalize_aio_generation_settings(json.dumps({
+            "highres": {
+                "enabled": True,
+            },
+        }))
+
+        with (
+            patch.object(nodes.EasyUseAnimaImageScaleByMultiple, "upscale", return_value=("scaled_image", 640, 960, 1.25)),
+            patch.object(nodes, "_encode_image_with_comfy_vae", side_effect=["high_latent_image", "corrected_latent"]) as encode,
+            patch.object(nodes, "_apply_aio_spectrum_model_patches_for_comfy_sampler", return_value="stage_model"),
+            patch.object(nodes, "_sample_latent_with_aio_backend", return_value="high_latent"),
+            patch.object(nodes, "_decode_latent_with_comfy", return_value="undersized_image"),
+            patch.object(nodes, "_resize_image_to_size_if_needed", return_value=("corrected_image", True)) as resize,
+            patch.object(nodes, "_cleanup_aio_ephemeral_model"),
+        ):
+            latent, image, width, height, metadata = nodes._run_aio_highres_stage(
+                "model",
+                "clip",
+                "vae",
+                "positive",
+                "negative",
+                "base_image",
+                "base_latent",
+                512,
+                768,
+                settings["sampler"],
+                settings["highres"],
+            )
+
+        self.assertEqual(latent, "corrected_latent")
+        self.assertEqual(image, "corrected_image")
+        self.assertEqual((width, height), (640, 960))
+        self.assertTrue(metadata["enabled"])
+        self.assertEqual(encode.call_args_list[-1].args, ("vae", "corrected_image"))
+        self.assertEqual(resize.call_args.args[1:3], (640, 960))
+
     def test_detailer_target_uses_stage_spectrum_patched_model(self):
         settings = nodes._normalize_aio_generation_settings(json.dumps({
             "detailer": {
@@ -1131,6 +1207,40 @@ class AIOGeneratorRuntimeTests(unittest.TestCase):
         self.assertEqual(result["ui"]["easyuse_anima_preview"][0]["filename"], "preview.webp")
         self.assertEqual(result["ui"]["sampler_backend"], ["comfy_ksampler"])
         self.assertIn("easyuse_anima_run_id", result["ui"])
+
+    def test_generator_reencodes_first_pass_when_decoded_image_size_needs_correction(self):
+        context = self._context()
+
+        with (
+            patch.object(nodes, "_load_aio_resources_from_input_context", return_value=("base_model", "base_clip", "vae")),
+            patch.object(nodes, "_apply_aio_lora_stack", return_value=("lora_model", "lora_clip", [])),
+            patch.object(nodes, "_apply_aio_model_patches", return_value="patched_model"),
+            patch.object(nodes, "_advanced_outputs_from_prompt_data", return_value=("p", "n", "q", "qn", False, False, "", "", 512, 768)),
+            patch.object(nodes, "_encode_prompt_data_positive_conditioning", return_value="positive"),
+            patch.object(nodes, "_encode_with_comfy_clip", return_value="negative"),
+            patch.object(nodes, "_generate_empty_latent_with_comfy", return_value="latent_image"),
+            patch.object(nodes, "_sample_latent_with_aio_backend", return_value="latent"),
+            patch.object(nodes, "_decode_latent_with_comfy", return_value="undersized_image"),
+            patch.object(nodes, "_resize_image_to_size_if_needed", return_value=("corrected_image", True)) as resize,
+            patch.object(nodes, "_encode_image_with_comfy_vae", return_value="corrected_latent") as encode,
+            patch.object(nodes, "_run_aio_highres_stage", return_value=("corrected_latent", "corrected_image", 512, 768, {"enabled": False})),
+            patch.object(nodes, "_save_image_with_image_saver", return_value={"ui": {"images": [{"filename": "final.webp"}]}}),
+            patch.object(nodes, "_cleanup_aio_ephemeral_model"),
+        ):
+            result = nodes.EasyUseAnimaAIOGenerator().generate(
+                context,
+                generation_settings=json.dumps({
+                    "save": {
+                        "enabled": True,
+                    },
+                }),
+                unique_id=201,
+            )
+
+        self.assertEqual(result["result"][0], "corrected_image")
+        self.assertEqual(result["result"][1], "corrected_latent")
+        self.assertEqual(resize.call_args.args[1:3], (512, 768))
+        self.assertEqual(encode.call_args.args, ("vae", "corrected_image"))
 
     def test_generator_sampler_backend_applies_only_selected_model_path(self):
         cases = (
