@@ -685,6 +685,7 @@ const AIO_TEXT = {
     "text.previewPrevious": "Previous",
     "text.previewCurrent": "Current",
     "text.previewDenoise": "Denoising preview",
+    "text.previewGenerating": "Generating",
     "text.inputLoaderMode": "Loader mode: split diffusion model + VAE + CLIP",
     "text.highresDisabled": "Enable Highres to expose resize and second-pass controls.",
     "text.highresSpdManualRequired": "Spectrum SPD / SPEED is not reused by Highres. Highres uses the general KSampler path.",
@@ -921,6 +922,7 @@ const AIO_TEXT = {
     "text.previewPrevious": "이전",
     "text.previewCurrent": "현재",
     "text.previewDenoise": "노이즈 제거 미리보기",
+    "text.previewGenerating": "생성 중",
     "text.inputLoaderMode": "로드 방식: 디퓨전 모델 + VAE + CLIP 분리 로드",
     "text.highresDisabled": "Highres를 켜면 확대와 2차 샘플링 기본 설정이 표시됩니다.",
     "text.highresSpdManualRequired": "Spectrum SPD / SPEED는 Highres에서 재사용하지 않습니다. Highres는 일반 KSampler 경로를 사용합니다.",
@@ -1011,6 +1013,7 @@ const AIO_TEXT = {
     "text.previewTitle": "生成画像プレビュー",
     "text.previewSubtitle": "このノード出力専用のプレビュー領域です。",
     "text.previewDenoise": "デノイズプレビュー",
+    "text.previewGenerating": "生成中",
     "text.highresDisabled": "Highres を有効にすると拡大と二回目サンプリングの基本設定を表示します。",
     "text.highresSpdManualRequired": "Spectrum SPD / SPEED は Highres では再利用しません。Highres は通常 KSampler 経路を使います。",
     "text.detailerDisabled": "Detailer を有効にすると順序変更できる処理ブロックを表示します。",
@@ -1095,6 +1098,7 @@ const AIO_TEXT = {
     "text.previewTitle": "生成图像预览",
     "text.previewSubtitle": "此区域专用于该节点输出预览。",
     "text.previewDenoise": "降噪预览",
+    "text.previewGenerating": "生成中",
     "text.highresDisabled": "启用 Highres 后显示放大和第二次采样基础设置。",
     "text.highresSpdManualRequired": "Spectrum SPD / SPEED 不会被 Highres 复用。Highres 使用普通 KSampler 路径。",
     "text.detailerDisabled": "启用 Detailer 后显示可排序的处理块。",
@@ -2656,6 +2660,11 @@ function ensureStyle() {
     .easyuse-anima-aio-node-panel * {
       box-sizing: border-box;
     }
+    @keyframes easyuse-anima-aio-spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
     .easyuse-anima-aio-node-topbar {
       display: flex;
       align-items: center;
@@ -3171,6 +3180,25 @@ function ensureStyle() {
       height: 100%;
       display: block;
       object-fit: cover;
+    }
+    .easyuse-anima-aio-node-preview-thumb.pending {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background:
+        linear-gradient(135deg, rgba(135, 200, 235, 0.08), rgba(255, 255, 255, 0.02)),
+        #11161b;
+      border-style: dashed;
+      cursor: default;
+    }
+    .easyuse-anima-aio-node-preview-thumb.pending::before {
+      content: "";
+      width: 18px;
+      height: 18px;
+      border: 2px solid rgba(174, 187, 192, 0.38);
+      border-top-color: rgba(135, 200, 235, 0.88);
+      border-radius: 50%;
+      animation: easyuse-anima-aio-spin 0.9s linear infinite;
     }
     .easyuse-anima-aio-node-preview-thumb span {
       position: absolute;
@@ -4038,6 +4066,61 @@ function updateGeneratorDomSummary(node) {
   updateGeneratorDomPreview(node);
 }
 
+function renderGeneratorPreviewFeed(node, panel, images, settings, selectedIndex, options = {}) {
+  const feed = panel?.querySelector?.("[data-aio-preview-feed]");
+  if (!feed) {
+    return;
+  }
+  const showPending = !!options.showPending;
+  feed.replaceChildren();
+  feed.hidden = !settings.preview.image_feed || (!images.length && !showPending);
+  if (feed.hidden) {
+    return;
+  }
+  let selectedThumb = null;
+  let pendingThumb = null;
+  for (const [index, image] of images.entries()) {
+    const thumbUrl = generatorImageUrl(image);
+    if (!thumbUrl) {
+      continue;
+    }
+    const thumb = document.createElement("button");
+    thumb.type = "button";
+    thumb.className = "easyuse-anima-aio-node-preview-thumb";
+    if (index === selectedIndex) {
+      thumb.classList.add("active");
+      selectedThumb = thumb;
+    }
+    thumb.title = generatorPreviewImageLabel(image);
+    const thumbImage = document.createElement("img");
+    thumbImage.src = thumbUrl;
+    thumbImage.alt = "";
+    thumbImage.loading = "lazy";
+    const label = document.createElement("span");
+    label.textContent = generatorPreviewImageLabel(image);
+    thumb.append(thumbImage, label);
+    thumb.addEventListener("click", () => {
+      node.__easyuseAnimaSelectedPreviewIndex = index;
+      updateGeneratorDomPreview(node);
+    });
+    feed.append(thumb);
+  }
+  if (showPending) {
+    const pendingLabel = aioText("text.previewGenerating");
+    pendingThumb = document.createElement("button");
+    pendingThumb.type = "button";
+    pendingThumb.className = "easyuse-anima-aio-node-preview-thumb pending";
+    pendingThumb.disabled = true;
+    pendingThumb.title = pendingLabel;
+    pendingThumb.setAttribute("aria-label", pendingLabel);
+    const label = document.createElement("span");
+    label.textContent = pendingLabel;
+    pendingThumb.append(label);
+    feed.append(pendingThumb);
+  }
+  (pendingThumb || selectedThumb)?.scrollIntoView?.({ block: "nearest", inline: "nearest" });
+}
+
 function updateGeneratorDomPreview(node) {
   const panel = node?.__easyuseAnimaGeneratorPanelEl;
   const previewBox = panel?.querySelector?.("[data-aio-preview-box]");
@@ -4060,15 +4143,21 @@ function updateGeneratorDomPreview(node) {
     labelEl.title = label;
     preview.append(img, labelEl);
     previewBox.replaceChildren(preview);
-    const feed = panel?.querySelector?.("[data-aio-preview-feed]");
-    if (feed) {
-      feed.hidden = true;
-      feed.replaceChildren();
-    }
+    const feedImages = Array.isArray(node.__easyuseAnimaGeneratorPreviewImages)
+      ? node.__easyuseAnimaGeneratorPreviewImages
+      : [];
+    renderGeneratorPreviewFeed(
+      node,
+      panel,
+      feedImages,
+      settings,
+      generatorSelectedPreviewIndex(node, feedImages),
+      { showPending: true },
+    );
     const metaEl = panel.querySelector("[data-aio-preview-meta]");
     if (metaEl) {
-      metaEl.textContent = label;
-      metaEl.title = label;
+      metaEl.textContent = "";
+      metaEl.title = "";
     }
     return;
   }
@@ -4165,43 +4254,7 @@ function updateGeneratorDomPreview(node) {
     previewBox.replaceChildren(makeImage(currentImage));
   }
 
-  const feed = panel?.querySelector?.("[data-aio-preview-feed]");
-  if (!feed) {
-    return;
-  }
-  feed.replaceChildren();
-  feed.hidden = !settings.preview.image_feed;
-  if (feed.hidden) {
-    return;
-  }
-  let selectedThumb = null;
-  for (const [index, image] of images.entries()) {
-    const thumbUrl = generatorImageUrl(image);
-    if (!thumbUrl) {
-      continue;
-    }
-    const thumb = document.createElement("button");
-    thumb.type = "button";
-    thumb.className = "easyuse-anima-aio-node-preview-thumb";
-    if (index === selectedIndex) {
-      thumb.classList.add("active");
-      selectedThumb = thumb;
-    }
-    thumb.title = generatorPreviewImageLabel(image);
-    const thumbImage = document.createElement("img");
-    thumbImage.src = thumbUrl;
-    thumbImage.alt = "";
-    thumbImage.loading = "lazy";
-    const label = document.createElement("span");
-    label.textContent = generatorPreviewImageLabel(image);
-    thumb.append(thumbImage, label);
-    thumb.addEventListener("click", () => {
-      node.__easyuseAnimaSelectedPreviewIndex = index;
-      updateGeneratorDomPreview(node);
-    });
-    feed.append(thumb);
-  }
-  selectedThumb?.scrollIntoView?.({ block: "nearest", inline: "nearest" });
+  renderGeneratorPreviewFeed(node, panel, images, settings, selectedIndex);
 }
 
 function cssEscape(value) {
@@ -4281,6 +4334,34 @@ function generatorNativePreviewRootMatchesNode(root, node) {
   return parts[parts.length - 1] === id;
 }
 
+function addGeneratorPreviewLocatorCandidate(ids, value) {
+  const text = String(value ?? "").trim();
+  if (!text) {
+    return;
+  }
+  ids.add(text);
+  const leaf = text.split(":").pop();
+  if (leaf) {
+    ids.add(leaf);
+  }
+}
+
+function generatorPreviewLocatorCandidates(node, detail = null) {
+  const ids = new Set();
+  if (node?.id != null) {
+    addGeneratorPreviewLocatorCandidate(ids, node.id);
+  }
+  for (const key of GENERATOR_DENOISE_PREVIEW_NODE_KEYS) {
+    if (detail?.[key] != null) {
+      addGeneratorPreviewLocatorCandidate(ids, detail[key]);
+    }
+  }
+  for (const root of generatorVueNodeRoots(node)) {
+    addGeneratorPreviewLocatorCandidate(ids, root.getAttribute?.("data-node-id"));
+  }
+  return [...ids].filter(Boolean);
+}
+
 function hideGeneratorNativeLivePreviewElement(element) {
   if (!element) {
     return;
@@ -4290,14 +4371,9 @@ function hideGeneratorNativeLivePreviewElement(element) {
   element.style?.setProperty?.("display", "none", "important");
 }
 
-function isGeneratorNativeLivePreviewImage(element) {
-  return element?.tagName === "IMG"
-    && element.classList?.contains("pointer-events-none")
-    && element.classList?.contains("object-contain")
-    && (
-      element.classList?.contains("contain-size")
-      || element.nextElementSibling?.classList?.contains("text-node-component-header-text")
-    );
+function isGeneratorNativeDimensionLabel(element) {
+  const text = String(element?.textContent || "").trim();
+  return /^\d+\s*[x×]\s*\d+$/i.test(text) || /calculating dimensions/i.test(text);
 }
 
 function hideGeneratorComfyOutputPreviewElements(root) {
@@ -4335,29 +4411,29 @@ function hideGeneratorNativeLivePreviewElements(root) {
     return;
   }
   hideGeneratorComfyOutputPreviewElements(root);
-  const dimensionPattern = /^\d+\s*[x×]\s*\d+$/i;
   for (const image of root.querySelectorAll("img.pointer-events-none.object-contain")) {
-    if (isGeneratorNativeLivePreviewImage(image)) {
-      hideGeneratorNativeLivePreviewElement(image);
-    }
-  }
-  for (const element of root.querySelectorAll(".text-node-component-header-text")) {
-    hideGeneratorNativeLivePreviewElement(element);
-    if (isGeneratorNativeLivePreviewImage(element.previousElementSibling)) {
-      hideGeneratorNativeLivePreviewElement(element.previousElementSibling);
-    }
-  }
-  for (const element of root.querySelectorAll("div, span")) {
-    if (element.children?.length) {
+    if (image.closest?.(".easyuse-anima-aio-node-panel")) {
       continue;
     }
-    const text = String(element.textContent || "").trim();
+    hideGeneratorNativeLivePreviewElement(image);
+  }
+  for (const element of root.querySelectorAll(".text-node-component-header-text, div, span")) {
+    if (element.closest?.(".easyuse-anima-aio-node-panel")) {
+      continue;
+    }
+    const shouldHide = element.classList?.contains("text-node-component-header-text")
+      || (!element.children?.length && isGeneratorNativeDimensionLabel(element));
+    if (!shouldHide) {
+      continue;
+    }
+    hideGeneratorNativeLivePreviewElement(element);
+    const parent = element.parentElement;
     if (
-      (dimensionPattern.test(text) || /calculating dimensions/i.test(text))
-      && isGeneratorNativeLivePreviewImage(element.previousElementSibling)
+      parent
+      && !parent.querySelector?.(".easyuse-anima-aio-node-panel")
+      && parent.querySelector?.("img.pointer-events-none.object-contain")
     ) {
-      hideGeneratorNativeLivePreviewElement(element);
-      hideGeneratorNativeLivePreviewElement(element.previousElementSibling);
+      hideGeneratorNativeLivePreviewElement(parent);
     }
   }
 }
@@ -4372,8 +4448,179 @@ function markGeneratorNativeLivePreviewHidden(node) {
   }
 }
 
+let generatorNativePreviewStoresPromise = null;
+let generatorDialogServiceAssetUrlPromise = null;
+
+async function generatorDialogServiceAssetUrl() {
+  if (!generatorDialogServiceAssetUrlPromise) {
+    generatorDialogServiceAssetUrlPromise = (async () => {
+      if (typeof document !== "undefined") {
+        const elements = document.querySelectorAll("link[href], script[src]");
+        for (const element of elements) {
+          const value = element.getAttribute("href") || element.getAttribute("src") || "";
+          if (/\/?assets\/dialogService-[^/]+\.js(?:$|\?)/.test(value)) {
+            return new URL(value, window.location.href).href;
+          }
+        }
+      }
+      const response = await fetch("/");
+      const html = await response.text();
+      const match = html.match(/(?:\.\/)?assets\/dialogService-[^"'<>]+\.js/);
+      return match ? new URL(match[0], window.location.href).href : "";
+    })().catch(() => "");
+  }
+  return generatorDialogServiceAssetUrlPromise;
+}
+
+async function generatorNativePreviewStores() {
+  if (!generatorNativePreviewStoresPromise) {
+    generatorNativePreviewStoresPromise = (async () => {
+      try {
+        const [nodeOutputStoreModule, workflowStoreModule] = await Promise.all([
+          import("../../../stores/nodeOutputStore.js"),
+          import("../../../platform/workflow/management/stores/workflowStore.js"),
+        ]);
+        if (nodeOutputStoreModule?.useNodeOutputStore && workflowStoreModule?.useWorkflowStore) {
+          return {
+            useNodeOutputStore: nodeOutputStoreModule.useNodeOutputStore,
+            useWorkflowStore: workflowStoreModule.useWorkflowStore,
+          };
+        }
+      } catch {
+        // Packaged ComfyUI frontend builds bundle these stores into hashed assets.
+      }
+
+      const url = await generatorDialogServiceAssetUrl();
+      if (!url) {
+        return null;
+      }
+      try {
+        const module = await import(url);
+        return {
+          useNodeOutputStore: module?.useNodeOutputStore || module?.L,
+          useWorkflowStore: module?.useWorkflowStore || module?.M,
+        };
+      } catch {
+        return null;
+      }
+    })();
+  }
+  return generatorNativePreviewStoresPromise;
+}
+
+function deleteGeneratorPreviewStoreEntry(container, locator) {
+  if (!container || !locator) {
+    return;
+  }
+  try {
+    const target = container.value && typeof container.value === "object"
+      ? container.value
+      : container;
+    if (target instanceof Map) {
+      target.delete(locator);
+    } else if (typeof target === "object") {
+      delete target[locator];
+    }
+  } catch {
+    // Store shape differs across ComfyUI frontend builds; DOM fallback still runs.
+  }
+}
+
+async function purgeGeneratorNativeLivePreviewStore(node, detail = null) {
+  try {
+    if (!node) {
+      return;
+    }
+    const ids = generatorPreviewLocatorCandidates(node, detail);
+    if (!ids.length) {
+      return;
+    }
+    if (app.nodePreviewImages && typeof app.nodePreviewImages === "object") {
+      for (const id of ids) {
+        deleteGeneratorPreviewStoreEntry(app.nodePreviewImages, id);
+      }
+    }
+
+    const stores = await generatorNativePreviewStores();
+    const outputStore = stores?.useNodeOutputStore?.();
+    if (!outputStore) {
+      return;
+    }
+    const workflowStore = stores?.useWorkflowStore?.();
+    const locators = new Set(ids);
+    for (const id of ids) {
+      const leaf = String(id).split(":").pop();
+      if (!leaf) {
+        continue;
+      }
+      locators.add(leaf);
+      const locator = workflowStore?.nodeIdToNodeLocatorId?.(leaf);
+      if (locator) {
+        locators.add(locator);
+      }
+    }
+    for (const locator of locators) {
+      outputStore.revokePreviewsByLocatorId?.(locator);
+      deleteGeneratorPreviewStoreEntry(outputStore.nodePreviewImages, locator);
+    }
+  } catch {
+    // Native preview store access is version-dependent; CSS/DOM fallback remains scoped to this node.
+  }
+}
+
+function scheduleGeneratorNativeLivePreviewPurge(node, detail = null) {
+  void purgeGeneratorNativeLivePreviewStore(node, detail);
+  requestAnimationFrame(() => {
+    void purgeGeneratorNativeLivePreviewStore(node, detail);
+  });
+  setTimeout(() => {
+    void purgeGeneratorNativeLivePreviewStore(node, detail);
+  }, 80);
+  setTimeout(() => {
+    void purgeGeneratorNativeLivePreviewStore(node, detail);
+  }, 240);
+}
+
+function stopGeneratorNativeLivePreviewObserver(node) {
+  const observers = node?.__easyuseAnimaNativeLivePreviewObservers;
+  if (!observers) {
+    return;
+  }
+  for (const observer of observers.values()) {
+    observer.disconnect();
+  }
+  observers.clear();
+}
+
+function ensureGeneratorNativeLivePreviewObserver(node) {
+  if (!node || typeof MutationObserver === "undefined") {
+    return;
+  }
+  const observers = node.__easyuseAnimaNativeLivePreviewObservers || new Map();
+  node.__easyuseAnimaNativeLivePreviewObservers = observers;
+  for (const [root, observer] of observers) {
+    if (!root?.isConnected) {
+      observer.disconnect();
+      observers.delete(root);
+    }
+  }
+  for (const root of generatorVueNodeRoots(node)) {
+    if (!root || observers.has(root)) {
+      continue;
+    }
+    const observer = new MutationObserver(() => markGeneratorNativeLivePreviewHidden(node));
+    observer.observe(root, { childList: true, subtree: true });
+    observers.set(root, observer);
+  }
+  clearTimeout(node.__easyuseAnimaNativeLivePreviewObserverStopTimer);
+  node.__easyuseAnimaNativeLivePreviewObserverStopTimer = setTimeout(() => {
+    stopGeneratorNativeLivePreviewObserver(node);
+  }, 5000);
+}
+
 function scheduleGeneratorNativeLivePreviewHidden(node) {
   markGeneratorNativeLivePreviewHidden(node);
+  ensureGeneratorNativeLivePreviewObserver(node);
   if (node.__easyuseAnimaNativeLivePreviewHideScheduled) {
     return;
   }
@@ -4418,8 +4665,13 @@ function suppressGeneratorDefaultPreview(node, options = {}) {
   }
 }
 
-function scheduleGeneratorDefaultPreviewSuppression(node) {
+function scheduleGeneratorDefaultPreviewSuppression(node, options = {}) {
+  const shouldPurgeStore = options.purgeStore !== false;
+  const purgeDetail = options.purgeDetail || null;
   suppressGeneratorDefaultPreview(node);
+  if (shouldPurgeStore) {
+    scheduleGeneratorNativeLivePreviewPurge(node, purgeDetail);
+  }
   scheduleGeneratorNativeLivePreviewHidden(node);
   if (node.__easyuseAnimaDefaultPreviewSuppressionScheduled) {
     return;
@@ -4427,6 +4679,9 @@ function scheduleGeneratorDefaultPreviewSuppression(node) {
   node.__easyuseAnimaDefaultPreviewSuppressionScheduled = true;
   const suppress = () => {
     suppressGeneratorDefaultPreview(node);
+    if (shouldPurgeStore) {
+      scheduleGeneratorNativeLivePreviewPurge(node, purgeDetail);
+    }
     markGeneratorNativeLivePreviewHidden(node);
   };
   requestAnimationFrame(suppress);
@@ -7005,7 +7260,9 @@ function handleGeneratorPreviewEvent(event) {
   if (!node || node.type !== GENERATOR_NODE_TYPE) {
     return;
   }
+  scheduleGeneratorNativeLivePreviewPurge(node, detail);
   const images = generatorPreviewImages({ easyuse_anima_preview: detail.images });
+  scheduleGeneratorDefaultPreviewSuppression(node, { purgeStore: false });
   addGeneratorPreviewImagesToNode(node, images, String(detail.run_id || ""));
 }
 
@@ -7035,7 +7292,8 @@ function handleGeneratorDenoisePreviewEvent(event) {
     return;
   }
   event.stopImmediatePropagation?.();
-  scheduleGeneratorDefaultPreviewSuppression(node);
+  scheduleGeneratorNativeLivePreviewPurge(node, detail);
+  scheduleGeneratorDefaultPreviewSuppression(node, { purgeStore: false });
   setGeneratorDenoisePreview(node, blob, detail);
 }
 
