@@ -4367,8 +4367,46 @@ function markGeneratorNativeLivePreviewHidden(node) {
   }
 }
 
+function stopGeneratorNativeLivePreviewObserver(node) {
+  const observers = node?.__easyuseAnimaNativeLivePreviewObservers;
+  if (!observers) {
+    return;
+  }
+  for (const observer of observers.values()) {
+    observer.disconnect();
+  }
+  observers.clear();
+}
+
+function ensureGeneratorNativeLivePreviewObserver(node) {
+  if (!node || typeof MutationObserver === "undefined") {
+    return;
+  }
+  const observers = node.__easyuseAnimaNativeLivePreviewObservers || new Map();
+  node.__easyuseAnimaNativeLivePreviewObservers = observers;
+  for (const [root, observer] of observers) {
+    if (!root?.isConnected) {
+      observer.disconnect();
+      observers.delete(root);
+    }
+  }
+  for (const root of generatorVueNodeRoots(node)) {
+    if (!root || observers.has(root)) {
+      continue;
+    }
+    const observer = new MutationObserver(() => markGeneratorNativeLivePreviewHidden(node));
+    observer.observe(root, { childList: true, subtree: true });
+    observers.set(root, observer);
+  }
+  clearTimeout(node.__easyuseAnimaNativeLivePreviewObserverStopTimer);
+  node.__easyuseAnimaNativeLivePreviewObserverStopTimer = setTimeout(() => {
+    stopGeneratorNativeLivePreviewObserver(node);
+  }, 5000);
+}
+
 function scheduleGeneratorNativeLivePreviewHidden(node) {
   markGeneratorNativeLivePreviewHidden(node);
+  ensureGeneratorNativeLivePreviewObserver(node);
   if (node.__easyuseAnimaNativeLivePreviewHideScheduled) {
     return;
   }
