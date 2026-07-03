@@ -1692,7 +1692,17 @@ def _aio_image_saver_civitai_hash_fetcher_entries(image_saver: dict[str, Any]) -
             raise RuntimeError(
                 "[EasyUseAnima] Civitai Hash Fetcher requires both username and model_name."
             )
-        result = get_hash(username, model_name, version)
+        try:
+            result = get_hash(username, model_name, version)
+        except Exception as exc:
+            logger.warning(
+                "[EasyUseAnima] Civitai Hash Fetcher failed for '%s/%s'%s; skipping metadata hash: %s",
+                username,
+                model_name,
+                f" version '{version}'" if version else "",
+                exc,
+            )
+            continue
         hash_value = _single_value(result)
         hash_text = str(hash_value or "").strip()
         if (
@@ -1700,12 +1710,15 @@ def _aio_image_saver_civitai_hash_fetcher_entries(image_saver: dict[str, Any]) -
             or hash_text.lower().startswith("error:")
             or hash_text.lower().startswith("no ")
         ):
-            raise RuntimeError(
-                "[EasyUseAnima] Civitai Hash Fetcher failed for "
-                f"'{username}/{model_name}'"
-                + (f" version '{version}'" if version else "")
-                + f": {hash_text or 'empty hash'}"
+            logger.warning(
+                "[EasyUseAnima] Civitai Hash Fetcher returned no usable hash for '%s/%s'%s; "
+                "skipping metadata hash: %s",
+                username,
+                model_name,
+                f" version '{version}'" if version else "",
+                hash_text or "empty hash",
             )
+            continue
         entries.append(f"{model_name}:{hash_text}")
     return entries
 

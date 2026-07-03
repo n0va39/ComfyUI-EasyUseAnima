@@ -399,6 +399,50 @@ class AIOImageSaverDependencyTests(unittest.TestCase):
         )
         self.assertEqual(fetch_calls, [("N0VA39", "Anima All in One workflow", "")])
 
+    def test_image_saver_civitai_hash_fetcher_api_errors_are_skipped(self):
+        class FakeCivitaiHashFetcher:
+            def get_autov3_hash(self, username, model_name, version=""):
+                return ("Error: API request failed with status 503",)
+
+        with patch.object(nodes, "_find_comfy_node_class", return_value=FakeCivitaiHashFetcher):
+            with self.assertLogs("ComfyUI-EasyUseAnima", level="WARNING") as logs:
+                result = nodes._aio_image_saver_additional_hashes({
+                    "additional_hashes": "Base:AAAAAAAA",
+                    "civitai_hash_fetchers": [
+                        {
+                            "enabled": True,
+                            "username": "N0VA39",
+                            "model_name": "ANIMA Easy Use workflow",
+                            "version": "",
+                        },
+                    ],
+                })
+
+        self.assertEqual(result, "Base:AAAAAAAA")
+        self.assertIn("skipping metadata hash", "\n".join(logs.output))
+
+    def test_image_saver_civitai_hash_fetcher_exceptions_are_skipped(self):
+        class FakeCivitaiHashFetcher:
+            def get_autov3_hash(self, username, model_name, version=""):
+                raise RuntimeError("temporary upstream failure")
+
+        with patch.object(nodes, "_find_comfy_node_class", return_value=FakeCivitaiHashFetcher):
+            with self.assertLogs("ComfyUI-EasyUseAnima", level="WARNING") as logs:
+                result = nodes._aio_image_saver_additional_hashes({
+                    "additional_hashes": "Base:AAAAAAAA",
+                    "civitai_hash_fetchers": [
+                        {
+                            "enabled": True,
+                            "username": "N0VA39",
+                            "model_name": "ANIMA Easy Use workflow",
+                            "version": "",
+                        },
+                    ],
+                })
+
+        self.assertEqual(result, "Base:AAAAAAAA")
+        self.assertIn("temporary upstream failure", "\n".join(logs.output))
+
     def test_image_saver_save_files_receives_workflow_metadata_flags(self):
         calls = []
 

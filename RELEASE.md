@@ -1,5 +1,26 @@
 # Release Notes
 
+## 0.2.4
+
+### Fixed
+
+- Fixed `Anima AiO Generator` Image Saver integration so Civitai Hash Fetcher
+  API failures, empty results, or temporary upstream errors skip only the
+  optional metadata hash instead of failing the completed image save.
+
+### Changed
+
+- Included the post-0.2.3 documentation refresh for EasyUseAnima guides,
+  README demo videos, and the ANIMA Easy Use workflow guide.
+
+### Validation Notes
+
+- Added regression coverage for Civitai Hash Fetcher `Error:` responses and
+  raised exceptions during AiO Image Saver metadata assembly.
+- Reviewed the Image Saver/Civitai integration path against the upstream
+  Image Saver behavior and kept missing local configuration errors fatal while
+  treating external Civitai lookup failures as best-effort metadata.
+
 ## 0.2.3
 
 ### Fixed
