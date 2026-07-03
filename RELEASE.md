@@ -1,5 +1,21 @@
 # Release Notes
 
+## 0.2.3
+
+### Fixed
+
+- Fixed `Anima AiO Generator` Detailer Settings so Face/Eye detailer blocks
+  render again after opening the popup.
+- Restored broader autocomplete suggestions when inline autocomplete preview is
+  disabled, while keeping strict token-range behavior for preview mode.
+- Fixed inline autocomplete preview filtering so Korean description/keyword
+  searches such as `하츠네 미쿠` keep the matched tag suggestion.
+
+### Changed
+
+- Updated bundled Korean AiO workflow JSON files with refreshed embedded
+  workflow defaults and `0.2.3` package metadata.
+
 ## 0.2.2
 
 ### Highlights

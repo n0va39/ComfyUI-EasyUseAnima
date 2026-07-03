@@ -5367,6 +5367,7 @@ function createDetailerTargetEditor(node, title, values, defaults, onLabelChange
   const noiseMaskFeather = field(detail, "Mask feather", numberInput(target.noise_mask_feather, "1"));
   const cycle = field(detail, "Cycle", numberInput(target.cycle, "1"));
   const alignment = field(detail, "Alignment", selectInput(["impact", "none", "32", "64"], target.alignment || "32"));
+  const optimization = createStageOptimizationEditor(`${title} Optimization`, target, defaults);
   const updateInheritedRows = () => {
     const display = inheritSampler.checked ? "none" : "";
     for (const control of [cfg, samplerName, scheduler]) {
@@ -5380,7 +5381,6 @@ function createDetailerTargetEditor(node, title, values, defaults, onLabelChange
   updateInheritedRows();
   section.append(detail);
 
-  const optimization = createStageOptimizationEditor(`${title} Optimization`, target, defaults);
   section.append(optimization.section);
 
   return {

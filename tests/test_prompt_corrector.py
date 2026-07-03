@@ -2844,9 +2844,11 @@ class AutocompleteDatasetTests(unittest.TestCase):
             )
 
             korean = search_autocomplete("하츠네", path=path)
+            korean_spaced = search_autocomplete("하츠네 미쿠", path=path)
             status = autocomplete_status(path)
 
         self.assertEqual(korean["results"][0]["tag"], "hatsune miku")
+        self.assertEqual(korean_spaced["results"][0]["tag"], "hatsune miku")
         self.assertEqual(korean["results"][0]["category"], "character")
         self.assertEqual(status["count"], 2)
 

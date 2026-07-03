@@ -603,9 +603,12 @@ function currentToken(input) {
   const replaceStart = trimPromptSyntaxPrefix(value, segmentStart, segmentEnd);
   const replaceEnd = trimPromptSyntaxSuffix(value, replaceStart, segmentEnd);
   const queryEnd = clamp(caret, replaceStart, replaceEnd);
-  const raw = value.slice(replaceStart, queryEnd);
+  const strictRaw = value.slice(replaceStart, queryEnd);
+  const legacyRaw = value.slice(segmentStart, caret);
   const segment = value.slice(segmentStart, segmentEnd);
-  const active = caret >= replaceStart && caret <= replaceEnd && queryEnd > replaceStart;
+  const strictActive = caret >= replaceStart && caret <= replaceEnd && queryEnd > replaceStart;
+  const legacyActive = legacyRaw.trim().length > 0;
+  const useStrictToken = !!autocompletePreviewCompletion;
   return {
     value,
     start: replaceStart,
@@ -616,8 +619,8 @@ function currentToken(input) {
     segment,
     tokenSegment: value.slice(replaceStart, replaceEnd),
     sentenceDelimited,
-    query: raw.trim(),
-    active,
+    query: (useStrictToken ? strictRaw : legacyRaw).trim(),
+    active: useStrictToken ? strictActive : legacyActive,
   };
 }
 
@@ -720,7 +723,9 @@ function strictAutocompleteResults(context, token, state, results) {
     const candidate = entry?.kind === "wildcard"
       ? String(entry.tag || "").replace(/^__|__$/g, "")
       : promptTagText(entry?.tag);
-    return normalizePromptTagText(candidate).trim().toLocaleLowerCase().startsWith(query);
+    const candidateKey = normalizePromptTagText(candidate).trim().toLocaleLowerCase();
+    const descriptionKey = normalizePromptTagText(entry?.description || "").trim().toLocaleLowerCase();
+    return candidateKey.startsWith(query) || descriptionKey.includes(query);
   });
 }
 
