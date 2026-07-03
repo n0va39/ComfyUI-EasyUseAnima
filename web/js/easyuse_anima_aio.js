@@ -4067,8 +4067,8 @@ function updateGeneratorDomPreview(node) {
     }
     const metaEl = panel.querySelector("[data-aio-preview-meta]");
     if (metaEl) {
-      metaEl.textContent = label;
-      metaEl.title = label;
+      metaEl.textContent = "";
+      metaEl.title = "";
     }
     return;
   }
@@ -4290,14 +4290,9 @@ function hideGeneratorNativeLivePreviewElement(element) {
   element.style?.setProperty?.("display", "none", "important");
 }
 
-function isGeneratorNativeLivePreviewImage(element) {
-  return element?.tagName === "IMG"
-    && element.classList?.contains("pointer-events-none")
-    && element.classList?.contains("object-contain")
-    && (
-      element.classList?.contains("contain-size")
-      || element.nextElementSibling?.classList?.contains("text-node-component-header-text")
-    );
+function isGeneratorNativeDimensionLabel(element) {
+  const text = String(element?.textContent || "").trim();
+  return /^\d+\s*[x×]\s*\d+$/i.test(text) || /calculating dimensions/i.test(text);
 }
 
 function hideGeneratorComfyOutputPreviewElements(root) {
@@ -4335,29 +4330,29 @@ function hideGeneratorNativeLivePreviewElements(root) {
     return;
   }
   hideGeneratorComfyOutputPreviewElements(root);
-  const dimensionPattern = /^\d+\s*[x×]\s*\d+$/i;
   for (const image of root.querySelectorAll("img.pointer-events-none.object-contain")) {
-    if (isGeneratorNativeLivePreviewImage(image)) {
-      hideGeneratorNativeLivePreviewElement(image);
-    }
-  }
-  for (const element of root.querySelectorAll(".text-node-component-header-text")) {
-    hideGeneratorNativeLivePreviewElement(element);
-    if (isGeneratorNativeLivePreviewImage(element.previousElementSibling)) {
-      hideGeneratorNativeLivePreviewElement(element.previousElementSibling);
-    }
-  }
-  for (const element of root.querySelectorAll("div, span")) {
-    if (element.children?.length) {
+    if (image.closest?.(".easyuse-anima-aio-node-panel")) {
       continue;
     }
-    const text = String(element.textContent || "").trim();
+    hideGeneratorNativeLivePreviewElement(image);
+  }
+  for (const element of root.querySelectorAll(".text-node-component-header-text, div, span")) {
+    if (element.closest?.(".easyuse-anima-aio-node-panel")) {
+      continue;
+    }
+    const shouldHide = element.classList?.contains("text-node-component-header-text")
+      || (!element.children?.length && isGeneratorNativeDimensionLabel(element));
+    if (!shouldHide) {
+      continue;
+    }
+    hideGeneratorNativeLivePreviewElement(element);
+    const parent = element.parentElement;
     if (
-      (dimensionPattern.test(text) || /calculating dimensions/i.test(text))
-      && isGeneratorNativeLivePreviewImage(element.previousElementSibling)
+      parent
+      && !parent.querySelector?.(".easyuse-anima-aio-node-panel")
+      && parent.querySelector?.("img.pointer-events-none.object-contain")
     ) {
-      hideGeneratorNativeLivePreviewElement(element);
-      hideGeneratorNativeLivePreviewElement(element.previousElementSibling);
+      hideGeneratorNativeLivePreviewElement(parent);
     }
   }
 }
