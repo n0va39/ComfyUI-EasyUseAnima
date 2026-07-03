@@ -34,6 +34,26 @@ The main workflow is:
 2. Bundle prompt data, ANIMA model, VAE, and CLIP with Easy Use Anima Input.
 3. Run first pass, Highres, Detailer, preview, and saving through Anima AiO Generator.
 
+## Demo Videos
+
+### Autocomplete
+
+<video src="https://github.com/n0va39/ComfyUI-EasyUseAnima/raw/main/docs/assets/videos/easyuse-anima-autocomplete.mp4" controls muted loop playsinline width="720"></video>
+
+[Open autocomplete demo](docs/assets/videos/easyuse-anima-autocomplete.mp4)
+
+### NAIA Prompt Fill
+
+<video src="https://github.com/n0va39/ComfyUI-EasyUseAnima/raw/main/docs/assets/videos/easyuse-anima-naia-fill.mp4" controls muted loop playsinline width="720"></video>
+
+[Open NAIA demo](docs/assets/videos/easyuse-anima-naia-fill.mp4)
+
+### Wildcard Autocomplete
+
+<video src="https://github.com/n0va39/ComfyUI-EasyUseAnima/raw/main/docs/assets/videos/easyuse-anima-wildcard-autocomplete.mp4" controls muted loop playsinline width="720"></video>
+
+[Open wildcard demo](docs/assets/videos/easyuse-anima-wildcard-autocomplete.mp4)
+
 Detailed node documentation is kept under [docs/nodes](docs/nodes/README.en.md).
 Wildcard syntax is documented in [docs/wildcards.en.md](docs/wildcards.en.md)
 and [docs/wildcards.ko.md](docs/wildcards.ko.md). Release notes are kept in

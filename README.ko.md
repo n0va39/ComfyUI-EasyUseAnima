@@ -37,6 +37,26 @@ import하거나 덮어쓰지 않으므로, 두 노드팩을 동시에 설치할 
 | 호환성 노드 | Detailer crop 크기를 32배수로 정렬하거나, Highres용 이미지 크기를 유효 배율로 맞추는 보조 노드를 제공합니다. |
 | AiO 생성 | `Easy Use Anima Input`과 `Anima AiO Generator`로 모델 선택, 1차 샘플링, Highres, Detailer, Preview, Save를 하나의 흐름으로 묶습니다. |
 
+## 데모 영상
+
+### 자동완성
+
+<video src="https://github.com/n0va39/ComfyUI-EasyUseAnima/raw/main/docs/assets/videos/easyuse-anima-autocomplete.mp4" controls muted loop playsinline width="720"></video>
+
+[자동완성 데모 열기](docs/assets/videos/easyuse-anima-autocomplete.mp4)
+
+### NAIA 프롬프트 반영
+
+<video src="https://github.com/n0va39/ComfyUI-EasyUseAnima/raw/main/docs/assets/videos/easyuse-anima-naia-fill.mp4" controls muted loop playsinline width="720"></video>
+
+[NAIA 데모 열기](docs/assets/videos/easyuse-anima-naia-fill.mp4)
+
+### 와일드카드 자동완성
+
+<video src="https://github.com/n0va39/ComfyUI-EasyUseAnima/raw/main/docs/assets/videos/easyuse-anima-wildcard-autocomplete.mp4" controls muted loop playsinline width="720"></video>
+
+[와일드카드 데모 열기](docs/assets/videos/easyuse-anima-wildcard-autocomplete.mp4)
+
 ## 빠른 가이드: Anima AiO 생성 흐름
 
 `Anima AiO Generator`는 prompt data context를 받아 1차 샘플링, Highres,

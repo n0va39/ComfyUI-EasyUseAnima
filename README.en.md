@@ -37,6 +37,26 @@ Reference baseline:
 | Compatibility helpers | Aligns detailer crop sizes to safe multiples and scales images to valid Highres-friendly dimensions. |
 | AiO generation | Combines model selection, first-pass sampling, Highres, Detailer, Preview, and Save through `Easy Use Anima Input` and `Anima AiO Generator`. |
 
+## Demo Videos
+
+### Autocomplete
+
+<video src="https://github.com/n0va39/ComfyUI-EasyUseAnima/raw/main/docs/assets/videos/easyuse-anima-autocomplete.mp4" controls muted loop playsinline width="720"></video>
+
+[Open autocomplete demo](docs/assets/videos/easyuse-anima-autocomplete.mp4)
+
+### NAIA Prompt Fill
+
+<video src="https://github.com/n0va39/ComfyUI-EasyUseAnima/raw/main/docs/assets/videos/easyuse-anima-naia-fill.mp4" controls muted loop playsinline width="720"></video>
+
+[Open NAIA demo](docs/assets/videos/easyuse-anima-naia-fill.mp4)
+
+### Wildcard Autocomplete
+
+<video src="https://github.com/n0va39/ComfyUI-EasyUseAnima/raw/main/docs/assets/videos/easyuse-anima-wildcard-autocomplete.mp4" controls muted loop playsinline width="720"></video>
+
+[Open wildcard demo](docs/assets/videos/easyuse-anima-wildcard-autocomplete.mp4)
+
 ## Quick Guide: Anima AiO Generation
 
 `Anima AiO Generator` consumes a prompt-data context and runs first-pass
