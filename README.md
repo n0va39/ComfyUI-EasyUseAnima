@@ -23,9 +23,16 @@ workflows in ComfyUI.
 
 ## Summary
 
-EasyUse Anima provides prompt editing, ANIMA prompt correction, NAIA prompt
-integration, LoRA preset management, wildcard expansion, AiO generation, and detailer helper
-nodes for ComfyUI.
+EasyUse Anima is a ComfyUI node pack for building ANIMA workflows with less
+repeated wiring. It groups prompt editing, Korean autocomplete, prompt
+correction, NAIA prompt import, wildcard expansion, LoRA presets, AiO
+generation, image-size helpers, and detailer helpers into one package.
+
+The main workflow is:
+
+1. Write and normalize prompts in Prompt Studio.
+2. Bundle prompt data, ANIMA model, VAE, and CLIP with Easy Use Anima Input.
+3. Run first pass, Highres, Detailer, preview, and saving through Anima AiO Generator.
 
 Detailed node documentation is kept under [docs/nodes](docs/nodes/README.en.md).
 Wildcard syntax is documented in [docs/wildcards.en.md](docs/wildcards.en.md)

@@ -25,6 +25,18 @@ Reference baseline:
 - ANIMA Easy Use workflow v1: [Korean guide](docs/Anima%20AiO/ANIMA_Easy_Use_workflow_v1_KO.md) / [workflow JSON](docs/example_workflows/ANIMA_Easy_Use_workflow_v1_release_ko.json)
 - Versioned changes: [RELEASE.md](RELEASE.md)
 
+## Main Features
+
+| Area | Description |
+| --- | --- |
+| Autocomplete | Korean Danbooru tag autocomplete, wildcard autocomplete, inline preview for dedicated nodes, and configurable scope. |
+| Prompt correction | The Simple corrector normalizes one prompt for ANIMA syntax; Prompt Studio nodes add field editing, highlighting, and prompt-data output. |
+| NAIA integration | Imports prompt, negative prompt, and resolution from NAIA into Prompt Studio, then keeps the saved workflow reusable without needing the original NAIA call. |
+| Wildcards | Expands wildcard text with Impact Pack style syntax, sequential selection, and `__wildcard__` autocomplete. |
+| LoRA presets | Stores style prompts and LoRA stacks as profiles, with trigger-word and LoRA metadata management. |
+| Compatibility helpers | Aligns detailer crop sizes to safe multiples and scales images to valid Highres-friendly dimensions. |
+| AiO generation | Combines model selection, first-pass sampling, Highres, Detailer, Preview, and Save through `Easy Use Anima Input` and `Anima AiO Generator`. |
+
 ## Quick Guide: Anima AiO Generation
 
 `Anima AiO Generator` consumes a prompt-data context and runs first-pass
@@ -87,6 +99,7 @@ Mode details: [Anima Artist Mix Conditioning guide](docs/nodes/anima-artist-mix-
 | [Anima LoRA Preset](docs/nodes/anima-lora-preset.en.md) | `EasyUse Anima/LoRA` | Stores and outputs LoRA profiles, style prompts, and trigger words. |
 | [Easy Use Anima Input](docs/nodes/anima-aio-generator.en.md) | `EasyUse Anima/AiO` | Bundles prompt data plus ANIMA diffusion model, VAE, and CLIP selections into an AiO context. |
 | [Anima AiO Generator](docs/nodes/anima-aio-generator.en.md) | `EasyUse Anima/AiO` | Runs sampling, Highres, Detailer, preview, and saving from the prompt-data context. |
+| [Anima Image Scale By Multiple](docs/nodes/anima-image-scale-by-multiple.en.md) | `EasyUse Anima/Image` | Scales images to Highres-safe valid multiples while preserving the original aspect ratio. |
 | [Anima Detailer Align Hook](docs/nodes/anima-detailer-align-hook.en.md) | `EasyUse Anima/Detailer` | Aligns Impact detailer crop sampling sizes to a selected multiple. |
 | [Anima SAM3 Context](docs/nodes/anima-sam3-context.en.md) | `EasyUse Anima/Detailer` | Loads a SAM3 checkpoint as an rgthree-compatible context. |
 | [Anima SAM3 Detailer](docs/nodes/anima-sam3-detailer.en.md) | `EasyUse Anima/Detailer` | Connects SAM3 text detection, Impact MaskToSEGS, and DetailerForEach. |
@@ -147,6 +160,15 @@ NAIA must expose the ComfyUI remote API used by `comfyui-naia-bridge`.
 SAM3 detailer nodes require `ComfyUI-Impact-Pack` at runtime. This is a ComfyUI
 custom-node dependency, not a Python package dependency, so it is not listed in
 `pyproject.toml` Python dependencies.
+
+Related node packs:
+
+- [ComfyUI-Spectrum-KSampler](https://github.com/sorryhyun/ComfyUI-Spectrum-KSampler): Used for Spectrum sampler, Mod Guidance, and Spectrum/DCW model patches. The latest version is recommended.
+- [ComfyUI-KJNodes](https://github.com/kijai/ComfyUI-KJNodes): Used for optimization options such as Torch Compile and SageAttention.
+- [ComfyUI-Impact-Pack](https://github.com/ltdrdata/ComfyUI-Impact-Pack): Required for Impact detailer and SAM3 detailer flows.
+- [ComfyUI-Lora-Manager](https://github.com/willmiao/ComfyUI-Lora-Manager): Recommended for LoRA trigger-word and metadata management.
+- [ComfyUI-Image-Saver](https://github.com/alexopus/ComfyUI-Image-Saver): Used by AiO Save Options for workflow embedding and Civitai/LoRA metadata.
+- [ComfyUI-Anima-DAVE](https://github.com/sorryhyun/ComfyUI-Anima-DAVE): Optional model patch for generation diversity.
 
 Install Python dependency:
 

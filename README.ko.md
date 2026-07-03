@@ -25,6 +25,18 @@ import하거나 덮어쓰지 않으므로, 두 노드팩을 동시에 설치할 
 - ANIMA Easy Use workflow v1: [사용 가이드](docs/Anima%20AiO/ANIMA_Easy_Use_workflow_v1_KO.md) / [workflow JSON](docs/example_workflows/ANIMA_Easy_Use_workflow_v1_release_ko.json)
 - 버전별 변경 사항: [RELEASE.md](RELEASE.md)
 
+## 주요 기능
+
+| 영역 | 설명 |
+| --- | --- |
+| 자동완성 | 한국어 Danbooru 태그 자동완성, 와일드카드 자동완성, 전용 노드 인라인 미리보기, 적용 범위 설정을 제공합니다. |
+| 프롬프트 교정 | Simple 교정기는 프롬프트 하나를 ANIMA 문법에 맞게 정리하고, Prompt Studio 계열은 field 편집, 하이라이트, prompt data 출력을 함께 제공합니다. |
+| NAIA 연동 | NAIA에서 prompt, negative prompt, 해상도를 받아 Prompt Studio에 반영하고, 저장된 workflow만으로도 같은 prompt data를 재사용할 수 있게 합니다. |
+| 와일드카드 | Impact Pack 계열 문법과 호환되는 wildcard 확장, 순차 선택, `__wildcard__` 자동완성을 제공합니다. |
+| LoRA 프리셋 | 스타일 프롬프트와 LoRA stack을 프로필로 저장하고, trigger word와 LoRA metadata를 workflow 안에서 관리하기 쉽게 만듭니다. |
+| 호환성 노드 | Detailer crop 크기를 32배수로 정렬하거나, Highres용 이미지 크기를 유효 배율로 맞추는 보조 노드를 제공합니다. |
+| AiO 생성 | `Easy Use Anima Input`과 `Anima AiO Generator`로 모델 선택, 1차 샘플링, Highres, Detailer, Preview, Save를 하나의 흐름으로 묶습니다. |
+
 ## 빠른 가이드: Anima AiO 생성 흐름
 
 `Anima AiO Generator`는 prompt data context를 받아 1차 샘플링, Highres,
@@ -85,6 +97,7 @@ workflow embed와 Civitai/LoRA metadata 저장까지 한 번에 처리할 수 �
 | [Anima LoRA Preset](docs/nodes/anima-lora-preset.ko.md) | `EasyUse Anima/LoRA` | LoRA profile, style prompt, trigger word를 저장하고 출력합니다. |
 | [Easy Use Anima Input](docs/nodes/anima-aio-generator.ko.md) | `EasyUse Anima/AiO` | prompt data와 ANIMA diffusion model, VAE, CLIP 선택을 AiO 전용 context로 묶습니다. |
 | [Anima AiO Generator](docs/nodes/anima-aio-generator.ko.md) | `EasyUse Anima/AiO` | prompt data context를 받아 샘플링, Highres, Detailer, 미리보기, 저장을 한 노드에서 실행합니다. |
+| [Anima Image Scale By Multiple](docs/nodes/anima-image-scale-by-multiple.ko.md) | `EasyUse Anima/Image` | 원본 비율을 유지하면서 Highres에 안전한 유효 배율과 크기 배수로 이미지를 확대합니다. |
 | [Anima Detailer Align Hook](docs/nodes/anima-detailer-align-hook.ko.md) | `EasyUse Anima/Detailer` | Impact detailer crop sampling 크기를 지정 배수로 정렬합니다. |
 | [Anima SAM3 Context](docs/nodes/anima-sam3-context.ko.md) | `EasyUse Anima/Detailer` | SAM3 checkpoint를 rgthree-compatible context로 로드합니다. |
 | [Anima SAM3 Detailer](docs/nodes/anima-sam3-detailer.ko.md) | `EasyUse Anima/Detailer` | SAM3 text detection, Impact MaskToSEGS, DetailerForEach를 연결합니다. |
@@ -144,6 +157,15 @@ NAIA는 `comfyui-naia-bridge`가 사용하는 ComfyUI remote API를 노출해야
 SAM3 detailer 계열 노드는 실행 시점에 `ComfyUI-Impact-Pack`이 필요합니다. 이것은
 Python package dependency가 아니라 ComfyUI custom node dependency이므로
 `pyproject.toml`의 Python dependencies에는 넣지 않습니다.
+
+연동 노드팩:
+
+- [ComfyUI-Spectrum-KSampler](https://github.com/sorryhyun/ComfyUI-Spectrum-KSampler): Spectrum sampler, Mod Guidance, Spectrum/DCW 계열 모델 패치에 사용합니다. 최신 버전을 권장합니다.
+- [ComfyUI-KJNodes](https://github.com/kijai/ComfyUI-KJNodes): Torch Compile, SageAttention 등 최적화 옵션에 사용합니다.
+- [ComfyUI-Impact-Pack](https://github.com/ltdrdata/ComfyUI-Impact-Pack): Impact detailer, SAM3 detailer 흐름에 필요합니다.
+- [ComfyUI-Lora-Manager](https://github.com/willmiao/ComfyUI-Lora-Manager): LoRA trigger word와 metadata 관리에 권장합니다.
+- [ComfyUI-Image-Saver](https://github.com/alexopus/ComfyUI-Image-Saver): AiO Save Options에서 workflow embed, Civitai/LoRA metadata 저장에 사용합니다.
+- [ComfyUI-Anima-DAVE](https://github.com/sorryhyun/ComfyUI-Anima-DAVE): 생성 다양성을 위한 선택 model patch입니다.
 
 Python dependency 설치:
 
