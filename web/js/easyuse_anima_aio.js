@@ -4281,6 +4281,34 @@ function generatorNativePreviewRootMatchesNode(root, node) {
   return parts[parts.length - 1] === id;
 }
 
+function addGeneratorPreviewLocatorCandidate(ids, value) {
+  const text = String(value ?? "").trim();
+  if (!text) {
+    return;
+  }
+  ids.add(text);
+  const leaf = text.split(":").pop();
+  if (leaf) {
+    ids.add(leaf);
+  }
+}
+
+function generatorPreviewLocatorCandidates(node, detail = null) {
+  const ids = new Set();
+  if (node?.id != null) {
+    addGeneratorPreviewLocatorCandidate(ids, node.id);
+  }
+  for (const key of GENERATOR_DENOISE_PREVIEW_NODE_KEYS) {
+    if (detail?.[key] != null) {
+      addGeneratorPreviewLocatorCandidate(ids, detail[key]);
+    }
+  }
+  for (const root of generatorVueNodeRoots(node)) {
+    addGeneratorPreviewLocatorCandidate(ids, root.getAttribute?.("data-node-id"));
+  }
+  return [...ids].filter(Boolean);
+}
+
 function hideGeneratorNativeLivePreviewElement(element) {
   if (!element) {
     return;
@@ -4367,6 +4395,139 @@ function markGeneratorNativeLivePreviewHidden(node) {
   }
 }
 
+let generatorNativePreviewStoresPromise = null;
+let generatorDialogServiceAssetUrlPromise = null;
+
+async function generatorDialogServiceAssetUrl() {
+  if (!generatorDialogServiceAssetUrlPromise) {
+    generatorDialogServiceAssetUrlPromise = (async () => {
+      if (typeof document !== "undefined") {
+        const elements = document.querySelectorAll("link[href], script[src]");
+        for (const element of elements) {
+          const value = element.getAttribute("href") || element.getAttribute("src") || "";
+          if (/\/?assets\/dialogService-[^/]+\.js(?:$|\?)/.test(value)) {
+            return new URL(value, window.location.href).href;
+          }
+        }
+      }
+      const response = await fetch("/");
+      const html = await response.text();
+      const match = html.match(/(?:\.\/)?assets\/dialogService-[^"'<>]+\.js/);
+      return match ? new URL(match[0], window.location.href).href : "";
+    })().catch(() => "");
+  }
+  return generatorDialogServiceAssetUrlPromise;
+}
+
+async function generatorNativePreviewStores() {
+  if (!generatorNativePreviewStoresPromise) {
+    generatorNativePreviewStoresPromise = (async () => {
+      try {
+        const [nodeOutputStoreModule, workflowStoreModule] = await Promise.all([
+          import("../../../stores/nodeOutputStore.js"),
+          import("../../../platform/workflow/management/stores/workflowStore.js"),
+        ]);
+        if (nodeOutputStoreModule?.useNodeOutputStore && workflowStoreModule?.useWorkflowStore) {
+          return {
+            useNodeOutputStore: nodeOutputStoreModule.useNodeOutputStore,
+            useWorkflowStore: workflowStoreModule.useWorkflowStore,
+          };
+        }
+      } catch {
+        // Packaged ComfyUI frontend builds bundle these stores into hashed assets.
+      }
+
+      const url = await generatorDialogServiceAssetUrl();
+      if (!url) {
+        return null;
+      }
+      try {
+        const module = await import(url);
+        return {
+          useNodeOutputStore: module?.useNodeOutputStore || module?.L,
+          useWorkflowStore: module?.useWorkflowStore || module?.M,
+        };
+      } catch {
+        return null;
+      }
+    })();
+  }
+  return generatorNativePreviewStoresPromise;
+}
+
+function deleteGeneratorPreviewStoreEntry(container, locator) {
+  if (!container || !locator) {
+    return;
+  }
+  try {
+    const target = container.value && typeof container.value === "object"
+      ? container.value
+      : container;
+    if (target instanceof Map) {
+      target.delete(locator);
+    } else if (typeof target === "object") {
+      delete target[locator];
+    }
+  } catch {
+    // Store shape differs across ComfyUI frontend builds; DOM fallback still runs.
+  }
+}
+
+async function purgeGeneratorNativeLivePreviewStore(node, detail = null) {
+  try {
+    if (!node) {
+      return;
+    }
+    const ids = generatorPreviewLocatorCandidates(node, detail);
+    if (!ids.length) {
+      return;
+    }
+    if (app.nodePreviewImages && typeof app.nodePreviewImages === "object") {
+      for (const id of ids) {
+        deleteGeneratorPreviewStoreEntry(app.nodePreviewImages, id);
+      }
+    }
+
+    const stores = await generatorNativePreviewStores();
+    const outputStore = stores?.useNodeOutputStore?.();
+    if (!outputStore) {
+      return;
+    }
+    const workflowStore = stores?.useWorkflowStore?.();
+    const locators = new Set(ids);
+    for (const id of ids) {
+      const leaf = String(id).split(":").pop();
+      if (!leaf) {
+        continue;
+      }
+      locators.add(leaf);
+      const locator = workflowStore?.nodeIdToNodeLocatorId?.(leaf);
+      if (locator) {
+        locators.add(locator);
+      }
+    }
+    for (const locator of locators) {
+      outputStore.revokePreviewsByLocatorId?.(locator);
+      deleteGeneratorPreviewStoreEntry(outputStore.nodePreviewImages, locator);
+    }
+  } catch {
+    // Native preview store access is version-dependent; CSS/DOM fallback remains scoped to this node.
+  }
+}
+
+function scheduleGeneratorNativeLivePreviewPurge(node, detail = null) {
+  void purgeGeneratorNativeLivePreviewStore(node, detail);
+  requestAnimationFrame(() => {
+    void purgeGeneratorNativeLivePreviewStore(node, detail);
+  });
+  setTimeout(() => {
+    void purgeGeneratorNativeLivePreviewStore(node, detail);
+  }, 80);
+  setTimeout(() => {
+    void purgeGeneratorNativeLivePreviewStore(node, detail);
+  }, 240);
+}
+
 function stopGeneratorNativeLivePreviewObserver(node) {
   const observers = node?.__easyuseAnimaNativeLivePreviewObservers;
   if (!observers) {
@@ -4451,8 +4612,13 @@ function suppressGeneratorDefaultPreview(node, options = {}) {
   }
 }
 
-function scheduleGeneratorDefaultPreviewSuppression(node) {
+function scheduleGeneratorDefaultPreviewSuppression(node, options = {}) {
+  const shouldPurgeStore = options.purgeStore !== false;
+  const purgeDetail = options.purgeDetail || null;
   suppressGeneratorDefaultPreview(node);
+  if (shouldPurgeStore) {
+    scheduleGeneratorNativeLivePreviewPurge(node, purgeDetail);
+  }
   scheduleGeneratorNativeLivePreviewHidden(node);
   if (node.__easyuseAnimaDefaultPreviewSuppressionScheduled) {
     return;
@@ -4460,6 +4626,9 @@ function scheduleGeneratorDefaultPreviewSuppression(node) {
   node.__easyuseAnimaDefaultPreviewSuppressionScheduled = true;
   const suppress = () => {
     suppressGeneratorDefaultPreview(node);
+    if (shouldPurgeStore) {
+      scheduleGeneratorNativeLivePreviewPurge(node, purgeDetail);
+    }
     markGeneratorNativeLivePreviewHidden(node);
   };
   requestAnimationFrame(suppress);
@@ -7038,7 +7207,9 @@ function handleGeneratorPreviewEvent(event) {
   if (!node || node.type !== GENERATOR_NODE_TYPE) {
     return;
   }
+  scheduleGeneratorNativeLivePreviewPurge(node, detail);
   const images = generatorPreviewImages({ easyuse_anima_preview: detail.images });
+  scheduleGeneratorDefaultPreviewSuppression(node, { purgeStore: false });
   addGeneratorPreviewImagesToNode(node, images, String(detail.run_id || ""));
 }
 
@@ -7068,7 +7239,8 @@ function handleGeneratorDenoisePreviewEvent(event) {
     return;
   }
   event.stopImmediatePropagation?.();
-  scheduleGeneratorDefaultPreviewSuppression(node);
+  scheduleGeneratorNativeLivePreviewPurge(node, detail);
+  scheduleGeneratorDefaultPreviewSuppression(node, { purgeStore: false });
   setGeneratorDenoisePreview(node, blob, detail);
 }
 
