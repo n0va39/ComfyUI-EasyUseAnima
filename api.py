@@ -17,6 +17,7 @@ from .settings import (
     public_settings,
     resolve_autocomplete_limit,
     resolve_autocomplete_source,
+    resolve_prompt_translation_settings,
     save_setting,
     save_long_text_settings,
 )
@@ -28,6 +29,7 @@ from .autocomplete_dataset import (
     search_autocomplete,
 )
 from .wildcard_engine import list_wildcards, resolve_wildcard_roots
+from .prompt_translation import translate_prompt_markers
 try:
     from .storage import USER_DATA_DIR
 except ImportError:
@@ -467,6 +469,18 @@ if web is not None and routes is not None:
         return web.json_response(
             classify_prompt_text(str(data.get("text") or ""), limit=limit, path=path)
         )
+
+    @routes.post("/easyuse_anima/translate_prompt")
+    async def translate_prompt_handler(request):
+        data = await request.json()
+        try:
+            translated = translate_prompt_markers(
+                str(data.get("text") or ""),
+                resolve_prompt_translation_settings(),
+            )
+        except RuntimeError as exc:
+            return web.json_response({"status": "error", "message": str(exc)}, status=400)
+        return web.json_response({"status": "ok", "text": translated})
 
     @routes.get("/easyuse_anima/lora_preview")
     async def lora_preview_handler(request):
