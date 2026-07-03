@@ -3028,8 +3028,16 @@ function ensureStyle() {
       white-space: nowrap;
       pointer-events: none;
     }
-    .${GENERATOR_VUE_NODE_CLASS} img.pointer-events-none.min-h-55.w-full.flex-1.object-contain.contain-size,
-    .${GENERATOR_VUE_NODE_CLASS} img.pointer-events-none.min-h-55.w-full.flex-1.object-contain.contain-size + div {
+    .${GENERATOR_VUE_NODE_CLASS} img.pointer-events-none.object-contain.contain-size,
+    .${GENERATOR_VUE_NODE_CLASS} img.pointer-events-none.object-contain + .text-node-component-header-text,
+    .${GENERATOR_VUE_NODE_CLASS} .text-node-component-header-text,
+    .${GENERATOR_VUE_NODE_CLASS} .text-node-component-header-text.mt-1.text-center.text-xs,
+    .${GENERATOR_VUE_NODE_CLASS} [data-testid="main-image"],
+    .${GENERATOR_VUE_NODE_CLASS} .easyuse-anima-aio-native-live-preview-hidden {
+      display: none !important;
+    }
+    .${GENERATOR_VUE_NODE_CLASS} .lg-node-content,
+    .${GENERATOR_VUE_NODE_CLASS}.lg-node .lg-node-content {
       display: none !important;
     }
     .easyuse-anima-aio-node-preview-compare {
@@ -4203,46 +4211,230 @@ function cssEscape(value) {
   return String(value).replace(/["\\]/g, "\\$&");
 }
 
-function markGeneratorNativeLivePreviewHidden(node) {
+function generatorVueNodeRoots(node) {
+  const roots = new Set();
+  if (!node || typeof document === "undefined") {
+    return roots;
+  }
+  const panel = node?.__easyuseAnimaGeneratorPanelEl;
+  if (panel) {
+    const panelNodeRoot = panel.closest?.(".lg-node");
+    const panelDataRoot = panel.closest?.("[data-node-id]");
+    if (panelNodeRoot) {
+      roots.add(panelNodeRoot);
+    }
+    if (panelDataRoot) {
+      roots.add(panelDataRoot);
+    }
+  }
   const id = node?.id;
-  if (id == null || typeof document === "undefined") {
+  if (id == null) {
+    return roots;
+  }
+  const textId = String(id);
+  const escapedId = cssEscape(textId);
+  const selectors = [
+    `[data-node-id="${escapedId}"]`,
+    `[data-node-id$=":${escapedId}"]`,
+  ];
+  for (const selector of selectors) {
+    for (const element of document.querySelectorAll(selector)) {
+      roots.add(element);
+    }
+  }
+  if (!roots.size) {
+    for (const element of document.querySelectorAll(".easyuse-anima-aio-node-panel")) {
+      const root = element.closest?.(".lg-node") || element.closest?.("[data-node-id]");
+      if (generatorNativePreviewRootMatchesNode(root, node)) {
+        roots.add(root);
+      }
+    }
+  }
+  if (!roots.size) {
+    for (const element of document.querySelectorAll(".text-node-component-header-text")) {
+      const root = element.closest?.("[data-node-id]");
+      if (generatorNativePreviewRootMatchesNode(root, node)) {
+        roots.add(root);
+      }
+    }
+  }
+  return roots;
+}
+
+function generatorNativePreviewRootMatchesNode(root, node) {
+  if (!root || !node) {
+    return false;
+  }
+  const panel = node.__easyuseAnimaGeneratorPanelEl;
+  if (panel && root.contains?.(panel)) {
+    return true;
+  }
+  const id = node.id == null ? "" : String(node.id);
+  const rootId = String(root.getAttribute?.("data-node-id") || "");
+  if (!id || !rootId) {
+    return false;
+  }
+  if (rootId === id) {
+    return true;
+  }
+  const parts = rootId.split(":");
+  return parts[parts.length - 1] === id;
+}
+
+function hideGeneratorNativeLivePreviewElement(element) {
+  if (!element) {
     return;
   }
-  const selector = `[data-node-id="${cssEscape(String(id))}"]`;
-  for (const element of document.querySelectorAll(selector)) {
-    element.classList.add(GENERATOR_VUE_NODE_CLASS);
+  element.classList?.add("easyuse-anima-aio-native-live-preview-hidden");
+  element.setAttribute?.("aria-hidden", "true");
+  element.style?.setProperty?.("display", "none", "important");
+}
+
+function isGeneratorNativeLivePreviewImage(element) {
+  return element?.tagName === "IMG"
+    && element.classList?.contains("pointer-events-none")
+    && element.classList?.contains("object-contain")
+    && (
+      element.classList?.contains("contain-size")
+      || element.nextElementSibling?.classList?.contains("text-node-component-header-text")
+    );
+}
+
+function hideGeneratorComfyOutputPreviewElements(root) {
+  const contentRoots = root.matches?.(".lg-node-content")
+    ? [root, ...root.querySelectorAll(".lg-node-content")]
+    : root.querySelectorAll(".lg-node-content");
+  for (const content of contentRoots) {
+    if (content.querySelector?.(".easyuse-anima-aio-node-panel")) {
+      continue;
+    }
+    if (
+      content.querySelector?.('[data-testid="main-image"]')
+      || content.querySelector?.(".text-node-component-header-text")
+      || content.textContent?.match?.(/\b\d+\s*[x×]\s*\d+\b/i)
+    ) {
+      hideGeneratorNativeLivePreviewElement(content);
+    }
+  }
+  for (const image of root.querySelectorAll('[data-testid="main-image"]')) {
+    const content = image.closest?.(".lg-node-content");
+    if (content && !content.querySelector?.(".easyuse-anima-aio-node-panel")) {
+      hideGeneratorNativeLivePreviewElement(content);
+      continue;
+    }
+    hideGeneratorNativeLivePreviewElement(image);
+    const previewRoot = image.closest?.(".flex-auto, .relative, .overflow-hidden");
+    if (previewRoot && !previewRoot.querySelector?.(".easyuse-anima-aio-node-panel")) {
+      hideGeneratorNativeLivePreviewElement(previewRoot);
+    }
+  }
+}
+
+function hideGeneratorNativeLivePreviewElements(root) {
+  if (!root?.querySelectorAll) {
+    return;
+  }
+  hideGeneratorComfyOutputPreviewElements(root);
+  const dimensionPattern = /^\d+\s*[x×]\s*\d+$/i;
+  for (const image of root.querySelectorAll("img.pointer-events-none.object-contain")) {
+    if (isGeneratorNativeLivePreviewImage(image)) {
+      hideGeneratorNativeLivePreviewElement(image);
+    }
+  }
+  for (const element of root.querySelectorAll(".text-node-component-header-text")) {
+    hideGeneratorNativeLivePreviewElement(element);
+    if (isGeneratorNativeLivePreviewImage(element.previousElementSibling)) {
+      hideGeneratorNativeLivePreviewElement(element.previousElementSibling);
+    }
+  }
+  for (const element of root.querySelectorAll("div, span")) {
+    if (element.children?.length) {
+      continue;
+    }
+    const text = String(element.textContent || "").trim();
+    if (
+      (dimensionPattern.test(text) || /calculating dimensions/i.test(text))
+      && isGeneratorNativeLivePreviewImage(element.previousElementSibling)
+    ) {
+      hideGeneratorNativeLivePreviewElement(element);
+      hideGeneratorNativeLivePreviewElement(element.previousElementSibling);
+    }
+  }
+}
+
+function markGeneratorNativeLivePreviewHidden(node) {
+  if (!node || typeof document === "undefined") {
+    return;
+  }
+  for (const root of generatorVueNodeRoots(node)) {
+    root.classList.add(GENERATOR_VUE_NODE_CLASS);
+    hideGeneratorNativeLivePreviewElements(root);
   }
 }
 
 function scheduleGeneratorNativeLivePreviewHidden(node) {
   markGeneratorNativeLivePreviewHidden(node);
-  requestAnimationFrame(() => markGeneratorNativeLivePreviewHidden(node));
-  for (const delay of [0, 50, 150, 350, 750]) {
-    setTimeout(() => markGeneratorNativeLivePreviewHidden(node), delay);
+  if (node.__easyuseAnimaNativeLivePreviewHideScheduled) {
+    return;
   }
+  node.__easyuseAnimaNativeLivePreviewHideScheduled = true;
+  const hide = () => markGeneratorNativeLivePreviewHidden(node);
+  requestAnimationFrame(hide);
+  setTimeout(hide, 80);
+  setTimeout(() => {
+    node.__easyuseAnimaNativeLivePreviewHideScheduled = false;
+    hide();
+  }, 240);
 }
 
-function suppressGeneratorDefaultPreview(node) {
+function suppressGeneratorDefaultPreview(node, options = {}) {
   if (!node) {
     return;
   }
-  node.hideOutputImages = true;
-  node.imgs = [];
-  node.images = [];
-  node.imageIndex = null;
-  node.overIndex = null;
-  node.imageRects = [];
-  node.previewMediaType = undefined;
-  markNodeDirty(node);
+  const shouldMarkDirty = options.markDirty !== false;
+  let changed = false;
+  if (node.hideOutputImages !== true) {
+    node.hideOutputImages = true;
+    changed = true;
+  }
+  for (const key of ["imgs", "images", "imageRects"]) {
+    if (!Array.isArray(node[key]) || node[key].length) {
+      node[key] = [];
+      changed = true;
+    }
+  }
+  for (const key of ["imageIndex", "overIndex"]) {
+    if (node[key] !== null) {
+      node[key] = null;
+      changed = true;
+    }
+  }
+  if (node.previewMediaType !== undefined) {
+    node.previewMediaType = undefined;
+    changed = true;
+  }
+  if (changed && shouldMarkDirty) {
+    markNodeDirty(node);
+  }
 }
 
 function scheduleGeneratorDefaultPreviewSuppression(node) {
   suppressGeneratorDefaultPreview(node);
   scheduleGeneratorNativeLivePreviewHidden(node);
-  requestAnimationFrame(() => suppressGeneratorDefaultPreview(node));
-  for (const delay of [0, 50, 150, 350, 750]) {
-    setTimeout(() => suppressGeneratorDefaultPreview(node), delay);
+  if (node.__easyuseAnimaDefaultPreviewSuppressionScheduled) {
+    return;
   }
+  node.__easyuseAnimaDefaultPreviewSuppressionScheduled = true;
+  const suppress = () => {
+    suppressGeneratorDefaultPreview(node);
+    markGeneratorNativeLivePreviewHidden(node);
+  };
+  requestAnimationFrame(suppress);
+  setTimeout(suppress, 120);
+  setTimeout(() => {
+    node.__easyuseAnimaDefaultPreviewSuppressionScheduled = false;
+    suppress();
+  }, 360);
 }
 
 function createNodeField(label, control, className = "", tooltipKey = "") {
@@ -4993,6 +5185,7 @@ function renderGeneratorPanel(node) {
 function ensureGeneratorPanel(node) {
   ensureStyle();
   node.serialize_widgets = true;
+  suppressGeneratorDefaultPreview(node, { markDirty: false });
   node.minWidth = Math.max(Number(node.minWidth) || 0, GENERATOR_NODE_MIN_WIDTH);
   if (Array.isArray(node.size)) {
     node.size[0] = Math.max(Number(node.size[0]) || 0, GENERATOR_NODE_DEFAULT_WIDTH);
@@ -5016,7 +5209,9 @@ function ensureGeneratorPanel(node) {
       });
     }
   }
+  markGeneratorNativeLivePreviewHidden(node);
   renderGeneratorPanel(node);
+  markGeneratorNativeLivePreviewHidden(node);
 }
 
 function field(section, label, control, tooltipKey = "") {
@@ -6705,6 +6900,7 @@ function hookInputNode(node) {
 
 function hookGeneratorNode(node) {
   node.serialize_widgets = true;
+  suppressGeneratorDefaultPreview(node, { markDirty: false });
   hideWidget(findWidget(node, GENERATOR_SETTINGS_WIDGET));
   ensureGeneratorPanel(node);
   syncGeneratorStateFromDom(node);
@@ -6838,6 +7034,7 @@ function handleGeneratorDenoisePreviewEvent(event) {
   if (!node || !blob) {
     return;
   }
+  event.stopImmediatePropagation?.();
   scheduleGeneratorDefaultPreviewSuppression(node);
   setGeneratorDenoisePreview(node, blob, detail);
 }
@@ -6872,12 +7069,13 @@ function hookNode(node, nodeData) {
 app.registerExtension({
   name: "easyuse-anima.aio",
   async setup() {
+    ensureStyle();
     installGeneratorQueuePromptHook();
     easyuseAnimaWatchLocale(refreshGeneratorPanels);
     api.addEventListener(GENERATOR_PREVIEW_EVENT, handleGeneratorPreviewEvent);
     api.addEventListener("progress", handleGeneratorProgressEvent);
     api.addEventListener("progress_state", handleGeneratorProgressStateEvent);
-    api.addEventListener("b_preview_with_metadata", handleGeneratorDenoisePreviewEvent);
+    api.addEventListener("b_preview_with_metadata", handleGeneratorDenoisePreviewEvent, true);
     api.addEventListener("executing", handleGeneratorExecutingEvent);
     api.addEventListener("execution_error", clearGeneratorDenoisePreviews);
     api.addEventListener("execution_interrupted", clearGeneratorDenoisePreviews);
@@ -6888,16 +7086,25 @@ app.registerExtension({
     if (nodeData.name !== INPUT_NODE_TYPE && nodeData.name !== GENERATOR_NODE_TYPE) {
       return;
     }
+    if (nodeData.name === GENERATOR_NODE_TYPE) {
+      nodeType.prototype.hideOutputImages = true;
+    }
     const onNodeCreated = nodeType.prototype.onNodeCreated;
     nodeType.prototype.onNodeCreated = function () {
+      if (nodeData.name === GENERATOR_NODE_TYPE) {
+        suppressGeneratorDefaultPreview(this, { markDirty: false });
+      }
       const result = onNodeCreated?.apply(this, arguments);
       hookNode(this, nodeData);
       return result;
     };
     const onConfigure = nodeType.prototype.onConfigure;
     nodeType.prototype.onConfigure = function () {
+      if (nodeData.name === GENERATOR_NODE_TYPE) {
+        suppressGeneratorDefaultPreview(this, { markDirty: false });
+      }
       const result = onConfigure?.apply(this, arguments);
-      setTimeout(() => hookNode(this, nodeData), 0);
+      hookNode(this, nodeData);
       return result;
     };
     if (nodeData.name === GENERATOR_NODE_TYPE) {
