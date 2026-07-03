@@ -659,6 +659,37 @@ function currentWildcardToken(input) {
   };
 }
 
+function isCaretInPromptTranslationMarker(input) {
+  const value = input?.value || "";
+  const caret = input?.selectionStart ?? value.length;
+  let index = 0;
+  while (index < caret) {
+    const start = value.indexOf("%{", index);
+    if (start < 0 || start >= caret) {
+      return false;
+    }
+    if (isEscaped(value, start)) {
+      index = start + 2;
+      continue;
+    }
+    let end = -1;
+    for (let cursor = start + 2; cursor < value.length; cursor += 1) {
+      if (value[cursor] === "}" && !isEscaped(value, cursor)) {
+        end = cursor + 1;
+        break;
+      }
+    }
+    if (end < 0) {
+      return caret > start;
+    }
+    if (caret > start && caret < end) {
+      return true;
+    }
+    index = end;
+  }
+  return false;
+}
+
 function autocompleteQuery(token, forceArtistOnly = false) {
   const raw = String(token.query || "");
   const parsed = parseAutocompleteText(raw);
@@ -1179,6 +1210,9 @@ function closingBracketPreview(token) {
   if (before.includes("(") && !after.includes(")")) {
     return ")";
   }
+  if (before.includes("{") && !after.includes("}")) {
+    return "}";
+  }
   return "";
 }
 
@@ -1363,10 +1397,13 @@ function handleBracketPreviewKeydown(state, event) {
   if (event.key === "(") {
     return insertBracketPair(state, event, "(", ")");
   }
+  if (event.key === "{") {
+    return insertBracketPair(state, event, "{", "}");
+  }
   if (event.key === "[" && start === end && input.value[start - 1] === "[") {
     return insertBracketPair(state, event, "[", "]]", "[]]", 1);
   }
-  if ((event.key === ")" || event.key === "]") && start === end && input.value[start] === event.key) {
+  if ((event.key === ")" || event.key === "]" || event.key === "}") && start === end && input.value[start] === event.key) {
     event.preventDefault();
     input.setSelectionRange(start + 1, start + 1);
     return true;
@@ -1497,6 +1534,10 @@ function hookInput(input, options = {}) {
       return;
     }
     if (isCaretInComment(input.value || "", input.selectionStart ?? 0)) {
+      hidePopup();
+      return;
+    }
+    if (isCaretInPromptTranslationMarker(input)) {
       hidePopup();
       return;
     }
