@@ -619,6 +619,10 @@ const LEGEND_TOP_GAP = 14;
 const LEGEND_ROW_HEIGHT = 18;
 const LEGEND_COLUMNS = 2;
 const STUDIO_WIDGET_VERTICAL_GAP = 8;
+const PROMPT_STUDIO_FONT_SIZE_DEFAULT = 12;
+const PROMPT_STUDIO_FONT_SIZE_MIN = 8;
+const PROMPT_STUDIO_FONT_SIZE_MAX = 24;
+const PROMPT_STUDIO_FONT_FAMILY = 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
 
 const WEIGHT_NUMBER_RE = /^[+-]?(?:\d+(?:\.\d*)?|\.\d+)$/;
 const WEIGHTED_TOKEN_RE = /^\((.*):[+-]?(?:\d+(?:\.\d*)?|\.\d+)\)$/s;
@@ -660,6 +664,9 @@ const PROMPT_STUDIO_SETTINGS = {
   typoIndicator: true,
   weightSyntaxUnderline: false,
   commentItalic: true,
+  fontOverride: false,
+  fontFamily: "",
+  fontSize: PROMPT_STUDIO_FONT_SIZE_DEFAULT,
   naiaGeneralAboveAutoToggle: false,
 };
 let middlePanForwardActive = false;
@@ -1430,7 +1437,8 @@ function ensureAdvancedStyle() {
       background: rgba(10, 10, 12, 0.78);
       color: var(--input-text, #ddd);
       padding: 6px;
-      font: 12px monospace;
+      font-family: var(--easyuse-anima-prompt-studio-font-family, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif);
+      font-size: var(--easyuse-anima-prompt-studio-font-size, 1rem);
       line-height: 1.35;
       outline: none;
     }
@@ -1567,10 +1575,68 @@ function parseColorSettings(value) {
   }
 }
 
+function normalizePromptStudioFontSize(value) {
+  const parsed = Number.parseFloat(String(value ?? "").trim());
+  if (!Number.isFinite(parsed)) {
+    return PROMPT_STUDIO_FONT_SIZE_DEFAULT;
+  }
+  return Math.max(
+    PROMPT_STUDIO_FONT_SIZE_MIN,
+    Math.min(PROMPT_STUDIO_FONT_SIZE_MAX, Math.round(parsed)),
+  );
+}
+
+function normalizePromptStudioFontFamily(value) {
+  return String(value ?? "")
+    .replace(/[;{}\r\n]/g, "")
+    .trim()
+    .slice(0, 160);
+}
+
+function applyPromptStudioTextStyle(input) {
+  if (!(input instanceof HTMLElement)) {
+    return;
+  }
+  const nextFamily = (PROMPT_STUDIO_SETTINGS.fontOverride && PROMPT_STUDIO_SETTINGS.fontFamily)
+    ? PROMPT_STUDIO_SETTINGS.fontFamily
+    : PROMPT_STUDIO_FONT_FAMILY;
+  if (input.style.fontFamily !== nextFamily) {
+    input.style.fontFamily = nextFamily;
+  }
+  if (!PROMPT_STUDIO_SETTINGS.fontOverride) {
+    if (input.dataset.easyuseAnimaPromptTextOverride === "true") {
+      input.style.fontSize = "";
+      delete input.dataset.easyuseAnimaPromptTextOverride;
+    }
+    return;
+  }
+  const nextSize = `${PROMPT_STUDIO_SETTINGS.fontSize}px`;
+  if (input.style.fontSize !== nextSize) {
+    input.style.fontSize = nextSize;
+  }
+  input.dataset.easyuseAnimaPromptTextOverride = "true";
+}
+
 function applyPromptStudioSettings(settings) {
   PROMPT_STUDIO_SETTINGS.typoIndicator = settings?.["prompt_studio.typo_indicator"] !== "false";
   PROMPT_STUDIO_SETTINGS.weightSyntaxUnderline = settings?.["prompt_studio.weight_syntax_underline"] === "true";
   PROMPT_STUDIO_SETTINGS.commentItalic = settings?.["prompt_studio.comment_italic"] !== "false";
+  PROMPT_STUDIO_SETTINGS.fontOverride = settings?.["prompt_studio.font_override"] === "true";
+  PROMPT_STUDIO_SETTINGS.fontFamily = normalizePromptStudioFontFamily(settings?.["prompt_studio.font_family"]);
+  PROMPT_STUDIO_SETTINGS.fontSize = normalizePromptStudioFontSize(settings?.["prompt_studio.font_size"]);
+  if (PROMPT_STUDIO_SETTINGS.fontOverride) {
+    document.documentElement?.style?.setProperty(
+      "--easyuse-anima-prompt-studio-font-size",
+      `${PROMPT_STUDIO_SETTINGS.fontSize}px`,
+    );
+    document.documentElement?.style?.setProperty(
+      "--easyuse-anima-prompt-studio-font-family",
+      PROMPT_STUDIO_SETTINGS.fontFamily || PROMPT_STUDIO_FONT_FAMILY,
+    );
+  } else {
+    document.documentElement?.style?.removeProperty("--easyuse-anima-prompt-studio-font-size");
+    document.documentElement?.style?.removeProperty("--easyuse-anima-prompt-studio-font-family");
+  }
   PROMPT_STUDIO_SETTINGS.naiaGeneralAboveAutoToggle =
     settings?.["prompt_studio.naia_general_above_auto_toggle"] === "true";
   const colors = parseColorSettings(settings?.["prompt_studio.colors"]);
@@ -1592,7 +1658,7 @@ async function loadPromptStudioSettings() {
       return;
     }
     applyPromptStudioSettings(await response.json());
-    refreshAllPromptHighlights();
+    refreshAllPromptHighlights(true);
     app.graph?.setDirtyCanvas(true, true);
   } catch {
     // Keep built-in defaults if the settings endpoint is not available yet.
@@ -3033,6 +3099,7 @@ function updateHighlight(node, widget, tokens = widget.__easyuseAnimaTokens || [
   if (!input) {
     return;
   }
+  applyPromptStudioTextStyle(input);
   input.__easyuseAnimaHighlightRefresh = (force = false) => updateHighlight(node, widget, widget.__easyuseAnimaTokens || [], force);
   const overlay = ensureHighlightOverlay(input);
   if (!overlay) {
@@ -3062,6 +3129,7 @@ function updateAdvancedFieldHighlight(node, field, textarea, tokens = null, forc
   if (!(textarea instanceof HTMLTextAreaElement)) {
     return;
   }
+  applyPromptStudioTextStyle(textarea);
   textarea.__easyuseAnimaNode = node;
   textarea.__easyuseAnimaField = field;
   textarea.__easyuseAnimaHighlightRefresh = (force = false) => updateAdvancedFieldHighlight(node, field, textarea, null, force);
@@ -3139,7 +3207,7 @@ function registerAdvancedAutocompleteInput(node, field, textarea) {
   window.__easyuseAnimaPendingAutocompleteInputs.push({ input: textarea, options });
 }
 
-function refreshAdvancedHighlights(node, { classify = true } = {}) {
+function refreshAdvancedHighlights(node, { classify = true, forceCopyMetrics = false } = {}) {
   const editor = node?.__easyuseAnimaAdvancedEditorEl;
   if (!editor) {
     return;
@@ -3156,9 +3224,13 @@ function refreshAdvancedHighlights(node, { classify = true } = {}) {
     if (!field) {
       continue;
     }
+    applyPromptStudioTextStyle(textarea);
     const overlay = ensureHighlightOverlay(textarea);
     if (!overlay) {
       continue;
+    }
+    if (forceCopyMetrics) {
+      copyInputTextMetrics(textarea, overlay);
     }
 
     const { left, top, width, height } = overlayBounds(textarea);
@@ -3214,8 +3286,10 @@ function scheduleAdvancedHighlights(node, options = {}) {
   if (!node?.__easyuseAnimaAdvancedEditorEl) {
     return;
   }
+  const previousOptions = node.__easyuseAnimaAdvancedHighlightOptions || {};
   node.__easyuseAnimaAdvancedHighlightOptions = {
     classify: options.classify !== false,
+    forceCopyMetrics: previousOptions.forceCopyMetrics === true || options.forceCopyMetrics === true,
   };
   if (node.__easyuseAnimaAdvancedHighlightScheduled) {
     return;
@@ -3225,7 +3299,7 @@ function scheduleAdvancedHighlights(node, options = {}) {
     node.__easyuseAnimaAdvancedHighlightScheduled = false;
     const refreshOptions = node.__easyuseAnimaAdvancedHighlightOptions || {};
     refreshAdvancedHighlights(node, refreshOptions);
-    requestAnimationFrame(() => refreshAdvancedHighlights(node, { classify: false }));
+    requestAnimationFrame(() => refreshAdvancedHighlights(node, { classify: false, forceCopyMetrics: refreshOptions.forceCopyMetrics === true }));
   });
 }
 
@@ -3240,6 +3314,7 @@ function refreshConnectedHighlightOverlays() {
     if (!(input instanceof HTMLTextAreaElement || input instanceof HTMLInputElement)) {
       continue;
     }
+    applyPromptStudioTextStyle(input);
     const overlay = ensureHighlightOverlay(input);
     if (!overlay) {
       continue;
@@ -3337,16 +3412,16 @@ function installPromptHighlightOverlayRefresh() {
   setTimeout(installCanvasListeners, 250);
 }
 
-function refreshAllPromptHighlights() {
+function refreshAllPromptHighlights(forceCopyMetrics = false) {
   for (const node of app.graph?._nodes || []) {
     if (isAdvancedNode(node)) {
-      scheduleAdvancedHighlights(node);
+      scheduleAdvancedHighlights(node, { forceCopyMetrics });
       continue;
     }
     for (const name of studioFieldNames(node)) {
       const widget = findWidget(node, name);
       if (widget) {
-        updateHighlight(node, widget);
+        updateHighlight(node, widget, widget.__easyuseAnimaTokens || [], forceCopyMetrics);
       }
     }
   }
@@ -3361,6 +3436,7 @@ function enhanceResizableInput(node, widget) {
   const defaultHeight = studioDefaultHeight(widget);
   const minimumHeight = Math.min(defaultHeight, 54);
 
+  applyPromptStudioTextStyle(input);
   widget.__easyuseAnimaHeight = Math.max(minimumHeight, widget.__easyuseAnimaHeight || defaultHeight);
   widget.__easyuseAnimaLayoutHeight = widget.__easyuseAnimaHeight + STUDIO_WIDGET_VERTICAL_GAP;
   input.style.boxSizing = "border-box";
@@ -6121,7 +6197,7 @@ app.registerExtension({
           renderAdvancedEditor(node);
         }
       }
-      refreshAllPromptHighlights();
+      refreshAllPromptHighlights(true);
     });
   },
   async beforeRegisterNodeDef(nodeType, nodeData) {

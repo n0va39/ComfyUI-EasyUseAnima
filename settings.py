@@ -30,6 +30,9 @@ DEFAULT_SETTINGS = {
     "prompt_studio.typo_indicator": "true",
     "prompt_studio.weight_syntax_underline": "false",
     "prompt_studio.comment_italic": "true",
+    "prompt_studio.font_override": "false",
+    "prompt_studio.font_family": "",
+    "prompt_studio.font_size": "12",
     "prompt_studio.colors": "",
     "prompt_studio.naia_general_above_auto_toggle": "false",
     "wildcard.extra_paths": "",
@@ -134,6 +137,9 @@ COMFY_SETTING_KEYS = {
     "EasyUseAnima.Prompt.TypoIndicator": "prompt_studio.typo_indicator",
     "EasyUseAnima.Prompt.WeightSyntaxUnderline": "prompt_studio.weight_syntax_underline",
     "EasyUseAnima.Prompt.CommentItalic": "prompt_studio.comment_italic",
+    "EasyUseAnima.Prompt.FontOverride": "prompt_studio.font_override",
+    "EasyUseAnima.Prompt.FontFamily": "prompt_studio.font_family",
+    "EasyUseAnima.Prompt.FontSize": "prompt_studio.font_size",
     "EasyUseAnima.Prompt.HighlightColors": "prompt_studio.colors",
     "EasyUseAnima.Prompt.NaiaGeneralAutoToggle": "prompt_studio.naia_general_above_auto_toggle",
     "EasyUseAnima.Wildcard.ExtraPaths": "wildcard.extra_paths",
@@ -381,6 +387,12 @@ def public_settings() -> dict:
             "prompt_studio.comment_italic",
             DEFAULT_SETTINGS["prompt_studio.comment_italic"],
         ),
+        "prompt_studio.font_override": settings.get(
+            "prompt_studio.font_override",
+            DEFAULT_SETTINGS["prompt_studio.font_override"],
+        ),
+        "prompt_studio.font_family": resolve_prompt_studio_font_family(settings),
+        "prompt_studio.font_size": resolve_prompt_studio_font_size(settings),
         "prompt_studio.colors": settings.get(
             "prompt_studio.colors",
             DEFAULT_SETTINGS["prompt_studio.colors"],
@@ -496,6 +508,26 @@ def resolve_lora_preset_menu_mode(settings: dict | None = None) -> str:
     if value in {"tree", "list"}:
         return value
     return DEFAULT_SETTINGS["lora_preset.menu_mode"]
+
+
+def resolve_prompt_studio_font_family(settings: dict | None = None) -> str:
+    settings = settings or get_settings()
+    value = str(settings.get("prompt_studio.font_family", "") or "")
+    for token in (";", "{", "}", "\r", "\n"):
+        value = value.replace(token, "")
+    return value.strip()[:160]
+
+
+def resolve_prompt_studio_font_size(settings: dict | None = None) -> int:
+    settings = settings or get_settings()
+    try:
+        value = int(float(settings.get(
+            "prompt_studio.font_size",
+            DEFAULT_SETTINGS["prompt_studio.font_size"],
+        )))
+    except (TypeError, ValueError):
+        value = int(DEFAULT_SETTINGS["prompt_studio.font_size"])
+    return max(8, min(24, value))
 
 
 def resolve_naia_port(settings: dict | None = None) -> int:

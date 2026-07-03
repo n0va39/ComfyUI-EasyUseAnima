@@ -63,6 +63,8 @@ from settings import (
     resolve_naia_resolution_max_long_edge,
     resolve_naia_resolution_mode,
     resolve_naia_resolution_scale,
+    resolve_prompt_studio_font_family,
+    resolve_prompt_studio_font_size,
 )
 
 
@@ -2476,6 +2478,9 @@ class SettingsTests(unittest.TestCase):
                 "prompt_studio.typo_indicator",
                 "prompt_studio.weight_syntax_underline",
                 "prompt_studio.comment_italic",
+                "prompt_studio.font_override",
+                "prompt_studio.font_family",
+                "prompt_studio.font_size",
                 "prompt_studio.colors",
                 "prompt_studio.naia_general_above_auto_toggle",
                 "wildcard.extra_paths",
@@ -2599,6 +2604,18 @@ class SettingsTests(unittest.TestCase):
             "tree",
         )
 
+    def test_prompt_studio_font_size_is_clamped(self):
+        self.assertEqual(resolve_prompt_studio_font_size({"prompt_studio.font_size": "4"}), 8)
+        self.assertEqual(resolve_prompt_studio_font_size({"prompt_studio.font_size": "16"}), 16)
+        self.assertEqual(resolve_prompt_studio_font_size({"prompt_studio.font_size": "99"}), 24)
+        self.assertEqual(resolve_prompt_studio_font_size({"prompt_studio.font_size": "bad"}), 12)
+
+    def test_prompt_studio_font_family_strips_css_control_chars(self):
+        self.assertEqual(
+            resolve_prompt_studio_font_family({"prompt_studio.font_family": 'Arial; color:red\n'}),
+            "Arial color:red",
+        )
+
     def test_naia_resolution_mode_is_validated(self):
         self.assertEqual(
             resolve_naia_resolution_mode({"naia.resolution_mode": "scale"}),
@@ -2685,6 +2702,9 @@ class SettingsTests(unittest.TestCase):
                     "EasyUseAnima.Prompt.AutocompleteDetectNaturalSentences": "false",
                     "EasyUseAnima.Prompt.TypoIndicator": "false",
                     "EasyUseAnima.Prompt.CommentItalic": "false",
+                    "EasyUseAnima.Prompt.FontOverride": "true",
+                    "EasyUseAnima.Prompt.FontFamily": "Arial",
+                    "EasyUseAnima.Prompt.FontSize": "16",
                     "EasyUseAnima.LoraPreset.NameDisplay": "path",
                     "EasyUseAnima.LoraPreset.MenuMode": "list",
                     "EasyUseAnima.LoraPreset.StrengthButtonStep": "0.025",
@@ -2707,6 +2727,9 @@ class SettingsTests(unittest.TestCase):
         self.assertEqual(settings["autocomplete.detect_natural_sentences"], "false")
         self.assertEqual(settings["prompt_studio.typo_indicator"], "false")
         self.assertEqual(settings["prompt_studio.comment_italic"], "false")
+        self.assertEqual(settings["prompt_studio.font_override"], "true")
+        self.assertEqual(settings["prompt_studio.font_family"], "Arial")
+        self.assertEqual(settings["prompt_studio.font_size"], 16)
         self.assertEqual(settings["lora_preset.name_display"], "path")
         self.assertEqual(settings["lora_preset.menu_mode"], "list")
         self.assertEqual(settings["lora_preset.strength_button_step"], 0.025)

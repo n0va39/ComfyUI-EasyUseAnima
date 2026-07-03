@@ -8,6 +8,17 @@ const INPUT_SETTINGS_WIDGET = "input_settings";
 const GENERATOR_SETTINGS_WIDGET = "generation_settings";
 const GENERATOR_DOM_WIDGET = "easyuse_anima_generator_panel";
 const GENERATOR_PREVIEW_EVENT = "easyuse-anima-aio-preview";
+const GENERATOR_DENOISE_PREVIEW_NODE_KEYS = [
+  "displayNodeId",
+  "nodeId",
+  "realNodeId",
+  "parentNodeId",
+  "display_node_id",
+  "node_id",
+  "real_node_id",
+  "parent_node_id",
+  "node",
+];
 const GENERATOR_SEED_CONTROLS = ["fixed", "randomize", "increment", "decrement"];
 const GENERATOR_SPECIAL_SEED_RANDOM = -1;
 const GENERATOR_SPECIAL_SEED_INCREMENT = -2;
@@ -22,6 +33,7 @@ const GENERATOR_NODE_MIN_WIDTH = 560;
 const GENERATOR_NODE_DEFAULT_WIDTH = 620;
 const GENERATOR_PANEL_MIN_HEIGHT = 430;
 const GENERATOR_PANEL_CONTROL_SELECTOR = "input, select, textarea, button";
+const GENERATOR_VUE_NODE_CLASS = "easyuse-anima-aio-hide-native-live-preview";
 const GENERATOR_FALLBACK_SAMPLER_NAMES = [
   "er_sde",
   "euler",
@@ -672,6 +684,7 @@ const AIO_TEXT = {
     "text.previewOptionsSubtitle": "Preview settings control only this node UI. They do not change saved image metadata.",
     "text.previewPrevious": "Previous",
     "text.previewCurrent": "Current",
+    "text.previewDenoise": "Denoising preview",
     "text.inputLoaderMode": "Loader mode: split diffusion model + VAE + CLIP",
     "text.highresDisabled": "Enable Highres to expose resize and second-pass controls.",
     "text.highresSpdManualRequired": "Spectrum SPD / SPEED is not reused by Highres. Highres uses the general KSampler path.",
@@ -907,6 +920,7 @@ const AIO_TEXT = {
     "text.previewOptionsSubtitle": "프리뷰 설정은 이 노드 UI에만 적용됩니다. 저장 이미지 메타데이터는 바꾸지 않습니다.",
     "text.previewPrevious": "이전",
     "text.previewCurrent": "현재",
+    "text.previewDenoise": "노이즈 제거 미리보기",
     "text.inputLoaderMode": "로드 방식: 디퓨전 모델 + VAE + CLIP 분리 로드",
     "text.highresDisabled": "Highres를 켜면 확대와 2차 샘플링 기본 설정이 표시됩니다.",
     "text.highresSpdManualRequired": "Spectrum SPD / SPEED는 Highres에서 재사용하지 않습니다. Highres는 일반 KSampler 경로를 사용합니다.",
@@ -996,6 +1010,7 @@ const AIO_TEXT = {
     "button.remove": "削除",
     "text.previewTitle": "生成画像プレビュー",
     "text.previewSubtitle": "このノード出力専用のプレビュー領域です。",
+    "text.previewDenoise": "デノイズプレビュー",
     "text.highresDisabled": "Highres を有効にすると拡大と二回目サンプリングの基本設定を表示します。",
     "text.highresSpdManualRequired": "Spectrum SPD / SPEED は Highres では再利用しません。Highres は通常 KSampler 経路を使います。",
     "text.detailerDisabled": "Detailer を有効にすると順序変更できる処理ブロックを表示します。",
@@ -1079,6 +1094,7 @@ const AIO_TEXT = {
     "button.remove": "删除",
     "text.previewTitle": "生成图像预览",
     "text.previewSubtitle": "此区域专用于该节点输出预览。",
+    "text.previewDenoise": "降噪预览",
     "text.highresDisabled": "启用 Highres 后显示放大和第二次采样基础设置。",
     "text.highresSpdManualRequired": "Spectrum SPD / SPEED 不会被 Highres 复用。Highres 使用普通 KSampler 路径。",
     "text.detailerDisabled": "启用 Detailer 后显示可排序的处理块。",
@@ -2982,6 +2998,40 @@ function ensureStyle() {
       object-fit: contain;
       background: #10151a;
     }
+    .easyuse-anima-aio-node-denoise-preview {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      background: #10151a;
+    }
+    .easyuse-anima-aio-node-denoise-preview img {
+      width: 100%;
+      height: 100%;
+      display: block;
+      object-fit: contain;
+      background: #10151a;
+    }
+    .easyuse-anima-aio-node-denoise-preview-label {
+      position: absolute;
+      left: 8px;
+      bottom: 8px;
+      max-width: calc(100% - 16px);
+      padding: 3px 7px;
+      overflow: hidden;
+      color: #f4efe5;
+      background: rgba(8, 12, 16, 0.78);
+      border: 1px solid rgba(255, 255, 255, 0.13);
+      border-radius: 4px;
+      font-size: 10px;
+      line-height: 1.25;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      pointer-events: none;
+    }
+    .${GENERATOR_VUE_NODE_CLASS} img.pointer-events-none.min-h-55.w-full.flex-1.object-contain.contain-size,
+    .${GENERATOR_VUE_NODE_CLASS} img.pointer-events-none.min-h-55.w-full.flex-1.object-contain.contain-size + div {
+      display: none !important;
+    }
     .easyuse-anima-aio-node-preview-compare {
       position: relative;
       width: 100%;
@@ -3223,6 +3273,120 @@ function firstValue(value, fallback = "") {
     return value.length > 0 ? value[0] : fallback;
   }
   return value ?? fallback;
+}
+
+const GENERATOR_PROGRESS_BY_NODE = new Map();
+
+function normalizeGeneratorNodeId(value) {
+  return value == null ? "" : String(value).trim();
+}
+
+function generatorNodeIdsFromDetail(detail) {
+  const ids = [];
+  for (const key of GENERATOR_DENOISE_PREVIEW_NODE_KEYS) {
+    const id = normalizeGeneratorNodeId(detail?.[key]);
+    if (id && !ids.includes(id)) {
+      ids.push(id);
+    }
+  }
+  return ids;
+}
+
+function rememberGeneratorProgress(detail) {
+  const ids = generatorNodeIdsFromDetail(detail);
+  if (!ids.length) {
+    return;
+  }
+  const value = Number(detail?.value);
+  const max = Number(detail?.max);
+  const promptId = normalizeGeneratorNodeId(detail?.prompt_id ?? detail?.jobId ?? detail?.job_id);
+  const entry = {
+    value: Number.isFinite(value) ? value : 0,
+    max: Number.isFinite(max) ? max : 0,
+    promptId,
+    updatedAt: Date.now(),
+  };
+  for (const id of ids) {
+    GENERATOR_PROGRESS_BY_NODE.set(id, entry);
+  }
+}
+
+function rememberGeneratorProgressState(detail) {
+  const nodes = detail?.nodes;
+  if (!nodes || typeof nodes !== "object") {
+    return;
+  }
+  for (const state of Object.values(nodes)) {
+    rememberGeneratorProgress({
+      ...state,
+      prompt_id: state?.prompt_id || detail?.prompt_id,
+    });
+  }
+}
+
+function generatorProgressForPreviewDetail(detail) {
+  const promptId = normalizeGeneratorNodeId(detail?.prompt_id ?? detail?.jobId ?? detail?.job_id);
+  for (const id of generatorNodeIdsFromDetail(detail)) {
+    const progress = GENERATOR_PROGRESS_BY_NODE.get(id);
+    if (!progress) {
+      continue;
+    }
+    if (promptId && progress.promptId && promptId !== progress.promptId) {
+      continue;
+    }
+    return progress;
+  }
+  return null;
+}
+
+function generatorDenoisePreviewLabel(preview) {
+  const base = aioText("text.previewDenoise");
+  const value = Number(preview?.value);
+  const max = Number(preview?.max);
+  if (Number.isFinite(value) && Number.isFinite(max) && max > 0) {
+    const current = Math.max(0, Math.min(max, Math.round(value)));
+    return `${base} · ${current}/${Math.round(max)}`;
+  }
+  return base;
+}
+
+function clearGeneratorDenoisePreview(node, update = false) {
+  const preview = node?.__easyuseAnimaGeneratorDenoisePreview;
+  if (
+    preview?.url
+    && typeof URL !== "undefined"
+    && typeof URL.revokeObjectURL === "function"
+  ) {
+    URL.revokeObjectURL(preview.url);
+  }
+  if (node) {
+    delete node.__easyuseAnimaGeneratorDenoisePreview;
+  }
+  if (update && node?.__easyuseAnimaGeneratorPanelEl) {
+    updateGeneratorDomSummary(node);
+    scheduleGeneratorLayout(node);
+  }
+}
+
+function setGeneratorDenoisePreview(node, blob, detail = {}) {
+  if (
+    !node
+    || !blob
+    || typeof URL === "undefined"
+    || typeof URL.createObjectURL !== "function"
+  ) {
+    return;
+  }
+  const progress = generatorProgressForPreviewDetail(detail);
+  clearGeneratorDenoisePreview(node);
+  node.__easyuseAnimaGeneratorDenoisePreview = {
+    url: URL.createObjectURL(blob),
+    value: progress?.value ?? null,
+    max: progress?.max ?? null,
+  };
+  updateGeneratorDomSummary(node);
+  scheduleGeneratorLayout(node);
+  markNodeDirty(node);
 }
 
 function generatorPreviewImages(message) {
@@ -3873,6 +4037,33 @@ function updateGeneratorDomPreview(node) {
     return;
   }
   const settings = generatorSettings(node);
+  const denoisePreview = node.__easyuseAnimaGeneratorDenoisePreview;
+  if (denoisePreview?.url) {
+    const label = generatorDenoisePreviewLabel(denoisePreview);
+    const preview = document.createElement("div");
+    preview.className = "easyuse-anima-aio-node-denoise-preview";
+    const img = document.createElement("img");
+    img.src = denoisePreview.url;
+    img.alt = "";
+    img.decoding = "async";
+    const labelEl = document.createElement("div");
+    labelEl.className = "easyuse-anima-aio-node-denoise-preview-label";
+    labelEl.textContent = label;
+    labelEl.title = label;
+    preview.append(img, labelEl);
+    previewBox.replaceChildren(preview);
+    const feed = panel?.querySelector?.("[data-aio-preview-feed]");
+    if (feed) {
+      feed.hidden = true;
+      feed.replaceChildren();
+    }
+    const metaEl = panel.querySelector("[data-aio-preview-meta]");
+    if (metaEl) {
+      metaEl.textContent = label;
+      metaEl.title = label;
+    }
+    return;
+  }
   const images = Array.isArray(node.__easyuseAnimaGeneratorPreviewImages)
     ? node.__easyuseAnimaGeneratorPreviewImages
     : [];
@@ -4005,15 +4196,53 @@ function updateGeneratorDomPreview(node) {
   selectedThumb?.scrollIntoView?.({ block: "nearest", inline: "nearest" });
 }
 
+function cssEscape(value) {
+  if (typeof CSS !== "undefined" && typeof CSS.escape === "function") {
+    return CSS.escape(value);
+  }
+  return String(value).replace(/["\\]/g, "\\$&");
+}
+
+function markGeneratorNativeLivePreviewHidden(node) {
+  const id = node?.id;
+  if (id == null || typeof document === "undefined") {
+    return;
+  }
+  const selector = `[data-node-id="${cssEscape(String(id))}"]`;
+  for (const element of document.querySelectorAll(selector)) {
+    element.classList.add(GENERATOR_VUE_NODE_CLASS);
+  }
+}
+
+function scheduleGeneratorNativeLivePreviewHidden(node) {
+  markGeneratorNativeLivePreviewHidden(node);
+  requestAnimationFrame(() => markGeneratorNativeLivePreviewHidden(node));
+  for (const delay of [0, 50, 150, 350, 750]) {
+    setTimeout(() => markGeneratorNativeLivePreviewHidden(node), delay);
+  }
+}
+
 function suppressGeneratorDefaultPreview(node) {
   if (!node) {
     return;
   }
+  node.hideOutputImages = true;
   node.imgs = [];
   node.images = [];
   node.imageIndex = null;
   node.overIndex = null;
+  node.imageRects = [];
+  node.previewMediaType = undefined;
   markNodeDirty(node);
+}
+
+function scheduleGeneratorDefaultPreviewSuppression(node) {
+  suppressGeneratorDefaultPreview(node);
+  scheduleGeneratorNativeLivePreviewHidden(node);
+  requestAnimationFrame(() => suppressGeneratorDefaultPreview(node));
+  for (const delay of [0, 50, 150, 350, 750]) {
+    setTimeout(() => suppressGeneratorDefaultPreview(node), delay);
+  }
 }
 
 function createNodeField(label, control, className = "", tooltipKey = "") {
@@ -6479,7 +6708,7 @@ function hookGeneratorNode(node) {
   hideWidget(findWidget(node, GENERATOR_SETTINGS_WIDGET));
   ensureGeneratorPanel(node);
   syncGeneratorStateFromDom(node);
-  suppressGeneratorDefaultPreview(node);
+  scheduleGeneratorDefaultPreviewSuppression(node);
   loadGeneratorSamplerOptions().then(() => {
     if (node?.__easyuseAnimaGeneratorPanelEl) {
       renderGeneratorPanel(node);
@@ -6524,6 +6753,7 @@ function addGeneratorPreviewImagesToNode(node, nextImages, runId = "", options =
   if (!node || !Array.isArray(nextImages) || !nextImages.length) {
     return;
   }
+  clearGeneratorDenoisePreview(node);
   const settings = generatorSettings(node);
   const replaceCurrentRun = !!options.replaceCurrentRun;
   const currentImages = Array.isArray(node.__easyuseAnimaGeneratorCurrentRunImages)
@@ -6583,6 +6813,54 @@ function handleGeneratorPreviewEvent(event) {
   addGeneratorPreviewImagesToNode(node, images, String(detail.run_id || ""));
 }
 
+function findGeneratorNodeForDenoisePreview(detail) {
+  for (const id of generatorNodeIdsFromDetail(detail)) {
+    const node = findGeneratorNodeByQualifiedId(app.graph, id);
+    if (node?.type === GENERATOR_NODE_TYPE) {
+      return node;
+    }
+  }
+  return null;
+}
+
+function handleGeneratorProgressEvent(event) {
+  rememberGeneratorProgress(generatorPreviewEventDetail(event));
+}
+
+function handleGeneratorProgressStateEvent(event) {
+  rememberGeneratorProgressState(generatorPreviewEventDetail(event));
+}
+
+function handleGeneratorDenoisePreviewEvent(event) {
+  const detail = generatorPreviewEventDetail(event);
+  const node = findGeneratorNodeForDenoisePreview(detail);
+  const blob = detail?.blob;
+  if (!node || !blob) {
+    return;
+  }
+  scheduleGeneratorDefaultPreviewSuppression(node);
+  setGeneratorDenoisePreview(node, blob, detail);
+}
+
+function handleGeneratorExecutingEvent(event) {
+  const nodeId = generatorPreviewEventDetail(event);
+  const node = findGeneratorNodeByQualifiedId(app.graph, nodeId);
+  if (node?.type === GENERATOR_NODE_TYPE) {
+    clearGeneratorDenoisePreview(node, true);
+    scheduleGeneratorDefaultPreviewSuppression(node);
+  }
+}
+
+function clearGeneratorDenoisePreviews() {
+  GENERATOR_PROGRESS_BY_NODE.clear();
+  for (const node of generatorGraphNodes()) {
+    if (node?.type === GENERATOR_NODE_TYPE) {
+      clearGeneratorDenoisePreview(node, true);
+      scheduleGeneratorDefaultPreviewSuppression(node);
+    }
+  }
+}
+
 function hookNode(node, nodeData) {
   if (nodeData.name === INPUT_NODE_TYPE) {
     hookInputNode(node);
@@ -6597,6 +6875,13 @@ app.registerExtension({
     installGeneratorQueuePromptHook();
     easyuseAnimaWatchLocale(refreshGeneratorPanels);
     api.addEventListener(GENERATOR_PREVIEW_EVENT, handleGeneratorPreviewEvent);
+    api.addEventListener("progress", handleGeneratorProgressEvent);
+    api.addEventListener("progress_state", handleGeneratorProgressStateEvent);
+    api.addEventListener("b_preview_with_metadata", handleGeneratorDenoisePreviewEvent);
+    api.addEventListener("executing", handleGeneratorExecutingEvent);
+    api.addEventListener("execution_error", clearGeneratorDenoisePreviews);
+    api.addEventListener("execution_interrupted", clearGeneratorDenoisePreviews);
+    api.addEventListener("execution_success", clearGeneratorDenoisePreviews);
     loadGeneratorSamplerOptions().then(refreshGeneratorPanels);
   },
   async beforeRegisterNodeDef(nodeType, nodeData) {
@@ -6623,11 +6908,9 @@ app.registerExtension({
         return result;
       };
       nodeType.prototype.onExecuted = function (message) {
-        suppressGeneratorDefaultPreview(this);
+        scheduleGeneratorDefaultPreviewSuppression(this);
         updateGeneratorExecutedStatus(this, message);
-        suppressGeneratorDefaultPreview(this);
-        requestAnimationFrame(() => suppressGeneratorDefaultPreview(this));
-        setTimeout(() => suppressGeneratorDefaultPreview(this), 0);
+        scheduleGeneratorDefaultPreviewSuppression(this);
         return undefined;
       };
       const onResize = nodeType.prototype.onResize;
