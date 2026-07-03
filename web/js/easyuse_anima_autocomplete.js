@@ -1047,6 +1047,36 @@ function replaceInputRange(input, start, end, replacement, caretOffset) {
   input.setSelectionRange(caret, caret);
 }
 
+function suppressAutocompleteUntilInputChanges(input) {
+  if (!input) {
+    return;
+  }
+  const start = input.selectionStart ?? 0;
+  input.__easyuseAnimaSuppressAutocomplete = {
+    value: input.value || "",
+    selectionStart: start,
+    selectionEnd: input.selectionEnd ?? start,
+  };
+}
+
+function shouldSuppressAutocomplete(input) {
+  const suppression = input?.__easyuseAnimaSuppressAutocomplete;
+  if (!suppression) {
+    return false;
+  }
+  const start = input.selectionStart ?? 0;
+  const end = input.selectionEnd ?? start;
+  if (
+    suppression.value === (input.value || "")
+    && suppression.selectionStart === start
+    && suppression.selectionEnd === end
+  ) {
+    return true;
+  }
+  input.__easyuseAnimaSuppressAutocomplete = null;
+  return false;
+}
+
 function dispatchAutocompleteCanvasPointerEvent(type, sourceEvent, overrides = {}) {
   const canvas = app.canvas?.canvas;
   if (!canvas || typeof PointerEvent === "undefined") {
@@ -1144,7 +1174,7 @@ function forwardMiddlePanFromAutocompleteInput(event) {
   return true;
 }
 
-function commitSuggestion(state, entry) {
+function commitSuggestion(state, entry, options = {}) {
   const token = currentToken(state.input);
   const wildcardToken = entry?.kind === "wildcard" ? currentWildcardToken(state.input) : null;
   if (wildcardToken) {
@@ -1155,6 +1185,9 @@ function commitSuggestion(state, entry) {
       state.widget.callback?.(state.input.value);
     }
     state.onCommit?.(state.input.value);
+    if (options.suppressPopup) {
+      suppressAutocompleteUntilInputChanges(state.input);
+    }
     hidePopup();
     return;
   }
@@ -1174,6 +1207,9 @@ function commitSuggestion(state, entry) {
     state.widget.callback?.(state.input.value);
   }
   state.onCommit?.(state.input.value);
+  if (options.suppressPopup) {
+    suppressAutocompleteUntilInputChanges(state.input);
+  }
   hidePopup();
 }
 
@@ -1533,6 +1569,12 @@ function hookInput(input, options = {}) {
       }
       return;
     }
+    if (shouldSuppressAutocomplete(input)) {
+      if (activeState?.input === input) {
+        hidePopup();
+      }
+      return;
+    }
     if (isCaretInComment(input.value || "", input.selectionStart ?? 0)) {
       hidePopup();
       return;
@@ -1565,7 +1607,7 @@ function hookInput(input, options = {}) {
       const results = context.kind === "wildcard"
         ? await searchWildcards(context.query)
         : await search(context.query, context.category);
-      if (document.activeElement === input && seq === updateSeq) {
+      if (document.activeElement === input && seq === updateSeq && !shouldSuppressAutocomplete(input)) {
         renderResults(state, strictAutocompleteResults(context, token, state, results), signature);
       }
     } catch {
@@ -1659,7 +1701,9 @@ function hookInput(input, options = {}) {
       || (event.key === "Enter" && autocompleteCommitKey === "enter")
     ) {
       event.preventDefault();
-      commitSuggestion(activeState, activeState.results[activeState.index]);
+      commitSuggestion(activeState, activeState.results[activeState.index], {
+        suppressPopup: true,
+      });
     } else if (event.key === "Escape") {
       event.preventDefault();
       hidePopup();
