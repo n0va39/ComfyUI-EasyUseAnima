@@ -685,6 +685,7 @@ const AIO_TEXT = {
     "text.previewPrevious": "Previous",
     "text.previewCurrent": "Current",
     "text.previewDenoise": "Denoising preview",
+    "text.previewGenerating": "Generating",
     "text.inputLoaderMode": "Loader mode: split diffusion model + VAE + CLIP",
     "text.highresDisabled": "Enable Highres to expose resize and second-pass controls.",
     "text.highresSpdManualRequired": "Spectrum SPD / SPEED is not reused by Highres. Highres uses the general KSampler path.",
@@ -921,6 +922,7 @@ const AIO_TEXT = {
     "text.previewPrevious": "이전",
     "text.previewCurrent": "현재",
     "text.previewDenoise": "노이즈 제거 미리보기",
+    "text.previewGenerating": "생성 중",
     "text.inputLoaderMode": "로드 방식: 디퓨전 모델 + VAE + CLIP 분리 로드",
     "text.highresDisabled": "Highres를 켜면 확대와 2차 샘플링 기본 설정이 표시됩니다.",
     "text.highresSpdManualRequired": "Spectrum SPD / SPEED는 Highres에서 재사용하지 않습니다. Highres는 일반 KSampler 경로를 사용합니다.",
@@ -1011,6 +1013,7 @@ const AIO_TEXT = {
     "text.previewTitle": "生成画像プレビュー",
     "text.previewSubtitle": "このノード出力専用のプレビュー領域です。",
     "text.previewDenoise": "デノイズプレビュー",
+    "text.previewGenerating": "生成中",
     "text.highresDisabled": "Highres を有効にすると拡大と二回目サンプリングの基本設定を表示します。",
     "text.highresSpdManualRequired": "Spectrum SPD / SPEED は Highres では再利用しません。Highres は通常 KSampler 経路を使います。",
     "text.detailerDisabled": "Detailer を有効にすると順序変更できる処理ブロックを表示します。",
@@ -1095,6 +1098,7 @@ const AIO_TEXT = {
     "text.previewTitle": "生成图像预览",
     "text.previewSubtitle": "此区域专用于该节点输出预览。",
     "text.previewDenoise": "降噪预览",
+    "text.previewGenerating": "生成中",
     "text.highresDisabled": "启用 Highres 后显示放大和第二次采样基础设置。",
     "text.highresSpdManualRequired": "Spectrum SPD / SPEED 不会被 Highres 复用。Highres 使用普通 KSampler 路径。",
     "text.detailerDisabled": "启用 Detailer 后显示可排序的处理块。",
@@ -2656,6 +2660,11 @@ function ensureStyle() {
     .easyuse-anima-aio-node-panel * {
       box-sizing: border-box;
     }
+    @keyframes easyuse-anima-aio-spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
     .easyuse-anima-aio-node-topbar {
       display: flex;
       align-items: center;
@@ -3171,6 +3180,25 @@ function ensureStyle() {
       height: 100%;
       display: block;
       object-fit: cover;
+    }
+    .easyuse-anima-aio-node-preview-thumb.pending {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background:
+        linear-gradient(135deg, rgba(135, 200, 235, 0.08), rgba(255, 255, 255, 0.02)),
+        #11161b;
+      border-style: dashed;
+      cursor: default;
+    }
+    .easyuse-anima-aio-node-preview-thumb.pending::before {
+      content: "";
+      width: 18px;
+      height: 18px;
+      border: 2px solid rgba(174, 187, 192, 0.38);
+      border-top-color: rgba(135, 200, 235, 0.88);
+      border-radius: 50%;
+      animation: easyuse-anima-aio-spin 0.9s linear infinite;
     }
     .easyuse-anima-aio-node-preview-thumb span {
       position: absolute;
@@ -4038,6 +4066,61 @@ function updateGeneratorDomSummary(node) {
   updateGeneratorDomPreview(node);
 }
 
+function renderGeneratorPreviewFeed(node, panel, images, settings, selectedIndex, options = {}) {
+  const feed = panel?.querySelector?.("[data-aio-preview-feed]");
+  if (!feed) {
+    return;
+  }
+  const showPending = !!options.showPending;
+  feed.replaceChildren();
+  feed.hidden = !settings.preview.image_feed || (!images.length && !showPending);
+  if (feed.hidden) {
+    return;
+  }
+  let selectedThumb = null;
+  let pendingThumb = null;
+  for (const [index, image] of images.entries()) {
+    const thumbUrl = generatorImageUrl(image);
+    if (!thumbUrl) {
+      continue;
+    }
+    const thumb = document.createElement("button");
+    thumb.type = "button";
+    thumb.className = "easyuse-anima-aio-node-preview-thumb";
+    if (index === selectedIndex) {
+      thumb.classList.add("active");
+      selectedThumb = thumb;
+    }
+    thumb.title = generatorPreviewImageLabel(image);
+    const thumbImage = document.createElement("img");
+    thumbImage.src = thumbUrl;
+    thumbImage.alt = "";
+    thumbImage.loading = "lazy";
+    const label = document.createElement("span");
+    label.textContent = generatorPreviewImageLabel(image);
+    thumb.append(thumbImage, label);
+    thumb.addEventListener("click", () => {
+      node.__easyuseAnimaSelectedPreviewIndex = index;
+      updateGeneratorDomPreview(node);
+    });
+    feed.append(thumb);
+  }
+  if (showPending) {
+    const pendingLabel = aioText("text.previewGenerating");
+    pendingThumb = document.createElement("button");
+    pendingThumb.type = "button";
+    pendingThumb.className = "easyuse-anima-aio-node-preview-thumb pending";
+    pendingThumb.disabled = true;
+    pendingThumb.title = pendingLabel;
+    pendingThumb.setAttribute("aria-label", pendingLabel);
+    const label = document.createElement("span");
+    label.textContent = pendingLabel;
+    pendingThumb.append(label);
+    feed.append(pendingThumb);
+  }
+  (pendingThumb || selectedThumb)?.scrollIntoView?.({ block: "nearest", inline: "nearest" });
+}
+
 function updateGeneratorDomPreview(node) {
   const panel = node?.__easyuseAnimaGeneratorPanelEl;
   const previewBox = panel?.querySelector?.("[data-aio-preview-box]");
@@ -4060,11 +4143,17 @@ function updateGeneratorDomPreview(node) {
     labelEl.title = label;
     preview.append(img, labelEl);
     previewBox.replaceChildren(preview);
-    const feed = panel?.querySelector?.("[data-aio-preview-feed]");
-    if (feed) {
-      feed.hidden = true;
-      feed.replaceChildren();
-    }
+    const feedImages = Array.isArray(node.__easyuseAnimaGeneratorPreviewImages)
+      ? node.__easyuseAnimaGeneratorPreviewImages
+      : [];
+    renderGeneratorPreviewFeed(
+      node,
+      panel,
+      feedImages,
+      settings,
+      generatorSelectedPreviewIndex(node, feedImages),
+      { showPending: true },
+    );
     const metaEl = panel.querySelector("[data-aio-preview-meta]");
     if (metaEl) {
       metaEl.textContent = "";
@@ -4165,43 +4254,7 @@ function updateGeneratorDomPreview(node) {
     previewBox.replaceChildren(makeImage(currentImage));
   }
 
-  const feed = panel?.querySelector?.("[data-aio-preview-feed]");
-  if (!feed) {
-    return;
-  }
-  feed.replaceChildren();
-  feed.hidden = !settings.preview.image_feed;
-  if (feed.hidden) {
-    return;
-  }
-  let selectedThumb = null;
-  for (const [index, image] of images.entries()) {
-    const thumbUrl = generatorImageUrl(image);
-    if (!thumbUrl) {
-      continue;
-    }
-    const thumb = document.createElement("button");
-    thumb.type = "button";
-    thumb.className = "easyuse-anima-aio-node-preview-thumb";
-    if (index === selectedIndex) {
-      thumb.classList.add("active");
-      selectedThumb = thumb;
-    }
-    thumb.title = generatorPreviewImageLabel(image);
-    const thumbImage = document.createElement("img");
-    thumbImage.src = thumbUrl;
-    thumbImage.alt = "";
-    thumbImage.loading = "lazy";
-    const label = document.createElement("span");
-    label.textContent = generatorPreviewImageLabel(image);
-    thumb.append(thumbImage, label);
-    thumb.addEventListener("click", () => {
-      node.__easyuseAnimaSelectedPreviewIndex = index;
-      updateGeneratorDomPreview(node);
-    });
-    feed.append(thumb);
-  }
-  selectedThumb?.scrollIntoView?.({ block: "nearest", inline: "nearest" });
+  renderGeneratorPreviewFeed(node, panel, images, settings, selectedIndex);
 }
 
 function cssEscape(value) {
