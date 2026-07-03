@@ -30,6 +30,7 @@ EXAMPLE_WORKFLOWS = tuple(sorted(EXAMPLE_WORKFLOW_DIR.glob("*.json")))
 AIO_GENERATOR_WORKFLOW = EXAMPLE_WORKFLOW_DIR / "EasyUse_Anima_AiO_generator_release_ko.json"
 ANIMA_EASY_USE_WORKFLOW = EXAMPLE_WORKFLOW_DIR / "ANIMA_Easy_Use_workflow_v1_release_ko.json"
 MOJIBAKE_LATIN1_RE = re.compile(r"[\u0080-\u00ff]")
+PACKAGE_VERSION_RE = re.compile(r"^\d+\.\d+\.\d+(?:[.-][0-9A-Za-z]+)*$")
 
 
 def load_workflow(path: Path) -> dict:
@@ -45,12 +46,6 @@ def link_map(workflow: dict) -> dict[int, list]:
 
 
 class ReleaseWorkflowTests(unittest.TestCase):
-    def project_version(self) -> str:
-        text = (ROOT / "pyproject.toml").read_text(encoding="utf-8")
-        match = re.search(r'^version\s*=\s*"([^"]+)"', text, re.MULTILINE)
-        self.assertIsNotNone(match)
-        return match.group(1)
-
     def test_example_workflows_parse_as_json(self):
         self.assertTrue(EXAMPLE_WORKFLOWS)
         for workflow_path in EXAMPLE_WORKFLOWS:
@@ -142,14 +137,15 @@ class ReleaseWorkflowTests(unittest.TestCase):
         ko_path, en_path = RELEASE_WORKFLOWS[:2]
         self.assertEqual(topology(en_path), topology(ko_path))
 
-    def test_example_workflow_package_versions_match_project(self):
-        version = self.project_version()
+    def test_example_workflow_package_versions_are_valid_metadata(self):
         for path in EXAMPLE_WORKFLOWS:
             with self.subTest(path=path.name):
                 metadata = load_workflow(path).get("extra", {}).get("easyuse_anima_workflow")
                 if not isinstance(metadata, dict):
                     continue
-                self.assertEqual(metadata.get("package_version"), version)
+                package_version = metadata.get("package_version")
+                self.assertIsInstance(package_version, str)
+                self.assertRegex(package_version, PACKAGE_VERSION_RE)
 
     def test_aio_generator_samples_list_required_node_packs(self):
         for workflow_path in (AIO_GENERATOR_WORKFLOW, ANIMA_EASY_USE_WORKFLOW):

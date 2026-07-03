@@ -1,5 +1,43 @@
 # Release Notes
 
+## 0.2.5
+
+### Added
+
+- Added prompt translation marker support for Prompt Studio and autocomplete
+  flows, backed by the new prompt translation runtime helper and settings.
+- Added English ANIMA Easy Use workflow documentation alongside the existing
+  Korean guide.
+
+### Changed
+
+- Prompt Studio text areas now use the system UI font and root font size by
+  default instead of forcing the Advanced editor to a fixed 12px monospace
+  font.
+- Prompt Studio highlight overlays re-copy input text metrics after settings
+  changes so input text and overlay rendering stay aligned.
+- Added manual Prompt Studio font correction settings for display mismatch
+  cases:
+  - `prompt_studio.font_override`
+  - `prompt_studio.font_family`
+  - `prompt_studio.font_size`
+- AiO Generator preview handling was refined so Comfy native denoising previews
+  are rendered in the EasyUse Anima preview panel while duplicate native overlay
+  previews are suppressed.
+
+### Fixed
+
+- Fixed AiO native preview overlay cleanup so stale overlay state is cleared
+  when preview ownership changes.
+- Updated workflow validation coverage for the native preview suppression path.
+
+### Validation Notes
+
+- Added regression coverage for prompt translation marker handling in prompt
+  correction and autocomplete-related flows.
+- Added regression coverage for Prompt Studio font setting defaults and AiO
+  native preview suppression behavior.
+
 ## 0.2.4
 
 ### Fixed

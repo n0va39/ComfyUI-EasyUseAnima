@@ -73,7 +73,7 @@ REPLACE_DEPTH = 100
 WILDCARD_EXTENSIONS = {".txt", ".yaml", ".yml"}
 
 COMMENT_RE = re.compile(r"^\s*#.*(?:\n|$)", re.MULTILINE)
-DYNAMIC_RE = re.compile(r"(?<!\\)\{((?:[^{}]|(?<=\\)[{}])*?)(?<!\\)\}")
+DYNAMIC_RE = re.compile(r"(?<![\\%])\{((?:[^{}]|(?<=\\)[{}])*?)(?<!\\)\}")
 WILDCARD_RE = re.compile(r"__(?P<keyword>[\w.\-+/*\\]+?)__", re.IGNORECASE)
 WILDCARD_FULL_RE = re.compile(r"^__(?P<keyword>[\w.\-+/*\\]+?)__$", re.IGNORECASE)
 WILDCARD_QUANTIFIER_RE = re.compile(

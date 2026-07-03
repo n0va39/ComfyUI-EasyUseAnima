@@ -81,6 +81,7 @@ const PROMPT_STUDIO_COMMON_TEXT = {
     "section.meta": "Meta",
     "section.general": "Trained tag",
     "section.natural": "Natural language",
+    "section.translation": "Translation marker",
     "section.wildcard": "Wildcard",
     "section.comment": "Comment",
     "section.syntax": "Syntax error",
@@ -113,6 +114,7 @@ const PROMPT_STUDIO_COMMON_TEXT = {
     "section.meta": "메타",
     "section.general": "학습 태그",
     "section.natural": "자연어",
+    "section.translation": "번역 구문",
     "section.wildcard": "와일드카드",
     "section.comment": "주석",
     "section.syntax": "문법 오류",
@@ -145,6 +147,7 @@ const PROMPT_STUDIO_COMMON_TEXT = {
     "section.meta": "メタ",
     "section.general": "学習タグ",
     "section.natural": "自然文",
+    "section.translation": "翻訳構文",
     "section.wildcard": "ワイルドカード",
     "section.comment": "コメント",
     "section.syntax": "構文エラー",
@@ -177,6 +180,7 @@ const PROMPT_STUDIO_COMMON_TEXT = {
     "section.meta": "元数据",
     "section.general": "训练标签",
     "section.natural": "自然语言",
+    "section.translation": "翻译语法",
     "section.wildcard": "通配符",
     "section.comment": "注释",
     "section.syntax": "语法错误",
@@ -211,6 +215,7 @@ const SECTION_STYLES = {
   meta: { label: "Meta", color: "#94a3b8", background: "rgba(100, 116, 139, 0.18)", weight: 600 },
   general: { label: "Trained tag", color: "#4ade80", background: "rgba(22, 163, 74, 0.16)", weight: 600 },
   natural: { label: "Natural language", color: "#cbd5e1", background: "rgba(71, 85, 105, 0.16)", weight: 400 },
+  translation: { label: "Translation marker", color: "#22d3ee", background: "rgba(8, 145, 178, 0.22)", weight: 700 },
   wildcard: { label: "Wildcard", color: "#c084fc", background: "rgba(126, 34, 206, 0.24)", weight: 700 },
   comment: { label: "Comment", color: "#9ca3af", background: "rgba(156, 163, 175, 0.14)", weight: 400, italic: true },
   syntax: { label: "Syntax error", color: "#f87171", background: "transparent", underline: true, weight: 400 },
@@ -883,6 +888,21 @@ function findDynamicPromptRange(value, offset) {
   return null;
 }
 
+function findPromptTranslationRange(value, offset) {
+  for (let start = offset; start < value.length; start += 1) {
+    if (value[start] !== "%" || value[start + 1] !== "{" || isEscapedAt(value, start)) {
+      continue;
+    }
+    for (let cursor = start + 2; cursor < value.length; cursor += 1) {
+      if (value[cursor] === "}" && !isEscapedAt(value, cursor)) {
+        return { start, end: cursor + 1 };
+      }
+    }
+    return null;
+  }
+  return null;
+}
+
 function findWildcardSyntaxRange(value, offset) {
   WILDCARD_HIGHLIGHT_RE.lastIndex = offset;
   const wildcardMatch = WILDCARD_HIGHLIGHT_RE.exec(value);
@@ -910,6 +930,7 @@ function findArtistMixGroupSyntaxRange(value, offset) {
 function firstSyntaxRange(value, offset) {
   const ranges = [
     findWildcardSyntaxRange(value, offset),
+    findPromptTranslationRange(value, offset),
     findArtistMixGroupSyntaxRange(value, offset),
   ].filter(Boolean);
   if (!ranges.length) {
@@ -1027,6 +1048,12 @@ function wildcardSyntaxSpanHtml(text) {
     + "</span>";
 }
 
+function translationSyntaxSpanHtml(text) {
+  return `<span style="${tokenStyle({ section: "translation" })}" title="${escapeHtml(sectionLabel("translation"))}">`
+    + escapeHtml(text)
+    + "</span>";
+}
+
 function findTopLevelWeightColon(value) {
   let depth = 0;
   let colon = -1;
@@ -1116,9 +1143,13 @@ function syntaxHtml(text) {
     }
     html.push(basicSyntaxHtml(value.slice(cursor, range.start)));
     const snippet = value.slice(range.start, range.end);
-    html.push(snippet.startsWith("[[")
-      ? artistMixGroupSyntaxHtml(snippet)
-      : wildcardSyntaxSpanHtml(snippet));
+    if (snippet.startsWith("[[")) {
+      html.push(artistMixGroupSyntaxHtml(snippet));
+    } else if (snippet.startsWith("%{")) {
+      html.push(translationSyntaxSpanHtml(snippet));
+    } else {
+      html.push(wildcardSyntaxSpanHtml(snippet));
+    }
     cursor = range.end;
   }
   html.push(basicSyntaxHtml(value.slice(cursor)));

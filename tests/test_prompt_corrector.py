@@ -49,6 +49,12 @@ from autocomplete_dataset import (
     resolve_autocomplete_source,
     search_autocomplete,
 )
+from prompt_translation import (
+    PROMPT_TRANSLATION_PROVIDER_GOOGLE,
+    PromptTranslationSettings,
+    strip_prompt_translation_markers,
+    translate_prompt_markers,
+)
 from settings import (
     NAIA_PREPROCESSING_KEYS,
     public_settings,
@@ -66,6 +72,7 @@ from settings import (
     resolve_prompt_studio_font_family,
     resolve_prompt_studio_font_size,
 )
+from wildcard_engine import expand_wildcards
 
 
 class PromptCorrectorTests(unittest.TestCase):
@@ -95,6 +102,74 @@ class PromptCorrectorTests(unittest.TestCase):
         self.assertEqual(corrected, "1girl, long hair")
         data = json.loads(report)
         self.assertEqual(data["duplicate_tags"], ["long hair"])
+
+    def test_prompt_translation_marker_translates_only_wrapped_text(self):
+        def fake_translate(text, source="auto", target="en"):
+            self.assertEqual(source, "ko")
+            self.assertEqual(target, "en")
+            return {"빨간 머리의 소녀": "girl with red hair"}[text]
+
+        with patch("prompt_translation.google_translate_text", side_effect=fake_translate):
+            translated = translate_prompt_markers(
+                "1girl, %{빨간 머리의 소녀}, blue eyes",
+                PromptTranslationSettings(
+                    provider=PROMPT_TRANSLATION_PROVIDER_GOOGLE,
+                    source="ko",
+                    target="en",
+                ),
+            )
+
+        self.assertEqual(translated, "1girl, girl with red hair, blue eyes")
+
+    def test_prompt_translation_marker_off_mode_unwraps_without_external_call(self):
+        self.assertEqual(
+            strip_prompt_translation_markers(r"1girl, %{검은 드레스}, \%{literal}"),
+            r"1girl, 검은 드레스, \%{literal}",
+        )
+
+    def test_prompt_correctors_translate_marked_text_before_correction(self):
+        with (
+            patch(
+                "nodes.resolve_prompt_translation_settings",
+                return_value=PromptTranslationSettings(
+                    provider=PROMPT_TRANSLATION_PROVIDER_GOOGLE,
+                    source="ko",
+                    target="en",
+                ),
+            ),
+            patch("prompt_translation.google_translate_text", return_value="long_hair, 1girl"),
+        ):
+            corrected, report = EasyUseAnimaPromptCorrector().correct("%{긴 머리 소녀}", "", "")
+            simple = EasyUseAnimaPromptCorrectorSimple().correct("%{긴 머리 소녀}")[0]
+
+        self.assertEqual(corrected, "1girl, long hair")
+        self.assertEqual(simple, "1girl, long hair")
+        self.assertTrue(json.loads(report)["changed"])
+
+    def test_prompt_builder_translates_marked_text_before_correction(self):
+        with (
+            patch(
+                "nodes.resolve_prompt_translation_settings",
+                return_value=PromptTranslationSettings(
+                    provider=PROMPT_TRANSLATION_PROVIDER_GOOGLE,
+                    source="ko",
+                    target="en",
+                ),
+            ),
+            patch("prompt_translation.google_translate_text", return_value="girl with red hair"),
+        ):
+            prompt, _quality, _use_amg, metadata_prompt = EasyUseAnimaPromptBuilder().build(
+                False,
+                False,
+                "",
+                "",
+                "",
+                "%{빨간 머리의 소녀}",
+                "",
+            )
+
+        self.assertEqual(prompt, "girl with red hair")
+        self.assertEqual(metadata_prompt, "girl with red hair")
 
     def test_preserves_prompt_weight_syntax_and_escapes_literal_parentheses(self):
         corrected, report = EasyUseAnimaPromptCorrector().correct(
@@ -1017,6 +1092,42 @@ class PromptBuilderTests(unittest.TestCase):
         self.assertEqual(prompt_data["height"], 1152)
         self.assertEqual(prompt_data["resolution"]["width"], 896)
         self.assertEqual(prompt_data["resolution"]["height"], 1152)
+
+    def test_prompt_studio_advanced_v2_translates_marked_text_in_prompt_data(self):
+        fields = [
+            {
+                "id": "general",
+                "pane": "positive",
+                "type": "general",
+                "label": "General Tags",
+                "text": "1girl, %{빨간 머리의 소녀}",
+                "height": 120,
+            },
+        ]
+        with (
+            patch(
+                "nodes.resolve_prompt_translation_settings",
+                return_value=PromptTranslationSettings(
+                    provider=PROMPT_TRANSLATION_PROVIDER_GOOGLE,
+                    source="ko",
+                    target="en",
+                ),
+            ),
+            patch("prompt_translation.google_translate_text", return_value="girl with red hair"),
+        ):
+            result = EasyUseAnimaPromptStudioAdvancedV2().build(
+                False,
+                False,
+                False,
+                False,
+                json.dumps(fields),
+            )
+
+        prompt_data = result["result"][0]
+        ui_fields = json.loads(result["ui"]["prompt_studio_advanced"][0]["advanced_fields"])
+        self.assertIn("girl with red hair", prompt_data["positive_prompt"])
+        self.assertNotIn("%{", prompt_data["positive_prompt"])
+        self.assertEqual(ui_fields[0]["text"], "1girl, %{빨간 머리의 소녀}")
 
     def test_prompt_studio_advanced_v2_tracks_required_parameters_in_prompt_data(self):
         fields = [
@@ -2483,6 +2594,9 @@ class SettingsTests(unittest.TestCase):
                 "prompt_studio.font_size",
                 "prompt_studio.colors",
                 "prompt_studio.naia_general_above_auto_toggle",
+                "prompt_translation.provider",
+                "prompt_translation.source",
+                "prompt_translation.target",
                 "wildcard.extra_paths",
                 "naia.host",
                 "naia.port",
@@ -3017,6 +3131,24 @@ class AutocompleteDatasetTests(unittest.TestCase):
                 ("{1-3$$, $$red|blue}", "wildcard"),
             ],
         )
+
+    def test_translation_marker_syntax_is_classified_for_highlighting(self):
+        classified = classify_prompt_text("1girl, %{빨간 머리의 소녀}, blue eyes")
+
+        self.assertEqual(
+            [(token["base"], token["section"]) for token in classified["tokens"]],
+            [
+                ("1girl", "count"),
+                ("%{빨간 머리의 소녀}", "translation"),
+                ("blue eyes", "general"),
+            ],
+        )
+
+    def test_translation_marker_is_not_expanded_as_dynamic_prompt(self):
+        expanded = expand_wildcards("1girl, %{red hair|blue hair}, {smile|serious}", seed=0)
+
+        self.assertIn("%{red hair|blue hair}", expanded.text)
+        self.assertNotIn("{smile|serious}", expanded.text)
 
     def test_inline_hash_and_slash_sequences_stay_in_prompt_text(self):
         prompt = "1girl, # not a line comment\nhttp://example.com/ref, foo//bar"

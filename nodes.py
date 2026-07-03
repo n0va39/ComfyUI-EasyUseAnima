@@ -15,7 +15,12 @@ from typing import Any, Optional
 try:
     from .anima_prompt import correct_prompt, load_knowledge_base
     from .anima_prompt.parser import parse_prompt
-    from .settings import resolve_metadata_filter_words, resolve_naia_settings
+    from .settings import (
+        resolve_metadata_filter_words,
+        resolve_naia_settings,
+        resolve_prompt_translation_settings,
+    )
+    from .prompt_translation import has_prompt_translation_markers, translate_prompt_markers
     from .wildcard_engine import (
         MAX_SEED,
         SEED_CONTROL_FIXED,
@@ -37,7 +42,12 @@ try:
 except ImportError:  # allows simple local import tests outside ComfyUI's package loader
     from anima_prompt import correct_prompt, load_knowledge_base
     from anima_prompt.parser import parse_prompt
-    from settings import resolve_metadata_filter_words, resolve_naia_settings
+    from settings import (
+        resolve_metadata_filter_words,
+        resolve_naia_settings,
+        resolve_prompt_translation_settings,
+    )
+    from prompt_translation import has_prompt_translation_markers, translate_prompt_markers
     from wildcard_engine import (
         MAX_SEED,
         SEED_CONTROL_FIXED,
@@ -3974,6 +3984,33 @@ def _join_prompt_tokens(*parts: str) -> str:
     return ", ".join(tokens)
 
 
+def _translate_prompt_text(value: str) -> str:
+    text = str(value or "")
+    if not text or not has_prompt_translation_markers(text):
+        return text
+    return translate_prompt_markers(text, resolve_prompt_translation_settings())
+
+
+def _translate_prompt_fields(fields: list[dict]) -> list[dict]:
+    translated: list[dict] = []
+    for field in fields:
+        item = dict(field)
+        text = str(item.get("text") or "")
+        if text and has_prompt_translation_markers(text):
+            item["text"] = _translate_prompt_text(text)
+        translated.append(item)
+    return translated
+
+
+def _prompt_translation_change_key() -> dict[str, str]:
+    settings = resolve_prompt_translation_settings()
+    return {
+        "provider": settings.provider,
+        "source": settings.source,
+        "target": settings.target,
+    }
+
+
 def _correct_builder_prompt(prompt: str, artist_overrides: str = "") -> str:
     if not prompt:
         return ""
@@ -7181,6 +7218,7 @@ class EasyUseAnimaPromptCorrector:
     def IS_CHANGED(cls, **kwargs):
         return _stable_change_key({
             "mode": "prompt_corrector",
+            "prompt_translation": _prompt_translation_change_key(),
             **{key: str(value) for key, value in sorted(kwargs.items())},
         })
 
@@ -7190,6 +7228,7 @@ class EasyUseAnimaPromptCorrector:
         artist_overrides: str,
         artist_exclusions: str,
     ):
+        prompt = _translate_prompt_text(prompt)
         try:
             kb = load_knowledge_base(allow_missing=True)
             result = correct_prompt(
@@ -7248,6 +7287,7 @@ class EasyUseAnimaPromptCorrectorSimple:
     def IS_CHANGED(cls, **kwargs):
         return _stable_change_key({
             "mode": "prompt_corrector_simple",
+            "prompt_translation": _prompt_translation_change_key(),
             **{key: str(value) for key, value in sorted(kwargs.items())},
         })
 
@@ -7528,6 +7568,7 @@ class EasyUseAnimaPromptBuilder:
         return _stable_change_key({
             "mode": "prompt_builder",
             "metadata_filter_words": resolve_metadata_filter_words(),
+            "prompt_translation": _prompt_translation_change_key(),
             **{key: str(value) for key, value in sorted(kwargs.items())},
         })
 
@@ -7543,6 +7584,11 @@ class EasyUseAnimaPromptBuilder:
     ):
         use_amg = _as_bool(use_anima_mod_guidance, False)
         pin_triggers = _as_bool(pin_trigger_tags_to_front, False)
+        quality_tags = _translate_prompt_text(quality_tags)
+        trigger_and_artist_tags = _translate_prompt_text(trigger_and_artist_tags)
+        lora_trigger_tags = _translate_prompt_text(lora_trigger_tags)
+        prompt = _translate_prompt_text(prompt)
+        trailing_quality_tags = _translate_prompt_text(trailing_quality_tags)
 
         trigger_prompt = _join_prompt_tokens(trigger_and_artist_tags, lora_trigger_tags)
         quality_prompt = _join_prompt_tokens(quality_tags)
@@ -7853,6 +7899,7 @@ class EasyUseAnimaPromptStudioAdvanced:
         return _stable_change_key({
             "mode": "prompt_studio_advanced",
             "metadata_filter_words": resolve_metadata_filter_words(),
+            "prompt_translation": _prompt_translation_change_key(),
             "wildcard_sources": wildcard_sources_signature() if wildcard_active else {},
             "wildcard_mode": wildcard_mode_key,
             "wildcard_seed": normalize_seed(wildcard_seed),
@@ -8026,6 +8073,7 @@ class EasyUseAnimaPromptStudioAdvanced:
             wildcard_seed_value,
             wildcard_mode_key,
         )
+        effective_fields = _translate_prompt_fields(effective_fields)
         wildcard_changed = bool(saved_wildcard["changed"] or effective_wildcard["changed"])
         if wildcard_mode_key in {WILDCARD_MODE_POPULATE, WILDCARD_MODE_FIXED, WILDCARD_MODE_SEQUENTIAL}:
             next_wildcard_seed = next_seed(wildcard_seed_value, wildcard_effective_seed_control)
@@ -8349,6 +8397,7 @@ class EasyUseAnimaPromptStudioAdvancedV2(EasyUseAnimaPromptStudioAdvanced):
             normalize_seed(wildcard_seed),
             normalize_wildcard_mode(wildcard_mode),
         )
+        effective_fields = _translate_prompt_fields(effective_fields)
         prompt_data_parameters = _prompt_data_parameter_snapshot(
             self.INPUT_TYPES().get("required", {}),
             {
@@ -9697,6 +9746,7 @@ class EasyUseAnimaPromptStudioRegional:
         return _stable_change_key({
             "mode": "prompt_studio_regional",
             "metadata_filter_words": resolve_metadata_filter_words(),
+            "prompt_translation": _prompt_translation_change_key(),
             "wildcard_sources": wildcard_sources_signature() if wildcard_active else {},
             "wildcard_mode": wildcard_mode_key,
             "wildcard_seed": normalize_seed(wildcard_seed),
@@ -9821,6 +9871,7 @@ class EasyUseAnimaPromptStudioRegional:
             wildcard_seed_value,
             wildcard_mode_key,
         )
+        effective_fields = _translate_prompt_fields(effective_fields)
         wildcard_changed = bool(saved_wildcard["changed"] or effective_wildcard["changed"])
         if wildcard_mode_key in {WILDCARD_MODE_POPULATE, WILDCARD_MODE_FIXED, WILDCARD_MODE_SEQUENTIAL}:
             next_wildcard_seed = next_seed(wildcard_seed_value, wildcard_effective_seed_control)
@@ -10069,6 +10120,7 @@ class EasyUseAnimaPromptStudioExtend:
         return _stable_change_key({
             "mode": "prompt_studio_extend",
             "metadata_filter_words": resolve_metadata_filter_words(),
+            "prompt_translation": _prompt_translation_change_key(),
             "use_anima_mod_guidance": _as_bool(use_anima_mod_guidance, False),
             "use_negative_anima_mod_guidance": _as_bool(use_negative_anima_mod_guidance, False),
             "pin_trigger_tags_to_front": _as_bool(pin_trigger_tags_to_front, False),
@@ -10204,8 +10256,12 @@ class EasyUseAnimaPromptStudioExtend:
                 },
             )
 
+        effective_values = {
+            name: _translate_prompt_text(value)
+            for name, value in values.items()
+        }
         result = _build_advanced_prompts(
-            self._fields_from_slots(values, active_slots),
+            self._fields_from_slots(effective_values, active_slots),
             use_anima_mod_guidance,
             use_negative_anima_mod_guidance,
             pin_trigger_tags_to_front,

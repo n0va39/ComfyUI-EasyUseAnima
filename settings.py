@@ -5,8 +5,24 @@ from pathlib import Path
 
 try:
     from .storage import USER_DATA_DIR
+    from .prompt_translation import (
+        DEFAULT_PROMPT_TRANSLATION_SOURCE,
+        DEFAULT_PROMPT_TRANSLATION_TARGET,
+        PROMPT_TRANSLATION_PROVIDER_GOOGLE,
+        PromptTranslationSettings,
+        normalize_prompt_translation_language,
+        normalize_prompt_translation_provider,
+    )
 except ImportError:
     from storage import USER_DATA_DIR
+    from prompt_translation import (
+        DEFAULT_PROMPT_TRANSLATION_SOURCE,
+        DEFAULT_PROMPT_TRANSLATION_TARGET,
+        PROMPT_TRANSLATION_PROVIDER_GOOGLE,
+        PromptTranslationSettings,
+        normalize_prompt_translation_language,
+        normalize_prompt_translation_provider,
+    )
 
 SETTINGS_FILE = USER_DATA_DIR / "settings.json"
 LONG_TEXT_SETTINGS_FILE = USER_DATA_DIR / "long_text_settings.json"
@@ -35,6 +51,9 @@ DEFAULT_SETTINGS = {
     "prompt_studio.font_size": "12",
     "prompt_studio.colors": "",
     "prompt_studio.naia_general_above_auto_toggle": "false",
+    "prompt_translation.provider": PROMPT_TRANSLATION_PROVIDER_GOOGLE,
+    "prompt_translation.source": DEFAULT_PROMPT_TRANSLATION_SOURCE,
+    "prompt_translation.target": DEFAULT_PROMPT_TRANSLATION_TARGET,
     "wildcard.extra_paths": "",
     "naia.host": "127.0.0.1",
     "naia.port": "7243",
@@ -118,6 +137,7 @@ PROMPT_STUDIO_COLOR_KEYS = [
     "meta",
     "natural",
     "wildcard",
+    "translation",
     "comment",
     "artist_unknown",
     "unknown",
@@ -142,6 +162,9 @@ COMFY_SETTING_KEYS = {
     "EasyUseAnima.Prompt.FontSize": "prompt_studio.font_size",
     "EasyUseAnima.Prompt.HighlightColors": "prompt_studio.colors",
     "EasyUseAnima.Prompt.NaiaGeneralAutoToggle": "prompt_studio.naia_general_above_auto_toggle",
+    "EasyUseAnima.Prompt.TranslationProvider": "prompt_translation.provider",
+    "EasyUseAnima.Prompt.TranslationSource": "prompt_translation.source",
+    "EasyUseAnima.Prompt.TranslationTarget": "prompt_translation.target",
     "EasyUseAnima.Wildcard.ExtraPaths": "wildcard.extra_paths",
     "EasyUseAnima.LoraPreset.NameDisplay": "lora_preset.name_display",
     "EasyUseAnima.LoraPreset.MenuMode": "lora_preset.menu_mode",
@@ -401,6 +424,9 @@ def public_settings() -> dict:
             "prompt_studio.naia_general_above_auto_toggle",
             DEFAULT_SETTINGS["prompt_studio.naia_general_above_auto_toggle"],
         ),
+        "prompt_translation.provider": resolve_prompt_translation_provider(settings),
+        "prompt_translation.source": resolve_prompt_translation_source(settings),
+        "prompt_translation.target": resolve_prompt_translation_target(settings),
         "wildcard.extra_paths": settings.get(
             "wildcard.extra_paths",
             DEFAULT_SETTINGS["wildcard.extra_paths"],
@@ -528,6 +554,47 @@ def resolve_prompt_studio_font_size(settings: dict | None = None) -> int:
     except (TypeError, ValueError):
         value = int(DEFAULT_SETTINGS["prompt_studio.font_size"])
     return max(8, min(24, value))
+
+
+def resolve_prompt_translation_provider(settings: dict | None = None) -> str:
+    settings = settings or get_settings()
+    return normalize_prompt_translation_provider(
+        settings.get(
+            "prompt_translation.provider",
+            DEFAULT_SETTINGS["prompt_translation.provider"],
+        )
+    )
+
+
+def resolve_prompt_translation_source(settings: dict | None = None) -> str:
+    settings = settings or get_settings()
+    return normalize_prompt_translation_language(
+        settings.get(
+            "prompt_translation.source",
+            DEFAULT_SETTINGS["prompt_translation.source"],
+        ),
+        DEFAULT_PROMPT_TRANSLATION_SOURCE,
+    )
+
+
+def resolve_prompt_translation_target(settings: dict | None = None) -> str:
+    settings = settings or get_settings()
+    return normalize_prompt_translation_language(
+        settings.get(
+            "prompt_translation.target",
+            DEFAULT_SETTINGS["prompt_translation.target"],
+        ),
+        DEFAULT_PROMPT_TRANSLATION_TARGET,
+    )
+
+
+def resolve_prompt_translation_settings(settings: dict | None = None) -> PromptTranslationSettings:
+    settings = settings or get_settings()
+    return PromptTranslationSettings(
+        provider=resolve_prompt_translation_provider(settings),
+        source=resolve_prompt_translation_source(settings),
+        target=resolve_prompt_translation_target(settings),
+    )
 
 
 def resolve_naia_port(settings: dict | None = None) -> int:

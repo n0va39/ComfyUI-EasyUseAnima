@@ -13,11 +13,13 @@ try:
     from .anima_prompt.models import TagSection
     from .anima_prompt.ordering import builtin_tag_section
     from .anima_prompt.parser import parse_prompt
+    from .prompt_translation import iter_prompt_translation_markers
 except ImportError:
     from anima_prompt.knowledge import PACKAGE_DATA_DIR
     from anima_prompt.models import TagSection
     from anima_prompt.ordering import builtin_tag_section
     from anima_prompt.parser import parse_prompt
+    from prompt_translation import iter_prompt_translation_markers
 
 LOCALSMILE_AUTOCOMPLETE_CSV = PACKAGE_DATA_DIR / "danbooru_tags_classified.csv"
 AUTOCOMPLETE_CSV = LOCALSMILE_AUTOCOMPLETE_CSV
@@ -375,6 +377,9 @@ def _next_prompt_syntax_range(value: str, cursor: int) -> tuple[str, int, int] |
     if artist_start >= 0:
         artist_end = value.find("]]", artist_start + 2)
         ranges.append(("artist_group", artist_start, artist_end + 2 if artist_end >= 0 else len(value)))
+    for start, end, _segment in iter_prompt_translation_markers(value[cursor:]):
+        ranges.append(("translation", cursor + start, cursor + end))
+        break
     for kind, pattern in (
         ("dynamic", _DYNAMIC_PROMPT_SYNTAX_RE),
         ("wildcard", _WILDCARD_SYNTAX_RE),
@@ -406,6 +411,10 @@ def _classification_tokens_from_chunk(text: str) -> list[tuple[str, bool, bool]]
             break
         if kind == "artist_group":
             result.extend(_classification_tokens_from_artist_group(value[start:end]))
+        elif kind == "translation":
+            token = value[start:end].strip(" ,\n\t")
+            if token:
+                result.append((token, False, False))
         else:
             token = value[start:end].strip(" ,\n\t")
             if token:
@@ -415,6 +424,9 @@ def _classification_tokens_from_chunk(text: str) -> list[tuple[str, bool, bool]]
 
 
 def _token_section(token: str, entry: AutocompleteEntry | None) -> tuple[str, str]:
+    marker = str(token or "").strip()
+    if marker.startswith("%{") and marker.endswith("}"):
+        return ("translation", "번역")
     base = _token_base(token)
     is_artist_request = _is_artist_request(token)
     if _WILDCARD_TOKEN_RE.match(base) or _DYNAMIC_PROMPT_TOKEN_RE.match(base):
