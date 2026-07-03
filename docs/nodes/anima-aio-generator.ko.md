@@ -30,14 +30,21 @@
 | `spectrum_spd_speed` | `KSampler (Spectrum + SPD / SPEED)` 통합 샘플러 직접 호출 | `ComfyUI-Spectrum-KSampler` |
 
 통합 샘플러를 선택하면 일반 KSampler용 Spectrum model patch는 중복 호출하지
-않습니다. Highres와 Detailer 단계는 stage sampler로 실행되며 기본적으로 메인
-CFG, sampler, scheduler를 따릅니다.
+않습니다. Highres는 기본적으로 1차 샘플러 경로를 재사용하되, `Steps`와
+`Denoise`만 Highres 값으로 바꿉니다. 1차가 `spectrum_spd_speed`이면 Highres는
+SPD를 재사용하지 않고 일반 KSampler 경로로 실행합니다. Highres에서 메인
+샘플러 재사용을 끄면 항상 일반 KSampler만 사용합니다.
+
+`SpectrumKSamplerAdvanced`와 `SpectrumSPDKSampler` 호출은 설치된 Spectrum
+노드팩의 실제 `sample()` 입력 시그니처를 확인해 지원되는 파라미터만 전달합니다.
+Sampler Details는 `/object_info`에서 발견한 추가 입력을 `Detected inputs`로
+표시하고, 노드팩 tooltip이 있으면 해당 tooltip을 우선 표시합니다.
 
 `Anima DAVE`, AuraFlow shift, KJNodes FP16 accumulation, SageAttention,
 Torch Compile은 샘플러 Mode가 아니라 Advanced Options의 모델 패치/최적화
 항목입니다. 켜면 선택한 1차 샘플러 실행 전에 모델에 적용됩니다.
 
-Highres는 기본적으로 메인 CFG, sampler, scheduler를 따릅니다. 기본값은
+Highres 기본값은
 `Scale by=1.5`, `Denoise=0.25`입니다. Highres와 Detailer 상세창은 긴 설정을
 다루기 쉽도록 1열 스크롤 레이아웃을 사용합니다.
 

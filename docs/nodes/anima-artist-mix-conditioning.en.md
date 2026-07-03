@@ -24,6 +24,26 @@ not use Prompt Studio Advanced v2 but still needs the same artist mix methods.
 Artist tags here means the text entered in the `artist_tags` input, not tokens
 marked with `@`.
 
+## Artist Group Syntax
+
+To keep multiple artists in one artist mix branch, write them like this in
+`artist_tags`.
+
+```text
+[[artist_a, artist_b:0.7]], artist_c
+```
+
+- `[[artist_a, artist_b:0.7]]` encodes the two artists as one branch.
+- The final `:0.7` before `]]` is a conditioning mix weight, not a
+  prompt-string weight.
+- If an individual prompt weight is needed inside the group, use normal prompt
+  weight syntax such as `(artist_a:0.35)`. The Artist Mix group weight is only
+  the final top-level `:weight` before `]]`.
+- In `prompt` mode, group markers and group weights are removed and the prompt
+  is encoded as normal text, for example `artist_a, artist_b, artist_c`.
+- `{a|b|c}` remains wildcard dynamic prompt syntax and is not used for artist
+  mix grouping.
+
 ## Position Handling
 
 `artist_position` controls where artist tags are applied.
@@ -82,14 +102,14 @@ items, but artist mix identifies artist tags by the artist field or
 
 ## Tuning Inputs
 
-- `artist_mix_start_percent`: sampling start percent for late/scheduled modes.
-- `artist_mix_strength_scale`: strength multiplier for exact-style branches.
-- `artist_mix_style_gain`: style gain for `delta_rms`, `hybrid`, and `clustered` compressed branches.
-- `artist_mix_rms_scale_cap`: maximum RMS style-energy restore scale.
-- `artist_mix_exact_top_k`: number of strongest artists kept exact in `hybrid`.
-- `artist_mix_cluster_count`: compressed branch count for `clustered`.
+- `artist_mix_start_percent`: sampling fraction where artist-specific conditioning starts in late/scheduled modes.
+- `artist_mix_strength_scale`: scales exact-style branch strength after artist weights are normalized.
+- `artist_mix_style_gain`: style delta strength for `delta_rms`, `hybrid`, and `clustered` compressed branches.
+- `artist_mix_rms_scale_cap`: maximum RMS style-energy restore scale for compressed artist branches.
+- `artist_mix_exact_top_k`: number of strongest artist entries kept exact in `hybrid`.
+- `artist_mix_cluster_count`: branch count used to compress non-dominant artists in `clustered`.
 - `artist_mix_dominant_isolation`: keeps dominant artists as exact branches instead of clustering them.
-- `artist_mix_dominant_threshold`: normalized artist-weight threshold for dominant isolation.
+- `artist_mix_dominant_threshold`: normalized artist-weight threshold used for dominant isolation.
 
 ## Difference From Advanced v2
 

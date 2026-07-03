@@ -510,6 +510,46 @@ class PromptBuilderTests(unittest.TestCase):
         self.assertTrue(all(item[1][ARTIST_MIX_EXACT_KEY] for item in positive))
         self.assertEqual(encoded_texts[:2], ["artist_a, 1girl", "artist_b, 1girl"])
 
+    def test_artist_mix_conditioning_groups_multiple_artists_in_one_branch(self):
+        encoded_texts = []
+
+        def fake_encode(_clip, text):
+            encoded_texts.append(text)
+            return [[f"cond:{text}", {"encoded_text": text}]]
+
+        with patch("nodes._encode_with_comfy_clip", fake_encode):
+            positive = EasyUseAnimaArtistMixConditioning().encode(
+                object(),
+                prompt="1girl",
+                artist_tags="[[artist_a, artist_b:0.25]], artist_c",
+                artist_position=ARTIST_TAG_POSITION_FRONT,
+                artist_mix_mode="exact",
+            )[0]
+
+        self.assertEqual(len(positive), 2)
+        self.assertEqual(encoded_texts[:2], ["artist_a, artist_b, 1girl", "artist_c, 1girl"])
+        self.assertAlmostEqual(positive[0][1]["strength"], 0.2)
+        self.assertAlmostEqual(positive[1][1]["strength"], 0.8)
+        self.assertTrue(all(item[1][ARTIST_MIX_EXACT_KEY] for item in positive))
+
+    def test_artist_mix_conditioning_prompt_mode_flattens_group_weight(self):
+        encoded_texts = []
+
+        def fake_encode(_clip, text):
+            encoded_texts.append(text)
+            return [[f"cond:{text}", {"encoded_text": text}]]
+
+        with patch("nodes._encode_with_comfy_clip", fake_encode):
+            EasyUseAnimaArtistMixConditioning().encode(
+                object(),
+                prompt="1girl",
+                artist_tags="[[artist_a, artist_b:0.25]], artist_c",
+                artist_position=ARTIST_TAG_POSITION_FRONT,
+                artist_mix_mode=ARTIST_MIX_MODE_PROMPT,
+            )
+
+        self.assertEqual(encoded_texts[:1], ["artist_a, artist_b, artist_c, 1girl"])
+
     def test_empty_latent_generation_uses_comfy_node_with_batch_size_one(self):
         calls = []
 
@@ -1071,6 +1111,45 @@ class PromptBuilderTests(unittest.TestCase):
         self.assertEqual(prompt_data["artist_mix"]["strength_scale"], 1.5)
         ui_payload = result["ui"]["prompt_studio_advanced"][0]
         self.assertEqual(ui_payload["artist_mix_mode"], "average")
+
+    def test_prompt_studio_advanced_v2_preserves_artist_mix_group_syntax_only_for_mix(self):
+        fields = [
+            {
+                "id": "artist",
+                "pane": "positive",
+                "type": "artist",
+                "label": "Artist Tags",
+                "text": "[[artist_a, artist_b:0.25]], artist_c",
+                "height": 72,
+            },
+            {
+                "id": "general",
+                "pane": "positive",
+                "type": "general",
+                "label": "General Tags",
+                "text": "1girl",
+                "height": 120,
+            },
+        ]
+        result = EasyUseAnimaPromptStudioAdvancedV2().build(
+            False,
+            True,
+            False,
+            False,
+            json.dumps(fields),
+            artist_mix_mode="average",
+        )
+
+        prompt_data = result["result"][0]
+        self.assertEqual(prompt_data["artist"]["text"], "artist_a, artist_b, artist_c")
+        self.assertEqual(prompt_data["artist"]["weighted_text"], "[[artist_a, artist_b:0.25]], artist_c")
+        self.assertEqual(prompt_data["artist_mix"]["artist_prompt"], "[[artist_a, artist_b:0.25]], artist_c")
+        self.assertEqual(
+            [(entry["tag"], entry["weight"], entry["grouped"]) for entry in prompt_data["artist"]["tags"]],
+            [("artist_a, artist_b", 0.25, True), ("artist_c", 1.0, False)],
+        )
+        self.assertEqual(prompt_data["artist_mix"]["artist_count_hint"], 2)
+        self.assertNotIn("[[", prompt_data["positive_without_artist_section"])
 
     def test_prompt_studio_advanced_v2_artist_mix_tuning_values_are_stored(self):
         fields = [
@@ -2387,12 +2466,15 @@ class SettingsTests(unittest.TestCase):
                 "autocomplete.append_separator",
                 "autocomplete.no_comma_after_period",
                 "autocomplete.detect_natural_sentences",
+                "autocomplete.preview_completion",
+                "autocomplete.preview_closing_brackets",
                 "lora_preset.name_display",
                 "lora_preset.menu_mode",
                 "lora_preset.strength_button_step",
                 "lora_preset.strength_drag_step",
                 "lora_preset.strength_drag_pixels",
                 "prompt_studio.typo_indicator",
+                "prompt_studio.weight_syntax_underline",
                 "prompt_studio.comment_italic",
                 "prompt_studio.colors",
                 "prompt_studio.naia_general_above_auto_toggle",
@@ -2807,7 +2889,7 @@ class AutocompleteDatasetTests(unittest.TestCase):
     def test_lists_autocomplete_sources(self):
         sources = available_autocomplete_sources("localsmile_kr_wiki")
 
-        self.assertTrue(any(source["key"] == "kr_modified" for source in sources))
+        self.assertEqual([source["key"] for source in sources], ["localsmile_kr_wiki"])
         self.assertTrue(
             any(
                 source["key"] == "localsmile_kr_wiki" and source["selected"]
@@ -2857,7 +2939,7 @@ class AutocompleteDatasetTests(unittest.TestCase):
                 "character",
                 "copyright",
                 "artist",
-                "general",
+                "artist",
                 "artist_unknown",
                 "natural",
                 "natural",
@@ -2957,6 +3039,86 @@ class AutocompleteDatasetTests(unittest.TestCase):
             ["meta", "meta", "quality"],
         )
         self.assertEqual([token["weighted"] for token in classified["tokens"]], [True, True, True])
+
+    def test_plain_parenthesized_artist_tag_is_classified(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "tags.csv"
+            path.write_text(
+                'ningen mame,1,10,"[작가] ningen mame"\n',
+                encoding="utf-8",
+            )
+            classified = classify_prompt_text("(@ningen mame)", path=path)
+
+        self.assertEqual(
+            [(token["base"], token["section"], token["weighted"]) for token in classified["tokens"]],
+            [("ningen mame", "artist", False)],
+        )
+
+    def test_plain_parenthesized_group_classifies_all_inner_tag_types(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "tags.csv"
+            path.write_text(
+                'hatsune miku,4,90,"[캐릭터] hatsune miku"\n'
+                'long hair,0,80,"[일반] long hair"\n'
+                'ningen mame,1,70,"[작가] ningen mame"\n',
+                encoding="utf-8",
+            )
+            classified = classify_prompt_text(
+                "(highres, hatsune miku, long hair, @ningen mame)",
+                path=path,
+            )
+
+        self.assertEqual(
+            [(token["base"], token["section"], token["weighted"]) for token in classified["tokens"]],
+            [
+                ("highres", "meta", False),
+                ("hatsune miku", "character", False),
+                ("long hair", "general", False),
+                ("ningen mame", "artist", False),
+            ],
+        )
+
+    def test_artist_mix_group_classifies_inner_artist_tokens(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "tags.csv"
+            path.write_text(
+                'sushispin,1,10,"[작가] sushispin"\n'
+                'ningen mame,1,10,"[작가] ningen mame"\n',
+                encoding="utf-8",
+            )
+            classified = classify_prompt_text("[[(@sushispin:0.35), @ningen mame, ]]", path=path)
+
+        self.assertEqual(
+            [(token["base"], token["section"], token["weighted"]) for token in classified["tokens"]],
+            [
+                ("sushispin", "artist", True),
+                ("ningen mame", "artist", False),
+            ],
+        )
+
+    def test_artist_mix_group_weight_suffix_is_not_a_prompt_weight(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "tags.csv"
+            path.write_text(
+                'sushispin,1,10,"[작가] sushispin"\n'
+                'ningen mame,1,10,"[작가] ningen mame"\n',
+                encoding="utf-8",
+            )
+            classified = classify_prompt_text("[[ @sushispin, @ningen mame:0.7 ]]", path=path)
+
+        self.assertEqual(
+            [(token["base"], token["section"], token["weighted"]) for token in classified["tokens"]],
+            [
+                ("sushispin", "artist", False),
+                ("ningen mame", "artist", False),
+            ],
+        )
+
+    def test_invalid_weight_syntax_is_classified_as_syntax_error(self):
+        for prompt in ["(@sushispin:bad)", "[[@sushispin, @ningen mame:bad]]", "[[@sushispin"]:
+            with self.subTest(prompt=prompt):
+                classified = classify_prompt_text(prompt)
+                self.assertEqual(classified["tokens"][0]["section"], "syntax")
 
     def test_prompt_escape_characters_are_ignored_for_tag_matching(self):
         with tempfile.TemporaryDirectory() as tmp:

@@ -24,6 +24,26 @@ workflow에서도 같은 artist mix 기법을 사용할 수 있습니다.
 여기서 작가 태그는 `@`가 붙은 토큰이 아니라 `artist_tags` 입력칸에 넣은
 작가 태그 문자열을 의미합니다.
 
+## 작가 그룹 문법
+
+여러 작가를 하나의 artist mix branch로 유지하려면 `artist_tags`에 아래처럼
+입력합니다.
+
+```text
+[[artist_a, artist_b:0.7]], artist_c
+```
+
+- `[[artist_a, artist_b:0.7]]`는 두 작가를 하나의 branch로 인코딩합니다.
+- `]]` 직전의 마지막 `:0.7`은 prompt 문자열 가중치가 아니라 conditioning mix
+  weight입니다.
+- 그룹 안쪽에서 개별 prompt weight가 필요하면 `(artist_a:0.35)`처럼 일반
+  프롬프트 가중치 문법을 사용합니다. Artist Mix 그룹 weight는 괄호 밖 최상위
+  마지막 `:weight`만 의미합니다.
+- `prompt` 모드에서는 그룹 기호와 그룹 weight가 제거되어
+  `artist_a, artist_b, artist_c`처럼 일반 prompt로 인코딩됩니다.
+- `{a|b|c}`는 와일드카드 동적 프롬프트 문법이므로 artist mix 그룹에는
+  사용하지 않습니다.
+
 ## 위치 처리
 
 `artist_position`은 작가 태그를 prompt에 배치하는 방식을 정합니다.
@@ -84,14 +104,14 @@ sampler가 처리할 conditioning도 늘어납니다.
 
 ## 튜닝 입력
 
-- `artist_mix_start_percent`: late/scheduled 계열 모드가 시작되는 sampling 비율입니다.
-- `artist_mix_strength_scale`: exact 계열 branch 강도 배율입니다.
-- `artist_mix_style_gain`: `delta_rms`, `hybrid`, `clustered` 압축 branch의 스타일 반영 강도입니다.
-- `artist_mix_rms_scale_cap`: RMS 스타일 에너지 복원 최대 배율입니다.
-- `artist_mix_exact_top_k`: `hybrid`에서 exact로 유지할 상위 작가 수입니다.
-- `artist_mix_cluster_count`: `clustered`에서 사용할 압축 branch 수입니다.
+- `artist_mix_start_percent`: late/scheduled 계열 모드에서 작가별 conditioning이 시작되는 sampling 비율입니다.
+- `artist_mix_strength_scale`: 작가 weight 정규화 이후 exact 계열 branch 강도를 조절합니다.
+- `artist_mix_style_gain`: `delta_rms`, `hybrid`, `clustered` 압축 branch의 스타일 delta 강도입니다.
+- `artist_mix_rms_scale_cap`: 압축 artist branch의 RMS 스타일 에너지 복원 상한입니다.
+- `artist_mix_exact_top_k`: `hybrid`에서 가장 강한 작가 항목을 exact branch로 유지할 개수입니다.
+- `artist_mix_cluster_count`: `clustered`에서 dominant가 아닌 작가를 압축할 branch 개수입니다.
 - `artist_mix_dominant_isolation`: dominant 작가를 cluster에 넣지 않고 exact branch로 유지합니다.
-- `artist_mix_dominant_threshold`: dominant 판정 기준입니다.
+- `artist_mix_dominant_threshold`: dominant isolation에 사용하는 정규화된 작가 weight 기준입니다.
 
 ## Advanced v2와의 차이
 

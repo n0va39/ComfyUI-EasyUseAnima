@@ -32,7 +32,9 @@
 
 ## 해상도
 
-- latent image 해상도 선택은 `mod guidance` 바로 아래에 표시됩니다.
+- latent image 해상도는 `해상도 버킷` 버튼으로 설정합니다.
+- 노드에는 현재 bucket과 실제 해상도 요약만 표시되고, 상세 선택은 팝업에서
+  관리합니다.
 - bucket은 `512`, `768`, `896`, `1024`, `1280`, `1536`을 지원합니다.
 - `Custom` bucket에서는 width와 height를 직접 입력하고 workflow에 저장합니다.
 - `NAIA` bucket은 prompt field를 채우는 것과 같은 NAIA 응답에서 width와
@@ -42,8 +44,8 @@
 
 ## 와일드카드
 
-`mod guidance` 아래의 와일드카드 제어 영역에서 mode, seed, seed after generate를
-설정합니다.
+`와일드카드 시드` 버튼에서 mode, seed, seed after generate를 설정합니다.
+노드에는 현재 와일드카드 모드, seed, seed control 요약만 표시됩니다.
 
 - live workflow는 원본 와일드카드 텍스트와 다음 seed 상태를 유지합니다.
 - 저장 이미지 workflow는 확장 결과를 `재현` mode로 저장합니다.
@@ -68,6 +70,16 @@ Prompt data에는 기존 호환 출력값을 담은 `outputs`와 v2 노드의 re
 - artist mix를 켜면 base prompt에서는 artist field 텍스트를 분리하고,
   `Anima Prompt Data Conditioning`이 선택한 artist mix mode로 positive
   `CONDITIONING`을 만듭니다.
+- Artist Mix와 Mod Guidance 조정은 노드 본문을 늘리지 않고 팝업에서 관리합니다.
+  Artist Mix 팝업의 각 항목에는 `i` 도움말 버튼이 있어 해당 파라미터가 어떤
+  branch나 weight에 영향을 주는지 확인할 수 있습니다.
+- 여러 작가를 하나의 mix branch로 유지하려면 `[[artist_a, artist_b:0.7]]`
+  문법을 사용합니다. `]]` 직전의 마지막 `:0.7`은 prompt 문자열 가중치가 아니라
+  conditioning mix weight로만 사용됩니다. Artist Mix를 끄거나 `prompt` 모드로
+  쓰면 그룹 기호와 그룹 weight는 제거되고 일반 작가 태그로 펼쳐집니다.
+- 그룹 안에서 개별 prompt weight가 필요하면 `(artist_a:0.35)`처럼 일반
+  프롬프트 가중치 문법을 사용합니다. Artist Mix 그룹 weight는 괄호 밖 최상위
+  마지막 `:weight`만 의미합니다.
 - Prompt Data 없이 일반 prompt와 작가 태그만 처리하려면
   [Anima Artist Mix Conditioning](anima-artist-mix-conditioning.ko.md)을 사용합니다.
 
@@ -80,6 +92,16 @@ Prompt data에는 기존 호환 출력값을 담은 `outputs`와 v2 노드의 re
   `CONDITIONING`, batch size 1 `latent_image`, Spectrum Mod Guidance 적용 모델을
   출력합니다.
 
+## 자동완성
+
+- 자동완성은 실제 태그 텍스트 위에 커서가 있을 때만 후보를 표시합니다.
+- 괄호, 쉼표, `[[`, `]]` 같은 문법 문자만 선택된 위치에서는 불필요한 후보를
+  열지 않습니다.
+- 자동완성 인라인 미리보기를 켜면 선택 후보를 적용했을 때 들어갈 나머지
+  텍스트가 입력칸의 하이라이트 overlay에 ghost text로 표시됩니다.
+- 자동완성은 `(tag:1.2)`의 괄호와 가중치, `[[...]]` 그룹 문법을 보존한 채
+  내부 태그만 치환합니다.
+
 ## 하이라이트
 
 - quality, safety/rating, year, count, character, artist, copyright, metadata,
@@ -87,5 +109,9 @@ Prompt data에는 기존 호환 출력값을 담은 `outputs`와 v2 노드의 re
   표시합니다.
 - `__wildcard__`, `3#__wildcard__`, `{a|b|c}` 같은 와일드카드 문법은 일반
   태그와 별도 색상으로 표시합니다.
+- `(tag:1.2)`, `[[artist_a, artist_b:0.7]]` 같은 가중치 문법은 EasyUse Anima
+  PromptStudio 하이라이트 설정에서 밑줄 표시를 켤 수 있습니다.
+- `(@artist name)` 또는 `(highres, long hair)`처럼 가중치 없이 괄호로 감싼
+  태그도 내부 태그 기준으로 분류하고 색상을 표시합니다.
 - overlay는 입력칸의 font family, size, spacing, wrapping 설정을 따라가도록
   동기화됩니다.

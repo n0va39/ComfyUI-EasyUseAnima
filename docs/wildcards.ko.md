@@ -5,7 +5,7 @@ EasyUse Anima 와일드카드는 프롬프트 안의 `__name__` 파일 와일드
 
 노드별 사용 위치:
 
-- `Anima Prompt Studio Advanced`: `mod guidance` 아래의 와일드카드 제어 영역에서
+- `Anima Prompt Studio Advanced`: `와일드카드 시드` 버튼으로 설정 팝업을 열어
   mode, seed, seed after generate를 설정합니다.
 - `Anima Wildcard`: Prompt Studio 없이 문자열만 확장할 때 사용합니다.
 
@@ -139,8 +139,8 @@ seed control:
 
 ## Prompt Studio Advanced
 
-`Anima Prompt Studio Advanced`에는 `mod guidance` 아래 와일드카드 제어 영역이
-있습니다.
+`Anima Prompt Studio Advanced`에는 `와일드카드 시드` 버튼과 현재 설정 요약이
+표시됩니다. 버튼을 누르면 와일드카드 설정 팝업이 열립니다.
 
 - mode
 - wildcard seed

@@ -19,16 +19,11 @@ except ImportError:
     from anima_prompt.ordering import builtin_tag_section
     from anima_prompt.parser import parse_prompt
 
-AUTOCOMPLETE_CSV = PACKAGE_DATA_DIR / "KR_danbooru_tags_with_description v3_modified.csv"
 LOCALSMILE_AUTOCOMPLETE_CSV = PACKAGE_DATA_DIR / "danbooru_tags_classified.csv"
+AUTOCOMPLETE_CSV = LOCALSMILE_AUTOCOMPLETE_CSV
 
 DEFAULT_AUTOCOMPLETE_SOURCE = "localsmile_kr_wiki"
 AUTOCOMPLETE_SOURCES = {
-    "kr_modified": {
-        "label": "KR danbooru tags with description v3 modified",
-        "path": AUTOCOMPLETE_CSV,
-        "source": "Bundled with author permission",
-    },
     "localsmile_kr_wiki": {
         "label": "Localsmile danbooru KR wiki tag search",
         "path": LOCALSMILE_AUTOCOMPLETE_CSV,
@@ -55,7 +50,8 @@ _COUNT_RE = re.compile(
     r"female|females|male|males|child|children)s?$",
     re.IGNORECASE,
 )
-_WEIGHTED_TOKEN_RE = re.compile(r"^\((.*):[-+]?\d+(?:\.\d+)?\)$")
+_WEIGHT_NUMBER_RE = re.compile(r"^[+-]?(?:\d+(?:\.\d*)?|\.\d+)$")
+_WEIGHTED_TOKEN_RE = re.compile(r"^\((.*):[+-]?(?:\d+(?:\.\d*)?|\.\d+)\)$")
 _DESCRIPTION_PREFIX_RE = re.compile(r"^\[([^\]]+)\]")
 _COMMENT_RE = re.compile(r"^[ \t]*#[^\n]*", re.MULTILINE)
 
@@ -271,12 +267,79 @@ def _has_unbalanced_parentheses(token: str) -> bool:
     return depth != 0
 
 
+def _top_level_colon(value: str) -> int:
+    depth = 0
+    colon = -1
+    escaped = False
+    for index, char in enumerate(str(value or "")):
+        if escaped:
+            escaped = False
+            continue
+        if char == "\\":
+            escaped = True
+            continue
+        if char == "(":
+            depth += 1
+            continue
+        if char == ")" and depth > 0:
+            depth -= 1
+            continue
+        if char == ":" and depth == 0:
+            colon = index
+    return colon
+
+
+def _artist_mix_group_inner(group: str) -> tuple[str, bool]:
+    text = str(group or "").strip()
+    if not (text.startswith("[[") and text.endswith("]]")):
+        return text, True
+    inner = text[2:-2].strip(" ,\n\t")
+    colon = _top_level_colon(inner)
+    if colon >= 0:
+        weight = inner[colon + 1 :].strip()
+        if not _WEIGHT_NUMBER_RE.match(weight):
+            return group, True
+        inner = inner[:colon].strip(" ,\n\t")
+    return inner, False
+
+
+def _has_invalid_weight_syntax(token: str) -> bool:
+    text = str(token or "").strip()
+    if not (text.startswith("(") and text.endswith(")")):
+        return False
+    inner = text[1:-1].strip()
+    colon = _top_level_colon(inner)
+    if colon < 0:
+        return False
+    weight = inner[colon + 1 :].strip()
+    return not bool(weight and _WEIGHT_NUMBER_RE.match(weight))
+
+
+def _plain_parenthesized_inner(token: str) -> str | None:
+    text = str(token or "").strip()
+    if not (text.startswith("(") and text.endswith(")")):
+        return None
+    inner = text[1:-1].strip(" ,\n\t")
+    if not inner or _top_level_colon(inner) >= 0:
+        return None
+    return inner
+
+
 def _classification_tokens(token: str) -> list[tuple[str, bool, bool]]:
     token = _INLINE_SPACE_RE.sub(" ", str(token).strip(" ,\n\t"))
     if not token:
         return []
     if _has_unbalanced_parentheses(token):
         return [(token, False, True)]
+    if _has_invalid_weight_syntax(token):
+        return [(token, False, True)]
+    plain_inner = _plain_parenthesized_inner(token)
+    if plain_inner is not None:
+        parts = [
+            _INLINE_SPACE_RE.sub(" ", part.strip(" ,\n\t"))
+            for part in parse_prompt(plain_inner, profile="prompt").tokens
+        ]
+        return [(part, False, False) for part in parts if part]
     weighted = _WEIGHTED_TOKEN_RE.match(token)
     if not weighted:
         return [(token, False, False)]
@@ -288,22 +351,50 @@ def _classification_tokens(token: str) -> list[tuple[str, bool, bool]]:
     return [(part, True, False) for part in parts if part]
 
 
+def _classification_tokens_from_prompt_text(text: str) -> list[tuple[str, bool, bool]]:
+    result: list[tuple[str, bool, bool]] = []
+    for token in parse_prompt(text, profile="prompt").tokens:
+        result.extend(_classification_tokens(token))
+    return result
+
+
+def _classification_tokens_from_artist_group(group: str) -> list[tuple[str, bool, bool]]:
+    inner, syntax_error = _artist_mix_group_inner(group)
+    if syntax_error:
+        return [(str(group or "").strip(), False, True)]
+    return _classification_tokens_from_prompt_text(inner)
+
+
+def _classification_tokens_from_chunk(text: str) -> list[tuple[str, bool, bool]]:
+    result: list[tuple[str, bool, bool]] = []
+    value = str(text or "")
+    cursor = 0
+    while cursor < len(value):
+        start = value.find("[[", cursor)
+        if start < 0:
+            result.extend(_classification_tokens_from_prompt_text(value[cursor:]))
+            break
+        if start > cursor:
+            result.extend(_classification_tokens_from_prompt_text(value[cursor:start]))
+        end = value.find("]]", start + 2)
+        if end < 0:
+            tail = value[start:].strip(" ,\n\t")
+            if tail:
+                result.append((tail, False, True))
+            break
+        result.extend(_classification_tokens_from_artist_group(value[start : end + 2]))
+        cursor = end + 2
+    return result
+
+
 def _token_section(token: str, entry: AutocompleteEntry | None) -> tuple[str, str]:
     base = _token_base(token)
     is_artist_request = _is_artist_request(token)
     if _COUNT_RE.match(_normalize(base)):
         return ("count", "인원수")
     if is_artist_request:
-        if entry and entry.category == "artist":
-            return ("artist", "작가")
         if entry:
-            labels = {
-                "character": "캐릭터",
-                "copyright": "작품",
-                "meta": "메타",
-                "general": "학습 태그",
-            }
-            return (entry.category, labels.get(entry.category, entry.category or "태그"))
+            return ("artist", "작가")
         return ("artist_unknown", "미등록 작가")
     builtin_section = builtin_tag_section(base)
     if builtin_section is TagSection.QUALITY:
@@ -352,11 +443,10 @@ def classify_prompt_text(text: str, limit: int = 240, path: Path = AUTOCOMPLETE_
         else:
             normalized = str(chunk_text).replace("\r\n", "\n").replace("\r", "\n")
             normalized = normalized.replace("，", ",").replace("\n", ",")
-            for token in parse_prompt(normalized, profile="prompt").tokens:
-                tokens.extend(
-                    (classified_token, weighted, syntax_error, False)
-                    for classified_token, weighted, syntax_error in _classification_tokens(token)
-                )
+            tokens.extend(
+                (classified_token, weighted, syntax_error, False)
+                for classified_token, weighted, syntax_error in _classification_tokens_from_chunk(normalized)
+            )
 
         max_limit = max(1, min(limit, 500))
         if len(tokens) >= max_limit:

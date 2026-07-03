@@ -20,12 +20,15 @@ DEFAULT_SETTINGS = {
     "autocomplete.append_separator": "false",
     "autocomplete.no_comma_after_period": "true",
     "autocomplete.detect_natural_sentences": "true",
+    "autocomplete.preview_completion": "false",
+    "autocomplete.preview_closing_brackets": "false",
     "lora_preset.name_display": "name",
     "lora_preset.menu_mode": "tree",
     "lora_preset.strength_button_step": "0.05",
     "lora_preset.strength_drag_step": "0.05",
     "lora_preset.strength_drag_pixels": "8",
     "prompt_studio.typo_indicator": "true",
+    "prompt_studio.weight_syntax_underline": "false",
     "prompt_studio.comment_italic": "true",
     "prompt_studio.colors": "",
     "prompt_studio.naia_general_above_auto_toggle": "false",
@@ -126,7 +129,10 @@ COMFY_SETTING_KEYS = {
     "EasyUseAnima.Prompt.AutocompleteAppendSeparator": "autocomplete.append_separator",
     "EasyUseAnima.Prompt.AutocompleteNoCommaAfterPeriod": "autocomplete.no_comma_after_period",
     "EasyUseAnima.Prompt.AutocompleteDetectNaturalSentences": "autocomplete.detect_natural_sentences",
+    "EasyUseAnima.Prompt.AutocompletePreviewCompletion": "autocomplete.preview_completion",
+    "EasyUseAnima.Prompt.AutocompletePreviewClosingBrackets": "autocomplete.preview_closing_brackets",
     "EasyUseAnima.Prompt.TypoIndicator": "prompt_studio.typo_indicator",
+    "EasyUseAnima.Prompt.WeightSyntaxUnderline": "prompt_studio.weight_syntax_underline",
     "EasyUseAnima.Prompt.CommentItalic": "prompt_studio.comment_italic",
     "EasyUseAnima.Prompt.HighlightColors": "prompt_studio.colors",
     "EasyUseAnima.Prompt.NaiaGeneralAutoToggle": "prompt_studio.naia_general_above_auto_toggle",
@@ -347,6 +353,14 @@ def public_settings() -> dict:
             "autocomplete.detect_natural_sentences",
             DEFAULT_SETTINGS["autocomplete.detect_natural_sentences"],
         ),
+        "autocomplete.preview_completion": settings.get(
+            "autocomplete.preview_completion",
+            DEFAULT_SETTINGS["autocomplete.preview_completion"],
+        ),
+        "autocomplete.preview_closing_brackets": settings.get(
+            "autocomplete.preview_closing_brackets",
+            DEFAULT_SETTINGS["autocomplete.preview_closing_brackets"],
+        ),
         "lora_preset.name_display": settings.get(
             "lora_preset.name_display",
             DEFAULT_SETTINGS["lora_preset.name_display"],
@@ -358,6 +372,10 @@ def public_settings() -> dict:
         "prompt_studio.typo_indicator": settings.get(
             "prompt_studio.typo_indicator",
             DEFAULT_SETTINGS["prompt_studio.typo_indicator"],
+        ),
+        "prompt_studio.weight_syntax_underline": settings.get(
+            "prompt_studio.weight_syntax_underline",
+            DEFAULT_SETTINGS["prompt_studio.weight_syntax_underline"],
         ),
         "prompt_studio.comment_italic": settings.get(
             "prompt_studio.comment_italic",

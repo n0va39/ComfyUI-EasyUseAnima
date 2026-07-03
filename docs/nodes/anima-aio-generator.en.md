@@ -31,16 +31,24 @@ applied.
 | `spectrum_spd_speed` | Direct call to `KSampler (Spectrum + SPD / SPEED)` | `ComfyUI-Spectrum-KSampler` |
 
 Integrated Spectrum sampler modes do not also call the model-patch path meant for
-the normal KSampler. Highres and Detailer stages run through stage samplers and
-follow the main CFG, sampler, and scheduler by default.
+the normal KSampler. Highres reuses the first-pass sampler path by default, but
+overrides only `Steps` and `Denoise` with the Highres values. When the first pass
+uses `spectrum_spd_speed`, Highres does not reuse SPD/SPEED and falls back to the
+general KSampler path. When main-sampler reuse is disabled, Highres always uses
+the general KSampler path.
+
+Calls to `SpectrumKSamplerAdvanced` and `SpectrumSPDKSampler` are filtered
+against the installed Spectrum node pack's actual `sample()` signature so
+unsupported parameters are not passed. Sampler Details also reads `/object_info`
+to show discovered extra inputs under `Detected inputs` and uses node-pack
+tooltips when they are available.
 
 `Anima DAVE`, AuraFlow shift, KJNodes FP16 accumulation, SageAttention, and
 Torch Compile are not sampler modes. They are model patch/optimization controls
 in Advanced Options and are applied before the selected first-pass sampler when
 enabled.
 
-Highres follows the main CFG, sampler, and scheduler by default. Its defaults
-are `Scale by=1.5` and `Denoise=0.25`. Highres and Detailer settings use a
+Highres defaults are `Scale by=1.5` and `Denoise=0.25`. Highres and Detailer settings use a
 single-column scroll layout so long option sets remain readable.
 
 Detailer Settings show Face/Eye processing blocks as tabs. Each tab can be

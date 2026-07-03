@@ -65,6 +65,10 @@ const GENERATOR_OPTIONAL_DEPENDENCY_SPECS = {
     nodeId: "DiTSpectrumPatchAdvanced",
     pack: "ComfyUI-Spectrum-KSampler",
   },
+  spectrumCorrections: {
+    nodeId: "DiTCFGFSGPatch",
+    pack: "ComfyUI-Spectrum-KSampler",
+  },
   dave: {
     nodeId: "AnimaDAVE",
     pack: "ComfyUI-Anima-DAVE",
@@ -98,6 +102,66 @@ const GENERATOR_BACKEND_DEPENDENCIES = {
   spectrum_mod_guidance_advanced: "spectrumAdvanced",
   spectrum_spd_speed: "spectrumSpd",
 };
+const GENERATOR_HIGHRES_BACKENDS = [
+  "comfy_ksampler",
+];
+const SPECTRUM_ADVANCED_KNOWN_INPUTS = new Set([
+  "model",
+  "clip",
+  "seed",
+  "steps",
+  "cfg",
+  "sampler_name",
+  "scheduler",
+  "positive",
+  "negative",
+  "latent_image",
+  "adapter",
+  "quality_tags",
+  "mod_w",
+  "quality_neg",
+  "mod_start_layer",
+  "mod_end_layer",
+  "mod_taper",
+  "mod_taper_scale",
+  "mod_final_w",
+  "denoise",
+  "window_size",
+  "flex_window",
+  "warmup_steps",
+  "blend_w",
+  "cheby_degree",
+  "ridge_lambda",
+  "dcw_mode",
+  "dcw_lambda",
+  "dcw_band_mask",
+  "dcw_calibrator",
+  "cfgpp_lambda",
+  "fsg",
+  "fsg_band_lo",
+  "fsg_band_hi",
+  "fsg_k",
+  "fsg_d_sigma",
+  "fsg_gamma",
+  "adaptive_smc_alpha",
+  "smc_cfg_lambda",
+]);
+const SPECTRUM_SPD_KNOWN_INPUTS = new Set([
+  "model",
+  "seed",
+  "steps",
+  "cfg",
+  "sampler_name",
+  "scheduler",
+  "positive",
+  "negative",
+  "latent_image",
+  "split_mode",
+  "spd_scale",
+  "spd_sigma",
+  "denoise",
+  "adaptive_smc_alpha",
+]);
 
 const DEFAULT_GENERATION_SETTINGS = {
   schema: "easyuse_anima_aio_generation_settings",
@@ -132,6 +196,8 @@ const DEFAULT_GENERATION_SETTINGS = {
       sigma: 0.7,
       adaptive_smc_alpha: 0.0,
     },
+    spectrum_extra: {},
+    spd_extra: {},
     dit_corrections: {
       enabled: false,
       dcw_mode: "off",
@@ -218,7 +284,7 @@ const DEFAULT_GENERATION_SETTINGS = {
     scheduler: "simple",
     denoise: 0.25,
     spectrum: {
-      enabled: true,
+      enabled: false,
       window_size: 2.0,
       flex_window: 0.2,
       warmup_steps: 7,
@@ -451,7 +517,7 @@ const AIO_TEXT = {
     "dialog.sampler.title": "Sampler Details",
     "dialog.sampler.subtitle": "Choose one of three sampler paths. Missing optional node packs are locked before queue execution.",
     "dialog.highres.title": "Highres Settings",
-    "dialog.highres.subtitle": "Image scaling, highres resampling, and Spectrum optimization are saved with the node.",
+    "dialog.highres.subtitle": "Image scaling and Highres resampling settings are saved with the node.",
     "dialog.detailer.title": "Detailer Settings",
     "dialog.detailer.subtitle": "SAM3 detection and Impact detailer settings are saved with the node.",
     "dialog.preview.title": "Preview Options",
@@ -607,9 +673,10 @@ const AIO_TEXT = {
     "text.previewCurrent": "Current",
     "text.inputLoaderMode": "Loader mode: split diffusion model + VAE + CLIP",
     "text.highresDisabled": "Enable Highres to expose resize and second-pass controls.",
+    "text.highresSpdManualRequired": "Spectrum SPD / SPEED is not reused by Highres. Highres uses the general KSampler path.",
     "text.detailerDisabled": "Enable Detailer to configure ordered processing blocks.",
-    "text.inheritsMainSampler": "Uses main CFG, sampler, and scheduler.",
-    "text.usesStageSamplerOverride": "Uses stage-specific CFG, sampler, and scheduler from the popup.",
+    "text.inheritsMainSampler": "Reuses the main sampler path. Highres changes only steps and denoise.",
+    "text.usesStageSamplerOverride": "Uses the general KSampler path for Highres.",
     "text.civitaiHashPreview": "Adds as {model}:AutoV3",
     "tip.fieldGeneric": "{label} setting. This value is saved with the node workflow.",
     "tip.additionalHashes": "Manual Image Saver additional_hashes string. Supports Name:HASH, HASH:Weight, and Name:HASH:Weight.",
@@ -630,10 +697,11 @@ const AIO_TEXT = {
     "tip.sampler": "Main ComfyUI sampler name used by the first pass.",
     "tip.scheduler": "Main ComfyUI scheduler used by the first pass.",
     "tip.highresEnabled": "Run a second pass after upscaling the first-pass image.",
-    "tip.highresFollow": "When enabled, Highres uses the main CFG, sampler, and scheduler.",
+    "tip.highresFollow": "When enabled, Highres reuses the main sampler path and overrides only Highres steps and denoise. SPD/SPEED falls back to general KSampler.",
+    "tip.highresBackend": "Highres manual mode uses the general KSampler path to avoid second-pass model-patch conflicts.",
     "tip.highresScale": "Upscale ratio before the Highres second pass.",
     "tip.highresMaxEdge": "Maximum long edge after upscaling. Use 0 to disable this cap.",
-    "tip.highresSteps": "Highres second-pass steps. CFG, sampler, and scheduler follow the main sampler by default.",
+    "tip.highresSteps": "Highres second-pass steps. This remains Highres-specific even when the main sampler is reused.",
     "tip.highresDenoise": "Highres second-pass denoise strength.",
     "tip.detailerEnabled": "Run SAM3 and Impact Detailer stages after generation.",
     "tip.detailerBlock": "Each block can be enabled, reordered, and tuned independently.",
@@ -682,7 +750,7 @@ const AIO_TEXT = {
     "dialog.sampler.title": "샘플러 상세 설정",
     "dialog.sampler.subtitle": "세 가지 샘플러 경로 중 하나를 선택합니다. 없는 선택 의존성은 큐 실행 전에 잠깁니다.",
     "dialog.highres.title": "Highres 설정",
-    "dialog.highres.subtitle": "이미지 확대, Highres 재샘플링, Spectrum 최적화 설정이 노드에 저장됩니다.",
+    "dialog.highres.subtitle": "이미지 확대와 Highres 재샘플링 설정이 노드에 저장됩니다.",
     "dialog.detailer.title": "디테일러 설정",
     "dialog.detailer.subtitle": "SAM3 감지와 Impact Detailer 설정이 노드에 저장됩니다.",
     "dialog.preview.title": "프리뷰 옵션",
@@ -838,9 +906,10 @@ const AIO_TEXT = {
     "text.previewCurrent": "현재",
     "text.inputLoaderMode": "로드 방식: 디퓨전 모델 + VAE + CLIP 분리 로드",
     "text.highresDisabled": "Highres를 켜면 확대와 2차 샘플링 기본 설정이 표시됩니다.",
+    "text.highresSpdManualRequired": "Spectrum SPD / SPEED는 Highres에서 재사용하지 않습니다. Highres는 일반 KSampler 경로를 사용합니다.",
     "text.detailerDisabled": "디테일러를 켜면 순서 조정 가능한 처리 블럭이 표시됩니다.",
-    "text.inheritsMainSampler": "메인 CFG, 샘플러, 스케줄러를 사용합니다.",
-    "text.usesStageSamplerOverride": "팝업에 저장된 단계별 CFG, 샘플러, 스케줄러를 사용합니다.",
+    "text.inheritsMainSampler": "메인 샘플러 경로를 재사용하고, Highres 스텝과 디노이즈만 바꿉니다.",
+    "text.usesStageSamplerOverride": "Highres에 일반 KSampler 경로를 사용합니다.",
     "text.civitaiHashPreview": "{model}:AutoV3 형식으로 추가됩니다.",
     "tip.fieldGeneric": "{label} 설정입니다. 이 값은 노드 워크플로우에 저장됩니다.",
     "tip.additionalHashes": "Image Saver의 additional_hashes 수동 문자열입니다. Name:HASH, HASH:Weight, Name:HASH:Weight를 지원합니다.",
@@ -861,10 +930,11 @@ const AIO_TEXT = {
     "tip.sampler": "1차 패스에 사용할 ComfyUI 샘플러 이름입니다.",
     "tip.scheduler": "1차 패스에 사용할 ComfyUI 스케줄러입니다.",
     "tip.highresEnabled": "1차 이미지 확대 후 2차 샘플링을 실행합니다.",
-    "tip.highresFollow": "켜져 있으면 Highres가 메인 CFG, 샘플러, 스케줄러를 따릅니다.",
+    "tip.highresFollow": "켜져 있으면 Highres가 메인 샘플러 경로를 재사용하고 Highres 스텝과 디노이즈만 덮어씁니다. SPD/SPEED는 일반 KSampler로 대체됩니다.",
+    "tip.highresBackend": "Highres 수동 모드는 2차 모델패치 충돌을 피하기 위해 일반 KSampler 경로를 사용합니다.",
     "tip.highresScale": "Highres 2차 패스 전에 적용할 확대 배율입니다.",
     "tip.highresMaxEdge": "확대 후 긴 변 제한입니다. 0이면 제한하지 않습니다.",
-    "tip.highresSteps": "Highres 2차 패스 스텝입니다. CFG, 샘플러, 스케줄러는 기본적으로 메인을 따릅니다.",
+    "tip.highresSteps": "Highres 2차 패스 스텝입니다. 메인 샘플러를 재사용해도 이 값은 Highres 전용으로 적용됩니다.",
     "tip.highresDenoise": "Highres 2차 패스 디노이즈 강도입니다.",
     "tip.detailerEnabled": "생성 후 SAM3와 Impact Detailer 단계를 실행합니다.",
     "tip.detailerBlock": "각 블럭은 개별 활성화, 순서 변경, 기본 설정 조정이 가능합니다.",
@@ -922,9 +992,10 @@ const AIO_TEXT = {
     "text.previewTitle": "生成画像プレビュー",
     "text.previewSubtitle": "このノード出力専用のプレビュー領域です。",
     "text.highresDisabled": "Highres を有効にすると拡大と二回目サンプリングの基本設定を表示します。",
+    "text.highresSpdManualRequired": "Spectrum SPD / SPEED は Highres では再利用しません。Highres は通常 KSampler 経路を使います。",
     "text.detailerDisabled": "Detailer を有効にすると順序変更できる処理ブロックを表示します。",
-    "text.inheritsMainSampler": "メイン CFG、サンプラー、スケジューラーを使用します。",
-    "text.usesStageSamplerOverride": "ポップアップに保存された段階別 CFG、サンプラー、スケジューラーを使用します。",
+    "text.inheritsMainSampler": "メインのサンプラー経路を再利用し、Highres のステップとデノイズだけを変更します。",
+    "text.usesStageSamplerOverride": "Highres には通常 KSampler 経路を使います。",
     "text.civitaiHashPreview": "{model}:AutoV3 として追加されます。",
     "tip.fieldGeneric": "{label} の設定です。この値はノードのワークフローに保存されます。",
     "tip.additionalHashes": "Image Saver の additional_hashes 手動文字列です。Name:HASH、HASH:Weight、Name:HASH:Weight を使用できます。",
@@ -945,10 +1016,11 @@ const AIO_TEXT = {
     "tip.sampler": "一回目に使う ComfyUI サンプラー名です。",
     "tip.scheduler": "一回目に使う ComfyUI スケジューラーです。",
     "tip.highresEnabled": "一回目画像を拡大して二回目サンプリングを実行します。",
-    "tip.highresFollow": "有効時、Highres はメイン CFG、サンプラー、スケジューラーに追従します。",
+    "tip.highresFollow": "有効時、Highres はメインサンプラー経路を再利用し、Highres ステップとデノイズだけを上書きします。SPD/SPEED は通常 KSampler に置き換えます。",
+    "tip.highresBackend": "Highres 手動モードは二回目の model patch 衝突を避けるため通常 KSampler 経路を使います。",
     "tip.highresScale": "Highres 二回目パス前の拡大倍率です。",
     "tip.highresMaxEdge": "拡大後の長辺上限です。0 で上限なしです。",
-    "tip.highresSteps": "Highres 二回目パスのステップです。",
+    "tip.highresSteps": "Highres 二回目パスのステップです。メインサンプラーを再利用してもこの値は Highres 専用です。",
     "tip.highresDenoise": "Highres 二回目パスのデノイズ強度です。",
     "tip.detailerEnabled": "生成後に SAM3 と Impact Detailer を実行します。",
     "tip.detailerBlock": "各ブロックは個別に有効化、並べ替え、調整できます。",
@@ -1001,9 +1073,10 @@ const AIO_TEXT = {
     "text.previewTitle": "生成图像预览",
     "text.previewSubtitle": "此区域专用于该节点输出预览。",
     "text.highresDisabled": "启用 Highres 后显示放大和第二次采样基础设置。",
+    "text.highresSpdManualRequired": "Spectrum SPD / SPEED 不会被 Highres 复用。Highres 使用普通 KSampler 路径。",
     "text.detailerDisabled": "启用 Detailer 后显示可排序的处理块。",
-    "text.inheritsMainSampler": "使用主 CFG、采样器和调度器。",
-    "text.usesStageSamplerOverride": "使用弹窗中保存的阶段专用 CFG、采样器和调度器。",
+    "text.inheritsMainSampler": "复用主采样器路径，仅覆盖 Highres 步数和降噪。",
+    "text.usesStageSamplerOverride": "Highres 使用普通 KSampler 路径。",
     "text.civitaiHashPreview": "将以 {model}:AutoV3 形式追加。",
     "tip.fieldGeneric": "{label} 设置。该值会随节点工作流保存。",
     "tip.additionalHashes": "Image Saver additional_hashes 手动字符串。支持 Name:HASH、HASH:Weight、Name:HASH:Weight。",
@@ -1024,10 +1097,11 @@ const AIO_TEXT = {
     "tip.sampler": "第一次使用的 ComfyUI 采样器名称。",
     "tip.scheduler": "第一次使用的 ComfyUI 调度器。",
     "tip.highresEnabled": "放大第一次图像后执行第二次采样。",
-    "tip.highresFollow": "启用时，Highres 使用主 CFG、采样器和调度器。",
+    "tip.highresFollow": "启用时，Highres 复用主采样器路径，并仅覆盖 Highres 步数和降噪。SPD/SPEED 会回退到普通 KSampler。",
+    "tip.highresBackend": "Highres 手动模式使用普通 KSampler 路径，以避免第二次模型补丁冲突。",
     "tip.highresScale": "Highres 第二次采样前的放大倍率。",
     "tip.highresMaxEdge": "放大后的最长边上限。0 表示不限制。",
-    "tip.highresSteps": "Highres 第二次采样步数。",
+    "tip.highresSteps": "Highres 第二次采样步数。即使复用主采样器，此值也只用于 Highres。",
     "tip.highresDenoise": "Highres 第二次采样的降噪强度。",
     "tip.detailerEnabled": "生成后运行 SAM3 和 Impact Detailer 阶段。",
     "tip.detailerBlock": "每个块都可单独启用、排序和调整。",
@@ -1553,6 +1627,7 @@ const AIO_STATIC_TEXT_KEYS = {
   "Choose one of three sampler paths. Missing optional node packs are locked before queue execution.": "dialog.sampler.subtitle",
   "Highres Settings": "dialog.highres.title",
   "Image scaling, highres resampling, and Spectrum optimization are saved with the node.": "dialog.highres.subtitle",
+  "Image scaling and Highres resampling settings are saved with the node.": "dialog.highres.subtitle",
   "Detailer Settings": "dialog.detailer.title",
   "SAM3 detection and Impact detailer settings are saved with the node.": "dialog.detailer.subtitle",
   "Preview Options": "dialog.preview.title",
@@ -1766,6 +1841,7 @@ const generatorOptionalDependencyState = {
   loaded: false,
   loading: null,
   available: {},
+  nodeInfo: {},
 };
 
 function uniqueStrings(values) {
@@ -1834,18 +1910,23 @@ function loadGeneratorSamplerOptions() {
 
 async function fetchGeneratorOptionalDependencies() {
   const next = {};
+  const nextInfo = {};
   for (const [key, spec] of Object.entries(GENERATOR_OPTIONAL_DEPENDENCY_SPECS)) {
     try {
       const response = api?.fetchApi
         ? await api.fetchApi(`/object_info/${encodeURIComponent(spec.nodeId)}`)
         : await fetch(`/object_info/${encodeURIComponent(spec.nodeId)}`);
       const data = await response.json();
-      next[key] = !!data?.[spec.nodeId];
+      const info = data?.[spec.nodeId] || null;
+      next[key] = !!info;
+      nextInfo[key] = info;
     } catch {
       next[key] = false;
+      nextInfo[key] = null;
     }
   }
   generatorOptionalDependencyState.available = next;
+  generatorOptionalDependencyState.nodeInfo = nextInfo;
 }
 
 function loadGeneratorOptionalDependencies() {
@@ -1881,6 +1962,160 @@ function optionalDependencyPack(key) {
   return GENERATOR_OPTIONAL_DEPENDENCY_SPECS[key]?.pack || key || "";
 }
 
+function optionalDependencyNodeInfo(key) {
+  return generatorOptionalDependencyState.nodeInfo?.[key] || null;
+}
+
+function nodeInputMap(dependencyKey) {
+  const input = optionalDependencyNodeInfo(dependencyKey)?.input || {};
+  return {
+    ...(input.required || {}),
+    ...(input.optional || {}),
+  };
+}
+
+function nodeInputSpec(dependencyKey, inputName) {
+  return nodeInputMap(dependencyKey)?.[inputName] || null;
+}
+
+function nodeInputTooltip(dependencyKey, inputName) {
+  const spec = nodeInputSpec(dependencyKey, inputName);
+  const options = Array.isArray(spec) && spec[1] && typeof spec[1] === "object" ? spec[1] : null;
+  return options?.tooltip ? String(options.tooltip) : "";
+}
+
+function nodeInputSupported(dependencyKey, inputName) {
+  if (!generatorOptionalDependencyState.loaded) {
+    return true;
+  }
+  if (!optionalDependencyAvailable(dependencyKey)) {
+    return false;
+  }
+  return !!nodeInputSpec(dependencyKey, inputName);
+}
+
+function applyNodeInputInfo(control, dependencyKey, inputName, fallbackTooltipKey = "") {
+  if (!control) {
+    return control;
+  }
+  const objectTooltip = nodeInputTooltip(dependencyKey, inputName);
+  const fallback = fallbackTooltipKey ? aioText(fallbackTooltipKey) : "";
+  const supported = nodeInputSupported(dependencyKey, inputName);
+  control.disabled = !supported;
+  control.title = supported
+    ? (objectTooltip || fallback || control.title || "")
+    : aioFormat("warning.optionalDependencyMissing", {
+      backend: inputName,
+      pack: optionalDependencyPack(dependencyKey),
+    });
+  const row = control.parentElement?.classList?.contains("easyuse-anima-aio-field")
+    ? control.parentElement
+    : null;
+  if (row) {
+    row.title = control.title;
+    row.classList.toggle("easyuse-anima-aio-unsupported", !supported);
+  }
+  return control;
+}
+
+function nodeInputDefault(spec, fallback = "") {
+  const options = Array.isArray(spec) && spec[1] && typeof spec[1] === "object" ? spec[1] : null;
+  if (options && Object.prototype.hasOwnProperty.call(options, "default")) {
+    return options.default;
+  }
+  return fallback;
+}
+
+function nodeInputControlForSpec(spec, value) {
+  if (!Array.isArray(spec)) {
+    return null;
+  }
+  const type = spec[0];
+  if (Array.isArray(type)) {
+    return selectInput(type, value ?? nodeInputDefault(spec, type[0] ?? ""));
+  }
+  const normalizedType = String(type || "").toUpperCase();
+  if (normalizedType === "BOOLEAN") {
+    return checkbox(value ?? nodeInputDefault(spec, false));
+  }
+  if (normalizedType === "INT") {
+    const input = numberInput(value ?? nodeInputDefault(spec, 0), "1");
+    input.step = "1";
+    return input;
+  }
+  if (normalizedType === "FLOAT") {
+    return numberInput(value ?? nodeInputDefault(spec, 0), "0.01");
+  }
+  if (normalizedType === "STRING") {
+    return textInput(value ?? nodeInputDefault(spec, ""));
+  }
+  return null;
+}
+
+function valueFromNodeInputControl(control) {
+  if (!control) {
+    return null;
+  }
+  if (control.type === "checkbox") {
+    return !!control.checked;
+  }
+  if (control.type === "number") {
+    return Number(control.value || 0);
+  }
+  return control.value;
+}
+
+function createDynamicNodeInputEditor(title, dependencyKey, knownInputs, values = {}) {
+  const section = document.createElement("div");
+  section.className = "easyuse-anima-aio-subsection";
+  section.append(Object.assign(document.createElement("h4"), { textContent: aioStaticText(title) }));
+  const controls = new Map();
+  const render = () => {
+    const currentValues = { ...(values || {}) };
+    for (const [name, control] of controls.entries()) {
+      currentValues[name] = valueFromNodeInputControl(control);
+    }
+    controls.clear();
+    section.replaceChildren(Object.assign(document.createElement("h4"), { textContent: aioStaticText(title) }));
+    if (!generatorOptionalDependencyState.loaded || !optionalDependencyAvailable(dependencyKey)) {
+      section.classList.add("hidden");
+      return;
+    }
+    const inputMap = nodeInputMap(dependencyKey);
+    const dynamicNames = Object.keys(inputMap).filter((name) => !knownInputs.has(name));
+    if (!dynamicNames.length) {
+      section.classList.add("hidden");
+      return;
+    }
+    section.classList.remove("hidden");
+    for (const name of dynamicNames) {
+      const spec = inputMap[name];
+      const control = nodeInputControlForSpec(spec, currentValues[name]);
+      if (!control) {
+        continue;
+      }
+      controls.set(name, control);
+      field(section, name, control);
+      applyTooltipText(control, nodeInputTooltip(dependencyKey, name));
+    }
+    if (!controls.size) {
+      section.classList.add("hidden");
+    }
+  };
+  render();
+  loadGeneratorOptionalDependencies().then(render);
+  return {
+    section,
+    values() {
+      const output = {};
+      for (const [name, control] of controls.entries()) {
+        output[name] = valueFromNodeInputControl(control);
+      }
+      return output;
+    },
+  };
+}
+
 function disableGeneratorSpectrumOptions(target) {
   if (!target || typeof target !== "object") {
     return;
@@ -1900,6 +2135,7 @@ function sanitizeGeneratorSettingsForOptionalDependencies(settings) {
   if (backendDependency && !optionalDependencyAvailable(backendDependency)) {
     next.sampler.backend = "comfy_ksampler";
   }
+  delete next.highres?.backend;
   if (!optionalDependencyAvailable("spectrumPatch")) {
     disableGeneratorSpectrumOptions(next.sampler);
     disableGeneratorSpectrumOptions(next.highres);
@@ -2227,6 +2463,9 @@ function ensureStyle() {
       flex: 0 0 auto;
       margin: 0;
       padding: 0;
+    }
+    .easyuse-anima-aio-field.easyuse-anima-aio-unsupported {
+      opacity: 0.48;
     }
     .easyuse-anima-aio-field input,
     .easyuse-anima-aio-field select,
@@ -3230,6 +3469,7 @@ function mergeVisibleGeneratorSettings(node, settings) {
   next.sampler.scheduler = inputs.scheduler;
   next.sampler.denoise = inputs.denoise;
   delete next.sampler.dave;
+  delete next.highres?.backend;
   next.model_patches.aura_flow ||= {};
   delete next.model_patches.aura_flow.enabled;
   next.model_patches.aura_flow.shift = clampGeneratorNumber(
@@ -4202,21 +4442,36 @@ function renderGeneratorPanel(node) {
   const highresBody = document.createElement("div");
   highresBody.className = "easyuse-anima-aio-node-stage-body";
   if (settings.highres.enabled) {
+    const mainBackendIsSpd = settings.sampler.backend === "spectrum_spd_speed";
+    const highresFollowsMain = !!settings.highres.inherit_sampler_settings;
     const followMain = createDomSettingsCheckboxControl(
       node,
-      settings.highres.inherit_sampler_settings,
+      highresFollowsMain,
       (nextSettings, value) => {
         nextSettings.highres ||= {};
         nextSettings.highres.inherit_sampler_settings = value;
       },
       { rerender: true },
     );
+    const stageMode = Object.assign(document.createElement("div"), {
+      className: "easyuse-anima-aio-node-mode-badge",
+      textContent: samplerModeLabel({
+        sampler: {
+          backend: settings.highres.backend || "comfy_ksampler",
+          spectrum: settings.highres.spectrum || {},
+          dit_corrections: settings.highres.dit_corrections || {},
+        },
+      }),
+    });
+    const noteKey = mainBackendIsSpd && highresFollowsMain
+      ? "text.highresSpdManualRequired"
+      : (highresFollowsMain ? "text.inheritsMainSampler" : "text.usesStageSamplerOverride");
     highresBody.append(
       createNodeField(aioText("label.followMainSampler"), followMain, "wide", "tip.highresFollow"),
-      makeNote(
-        settings.highres.inherit_sampler_settings ? "text.inheritsMainSampler" : "text.usesStageSamplerOverride",
-        "tip.highresFollow",
-      ),
+      makeNote(noteKey, "tip.highresFollow"),
+      ...(highresFollowsMain ? [] : [
+        createNodeField(aioText("label.mode"), stageMode, "wide", "tip.highresBackend"),
+      ]),
       createNodeField(
         aioText("label.scaleBy"),
         createDomSettingsSliderNumberControl(
@@ -4679,11 +4934,25 @@ function openSamplerSettings(node) {
   const cfgppLambda = field(corrections, "CFG++ lambda", numberInput(settings.sampler.dit_corrections.cfgpp_lambda, "0.1"));
   const fsg = field(corrections, "FSG", checkbox(settings.sampler.dit_corrections.fsg));
   spectrum.append(corrections);
+  const spectrumExtra = createDynamicNodeInputEditor(
+    "Detected Spectrum Inputs",
+    "spectrumAdvanced",
+    SPECTRUM_ADVANCED_KNOWN_INPUTS,
+    settings.sampler.spectrum_extra || {},
+  );
+  spectrum.append(spectrumExtra.section);
 
   const spd = makeSubsection("Spectrum + SPD / SPEED");
   const spdScale = field(spd, "Scale", numberInput(settings.sampler.spd.scale, "0.05"));
   const spdSigma = field(spd, "Sigma", numberInput(settings.sampler.spd.sigma, "0.01"));
   const spdSmc = field(spd, "SMC alpha", numberInput(settings.sampler.spd.adaptive_smc_alpha, "0.01"));
+  const spdExtra = createDynamicNodeInputEditor(
+    "Detected SPD Inputs",
+    "spectrumSpd",
+    SPECTRUM_SPD_KNOWN_INPUTS,
+    settings.sampler.spd_extra || {},
+  );
+  spd.append(spdExtra.section);
   backendDetails.append(spectrum, spd);
   sampler.append(backendDetails);
   body.append(base, sampler);
@@ -4716,6 +4985,33 @@ function openSamplerSettings(node) {
     const spectrumPatchMissing = !optionalDependencyAvailable("spectrumPatch");
     spectrumPatchEnabled.disabled = spectrumPatchMissing;
     correctionsEnabled.disabled = spectrumPatchMissing;
+    const spectrumInputDependency = backend.value === "comfy_ksampler" ? "spectrumPatch" : "spectrumAdvanced";
+    const correctionInputDependency = backend.value === "comfy_ksampler" ? "spectrumCorrections" : "spectrumAdvanced";
+    const spectrumControls = [
+      [windowSize, "window_size", "tip.spectrumWindow"],
+      [flexWindow, "flex_window", "tip.spectrumFlex"],
+      [warmupSteps, "warmup_steps", "tip.spectrumWarmup"],
+      [tailSteps, "tail_actual_steps", "tip.spectrumTail"],
+      [blendW, "blend_w", "tip.spectrumBlend"],
+      [chebyDegree, "cheby_degree", "tip.spectrumCheby"],
+      [ridgeLambda, "ridge_lambda", "tip.spectrumRidge"],
+      [dcwMode, "dcw_mode", "tip.dcwMode"],
+      [dcwLambda, "dcw_lambda", "tip.dcwLambda"],
+      [dcwBand, "dcw_band_mask", "tip.dcwBand"],
+      [cfgppLambda, "cfgpp_lambda", "tip.cfgppLambda"],
+      [fsg, "fsg", "tip.fsg"],
+      [smcAlpha, "adaptive_smc_alpha", "tip.smcAlpha"],
+      [smcLambda, "smc_cfg_lambda", "tip.smcLambda"],
+    ];
+    for (const [control, inputName, tooltipKey] of spectrumControls.slice(0, 7)) {
+      applyNodeInputInfo(control, spectrumInputDependency, inputName, tooltipKey);
+    }
+    for (const [control, inputName, tooltipKey] of spectrumControls.slice(7)) {
+      applyNodeInputInfo(control, correctionInputDependency, inputName, tooltipKey);
+    }
+    applyNodeInputInfo(spdScale, "spectrumSpd", "spd_scale", "tip.spdScale");
+    applyNodeInputInfo(spdSigma, "spectrumSpd", "spd_sigma", "tip.spdSigma");
+    applyNodeInputInfo(spdSmc, "spectrumSpd", "adaptive_smc_alpha", "tip.smcAlpha");
     if (spectrumPatchMissing && (spectrumPatchEnabled.checked || correctionsEnabled.checked)) {
       messages.push(aioFormat("warning.optionalDependencyMissing", {
         backend: "Spectrum Patch",
@@ -4728,7 +5024,7 @@ function openSamplerSettings(node) {
     dependencyWarning.textContent = messages.join(" ");
     refreshBackendDetails();
   };
-  backend.addEventListener("change", refreshBackendDetails);
+  backend.addEventListener("change", refreshDependencyLocks);
   refreshBackendDetails();
   refreshDependencyLocks();
   loadGeneratorOptionalDependencies().then(refreshDependencyLocks);
@@ -4766,6 +5062,8 @@ function openSamplerSettings(node) {
     next.sampler.spd.scale = Number(spdScale.value || 0.5);
     next.sampler.spd.sigma = Number(spdSigma.value || 0.7);
     next.sampler.spd.adaptive_smc_alpha = Number(spdSmc.value || 0);
+    next.sampler.spectrum_extra = spectrumExtra.values();
+    next.sampler.spd_extra = spdExtra.values();
     next.sampler.dit_corrections.enabled = correctionsEnabled.checked && !correctionsEnabled.disabled;
     next.sampler.dit_corrections.dcw_mode = dcwMode.value || "off";
     next.sampler.dit_corrections.dcw_lambda = Number(dcwLambda.value || 0.01);
@@ -4853,6 +5151,14 @@ function createStageOptimizationEditor(title, values, defaults) {
 
   return {
     section,
+    setIntegratedMode(isIntegrated) {
+      if (spectrumEnabled?.parentElement) {
+        spectrumEnabled.parentElement.style.display = isIntegrated ? "none" : "";
+      }
+      if (compatPolicy?.parentElement) {
+        compatPolicy.parentElement.style.display = isIntegrated ? "none" : "";
+      }
+    },
     values() {
       return {
         spectrum: {
@@ -4897,9 +5203,10 @@ function openHighresSettings(node) {
   const widget = findWidget(node, GENERATOR_SETTINGS_WIDGET);
   const settings = generatorSettings(node);
   const highres = mergeDefaults(DEFAULT_GENERATION_SETTINGS.highres, settings.highres || {});
+  const mainBackendIsSpd = settings.sampler?.backend === "spectrum_spd_speed";
   const { backdrop, body, actions } = createDialog(
     "Highres Settings",
-    "Image scaling, highres resampling, and Spectrum optimization are saved with the node."
+    "Image scaling and Highres resampling settings are saved with the node."
   );
   body.classList.add("easyuse-anima-aio-one-column");
 
@@ -4918,12 +5225,17 @@ function openHighresSettings(node) {
   const steps = field(sampler, "Steps", numberInput(highres.steps, "1"));
   steps.min = "1";
   steps.max = "75";
+  const effectiveInherit = !!highres.inherit_sampler_settings;
   const inheritSampler = field(
     sampler,
     "Follow main sampler",
-    checkbox(highres.inherit_sampler_settings),
+    checkbox(effectiveInherit),
     "tip.highresFollow",
   );
+  const dependencyWarning = document.createElement("div");
+  dependencyWarning.className = "easyuse-anima-aio-warning";
+  dependencyWarning.hidden = true;
+  sampler.append(dependencyWarning);
   const cfg = field(sampler, "CFG", numberInput(highres.cfg, "0.1"));
   cfg.min = "1";
   cfg.max = "10";
@@ -4939,21 +5251,27 @@ function openHighresSettings(node) {
   );
   const denoise = field(sampler, "Denoise", numberInput(highres.denoise, "0.01"));
   const updateInheritedRows = () => {
-    const display = inheritSampler.checked ? "none" : "";
+    const usesMain = inheritSampler.checked;
+    const display = usesMain ? "none" : "";
     for (const control of [cfg, samplerName, scheduler]) {
       if (control?.parentElement) {
         control.parentElement.style.display = display;
       }
     }
   };
-  inheritSampler.addEventListener("change", updateInheritedRows);
+  const refreshDependencyLocks = () => {
+    const messages = [];
+    if (mainBackendIsSpd && inheritSampler.checked) {
+      messages.push(aioText("text.highresSpdManualRequired"));
+    }
+    dependencyWarning.hidden = messages.length === 0;
+    dependencyWarning.textContent = messages.join(" ");
+    updateInheritedRows();
+  };
+  inheritSampler.addEventListener("change", refreshDependencyLocks);
   updateInheritedRows();
-  const optimization = createStageOptimizationEditor(
-    "Highres Optimization",
-    highres,
-    DEFAULT_GENERATION_SETTINGS.highres,
-  );
-  body.append(image, sampler, optimization.section);
+  refreshDependencyLocks();
+  body.append(image, sampler);
 
   const cancel = document.createElement("button");
   cancel.textContent = aioText("button.cancel");
@@ -4964,7 +5282,6 @@ function openHighresSettings(node) {
   cancel.addEventListener("click", () => backdrop.remove());
   apply.addEventListener("click", () => {
     const next = mergeDefaults(DEFAULT_GENERATION_SETTINGS, settings);
-    const optimized = optimization.values();
     next.highres = {
       ...next.highres,
       enabled: enabled.checked,
@@ -4978,8 +5295,9 @@ function openHighresSettings(node) {
       sampler_name: samplerName.value || "euler",
       scheduler: scheduler.value || "simple",
       denoise: clampGeneratorNumber(denoise.value, DEFAULT_GENERATION_SETTINGS.highres.denoise, 0, 1),
-      ...optimized,
     };
+    next.highres.spectrum = mergeDefaults(DEFAULT_GENERATION_SETTINGS.highres.spectrum, {});
+    next.highres.dit_corrections = mergeDefaults(DEFAULT_GENERATION_SETTINGS.highres.dit_corrections, {});
     writeSettings(node, widget, next);
     renderGeneratorPanel(node);
     backdrop.remove();
@@ -5056,6 +5374,7 @@ function createDetailerTargetEditor(node, title, values, defaults, onLabelChange
         control.parentElement.style.display = display;
       }
     }
+    optimization.section.classList.toggle("hidden", !!inheritSampler.checked);
   };
   inheritSampler.addEventListener("change", updateInheritedRows);
   updateInheritedRows();

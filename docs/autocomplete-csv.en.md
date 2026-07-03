@@ -14,6 +14,8 @@ Open ComfyUI Settings and use the EasyUse Anima entries:
 - `Autocomplete mode`
 - `Autocomplete CSV`
 - `Autocomplete suggestions`
+- `Inline autocomplete preview`
+- `Preview closing brackets`
 
 Changing the CSV affects new autocomplete requests immediately. The open
 autocomplete popup is closed and the in-browser search cache is cleared. A
@@ -45,14 +47,6 @@ Setting key: `localsmile_kr_wiki`
 - Includes useful category separation for Prompt Studio highlighting.
 - Recommended when Korean search is the main use case.
 
-### `KR_danbooru_tags_with_description v3_modified.csv`
-
-Setting key: `kr_modified`
-
-- Bundled with permission from its author.
-- Can be used for Korean description-based search.
-- Search order and category classification can differ from the default CSV.
-
 ## Search Behavior
 
 Autocomplete searches:
@@ -68,6 +62,16 @@ return `long hair`.
 Prompt Studio highlighting uses both the selected CSV and built-in meta tag
 rules. Built-in meta/quality tags are not added as autocomplete candidates, but
 they are used for typo checks and color highlighting.
+
+When inline autocomplete preview is enabled, the remaining text that the
+selected suggestion would insert is shown as ghost text in the Prompt Studio
+highlight overlay. With that option enabled, suggestions are shown more
+strictly: the caret must be on real tag text, not on syntax-only characters such
+as brackets or commas.
+
+Closing bracket preview is an editor helper. Typing an opening bracket inserts
+the matching closing bracket at the caret, but committing an autocomplete
+suggestion does not force-close multi-item groups.
 
 ## Artist Tag Policy
 
@@ -93,7 +97,7 @@ prompt correction output so the three views do not disagree.
 
 ## Developer CSV Format
 
-The current settings UI selects between the two bundled CSV sources. It does not
+The current settings UI uses the maintained bundled CSV source. It does not
 provide a user-facing arbitrary CSV path picker.
 
 When adding a new source in code, use UTF-8 or UTF-8 with BOM. Two formats are

@@ -33,6 +33,16 @@
 - Added Highres and SAM3/Impact Detailer settings to the AiO generator.
 - Added Chrome-style Detailer tabs with user-editable block names and left/right
   order controls.
+- Added popup-based Prompt Studio Advanced controls for Artist Mix,
+  Mod Guidance, wildcard seed, and resolution bucket settings so the node body
+  stays compact.
+- Added Artist Mix group syntax such as `[[artist_a, artist_b:0.7]]` for
+  keeping multiple artists in one conditioning branch. The final `:0.7` is an
+  Artist Mix conditioning weight, not a prompt-string weight.
+- Added inline autocomplete ghost preview and optional editor-style closing
+  bracket insertion settings.
+- Added optional underline rendering for weighted prompt syntax such as
+  `(tag:1.2)` and Artist Mix groups.
 - Added a maintained AiO generator sample workflow:
   `docs/example_workflows/EasyUse_Anima_AiO_generator_release_ko.json`.
 - Added the compact release workflow:
@@ -52,6 +62,14 @@
   keeps only sampler backend, Mod Guidance, Spectrum, and SPD/SPEED controls.
 - Changed Highres and Detailer popup bodies to a single-column layout so long
   settings stay readable and scroll vertically instead of forming cramped grids.
+- Changed Prompt Studio Advanced wildcard seed and resolution controls to show a
+  single popup button plus a compact current-setting summary in the node body.
+- Changed Prompt Studio autocomplete, correction, and highlight handling to
+  share the same prompt text rules for spaces, escaped parentheses,
+  Pony score tags, artist tags, and weighted syntax.
+- Replaced the old `KR_danbooru_tags_with_description v3_modified.csv` source
+  with the maintained `danbooru_tags_classified.csv` autocomplete/highlight
+  source.
 - Updated AiO frontend tooltips so popup settings describe the actual runtime
   effect instead of only saying that a value is saved. The new tooltip keys are
   available in English, Korean, Japanese, and Chinese.
@@ -65,7 +83,15 @@
   sampler path called.
 - Fixed the `spectrum_mod_guidance_advanced` mode so it no longer creates an
   unused standalone Mod Guidance model clone for the first pass. Standalone Mod
-  Guidance is still retained when later Highres or Detailer stages need it.
+  Guidance model patching is created once and reused by KSampler-based stages
+  instead of being stacked repeatedly.
+- Changed AiO Highres sampling to either reuse the first-pass sampler path or
+  use the general KSampler path. SPD/SPEED first passes now use general KSampler
+  for Highres, and Highres keeps its own `Steps` and `Denoise`.
+- Hardened Spectrum sampler calls against node-pack API drift by filtering
+  `SpectrumKSamplerAdvanced` and `SpectrumSPDKSampler` keyword arguments against
+  the installed `sample()` signature. Sampler Details also reads `/object_info`
+  to show detected extra inputs and node-pack tooltips when available.
 - Fixed AiO preview result handling so ComfyUI's default `images` UI payload is
   suppressed and only the dedicated `easyuse_anima_preview` payload is used.
 - Hardened intermediate preview feed updates so live preview events are tagged
@@ -73,6 +99,16 @@
 - Fixed Image Saver metadata routing so `Steps`, `CFG`, `Sampler`,
   `Scheduler`, `Seed`, and `Denoise` come from the first-pass sampler while
   `Size` uses the final Highres/Detailer output resolution.
+- Fixed Prompt Studio highlighting and autocomplete replacement around weighted
+  prompt syntax so applying a suggestion does not delete surrounding
+  parentheses or weights.
+- Fixed unweighted parenthesized tags such as `(@artist name)` or
+  `(highres, long hair)` so their inner tags are classified and highlighted by
+  category.
+- Fixed autocomplete popup activation so syntax-only caret positions, including
+  plain brackets, do not open irrelevant suggestions.
+- Fixed middle-click behavior on Prompt Studio inputs so it is forwarded to
+  canvas panning instead of selecting a text caret.
 
 ### Required And Optional Node Packs
 
@@ -91,8 +127,13 @@
 - Added regression coverage for generator-level sampler/model-patch routing,
   including the integrated Spectrum Mod Guidance sampler and Highres stage
   model reuse.
-- Ran `python -m unittest discover -s tests`, `python -m py_compile`, and
-  `node --check web/js/easyuse_anima_aio.js` during release validation.
+- Added regression coverage for Artist Mix grouped branches, group-weight
+  flattening, invalid weight syntax, weighted tag groups, and unweighted
+  parenthesized tag classification across meta, character, general, and artist
+  tags.
+- Ran `python -m unittest discover -s tests`, `python -m compileall -q .`,
+  frontend `node --check`, workflow/locale tests, Markdown link checks, and
+  Registry metadata sanity checks during release validation.
 
 ## 0.2.1
 

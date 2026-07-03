@@ -217,10 +217,15 @@ const SECTION_STYLES = {
   unknown: { label: "Unknown", color: "#cbd5e1", background: "transparent", underline: true, weight: 400 },
 };
 
-const WEIGHTED_TOKEN_RE = /^\((.*):[-+]?\d+(?:\.\d+)?\)$/s;
+const WEIGHT_NUMBER_RE = /^[+-]?(?:\d+(?:\.\d*)?|\.\d+)$/;
+const WEIGHTED_TOKEN_RE = /^\((.*):[+-]?(?:\d+(?:\.\d*)?|\.\d+)\)$/s;
 const WEIGHT_NUMBER_COLOR = "#fb923c";
 const WILDCARD_HIGHLIGHT_RE = /(?:\d+#)?__[\w.\-+/*\\]+?__/g;
+const ARTIST_MIX_GROUP_HIGHLIGHT_RE = /\[\[[\s\S]*?(?::[-+]?(?:\d+(?:\.\d*)?|\.\d+))?\]\]/g;
 const INLINE_SPACE_RE = /[ \t]+/g;
+const PROMPT_STUDIO_COMMON_SETTINGS = {
+  weightSyntaxUnderline: false,
+};
 const HIGHLIGHT_TEXT_METRIC_PROPERTIES = [
   "font",
   "fontFamily",
@@ -764,6 +769,36 @@ export function debounce(fn, delay = 180) {
   };
 }
 
+function applyPromptStudioCommonSettings(settings) {
+  PROMPT_STUDIO_COMMON_SETTINGS.weightSyntaxUnderline =
+    settings?.["prompt_studio.weight_syntax_underline"] === "true";
+}
+
+function refreshPromptStudioCommonHighlightInputs() {
+  for (const input of document.querySelectorAll(".easyuse-anima-highlight-input")) {
+    input.__easyuseAnimaHighlightRefresh?.(true);
+  }
+}
+
+async function loadPromptStudioCommonSettings() {
+  try {
+    const response = await fetch("/easyuse_anima/settings");
+    if (response.ok) {
+      applyPromptStudioCommonSettings(await response.json());
+    }
+  } catch {
+    // Keep defaults when the settings endpoint is not available.
+  }
+}
+
+if (typeof window !== "undefined") {
+  loadPromptStudioCommonSettings();
+  window.addEventListener("easyuse-anima-settings-updated", (event) => {
+    applyPromptStudioCommonSettings(event?.detail || {});
+    refreshPromptStudioCommonHighlightInputs();
+  });
+}
+
 async function classifyPrompt(text) {
   const response = await fetch("/easyuse_anima/classify_prompt", {
     method: "POST",
@@ -864,8 +899,27 @@ function findWildcardSyntaxRange(value, offset) {
   return dynamic;
 }
 
-function hasWildcardHighlightSyntax(text) {
-  return !!findWildcardSyntaxRange(String(text ?? ""), 0);
+function findArtistMixGroupSyntaxRange(value, offset) {
+  ARTIST_MIX_GROUP_HIGHLIGHT_RE.lastIndex = offset;
+  const match = ARTIST_MIX_GROUP_HIGHLIGHT_RE.exec(value);
+  return match
+    ? { start: match.index, end: match.index + match[0].length }
+    : null;
+}
+
+function firstSyntaxRange(value, offset) {
+  const ranges = [
+    findWildcardSyntaxRange(value, offset),
+    findArtistMixGroupSyntaxRange(value, offset),
+  ].filter(Boolean);
+  if (!ranges.length) {
+    return null;
+  }
+  return ranges.reduce((first, range) => (range.start < first.start ? range : first), ranges[0]);
+}
+
+function hasHighlightSyntax(text) {
+  return !!firstSyntaxRange(String(text ?? ""), 0);
 }
 
 function tokenStyle(token) {
@@ -905,11 +959,66 @@ function tokenSpanHtml(text, token) {
     + "</span>";
 }
 
-function basicSyntaxHtml(text) {
-  return escapeHtml(text).replace(
-    /(:)([-+]?\d+(?:\.\d+)?)(\))/g,
-    `$1<span style="color: ${WEIGHT_NUMBER_COLOR}">$2</span>$3`,
+function weightSyntaxDecoration() {
+  return PROMPT_STUDIO_COMMON_SETTINGS.weightSyntaxUnderline
+    ? [
+      "text-decoration-line: underline",
+      "text-decoration-style: solid",
+      "text-decoration-color: rgba(148, 163, 184, 0.95)",
+      "text-underline-offset: 3px",
+      "text-decoration-skip-ink: none",
+    ].join("; ")
+    : "";
+}
+
+function wrapWeightSyntaxHtml(html) {
+  const decoration = weightSyntaxDecoration();
+  return decoration
+    ? `<span style="${decoration}">${html}</span>`
+    : html;
+}
+
+function weightSyntaxSpanHtml(text, style = "") {
+  const rules = [style].filter(Boolean).join("; ");
+  return rules
+    ? `<span style="${rules}">${escapeHtml(text)}</span>`
+    : escapeHtml(text);
+}
+
+function syntaxErrorSpanHtml(text, title = sectionLabel("syntax")) {
+  return `<span style="${tokenStyle({ section: "syntax" })}" title="${escapeHtml(title)}">`
+    + escapeHtml(text)
+    + "</span>";
+}
+
+function weightedParenSyntaxHtml(text) {
+  const match = /^(\()([\s\S]*?)(:)(\s*[+-]?(?:\d+(?:\.\d*)?|\.\d+))(\s*\))$/.exec(String(text ?? ""));
+  if (!match) {
+    return syntaxErrorSpanHtml(text);
+  }
+  const [, open, body, colon, weight, close] = match;
+  return wrapWeightSyntaxHtml(
+    weightSyntaxSpanHtml(open)
+    + escapeHtml(body)
+    + weightSyntaxSpanHtml(colon)
+    + weightSyntaxSpanHtml(weight, `color: ${WEIGHT_NUMBER_COLOR}`)
+    + weightSyntaxSpanHtml(close),
   );
+}
+
+function basicSyntaxHtml(text) {
+  const value = String(text ?? "");
+  const html = [];
+  const pattern = /\([^()\n]*:[^()\n]*\)/g;
+  let cursor = 0;
+  let match = null;
+  while ((match = pattern.exec(value))) {
+    html.push(escapeHtml(value.slice(cursor, match.index)));
+    html.push(weightedParenSyntaxHtml(match[0]));
+    cursor = match.index + match[0].length;
+  }
+  html.push(escapeHtml(value.slice(cursor)));
+  return html.join("");
 }
 
 function wildcardSyntaxSpanHtml(text) {
@@ -918,17 +1027,98 @@ function wildcardSyntaxSpanHtml(text) {
     + "</span>";
 }
 
+function findTopLevelWeightColon(value) {
+  let depth = 0;
+  let colon = -1;
+  let escaped = false;
+  const text = String(value ?? "");
+  for (let index = 0; index < text.length; index += 1) {
+    const char = text[index];
+    if (escaped) {
+      escaped = false;
+      continue;
+    }
+    if (char === "\\") {
+      escaped = true;
+      continue;
+    }
+    if (char === "(") {
+      depth += 1;
+      continue;
+    }
+    if (char === ")" && depth > 0) {
+      depth -= 1;
+      continue;
+    }
+    if (char === ":" && depth === 0) {
+      colon = index;
+    }
+  }
+  return colon;
+}
+
+function artistMixGroupParts(text) {
+  const match = /^(\[\[)([\s\S]*?)(\]\])$/.exec(String(text ?? ""));
+  if (!match) {
+    return null;
+  }
+  const body = match[2];
+  const colon = findTopLevelWeightColon(body);
+  if (colon < 0) {
+    return { open: match[1], body, weight: "", close: match[3], syntaxError: false };
+  }
+  const weight = body.slice(colon + 1).trim();
+  if (!weight || !WEIGHT_NUMBER_RE.test(weight)) {
+    return { open: match[1], body, weight: "", close: match[3], syntaxError: true };
+  }
+  return {
+    open: match[1],
+    body: body.slice(0, colon).replace(/[ \t\r\n,]+$/g, ""),
+    weight,
+    close: match[3],
+    syntaxError: false,
+  };
+}
+
+function artistMixGroupShellHtml(parts, bodyHtml) {
+  if (!parts || parts.syntaxError) {
+    return syntaxErrorSpanHtml(`${parts?.open || ""}${parts?.body || ""}${parts?.close || ""}`);
+  }
+  const openHtml = weightSyntaxSpanHtml(parts.open);
+  const closeHtml = weightSyntaxSpanHtml(parts.close);
+  const weightHtml = parts.weight
+    ? weightSyntaxSpanHtml(":")
+      + weightSyntaxSpanHtml(parts.weight, `color: ${WEIGHT_NUMBER_COLOR}`)
+    : "";
+  const html = `${openHtml}${bodyHtml}${weightHtml}${closeHtml}`;
+  return wrapWeightSyntaxHtml(html);
+}
+
+function artistMixGroupSyntaxHtml(text) {
+  const parts = artistMixGroupParts(text);
+  if (!parts) {
+    return basicSyntaxHtml(text);
+  }
+  if (parts.syntaxError) {
+    return syntaxErrorSpanHtml(text);
+  }
+  return artistMixGroupShellHtml(parts, syntaxHtml(parts.body));
+}
+
 function syntaxHtml(text) {
   const value = String(text ?? "");
   let cursor = 0;
   const html = [];
   while (cursor < value.length) {
-    const range = findWildcardSyntaxRange(value, cursor);
+    const range = firstSyntaxRange(value, cursor);
     if (!range) {
       break;
     }
     html.push(basicSyntaxHtml(value.slice(cursor, range.start)));
-    html.push(wildcardSyntaxSpanHtml(value.slice(range.start, range.end)));
+    const snippet = value.slice(range.start, range.end);
+    html.push(snippet.startsWith("[[")
+      ? artistMixGroupSyntaxHtml(snippet)
+      : wildcardSyntaxSpanHtml(snippet));
     cursor = range.end;
   }
   html.push(basicSyntaxHtml(value.slice(cursor)));
@@ -947,6 +1137,7 @@ function splitPromptText(text) {
   const parts = [];
   let start = 0;
   let depth = 0;
+  let artistGroupDepth = 0;
   let escaped = false;
   const value = String(text ?? "");
 
@@ -958,6 +1149,16 @@ function splitPromptText(text) {
     }
     if (char === "\\") {
       escaped = true;
+      continue;
+    }
+    if (char === "[" && value[index + 1] === "[") {
+      artistGroupDepth += 1;
+      index += 1;
+      continue;
+    }
+    if (char === "]" && value[index + 1] === "]" && artistGroupDepth > 0) {
+      artistGroupDepth -= 1;
+      index += 1;
       continue;
     }
     if (isPromptLineCommentStart(value, index)) {
@@ -980,7 +1181,7 @@ function splitPromptText(text) {
       }
       continue;
     }
-    if ((char === "," || char === "\n") && depth === 0) {
+    if ((char === "," || char === "\n") && depth === 0 && artistGroupDepth === 0) {
       if (index > start) {
         parts.push({ text: value.slice(start, index), delimiter: false });
       }
@@ -997,12 +1198,12 @@ function splitPromptText(text) {
 
 function findTokenMatch(body, offset, token) {
   let start = offset;
-  const skipWeightedSyntax = !!token?.weighted;
   while (
     start < body.length
     && (
       /\s/.test(body[start])
-      || (skipWeightedSyntax && (body[start] === "(" || body[start] === ","))
+      || body[start] === ","
+      || body[start] === "("
     )
   ) {
     start += 1;
@@ -1036,11 +1237,26 @@ function weightedTokenSpanHtml(text, token) {
   if (!match) {
     return tokenSpanHtml(text, token);
   }
-  return [
+  const html = [
     syntaxHtml(text.slice(0, match.start)),
     tokenSpanHtml(text.slice(match.start, match.end), token),
     syntaxHtml(text.slice(match.end)),
   ].join("");
+  return WEIGHTED_TOKEN_RE.test(String(text ?? "").trim())
+    ? wrapWeightSyntaxHtml(html)
+    : html;
+}
+
+function weightedTokenSegmentRange(body, cursor, match) {
+  const open = body.lastIndexOf("(", Math.max(cursor, match.start));
+  if (open < cursor) {
+    return null;
+  }
+  const suffix = /^\s*:\s*[+-]?(?:\d+(?:\.\d*)?|\.\d+)\s*\)/.exec(body.slice(match.end));
+  if (!suffix) {
+    return null;
+  }
+  return { start: open, end: match.end + suffix[0].length };
 }
 
 function tokenKey(token) {
@@ -1084,10 +1300,17 @@ function renderSequentialBody(body, tokens, startIndex, consumed) {
     if (!match) {
       break;
     }
-    html.push(syntaxHtml(body.slice(cursor, match.start)));
-    html.push(tokenSpanHtml(body.slice(match.start, match.end), token));
+    const weightedRange = token?.weighted ? weightedTokenSegmentRange(body, cursor, match) : null;
+    if (weightedRange) {
+      html.push(syntaxHtml(body.slice(cursor, weightedRange.start)));
+      html.push(weightedTokenSpanHtml(body.slice(weightedRange.start, weightedRange.end), token));
+      cursor = weightedRange.end;
+    } else {
+      html.push(syntaxHtml(body.slice(cursor, match.start)));
+      html.push(tokenSpanHtml(body.slice(match.start, match.end), token));
+      cursor = match.end;
+    }
     consumed.add(token);
-    cursor = match.end;
     index += 1;
     matched += 1;
     if (!body.slice(cursor).trim()) {
@@ -1129,9 +1352,24 @@ function renderHighlightedText(text, tokens) {
       html.push(escapeHtml(part.text));
       continue;
     }
-    if (hasWildcardHighlightSyntax(body)) {
+
+    const artistGroupParts = artistMixGroupParts(body);
+    if (artistGroupParts) {
+      const rendered = artistGroupParts.syntaxError
+        ? null
+        : renderSequentialBody(artistGroupParts.body, tokens, tokenIndex, consumed);
       html.push(escapeHtml(leading));
-      html.push(syntaxHtml(body));
+      if (artistGroupParts.syntaxError) {
+        html.push(syntaxErrorSpanHtml(body));
+      } else {
+        if (rendered) {
+          tokenIndex = rendered.nextIndex;
+        }
+        html.push(artistMixGroupShellHtml(
+          artistGroupParts,
+          rendered ? rendered.html : syntaxHtml(artistGroupParts.body),
+        ));
+      }
       html.push(escapeHtml(trailing));
       continue;
     }
@@ -1218,10 +1456,45 @@ function overlayBounds(input) {
   };
 }
 
-function highlightOverlayHtml(value, tokens, placeholder = "") {
+function autocompletePreviewSpanHtml(text, preview, opacity = 0.95) {
+  const color = String(preview?.color || "rgba(203, 213, 225, 0.86)");
+  return `<span style="font: inherit; line-height: inherit; letter-spacing: inherit; vertical-align: baseline; color: ${escapeHtml(color)}; opacity: ${opacity}">`
+    + escapeHtml(text)
+    + "</span>";
+}
+
+function highlightOverlayPreviewHtml(value, tokens, preview) {
+  if (!preview || String(preview.sourceValue || "") !== String(value || "")) {
+    return null;
+  }
+  const text = String(preview.value || "");
+  const candidateStart = Math.max(0, Math.min(Number(preview.candidateStart ?? preview.ghostStart) || 0, text.length));
+  const candidateEnd = Math.max(candidateStart, Math.min(Number(preview.candidateEnd ?? preview.ghostEnd) || 0, text.length));
+  const ghostStart = Math.max(0, Math.min(Number(preview.ghostStart) || 0, text.length));
+  const ghostEnd = Math.max(ghostStart, Math.min(Number(preview.ghostEnd) || 0, text.length));
+  if (!text || candidateEnd <= candidateStart || ghostEnd <= ghostStart) {
+    return null;
+  }
+  const safeGhostStart = Math.max(candidateStart, Math.min(ghostStart, candidateEnd));
+  const safeGhostEnd = Math.max(safeGhostStart, Math.min(ghostEnd, candidateEnd));
+  const html = [
+    renderHighlightedText(text.slice(0, candidateStart), tokens || []),
+    autocompletePreviewSpanHtml(text.slice(candidateStart, safeGhostStart), preview, 0.95),
+    autocompletePreviewSpanHtml(text.slice(safeGhostStart, safeGhostEnd), preview, 0.52),
+    autocompletePreviewSpanHtml(text.slice(safeGhostEnd, candidateEnd), preview, 0.95),
+    renderHighlightedText(text.slice(candidateEnd), tokens || []),
+  ].join("");
+  return text.endsWith("\n") ? `${html} ` : html;
+}
+
+function highlightOverlayHtml(value, tokens, placeholder = "", input = null) {
   const text = String(value || "");
   if (!text) {
     return `<span style="opacity: 0.45">${escapeHtml(placeholder)}</span>`;
+  }
+  const previewHtml = highlightOverlayPreviewHtml(text, tokens, input?.__easyuseAnimaAutocompletePreview);
+  if (previewHtml != null) {
+    return previewHtml;
   }
   const html = renderHighlightedText(text, tokens);
   return text.endsWith("\n") ? `${html} ` : html;
@@ -1394,7 +1667,7 @@ export function updatePromptStudioFieldHighlight(node, field, textarea, tokens =
     copyInputTextMetrics(textarea, overlay);
   }
   syncOverlayBounds(textarea, overlay);
-  overlay.innerHTML = highlightOverlayHtml(value, tokens || state.tokens || [], textarea.placeholder || "");
+  overlay.innerHTML = highlightOverlayHtml(value, tokens || state.tokens || [], textarea.placeholder || "", textarea);
 }
 
 export function schedulePromptStudioFieldHighlight(node, field, textarea, { namespace = "variant" } = {}) {

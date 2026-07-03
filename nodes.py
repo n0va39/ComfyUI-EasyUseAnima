@@ -253,6 +253,8 @@ AIO_GENERATION_DEFAULT_SETTINGS = {
             "sigma": 0.7,
             "adaptive_smc_alpha": 0.0,
         },
+        "spectrum_extra": {},
+        "spd_extra": {},
         "dit_corrections": {
             "enabled": False,
             "dcw_mode": "off",
@@ -339,7 +341,7 @@ AIO_GENERATION_DEFAULT_SETTINGS = {
         "scheduler": "simple",
         "denoise": 0.25,
         "spectrum": {
-            "enabled": True,
+            "enabled": False,
             "window_size": 2.0,
             "flex_window": 0.2,
             "warmup_steps": 7,
@@ -690,6 +692,10 @@ _INLINE_SPACE_RE = re.compile(r"[ \t]+")
 _WEIGHTED_TOKEN_RE = re.compile(r"^\(([^(),]+):[-+]?\d+(?:\.\d+)?\)$")
 _WEIGHTED_ARTIST_RE = re.compile(
     r"^\(\s*(?P<tag>.*?)\s*:\s*(?P<weight>[+-]?(?:\d+(?:\.\d*)?|\.\d+))\s*\)$"
+)
+_ARTIST_GROUP_RE = re.compile(
+    r"^\s*\[\[\s*(?P<tag>.*?)(?:\s*:\s*(?P<weight>[+-]?(?:\d+(?:\.\d*)?|\.\d+)))?\s*\]\]\s*$",
+    re.DOTALL,
 )
 _SECTION_SEPARATOR_RE = re.compile(r"^\s*-{6,}\s*$", re.MULTILINE)
 _RESOLUTION_LABEL_RE = re.compile(r"(\d+)\s*(?:\*|x|×)\s*(\d+)")
@@ -1175,6 +1181,16 @@ def _normalize_aio_generation_settings(value) -> dict[str, Any]:
     spd["scale"] = max(0.25, min(1.0, _as_float(spd.get("scale"), 0.5)))
     spd["sigma"] = max(0.0, min(1.0, _as_float(spd.get("sigma"), 0.7)))
     spd["adaptive_smc_alpha"] = max(0.0, min(1.0, _as_float(spd.get("adaptive_smc_alpha"), 0.0)))
+    sampler["spectrum_extra"] = (
+        _json_clone(sampler.get("spectrum_extra"))
+        if isinstance(sampler.get("spectrum_extra"), dict)
+        else {}
+    )
+    sampler["spd_extra"] = (
+        _json_clone(sampler.get("spd_extra"))
+        if isinstance(sampler.get("spd_extra"), dict)
+        else {}
+    )
     sampler.pop("dave", None)
     corrections = sampler.setdefault("dit_corrections", {})
     if not isinstance(corrections, dict):
@@ -2620,6 +2636,35 @@ def _apply_aio_spectrum_model_patches_for_comfy_sampler(
     )
 
 
+def _call_with_supported_kwargs(method, args: tuple[Any, ...], kwargs: dict[str, Any], label: str):
+    try:
+        parameters = inspect.signature(method).parameters
+    except (TypeError, ValueError):
+        return method(*args, **kwargs)
+    accepts_kwargs = any(param.kind == inspect.Parameter.VAR_KEYWORD for param in parameters.values())
+    if accepts_kwargs:
+        return method(*args, **kwargs)
+    supported_kwargs = {key: value for key, value in kwargs.items() if key in parameters}
+    missing_required = []
+    consumed_positionals = len(args)
+    for index, (name, param) in enumerate(parameters.items()):
+        if index < consumed_positionals:
+            continue
+        if name in supported_kwargs:
+            continue
+        if param.default is inspect.Parameter.empty and param.kind in (
+            inspect.Parameter.POSITIONAL_OR_KEYWORD,
+            inspect.Parameter.KEYWORD_ONLY,
+        ):
+            missing_required.append(name)
+    if missing_required:
+        raise RuntimeError(
+            f"[EasyUseAnima] {label} requires unsupported new input(s): "
+            f"{', '.join(missing_required)}. Update ComfyUI-EasyUseAnima or disable that node option."
+        )
+    return method(*args, **supported_kwargs)
+
+
 def _sample_latent_with_spectrum_mod_guidance_advanced(
     model,
     clip,
@@ -2656,47 +2701,60 @@ def _sample_latent_with_spectrum_mod_guidance_advanced(
     mod_w = _as_float(advanced_mod.get("mod_w"), 3.0)
     if not use_mod_guidance or profile == ANIMA_MOD_GUIDANCE_PROFILE_OFF:
         mod_w = 0.0
+    sampler = sampler_cls()
+    sampler_kwargs = {
+        "model": model,
+        "clip": clip,
+        "seed": _resolve_aio_runtime_seed(sampler_settings.get("seed")),
+        "steps": _as_int(sampler_settings.get("steps"), 28),
+        "cfg": _as_float(sampler_settings.get("cfg"), 5.0),
+        "sampler_name": str(sampler_settings.get("sampler_name") or "euler_ancestral"),
+        "scheduler": str(sampler_settings.get("scheduler") or "normal"),
+        "positive": positive,
+        "negative": negative,
+        "latent_image": latent_image,
+        "adapter": str(advanced_mod.get("adapter") or "(auto-download default)"),
+        "quality_tags": str(quality_tags or advanced_mod.get("quality_tags") or ""),
+        "mod_w": mod_w,
+        "quality_neg": str(quality_neg or ""),
+        "mod_start_layer": _as_int(advanced_mod.get("mod_start_layer"), 8),
+        "mod_end_layer": _as_int(advanced_mod.get("mod_end_layer"), 27),
+        "mod_taper": _as_int(advanced_mod.get("mod_taper"), 0),
+        "mod_taper_scale": _as_float(advanced_mod.get("mod_taper_scale"), 0.25),
+        "mod_final_w": _as_float(advanced_mod.get("mod_final_w"), 0.0),
+        "denoise": _as_float(sampler_settings.get("denoise"), 1.0),
+        "window_size": _as_float(spectrum.get("window_size"), 2.0),
+        "flex_window": _as_float(spectrum.get("flex_window"), 0.25),
+        "warmup_steps": _as_int(spectrum.get("warmup_steps"), 6),
+        "blend_w": _as_float(spectrum.get("blend_w"), 0.3),
+        "cheby_degree": _as_int(spectrum.get("cheby_degree"), 3),
+        "ridge_lambda": _as_float(spectrum.get("ridge_lambda"), 0.1),
+        "dcw_mode": str(corrections.get("dcw_mode") or "off") if use_corrections else "off",
+        "dcw_lambda": _as_float(corrections.get("dcw_lambda"), 0.01) if use_corrections else 0.0,
+        "dcw_band_mask": str(corrections.get("dcw_band_mask") or "LL") if use_corrections else "LL",
+        "dcw_calibrator": str(corrections.get("dcw_calibrator") or "(auto-download default)"),
+        "cfgpp_lambda": _as_float(corrections.get("cfgpp_lambda"), 0.0) if use_cfgpp else 0.0,
+        "fsg": use_fsg,
+        "fsg_band_lo": _as_float(corrections.get("fsg_band_lo"), 0.59) if use_fsg else 0.59,
+        "fsg_band_hi": _as_float(corrections.get("fsg_band_hi"), 0.75) if use_fsg else 0.75,
+        "fsg_k": _as_int(corrections.get("fsg_k"), 3) if use_fsg else 3,
+        "fsg_d_sigma": _as_float(corrections.get("fsg_d_sigma"), 0.1) if use_fsg else 0.1,
+        "fsg_gamma": _as_float(corrections.get("fsg_gamma"), 0.0) if use_fsg else 0.0,
+        "adaptive_smc_alpha": _as_float(corrections.get("adaptive_smc_alpha"), 0.0) if use_smc else 0.0,
+        "smc_cfg_lambda": _as_float(corrections.get("smc_cfg_lambda"), 5.0) if use_smc else 0.0,
+    }
+    extra = sampler_settings.get("spectrum_extra")
+    if isinstance(extra, dict):
+        for key, value in extra.items():
+            text_key = str(key or "")
+            if text_key and text_key not in sampler_kwargs:
+                sampler_kwargs[text_key] = value
     values = _node_output_tuple(
-        sampler_cls().sample(
-            model,
-            clip,
-            _resolve_aio_runtime_seed(sampler_settings.get("seed")),
-            _as_int(sampler_settings.get("steps"), 28),
-            _as_float(sampler_settings.get("cfg"), 5.0),
-            str(sampler_settings.get("sampler_name") or "euler_ancestral"),
-            str(sampler_settings.get("scheduler") or "normal"),
-            positive,
-            negative,
-            latent_image,
-            str(advanced_mod.get("adapter") or "(auto-download default)"),
-            str(quality_tags or advanced_mod.get("quality_tags") or ""),
-            mod_w,
-            quality_neg=str(quality_neg or ""),
-            mod_start_layer=_as_int(advanced_mod.get("mod_start_layer"), 8),
-            mod_end_layer=_as_int(advanced_mod.get("mod_end_layer"), 27),
-            mod_taper=_as_int(advanced_mod.get("mod_taper"), 0),
-            mod_taper_scale=_as_float(advanced_mod.get("mod_taper_scale"), 0.25),
-            mod_final_w=_as_float(advanced_mod.get("mod_final_w"), 0.0),
-            denoise=_as_float(sampler_settings.get("denoise"), 1.0),
-            window_size=_as_float(spectrum.get("window_size"), 2.0),
-            flex_window=_as_float(spectrum.get("flex_window"), 0.25),
-            warmup_steps=_as_int(spectrum.get("warmup_steps"), 6),
-            blend_w=_as_float(spectrum.get("blend_w"), 0.3),
-            cheby_degree=_as_int(spectrum.get("cheby_degree"), 3),
-            ridge_lambda=_as_float(spectrum.get("ridge_lambda"), 0.1),
-            dcw_mode=str(corrections.get("dcw_mode") or "off") if use_corrections else "off",
-            dcw_lambda=_as_float(corrections.get("dcw_lambda"), 0.01) if use_corrections else 0.0,
-            dcw_band_mask=str(corrections.get("dcw_band_mask") or "LL") if use_corrections else "LL",
-            dcw_calibrator=str(corrections.get("dcw_calibrator") or "(auto-download default)"),
-            cfgpp_lambda=_as_float(corrections.get("cfgpp_lambda"), 0.0) if use_cfgpp else 0.0,
-            fsg=use_fsg,
-            fsg_band_lo=_as_float(corrections.get("fsg_band_lo"), 0.59) if use_fsg else 0.59,
-            fsg_band_hi=_as_float(corrections.get("fsg_band_hi"), 0.75) if use_fsg else 0.75,
-            fsg_k=_as_int(corrections.get("fsg_k"), 3) if use_fsg else 3,
-            fsg_d_sigma=_as_float(corrections.get("fsg_d_sigma"), 0.1) if use_fsg else 0.1,
-            fsg_gamma=_as_float(corrections.get("fsg_gamma"), 0.0) if use_fsg else 0.0,
-            adaptive_smc_alpha=_as_float(corrections.get("adaptive_smc_alpha"), 0.0) if use_smc else 0.0,
-            smc_cfg_lambda=_as_float(corrections.get("smc_cfg_lambda"), 5.0) if use_smc else 0.0,
+        _call_with_supported_kwargs(
+            sampler.sample,
+            (),
+            sampler_kwargs,
+            "SpectrumKSamplerAdvanced.sample()",
         )
     )
     if not values:
@@ -2722,22 +2780,35 @@ def _sample_latent_with_spectrum_spd(
     # Spectrum SPEED/SPD is Euler-only. Normalize before calling the node so
     # saved workflows do not emit a misleading "ignoring requested sampler" warning.
     sampler_name = "euler"
+    sampler = spd_cls()
+    sampler_kwargs = {
+        "model": model,
+        "seed": _resolve_aio_runtime_seed(sampler_settings.get("seed")),
+        "steps": _as_int(sampler_settings.get("steps"), 28),
+        "cfg": _as_float(sampler_settings.get("cfg"), 5.0),
+        "sampler_name": sampler_name,
+        "scheduler": str(sampler_settings.get("scheduler") or "simple"),
+        "positive": positive,
+        "negative": negative,
+        "latent_image": latent_image,
+        "split_mode": str(spd.get("split_mode") or "single"),
+        "spd_scale": _as_float(spd.get("scale"), 0.5),
+        "spd_sigma": _as_float(spd.get("sigma"), 0.7),
+        "denoise": _as_float(sampler_settings.get("denoise"), 1.0),
+        "adaptive_smc_alpha": _as_float(spd.get("adaptive_smc_alpha"), 0.0),
+    }
+    extra = sampler_settings.get("spd_extra")
+    if isinstance(extra, dict):
+        for key, value in extra.items():
+            text_key = str(key or "")
+            if text_key and text_key not in sampler_kwargs:
+                sampler_kwargs[text_key] = value
     values = _node_output_tuple(
-        spd_cls().sample(
-            model,
-            _resolve_aio_runtime_seed(sampler_settings.get("seed")),
-            _as_int(sampler_settings.get("steps"), 28),
-            _as_float(sampler_settings.get("cfg"), 5.0),
-            sampler_name,
-            str(sampler_settings.get("scheduler") or "simple"),
-            positive,
-            negative,
-            latent_image,
-            str(spd.get("split_mode") or "single"),
-            _as_float(spd.get("scale"), 0.5),
-            _as_float(spd.get("sigma"), 0.7),
-            denoise=_as_float(sampler_settings.get("denoise"), 1.0),
-            adaptive_smc_alpha=_as_float(spd.get("adaptive_smc_alpha"), 0.0),
+        _call_with_supported_kwargs(
+            sampler.sample,
+            (),
+            sampler_kwargs,
+            "SpectrumSPDKSampler.sample()",
         )
     )
     if not values:
@@ -2858,10 +2929,24 @@ def _aio_stage_sampler_settings(
     stage_settings: dict[str, Any],
     *,
     scheduler_default: str,
+    inherit_backend: bool = False,
 ) -> dict[str, Any]:
     inherit_sampler = _as_bool(stage_settings.get("inherit_sampler_settings"), False)
+    inherited_spd_fallback = False
+    if inherit_backend and inherit_sampler:
+        inherited_backend = str(base_sampler.get("backend") or "comfy_ksampler")
+        if inherited_backend == "spectrum_spd_speed":
+            backend = "comfy_ksampler"
+            inherited_spd_fallback = True
+        else:
+            backend = inherited_backend
+    elif inherit_backend:
+        backend = "comfy_ksampler"
+    else:
+        backend = "comfy_ksampler"
+    inherit_backend_settings = bool(inherit_backend and inherit_sampler and not inherited_spd_fallback)
     return {
-        "backend": "comfy_ksampler",
+        "backend": backend,
         "seed": _resolve_aio_runtime_seed(base_sampler.get("seed")),
         "seed_after_generate": SEED_CONTROL_FIXED,
         "steps": _as_int(stage_settings.get("steps"), _as_int(base_sampler.get("steps"), 28)),
@@ -2871,7 +2956,7 @@ def _aio_stage_sampler_settings(
             else _as_float(stage_settings.get("cfg"), _as_float(base_sampler.get("cfg"), 5.0))
         ),
         "sampler_name": (
-            str(base_sampler.get("sampler_name") or "euler")
+            ("euler" if inherited_spd_fallback else str(base_sampler.get("sampler_name") or "euler"))
             if inherit_sampler
             else str(stage_settings.get("sampler_name") or base_sampler.get("sampler_name") or "euler")
         ),
@@ -2881,9 +2966,36 @@ def _aio_stage_sampler_settings(
             else str(stage_settings.get("scheduler") or scheduler_default)
         ),
         "denoise": _as_float(stage_settings.get("denoise"), 1.0),
-        "spectrum": _json_clone(stage_settings.get("spectrum") or {}),
-        "dit_corrections": _json_clone(stage_settings.get("dit_corrections") or {}),
+        "spectrum": _json_clone(
+            base_sampler.get("spectrum") if inherit_backend_settings else stage_settings.get("spectrum") or {}
+        ),
+        "dit_corrections": _json_clone(
+            base_sampler.get("dit_corrections")
+            if inherit_backend_settings
+            else stage_settings.get("dit_corrections") or {}
+        ),
+        "spd": _json_clone(
+            base_sampler.get("spd") if inherit_backend_settings else stage_settings.get("spd") or {}
+        ),
+        "spectrum_extra": _json_clone(
+            base_sampler.get("spectrum_extra") if inherit_backend_settings else {}
+        ),
+        "spd_extra": _json_clone(
+            base_sampler.get("spd_extra") if inherit_backend_settings else {}
+        ),
     }
+
+
+def _aio_highres_effective_backend(
+    sampler_settings: dict[str, Any],
+    highres_settings: dict[str, Any],
+) -> str:
+    if not _as_bool(highres_settings.get("enabled"), False):
+        return ""
+    if _as_bool(highres_settings.get("inherit_sampler_settings"), False):
+        backend = str(sampler_settings.get("backend") or "comfy_ksampler")
+        return "comfy_ksampler" if backend == "spectrum_spd_speed" else backend
+    return "comfy_ksampler"
 
 
 def _run_aio_highres_stage(
@@ -2898,10 +3010,20 @@ def _run_aio_highres_stage(
     base_height: int,
     sampler_settings: dict[str, Any],
     highres_settings: dict[str, Any],
+    mod_guidance_settings: dict[str, Any] | None = None,
+    use_mod_guidance: bool = False,
+    quality_tags: str = "",
+    quality_neg: str = "",
 ) -> tuple[Any, Any, int, int, dict[str, Any]]:
     if not _as_bool(highres_settings.get("enabled"), False):
         return base_latent, image, int(base_width), int(base_height), {"enabled": False}
 
+    stage_sampler = _aio_stage_sampler_settings(
+        sampler_settings,
+        highres_settings,
+        scheduler_default="simple",
+        inherit_backend=True,
+    )
     scaled_image, width, height, applied_scale = EasyUseAnimaImageScaleByMultiple().upscale(
         image,
         highres_settings.get("scale_by", 1.25),
@@ -2910,29 +3032,26 @@ def _run_aio_highres_stage(
         highres_settings.get("max_long_edge", 2560),
     )
     latent_image = _encode_image_with_comfy_vae(vae, scaled_image)
-    stage_sampler = _aio_stage_sampler_settings(
-        sampler_settings,
-        highres_settings,
-        scheduler_default="simple",
-    )
-    stage_model = _apply_aio_spectrum_model_patches_for_comfy_sampler(
-        model,
-        clip,
-        positive,
-        stage_sampler,
-    )
+    stage_model = model
+    if stage_sampler.get("backend") == "comfy_ksampler":
+        stage_model = _apply_aio_spectrum_model_patches_for_comfy_sampler(
+            model,
+            clip,
+            positive,
+            stage_sampler,
+        )
     try:
-        latent = _sample_latent_with_comfy(
+        latent = _sample_latent_with_aio_backend(
             stage_model,
-            stage_sampler["seed"],
-            stage_sampler["steps"],
-            stage_sampler["cfg"],
-            stage_sampler["sampler_name"],
-            stage_sampler["scheduler"],
+            clip,
             positive,
             negative,
             latent_image,
-            stage_sampler["denoise"],
+            stage_sampler,
+            mod_guidance_settings or {},
+            use_mod_guidance,
+            quality_tags,
+            quality_neg,
         )
     finally:
         _cleanup_aio_ephemeral_model(stage_model, model)
@@ -4020,7 +4139,7 @@ def _advanced_pane_parts(fields: list[dict], pane: str) -> dict[str, list[str]]:
         if field_type == "quality":
             parts["quality"].append(text)
         elif field_type == "artist":
-            parts["artist"].append(text)
+            parts["artist"].append(_artist_mix_inline_prompt(text))
         elif field_type == "trigger":
             if _as_bool(field.get("pin"), True):
                 parts["trigger_fixed"].append(text)
@@ -4064,6 +4183,8 @@ def _correct_advanced_field_sequence(
         text = str(field.get("text") or "")
         if field_type == "quality" and not include_quality:
             continue
+        if field_type == "artist":
+            text = _artist_mix_inline_prompt(text)
         if field_type == "trigger" and (
             _as_bool(field.get("pin"), True) or force_pin_triggers
         ):
@@ -4195,7 +4316,7 @@ def _advanced_prompt_data_fields(fields: list[dict]) -> list[dict[str, Any]]:
 
 def _advanced_artist_field_prompt(fields: list[dict], pane: str) -> str:
     # Artist data is sourced only from Advanced artist fields, not from @ tags in other fields.
-    return _join_prompt_tokens(
+    return _join_artist_mix_source_prompts(
         *(
             str(field.get("text") or "")
             for field in fields
@@ -4255,28 +4376,46 @@ def _advanced_prompt_with_artist_override(
 def _split_artist_mix_items(text: str) -> list[str]:
     items: list[str] = []
     buffer: list[str] = []
-    depth = 0
+    paren_depth = 0
+    square_depth = 0
     escaped = False
-    for char in str(text or ""):
+    source = str(text or "")
+    index = 0
+    while index < len(source):
+        char = source[index]
         if escaped:
             buffer.append(char)
             escaped = False
+            index += 1
             continue
         if char == "\\":
             buffer.append(char)
             escaped = True
+            index += 1
             continue
         if char == "(":
-            depth += 1
-        elif char == ")" and depth > 0:
-            depth -= 1
-        if (char == "," or char == "\n") and depth == 0:
+            paren_depth += 1
+        elif char == ")" and paren_depth > 0:
+            paren_depth -= 1
+        elif char == "[" and index + 1 < len(source) and source[index + 1] == "[":
+            square_depth += 1
+            buffer.append(char)
+            index += 1
+            char = source[index]
+        elif char == "]" and index + 1 < len(source) and source[index + 1] == "]" and square_depth > 0:
+            square_depth -= 1
+            buffer.append(char)
+            index += 1
+            char = source[index]
+        if (char == "," or char == "\n") and paren_depth == 0 and square_depth == 0:
             item = "".join(buffer).strip()
             if item:
                 items.append(item)
             buffer = []
+            index += 1
             continue
         buffer.append(char)
+        index += 1
     item = "".join(buffer).strip()
     if item:
         items.append(item)
@@ -4303,13 +4442,69 @@ def _split_artist_mix_blocks(text: str) -> list[str]:
     return blocks
 
 
-def _parse_artist_mix_items(text: str) -> list[tuple[str, float]]:
-    parsed: list[tuple[str, float]] = []
+def _parse_artist_mix_group(raw_tag: str) -> tuple[str, float] | None:
+    text = str(raw_tag or "").strip()
+    match = _ARTIST_GROUP_RE.match(text)
+    if not match and text.startswith("(") and text.endswith(")"):
+        match = _ARTIST_GROUP_RE.match(text[1:-1].strip())
+    if not match:
+        return None
+    tag = _join_prompt_tokens(match.group("tag") or "")
+    weight = _as_float(match.group("weight"), 1.0) if match.group("weight") is not None else 1.0
+    if not tag or not isfinite(weight) or weight <= 0:
+        return None
+    return tag, weight
+
+
+def _artist_group_token(tag: str, weight: float) -> str:
+    tag_text = _join_prompt_tokens(tag)
+    if not tag_text:
+        return ""
+    if abs(float(weight) - 1.0) >= 0.001:
+        return f"[[{tag_text}:{float(weight):g}]]"
+    return f"[[{tag_text}]]"
+
+
+def _join_artist_mix_source_prompts(*parts: str) -> str:
+    items: list[str] = []
+    for part in parts:
+        for raw_item in _split_artist_mix_items(str(part or "")):
+            group = _parse_artist_mix_group(raw_item)
+            if group is not None:
+                grouped_tag, grouped_weight = group
+                token = _artist_group_token(grouped_tag, grouped_weight)
+            else:
+                token = _join_prompt_tokens(raw_item)
+            if token:
+                items.append(token)
+    return ", ".join(items)
+
+
+def _artist_mix_inline_prompt(text: str) -> str:
+    items: list[str] = []
+    for raw_item in _split_artist_mix_items(str(text or "")):
+        group = _parse_artist_mix_group(raw_item)
+        item = group[0] if group is not None else raw_item
+        token = _join_prompt_tokens(item)
+        if token:
+            items.append(token)
+    return ", ".join(items)
+
+
+def _parse_artist_mix_entries(text: str) -> list[dict[str, Any]]:
+    parsed: list[dict[str, Any]] = []
     blocks = _split_artist_mix_blocks(text)
     source_items = blocks or _split_artist_mix_items(text)
     for item in source_items:
         raw_tag = item.strip()
         weight = 1.0
+        grouped = False
+        group = _parse_artist_mix_group(raw_tag)
+        if group is not None:
+            tag, weight = group
+            grouped = True
+            parsed.append({"tag": tag, "weight": weight, "grouped": grouped})
+            continue
         weight_source = raw_tag
         if blocks:
             block_parts = _split_artist_mix_items(raw_tag)
@@ -4323,19 +4518,28 @@ def _parse_artist_mix_items(text: str) -> list[tuple[str, float]]:
             tag = raw_tag[1:-1].strip()
         else:
             tag = raw_tag
+        tag = _artist_mix_inline_prompt(tag) if _ARTIST_GROUP_RE.search(tag) else _join_prompt_tokens(tag)
         if tag and isfinite(weight) and weight > 0:
-            parsed.append((tag, weight))
+            parsed.append({"tag": tag, "weight": weight, "grouped": grouped})
     return parsed
+
+
+def _parse_artist_mix_items(text: str) -> list[tuple[str, float]]:
+    return [
+        (str(entry["tag"]), float(entry["weight"]))
+        for entry in _parse_artist_mix_entries(text)
+    ]
 
 
 def _artist_tags_from_prompt(text: str, source: str = "artist_field") -> list[dict[str, Any]]:
     return [
         {
-            "tag": tag,
-            "weight": float(weight),
+            "tag": str(entry["tag"]),
+            "weight": float(entry["weight"]),
             "source": source,
+            "grouped": bool(entry.get("grouped")),
         }
-        for tag, weight in _parse_artist_mix_items(text)
+        for entry in _parse_artist_mix_entries(text)
     ]
 
 
@@ -5794,6 +5998,8 @@ def _build_advanced_prompt_data(
     negative_fields = _advanced_enabled_pane_fields(effective_fields, "negative")
     positive_artist_prompt = _advanced_artist_field_prompt(effective_fields, "positive")
     negative_artist_prompt = _advanced_artist_field_prompt(effective_fields, "negative")
+    positive_artist_inline_prompt = _artist_mix_inline_prompt(positive_artist_prompt)
+    negative_artist_inline_prompt = _artist_mix_inline_prompt(negative_artist_prompt)
     force_pin_triggers = _as_bool(pin_trigger_tags_to_front, False)
     positive_without_artist = _advanced_prompt_with_artist_override(
         positive_fields,
@@ -5862,15 +6068,15 @@ def _build_advanced_prompt_data(
             "handling": "separate" if artist_mix_enabled else "inline",
             "conditioning_mode": prompt_data_artist_mix_mode if artist_mix_enabled else "none",
             "include_in_positive": not artist_mix_enabled,
-            "text": positive_artist_prompt,
+            "text": positive_artist_inline_prompt,
             "weighted_text": positive_artist_prompt,
             "tags": _artist_tags_from_prompt(positive_artist_prompt),
-            "positive_prompt": positive_artist_prompt,
-            "negative_prompt": negative_artist_prompt,
+            "positive_prompt": positive_artist_inline_prompt,
+            "negative_prompt": negative_artist_inline_prompt,
             "positive_prompt_without_artist": positive_without_artist,
             "negative_prompt_without_artist": negative_without_artist,
-            "positive_count_hint": len(_prompt_tokens(positive_artist_prompt)),
-            "negative_count_hint": len(_prompt_tokens(negative_artist_prompt)),
+            "positive_count_hint": len(_parse_artist_mix_items(positive_artist_prompt)),
+            "negative_count_hint": len(_parse_artist_mix_items(negative_artist_prompt)),
         },
         "artist_mix": {
             "enabled": artist_mix_enabled,
@@ -5924,7 +6130,7 @@ def _build_advanced_prompt_data(
                 1.0,
             ),
             "artist_prompt": positive_artist_prompt,
-            "artist_count_hint": len(_prompt_tokens(positive_artist_prompt)),
+            "artist_count_hint": len(_parse_artist_mix_items(positive_artist_prompt)),
         },
         "resolution": {
             "width": int(width),
@@ -8254,7 +8460,10 @@ class EasyUseAnimaArtistMixConditioning:
                 "artist_tags": ("STRING", {
                     "multiline": True,
                     "default": "",
-                    "tooltip": "Comma- or newline-separated artist tags. Weighted syntax such as (artist:1.2) is supported.",
+                    "tooltip": (
+                        "Comma- or newline-separated artist tags. (artist:1.2) sets a mix weight. "
+                        "[[artist_a, artist_b:0.7]] keeps multiple artists in one mix branch."
+                    ),
                 }),
                 "artist_position": (list(ARTIST_TAG_POSITION_MODES), {
                     "default": ARTIST_TAG_POSITION_CORRECT,
@@ -8416,11 +8625,11 @@ class EasyUseAnimaArtistMixConditioning:
         position = _normalize_artist_tag_position(artist_position)
         mode = _normalize_artist_mix_mode(artist_mix_mode, ARTIST_MIX_MODE_PROMPT)
         base_prompt = _join_prompt_tokens(prompt)
-        artist_prompt = _join_prompt_tokens(artist_tags)
+        artist_prompt = _join_artist_mix_source_prompts(artist_tags)
         if mode == ARTIST_MIX_MODE_PROMPT:
             return (_encode_with_comfy_clip(
                 clip,
-                _artist_prompt_with_position(base_prompt, artist_prompt, position),
+                _artist_prompt_with_position(base_prompt, _artist_mix_inline_prompt(artist_prompt), position),
             ),)
 
         prompt_data = {
@@ -9057,17 +9266,17 @@ class EasyUseAnimaAIOGenerator:
             mod_guidance["mode"],
         )
         sampler_backend = str(sampler.get("backend") or "comfy_ksampler")
-        needs_standalone_mod_guidance_model = (
-            sampler_backend != "spectrum_mod_guidance_advanced"
-            or will_run_highres
-            or will_run_detailer
-        )
+        highres_backend = _aio_highres_effective_backend(sampler, settings["highres"])
         mod_guidance_model = model
-        if (
+        can_apply_standalone_mod_guidance = (
             use_mod_guidance
             and profile != ANIMA_MOD_GUIDANCE_PROFILE_OFF
-            and needs_standalone_mod_guidance_model
-        ):
+        )
+
+        def ensure_standalone_mod_guidance_model():
+            nonlocal mod_guidance_model
+            if not can_apply_standalone_mod_guidance or mod_guidance_model is not model:
+                return mod_guidance_model
             mod_guidance_model = _apply_spectrum_anima_mod_guidance(
                 model,
                 clip,
@@ -9077,7 +9286,16 @@ class EasyUseAnimaAIOGenerator:
                 quality_neg if use_negative_anima_mod_guidance else "",
                 profile,
             )
-        base_sample_model = model if sampler_backend == "spectrum_mod_guidance_advanced" else mod_guidance_model
+            return mod_guidance_model
+
+        def model_and_mod_guidance_flag_for_backend(backend: str):
+            if backend == "spectrum_mod_guidance_advanced":
+                if mod_guidance_model is not model:
+                    return mod_guidance_model, False
+                return model, use_mod_guidance
+            return ensure_standalone_mod_guidance_model(), False
+
+        base_sample_model, base_use_mod_guidance = model_and_mod_guidance_flag_for_backend(sampler_backend)
         if sampler_backend == "comfy_ksampler":
             base_sample_model = _apply_aio_spectrum_model_patches_for_comfy_sampler(
                 base_sample_model,
@@ -9134,7 +9352,7 @@ class EasyUseAnimaAIOGenerator:
                     latent_image,
                     sampler,
                     mod_guidance,
-                    use_mod_guidance,
+                    base_use_mod_guidance,
                     quality_tags,
                     quality_neg if use_negative_anima_mod_guidance else "",
                 )
@@ -9146,8 +9364,13 @@ class EasyUseAnimaAIOGenerator:
             stage_metadata["first_pass"] = {"cache_hit": first_pass_cache_hit}
             if preview_settings["intermediate_images"]:
                 add_preview("first_pass", image)
+            highres_model, highres_use_mod_guidance = (
+                model_and_mod_guidance_flag_for_backend(highres_backend)
+                if will_run_highres
+                else (model, False)
+            )
             latent, image, width, height, highres_metadata = _run_aio_highres_stage(
-                mod_guidance_model,
+                highres_model,
                 clip,
                 vae,
                 positive,
@@ -9158,13 +9381,17 @@ class EasyUseAnimaAIOGenerator:
                 height,
                 sampler,
                 settings["highres"],
+                mod_guidance,
+                highres_use_mod_guidance,
+                quality_tags,
+                quality_neg if use_negative_anima_mod_guidance else "",
             )
             stage_metadata["highres"] = highres_metadata
             if highres_metadata.get("enabled") and isinstance(highres_metadata.get("sampler"), dict):
                 if preview_settings["intermediate_images"] and will_run_detailer:
                     add_preview("highres", image)
             image, detailer_metadata = _run_aio_detailer_stage(
-                mod_guidance_model,
+                ensure_standalone_mod_guidance_model() if will_run_detailer else mod_guidance_model,
                 clip,
                 vae,
                 positive,

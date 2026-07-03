@@ -102,6 +102,10 @@ workflow embed와 Civitai/LoRA metadata 저장까지 한 번에 처리할 수 �
   `EasyUse Anima: Autocomplete CSV`에서 선택할 수 있습니다.
 - `__` 또는 `__partial`을 입력하면 와일드카드 자동완성이 열리고,
   `__relative/key__` 형식으로 삽입합니다.
+- 자동완성 인라인 미리보기를 켜면 선택 후보를 적용했을 때 들어갈 나머지
+  텍스트가 입력칸 하이라이트 위에 ghost text처럼 표시됩니다.
+- 닫는 괄호 미리입력을 켜면 `(`, `[`, `{` 같은 여는 괄호 입력 시 닫는
+  괄호를 커서 오른쪽에 넣어 편집기처럼 사용할 수 있습니다.
 - 자세한 CSV 선택 기준과 포맷은
   [자동완성 CSV 가이드](docs/autocomplete-csv.ko.md)를 참고하세요.
 
@@ -112,6 +116,10 @@ Prompt Studio 하이라이트:
   표시합니다.
 - 와일드카드 문법은 일반 태그와 별도의 색상으로 표시하며, Settings에서 색상을
   변경할 수 있습니다.
+- `(tag:1.2)` 프롬프트 가중치와 `[[artist_a, artist_b:0.7]]` Artist Mix
+  그룹은 설정에서 밑줄 표시를 켤 수 있습니다.
+- `(@artist name)` 또는 `(highres, long hair)`처럼 가중치 없이 괄호로 감싼
+  태그도 내부 태그 기준으로 분류하고 색상을 표시합니다.
 
 ComfyUI Settings:
 
@@ -122,6 +130,8 @@ ComfyUI Settings:
 - Prompt metadata filter word는 metadata prompt output에만 적용됩니다.
 - Prompt Studio 오타 표시와 카테고리/와일드카드 색상을 수동으로 변경할 수
   있습니다.
+- Prompt Studio 자동완성 미리보기, 닫는 괄호 미리입력, 가중치 문법 밑줄
+  표시를 켜거나 끌 수 있습니다.
 - Prompt Studio는 NAIA field 위쪽 general field를 자동 토글할 수 있습니다.
 - Wildcard extra paths는 항목 추가 방식으로 기존 사용자 와일드카드 폴더를
   등록합니다.

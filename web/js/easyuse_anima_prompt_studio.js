@@ -81,9 +81,11 @@ const PROMPT_STUDIO_TEXT = {
     "advanced.negativeModGuidance": "negative mod",
     "advanced.negativeModGuidanceTitle": "Send negative quality fields to Anima Mod Guidance negative output.",
     "advanced.modGuidanceGroup": "Mod Guidance",
-    "advanced.modGuidanceGroupTitle": "Expand Mod Guidance controls.",
+    "advanced.modGuidanceGroupTitle": "Open Mod Guidance routing settings.",
+    "advanced.modGuidanceSubtitle": "Choose whether quality fields are sent through the positive and negative Mod Guidance outputs.",
     "advanced.artistMix": "Artist Mix",
     "advanced.artistMixTitle": "Select how Advanced artist fields are written into EASYUSE_ANIMA_PROMPT_DATA.",
+    "advanced.artistMixSubtitle": "Artist mix settings are saved in prompt data and used by conditioning nodes.",
     "advanced.artistMixMode": "mode",
     "advanced.artistMixStart": "start",
     "advanced.artistMixStrength": "strength",
@@ -103,10 +105,22 @@ const PROMPT_STUDIO_TEXT = {
     "advanced.artistMixMode.late_exactTitle": "Cost: base + N late exact branches. Apply exact mixing only after start.",
     "advanced.artistMixMode.average_late_exactTitle": "Cost: 1 average branch plus N late exact branches. Fast early mix, exact late refinement.",
     "advanced.artistMixMode.scheduled_averageTitle": "Cost: scheduled average branches. Change artist weights across timestep ranges.",
+    "advanced.artistMixStartTitle": "Late and scheduled modes start artist-specific conditioning at this sampling fraction.",
+    "advanced.artistMixStrengthTitle": "Scales exact branch strength after artist weights are normalized.",
+    "advanced.artistMixStyleGainTitle": "Controls style delta intensity for delta_rms, hybrid tail, and clustered compressed branches.",
+    "advanced.artistMixRmsCapTitle": "Limits RMS style-energy restoration for compressed artist branches.",
+    "advanced.artistMixTopKTitle": "Hybrid keeps this many strongest artist entries as exact branches.",
+    "advanced.artistMixClustersTitle": "Clustered mode compresses non-dominant artists into this many branches.",
+    "advanced.artistMixDominantTitle": "Keep artists above the dominant threshold as exact branches in clustered mode.",
+    "advanced.artistMixDominantThresholdTitle": "Normalized artist-weight threshold used by dominant isolation.",
+    "advanced.artistMixSyntaxTitle": "Use [[artist_a, artist_b:0.7]] to keep multiple artists in one mix branch. The final :number before ]] affects conditioning mix only.",
     "advanced.wildcard": "wildcard",
     "advanced.wildcardTitle": "Expand __wildcard__ and dynamic prompt syntax in Advanced Prompt Studio fields.",
     "advanced.wildcardSeed": "wildcard seed",
     "advanced.wildcardSeedControl": "seed control",
+    "advanced.wildcardModeTitle": "Wildcard expansion mode used when the node is queued.",
+    "advanced.wildcardSeedTitle": "Seed used for wildcard selection. Saved workflows keep the value for reproducible expansion.",
+    "advanced.wildcardSeedControlTitle": "How the wildcard seed changes after a queue run.",
     "advanced.pin": "Pin",
     "advanced.pinTitle": "Keep positive artist/trigger fields at the front.",
     "advanced.linkedInputSuffix": "Linked input controls this value.",
@@ -116,6 +130,12 @@ const PROMPT_STUDIO_TEXT = {
     "advanced.customWidth": "custom width",
     "advanced.customHeight": "custom height",
     "advanced.naiaResolutionTitle": "Filled from NAIA on queue. Saved image workflows store this as Custom.",
+    "advanced.resolutionBucketTitle": "Resolution preset family used for latent width and height.",
+    "advanced.resolutionSizeTitle": "Concrete latent width and height selected from the bucket.",
+    "advanced.customWidthTitle": "Custom latent width. Values are snapped to multiples of 32.",
+    "advanced.customHeightTitle": "Custom latent height. Values are snapped to multiples of 32.",
+    "advanced.settingsButton": "Settings...",
+    "advanced.close": "Close",
     "advanced.field.quality": "Quality Tags",
     "advanced.field.artist": "Artist Tags",
     "advanced.field.trigger": "Trigger Words",
@@ -185,9 +205,11 @@ const PROMPT_STUDIO_TEXT = {
     "advanced.negativeModGuidance": "negative mod",
     "advanced.negativeModGuidanceTitle": "부정 품질 필드를 Anima Mod Guidance 네거티브 출력으로 보냅니다.",
     "advanced.modGuidanceGroup": "Mod Guidance",
-    "advanced.modGuidanceGroupTitle": "Mod Guidance 컨트롤을 펼칩니다.",
+    "advanced.modGuidanceGroupTitle": "Mod Guidance 라우팅 설정을 엽니다.",
+    "advanced.modGuidanceSubtitle": "품질 필드를 긍정/부정 Mod Guidance 출력으로 보낼지 설정합니다.",
     "advanced.artistMix": "Artist Mix",
     "advanced.artistMixTitle": "Advanced 작가 필드를 EASYUSE_ANIMA_PROMPT_DATA에 기록하는 방식을 선택합니다.",
+    "advanced.artistMixSubtitle": "Artist Mix 설정은 prompt data에 저장되며 conditioning 노드에서 사용됩니다.",
     "advanced.artistMixMode": "mode",
     "advanced.artistMixStart": "start",
     "advanced.artistMixStrength": "strength",
@@ -207,10 +229,22 @@ const PROMPT_STUDIO_TEXT = {
     "advanced.artistMixMode.late_exactTitle": "Cost: base + N late exact branches. start 이후에만 exact mix를 적용합니다.",
     "advanced.artistMixMode.average_late_exactTitle": "Cost: average 1 branch + N late exact branches. 초반은 빠르게, 후반은 exact로 보강합니다.",
     "advanced.artistMixMode.scheduled_averageTitle": "Cost: scheduled average branches. timestep 구간별로 artist weight를 바꿉니다.",
+    "advanced.artistMixStartTitle": "late/scheduled 계열에서 작가별 conditioning이 시작되는 sampling 비율입니다.",
+    "advanced.artistMixStrengthTitle": "작가 weight 정규화 이후 exact branch 강도를 조절합니다.",
+    "advanced.artistMixStyleGainTitle": "delta_rms, hybrid tail, clustered 압축 branch의 스타일 delta 강도입니다.",
+    "advanced.artistMixRmsCapTitle": "압축 artist branch의 RMS 스타일 에너지 복원 상한입니다.",
+    "advanced.artistMixTopKTitle": "hybrid에서 가장 강한 작가 항목을 exact branch로 유지할 개수입니다.",
+    "advanced.artistMixClustersTitle": "clustered에서 dominant가 아닌 작가를 압축할 branch 개수입니다.",
+    "advanced.artistMixDominantTitle": "clustered에서 threshold 이상 작가를 exact branch로 분리합니다.",
+    "advanced.artistMixDominantThresholdTitle": "dominant isolation에 사용하는 정규화된 작가 weight 기준입니다.",
+    "advanced.artistMixSyntaxTitle": "[[artist_a, artist_b:0.7]] 형식으로 여러 작가를 한 mix branch로 묶습니다. ]] 직전의 마지막 :숫자만 conditioning mix weight로 적용됩니다.",
     "advanced.wildcard": "와일드카드",
     "advanced.wildcardTitle": "Advanced Prompt Studio 필드의 __wildcard__ 및 동적 프롬프트 문법을 확장합니다.",
     "advanced.wildcardSeed": "와일드카드 시드",
     "advanced.wildcardSeedControl": "시드 제어",
+    "advanced.wildcardModeTitle": "큐 실행 시 사용할 와일드카드 확장 모드입니다.",
+    "advanced.wildcardSeedTitle": "와일드카드 선택에 사용하는 시드입니다. 저장된 워크플로우에서 재현성을 유지합니다.",
+    "advanced.wildcardSeedControlTitle": "큐 실행 후 와일드카드 시드를 변경하는 방식입니다.",
     "advanced.pin": "고정",
     "advanced.pinTitle": "긍정 작가/트리거 필드를 앞쪽에 유지합니다.",
     "advanced.linkedInputSuffix": "연결된 입력이 이 값을 제어합니다.",
@@ -220,6 +254,12 @@ const PROMPT_STUDIO_TEXT = {
     "advanced.customWidth": "사용자 너비",
     "advanced.customHeight": "사용자 높이",
     "advanced.naiaResolutionTitle": "큐 실행 때 NAIA에서 채워졌습니다. 저장된 이미지 워크플로우에는 Custom으로 저장됩니다.",
+    "advanced.resolutionBucketTitle": "latent width/height를 고르는 해상도 프리셋 묶음입니다.",
+    "advanced.resolutionSizeTitle": "선택한 버킷 안에서 사용할 실제 latent width/height입니다.",
+    "advanced.customWidthTitle": "사용자 지정 latent width입니다. 32의 배수로 보정됩니다.",
+    "advanced.customHeightTitle": "사용자 지정 latent height입니다. 32의 배수로 보정됩니다.",
+    "advanced.settingsButton": "설정...",
+    "advanced.close": "닫기",
     "advanced.field.quality": "품질 태그",
     "advanced.field.artist": "작가 태그",
     "advanced.field.trigger": "트리거",
@@ -289,9 +329,11 @@ const PROMPT_STUDIO_TEXT = {
     "advanced.negativeModGuidance": "negative mod",
     "advanced.negativeModGuidanceTitle": "ネガティブ品質フィールドを Anima Mod Guidance ネガティブ出力へ送ります。",
     "advanced.modGuidanceGroup": "Mod Guidance",
-    "advanced.modGuidanceGroupTitle": "Mod Guidance コントロールを展開します。",
+    "advanced.modGuidanceGroupTitle": "Mod Guidance のルーティング設定を開きます。",
+    "advanced.modGuidanceSubtitle": "品質フィールドをポジティブ/ネガティブの Mod Guidance 出力へ送るか設定します。",
     "advanced.artistMix": "Artist Mix",
     "advanced.artistMixTitle": "Advanced の作者フィールドを EASYUSE_ANIMA_PROMPT_DATA に書き込む方法を選択します。",
+    "advanced.artistMixSubtitle": "Artist Mix 設定は prompt data に保存され、conditioning ノードで使用されます。",
     "advanced.artistMixMode": "mode",
     "advanced.artistMixStart": "start",
     "advanced.artistMixStrength": "strength",
@@ -311,10 +353,22 @@ const PROMPT_STUDIO_TEXT = {
     "advanced.artistMixMode.late_exactTitle": "Cost: base + N late exact branches. Apply exact mixing only after start.",
     "advanced.artistMixMode.average_late_exactTitle": "Cost: 1 average branch plus N late exact branches. Fast early mix, exact late refinement.",
     "advanced.artistMixMode.scheduled_averageTitle": "Cost: scheduled average branches. Change artist weights across timestep ranges.",
+    "advanced.artistMixStartTitle": "late/scheduled 系モードで作者別 conditioning を開始する sampling 比率です。",
+    "advanced.artistMixStrengthTitle": "作者 weight の正規化後に exact branch の強度を調整します。",
+    "advanced.artistMixStyleGainTitle": "delta_rms、hybrid tail、clustered 圧縮 branch のスタイル delta 強度です。",
+    "advanced.artistMixRmsCapTitle": "圧縮 artist branch の RMS スタイルエネルギー復元上限です。",
+    "advanced.artistMixTopKTitle": "hybrid で最も強い作者項目を exact branch として残す数です。",
+    "advanced.artistMixClustersTitle": "clustered で dominant 以外の作者を圧縮する branch 数です。",
+    "advanced.artistMixDominantTitle": "clustered で threshold 以上の作者を exact branch として分離します。",
+    "advanced.artistMixDominantThresholdTitle": "dominant isolation に使う正規化済み作者 weight の基準です。",
+    "advanced.artistMixSyntaxTitle": "[[artist_a, artist_b:0.7]] で複数作者を 1 つの mix branch にまとめます。]] 直前の最後の :number だけが conditioning mix weight に適用されます。",
     "advanced.wildcard": "ワイルドカード",
     "advanced.wildcardTitle": "Advanced Prompt Studio フィールド内の __wildcard__ と動的プロンプト構文を展開します。",
     "advanced.wildcardSeed": "ワイルドカードシード",
     "advanced.wildcardSeedControl": "シード制御",
+    "advanced.wildcardModeTitle": "キュー実行時に使うワイルドカード展開モードです。",
+    "advanced.wildcardSeedTitle": "ワイルドカード選択に使うシードです。保存済みワークフローの再現性を保ちます。",
+    "advanced.wildcardSeedControlTitle": "キュー実行後にワイルドカードシードを変更する方法です。",
     "advanced.pin": "固定",
     "advanced.pinTitle": "ポジティブの作者/トリガーフィールドを前方に保持します。",
     "advanced.linkedInputSuffix": "接続された入力がこの値を制御します。",
@@ -324,6 +378,12 @@ const PROMPT_STUDIO_TEXT = {
     "advanced.customWidth": "カスタム幅",
     "advanced.customHeight": "カスタム高さ",
     "advanced.naiaResolutionTitle": "キュー実行時に NAIA から入力されます。保存画像ワークフローでは Custom として保存されます。",
+    "advanced.resolutionBucketTitle": "latent width/height を選ぶ解像度プリセットのグループです。",
+    "advanced.resolutionSizeTitle": "選択したバケット内で使う実際の latent width/height です。",
+    "advanced.customWidthTitle": "カスタム latent width です。32 の倍数に補正されます。",
+    "advanced.customHeightTitle": "カスタム latent height です。32 の倍数に補正されます。",
+    "advanced.settingsButton": "設定...",
+    "advanced.close": "閉じる",
     "advanced.field.quality": "品質タグ",
     "advanced.field.artist": "作者タグ",
     "advanced.field.trigger": "トリガーワード",
@@ -393,9 +453,11 @@ const PROMPT_STUDIO_TEXT = {
     "advanced.negativeModGuidance": "negative mod",
     "advanced.negativeModGuidanceTitle": "将负向质量字段发送到 Anima Mod Guidance 负向输出。",
     "advanced.modGuidanceGroup": "Mod Guidance",
-    "advanced.modGuidanceGroupTitle": "展开 Mod Guidance 控件。",
+    "advanced.modGuidanceGroupTitle": "打开 Mod Guidance 路由设置。",
+    "advanced.modGuidanceSubtitle": "设置是否将质量字段发送到正向/负向 Mod Guidance 输出。",
     "advanced.artistMix": "Artist Mix",
     "advanced.artistMixTitle": "选择 Advanced 作者字段写入 EASYUSE_ANIMA_PROMPT_DATA 的方式。",
+    "advanced.artistMixSubtitle": "Artist Mix 设置会保存到 prompt data，并由 conditioning 节点使用。",
     "advanced.artistMixMode": "mode",
     "advanced.artistMixStart": "start",
     "advanced.artistMixStrength": "strength",
@@ -415,10 +477,22 @@ const PROMPT_STUDIO_TEXT = {
     "advanced.artistMixMode.late_exactTitle": "Cost: base + N late exact branches. Apply exact mixing only after start.",
     "advanced.artistMixMode.average_late_exactTitle": "Cost: 1 average branch plus N late exact branches. Fast early mix, exact late refinement.",
     "advanced.artistMixMode.scheduled_averageTitle": "Cost: scheduled average branches. Change artist weights across timestep ranges.",
+    "advanced.artistMixStartTitle": "late/scheduled 模式开始应用作者专用 conditioning 的采样比例。",
+    "advanced.artistMixStrengthTitle": "在作者 weight 归一化后缩放 exact branch 强度。",
+    "advanced.artistMixStyleGainTitle": "delta_rms、hybrid tail、clustered 压缩 branch 的风格 delta 强度。",
+    "advanced.artistMixRmsCapTitle": "压缩 artist branch 的 RMS 风格能量恢复上限。",
+    "advanced.artistMixTopKTitle": "hybrid 中保留为 exact branch 的最强作者项数量。",
+    "advanced.artistMixClustersTitle": "clustered 中将非 dominant 作者压缩成的 branch 数量。",
+    "advanced.artistMixDominantTitle": "clustered 中将超过 threshold 的作者分离为 exact branch。",
+    "advanced.artistMixDominantThresholdTitle": "dominant isolation 使用的归一化作者 weight 阈值。",
+    "advanced.artistMixSyntaxTitle": "使用 [[artist_a, artist_b:0.7]] 将多个作者保持在一个 mix branch。]] 前最后的 :数字只影响 conditioning mix weight。",
     "advanced.wildcard": "通配符",
     "advanced.wildcardTitle": "展开 Advanced Prompt Studio 字段中的 __wildcard__ 和动态提示词语法。",
     "advanced.wildcardSeed": "通配符种子",
     "advanced.wildcardSeedControl": "种子控制",
+    "advanced.wildcardModeTitle": "队列执行时使用的通配符展开模式。",
+    "advanced.wildcardSeedTitle": "用于通配符选择的种子。保存的工作流会保留它以便复现。",
+    "advanced.wildcardSeedControlTitle": "队列执行后通配符种子的变化方式。",
     "advanced.pin": "固定",
     "advanced.pinTitle": "将正向作者/触发词字段保持在前方。",
     "advanced.linkedInputSuffix": "连接的输入会控制此值。",
@@ -428,6 +502,12 @@ const PROMPT_STUDIO_TEXT = {
     "advanced.customWidth": "自定义宽度",
     "advanced.customHeight": "自定义高度",
     "advanced.naiaResolutionTitle": "队列执行时从 NAIA 填充。保存图像工作流会将其存为 Custom。",
+    "advanced.resolutionBucketTitle": "用于选择 latent width/height 的分辨率预设组。",
+    "advanced.resolutionSizeTitle": "在所选分辨率桶中使用的具体 latent width/height。",
+    "advanced.customWidthTitle": "自定义 latent width。会校正为 32 的倍数。",
+    "advanced.customHeightTitle": "自定义 latent height。会校正为 32 的倍数。",
+    "advanced.settingsButton": "设置...",
+    "advanced.close": "关闭",
     "advanced.field.quality": "质量标签",
     "advanced.field.artist": "作者标签",
     "advanced.field.trigger": "触发词",
@@ -540,9 +620,11 @@ const LEGEND_ROW_HEIGHT = 18;
 const LEGEND_COLUMNS = 2;
 const STUDIO_WIDGET_VERTICAL_GAP = 8;
 
-const WEIGHTED_TOKEN_RE = /^\((.*):[-+]?\d+(?:\.\d+)?\)$/s;
+const WEIGHT_NUMBER_RE = /^[+-]?(?:\d+(?:\.\d*)?|\.\d+)$/;
+const WEIGHTED_TOKEN_RE = /^\((.*):[+-]?(?:\d+(?:\.\d*)?|\.\d+)\)$/s;
 const WEIGHT_NUMBER_COLOR = "#fb923c";
 const WILDCARD_HIGHLIGHT_RE = /(?:\d+#)?__[\w.\-+/*\\]+?__/g;
+const ARTIST_MIX_GROUP_HIGHLIGHT_RE = /\[\[[\s\S]*?(?::[-+]?(?:\d+(?:\.\d*)?|\.\d+))?\]\]/g;
 const INLINE_SPACE_RE = /[ \t]+/g;
 const HIGHLIGHT_TEXT_METRIC_PROPERTIES = [
   "font",
@@ -576,6 +658,7 @@ const HIGHLIGHT_TEXT_METRIC_PROPERTIES = [
 ];
 const PROMPT_STUDIO_SETTINGS = {
   typoIndicator: true,
+  weightSyntaxUnderline: false,
   commentItalic: true,
   naiaGeneralAboveAutoToggle: false,
 };
@@ -993,34 +1076,35 @@ function ensureAdvancedStyle() {
       margin-bottom: 7px;
     }
     .easyuse-anima-advanced-controlgroup {
-      min-width: 122px;
-      flex: 1 1 122px;
+      min-width: 160px;
+      flex: 1 1 180px;
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr);
+      align-items: center;
+      gap: 7px;
       border: 1px solid rgba(148, 163, 184, 0.24);
       background: rgba(15, 23, 42, 0.34);
+      padding: 5px;
       box-sizing: border-box;
+    }
+    .easyuse-anima-advanced-controlgroup.is-active {
+      border-color: rgba(96, 165, 250, 0.45);
+      background: rgba(30, 64, 112, 0.28);
     }
     .easyuse-anima-advanced-controlgroup-header {
       display: flex;
       align-items: center;
-      justify-content: space-between;
+      justify-content: center;
       gap: 6px;
-      width: 100%;
+      min-width: 86px;
       height: 24px;
-      padding: 0 7px;
-      border: 0;
-      background: transparent;
-      color: rgba(226, 232, 240, 0.78);
-      font: 10px sans-serif;
+      padding: 0 9px;
+      border: 1px solid rgba(148, 163, 184, 0.32);
+      background: rgba(30, 41, 59, 0.82);
+      color: rgba(226, 232, 240, 0.88);
+      font: 11px sans-serif;
       line-height: 1;
       cursor: pointer;
-    }
-    .easyuse-anima-advanced-controlgroup-header::before {
-      content: "▸";
-      color: rgba(148, 163, 184, 0.86);
-      font-size: 10px;
-    }
-    .easyuse-anima-advanced-controlgroup.is-open .easyuse-anima-advanced-controlgroup-header::before {
-      content: "▾";
     }
     .easyuse-anima-advanced-controlgroup.is-active .easyuse-anima-advanced-controlgroup-header {
       color: #fff;
@@ -1034,11 +1118,13 @@ function ensureAdvancedStyle() {
       color: rgba(148, 163, 184, 0.9);
       font-weight: 400;
     }
-    .easyuse-anima-advanced-controlgroup-body {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 6px;
-      padding: 0 6px 7px;
+    .easyuse-anima-advanced-inline-summary {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      color: rgba(203, 213, 225, 0.78);
+      font: 11px sans-serif;
     }
     .easyuse-anima-advanced-controlgroup-row {
       display: grid;
@@ -1096,15 +1182,31 @@ function ensureAdvancedStyle() {
     }
     .easyuse-anima-advanced-resolutionbar {
       display: grid;
-      grid-template-columns: minmax(82px, 0.34fr) minmax(0, 1fr);
+      grid-template-columns: auto minmax(0, 1fr);
+      align-items: center;
       gap: 8px;
       margin: 0 0 10px;
     }
     .easyuse-anima-advanced-wildcardbar {
       display: grid;
-      grid-template-columns: minmax(92px, 0.34fr) minmax(74px, 0.28fr) minmax(92px, 0.38fr);
+      grid-template-columns: auto minmax(0, 1fr);
+      align-items: center;
       gap: 8px;
       margin: 0 0 10px;
+    }
+    .easyuse-anima-advanced-popup-button {
+      min-width: 112px;
+      height: 27px;
+      border: 1px solid rgba(148, 163, 184, 0.34);
+      background: rgba(30, 41, 59, 0.82);
+      color: rgba(226, 232, 240, 0.9);
+      font: 11px sans-serif;
+      padding: 2px 9px;
+      cursor: pointer;
+    }
+    .easyuse-anima-advanced-popup-button:hover,
+    .easyuse-anima-advanced-controlgroup-header:hover {
+      border-color: rgba(96, 165, 250, 0.72);
     }
     .easyuse-anima-advanced-wildcardbar select,
     .easyuse-anima-advanced-wildcardbar input {
@@ -1149,6 +1251,100 @@ function ensureAdvancedStyle() {
     .easyuse-anima-advanced-resolution-custom span {
       color: rgba(203, 213, 225, 0.72);
       font: 12px sans-serif;
+    }
+    .easyuse-anima-advanced-popup-backdrop {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 100000;
+      background: rgba(5, 7, 10, 0.55);
+    }
+    .easyuse-anima-advanced-popup {
+      width: min(560px, calc(100vw - 44px));
+      max-height: min(620px, calc(100vh - 44px));
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      color: rgba(226, 232, 240, 0.95);
+      background: #171b20;
+      border: 1px solid rgba(148, 163, 184, 0.42);
+      box-shadow: 0 18px 56px rgba(0, 0, 0, 0.45);
+      border-radius: 8px;
+      font: 13px sans-serif;
+    }
+    .easyuse-anima-advanced-popup header {
+      display: flex;
+      justify-content: space-between;
+      gap: 14px;
+      padding: 15px 17px 12px;
+      border-bottom: 1px solid rgba(148, 163, 184, 0.2);
+    }
+    .easyuse-anima-advanced-popup h2 {
+      margin: 0 0 6px;
+      font-size: 18px;
+    }
+    .easyuse-anima-advanced-popup p {
+      margin: 0;
+      color: rgba(203, 213, 225, 0.68);
+      line-height: 1.35;
+    }
+    .easyuse-anima-advanced-popup-close {
+      align-self: flex-start;
+      min-width: 64px;
+      min-height: 34px;
+      border: 1px solid rgba(148, 163, 184, 0.34);
+      background: rgba(30, 41, 59, 0.88);
+      color: rgba(226, 232, 240, 0.92);
+      cursor: pointer;
+    }
+    .easyuse-anima-advanced-popup-body {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      gap: 9px;
+      padding: 14px 17px 17px;
+      overflow: auto;
+    }
+    .easyuse-anima-advanced-popup-body .easyuse-anima-advanced-controlgroup-row {
+      grid-template-columns: minmax(126px, 0.35fr) minmax(0, 0.65fr) auto;
+      min-height: 28px;
+    }
+    .easyuse-anima-advanced-help {
+      width: 22px;
+      height: 22px;
+      padding: 0;
+      border-radius: 50%;
+      border: 1px solid rgba(148, 163, 184, 0.34);
+      background: rgba(30, 41, 59, 0.82);
+      color: rgba(203, 213, 225, 0.88);
+      font: 700 12px sans-serif;
+      line-height: 1;
+      cursor: pointer;
+    }
+    .easyuse-anima-advanced-help:hover {
+      border-color: rgba(96, 165, 250, 0.72);
+      color: #fff;
+    }
+    .easyuse-anima-advanced-help-popover {
+      position: fixed;
+      z-index: 100002;
+      max-width: min(320px, calc(100vw - 32px));
+      padding: 9px 10px;
+      border: 1px solid rgba(148, 163, 184, 0.38);
+      border-radius: 6px;
+      background: #10151b;
+      color: rgba(226, 232, 240, 0.94);
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.42);
+      font: 12px/1.45 sans-serif;
+      white-space: normal;
+    }
+    .easyuse-anima-advanced-popup-note {
+      padding: 8px 9px;
+      border: 1px solid rgba(74, 222, 128, 0.18);
+      background: rgba(34, 197, 94, 0.08);
+      color: rgba(203, 213, 225, 0.82);
+      line-height: 1.35;
     }
     .easyuse-anima-advanced-pane {
       min-width: 0;
@@ -1373,6 +1569,7 @@ function parseColorSettings(value) {
 
 function applyPromptStudioSettings(settings) {
   PROMPT_STUDIO_SETTINGS.typoIndicator = settings?.["prompt_studio.typo_indicator"] !== "false";
+  PROMPT_STUDIO_SETTINGS.weightSyntaxUnderline = settings?.["prompt_studio.weight_syntax_underline"] === "true";
   PROMPT_STUDIO_SETTINGS.commentItalic = settings?.["prompt_studio.comment_italic"] !== "false";
   PROMPT_STUDIO_SETTINGS.naiaGeneralAboveAutoToggle =
     settings?.["prompt_studio.naia_general_above_auto_toggle"] === "true";
@@ -1455,6 +1652,7 @@ function splitPromptText(text) {
   const parts = [];
   let start = 0;
   let depth = 0;
+  let artistGroupDepth = 0;
   let escaped = false;
   const value = String(text ?? "");
 
@@ -1466,6 +1664,16 @@ function splitPromptText(text) {
     }
     if (char === "\\") {
       escaped = true;
+      continue;
+    }
+    if (char === "[" && value[index + 1] === "[") {
+      artistGroupDepth += 1;
+      index += 1;
+      continue;
+    }
+    if (char === "]" && value[index + 1] === "]" && artistGroupDepth > 0) {
+      artistGroupDepth -= 1;
+      index += 1;
       continue;
     }
 
@@ -1490,7 +1698,7 @@ function splitPromptText(text) {
       }
       continue;
     }
-    if ((char === "," || char === "\n") && depth === 0) {
+    if ((char === "," || char === "\n") && depth === 0 && artistGroupDepth === 0) {
       if (index > start) {
         parts.push({ text: value.slice(start, index), delimiter: false });
       }
@@ -1542,17 +1750,150 @@ function tokenSpanHtml(text, token) {
     + "</span>";
 }
 
-function basicSyntaxHtml(text) {
-  return escapeHtml(text).replace(
-    /(:)([-+]?\d+(?:\.\d+)?)(\))/g,
-    `$1<span style="color: ${WEIGHT_NUMBER_COLOR}">$2</span>$3`,
+function weightSyntaxDecoration() {
+  return PROMPT_STUDIO_SETTINGS.weightSyntaxUnderline
+    ? [
+      "text-decoration-line: underline",
+      "text-decoration-style: solid",
+      "text-decoration-color: rgba(148, 163, 184, 0.95)",
+      "text-underline-offset: 3px",
+      "text-decoration-skip-ink: none",
+    ].join("; ")
+    : "";
+}
+
+function wrapWeightSyntaxHtml(html) {
+  const decoration = weightSyntaxDecoration();
+  return decoration
+    ? `<span style="${decoration}">${html}</span>`
+    : html;
+}
+
+function weightSyntaxSpanHtml(text, style = "") {
+  const rules = [style].filter(Boolean).join("; ");
+  return rules
+    ? `<span style="${rules}">${escapeHtml(text)}</span>`
+    : escapeHtml(text);
+}
+
+function syntaxErrorSpanHtml(text, title = sectionLabel("syntax")) {
+  return `<span style="${tokenStyle({ section: "syntax" })}" title="${escapeHtml(title)}">`
+    + escapeHtml(text)
+    + "</span>";
+}
+
+function weightedParenSyntaxHtml(text) {
+  const match = /^(\()([\s\S]*?)(:)(\s*[+-]?(?:\d+(?:\.\d*)?|\.\d+))(\s*\))$/.exec(String(text ?? ""));
+  if (!match) {
+    return syntaxErrorSpanHtml(text);
+  }
+  const [, open, body, colon, weight, close] = match;
+  return wrapWeightSyntaxHtml(
+    weightSyntaxSpanHtml(open)
+    + escapeHtml(body)
+    + weightSyntaxSpanHtml(colon)
+    + weightSyntaxSpanHtml(weight, `color: ${WEIGHT_NUMBER_COLOR}`)
+    + weightSyntaxSpanHtml(close),
   );
+}
+
+function basicSyntaxHtml(text) {
+  const value = String(text ?? "");
+  const html = [];
+  const pattern = /\([^()\n]*:[^()\n]*\)/g;
+  let cursor = 0;
+  let match = null;
+  while ((match = pattern.exec(value))) {
+    html.push(escapeHtml(value.slice(cursor, match.index)));
+    html.push(weightedParenSyntaxHtml(match[0]));
+    cursor = match.index + match[0].length;
+  }
+  html.push(escapeHtml(value.slice(cursor)));
+  return html.join("");
 }
 
 function wildcardSyntaxSpanHtml(text) {
   return `<span style="${tokenStyle({ section: "wildcard" })}" title="${escapeHtml(sectionLabel("wildcard"))}">`
     + escapeHtml(text)
     + "</span>";
+}
+
+function findTopLevelWeightColon(value) {
+  let depth = 0;
+  let colon = -1;
+  let escaped = false;
+  const text = String(value ?? "");
+  for (let index = 0; index < text.length; index += 1) {
+    const char = text[index];
+    if (escaped) {
+      escaped = false;
+      continue;
+    }
+    if (char === "\\") {
+      escaped = true;
+      continue;
+    }
+    if (char === "(") {
+      depth += 1;
+      continue;
+    }
+    if (char === ")" && depth > 0) {
+      depth -= 1;
+      continue;
+    }
+    if (char === ":" && depth === 0) {
+      colon = index;
+    }
+  }
+  return colon;
+}
+
+function artistMixGroupParts(text) {
+  const match = /^(\[\[)([\s\S]*?)(\]\])$/.exec(String(text ?? ""));
+  if (!match) {
+    return null;
+  }
+  const body = match[2];
+  const colon = findTopLevelWeightColon(body);
+  if (colon < 0) {
+    return { open: match[1], body, weight: "", close: match[3], syntaxError: false };
+  }
+  const weight = body.slice(colon + 1).trim();
+  if (!weight || !WEIGHT_NUMBER_RE.test(weight)) {
+    return { open: match[1], body, weight: "", close: match[3], syntaxError: true };
+  }
+  return {
+    open: match[1],
+    body: body.slice(0, colon).replace(/[ \t\r\n,]+$/g, ""),
+    weight,
+    close: match[3],
+    syntaxError: false,
+  };
+}
+
+function artistMixGroupShellHtml(parts, bodyHtml) {
+  if (!parts || parts.syntaxError) {
+    return syntaxErrorSpanHtml(`${parts?.open || ""}${parts?.body || ""}${parts?.close || ""}`);
+  }
+  const openHtml = weightSyntaxSpanHtml(parts.open);
+  const closeHtml = weightSyntaxSpanHtml(parts.close);
+  const weightHtml = parts.weight
+    ? weightSyntaxSpanHtml(":")
+      + weightSyntaxSpanHtml(parts.weight, `color: ${WEIGHT_NUMBER_COLOR}`)
+    : "";
+  const html = `${openHtml}${bodyHtml}${weightHtml}${closeHtml}`;
+  return wrapWeightSyntaxHtml(html);
+}
+
+function artistMixGroupSyntaxHtml(text) {
+  const parts = artistMixGroupParts(text);
+  if (!parts) {
+    return basicSyntaxHtml(text);
+  }
+  if (parts.syntaxError) {
+    return syntaxErrorSpanHtml(text);
+  }
+  return artistMixGroupShellHtml(parts, syntaxHtml(parts.body));
 }
 
 function isEscapedAt(value, index) {
@@ -1608,8 +1949,27 @@ function findWildcardSyntaxRange(value, offset) {
   return dynamic;
 }
 
-function hasWildcardHighlightSyntax(text) {
-  return !!findWildcardSyntaxRange(String(text ?? ""), 0);
+function findArtistMixGroupSyntaxRange(value, offset) {
+  ARTIST_MIX_GROUP_HIGHLIGHT_RE.lastIndex = offset;
+  const match = ARTIST_MIX_GROUP_HIGHLIGHT_RE.exec(value);
+  return match
+    ? { start: match.index, end: match.index + match[0].length }
+    : null;
+}
+
+function firstSyntaxRange(value, offset) {
+  const ranges = [
+    findWildcardSyntaxRange(value, offset),
+    findArtistMixGroupSyntaxRange(value, offset),
+  ].filter(Boolean);
+  if (!ranges.length) {
+    return null;
+  }
+  return ranges.reduce((first, range) => (range.start < first.start ? range : first), ranges[0]);
+}
+
+function hasHighlightSyntax(text) {
+  return !!firstSyntaxRange(String(text ?? ""), 0);
 }
 
 function syntaxHtml(text) {
@@ -1617,12 +1977,15 @@ function syntaxHtml(text) {
   let cursor = 0;
   const html = [];
   while (cursor < value.length) {
-    const range = findWildcardSyntaxRange(value, cursor);
+    const range = firstSyntaxRange(value, cursor);
     if (!range) {
       break;
     }
     html.push(basicSyntaxHtml(value.slice(cursor, range.start)));
-    html.push(wildcardSyntaxSpanHtml(value.slice(range.start, range.end)));
+    const snippet = value.slice(range.start, range.end);
+    html.push(snippet.startsWith("[[")
+      ? artistMixGroupSyntaxHtml(snippet)
+      : wildcardSyntaxSpanHtml(snippet));
     cursor = range.end;
   }
   html.push(basicSyntaxHtml(value.slice(cursor)));
@@ -1634,21 +1997,36 @@ function weightedTokenSpanHtml(text, token) {
   if (!match) {
     return tokenSpanHtml(text, token);
   }
-  return [
+  const html = [
     syntaxHtml(text.slice(0, match.start)),
     tokenSpanHtml(text.slice(match.start, match.end), token),
     syntaxHtml(text.slice(match.end)),
   ].join("");
+  return WEIGHTED_TOKEN_RE.test(String(text ?? "").trim())
+    ? wrapWeightSyntaxHtml(html)
+    : html;
+}
+
+function weightedTokenSegmentRange(body, cursor, match) {
+  const open = body.lastIndexOf("(", Math.max(cursor, match.start));
+  if (open < cursor) {
+    return null;
+  }
+  const suffix = /^\s*:\s*[+-]?(?:\d+(?:\.\d*)?|\.\d+)\s*\)/.exec(body.slice(match.end));
+  if (!suffix) {
+    return null;
+  }
+  return { start: open, end: match.end + suffix[0].length };
 }
 
 function findTokenMatch(body, offset, token) {
   let start = offset;
-  const skipWeightedSyntax = !!token?.weighted;
   while (
     start < body.length
     && (
       /\s/.test(body[start])
-      || (skipWeightedSyntax && (body[start] === "(" || body[start] === ","))
+      || body[start] === ","
+      || body[start] === "("
     )
   ) {
     start += 1;
@@ -1718,10 +2096,17 @@ function renderSequentialBody(body, tokens, startIndex, consumed) {
     if (!match) {
       break;
     }
-    html.push(syntaxHtml(body.slice(cursor, match.start)));
-    html.push(tokenSpanHtml(body.slice(match.start, match.end), token));
+    const weightedRange = token?.weighted ? weightedTokenSegmentRange(body, cursor, match) : null;
+    if (weightedRange) {
+      html.push(syntaxHtml(body.slice(cursor, weightedRange.start)));
+      html.push(weightedTokenSpanHtml(body.slice(weightedRange.start, weightedRange.end), token));
+      cursor = weightedRange.end;
+    } else {
+      html.push(syntaxHtml(body.slice(cursor, match.start)));
+      html.push(tokenSpanHtml(body.slice(match.start, match.end), token));
+      cursor = match.end;
+    }
     consumed.add(token);
-    cursor = match.end;
     index += 1;
     matched += 1;
     if (!body.slice(cursor).trim()) {
@@ -1764,9 +2149,23 @@ function renderHighlightedText(text, tokens) {
       continue;
     }
 
-    if (hasWildcardHighlightSyntax(body)) {
+    const artistGroupParts = artistMixGroupParts(body);
+    if (artistGroupParts) {
+      const rendered = artistGroupParts.syntaxError
+        ? null
+        : renderSequentialBody(artistGroupParts.body, tokens, tokenIndex, consumed);
       html.push(escapeHtml(leading));
-      html.push(syntaxHtml(body));
+      if (artistGroupParts.syntaxError) {
+        html.push(syntaxErrorSpanHtml(body));
+      } else {
+        if (rendered) {
+          tokenIndex = rendered.nextIndex;
+        }
+        html.push(artistMixGroupShellHtml(
+          artistGroupParts,
+          rendered ? rendered.html : syntaxHtml(artistGroupParts.body),
+        ));
+      }
       html.push(escapeHtml(trailing));
       continue;
     }
@@ -1853,10 +2252,45 @@ function overlayBounds(input) {
   };
 }
 
-function highlightOverlayHtml(value, tokens, placeholder = "") {
+function autocompletePreviewSpanHtml(text, preview, opacity = 0.95) {
+  const color = String(preview?.color || "rgba(203, 213, 225, 0.86)");
+  return `<span style="font: inherit; line-height: inherit; letter-spacing: inherit; vertical-align: baseline; color: ${escapeHtml(color)}; opacity: ${opacity}">`
+    + escapeHtml(text)
+    + "</span>";
+}
+
+function highlightOverlayPreviewHtml(value, tokens, preview) {
+  if (!preview || String(preview.sourceValue || "") !== String(value || "")) {
+    return null;
+  }
+  const text = String(preview.value || "");
+  const candidateStart = Math.max(0, Math.min(Number(preview.candidateStart ?? preview.ghostStart) || 0, text.length));
+  const candidateEnd = Math.max(candidateStart, Math.min(Number(preview.candidateEnd ?? preview.ghostEnd) || 0, text.length));
+  const ghostStart = Math.max(0, Math.min(Number(preview.ghostStart) || 0, text.length));
+  const ghostEnd = Math.max(ghostStart, Math.min(Number(preview.ghostEnd) || 0, text.length));
+  if (!text || candidateEnd <= candidateStart || ghostEnd <= ghostStart) {
+    return null;
+  }
+  const safeGhostStart = Math.max(candidateStart, Math.min(ghostStart, candidateEnd));
+  const safeGhostEnd = Math.max(safeGhostStart, Math.min(ghostEnd, candidateEnd));
+  const html = [
+    renderHighlightedText(text.slice(0, candidateStart), tokens || []),
+    autocompletePreviewSpanHtml(text.slice(candidateStart, safeGhostStart), preview, 0.95),
+    autocompletePreviewSpanHtml(text.slice(safeGhostStart, safeGhostEnd), preview, 0.52),
+    autocompletePreviewSpanHtml(text.slice(safeGhostEnd, candidateEnd), preview, 0.95),
+    renderHighlightedText(text.slice(candidateEnd), tokens || []),
+  ].join("");
+  return text.endsWith("\n") ? `${html} ` : html;
+}
+
+function highlightOverlayHtml(value, tokens, placeholder = "", input = null) {
   const text = String(value || "");
   if (!text) {
     return `<span style="opacity: 0.45">${escapeHtml(placeholder)}</span>`;
+  }
+  const previewHtml = highlightOverlayPreviewHtml(text, tokens, input?.__easyuseAnimaAutocompletePreview);
+  if (previewHtml != null) {
+    return previewHtml;
   }
   const html = renderHighlightedText(text, tokens);
   return text.endsWith("\n") ? `${html} ` : html;
@@ -2609,7 +3043,7 @@ function updateHighlight(node, widget, tokens = widget.__easyuseAnimaTokens || [
   }
   syncOverlayBounds(input, overlay);
   const value = displayText(node, widget);
-  overlay.innerHTML = highlightOverlayHtml(value, tokens, input.placeholder || "");
+  overlay.innerHTML = highlightOverlayHtml(value, tokens, input.placeholder || "", input);
 }
 
 function advancedHighlightState(node, field) {
@@ -2641,7 +3075,7 @@ function updateAdvancedFieldHighlight(node, field, textarea, tokens = null, forc
     copyInputTextMetrics(textarea, overlay);
   }
   syncOverlayBounds(textarea, overlay);
-  overlay.innerHTML = highlightOverlayHtml(value, tokens || state.tokens || [], textarea.placeholder || "");
+  overlay.innerHTML = highlightOverlayHtml(value, tokens || state.tokens || [], textarea.placeholder || "", textarea);
 }
 
 function scheduleAdvancedFieldHighlight(node, field, textarea) {
@@ -2734,7 +3168,7 @@ function refreshAdvancedHighlights(node, { classify = true } = {}) {
 
     const state = advancedHighlightState(node, field);
     const value = String(textarea.value || "");
-    const htmlContent = highlightOverlayHtml(value, state.tokens || [], textarea.placeholder || "");
+    const htmlContent = highlightOverlayHtml(value, state.tokens || [], textarea.placeholder || "", textarea);
 
     updates.push({
       overlay,
@@ -3759,26 +4193,105 @@ function protectAdvancedNativeControl(element) {
   return element;
 }
 
-function advancedControlGroupState(node) {
-  if (!node.__easyuseAnimaAdvancedOpenGroups || typeof node.__easyuseAnimaAdvancedOpenGroups !== "object") {
-    node.__easyuseAnimaAdvancedOpenGroups = {};
+function updateAdvancedSummary(node, groupId, text) {
+  node?.__easyuseAnimaAdvancedEditorEl
+    ?.querySelector?.(`[data-easyuse-anima-control-summary="${groupId}"]`)
+    ?.replaceChildren(document.createTextNode(text));
+}
+
+function closeAdvancedHelpPopovers() {
+  document.querySelectorAll(".easyuse-anima-advanced-help-popover").forEach((element) => element.remove());
+}
+
+function openAdvancedHelpPopover(button, text) {
+  closeAdvancedHelpPopovers();
+  const popover = document.createElement("div");
+  popover.className = "easyuse-anima-advanced-help-popover";
+  popover.textContent = text;
+  document.body.append(popover);
+  const rect = button.getBoundingClientRect();
+  const margin = 8;
+  const width = Number(popover.offsetWidth) || 260;
+  const height = Number(popover.offsetHeight) || 80;
+  const left = Math.min(
+    Math.max(margin, rect.right + margin),
+    Math.max(margin, (Number(globalThis.innerWidth) || 0) - width - margin),
+  );
+  const preferredTop = rect.top + rect.height / 2 - height / 2;
+  const top = Math.min(
+    Math.max(margin, preferredTop),
+    Math.max(margin, (Number(globalThis.innerHeight) || 0) - height - margin),
+  );
+  popover.style.left = `${Math.round(left)}px`;
+  popover.style.top = `${Math.round(top)}px`;
+  const close = (event) => {
+    if (event?.target === button || popover.contains(event?.target)) {
+      return;
+    }
+    popover.remove();
+    document.removeEventListener("pointerdown", close, true);
+  };
+  setTimeout(() => document.addEventListener("pointerdown", close, true), 0);
+}
+
+function openAdvancedSettingsPopup(node, titleKey, subtitleKey, createBody, onClose = null) {
+  ensureAdvancedStyle();
+  const backdrop = document.createElement("div");
+  backdrop.className = "easyuse-anima-advanced-popup-backdrop";
+  const dialog = document.createElement("div");
+  dialog.className = "easyuse-anima-advanced-popup";
+  dialog.addEventListener("pointerdown", stopAdvancedControlEvent);
+  dialog.addEventListener("mousedown", stopAdvancedControlEvent);
+  dialog.addEventListener("click", stopAdvancedControlEvent);
+  dialog.addEventListener("keydown", stopAdvancedControlEvent);
+
+  const header = document.createElement("header");
+  const titleBox = document.createElement("div");
+  const heading = document.createElement("h2");
+  heading.textContent = psText(titleKey);
+  const desc = document.createElement("p");
+  desc.textContent = psText(subtitleKey);
+  titleBox.append(heading, desc);
+  const close = document.createElement("button");
+  close.type = "button";
+  close.className = "easyuse-anima-advanced-popup-close";
+  close.textContent = psText("advanced.close");
+  header.append(titleBox, close);
+
+  const body = document.createElement("div");
+  body.className = "easyuse-anima-advanced-popup-body";
+  const content = createBody?.();
+  if (content instanceof DocumentFragment) {
+    body.append(content);
+  } else if (content instanceof HTMLElement) {
+    body.append(...Array.from(content.childNodes));
   }
-  return node.__easyuseAnimaAdvancedOpenGroups;
-}
+  dialog.append(header, body);
+  backdrop.append(dialog);
 
-function isAdvancedControlGroupOpen(node, groupId) {
-  return advancedControlGroupState(node)[groupId] === true;
-}
-
-function setAdvancedControlGroupOpen(node, groupId, value) {
-  advancedControlGroupState(node)[groupId] = !!value;
+  const closePopup = () => {
+    closeAdvancedHelpPopovers();
+    backdrop.remove();
+    onClose?.();
+    renderAdvancedEditor(node);
+  };
+  close.addEventListener("click", (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    closePopup();
+  });
+  backdrop.addEventListener("pointerdown", (event) => {
+    if (event.target === backdrop) {
+      closePopup();
+    }
+  });
+  document.body.append(backdrop);
+  return backdrop;
 }
 
 function createAdvancedControlGroup(node, groupId, labelKey, titleKey, summary, active, createBody) {
   const group = document.createElement("div");
-  const open = isAdvancedControlGroupOpen(node, groupId);
   group.className = "easyuse-anima-advanced-controlgroup";
-  group.classList.toggle("is-open", open);
   group.classList.toggle("is-active", !!active);
   group.addEventListener("pointerdown", stopAdvancedControlEvent);
   group.addEventListener("mousedown", stopAdvancedControlEvent);
@@ -3788,31 +4301,22 @@ function createAdvancedControlGroup(node, groupId, labelKey, titleKey, summary, 
   header.type = "button";
   header.className = "easyuse-anima-advanced-controlgroup-header";
   header.title = psText(titleKey);
-  header.textContent = psText(labelKey);
+  header.textContent = psText(labelKey) || psText("advanced.settingsButton");
 
   const summaryEl = document.createElement("span");
   summaryEl.className = "easyuse-anima-advanced-controlgroup-summary";
   summaryEl.dataset.easyuseAnimaControlSummary = groupId;
   summaryEl.textContent = summary;
-  header.append(summaryEl);
 
   header.addEventListener("click", (event) => {
     event.preventDefault();
     event.stopPropagation();
-    setAdvancedControlGroupOpen(node, groupId, !open);
-    renderAdvancedEditor(node);
+    const subtitleKey = groupId === "mod_guidance"
+      ? "advanced.modGuidanceSubtitle"
+      : "advanced.artistMixSubtitle";
+    openAdvancedSettingsPopup(node, labelKey, subtitleKey, createBody);
   });
-  group.append(header);
-
-  if (open) {
-    const body = createBody();
-    body.classList.add("easyuse-anima-advanced-controlgroup-body");
-    body.addEventListener("pointerdown", stopAdvancedControlEvent);
-    body.addEventListener("mousedown", stopAdvancedControlEvent);
-    body.addEventListener("click", stopAdvancedControlEvent);
-    body.addEventListener("keydown", stopAdvancedControlEvent);
-    group.append(body);
-  }
+  group.append(header, summaryEl);
   return group;
 }
 
@@ -3834,10 +4338,20 @@ function createAdvancedToggleControl(node, control) {
   button.addEventListener("click", (event) => {
     event.preventDefault();
     event.stopPropagation();
-    setAdvancedControlValue(node, control.name, !widget.value);
-    renderAdvancedEditor(node);
+    const next = !widget.value;
+    setAdvancedControlValue(node, control.name, next);
+    button.classList.toggle("is-on", next);
+    updateAdvancedSummary(node, "mod_guidance", advancedModGuidanceSummary(node));
   });
   return button;
+}
+
+function advancedModGuidanceSummary(node) {
+  const positiveOn = !!findWidget(node, "use_anima_mod_guidance")?.value;
+  const negativeOn = !!findWidget(node, "use_negative_anima_mod_guidance")?.value;
+  return [positiveOn ? "positive" : "", negativeOn ? "negative" : ""]
+    .filter(Boolean)
+    .join(" + ") || psText("advanced.off");
 }
 
 function createAdvancedModGuidanceGroup(node) {
@@ -3849,9 +4363,7 @@ function createAdvancedModGuidanceGroup(node) {
   }
   const positiveOn = !!findWidget(node, "use_anima_mod_guidance")?.value;
   const negativeOn = !!findWidget(node, "use_negative_anima_mod_guidance")?.value;
-  const summary = [positiveOn ? "positive" : "", negativeOn ? "negative" : ""]
-    .filter(Boolean)
-    .join(" + ") || psText("advanced.off");
+  const summary = advancedModGuidanceSummary(node);
   return createAdvancedControlGroup(
     node,
     "mod_guidance",
@@ -3887,17 +4399,37 @@ function clampAdvancedNumber(value, fallback, min, max) {
   return Math.max(min, Math.min(max, next));
 }
 
-function createAdvancedControlRow(labelKey, controlEl) {
+function createAdvancedControlRow(labelKey, controlEl, titleKey = null) {
   const row = document.createElement("div");
   row.className = "easyuse-anima-advanced-controlgroup-row";
   const label = document.createElement("span");
   label.className = "easyuse-anima-advanced-controlgroup-label";
   label.textContent = psText(labelKey);
+  const title = titleKey ? psText(titleKey) : "";
+  if (title) {
+    row.title = title;
+    label.title = title;
+    controlEl.title = title;
+  }
   row.append(label, controlEl);
+  if (title) {
+    const help = document.createElement("button");
+    help.type = "button";
+    help.className = "easyuse-anima-advanced-help";
+    help.textContent = "i";
+    help.title = title;
+    help.setAttribute("aria-label", `${psText(labelKey)} help`);
+    help.addEventListener("click", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      openAdvancedHelpPopover(help, help.title || title);
+    });
+    row.append(help);
+  }
   return row;
 }
 
-function createArtistMixNumberInput(node, name, labelKey, min, max, step, fallback) {
+function createArtistMixNumberInput(node, name, labelKey, titleKey, min, max, step, fallback) {
   const widget = findWidget(node, name);
   if (!widget) {
     return null;
@@ -3918,10 +4450,10 @@ function createArtistMixNumberInput(node, name, labelKey, min, max, step, fallba
   input.addEventListener("change", syncValue);
   input.addEventListener("blur", syncValue);
   input.addEventListener("keydown", stopAdvancedControlEvent);
-  return createAdvancedControlRow(labelKey, input);
+  return createAdvancedControlRow(labelKey, input, titleKey);
 }
 
-function createArtistMixBooleanInput(node, name, labelKey, fallback) {
+function createArtistMixBooleanInput(node, name, labelKey, titleKey, fallback) {
   const widget = findWidget(node, name);
   if (!widget) {
     return null;
@@ -3942,7 +4474,7 @@ function createArtistMixBooleanInput(node, name, labelKey, fallback) {
     button.classList.toggle("is-on", next);
     button.textContent = next ? psText("advanced.on") : psText("advanced.off");
   });
-  return createAdvancedControlRow(labelKey, button);
+  return createAdvancedControlRow(labelKey, button, titleKey);
 }
 
 function createAdvancedArtistMixGroup(node) {
@@ -3973,20 +4505,27 @@ function createAdvancedArtistMixGroup(node) {
         option.title = artistMixModeTitle(mode);
         modeSelect.append(option);
       }
+      const modeRow = createAdvancedControlRow("advanced.artistMixMode", modeSelect, `advanced.artistMixMode.${modeValue}Title`);
       modeSelect.addEventListener("change", () => {
         const nextMode = normalizeArtistMixMode(modeSelect.value);
         setAdvancedWidgetValue(node, "artist_mix_mode", nextMode);
-        modeSelect.title = artistMixModeTitle(nextMode);
-        modeSelect.closest(".easyuse-anima-advanced-controlgroup")?.classList.toggle("is-active", nextMode !== "off");
-        node.__easyuseAnimaAdvancedEditorEl
-          ?.querySelector?.('[data-easyuse-anima-control-summary="artist_mix"]')
-          ?.replaceChildren(document.createTextNode(nextMode));
+        const nextTitle = artistMixModeTitle(nextMode);
+        modeSelect.title = nextTitle;
+        modeRow.title = nextTitle;
+        modeRow.querySelector(".easyuse-anima-advanced-controlgroup-label")?.setAttribute("title", nextTitle);
+        modeRow.querySelector(".easyuse-anima-advanced-help")?.setAttribute("title", nextTitle);
+        updateAdvancedSummary(node, "artist_mix", nextMode);
       });
-      body.append(createAdvancedControlRow("advanced.artistMixMode", modeSelect));
+      body.append(modeRow);
+      const syntaxNote = document.createElement("div");
+      syntaxNote.className = "easyuse-anima-advanced-popup-note";
+      syntaxNote.textContent = psText("advanced.artistMixSyntaxTitle");
+      body.append(syntaxNote);
       const startRow = createArtistMixNumberInput(
         node,
         "artist_mix_start_percent",
         "advanced.artistMixStart",
+        "advanced.artistMixStartTitle",
         0,
         1,
         0.01,
@@ -3996,6 +4535,7 @@ function createAdvancedArtistMixGroup(node) {
         node,
         "artist_mix_strength_scale",
         "advanced.artistMixStrength",
+        "advanced.artistMixStrengthTitle",
         0,
         5,
         0.01,
@@ -4005,6 +4545,7 @@ function createAdvancedArtistMixGroup(node) {
         node,
         "artist_mix_style_gain",
         "advanced.artistMixStyleGain",
+        "advanced.artistMixStyleGainTitle",
         0,
         3,
         0.01,
@@ -4014,6 +4555,7 @@ function createAdvancedArtistMixGroup(node) {
         node,
         "artist_mix_rms_scale_cap",
         "advanced.artistMixRmsCap",
+        "advanced.artistMixRmsCapTitle",
         1,
         5,
         0.01,
@@ -4023,6 +4565,7 @@ function createAdvancedArtistMixGroup(node) {
         node,
         "artist_mix_exact_top_k",
         "advanced.artistMixTopK",
+        "advanced.artistMixTopKTitle",
         0,
         64,
         1,
@@ -4032,6 +4575,7 @@ function createAdvancedArtistMixGroup(node) {
         node,
         "artist_mix_cluster_count",
         "advanced.artistMixClusters",
+        "advanced.artistMixClustersTitle",
         1,
         32,
         1,
@@ -4041,12 +4585,14 @@ function createAdvancedArtistMixGroup(node) {
         node,
         "artist_mix_dominant_isolation",
         "advanced.artistMixDominant",
+        "advanced.artistMixDominantTitle",
         true,
       );
       const dominantThresholdRow = createArtistMixNumberInput(
         node,
         "artist_mix_dominant_threshold",
         "advanced.artistMixDominantThreshold",
+        "advanced.artistMixDominantThresholdTitle",
         0,
         1,
         0.01,
@@ -4080,7 +4626,40 @@ function normalizeAdvancedSeedControl(value) {
     : "fixed";
 }
 
-function createAdvancedWildcardBar(node) {
+function advancedWildcardSummary(node) {
+  const modeWidget = findWidget(node, "wildcard_mode");
+  const seedWidget = findWidget(node, "wildcard_seed");
+  const controlWidget = findWidget(node, "wildcard_seed_after_generate");
+  const modeValue = normalizeAdvancedWildcardMode(modeWidget?.value);
+  const controlValue = modeValue === "순차"
+    ? "increment"
+    : normalizeAdvancedSeedControl(controlWidget?.value);
+  return `${modeValue} · seed ${Math.max(0, Math.trunc(Number(seedWidget?.value) || 0))} · ${controlValue}`;
+}
+
+function createAdvancedSummaryButtonRow(className, buttonLabelKey, titleKey, summaryId, summaryText, onClick) {
+  const row = document.createElement("div");
+  row.className = className;
+  row.title = psText(titleKey);
+  const button = document.createElement("button");
+  button.type = "button";
+  button.className = "easyuse-anima-advanced-popup-button";
+  button.textContent = psText(buttonLabelKey);
+  button.title = psText(titleKey);
+  const summary = document.createElement("span");
+  summary.className = "easyuse-anima-advanced-inline-summary";
+  summary.dataset.easyuseAnimaControlSummary = summaryId;
+  summary.textContent = summaryText;
+  button.addEventListener("click", (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    onClick?.();
+  });
+  row.append(button, summary);
+  return row;
+}
+
+function createAdvancedWildcardSettingsBody(node) {
   const modeWidget = findWidget(node, "wildcard_mode");
   const seedWidget = findWidget(node, "wildcard_seed");
   const controlWidget = findWidget(node, "wildcard_seed_after_generate");
@@ -4088,13 +4667,12 @@ function createAdvancedWildcardBar(node) {
     return document.createDocumentFragment();
   }
 
-  const row = document.createElement("div");
-  row.className = "easyuse-anima-advanced-wildcardbar";
-  row.title = psText("advanced.wildcardTitle");
+  const body = document.createElement("div");
 
   const modeSelect = document.createElement("select");
   protectAdvancedNativeControl(modeSelect);
   modeSelect.setAttribute("aria-label", psText("advanced.wildcard"));
+  modeSelect.title = psText("advanced.wildcardModeTitle");
   const modeValue = normalizeAdvancedWildcardMode(modeWidget.value);
   for (const mode of ADVANCED_WILDCARD_MODES) {
     const option = document.createElement("option");
@@ -4111,10 +4689,12 @@ function createAdvancedWildcardBar(node) {
   seedInput.step = "1";
   seedInput.value = String(seedWidget.value ?? "0");
   seedInput.setAttribute("aria-label", psText("advanced.wildcardSeed"));
+  seedInput.title = psText("advanced.wildcardSeedTitle");
 
   const controlSelect = document.createElement("select");
   protectAdvancedNativeControl(controlSelect);
   controlSelect.setAttribute("aria-label", psText("advanced.wildcardSeedControl"));
+  controlSelect.title = psText("advanced.wildcardSeedControlTitle");
   const controlValue = modeValue === "순차"
     ? "increment"
     : normalizeAdvancedSeedControl(controlWidget.value);
@@ -4127,21 +4707,26 @@ function createAdvancedWildcardBar(node) {
   }
   controlSelect.disabled = modeValue === "순차";
 
+  const refreshSummary = () => updateAdvancedSummary(node, "wildcard", advancedWildcardSummary(node));
   const syncMode = () => {
     const nextMode = normalizeAdvancedWildcardMode(modeSelect.value);
     setAdvancedWidgetValue(node, "wildcard_mode", nextMode);
     if (nextMode === "순차") {
       setAdvancedWidgetValue(node, "wildcard_seed_after_generate", "increment");
+      controlSelect.value = "increment";
     }
-    renderAdvancedEditor(node);
+    controlSelect.disabled = nextMode === "순차";
+    refreshSummary();
   };
   const syncSeed = () => {
     const seed = Math.max(0, Math.trunc(Number(seedInput.value) || 0));
     seedInput.value = String(seed);
     setAdvancedWidgetValue(node, "wildcard_seed", seed);
+    refreshSummary();
   };
   const syncControl = () => {
     setAdvancedWidgetValue(node, "wildcard_seed_after_generate", normalizeAdvancedSeedControl(controlSelect.value));
+    refreshSummary();
   };
 
   modeSelect.addEventListener("change", syncMode);
@@ -4149,11 +4734,48 @@ function createAdvancedWildcardBar(node) {
   seedInput.addEventListener("blur", syncSeed);
   controlSelect.addEventListener("change", syncControl);
 
-  row.append(modeSelect, seedInput, controlSelect);
-  return row;
+  body.append(
+    createAdvancedControlRow("advanced.wildcard", modeSelect, "advanced.wildcardModeTitle"),
+    createAdvancedControlRow("advanced.wildcardSeed", seedInput, "advanced.wildcardSeedTitle"),
+    createAdvancedControlRow("advanced.wildcardSeedControl", controlSelect, "advanced.wildcardSeedControlTitle"),
+  );
+  return body;
 }
 
-function createAdvancedResolutionBar(node) {
+function createAdvancedWildcardBar(node) {
+  const modeWidget = findWidget(node, "wildcard_mode");
+  const seedWidget = findWidget(node, "wildcard_seed");
+  const controlWidget = findWidget(node, "wildcard_seed_after_generate");
+  if (!modeWidget || !seedWidget || !controlWidget) {
+    return document.createDocumentFragment();
+  }
+  return createAdvancedSummaryButtonRow(
+    "easyuse-anima-advanced-wildcardbar",
+    "advanced.wildcardSeed",
+    "advanced.wildcardTitle",
+    "wildcard",
+    advancedWildcardSummary(node),
+    () => openAdvancedSettingsPopup(
+      node,
+      "advanced.wildcardSeed",
+      "advanced.wildcardTitle",
+      () => createAdvancedWildcardSettingsBody(node),
+    ),
+  );
+}
+
+function advancedResolutionSummary(node) {
+  const bucketWidget = findWidget(node, "resolution_bucket");
+  const sizeWidget = findWidget(node, "resolution_size");
+  const bucketValue = normalizeAdvancedResolutionBucket(bucketWidget?.value);
+  const customResolution = advancedCustomResolution(node);
+  const sizeValue = bucketValue === CUSTOM_ADVANCED_RESOLUTION_BUCKET || bucketValue === NAIA_ADVANCED_RESOLUTION_BUCKET
+    ? advancedResolutionLabel(customResolution.width, customResolution.height)
+    : normalizeAdvancedResolutionSize(bucketValue, sizeWidget?.value);
+  return `${bucketValue} · ${sizeValue}`;
+}
+
+function createAdvancedResolutionSettingsBody(node) {
   const bucketWidget = findWidget(node, "resolution_bucket");
   const sizeWidget = findWidget(node, "resolution_size");
   if (!bucketWidget || !sizeWidget) {
@@ -4172,13 +4794,12 @@ function createAdvancedResolutionBar(node) {
     setAdvancedWidgetValue(node, "resolution_size", sizeValue);
   }
 
-  const row = document.createElement("div");
-  row.className = "easyuse-anima-advanced-resolutionbar";
-  row.title = psText("advanced.resolutionTitle");
+  const body = document.createElement("div");
 
   const bucketSelect = document.createElement("select");
   protectAdvancedNativeControl(bucketSelect);
   bucketSelect.setAttribute("aria-label", psText("advanced.resolutionBucket"));
+  bucketSelect.title = psText("advanced.resolutionBucketTitle");
   for (const bucket of Object.keys(ADVANCED_RESOLUTION_BUCKETS)) {
     const option = document.createElement("option");
     option.value = bucket;
@@ -4198,11 +4819,13 @@ function createAdvancedResolutionBar(node) {
   bucketSelect.append(customOption);
 
   const valueBox = document.createElement("div");
+  const refreshSummary = () => updateAdvancedSummary(node, "resolution", advancedResolutionSummary(node));
   const renderPresetSelect = (bucket, selected) => {
     valueBox.innerHTML = "";
     const sizeSelect = document.createElement("select");
     protectAdvancedNativeControl(sizeSelect);
     sizeSelect.setAttribute("aria-label", psText("advanced.resolutionSize"));
+    sizeSelect.title = psText("advanced.resolutionSizeTitle");
     for (const label of advancedResolutionOptions(bucket)) {
       const option = document.createElement("option");
       option.value = label;
@@ -4212,6 +4835,7 @@ function createAdvancedResolutionBar(node) {
     }
     sizeSelect.addEventListener("change", () => {
       setAdvancedWidgetValue(node, "resolution_size", normalizeAdvancedResolutionSize(bucketSelect.value, sizeSelect.value));
+      refreshSummary();
       scheduleAdvancedLayout(node, "settings");
     });
     valueBox.append(sizeSelect);
@@ -4226,6 +4850,7 @@ function createAdvancedResolutionBar(node) {
     widthInput.step = "32";
     widthInput.value = String(advancedCustomResolution(node).width);
     widthInput.setAttribute("aria-label", psText("advanced.customWidth"));
+    widthInput.title = psText("advanced.customWidthTitle");
     const separator = document.createElement("span");
     separator.textContent = "×";
     const heightInput = document.createElement("input");
@@ -4235,8 +4860,10 @@ function createAdvancedResolutionBar(node) {
     heightInput.step = "32";
     heightInput.value = String(advancedCustomResolution(node).height);
     heightInput.setAttribute("aria-label", psText("advanced.customHeight"));
+    heightInput.title = psText("advanced.customHeightTitle");
     const syncRaw = () => {
       setAdvancedCustomResolution(node, widthInput.value, heightInput.value);
+      refreshSummary();
     };
     const normalize = () => {
       const width = snapResolution32(widthInput.value, 1024);
@@ -4244,6 +4871,7 @@ function createAdvancedResolutionBar(node) {
       widthInput.value = String(width);
       heightInput.value = String(height);
       setAdvancedCustomResolution(node, width, height, { normalize: true });
+      refreshSummary();
     };
     widthInput.addEventListener("input", syncRaw);
     heightInput.addEventListener("input", syncRaw);
@@ -4290,12 +4918,37 @@ function createAdvancedResolutionBar(node) {
       setAdvancedControlValue(node, "use_naia", true);
     }
     fillSizeOptions(nextBucket, nextSize);
+    refreshSummary();
     scheduleAdvancedLayout(node, "settings");
     scheduleAdvancedHighlights(node, { classify: false });
   });
 
-  row.append(bucketSelect, valueBox);
-  return row;
+  body.append(
+    createAdvancedControlRow("advanced.resolutionBucket", bucketSelect, "advanced.resolutionBucketTitle"),
+    createAdvancedControlRow("advanced.resolutionSize", valueBox, "advanced.resolutionSizeTitle"),
+  );
+  return body;
+}
+
+function createAdvancedResolutionBar(node) {
+  const bucketWidget = findWidget(node, "resolution_bucket");
+  const sizeWidget = findWidget(node, "resolution_size");
+  if (!bucketWidget || !sizeWidget) {
+    return document.createDocumentFragment();
+  }
+  return createAdvancedSummaryButtonRow(
+    "easyuse-anima-advanced-resolutionbar",
+    "advanced.resolutionBucket",
+    "advanced.resolutionTitle",
+    "resolution",
+    advancedResolutionSummary(node),
+    () => openAdvancedSettingsPopup(
+      node,
+      "advanced.resolutionBucket",
+      "advanced.resolutionTitle",
+      () => createAdvancedResolutionSettingsBody(node),
+    ),
+  );
 }
 
 function advancedPaneFields(node, pane) {

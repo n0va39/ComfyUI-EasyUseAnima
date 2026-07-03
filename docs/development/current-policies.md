@@ -16,8 +16,19 @@ This document records decisions that supersede earlier experimental notes.
 ## Autocomplete and Highlighting
 
 - Autocomplete insertion, Prompt Studio preview, and prompt correction output must not disagree on tag spelling.
+- Prompt Studio highlighting, autocomplete replacement, and prompt correction
+  must share the same grammar decisions. Do not add syntax support to only one
+  surface.
 - The selected autocomplete CSV is search/highlight data, not a LoRA trigger source and not a NAIA output source.
 - Built-in meta and quality tags can be used for typo/highlight classification without becoming autocomplete suggestions.
+- Weighted prompt syntax is `(tag:weight)`. `[[artist_a, artist_b:weight]]`
+  belongs to Artist Mix and the final weight is conditioning mix weight, not
+  prompt-string weight.
+- Unweighted parenthesized tags, for example `(@artist name)` or
+  `(highres, long hair)`, should classify and highlight their inner tags rather
+  than becoming one unknown token.
+- Autocomplete should preserve surrounding syntax such as parentheses and
+  weights when replacing the active token.
 
 ## Detailer and SAM3
 

@@ -605,6 +605,67 @@ class AIOSamplerDependencyTests(unittest.TestCase):
                     quality_neg="negative quality",
                 )
 
+    def test_spectrum_advanced_sampler_filters_unsupported_keywords(self):
+        calls = []
+
+        class LegacySpectrumAdvanced:
+            def sample(
+                self,
+                *,
+                model,
+                clip,
+                seed,
+                steps,
+                cfg,
+                sampler_name,
+                scheduler,
+                positive,
+                negative,
+                latent_image,
+                adapter,
+                quality_tags,
+                mod_w,
+                denoise=1.0,
+                window_size=2.0,
+            ):
+                calls.append(locals())
+                return ("latent",)
+
+        settings = nodes._normalize_aio_generation_settings(json.dumps({
+            "sampler": {
+                "backend": "spectrum_mod_guidance_advanced",
+                "dit_corrections": {
+                    "enabled": True,
+                    "cfgpp": True,
+                    "cfgpp_lambda": 1.5,
+                    "fsg": True,
+                },
+                "spectrum_extra": {
+                    "future_optional": 123,
+                },
+            },
+        }))
+
+        with patch.object(nodes, "_require_custom_node_class", return_value=LegacySpectrumAdvanced):
+            result = nodes._sample_latent_with_spectrum_mod_guidance_advanced(
+                "model",
+                "clip",
+                settings["sampler"],
+                settings["mod_guidance"],
+                True,
+                "positive",
+                "negative",
+                "latent_image",
+                "quality",
+                "quality_neg",
+            )
+
+        self.assertEqual(result, "latent")
+        self.assertEqual(calls[0]["model"], "model")
+        self.assertEqual(calls[0]["window_size"], 2.0)
+        self.assertNotIn("cfgpp_lambda", calls[0])
+        self.assertNotIn("future_optional", calls[0])
+
     def test_sampler_backend_dispatches_only_selected_path(self):
         cases = (
             ("comfy_ksampler", "comfy"),
@@ -667,8 +728,54 @@ class AIOSamplerDependencyTests(unittest.TestCase):
             )
 
         self.assertEqual(result, "latent")
-        self.assertEqual(calls[0][0][4], "euler")
-        self.assertEqual(calls[0][0][5], "sgm_uniform")
+        self.assertEqual(calls[0][1]["sampler_name"], "euler")
+        self.assertEqual(calls[0][1]["scheduler"], "sgm_uniform")
+
+    def test_spd_sampler_filters_unsupported_keywords(self):
+        calls = []
+
+        class LegacySpd:
+            def sample(
+                self,
+                *,
+                model,
+                seed,
+                steps,
+                cfg,
+                sampler_name,
+                scheduler,
+                positive,
+                negative,
+                latent_image,
+                split_mode,
+                spd_scale,
+                spd_sigma,
+            ):
+                calls.append(locals())
+                return ("latent",)
+
+        settings = nodes._normalize_aio_generation_settings(json.dumps({
+            "sampler": {
+                "backend": "spectrum_spd_speed",
+                "spd_extra": {
+                    "future_optional": 123,
+                },
+            },
+        }))
+
+        with patch.object(nodes, "_require_custom_node_class", return_value=LegacySpd):
+            result = nodes._sample_latent_with_spectrum_spd(
+                "model",
+                settings["sampler"],
+                "positive",
+                "negative",
+                "latent_image",
+            )
+
+        self.assertEqual(result, "latent")
+        self.assertEqual(calls[0]["sampler_name"], "euler")
+        self.assertNotIn("adaptive_smc_alpha", calls[0])
+        self.assertNotIn("future_optional", calls[0])
 
     def test_anima_dave_patch_uses_dave_node_pack_settings(self):
         calls = []
@@ -738,7 +845,7 @@ class AIOHighresDetailerStageTests(unittest.TestCase):
             patch.object(nodes.EasyUseAnimaImageScaleByMultiple, "upscale", return_value=("scaled_image", 640, 960, 1.25)),
             patch.object(nodes, "_encode_image_with_comfy_vae", return_value="high_latent_image"),
             patch.object(nodes, "_apply_aio_spectrum_model_patches_for_comfy_sampler", return_value="stage_model"),
-            patch.object(nodes, "_sample_latent_with_comfy", side_effect=fake_sample),
+            patch.object(nodes, "_sample_latent_with_aio_backend", side_effect=fake_sample),
             patch.object(nodes, "_decode_latent_with_comfy", return_value="high_image"),
             patch.object(nodes, "_cleanup_aio_ephemeral_model"),
         ):
@@ -761,10 +868,12 @@ class AIOHighresDetailerStageTests(unittest.TestCase):
         self.assertEqual((width, height), (640, 960))
         self.assertTrue(metadata["enabled"])
         self.assertEqual(calls[0][0], "stage_model")
-        self.assertEqual(calls[0][4], settings["sampler"]["sampler_name"])
-        self.assertEqual(calls[0][5], settings["sampler"]["scheduler"])
-        self.assertEqual(calls[0][8], "high_latent_image")
-        self.assertEqual(calls[0][9], 0.25)
+        self.assertEqual(calls[0][5]["backend"], "comfy_ksampler")
+        self.assertEqual(calls[0][5]["sampler_name"], settings["sampler"]["sampler_name"])
+        self.assertEqual(calls[0][5]["scheduler"], settings["sampler"]["scheduler"])
+        self.assertEqual(calls[0][5]["steps"], settings["highres"]["steps"])
+        self.assertEqual(calls[0][4], "high_latent_image")
+        self.assertEqual(calls[0][5]["denoise"], 0.25)
 
     def test_highres_stage_can_override_main_sampler_when_inherit_is_disabled(self):
         settings = nodes._normalize_aio_generation_settings(json.dumps({
@@ -791,7 +900,7 @@ class AIOHighresDetailerStageTests(unittest.TestCase):
             patch.object(nodes.EasyUseAnimaImageScaleByMultiple, "upscale", return_value=("scaled_image", 640, 960, 1.25)),
             patch.object(nodes, "_encode_image_with_comfy_vae", return_value="high_latent_image"),
             patch.object(nodes, "_apply_aio_spectrum_model_patches_for_comfy_sampler", return_value="stage_model"),
-            patch.object(nodes, "_sample_latent_with_comfy", side_effect=fake_sample),
+            patch.object(nodes, "_sample_latent_with_aio_backend", side_effect=fake_sample),
             patch.object(nodes, "_decode_latent_with_comfy", return_value="high_image"),
             patch.object(nodes, "_cleanup_aio_ephemeral_model"),
         ):
@@ -809,9 +918,103 @@ class AIOHighresDetailerStageTests(unittest.TestCase):
                 settings["highres"],
             )
 
-        self.assertEqual(calls[0][3], 8.0)
-        self.assertEqual(calls[0][4], "euler")
-        self.assertEqual(calls[0][5], "simple")
+        self.assertEqual(calls[0][5]["cfg"], 8.0)
+        self.assertEqual(calls[0][5]["sampler_name"], "euler")
+        self.assertEqual(calls[0][5]["scheduler"], "simple")
+        self.assertEqual(calls[0][5]["backend"], "comfy_ksampler")
+        self.assertFalse(calls[0][5]["spectrum"].get("enabled", False))
+
+    def test_highres_stage_reuses_integrated_sampler_backend(self):
+        settings = nodes._normalize_aio_generation_settings(json.dumps({
+            "sampler": {
+                "backend": "spectrum_mod_guidance_advanced",
+                "spectrum": {
+                    "window_size": 3,
+                },
+            },
+            "highres": {
+                "enabled": True,
+            },
+        }))
+
+        with (
+            patch.object(nodes.EasyUseAnimaImageScaleByMultiple, "upscale", return_value=("scaled_image", 640, 960, 1.25)),
+            patch.object(nodes, "_encode_image_with_comfy_vae", return_value="high_latent_image"),
+            patch.object(nodes, "_apply_aio_spectrum_model_patches_for_comfy_sampler") as comfy_patch,
+            patch.object(nodes, "_sample_latent_with_aio_backend", return_value="high_latent") as sample,
+            patch.object(nodes, "_decode_latent_with_comfy", return_value="high_image"),
+            patch.object(nodes, "_cleanup_aio_ephemeral_model"),
+        ):
+            nodes._run_aio_highres_stage(
+                "model",
+                "clip",
+                "vae",
+                "positive",
+                "negative",
+                "base_image",
+                "base_latent",
+                512,
+                768,
+                settings["sampler"],
+                settings["highres"],
+                settings["mod_guidance"],
+                True,
+                "quality",
+                "quality_neg",
+            )
+
+        comfy_patch.assert_not_called()
+        self.assertEqual(sample.call_args.args[0], "model")
+        self.assertEqual(sample.call_args.args[5]["backend"], "spectrum_mod_guidance_advanced")
+        self.assertEqual(sample.call_args.args[5]["steps"], settings["highres"]["steps"])
+        self.assertEqual(sample.call_args.args[5]["spectrum"]["window_size"], 3.0)
+        self.assertEqual(sample.call_args.args[7], True)
+        self.assertEqual(sample.call_args.args[8], "quality")
+        self.assertEqual(sample.call_args.args[9], "quality_neg")
+
+    def test_highres_stage_falls_back_to_comfy_when_main_sampler_is_spd(self):
+        settings = nodes._normalize_aio_generation_settings(json.dumps({
+            "sampler": {
+                "backend": "spectrum_spd_speed",
+                "steps": 32,
+                "scheduler": "sgm_uniform",
+            },
+            "highres": {
+                "enabled": True,
+                "steps": 18,
+                "denoise": 0.22,
+            },
+        }))
+
+        with (
+            patch.object(nodes.EasyUseAnimaImageScaleByMultiple, "upscale", return_value=("scaled_image", 640, 960, 1.25)),
+            patch.object(nodes, "_encode_image_with_comfy_vae", return_value="high_latent_image"),
+            patch.object(nodes, "_apply_aio_spectrum_model_patches_for_comfy_sampler", return_value="stage_model"),
+            patch.object(nodes, "_sample_latent_with_aio_backend", return_value="high_latent") as sample,
+            patch.object(nodes, "_decode_latent_with_comfy", return_value="high_image"),
+            patch.object(nodes, "_cleanup_aio_ephemeral_model"),
+        ):
+            nodes._run_aio_highres_stage(
+                "model",
+                "clip",
+                "vae",
+                "positive",
+                "negative",
+                "base_image",
+                "base_latent",
+                512,
+                768,
+                settings["sampler"],
+                settings["highres"],
+            )
+
+        stage_sampler = sample.call_args.args[5]
+        self.assertEqual(stage_sampler["backend"], "comfy_ksampler")
+        self.assertEqual(stage_sampler["sampler_name"], "euler")
+        self.assertEqual(stage_sampler["scheduler"], "sgm_uniform")
+        self.assertEqual(stage_sampler["steps"], 18)
+        self.assertEqual(stage_sampler["denoise"], 0.22)
+        self.assertFalse(stage_sampler["spectrum"].get("enabled", False))
 
     def test_detailer_target_uses_stage_spectrum_patched_model(self):
         settings = nodes._normalize_aio_generation_settings(json.dumps({
@@ -931,12 +1134,12 @@ class AIOGeneratorRuntimeTests(unittest.TestCase):
 
     def test_generator_sampler_backend_applies_only_selected_model_path(self):
         cases = (
-            ("comfy_ksampler", "sampler_patch_model", True, True),
-            ("spectrum_mod_guidance_advanced", "patched_model", False, False),
-            ("spectrum_spd_speed", "mod_guidance_model", True, False),
+            ("comfy_ksampler", "sampler_patch_model", True, True, False),
+            ("spectrum_mod_guidance_advanced", "patched_model", False, False, True),
+            ("spectrum_spd_speed", "mod_guidance_model", True, False, False),
         )
 
-        for index, (backend, expected_model, expect_standalone_mod, expect_comfy_patch) in enumerate(cases):
+        for index, (backend, expected_model, expect_standalone_mod, expect_comfy_patch, expect_internal_mod) in enumerate(cases):
             with self.subTest(backend=backend):
                 nodes._clear_aio_first_pass_cache()
                 context = self._context()
@@ -978,13 +1181,13 @@ class AIOGeneratorRuntimeTests(unittest.TestCase):
                 self.assertEqual(result["ui"]["sampler_backend"], [backend])
                 self.assertEqual(sample.call_args.args[0], expected_model)
                 self.assertEqual(sample.call_args.args[5]["backend"], backend)
-                self.assertTrue(sample.call_args.args[7])
+                self.assertEqual(sample.call_args.args[7], expect_internal_mod)
                 self.assertEqual(standalone_mod.called, expect_standalone_mod)
                 self.assertEqual(comfy_patch.called, expect_comfy_patch)
                 if expect_comfy_patch:
                     self.assertEqual(comfy_patch.call_args.args[0], "mod_guidance_model")
 
-    def test_generator_integrated_sampler_keeps_standalone_mod_guidance_for_highres_stage(self):
+    def test_generator_integrated_sampler_reuses_integrated_mod_guidance_for_highres_stage(self):
         context = self._context()
         stage_sampler = nodes._normalize_aio_generation_settings("{}")["sampler"]
 
@@ -1018,12 +1221,57 @@ class AIOGeneratorRuntimeTests(unittest.TestCase):
                     },
                 }),
                 unique_id=210,
+        )
+
+        standalone_mod.assert_not_called()
+        comfy_patch.assert_not_called()
+        self.assertEqual(sample.call_args.args[0], "patched_model")
+        self.assertEqual(highres.call_args.args[0], "patched_model")
+        self.assertEqual(highres.call_args.args[12], True)
+
+    def test_generator_integrated_sampler_keeps_standalone_mod_guidance_for_detailer_stage(self):
+        context = self._context()
+
+        with (
+            patch.object(nodes, "_load_aio_resources_from_input_context", return_value=("base_model", "base_clip", "vae")),
+            patch.object(nodes, "_apply_aio_lora_stack", return_value=("lora_model", "lora_clip", [])),
+            patch.object(nodes, "_apply_aio_model_patches", return_value="patched_model"),
+            patch.object(nodes, "_advanced_outputs_from_prompt_data", return_value=("p", "n", "q", "qn", True, False, "", "", 512, 768)),
+            patch.object(nodes, "_encode_prompt_data_positive_conditioning", return_value="positive"),
+            patch.object(nodes, "_encode_with_comfy_clip", return_value="negative"),
+            patch.object(nodes, "_generate_empty_latent_with_comfy", return_value="latent_image"),
+            patch.object(nodes, "_apply_spectrum_anima_mod_guidance", return_value="mod_guidance_model") as standalone_mod,
+            patch.object(nodes, "_apply_aio_spectrum_model_patches_for_comfy_sampler") as comfy_patch,
+            patch.object(nodes, "_sample_latent_with_aio_backend", return_value="latent") as sample,
+            patch.object(nodes, "_decode_latent_with_comfy", return_value="image"),
+            patch.object(nodes, "_run_aio_highres_stage", return_value=("latent", "image", 512, 768, {"enabled": False})),
+            patch.object(nodes, "_run_aio_detailer_stage", return_value=("detail_image", {"enabled": True})) as detailer,
+            patch.object(nodes, "_save_image_with_image_saver", return_value={"ui": {"images": [{"filename": "final.webp"}]}}),
+            patch.object(nodes, "_cleanup_aio_ephemeral_model"),
+        ):
+            nodes.EasyUseAnimaAIOGenerator().generate(
+                context,
+                generation_settings=json.dumps({
+                    "sampler": {
+                        "backend": "spectrum_mod_guidance_advanced",
+                    },
+                    "detailer": {
+                        "enabled": True,
+                        "face": {
+                            "enabled": True,
+                        },
+                    },
+                    "save": {
+                        "enabled": True,
+                    },
+                }),
+                unique_id=211,
             )
 
         standalone_mod.assert_called_once()
         comfy_patch.assert_not_called()
         self.assertEqual(sample.call_args.args[0], "patched_model")
-        self.assertEqual(highres.call_args.args[0], "mod_guidance_model")
+        self.assertEqual(detailer.call_args.args[0], "mod_guidance_model")
 
     def test_generator_save_metadata_uses_first_pass_sampler_and_final_size(self):
         context = self._context()

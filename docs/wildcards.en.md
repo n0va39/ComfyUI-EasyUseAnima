@@ -5,8 +5,8 @@ syntax such as `{a|b|c}` during queue execution.
 
 Where to use them:
 
-- `Anima Prompt Studio Advanced`: configure mode, seed, and seed after generate
-  in the wildcard controls below `mod guidance`.
+- `Anima Prompt Studio Advanced`: open the wildcard settings popup from the
+  `Wildcard Seed` button to configure mode, seed, and seed after generate.
 - `Anima Wildcard`: expand wildcard text without Prompt Studio.
 
 ## Quick Syntax Reference
@@ -139,7 +139,8 @@ Seed controls:
 
 ## Prompt Studio Advanced
 
-`Anima Prompt Studio Advanced` shows wildcard controls below `mod guidance`.
+`Anima Prompt Studio Advanced` shows a `Wildcard Seed` button and a compact
+summary of the current settings. The button opens the wildcard settings popup.
 
 - mode
 - wildcard seed

@@ -32,7 +32,9 @@ This is the flexible Prompt Studio variant for larger workflows.
 
 ## Resolution
 
-- Latent image resolution controls are shown below `mod guidance`.
+- Latent image resolution is configured from the `Resolution Bucket` button.
+- The node body only shows the current bucket and resolved size summary; the
+  detailed bucket/size controls open in a popup.
 - Buckets support `512`, `768`, `896`, `1024`, `1280`, and `1536`.
 - `Custom` stores editable width and height values in the workflow.
 - `NAIA` uses width and height from the same NAIA response that fills prompt
@@ -42,8 +44,8 @@ This is the flexible Prompt Studio variant for larger workflows.
 
 ## Wildcards
 
-The wildcard control row below `mod guidance` sets mode, seed, and seed after
-generate.
+The `Wildcard Seed` button sets mode, seed, and seed after generate. The node
+body only shows the current wildcard mode, seed, and seed control summary.
 
 - The live workflow keeps original wildcard text and the next seed state.
 - Saved-image workflows store expanded text in `재현` mode.
@@ -67,6 +69,17 @@ dict keys instead of relying on output slot order when new fields are added.
 - When artist mix is enabled, artist-field text is removed from the base prompt,
   and `Anima Prompt Data Conditioning` creates positive `CONDITIONING` with the
   selected artist mix mode.
+- Artist Mix and Mod Guidance settings open in popups instead of expanding the
+  node body. Each Artist Mix setting has an `i` help button explaining which
+  branch or weight calculation it affects.
+- Use `[[artist_a, artist_b:0.7]]` to keep multiple artists in one mix branch.
+  The final `:0.7` before `]]` is a conditioning mix weight, not a
+  prompt-string weight.
+  When Artist Mix is disabled or `prompt` mode is used, group markers and group
+  weights are flattened back into normal artist tags.
+- If an individual prompt weight is needed inside the group, use normal prompt
+  weight syntax such as `(artist_a:0.35)`. The Artist Mix group weight is only
+  the final top-level `:weight` before `]]`.
 - For workflows that do not use Prompt Data, use
   [Anima Artist Mix Conditioning](anima-artist-mix-conditioning.en.md) with a
   regular prompt and separate artist tags.
@@ -82,6 +95,17 @@ dict keys instead of relying on output slot order when new fields are added.
   positive/negative `CONDITIONING`, a batch-size-1 `latent_image`, and the model
   after Spectrum Mod Guidance patching when enabled.
 
+## Autocomplete
+
+- Suggestions are shown only when the caret is on real tag text.
+- Syntax-only caret positions, including brackets, commas, `[[`, and `]]`, do
+  not open irrelevant suggestions.
+- When inline autocomplete preview is enabled, the remaining text that the
+  selected suggestion would insert is rendered as ghost text in the input
+  highlight overlay.
+- Autocomplete replaces only the active inner tag while preserving surrounding
+  syntax such as `(tag:1.2)` weights and `[[...]]` groups.
+
 ## Highlighting
 
 - Quality, safety/rating, year, count, character, artist, copyright, metadata,
@@ -89,5 +113,9 @@ dict keys instead of relying on output slot order when new fields are added.
   separate highlight classes.
 - Wildcard syntax such as `__wildcard__`, `3#__wildcard__`, and `{a|b|c}` uses a
   separate wildcard color.
+- Weighted syntax such as `(tag:1.2)` and `[[artist_a, artist_b:0.7]]` can be
+  underlined from EasyUse Anima PromptStudio highlight settings.
+- Unweighted parenthesized tags such as `(@artist name)` or
+  `(highres, long hair)` are classified and colored by their inner tags.
 - Highlight overlays synchronize font family, size, spacing, and wrapping with
   the source input.
