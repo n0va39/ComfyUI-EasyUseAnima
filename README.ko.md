@@ -82,7 +82,7 @@ workflow embed와 Civitai/LoRA metadata 저장까지 한 번에 처리할 수 �
 배포용 간단 워크플로우:
 [ANIMA_Easy_Use_workflow_v1_release_ko.json](docs/example_workflows/ANIMA_Easy_Use_workflow_v1_release_ko.json)
 /
-[사용법 초안](docs/Anima%20AiO/ANIMA_Easy_Use_workflow_v1_KO.md)
+[사용 가이드](docs/Anima%20AiO/ANIMA_Easy_Use_workflow_v1_KO.md)
 
 ## 빠른 가이드: Artist Mix Conditioning
 

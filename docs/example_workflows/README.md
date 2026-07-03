@@ -34,11 +34,13 @@ workflow assets.
 - `EasyUse_Anima_artist_mix_release_ko.png`
 - `EasyUse_Anima_AiO_generator_release_ko.json`
 - `ANIMA_Easy_Use_workflow_v1_release_ko.json`
+- `ANIMA_Easy_Use_workflow_v1_release_en.json`
 
 ## ANIMA Easy Use Workflow v1
 
 - Workflow: [ANIMA_Easy_Use_workflow_v1_release_ko.json](ANIMA_Easy_Use_workflow_v1_release_ko.json)
-- Usage draft: [ANIMA Easy Use workflow v1](../Anima%20AiO/ANIMA_Easy_Use_workflow_v1_KO.md)
+- English workflow: [ANIMA_Easy_Use_workflow_v1_release_en.json](ANIMA_Easy_Use_workflow_v1_release_en.json)
+- Usage guide: [ANIMA Easy Use workflow v1](../Anima%20AiO/ANIMA_Easy_Use_workflow_v1_KO.md)
 - Node guide: [Anima AiO Generator](../nodes/anima-aio-generator.ko.md)
 
 This compact release workflow uses `Anima Prompt Studio Advanced v2`,

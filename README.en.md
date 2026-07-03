@@ -84,7 +84,7 @@ Detailed settings: [Anima AiO Generator guide](docs/nodes/anima-aio-generator.en
 Compact release workflow:
 [ANIMA_Easy_Use_workflow_v1_release_ko.json](docs/example_workflows/ANIMA_Easy_Use_workflow_v1_release_ko.json)
 /
-[Korean usage draft](docs/Anima%20AiO/ANIMA_Easy_Use_workflow_v1_KO.md)
+[Korean usage guide](docs/Anima%20AiO/ANIMA_Easy_Use_workflow_v1_KO.md)
 
 ## Quick Guide: Artist Mix Conditioning
 
