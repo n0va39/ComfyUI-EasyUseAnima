@@ -52,6 +52,10 @@ _COUNT_RE = re.compile(
 )
 _WEIGHT_NUMBER_RE = re.compile(r"^[+-]?(?:\d+(?:\.\d*)?|\.\d+)$")
 _WEIGHTED_TOKEN_RE = re.compile(r"^\((.*):[+-]?(?:\d+(?:\.\d*)?|\.\d+)\)$")
+_WILDCARD_TOKEN_RE = re.compile(r"^(?:\d+#)?__[\w.\-+/*\\]+__$", re.IGNORECASE)
+_WILDCARD_SYNTAX_RE = re.compile(r"(?:\d+#)?__[\w.\-+/*\\]+?__", re.IGNORECASE)
+_DYNAMIC_PROMPT_TOKEN_RE = re.compile(r"^(?<!\\)\{(?:[^{}]|(?<=\\)[{}])*?(?<!\\)\}$")
+_DYNAMIC_PROMPT_SYNTAX_RE = re.compile(r"(?<!\\)\{(?:[^{}]|(?<=\\)[{}])*?(?<!\\)\}")
 _DESCRIPTION_PREFIX_RE = re.compile(r"^\[([^\]]+)\]")
 _COMMENT_RE = re.compile(r"^[ \t]*#[^\n]*", re.MULTILINE)
 
@@ -365,31 +369,56 @@ def _classification_tokens_from_artist_group(group: str) -> list[tuple[str, bool
     return _classification_tokens_from_prompt_text(inner)
 
 
+def _next_prompt_syntax_range(value: str, cursor: int) -> tuple[str, int, int] | None:
+    ranges: list[tuple[str, int, int]] = []
+    artist_start = value.find("[[", cursor)
+    if artist_start >= 0:
+        artist_end = value.find("]]", artist_start + 2)
+        ranges.append(("artist_group", artist_start, artist_end + 2 if artist_end >= 0 else len(value)))
+    for kind, pattern in (
+        ("dynamic", _DYNAMIC_PROMPT_SYNTAX_RE),
+        ("wildcard", _WILDCARD_SYNTAX_RE),
+    ):
+        match = pattern.search(value, cursor)
+        if match:
+            ranges.append((kind, match.start(), match.end()))
+    if not ranges:
+        return None
+    return min(ranges, key=lambda item: item[1])
+
+
 def _classification_tokens_from_chunk(text: str) -> list[tuple[str, bool, bool]]:
     result: list[tuple[str, bool, bool]] = []
     value = str(text or "")
     cursor = 0
     while cursor < len(value):
-        start = value.find("[[", cursor)
-        if start < 0:
+        syntax_range = _next_prompt_syntax_range(value, cursor)
+        if not syntax_range:
             result.extend(_classification_tokens_from_prompt_text(value[cursor:]))
             break
+        kind, start, end = syntax_range
         if start > cursor:
             result.extend(_classification_tokens_from_prompt_text(value[cursor:start]))
-        end = value.find("]]", start + 2)
-        if end < 0:
+        if kind == "artist_group" and not value[start:end].endswith("]]"):
             tail = value[start:].strip(" ,\n\t")
             if tail:
                 result.append((tail, False, True))
             break
-        result.extend(_classification_tokens_from_artist_group(value[start : end + 2]))
-        cursor = end + 2
+        if kind == "artist_group":
+            result.extend(_classification_tokens_from_artist_group(value[start:end]))
+        else:
+            token = value[start:end].strip(" ,\n\t")
+            if token:
+                result.append((token, False, False))
+        cursor = end
     return result
 
 
 def _token_section(token: str, entry: AutocompleteEntry | None) -> tuple[str, str]:
     base = _token_base(token)
     is_artist_request = _is_artist_request(token)
+    if _WILDCARD_TOKEN_RE.match(base) or _DYNAMIC_PROMPT_TOKEN_RE.match(base):
+        return ("wildcard", "와일드카드")
     if _COUNT_RE.match(_normalize(base)):
         return ("count", "인원수")
     if is_artist_request:

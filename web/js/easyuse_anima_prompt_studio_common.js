@@ -220,7 +220,7 @@ const SECTION_STYLES = {
 const WEIGHT_NUMBER_RE = /^[+-]?(?:\d+(?:\.\d*)?|\.\d+)$/;
 const WEIGHTED_TOKEN_RE = /^\((.*):[+-]?(?:\d+(?:\.\d*)?|\.\d+)\)$/s;
 const WEIGHT_NUMBER_COLOR = "#fb923c";
-const WILDCARD_HIGHLIGHT_RE = /(?:\d+#)?__[\w.\-+/*\\]+?__/g;
+const WILDCARD_HIGHLIGHT_RE = /(?:\d+#)?__[\p{L}\p{N}_.\-+/*\\]+?__/gu;
 const ARTIST_MIX_GROUP_HIGHLIGHT_RE = /\[\[[\s\S]*?(?::[-+]?(?:\d+(?:\.\d*)?|\.\d+))?\]\]/g;
 const INLINE_SPACE_RE = /[ \t]+/g;
 const PROMPT_STUDIO_COMMON_SETTINGS = {
@@ -1370,6 +1370,13 @@ function renderHighlightedText(text, tokens) {
           rendered ? rendered.html : syntaxHtml(artistGroupParts.body),
         ));
       }
+      html.push(escapeHtml(trailing));
+      continue;
+    }
+
+    if (hasHighlightSyntax(body)) {
+      html.push(escapeHtml(leading));
+      html.push(syntaxHtml(body));
       html.push(escapeHtml(trailing));
       continue;
     }

@@ -101,6 +101,17 @@ class WildcardEngineTests(unittest.TestCase):
 
         self.assertEqual(items, ["style"])
 
+    def test_korean_wildcard_keys_can_be_listed_and_expanded(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            (root / "하츠.txt").write_text("hatsune option\n", encoding="utf-8")
+
+            items = list_wildcards(roots=[root])
+            result = expand_wildcards("__하츠__", seed=0, roots=[root])
+
+        self.assertEqual(items, ["하츠"])
+        self.assertEqual(result.text, "hatsune option")
+
 
 class WildcardNodeTests(unittest.TestCase):
     def test_node_stores_reproduce_metadata_for_saved_workflow(self):

@@ -10,11 +10,26 @@
   disabled, while keeping strict token-range behavior for preview mode.
 - Fixed inline autocomplete preview filtering so Korean description/keyword
   searches such as `하츠네 미쿠` keep the matched tag suggestion.
+- Fixed IME composition refresh so Korean input can update autocomplete
+  suggestions while composing instead of waiting for a space or refocus.
+- Fixed keyboard navigation in the autocomplete menu so the active suggestion
+  scrolls into view with at least one adjacent item visible when possible.
+- Fixed wildcard autocomplete for empty `__` prompts, Korean wildcard keys, and
+  normalized space/underscore/path searches.
+- Fixed wildcard and dynamic-prompt highlight classification, including Korean
+  wildcard syntax and comma-containing dynamic prompts such as
+  `{1-3$$, $$red|blue}`.
 
 ### Changed
 
 - Updated bundled Korean AiO workflow JSON files with refreshed embedded
   workflow defaults and `0.2.3` package metadata.
+
+### Validation Notes
+
+- Added regression coverage for IME autocomplete refresh, arrow-key menu
+  scrolling, wildcard autocomplete token detection, Korean wildcard keys, and
+  wildcard/dynamic-prompt highlight classification.
 
 ## 0.2.2
 

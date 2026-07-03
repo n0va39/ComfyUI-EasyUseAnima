@@ -4,7 +4,7 @@
 [ANIMA_Easy_Use_workflow_v1_release_ko.json](../example_workflows/ANIMA_Easy_Use_workflow_v1_release_ko.json)
 
 이 workflow는 `Anima Prompt Studio Advanced v2`, `Anima LoRA Preset`,
-`Easy Use Anima Input`, `Anima AiO Generator`를 연결한 0.2.2용 간단 생성
+`Easy Use Anima Input`, `Anima AiO Generator`를 연결한 0.2.3용 간단 생성
 흐름입니다. 프롬프트 편집과 모델/LoRA 입력은 upstream 노드에서 처리하고,
 생성, 미리보기, 저장은 `Anima AiO Generator`에서 처리합니다.
 

@@ -2982,6 +2982,19 @@ class AutocompleteDatasetTests(unittest.TestCase):
         )
         self.assertEqual(_prompt_tokens(prompt), ["1girl", "blue eyes"])
 
+    def test_wildcard_syntax_is_classified_for_highlighting(self):
+        classified = classify_prompt_text("__하츠__, 3#__style__, {red|blue}, {1-3$$, $$red|blue}")
+
+        self.assertEqual(
+            [(token["base"], token["section"]) for token in classified["tokens"]],
+            [
+                ("__하츠__", "wildcard"),
+                ("3#__style__", "wildcard"),
+                ("{red|blue}", "wildcard"),
+                ("{1-3$$, $$red|blue}", "wildcard"),
+            ],
+        )
+
     def test_inline_hash_and_slash_sequences_stay_in_prompt_text(self):
         prompt = "1girl, # not a line comment\nhttp://example.com/ref, foo//bar"
         classified = classify_prompt_text(prompt)

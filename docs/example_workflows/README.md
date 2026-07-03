@@ -61,7 +61,7 @@ uses the `spectrum_mod_guidance_advanced` sampler path and Image Saver metadata
 embedding. Required node-pack information is stored in
 `extra.easyuse_anima_workflow.required_node_packs`.
 
-The AiO generator sample uses the 0.2.2 defaults: first-pass steps `32`,
+The AiO generator sample uses the 0.2.3 defaults: first-pass steps `32`,
 sampler `er_sde`, scheduler `simple`, AuraFlow shift `3.0`, Highres scale
 `1.5`, and Highres denoise `0.25`.
 

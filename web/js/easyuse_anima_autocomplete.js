@@ -641,12 +641,12 @@ function currentWildcardToken(input) {
     return null;
   }
   const query = value.slice(opening + 2, caret);
-  if (!/^[\w.\-+/*\\]*$/i.test(query)) {
+  if (/[\r\n,]/.test(query)) {
     return null;
   }
   const closing = value.indexOf("__", caret);
   const end = closing >= 0 ? closing + 2 : caret;
-  const active = caret > opening + 2 && (closing < 0 || caret <= closing);
+  const active = caret >= opening + 2 && (closing < 0 || caret <= closing);
   return {
     value,
     start: opening,
@@ -708,6 +708,15 @@ function parseAutocompleteText(value) {
   return { query, artistOnly };
 }
 
+function normalizeWildcardSearchText(value) {
+  return String(value || "")
+    .normalize("NFKC")
+    .replaceAll("\\", "/")
+    .replace(/[ _]+/g, "-")
+    .trim()
+    .toLocaleLowerCase();
+}
+
 function strictAutocompleteResults(context, token, state, results) {
   if (!autocompletePreviewCompletion) {
     return results;
@@ -715,14 +724,18 @@ function strictAutocompleteResults(context, token, state, results) {
   const rawQuery = context.kind === "wildcard"
     ? String(token?.query || "")
     : parseAutocompleteText(token?.query || "").query;
-  const query = normalizePromptTagText(rawQuery).trim().toLocaleLowerCase();
+  const query = context.kind === "wildcard"
+    ? normalizeWildcardSearchText(rawQuery)
+    : normalizePromptTagText(rawQuery).trim().toLocaleLowerCase();
   if (!query) {
-    return [];
+    return context.kind === "wildcard" ? results : [];
   }
   return results.filter((entry) => {
-    const candidate = entry?.kind === "wildcard"
-      ? String(entry.tag || "").replace(/^__|__$/g, "")
-      : promptTagText(entry?.tag);
+    if (entry?.kind === "wildcard") {
+      const candidateKey = normalizeWildcardSearchText(String(entry.tag || "").replace(/^__|__$/g, ""));
+      return candidateKey.startsWith(query);
+    }
+    const candidate = promptTagText(entry?.tag);
     const candidateKey = normalizePromptTagText(candidate).trim().toLocaleLowerCase();
     const descriptionKey = normalizePromptTagText(entry?.description || "").trim().toLocaleLowerCase();
     return candidateKey.startsWith(query) || descriptionKey.includes(query);
@@ -871,14 +884,14 @@ async function loadWildcardItems() {
 }
 
 async function searchWildcards(query) {
-  const key = `wildcard:${maxResults}:${String(query || "").toLocaleLowerCase()}`;
+  const normalized = normalizeWildcardSearchText(query);
+  const key = `wildcard:${maxResults}:${normalized}`;
   if (cache.has(key)) {
     return cache.get(key);
   }
-  const normalized = String(query || "").replace("\\", "/").toLocaleLowerCase();
   const items = await loadWildcardItems();
   const results = items
-    .filter((item) => !normalized || item.toLocaleLowerCase().includes(normalized))
+    .filter((item) => !normalized || normalizeWildcardSearchText(item).includes(normalized))
     .slice(0, maxResults)
     .map((item) => ({
       tag: item,
@@ -890,6 +903,27 @@ async function searchWildcards(query) {
   return results;
 }
 
+function scrollActiveAutocompleteItemIntoView(menu, index) {
+  const children = [...(menu?.children || [])];
+  const active = children[index];
+  if (!active || !menu.clientHeight) {
+    return;
+  }
+  const firstVisibleIndex = Math.max(0, index - 1);
+  const lastVisibleIndex = Math.min(children.length - 1, index + 1);
+  const first = children[firstVisibleIndex] || active;
+  const last = children[lastVisibleIndex] || active;
+  const targetTop = first.offsetTop;
+  const targetBottom = last.offsetTop + last.offsetHeight;
+  const viewTop = menu.scrollTop;
+  const viewBottom = viewTop + menu.clientHeight;
+  if (targetTop < viewTop) {
+    menu.scrollTop = targetTop;
+  } else if (targetBottom > viewBottom) {
+    menu.scrollTop = targetBottom - menu.clientHeight;
+  }
+}
+
 function setActive(index) {
   if (!activeState) {
     return;
@@ -899,9 +933,11 @@ function setActive(index) {
     return;
   }
   activeState.index = (index + count) % count;
-  [...ensurePopup().children].forEach((child, childIndex) => {
+  const menu = ensurePopup();
+  [...menu.children].forEach((child, childIndex) => {
     child.classList.toggle("active", childIndex === activeState.index);
   });
+  scrollActiveAutocompleteItemIntoView(menu, activeState.index);
   updateAutocompletePreview();
 }
 
@@ -1454,7 +1490,7 @@ function hookInput(input, options = {}) {
   };
 
   const updateNow = async () => {
-    if (composing || document.activeElement !== input || !autocompleteEnabledForState(state)) {
+    if (document.activeElement !== input || !autocompleteEnabledForState(state)) {
       if (activeState?.input === input) {
         hidePopup();
       }
@@ -1511,6 +1547,7 @@ function hookInput(input, options = {}) {
   input.addEventListener("compositionstart", () => {
     composing = true;
   });
+  input.addEventListener("compositionupdate", update);
   input.addEventListener("compositionend", () => {
     composing = false;
     updateAfterCaretMove();
@@ -1561,6 +1598,9 @@ function hookInput(input, options = {}) {
     }
   });
   input.addEventListener("keydown", (event) => {
+    if (composing || event.isComposing || event.keyCode === 229) {
+      return;
+    }
     if (!activeState || activeState.input !== input) {
       return;
     }
