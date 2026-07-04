@@ -86,6 +86,9 @@ const AUTOCOMPLETE_TEXT = {
   en: {
     "category.tag": "tag",
     "category.quality": "quality",
+    "category.safety": "rating",
+    "category.year": "year",
+    "category.count": "count",
     "category.artist": "artist",
     "category.character": "character",
     "category.copyright": "copyright",
@@ -96,6 +99,9 @@ const AUTOCOMPLETE_TEXT = {
   ko: {
     "category.tag": "태그",
     "category.quality": "품질",
+    "category.safety": "등급",
+    "category.year": "연도",
+    "category.count": "인원수",
     "category.artist": "작가",
     "category.character": "캐릭터",
     "category.copyright": "작품",
@@ -106,6 +112,9 @@ const AUTOCOMPLETE_TEXT = {
   ja: {
     "category.tag": "タグ",
     "category.quality": "品質",
+    "category.safety": "レーティング",
+    "category.year": "年代",
+    "category.count": "人数",
     "category.artist": "作者",
     "category.character": "キャラクター",
     "category.copyright": "作品",
@@ -116,6 +125,9 @@ const AUTOCOMPLETE_TEXT = {
   zh: {
     "category.tag": "标签",
     "category.quality": "质量",
+    "category.safety": "分级",
+    "category.year": "年份",
+    "category.count": "人数",
     "category.artist": "作者",
     "category.character": "角色",
     "category.copyright": "作品",
@@ -227,6 +239,21 @@ function autocompleteCategoryLabel(category) {
   }
   const key = raw.toLocaleLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "");
   return autocompleteText(`category.${key}`) || raw;
+}
+
+function autocompleteEntryMetaText(entry) {
+  const count = Number(entry?.count || 0).toLocaleString();
+  return entry?.kind === "wildcard"
+    ? autocompleteCategoryLabel(entry?.category)
+    : `${autocompleteCategoryLabel(entry?.category)} · ${count}`;
+}
+
+function autocompleteEntryTooltip(entry) {
+  return {
+    tag: displayTagText(entry?.tag || ""),
+    meta: autocompleteEntryMetaText(entry || {}),
+    description: String(entry?.description || ""),
+  };
 }
 
 function setAutocompleteMode(value) {
@@ -373,6 +400,12 @@ function hidePopup() {
   }
   clearAutocompletePreview(input);
   activeState = null;
+}
+
+function hideTrainedTagTooltips() {
+  for (const tooltip of document.querySelectorAll(".easyuse-anima-trained-tag-tooltip")) {
+    tooltip.classList.add("hidden");
+  }
 }
 
 function refreshActiveAutocomplete() {
@@ -1482,10 +1515,7 @@ function renderResults(state, results, signature = "") {
 
     const meta = document.createElement("span");
     meta.className = "easyuse-anima-autocomplete-meta";
-    const count = Number(entry.count || 0).toLocaleString();
-    meta.textContent = entry.kind === "wildcard"
-      ? autocompleteCategoryLabel(entry.category)
-      : `${autocompleteCategoryLabel(entry.category)} · ${count}`;
+    meta.textContent = autocompleteEntryMetaText(entry);
     top.append(tag, meta);
     item.append(top);
 
@@ -1507,6 +1537,7 @@ function renderResults(state, results, signature = "") {
   }
 
   positionPopup(state.input);
+  hideTrainedTagTooltips();
   menu.classList.remove("hidden");
   updateAutocompletePreview();
 }
@@ -1728,6 +1759,7 @@ function installExternalInputHook() {
   window.easyuseAnimaHookAutocompleteInput = (input, options = {}) => {
     hookInput(input, options);
   };
+  window.easyuseAnimaAutocompleteEntryTooltip = (entry) => autocompleteEntryTooltip(entry);
   const pending = window.__easyuseAnimaPendingAutocompleteInputs || [];
   window.__easyuseAnimaPendingAutocompleteInputs = [];
   for (const item of pending) {
