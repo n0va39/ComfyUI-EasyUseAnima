@@ -1,8 +1,22 @@
+// @ts-check
+
+/** @typedef {import("./types.js").ComfyAppLike} ComfyAppLike */
+/** @typedef {import("./types.js").ComfyNodeLike} ComfyNodeLike */
+
+/**
+ * @param {ComfyAppLike} app
+ * @param {ComfyNodeLike | null | undefined} node
+ */
 function markNodeDirty(app, node) {
   node?.setDirtyCanvas?.(true, true);
   app.graph?.setDirtyCanvas?.(true, true);
 }
 
+/**
+ * @param {ComfyAppLike} app
+ * @param {ComfyNodeLike} node
+ * @param {{ immediate?: boolean }} [options]
+ */
 function refreshNodeSize(app, node, options = {}) {
   const update = () => {
     const size = node.computeSize();
@@ -23,11 +37,13 @@ function refreshNodeSize(app, node, options = {}) {
   }
 }
 
+/** @param {ComfyAppLike} app */
 function markCanvasDirty(app) {
   app.graph?.setDirtyCanvas(true, true);
   app.canvas?.setDirty?.(true, true);
 }
 
+/** @param {ComfyAppLike} app */
 function markGraphDirty(app) {
   app.graph?.setDirtyCanvas?.(true, true);
 }

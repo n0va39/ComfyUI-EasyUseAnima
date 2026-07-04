@@ -1,3 +1,5 @@
+// @ts-check
+
 import {
   easyuseAnimaWatchLocale,
 } from "../easyuse_anima_i18n.js";

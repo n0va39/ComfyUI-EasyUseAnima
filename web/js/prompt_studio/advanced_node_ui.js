@@ -1,3 +1,5 @@
+// @ts-check
+
 import {
   ADVANCED_NATIVE_CONTROL_EVENTS,
 } from "./constants.js";

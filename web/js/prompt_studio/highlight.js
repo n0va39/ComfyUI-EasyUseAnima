@@ -1,3 +1,5 @@
+// @ts-check
+
 import { easyuseAnimaClassifyPrompt } from "../easyuse_anima_api.js";
 import { normalizePromptTagText } from "../easyuse_anima_prompt_rules.js";
 import {

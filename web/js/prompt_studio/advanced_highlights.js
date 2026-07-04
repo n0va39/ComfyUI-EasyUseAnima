@@ -1,3 +1,5 @@
+// @ts-check
+
 import {
   parseAdvancedFields,
 } from "./advanced_fields_state.js";

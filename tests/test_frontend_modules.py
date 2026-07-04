@@ -583,6 +583,33 @@ class FrontendModuleStructureTests(unittest.TestCase):
             with self.subTest(module="extension_runtime", symbol=name):
                 self.assertIn(f"  {name},", extension_runtime_source)
 
+    def test_prompt_studio_phase_3_typedefs_are_documented(self):
+        types_source = (PROMPT_STUDIO_MODULES / "types.js").read_text(
+            encoding="utf-8"
+        )
+
+        for name in (
+            "PromptStudioField",
+            "PromptStudioFieldHeightMode",
+            "PromptStudioState",
+            "AdvancedEditorNode",
+            "ComfyNodeLike",
+            "ComfyWidgetLike",
+            "PromptClassificationResult",
+            "EasyUseAnimaSettings",
+            "ApiJsonResponse",
+            "LayoutMeasureResult",
+            "ResizeFinalizeState",
+        ):
+            with self.subTest(typedef=name):
+                self.assertIn(f" {name}", types_source)
+
+    def test_prompt_studio_split_modules_start_with_ts_check(self):
+        for path in sorted(PROMPT_STUDIO_MODULES.glob("*.js")):
+            with self.subTest(filename=path.name):
+                first_line = path.read_text(encoding="utf-8").splitlines()[0]
+                self.assertEqual(first_line, "// @ts-check")
+
     def test_prompt_studio_phase_2_modules_have_no_runtime_side_effects(self):
         for filename in (
             "constants.js",
@@ -609,6 +636,7 @@ class FrontendModuleStructureTests(unittest.TestCase):
             "wheel.js",
             "serialization.js",
             "runtime_canvas.js",
+            "types.js",
         ):
             with self.subTest(filename=filename):
                 source = (PROMPT_STUDIO_MODULES / filename).read_text(

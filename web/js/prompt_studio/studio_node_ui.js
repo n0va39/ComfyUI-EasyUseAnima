@@ -1,3 +1,5 @@
+// @ts-check
+
 import {
   classifyPrompt,
 } from "./highlight.js";

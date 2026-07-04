@@ -1,3 +1,5 @@
+// @ts-check
+
 import {
   STUDIO_WIDGET_VERTICAL_GAP,
 } from "./constants.js";

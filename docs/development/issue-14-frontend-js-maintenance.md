@@ -575,6 +575,27 @@ Catch JS shape errors without changing runtime output or adding a build system.
 - `any` usage is limited to unclear ComfyUI/LiteGraph external objects.
 - Runtime import paths do not change for type checking.
 
+### Current Typecheck Slice
+
+Phase 3 starts with a no-build typecheck pilot for `types.js` and
+`runtime_canvas.js`. The command is:
+
+```powershell
+$env:npm_config_cache = "D:\ComfyUI\.codex_cache\npm"
+$env:TEMP = "D:\ComfyUI\.codex_tmp\temp"
+$env:TMP = $env:TEMP
+npx --yes -p typescript@6.0.3 tsc -p jsconfig.json
+```
+
+The slice keeps ComfyUI runtime output as raw JavaScript and limits TypeScript
+scope through `jsconfig.json` instead of introducing a build step.
+
+Current status:
+
+- 2026-07-05: `types.js` and `runtime_canvas.js` pass the documented
+  typecheck command.
+- Full Prompt Studio module type coverage remains a later Phase 3 step.
+
 ## Phase 4: Vite/TypeScript Decision
 
 ### Goal
@@ -792,10 +813,10 @@ Use this in Issue #14 or follow-up PR tracking comments.
 [x] entry file slimmed down
 
 ### Phase 3: JS type checking
-[ ] // @ts-check added to new modules
-[ ] JSDoc typedefs added
-[ ] jsconfig/tsconfig added
-[ ] typecheck command documented
+[x] // @ts-check added to new modules
+[x] JSDoc typedefs added
+[x] jsconfig/tsconfig added
+[x] typecheck command documented
 [ ] typecheck warnings resolved
 
 ### Phase 4: Vite/TypeScript decision
