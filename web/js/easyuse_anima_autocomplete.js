@@ -361,6 +361,7 @@ function ensureStyle() {
       min-width: 280px;
       max-height: 280px;
       overflow: auto;
+      overflow-anchor: none;
       overscroll-behavior: contain;
       border: 1px solid rgba(128, 128, 128, 0.45);
       border-radius: 7px;
@@ -414,12 +415,21 @@ function ensurePopup() {
 
 function hidePopup() {
   const input = activeState?.input;
+  markAutocompleteInputInactive(input);
   if (popup) {
-    popup.classList.add("hidden");
     popup.replaceChildren();
+    resetAutocompleteMenuToTop(popup);
+    popup.classList.add("hidden");
   }
   clearAutocompletePreview(input);
   activeState = null;
+}
+
+function markAutocompleteInputInactive(input) {
+  const state = input?.__easyuseAnimaAutocompleteState;
+  if (state) {
+    state.lastAutocompleteSignature = "";
+  }
 }
 
 function hideTrainedTagTooltips() {
@@ -643,7 +653,7 @@ function trimPromptSyntaxSuffix(value, start, end) {
       cursor -= 1;
     }
   }
-  if (value[cursor - 1] === ")") {
+  if (value[cursor - 1] === ")" && !isEscaped(value, cursor - 1)) {
     cursor -= 1;
     while (cursor > start && /[ \t]/.test(value[cursor - 1])) {
       cursor -= 1;
@@ -768,7 +778,7 @@ function autocompleteQuery(token, forceArtistOnly = false) {
   const raw = String(token.query || "");
   const parsed = parseAutocompleteText(raw);
   const artistOnly = forceArtistOnly || parsed.artistOnly;
-  const query = artistOnly ? parsed.query : raw.trim();
+  const query = parsed.query;
   const category = artistOnly ? "artist" : "";
   return { query, artistOnly, category };
 }
@@ -800,6 +810,20 @@ function autocompleteStateSignature(token, context, state) {
   });
 }
 
+function stripPromptSyntaxClosingParens(value) {
+  let cursor = String(value || "").length;
+  while (cursor > 0 && /[ \t]/.test(value[cursor - 1])) {
+    cursor -= 1;
+  }
+  while (cursor > 0 && value[cursor - 1] === ")" && !isEscaped(value, cursor - 1)) {
+    cursor -= 1;
+    while (cursor > 0 && /[ \t]/.test(value[cursor - 1])) {
+      cursor -= 1;
+    }
+  }
+  return value.slice(0, cursor);
+}
+
 function parseAutocompleteText(value) {
   let query = String(value || "").trim();
   query = query.replace(/^\[\[\s*/g, "");
@@ -807,9 +831,10 @@ function parseAutocompleteText(value) {
   const artistOnly = query.startsWith("@");
   if (artistOnly) {
     query = query.slice(1).trimStart();
-    query = query.replace(/:\s*[+-]?(?:\d+(?:\.\d*)?|\.\d+)\)?\s*$/, "");
-    query = query.replace(/\)+\s*$/, "");
   }
+  query = stripPromptSyntaxClosingParens(query);
+  query = query.replace(/:\s*[+-]?(?:\d+(?:\.\d*)?|\.\d+)\s*$/, "");
+  query = stripPromptSyntaxClosingParens(query);
   return { query, artistOnly };
 }
 
@@ -843,7 +868,7 @@ function strictAutocompleteResults(context, token, state, results) {
     const candidate = promptTagText(entry?.tag);
     const candidateKey = normalizePromptTagText(candidate).trim().toLocaleLowerCase();
     const descriptionKey = normalizePromptTagText(entry?.description || "").trim().toLocaleLowerCase();
-    return candidateKey.startsWith(query) || descriptionKey.includes(query);
+    return candidateKey.startsWith(query) || candidateKey.includes(query) || descriptionKey.includes(query);
   });
 }
 
@@ -1044,6 +1069,34 @@ function setActive(index) {
   });
   scrollActiveAutocompleteItemIntoView(menu, activeState.index);
   updateAutocompletePreview();
+}
+
+function resetAutocompleteMenuToTop(menu) {
+  if (!menu) {
+    return;
+  }
+  menu.scrollTop = 0;
+  menu.scrollLeft = 0;
+}
+
+function resetActiveAutocompleteMenu(menu) {
+  if (!activeState) {
+    return;
+  }
+  activeState.index = 0;
+  [...(menu?.children || [])].forEach((child, childIndex) => {
+    child.classList.toggle("active", childIndex === activeState.index);
+  });
+  resetAutocompleteMenuToTop(menu);
+}
+
+function resetVisibleAutocompleteMenuSoon(menu, input) {
+  resetAutocompleteMenuToTop(menu);
+  requestAnimationFrame(() => {
+    if (popup === menu && activeState?.input === input && !menu.classList.contains("hidden")) {
+      resetAutocompleteMenuToTop(menu);
+    }
+  });
 }
 
 function endsWithSentencePeriod(value) {
@@ -1523,18 +1576,16 @@ function syncWidgetValue(state) {
 
 function renderResults(state, results, signature = "") {
   const menu = ensurePopup();
+  resetAutocompleteMenuToTop(menu);
   if (activeState?.input && activeState.input !== state.input) {
     clearAutocompletePreview(activeState.input);
   }
-  const previousIndex = activeState?.input === state.input && activeState?.signature === signature
-    ? activeState.index
-    : 0;
   menu.replaceChildren();
   activeState = {
     ...state,
     results,
     signature,
-    index: results.length ? clamp(previousIndex, 0, results.length - 1) : 0,
+    index: 0,
   };
 
   if (!results.length) {
@@ -1578,10 +1629,13 @@ function renderResults(state, results, signature = "") {
     });
     menu.append(item);
   }
+  resetActiveAutocompleteMenu(menu);
 
   positionPopup(state.input);
   hideTrainedTagTooltips();
   menu.classList.remove("hidden");
+  resetActiveAutocompleteMenu(menu);
+  resetVisibleAutocompleteMenuSoon(menu, state.input);
   updateAutocompletePreview();
 }
 
@@ -1635,6 +1689,11 @@ function hookInput(input, options = {}) {
     scope: autocompleteScope(options),
     forceArtistOnly: !!options.forceArtistOnly,
     onCommit: typeof options.onCommit === "function" ? options.onCommit : null,
+    lastAutocompleteSignature: undefined,
+  };
+
+  const markAutocompleteInactive = () => {
+    state.lastAutocompleteSignature = "";
   };
 
   const updateNow = async () => {
@@ -1645,22 +1704,26 @@ function hookInput(input, options = {}) {
       return;
     }
     if (shouldSuppressAutocomplete(input)) {
+      markAutocompleteInactive();
       if (activeState?.input === input) {
         hidePopup();
       }
       return;
     }
     if (isCaretInComment(input.value || "", input.selectionStart ?? 0)) {
+      markAutocompleteInactive();
       hidePopup();
       return;
     }
     if (isCaretInPromptTranslationMarker(input)) {
+      markAutocompleteInactive();
       hidePopup();
       return;
     }
     const wildcardToken = currentWildcardToken(input);
     const token = wildcardToken || currentToken(input);
     if (!token?.active) {
+      markAutocompleteInactive();
       hidePopup();
       return;
     }
@@ -1668,11 +1731,17 @@ function hookInput(input, options = {}) {
       ? wildcardAutocompleteQuery(wildcardToken)
       : autocompleteQuery(token, state.forceArtistOnly);
     if (context.kind !== "wildcard" && context.query.length < MIN_QUERY_LENGTH) {
+      markAutocompleteInactive();
       hidePopup();
       return;
     }
     const signature = autocompleteStateSignature(token, context, state);
+    const previousSignature = state.lastAutocompleteSignature;
+    state.lastAutocompleteSignature = signature;
     if (activeState?.input === input && activeState.signature === signature) {
+      if (previousSignature !== undefined && previousSignature !== signature) {
+        resetActiveAutocompleteMenu(ensurePopup());
+      }
       positionPopup(input);
       updateAutocompletePreview();
       return;
@@ -1925,6 +1994,20 @@ document.addEventListener("wheel", (event) => {
   }
   scheduleActiveRefresh();
 }, true);
+function handleOutsideAutocompletePointer(event) {
+  if (!activeState || popup?.contains(event.target)) {
+    return;
+  }
+  const input = activeState.input;
+  if (event.target === input || input?.contains?.(event.target)) {
+    return;
+  }
+  markAutocompleteInputInactive(input);
+  hidePopup();
+}
+
+document.addEventListener("pointerdown", handleOutsideAutocompletePointer, true);
+document.addEventListener("mousedown", handleOutsideAutocompletePointer, true);
 document.addEventListener("selectionchange", scheduleActiveRefresh);
 window.addEventListener("resize", scheduleActiveRefresh);
 window.addEventListener("easyuse-anima-settings-updated", (event) => {
