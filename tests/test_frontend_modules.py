@@ -61,6 +61,7 @@ class FrontendModuleStructureTests(unittest.TestCase):
         self.assertIn('./prompt_studio/utils.js"', source)
         self.assertIn('./prompt_studio/schema.js"', source)
         self.assertIn('./prompt_studio/state.js"', source)
+        self.assertIn('./prompt_studio/dom.js"', source)
         self.assertIn('./prompt_studio/layout.js"', source)
         self.assertIn('./prompt_studio/textarea.js"', source)
         self.assertIn('./prompt_studio/wheel.js"', source)
@@ -77,6 +78,9 @@ class FrontendModuleStructureTests(unittest.TestCase):
             encoding="utf-8"
         )
         state_source = (PROMPT_STUDIO_MODULES / "state.js").read_text(
+            encoding="utf-8"
+        )
+        dom_source = (PROMPT_STUDIO_MODULES / "dom.js").read_text(
             encoding="utf-8"
         )
         layout_source = (PROMPT_STUDIO_MODULES / "layout.js").read_text(
@@ -137,6 +141,16 @@ class FrontendModuleStructureTests(unittest.TestCase):
         ):
             with self.subTest(module="state", symbol=name):
                 self.assertIn(f"  {name},", state_source)
+
+        for name in (
+            "closeAdvancedHelpPopovers",
+            "openAdvancedHelpPopover",
+            "protectAdvancedNativeControl",
+            "stopAdvancedControlEvent",
+            "updateAdvancedSummary",
+        ):
+            with self.subTest(module="dom", symbol=name):
+                self.assertIn(f"  {name},", dom_source)
 
         for name in (
             "advancedEditorMinimumHeight",
@@ -208,6 +222,12 @@ class FrontendModuleStructureTests(unittest.TestCase):
                 self.assertNotIn("document.", source)
                 self.assertNotIn("window.", source)
                 self.assertNotIn("fetch(", source)
+
+    def test_prompt_studio_dom_module_has_no_registration_or_network_side_effects(self):
+        source = (PROMPT_STUDIO_MODULES / "dom.js").read_text(encoding="utf-8")
+
+        self.assertNotIn("app.registerExtension", source)
+        self.assertNotIn("fetch(", source)
 
 
 if __name__ == "__main__":
