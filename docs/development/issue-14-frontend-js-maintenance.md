@@ -198,6 +198,7 @@ web/js/
   prompt_studio/
     constants.js
     utils.js
+    settings.js
     schema.js
     state.js
     serialization.js
@@ -219,16 +220,17 @@ same PR by request.
 Planned slices:
 
 1. `constants.js` and `utils.js`
-2. `schema.js`
-3. `state.js`
-4. `serialization.js`
-5. `layout.js`
-6. `textarea.js`
-7. `wheel.js`
-8. `dom.js` and `style.js`
-9. `fields.js`
-10. `node_hooks.js`
-11. entry file slim-down
+2. `settings.js`
+3. `schema.js`
+4. `state.js`
+5. `serialization.js`
+6. `layout.js`
+7. `textarea.js`
+8. `wheel.js`
+9. `dom.js` and `style.js`
+10. `fields.js`
+11. `node_hooks.js`
+12. entry file slim-down
 
 Each PR should mostly move code and update imports. Behavior changes should be
 separate PRs unless the move reveals a confirmed bug that cannot be separated.
@@ -696,6 +698,7 @@ Use this in Issue #14 or follow-up PR tracking comments.
 ### Phase 2: Prompt Studio module split
 [ ] constants.js extracted
 [ ] utils.js extracted
+[ ] settings.js extracted
 [ ] schema.js extracted
 [ ] state.js extracted
 [ ] serialization.js extracted

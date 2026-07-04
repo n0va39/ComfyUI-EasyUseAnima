@@ -64,6 +64,7 @@ class FrontendModuleStructureTests(unittest.TestCase):
         self.assertIn('./prompt_studio/dom.js"', source)
         self.assertIn('./prompt_studio/fields.js"', source)
         self.assertIn('./prompt_studio/node_hooks.js"', source)
+        self.assertIn('./prompt_studio/settings.js"', source)
         self.assertIn('./prompt_studio/style.js"', source)
         self.assertIn('./prompt_studio/layout.js"', source)
         self.assertIn('./prompt_studio/textarea.js"', source)
@@ -90,6 +91,9 @@ class FrontendModuleStructureTests(unittest.TestCase):
             encoding="utf-8"
         )
         node_hooks_source = (PROMPT_STUDIO_MODULES / "node_hooks.js").read_text(
+            encoding="utf-8"
+        )
+        settings_source = (PROMPT_STUDIO_MODULES / "settings.js").read_text(
             encoding="utf-8"
         )
         style_source = (PROMPT_STUDIO_MODULES / "style.js").read_text(
@@ -187,6 +191,15 @@ class FrontendModuleStructureTests(unittest.TestCase):
             with self.subTest(module="node_hooks", symbol=name):
                 self.assertIn(f"  {name},", node_hooks_source)
 
+        for name in (
+            "PROMPT_STUDIO_SETTINGS",
+            "applyPromptStudioSettings",
+            "applyPromptStudioTextStyle",
+            "loadPromptStudioSettings",
+        ):
+            with self.subTest(module="settings", symbol=name):
+                self.assertIn(f"  {name},", settings_source)
+
         for name in ("ensureAdvancedStyle", "ensureExtendSlotStyle"):
             with self.subTest(module="style", symbol=name):
                 self.assertIn(f"  {name},", style_source)
@@ -266,7 +279,7 @@ class FrontendModuleStructureTests(unittest.TestCase):
                 self.assertNotIn("fetch(", source)
 
     def test_prompt_studio_dom_module_has_no_registration_or_network_side_effects(self):
-        for filename in ("dom.js", "style.js"):
+        for filename in ("dom.js", "settings.js", "style.js"):
             with self.subTest(filename=filename):
                 source = (PROMPT_STUDIO_MODULES / filename).read_text(
                     encoding="utf-8"
