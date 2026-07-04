@@ -618,6 +618,34 @@ Current status:
 Decide whether a build system is justified after modules and JS type checks are
 stable.
 
+### Decision
+
+Do not introduce Vite, TypeScript source files, npm dependencies, or a `dist`
+tree in this PR.
+
+Current evidence:
+
+- `__init__.py` exposes `WEB_DIRECTORY = "./web"`, so ComfyUI loads the raw
+  files under `web/js` directly.
+- The repository has no `package.json`, lockfile, `frontend/src`, or committed
+  `dist` tree.
+- `jsconfig.json` provides no-build checking for
+  `easyuse_anima_prompt_studio.js` and all `web/js/prompt_studio/*.js` files.
+- HTTP runtime smoke on `ComfyUI_v0.24.0` loads the raw entry and split modules
+  from `/extensions/comfyui-easyuse-anima/js/...`.
+
+Policy for this PR:
+
+- Build command: none.
+- `dist` output: none.
+- Committed generated frontend assets: none.
+- ComfyUI Manager install behavior: clone/install should work without running a
+  frontend build because raw JS remains the distributed runtime.
+- Legacy `web/js` entry files remain thin ComfyUI extension loaders.
+- If a future PR adopts Vite/TypeScript, it must decide whether to commit
+  deterministic built output and must prove ComfyUI Manager installs still work
+  without a local build step.
+
 ### Adoption Gate
 
 - Prompt Studio module split is complete.
@@ -645,6 +673,9 @@ stable.
 - Build output is deterministic.
 - Source and built output mismatch can be detected.
 - Hard refresh produces no browser module-loading error.
+
+For this no-build decision, deterministic build output and source/built mismatch
+checks are not applicable because no build output is produced.
 
 ## Compatibility Checklist
 
@@ -835,11 +866,11 @@ Use this in Issue #14 or follow-up PR tracking comments.
 [x] typecheck warnings resolved
 
 ### Phase 4: Vite/TypeScript decision
-[ ] dist commit policy decided
-[ ] build command decided
-[ ] ComfyUI loading order verified
-[ ] ComfyUI Manager install behavior verified
-[ ] decision documented
+[x] dist commit policy decided
+[x] build command decided
+[x] ComfyUI loading order verified
+[x] ComfyUI Manager install behavior verified
+[x] decision documented
 
 ### Close criteria
 [ ] workflow compatibility verified

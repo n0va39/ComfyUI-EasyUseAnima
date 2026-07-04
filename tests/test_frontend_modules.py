@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import re
 import unittest
 from pathlib import Path
 
@@ -11,6 +12,7 @@ WEB_JS = ROOT / "web" / "js"
 API_JS = WEB_JS / "easyuse_anima_api.js"
 PROMPT_STUDIO_JS = WEB_JS / "easyuse_anima_prompt_studio.js"
 PROMPT_STUDIO_MODULES = WEB_JS / "prompt_studio"
+STATIC_IMPORT_RE = re.compile(r"""from\s+["'](\./[^"']+\.js)["']""")
 
 
 class FrontendModuleStructureTests(unittest.TestCase):
@@ -629,6 +631,36 @@ class FrontendModuleStructureTests(unittest.TestCase):
             with self.subTest(filename=path.name):
                 first_line = path.read_text(encoding="utf-8").splitlines()[0]
                 self.assertEqual(first_line, "// @ts-check")
+
+    def test_prompt_studio_split_modules_have_no_import_cycles(self):
+        module_paths = {
+            path.name: path for path in sorted(PROMPT_STUDIO_MODULES.glob("*.js"))
+        }
+        graph = {name: [] for name in module_paths}
+        for name, path in module_paths.items():
+            source = path.read_text(encoding="utf-8")
+            for import_path in STATIC_IMPORT_RE.findall(source):
+                target = Path(import_path).name
+                if target in module_paths:
+                    graph[name].append(target)
+
+        visiting = set()
+        visited = set()
+
+        def visit(name, stack):
+            if name in visiting:
+                cycle = " -> ".join([*stack, name])
+                self.fail(f"Prompt Studio import cycle detected: {cycle}")
+            if name in visited:
+                return
+            visiting.add(name)
+            for target in graph[name]:
+                visit(target, [*stack, name])
+            visiting.remove(name)
+            visited.add(name)
+
+        for name in graph:
+            visit(name, [])
 
     def test_prompt_studio_phase_2_modules_have_no_runtime_side_effects(self):
         for filename in (
