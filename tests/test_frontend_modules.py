@@ -75,6 +75,7 @@ class FrontendModuleStructureTests(unittest.TestCase):
         self.assertIn('./prompt_studio/extend_layout.js"', source)
         self.assertIn('./fields.js"', advanced_fields_ui_source)
         self.assertIn('./prompt_studio/highlight.js"', source)
+        self.assertIn('./prompt_studio/highlight_ui.js"', source)
         self.assertIn('./prompt_studio/legend.js"', source)
         self.assertIn('./prompt_studio/node_hooks.js"', source)
         self.assertIn('./prompt_studio/settings.js"', source)
@@ -137,6 +138,9 @@ class FrontendModuleStructureTests(unittest.TestCase):
         highlight_source = (PROMPT_STUDIO_MODULES / "highlight.js").read_text(
             encoding="utf-8"
         )
+        highlight_ui_source = (
+            PROMPT_STUDIO_MODULES / "highlight_ui.js"
+        ).read_text(encoding="utf-8")
         legend_source = (PROMPT_STUDIO_MODULES / "legend.js").read_text(
             encoding="utf-8"
         )
@@ -338,6 +342,13 @@ class FrontendModuleStructureTests(unittest.TestCase):
                 self.assertIn(f"  {name},", highlight_source)
 
         for name in (
+            "displayText",
+            "updateHighlight",
+        ):
+            with self.subTest(module="highlight_ui", symbol=name):
+                self.assertIn(f"  {name},", highlight_ui_source)
+
+        for name in (
             "desiredLegendHeight",
             "ensureLegendWidget",
         ):
@@ -506,6 +517,7 @@ class FrontendModuleStructureTests(unittest.TestCase):
             "extend_layout.js",
             "extend_slots.js",
             "fields.js",
+            "highlight_ui.js",
             "legend.js",
             "node_hooks.js",
             "text.js",

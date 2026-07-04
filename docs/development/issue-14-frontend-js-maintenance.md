@@ -143,6 +143,20 @@ Centralize repeated frontend request helpers while preserving runtime behavior.
 - PR body states live ComfyUI smoke-test status.
 - Issue #14 remains open after merge.
 
+### Test Cost Policy
+
+Use focused checks for each small module split:
+
+- `node --check` for the changed entry/module files.
+- All frontend JS syntax checks when imports change.
+- Related frontend structure tests, primarily `tests.test_frontend_modules`.
+- `git diff --check`.
+
+Run full unittest, compileall, and live/browser smoke only at major checkpoints
+or before final PR readiness. If sandbox Temp/cache permissions obscure the
+test signal, rerun the affected major checkpoint with the agent-dedicated
+v0.24.0 runtime paths rather than expanding tests on every slice.
+
 ## Phase 1.5: Runtime Smoke
 
 ### Goal
@@ -205,6 +219,7 @@ web/js/
     settings.js
     text.js
     highlight.js
+    highlight_ui.js
     schema.js
     state.js
     canvas_forwarding.js
@@ -740,6 +755,7 @@ Use this in Issue #14 or follow-up PR tracking comments.
 [ ] settings.js extracted
 [ ] text.js extracted
 [ ] highlight.js extracted
+[ ] highlight_ui.js extracted
 [ ] schema.js extracted
 [ ] state.js extracted
 [ ] canvas_forwarding.js extracted

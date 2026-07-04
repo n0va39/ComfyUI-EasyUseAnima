@@ -96,9 +96,12 @@ import {
   syncOverlayBounds,
 } from "./prompt_studio/highlight.js";
 import {
+  displayText,
+  updateHighlight,
+} from "./prompt_studio/highlight_ui.js";
+import {
   findInputEl,
   findWidget,
-  isWidgetInputLinked,
 } from "./prompt_studio/widgets.js";
 import {
   advancedEditorMinimumHeight,
@@ -277,13 +280,6 @@ function rebalanceStudioInputHeights(node) {
   rebalanceStudioInputHeightsWithHooks(node, studioTextareaHooks());
 }
 
-function displayText(node, widget) {
-  if (isWidgetInputLinked(node, widget.name) && widget.__easyuseAnimaExecutedText != null) {
-    return String(widget.__easyuseAnimaExecutedText);
-  }
-  return String(widget?.inputEl?.value ?? widget?.value ?? "");
-}
-
 function studioFieldNames(node) {
   return isExtendNode(node) ? EXTEND_FIELD_NAMES : FIELD_NAMES;
 }
@@ -354,25 +350,6 @@ function renderExtendSlotControls(node) {
 
 function ensureExtendSlotControls(node) {
   ensureExtendSlotControlsWithHooks(node, extendSlotControlHooks());
-}
-
-function updateHighlight(node, widget, tokens = widget.__easyuseAnimaTokens || [], forceCopyMetrics = false) {
-  const input = findInputEl(widget);
-  if (!input) {
-    return;
-  }
-  applyPromptStudioTextStyle(input);
-  input.__easyuseAnimaHighlightRefresh = (force = false) => updateHighlight(node, widget, widget.__easyuseAnimaTokens || [], force);
-  const overlay = ensureHighlightOverlay(input);
-  if (!overlay) {
-    return;
-  }
-  if (forceCopyMetrics) {
-    copyInputTextMetrics(input, overlay);
-  }
-  syncOverlayBounds(input, overlay);
-  const value = displayText(node, widget);
-  overlay.innerHTML = highlightOverlayHtml(value, tokens, input.placeholder || "", input);
 }
 
 function advancedHighlightState(node, field) {
