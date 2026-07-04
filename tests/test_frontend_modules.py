@@ -58,6 +58,7 @@ class FrontendModuleStructureTests(unittest.TestCase):
         source = PROMPT_STUDIO_JS.read_text(encoding="utf-8")
 
         self.assertIn('./prompt_studio/constants.js"', source)
+        self.assertIn('./prompt_studio/advanced_controls.js"', source)
         self.assertIn('./prompt_studio/utils.js"', source)
         self.assertIn('./prompt_studio/schema.js"', source)
         self.assertIn('./prompt_studio/state.js"', source)
@@ -80,6 +81,9 @@ class FrontendModuleStructureTests(unittest.TestCase):
         self.assertIn('./prompt_studio/serialization.js"', source)
 
     def test_prompt_studio_phase_2_modules_export_expected_symbols(self):
+        advanced_controls_source = (
+            PROMPT_STUDIO_MODULES / "advanced_controls.js"
+        ).read_text(encoding="utf-8")
         constants_source = (PROMPT_STUDIO_MODULES / "constants.js").read_text(
             encoding="utf-8"
         )
@@ -143,6 +147,19 @@ class FrontendModuleStructureTests(unittest.TestCase):
         serialization_source = (
             PROMPT_STUDIO_MODULES / "serialization.js"
         ).read_text(encoding="utf-8")
+
+        for name in (
+            "advancedCustomResolution",
+            "advancedResolutionSummary",
+            "advancedWildcardSummary",
+            "createAdvancedControlBar",
+            "createAdvancedResolutionBar",
+            "createAdvancedWildcardBar",
+            "setAdvancedControlValue",
+            "setAdvancedWidgetValue",
+        ):
+            with self.subTest(module="advanced_controls", symbol=name):
+                self.assertIn(f"  {name},", advanced_controls_source)
 
         for name in (
             "NODE_TYPE",
@@ -389,6 +406,7 @@ class FrontendModuleStructureTests(unittest.TestCase):
 
     def test_prompt_studio_dom_module_has_no_registration_or_network_side_effects(self):
         for filename in (
+            "advanced_controls.js",
             "canvas_forwarding.js",
             "dom.js",
             "extend_slot_controls.js",
