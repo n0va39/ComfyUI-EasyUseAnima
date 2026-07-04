@@ -1,6 +1,6 @@
 import { app } from "../../../scripts/app.js";
 import { easyuseAnimaClassifyPrompt } from "./easyuse_anima_api.js";
-import { easyuseAnimaText, easyuseAnimaWatchLocale } from "./easyuse_anima_i18n.js";
+import { easyuseAnimaWatchLocale } from "./easyuse_anima_i18n.js";
 import { normalizePromptTagText } from "./easyuse_anima_prompt_rules.js";
 import {
   FIELD_NAMES,
@@ -9,7 +9,6 @@ import {
   EXTEND_ACTIVE_SLOTS_WIDGET,
   EXTEND_SLOT_GROUPS,
   EXTEND_DEFAULT_VISIBLE_FIELDS,
-  PROMPT_STUDIO_TEXT,
   FIELD_HEIGHTS,
   EXTEND_FIELD_HEIGHTS,
   SECTION_STYLES,
@@ -101,6 +100,11 @@ import {
   loadPromptStudioSettings,
 } from "./prompt_studio/settings.js";
 import {
+  psFormat,
+  psText,
+  sectionLabel,
+} from "./prompt_studio/text.js";
+import {
   advancedEditorMinimumHeight,
   advancedEditorWidgetHeight,
   advancedMinimumNodeHeight,
@@ -136,20 +140,6 @@ import {
   syncAdvancedFieldInputs,
   syncAdvancedFieldsBackup,
 } from "./prompt_studio/serialization.js";
-
-function psText(key) {
-  return easyuseAnimaText(PROMPT_STUDIO_TEXT, key);
-}
-
-function psFormat(key, values = {}) {
-  return psText(key).replace(/\{(\w+)\}/g, (_match, name) => values[name] ?? "");
-}
-
-function sectionLabel(section) {
-  const key = String(section || "unknown");
-  const style = SECTION_STYLES[key] || SECTION_STYLES.unknown;
-  return psText(`section.${key}`) || style?.label || key;
-}
 
 let middlePanForwardActive = false;
 let promptStudioTagTooltip = null;

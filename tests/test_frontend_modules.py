@@ -66,6 +66,7 @@ class FrontendModuleStructureTests(unittest.TestCase):
         self.assertIn('./prompt_studio/node_hooks.js"', source)
         self.assertIn('./prompt_studio/settings.js"', source)
         self.assertIn('./prompt_studio/style.js"', source)
+        self.assertIn('./prompt_studio/text.js"', source)
         self.assertIn('./prompt_studio/layout.js"', source)
         self.assertIn('./prompt_studio/textarea.js"', source)
         self.assertIn('./prompt_studio/wheel.js"', source)
@@ -97,6 +98,9 @@ class FrontendModuleStructureTests(unittest.TestCase):
             encoding="utf-8"
         )
         style_source = (PROMPT_STUDIO_MODULES / "style.js").read_text(
+            encoding="utf-8"
+        )
+        text_source = (PROMPT_STUDIO_MODULES / "text.js").read_text(
             encoding="utf-8"
         )
         layout_source = (PROMPT_STUDIO_MODULES / "layout.js").read_text(
@@ -210,6 +214,14 @@ class FrontendModuleStructureTests(unittest.TestCase):
                 self.assertIn(f"  {name},", style_source)
 
         for name in (
+            "psFormat",
+            "psText",
+            "sectionLabel",
+        ):
+            with self.subTest(module="text", symbol=name):
+                self.assertIn(f"  {name},", text_source)
+
+        for name in (
             "advancedEditorMinimumHeight",
             "advancedEditorWidgetHeight",
             "advancedMinimumNodeHeight",
@@ -269,6 +281,7 @@ class FrontendModuleStructureTests(unittest.TestCase):
             "state.js",
             "fields.js",
             "node_hooks.js",
+            "text.js",
             "layout.js",
             "textarea.js",
             "wheel.js",

@@ -199,6 +199,7 @@ web/js/
     constants.js
     utils.js
     settings.js
+    text.js
     schema.js
     state.js
     serialization.js
@@ -221,16 +222,17 @@ Planned slices:
 
 1. `constants.js` and `utils.js`
 2. `settings.js`
-3. `schema.js`
-4. `state.js`
-5. `serialization.js`
-6. `layout.js`
-7. `textarea.js`
-8. `wheel.js`
-9. `dom.js` and `style.js`
-10. `fields.js`
-11. `node_hooks.js`
-12. entry file slim-down
+3. `text.js`
+4. `schema.js`
+5. `state.js`
+6. `serialization.js`
+7. `layout.js`
+8. `textarea.js`
+9. `wheel.js`
+10. `dom.js` and `style.js`
+11. `fields.js`
+12. `node_hooks.js`
+13. entry file slim-down
 
 Each PR should mostly move code and update imports. Behavior changes should be
 separate PRs unless the move reveals a confirmed bug that cannot be separated.
@@ -699,6 +701,7 @@ Use this in Issue #14 or follow-up PR tracking comments.
 [ ] constants.js extracted
 [ ] utils.js extracted
 [ ] settings.js extracted
+[ ] text.js extracted
 [ ] schema.js extracted
 [ ] state.js extracted
 [ ] serialization.js extracted
