@@ -61,6 +61,7 @@ class FrontendModuleStructureTests(unittest.TestCase):
         self.assertIn('./prompt_studio/utils.js"', source)
         self.assertIn('./prompt_studio/schema.js"', source)
         self.assertIn('./prompt_studio/state.js"', source)
+        self.assertIn('./prompt_studio/canvas_forwarding.js"', source)
         self.assertIn('./prompt_studio/dom.js"', source)
         self.assertIn('./prompt_studio/fields.js"', source)
         self.assertIn('./prompt_studio/node_hooks.js"', source)
@@ -87,6 +88,9 @@ class FrontendModuleStructureTests(unittest.TestCase):
         state_source = (PROMPT_STUDIO_MODULES / "state.js").read_text(
             encoding="utf-8"
         )
+        canvas_forwarding_source = (
+            PROMPT_STUDIO_MODULES / "canvas_forwarding.js"
+        ).read_text(encoding="utf-8")
         dom_source = (PROMPT_STUDIO_MODULES / "dom.js").read_text(
             encoding="utf-8"
         )
@@ -169,6 +173,13 @@ class FrontendModuleStructureTests(unittest.TestCase):
         ):
             with self.subTest(module="state", symbol=name):
                 self.assertIn(f"  {name},", state_source)
+
+        for name in (
+            "forwardAdvancedWheelToCanvas",
+            "installMiddlePanForwarder",
+        ):
+            with self.subTest(module="canvas_forwarding", symbol=name):
+                self.assertIn(f"  {name},", canvas_forwarding_source)
 
         for name in (
             "closeAdvancedHelpPopovers",
@@ -322,7 +333,13 @@ class FrontendModuleStructureTests(unittest.TestCase):
                 self.assertNotIn("fetch(", source)
 
     def test_prompt_studio_dom_module_has_no_registration_or_network_side_effects(self):
-        for filename in ("dom.js", "settings.js", "style.js", "tooltip.js"):
+        for filename in (
+            "canvas_forwarding.js",
+            "dom.js",
+            "settings.js",
+            "style.js",
+            "tooltip.js",
+        ):
             with self.subTest(filename=filename):
                 source = (PROMPT_STUDIO_MODULES / filename).read_text(
                     encoding="utf-8"
