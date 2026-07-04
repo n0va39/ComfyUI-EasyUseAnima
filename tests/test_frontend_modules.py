@@ -59,13 +59,16 @@ class FrontendModuleStructureTests(unittest.TestCase):
         advanced_fields_ui_source = (
             PROMPT_STUDIO_MODULES / "advanced_fields_ui.js"
         ).read_text(encoding="utf-8")
+        studio_node_ui_source = (
+            PROMPT_STUDIO_MODULES / "studio_node_ui.js"
+        ).read_text(encoding="utf-8")
 
         self.assertIn('./prompt_studio/constants.js"', source)
         self.assertIn('./prompt_studio/advanced_controls.js"', source)
         self.assertIn('./prompt_studio/advanced_fields_ui.js"', source)
         self.assertIn('./prompt_studio/advanced_fields_state.js"', source)
         self.assertIn('./prompt_studio/advanced_values.js"', source)
-        self.assertIn('./prompt_studio/utils.js"', source)
+        self.assertIn('./utils.js"', studio_node_ui_source)
         self.assertIn('./prompt_studio/schema.js"', source)
         self.assertIn('./prompt_studio/state.js"', source)
         self.assertIn('./prompt_studio/canvas_forwarding.js"', source)
@@ -81,13 +84,14 @@ class FrontendModuleStructureTests(unittest.TestCase):
         self.assertIn('./prompt_studio/node_hooks.js"', source)
         self.assertIn('./prompt_studio/settings.js"', source)
         self.assertIn('./prompt_studio/style.js"', source)
-        self.assertIn('./prompt_studio/text.js"', source)
+        self.assertIn('./text.js"', studio_node_ui_source)
         self.assertIn('./prompt_studio/tooltip.js"', source)
         self.assertIn('./prompt_studio/widgets.js"', source)
         self.assertIn('./prompt_studio/layout.js"', source)
         self.assertIn('./prompt_studio/advanced_layout_controller.js"', source)
         self.assertIn('./prompt_studio/studio_resizable_input.js"', source)
         self.assertIn('./prompt_studio/studio_textareas.js"', source)
+        self.assertIn('./prompt_studio/studio_node_ui.js"', source)
         self.assertIn('./prompt_studio/studio_values.js"', source)
         self.assertIn('./prompt_studio/wildcard_values.js"', source)
         self.assertIn('./textarea.js"', advanced_fields_ui_source)
@@ -178,6 +182,9 @@ class FrontendModuleStructureTests(unittest.TestCase):
         ).read_text(encoding="utf-8")
         studio_resizable_input_source = (
             PROMPT_STUDIO_MODULES / "studio_resizable_input.js"
+        ).read_text(encoding="utf-8")
+        studio_node_ui_source = (
+            PROMPT_STUDIO_MODULES / "studio_node_ui.js"
         ).read_text(encoding="utf-8")
         studio_values_source = (
             PROMPT_STUDIO_MODULES / "studio_values.js"
@@ -477,6 +484,12 @@ class FrontendModuleStructureTests(unittest.TestCase):
                 self.assertIn(f"  {name},", studio_resizable_input_source)
 
         for name in (
+            "hookStudioNode",
+        ):
+            with self.subTest(module="studio_node_ui", symbol=name):
+                self.assertIn(f"  {name},", studio_node_ui_source)
+
+        for name in (
             "applyExecutedInputs",
             "restoreInputFromWidget",
             "syncStudioValues",
@@ -550,6 +563,7 @@ class FrontendModuleStructureTests(unittest.TestCase):
             "layout.js",
             "studio_textareas.js",
             "studio_resizable_input.js",
+            "studio_node_ui.js",
             "studio_values.js",
             "wildcard_values.js",
             "textarea.js",

@@ -9,9 +9,6 @@ import {
   ADVANCED_WIDGET_INDEX,
 } from "./prompt_studio/constants.js";
 import {
-  debounce,
-} from "./prompt_studio/utils.js";
-import {
   normalizeAdvancedResolutionBucket,
   normalizeAdvancedResolutionSize,
 } from "./prompt_studio/schema.js";
@@ -57,9 +54,6 @@ import {
   loadPromptStudioSettings,
 } from "./prompt_studio/settings.js";
 import {
-  psText,
-} from "./prompt_studio/text.js";
-import {
   hideTrainedTagTooltip,
 } from "./prompt_studio/tooltip.js";
 import {
@@ -82,7 +76,6 @@ import {
   writeAdvancedFields as writeAdvancedFieldsWithHooks,
 } from "./prompt_studio/advanced_fields_state.js";
 import {
-  classifyPrompt,
   installPromptHighlightOverlayRefresh,
   refreshAllPromptHighlights,
 } from "./prompt_studio/highlight.js";
@@ -93,11 +86,9 @@ import {
   updateAdvancedFieldHighlight,
 } from "./prompt_studio/advanced_highlights.js";
 import {
-  displayText,
   updateHighlight,
 } from "./prompt_studio/highlight_ui.js";
 import {
-  findInputEl,
   findWidget,
 } from "./prompt_studio/widgets.js";
 import {
@@ -129,6 +120,9 @@ import {
   syncStudioValues as syncStudioValuesWithHooks,
   syncWidgetValue,
 } from "./prompt_studio/studio_values.js";
+import {
+  hookStudioNode as hookStudioNodeWithHooks,
+} from "./prompt_studio/studio_node_ui.js";
 import {
   applyAdvancedExecutedInputs as applyAdvancedExecutedInputsWithHooks,
   syncAdvancedValues as syncAdvancedValuesWithHooks,
@@ -360,122 +354,19 @@ function enhanceResizableInput(node, widget) {
 }
 
 function hookStudioNode(node, attempt = 0) {
-  const fieldNames = studioFieldNames(node);
-  const updateByField = new Map();
-  let pendingInput = false;
-
-  const getUpdateField = (fieldName) => {
-    if (updateByField.has(fieldName)) {
-      return updateByField.get(fieldName);
-    }
-    let classifySeq = 0;
-    const update = debounce(async () => {
-      const widget = findWidget(node, fieldName);
-      if (!widget) {
-        return;
-      }
-      const text = displayText(node, widget);
-      if (!text.trim()) {
-        widget.__easyuseAnimaTokens = [];
-        widget.__easyuseAnimaLastClassifiedText = "";
-        widget.__easyuseAnimaPendingClassifyText = null;
-        updateHighlight(node, widget);
-        return;
-      }
-      if (
-        widget.__easyuseAnimaLastClassifiedText === text
-        && Array.isArray(widget.__easyuseAnimaTokens)
-      ) {
-        updateHighlight(node, widget, widget.__easyuseAnimaTokens);
-        return;
-      }
-      if (widget.__easyuseAnimaPendingClassifyText === text) {
-        return;
-      }
-
-      const seq = ++classifySeq;
-      widget.__easyuseAnimaPendingClassifyText = text;
-      try {
-        const tokens = await classifyPrompt(text);
-        if (seq !== classifySeq) {
-          return;
-        }
-        widget.__easyuseAnimaLastClassifiedText = text;
-        widget.__easyuseAnimaTokens = tokens;
-        updateHighlight(node, widget, tokens);
-      } catch {
-        widget.__easyuseAnimaTokens = [];
-        updateHighlight(node, widget);
-      } finally {
-        if (widget.__easyuseAnimaPendingClassifyText === text) {
-          widget.__easyuseAnimaPendingClassifyText = null;
-        }
-      }
-    });
-    updateByField.set(fieldName, update);
-    return update;
-  };
-
-  for (const name of fieldNames) {
-    const widget = findWidget(node, name);
-    if (!widget) {
-      continue;
-    }
-    const input = findInputEl(widget);
-    if (!input) {
-      pendingInput = true;
-      continue;
-    }
-    restoreInputFromWidget(widget);
-    if (isExtendNode(node) && name === "naia_prompt_3") {
-      input.readOnly = true;
-      input.placeholder = psText("extend.naiaResult");
-      input.title = psText("extend.naiaResultTitle");
-    }
-    enhanceResizableInput(node, widget);
-    const updateField = getUpdateField(name);
-
-    if (!widget.__easyuseAnimaStudioHooked) {
-      const callback = widget.callback;
-      widget.callback = function (value) {
-        const result = callback?.apply(this, arguments);
-        widget.__easyuseAnimaExecutedText = null;
-        updateHighlight(node, widget);
-        updateField();
-        return result;
-      };
-      input.addEventListener("input", () => {
-        widget.value = input.value;
-        widget.__easyuseAnimaExecutedText = null;
-        updateHighlight(node, widget);
-        updateField();
-      });
-      input.addEventListener("change", () => {
-        widget.value = input.value;
-        widget.__easyuseAnimaExecutedText = null;
-        updateHighlight(node, widget);
-        updateField();
-      });
-      input.addEventListener("blur", () => syncWidgetValue(widget));
-      input.addEventListener("click", () => updateHighlight(node, widget));
-      input.addEventListener("keyup", () => updateHighlight(node, widget));
-      widget.__easyuseAnimaStudioHooked = true;
-    }
-    updateField();
-  }
-
-  if (isExtendNode(node)) {
-    applyExtendSlotVisibility(node);
-    ensureExtendSlotControls(node);
-  }
-  ensureLegendWidget(node, refreshNodeSize);
-  if (isExtendNode(node)) {
-    layoutExtendPromptWidgets(node);
-  }
-  refreshNodeSize(node);
-  if (pendingInput && attempt < 12) {
-    setTimeout(() => hookStudioNode(node, attempt + 1), 80);
-  }
+  hookStudioNodeWithHooks(node, attempt, {
+    applyExtendSlotVisibility,
+    enhanceResizableInput,
+    ensureExtendSlotControls,
+    ensureLegendWidget,
+    isExtendNode,
+    layoutExtendPromptWidgets,
+    refreshNodeSize,
+    restoreInputFromWidget,
+    studioFieldNames,
+    syncWidgetValue,
+    updateHighlight,
+  });
 }
 
 function renderAdvancedEditor(node) {
