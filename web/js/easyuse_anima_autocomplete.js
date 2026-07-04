@@ -1531,7 +1531,9 @@ function renderResults(state, results, signature = "") {
         return;
       }
       event.preventDefault();
-      commitSuggestion(activeState, entry);
+      commitSuggestion(activeState, entry, {
+        suppressPopup: true,
+      });
     });
     menu.append(item);
   }

@@ -688,6 +688,9 @@ const AUTOCOMPLETE_TOOLTIP_SECTIONS = new Set([
 ]);
 let middlePanForwardActive = false;
 let promptStudioTagTooltip = null;
+let promptStudioTagTooltipMoveFrame = 0;
+let promptStudioTagTooltipPendingMove = null;
+let promptStudioTagTooltipLastTarget = null;
 const ADVANCED_NATIVE_CONTROL_SELECTOR = "select, input, textarea, button";
 const ADVANCED_NATIVE_CONTROL_EVENTS = ["pointerdown", "mousedown", "pointerup", "mouseup", "click", "dblclick"];
 const ADVANCED_CONTROL_WIDGETS = [
@@ -1119,6 +1122,8 @@ function ensureTrainedTagTooltip() {
 }
 
 function hideTrainedTagTooltip() {
+  promptStudioTagTooltipPendingMove = null;
+  promptStudioTagTooltipLastTarget = null;
   if (promptStudioTagTooltip) {
     promptStudioTagTooltip.classList.add("hidden");
   }
@@ -1166,6 +1171,14 @@ function positionTrainedTagTooltip(tooltip, event) {
 
 function showTrainedTagTooltip(target, event) {
   const tooltip = ensureTrainedTagTooltip();
+  if (
+    promptStudioTagTooltipLastTarget === target
+    && !tooltip.classList.contains("hidden")
+  ) {
+    positionTrainedTagTooltip(tooltip, event);
+    return;
+  }
+  promptStudioTagTooltipLastTarget = target;
   const tag = target.dataset.easyuseAnimaTooltipTag || "";
   const meta = target.dataset.easyuseAnimaTooltipMeta || "";
   const description = target.dataset.easyuseAnimaTooltipDescription || "";
@@ -1194,17 +1207,37 @@ function showTrainedTagTooltip(target, event) {
   positionTrainedTagTooltip(tooltip, event);
 }
 
-function handleTrainedTagTooltipMove(input, event) {
+function updateTrainedTagTooltipMove(input, clientX, clientY) {
   if (visibleAutocompletePopupExists()) {
     hideTrainedTagTooltip();
     return;
   }
-  const target = trainedTagTooltipTargetAt(input?.__easyuseAnimaHighlightOverlay, event.clientX, event.clientY);
+  const target = trainedTagTooltipTargetAt(input?.__easyuseAnimaHighlightOverlay, clientX, clientY);
   if (!target) {
     hideTrainedTagTooltip();
     return;
   }
-  showTrainedTagTooltip(target, event);
+  showTrainedTagTooltip(target, { clientX, clientY });
+}
+
+function handleTrainedTagTooltipMove(input, event) {
+  promptStudioTagTooltipPendingMove = {
+    input,
+    clientX: event.clientX,
+    clientY: event.clientY,
+  };
+  if (promptStudioTagTooltipMoveFrame) {
+    return;
+  }
+  promptStudioTagTooltipMoveFrame = requestAnimationFrame(() => {
+    promptStudioTagTooltipMoveFrame = 0;
+    const move = promptStudioTagTooltipPendingMove;
+    promptStudioTagTooltipPendingMove = null;
+    if (!move) {
+      return;
+    }
+    updateTrainedTagTooltipMove(move.input, move.clientX, move.clientY);
+  });
 }
 
 function installTrainedTagTooltipListeners(input) {

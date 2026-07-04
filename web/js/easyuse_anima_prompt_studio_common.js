@@ -243,6 +243,9 @@ const AUTOCOMPLETE_TOOLTIP_SECTIONS = new Set([
   "general",
 ]);
 let promptStudioCommonTagTooltip = null;
+let promptStudioCommonTagTooltipMoveFrame = 0;
+let promptStudioCommonTagTooltipPendingMove = null;
+let promptStudioCommonTagTooltipLastTarget = null;
 const HIGHLIGHT_TEXT_METRIC_PROPERTIES = [
   "font",
   "fontFamily",
@@ -815,6 +818,8 @@ function ensurePromptStudioTrainedTagTooltip() {
 }
 
 function hidePromptStudioTrainedTagTooltip() {
+  promptStudioCommonTagTooltipPendingMove = null;
+  promptStudioCommonTagTooltipLastTarget = null;
   if (promptStudioCommonTagTooltip) {
     promptStudioCommonTagTooltip.classList.add("hidden");
   }
@@ -862,6 +867,14 @@ function positionPromptStudioTrainedTagTooltip(tooltip, event) {
 
 function showPromptStudioTrainedTagTooltip(target, event) {
   const tooltip = ensurePromptStudioTrainedTagTooltip();
+  if (
+    promptStudioCommonTagTooltipLastTarget === target
+    && !tooltip.classList.contains("hidden")
+  ) {
+    positionPromptStudioTrainedTagTooltip(tooltip, event);
+    return;
+  }
+  promptStudioCommonTagTooltipLastTarget = target;
   const tag = target.dataset.easyuseAnimaTooltipTag || "";
   const meta = target.dataset.easyuseAnimaTooltipMeta || "";
   const description = target.dataset.easyuseAnimaTooltipDescription || "";
@@ -890,17 +903,37 @@ function showPromptStudioTrainedTagTooltip(target, event) {
   positionPromptStudioTrainedTagTooltip(tooltip, event);
 }
 
-function handlePromptStudioTrainedTagTooltipMove(input, event) {
+function updatePromptStudioTrainedTagTooltipMove(input, clientX, clientY) {
   if (visibleAutocompletePopupExists()) {
     hidePromptStudioTrainedTagTooltip();
     return;
   }
-  const target = trainedTagTooltipTargetAt(input?.__easyuseAnimaHighlightOverlay, event.clientX, event.clientY);
+  const target = trainedTagTooltipTargetAt(input?.__easyuseAnimaHighlightOverlay, clientX, clientY);
   if (!target) {
     hidePromptStudioTrainedTagTooltip();
     return;
   }
-  showPromptStudioTrainedTagTooltip(target, event);
+  showPromptStudioTrainedTagTooltip(target, { clientX, clientY });
+}
+
+function handlePromptStudioTrainedTagTooltipMove(input, event) {
+  promptStudioCommonTagTooltipPendingMove = {
+    input,
+    clientX: event.clientX,
+    clientY: event.clientY,
+  };
+  if (promptStudioCommonTagTooltipMoveFrame) {
+    return;
+  }
+  promptStudioCommonTagTooltipMoveFrame = requestAnimationFrame(() => {
+    promptStudioCommonTagTooltipMoveFrame = 0;
+    const move = promptStudioCommonTagTooltipPendingMove;
+    promptStudioCommonTagTooltipPendingMove = null;
+    if (!move) {
+      return;
+    }
+    updatePromptStudioTrainedTagTooltipMove(move.input, move.clientX, move.clientY);
+  });
 }
 
 function installPromptStudioTrainedTagTooltipListeners(input) {
