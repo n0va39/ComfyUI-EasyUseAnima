@@ -63,6 +63,7 @@ class FrontendModuleStructureTests(unittest.TestCase):
         self.assertIn('./prompt_studio/state.js"', source)
         self.assertIn('./prompt_studio/canvas_forwarding.js"', source)
         self.assertIn('./prompt_studio/dom.js"', source)
+        self.assertIn('./prompt_studio/extend_slots.js"', source)
         self.assertIn('./prompt_studio/fields.js"', source)
         self.assertIn('./prompt_studio/legend.js"', source)
         self.assertIn('./prompt_studio/node_hooks.js"', source)
@@ -95,6 +96,9 @@ class FrontendModuleStructureTests(unittest.TestCase):
         dom_source = (PROMPT_STUDIO_MODULES / "dom.js").read_text(
             encoding="utf-8"
         )
+        extend_slots_source = (
+            PROMPT_STUDIO_MODULES / "extend_slots.js"
+        ).read_text(encoding="utf-8")
         fields_source = (PROMPT_STUDIO_MODULES / "fields.js").read_text(
             encoding="utf-8"
         )
@@ -194,6 +198,16 @@ class FrontendModuleStructureTests(unittest.TestCase):
         ):
             with self.subTest(module="dom", symbol=name):
                 self.assertIn(f"  {name},", dom_source)
+
+        for name in (
+            "applyExtendSlotVisibility",
+            "extendSlotShouldShow",
+            "extendVisibleSlots",
+            "parseExtendSlots",
+            "writeExtendVisibleSlots",
+        ):
+            with self.subTest(module="extend_slots", symbol=name):
+                self.assertIn(f"  {name},", extend_slots_source)
 
         for name in (
             "advancedPaneFields",
@@ -325,6 +339,7 @@ class FrontendModuleStructureTests(unittest.TestCase):
             "utils.js",
             "schema.js",
             "state.js",
+            "extend_slots.js",
             "fields.js",
             "legend.js",
             "node_hooks.js",
