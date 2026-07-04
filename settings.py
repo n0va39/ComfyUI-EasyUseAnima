@@ -50,6 +50,7 @@ DEFAULT_SETTINGS = {
     "prompt_studio.font_family": "",
     "prompt_studio.font_size": "12",
     "prompt_studio.colors": "",
+    "prompt_studio.trained_tag_tooltip": "true",
     "prompt_studio.naia_general_above_auto_toggle": "false",
     "prompt_translation.provider": PROMPT_TRANSLATION_PROVIDER_GOOGLE,
     "prompt_translation.source": DEFAULT_PROMPT_TRANSLATION_SOURCE,
@@ -161,6 +162,7 @@ COMFY_SETTING_KEYS = {
     "EasyUseAnima.Prompt.FontFamily": "prompt_studio.font_family",
     "EasyUseAnima.Prompt.FontSize": "prompt_studio.font_size",
     "EasyUseAnima.Prompt.HighlightColors": "prompt_studio.colors",
+    "EasyUseAnima.Prompt.TrainedTagTooltip": "prompt_studio.trained_tag_tooltip",
     "EasyUseAnima.Prompt.NaiaGeneralAutoToggle": "prompt_studio.naia_general_above_auto_toggle",
     "EasyUseAnima.Prompt.TranslationProvider": "prompt_translation.provider",
     "EasyUseAnima.Prompt.TranslationSource": "prompt_translation.source",
@@ -298,6 +300,9 @@ def _stringify_setting_value(value) -> str:
 
 
 def _apply_prompt_studio_color_settings(settings: dict, comfy_settings: dict) -> None:
+    if "EasyUseAnima.Prompt.HighlightColors" in comfy_settings:
+        return
+
     colors = {}
     current = settings.get("prompt_studio.colors", "")
     if current:
@@ -419,6 +424,10 @@ def public_settings() -> dict:
         "prompt_studio.colors": settings.get(
             "prompt_studio.colors",
             DEFAULT_SETTINGS["prompt_studio.colors"],
+        ),
+        "prompt_studio.trained_tag_tooltip": settings.get(
+            "prompt_studio.trained_tag_tooltip",
+            DEFAULT_SETTINGS["prompt_studio.trained_tag_tooltip"],
         ),
         "prompt_studio.naia_general_above_auto_toggle": settings.get(
             "prompt_studio.naia_general_above_auto_toggle",

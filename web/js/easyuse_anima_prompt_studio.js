@@ -673,6 +673,7 @@ const PROMPT_STUDIO_SETTINGS = {
   fontOverride: false,
   fontFamily: "",
   fontSize: PROMPT_STUDIO_FONT_SIZE_DEFAULT,
+  trainedTagTooltip: true,
   naiaGeneralAboveAutoToggle: false,
 };
 const AUTOCOMPLETE_TOOLTIP_SECTIONS = new Set([
@@ -1221,6 +1222,10 @@ function updateTrainedTagTooltipMove(input, clientX, clientY) {
 }
 
 function handleTrainedTagTooltipMove(input, event) {
+  if (!PROMPT_STUDIO_SETTINGS.trainedTagTooltip) {
+    hideTrainedTagTooltip();
+    return;
+  }
   promptStudioTagTooltipPendingMove = {
     input,
     clientX: event.clientX,
@@ -1824,6 +1829,10 @@ function applyPromptStudioSettings(settings) {
   PROMPT_STUDIO_SETTINGS.typoIndicator = settings?.["prompt_studio.typo_indicator"] !== "false";
   PROMPT_STUDIO_SETTINGS.weightSyntaxUnderline = settings?.["prompt_studio.weight_syntax_underline"] === "true";
   PROMPT_STUDIO_SETTINGS.commentItalic = settings?.["prompt_studio.comment_italic"] !== "false";
+  PROMPT_STUDIO_SETTINGS.trainedTagTooltip = settings?.["prompt_studio.trained_tag_tooltip"] !== "false";
+  if (!PROMPT_STUDIO_SETTINGS.trainedTagTooltip) {
+    hideTrainedTagTooltip();
+  }
   PROMPT_STUDIO_SETTINGS.fontOverride = settings?.["prompt_studio.font_override"] === "true";
   PROMPT_STUDIO_SETTINGS.fontFamily = normalizePromptStudioFontFamily(settings?.["prompt_studio.font_family"]);
   PROMPT_STUDIO_SETTINGS.fontSize = normalizePromptStudioFontSize(settings?.["prompt_studio.font_size"]);
@@ -2018,6 +2027,9 @@ function tokenTitle(token) {
 }
 
 function trainedTagTooltipEntry(text, token) {
+  if (!PROMPT_STUDIO_SETTINGS.trainedTagTooltip) {
+    return null;
+  }
   const section = String(token?.section || "");
   if (!AUTOCOMPLETE_TOOLTIP_SECTIONS.has(section) || !token?.learned) {
     return null;
