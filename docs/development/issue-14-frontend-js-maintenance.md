@@ -213,6 +213,7 @@ web/js/
     constants.js
     advanced_controls.js
     advanced_fields_ui.js
+    advanced_highlights.js
     advanced_fields_state.js
     advanced_values.js
     utils.js
@@ -749,6 +750,7 @@ Use this in Issue #14 or follow-up PR tracking comments.
 [ ] constants.js extracted
 [ ] advanced_controls.js extracted
 [ ] advanced_fields_ui.js extracted
+[ ] advanced_highlights.js extracted
 [ ] advanced_fields_state.js extracted
 [ ] advanced_values.js extracted
 [ ] utils.js extracted

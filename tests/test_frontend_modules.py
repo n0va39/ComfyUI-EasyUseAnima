@@ -74,6 +74,7 @@ class FrontendModuleStructureTests(unittest.TestCase):
         self.assertIn('./prompt_studio/extend_slots.js"', source)
         self.assertIn('./prompt_studio/extend_layout.js"', source)
         self.assertIn('./fields.js"', advanced_fields_ui_source)
+        self.assertIn('./prompt_studio/advanced_highlights.js"', source)
         self.assertIn('./prompt_studio/highlight.js"', source)
         self.assertIn('./prompt_studio/highlight_ui.js"', source)
         self.assertIn('./prompt_studio/legend.js"', source)
@@ -167,6 +168,9 @@ class FrontendModuleStructureTests(unittest.TestCase):
         )
         advanced_layout_controller_source = (
             PROMPT_STUDIO_MODULES / "advanced_layout_controller.js"
+        ).read_text(encoding="utf-8")
+        advanced_highlights_source = (
+            PROMPT_STUDIO_MODULES / "advanced_highlights.js"
         ).read_text(encoding="utf-8")
         studio_textareas_source = (
             PROMPT_STUDIO_MODULES / "studio_textareas.js"
@@ -435,6 +439,17 @@ class FrontendModuleStructureTests(unittest.TestCase):
                 self.assertIn(f"  {name},", advanced_layout_controller_source)
 
         for name in (
+            "advancedHighlightState",
+            "refreshAdvancedHighlights",
+            "registerAdvancedAutocompleteInput",
+            "scheduleAdvancedFieldHighlight",
+            "scheduleAdvancedHighlights",
+            "updateAdvancedFieldHighlight",
+        ):
+            with self.subTest(module="advanced_highlights", symbol=name):
+                self.assertIn(f"  {name},", advanced_highlights_source)
+
+        for name in (
             "desiredTextareaHeight",
             "expandStudioInputToContent",
             "growStudioManualHeightToContent",
@@ -543,6 +558,7 @@ class FrontendModuleStructureTests(unittest.TestCase):
         for filename in (
             "advanced_controls.js",
             "advanced_fields_ui.js",
+            "advanced_highlights.js",
             "advanced_layout_controller.js",
             "canvas_forwarding.js",
             "dom.js",
