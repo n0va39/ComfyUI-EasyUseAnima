@@ -200,7 +200,12 @@ class FrontendModuleStructureTests(unittest.TestCase):
             with self.subTest(module="settings", symbol=name):
                 self.assertIn(f"  {name},", settings_source)
 
-        for name in ("ensureAdvancedStyle", "ensureExtendSlotStyle"):
+        for name in (
+            "ensureAdvancedStyle",
+            "ensureExtendSlotStyle",
+            "ensureHighlightStyle",
+            "ensureTrainedTagTooltipStyle",
+        ):
             with self.subTest(module="style", symbol=name):
                 self.assertIn(f"  {name},", style_source)
 

@@ -91,6 +91,8 @@ import {
 import {
   ensureAdvancedStyle,
   ensureExtendSlotStyle,
+  ensureHighlightStyle,
+  ensureTrainedTagTooltipStyle,
 } from "./prompt_studio/style.js";
 import {
   PROMPT_STUDIO_SETTINGS,
@@ -204,78 +206,6 @@ function repairAdvancedInternalWidgetValues(node) {
 
 function isWidgetInputLinked(node, name) {
   return !!node.inputs?.some((input) => input.widget?.name === name && input.link != null);
-}
-
-function ensureHighlightStyle() {
-  if (document.getElementById("easyuse-anima-highlight-style")) {
-    return;
-  }
-  const style = document.createElement("style");
-  style.id = "easyuse-anima-highlight-style";
-  style.textContent = `
-    .easyuse-anima-highlight-input {
-      color: transparent !important;
-      -webkit-text-fill-color: transparent !important;
-      caret-color: var(--input-text, #ddd) !important;
-      background: transparent !important;
-      white-space: pre-wrap !important;
-      overflow-wrap: break-word !important;
-      word-break: normal !important;
-      text-size-adjust: 100% !important;
-      -webkit-text-size-adjust: 100% !important;
-    }
-    .easyuse-anima-highlight-input::selection {
-      color: transparent !important;
-      -webkit-text-fill-color: transparent !important;
-      background: rgba(37, 99, 235, 0.28) !important;
-    }
-    .easyuse-anima-highlight-overlay {
-      text-size-adjust: 100%;
-      -webkit-text-size-adjust: 100%;
-      contain: paint;
-    }
-  `;
-  document.head.append(style);
-}
-
-function ensureTrainedTagTooltipStyle() {
-  if (document.getElementById("easyuse-anima-trained-tag-tooltip-style")) {
-    return;
-  }
-  const style = document.createElement("style");
-  style.id = "easyuse-anima-trained-tag-tooltip-style";
-  style.textContent = `
-    .easyuse-anima-trained-tag-tooltip {
-      position: fixed;
-      z-index: 99999;
-      max-width: min(560px, calc(100vw - 16px));
-      border: 1px solid rgba(128, 128, 128, 0.45);
-      border-radius: 7px;
-      background: var(--comfy-menu-bg, #202124);
-      color: var(--input-text, #ddd);
-      box-shadow: 0 10px 26px rgba(0, 0, 0, 0.35);
-      font: 12px/1.35 sans-serif;
-      padding: 8px 10px;
-      pointer-events: none;
-    }
-    .easyuse-anima-trained-tag-tooltip.hidden {
-      display: none;
-    }
-    .easyuse-anima-trained-tag-tooltip .easyuse-anima-autocomplete-tag {
-      font-weight: 700;
-    }
-    .easyuse-anima-trained-tag-tooltip .easyuse-anima-autocomplete-meta {
-      margin-left: 6px;
-      opacity: 0.62;
-      font-size: 11px;
-    }
-    .easyuse-anima-trained-tag-tooltip .easyuse-anima-autocomplete-desc {
-      margin-top: 2px;
-      opacity: 0.78;
-      white-space: normal;
-    }
-  `;
-  document.head.append(style);
 }
 
 function ensureTrainedTagTooltip() {
