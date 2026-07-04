@@ -2593,6 +2593,7 @@ class SettingsTests(unittest.TestCase):
                 "prompt_studio.font_family",
                 "prompt_studio.font_size",
                 "prompt_studio.colors",
+                "prompt_studio.trained_tag_tooltip",
                 "prompt_studio.naia_general_above_auto_toggle",
                 "prompt_translation.provider",
                 "prompt_translation.source",
@@ -2819,6 +2820,7 @@ class SettingsTests(unittest.TestCase):
                     "EasyUseAnima.Prompt.FontOverride": "true",
                     "EasyUseAnima.Prompt.FontFamily": "Arial",
                     "EasyUseAnima.Prompt.FontSize": "16",
+                    "EasyUseAnima.Prompt.TrainedTagTooltip": "false",
                     "EasyUseAnima.LoraPreset.NameDisplay": "path",
                     "EasyUseAnima.LoraPreset.MenuMode": "list",
                     "EasyUseAnima.LoraPreset.StrengthButtonStep": "0.025",
@@ -2844,6 +2846,7 @@ class SettingsTests(unittest.TestCase):
         self.assertEqual(settings["prompt_studio.font_override"], "true")
         self.assertEqual(settings["prompt_studio.font_family"], "Arial")
         self.assertEqual(settings["prompt_studio.font_size"], 16)
+        self.assertEqual(settings["prompt_studio.trained_tag_tooltip"], "false")
         self.assertEqual(settings["lora_preset.name_display"], "path")
         self.assertEqual(settings["lora_preset.menu_mode"], "list")
         self.assertEqual(settings["lora_preset.strength_button_step"], 0.025)
@@ -2878,6 +2881,23 @@ class SettingsTests(unittest.TestCase):
         self.assertEqual(colors["quality"], "#222222")
         self.assertEqual(colors["artist"], "#333333")
         self.assertEqual(colors["wildcard"], "#444444")
+
+    def test_prompt_studio_highlight_colors_prefer_aggregate_comfy_setting(self):
+        with (
+            patch.object(easyuse_settings, "_read_json_file", return_value={}),
+            patch.object(
+                easyuse_settings,
+                "_load_comfy_settings",
+                return_value={
+                    "EasyUseAnima.Prompt.HighlightColors": '{"quality":"#111111"}',
+                    "EasyUseAnima.Prompt.HighlightColor.quality": "#222222",
+                },
+            ),
+        ):
+            settings = easyuse_settings.public_settings()
+
+        colors = json.loads(settings["prompt_studio.colors"])
+        self.assertEqual(colors["quality"], "#111111")
 
     def test_long_text_settings_override_comfy_settings(self):
         root = Path(__file__).resolve().parents[1] / "__pycache__" / "long_text_settings_test"

@@ -230,7 +230,23 @@ const ARTIST_MIX_GROUP_HIGHLIGHT_RE = /\[\[[\s\S]*?(?::[-+]?(?:\d+(?:\.\d*)?|\.\
 const INLINE_SPACE_RE = /[ \t]+/g;
 const PROMPT_STUDIO_COMMON_SETTINGS = {
   weightSyntaxUnderline: false,
+  trainedTagTooltip: true,
 };
+const AUTOCOMPLETE_TOOLTIP_SECTIONS = new Set([
+  "quality",
+  "safety",
+  "year",
+  "count",
+  "character",
+  "artist",
+  "copyright",
+  "meta",
+  "general",
+]);
+let promptStudioCommonTagTooltip = null;
+let promptStudioCommonTagTooltipMoveFrame = 0;
+let promptStudioCommonTagTooltipPendingMove = null;
+let promptStudioCommonTagTooltipLastTarget = null;
 const HIGHLIGHT_TEXT_METRIC_PROPERTIES = [
   "font",
   "fontFamily",
@@ -751,6 +767,192 @@ export function ensurePromptStudioHighlightStyle() {
   document.head.append(style);
 }
 
+function ensurePromptStudioTrainedTagTooltipStyle() {
+  if (document.getElementById("easyuse-anima-trained-tag-tooltip-style")) {
+    return;
+  }
+  const style = document.createElement("style");
+  style.id = "easyuse-anima-trained-tag-tooltip-style";
+  style.textContent = `
+    .easyuse-anima-trained-tag-tooltip {
+      position: fixed;
+      z-index: 99999;
+      max-width: min(560px, calc(100vw - 16px));
+      border: 1px solid rgba(128, 128, 128, 0.45);
+      border-radius: 7px;
+      background: var(--comfy-menu-bg, #202124);
+      color: var(--input-text, #ddd);
+      box-shadow: 0 10px 26px rgba(0, 0, 0, 0.35);
+      font: 12px/1.35 sans-serif;
+      padding: 8px 10px;
+      pointer-events: none;
+    }
+    .easyuse-anima-trained-tag-tooltip.hidden {
+      display: none;
+    }
+    .easyuse-anima-trained-tag-tooltip .easyuse-anima-autocomplete-tag {
+      font-weight: 700;
+    }
+    .easyuse-anima-trained-tag-tooltip .easyuse-anima-autocomplete-meta {
+      margin-left: 6px;
+      opacity: 0.62;
+      font-size: 11px;
+    }
+    .easyuse-anima-trained-tag-tooltip .easyuse-anima-autocomplete-desc {
+      margin-top: 2px;
+      opacity: 0.78;
+      white-space: normal;
+    }
+  `;
+  document.head.append(style);
+}
+
+function ensurePromptStudioTrainedTagTooltip() {
+  ensurePromptStudioTrainedTagTooltipStyle();
+  if (promptStudioCommonTagTooltip?.isConnected) {
+    return promptStudioCommonTagTooltip;
+  }
+  promptStudioCommonTagTooltip = document.createElement("div");
+  promptStudioCommonTagTooltip.className = "easyuse-anima-trained-tag-tooltip hidden";
+  document.body.append(promptStudioCommonTagTooltip);
+  return promptStudioCommonTagTooltip;
+}
+
+function hidePromptStudioTrainedTagTooltip() {
+  promptStudioCommonTagTooltipPendingMove = null;
+  promptStudioCommonTagTooltipLastTarget = null;
+  if (promptStudioCommonTagTooltip) {
+    promptStudioCommonTagTooltip.classList.add("hidden");
+  }
+}
+
+function visibleAutocompletePopupExists() {
+  return !!document.querySelector(".easyuse-anima-autocomplete:not(.hidden)");
+}
+
+function trainedTagTooltipTargetAt(overlay, clientX, clientY) {
+  if (!overlay?.isConnected) {
+    return null;
+  }
+  const targets = overlay.querySelectorAll("[data-easyuse-anima-trained-tag-tooltip='true']");
+  for (const target of targets) {
+    for (const rect of target.getClientRects()) {
+      if (
+        clientX >= rect.left - 1
+        && clientX <= rect.right + 1
+        && clientY >= rect.top - 1
+        && clientY <= rect.bottom + 1
+      ) {
+        return target;
+      }
+    }
+  }
+  return null;
+}
+
+function positionPromptStudioTrainedTagTooltip(tooltip, event) {
+  const margin = 8;
+  const offset = 14;
+  const rect = tooltip.getBoundingClientRect();
+  const left = Math.min(
+    Math.max(margin, event.clientX + offset),
+    Math.max(margin, window.innerWidth - rect.width - margin),
+  );
+  const below = event.clientY + offset;
+  const top = below + rect.height + margin <= window.innerHeight
+    ? below
+    : Math.max(margin, event.clientY - rect.height - offset);
+  tooltip.style.left = `${left}px`;
+  tooltip.style.top = `${top}px`;
+}
+
+function showPromptStudioTrainedTagTooltip(target, event) {
+  const tooltip = ensurePromptStudioTrainedTagTooltip();
+  if (
+    promptStudioCommonTagTooltipLastTarget === target
+    && !tooltip.classList.contains("hidden")
+  ) {
+    positionPromptStudioTrainedTagTooltip(tooltip, event);
+    return;
+  }
+  promptStudioCommonTagTooltipLastTarget = target;
+  const tag = target.dataset.easyuseAnimaTooltipTag || "";
+  const meta = target.dataset.easyuseAnimaTooltipMeta || "";
+  const description = target.dataset.easyuseAnimaTooltipDescription || "";
+  tooltip.replaceChildren();
+
+  const top = document.createElement("div");
+  const tagEl = document.createElement("span");
+  tagEl.className = "easyuse-anima-autocomplete-tag";
+  tagEl.textContent = tag;
+  top.append(tagEl);
+  if (meta) {
+    const metaEl = document.createElement("span");
+    metaEl.className = "easyuse-anima-autocomplete-meta";
+    metaEl.textContent = meta;
+    top.append(metaEl);
+  }
+  tooltip.append(top);
+  if (description) {
+    const desc = document.createElement("div");
+    desc.className = "easyuse-anima-autocomplete-desc";
+    desc.textContent = description;
+    tooltip.append(desc);
+  }
+
+  tooltip.classList.remove("hidden");
+  positionPromptStudioTrainedTagTooltip(tooltip, event);
+}
+
+function updatePromptStudioTrainedTagTooltipMove(input, clientX, clientY) {
+  if (visibleAutocompletePopupExists()) {
+    hidePromptStudioTrainedTagTooltip();
+    return;
+  }
+  const target = trainedTagTooltipTargetAt(input?.__easyuseAnimaHighlightOverlay, clientX, clientY);
+  if (!target) {
+    hidePromptStudioTrainedTagTooltip();
+    return;
+  }
+  showPromptStudioTrainedTagTooltip(target, { clientX, clientY });
+}
+
+function handlePromptStudioTrainedTagTooltipMove(input, event) {
+  if (!PROMPT_STUDIO_COMMON_SETTINGS.trainedTagTooltip) {
+    hidePromptStudioTrainedTagTooltip();
+    return;
+  }
+  promptStudioCommonTagTooltipPendingMove = {
+    input,
+    clientX: event.clientX,
+    clientY: event.clientY,
+  };
+  if (promptStudioCommonTagTooltipMoveFrame) {
+    return;
+  }
+  promptStudioCommonTagTooltipMoveFrame = requestAnimationFrame(() => {
+    promptStudioCommonTagTooltipMoveFrame = 0;
+    const move = promptStudioCommonTagTooltipPendingMove;
+    promptStudioCommonTagTooltipPendingMove = null;
+    if (!move) {
+      return;
+    }
+    updatePromptStudioTrainedTagTooltipMove(move.input, move.clientX, move.clientY);
+  });
+}
+
+function installPromptStudioTrainedTagTooltipListeners(input) {
+  if (input.__easyuseAnimaTrainedTagTooltipInstalled) {
+    return;
+  }
+  input.addEventListener("mousemove", (event) => handlePromptStudioTrainedTagTooltipMove(input, event));
+  input.addEventListener("mouseleave", hidePromptStudioTrainedTagTooltip);
+  input.addEventListener("scroll", hidePromptStudioTrainedTagTooltip);
+  input.addEventListener("input", hidePromptStudioTrainedTagTooltip);
+  input.addEventListener("blur", hidePromptStudioTrainedTagTooltip);
+  input.__easyuseAnimaTrainedTagTooltipInstalled = true;
+}
+
 export function createPromptStudioActionButton(label, title, onClick) {
   const button = document.createElement("button");
   button.type = "button";
@@ -774,9 +976,47 @@ export function debounce(fn, delay = 180) {
   };
 }
 
+function isHexColor(value) {
+  return /^#[0-9a-f]{6}$/i.test(String(value || ""));
+}
+
+function hexToRgba(value, alpha) {
+  if (!isHexColor(value)) {
+    return "transparent";
+  }
+  const red = Number.parseInt(value.slice(1, 3), 16);
+  const green = Number.parseInt(value.slice(3, 5), 16);
+  const blue = Number.parseInt(value.slice(5, 7), 16);
+  return `rgba(${red}, ${green}, ${blue}, ${alpha})`;
+}
+
+function parseColorSettings(value) {
+  try {
+    const parsed = JSON.parse(value || "{}");
+    return parsed && typeof parsed === "object" ? parsed : {};
+  } catch {
+    return {};
+  }
+}
+
 function applyPromptStudioCommonSettings(settings) {
   PROMPT_STUDIO_COMMON_SETTINGS.weightSyntaxUnderline =
     settings?.["prompt_studio.weight_syntax_underline"] === "true";
+  PROMPT_STUDIO_COMMON_SETTINGS.trainedTagTooltip =
+    settings?.["prompt_studio.trained_tag_tooltip"] !== "false";
+  if (!PROMPT_STUDIO_COMMON_SETTINGS.trainedTagTooltip) {
+    hidePromptStudioTrainedTagTooltip();
+  }
+  const colors = parseColorSettings(settings?.["prompt_studio.colors"]);
+  for (const [key, color] of Object.entries(colors)) {
+    if (!SECTION_STYLES[key] || !isHexColor(color)) {
+      continue;
+    }
+    SECTION_STYLES[key].color = color;
+    if (SECTION_STYLES[key].background && SECTION_STYLES[key].background !== "transparent") {
+      SECTION_STYLES[key].background = hexToRgba(color, 0.18);
+    }
+  }
 }
 
 function refreshPromptStudioCommonHighlightInputs() {
@@ -790,6 +1030,7 @@ async function loadPromptStudioCommonSettings() {
     const response = await fetch("/easyuse_anima/settings");
     if (response.ok) {
       applyPromptStudioCommonSettings(await response.json());
+      refreshPromptStudioCommonHighlightInputs();
     }
   } catch {
     // Keep defaults when the settings endpoint is not available.
@@ -822,6 +1063,10 @@ function escapeHtml(value) {
     .replaceAll("&", "&amp;")
     .replaceAll("<", "&lt;")
     .replaceAll(">", "&gt;");
+}
+
+function escapeAttr(value) {
+  return escapeHtml(value).replaceAll('"', "&quot;");
 }
 
 function normalize(value) {
@@ -974,8 +1219,67 @@ function tokenTitle(token) {
   return `${label}${learned}`;
 }
 
+function trainedTagTooltipEntry(text, token) {
+  if (!PROMPT_STUDIO_COMMON_SETTINGS.trainedTagTooltip) {
+    return null;
+  }
+  const section = String(token?.section || "");
+  if (!AUTOCOMPLETE_TOOLTIP_SECTIONS.has(section) || !token?.learned) {
+    return null;
+  }
+  const tag = String(token?.base || text || token?.token || "").trim();
+  if (!tag) {
+    return null;
+  }
+  return {
+    tag,
+    category: section,
+    count: Number(token?.count || 0),
+    description: String(token?.description || ""),
+  };
+}
+
+function trainedTagTooltipData(text, token) {
+  const entry = trainedTagTooltipEntry(text, token);
+  if (!entry) {
+    return null;
+  }
+  const tooltip = typeof window !== "undefined" && typeof window.easyuseAnimaAutocompleteEntryTooltip === "function"
+    ? window.easyuseAnimaAutocompleteEntryTooltip(entry)
+    : {
+      tag: entry.tag,
+      meta: `${sectionLabel(entry.category)} · ${Number(entry.count || 0).toLocaleString()}`,
+      description: entry.description,
+    };
+  return {
+    tag: String(tooltip?.tag || entry.tag),
+    meta: String(tooltip?.meta || ""),
+    description: String(tooltip?.description || ""),
+  };
+}
+
+function trainedTagTooltipAttrs(text, token) {
+  const tooltip = trainedTagTooltipData(text, token);
+  if (!tooltip) {
+    return "";
+  }
+  const title = [tooltip.tag, tooltip.meta, tooltip.description].filter(Boolean).join("\n");
+  return [
+    'data-easyuse-anima-trained-tag-tooltip="true"',
+    `data-easyuse-anima-tooltip-tag="${escapeAttr(tooltip.tag)}"`,
+    `data-easyuse-anima-tooltip-meta="${escapeAttr(tooltip.meta)}"`,
+    `data-easyuse-anima-tooltip-description="${escapeAttr(tooltip.description)}"`,
+    `aria-label="${escapeAttr(title)}"`,
+  ].join(" ");
+}
+
 function tokenSpanHtml(text, token) {
-  return `<span style="${tokenStyle(token)}" title="${escapeHtml(tokenTitle(token))}">`
+  const tooltip = trainedTagTooltipData(text, token);
+  const title = tooltip
+    ? [tooltip.tag, tooltip.meta, tooltip.description].filter(Boolean).join("\n")
+    : tokenTitle(token);
+  const attrs = trainedTagTooltipAttrs(text, token);
+  return `<span style="${tokenStyle(token)}" title="${escapeAttr(title)}"${attrs ? ` ${attrs}` : ""}>`
     + escapeHtml(text)
     + "</span>";
 }
@@ -1671,6 +1975,7 @@ function ensureHighlightOverlay(input) {
 
   input.__easyuseAnimaHighlightOverlay = overlay;
   installOverlaySyncListeners(input);
+  installPromptStudioTrainedTagTooltipListeners(input);
   return overlay;
 }
 

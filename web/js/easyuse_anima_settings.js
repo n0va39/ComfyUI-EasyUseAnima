@@ -204,6 +204,36 @@ const PROMPT_STUDIO_COLORS = {
   },
 };
 
+const PROMPT_STUDIO_COLOR_GROUPS = [
+  {
+    id: "tags",
+    labelKey: "highlightColorTabTags",
+    keys: [
+      "quality",
+      "safety",
+      "year",
+      "count",
+      "general",
+      "character",
+      "artist",
+      "artist_unknown",
+      "copyright",
+      "meta",
+      "unknown",
+    ],
+  },
+  {
+    id: "syntax",
+    labelKey: "highlightColorTabSyntax",
+    keys: [
+      "natural",
+      "translation",
+      "wildcard",
+      "comment",
+    ],
+  },
+];
+
 const NAIA_PREPROCESSING_OPTIONS = [
   ["remove_author", { en: "Remove author", ko: "작가 제거", ja: "作者を削除", zh: "移除作者" }],
   ["remove_work_title", { en: "Remove work title", ko: "작품명 제거", ja: "作品名を削除", zh: "移除作品名" }],
@@ -251,6 +281,12 @@ const TEXT = {
     autocompleteLimitTip: "",
     highlightBehavior: "Highlight behavior",
     highlightColor: "Highlight color",
+    highlightColorEditor: "Manage highlight colors",
+    highlightColorEditorTip: "Open a tabbed editor for Prompt Studio highlight colors.",
+    highlightColorTabTags: "Tags",
+    highlightColorTabSyntax: "Syntax",
+    reset: "Reset",
+    close: "Close",
     loraDisplay: "LoRA display",
     loraDisplayTip: "Choose whether LoRA preset rows show only filenames or full relative paths.",
     loraMenuMode: "LoRA menu mode",
@@ -330,6 +366,9 @@ const TEXT = {
     promptFontFamilyTip: "Used only when Manual Prompt Studio font is ON. Leave empty to use the system UI font.",
     promptFontSize: "Prompt font size",
     promptFontSizeTip: "Used only when Manual Prompt Studio font is ON. Controls Prompt Studio text area font size in pixels.",
+    trainedTagTooltip: "Tag hover tooltip",
+    trainedTagTooltipTip:
+      "Show autocomplete metadata tooltips when hovering learned Prompt Studio tags.",
     showTypoIndicators: "Show typo indicators",
     underlineWeightSyntax: "Underline weight syntax",
     underlineWeightSyntaxTip:
@@ -361,6 +400,12 @@ const TEXT = {
     autocompleteLimitTip: "",
     highlightBehavior: "하이라이트 동작",
     highlightColor: "하이라이트 색상",
+    highlightColorEditor: "하이라이트 색상 관리",
+    highlightColorEditorTip: "Prompt Studio 하이라이트 색상을 탭 편집기로 엽니다.",
+    highlightColorTabTags: "태그",
+    highlightColorTabSyntax: "문법",
+    reset: "초기화",
+    close: "닫기",
     loraDisplay: "LoRA 표시",
     loraDisplayTip: "LoRA 프리셋 행에 파일명만 표시할지 상대 경로를 표시할지 선택합니다.",
     loraMenuMode: "LoRA 메뉴 방식",
@@ -440,6 +485,9 @@ const TEXT = {
     promptFontFamilyTip: "수동 폰트 보정이 ON일 때만 사용됩니다. 비워두면 시스템 UI 폰트를 사용합니다.",
     promptFontSize: "프롬프트 글자 크기",
     promptFontSizeTip: "수동 폰트 보정이 ON일 때만 사용됩니다. Prompt Studio 입력창의 글자 크기(px)를 조정합니다.",
+    trainedTagTooltip: "태그 hover 툴팁",
+    trainedTagTooltipTip:
+      "Prompt Studio의 학습 태그 위에 마우스를 올렸을 때 자동완성 메타데이터 툴팁을 표시합니다.",
     showTypoIndicators: "오타 표시",
     underlineWeightSyntax: "가중치 문법 밑줄 표시",
     underlineWeightSyntaxTip:
@@ -471,6 +519,12 @@ const TEXT = {
     autocompleteLimitTip: "",
     highlightBehavior: "ハイライト動作",
     highlightColor: "ハイライト色",
+    highlightColorEditor: "ハイライト色を管理",
+    highlightColorEditorTip: "Prompt Studio のハイライト色をタブ付きエディターで開きます。",
+    highlightColorTabTags: "タグ",
+    highlightColorTabSyntax: "構文",
+    reset: "リセット",
+    close: "閉じる",
     loraDisplay: "LoRA 表示",
     loraDisplayTip: "LoRA プリセット行にファイル名のみを表示するか、相対パスを表示するかを選びます。",
     loraMenuMode: "LoRA メニューモード",
@@ -550,6 +604,9 @@ const TEXT = {
     promptFontFamilyTip: "Prompt Studio 手動フォント補正が ON のときだけ使用します。空欄ならシステム UI フォントを使います。",
     promptFontSize: "プロンプト文字サイズ",
     promptFontSizeTip: "Prompt Studio 手動フォント補正が ON のときだけ使用します。入力欄の文字サイズをピクセル単位で調整します。",
+    trainedTagTooltip: "タグ hover ツールチップ",
+    trainedTagTooltipTip:
+      "Prompt Studio の学習済みタグにマウスを重ねたとき、自動補完メタデータのツールチップを表示します。",
     showTypoIndicators: "タイプミス表示",
     underlineWeightSyntax: "重み構文に下線を表示",
     underlineWeightSyntaxTip:
@@ -581,6 +638,12 @@ const TEXT = {
     autocompleteLimitTip: "",
     highlightBehavior: "高亮行为",
     highlightColor: "高亮颜色",
+    highlightColorEditor: "管理高亮颜色",
+    highlightColorEditorTip: "使用带标签页的编辑器打开 Prompt Studio 高亮颜色。",
+    highlightColorTabTags: "标签",
+    highlightColorTabSyntax: "语法",
+    reset: "重置",
+    close: "关闭",
     loraDisplay: "LoRA 显示",
     loraDisplayTip: "选择 LoRA 预设行只显示文件名，还是显示相对路径。",
     loraMenuMode: "LoRA 菜单模式",
@@ -660,6 +723,9 @@ const TEXT = {
     promptFontFamilyTip: "仅在 Prompt Studio 手动字体修正开启时使用。留空时使用系统 UI 字体。",
     promptFontSize: "提示词字体大小",
     promptFontSizeTip: "仅在 Prompt Studio 手动字体修正开启时使用。以像素为单位调整输入框字体大小。",
+    trainedTagTooltip: "标签 hover 提示",
+    trainedTagTooltipTip:
+      "鼠标悬停在 Prompt Studio 已学习标签上时显示自动补全元数据提示。",
     showTypoIndicators: "显示错字标记",
     underlineWeightSyntax: "为权重语法显示下划线",
     underlineWeightSyntaxTip:
@@ -686,6 +752,8 @@ const INTERNAL_KEYS = {
   "EasyUseAnima.Prompt.FontOverride": "prompt_studio.font_override",
   "EasyUseAnima.Prompt.FontFamily": "prompt_studio.font_family",
   "EasyUseAnima.Prompt.FontSize": "prompt_studio.font_size",
+  "EasyUseAnima.Prompt.HighlightColors": "prompt_studio.colors",
+  "EasyUseAnima.Prompt.TrainedTagTooltip": "prompt_studio.trained_tag_tooltip",
   "EasyUseAnima.Prompt.NaiaGeneralAutoToggle": "prompt_studio.naia_general_above_auto_toggle",
   "EasyUseAnima.Prompt.TranslationProvider": "prompt_translation.provider",
   "EasyUseAnima.Prompt.TranslationSource": "prompt_translation.source",
@@ -746,6 +814,7 @@ const LONG_TEXT_FIELD_GROUPS = {
 };
 
 let activeLongTextEditor = null;
+let activePromptStudioColorEditor = null;
 
 for (const [key] of NAIA_PREPROCESSING_OPTIONS) {
   INTERNAL_KEYS[`EasyUseAnima.NAIA.${key}`] = `naia.${key}`;
@@ -786,18 +855,6 @@ function updateInternalSetting(id, value, type = "text") {
   }
   window.__easyuseAnimaSettings ||= {};
   window.__easyuseAnimaSettings[internalKey] = normalizeValue(type, value);
-  window.dispatchEvent(
-    new CustomEvent("easyuse-anima-settings-updated", {
-      detail: { ...window.__easyuseAnimaSettings },
-    }),
-  );
-}
-
-function updateColorSetting(colorKey, value) {
-  window.__easyuseAnimaSettings ||= {};
-  const colors = parseColors(window.__easyuseAnimaSettings["prompt_studio.colors"]);
-  colors[colorKey] = String(value || PROMPT_STUDIO_COLORS[colorKey]?.color || "#ffffff");
-  window.__easyuseAnimaSettings["prompt_studio.colors"] = JSON.stringify(colors);
   window.dispatchEvent(
     new CustomEvent("easyuse-anima-settings-updated", {
       detail: { ...window.__easyuseAnimaSettings },
@@ -850,6 +907,51 @@ function createLongTextEditorButton(groupKey) {
 
   const hint = document.createElement("span");
   hint.textContent = t(group.tipKey);
+  hint.style.cssText = "opacity: 0.68; font-size: 0.9em; line-height: 1.35;";
+
+  container.append(button, hint);
+  return container;
+}
+
+function promptStudioColorSettingValue(value) {
+  if (
+    window.__easyuseAnimaSettings
+    && Object.prototype.hasOwnProperty.call(window.__easyuseAnimaSettings, "prompt_studio.colors")
+  ) {
+    return window.__easyuseAnimaSettings["prompt_studio.colors"];
+  }
+  return value ?? "";
+}
+
+function serializePromptStudioColors(colors) {
+  const normalized = {};
+  for (const [key, value] of Object.entries(colors || {})) {
+    const color = String(value || "").trim();
+    if (PROMPT_STUDIO_COLORS[key] && /^#[0-9a-f]{6}$/i.test(color)) {
+      normalized[key] = color;
+    }
+  }
+  return Object.keys(normalized).length ? JSON.stringify(normalized) : "";
+}
+
+function persistPromptStudioColorSettings(colors, setter) {
+  const serialized = serializePromptStudioColors(colors);
+  updateInternalSetting("EasyUseAnima.Prompt.HighlightColors", serialized, "text");
+  setter?.(serialized);
+}
+
+function createPromptStudioColorEditorButton(name, setter, value) {
+  const container = document.createElement("div");
+  container.style.cssText = "display: flex; align-items: center; gap: 10px; min-width: 0;";
+
+  const button = document.createElement("button");
+  button.type = "button";
+  button.textContent = t("openEditor");
+  button.style.cssText = "padding: 6px 12px; cursor: pointer;";
+  button.onclick = () => openPromptStudioColorEditor(setter, value);
+
+  const hint = document.createElement("span");
+  hint.textContent = t("highlightColorEditorTip");
   hint.style.cssText = "opacity: 0.68; font-size: 0.9em; line-height: 1.35;";
 
   container.append(button, hint);
@@ -1270,6 +1372,158 @@ function openLongTextEditor(groupKey) {
     });
 }
 
+function closePromptStudioColorEditor() {
+  if (!activePromptStudioColorEditor) {
+    return;
+  }
+  const { overlay, keyHandler } = activePromptStudioColorEditor;
+  document.removeEventListener("keydown", keyHandler, true);
+  overlay.remove();
+  activePromptStudioColorEditor = null;
+}
+
+function openPromptStudioColorEditor(setter, value) {
+  closePromptStudioColorEditor();
+
+  const colors = parseColors(promptStudioColorSettingValue(value));
+  let activeGroupId = PROMPT_STUDIO_COLOR_GROUPS[0]?.id || "";
+
+  const overlay = document.createElement("div");
+  overlay.className = "easyuse-anima-prompt-color-overlay";
+  overlay.style.cssText =
+    "position: fixed; inset: 0; z-index: 2147483000; display: flex; align-items: center; justify-content: center; padding: 24px; box-sizing: border-box; background: rgba(0, 0, 0, 0.52);";
+
+  const panel = document.createElement("div");
+  panel.className = "comfy-settings easyuse-anima-prompt-color-panel";
+  panel.style.cssText =
+    "box-sizing: border-box; width: min(760px, 92vw); max-height: min(760px, 86vh); overflow: hidden; display: flex; flex-direction: column; gap: 12px; padding: 18px; border-radius: 8px; background: var(--comfy-menu-bg, #202020); color: var(--fg-color, #ddd); box-shadow: 0 18px 60px rgba(0, 0, 0, 0.55);";
+
+  const title = document.createElement("h3");
+  title.textContent = t("highlightColorEditor");
+  title.style.margin = "0";
+
+  const description = document.createElement("div");
+  description.textContent = t("highlightColorEditorTip");
+  description.style.cssText = "opacity: 0.72; line-height: 1.45;";
+
+  const tabs = document.createElement("div");
+  tabs.style.cssText = "display: flex; flex-wrap: wrap; gap: 6px; flex: 0 0 auto;";
+
+  const content = document.createElement("div");
+  content.style.cssText = "overflow: auto; display: flex; flex-direction: column; gap: 8px; padding-right: 4px;";
+
+  const tabButtons = new Map();
+  const render = () => {
+    for (const [groupId, button] of tabButtons.entries()) {
+      const active = groupId === activeGroupId;
+      button.setAttribute("aria-selected", active ? "true" : "false");
+      button.style.background = active ? "var(--comfy-input-bg, #303030)" : "transparent";
+      button.style.borderColor = active ? "rgba(148, 163, 184, 0.8)" : "rgba(128, 128, 128, 0.4)";
+    }
+
+    content.replaceChildren();
+    const group = PROMPT_STUDIO_COLOR_GROUPS.find((item) => item.id === activeGroupId)
+      || PROMPT_STUDIO_COLOR_GROUPS[0];
+    for (const colorKey of group?.keys || []) {
+      const item = PROMPT_STUDIO_COLORS[colorKey];
+      if (!item) {
+        continue;
+      }
+      const row = document.createElement("div");
+      row.style.cssText =
+        "display: grid; grid-template-columns: minmax(150px, 1fr) 70px auto; align-items: center; gap: 10px; min-width: 0; padding: 6px 0;";
+
+      const labelWrap = document.createElement("label");
+      labelWrap.style.cssText = "display: flex; flex-direction: column; gap: 2px; min-width: 0;";
+
+      const labelText = document.createElement("span");
+      labelText.textContent = label(item);
+      labelText.style.fontWeight = "600";
+
+      const help = document.createElement("span");
+      help.textContent = tip(item);
+      help.style.cssText = "opacity: 0.62; font-size: 0.9em; line-height: 1.25;";
+
+      const input = document.createElement("input");
+      input.type = "color";
+      input.value = /^#[0-9a-f]{6}$/i.test(String(colors[colorKey] || ""))
+        ? String(colors[colorKey])
+        : item.color;
+      input.style.cssText = "width: 64px; height: 30px; padding: 0; cursor: pointer;";
+      input.setAttribute("aria-label", label(item));
+
+      const resetButton = document.createElement("button");
+      resetButton.type = "button";
+      resetButton.textContent = t("reset");
+      resetButton.style.cssText = "padding: 5px 10px; cursor: pointer;";
+
+      input.addEventListener("input", () => {
+        colors[colorKey] = input.value;
+        persistPromptStudioColorSettings(colors, setter);
+      });
+      input.addEventListener("change", () => {
+        colors[colorKey] = input.value;
+        persistPromptStudioColorSettings(colors, setter);
+      });
+      resetButton.addEventListener("click", () => {
+        colors[colorKey] = item.color;
+        input.value = item.color;
+        persistPromptStudioColorSettings(colors, setter);
+      });
+
+      labelWrap.append(labelText, help);
+      row.append(labelWrap, input, resetButton);
+      content.append(row);
+    }
+  };
+
+  for (const group of PROMPT_STUDIO_COLOR_GROUPS) {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.textContent = t(group.labelKey);
+    button.style.cssText =
+      "padding: 6px 12px; border: 1px solid rgba(128, 128, 128, 0.4); border-radius: 6px; color: inherit; cursor: pointer;";
+    button.setAttribute("role", "tab");
+    button.onclick = () => {
+      activeGroupId = group.id;
+      render();
+    };
+    tabButtons.set(group.id, button);
+    tabs.append(button);
+  }
+
+  const actions = document.createElement("div");
+  actions.style.cssText = "display: flex; justify-content: flex-end; gap: 8px; flex: 0 0 auto;";
+
+  const closeButton = document.createElement("button");
+  closeButton.type = "button";
+  closeButton.textContent = t("close");
+  closeButton.style.cssText = "padding: 6px 12px; cursor: pointer;";
+  closeButton.onclick = closePromptStudioColorEditor;
+  actions.append(closeButton);
+
+  panel.append(title, description, tabs, content, actions);
+  overlay.append(panel);
+
+  overlay.addEventListener("mousedown", (event) => {
+    if (event.target === overlay) {
+      closePromptStudioColorEditor();
+    }
+  });
+  panel.addEventListener("mousedown", (event) => event.stopPropagation());
+
+  const keyHandler = (event) => {
+    if (event.key === "Escape") {
+      closePromptStudioColorEditor();
+    }
+  };
+  document.addEventListener("keydown", keyHandler, true);
+  activePromptStudioColorEditor = { overlay, keyHandler };
+
+  document.body.append(overlay);
+  render();
+}
+
 function setting({ id, section, group, name, tooltip, type, defaultValue, options, attrs, onChange }) {
   return {
     id,
@@ -1297,20 +1551,6 @@ function customSetting({ id, section, name, tooltip, render }) {
     defaultValue: "",
     ...(tooltip ? { tooltip } : {}),
   };
-}
-
-function colorSetting(colorKey, item) {
-  const id = `EasyUseAnima.Prompt.HighlightColor.${colorKey}`;
-  return setting({
-    id,
-    section: "PromptStudio",
-    group: t("highlightColor"),
-    name: `${t("highlightColor")}: ${label(item)}`,
-    tooltip: tip(item),
-    type: "color",
-    defaultValue: item.color,
-    onChange: (value) => updateColorSetting(colorKey, value),
-  });
 }
 
 const EASYUSE_ANIMA_SETTINGS = [
@@ -1460,6 +1700,15 @@ const EASYUSE_ANIMA_SETTINGS = [
     defaultValue: true,
   }),
   setting({
+    id: "EasyUseAnima.Prompt.TrainedTagTooltip",
+    section: "PromptStudio",
+    group: t("highlightBehavior"),
+    name: t("trainedTagTooltip"),
+    tooltip: t("trainedTagTooltipTip"),
+    type: "boolean",
+    defaultValue: true,
+  }),
+  setting({
     id: "EasyUseAnima.Prompt.FontOverride",
     section: "PromptStudio",
     group: t("highlightBehavior"),
@@ -1496,7 +1745,13 @@ const EASYUSE_ANIMA_SETTINGS = [
     type: "boolean",
     defaultValue: false,
   }),
-  ...Object.entries(PROMPT_STUDIO_COLORS).map(([colorKey, item]) => colorSetting(colorKey, item)),
+  customSetting({
+    id: "EasyUseAnima.Prompt.HighlightColors",
+    section: "PromptStudio",
+    name: t("highlightColorEditor"),
+    tooltip: t("highlightColorEditorTip"),
+    render: createPromptStudioColorEditorButton,
+  }),
   customSetting({
     id: "EasyUseAnima.Wildcard.ExtraPaths",
     section: "Wildcard",
