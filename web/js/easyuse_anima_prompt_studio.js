@@ -104,10 +104,12 @@ import {
 import {
   advancedEditorMinimumHeight,
   advancedEditorWidgetHeight,
-  advancedMinimumNodeHeight,
-  clampAdvancedNodeToMinimumHeight,
   updateAdvancedEditorWidth,
 } from "./prompt_studio/layout.js";
+import {
+  scheduleAdvancedLayout as scheduleAdvancedLayoutWithHooks,
+  scheduleAdvancedResizeFinalize as scheduleAdvancedResizeFinalizeWithHooks,
+} from "./prompt_studio/advanced_layout_controller.js";
 import {
   guardAdvancedEditorNativeControlEvent,
 } from "./prompt_studio/wheel.js";
@@ -322,6 +324,25 @@ function advancedFieldsUiHooks() {
     updateAdvancedFieldHighlight,
     writeAdvancedFields,
   };
+}
+
+function markGraphDirty() {
+  app.graph?.setDirtyCanvas?.(true, true);
+}
+
+function advancedLayoutControllerHooks() {
+  return {
+    markGraphDirty,
+    scheduleAdvancedHighlights,
+  };
+}
+
+function scheduleAdvancedLayout(node, reason = "layout") {
+  scheduleAdvancedLayoutWithHooks(node, reason, advancedLayoutControllerHooks());
+}
+
+function scheduleAdvancedResizeFinalize(node) {
+  scheduleAdvancedResizeFinalizeWithHooks(node, advancedLayoutControllerHooks());
 }
 
 function extendSlotControlHooks() {
@@ -963,131 +984,6 @@ function advancedFieldLabel(field) {
   return field.label && field.label !== base && field.label !== localizedBase
     ? `${localizedBase} - ${field.label}`
     : localizedBase;
-}
-
-function clearAdvancedResizeEndListeners(node) {
-  const handler = node?.__easyuseAnimaAdvancedResizeEndHandler;
-  if (!handler) {
-    return;
-  }
-  document.removeEventListener("pointerup", handler, true);
-  document.removeEventListener("pointercancel", handler, true);
-  document.removeEventListener("mouseup", handler, true);
-  node.__easyuseAnimaAdvancedResizeEndHandler = null;
-}
-
-function finalizeAdvancedResize(node) {
-  if (node) {
-    clearTimeout(node.__easyuseAnimaAdvancedResizeFinalizeTimer);
-    node.__easyuseAnimaAdvancedResizeFinalizeTimer = null;
-    clearAdvancedResizeEndListeners(node);
-  }
-  if (
-    !node
-    || !node.graph
-    || !getAdvancedEditorElement(node)?.isConnected
-  ) {
-    return;
-  }
-  updateAdvancedEditorWidth(node);
-  clampAdvancedNodeToMinimumHeight(node);
-  scheduleAdvancedLayout(node, "resize");
-}
-
-function installAdvancedResizeEndListeners(node) {
-  if (!node || node.__easyuseAnimaAdvancedResizeEndHandler) {
-    return;
-  }
-  const handler = () => finalizeAdvancedResize(node);
-  node.__easyuseAnimaAdvancedResizeEndHandler = handler;
-  document.addEventListener("pointerup", handler, true);
-  document.addEventListener("pointercancel", handler, true);
-  document.addEventListener("mouseup", handler, true);
-}
-
-function scheduleAdvancedResizeFinalize(node) {
-  if (!getAdvancedEditorElement(node)?.isConnected) {
-    finalizeAdvancedResize(node);
-    return;
-  }
-  installAdvancedResizeEndListeners(node);
-  clearTimeout(node.__easyuseAnimaAdvancedResizeFinalizeTimer);
-  node.__easyuseAnimaAdvancedResizeFinalizeTimer = setTimeout(() => {
-    finalizeAdvancedResize(node);
-  }, 120);
-}
-
-function applyAdvancedLayout(node, reason = "layout") {
-  const editor = getAdvancedEditorElement(node);
-  if (!editor || !node.size) {
-    return;
-  }
-  if (node.__easyuseAnimaApplyingLayout) {
-    return;
-  }
-
-  node.__easyuseAnimaApplyingLayout = true;
-  try {
-    updateAdvancedEditorWidth(node);
-
-    const currentWidth = Number(node.size[0]) || 360;
-    const currentHeight = Number(node.size[1]) || 0;
-    const minimumHeight = advancedMinimumNodeHeight(node);
-    const widgetHeight = advancedEditorWidgetHeight(node);
-    editor.style.height = `${widgetHeight}px`;
-    editor.style.maxHeight = `${widgetHeight}px`;
-    node.__easyuseAnimaAdvancedWidgetHeight = widgetHeight;
-    node.__easyuseAnimaAdvancedLastEditorHeight = widgetHeight;
-    node.__easyuseAnimaAdvancedLastLayoutReason = reason;
-
-    if (typeof node.setSize === "function" && currentHeight < minimumHeight - 1) {
-      node.setSize([currentWidth, minimumHeight]);
-    }
-
-    app.graph?.setDirtyCanvas?.(true, true);
-    requestAnimationFrame(() => app.graph?.setDirtyCanvas?.(true, true));
-  } finally {
-    node.__easyuseAnimaApplyingLayout = false;
-  }
-  scheduleAdvancedHighlights(node, { classify: reason !== "resize" });
-}
-
-const ADVANCED_LAYOUT_REASON_PRIORITY = {
-  layout: 0,
-  render: 1,
-  textarea: 1,
-  connections: 1,
-  executed: 1,
-  settings: 1,
-  resize: 3,
-};
-
-function advancedLayoutReasonPriority(reason) {
-  return ADVANCED_LAYOUT_REASON_PRIORITY[reason] ?? 0;
-}
-
-function scheduleAdvancedLayout(node, reason = "layout") {
-  if (!getAdvancedEditorElement(node)) {
-    return;
-  }
-  updateAdvancedEditorWidth(node);
-  const currentReason = node.__easyuseAnimaAdvancedLayoutReason || "layout";
-  if (
-    !node.__easyuseAnimaAdvancedLayoutScheduled
-    || advancedLayoutReasonPriority(reason) >= advancedLayoutReasonPriority(currentReason)
-  ) {
-    node.__easyuseAnimaAdvancedLayoutReason = reason;
-  }
-  if (node.__easyuseAnimaAdvancedLayoutScheduled) {
-    return;
-  }
-  node.__easyuseAnimaAdvancedLayoutScheduled = true;
-  requestAnimationFrame(() => {
-    node.__easyuseAnimaAdvancedLayoutScheduled = false;
-    const layoutReason = node.__easyuseAnimaAdvancedLayoutReason || reason;
-    node.__easyuseAnimaAdvancedLayoutReason = null;
-    applyAdvancedLayout(node, layoutReason);
-  });
 }
 
 function renderAdvancedEditor(node) {

@@ -80,6 +80,7 @@ class FrontendModuleStructureTests(unittest.TestCase):
         self.assertIn('./prompt_studio/tooltip.js"', source)
         self.assertIn('./prompt_studio/widgets.js"', source)
         self.assertIn('./prompt_studio/layout.js"', source)
+        self.assertIn('./prompt_studio/advanced_layout_controller.js"', source)
         self.assertIn('./prompt_studio/studio_textareas.js"', source)
         self.assertIn('./textarea.js"', advanced_fields_ui_source)
         self.assertIn('./prompt_studio/wheel.js"', source)
@@ -146,6 +147,9 @@ class FrontendModuleStructureTests(unittest.TestCase):
         layout_source = (PROMPT_STUDIO_MODULES / "layout.js").read_text(
             encoding="utf-8"
         )
+        advanced_layout_controller_source = (
+            PROMPT_STUDIO_MODULES / "advanced_layout_controller.js"
+        ).read_text(encoding="utf-8")
         studio_textareas_source = (
             PROMPT_STUDIO_MODULES / "studio_textareas.js"
         ).read_text(encoding="utf-8")
@@ -360,6 +364,17 @@ class FrontendModuleStructureTests(unittest.TestCase):
                 self.assertIn(f"  {name},", layout_source)
 
         for name in (
+            "applyAdvancedLayout",
+            "clearAdvancedResizeEndListeners",
+            "finalizeAdvancedResize",
+            "installAdvancedResizeEndListeners",
+            "scheduleAdvancedLayout",
+            "scheduleAdvancedResizeFinalize",
+        ):
+            with self.subTest(module="advanced_layout_controller", symbol=name):
+                self.assertIn(f"  {name},", advanced_layout_controller_source)
+
+        for name in (
             "desiredTextareaHeight",
             "expandStudioInputToContent",
             "growStudioManualHeightToContent",
@@ -446,6 +461,7 @@ class FrontendModuleStructureTests(unittest.TestCase):
         for filename in (
             "advanced_controls.js",
             "advanced_fields_ui.js",
+            "advanced_layout_controller.js",
             "canvas_forwarding.js",
             "dom.js",
             "extend_slot_controls.js",
