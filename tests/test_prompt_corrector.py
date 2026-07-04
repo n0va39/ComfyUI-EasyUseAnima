@@ -3009,6 +3009,18 @@ class AutocompleteDatasetTests(unittest.TestCase):
         self.assertEqual(korean["results"][0]["category"], "character")
         self.assertEqual(status["count"], 2)
 
+    def test_searches_escaped_literal_parentheses(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "tags.csv"
+            path.write_text(
+                'asuna (blue archive),4,100,"[캐릭터] asuna blue archive"\n',
+                encoding="utf-8",
+            )
+
+            result = search_autocomplete(r"\(blue archive\)", path=path)
+
+        self.assertEqual(result["results"][0]["tag"], "asuna (blue archive)")
+
     def test_autocomplete_cache_reloads_when_csv_mtime_changes(self):
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "tags.csv"

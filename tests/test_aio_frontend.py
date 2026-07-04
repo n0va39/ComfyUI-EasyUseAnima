@@ -55,6 +55,7 @@ class AIOFrontendSourceTests(unittest.TestCase):
 
         self.assertIn("descriptionKey.includes(query)", body)
         self.assertIn("candidateKey.startsWith(query)", body)
+        self.assertIn("candidateKey.includes(query)", body)
 
     def test_autocomplete_refreshes_during_ime_composition_without_committing(self):
         source = AUTOCOMPLETE_JS.read_text(encoding="utf-8")
@@ -124,6 +125,60 @@ class AIOFrontendSourceTests(unittest.TestCase):
         self.assertIn("const menu = ensurePopup();", set_active_body)
         self.assertIn("scrollActiveAutocompleteItemIntoView(menu, activeState.index);", set_active_body)
 
+    def test_autocomplete_resets_scroll_for_new_result_sets(self):
+        source = AUTOCOMPLETE_JS.read_text(encoding="utf-8")
+        start = source.index("function hidePopup")
+        end = source.index("\nfunction hideTrainedTagTooltips", start)
+        hide_body = source[start:end]
+
+        self.assertIn("markAutocompleteInputInactive(input);", hide_body)
+        self.assertIn("popup.scrollTop = 0;", hide_body)
+
+        start = source.index("function markAutocompleteInputInactive")
+        end = source.index("\nfunction hideTrainedTagTooltips", start)
+        inactive_body = source[start:end]
+
+        self.assertIn('state.lastAutocompleteSignature = "";', inactive_body)
+
+        start = source.index("function resetActiveAutocompleteMenu")
+        end = source.index("\nfunction endsWithSentencePeriod", start)
+        reset_body = source[start:end]
+
+        self.assertIn("activeState.index = 0;", reset_body)
+        self.assertIn("menu.scrollTop = 0;", reset_body)
+
+        start = source.index("function renderResults")
+        end = source.index("\nfunction isCaretInComment", start)
+        body = source[start:end]
+
+        self.assertIn("menu.scrollTop = 0;", body)
+        self.assertIn("index: 0,", body)
+        self.assertIn("resetActiveAutocompleteMenu(menu);", body)
+        self.assertLess(body.index("menu.scrollTop = 0;"), body.index("menu.replaceChildren();"))
+        self.assertLess(body.index("menu.replaceChildren();"), body.index("resetActiveAutocompleteMenu(menu);"))
+        self.assertLess(body.index("resetActiveAutocompleteMenu(menu);"), body.index("positionPopup(state.input);"))
+
+        start = source.index("  const updateNow = async () => {")
+        end = source.index("    const seq = ++updateSeq;", start)
+        update_body = source[start:end]
+
+        self.assertIn("lastAutocompleteSignature: undefined", source)
+        self.assertIn("const previousSignature = state.lastAutocompleteSignature;", update_body)
+        self.assertIn("state.lastAutocompleteSignature = signature;", update_body)
+        self.assertIn("previousSignature !== undefined && previousSignature !== signature", update_body)
+        self.assertIn("resetActiveAutocompleteMenu(ensurePopup());", update_body)
+
+        start = source.index("function handleOutsideAutocompletePointer")
+        end = source.index("\ndocument.addEventListener(\"pointerdown\"", start)
+        pointer_body = source[start:end]
+
+        self.assertIn("popup?.contains(event.target)", pointer_body)
+        self.assertIn("event.target === input", pointer_body)
+        self.assertIn("markAutocompleteInputInactive(input);", pointer_body)
+        self.assertIn("hidePopup();", pointer_body)
+        self.assertIn('document.addEventListener("pointerdown", handleOutsideAutocompletePointer, true);', source)
+        self.assertIn('document.addEventListener("mousedown", handleOutsideAutocompletePointer, true);', source)
+
     def test_autocomplete_wildcards_accept_empty_and_unicode_queries(self):
         source = AUTOCOMPLETE_JS.read_text(encoding="utf-8")
         start = source.index("function currentWildcardToken")
@@ -153,6 +208,35 @@ class AIOFrontendSourceTests(unittest.TestCase):
         strict_body = source[start:end]
 
         self.assertIn('return context.kind === "wildcard" ? results : [];', strict_body)
+
+    def test_autocomplete_strips_prompt_syntax_from_search_query(self):
+        source = AUTOCOMPLETE_JS.read_text(encoding="utf-8")
+
+        start = source.index("function autocompleteQuery")
+        end = source.index("\nfunction wildcardAutocompleteQuery", start)
+        query_body = source[start:end]
+
+        self.assertIn("const query = parsed.query;", query_body)
+        self.assertNotIn("artistOnly ? parsed.query : raw.trim()", query_body)
+
+        start = source.index("function parseAutocompleteText")
+        end = source.index("\nfunction normalizeWildcardSearchText", start)
+        parse_body = source[start:end]
+
+        self.assertIn('query = query.replace(/^\\[\\[\\s*/g, "");', parse_body)
+        self.assertIn('query = query.replace(/^\\(\\s*/g, "");', parse_body)
+        self.assertIn("query = stripPromptSyntaxClosingParens(query);", parse_body)
+        self.assertIn(
+            'query = query.replace(/:\\s*[+-]?(?:\\d+(?:\\.\\d*)?|\\.\\d+)\\s*$/, "");',
+            parse_body,
+        )
+        self.assertNotIn('query = query.replace(/\\)+\\s*$/, "");', parse_body)
+
+        start = source.index("function trimPromptSyntaxSuffix")
+        end = source.index("\nfunction currentToken", start)
+        trim_body = source[start:end]
+
+        self.assertIn('value[cursor - 1] === ")" && !isEscaped(value, cursor - 1)', trim_body)
 
     def test_autocomplete_supports_nodes_v2_specs_and_dom_widgets(self):
         source = AUTOCOMPLETE_JS.read_text(encoding="utf-8")
