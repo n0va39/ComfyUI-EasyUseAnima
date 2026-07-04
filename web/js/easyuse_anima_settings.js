@@ -1,4 +1,5 @@
 import { app } from "../../../scripts/app.js";
+import { easyuseAnimaFetchJson, easyuseAnimaGetSettings, easyuseAnimaPostJson } from "./easyuse_anima_api.js";
 import {
   easyuseAnimaLocaleText,
   easyuseAnimaText,
@@ -863,11 +864,7 @@ function updateInternalSetting(id, value, type = "text") {
 }
 
 async function loadLongTextSettings() {
-  const response = await fetch("/easyuse_anima/long_text_settings");
-  const data = await response.json().catch(() => ({}));
-  if (!response.ok) {
-    throw new Error(data.message || `HTTP ${response.status}`);
-  }
+  const data = await easyuseAnimaFetchJson("/easyuse_anima/long_text_settings", { fallbackJson: {} });
   const values = data.values || {};
   window.__easyuseAnimaSettings ||= {};
   Object.assign(window.__easyuseAnimaSettings, data.settings || {}, values);
@@ -875,15 +872,7 @@ async function loadLongTextSettings() {
 }
 
 async function saveLongTextSettings(values) {
-  const response = await fetch("/easyuse_anima/long_text_settings/save", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ values }),
-  });
-  const data = await response.json().catch(() => ({}));
-  if (!response.ok) {
-    throw new Error(data.message || `HTTP ${response.status}`);
-  }
+  const data = await easyuseAnimaPostJson("/easyuse_anima/long_text_settings/save", { values }, { fallbackJson: {} });
   window.__easyuseAnimaSettings ||= {};
   Object.assign(window.__easyuseAnimaSettings, data.settings || {}, data.values || {});
   window.dispatchEvent(
@@ -1890,11 +1879,7 @@ const EASYUSE_ANIMA_SETTINGS = [
 
 async function loadInitialSettings() {
   try {
-    const response = await fetch("/easyuse_anima/settings");
-    if (!response.ok) {
-      return {};
-    }
-    return await response.json();
+    return await easyuseAnimaGetSettings();
   } catch {
     return {};
   }

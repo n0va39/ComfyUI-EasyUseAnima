@@ -1,4 +1,5 @@
 import { app } from "../../../scripts/app.js";
+import { easyuseAnimaClassifyPrompt, easyuseAnimaGetSettings } from "./easyuse_anima_api.js";
 import { easyuseAnimaText, easyuseAnimaWatchLocale } from "./easyuse_anima_i18n.js";
 import { normalizePromptTagText } from "./easyuse_anima_prompt_rules.js";
 
@@ -1865,11 +1866,11 @@ function applyPromptStudioSettings(settings) {
 
 async function loadPromptStudioSettings() {
   try {
-    const response = await fetch("/easyuse_anima/settings");
-    if (!response.ok) {
+    const settings = await easyuseAnimaGetSettings({ fallback: null });
+    if (!settings) {
       return;
     }
-    applyPromptStudioSettings(await response.json());
+    applyPromptStudioSettings(settings);
     refreshAllPromptHighlights(true);
     app.graph?.setDirtyCanvas(true, true);
   } catch {
@@ -1878,16 +1879,7 @@ async function loadPromptStudioSettings() {
 }
 
 async function classifyPrompt(text) {
-  const response = await fetch("/easyuse_anima/classify_prompt", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ text, limit: 240 }),
-  });
-  const data = await response.json().catch(() => ({}));
-  if (!response.ok) {
-    throw new Error(data.message || `HTTP ${response.status}`);
-  }
-  return Array.isArray(data.tokens) ? data.tokens : [];
+  return easyuseAnimaClassifyPrompt(text);
 }
 
 function escapeHtml(value) {

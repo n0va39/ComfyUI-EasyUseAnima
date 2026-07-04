@@ -1,5 +1,6 @@
 import { app } from "../../../scripts/app.js";
 import { api } from "../../../scripts/api.js";
+import { easyuseAnimaEncodeRFC3986URIComponent as encodeRFC3986URIComponent, easyuseAnimaFetchJson, easyuseAnimaGetSettings } from "./easyuse_anima_api.js";
 import { easyuseAnimaText, easyuseAnimaWatchLocale } from "./easyuse_anima_i18n.js";
 
 const NODE_TYPE = "EasyUseAnimaLoraPreset";
@@ -243,10 +244,6 @@ function normalizeSerializedWidgets(info) {
   }
 }
 
-function encodeRFC3986URIComponent(value) {
-  return encodeURIComponent(value).replace(/[!'()*]/g, (char) => `%${char.charCodeAt(0).toString(16).toUpperCase()}`);
-}
-
 function createEl(tagName, options = {}) {
   const element = document.createElement(tagName);
   if (options.className) {
@@ -300,9 +297,9 @@ function parseStrengthDragPixels(value) {
 
 async function loadLoraPresetSettings() {
   try {
-    const response = await fetch("/easyuse_anima/settings");
-    if (response.ok) {
-      applyLoraPresetSettings(await response.json());
+    const settings = await easyuseAnimaGetSettings({ fallback: null });
+    if (settings) {
+      applyLoraPresetSettings(settings);
     }
   } catch {
     // Keep built-in defaults when settings are not available yet.
@@ -311,17 +308,7 @@ async function loadLoraPresetSettings() {
 
 async function fetchJson(url, options = {}) {
   const fetcher = typeof api?.fetchApi === "function" ? api.fetchApi.bind(api) : fetch;
-  const response = await fetcher(url, options);
-  let data = null;
-  try {
-    data = await response.json();
-  } catch {
-    data = null;
-  }
-  if (!response.ok) {
-    throw new Error(data?.message || response.statusText || "Request failed");
-  }
-  return data;
+  return easyuseAnimaFetchJson(url, { ...options, fetcher });
 }
 
 function firstValue(value, fallback = null) {
