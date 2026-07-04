@@ -208,6 +208,7 @@ web/js/
     wheel.js
     dom.js
     style.js
+    tooltip.js
     fields.js
     node_hooks.js
 ```
@@ -230,9 +231,10 @@ Planned slices:
 8. `textarea.js`
 9. `wheel.js`
 10. `dom.js` and `style.js`
-11. `fields.js`
-12. `node_hooks.js`
-13. entry file slim-down
+11. `tooltip.js`
+12. `fields.js`
+13. `node_hooks.js`
+14. entry file slim-down
 
 Each PR should mostly move code and update imports. Behavior changes should be
 separate PRs unless the move reveals a confirmed bug that cannot be separated.
@@ -710,6 +712,7 @@ Use this in Issue #14 or follow-up PR tracking comments.
 [ ] wheel.js extracted
 [ ] dom.js extracted
 [ ] style.js extracted
+[ ] tooltip.js extracted
 [ ] fields.js extracted
 [ ] node_hooks.js extracted
 [ ] entry file slimmed down

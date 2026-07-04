@@ -67,6 +67,7 @@ class FrontendModuleStructureTests(unittest.TestCase):
         self.assertIn('./prompt_studio/settings.js"', source)
         self.assertIn('./prompt_studio/style.js"', source)
         self.assertIn('./prompt_studio/text.js"', source)
+        self.assertIn('./prompt_studio/tooltip.js"', source)
         self.assertIn('./prompt_studio/layout.js"', source)
         self.assertIn('./prompt_studio/textarea.js"', source)
         self.assertIn('./prompt_studio/wheel.js"', source)
@@ -101,6 +102,9 @@ class FrontendModuleStructureTests(unittest.TestCase):
             encoding="utf-8"
         )
         text_source = (PROMPT_STUDIO_MODULES / "text.js").read_text(
+            encoding="utf-8"
+        )
+        tooltip_source = (PROMPT_STUDIO_MODULES / "tooltip.js").read_text(
             encoding="utf-8"
         )
         layout_source = (PROMPT_STUDIO_MODULES / "layout.js").read_text(
@@ -222,6 +226,13 @@ class FrontendModuleStructureTests(unittest.TestCase):
                 self.assertIn(f"  {name},", text_source)
 
         for name in (
+            "hideTrainedTagTooltip",
+            "installTrainedTagTooltipListeners",
+        ):
+            with self.subTest(module="tooltip", symbol=name):
+                self.assertIn(f"  {name},", tooltip_source)
+
+        for name in (
             "advancedEditorMinimumHeight",
             "advancedEditorWidgetHeight",
             "advancedMinimumNodeHeight",
@@ -297,7 +308,7 @@ class FrontendModuleStructureTests(unittest.TestCase):
                 self.assertNotIn("fetch(", source)
 
     def test_prompt_studio_dom_module_has_no_registration_or_network_side_effects(self):
-        for filename in ("dom.js", "settings.js", "style.js"):
+        for filename in ("dom.js", "settings.js", "style.js", "tooltip.js"):
             with self.subTest(filename=filename):
                 source = (PROMPT_STUDIO_MODULES / filename).read_text(
                     encoding="utf-8"
