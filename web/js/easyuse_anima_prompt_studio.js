@@ -8,7 +8,6 @@ import {
   DEFAULT_ADVANCED_RESOLUTION_BUCKET,
   DEFAULT_ADVANCED_RESOLUTION_SIZE,
   ADVANCED_WIDGET_INDEX,
-  ADVANCED_FIELDS_PROPERTY,
 } from "./prompt_studio/constants.js";
 import {
   debounce,
@@ -16,7 +15,6 @@ import {
 import {
   normalizeAdvancedResolutionBucket,
   normalizeAdvancedResolutionSize,
-  normalizeAdvancedWidgetQueueValue,
 } from "./prompt_studio/schema.js";
 import {
   getAdvancedEditorElement,
@@ -132,12 +130,13 @@ import {
   syncWidgetValue,
 } from "./prompt_studio/studio_values.js";
 import {
+  applyAdvancedExecutedInputs as applyAdvancedExecutedInputsWithHooks,
+  syncAdvancedValues as syncAdvancedValuesWithHooks,
+} from "./prompt_studio/advanced_values.js";
+import {
   captureAdvancedConfigure,
-  collectAdvancedEditorFields,
   ensureAdvancedWidgetValue,
-  mergeAdvancedFieldInputValues,
   pruneDisconnectedAdvancedFieldInputValues,
-  syncAdvancedFieldsBackup,
 } from "./prompt_studio/serialization.js";
 
 function markNodeDirty(node) {
@@ -164,6 +163,24 @@ function hideAdvancedControlWidgets(node) {
 
 function writeAdvancedFields(node, fields, options = {}) {
   writeAdvancedFieldsWithHooks(node, fields, options, advancedFieldsStateHooks());
+}
+
+function advancedValuesHooks() {
+  return {
+    advancedWidget,
+    parseAdvancedFields,
+    repairAdvancedInternalWidgetValues,
+    renderAdvancedEditor,
+    writeAdvancedFields,
+  };
+}
+
+function syncAdvancedValues(node, serialized = null) {
+  syncAdvancedValuesWithHooks(node, serialized, advancedValuesHooks());
+}
+
+function applyAdvancedExecutedInputs(node, message) {
+  applyAdvancedExecutedInputsWithHooks(node, message, advancedValuesHooks());
 }
 
 function refreshNodeSize(node, options = {}) {
@@ -853,90 +870,6 @@ function scheduleHookAdvancedNode(node) {
     node.__easyuseAnimaAdvancedHookScheduled = false;
     hookAdvancedNode(node);
   });
-}
-
-function syncAdvancedValues(node, serialized = null) {
-  repairAdvancedInternalWidgetValues(node);
-  const fields = collectAdvancedEditorFields(node, getAdvancedFields(node) || parseAdvancedFields(node));
-  writeAdvancedFields(node, fields, { syncInputs: false });
-  if (!serialized || !Array.isArray(node.widgets) || !Array.isArray(serialized.widgets_values)) {
-    return;
-  }
-  const fieldsValue = advancedWidget(node)?.value || JSON.stringify(fields);
-  syncAdvancedFieldsBackup(node, fieldsValue);
-  serialized.properties ||= {};
-  serialized.properties[ADVANCED_FIELDS_PROPERTY] = fieldsValue;
-
-  for (const name of Object.keys(ADVANCED_WIDGET_INDEX)) {
-    const index = ADVANCED_WIDGET_INDEX[name];
-    const widget = findWidget(node, name);
-    if (name !== "advanced_fields" && !widget) {
-      continue;
-    }
-    while (serialized.widgets_values.length <= index) {
-      serialized.widgets_values.push(null);
-    }
-    if (name === "advanced_fields") {
-      serialized.widgets_values[index] = fieldsValue;
-    } else if (widget) {
-      const value = normalizeAdvancedWidgetQueueValue(name, widget.value);
-      widget.value = value;
-      serialized.widgets_values[index] = value;
-    }
-  }
-}
-
-function applyAdvancedExecutedInputs(node, message) {
-  const payload = firstValue(message?.prompt_studio_advanced, null);
-  if (!payload || typeof payload !== "object") {
-    return;
-  }
-  node.__easyuseAnimaAdvancedFieldInputValues =
-    payload.field_inputs && typeof payload.field_inputs === "object" ? payload.field_inputs : {};
-  const widget = advancedWidget(node);
-  if (widget && payload.advanced_fields != null) {
-    widget.value = String(payload.advanced_fields);
-    syncAdvancedFieldsBackup(node, widget.value);
-  }
-  const fields = parseAdvancedFields(node);
-  if (mergeAdvancedFieldInputValues(node, fields, node.__easyuseAnimaAdvancedFieldInputValues)) {
-    writeAdvancedFields(node, fields, { syncInputs: false });
-  } else {
-    setAdvancedFields(node, fields);
-  }
-  const useNaia = findWidget(node, "use_naia");
-  if (useNaia && payload.use_naia != null) {
-    useNaia.value = !!payload.use_naia;
-  }
-  for (const name of ["resolution_bucket", "resolution_size", "resolution_custom_width", "resolution_custom_height"]) {
-    const widget = findWidget(node, name);
-    if (widget && payload[name] != null) {
-      widget.value = payload[name];
-    }
-  }
-  for (const name of ["wildcard_mode", "wildcard_seed", "wildcard_seed_after_generate"]) {
-    const widget = findWidget(node, name);
-    if (widget && payload[name] != null) {
-      widget.value = payload[name];
-    }
-  }
-  for (const name of [
-    "artist_mix_mode",
-    "artist_mix_start_percent",
-    "artist_mix_strength_scale",
-    "artist_mix_style_gain",
-    "artist_mix_rms_scale_cap",
-    "artist_mix_exact_top_k",
-    "artist_mix_cluster_count",
-    "artist_mix_dominant_isolation",
-    "artist_mix_dominant_threshold",
-  ]) {
-    const widget = findWidget(node, name);
-    if (widget && payload[name] != null) {
-      widget.value = payload[name];
-    }
-  }
-  renderAdvancedEditor(node);
 }
 
 function setRegularWidgetValue(node, name, value) {

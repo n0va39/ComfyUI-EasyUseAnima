@@ -64,6 +64,7 @@ class FrontendModuleStructureTests(unittest.TestCase):
         self.assertIn('./prompt_studio/advanced_controls.js"', source)
         self.assertIn('./prompt_studio/advanced_fields_ui.js"', source)
         self.assertIn('./prompt_studio/advanced_fields_state.js"', source)
+        self.assertIn('./prompt_studio/advanced_values.js"', source)
         self.assertIn('./prompt_studio/utils.js"', source)
         self.assertIn('./prompt_studio/schema.js"', source)
         self.assertIn('./prompt_studio/state.js"', source)
@@ -97,6 +98,9 @@ class FrontendModuleStructureTests(unittest.TestCase):
         ).read_text(encoding="utf-8")
         advanced_fields_state_source = (
             PROMPT_STUDIO_MODULES / "advanced_fields_state.js"
+        ).read_text(encoding="utf-8")
+        advanced_values_source = (
+            PROMPT_STUDIO_MODULES / "advanced_values.js"
         ).read_text(encoding="utf-8")
         constants_source = (PROMPT_STUDIO_MODULES / "constants.js").read_text(
             encoding="utf-8"
@@ -206,6 +210,13 @@ class FrontendModuleStructureTests(unittest.TestCase):
         ):
             with self.subTest(module="advanced_fields_state", symbol=name):
                 self.assertIn(f"  {name},", advanced_fields_state_source)
+
+        for name in (
+            "applyAdvancedExecutedInputs",
+            "syncAdvancedValues",
+        ):
+            with self.subTest(module="advanced_values", symbol=name):
+                self.assertIn(f"  {name},", advanced_values_source)
 
         for name in (
             "NODE_TYPE",
@@ -468,6 +479,7 @@ class FrontendModuleStructureTests(unittest.TestCase):
             "schema.js",
             "state.js",
             "advanced_fields_state.js",
+            "advanced_values.js",
             "extend_slots.js",
             "fields.js",
             "legend.js",

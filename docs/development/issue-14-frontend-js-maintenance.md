@@ -200,6 +200,7 @@ web/js/
     advanced_controls.js
     advanced_fields_ui.js
     advanced_fields_state.js
+    advanced_values.js
     utils.js
     settings.js
     text.js
@@ -237,29 +238,30 @@ Planned slices:
 2. `advanced_controls.js`
 3. `advanced_fields_ui.js`
 4. `advanced_fields_state.js`
-5. `settings.js`
-6. `text.js`
-7. `highlight.js`
-8. `schema.js`
-9. `state.js`
-10. `canvas_forwarding.js`
-11. `serialization.js`
-12. `layout.js`
-13. `advanced_layout_controller.js`
-14. `studio_textareas.js`
-15. `studio_values.js`
-16. `textarea.js`
-17. `wheel.js`
-18. `dom.js`
-19. `extend_slots.js`
-20. `extend_slot_controls.js`
-21. `style.js`
-22. `tooltip.js`
-23. `widgets.js`
-24. `legend.js`
-25. `fields.js`
-26. `node_hooks.js`
-27. entry file slim-down
+5. `advanced_values.js`
+6. `settings.js`
+7. `text.js`
+8. `highlight.js`
+9. `schema.js`
+10. `state.js`
+11. `canvas_forwarding.js`
+12. `serialization.js`
+13. `layout.js`
+14. `advanced_layout_controller.js`
+15. `studio_textareas.js`
+16. `studio_values.js`
+17. `textarea.js`
+18. `wheel.js`
+19. `dom.js`
+20. `extend_slots.js`
+21. `extend_slot_controls.js`
+22. `style.js`
+23. `tooltip.js`
+24. `widgets.js`
+25. `legend.js`
+26. `fields.js`
+27. `node_hooks.js`
+28. entry file slim-down
 
 Each PR should mostly move code and update imports. Behavior changes should be
 separate PRs unless the move reveals a confirmed bug that cannot be separated.
@@ -729,6 +731,7 @@ Use this in Issue #14 or follow-up PR tracking comments.
 [ ] advanced_controls.js extracted
 [ ] advanced_fields_ui.js extracted
 [ ] advanced_fields_state.js extracted
+[ ] advanced_values.js extracted
 [ ] utils.js extracted
 [ ] settings.js extracted
 [ ] text.js extracted
