@@ -166,6 +166,7 @@ let popup = null;
 let activeState = null;
 let activeRefreshFrame = null;
 let middlePanForwardActive = false;
+const hookedAutocompleteInputs = new Set();
 window.__easyuseAnimaPendingAutocompleteInputs ||= [];
 
 function clamp(value, min, max) {
@@ -262,6 +263,7 @@ function setAutocompleteMode(value) {
     return;
   }
   autocompleteMode = nextMode;
+  syncAutocompleteInputFlags();
   if (!autocompleteEnabledForState(activeState)) {
     hidePopup();
   }
@@ -301,6 +303,24 @@ function autocompleteEnabledForScope(scope) {
 
 function autocompleteEnabledForState(state) {
   return !!state && autocompleteEnabledForScope(state.scope || "compatible");
+}
+
+function syncAutocompleteInputFlag(input, state = input?.__easyuseAnimaAutocompleteState) {
+  if (!input) {
+    return;
+  }
+  input.__easyuseAnimaAutocomplete = autocompleteEnabledForState(state);
+}
+
+function syncAutocompleteInputFlags() {
+  for (const input of [...hookedAutocompleteInputs]) {
+    const state = input?.__easyuseAnimaAutocompleteState;
+    if (!state) {
+      hookedAutocompleteInputs.delete(input);
+      continue;
+    }
+    syncAutocompleteInputFlag(input, state);
+  }
 }
 
 async function refreshAutocompleteSettings() {
@@ -1593,7 +1613,7 @@ function hookInput(input, options = {}) {
   if (!input) {
     return;
   }
-  if (input.__easyuseAnimaAutocomplete) {
+  if (input.__easyuseAnimaAutocompleteHooked) {
     const existing = input.__easyuseAnimaAutocompleteState;
     if (existing) {
       existing.node = options.node || existing.node || null;
@@ -1601,6 +1621,7 @@ function hookInput(input, options = {}) {
       existing.scope = autocompleteScope(options);
       existing.forceArtistOnly = !!options.forceArtistOnly;
       existing.onCommit = typeof options.onCommit === "function" ? options.onCommit : existing.onCommit;
+      syncAutocompleteInputFlag(input, existing);
     }
     return;
   }
@@ -1764,8 +1785,10 @@ function hookInput(input, options = {}) {
     }
   });
 
-  input.__easyuseAnimaAutocomplete = true;
+  input.__easyuseAnimaAutocompleteHooked = true;
   input.__easyuseAnimaAutocompleteState = state;
+  hookedAutocompleteInputs.add(input);
+  syncAutocompleteInputFlag(input, state);
 }
 
 function hookWidget(node, widget, scope = "compatible") {

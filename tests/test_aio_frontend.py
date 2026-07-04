@@ -66,7 +66,7 @@ class AIOFrontendSourceTests(unittest.TestCase):
         self.assertNotIn("composing || document.activeElement", update_body)
         self.assertIn('input.addEventListener("compositionupdate", update);', source)
 
-        autocomplete_done = source.index("  input.__easyuseAnimaAutocomplete = true;")
+        autocomplete_done = source.index("  input.__easyuseAnimaAutocompleteHooked = true;")
         keydown_start = source.rindex('  input.addEventListener("keydown", (event) => {', 0, autocomplete_done)
         keydown_end = source.index("  });", keydown_start)
         keydown_body = source[keydown_start:keydown_end]
@@ -77,6 +77,35 @@ class AIOFrontendSourceTests(unittest.TestCase):
             keydown_body.index("event.isComposing"),
             keydown_body.index("!activeState"),
         )
+
+    def test_autocomplete_public_flag_tracks_enabled_state(self):
+        source = AUTOCOMPLETE_JS.read_text(encoding="utf-8")
+
+        self.assertIn("const hookedAutocompleteInputs = new Set();", source)
+        self.assertIn("input.__easyuseAnimaAutocompleteHooked", source)
+        self.assertNotIn("if (input.__easyuseAnimaAutocomplete) {", source)
+
+        start = source.index("function syncAutocompleteInputFlag")
+        end = source.index("\nasync function refreshAutocompleteSettings", start)
+        sync_body = source[start:end]
+
+        self.assertIn("input.__easyuseAnimaAutocomplete = autocompleteEnabledForState(state);", sync_body)
+        self.assertIn("hookedAutocompleteInputs.delete(input);", sync_body)
+
+        start = source.index("function setAutocompleteMode")
+        end = source.index("\nfunction isEasyUseAnimaNode", start)
+        mode_body = source[start:end]
+
+        self.assertIn("syncAutocompleteInputFlags();", mode_body)
+
+        start = source.index("function hookInput")
+        end = source.index("\nfunction hookWidget", start)
+        hook_body = source[start:end]
+
+        self.assertIn("if (input.__easyuseAnimaAutocompleteHooked) {", hook_body)
+        self.assertIn("syncAutocompleteInputFlag(input, existing);", hook_body)
+        self.assertIn("hookedAutocompleteInputs.add(input);", hook_body)
+        self.assertIn("syncAutocompleteInputFlag(input, state);", hook_body)
 
     def test_autocomplete_arrow_navigation_keeps_adjacent_items_visible(self):
         source = AUTOCOMPLETE_JS.read_text(encoding="utf-8")
