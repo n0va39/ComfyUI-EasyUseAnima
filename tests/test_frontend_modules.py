@@ -101,6 +101,7 @@ class FrontendModuleStructureTests(unittest.TestCase):
         self.assertIn('./textarea.js"', advanced_fields_ui_source)
         self.assertIn('./wheel.js"', advanced_node_ui_source)
         self.assertIn('./prompt_studio/serialization.js"', source)
+        self.assertIn('./prompt_studio/runtime_canvas.js"', source)
 
     def test_prompt_studio_phase_2_modules_export_expected_symbols(self):
         advanced_controls_source = (
@@ -207,6 +208,9 @@ class FrontendModuleStructureTests(unittest.TestCase):
         )
         serialization_source = (
             PROMPT_STUDIO_MODULES / "serialization.js"
+        ).read_text(encoding="utf-8")
+        runtime_canvas_source = (
+            PROMPT_STUDIO_MODULES / "runtime_canvas.js"
         ).read_text(encoding="utf-8")
 
         for name in (
@@ -559,6 +563,15 @@ class FrontendModuleStructureTests(unittest.TestCase):
             with self.subTest(module="serialization", symbol=name):
                 self.assertIn(f"  {name},", serialization_source)
 
+        for name in (
+            "markCanvasDirty",
+            "markGraphDirty",
+            "markNodeDirty",
+            "refreshNodeSize",
+        ):
+            with self.subTest(module="runtime_canvas", symbol=name):
+                self.assertIn(f"  {name},", runtime_canvas_source)
+
     def test_prompt_studio_phase_2_modules_have_no_runtime_side_effects(self):
         for filename in (
             "constants.js",
@@ -584,6 +597,7 @@ class FrontendModuleStructureTests(unittest.TestCase):
             "textarea.js",
             "wheel.js",
             "serialization.js",
+            "runtime_canvas.js",
         ):
             with self.subTest(filename=filename):
                 source = (PROMPT_STUDIO_MODULES / filename).read_text(

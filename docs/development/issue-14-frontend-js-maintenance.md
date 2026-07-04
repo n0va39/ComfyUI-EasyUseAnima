@@ -226,6 +226,7 @@ web/js/
     state.js
     canvas_forwarding.js
     serialization.js
+    runtime_canvas.js
     layout.js
     advanced_layout_controller.js
     studio_textareas.js
@@ -766,6 +767,7 @@ Use this in Issue #14 or follow-up PR tracking comments.
 [ ] state.js extracted
 [ ] canvas_forwarding.js extracted
 [ ] serialization.js extracted
+[ ] runtime_canvas.js extracted
 [ ] layout.js extracted
 [ ] advanced_layout_controller.js extracted
 [ ] studio_textareas.js extracted

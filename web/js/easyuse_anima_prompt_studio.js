@@ -113,10 +113,15 @@ import {
   captureAdvancedConfigure,
   pruneDisconnectedAdvancedFieldInputValues,
 } from "./prompt_studio/serialization.js";
+import {
+  markCanvasDirty as markCanvasDirtyWithApp,
+  markGraphDirty as markGraphDirtyWithApp,
+  markNodeDirty as markNodeDirtyWithApp,
+  refreshNodeSize as refreshNodeSizeWithApp,
+} from "./prompt_studio/runtime_canvas.js";
 
 function markNodeDirty(node) {
-  node?.setDirtyCanvas?.(true, true);
-  app.graph?.setDirtyCanvas?.(true, true);
+  markNodeDirtyWithApp(app, node);
 }
 
 function advancedFieldsStateHooks() {
@@ -163,23 +168,7 @@ function applyWildcardExecutedInputs(node, message) {
 }
 
 function refreshNodeSize(node, options = {}) {
-  const update = () => {
-    const size = node.computeSize();
-    const width = Math.max(size[0], node.size?.[0] || size[0]);
-    const height = Math.max(size[1], 80);
-    if (
-      Math.abs(width - (node.size?.[0] || 0)) > 1
-      || Math.abs(height - (node.size?.[1] || 0)) > 1
-    ) {
-      node.setSize?.([width, height]);
-    }
-    app.graph.setDirtyCanvas(true, true);
-  };
-  if (options.immediate) {
-    update();
-  } else {
-    requestAnimationFrame(update);
-  }
+  refreshNodeSizeWithApp(app, node, options);
 }
 
 function studioTextareaHooks() {
@@ -229,8 +218,7 @@ function applyExecutedInputs(node, message) {
 }
 
 function markCanvasDirty() {
-  app.graph?.setDirtyCanvas(true, true);
-  app.canvas?.setDirty?.(true, true);
+  markCanvasDirtyWithApp(app);
 }
 
 function extendLayoutHooks() {
@@ -264,7 +252,7 @@ function promptHighlightHooks() {
 }
 
 function markGraphDirty() {
-  app.graph?.setDirtyCanvas?.(true, true);
+  markGraphDirtyWithApp(app);
 }
 
 function advancedLayoutControllerHooks() {
