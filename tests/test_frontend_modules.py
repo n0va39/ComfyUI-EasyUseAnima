@@ -63,6 +63,7 @@ class FrontendModuleStructureTests(unittest.TestCase):
         self.assertIn('./prompt_studio/state.js"', source)
         self.assertIn('./prompt_studio/layout.js"', source)
         self.assertIn('./prompt_studio/textarea.js"', source)
+        self.assertIn('./prompt_studio/wheel.js"', source)
         self.assertIn('./prompt_studio/serialization.js"', source)
 
     def test_prompt_studio_phase_2_modules_export_expected_symbols(self):
@@ -82,6 +83,9 @@ class FrontendModuleStructureTests(unittest.TestCase):
             encoding="utf-8"
         )
         textarea_source = (PROMPT_STUDIO_MODULES / "textarea.js").read_text(
+            encoding="utf-8"
+        )
+        wheel_source = (PROMPT_STUDIO_MODULES / "wheel.js").read_text(
             encoding="utf-8"
         )
         serialization_source = (
@@ -158,6 +162,16 @@ class FrontendModuleStructureTests(unittest.TestCase):
                 self.assertIn(f"  {name},", textarea_source)
 
         for name in (
+            "advancedEditorMaxScrollTop",
+            "canAdvancedEditorScrollWheelDelta",
+            "guardAdvancedEditorNativeControlEvent",
+            "isMiddlePanExcludedTarget",
+            "shouldKeepAdvancedWheelEvent",
+        ):
+            with self.subTest(module="wheel", symbol=name):
+                self.assertIn(f"  {name},", wheel_source)
+
+        for name in (
             "advancedFieldDisplayText",
             "advancedFieldInputLinked",
             "advancedFieldsBackup",
@@ -183,6 +197,7 @@ class FrontendModuleStructureTests(unittest.TestCase):
             "state.js",
             "layout.js",
             "textarea.js",
+            "wheel.js",
             "serialization.js",
         ):
             with self.subTest(filename=filename):

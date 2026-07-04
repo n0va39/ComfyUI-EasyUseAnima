@@ -35,7 +35,6 @@ import {
   INLINE_SPACE_RE,
   HIGHLIGHT_TEXT_METRIC_PROPERTIES,
   AUTOCOMPLETE_TOOLTIP_SECTIONS,
-  ADVANCED_NATIVE_CONTROL_SELECTOR,
   ADVANCED_NATIVE_CONTROL_EVENTS,
   ADVANCED_CONTROL_WIDGETS,
   ADVANCED_WILDCARD_MODES,
@@ -100,6 +99,12 @@ import {
   rememberAdvancedTextareaResizeStart,
   syncAdvancedTextareaLinkedInputValue,
 } from "./prompt_studio/textarea.js";
+import {
+  canAdvancedEditorScrollWheelDelta,
+  guardAdvancedEditorNativeControlEvent,
+  isMiddlePanExcludedTarget,
+  shouldKeepAdvancedWheelEvent,
+} from "./prompt_studio/wheel.js";
 import {
   advancedFieldDisplayText,
   advancedFieldInputLinked,
@@ -4325,35 +4330,6 @@ function isCanvasAreaEvent(event) {
   );
 }
 
-function isMiddlePanExcludedTarget(target) {
-  if (!(target instanceof Element)) {
-    return false;
-  }
-  return isAdvancedNativeControlTarget(target) || !!target.closest([
-    ".comfy-menu",
-    ".comfy-modal",
-    ".comfyui-menu",
-    ".comfyui-settings",
-    ".litegraph.litemenu",
-    ".easyuse-anima-autocomplete",
-    ".easyuse-anima-lora-menu",
-  ].join(","));
-}
-
-function isAdvancedNativeControlTarget(target) {
-  if (!(target instanceof Element)) {
-    return false;
-  }
-  return !!target.closest(".easyuse-anima-advanced-editor")
-    && !!target.closest(ADVANCED_NATIVE_CONTROL_SELECTOR);
-}
-
-function guardAdvancedEditorNativeControlEvent(event) {
-  if (isAdvancedNativeControlTarget(event.target)) {
-    event.stopPropagation();
-  }
-}
-
 function shouldForwardMiddlePan(event) {
   return (
     !event.__easyuseAnimaForwarded
@@ -4409,36 +4385,6 @@ function startCanvasPanFromDom(event) {
   document.addEventListener("mousemove", move, true);
   document.addEventListener("mouseup", stop, true);
   return true;
-}
-
-function advancedEditorMaxScrollTop(editor) {
-  if (!(editor instanceof HTMLElement)) {
-    return 0;
-  }
-  return Math.max(0, editor.scrollHeight - editor.clientHeight);
-}
-
-function canAdvancedEditorScroll(editor) {
-  return advancedEditorMaxScrollTop(editor) > 1;
-}
-
-function canAdvancedEditorScrollWheelDelta(editor, deltaY) {
-  const maxScrollTop = advancedEditorMaxScrollTop(editor);
-  if (maxScrollTop <= 1) {
-    return false;
-  }
-  return (deltaY < 0 && editor.scrollTop > 0) || (deltaY > 0 && editor.scrollTop < maxScrollTop - 1);
-}
-
-function shouldKeepAdvancedWheelEvent(event, editor) {
-  if (!canAdvancedEditorScroll(editor)) {
-    return false;
-  }
-  const target = event?.target;
-  if (!(target instanceof Element)) {
-    return false;
-  }
-  return !!target.closest("textarea, input, select");
 }
 
 function forwardAdvancedWheelToCanvas(event) {
