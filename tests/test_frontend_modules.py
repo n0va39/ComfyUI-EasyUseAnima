@@ -62,6 +62,7 @@ class FrontendModuleStructureTests(unittest.TestCase):
         self.assertIn('./prompt_studio/schema.js"', source)
         self.assertIn('./prompt_studio/state.js"', source)
         self.assertIn('./prompt_studio/layout.js"', source)
+        self.assertIn('./prompt_studio/textarea.js"', source)
         self.assertIn('./prompt_studio/serialization.js"', source)
 
     def test_prompt_studio_phase_2_modules_export_expected_symbols(self):
@@ -78,6 +79,9 @@ class FrontendModuleStructureTests(unittest.TestCase):
             encoding="utf-8"
         )
         layout_source = (PROMPT_STUDIO_MODULES / "layout.js").read_text(
+            encoding="utf-8"
+        )
+        textarea_source = (PROMPT_STUDIO_MODULES / "textarea.js").read_text(
             encoding="utf-8"
         )
         serialization_source = (
@@ -144,6 +148,16 @@ class FrontendModuleStructureTests(unittest.TestCase):
                 self.assertIn(f"  {name},", layout_source)
 
         for name in (
+            "advancedFieldTextareaPlaceholder",
+            "advancedFieldTextareaTitle",
+            "captureAdvancedTextareaManualResize",
+            "rememberAdvancedTextareaResizeStart",
+            "syncAdvancedTextareaLinkedInputValue",
+        ):
+            with self.subTest(module="textarea", symbol=name):
+                self.assertIn(f"  {name},", textarea_source)
+
+        for name in (
             "advancedFieldDisplayText",
             "advancedFieldInputLinked",
             "advancedFieldsBackup",
@@ -168,6 +182,7 @@ class FrontendModuleStructureTests(unittest.TestCase):
             "schema.js",
             "state.js",
             "layout.js",
+            "textarea.js",
             "serialization.js",
         ):
             with self.subTest(filename=filename):

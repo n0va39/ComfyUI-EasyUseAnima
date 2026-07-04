@@ -94,6 +94,13 @@ import {
   updateAdvancedEditorWidth,
 } from "./prompt_studio/layout.js";
 import {
+  advancedFieldTextareaPlaceholder,
+  advancedFieldTextareaTitle,
+  captureAdvancedTextareaManualResize,
+  rememberAdvancedTextareaResizeStart,
+  syncAdvancedTextareaLinkedInputValue,
+} from "./prompt_studio/textarea.js";
+import {
   advancedFieldDisplayText,
   advancedFieldInputLinked,
   advancedFieldsBackup,
@@ -4579,17 +4586,10 @@ function createAdvancedFieldElement(node, field) {
   textarea.value = advancedFieldDisplayText(node, field);
   textarea.style.height = `${field.height || 72}px`;
   textarea.style.overflowY = "hidden";
-  textarea.placeholder = field.type === "naia"
-    ? psText("advanced.placeholder.naia")
-    : field.type === "trigger" ? psText("advanced.placeholder.trigger")
-    : field.type === "artist" ? psText("advanced.placeholder.artist") : psText("advanced.placeholder.general");
+  textarea.placeholder = advancedFieldTextareaPlaceholder(field, psText);
   textarea.readOnly = false;
   textarea.classList.toggle("is-linked", linked);
-  textarea.title = field.type === "naia"
-    ? psText("advanced.title.naia")
-    : field.type === "trigger"
-      ? psText("advanced.title.trigger")
-    : linked ? psText("advanced.title.linked") : "";
+  textarea.title = advancedFieldTextareaTitle(field, linked, psText);
   textarea.dataset.easyuseAnimaAdvancedFieldId = field.id;
   const updateFieldHighlight = debounce(() => {
     scheduleAdvancedFieldHighlight(node, field, textarea);
@@ -4623,14 +4623,10 @@ function createAdvancedFieldElement(node, field) {
     field.heightMode = "auto";
     persistTextareaHeight(height, "auto");
   };
-  const rememberTextareaResizeStart = () => {
-    textarea.__easyuseAnimaAdvancedResizeStartHeight = advancedTextareaCurrentHeight(textarea);
-  };
+  const rememberTextareaResizeStart = () => rememberAdvancedTextareaResizeStart(textarea);
   const captureTextareaManualResize = () => {
-    const startHeight = Number(textarea.__easyuseAnimaAdvancedResizeStartHeight || 0);
-    const currentHeight = advancedTextareaCurrentHeight(textarea);
-    textarea.__easyuseAnimaAdvancedResizeStartHeight = currentHeight;
-    if (Math.abs(currentHeight - startHeight) <= 2) {
+    const { changed, currentHeight } = captureAdvancedTextareaManualResize(textarea);
+    if (!changed) {
       updateAdvancedFieldHighlight(node, field, textarea);
       return;
     }
@@ -4641,10 +4637,7 @@ function createAdvancedFieldElement(node, field) {
   textarea.addEventListener("mouseup", captureTextareaManualResize);
   textarea.addEventListener("pointerup", captureTextareaManualResize);
   textarea.addEventListener("input", () => {
-    if (linked) {
-      node.__easyuseAnimaAdvancedFieldInputValues ||= {};
-      node.__easyuseAnimaAdvancedFieldInputValues[inputName] = textarea.value;
-    }
+    syncAdvancedTextareaLinkedInputValue(node, inputName, textarea.value, linked);
     field.text = textarea.value;
     updateFieldHighlight();
     syncHeight();
