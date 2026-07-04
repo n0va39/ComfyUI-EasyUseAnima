@@ -230,6 +230,7 @@ const ARTIST_MIX_GROUP_HIGHLIGHT_RE = /\[\[[\s\S]*?(?::[-+]?(?:\d+(?:\.\d*)?|\.\
 const INLINE_SPACE_RE = /[ \t]+/g;
 const PROMPT_STUDIO_COMMON_SETTINGS = {
   weightSyntaxUnderline: false,
+  trainedTagTooltip: true,
 };
 const AUTOCOMPLETE_TOOLTIP_SECTIONS = new Set([
   "quality",
@@ -917,6 +918,10 @@ function updatePromptStudioTrainedTagTooltipMove(input, clientX, clientY) {
 }
 
 function handlePromptStudioTrainedTagTooltipMove(input, event) {
+  if (!PROMPT_STUDIO_COMMON_SETTINGS.trainedTagTooltip) {
+    hidePromptStudioTrainedTagTooltip();
+    return;
+  }
   promptStudioCommonTagTooltipPendingMove = {
     input,
     clientX: event.clientX,
@@ -971,9 +976,47 @@ export function debounce(fn, delay = 180) {
   };
 }
 
+function isHexColor(value) {
+  return /^#[0-9a-f]{6}$/i.test(String(value || ""));
+}
+
+function hexToRgba(value, alpha) {
+  if (!isHexColor(value)) {
+    return "transparent";
+  }
+  const red = Number.parseInt(value.slice(1, 3), 16);
+  const green = Number.parseInt(value.slice(3, 5), 16);
+  const blue = Number.parseInt(value.slice(5, 7), 16);
+  return `rgba(${red}, ${green}, ${blue}, ${alpha})`;
+}
+
+function parseColorSettings(value) {
+  try {
+    const parsed = JSON.parse(value || "{}");
+    return parsed && typeof parsed === "object" ? parsed : {};
+  } catch {
+    return {};
+  }
+}
+
 function applyPromptStudioCommonSettings(settings) {
   PROMPT_STUDIO_COMMON_SETTINGS.weightSyntaxUnderline =
     settings?.["prompt_studio.weight_syntax_underline"] === "true";
+  PROMPT_STUDIO_COMMON_SETTINGS.trainedTagTooltip =
+    settings?.["prompt_studio.trained_tag_tooltip"] !== "false";
+  if (!PROMPT_STUDIO_COMMON_SETTINGS.trainedTagTooltip) {
+    hidePromptStudioTrainedTagTooltip();
+  }
+  const colors = parseColorSettings(settings?.["prompt_studio.colors"]);
+  for (const [key, color] of Object.entries(colors)) {
+    if (!SECTION_STYLES[key] || !isHexColor(color)) {
+      continue;
+    }
+    SECTION_STYLES[key].color = color;
+    if (SECTION_STYLES[key].background && SECTION_STYLES[key].background !== "transparent") {
+      SECTION_STYLES[key].background = hexToRgba(color, 0.18);
+    }
+  }
 }
 
 function refreshPromptStudioCommonHighlightInputs() {
@@ -987,6 +1030,7 @@ async function loadPromptStudioCommonSettings() {
     const response = await fetch("/easyuse_anima/settings");
     if (response.ok) {
       applyPromptStudioCommonSettings(await response.json());
+      refreshPromptStudioCommonHighlightInputs();
     }
   } catch {
     // Keep defaults when the settings endpoint is not available.
@@ -1176,6 +1220,9 @@ function tokenTitle(token) {
 }
 
 function trainedTagTooltipEntry(text, token) {
+  if (!PROMPT_STUDIO_COMMON_SETTINGS.trainedTagTooltip) {
+    return null;
+  }
   const section = String(token?.section || "");
   if (!AUTOCOMPLETE_TOOLTIP_SECTIONS.has(section) || !token?.learned) {
     return null;
