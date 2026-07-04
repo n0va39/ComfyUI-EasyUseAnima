@@ -7,10 +7,12 @@ import {
 } from "./constants.js";
 import {
   advancedDefaultFieldsValue,
+  normalizeAdvancedField,
   normalizeAdvancedFieldsValue,
 } from "./schema.js";
 import {
   clearPendingAdvancedFieldsValue,
+  getAdvancedEditorElement,
   getPendingAdvancedFieldsValue,
   setPendingAdvancedFieldsValue,
 } from "./state.js";
@@ -76,9 +78,34 @@ function ensureAdvancedWidgetValue(node, widget = null) {
   }
 }
 
+function collectAdvancedEditorFields(node, sourceFields) {
+  const fields = (sourceFields || [])
+    .map((field, index) => normalizeAdvancedField(field, index));
+  const editor = getAdvancedEditorElement(node);
+  if (!editor) {
+    return fields;
+  }
+
+  const byId = new Map(fields.map((field) => [field.id, field]));
+  editor.querySelectorAll("textarea[data-easyuse-anima-advanced-field-id]").forEach((textarea) => {
+    const id = textarea.dataset.easyuseAnimaAdvancedFieldId;
+    const field = byId.get(id);
+    if (!field) {
+      return;
+    }
+    field.text = textarea.value;
+    const height = Number.parseInt(textarea.style.height || "", 10);
+    if (Number.isFinite(height) && height > 0) {
+      field.height = Math.max(42, height);
+    }
+  });
+  return fields;
+}
+
 export {
   advancedFieldsBackup,
   captureAdvancedConfigure,
+  collectAdvancedEditorFields,
   ensureAdvancedWidgetValue,
   serializedAdvancedFieldsValue,
   syncAdvancedFieldsBackup,

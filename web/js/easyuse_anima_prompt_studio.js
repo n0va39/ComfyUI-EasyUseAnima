@@ -89,6 +89,7 @@ import {
 import {
   advancedFieldsBackup,
   captureAdvancedConfigure,
+  collectAdvancedEditorFields,
   ensureAdvancedWidgetValue,
   syncAdvancedFieldsBackup,
 } from "./prompt_studio/serialization.js";
@@ -3165,30 +3166,6 @@ function parseAdvancedFields(node) {
   return advancedDefaultFields();
 }
 
-function collectAdvancedEditorFields(node) {
-  const fields = (getAdvancedFields(node) || parseAdvancedFields(node))
-    .map((field, index) => normalizeAdvancedField(field, index));
-  const editor = getAdvancedEditorElement(node);
-  if (!editor) {
-    return fields;
-  }
-
-  const byId = new Map(fields.map((field) => [field.id, field]));
-  editor.querySelectorAll("textarea[data-easyuse-anima-advanced-field-id]").forEach((textarea) => {
-    const id = textarea.dataset.easyuseAnimaAdvancedFieldId;
-    const field = byId.get(id);
-    if (!field) {
-      return;
-    }
-    field.text = textarea.value;
-    const height = Number.parseInt(textarea.style.height || "", 10);
-    if (Number.isFinite(height) && height > 0) {
-      field.height = Math.max(42, height);
-    }
-  });
-  return fields;
-}
-
 function writeAdvancedFields(node, fields, { render = false, syncInputs = true } = {}) {
   const widget = advancedWidget(node);
   if (!widget) {
@@ -5187,7 +5164,7 @@ function scheduleHookAdvancedNode(node) {
 
 function syncAdvancedValues(node, serialized = null) {
   repairAdvancedInternalWidgetValues(node);
-  const fields = collectAdvancedEditorFields(node);
+  const fields = collectAdvancedEditorFields(node, getAdvancedFields(node) || parseAdvancedFields(node));
   writeAdvancedFields(node, fields, { syncInputs: false });
   if (!serialized || !Array.isArray(node.widgets) || !Array.isArray(serialized.widgets_values)) {
     return;

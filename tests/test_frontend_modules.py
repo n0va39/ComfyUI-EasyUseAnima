@@ -129,6 +129,7 @@ class FrontendModuleStructureTests(unittest.TestCase):
         for name in (
             "advancedFieldsBackup",
             "captureAdvancedConfigure",
+            "collectAdvancedEditorFields",
             "ensureAdvancedWidgetValue",
             "serializedAdvancedFieldsValue",
             "syncAdvancedFieldsBackup",
