@@ -62,6 +62,7 @@ class FrontendModuleStructureTests(unittest.TestCase):
         self.assertIn('./prompt_studio/schema.js"', source)
         self.assertIn('./prompt_studio/state.js"', source)
         self.assertIn('./prompt_studio/dom.js"', source)
+        self.assertIn('./prompt_studio/style.js"', source)
         self.assertIn('./prompt_studio/layout.js"', source)
         self.assertIn('./prompt_studio/textarea.js"', source)
         self.assertIn('./prompt_studio/wheel.js"', source)
@@ -81,6 +82,9 @@ class FrontendModuleStructureTests(unittest.TestCase):
             encoding="utf-8"
         )
         dom_source = (PROMPT_STUDIO_MODULES / "dom.js").read_text(
+            encoding="utf-8"
+        )
+        style_source = (PROMPT_STUDIO_MODULES / "style.js").read_text(
             encoding="utf-8"
         )
         layout_source = (PROMPT_STUDIO_MODULES / "layout.js").read_text(
@@ -151,6 +155,10 @@ class FrontendModuleStructureTests(unittest.TestCase):
         ):
             with self.subTest(module="dom", symbol=name):
                 self.assertIn(f"  {name},", dom_source)
+
+        for name in ("ensureAdvancedStyle",):
+            with self.subTest(module="style", symbol=name):
+                self.assertIn(f"  {name},", style_source)
 
         for name in (
             "advancedEditorMinimumHeight",
@@ -224,10 +232,14 @@ class FrontendModuleStructureTests(unittest.TestCase):
                 self.assertNotIn("fetch(", source)
 
     def test_prompt_studio_dom_module_has_no_registration_or_network_side_effects(self):
-        source = (PROMPT_STUDIO_MODULES / "dom.js").read_text(encoding="utf-8")
+        for filename in ("dom.js", "style.js"):
+            with self.subTest(filename=filename):
+                source = (PROMPT_STUDIO_MODULES / filename).read_text(
+                    encoding="utf-8"
+                )
 
-        self.assertNotIn("app.registerExtension", source)
-        self.assertNotIn("fetch(", source)
+                self.assertNotIn("app.registerExtension", source)
+                self.assertNotIn("fetch(", source)
 
 
 if __name__ == "__main__":
