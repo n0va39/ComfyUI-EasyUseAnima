@@ -7,7 +7,6 @@ import {
   EXTEND_FIELD_NAMES,
   EXTEND_VISIBLE_SLOTS_PROPERTY,
   EXTEND_ACTIVE_SLOTS_WIDGET,
-  EXTEND_SLOT_GROUPS,
   FIELD_HEIGHTS,
   EXTEND_FIELD_HEIGHTS,
   SECTION_STYLES,
@@ -78,11 +77,15 @@ import {
 } from "./prompt_studio/legend.js";
 import {
   applyExtendSlotVisibility,
-  extendSlotShouldShow,
   extendVisibleSlots,
   parseExtendSlots,
   writeExtendVisibleSlots,
 } from "./prompt_studio/extend_slots.js";
+import {
+  ensureExtendSlotControls as ensureExtendSlotControlsWithHooks,
+  refreshExtendSlotControlsSize,
+  renderExtendSlotControls as renderExtendSlotControlsWithHooks,
+} from "./prompt_studio/extend_slot_controls.js";
 import {
   advancedPaneFields,
   hasAdvancedNaia,
@@ -98,7 +101,6 @@ import {
 } from "./prompt_studio/node_hooks.js";
 import {
   ensureAdvancedStyle,
-  ensureExtendSlotStyle,
   ensureHighlightStyle,
 } from "./prompt_studio/style.js";
 import {
@@ -108,7 +110,6 @@ import {
   loadPromptStudioSettings,
 } from "./prompt_studio/settings.js";
 import {
-  psFormat,
   psText,
   sectionLabel,
 } from "./prompt_studio/text.js";
@@ -1368,159 +1369,22 @@ function studioFieldNames(node) {
   return isExtendNode(node) ? EXTEND_FIELD_NAMES : FIELD_NAMES;
 }
 
-function measureExtendSlotControlsHeight(node) {
-  const container = node.__easyuseAnimaExtendSlotControlsEl;
-  if (!container) {
-    return 30;
-  }
-  return Math.max(
-    30,
-    Math.ceil(
-      Number(container.scrollHeight)
-      || Number(container.getBoundingClientRect?.().height)
-      || 0,
-    ) + 4,
-  );
-}
-
-function refreshExtendSlotControlsSize(node) {
-  const widget = findWidget(node, "easyuse_anima_extend_slot_controls");
-  if (widget) {
-    widget.__height = measureExtendSlotControlsHeight(node);
-  }
-}
-
-function refreshExtendLayoutAfterSlotChange(node) {
-  refreshExtendSlotControlsSize(node);
-  for (const widget of visibleStudioWidgets(node)) {
-    expandStudioInputToContent(node, widget);
-  }
-  layoutExtendPromptWidgets(node);
-  refreshNodeSize(node, { immediate: true });
-  requestAnimationFrame(() => {
-    refreshExtendSlotControlsSize(node);
-    for (const widget of visibleStudioWidgets(node)) {
-      expandStudioInputToContent(node, widget);
-    }
-    layoutExtendPromptWidgets(node);
-    refreshNodeSize(node, { immediate: true });
-  });
-}
-
-function addNextExtendSlot(node, group) {
-  const visible = extendVisibleSlots(node);
-  const next = group.fields.find((fieldName) => !extendSlotShouldShow(node, fieldName));
-  if (!next) {
-    return;
-  }
-  visible.add(next);
-  writeExtendVisibleSlots(node, visible);
-  applyExtendSlotVisibility(node);
-  renderExtendSlotControls(node);
-  refreshExtendLayoutAfterSlotChange(node);
-}
-
-function hideExtendSlot(node, fieldName) {
-  if (!EXTEND_FIELD_NAMES.includes(fieldName) || isWidgetInputLinked(node, fieldName)) {
-    return;
-  }
-  const visible = extendVisibleSlots(node);
-  visible.delete(fieldName);
-  writeExtendVisibleSlots(node, visible);
-  applyExtendSlotVisibility(node);
-  renderExtendSlotControls(node);
-  refreshExtendLayoutAfterSlotChange(node);
-}
-
-function extendSlotShortLabel(fieldName) {
-  if (fieldName === "naia_prompt_3") {
-    return "NAIA3";
-  }
-  const match = /_(\d+)$/.exec(fieldName);
-  const index = match?.[1] || "";
-  if (fieldName.startsWith("quality_")) {
-    return `Q${index}`;
-  }
-  if (fieldName.startsWith("general_")) {
-    return `G${index}`;
-  }
-  if (fieldName.startsWith("trailing_")) {
-    return `T${index}`;
-  }
-  if (fieldName.startsWith("negative_")) {
-    return `N${index}`;
-  }
-  return fieldName;
-}
-
-function extendSlotGroupLabel(group) {
-  return group?.labelKey ? psText(group.labelKey) : String(group?.label || "");
+function extendSlotControlHooks() {
+  return {
+    expandStudioInputToContent,
+    isExtendNode,
+    layoutExtendPromptWidgets,
+    refreshNodeSize,
+    visibleStudioWidgets,
+  };
 }
 
 function renderExtendSlotControls(node) {
-  const container = node.__easyuseAnimaExtendSlotControlsEl;
-  if (!container) {
-    return;
-  }
-  container.innerHTML = "";
-  const row = document.createElement("div");
-  row.className = "easyuse-anima-extend-slot-row";
-  for (const group of EXTEND_SLOT_GROUPS) {
-    const shown = group.fields.filter((fieldName) => extendSlotShouldShow(node, fieldName)).length;
-    const next = group.fields.find((fieldName) => !extendSlotShouldShow(node, fieldName));
-    const button = document.createElement("button");
-    button.type = "button";
-    button.textContent = `+ ${extendSlotGroupLabel(group)} ${shown}/${group.fields.length}`;
-    button.disabled = !next;
-    button.title = next ? psFormat("extend.showSlotTitle", { name: next }) : psText("extend.noHiddenSlots");
-    button.addEventListener("click", (event) => {
-      event.preventDefault();
-      event.stopPropagation();
-      addNextExtendSlot(node, group);
-    });
-    row.append(button);
-  }
-  container.append(row);
-
-  const visibleFields = EXTEND_SLOT_GROUPS
-    .flatMap((group) => group.fields)
-    .filter((fieldName) => extendSlotShouldShow(node, fieldName) && !isWidgetInputLinked(node, fieldName));
-  if (visibleFields.length) {
-    const hideRow = document.createElement("div");
-    hideRow.className = "easyuse-anima-extend-slot-row easyuse-anima-extend-slot-hide-row";
-    for (const fieldName of visibleFields) {
-      const button = document.createElement("button");
-      button.type = "button";
-      button.textContent = psFormat("extend.hideSlot", { slot: extendSlotShortLabel(fieldName) });
-      button.title = psFormat("extend.hideSlotTitle", { name: fieldName });
-      button.addEventListener("click", (event) => {
-        event.preventDefault();
-        event.stopPropagation();
-        hideExtendSlot(node, fieldName);
-      });
-      hideRow.append(button);
-    }
-    container.append(hideRow);
-  }
-  refreshExtendSlotControlsSize(node);
+  renderExtendSlotControlsWithHooks(node, extendSlotControlHooks());
 }
 
 function ensureExtendSlotControls(node) {
-  if (!isExtendNode(node)) {
-    return;
-  }
-  ensureExtendSlotStyle();
-  if (!node.__easyuseAnimaExtendSlotControlsEl) {
-    const container = document.createElement("div");
-    container.className = "easyuse-anima-extend-slots";
-    node.__easyuseAnimaExtendSlotControlsEl = container;
-    node.addDOMWidget?.("easyuse_anima_extend_slot_controls", "EasyUseAnimaExtendSlotControls", container, {
-      serialize: false,
-      hideOnZoom: false,
-      getMinHeight: () => measureExtendSlotControlsHeight(node),
-    });
-  }
-  renderExtendSlotControls(node);
+  ensureExtendSlotControlsWithHooks(node, extendSlotControlHooks());
 }
 
 function studioDefaultHeight(widget) {

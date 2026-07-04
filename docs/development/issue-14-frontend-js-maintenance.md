@@ -209,6 +209,7 @@ web/js/
     wheel.js
     dom.js
     extend_slots.js
+    extend_slot_controls.js
     style.js
     tooltip.js
     widgets.js
@@ -237,13 +238,14 @@ Planned slices:
 10. `wheel.js`
 11. `dom.js`
 12. `extend_slots.js`
-13. `style.js`
-14. `tooltip.js`
-15. `widgets.js`
-16. `legend.js`
-17. `fields.js`
-18. `node_hooks.js`
-19. entry file slim-down
+13. `extend_slot_controls.js`
+14. `style.js`
+15. `tooltip.js`
+16. `widgets.js`
+17. `legend.js`
+18. `fields.js`
+19. `node_hooks.js`
+20. entry file slim-down
 
 Each PR should mostly move code and update imports. Behavior changes should be
 separate PRs unless the move reveals a confirmed bug that cannot be separated.
@@ -722,6 +724,7 @@ Use this in Issue #14 or follow-up PR tracking comments.
 [ ] wheel.js extracted
 [ ] dom.js extracted
 [ ] extend_slots.js extracted
+[ ] extend_slot_controls.js extracted
 [ ] style.js extracted
 [ ] tooltip.js extracted
 [ ] widgets.js extracted
