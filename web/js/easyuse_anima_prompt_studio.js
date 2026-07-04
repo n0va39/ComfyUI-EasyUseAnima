@@ -50,7 +50,6 @@ import {
   ADVANCED_WIDGET_INDEX,
   ADVANCED_INTERNAL_WIDGET_NAMES,
   ADVANCED_FIELDS_PROPERTY,
-  ADVANCED_FIELD_SOCKET_PREFIX,
   ADVANCED_EDITOR_MIN_VIEWPORT_HEIGHT,
   ADVANCED_EDITOR_MAX_AUTO_VIEWPORT_HEIGHT,
   ADVANCED_FIELD_LABELS,
@@ -87,10 +86,15 @@ import {
   setHiddenWidget,
 } from "./prompt_studio/state.js";
 import {
+  advancedFieldDisplayText,
+  advancedFieldInputLinked,
   advancedFieldsBackup,
   captureAdvancedConfigure,
   collectAdvancedEditorFields,
   ensureAdvancedWidgetValue,
+  mergeAdvancedFieldInputValues,
+  pruneDisconnectedAdvancedFieldInputValues,
+  syncAdvancedFieldInputs,
   syncAdvancedFieldsBackup,
 } from "./prompt_studio/serialization.js";
 
@@ -3175,7 +3179,7 @@ function writeAdvancedFields(node, fields, { render = false, syncInputs = true }
   syncAdvancedFieldsBackup(node, widget.value);
   setAdvancedFields(node, fields);
   if (syncInputs) {
-    syncAdvancedFieldInputs(node, fields);
+    syncAdvancedFieldInputs(node, fields, { graph: app.graph, fieldLabel: advancedFieldLabel });
   }
   node.setDirtyCanvas?.(true, true);
   app.graph?.setDirtyCanvas?.(true, true);
@@ -3208,152 +3212,6 @@ function applyAdvancedNaiaGeneralAutoToggle(node, fields) {
     }
   }
   return changed;
-}
-
-function advancedFieldIndexLabel(fields, field) {
-  const paneFields = (fields || []).filter((item) => item.pane === field.pane);
-  const paneIndex = paneFields.findIndex((item) => item.id === field.id);
-  const number = Math.max(0, paneIndex) + 1;
-  return field.pane === "negative" ? `neg${number}` : `${number}`;
-}
-
-function isAdvancedFieldInput(input) {
-  return !!input?.__easyuseAnimaAdvancedFieldInput
-    || String(input?.name || "").startsWith(ADVANCED_FIELD_SOCKET_PREFIX);
-}
-
-function updateNodeInputLinkSlots(node) {
-  if (!node?.inputs || !app.graph?.links) {
-    return;
-  }
-  const expectedLinks = new Set();
-  node.inputs.forEach((input, index) => {
-    if (input?.link == null) {
-      return;
-    }
-    const link = app.graph.links[input.link];
-    if (link) {
-      expectedLinks.add(Number(input.link));
-      link.target_id = node.id;
-      link.target_slot = index;
-    }
-  });
-
-  for (const [rawLinkId, link] of Object.entries(app.graph.links)) {
-    const linkId = Number(rawLinkId);
-    if (!link || Number(link.target_id) !== Number(node.id)) {
-      continue;
-    }
-    const targetInput = node.inputs?.[link.target_slot];
-    if (targetInput?.link === linkId) {
-      continue;
-    }
-    const originNode = app.graph.getNodeById?.(link.origin_id);
-    const originOutput = originNode?.outputs?.[link.origin_slot];
-    if (Array.isArray(originOutput?.links)) {
-      originOutput.links = originOutput.links.filter((id) => Number(id) !== linkId);
-    }
-    if (!expectedLinks.has(linkId)) {
-      delete app.graph.links[rawLinkId];
-    }
-  }
-}
-
-function syncAdvancedFieldInputs(node, fields) {
-  if (!node || typeof node.addInput !== "function") {
-    return;
-  }
-
-  const wanted = new Map();
-  (fields || []).forEach((field) => {
-    if (field?.type === "naia") {
-      return;
-    }
-    wanted.set(advancedFieldInputName(field), { field, indexLabel: advancedFieldIndexLabel(fields, field) });
-  });
-
-  for (let index = (node.inputs?.length || 0) - 1; index >= 0; index -= 1) {
-    const input = node.inputs[index];
-    if (isAdvancedFieldInput(input) && !wanted.has(input.name)) {
-      node.removeInput?.(index);
-    }
-  }
-
-  for (const [name, { field, indexLabel }] of wanted) {
-    let input = node.inputs?.find((item) => item.name === name);
-    if (!input) {
-      node.addInput(name, "STRING");
-      input = node.inputs?.find((item) => item.name === name);
-    }
-    if (!input) {
-      continue;
-    }
-    input.type = "STRING";
-    input.label = `${indexLabel}. ${advancedFieldLabel(field)}`;
-    input.__easyuseAnimaAdvancedFieldInput = true;
-    input.__easyuseAnimaAdvancedFieldId = field.id;
-  }
-
-  const fieldInputs = [];
-  for (const [name] of wanted) {
-    const input = node.inputs?.find((item) => item.name === name);
-    if (input) {
-      fieldInputs.push(input);
-    }
-  }
-  const otherInputs = (node.inputs || []).filter((input) => !isAdvancedFieldInput(input));
-  node.inputs = [...fieldInputs, ...otherInputs];
-  updateNodeInputLinkSlots(node);
-}
-
-function advancedFieldInputLinked(node, field) {
-  const name = advancedFieldInputName(field);
-  return !!node.inputs?.some((input) => input.name === name && input.link != null);
-}
-
-function advancedFieldDisplayText(node, field) {
-  const name = advancedFieldInputName(field);
-  const values = node.__easyuseAnimaAdvancedFieldInputValues || {};
-  if (advancedFieldInputLinked(node, field) && Object.prototype.hasOwnProperty.call(values, name)) {
-    return String(values[name] ?? "");
-  }
-  return String(field?.text || "");
-}
-
-function mergeAdvancedFieldInputValues(node, fields, values) {
-  if (!values || typeof values !== "object" || !Array.isArray(fields)) {
-    return false;
-  }
-  let changed = false;
-  for (const field of fields) {
-    const name = advancedFieldInputName(field);
-    if (!Object.prototype.hasOwnProperty.call(values, name)) {
-      continue;
-    }
-    const text = String(values[name] ?? "");
-    if (field.text !== text) {
-      field.text = text;
-      changed = true;
-    }
-  }
-  return changed;
-}
-
-function pruneDisconnectedAdvancedFieldInputValues(node) {
-  const values = node.__easyuseAnimaAdvancedFieldInputValues;
-  if (!values || typeof values !== "object") {
-    return;
-  }
-  const linkedNames = new Set(
-    (node.inputs || [])
-      .filter((input) => isAdvancedFieldInput(input) && input.link != null)
-      .map((input) => input.name),
-  );
-  for (const name of Object.keys(values)) {
-    if (!linkedNames.has(name)) {
-      delete values[name];
-    }
-  }
 }
 
 function advancedFieldLabel(field) {

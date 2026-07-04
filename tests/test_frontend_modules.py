@@ -127,12 +127,19 @@ class FrontendModuleStructureTests(unittest.TestCase):
                 self.assertIn(f"  {name},", state_source)
 
         for name in (
+            "advancedFieldDisplayText",
+            "advancedFieldInputLinked",
             "advancedFieldsBackup",
             "captureAdvancedConfigure",
             "collectAdvancedEditorFields",
             "ensureAdvancedWidgetValue",
+            "isAdvancedFieldInput",
+            "mergeAdvancedFieldInputValues",
+            "pruneDisconnectedAdvancedFieldInputValues",
             "serializedAdvancedFieldsValue",
+            "syncAdvancedFieldInputs",
             "syncAdvancedFieldsBackup",
+            "updateNodeInputLinkSlots",
         ):
             with self.subTest(module="serialization", symbol=name):
                 self.assertIn(f"  {name},", serialization_source)
