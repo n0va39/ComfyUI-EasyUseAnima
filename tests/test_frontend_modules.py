@@ -628,6 +628,7 @@ class FrontendModuleStructureTests(unittest.TestCase):
             "web/js/prompt_studio/state.js",
             "web/js/prompt_studio/style.js",
             "web/js/prompt_studio/textarea.js",
+            "web/js/prompt_studio/tooltip.js",
             "web/js/prompt_studio/types.js",
             "web/js/prompt_studio/utils.js",
             "web/js/prompt_studio/wheel.js",
