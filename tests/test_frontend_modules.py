@@ -63,6 +63,7 @@ class FrontendModuleStructureTests(unittest.TestCase):
         self.assertIn('./prompt_studio/state.js"', source)
         self.assertIn('./prompt_studio/dom.js"', source)
         self.assertIn('./prompt_studio/fields.js"', source)
+        self.assertIn('./prompt_studio/node_hooks.js"', source)
         self.assertIn('./prompt_studio/style.js"', source)
         self.assertIn('./prompt_studio/layout.js"', source)
         self.assertIn('./prompt_studio/textarea.js"', source)
@@ -86,6 +87,9 @@ class FrontendModuleStructureTests(unittest.TestCase):
             encoding="utf-8"
         )
         fields_source = (PROMPT_STUDIO_MODULES / "fields.js").read_text(
+            encoding="utf-8"
+        )
+        node_hooks_source = (PROMPT_STUDIO_MODULES / "node_hooks.js").read_text(
             encoding="utf-8"
         )
         style_source = (PROMPT_STUDIO_MODULES / "style.js").read_text(
@@ -170,6 +174,16 @@ class FrontendModuleStructureTests(unittest.TestCase):
             with self.subTest(module="fields", symbol=name):
                 self.assertIn(f"  {name},", fields_source)
 
+        for name in (
+            "isAdvancedNode",
+            "isAdvancedNodeName",
+            "isPromptStudioNodeName",
+            "isWildcardNode",
+            "registerPromptStudioNodeHooks",
+        ):
+            with self.subTest(module="node_hooks", symbol=name):
+                self.assertIn(f"  {name},", node_hooks_source)
+
         for name in ("ensureAdvancedStyle",):
             with self.subTest(module="style", symbol=name):
                 self.assertIn(f"  {name},", style_source)
@@ -233,6 +247,7 @@ class FrontendModuleStructureTests(unittest.TestCase):
             "schema.js",
             "state.js",
             "fields.js",
+            "node_hooks.js",
             "layout.js",
             "textarea.js",
             "wheel.js",

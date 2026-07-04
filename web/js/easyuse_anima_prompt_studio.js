@@ -3,11 +3,7 @@ import { easyuseAnimaClassifyPrompt, easyuseAnimaGetSettings } from "./easyuse_a
 import { easyuseAnimaText, easyuseAnimaWatchLocale } from "./easyuse_anima_i18n.js";
 import { normalizePromptTagText } from "./easyuse_anima_prompt_rules.js";
 import {
-  NODE_TYPE,
-  ADVANCED_NODE_TYPE,
-  ADVANCED_V2_NODE_TYPE,
   EXTEND_NODE_TYPE,
-  WILDCARD_NODE_TYPE,
   FIELD_NAMES,
   EXTEND_FIELD_NAMES,
   EXTEND_VISIBLE_SLOTS_PROPERTY,
@@ -95,6 +91,10 @@ import {
   hasPositiveTrigger,
   moveAdvancedFieldInPane,
 } from "./prompt_studio/fields.js";
+import {
+  isAdvancedNode,
+  registerPromptStudioNodeHooks,
+} from "./prompt_studio/node_hooks.js";
 import {
   ensureAdvancedStyle,
 } from "./prompt_studio/style.js";
@@ -4390,18 +4390,6 @@ function applyWildcardExecutedInputs(node, message) {
   }
 }
 
-function isAdvancedNodeName(name) {
-  return name === ADVANCED_NODE_TYPE || name === ADVANCED_V2_NODE_TYPE;
-}
-
-function isAdvancedNode(node) {
-  return isAdvancedNodeName(node?.type) || isAdvancedNodeName(node?.comfyClass);
-}
-
-function isWildcardNode(node) {
-  return node?.type === WILDCARD_NODE_TYPE || node?.comfyClass === WILDCARD_NODE_TYPE;
-}
-
 function syncAllAdvancedNodes() {
   const nodes = app.graph?._nodes || [];
   for (const node of nodes) {
@@ -4470,116 +4458,27 @@ app.registerExtension({
     });
   },
   async beforeRegisterNodeDef(nodeType, nodeData) {
-    if (
-      nodeData.name !== NODE_TYPE
-      && !isAdvancedNodeName(nodeData.name)
-      && nodeData.name !== EXTEND_NODE_TYPE
-      && nodeData.name !== WILDCARD_NODE_TYPE
-    ) {
-      return;
-    }
-    if (nodeType.prototype.__easyuseAnimaPromptStudioWrapped) {
-      return;
-    }
-    nodeType.prototype.__easyuseAnimaPromptStudioWrapped = true;
-
-    const onNodeCreated = nodeType.prototype.onNodeCreated;
-    nodeType.prototype.onNodeCreated = function () {
-      onNodeCreated?.apply(this, arguments);
-      if (isAdvancedNodeName(nodeData.name)) {
-        scheduleHookAdvancedNode(this);
-      } else if (nodeData.name === WILDCARD_NODE_TYPE) {
-        return;
-      } else {
-        hookStudioNode(this);
-      }
-    };
-
-    const onConfigure = nodeType.prototype.onConfigure;
-    nodeType.prototype.onConfigure = function (serialized) {
-      onConfigure?.apply(this, arguments);
-      if (isAdvancedNodeName(nodeData.name)) {
-        captureAdvancedConfigure(this, serialized, advancedWidget(this));
-        scheduleHookAdvancedNode(this);
-      } else if (nodeData.name === WILDCARD_NODE_TYPE) {
-        return;
-      } else {
-        hookStudioNode(this);
-      }
-    };
-
-    const onResize = nodeType.prototype.onResize;
-    nodeType.prototype.onResize = function () {
-      const result = onResize?.apply(this, arguments);
-      if (this.__easyuseAnimaHandlingResize || this.__easyuseAnimaApplyingLayout) {
-        return result;
-      }
-      this.__easyuseAnimaHandlingResize = true;
-      try {
-        if (isAdvancedNodeName(nodeData.name)) {
-          updateAdvancedEditorWidth(this);
-          scheduleAdvancedResizeFinalize(this);
-          return result;
-        }
-        if (nodeData.name === WILDCARD_NODE_TYPE) {
-          return result;
-        }
-        if (isExtendNode(this)) {
-          applyExtendSlotVisibility(this);
-          renderExtendSlotControls(this);
-        }
-        rebalanceStudioInputHeights(this);
-        if (isExtendNode(this)) {
-          layoutExtendPromptWidgets(this);
-        }
-        return result;
-      } finally {
-        this.__easyuseAnimaHandlingResize = false;
-      }
-    };
-
-    const onConnectionsChange = nodeType.prototype.onConnectionsChange;
-    nodeType.prototype.onConnectionsChange = function () {
-      const result = onConnectionsChange?.apply(this, arguments);
-      if (isAdvancedNodeName(nodeData.name) && !this.__easyuseAnimaHandlingConnectionsChange) {
-        this.__easyuseAnimaHandlingConnectionsChange = true;
-        requestAnimationFrame(() => {
-          try {
-            removeAdvancedInternalInputSockets(this);
-            pruneDisconnectedAdvancedFieldInputValues(this);
-            renderAdvancedEditor(this);
-          } finally {
-            this.__easyuseAnimaHandlingConnectionsChange = false;
-          }
-        });
-      }
-      return result;
-    };
-
-    const onSerialize = nodeType.prototype.onSerialize;
-    nodeType.prototype.onSerialize = function (serialized) {
-      const result = onSerialize?.apply(this, arguments);
-      if (isAdvancedNodeName(nodeData.name)) {
-        removeAdvancedInternalInputSockets(this);
-        syncAdvancedValues(this, serialized);
-      } else if (nodeData.name === WILDCARD_NODE_TYPE) {
-        return result;
-      } else {
-        syncStudioValues(this, serialized);
-      }
-      return result;
-    };
-
-    const onExecuted = nodeType.prototype.onExecuted;
-    nodeType.prototype.onExecuted = function (message) {
-      onExecuted?.apply(this, arguments);
-      if (isAdvancedNodeName(nodeData.name)) {
-        applyAdvancedExecutedInputs(this, message);
-      } else if (nodeData.name === WILDCARD_NODE_TYPE) {
-        applyWildcardExecutedInputs(this, message);
-      } else {
-        applyExecutedInputs(this, message);
-      }
-    };
+    registerPromptStudioNodeHooks(nodeType, nodeData, {
+      applyAdvancedExecutedInputs,
+      applyExecutedInputs,
+      applyExtendSlotVisibility,
+      applyWildcardExecutedInputs,
+      captureAdvancedConfigure: (node, serialized) => (
+        captureAdvancedConfigure(node, serialized, advancedWidget(node))
+      ),
+      hookStudioNode,
+      isExtendNode,
+      layoutExtendPromptWidgets,
+      pruneDisconnectedAdvancedFieldInputValues,
+      rebalanceStudioInputHeights,
+      removeAdvancedInternalInputSockets,
+      renderAdvancedEditor,
+      renderExtendSlotControls,
+      scheduleAdvancedResizeFinalize,
+      scheduleHookAdvancedNode,
+      syncAdvancedValues,
+      syncStudioValues,
+      updateAdvancedEditorWidth,
+    });
   },
 });

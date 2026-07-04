@@ -5,15 +5,16 @@
 Issue #14 is accepted as a frontend maintainability track. It should not be
 closed by the current PR alone.
 
-The current PR is:
+The active PR is:
 
 ```text
-Issue #14 Phase 1: shared frontend API helper extraction
+Issue #14 Phase 1 + staged Phase 2 frontend module boundary work
 ```
 
-The current PR starts the Issue #14 work by centralizing shared frontend API
-helpers. It does not complete the Prompt Studio module split, JS type-checking
-work, or Vite/TypeScript build decision.
+The active PR starts the Issue #14 work by centralizing shared frontend API
+helpers and then continues the Prompt Studio JavaScript module split in tested
+commits. It does not complete JS type-checking work or the Vite/TypeScript
+build decision.
 
 ## Close Criteria
 
@@ -55,8 +56,9 @@ before future frontend refactors start.
 ### Required Notes
 
 - This work is maintainability work, not a user-facing feature.
-- The current PR only centralizes shared frontend API helpers.
-- Prompt Studio large-file splitting is follow-up work.
+- The active PR records each frontend module split in tested commits.
+- Prompt Studio entry-file slim-down is follow-up work until the entry is only
+  registration and orchestration code.
 - TypeScript/Vite is not introduced in the current PR.
 - Workflow compatibility must be preserved.
 - Frontend JS changes require a browser hard refresh for manual validation.
@@ -70,7 +72,7 @@ before future frontend refactors start.
 
 ## Phase 1: Shared Frontend API Helpers
 
-Status: current PR.
+Status: completed in the active PR.
 
 ### Goal
 
@@ -203,14 +205,18 @@ web/js/
     textarea.js
     wheel.js
     dom.js
-    styles.js
+    style.js
     fields.js
     node_hooks.js
 ```
 
 ### PR Split
 
-Split Phase 2 into separate PRs:
+Prefer splitting Phase 2 into separate PRs when review size is the main risk.
+In the active branch, Phase 2 slices are kept as separate tested commits in the
+same PR by request.
+
+Planned slices:
 
 1. `constants.js` and `utils.js`
 2. `schema.js`
@@ -219,7 +225,7 @@ Split Phase 2 into separate PRs:
 5. `layout.js`
 6. `textarea.js`
 7. `wheel.js`
-8. `dom.js` and `styles.js`
+8. `dom.js` and `style.js`
 9. `fields.js`
 10. `node_hooks.js`
 11. entry file slim-down
@@ -454,14 +460,12 @@ Final goal:
 
 ```js
 import { app } from "../../../scripts/app.js";
-import { ensurePromptStudioStyles } from "./prompt_studio/styles.js";
-import { installPromptStudioHooks } from "./prompt_studio/node_hooks.js";
+import { registerPromptStudioNodeHooks } from "./prompt_studio/node_hooks.js";
 
 app.registerExtension({
   name: "EasyUse.Anima.PromptStudio",
-  async beforeRegisterNodeDef(nodeType, nodeData, app) {
-    ensurePromptStudioStyles();
-    installPromptStudioHooks(nodeType, nodeData, app);
+  async beforeRegisterNodeDef(nodeType, nodeData) {
+    registerPromptStudioNodeHooks(nodeType, nodeData, makePromptStudioHookCallbacks());
   },
 });
 ```
@@ -699,7 +703,7 @@ Use this in Issue #14 or follow-up PR tracking comments.
 [ ] textarea.js extracted
 [ ] wheel.js extracted
 [ ] dom.js extracted
-[ ] styles.js extracted
+[ ] style.js extracted
 [ ] fields.js extracted
 [ ] node_hooks.js extracted
 [ ] entry file slimmed down
