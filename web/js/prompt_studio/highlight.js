@@ -22,6 +22,13 @@ import { ensureHighlightStyle } from "./style.js";
 import { psText, sectionLabel } from "./text.js";
 import { installTrainedTagTooltipListeners } from "./tooltip.js";
 
+/** @typedef {import("./types.js").PromptStudioWindow} PromptStudioWindow */
+
+/** @returns {PromptStudioWindow} */
+function promptStudioWindow() {
+  return /** @type {PromptStudioWindow} */ (window);
+}
+
 async function classifyPrompt(text) {
   return easyuseAnimaClassifyPrompt(text);
 }
@@ -178,8 +185,9 @@ function trainedTagTooltipData(text, token) {
   if (!entry) {
     return null;
   }
-  const tooltip = typeof window !== "undefined" && typeof window.easyuseAnimaAutocompleteEntryTooltip === "function"
-    ? window.easyuseAnimaAutocompleteEntryTooltip(entry)
+  const hostWindow = promptStudioWindow();
+  const tooltip = typeof hostWindow.easyuseAnimaAutocompleteEntryTooltip === "function"
+    ? hostWindow.easyuseAnimaAutocompleteEntryTooltip(entry)
     : {
       tag: entry.tag,
       meta: `${sectionLabel(entry.category)} · ${Number(entry.count || 0).toLocaleString()}`,
@@ -1011,10 +1019,11 @@ function requestConnectedHighlightOverlayRefresh(applyTextStyle) {
 }
 
 function installPromptHighlightOverlayRefresh(app, applyTextStyle) {
-  if (window.__easyuseAnimaHighlightOverlayRefreshInstalled) {
+  const hostWindow = promptStudioWindow();
+  if (hostWindow.__easyuseAnimaHighlightOverlayRefreshInstalled) {
     return;
   }
-  window.__easyuseAnimaHighlightOverlayRefreshInstalled = true;
+  hostWindow.__easyuseAnimaHighlightOverlayRefreshInstalled = true;
   const schedule = () => requestConnectedHighlightOverlayRefresh(applyTextStyle);
   window.addEventListener("focus", schedule);
   window.addEventListener("resize", schedule);

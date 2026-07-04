@@ -577,8 +577,8 @@ Catch JS shape errors without changing runtime output or adding a build system.
 
 ### Current Typecheck Slice
 
-Phase 3 starts with a no-build typecheck pilot for low-risk Prompt Studio
-modules. The command is:
+Phase 3 uses a no-build typecheck gate for the Prompt Studio entry shim and
+all split Prompt Studio modules. The command is:
 
 ```powershell
 $env:npm_config_cache = "D:\ComfyUI\.codex_cache\npm"
@@ -587,7 +587,7 @@ $env:TMP = $env:TEMP
 npx --yes -p typescript@6.0.3 tsc -p jsconfig.json
 ```
 
-The slice keeps ComfyUI runtime output as raw JavaScript and limits TypeScript
+The gate keeps ComfyUI runtime output as raw JavaScript and limits TypeScript
 scope through `jsconfig.json` instead of introducing a build step.
 
 Current status:
@@ -606,7 +606,10 @@ Current status:
 - 2026-07-05: typecheck coverage expanded to `studio_textareas.js` after
   documenting Prompt Studio input overlay fields and the `"immediate"` refresh
   mode.
-- Full Prompt Studio module type coverage remains a later Phase 3 step.
+- 2026-07-05: typecheck coverage expanded to all `web/js/prompt_studio/*.js`
+  modules and the `easyuse_anima_prompt_studio.js` entry shim. ComfyUI host
+  `scripts/app.js` imports remain runtime imports and are documented with
+  `@ts-expect-error` comments.
 
 ## Phase 4: Vite/TypeScript Decision
 
@@ -785,43 +788,43 @@ Use this in Issue #14 or follow-up PR tracking comments.
 [ ] API failure fallback tested
 
 ### Phase 2: Prompt Studio module split
-[ ] constants.js extracted
-[ ] advanced_controls.js extracted
-[ ] advanced_node_ui.js extracted
-[ ] advanced_fields_ui.js extracted
-[ ] advanced_highlights.js extracted
-[ ] advanced_fields_state.js extracted
-[ ] advanced_values.js extracted
-[ ] utils.js extracted
-[ ] settings.js extracted
-[ ] text.js extracted
-[ ] highlight.js extracted
-[ ] highlight_ui.js extracted
-[ ] schema.js extracted
-[ ] state.js extracted
-[ ] canvas_forwarding.js extracted
-[ ] serialization.js extracted
-[ ] runtime_canvas.js extracted
-[ ] extension_runtime.js extracted
-[ ] layout.js extracted
-[ ] advanced_layout_controller.js extracted
-[ ] studio_textareas.js extracted
-[ ] studio_resizable_input.js extracted
-[ ] studio_node_ui.js extracted
-[ ] studio_values.js extracted
-[ ] wildcard_values.js extracted
-[ ] textarea.js extracted
-[ ] wheel.js extracted
-[ ] dom.js extracted
-[ ] extend_slots.js extracted
-[ ] extend_layout.js extracted
-[ ] extend_slot_controls.js extracted
-[ ] style.js extracted
-[ ] tooltip.js extracted
-[ ] widgets.js extracted
-[ ] legend.js extracted
-[ ] fields.js extracted
-[ ] node_hooks.js extracted
+[x] constants.js extracted
+[x] advanced_controls.js extracted
+[x] advanced_node_ui.js extracted
+[x] advanced_fields_ui.js extracted
+[x] advanced_highlights.js extracted
+[x] advanced_fields_state.js extracted
+[x] advanced_values.js extracted
+[x] utils.js extracted
+[x] settings.js extracted
+[x] text.js extracted
+[x] highlight.js extracted
+[x] highlight_ui.js extracted
+[x] schema.js extracted
+[x] state.js extracted
+[x] canvas_forwarding.js extracted
+[x] serialization.js extracted
+[x] runtime_canvas.js extracted
+[x] extension_runtime.js extracted
+[x] layout.js extracted
+[x] advanced_layout_controller.js extracted
+[x] studio_textareas.js extracted
+[x] studio_resizable_input.js extracted
+[x] studio_node_ui.js extracted
+[x] studio_values.js extracted
+[x] wildcard_values.js extracted
+[x] textarea.js extracted
+[x] wheel.js extracted
+[x] dom.js extracted
+[x] extend_slots.js extracted
+[x] extend_layout.js extracted
+[x] extend_slot_controls.js extracted
+[x] style.js extracted
+[x] tooltip.js extracted
+[x] widgets.js extracted
+[x] legend.js extracted
+[x] fields.js extracted
+[x] node_hooks.js extracted
 [x] entry file slimmed down
 
 ### Phase 3: JS type checking
@@ -829,7 +832,7 @@ Use this in Issue #14 or follow-up PR tracking comments.
 [x] JSDoc typedefs added
 [x] jsconfig/tsconfig added
 [x] typecheck command documented
-[ ] typecheck warnings resolved
+[x] typecheck warnings resolved
 
 ### Phase 4: Vite/TypeScript decision
 [ ] dist commit policy decided

@@ -18,6 +18,16 @@ import {
   findInputEl,
 } from "./widgets.js";
 
+/** @typedef {import("./types.js").PromptStudioInputElement} PromptStudioInputElement */
+
+/**
+ * @param {unknown} widget
+ * @returns {PromptStudioInputElement | null}
+ */
+function findStudioInput(widget) {
+  return findInputEl(widget);
+}
+
 function enhanceResizableInput(node, widget, hooks = {}) {
   const {
     expandStudioInputToContent = () => {},
@@ -26,7 +36,7 @@ function enhanceResizableInput(node, widget, hooks = {}) {
     setStudioManualHeight = () => {},
     updateHighlight = () => {},
   } = hooks;
-  const input = findInputEl(widget);
+  const input = findStudioInput(widget);
   if (!input) {
     return;
   }

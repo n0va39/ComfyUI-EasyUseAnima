@@ -15,6 +15,16 @@ import {
   isWidgetInputLinked,
 } from "./widgets.js";
 
+/** @typedef {import("./types.js").PromptStudioInputElement} PromptStudioInputElement */
+
+/**
+ * @param {unknown} widget
+ * @returns {PromptStudioInputElement | null}
+ */
+function findExtendInput(widget) {
+  return findInputEl(widget);
+}
+
 function parseExtendSlots(raw) {
   if (Array.isArray(raw)) {
     return new Set(raw.filter((name) => EXTEND_FIELD_NAMES.includes(name)));
@@ -84,7 +94,7 @@ function setExtendWidgetHidden(widget, hidden) {
     widget.draw = widget.__easyuseAnimaExtendOriginalDraw;
   }
 
-  const input = findInputEl(widget);
+  const input = findExtendInput(widget);
   if (input) {
     input.style.display = hidden ? "none" : "";
     input.style.pointerEvents = hidden ? "none" : "";

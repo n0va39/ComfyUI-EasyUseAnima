@@ -14,6 +14,16 @@ import {
   isWidgetInputLinked,
 } from "./widgets.js";
 
+/** @typedef {import("./types.js").PromptStudioInputElement} PromptStudioInputElement */
+
+/**
+ * @param {unknown} widget
+ * @returns {PromptStudioInputElement | null}
+ */
+function findHighlightInput(widget) {
+  return findInputEl(widget);
+}
+
 function displayText(node, widget) {
   if (isWidgetInputLinked(node, widget.name) && widget.__easyuseAnimaExecutedText != null) {
     return String(widget.__easyuseAnimaExecutedText);
@@ -22,7 +32,7 @@ function displayText(node, widget) {
 }
 
 function updateHighlight(node, widget, tokens = widget.__easyuseAnimaTokens || [], forceCopyMetrics = false) {
-  const input = findInputEl(widget);
+  const input = findHighlightInput(widget);
   if (!input) {
     return;
   }

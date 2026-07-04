@@ -364,10 +364,11 @@ function createPromptStudioExtensionRuntime(app) {
         refreshAllPromptHighlights(app, promptHighlightHooks());
       });
       window.addEventListener("easyuse-anima-settings-updated", (event) => {
-        if (!event?.detail) {
+        const settingsEvent = /** @type {CustomEvent<Record<string, unknown>>} */ (event);
+        if (!settingsEvent.detail) {
           return;
         }
-        applyPromptStudioSettings(event.detail, { hideTrainedTagTooltip });
+        applyPromptStudioSettings(settingsEvent.detail, { hideTrainedTagTooltip });
         for (const node of app.graph?._nodes || []) {
           if (isAdvancedNode(node)) {
             renderAdvancedEditor(node);

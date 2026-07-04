@@ -32,8 +32,33 @@
 /**
  * @typedef {(HTMLTextAreaElement | HTMLInputElement) & {
  *   __easyuseAnimaHighlightOverlay?: HTMLElement | null,
+ *   __easyuseAnimaHighlightRefresh?: (force?: boolean) => void,
  *   __easyuseAnimaStudioResizable?: boolean
  * }} PromptStudioInputElement
+ */
+
+/**
+ * @typedef {HTMLTextAreaElement & PromptStudioInputElement & {
+ *   __easyuseAnimaNode?: unknown,
+ *   __easyuseAnimaField?: unknown
+ * }} PromptStudioAdvancedTextarea
+ */
+
+/**
+ * @typedef {Object} PromptStudioAutocompleteTooltip
+ * @property {string} [tag]
+ * @property {string} [meta]
+ * @property {string} [description]
+ */
+
+/**
+ * @typedef {Window & typeof globalThis & {
+ *   __easyuseAnimaHighlightOverlayRefreshInstalled?: boolean,
+ *   __easyuseAnimaMiddlePanForwarderInstalled?: boolean,
+ *   __easyuseAnimaPendingAutocompleteInputs?: Array<{ input: Element, options: unknown }>,
+ *   easyuseAnimaAutocompleteEntryTooltip?: (entry: unknown) => PromptStudioAutocompleteTooltip | null | undefined,
+ *   easyuseAnimaHookAutocompleteInput?: (input: Element, options: unknown) => void
+ * }} PromptStudioWindow
  */
 
 /**

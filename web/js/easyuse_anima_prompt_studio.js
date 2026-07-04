@@ -1,3 +1,4 @@
+// @ts-expect-error ComfyUI provides this host module at runtime.
 import { app } from "../../../scripts/app.js";
 import {
   createPromptStudioExtensionRuntime,

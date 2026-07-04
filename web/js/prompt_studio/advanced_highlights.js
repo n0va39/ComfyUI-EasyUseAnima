@@ -20,6 +20,22 @@ import {
   getAdvancedFields,
 } from "./state.js";
 
+/** @typedef {import("./types.js").PromptStudioAdvancedTextarea} PromptStudioAdvancedTextarea */
+/** @typedef {import("./types.js").PromptStudioWindow} PromptStudioWindow */
+
+/** @returns {PromptStudioWindow} */
+function promptStudioWindow() {
+  return /** @type {PromptStudioWindow} */ (window);
+}
+
+/**
+ * @param {HTMLTextAreaElement} textarea
+ * @returns {PromptStudioAdvancedTextarea}
+ */
+function advancedTextarea(textarea) {
+  return /** @type {PromptStudioAdvancedTextarea} */ (textarea);
+}
+
 function advancedHighlightState(node, field) {
   node.__easyuseAnimaAdvancedHighlightStates ||= {};
   const id = String(field?.id || "field");
@@ -36,10 +52,11 @@ function updateAdvancedFieldHighlight(node, field, textarea, tokens = null, forc
   if (!(textarea instanceof HTMLTextAreaElement)) {
     return;
   }
+  const input = advancedTextarea(textarea);
   applyPromptStudioTextStyle(textarea);
-  textarea.__easyuseAnimaNode = node;
-  textarea.__easyuseAnimaField = field;
-  textarea.__easyuseAnimaHighlightRefresh = (force = false) => updateAdvancedFieldHighlight(node, field, textarea, null, force);
+  input.__easyuseAnimaNode = node;
+  input.__easyuseAnimaField = field;
+  input.__easyuseAnimaHighlightRefresh = (force = false) => updateAdvancedFieldHighlight(node, field, textarea, null, force);
   const overlay = ensureHighlightOverlay(textarea);
   if (!overlay) {
     return;
@@ -106,12 +123,13 @@ function registerAdvancedAutocompleteInput(node, field, textarea) {
     node,
     forceArtistOnly: field?.type === "artist",
   };
-  if (typeof window.easyuseAnimaHookAutocompleteInput === "function") {
-    window.easyuseAnimaHookAutocompleteInput(textarea, options);
+  const hostWindow = promptStudioWindow();
+  if (typeof hostWindow.easyuseAnimaHookAutocompleteInput === "function") {
+    hostWindow.easyuseAnimaHookAutocompleteInput(textarea, options);
     return;
   }
-  window.__easyuseAnimaPendingAutocompleteInputs ||= [];
-  window.__easyuseAnimaPendingAutocompleteInputs.push({ input: textarea, options });
+  hostWindow.__easyuseAnimaPendingAutocompleteInputs ||= [];
+  hostWindow.__easyuseAnimaPendingAutocompleteInputs.push({ input: textarea, options });
 }
 
 function refreshAdvancedHighlights(node, { classify = true, forceCopyMetrics = false } = {}) {

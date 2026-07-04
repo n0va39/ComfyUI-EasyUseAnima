@@ -19,7 +19,10 @@ function desiredLegendHeight() {
   return LEGEND_TOP_GAP + 16 + Math.ceil(LEGEND_ITEMS.length / LEGEND_COLUMNS) * LEGEND_ROW_HEIGHT;
 }
 
-function drawLegend(ctx, node, widget, width, y, refreshNodeSize = () => {}) {
+/** @param {unknown} _node */
+function noopRefreshNodeSize(_node) {}
+
+function drawLegend(ctx, node, widget, width, y, refreshNodeSize = noopRefreshNodeSize) {
   const nextHeight = desiredLegendHeight();
   if (Math.abs(nextHeight - widget.__height) > 2) {
     widget.__height = nextHeight;
@@ -57,7 +60,7 @@ function drawLegend(ctx, node, widget, width, y, refreshNodeSize = () => {}) {
   ctx.restore();
 }
 
-function ensureLegendWidget(node, refreshNodeSize = () => {}) {
+function ensureLegendWidget(node, refreshNodeSize = noopRefreshNodeSize) {
   const name = "easyuse_anima_color_legend";
   let widget = findWidget(node, name);
   if (widget) {

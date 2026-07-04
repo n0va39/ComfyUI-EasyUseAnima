@@ -1,5 +1,8 @@
 // @ts-check
 
+/** @typedef {import("./types.js").PromptStudioWindow} PromptStudioWindow */
+
+// @ts-expect-error ComfyUI provides this host module at runtime.
 import { app } from "../../../../scripts/app.js";
 import {
   canAdvancedEditorScrollWheelDelta,
@@ -8,6 +11,11 @@ import {
 } from "./wheel.js";
 
 let middlePanForwardActive = false;
+
+/** @returns {PromptStudioWindow} */
+function promptStudioWindow() {
+  return /** @type {PromptStudioWindow} */ (window);
+}
 
 function dispatchCanvasMouseEvent(type, sourceEvent, overrides = {}) {
   const canvas = app.canvas?.canvas;
@@ -121,7 +129,9 @@ function startCanvasPanFromDom(event) {
   middlePanForwardActive = true;
   event.preventDefault();
   event.stopPropagation();
-  document.activeElement?.blur?.();
+  if (document.activeElement instanceof HTMLElement || document.activeElement instanceof SVGElement) {
+    document.activeElement.blur();
+  }
   dispatchCanvasPointerEvent("pointerdown", event, { button: 1, buttons: 4 });
   dispatchCanvasMouseEvent("mousedown", event, { button: 1, buttons: 4 });
 
@@ -174,10 +184,11 @@ function forwardAdvancedWheelToCanvas(event) {
 }
 
 function installMiddlePanForwarder() {
-  if (window.__easyuseAnimaMiddlePanForwarderInstalled) {
+  const hostWindow = promptStudioWindow();
+  if (hostWindow.__easyuseAnimaMiddlePanForwarderInstalled) {
     return;
   }
-  window.__easyuseAnimaMiddlePanForwarderInstalled = true;
+  hostWindow.__easyuseAnimaMiddlePanForwarderInstalled = true;
   document.addEventListener("pointerdown", startCanvasPanFromDom, true);
   document.addEventListener("mousedown", startCanvasPanFromDom, true);
   document.addEventListener("auxclick", (event) => {

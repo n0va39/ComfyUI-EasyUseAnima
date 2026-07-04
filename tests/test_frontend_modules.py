@@ -597,6 +597,10 @@ class FrontendModuleStructureTests(unittest.TestCase):
             "AdvancedEditorNode",
             "ComfyNodeLike",
             "ComfyWidgetLike",
+            "PromptStudioInputElement",
+            "PromptStudioAdvancedTextarea",
+            "PromptStudioAutocompleteTooltip",
+            "PromptStudioWindow",
             "PromptClassificationResult",
             "EasyUseAnimaSettings",
             "ApiJsonResponse",
@@ -614,27 +618,8 @@ class FrontendModuleStructureTests(unittest.TestCase):
         self.assertTrue(config["compilerOptions"]["noEmit"])
 
         for path in (
-            "web/js/prompt_studio/advanced_layout_controller.js",
-            "web/js/prompt_studio/advanced_values.js",
-            "web/js/prompt_studio/constants.js",
-            "web/js/prompt_studio/dom.js",
-            "web/js/prompt_studio/fields.js",
-            "web/js/prompt_studio/layout.js",
-            "web/js/prompt_studio/node_hooks.js",
-            "web/js/prompt_studio/runtime_canvas.js",
-            "web/js/prompt_studio/schema.js",
-            "web/js/prompt_studio/serialization.js",
-            "web/js/prompt_studio/settings.js",
-            "web/js/prompt_studio/state.js",
-            "web/js/prompt_studio/style.js",
-            "web/js/prompt_studio/studio_textareas.js",
-            "web/js/prompt_studio/textarea.js",
-            "web/js/prompt_studio/tooltip.js",
-            "web/js/prompt_studio/types.js",
-            "web/js/prompt_studio/utils.js",
-            "web/js/prompt_studio/wheel.js",
-            "web/js/prompt_studio/wildcard_values.js",
-            "web/js/prompt_studio/widgets.js",
+            "web/js/easyuse_anima_prompt_studio.js",
+            "web/js/prompt_studio/*.js",
         ):
             with self.subTest(path=path):
                 self.assertIn(path, config["include"])
