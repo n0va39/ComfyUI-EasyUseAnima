@@ -8,16 +8,12 @@ import {
   DEFAULT_ADVANCED_RESOLUTION_BUCKET,
   DEFAULT_ADVANCED_RESOLUTION_SIZE,
   ADVANCED_WIDGET_INDEX,
-  ADVANCED_INTERNAL_WIDGET_NAMES,
   ADVANCED_FIELDS_PROPERTY,
-  ADVANCED_FIELD_LABELS,
 } from "./prompt_studio/constants.js";
 import {
   debounce,
 } from "./prompt_studio/utils.js";
 import {
-  advancedDefaultFields,
-  normalizeAdvancedField,
   normalizeAdvancedResolutionBucket,
   normalizeAdvancedResolutionSize,
   normalizeAdvancedWidgetQueueValue,
@@ -27,7 +23,6 @@ import {
   getAdvancedFields,
   setAdvancedEditorElement,
   setAdvancedFields,
-  setHiddenWidget,
 } from "./prompt_studio/state.js";
 import {
   stopAdvancedControlEvent,
@@ -59,7 +54,6 @@ import {
   ensureAdvancedStyle,
 } from "./prompt_studio/style.js";
 import {
-  PROMPT_STUDIO_SETTINGS,
   applyPromptStudioSettings,
   applyPromptStudioTextStyle,
   loadPromptStudioSettings,
@@ -78,6 +72,17 @@ import {
 import {
   createAdvancedPane,
 } from "./prompt_studio/advanced_fields_ui.js";
+import {
+  advancedFieldLabel,
+  advancedWidget,
+  applyAdvancedNaiaGeneralAutoToggle,
+  hideAdvancedControlWidgets as hideAdvancedControlWidgetsWithHooks,
+  hideAdvancedInternalWidget,
+  parseAdvancedFields,
+  removeAdvancedInternalInputSockets,
+  repairAdvancedInternalWidgetValues as repairAdvancedInternalWidgetValuesWithHooks,
+  writeAdvancedFields as writeAdvancedFieldsWithHooks,
+} from "./prompt_studio/advanced_fields_state.js";
 import {
   classifyPrompt,
   copyInputTextMetrics,
@@ -127,41 +132,38 @@ import {
   syncWidgetValue,
 } from "./prompt_studio/studio_values.js";
 import {
-  advancedFieldsBackup,
   captureAdvancedConfigure,
   collectAdvancedEditorFields,
   ensureAdvancedWidgetValue,
   mergeAdvancedFieldInputValues,
   pruneDisconnectedAdvancedFieldInputValues,
-  syncAdvancedFieldInputs,
   syncAdvancedFieldsBackup,
 } from "./prompt_studio/serialization.js";
 
+function markNodeDirty(node) {
+  node?.setDirtyCanvas?.(true, true);
+  app.graph?.setDirtyCanvas?.(true, true);
+}
+
+function advancedFieldsStateHooks() {
+  return {
+    advancedWidgetIndex: ADVANCED_WIDGET_INDEX,
+    graph: app.graph,
+    markNodeDirty,
+    renderAdvancedEditor,
+  };
+}
+
 function repairAdvancedInternalWidgetValues(node) {
-  let changed = false;
-  for (const name of Object.keys(ADVANCED_WIDGET_INDEX)) {
-    if (name === "advanced_fields") {
-      continue;
-    }
-    const widget = findWidget(node, name);
-    if (!widget) {
-      continue;
-    }
-    const next = normalizeAdvancedWidgetQueueValue(name, widget.value);
-    if (widget.value !== next) {
-      widget.value = next;
-      const input = findInputEl(widget);
-      if (input) {
-        input.value = String(next ?? "");
-      }
-      changed = true;
-    }
-  }
-  if (changed) {
-    node.setDirtyCanvas?.(true, true);
-    app.graph?.setDirtyCanvas?.(true, true);
-  }
-  return changed;
+  return repairAdvancedInternalWidgetValuesWithHooks(node, advancedFieldsStateHooks());
+}
+
+function hideAdvancedControlWidgets(node) {
+  hideAdvancedControlWidgetsWithHooks(node, advancedFieldsStateHooks());
+}
+
+function writeAdvancedFields(node, fields, options = {}) {
+  writeAdvancedFieldsWithHooks(node, fields, options, advancedFieldsStateHooks());
 }
 
 function refreshNodeSize(node, options = {}) {
@@ -773,143 +775,6 @@ function hookStudioNode(node, attempt = 0) {
   if (pendingInput && attempt < 12) {
     setTimeout(() => hookStudioNode(node, attempt + 1), 80);
   }
-}
-
-function advancedWidget(node) {
-  return findWidget(node, "advanced_fields");
-}
-
-function hideAdvancedInternalWidget(node, name) {
-  const widget = findWidget(node, name);
-  if (!widget) {
-    return;
-  }
-  widget.__easyuseAnimaAdvancedHidden = true;
-  widget.hidden = true;
-  widget.serialize = true;
-  widget.options ||= {};
-  widget.options.hidden = true;
-  widget.computeSize = () => [0, 0];
-  widget.draw = () => {};
-  const input = findInputEl(widget);
-  if (input) {
-    input.style.display = "none";
-    input.style.pointerEvents = "none";
-    input.tabIndex = -1;
-  }
-  setHiddenWidget(node, name, widget);
-  node.setDirtyCanvas?.(true, true);
-}
-
-function hideAdvancedControlWidgets(node) {
-  for (const name of ADVANCED_INTERNAL_WIDGET_NAMES) {
-    hideAdvancedInternalWidget(node, name);
-  }
-  repairAdvancedInternalWidgetValues(node);
-}
-
-function removeAdvancedInternalInputSockets(node) {
-  if (!Array.isArray(node.inputs)) {
-    return;
-  }
-  for (let index = node.inputs.length - 1; index >= 0; index -= 1) {
-    const input = node.inputs[index];
-    const widgetName = input?.widget?.name || input?.name;
-    if (!ADVANCED_INTERNAL_WIDGET_NAMES.has(widgetName)) {
-      continue;
-    }
-    if (input?.link != null) {
-      node.disconnectInput?.(index);
-    }
-    node.removeInput?.(index);
-  }
-}
-
-function parseAdvancedFields(node) {
-  const widget = advancedWidget(node);
-  ensureAdvancedWidgetValue(node, widget);
-  const sourceValue = String(widget?.value || advancedFieldsBackup(node) || "[]");
-  try {
-    const parsed = JSON.parse(sourceValue);
-    if (Array.isArray(parsed) && parsed.length) {
-      const fields = [];
-      const seenNaiaPanes = new Set();
-      let seenTrigger = false;
-      parsed.forEach((field, index) => {
-        const normalized = normalizeAdvancedField(field, index);
-        if (normalized.type === "naia") {
-          if (seenNaiaPanes.has(normalized.pane)) {
-            return;
-          }
-          seenNaiaPanes.add(normalized.pane);
-        }
-        if (normalized.type === "trigger") {
-          if (seenTrigger) {
-            return;
-          }
-          seenTrigger = true;
-          normalized.pane = "positive";
-        }
-        fields.push(normalized);
-      });
-      return fields.length ? fields : advancedDefaultFields();
-    }
-  } catch {
-    // Fall through to default fields.
-  }
-  return advancedDefaultFields();
-}
-
-function writeAdvancedFields(node, fields, { render = false, syncInputs = true } = {}) {
-  const widget = advancedWidget(node);
-  if (!widget) {
-    return;
-  }
-  widget.value = JSON.stringify(fields.map((field, index) => normalizeAdvancedField(field, index)));
-  syncAdvancedFieldsBackup(node, widget.value);
-  setAdvancedFields(node, fields);
-  if (syncInputs) {
-    syncAdvancedFieldInputs(node, fields, { graph: app.graph, fieldLabel: advancedFieldLabel });
-  }
-  node.setDirtyCanvas?.(true, true);
-  app.graph?.setDirtyCanvas?.(true, true);
-  if (render) {
-    renderAdvancedEditor(node);
-  }
-}
-
-function applyAdvancedNaiaGeneralAutoToggle(node, fields) {
-  if (!PROMPT_STUDIO_SETTINGS.naiaGeneralAboveAutoToggle || !Array.isArray(fields)) {
-    return false;
-  }
-  const naiaIndex = fields.findIndex(
-    (field) => field?.pane === "positive" && field?.type === "naia",
-  );
-  if (naiaIndex < 0) {
-    return false;
-  }
-  const naiaEnabled = fields[naiaIndex]?.enabled !== false;
-  let changed = false;
-  for (let index = 0; index < naiaIndex; index += 1) {
-    const field = fields[index];
-    if (field?.pane !== "positive" || field?.type !== "general") {
-      continue;
-    }
-    const nextEnabled = !naiaEnabled;
-    if ((field.enabled !== false) !== nextEnabled) {
-      field.enabled = nextEnabled;
-      changed = true;
-    }
-  }
-  return changed;
-}
-
-function advancedFieldLabel(field) {
-  const base = ADVANCED_FIELD_LABELS[field.type] || "General Tags";
-  const localizedBase = psText(`advanced.field.${field.type}`) || base;
-  return field.label && field.label !== base && field.label !== localizedBase
-    ? `${localizedBase} - ${field.label}`
-    : localizedBase;
 }
 
 function renderAdvancedEditor(node) {

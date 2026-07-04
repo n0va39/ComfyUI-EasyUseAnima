@@ -63,6 +63,7 @@ class FrontendModuleStructureTests(unittest.TestCase):
         self.assertIn('./prompt_studio/constants.js"', source)
         self.assertIn('./prompt_studio/advanced_controls.js"', source)
         self.assertIn('./prompt_studio/advanced_fields_ui.js"', source)
+        self.assertIn('./prompt_studio/advanced_fields_state.js"', source)
         self.assertIn('./prompt_studio/utils.js"', source)
         self.assertIn('./prompt_studio/schema.js"', source)
         self.assertIn('./prompt_studio/state.js"', source)
@@ -93,6 +94,9 @@ class FrontendModuleStructureTests(unittest.TestCase):
         ).read_text(encoding="utf-8")
         advanced_fields_ui_source = (
             PROMPT_STUDIO_MODULES / "advanced_fields_ui.js"
+        ).read_text(encoding="utf-8")
+        advanced_fields_state_source = (
+            PROMPT_STUDIO_MODULES / "advanced_fields_state.js"
         ).read_text(encoding="utf-8")
         constants_source = (PROMPT_STUDIO_MODULES / "constants.js").read_text(
             encoding="utf-8"
@@ -188,6 +192,20 @@ class FrontendModuleStructureTests(unittest.TestCase):
         ):
             with self.subTest(module="advanced_fields_ui", symbol=name):
                 self.assertIn(f"  {name},", advanced_fields_ui_source)
+
+        for name in (
+            "advancedFieldLabel",
+            "advancedWidget",
+            "applyAdvancedNaiaGeneralAutoToggle",
+            "hideAdvancedControlWidgets",
+            "hideAdvancedInternalWidget",
+            "parseAdvancedFields",
+            "removeAdvancedInternalInputSockets",
+            "repairAdvancedInternalWidgetValues",
+            "writeAdvancedFields",
+        ):
+            with self.subTest(module="advanced_fields_state", symbol=name):
+                self.assertIn(f"  {name},", advanced_fields_state_source)
 
         for name in (
             "NODE_TYPE",
@@ -449,6 +467,7 @@ class FrontendModuleStructureTests(unittest.TestCase):
             "utils.js",
             "schema.js",
             "state.js",
+            "advanced_fields_state.js",
             "extend_slots.js",
             "fields.js",
             "legend.js",
