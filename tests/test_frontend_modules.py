@@ -60,6 +60,7 @@ class FrontendModuleStructureTests(unittest.TestCase):
         self.assertIn('./prompt_studio/constants.js"', source)
         self.assertIn('./prompt_studio/utils.js"', source)
         self.assertIn('./prompt_studio/schema.js"', source)
+        self.assertIn('./prompt_studio/state.js"', source)
 
     def test_prompt_studio_phase_2_modules_export_expected_symbols(self):
         constants_source = (PROMPT_STUDIO_MODULES / "constants.js").read_text(
@@ -69,6 +70,9 @@ class FrontendModuleStructureTests(unittest.TestCase):
             encoding="utf-8"
         )
         schema_source = (PROMPT_STUDIO_MODULES / "schema.js").read_text(
+            encoding="utf-8"
+        )
+        state_source = (PROMPT_STUDIO_MODULES / "state.js").read_text(
             encoding="utf-8"
         )
 
@@ -106,8 +110,20 @@ class FrontendModuleStructureTests(unittest.TestCase):
             with self.subTest(module="schema", symbol=name):
                 self.assertIn(f"  {name},", schema_source)
 
+        for name in (
+            "findHiddenWidget",
+            "getAdvancedEditorElement",
+            "setAdvancedEditorElement",
+            "getAdvancedFields",
+            "setAdvancedFields",
+            "setPendingAdvancedFieldsValue",
+            "clearPendingAdvancedFieldsValue",
+        ):
+            with self.subTest(module="state", symbol=name):
+                self.assertIn(f"  {name},", state_source)
+
     def test_prompt_studio_phase_2_modules_have_no_runtime_side_effects(self):
-        for filename in ("constants.js", "utils.js", "schema.js"):
+        for filename in ("constants.js", "utils.js", "schema.js", "state.js"):
             with self.subTest(filename=filename):
                 source = (PROMPT_STUDIO_MODULES / filename).read_text(
                     encoding="utf-8"

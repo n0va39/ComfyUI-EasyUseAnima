@@ -87,6 +87,17 @@ import {
   normalizeAdvancedWidgetQueueValue,
   normalizeArtistMixMode,
 } from "./prompt_studio/schema.js";
+import {
+  clearPendingAdvancedFieldsValue,
+  findHiddenWidget,
+  getAdvancedEditorElement,
+  getAdvancedFields,
+  getPendingAdvancedFieldsValue,
+  setAdvancedEditorElement,
+  setAdvancedFields,
+  setHiddenWidget,
+  setPendingAdvancedFieldsValue,
+} from "./prompt_studio/state.js";
 
 function psText(key) {
   return easyuseAnimaText(PROMPT_STUDIO_TEXT, key);
@@ -119,7 +130,7 @@ let promptStudioTagTooltipPendingMove = null;
 let promptStudioTagTooltipLastTarget = null;
 
 function findWidget(node, name) {
-  return node.__easyuseAnimaHiddenWidgets?.[name]
+  return findHiddenWidget(node, name)
     || node.widgets?.find((widget) => widget.name === name);
 }
 
@@ -2579,11 +2590,11 @@ function registerAdvancedAutocompleteInput(node, field, textarea) {
 }
 
 function refreshAdvancedHighlights(node, { classify = true, forceCopyMetrics = false } = {}) {
-  const editor = node?.__easyuseAnimaAdvancedEditorEl;
+  const editor = getAdvancedEditorElement(node);
   if (!editor) {
     return;
   }
-  const fields = node.__easyuseAnimaAdvancedFields || parseAdvancedFields(node);
+  const fields = getAdvancedFields(node) || parseAdvancedFields(node);
   const byId = new Map(fields.map((field) => [String(field.id), field]));
   const textareas = Array.from(editor.querySelectorAll("textarea[data-easyuse-anima-advanced-field-id]"));
 
@@ -2654,7 +2665,7 @@ function refreshAdvancedHighlights(node, { classify = true, forceCopyMetrics = f
 }
 
 function scheduleAdvancedHighlights(node, options = {}) {
-  if (!node?.__easyuseAnimaAdvancedEditorEl) {
+  if (!getAdvancedEditorElement(node)) {
     return;
   }
   const previousOptions = node.__easyuseAnimaAdvancedHighlightOptions || {};
@@ -3112,7 +3123,7 @@ function captureAdvancedConfigure(node, serialized) {
   if (!value) {
     return;
   }
-  node.__easyuseAnimaPendingAdvancedFieldsValue = value;
+  setPendingAdvancedFieldsValue(node, value);
   syncAdvancedFieldsBackup(node, value);
   const widget = advancedWidget(node);
   if (widget) {
@@ -3125,10 +3136,11 @@ function ensureAdvancedWidgetValue(node) {
   if (!widget) {
     return;
   }
-  if (node.__easyuseAnimaPendingAdvancedFieldsValue) {
-    widget.value = node.__easyuseAnimaPendingAdvancedFieldsValue;
+  const pendingValue = getPendingAdvancedFieldsValue(node);
+  if (pendingValue) {
+    widget.value = pendingValue;
     syncAdvancedFieldsBackup(node, widget.value);
-    delete node.__easyuseAnimaPendingAdvancedFieldsValue;
+    clearPendingAdvancedFieldsValue(node);
     return;
   }
   const backup = advancedFieldsBackup(node);
@@ -3159,8 +3171,7 @@ function hideAdvancedInternalWidget(node, name) {
     input.style.pointerEvents = "none";
     input.tabIndex = -1;
   }
-  node.__easyuseAnimaHiddenWidgets ||= {};
-  node.__easyuseAnimaHiddenWidgets[name] = widget;
+  setHiddenWidget(node, name, widget);
   node.setDirtyCanvas?.(true, true);
 }
 
@@ -3224,9 +3235,9 @@ function parseAdvancedFields(node) {
 }
 
 function collectAdvancedEditorFields(node) {
-  const fields = (node.__easyuseAnimaAdvancedFields || parseAdvancedFields(node))
+  const fields = (getAdvancedFields(node) || parseAdvancedFields(node))
     .map((field, index) => normalizeAdvancedField(field, index));
-  const editor = node.__easyuseAnimaAdvancedEditorEl;
+  const editor = getAdvancedEditorElement(node);
   if (!editor) {
     return fields;
   }
@@ -3254,7 +3265,7 @@ function writeAdvancedFields(node, fields, { render = false, syncInputs = true }
   }
   widget.value = JSON.stringify(fields.map((field, index) => normalizeAdvancedField(field, index)));
   syncAdvancedFieldsBackup(node, widget.value);
-  node.__easyuseAnimaAdvancedFields = fields;
+  setAdvancedFields(node, fields);
   if (syncInputs) {
     syncAdvancedFieldInputs(node, fields);
   }
@@ -3519,7 +3530,7 @@ function protectAdvancedNativeControl(element) {
 }
 
 function updateAdvancedSummary(node, groupId, text) {
-  node?.__easyuseAnimaAdvancedEditorEl
+  getAdvancedEditorElement(node)
     ?.querySelector?.(`[data-easyuse-anima-control-summary="${groupId}"]`)
     ?.replaceChildren(document.createTextNode(text));
 }
@@ -4267,22 +4278,22 @@ function createAdvancedResolutionBar(node) {
 }
 
 function advancedPaneFields(node, pane) {
-  return (node.__easyuseAnimaAdvancedFields || parseAdvancedFields(node))
+  return (getAdvancedFields(node) || parseAdvancedFields(node))
     .filter((field) => field.pane === pane);
 }
 
 function hasAdvancedNaia(node, pane) {
-  return (node.__easyuseAnimaAdvancedFields || parseAdvancedFields(node))
+  return (getAdvancedFields(node) || parseAdvancedFields(node))
     .some((field) => field.pane === pane && field.type === "naia");
 }
 
 function hasPositiveNaia(node) {
-  return (node.__easyuseAnimaAdvancedFields || parseAdvancedFields(node))
+  return (getAdvancedFields(node) || parseAdvancedFields(node))
     .some((field) => field.pane === "positive" && field.type === "naia");
 }
 
 function hasPositiveTrigger(node) {
-  return (node.__easyuseAnimaAdvancedFields || parseAdvancedFields(node))
+  return (getAdvancedFields(node) || parseAdvancedFields(node))
     .some((field) => field.pane === "positive" && field.type === "trigger");
 }
 
@@ -4388,7 +4399,7 @@ function advancedEditorFixedHeight(editor, textareas = advancedEditorTextareas(e
 }
 
 function advancedEditorContentMinimumHeight(node) {
-  const editor = node?.__easyuseAnimaAdvancedEditorEl;
+  const editor = getAdvancedEditorElement(node);
   if (!editor) {
     return ADVANCED_EDITOR_MIN_VIEWPORT_HEIGHT;
   }
@@ -4424,7 +4435,7 @@ function advancedAvailableEditorViewportHeight(node) {
 }
 
 function advancedEditorWidgetHeight(node) {
-  if (node?.__easyuseAnimaAdvancedEditorEl?.isConnected) {
+  if (getAdvancedEditorElement(node)?.isConnected) {
     return advancedAvailableEditorViewportHeight(node);
   }
   return Math.ceil(Math.max(
@@ -4439,7 +4450,7 @@ function advancedEditorWidget(node) {
     || null;
 }
 
-function advancedNodeChromeOffset(node, editorHeight = measureAdvancedEditorContentHeight(node?.__easyuseAnimaAdvancedEditorEl)) {
+function advancedNodeChromeOffset(node, editorHeight = measureAdvancedEditorContentHeight(getAdvancedEditorElement(node))) {
   const widget = advancedEditorWidget(node);
   const widgetY = Math.max(
     Number(widget?.last_y) || 0,
@@ -4449,7 +4460,7 @@ function advancedNodeChromeOffset(node, editorHeight = measureAdvancedEditorCont
 }
 
 function advancedMinimumNodeHeight(node) {
-  const editor = node?.__easyuseAnimaAdvancedEditorEl;
+  const editor = getAdvancedEditorElement(node);
   if (!editor) {
     return ADVANCED_EDITOR_MIN_VIEWPORT_HEIGHT;
   }
@@ -4485,7 +4496,7 @@ function advancedFieldByTextarea(node, textarea) {
   if (!id) {
     return null;
   }
-  return (node.__easyuseAnimaAdvancedFields || parseAdvancedFields(node))
+  return (getAdvancedFields(node) || parseAdvancedFields(node))
     .find((field) => field.id === id) || null;
 }
 
@@ -4531,8 +4542,7 @@ function finalizeAdvancedResize(node) {
   if (
     !node
     || !node.graph
-    || !node.__easyuseAnimaAdvancedEditorEl
-    || !node.__easyuseAnimaAdvancedEditorEl.isConnected
+    || !getAdvancedEditorElement(node)?.isConnected
   ) {
     return;
   }
@@ -4553,7 +4563,7 @@ function installAdvancedResizeEndListeners(node) {
 }
 
 function scheduleAdvancedResizeFinalize(node) {
-  if (!node?.__easyuseAnimaAdvancedEditorEl?.isConnected) {
+  if (!getAdvancedEditorElement(node)?.isConnected) {
     finalizeAdvancedResize(node);
     return;
   }
@@ -4565,7 +4575,7 @@ function scheduleAdvancedResizeFinalize(node) {
 }
 
 function updateAdvancedEditorWidth(node) {
-  const editor = node?.__easyuseAnimaAdvancedEditorEl;
+  const editor = getAdvancedEditorElement(node);
   if (!editor) {
     return;
   }
@@ -4577,7 +4587,7 @@ function updateAdvancedEditorWidth(node) {
 }
 
 function applyAdvancedLayout(node, reason = "layout") {
-  const editor = node?.__easyuseAnimaAdvancedEditorEl;
+  const editor = getAdvancedEditorElement(node);
   if (!editor || !node.size) {
     return;
   }
@@ -4626,7 +4636,7 @@ function advancedLayoutReasonPriority(reason) {
 }
 
 function scheduleAdvancedLayout(node, reason = "layout") {
-  if (!node?.__easyuseAnimaAdvancedEditorEl) {
+  if (!getAdvancedEditorElement(node)) {
     return;
   }
   updateAdvancedEditorWidth(node);
@@ -4888,7 +4898,7 @@ function installMiddlePanForwarder() {
 }
 
 function createAdvancedFieldElement(node, field) {
-  const fields = node.__easyuseAnimaAdvancedFields || parseAdvancedFields(node);
+  const fields = getAdvancedFields(node) || parseAdvancedFields(node);
   const globalIndex = fields.findIndex((item) => item.id === field.id);
   const samePane = fields.filter((item) => item.pane === field.pane);
   const paneIndex = samePane.findIndex((item) => item.id === field.id);
@@ -4907,7 +4917,7 @@ function createAdvancedFieldElement(node, field) {
   tools.className = "easyuse-anima-field-tools";
 
   const move = (direction) => {
-    const currentFields = node.__easyuseAnimaAdvancedFields || parseAdvancedFields(node);
+    const currentFields = getAdvancedFields(node) || parseAdvancedFields(node);
     const paneFields = currentFields
       .map((item, index) => ({ item, index }))
       .filter(({ item }) => item.pane === field.pane);
@@ -4972,7 +4982,7 @@ function createAdvancedFieldElement(node, field) {
     const useNaiaWidget = findWidget(node, "use_naia");
     const linkedUseNaia = isWidgetInputLinked(node, "use_naia");
     const fillButton = addTool(psText("advanced.fillFromNaia"), psText("advanced.fillFromNaiaTitle"), () => {
-      const currentFields = node.__easyuseAnimaAdvancedFields || parseAdvancedFields(node);
+      const currentFields = getAdvancedFields(node) || parseAdvancedFields(node);
       const target = currentFields.find((item) => item.id === field.id);
       if (target?.enabled === false) {
         return;
@@ -4990,7 +5000,7 @@ function createAdvancedFieldElement(node, field) {
   addTool("↑", psText("advanced.moveUp"), () => move(-1), paneIndex <= 0);
   addTool("↓", psText("advanced.moveDown"), () => move(1), paneIndex >= samePane.length - 1);
   addTool("X", psText("advanced.deleteField"), () => {
-    const currentFields = node.__easyuseAnimaAdvancedFields || parseAdvancedFields(node);
+    const currentFields = getAdvancedFields(node) || parseAdvancedFields(node);
     currentFields.splice(globalIndex, 1);
     writeAdvancedFields(node, currentFields, { render: true });
   });
@@ -5096,7 +5106,7 @@ function createAdvancedFieldElement(node, field) {
 }
 
 function addAdvancedField(node, pane, type) {
-  const fields = node.__easyuseAnimaAdvancedFields || parseAdvancedFields(node);
+  const fields = getAdvancedFields(node) || parseAdvancedFields(node);
   if (type === "naia" && hasAdvancedNaia(node, pane)) {
     return;
   }
@@ -5168,12 +5178,12 @@ function createAdvancedPane(node, pane, titleKey) {
 }
 
 function renderAdvancedEditor(node) {
-  const editor = node.__easyuseAnimaAdvancedEditorEl;
+  const editor = getAdvancedEditorElement(node);
   if (!editor) {
     return;
   }
-  node.__easyuseAnimaAdvancedFields = parseAdvancedFields(node);
-  applyAdvancedNaiaGeneralAutoToggle(node, node.__easyuseAnimaAdvancedFields);
+  const fields = setAdvancedFields(node, parseAdvancedFields(node));
+  applyAdvancedNaiaGeneralAutoToggle(node, fields);
   editor.innerHTML = "";
   updateAdvancedEditorWidth(node);
   const panes = document.createElement("div");
@@ -5188,7 +5198,7 @@ function renderAdvancedEditor(node) {
     createAdvancedResolutionBar(node),
     panes,
   );
-  writeAdvancedFields(node, node.__easyuseAnimaAdvancedFields);
+  writeAdvancedFields(node, fields);
   scheduleAdvancedLayout(node, "render");
 }
 
@@ -5204,14 +5214,14 @@ function hookAdvancedNode(node) {
   if (Array.isArray(node.size)) {
     node.size[0] = Math.max(Number(node.size[0]) || 420, 360);
   }
-  if (!node.__easyuseAnimaAdvancedEditorEl) {
+  if (!getAdvancedEditorElement(node)) {
     const editor = document.createElement("div");
     editor.className = "easyuse-anima-advanced-editor";
     editor.addEventListener("wheel", forwardAdvancedWheelToCanvas, { capture: true, passive: false });
     for (const eventName of ADVANCED_NATIVE_CONTROL_EVENTS) {
       editor.addEventListener(eventName, guardAdvancedEditorNativeControlEvent);
     }
-    node.__easyuseAnimaAdvancedEditorEl = editor;
+    setAdvancedEditorElement(node, editor);
     const widget = node.addDOMWidget?.("easyuse_anima_advanced_editor", "EasyUseAnimaAdvancedEditor", editor, {
       serialize: false,
       hideOnZoom: false,
@@ -5291,7 +5301,7 @@ function applyAdvancedExecutedInputs(node, message) {
   if (mergeAdvancedFieldInputValues(node, fields, node.__easyuseAnimaAdvancedFieldInputValues)) {
     writeAdvancedFields(node, fields, { syncInputs: false });
   } else {
-    node.__easyuseAnimaAdvancedFields = fields;
+    setAdvancedFields(node, fields);
   }
   const useNaia = findWidget(node, "use_naia");
   if (useNaia && payload.use_naia != null) {
