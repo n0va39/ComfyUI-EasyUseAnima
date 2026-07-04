@@ -47,8 +47,8 @@ function enhanceResizableInput(node, widget, hooks = {}) {
     const computeSize = widget.computeSize;
     widget.computeSize = function (width) {
       const base = computeSize?.apply(this, arguments) || [width, minimumHeight];
-      const layoutHeight = (this.__easyuseAnimaHeight || minimumHeight) + STUDIO_WIDGET_VERTICAL_GAP;
-      this.__easyuseAnimaLayoutHeight = layoutHeight;
+      const layoutHeight = (widget.__easyuseAnimaHeight || minimumHeight) + STUDIO_WIDGET_VERTICAL_GAP;
+      widget.__easyuseAnimaLayoutHeight = layoutHeight;
       return [base[0], Math.max(base[1], layoutHeight)];
     };
     widget.__easyuseAnimaStudioComputeWrapped = true;
