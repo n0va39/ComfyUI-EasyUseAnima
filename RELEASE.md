@@ -1,5 +1,36 @@
 # Release Notes
 
+## 0.2.7
+
+### Fixed
+
+- Fixed global autocomplete attachment in ComfyUI Nodes 2.0 so prompt text
+  fields that are created or re-rendered after extension startup still receive
+  EasyUse Anima autocomplete behavior.
+- Fixed autocomplete search for escaped prompt parentheses so inputs such as
+  `\(blue archive\)` search the inner literal tag text, matching tags like
+  `asuna \(blue archive\)`.
+- Fixed autocomplete popup scroll reset timing after popup hide/show cycles so
+  new suggestion lists reopen at the top instead of preserving a previous
+  scrolled position.
+
+### Changed
+
+- Autocomplete popup reset now runs after the popup becomes visible and once
+  more on the next animation frame, avoiding browser scroll restoration while
+  the menu is `display: none`.
+- Disabled scroll anchoring for the autocomplete popup to keep result-list
+  replacement from preserving stale scroll offsets.
+
+### Validation Notes
+
+- Added frontend source guards for Nodes 2.0 autocomplete attachment, prompt
+  syntax stripping, popup hide/show scroll reset order, and outside-click state
+  cleanup.
+- Added regression coverage for escaped literal parenthesis search.
+- Validated the autocomplete JavaScript with syntax checks and verified the
+  focused autocomplete regression tests during 0.2.7 preparation.
+
 ## 0.2.6
 
 ### Added
