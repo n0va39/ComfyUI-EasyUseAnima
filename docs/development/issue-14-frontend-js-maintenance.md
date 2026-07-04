@@ -197,6 +197,34 @@ Use browser Network overrides or a temporary local dev patch when practical.
 - Existing user-visible behavior is unchanged.
 - Smoke-test result is recorded in the PR or Issue #14 follow-up.
 
+### 2026-07-05 v0.24.0 Smoke Evidence
+
+Agent-side runtime checks used the dedicated `ComfyUI_v0.24.0` instance on
+`127.0.0.1:8199`, with user/output/database/cache paths under that instance.
+
+- `GET /system_stats` returned ComfyUI `0.24.0`.
+- Raw runtime JS module requests returned HTTP 200 for the Prompt Studio entry
+  file and the split `web/js/prompt_studio/*.js` modules.
+- Minimal API queue smoke succeeded with
+  `EasyUseAnimaPromptStudioAdvanced -> ShowText|pysssss`:
+  prompt `d47e82ce-a098-4800-a16a-ae9595729c0c`, status `success`,
+  completed `true`.
+- Browser workflow load smoke pasted
+  `docs/example_workflows/EasyUse_Anima_feature_test_release_en.json` into the
+  ComfyUI canvas. The loaded graph created one
+  `.easyuse-anima-advanced-editor` and six
+  `textarea[data-easyuse-anima-advanced-field-id]` controls, preserving the
+  expected field IDs and text values.
+- Browser UI queue smoke ran the pasted feature-test workflow:
+  prompt `9c3f2ad3-0f1d-4447-912a-64f8236c8abf`, status `success`,
+  completed `true`, output nodes `3,4,5,6,7,8,9,10,11,12`.
+- EasyUse/prompt_studio filtered browser console warnings/errors were empty
+  after load, export-dialog, and queue smoke checks.
+- The new ComfyUI graph menu opened the workflow export dialog and accepted its
+  default filename. The in-app browser automation did not surface a download
+  event, so file-download capture remains unconfirmed; no EasyUse or
+  prompt_studio error was emitted during the export-dialog path.
+
 ## Phase 2: Prompt Studio Module Boundaries
 
 ### Goal
@@ -873,10 +901,10 @@ Use this in Issue #14 or follow-up PR tracking comments.
 [x] decision documented
 
 ### Close criteria
-[ ] workflow compatibility verified
-[ ] runtime smoke test passed
+[x] workflow compatibility verified
+[x] runtime smoke test passed
 [ ] docs linked from development README
-[ ] no open Phase 2/3 blockers
+[x] no open Phase 2/3 blockers
 ```
 
 ## References
