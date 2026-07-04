@@ -187,7 +187,7 @@ class FrontendModuleStructureTests(unittest.TestCase):
             with self.subTest(module="node_hooks", symbol=name):
                 self.assertIn(f"  {name},", node_hooks_source)
 
-        for name in ("ensureAdvancedStyle",):
+        for name in ("ensureAdvancedStyle", "ensureExtendSlotStyle"):
             with self.subTest(module="style", symbol=name):
                 self.assertIn(f"  {name},", style_source)
 

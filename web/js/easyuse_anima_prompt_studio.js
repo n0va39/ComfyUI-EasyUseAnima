@@ -99,6 +99,7 @@ import {
 } from "./prompt_studio/node_hooks.js";
 import {
   ensureAdvancedStyle,
+  ensureExtendSlotStyle,
 } from "./prompt_studio/style.js";
 import {
   advancedEditorMinimumHeight,
@@ -434,61 +435,6 @@ function installTrainedTagTooltipListeners(input) {
   input.addEventListener("input", hideTrainedTagTooltip);
   input.addEventListener("blur", hideTrainedTagTooltip);
   input.__easyuseAnimaTrainedTagTooltipInstalled = true;
-}
-
-function ensureExtendSlotStyle() {
-  if (document.getElementById("easyuse-anima-extend-slot-style")) {
-    return;
-  }
-  const style = document.createElement("style");
-  style.id = "easyuse-anima-extend-slot-style";
-  style.textContent = `
-    .easyuse-anima-extend-slots {
-      box-sizing: border-box;
-      width: 100%;
-      padding-bottom: 4px;
-      color: var(--fg-color, #ddd);
-      font: 11px sans-serif;
-      user-select: none;
-    }
-    .easyuse-anima-extend-slot-row {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 5px;
-      width: 100%;
-    }
-    .easyuse-anima-extend-slot-hide-row {
-      display: flex;
-      flex-wrap: wrap;
-      margin-top: 5px;
-    }
-    .easyuse-anima-extend-slot-row button {
-      box-sizing: border-box;
-      min-width: 0;
-      height: 24px;
-      border: 1px solid rgba(148, 163, 184, 0.38);
-      border-radius: 4px;
-      background: rgba(17, 24, 39, 0.7);
-      color: var(--fg-color, #ddd);
-      font: 11px sans-serif;
-      cursor: pointer;
-    }
-    .easyuse-anima-extend-slot-row button:hover:not(:disabled) {
-      border-color: rgba(96, 165, 250, 0.74);
-      background: rgba(30, 64, 175, 0.5);
-    }
-    .easyuse-anima-extend-slot-row button:disabled {
-      opacity: 0.42;
-      cursor: default;
-    }
-    .easyuse-anima-extend-slot-hide-row button {
-      flex: 0 1 auto;
-      height: 21px;
-      padding: 0 6px;
-      font-size: 10px;
-    }
-  `;
-  document.head.append(style);
 }
 
 function refreshNodeSize(node, options = {}) {
