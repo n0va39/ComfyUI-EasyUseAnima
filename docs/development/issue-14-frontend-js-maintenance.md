@@ -3,18 +3,19 @@
 ## Position
 
 Issue #14 is accepted as a frontend maintainability track. It should not be
-closed by the current PR alone.
+closed until this PR is reviewed, merged, and any remaining follow-up items are
+confirmed.
 
 The active PR is:
 
 ```text
-Issue #14 Phase 1 + staged Phase 2 frontend module boundary work
+Issue #14 Phase 1-4 frontend maintainability work
 ```
 
-The active PR starts the Issue #14 work by centralizing shared frontend API
-helpers and then continues the Prompt Studio JavaScript module split in tested
-commits. It does not complete JS type-checking work or the Vite/TypeScript
-build decision.
+The active PR centralizes shared frontend API helpers, splits Prompt Studio
+JavaScript responsibilities into tested modules, adds a no-build JS typecheck
+gate, documents the no-build Vite/TypeScript decision, and records v0.24.0
+workflow/load/queue smoke evidence.
 
 ## Close Criteria
 
