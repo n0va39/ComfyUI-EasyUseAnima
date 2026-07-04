@@ -228,6 +228,7 @@ web/js/
     layout.js
     advanced_layout_controller.js
     studio_textareas.js
+    studio_resizable_input.js
     studio_values.js
     wildcard_values.js
     textarea.js
@@ -765,6 +766,7 @@ Use this in Issue #14 or follow-up PR tracking comments.
 [ ] layout.js extracted
 [ ] advanced_layout_controller.js extracted
 [ ] studio_textareas.js extracted
+[ ] studio_resizable_input.js extracted
 [ ] studio_values.js extracted
 [ ] wildcard_values.js extracted
 [ ] textarea.js extracted

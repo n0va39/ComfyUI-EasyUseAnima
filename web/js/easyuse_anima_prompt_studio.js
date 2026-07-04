@@ -3,7 +3,6 @@ import { easyuseAnimaWatchLocale } from "./easyuse_anima_i18n.js";
 import {
   FIELD_NAMES,
   EXTEND_FIELD_NAMES,
-  STUDIO_WIDGET_VERTICAL_GAP,
   ADVANCED_NATIVE_CONTROL_EVENTS,
   DEFAULT_ADVANCED_RESOLUTION_BUCKET,
   DEFAULT_ADVANCED_RESOLUTION_SIZE,
@@ -86,7 +85,6 @@ import {
   classifyPrompt,
   installPromptHighlightOverlayRefresh,
   refreshAllPromptHighlights,
-  requestOverlaySync,
 } from "./prompt_studio/highlight.js";
 import {
   registerAdvancedAutocompleteInput,
@@ -115,16 +113,16 @@ import {
   guardAdvancedEditorNativeControlEvent,
 } from "./prompt_studio/wheel.js";
 import {
-  desiredTextareaHeight,
   expandStudioInputToContent as expandStudioInputToContentWithHooks,
   growStudioManualHeightToContent as growStudioManualHeightToContentWithHooks,
   rebalanceStudioInputHeights as rebalanceStudioInputHeightsWithHooks,
   setStudioInputHeight as setStudioInputHeightWithHooks,
   setStudioManualHeight as setStudioManualHeightWithHooks,
-  studioCurrentHeight,
-  studioDefaultHeight,
   visibleStudioWidgets as visibleStudioWidgetsWithHooks,
 } from "./prompt_studio/studio_textareas.js";
+import {
+  enhanceResizableInput as enhanceResizableInputWithHooks,
+} from "./prompt_studio/studio_resizable_input.js";
 import {
   applyExecutedInputs as applyExecutedInputsWithHooks,
   restoreInputFromWidget,
@@ -352,68 +350,13 @@ function ensureExtendSlotControls(node) {
 }
 
 function enhanceResizableInput(node, widget) {
-  const input = findInputEl(widget);
-  if (!input) {
-    return;
-  }
-
-  const defaultHeight = studioDefaultHeight(widget);
-  const minimumHeight = Math.min(defaultHeight, 54);
-
-  applyPromptStudioTextStyle(input);
-  widget.__easyuseAnimaHeight = Math.max(minimumHeight, widget.__easyuseAnimaHeight || defaultHeight);
-  widget.__easyuseAnimaLayoutHeight = widget.__easyuseAnimaHeight + STUDIO_WIDGET_VERTICAL_GAP;
-  input.style.boxSizing = "border-box";
-  input.style.resize = "vertical";
-  input.style.overflowY = "hidden";
-  input.style.minHeight = `${minimumHeight}px`;
-  input.style.height = `${widget.__easyuseAnimaHeight}px`;
-
-  if (!widget.__easyuseAnimaStudioComputeWrapped) {
-    const computeSize = widget.computeSize;
-    widget.computeSize = function (width) {
-      const base = computeSize?.apply(this, arguments) || [width, minimumHeight];
-      const layoutHeight = (this.__easyuseAnimaHeight || minimumHeight) + STUDIO_WIDGET_VERTICAL_GAP;
-      this.__easyuseAnimaLayoutHeight = layoutHeight;
-      return [base[0], Math.max(base[1], layoutHeight)];
-    };
-    widget.__easyuseAnimaStudioComputeWrapped = true;
-  }
-
-  const syncHeight = () => {
-    if (widget.__easyuseAnimaManualHeight) {
-      growStudioManualHeightToContent(node, widget, "immediate");
-      requestOverlaySync(input);
-      return;
-    }
-    const height = desiredTextareaHeight(input, 0, minimumHeight, { includeCurrent: false });
-    setStudioInputHeight(node, widget, height, "immediate");
-  };
-  const rememberResizeStart = () => {
-    widget.__easyuseAnimaResizeStartHeight = studioCurrentHeight(widget, input);
-  };
-  const captureManualResize = () => {
-    const startHeight = Number(widget.__easyuseAnimaResizeStartHeight || widget.__easyuseAnimaHeight || 0);
-    const currentHeight = studioCurrentHeight(widget, input);
-    widget.__easyuseAnimaResizeStartHeight = currentHeight;
-    if (Math.abs(currentHeight - startHeight) > 2) {
-      setStudioManualHeight(node, widget);
-    } else {
-      updateHighlight(node, widget);
-    }
-  };
-
-  requestAnimationFrame(() => expandStudioInputToContent(node, widget, true));
-  if (input.__easyuseAnimaStudioResizable) {
-    return;
-  }
-
-  input.addEventListener("mousedown", rememberResizeStart);
-  input.addEventListener("pointerdown", rememberResizeStart);
-  input.addEventListener("mouseup", captureManualResize);
-  input.addEventListener("pointerup", captureManualResize);
-  input.addEventListener("input", syncHeight);
-  input.__easyuseAnimaStudioResizable = true;
+  enhanceResizableInputWithHooks(node, widget, {
+    expandStudioInputToContent,
+    growStudioManualHeightToContent,
+    setStudioInputHeight,
+    setStudioManualHeight,
+    updateHighlight,
+  });
 }
 
 function hookStudioNode(node, attempt = 0) {

@@ -86,6 +86,7 @@ class FrontendModuleStructureTests(unittest.TestCase):
         self.assertIn('./prompt_studio/widgets.js"', source)
         self.assertIn('./prompt_studio/layout.js"', source)
         self.assertIn('./prompt_studio/advanced_layout_controller.js"', source)
+        self.assertIn('./prompt_studio/studio_resizable_input.js"', source)
         self.assertIn('./prompt_studio/studio_textareas.js"', source)
         self.assertIn('./prompt_studio/studio_values.js"', source)
         self.assertIn('./prompt_studio/wildcard_values.js"', source)
@@ -174,6 +175,9 @@ class FrontendModuleStructureTests(unittest.TestCase):
         ).read_text(encoding="utf-8")
         studio_textareas_source = (
             PROMPT_STUDIO_MODULES / "studio_textareas.js"
+        ).read_text(encoding="utf-8")
+        studio_resizable_input_source = (
+            PROMPT_STUDIO_MODULES / "studio_resizable_input.js"
         ).read_text(encoding="utf-8")
         studio_values_source = (
             PROMPT_STUDIO_MODULES / "studio_values.js"
@@ -467,6 +471,12 @@ class FrontendModuleStructureTests(unittest.TestCase):
                 self.assertIn(f"  {name},", studio_textareas_source)
 
         for name in (
+            "enhanceResizableInput",
+        ):
+            with self.subTest(module="studio_resizable_input", symbol=name):
+                self.assertIn(f"  {name},", studio_resizable_input_source)
+
+        for name in (
             "applyExecutedInputs",
             "restoreInputFromWidget",
             "syncStudioValues",
@@ -539,6 +549,7 @@ class FrontendModuleStructureTests(unittest.TestCase):
             "widgets.js",
             "layout.js",
             "studio_textareas.js",
+            "studio_resizable_input.js",
             "studio_values.js",
             "wildcard_values.js",
             "textarea.js",
