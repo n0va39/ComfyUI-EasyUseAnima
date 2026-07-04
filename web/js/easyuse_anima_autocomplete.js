@@ -361,6 +361,7 @@ function ensureStyle() {
       min-width: 280px;
       max-height: 280px;
       overflow: auto;
+      overflow-anchor: none;
       overscroll-behavior: contain;
       border: 1px solid rgba(128, 128, 128, 0.45);
       border-radius: 7px;
@@ -416,9 +417,9 @@ function hidePopup() {
   const input = activeState?.input;
   markAutocompleteInputInactive(input);
   if (popup) {
-    popup.classList.add("hidden");
     popup.replaceChildren();
-    popup.scrollTop = 0;
+    resetAutocompleteMenuToTop(popup);
+    popup.classList.add("hidden");
   }
   clearAutocompletePreview(input);
   activeState = null;
@@ -1070,6 +1071,14 @@ function setActive(index) {
   updateAutocompletePreview();
 }
 
+function resetAutocompleteMenuToTop(menu) {
+  if (!menu) {
+    return;
+  }
+  menu.scrollTop = 0;
+  menu.scrollLeft = 0;
+}
+
 function resetActiveAutocompleteMenu(menu) {
   if (!activeState) {
     return;
@@ -1078,9 +1087,16 @@ function resetActiveAutocompleteMenu(menu) {
   [...(menu?.children || [])].forEach((child, childIndex) => {
     child.classList.toggle("active", childIndex === activeState.index);
   });
-  if (menu) {
-    menu.scrollTop = 0;
-  }
+  resetAutocompleteMenuToTop(menu);
+}
+
+function resetVisibleAutocompleteMenuSoon(menu, input) {
+  resetAutocompleteMenuToTop(menu);
+  requestAnimationFrame(() => {
+    if (popup === menu && activeState?.input === input && !menu.classList.contains("hidden")) {
+      resetAutocompleteMenuToTop(menu);
+    }
+  });
 }
 
 function endsWithSentencePeriod(value) {
@@ -1560,7 +1576,7 @@ function syncWidgetValue(state) {
 
 function renderResults(state, results, signature = "") {
   const menu = ensurePopup();
-  menu.scrollTop = 0;
+  resetAutocompleteMenuToTop(menu);
   if (activeState?.input && activeState.input !== state.input) {
     clearAutocompletePreview(activeState.input);
   }
@@ -1618,6 +1634,8 @@ function renderResults(state, results, signature = "") {
   positionPopup(state.input);
   hideTrainedTagTooltips();
   menu.classList.remove("hidden");
+  resetActiveAutocompleteMenu(menu);
+  resetVisibleAutocompleteMenuSoon(menu, state.input);
   updateAutocompletePreview();
 }
 

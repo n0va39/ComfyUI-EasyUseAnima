@@ -132,7 +132,9 @@ class AIOFrontendSourceTests(unittest.TestCase):
         hide_body = source[start:end]
 
         self.assertIn("markAutocompleteInputInactive(input);", hide_body)
-        self.assertIn("popup.scrollTop = 0;", hide_body)
+        self.assertIn("resetAutocompleteMenuToTop(popup);", hide_body)
+        self.assertLess(hide_body.index("popup.replaceChildren();"), hide_body.index("resetAutocompleteMenuToTop(popup);"))
+        self.assertLess(hide_body.index("resetAutocompleteMenuToTop(popup);"), hide_body.index('popup.classList.add("hidden");'))
 
         start = source.index("function markAutocompleteInputInactive")
         end = source.index("\nfunction hideTrainedTagTooltips", start)
@@ -140,23 +142,46 @@ class AIOFrontendSourceTests(unittest.TestCase):
 
         self.assertIn('state.lastAutocompleteSignature = "";', inactive_body)
 
+        self.assertIn("overflow-anchor: none;", source)
+
+        start = source.index("function resetAutocompleteMenuToTop")
+        end = source.index("\nfunction resetActiveAutocompleteMenu", start)
+        reset_top_body = source[start:end]
+
+        self.assertIn("menu.scrollTop = 0;", reset_top_body)
+        self.assertIn("menu.scrollLeft = 0;", reset_top_body)
+
         start = source.index("function resetActiveAutocompleteMenu")
-        end = source.index("\nfunction endsWithSentencePeriod", start)
+        end = source.index("\nfunction resetVisibleAutocompleteMenuSoon", start)
         reset_body = source[start:end]
 
         self.assertIn("activeState.index = 0;", reset_body)
-        self.assertIn("menu.scrollTop = 0;", reset_body)
+        self.assertIn("resetAutocompleteMenuToTop(menu);", reset_body)
+
+        start = source.index("function resetVisibleAutocompleteMenuSoon")
+        end = source.index("\nfunction endsWithSentencePeriod", start)
+        visible_reset_body = source[start:end]
+
+        self.assertIn("resetAutocompleteMenuToTop(menu);", visible_reset_body)
+        self.assertIn("requestAnimationFrame(() => {", visible_reset_body)
+        self.assertIn('!menu.classList.contains("hidden")', visible_reset_body)
+        self.assertNotIn("resetActiveAutocompleteMenu(menu);", visible_reset_body)
 
         start = source.index("function renderResults")
         end = source.index("\nfunction isCaretInComment", start)
         body = source[start:end]
 
-        self.assertIn("menu.scrollTop = 0;", body)
+        self.assertIn("resetAutocompleteMenuToTop(menu);", body)
         self.assertIn("index: 0,", body)
+        self.assertIn('menu.classList.remove("hidden");', body)
         self.assertIn("resetActiveAutocompleteMenu(menu);", body)
-        self.assertLess(body.index("menu.scrollTop = 0;"), body.index("menu.replaceChildren();"))
+        self.assertIn("resetVisibleAutocompleteMenuSoon(menu, state.input);", body)
+        self.assertLess(body.index("resetAutocompleteMenuToTop(menu);"), body.index("menu.replaceChildren();"))
         self.assertLess(body.index("menu.replaceChildren();"), body.index("resetActiveAutocompleteMenu(menu);"))
         self.assertLess(body.index("resetActiveAutocompleteMenu(menu);"), body.index("positionPopup(state.input);"))
+        self.assertLess(body.index('menu.classList.remove("hidden");'), body.rindex("resetActiveAutocompleteMenu(menu);"))
+        self.assertLess(body.index('menu.classList.remove("hidden");'), body.index("resetVisibleAutocompleteMenuSoon(menu, state.input);"))
+        self.assertLess(body.index("resetVisibleAutocompleteMenuSoon(menu, state.input);"), body.index("updateAutocompletePreview();"))
 
         start = source.index("  const updateNow = async () => {")
         end = source.index("    const seq = ++updateSeq;", start)
