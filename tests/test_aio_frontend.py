@@ -125,6 +125,54 @@ class AIOFrontendSourceTests(unittest.TestCase):
 
         self.assertIn('return context.kind === "wildcard" ? results : [];', strict_body)
 
+    def test_autocomplete_supports_nodes_v2_specs_and_dom_widgets(self):
+        source = AUTOCOMPLETE_JS.read_text(encoding="utf-8")
+
+        start = source.index("function inputTypeName")
+        end = source.index("\nfunction isExcludedInput", start)
+        spec_body = source[start:end]
+
+        self.assertIn("inputSpec.widgetType || inputSpec.type", spec_body)
+        self.assertIn("nodeData?.inputs", spec_body)
+        self.assertIn("inputSpec.options || {}", spec_body)
+        self.assertIn("typeNames.some((item) => item === \"STRING\" || item === \"TEXTAREA\")", source)
+        self.assertIn("typeNames.includes(\"TEXTAREA\")", source)
+
+        start = source.index("function findInputEl")
+        end = source.index("\nfunction isEscaped", start)
+        input_body = source[start:end]
+
+        self.assertIn("widget?.inputEl || widget?.element", input_body)
+        self.assertIn('querySelector?.("textarea, input")', input_body)
+
+    def test_autocomplete_avoids_double_callback_for_nodes_v2_dom_widgets(self):
+        source = AUTOCOMPLETE_JS.read_text(encoding="utf-8")
+        start = source.index("function widgetValueSetterCallsCallback")
+        end = source.index("\nfunction renderResults", start)
+        sync_body = source[start:end]
+
+        self.assertIn("return !!widget?.element;", sync_body)
+        self.assertIn("state.widget.value = state.input.value;", sync_body)
+        self.assertIn("if (!widgetValueSetterCallsCallback(state.widget))", sync_body)
+        self.assertIn("syncWidgetValue(state);", source)
+        self.assertNotIn("state.widget.callback?.(state.input.value);", source[:source.index("function widgetValueSetterCallsCallback")])
+
+    def test_autocomplete_hooks_focused_nodes_v2_dom_inputs(self):
+        source = AUTOCOMPLETE_JS.read_text(encoding="utf-8")
+        start = source.index("function hookFocusedDomInput")
+        end = source.index("\nfunction installExternalInputHook", start)
+        focus_body = source[start:end]
+
+        self.assertIn("isAutocompleteDomInput(input)", focus_body)
+        self.assertIn("const node = nodeFromDomElement(input);", focus_body)
+        self.assertIn("if (!node)", focus_body)
+        self.assertIn("const targets = nodeData ? targetWidgets(nodeData) : null;", focus_body)
+        self.assertIn("const widget = widgetForDomInput(node, input);", focus_body)
+        self.assertIn("hookInput(input", focus_body)
+        self.assertIn('document.addEventListener("focusin"', source)
+        self.assertIn("hookFocusedDomInput(document.activeElement);", source)
+        self.assertNotIn("easyuseAnimaDebugAutocomplete", source)
+
     def test_prompt_highlight_wildcards_accept_unicode_keys(self):
         source = PROMPT_STUDIO_COMMON_JS.read_text(encoding="utf-8")
 
