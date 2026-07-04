@@ -2,549 +2,80 @@ import { app } from "../../../scripts/app.js";
 import { easyuseAnimaClassifyPrompt, easyuseAnimaGetSettings } from "./easyuse_anima_api.js";
 import { easyuseAnimaText, easyuseAnimaWatchLocale } from "./easyuse_anima_i18n.js";
 import { normalizePromptTagText } from "./easyuse_anima_prompt_rules.js";
-
-const NODE_TYPE = "EasyUseAnimaPromptStudio";
-const ADVANCED_NODE_TYPE = "EasyUseAnimaPromptStudioAdvanced";
-const ADVANCED_V2_NODE_TYPE = "EasyUseAnimaPromptStudioAdvancedV2";
-const EXTEND_NODE_TYPE = "EasyUseAnimaPromptStudioExtend";
-const WILDCARD_NODE_TYPE = "EasyUseAnimaWildcard";
-const FIELD_NAMES = [
-  "lora_trigger_tags",
-  "quality_tags",
-  "trigger_and_artist_tags",
-  "prompt",
-  "trailing_quality_tags",
-];
-const EXTEND_FIELD_NAMES = [
-  "quality_tags_1",
-  "quality_tags_2",
-  "naia_prompt_3",
-  "general_tags_4",
-  "general_tags_5",
-  "general_tags_6",
-  "general_tags_7",
-  "general_tags_8",
-  "general_tags_9",
-  "trailing_tags_10",
-  "trailing_tags_11",
-  "negative_prompt_1",
-  "negative_prompt_2",
-  "negative_prompt_3",
-  "negative_prompt_4",
-];
-const EXTEND_VISIBLE_SLOTS_PROPERTY = "easyuse_anima_extend_visible_slots";
-const EXTEND_ACTIVE_SLOTS_WIDGET = "active_slots";
-const EXTEND_SLOT_GROUPS = [
-  { id: "quality", label: "Quality", labelKey: "extend.group.quality", fields: ["quality_tags_1", "quality_tags_2"] },
-  { id: "naia", label: "NAIA", labelKey: "extend.group.naia", fields: ["naia_prompt_3"] },
-  { id: "general", label: "General", labelKey: "extend.group.general", fields: ["general_tags_4", "general_tags_5", "general_tags_6", "general_tags_7", "general_tags_8", "general_tags_9"] },
-  { id: "trailing", label: "Trailing", labelKey: "extend.group.trailing", fields: ["trailing_tags_10", "trailing_tags_11"] },
-  { id: "negative", label: "Negative", labelKey: "extend.group.negative", fields: ["negative_prompt_1", "negative_prompt_2", "negative_prompt_3", "negative_prompt_4"] },
-];
-const EXTEND_DEFAULT_VISIBLE_FIELDS = new Set(["quality_tags_1", "general_tags_4", "trailing_tags_10"]);
-
-const PROMPT_STUDIO_TEXT = {
-  en: {
-    "section.quality": "Quality",
-    "section.safety": "Rating",
-    "section.year": "Year",
-    "section.count": "Count",
-    "section.character": "Character",
-    "section.artist": "Artist",
-    "section.artist_unknown": "Unregistered artist",
-    "section.copyright": "Copyright",
-    "section.meta": "Meta",
-    "section.general": "Trained tag",
-    "section.natural": "Natural language",
-    "section.translation": "Translation marker",
-    "section.wildcard": "Wildcard",
-    "section.syntax": "Syntax error",
-    "section.unknown": "Unknown",
-    "tag.generic": "tag",
-    "tag.learned": "learned",
-    "legend.color": "Color legend",
-    "extend.group.quality": "Quality",
-    "extend.group.naia": "NAIA",
-    "extend.group.general": "General",
-    "extend.group.trailing": "Trailing",
-    "extend.group.negative": "Negative",
-    "extend.noHiddenSlots": "No hidden slots left",
-    "extend.showSlotTitle": "{name} input slot show",
-    "extend.hideSlot": "Hide {slot}",
-    "extend.hideSlotTitle": "{name} input slot hide",
-    "extend.naiaResult": "NAIA result",
-    "extend.naiaResultTitle": "Read-only NAIA result slot. Enable fill_naia_prompt to update it from NAIA.",
-    "advanced.fillFromNaia": "Fill from NAIA",
-    "advanced.fillFromNaiaTitle": "Keep filling the NAIA Prompt field with a fresh NAIA random prompt while this is enabled.",
-    "advanced.fillOnce": "1x",
-    "advanced.fillOnceTitle": "Save successful NAIA fills with the request flag turned off.",
-    "advanced.modGuidance": "mod guidance",
-    "advanced.modGuidanceTitle": "Send positive quality fields to Anima Mod Guidance output.",
-    "advanced.negativeModGuidance": "negative mod",
-    "advanced.negativeModGuidanceTitle": "Send negative quality fields to Anima Mod Guidance negative output.",
-    "advanced.modGuidanceGroup": "Mod Guidance",
-    "advanced.modGuidanceGroupTitle": "Open Mod Guidance routing settings.",
-    "advanced.modGuidanceSubtitle": "Choose whether quality fields are sent through the positive and negative Mod Guidance outputs.",
-    "advanced.artistMix": "Artist Mix",
-    "advanced.artistMixTitle": "Select how Advanced artist fields are written into EASYUSE_ANIMA_PROMPT_DATA.",
-    "advanced.artistMixSubtitle": "Artist mix settings are saved in prompt data and used by conditioning nodes.",
-    "advanced.artistMixMode": "mode",
-    "advanced.artistMixStart": "start",
-    "advanced.artistMixStrength": "strength",
-    "advanced.artistMixStyleGain": "style",
-    "advanced.artistMixRmsCap": "rms cap",
-    "advanced.artistMixTopK": "top K",
-    "advanced.artistMixClusters": "clusters",
-    "advanced.artistMixDominant": "dominant",
-    "advanced.artistMixDominantThreshold": "threshold",
-    "advanced.artistMixMode.offTitle": "Cost: 1 positive branch. Keep artist-field text inline in the positive prompt.",
-    "advanced.artistMixMode.averageTitle": "Cost: 1 positive branch. Weighted average of artist conditionings; fastest stable mix.",
-    "advanced.artistMixMode.delta_rmsTitle": "Cost: 1 positive branch. Mix artist deltas from the base prompt and restore RMS style energy; stronger than average.",
-    "advanced.artistMixMode.hybridTitle": "Cost: top K + 1 positive branches. Keep strongest artists exact and compress the tail with delta_rms.",
-    "advanced.artistMixMode.clusteredTitle": "Cost: about cluster count plus dominant artists. Cluster similar artist deltas; useful for many artists.",
-    "advanced.artistMixMode.exactTitle": "Cost: N positive branches. Most faithful artist-specific model output mix.",
-    "advanced.artistMixMode.composite_exactTitle": "Cost: N + 1 positive branches. Add one composite prompt branch plus exact artist branches.",
-    "advanced.artistMixMode.late_exactTitle": "Cost: base + N late exact branches. Apply exact mixing only after start.",
-    "advanced.artistMixMode.average_late_exactTitle": "Cost: 1 average branch plus N late exact branches. Fast early mix, exact late refinement.",
-    "advanced.artistMixMode.scheduled_averageTitle": "Cost: scheduled average branches. Change artist weights across timestep ranges.",
-    "advanced.artistMixStartTitle": "Late and scheduled modes start artist-specific conditioning at this sampling fraction.",
-    "advanced.artistMixStrengthTitle": "Scales exact branch strength after artist weights are normalized.",
-    "advanced.artistMixStyleGainTitle": "Controls style delta intensity for delta_rms, hybrid tail, and clustered compressed branches.",
-    "advanced.artistMixRmsCapTitle": "Limits RMS style-energy restoration for compressed artist branches.",
-    "advanced.artistMixTopKTitle": "Hybrid keeps this many strongest artist entries as exact branches.",
-    "advanced.artistMixClustersTitle": "Clustered mode compresses non-dominant artists into this many branches.",
-    "advanced.artistMixDominantTitle": "Keep artists above the dominant threshold as exact branches in clustered mode.",
-    "advanced.artistMixDominantThresholdTitle": "Normalized artist-weight threshold used by dominant isolation.",
-    "advanced.artistMixSyntaxTitle": "Use [[artist_a, artist_b:0.7]] to keep multiple artists in one mix branch. The final :number before ]] affects conditioning mix only.",
-    "advanced.wildcard": "wildcard",
-    "advanced.wildcardTitle": "Expand __wildcard__ and dynamic prompt syntax in Advanced Prompt Studio fields.",
-    "advanced.wildcardSeed": "wildcard seed",
-    "advanced.wildcardSeedControl": "seed control",
-    "advanced.wildcardModeTitle": "Wildcard expansion mode used when the node is queued.",
-    "advanced.wildcardSeedTitle": "Seed used for wildcard selection. Saved workflows keep the value for reproducible expansion.",
-    "advanced.wildcardSeedControlTitle": "How the wildcard seed changes after a queue run.",
-    "advanced.pin": "Pin",
-    "advanced.pinTitle": "Keep positive artist/trigger fields at the front.",
-    "advanced.linkedInputSuffix": "Linked input controls this value.",
-    "advanced.resolutionTitle": "Latent image resolution output. Resolutions are sorted by width/height ratio.",
-    "advanced.resolutionBucket": "resolution bucket",
-    "advanced.resolutionSize": "resolution size",
-    "advanced.customWidth": "custom width",
-    "advanced.customHeight": "custom height",
-    "advanced.naiaResolutionTitle": "Filled from NAIA on queue. Saved image workflows store this as Custom.",
-    "advanced.resolutionBucketTitle": "Resolution preset family used for latent width and height.",
-    "advanced.resolutionSizeTitle": "Concrete latent width and height selected from the bucket.",
-    "advanced.customWidthTitle": "Custom latent width. Values are snapped to multiples of 32.",
-    "advanced.customHeightTitle": "Custom latent height. Values are snapped to multiples of 32.",
-    "advanced.settingsButton": "Settings...",
-    "advanced.close": "Close",
-    "advanced.field.quality": "Quality Tags",
-    "advanced.field.artist": "Artist Tags",
-    "advanced.field.trigger": "Trigger Words",
-    "advanced.field.general": "General Tags",
-    "advanced.field.naia": "NAIA Prompt",
-    "advanced.on": "ON",
-    "advanced.off": "OFF",
-    "advanced.enableFieldTitle": "Enable or disable this field in prompt output",
-    "advanced.autoOrder": "Auto order",
-    "advanced.pinned": "Pinned",
-    "advanced.autoOrderTitle": "Let prompt correction place trigger words automatically.",
-    "advanced.pinnedTitle": "Keep trigger words fixed before corrected prompt text.",
-    "advanced.moveUp": "Move up",
-    "advanced.moveDown": "Move down",
-    "advanced.deleteField": "Delete field",
-    "advanced.placeholder.naia": "NAIA result appears here after queue",
-    "advanced.placeholder.trigger": "Connect trigger_words STRING input",
-    "advanced.placeholder.artist": "@artist_tag",
-    "advanced.placeholder.general": "prompt tags",
-    "advanced.title.naia": "Editable NAIA result field. Fill from NAIA can overwrite it on the next queue.",
-    "advanced.title.trigger": "Editable trigger field. A connected STRING input can overwrite it on the next queue.",
-    "advanced.title.linked": "Editable cached value. The connected STRING input can overwrite it on the next queue.",
-    "advanced.positivePrompt": "Positive Prompt",
-    "advanced.negativePrompt": "Negative Prompt",
-    "advanced.add.quality": "+ Quality",
-    "advanced.add.artist": "+ Artist",
-    "advanced.add.trigger": "+ Trigger",
-    "advanced.add.general": "+ General",
-    "advanced.add.naia": "+ NAIA",
-    "advanced.noFields": "No fields",
-  },
-  ko: {
-    "section.quality": "품질",
-    "section.safety": "등급",
-    "section.year": "연도",
-    "section.count": "인원수",
-    "section.character": "캐릭터",
-    "section.artist": "작가",
-    "section.artist_unknown": "미등록 작가",
-    "section.copyright": "작품",
-    "section.meta": "메타",
-    "section.general": "학습 태그",
-    "section.natural": "자연어",
-    "section.translation": "번역 구문",
-    "section.wildcard": "와일드카드",
-    "section.syntax": "문법 오류",
-    "section.unknown": "미확인",
-    "tag.generic": "태그",
-    "tag.learned": "학습됨",
-    "legend.color": "색상 범례",
-    "extend.group.quality": "품질",
-    "extend.group.naia": "NAIA",
-    "extend.group.general": "General",
-    "extend.group.trailing": "후행",
-    "extend.group.negative": "네거티브",
-    "extend.noHiddenSlots": "숨겨진 슬롯이 없습니다",
-    "extend.showSlotTitle": "{name} 입력 슬롯 표시",
-    "extend.hideSlot": "{slot} 숨김",
-    "extend.hideSlotTitle": "{name} 입력 슬롯 숨김",
-    "extend.naiaResult": "NAIA 결과",
-    "extend.naiaResultTitle": "읽기 전용 NAIA 결과 슬롯입니다. fill_naia_prompt를 켜면 NAIA 결과로 갱신됩니다.",
-    "advanced.fillFromNaia": "NAIA 채우기",
-    "advanced.fillFromNaiaTitle": "켜져 있으면 큐 실행 때마다 NAIA Prompt 필드를 새 NAIA 랜덤 프롬프트로 채웁니다.",
-    "advanced.fillOnce": "1회",
-    "advanced.fillOnceTitle": "NAIA 채우기에 성공하면 요청 플래그를 끈 상태로 저장합니다.",
-    "advanced.modGuidance": "mod guidance",
-    "advanced.modGuidanceTitle": "긍정 품질 필드를 Anima Mod Guidance 출력으로 보냅니다.",
-    "advanced.negativeModGuidance": "negative mod",
-    "advanced.negativeModGuidanceTitle": "부정 품질 필드를 Anima Mod Guidance 네거티브 출력으로 보냅니다.",
-    "advanced.modGuidanceGroup": "Mod Guidance",
-    "advanced.modGuidanceGroupTitle": "Mod Guidance 라우팅 설정을 엽니다.",
-    "advanced.modGuidanceSubtitle": "품질 필드를 긍정/부정 Mod Guidance 출력으로 보낼지 설정합니다.",
-    "advanced.artistMix": "Artist Mix",
-    "advanced.artistMixTitle": "Advanced 작가 필드를 EASYUSE_ANIMA_PROMPT_DATA에 기록하는 방식을 선택합니다.",
-    "advanced.artistMixSubtitle": "Artist Mix 설정은 prompt data에 저장되며 conditioning 노드에서 사용됩니다.",
-    "advanced.artistMixMode": "mode",
-    "advanced.artistMixStart": "start",
-    "advanced.artistMixStrength": "strength",
-    "advanced.artistMixStyleGain": "style",
-    "advanced.artistMixRmsCap": "rms cap",
-    "advanced.artistMixTopK": "top K",
-    "advanced.artistMixClusters": "clusters",
-    "advanced.artistMixDominant": "dominant",
-    "advanced.artistMixDominantThreshold": "threshold",
-    "advanced.artistMixMode.offTitle": "Cost: positive 1 branch. 작가 필드를 기존 positive prompt 안에 유지합니다.",
-    "advanced.artistMixMode.averageTitle": "Cost: positive 1 branch. 작가 conditioning을 가중 평균합니다. 안정적인 고속 모드입니다.",
-    "advanced.artistMixMode.delta_rmsTitle": "Cost: positive 1 branch. base prompt에서 작가 delta를 섞고 RMS 스타일 에너지를 복원합니다. average보다 강합니다.",
-    "advanced.artistMixMode.hybridTitle": "Cost: top K + 1 positive branches. 강한 작가는 exact로 유지하고 나머지는 delta_rms로 압축합니다.",
-    "advanced.artistMixMode.clusteredTitle": "Cost: cluster 수 + dominant 작가 정도. 비슷한 작가 delta를 묶어 압축합니다. 작가가 많을 때 유용합니다.",
-    "advanced.artistMixMode.exactTitle": "Cost: 작가 수 N positive branches. 작가별 모델 출력을 가장 충실하게 섞습니다.",
-    "advanced.artistMixMode.composite_exactTitle": "Cost: N + 1 positive branches. composite prompt branch와 exact branch를 함께 씁니다.",
-    "advanced.artistMixMode.late_exactTitle": "Cost: base + N late exact branches. start 이후에만 exact mix를 적용합니다.",
-    "advanced.artistMixMode.average_late_exactTitle": "Cost: average 1 branch + N late exact branches. 초반은 빠르게, 후반은 exact로 보강합니다.",
-    "advanced.artistMixMode.scheduled_averageTitle": "Cost: scheduled average branches. timestep 구간별로 artist weight를 바꿉니다.",
-    "advanced.artistMixStartTitle": "late/scheduled 계열에서 작가별 conditioning이 시작되는 sampling 비율입니다.",
-    "advanced.artistMixStrengthTitle": "작가 weight 정규화 이후 exact branch 강도를 조절합니다.",
-    "advanced.artistMixStyleGainTitle": "delta_rms, hybrid tail, clustered 압축 branch의 스타일 delta 강도입니다.",
-    "advanced.artistMixRmsCapTitle": "압축 artist branch의 RMS 스타일 에너지 복원 상한입니다.",
-    "advanced.artistMixTopKTitle": "hybrid에서 가장 강한 작가 항목을 exact branch로 유지할 개수입니다.",
-    "advanced.artistMixClustersTitle": "clustered에서 dominant가 아닌 작가를 압축할 branch 개수입니다.",
-    "advanced.artistMixDominantTitle": "clustered에서 threshold 이상 작가를 exact branch로 분리합니다.",
-    "advanced.artistMixDominantThresholdTitle": "dominant isolation에 사용하는 정규화된 작가 weight 기준입니다.",
-    "advanced.artistMixSyntaxTitle": "[[artist_a, artist_b:0.7]] 형식으로 여러 작가를 한 mix branch로 묶습니다. ]] 직전의 마지막 :숫자만 conditioning mix weight로 적용됩니다.",
-    "advanced.wildcard": "와일드카드",
-    "advanced.wildcardTitle": "Advanced Prompt Studio 필드의 __wildcard__ 및 동적 프롬프트 문법을 확장합니다.",
-    "advanced.wildcardSeed": "와일드카드 시드",
-    "advanced.wildcardSeedControl": "시드 제어",
-    "advanced.wildcardModeTitle": "큐 실행 시 사용할 와일드카드 확장 모드입니다.",
-    "advanced.wildcardSeedTitle": "와일드카드 선택에 사용하는 시드입니다. 저장된 워크플로우에서 재현성을 유지합니다.",
-    "advanced.wildcardSeedControlTitle": "큐 실행 후 와일드카드 시드를 변경하는 방식입니다.",
-    "advanced.pin": "고정",
-    "advanced.pinTitle": "긍정 작가/트리거 필드를 앞쪽에 유지합니다.",
-    "advanced.linkedInputSuffix": "연결된 입력이 이 값을 제어합니다.",
-    "advanced.resolutionTitle": "Latent 이미지 해상도 출력입니다. 해상도는 가로/세로 비율 순으로 정렬됩니다.",
-    "advanced.resolutionBucket": "해상도 버킷",
-    "advanced.resolutionSize": "해상도 크기",
-    "advanced.customWidth": "사용자 너비",
-    "advanced.customHeight": "사용자 높이",
-    "advanced.naiaResolutionTitle": "큐 실행 때 NAIA에서 채워졌습니다. 저장된 이미지 워크플로우에는 Custom으로 저장됩니다.",
-    "advanced.resolutionBucketTitle": "latent width/height를 고르는 해상도 프리셋 묶음입니다.",
-    "advanced.resolutionSizeTitle": "선택한 버킷 안에서 사용할 실제 latent width/height입니다.",
-    "advanced.customWidthTitle": "사용자 지정 latent width입니다. 32의 배수로 보정됩니다.",
-    "advanced.customHeightTitle": "사용자 지정 latent height입니다. 32의 배수로 보정됩니다.",
-    "advanced.settingsButton": "설정...",
-    "advanced.close": "닫기",
-    "advanced.field.quality": "품질 태그",
-    "advanced.field.artist": "작가 태그",
-    "advanced.field.trigger": "트리거",
-    "advanced.field.general": "일반 태그",
-    "advanced.field.naia": "NAIA 프롬프트",
-    "advanced.on": "ON",
-    "advanced.off": "OFF",
-    "advanced.enableFieldTitle": "이 필드를 프롬프트 출력에 포함하거나 제외합니다",
-    "advanced.autoOrder": "자동 배치",
-    "advanced.pinned": "고정됨",
-    "advanced.autoOrderTitle": "프롬프트 교정기가 트리거 위치를 자동으로 배치하게 합니다.",
-    "advanced.pinnedTitle": "트리거를 교정된 프롬프트 앞쪽에 고정합니다.",
-    "advanced.moveUp": "위로 이동",
-    "advanced.moveDown": "아래로 이동",
-    "advanced.deleteField": "필드 삭제",
-    "advanced.placeholder.naia": "큐 실행 후 NAIA 결과가 표시됩니다",
-    "advanced.placeholder.trigger": "trigger_words STRING 입력 연결",
-    "advanced.placeholder.artist": "@artist_tag",
-    "advanced.placeholder.general": "프롬프트 태그",
-    "advanced.title.naia": "편집 가능한 NAIA 결과 필드입니다. 다음 큐 실행에서 NAIA 채우기가 덮어쓸 수 있습니다.",
-    "advanced.title.trigger": "편집 가능한 트리거 필드입니다. 연결된 STRING 입력이 다음 큐 실행에서 덮어쓸 수 있습니다.",
-    "advanced.title.linked": "편집 가능한 캐시 값입니다. 연결된 STRING 입력이 다음 큐 실행에서 덮어쓸 수 있습니다.",
-    "advanced.positivePrompt": "긍정 프롬프트",
-    "advanced.negativePrompt": "네거티브 프롬프트",
-    "advanced.add.quality": "+ 품질",
-    "advanced.add.artist": "+ 작가",
-    "advanced.add.trigger": "+ 트리거",
-    "advanced.add.general": "+ 일반",
-    "advanced.add.naia": "+ NAIA",
-    "advanced.noFields": "필드 없음",
-  },
-  ja: {
-    "section.quality": "品質",
-    "section.safety": "レーティング",
-    "section.year": "年代",
-    "section.count": "人数",
-    "section.character": "キャラクター",
-    "section.artist": "作者",
-    "section.artist_unknown": "未登録作者",
-    "section.copyright": "作品",
-    "section.meta": "メタ",
-    "section.general": "学習タグ",
-    "section.natural": "自然文",
-    "section.translation": "翻訳構文",
-    "section.wildcard": "ワイルドカード",
-    "section.syntax": "構文エラー",
-    "section.unknown": "不明",
-    "tag.generic": "タグ",
-    "tag.learned": "学習済み",
-    "legend.color": "色の凡例",
-    "extend.group.quality": "品質",
-    "extend.group.naia": "NAIA",
-    "extend.group.general": "General",
-    "extend.group.trailing": "後置",
-    "extend.group.negative": "ネガティブ",
-    "extend.noHiddenSlots": "非表示スロットはありません",
-    "extend.showSlotTitle": "{name} 入力スロットを表示",
-    "extend.hideSlot": "{slot} を非表示",
-    "extend.hideSlotTitle": "{name} 入力スロットを非表示",
-    "extend.naiaResult": "NAIA 結果",
-    "extend.naiaResultTitle": "読み取り専用の NAIA 結果スロットです。fill_naia_prompt を有効にすると NAIA 結果で更新されます。",
-    "advanced.fillFromNaia": "NAIA で入力",
-    "advanced.fillFromNaiaTitle": "有効な間、キュー実行ごとに NAIA Prompt フィールドを新しい NAIA ランダムプロンプトで埋めます。",
-    "advanced.fillOnce": "1回",
-    "advanced.fillOnceTitle": "NAIA 入力が成功したら、リクエストフラグをオフにして保存します。",
-    "advanced.modGuidance": "mod guidance",
-    "advanced.modGuidanceTitle": "ポジティブ品質フィールドを Anima Mod Guidance 出力へ送ります。",
-    "advanced.negativeModGuidance": "negative mod",
-    "advanced.negativeModGuidanceTitle": "ネガティブ品質フィールドを Anima Mod Guidance ネガティブ出力へ送ります。",
-    "advanced.modGuidanceGroup": "Mod Guidance",
-    "advanced.modGuidanceGroupTitle": "Mod Guidance のルーティング設定を開きます。",
-    "advanced.modGuidanceSubtitle": "品質フィールドをポジティブ/ネガティブの Mod Guidance 出力へ送るか設定します。",
-    "advanced.artistMix": "Artist Mix",
-    "advanced.artistMixTitle": "Advanced の作者フィールドを EASYUSE_ANIMA_PROMPT_DATA に書き込む方法を選択します。",
-    "advanced.artistMixSubtitle": "Artist Mix 設定は prompt data に保存され、conditioning ノードで使用されます。",
-    "advanced.artistMixMode": "mode",
-    "advanced.artistMixStart": "start",
-    "advanced.artistMixStrength": "strength",
-    "advanced.artistMixStyleGain": "style",
-    "advanced.artistMixRmsCap": "rms cap",
-    "advanced.artistMixTopK": "top K",
-    "advanced.artistMixClusters": "clusters",
-    "advanced.artistMixDominant": "dominant",
-    "advanced.artistMixDominantThreshold": "threshold",
-    "advanced.artistMixMode.offTitle": "Cost: 1 positive branch. Keep artist-field text inline in the positive prompt.",
-    "advanced.artistMixMode.averageTitle": "Cost: 1 positive branch. Weighted average of artist conditionings; fastest stable mix.",
-    "advanced.artistMixMode.delta_rmsTitle": "Cost: 1 positive branch. Mix artist deltas from the base prompt and restore RMS style energy; stronger than average.",
-    "advanced.artistMixMode.hybridTitle": "Cost: top K + 1 positive branches. Keep strongest artists exact and compress the tail with delta_rms.",
-    "advanced.artistMixMode.clusteredTitle": "Cost: about cluster count plus dominant artists. Cluster similar artist deltas; useful for many artists.",
-    "advanced.artistMixMode.exactTitle": "Cost: N positive branches. Most faithful artist-specific model output mix.",
-    "advanced.artistMixMode.composite_exactTitle": "Cost: N + 1 positive branches. Add one composite prompt branch plus exact artist branches.",
-    "advanced.artistMixMode.late_exactTitle": "Cost: base + N late exact branches. Apply exact mixing only after start.",
-    "advanced.artistMixMode.average_late_exactTitle": "Cost: 1 average branch plus N late exact branches. Fast early mix, exact late refinement.",
-    "advanced.artistMixMode.scheduled_averageTitle": "Cost: scheduled average branches. Change artist weights across timestep ranges.",
-    "advanced.artistMixStartTitle": "late/scheduled 系モードで作者別 conditioning を開始する sampling 比率です。",
-    "advanced.artistMixStrengthTitle": "作者 weight の正規化後に exact branch の強度を調整します。",
-    "advanced.artistMixStyleGainTitle": "delta_rms、hybrid tail、clustered 圧縮 branch のスタイル delta 強度です。",
-    "advanced.artistMixRmsCapTitle": "圧縮 artist branch の RMS スタイルエネルギー復元上限です。",
-    "advanced.artistMixTopKTitle": "hybrid で最も強い作者項目を exact branch として残す数です。",
-    "advanced.artistMixClustersTitle": "clustered で dominant 以外の作者を圧縮する branch 数です。",
-    "advanced.artistMixDominantTitle": "clustered で threshold 以上の作者を exact branch として分離します。",
-    "advanced.artistMixDominantThresholdTitle": "dominant isolation に使う正規化済み作者 weight の基準です。",
-    "advanced.artistMixSyntaxTitle": "[[artist_a, artist_b:0.7]] で複数作者を 1 つの mix branch にまとめます。]] 直前の最後の :number だけが conditioning mix weight に適用されます。",
-    "advanced.wildcard": "ワイルドカード",
-    "advanced.wildcardTitle": "Advanced Prompt Studio フィールド内の __wildcard__ と動的プロンプト構文を展開します。",
-    "advanced.wildcardSeed": "ワイルドカードシード",
-    "advanced.wildcardSeedControl": "シード制御",
-    "advanced.wildcardModeTitle": "キュー実行時に使うワイルドカード展開モードです。",
-    "advanced.wildcardSeedTitle": "ワイルドカード選択に使うシードです。保存済みワークフローの再現性を保ちます。",
-    "advanced.wildcardSeedControlTitle": "キュー実行後にワイルドカードシードを変更する方法です。",
-    "advanced.pin": "固定",
-    "advanced.pinTitle": "ポジティブの作者/トリガーフィールドを前方に保持します。",
-    "advanced.linkedInputSuffix": "接続された入力がこの値を制御します。",
-    "advanced.resolutionTitle": "Latent 画像解像度出力です。解像度は横縦比順に並びます。",
-    "advanced.resolutionBucket": "解像度バケット",
-    "advanced.resolutionSize": "解像度サイズ",
-    "advanced.customWidth": "カスタム幅",
-    "advanced.customHeight": "カスタム高さ",
-    "advanced.naiaResolutionTitle": "キュー実行時に NAIA から入力されます。保存画像ワークフローでは Custom として保存されます。",
-    "advanced.resolutionBucketTitle": "latent width/height を選ぶ解像度プリセットのグループです。",
-    "advanced.resolutionSizeTitle": "選択したバケット内で使う実際の latent width/height です。",
-    "advanced.customWidthTitle": "カスタム latent width です。32 の倍数に補正されます。",
-    "advanced.customHeightTitle": "カスタム latent height です。32 の倍数に補正されます。",
-    "advanced.settingsButton": "設定...",
-    "advanced.close": "閉じる",
-    "advanced.field.quality": "品質タグ",
-    "advanced.field.artist": "作者タグ",
-    "advanced.field.trigger": "トリガーワード",
-    "advanced.field.general": "一般タグ",
-    "advanced.field.naia": "NAIA プロンプト",
-    "advanced.on": "ON",
-    "advanced.off": "OFF",
-    "advanced.enableFieldTitle": "このフィールドをプロンプト出力に含めるか切り替えます",
-    "advanced.autoOrder": "自動配置",
-    "advanced.pinned": "固定済み",
-    "advanced.autoOrderTitle": "プロンプト補正にトリガーワードの位置を自動配置させます。",
-    "advanced.pinnedTitle": "トリガーワードを補正済みプロンプトの前方に固定します。",
-    "advanced.moveUp": "上へ移動",
-    "advanced.moveDown": "下へ移動",
-    "advanced.deleteField": "フィールド削除",
-    "advanced.placeholder.naia": "キュー実行後に NAIA 結果が表示されます",
-    "advanced.placeholder.trigger": "trigger_words STRING 入力を接続",
-    "advanced.placeholder.artist": "@artist_tag",
-    "advanced.placeholder.general": "プロンプトタグ",
-    "advanced.title.naia": "編集可能な NAIA 結果フィールドです。次回キュー実行で NAIA 入力が上書きする場合があります。",
-    "advanced.title.trigger": "編集可能なトリガーフィールドです。接続された STRING 入力が次回キュー実行で上書きする場合があります。",
-    "advanced.title.linked": "編集可能なキャッシュ値です。接続された STRING 入力が次回キュー実行で上書きする場合があります。",
-    "advanced.positivePrompt": "ポジティブプロンプト",
-    "advanced.negativePrompt": "ネガティブプロンプト",
-    "advanced.add.quality": "+ 品質",
-    "advanced.add.artist": "+ 作者",
-    "advanced.add.trigger": "+ トリガー",
-    "advanced.add.general": "+ 一般",
-    "advanced.add.naia": "+ NAIA",
-    "advanced.noFields": "フィールドなし",
-  },
-  zh: {
-    "section.quality": "质量",
-    "section.safety": "分级",
-    "section.year": "年份",
-    "section.count": "人数",
-    "section.character": "角色",
-    "section.artist": "作者",
-    "section.artist_unknown": "未注册作者",
-    "section.copyright": "作品",
-    "section.meta": "元数据",
-    "section.general": "训练标签",
-    "section.natural": "自然语言",
-    "section.translation": "翻译语法",
-    "section.wildcard": "通配符",
-    "section.syntax": "语法错误",
-    "section.unknown": "未知",
-    "tag.generic": "标签",
-    "tag.learned": "已学习",
-    "legend.color": "颜色图例",
-    "extend.group.quality": "质量",
-    "extend.group.naia": "NAIA",
-    "extend.group.general": "General",
-    "extend.group.trailing": "后置",
-    "extend.group.negative": "负向",
-    "extend.noHiddenSlots": "没有隐藏插槽",
-    "extend.showSlotTitle": "显示 {name} 输入插槽",
-    "extend.hideSlot": "隐藏 {slot}",
-    "extend.hideSlotTitle": "隐藏 {name} 输入插槽",
-    "extend.naiaResult": "NAIA 结果",
-    "extend.naiaResultTitle": "只读 NAIA 结果插槽。启用 fill_naia_prompt 后会用 NAIA 结果更新。",
-    "advanced.fillFromNaia": "从 NAIA 填充",
-    "advanced.fillFromNaiaTitle": "启用时，每次队列执行都会用新的 NAIA 随机提示词填充 NAIA Prompt 字段。",
-    "advanced.fillOnce": "1次",
-    "advanced.fillOnceTitle": "NAIA 填充成功后，会在请求标记关闭的状态下保存。",
-    "advanced.modGuidance": "mod guidance",
-    "advanced.modGuidanceTitle": "将正向质量字段发送到 Anima Mod Guidance 输出。",
-    "advanced.negativeModGuidance": "negative mod",
-    "advanced.negativeModGuidanceTitle": "将负向质量字段发送到 Anima Mod Guidance 负向输出。",
-    "advanced.modGuidanceGroup": "Mod Guidance",
-    "advanced.modGuidanceGroupTitle": "打开 Mod Guidance 路由设置。",
-    "advanced.modGuidanceSubtitle": "设置是否将质量字段发送到正向/负向 Mod Guidance 输出。",
-    "advanced.artistMix": "Artist Mix",
-    "advanced.artistMixTitle": "选择 Advanced 作者字段写入 EASYUSE_ANIMA_PROMPT_DATA 的方式。",
-    "advanced.artistMixSubtitle": "Artist Mix 设置会保存到 prompt data，并由 conditioning 节点使用。",
-    "advanced.artistMixMode": "mode",
-    "advanced.artistMixStart": "start",
-    "advanced.artistMixStrength": "strength",
-    "advanced.artistMixStyleGain": "style",
-    "advanced.artistMixRmsCap": "rms cap",
-    "advanced.artistMixTopK": "top K",
-    "advanced.artistMixClusters": "clusters",
-    "advanced.artistMixDominant": "dominant",
-    "advanced.artistMixDominantThreshold": "threshold",
-    "advanced.artistMixMode.offTitle": "Cost: 1 positive branch. Keep artist-field text inline in the positive prompt.",
-    "advanced.artistMixMode.averageTitle": "Cost: 1 positive branch. Weighted average of artist conditionings; fastest stable mix.",
-    "advanced.artistMixMode.delta_rmsTitle": "Cost: 1 positive branch. Mix artist deltas from the base prompt and restore RMS style energy; stronger than average.",
-    "advanced.artistMixMode.hybridTitle": "Cost: top K + 1 positive branches. Keep strongest artists exact and compress the tail with delta_rms.",
-    "advanced.artistMixMode.clusteredTitle": "Cost: about cluster count plus dominant artists. Cluster similar artist deltas; useful for many artists.",
-    "advanced.artistMixMode.exactTitle": "Cost: N positive branches. Most faithful artist-specific model output mix.",
-    "advanced.artistMixMode.composite_exactTitle": "Cost: N + 1 positive branches. Add one composite prompt branch plus exact artist branches.",
-    "advanced.artistMixMode.late_exactTitle": "Cost: base + N late exact branches. Apply exact mixing only after start.",
-    "advanced.artistMixMode.average_late_exactTitle": "Cost: 1 average branch plus N late exact branches. Fast early mix, exact late refinement.",
-    "advanced.artistMixMode.scheduled_averageTitle": "Cost: scheduled average branches. Change artist weights across timestep ranges.",
-    "advanced.artistMixStartTitle": "late/scheduled 模式开始应用作者专用 conditioning 的采样比例。",
-    "advanced.artistMixStrengthTitle": "在作者 weight 归一化后缩放 exact branch 强度。",
-    "advanced.artistMixStyleGainTitle": "delta_rms、hybrid tail、clustered 压缩 branch 的风格 delta 强度。",
-    "advanced.artistMixRmsCapTitle": "压缩 artist branch 的 RMS 风格能量恢复上限。",
-    "advanced.artistMixTopKTitle": "hybrid 中保留为 exact branch 的最强作者项数量。",
-    "advanced.artistMixClustersTitle": "clustered 中将非 dominant 作者压缩成的 branch 数量。",
-    "advanced.artistMixDominantTitle": "clustered 中将超过 threshold 的作者分离为 exact branch。",
-    "advanced.artistMixDominantThresholdTitle": "dominant isolation 使用的归一化作者 weight 阈值。",
-    "advanced.artistMixSyntaxTitle": "使用 [[artist_a, artist_b:0.7]] 将多个作者保持在一个 mix branch。]] 前最后的 :数字只影响 conditioning mix weight。",
-    "advanced.wildcard": "通配符",
-    "advanced.wildcardTitle": "展开 Advanced Prompt Studio 字段中的 __wildcard__ 和动态提示词语法。",
-    "advanced.wildcardSeed": "通配符种子",
-    "advanced.wildcardSeedControl": "种子控制",
-    "advanced.wildcardModeTitle": "队列执行时使用的通配符展开模式。",
-    "advanced.wildcardSeedTitle": "用于通配符选择的种子。保存的工作流会保留它以便复现。",
-    "advanced.wildcardSeedControlTitle": "队列执行后通配符种子的变化方式。",
-    "advanced.pin": "固定",
-    "advanced.pinTitle": "将正向作者/触发词字段保持在前方。",
-    "advanced.linkedInputSuffix": "连接的输入会控制此值。",
-    "advanced.resolutionTitle": "Latent 图像分辨率输出。分辨率按宽高比排序。",
-    "advanced.resolutionBucket": "分辨率桶",
-    "advanced.resolutionSize": "分辨率尺寸",
-    "advanced.customWidth": "自定义宽度",
-    "advanced.customHeight": "自定义高度",
-    "advanced.naiaResolutionTitle": "队列执行时从 NAIA 填充。保存图像工作流会将其存为 Custom。",
-    "advanced.resolutionBucketTitle": "用于选择 latent width/height 的分辨率预设组。",
-    "advanced.resolutionSizeTitle": "在所选分辨率桶中使用的具体 latent width/height。",
-    "advanced.customWidthTitle": "自定义 latent width。会校正为 32 的倍数。",
-    "advanced.customHeightTitle": "自定义 latent height。会校正为 32 的倍数。",
-    "advanced.settingsButton": "设置...",
-    "advanced.close": "关闭",
-    "advanced.field.quality": "质量标签",
-    "advanced.field.artist": "作者标签",
-    "advanced.field.trigger": "触发词",
-    "advanced.field.general": "通用标签",
-    "advanced.field.naia": "NAIA 提示词",
-    "advanced.on": "ON",
-    "advanced.off": "OFF",
-    "advanced.enableFieldTitle": "切换此字段是否包含在提示词输出中",
-    "advanced.autoOrder": "自动排序",
-    "advanced.pinned": "已固定",
-    "advanced.autoOrderTitle": "让提示词校正器自动放置触发词位置。",
-    "advanced.pinnedTitle": "将触发词固定在校正后提示词前方。",
-    "advanced.moveUp": "上移",
-    "advanced.moveDown": "下移",
-    "advanced.deleteField": "删除字段",
-    "advanced.placeholder.naia": "队列执行后会显示 NAIA 结果",
-    "advanced.placeholder.trigger": "连接 trigger_words STRING 输入",
-    "advanced.placeholder.artist": "@artist_tag",
-    "advanced.placeholder.general": "提示词标签",
-    "advanced.title.naia": "可编辑的 NAIA 结果字段。下次队列执行时，NAIA 填充可能会覆盖它。",
-    "advanced.title.trigger": "可编辑的触发词字段。连接的 STRING 输入可能会在下次队列执行时覆盖它。",
-    "advanced.title.linked": "可编辑的缓存值。连接的 STRING 输入可能会在下次队列执行时覆盖它。",
-    "advanced.positivePrompt": "正向提示词",
-    "advanced.negativePrompt": "负向提示词",
-    "advanced.add.quality": "+ 质量",
-    "advanced.add.artist": "+ 作者",
-    "advanced.add.trigger": "+ 触发词",
-    "advanced.add.general": "+ 通用",
-    "advanced.add.naia": "+ NAIA",
-    "advanced.noFields": "无字段",
-  },
-};
+import {
+  NODE_TYPE,
+  ADVANCED_NODE_TYPE,
+  ADVANCED_V2_NODE_TYPE,
+  EXTEND_NODE_TYPE,
+  WILDCARD_NODE_TYPE,
+  FIELD_NAMES,
+  EXTEND_FIELD_NAMES,
+  EXTEND_VISIBLE_SLOTS_PROPERTY,
+  EXTEND_ACTIVE_SLOTS_WIDGET,
+  EXTEND_SLOT_GROUPS,
+  EXTEND_DEFAULT_VISIBLE_FIELDS,
+  PROMPT_STUDIO_TEXT,
+  FIELD_HEIGHTS,
+  EXTEND_FIELD_HEIGHTS,
+  SECTION_STYLES,
+  LEGEND_ITEMS,
+  LEGEND_TOP_GAP,
+  LEGEND_ROW_HEIGHT,
+  LEGEND_COLUMNS,
+  STUDIO_WIDGET_VERTICAL_GAP,
+  PROMPT_STUDIO_FONT_SIZE_DEFAULT,
+  PROMPT_STUDIO_FONT_SIZE_MIN,
+  PROMPT_STUDIO_FONT_SIZE_MAX,
+  PROMPT_STUDIO_FONT_FAMILY,
+  WEIGHT_NUMBER_RE,
+  WEIGHTED_TOKEN_RE,
+  WEIGHT_NUMBER_COLOR,
+  WILDCARD_HIGHLIGHT_RE,
+  ARTIST_MIX_GROUP_HIGHLIGHT_RE,
+  INLINE_SPACE_RE,
+  HIGHLIGHT_TEXT_METRIC_PROPERTIES,
+  AUTOCOMPLETE_TOOLTIP_SECTIONS,
+  ADVANCED_NATIVE_CONTROL_SELECTOR,
+  ADVANCED_NATIVE_CONTROL_EVENTS,
+  ADVANCED_CONTROL_WIDGETS,
+  ADVANCED_WILDCARD_MODES,
+  ADVANCED_WILDCARD_SEED_CONTROLS,
+  ADVANCED_WILDCARD_DEFAULT_MODE,
+  ARTIST_MIX_MODES,
+  ADVANCED_RESOLUTION_BUCKETS,
+  CUSTOM_ADVANCED_RESOLUTION_BUCKET,
+  NAIA_ADVANCED_RESOLUTION_BUCKET,
+  DEFAULT_ADVANCED_RESOLUTION_BUCKET,
+  DEFAULT_ADVANCED_RESOLUTION_SIZE,
+  ADVANCED_WIDGET_INDEX,
+  ADVANCED_LEGACY_FIELDS_WIDGET_INDEXES,
+  ADVANCED_INTERNAL_WIDGET_NAMES,
+  ADVANCED_WIDGET_VALUE_DEFAULTS,
+  ADVANCED_BOOLEAN_WIDGET_NAMES,
+  ADVANCED_INT_WIDGET_NAMES,
+  ADVANCED_FLOAT_WIDGET_NAMES,
+  ADVANCED_FIELDS_PROPERTY,
+  ADVANCED_FIELD_SOCKET_PREFIX,
+  ADVANCED_FIELD_TYPES,
+  ADVANCED_EDITOR_MIN_VIEWPORT_HEIGHT,
+  ADVANCED_EDITOR_MAX_AUTO_VIEWPORT_HEIGHT,
+  ADVANCED_FIELD_LABELS,
+  ADVANCED_DEFAULT_FIELDS,
+} from "./prompt_studio/constants.js";
+import {
+  debounce,
+  isHexColor,
+  hexToRgba,
+  parseColorSettings,
+  normalizePromptStudioFontSize,
+  normalizePromptStudioFontFamily,
+  escapeHtml,
+  escapeAttr,
+  resolutionRatioLabel,
+  advancedResolutionLabel,
+  snapResolution32,
+  clampAdvancedNumber,
+} from "./prompt_studio/utils.js";
 
 function psText(key) {
   return easyuseAnimaText(PROMPT_STUDIO_TEXT, key);
@@ -560,113 +91,6 @@ function sectionLabel(section) {
   return psText(`section.${key}`) || style?.label || key;
 }
 
-const FIELD_HEIGHTS = {
-  lora_trigger_tags: 42,
-  quality_tags: 72,
-  trigger_and_artist_tags: 72,
-  prompt: 150,
-  trailing_quality_tags: 72,
-};
-const EXTEND_FIELD_HEIGHTS = {
-  quality_tags_1: 72,
-  quality_tags_2: 72,
-  naia_prompt_3: 150,
-  general_tags_4: 120,
-  general_tags_5: 120,
-  general_tags_6: 120,
-  general_tags_7: 120,
-  general_tags_8: 120,
-  general_tags_9: 120,
-  trailing_tags_10: 72,
-  trailing_tags_11: 72,
-  negative_prompt_1: 120,
-  negative_prompt_2: 120,
-  negative_prompt_3: 120,
-  negative_prompt_4: 120,
-};
-
-const SECTION_STYLES = {
-  quality: { label: "품질", color: "#facc15", background: "rgba(202, 138, 4, 0.18)", weight: 700 },
-  safety: { label: "등급", color: "#38bdf8", background: "rgba(2, 132, 199, 0.18)", weight: 600 },
-  year: { label: "연도", color: "#2dd4bf", background: "rgba(13, 148, 136, 0.18)", weight: 600 },
-  count: { label: "인원수", color: "#60a5fa", background: "rgba(37, 99, 235, 0.18)", weight: 700 },
-  character: { label: "캐릭터", color: "#f472b6", background: "rgba(219, 39, 119, 0.18)", weight: 700 },
-  artist: { label: "작가", color: "#a78bfa", background: "rgba(124, 58, 237, 0.18)", weight: 700 },
-  artist_unknown: { label: "미등록 작가", color: "#f87171", background: "transparent", underline: true, weight: 400 },
-  copyright: { label: "작품", color: "#fb923c", background: "rgba(234, 88, 12, 0.18)", weight: 700 },
-  meta: { label: "메타", color: "#94a3b8", background: "rgba(100, 116, 139, 0.18)", weight: 600 },
-  general: { label: "학습 태그", color: "#4ade80", background: "rgba(22, 163, 74, 0.16)", weight: 600 },
-  natural: { label: "자연어", color: "#cbd5e1", background: "rgba(71, 85, 105, 0.16)", weight: 400 },
-  translation: { label: "번역 구문", color: "#22d3ee", background: "rgba(8, 145, 178, 0.22)", weight: 700 },
-  wildcard: { label: "와일드카드", color: "#c084fc", background: "rgba(126, 34, 206, 0.24)", weight: 700 },
-  comment: { label: "주석", color: "#9ca3af", background: "rgba(156, 163, 175, 0.14)", weight: 400, italic: true },
-  syntax: { label: "문법 오류", color: "#f87171", background: "transparent", underline: true, weight: 400 },
-  unknown: { label: "미확인", color: "#cbd5e1", background: "transparent", underline: true, weight: 400 },
-};
-
-const LEGEND_ITEMS = [
-  "quality",
-  "safety",
-  "year",
-  "count",
-  "character",
-  "artist",
-  "copyright",
-  "general",
-  "meta",
-  "natural",
-  "translation",
-  "wildcard",
-  "comment",
-  "syntax",
-  "artist_unknown",
-  "unknown",
-];
-const LEGEND_TOP_GAP = 14;
-const LEGEND_ROW_HEIGHT = 18;
-const LEGEND_COLUMNS = 2;
-const STUDIO_WIDGET_VERTICAL_GAP = 8;
-const PROMPT_STUDIO_FONT_SIZE_DEFAULT = 12;
-const PROMPT_STUDIO_FONT_SIZE_MIN = 8;
-const PROMPT_STUDIO_FONT_SIZE_MAX = 24;
-const PROMPT_STUDIO_FONT_FAMILY = 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
-
-const WEIGHT_NUMBER_RE = /^[+-]?(?:\d+(?:\.\d*)?|\.\d+)$/;
-const WEIGHTED_TOKEN_RE = /^\((.*):[+-]?(?:\d+(?:\.\d*)?|\.\d+)\)$/s;
-const WEIGHT_NUMBER_COLOR = "#fb923c";
-const WILDCARD_HIGHLIGHT_RE = /(?:\d+#)?__[\w.\-+/*\\]+?__/g;
-const ARTIST_MIX_GROUP_HIGHLIGHT_RE = /\[\[[\s\S]*?(?::[-+]?(?:\d+(?:\.\d*)?|\.\d+))?\]\]/g;
-const INLINE_SPACE_RE = /[ \t]+/g;
-const HIGHLIGHT_TEXT_METRIC_PROPERTIES = [
-  "font",
-  "fontFamily",
-  "fontSize",
-  "fontSizeAdjust",
-  "fontStretch",
-  "fontWeight",
-  "fontStyle",
-  "fontVariant",
-  "fontKerning",
-  "fontOpticalSizing",
-  "fontFeatureSettings",
-  "fontVariationSettings",
-  "lineHeight",
-  "letterSpacing",
-  "wordSpacing",
-  "textIndent",
-  "padding",
-  "border",
-  "borderRadius",
-  "boxSizing",
-  "textAlign",
-  "textTransform",
-  "textRendering",
-  "direction",
-  "tabSize",
-  "whiteSpace",
-  "overflowWrap",
-  "wordBreak",
-];
 const PROMPT_STUDIO_SETTINGS = {
   typoIndicator: true,
   weightSyntaxUnderline: false,
@@ -677,267 +101,11 @@ const PROMPT_STUDIO_SETTINGS = {
   trainedTagTooltip: true,
   naiaGeneralAboveAutoToggle: false,
 };
-const AUTOCOMPLETE_TOOLTIP_SECTIONS = new Set([
-  "quality",
-  "safety",
-  "year",
-  "count",
-  "character",
-  "artist",
-  "copyright",
-  "meta",
-  "general",
-]);
 let middlePanForwardActive = false;
 let promptStudioTagTooltip = null;
 let promptStudioTagTooltipMoveFrame = 0;
 let promptStudioTagTooltipPendingMove = null;
 let promptStudioTagTooltipLastTarget = null;
-const ADVANCED_NATIVE_CONTROL_SELECTOR = "select, input, textarea, button";
-const ADVANCED_NATIVE_CONTROL_EVENTS = ["pointerdown", "mousedown", "pointerup", "mouseup", "click", "dblclick"];
-const ADVANCED_CONTROL_WIDGETS = [
-  {
-    name: "use_naia",
-    labelKey: "advanced.fillFromNaia",
-    titleKey: "advanced.fillFromNaiaTitle",
-    showInControlBar: false,
-  },
-  {
-    name: "consume_naia_on_queue",
-    labelKey: "advanced.fillOnce",
-    titleKey: "advanced.fillOnceTitle",
-    showInControlBar: false,
-  },
-  {
-    name: "use_anima_mod_guidance",
-    labelKey: "advanced.modGuidance",
-    titleKey: "advanced.modGuidanceTitle",
-  },
-  {
-    name: "use_negative_anima_mod_guidance",
-    labelKey: "advanced.negativeModGuidance",
-    titleKey: "advanced.negativeModGuidanceTitle",
-  },
-  {
-    name: "pin_trigger_tags_to_front",
-    labelKey: "advanced.pin",
-    titleKey: "advanced.pinTitle",
-    showInControlBar: false,
-  },
-];
-const ADVANCED_WILDCARD_MODES = ["일반 채우기", "고정", "순차", "재현"];
-const ADVANCED_WILDCARD_SEED_CONTROLS = ["fixed", "randomize", "increment", "decrement"];
-const ADVANCED_WILDCARD_DEFAULT_MODE = "고정";
-const ARTIST_MIX_MODES = [
-  "off",
-  "average",
-  "delta_rms",
-  "hybrid",
-  "clustered",
-  "exact",
-  "composite_exact",
-  "late_exact",
-  "average_late_exact",
-  "scheduled_average",
-];
-const ADVANCED_RESOLUTION_BUCKETS = {
-  "512": [
-    [256, 1024], [1024, 256],
-    [288, 896], [896, 288],
-    [384, 672], [672, 384],
-    [512, 512],
-    [448, 576], [576, 448],
-  ],
-  "768": [
-    [384, 1440], [1440, 384],
-    [480, 1152], [1152, 480],
-    [576, 960], [960, 576],
-    [640, 864], [864, 640],
-    [768, 768],
-  ],
-  "896": [
-    [448, 1728], [1728, 448],
-    [480, 1600], [1600, 480],
-    [576, 1344], [1344, 576],
-    [672, 1152], [1152, 672],
-    [800, 960], [960, 800],
-    [896, 896],
-  ],
-  "1024": [
-    [512, 2016], [2016, 512],
-    [576, 1792], [1792, 576],
-    [672, 1536], [1536, 672],
-    [672, 1600], [1600, 672],
-    [768, 1344], [1344, 768],
-    [800, 1344], [1344, 800],
-    [896, 1152], [1152, 896],
-    [960, 1120], [1120, 960],
-    [1024, 1024],
-  ],
-  "1280": [
-    [672, 2400], [2400, 672],
-    [800, 2016], [2016, 800],
-    [1024, 1536], [1536, 1024],
-    [1024, 1600], [1600, 1024],
-    [1120, 1440], [1440, 1120],
-    [1280, 1280],
-  ],
-  "1536": [
-    [1440, 1536], [1536, 1440],
-    [1280, 1728], [1728, 1280],
-    [1152, 1920], [1920, 1152],
-    [1024, 2176], [2176, 1024],
-    [960, 2304], [2304, 960],
-    [864, 2560], [2560, 864],
-    [768, 2880], [2880, 768],
-    [1536, 1536],
-  ],
-};
-const CUSTOM_ADVANCED_RESOLUTION_BUCKET = "Custom";
-const NAIA_ADVANCED_RESOLUTION_BUCKET = "NAIA";
-const DEFAULT_ADVANCED_RESOLUTION_BUCKET = "1024";
-const DEFAULT_ADVANCED_RESOLUTION_SIZE = "1024 * 1024 (1:1)";
-const ADVANCED_WIDGET_INDEX = {
-  use_naia: 0,
-  consume_naia_on_queue: 1,
-  use_anima_mod_guidance: 2,
-  resolution_bucket: 3,
-  resolution_size: 4,
-  resolution_custom_width: 5,
-  resolution_custom_height: 6,
-  pin_trigger_tags_to_front: 7,
-  advanced_fields: 8,
-  use_negative_anima_mod_guidance: 9,
-  wildcard_mode: 10,
-  wildcard_seed: 11,
-  wildcard_seed_after_generate: 12,
-  artist_mix_mode: 13,
-  artist_mix_start_percent: 14,
-  artist_mix_strength_scale: 15,
-  artist_mix_style_gain: 16,
-  artist_mix_rms_scale_cap: 17,
-  artist_mix_exact_top_k: 18,
-  artist_mix_cluster_count: 19,
-  artist_mix_dominant_isolation: 20,
-  artist_mix_dominant_threshold: 21,
-};
-const ADVANCED_LEGACY_FIELDS_WIDGET_INDEXES = [6, 4];
-const ADVANCED_INTERNAL_WIDGET_NAMES = new Set(Object.keys(ADVANCED_WIDGET_INDEX));
-const ADVANCED_WIDGET_VALUE_DEFAULTS = {
-  use_naia: true,
-  consume_naia_on_queue: false,
-  use_anima_mod_guidance: true,
-  resolution_bucket: DEFAULT_ADVANCED_RESOLUTION_BUCKET,
-  resolution_size: DEFAULT_ADVANCED_RESOLUTION_SIZE,
-  resolution_custom_width: 1024,
-  resolution_custom_height: 1024,
-  pin_trigger_tags_to_front: true,
-  advanced_fields: "",
-  use_negative_anima_mod_guidance: true,
-  wildcard_mode: "고정",
-  wildcard_seed: 0,
-  wildcard_seed_after_generate: "fixed",
-  artist_mix_mode: "prompt_data",
-  artist_mix_start_percent: 0.5,
-  artist_mix_strength_scale: 1.0,
-  artist_mix_style_gain: 1.35,
-  artist_mix_rms_scale_cap: 2.0,
-  artist_mix_exact_top_k: 4,
-  artist_mix_cluster_count: 4,
-  artist_mix_dominant_isolation: true,
-  artist_mix_dominant_threshold: 0.25,
-};
-const ADVANCED_BOOLEAN_WIDGET_NAMES = new Set([
-  "use_naia",
-  "consume_naia_on_queue",
-  "use_anima_mod_guidance",
-  "pin_trigger_tags_to_front",
-  "use_negative_anima_mod_guidance",
-  "artist_mix_dominant_isolation",
-]);
-const ADVANCED_INT_WIDGET_NAMES = new Set([
-  "resolution_custom_width",
-  "resolution_custom_height",
-  "wildcard_seed",
-  "artist_mix_exact_top_k",
-  "artist_mix_cluster_count",
-]);
-const ADVANCED_FLOAT_WIDGET_NAMES = new Set([
-  "artist_mix_start_percent",
-  "artist_mix_strength_scale",
-  "artist_mix_style_gain",
-  "artist_mix_rms_scale_cap",
-  "artist_mix_dominant_threshold",
-]);
-const ADVANCED_FIELDS_PROPERTY = "easyuse_anima_advanced_fields";
-const ADVANCED_FIELD_SOCKET_PREFIX = "field_";
-const ADVANCED_FIELD_TYPES = ["quality", "artist", "trigger", "general", "naia"];
-const ADVANCED_EDITOR_MIN_VIEWPORT_HEIGHT = 360;
-const ADVANCED_EDITOR_MAX_AUTO_VIEWPORT_HEIGHT = 640;
-const ADVANCED_FIELD_LABELS = {
-  quality: "Quality Tags",
-  artist: "Artist Tags",
-  trigger: "Trigger Words",
-  general: "General Tags",
-  naia: "NAIA Prompt",
-};
-const ADVANCED_DEFAULT_FIELDS = [
-  {
-    id: "positive_quality",
-    pane: "positive",
-    type: "quality",
-    label: "Quality Tags",
-    text: "newest, masterpiece, best quality, score_8, score_7:, highres, absurdres, very aesthetic",
-    height: 72,
-    enabled: true,
-  },
-  {
-    id: "positive_artist",
-    pane: "positive",
-    type: "artist",
-    label: "Artist Tags",
-    text: "",
-    height: 72,
-    enabled: true,
-  },
-  {
-    id: "positive_trigger",
-    pane: "positive",
-    type: "trigger",
-    label: "Trigger Words",
-    text: "",
-    height: 72,
-    enabled: true,
-    pin: true,
-  },
-  {
-    id: "positive_general",
-    pane: "positive",
-    type: "general",
-    label: "General Tags",
-    text: "",
-    height: 150,
-    enabled: true,
-  },
-  {
-    id: "positive_trailing",
-    pane: "positive",
-    type: "general",
-    label: "General Tags",
-    text: "location, (A highly aesthetic Pixiv style illustration, clean composition, high-quality digital art, detailed background, sharp focus on facial expressions.:0.6)",
-    height: 72,
-    enabled: true,
-  },
-  {
-    id: "negative_general",
-    pane: "negative",
-    type: "general",
-    label: "General Tags",
-    text: "",
-    height: 120,
-    enabled: true,
-  },
-];
 
 function findWidget(node, name) {
   return node.__easyuseAnimaHiddenWidgets?.[name]
@@ -1753,54 +921,11 @@ function refreshNodeSize(node, options = {}) {
   }
 }
 
-function debounce(fn, delay = 180) {
-  let timer = null;
-  return (...args) => {
-    clearTimeout(timer);
-    timer = setTimeout(() => fn(...args), delay);
-  };
-}
 
-function isHexColor(value) {
-  return /^#[0-9a-f]{6}$/i.test(String(value || ""));
-}
 
-function hexToRgba(value, alpha) {
-  if (!isHexColor(value)) {
-    return "transparent";
-  }
-  const red = Number.parseInt(value.slice(1, 3), 16);
-  const green = Number.parseInt(value.slice(3, 5), 16);
-  const blue = Number.parseInt(value.slice(5, 7), 16);
-  return `rgba(${red}, ${green}, ${blue}, ${alpha})`;
-}
 
-function parseColorSettings(value) {
-  try {
-    const parsed = JSON.parse(value || "{}");
-    return parsed && typeof parsed === "object" ? parsed : {};
-  } catch {
-    return {};
-  }
-}
 
-function normalizePromptStudioFontSize(value) {
-  const parsed = Number.parseFloat(String(value ?? "").trim());
-  if (!Number.isFinite(parsed)) {
-    return PROMPT_STUDIO_FONT_SIZE_DEFAULT;
-  }
-  return Math.max(
-    PROMPT_STUDIO_FONT_SIZE_MIN,
-    Math.min(PROMPT_STUDIO_FONT_SIZE_MAX, Math.round(parsed)),
-  );
-}
 
-function normalizePromptStudioFontFamily(value) {
-  return String(value ?? "")
-    .replace(/[;{}\r\n]/g, "")
-    .trim()
-    .slice(0, 160);
-}
 
 function applyPromptStudioTextStyle(input) {
   if (!(input instanceof HTMLElement)) {
@@ -1882,16 +1007,7 @@ async function classifyPrompt(text) {
   return easyuseAnimaClassifyPrompt(text);
 }
 
-function escapeHtml(value) {
-  return String(value ?? "")
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;");
-}
 
-function escapeAttr(value) {
-  return escapeHtml(value).replaceAll('"', "&quot;");
-}
 
 function normalize(value) {
   return normalizePromptTagText(value, { unescapeAll: true })
@@ -4446,25 +3562,8 @@ function setAdvancedWidgetValue(node, name, value) {
   return true;
 }
 
-function gcdInt(a, b) {
-  let x = Math.abs(Math.trunc(a || 0));
-  let y = Math.abs(Math.trunc(b || 0));
-  while (y) {
-    const next = x % y;
-    x = y;
-    y = next;
-  }
-  return x || 1;
-}
 
-function resolutionRatioLabel(width, height) {
-  const divisor = gcdInt(width, height);
-  return `${Math.trunc(width / divisor)}:${Math.trunc(height / divisor)}`;
-}
 
-function advancedResolutionLabel(width, height) {
-  return `${width} * ${height} (${resolutionRatioLabel(width, height)})`;
-}
 
 function advancedResolutionOptions(bucket) {
   const values = ADVANCED_RESOLUTION_BUCKETS[bucket] || ADVANCED_RESOLUTION_BUCKETS[DEFAULT_ADVANCED_RESOLUTION_BUCKET];
@@ -4512,11 +3611,6 @@ function normalizeAdvancedResolutionSize(bucket, value) {
     : options[0];
 }
 
-function snapResolution32(value, fallback = 1024) {
-  const raw = Number.parseInt(value, 10);
-  const base = Number.isFinite(raw) && raw > 0 ? raw : fallback;
-  return Math.max(32, Math.round(base / 32) * 32);
-}
 
 function advancedCustomResolution(node) {
   return {
@@ -4763,11 +3857,6 @@ function artistMixModeTitle(mode) {
   return psText(`advanced.artistMixMode.${normalizeArtistMixMode(mode)}Title`);
 }
 
-function clampAdvancedNumber(value, fallback, min, max) {
-  const parsed = Number(value);
-  const next = Number.isFinite(parsed) ? parsed : fallback;
-  return Math.max(min, Math.min(max, next));
-}
 
 function createAdvancedControlRow(labelKey, controlEl, titleKey = null) {
   const row = document.createElement("div");

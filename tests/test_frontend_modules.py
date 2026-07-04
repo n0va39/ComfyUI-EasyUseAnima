@@ -7,6 +7,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 WEB_JS = ROOT / "web" / "js"
 API_JS = WEB_JS / "easyuse_anima_api.js"
+PROMPT_STUDIO_JS = WEB_JS / "easyuse_anima_prompt_studio.js"
+PROMPT_STUDIO_MODULES = WEB_JS / "prompt_studio"
 
 
 class FrontendModuleStructureTests(unittest.TestCase):
@@ -51,6 +53,52 @@ class FrontendModuleStructureTests(unittest.TestCase):
             with self.subTest(filename=path.name):
                 source = path.read_text(encoding="utf-8")
                 self.assertNotIn('fetch("/easyuse_anima/classify_prompt"', source)
+
+    def test_prompt_studio_entry_imports_phase_2_1_modules(self):
+        source = PROMPT_STUDIO_JS.read_text(encoding="utf-8")
+
+        self.assertIn('./prompt_studio/constants.js"', source)
+        self.assertIn('./prompt_studio/utils.js"', source)
+
+    def test_prompt_studio_phase_2_1_modules_export_expected_symbols(self):
+        constants_source = (PROMPT_STUDIO_MODULES / "constants.js").read_text(
+            encoding="utf-8"
+        )
+        utils_source = (PROMPT_STUDIO_MODULES / "utils.js").read_text(
+            encoding="utf-8"
+        )
+
+        for name in (
+            "NODE_TYPE",
+            "ADVANCED_NODE_TYPE",
+            "PROMPT_STUDIO_TEXT",
+            "ADVANCED_FIELDS_PROPERTY",
+            "ADVANCED_DEFAULT_FIELDS",
+        ):
+            with self.subTest(module="constants", symbol=name):
+                self.assertIn(f"  {name},", constants_source)
+
+        for name in (
+            "debounce",
+            "escapeHtml",
+            "escapeAttr",
+            "parseColorSettings",
+            "advancedResolutionLabel",
+            "snapResolution32",
+        ):
+            with self.subTest(module="utils", symbol=name):
+                self.assertIn(f"  {name},", utils_source)
+
+    def test_prompt_studio_phase_2_1_modules_have_no_runtime_side_effects(self):
+        for filename in ("constants.js", "utils.js"):
+            with self.subTest(filename=filename):
+                source = (PROMPT_STUDIO_MODULES / filename).read_text(
+                    encoding="utf-8"
+                )
+                self.assertNotIn("app.registerExtension", source)
+                self.assertNotIn("document.", source)
+                self.assertNotIn("window.", source)
+                self.assertNotIn("fetch(", source)
 
 
 if __name__ == "__main__":
