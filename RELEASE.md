@@ -12,6 +12,9 @@
 - Added a dedicated tabbed Prompt Studio highlight color editor so the growing
   highlight color controls are managed outside the main Prompt Studio settings
   list.
+- Added Community Standards documentation for GitHub, including Code of
+  Conduct, English/Korean contributing guides, Security Policy, issue forms,
+  and a pull request template.
 
 ### Changed
 
@@ -22,12 +25,16 @@
   frontend settings UI, and settings key mapping.
 - Shared Prompt Studio highlight color handling across the main Prompt Studio
   editor and the common highlighter path.
+- Documented that issues, discussions, and pull requests may be written in
+  English or Korean.
 
 ### Validation Notes
 
 - Added regression coverage for Prompt Studio tag tooltip settings.
 - Validated the changed Prompt Studio, common highlighter, autocomplete, and
   settings JavaScript with syntax checks during 0.2.6 preparation.
+- Validated the GitHub issue template YAML files with PyYAML and checked the
+  Community Standards documentation for trailing whitespace.
 
 ## 0.2.5
 
