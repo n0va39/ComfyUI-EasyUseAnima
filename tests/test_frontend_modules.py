@@ -61,6 +61,7 @@ class FrontendModuleStructureTests(unittest.TestCase):
         self.assertIn('./prompt_studio/utils.js"', source)
         self.assertIn('./prompt_studio/schema.js"', source)
         self.assertIn('./prompt_studio/state.js"', source)
+        self.assertIn('./prompt_studio/layout.js"', source)
         self.assertIn('./prompt_studio/serialization.js"', source)
 
     def test_prompt_studio_phase_2_modules_export_expected_symbols(self):
@@ -74,6 +75,9 @@ class FrontendModuleStructureTests(unittest.TestCase):
             encoding="utf-8"
         )
         state_source = (PROMPT_STUDIO_MODULES / "state.js").read_text(
+            encoding="utf-8"
+        )
+        layout_source = (PROMPT_STUDIO_MODULES / "layout.js").read_text(
             encoding="utf-8"
         )
         serialization_source = (
@@ -127,6 +131,19 @@ class FrontendModuleStructureTests(unittest.TestCase):
                 self.assertIn(f"  {name},", state_source)
 
         for name in (
+            "advancedEditorMinimumHeight",
+            "advancedEditorWidgetHeight",
+            "advancedMinimumNodeHeight",
+            "advancedTextareaContentHeight",
+            "advancedTextareaCurrentHeight",
+            "advancedTextareaMinimumHeight",
+            "clampAdvancedNodeToMinimumHeight",
+            "updateAdvancedEditorWidth",
+        ):
+            with self.subTest(module="layout", symbol=name):
+                self.assertIn(f"  {name},", layout_source)
+
+        for name in (
             "advancedFieldDisplayText",
             "advancedFieldInputLinked",
             "advancedFieldsBackup",
@@ -150,6 +167,7 @@ class FrontendModuleStructureTests(unittest.TestCase):
             "utils.js",
             "schema.js",
             "state.js",
+            "layout.js",
             "serialization.js",
         ):
             with self.subTest(filename=filename):
