@@ -3,7 +3,6 @@ import { easyuseAnimaClassifyPrompt, easyuseAnimaGetSettings } from "./easyuse_a
 import { easyuseAnimaText, easyuseAnimaWatchLocale } from "./easyuse_anima_i18n.js";
 import { normalizePromptTagText } from "./easyuse_anima_prompt_rules.js";
 import {
-  EXTEND_NODE_TYPE,
   FIELD_NAMES,
   EXTEND_FIELD_NAMES,
   EXTEND_VISIBLE_SLOTS_PROPERTY,
@@ -93,7 +92,10 @@ import {
 } from "./prompt_studio/fields.js";
 import {
   isAdvancedNode,
+  isExtendNode,
+  installAdvancedSaveSync,
   registerPromptStudioNodeHooks,
+  syncAdvancedNodes,
 } from "./prompt_studio/node_hooks.js";
 import {
   ensureAdvancedStyle,
@@ -1809,10 +1811,6 @@ function displayText(node, widget) {
     return String(widget.__easyuseAnimaExecutedText);
   }
   return String(widget?.inputEl?.value ?? widget?.value ?? "");
-}
-
-function isExtendNode(node) {
-  return node?.type === EXTEND_NODE_TYPE || node?.comfyClass === EXTEND_NODE_TYPE;
 }
 
 function studioFieldNames(node) {
@@ -4224,7 +4222,7 @@ function renderAdvancedEditor(node) {
 
 function hookAdvancedNode(node) {
   ensureAdvancedStyle();
-  installAdvancedSaveSync();
+  installAdvancedSaveSync(app, syncAllAdvancedNodes);
   ensureAdvancedWidgetValue(node, advancedWidget(node));
   removeAdvancedInternalInputSockets(node);
   hideAdvancedInternalWidget(node, "advanced_fields");
@@ -4390,14 +4388,7 @@ function applyWildcardExecutedInputs(node, message) {
   }
 }
 
-function syncAllAdvancedNodes() {
-  const nodes = app.graph?._nodes || [];
-  for (const node of nodes) {
-    if (isAdvancedNode(node)) {
-      syncAdvancedValues(node);
-    }
-  }
-}
+const syncAllAdvancedNodes = () => syncAdvancedNodes(app, syncAdvancedValues);
 
 function refreshPromptStudioLocaleDom() {
   for (const node of app.graph?._nodes || []) {
@@ -4412,32 +4403,11 @@ function refreshPromptStudioLocaleDom() {
   app.graph?.setDirtyCanvas?.(true, true);
 }
 
-function installAdvancedSaveSync() {
-  const graphProto = globalThis.LGraph?.prototype || app.graph?.constructor?.prototype;
-  if (graphProto?.serialize && !graphProto.serialize.__easyuseAnimaAdvancedWrapped) {
-    const serialize = graphProto.serialize;
-    graphProto.serialize = function () {
-      syncAllAdvancedNodes();
-      return serialize.apply(this, arguments);
-    };
-    graphProto.serialize.__easyuseAnimaAdvancedWrapped = true;
-  }
-
-  if (app.queuePrompt && !app.queuePrompt.__easyuseAnimaAdvancedWrapped) {
-    const queuePrompt = app.queuePrompt;
-    app.queuePrompt = function () {
-      syncAllAdvancedNodes();
-      return queuePrompt.apply(this, arguments);
-    };
-    app.queuePrompt.__easyuseAnimaAdvancedWrapped = true;
-  }
-}
-
 app.registerExtension({
   name: "easyuse-anima.prompt-studio",
   async setup() {
     installMiddlePanForwarder();
-    installAdvancedSaveSync();
+    installAdvancedSaveSync(app, syncAllAdvancedNodes);
     installPromptHighlightOverlayRefresh();
     await loadPromptStudioSettings();
     easyuseAnimaWatchLocale(() => {

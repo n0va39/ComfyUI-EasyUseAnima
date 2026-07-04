@@ -177,9 +177,12 @@ class FrontendModuleStructureTests(unittest.TestCase):
         for name in (
             "isAdvancedNode",
             "isAdvancedNodeName",
+            "isExtendNode",
             "isPromptStudioNodeName",
             "isWildcardNode",
+            "installAdvancedSaveSync",
             "registerPromptStudioNodeHooks",
+            "syncAdvancedNodes",
         ):
             with self.subTest(module="node_hooks", symbol=name):
                 self.assertIn(f"  {name},", node_hooks_source)
