@@ -210,6 +210,7 @@ web/js/
     layout.js
     advanced_layout_controller.js
     studio_textareas.js
+    studio_values.js
     textarea.js
     wheel.js
     dom.js
@@ -244,18 +245,19 @@ Planned slices:
 11. `layout.js`
 12. `advanced_layout_controller.js`
 13. `studio_textareas.js`
-14. `textarea.js`
-15. `wheel.js`
-16. `dom.js`
-17. `extend_slots.js`
-18. `extend_slot_controls.js`
-19. `style.js`
-20. `tooltip.js`
-21. `widgets.js`
-22. `legend.js`
-23. `fields.js`
-24. `node_hooks.js`
-25. entry file slim-down
+14. `studio_values.js`
+15. `textarea.js`
+16. `wheel.js`
+17. `dom.js`
+18. `extend_slots.js`
+19. `extend_slot_controls.js`
+20. `style.js`
+21. `tooltip.js`
+22. `widgets.js`
+23. `legend.js`
+24. `fields.js`
+25. `node_hooks.js`
+26. entry file slim-down
 
 Each PR should mostly move code and update imports. Behavior changes should be
 separate PRs unless the move reveals a confirmed bug that cannot be separated.
@@ -735,6 +737,7 @@ Use this in Issue #14 or follow-up PR tracking comments.
 [ ] layout.js extracted
 [ ] advanced_layout_controller.js extracted
 [ ] studio_textareas.js extracted
+[ ] studio_values.js extracted
 [ ] textarea.js extracted
 [ ] wheel.js extracted
 [ ] dom.js extracted

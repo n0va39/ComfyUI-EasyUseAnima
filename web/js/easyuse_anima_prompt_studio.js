@@ -3,8 +3,6 @@ import { easyuseAnimaWatchLocale } from "./easyuse_anima_i18n.js";
 import {
   FIELD_NAMES,
   EXTEND_FIELD_NAMES,
-  EXTEND_VISIBLE_SLOTS_PROPERTY,
-  EXTEND_ACTIVE_SLOTS_WIDGET,
   STUDIO_WIDGET_VERTICAL_GAP,
   ADVANCED_NATIVE_CONTROL_EVENTS,
   DEFAULT_ADVANCED_RESOLUTION_BUCKET,
@@ -44,9 +42,6 @@ import {
 } from "./prompt_studio/legend.js";
 import {
   applyExtendSlotVisibility,
-  extendVisibleSlots,
-  parseExtendSlots,
-  writeExtendVisibleSlots,
 } from "./prompt_studio/extend_slots.js";
 import {
   ensureExtendSlotControls as ensureExtendSlotControlsWithHooks,
@@ -125,6 +120,12 @@ import {
   visibleStudioWidgets as visibleStudioWidgetsWithHooks,
   widgetHeight,
 } from "./prompt_studio/studio_textareas.js";
+import {
+  applyExecutedInputs as applyExecutedInputsWithHooks,
+  restoreInputFromWidget,
+  syncStudioValues as syncStudioValuesWithHooks,
+  syncWidgetValue,
+} from "./prompt_studio/studio_values.js";
 import {
   advancedFieldsBackup,
   captureAdvancedConfigure,
@@ -209,6 +210,24 @@ function expandStudioInputToContent(node, widget, refresh = false) {
 
 function visibleStudioWidgets(node) {
   return visibleStudioWidgetsWithHooks(node, studioTextareaHooks());
+}
+
+function studioValuesHooks() {
+  return {
+    applyExtendSlotVisibility,
+    expandStudioInputToContent,
+    hookStudioNode,
+    isExtendNode,
+    studioFieldNames,
+  };
+}
+
+function syncStudioValues(node, serialized = null) {
+  syncStudioValuesWithHooks(node, serialized, studioValuesHooks());
+}
+
+function applyExecutedInputs(node, message) {
+  applyExecutedInputsWithHooks(node, message, studioValuesHooks());
 }
 
 function visibleExtendPromptWidgets(node) {
@@ -637,65 +656,6 @@ function enhanceResizableInput(node, widget) {
   input.__easyuseAnimaStudioResizable = true;
 }
 
-function syncWidgetValue(widget) {
-  const input = findInputEl(widget);
-  if (!input) {
-    return;
-  }
-  widget.value = input.value;
-}
-
-function syncStudioValues(node, serialized = null) {
-  const fieldNames = studioFieldNames(node);
-  for (const name of fieldNames) {
-    const widget = findWidget(node, name);
-    if (widget) {
-      syncWidgetValue(widget);
-    }
-  }
-
-  if (!serialized || !Array.isArray(node.widgets) || !Array.isArray(serialized.widgets_values)) {
-    return;
-  }
-  if (isExtendNode(node)) {
-    applyExtendSlotVisibility(node);
-    const activeSlotsValue = JSON.stringify([...extendVisibleSlots(node)]);
-    const activeSlotsWidget = findWidget(node, EXTEND_ACTIVE_SLOTS_WIDGET);
-    if (activeSlotsWidget) {
-      activeSlotsWidget.value = activeSlotsValue;
-    }
-    serialized.properties ||= {};
-    serialized.properties[EXTEND_VISIBLE_SLOTS_PROPERTY] = [...parseExtendSlots(activeSlotsValue)];
-  }
-
-  for (const name of fieldNames) {
-    const widgetIndex = node.widgets.findIndex((widget) => widget?.name === name);
-    const widget = widgetIndex >= 0 ? node.widgets[widgetIndex] : null;
-    if (widgetIndex >= 0 && widget) {
-      serialized.widgets_values[widgetIndex] = widget.value ?? "";
-    }
-  }
-
-  if (isExtendNode(node)) {
-    const widgetIndex = node.widgets.findIndex((widget) => widget?.name === EXTEND_ACTIVE_SLOTS_WIDGET);
-    const widget = widgetIndex >= 0 ? node.widgets[widgetIndex] : null;
-    if (widgetIndex >= 0 && widget) {
-      serialized.widgets_values[widgetIndex] = widget.value ?? JSON.stringify([...extendVisibleSlots(node)]);
-    }
-  }
-}
-
-function restoreInputFromWidget(widget) {
-  const input = findInputEl(widget);
-  if (!input) {
-    return;
-  }
-  const value = String(widget?.value ?? input.value ?? "");
-  if (input.value !== value) {
-    input.value = value;
-  }
-}
-
 function hookStudioNode(node, attempt = 0) {
   const fieldNames = studioFieldNames(node);
   const updateByField = new Map();
@@ -813,40 +773,6 @@ function hookStudioNode(node, attempt = 0) {
   if (pendingInput && attempt < 12) {
     setTimeout(() => hookStudioNode(node, attempt + 1), 80);
   }
-}
-
-function applyExecutedInputs(node, message) {
-  const slotPayload = firstValue(message?.prompt_studio_slots, null);
-  const payload = slotPayload || firstValue(message?.prompt_studio_inputs, null);
-  if (!payload || typeof payload !== "object") {
-    return;
-  }
-  const fieldNames = studioFieldNames(node);
-  for (const name of fieldNames) {
-    const widget = findWidget(node, name);
-    if (!widget) {
-      continue;
-    }
-    if (slotPayload && Object.prototype.hasOwnProperty.call(payload, name)) {
-      widget.value = String(payload[name] ?? "");
-      restoreInputFromWidget(widget);
-      widget.__easyuseAnimaExecutedText = null;
-      expandStudioInputToContent(node, widget, true);
-    } else {
-      widget.__easyuseAnimaExecutedText = String(payload[name] ?? "");
-      expandStudioInputToContent(node, widget, true);
-    }
-  }
-  if (slotPayload) {
-    if (payload.active_slots != null) {
-      writeExtendVisibleSlots(node, parseExtendSlots(payload.active_slots));
-    }
-    const fillNaia = findWidget(node, "fill_naia_prompt");
-    if (fillNaia && payload.fill_naia_prompt != null) {
-      fillNaia.value = !!payload.fill_naia_prompt;
-    }
-  }
-  hookStudioNode(node);
 }
 
 function advancedWidget(node) {
