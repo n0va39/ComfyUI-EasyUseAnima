@@ -71,11 +71,22 @@ import {
   normalizePromptStudioFontFamily,
   escapeHtml,
   escapeAttr,
-  resolutionRatioLabel,
   advancedResolutionLabel,
   snapResolution32,
   clampAdvancedNumber,
 } from "./prompt_studio/utils.js";
+import {
+  advancedDefaultFields,
+  advancedDefaultFieldsValue,
+  advancedFieldInputName,
+  advancedResolutionOptions,
+  normalizeAdvancedField,
+  normalizeAdvancedFieldsValue,
+  normalizeAdvancedResolutionBucket,
+  normalizeAdvancedResolutionSize,
+  normalizeAdvancedWidgetQueueValue,
+  normalizeArtistMixMode,
+} from "./prompt_studio/schema.js";
 
 function psText(key) {
   return easyuseAnimaText(PROMPT_STUDIO_TEXT, key);
@@ -125,56 +136,6 @@ function firstValue(value, fallback = null) {
     return value.length ? value[0] : fallback;
   }
   return value ?? fallback;
-}
-
-function normalizeAdvancedBooleanValue(value, fallback) {
-  if (typeof value === "boolean") {
-    return value;
-  }
-  if (typeof value === "string") {
-    const normalized = value.trim().toLowerCase();
-    if (["true", "1", "yes", "on", "enabled"].includes(normalized)) {
-      return true;
-    }
-    if (["false", "0", "no", "off", "disabled"].includes(normalized)) {
-      return false;
-    }
-    if (!normalized) {
-      return !!fallback;
-    }
-  }
-  return value == null ? !!fallback : !!value;
-}
-
-function normalizeAdvancedWidgetQueueValue(name, value) {
-  const fallback = ADVANCED_WIDGET_VALUE_DEFAULTS[name];
-  if (name === "advanced_fields") {
-    return String(value || fallback || advancedDefaultFieldsValue());
-  }
-  if (ADVANCED_BOOLEAN_WIDGET_NAMES.has(name)) {
-    return normalizeAdvancedBooleanValue(value, fallback);
-  }
-  if (ADVANCED_INT_WIDGET_NAMES.has(name)) {
-    const parsed = Number(value);
-    return Number.isFinite(parsed) ? Math.trunc(parsed) : fallback;
-  }
-  if (ADVANCED_FLOAT_WIDGET_NAMES.has(name)) {
-    const parsed = Number(value);
-    return Number.isFinite(parsed) ? parsed : fallback;
-  }
-  if (name === "artist_mix_mode") {
-    return normalizeArtistMixMode(value || fallback);
-  }
-  if (name === "resolution_bucket") {
-    return normalizeAdvancedResolutionBucket(value || fallback);
-  }
-  if (name === "resolution_size") {
-    return String(value || fallback || DEFAULT_ADVANCED_RESOLUTION_SIZE);
-  }
-  if (name === "wildcard_seed_after_generate") {
-    return String(value || fallback || "fixed");
-  }
-  return value == null || value === "" ? fallback : value;
 }
 
 function repairAdvancedInternalWidgetValues(node) {
@@ -3114,14 +3075,6 @@ function applyExecutedInputs(node, message) {
   hookStudioNode(node);
 }
 
-function advancedDefaultFields() {
-  return JSON.parse(JSON.stringify(ADVANCED_DEFAULT_FIELDS));
-}
-
-function advancedDefaultFieldsValue() {
-  return JSON.stringify(advancedDefaultFields().map((field, index) => normalizeAdvancedField(field, index)));
-}
-
 function advancedWidget(node) {
   return findWidget(node, "advanced_fields");
 }
@@ -3134,21 +3087,6 @@ function advancedFieldsBackup(node) {
 function syncAdvancedFieldsBackup(node, value) {
   node.properties ||= {};
   node.properties[ADVANCED_FIELDS_PROPERTY] = String(value || "");
-}
-
-function normalizeAdvancedFieldsValue(value) {
-  if (value == null) {
-    return "";
-  }
-  try {
-    const parsed = typeof value === "string" ? JSON.parse(value || "[]") : value;
-    if (!Array.isArray(parsed) || !parsed.length) {
-      return "";
-    }
-    return JSON.stringify(parsed.map((field, index) => normalizeAdvancedField(field, index)));
-  } catch {
-    return "";
-  }
 }
 
 function serializedAdvancedFieldsValue(serialized) {
@@ -3248,26 +3186,6 @@ function removeAdvancedInternalInputSockets(node) {
     }
     node.removeInput?.(index);
   }
-}
-
-function normalizeAdvancedField(field, index = 0) {
-  const pane = field?.pane === "negative" ? "negative" : "positive";
-  let type = ADVANCED_FIELD_TYPES.includes(field?.type) ? field.type : "general";
-  if (pane === "negative" && type === "trigger") {
-    type = "general";
-  }
-  const label = String(field?.label || ADVANCED_FIELD_LABELS[type] || "General Tags");
-  return {
-    id: String(field?.id || `${pane}_${type}_${index + 1}`),
-    pane,
-    type,
-    label,
-    text: String(field?.text || ""),
-    height: Math.max(42, Math.round(Number(field?.height) || 72)),
-    heightMode: field?.heightMode === "manual" ? "manual" : "auto",
-    enabled: field?.enabled !== false,
-    pin: type === "trigger" ? field?.pin !== false : false,
-  };
 }
 
 function parseAdvancedFields(node) {
@@ -3371,13 +3289,6 @@ function applyAdvancedNaiaGeneralAutoToggle(node, fields) {
     }
   }
   return changed;
-}
-
-function advancedFieldInputName(field) {
-  const raw = String(field?.id || "field")
-    .replace(/[^a-zA-Z0-9_]/g, "_")
-    .replace(/^_+|_+$/g, "");
-  return `${ADVANCED_FIELD_SOCKET_PREFIX}${raw || "field"}`;
 }
 
 function advancedFieldIndexLabel(fields, field) {
@@ -3561,56 +3472,6 @@ function setAdvancedWidgetValue(node, name, value) {
   app.graph?.setDirtyCanvas?.(true, true);
   return true;
 }
-
-
-
-
-function advancedResolutionOptions(bucket) {
-  const values = ADVANCED_RESOLUTION_BUCKETS[bucket] || ADVANCED_RESOLUTION_BUCKETS[DEFAULT_ADVANCED_RESOLUTION_BUCKET];
-  return [...values]
-    .sort((a, b) => (a[0] / a[1]) - (b[0] / b[1]) || a[0] - b[0] || a[1] - b[1])
-    .map(([width, height]) => advancedResolutionLabel(width, height));
-}
-
-function normalizeAdvancedResolutionBucket(value) {
-  const bucket = String(value || "").trim();
-  if (bucket === CUSTOM_ADVANCED_RESOLUTION_BUCKET || bucket === NAIA_ADVANCED_RESOLUTION_BUCKET) {
-    return bucket;
-  }
-  return Object.prototype.hasOwnProperty.call(ADVANCED_RESOLUTION_BUCKETS, bucket)
-    ? bucket
-    : DEFAULT_ADVANCED_RESOLUTION_BUCKET;
-}
-
-function resolutionRatioFromLabel(value) {
-  const match = String(value || "").match(/(\d+)\s*(?:\*|x|×)\s*(\d+)/);
-  if (!match) {
-    return "";
-  }
-  return resolutionRatioLabel(Number(match[1]), Number(match[2]));
-}
-
-function normalizeAdvancedResolutionSize(bucket, value) {
-  if (bucket === CUSTOM_ADVANCED_RESOLUTION_BUCKET || bucket === NAIA_ADVANCED_RESOLUTION_BUCKET) {
-    return String(value || DEFAULT_ADVANCED_RESOLUTION_SIZE);
-  }
-  const options = advancedResolutionOptions(bucket);
-  const raw = String(value || "").trim();
-  if (options.includes(raw)) {
-    return raw;
-  }
-  const sameRatio = resolutionRatioFromLabel(raw);
-  if (sameRatio) {
-    const matched = options.find((option) => resolutionRatioFromLabel(option) === sameRatio);
-    if (matched) {
-      return matched;
-    }
-  }
-  return options.includes(DEFAULT_ADVANCED_RESOLUTION_SIZE)
-    ? DEFAULT_ADVANCED_RESOLUTION_SIZE
-    : options[0];
-}
-
 
 function advancedCustomResolution(node) {
   return {
@@ -3846,11 +3707,6 @@ function createAdvancedModGuidanceGroup(node) {
       return body;
     },
   );
-}
-
-function normalizeArtistMixMode(value) {
-  const mode = String(value || "off");
-  return ARTIST_MIX_MODES.includes(mode) ? mode : "off";
 }
 
 function artistMixModeTitle(mode) {

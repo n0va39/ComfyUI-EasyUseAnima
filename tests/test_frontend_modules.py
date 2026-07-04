@@ -54,17 +54,21 @@ class FrontendModuleStructureTests(unittest.TestCase):
                 source = path.read_text(encoding="utf-8")
                 self.assertNotIn('fetch("/easyuse_anima/classify_prompt"', source)
 
-    def test_prompt_studio_entry_imports_phase_2_1_modules(self):
+    def test_prompt_studio_entry_imports_phase_2_modules(self):
         source = PROMPT_STUDIO_JS.read_text(encoding="utf-8")
 
         self.assertIn('./prompt_studio/constants.js"', source)
         self.assertIn('./prompt_studio/utils.js"', source)
+        self.assertIn('./prompt_studio/schema.js"', source)
 
-    def test_prompt_studio_phase_2_1_modules_export_expected_symbols(self):
+    def test_prompt_studio_phase_2_modules_export_expected_symbols(self):
         constants_source = (PROMPT_STUDIO_MODULES / "constants.js").read_text(
             encoding="utf-8"
         )
         utils_source = (PROMPT_STUDIO_MODULES / "utils.js").read_text(
+            encoding="utf-8"
+        )
+        schema_source = (PROMPT_STUDIO_MODULES / "schema.js").read_text(
             encoding="utf-8"
         )
 
@@ -89,8 +93,21 @@ class FrontendModuleStructureTests(unittest.TestCase):
             with self.subTest(module="utils", symbol=name):
                 self.assertIn(f"  {name},", utils_source)
 
-    def test_prompt_studio_phase_2_1_modules_have_no_runtime_side_effects(self):
-        for filename in ("constants.js", "utils.js"):
+        for name in (
+            "advancedDefaultFields",
+            "advancedDefaultFieldsValue",
+            "normalizeAdvancedField",
+            "normalizeAdvancedFieldsValue",
+            "normalizeAdvancedWidgetQueueValue",
+            "advancedFieldInputName",
+            "normalizeAdvancedResolutionBucket",
+            "normalizeAdvancedResolutionSize",
+        ):
+            with self.subTest(module="schema", symbol=name):
+                self.assertIn(f"  {name},", schema_source)
+
+    def test_prompt_studio_phase_2_modules_have_no_runtime_side_effects(self):
+        for filename in ("constants.js", "utils.js", "schema.js"):
             with self.subTest(filename=filename):
                 source = (PROMPT_STUDIO_MODULES / filename).read_text(
                     encoding="utf-8"
