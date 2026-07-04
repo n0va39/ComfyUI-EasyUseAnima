@@ -26,17 +26,17 @@ class FrontendModuleStructureTests(unittest.TestCase):
 
     def test_feature_scripts_use_shared_api_module(self):
         expected_imports = {
-            "easyuse_anima_autocomplete.js",
-            "easyuse_anima_lora_preset.js",
-            "easyuse_anima_prompt_studio.js",
-            "easyuse_anima_prompt_studio_common.js",
-            "easyuse_anima_settings.js",
+            "easyuse_anima_autocomplete.js": './easyuse_anima_api.js"',
+            "easyuse_anima_lora_preset.js": './easyuse_anima_api.js"',
+            "easyuse_anima_prompt_studio_common.js": './easyuse_anima_api.js"',
+            "easyuse_anima_settings.js": './easyuse_anima_api.js"',
+            "prompt_studio/highlight.js": '../easyuse_anima_api.js"',
         }
 
-        for filename in expected_imports:
+        for filename, import_path in expected_imports.items():
             with self.subTest(filename=filename):
                 source = (WEB_JS / filename).read_text(encoding="utf-8")
-                self.assertIn('./easyuse_anima_api.js"', source)
+                self.assertIn(import_path, source)
 
     def test_settings_endpoint_access_is_centralized(self):
         for path in WEB_JS.glob("*.js"):
@@ -66,6 +66,7 @@ class FrontendModuleStructureTests(unittest.TestCase):
         self.assertIn('./prompt_studio/extend_slot_controls.js"', source)
         self.assertIn('./prompt_studio/extend_slots.js"', source)
         self.assertIn('./prompt_studio/fields.js"', source)
+        self.assertIn('./prompt_studio/highlight.js"', source)
         self.assertIn('./prompt_studio/legend.js"', source)
         self.assertIn('./prompt_studio/node_hooks.js"', source)
         self.assertIn('./prompt_studio/settings.js"', source)
@@ -104,6 +105,9 @@ class FrontendModuleStructureTests(unittest.TestCase):
             PROMPT_STUDIO_MODULES / "extend_slots.js"
         ).read_text(encoding="utf-8")
         fields_source = (PROMPT_STUDIO_MODULES / "fields.js").read_text(
+            encoding="utf-8"
+        )
+        highlight_source = (PROMPT_STUDIO_MODULES / "highlight.js").read_text(
             encoding="utf-8"
         )
         legend_source = (PROMPT_STUDIO_MODULES / "legend.js").read_text(
@@ -230,6 +234,16 @@ class FrontendModuleStructureTests(unittest.TestCase):
         ):
             with self.subTest(module="fields", symbol=name):
                 self.assertIn(f"  {name},", fields_source)
+
+        for name in (
+            "classifyPrompt",
+            "ensureHighlightOverlay",
+            "highlightOverlayHtml",
+            "overlayScrollbarPadding",
+            "requestOverlaySync",
+        ):
+            with self.subTest(module="highlight", symbol=name):
+                self.assertIn(f"  {name},", highlight_source)
 
         for name in (
             "desiredLegendHeight",

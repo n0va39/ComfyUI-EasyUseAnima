@@ -200,6 +200,7 @@ web/js/
     utils.js
     settings.js
     text.js
+    highlight.js
     schema.js
     state.js
     canvas_forwarding.js
@@ -229,23 +230,24 @@ Planned slices:
 1. `constants.js` and `utils.js`
 2. `settings.js`
 3. `text.js`
-4. `schema.js`
-5. `state.js`
-6. `canvas_forwarding.js`
-7. `serialization.js`
-8. `layout.js`
-9. `textarea.js`
-10. `wheel.js`
-11. `dom.js`
-12. `extend_slots.js`
-13. `extend_slot_controls.js`
-14. `style.js`
-15. `tooltip.js`
-16. `widgets.js`
-17. `legend.js`
-18. `fields.js`
-19. `node_hooks.js`
-20. entry file slim-down
+4. `highlight.js`
+5. `schema.js`
+6. `state.js`
+7. `canvas_forwarding.js`
+8. `serialization.js`
+9. `layout.js`
+10. `textarea.js`
+11. `wheel.js`
+12. `dom.js`
+13. `extend_slots.js`
+14. `extend_slot_controls.js`
+15. `style.js`
+16. `tooltip.js`
+17. `widgets.js`
+18. `legend.js`
+19. `fields.js`
+20. `node_hooks.js`
+21. entry file slim-down
 
 Each PR should mostly move code and update imports. Behavior changes should be
 separate PRs unless the move reveals a confirmed bug that cannot be separated.
@@ -715,6 +717,7 @@ Use this in Issue #14 or follow-up PR tracking comments.
 [ ] utils.js extracted
 [ ] settings.js extracted
 [ ] text.js extracted
+[ ] highlight.js extracted
 [ ] schema.js extracted
 [ ] state.js extracted
 [ ] canvas_forwarding.js extracted
