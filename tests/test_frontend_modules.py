@@ -56,9 +56,13 @@ class FrontendModuleStructureTests(unittest.TestCase):
 
     def test_prompt_studio_entry_imports_phase_2_modules(self):
         source = PROMPT_STUDIO_JS.read_text(encoding="utf-8")
+        advanced_fields_ui_source = (
+            PROMPT_STUDIO_MODULES / "advanced_fields_ui.js"
+        ).read_text(encoding="utf-8")
 
         self.assertIn('./prompt_studio/constants.js"', source)
         self.assertIn('./prompt_studio/advanced_controls.js"', source)
+        self.assertIn('./prompt_studio/advanced_fields_ui.js"', source)
         self.assertIn('./prompt_studio/utils.js"', source)
         self.assertIn('./prompt_studio/schema.js"', source)
         self.assertIn('./prompt_studio/state.js"', source)
@@ -66,7 +70,7 @@ class FrontendModuleStructureTests(unittest.TestCase):
         self.assertIn('./prompt_studio/dom.js"', source)
         self.assertIn('./prompt_studio/extend_slot_controls.js"', source)
         self.assertIn('./prompt_studio/extend_slots.js"', source)
-        self.assertIn('./prompt_studio/fields.js"', source)
+        self.assertIn('./fields.js"', advanced_fields_ui_source)
         self.assertIn('./prompt_studio/highlight.js"', source)
         self.assertIn('./prompt_studio/legend.js"', source)
         self.assertIn('./prompt_studio/node_hooks.js"', source)
@@ -76,13 +80,16 @@ class FrontendModuleStructureTests(unittest.TestCase):
         self.assertIn('./prompt_studio/tooltip.js"', source)
         self.assertIn('./prompt_studio/widgets.js"', source)
         self.assertIn('./prompt_studio/layout.js"', source)
-        self.assertIn('./prompt_studio/textarea.js"', source)
+        self.assertIn('./textarea.js"', advanced_fields_ui_source)
         self.assertIn('./prompt_studio/wheel.js"', source)
         self.assertIn('./prompt_studio/serialization.js"', source)
 
     def test_prompt_studio_phase_2_modules_export_expected_symbols(self):
         advanced_controls_source = (
             PROMPT_STUDIO_MODULES / "advanced_controls.js"
+        ).read_text(encoding="utf-8")
+        advanced_fields_ui_source = (
+            PROMPT_STUDIO_MODULES / "advanced_fields_ui.js"
         ).read_text(encoding="utf-8")
         constants_source = (PROMPT_STUDIO_MODULES / "constants.js").read_text(
             encoding="utf-8"
@@ -160,6 +167,15 @@ class FrontendModuleStructureTests(unittest.TestCase):
         ):
             with self.subTest(module="advanced_controls", symbol=name):
                 self.assertIn(f"  {name},", advanced_controls_source)
+
+        for name in (
+            "addAdvancedField",
+            "createAdvancedFieldElement",
+            "createAdvancedPane",
+            "setAdvancedTextareaHeight",
+        ):
+            with self.subTest(module="advanced_fields_ui", symbol=name):
+                self.assertIn(f"  {name},", advanced_fields_ui_source)
 
         for name in (
             "NODE_TYPE",
@@ -407,6 +423,7 @@ class FrontendModuleStructureTests(unittest.TestCase):
     def test_prompt_studio_dom_module_has_no_registration_or_network_side_effects(self):
         for filename in (
             "advanced_controls.js",
+            "advanced_fields_ui.js",
             "canvas_forwarding.js",
             "dom.js",
             "extend_slot_controls.js",

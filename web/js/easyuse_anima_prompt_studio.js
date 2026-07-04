@@ -21,7 +21,6 @@ import {
 } from "./prompt_studio/utils.js";
 import {
   advancedDefaultFields,
-  advancedFieldInputName,
   normalizeAdvancedField,
   normalizeAdvancedResolutionBucket,
   normalizeAdvancedResolutionSize,
@@ -57,12 +56,6 @@ import {
   renderExtendSlotControls as renderExtendSlotControlsWithHooks,
 } from "./prompt_studio/extend_slot_controls.js";
 import {
-  advancedPaneFields,
-  hasAdvancedNaia,
-  hasPositiveTrigger,
-  moveAdvancedFieldInPane,
-} from "./prompt_studio/fields.js";
-import {
   isAdvancedNode,
   isExtendNode,
   installAdvancedSaveSync,
@@ -88,8 +81,10 @@ import {
   createAdvancedControlBar,
   createAdvancedResolutionBar,
   createAdvancedWildcardBar,
-  setAdvancedControlValue,
 } from "./prompt_studio/advanced_controls.js";
+import {
+  createAdvancedPane,
+} from "./prompt_studio/advanced_fields_ui.js";
 import {
   classifyPrompt,
   copyInputTextMetrics,
@@ -112,26 +107,13 @@ import {
   advancedEditorMinimumHeight,
   advancedEditorWidgetHeight,
   advancedMinimumNodeHeight,
-  advancedTextareaContentHeight,
-  advancedTextareaCurrentHeight,
-  advancedTextareaMinimumHeight,
   clampAdvancedNodeToMinimumHeight,
   updateAdvancedEditorWidth,
 } from "./prompt_studio/layout.js";
 import {
-  advancedFieldTextareaPlaceholder,
-  advancedFieldTextareaTitle,
-  captureAdvancedTextareaManualResize,
-  rememberAdvancedTextareaResizeStart,
-  syncAdvancedTextareaLinkedInputValue,
-} from "./prompt_studio/textarea.js";
-import {
   guardAdvancedEditorNativeControlEvent,
 } from "./prompt_studio/wheel.js";
 import {
-  advancedFieldDisplayText,
-  advancedFieldIndexLabel,
-  advancedFieldInputLinked,
   advancedFieldsBackup,
   captureAdvancedConfigure,
   collectAdvancedEditorFields,
@@ -464,6 +446,19 @@ function advancedControlHooks() {
     renderAdvancedEditor,
     scheduleAdvancedHighlights,
     scheduleAdvancedLayout,
+  };
+}
+
+function advancedFieldsUiHooks() {
+  return {
+    advancedFieldLabel,
+    applyAdvancedNaiaGeneralAutoToggle,
+    parseAdvancedFields,
+    registerAdvancedAutocompleteInput,
+    scheduleAdvancedFieldHighlight,
+    scheduleAdvancedLayout,
+    updateAdvancedFieldHighlight,
+    writeAdvancedFields,
   };
 }
 
@@ -1112,37 +1107,6 @@ function advancedFieldLabel(field) {
     : localizedBase;
 }
 
-function advancedFieldByTextarea(node, textarea) {
-  const id = String(textarea?.dataset?.easyuseAnimaAdvancedFieldId || "");
-  if (!id) {
-    return null;
-  }
-  return (getAdvancedFields(node) || parseAdvancedFields(node))
-    .find((field) => field.id === id) || null;
-}
-
-function setAdvancedTextareaHeight(node, textarea, height, options = {}) {
-  const requiredHeight = Math.max(
-    advancedTextareaMinimumHeight(textarea),
-    advancedTextareaContentHeight(textarea),
-  );
-  const nextHeight = Math.max(requiredHeight, Math.round(Number(height) || 0));
-  textarea.style.minHeight = `${requiredHeight}px`;
-  textarea.style.height = `${nextHeight}px`;
-  textarea.style.overflowY = "hidden";
-  let field = null;
-  if (options.syncField !== false || options.refreshHighlight !== false) {
-    field = advancedFieldByTextarea(node, textarea);
-  }
-  if (options.syncField !== false && field) {
-    field.height = nextHeight;
-  }
-  if (options.refreshHighlight !== false) {
-    updateAdvancedFieldHighlight(node, field, textarea);
-  }
-  return nextHeight;
-}
-
 function clearAdvancedResizeEndListeners(node) {
   const handler = node?.__easyuseAnimaAdvancedResizeEndHandler;
   if (!handler) {
@@ -1268,263 +1232,6 @@ function scheduleAdvancedLayout(node, reason = "layout") {
   });
 }
 
-function createAdvancedFieldElement(node, field) {
-  const fields = getAdvancedFields(node) || parseAdvancedFields(node);
-  const globalIndex = fields.findIndex((item) => item.id === field.id);
-  const samePane = fields.filter((item) => item.pane === field.pane);
-  const paneIndex = samePane.findIndex((item) => item.id === field.id);
-  const block = document.createElement("div");
-  block.className = "easyuse-anima-advanced-field";
-  block.classList.toggle("is-naia", field.type === "naia");
-  block.classList.toggle("is-trigger", field.type === "trigger");
-  block.classList.toggle("is-disabled", field.enabled === false);
-
-  const header = document.createElement("div");
-  header.className = "easyuse-anima-field-header";
-  const label = document.createElement("div");
-  label.className = "easyuse-anima-field-label";
-  label.textContent = `${advancedFieldIndexLabel(fields, field)}. ${advancedFieldLabel(field)}`;
-  const tools = document.createElement("div");
-  tools.className = "easyuse-anima-field-tools";
-
-  const move = (direction) => {
-    const currentFields = getAdvancedFields(node) || parseAdvancedFields(node);
-    if (moveAdvancedFieldInPane(currentFields, field, direction)) {
-      writeAdvancedFields(node, currentFields, { render: true });
-    }
-  };
-
-  const addTool = (text, title, callback, disabled = false, active = false) => {
-    const button = document.createElement("button");
-    button.type = "button";
-    button.textContent = text;
-    button.title = title;
-    button.disabled = disabled;
-    button.addEventListener("click", (event) => {
-      event.preventDefault();
-      event.stopPropagation();
-      if (!button.disabled) {
-        callback();
-      }
-    });
-    if (active) {
-      button.classList.add("is-on");
-    }
-    tools.append(button);
-    return button;
-  };
-
-  const toggleButton = addTool(
-    field.enabled === false ? psText("advanced.off") : psText("advanced.on"),
-    psText("advanced.enableFieldTitle"),
-    () => {
-      field.enabled = field.enabled === false;
-      writeAdvancedFields(node, fields, { render: true });
-    },
-    false,
-    field.enabled !== false,
-  );
-  toggleButton.classList.toggle("is-on", field.enabled !== false);
-  if (field.type === "trigger") {
-    const pinButton = addTool(
-      field.pin === false ? psText("advanced.autoOrder") : psText("advanced.pinned"),
-      field.pin === false ? psText("advanced.autoOrderTitle") : psText("advanced.pinnedTitle"),
-      () => {
-        field.pin = field.pin === false;
-        writeAdvancedFields(node, fields, { render: true });
-      },
-      false,
-      field.pin !== false,
-    );
-    pinButton.classList.add("easyuse-anima-trigger-pin");
-    pinButton.classList.toggle("is-on", field.pin !== false);
-  }
-  if (field.type === "naia") {
-    const useNaiaWidget = findWidget(node, "use_naia");
-    const linkedUseNaia = isWidgetInputLinked(node, "use_naia");
-    const fillButton = addTool(psText("advanced.fillFromNaia"), psText("advanced.fillFromNaiaTitle"), () => {
-      const currentFields = getAdvancedFields(node) || parseAdvancedFields(node);
-      const target = currentFields.find((item) => item.id === field.id);
-      if (target?.enabled === false) {
-        return;
-      }
-      const nextValue = !findWidget(node, "use_naia")?.value;
-      setAdvancedControlValue(node, "consume_naia_on_queue", true);
-      setAdvancedControlValue(node, "use_naia", nextValue);
-      applyAdvancedNaiaGeneralAutoToggle(node, currentFields);
-      writeAdvancedFields(node, currentFields, { render: true });
-    }, linkedUseNaia || field.enabled === false, field.enabled !== false && !!useNaiaWidget?.value);
-    fillButton.classList.add("easyuse-anima-naia-fill");
-    fillButton.classList.toggle("is-on", field.enabled !== false && !!useNaiaWidget?.value);
-    fillButton.classList.toggle("is-linked", linkedUseNaia);
-  }
-  addTool("↑", psText("advanced.moveUp"), () => move(-1), paneIndex <= 0);
-  addTool("↓", psText("advanced.moveDown"), () => move(1), paneIndex >= samePane.length - 1);
-  addTool("X", psText("advanced.deleteField"), () => {
-    const currentFields = getAdvancedFields(node) || parseAdvancedFields(node);
-    currentFields.splice(globalIndex, 1);
-    writeAdvancedFields(node, currentFields, { render: true });
-  });
-
-  const textarea = document.createElement("textarea");
-  const linked = advancedFieldInputLinked(node, field);
-  const inputName = advancedFieldInputName(field);
-  textarea.value = advancedFieldDisplayText(node, field);
-  textarea.style.height = `${field.height || 72}px`;
-  textarea.style.overflowY = "hidden";
-  textarea.placeholder = advancedFieldTextareaPlaceholder(field, psText);
-  textarea.readOnly = false;
-  textarea.classList.toggle("is-linked", linked);
-  textarea.title = advancedFieldTextareaTitle(field, linked, psText);
-  textarea.dataset.easyuseAnimaAdvancedFieldId = field.id;
-  const updateFieldHighlight = debounce(() => {
-    scheduleAdvancedFieldHighlight(node, field, textarea);
-  }, 180);
-  const persistTextareaHeight = (height, mode = field.heightMode || "auto") => {
-    const previousHeight = Math.round(Number(field.height) || 0);
-    const previousMode = field.heightMode || "auto";
-    const nextHeight = setAdvancedTextareaHeight(node, textarea, height);
-    field.height = nextHeight;
-    field.heightMode = mode === "manual" ? "manual" : "auto";
-    writeAdvancedFields(node, fields, { syncInputs: false });
-    updateAdvancedFieldHighlight(node, field, textarea);
-    updateFieldHighlight();
-    if (Math.abs(nextHeight - previousHeight) > 1 || field.heightMode !== previousMode) {
-      scheduleAdvancedLayout(node, "textarea");
-    } else {
-      requestOverlaySync(textarea);
-    }
-  };
-  const syncHeight = () => {
-    if (field.heightMode === "manual") {
-      persistTextareaHeight(advancedTextareaCurrentHeight(textarea), "manual");
-      return;
-    }
-    textarea.style.height = "auto";
-    textarea.style.overflowY = "hidden";
-    const height = Math.max(
-      advancedTextareaMinimumHeight(textarea),
-      advancedTextareaContentHeight(textarea),
-    );
-    field.heightMode = "auto";
-    persistTextareaHeight(height, "auto");
-  };
-  const rememberTextareaResizeStart = () => rememberAdvancedTextareaResizeStart(textarea);
-  const captureTextareaManualResize = () => {
-    const { changed, currentHeight } = captureAdvancedTextareaManualResize(textarea);
-    if (!changed) {
-      updateAdvancedFieldHighlight(node, field, textarea);
-      return;
-    }
-    persistTextareaHeight(currentHeight, "manual");
-  };
-  textarea.addEventListener("mousedown", rememberTextareaResizeStart);
-  textarea.addEventListener("pointerdown", rememberTextareaResizeStart);
-  textarea.addEventListener("mouseup", captureTextareaManualResize);
-  textarea.addEventListener("pointerup", captureTextareaManualResize);
-  textarea.addEventListener("input", () => {
-    syncAdvancedTextareaLinkedInputValue(node, inputName, textarea.value, linked);
-    field.text = textarea.value;
-    updateFieldHighlight();
-    syncHeight();
-  });
-  textarea.addEventListener("change", () => {
-    updateFieldHighlight();
-    syncHeight();
-  });
-  registerAdvancedAutocompleteInput(node, field, textarea);
-  requestAnimationFrame(() => {
-    const nextHeight = setAdvancedTextareaHeight(node, textarea, field.height || 72, {
-      syncField: false,
-      refreshHighlight: false,
-    });
-    if (nextHeight !== field.height) {
-      field.height = nextHeight;
-      writeAdvancedFields(node, fields, { syncInputs: false });
-    }
-    updateAdvancedFieldHighlight(node, field, textarea);
-    updateFieldHighlight();
-    scheduleAdvancedLayout(node, "render");
-  });
-
-  header.append(label, tools);
-  block.append(header, textarea);
-  return block;
-}
-
-function addAdvancedField(node, pane, type) {
-  const fields = getAdvancedFields(node) || parseAdvancedFields(node);
-  if (type === "naia" && hasAdvancedNaia(fields, pane)) {
-    return;
-  }
-  if (type === "trigger" && hasPositiveTrigger(fields)) {
-    return;
-  }
-  const nextId = `${pane}_${type}_${Date.now().toString(36)}`;
-  fields.push({
-    id: nextId,
-    pane,
-    type,
-    label: ADVANCED_FIELD_LABELS[type] || "General Tags",
-    text: "",
-    height: type === "general" || type === "naia" ? 120 : 72,
-    enabled: true,
-  });
-  if (type === "naia") {
-    setAdvancedControlValue(node, "consume_naia_on_queue", true);
-    setAdvancedControlValue(node, "use_naia", true);
-  }
-  writeAdvancedFields(node, fields, { render: true });
-}
-
-function createAdvancedPane(node, pane, titleKey) {
-  const section = document.createElement("section");
-  section.className = "easyuse-anima-advanced-pane";
-
-  const header = document.createElement("div");
-  header.className = "easyuse-anima-advanced-pane-title";
-  const heading = document.createElement("span");
-  heading.textContent = psText(titleKey);
-  const actions = document.createElement("div");
-  actions.className = "easyuse-anima-advanced-actions";
-  const addButton = (type, label) => {
-    const button = document.createElement("button");
-    button.type = "button";
-    button.textContent = label;
-    const currentFields = getAdvancedFields(node) || parseAdvancedFields(node);
-    button.disabled = (type === "naia" && hasAdvancedNaia(currentFields, pane))
-      || (type === "trigger" && hasPositiveTrigger(currentFields));
-    button.addEventListener("click", (event) => {
-      event.preventDefault();
-      event.stopPropagation();
-      addAdvancedField(node, pane, type);
-    });
-    actions.append(button);
-  };
-  addButton("quality", psText("advanced.add.quality"));
-  addButton("artist", psText("advanced.add.artist"));
-  if (pane === "positive") {
-    addButton("trigger", psText("advanced.add.trigger"));
-  }
-  addButton("general", psText("advanced.add.general"));
-  addButton("naia", psText("advanced.add.naia"));
-  header.append(heading, actions);
-  section.append(header);
-
-  const fields = advancedPaneFields(getAdvancedFields(node) || parseAdvancedFields(node), pane);
-  if (!fields.length) {
-    const empty = document.createElement("div");
-    empty.className = "easyuse-anima-empty-pane";
-    empty.textContent = psText("advanced.noFields");
-    section.append(empty);
-  } else {
-    for (const field of fields) {
-      section.append(createAdvancedFieldElement(node, field));
-    }
-  }
-  return section;
-}
-
 function renderAdvancedEditor(node) {
   const editor = getAdvancedEditorElement(node);
   if (!editor) {
@@ -1536,9 +1243,10 @@ function renderAdvancedEditor(node) {
   updateAdvancedEditorWidth(node);
   const panes = document.createElement("div");
   panes.className = "easyuse-anima-advanced-panes";
+  const fieldHooks = advancedFieldsUiHooks();
   panes.append(
-    createAdvancedPane(node, "positive", "advanced.positivePrompt"),
-    createAdvancedPane(node, "negative", "advanced.negativePrompt"),
+    createAdvancedPane(node, "positive", "advanced.positivePrompt", fieldHooks),
+    createAdvancedPane(node, "negative", "advanced.negativePrompt", fieldHooks),
   );
   editor.append(
     createAdvancedControlBar(node, advancedControlHooks()),

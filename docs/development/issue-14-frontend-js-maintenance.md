@@ -198,6 +198,7 @@ web/js/
   prompt_studio/
     constants.js
     advanced_controls.js
+    advanced_fields_ui.js
     utils.js
     settings.js
     text.js
@@ -230,26 +231,27 @@ Planned slices:
 
 1. `constants.js` and `utils.js`
 2. `advanced_controls.js`
-3. `settings.js`
-4. `text.js`
-5. `highlight.js`
-6. `schema.js`
-7. `state.js`
-8. `canvas_forwarding.js`
-9. `serialization.js`
-10. `layout.js`
-11. `textarea.js`
-12. `wheel.js`
-13. `dom.js`
-14. `extend_slots.js`
-15. `extend_slot_controls.js`
-16. `style.js`
-17. `tooltip.js`
-18. `widgets.js`
-19. `legend.js`
-20. `fields.js`
-21. `node_hooks.js`
-22. entry file slim-down
+3. `advanced_fields_ui.js`
+4. `settings.js`
+5. `text.js`
+6. `highlight.js`
+7. `schema.js`
+8. `state.js`
+9. `canvas_forwarding.js`
+10. `serialization.js`
+11. `layout.js`
+12. `textarea.js`
+13. `wheel.js`
+14. `dom.js`
+15. `extend_slots.js`
+16. `extend_slot_controls.js`
+17. `style.js`
+18. `tooltip.js`
+19. `widgets.js`
+20. `legend.js`
+21. `fields.js`
+22. `node_hooks.js`
+23. entry file slim-down
 
 Each PR should mostly move code and update imports. Behavior changes should be
 separate PRs unless the move reveals a confirmed bug that cannot be separated.
@@ -717,6 +719,7 @@ Use this in Issue #14 or follow-up PR tracking comments.
 ### Phase 2: Prompt Studio module split
 [ ] constants.js extracted
 [ ] advanced_controls.js extracted
+[ ] advanced_fields_ui.js extracted
 [ ] utils.js extracted
 [ ] settings.js extracted
 [ ] text.js extracted
