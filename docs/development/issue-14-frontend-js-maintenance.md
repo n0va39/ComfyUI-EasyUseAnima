@@ -603,6 +603,9 @@ Current status:
   `advanced_layout_controller.js`, `dom.js`, `node_hooks.js`, `settings.js`,
   `textarea.js`, `wheel.js`, and `wildcard_values.js`.
 - 2026-07-05: typecheck coverage expanded to `tooltip.js`.
+- 2026-07-05: typecheck coverage expanded to `studio_textareas.js` after
+  documenting Prompt Studio input overlay fields and the `"immediate"` refresh
+  mode.
 - Full Prompt Studio module type coverage remains a later Phase 3 step.
 
 ## Phase 4: Vite/TypeScript Decision

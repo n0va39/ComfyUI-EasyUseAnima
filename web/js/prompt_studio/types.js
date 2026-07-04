@@ -30,6 +30,13 @@
  */
 
 /**
+ * @typedef {(HTMLTextAreaElement | HTMLInputElement) & {
+ *   __easyuseAnimaHighlightOverlay?: HTMLElement | null,
+ *   __easyuseAnimaStudioResizable?: boolean
+ * }} PromptStudioInputElement
+ */
+
+/**
  * @typedef {Object} ComfyNodeLike
  * @property {[number, number]} [size]
  * @property {Array<ComfyWidgetLike>} [widgets]

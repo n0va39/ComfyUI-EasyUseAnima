@@ -10,6 +10,16 @@ import {
   findWidget,
 } from "./widgets.js";
 
+/** @typedef {import("./types.js").PromptStudioInputElement} PromptStudioInputElement */
+
+/**
+ * @param {unknown} widget
+ * @returns {PromptStudioInputElement | null}
+ */
+function findStudioInput(widget) {
+  return findInputEl(widget);
+}
+
 function studioDefaultHeight(widget) {
   return EXTEND_FIELD_HEIGHTS[widget.name] || FIELD_HEIGHTS[widget.name] || 72;
 }
@@ -42,15 +52,15 @@ function studioVisualMinimumHeight(widget) {
   return Math.min(studioDefaultHeight(widget), 54);
 }
 
-function studioMinimumHeight(widget, input = findInputEl(widget)) {
+function studioMinimumHeight(widget, input = findStudioInput(widget)) {
   return studioVisualMinimumHeight(widget);
 }
 
-function studioContentHeight(widget, input = findInputEl(widget)) {
+function studioContentHeight(widget, input = findStudioInput(widget)) {
   return desiredTextareaHeight(input, 0, studioVisualMinimumHeight(widget), { includeCurrent: false });
 }
 
-function studioCurrentHeight(widget, input = findInputEl(widget)) {
+function studioCurrentHeight(widget, input = findStudioInput(widget)) {
   const styleHeight = Number.parseFloat(input?.style?.height || "");
   return Math.round(
     Number(input?.offsetHeight)
@@ -61,8 +71,11 @@ function studioCurrentHeight(widget, input = findInputEl(widget)) {
   );
 }
 
+/**
+ * @param {boolean | "immediate"} [refresh=false]
+ */
 function setStudioInputHeight(node, widget, height, refresh = false, hooks = {}) {
-  const input = findInputEl(widget);
+  const input = findStudioInput(widget);
   if (!input) {
     return;
   }
@@ -83,7 +96,7 @@ function setStudioInputHeight(node, widget, height, refresh = false, hooks = {})
 }
 
 function syncStudioOverflow(widget) {
-  const input = findInputEl(widget);
+  const input = findStudioInput(widget);
   if (!input) {
     return;
   }
@@ -95,8 +108,11 @@ function syncStudioOverflow(widget) {
   }
 }
 
+/**
+ * @param {boolean | "immediate"} [refresh=false]
+ */
 function growStudioManualHeightToContent(node, widget, refresh = false, hooks = {}) {
-  const input = findInputEl(widget);
+  const input = findStudioInput(widget);
   if (!input || !widget.__easyuseAnimaManualHeight || widget.__easyuseAnimaExtendHidden) {
     return false;
   }
@@ -112,7 +128,7 @@ function growStudioManualHeightToContent(node, widget, refresh = false, hooks = 
 }
 
 function setStudioManualHeight(node, widget, hooks = {}) {
-  const input = findInputEl(widget);
+  const input = findStudioInput(widget);
   if (!input || widget.__easyuseAnimaExtendHidden) {
     return;
   }
@@ -126,8 +142,11 @@ function setStudioManualHeight(node, widget, hooks = {}) {
   );
 }
 
+/**
+ * @param {boolean | "immediate"} [refresh=false]
+ */
 function expandStudioInputToContent(node, widget, refresh = false, hooks = {}) {
-  const input = findInputEl(widget);
+  const input = findStudioInput(widget);
   if (!input || widget.__easyuseAnimaExtendHidden) {
     return;
   }
@@ -144,13 +163,13 @@ function visibleStudioWidgets(node, hooks = {}) {
   return fieldNames
     .map((name) => findWidget(node, name))
     .filter((widget) => {
-      const input = findInputEl(widget);
+      const input = findStudioInput(widget);
       return widget && input && !widget.hidden && !widget.__easyuseAnimaExtendHidden;
     });
 }
 
 function widgetHeight(widget, fallback = 24) {
-  const input = findInputEl(widget);
+  const input = findStudioInput(widget);
   if (input && !widget.__easyuseAnimaExtendHidden) {
     return studioCurrentHeight(widget, input) + STUDIO_WIDGET_VERTICAL_GAP;
   }
