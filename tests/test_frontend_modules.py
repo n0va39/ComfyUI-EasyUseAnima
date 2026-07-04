@@ -68,6 +68,7 @@ class FrontendModuleStructureTests(unittest.TestCase):
         self.assertIn('./prompt_studio/style.js"', source)
         self.assertIn('./prompt_studio/text.js"', source)
         self.assertIn('./prompt_studio/tooltip.js"', source)
+        self.assertIn('./prompt_studio/widgets.js"', source)
         self.assertIn('./prompt_studio/layout.js"', source)
         self.assertIn('./prompt_studio/textarea.js"', source)
         self.assertIn('./prompt_studio/wheel.js"', source)
@@ -105,6 +106,9 @@ class FrontendModuleStructureTests(unittest.TestCase):
             encoding="utf-8"
         )
         tooltip_source = (PROMPT_STUDIO_MODULES / "tooltip.js").read_text(
+            encoding="utf-8"
+        )
+        widgets_source = (PROMPT_STUDIO_MODULES / "widgets.js").read_text(
             encoding="utf-8"
         )
         layout_source = (PROMPT_STUDIO_MODULES / "layout.js").read_text(
@@ -233,6 +237,15 @@ class FrontendModuleStructureTests(unittest.TestCase):
                 self.assertIn(f"  {name},", tooltip_source)
 
         for name in (
+            "findInputEl",
+            "findWidget",
+            "firstValue",
+            "isWidgetInputLinked",
+        ):
+            with self.subTest(module="widgets", symbol=name):
+                self.assertIn(f"  {name},", widgets_source)
+
+        for name in (
             "advancedEditorMinimumHeight",
             "advancedEditorWidgetHeight",
             "advancedMinimumNodeHeight",
@@ -293,6 +306,7 @@ class FrontendModuleStructureTests(unittest.TestCase):
             "fields.js",
             "node_hooks.js",
             "text.js",
+            "widgets.js",
             "layout.js",
             "textarea.js",
             "wheel.js",

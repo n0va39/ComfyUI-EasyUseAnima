@@ -60,7 +60,6 @@ import {
   normalizeArtistMixMode,
 } from "./prompt_studio/schema.js";
 import {
-  findHiddenWidget,
   getAdvancedEditorElement,
   getAdvancedFields,
   setAdvancedEditorElement,
@@ -108,6 +107,12 @@ import {
   installTrainedTagTooltipListeners,
 } from "./prompt_studio/tooltip.js";
 import {
+  findInputEl,
+  findWidget,
+  firstValue,
+  isWidgetInputLinked,
+} from "./prompt_studio/widgets.js";
+import {
   advancedEditorMinimumHeight,
   advancedEditorWidgetHeight,
   advancedMinimumNodeHeight,
@@ -145,25 +150,6 @@ import {
 } from "./prompt_studio/serialization.js";
 
 let middlePanForwardActive = false;
-function findWidget(node, name) {
-  return findHiddenWidget(node, name)
-    || node.widgets?.find((widget) => widget.name === name);
-}
-
-function findInputEl(widget) {
-  const input = widget?.inputEl;
-  if (input instanceof HTMLTextAreaElement || input instanceof HTMLInputElement) {
-    return input;
-  }
-  return null;
-}
-
-function firstValue(value, fallback = null) {
-  if (Array.isArray(value)) {
-    return value.length ? value[0] : fallback;
-  }
-  return value ?? fallback;
-}
 
 function repairAdvancedInternalWidgetValues(node) {
   let changed = false;
@@ -190,10 +176,6 @@ function repairAdvancedInternalWidgetValues(node) {
     app.graph?.setDirtyCanvas?.(true, true);
   }
   return changed;
-}
-
-function isWidgetInputLinked(node, name) {
-  return !!node.inputs?.some((input) => input.widget?.name === name && input.link != null);
 }
 
 function refreshNodeSize(node, options = {}) {
