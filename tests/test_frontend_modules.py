@@ -62,6 +62,7 @@ class FrontendModuleStructureTests(unittest.TestCase):
         self.assertIn('./prompt_studio/schema.js"', source)
         self.assertIn('./prompt_studio/state.js"', source)
         self.assertIn('./prompt_studio/dom.js"', source)
+        self.assertIn('./prompt_studio/fields.js"', source)
         self.assertIn('./prompt_studio/style.js"', source)
         self.assertIn('./prompt_studio/layout.js"', source)
         self.assertIn('./prompt_studio/textarea.js"', source)
@@ -82,6 +83,9 @@ class FrontendModuleStructureTests(unittest.TestCase):
             encoding="utf-8"
         )
         dom_source = (PROMPT_STUDIO_MODULES / "dom.js").read_text(
+            encoding="utf-8"
+        )
+        fields_source = (PROMPT_STUDIO_MODULES / "fields.js").read_text(
             encoding="utf-8"
         )
         style_source = (PROMPT_STUDIO_MODULES / "style.js").read_text(
@@ -156,6 +160,16 @@ class FrontendModuleStructureTests(unittest.TestCase):
             with self.subTest(module="dom", symbol=name):
                 self.assertIn(f"  {name},", dom_source)
 
+        for name in (
+            "advancedPaneFields",
+            "hasAdvancedNaia",
+            "hasPositiveNaia",
+            "hasPositiveTrigger",
+            "moveAdvancedFieldInPane",
+        ):
+            with self.subTest(module="fields", symbol=name):
+                self.assertIn(f"  {name},", fields_source)
+
         for name in ("ensureAdvancedStyle",):
             with self.subTest(module="style", symbol=name):
                 self.assertIn(f"  {name},", style_source)
@@ -195,6 +209,7 @@ class FrontendModuleStructureTests(unittest.TestCase):
 
         for name in (
             "advancedFieldDisplayText",
+            "advancedFieldIndexLabel",
             "advancedFieldInputLinked",
             "advancedFieldsBackup",
             "captureAdvancedConfigure",
@@ -217,6 +232,7 @@ class FrontendModuleStructureTests(unittest.TestCase):
             "utils.js",
             "schema.js",
             "state.js",
+            "fields.js",
             "layout.js",
             "textarea.js",
             "wheel.js",

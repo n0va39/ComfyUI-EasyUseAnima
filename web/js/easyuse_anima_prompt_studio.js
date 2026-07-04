@@ -90,6 +90,12 @@ import {
   updateAdvancedSummary,
 } from "./prompt_studio/dom.js";
 import {
+  advancedPaneFields,
+  hasAdvancedNaia,
+  hasPositiveTrigger,
+  moveAdvancedFieldInPane,
+} from "./prompt_studio/fields.js";
+import {
   ensureAdvancedStyle,
 } from "./prompt_studio/style.js";
 import {
@@ -117,6 +123,7 @@ import {
 } from "./prompt_studio/wheel.js";
 import {
   advancedFieldDisplayText,
+  advancedFieldIndexLabel,
   advancedFieldInputLinked,
   advancedFieldsBackup,
   captureAdvancedConfigure,
@@ -3598,26 +3605,6 @@ function createAdvancedResolutionBar(node) {
   );
 }
 
-function advancedPaneFields(node, pane) {
-  return (getAdvancedFields(node) || parseAdvancedFields(node))
-    .filter((field) => field.pane === pane);
-}
-
-function hasAdvancedNaia(node, pane) {
-  return (getAdvancedFields(node) || parseAdvancedFields(node))
-    .some((field) => field.pane === pane && field.type === "naia");
-}
-
-function hasPositiveNaia(node) {
-  return (getAdvancedFields(node) || parseAdvancedFields(node))
-    .some((field) => field.pane === "positive" && field.type === "naia");
-}
-
-function hasPositiveTrigger(node) {
-  return (getAdvancedFields(node) || parseAdvancedFields(node))
-    .some((field) => field.pane === "positive" && field.type === "trigger");
-}
-
 function advancedFieldByTextarea(node, textarea) {
   const id = String(textarea?.dataset?.easyuseAnimaAdvancedFieldId || "");
   if (!id) {
@@ -3974,19 +3961,9 @@ function createAdvancedFieldElement(node, field) {
 
   const move = (direction) => {
     const currentFields = getAdvancedFields(node) || parseAdvancedFields(node);
-    const paneFields = currentFields
-      .map((item, index) => ({ item, index }))
-      .filter(({ item }) => item.pane === field.pane);
-    const current = paneFields.findIndex(({ item }) => item.id === field.id);
-    const target = current + direction;
-    if (current < 0 || target < 0 || target >= paneFields.length) {
-      return;
+    if (moveAdvancedFieldInPane(currentFields, field, direction)) {
+      writeAdvancedFields(node, currentFields, { render: true });
     }
-    const from = paneFields[current].index;
-    const to = paneFields[target].index;
-    const [removed] = currentFields.splice(from, 1);
-    currentFields.splice(to, 0, removed);
-    writeAdvancedFields(node, currentFields, { render: true });
   };
 
   const addTool = (text, title, callback, disabled = false, active = false) => {
@@ -4149,10 +4126,10 @@ function createAdvancedFieldElement(node, field) {
 
 function addAdvancedField(node, pane, type) {
   const fields = getAdvancedFields(node) || parseAdvancedFields(node);
-  if (type === "naia" && hasAdvancedNaia(node, pane)) {
+  if (type === "naia" && hasAdvancedNaia(fields, pane)) {
     return;
   }
-  if (type === "trigger" && hasPositiveTrigger(node)) {
+  if (type === "trigger" && hasPositiveTrigger(fields)) {
     return;
   }
   const nextId = `${pane}_${type}_${Date.now().toString(36)}`;
@@ -4186,8 +4163,9 @@ function createAdvancedPane(node, pane, titleKey) {
     const button = document.createElement("button");
     button.type = "button";
     button.textContent = label;
-    button.disabled = (type === "naia" && hasAdvancedNaia(node, pane))
-      || (type === "trigger" && hasPositiveTrigger(node));
+    const currentFields = getAdvancedFields(node) || parseAdvancedFields(node);
+    button.disabled = (type === "naia" && hasAdvancedNaia(currentFields, pane))
+      || (type === "trigger" && hasPositiveTrigger(currentFields));
     button.addEventListener("click", (event) => {
       event.preventDefault();
       event.stopPropagation();
@@ -4205,7 +4183,7 @@ function createAdvancedPane(node, pane, titleKey) {
   header.append(heading, actions);
   section.append(header);
 
-  const fields = advancedPaneFields(node, pane);
+  const fields = advancedPaneFields(getAdvancedFields(node) || parseAdvancedFields(node), pane);
   if (!fields.length) {
     const empty = document.createElement("div");
     empty.className = "easyuse-anima-empty-pane";
