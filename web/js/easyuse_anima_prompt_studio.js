@@ -48,19 +48,12 @@ import {
   DEFAULT_ADVANCED_RESOLUTION_BUCKET,
   DEFAULT_ADVANCED_RESOLUTION_SIZE,
   ADVANCED_WIDGET_INDEX,
-  ADVANCED_LEGACY_FIELDS_WIDGET_INDEXES,
   ADVANCED_INTERNAL_WIDGET_NAMES,
-  ADVANCED_WIDGET_VALUE_DEFAULTS,
-  ADVANCED_BOOLEAN_WIDGET_NAMES,
-  ADVANCED_INT_WIDGET_NAMES,
-  ADVANCED_FLOAT_WIDGET_NAMES,
   ADVANCED_FIELDS_PROPERTY,
   ADVANCED_FIELD_SOCKET_PREFIX,
-  ADVANCED_FIELD_TYPES,
   ADVANCED_EDITOR_MIN_VIEWPORT_HEIGHT,
   ADVANCED_EDITOR_MAX_AUTO_VIEWPORT_HEIGHT,
   ADVANCED_FIELD_LABELS,
-  ADVANCED_DEFAULT_FIELDS,
 } from "./prompt_studio/constants.js";
 import {
   debounce,
@@ -77,27 +70,28 @@ import {
 } from "./prompt_studio/utils.js";
 import {
   advancedDefaultFields,
-  advancedDefaultFieldsValue,
   advancedFieldInputName,
   advancedResolutionOptions,
   normalizeAdvancedField,
-  normalizeAdvancedFieldsValue,
   normalizeAdvancedResolutionBucket,
   normalizeAdvancedResolutionSize,
   normalizeAdvancedWidgetQueueValue,
   normalizeArtistMixMode,
 } from "./prompt_studio/schema.js";
 import {
-  clearPendingAdvancedFieldsValue,
   findHiddenWidget,
   getAdvancedEditorElement,
   getAdvancedFields,
-  getPendingAdvancedFieldsValue,
   setAdvancedEditorElement,
   setAdvancedFields,
   setHiddenWidget,
-  setPendingAdvancedFieldsValue,
 } from "./prompt_studio/state.js";
+import {
+  advancedFieldsBackup,
+  captureAdvancedConfigure,
+  ensureAdvancedWidgetValue,
+  syncAdvancedFieldsBackup,
+} from "./prompt_studio/serialization.js";
 
 function psText(key) {
   return easyuseAnimaText(PROMPT_STUDIO_TEXT, key);
@@ -3090,69 +3084,6 @@ function advancedWidget(node) {
   return findWidget(node, "advanced_fields");
 }
 
-function advancedFieldsBackup(node) {
-  const value = node?.properties?.[ADVANCED_FIELDS_PROPERTY];
-  return typeof value === "string" && value.trim() ? value : "";
-}
-
-function syncAdvancedFieldsBackup(node, value) {
-  node.properties ||= {};
-  node.properties[ADVANCED_FIELDS_PROPERTY] = String(value || "");
-}
-
-function serializedAdvancedFieldsValue(serialized) {
-  const propertyValue = normalizeAdvancedFieldsValue(serialized?.properties?.[ADVANCED_FIELDS_PROPERTY]);
-  if (propertyValue) {
-    return propertyValue;
-  }
-  const widgetsValue = normalizeAdvancedFieldsValue(serialized?.widgets_values?.[ADVANCED_WIDGET_INDEX.advanced_fields]);
-  if (widgetsValue) {
-    return widgetsValue;
-  }
-  for (const index of ADVANCED_LEGACY_FIELDS_WIDGET_INDEXES) {
-    const legacyValue = normalizeAdvancedFieldsValue(serialized?.widgets_values?.[index]);
-    if (legacyValue) {
-      return legacyValue;
-    }
-  }
-  return "";
-}
-
-function captureAdvancedConfigure(node, serialized) {
-  const value = serializedAdvancedFieldsValue(serialized);
-  if (!value) {
-    return;
-  }
-  setPendingAdvancedFieldsValue(node, value);
-  syncAdvancedFieldsBackup(node, value);
-  const widget = advancedWidget(node);
-  if (widget) {
-    widget.value = value;
-  }
-}
-
-function ensureAdvancedWidgetValue(node) {
-  const widget = advancedWidget(node);
-  if (!widget) {
-    return;
-  }
-  const pendingValue = getPendingAdvancedFieldsValue(node);
-  if (pendingValue) {
-    widget.value = pendingValue;
-    syncAdvancedFieldsBackup(node, widget.value);
-    clearPendingAdvancedFieldsValue(node);
-    return;
-  }
-  const backup = advancedFieldsBackup(node);
-  const widgetValue = String(widget.value || "");
-  if (
-    backup
-    && (!widgetValue.trim() || widgetValue === advancedDefaultFieldsValue())
-  ) {
-    widget.value = backup;
-  }
-}
-
 function hideAdvancedInternalWidget(node, name) {
   const widget = findWidget(node, name);
   if (!widget) {
@@ -3200,8 +3131,8 @@ function removeAdvancedInternalInputSockets(node) {
 }
 
 function parseAdvancedFields(node) {
-  ensureAdvancedWidgetValue(node);
   const widget = advancedWidget(node);
+  ensureAdvancedWidgetValue(node, widget);
   const sourceValue = String(widget?.value || advancedFieldsBackup(node) || "[]");
   try {
     const parsed = JSON.parse(sourceValue);
@@ -5205,7 +5136,7 @@ function renderAdvancedEditor(node) {
 function hookAdvancedNode(node) {
   ensureAdvancedStyle();
   installAdvancedSaveSync();
-  ensureAdvancedWidgetValue(node);
+  ensureAdvancedWidgetValue(node, advancedWidget(node));
   removeAdvancedInternalInputSockets(node);
   hideAdvancedInternalWidget(node, "advanced_fields");
   hideAdvancedControlWidgets(node);
@@ -5479,7 +5410,7 @@ app.registerExtension({
     nodeType.prototype.onConfigure = function (serialized) {
       onConfigure?.apply(this, arguments);
       if (isAdvancedNodeName(nodeData.name)) {
-        captureAdvancedConfigure(this, serialized);
+        captureAdvancedConfigure(this, serialized, advancedWidget(this));
         scheduleHookAdvancedNode(this);
       } else if (nodeData.name === WILDCARD_NODE_TYPE) {
         return;

@@ -61,6 +61,7 @@ class FrontendModuleStructureTests(unittest.TestCase):
         self.assertIn('./prompt_studio/utils.js"', source)
         self.assertIn('./prompt_studio/schema.js"', source)
         self.assertIn('./prompt_studio/state.js"', source)
+        self.assertIn('./prompt_studio/serialization.js"', source)
 
     def test_prompt_studio_phase_2_modules_export_expected_symbols(self):
         constants_source = (PROMPT_STUDIO_MODULES / "constants.js").read_text(
@@ -75,6 +76,9 @@ class FrontendModuleStructureTests(unittest.TestCase):
         state_source = (PROMPT_STUDIO_MODULES / "state.js").read_text(
             encoding="utf-8"
         )
+        serialization_source = (
+            PROMPT_STUDIO_MODULES / "serialization.js"
+        ).read_text(encoding="utf-8")
 
         for name in (
             "NODE_TYPE",
@@ -122,8 +126,24 @@ class FrontendModuleStructureTests(unittest.TestCase):
             with self.subTest(module="state", symbol=name):
                 self.assertIn(f"  {name},", state_source)
 
+        for name in (
+            "advancedFieldsBackup",
+            "captureAdvancedConfigure",
+            "ensureAdvancedWidgetValue",
+            "serializedAdvancedFieldsValue",
+            "syncAdvancedFieldsBackup",
+        ):
+            with self.subTest(module="serialization", symbol=name):
+                self.assertIn(f"  {name},", serialization_source)
+
     def test_prompt_studio_phase_2_modules_have_no_runtime_side_effects(self):
-        for filename in ("constants.js", "utils.js", "schema.js", "state.js"):
+        for filename in (
+            "constants.js",
+            "utils.js",
+            "schema.js",
+            "state.js",
+            "serialization.js",
+        ):
             with self.subTest(filename=filename):
                 source = (PROMPT_STUDIO_MODULES / filename).read_text(
                     encoding="utf-8"
