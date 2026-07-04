@@ -208,6 +208,7 @@ web/js/
     canvas_forwarding.js
     serialization.js
     layout.js
+    studio_textareas.js
     textarea.js
     wheel.js
     dom.js
@@ -240,18 +241,19 @@ Planned slices:
 9. `canvas_forwarding.js`
 10. `serialization.js`
 11. `layout.js`
-12. `textarea.js`
-13. `wheel.js`
-14. `dom.js`
-15. `extend_slots.js`
-16. `extend_slot_controls.js`
-17. `style.js`
-18. `tooltip.js`
-19. `widgets.js`
-20. `legend.js`
-21. `fields.js`
-22. `node_hooks.js`
-23. entry file slim-down
+12. `studio_textareas.js`
+13. `textarea.js`
+14. `wheel.js`
+15. `dom.js`
+16. `extend_slots.js`
+17. `extend_slot_controls.js`
+18. `style.js`
+19. `tooltip.js`
+20. `widgets.js`
+21. `legend.js`
+22. `fields.js`
+23. `node_hooks.js`
+24. entry file slim-down
 
 Each PR should mostly move code and update imports. Behavior changes should be
 separate PRs unless the move reveals a confirmed bug that cannot be separated.
@@ -729,6 +731,7 @@ Use this in Issue #14 or follow-up PR tracking comments.
 [ ] canvas_forwarding.js extracted
 [ ] serialization.js extracted
 [ ] layout.js extracted
+[ ] studio_textareas.js extracted
 [ ] textarea.js extracted
 [ ] wheel.js extracted
 [ ] dom.js extracted

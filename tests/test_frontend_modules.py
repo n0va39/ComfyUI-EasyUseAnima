@@ -80,6 +80,7 @@ class FrontendModuleStructureTests(unittest.TestCase):
         self.assertIn('./prompt_studio/tooltip.js"', source)
         self.assertIn('./prompt_studio/widgets.js"', source)
         self.assertIn('./prompt_studio/layout.js"', source)
+        self.assertIn('./prompt_studio/studio_textareas.js"', source)
         self.assertIn('./textarea.js"', advanced_fields_ui_source)
         self.assertIn('./prompt_studio/wheel.js"', source)
         self.assertIn('./prompt_studio/serialization.js"', source)
@@ -145,6 +146,9 @@ class FrontendModuleStructureTests(unittest.TestCase):
         layout_source = (PROMPT_STUDIO_MODULES / "layout.js").read_text(
             encoding="utf-8"
         )
+        studio_textareas_source = (
+            PROMPT_STUDIO_MODULES / "studio_textareas.js"
+        ).read_text(encoding="utf-8")
         textarea_source = (PROMPT_STUDIO_MODULES / "textarea.js").read_text(
             encoding="utf-8"
         )
@@ -356,6 +360,23 @@ class FrontendModuleStructureTests(unittest.TestCase):
                 self.assertIn(f"  {name},", layout_source)
 
         for name in (
+            "desiredTextareaHeight",
+            "expandStudioInputToContent",
+            "growStudioManualHeightToContent",
+            "rebalanceStudioInputHeights",
+            "setStudioInputHeight",
+            "setStudioManualHeight",
+            "studioCurrentHeight",
+            "studioDefaultHeight",
+            "syncStudioOverflow",
+            "textareaContentHeight",
+            "visibleStudioWidgets",
+            "widgetHeight",
+        ):
+            with self.subTest(module="studio_textareas", symbol=name):
+                self.assertIn(f"  {name},", studio_textareas_source)
+
+        for name in (
             "advancedFieldTextareaPlaceholder",
             "advancedFieldTextareaTitle",
             "captureAdvancedTextareaManualResize",
@@ -407,6 +428,7 @@ class FrontendModuleStructureTests(unittest.TestCase):
             "text.js",
             "widgets.js",
             "layout.js",
+            "studio_textareas.js",
             "textarea.js",
             "wheel.js",
             "serialization.js",

@@ -5,8 +5,6 @@ import {
   EXTEND_FIELD_NAMES,
   EXTEND_VISIBLE_SLOTS_PROPERTY,
   EXTEND_ACTIVE_SLOTS_WIDGET,
-  FIELD_HEIGHTS,
-  EXTEND_FIELD_HEIGHTS,
   STUDIO_WIDGET_VERTICAL_GAP,
   ADVANCED_NATIVE_CONTROL_EVENTS,
   DEFAULT_ADVANCED_RESOLUTION_BUCKET,
@@ -114,6 +112,18 @@ import {
   guardAdvancedEditorNativeControlEvent,
 } from "./prompt_studio/wheel.js";
 import {
+  desiredTextareaHeight,
+  expandStudioInputToContent as expandStudioInputToContentWithHooks,
+  growStudioManualHeightToContent as growStudioManualHeightToContentWithHooks,
+  rebalanceStudioInputHeights as rebalanceStudioInputHeightsWithHooks,
+  setStudioInputHeight as setStudioInputHeightWithHooks,
+  setStudioManualHeight as setStudioManualHeightWithHooks,
+  studioCurrentHeight,
+  studioDefaultHeight,
+  visibleStudioWidgets as visibleStudioWidgetsWithHooks,
+  widgetHeight,
+} from "./prompt_studio/studio_textareas.js";
+import {
   advancedFieldsBackup,
   captureAdvancedConfigure,
   collectAdvancedEditorFields,
@@ -171,152 +181,32 @@ function refreshNodeSize(node, options = {}) {
   }
 }
 
-
-
-
-
-
-
-function textareaContentHeight(input, minimumHeight) {
-  if (!input) {
-    return minimumHeight;
-  }
-  const previousHeight = input.style.height;
-  const previousOverflow = input.style.overflowY;
-  input.style.height = "auto";
-  input.style.overflowY = "hidden";
-  const contentHeight = Math.ceil(Number(input.scrollHeight) || 0);
-  input.style.height = previousHeight;
-  input.style.overflowY = previousOverflow;
-  return Math.max(minimumHeight, contentHeight);
-}
-
-function desiredTextareaHeight(input, currentHeight, minimumHeight, options = {}) {
-  const includeCurrent = options.includeCurrent !== false;
-  const contentHeight = textareaContentHeight(input, minimumHeight);
-  return Math.max(
-    minimumHeight,
-    includeCurrent ? Math.round(Number(currentHeight) || 0) : 0,
-    contentHeight,
-  );
-}
-
-function studioVisualMinimumHeight(widget) {
-  return Math.min(studioDefaultHeight(widget), 54);
-}
-
-function studioMinimumHeight(widget, input = findInputEl(widget)) {
-  return studioVisualMinimumHeight(widget);
-}
-
-function studioContentHeight(widget, input = findInputEl(widget)) {
-  return desiredTextareaHeight(input, 0, studioVisualMinimumHeight(widget), { includeCurrent: false });
-}
-
-function studioCurrentHeight(widget, input = findInputEl(widget)) {
-  const styleHeight = Number.parseFloat(input?.style?.height || "");
-  return Math.round(
-    Number(input?.offsetHeight)
-    || Number(input?.clientHeight)
-    || styleHeight
-    || Number(widget?.__easyuseAnimaHeight)
-    || studioDefaultHeight(widget),
-  );
+function studioTextareaHooks() {
+  return {
+    refreshNodeSize,
+    studioFieldNames,
+    updateHighlight,
+  };
 }
 
 function setStudioInputHeight(node, widget, height, refresh = false) {
-  const input = findInputEl(widget);
-  if (!input) {
-    return;
-  }
-  const minimumHeight = studioMinimumHeight(widget, input);
-  const nextHeight = Math.max(minimumHeight, Math.round(Number(height) || 0));
-  widget.__easyuseAnimaLayoutHeight = nextHeight + STUDIO_WIDGET_VERTICAL_GAP;
-  if (Math.abs(nextHeight - (widget.__easyuseAnimaHeight || 0)) > 1) {
-    widget.__easyuseAnimaHeight = nextHeight;
-    input.style.height = `${nextHeight}px`;
-    if (refresh) {
-      refreshNodeSize(node, { immediate: refresh === "immediate" });
-    }
-  } else {
-    input.style.height = `${nextHeight}px`;
-  }
-  syncStudioOverflow(widget);
-  updateHighlight(node, widget);
-}
-
-function syncStudioOverflow(widget) {
-  const input = findInputEl(widget);
-  if (!input) {
-    return;
-  }
-  const height = studioCurrentHeight(widget, input);
-  const contentHeight = textareaContentHeight(input, studioVisualMinimumHeight(widget));
-  input.style.overflowY = contentHeight > height + 2 ? "auto" : "hidden";
-  if (input.__easyuseAnimaHighlightOverlay) {
-    input.__easyuseAnimaHighlightOverlay.style.overflow = "hidden";
-  }
+  setStudioInputHeightWithHooks(node, widget, height, refresh, studioTextareaHooks());
 }
 
 function growStudioManualHeightToContent(node, widget, refresh = false) {
-  const input = findInputEl(widget);
-  if (!input || !widget.__easyuseAnimaManualHeight || widget.__easyuseAnimaExtendHidden) {
-    return false;
-  }
-  const currentHeight = studioCurrentHeight(widget, input);
-  const contentHeight = studioContentHeight(widget, input);
-  if (contentHeight > currentHeight + 2) {
-    setStudioInputHeight(node, widget, contentHeight, refresh);
-    return true;
-  }
-  syncStudioOverflow(widget);
-  updateHighlight(node, widget);
-  return false;
+  return growStudioManualHeightToContentWithHooks(node, widget, refresh, studioTextareaHooks());
 }
 
 function setStudioManualHeight(node, widget) {
-  const input = findInputEl(widget);
-  if (!input || widget.__easyuseAnimaExtendHidden) {
-    return;
-  }
-  widget.__easyuseAnimaManualHeight = true;
-  setStudioInputHeight(
-    node,
-    widget,
-    Math.max(studioCurrentHeight(widget, input), studioContentHeight(widget, input)),
-    "immediate",
-  );
+  setStudioManualHeightWithHooks(node, widget, studioTextareaHooks());
 }
 
 function expandStudioInputToContent(node, widget, refresh = false) {
-  const input = findInputEl(widget);
-  if (!input || widget.__easyuseAnimaExtendHidden) {
-    return;
-  }
-  if (widget.__easyuseAnimaManualHeight) {
-    growStudioManualHeightToContent(node, widget, refresh);
-    return;
-  }
-  const height = studioContentHeight(widget, input);
-  setStudioInputHeight(node, widget, height, refresh);
+  expandStudioInputToContentWithHooks(node, widget, refresh, studioTextareaHooks());
 }
 
 function visibleStudioWidgets(node) {
-  return studioFieldNames(node)
-    .map((name) => findWidget(node, name))
-    .filter((widget) => {
-      const input = findInputEl(widget);
-      return widget && input && !widget.hidden && !widget.__easyuseAnimaExtendHidden;
-    });
-}
-
-function widgetHeight(widget, fallback = 24) {
-  const input = findInputEl(widget);
-  if (input && !widget.__easyuseAnimaExtendHidden) {
-    return studioCurrentHeight(widget, input) + STUDIO_WIDGET_VERTICAL_GAP;
-  }
-  const size = widget?.computeSize?.();
-  return Math.max(0, Number(size?.[1]) || Number(widget?.__height) || fallback);
+  return visibleStudioWidgetsWithHooks(node, studioTextareaHooks());
 }
 
 function visibleExtendPromptWidgets(node) {
@@ -389,35 +279,7 @@ function layoutExtendPromptWidgets(node) {
 }
 
 function rebalanceStudioInputHeights(node) {
-  const widgets = visibleStudioWidgets(node);
-  if (!widgets.length) {
-    return;
-  }
-
-  const currentHeights = widgets.map((widget) => studioCurrentHeight(widget));
-  const minimumHeights = widgets.map((widget) => studioMinimumHeight(widget));
-  const currentTotal = currentHeights.reduce((sum, value) => sum + value, 0);
-  const minimumTotal = minimumHeights.reduce((sum, value) => sum + value, 0);
-  const computedHeight = Number(node.computeSize?.()[1]) || currentTotal;
-  const nonInputHeight = Math.max(0, computedHeight - currentTotal);
-  const targetInputTotal = Math.max(minimumTotal, (Number(node.size?.[1]) || computedHeight) - nonInputHeight);
-
-  if (targetInputTotal < currentTotal - 2) {
-    const currentExtra = Math.max(0, currentTotal - minimumTotal);
-    const targetExtra = Math.max(0, targetInputTotal - minimumTotal);
-    const ratio = currentExtra > 0 ? targetExtra / currentExtra : 0;
-    for (const [index, widget] of widgets.entries()) {
-      const nextHeight = minimumHeights[index] + (currentHeights[index] - minimumHeights[index]) * ratio;
-      setStudioInputHeight(node, widget, nextHeight);
-    }
-    refreshNodeSize(node, { immediate: true });
-    return;
-  }
-
-  for (const widget of widgets) {
-    expandStudioInputToContent(node, widget);
-  }
-  refreshNodeSize(node, { immediate: true });
+  rebalanceStudioInputHeightsWithHooks(node, studioTextareaHooks());
 }
 
 function displayText(node, widget) {
@@ -478,10 +340,6 @@ function renderExtendSlotControls(node) {
 
 function ensureExtendSlotControls(node) {
   ensureExtendSlotControlsWithHooks(node, extendSlotControlHooks());
-}
-
-function studioDefaultHeight(widget) {
-  return EXTEND_FIELD_HEIGHTS[widget.name] || FIELD_HEIGHTS[widget.name] || 72;
 }
 
 function updateHighlight(node, widget, tokens = widget.__easyuseAnimaTokens || [], forceCopyMetrics = false) {
