@@ -1,5 +1,34 @@
 # Release Notes
 
+## 0.2.6
+
+### Added
+
+- Added hover tooltips for trained Prompt Studio highlight tags, using
+  autocomplete metadata when it is available.
+- Added the `prompt_studio.trained_tag_tooltip` setting and matching Comfy
+  setting key so tag hover tooltips can be enabled or disabled from Prompt
+  Studio settings.
+- Added a dedicated tabbed Prompt Studio highlight color editor so the growing
+  highlight color controls are managed outside the main Prompt Studio settings
+  list.
+
+### Changed
+
+- Reused autocomplete tooltip formatting for Prompt Studio tag highlights so
+  hover text stays consistent between autocomplete suggestions and highlighted
+  prompt tokens.
+- Registered the tag tooltip and highlight color settings in backend defaults,
+  frontend settings UI, and settings key mapping.
+- Shared Prompt Studio highlight color handling across the main Prompt Studio
+  editor and the common highlighter path.
+
+### Validation Notes
+
+- Added regression coverage for Prompt Studio tag tooltip settings.
+- Validated the changed Prompt Studio, common highlighter, autocomplete, and
+  settings JavaScript with syntax checks during 0.2.6 preparation.
+
 ## 0.2.5
 
 ### Added
