@@ -1,0 +1,165 @@
+name: Bug report / 버그 리포트
+description: Report a reproducible EasyUse Anima bug.
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting a bug. Please provide enough information to reproduce the issue.
+
+        한국어가 더 편하다면 한국어로 작성해도 됩니다.
+
+        Please run environment and dependency checks in the same Python environment used by ComfyUI.
+        ComfyUI portable, ComfyUI Manager, Comfy CLI, venv, Docker, and manual source installs can behave differently.
+
+        If this is a security vulnerability, do not include public exploit details. Follow the Security Policy instead:
+        https://github.com/n0va39/ComfyUI-EasyUseAnima/security/policy
+
+  - type: input
+    id: easyuse-anima-version
+    attributes:
+      label: EasyUse Anima version / EasyUse Anima 버전
+      description: Version, tag, branch, commit hash, or installation source.
+      placeholder: "0.2.6 / latest main / commit hash / ComfyUI Manager"
+    validations:
+      required: true
+
+  - type: input
+    id: comfyui-version
+    attributes:
+      label: ComfyUI version / ComfyUI 버전
+      description: Version, commit hash, or release date if available.
+      placeholder: "ComfyUI v0.xx.x / commit hash"
+    validations:
+      required: true
+
+  - type: textarea
+    id: comfyui-environment
+    attributes:
+      label: ComfyUI environment / ComfyUI 구축 환경
+      description: Describe how ComfyUI is installed and launched.
+      placeholder: |
+        - Install type: portable / manual git clone / Comfy CLI / Docker / other
+        - Manager install mode: release / nightly / git clone / not used
+        - Python executable: path to python used by ComfyUI, if known
+        - Launch command or batch file: if relevant
+        - GPU, CUDA, and torch versions: if relevant
+    validations:
+      required: true
+
+  - type: input
+    id: python-version
+    attributes:
+      label: Python version / Python 버전
+      placeholder: "Python 3.12.x"
+    validations:
+      required: false
+
+  - type: textarea
+    id: acceleration-dependencies
+    attributes:
+      label: SageAttention / Triton / torch dependency checks
+      description: Run these checks in the same Python environment used by ComfyUI. If not relevant, write "Not used".
+      placeholder: |
+        python -c "import sys; print(sys.executable); print(sys.version)"
+        python -c "import torch; print(torch.__version__); print(torch.version.cuda); print(torch.cuda.is_available())"
+        python -c "import triton; print(triton.__version__)"
+        python -c "import sageattention; print(getattr(sageattention, '__version__', 'installed'))"
+
+        Paste the output here. If Triton or SageAttention is not installed, paste the import error.
+    validations:
+      required: true
+
+  - type: dropdown
+    id: os
+    attributes:
+      label: Operating system / 운영체제
+      options:
+        - Windows
+        - Linux
+        - macOS
+        - Other
+    validations:
+      required: true
+
+  - type: dropdown
+    id: affected-area
+    attributes:
+      label: Affected area / 영향 영역
+      options:
+        - Prompt tools / 프롬프트 도구
+        - NAIA integration / NAIA 연동
+        - LoRA tools / LoRA 도구
+        - AiO workflow / AiO 워크플로우
+        - Detailer or SAM3 helpers / Detailer 또는 SAM3 헬퍼
+        - UI / frontend
+        - Documentation / 문서
+        - Other / 기타
+    validations:
+      required: true
+
+  - type: textarea
+    id: required-custom-nodes
+    attributes:
+      label: Related custom nodes / 관련 커스텀 노드
+      description: List other custom nodes used by the failing workflow, if any.
+      placeholder: "ComfyUI-Spectrum-KSampler, ComfyUI-Impact-Pack, ComfyUI-Image-Saver, etc."
+    validations:
+      required: false
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to reproduce / 재현 단계
+      description: Describe the exact steps needed to reproduce the issue.
+      placeholder: |
+        1. Load this workflow...
+        2. Add or configure this node...
+        3. Queue the prompt...
+        4. Error occurs...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior / 기대 동작
+      placeholder: "What did you expect to happen?"
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior / 실제 동작
+      placeholder: "What actually happened?"
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Error log / 오류 로그
+      description: Paste the relevant traceback, ComfyUI console log, or browser console error. Remove secrets and private paths.
+      placeholder: "Paste logs here, or write 'No error log' if none is available."
+      render: text
+    validations:
+      required: true
+
+  - type: textarea
+    id: workflow
+    attributes:
+      label: Workflow or screenshot / 워크플로우 또는 스크린샷
+      description: Attach a minimal workflow JSON, image with embedded workflow, or screenshots if possible.
+      placeholder: "Drag and drop files here, or explain why you cannot share them."
+    validations:
+      required: false
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional context / 추가 정보
+      placeholder: "Any other information that may help."
+    validations:
+      required: false
