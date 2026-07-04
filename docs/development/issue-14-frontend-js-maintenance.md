@@ -218,8 +218,12 @@ Agent-side runtime checks used the dedicated `ComfyUI_v0.24.0` instance on
 - Browser UI queue smoke ran the pasted feature-test workflow:
   prompt `9c3f2ad3-0f1d-4447-912a-64f8236c8abf`, status `success`,
   completed `true`, output nodes `3,4,5,6,7,8,9,10,11,12`.
+- Browser reload smoke after the loaded workflow kept one
+  `.easyuse-anima-advanced-editor`, six
+  `textarea[data-easyuse-anima-advanced-field-id]` controls, and two canvas
+  elements.
 - EasyUse/prompt_studio filtered browser console warnings/errors were empty
-  after load, export-dialog, and queue smoke checks.
+  after load, export-dialog, queue, and reload smoke checks.
 - The new ComfyUI graph menu opened the workflow export dialog and accepted its
   default filename. The in-app browser automation did not surface a download
   event, so file-download capture remains unconfirmed; no EasyUse or
@@ -833,17 +837,17 @@ Use this in Issue #14 or follow-up PR tracking comments.
 
 ```text
 ### Phase 1: Shared frontend API helper
-[ ] easyuse_anima_api.js added
-[ ] settings API calls centralized
-[ ] classify_prompt API calls centralized
-[ ] source guard tests added
+[x] easyuse_anima_api.js added
+[x] settings API calls centralized
+[x] classify_prompt API calls centralized
+[x] source guard tests added
 [ ] Phase 1 PR merged
 
 ### Phase 1.5: Runtime smoke
-[ ] hard refresh tested
-[ ] browser console clean
-[ ] existing workflow load tested
-[ ] queue tested
+[x] hard refresh tested
+[x] browser console clean
+[x] existing workflow load tested
+[x] queue tested
 [ ] API failure fallback tested
 
 ### Phase 2: Prompt Studio module split
@@ -903,7 +907,7 @@ Use this in Issue #14 or follow-up PR tracking comments.
 ### Close criteria
 [x] workflow compatibility verified
 [x] runtime smoke test passed
-[ ] docs linked from development README
+[x] docs linked from development README
 [x] no open Phase 2/3 blockers
 ```
 
