@@ -166,6 +166,7 @@ let popup = null;
 let activeState = null;
 let activeRefreshFrame = null;
 let middlePanForwardActive = false;
+const hookedAutocompleteInputs = new Set();
 window.__easyuseAnimaPendingAutocompleteInputs ||= [];
 
 function clamp(value, min, max) {
@@ -262,6 +263,7 @@ function setAutocompleteMode(value) {
     return;
   }
   autocompleteMode = nextMode;
+  syncAutocompleteInputFlags();
   if (!autocompleteEnabledForState(activeState)) {
     hidePopup();
   }
@@ -303,6 +305,24 @@ function autocompleteEnabledForState(state) {
   return !!state && autocompleteEnabledForScope(state.scope || "compatible");
 }
 
+function syncAutocompleteInputFlag(input, state = input?.__easyuseAnimaAutocompleteState) {
+  if (!input) {
+    return;
+  }
+  input.__easyuseAnimaAutocomplete = autocompleteEnabledForState(state);
+}
+
+function syncAutocompleteInputFlags() {
+  for (const input of [...hookedAutocompleteInputs]) {
+    const state = input?.__easyuseAnimaAutocompleteState;
+    if (!state) {
+      hookedAutocompleteInputs.delete(input);
+      continue;
+    }
+    syncAutocompleteInputFlag(input, state);
+  }
+}
+
 async function refreshAutocompleteSettings() {
   try {
     const response = await fetch("/easyuse_anima/settings");
@@ -341,6 +361,7 @@ function ensureStyle() {
       min-width: 280px;
       max-height: 280px;
       overflow: auto;
+      overflow-anchor: none;
       overscroll-behavior: contain;
       border: 1px solid rgba(128, 128, 128, 0.45);
       border-radius: 7px;
@@ -394,12 +415,21 @@ function ensurePopup() {
 
 function hidePopup() {
   const input = activeState?.input;
+  markAutocompleteInputInactive(input);
   if (popup) {
-    popup.classList.add("hidden");
     popup.replaceChildren();
+    resetAutocompleteMenuToTop(popup);
+    popup.classList.add("hidden");
   }
   clearAutocompletePreview(input);
   activeState = null;
+}
+
+function markAutocompleteInputInactive(input) {
+  const state = input?.__easyuseAnimaAutocompleteState;
+  if (state) {
+    state.lastAutocompleteSignature = "";
+  }
 }
 
 function hideTrainedTagTooltips() {
@@ -431,6 +461,9 @@ function inputTypeName(inputSpec) {
   if (Array.isArray(inputSpec)) {
     return String(inputSpec[0] || "");
   }
+  if (typeof inputSpec === "object" && inputSpec !== null) {
+    return String(inputSpec.widgetType || inputSpec.type || "");
+  }
   return String(inputSpec || "");
 }
 
@@ -438,15 +471,28 @@ function inputOptions(inputSpec) {
   if (Array.isArray(inputSpec) && typeof inputSpec[1] === "object" && inputSpec[1] !== null) {
     return inputSpec[1];
   }
+  if (typeof inputSpec === "object" && inputSpec !== null) {
+    return {
+      ...inputSpec,
+      ...(inputSpec.options || {}),
+    };
+  }
   return {};
 }
 
 function allInputSpecs(nodeData) {
-  const inputs = nodeData?.input || {};
   const specs = [];
+  const v2Inputs = nodeData?.inputs || {};
+  for (const [name, spec] of Object.entries(v2Inputs)) {
+    specs.push([name, spec]);
+  }
+  const inputs = nodeData?.input || {};
   for (const group of ["required", "optional"]) {
     const values = inputs[group] || {};
     for (const [name, spec] of Object.entries(values)) {
+      if (v2Inputs[name]) {
+        continue;
+      }
       specs.push([name, spec]);
     }
   }
@@ -479,13 +525,14 @@ function isPromptLikeWidgetName(name) {
 function isTargetStringInput(nodeData, name, inputSpec) {
   const type = inputTypeName(inputSpec);
   const options = inputOptions(inputSpec);
-  if (!type.split(",").map((item) => item.trim()).includes("STRING")) {
+  const typeNames = type.split(",").map((item) => item.trim().toUpperCase());
+  if (!typeNames.some((item) => item === "STRING" || item === "TEXTAREA")) {
     return false;
   }
   if (isExcludedInput(inputSpec)) {
     return false;
   }
-  if (options.multiline === true) {
+  if (typeNames.includes("TEXTAREA") || options.multiline === true) {
     return isGenericStringNode(nodeData) || isPromptLikeWidgetName(name);
   }
   return isGenericStringNode(nodeData) && isPromptLikeWidgetName(name);
@@ -523,9 +570,13 @@ function shouldSkipNode(node, nodeData) {
 }
 
 function findInputEl(widget) {
-  const input = widget?.inputEl;
+  const input = widget?.inputEl || widget?.element;
   if (input instanceof HTMLTextAreaElement || input instanceof HTMLInputElement) {
     return input;
+  }
+  const nested = input?.querySelector?.("textarea, input");
+  if (nested instanceof HTMLTextAreaElement || nested instanceof HTMLInputElement) {
+    return nested;
   }
   return null;
 }
@@ -602,7 +653,7 @@ function trimPromptSyntaxSuffix(value, start, end) {
       cursor -= 1;
     }
   }
-  if (value[cursor - 1] === ")") {
+  if (value[cursor - 1] === ")" && !isEscaped(value, cursor - 1)) {
     cursor -= 1;
     while (cursor > start && /[ \t]/.test(value[cursor - 1])) {
       cursor -= 1;
@@ -727,7 +778,7 @@ function autocompleteQuery(token, forceArtistOnly = false) {
   const raw = String(token.query || "");
   const parsed = parseAutocompleteText(raw);
   const artistOnly = forceArtistOnly || parsed.artistOnly;
-  const query = artistOnly ? parsed.query : raw.trim();
+  const query = parsed.query;
   const category = artistOnly ? "artist" : "";
   return { query, artistOnly, category };
 }
@@ -759,6 +810,20 @@ function autocompleteStateSignature(token, context, state) {
   });
 }
 
+function stripPromptSyntaxClosingParens(value) {
+  let cursor = String(value || "").length;
+  while (cursor > 0 && /[ \t]/.test(value[cursor - 1])) {
+    cursor -= 1;
+  }
+  while (cursor > 0 && value[cursor - 1] === ")" && !isEscaped(value, cursor - 1)) {
+    cursor -= 1;
+    while (cursor > 0 && /[ \t]/.test(value[cursor - 1])) {
+      cursor -= 1;
+    }
+  }
+  return value.slice(0, cursor);
+}
+
 function parseAutocompleteText(value) {
   let query = String(value || "").trim();
   query = query.replace(/^\[\[\s*/g, "");
@@ -766,9 +831,10 @@ function parseAutocompleteText(value) {
   const artistOnly = query.startsWith("@");
   if (artistOnly) {
     query = query.slice(1).trimStart();
-    query = query.replace(/:\s*[+-]?(?:\d+(?:\.\d*)?|\.\d+)\)?\s*$/, "");
-    query = query.replace(/\)+\s*$/, "");
   }
+  query = stripPromptSyntaxClosingParens(query);
+  query = query.replace(/:\s*[+-]?(?:\d+(?:\.\d*)?|\.\d+)\s*$/, "");
+  query = stripPromptSyntaxClosingParens(query);
   return { query, artistOnly };
 }
 
@@ -802,7 +868,7 @@ function strictAutocompleteResults(context, token, state, results) {
     const candidate = promptTagText(entry?.tag);
     const candidateKey = normalizePromptTagText(candidate).trim().toLocaleLowerCase();
     const descriptionKey = normalizePromptTagText(entry?.description || "").trim().toLocaleLowerCase();
-    return candidateKey.startsWith(query) || descriptionKey.includes(query);
+    return candidateKey.startsWith(query) || candidateKey.includes(query) || descriptionKey.includes(query);
   });
 }
 
@@ -1003,6 +1069,34 @@ function setActive(index) {
   });
   scrollActiveAutocompleteItemIntoView(menu, activeState.index);
   updateAutocompletePreview();
+}
+
+function resetAutocompleteMenuToTop(menu) {
+  if (!menu) {
+    return;
+  }
+  menu.scrollTop = 0;
+  menu.scrollLeft = 0;
+}
+
+function resetActiveAutocompleteMenu(menu) {
+  if (!activeState) {
+    return;
+  }
+  activeState.index = 0;
+  [...(menu?.children || [])].forEach((child, childIndex) => {
+    child.classList.toggle("active", childIndex === activeState.index);
+  });
+  resetAutocompleteMenuToTop(menu);
+}
+
+function resetVisibleAutocompleteMenuSoon(menu, input) {
+  resetAutocompleteMenuToTop(menu);
+  requestAnimationFrame(() => {
+    if (popup === menu && activeState?.input === input && !menu.classList.contains("hidden")) {
+      resetAutocompleteMenuToTop(menu);
+    }
+  });
 }
 
 function endsWithSentencePeriod(value) {
@@ -1213,10 +1307,7 @@ function commitSuggestion(state, entry, options = {}) {
   if (wildcardToken) {
     const replacement = `__${String(entry.tag || "").replace(/^__|__$/g, "")}__`;
     replaceInputRange(state.input, wildcardToken.start, wildcardToken.end, replacement, replacement.length);
-    if (state.widget) {
-      state.widget.value = state.input.value;
-      state.widget.callback?.(state.input.value);
-    }
+    syncWidgetValue(state);
     state.onCommit?.(state.input.value);
     if (options.suppressPopup) {
       suppressAutocompleteUntilInputChanges(state.input);
@@ -1235,10 +1326,7 @@ function commitSuggestion(state, entry, options = {}) {
     + insert.length
     + suffixPlan.caretExtra;
   replaceInputRange(state.input, token.start, token.end + suffixPlan.consumeAfter, replacement, caretOffset);
-  if (state.widget) {
-    state.widget.value = state.input.value;
-    state.widget.callback?.(state.input.value);
-  }
+  syncWidgetValue(state);
   state.onCommit?.(state.input.value);
   if (options.suppressPopup) {
     suppressAutocompleteUntilInputChanges(state.input);
@@ -1430,13 +1518,6 @@ function updateAutocompletePreview() {
   refreshAutocompleteHighlightPreview(input);
 }
 
-function syncWidgetValue(state) {
-  if (state?.widget) {
-    state.widget.value = state.input.value;
-    state.widget.callback?.(state.input.value);
-  }
-}
-
 function insertBracketPair(state, event, open, close, replacement = null, caretOffset = null) {
   if (!autocompletePreviewClosingBrackets || event.defaultPrevented || event.ctrlKey || event.metaKey || event.altKey) {
     return false;
@@ -1480,20 +1561,31 @@ function handleBracketPreviewKeydown(state, event) {
   return false;
 }
 
+function widgetValueSetterCallsCallback(widget) {
+  return !!widget?.element;
+}
+
+function syncWidgetValue(state) {
+  if (state?.widget) {
+    state.widget.value = state.input.value;
+    if (!widgetValueSetterCallsCallback(state.widget)) {
+      state.widget.callback?.(state.input.value);
+    }
+  }
+}
+
 function renderResults(state, results, signature = "") {
   const menu = ensurePopup();
+  resetAutocompleteMenuToTop(menu);
   if (activeState?.input && activeState.input !== state.input) {
     clearAutocompletePreview(activeState.input);
   }
-  const previousIndex = activeState?.input === state.input && activeState?.signature === signature
-    ? activeState.index
-    : 0;
   menu.replaceChildren();
   activeState = {
     ...state,
     results,
     signature,
-    index: results.length ? clamp(previousIndex, 0, results.length - 1) : 0,
+    index: 0,
   };
 
   if (!results.length) {
@@ -1537,10 +1629,13 @@ function renderResults(state, results, signature = "") {
     });
     menu.append(item);
   }
+  resetActiveAutocompleteMenu(menu);
 
   positionPopup(state.input);
   hideTrainedTagTooltips();
   menu.classList.remove("hidden");
+  resetActiveAutocompleteMenu(menu);
+  resetVisibleAutocompleteMenuSoon(menu, state.input);
   updateAutocompletePreview();
 }
 
@@ -1572,7 +1667,7 @@ function hookInput(input, options = {}) {
   if (!input) {
     return;
   }
-  if (input.__easyuseAnimaAutocomplete) {
+  if (input.__easyuseAnimaAutocompleteHooked) {
     const existing = input.__easyuseAnimaAutocompleteState;
     if (existing) {
       existing.node = options.node || existing.node || null;
@@ -1580,6 +1675,7 @@ function hookInput(input, options = {}) {
       existing.scope = autocompleteScope(options);
       existing.forceArtistOnly = !!options.forceArtistOnly;
       existing.onCommit = typeof options.onCommit === "function" ? options.onCommit : existing.onCommit;
+      syncAutocompleteInputFlag(input, existing);
     }
     return;
   }
@@ -1593,6 +1689,11 @@ function hookInput(input, options = {}) {
     scope: autocompleteScope(options),
     forceArtistOnly: !!options.forceArtistOnly,
     onCommit: typeof options.onCommit === "function" ? options.onCommit : null,
+    lastAutocompleteSignature: undefined,
+  };
+
+  const markAutocompleteInactive = () => {
+    state.lastAutocompleteSignature = "";
   };
 
   const updateNow = async () => {
@@ -1603,22 +1704,26 @@ function hookInput(input, options = {}) {
       return;
     }
     if (shouldSuppressAutocomplete(input)) {
+      markAutocompleteInactive();
       if (activeState?.input === input) {
         hidePopup();
       }
       return;
     }
     if (isCaretInComment(input.value || "", input.selectionStart ?? 0)) {
+      markAutocompleteInactive();
       hidePopup();
       return;
     }
     if (isCaretInPromptTranslationMarker(input)) {
+      markAutocompleteInactive();
       hidePopup();
       return;
     }
     const wildcardToken = currentWildcardToken(input);
     const token = wildcardToken || currentToken(input);
     if (!token?.active) {
+      markAutocompleteInactive();
       hidePopup();
       return;
     }
@@ -1626,11 +1731,17 @@ function hookInput(input, options = {}) {
       ? wildcardAutocompleteQuery(wildcardToken)
       : autocompleteQuery(token, state.forceArtistOnly);
     if (context.kind !== "wildcard" && context.query.length < MIN_QUERY_LENGTH) {
+      markAutocompleteInactive();
       hidePopup();
       return;
     }
     const signature = autocompleteStateSignature(token, context, state);
+    const previousSignature = state.lastAutocompleteSignature;
+    state.lastAutocompleteSignature = signature;
     if (activeState?.input === input && activeState.signature === signature) {
+      if (previousSignature !== undefined && previousSignature !== signature) {
+        resetActiveAutocompleteMenu(ensurePopup());
+      }
       positionPopup(input);
       updateAutocompletePreview();
       return;
@@ -1743,8 +1854,10 @@ function hookInput(input, options = {}) {
     }
   });
 
-  input.__easyuseAnimaAutocomplete = true;
+  input.__easyuseAnimaAutocompleteHooked = true;
   input.__easyuseAnimaAutocompleteState = state;
+  hookedAutocompleteInputs.add(input);
+  syncAutocompleteInputFlag(input, state);
 }
 
 function hookWidget(node, widget, scope = "compatible") {
@@ -1754,6 +1867,81 @@ function hookWidget(node, widget, scope = "compatible") {
     widget,
     scope,
     forceArtistOnly: !!node.__easyuseAnimaArtistOnlyWidgets?.has(widget.name),
+  });
+}
+
+function autocompleteGraphNodes() {
+  const graph = app?.canvas?.graph || app?.graph || app?.rootGraph;
+  return Array.isArray(graph?.nodes) ? graph.nodes.filter(Boolean) : [];
+}
+
+function findGraphNodeById(id) {
+  if (id == null || id === "") {
+    return null;
+  }
+  const graph = app?.canvas?.graph || app?.graph || app?.rootGraph;
+  const normalized = String(id);
+  return graph?.getNodeById?.(id)
+    || graph?.getNodeById?.(Number(id))
+    || autocompleteGraphNodes().find((node) => String(node?.id) === normalized)
+    || null;
+}
+
+function nodeFromDomElement(element) {
+  if (!(element instanceof Element)) {
+    return null;
+  }
+  const root = element.closest?.("[data-node-id], .lg-node");
+  const id = root?.getAttribute?.("data-node-id")
+    || root?.dataset?.nodeId
+    || root?.id?.match?.(/\d+/)?.[0];
+  return findGraphNodeById(id);
+}
+
+function isAutocompleteDomInput(input) {
+  if (input instanceof HTMLTextAreaElement) {
+    return !input.disabled && !input.readOnly;
+  }
+  if (!(input instanceof HTMLInputElement) || input.disabled || input.readOnly) {
+    return false;
+  }
+  const type = String(input.type || "text").toLocaleLowerCase();
+  return ["", "text", "search"].includes(type);
+}
+
+function widgetForDomInput(node, input) {
+  for (const widget of node?.widgets || []) {
+    const widgetInput = findInputEl(widget);
+    if (widgetInput === input || widget?.element?.contains?.(input)) {
+      return widget;
+    }
+  }
+  return null;
+}
+
+function hookFocusedDomInput(input) {
+  if (!isAutocompleteDomInput(input) || popup?.contains(input)) {
+    return;
+  }
+  const node = nodeFromDomElement(input);
+  if (!node) {
+    return;
+  }
+  const nodeData = node?.constructor?.nodeData || null;
+  const targets = nodeData ? targetWidgets(nodeData) : null;
+  if (nodeData && (!targets || (!hasExplicitTargets(nodeData) && shouldSkipNode(node, nodeData)))) {
+    return;
+  }
+  const widget = widgetForDomInput(node, input);
+  if (targets && widget?.name && !targets.has(widget.name)) {
+    return;
+  }
+  const scope = nodeData && hasExplicitTargets(nodeData) ? "easyuse" : autocompleteScope({ node });
+  hookInput(input, {
+    node,
+    widget,
+    scope,
+    forceArtistOnly: !!(widget?.name && node?.__easyuseAnimaArtistOnlyWidgets?.has(widget.name)),
   });
 }
 
@@ -1767,6 +1955,10 @@ function installExternalInputHook() {
   for (const item of pending) {
     hookInput(item?.input, item?.options || {});
   }
+  document.addEventListener("focusin", (event) => {
+    hookFocusedDomInput(event.target);
+  }, true);
+  hookFocusedDomInput(document.activeElement);
 }
 
 function hookNode(node, nodeData, attempt = 0) {
@@ -1802,6 +1994,20 @@ document.addEventListener("wheel", (event) => {
   }
   scheduleActiveRefresh();
 }, true);
+function handleOutsideAutocompletePointer(event) {
+  if (!activeState || popup?.contains(event.target)) {
+    return;
+  }
+  const input = activeState.input;
+  if (event.target === input || input?.contains?.(event.target)) {
+    return;
+  }
+  markAutocompleteInputInactive(input);
+  hidePopup();
+}
+
+document.addEventListener("pointerdown", handleOutsideAutocompletePointer, true);
+document.addEventListener("mousedown", handleOutsideAutocompletePointer, true);
 document.addEventListener("selectionchange", scheduleActiveRefresh);
 window.addEventListener("resize", scheduleActiveRefresh);
 window.addEventListener("easyuse-anima-settings-updated", (event) => {
