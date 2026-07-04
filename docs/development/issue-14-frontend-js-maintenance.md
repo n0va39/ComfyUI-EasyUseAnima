@@ -599,6 +599,9 @@ Current status:
 - 2026-07-05: typecheck coverage expanded to `advanced_values.js`,
   `style.js`, `widgets.js`, `layout.js`, `fields.js`, and
   `serialization.js`.
+- 2026-07-05: typecheck coverage expanded to
+  `advanced_layout_controller.js`, `dom.js`, `node_hooks.js`, `settings.js`,
+  `textarea.js`, `wheel.js`, and `wildcard_values.js`.
 - Full Prompt Studio module type coverage remains a later Phase 3 step.
 
 ## Phase 4: Vite/TypeScript Decision
