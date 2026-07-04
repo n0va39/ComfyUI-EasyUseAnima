@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Documentation / 문서
+    url: https://github.com/n0va39/ComfyUI-EasyUseAnima
+    about: Check the README and documentation before opening an issue.
+  - name: Security vulnerability / 보안 취약점
+    url: https://github.com/n0va39/ComfyUI-EasyUseAnima/security/policy
+    about: Do not post public exploit details. Follow the Security Policy.

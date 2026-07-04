@@ -1,0 +1,79 @@
+name: Feature request / 기능 요청
+description: Suggest an improvement or new feature for EasyUse Anima.
+title: "[Feature]: "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for suggesting a feature. Please explain the use case clearly.
+
+        한국어가 더 편하다면 한국어로 작성해도 됩니다.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem or use case / 문제 또는 사용 사례
+      description: What workflow problem does this feature solve?
+      placeholder: "I want to..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution / 제안하는 해결 방식
+      description: Describe the feature or behavior you want.
+      placeholder: "Add an option to..."
+    validations:
+      required: true
+
+  - type: dropdown
+    id: affected-area
+    attributes:
+      label: Related area / 관련 영역
+      options:
+        - Prompt tools / 프롬프트 도구
+        - NAIA integration / NAIA 연동
+        - LoRA tools / LoRA 도구
+        - AiO workflow / AiO 워크플로우
+        - Detailer or SAM3 helpers / Detailer 또는 SAM3 헬퍼
+        - UI / frontend
+        - Documentation / 문서
+        - Other / 기타
+    validations:
+      required: true
+
+  - type: textarea
+    id: compatibility
+    attributes:
+      label: Compatibility notes / 호환성 메모
+      description: Could this affect existing workflows, saved image metadata, node inputs, outputs, or settings?
+      placeholder: "This should not affect existing workflows / This may change..."
+    validations:
+      required: false
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered / 고려한 대안
+      description: Is there an existing workaround?
+      placeholder: "Currently I use..."
+    validations:
+      required: false
+
+  - type: textarea
+    id: examples
+    attributes:
+      label: Examples or references / 예시 또는 참고 자료
+      description: Add screenshots, workflow examples, links, or references if helpful.
+    validations:
+      required: false
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional context / 추가 정보
+      placeholder: "Any other information that may help."
+    validations:
+      required: false
