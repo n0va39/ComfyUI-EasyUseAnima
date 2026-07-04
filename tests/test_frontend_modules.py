@@ -62,10 +62,14 @@ class FrontendModuleStructureTests(unittest.TestCase):
         studio_node_ui_source = (
             PROMPT_STUDIO_MODULES / "studio_node_ui.js"
         ).read_text(encoding="utf-8")
+        advanced_node_ui_source = (
+            PROMPT_STUDIO_MODULES / "advanced_node_ui.js"
+        ).read_text(encoding="utf-8")
 
         self.assertIn('./prompt_studio/constants.js"', source)
-        self.assertIn('./prompt_studio/advanced_controls.js"', source)
-        self.assertIn('./prompt_studio/advanced_fields_ui.js"', source)
+        self.assertIn('./advanced_controls.js"', advanced_node_ui_source)
+        self.assertIn('./prompt_studio/advanced_node_ui.js"', source)
+        self.assertIn('./advanced_fields_ui.js"', advanced_node_ui_source)
         self.assertIn('./prompt_studio/advanced_fields_state.js"', source)
         self.assertIn('./prompt_studio/advanced_values.js"', source)
         self.assertIn('./utils.js"', studio_node_ui_source)
@@ -83,7 +87,7 @@ class FrontendModuleStructureTests(unittest.TestCase):
         self.assertIn('./prompt_studio/legend.js"', source)
         self.assertIn('./prompt_studio/node_hooks.js"', source)
         self.assertIn('./prompt_studio/settings.js"', source)
-        self.assertIn('./prompt_studio/style.js"', source)
+        self.assertIn('./style.js"', advanced_node_ui_source)
         self.assertIn('./text.js"', studio_node_ui_source)
         self.assertIn('./prompt_studio/tooltip.js"', source)
         self.assertIn('./prompt_studio/widgets.js"', source)
@@ -95,7 +99,7 @@ class FrontendModuleStructureTests(unittest.TestCase):
         self.assertIn('./prompt_studio/studio_values.js"', source)
         self.assertIn('./prompt_studio/wildcard_values.js"', source)
         self.assertIn('./textarea.js"', advanced_fields_ui_source)
-        self.assertIn('./prompt_studio/wheel.js"', source)
+        self.assertIn('./wheel.js"', advanced_node_ui_source)
         self.assertIn('./prompt_studio/serialization.js"', source)
 
     def test_prompt_studio_phase_2_modules_export_expected_symbols(self):
@@ -173,6 +177,9 @@ class FrontendModuleStructureTests(unittest.TestCase):
         )
         advanced_layout_controller_source = (
             PROMPT_STUDIO_MODULES / "advanced_layout_controller.js"
+        ).read_text(encoding="utf-8")
+        advanced_node_ui_source = (
+            PROMPT_STUDIO_MODULES / "advanced_node_ui.js"
         ).read_text(encoding="utf-8")
         advanced_highlights_source = (
             PROMPT_STUDIO_MODULES / "advanced_highlights.js"
@@ -450,6 +457,14 @@ class FrontendModuleStructureTests(unittest.TestCase):
                 self.assertIn(f"  {name},", advanced_layout_controller_source)
 
         for name in (
+            "hookAdvancedNode",
+            "renderAdvancedEditor",
+            "scheduleHookAdvancedNode",
+        ):
+            with self.subTest(module="advanced_node_ui", symbol=name):
+                self.assertIn(f"  {name},", advanced_node_ui_source)
+
+        for name in (
             "advancedHighlightState",
             "refreshAdvancedHighlights",
             "registerAdvancedAutocompleteInput",
@@ -585,6 +600,7 @@ class FrontendModuleStructureTests(unittest.TestCase):
             "advanced_fields_ui.js",
             "advanced_highlights.js",
             "advanced_layout_controller.js",
+            "advanced_node_ui.js",
             "canvas_forwarding.js",
             "dom.js",
             "extend_slot_controls.js",

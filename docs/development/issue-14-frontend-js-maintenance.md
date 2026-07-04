@@ -212,6 +212,7 @@ web/js/
   prompt_studio/
     constants.js
     advanced_controls.js
+    advanced_node_ui.js
     advanced_fields_ui.js
     advanced_highlights.js
     advanced_fields_state.js
@@ -751,6 +752,7 @@ Use this in Issue #14 or follow-up PR tracking comments.
 ### Phase 2: Prompt Studio module split
 [ ] constants.js extracted
 [ ] advanced_controls.js extracted
+[ ] advanced_node_ui.js extracted
 [ ] advanced_fields_ui.js extracted
 [ ] advanced_highlights.js extracted
 [ ] advanced_fields_state.js extracted
