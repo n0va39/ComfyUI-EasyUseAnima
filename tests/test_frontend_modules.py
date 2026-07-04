@@ -86,6 +86,7 @@ class FrontendModuleStructureTests(unittest.TestCase):
         self.assertIn('./prompt_studio/advanced_layout_controller.js"', source)
         self.assertIn('./prompt_studio/studio_textareas.js"', source)
         self.assertIn('./prompt_studio/studio_values.js"', source)
+        self.assertIn('./prompt_studio/wildcard_values.js"', source)
         self.assertIn('./textarea.js"', advanced_fields_ui_source)
         self.assertIn('./prompt_studio/wheel.js"', source)
         self.assertIn('./prompt_studio/serialization.js"', source)
@@ -168,6 +169,9 @@ class FrontendModuleStructureTests(unittest.TestCase):
         ).read_text(encoding="utf-8")
         studio_values_source = (
             PROMPT_STUDIO_MODULES / "studio_values.js"
+        ).read_text(encoding="utf-8")
+        wildcard_values_source = (
+            PROMPT_STUDIO_MODULES / "wildcard_values.js"
         ).read_text(encoding="utf-8")
         textarea_source = (PROMPT_STUDIO_MODULES / "textarea.js").read_text(
             encoding="utf-8"
@@ -446,6 +450,13 @@ class FrontendModuleStructureTests(unittest.TestCase):
                 self.assertIn(f"  {name},", studio_values_source)
 
         for name in (
+            "applyWildcardExecutedInputs",
+            "setRegularWidgetValue",
+        ):
+            with self.subTest(module="wildcard_values", symbol=name):
+                self.assertIn(f"  {name},", wildcard_values_source)
+
+        for name in (
             "advancedFieldTextareaPlaceholder",
             "advancedFieldTextareaTitle",
             "captureAdvancedTextareaManualResize",
@@ -502,6 +513,7 @@ class FrontendModuleStructureTests(unittest.TestCase):
             "layout.js",
             "studio_textareas.js",
             "studio_values.js",
+            "wildcard_values.js",
             "textarea.js",
             "wheel.js",
             "serialization.js",

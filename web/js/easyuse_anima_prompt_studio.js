@@ -98,7 +98,6 @@ import {
 import {
   findInputEl,
   findWidget,
-  firstValue,
   isWidgetInputLinked,
 } from "./prompt_studio/widgets.js";
 import {
@@ -134,6 +133,9 @@ import {
   applyAdvancedExecutedInputs as applyAdvancedExecutedInputsWithHooks,
   syncAdvancedValues as syncAdvancedValuesWithHooks,
 } from "./prompt_studio/advanced_values.js";
+import {
+  applyWildcardExecutedInputs as applyWildcardExecutedInputsWithHooks,
+} from "./prompt_studio/wildcard_values.js";
 import {
   captureAdvancedConfigure,
   ensureAdvancedWidgetValue,
@@ -182,6 +184,10 @@ function syncAdvancedValues(node, serialized = null) {
 
 function applyAdvancedExecutedInputs(node, message) {
   applyAdvancedExecutedInputsWithHooks(node, message, advancedValuesHooks());
+}
+
+function applyWildcardExecutedInputs(node, message) {
+  applyWildcardExecutedInputsWithHooks(node, message, { markNodeDirty });
 }
 
 function refreshNodeSize(node, options = {}) {
@@ -819,38 +825,6 @@ function scheduleHookAdvancedNode(node) {
     node.__easyuseAnimaAdvancedHookScheduled = false;
     hookAdvancedNode(node);
   });
-}
-
-function setRegularWidgetValue(node, name, value) {
-  const widget = findWidget(node, name);
-  if (!widget) {
-    return false;
-  }
-  widget.value = value;
-  const input = findInputEl(widget);
-  if (input) {
-    input.value = String(value ?? "");
-  }
-  widget.callback?.(widget.value);
-  node.setDirtyCanvas?.(true, true);
-  app.graph?.setDirtyCanvas?.(true, true);
-  return true;
-}
-
-function applyWildcardExecutedInputs(node, message) {
-  const payload = firstValue(message?.wildcard, null);
-  if (!payload || typeof payload !== "object") {
-    return;
-  }
-  if (payload.populated_text != null) {
-    setRegularWidgetValue(node, "populated_text", String(payload.populated_text));
-  }
-  if (payload.mode != null) {
-    setRegularWidgetValue(node, "mode", String(payload.mode));
-  }
-  if (payload.seed != null) {
-    setRegularWidgetValue(node, "seed", Number(payload.seed));
-  }
 }
 
 const syncAllAdvancedNodes = () => syncAdvancedNodes(app, syncAdvancedValues);
