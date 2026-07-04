@@ -56,6 +56,9 @@ class FrontendModuleStructureTests(unittest.TestCase):
 
     def test_prompt_studio_entry_imports_phase_2_modules(self):
         source = PROMPT_STUDIO_JS.read_text(encoding="utf-8")
+        extension_runtime_source = (
+            PROMPT_STUDIO_MODULES / "extension_runtime.js"
+        ).read_text(encoding="utf-8")
         advanced_fields_ui_source = (
             PROMPT_STUDIO_MODULES / "advanced_fields_ui.js"
         ).read_text(encoding="utf-8")
@@ -66,42 +69,41 @@ class FrontendModuleStructureTests(unittest.TestCase):
             PROMPT_STUDIO_MODULES / "advanced_node_ui.js"
         ).read_text(encoding="utf-8")
 
-        self.assertIn('./prompt_studio/constants.js"', source)
+        self.assertIn("app.registerExtension", source)
+        self.assertIn('./prompt_studio/extension_runtime.js"', source)
+        self.assertIn("./constants.js", extension_runtime_source)
         self.assertIn('./advanced_controls.js"', advanced_node_ui_source)
-        self.assertIn('./prompt_studio/advanced_node_ui.js"', source)
+        self.assertIn("./advanced_node_ui.js", extension_runtime_source)
         self.assertIn('./advanced_fields_ui.js"', advanced_node_ui_source)
-        self.assertIn('./prompt_studio/advanced_fields_state.js"', source)
-        self.assertIn('./prompt_studio/advanced_values.js"', source)
+        self.assertIn("./advanced_fields_state.js", extension_runtime_source)
+        self.assertIn("./advanced_values.js", extension_runtime_source)
         self.assertIn('./utils.js"', studio_node_ui_source)
-        self.assertIn('./prompt_studio/schema.js"', source)
-        self.assertIn('./prompt_studio/state.js"', source)
-        self.assertIn('./prompt_studio/canvas_forwarding.js"', source)
-        self.assertIn('./prompt_studio/dom.js"', source)
-        self.assertIn('./prompt_studio/extend_slot_controls.js"', source)
-        self.assertIn('./prompt_studio/extend_slots.js"', source)
-        self.assertIn('./prompt_studio/extend_layout.js"', source)
+        self.assertIn("./canvas_forwarding.js", extension_runtime_source)
+        self.assertIn("./extend_slot_controls.js", extension_runtime_source)
+        self.assertIn("./extend_slots.js", extension_runtime_source)
+        self.assertIn("./extend_layout.js", extension_runtime_source)
         self.assertIn('./fields.js"', advanced_fields_ui_source)
-        self.assertIn('./prompt_studio/advanced_highlights.js"', source)
-        self.assertIn('./prompt_studio/highlight.js"', source)
-        self.assertIn('./prompt_studio/highlight_ui.js"', source)
-        self.assertIn('./prompt_studio/legend.js"', source)
-        self.assertIn('./prompt_studio/node_hooks.js"', source)
-        self.assertIn('./prompt_studio/settings.js"', source)
+        self.assertIn("./advanced_highlights.js", extension_runtime_source)
+        self.assertIn("./highlight.js", extension_runtime_source)
+        self.assertIn("./highlight_ui.js", extension_runtime_source)
+        self.assertIn("./legend.js", extension_runtime_source)
+        self.assertIn("./node_hooks.js", extension_runtime_source)
+        self.assertIn("./settings.js", extension_runtime_source)
         self.assertIn('./style.js"', advanced_node_ui_source)
         self.assertIn('./text.js"', studio_node_ui_source)
-        self.assertIn('./prompt_studio/tooltip.js"', source)
-        self.assertIn('./prompt_studio/widgets.js"', source)
-        self.assertIn('./prompt_studio/layout.js"', source)
-        self.assertIn('./prompt_studio/advanced_layout_controller.js"', source)
-        self.assertIn('./prompt_studio/studio_resizable_input.js"', source)
-        self.assertIn('./prompt_studio/studio_textareas.js"', source)
-        self.assertIn('./prompt_studio/studio_node_ui.js"', source)
-        self.assertIn('./prompt_studio/studio_values.js"', source)
-        self.assertIn('./prompt_studio/wildcard_values.js"', source)
+        self.assertIn("./tooltip.js", extension_runtime_source)
+        self.assertIn("./widgets.js", extension_runtime_source)
+        self.assertIn("./layout.js", extension_runtime_source)
+        self.assertIn("./advanced_layout_controller.js", extension_runtime_source)
+        self.assertIn("./studio_resizable_input.js", extension_runtime_source)
+        self.assertIn("./studio_textareas.js", extension_runtime_source)
+        self.assertIn("./studio_node_ui.js", extension_runtime_source)
+        self.assertIn("./studio_values.js", extension_runtime_source)
+        self.assertIn("./wildcard_values.js", extension_runtime_source)
         self.assertIn('./textarea.js"', advanced_fields_ui_source)
         self.assertIn('./wheel.js"', advanced_node_ui_source)
-        self.assertIn('./prompt_studio/serialization.js"', source)
-        self.assertIn('./prompt_studio/runtime_canvas.js"', source)
+        self.assertIn("./serialization.js", extension_runtime_source)
+        self.assertIn("./runtime_canvas.js", extension_runtime_source)
 
     def test_prompt_studio_phase_2_modules_export_expected_symbols(self):
         advanced_controls_source = (
@@ -211,6 +213,9 @@ class FrontendModuleStructureTests(unittest.TestCase):
         ).read_text(encoding="utf-8")
         runtime_canvas_source = (
             PROMPT_STUDIO_MODULES / "runtime_canvas.js"
+        ).read_text(encoding="utf-8")
+        extension_runtime_source = (
+            PROMPT_STUDIO_MODULES / "extension_runtime.js"
         ).read_text(encoding="utf-8")
 
         for name in (
@@ -572,6 +577,12 @@ class FrontendModuleStructureTests(unittest.TestCase):
             with self.subTest(module="runtime_canvas", symbol=name):
                 self.assertIn(f"  {name},", runtime_canvas_source)
 
+        for name in (
+            "createPromptStudioExtensionRuntime",
+        ):
+            with self.subTest(module="extension_runtime", symbol=name):
+                self.assertIn(f"  {name},", extension_runtime_source)
+
     def test_prompt_studio_phase_2_modules_have_no_runtime_side_effects(self):
         for filename in (
             "constants.js",
@@ -617,6 +628,7 @@ class FrontendModuleStructureTests(unittest.TestCase):
             "advanced_node_ui.js",
             "canvas_forwarding.js",
             "dom.js",
+            "extension_runtime.js",
             "extend_slot_controls.js",
             "settings.js",
             "style.js",

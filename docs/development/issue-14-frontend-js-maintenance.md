@@ -227,6 +227,7 @@ web/js/
     canvas_forwarding.js
     serialization.js
     runtime_canvas.js
+    extension_runtime.js
     layout.js
     advanced_layout_controller.js
     studio_textareas.js
@@ -768,6 +769,7 @@ Use this in Issue #14 or follow-up PR tracking comments.
 [ ] canvas_forwarding.js extracted
 [ ] serialization.js extracted
 [ ] runtime_canvas.js extracted
+[ ] extension_runtime.js extracted
 [ ] layout.js extracted
 [ ] advanced_layout_controller.js extracted
 [ ] studio_textareas.js extracted
@@ -787,7 +789,7 @@ Use this in Issue #14 or follow-up PR tracking comments.
 [ ] legend.js extracted
 [ ] fields.js extracted
 [ ] node_hooks.js extracted
-[ ] entry file slimmed down
+[x] entry file slimmed down
 
 ### Phase 3: JS type checking
 [ ] // @ts-check added to new modules
