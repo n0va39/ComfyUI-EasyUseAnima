@@ -577,8 +577,8 @@ Catch JS shape errors without changing runtime output or adding a build system.
 
 ### Current Typecheck Slice
 
-Phase 3 starts with a no-build typecheck pilot for `types.js` and
-`runtime_canvas.js`. The command is:
+Phase 3 starts with a no-build typecheck pilot for low-risk Prompt Studio
+modules. The command is:
 
 ```powershell
 $env:npm_config_cache = "D:\ComfyUI\.codex_cache\npm"
@@ -594,6 +594,8 @@ Current status:
 
 - 2026-07-05: `types.js` and `runtime_canvas.js` pass the documented
   typecheck command.
+- 2026-07-05: typecheck coverage expanded to `constants.js`, `utils.js`,
+  `schema.js`, and `state.js`.
 - Full Prompt Studio module type coverage remains a later Phase 3 step.
 
 ## Phase 4: Vite/TypeScript Decision

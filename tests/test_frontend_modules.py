@@ -1,10 +1,12 @@
 from __future__ import annotations
 
+import json
 import unittest
 from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
+JSCONFIG = ROOT / "jsconfig.json"
 WEB_JS = ROOT / "web" / "js"
 API_JS = WEB_JS / "easyuse_anima_api.js"
 PROMPT_STUDIO_JS = WEB_JS / "easyuse_anima_prompt_studio.js"
@@ -603,6 +605,24 @@ class FrontendModuleStructureTests(unittest.TestCase):
         ):
             with self.subTest(typedef=name):
                 self.assertIn(f" {name}", types_source)
+
+    def test_prompt_studio_typecheck_config_tracks_current_slice(self):
+        config = json.loads(JSCONFIG.read_text(encoding="utf-8"))
+
+        self.assertTrue(config["compilerOptions"]["allowJs"])
+        self.assertTrue(config["compilerOptions"]["checkJs"])
+        self.assertTrue(config["compilerOptions"]["noEmit"])
+
+        for path in (
+            "web/js/prompt_studio/constants.js",
+            "web/js/prompt_studio/schema.js",
+            "web/js/prompt_studio/state.js",
+            "web/js/prompt_studio/types.js",
+            "web/js/prompt_studio/utils.js",
+            "web/js/prompt_studio/runtime_canvas.js",
+        ):
+            with self.subTest(path=path):
+                self.assertIn(path, config["include"])
 
     def test_prompt_studio_split_modules_start_with_ts_check(self):
         for path in sorted(PROMPT_STUDIO_MODULES.glob("*.js")):

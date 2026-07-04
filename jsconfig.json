@@ -11,7 +11,11 @@
     "strict": false
   },
   "include": [
+    "web/js/prompt_studio/constants.js",
+    "web/js/prompt_studio/schema.js",
+    "web/js/prompt_studio/state.js",
     "web/js/prompt_studio/types.js",
+    "web/js/prompt_studio/utils.js",
     "web/js/prompt_studio/runtime_canvas.js"
   ]
 }
