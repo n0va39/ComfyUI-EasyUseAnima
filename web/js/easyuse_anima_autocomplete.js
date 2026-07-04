@@ -86,6 +86,9 @@ const AUTOCOMPLETE_TEXT = {
   en: {
     "category.tag": "tag",
     "category.quality": "quality",
+    "category.safety": "rating",
+    "category.year": "year",
+    "category.count": "count",
     "category.artist": "artist",
     "category.character": "character",
     "category.copyright": "copyright",
@@ -96,6 +99,9 @@ const AUTOCOMPLETE_TEXT = {
   ko: {
     "category.tag": "태그",
     "category.quality": "품질",
+    "category.safety": "등급",
+    "category.year": "연도",
+    "category.count": "인원수",
     "category.artist": "작가",
     "category.character": "캐릭터",
     "category.copyright": "작품",
@@ -106,6 +112,9 @@ const AUTOCOMPLETE_TEXT = {
   ja: {
     "category.tag": "タグ",
     "category.quality": "品質",
+    "category.safety": "レーティング",
+    "category.year": "年代",
+    "category.count": "人数",
     "category.artist": "作者",
     "category.character": "キャラクター",
     "category.copyright": "作品",
@@ -116,6 +125,9 @@ const AUTOCOMPLETE_TEXT = {
   zh: {
     "category.tag": "标签",
     "category.quality": "质量",
+    "category.safety": "分级",
+    "category.year": "年份",
+    "category.count": "人数",
     "category.artist": "作者",
     "category.character": "角色",
     "category.copyright": "作品",
@@ -227,6 +239,21 @@ function autocompleteCategoryLabel(category) {
   }
   const key = raw.toLocaleLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "");
   return autocompleteText(`category.${key}`) || raw;
+}
+
+function autocompleteEntryMetaText(entry) {
+  const count = Number(entry?.count || 0).toLocaleString();
+  return entry?.kind === "wildcard"
+    ? autocompleteCategoryLabel(entry?.category)
+    : `${autocompleteCategoryLabel(entry?.category)} · ${count}`;
+}
+
+function autocompleteEntryTooltip(entry) {
+  return {
+    tag: displayTagText(entry?.tag || ""),
+    meta: autocompleteEntryMetaText(entry || {}),
+    description: String(entry?.description || ""),
+  };
 }
 
 function setAutocompleteMode(value) {
@@ -373,6 +400,12 @@ function hidePopup() {
   }
   clearAutocompletePreview(input);
   activeState = null;
+}
+
+function hideTrainedTagTooltips() {
+  for (const tooltip of document.querySelectorAll(".easyuse-anima-trained-tag-tooltip")) {
+    tooltip.classList.add("hidden");
+  }
 }
 
 function refreshActiveAutocomplete() {
@@ -1047,6 +1080,36 @@ function replaceInputRange(input, start, end, replacement, caretOffset) {
   input.setSelectionRange(caret, caret);
 }
 
+function suppressAutocompleteUntilInputChanges(input) {
+  if (!input) {
+    return;
+  }
+  const start = input.selectionStart ?? 0;
+  input.__easyuseAnimaSuppressAutocomplete = {
+    value: input.value || "",
+    selectionStart: start,
+    selectionEnd: input.selectionEnd ?? start,
+  };
+}
+
+function shouldSuppressAutocomplete(input) {
+  const suppression = input?.__easyuseAnimaSuppressAutocomplete;
+  if (!suppression) {
+    return false;
+  }
+  const start = input.selectionStart ?? 0;
+  const end = input.selectionEnd ?? start;
+  if (
+    suppression.value === (input.value || "")
+    && suppression.selectionStart === start
+    && suppression.selectionEnd === end
+  ) {
+    return true;
+  }
+  input.__easyuseAnimaSuppressAutocomplete = null;
+  return false;
+}
+
 function dispatchAutocompleteCanvasPointerEvent(type, sourceEvent, overrides = {}) {
   const canvas = app.canvas?.canvas;
   if (!canvas || typeof PointerEvent === "undefined") {
@@ -1144,7 +1207,7 @@ function forwardMiddlePanFromAutocompleteInput(event) {
   return true;
 }
 
-function commitSuggestion(state, entry) {
+function commitSuggestion(state, entry, options = {}) {
   const token = currentToken(state.input);
   const wildcardToken = entry?.kind === "wildcard" ? currentWildcardToken(state.input) : null;
   if (wildcardToken) {
@@ -1155,6 +1218,9 @@ function commitSuggestion(state, entry) {
       state.widget.callback?.(state.input.value);
     }
     state.onCommit?.(state.input.value);
+    if (options.suppressPopup) {
+      suppressAutocompleteUntilInputChanges(state.input);
+    }
     hidePopup();
     return;
   }
@@ -1174,6 +1240,9 @@ function commitSuggestion(state, entry) {
     state.widget.callback?.(state.input.value);
   }
   state.onCommit?.(state.input.value);
+  if (options.suppressPopup) {
+    suppressAutocompleteUntilInputChanges(state.input);
+  }
   hidePopup();
 }
 
@@ -1446,10 +1515,7 @@ function renderResults(state, results, signature = "") {
 
     const meta = document.createElement("span");
     meta.className = "easyuse-anima-autocomplete-meta";
-    const count = Number(entry.count || 0).toLocaleString();
-    meta.textContent = entry.kind === "wildcard"
-      ? autocompleteCategoryLabel(entry.category)
-      : `${autocompleteCategoryLabel(entry.category)} · ${count}`;
+    meta.textContent = autocompleteEntryMetaText(entry);
     top.append(tag, meta);
     item.append(top);
 
@@ -1465,12 +1531,15 @@ function renderResults(state, results, signature = "") {
         return;
       }
       event.preventDefault();
-      commitSuggestion(activeState, entry);
+      commitSuggestion(activeState, entry, {
+        suppressPopup: true,
+      });
     });
     menu.append(item);
   }
 
   positionPopup(state.input);
+  hideTrainedTagTooltips();
   menu.classList.remove("hidden");
   updateAutocompletePreview();
 }
@@ -1533,6 +1602,12 @@ function hookInput(input, options = {}) {
       }
       return;
     }
+    if (shouldSuppressAutocomplete(input)) {
+      if (activeState?.input === input) {
+        hidePopup();
+      }
+      return;
+    }
     if (isCaretInComment(input.value || "", input.selectionStart ?? 0)) {
       hidePopup();
       return;
@@ -1565,7 +1640,7 @@ function hookInput(input, options = {}) {
       const results = context.kind === "wildcard"
         ? await searchWildcards(context.query)
         : await search(context.query, context.category);
-      if (document.activeElement === input && seq === updateSeq) {
+      if (document.activeElement === input && seq === updateSeq && !shouldSuppressAutocomplete(input)) {
         renderResults(state, strictAutocompleteResults(context, token, state, results), signature);
       }
     } catch {
@@ -1659,7 +1734,9 @@ function hookInput(input, options = {}) {
       || (event.key === "Enter" && autocompleteCommitKey === "enter")
     ) {
       event.preventDefault();
-      commitSuggestion(activeState, activeState.results[activeState.index]);
+      commitSuggestion(activeState, activeState.results[activeState.index], {
+        suppressPopup: true,
+      });
     } else if (event.key === "Escape") {
       event.preventDefault();
       hidePopup();
@@ -1684,6 +1761,7 @@ function installExternalInputHook() {
   window.easyuseAnimaHookAutocompleteInput = (input, options = {}) => {
     hookInput(input, options);
   };
+  window.easyuseAnimaAutocompleteEntryTooltip = (entry) => autocompleteEntryTooltip(entry);
   const pending = window.__easyuseAnimaPendingAutocompleteInputs || [];
   window.__easyuseAnimaPendingAutocompleteInputs = [];
   for (const item of pending) {
