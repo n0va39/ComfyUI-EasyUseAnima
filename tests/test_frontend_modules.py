@@ -239,7 +239,9 @@ class FrontendModuleStructureTests(unittest.TestCase):
             "classifyPrompt",
             "ensureHighlightOverlay",
             "highlightOverlayHtml",
+            "installPromptHighlightOverlayRefresh",
             "overlayScrollbarPadding",
+            "refreshAllPromptHighlights",
             "requestOverlaySync",
         ):
             with self.subTest(module="highlight", symbol=name):

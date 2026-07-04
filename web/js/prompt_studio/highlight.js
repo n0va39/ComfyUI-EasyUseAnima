@@ -925,15 +925,150 @@ function ensureHighlightOverlay(input) {
   return overlay;
 }
 
+let promptHighlightRefreshRaf = 0;
+
+function refreshConnectedHighlightOverlays(applyTextStyle) {
+  const inputs = Array.from(document.querySelectorAll(".easyuse-anima-highlight-input"));
+  const updates = [];
+
+  // DOM Style Read
+  for (const input of inputs) {
+    if (!(input instanceof HTMLTextAreaElement || input instanceof HTMLInputElement)) {
+      continue;
+    }
+    applyTextStyle?.(input);
+    const overlay = ensureHighlightOverlay(input);
+    if (!overlay) {
+      continue;
+    }
+
+    // Font metrics reads
+    const style = getComputedStyle(input);
+    const metricValues = {};
+    for (const prop of HIGHLIGHT_TEXT_METRIC_PROPERTIES) {
+      metricValues[prop] = style[prop];
+    }
+
+    // Bounds reads
+    const { left, top, width, height } = overlayBounds(input);
+    const padding = overlayScrollbarPadding(input, style);
+    const scrollTop = input.scrollTop;
+    const scrollLeft = input.scrollLeft;
+
+    updates.push({
+      overlay,
+      metricValues,
+      left,
+      top,
+      width,
+      height,
+      padding,
+      scrollTop,
+      scrollLeft
+    });
+  }
+
+  // DOM Style Write
+  for (const update of updates) {
+    const { overlay, metricValues, left, top, width, height, padding, scrollTop, scrollLeft } = update;
+
+    // Apply metrics (only if they changed)
+    for (const prop in metricValues) {
+      const val = metricValues[prop];
+      if (overlay.style[prop] !== val) {
+        overlay.style[prop] = val;
+      }
+    }
+
+    // Apply bounds styles (only if they changed)
+    if (overlay.style.left !== left) overlay.style.left = left;
+    if (overlay.style.top !== top) overlay.style.top = top;
+    if (overlay.style.width !== width) overlay.style.width = width;
+    if (overlay.style.height !== height) overlay.style.height = height;
+    overlay.style.boxSizing = "border-box";
+    overlay.style.whiteSpace = "pre-wrap";
+    overlay.style.overflowWrap = "break-word";
+    overlay.style.wordWrap = "break-word";
+    overlay.style.wordBreak = "normal";
+    if (overlay.style.paddingRight !== padding.right) overlay.style.paddingRight = padding.right;
+    if (overlay.style.paddingBottom !== padding.bottom) overlay.style.paddingBottom = padding.bottom;
+    if (overlay.scrollTop !== scrollTop) overlay.scrollTop = scrollTop;
+    if (overlay.scrollLeft !== scrollLeft) overlay.scrollLeft = scrollLeft;
+  }
+}
+
+function requestConnectedHighlightOverlayRefresh(applyTextStyle) {
+  if (promptHighlightRefreshRaf) {
+    return;
+  }
+  promptHighlightRefreshRaf = requestAnimationFrame(() => {
+    promptHighlightRefreshRaf = 0;
+    refreshConnectedHighlightOverlays(applyTextStyle);
+    setTimeout(() => refreshConnectedHighlightOverlays(applyTextStyle), 80);
+  });
+}
+
+function installPromptHighlightOverlayRefresh(app, applyTextStyle) {
+  if (window.__easyuseAnimaHighlightOverlayRefreshInstalled) {
+    return;
+  }
+  window.__easyuseAnimaHighlightOverlayRefreshInstalled = true;
+  const schedule = () => requestConnectedHighlightOverlayRefresh(applyTextStyle);
+  window.addEventListener("focus", schedule);
+  window.addEventListener("resize", schedule);
+  document.addEventListener("visibilitychange", () => {
+    if (!document.hidden) {
+      schedule();
+    }
+  });
+  const installCanvasListeners = () => {
+    const canvas = app?.canvas?.canvas;
+    if (!canvas || canvas.__easyuseAnimaHighlightRefreshInstalled) {
+      return;
+    }
+    canvas.__easyuseAnimaHighlightRefreshInstalled = true;
+    canvas.addEventListener("pointerup", schedule, { passive: true });
+    canvas.addEventListener("wheel", schedule, { passive: true });
+  };
+  installCanvasListeners();
+  setTimeout(installCanvasListeners, 250);
+}
+
+function refreshAllPromptHighlights(app, hooks, forceCopyMetrics = false) {
+  const {
+    findWidget,
+    isAdvancedNode,
+    scheduleAdvancedHighlights,
+    studioFieldNames,
+    updateHighlight,
+  } = hooks || {};
+  for (const node of app?.graph?._nodes || []) {
+    if (isAdvancedNode?.(node)) {
+      scheduleAdvancedHighlights?.(node, { forceCopyMetrics });
+      continue;
+    }
+    for (const name of studioFieldNames?.(node) || []) {
+      const widget = findWidget?.(node, name);
+      if (widget) {
+        updateHighlight?.(node, widget, widget.__easyuseAnimaTokens || [], forceCopyMetrics);
+      }
+    }
+  }
+}
+
 export {
   classifyPrompt,
   copyInputTextMetrics,
   ensureHighlightOverlay,
   hasHighlightSyntax,
   highlightOverlayHtml,
+  installPromptHighlightOverlayRefresh,
   overlayBounds,
   overlayScrollbarPadding,
+  refreshAllPromptHighlights,
+  refreshConnectedHighlightOverlays,
   renderHighlightedText,
+  requestConnectedHighlightOverlayRefresh,
   requestOverlaySync,
   syncOverlayBounds,
 };
