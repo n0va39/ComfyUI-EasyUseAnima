@@ -12,10 +12,6 @@ import {
   FIELD_HEIGHTS,
   EXTEND_FIELD_HEIGHTS,
   SECTION_STYLES,
-  LEGEND_ITEMS,
-  LEGEND_TOP_GAP,
-  LEGEND_ROW_HEIGHT,
-  LEGEND_COLUMNS,
   STUDIO_WIDGET_VERTICAL_GAP,
   WEIGHT_NUMBER_RE,
   WEIGHTED_TOKEN_RE,
@@ -77,6 +73,10 @@ import {
   forwardAdvancedWheelToCanvas,
   installMiddlePanForwarder,
 } from "./prompt_studio/canvas_forwarding.js";
+import {
+  desiredLegendHeight,
+  ensureLegendWidget,
+} from "./prompt_studio/legend.js";
 import {
   advancedPaneFields,
   hasAdvancedNaia,
@@ -1351,71 +1351,6 @@ function rebalanceStudioInputHeights(node) {
   refreshNodeSize(node, { immediate: true });
 }
 
-function desiredLegendHeight() {
-  return LEGEND_TOP_GAP + 16 + Math.ceil(LEGEND_ITEMS.length / LEGEND_COLUMNS) * LEGEND_ROW_HEIGHT;
-}
-
-function drawLegend(ctx, node, widget, width, y) {
-  const nextHeight = desiredLegendHeight();
-  if (Math.abs(nextHeight - widget.__height) > 2) {
-    widget.__height = nextHeight;
-    refreshNodeSize(node);
-  }
-  ctx.save();
-
-  ctx.font = "9px sans-serif";
-  ctx.fillStyle = "#94a3b8";
-  ctx.fillText(psText("legend.color"), 14, y + LEGEND_TOP_GAP + 12);
-
-  const left = 14;
-  const availableWidth = Math.max(160, width - 28);
-  ctx.font = "9px sans-serif";
-  const maxItemWidth = Math.max(
-    ...LEGEND_ITEMS.map((key) => 14 + ctx.measureText(sectionLabel(key)).width),
-  );
-  const columnWidth = Math.min(
-    availableWidth / LEGEND_COLUMNS,
-    Math.ceil(maxItemWidth + 24),
-  );
-  const rows = Math.ceil(LEGEND_ITEMS.length / LEGEND_COLUMNS);
-  for (const [index, key] of LEGEND_ITEMS.entries()) {
-    const style = SECTION_STYLES[key];
-    const label = sectionLabel(key);
-    const column = Math.floor(index / rows);
-    const row = index % rows;
-    const x = left + column * columnWidth;
-    const rowY = y + LEGEND_TOP_GAP + 29 + row * LEGEND_ROW_HEIGHT;
-    ctx.fillStyle = style.background;
-    ctx.fillRect(x, rowY - 8, 10, 10);
-    ctx.fillStyle = style.color;
-    ctx.fillText(label, x + 14, rowY);
-  }
-  ctx.restore();
-}
-
-function ensureLegendWidget(node) {
-  const name = "easyuse_anima_color_legend";
-  let widget = findWidget(node, name);
-  if (widget) {
-    return widget;
-  }
-  widget = {
-    name,
-    type: "easyuse_anima_color_legend",
-    serialize: false,
-    __height: desiredLegendHeight(),
-    computeSize(width) {
-      return [width, this.__height];
-    },
-    draw(ctx, node, width, y) {
-      drawLegend(ctx, node, this, width, y);
-    },
-  };
-  node.widgets ||= [];
-  node.widgets.push(widget);
-  return widget;
-}
-
 function displayText(node, widget) {
   if (isWidgetInputLinked(node, widget.name) && widget.__easyuseAnimaExecutedText != null) {
     return String(widget.__easyuseAnimaExecutedText);
@@ -2266,7 +2201,7 @@ function hookStudioNode(node, attempt = 0) {
     applyExtendSlotVisibility(node);
     ensureExtendSlotControls(node);
   }
-  ensureLegendWidget(node);
+  ensureLegendWidget(node, refreshNodeSize);
   if (isExtendNode(node)) {
     layoutExtendPromptWidgets(node);
   }

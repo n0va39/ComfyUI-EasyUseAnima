@@ -64,6 +64,7 @@ class FrontendModuleStructureTests(unittest.TestCase):
         self.assertIn('./prompt_studio/canvas_forwarding.js"', source)
         self.assertIn('./prompt_studio/dom.js"', source)
         self.assertIn('./prompt_studio/fields.js"', source)
+        self.assertIn('./prompt_studio/legend.js"', source)
         self.assertIn('./prompt_studio/node_hooks.js"', source)
         self.assertIn('./prompt_studio/settings.js"', source)
         self.assertIn('./prompt_studio/style.js"', source)
@@ -95,6 +96,9 @@ class FrontendModuleStructureTests(unittest.TestCase):
             encoding="utf-8"
         )
         fields_source = (PROMPT_STUDIO_MODULES / "fields.js").read_text(
+            encoding="utf-8"
+        )
+        legend_source = (PROMPT_STUDIO_MODULES / "legend.js").read_text(
             encoding="utf-8"
         )
         node_hooks_source = (PROMPT_STUDIO_MODULES / "node_hooks.js").read_text(
@@ -200,6 +204,13 @@ class FrontendModuleStructureTests(unittest.TestCase):
         ):
             with self.subTest(module="fields", symbol=name):
                 self.assertIn(f"  {name},", fields_source)
+
+        for name in (
+            "desiredLegendHeight",
+            "ensureLegendWidget",
+        ):
+            with self.subTest(module="legend", symbol=name):
+                self.assertIn(f"  {name},", legend_source)
 
         for name in (
             "isAdvancedNode",
@@ -315,6 +326,7 @@ class FrontendModuleStructureTests(unittest.TestCase):
             "schema.js",
             "state.js",
             "fields.js",
+            "legend.js",
             "node_hooks.js",
             "text.js",
             "widgets.js",
