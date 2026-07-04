@@ -614,12 +614,18 @@ class FrontendModuleStructureTests(unittest.TestCase):
         self.assertTrue(config["compilerOptions"]["noEmit"])
 
         for path in (
+            "web/js/prompt_studio/advanced_values.js",
             "web/js/prompt_studio/constants.js",
+            "web/js/prompt_studio/fields.js",
+            "web/js/prompt_studio/layout.js",
+            "web/js/prompt_studio/runtime_canvas.js",
             "web/js/prompt_studio/schema.js",
+            "web/js/prompt_studio/serialization.js",
             "web/js/prompt_studio/state.js",
+            "web/js/prompt_studio/style.js",
             "web/js/prompt_studio/types.js",
             "web/js/prompt_studio/utils.js",
-            "web/js/prompt_studio/runtime_canvas.js",
+            "web/js/prompt_studio/widgets.js",
         ):
             with self.subTest(path=path):
                 self.assertIn(path, config["include"])

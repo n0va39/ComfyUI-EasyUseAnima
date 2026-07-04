@@ -596,6 +596,9 @@ Current status:
   typecheck command.
 - 2026-07-05: typecheck coverage expanded to `constants.js`, `utils.js`,
   `schema.js`, and `state.js`.
+- 2026-07-05: typecheck coverage expanded to `advanced_values.js`,
+  `style.js`, `widgets.js`, `layout.js`, `fields.js`, and
+  `serialization.js`.
 - Full Prompt Studio module type coverage remains a later Phase 3 step.
 
 ## Phase 4: Vite/TypeScript Decision
