@@ -9412,11 +9412,13 @@ class EasyUseAnimaAIOGenerator:
             quality_neg,
             use_anima_mod_guidance,
             use_negative_anima_mod_guidance,
-            _metadata_prompt,
-            _metadata_negative_prompt,
+            metadata_prompt,
+            metadata_negative_prompt,
             width,
             height,
         ) = _advanced_outputs_from_prompt_data(prompt_data)
+        image_saver_positive_prompt = metadata_prompt or positive_prompt
+        image_saver_negative_prompt = metadata_negative_prompt or negative_prompt
 
         artist_mix = settings["artist_mix"]
         positive = _encode_prompt_data_positive_conditioning(
@@ -9610,8 +9612,8 @@ class EasyUseAnimaAIOGenerator:
                 save_result = _save_image_with_image_saver(
                     image,
                     save_settings,
-                    positive_prompt=positive_prompt,
-                    negative_prompt=negative_prompt,
+                    positive_prompt=image_saver_positive_prompt,
+                    negative_prompt=image_saver_negative_prompt,
                     width=width,
                     height=height,
                     sampler_settings=sampler,
