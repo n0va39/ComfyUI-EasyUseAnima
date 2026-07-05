@@ -51,13 +51,11 @@ function setAdvancedTextareaHeight(node, textarea, height, options = {}, hooks =
   const mode = options.mode === "manual" ? "manual" : "auto";
   const minimumHeight = advancedTextareaMinimumHeight(textarea);
   const contentHeight = advancedTextareaContentHeight(textarea);
-  const requiredHeight = mode === "manual"
-    ? minimumHeight
-    : Math.max(minimumHeight, contentHeight);
+  const requiredHeight = Math.max(minimumHeight, contentHeight);
   const nextHeight = Math.max(requiredHeight, Math.round(Number(height) || 0));
   textarea.style.minHeight = `${minimumHeight}px`;
   textarea.style.height = `${nextHeight}px`;
-  textarea.style.overflowY = mode === "manual" ? "auto" : "hidden";
+  textarea.style.overflowY = "hidden";
   let field = null;
   if (options.syncField !== false || options.refreshHighlight !== false) {
     field = advancedFieldByTextarea(node, textarea, hooks);
@@ -218,7 +216,7 @@ function createAdvancedFieldElement(node, field, hooks = {}) {
   const inputName = advancedFieldInputName(field);
   textarea.value = advancedFieldDisplayText(node, field);
   textarea.style.height = `${field.height || 72}px`;
-  textarea.style.overflowY = field.heightMode === "manual" ? "auto" : "hidden";
+  textarea.style.overflowY = "hidden";
   textarea.placeholder = advancedFieldTextareaPlaceholder(field, psText);
   textarea.readOnly = false;
   textarea.classList.toggle("is-linked", linked);

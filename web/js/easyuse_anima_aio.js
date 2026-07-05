@@ -3981,12 +3981,8 @@ function clampGeneratorNodeWidth(node, minimumWidth = GENERATOR_NODE_MIN_WIDTH) 
   if (currentWidth >= targetWidth - 1) {
     return false;
   }
-  const currentHeight = Number(node.size[1]) || generatorMinimumNodeHeight(node);
-  if (typeof node.setSize === "function" && node.graph) {
-    node.setSize([targetWidth, currentHeight]);
-  } else {
-    node.size[0] = targetWidth;
-  }
+  node.size[0] = targetWidth;
+  markNodeDirty(node);
   return true;
 }
 
@@ -4160,13 +4156,6 @@ function applyGeneratorLayout(node) {
       : minPanelHeight;
     applyGeneratorWidgetAllocation(node, panelHeight);
     applyGeneratorPanelViewportStyle(panel, panelHeight, node);
-    const currentWidth = Number(node.size[0]) || GENERATOR_NODE_DEFAULT_WIDTH;
-    if (currentHeight < minHeight - 1 || currentWidth < GENERATOR_NODE_MIN_WIDTH) {
-      node.setSize?.([
-        Math.max(currentWidth, GENERATOR_NODE_MIN_WIDTH),
-        Math.max(currentHeight, minHeight),
-      ]);
-    }
     markNodeDirty(node);
   } finally {
     node.__easyuseAnimaGeneratorApplyingLayout = false;

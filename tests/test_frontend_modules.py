@@ -251,11 +251,12 @@ class FrontendModuleStructureTests(unittest.TestCase):
         self.assertIn("const minimumHeight = advancedTextareaMinimumHeight(textarea);", set_body)
         self.assertIn("const contentHeight = advancedTextareaContentHeight(textarea);", set_body)
         self.assertIn(
-            'const requiredHeight = mode === "manual"',
+            "const requiredHeight = Math.max(minimumHeight, contentHeight);",
             set_body,
         )
         self.assertIn('textarea.style.minHeight = `${minimumHeight}px`;', set_body)
-        self.assertIn('textarea.style.overflowY = mode === "manual" ? "auto" : "hidden";', set_body)
+        self.assertIn('textarea.style.overflowY = "hidden";', set_body)
+        self.assertNotIn('textarea.style.overflowY = mode === "manual" ? "auto" : "hidden";', set_body)
         self.assertIn("field.heightMode = mode;", set_body)
         self.assertNotIn("textarea.scrollTop = 0;", set_body)
         self.assertNotIn("textarea.scrollLeft = 0;", set_body)
