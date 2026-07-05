@@ -30,6 +30,29 @@ This document records decisions that supersede earlier experimental notes.
 - Autocomplete should preserve surrounding syntax such as parentheses and
   weights when replacing the active token.
 
+## Frontend UI Compatibility
+
+- Treat ComfyUI Node 2.0 UI and the legacy canvas UI as supported surfaces for
+  frontend changes that touch custom DOM widgets, canvas forwarding, node
+  sizing, native previews, hidden widgets, or workflow serialization.
+- Keep DOM widget layout contracts explicit. `getMinHeight`, `getHeight`,
+  `computeLayoutSize`, CSS `height`/`max-height`/`overflow`, and any
+  `node.setSize()` path must describe the same viewport model.
+- Do not rely on browser natural content height, a Node 2.0-only wrapper, or a
+  legacy-only canvas fallback to make layout appear correct.
+- For scrollable editors, separate content height from viewport height. Long
+  content should scroll inside the intended element rather than forcing
+  uncontrolled node growth or disappearing behind `overflow: hidden`.
+- Preview panes must not force node height through `height: 100%`, min-height,
+  or native-preview suppression unless that behavior is intentional and
+  verified in both Node 2.0 and legacy canvas surfaces.
+- Hidden required widgets remain serialized. Visual hiding, socket visibility,
+  and queue/workflow storage are separate compatibility concerns.
+- Every PR that changes frontend layout, DOM widgets, canvas forwarding, native
+  preview handling, or hidden widget serialization must state whether Node 2.0
+  and legacy canvas smoke checks were run. If one surface is not checked, state
+  the gap explicitly.
+
 ## Detailer and SAM3
 
 - Do not copy or reimplement Impact Pack `DetailerForEach` core logic in EasyUse Anima.

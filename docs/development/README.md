@@ -12,6 +12,8 @@ conversation.
    - workflow docs or release templates: `docs/Anima AiO/Workflow_Management.md`
    - user-facing AiO docs: `docs/Anima AiO/README.md`
    - custom-node model patch integrations: `docs/development/custom-node-integrations.md`
+   - frontend JS maintainability and Issue #14:
+     `docs/development/issue-14-frontend-js-maintenance.md`
    - language or locale work: `docs/development/language-management.md`
 5. `git status --short`
 6. Relevant source and tests for the target area.
@@ -27,6 +29,8 @@ conversation.
 - User-facing node documentation: `docs/nodes/`
 - User-facing wildcard syntax: `docs/wildcards.ko.md` /
   `docs/wildcards.en.md`
+- Issue #14 frontend maintainability plan:
+  `docs/development/issue-14-frontend-js-maintenance.md`
 
 ## Area-Specific Files
 
@@ -40,7 +44,9 @@ conversation.
   - `wildcard_engine.py`
   - `web/js/easyuse_anima_autocomplete.js`
   - `web/js/easyuse_anima_prompt_studio.js`
+  - `web/js/easyuse_anima_prompt_studio_common.js`
   - `web/js/easyuse_anima_settings.js`
+  - `docs/development/issue-14-frontend-js-maintenance.md`
   - prompt-related tests
   - `tests/test_wildcards.py`
   - `docs/nodes/anima-prompt-studio-advanced.*.md`

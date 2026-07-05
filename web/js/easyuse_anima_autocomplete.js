@@ -3,6 +3,7 @@ import {
   normalizePromptTagText,
   promptCompletionTagText,
 } from "./easyuse_anima_prompt_rules.js";
+import { easyuseAnimaGetSettings } from "./easyuse_anima_api.js";
 import { easyuseAnimaText } from "./easyuse_anima_i18n.js";
 
 const TARGETS = {
@@ -325,11 +326,10 @@ function syncAutocompleteInputFlags() {
 
 async function refreshAutocompleteSettings() {
   try {
-    const response = await fetch("/easyuse_anima/settings");
-    if (!response.ok) {
+    const settings = await easyuseAnimaGetSettings({ fallback: null });
+    if (!settings) {
       return;
     }
-    const settings = await response.json();
     const nextMaxResults = clampMaxResults(settings["autocomplete.limit"]);
     if (nextMaxResults !== maxResults) {
       maxResults = nextMaxResults;
