@@ -38,25 +38,35 @@ class AIOFrontendSourceTests(unittest.TestCase):
         self.assertIn("function generatorPreviewBoxHeight", source)
         self.assertIn("function generatorPreviewCardHeight", source)
         self.assertIn("function generatorDesiredPanelHeight", source)
+        self.assertIn("function generatorAvailablePanelHeight", source)
         self.assertIn("function applyGeneratorPanelViewportStyle", source)
+        self.assertIn("const fillHeight = options.fillHeight === true;", source)
+        self.assertIn("Math.max(GENERATOR_PREVIEW_BOX_MAX_HEIGHT, panelBasedHeight)", source)
+        self.assertIn("--easyuse-anima-aio-main-height", source)
+        self.assertIn("--easyuse-anima-aio-preview-card-height", source)
         self.assertIn("--easyuse-anima-aio-preview-box-height", source)
         self.assertIn("--easyuse-anima-aio-settings-card-height", source)
-        self.assertIn("const panelHeight = generatorDesiredPanelHeight(node);", source)
+        self.assertIn("const availablePanelHeight = generatorAvailablePanelHeight(node);", source)
         self.assertIn("currentHeight < minHeight - 1", source)
         self.assertIn("Math.max(currentHeight, minHeight)", source)
         self.assertIn("Math.max(currentWidth, GENERATOR_NODE_MIN_WIDTH)", source)
         self.assertNotIn("Math.abs(currentHeight - minHeight) > 1", source)
-        self.assertNotIn("function generatorAvailablePanelHeight", source)
         self.assertNotIn("const host = panel.parentElement", source)
         self.assertNotIn("host.style.height", source)
-        self.assertIn("align-items: start;", main_css)
-        self.assertIn("flex: 0 0 auto;", main_css)
-        self.assertNotIn("flex: 1 1 auto;", main_css)
+        self.assertIn("align-items: stretch;", main_css)
+        self.assertIn(
+            "height: var(--easyuse-anima-aio-main-height",
+            main_css,
+        )
         self.assertIn(
             "height: var(--easyuse-anima-aio-settings-card-height",
             settings_css,
         )
-        self.assertIn("align-self: start;", preview_css)
+        self.assertIn("align-self: stretch;", preview_css)
+        self.assertIn(
+            "height: var(--easyuse-anima-aio-preview-card-height",
+            preview_css,
+        )
         self.assertIn(
             "flex: 0 0 var(--easyuse-anima-aio-preview-box-height",
             preview_box_css,
@@ -71,12 +81,17 @@ class AIOFrontendSourceTests(unittest.TestCase):
         self.assertIn("minWidth: GENERATOR_NODE_MIN_WIDTH - 18,", compute_body)
         self.assertNotIn("height:", compute_body)
 
-    def test_generator_layout_preserves_user_resized_height(self):
+    def test_generator_layout_maps_user_height_to_panel_viewport(self):
         source = AIO_JS.read_text(encoding="utf-8")
         start = source.index("function applyGeneratorLayout")
         end = source.index("\nfunction scheduleGeneratorLayout", start)
         body = source[start:end]
 
+        self.assertIn("const minPanelHeight = measureGeneratorPanelContentHeight(node);", body)
+        self.assertIn("const minHeight = generatorMinimumNodeHeight(node);", body)
+        self.assertIn("const availablePanelHeight = generatorAvailablePanelHeight(node);", body)
+        self.assertIn("currentHeight >= minHeight - 1", body)
+        self.assertIn("Math.max(minPanelHeight, availablePanelHeight)", body)
         self.assertIn("currentHeight < minHeight - 1", body)
         self.assertIn("Math.max(currentHeight, minHeight)", body)
         self.assertIn("Math.max(currentWidth, GENERATOR_NODE_MIN_WIDTH)", body)

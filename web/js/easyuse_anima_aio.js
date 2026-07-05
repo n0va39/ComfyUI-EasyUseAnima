@@ -2680,11 +2680,12 @@ function ensureStyle() {
     .easyuse-anima-aio-node-main {
       display: grid;
       grid-template-columns: 260px minmax(0, 1fr);
-      align-items: start;
+      align-items: stretch;
       gap: 8px;
-      flex: 0 0 auto;
+      flex: 0 0 var(--easyuse-anima-aio-main-height, auto);
       min-height: 284px;
-      height: auto;
+      height: var(--easyuse-anima-aio-main-height, auto);
+      max-height: var(--easyuse-anima-aio-main-height, none);
     }
     .easyuse-anima-aio-node-card {
       min-width: 0;
@@ -2972,8 +2973,11 @@ function ensureStyle() {
     .easyuse-anima-aio-node-preview {
       display: flex;
       flex-direction: column;
-      align-self: start;
+      align-self: stretch;
       min-height: 0;
+      height: var(--easyuse-anima-aio-preview-card-height, auto);
+      max-height: var(--easyuse-anima-aio-preview-card-height, none);
+      overflow: hidden;
     }
     .easyuse-anima-aio-node-sampler-actions {
       display: grid;
@@ -3973,6 +3977,17 @@ function generatorPanelMinHeight(node) {
   return Math.max(GENERATOR_PANEL_MIN_HEIGHT, Number(node?.__easyuseAnimaGeneratorPanelMinHeight) || 0);
 }
 
+function generatorAvailablePanelHeight(node) {
+  const nodeHeight = Number(node?.size?.[1]) || 0;
+  if (nodeHeight <= 0) {
+    return 0;
+  }
+  return Math.max(
+    GENERATOR_PANEL_MIN_HEIGHT,
+    Math.ceil(nodeHeight - generatorNodeChromeOffset(node)),
+  );
+}
+
 function generatorClampHeight(value, min, max) {
   const numericValue = Number(value);
   if (!Number.isFinite(numericValue)) {
@@ -3981,7 +3996,7 @@ function generatorClampHeight(value, min, max) {
   return Math.max(min, Math.min(max, Math.round(numericValue)));
 }
 
-function generatorPreviewBoxHeight(node, panelHeight) {
+function generatorPreviewBoxHeight(node, panelHeight, options = {}) {
   const panelWidth = generatorPanelWidth(node);
   const previewColumnWidth = Math.max(180, panelWidth - 260 - 8 - 18);
   const widthBasedHeight = previewColumnWidth * 0.78;
@@ -3989,10 +4004,17 @@ function generatorPreviewBoxHeight(node, panelHeight) {
     GENERATOR_PREVIEW_BOX_MIN_HEIGHT,
     Number(panelHeight) - 114,
   );
+  const fillHeight = options.fillHeight === true;
+  const preferredHeight = fillHeight
+    ? panelBasedHeight
+    : Math.min(widthBasedHeight, panelBasedHeight);
+  const maxHeight = fillHeight
+    ? Math.max(GENERATOR_PREVIEW_BOX_MAX_HEIGHT, panelBasedHeight)
+    : GENERATOR_PREVIEW_BOX_MAX_HEIGHT;
   return generatorClampHeight(
-    Math.min(widthBasedHeight, panelBasedHeight),
+    preferredHeight,
     GENERATOR_PREVIEW_BOX_MIN_HEIGHT,
-    GENERATOR_PREVIEW_BOX_MAX_HEIGHT,
+    maxHeight,
   );
 }
 
@@ -4023,15 +4045,24 @@ function applyGeneratorPanelViewportStyle(panel, panelHeight, node) {
     return;
   }
   const viewportHeight = Math.max(GENERATOR_PANEL_MIN_HEIGHT, Math.round(Number(panelHeight) || 0));
+  const minViewportHeight = generatorPanelMinHeight(node);
+  const mainHeight = Math.max(
+    GENERATOR_PREVIEW_CARD_MIN_HEIGHT,
+    viewportHeight - GENERATOR_PANEL_VERTICAL_CHROME,
+  );
+  const fillHeight = viewportHeight > minViewportHeight + 1;
   const heightValue = `${viewportHeight}px`;
+  const mainHeightValue = `${mainHeight}px`;
   panel.style.setProperty("--easyuse-anima-aio-panel-height", heightValue);
+  panel.style.setProperty("--easyuse-anima-aio-main-height", mainHeightValue);
+  panel.style.setProperty("--easyuse-anima-aio-preview-card-height", mainHeightValue);
   panel.style.setProperty(
     "--easyuse-anima-aio-preview-box-height",
-    `${generatorPreviewBoxHeight(node, viewportHeight)}px`,
+    `${generatorPreviewBoxHeight(node, viewportHeight, { fillHeight })}px`,
   );
   panel.style.setProperty(
     "--easyuse-anima-aio-settings-card-height",
-    `${generatorPreviewCardHeight(panel, viewportHeight)}px`,
+    mainHeightValue,
   );
   panel.style.height = heightValue;
   panel.style.maxHeight = heightValue;
@@ -4062,13 +4093,16 @@ function applyGeneratorLayout(node) {
     const width = generatorPanelWidth(node);
     panel.style.width = `${width}px`;
     panel.style.maxWidth = `${width}px`;
-    measureGeneratorPanelContentHeight(node);
-    const panelHeight = generatorDesiredPanelHeight(node);
+    const minPanelHeight = measureGeneratorPanelContentHeight(node);
+    const minHeight = generatorMinimumNodeHeight(node);
+    const currentHeight = Number(node.size[1]) || 0;
+    const availablePanelHeight = generatorAvailablePanelHeight(node);
+    const panelHeight = currentHeight >= minHeight - 1
+      ? Math.max(minPanelHeight, availablePanelHeight)
+      : minPanelHeight;
     node.__easyuseAnimaGeneratorPanelHeight = panelHeight;
     applyGeneratorPanelViewportStyle(panel, panelHeight, node);
     const currentWidth = Number(node.size[0]) || GENERATOR_NODE_DEFAULT_WIDTH;
-    const currentHeight = Number(node.size[1]) || 0;
-    const minHeight = generatorMinimumNodeHeight(node);
     if (currentHeight < minHeight - 1 || currentWidth < GENERATOR_NODE_MIN_WIDTH) {
       node.setSize?.([
         Math.max(currentWidth, GENERATOR_NODE_MIN_WIDTH),
