@@ -1,0 +1,102 @@
+{
+  "publisher_id": "n0va39",
+  "node_id": "comfyui-easyuse-anima",
+  "node": {
+    "name": "ComfyUI EasyUse Anima",
+    "description": "Prompt editing, ANIMA prompt correction, NAIA prompt integration, LoRA preset management, wildcard expansion, AiO generation, and ANIMA/Spectrum workflow helpers for ComfyUI.",
+    "repository": "https://github.com/n0va39/ComfyUI-EasyUseAnima",
+    "license": "{\"file\": \"LICENSE\"}",
+    "supported_os": [
+      "OS Independent"
+    ],
+    "tags": [
+      "prompt",
+      "autocomplete",
+      "wildcard",
+      "lora",
+      "workflow"
+    ]
+  },
+  "versions": [
+    {
+      "version": "0.2.7",
+      "deprecated": false,
+      "changelog": "### Fixed\n\n- Fixed global autocomplete attachment in ComfyUI Nodes 2.0 for prompt fields created or re-rendered after extension startup.\n- Fixed escaped prompt parenthesis search so literal tags such as `\\(blue archive\\)` match correctly.\n- Fixed autocomplete popup scroll reset timing after hide/show cycles.\n\n### Changed\n\n- Hardened popup reset timing and disabled scroll anchoring for stable suggestion list reopening."
+    },
+    {
+      "version": "0.2.6",
+      "deprecated": true,
+      "changelog": "### Added\n\n- Added hover tooltips for trained Prompt Studio highlight tags using autocomplete metadata.\n- Added `prompt_studio.trained_tag_tooltip` and a tabbed Prompt Studio highlight color editor.\n- Added Community Standards files, issue templates, pull request template, and English/Korean contributor guidance.\n\n### Changed\n\n- Shared autocomplete tooltip formatting and Prompt Studio highlight color handling across UI paths."
+    },
+    {
+      "version": "0.2.5",
+      "deprecated": true,
+      "changelog": "### Added\n\n- Added prompt translation marker support for Prompt Studio and autocomplete flows.\n- Added English ANIMA Easy Use workflow documentation.\n\n### Changed\n\n- Updated Prompt Studio font handling and manual font correction settings.\n- Refined AiO Generator native preview routing so duplicate Comfy native overlays are suppressed.\n\n### Fixed\n\n- Fixed stale AiO native preview overlay cleanup."
+    },
+    {
+      "version": "0.2.4",
+      "deprecated": true,
+      "changelog": "### Fixed\n\n- Fixed Anima AiO Generator Image Saver integration so Civitai Hash Fetcher API failures, empty results, or temporary upstream errors skip only optional metadata hashes instead of failing completed image saves.\n\n### Changed\n\n- Included post-0.2.3 documentation refreshes for guides, demo videos, and ANIMA Easy Use workflow documentation."
+    },
+    {
+      "version": "0.2.3",
+      "deprecated": true,
+      "changelog": "### Fixed\n\n- Fixed AiO Detailer Settings rendering, custom detailer block editing, and per-stage Highres/Detailer Spectrum/DCW settings.\n- Fixed autocomplete behavior for IME composition, Korean keyword searches, wildcard keys, empty wildcard prompts, escaped syntax, and keyboard scrolling.\n- Fixed wildcard and dynamic-prompt highlight classification.\n\n### Changed\n\n- Refreshed bundled Korean AiO workflow JSON defaults and package metadata."
+    },
+    {
+      "version": "0.2.2",
+      "deprecated": true,
+      "changelog": "### Highlights\n\n- Added the first release-ready Anima AiO Generator path with Easy Use Anima Input, split ANIMA resources, Highres, Detailer, preview, and image saving.\n- Stored AiO generation settings as keyed versioned JSON to keep saved workflow data stable.\n\n### Added\n\n- Added Anima AiO Generator, Anima Prompt Corrector Simple, optional DAVE controls, LORA_STACK support, Image Saver integration, AiO preview feed, Highres and SAM3/Impact Detailer settings, and AiO workflow templates.\n- Added Artist Mix group syntax, inline autocomplete ghost preview, weighted syntax underline rendering, and AiO user documentation.\n\n### Fixed\n\n- Fixed AiO sampler dispatch, Spectrum routing, Highres handoff sizing, dedicated preview payload handling, Image Saver metadata routing, weighted prompt autocomplete replacement, and middle-click canvas panning."
+    },
+    {
+      "version": "0.2.1",
+      "deprecated": true,
+      "changelog": "### Highlights\n\n- Prepared Anima Prompt Studio Advanced v2 with structured `EASYUSE_ANIMA_PROMPT_DATA` output.\n- Added keyed prompt-data routing so downstream nodes can read values by key instead of positional output indexes.\n\n### Added\n\n- Added `EASYUSE_ANIMA_PROMPT_DATA`, Anima Prompt Data Conditioning, standalone Anima Artist Mix Conditioning, artist mix modes, Artist Mix example workflow, and NAIA resolution bucket-fit settings.\n\n### Fixed\n\n- Fixed Regional Prompt Studio socket overrides, native control event propagation, Spectrum Mod Guidance invocation compatibility, and prompt-data latent image creation."
+    },
+    {
+      "version": "0.2.0",
+      "deprecated": true,
+      "changelog": "### Added\n\n- Added Anima Prompt Studio Regional, Anima Regional Conditioning, a regional mask editor UI, NAIA resolution scaling, Anima Image Scale By Multiple, and a regional prompt example workflow.\n\n### Changed\n\n- Moved maintained example workflow assets to `docs/example_workflows/` and updated workflow metadata policy.\n- Changed Regional Prompt Studio outputs to explicit metadata strings, width/height, and dedicated regional data sockets.\n\n### Fixed\n\n- Fixed regional conditioning mask metadata and Regional Prompt Studio UI layout issues."
+    },
+    {
+      "version": "0.1.9",
+      "deprecated": true,
+      "changelog": "### Added\n\n- Added Anima Wildcard with Impact Pack-oriented wildcard and dynamic prompt syntax.\n- Added wildcard controls, wildcard autocomplete, wildcard highlighting, wildcard extra paths, and user wildcard documentation.\n\n### Changed\n\n- Split top-level README node details into `docs/nodes/` and kept public workflow JSON under `docs/example_workflows/`.\n\n### Fixed\n\n- Fixed NAIA resolution reuse, Prompt Studio highlight alignment, fixed-mode wildcard expansion, wildcard highlight priority, and wildcard extra path editing focus."
+    },
+    {
+      "version": "0.1.8",
+      "deprecated": true,
+      "changelog": "### Added\n\n- Added negative prompt Mod Guidance routing.\n\n### Changed\n\n- Refreshed release workflow templates and workflow metadata.\n\n### Fixed\n\n- Fixed LoRA preset row controls, LoRA strength drag sensitivity handling, prompt correction behavior, locale coverage, and workflow metadata regressions."
+    },
+    {
+      "version": "0.1.5",
+      "deprecated": true,
+      "changelog": "### Fixed\n\n- Fixed prompt tag spacing and aligned autocomplete prompt tag rules before the 0.1.6 settings/localization work."
+    },
+    {
+      "version": "0.1.4",
+      "deprecated": true,
+      "changelog": "### Fixed\n\n- Stabilized Advanced Prompt Studio layout scheduling, hidden widget sizing, resize behavior, wheel handling, and content-height fitting."
+    },
+    {
+      "version": "0.1.3",
+      "deprecated": true,
+      "changelog": "### Fixed\n\n- Reported missing LoRA preset entries more clearly.\n- Reset hidden LoRA selectors during serialization and guarded route registration before `PromptServer` initialization."
+    },
+    {
+      "version": "0.1.2",
+      "deprecated": true,
+      "changelog": "### Fixed\n\n- Preserved LoRA preset widgets for queue validation and prepared the 0.1.2 bugfix package."
+    },
+    {
+      "version": "0.1.1",
+      "deprecated": true,
+      "changelog": "### Fixed\n\n- Preserved Advanced Prompt widgets for queue validation.\n- Initialized LoRA preset profile controls on newly created nodes."
+    },
+    {
+      "version": "0.1.0",
+      "deprecated": true,
+      "changelog": "### Added\n\n- Initial Comfy Registry package version using the lowercase Registry node id `comfyui-easyuse-anima`."
+    }
+  ]
+}

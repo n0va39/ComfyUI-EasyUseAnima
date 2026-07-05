@@ -30,13 +30,37 @@ This document records decisions that supersede earlier experimental notes.
 - Autocomplete should preserve surrounding syntax such as parentheses and
   weights when replacing the active token.
 
+## Frontend UI Compatibility
+
+- Treat ComfyUI Node 2.0 UI and the legacy canvas UI as supported surfaces for
+  frontend changes that touch custom DOM widgets, canvas forwarding, node
+  sizing, native previews, hidden widgets, or workflow serialization.
+- Keep DOM widget layout contracts explicit. `getMinHeight`, `getHeight`,
+  `computeLayoutSize`, CSS `height`/`max-height`/`overflow`, and any
+  `node.setSize()` path must describe the same viewport model.
+- Do not rely on browser natural content height, a Node 2.0-only wrapper, or a
+  legacy-only canvas fallback to make layout appear correct.
+- For scrollable editors, separate content height from viewport height. Long
+  content should scroll inside the intended element rather than forcing
+  uncontrolled node growth or disappearing behind `overflow: hidden`.
+- Preview panes must not force node height through `height: 100%`, min-height,
+  or native-preview suppression unless that behavior is intentional and
+  verified in both Node 2.0 and legacy canvas surfaces.
+- Hidden required widgets remain serialized. Visual hiding, socket visibility,
+  and queue/workflow storage are separate compatibility concerns.
+- Every PR that changes frontend layout, DOM widgets, canvas forwarding, native
+  preview handling, or hidden widget serialization must state whether Node 2.0
+  and legacy canvas smoke checks were run. If one surface is not checked, state
+  the gap explicitly.
+
 ## Detailer and SAM3
 
 - Do not copy or reimplement Impact Pack `DetailerForEach` core logic in EasyUse Anima.
 - Do not copy or reimplement Impact Pack `MaskToSEGS` core logic in EasyUse Anima.
 - Use Impact Pack delegation for detailer loops and SEGS conversion.
-- EasyUse Anima provides `Anima Detailer Align Hook` for crop sampling size alignment and convenience SAM3 wiring only.
-- Impact Pack is a ComfyUI custom-node runtime dependency for SAM3/detailer features, not a Python package dependency.
+- EasyUse Anima provides `Anima Detailer Align Hook` for crop sampling size alignment and AiO-internal SAM3 wiring only.
+- Standalone `Anima SAM3 Context` and `Anima SAM3 Detailer` nodes are not public nodes after the Registry cleanup.
+- Impact Pack is a ComfyUI custom-node runtime dependency for AiO SAM3/detailer features, not a Python package dependency.
 
 ## Documentation Cleanup
 
@@ -52,6 +76,22 @@ This document records decisions that supersede earlier experimental notes.
 - Treat these files as development plans, not release announcements.
 - `pyproject.toml` may be bumped early to the next intended Registry version to avoid reusing a published version number.
 - Do not publish to Comfy Registry, create release tags, or convert `RELEASE.md` entries into final release notes unless explicitly requested.
+
+## Registry Scanner Safety
+
+- Runtime files must not use `eval`, `exec`, dynamic package installation, shell
+  execution, obfuscation-like decoding, or user-controlled dynamic imports.
+- Optional ComfyUI integrations should use explicit `try`/`except` imports for
+  known module paths instead of `importlib.import_module`.
+- External calls must be opt-in or localhost-only by default, timeout-bound, and
+  parsed as data. Do not execute response content.
+- Do not auto-read API keys from environment variables for optional external
+  providers. External providers must be selected explicitly in settings.
+- Keep `.comfyignore` focused on shipping runtime files only: exclude tests,
+  development docs, examples, workflow samples, generated media, local caches,
+  logs, and CI files. Keep root README files available.
+- Before Registry publish, run the scanner checks in
+  `docs/development/registry-scanner-safety.md` and `comfy node validate`.
 
 ## Local ComfyUI Instance Usage
 

@@ -2,9 +2,9 @@
 
 Language: [English](README.en.md) | [한국어](README.ko.md) | [Home](README.md)
 
-ComfyUI custom nodes for prompt editing, ANIMA prompt correction, NAIA prompt
-integration, LoRA preset management, wildcard expansion, AiO generation, and detailer helpers
-for ANIMA/Spectrum workflows.
+Prompt editing, ANIMA prompt correction, NAIA prompt integration, LoRA preset
+management, wildcard expansion, AiO generation, and ANIMA/Spectrum workflow
+helpers for ComfyUI.
 
 This package is independent from `comfyui-naia-bridge`. It does not import or
 override that node pack, so both can be installed at the same time.
@@ -15,6 +15,17 @@ Reference baseline:
 - NAIA API endpoints used:
   - `POST /api/comfyui/random`
   - `peng_override` request field
+
+Registry-facing integration defaults:
+
+- NAIA calls are optional. The default host is `127.0.0.1`, and non-local hosts
+  are blocked unless `EasyUse Anima -> NAIA -> Allow remote API` is enabled.
+- Prompt translation defaults to off. Google Translate must be selected
+  explicitly, and this node pack does not read API keys from environment
+  variables.
+- The AiO SAM3 detailer path uses explicit optional imports for ComfyUI's
+  built-in SAM3 detector and Impact Pack classes. It does not dynamically load
+  user-provided module names.
 
 ## Documentation Entry Points
 
@@ -121,8 +132,6 @@ Mode details: [Anima Artist Mix Conditioning guide](docs/nodes/anima-artist-mix-
 | [Anima AiO Generator](docs/nodes/anima-aio-generator.en.md) | `EasyUse Anima/AiO` | Runs sampling, Highres, Detailer, preview, and saving from the prompt-data context. |
 | [Anima Image Scale By Multiple](docs/nodes/anima-image-scale-by-multiple.en.md) | `EasyUse Anima/Image` | Scales images to Highres-safe valid multiples while preserving the original aspect ratio. |
 | [Anima Detailer Align Hook](docs/nodes/anima-detailer-align-hook.en.md) | `EasyUse Anima/Detailer` | Aligns Impact detailer crop sampling sizes to a selected multiple. |
-| [Anima SAM3 Context](docs/nodes/anima-sam3-context.en.md) | `EasyUse Anima/Detailer` | Loads a SAM3 checkpoint as an rgthree-compatible context. |
-| [Anima SAM3 Detailer](docs/nodes/anima-sam3-detailer.en.md) | `EasyUse Anima/Detailer` | Connects SAM3 text detection, Impact MaskToSEGS, and DetailerForEach. |
 
 ## Shared Front-End Features
 
@@ -160,6 +169,8 @@ ComfyUI Settings:
 
 - NAIA request host, port, Prompt Engineering options, and preprocessing options
   are configured in the EasyUse Anima settings panel.
+- NAIA requests are localhost-only by default. Enable `Allow remote API` only
+  for a trusted remote NAIA endpoint.
 - EasyUse Anima does not store its own language setting. Node info, input/output
   hints, settings entries, custom DOM buttons, and tooltips follow the ComfyUI
   language setting.
@@ -175,17 +186,19 @@ ComfyUI Settings:
 
 ## Requirements
 
-NAIA must expose the ComfyUI remote API used by `comfyui-naia-bridge`.
+NAIA must expose the ComfyUI API used by `comfyui-naia-bridge`. Localhost is the
+default and recommended endpoint; remote NAIA endpoints require the explicit
+`Allow remote API` setting.
 
-SAM3 detailer nodes require `ComfyUI-Impact-Pack` at runtime. This is a ComfyUI
-custom-node dependency, not a Python package dependency, so it is not listed in
-`pyproject.toml` Python dependencies.
+The AiO generator's optional SAM3 detailer path requires `ComfyUI-Impact-Pack`
+at runtime. This is a ComfyUI custom-node dependency, not a Python package
+dependency, so it is not listed in `pyproject.toml` Python dependencies.
 
 Related node packs:
 
 - [ComfyUI-Spectrum-KSampler](https://github.com/sorryhyun/ComfyUI-Spectrum-KSampler): Used for Spectrum sampler, Mod Guidance, and Spectrum/DCW model patches. The latest version is recommended.
 - [ComfyUI-KJNodes](https://github.com/kijai/ComfyUI-KJNodes): Used for optimization options such as Torch Compile and SageAttention.
-- [ComfyUI-Impact-Pack](https://github.com/ltdrdata/ComfyUI-Impact-Pack): Required for Impact detailer and SAM3 detailer flows.
+- [ComfyUI-Impact-Pack](https://github.com/ltdrdata/ComfyUI-Impact-Pack): Required for Impact detailer and AiO SAM3 detailer flows.
 - [ComfyUI-Lora-Manager](https://github.com/willmiao/ComfyUI-Lora-Manager): Recommended for LoRA trigger-word and metadata management.
 - [ComfyUI-Image-Saver](https://github.com/alexopus/ComfyUI-Image-Saver): Used by AiO Save Options for workflow embedding and Civitai/LoRA metadata.
 - [ComfyUI-Anima-DAVE](https://github.com/sorryhyun/ComfyUI-Anima-DAVE): Optional model patch for generation diversity.

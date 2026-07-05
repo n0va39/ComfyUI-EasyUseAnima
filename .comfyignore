@@ -1,8 +1,58 @@
-# Development-only files kept in git but excluded from Comfy Registry archives.
-tests/
+# Comfy Registry package surface.
+# Keep runtime files plus README*, LICENSE, pyproject.toml, and requirements.txt.
+# Exclude docs, examples, tests, CI, generated media, and local-only artifacts.
 .github/
+docs/
+tests/
+example_workflows/
+examples/
+samples/
+CONTRIBUTING.md
+CONTRIBUTING.ko.md
+CODE_OF_CONDUCT.md
+SECURITY.md
 MAINTAINING.md
-docs/development/
+RELEASE.md
+jsconfig.json
+.gitignore
+.gitattributes
+.gitmodules
+.tracking
+install.bat
+install.sh
+install.ps1
+
+# Documentation/media payloads should not ship in Registry archives.
+*.mp4
+*.webm
+*.mov
+*.gif
+*.png
+*.jpg
+*.jpeg
+*.webp
+*.svg
+*.html
+*.zip
+*.7z
+*.tar
+*.gz
+
+# Local/user-generated folders commonly excluded by ComfyUI custom nodes.
+tools/
+workflow/
+workflows/
+wildcards/
+styles/
+autocomplete/
+web_beta/
+web_version/dev/
+node.tar.gz
+*.cache
+*.ini
+*.bak
+*.custom.txt
+config.yaml
 
 # Local caches and editor/runtime artifacts.
 __pycache__/
@@ -11,15 +61,20 @@ __pycache__/
 .pytest_cache/
 .ruff_cache/
 .mypy_cache/
+.tmp/
+.test_tmp/
+.tmp-tests/
+.tmp_tests/
 .vscode/
 .venv/
 venv/
 env/
+logs/
+*.log
 .DS_Store
 Thumbs.db
 
 # Legacy/generated local dataset folders should not ship.
-docs/dev/
 models/animadex/
 __animadex__/import/
 __animadex__/index/

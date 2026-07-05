@@ -3,6 +3,7 @@ import {
   normalizePromptTagText,
   promptCompletionTagText,
 } from "./easyuse_anima_prompt_rules.js";
+import { easyuseAnimaFetchJson, easyuseAnimaGetSettings } from "./easyuse_anima_api.js";
 import { easyuseAnimaText } from "./easyuse_anima_i18n.js";
 
 const TARGETS = {
@@ -325,11 +326,10 @@ function syncAutocompleteInputFlags() {
 
 async function refreshAutocompleteSettings() {
   try {
-    const response = await fetch("/easyuse_anima/settings");
-    if (!response.ok) {
+    const settings = await easyuseAnimaGetSettings({ fallback: null });
+    if (!settings) {
       return;
     }
-    const settings = await response.json();
     const nextMaxResults = clampMaxResults(settings["autocomplete.limit"]);
     if (nextMaxResults !== maxResults) {
       maxResults = nextMaxResults;
@@ -988,13 +988,9 @@ async function search(query, category = "") {
     return cache.get(key);
   }
   const categoryParam = category ? `&category=${encodeURIComponent(category)}` : "";
-  const response = await fetch(
+  const data = await easyuseAnimaFetchJson(
     `/easyuse_anima/autocomplete?q=${encodeURIComponent(query)}&limit=${maxResults}${categoryParam}`,
   );
-  const data = await response.json().catch(() => ({}));
-  if (!response.ok) {
-    throw new Error(data.message || `HTTP ${response.status}`);
-  }
   const results = Array.isArray(data.results) ? data.results : [];
   cache.set(key, results);
   return results;
@@ -1004,11 +1000,7 @@ async function loadWildcardItems() {
   if (Array.isArray(wildcardItemsCache)) {
     return wildcardItemsCache;
   }
-  const response = await fetch("/easyuse_anima/wildcards");
-  const data = await response.json().catch(() => ({}));
-  if (!response.ok) {
-    throw new Error(data.message || `HTTP ${response.status}`);
-  }
+  const data = await easyuseAnimaFetchJson("/easyuse_anima/wildcards");
   wildcardItemsCache = Array.isArray(data.items) ? data.items.map((item) => String(item || "")).filter(Boolean) : [];
   return wildcardItemsCache;
 }

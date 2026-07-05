@@ -20,8 +20,6 @@ from .nodes import (
     EasyUseAnimaPromptStudioRegional,
     EasyUseAnimaRegionalConditioning,
     EasyUseAnimaWildcard,
-    EasyUseAnimaSAM3Context,
-    EasyUseAnimaSAM3Detailer,
 )
 from . import api  # noqa: F401 - registers ComfyUI HTTP routes
 from .wildcard_engine import ensure_default_wildcard_root
@@ -52,8 +50,6 @@ NODE_CLASS_MAPPINGS = {
     "EasyUseAnimaPromptStudioRegional": EasyUseAnimaPromptStudioRegional,
     "EasyUseAnimaRegionalConditioning": EasyUseAnimaRegionalConditioning,
     "EasyUseAnimaWildcard": EasyUseAnimaWildcard,
-    "EasyUseAnimaSAM3Context": EasyUseAnimaSAM3Context,
-    "EasyUseAnimaSAM3Detailer": EasyUseAnimaSAM3Detailer,
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
@@ -75,8 +71,6 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "EasyUseAnimaPromptStudioRegional": "Anima Prompt Studio Regional",
     "EasyUseAnimaRegionalConditioning": "Anima Regional Conditioning",
     "EasyUseAnimaWildcard": "Anima Wildcard",
-    "EasyUseAnimaSAM3Context": "Anima SAM3 Context",
-    "EasyUseAnimaSAM3Detailer": "Anima SAM3 Detailer",
 }
 
 WEB_DIRECTORY = "./web"

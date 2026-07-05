@@ -1,8 +1,8 @@
 # ComfyUI EasyUse Anima
 
 Prompt editing, ANIMA prompt correction, NAIA prompt integration, LoRA preset
-management, wildcard expansion, AiO generation, and detailer helpers for ANIMA/Spectrum
-workflows in ComfyUI.
+management, wildcard expansion, AiO generation, and ANIMA/Spectrum workflow
+helpers for ComfyUI.
 
 ## Language / 언어
 

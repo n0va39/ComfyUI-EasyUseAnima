@@ -1,4 +1,5 @@
 import { app } from "../../../scripts/app.js";
+import { easyuseAnimaFetchJson, easyuseAnimaGetSettings, easyuseAnimaPostJson } from "./easyuse_anima_api.js";
 import {
   easyuseAnimaLocaleText,
   easyuseAnimaText,
@@ -307,7 +308,7 @@ const TEXT = {
     promptTranslation: "Prompt translation",
     promptTranslationProvider: "Translation method",
     promptTranslationProviderTip:
-      "Translates only text wrapped as %{...} before Prompt Studio builds queued prompt outputs.",
+      "Default is OFF. Select Google Translate only when you explicitly want external translation for text wrapped as %{...}.",
     promptTranslationProviderGoogle: "Google Translate",
     promptTranslationProviderOff: "No translation, unwrap only",
     promptTranslationSource: "Source language",
@@ -336,6 +337,9 @@ const TEXT = {
     addWildcardPath: "Add path",
     removeWildcardPath: "Remove",
     naiaEndpoint: "Connection",
+    naiaAllowRemoteApi: "Allow remote API",
+    naiaAllowRemoteApiTip:
+      "OFF keeps NAIA API calls localhost-only. Turn ON only for a trusted remote NAIA endpoint.",
     naiaPromptEngineering: "Prompt Engineering",
     naiaDesktopPromptEngineeringTip:
       "ON: ComfyUI does not send Prompt Engineering override values and NAIA 2.0 uses its own desktop settings. OFF: ComfyUI sends the values below as overrides for this request.",
@@ -426,7 +430,7 @@ const TEXT = {
     promptTranslation: "프롬프트 번역",
     promptTranslationProvider: "번역 방식",
     promptTranslationProviderTip:
-      "%{...}로 감싼 텍스트만 Prompt Studio 큐 출력 생성 전에 번역합니다.",
+      "기본값은 OFF입니다. %{...}로 감싼 텍스트를 외부 번역으로 보낼 때만 Google 번역을 명시적으로 선택하세요.",
     promptTranslationProviderGoogle: "Google 번역",
     promptTranslationProviderOff: "번역 안 함, 구문만 제거",
     promptTranslationSource: "원본 언어",
@@ -455,6 +459,9 @@ const TEXT = {
     addWildcardPath: "경로 추가",
     removeWildcardPath: "삭제",
     naiaEndpoint: "연결",
+    naiaAllowRemoteApi: "원격 API 허용",
+    naiaAllowRemoteApiTip:
+      "OFF이면 NAIA API 호출은 localhost로만 제한됩니다. 신뢰하는 원격 NAIA endpoint를 쓸 때만 켜세요.",
     naiaPromptEngineering: "Prompt Engineering",
     naiaDesktopPromptEngineeringTip:
       "ON: ComfyUI의 Prompt Engineering override 값을 보내지 않고 NAIA 2.0 프로그램의 자체 설정을 사용합니다. OFF: 아래 ComfyUI 설정값을 이번 요청의 override로 NAIA에 보냅니다.",
@@ -545,7 +552,7 @@ const TEXT = {
     promptTranslation: "プロンプト翻訳",
     promptTranslationProvider: "翻訳方式",
     promptTranslationProviderTip:
-      "%{...} で囲んだテキストだけを Prompt Studio のキュー出力生成前に翻訳します。",
+      "既定値は OFF です。%{...} で囲んだテキストを外部翻訳へ送る場合だけ Google 翻訳を明示的に選択してください。",
     promptTranslationProviderGoogle: "Google 翻訳",
     promptTranslationProviderOff: "翻訳しない、構文だけ外す",
     promptTranslationSource: "元言語",
@@ -574,6 +581,9 @@ const TEXT = {
     addWildcardPath: "パス追加",
     removeWildcardPath: "削除",
     naiaEndpoint: "接続",
+    naiaAllowRemoteApi: "リモート API を許可",
+    naiaAllowRemoteApiTip:
+      "OFF の場合、NAIA API 呼び出しは localhost のみに制限されます。信頼できるリモート NAIA endpoint を使う場合だけ ON にしてください。",
     naiaPromptEngineering: "Prompt Engineering",
     naiaDesktopPromptEngineeringTip:
       "ON: ComfyUI の Prompt Engineering override 値を送信せず、NAIA 2.0 アプリの設定を使用します。OFF: 下の ComfyUI 設定値をこのリクエストの override として NAIA に送信します。",
@@ -664,7 +674,7 @@ const TEXT = {
     promptTranslation: "提示词翻译",
     promptTranslationProvider: "翻译方式",
     promptTranslationProviderTip:
-      "仅翻译用 %{...} 包裹的文本，然后再生成 Prompt Studio 队列输出。",
+      "默认值为 OFF。只有在明确希望把 %{...} 包裹的文本发送到外部翻译时，才选择 Google 翻译。",
     promptTranslationProviderGoogle: "Google 翻译",
     promptTranslationProviderOff: "不翻译，仅去除语法",
     promptTranslationSource: "源语言",
@@ -693,6 +703,9 @@ const TEXT = {
     addWildcardPath: "添加路径",
     removeWildcardPath: "移除",
     naiaEndpoint: "连接",
+    naiaAllowRemoteApi: "允许远程 API",
+    naiaAllowRemoteApiTip:
+      "OFF 时 NAIA API 调用仅限 localhost。只有使用可信远程 NAIA endpoint 时才开启。",
     naiaPromptEngineering: "Prompt Engineering",
     naiaDesktopPromptEngineeringTip:
       "ON：ComfyUI 不发送 Prompt Engineering override 值，NAIA 2.0 使用自己的桌面设置。OFF：将下方 ComfyUI 设置值作为本次请求的 override 发送给 NAIA。",
@@ -766,6 +779,7 @@ const INTERNAL_KEYS = {
   "EasyUseAnima.LoraPreset.StrengthDragPixels": "lora_preset.strength_drag_pixels",
   "EasyUseAnima.NAIA.Host": "naia.host",
   "EasyUseAnima.NAIA.Port": "naia.port",
+  "EasyUseAnima.NAIA.AllowRemoteAPI": "naia.allow_remote_api",
   "EasyUseAnima.NAIA.UseDesktopPromptEngineering": "naia.use_naia_settings",
   "EasyUseAnima.NAIA.ResolutionMode": "naia.resolution_mode",
   "EasyUseAnima.NAIA.ResolutionBucket": "naia.resolution_bucket",
@@ -863,11 +877,7 @@ function updateInternalSetting(id, value, type = "text") {
 }
 
 async function loadLongTextSettings() {
-  const response = await fetch("/easyuse_anima/long_text_settings");
-  const data = await response.json().catch(() => ({}));
-  if (!response.ok) {
-    throw new Error(data.message || `HTTP ${response.status}`);
-  }
+  const data = await easyuseAnimaFetchJson("/easyuse_anima/long_text_settings", { fallbackJson: {} });
   const values = data.values || {};
   window.__easyuseAnimaSettings ||= {};
   Object.assign(window.__easyuseAnimaSettings, data.settings || {}, values);
@@ -875,15 +885,7 @@ async function loadLongTextSettings() {
 }
 
 async function saveLongTextSettings(values) {
-  const response = await fetch("/easyuse_anima/long_text_settings/save", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ values }),
-  });
-  const data = await response.json().catch(() => ({}));
-  if (!response.ok) {
-    throw new Error(data.message || `HTTP ${response.status}`);
-  }
+  const data = await easyuseAnimaPostJson("/easyuse_anima/long_text_settings/save", { values }, { fallbackJson: {} });
   window.__easyuseAnimaSettings ||= {};
   Object.assign(window.__easyuseAnimaSettings, data.settings || {}, data.values || {});
   window.dispatchEvent(
@@ -1653,8 +1655,8 @@ const EASYUSE_ANIMA_SETTINGS = [
     name: t("promptTranslationProvider"),
     tooltip: t("promptTranslationProviderTip"),
     type: "combo",
-    defaultValue: "google",
-    options: ["google", "off"],
+    defaultValue: "off",
+    options: ["off", "google"],
   }),
   setting({
     id: "EasyUseAnima.Prompt.TranslationSource",
@@ -1826,6 +1828,15 @@ const EASYUSE_ANIMA_SETTINGS = [
     defaultValue: "7243",
   }),
   setting({
+    id: "EasyUseAnima.NAIA.AllowRemoteAPI",
+    section: "NAIA",
+    group: t("naiaEndpoint"),
+    name: t("naiaAllowRemoteApi"),
+    tooltip: t("naiaAllowRemoteApiTip"),
+    type: "boolean",
+    defaultValue: false,
+  }),
+  setting({
     id: "EasyUseAnima.NAIA.UseDesktopPromptEngineering",
     section: "NAIA",
     group: t("naiaPromptEngineering"),
@@ -1890,11 +1901,7 @@ const EASYUSE_ANIMA_SETTINGS = [
 
 async function loadInitialSettings() {
   try {
-    const response = await fetch("/easyuse_anima/settings");
-    if (!response.ok) {
-      return {};
-    }
-    return await response.json();
+    return await easyuseAnimaGetSettings();
   } catch {
     return {};
   }
