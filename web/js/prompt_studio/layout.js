@@ -90,9 +90,16 @@ function advancedTextareaMinimumHeight(textarea) {
   );
 }
 
-function advancedTextareaCurrentHeight(textarea) {
+function advancedTextareaVisibleMinimumHeight(textarea) {
   return Math.max(
     advancedTextareaMinimumHeight(textarea),
+    advancedTextareaContentHeight(textarea),
+  );
+}
+
+function advancedTextareaCurrentHeight(textarea) {
+  return Math.max(
+    advancedTextareaVisibleMinimumHeight(textarea),
     Math.ceil(Number.parseFloat(textarea?.style?.height || "") || 0),
     Math.ceil(Number(textarea?.offsetHeight) || 0),
     Math.ceil(Number(textarea?.clientHeight) || 0),
@@ -116,7 +123,7 @@ function advancedEditorContentMinimumHeight(node) {
   }
   const textareas = advancedEditorTextareas(editor);
   const fixedHeight = advancedEditorFixedHeight(editor, textareas);
-  const textareaMinTotal = advancedTextareaHeightTotal(textareas, advancedTextareaMinimumHeight);
+  const textareaMinTotal = advancedTextareaHeightTotal(textareas, advancedTextareaVisibleMinimumHeight);
   return Math.ceil(Math.max(ADVANCED_EDITOR_MIN_VIEWPORT_HEIGHT, fixedHeight + textareaMinTotal));
 }
 
@@ -245,6 +252,7 @@ export {
   advancedTextareaContentHeight,
   advancedTextareaCurrentHeight,
   advancedTextareaMinimumHeight,
+  advancedTextareaVisibleMinimumHeight,
   clampAdvancedNodeToMinimumHeight,
   measureAdvancedEditorContentHeight,
   measureAdvancedEditorHeight,

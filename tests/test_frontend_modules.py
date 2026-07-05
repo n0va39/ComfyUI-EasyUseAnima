@@ -157,7 +157,7 @@ class FrontendModuleStructureTests(unittest.TestCase):
         )
         sync_body = advanced_fields_ui_source[sync_start:sync_end]
 
-        self.assertIn("advancedTextareaContentHeight(textarea)", sync_body)
+        self.assertIn("advancedTextareaVisibleMinimumHeight(textarea)", sync_body)
         self.assertIn(
             'const mode = field.heightMode === "manual" ? "manual" : "auto";',
             sync_body,
@@ -192,20 +192,23 @@ class FrontendModuleStructureTests(unittest.TestCase):
         set_body = advanced_fields_ui_source[set_start:set_end]
 
         self.assertIn(
-            'const mode = options.mode === "manual" ? "manual" : "auto";',
+            "const visibleMinimumHeight = advancedTextareaVisibleMinimumHeight(textarea);",
             set_body,
         )
-        self.assertIn('const requiredHeight = mode === "manual"', set_body)
-        self.assertIn('textarea.style.minHeight = `${minimumHeight}px`;', set_body)
         self.assertIn(
-            'textarea.style.overflowY = mode === "manual" ? "auto" : "hidden";',
+            "const nextHeight = Math.max(visibleMinimumHeight, Math.round(Number(height) || 0));",
             set_body,
         )
+        self.assertIn('textarea.style.minHeight = `${visibleMinimumHeight}px`;', set_body)
+        self.assertIn('textarea.style.overflowY = "hidden";', set_body)
+        self.assertIn("textarea.scrollTop = 0;", set_body)
         self.assertIn("mode,", advanced_fields_ui_source)
         self.assertIn(
             'mode: field.heightMode === "manual" ? "manual" : "auto",',
             advanced_fields_ui_source,
         )
+        self.assertNotIn('textarea.style.overflowY = mode === "manual" ? "auto" : "hidden";', set_body)
+        self.assertNotIn('if (field.heightMode === "manual")', advanced_fields_ui_source)
         self.assertNotIn("if (nextHeight !== field.height)", advanced_fields_ui_source)
 
     def test_prompt_studio_serialization_collects_text_without_layout_height(self):
