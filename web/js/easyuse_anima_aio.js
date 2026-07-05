@@ -34,6 +34,8 @@ const GENERATOR_NODE_DEFAULT_WIDTH = 620;
 const GENERATOR_PREVIEW_CARD_MIN_HEIGHT = 284;
 const GENERATOR_PANEL_VERTICAL_CHROME = 18;
 const GENERATOR_PANEL_MIN_HEIGHT = GENERATOR_PREVIEW_CARD_MIN_HEIGHT + GENERATOR_PANEL_VERTICAL_CHROME;
+const GENERATOR_NODE_CHROME_OFFSET_FLOOR = 70;
+const GENERATOR_NODE_CHROME_OFFSET_MAX = 220;
 const GENERATOR_PREVIEW_BOX_MIN_HEIGHT = 210;
 const GENERATOR_PREVIEW_BOX_MAX_HEIGHT = 360;
 const GENERATOR_PANEL_CONTROL_SELECTOR = "input, select, textarea, button";
@@ -3965,8 +3967,11 @@ function generatorPanelWidget(node) {
 
 function generatorNodeChromeOffset(node) {
   const widget = generatorPanelWidget(node);
-  const widgetY = Math.max(Number(widget?.last_y) || 0, Number(widget?.y) || 0);
-  return Math.ceil(Math.max(70, widgetY + 12));
+  const widgetY = Number(widget?.y);
+  const stableWidgetTop = Number.isFinite(widgetY) && widgetY > 0
+    ? Math.min(widgetY, GENERATOR_NODE_CHROME_OFFSET_MAX - 12)
+    : 0;
+  return Math.ceil(Math.max(GENERATOR_NODE_CHROME_OFFSET_FLOOR, stableWidgetTop + 12));
 }
 
 function generatorPanelHeight(node) {

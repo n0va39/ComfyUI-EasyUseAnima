@@ -32,6 +32,8 @@ class AIOFrontendSourceTests(unittest.TestCase):
             "const GENERATOR_PANEL_MIN_HEIGHT = GENERATOR_PREVIEW_CARD_MIN_HEIGHT + GENERATOR_PANEL_VERTICAL_CHROME;",
             source,
         )
+        self.assertIn("const GENERATOR_NODE_CHROME_OFFSET_FLOOR = 70;", source)
+        self.assertIn("const GENERATOR_NODE_CHROME_OFFSET_MAX = 220;", source)
         self.assertNotIn("const GENERATOR_PANEL_MIN_HEIGHT = 430;", source)
         self.assertIn("const GENERATOR_PREVIEW_BOX_MIN_HEIGHT = 210;", source)
         self.assertIn("const GENERATOR_PREVIEW_BOX_MAX_HEIGHT = 360;", source)
@@ -80,6 +82,20 @@ class AIOFrontendSourceTests(unittest.TestCase):
         self.assertIn("minHeight: generatorPanelMinHeight(node),", compute_body)
         self.assertIn("minWidth: GENERATOR_NODE_MIN_WIDTH - 18,", compute_body)
         self.assertNotIn("height:", compute_body)
+
+    def test_generator_chrome_offset_ignores_widget_bottom_position(self):
+        source = AIO_JS.read_text(encoding="utf-8")
+        start = source.index("function generatorNodeChromeOffset")
+        end = source.index("\nfunction generatorPanelHeight", start)
+        body = source[start:end]
+
+        self.assertIn("const widgetY = Number(widget?.y);", body)
+        self.assertIn("const stableWidgetTop =", body)
+        self.assertIn("Math.min(widgetY, GENERATOR_NODE_CHROME_OFFSET_MAX - 12)", body)
+        self.assertIn("GENERATOR_NODE_CHROME_OFFSET_FLOOR", body)
+        self.assertIn("stableWidgetTop + 12", body)
+        self.assertNotIn("last_y", body)
+        self.assertNotIn("Math.max(Number(widget?.last_y)", body)
 
     def test_generator_layout_maps_user_height_to_panel_viewport(self):
         source = AIO_JS.read_text(encoding="utf-8")
