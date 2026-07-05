@@ -109,6 +109,30 @@ class FrontendModuleStructureTests(unittest.TestCase):
         self.assertIn("./serialization.js", extension_runtime_source)
         self.assertIn("./runtime_canvas.js", extension_runtime_source)
 
+    def test_prompt_studio_layout_uses_explicit_dom_viewport_contract(self):
+        layout_source = (PROMPT_STUDIO_MODULES / "layout.js").read_text(
+            encoding="utf-8"
+        )
+        advanced_layout_controller_source = (
+            PROMPT_STUDIO_MODULES / "advanced_layout_controller.js"
+        ).read_text(encoding="utf-8")
+        style_source = (PROMPT_STUDIO_MODULES / "style.js").read_text(
+            encoding="utf-8"
+        )
+
+        self.assertIn("function applyAdvancedEditorViewportStyle", layout_source)
+        self.assertIn("--easyuse-anima-advanced-editor-height", layout_source)
+        self.assertIn('host.style.overflow = "hidden";', layout_source)
+        self.assertIn(
+            "applyAdvancedEditorViewportStyle(editor, widgetHeight);",
+            advanced_layout_controller_source,
+        )
+        self.assertIn(
+            "height: var(--easyuse-anima-advanced-editor-height, auto);",
+            style_source,
+        )
+        self.assertIn("scrollbar-gutter: stable;", style_source)
+
     def test_prompt_studio_phase_2_modules_export_expected_symbols(self):
         advanced_controls_source = (
             PROMPT_STUDIO_MODULES / "advanced_controls.js"

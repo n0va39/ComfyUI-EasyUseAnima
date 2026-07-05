@@ -11,9 +11,14 @@ function ensureAdvancedStyle() {
       box-sizing: border-box;
       width: 100%;
       min-width: 0;
+      min-height: 0;
+      height: var(--easyuse-anima-advanced-editor-height, auto);
+      max-height: var(--easyuse-anima-advanced-editor-height, none);
       overflow-x: hidden;
       overflow-y: auto;
       overscroll-behavior: contain;
+      scrollbar-gutter: stable;
+      contain: layout paint;
       color: var(--fg-color, #ddd);
       font: 12px sans-serif;
       user-select: none;

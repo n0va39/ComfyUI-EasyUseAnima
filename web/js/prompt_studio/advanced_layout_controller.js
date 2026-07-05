@@ -3,6 +3,7 @@
 import {
   advancedEditorWidgetHeight,
   advancedMinimumNodeHeight,
+  applyAdvancedEditorViewportStyle,
   clampAdvancedNodeToMinimumHeight,
   updateAdvancedEditorWidth,
 } from "./layout.js";
@@ -79,8 +80,7 @@ function applyAdvancedLayout(node, reason = "layout", hooks = {}) {
     const currentHeight = Number(node.size[1]) || 0;
     const minimumHeight = advancedMinimumNodeHeight(node);
     const widgetHeight = advancedEditorWidgetHeight(node);
-    editor.style.height = `${widgetHeight}px`;
-    editor.style.maxHeight = `${widgetHeight}px`;
+    applyAdvancedEditorViewportStyle(editor, widgetHeight);
     node.__easyuseAnimaAdvancedWidgetHeight = widgetHeight;
     node.__easyuseAnimaAdvancedLastEditorHeight = widgetHeight;
     node.__easyuseAnimaAdvancedLastLayoutReason = reason;

@@ -32,6 +32,8 @@ const GENERATOR_MAX_SEED = 1125899906842624;
 const GENERATOR_NODE_MIN_WIDTH = 560;
 const GENERATOR_NODE_DEFAULT_WIDTH = 620;
 const GENERATOR_PANEL_MIN_HEIGHT = 430;
+const GENERATOR_PREVIEW_BOX_MIN_HEIGHT = 210;
+const GENERATOR_PREVIEW_BOX_MAX_HEIGHT = 360;
 const GENERATOR_PANEL_CONTROL_SELECTOR = "input, select, textarea, button";
 const GENERATOR_VUE_NODE_CLASS = "easyuse-anima-aio-hide-native-live-preview";
 const GENERATOR_FALLBACK_SAMPLER_NAMES = [
@@ -2649,6 +2651,8 @@ function ensureStyle() {
       width: 100%;
       min-width: 0;
       min-height: ${GENERATOR_PANEL_MIN_HEIGHT}px;
+      height: var(--easyuse-anima-aio-panel-height, auto);
+      max-height: var(--easyuse-anima-aio-panel-height, none);
       padding: 9px;
       color: #ece7dc;
       font: 12px "Segoe UI", sans-serif;
@@ -2677,7 +2681,7 @@ function ensureStyle() {
       gap: 8px;
       flex: 1 1 auto;
       min-height: 284px;
-      height: 100%;
+      height: auto;
     }
     .easyuse-anima-aio-node-card {
       min-width: 0;
@@ -2964,7 +2968,6 @@ function ensureStyle() {
     .easyuse-anima-aio-node-preview {
       display: flex;
       flex-direction: column;
-      height: 100%;
       min-height: 0;
     }
     .easyuse-anima-aio-node-sampler-actions {
@@ -2989,9 +2992,10 @@ function ensureStyle() {
     }
     .easyuse-anima-aio-node-preview-box {
       position: relative;
-      flex: 1 1 auto;
-      height: auto;
-      min-height: 210px;
+      flex: 0 0 var(--easyuse-anima-aio-preview-box-height, ${GENERATOR_PREVIEW_BOX_MIN_HEIGHT}px);
+      height: var(--easyuse-anima-aio-preview-box-height, ${GENERATOR_PREVIEW_BOX_MIN_HEIGHT}px);
+      min-height: 0;
+      max-height: var(--easyuse-anima-aio-preview-box-height, ${GENERATOR_PREVIEW_BOX_MAX_HEIGHT}px);
       overflow: hidden;
       border: 1px solid #3c4952;
       border-radius: 6px;
@@ -3972,6 +3976,57 @@ function generatorAvailablePanelHeight(node) {
   return Math.max(0, Math.floor(nodeHeight - generatorNodeChromeOffset(node)));
 }
 
+function generatorClampHeight(value, min, max) {
+  const numericValue = Number(value);
+  if (!Number.isFinite(numericValue)) {
+    return min;
+  }
+  return Math.max(min, Math.min(max, Math.round(numericValue)));
+}
+
+function generatorPreviewBoxHeight(node, panelHeight) {
+  const panelWidth = generatorPanelWidth(node);
+  const previewColumnWidth = Math.max(180, panelWidth - 260 - 8 - 18);
+  const widthBasedHeight = previewColumnWidth * 0.78;
+  const panelBasedHeight = Math.max(
+    GENERATOR_PREVIEW_BOX_MIN_HEIGHT,
+    Number(panelHeight) - 114,
+  );
+  return generatorClampHeight(
+    Math.min(widthBasedHeight, panelBasedHeight),
+    GENERATOR_PREVIEW_BOX_MIN_HEIGHT,
+    GENERATOR_PREVIEW_BOX_MAX_HEIGHT,
+  );
+}
+
+function applyGeneratorPanelViewportStyle(panel, panelHeight, node) {
+  if (!(panel instanceof HTMLElement)) {
+    return;
+  }
+  const viewportHeight = Math.max(GENERATOR_PANEL_MIN_HEIGHT, Math.round(Number(panelHeight) || 0));
+  const heightValue = `${viewportHeight}px`;
+  panel.style.setProperty("--easyuse-anima-aio-panel-height", heightValue);
+  panel.style.setProperty(
+    "--easyuse-anima-aio-preview-box-height",
+    `${generatorPreviewBoxHeight(node, viewportHeight)}px`,
+  );
+  panel.style.height = heightValue;
+  panel.style.maxHeight = heightValue;
+  panel.style.minHeight = `${GENERATOR_PANEL_MIN_HEIGHT}px`;
+
+  const host = panel.parentElement;
+  if (
+    host instanceof HTMLElement
+    && host.children.length === 1
+    && host.parentElement
+  ) {
+    host.style.height = heightValue;
+    host.style.maxHeight = heightValue;
+    host.style.minHeight = "0px";
+    host.style.overflow = "hidden";
+  }
+}
+
 function measureGeneratorPanelContentHeight(node) {
   const panel = node?.__easyuseAnimaGeneratorPanelEl;
   if (!panel) {
@@ -3999,7 +4054,7 @@ function applyGeneratorLayout(node) {
     const minPanelHeight = measureGeneratorPanelContentHeight(node);
     const panelHeight = Math.max(minPanelHeight, generatorAvailablePanelHeight(node));
     node.__easyuseAnimaGeneratorPanelHeight = panelHeight;
-    panel.style.height = `${panelHeight}px`;
+    applyGeneratorPanelViewportStyle(panel, panelHeight, node);
     const currentWidth = Number(node.size[0]) || GENERATOR_NODE_DEFAULT_WIDTH;
     const currentHeight = Number(node.size[1]) || 0;
     const minHeight = generatorMinimumNodeHeight(node);
