@@ -1,0 +1,27 @@
+name: Sync Comfy Registry metadata
+
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Print planned Registry metadata changes without applying them."
+        required: true
+        default: "true"
+        type: choice
+        options:
+          - "true"
+          - "false"
+
+jobs:
+  sync-registry-metadata:
+    name: Sync node description and version changelogs
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Sync metadata
+        env:
+          REGISTRY_ACCESS_TOKEN: ${{ secrets.REGISTRY_ACCESS_TOKEN }}
+        run: |
+          python .github/scripts/sync_comfy_registry_metadata.py --dry-run "${{ inputs.dry_run }}"
