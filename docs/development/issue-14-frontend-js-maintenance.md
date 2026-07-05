@@ -890,6 +890,32 @@ feeding wrapper measurements back into node layout.
 - PR validation notes state which of the Node 2.0 and legacy smoke checks were
   run, and which remain unverified.
 
+### Live Validation Notes
+
+- 2026-07-05: ComfyUI v0.24.0 agent instance, English UI, `Nodes 2.0` OFF:
+  Prompt Studio Advanced textarea resize and node layout behavior are improved
+  in the latest manual observation. Treat this as an observed legacy-canvas
+  improvement, not as a final pass; Node 2.0 fixes can still regress this path.
+- 2026-07-05: ComfyUI v0.24.0 agent instance, English UI, `Nodes 2.0` ON:
+  earlier smoke check failed. After enabling the menu option, the Advanced
+  editor viewport was observed growing from the legacy-canvas range to about
+  `1228px`, and a textarea grew to about `489px` from content height. Continue
+  treating Node 2.0 as unresolved until the ON path preserves the user node
+  size and separates node resize from textarea height ownership.
+- 2026-07-05: ComfyUI v0.24.0 agent instance, English UI, `Nodes 2.0` ON,
+  after the latest local patch: Advanced editor viewport stayed at `360px`
+  instead of re-adopting the inflated Node 2.0 wrapper height, and AiO Generator
+  panel height stayed at `302px` after a 5 second wait. Advanced textarea manual
+  resize was observed increasing `58px -> 132px` and shrinking `132px -> 58px`.
+  The pysssss image feed overlay can cover the bottom resize handle during
+  manual tests; close that overlay before treating a drag failure as an Anima
+  regression.
+- 2026-07-05: ComfyUI v0.24.0 agent instance, English UI, `Nodes 2.0` OFF,
+  after the latest local patch: Advanced editor viewport stayed at `360px`,
+  AiO Generator panel height stayed at `302px`, and Advanced textarea manual
+  resize was observed increasing `58px -> 116px` and shrinking `116px -> 58px`.
+  This is a same-patch smoke observation, not a final compatibility guarantee.
+
 ## Frontend Refactor PR Checklist
 
 Use this checklist for each follow-up frontend refactor PR.

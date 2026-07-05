@@ -101,7 +101,8 @@ function applyAdvancedLayout(node, reason = "layout", hooks = {}) {
     const currentWidth = Number(node.size[0]) || 360;
     const currentHeight = Number(node.size[1]) || 0;
     const minimumHeight = advancedMinimumNodeHeight(node);
-    const widgetHeight = getAdvancedEditorElement(node)?.isConnected
+    const shouldAdoptNodeHeight = Boolean(node.__easyuseAnimaAdvancedUserResizing);
+    const widgetHeight = shouldAdoptNodeHeight
       ? advancedNodeAvailableEditorViewportHeight(node)
       : advancedEditorWidgetHeight(node);
     applyAdvancedWidgetAllocation(node, widgetHeight);

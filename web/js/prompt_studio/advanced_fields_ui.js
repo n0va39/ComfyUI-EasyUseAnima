@@ -60,12 +60,12 @@ function setAdvancedTextareaHeight(node, textarea, height, options = {}, hooks =
   const mode = options.mode === "manual" ? "manual" : "auto";
   const minimumHeight = advancedTextareaMinimumHeight(textarea);
   const contentHeight = advancedTextareaContentHeight(textarea);
-  const requiredHeight = Math.max(minimumHeight, contentHeight);
+  const requiredHeight = mode === "manual" ? minimumHeight : Math.max(minimumHeight, contentHeight);
   const nextHeight = Math.max(requiredHeight, Math.round(Number(height) || 0));
   markAdvancedTextareaProgrammaticHeight(textarea);
   textarea.style.minHeight = `${minimumHeight}px`;
   textarea.style.height = `${nextHeight}px`;
-  textarea.style.overflowY = "hidden";
+  textarea.style.overflowY = mode === "manual" && contentHeight > nextHeight ? "auto" : "hidden";
   let field = null;
   if (options.syncField !== false || options.refreshHighlight !== false) {
     field = advancedFieldByTextarea(node, textarea, hooks);
@@ -146,17 +146,25 @@ function installAdvancedTextareaResizeObserver(textarea, persistTextareaHeight) 
 function createAdvancedTextareaResizeHandle(node, textarea, persistTextareaHeight, hooks = {}) {
   const handle = document.createElement("div");
   handle.className = "easyuse-anima-advanced-textarea-resize";
-  handle.addEventListener("pointerdown", (event) => {
+  handle.draggable = false;
+  const startResize = (event) => {
     if (Number(event.button) > 0) {
       return;
     }
     event.preventDefault();
     event.stopPropagation();
+    if (handle.__easyuseAnimaAdvancedTextareaResizing) {
+      return;
+    }
+    handle.__easyuseAnimaAdvancedTextareaResizing = true;
     rememberAdvancedTextareaResizeStart(textarea);
     const startY = event.clientY;
     const startHeight = advancedTextareaCurrentBoxHeight(textarea);
     const rectHeight = Math.max(1, textarea.getBoundingClientRect().height);
     const cssPixelScale = startHeight / rectHeight;
+    const moveEventName = event.type === "mousedown" ? "mousemove" : "pointermove";
+    const upEventName = event.type === "mousedown" ? "mouseup" : "pointerup";
+    const cancelEventName = event.type === "mousedown" ? null : "pointercancel";
 
     const move = (moveEvent) => {
       moveEvent.preventDefault();
@@ -172,21 +180,29 @@ function createAdvancedTextareaResizeHandle(node, textarea, persistTextareaHeigh
     const finish = (finishEvent) => {
       finishEvent?.preventDefault?.();
       finishEvent?.stopPropagation?.();
-      document.removeEventListener("pointermove", move, true);
-      document.removeEventListener("pointerup", finish, true);
-      document.removeEventListener("pointercancel", finish, true);
+      handle.__easyuseAnimaAdvancedTextareaResizing = false;
+      document.removeEventListener(moveEventName, move, true);
+      document.removeEventListener(upEventName, finish, true);
+      if (cancelEventName) {
+        document.removeEventListener(cancelEventName, finish, true);
+      }
       persistTextareaHeight(advancedTextareaCurrentBoxHeight(textarea), "manual");
     };
 
-    document.addEventListener("pointermove", move, true);
-    document.addEventListener("pointerup", finish, true);
-    document.addEventListener("pointercancel", finish, true);
+    document.addEventListener(moveEventName, move, true);
+    document.addEventListener(upEventName, finish, true);
+    if (cancelEventName) {
+      document.addEventListener(cancelEventName, finish, true);
+    }
     try {
       handle.setPointerCapture?.(event.pointerId);
     } catch {
       // Pointer capture can fail in transformed/canvas-hosted DOM overlays.
     }
-  });
+  };
+  handle.addEventListener("pointerdown", startResize, true);
+  handle.addEventListener("mousedown", startResize, true);
+  handle.addEventListener("click", (event) => event.stopPropagation(), true);
   return handle;
 }
 

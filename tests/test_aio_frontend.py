@@ -116,8 +116,10 @@ class AIOFrontendSourceTests(unittest.TestCase):
         self.assertIn("const availablePanelHeight = generatorAvailablePanelHeight(node);", body)
         self.assertIn("clampGeneratorNodeWidth(node);", body)
         self.assertIn("applyGeneratorWidgetAllocation(node, panelHeight);", body)
+        self.assertIn("const shouldAdoptNodeHeight = Boolean(node.__easyuseAnimaGeneratorUserResizing);", body)
         self.assertIn("currentHeight >= minHeight - 1", body)
         self.assertIn("Math.max(minPanelHeight, availablePanelHeight)", body)
+        self.assertIn("Math.max(minPanelHeight, generatorPanelHeight(node))", body)
         self.assertNotIn("Math.abs(currentHeight - minHeight)", body)
         self.assertNotIn("Math.max(currentWidth, GENERATOR_NODE_DEFAULT_WIDTH)", body)
         self.assertNotIn("node.setSize?.([", body)
@@ -165,11 +167,10 @@ class AIOFrontendSourceTests(unittest.TestCase):
         self.assertNotIn("node.setSize([targetWidth", min_width_body)
         self.assertIn("clampGeneratorNodeWidth(node);", ensure_body)
         self.assertNotIn("clampGeneratorNodeWidth(node, GENERATOR_NODE_DEFAULT_WIDTH);", ensure_body)
+        self.assertIn("function isGeneratorCanvasResizingNode", source)
+        self.assertIn("canvas?.resizing_node === node", source)
+        self.assertIn("if (isGeneratorCanvasResizingNode(this))", on_resize_body)
         self.assertIn("markGeneratorUserResize(this);", on_resize_body)
-        self.assertLess(
-            on_resize_body.index("markGeneratorUserResize(this);"),
-            on_resize_body.index("onResize?.apply(this, arguments);"),
-        )
         self.assertIn("node.__easyuseAnimaGeneratorUserResizing = true;", source)
         self.assertIn("node.__easyuseAnimaGeneratorUserResizing = false;", source)
 

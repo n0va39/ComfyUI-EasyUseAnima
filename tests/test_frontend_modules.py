@@ -63,6 +63,9 @@ class FrontendModuleStructureTests(unittest.TestCase):
         extension_runtime_source = (
             PROMPT_STUDIO_MODULES / "extension_runtime.js"
         ).read_text(encoding="utf-8")
+        node_hooks_source = (
+            PROMPT_STUDIO_MODULES / "node_hooks.js"
+        ).read_text(encoding="utf-8")
         style_source = (PROMPT_STUDIO_MODULES / "style.js").read_text(
             encoding="utf-8"
         )
@@ -151,6 +154,10 @@ class FrontendModuleStructureTests(unittest.TestCase):
             advanced_layout_controller_source,
         )
         self.assertIn(
+            "const shouldAdoptNodeHeight = Boolean(node.__easyuseAnimaAdvancedUserResizing);",
+            advanced_layout_controller_source,
+        )
+        self.assertIn(
             "? advancedNodeAvailableEditorViewportHeight(node)",
             advanced_layout_controller_source,
         )
@@ -200,6 +207,9 @@ class FrontendModuleStructureTests(unittest.TestCase):
         extension_runtime_source = (
             PROMPT_STUDIO_MODULES / "extension_runtime.js"
         ).read_text(encoding="utf-8")
+        node_hooks_source = (
+            PROMPT_STUDIO_MODULES / "node_hooks.js"
+        ).read_text(encoding="utf-8")
         style_source = (PROMPT_STUDIO_MODULES / "style.js").read_text(
             encoding="utf-8"
         )
@@ -232,8 +242,12 @@ class FrontendModuleStructureTests(unittest.TestCase):
         self.assertIn('persistTextareaHeight(currentHeight, "manual");', advanced_fields_ui_source)
         self.assertIn("function createAdvancedTextareaResizeHandle", advanced_fields_ui_source)
         self.assertIn('handle.className = "easyuse-anima-advanced-textarea-resize";', advanced_fields_ui_source)
+        self.assertIn("handle.draggable = false;", advanced_fields_ui_source)
         self.assertIn("if (Number(event.button) > 0)", advanced_fields_ui_source)
-        self.assertIn('document.addEventListener("pointermove", move, true);', advanced_fields_ui_source)
+        self.assertIn('const moveEventName = event.type === "mousedown" ? "mousemove" : "pointermove";', advanced_fields_ui_source)
+        self.assertIn('handle.addEventListener("pointerdown", startResize, true);', advanced_fields_ui_source)
+        self.assertIn('handle.addEventListener("mousedown", startResize, true);', advanced_fields_ui_source)
+        self.assertIn("document.addEventListener(moveEventName, move, true);", advanced_fields_ui_source)
         self.assertIn("handle.setPointerCapture?.(event.pointerId);", advanced_fields_ui_source)
         self.assertIn("const cssPixelScale = startHeight / rectHeight;", advanced_fields_ui_source)
         self.assertIn('textareaWrap.className = "easyuse-anima-advanced-textarea-wrap";', advanced_fields_ui_source)
@@ -252,6 +266,9 @@ class FrontendModuleStructureTests(unittest.TestCase):
         self.assertIn("node.__easyuseAnimaAdvancedUserResizing = true;", advanced_layout_controller_source)
         self.assertIn("node.__easyuseAnimaAdvancedUserResizing = false;", advanced_layout_controller_source)
         self.assertIn("markAdvancedUserResize,", extension_runtime_source)
+        self.assertIn("function isCanvasResizingNode", node_hooks_source)
+        self.assertIn("canvas?.resizing_node === node", node_hooks_source)
+        self.assertIn("if (isCanvasResizingNode(this))", node_hooks_source)
         self.assertLess(
             advanced_layout_controller_source.index("updateAdvancedEditorWidth(node);"),
             advanced_layout_controller_source.index("syncAdvancedTextareaHeightsForWidth(node, hooks);"),
@@ -284,12 +301,14 @@ class FrontendModuleStructureTests(unittest.TestCase):
         self.assertIn("const minimumHeight = advancedTextareaMinimumHeight(textarea);", set_body)
         self.assertIn("const contentHeight = advancedTextareaContentHeight(textarea);", set_body)
         self.assertIn(
-            "const requiredHeight = Math.max(minimumHeight, contentHeight);",
+            'const requiredHeight = mode === "manual" ? minimumHeight : Math.max(minimumHeight, contentHeight);',
             set_body,
         )
         self.assertIn('textarea.style.minHeight = `${minimumHeight}px`;', set_body)
-        self.assertIn('textarea.style.overflowY = "hidden";', set_body)
-        self.assertNotIn('textarea.style.overflowY = mode === "manual" ? "auto" : "hidden";', set_body)
+        self.assertIn(
+            'textarea.style.overflowY = mode === "manual" && contentHeight > nextHeight ? "auto" : "hidden";',
+            set_body,
+        )
         self.assertIn("field.heightMode = mode;", set_body)
         self.assertNotIn("textarea.scrollTop = 0;", set_body)
         self.assertNotIn("textarea.scrollLeft = 0;", set_body)
