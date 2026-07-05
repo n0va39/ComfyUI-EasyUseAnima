@@ -1,6 +1,10 @@
 import { app } from "../../../scripts/app.js";
 import { api } from "../../../scripts/api.js";
 import { easyuseAnimaText, easyuseAnimaWatchLocale } from "./easyuse_anima_i18n.js";
+import {
+  installNodeResizePointerTracker,
+  isNodeUserResizeActive,
+} from "./prompt_studio/node_resize_tracking.js";
 
 const INPUT_NODE_TYPE = "EasyUseAnimaInput";
 const GENERATOR_NODE_TYPE = "EasyUseAnimaAIOGenerator";
@@ -31,7 +35,13 @@ const GENERATOR_SPECIAL_SEEDS = [
 const GENERATOR_MAX_SEED = 1125899906842624;
 const GENERATOR_NODE_MIN_WIDTH = 560;
 const GENERATOR_NODE_DEFAULT_WIDTH = 620;
-const GENERATOR_PANEL_MIN_HEIGHT = 430;
+const GENERATOR_PREVIEW_CARD_MIN_HEIGHT = 284;
+const GENERATOR_PANEL_VERTICAL_CHROME = 18;
+const GENERATOR_PANEL_MIN_HEIGHT = GENERATOR_PREVIEW_CARD_MIN_HEIGHT + GENERATOR_PANEL_VERTICAL_CHROME;
+const GENERATOR_NODE_CHROME_OFFSET_FLOOR = 70;
+const GENERATOR_NODE_CHROME_OFFSET_MAX = 220;
+const GENERATOR_PREVIEW_BOX_MIN_HEIGHT = 210;
+const GENERATOR_PREVIEW_BOX_MAX_HEIGHT = 360;
 const GENERATOR_PANEL_CONTROL_SELECTOR = "input, select, textarea, button";
 const GENERATOR_VUE_NODE_CLASS = "easyuse-anima-aio-hide-native-live-preview";
 const GENERATOR_FALLBACK_SAMPLER_NAMES = [
@@ -2649,6 +2659,8 @@ function ensureStyle() {
       width: 100%;
       min-width: 0;
       min-height: ${GENERATOR_PANEL_MIN_HEIGHT}px;
+      height: var(--easyuse-anima-aio-panel-height, auto);
+      max-height: var(--easyuse-anima-aio-panel-height, none);
       padding: 9px;
       color: #ece7dc;
       font: 12px "Segoe UI", sans-serif;
@@ -2674,10 +2686,12 @@ function ensureStyle() {
     .easyuse-anima-aio-node-main {
       display: grid;
       grid-template-columns: 260px minmax(0, 1fr);
+      align-items: stretch;
       gap: 8px;
-      flex: 1 1 auto;
-      min-height: 284px;
-      height: 100%;
+      flex: 0 0 var(--easyuse-anima-aio-main-height, auto);
+      min-height: ${GENERATOR_PREVIEW_CARD_MIN_HEIGHT}px;
+      height: var(--easyuse-anima-aio-main-height, auto);
+      max-height: var(--easyuse-anima-aio-main-height, none);
     }
     .easyuse-anima-aio-node-card {
       min-width: 0;
@@ -2690,7 +2704,8 @@ function ensureStyle() {
       display: flex;
       flex-direction: column;
       min-height: 0;
-      height: 100%;
+      height: var(--easyuse-anima-aio-settings-card-height, auto);
+      max-height: var(--easyuse-anima-aio-settings-card-height, none);
       overflow: hidden;
     }
     .easyuse-anima-aio-node-settings-scroll {
@@ -2964,8 +2979,11 @@ function ensureStyle() {
     .easyuse-anima-aio-node-preview {
       display: flex;
       flex-direction: column;
-      height: 100%;
+      align-self: stretch;
       min-height: 0;
+      height: var(--easyuse-anima-aio-preview-card-height, auto);
+      max-height: var(--easyuse-anima-aio-preview-card-height, none);
+      overflow: hidden;
     }
     .easyuse-anima-aio-node-sampler-actions {
       display: grid;
@@ -2985,13 +3003,14 @@ function ensureStyle() {
       text-align: center;
     }
     .easyuse-anima-aio-node-preview {
-      min-height: 284px;
+      min-height: ${GENERATOR_PREVIEW_CARD_MIN_HEIGHT}px;
     }
     .easyuse-anima-aio-node-preview-box {
       position: relative;
-      flex: 1 1 auto;
-      height: auto;
-      min-height: 210px;
+      flex: 0 0 var(--easyuse-anima-aio-preview-box-height, ${GENERATOR_PREVIEW_BOX_MIN_HEIGHT}px);
+      height: var(--easyuse-anima-aio-preview-box-height, ${GENERATOR_PREVIEW_BOX_MIN_HEIGHT}px);
+      min-height: 0;
+      max-height: var(--easyuse-anima-aio-preview-box-height, ${GENERATOR_PREVIEW_BOX_MAX_HEIGHT}px);
       overflow: hidden;
       border: 1px solid #3c4952;
       border-radius: 6px;
@@ -3944,19 +3963,76 @@ function generatorPanelWidth(node) {
   return Math.max(240, Math.floor((Number(node?.size?.[0]) || GENERATOR_NODE_DEFAULT_WIDTH) - 20));
 }
 
+function ensureGeneratorNodeMinWidth(node) {
+  if (!node) {
+    return;
+  }
+  node.minWidth = Math.max(Number(node.minWidth) || 0, GENERATOR_NODE_MIN_WIDTH);
+  const minSize = Array.isArray(node.minSize) ? node.minSize : [];
+  node.minSize = [
+    Math.max(Number(minSize[0]) || 0, GENERATOR_NODE_MIN_WIDTH),
+    Number(minSize[1]) || 0,
+  ];
+}
+
+function clampGeneratorNodeWidth(node, minimumWidth = GENERATOR_NODE_MIN_WIDTH) {
+  ensureGeneratorNodeMinWidth(node);
+  if (!Array.isArray(node?.size)) {
+    return false;
+  }
+  const currentWidth = Number(node.size[0]) || 0;
+  const targetWidth = Math.max(GENERATOR_NODE_MIN_WIDTH, Number(minimumWidth) || 0);
+  if (currentWidth >= targetWidth - 1) {
+    return false;
+  }
+  node.size[0] = targetWidth;
+  markNodeDirty(node);
+  return true;
+}
+
 function generatorPanelWidget(node) {
   return node?.__easyuseAnimaGeneratorPanelWidget
     || node?.widgets?.find?.((widget) => widget?.name === GENERATOR_DOM_WIDGET)
     || null;
 }
 
+function applyGeneratorWidgetAllocation(node, height) {
+  const viewportHeight = Math.max(
+    GENERATOR_PANEL_MIN_HEIGHT,
+    Math.round(Number(height) || 0),
+  );
+  const widget = generatorPanelWidget(node);
+  if (widget) {
+    widget.computedHeight = viewportHeight;
+  }
+  node.__easyuseAnimaGeneratorPanelHeight = viewportHeight;
+  return viewportHeight;
+}
+
 function generatorNodeChromeOffset(node) {
   const widget = generatorPanelWidget(node);
-  const widgetY = Math.max(Number(widget?.last_y) || 0, Number(widget?.y) || 0);
-  return Math.ceil(Math.max(70, widgetY + 12));
+  const widgetY = Number(widget?.y);
+  const stableWidgetTop = Number.isFinite(widgetY) && widgetY > 0
+    ? Math.min(widgetY, GENERATOR_NODE_CHROME_OFFSET_MAX - 12)
+    : 0;
+  return Math.ceil(Math.max(GENERATOR_NODE_CHROME_OFFSET_FLOOR, stableWidgetTop + 12));
+}
+
+function generatorNodeAvailablePanelHeight(node) {
+  const nodeHeight = Number(node?.size?.[1]) || 0;
+  if (nodeHeight <= 0) {
+    return 0;
+  }
+  return Math.max(
+    GENERATOR_PANEL_MIN_HEIGHT,
+    Math.ceil(nodeHeight - generatorNodeChromeOffset(node)),
+  );
 }
 
 function generatorPanelHeight(node) {
+  if (isNodeUserResizeActive(node)) {
+    return generatorNodeAvailablePanelHeight(node);
+  }
   return Math.max(GENERATOR_PANEL_MIN_HEIGHT, Number(node?.__easyuseAnimaGeneratorPanelHeight) || 0);
 }
 
@@ -3965,11 +4041,88 @@ function generatorPanelMinHeight(node) {
 }
 
 function generatorAvailablePanelHeight(node) {
-  const nodeHeight = Number(node?.size?.[1]) || 0;
-  if (nodeHeight <= 0) {
-    return 0;
+  return generatorNodeAvailablePanelHeight(node);
+}
+
+function generatorClampHeight(value, min, max) {
+  const numericValue = Number(value);
+  if (!Number.isFinite(numericValue)) {
+    return min;
   }
-  return Math.max(0, Math.floor(nodeHeight - generatorNodeChromeOffset(node)));
+  return Math.max(min, Math.min(max, Math.round(numericValue)));
+}
+
+function generatorPreviewBoxHeight(node, panelHeight, options = {}) {
+  const panelWidth = generatorPanelWidth(node);
+  const previewColumnWidth = Math.max(180, panelWidth - 260 - 8 - 18);
+  const widthBasedHeight = previewColumnWidth * 0.78;
+  const panelBasedHeight = Math.max(
+    GENERATOR_PREVIEW_BOX_MIN_HEIGHT,
+    Number(panelHeight) - 114,
+  );
+  const fillHeight = options.fillHeight === true;
+  const preferredHeight = fillHeight
+    ? panelBasedHeight
+    : Math.min(widthBasedHeight, panelBasedHeight);
+  const maxHeight = fillHeight
+    ? Math.max(GENERATOR_PREVIEW_BOX_MAX_HEIGHT, panelBasedHeight)
+    : GENERATOR_PREVIEW_BOX_MAX_HEIGHT;
+  return generatorClampHeight(
+    preferredHeight,
+    GENERATOR_PREVIEW_BOX_MIN_HEIGHT,
+    maxHeight,
+  );
+}
+
+function generatorPreviewCardHeight(panel, panelHeight) {
+  const previewCard = panel?.querySelector?.(".easyuse-anima-aio-node-preview");
+  if (!(previewCard instanceof HTMLElement)) {
+    return GENERATOR_PREVIEW_CARD_MIN_HEIGHT;
+  }
+  const measuredHeight = Math.ceil(Math.max(
+    Number(previewCard.scrollHeight) || 0,
+    Number(previewCard.offsetHeight) || 0,
+  ));
+  return generatorClampHeight(
+    measuredHeight || GENERATOR_PREVIEW_CARD_MIN_HEIGHT,
+    GENERATOR_PREVIEW_CARD_MIN_HEIGHT,
+    Math.max(GENERATOR_PREVIEW_CARD_MIN_HEIGHT, Number(panelHeight) || GENERATOR_PANEL_MIN_HEIGHT),
+  );
+}
+
+function generatorDesiredPanelHeight(node) {
+  const panel = node?.__easyuseAnimaGeneratorPanelEl;
+  const previewCardHeight = generatorPreviewCardHeight(panel, GENERATOR_PANEL_MIN_HEIGHT);
+  return Math.max(GENERATOR_PANEL_MIN_HEIGHT, previewCardHeight + GENERATOR_PANEL_VERTICAL_CHROME);
+}
+
+function applyGeneratorPanelViewportStyle(panel, panelHeight, node) {
+  if (!(panel instanceof HTMLElement)) {
+    return;
+  }
+  const viewportHeight = Math.max(GENERATOR_PANEL_MIN_HEIGHT, Math.round(Number(panelHeight) || 0));
+  const minViewportHeight = generatorPanelMinHeight(node);
+  const mainHeight = Math.max(
+    GENERATOR_PREVIEW_CARD_MIN_HEIGHT,
+    viewportHeight - GENERATOR_PANEL_VERTICAL_CHROME,
+  );
+  const fillHeight = viewportHeight > minViewportHeight + 1;
+  const heightValue = `${viewportHeight}px`;
+  const mainHeightValue = `${mainHeight}px`;
+  panel.style.setProperty("--easyuse-anima-aio-panel-height", heightValue);
+  panel.style.setProperty("--easyuse-anima-aio-main-height", mainHeightValue);
+  panel.style.setProperty("--easyuse-anima-aio-preview-card-height", mainHeightValue);
+  panel.style.setProperty(
+    "--easyuse-anima-aio-preview-box-height",
+    `${generatorPreviewBoxHeight(node, viewportHeight, { fillHeight })}px`,
+  );
+  panel.style.setProperty(
+    "--easyuse-anima-aio-settings-card-height",
+    mainHeightValue,
+  );
+  panel.style.height = heightValue;
+  panel.style.maxHeight = heightValue;
+  panel.style.minHeight = `${GENERATOR_PANEL_MIN_HEIGHT}px`;
 }
 
 function measureGeneratorPanelContentHeight(node) {
@@ -3993,22 +4146,19 @@ function applyGeneratorLayout(node) {
   }
   node.__easyuseAnimaGeneratorApplyingLayout = true;
   try {
+    clampGeneratorNodeWidth(node);
     const width = generatorPanelWidth(node);
     panel.style.width = `${width}px`;
     panel.style.maxWidth = `${width}px`;
     const minPanelHeight = measureGeneratorPanelContentHeight(node);
-    const panelHeight = Math.max(minPanelHeight, generatorAvailablePanelHeight(node));
-    node.__easyuseAnimaGeneratorPanelHeight = panelHeight;
-    panel.style.height = `${panelHeight}px`;
-    const currentWidth = Number(node.size[0]) || GENERATOR_NODE_DEFAULT_WIDTH;
-    const currentHeight = Number(node.size[1]) || 0;
-    const minHeight = generatorMinimumNodeHeight(node);
-    if (currentHeight < minHeight - 1 || currentWidth < GENERATOR_NODE_MIN_WIDTH) {
-      node.setSize?.([
-        Math.max(currentWidth, GENERATOR_NODE_DEFAULT_WIDTH),
-        Math.max(currentHeight, minHeight),
-      ]);
-    }
+    const availablePanelHeight = generatorAvailablePanelHeight(node);
+    const shouldAdoptNodeHeight = Boolean(node.__easyuseAnimaGeneratorUserResizing)
+      || isNodeUserResizeActive(node);
+    const panelHeight = shouldAdoptNodeHeight
+      ? Math.max(minPanelHeight, availablePanelHeight)
+      : Math.max(minPanelHeight, generatorPanelHeight(node), generatorDesiredPanelHeight(node));
+    applyGeneratorWidgetAllocation(node, panelHeight);
+    applyGeneratorPanelViewportStyle(panel, panelHeight, node);
     markNodeDirty(node);
   } finally {
     node.__easyuseAnimaGeneratorApplyingLayout = false;
@@ -4024,6 +4174,18 @@ function scheduleGeneratorLayout(node) {
     node.__easyuseAnimaGeneratorLayoutScheduled = false;
     applyGeneratorLayout(node);
   });
+}
+
+function markGeneratorUserResize(node) {
+  if (!node || node.__easyuseAnimaGeneratorApplyingLayout) {
+    return;
+  }
+  node.__easyuseAnimaGeneratorUserResizing = true;
+  clearTimeout(node.__easyuseAnimaGeneratorUserResizeTimer);
+  node.__easyuseAnimaGeneratorUserResizeTimer = setTimeout(() => {
+    node.__easyuseAnimaGeneratorUserResizing = false;
+    scheduleGeneratorLayout(node);
+  }, 180);
 }
 
 function generatorSettings(node) {
@@ -5441,10 +5603,7 @@ function ensureGeneratorPanel(node) {
   ensureStyle();
   node.serialize_widgets = true;
   suppressGeneratorDefaultPreview(node, { markDirty: false });
-  node.minWidth = Math.max(Number(node.minWidth) || 0, GENERATOR_NODE_MIN_WIDTH);
-  if (Array.isArray(node.size)) {
-    node.size[0] = Math.max(Number(node.size[0]) || 0, GENERATOR_NODE_DEFAULT_WIDTH);
-  }
+  clampGeneratorNodeWidth(node);
   if (!node.__easyuseAnimaGeneratorPanelEl) {
     const panel = document.createElement("div");
     panel.className = "easyuse-anima-aio-node-panel";
@@ -5459,7 +5618,6 @@ function ensureGeneratorPanel(node) {
       node.__easyuseAnimaGeneratorPanelWidget = widget;
       widget.computeLayoutSize = () => ({
         minHeight: generatorPanelMinHeight(node),
-        height: generatorPanelHeight(node),
         minWidth: GENERATOR_NODE_MIN_WIDTH - 18,
       });
     }
@@ -7328,6 +7486,7 @@ app.registerExtension({
   name: "easyuse-anima.aio",
   async setup() {
     ensureStyle();
+    installNodeResizePointerTracker();
     installGeneratorQueuePromptHook();
     easyuseAnimaWatchLocale(refreshGeneratorPanels);
     api.addEventListener(GENERATOR_PREVIEW_EVENT, handleGeneratorPreviewEvent);
@@ -7380,6 +7539,9 @@ app.registerExtension({
       };
       const onResize = nodeType.prototype.onResize;
       nodeType.prototype.onResize = function () {
+        if (isNodeUserResizeActive(this)) {
+          markGeneratorUserResize(this);
+        }
         const result = onResize?.apply(this, arguments);
         scheduleGeneratorLayout(this);
         return result;

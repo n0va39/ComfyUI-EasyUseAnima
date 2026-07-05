@@ -2,11 +2,18 @@
 
 import {
   ADVANCED_EDITOR_MAX_AUTO_VIEWPORT_HEIGHT,
+  ADVANCED_EDITOR_MIN_RESIZE_VIEWPORT_HEIGHT,
   ADVANCED_EDITOR_MIN_VIEWPORT_HEIGHT,
 } from "./constants.js";
 import {
   getAdvancedEditorElement,
 } from "./state.js";
+import {
+  isNodeUserResizeActive,
+} from "./node_resize_tracking.js";
+
+const ADVANCED_NODE_CHROME_OFFSET_FLOOR = 72;
+const ADVANCED_NODE_CHROME_OFFSET_MAX = 220;
 
 function advancedEditorWidth(node) {
   return Math.max(280, Math.round((Number(node?.size?.[0]) || 420) - 18));
@@ -137,15 +144,48 @@ function advancedEditorMinimumHeight(node) {
   ));
 }
 
-function advancedAvailableEditorViewportHeight(node) {
-  const minimumHeight = advancedEditorMinimumHeight(node);
+function advancedEditorResizeMinimumHeight() {
+  return ADVANCED_EDITOR_MIN_RESIZE_VIEWPORT_HEIGHT;
+}
+
+function hasAdvancedUserViewportHeight(node) {
+  return Number.isFinite(Number(node?.__easyuseAnimaAdvancedUserViewportHeight));
+}
+
+function advancedEditorViewportMinimumHeight(node) {
+  return node?.__easyuseAnimaAdvancedUserResizing
+    || isNodeUserResizeActive(node)
+    || hasAdvancedUserViewportHeight(node)
+    ? advancedEditorResizeMinimumHeight()
+    : advancedEditorMinimumHeight(node);
+}
+
+function advancedNodeAvailableEditorViewportHeight(node) {
+  const minimumHeight = advancedEditorResizeMinimumHeight();
   const nodeHeight = Number(node?.size?.[1]) || 0;
-  const chromeOffset = advancedNodeChromeOffset(node, minimumHeight);
+  const chromeOffset = advancedNodeChromeOffset(node);
+  const availableHeight = Math.max(0, nodeHeight - chromeOffset);
+  return Math.ceil(Math.max(minimumHeight, availableHeight));
+}
+
+function advancedAvailableEditorViewportHeight(node) {
+  const minimumHeight = advancedEditorViewportMinimumHeight(node);
+  const nodeHeight = Number(node?.size?.[1]) || 0;
+  const chromeOffset = advancedNodeChromeOffset(node);
   const availableHeight = Math.max(0, nodeHeight - chromeOffset);
   return Math.ceil(Math.max(minimumHeight, availableHeight));
 }
 
 function advancedEditorWidgetHeight(node) {
+  if (node?.__easyuseAnimaAdvancedUserResizing || isNodeUserResizeActive(node)) {
+    return advancedNodeAvailableEditorViewportHeight(node);
+  }
+  if (hasAdvancedUserViewportHeight(node)) {
+    return Math.ceil(Math.max(
+      advancedEditorResizeMinimumHeight(),
+      Number(node.__easyuseAnimaAdvancedUserViewportHeight) || 0,
+    ));
+  }
   if (getAdvancedEditorElement(node)?.isConnected) {
     return advancedAvailableEditorViewportHeight(node);
   }
@@ -161,24 +201,56 @@ function advancedEditorWidget(node) {
     || null;
 }
 
-function advancedNodeChromeOffset(node, editorHeight = measureAdvancedEditorContentHeight(getAdvancedEditorElement(node))) {
-  const widget = advancedEditorWidget(node);
-  const widgetY = Math.max(
-    Number(widget?.last_y) || 0,
-    Number(widget?.y) || 0,
+function applyAdvancedEditorViewportStyle(editor, height) {
+  if (!(editor instanceof HTMLElement)) {
+    return;
+  }
+  const viewportHeight = Math.max(
+    advancedEditorResizeMinimumHeight(),
+    Math.round(Number(height) || 0),
   );
-  return Math.ceil(Math.max(72, widgetY + 12));
+  const heightValue = `${viewportHeight}px`;
+  editor.style.setProperty("--easyuse-anima-advanced-editor-height", heightValue);
+  editor.style.height = heightValue;
+  editor.style.maxHeight = heightValue;
+  editor.style.minHeight = "0px";
+  editor.style.overflowY = "auto";
+}
+
+function applyAdvancedWidgetAllocation(node, height, options = {}) {
+  const widget = advancedEditorWidget(node);
+  const viewportHeight = Math.max(
+    advancedEditorResizeMinimumHeight(),
+    Math.round(Number(height) || 0),
+  );
+  if (widget) {
+    widget.computedHeight = viewportHeight;
+  }
+  node.__easyuseAnimaAdvancedWidgetHeight = viewportHeight;
+  if (options.rememberUserViewport === true) {
+    node.__easyuseAnimaAdvancedUserViewportHeight = viewportHeight;
+  }
+  return viewportHeight;
+}
+
+function advancedNodeChromeOffset(node) {
+  const widget = advancedEditorWidget(node);
+  const widgetY = Number(widget?.y);
+  const stableWidgetTop = Number.isFinite(widgetY) && widgetY > 0
+    ? Math.min(widgetY, ADVANCED_NODE_CHROME_OFFSET_MAX - 12)
+    : 0;
+  return Math.ceil(Math.max(ADVANCED_NODE_CHROME_OFFSET_FLOOR, stableWidgetTop + 12));
 }
 
 function advancedMinimumNodeHeight(node) {
   const editor = getAdvancedEditorElement(node);
   if (!editor) {
-    return ADVANCED_EDITOR_MIN_VIEWPORT_HEIGHT;
+    return advancedEditorResizeMinimumHeight();
   }
-  const viewportMinimum = advancedEditorMinimumHeight(node);
-  const chromeOffset = advancedNodeChromeOffset(node, viewportMinimum);
+  const viewportMinimum = advancedEditorViewportMinimumHeight(node);
+  const chromeOffset = advancedNodeChromeOffset(node);
   return Math.ceil(Math.max(
-    ADVANCED_EDITOR_MIN_VIEWPORT_HEIGHT,
+    advancedEditorResizeMinimumHeight(),
     viewportMinimum + chromeOffset,
   ));
 }
@@ -219,15 +291,20 @@ export {
   advancedEditorContentMinimumHeight,
   advancedEditorFixedHeight,
   advancedEditorMinimumHeight,
+  advancedEditorResizeMinimumHeight,
   advancedEditorTextareas,
+  advancedEditorViewportMinimumHeight,
   advancedEditorWidget,
   advancedEditorWidgetHeight,
   advancedEditorWidth,
+  advancedNodeAvailableEditorViewportHeight,
   advancedMinimumNodeHeight,
   advancedNodeChromeOffset,
   advancedTextareaContentHeight,
   advancedTextareaCurrentHeight,
   advancedTextareaMinimumHeight,
+  applyAdvancedEditorViewportStyle,
+  applyAdvancedWidgetAllocation,
   clampAdvancedNodeToMinimumHeight,
   measureAdvancedEditorContentHeight,
   measureAdvancedEditorHeight,
