@@ -4086,7 +4086,7 @@
         }
       },
       "widgets_values": [
-        "## 2. モデル読み込み\n\n- `unet_name`, `clip_name`, `vae_name`: ANIMA の中核モデルファイルです。まずリリースワークフローに指定されたファイル名をそのまま使ってください。\n- `steps_total` / `refiner_step`: 全体 sampling 長と後半 refinement の開始位置です。最初は既定値を維持してください。\n- `cfg`: プロンプト追従度です。`8` 付近から始めてください。高すぎると形が崩れることがあります。\n- `sampler_name` / `scheduler`: 推奨: `euler` / `simple`、またはセクション既定値。\n- `shift`: Qwen/Flow の timestep 補正です。最初は既定値を維持してください。\n\n### Anima DAVE 上流既定値\n\n- `strength`: 上流既定値 `0.30`。効果を軽くしたい場合は `0.20` から比較してください。\n- `tau`: 上流既定/推奨値 `0.10`。\n- `mask`: 上流既定 mask `dave_alpha.npz`。\n\n### KJNodes Optimization 上流既定値\n\n- `TorchCompileModelAdvanced`: `backend=inductor`, `mode=default`, `fullgraph=False`, `dynamic=auto`, `compile_transformer_blocks_only=True`, `dynamo_cache_size_limit=64`, `disable_dynamic_vram=False`。\n- `PathchSageAttentionKJ`: 既定値は `sage_attention=disabled`, `allow_compile=False` です。SageAttention ライブラリがインストール済みの場合だけ有効化してください。\n- SageAttention install: ComfyUI と同じ Python で `python -m pip install sageattention` を実行し、その後 ComfyUI を再起動してください。Windows portable では embedded Python で同じコマンドを実行します。`sageattn3` オプションは別途対応 GPU/package が必要な場合があります。\n- `enable_fp16_accumulation`: 上流既定値は OFF です。インストール済み PyTorch/CUDA stack が対応していない場合はエラーになることがあります。\n\nNote: `torch compile`, `fullgraph`, `dynamic`, `SageAttention`, `fp16 accumulation`, `disable_dynamic_vram` は GPU、CUDA、PyTorch、SageAttention のインストール状態に依存します。install/import エラーが出る場合は SageAttention/compile/fp16 options を無効化し、まず基本経路を確認してください。\n"
+        "## 2. モデル読み込み\n\n- `unet_name`, `clip_name`, `vae_name`: ANIMA の中核モデルファイルです。まずリリースワークフローに指定されたファイル名をそのまま使ってください。\n- `steps_total` / `refiner_step`: 全体 sampling 長と後半 refinement の開始位置です。最初は既定値を維持してください。\n- `cfg`: プロンプト追従度です。`8` 付近から始めてください。高すぎると形が崩れることがあります。\n- `sampler_name` / `scheduler`: 推奨: `euler` / `simple`、またはセクション既定値。\n- `shift`: Qwen/Flow の timestep 補正です。最初は既定値を維持してください。\n\n### 安全な既定値\n\n- リリースワークフローでは `enable_fp16_accumulation`, `Sage_Attention`, `Sage_Attention_allow_compile`, `Use TorchCompile` を既定で OFF にしています。\n- 基本生成経路が成功するまでは `Sage_Attention` を `disabled` のままにしてください。\n- `Use TorchCompile` は、同じ Python 環境の PyTorch/CUDA/Triton の組み合わせが合っている場合だけ有効化してください。Windows で Triton build や `cuda_utils` エラーが出る場合は、このトグルを OFF に戻してください。\n- `enable_fp16_accumulation` は、インストール済み PyTorch が対応している場合だけ有効化してください。\n- 生成に失敗した場合は、まず SageAttention, TorchCompile, FP16 accumulation をすべて無効化して基本経路を確認してください。\n\n### Anima DAVE 上流既定値\n\n- `strength`: 上流既定値 `0.30`。効果を軽くしたい場合は `0.20` から比較してください。\n- `tau`: 上流既定/推奨値 `0.10`。\n- `mask`: 上流既定 mask `dave_alpha.npz`。\n"
       ],
       "color": "#432",
       "bgcolor": "#000"
@@ -9644,7 +9644,7 @@
               "Node name for S&R": "ModelPatchTorchSettings"
             },
             "widgets_values": [
-              true
+              false
             ],
             "color": "#233",
             "bgcolor": "#355"
@@ -9706,8 +9706,8 @@
               "Node name for S&R": "PathchSageAttentionKJ"
             },
             "widgets_values": [
-              "auto",
-              true
+              "disabled",
+              false
             ],
             "color": "#233",
             "bgcolor": "#355"
@@ -10452,7 +10452,7 @@
               "Node name for S&R": "PrimitiveBoolean"
             },
             "widgets_values": [
-              true
+              false
             ]
           },
           {

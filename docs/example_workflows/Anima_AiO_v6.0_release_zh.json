@@ -4086,7 +4086,7 @@
         }
       },
       "widgets_values": [
-        "## 2. 模型加载\n\n- `unet_name`, `clip_name`, `vae_name`：核心 ANIMA 模型文件。请先使用发行工作流中提供的文件名。\n- `steps_total` / `refiner_step`：总采样长度和后期 refinement 起点。先保留默认值。\n- `cfg`：提示词遵循度。从 `8` 附近开始；过高可能破坏形体。\n- `sampler_name` / `scheduler`：推荐：`euler` / `simple`，或使用该区块默认值。\n- `shift`：Qwen/Flow timestep 修正。先保留默认值。\n\n### Anima DAVE 上游默认值\n\n- `strength`：上游默认值 `0.30`。若要更轻的效果，可从 `0.20` 比较。\n- `tau`：上游默认/推荐值 `0.10`。\n- `mask`：上游默认 mask `dave_alpha.npz`。\n\n### KJNodes Optimization 上游默认值\n\n- `TorchCompileModelAdvanced`：`backend=inductor`, `mode=default`, `fullgraph=False`, `dynamic=auto`, `compile_transformer_blocks_only=True`, `dynamo_cache_size_limit=64`, `disable_dynamic_vram=False`。\n- `PathchSageAttentionKJ`：默认 `sage_attention=disabled`, `allow_compile=False`。仅在已安装 SageAttention 库时启用。\n- SageAttention install：使用与 ComfyUI 相同的 Python 运行 `python -m pip install sageattention`，然后重启 ComfyUI。Windows portable 请使用 embedded Python 执行同一命令。`sageattn3` 选项可能需要单独支持的 GPU/package。\n- `enable_fp16_accumulation`：上游默认 OFF。如果已安装的 PyTorch/CUDA stack 不支持，可能报错。\n\nNote：`torch compile`, `fullgraph`, `dynamic`, `SageAttention`, `fp16 accumulation`, `disable_dynamic_vram` 取决于 GPU、CUDA、PyTorch 和 SageAttention 安装状态。如出现 install/import 错误，请关闭 SageAttention/compile/fp16 选项并先验证基础路径。\n"
+        "## 2. 模型加载\n\n- `unet_name`, `clip_name`, `vae_name`：核心 ANIMA 模型文件。请先使用发行工作流中提供的文件名。\n- `steps_total` / `refiner_step`：总采样长度和后期 refinement 起点。先保留默认值。\n- `cfg`：提示词遵循度。从 `8` 附近开始；过高可能破坏形体。\n- `sampler_name` / `scheduler`：推荐：`euler` / `simple`，或使用该区块默认值。\n- `shift`：Qwen/Flow timestep 修正。先保留默认值。\n\n### 安全默认值\n\n- 发行工作流默认关闭 `enable_fp16_accumulation`、`Sage_Attention`、`Sage_Attention_allow_compile` 和 `Use TorchCompile`。\n- 基础生成路径成功前，请保持 `Sage_Attention` 为 `disabled`。\n- 只有在同一 Python 环境中的 PyTorch/CUDA/Triton 组合匹配时，才启用 `Use TorchCompile`。如果 Windows 出现 Triton build 或 `cuda_utils` 错误，请再次关闭此开关。\n- 只有安装的 PyTorch 支持时，才启用 `enable_fp16_accumulation`。\n- 如果生成失败，请先关闭 SageAttention、TorchCompile 和 FP16 accumulation，然后验证基础路径。\n\n### Anima DAVE 上游默认值\n\n- `strength`：上游默认值 `0.30`。若要更轻的效果，可从 `0.20` 比较。\n- `tau`：上游默认/推荐值 `0.10`。\n- `mask`：上游默认 mask `dave_alpha.npz`。\n"
       ],
       "color": "#432",
       "bgcolor": "#000"
@@ -9644,7 +9644,7 @@
               "Node name for S&R": "ModelPatchTorchSettings"
             },
             "widgets_values": [
-              true
+              false
             ],
             "color": "#233",
             "bgcolor": "#355"
@@ -9706,8 +9706,8 @@
               "Node name for S&R": "PathchSageAttentionKJ"
             },
             "widgets_values": [
-              "auto",
-              true
+              "disabled",
+              false
             ],
             "color": "#233",
             "bgcolor": "#355"
@@ -10452,7 +10452,7 @@
               "Node name for S&R": "PrimitiveBoolean"
             },
             "widgets_values": [
-              true
+              false
             ]
           },
           {
