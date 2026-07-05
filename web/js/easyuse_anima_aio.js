@@ -2678,8 +2678,9 @@ function ensureStyle() {
     .easyuse-anima-aio-node-main {
       display: grid;
       grid-template-columns: 260px minmax(0, 1fr);
+      align-items: start;
       gap: 8px;
-      flex: 1 1 auto;
+      flex: 0 0 auto;
       min-height: 284px;
       height: auto;
     }
@@ -2694,7 +2695,8 @@ function ensureStyle() {
       display: flex;
       flex-direction: column;
       min-height: 0;
-      height: 100%;
+      height: var(--easyuse-anima-aio-settings-card-height, auto);
+      max-height: var(--easyuse-anima-aio-settings-card-height, none);
       overflow: hidden;
     }
     .easyuse-anima-aio-node-settings-scroll {
@@ -2968,6 +2970,7 @@ function ensureStyle() {
     .easyuse-anima-aio-node-preview {
       display: flex;
       flex-direction: column;
+      align-self: start;
       min-height: 0;
     }
     .easyuse-anima-aio-node-sampler-actions {
@@ -3999,6 +4002,22 @@ function generatorPreviewBoxHeight(node, panelHeight) {
   );
 }
 
+function generatorPreviewCardHeight(panel, panelHeight) {
+  const previewCard = panel?.querySelector?.(".easyuse-anima-aio-node-preview");
+  if (!(previewCard instanceof HTMLElement)) {
+    return 284;
+  }
+  const measuredHeight = Math.ceil(Math.max(
+    Number(previewCard.scrollHeight) || 0,
+    Number(previewCard.offsetHeight) || 0,
+  ));
+  return generatorClampHeight(
+    measuredHeight || 284,
+    284,
+    Math.max(284, Number(panelHeight) || GENERATOR_PANEL_MIN_HEIGHT),
+  );
+}
+
 function applyGeneratorPanelViewportStyle(panel, panelHeight, node) {
   if (!(panel instanceof HTMLElement)) {
     return;
@@ -4009,6 +4028,10 @@ function applyGeneratorPanelViewportStyle(panel, panelHeight, node) {
   panel.style.setProperty(
     "--easyuse-anima-aio-preview-box-height",
     `${generatorPreviewBoxHeight(node, viewportHeight)}px`,
+  );
+  panel.style.setProperty(
+    "--easyuse-anima-aio-settings-card-height",
+    `${generatorPreviewCardHeight(panel, viewportHeight)}px`,
   );
   panel.style.height = heightValue;
   panel.style.maxHeight = heightValue;

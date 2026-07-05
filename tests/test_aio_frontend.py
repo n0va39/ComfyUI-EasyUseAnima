@@ -13,6 +13,15 @@ PROMPT_STUDIO_COMMON_JS = ROOT / "web" / "js" / "easyuse_anima_prompt_studio_com
 class AIOFrontendSourceTests(unittest.TestCase):
     def test_generator_preview_uses_bounded_viewport_height(self):
         source = AIO_JS.read_text(encoding="utf-8")
+        main_start = source.index("    .easyuse-anima-aio-node-main {")
+        main_end = source.index("\n    .easyuse-anima-aio-node-card {", main_start)
+        main_css = source[main_start:main_end]
+        settings_start = source.index("    .easyuse-anima-aio-node-settings {")
+        settings_end = source.index("\n    .easyuse-anima-aio-node-settings-scroll {", settings_start)
+        settings_css = source[settings_start:settings_end]
+        preview_start = source.index("    .easyuse-anima-aio-node-preview {")
+        preview_end = source.index("\n    .easyuse-anima-aio-node-sampler-actions {", preview_start)
+        preview_css = source[preview_start:preview_end]
         start = source.index("    .easyuse-anima-aio-node-preview-box {")
         end = source.index("\n    .easyuse-anima-aio-node-preview-box img", start)
         preview_box_css = source[start:end]
@@ -20,8 +29,18 @@ class AIOFrontendSourceTests(unittest.TestCase):
         self.assertIn("const GENERATOR_PREVIEW_BOX_MIN_HEIGHT = 210;", source)
         self.assertIn("const GENERATOR_PREVIEW_BOX_MAX_HEIGHT = 360;", source)
         self.assertIn("function generatorPreviewBoxHeight", source)
+        self.assertIn("function generatorPreviewCardHeight", source)
         self.assertIn("function applyGeneratorPanelViewportStyle", source)
         self.assertIn("--easyuse-anima-aio-preview-box-height", source)
+        self.assertIn("--easyuse-anima-aio-settings-card-height", source)
+        self.assertIn("align-items: start;", main_css)
+        self.assertIn("flex: 0 0 auto;", main_css)
+        self.assertNotIn("flex: 1 1 auto;", main_css)
+        self.assertIn(
+            "height: var(--easyuse-anima-aio-settings-card-height",
+            settings_css,
+        )
+        self.assertIn("align-self: start;", preview_css)
         self.assertIn(
             "flex: 0 0 var(--easyuse-anima-aio-preview-box-height",
             preview_box_css,
