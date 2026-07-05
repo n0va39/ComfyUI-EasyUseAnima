@@ -4069,10 +4069,10 @@ function applyGeneratorLayout(node) {
     const currentWidth = Number(node.size[0]) || GENERATOR_NODE_DEFAULT_WIDTH;
     const currentHeight = Number(node.size[1]) || 0;
     const minHeight = generatorMinimumNodeHeight(node);
-    if (Math.abs(currentHeight - minHeight) > 1 || currentWidth < GENERATOR_NODE_MIN_WIDTH) {
+    if (currentHeight < minHeight - 1 || currentWidth < GENERATOR_NODE_MIN_WIDTH) {
       node.setSize?.([
-        Math.max(currentWidth, GENERATOR_NODE_DEFAULT_WIDTH),
-        minHeight,
+        Math.max(currentWidth, GENERATOR_NODE_MIN_WIDTH),
+        Math.max(currentHeight, minHeight),
       ]);
     }
     markNodeDirty(node);
