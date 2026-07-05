@@ -30,7 +30,8 @@ import {
 import {
   advancedEditorMinimumHeight,
   advancedEditorWidgetHeight,
-  readAdvancedEditorScrollState,
+  preferredAdvancedEditorScrollState,
+  rememberAdvancedEditorScrollState,
   restoreAdvancedEditorScrollState,
   updateAdvancedEditorWidth,
 } from "./layout.js";
@@ -79,7 +80,7 @@ function renderAdvancedEditor(node, hooks = {}) {
   if (!editor) {
     return;
   }
-  const scrollState = readAdvancedEditorScrollState(editor);
+  const scrollState = preferredAdvancedEditorScrollState(node, editor);
   const fields = setAdvancedFields(node, parseAdvancedFields(node));
   applyAdvancedNaiaGeneralAutoToggle(node, fields);
   editor.innerHTML = "";
@@ -99,9 +100,52 @@ function renderAdvancedEditor(node, hooks = {}) {
     panes,
   );
   restoreAdvancedEditorScrollState(editor, scrollState);
+  rememberAdvancedEditorScrollState(node, editor, scrollState);
   requestAnimationFrame(() => restoreAdvancedEditorScrollState(editor, scrollState));
   writeAdvancedFields(node, fields, { syncInputs: false });
   scheduleAdvancedLayout(node, "render");
+}
+
+function restoreAdvancedEditorScrollSoon(node, editor, state = preferredAdvancedEditorScrollState(node, editor)) {
+  if (!(editor instanceof HTMLElement)) {
+    return;
+  }
+  const restore = () => restoreAdvancedEditorScrollState(editor, state);
+  restore();
+  requestAnimationFrame(restore);
+  setTimeout(restore, 30);
+}
+
+function installAdvancedEditorScrollRetention(node, editor) {
+  if (!node || !(editor instanceof HTMLElement) || editor.__easyuseAnimaAdvancedScrollRetentionInstalled) {
+    return;
+  }
+  editor.__easyuseAnimaAdvancedScrollRetentionInstalled = true;
+  editor.__easyuseAnimaAdvancedPointerInside = false;
+
+  const remember = () => {
+    if (editor.__easyuseAnimaAdvancedPointerInside || editor.contains(document.activeElement)) {
+      rememberAdvancedEditorScrollState(node, editor);
+    }
+  };
+  const rememberAfterScroll = () => requestAnimationFrame(remember);
+  const enter = () => {
+    editor.__easyuseAnimaAdvancedPointerInside = true;
+    rememberAdvancedEditorScrollState(node, editor);
+  };
+  const leave = () => {
+    const state = rememberAdvancedEditorScrollState(node, editor);
+    editor.__easyuseAnimaAdvancedPointerInside = false;
+    restoreAdvancedEditorScrollSoon(node, editor, state);
+  };
+
+  editor.addEventListener("pointerenter", enter);
+  editor.addEventListener("mouseenter", enter);
+  editor.addEventListener("pointerleave", leave);
+  editor.addEventListener("mouseleave", leave);
+  editor.addEventListener("focusin", () => rememberAdvancedEditorScrollState(node, editor));
+  editor.addEventListener("scroll", remember, { passive: true });
+  editor.addEventListener("wheel", rememberAfterScroll, { passive: true });
 }
 
 function hookAdvancedNode(node, hooks = {}) {
@@ -128,6 +172,7 @@ function hookAdvancedNode(node, hooks = {}) {
       editor.addEventListener(eventName, guardAdvancedEditorNativeControlEvent);
     }
     setAdvancedEditorElement(node, editor);
+    installAdvancedEditorScrollRetention(node, editor);
     const widget = node.addDOMWidget?.("easyuse_anima_advanced_editor", "EasyUseAnimaAdvancedEditor", editor, {
       serialize: false,
       hideOnZoom: false,
@@ -142,6 +187,7 @@ function hookAdvancedNode(node, hooks = {}) {
       });
     }
   }
+  installAdvancedEditorScrollRetention(node, getAdvancedEditorElement(node));
   renderAdvancedEditor(node, hooks);
 }
 

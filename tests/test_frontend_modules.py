@@ -146,15 +146,23 @@ class FrontendModuleStructureTests(unittest.TestCase):
         ).read_text(encoding="utf-8")
 
         self.assertIn("function readAdvancedEditorScrollState", layout_source)
+        self.assertIn("function rememberAdvancedEditorScrollState", layout_source)
+        self.assertIn("function preferredAdvancedEditorScrollState", layout_source)
         self.assertIn("function restoreAdvancedEditorScrollState", layout_source)
-        self.assertIn("const scrollState = readAdvancedEditorScrollState(editor);", advanced_node_ui_source)
+        self.assertIn("function installAdvancedEditorScrollRetention", advanced_node_ui_source)
+        self.assertIn("const scrollState = preferredAdvancedEditorScrollState(node, editor);", advanced_node_ui_source)
         self.assertIn("restoreAdvancedEditorScrollState(editor, scrollState);", advanced_node_ui_source)
+        self.assertIn("rememberAdvancedEditorScrollState(node, editor, scrollState);", advanced_node_ui_source)
         self.assertIn(
             "requestAnimationFrame(() => restoreAdvancedEditorScrollState(editor, scrollState));",
             advanced_node_ui_source,
         )
-        self.assertIn("const scrollState = readAdvancedEditorScrollState(editor);", advanced_layout_controller_source)
+        self.assertIn('editor.addEventListener("pointerleave", leave);', advanced_node_ui_source)
+        self.assertIn('editor.addEventListener("mouseleave", leave);', advanced_node_ui_source)
+        self.assertIn("restoreAdvancedEditorScrollSoon(node, editor, state);", advanced_node_ui_source)
+        self.assertIn("const scrollState = preferredAdvancedEditorScrollState(node, editor);", advanced_layout_controller_source)
         self.assertIn("restoreAdvancedEditorScrollState(editor, scrollState);", advanced_layout_controller_source)
+        self.assertIn("rememberAdvancedEditorScrollState(node, editor, scrollState);", advanced_layout_controller_source)
 
     def test_prompt_studio_advanced_resize_remeasures_wrapped_textareas(self):
         advanced_fields_ui_source = (
@@ -631,6 +639,8 @@ class FrontendModuleStructureTests(unittest.TestCase):
             "advancedTextareaMinimumHeight",
             "advancedTextareaVisibleMinimumHeight",
             "clampAdvancedNodeToMinimumHeight",
+            "rememberAdvancedEditorScrollState",
+            "preferredAdvancedEditorScrollState",
             "readAdvancedEditorScrollState",
             "restoreAdvancedEditorScrollState",
             "updateAdvancedEditorWidth",

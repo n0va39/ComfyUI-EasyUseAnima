@@ -5,7 +5,8 @@ import {
   advancedMinimumNodeHeight,
   applyAdvancedEditorViewportStyle,
   clampAdvancedNodeToMinimumHeight,
-  readAdvancedEditorScrollState,
+  preferredAdvancedEditorScrollState,
+  rememberAdvancedEditorScrollState,
   restoreAdvancedEditorScrollState,
   updateAdvancedEditorWidth,
 } from "./layout.js";
@@ -80,7 +81,7 @@ function applyAdvancedLayout(node, reason = "layout", hooks = {}) {
 
   node.__easyuseAnimaApplyingLayout = true;
   try {
-    const scrollState = readAdvancedEditorScrollState(editor);
+    const scrollState = preferredAdvancedEditorScrollState(node, editor);
     updateAdvancedEditorWidth(node);
 
     const currentWidth = Number(node.size[0]) || 360;
@@ -92,6 +93,7 @@ function applyAdvancedLayout(node, reason = "layout", hooks = {}) {
     node.__easyuseAnimaAdvancedLastEditorHeight = widgetHeight;
     node.__easyuseAnimaAdvancedLastLayoutReason = reason;
     restoreAdvancedEditorScrollState(editor, scrollState);
+    rememberAdvancedEditorScrollState(node, editor, scrollState);
 
     if (typeof node.setSize === "function" && currentHeight < minimumHeight - 1) {
       node.setSize([currentWidth, minimumHeight]);

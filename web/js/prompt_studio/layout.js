@@ -53,6 +53,25 @@ function readAdvancedEditorScrollState(editor) {
   };
 }
 
+function rememberAdvancedEditorScrollState(node, editor, state = readAdvancedEditorScrollState(editor)) {
+  if (!node || !(editor instanceof HTMLElement)) {
+    return state;
+  }
+  node.__easyuseAnimaAdvancedEditorScrollState = {
+    left: Math.max(0, Number(state.left) || 0),
+    top: Math.max(0, Number(state.top) || 0),
+  };
+  return node.__easyuseAnimaAdvancedEditorScrollState;
+}
+
+function preferredAdvancedEditorScrollState(node, editor) {
+  const currentState = readAdvancedEditorScrollState(editor);
+  if (currentState.top > 0 || currentState.left > 0) {
+    return currentState;
+  }
+  return node?.__easyuseAnimaAdvancedEditorScrollState || currentState;
+}
+
 function restoreAdvancedEditorScrollState(editor, state) {
   if (!(editor instanceof HTMLElement) || !state) {
     return;
@@ -276,6 +295,8 @@ export {
   clampAdvancedNodeToMinimumHeight,
   measureAdvancedEditorContentHeight,
   measureAdvancedEditorHeight,
+  rememberAdvancedEditorScrollState,
+  preferredAdvancedEditorScrollState,
   readAdvancedEditorScrollState,
   restoreAdvancedEditorScrollState,
   updateAdvancedEditorWidth,
