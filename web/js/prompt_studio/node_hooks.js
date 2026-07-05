@@ -71,12 +71,13 @@ function registerPromptStudioNodeHooks(nodeType, nodeData, hooks) {
     if (this.__easyuseAnimaHandlingResize || this.__easyuseAnimaApplyingLayout) {
       return result;
     }
-    this.__easyuseAnimaHandlingResize = true;
-    try {
-      if (isAdvanced) {
-        hooks.updateAdvancedEditorWidth(this);
-        hooks.scheduleAdvancedResizeFinalize(this);
-        return result;
+      this.__easyuseAnimaHandlingResize = true;
+      try {
+        if (isAdvanced) {
+          hooks.markAdvancedUserResize(this);
+          hooks.updateAdvancedEditorWidth(this);
+          hooks.scheduleAdvancedResizeFinalize(this);
+          return result;
       }
       if (isWildcard) {
         return result;

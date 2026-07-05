@@ -70,6 +70,18 @@ function scheduleAdvancedResizeFinalize(node, hooks = {}) {
   }, 120);
 }
 
+function markAdvancedUserResize(node, hooks = {}) {
+  if (!node || node.__easyuseAnimaApplyingLayout) {
+    return;
+  }
+  node.__easyuseAnimaAdvancedUserResizing = true;
+  clearTimeout(node.__easyuseAnimaAdvancedUserResizeTimer);
+  node.__easyuseAnimaAdvancedUserResizeTimer = setTimeout(() => {
+    node.__easyuseAnimaAdvancedUserResizing = false;
+    scheduleAdvancedLayout(node, "resize", hooks);
+  }, 180);
+}
+
 function applyAdvancedLayout(node, reason = "layout", hooks = {}) {
   const editor = getAdvancedEditorElement(node);
   if (!editor || !node.size) {
@@ -153,6 +165,7 @@ export {
   clearAdvancedResizeEndListeners,
   finalizeAdvancedResize,
   installAdvancedResizeEndListeners,
+  markAdvancedUserResize,
   scheduleAdvancedLayout,
   scheduleAdvancedResizeFinalize,
 };

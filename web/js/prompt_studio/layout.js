@@ -138,7 +138,7 @@ function advancedTextareaVisibleMinimumHeight(textarea) {
 
 function advancedTextareaCurrentHeight(textarea) {
   return Math.max(
-    advancedTextareaVisibleMinimumHeight(textarea),
+    advancedTextareaMinimumHeight(textarea),
     Math.ceil(Number.parseFloat(textarea?.style?.height || "") || 0),
     Math.ceil(Number(textarea?.offsetHeight) || 0),
     Math.ceil(Number(textarea?.clientHeight) || 0),
@@ -176,19 +176,45 @@ function advancedEditorAutoViewportCap() {
 }
 
 function advancedEditorMinimumHeight(node) {
-  const contentMinimum = advancedEditorContentMinimumHeight(node);
-  return Math.ceil(Math.max(
-    ADVANCED_EDITOR_MIN_VIEWPORT_HEIGHT,
-    Math.min(contentMinimum, advancedEditorAutoViewportCap()),
-  ));
+  return ADVANCED_EDITOR_MIN_VIEWPORT_HEIGHT;
 }
 
-function advancedAvailableEditorViewportHeight(node) {
+function advancedNodeAvailableEditorViewportHeight(node) {
   const minimumHeight = advancedEditorMinimumHeight(node);
   const nodeHeight = Number(node?.size?.[1]) || 0;
   const chromeOffset = advancedNodeChromeOffset(node, minimumHeight);
   const availableHeight = Math.max(0, nodeHeight - chromeOffset);
   return Math.ceil(Math.max(minimumHeight, availableHeight));
+}
+
+function advancedUserResizeActive(node) {
+  return !!node?.__easyuseAnimaAdvancedUserResizing;
+}
+
+function advancedAllocatedEditorHeight(node) {
+  const editor = getAdvancedEditorElement(node);
+  const host = editor?.parentElement;
+  if (!(host instanceof HTMLElement)) {
+    return 0;
+  }
+  const hostHeight = Math.max(
+    Number(host.clientHeight) || 0,
+    Number.parseFloat(getComputedStyle(host).height || "") || 0,
+  );
+  return hostHeight >= ADVANCED_EDITOR_MIN_VIEWPORT_HEIGHT
+    ? Math.round(hostHeight)
+    : 0;
+}
+
+function advancedAvailableEditorViewportHeight(node) {
+  if (advancedUserResizeActive(node)) {
+    return advancedNodeAvailableEditorViewportHeight(node);
+  }
+  const allocatedHeight = advancedAllocatedEditorHeight(node);
+  if (allocatedHeight > 0) {
+    return allocatedHeight;
+  }
+  return advancedNodeAvailableEditorViewportHeight(node);
 }
 
 function advancedEditorWidgetHeight(node) {
@@ -285,13 +311,16 @@ export {
   advancedEditorWidget,
   advancedEditorWidgetHeight,
   advancedEditorWidth,
+  advancedAllocatedEditorHeight,
   applyAdvancedEditorViewportStyle,
   advancedMinimumNodeHeight,
   advancedNodeChromeOffset,
+  advancedNodeAvailableEditorViewportHeight,
   advancedTextareaContentHeight,
   advancedTextareaCurrentHeight,
   advancedTextareaMinimumHeight,
   advancedTextareaVisibleMinimumHeight,
+  advancedUserResizeActive,
   clampAdvancedNodeToMinimumHeight,
   measureAdvancedEditorContentHeight,
   measureAdvancedEditorHeight,

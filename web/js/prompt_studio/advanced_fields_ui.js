@@ -13,7 +13,9 @@ import {
   moveAdvancedFieldInPane,
 } from "./fields.js";
 import {
+  advancedTextareaContentHeight,
   advancedTextareaCurrentHeight,
+  advancedTextareaMinimumHeight,
   advancedTextareaVisibleMinimumHeight,
 } from "./layout.js";
 import { setAdvancedControlValue } from "./advanced_controls.js";
@@ -46,13 +48,18 @@ function advancedFieldByTextarea(node, textarea, hooks = {}) {
 }
 
 function setAdvancedTextareaHeight(node, textarea, height, options = {}, hooks = {}) {
-  const visibleMinimumHeight = advancedTextareaVisibleMinimumHeight(textarea);
-  const nextHeight = Math.max(visibleMinimumHeight, Math.round(Number(height) || 0));
-  textarea.style.minHeight = `${visibleMinimumHeight}px`;
+  const mode = options.mode === "manual" ? "manual" : "auto";
+  const minimumHeight = advancedTextareaMinimumHeight(textarea);
+  const contentHeight = advancedTextareaContentHeight(textarea);
+  const requiredHeight = mode === "manual"
+    ? minimumHeight
+    : Math.max(minimumHeight, contentHeight);
+  const nextHeight = Math.max(requiredHeight, Math.round(Number(height) || 0));
+  textarea.style.minHeight = `${minimumHeight}px`;
   textarea.style.height = `${nextHeight}px`;
-  textarea.style.overflowY = "hidden";
-  textarea.scrollTop = 0;
-  textarea.scrollLeft = 0;
+  textarea.style.overflowY = mode === "manual" && contentHeight > nextHeight + 1
+    ? "auto"
+    : "hidden";
   let field = null;
   if (options.syncField !== false || options.refreshHighlight !== false) {
     field = advancedFieldByTextarea(node, textarea, hooks);
@@ -209,7 +216,7 @@ function createAdvancedFieldElement(node, field, hooks = {}) {
   const inputName = advancedFieldInputName(field);
   textarea.value = advancedFieldDisplayText(node, field);
   textarea.style.height = `${field.height || 72}px`;
-  textarea.style.overflowY = "hidden";
+  textarea.style.overflowY = field.heightMode === "manual" ? "auto" : "hidden";
   textarea.placeholder = advancedFieldTextareaPlaceholder(field, psText);
   textarea.readOnly = false;
   textarea.classList.toggle("is-linked", linked);
@@ -236,6 +243,10 @@ function createAdvancedFieldElement(node, field, hooks = {}) {
     }
   };
   const syncHeight = () => {
+    if (field.heightMode === "manual") {
+      persistTextareaHeight(advancedTextareaCurrentHeight(textarea), "manual");
+      return;
+    }
     textarea.style.height = "auto";
     textarea.style.overflowY = "hidden";
     field.heightMode = "auto";

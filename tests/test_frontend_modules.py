@@ -121,6 +121,12 @@ class FrontendModuleStructureTests(unittest.TestCase):
         )
 
         self.assertIn("function applyAdvancedEditorViewportStyle", layout_source)
+        self.assertIn("function advancedAllocatedEditorHeight", layout_source)
+        self.assertIn("function advancedNodeAvailableEditorViewportHeight", layout_source)
+        self.assertIn("function advancedUserResizeActive", layout_source)
+        self.assertIn("if (advancedUserResizeActive(node))", layout_source)
+        self.assertIn("const allocatedHeight = advancedAllocatedEditorHeight(node);", layout_source)
+        self.assertIn("return advancedNodeAvailableEditorViewportHeight(node);", layout_source)
         self.assertIn("--easyuse-anima-advanced-editor-height", layout_source)
         self.assertNotIn("const host = editor.parentElement", layout_source)
         self.assertNotIn("host.style.height", layout_source)
@@ -199,6 +205,10 @@ class FrontendModuleStructureTests(unittest.TestCase):
             "syncAdvancedTextareaHeightsForWidth(node, hooks);",
             advanced_layout_controller_source,
         )
+        self.assertIn("function markAdvancedUserResize", advanced_layout_controller_source)
+        self.assertIn("node.__easyuseAnimaAdvancedUserResizing = true;", advanced_layout_controller_source)
+        self.assertIn("node.__easyuseAnimaAdvancedUserResizing = false;", advanced_layout_controller_source)
+        self.assertIn("markAdvancedUserResize,", extension_runtime_source)
         self.assertLess(
             advanced_layout_controller_source.index("updateAdvancedEditorWidth(node);"),
             advanced_layout_controller_source.index("syncAdvancedTextareaHeightsForWidth(node, hooks);"),
@@ -213,6 +223,9 @@ class FrontendModuleStructureTests(unittest.TestCase):
         advanced_fields_ui_source = (
             PROMPT_STUDIO_MODULES / "advanced_fields_ui.js"
         ).read_text(encoding="utf-8")
+        layout_source = (PROMPT_STUDIO_MODULES / "layout.js").read_text(
+            encoding="utf-8"
+        )
         set_start = advanced_fields_ui_source.index(
             "function setAdvancedTextareaHeight"
         )
@@ -222,23 +235,33 @@ class FrontendModuleStructureTests(unittest.TestCase):
         set_body = advanced_fields_ui_source[set_start:set_end]
 
         self.assertIn(
-            "const visibleMinimumHeight = advancedTextareaVisibleMinimumHeight(textarea);",
+            'const mode = options.mode === "manual" ? "manual" : "auto";',
             set_body,
         )
+        self.assertIn("const minimumHeight = advancedTextareaMinimumHeight(textarea);", set_body)
+        self.assertIn("const contentHeight = advancedTextareaContentHeight(textarea);", set_body)
         self.assertIn(
-            "const nextHeight = Math.max(visibleMinimumHeight, Math.round(Number(height) || 0));",
+            'const requiredHeight = mode === "manual"',
             set_body,
         )
-        self.assertIn('textarea.style.minHeight = `${visibleMinimumHeight}px`;', set_body)
-        self.assertIn('textarea.style.overflowY = "hidden";', set_body)
-        self.assertIn("textarea.scrollTop = 0;", set_body)
+        self.assertIn('textarea.style.minHeight = `${minimumHeight}px`;', set_body)
+        self.assertIn('textarea.style.overflowY = mode === "manual" && contentHeight > nextHeight + 1', set_body)
+        self.assertNotIn("textarea.scrollTop = 0;", set_body)
+        self.assertNotIn("textarea.scrollLeft = 0;", set_body)
+        self.assertIn("advancedTextareaMinimumHeight(textarea),", layout_source)
+        self.assertNotIn("advancedTextareaVisibleMinimumHeight(textarea),", layout_source[
+            layout_source.index("function advancedTextareaCurrentHeight"):
+            layout_source.index("\nfunction advancedTextareaHeightTotal")
+        ])
+        self.assertIn("return ADVANCED_EDITOR_MIN_VIEWPORT_HEIGHT;", layout_source)
+        self.assertNotIn("Math.min(contentMinimum, advancedEditorAutoViewportCap())", layout_source)
+        self.assertIn('if (field.heightMode === "manual")', advanced_fields_ui_source)
+        self.assertIn('persistTextareaHeight(advancedTextareaCurrentHeight(textarea), "manual");', advanced_fields_ui_source)
         self.assertIn("mode,", advanced_fields_ui_source)
         self.assertIn(
             'mode: field.heightMode === "manual" ? "manual" : "auto",',
             advanced_fields_ui_source,
         )
-        self.assertNotIn('textarea.style.overflowY = mode === "manual" ? "auto" : "hidden";', set_body)
-        self.assertNotIn('if (field.heightMode === "manual")', advanced_fields_ui_source)
         self.assertNotIn("if (nextHeight !== field.height)", advanced_fields_ui_source)
 
     def test_prompt_studio_serialization_collects_text_without_layout_height(self):
@@ -631,13 +654,16 @@ class FrontendModuleStructureTests(unittest.TestCase):
                 self.assertIn(f"  {name},", widgets_source)
 
         for name in (
+            "advancedAllocatedEditorHeight",
             "advancedEditorMinimumHeight",
             "advancedEditorWidgetHeight",
             "advancedMinimumNodeHeight",
+            "advancedNodeAvailableEditorViewportHeight",
             "advancedTextareaContentHeight",
             "advancedTextareaCurrentHeight",
             "advancedTextareaMinimumHeight",
             "advancedTextareaVisibleMinimumHeight",
+            "advancedUserResizeActive",
             "clampAdvancedNodeToMinimumHeight",
             "rememberAdvancedEditorScrollState",
             "preferredAdvancedEditorScrollState",
@@ -653,6 +679,7 @@ class FrontendModuleStructureTests(unittest.TestCase):
             "clearAdvancedResizeEndListeners",
             "finalizeAdvancedResize",
             "installAdvancedResizeEndListeners",
+            "markAdvancedUserResize",
             "scheduleAdvancedLayout",
             "scheduleAdvancedResizeFinalize",
         ):

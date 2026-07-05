@@ -3959,6 +3959,37 @@ function generatorPanelWidth(node) {
   return Math.max(240, Math.floor((Number(node?.size?.[0]) || GENERATOR_NODE_DEFAULT_WIDTH) - 20));
 }
 
+function ensureGeneratorNodeMinWidth(node) {
+  if (!node) {
+    return;
+  }
+  node.minWidth = Math.max(Number(node.minWidth) || 0, GENERATOR_NODE_MIN_WIDTH);
+  const minSize = Array.isArray(node.minSize) ? node.minSize : [];
+  node.minSize = [
+    Math.max(Number(minSize[0]) || 0, GENERATOR_NODE_MIN_WIDTH),
+    Number(minSize[1]) || 0,
+  ];
+}
+
+function clampGeneratorNodeWidth(node, minimumWidth = GENERATOR_NODE_MIN_WIDTH) {
+  ensureGeneratorNodeMinWidth(node);
+  if (!Array.isArray(node?.size)) {
+    return false;
+  }
+  const currentWidth = Number(node.size[0]) || 0;
+  const targetWidth = Math.max(GENERATOR_NODE_MIN_WIDTH, Number(minimumWidth) || 0);
+  if (currentWidth >= targetWidth - 1) {
+    return false;
+  }
+  const currentHeight = Number(node.size[1]) || generatorMinimumNodeHeight(node);
+  if (typeof node.setSize === "function" && node.graph) {
+    node.setSize([targetWidth, currentHeight]);
+  } else {
+    node.size[0] = targetWidth;
+  }
+  return true;
+}
+
 function generatorPanelWidget(node) {
   return node?.__easyuseAnimaGeneratorPanelWidget
     || node?.widgets?.find?.((widget) => widget?.name === GENERATOR_DOM_WIDGET)
@@ -3974,7 +4005,25 @@ function generatorNodeChromeOffset(node) {
   return Math.ceil(Math.max(GENERATOR_NODE_CHROME_OFFSET_FLOOR, stableWidgetTop + 12));
 }
 
+function generatorNodeAvailablePanelHeight(node) {
+  const nodeHeight = Number(node?.size?.[1]) || 0;
+  if (nodeHeight <= 0) {
+    return 0;
+  }
+  return Math.max(
+    GENERATOR_PANEL_MIN_HEIGHT,
+    Math.ceil(nodeHeight - generatorNodeChromeOffset(node)),
+  );
+}
+
+function generatorUserResizeActive(node) {
+  return !!node?.__easyuseAnimaGeneratorUserResizing;
+}
+
 function generatorPanelHeight(node) {
+  if (generatorUserResizeActive(node)) {
+    return generatorNodeAvailablePanelHeight(node);
+  }
   return Math.max(GENERATOR_PANEL_MIN_HEIGHT, Number(node?.__easyuseAnimaGeneratorPanelHeight) || 0);
 }
 
@@ -3998,18 +4047,14 @@ function generatorAllocatedPanelHeight(node) {
 }
 
 function generatorAvailablePanelHeight(node) {
+  if (generatorUserResizeActive(node)) {
+    return generatorNodeAvailablePanelHeight(node);
+  }
   const allocatedHeight = generatorAllocatedPanelHeight(node);
   if (allocatedHeight > 0) {
     return allocatedHeight;
   }
-  const nodeHeight = Number(node?.size?.[1]) || 0;
-  if (nodeHeight <= 0) {
-    return 0;
-  }
-  return Math.max(
-    GENERATOR_PANEL_MIN_HEIGHT,
-    Math.ceil(nodeHeight - generatorNodeChromeOffset(node)),
-  );
+  return generatorNodeAvailablePanelHeight(node);
 }
 
 function generatorClampHeight(value, min, max) {
@@ -4114,6 +4159,7 @@ function applyGeneratorLayout(node) {
   }
   node.__easyuseAnimaGeneratorApplyingLayout = true;
   try {
+    clampGeneratorNodeWidth(node);
     const width = generatorPanelWidth(node);
     panel.style.width = `${width}px`;
     panel.style.maxWidth = `${width}px`;
@@ -4148,6 +4194,18 @@ function scheduleGeneratorLayout(node) {
     node.__easyuseAnimaGeneratorLayoutScheduled = false;
     applyGeneratorLayout(node);
   });
+}
+
+function markGeneratorUserResize(node) {
+  if (!node || node.__easyuseAnimaGeneratorApplyingLayout) {
+    return;
+  }
+  node.__easyuseAnimaGeneratorUserResizing = true;
+  clearTimeout(node.__easyuseAnimaGeneratorUserResizeTimer);
+  node.__easyuseAnimaGeneratorUserResizeTimer = setTimeout(() => {
+    node.__easyuseAnimaGeneratorUserResizing = false;
+    scheduleGeneratorLayout(node);
+  }, 180);
 }
 
 function generatorSettings(node) {
@@ -5565,10 +5623,7 @@ function ensureGeneratorPanel(node) {
   ensureStyle();
   node.serialize_widgets = true;
   suppressGeneratorDefaultPreview(node, { markDirty: false });
-  node.minWidth = Math.max(Number(node.minWidth) || 0, GENERATOR_NODE_MIN_WIDTH);
-  if (Array.isArray(node.size)) {
-    node.size[0] = Math.max(Number(node.size[0]) || 0, GENERATOR_NODE_DEFAULT_WIDTH);
-  }
+  clampGeneratorNodeWidth(node, GENERATOR_NODE_DEFAULT_WIDTH);
   if (!node.__easyuseAnimaGeneratorPanelEl) {
     const panel = document.createElement("div");
     panel.className = "easyuse-anima-aio-node-panel";
@@ -7503,6 +7558,7 @@ app.registerExtension({
       };
       const onResize = nodeType.prototype.onResize;
       nodeType.prototype.onResize = function () {
+        markGeneratorUserResize(this);
         const result = onResize?.apply(this, arguments);
         scheduleGeneratorLayout(this);
         return result;

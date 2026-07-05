@@ -65,6 +65,7 @@ import {
   updateAdvancedEditorWidth,
 } from "./layout.js";
 import {
+  markAdvancedUserResize as markAdvancedUserResizeWithHooks,
   scheduleAdvancedLayout as scheduleAdvancedLayoutWithHooks,
   scheduleAdvancedResizeFinalize as scheduleAdvancedResizeFinalizeWithHooks,
 } from "./advanced_layout_controller.js";
@@ -264,6 +265,10 @@ function createPromptStudioExtensionRuntime(app) {
     scheduleAdvancedResizeFinalizeWithHooks(node, advancedLayoutControllerHooks());
   }
 
+  function markAdvancedUserResize(node) {
+    markAdvancedUserResizeWithHooks(node, advancedLayoutControllerHooks());
+  }
+
   function extendSlotControlHooks() {
     return {
       expandStudioInputToContent,
@@ -391,6 +396,7 @@ function createPromptStudioExtensionRuntime(app) {
         hookStudioNode,
         isExtendNode,
         layoutExtendPromptWidgets,
+        markAdvancedUserResize,
         pruneDisconnectedAdvancedFieldInputValues,
         rebalanceStudioInputHeights,
         removeAdvancedInternalInputSockets,

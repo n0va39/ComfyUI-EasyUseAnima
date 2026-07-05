@@ -41,8 +41,11 @@ class AIOFrontendSourceTests(unittest.TestCase):
         self.assertIn("function generatorPreviewCardHeight", source)
         self.assertIn("function generatorDesiredPanelHeight", source)
         self.assertIn("function generatorAllocatedPanelHeight", source)
+        self.assertIn("function generatorNodeAvailablePanelHeight", source)
         self.assertIn("function generatorAvailablePanelHeight", source)
         self.assertIn("function applyGeneratorPanelViewportStyle", source)
+        self.assertIn("function ensureGeneratorNodeMinWidth", source)
+        self.assertIn("function clampGeneratorNodeWidth", source)
         self.assertIn("const fillHeight = options.fillHeight === true;", source)
         self.assertIn("Math.max(GENERATOR_PREVIEW_BOX_MAX_HEIGHT, panelBasedHeight)", source)
         self.assertIn("--easyuse-anima-aio-main-height", source)
@@ -107,6 +110,7 @@ class AIOFrontendSourceTests(unittest.TestCase):
         self.assertIn("const minPanelHeight = measureGeneratorPanelContentHeight(node);", body)
         self.assertIn("const minHeight = generatorMinimumNodeHeight(node);", body)
         self.assertIn("const availablePanelHeight = generatorAvailablePanelHeight(node);", body)
+        self.assertIn("clampGeneratorNodeWidth(node);", body)
         self.assertIn("currentHeight >= minHeight - 1", body)
         self.assertIn("Math.max(minPanelHeight, availablePanelHeight)", body)
         self.assertIn("currentHeight < minHeight - 1", body)
@@ -117,6 +121,9 @@ class AIOFrontendSourceTests(unittest.TestCase):
 
     def test_generator_available_height_prefers_dom_widget_allocation(self):
         source = AIO_JS.read_text(encoding="utf-8")
+        node_available_start = source.index("function generatorNodeAvailablePanelHeight")
+        node_available_end = source.index("\nfunction generatorUserResizeActive", node_available_start)
+        node_available_body = source[node_available_start:node_available_end]
         allocated_start = source.index("function generatorAllocatedPanelHeight")
         allocated_end = source.index("\nfunction generatorAvailablePanelHeight", allocated_start)
         allocated_body = source[allocated_start:allocated_end]
@@ -124,17 +131,50 @@ class AIOFrontendSourceTests(unittest.TestCase):
         available_end = source.index("\nfunction generatorClampHeight", available_start)
         available_body = source[available_start:available_end]
 
+        self.assertIn("const nodeHeight = Number(node?.size?.[1]) || 0;", node_available_body)
+        self.assertIn("Math.ceil(nodeHeight - generatorNodeChromeOffset(node))", node_available_body)
+        self.assertIn("function generatorUserResizeActive", source)
         self.assertIn("const host = panel?.parentElement;", allocated_body)
         self.assertIn("host instanceof HTMLElement", allocated_body)
         self.assertIn("Number(host.clientHeight) || 0", allocated_body)
         self.assertIn('Number.parseFloat(getComputedStyle(host).height || "") || 0', allocated_body)
         self.assertIn("hostHeight >= GENERATOR_PANEL_MIN_HEIGHT", allocated_body)
+        self.assertIn("if (generatorUserResizeActive(node))", available_body)
+        self.assertIn("return generatorNodeAvailablePanelHeight(node);", available_body)
         self.assertIn("const allocatedHeight = generatorAllocatedPanelHeight(node);", available_body)
         self.assertLess(
+            available_body.index("if (generatorUserResizeActive(node))"),
             available_body.index("const allocatedHeight = generatorAllocatedPanelHeight(node);"),
-            available_body.index("const nodeHeight = Number(node?.size?.[1]) || 0;"),
+        )
+        self.assertLess(
+            available_body.index("const allocatedHeight = generatorAllocatedPanelHeight(node);"),
+            available_body.rindex("return generatorNodeAvailablePanelHeight(node);"),
         )
         self.assertIn("return allocatedHeight;", available_body)
+
+    def test_generator_manual_resize_and_min_width_are_explicit(self):
+        source = AIO_JS.read_text(encoding="utf-8")
+        min_width_start = source.index("function ensureGeneratorNodeMinWidth")
+        min_width_end = source.index("\nfunction generatorPanelWidget", min_width_start)
+        min_width_body = source[min_width_start:min_width_end]
+        ensure_start = source.index("function ensureGeneratorPanel")
+        ensure_end = source.index("\nfunction field", ensure_start)
+        ensure_body = source[ensure_start:ensure_end]
+        on_resize_start = source.index("nodeType.prototype.onResize = function ()")
+        on_resize_end = source.index("\n      };", on_resize_start)
+        on_resize_body = source[on_resize_start:on_resize_end]
+
+        self.assertIn("node.minWidth = Math.max(Number(node.minWidth) || 0, GENERATOR_NODE_MIN_WIDTH);", min_width_body)
+        self.assertIn("node.minSize = [", min_width_body)
+        self.assertIn("GENERATOR_NODE_MIN_WIDTH", min_width_body)
+        self.assertIn("clampGeneratorNodeWidth(node, GENERATOR_NODE_DEFAULT_WIDTH);", ensure_body)
+        self.assertIn("markGeneratorUserResize(this);", on_resize_body)
+        self.assertLess(
+            on_resize_body.index("markGeneratorUserResize(this);"),
+            on_resize_body.index("onResize?.apply(this, arguments);"),
+        )
+        self.assertIn("node.__easyuseAnimaGeneratorUserResizing = true;", source)
+        self.assertIn("node.__easyuseAnimaGeneratorUserResizing = false;", source)
 
     def test_detailer_target_editor_builds_optimization_before_visibility_refresh(self):
         source = AIO_JS.read_text(encoding="utf-8")
