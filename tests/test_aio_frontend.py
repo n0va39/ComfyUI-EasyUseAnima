@@ -44,6 +44,8 @@ class AIOFrontendSourceTests(unittest.TestCase):
         self.assertIn("function generatorNodeAvailablePanelHeight", source)
         self.assertIn("function generatorAvailablePanelHeight", source)
         self.assertIn("function applyGeneratorPanelViewportStyle", source)
+        self.assertIn("function applyGeneratorWidgetAllocation", source)
+        self.assertIn("widget.computedHeight = viewportHeight;", source)
         self.assertIn("function ensureGeneratorNodeMinWidth", source)
         self.assertIn("function clampGeneratorNodeWidth", source)
         self.assertIn("const fillHeight = options.fillHeight === true;", source)
@@ -111,6 +113,7 @@ class AIOFrontendSourceTests(unittest.TestCase):
         self.assertIn("const minHeight = generatorMinimumNodeHeight(node);", body)
         self.assertIn("const availablePanelHeight = generatorAvailablePanelHeight(node);", body)
         self.assertIn("clampGeneratorNodeWidth(node);", body)
+        self.assertIn("applyGeneratorWidgetAllocation(node, panelHeight);", body)
         self.assertIn("currentHeight >= minHeight - 1", body)
         self.assertIn("Math.max(minPanelHeight, availablePanelHeight)", body)
         self.assertIn("currentHeight < minHeight - 1", body)
@@ -167,7 +170,8 @@ class AIOFrontendSourceTests(unittest.TestCase):
         self.assertIn("node.minWidth = Math.max(Number(node.minWidth) || 0, GENERATOR_NODE_MIN_WIDTH);", min_width_body)
         self.assertIn("node.minSize = [", min_width_body)
         self.assertIn("GENERATOR_NODE_MIN_WIDTH", min_width_body)
-        self.assertIn("clampGeneratorNodeWidth(node, GENERATOR_NODE_DEFAULT_WIDTH);", ensure_body)
+        self.assertIn("clampGeneratorNodeWidth(node);", ensure_body)
+        self.assertNotIn("clampGeneratorNodeWidth(node, GENERATOR_NODE_DEFAULT_WIDTH);", ensure_body)
         self.assertIn("markGeneratorUserResize(this);", on_resize_body)
         self.assertLess(
             on_resize_body.index("markGeneratorUserResize(this);"),

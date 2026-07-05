@@ -1,7 +1,7 @@
 // @ts-check
 
 import {
-  advancedTextareaCurrentHeight,
+  advancedTextareaCurrentBoxHeight,
 } from "./layout.js";
 
 function advancedText(text, key) {
@@ -32,12 +32,12 @@ function advancedFieldTextareaTitle(field, linked, text) {
 }
 
 function rememberAdvancedTextareaResizeStart(textarea) {
-  textarea.__easyuseAnimaAdvancedResizeStartHeight = advancedTextareaCurrentHeight(textarea);
+  textarea.__easyuseAnimaAdvancedResizeStartHeight = advancedTextareaCurrentBoxHeight(textarea);
 }
 
 function captureAdvancedTextareaManualResize(textarea, threshold = 2) {
   const startHeight = Number(textarea.__easyuseAnimaAdvancedResizeStartHeight || 0);
-  const currentHeight = advancedTextareaCurrentHeight(textarea);
+  const currentHeight = advancedTextareaCurrentBoxHeight(textarea);
   textarea.__easyuseAnimaAdvancedResizeStartHeight = currentHeight;
   return {
     changed: Math.abs(currentHeight - startHeight) > threshold,

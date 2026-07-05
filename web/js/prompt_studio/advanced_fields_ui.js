@@ -13,10 +13,10 @@ import {
   moveAdvancedFieldInPane,
 } from "./fields.js";
 import {
+  advancedTextareaAutoHeight,
   advancedTextareaContentHeight,
-  advancedTextareaCurrentHeight,
+  advancedTextareaCurrentBoxHeight,
   advancedTextareaMinimumHeight,
-  advancedTextareaVisibleMinimumHeight,
 } from "./layout.js";
 import { setAdvancedControlValue } from "./advanced_controls.js";
 import { requestOverlaySync } from "./highlight.js";
@@ -57,15 +57,14 @@ function setAdvancedTextareaHeight(node, textarea, height, options = {}, hooks =
   const nextHeight = Math.max(requiredHeight, Math.round(Number(height) || 0));
   textarea.style.minHeight = `${minimumHeight}px`;
   textarea.style.height = `${nextHeight}px`;
-  textarea.style.overflowY = mode === "manual" && contentHeight > nextHeight + 1
-    ? "auto"
-    : "hidden";
+  textarea.style.overflowY = mode === "manual" ? "auto" : "hidden";
   let field = null;
   if (options.syncField !== false || options.refreshHighlight !== false) {
     field = advancedFieldByTextarea(node, textarea, hooks);
   }
   if (options.syncField !== false && field) {
     field.height = nextHeight;
+    field.heightMode = mode;
   }
   if (options.refreshHighlight !== false) {
     hooks.updateAdvancedFieldHighlight?.(node, field, textarea);
@@ -96,8 +95,11 @@ function syncAdvancedTextareaHeightsForWidth(node, hooks = {}) {
       || 0,
     );
     const requestedHeight = mode === "manual"
-      ? advancedTextareaCurrentHeight(textarea)
-      : advancedTextareaVisibleMinimumHeight(textarea);
+      ? Math.max(
+        advancedTextareaMinimumHeight(textarea),
+        Math.round(Number(field.height) || 0) || advancedTextareaCurrentBoxHeight(textarea),
+      )
+      : advancedTextareaAutoHeight(textarea);
     const nextHeight = setAdvancedTextareaHeight(node, textarea, requestedHeight, {
       mode,
       syncField: false,
@@ -244,13 +246,24 @@ function createAdvancedFieldElement(node, field, hooks = {}) {
   };
   const syncHeight = () => {
     if (field.heightMode === "manual") {
-      persistTextareaHeight(advancedTextareaCurrentHeight(textarea), "manual");
+      const nextHeight = setAdvancedTextareaHeight(node, textarea, field.height || advancedTextareaCurrentBoxHeight(textarea), {
+        mode: "manual",
+        syncField: false,
+      }, hooks);
+      hooks.writeAdvancedFields?.(node, fields, { syncInputs: false });
+      hooks.updateAdvancedFieldHighlight?.(node, field, textarea);
+      updateFieldHighlight();
+      if (Math.abs(nextHeight - (Number(field.height) || 0)) > 1) {
+        hooks.scheduleAdvancedLayout?.(node, "textarea");
+      } else {
+        requestOverlaySync(textarea);
+      }
       return;
     }
     textarea.style.height = "auto";
     textarea.style.overflowY = "hidden";
     field.heightMode = "auto";
-    persistTextareaHeight(advancedTextareaVisibleMinimumHeight(textarea), "auto");
+    persistTextareaHeight(advancedTextareaAutoHeight(textarea), "auto");
   };
   const rememberTextareaResizeStart = () => rememberAdvancedTextareaResizeStart(textarea);
   const captureTextareaManualResize = () => {

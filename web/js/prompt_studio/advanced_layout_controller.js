@@ -4,6 +4,7 @@ import {
   advancedEditorWidgetHeight,
   advancedMinimumNodeHeight,
   applyAdvancedEditorViewportStyle,
+  applyAdvancedWidgetAllocation,
   clampAdvancedNodeToMinimumHeight,
   preferredAdvancedEditorScrollState,
   rememberAdvancedEditorScrollState,
@@ -100,8 +101,8 @@ function applyAdvancedLayout(node, reason = "layout", hooks = {}) {
     const currentHeight = Number(node.size[1]) || 0;
     const minimumHeight = advancedMinimumNodeHeight(node);
     const widgetHeight = advancedEditorWidgetHeight(node);
+    applyAdvancedWidgetAllocation(node, widgetHeight);
     applyAdvancedEditorViewportStyle(editor, widgetHeight);
-    node.__easyuseAnimaAdvancedWidgetHeight = widgetHeight;
     node.__easyuseAnimaAdvancedLastEditorHeight = widgetHeight;
     node.__easyuseAnimaAdvancedLastLayoutReason = reason;
     restoreAdvancedEditorScrollState(editor, scrollState);

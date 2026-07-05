@@ -136,7 +136,14 @@ function advancedTextareaVisibleMinimumHeight(textarea) {
   );
 }
 
-function advancedTextareaCurrentHeight(textarea) {
+function advancedTextareaAutoHeight(textarea) {
+  return Math.max(
+    advancedTextareaMinimumHeight(textarea),
+    advancedTextareaContentHeight(textarea),
+  );
+}
+
+function advancedTextareaCurrentBoxHeight(textarea) {
   return Math.max(
     advancedTextareaMinimumHeight(textarea),
     Math.ceil(Number.parseFloat(textarea?.style?.height || "") || 0),
@@ -145,13 +152,17 @@ function advancedTextareaCurrentHeight(textarea) {
   );
 }
 
+function advancedTextareaCurrentHeight(textarea) {
+  return advancedTextareaCurrentBoxHeight(textarea);
+}
+
 function advancedTextareaHeightTotal(textareas, measure) {
   return textareas.reduce((sum, textarea) => sum + measure(textarea), 0);
 }
 
 function advancedEditorFixedHeight(editor, textareas = advancedEditorTextareas(editor)) {
   const editorHeight = measureAdvancedEditorContentHeight(editor);
-  const textareaTotal = advancedTextareaHeightTotal(textareas, advancedTextareaCurrentHeight);
+  const textareaTotal = advancedTextareaHeightTotal(textareas, advancedTextareaCurrentBoxHeight);
   return Math.max(0, editorHeight - textareaTotal);
 }
 
@@ -249,6 +260,20 @@ function applyAdvancedEditorViewportStyle(editor, height) {
   editor.style.overflowY = "auto";
 }
 
+function applyAdvancedWidgetAllocation(node, height) {
+  const widget = advancedEditorWidget(node);
+  if (!widget) {
+    return 0;
+  }
+  const viewportHeight = Math.max(
+    ADVANCED_EDITOR_MIN_VIEWPORT_HEIGHT,
+    Math.round(Number(height) || 0),
+  );
+  widget.computedHeight = viewportHeight;
+  node.__easyuseAnimaAdvancedWidgetHeight = viewportHeight;
+  return viewportHeight;
+}
+
 function advancedNodeChromeOffset(node, editorHeight = measureAdvancedEditorContentHeight(getAdvancedEditorElement(node))) {
   const widget = advancedEditorWidget(node);
   const widgetY = Math.max(
@@ -312,11 +337,14 @@ export {
   advancedEditorWidgetHeight,
   advancedEditorWidth,
   advancedAllocatedEditorHeight,
+  applyAdvancedWidgetAllocation,
   applyAdvancedEditorViewportStyle,
   advancedMinimumNodeHeight,
   advancedNodeChromeOffset,
   advancedNodeAvailableEditorViewportHeight,
+  advancedTextareaAutoHeight,
   advancedTextareaContentHeight,
+  advancedTextareaCurrentBoxHeight,
   advancedTextareaCurrentHeight,
   advancedTextareaMinimumHeight,
   advancedTextareaVisibleMinimumHeight,

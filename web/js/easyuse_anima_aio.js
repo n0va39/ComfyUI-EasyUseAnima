@@ -3996,6 +3996,19 @@ function generatorPanelWidget(node) {
     || null;
 }
 
+function applyGeneratorWidgetAllocation(node, height) {
+  const viewportHeight = Math.max(
+    GENERATOR_PANEL_MIN_HEIGHT,
+    Math.round(Number(height) || 0),
+  );
+  const widget = generatorPanelWidget(node);
+  if (widget) {
+    widget.computedHeight = viewportHeight;
+  }
+  node.__easyuseAnimaGeneratorPanelHeight = viewportHeight;
+  return viewportHeight;
+}
+
 function generatorNodeChromeOffset(node) {
   const widget = generatorPanelWidget(node);
   const widgetY = Number(widget?.y);
@@ -4170,7 +4183,7 @@ function applyGeneratorLayout(node) {
     const panelHeight = currentHeight >= minHeight - 1
       ? Math.max(minPanelHeight, availablePanelHeight)
       : minPanelHeight;
-    node.__easyuseAnimaGeneratorPanelHeight = panelHeight;
+    applyGeneratorWidgetAllocation(node, panelHeight);
     applyGeneratorPanelViewportStyle(panel, panelHeight, node);
     const currentWidth = Number(node.size[0]) || GENERATOR_NODE_DEFAULT_WIDTH;
     if (currentHeight < minHeight - 1 || currentWidth < GENERATOR_NODE_MIN_WIDTH) {
@@ -5623,7 +5636,7 @@ function ensureGeneratorPanel(node) {
   ensureStyle();
   node.serialize_widgets = true;
   suppressGeneratorDefaultPreview(node, { markDirty: false });
-  clampGeneratorNodeWidth(node, GENERATOR_NODE_DEFAULT_WIDTH);
+  clampGeneratorNodeWidth(node);
   if (!node.__easyuseAnimaGeneratorPanelEl) {
     const panel = document.createElement("div");
     panel.className = "easyuse-anima-aio-node-panel";
