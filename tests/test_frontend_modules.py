@@ -63,6 +63,9 @@ class FrontendModuleStructureTests(unittest.TestCase):
         extension_runtime_source = (
             PROMPT_STUDIO_MODULES / "extension_runtime.js"
         ).read_text(encoding="utf-8")
+        style_source = (PROMPT_STUDIO_MODULES / "style.js").read_text(
+            encoding="utf-8"
+        )
         advanced_fields_ui_source = (
             PROMPT_STUDIO_MODULES / "advanced_fields_ui.js"
         ).read_text(encoding="utf-8")
@@ -125,6 +128,11 @@ class FrontendModuleStructureTests(unittest.TestCase):
         self.assertIn("function applyAdvancedWidgetAllocation", layout_source)
         self.assertIn("widget.computedHeight = viewportHeight;", layout_source)
         self.assertIn("return advancedNodeAvailableEditorViewportHeight(node);", layout_source)
+        widget_height_start = layout_source.index("function advancedEditorWidgetHeight")
+        widget_height_end = layout_source.index("\nfunction advancedEditorWidget", widget_height_start)
+        widget_height_body = layout_source[widget_height_start:widget_height_end]
+        self.assertIn("__easyuseAnimaAdvancedWidgetHeight", widget_height_body)
+        self.assertNotIn("advancedNodeAvailableEditorViewportHeight(node)", widget_height_body)
         self.assertIn("--easyuse-anima-advanced-editor-height", layout_source)
         self.assertNotIn("function advancedAllocatedEditorHeight", layout_source)
         self.assertNotIn("function advancedUserResizeActive", layout_source)
@@ -140,6 +148,10 @@ class FrontendModuleStructureTests(unittest.TestCase):
         )
         self.assertIn(
             "applyAdvancedWidgetAllocation(node, widgetHeight);",
+            advanced_layout_controller_source,
+        )
+        self.assertIn(
+            "? advancedNodeAvailableEditorViewportHeight(node)",
             advanced_layout_controller_source,
         )
         self.assertIn(
@@ -188,6 +200,9 @@ class FrontendModuleStructureTests(unittest.TestCase):
         extension_runtime_source = (
             PROMPT_STUDIO_MODULES / "extension_runtime.js"
         ).read_text(encoding="utf-8")
+        style_source = (PROMPT_STUDIO_MODULES / "style.js").read_text(
+            encoding="utf-8"
+        )
 
         self.assertIn(
             "function syncAdvancedTextareaHeightsForWidth",
@@ -211,6 +226,24 @@ class FrontendModuleStructureTests(unittest.TestCase):
         self.assertIn("syncField: false,", sync_body)
         self.assertNotIn("field.height = nextHeight;", sync_body)
         self.assertNotIn("hooks.writeAdvancedFields?.(node, fields", sync_body)
+        self.assertIn("function installAdvancedTextareaResizeObserver", advanced_fields_ui_source)
+        self.assertIn("new ResizeObserver", advanced_fields_ui_source)
+        self.assertIn("__easyuseAnimaAdvancedApplyingHeight", advanced_fields_ui_source)
+        self.assertIn('persistTextareaHeight(currentHeight, "manual");', advanced_fields_ui_source)
+        self.assertIn("function createAdvancedTextareaResizeHandle", advanced_fields_ui_source)
+        self.assertIn('handle.className = "easyuse-anima-advanced-textarea-resize";', advanced_fields_ui_source)
+        self.assertIn("if (Number(event.button) > 0)", advanced_fields_ui_source)
+        self.assertIn('document.addEventListener("pointermove", move, true);', advanced_fields_ui_source)
+        self.assertIn("handle.setPointerCapture?.(event.pointerId);", advanced_fields_ui_source)
+        self.assertIn("const cssPixelScale = startHeight / rectHeight;", advanced_fields_ui_source)
+        self.assertIn('textareaWrap.className = "easyuse-anima-advanced-textarea-wrap";', advanced_fields_ui_source)
+        self.assertIn("textareaWrap.append(textarea, createAdvancedTextareaResizeHandle", advanced_fields_ui_source)
+        self.assertIn(".easyuse-anima-advanced-textarea-resize", style_source)
+        self.assertIn("left: 0;", style_source)
+        self.assertIn("right: 0;", style_source)
+        self.assertIn("height: 18px;", style_source)
+        self.assertIn("pointer-events: auto;", style_source)
+        self.assertIn("resize: none;", style_source)
         self.assertIn(
             "syncAdvancedTextareaHeightsForWidth(node, hooks);",
             advanced_layout_controller_source,

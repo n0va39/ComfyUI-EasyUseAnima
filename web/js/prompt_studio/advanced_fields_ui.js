@@ -47,12 +47,22 @@ function advancedFieldByTextarea(node, textarea, hooks = {}) {
     .find((field) => field.id === id) || null;
 }
 
+function markAdvancedTextareaProgrammaticHeight(textarea) {
+  textarea.__easyuseAnimaAdvancedApplyingHeight = true;
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      textarea.__easyuseAnimaAdvancedApplyingHeight = false;
+    });
+  });
+}
+
 function setAdvancedTextareaHeight(node, textarea, height, options = {}, hooks = {}) {
   const mode = options.mode === "manual" ? "manual" : "auto";
   const minimumHeight = advancedTextareaMinimumHeight(textarea);
   const contentHeight = advancedTextareaContentHeight(textarea);
   const requiredHeight = Math.max(minimumHeight, contentHeight);
   const nextHeight = Math.max(requiredHeight, Math.round(Number(height) || 0));
+  markAdvancedTextareaProgrammaticHeight(textarea);
   textarea.style.minHeight = `${minimumHeight}px`;
   textarea.style.height = `${nextHeight}px`;
   textarea.style.overflowY = "hidden";
@@ -112,6 +122,74 @@ function syncAdvancedTextareaHeightsForWidth(node, hooks = {}) {
   return changed;
 }
 
+function installAdvancedTextareaResizeObserver(textarea, persistTextareaHeight) {
+  if (!(textarea instanceof HTMLTextAreaElement) || typeof ResizeObserver !== "function") {
+    return;
+  }
+  let lastHeight = advancedTextareaCurrentBoxHeight(textarea);
+  const observer = new ResizeObserver(() => {
+    if (textarea.__easyuseAnimaAdvancedApplyingHeight || !textarea.isConnected) {
+      lastHeight = advancedTextareaCurrentBoxHeight(textarea);
+      return;
+    }
+    const currentHeight = advancedTextareaCurrentBoxHeight(textarea);
+    if (Math.abs(currentHeight - lastHeight) <= 1) {
+      return;
+    }
+    lastHeight = currentHeight;
+    persistTextareaHeight(currentHeight, "manual");
+  });
+  observer.observe(textarea);
+  textarea.__easyuseAnimaAdvancedResizeObserver = observer;
+}
+
+function createAdvancedTextareaResizeHandle(node, textarea, persistTextareaHeight, hooks = {}) {
+  const handle = document.createElement("div");
+  handle.className = "easyuse-anima-advanced-textarea-resize";
+  handle.addEventListener("pointerdown", (event) => {
+    if (Number(event.button) > 0) {
+      return;
+    }
+    event.preventDefault();
+    event.stopPropagation();
+    rememberAdvancedTextareaResizeStart(textarea);
+    const startY = event.clientY;
+    const startHeight = advancedTextareaCurrentBoxHeight(textarea);
+    const rectHeight = Math.max(1, textarea.getBoundingClientRect().height);
+    const cssPixelScale = startHeight / rectHeight;
+
+    const move = (moveEvent) => {
+      moveEvent.preventDefault();
+      moveEvent.stopPropagation();
+      const nextHeight = startHeight + ((moveEvent.clientY - startY) * cssPixelScale);
+      setAdvancedTextareaHeight(node, textarea, nextHeight, {
+        mode: "manual",
+        syncField: false,
+        refreshHighlight: false,
+      }, hooks);
+      requestOverlaySync(textarea);
+    };
+    const finish = (finishEvent) => {
+      finishEvent?.preventDefault?.();
+      finishEvent?.stopPropagation?.();
+      document.removeEventListener("pointermove", move, true);
+      document.removeEventListener("pointerup", finish, true);
+      document.removeEventListener("pointercancel", finish, true);
+      persistTextareaHeight(advancedTextareaCurrentBoxHeight(textarea), "manual");
+    };
+
+    document.addEventListener("pointermove", move, true);
+    document.addEventListener("pointerup", finish, true);
+    document.addEventListener("pointercancel", finish, true);
+    try {
+      handle.setPointerCapture?.(event.pointerId);
+    } catch {
+      // Pointer capture can fail in transformed/canvas-hosted DOM overlays.
+    }
+  });
+  return handle;
+}
+
 function createAdvancedFieldElement(node, field, hooks = {}) {
   const fields = getAdvancedFields(node) || hooks.parseAdvancedFields?.(node) || [];
   const globalIndex = fields.findIndex((item) => item.id === field.id);
@@ -122,6 +200,8 @@ function createAdvancedFieldElement(node, field, hooks = {}) {
   block.classList.toggle("is-naia", field.type === "naia");
   block.classList.toggle("is-trigger", field.type === "trigger");
   block.classList.toggle("is-disabled", field.enabled === false);
+  const textareaWrap = document.createElement("div");
+  textareaWrap.className = "easyuse-anima-advanced-textarea-wrap";
 
   const header = document.createElement("div");
   header.className = "easyuse-anima-field-header";
@@ -272,6 +352,8 @@ function createAdvancedFieldElement(node, field, hooks = {}) {
     }
     persistTextareaHeight(currentHeight, "manual");
   };
+  installAdvancedTextareaResizeObserver(textarea, persistTextareaHeight);
+  textareaWrap.append(textarea, createAdvancedTextareaResizeHandle(node, textarea, persistTextareaHeight, hooks));
   textarea.addEventListener("mousedown", rememberTextareaResizeStart);
   textarea.addEventListener("pointerdown", rememberTextareaResizeStart);
   textarea.addEventListener("mouseup", captureTextareaManualResize);
@@ -299,7 +381,7 @@ function createAdvancedFieldElement(node, field, hooks = {}) {
   });
 
   header.append(label, tools);
-  block.append(header, textarea);
+  block.append(header, textareaWrap);
   return block;
 }
 

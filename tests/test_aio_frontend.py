@@ -128,12 +128,17 @@ class AIOFrontendSourceTests(unittest.TestCase):
         node_available_start = source.index("function generatorNodeAvailablePanelHeight")
         node_available_end = source.index("\nfunction generatorPanelHeight", node_available_start)
         node_available_body = source[node_available_start:node_available_end]
+        panel_height_start = source.index("function generatorPanelHeight")
+        panel_height_end = source.index("\nfunction generatorPanelMinHeight", panel_height_start)
+        panel_height_body = source[panel_height_start:panel_height_end]
         available_start = source.index("function generatorAvailablePanelHeight")
         available_end = source.index("\nfunction generatorClampHeight", available_start)
         available_body = source[available_start:available_end]
 
         self.assertIn("const nodeHeight = Number(node?.size?.[1]) || 0;", node_available_body)
         self.assertIn("Math.ceil(nodeHeight - generatorNodeChromeOffset(node))", node_available_body)
+        self.assertIn("__easyuseAnimaGeneratorPanelHeight", panel_height_body)
+        self.assertNotIn("generatorNodeAvailablePanelHeight(node)", panel_height_body)
         self.assertIn("return generatorNodeAvailablePanelHeight(node);", available_body)
         self.assertNotIn("generatorUserResizeActive", available_body)
         self.assertNotIn("generatorAllocatedPanelHeight", available_body)

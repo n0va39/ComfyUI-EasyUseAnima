@@ -351,6 +351,9 @@ function ensureAdvancedStyle() {
     .easyuse-anima-advanced-field.is-disabled {
       opacity: 0.58;
     }
+    .easyuse-anima-advanced-textarea-wrap {
+      position: relative;
+    }
     .easyuse-anima-field-header {
       display: flex;
       align-items: center;
@@ -386,7 +389,7 @@ function ensureAdvancedStyle() {
       box-sizing: border-box;
       width: 100%;
       min-height: 46px;
-      resize: vertical;
+      resize: none;
       overflow: hidden;
       border: 1px solid rgba(148, 163, 184, 0.28);
       background: rgba(10, 10, 12, 0.78);
@@ -396,6 +399,24 @@ function ensureAdvancedStyle() {
       font-size: var(--easyuse-anima-prompt-studio-font-size, 1rem);
       line-height: 1.35;
       outline: none;
+    }
+    .easyuse-anima-advanced-textarea-resize {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: -1px;
+      height: 18px;
+      z-index: 3;
+      cursor: ns-resize;
+      touch-action: none;
+      pointer-events: auto;
+      opacity: 0.76;
+      background:
+        linear-gradient(to bottom, transparent 0 42%, rgba(148, 163, 184, 0.56) 43% 51%, transparent 52%),
+        linear-gradient(to bottom, transparent 0 60%, rgba(148, 163, 184, 0.42) 61% 67%, transparent 68%);
+    }
+    .easyuse-anima-advanced-textarea-resize:hover {
+      opacity: 0.95;
     }
     .easyuse-anima-advanced-field textarea:focus {
       border-color: rgba(96, 165, 250, 0.7);

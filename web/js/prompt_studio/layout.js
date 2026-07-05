@@ -203,9 +203,6 @@ function advancedAvailableEditorViewportHeight(node) {
 }
 
 function advancedEditorWidgetHeight(node) {
-  if (getAdvancedEditorElement(node)?.isConnected) {
-    return advancedAvailableEditorViewportHeight(node);
-  }
   return Math.ceil(Math.max(
     advancedEditorMinimumHeight(node),
     Number(node?.__easyuseAnimaAdvancedWidgetHeight) || 0,

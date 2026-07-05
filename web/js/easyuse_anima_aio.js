@@ -4026,10 +4026,6 @@ function generatorNodeAvailablePanelHeight(node) {
 }
 
 function generatorPanelHeight(node) {
-  const nodeHeight = generatorNodeAvailablePanelHeight(node);
-  if (nodeHeight > 0) {
-    return nodeHeight;
-  }
   return Math.max(GENERATOR_PANEL_MIN_HEIGHT, Number(node?.__easyuseAnimaGeneratorPanelHeight) || 0);
 }
 
