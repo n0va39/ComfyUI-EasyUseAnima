@@ -40,6 +40,7 @@ class AIOFrontendSourceTests(unittest.TestCase):
         self.assertIn("function generatorPreviewBoxHeight", source)
         self.assertIn("function generatorPreviewCardHeight", source)
         self.assertIn("function generatorDesiredPanelHeight", source)
+        self.assertIn("function generatorAllocatedPanelHeight", source)
         self.assertIn("function generatorAvailablePanelHeight", source)
         self.assertIn("function applyGeneratorPanelViewportStyle", source)
         self.assertIn("const fillHeight = options.fillHeight === true;", source)
@@ -113,6 +114,27 @@ class AIOFrontendSourceTests(unittest.TestCase):
         self.assertIn("Math.max(currentWidth, GENERATOR_NODE_MIN_WIDTH)", body)
         self.assertNotIn("Math.abs(currentHeight - minHeight)", body)
         self.assertNotIn("Math.max(currentWidth, GENERATOR_NODE_DEFAULT_WIDTH)", body)
+
+    def test_generator_available_height_prefers_dom_widget_allocation(self):
+        source = AIO_JS.read_text(encoding="utf-8")
+        allocated_start = source.index("function generatorAllocatedPanelHeight")
+        allocated_end = source.index("\nfunction generatorAvailablePanelHeight", allocated_start)
+        allocated_body = source[allocated_start:allocated_end]
+        available_start = source.index("function generatorAvailablePanelHeight")
+        available_end = source.index("\nfunction generatorClampHeight", available_start)
+        available_body = source[available_start:available_end]
+
+        self.assertIn("const host = panel?.parentElement;", allocated_body)
+        self.assertIn("host instanceof HTMLElement", allocated_body)
+        self.assertIn("Number(host.clientHeight) || 0", allocated_body)
+        self.assertIn('Number.parseFloat(getComputedStyle(host).height || "") || 0', allocated_body)
+        self.assertIn("hostHeight >= GENERATOR_PANEL_MIN_HEIGHT", allocated_body)
+        self.assertIn("const allocatedHeight = generatorAllocatedPanelHeight(node);", available_body)
+        self.assertLess(
+            available_body.index("const allocatedHeight = generatorAllocatedPanelHeight(node);"),
+            available_body.index("const nodeHeight = Number(node?.size?.[1]) || 0;"),
+        )
+        self.assertIn("return allocatedHeight;", available_body)
 
     def test_detailer_target_editor_builds_optimization_before_visibility_refresh(self):
         source = AIO_JS.read_text(encoding="utf-8")

@@ -3982,7 +3982,26 @@ function generatorPanelMinHeight(node) {
   return Math.max(GENERATOR_PANEL_MIN_HEIGHT, Number(node?.__easyuseAnimaGeneratorPanelMinHeight) || 0);
 }
 
+function generatorAllocatedPanelHeight(node) {
+  const panel = node?.__easyuseAnimaGeneratorPanelEl;
+  const host = panel?.parentElement;
+  if (!(host instanceof HTMLElement)) {
+    return 0;
+  }
+  const hostHeight = Math.max(
+    Number(host.clientHeight) || 0,
+    Number.parseFloat(getComputedStyle(host).height || "") || 0,
+  );
+  return hostHeight >= GENERATOR_PANEL_MIN_HEIGHT
+    ? Math.round(hostHeight)
+    : 0;
+}
+
 function generatorAvailablePanelHeight(node) {
+  const allocatedHeight = generatorAllocatedPanelHeight(node);
+  if (allocatedHeight > 0) {
+    return allocatedHeight;
+  }
   const nodeHeight = Number(node?.size?.[1]) || 0;
   if (nodeHeight <= 0) {
     return 0;
