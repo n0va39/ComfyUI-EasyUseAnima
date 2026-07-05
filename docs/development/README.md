@@ -14,6 +14,8 @@ conversation.
    - custom-node model patch integrations: `docs/development/custom-node-integrations.md`
    - frontend JS maintainability and Issue #14:
      `docs/development/issue-14-frontend-js-maintenance.md`
+   - deferred Node 2.0 DOM widget resize investigation:
+     `docs/development/node2-dom-widget-resize-limitation.md`
    - language or locale work: `docs/development/language-management.md`
 5. `git status --short`
 6. Relevant source and tests for the target area.
@@ -31,6 +33,8 @@ conversation.
   `docs/wildcards.en.md`
 - Issue #14 frontend maintainability plan:
   `docs/development/issue-14-frontend-js-maintenance.md`
+- Deferred Node 2.0 DOM widget resize investigation:
+  `docs/development/node2-dom-widget-resize-limitation.md`
 
 ## Area-Specific Files
 
