@@ -135,7 +135,11 @@ class FrontendModuleStructureTests(unittest.TestCase):
         widget_height_end = layout_source.index("\nfunction advancedEditorWidget", widget_height_start)
         widget_height_body = layout_source[widget_height_start:widget_height_end]
         self.assertIn("__easyuseAnimaAdvancedWidgetHeight", widget_height_body)
-        self.assertNotIn("advancedNodeAvailableEditorViewportHeight(node)", widget_height_body)
+        self.assertIn("if (isNodeUserResizeActive(node))", widget_height_body)
+        self.assertIn(
+            "return advancedNodeAvailableEditorViewportHeight(node);",
+            widget_height_body,
+        )
         self.assertIn("--easyuse-anima-advanced-editor-height", layout_source)
         self.assertNotIn("function advancedAllocatedEditorHeight", layout_source)
         self.assertNotIn("function advancedUserResizeActive", layout_source)
@@ -154,9 +158,10 @@ class FrontendModuleStructureTests(unittest.TestCase):
             advanced_layout_controller_source,
         )
         self.assertIn(
-            "const shouldAdoptNodeHeight = Boolean(node.__easyuseAnimaAdvancedUserResizing);",
+            "const shouldAdoptNodeHeight = Boolean(node.__easyuseAnimaAdvancedUserResizing)",
             advanced_layout_controller_source,
         )
+        self.assertIn("|| isNodeUserResizeActive(node);", advanced_layout_controller_source)
         self.assertIn(
             "? advancedNodeAvailableEditorViewportHeight(node)",
             advanced_layout_controller_source,
@@ -266,9 +271,11 @@ class FrontendModuleStructureTests(unittest.TestCase):
         self.assertIn("node.__easyuseAnimaAdvancedUserResizing = true;", advanced_layout_controller_source)
         self.assertIn("node.__easyuseAnimaAdvancedUserResizing = false;", advanced_layout_controller_source)
         self.assertIn("markAdvancedUserResize,", extension_runtime_source)
-        self.assertIn("function isCanvasResizingNode", node_hooks_source)
-        self.assertIn("canvas?.resizing_node === node", node_hooks_source)
-        self.assertIn("if (isCanvasResizingNode(this))", node_hooks_source)
+        self.assertIn("./node_resize_tracking.js", node_hooks_source)
+        self.assertIn("installNodeResizePointerTracker,", node_hooks_source)
+        self.assertIn("isNodeUserResizeActive,", node_hooks_source)
+        self.assertIn("installNodeResizePointerTracker();", node_hooks_source)
+        self.assertIn("if (isNodeUserResizeActive(this))", node_hooks_source)
         self.assertLess(
             advanced_layout_controller_source.index("updateAdvancedEditorWidth(node);"),
             advanced_layout_controller_source.index("syncAdvancedTextareaHeightsForWidth(node, hooks);"),
@@ -439,6 +446,9 @@ class FrontendModuleStructureTests(unittest.TestCase):
         node_hooks_source = (PROMPT_STUDIO_MODULES / "node_hooks.js").read_text(
             encoding="utf-8"
         )
+        node_resize_tracking_source = (
+            PROMPT_STUDIO_MODULES / "node_resize_tracking.js"
+        ).read_text(encoding="utf-8")
         settings_source = (PROMPT_STUDIO_MODULES / "settings.js").read_text(
             encoding="utf-8"
         )
@@ -680,6 +690,14 @@ class FrontendModuleStructureTests(unittest.TestCase):
                 self.assertIn(f"  {name},", node_hooks_source)
 
         for name in (
+            "installNodeResizePointerTracker",
+            "isCanvasResizingNode",
+            "isNodeUserResizeActive",
+        ):
+            with self.subTest(module="node_resize_tracking", symbol=name):
+                self.assertIn(f"  {name},", node_resize_tracking_source)
+
+        for name in (
             "PROMPT_STUDIO_SETTINGS",
             "applyPromptStudioSettings",
             "applyPromptStudioTextStyle",
@@ -873,6 +891,32 @@ class FrontendModuleStructureTests(unittest.TestCase):
         ):
             with self.subTest(module="extension_runtime", symbol=name):
                 self.assertIn(f"  {name},", extension_runtime_source)
+
+    def test_prompt_studio_node_resize_tracker_supports_node2_dom_resize(self):
+        source = (PROMPT_STUDIO_MODULES / "node_resize_tracking.js").read_text(
+            encoding="utf-8"
+        )
+
+        install_start = source.index("function installNodeResizePointerTracker")
+        install_end = source.index("\nfunction elementScreenRect", install_start)
+        install_body = source[install_start:install_end]
+        pointer_start = source.index("function isPointerNearNodeResizeEdge")
+        pointer_end = source.index("\nfunction isCanvasResizingNode", pointer_start)
+        pointer_body = source[pointer_start:pointer_end]
+
+        self.assertIn('document.addEventListener("pointerdown"', install_body)
+        self.assertIn('document.addEventListener("mousemove"', install_body)
+        self.assertIn("node?.__easyuseAnimaAdvancedEditorEl", source)
+        self.assertIn("node?.__easyuseAnimaAdvancedDomWidget?.element", source)
+        self.assertIn("node?.__easyuseAnimaGeneratorPanelEl", source)
+        self.assertIn("node?.__easyuseAnimaGeneratorPanelWidget?.element", source)
+        self.assertIn('element.closest?.(".lg-node")', source)
+        self.assertIn('element.closest?.("[data-node-id]")', source)
+        self.assertIn("pushRect(rects, canvasNodeScreenRect(node));", source)
+        self.assertIn(
+            "return nodeScreenRects(node).some((rect) => isPointerNearRectResizeEdge(rect));",
+            pointer_body,
+        )
 
     def test_prompt_studio_phase_3_typedefs_are_documented(self):
         types_source = (PROMPT_STUDIO_MODULES / "types.js").read_text(

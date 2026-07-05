@@ -7,6 +7,9 @@ import {
 import {
   getAdvancedEditorElement,
 } from "./state.js";
+import {
+  isNodeUserResizeActive,
+} from "./node_resize_tracking.js";
 
 function advancedEditorWidth(node) {
   return Math.max(280, Math.round((Number(node?.size?.[0]) || 420) - 18));
@@ -203,6 +206,9 @@ function advancedAvailableEditorViewportHeight(node) {
 }
 
 function advancedEditorWidgetHeight(node) {
+  if (isNodeUserResizeActive(node)) {
+    return advancedNodeAvailableEditorViewportHeight(node);
+  }
   return Math.ceil(Math.max(
     advancedEditorMinimumHeight(node),
     Number(node?.__easyuseAnimaAdvancedWidgetHeight) || 0,

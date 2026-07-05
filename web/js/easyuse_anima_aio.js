@@ -1,6 +1,10 @@
 import { app } from "../../../scripts/app.js";
 import { api } from "../../../scripts/api.js";
 import { easyuseAnimaText, easyuseAnimaWatchLocale } from "./easyuse_anima_i18n.js";
+import {
+  installNodeResizePointerTracker,
+  isNodeUserResizeActive,
+} from "./prompt_studio/node_resize_tracking.js";
 
 const INPUT_NODE_TYPE = "EasyUseAnimaInput";
 const GENERATOR_NODE_TYPE = "EasyUseAnimaAIOGenerator";
@@ -3923,7 +3927,7 @@ function stopGeneratorControlPropagation(root) {
       altKey: event.altKey,
       metaKey: event.metaKey,
     }));
-  }, { passive: false });
+  }, { capture: true, passive: false });
   root.__easyuseAnimaAioStopPropagation = true;
 }
 
@@ -4026,14 +4030,10 @@ function generatorNodeAvailablePanelHeight(node) {
 }
 
 function generatorPanelHeight(node) {
+  if (isNodeUserResizeActive(node)) {
+    return generatorNodeAvailablePanelHeight(node);
+  }
   return Math.max(GENERATOR_PANEL_MIN_HEIGHT, Number(node?.__easyuseAnimaGeneratorPanelHeight) || 0);
-}
-
-function isGeneratorCanvasResizingNode(node) {
-  const canvas = app.canvas;
-  return canvas?.resizing_node === node
-    || canvas?.resizingNode === node
-    || canvas?.resizing_node?.node === node;
 }
 
 function generatorPanelMinHeight(node) {
@@ -4151,11 +4151,10 @@ function applyGeneratorLayout(node) {
     panel.style.width = `${width}px`;
     panel.style.maxWidth = `${width}px`;
     const minPanelHeight = measureGeneratorPanelContentHeight(node);
-    const minHeight = generatorMinimumNodeHeight(node);
-    const currentHeight = Number(node.size[1]) || 0;
     const availablePanelHeight = generatorAvailablePanelHeight(node);
-    const shouldAdoptNodeHeight = Boolean(node.__easyuseAnimaGeneratorUserResizing);
-    const panelHeight = shouldAdoptNodeHeight && currentHeight >= minHeight - 1
+    const shouldAdoptNodeHeight = Boolean(node.__easyuseAnimaGeneratorUserResizing)
+      || isNodeUserResizeActive(node);
+    const panelHeight = shouldAdoptNodeHeight
       ? Math.max(minPanelHeight, availablePanelHeight)
       : Math.max(minPanelHeight, generatorPanelHeight(node));
     applyGeneratorWidgetAllocation(node, panelHeight);
@@ -7313,6 +7312,7 @@ function hookInputNode(node) {
 }
 
 function hookGeneratorNode(node) {
+  installNodeResizePointerTracker();
   node.serialize_widgets = true;
   suppressGeneratorDefaultPreview(node, { markDirty: false });
   hideWidget(findWidget(node, GENERATOR_SETTINGS_WIDGET));
@@ -7539,7 +7539,7 @@ app.registerExtension({
       };
       const onResize = nodeType.prototype.onResize;
       nodeType.prototype.onResize = function () {
-        if (isGeneratorCanvasResizingNode(this)) {
+        if (isNodeUserResizeActive(this)) {
           markGeneratorUserResize(this);
         }
         const result = onResize?.apply(this, arguments);

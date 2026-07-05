@@ -1,7 +1,5 @@
 // @ts-check
 
-import { app } from "../../../../scripts/app.js";
-
 import {
   ADVANCED_NODE_TYPE,
   ADVANCED_V2_NODE_TYPE,
@@ -9,6 +7,10 @@ import {
   NODE_TYPE,
   WILDCARD_NODE_TYPE,
 } from "./constants.js";
+import {
+  installNodeResizePointerTracker,
+  isNodeUserResizeActive,
+} from "./node_resize_tracking.js";
 
 function isAdvancedNodeName(name) {
   return name === ADVANCED_NODE_TYPE || name === ADVANCED_V2_NODE_TYPE;
@@ -33,17 +35,11 @@ function isPromptStudioNodeName(name) {
     || name === WILDCARD_NODE_TYPE;
 }
 
-function isCanvasResizingNode(node) {
-  const canvas = app.canvas;
-  return canvas?.resizing_node === node
-    || canvas?.resizingNode === node
-    || canvas?.resizing_node?.node === node;
-}
-
 function registerPromptStudioNodeHooks(nodeType, nodeData, hooks) {
   if (!isPromptStudioNodeName(nodeData?.name)) {
     return false;
   }
+  installNodeResizePointerTracker();
   if (nodeType.prototype.__easyuseAnimaPromptStudioWrapped) {
     return false;
   }
@@ -80,15 +76,15 @@ function registerPromptStudioNodeHooks(nodeType, nodeData, hooks) {
     if (this.__easyuseAnimaHandlingResize || this.__easyuseAnimaApplyingLayout) {
       return result;
     }
-      this.__easyuseAnimaHandlingResize = true;
-      try {
-        if (isAdvanced) {
-          if (isCanvasResizingNode(this)) {
-            hooks.markAdvancedUserResize(this);
-          }
-          hooks.updateAdvancedEditorWidth(this);
-          hooks.scheduleAdvancedResizeFinalize(this);
-          return result;
+    this.__easyuseAnimaHandlingResize = true;
+    try {
+      if (isAdvanced) {
+        if (isNodeUserResizeActive(this)) {
+          hooks.markAdvancedUserResize(this);
+        }
+        hooks.updateAdvancedEditorWidth(this);
+        hooks.scheduleAdvancedResizeFinalize(this);
+        return result;
       }
       if (isWildcard) {
         return result;

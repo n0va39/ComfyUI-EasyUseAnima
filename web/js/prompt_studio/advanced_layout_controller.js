@@ -13,6 +13,9 @@ import {
   updateAdvancedEditorWidth,
 } from "./layout.js";
 import {
+  isNodeUserResizeActive,
+} from "./node_resize_tracking.js";
+import {
   getAdvancedEditorElement,
 } from "./state.js";
 import {
@@ -101,7 +104,8 @@ function applyAdvancedLayout(node, reason = "layout", hooks = {}) {
     const currentWidth = Number(node.size[0]) || 360;
     const currentHeight = Number(node.size[1]) || 0;
     const minimumHeight = advancedMinimumNodeHeight(node);
-    const shouldAdoptNodeHeight = Boolean(node.__easyuseAnimaAdvancedUserResizing);
+    const shouldAdoptNodeHeight = Boolean(node.__easyuseAnimaAdvancedUserResizing)
+      || isNodeUserResizeActive(node);
     const widgetHeight = shouldAdoptNodeHeight
       ? advancedNodeAvailableEditorViewportHeight(node)
       : advancedEditorWidgetHeight(node);
