@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 import re
 import sys
 import tomllib
@@ -33,18 +34,58 @@ def _extract_section(release_path: Path, version: str) -> str:
     return section + "\n"
 
 
+def _registry_changelog_file(changelog_dir: Path, version: str) -> str | None:
+    path = changelog_dir / f"{version}.txt"
+    if not path.exists():
+        return None
+    changelog = path.read_text(encoding="utf-8").strip()
+    return changelog + "\n" if changelog else None
+
+
+def _read_metadata_changelog_file(metadata_path: Path, value: str) -> str:
+    path = Path(value)
+    if not path.is_absolute():
+        path = metadata_path.parent / path
+    return path.read_text(encoding="utf-8").strip()
+
+
+def _metadata_changelog(metadata_path: Path, version: str) -> str | None:
+    if not metadata_path.exists():
+        return None
+    data = json.loads(metadata_path.read_text(encoding="utf-8"))
+    versions = data.get("versions")
+    if not isinstance(versions, list):
+        return None
+    for item in versions:
+        if not isinstance(item, dict) or str(item.get("version") or "") != version:
+            continue
+        changelog_file = item.get("changelog_file")
+        if isinstance(changelog_file, str) and changelog_file.strip():
+            changelog = _read_metadata_changelog_file(metadata_path, changelog_file)
+            return changelog + "\n" if changelog else None
+        changelog = str(item.get("changelog") or "").strip()
+        return changelog + "\n" if changelog else None
+    return None
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--pyproject", type=Path, default=Path("pyproject.toml"))
     parser.add_argument("--release", type=Path, default=Path("RELEASE.md"))
+    parser.add_argument("--metadata", type=Path, default=Path(".github/registry/metadata.json"))
+    parser.add_argument("--registry-changelog-dir", type=Path, default=Path(".github/registry/changelogs"))
     parser.add_argument("--version", default="", help="Version to extract. Defaults to pyproject version.")
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args(argv)
 
     version = args.version.strip() or _pyproject_version(args.pyproject)
-    changelog = _extract_section(args.release, version)
+    changelog = (
+        _registry_changelog_file(args.registry_changelog_dir, version)
+        or _metadata_changelog(args.metadata, version)
+        or _extract_section(args.release, version)
+    )
     args.output.write_text(changelog, encoding="utf-8")
-    print(f"Extracted RELEASE.md changelog for {version} to {args.output}")
+    print(f"Extracted Registry changelog for {version} to {args.output}")
     return 0
 
 

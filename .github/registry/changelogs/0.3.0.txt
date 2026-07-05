@@ -1,0 +1,7 @@
+EasyUse Anima 0.3.0 focuses on safer first-run behavior and clearer AiO output metadata.
+
+User-visible changes:
+1. Anima AiO Generator now sends Prompt Studio metadata prompts to Image Saver when they are available. Saved image metadata should better match the final prompt text users expect to see.
+2. Release workflows now start with safer optimization defaults. SageAttention, Sage compile, TorchCompile, and FP16 accumulation are off by default. Enable them only after confirming your local PyTorch, CUDA, and Triton setup.
+3. Optional integration features are more explicit. Prompt translation stays off until selected, NAIA remote hosts require the remote API allow setting, and API keys are no longer auto-read from environment variables.
+4. Standalone SAM3 Context and SAM3 Detailer nodes are no longer listed as public nodes. The AiO Generator detailer settings still keep the internal SAM3 detailer path.

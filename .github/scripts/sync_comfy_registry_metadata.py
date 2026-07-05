@@ -57,6 +57,16 @@ def _load_metadata(path: Path) -> dict[str, Any]:
             raise ValueError(f"Missing required metadata key: {key}")
     if not isinstance(data["versions"], list):
         raise ValueError("metadata.versions must be a list")
+    for item in data["versions"]:
+        if not isinstance(item, dict):
+            continue
+        changelog_file = item.get("changelog_file")
+        if not isinstance(changelog_file, str) or not changelog_file.strip():
+            continue
+        file_path = Path(changelog_file)
+        if not file_path.is_absolute():
+            file_path = path.parent / file_path
+        item["changelog"] = file_path.read_text(encoding="utf-8").strip()
     return data
 
 
