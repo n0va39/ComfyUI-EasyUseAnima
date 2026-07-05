@@ -11,6 +11,90 @@ PROMPT_STUDIO_COMMON_JS = ROOT / "web" / "js" / "easyuse_anima_prompt_studio_com
 
 
 class AIOFrontendSourceTests(unittest.TestCase):
+    def test_generator_layout_keeps_0_2_7_node_height_contract(self):
+        source = AIO_JS.read_text(encoding="utf-8")
+
+        self.assertNotIn("node_resize_tracking.js", source)
+        self.assertNotIn("isNodeUserResizeActive", source)
+        self.assertNotIn("markGeneratorUserResize", source)
+        self.assertNotIn("--easyuse-anima-aio-panel-height", source)
+        self.assertNotIn("widget.computedHeight", source)
+        self.assertNotIn("--node-height", source)
+
+        start = source.index("function generatorAvailablePanelHeight")
+        end = source.index("\nfunction measureGeneratorPanelContentHeight", start)
+        available_body = source[start:end]
+
+        self.assertIn("const nodeHeight = Number(node?.size?.[1]) || 0;", available_body)
+        self.assertIn("nodeHeight - generatorNodeChromeOffset(node)", available_body)
+        self.assertNotIn("getComputedStyle", available_body)
+
+        start = source.index("function applyGeneratorLayout")
+        end = source.index("\nfunction scheduleGeneratorLayout", start)
+        layout_body = source[start:end]
+
+        self.assertIn(
+            "const panelHeight = Math.max(minPanelHeight, generatorAvailablePanelHeight(node));",
+            layout_body,
+        )
+        self.assertIn("node.__easyuseAnimaGeneratorPanelHeight = panelHeight;", layout_body)
+        self.assertIn("panel.style.height = `${panelHeight}px`;", layout_body)
+        self.assertNotIn("applyGeneratorWidgetAllocation", layout_body)
+        self.assertNotIn("applyGeneratorPanelViewportStyle", layout_body)
+
+    def test_generator_dom_widget_layout_keeps_cached_panel_height(self):
+        source = AIO_JS.read_text(encoding="utf-8")
+        start = source.index("function ensureGeneratorPanel")
+        end = source.index("\nfunction field", start)
+        body = source[start:end]
+
+        self.assertIn("getMinHeight: () => generatorPanelMinHeight(node),", body)
+        self.assertIn("getHeight: () => generatorPanelHeight(node),", body)
+        self.assertIn("widget.computeLayoutSize = () => ({", body)
+        self.assertIn("minHeight: generatorPanelMinHeight(node),", body)
+        self.assertIn("height: generatorPanelHeight(node),", body)
+        self.assertIn("minWidth: GENERATOR_NODE_MIN_WIDTH - 18,", body)
+        self.assertNotIn("maxHeight", body)
+        self.assertNotIn("computedHeight", body)
+
+    def test_generator_css_keeps_resizable_children_in_legacy_stable_shape(self):
+        source = AIO_JS.read_text(encoding="utf-8")
+
+        start = source.index("    .easyuse-anima-aio-node-panel {")
+        end = source.index("    .easyuse-anima-aio-node-panel * {", start)
+        panel_css = source[start:end]
+        self.assertIn("min-height: ${GENERATOR_PANEL_MIN_HEIGHT}px;", panel_css)
+        self.assertIn("overflow: hidden;", panel_css)
+        self.assertNotIn("height: var(", panel_css)
+        self.assertNotIn("max-height: var(", panel_css)
+
+        start = source.index("    .easyuse-anima-aio-node-main {")
+        end = source.index("    .easyuse-anima-aio-node-card {", start)
+        main_css = source[start:end]
+        self.assertIn("flex: 1 1 auto;", main_css)
+        self.assertIn("min-height: 284px;", main_css)
+        self.assertIn("height: 100%;", main_css)
+        self.assertNotIn("height: var(", main_css)
+
+        start = source.index("    .easyuse-anima-aio-node-preview-box {")
+        end = source.index("    .easyuse-anima-aio-node-preview-box img {", start)
+        preview_box_css = source[start:end]
+        self.assertIn("flex: 1 1 auto;", preview_box_css)
+        self.assertIn("height: auto;", preview_box_css)
+        self.assertIn("min-height: 210px;", preview_box_css)
+        self.assertNotIn("height: var(", preview_box_css)
+
+    def test_generator_resize_only_reschedules_layout(self):
+        source = AIO_JS.read_text(encoding="utf-8")
+        start = source.index("      const onResize = nodeType.prototype.onResize;")
+        end = source.index("    }\n  },", start)
+        body = source[start:end]
+
+        self.assertIn("const result = onResize?.apply(this, arguments);", body)
+        self.assertIn("scheduleGeneratorLayout(this);", body)
+        self.assertNotIn("markGeneratorUserResize", body)
+        self.assertNotIn("isNodeUserResizeActive", body)
+
     def test_detailer_target_editor_builds_optimization_before_visibility_refresh(self):
         source = AIO_JS.read_text(encoding="utf-8")
         start = source.index("function createDetailerTargetEditor")
