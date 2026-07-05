@@ -796,6 +796,100 @@ checks are not applicable because no build output is produced.
 - Serialize does not reorder fields.
 - Layout-only actions do not change workflow JSON.
 
+## Node 2 / Legacy Layout Ownership Cleanup Plan
+
+Use this plan when a DOM widget layout PR regresses Node 2.0 or legacy canvas
+resize behavior. The goal is to keep one deterministic height owner instead of
+feeding wrapper measurements back into node layout.
+
+### Source Of Truth
+
+- `node.size[1]` is the layout input for a user-resized DOM widget viewport.
+- DOM widget allocation height is derived state. Write it through
+  `widget.computedHeight`, but do not read wrapper height back as the layout
+  source of truth.
+- Editor or panel CSS `height`, `max-height`, and overflow are derived from the
+  same viewport value written to `widget.computedHeight`.
+- `editor.parentElement.clientHeight`, `panel.parentElement.clientHeight`, and
+  computed wrapper style height are not used to decide the editor or panel
+  viewport. If retained, wrapper measurement is debug-only.
+- `getMinHeight()` and `computeLayoutSize().minHeight` return true minimum
+  height only. They must not return current content height or current viewport
+  height.
+- `getHeight()` returns the current computed widget allocation height.
+- `node.setSize()` may grow the node to the true minimum height to prevent
+  clipping. It must not shrink the node or restore stale wrapper height.
+- Prompt Studio Advanced textareas keep their own height ownership. Node resize
+  changes only the editor viewport, never textarea `field.height`.
+- AiO Generator is a single-surface node. Node resize may resize the internal
+  panel viewport and rebalance settings/preview areas.
+
+### Implementation Order
+
+1. Remove host wrapper height from the active layout path.
+   - Advanced layout uses `node.size[1] - chromeOffset`.
+   - AiO layout uses `node.size[1] - chromeOffset`.
+   - Host wrapper measurement is removed or left as non-layout diagnostics.
+2. Keep the DOM widget allocation adapter explicit.
+   - Advanced writes `widget.computedHeight` and the matching node cache value.
+   - AiO writes `widget.computedHeight` and the matching node cache value.
+   - CSS viewport height is set from the same number.
+3. Preserve minimum correction as grow-only behavior.
+   - Layout may call `node.setSize()` only when current node height is below the
+     calculated minimum.
+   - Continuous user resize should not fight the pointer with immediate
+     shrink/grow loops.
+4. Keep Advanced textarea behavior isolated.
+   - Manual textarea mode uses the saved/manual height and internal scrolling.
+   - Auto textarea mode may grow or shrink from content height.
+   - Width or node-height resize must not serialize a new textarea height.
+5. Keep AiO width policy separate from height policy.
+   - Saved workflow width is respected unless it is below the absolute minimum.
+   - New-node default width is not reused as a loaded-node correction.
+   - The minimum width must be high enough that the two-column node UI does not
+     overflow its panel.
+6. Update source guards.
+   - Tests should reject host wrapper height as a layout source.
+   - Tests should keep coverage for direct `widget.computedHeight` writes.
+   - Tests should keep coverage for minimum width clamp without default-width
+     coercion.
+
+### Acceptance Checklist
+
+- Advanced node manual height resize works in Node 2.0.
+- Advanced node manual height resize works in legacy canvas.
+- Advanced v2 editor scroll position is retained across input and layout.
+- Advanced long content scrolls inside the editor instead of growing the node.
+- Node width resize changes Advanced editor width only.
+- Node height resize changes Advanced editor viewport only.
+- Node resize does not change textarea `field.height`.
+- Manual textarea resize saves `field.height` and sets `heightMode` to
+  `manual`.
+- Input after manual textarea resize does not overwrite height with content
+  height.
+- Auto textarea mode still grows and shrinks from content height.
+- AiO Generator manual height resize works in Node 2.0.
+- AiO Generator manual height resize works in legacy canvas.
+- AiO Generator saved width is preserved when it is at or above the minimum.
+- AiO Generator width below the minimum is clamped to the minimum only.
+- AiO Generator controls, sliders, seed buttons, settings, and preview stay
+  inside the panel at minimum width.
+- Workflow reload preserves saved node width and height.
+- Layout-only interactions do not change workflow JSON.
+
+### Validation Checklist
+
+- `node --check web\js\easyuse_anima_aio.js`
+- `Get-ChildItem -File web\js\prompt_studio\*.js | ForEach-Object { node --check $_.FullName }`
+- `.venv\Scripts\python.exe -m unittest discover -s tests -p test_aio_frontend.py`
+- `.venv\Scripts\python.exe -m unittest discover -s tests -p test_frontend_modules.py`
+- `git diff --check`
+- Browser hard refresh after live-instance sync.
+- Node 2.0 smoke check for Advanced, Advanced v2, and AiO Generator.
+- Legacy canvas smoke check for Advanced, Advanced v2, and AiO Generator.
+- PR validation notes state which of the Node 2.0 and legacy smoke checks were
+  run, and which remain unverified.
+
 ## Frontend Refactor PR Checklist
 
 Use this checklist for each follow-up frontend refactor PR.
