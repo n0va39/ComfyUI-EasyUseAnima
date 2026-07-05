@@ -5,6 +5,7 @@
 // @ts-expect-error ComfyUI provides this host module at runtime.
 import { app } from "../../../../scripts/app.js";
 import {
+  canAdvancedEditorScroll,
   canAdvancedEditorScrollWheelDelta,
   isMiddlePanExcludedTarget,
   shouldKeepAdvancedWheelEvent,
@@ -172,10 +173,19 @@ function forwardAdvancedWheelToCanvas(event) {
     return;
   }
   const editor = event.currentTarget;
+  const deltaY = Number(event.deltaY) || 0;
   if (shouldKeepAdvancedWheelEvent(event, editor)) {
+    event.stopPropagation();
     return;
   }
-  if (canAdvancedEditorScrollWheelDelta(editor, Number(event.deltaY) || 0)) {
+  if (canAdvancedEditorScroll(editor)) {
+    event.stopPropagation();
+    if (!canAdvancedEditorScrollWheelDelta(editor, deltaY)) {
+      event.preventDefault();
+    }
+    return;
+  }
+  if (canAdvancedEditorScrollWheelDelta(editor, deltaY)) {
     return;
   }
   event.preventDefault();

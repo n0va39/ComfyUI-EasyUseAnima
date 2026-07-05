@@ -30,6 +30,8 @@ import {
 import {
   advancedEditorMinimumHeight,
   advancedEditorWidgetHeight,
+  readAdvancedEditorScrollState,
+  restoreAdvancedEditorScrollState,
   updateAdvancedEditorWidth,
 } from "./layout.js";
 import {
@@ -77,6 +79,7 @@ function renderAdvancedEditor(node, hooks = {}) {
   if (!editor) {
     return;
   }
+  const scrollState = readAdvancedEditorScrollState(editor);
   const fields = setAdvancedFields(node, parseAdvancedFields(node));
   applyAdvancedNaiaGeneralAutoToggle(node, fields);
   editor.innerHTML = "";
@@ -95,6 +98,8 @@ function renderAdvancedEditor(node, hooks = {}) {
     createAdvancedResolutionBar(node, controlHooks),
     panes,
   );
+  restoreAdvancedEditorScrollState(editor, scrollState);
+  requestAnimationFrame(() => restoreAdvancedEditorScrollState(editor, scrollState));
   writeAdvancedFields(node, fields, { syncInputs: false });
   scheduleAdvancedLayout(node, "render");
 }

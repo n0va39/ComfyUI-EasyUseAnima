@@ -43,6 +43,26 @@ function advancedEditorTextareas(editor) {
   return [...(editor?.querySelectorAll?.("textarea[data-easyuse-anima-advanced-field-id]") || [])];
 }
 
+function readAdvancedEditorScrollState(editor) {
+  if (!(editor instanceof HTMLElement)) {
+    return { left: 0, top: 0 };
+  }
+  return {
+    left: Math.max(0, Number(editor.scrollLeft) || 0),
+    top: Math.max(0, Number(editor.scrollTop) || 0),
+  };
+}
+
+function restoreAdvancedEditorScrollState(editor, state) {
+  if (!(editor instanceof HTMLElement) || !state) {
+    return;
+  }
+  const maxTop = Math.max(0, Number(editor.scrollHeight) - Number(editor.clientHeight));
+  const maxLeft = Math.max(0, Number(editor.scrollWidth) - Number(editor.clientWidth));
+  editor.scrollTop = Math.min(maxTop, Math.max(0, Number(state.top) || 0));
+  editor.scrollLeft = Math.min(maxLeft, Math.max(0, Number(state.left) || 0));
+}
+
 function advancedTextareaPixelMetric(textarea, property) {
   const style = textarea instanceof HTMLElement ? getComputedStyle(textarea) : null;
   return Number.parseFloat(style?.[property] || "") || 0;
@@ -256,5 +276,7 @@ export {
   clampAdvancedNodeToMinimumHeight,
   measureAdvancedEditorContentHeight,
   measureAdvancedEditorHeight,
+  readAdvancedEditorScrollState,
+  restoreAdvancedEditorScrollState,
   updateAdvancedEditorWidth,
 };

@@ -5,6 +5,8 @@ import {
   advancedMinimumNodeHeight,
   applyAdvancedEditorViewportStyle,
   clampAdvancedNodeToMinimumHeight,
+  readAdvancedEditorScrollState,
+  restoreAdvancedEditorScrollState,
   updateAdvancedEditorWidth,
 } from "./layout.js";
 import {
@@ -78,6 +80,7 @@ function applyAdvancedLayout(node, reason = "layout", hooks = {}) {
 
   node.__easyuseAnimaApplyingLayout = true;
   try {
+    const scrollState = readAdvancedEditorScrollState(editor);
     updateAdvancedEditorWidth(node);
 
     const currentWidth = Number(node.size[0]) || 360;
@@ -88,13 +91,17 @@ function applyAdvancedLayout(node, reason = "layout", hooks = {}) {
     node.__easyuseAnimaAdvancedWidgetHeight = widgetHeight;
     node.__easyuseAnimaAdvancedLastEditorHeight = widgetHeight;
     node.__easyuseAnimaAdvancedLastLayoutReason = reason;
+    restoreAdvancedEditorScrollState(editor, scrollState);
 
     if (typeof node.setSize === "function" && currentHeight < minimumHeight - 1) {
       node.setSize([currentWidth, minimumHeight]);
     }
 
     hooks.markGraphDirty?.();
-    requestAnimationFrame(() => hooks.markGraphDirty?.());
+    requestAnimationFrame(() => {
+      restoreAdvancedEditorScrollState(editor, scrollState);
+      hooks.markGraphDirty?.();
+    });
   } finally {
     node.__easyuseAnimaApplyingLayout = false;
   }

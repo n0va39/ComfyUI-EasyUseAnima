@@ -134,6 +134,28 @@ class FrontendModuleStructureTests(unittest.TestCase):
         )
         self.assertNotIn("scrollbar-gutter: stable;", style_source)
 
+    def test_prompt_studio_advanced_render_and_layout_preserve_editor_scroll(self):
+        layout_source = (PROMPT_STUDIO_MODULES / "layout.js").read_text(
+            encoding="utf-8"
+        )
+        advanced_node_ui_source = (
+            PROMPT_STUDIO_MODULES / "advanced_node_ui.js"
+        ).read_text(encoding="utf-8")
+        advanced_layout_controller_source = (
+            PROMPT_STUDIO_MODULES / "advanced_layout_controller.js"
+        ).read_text(encoding="utf-8")
+
+        self.assertIn("function readAdvancedEditorScrollState", layout_source)
+        self.assertIn("function restoreAdvancedEditorScrollState", layout_source)
+        self.assertIn("const scrollState = readAdvancedEditorScrollState(editor);", advanced_node_ui_source)
+        self.assertIn("restoreAdvancedEditorScrollState(editor, scrollState);", advanced_node_ui_source)
+        self.assertIn(
+            "requestAnimationFrame(() => restoreAdvancedEditorScrollState(editor, scrollState));",
+            advanced_node_ui_source,
+        )
+        self.assertIn("const scrollState = readAdvancedEditorScrollState(editor);", advanced_layout_controller_source)
+        self.assertIn("restoreAdvancedEditorScrollState(editor, scrollState);", advanced_layout_controller_source)
+
     def test_prompt_studio_advanced_resize_remeasures_wrapped_textareas(self):
         advanced_fields_ui_source = (
             PROMPT_STUDIO_MODULES / "advanced_fields_ui.js"
@@ -235,22 +257,33 @@ class FrontendModuleStructureTests(unittest.TestCase):
         self.assertIn("minWidth: 280,", body)
         self.assertNotIn("height,", body)
 
-    def test_prompt_studio_native_control_wheel_only_stays_for_scrollable_controls(self):
+    def test_prompt_studio_scrollable_wheel_does_not_forward_to_canvas(self):
         wheel_source = (PROMPT_STUDIO_MODULES / "wheel.js").read_text(
             encoding="utf-8"
         )
+        canvas_forwarding_source = (
+            PROMPT_STUDIO_MODULES / "canvas_forwarding.js"
+        ).read_text(encoding="utf-8")
         start = wheel_source.index("function shouldKeepAdvancedWheelEvent")
         end = wheel_source.index("\nexport {", start)
         body = wheel_source[start:end]
+        forward_start = canvas_forwarding_source.index("function forwardAdvancedWheelToCanvas")
+        forward_end = canvas_forwarding_source.index("\nfunction installMiddlePanForwarder", forward_start)
+        forward_body = canvas_forwarding_source[forward_start:forward_end]
 
         self.assertIn("const control = advancedWheelScrollableControl(target);", body)
         self.assertIn("!isAdvancedNativeControlTarget(control)", body)
-        self.assertIn(
-            "return canAdvancedControlScrollWheelDelta(control, Number(event?.deltaY) || 0);",
-            body,
-        )
+        self.assertIn("return canAdvancedControlScroll(control);", body)
         self.assertIn("function canAdvancedControlScrollWheelDelta", wheel_source)
+        self.assertIn("function canAdvancedControlScroll", wheel_source)
         self.assertNotIn("return isAdvancedNativeControlTarget(target);", body)
+        self.assertIn("if (canAdvancedEditorScroll(editor))", forward_body)
+        self.assertIn("event.stopPropagation();", forward_body)
+        self.assertIn("if (!canAdvancedEditorScrollWheelDelta(editor, deltaY))", forward_body)
+        self.assertLess(
+            forward_body.index("if (canAdvancedEditorScroll(editor))"),
+            forward_body.index("dispatchCanvasWheelEvent(event);"),
+        )
 
     def test_prompt_studio_phase_2_modules_export_expected_symbols(self):
         advanced_controls_source = (
@@ -596,7 +629,10 @@ class FrontendModuleStructureTests(unittest.TestCase):
             "advancedTextareaContentHeight",
             "advancedTextareaCurrentHeight",
             "advancedTextareaMinimumHeight",
+            "advancedTextareaVisibleMinimumHeight",
             "clampAdvancedNodeToMinimumHeight",
+            "readAdvancedEditorScrollState",
+            "restoreAdvancedEditorScrollState",
             "updateAdvancedEditorWidth",
         ):
             with self.subTest(module="layout", symbol=name):
@@ -689,6 +725,7 @@ class FrontendModuleStructureTests(unittest.TestCase):
 
         for name in (
             "advancedEditorMaxScrollTop",
+            "canAdvancedEditorScroll",
             "canAdvancedEditorScrollWheelDelta",
             "guardAdvancedEditorNativeControlEvent",
             "isMiddlePanExcludedTarget",

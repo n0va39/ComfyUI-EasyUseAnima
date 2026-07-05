@@ -68,6 +68,10 @@ function canAdvancedControlScrollWheelDelta(control, deltaY) {
   return (deltaY < 0 && control.scrollTop > 0) || (deltaY > 0 && control.scrollTop < maxScrollTop - 1);
 }
 
+function canAdvancedControlScroll(control) {
+  return advancedEditorMaxScrollTop(control) > 1;
+}
+
 function shouldKeepAdvancedWheelEvent(event, editor) {
   const target = event?.target;
   if (!(target instanceof Element)) {
@@ -77,7 +81,7 @@ function shouldKeepAdvancedWheelEvent(event, editor) {
   if (!control || !isAdvancedNativeControlTarget(control)) {
     return false;
   }
-  return canAdvancedControlScrollWheelDelta(control, Number(event?.deltaY) || 0);
+  return canAdvancedControlScroll(control);
 }
 
 export {
