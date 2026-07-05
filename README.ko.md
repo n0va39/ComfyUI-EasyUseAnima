@@ -3,7 +3,7 @@
 언어: [English](README.en.md) | [한국어](README.ko.md) | [Home](README.md)
 
 프롬프트 편집, ANIMA 프롬프트 보정, NAIA 프롬프트 연동, LoRA 프리셋 관리,
-와일드카드 확장, AiO 생성, ANIMA/Spectrum workflow용 detailer 보조 노드를 제공하는
+와일드카드 확장, AiO 생성, ANIMA/Spectrum workflow 보조 기능을 제공하는
 ComfyUI 커스텀 노드팩입니다.
 
 이 패키지는 `comfyui-naia-bridge`와 독립적으로 동작합니다. 해당 노드팩을

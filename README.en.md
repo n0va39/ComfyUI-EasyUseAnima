@@ -2,9 +2,9 @@
 
 Language: [English](README.en.md) | [한국어](README.ko.md) | [Home](README.md)
 
-ComfyUI custom nodes for prompt editing, ANIMA prompt correction, NAIA prompt
-integration, LoRA preset management, wildcard expansion, AiO generation, and detailer helpers
-for ANIMA/Spectrum workflows.
+Prompt editing, ANIMA prompt correction, NAIA prompt integration, LoRA preset
+management, wildcard expansion, AiO generation, and ANIMA/Spectrum workflow
+helpers for ComfyUI.
 
 This package is independent from `comfyui-naia-bridge`. It does not import or
 override that node pack, so both can be installed at the same time.
