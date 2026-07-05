@@ -71,7 +71,7 @@ weight 저장에 사용됩니다.
 
 - 필수: `ComfyUI-EasyUseAnima`
 - 샘플 워크플로우 기본값: `ComfyUI-Spectrum-KSampler`, `ComfyUI-Image-Saver`
-- 선택 기능: `ComfyUI-KJNodes` (SageAttention, Torch Compile), `ComfyUI-Impact-Pack` (SAM3 Detailer), `ComfyUI-Anima-DAVE` (Anima DAVE 모델 패치)
+- 선택 기능: `ComfyUI-KJNodes` (SageAttention, Torch Compile), `ComfyUI-Impact-Pack` (AiO SAM3 detailer 경로), `ComfyUI-Anima-DAVE` (Anima DAVE 모델 패치)
 
 선택 노드팩이 설치되어 있지 않으면 해당 UI는 잠기고, Queue 직전에도 해당
 옵션이 비활성화되어 누락된 선택 기능으로 인한 실행 오류를 피합니다.

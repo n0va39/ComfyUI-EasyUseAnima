@@ -25,6 +25,8 @@ class FrontendModuleStructureTests(unittest.TestCase):
             "easyuseAnimaPostJson",
             "easyuseAnimaClassifyPrompt",
             "easyuseAnimaEncodeRFC3986URIComponent",
+            "easyuseAnimaFetchComfyJson",
+            "easyuseAnimaFetchText",
         ):
             self.assertRegex(source, rf"export (?:async )?function {name}\(")
 
@@ -32,6 +34,7 @@ class FrontendModuleStructureTests(unittest.TestCase):
         expected_imports = {
             "easyuse_anima_autocomplete.js": './easyuse_anima_api.js"',
             "easyuse_anima_lora_preset.js": './easyuse_anima_api.js"',
+            "easyuse_anima_aio.js": './easyuse_anima_api.js"',
             "easyuse_anima_prompt_studio_common.js": './easyuse_anima_api.js"',
             "easyuse_anima_settings.js": './easyuse_anima_api.js"',
             "prompt_studio/highlight.js": '../easyuse_anima_api.js"',
@@ -57,6 +60,16 @@ class FrontendModuleStructureTests(unittest.TestCase):
             with self.subTest(filename=path.name):
                 source = path.read_text(encoding="utf-8")
                 self.assertNotIn('fetch("/easyuse_anima/classify_prompt"', source)
+
+    def test_fetch_access_is_centralized(self):
+        for path in WEB_JS.rglob("*.js"):
+            if path.name == "easyuse_anima_api.js":
+                continue
+            with self.subTest(filename=str(path.relative_to(WEB_JS))):
+                source = path.read_text(encoding="utf-8")
+                self.assertNotRegex(source, r"\bfetch\s*\(")
+                self.assertNotIn("XMLHttpRequest", source)
+                self.assertNotIn("new Function", source)
 
     def test_prompt_studio_entry_imports_phase_2_modules(self):
         source = PROMPT_STUDIO_JS.read_text(encoding="utf-8")

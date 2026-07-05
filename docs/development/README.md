@@ -6,9 +6,11 @@ conversation.
 ## Read Order
 
 1. `docs/development/current-policies.md`
-2. Active version plan, currently `docs/development/0.2.7.md`
-3. Latest released baseline, currently `docs/development/0.2.6.md`
+2. Active version plan, currently `docs/development/0.3.0.md`
+3. Latest released baseline, currently `docs/development/0.2.7.md`
 4. Relevant topic guide:
+   - Registry publish or flagged-version prevention:
+     `docs/development/registry-scanner-safety.md`
    - workflow docs or release templates: `docs/Anima AiO/Workflow_Management.md`
    - user-facing AiO docs: `docs/Anima AiO/README.md`
    - custom-node model patch integrations: `docs/development/custom-node-integrations.md`
@@ -23,8 +25,9 @@ conversation.
 ## Source Map
 
 - Current policy baseline: `docs/development/current-policies.md`
-- Active next-version plan: `docs/development/0.2.7.md`
-- Latest released baseline: `docs/development/0.2.6.md`
+- Active next-version plan: `docs/development/0.3.0.md`
+- Latest released baseline: `docs/development/0.2.7.md`
+- Registry scanner safety: `docs/development/registry-scanner-safety.md`
 - Older implementation history: `docs/version-plans/`
 - Public workflow JSON templates and preview/source images: `docs/example_workflows/`
 - User-facing workflow documentation: `docs/Anima AiO/`
@@ -86,5 +89,7 @@ conversation.
 - `python -m compileall -q .`
 - `git diff --check`
 - `node --check web/js/<changed-file>.js`
+- Registry scanner grep from `docs/development/registry-scanner-safety.md`
+- `comfy node validate` before Registry publish
 - Workflow JSON parse and package-version checks for
   `docs/example_workflows/*.json`

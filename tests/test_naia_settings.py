@@ -1,13 +1,14 @@
 import unittest
 from unittest.mock import patch
 
-from nodes import EasyUseAnimaNAIARandomPrompt
+from nodes import EasyUseAnimaNAIARandomPrompt, _build_naia_random_url
 
 
 def settings(**overrides):
     base = {
         "host": "settings-host",
         "port": 8123,
+        "allow_remote_api": False,
         "use_naia_settings": False,
         "pre_prompt": "settings pre",
         "post_prompt": "settings post",
@@ -26,7 +27,7 @@ class NaiaSettingsTests(unittest.TestCase):
     def test_request_uses_global_naia_settings_instead_of_node_values(self):
         calls = []
 
-        def fake_post(host, port, body):
+        def fake_post(host, port, body, **kwargs):
             calls.append((host, port, body))
             return {
                 "prompt": "naia prompt",
@@ -86,6 +87,32 @@ class NaiaSettingsTests(unittest.TestCase):
             )
 
         self.assertNotIn("peng_override", body)
+
+    def test_naia_random_url_defaults_to_localhost_only(self):
+        self.assertEqual(
+            _build_naia_random_url("127.0.0.1", 7243),
+            "http://127.0.0.1:7243/api/comfyui/random",
+        )
+        self.assertEqual(
+            _build_naia_random_url("localhost", 7243),
+            "http://localhost:7243/api/comfyui/random",
+        )
+        self.assertEqual(
+            _build_naia_random_url("::1", 7243),
+            "http://[::1]:7243/api/comfyui/random",
+        )
+        with self.assertRaisesRegex(RuntimeError, "Remote NAIA API access is disabled"):
+            _build_naia_random_url("192.168.0.2", 7243)
+        self.assertEqual(
+            _build_naia_random_url("192.168.0.2", 7243, allow_remote_api=True),
+            "http://192.168.0.2:7243/api/comfyui/random",
+        )
+
+    def test_naia_random_url_rejects_url_like_host_values(self):
+        for host in ("http://127.0.0.1", "127.0.0.1/api", "host name"):
+            with self.subTest(host=host):
+                with self.assertRaisesRegex(RuntimeError, "hostname or IP address"):
+                    _build_naia_random_url(host, 7243, allow_remote_api=True)
 
 
 if __name__ == "__main__":

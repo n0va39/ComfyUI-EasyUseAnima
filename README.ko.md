@@ -16,6 +16,17 @@ import하거나 덮어쓰지 않으므로, 두 노드팩을 동시에 설치할 
   - `POST /api/comfyui/random`
   - `peng_override` 요청 필드
 
+Registry 기준 외부 연동 기본값:
+
+- NAIA 호출은 선택 기능입니다. 기본 host는 `127.0.0.1`이며, 로컬이 아닌
+  host는 `EasyUse Anima -> NAIA -> 원격 API 허용`을 켜야만 사용할 수
+  있습니다.
+- 프롬프트 번역 기본값은 OFF입니다. Google 번역은 명시적으로 선택해야 하며,
+  이 노드팩은 환경 변수에서 API key를 자동으로 읽지 않습니다.
+- AiO SAM3 detailer 경로는 ComfyUI 내장 SAM3 detector와 Impact Pack class를
+  명시적 선택 import로만 사용합니다. 사용자가 지정한 module 이름을 동적으로
+  load하지 않습니다.
+
 ## 문서 진입점
 
 - 노드별 상세 설명: [노드 문서](docs/nodes/README.ko.md)
@@ -119,8 +130,6 @@ workflow embed와 Civitai/LoRA metadata 저장까지 한 번에 처리할 수 �
 | [Anima AiO Generator](docs/nodes/anima-aio-generator.ko.md) | `EasyUse Anima/AiO` | prompt data context를 받아 샘플링, Highres, Detailer, 미리보기, 저장을 한 노드에서 실행합니다. |
 | [Anima Image Scale By Multiple](docs/nodes/anima-image-scale-by-multiple.ko.md) | `EasyUse Anima/Image` | 원본 비율을 유지하면서 Highres에 안전한 유효 배율과 크기 배수로 이미지를 확대합니다. |
 | [Anima Detailer Align Hook](docs/nodes/anima-detailer-align-hook.ko.md) | `EasyUse Anima/Detailer` | Impact detailer crop sampling 크기를 지정 배수로 정렬합니다. |
-| [Anima SAM3 Context](docs/nodes/anima-sam3-context.ko.md) | `EasyUse Anima/Detailer` | SAM3 checkpoint를 rgthree-compatible context로 로드합니다. |
-| [Anima SAM3 Detailer](docs/nodes/anima-sam3-detailer.ko.md) | `EasyUse Anima/Detailer` | SAM3 text detection, Impact MaskToSEGS, DetailerForEach를 연결합니다. |
 
 ## 공통 프론트엔드 기능
 
@@ -158,6 +167,8 @@ ComfyUI Settings:
 
 - NAIA 요청 host, port, Prompt Engineering option, preprocessing option을
   EasyUse Anima settings panel에서 설정합니다.
+- NAIA 요청은 기본적으로 localhost에만 허용됩니다. 신뢰하는 원격 NAIA
+  endpoint를 사용할 때만 `원격 API 허용`을 켜세요.
 - EasyUse Anima는 별도 언어 설정을 저장하지 않습니다. 노드 정보, 입력/출력
   힌트, 설정창, 커스텀 DOM 버튼과 툴팁은 ComfyUI 기본 언어 설정을 따릅니다.
 - Prompt metadata filter word는 metadata prompt output에만 적용됩니다.
@@ -172,17 +183,19 @@ ComfyUI Settings:
 
 ## 요구 사항
 
-NAIA는 `comfyui-naia-bridge`가 사용하는 ComfyUI remote API를 노출해야 합니다.
+NAIA는 `comfyui-naia-bridge`가 사용하는 ComfyUI API를 노출해야 합니다.
+기본 권장 endpoint는 localhost이며, 원격 NAIA endpoint는 `원격 API 허용`
+설정이 켜져 있어야 사용할 수 있습니다.
 
-SAM3 detailer 계열 노드는 실행 시점에 `ComfyUI-Impact-Pack`이 필요합니다. 이것은
-Python package dependency가 아니라 ComfyUI custom node dependency이므로
-`pyproject.toml`의 Python dependencies에는 넣지 않습니다.
+AiO Generator의 선택 SAM3 detailer 경로는 실행 시점에 `ComfyUI-Impact-Pack`이
+필요합니다. 이것은 Python package dependency가 아니라 ComfyUI custom node
+dependency이므로 `pyproject.toml`의 Python dependencies에는 넣지 않습니다.
 
 연동 노드팩:
 
 - [ComfyUI-Spectrum-KSampler](https://github.com/sorryhyun/ComfyUI-Spectrum-KSampler): Spectrum sampler, Mod Guidance, Spectrum/DCW 계열 모델 패치에 사용합니다. 최신 버전을 권장합니다.
 - [ComfyUI-KJNodes](https://github.com/kijai/ComfyUI-KJNodes): Torch Compile, SageAttention 등 최적화 옵션에 사용합니다.
-- [ComfyUI-Impact-Pack](https://github.com/ltdrdata/ComfyUI-Impact-Pack): Impact detailer, SAM3 detailer 흐름에 필요합니다.
+- [ComfyUI-Impact-Pack](https://github.com/ltdrdata/ComfyUI-Impact-Pack): Impact detailer, AiO SAM3 detailer 흐름에 필요합니다.
 - [ComfyUI-Lora-Manager](https://github.com/willmiao/ComfyUI-Lora-Manager): LoRA trigger word와 metadata 관리에 권장합니다.
 - [ComfyUI-Image-Saver](https://github.com/alexopus/ComfyUI-Image-Saver): AiO Save Options에서 workflow embed, Civitai/LoRA metadata 저장에 사용합니다.
 - [ComfyUI-Anima-DAVE](https://github.com/sorryhyun/ComfyUI-Anima-DAVE): 생성 다양성을 위한 선택 model patch입니다.

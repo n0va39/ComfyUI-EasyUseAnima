@@ -1,5 +1,6 @@
 import { app } from "../../../scripts/app.js";
 import { api } from "../../../scripts/api.js";
+import { easyuseAnimaFetchComfyJson, easyuseAnimaFetchText } from "./easyuse_anima_api.js";
 import { easyuseAnimaText, easyuseAnimaWatchLocale } from "./easyuse_anima_i18n.js";
 
 const INPUT_NODE_TYPE = "EasyUseAnimaInput";
@@ -1903,10 +1904,7 @@ function optionsWithCurrent(options, current) {
 }
 
 async function fetchGeneratorSamplerOptions() {
-  const response = api?.fetchApi
-    ? await api.fetchApi("/object_info/KSampler")
-    : await fetch("/object_info/KSampler");
-  const data = await response.json();
+  const data = await easyuseAnimaFetchComfyJson(api, "/object_info/KSampler");
   const ksamplerInfo = data?.KSampler || data;
   const required = ksamplerInfo?.input?.required || {};
   const samplerNames = choiceSpecValues(required.sampler_name);
@@ -1941,10 +1939,7 @@ async function fetchGeneratorOptionalDependencies() {
   const nextInfo = {};
   for (const [key, spec] of Object.entries(GENERATOR_OPTIONAL_DEPENDENCY_SPECS)) {
     try {
-      const response = api?.fetchApi
-        ? await api.fetchApi(`/object_info/${encodeURIComponent(spec.nodeId)}`)
-        : await fetch(`/object_info/${encodeURIComponent(spec.nodeId)}`);
-      const data = await response.json();
+      const data = await easyuseAnimaFetchComfyJson(api, `/object_info/${encodeURIComponent(spec.nodeId)}`);
       const info = data?.[spec.nodeId] || null;
       next[key] = !!info;
       nextInfo[key] = info;
@@ -4463,8 +4458,7 @@ async function generatorDialogServiceAssetUrl() {
           }
         }
       }
-      const response = await fetch("/");
-      const html = await response.text();
+      const html = await easyuseAnimaFetchText("/");
       const match = html.match(/(?:\.\/)?assets\/dialogService-[^"'<>]+\.js/);
       return match ? new URL(match[0], window.location.href).href : "";
     })().catch(() => "");

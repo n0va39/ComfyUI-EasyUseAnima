@@ -72,7 +72,7 @@ write Civitai LoRA resources and weights.
 
 - Required: `ComfyUI-EasyUseAnima`
 - Sample workflow defaults: `ComfyUI-Spectrum-KSampler`, `ComfyUI-Image-Saver`
-- Optional features: `ComfyUI-KJNodes` for SageAttention/Torch Compile, `ComfyUI-Impact-Pack` for SAM3 Detailer, `ComfyUI-Anima-DAVE` for the Anima DAVE model patch
+- Optional features: `ComfyUI-KJNodes` for SageAttention/Torch Compile, `ComfyUI-Impact-Pack` for the AiO SAM3 detailer path, `ComfyUI-Anima-DAVE` for the Anima DAVE model patch
 
 When an optional node pack is not installed, the related UI is locked and queue
 preparation disables that option before execution.

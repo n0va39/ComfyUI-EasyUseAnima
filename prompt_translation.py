@@ -1,10 +1,7 @@
 from __future__ import annotations
 
 import html
-import os
 from dataclasses import dataclass
-
-import requests
 
 
 PROMPT_TRANSLATION_PROVIDER_OFF = "off"
@@ -20,7 +17,7 @@ PROMPT_TRANSLATION_MARKER_LABEL = "translation"
 
 @dataclass(frozen=True)
 class PromptTranslationSettings:
-    provider: str = PROMPT_TRANSLATION_PROVIDER_GOOGLE
+    provider: str = PROMPT_TRANSLATION_PROVIDER_OFF
     source: str = DEFAULT_PROMPT_TRANSLATION_SOURCE
     target: str = DEFAULT_PROMPT_TRANSLATION_TARGET
 
@@ -31,10 +28,10 @@ class _TranslationResult:
 
 
 def normalize_prompt_translation_provider(value) -> str:
-    provider = str(value or PROMPT_TRANSLATION_PROVIDER_GOOGLE).strip().lower()
+    provider = str(value or PROMPT_TRANSLATION_PROVIDER_OFF).strip().lower()
     if provider in PROMPT_TRANSLATION_PROVIDERS:
         return provider
-    return PROMPT_TRANSLATION_PROVIDER_GOOGLE
+    return PROMPT_TRANSLATION_PROVIDER_OFF
 
 
 def normalize_prompt_translation_language(value, default: str) -> str:
@@ -85,34 +82,12 @@ def strip_prompt_translation_markers(text: str) -> str:
     )
 
 
-def _google_translate_with_api_key(text: str, source: str, target: str, api_key: str) -> _TranslationResult:
-    data = {"q": text, "target": target}
-    if source and source != "auto":
-        data["source"] = source
-    response = requests.post(
-        f"https://translation.googleapis.com/language/translate/v2?key={api_key}",
-        data=data,
-        timeout=20,
-    )
-    try:
-        payload = response.json()
-    except ValueError as exc:
-        raise RuntimeError(f"Google Translate returned non-JSON response: HTTP {response.status_code}") from exc
-    if not response.ok:
-        message = payload.get("error", {}).get("message") if isinstance(payload, dict) else ""
-        raise RuntimeError(message or f"Google Translate failed: HTTP {response.status_code}")
-    translations = payload.get("data", {}).get("translations", []) if isinstance(payload, dict) else []
-    if not translations:
-        return _TranslationResult("")
-    return _TranslationResult(html.unescape(str(translations[0].get("translatedText") or "")))
-
-
 def _google_translate_with_googletrans(text: str, source: str, target: str) -> _TranslationResult:
     try:
         from googletrans import Translator  # type: ignore
     except ImportError as exc:
         raise RuntimeError(
-            "Google prompt translation requires googletrans-py or GOOGLE_TRANSLATION_API_KEY."
+            "Google prompt translation requires googletrans-py and explicit Google provider selection."
         ) from exc
     translated = Translator().translate(text, src=source or "auto", dest=target or "en")
     return _TranslationResult(html.unescape(str(getattr(translated, "text", "") or "")))
@@ -124,12 +99,10 @@ def google_translate_text(text: str, source: str = "auto", target: str = "en") -
         return value
     source = normalize_prompt_translation_language(source, DEFAULT_PROMPT_TRANSLATION_SOURCE)
     target = normalize_prompt_translation_language(target, DEFAULT_PROMPT_TRANSLATION_TARGET)
-    api_key = os.environ.get("GOOGLE_TRANSLATION_API_KEY", "").strip()
-    result = (
-        _google_translate_with_api_key(value, source, target, api_key)
-        if api_key
-        else _google_translate_with_googletrans(value, source, target)
-    )
+    # External translation is opt-in through the prompt translation provider
+    # setting. No API keys are read from environment variables and no response is
+    # executed as code.
+    result = _google_translate_with_googletrans(value, source, target)
     return result.text
 
 
