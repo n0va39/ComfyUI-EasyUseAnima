@@ -4086,7 +4086,7 @@
         }
       },
       "widgets_values": [
-        "## 2. Model Load\n\n- `unet_name`, `clip_name`, `vae_name`: Core ANIMA model files. Use the filenames provided in the release workflow first.\n- `steps_total` / `refiner_step`: Total sampling length and late-stage refinement start. Keep the defaults first.\n- `cfg`: Prompt adherence. Start near `8`; too high can break forms.\n- `sampler_name` / `scheduler`: Recommended: `euler` / `simple`, or the section default.\n- `shift`: Qwen/Flow timestep correction. Keep the default first.\n\n### Anima DAVE Upstream Defaults\n\n- `strength`: Upstream default `0.30`. For a lighter effect, compare from `0.20`.\n- `tau`: Upstream default/recommended value `0.10`.\n- `mask`: Upstream default mask `dave_alpha.npz`.\n\n### KJNodes Optimization Upstream Defaults\n\n- `TorchCompileModelAdvanced`: `backend=inductor`, `mode=default`, `fullgraph=False`, `dynamic=auto`, `compile_transformer_blocks_only=True`, `dynamo_cache_size_limit=64`, `disable_dynamic_vram=False`.\n- `PathchSageAttentionKJ`: default is `sage_attention=disabled`, `allow_compile=False`. Enable it only when the SageAttention library is installed.\n- SageAttention install: run `python -m pip install sageattention` with the same Python used by ComfyUI, then restart ComfyUI. For Windows portable, run the same command with embedded Python. `sageattn3` options may require a separately supported GPU/package.\n- `enable_fp16_accumulation`: upstream default is OFF. It can error if the installed PyTorch/CUDA stack does not support it.\n\nNote: `torch compile`, `fullgraph`, `dynamic`, `SageAttention`, `fp16 accumulation`, and `disable_dynamic_vram` depend on GPU, CUDA, PyTorch, and SageAttention installation state. If install/import errors occur, disable SageAttention/compile/fp16 options and verify the base path first.\n"
+        "## 2. Model Load\n\n- `unet_name`, `clip_name`, `vae_name`: Core ANIMA model files. Use the filenames provided in the release workflow first.\n- `steps_total` / `refiner_step`: Total sampling length and late-stage refinement start. Keep the defaults first.\n- `cfg`: Prompt adherence. Start near `8`; too high can break forms.\n- `sampler_name` / `scheduler`: Recommended: `euler` / `simple`, or the section default.\n- `shift`: Qwen/Flow timestep correction. Keep the default first.\n\n### Safe Defaults\n\n- Release workflows keep `enable_fp16_accumulation`, `Sage_Attention`, `Sage_Attention_allow_compile`, and `Use TorchCompile` OFF by default.\n- Keep `Sage_Attention` set to `disabled` until the base generation path works.\n- Enable `Use TorchCompile` only when the same Python environment has a matching PyTorch/CUDA/Triton stack. If Windows reports Triton build or `cuda_utils` errors, turn this toggle OFF again.\n- Enable `enable_fp16_accumulation` only when the installed PyTorch version supports it.\n- If generation fails, first turn off SageAttention, TorchCompile, and FP16 accumulation, then verify the base path.\n\n### Anima DAVE Upstream Defaults\n\n- `strength`: Upstream default `0.30`. For a lighter effect, compare from `0.20`.\n- `tau`: Upstream default/recommended value `0.10`.\n- `mask`: Upstream default mask `dave_alpha.npz`.\n"
       ],
       "color": "#432",
       "bgcolor": "#000"
@@ -9644,7 +9644,7 @@
               "Node name for S&R": "ModelPatchTorchSettings"
             },
             "widgets_values": [
-              true
+              false
             ],
             "color": "#233",
             "bgcolor": "#355"
@@ -9706,8 +9706,8 @@
               "Node name for S&R": "PathchSageAttentionKJ"
             },
             "widgets_values": [
-              "auto",
-              true
+              "disabled",
+              false
             ],
             "color": "#233",
             "bgcolor": "#355"
@@ -10452,7 +10452,7 @@
               "Node name for S&R": "PrimitiveBoolean"
             },
             "widgets_values": [
-              true
+              false
             ]
           },
           {
@@ -27518,7 +27518,7 @@
       "language": "en",
       "kind": "release-workflow",
       "package": "comfyui-easyuse-anima",
-      "package_version": "0.2.4",
+      "package_version": "0.3.0",
       "registry_folder": "docs/example_workflows",
       "release_filename": "Anima_AiO_v6.0_release_en.json",
       "release_suffix": "_release_en",

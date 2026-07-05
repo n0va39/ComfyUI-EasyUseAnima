@@ -23,8 +23,6 @@
 | Anima AiO Generator | prompt data context를 받아 샘플링, Highres, Detailer, 저장을 한 노드에서 실행 | [문서](anima-aio-generator.ko.md) |
 | Anima Image Scale By Multiple | 원본 비율을 유지하며 지정 배수에 맞는 유효 크기로 이미지 확대 | [문서](anima-image-scale-by-multiple.ko.md) |
 | Anima Detailer Align Hook | Impact detailer crop sampling 크기 정렬 hook | [문서](anima-detailer-align-hook.ko.md) |
-| Anima SAM3 Context | SAM3 checkpoint를 rgthree-compatible context로 로드 | [문서](anima-sam3-context.ko.md) |
-| Anima SAM3 Detailer | SAM3 text detection과 Impact detailer를 연결 | [문서](anima-sam3-detailer.ko.md) |
 
 ## 관련 가이드
 

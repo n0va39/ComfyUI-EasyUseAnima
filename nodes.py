@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import annotations
 
-import importlib
 import inspect
 import json
 import logging
@@ -71,6 +70,7 @@ logger = logging.getLogger("ComfyUI-EasyUseAnima")
 
 DEFAULT_HOST = "127.0.0.1"
 DEFAULT_PORT = 7243
+NAIA_LOCAL_HOSTS = {"127.0.0.1", "localhost", "::1"}
 DEFAULT_QUALITY_TAGS = (
     "newest, masterpiece, best quality, score_8, score_7:, highres, absurdres, very aesthetic"
 )
@@ -1893,11 +1893,18 @@ def _impact_core_module():
     module = sys.modules.get("impact.core")
     if module is not None:
         return module
-    for module_name in ("impact.core", "modules.impact.core"):
-        try:
-            return importlib.import_module(module_name)
-        except Exception:
-            continue
+    try:
+        import impact.core as core  # type: ignore
+
+        return core
+    except Exception:
+        pass
+    try:
+        from modules.impact import core  # type: ignore
+
+        return core
+    except Exception:
+        pass
     return None
 
 
@@ -1933,14 +1940,18 @@ def _find_impact_detailer_class():
             if cls is not None:
                 return cls
 
-    for module_name in ("impact.impact_pack", "modules.impact.impact_pack"):
-        try:
-            module = importlib.import_module(module_name)
-        except Exception:
-            continue
-        cls = getattr(module, "DetailerForEach", None)
-        if cls is not None:
-            return cls
+    try:
+        from impact.impact_pack import DetailerForEach  # type: ignore
+
+        return DetailerForEach
+    except Exception:
+        pass
+    try:
+        from modules.impact.impact_pack import DetailerForEach  # type: ignore
+
+        return DetailerForEach
+    except Exception:
+        pass
 
     raise RuntimeError(
         "[EasyUseAnima] SAM3 Detailer requires ComfyUI Impact Pack's DetailerForEach. "
@@ -2063,11 +2074,13 @@ def _find_sam3_detect_class():
     cls = _find_comfy_node_class("SAM3_Detect")
     if cls is not None:
         return cls
+    # Optional ComfyUI native node integration.
+    # This imports only the built-in comfy_extras.nodes_sam3.SAM3_Detect class.
+    # It does not load user-provided modules or execute dynamic code.
     try:
-        module = importlib.import_module("comfy_extras.nodes_sam3")
-        cls = getattr(module, "SAM3_Detect", None)
-        if cls is not None:
-            return cls
+        from comfy_extras.nodes_sam3 import SAM3_Detect  # type: ignore
+
+        return SAM3_Detect
     except Exception:
         pass
     raise RuntimeError(
@@ -2088,14 +2101,30 @@ def _find_impact_mask_to_segs_class():
             if cls is not None:
                 return cls
 
-    for module_name in ("impact.segs_nodes", "modules.impact.segs_nodes", "impact.impact_pack", "modules.impact.impact_pack"):
-        try:
-            module = importlib.import_module(module_name)
-        except Exception:
-            continue
-        cls = getattr(module, "MaskToSEGS", None)
-        if cls is not None:
-            return cls
+    try:
+        from impact.segs_nodes import MaskToSEGS  # type: ignore
+
+        return MaskToSEGS
+    except Exception:
+        pass
+    try:
+        from modules.impact.segs_nodes import MaskToSEGS  # type: ignore
+
+        return MaskToSEGS
+    except Exception:
+        pass
+    try:
+        from impact.impact_pack import MaskToSEGS  # type: ignore
+
+        return MaskToSEGS
+    except Exception:
+        pass
+    try:
+        from modules.impact.impact_pack import MaskToSEGS  # type: ignore
+
+        return MaskToSEGS
+    except Exception:
+        pass
 
     raise RuntimeError(
         "[EasyUseAnima] Anima SAM3 Detailer requires ComfyUI Impact Pack's MaskToSEGS. "
@@ -6802,14 +6831,36 @@ def _fit_to_1mp(width: int, height: int) -> tuple[int, int]:
     return new_w, new_h
 
 
-def _post_random(host: str, port: int, body: dict) -> dict:
+def _is_local_naia_host(host: str) -> bool:
+    return str(host or "").strip().strip("[]").lower() in NAIA_LOCAL_HOSTS
+
+
+def _build_naia_random_url(host: str, port: int, allow_remote_api: bool = False) -> str:
+    host_value = str(host or DEFAULT_HOST).strip() or DEFAULT_HOST
+    if any(token in host_value for token in ("://", "/", "\\", "?", "#", "@")) or re.search(r"\s", host_value):
+        raise RuntimeError("[EasyUse Anima] NAIA host must be a hostname or IP address, not a URL.")
+    if not allow_remote_api and not _is_local_naia_host(host_value):
+        raise RuntimeError(
+            "[EasyUse Anima] Remote NAIA API access is disabled. "
+            "Enable 'Allow remote API' in EasyUse Anima NAIA settings to use a non-local host."
+        )
+    url_host = host_value
+    if ":" in host_value and not host_value.startswith("["):
+        url_host = f"[{host_value}]"
+    return f"http://{url_host}:{int(port)}/api/comfyui/random"
+
+
+def _post_random(host: str, port: int, body: dict, allow_remote_api: bool = False) -> dict:
     try:
         import requests
     except ImportError:
         raise RuntimeError("[EasyUse Anima] requests is not installed. Install requirements.txt.")
 
-    url = f"http://{host}:{int(port)}/api/comfyui/random"
+    url = _build_naia_random_url(host, port, allow_remote_api=allow_remote_api)
     try:
+        # Explicit user-configured NAIA API call. Default use is localhost-only;
+        # remote hosts require allow_remote_api=True. The response is parsed as
+        # JSON and is never executed as code.
         response = requests.post(url, json=body, timeout=HTTP_TIMEOUT)
     except requests.RequestException as exc:
         raise RuntimeError(f"[EasyUse Anima] NAIA API request failed: {exc}")
@@ -8037,7 +8088,12 @@ class EasyUseAnimaPromptStudioAdvanced:
                 naia_settings["auto_hide"],
                 naia_settings["preprocessing"],
             )
-            resp = _post_random(naia_settings["host"], naia_settings["port"], body)
+            resp = _post_random(
+                naia_settings["host"],
+                naia_settings["port"],
+                body,
+                allow_remote_api=bool(naia_settings.get("allow_remote_api", False)),
+            )
             naia_prompt, naia_negative, naia_width, naia_height = _parse_random_response(resp)
             if "positive" in enabled_naia_panes:
                 saved_fields = _set_naia_field_text(saved_fields, "positive", naia_prompt)
@@ -9356,11 +9412,13 @@ class EasyUseAnimaAIOGenerator:
             quality_neg,
             use_anima_mod_guidance,
             use_negative_anima_mod_guidance,
-            _metadata_prompt,
-            _metadata_negative_prompt,
+            metadata_prompt,
+            metadata_negative_prompt,
             width,
             height,
         ) = _advanced_outputs_from_prompt_data(prompt_data)
+        image_saver_positive_prompt = metadata_prompt or positive_prompt
+        image_saver_negative_prompt = metadata_negative_prompt or negative_prompt
 
         artist_mix = settings["artist_mix"]
         positive = _encode_prompt_data_positive_conditioning(
@@ -9554,8 +9612,8 @@ class EasyUseAnimaAIOGenerator:
                 save_result = _save_image_with_image_saver(
                     image,
                     save_settings,
-                    positive_prompt=positive_prompt,
-                    negative_prompt=negative_prompt,
+                    positive_prompt=image_saver_positive_prompt,
+                    negative_prompt=image_saver_negative_prompt,
                     width=width,
                     height=height,
                     sampler_settings=sampler,
@@ -10240,7 +10298,12 @@ class EasyUseAnimaPromptStudioExtend:
                 naia_settings["auto_hide"],
                 naia_settings["preprocessing"],
             )
-            resp = _post_random(naia_settings["host"], naia_settings["port"], body)
+            resp = _post_random(
+                naia_settings["host"],
+                naia_settings["port"],
+                body,
+                allow_remote_api=bool(naia_settings.get("allow_remote_api", False)),
+            )
             naia_prompt, _naia_negative, _naia_width, _naia_height = _parse_random_response(resp)
             values["naia_prompt_3"] = naia_prompt
             metadata_fill_naia = False
@@ -10844,7 +10907,7 @@ class EasyUseAnimaSAM3Detailer:
             }),
             "image": ("IMAGE",),
             "ctx_SAM3": ("RGTHREE_CONTEXT", {
-                "tooltip": "ctx_SAM3 from Anima SAM3 Context or a compatible rgthree context containing model and clip.",
+                "tooltip": "ctx_SAM3 from the AiO SAM3 detailer path or a compatible rgthree context containing model and clip.",
             }),
             "detect_prompt": ("STRING", {
                 "default": "face",
@@ -10982,7 +11045,7 @@ class EasyUseAnimaSAM3Detailer:
         if sam3_model is None or sam3_clip is None:
             raise RuntimeError(
                 "[EasyUseAnima] ctx_SAM3 must contain SAM3 model and CLIP. "
-                "Use the Anima SAM3 Context node or a compatible rgthree context."
+                "Use the AiO SAM3 detailer path or a compatible rgthree context."
             )
 
         sam3_text = _format_sam3_detection_prompt(detect_prompt, detect_count)
@@ -11563,7 +11626,12 @@ class EasyUseAnimaNAIARandomPrompt:
 
         if self._cache_value is None or not freeze_output:
             body = self._make_request_body(use_settings, pre_prompt, post_prompt, auto_hide, pp_kwargs)
-            resp = _post_random(host, port, body)
+            resp = _post_random(
+                host,
+                port,
+                body,
+                allow_remote_api=bool(naia_settings.get("allow_remote_api", False)),
+            )
             naia_value = _parse_random_response(resp)
             self._cache_value = self._apply_overrides(
                 naia_value,

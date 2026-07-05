@@ -23,8 +23,6 @@ shared settings, start with the top-level [README](../../README.en.md).
 | Anima AiO Generator | Runs sampling, Highres, Detailer, and saving from the prompt-data context | [Guide](anima-aio-generator.en.md) |
 | Anima Image Scale By Multiple | Scales images to valid size multiples while preserving the original aspect ratio | [Guide](anima-image-scale-by-multiple.en.md) |
 | Anima Detailer Align Hook | Aligns Impact detailer crop sampling sizes | [Guide](anima-detailer-align-hook.en.md) |
-| Anima SAM3 Context | Loads a SAM3 checkpoint as an rgthree-compatible context | [Guide](anima-sam3-context.en.md) |
-| Anima SAM3 Detailer | Connects SAM3 text detection to Impact detailer processing | [Guide](anima-sam3-detailer.en.md) |
 
 ## Related Guides
 

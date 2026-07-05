@@ -51,7 +51,9 @@ from autocomplete_dataset import (
 )
 from prompt_translation import (
     PROMPT_TRANSLATION_PROVIDER_GOOGLE,
+    PROMPT_TRANSLATION_PROVIDER_OFF,
     PromptTranslationSettings,
+    normalize_prompt_translation_provider,
     strip_prompt_translation_markers,
     translate_prompt_markers,
 )
@@ -126,6 +128,15 @@ class PromptCorrectorTests(unittest.TestCase):
             strip_prompt_translation_markers(r"1girl, %{검은 드레스}, \%{literal}"),
             r"1girl, 검은 드레스, \%{literal}",
         )
+
+    def test_prompt_translation_defaults_off_and_does_not_auto_read_api_keys(self):
+        self.assertEqual(PromptTranslationSettings().provider, PROMPT_TRANSLATION_PROVIDER_OFF)
+        self.assertEqual(normalize_prompt_translation_provider("unknown"), PROMPT_TRANSLATION_PROVIDER_OFF)
+        source = (Path(__file__).resolve().parents[1] / "prompt_translation.py").read_text(
+            encoding="utf-8"
+        )
+        self.assertNotIn("GOOGLE_TRANSLATION_API_KEY", source)
+        self.assertNotIn("requests.post", source)
 
     def test_prompt_correctors_translate_marked_text_before_correction(self):
         with (
@@ -1994,7 +2005,7 @@ class PromptBuilderTests(unittest.TestCase):
         }
         calls = []
 
-        def fake_post(host, port, body):
+        def fake_post(host, port, body, **kwargs):
             calls.append((host, port, body))
             return {
                 "ok": True,
@@ -2080,7 +2091,7 @@ class PromptBuilderTests(unittest.TestCase):
             "preprocessing": {},
         }
 
-        def fake_post(host, port, body):
+        def fake_post(host, port, body, **kwargs):
             calls.append((host, port, body))
             return responses[len(calls) - 1]
 
@@ -2150,7 +2161,7 @@ class PromptBuilderTests(unittest.TestCase):
             "preprocessing": {},
         }
 
-        def fake_post(_host, _port, _body):
+        def fake_post(_host, _port, _body, **kwargs):
             return {
                 "ok": True,
                 "prompt": "prompt",
@@ -2223,7 +2234,7 @@ class PromptBuilderTests(unittest.TestCase):
             "preprocessing": {},
         }
 
-        def fake_post(_host, _port, _body):
+        def fake_post(_host, _port, _body, **kwargs):
             return {
                 "ok": True,
                 "prompt": "prompt",
@@ -2275,7 +2286,7 @@ class PromptBuilderTests(unittest.TestCase):
             "preprocessing": {},
         }
 
-        def fake_post(_host, _port, _body):
+        def fake_post(_host, _port, _body, **kwargs):
             return {
                 "ok": True,
                 "prompt": "prompt",
@@ -2601,6 +2612,7 @@ class SettingsTests(unittest.TestCase):
                 "wildcard.extra_paths",
                 "naia.host",
                 "naia.port",
+                "naia.allow_remote_api",
                 "naia.use_naia_settings",
                 "naia.resolution_mode",
                 "naia.resolution_bucket",
@@ -2852,7 +2864,9 @@ class SettingsTests(unittest.TestCase):
         self.assertEqual(settings["lora_preset.strength_button_step"], 0.025)
         self.assertEqual(settings["lora_preset.strength_drag_step"], 0.012)
         self.assertEqual(settings["lora_preset.strength_drag_pixels"], 12)
+        self.assertEqual(settings["prompt_translation.provider"], PROMPT_TRANSLATION_PROVIDER_OFF)
         self.assertEqual(settings["naia.port"], 8123)
+        self.assertEqual(settings["naia.allow_remote_api"], "false")
         self.assertEqual(settings["naia.resolution_mode"], "bucket")
         self.assertEqual(settings["naia.resolution_bucket"], "1536")
         self.assertEqual(settings["naia.resolution_scale"], 1.5)

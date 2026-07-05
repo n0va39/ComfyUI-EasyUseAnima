@@ -19,6 +19,20 @@ def exposed_node_ids() -> set[str]:
 
 
 class LocaleTests(unittest.TestCase):
+    def test_sam3_convenience_nodes_are_not_public(self):
+        removed_node_ids = {
+            "EasyUseAnimaSAM3Context",
+            "EasyUseAnimaSAM3Detailer",
+        }
+        public_nodes = exposed_node_ids()
+
+        self.assertFalse(removed_node_ids & public_nodes)
+
+        for locale_code in LOCALE_CODES:
+            data = json.loads((ROOT / "locales" / locale_code / "nodeDefs.json").read_text(encoding="utf-8"))
+            with self.subTest(locale=locale_code):
+                self.assertFalse(removed_node_ids & set(data))
+
     def test_node_defs_cover_public_nodes(self):
         public_nodes = exposed_node_ids()
 

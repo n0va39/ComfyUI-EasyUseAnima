@@ -16,6 +16,14 @@ export async function easyuseAnimaReadJsonResponse(response, fallback = null) {
   }
 }
 
+export async function easyuseAnimaReadTextResponse(response, fallback = "") {
+  try {
+    return await response.text();
+  } catch {
+    return fallback;
+  }
+}
+
 export async function easyuseAnimaFetchJson(url, options = {}) {
   const {
     fetcher = fetch,
@@ -29,6 +37,21 @@ export async function easyuseAnimaFetchJson(url, options = {}) {
     throw new Error(data?.message || response.statusText || (response.status ? `HTTP ${response.status}` : errorMessage) || DEFAULT_REQUEST_FAILED);
   }
   return data;
+}
+
+export async function easyuseAnimaFetchText(url, options = {}) {
+  const {
+    fetcher = fetch,
+    fallbackText = "",
+    errorMessage = DEFAULT_REQUEST_FAILED,
+    ...fetchOptions
+  } = options;
+  const response = await fetcher(url, fetchOptions);
+  const text = await easyuseAnimaReadTextResponse(response, fallbackText);
+  if (!response.ok) {
+    throw new Error(response.statusText || (response.status ? `HTTP ${response.status}` : errorMessage) || DEFAULT_REQUEST_FAILED);
+  }
+  return text;
 }
 
 export async function easyuseAnimaFetchOptionalJson(url, options = {}) {
@@ -49,6 +72,11 @@ export async function easyuseAnimaGetSettings(options = {}) {
     fallback: {},
     ...options,
   });
+}
+
+export async function easyuseAnimaFetchComfyJson(apiClient, url, options = {}) {
+  const fetcher = apiClient?.fetchApi ? apiClient.fetchApi.bind(apiClient) : fetch;
+  return easyuseAnimaFetchJson(url, { fetcher, ...options });
 }
 
 export async function easyuseAnimaPostJson(url, body, options = {}) {

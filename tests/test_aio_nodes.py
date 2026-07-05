@@ -1643,6 +1643,62 @@ class AIOGeneratorRuntimeTests(unittest.TestCase):
         self.assertEqual(save_calls[0]["sampler_settings"]["denoise"], 1.0)
         self.assertEqual(save_calls[0]["applied_loras"], [{"name": "style/foo.safetensors", "strength_model": 0.8}])
 
+    def test_generator_image_saver_uses_metadata_prompt_outputs_with_mod_guidance(self):
+        context = self._context()
+        save_calls = []
+
+        def fake_save(*args, **kwargs):
+            save_calls.append(kwargs)
+            return {"ui": {"images": [{"filename": "final.webp"}]}}
+
+        with (
+            patch.object(nodes, "_load_aio_resources_from_input_context", return_value=("base_model", "base_clip", "vae")),
+            patch.object(nodes, "_apply_aio_lora_stack", return_value=("lora_model", "lora_clip", [])),
+            patch.object(nodes, "_apply_aio_model_patches", return_value="patched_model"),
+            patch.object(
+                nodes,
+                "_advanced_outputs_from_prompt_data",
+                return_value=(
+                    "generation positive",
+                    "generation negative",
+                    "quality for mod guidance",
+                    "negative quality for mod guidance",
+                    True,
+                    True,
+                    "metadata positive with quality",
+                    "metadata negative with quality",
+                    512,
+                    768,
+                ),
+            ),
+            patch.object(nodes, "_encode_prompt_data_positive_conditioning", return_value="positive") as encode_positive,
+            patch.object(nodes, "_encode_with_comfy_clip", return_value="negative") as encode_negative,
+            patch.object(nodes, "_generate_empty_latent_with_comfy", return_value="latent_image"),
+            patch.object(nodes, "_apply_spectrum_anima_mod_guidance", return_value="mod_guidance_model"),
+            patch.object(nodes, "_apply_aio_spectrum_model_patches_for_comfy_sampler", return_value="sampler_patch_model"),
+            patch.object(nodes, "_sample_latent_with_aio_backend", return_value="latent") as sample,
+            patch.object(nodes, "_decode_latent_with_comfy", return_value="image"),
+            patch.object(nodes, "_run_aio_highres_stage", return_value=("latent", "image", 512, 768, {"enabled": False})),
+            patch.object(nodes, "_save_image_with_image_saver", side_effect=fake_save),
+            patch.object(nodes, "_cleanup_aio_ephemeral_model"),
+        ):
+            nodes.EasyUseAnimaAIOGenerator().generate(
+                context,
+                generation_settings=json.dumps({
+                    "save": {
+                        "enabled": True,
+                    },
+                }),
+                unique_id=212,
+            )
+
+        self.assertEqual(encode_positive.call_args.args[2], "generation positive")
+        self.assertEqual(encode_negative.call_args.args[1], "generation negative")
+        self.assertEqual(sample.call_args.args[8], "quality for mod guidance")
+        self.assertEqual(sample.call_args.args[9], "negative quality for mod guidance")
+        self.assertEqual(save_calls[0]["positive_prompt"], "metadata positive with quality")
+        self.assertEqual(save_calls[0]["negative_prompt"], "metadata negative with quality")
+
     def test_generator_reuses_first_pass_cache_when_only_later_stages_change(self):
         context = {
             "prompt_data": {},

@@ -8,7 +8,7 @@ try:
     from .prompt_translation import (
         DEFAULT_PROMPT_TRANSLATION_SOURCE,
         DEFAULT_PROMPT_TRANSLATION_TARGET,
-        PROMPT_TRANSLATION_PROVIDER_GOOGLE,
+        PROMPT_TRANSLATION_PROVIDER_OFF,
         PromptTranslationSettings,
         normalize_prompt_translation_language,
         normalize_prompt_translation_provider,
@@ -18,7 +18,7 @@ except ImportError:
     from prompt_translation import (
         DEFAULT_PROMPT_TRANSLATION_SOURCE,
         DEFAULT_PROMPT_TRANSLATION_TARGET,
-        PROMPT_TRANSLATION_PROVIDER_GOOGLE,
+        PROMPT_TRANSLATION_PROVIDER_OFF,
         PromptTranslationSettings,
         normalize_prompt_translation_language,
         normalize_prompt_translation_provider,
@@ -52,12 +52,13 @@ DEFAULT_SETTINGS = {
     "prompt_studio.colors": "",
     "prompt_studio.trained_tag_tooltip": "true",
     "prompt_studio.naia_general_above_auto_toggle": "false",
-    "prompt_translation.provider": PROMPT_TRANSLATION_PROVIDER_GOOGLE,
+    "prompt_translation.provider": PROMPT_TRANSLATION_PROVIDER_OFF,
     "prompt_translation.source": DEFAULT_PROMPT_TRANSLATION_SOURCE,
     "prompt_translation.target": DEFAULT_PROMPT_TRANSLATION_TARGET,
     "wildcard.extra_paths": "",
     "naia.host": "127.0.0.1",
     "naia.port": "7243",
+    "naia.allow_remote_api": "false",
     "naia.use_naia_settings": "true",
     "naia.resolution_mode": "scale",
     "naia.resolution_bucket": "1024",
@@ -175,6 +176,7 @@ COMFY_SETTING_KEYS = {
     "EasyUseAnima.LoraPreset.StrengthDragPixels": "lora_preset.strength_drag_pixels",
     "EasyUseAnima.NAIA.Host": "naia.host",
     "EasyUseAnima.NAIA.Port": "naia.port",
+    "EasyUseAnima.NAIA.AllowRemoteAPI": "naia.allow_remote_api",
     "EasyUseAnima.NAIA.UseDesktopPromptEngineering": "naia.use_naia_settings",
     "EasyUseAnima.NAIA.ResolutionMode": "naia.resolution_mode",
     "EasyUseAnima.NAIA.ResolutionBucket": "naia.resolution_bucket",
@@ -442,6 +444,10 @@ def public_settings() -> dict:
         ),
         "naia.host": settings.get("naia.host", DEFAULT_SETTINGS["naia.host"]),
         "naia.port": resolve_naia_port(settings),
+        "naia.allow_remote_api": settings.get(
+            "naia.allow_remote_api",
+            DEFAULT_SETTINGS["naia.allow_remote_api"],
+        ),
         "naia.use_naia_settings": settings.get(
             "naia.use_naia_settings",
             DEFAULT_SETTINGS["naia.use_naia_settings"],
@@ -606,6 +612,16 @@ def resolve_prompt_translation_settings(settings: dict | None = None) -> PromptT
     )
 
 
+def _resolve_settings_bool(settings: dict, key: str) -> bool:
+    return str(settings.get(key, DEFAULT_SETTINGS[key])).strip().lower() in {
+        "true",
+        "1",
+        "yes",
+        "on",
+        "enabled",
+    }
+
+
 def resolve_naia_port(settings: dict | None = None) -> int:
     settings = settings or get_settings()
     try:
@@ -665,10 +681,7 @@ def resolve_naia_resolution_max_long_edge(settings: dict | None = None) -> int:
 
 def resolve_naia_settings() -> dict:
     settings = get_settings()
-    use_naia_settings = settings.get(
-        "naia.use_naia_settings",
-        DEFAULT_SETTINGS["naia.use_naia_settings"],
-    ).strip().lower() not in ("false", "0", "no", "off", "disabled")
+    use_naia_settings = _resolve_settings_bool(settings, "naia.use_naia_settings")
     preprocessing = {}
     for key in NAIA_PREPROCESSING_KEYS:
         value = settings.get(f"naia.{key}", DEFAULT_SETTINGS[f"naia.{key}"])
@@ -676,6 +689,7 @@ def resolve_naia_settings() -> dict:
     return {
         "host": settings.get("naia.host", DEFAULT_SETTINGS["naia.host"]) or DEFAULT_SETTINGS["naia.host"],
         "port": resolve_naia_port(settings),
+        "allow_remote_api": _resolve_settings_bool(settings, "naia.allow_remote_api"),
         "use_naia_settings": use_naia_settings,
         "resolution_mode": resolve_naia_resolution_mode(settings),
         "resolution_bucket": resolve_naia_resolution_bucket(settings),

@@ -1,5 +1,37 @@
 # Release Notes
 
+## 0.3.0
+
+### Changed
+
+- Prepared the package for Comfy Registry publication by tightening the shipped
+  archive surface with `.comfyignore`, documenting Registry scanner safety
+  rules, and keeping Registry metadata aligned in `pyproject.toml`.
+- Removed the standalone public `Anima SAM3 Context` and `Anima SAM3 Detailer`
+  node registrations and their user-facing node docs. AiO Generator's internal
+  SAM3 detailer path remains available through AiO Detailer settings.
+- Kept optional external-provider paths safer by default: prompt translation is
+  off unless selected, NAIA remote hosts require an explicit allow setting, and
+  API-key environment auto-detection was removed.
+- Set AiO release workflow optimization defaults to conservative values:
+  FP16 accumulation off, SageAttention disabled, Sage compile disabled, and
+  TorchCompile off. The v6 workflow guide markdown now explains when to enable
+  those options manually.
+
+### Fixed
+
+- Fixed AiO Generator Image Saver metadata so saved positive/negative prompts
+  use Prompt Studio metadata prompt outputs when available, while generation and
+  Mod Guidance still use the generation prompt outputs.
+
+### Validation Notes
+
+- Added Registry scanner safety regression coverage and documentation.
+- Added AiO Generator metadata prompt regression coverage.
+- Validated release workflow JSON syntax, workflow safe defaults, Python tests,
+  compile checks, Registry scanner grep checks, JavaScript syntax checks, and
+  `git diff --check` during 0.3.0 release preparation.
+
 ## 0.2.7
 
 ### Fixed
