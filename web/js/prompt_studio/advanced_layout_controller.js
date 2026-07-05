@@ -2,16 +2,10 @@
 
 import {
   advancedEditorWidgetHeight,
-  advancedNodeAvailableEditorViewportHeight,
   advancedMinimumNodeHeight,
-  applyAdvancedEditorViewportStyle,
-  applyAdvancedWidgetAllocation,
   clampAdvancedNodeToMinimumHeight,
   updateAdvancedEditorWidth,
 } from "./layout.js";
-import {
-  isNodeUserResizeActive,
-} from "./node_resize_tracking.js";
 import {
   getAdvancedEditorElement,
 } from "./state.js";
@@ -57,9 +51,6 @@ function installAdvancedResizeEndListeners(node, hooks = {}) {
 }
 
 function scheduleAdvancedResizeFinalize(node, hooks = {}) {
-  if (isNodeUserResizeActive(node)) {
-    markAdvancedUserResize(node, hooks);
-  }
   if (!getAdvancedEditorElement(node)?.isConnected) {
     finalizeAdvancedResize(node, hooks);
     return;
@@ -69,18 +60,6 @@ function scheduleAdvancedResizeFinalize(node, hooks = {}) {
   node.__easyuseAnimaAdvancedResizeFinalizeTimer = setTimeout(() => {
     finalizeAdvancedResize(node, hooks);
   }, 120);
-}
-
-function markAdvancedUserResize(node, hooks = {}) {
-  if (!node || node.__easyuseAnimaApplyingLayout) {
-    return;
-  }
-  node.__easyuseAnimaAdvancedUserResizing = true;
-  clearTimeout(node.__easyuseAnimaAdvancedUserResizeTimer);
-  node.__easyuseAnimaAdvancedUserResizeTimer = setTimeout(() => {
-    node.__easyuseAnimaAdvancedUserResizing = false;
-    scheduleAdvancedLayout(node, "resize", hooks);
-  }, 180);
 }
 
 function applyAdvancedLayout(node, reason = "layout", hooks = {}) {
@@ -99,16 +78,11 @@ function applyAdvancedLayout(node, reason = "layout", hooks = {}) {
     const currentWidth = Number(node.size[0]) || 360;
     const currentHeight = Number(node.size[1]) || 0;
     const minimumHeight = advancedMinimumNodeHeight(node);
-    const shouldAdoptNodeHeight = Boolean(node.__easyuseAnimaAdvancedUserResizing)
-      || isNodeUserResizeActive(node);
-    const widgetHeight = shouldAdoptNodeHeight
-      ? advancedNodeAvailableEditorViewportHeight(node)
-      : advancedEditorWidgetHeight(node);
-    const allocatedHeight = applyAdvancedWidgetAllocation(node, widgetHeight, {
-      rememberUserViewport: shouldAdoptNodeHeight,
-    });
-    applyAdvancedEditorViewportStyle(editor, allocatedHeight);
-    node.__easyuseAnimaAdvancedLastEditorHeight = allocatedHeight;
+    const widgetHeight = advancedEditorWidgetHeight(node);
+    editor.style.height = `${widgetHeight}px`;
+    editor.style.maxHeight = `${widgetHeight}px`;
+    node.__easyuseAnimaAdvancedWidgetHeight = widgetHeight;
+    node.__easyuseAnimaAdvancedLastEditorHeight = widgetHeight;
     node.__easyuseAnimaAdvancedLastLayoutReason = reason;
 
     if (typeof node.setSize === "function" && currentHeight < minimumHeight - 1) {
@@ -166,7 +140,6 @@ export {
   clearAdvancedResizeEndListeners,
   finalizeAdvancedResize,
   installAdvancedResizeEndListeners,
-  markAdvancedUserResize,
   scheduleAdvancedLayout,
   scheduleAdvancedResizeFinalize,
 };

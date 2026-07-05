@@ -164,9 +164,6 @@ class FrontendModuleStructureTests(unittest.TestCase):
         node_hooks_source = (PROMPT_STUDIO_MODULES / "node_hooks.js").read_text(
             encoding="utf-8"
         )
-        node_resize_tracking_source = (
-            PROMPT_STUDIO_MODULES / "node_resize_tracking.js"
-        ).read_text(encoding="utf-8")
         settings_source = (PROMPT_STUDIO_MODULES / "settings.js").read_text(
             encoding="utf-8"
         )
@@ -273,7 +270,6 @@ class FrontendModuleStructureTests(unittest.TestCase):
             "ADVANCED_NODE_TYPE",
             "PROMPT_STUDIO_TEXT",
             "ADVANCED_FIELDS_PROPERTY",
-            "ADVANCED_EDITOR_MIN_RESIZE_VIEWPORT_HEIGHT",
             "ADVANCED_DEFAULT_FIELDS",
         ):
             with self.subTest(module="constants", symbol=name):
@@ -451,16 +447,11 @@ class FrontendModuleStructureTests(unittest.TestCase):
 
         for name in (
             "advancedEditorMinimumHeight",
-            "advancedEditorResizeMinimumHeight",
-            "advancedEditorViewportMinimumHeight",
             "advancedEditorWidgetHeight",
             "advancedMinimumNodeHeight",
-            "advancedNodeAvailableEditorViewportHeight",
             "advancedTextareaContentHeight",
             "advancedTextareaCurrentHeight",
             "advancedTextareaMinimumHeight",
-            "applyAdvancedEditorViewportStyle",
-            "applyAdvancedWidgetAllocation",
             "clampAdvancedNodeToMinimumHeight",
             "updateAdvancedEditorWidth",
         ):
@@ -472,20 +463,11 @@ class FrontendModuleStructureTests(unittest.TestCase):
             "clearAdvancedResizeEndListeners",
             "finalizeAdvancedResize",
             "installAdvancedResizeEndListeners",
-            "markAdvancedUserResize",
             "scheduleAdvancedLayout",
             "scheduleAdvancedResizeFinalize",
         ):
             with self.subTest(module="advanced_layout_controller", symbol=name):
                 self.assertIn(f"  {name},", advanced_layout_controller_source)
-
-        for name in (
-            "installNodeResizePointerTracker",
-            "isCanvasResizingNode",
-            "isNodeUserResizeActive",
-        ):
-            with self.subTest(module="node_resize_tracking", symbol=name):
-                self.assertIn(f"  {name},", node_resize_tracking_source)
 
         for name in (
             "hookAdvancedNode",
@@ -604,43 +586,6 @@ class FrontendModuleStructureTests(unittest.TestCase):
         ):
             with self.subTest(module="extension_runtime", symbol=name):
                 self.assertIn(f"  {name},", extension_runtime_source)
-
-    def test_advanced_node_resize_minimum_keeps_editor_scrollable(self):
-        constants_source = (PROMPT_STUDIO_MODULES / "constants.js").read_text(
-            encoding="utf-8"
-        )
-        layout_source = (PROMPT_STUDIO_MODULES / "layout.js").read_text(
-            encoding="utf-8"
-        )
-        advanced_node_ui_source = (
-            PROMPT_STUDIO_MODULES / "advanced_node_ui.js"
-        ).read_text(encoding="utf-8")
-        advanced_layout_controller_source = (
-            PROMPT_STUDIO_MODULES / "advanced_layout_controller.js"
-        ).read_text(encoding="utf-8")
-
-        self.assertIn("const ADVANCED_EDITOR_MIN_VIEWPORT_HEIGHT = 360;", constants_source)
-        self.assertIn("const ADVANCED_EDITOR_MIN_RESIZE_VIEWPORT_HEIGHT = 160;", constants_source)
-        self.assertIn("function advancedEditorResizeMinimumHeight()", layout_source)
-        self.assertIn("__easyuseAnimaAdvancedUserResizing", layout_source)
-        self.assertIn("__easyuseAnimaAdvancedUserViewportHeight", layout_source)
-        self.assertIn("function advancedNodeAvailableEditorViewportHeight(node)", layout_source)
-        self.assertIn("function applyAdvancedWidgetAllocation(node, height, options = {})", layout_source)
-        self.assertIn("widget.computedHeight = viewportHeight;", layout_source)
-        self.assertIn(": advancedEditorMinimumHeight(node)", layout_source)
-        self.assertIn("getMinHeight: () => advancedEditorResizeMinimumHeight(),", advanced_node_ui_source)
-        self.assertIn("minHeight: advancedEditorResizeMinimumHeight(),", advanced_node_ui_source)
-        self.assertIn("markAdvancedUserResize(node, hooks);", advanced_layout_controller_source)
-        self.assertIn("isNodeUserResizeActive(node)", advanced_layout_controller_source)
-        self.assertIn("rememberUserViewport: shouldAdoptNodeHeight", advanced_layout_controller_source)
-        self.assertNotIn("__easyuseAnimaAdvancedUserResized", layout_source)
-        self.assertNotIn("__easyuseAnimaAdvancedUserResized", advanced_layout_controller_source)
-        self.assertNotIn("getMinHeight: () => advancedEditorMinimumHeight(node),", advanced_node_ui_source)
-
-        start = advanced_node_ui_source.index("widget.computeLayoutSize = () => ({")
-        end = advanced_node_ui_source.index("      });", start)
-        compute_layout_body = advanced_node_ui_source[start:end]
-        self.assertNotIn("height", compute_layout_body)
 
     def test_prompt_studio_phase_3_typedefs_are_documented(self):
         types_source = (PROMPT_STUDIO_MODULES / "types.js").read_text(
@@ -765,7 +710,6 @@ class FrontendModuleStructureTests(unittest.TestCase):
             "dom.js",
             "extension_runtime.js",
             "extend_slot_controls.js",
-            "node_resize_tracking.js",
             "settings.js",
             "style.js",
             "tooltip.js",

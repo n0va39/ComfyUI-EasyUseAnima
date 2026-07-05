@@ -28,7 +28,7 @@ import {
   updateAdvancedFieldHighlight,
 } from "./advanced_highlights.js";
 import {
-  advancedEditorResizeMinimumHeight,
+  advancedEditorMinimumHeight,
   advancedEditorWidgetHeight,
   updateAdvancedEditorWidth,
 } from "./layout.js";
@@ -126,15 +126,19 @@ function hookAdvancedNode(node, hooks = {}) {
     const widget = node.addDOMWidget?.("easyuse_anima_advanced_editor", "EasyUseAnimaAdvancedEditor", editor, {
       serialize: false,
       hideOnZoom: false,
-      getMinHeight: () => advancedEditorResizeMinimumHeight(),
+      getMinHeight: () => advancedEditorMinimumHeight(node),
       getHeight: () => advancedEditorWidgetHeight(node),
     });
     if (widget) {
       node.__easyuseAnimaAdvancedDomWidget = widget;
-      widget.computeLayoutSize = () => ({
-        minHeight: advancedEditorResizeMinimumHeight(),
-        minWidth: 280,
-      });
+      widget.computeLayoutSize = () => {
+        const height = advancedEditorWidgetHeight(node);
+        return {
+          minHeight: advancedEditorMinimumHeight(node),
+          height,
+          minWidth: 280,
+        };
+      };
     }
   }
   renderAdvancedEditor(node, hooks);
