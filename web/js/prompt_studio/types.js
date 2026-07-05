@@ -25,7 +25,6 @@
  * @property {(width?: number) => [number, number]} [computeSize]
  * @property {(value?: unknown) => unknown} [callback]
  * @property {number} [computedHeight]
- * @property {number} [last_y]
  * @property {number} [y]
  * @property {boolean} [hidden]
  * @property {boolean} [serialize]

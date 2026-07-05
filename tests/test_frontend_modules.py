@@ -131,6 +131,17 @@ class FrontendModuleStructureTests(unittest.TestCase):
         self.assertIn("function applyAdvancedWidgetAllocation", layout_source)
         self.assertIn("widget.computedHeight = viewportHeight;", layout_source)
         self.assertIn("return advancedNodeAvailableEditorViewportHeight(node);", layout_source)
+        self.assertIn("const ADVANCED_NODE_CHROME_OFFSET_FLOOR = 72;", layout_source)
+        self.assertIn("const ADVANCED_NODE_CHROME_OFFSET_MAX = 220;", layout_source)
+        chrome_offset_start = layout_source.index("function advancedNodeChromeOffset")
+        chrome_offset_end = layout_source.index("\nfunction advancedMinimumNodeHeight", chrome_offset_start)
+        chrome_offset_body = layout_source[chrome_offset_start:chrome_offset_end]
+        self.assertIn("const widgetY = Number(widget?.y);", chrome_offset_body)
+        self.assertIn("const stableWidgetTop =", chrome_offset_body)
+        self.assertIn("Math.min(widgetY, ADVANCED_NODE_CHROME_OFFSET_MAX - 12)", chrome_offset_body)
+        self.assertIn("ADVANCED_NODE_CHROME_OFFSET_FLOOR", chrome_offset_body)
+        self.assertIn("stableWidgetTop + 12", chrome_offset_body)
+        self.assertNotIn("last_y", chrome_offset_body)
         widget_height_start = layout_source.index("function advancedEditorWidgetHeight")
         widget_height_end = layout_source.index("\nfunction advancedEditorWidget", widget_height_start)
         widget_height_body = layout_source[widget_height_start:widget_height_end]

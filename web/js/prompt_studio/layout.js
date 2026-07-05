@@ -11,6 +11,9 @@ import {
   isNodeUserResizeActive,
 } from "./node_resize_tracking.js";
 
+const ADVANCED_NODE_CHROME_OFFSET_FLOOR = 72;
+const ADVANCED_NODE_CHROME_OFFSET_MAX = 220;
+
 function advancedEditorWidth(node) {
   return Math.max(280, Math.round((Number(node?.size?.[0]) || 420) - 18));
 }
@@ -196,7 +199,7 @@ function advancedEditorMinimumHeight(node) {
 function advancedNodeAvailableEditorViewportHeight(node) {
   const minimumHeight = advancedEditorMinimumHeight(node);
   const nodeHeight = Number(node?.size?.[1]) || 0;
-  const chromeOffset = advancedNodeChromeOffset(node, minimumHeight);
+  const chromeOffset = advancedNodeChromeOffset(node);
   const availableHeight = Math.max(0, nodeHeight - chromeOffset);
   return Math.ceil(Math.max(minimumHeight, availableHeight));
 }
@@ -251,13 +254,13 @@ function applyAdvancedWidgetAllocation(node, height) {
   return viewportHeight;
 }
 
-function advancedNodeChromeOffset(node, editorHeight = measureAdvancedEditorContentHeight(getAdvancedEditorElement(node))) {
+function advancedNodeChromeOffset(node) {
   const widget = advancedEditorWidget(node);
-  const widgetY = Math.max(
-    Number(widget?.last_y) || 0,
-    Number(widget?.y) || 0,
-  );
-  return Math.ceil(Math.max(72, widgetY + 12));
+  const widgetY = Number(widget?.y);
+  const stableWidgetTop = Number.isFinite(widgetY) && widgetY > 0
+    ? Math.min(widgetY, ADVANCED_NODE_CHROME_OFFSET_MAX - 12)
+    : 0;
+  return Math.ceil(Math.max(ADVANCED_NODE_CHROME_OFFSET_FLOOR, stableWidgetTop + 12));
 }
 
 function advancedMinimumNodeHeight(node) {
@@ -266,7 +269,7 @@ function advancedMinimumNodeHeight(node) {
     return ADVANCED_EDITOR_MIN_VIEWPORT_HEIGHT;
   }
   const viewportMinimum = advancedEditorMinimumHeight(node);
-  const chromeOffset = advancedNodeChromeOffset(node, viewportMinimum);
+  const chromeOffset = advancedNodeChromeOffset(node);
   return Math.ceil(Math.max(
     ADVANCED_EDITOR_MIN_VIEWPORT_HEIGHT,
     viewportMinimum + chromeOffset,
