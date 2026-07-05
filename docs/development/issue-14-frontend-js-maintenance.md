@@ -797,6 +797,10 @@ Use this checklist for each follow-up frontend refactor PR.
 - No input/output socket name change.
 - No serialized workflow key change.
 - No `widgets_values` order change.
+- Node 2.0 UI and legacy canvas behavior are both considered for DOM widget,
+  canvas, layout, preview, and hidden-widget changes.
+- DOM widget `getMinHeight`, `getHeight`, `computeLayoutSize`, CSS
+  height/overflow rules, and `node.setSize()` paths remain aligned.
 
 ### Module Boundary
 
@@ -825,6 +829,8 @@ Use this checklist for each follow-up frontend refactor PR.
 - Save/reload works.
 - Queue works.
 - Copy/paste works.
+- Node 2.0 UI smoke check was run, or the gap is stated.
+- Legacy canvas smoke check was run, or the gap is stated.
 
 ### Regression
 
