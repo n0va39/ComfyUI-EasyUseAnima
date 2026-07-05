@@ -40,7 +40,6 @@ class AIOFrontendSourceTests(unittest.TestCase):
         self.assertIn("function generatorPreviewBoxHeight", source)
         self.assertIn("function generatorPreviewCardHeight", source)
         self.assertIn("function generatorDesiredPanelHeight", source)
-        self.assertIn("function generatorAllocatedPanelHeight", source)
         self.assertIn("function generatorNodeAvailablePanelHeight", source)
         self.assertIn("function generatorAvailablePanelHeight", source)
         self.assertIn("function applyGeneratorPanelViewportStyle", source)
@@ -59,7 +58,9 @@ class AIOFrontendSourceTests(unittest.TestCase):
         self.assertIn("Math.max(currentHeight, minHeight)", source)
         self.assertIn("Math.max(currentWidth, GENERATOR_NODE_MIN_WIDTH)", source)
         self.assertNotIn("Math.abs(currentHeight - minHeight) > 1", source)
+        self.assertNotIn("function generatorAllocatedPanelHeight", source)
         self.assertNotIn("const host = panel.parentElement", source)
+        self.assertNotIn("panel?.parentElement", source)
         self.assertNotIn("host.style.height", source)
         self.assertIn("align-items: stretch;", main_css)
         self.assertIn(
@@ -122,38 +123,22 @@ class AIOFrontendSourceTests(unittest.TestCase):
         self.assertNotIn("Math.abs(currentHeight - minHeight)", body)
         self.assertNotIn("Math.max(currentWidth, GENERATOR_NODE_DEFAULT_WIDTH)", body)
 
-    def test_generator_available_height_prefers_dom_widget_allocation(self):
+    def test_generator_available_height_uses_node_size(self):
         source = AIO_JS.read_text(encoding="utf-8")
         node_available_start = source.index("function generatorNodeAvailablePanelHeight")
-        node_available_end = source.index("\nfunction generatorUserResizeActive", node_available_start)
+        node_available_end = source.index("\nfunction generatorPanelHeight", node_available_start)
         node_available_body = source[node_available_start:node_available_end]
-        allocated_start = source.index("function generatorAllocatedPanelHeight")
-        allocated_end = source.index("\nfunction generatorAvailablePanelHeight", allocated_start)
-        allocated_body = source[allocated_start:allocated_end]
         available_start = source.index("function generatorAvailablePanelHeight")
         available_end = source.index("\nfunction generatorClampHeight", available_start)
         available_body = source[available_start:available_end]
 
         self.assertIn("const nodeHeight = Number(node?.size?.[1]) || 0;", node_available_body)
         self.assertIn("Math.ceil(nodeHeight - generatorNodeChromeOffset(node))", node_available_body)
-        self.assertIn("function generatorUserResizeActive", source)
-        self.assertIn("const host = panel?.parentElement;", allocated_body)
-        self.assertIn("host instanceof HTMLElement", allocated_body)
-        self.assertIn("Number(host.clientHeight) || 0", allocated_body)
-        self.assertIn('Number.parseFloat(getComputedStyle(host).height || "") || 0', allocated_body)
-        self.assertIn("hostHeight >= GENERATOR_PANEL_MIN_HEIGHT", allocated_body)
-        self.assertIn("if (generatorUserResizeActive(node))", available_body)
         self.assertIn("return generatorNodeAvailablePanelHeight(node);", available_body)
-        self.assertIn("const allocatedHeight = generatorAllocatedPanelHeight(node);", available_body)
-        self.assertLess(
-            available_body.index("if (generatorUserResizeActive(node))"),
-            available_body.index("const allocatedHeight = generatorAllocatedPanelHeight(node);"),
-        )
-        self.assertLess(
-            available_body.index("const allocatedHeight = generatorAllocatedPanelHeight(node);"),
-            available_body.rindex("return generatorNodeAvailablePanelHeight(node);"),
-        )
-        self.assertIn("return allocatedHeight;", available_body)
+        self.assertNotIn("generatorUserResizeActive", available_body)
+        self.assertNotIn("generatorAllocatedPanelHeight", available_body)
+        self.assertNotIn("allocatedHeight", available_body)
+        self.assertNotIn("parentElement", available_body)
 
     def test_generator_manual_resize_and_min_width_are_explicit(self):
         source = AIO_JS.read_text(encoding="utf-8")

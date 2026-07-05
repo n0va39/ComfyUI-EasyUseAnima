@@ -4029,13 +4029,10 @@ function generatorNodeAvailablePanelHeight(node) {
   );
 }
 
-function generatorUserResizeActive(node) {
-  return !!node?.__easyuseAnimaGeneratorUserResizing;
-}
-
 function generatorPanelHeight(node) {
-  if (generatorUserResizeActive(node)) {
-    return generatorNodeAvailablePanelHeight(node);
+  const nodeHeight = generatorNodeAvailablePanelHeight(node);
+  if (nodeHeight > 0) {
+    return nodeHeight;
   }
   return Math.max(GENERATOR_PANEL_MIN_HEIGHT, Number(node?.__easyuseAnimaGeneratorPanelHeight) || 0);
 }
@@ -4044,29 +4041,7 @@ function generatorPanelMinHeight(node) {
   return Math.max(GENERATOR_PANEL_MIN_HEIGHT, Number(node?.__easyuseAnimaGeneratorPanelMinHeight) || 0);
 }
 
-function generatorAllocatedPanelHeight(node) {
-  const panel = node?.__easyuseAnimaGeneratorPanelEl;
-  const host = panel?.parentElement;
-  if (!(host instanceof HTMLElement)) {
-    return 0;
-  }
-  const hostHeight = Math.max(
-    Number(host.clientHeight) || 0,
-    Number.parseFloat(getComputedStyle(host).height || "") || 0,
-  );
-  return hostHeight >= GENERATOR_PANEL_MIN_HEIGHT
-    ? Math.round(hostHeight)
-    : 0;
-}
-
 function generatorAvailablePanelHeight(node) {
-  if (generatorUserResizeActive(node)) {
-    return generatorNodeAvailablePanelHeight(node);
-  }
-  const allocatedHeight = generatorAllocatedPanelHeight(node);
-  if (allocatedHeight > 0) {
-    return allocatedHeight;
-  }
   return generatorNodeAvailablePanelHeight(node);
 }
 

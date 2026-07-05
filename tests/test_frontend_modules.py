@@ -121,16 +121,18 @@ class FrontendModuleStructureTests(unittest.TestCase):
         )
 
         self.assertIn("function applyAdvancedEditorViewportStyle", layout_source)
-        self.assertIn("function advancedAllocatedEditorHeight", layout_source)
         self.assertIn("function advancedNodeAvailableEditorViewportHeight", layout_source)
-        self.assertIn("function advancedUserResizeActive", layout_source)
         self.assertIn("function applyAdvancedWidgetAllocation", layout_source)
         self.assertIn("widget.computedHeight = viewportHeight;", layout_source)
-        self.assertIn("if (advancedUserResizeActive(node))", layout_source)
-        self.assertIn("const allocatedHeight = advancedAllocatedEditorHeight(node);", layout_source)
         self.assertIn("return advancedNodeAvailableEditorViewportHeight(node);", layout_source)
         self.assertIn("--easyuse-anima-advanced-editor-height", layout_source)
+        self.assertNotIn("function advancedAllocatedEditorHeight", layout_source)
+        self.assertNotIn("function advancedUserResizeActive", layout_source)
+        self.assertNotIn("advancedAllocatedEditorHeight(node)", layout_source)
+        self.assertNotIn("advancedUserResizeActive(node)", layout_source)
+        self.assertNotIn("const allocatedHeight", layout_source)
         self.assertNotIn("const host = editor.parentElement", layout_source)
+        self.assertNotIn("editor?.parentElement", layout_source)
         self.assertNotIn("host.style.height", layout_source)
         self.assertIn(
             "applyAdvancedEditorViewportStyle(editor, widgetHeight);",
@@ -667,7 +669,6 @@ class FrontendModuleStructureTests(unittest.TestCase):
                 self.assertIn(f"  {name},", widgets_source)
 
         for name in (
-            "advancedAllocatedEditorHeight",
             "advancedTextareaAutoHeight",
             "advancedTextareaCurrentBoxHeight",
             "advancedEditorMinimumHeight",
@@ -678,7 +679,6 @@ class FrontendModuleStructureTests(unittest.TestCase):
             "advancedTextareaCurrentHeight",
             "advancedTextareaMinimumHeight",
             "advancedTextareaVisibleMinimumHeight",
-            "advancedUserResizeActive",
             "clampAdvancedNodeToMinimumHeight",
             "rememberAdvancedEditorScrollState",
             "preferredAdvancedEditorScrollState",
