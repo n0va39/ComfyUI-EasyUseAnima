@@ -132,7 +132,7 @@ class FrontendModuleStructureTests(unittest.TestCase):
             "height: var(--easyuse-anima-advanced-editor-height, auto);",
             style_source,
         )
-        self.assertIn("scrollbar-gutter: stable;", style_source)
+        self.assertNotIn("scrollbar-gutter: stable;", style_source)
 
     def test_prompt_studio_advanced_resize_remeasures_wrapped_textareas(self):
         advanced_fields_ui_source = (
@@ -232,7 +232,7 @@ class FrontendModuleStructureTests(unittest.TestCase):
         self.assertIn("minWidth: 280,", body)
         self.assertNotIn("height,", body)
 
-    def test_prompt_studio_native_control_wheel_stays_in_editor(self):
+    def test_prompt_studio_native_control_wheel_only_stays_for_scrollable_controls(self):
         wheel_source = (PROMPT_STUDIO_MODULES / "wheel.js").read_text(
             encoding="utf-8"
         )
@@ -240,8 +240,14 @@ class FrontendModuleStructureTests(unittest.TestCase):
         end = wheel_source.index("\nexport {", start)
         body = wheel_source[start:end]
 
-        self.assertIn("return isAdvancedNativeControlTarget(target);", body)
-        self.assertNotIn("canAdvancedEditorScroll(editor)", body)
+        self.assertIn("const control = advancedWheelScrollableControl(target);", body)
+        self.assertIn("!isAdvancedNativeControlTarget(control)", body)
+        self.assertIn(
+            "return canAdvancedControlScrollWheelDelta(control, Number(event?.deltaY) || 0);",
+            body,
+        )
+        self.assertIn("function canAdvancedControlScrollWheelDelta", wheel_source)
+        self.assertNotIn("return isAdvancedNativeControlTarget(target);", body)
 
     def test_prompt_studio_phase_2_modules_export_expected_symbols(self):
         advanced_controls_source = (

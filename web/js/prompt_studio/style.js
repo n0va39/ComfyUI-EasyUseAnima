@@ -17,7 +17,6 @@ function ensureAdvancedStyle() {
       overflow-x: hidden;
       overflow-y: auto;
       overscroll-behavior: contain;
-      scrollbar-gutter: stable;
       contain: layout paint;
       color: var(--fg-color, #ddd);
       font: 12px sans-serif;
