@@ -10,6 +10,9 @@ import {
 import {
   getAdvancedEditorElement,
 } from "./state.js";
+import {
+  syncAdvancedTextareaHeightsForWidth,
+} from "./advanced_fields_ui.js";
 
 function clearAdvancedResizeEndListeners(node) {
   const handler = node?.__easyuseAnimaAdvancedResizeEndHandler;
@@ -36,6 +39,7 @@ function finalizeAdvancedResize(node, hooks = {}) {
     return;
   }
   updateAdvancedEditorWidth(node);
+  syncAdvancedTextareaHeightsForWidth(node, hooks);
   clampAdvancedNodeToMinimumHeight(node);
   scheduleAdvancedLayout(node, "resize", hooks);
 }

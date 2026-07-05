@@ -133,6 +133,38 @@ class FrontendModuleStructureTests(unittest.TestCase):
         )
         self.assertIn("scrollbar-gutter: stable;", style_source)
 
+    def test_prompt_studio_advanced_resize_remeasures_wrapped_textareas(self):
+        advanced_fields_ui_source = (
+            PROMPT_STUDIO_MODULES / "advanced_fields_ui.js"
+        ).read_text(encoding="utf-8")
+        advanced_layout_controller_source = (
+            PROMPT_STUDIO_MODULES / "advanced_layout_controller.js"
+        ).read_text(encoding="utf-8")
+        extension_runtime_source = (
+            PROMPT_STUDIO_MODULES / "extension_runtime.js"
+        ).read_text(encoding="utf-8")
+
+        self.assertIn(
+            "function syncAdvancedTextareaHeightsForWidth",
+            advanced_fields_ui_source,
+        )
+        self.assertIn("advancedTextareaContentHeight(textarea)", advanced_fields_ui_source)
+        self.assertIn('field.heightMode !== "manual"', advanced_fields_ui_source)
+        self.assertIn("hooks.writeAdvancedFields?.(node, fields", advanced_fields_ui_source)
+        self.assertIn(
+            "syncAdvancedTextareaHeightsForWidth(node, hooks);",
+            advanced_layout_controller_source,
+        )
+        self.assertLess(
+            advanced_layout_controller_source.index("updateAdvancedEditorWidth(node);"),
+            advanced_layout_controller_source.index("syncAdvancedTextareaHeightsForWidth(node, hooks);"),
+        )
+        self.assertLess(
+            advanced_layout_controller_source.index("syncAdvancedTextareaHeightsForWidth(node, hooks);"),
+            advanced_layout_controller_source.index("clampAdvancedNodeToMinimumHeight(node);"),
+        )
+        self.assertIn("writeAdvancedFields,", extension_runtime_source)
+
     def test_prompt_studio_phase_2_modules_export_expected_symbols(self):
         advanced_controls_source = (
             PROMPT_STUDIO_MODULES / "advanced_controls.js"
@@ -264,6 +296,7 @@ class FrontendModuleStructureTests(unittest.TestCase):
             "createAdvancedFieldElement",
             "createAdvancedPane",
             "setAdvancedTextareaHeight",
+            "syncAdvancedTextareaHeightsForWidth",
         ):
             with self.subTest(module="advanced_fields_ui", symbol=name):
                 self.assertIn(f"  {name},", advanced_fields_ui_source)

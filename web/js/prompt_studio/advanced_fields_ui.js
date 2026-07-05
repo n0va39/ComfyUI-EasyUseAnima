@@ -68,6 +68,52 @@ function setAdvancedTextareaHeight(node, textarea, height, options = {}, hooks =
   return nextHeight;
 }
 
+function syncAdvancedTextareaHeightsForWidth(node, hooks = {}) {
+  const fields = getAdvancedFields(node) || hooks.parseAdvancedFields?.(node) || [];
+  const textareas = [...(node?.__easyuseAnimaAdvancedEditorEl?.querySelectorAll?.(
+    "textarea[data-easyuse-anima-advanced-field-id]",
+  ) || [])];
+  let changed = false;
+
+  for (const textarea of textareas) {
+    if (!(textarea instanceof HTMLTextAreaElement)) {
+      continue;
+    }
+    const field = advancedFieldByTextarea(node, textarea, hooks);
+    if (!field) {
+      continue;
+    }
+    const previousHeight = Math.round(
+      Number(field.height)
+      || Number.parseFloat(textarea.style.height || "")
+      || Number(textarea.offsetHeight)
+      || 0,
+    );
+    const requestedHeight = field.heightMode === "manual"
+      ? advancedTextareaCurrentHeight(textarea)
+      : Math.max(
+        advancedTextareaMinimumHeight(textarea),
+        advancedTextareaContentHeight(textarea),
+      );
+    const nextHeight = setAdvancedTextareaHeight(node, textarea, requestedHeight, {
+      refreshHighlight: false,
+    }, hooks);
+    field.height = nextHeight;
+    if (field.heightMode !== "manual") {
+      field.heightMode = "auto";
+    }
+    if (Math.abs(nextHeight - previousHeight) > 1) {
+      changed = true;
+      requestOverlaySync(textarea);
+    }
+  }
+
+  if (changed) {
+    hooks.writeAdvancedFields?.(node, fields, { syncInputs: false });
+  }
+  return changed;
+}
+
 function createAdvancedFieldElement(node, field, hooks = {}) {
   const fields = getAdvancedFields(node) || hooks.parseAdvancedFields?.(node) || [];
   const globalIndex = fields.findIndex((item) => item.id === field.id);
@@ -331,4 +377,5 @@ export {
   createAdvancedFieldElement,
   createAdvancedPane,
   setAdvancedTextareaHeight,
+  syncAdvancedTextareaHeightsForWidth,
 };

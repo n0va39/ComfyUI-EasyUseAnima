@@ -250,7 +250,9 @@ function createPromptStudioExtensionRuntime(app) {
   function advancedLayoutControllerHooks() {
     return {
       markGraphDirty,
+      parseAdvancedFields,
       scheduleAdvancedHighlights,
+      writeAdvancedFields,
     };
   }
 
