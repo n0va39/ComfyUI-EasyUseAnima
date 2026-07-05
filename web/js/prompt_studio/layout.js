@@ -175,18 +175,6 @@ function applyAdvancedEditorViewportStyle(editor, height) {
   editor.style.maxHeight = heightValue;
   editor.style.minHeight = "0px";
   editor.style.overflowY = "auto";
-
-  const host = editor.parentElement;
-  if (
-    host instanceof HTMLElement
-    && host.children.length === 1
-    && host.parentElement
-  ) {
-    host.style.height = heightValue;
-    host.style.maxHeight = heightValue;
-    host.style.minHeight = "0px";
-    host.style.overflow = "hidden";
-  }
 }
 
 function advancedNodeChromeOffset(node, editorHeight = measureAdvancedEditorContentHeight(getAdvancedEditorElement(node))) {

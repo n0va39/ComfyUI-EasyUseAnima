@@ -122,7 +122,8 @@ class FrontendModuleStructureTests(unittest.TestCase):
 
         self.assertIn("function applyAdvancedEditorViewportStyle", layout_source)
         self.assertIn("--easyuse-anima-advanced-editor-height", layout_source)
-        self.assertIn('host.style.overflow = "hidden";', layout_source)
+        self.assertNotIn("const host = editor.parentElement", layout_source)
+        self.assertNotIn("host.style.height", layout_source)
         self.assertIn(
             "applyAdvancedEditorViewportStyle(editor, widgetHeight);",
             advanced_layout_controller_source,
