@@ -149,9 +149,22 @@ class FrontendModuleStructureTests(unittest.TestCase):
             "function syncAdvancedTextareaHeightsForWidth",
             advanced_fields_ui_source,
         )
-        self.assertIn("advancedTextareaContentHeight(textarea)", advanced_fields_ui_source)
-        self.assertIn('field.heightMode !== "manual"', advanced_fields_ui_source)
-        self.assertIn("hooks.writeAdvancedFields?.(node, fields", advanced_fields_ui_source)
+        sync_start = advanced_fields_ui_source.index(
+            "function syncAdvancedTextareaHeightsForWidth"
+        )
+        sync_end = advanced_fields_ui_source.index(
+            "\nfunction createAdvancedFieldElement", sync_start
+        )
+        sync_body = advanced_fields_ui_source[sync_start:sync_end]
+
+        self.assertIn("advancedTextareaContentHeight(textarea)", sync_body)
+        self.assertIn(
+            'const mode = field.heightMode === "manual" ? "manual" : "auto";',
+            sync_body,
+        )
+        self.assertIn("syncField: false,", sync_body)
+        self.assertNotIn("field.height = nextHeight;", sync_body)
+        self.assertNotIn("hooks.writeAdvancedFields?.(node, fields", sync_body)
         self.assertIn(
             "syncAdvancedTextareaHeightsForWidth(node, hooks);",
             advanced_layout_controller_source,
@@ -165,6 +178,70 @@ class FrontendModuleStructureTests(unittest.TestCase):
             advanced_layout_controller_source.index("clampAdvancedNodeToMinimumHeight(node);"),
         )
         self.assertIn("writeAdvancedFields,", extension_runtime_source)
+
+    def test_prompt_studio_textarea_height_state_has_single_owner(self):
+        advanced_fields_ui_source = (
+            PROMPT_STUDIO_MODULES / "advanced_fields_ui.js"
+        ).read_text(encoding="utf-8")
+        set_start = advanced_fields_ui_source.index(
+            "function setAdvancedTextareaHeight"
+        )
+        set_end = advanced_fields_ui_source.index(
+            "\nfunction syncAdvancedTextareaHeightsForWidth", set_start
+        )
+        set_body = advanced_fields_ui_source[set_start:set_end]
+
+        self.assertIn(
+            'const mode = options.mode === "manual" ? "manual" : "auto";',
+            set_body,
+        )
+        self.assertIn('const requiredHeight = mode === "manual"', set_body)
+        self.assertIn('textarea.style.minHeight = `${minimumHeight}px`;', set_body)
+        self.assertIn(
+            'textarea.style.overflowY = mode === "manual" ? "auto" : "hidden";',
+            set_body,
+        )
+        self.assertIn("mode,", advanced_fields_ui_source)
+        self.assertIn(
+            'mode: field.heightMode === "manual" ? "manual" : "auto",',
+            advanced_fields_ui_source,
+        )
+        self.assertNotIn("if (nextHeight !== field.height)", advanced_fields_ui_source)
+
+    def test_prompt_studio_serialization_collects_text_without_layout_height(self):
+        serialization_source = (
+            PROMPT_STUDIO_MODULES / "serialization.js"
+        ).read_text(encoding="utf-8")
+        start = serialization_source.index("function collectAdvancedEditorFields")
+        end = serialization_source.index("\nfunction advancedFieldIndexLabel", start)
+        body = serialization_source[start:end]
+
+        self.assertIn("field.text = textarea.value;", body)
+        self.assertNotIn("style.height", body)
+        self.assertNotIn("field.height =", body)
+
+    def test_prompt_studio_dom_widget_layout_uses_official_size_fields(self):
+        advanced_node_ui_source = (
+            PROMPT_STUDIO_MODULES / "advanced_node_ui.js"
+        ).read_text(encoding="utf-8")
+        start = advanced_node_ui_source.index("widget.computeLayoutSize = () => ({")
+        end = advanced_node_ui_source.index("\n      });", start)
+        body = advanced_node_ui_source[start:end]
+
+        self.assertIn("minHeight: advancedEditorMinimumHeight(node),", body)
+        self.assertIn("minWidth: 280,", body)
+        self.assertNotIn("height,", body)
+
+    def test_prompt_studio_native_control_wheel_stays_in_editor(self):
+        wheel_source = (PROMPT_STUDIO_MODULES / "wheel.js").read_text(
+            encoding="utf-8"
+        )
+        start = wheel_source.index("function shouldKeepAdvancedWheelEvent")
+        end = wheel_source.index("\nexport {", start)
+        body = wheel_source[start:end]
+
+        self.assertIn("return isAdvancedNativeControlTarget(target);", body)
+        self.assertNotIn("canAdvancedEditorScroll(editor)", body)
 
     def test_prompt_studio_phase_2_modules_export_expected_symbols(self):
         advanced_controls_source = (
@@ -653,6 +730,8 @@ class FrontendModuleStructureTests(unittest.TestCase):
         for name in (
             "PromptStudioField",
             "PromptStudioFieldHeightMode",
+            "PromptStudioFieldPane",
+            "PromptStudioFieldType",
             "PromptStudioState",
             "AdvancedEditorNode",
             "ComfyNodeLike",
@@ -669,6 +748,17 @@ class FrontendModuleStructureTests(unittest.TestCase):
         ):
             with self.subTest(typedef=name):
                 self.assertIn(f" {name}", types_source)
+
+        for property_line in (
+            "* @property {PromptStudioFieldPane} pane",
+            "* @property {PromptStudioFieldType} type",
+            "* @property {string} label",
+            "* @property {string} text",
+            "* @property {boolean} enabled",
+            "* @property {boolean} pin",
+        ):
+            with self.subTest(property=property_line):
+                self.assertIn(property_line, types_source)
 
     def test_prompt_studio_typecheck_config_tracks_current_slice(self):
         config = json.loads(JSCONFIG.read_text(encoding="utf-8"))

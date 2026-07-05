@@ -26,6 +26,13 @@ class AIOFrontendSourceTests(unittest.TestCase):
         end = source.index("\n    .easyuse-anima-aio-node-preview-box img", start)
         preview_box_css = source[start:end]
 
+        self.assertIn("const GENERATOR_PREVIEW_CARD_MIN_HEIGHT = 284;", source)
+        self.assertIn("const GENERATOR_PANEL_VERTICAL_CHROME = 18;", source)
+        self.assertIn(
+            "const GENERATOR_PANEL_MIN_HEIGHT = GENERATOR_PREVIEW_CARD_MIN_HEIGHT + GENERATOR_PANEL_VERTICAL_CHROME;",
+            source,
+        )
+        self.assertNotIn("const GENERATOR_PANEL_MIN_HEIGHT = 430;", source)
         self.assertIn("const GENERATOR_PREVIEW_BOX_MIN_HEIGHT = 210;", source)
         self.assertIn("const GENERATOR_PREVIEW_BOX_MAX_HEIGHT = 360;", source)
         self.assertIn("function generatorPreviewBoxHeight", source)
@@ -53,6 +60,13 @@ class AIOFrontendSourceTests(unittest.TestCase):
         )
         self.assertNotIn("flex: 1 1 auto;", preview_box_css)
         self.assertNotIn("height: 100%;", preview_box_css)
+
+        compute_start = source.index("widget.computeLayoutSize = () => ({")
+        compute_end = source.index("\n      });", compute_start)
+        compute_body = source[compute_start:compute_end]
+        self.assertIn("minHeight: generatorPanelMinHeight(node),", compute_body)
+        self.assertIn("minWidth: GENERATOR_NODE_MIN_WIDTH - 18,", compute_body)
+        self.assertNotIn("height:", compute_body)
 
     def test_detailer_target_editor_builds_optimization_before_visibility_refresh(self):
         source = AIO_JS.read_text(encoding="utf-8")

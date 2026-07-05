@@ -95,7 +95,7 @@ function renderAdvancedEditor(node, hooks = {}) {
     createAdvancedResolutionBar(node, controlHooks),
     panes,
   );
-  writeAdvancedFields(node, fields);
+  writeAdvancedFields(node, fields, { syncInputs: false });
   scheduleAdvancedLayout(node, "render");
 }
 
@@ -131,14 +131,10 @@ function hookAdvancedNode(node, hooks = {}) {
     });
     if (widget) {
       node.__easyuseAnimaAdvancedDomWidget = widget;
-      widget.computeLayoutSize = () => {
-        const height = advancedEditorWidgetHeight(node);
-        return {
-          minHeight: advancedEditorMinimumHeight(node),
-          height,
-          minWidth: 280,
-        };
-      };
+      widget.computeLayoutSize = () => ({
+        minHeight: advancedEditorMinimumHeight(node),
+        minWidth: 280,
+      });
     }
   }
   renderAdvancedEditor(node, hooks);

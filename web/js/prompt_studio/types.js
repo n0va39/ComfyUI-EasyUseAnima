@@ -76,13 +76,24 @@
  */
 
 /**
+ * @typedef {"positive" | "negative"} PromptStudioFieldPane
+ */
+
+/**
+ * @typedef {"quality" | "artist" | "trigger" | "general" | "naia"} PromptStudioFieldType
+ */
+
+/**
  * @typedef {Object} PromptStudioField
  * @property {string} id
- * @property {string} type
- * @property {string} name
- * @property {string} value
- * @property {PromptStudioFieldHeightMode} [heightMode]
- * @property {number} [height]
+ * @property {PromptStudioFieldPane} pane
+ * @property {PromptStudioFieldType} type
+ * @property {string} label
+ * @property {string} text
+ * @property {number} height
+ * @property {PromptStudioFieldHeightMode} heightMode
+ * @property {boolean} enabled
+ * @property {boolean} pin
  */
 
 /**

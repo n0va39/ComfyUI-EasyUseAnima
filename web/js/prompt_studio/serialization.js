@@ -96,10 +96,6 @@ function collectAdvancedEditorFields(node, sourceFields) {
       return;
     }
     field.text = textarea.value;
-    const height = Number.parseInt(textarea.style.height || "", 10);
-    if (Number.isFinite(height) && height > 0) {
-      field.height = Math.max(42, height);
-    }
   });
   return fields;
 }

@@ -53,14 +53,11 @@ function canAdvancedEditorScrollWheelDelta(editor, deltaY) {
 }
 
 function shouldKeepAdvancedWheelEvent(event, editor) {
-  if (!canAdvancedEditorScroll(editor)) {
-    return false;
-  }
   const target = event?.target;
   if (!(target instanceof Element)) {
     return false;
   }
-  return !!target.closest("textarea, input, select");
+  return isAdvancedNativeControlTarget(target);
 }
 
 export {

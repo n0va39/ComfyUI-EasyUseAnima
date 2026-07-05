@@ -31,7 +31,9 @@ const GENERATOR_SPECIAL_SEEDS = [
 const GENERATOR_MAX_SEED = 1125899906842624;
 const GENERATOR_NODE_MIN_WIDTH = 560;
 const GENERATOR_NODE_DEFAULT_WIDTH = 620;
-const GENERATOR_PANEL_MIN_HEIGHT = 430;
+const GENERATOR_PREVIEW_CARD_MIN_HEIGHT = 284;
+const GENERATOR_PANEL_VERTICAL_CHROME = 18;
+const GENERATOR_PANEL_MIN_HEIGHT = GENERATOR_PREVIEW_CARD_MIN_HEIGHT + GENERATOR_PANEL_VERTICAL_CHROME;
 const GENERATOR_PREVIEW_BOX_MIN_HEIGHT = 210;
 const GENERATOR_PREVIEW_BOX_MAX_HEIGHT = 360;
 const GENERATOR_PANEL_CONTROL_SELECTOR = "input, select, textarea, button";
@@ -3997,23 +3999,23 @@ function generatorPreviewBoxHeight(node, panelHeight) {
 function generatorPreviewCardHeight(panel, panelHeight) {
   const previewCard = panel?.querySelector?.(".easyuse-anima-aio-node-preview");
   if (!(previewCard instanceof HTMLElement)) {
-    return 284;
+    return GENERATOR_PREVIEW_CARD_MIN_HEIGHT;
   }
   const measuredHeight = Math.ceil(Math.max(
     Number(previewCard.scrollHeight) || 0,
     Number(previewCard.offsetHeight) || 0,
   ));
   return generatorClampHeight(
-    measuredHeight || 284,
-    284,
-    Math.max(284, Number(panelHeight) || GENERATOR_PANEL_MIN_HEIGHT),
+    measuredHeight || GENERATOR_PREVIEW_CARD_MIN_HEIGHT,
+    GENERATOR_PREVIEW_CARD_MIN_HEIGHT,
+    Math.max(GENERATOR_PREVIEW_CARD_MIN_HEIGHT, Number(panelHeight) || GENERATOR_PANEL_MIN_HEIGHT),
   );
 }
 
 function generatorDesiredPanelHeight(node) {
   const panel = node?.__easyuseAnimaGeneratorPanelEl;
   const previewCardHeight = generatorPreviewCardHeight(panel, GENERATOR_PANEL_MIN_HEIGHT);
-  return Math.max(GENERATOR_PANEL_MIN_HEIGHT, previewCardHeight + 18);
+  return Math.max(GENERATOR_PANEL_MIN_HEIGHT, previewCardHeight + GENERATOR_PANEL_VERTICAL_CHROME);
 }
 
 function applyGeneratorPanelViewportStyle(panel, panelHeight, node) {
@@ -5523,7 +5525,6 @@ function ensureGeneratorPanel(node) {
       node.__easyuseAnimaGeneratorPanelWidget = widget;
       widget.computeLayoutSize = () => ({
         minHeight: generatorPanelMinHeight(node),
-        height: generatorPanelHeight(node),
         minWidth: GENERATOR_NODE_MIN_WIDTH - 18,
       });
     }
