@@ -45,8 +45,10 @@ conversation.
   - `web/js/easyuse_anima_autocomplete.js`
   - `web/js/easyuse_anima_prompt_studio.js`
   - `web/js/easyuse_anima_prompt_studio_common.js`
+  - `web/js/prompt_studio/*.js`
   - `web/js/easyuse_anima_settings.js`
   - `docs/development/issue-14-frontend-js-maintenance.md`
+  - `tests/test_frontend_modules.py`
   - prompt-related tests
   - `tests/test_wildcards.py`
   - `docs/nodes/anima-prompt-studio-advanced.*.md`
@@ -63,6 +65,14 @@ conversation.
   - `web/js/easyuse_anima_aio.js`
   - `tests/test_aio_nodes.py`
   - `tests/test_workflows.py`
+- Frontend DOM widget layout or Node 2.0 / legacy canvas compatibility:
+  - `docs/development/current-policies.md`
+  - `docs/development/issue-14-frontend-js-maintenance.md`
+  - `web/js/easyuse_anima_aio.js`
+  - `web/js/easyuse_anima_prompt_studio.js`
+  - `web/js/prompt_studio/*.js`
+  - `tests/test_aio_frontend.py`
+  - `tests/test_frontend_modules.py`
 
 ## Current Policy Notes
 
@@ -75,6 +85,9 @@ conversation.
   for implementation.
 - `pyproject.toml` may be bumped early as a next-version marker, but it is not a
   release or publish step by itself.
+- Frontend DOM widget changes must consider both ComfyUI Node 2.0 and legacy
+  canvas. Keep node size, widget allocation, editor/panel viewport, and child
+  heights separate in code and review notes.
 
 ## Validation Shortlist
 

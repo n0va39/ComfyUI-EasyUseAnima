@@ -439,6 +439,14 @@ Layout invariants:
 - Node height resize changes editor viewport only.
 - Node resize must not change textarea `field.height`.
 - Node resize must not save field schema.
+- Keep `node.size`, DOM widget allocation, editor viewport, and individual
+  child heights as separate concepts.
+- For single-surface nodes such as `Anima AiO Generator`, user node height may
+  intentionally resize the internal panel viewport and its preview/settings
+  child areas.
+- For multi-field Prompt Studio Advanced editors, user node height resizes the
+  editor viewport only. Textarea heights stay owned by textarea autosize or
+  manual textarea resize.
 - Minimum height correction is only for preventing clipping.
 - Resize should not repeatedly fight user drag with immediate `setSize`.
 - `requestAnimationFrame` scheduling needs duplicate guards.
@@ -480,15 +488,22 @@ Move wheel event routing for editor controls.
 
 Rules:
 
-- Wheel over textarea, input, or select stays with the DOM control.
-- Wheel over empty editor surface may use the existing canvas forwarding path.
+- Wheel over textarea, input, or select stays with the DOM control only while
+  that target can scroll in the wheel direction.
+- If the target control cannot scroll and the editor cannot scroll in that
+  direction, wheel may forward to the ComfyUI canvas so canvas zoom/pan still
+  works.
+- Wheel over empty editor surface may use the existing editor scroll or canvas
+  forwarding path.
 - `preventDefault` conditions are explicit.
 - Passive listener behavior is considered.
 
 Acceptance criteria:
 
-- Wheel over textarea does not pan or zoom canvas.
-- Wheel over input/select does not pan or zoom canvas.
+- Wheel over scrollable textarea/input/select scrolls the DOM control and does
+  not pan or zoom canvas.
+- Wheel over a non-scrollable control falls through to editor scroll or canvas
+  forwarding.
 - Wheel over empty editor area keeps existing behavior.
 
 ### Phase 2-8: DOM And Styles
@@ -502,6 +517,9 @@ Rules:
 - Top-level style injection is not allowed.
 - Style IDs prevent duplicate insertion.
 - CSS class names come from constants where practical.
+- Do not use `scrollbar-gutter: stable` for node editors unless persistent
+  scrollbar alignment is explicitly required and verified. Reserving an empty
+  scrollbar lane is a layout regression for Prompt Studio Advanced v2.
 
 Acceptance criteria:
 
@@ -836,7 +854,9 @@ Use this checklist for each follow-up frontend refactor PR.
 
 - Layout-only action does not change workflow JSON.
 - Textarea resize and node resize are separate.
-- Wheel events over textarea/input/select do not reach canvas pan/zoom.
+- Wheel events over scrollable textarea/input/select do not reach canvas
+  pan/zoom; wheel over non-scrollable controls may forward to the canvas after
+  editor scroll handling.
 
 ## Issue #14 Tracking Template
 

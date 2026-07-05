@@ -38,11 +38,33 @@ This document records decisions that supersede earlier experimental notes.
 - Keep DOM widget layout contracts explicit. `getMinHeight`, `getHeight`,
   `computeLayoutSize`, CSS `height`/`max-height`/`overflow`, and any
   `node.setSize()` path must describe the same viewport model.
+- Keep the four size concepts separate:
+  - `node.size`: saved node box size.
+  - DOM widget allocation: height ComfyUI assigns to the widget wrapper.
+  - editor or panel viewport: visible area inside the custom DOM.
+  - child content height: textarea, preview pane, or other resizable child
+    state.
 - Do not rely on browser natural content height, a Node 2.0-only wrapper, or a
   legacy-only canvas fallback to make layout appear correct.
+- Choose the resize policy per node type before editing layout code.
+  - Single-surface nodes such as `Anima AiO Generator` should map user node
+    height to the internal panel viewport and rebalance settings/preview areas
+    against that viewport.
+  - Multi-field editors such as `Anima Prompt Studio Advanced` and
+    `Anima Prompt Studio Advanced v2` should map user node height to the
+    editor viewport only. Individual textarea heights remain owned by textarea
+    autosize/manual resize, not by node resize, render, layout, serialize, or
+    queue collection.
 - For scrollable editors, separate content height from viewport height. Long
   content should scroll inside the intended element rather than forcing
   uncontrolled node growth or disappearing behind `overflow: hidden`.
+- Do not reserve scrollbar space with `scrollbar-gutter: stable` in node
+  editors unless persistent scrollbar alignment is intentionally required and
+  verified. Empty scrollbar gutters are treated as layout regressions.
+- Wheel routing must be conditional. Native controls keep wheel events only
+  while the target control can scroll in the wheel direction. If the target
+  control and editor cannot scroll, the event may forward to the ComfyUI canvas
+  so normal canvas zoom/pan still works.
 - Preview panes must not force node height through `height: 100%`, min-height,
   or native-preview suppression unless that behavior is intentional and
   verified in both Node 2.0 and legacy canvas surfaces.
