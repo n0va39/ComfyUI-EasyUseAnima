@@ -86,6 +86,10 @@ const GENERATOR_OPTIONAL_DEPENDENCY_SPECS = {
     nodeId: "AnimaDAVE",
     pack: "ComfyUI-Anima-DAVE",
   },
+  safePag: {
+    nodeId: "AnimaSafePAG",
+    pack: "Anima Safe PAG",
+  },
   imageSaver: {
     nodeId: "Image Saver",
     pack: "ComfyUI-Image-Saver",
@@ -240,6 +244,17 @@ const DEFAULT_GENERATION_SETTINGS = {
       mask: "dave_alpha.npz",
       strength: 0.30,
       tau: 0.10,
+    },
+    safe_pag: {
+      enabled: false,
+      scale: 4.0,
+      block_indices: "18",
+      perturbation_strength: 0.75,
+      head_indices: "",
+      start_percent: 0.0,
+      end_percent: 0.7,
+      rescale: 0.2,
+      rescale_mode: "full",
     },
     kj: {
       fp16_accumulation: false,
@@ -560,6 +575,7 @@ const AIO_TEXT = {
     "section.imageSaverMetadata": "Image Saver Metadata",
     "section.modelPatchOptimization": "Model Patch / Optimization",
     "section.animaDave": "Anima DAVE",
+    "section.safePag": "Anima Safe PAG",
     "section.kjNodesOptimization": "KJNodes Optimization",
     "section.sageAttention": "SageAttention (KJNodes)",
     "section.torchCompile": "Torch Compile (KJNodes)",
@@ -652,6 +668,15 @@ const AIO_TEXT = {
     "field.mask": "Mask",
     "field.daveStrength": "DAVE strength",
     "field.daveTau": "DAVE tau",
+    "field.useSafePag": "Use Safe PAG",
+    "field.pagScale": "Safe PAG scale",
+    "field.blockIndices": "Safe PAG blocks",
+    "field.perturbationStrength": "PAG perturbation",
+    "field.headIndices": "PAG heads",
+    "field.startPercent": "PAG start percent",
+    "field.endPercent": "PAG end percent",
+    "field.rescale": "PAG rescale",
+    "field.rescaleMode": "PAG rescale mode",
     "field.kjFp16Accum": "KJNodes FP16 accum",
     "field.allowCompile": "Allow compile",
     "field.useTorchCompile": "Use Torch compile",
@@ -797,6 +822,7 @@ const AIO_TEXT = {
     "section.imageSaverMetadata": "Image Saver 메타데이터",
     "section.modelPatchOptimization": "모델 패치 / 최적화",
     "section.animaDave": "Anima DAVE",
+    "section.safePag": "Anima Safe PAG",
     "section.kjNodesOptimization": "KJNodes 최적화",
     "section.sageAttention": "SageAttention (KJNodes)",
     "section.torchCompile": "Torch Compile (KJNodes)",
@@ -889,6 +915,15 @@ const AIO_TEXT = {
     "field.mask": "마스크",
     "field.daveStrength": "DAVE 강도",
     "field.daveTau": "DAVE tau",
+    "field.useSafePag": "Safe PAG 사용",
+    "field.pagScale": "Safe PAG scale",
+    "field.blockIndices": "Safe PAG 블럭",
+    "field.perturbationStrength": "PAG perturbation",
+    "field.headIndices": "PAG 헤드",
+    "field.startPercent": "PAG 시작 percent",
+    "field.endPercent": "PAG 끝 percent",
+    "field.rescale": "PAG rescale",
+    "field.rescaleMode": "PAG rescale 모드",
     "field.kjFp16Accum": "KJNodes FP16 accumulation",
     "field.allowCompile": "컴파일 허용",
     "field.useTorchCompile": "Torch compile 사용",
@@ -1204,6 +1239,15 @@ const AIO_TOOLTIP_TEXT = {
     "tip.daveMask": "DAVE pool mask file passed to AnimaDAVE. The bundled default is dave_alpha.npz.",
     "tip.daveStrength": "DAVE DC-removal dose. Start near 0.30, or sweep lower values for layout diversity.",
     "tip.daveTau": "Early denoising fraction where DAVE is active. Keep at or below 0.10 for legibility.",
+    "tip.safePagEnabled": "Applies Anima Safe PAG before KJNodes optimization and Torch Compile.",
+    "tip.safePagScale": "Safe PAG guidance scale. 0 disables the guidance contribution.",
+    "tip.safePagBlocks": "Comma-separated transformer block indices passed to AnimaSafePAG.",
+    "tip.safePagPerturbation": "Attention perturbation blend strength. 1.0 is closest to hard PAG.",
+    "tip.safePagHeads": "Optional comma-separated attention head indices. Empty targets all heads.",
+    "tip.safePagStart": "Sampling percent where Safe PAG starts.",
+    "tip.safePagEnd": "Sampling percent where Safe PAG ends.",
+    "tip.safePagRescale": "Guidance rescale amount after Safe PAG correction.",
+    "tip.safePagRescaleMode": "Rescale mode passed to AnimaSafePAG.",
     "tip.highresMethod": "Upscale method used before the Highres second pass.",
     "tip.highresMultiple": "Snaps Highres dimensions to this multiple before resampling.",
     "tip.detailerPrompt": "SAM3 text prompt used to detect the target region for this block.",
@@ -1300,6 +1344,15 @@ const AIO_TOOLTIP_TEXT = {
     "tip.daveMask": "AnimaDAVE에 전달할 DAVE pool mask 파일입니다. 기본 번들 파일은 dave_alpha.npz입니다.",
     "tip.daveStrength": "DAVE DC 제거 강도입니다. 기본은 0.30이며, 레이아웃 다양성 비교는 더 낮은 값부터 스윕합니다.",
     "tip.daveTau": "DAVE가 활성화되는 초기 denoising 비율입니다. 가독성을 위해 0.10 이하를 권장합니다.",
+    "tip.safePagEnabled": "KJNodes 최적화와 Torch Compile 전에 Anima Safe PAG를 적용합니다.",
+    "tip.safePagScale": "Safe PAG guidance scale입니다. 0이면 guidance 기여를 비활성화합니다.",
+    "tip.safePagBlocks": "AnimaSafePAG에 전달할 transformer block 인덱스입니다. 쉼표로 여러 개를 지정합니다.",
+    "tip.safePagPerturbation": "attention perturbation 혼합 강도입니다. 1.0은 hard PAG에 가장 가깝습니다.",
+    "tip.safePagHeads": "선택 attention head 인덱스입니다. 비우면 모든 head를 대상으로 합니다.",
+    "tip.safePagStart": "Safe PAG가 시작되는 샘플링 percent입니다.",
+    "tip.safePagEnd": "Safe PAG가 끝나는 샘플링 percent입니다.",
+    "tip.safePagRescale": "Safe PAG 보정 뒤 guidance를 rescale하는 양입니다.",
+    "tip.safePagRescaleMode": "AnimaSafePAG에 전달할 rescale 모드입니다.",
     "tip.highresMethod": "Highres 2차 패스 전에 사용할 업스케일 방법입니다.",
     "tip.highresMultiple": "Highres 크기를 이 배수에 맞춰 보정합니다.",
     "tip.detailerPrompt": "이 블럭의 대상 영역을 찾기 위해 SAM3에 전달할 텍스트 프롬프트입니다.",
@@ -1603,6 +1656,15 @@ const AIO_FIELD_TOOLTIP_KEYS = {
   "Mask": "tip.daveMask",
   "DAVE strength": "tip.daveStrength",
   "DAVE tau": "tip.daveTau",
+  "Use Safe PAG": "tip.safePagEnabled",
+  "Safe PAG scale": "tip.safePagScale",
+  "Safe PAG blocks": "tip.safePagBlocks",
+  "PAG perturbation": "tip.safePagPerturbation",
+  "PAG heads": "tip.safePagHeads",
+  "PAG start percent": "tip.safePagStart",
+  "PAG end percent": "tip.safePagEnd",
+  "PAG rescale": "tip.safePagRescale",
+  "PAG rescale mode": "tip.safePagRescaleMode",
   "Enable highres": "tip.highresEnabled",
   "Scale by": "tip.highresScale",
   "Method": "tip.highresMethod",
@@ -1686,6 +1748,7 @@ const AIO_STATIC_TEXT_KEYS = {
   "Image Saver Metadata": "section.imageSaverMetadata",
   "Model Patch / Optimization": "section.modelPatchOptimization",
   "Anima DAVE": "section.animaDave",
+  "Anima Safe PAG": "section.safePag",
   "KJNodes Optimization": "section.kjNodesOptimization",
   "SageAttention (KJNodes)": "section.sageAttention",
   "Torch Compile (KJNodes)": "section.torchCompile",
@@ -1791,6 +1854,15 @@ const AIO_FIELD_LABEL_KEYS = {
   "Mask": "field.mask",
   "DAVE strength": "field.daveStrength",
   "DAVE tau": "field.daveTau",
+  "Use Safe PAG": "field.useSafePag",
+  "Safe PAG scale": "field.pagScale",
+  "Safe PAG blocks": "field.blockIndices",
+  "PAG perturbation": "field.perturbationStrength",
+  "PAG heads": "field.headIndices",
+  "PAG start percent": "field.startPercent",
+  "PAG end percent": "field.endPercent",
+  "PAG rescale": "field.rescale",
+  "PAG rescale mode": "field.rescaleMode",
   "KJNodes FP16 accum": "field.kjFp16Accum",
   "Allow compile": "field.allowCompile",
   "Use Torch compile": "field.useTorchCompile",
@@ -2178,6 +2250,9 @@ function sanitizeGeneratorSettingsForOptionalDependencies(settings) {
   }
   if (!optionalDependencyAvailable("dave")) {
     next.model_patches.dave.enabled = false;
+  }
+  if (!optionalDependencyAvailable("safePag")) {
+    next.model_patches.safe_pag.enabled = false;
   }
   if (!optionalDependencyAvailable("imageSaver") && next.save.backend === "image_saver") {
     next.save.backend = "comfy_save_image";
@@ -6808,6 +6883,48 @@ function openAdvancedSettings(node) {
   daveTau.min = "0";
   daveTau.max = "1";
 
+  const safePag = makeSubsection("Anima Safe PAG");
+  const safePagSettings = settings.model_patches.safe_pag || DEFAULT_GENERATION_SETTINGS.model_patches.safe_pag;
+  const safePagEnabled = field(safePag, "Use Safe PAG", checkbox(safePagSettings.enabled), "tip.safePagEnabled");
+  const safePagScale = field(safePag, "Safe PAG scale", numberInput(safePagSettings.scale ?? 4.0, "0.1"), "tip.safePagScale");
+  const safePagBlocks = field(safePag, "Safe PAG blocks", textInput(safePagSettings.block_indices || "18"), "tip.safePagBlocks");
+  const safePagPerturbation = field(
+    safePag,
+    "PAG perturbation",
+    numberInput(safePagSettings.perturbation_strength ?? 0.75, "0.01"),
+    "tip.safePagPerturbation",
+  );
+  const safePagHeads = field(safePag, "PAG heads", textInput(safePagSettings.head_indices || ""), "tip.safePagHeads");
+  const safePagStart = field(
+    safePag,
+    "PAG start percent",
+    numberInput(safePagSettings.start_percent ?? 0.0, "0.001"),
+    "tip.safePagStart",
+  );
+  const safePagEnd = field(
+    safePag,
+    "PAG end percent",
+    numberInput(safePagSettings.end_percent ?? 0.7, "0.001"),
+    "tip.safePagEnd",
+  );
+  const safePagRescale = field(safePag, "PAG rescale", numberInput(safePagSettings.rescale ?? 0.2, "0.01"), "tip.safePagRescale");
+  const safePagRescaleMode = field(
+    safePag,
+    "PAG rescale mode",
+    selectInput(["full", "partial"], safePagSettings.rescale_mode || "full"),
+    "tip.safePagRescaleMode",
+  );
+  safePagScale.min = "0";
+  safePagScale.max = "100";
+  safePagPerturbation.min = "0";
+  safePagPerturbation.max = "1";
+  safePagStart.min = "0";
+  safePagStart.max = "1";
+  safePagEnd.min = "0";
+  safePagEnd.max = "1";
+  safePagRescale.min = "0";
+  safePagRescale.max = "1";
+
   const kj = makeSubsection("KJNodes Optimization");
   const fp16Accum = field(kj, "KJNodes FP16 accum", checkbox(settings.model_patches.kj.fp16_accumulation), "tip.kjFp16Accum");
 
@@ -6886,7 +7003,7 @@ function openAdvancedSettings(node) {
   const modelWarning = document.createElement("div");
   modelWarning.className = "easyuse-anima-aio-warning";
   modelWarning.hidden = true;
-  modelPatches.append(dave, kj, modelWarning);
+  modelPatches.append(dave, safePag, kj, modelWarning);
   body.append(modelPatches);
 
   const artistMix = document.createElement("section");
@@ -6940,6 +7057,28 @@ function openAdvancedSettings(node) {
       messages.push(aioFormat("warning.optionalDependencyMissing", {
         backend: "Anima DAVE",
         pack: optionalDependencyPack("dave"),
+      }));
+    }
+
+    const safePagMissing = !optionalDependencyAvailable("safePag");
+    setControlsDisabled([
+      safePagEnabled,
+      safePagScale,
+      safePagBlocks,
+      safePagPerturbation,
+      safePagHeads,
+      safePagStart,
+      safePagEnd,
+      safePagRescale,
+      safePagRescaleMode,
+    ], safePagMissing);
+    if (safePagMissing && safePagEnabled.checked) {
+      safePagEnabled.checked = false;
+    }
+    if (safePagMissing) {
+      messages.push(aioFormat("warning.optionalDependencyMissing", {
+        backend: "Anima Safe PAG",
+        pack: optionalDependencyPack("safePag"),
       }));
     }
 
@@ -7023,6 +7162,21 @@ function openAdvancedSettings(node) {
     next.model_patches.dave.mask = daveMask.value || "dave_alpha.npz";
     next.model_patches.dave.strength = Number(daveStrength.value || 0.30);
     next.model_patches.dave.tau = Number(daveTau.value || 0.10);
+    next.model_patches.safe_pag ||= {};
+    next.model_patches.safe_pag.enabled = safePagEnabled.checked && !safePagEnabled.disabled;
+    next.model_patches.safe_pag.scale = clampGeneratorNumber(safePagScale.value, 4.0, 0, 100);
+    next.model_patches.safe_pag.block_indices = safePagBlocks.value || "18";
+    next.model_patches.safe_pag.perturbation_strength = clampGeneratorNumber(
+      safePagPerturbation.value,
+      0.75,
+      0,
+      1,
+    );
+    next.model_patches.safe_pag.head_indices = safePagHeads.value || "";
+    next.model_patches.safe_pag.start_percent = clampGeneratorNumber(safePagStart.value, 0.0, 0, 1);
+    next.model_patches.safe_pag.end_percent = clampGeneratorNumber(safePagEnd.value, 0.7, 0, 1);
+    next.model_patches.safe_pag.rescale = clampGeneratorNumber(safePagRescale.value, 0.2, 0, 1);
+    next.model_patches.safe_pag.rescale_mode = safePagRescaleMode.value || "full";
     next.model_patches.kj.fp16_accumulation = fp16Accum.checked && !fp16Accum.disabled;
     next.model_patches.kj.sage_attention = sageAttention.disabled ? "disabled" : (sageAttention.value || "disabled");
     next.model_patches.kj.sage_allow_compile = sageAllowCompile.checked && !sageAttention.disabled;

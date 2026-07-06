@@ -118,6 +118,8 @@ class AIOSettingsStorageTests(unittest.TestCase):
         self.assertEqual(settings["sampler"]["future_sampler_key"], "kept")
         self.assertNotIn("enabled", settings["model_patches"]["aura_flow"])
         self.assertEqual(settings["model_patches"]["aura_flow"]["shift"], 3.0)
+        self.assertFalse(settings["model_patches"]["safe_pag"]["enabled"])
+        self.assertEqual(settings["model_patches"]["safe_pag"]["block_indices"], "18")
         self.assertEqual(settings["model_patches"]["kj"]["torch_compile"]["mode"], "max-autotune-no-cudagraphs")
         self.assertTrue(settings["save"]["enabled"])
         self.assertEqual(settings["save"]["backend"], "image_saver")
@@ -913,6 +915,72 @@ class AIOSamplerDependencyTests(unittest.TestCase):
         self.assertEqual(result, "dave_model")
         self.assertEqual(calls, [("base_model", "custom_mask.npz", 0.42, 0.08)])
 
+    def test_safe_pag_patch_uses_anima_safe_pag_node_settings(self):
+        calls = []
+
+        class FakeAnimaSafePAG:
+            def patch(self, *args):
+                calls.append(args)
+                return ("safe_pag_model",)
+
+        settings = nodes._normalize_aio_generation_settings(json.dumps({
+            "model_patches": {
+                "safe_pag": {
+                    "enabled": True,
+                    "scale": 5.5,
+                    "block_indices": "12,18",
+                    "perturbation_strength": 0.61,
+                    "head_indices": "0,2",
+                    "start_percent": 0.1,
+                    "end_percent": 0.8,
+                    "rescale": 0.35,
+                    "rescale_mode": "partial",
+                },
+            },
+        }))
+
+        with patch.object(nodes, "_require_custom_node_class", return_value=FakeAnimaSafePAG):
+            result = nodes._apply_aio_safe_pag_patch("base_model", settings["model_patches"]["safe_pag"])
+
+        self.assertEqual(result, "safe_pag_model")
+        self.assertEqual(calls, [(
+            "base_model",
+            5.5,
+            "12,18",
+            0.61,
+            "0,2",
+            0.1,
+            0.8,
+            0.35,
+            "partial",
+        )])
+
+    def test_safe_pag_settings_are_clamped_to_node_ranges(self):
+        settings = nodes._normalize_aio_generation_settings(json.dumps({
+            "model_patches": {
+                "safe_pag": {
+                    "enabled": True,
+                    "scale": 250,
+                    "block_indices": "",
+                    "perturbation_strength": 9,
+                    "start_percent": -1,
+                    "end_percent": 3,
+                    "rescale": 4,
+                    "rescale_mode": "invalid",
+                },
+            },
+        }))
+
+        safe_pag = settings["model_patches"]["safe_pag"]
+        self.assertTrue(safe_pag["enabled"])
+        self.assertEqual(safe_pag["scale"], 100.0)
+        self.assertEqual(safe_pag["block_indices"], "18")
+        self.assertEqual(safe_pag["perturbation_strength"], 1.0)
+        self.assertEqual(safe_pag["start_percent"], 0.0)
+        self.assertEqual(safe_pag["end_percent"], 1.0)
+        self.assertEqual(safe_pag["rescale"], 1.0)
+        self.assertEqual(safe_pag["rescale_mode"], "full")
+
     def test_model_patches_apply_anima_dave_as_advanced_option(self):
         settings = nodes._normalize_aio_generation_settings(json.dumps({
             "model_patches": {
@@ -928,6 +996,7 @@ class AIOSamplerDependencyTests(unittest.TestCase):
         with (
             patch.object(nodes, "_patch_model_sampling_aura_flow", return_value="aura_model") as aura,
             patch.object(nodes, "_apply_aio_anima_dave_patch", return_value="dave_model") as dave,
+            patch.object(nodes, "_apply_aio_safe_pag_patch", return_value="safe_pag_model") as safe_pag,
             patch.object(nodes, "_apply_aio_kj_model_patches", return_value="kj_model") as kj,
         ):
             result = nodes._apply_aio_model_patches("base_model", settings)
@@ -936,7 +1005,33 @@ class AIOSamplerDependencyTests(unittest.TestCase):
         self.assertEqual(aura.call_args.args[0], "base_model")
         self.assertEqual(dave.call_args.args[0], "aura_model")
         self.assertEqual(dave.call_args.args[1]["mask"], "custom_mask.npz")
+        safe_pag.assert_not_called()
         self.assertEqual(kj.call_args.args[0], "dave_model")
+
+    def test_model_patches_apply_safe_pag_before_kj_compile(self):
+        settings = nodes._normalize_aio_generation_settings(json.dumps({
+            "model_patches": {
+                "safe_pag": {
+                    "enabled": True,
+                    "scale": 4.5,
+                },
+            },
+        }))
+
+        with (
+            patch.object(nodes, "_patch_model_sampling_aura_flow", return_value="aura_model") as aura,
+            patch.object(nodes, "_apply_aio_anima_dave_patch", return_value="dave_model") as dave,
+            patch.object(nodes, "_apply_aio_safe_pag_patch", return_value="safe_pag_model") as safe_pag,
+            patch.object(nodes, "_apply_aio_kj_model_patches", return_value="kj_model") as kj,
+        ):
+            result = nodes._apply_aio_model_patches("base_model", settings)
+
+        self.assertEqual(result, "kj_model")
+        self.assertEqual(aura.call_args.args[0], "base_model")
+        dave.assert_not_called()
+        self.assertEqual(safe_pag.call_args.args[0], "aura_model")
+        self.assertEqual(safe_pag.call_args.args[1]["scale"], 4.5)
+        self.assertEqual(kj.call_args.args[0], "safe_pag_model")
 
 
 class AIOHighresDetailerStageTests(unittest.TestCase):

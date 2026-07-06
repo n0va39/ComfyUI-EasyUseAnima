@@ -295,6 +295,17 @@ AIO_GENERATION_DEFAULT_SETTINGS = {
             "strength": 0.30,
             "tau": 0.10,
         },
+        "safe_pag": {
+            "enabled": False,
+            "scale": 4.0,
+            "block_indices": "18",
+            "perturbation_strength": 0.75,
+            "head_indices": "",
+            "start_percent": 0.0,
+            "end_percent": 0.7,
+            "rescale": 0.2,
+            "rescale_mode": "full",
+        },
         "kj": {
             "fp16_accumulation": False,
             "sage_attention": "disabled",
@@ -1301,6 +1312,38 @@ def _normalize_aio_generation_settings(value) -> dict[str, Any]:
         0.0,
         min(1.0, _as_float(dave.get("tau"), default_dave["tau"])),
     )
+    safe_pag = model_patches.setdefault("safe_pag", {})
+    if not isinstance(safe_pag, dict):
+        safe_pag = {}
+        model_patches["safe_pag"] = safe_pag
+    default_safe_pag = AIO_GENERATION_DEFAULT_SETTINGS["model_patches"]["safe_pag"]
+    safe_pag["enabled"] = _as_bool(safe_pag.get("enabled"), default_safe_pag["enabled"])
+    safe_pag["scale"] = max(
+        0.0,
+        min(100.0, _as_float(safe_pag.get("scale"), default_safe_pag["scale"])),
+    )
+    safe_pag["block_indices"] = str(safe_pag.get("block_indices") or default_safe_pag["block_indices"])
+    safe_pag["perturbation_strength"] = max(
+        0.0,
+        min(
+            1.0,
+            _as_float(safe_pag.get("perturbation_strength"), default_safe_pag["perturbation_strength"]),
+        ),
+    )
+    safe_pag["head_indices"] = str(safe_pag.get("head_indices") or default_safe_pag["head_indices"])
+    safe_pag["start_percent"] = max(
+        0.0,
+        min(1.0, _as_float(safe_pag.get("start_percent"), default_safe_pag["start_percent"])),
+    )
+    safe_pag["end_percent"] = max(
+        0.0,
+        min(1.0, _as_float(safe_pag.get("end_percent"), default_safe_pag["end_percent"])),
+    )
+    safe_pag["rescale"] = max(
+        0.0,
+        min(1.0, _as_float(safe_pag.get("rescale"), default_safe_pag["rescale"])),
+    )
+    safe_pag["rescale_mode"] = _choice(safe_pag.get("rescale_mode"), ("full", "partial"), "full")
     kj = model_patches.setdefault("kj", {})
     if not isinstance(kj, dict):
         kj = {}
@@ -2395,6 +2438,9 @@ def _apply_aio_model_patches(model, settings: dict[str, Any]):
     dave_settings = model_patches.get("dave", {})
     if isinstance(dave_settings, dict) and _as_bool(dave_settings.get("enabled"), False):
         patched = _apply_aio_anima_dave_patch(patched, dave_settings)
+    safe_pag_settings = model_patches.get("safe_pag", {})
+    if isinstance(safe_pag_settings, dict) and _as_bool(safe_pag_settings.get("enabled"), False):
+        patched = _apply_aio_safe_pag_patch(patched, safe_pag_settings)
     kj_settings = model_patches.get("kj", {})
     if isinstance(kj_settings, dict):
         patched = _apply_aio_kj_model_patches(patched, kj_settings)
@@ -2938,6 +2984,31 @@ def _apply_aio_anima_dave_patch(model, dave_settings: dict[str, Any]):
     values = _node_output_tuple(result)
     if not values:
         raise RuntimeError("[EasyUseAnima] AnimaDAVE returned no MODEL.")
+    return values[0]
+
+
+def _apply_aio_safe_pag_patch(model, safe_pag_settings: dict[str, Any]):
+    safe_pag_cls = _require_custom_node_class(
+        "AnimaSafePAG",
+        "Anima Safe PAG",
+        "Repository: https://github.com/iljung1106/comfyui-anima-safe-pag",
+    )
+    if not isinstance(safe_pag_settings, dict):
+        safe_pag_settings = {}
+    result = safe_pag_cls().patch(
+        model,
+        _as_float(safe_pag_settings.get("scale"), 4.0),
+        str(safe_pag_settings.get("block_indices") or "18"),
+        _as_float(safe_pag_settings.get("perturbation_strength"), 0.75),
+        str(safe_pag_settings.get("head_indices") or ""),
+        _as_float(safe_pag_settings.get("start_percent"), 0.0),
+        _as_float(safe_pag_settings.get("end_percent"), 0.7),
+        _as_float(safe_pag_settings.get("rescale"), 0.2),
+        str(safe_pag_settings.get("rescale_mode") or "full"),
+    )
+    values = _node_output_tuple(result)
+    if not values:
+        raise RuntimeError("[EasyUseAnima] AnimaSafePAG returned no MODEL.")
     return values[0]
 
 
