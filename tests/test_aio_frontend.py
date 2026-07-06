@@ -11,6 +11,19 @@ PROMPT_STUDIO_COMMON_JS = ROOT / "web" / "js" / "easyuse_anima_prompt_studio_com
 
 
 class AIOFrontendSourceTests(unittest.TestCase):
+    def test_generator_keeps_native_output_preview_suppressed_after_execution(self):
+        source = AIO_JS.read_text(encoding="utf-8")
+        registration_start = source.index("async beforeRegisterNodeDef")
+        generator_block = source[source.index("if (nodeData.name === GENERATOR_NODE_TYPE)", registration_start):]
+        start = generator_block.index("nodeType.prototype.onExecuted = function")
+        end = generator_block.index("\n      const onResize", start)
+        body = generator_block[start:end]
+
+        self.assertIn("nodeType.prototype.hideOutputImages = true", source)
+        self.assertIn("scheduleGeneratorDefaultPreviewSuppression(this);", body)
+        self.assertIn("updateGeneratorExecutedStatus(this, message);", body)
+        self.assertNotIn("onExecuted?.apply", body)
+
     def test_detailer_target_editor_builds_optimization_before_visibility_refresh(self):
         source = AIO_JS.read_text(encoding="utf-8")
         start = source.index("function createDetailerTargetEditor")

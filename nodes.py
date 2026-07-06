@@ -10506,6 +10506,8 @@ class EasyUseAnimaAIOGenerator:
             "easyuse_anima_run_id": [preview_run_id],
         }
         preview_payload = preview_images + final_preview
+        if final_preview:
+            ui["images"] = final_preview
         if preview_payload:
             ui["easyuse_anima_preview"] = preview_payload
         return {
