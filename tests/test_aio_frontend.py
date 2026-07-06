@@ -125,6 +125,21 @@ class AIOFrontendSourceTests(unittest.TestCase):
         self.assertNotIn('field(safePag, "End"', body)
         self.assertNotIn('field(safePag, "Rescale"', body)
 
+    def test_save_settings_expose_prompt_metadata_toggle(self):
+        source = AIO_JS.read_text(encoding="utf-8")
+        defaults_start = source.index("const DEFAULT_GENERATION_SETTINGS")
+        defaults_end = source.index("\nconst AIO_TEXT", defaults_start)
+        defaults_body = source[defaults_start:defaults_end]
+        start = source.index("function openSaveSettings")
+        end = source.index("\nfunction openAdvancedSettings", start)
+        body = source[start:end]
+
+        self.assertIn("save_prompt_metadata: true", defaults_body)
+        self.assertIn('field(metadata, "Save prompt metadata"', body)
+        self.assertIn("checkbox(imageSaver.save_prompt_metadata)", body)
+        self.assertIn("save_prompt_metadata: savePromptMetadata.checked", body)
+        self.assertIn('"Save prompt metadata": "tip.savePromptMetadata"', source)
+
     def test_detailer_settings_support_custom_blocks(self):
         source = AIO_JS.read_text(encoding="utf-8")
         start = source.index("function openDetailerSettings")

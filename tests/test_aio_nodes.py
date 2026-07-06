@@ -126,6 +126,7 @@ class AIOSettingsStorageTests(unittest.TestCase):
         self.assertNotIn("filename_prefix", settings["save"])
         self.assertEqual(settings["save"]["image_saver"]["extension"], "webp")
         self.assertEqual(settings["save"]["image_saver"]["quality_jpeg_or_webp"], 97)
+        self.assertTrue(settings["save"]["image_saver"]["save_prompt_metadata"])
         self.assertEqual(settings["save"]["image_saver"]["additional_hash_bundles"], [])
         self.assertEqual(settings["save"]["image_saver"]["civitai_hash_fetchers"], [])
         self.assertNotIn("show_preview", settings["save"]["image_saver"])
@@ -568,6 +569,8 @@ class AIOImageSaverDependencyTests(unittest.TestCase):
         self.assertEqual(calls[0]["path"], "EasyUseAnima/Test")
         self.assertTrue(calls[0]["embed_workflow"])
         self.assertTrue(calls[0]["save_workflow_as_json"])
+        self.assertEqual(calls[0]["positive"], "positive")
+        self.assertEqual(calls[0]["negative"], "negative")
         self.assertFalse(calls[0]["show_preview"])
         self.assertEqual(calls[0]["modelname"], "anima")
         self.assertEqual(calls[0]["width"], 768)
@@ -605,6 +608,44 @@ class AIOImageSaverDependencyTests(unittest.TestCase):
 
         self.assertIn("<lora:styles/foo:0.75>", calls[0]["positive"])
         self.assertIn("<lora:bar:1>", calls[0]["positive"])
+
+    def test_image_saver_can_skip_prompt_metadata(self):
+        calls = []
+
+        class FakeImageSaver:
+            def save_files(self, **kwargs):
+                calls.append(kwargs)
+                return {"ui": {"images": [{"filename": "preview.webp"}]}}
+
+        settings = nodes._normalize_aio_generation_settings(json.dumps({
+            "save": {
+                "image_saver": {
+                    "save_prompt_metadata": False,
+                },
+            },
+        }))
+
+        with patch.object(nodes, "_find_comfy_node_class", return_value=FakeImageSaver):
+            nodes._save_image_with_image_saver(
+                images="images",
+                save_settings=settings["save"],
+                positive_prompt="positive prompt",
+                negative_prompt="negative prompt",
+                width=768,
+                height=1024,
+                sampler_settings=settings["sampler"],
+                applied_loras=[
+                    {"name": "styles\\foo.safetensors", "strength_model": 0.75, "strength_clip": 1.0},
+                ],
+                resource_info={"unet_name": "anima"},
+                workflow_prompt={"1": {}},
+                extra_pnginfo={"workflow": {}},
+            )
+
+        self.assertEqual(calls[0]["positive"], "")
+        self.assertEqual(calls[0]["negative"], "")
+        self.assertEqual(calls[0]["prompt"], {"1": {}})
+        self.assertEqual(calls[0]["extra_pnginfo"], {"workflow": {}})
 
 
 class AIOLoraStackTests(unittest.TestCase):

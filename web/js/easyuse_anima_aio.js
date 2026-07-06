@@ -598,6 +598,7 @@ const DEFAULT_GENERATION_SETTINGS = {
       time_format: "%Y-%m-%d-%H%M%S",
       save_workflow_as_json: false,
       embed_workflow: true,
+      save_prompt_metadata: true,
       additional_hashes: "",
       additional_hash_bundles: [],
       civitai_hash_fetchers: [],
@@ -796,6 +797,7 @@ const AIO_TEXT = {
     "field.clipSkip": "Clip skip",
     "field.embedWorkflow": "Embed workflow",
     "field.workflowJson": "Workflow JSON",
+    "field.savePromptMetadata": "Save prompt metadata",
     "field.additionalHashes": "Additional hashes",
     "field.manualHashBundles": "Manual hash bundles",
     "field.civitaiHashFetchers": "Civitai Hash Fetchers",
@@ -1106,6 +1108,7 @@ const AIO_TEXT = {
     "field.clipSkip": "Clip skip",
     "field.embedWorkflow": "워크플로우 임베드",
     "field.workflowJson": "워크플로우 JSON",
+    "field.savePromptMetadata": "프롬프트 메타데이터 저장",
     "field.additionalHashes": "추가 해시",
     "field.manualHashBundles": "수동 해시 묶음",
     "field.civitaiHashFetchers": "Civitai Hash Fetcher",
@@ -1510,6 +1513,7 @@ const AIO_TOOLTIP_TEXT = {
     "tip.saveClipSkip": "Clip skip metadata value written by Image Saver.",
     "tip.saveEmbedWorkflow": "Embeds the ComfyUI workflow in the saved image so it can be reloaded.",
     "tip.saveWorkflowJson": "Also writes a sidecar workflow JSON file.",
+    "tip.savePromptMetadata": "Writes positive and negative prompt text to Image Saver metadata. Disable to save without prompt text.",
     "tip.saveCivitaiData": "Lets Image Saver download and embed Civitai model metadata.",
     "tip.saveEasyRemix": "Enables Image Saver easy-remix metadata fields.",
     "tip.saveCustom": "Custom metadata text passed directly to Image Saver.",
@@ -1615,6 +1619,7 @@ const AIO_TOOLTIP_TEXT = {
     "tip.saveClipSkip": "Image Saver가 기록할 clip skip 메타데이터 값입니다.",
     "tip.saveEmbedWorkflow": "저장 이미지에 ComfyUI workflow를 임베드해 다시 불러올 수 있게 합니다.",
     "tip.saveWorkflowJson": "workflow JSON sidecar 파일도 같이 저장합니다.",
+    "tip.savePromptMetadata": "Image Saver 메타데이터에 positive/negative 프롬프트 텍스트를 기록합니다. 끄면 프롬프트 텍스트를 비워 저장합니다.",
     "tip.saveCivitaiData": "Image Saver가 Civitai 모델 메타데이터를 다운로드해 임베드하도록 합니다.",
     "tip.saveEasyRemix": "Image Saver easy-remix 메타데이터 필드를 켭니다.",
     "tip.saveCustom": "Image Saver에 그대로 전달할 custom metadata입니다.",
@@ -1711,6 +1716,7 @@ const AIO_TOOLTIP_TEXT = {
     "tip.saveClipSkip": "Image Saver が記録する clip skip metadata 値です。",
     "tip.saveEmbedWorkflow": "保存画像に ComfyUI workflow を埋め込み、再読み込み可能にします。",
     "tip.saveWorkflowJson": "workflow JSON sidecar も保存します。",
+    "tip.savePromptMetadata": "Image Saver metadata に positive/negative prompt text を書き込みます。無効にすると prompt text は空で保存されます。",
     "tip.saveCivitaiData": "Image Saver が Civitai model metadata を取得して埋め込むようにします。",
     "tip.saveEasyRemix": "Image Saver easy-remix metadata fields を有効化します。",
     "tip.saveCustom": "Image Saver にそのまま渡す custom metadata です。",
@@ -1807,6 +1813,7 @@ const AIO_TOOLTIP_TEXT = {
     "tip.saveClipSkip": "Image Saver 写入的 clip skip metadata 值。",
     "tip.saveEmbedWorkflow": "将 ComfyUI workflow 嵌入保存图像，便于重新加载。",
     "tip.saveWorkflowJson": "同时保存 workflow JSON sidecar 文件。",
+    "tip.savePromptMetadata": "将 positive/negative prompt text 写入 Image Saver metadata。关闭后以空 prompt text 保存。",
     "tip.saveCivitaiData": "让 Image Saver 下载并嵌入 Civitai model metadata。",
     "tip.saveEasyRemix": "启用 Image Saver easy-remix metadata fields。",
     "tip.saveCustom": "直接传给 Image Saver 的 custom metadata。",
@@ -1962,6 +1969,7 @@ const AIO_FIELD_TOOLTIP_KEYS = {
   "Clip skip": "tip.saveClipSkip",
   "Embed workflow": "tip.saveEmbedWorkflow",
   "Workflow JSON": "tip.saveWorkflowJson",
+  "Save prompt metadata": "tip.savePromptMetadata",
   "Civitai data": "tip.saveCivitaiData",
   "Easy remix": "tip.saveEasyRemix",
   "Custom metadata": "tip.saveCustom",
@@ -2140,6 +2148,7 @@ const AIO_FIELD_LABEL_KEYS = {
   "Clip skip": "field.clipSkip",
   "Embed workflow": "field.embedWorkflow",
   "Workflow JSON": "field.workflowJson",
+  "Save prompt metadata": "field.savePromptMetadata",
   "Additional hashes": "field.additionalHashes",
   "Manual hash bundles": "field.manualHashBundles",
   "Civitai Hash Fetchers": "field.civitaiHashFetchers",
@@ -7650,6 +7659,7 @@ function openSaveSettings(node) {
   const clipSkip = field(metadata, "Clip skip", numberInput(imageSaver.clip_skip, "1"));
   const embedWorkflow = field(metadata, "Embed workflow", checkbox(imageSaver.embed_workflow));
   const saveWorkflowJson = field(metadata, "Workflow JSON", checkbox(imageSaver.save_workflow_as_json));
+  const savePromptMetadata = field(metadata, "Save prompt metadata", checkbox(imageSaver.save_prompt_metadata));
   const additionalHashes = field(metadata, "Additional hashes", textInput(imageSaver.additional_hashes), "tip.additionalHashes");
   const hashBundles = createImageSaverHashBundleEditor(imageSaver.additional_hash_bundles);
   field(metadata, "Manual hash bundles", hashBundles.element, "tip.hashBundles");
@@ -7685,6 +7695,7 @@ function openSaveSettings(node) {
       time_format: timeFormat.value || "%Y-%m-%d-%H%M%S",
       save_workflow_as_json: saveWorkflowJson.checked,
       embed_workflow: embedWorkflow.checked,
+      save_prompt_metadata: savePromptMetadata.checked,
       additional_hashes: additionalHashes.value || "",
       additional_hash_bundles: hashBundles.values(),
       civitai_hash_fetchers: civitaiHashFetchers.values(),

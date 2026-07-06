@@ -632,6 +632,7 @@ AIO_GENERATION_DEFAULT_SETTINGS = {
             "time_format": "%Y-%m-%d-%H%M%S",
             "save_workflow_as_json": False,
             "embed_workflow": True,
+            "save_prompt_metadata": True,
             "additional_hashes": "",
             "additional_hash_bundles": [],
             "civitai_hash_fetchers": [],
@@ -1854,6 +1855,10 @@ def _normalize_aio_generation_settings(value) -> dict[str, Any]:
     image_saver["embed_workflow"] = _as_bool(
         image_saver.get("embed_workflow"),
         default_image_saver["embed_workflow"],
+    )
+    image_saver["save_prompt_metadata"] = _as_bool(
+        image_saver.get("save_prompt_metadata"),
+        default_image_saver["save_prompt_metadata"],
     )
     image_saver["additional_hashes"] = str(image_saver.get("additional_hashes") or "")
     image_saver["additional_hash_bundles"] = _normalize_aio_hash_bundles(
@@ -4344,6 +4349,16 @@ def _save_image_with_image_saver(
         image_saver = {}
     defaults = AIO_GENERATION_DEFAULT_SETTINGS["save"]["image_saver"]
     modelname = str((resource_info or {}).get("unet_name") or "")
+    save_prompt_metadata = _as_bool(
+        image_saver.get("save_prompt_metadata"),
+        defaults["save_prompt_metadata"],
+    )
+    metadata_positive = (
+        _aio_prompt_with_lora_metadata(str(positive_prompt or "unknown"), applied_loras)
+        if save_prompt_metadata
+        else ""
+    )
+    metadata_negative = str(negative_prompt or "unknown") if save_prompt_metadata else ""
     return save_files(
         images=images,
         filename=str(image_saver.get("filename") or defaults["filename"]),
@@ -4354,11 +4369,8 @@ def _save_image_with_image_saver(
         modelname=modelname,
         sampler_name=str(sampler_settings.get("sampler_name") or ""),
         scheduler_name=str(sampler_settings.get("scheduler") or "normal"),
-        positive=_aio_prompt_with_lora_metadata(
-            str(positive_prompt or "unknown"),
-            applied_loras,
-        ),
-        negative=str(negative_prompt or "unknown"),
+        positive=metadata_positive,
+        negative=metadata_negative,
         seed_value=_resolve_aio_runtime_seed(sampler_settings.get("seed")),
         width=_as_int(width, 512),
         height=_as_int(height, 512),
