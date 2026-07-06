@@ -18,10 +18,10 @@ Where to use them:
 | `__*/hair_color__` | Search any subfolder for a key whose basename is `hair_color` |
 | `__style/*__` | Select from all keys under `style/` |
 | `3#__hair_color__` | Select 3 file wildcard options and join them with `, ` |
-| `{red|blue|green}` | Select one inline option |
-| `{2::red|5::blue|green}` | Select one weighted inline option. Missing weight is 1 |
-| `{2$$red|blue|green}` | Select 2 inline options with the default `, ` separator |
-| `{1-3$$, $$red|blue|green}` | Select 1 to 3 options and join them with `, ` |
+| `{red\|blue\|green}` | Select one inline option |
+| `{2::red\|5::blue\|green}` | Select one weighted inline option. Missing weight is 1 |
+| `{2$$red\|blue\|green}` | Select 2 inline options with the default `, ` separator |
+| `{1-3$$, $$red\|blue\|green}` | Select 1 to 3 options and join them with `, ` |
 | `{2$$__hair_color__}` | Expand a file wildcard into options, then select 2 |
 
 Weighted example:

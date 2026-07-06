@@ -1,0 +1,12 @@
+EasyUse Anima 0.3.1 focuses on final-stage AiO upscaling and postprocess controls.
+
+User-visible changes:
+1. Anima AiO Generator can now run one final Upscale pass after Detailer and before Save. Choose either USDU or ResShift for that final pass.
+2. USDU settings are easier to use. Auto tile sizing defaults to a 1024 target with configurable min/max bounds, the sampler step and denoise controls are visible from the main settings, and terminal info logs report resolved tile and sampler decisions.
+3. USDU prompt mode can rebuild prompts without general content tags while keeping quality tags, artist tags, and LoRA trigger fields. This helps reduce small-tile artifacts without dropping style or trigger information.
+4. Final size fitting now lives in a separate Postprocess stage after Upscale. It can cap output size by max long edge or megapixels before Save.
+5. Image Saver metadata can omit positive/negative prompt text when Save prompt metadata is disabled.
+6. AiO Generator now exposes Anima Safe PAG model patch controls.
+7. Wildcard syntax reference tables now render literal pipe syntax correctly in the English and Korean docs.
+8. Autocomplete now ships Danbooru 2025-09-01, e621 2025-09-01, and Danbooru+e621 merged CSV sources from DraconicDragon/dbr-e621-lists-archive under Unlicense. The default source is Danbooru 2025-09-01; the previous Korean CSV remains available for Korean search.
+9. The Danbooru+e621 merged CSV is documented as opt-in because the upstream merge format can have future category-collision risk.

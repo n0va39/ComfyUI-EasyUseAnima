@@ -307,7 +307,9 @@ async function loadLoraPresetSettings() {
 }
 
 async function fetchJson(url, options = {}) {
-  const fetcher = typeof api?.fetchApi === "function" ? api.fetchApi.bind(api) : fetch;
+  const fetcher = typeof api?.fetchApi === "function"
+    ? (requestUrl, requestOptions) => api.fetchApi(requestUrl, requestOptions)
+    : fetch;
   return easyuseAnimaFetchJson(url, { ...options, fetcher });
 }
 

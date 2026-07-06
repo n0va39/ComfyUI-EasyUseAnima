@@ -37,11 +37,43 @@ CSV를 변경하면 새 자동완성 요청부터 선택한 CSV가 사용됩니�
 
 ## 포함된 CSV
 
+### `danbooru_2025-09-01.csv`
+
+설정 키: `dbr_danbooru_2025_09_01`
+
+- 기본값이며 대부분의 사용자에게 권장하는 소스입니다.
+- `DraconicDragon/dbr-e621-lists-archive` 기반 데이터입니다.
+- 원본 라이선스: Unlicense.
+- 한국어 설명 없이 최신 Danbooru 태그명과 alias를 포함합니다.
+- 비한국어 사용자와 일반 Danbooru 프롬프트 자동완성에 권장합니다.
+
+### `e621_2025-09-01.csv`
+
+설정 키: `dbr_e621_2025_09_01`
+
+- `DraconicDragon/dbr-e621-lists-archive` 기반 데이터입니다.
+- 원본 라이선스: Unlicense.
+- e621 태그명과 alias를 포함합니다.
+- EasyUse Anima는 species/lore 전용 하이라이트 색상을 따로 제공하지 않으므로
+  e621 species/lore 카테고리는 기존 학습 태그 색상으로 표시합니다.
+
+### `danbooru_e621_merged_2025-09-01.csv`
+
+설정 키: `dbr_danbooru_e621_merged_2025_09_01`
+
+- `DraconicDragon/dbr-e621-lists-archive` 기반 데이터입니다.
+- 원본 라이선스: Unlicense.
+- Danbooru와 e621을 하나의 CSV로 합쳐 더 넓은 자동완성 후보를 제공합니다.
+- 단일 혼합 소스가 필요할 때만 사용하세요. upstream archive는 병합 포맷이
+  future-proof하지 않다고 경고합니다. e621 category 번호를 Danbooru의 invalid
+  range로 밀어 넣는 방식이라, 이후 category 변경이 있으면 병합/category 충돌이
+  생길 수 있습니다.
+
 ### `danbooru_tags_classified.csv`
 
 설정 키: `localsmile_kr_wiki`
 
-- 기본값입니다.
+- 한국어 검색용 소스입니다.
 - `Localsmile/danbooru_KR_wiki_tag_search` 기반 데이터입니다.
 - 태그 카테고리 분리가 되어 있어 Prompt Studio 하이라이트와 함께 쓰기 좋습니다.
 - 한국어 검색을 우선 사용할 때 권장합니다.
@@ -53,7 +85,7 @@ CSV를 변경하면 새 자동완성 요청부터 선택한 CSV가 사용됩니�
 - 영어 태그명
 - 태그명의 공백/언더바 변형
 - CSV description 또는 wiki 텍스트
-- 한국어 설명과 키워드
+- 선택한 CSV에 한국어 텍스트가 포함된 경우 한국어 설명과 키워드
 
 예를 들어 CSV 설명에 `장발`이 들어 있으면 `long hair`를 한국어로 검색할 수
 있습니다.

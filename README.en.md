@@ -138,8 +138,8 @@ Mode details: [Anima Artist Mix Conditioning guide](docs/nodes/anima-artist-mix-
 Autocomplete:
 
 - Prompt Builder, Prompt Corrector, Prompt Studio, Prompt Studio Advanced, and
-  generic multiline `STRING` prompt/text widgets can use the bundled Korean
-  Danbooru autocomplete.
+  generic multiline `STRING` prompt/text widgets can use bundled Danbooru,
+  e621, merged Danbooru+e621, or Korean Danbooru autocomplete CSVs.
 - The autocomplete scope can be selected in ComfyUI Settings with `off`,
   `easyuse_nodes`, or `compatible_global`.
 - The CSV used for autocomplete and Prompt Studio highlighting can be selected
