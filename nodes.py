@@ -1658,19 +1658,25 @@ def _normalize_aio_generation_settings(value) -> dict[str, Any]:
         prompt_mode = AIO_USDU_PROMPT_NO_GENERAL
     usdu["prompt_mode"] = _choice(prompt_mode, AIO_USDU_PROMPT_MODES, default_usdu["prompt_mode"])
     usdu["mode_type"] = _choice(usdu.get("mode_type"), AIO_USDU_MODE_TYPES, default_usdu["mode_type"])
-    usdu["auto_tile_target"] = max(
+    auto_tile_target = max(
         64,
         min(max_resolution, _as_int(usdu.get("auto_tile_target"), default_usdu["auto_tile_target"])),
     )
-    usdu["auto_tile_min"] = max(
+    auto_tile_min = max(
         64,
         min(max_resolution, _as_int(usdu.get("auto_tile_min"), default_usdu["auto_tile_min"])),
     )
-    usdu["auto_tile_max"] = max(
-        usdu["auto_tile_min"],
+    auto_tile_max = max(
+        auto_tile_min,
         min(max_resolution, _as_int(usdu.get("auto_tile_max"), default_usdu["auto_tile_max"])),
     )
-    usdu["auto_tile_target"] = max(usdu["auto_tile_min"], min(usdu["auto_tile_max"], usdu["auto_tile_target"]))
+    if auto_tile_target < auto_tile_min:
+        auto_tile_min = auto_tile_target
+    if auto_tile_target > auto_tile_max:
+        auto_tile_max = auto_tile_target
+    usdu["auto_tile_target"] = auto_tile_target
+    usdu["auto_tile_min"] = auto_tile_min
+    usdu["auto_tile_max"] = max(auto_tile_min, auto_tile_max)
     usdu["tile_width"] = max(64, min(max_resolution, _as_int(usdu.get("tile_width"), default_usdu["tile_width"])))
     usdu["tile_height"] = max(64, min(max_resolution, _as_int(usdu.get("tile_height"), default_usdu["tile_height"])))
     usdu["mask_blur"] = max(0, min(64, _as_int(usdu.get("mask_blur"), default_usdu["mask_blur"])))
@@ -3510,22 +3516,41 @@ def _aio_usdu_auto_tile_dimension(
     return max(min_size, min(max_size, tile_size))
 
 
-def _aio_usdu_tile_size(image, scale_by: float, usdu_settings: dict[str, Any]) -> tuple[int, int]:
-    if not _as_bool(usdu_settings.get("auto_tile_size"), True):
-        return (
-            _as_int(usdu_settings.get("tile_width"), 512),
-            _as_int(usdu_settings.get("tile_height"), 512),
-        )
+def _aio_usdu_tile_plan(image, scale_by: float, usdu_settings: dict[str, Any]) -> dict[str, Any]:
     width, height = _image_tensor_size(image, 512, 512)
     target_width = max(1, int(round(width * max(0.05, float(scale_by)))))
     target_height = max(1, int(round(height * max(0.05, float(scale_by)))))
+    auto_tile = _as_bool(usdu_settings.get("auto_tile_size"), True)
+    if not auto_tile:
+        return {
+            "auto": False,
+            "input_width": int(width),
+            "input_height": int(height),
+            "target_width": int(target_width),
+            "target_height": int(target_height),
+            "tile_width": _as_int(usdu_settings.get("tile_width"), 512),
+            "tile_height": _as_int(usdu_settings.get("tile_height"), 512),
+        }
     preferred = _as_int(usdu_settings.get("auto_tile_target"), 768)
     min_size = _as_int(usdu_settings.get("auto_tile_min"), 512)
     max_size = _as_int(usdu_settings.get("auto_tile_max"), 1024)
-    return (
-        _aio_usdu_auto_tile_dimension(target_width, preferred, min_size, max_size),
-        _aio_usdu_auto_tile_dimension(target_height, preferred, min_size, max_size),
-    )
+    return {
+        "auto": True,
+        "input_width": int(width),
+        "input_height": int(height),
+        "target_width": int(target_width),
+        "target_height": int(target_height),
+        "preferred": int(preferred),
+        "min": int(min_size),
+        "max": int(max_size),
+        "tile_width": _aio_usdu_auto_tile_dimension(target_width, preferred, min_size, max_size),
+        "tile_height": _aio_usdu_auto_tile_dimension(target_height, preferred, min_size, max_size),
+    }
+
+
+def _aio_usdu_tile_size(image, scale_by: float, usdu_settings: dict[str, Any]) -> tuple[int, int]:
+    tile_plan = _aio_usdu_tile_plan(image, scale_by, usdu_settings)
+    return int(tile_plan["tile_width"]), int(tile_plan["tile_height"])
 
 
 def _aio_prompt_data_fields_for_usdu(prompt_data: str | dict | None) -> list[dict]:
@@ -3667,6 +3692,22 @@ def _run_aio_postprocess_stage(image, postprocess_settings: dict[str, Any]) -> t
         }
     output, fit_metadata = _apply_aio_final_fit(image, postprocess_settings)
     width, height = _image_tensor_size(output, fit_metadata.get("target_width", 0), fit_metadata.get("target_height", 0))
+    limit = (
+        f"{fit_metadata.get('max_megapixels')}MP"
+        if fit_metadata.get("mode") == "megapixels"
+        else f"{fit_metadata.get('max_long_edge')}px"
+    )
+    logger.info(
+        "[EasyUseAnima][AiO] Postprocess final fit: input=%sx%s mode=%s limit=%s method=%s applied=%s output=%sx%s",
+        fit_metadata.get("width"),
+        fit_metadata.get("height"),
+        fit_metadata.get("mode"),
+        limit,
+        fit_metadata.get("method"),
+        bool(fit_metadata.get("applied")),
+        width,
+        height,
+    )
     return output, {
         "enabled": True,
         "width": int(width),
@@ -3705,7 +3746,42 @@ def _run_aio_usdu_upscale_stage(
         scheduler_default="simple",
     )
     scale_by = _as_float(upscale_settings.get("scale_by"), 2.0)
-    tile_width, tile_height = _aio_usdu_tile_size(image, scale_by, usdu_settings)
+    tile_plan = _aio_usdu_tile_plan(image, scale_by, usdu_settings)
+    tile_width = int(tile_plan["tile_width"])
+    tile_height = int(tile_plan["tile_height"])
+    if tile_plan.get("auto"):
+        logger.info(
+            "[EasyUseAnima][AiO] USDU auto tile: input=%sx%s scale_by=%.3g expected=%sx%s target/min/max=%s/%s/%s resolved_tile=%sx%s",
+            tile_plan.get("input_width"),
+            tile_plan.get("input_height"),
+            scale_by,
+            tile_plan.get("target_width"),
+            tile_plan.get("target_height"),
+            tile_plan.get("preferred"),
+            tile_plan.get("min"),
+            tile_plan.get("max"),
+            tile_width,
+            tile_height,
+        )
+    else:
+        logger.info(
+            "[EasyUseAnima][AiO] USDU manual tile: input=%sx%s scale_by=%.3g expected=%sx%s tile=%sx%s",
+            tile_plan.get("input_width"),
+            tile_plan.get("input_height"),
+            scale_by,
+            tile_plan.get("target_width"),
+            tile_plan.get("target_height"),
+            tile_width,
+            tile_height,
+        )
+    logger.info(
+        "[EasyUseAnima][AiO] USDU sampler: steps=%s denoise=%.3f cfg=%.3g sampler=%s scheduler=%s",
+        _as_int(stage_sampler.get("steps"), 20),
+        _as_float(stage_sampler.get("denoise"), 0.2),
+        _as_float(stage_sampler.get("cfg"), 8.0),
+        str(stage_sampler.get("sampler_name") or "euler"),
+        str(stage_sampler.get("scheduler") or "simple"),
+    )
     usdu_positive, usdu_negative = _aio_usdu_conditioning(
         clip,
         positive,
@@ -3767,6 +3843,9 @@ def _run_aio_usdu_upscale_stage(
         "scale_by": scale_by,
         "tile_width": int(tile_width),
         "tile_height": int(tile_height),
+        "tile_auto": bool(tile_plan.get("auto")),
+        "tile_target_width": int(tile_plan.get("target_width") or 0),
+        "tile_target_height": int(tile_plan.get("target_height") or 0),
         "prompt_mode": str(usdu_settings.get("prompt_mode") or AIO_USDU_PROMPT_FULL),
         "sampler": _prompt_data_json_safe(stage_sampler),
     }

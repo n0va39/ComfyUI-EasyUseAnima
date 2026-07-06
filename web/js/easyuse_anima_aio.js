@@ -4037,6 +4037,31 @@ function clampGeneratorNumber(value, fallback, min, max) {
   return Math.max(min, Math.min(max, next));
 }
 
+function normalizeGeneratorUsduAutoTileRange(usdu) {
+  const defaults = DEFAULT_GENERATION_SETTINGS.upscale.usdu;
+  const target = Math.trunc(clampGeneratorNumber(usdu.auto_tile_target, defaults.auto_tile_target, 64, 16384));
+  let min = Math.trunc(clampGeneratorNumber(usdu.auto_tile_min, defaults.auto_tile_min, 64, 16384));
+  let max = Math.trunc(clampGeneratorNumber(usdu.auto_tile_max, defaults.auto_tile_max, 64, 16384));
+  max = Math.max(min, max);
+  if (target < min) {
+    min = target;
+  }
+  if (target > max) {
+    max = target;
+  }
+  usdu.auto_tile_target = target;
+  usdu.auto_tile_min = min;
+  usdu.auto_tile_max = Math.max(min, max);
+  return usdu;
+}
+
+function setGeneratorUsduAutoTileTarget(settings, value) {
+  settings.upscale ||= {};
+  settings.upscale.usdu ||= {};
+  settings.upscale.usdu.auto_tile_target = Math.trunc(clampGeneratorNumber(value, 768, 64, 16384));
+  normalizeGeneratorUsduAutoTileRange(settings.upscale.usdu);
+}
+
 function isDetailerTargetName(name) {
   return name === "face" || name === "eye" || /^custom_\d+$/.test(name);
 }
@@ -5867,6 +5892,9 @@ function renderGeneratorPanel(node) {
       createNodeField(aioText("label.mode"), backend, "wide", "tip.upscaleBackend"),
     );
     if (settings.upscale.backend === "usdu") {
+      const usdu = normalizeGeneratorUsduAutoTileRange(
+        mergeDefaults(DEFAULT_GENERATION_SETTINGS.upscale.usdu, settings.upscale.usdu || {}),
+      );
       upscaleBody.append(
         createNodeField(
           aioText("label.scaleBy"),
@@ -5882,9 +5910,71 @@ function renderGeneratorPanel(node) {
           "wide",
           "tip.upscaleScale",
         ),
+        createNodeField(
+          aioText("label.steps"),
+          createDomSettingsSliderNumberControl(
+            node,
+            settings.upscale.steps,
+            { min: 1, max: 75, step: 1, decimals: 0 },
+            (nextSettings, value) => {
+              nextSettings.upscale ||= {};
+              nextSettings.upscale.steps = Math.trunc(value);
+            },
+          ),
+          "wide",
+          "tip.steps",
+        ),
+        createNodeField(
+          aioText("label.denoise"),
+          createDomSettingsSliderNumberControl(
+            node,
+            settings.upscale.denoise,
+            { min: 0, max: 1, step: 0.01, decimals: 2 },
+            (nextSettings, value) => {
+              nextSettings.upscale ||= {};
+              nextSettings.upscale.denoise = value;
+            },
+          ),
+          "wide",
+          "tip.denoise",
+        ),
+        createNodeField(
+          aioText("field.autoTileSize"),
+          createDomSettingsCheckboxControl(
+            node,
+            usdu.auto_tile_size,
+            (nextSettings, value) => {
+              nextSettings.upscale ||= {};
+              nextSettings.upscale.usdu ||= {};
+              nextSettings.upscale.usdu.auto_tile_size = value;
+            },
+            { rerender: true },
+          ),
+          "wide",
+          "tip.usduAutoTile",
+        ),
+      );
+      if (usdu.auto_tile_size) {
+        upscaleBody.append(
+          createNodeField(
+            aioText("field.autoTileTarget"),
+            createDomSettingsSliderNumberControl(
+              node,
+              usdu.auto_tile_target,
+              { min: 256, max: 1536, step: 64, decimals: 0 },
+              (nextSettings, value) => {
+                setGeneratorUsduAutoTileTarget(nextSettings, value);
+              },
+            ),
+            "wide",
+            "tip.usduAutoTile",
+          ),
+        );
+      }
+      upscaleBody.append(
         makeNote(
-          settings.upscale.usdu?.auto_tile_size ? "text.usduAutoTile" : "text.usduManualTile",
-          settings.upscale.usdu?.auto_tile_size ? "tip.usduAutoTile" : "tip.usduTile",
+          usdu.auto_tile_size ? "text.usduAutoTile" : "text.usduManualTile",
+          usdu.auto_tile_size ? "tip.usduAutoTile" : "tip.usduTile",
         ),
       );
     } else {
@@ -6772,7 +6862,7 @@ function openUpscaleSettings(node) {
       scheduler: scheduler.value || "simple",
       denoise: clampGeneratorNumber(denoise.value, DEFAULT_GENERATION_SETTINGS.upscale.denoise, 0, 1),
       ...optimized,
-      usdu: {
+      usdu: normalizeGeneratorUsduAutoTileRange({
         upscale_model_name: upscaleModel.value || DEFAULT_GENERATION_SETTINGS.upscale.usdu.upscale_model_name,
         auto_tile_size: autoTile.checked,
         prompt_mode: promptMode.value || "full",
@@ -6792,7 +6882,7 @@ function openUpscaleSettings(node) {
         force_uniform_tiles: forceUniformTiles.checked,
         tiled_decode: tiledDecode.checked,
         batch_size: Math.trunc(clampGeneratorNumber(batchSize.value, 1, 1, 4096)),
-      },
+      }),
       resshift: {
         scale: resshiftScale.value || "x2",
         student_name: student.value || "(auto-download)",

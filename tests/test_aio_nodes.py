@@ -181,9 +181,9 @@ class AIOSettingsStorageTests(unittest.TestCase):
         self.assertEqual(settings["upscale"]["dit_corrections"]["dcw_mode"], "manual")
         self.assertTrue(settings["upscale"]["usdu"]["auto_tile_size"])
         self.assertEqual(settings["upscale"]["usdu"]["prompt_mode"], "no_general")
-        self.assertEqual(settings["upscale"]["usdu"]["auto_tile_target"], 256)
+        self.assertEqual(settings["upscale"]["usdu"]["auto_tile_target"], 9000)
         self.assertEqual(settings["upscale"]["usdu"]["auto_tile_min"], 128)
-        self.assertEqual(settings["upscale"]["usdu"]["auto_tile_max"], 256)
+        self.assertEqual(settings["upscale"]["usdu"]["auto_tile_max"], 9000)
         self.assertEqual(settings["upscale"]["usdu"]["tile_width"], 64)
         self.assertNotIn("fit", settings["upscale"])
         self.assertTrue(settings["postprocess"]["enabled"])
@@ -1562,19 +1562,28 @@ class AIOFinalUpscaleStageTests(unittest.TestCase):
         self.assertEqual(height % 8, 0)
 
     def test_postprocess_stage_applies_final_fit(self):
-        with patch.object(
-            nodes,
-            "_apply_aio_final_fit",
-            return_value=(
-                AIOFinalUpscaleStageTests._Image(2048, 1536),
-                {
-                    "enabled": True,
-                    "applied": True,
-                    "target_width": 2048,
-                    "target_height": 1536,
-                },
-            ),
-        ) as fit:
+        with (
+            patch.object(
+                nodes,
+                "_apply_aio_final_fit",
+                return_value=(
+                    AIOFinalUpscaleStageTests._Image(2048, 1536),
+                    {
+                        "enabled": True,
+                        "applied": True,
+                        "mode": "max_long_edge",
+                        "max_long_edge": 2048,
+                        "max_megapixels": 4.0,
+                        "method": "bicubic",
+                        "width": 4096,
+                        "height": 3072,
+                        "target_width": 2048,
+                        "target_height": 1536,
+                    },
+                ),
+            ) as fit,
+            self.assertLogs("ComfyUI-EasyUseAnima", level="INFO") as logs,
+        ):
             image, metadata = nodes._run_aio_postprocess_stage(
                 AIOFinalUpscaleStageTests._Image(4096, 3072),
                 {
@@ -1592,6 +1601,7 @@ class AIOFinalUpscaleStageTests(unittest.TestCase):
         self.assertTrue(metadata["fit"]["applied"])
         self.assertEqual(metadata["width"], 2048)
         self.assertEqual(metadata["height"], 1536)
+        self.assertIn("Postprocess final fit", "\n".join(logs.output))
 
     def test_usdu_no_general_prompt_keeps_artist_and_trigger_without_duplicate_quality(self):
         prompt_data = {
@@ -1667,6 +1677,7 @@ class AIOFinalUpscaleStageTests(unittest.TestCase):
             patch.object(nodes, "_encode_with_comfy_clip", side_effect=lambda clip, prompt: f"encoded:{prompt}") as encode,
             patch.object(nodes, "_apply_aio_spectrum_model_patches_for_comfy_sampler", return_value="stage_model") as patch_stage,
             patch.object(nodes, "_cleanup_aio_ephemeral_model") as cleanup,
+            self.assertLogs("ComfyUI-EasyUseAnima", level="INFO") as logs,
         ):
             image, metadata = nodes._run_aio_upscale_stage(
                 "model",
@@ -1702,7 +1713,14 @@ class AIOFinalUpscaleStageTests(unittest.TestCase):
         self.assertEqual(calls["usdu"]["tile_height"], 768)
         self.assertEqual(metadata["backend"], "usdu")
         self.assertEqual(metadata["prompt_mode"], "no_general")
+        self.assertTrue(metadata["tile_auto"])
+        self.assertEqual(metadata["tile_target_width"], 1024)
+        self.assertEqual(metadata["tile_target_height"], 1536)
         self.assertNotIn("fit", metadata)
+        log_text = "\n".join(logs.output)
+        self.assertIn("USDU auto tile", log_text)
+        self.assertIn("resolved_tile=512x768", log_text)
+        self.assertIn("USDU sampler: steps=20", log_text)
         cleanup.assert_called_once_with("stage_model", "model")
 
     def test_upscale_stage_runs_only_resshift_when_selected(self):

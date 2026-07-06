@@ -50,6 +50,7 @@ class AIOFrontendSourceTests(unittest.TestCase):
         self.assertIn("auto_tile_target: Math.trunc", body)
         self.assertIn("auto_tile_min: Math.trunc", body)
         self.assertIn("auto_tile_max: Math.trunc", body)
+        self.assertIn("normalizeGeneratorUsduAutoTileRange", body)
         self.assertNotIn('textContent: aioStaticText("Final Size Fit")', body)
         self.assertNotIn("fit: {", body)
         self.assertNotIn("max_long_edge: Math.trunc", body)
@@ -100,6 +101,11 @@ class AIOFrontendSourceTests(unittest.TestCase):
         self.assertIn("settingsScroll.append(samplerGrid, highresBlock, detailerBlock, upscaleBlock, postprocessBlock)", body)
         self.assertIn("openUpscaleSettings(node)", body)
         self.assertIn("openPostprocessSettings(node)", body)
+        self.assertIn("settings.upscale.steps", body)
+        self.assertIn("settings.upscale.denoise", body)
+        self.assertIn("usdu.auto_tile_size", body)
+        self.assertIn("usdu.auto_tile_target", body)
+        self.assertIn("setGeneratorUsduAutoTileTarget(nextSettings, value)", body)
         self.assertNotIn("backendBadge", body)
 
     def test_safe_pag_advanced_labels_do_not_reuse_generic_labels(self):
