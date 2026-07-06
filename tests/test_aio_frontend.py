@@ -35,6 +35,23 @@ class AIOFrontendSourceTests(unittest.TestCase):
         self.assertNotIn("next.highres.spectrum = mergeDefaults", body)
         self.assertNotIn("next.highres.dit_corrections = mergeDefaults", body)
 
+    def test_safe_pag_advanced_labels_do_not_reuse_generic_labels(self):
+        source = AIO_JS.read_text(encoding="utf-8")
+        start = source.index("function openAdvancedSettings")
+        end = source.index("\nfunction openGeneratorSettings", start)
+        body = source[start:end]
+
+        self.assertIn('"Safe PAG scale"', body)
+        self.assertIn('"Safe PAG blocks"', body)
+        self.assertIn('"PAG perturbation"', body)
+        self.assertIn('"PAG start percent"', body)
+        self.assertIn('"PAG end percent"', body)
+        self.assertIn('"PAG rescale"', body)
+        self.assertNotIn('field(safePag, "Scale"', body)
+        self.assertNotIn('field(safePag, "Start"', body)
+        self.assertNotIn('field(safePag, "End"', body)
+        self.assertNotIn('field(safePag, "Rescale"', body)
+
     def test_detailer_settings_support_custom_blocks(self):
         source = AIO_JS.read_text(encoding="utf-8")
         start = source.index("function openDetailerSettings")
