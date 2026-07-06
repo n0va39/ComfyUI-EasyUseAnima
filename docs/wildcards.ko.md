@@ -18,10 +18,10 @@ EasyUse Anima 와일드카드는 프롬프트 안의 `__name__` 파일 와일드
 | `__*/hair_color__` | 어느 하위 폴더에 있든 basename이 `hair_color`인 key 검색 |
 | `__style/*__` | `style/` 아래 모든 key 후보를 합쳐 1개 선택 |
 | `3#__hair_color__` | 파일 와일드카드 후보 중 3개를 선택해 `, `로 연결 |
-| `{red|blue|green}` | inline 후보 중 1개 선택 |
-| `{2::red|5::blue|green}` | 가중치 후보 중 1개 선택. 가중치가 없으면 1로 계산 |
-| `{2$$red|blue|green}` | inline 후보 중 2개 선택, 기본 구분자 `, ` 사용 |
-| `{1-3$$, $$red|blue|green}` | 1개에서 3개까지 선택하고 `, `로 연결 |
+| `{red\|blue\|green}` | inline 후보 중 1개 선택 |
+| `{2::red\|5::blue\|green}` | 가중치 후보 중 1개 선택. 가중치가 없으면 1로 계산 |
+| `{2$$red\|blue\|green}` | inline 후보 중 2개 선택, 기본 구분자 `, ` 사용 |
+| `{1-3$$, $$red\|blue\|green}` | 1개에서 3개까지 선택하고 `, `로 연결 |
 | `{2$$__hair_color__}` | 파일 와일드카드 후보를 펼친 뒤 2개 선택 |
 
 가중치 예시:
