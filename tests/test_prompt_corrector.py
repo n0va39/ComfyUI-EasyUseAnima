@@ -3074,19 +3074,78 @@ class AutocompleteDatasetTests(unittest.TestCase):
     def test_lists_autocomplete_sources(self):
         sources = available_autocomplete_sources("localsmile_kr_wiki")
 
-        self.assertEqual([source["key"] for source in sources], ["localsmile_kr_wiki"])
+        self.assertEqual(
+            [source["key"] for source in sources],
+            [
+                "dbr_danbooru_2025_09_01",
+                "dbr_e621_2025_09_01",
+                "dbr_danbooru_e621_merged_2025_09_01",
+                "localsmile_kr_wiki",
+            ],
+        )
         self.assertTrue(
             any(
                 source["key"] == "localsmile_kr_wiki" and source["selected"]
                 for source in sources
             )
         )
+        self.assertEqual(sources[0]["license"], "Unlicense")
 
-    def test_default_autocomplete_source_uses_classified_csv(self):
+    def test_default_autocomplete_source_uses_dbr_danbooru_csv(self):
         key, path = resolve_autocomplete_source("")
 
-        self.assertEqual(key, "localsmile_kr_wiki")
-        self.assertEqual(path.name, "danbooru_tags_classified.csv")
+        self.assertEqual(key, "dbr_danbooru_2025_09_01")
+        self.assertEqual(path.name, "danbooru_2025-09-01.csv")
+
+    def test_e621_categories_map_to_supported_highlight_sections(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "e621_2025-09-01.csv"
+            path.write_text(
+                "\n".join(
+                    [
+                        'mammal,5,100,"mammals"',
+                        'artist wolf,1,80,"artist alias"',
+                        'e621 meta marker,7,70,"meta alias"',
+                    ]
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+
+            classified = classify_prompt_text("mammal, @artist_wolf, e621 meta marker", path=path)
+
+        self.assertEqual(
+            [token["section"] for token in classified["tokens"]],
+            ["general", "artist", "meta"],
+        )
+
+    def test_merged_e621_offset_categories_map_to_supported_sections(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "danbooru_e621_merged_2025-09-01.csv"
+            path.write_text(
+                "\n".join(
+                    [
+                        'danbooru artist,1,100,"danbooru artist"',
+                        'e621 artist,8,80,"e621 artist"',
+                        'e621 character,11,70,"e621 character"',
+                        'e621 mammal,12,60,"e621 species"',
+                    ]
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+
+            artists = search_autocomplete("artist", path=path, category="artist")
+            classified = classify_prompt_text("e621 character, e621 mammal", path=path)
+
+        self.assertEqual(
+            {item["tag"] for item in artists["results"]},
+            {"danbooru artist", "e621 artist"},
+        )
+        self.assertEqual(
+            [token["section"] for token in classified["tokens"]],
+            ["character", "general"],
+        )
 
     def test_classifies_count_character_and_learned_tags(self):
         with tempfile.TemporaryDirectory() as tmp:

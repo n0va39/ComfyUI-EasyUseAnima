@@ -278,7 +278,7 @@ const TEXT = {
     autocompletePreviewClosingBrackets: "Preview closing brackets",
     autocompletePreviewClosingBracketsTip:
       "When typing an opening prompt bracket, insert the closing bracket at the caret like an editor pair. Autocomplete previews may show closing brackets, but suggestions do not force-close multi-item groups.",
-    autocompleteCsvTip: "Select which bundled Korean Danbooru CSV powers autocomplete and tag highlighting.",
+    autocompleteCsvTip: "Select which bundled CSV powers autocomplete and tag highlighting. The merged Danbooru+e621 source may have category merge issues.",
     autocompleteLimitTip: "",
     highlightBehavior: "Highlight behavior",
     highlightColor: "Highlight color",
@@ -400,7 +400,7 @@ const TEXT = {
     autocompletePreviewClosingBrackets: "닫는 괄호 미리입력",
     autocompletePreviewClosingBracketsTip:
       "여는 프롬프트 괄호를 입력하면 IDE처럼 닫는 괄호를 커서 오른쪽에 넣습니다. 자동완성 미리보기에는 닫는 괄호가 보일 수 있지만, 여러 항목을 넣는 그룹을 후보 적용만으로 강제 종료하지는 않습니다.",
-    autocompleteCsvTip: "자동완성과 태그 하이라이트에 사용할 한국어 Danbooru CSV를 선택합니다.",
+    autocompleteCsvTip: "자동완성과 태그 하이라이트에 사용할 번들 CSV를 선택합니다. Danbooru+e621 병합 소스는 카테고리 병합 오류 가능성이 있습니다.",
     autocompleteLimitTip: "",
     highlightBehavior: "하이라이트 동작",
     highlightColor: "하이라이트 색상",
@@ -522,7 +522,7 @@ const TEXT = {
     autocompletePreviewClosingBrackets: "閉じ括弧を先に入力",
     autocompletePreviewClosingBracketsTip:
       "プロンプトの開き括弧を入力したとき、エディタのペア入力のように閉じ括弧をキャレット右側へ入れます。自動補完プレビューには閉じ括弧を表示できますが、候補確定だけでは複数項目グループを強制終了しません。",
-    autocompleteCsvTip: "自動補完とタグハイライトに使用する同梱 Korean Danbooru CSV を選択します。",
+    autocompleteCsvTip: "自動補完とタグハイライトに使用する同梱 CSV を選択します。Danbooru+e621 の統合ソースにはカテゴリ統合エラーの可能性があります。",
     autocompleteLimitTip: "",
     highlightBehavior: "ハイライト動作",
     highlightColor: "ハイライト色",
@@ -644,7 +644,7 @@ const TEXT = {
     autocompletePreviewClosingBrackets: "预填闭合括号",
     autocompletePreviewClosingBracketsTip:
       "输入提示词开括号时，像 IDE 一样在光标右侧插入闭合括号。自动补全预览可以显示闭合括号，但确认候选不会强制结束可包含多项的分组。",
-    autocompleteCsvTip: "选择用于自动补全和标签高亮的内置 Korean Danbooru CSV。",
+    autocompleteCsvTip: "选择用于自动补全和标签高亮的内置 CSV。Danbooru+e621 合并来源可能存在分类合并错误。",
     autocompleteLimitTip: "",
     highlightBehavior: "高亮行为",
     highlightColor: "高亮颜色",
@@ -1580,8 +1580,13 @@ const EASYUSE_ANIMA_SETTINGS = [
     name: t("autocompleteCsv"),
     tooltip: t("autocompleteCsvTip"),
     type: "combo",
-    defaultValue: "localsmile_kr_wiki",
-    options: ["localsmile_kr_wiki"],
+    defaultValue: "dbr_danbooru_2025_09_01",
+    options: [
+      "dbr_danbooru_2025_09_01",
+      "dbr_e621_2025_09_01",
+      "dbr_danbooru_e621_merged_2025_09_01",
+      "localsmile_kr_wiki",
+    ],
   }),
   setting({
     id: "EasyUseAnima.Prompt.AutocompleteLimit",
