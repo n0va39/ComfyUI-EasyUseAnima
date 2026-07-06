@@ -71,6 +71,12 @@ class FrontendModuleStructureTests(unittest.TestCase):
                 self.assertNotIn("XMLHttpRequest", source)
                 self.assertNotIn("new Function", source)
 
+    def test_registry_scanner_sensitive_bind_pattern_is_not_used(self):
+        for path in WEB_JS.rglob("*.js"):
+            with self.subTest(filename=str(path.relative_to(WEB_JS))):
+                source = path.read_text(encoding="utf-8")
+                self.assertNotIn(".bind(", source)
+
     def test_prompt_studio_entry_imports_phase_2_modules(self):
         source = PROMPT_STUDIO_JS.read_text(encoding="utf-8")
         extension_runtime_source = (
