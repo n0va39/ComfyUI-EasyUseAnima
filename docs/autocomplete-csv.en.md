@@ -38,11 +38,44 @@ browser refresh is normally not required.
 
 ## Bundled CSV Sources
 
+### `danbooru_2025-09-01.csv`
+
+Setting key: `dbr_danbooru_2025_09_01`
+
+- Default and recommended source for most users.
+- Based on `DraconicDragon/dbr-e621-lists-archive`.
+- Source license: Unlicense.
+- Covers current Danbooru tag names and aliases without Korean descriptions.
+- Recommended for non-Korean users and general Danbooru prompt autocomplete.
+
+### `e621_2025-09-01.csv`
+
+Setting key: `dbr_e621_2025_09_01`
+
+- Based on `DraconicDragon/dbr-e621-lists-archive`.
+- Source license: Unlicense.
+- Covers e621 tag names and aliases.
+- e621 species and lore categories are mapped to the existing trained-tag
+  highlight class because EasyUse Anima does not expose separate species/lore
+  colors.
+
+### `danbooru_e621_merged_2025-09-01.csv`
+
+Setting key: `dbr_danbooru_e621_merged_2025_09_01`
+
+- Based on `DraconicDragon/dbr-e621-lists-archive`.
+- Source license: Unlicense.
+- Combines Danbooru and e621 into one CSV for broader autocomplete.
+- Use only when you need a single mixed source. The upstream archive warns that
+  the merged format is not future-proof: e621 category numbers are offset into a
+  Danbooru-invalid range, so future category changes can cause merge/category
+  collisions.
+
 ### `danbooru_tags_classified.csv`
 
 Setting key: `localsmile_kr_wiki`
 
-- Default source.
+- Korean search source.
 - Based on `Localsmile/danbooru_KR_wiki_tag_search`.
 - Includes useful category separation for Prompt Studio highlighting.
 - Recommended when Korean search is the main use case.
@@ -54,7 +87,7 @@ Autocomplete searches:
 - English tag names
 - Space/underscore variants of tag names
 - CSV description or wiki text
-- Korean descriptions and keywords
+- Korean descriptions and keywords when the selected CSV includes Korean text
 
 For example, if a row description contains `장발`, searching that Korean word can
 return `long hair`.

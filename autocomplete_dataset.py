@@ -21,25 +21,66 @@ except ImportError:
     from anima_prompt.parser import parse_prompt
     from prompt_translation import iter_prompt_translation_markers
 
+DBR_TAG_ARCHIVE_SOURCE = "https://github.com/DraconicDragon/dbr-e621-lists-archive"
+DBR_TAG_ARCHIVE_LICENSE = "Unlicense"
+DBR_DANBOORU_AUTOCOMPLETE_CSV = PACKAGE_DATA_DIR / "danbooru_2025-09-01.csv"
+DBR_E621_AUTOCOMPLETE_CSV = PACKAGE_DATA_DIR / "e621_2025-09-01.csv"
+DBR_MERGED_AUTOCOMPLETE_CSV = PACKAGE_DATA_DIR / "danbooru_e621_merged_2025-09-01.csv"
 LOCALSMILE_AUTOCOMPLETE_CSV = PACKAGE_DATA_DIR / "danbooru_tags_classified.csv"
-AUTOCOMPLETE_CSV = LOCALSMILE_AUTOCOMPLETE_CSV
+AUTOCOMPLETE_CSV = DBR_DANBOORU_AUTOCOMPLETE_CSV
 
-DEFAULT_AUTOCOMPLETE_SOURCE = "localsmile_kr_wiki"
+DEFAULT_AUTOCOMPLETE_SOURCE = "dbr_danbooru_2025_09_01"
 AUTOCOMPLETE_SOURCES = {
+    "dbr_danbooru_2025_09_01": {
+        "label": "Danbooru 2025-09-01 (recommended)",
+        "path": DBR_DANBOORU_AUTOCOMPLETE_CSV,
+        "source": DBR_TAG_ARCHIVE_SOURCE,
+        "license": DBR_TAG_ARCHIVE_LICENSE,
+    },
+    "dbr_e621_2025_09_01": {
+        "label": "e621 2025-09-01",
+        "path": DBR_E621_AUTOCOMPLETE_CSV,
+        "source": DBR_TAG_ARCHIVE_SOURCE,
+        "license": DBR_TAG_ARCHIVE_LICENSE,
+    },
+    "dbr_danbooru_e621_merged_2025_09_01": {
+        "label": "Danbooru + e621 merged 2025-09-01 (merge-risk)",
+        "path": DBR_MERGED_AUTOCOMPLETE_CSV,
+        "source": DBR_TAG_ARCHIVE_SOURCE,
+        "license": DBR_TAG_ARCHIVE_LICENSE,
+    },
     "localsmile_kr_wiki": {
-        "label": "Localsmile danbooru KR wiki tag search",
+        "label": "Localsmile Danbooru KR wiki tag search (Korean)",
         "path": LOCALSMILE_AUTOCOMPLETE_CSV,
         "source": "https://github.com/Localsmile/danbooru_KR_wiki_tag_search",
     },
 }
 
 _INLINE_SPACE_RE = re.compile(r"[ \t]+")
-_CATEGORY_NAMES = {
+_DANBOORU_CATEGORY_NAMES = {
     "0": "general",
     "1": "artist",
     "3": "copyright",
     "4": "character",
     "5": "meta",
+}
+_E621_CATEGORY_NAMES = {
+    "0": "general",
+    "1": "artist",
+    "3": "copyright",
+    "4": "character",
+    "5": "general",
+    "7": "meta",
+    "8": "general",
+}
+_MERGED_E621_CATEGORY_NAMES = {
+    "7": "general",
+    "8": "artist",
+    "10": "copyright",
+    "11": "character",
+    "12": "general",
+    "14": "meta",
+    "15": "general",
 }
 _CACHE = {
     "path": None,
@@ -88,6 +129,7 @@ def available_autocomplete_sources(selected: str | None = None) -> list[dict]:
                 "key": key,
                 "label": data["label"],
                 "source": data.get("source", ""),
+                "license": data.get("license", ""),
                 "path": str(path),
                 "exists": path.is_file(),
                 "selected": key == selected_key,
@@ -136,16 +178,39 @@ def _safe_count(value: str) -> int:
         return 0
 
 
-def _normalize_category(value: str) -> str:
+def _source_kind_from_path(path: Path) -> str:
+    filename = path.name.casefold()
+    if filename.startswith("e621_"):
+        return "e621"
+    if "e621_merged" in filename:
+        return "merged"
+    return "danbooru"
+
+
+def _normalize_category(value: str, source_kind: str = "danbooru") -> str:
     value = str(value or "").strip()
-    return _CATEGORY_NAMES.get(value, value or "general")
+    if source_kind == "e621":
+        return _E621_CATEGORY_NAMES.get(value, "general")
+    if source_kind == "merged":
+        return (
+            _DANBOORU_CATEGORY_NAMES.get(value)
+            or _MERGED_E621_CATEGORY_NAMES.get(value)
+            or "general"
+        )
+    return _DANBOORU_CATEGORY_NAMES.get(value, value or "general")
 
 
-def _entry_from_parts(tag: str, category: str, count: str, description: str) -> AutocompleteEntry | None:
+def _entry_from_parts(
+    tag: str,
+    category: str,
+    count: str,
+    description: str,
+    source_kind: str = "danbooru",
+) -> AutocompleteEntry | None:
     tag = str(tag or "").strip()
     if not tag:
         return None
-    category = _normalize_category(category)
+    category = _normalize_category(category, source_kind)
     count_value = _safe_count(count)
     description = _display_description(description)
     category = _category_from_description(category, description)
@@ -172,6 +237,7 @@ def _load_entries(path: Path = AUTOCOMPLETE_CSV) -> tuple[AutocompleteEntry, ...
     entries: list[AutocompleteEntry] = []
     if not path.is_file():
         return ()
+    source_kind = _source_kind_from_path(path)
 
     with path.open("r", encoding="utf-8-sig", newline="") as handle:
         reader = csv.reader(handle)
@@ -189,6 +255,7 @@ def _load_entries(path: Path = AUTOCOMPLETE_CSV) -> tuple[AutocompleteEntry, ...
                     row.get("category") or "",
                     row.get("post_count") or row.get("count") or "",
                     row.get("description") or row.get("wiki") or "",
+                    source_kind,
                 )
                 if entry:
                     entries.append(entry)
@@ -196,7 +263,7 @@ def _load_entries(path: Path = AUTOCOMPLETE_CSV) -> tuple[AutocompleteEntry, ...
             for row in itertools.chain((first_row,), rows):
                 if len(row) < 4:
                     continue
-                entry = _entry_from_parts(row[0], row[1], row[2], row[3])
+                entry = _entry_from_parts(row[0], row[1], row[2], row[3], source_kind)
                 if entry:
                     entries.append(entry)
     entries.sort(key=lambda entry: entry.count, reverse=True)

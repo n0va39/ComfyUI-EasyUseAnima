@@ -29,7 +29,7 @@ LONG_TEXT_SETTINGS_FILE = USER_DATA_DIR / "long_text_settings.json"
 
 DEFAULT_SETTINGS = {
     "prompt.metadata_filter_words": "",
-    "autocomplete.source": "localsmile_kr_wiki",
+    "autocomplete.source": "dbr_danbooru_2025_09_01",
     "autocomplete.limit": "20",
     "autocomplete.mode": "compatible_global",
     "autocomplete.commit_key": "enter",

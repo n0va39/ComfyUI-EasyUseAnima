@@ -136,8 +136,8 @@ workflow embed와 Civitai/LoRA metadata 저장까지 한 번에 처리할 수 �
 자동완성:
 
 - Prompt Builder, Prompt Corrector, Prompt Studio, Prompt Studio Advanced,
-  일반 multiline `STRING` prompt/text widget에서 bundled Korean Danbooru
-  autocomplete를 사용할 수 있습니다.
+  일반 multiline `STRING` prompt/text widget에서 bundled Danbooru, e621,
+  Danbooru+e621 병합, 한국어 Danbooru autocomplete CSV를 사용할 수 있습니다.
 - 자동완성 적용 범위는 ComfyUI Settings에서 `off`, `easyuse_nodes`,
   `compatible_global` 중 선택합니다.
 - 자동완성과 Prompt Studio 하이라이트에 사용할 CSV는 ComfyUI Settings의
