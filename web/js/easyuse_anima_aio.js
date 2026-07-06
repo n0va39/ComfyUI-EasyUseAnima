@@ -409,9 +409,9 @@ const DEFAULT_GENERATION_SETTINGS = {
       auto_tile_size: true,
       prompt_mode: "full",
       mode_type: "Linear",
-      auto_tile_target: 768,
+      auto_tile_target: 1024,
       auto_tile_min: 512,
-      auto_tile_max: 1024,
+      auto_tile_max: 2048,
       tile_width: 512,
       tile_height: 512,
       mask_blur: 8,
@@ -4058,7 +4058,7 @@ function normalizeGeneratorUsduAutoTileRange(usdu) {
 function setGeneratorUsduAutoTileTarget(settings, value) {
   settings.upscale ||= {};
   settings.upscale.usdu ||= {};
-  settings.upscale.usdu.auto_tile_target = Math.trunc(clampGeneratorNumber(value, 768, 64, 16384));
+  settings.upscale.usdu.auto_tile_target = Math.trunc(clampGeneratorNumber(value, 1024, 64, 16384));
   normalizeGeneratorUsduAutoTileRange(settings.upscale.usdu);
 }
 
@@ -5961,7 +5961,7 @@ function renderGeneratorPanel(node) {
             createDomSettingsSliderNumberControl(
               node,
               usdu.auto_tile_target,
-              { min: 256, max: 1536, step: 64, decimals: 0 },
+              { min: 256, max: 2048, step: 64, decimals: 0 },
               (nextSettings, value) => {
                 setGeneratorUsduAutoTileTarget(nextSettings, value);
               },
@@ -6867,9 +6867,9 @@ function openUpscaleSettings(node) {
         auto_tile_size: autoTile.checked,
         prompt_mode: promptMode.value || "full",
         mode_type: modeType.value || "Linear",
-        auto_tile_target: Math.trunc(clampGeneratorNumber(autoTileTarget.value, 768, 64, 16384)),
+        auto_tile_target: Math.trunc(clampGeneratorNumber(autoTileTarget.value, 1024, 64, 16384)),
         auto_tile_min: Math.trunc(clampGeneratorNumber(autoTileMin.value, 512, 64, 16384)),
-        auto_tile_max: Math.trunc(clampGeneratorNumber(autoTileMax.value, 1024, 64, 16384)),
+        auto_tile_max: Math.trunc(clampGeneratorNumber(autoTileMax.value, 2048, 64, 16384)),
         tile_width: Math.trunc(clampGeneratorNumber(tileWidth.value, 512, 64, 16384)),
         tile_height: Math.trunc(clampGeneratorNumber(tileHeight.value, 512, 64, 16384)),
         mask_blur: Math.trunc(clampGeneratorNumber(maskBlur.value, 8, 0, 64)),

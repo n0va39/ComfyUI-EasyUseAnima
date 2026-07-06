@@ -1526,7 +1526,7 @@ class AIOFinalUpscaleStageTests(unittest.TestCase):
         for target in (64, 512, 1536, 3072):
             tile_size = nodes._aio_usdu_auto_tile_dimension(target)
             self.assertGreaterEqual(tile_size, 512)
-            self.assertLessEqual(tile_size, 1024)
+            self.assertLessEqual(tile_size, 2048)
             self.assertEqual(tile_size % 64, 0)
 
     def test_usdu_auto_tile_size_uses_configurable_bounds(self):

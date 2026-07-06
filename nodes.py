@@ -443,9 +443,9 @@ AIO_GENERATION_DEFAULT_SETTINGS = {
             "auto_tile_size": True,
             "prompt_mode": "full",
             "mode_type": "Linear",
-            "auto_tile_target": 768,
+            "auto_tile_target": 1024,
             "auto_tile_min": 512,
-            "auto_tile_max": 1024,
+            "auto_tile_max": 2048,
             "tile_width": 512,
             "tile_height": 512,
             "mask_blur": 8,
@@ -3502,9 +3502,9 @@ def _run_aio_highres_stage(
 
 def _aio_usdu_auto_tile_dimension(
     target_size: int,
-    preferred_size: int = 768,
+    preferred_size: int = 1024,
     min_size: int = 512,
-    max_size: int = 1024,
+    max_size: int = 2048,
 ) -> int:
     target_size = max(1, int(target_size))
     min_size = max(64, int(min_size))
@@ -3531,9 +3531,9 @@ def _aio_usdu_tile_plan(image, scale_by: float, usdu_settings: dict[str, Any]) -
             "tile_width": _as_int(usdu_settings.get("tile_width"), 512),
             "tile_height": _as_int(usdu_settings.get("tile_height"), 512),
         }
-    preferred = _as_int(usdu_settings.get("auto_tile_target"), 768)
+    preferred = _as_int(usdu_settings.get("auto_tile_target"), 1024)
     min_size = _as_int(usdu_settings.get("auto_tile_min"), 512)
-    max_size = _as_int(usdu_settings.get("auto_tile_max"), 1024)
+    max_size = _as_int(usdu_settings.get("auto_tile_max"), 2048)
     return {
         "auto": True,
         "input_width": int(width),
