@@ -20,6 +20,8 @@ class AIOFrontendSourceTests(unittest.TestCase):
         body = generator_block[start:end]
 
         self.assertIn("nodeType.prototype.hideOutputImages = true", source)
+        self.assertIn("module?.useNodeOutputStore || module?.cn || module?.L", source)
+        self.assertIn("outputStore.revokePreviewsByLocatorId?.(locator);", source)
         self.assertIn("scheduleGeneratorDefaultPreviewSuppression(this);", body)
         self.assertIn("updateGeneratorExecutedStatus(this, message);", body)
         self.assertNotIn("onExecuted?.apply", body)

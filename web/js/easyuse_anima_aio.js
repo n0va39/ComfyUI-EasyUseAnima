@@ -4952,7 +4952,7 @@ async function generatorNativePreviewStores() {
       try {
         const module = await import(url);
         return {
-          useNodeOutputStore: module?.useNodeOutputStore || module?.L,
+          useNodeOutputStore: module?.useNodeOutputStore || module?.cn || module?.L,
           useWorkflowStore: module?.useWorkflowStore || module?.M,
         };
       } catch {
