@@ -35,6 +35,42 @@ class AIOFrontendSourceTests(unittest.TestCase):
         self.assertNotIn("next.highres.spectrum = mergeDefaults", body)
         self.assertNotIn("next.highres.dit_corrections = mergeDefaults", body)
 
+    def test_upscale_settings_offer_single_backend_and_usdu_helpers(self):
+        source = AIO_JS.read_text(encoding="utf-8")
+        start = source.index("function openUpscaleSettings")
+        end = source.index("\nfunction createDetailerTargetEditor", start)
+        body = source[start:end]
+
+        self.assertIn('selectInput(["usdu", "resshift"]', body)
+        self.assertIn('backend.value === "usdu"', body)
+        self.assertIn('createStageOptimizationEditor("USDU Spectrum/DCW"', body)
+        self.assertIn('"quality_tags_only"', body)
+        self.assertIn("auto_tile_size: autoTile.checked", body)
+        self.assertIn('nodeInputChoiceOptions("upscaleModelLoader", "model_name"', body)
+        self.assertIn('nodeInputChoiceOptions("resShiftLoader", "student_name"', body)
+        self.assertIn("upscaleBackendMissingPacks(backend.value)", body)
+        self.assertIn("enabled: enabled.checked && missingPacks.length === 0", body)
+
+    def test_upscale_optional_dependency_sanitizer_disables_missing_backend(self):
+        source = AIO_JS.read_text(encoding="utf-8")
+        start = source.index("function sanitizeGeneratorSettingsForOptionalDependencies")
+        end = source.index("\nfunction applyVisibleGeneratorSettings", start)
+        body = source[start:end]
+
+        self.assertIn("disableGeneratorSpectrumOptions(next.upscale)", body)
+        self.assertIn("upscaleBackendMissingPacks(next.upscale.backend).length", body)
+        self.assertIn("next.upscale.enabled = false", body)
+
+    def test_generator_panel_renders_upscale_after_detailer(self):
+        source = AIO_JS.read_text(encoding="utf-8")
+        start = source.index("function renderGeneratorPanel")
+        end = source.index("\nfunction ensureGeneratorPanel", start)
+        body = source[start:end]
+
+        self.assertLess(body.index("const detailerBlock"), body.index("const upscaleBlock"))
+        self.assertIn("settingsScroll.append(samplerGrid, highresBlock, detailerBlock, upscaleBlock)", body)
+        self.assertIn("openUpscaleSettings(node)", body)
+
     def test_safe_pag_advanced_labels_do_not_reuse_generic_labels(self):
         source = AIO_JS.read_text(encoding="utf-8")
         start = source.index("function openAdvancedSettings")

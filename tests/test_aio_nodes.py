@@ -135,6 +135,47 @@ class AIOSettingsStorageTests(unittest.TestCase):
         self.assertEqual(settings["preview"]["feed_count"], 12)
         self.assertEqual(settings["future_section"]["value"], 42)
 
+    def test_generation_settings_normalize_final_upscale(self):
+        settings = nodes._normalize_aio_generation_settings(json.dumps({
+            "upscale": {
+                "enabled": True,
+                "backend": "invalid",
+                "scale_by": 9,
+                "spectrum": {
+                    "enabled": True,
+                    "window_size": 5,
+                },
+                "dit_corrections": {
+                    "enabled": True,
+                    "dcw_mode": "manual",
+                },
+                "usdu": {
+                    "auto_tile_size": True,
+                    "prompt_mode": "quality_tags_only",
+                    "tile_width": 4,
+                },
+                "resshift": {
+                    "scale": "x9",
+                    "dtype": "bad",
+                    "tile_batch": 128,
+                },
+            },
+        }))
+
+        self.assertTrue(settings["upscale"]["enabled"])
+        self.assertEqual(settings["upscale"]["backend"], "usdu")
+        self.assertEqual(settings["upscale"]["scale_by"], 4.0)
+        self.assertTrue(settings["upscale"]["spectrum"]["enabled"])
+        self.assertEqual(settings["upscale"]["spectrum"]["window_size"], 5.0)
+        self.assertTrue(settings["upscale"]["dit_corrections"]["enabled"])
+        self.assertEqual(settings["upscale"]["dit_corrections"]["dcw_mode"], "manual")
+        self.assertTrue(settings["upscale"]["usdu"]["auto_tile_size"])
+        self.assertEqual(settings["upscale"]["usdu"]["prompt_mode"], "quality_tags_only")
+        self.assertEqual(settings["upscale"]["usdu"]["tile_width"], 64)
+        self.assertEqual(settings["upscale"]["resshift"]["scale"], "x2")
+        self.assertEqual(settings["upscale"]["resshift"]["dtype"], "bf16")
+        self.assertEqual(settings["upscale"]["resshift"]["tile_batch"], 32)
+
     def test_generation_settings_preserve_custom_detailer_blocks(self):
         settings = nodes._normalize_aio_generation_settings(json.dumps({
             "detailer": {
@@ -1457,6 +1498,158 @@ class AIOHighresDetailerStageTests(unittest.TestCase):
         self.assertEqual(metadata["order"], ["face", "custom_1", "eye"])
 
 
+class AIOFinalUpscaleStageTests(unittest.TestCase):
+    class _Image:
+        def __init__(self, width=512, height=768):
+            self.shape = (1, height, width, 3)
+
+    def test_usdu_auto_tile_size_has_practical_floor_and_alignment(self):
+        for target in (64, 512, 1536, 3072):
+            tile_size = nodes._aio_usdu_auto_tile_dimension(target)
+            self.assertGreaterEqual(tile_size, 512)
+            self.assertLessEqual(tile_size, 1024)
+            self.assertEqual(tile_size % 64, 0)
+
+    def test_upscale_stage_runs_usdu_with_quality_only_prompt_and_stage_patches(self):
+        settings = nodes._normalize_aio_generation_settings(json.dumps({
+            "sampler": {
+                "seed": 123,
+                "steps": 30,
+                "cfg": 5,
+            },
+            "upscale": {
+                "enabled": True,
+                "backend": "usdu",
+                "scale_by": 2,
+                "spectrum": {
+                    "enabled": True,
+                    "window_size": 6,
+                },
+                "dit_corrections": {
+                    "enabled": True,
+                    "dcw_mode": "manual",
+                },
+                "usdu": {
+                    "prompt_mode": "quality_tags_only",
+                    "auto_tile_size": True,
+                    "upscale_model_name": "model.safetensors",
+                },
+            },
+        }))
+        calls = {}
+
+        class FakeUSDU:
+            def upscale(self, **kwargs):
+                calls["usdu"] = kwargs
+                return (AIOFinalUpscaleStageTests._Image(1024, 1536),)
+
+        with (
+            patch.object(nodes, "_require_custom_node_class", return_value=FakeUSDU) as require,
+            patch.object(nodes, "_load_upscale_model_with_comfy", return_value="upscale_model") as load_upscale,
+            patch.object(nodes, "_encode_with_comfy_clip", side_effect=lambda clip, prompt: f"encoded:{prompt}") as encode,
+            patch.object(nodes, "_apply_aio_spectrum_model_patches_for_comfy_sampler", return_value="stage_model") as patch_stage,
+            patch.object(nodes, "_cleanup_aio_ephemeral_model") as cleanup,
+        ):
+            image, metadata = nodes._run_aio_upscale_stage(
+                "model",
+                "clip",
+                "vae",
+                "positive",
+                "negative",
+                self._Image(512, 768),
+                settings["sampler"],
+                settings["upscale"],
+                "quality tags",
+                "quality negative",
+            )
+
+        self.assertIsInstance(image, self._Image)
+        require.assert_called_once()
+        load_upscale.assert_called_once_with("model.safetensors")
+        self.assertEqual(encode.call_args_list[0].args, ("clip", "quality tags"))
+        self.assertEqual(encode.call_args_list[1].args, ("clip", "quality negative"))
+        self.assertEqual(patch_stage.call_args.args[2], "encoded:quality tags")
+        stage_sampler = patch_stage.call_args.args[3]
+        self.assertTrue(stage_sampler["spectrum"]["enabled"])
+        self.assertEqual(stage_sampler["spectrum"]["window_size"], 6.0)
+        self.assertTrue(stage_sampler["dit_corrections"]["enabled"])
+        self.assertEqual(stage_sampler["dit_corrections"]["dcw_mode"], "manual")
+        self.assertEqual(calls["usdu"]["model"], "stage_model")
+        self.assertEqual(calls["usdu"]["positive"], "encoded:quality tags")
+        self.assertEqual(calls["usdu"]["negative"], "encoded:quality negative")
+        self.assertEqual(calls["usdu"]["upscale_model"], "upscale_model")
+        self.assertEqual(calls["usdu"]["tile_width"], 512)
+        self.assertEqual(calls["usdu"]["tile_height"], 768)
+        self.assertEqual(metadata["backend"], "usdu")
+        self.assertEqual(metadata["prompt_mode"], "quality_tags_only")
+        cleanup.assert_called_once_with("stage_model", "model")
+
+    def test_upscale_stage_runs_only_resshift_when_selected(self):
+        settings = nodes._normalize_aio_generation_settings(json.dumps({
+            "sampler": {
+                "seed": 321,
+            },
+            "upscale": {
+                "enabled": True,
+                "backend": "resshift",
+                "resshift": {
+                    "scale": "x4",
+                    "student_name": "student.ckpt",
+                    "dtype": "fp32",
+                    "chop": 1024,
+                    "overlap": 96,
+                    "tile_batch": 2,
+                },
+            },
+        }))
+        calls = {}
+
+        class FakeLoader:
+            def load(self, scale, student_name, dtype):
+                calls["loader"] = (scale, student_name, dtype)
+                return ("resshift_model",)
+
+        class FakeUpscale:
+            def upscale(self, *args):
+                calls["upscale"] = args
+                return (AIOFinalUpscaleStageTests._Image(2048, 3072),)
+
+        def fake_require(node_id, *_args):
+            if node_id == "ResShiftLoader":
+                return FakeLoader
+            if node_id == "ResShiftUpscale":
+                return FakeUpscale
+            raise AssertionError(f"unexpected node lookup: {node_id}")
+
+        input_image = self._Image(512, 768)
+        with (
+            patch.object(nodes, "_require_custom_node_class", side_effect=fake_require) as require,
+            patch.object(nodes, "_load_upscale_model_with_comfy") as load_upscale,
+            patch.object(nodes, "_apply_aio_spectrum_model_patches_for_comfy_sampler") as patch_stage,
+        ):
+            image, metadata = nodes._run_aio_upscale_stage(
+                "model",
+                "clip",
+                "vae",
+                "positive",
+                "negative",
+                input_image,
+                settings["sampler"],
+                settings["upscale"],
+            )
+
+        self.assertIsInstance(image, self._Image)
+        self.assertEqual(require.call_count, 2)
+        load_upscale.assert_not_called()
+        patch_stage.assert_not_called()
+        self.assertEqual(calls["loader"], ("x4", "student.ckpt", "fp32"))
+        self.assertEqual(calls["upscale"][0], "resshift_model")
+        self.assertIs(calls["upscale"][1], input_image)
+        self.assertEqual(calls["upscale"][2:], (321, 1024, 96, 2))
+        self.assertEqual(metadata["backend"], "resshift")
+        self.assertEqual(metadata["scale"], "x4")
+
+
 class AIOGeneratorRuntimeTests(unittest.TestCase):
     def setUp(self):
         nodes._clear_aio_first_pass_cache()
@@ -1674,6 +1867,67 @@ class AIOGeneratorRuntimeTests(unittest.TestCase):
         comfy_patch.assert_not_called()
         self.assertEqual(sample.call_args.args[0], "patched_model")
         self.assertEqual(detailer.call_args.args[0], "mod_guidance_model")
+
+    def test_generator_runs_final_upscale_after_detailer_before_save(self):
+        context = self._context()
+        events = []
+
+        def fake_detailer(*_args):
+            events.append("detailer")
+            return "detail_image", {"enabled": True}
+
+        def fake_upscale(*_args):
+            events.append("upscale")
+            return AIOFinalUpscaleStageTests._Image(1024, 1536), {"enabled": True, "backend": "usdu", "width": 1024, "height": 1536}
+
+        def fake_save(*_args, **_kwargs):
+            events.append("save")
+            return {"ui": {"images": [{"filename": "final.webp"}]}}
+
+        with (
+            patch.object(nodes, "_load_aio_resources_from_input_context", return_value=("base_model", "base_clip", "vae")),
+            patch.object(nodes, "_apply_aio_lora_stack", return_value=("lora_model", "lora_clip", [])),
+            patch.object(nodes, "_apply_aio_model_patches", return_value="patched_model"),
+            patch.object(nodes, "_advanced_outputs_from_prompt_data", return_value=("p", "n", "q", "qn", False, False, "", "", 512, 768)),
+            patch.object(nodes, "_encode_prompt_data_positive_conditioning", return_value="positive"),
+            patch.object(nodes, "_encode_with_comfy_clip", return_value="negative"),
+            patch.object(nodes, "_generate_empty_latent_with_comfy", return_value="latent_image"),
+            patch.object(nodes, "_sample_latent_with_aio_backend", return_value="latent"),
+            patch.object(nodes, "_decode_latent_with_comfy", return_value="first_image"),
+            patch.object(nodes, "_run_aio_highres_stage", return_value=("latent", "first_image", 512, 768, {"enabled": False})),
+            patch.object(nodes, "_run_aio_detailer_stage", side_effect=fake_detailer),
+            patch.object(nodes, "_run_aio_upscale_stage", side_effect=fake_upscale) as upscale,
+            patch.object(nodes, "_encode_image_with_comfy_vae", return_value="upscaled_latent") as encode,
+            patch.object(nodes, "_save_image_with_image_saver", side_effect=fake_save) as save,
+            patch.object(nodes, "_cleanup_aio_ephemeral_model"),
+        ):
+            result = nodes.EasyUseAnimaAIOGenerator().generate(
+                context,
+                generation_settings=json.dumps({
+                    "detailer": {
+                        "enabled": True,
+                        "face": {
+                            "enabled": True,
+                        },
+                    },
+                    "upscale": {
+                        "enabled": True,
+                        "backend": "usdu",
+                    },
+                    "save": {
+                        "enabled": True,
+                    },
+                }),
+                unique_id=213,
+            )
+
+        self.assertEqual(events, ["detailer", "upscale", "save"])
+        self.assertIsInstance(result["result"][0], AIOFinalUpscaleStageTests._Image)
+        self.assertEqual(result["result"][1], "upscaled_latent")
+        self.assertEqual(upscale.call_args.args[5], "detail_image")
+        encode.assert_called_once_with("vae", result["result"][0])
+        self.assertEqual(save.call_args.kwargs["width"], 1024)
+        self.assertEqual(save.call_args.kwargs["height"], 1536)
 
     def test_generator_save_metadata_uses_first_pass_sampler_and_final_size(self):
         context = self._context()
