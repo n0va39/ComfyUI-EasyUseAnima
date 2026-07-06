@@ -26,6 +26,19 @@ class AIOFrontendSourceTests(unittest.TestCase):
         self.assertIn("updateGeneratorExecutedStatus(this, message);", body)
         self.assertNotIn("onExecuted?.apply", body)
 
+    def test_generator_preview_meta_does_not_show_resolution(self):
+        source = AIO_JS.read_text(encoding="utf-8")
+        start = source.index("function updateGeneratorDomPreview")
+        end = source.index("\nfunction cssEscape", start)
+        body = source[start:end]
+        meta_start = body.index("const parts = [")
+        meta_end = body.index("].filter", meta_start)
+        meta_parts = body[meta_start:meta_end]
+
+        self.assertIn("generatorPreviewImageName(currentImage)", meta_parts)
+        self.assertIn("generatorPreviewFileSize(currentImage)", meta_parts)
+        self.assertNotIn("generatorPreviewResolution(currentImage)", meta_parts)
+
     def test_detailer_target_editor_builds_optimization_before_visibility_refresh(self):
         source = AIO_JS.read_text(encoding="utf-8")
         start = source.index("function createDetailerTargetEditor")

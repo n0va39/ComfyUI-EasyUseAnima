@@ -4643,7 +4643,6 @@ function updateGeneratorDomPreview(node) {
   if (metaEl) {
     const parts = [
       generatorPreviewImageName(currentImage),
-      generatorPreviewResolution(currentImage),
       generatorPreviewFileSize(currentImage),
     ].filter((part) => part && part !== "-");
     const metaText = parts.length ? parts.join(" · ") : "-";
