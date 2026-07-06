@@ -8,7 +8,7 @@ import os
 import random
 import re
 import sys
-from math import ceil, gcd, isfinite, lcm, log
+from math import ceil, gcd, isfinite, lcm, log, sqrt
 from typing import Any, Optional
 
 try:
@@ -405,6 +405,13 @@ AIO_GENERATION_DEFAULT_SETTINGS = {
         "sampler_name": "euler",
         "scheduler": "simple",
         "denoise": 0.2,
+        "fit": {
+            "enabled": False,
+            "mode": "max_long_edge",
+            "max_long_edge": 2048,
+            "max_megapixels": 4.0,
+            "method": "bicubic",
+        },
         "spectrum": {
             "enabled": False,
             "window_size": 2.0,
@@ -443,6 +450,9 @@ AIO_GENERATION_DEFAULT_SETTINGS = {
             "auto_tile_size": True,
             "prompt_mode": "full",
             "mode_type": "Linear",
+            "auto_tile_target": 768,
+            "auto_tile_min": 512,
+            "auto_tile_max": 1024,
             "tile_width": 512,
             "tile_height": 512,
             "mask_blur": 8,
@@ -701,7 +711,10 @@ IMAGE_SCALE_MULTIPLES = ["8", "16", "32", "64"]
 AIO_FINAL_UPSCALE_BACKENDS = ("usdu", "resshift")
 AIO_USDU_MODE_TYPES = ("Linear", "Chess", "None")
 AIO_USDU_SEAM_FIX_MODES = ("None", "Band Pass", "Half Tile", "Half Tile + Intersections")
-AIO_USDU_PROMPT_MODES = ("full", "quality_tags_only")
+AIO_USDU_PROMPT_FULL = "full"
+AIO_USDU_PROMPT_NO_GENERAL = "no_general"
+AIO_USDU_PROMPT_MODES = (AIO_USDU_PROMPT_FULL, AIO_USDU_PROMPT_NO_GENERAL)
+AIO_FINAL_FIT_MODES = ("max_long_edge", "megapixels")
 AIO_RESHIFT_SCALES = ("x2", "x4")
 AIO_RESHIFT_DTYPES = ("bf16", "fp32")
 ADVANCED_RESOLUTION_BUCKETS = {
@@ -1619,6 +1632,23 @@ def _normalize_aio_generation_settings(value) -> dict[str, Any]:
         default_upscale["scheduler"],
     )
     upscale["denoise"] = max(0.0, min(1.0, _as_float(upscale.get("denoise"), default_upscale["denoise"])))
+    max_resolution = _comfy_max_resolution()
+    fit = upscale.setdefault("fit", {})
+    if not isinstance(fit, dict):
+        fit = {}
+        upscale["fit"] = fit
+    default_fit = default_upscale["fit"]
+    fit["enabled"] = _as_bool(fit.get("enabled"), default_fit["enabled"])
+    fit["mode"] = _choice(fit.get("mode"), AIO_FINAL_FIT_MODES, default_fit["mode"])
+    fit["max_long_edge"] = max(
+        64,
+        min(max_resolution, _as_int(fit.get("max_long_edge"), default_fit["max_long_edge"])),
+    )
+    fit["max_megapixels"] = max(
+        0.1,
+        min(256.0, _as_float(fit.get("max_megapixels"), default_fit["max_megapixels"])),
+    )
+    fit["method"] = _choice(fit.get("method"), IMAGE_UPSCALE_METHODS, default_fit["method"])
     upscale["spectrum"] = _normalize_aio_spectrum_settings(
         upscale.get("spectrum"),
         default_upscale["spectrum"],
@@ -1636,9 +1666,24 @@ def _normalize_aio_generation_settings(value) -> dict[str, Any]:
         usdu.get("upscale_model_name") or default_usdu["upscale_model_name"]
     )
     usdu["auto_tile_size"] = _as_bool(usdu.get("auto_tile_size"), default_usdu["auto_tile_size"])
-    usdu["prompt_mode"] = _choice(usdu.get("prompt_mode"), AIO_USDU_PROMPT_MODES, default_usdu["prompt_mode"])
+    prompt_mode = str(usdu.get("prompt_mode") or default_usdu["prompt_mode"])
+    if prompt_mode == "quality_tags_only":
+        prompt_mode = AIO_USDU_PROMPT_NO_GENERAL
+    usdu["prompt_mode"] = _choice(prompt_mode, AIO_USDU_PROMPT_MODES, default_usdu["prompt_mode"])
     usdu["mode_type"] = _choice(usdu.get("mode_type"), AIO_USDU_MODE_TYPES, default_usdu["mode_type"])
-    max_resolution = _comfy_max_resolution()
+    usdu["auto_tile_target"] = max(
+        64,
+        min(max_resolution, _as_int(usdu.get("auto_tile_target"), default_usdu["auto_tile_target"])),
+    )
+    usdu["auto_tile_min"] = max(
+        64,
+        min(max_resolution, _as_int(usdu.get("auto_tile_min"), default_usdu["auto_tile_min"])),
+    )
+    usdu["auto_tile_max"] = max(
+        usdu["auto_tile_min"],
+        min(max_resolution, _as_int(usdu.get("auto_tile_max"), default_usdu["auto_tile_max"])),
+    )
+    usdu["auto_tile_target"] = max(usdu["auto_tile_min"], min(usdu["auto_tile_max"], usdu["auto_tile_target"]))
     usdu["tile_width"] = max(64, min(max_resolution, _as_int(usdu.get("tile_width"), default_usdu["tile_width"])))
     usdu["tile_height"] = max(64, min(max_resolution, _as_int(usdu.get("tile_height"), default_usdu["tile_height"])))
     usdu["mask_blur"] = max(0, min(64, _as_int(usdu.get("mask_blur"), default_usdu["mask_blur"])))
@@ -3435,13 +3480,20 @@ def _run_aio_highres_stage(
     }
 
 
-def _aio_usdu_auto_tile_dimension(target_size: int) -> int:
+def _aio_usdu_auto_tile_dimension(
+    target_size: int,
+    preferred_size: int = 768,
+    min_size: int = 512,
+    max_size: int = 1024,
+) -> int:
     target_size = max(1, int(target_size))
-    preferred = 768
+    min_size = max(64, int(min_size))
+    max_size = max(min_size, int(max_size))
+    preferred = max(min_size, min(max_size, int(preferred_size)))
     tile_count = max(1, ceil(target_size / preferred))
     tile_size = ceil(target_size / tile_count)
     tile_size = _align_nearest(tile_size, 64)
-    return max(512, min(1024, tile_size))
+    return max(min_size, min(max_size, tile_size))
 
 
 def _aio_usdu_tile_size(image, scale_by: float, usdu_settings: dict[str, Any]) -> tuple[int, int]:
@@ -3453,9 +3505,51 @@ def _aio_usdu_tile_size(image, scale_by: float, usdu_settings: dict[str, Any]) -
     width, height = _image_tensor_size(image, 512, 512)
     target_width = max(1, int(round(width * max(0.05, float(scale_by)))))
     target_height = max(1, int(round(height * max(0.05, float(scale_by)))))
+    preferred = _as_int(usdu_settings.get("auto_tile_target"), 768)
+    min_size = _as_int(usdu_settings.get("auto_tile_min"), 512)
+    max_size = _as_int(usdu_settings.get("auto_tile_max"), 1024)
     return (
-        _aio_usdu_auto_tile_dimension(target_width),
-        _aio_usdu_auto_tile_dimension(target_height),
+        _aio_usdu_auto_tile_dimension(target_width, preferred, min_size, max_size),
+        _aio_usdu_auto_tile_dimension(target_height, preferred, min_size, max_size),
+    )
+
+
+def _aio_prompt_data_fields_for_usdu(prompt_data: str | dict | None) -> list[dict]:
+    data = _normalize_prompt_data(prompt_data)
+    fields = data.get("fields")
+    if not isinstance(fields, list):
+        fields = data.get("saved_fields")
+    return _normalize_advanced_fields(fields)
+
+
+def _aio_usdu_prompt_without_general(
+    prompt_data: str | dict | None,
+    pane: str,
+    include_quality: bool,
+) -> tuple[str, bool]:
+    fields = _aio_prompt_data_fields_for_usdu(prompt_data)
+    if not fields:
+        return "", False
+    allowed_types = {"artist", "trigger"}
+    if include_quality:
+        allowed_types.add("quality")
+    selected = [
+        field
+        for field in _advanced_enabled_pane_fields(fields, pane)
+        if field.get("type") in allowed_types
+    ]
+    if not selected:
+        return "", True
+    artist_prompt = _advanced_artist_field_prompt(selected, pane)
+    force_pin_triggers = _as_bool(_normalize_prompt_data(prompt_data).get("pin_trigger_tags_to_front"), False)
+    return (
+        _correct_advanced_field_sequence(
+            selected,
+            include_quality=include_quality,
+            artist_overrides=artist_prompt,
+            force_pin_triggers=force_pin_triggers,
+        ),
+        True,
     )
 
 
@@ -3466,12 +3560,85 @@ def _aio_usdu_conditioning(
     usdu_settings: dict[str, Any],
     quality_tags: str,
     quality_neg: str,
+    prompt_data: str | dict | None = None,
+    exclude_positive_quality: bool = False,
+    exclude_negative_quality: bool = False,
 ):
-    if str(usdu_settings.get("prompt_mode") or "full") != "quality_tags_only":
+    prompt_mode = str(usdu_settings.get("prompt_mode") or AIO_USDU_PROMPT_FULL)
+    if prompt_mode == "quality_tags_only":
+        prompt_mode = AIO_USDU_PROMPT_NO_GENERAL
+    if prompt_mode != AIO_USDU_PROMPT_NO_GENERAL:
         return positive, negative
-    prompt = str(quality_tags or "highres, best quality")
-    negative_prompt = str(quality_neg or "")
+    prompt, has_fields = _aio_usdu_prompt_without_general(
+        prompt_data,
+        "positive",
+        include_quality=not _as_bool(exclude_positive_quality, False),
+    )
+    negative_prompt, has_negative_fields = _aio_usdu_prompt_without_general(
+        prompt_data,
+        "negative",
+        include_quality=not _as_bool(exclude_negative_quality, False),
+    )
+    if not has_fields and not prompt:
+        prompt = "" if _as_bool(exclude_positive_quality, False) else str(quality_tags or "highres, best quality")
+    if not has_negative_fields and not negative_prompt:
+        negative_prompt = "" if _as_bool(exclude_negative_quality, False) else str(quality_neg or "")
     return _encode_with_comfy_clip(clip, prompt), _encode_with_comfy_clip(clip, negative_prompt)
+
+
+def _aio_final_fit_size(width: int, height: int, fit_settings: dict[str, Any]) -> tuple[int, int, float]:
+    width = max(1, int(width))
+    height = max(1, int(height))
+    if not _as_bool(fit_settings.get("enabled"), False):
+        return width, height, 1.0
+    mode = str(fit_settings.get("mode") or "max_long_edge")
+    scale = 1.0
+    if mode == "megapixels":
+        max_pixels = max(1.0, _as_float(fit_settings.get("max_megapixels"), 4.0) * 1_000_000.0)
+        pixels = float(width * height)
+        if pixels > max_pixels:
+            scale = sqrt(max_pixels / pixels)
+    else:
+        max_long_edge = max(1, _as_int(fit_settings.get("max_long_edge"), 2048))
+        long_edge = max(width, height)
+        if long_edge > max_long_edge:
+            scale = max_long_edge / long_edge
+    if scale >= 1.0:
+        return width, height, 1.0
+    target_width = _align_down(round(width * scale), LATENT_ALIGN)
+    target_height = _align_down(round(height * scale), LATENT_ALIGN)
+    return max(1, target_width), max(1, target_height), scale
+
+
+def _apply_aio_final_fit(image, upscale_settings: dict[str, Any]) -> tuple[Any, dict[str, Any]]:
+    fit_settings = upscale_settings.get("fit", {})
+    if not isinstance(fit_settings, dict):
+        fit_settings = {}
+    width, height = _image_tensor_size(image, 0, 0)
+    target_width, target_height, scale = _aio_final_fit_size(width, height, fit_settings)
+    metadata = {
+        "enabled": _as_bool(fit_settings.get("enabled"), False),
+        "mode": str(fit_settings.get("mode") or "max_long_edge"),
+        "max_long_edge": _as_int(fit_settings.get("max_long_edge"), 2048),
+        "max_megapixels": _as_float(fit_settings.get("max_megapixels"), 4.0),
+        "method": str(fit_settings.get("method") or "bicubic"),
+        "applied": scale < 1.0,
+        "scale": float(scale),
+        "width": int(width),
+        "height": int(height),
+        "target_width": int(target_width),
+        "target_height": int(target_height),
+    }
+    if scale >= 1.0:
+        return image, metadata
+    output, resized = _resize_image_to_size_if_needed(
+        image,
+        target_width,
+        target_height,
+        str(fit_settings.get("method") or "bicubic"),
+    )
+    metadata["applied"] = bool(resized)
+    return output, metadata
 
 
 def _run_aio_usdu_upscale_stage(
@@ -3485,6 +3652,9 @@ def _run_aio_usdu_upscale_stage(
     upscale_settings: dict[str, Any],
     quality_tags: str = "",
     quality_neg: str = "",
+    prompt_data: str | dict | None = None,
+    exclude_positive_quality: bool = False,
+    exclude_negative_quality: bool = False,
 ) -> tuple[Any, dict[str, Any]]:
     usdu_settings = upscale_settings.get("usdu", {})
     if not isinstance(usdu_settings, dict):
@@ -3509,6 +3679,9 @@ def _run_aio_usdu_upscale_stage(
         usdu_settings,
         quality_tags,
         quality_neg,
+        prompt_data,
+        exclude_positive_quality,
+        exclude_negative_quality,
     )
     stage_model = _apply_aio_spectrum_model_patches_for_comfy_sampler(
         model,
@@ -3560,7 +3733,7 @@ def _run_aio_usdu_upscale_stage(
         "scale_by": scale_by,
         "tile_width": int(tile_width),
         "tile_height": int(tile_height),
-        "prompt_mode": str(usdu_settings.get("prompt_mode") or "full"),
+        "prompt_mode": str(usdu_settings.get("prompt_mode") or AIO_USDU_PROMPT_FULL),
         "sampler": _prompt_data_json_safe(stage_sampler),
     }
 
@@ -3571,6 +3744,9 @@ def _run_aio_resshift_upscale_stage(
     upscale_settings: dict[str, Any],
     quality_tags: str = "",
     quality_neg: str = "",
+    prompt_data: str | dict | None = None,
+    exclude_positive_quality: bool = False,
+    exclude_negative_quality: bool = False,
 ) -> tuple[Any, dict[str, Any]]:
     resshift_settings = upscale_settings.get("resshift", {})
     if not isinstance(resshift_settings, dict):
@@ -3632,12 +3808,15 @@ def _run_aio_upscale_stage(
     upscale_settings: dict[str, Any],
     quality_tags: str = "",
     quality_neg: str = "",
+    prompt_data: str | dict | None = None,
+    exclude_positive_quality: bool = False,
+    exclude_negative_quality: bool = False,
 ) -> tuple[Any, dict[str, Any]]:
     if not _as_bool(upscale_settings.get("enabled"), False):
         return image, {"enabled": False}
     backend = str(upscale_settings.get("backend") or "usdu")
     if backend == "usdu":
-        return _run_aio_usdu_upscale_stage(
+        output, metadata = _run_aio_usdu_upscale_stage(
             model,
             clip,
             vae,
@@ -3648,16 +3827,27 @@ def _run_aio_upscale_stage(
             upscale_settings,
             quality_tags,
             quality_neg,
+            prompt_data,
+            exclude_positive_quality,
+            exclude_negative_quality,
         )
-    if backend == "resshift":
-        return _run_aio_resshift_upscale_stage(
+    elif backend == "resshift":
+        output, metadata = _run_aio_resshift_upscale_stage(
             image,
             sampler_settings,
             upscale_settings,
             quality_tags,
             quality_neg,
+            prompt_data,
+            exclude_positive_quality,
+            exclude_negative_quality,
         )
-    raise RuntimeError(f"[EasyUseAnima] Unsupported final upscale backend: {backend}")
+    else:
+        raise RuntimeError(f"[EasyUseAnima] Unsupported final upscale backend: {backend}")
+    output, fit_metadata = _apply_aio_final_fit(output, upscale_settings)
+    metadata["fit"] = fit_metadata
+    metadata["width"], metadata["height"] = _image_tensor_size(output, metadata.get("width", 0), metadata.get("height", 0))
+    return output, metadata
 
 
 def _load_aio_sam3_context(detailer_settings: dict[str, Any]) -> dict[str, Any]:
@@ -4180,6 +4370,12 @@ def _align_nearest(value: int, alignment: int) -> int:
     if (value - lower) < (upper - value):
         return lower
     return upper
+
+
+def _align_down(value: int, alignment: int) -> int:
+    value = max(1, int(value))
+    alignment = max(1, int(alignment))
+    return max(1, (value // alignment) * alignment)
 
 
 def _scale_by_value(value, default: float = 1.0) -> float:
@@ -10090,6 +10286,9 @@ class EasyUseAnimaAIOGenerator:
                 settings["upscale"],
                 quality_tags,
                 quality_neg,
+                prompt_data,
+                exclude_positive_quality=can_apply_standalone_mod_guidance,
+                exclude_negative_quality=can_apply_standalone_mod_guidance and use_negative_anima_mod_guidance,
             )
             stage_metadata["upscale"] = upscale_metadata
             if upscale_metadata.get("enabled"):

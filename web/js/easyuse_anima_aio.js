@@ -371,6 +371,13 @@ const DEFAULT_GENERATION_SETTINGS = {
     sampler_name: "euler",
     scheduler: "simple",
     denoise: 0.2,
+    fit: {
+      enabled: false,
+      mode: "max_long_edge",
+      max_long_edge: 2048,
+      max_megapixels: 4.0,
+      method: "bicubic",
+    },
     spectrum: {
       enabled: false,
       window_size: 2.0,
@@ -409,6 +416,9 @@ const DEFAULT_GENERATION_SETTINGS = {
       auto_tile_size: true,
       prompt_mode: "full",
       mode_type: "Linear",
+      auto_tile_target: 768,
+      auto_tile_min: 512,
+      auto_tile_max: 1024,
       tile_width: 512,
       tile_height: 512,
       mask_blur: 8,
@@ -657,6 +667,7 @@ const AIO_TEXT = {
     "section.usduSampler": "USDU Sampler",
     "section.usduOptimization": "USDU Spectrum/DCW",
     "section.resshiftUpscale": "ResShift Upscale",
+    "section.finalFit": "Final Size Fit",
     "section.detailer": "Detailer",
     "section.detailerBlocks": "Detailer Blocks",
     "section.sam3Detect": "SAM3 Detect",
@@ -714,7 +725,14 @@ const AIO_TEXT = {
     "field.upscaleBackend": "Upscale backend",
     "field.upscaleModel": "Upscale model",
     "field.autoTileSize": "Auto tile size",
+    "field.autoTileTarget": "Auto tile target",
+    "field.autoTileMin": "Auto tile min",
+    "field.autoTileMax": "Auto tile max",
     "field.usduPrompt": "USDU prompt",
+    "field.fitFinalSize": "Fit final size",
+    "field.fitMode": "Fit by",
+    "field.maxMegapixels": "Max megapixels",
+    "field.fitMethod": "Fit method",
     "field.tileWidth": "Tile width",
     "field.tileHeight": "Tile height",
     "field.maskBlur": "Mask blur",
@@ -832,7 +850,7 @@ const AIO_TEXT = {
     "text.highresSpdManualRequired": "Spectrum SPD / SPEED is not reused by Highres. Highres uses the general KSampler path.",
     "text.detailerDisabled": "Enable Detailer to configure ordered processing blocks.",
     "text.upscaleDisabled": "Enable Upscale to run one final USDU or ResShift pass before saving.",
-    "text.usduAutoTile": "Auto tile size",
+    "text.usduAutoTile": "Auto tile uses target/min/max tile sizes",
     "text.usduManualTile": "Manual tile size",
     "text.inheritsMainSampler": "Reuses main CFG, sampler, and scheduler. Stage Spectrum/DCW stays independent.",
     "text.usesStageSamplerOverride": "Uses stage CFG, sampler, and scheduler with stage Spectrum/DCW.",
@@ -867,10 +885,12 @@ const AIO_TEXT = {
     "tip.upscaleBackend": "Selects the final upscale backend. Only one backend is used for each run.",
     "tip.upscaleScale": "USDU upscale ratio used by Ultimate SD Upscale.",
     "tip.usduUpscaleModel": "Upscale model loaded through ComfyUI UpscaleModelLoader for USDU.",
-    "tip.usduPrompt": "Full uses the original positive prompt. Quality-only removes content tags for USDU tile sampling.",
+    "tip.usduPrompt": "Full uses the current positive/negative conditioning. No-general rebuilds the USDU prompt from quality, artist, and trigger fields only; if Mod Guidance already applies quality tags, they are not duplicated in the USDU prompt.",
     "tip.usduMode": "USDU tile redraw order.",
-    "tip.usduTile": "USDU tile sizing and padding controls.",
+    "tip.usduTile": "USDU manual tile, padding, and seam controls.",
+    "tip.usduAutoTile": "When enabled, tile width/height are calculated from the expected upscaled size. Target is the preferred tile size, min and max clamp the automatic result, and values align to 64 pixels.",
     "tip.usduSeam": "USDU seam-fix controls.",
+    "tip.finalFit": "After USDU or ResShift, downscale only when the final image exceeds the selected max long edge or megapixel limit.",
     "tip.resshiftScale": "ResShift super-resolution factor. The loader scale must match the selected student.",
     "tip.resshiftStudent": "ResShift student checkpoint. Auto-download fetches the matching released student.",
     "tip.resshiftDtype": "ResShift loader precision.",
@@ -948,6 +968,7 @@ const AIO_TEXT = {
     "section.usduSampler": "USDU 샘플러",
     "section.usduOptimization": "USDU Spectrum/DCW",
     "section.resshiftUpscale": "ResShift 업스케일",
+    "section.finalFit": "최종 해상도 맞춤",
     "section.detailer": "디테일러",
     "section.detailerBlocks": "디테일러 블럭",
     "section.sam3Detect": "SAM3 감지",
@@ -1005,7 +1026,14 @@ const AIO_TEXT = {
     "field.upscaleBackend": "업스케일 백엔드",
     "field.upscaleModel": "업스케일 모델",
     "field.autoTileSize": "타일 크기 자동지정",
+    "field.autoTileTarget": "자동 타일 목표",
+    "field.autoTileMin": "자동 타일 최소",
+    "field.autoTileMax": "자동 타일 최대",
     "field.usduPrompt": "USDU 프롬프트",
+    "field.fitFinalSize": "최종 해상도 맞춤",
+    "field.fitMode": "맞춤 기준",
+    "field.maxMegapixels": "최대 메가픽셀",
+    "field.fitMethod": "맞춤 방식",
     "field.tileWidth": "타일 너비",
     "field.tileHeight": "타일 높이",
     "field.maskBlur": "마스크 블러",
@@ -1123,7 +1151,7 @@ const AIO_TEXT = {
     "text.highresSpdManualRequired": "Spectrum SPD / SPEED는 Highres에서 재사용하지 않습니다. Highres는 일반 KSampler 경로를 사용합니다.",
     "text.detailerDisabled": "디테일러를 켜면 순서 조정 가능한 처리 블럭이 표시됩니다.",
     "text.upscaleDisabled": "Upscale을 켜면 저장 전에 USDU 또는 ResShift 최종 패스 하나를 실행합니다.",
-    "text.usduAutoTile": "타일 크기 자동지정",
+    "text.usduAutoTile": "자동 타일 target/min/max 사용",
     "text.usduManualTile": "수동 타일 크기",
     "text.inheritsMainSampler": "메인 CFG, 샘플러, 스케줄러를 따릅니다. Spectrum/DCW는 이 stage 설정을 사용합니다.",
     "text.usesStageSamplerOverride": "이 stage의 CFG, 샘플러, 스케줄러와 Spectrum/DCW를 사용합니다.",
@@ -1158,10 +1186,12 @@ const AIO_TEXT = {
     "tip.upscaleBackend": "최종 업스케일 백엔드입니다. 한 번 실행할 때 하나만 사용합니다.",
     "tip.upscaleScale": "Ultimate SD Upscale에 전달할 USDU 확대 배율입니다.",
     "tip.usduUpscaleModel": "USDU에서 ComfyUI UpscaleModelLoader로 로드할 업스케일 모델입니다.",
-    "tip.usduPrompt": "full은 원본 positive prompt를 사용합니다. quality-only는 USDU 타일 샘플링에서 내용 태그를 제거합니다.",
+    "tip.usduPrompt": "full은 현재 positive/negative conditioning을 그대로 사용합니다. no_general은 USDU 프롬프트를 quality, artist, trigger 필드만으로 다시 만들며, Mod Guidance가 quality 태그를 이미 적용 중이면 USDU 프롬프트에 중복으로 넣지 않습니다.",
     "tip.usduMode": "USDU 타일 redraw 순서입니다.",
-    "tip.usduTile": "USDU 타일 크기와 padding 설정입니다.",
+    "tip.usduTile": "USDU 수동 타일, padding, seam 설정입니다.",
+    "tip.usduAutoTile": "활성화하면 최종 업스케일 예상 크기에서 타일 너비/높이를 계산합니다. 목표값은 선호 타일 크기, 최소/최대는 자동 결과의 하한/상한이며 64px 단위로 정렬합니다.",
     "tip.usduSeam": "USDU seam-fix 설정입니다.",
+    "tip.finalFit": "USDU 또는 ResShift 이후 최종 이미지가 선택한 최대 긴 변 또는 메가픽셀 수를 넘을 때만 다운스케일합니다.",
     "tip.resshiftScale": "ResShift 초해상도 배율입니다. Loader scale은 선택한 student와 일치해야 합니다.",
     "tip.resshiftStudent": "ResShift student 체크포인트입니다. Auto-download는 배율에 맞는 공개 student를 받습니다.",
     "tip.resshiftDtype": "ResShift loader precision입니다.",
@@ -1849,8 +1879,15 @@ const AIO_FIELD_TOOLTIP_KEYS = {
   "Scale by": "tip.highresScale",
   "Upscale backend": "tip.upscaleBackend",
   "Upscale model": "tip.usduUpscaleModel",
-  "Auto tile size": "tip.usduTile",
+  "Auto tile size": "tip.usduAutoTile",
+  "Auto tile target": "tip.usduAutoTile",
+  "Auto tile min": "tip.usduAutoTile",
+  "Auto tile max": "tip.usduAutoTile",
   "USDU prompt": "tip.usduPrompt",
+  "Fit final size": "tip.finalFit",
+  "Fit by": "tip.finalFit",
+  "Max megapixels": "tip.finalFit",
+  "Fit method": "tip.finalFit",
   "Tile width": "tip.usduTile",
   "Tile height": "tip.usduTile",
   "Mask blur": "tip.usduTile",
@@ -1943,6 +1980,7 @@ const AIO_STATIC_TEXT_KEYS = {
   "USDU Sampler": "section.usduSampler",
   "USDU Spectrum/DCW": "section.usduOptimization",
   "ResShift Upscale": "section.resshiftUpscale",
+  "Final Size Fit": "section.finalFit",
   "Detailer": "section.detailer",
   "Detailer Blocks": "section.detailerBlocks",
   "SAM3 Detect": "section.sam3Detect",
@@ -2011,7 +2049,14 @@ const AIO_FIELD_LABEL_KEYS = {
   "Upscale backend": "field.upscaleBackend",
   "Upscale model": "field.upscaleModel",
   "Auto tile size": "field.autoTileSize",
+  "Auto tile target": "field.autoTileTarget",
+  "Auto tile min": "field.autoTileMin",
+  "Auto tile max": "field.autoTileMax",
   "USDU prompt": "field.usduPrompt",
+  "Fit final size": "field.fitFinalSize",
+  "Fit by": "field.fitMode",
+  "Max megapixels": "field.maxMegapixels",
+  "Fit method": "field.fitMethod",
   "Tile width": "field.tileWidth",
   "Tile height": "field.tileHeight",
   "Mask blur": "field.maskBlur",
@@ -5753,10 +5798,6 @@ function renderGeneratorPanel(node) {
   const upscaleBody = document.createElement("div");
   upscaleBody.className = "easyuse-anima-aio-node-stage-body";
   if (settings.upscale.enabled) {
-    const backendBadge = Object.assign(document.createElement("div"), {
-      className: "easyuse-anima-aio-node-mode-badge",
-      textContent: settings.upscale.backend === "resshift" ? "ResShift" : "USDU",
-    });
     const backend = createDomSettingsSelectControl(
       node,
       settings.upscale.backend || "usdu",
@@ -5768,7 +5809,6 @@ function renderGeneratorPanel(node) {
       { rerender: true },
     );
     upscaleBody.append(
-      createNodeField(aioText("label.mode"), backendBadge, "wide", "tip.upscaleBackend"),
       createNodeField(aioText("label.mode"), backend, "wide", "tip.upscaleBackend"),
     );
     if (settings.upscale.backend === "usdu") {
@@ -5787,10 +5827,19 @@ function renderGeneratorPanel(node) {
           "wide",
           "tip.upscaleScale",
         ),
-        makeNote(settings.upscale.usdu?.auto_tile_size ? "text.usduAutoTile" : "text.usduManualTile", "tip.usduTile"),
+        makeNote(
+          settings.upscale.usdu?.auto_tile_size ? "text.usduAutoTile" : "text.usduManualTile",
+          settings.upscale.usdu?.auto_tile_size ? "tip.usduAutoTile" : "tip.usduTile",
+        ),
       );
     } else {
       upscaleBody.append(makeNote(`ResShift ${settings.upscale.resshift?.scale || "x2"}`, "tip.resshiftScale"));
+    }
+    if (settings.upscale.fit?.enabled) {
+      const fitText = settings.upscale.fit.mode === "megapixels"
+        ? `Fit <= ${settings.upscale.fit.max_megapixels || 4}MP`
+        : `Fit <= ${settings.upscale.fit.max_long_edge || 2048}px`;
+      upscaleBody.append(makeNote(fitText, "tip.finalFit"));
     }
   } else {
     upscaleBody.append(makeNote("text.upscaleDisabled", "tip.upscaleEnabled"));
@@ -6463,6 +6512,7 @@ function openUpscaleSettings(node) {
   const upscale = mergeDefaults(DEFAULT_GENERATION_SETTINGS.upscale, settings.upscale || {});
   const usdu = mergeDefaults(DEFAULT_GENERATION_SETTINGS.upscale.usdu, upscale.usdu || {});
   const resshift = mergeDefaults(DEFAULT_GENERATION_SETTINGS.upscale.resshift, upscale.resshift || {});
+  const fit = mergeDefaults(DEFAULT_GENERATION_SETTINGS.upscale.fit, upscale.fit || {});
   const { backdrop, body, actions } = createDialog(
     "Upscale Settings",
     "Final-stage upscale runs after Detailer and before Save. Choose USDU or ResShift."
@@ -6502,10 +6552,13 @@ function openUpscaleSettings(node) {
   const promptMode = field(
     usduSection,
     "USDU prompt",
-    selectInput(["full", "quality_tags_only"], usdu.prompt_mode || "full"),
+    selectInput(["full", "no_general"], usdu.prompt_mode === "quality_tags_only" ? "no_general" : usdu.prompt_mode || "full"),
     "tip.usduPrompt",
   );
-  const autoTile = field(usduSection, "Auto tile size", checkbox(usdu.auto_tile_size), "tip.usduTile");
+  const autoTile = field(usduSection, "Auto tile size", checkbox(usdu.auto_tile_size), "tip.usduAutoTile");
+  const autoTileTarget = field(usduSection, "Auto tile target", numberInput(usdu.auto_tile_target, "64"), "tip.usduAutoTile");
+  const autoTileMin = field(usduSection, "Auto tile min", numberInput(usdu.auto_tile_min, "64"), "tip.usduAutoTile");
+  const autoTileMax = field(usduSection, "Auto tile max", numberInput(usdu.auto_tile_max, "64"), "tip.usduAutoTile");
   const modeType = field(usduSection, "Mode", selectInput(["Linear", "Chess", "None"], usdu.mode_type || "Linear"), "tip.usduMode");
   const tileWidth = field(usduSection, "Tile width", numberInput(usdu.tile_width, "8"), "tip.usduTile");
   const tileHeight = field(usduSection, "Tile height", numberInput(usdu.tile_height, "8"), "tip.usduTile");
@@ -6546,6 +6599,28 @@ function openUpscaleSettings(node) {
   const denoise = field(usduSampler, "Denoise", numberInput(upscale.denoise, "0.01"), "tip.denoise");
   const optimization = createStageOptimizationEditor("USDU Spectrum/DCW", upscale, DEFAULT_GENERATION_SETTINGS.upscale);
 
+  const fitSection = document.createElement("section");
+  fitSection.className = "easyuse-anima-aio-section";
+  fitSection.append(Object.assign(document.createElement("h3"), { textContent: aioStaticText("Final Size Fit") }));
+  const fitEnabled = field(fitSection, "Fit final size", checkbox(fit.enabled), "tip.finalFit");
+  const fitMode = field(
+    fitSection,
+    "Fit by",
+    selectInput([
+      { value: "max_long_edge", label: "Max long edge" },
+      { value: "megapixels", label: "Megapixels" },
+    ], fit.mode || "max_long_edge"),
+    "tip.finalFit",
+  );
+  const fitMaxLongEdge = field(fitSection, "Max long edge", numberInput(fit.max_long_edge, "64"), "tip.finalFit");
+  const fitMaxMegapixels = field(fitSection, "Max megapixels", numberInput(fit.max_megapixels, "0.1"), "tip.finalFit");
+  const fitMethod = field(
+    fitSection,
+    "Fit method",
+    selectInput(["bicubic", "lanczos", "area", "bilinear", "nearest-exact"], fit.method || "bicubic"),
+    "tip.finalFit",
+  );
+
   const resshiftSection = document.createElement("section");
   resshiftSection.className = "easyuse-anima-aio-section";
   resshiftSection.append(Object.assign(document.createElement("h3"), { textContent: aioStaticText("ResShift Upscale") }));
@@ -6570,6 +6645,12 @@ function openUpscaleSettings(node) {
     usduSampler.classList.toggle("hidden", !isUsdu);
     optimization.section.classList.toggle("hidden", !isUsdu);
     resshiftSection.classList.toggle("hidden", isUsdu);
+    const autoTileDisplay = autoTile.checked ? "" : "none";
+    for (const control of [autoTileTarget, autoTileMin, autoTileMax]) {
+      if (control?.parentElement) {
+        control.parentElement.style.display = autoTileDisplay;
+      }
+    }
     const manualTileDisplay = autoTile.checked ? "none" : "";
     for (const control of [tileWidth, tileHeight]) {
       if (control?.parentElement) {
@@ -6581,6 +6662,20 @@ function openUpscaleSettings(node) {
       if (control?.parentElement) {
         control.parentElement.style.display = samplerOverrideDisplay;
       }
+    }
+    const fitDisplay = fitEnabled.checked ? "" : "none";
+    for (const control of [fitMode, fitMethod]) {
+      if (control?.parentElement) {
+        control.parentElement.style.display = fitDisplay;
+      }
+    }
+    const fitLongEdgeDisplay = fitEnabled.checked && fitMode.value === "max_long_edge" ? "" : "none";
+    const fitMegapixelsDisplay = fitEnabled.checked && fitMode.value === "megapixels" ? "" : "none";
+    if (fitMaxLongEdge?.parentElement) {
+      fitMaxLongEdge.parentElement.style.display = fitLongEdgeDisplay;
+    }
+    if (fitMaxMegapixels?.parentElement) {
+      fitMaxMegapixels.parentElement.style.display = fitMegapixelsDisplay;
     }
   };
   const refreshDependencyLocks = () => {
@@ -6606,7 +6701,9 @@ function openUpscaleSettings(node) {
   backend.addEventListener("change", refreshDependencyLocks);
   autoTile.addEventListener("change", updateVisibility);
   inheritSampler.addEventListener("change", updateVisibility);
-  body.append(main, usduSection, usduSampler, optimization.section, resshiftSection);
+  fitEnabled.addEventListener("change", updateVisibility);
+  fitMode.addEventListener("change", updateVisibility);
+  body.append(main, usduSection, usduSampler, optimization.section, resshiftSection, fitSection);
   updateVisibility();
   refreshDependencyLocks();
   loadGeneratorOptionalDependencies().then(refreshDependencyLocks);
@@ -6633,12 +6730,22 @@ function openUpscaleSettings(node) {
       sampler_name: samplerName.value || "euler",
       scheduler: scheduler.value || "simple",
       denoise: clampGeneratorNumber(denoise.value, DEFAULT_GENERATION_SETTINGS.upscale.denoise, 0, 1),
+      fit: {
+        enabled: fitEnabled.checked,
+        mode: fitMode.value || "max_long_edge",
+        max_long_edge: Math.trunc(clampGeneratorNumber(fitMaxLongEdge.value, 2048, 64, 16384)),
+        max_megapixels: clampGeneratorNumber(fitMaxMegapixels.value, 4, 0.1, 256),
+        method: fitMethod.value || "bicubic",
+      },
       ...optimized,
       usdu: {
         upscale_model_name: upscaleModel.value || DEFAULT_GENERATION_SETTINGS.upscale.usdu.upscale_model_name,
         auto_tile_size: autoTile.checked,
         prompt_mode: promptMode.value || "full",
         mode_type: modeType.value || "Linear",
+        auto_tile_target: Math.trunc(clampGeneratorNumber(autoTileTarget.value, 768, 64, 16384)),
+        auto_tile_min: Math.trunc(clampGeneratorNumber(autoTileMin.value, 512, 64, 16384)),
+        auto_tile_max: Math.trunc(clampGeneratorNumber(autoTileMax.value, 1024, 64, 16384)),
         tile_width: Math.trunc(clampGeneratorNumber(tileWidth.value, 512, 64, 16384)),
         tile_height: Math.trunc(clampGeneratorNumber(tileHeight.value, 512, 64, 16384)),
         mask_blur: Math.trunc(clampGeneratorNumber(maskBlur.value, 8, 0, 64)),

@@ -152,7 +152,17 @@ class AIOSettingsStorageTests(unittest.TestCase):
                 "usdu": {
                     "auto_tile_size": True,
                     "prompt_mode": "quality_tags_only",
+                    "auto_tile_target": 9000,
+                    "auto_tile_min": 128,
+                    "auto_tile_max": 256,
                     "tile_width": 4,
+                },
+                "fit": {
+                    "enabled": True,
+                    "mode": "megapixels",
+                    "max_long_edge": 8,
+                    "max_megapixels": 999,
+                    "method": "bad",
                 },
                 "resshift": {
                     "scale": "x9",
@@ -170,8 +180,16 @@ class AIOSettingsStorageTests(unittest.TestCase):
         self.assertTrue(settings["upscale"]["dit_corrections"]["enabled"])
         self.assertEqual(settings["upscale"]["dit_corrections"]["dcw_mode"], "manual")
         self.assertTrue(settings["upscale"]["usdu"]["auto_tile_size"])
-        self.assertEqual(settings["upscale"]["usdu"]["prompt_mode"], "quality_tags_only")
+        self.assertEqual(settings["upscale"]["usdu"]["prompt_mode"], "no_general")
+        self.assertEqual(settings["upscale"]["usdu"]["auto_tile_target"], 256)
+        self.assertEqual(settings["upscale"]["usdu"]["auto_tile_min"], 128)
+        self.assertEqual(settings["upscale"]["usdu"]["auto_tile_max"], 256)
         self.assertEqual(settings["upscale"]["usdu"]["tile_width"], 64)
+        self.assertTrue(settings["upscale"]["fit"]["enabled"])
+        self.assertEqual(settings["upscale"]["fit"]["mode"], "megapixels")
+        self.assertEqual(settings["upscale"]["fit"]["max_long_edge"], 64)
+        self.assertEqual(settings["upscale"]["fit"]["max_megapixels"], 256.0)
+        self.assertEqual(settings["upscale"]["fit"]["method"], "bicubic")
         self.assertEqual(settings["upscale"]["resshift"]["scale"], "x2")
         self.assertEqual(settings["upscale"]["resshift"]["dtype"], "bf16")
         self.assertEqual(settings["upscale"]["resshift"]["tile_batch"], 32)
@@ -1510,7 +1528,63 @@ class AIOFinalUpscaleStageTests(unittest.TestCase):
             self.assertLessEqual(tile_size, 1024)
             self.assertEqual(tile_size % 64, 0)
 
-    def test_upscale_stage_runs_usdu_with_quality_only_prompt_and_stage_patches(self):
+    def test_usdu_auto_tile_size_uses_configurable_bounds(self):
+        tile_size = nodes._aio_usdu_auto_tile_dimension(
+            4096,
+            preferred_size=640,
+            min_size=384,
+            max_size=768,
+        )
+
+        self.assertGreaterEqual(tile_size, 384)
+        self.assertLessEqual(tile_size, 768)
+        self.assertEqual(tile_size % 64, 0)
+
+    def test_final_fit_size_downscales_by_long_edge_or_megapixels(self):
+        self.assertEqual(
+            nodes._aio_final_fit_size(4096, 2048, {
+                "enabled": True,
+                "mode": "max_long_edge",
+                "max_long_edge": 2048,
+            })[:2],
+            (2048, 1024),
+        )
+        width, height, scale = nodes._aio_final_fit_size(4000, 3000, {
+            "enabled": True,
+            "mode": "megapixels",
+            "max_megapixels": 4,
+        })
+
+        self.assertLess(scale, 1.0)
+        self.assertLessEqual(width * height, 4_000_000)
+        self.assertEqual(width % 8, 0)
+        self.assertEqual(height % 8, 0)
+
+    def test_usdu_no_general_prompt_keeps_artist_and_trigger_without_duplicate_quality(self):
+        prompt_data = {
+            "pin_trigger_tags_to_front": True,
+            "fields": [
+                {"pane": "positive", "type": "quality", "text": "best quality", "enabled": True},
+                {"pane": "positive", "type": "artist", "text": "@sample artist", "enabled": True},
+                {"pane": "positive", "type": "trigger", "text": "lora trigger", "enabled": True, "pin": True},
+                {"pane": "positive", "type": "general", "text": "1girl, city background", "enabled": True},
+            ],
+        }
+
+        prompt, has_fields = nodes._aio_usdu_prompt_without_general(
+            prompt_data,
+            "positive",
+            include_quality=False,
+        )
+
+        self.assertTrue(has_fields)
+        self.assertIn("@sample artist", prompt)
+        self.assertIn("lora trigger", prompt)
+        self.assertNotIn("best quality", prompt)
+        self.assertNotIn("1girl", prompt)
+        self.assertNotIn("city background", prompt)
+
+    def test_upscale_stage_runs_usdu_with_no_general_prompt_and_stage_patches(self):
         settings = nodes._normalize_aio_generation_settings(json.dumps({
             "sampler": {
                 "seed": 123,
@@ -1530,12 +1604,23 @@ class AIOFinalUpscaleStageTests(unittest.TestCase):
                     "dcw_mode": "manual",
                 },
                 "usdu": {
-                    "prompt_mode": "quality_tags_only",
+                    "prompt_mode": "no_general",
                     "auto_tile_size": True,
+                    "auto_tile_target": 768,
                     "upscale_model_name": "model.safetensors",
                 },
             },
         }))
+        prompt_data = {
+            "fields": [
+                {"pane": "positive", "type": "quality", "text": "quality tags", "enabled": True},
+                {"pane": "positive", "type": "artist", "text": "@artist", "enabled": True},
+                {"pane": "positive", "type": "trigger", "text": "trigger word", "enabled": True, "pin": True},
+                {"pane": "positive", "type": "general", "text": "removed content", "enabled": True},
+                {"pane": "negative", "type": "quality", "text": "quality negative", "enabled": True},
+                {"pane": "negative", "type": "general", "text": "removed negative content", "enabled": True},
+            ],
+        }
         calls = {}
 
         class FakeUSDU:
@@ -1561,27 +1646,30 @@ class AIOFinalUpscaleStageTests(unittest.TestCase):
                 settings["upscale"],
                 "quality tags",
                 "quality negative",
+                prompt_data,
+                exclude_positive_quality=True,
             )
 
         self.assertIsInstance(image, self._Image)
         require.assert_called_once()
         load_upscale.assert_called_once_with("model.safetensors")
-        self.assertEqual(encode.call_args_list[0].args, ("clip", "quality tags"))
+        self.assertEqual(encode.call_args_list[0].args, ("clip", "@artist, trigger word"))
         self.assertEqual(encode.call_args_list[1].args, ("clip", "quality negative"))
-        self.assertEqual(patch_stage.call_args.args[2], "encoded:quality tags")
+        self.assertEqual(patch_stage.call_args.args[2], "encoded:@artist, trigger word")
         stage_sampler = patch_stage.call_args.args[3]
         self.assertTrue(stage_sampler["spectrum"]["enabled"])
         self.assertEqual(stage_sampler["spectrum"]["window_size"], 6.0)
         self.assertTrue(stage_sampler["dit_corrections"]["enabled"])
         self.assertEqual(stage_sampler["dit_corrections"]["dcw_mode"], "manual")
         self.assertEqual(calls["usdu"]["model"], "stage_model")
-        self.assertEqual(calls["usdu"]["positive"], "encoded:quality tags")
+        self.assertEqual(calls["usdu"]["positive"], "encoded:@artist, trigger word")
         self.assertEqual(calls["usdu"]["negative"], "encoded:quality negative")
         self.assertEqual(calls["usdu"]["upscale_model"], "upscale_model")
         self.assertEqual(calls["usdu"]["tile_width"], 512)
         self.assertEqual(calls["usdu"]["tile_height"], 768)
         self.assertEqual(metadata["backend"], "usdu")
-        self.assertEqual(metadata["prompt_mode"], "quality_tags_only")
+        self.assertEqual(metadata["prompt_mode"], "no_general")
+        self.assertFalse(metadata["fit"]["applied"])
         cleanup.assert_called_once_with("stage_model", "model")
 
     def test_upscale_stage_runs_only_resshift_when_selected(self):
@@ -1876,7 +1964,7 @@ class AIOGeneratorRuntimeTests(unittest.TestCase):
             events.append("detailer")
             return "detail_image", {"enabled": True}
 
-        def fake_upscale(*_args):
+        def fake_upscale(*_args, **_kwargs):
             events.append("upscale")
             return AIOFinalUpscaleStageTests._Image(1024, 1536), {"enabled": True, "backend": "usdu", "width": 1024, "height": 1536}
 
