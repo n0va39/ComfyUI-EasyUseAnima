@@ -35,6 +35,79 @@ class AIOFrontendSourceTests(unittest.TestCase):
         self.assertNotIn("next.highres.spectrum = mergeDefaults", body)
         self.assertNotIn("next.highres.dit_corrections = mergeDefaults", body)
 
+    def test_upscale_settings_offer_single_backend_and_usdu_helpers(self):
+        source = AIO_JS.read_text(encoding="utf-8")
+        start = source.index("function openUpscaleSettings")
+        end = source.index("\nfunction openPostprocessSettings", start)
+        body = source[start:end]
+
+        self.assertIn('selectInput(["usdu", "resshift"]', body)
+        self.assertIn('backend.value === "usdu"', body)
+        self.assertIn('createStageOptimizationEditor("USDU Spectrum/DCW"', body)
+        self.assertIn('"no_general"', body)
+        self.assertIn('"quality_tags_only" ? "no_general"', body)
+        self.assertIn("auto_tile_size: autoTile.checked", body)
+        self.assertIn("auto_tile_target: Math.trunc", body)
+        self.assertIn("auto_tile_min: Math.trunc", body)
+        self.assertIn("auto_tile_max: Math.trunc", body)
+        self.assertIn("normalizeGeneratorUsduAutoTileRange", body)
+        self.assertNotIn('textContent: aioStaticText("Final Size Fit")', body)
+        self.assertNotIn("fit: {", body)
+        self.assertNotIn("max_long_edge: Math.trunc", body)
+        self.assertNotIn("max_megapixels: clampGeneratorNumber", body)
+        self.assertIn('nodeInputChoiceOptions("upscaleModelLoader", "model_name"', body)
+        self.assertIn('nodeInputChoiceOptions("resShiftLoader", "student_name"', body)
+        self.assertIn("upscaleBackendMissingPacks(backend.value)", body)
+        self.assertIn("enabled: enabled.checked && missingPacks.length === 0", body)
+        self.assertIn("resshiftSection", body)
+        self.assertIn("resshift:", body)
+
+    def test_postprocess_settings_own_final_fit_controls(self):
+        source = AIO_JS.read_text(encoding="utf-8")
+        start = source.index("function openPostprocessSettings")
+        end = source.index("\nfunction createDetailerTargetEditor", start)
+        body = source[start:end]
+
+        self.assertIn('createDialog(', body)
+        self.assertIn('"Postprocess Settings"', body)
+        self.assertIn('textContent: aioStaticText("Final Size Fit")', body)
+        self.assertIn('"Enable postprocess"', body)
+        self.assertIn('"max_long_edge"', body)
+        self.assertIn('"megapixels"', body)
+        self.assertIn("next.postprocess = {", body)
+        self.assertIn("fit: {", body)
+        self.assertIn("max_long_edge: Math.trunc", body)
+        self.assertIn("max_megapixels: clampGeneratorNumber", body)
+        self.assertIn("delete next.upscale?.fit", body)
+
+    def test_upscale_optional_dependency_sanitizer_disables_missing_backend(self):
+        source = AIO_JS.read_text(encoding="utf-8")
+        start = source.index("function sanitizeGeneratorSettingsForOptionalDependencies")
+        end = source.index("\nfunction applyVisibleGeneratorSettings", start)
+        body = source[start:end]
+
+        self.assertIn("disableGeneratorSpectrumOptions(next.upscale)", body)
+        self.assertIn("upscaleBackendMissingPacks(next.upscale.backend).length", body)
+        self.assertIn("next.upscale.enabled = false", body)
+
+    def test_generator_panel_renders_upscale_after_detailer(self):
+        source = AIO_JS.read_text(encoding="utf-8")
+        start = source.index("function renderGeneratorPanel")
+        end = source.index("\nfunction ensureGeneratorPanel", start)
+        body = source[start:end]
+
+        self.assertLess(body.index("const detailerBlock"), body.index("const upscaleBlock"))
+        self.assertLess(body.index("const upscaleBlock"), body.index("const postprocessBlock"))
+        self.assertIn("settingsScroll.append(samplerGrid, highresBlock, detailerBlock, upscaleBlock, postprocessBlock)", body)
+        self.assertIn("openUpscaleSettings(node)", body)
+        self.assertIn("openPostprocessSettings(node)", body)
+        self.assertIn("settings.upscale.steps", body)
+        self.assertIn("settings.upscale.denoise", body)
+        self.assertIn("usdu.auto_tile_size", body)
+        self.assertIn("usdu.auto_tile_target", body)
+        self.assertIn("setGeneratorUsduAutoTileTarget(nextSettings, value)", body)
+        self.assertNotIn("backendBadge", body)
+
     def test_safe_pag_advanced_labels_do_not_reuse_generic_labels(self):
         source = AIO_JS.read_text(encoding="utf-8")
         start = source.index("function openAdvancedSettings")
@@ -51,6 +124,21 @@ class AIOFrontendSourceTests(unittest.TestCase):
         self.assertNotIn('field(safePag, "Start"', body)
         self.assertNotIn('field(safePag, "End"', body)
         self.assertNotIn('field(safePag, "Rescale"', body)
+
+    def test_save_settings_expose_prompt_metadata_toggle(self):
+        source = AIO_JS.read_text(encoding="utf-8")
+        defaults_start = source.index("const DEFAULT_GENERATION_SETTINGS")
+        defaults_end = source.index("\nconst AIO_TEXT", defaults_start)
+        defaults_body = source[defaults_start:defaults_end]
+        start = source.index("function openSaveSettings")
+        end = source.index("\nfunction openAdvancedSettings", start)
+        body = source[start:end]
+
+        self.assertIn("save_prompt_metadata: true", defaults_body)
+        self.assertIn('field(metadata, "Save prompt metadata"', body)
+        self.assertIn("checkbox(imageSaver.save_prompt_metadata)", body)
+        self.assertIn("save_prompt_metadata: savePromptMetadata.checked", body)
+        self.assertIn('"Save prompt metadata": "tip.savePromptMetadata"', source)
 
     def test_detailer_settings_support_custom_blocks(self):
         source = AIO_JS.read_text(encoding="utf-8")

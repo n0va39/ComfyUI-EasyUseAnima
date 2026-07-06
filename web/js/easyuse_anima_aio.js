@@ -94,6 +94,22 @@ const GENERATOR_OPTIONAL_DEPENDENCY_SPECS = {
     nodeId: "Image Saver",
     pack: "ComfyUI-Image-Saver",
   },
+  upscaleModelLoader: {
+    nodeId: "UpscaleModelLoader",
+    pack: "ComfyUI built-in upscale model loader",
+  },
+  ultimateSdUpscale: {
+    nodeId: "UltimateSDUpscale",
+    pack: "ComfyUI_UltimateSDUpscale",
+  },
+  resShiftLoader: {
+    nodeId: "ResShiftLoader",
+    pack: "ComfyUI-Distilled-ResShift",
+  },
+  resShiftUpscale: {
+    nodeId: "ResShiftUpscale",
+    pack: "ComfyUI-Distilled-ResShift",
+  },
   kjFp16: {
     nodeId: "ModelPatchTorchSettings",
     pack: "ComfyUI-KJNodes",
@@ -345,6 +361,88 @@ const DEFAULT_GENERATION_SETTINGS = {
       replace_existing_cfg: false,
     },
   },
+  upscale: {
+    enabled: false,
+    backend: "usdu",
+    scale_by: 2.0,
+    steps: 20,
+    inherit_sampler_settings: true,
+    cfg: 8.0,
+    sampler_name: "euler",
+    scheduler: "simple",
+    denoise: 0.2,
+    spectrum: {
+      enabled: false,
+      window_size: 2.0,
+      flex_window: 0.2,
+      warmup_steps: 7,
+      tail_actual_steps: 4,
+      blend_w: 0.3,
+      cheby_degree: 3,
+      ridge_lambda: 0.1,
+      history_size: 100,
+      one_sampler_only: false,
+      verbose: false,
+      compat_policy: "conservative",
+    },
+    dit_corrections: {
+      enabled: false,
+      dcw_mode: "off",
+      dcw_lambda: 0.02,
+      dcw_band_mask: "LL",
+      dcw_calibrator: "(auto-download default)",
+      smc_cfg: false,
+      adaptive_smc_alpha: 0.0,
+      smc_cfg_lambda: 6.0,
+      cfgpp: false,
+      cfgpp_lambda: 0.0,
+      fsg: false,
+      fsg_band_lo: 0.59,
+      fsg_band_hi: 0.75,
+      fsg_k: 3,
+      fsg_d_sigma: 0.1,
+      fsg_gamma: 0.0,
+      replace_existing_cfg: false,
+    },
+    usdu: {
+      upscale_model_name: "2x-AnimeSharpV4_Fast_RCAN_PU.safetensors",
+      auto_tile_size: true,
+      prompt_mode: "full",
+      mode_type: "Linear",
+      auto_tile_target: 1024,
+      auto_tile_min: 512,
+      auto_tile_max: 2048,
+      tile_width: 512,
+      tile_height: 512,
+      mask_blur: 8,
+      tile_padding: 32,
+      seam_fix_mode: "None",
+      seam_fix_denoise: 1.0,
+      seam_fix_width: 64,
+      seam_fix_mask_blur: 8,
+      seam_fix_padding: 16,
+      force_uniform_tiles: true,
+      tiled_decode: false,
+      batch_size: 1,
+    },
+    resshift: {
+      scale: "x2",
+      student_name: "(auto-download)",
+      dtype: "bf16",
+      chop: 512,
+      overlap: 64,
+      tile_batch: 4,
+    },
+  },
+  postprocess: {
+    enabled: false,
+    fit: {
+      mode: "max_long_edge",
+      max_long_edge: 2048,
+      max_megapixels: 4.0,
+      method: "bicubic",
+    },
+  },
   detailer: {
     enabled: false,
     order: ["face", "eye"],
@@ -500,6 +598,7 @@ const DEFAULT_GENERATION_SETTINGS = {
       time_format: "%Y-%m-%d-%H%M%S",
       save_workflow_as_json: false,
       embed_workflow: true,
+      save_prompt_metadata: true,
       additional_hashes: "",
       additional_hash_bundles: [],
       civitai_hash_fetchers: [],
@@ -522,6 +621,8 @@ const AIO_TEXT = {
     "title.preview": "PREVIEW",
     "title.highres": "HIGHRES",
     "title.detailer": "DETAILER",
+    "title.upscale": "UPSCALE",
+    "title.postprocess": "POSTPROCESS",
     "label.mode": "Mode",
     "label.seed": "Seed",
     "label.steps": "Steps",
@@ -548,6 +649,10 @@ const AIO_TEXT = {
     "dialog.highres.subtitle": "Image scaling and Highres resampling settings are saved with the node.",
     "dialog.detailer.title": "Detailer Settings",
     "dialog.detailer.subtitle": "SAM3 detection and Impact detailer settings are saved with the node.",
+    "dialog.upscale.title": "Upscale Settings",
+    "dialog.upscale.subtitle": "Final-stage upscale runs after Detailer and before Save. Choose USDU or ResShift.",
+    "dialog.postprocess.title": "Postprocess Settings",
+    "dialog.postprocess.subtitle": "Final size fit runs after Detailer and Upscale, before Save. Cap by long edge or megapixels.",
     "dialog.preview.title": "Preview Options",
     "dialog.save.title": "Save Options",
     "dialog.save.subtitle": "Image Saver requires ComfyUI-Image-Saver. Missing node packs are reported during queue execution.",
@@ -564,6 +669,11 @@ const AIO_TEXT = {
     "section.imageScale": "Image Scale",
     "section.highresSampler": "Highres Sampler",
     "section.highresOptimization": "Highres Optimization",
+    "section.usduUpscale": "USDU Upscale",
+    "section.usduSampler": "USDU Sampler",
+    "section.usduOptimization": "USDU Spectrum/DCW",
+    "section.resshiftUpscale": "ResShift Upscale",
+    "section.finalFit": "Final Size Fit",
     "section.detailer": "Detailer",
     "section.detailerBlocks": "Detailer Blocks",
     "section.sam3Detect": "SAM3 Detect",
@@ -616,7 +726,36 @@ const AIO_TEXT = {
     "field.cfgppLambda": "CFG++ lambda",
     "field.sigma": "Sigma",
     "field.enableHighres": "Enable highres",
+    "field.enableUpscale": "Enable upscale",
+    "field.enablePostprocess": "Enable postprocess",
     "field.scaleBy": "Scale by",
+    "field.upscaleBackend": "Upscale backend",
+    "field.upscaleModel": "Upscale model",
+    "field.autoTileSize": "Auto tile size",
+    "field.autoTileTarget": "Auto tile target",
+    "field.autoTileMin": "Auto tile min",
+    "field.autoTileMax": "Auto tile max",
+    "field.usduPrompt": "USDU prompt",
+    "field.fitFinalSize": "Fit final size",
+    "field.fitMode": "Fit by",
+    "field.maxMegapixels": "Max megapixels",
+    "field.fitMethod": "Fit method",
+    "field.tileWidth": "Tile width",
+    "field.tileHeight": "Tile height",
+    "field.maskBlur": "Mask blur",
+    "field.tilePadding": "Tile padding",
+    "field.seamFix": "Seam fix",
+    "field.seamDenoise": "Seam denoise",
+    "field.seamWidth": "Seam width",
+    "field.seamMaskBlur": "Seam mask blur",
+    "field.seamPadding": "Seam padding",
+    "field.forceUniformTiles": "Force uniform tiles",
+    "field.tiledDecode": "Tiled decode",
+    "field.tileBatch": "Tile batch",
+    "field.student": "Student",
+    "field.dtype": "Dtype",
+    "field.chop": "Chop",
+    "field.overlap": "Overlap",
     "field.method": "Method",
     "field.multiple": "Multiple",
     "field.maxLongEdge": "Max long edge",
@@ -658,6 +797,7 @@ const AIO_TEXT = {
     "field.clipSkip": "Clip skip",
     "field.embedWorkflow": "Embed workflow",
     "field.workflowJson": "Workflow JSON",
+    "field.savePromptMetadata": "Save prompt metadata",
     "field.additionalHashes": "Additional hashes",
     "field.manualHashBundles": "Manual hash bundles",
     "field.civitaiHashFetchers": "Civitai Hash Fetchers",
@@ -695,6 +835,8 @@ const AIO_TEXT = {
     "button.samplerDetails": "Sampler Details...",
     "button.highresSettings": "Highres Settings",
     "button.detailerSettings": "Detailer Settings",
+    "button.upscaleSettings": "Upscale Settings",
+    "button.postprocessSettings": "Postprocess Settings",
     "button.advancedOptions": "Advanced Options...",
     "button.saveOn": "Save Options: ON",
     "button.saveOff": "Save Options: OFF",
@@ -716,6 +858,10 @@ const AIO_TEXT = {
     "text.highresDisabled": "Enable Highres to expose resize and second-pass controls.",
     "text.highresSpdManualRequired": "Spectrum SPD / SPEED is not reused by Highres. Highres uses the general KSampler path.",
     "text.detailerDisabled": "Enable Detailer to configure ordered processing blocks.",
+    "text.upscaleDisabled": "Enable Upscale to run one final USDU or ResShift pass before saving.",
+    "text.postprocessDisabled": "Enable Postprocess to cap the final image size before saving.",
+    "text.usduAutoTile": "Auto tile uses target/min/max tile sizes",
+    "text.usduManualTile": "Manual tile size",
     "text.inheritsMainSampler": "Reuses main CFG, sampler, and scheduler. Stage Spectrum/DCW stays independent.",
     "text.usesStageSamplerOverride": "Uses stage CFG, sampler, and scheduler with stage Spectrum/DCW.",
     "text.civitaiHashPreview": "Adds as {model}:AutoV3",
@@ -744,6 +890,23 @@ const AIO_TEXT = {
     "tip.highresMaxEdge": "Maximum long edge after upscaling. Use 0 to disable this cap.",
     "tip.highresSteps": "Highres second-pass steps. This remains Highres-specific even when the main sampler is reused.",
     "tip.highresDenoise": "Highres second-pass denoise strength.",
+    "tip.upscaleEnabled": "Runs one final upscale stage after Detailer and before Save.",
+    "tip.upscaleSettings": "Open final-stage USDU or ResShift upscale options.",
+    "tip.upscaleBackend": "Selects the final upscale backend. Only one backend is used for each run.",
+    "tip.upscaleScale": "USDU upscale ratio used by Ultimate SD Upscale.",
+    "tip.usduUpscaleModel": "Upscale model loaded through ComfyUI UpscaleModelLoader for USDU.",
+    "tip.usduPrompt": "Full uses the current positive/negative conditioning. No-general rebuilds the USDU prompt from quality, artist, and trigger fields only; if Mod Guidance already applies quality tags, they are not duplicated in the USDU prompt.",
+    "tip.usduMode": "USDU tile redraw order.",
+    "tip.usduTile": "USDU manual tile, padding, and seam controls.",
+    "tip.usduAutoTile": "When enabled, tile width/height are calculated from the expected upscaled size. Target is the preferred tile size, min and max clamp the automatic result, and values align to 64 pixels.",
+    "tip.usduSeam": "USDU seam-fix controls.",
+    "tip.postprocessEnabled": "Runs after Upscale and before Save. Use it for final size capping only.",
+    "tip.postprocessSettings": "Open final size fit options for the Postprocess stage.",
+    "tip.finalFit": "In Postprocess, downscale only when the final image exceeds the selected max long edge or megapixel limit.",
+    "tip.resshiftScale": "ResShift super-resolution factor. The loader scale must match the selected student.",
+    "tip.resshiftStudent": "ResShift student checkpoint. Auto-download fetches the matching released student.",
+    "tip.resshiftDtype": "ResShift loader precision.",
+    "tip.resshiftTiling": "ResShift tiling controls for large images.",
     "tip.detailerEnabled": "Run SAM3 and Impact Detailer stages after generation.",
     "tip.detailerBlock": "Each block can be enabled, reordered, and tuned independently.",
     "tip.detailerFollow": "When enabled, this detailer block uses the main CFG, sampler, and scheduler. Spectrum/DCW remain block-specific.",
@@ -769,6 +932,8 @@ const AIO_TEXT = {
     "title.preview": "PREVIEW",
     "title.highres": "HIGHRES",
     "title.detailer": "DETAILER",
+    "title.upscale": "UPSCALE",
+    "title.postprocess": "후보정",
     "label.mode": "모드",
     "label.seed": "시드",
     "label.steps": "스텝",
@@ -795,6 +960,10 @@ const AIO_TEXT = {
     "dialog.highres.subtitle": "이미지 확대와 Highres 재샘플링 설정이 노드에 저장됩니다.",
     "dialog.detailer.title": "디테일러 설정",
     "dialog.detailer.subtitle": "SAM3 감지와 Impact Detailer 설정이 노드에 저장됩니다.",
+    "dialog.upscale.title": "업스케일 설정",
+    "dialog.upscale.subtitle": "최종 업스케일은 Detailer 이후 Save 전에 실행됩니다. USDU 또는 ResShift 중 하나를 선택합니다.",
+    "dialog.postprocess.title": "후보정 설정",
+    "dialog.postprocess.subtitle": "최종 해상도 맞춤은 Detailer와 Upscale 이후, Save 전에 실행됩니다. 긴 변 또는 메가픽셀 기준으로 제한합니다.",
     "dialog.preview.title": "프리뷰 옵션",
     "dialog.save.title": "저장 옵션",
     "dialog.save.subtitle": "Image Saver는 ComfyUI-Image-Saver가 필요합니다. 누락된 노드팩은 큐 실행 중 명확히 보고됩니다.",
@@ -811,6 +980,11 @@ const AIO_TEXT = {
     "section.imageScale": "이미지 확대",
     "section.highresSampler": "Highres 샘플러",
     "section.highresOptimization": "Highres 최적화",
+    "section.usduUpscale": "USDU 업스케일",
+    "section.usduSampler": "USDU 샘플러",
+    "section.usduOptimization": "USDU Spectrum/DCW",
+    "section.resshiftUpscale": "ResShift 업스케일",
+    "section.finalFit": "최종 해상도 맞춤",
     "section.detailer": "디테일러",
     "section.detailerBlocks": "디테일러 블럭",
     "section.sam3Detect": "SAM3 감지",
@@ -863,7 +1037,36 @@ const AIO_TEXT = {
     "field.cfgppLambda": "CFG++ lambda",
     "field.sigma": "Sigma",
     "field.enableHighres": "Highres 활성화",
+    "field.enableUpscale": "업스케일 활성화",
+    "field.enablePostprocess": "후보정 활성화",
     "field.scaleBy": "확대 배율",
+    "field.upscaleBackend": "업스케일 백엔드",
+    "field.upscaleModel": "업스케일 모델",
+    "field.autoTileSize": "타일 크기 자동지정",
+    "field.autoTileTarget": "자동 타일 목표",
+    "field.autoTileMin": "자동 타일 최소",
+    "field.autoTileMax": "자동 타일 최대",
+    "field.usduPrompt": "USDU 프롬프트",
+    "field.fitFinalSize": "최종 해상도 맞춤",
+    "field.fitMode": "맞춤 기준",
+    "field.maxMegapixels": "최대 메가픽셀",
+    "field.fitMethod": "맞춤 방식",
+    "field.tileWidth": "타일 너비",
+    "field.tileHeight": "타일 높이",
+    "field.maskBlur": "마스크 블러",
+    "field.tilePadding": "타일 패딩",
+    "field.seamFix": "Seam fix",
+    "field.seamDenoise": "Seam 디노이즈",
+    "field.seamWidth": "Seam 너비",
+    "field.seamMaskBlur": "Seam 마스크 블러",
+    "field.seamPadding": "Seam 패딩",
+    "field.forceUniformTiles": "균일 타일 강제",
+    "field.tiledDecode": "타일 디코드",
+    "field.tileBatch": "타일 배치",
+    "field.student": "Student",
+    "field.dtype": "Dtype",
+    "field.chop": "Chop",
+    "field.overlap": "Overlap",
     "field.method": "방식",
     "field.multiple": "배수 정렬",
     "field.maxLongEdge": "최대 긴 변",
@@ -905,6 +1108,7 @@ const AIO_TEXT = {
     "field.clipSkip": "Clip skip",
     "field.embedWorkflow": "워크플로우 임베드",
     "field.workflowJson": "워크플로우 JSON",
+    "field.savePromptMetadata": "프롬프트 메타데이터 저장",
     "field.additionalHashes": "추가 해시",
     "field.manualHashBundles": "수동 해시 묶음",
     "field.civitaiHashFetchers": "Civitai Hash Fetcher",
@@ -942,6 +1146,8 @@ const AIO_TEXT = {
     "button.samplerDetails": "샘플러 상세...",
     "button.highresSettings": "Highres 설정",
     "button.detailerSettings": "디테일러 설정",
+    "button.upscaleSettings": "업스케일 설정",
+    "button.postprocessSettings": "후보정 설정",
     "button.advancedOptions": "고급 옵션...",
     "button.saveOn": "저장 옵션: ON",
     "button.saveOff": "저장 옵션: OFF",
@@ -963,6 +1169,10 @@ const AIO_TEXT = {
     "text.highresDisabled": "Highres를 켜면 확대와 2차 샘플링 기본 설정이 표시됩니다.",
     "text.highresSpdManualRequired": "Spectrum SPD / SPEED는 Highres에서 재사용하지 않습니다. Highres는 일반 KSampler 경로를 사용합니다.",
     "text.detailerDisabled": "디테일러를 켜면 순서 조정 가능한 처리 블럭이 표시됩니다.",
+    "text.upscaleDisabled": "Upscale을 켜면 저장 전에 USDU 또는 ResShift 최종 패스 하나를 실행합니다.",
+    "text.postprocessDisabled": "후보정을 켜면 저장 전 최종 이미지 크기를 제한합니다.",
+    "text.usduAutoTile": "자동 타일 target/min/max 사용",
+    "text.usduManualTile": "수동 타일 크기",
     "text.inheritsMainSampler": "메인 CFG, 샘플러, 스케줄러를 따릅니다. Spectrum/DCW는 이 stage 설정을 사용합니다.",
     "text.usesStageSamplerOverride": "이 stage의 CFG, 샘플러, 스케줄러와 Spectrum/DCW를 사용합니다.",
     "text.civitaiHashPreview": "{model}:AutoV3 형식으로 추가됩니다.",
@@ -991,6 +1201,23 @@ const AIO_TEXT = {
     "tip.highresMaxEdge": "확대 후 긴 변 제한입니다. 0이면 제한하지 않습니다.",
     "tip.highresSteps": "Highres 2차 패스 스텝입니다. 메인 샘플러를 재사용해도 이 값은 Highres 전용으로 적용됩니다.",
     "tip.highresDenoise": "Highres 2차 패스 디노이즈 강도입니다.",
+    "tip.upscaleEnabled": "Detailer 이후 Save 전에 최종 업스케일 단계를 한 번 실행합니다.",
+    "tip.upscaleSettings": "최종 USDU 또는 ResShift 업스케일 옵션을 엽니다.",
+    "tip.upscaleBackend": "최종 업스케일 백엔드입니다. 한 번 실행할 때 하나만 사용합니다.",
+    "tip.upscaleScale": "Ultimate SD Upscale에 전달할 USDU 확대 배율입니다.",
+    "tip.usduUpscaleModel": "USDU에서 ComfyUI UpscaleModelLoader로 로드할 업스케일 모델입니다.",
+    "tip.usduPrompt": "full은 현재 positive/negative conditioning을 그대로 사용합니다. no_general은 USDU 프롬프트를 quality, artist, trigger 필드만으로 다시 만들며, Mod Guidance가 quality 태그를 이미 적용 중이면 USDU 프롬프트에 중복으로 넣지 않습니다.",
+    "tip.usduMode": "USDU 타일 redraw 순서입니다.",
+    "tip.usduTile": "USDU 수동 타일, padding, seam 설정입니다.",
+    "tip.usduAutoTile": "활성화하면 최종 업스케일 예상 크기에서 타일 너비/높이를 계산합니다. 목표값은 선호 타일 크기, 최소/최대는 자동 결과의 하한/상한이며 64px 단위로 정렬합니다.",
+    "tip.usduSeam": "USDU seam-fix 설정입니다.",
+    "tip.postprocessEnabled": "Upscale 이후 Save 전에 실행됩니다. 최종 크기 제한만 담당합니다.",
+    "tip.postprocessSettings": "후보정 단계의 최종 해상도 맞춤 옵션을 엽니다.",
+    "tip.finalFit": "후보정 단계에서 최종 이미지가 선택한 최대 긴 변 또는 메가픽셀 수를 넘을 때만 다운스케일합니다.",
+    "tip.resshiftScale": "ResShift 초해상도 배율입니다. Loader scale은 선택한 student와 일치해야 합니다.",
+    "tip.resshiftStudent": "ResShift student 체크포인트입니다. Auto-download는 배율에 맞는 공개 student를 받습니다.",
+    "tip.resshiftDtype": "ResShift loader precision입니다.",
+    "tip.resshiftTiling": "큰 이미지용 ResShift 타일링 설정입니다.",
     "tip.detailerEnabled": "생성 후 SAM3와 Impact Detailer 단계를 실행합니다.",
     "tip.detailerBlock": "각 블럭은 개별 활성화, 순서 변경, 기본 설정 조정이 가능합니다.",
     "tip.detailerFollow": "켜져 있으면 이 디테일러 블럭이 메인 CFG, 샘플러, 스케줄러를 따릅니다. Spectrum/DCW는 블럭별 설정을 사용합니다.",
@@ -1038,6 +1265,7 @@ const AIO_TEXT = {
     "button.samplerDetails": "サンプラー詳細...",
     "button.highresSettings": "Highres 設定",
     "button.detailerSettings": "Detailer 設定",
+    "button.upscaleSettings": "Upscale 設定",
     "button.advancedOptions": "詳細オプション...",
     "button.saveOn": "保存オプション: ON",
     "button.saveOff": "保存オプション: OFF",
@@ -1053,6 +1281,7 @@ const AIO_TEXT = {
     "text.highresDisabled": "Highres を有効にすると拡大と二回目サンプリングの基本設定を表示します。",
     "text.highresSpdManualRequired": "Spectrum SPD / SPEED は Highres では再利用しません。Highres は通常 KSampler 経路を使います。",
     "text.detailerDisabled": "Detailer を有効にすると順序変更できる処理ブロックを表示します。",
+    "text.upscaleDisabled": "Upscale を有効にすると保存前に USDU または ResShift の最終パスを一つ実行します。",
     "text.inheritsMainSampler": "メイン CFG、サンプラー、スケジューラーに追従します。Spectrum/DCW はこの stage の設定を使います。",
     "text.usesStageSamplerOverride": "この stage の CFG、サンプラー、スケジューラーと Spectrum/DCW を使います。",
     "text.civitaiHashPreview": "{model}:AutoV3 として追加されます。",
@@ -1123,6 +1352,7 @@ const AIO_TEXT = {
     "button.samplerDetails": "采样器详情...",
     "button.highresSettings": "Highres 设置",
     "button.detailerSettings": "Detailer 设置",
+    "button.upscaleSettings": "Upscale 设置",
     "button.advancedOptions": "高级选项...",
     "button.saveOn": "保存选项: ON",
     "button.saveOff": "保存选项: OFF",
@@ -1138,6 +1368,7 @@ const AIO_TEXT = {
     "text.highresDisabled": "启用 Highres 后显示放大和第二次采样基础设置。",
     "text.highresSpdManualRequired": "Spectrum SPD / SPEED 不会被 Highres 复用。Highres 使用普通 KSampler 路径。",
     "text.detailerDisabled": "启用 Detailer 后显示可排序的处理块。",
+    "text.upscaleDisabled": "启用 Upscale 后在保存前运行一次 USDU 或 ResShift 最终处理。",
     "text.inheritsMainSampler": "跟随主 CFG、采样器和调度器。Spectrum/DCW 使用此 stage 的设置。",
     "text.usesStageSamplerOverride": "使用此 stage 的 CFG、采样器、调度器和 Spectrum/DCW。",
     "text.civitaiHashPreview": "将以 {model}:AutoV3 形式追加。",
@@ -1282,6 +1513,7 @@ const AIO_TOOLTIP_TEXT = {
     "tip.saveClipSkip": "Clip skip metadata value written by Image Saver.",
     "tip.saveEmbedWorkflow": "Embeds the ComfyUI workflow in the saved image so it can be reloaded.",
     "tip.saveWorkflowJson": "Also writes a sidecar workflow JSON file.",
+    "tip.savePromptMetadata": "Writes positive and negative prompt text to Image Saver metadata. Disable to save without prompt text.",
     "tip.saveCivitaiData": "Lets Image Saver download and embed Civitai model metadata.",
     "tip.saveEasyRemix": "Enables Image Saver easy-remix metadata fields.",
     "tip.saveCustom": "Custom metadata text passed directly to Image Saver.",
@@ -1387,6 +1619,7 @@ const AIO_TOOLTIP_TEXT = {
     "tip.saveClipSkip": "Image Saver가 기록할 clip skip 메타데이터 값입니다.",
     "tip.saveEmbedWorkflow": "저장 이미지에 ComfyUI workflow를 임베드해 다시 불러올 수 있게 합니다.",
     "tip.saveWorkflowJson": "workflow JSON sidecar 파일도 같이 저장합니다.",
+    "tip.savePromptMetadata": "Image Saver 메타데이터에 positive/negative 프롬프트 텍스트를 기록합니다. 끄면 프롬프트 텍스트를 비워 저장합니다.",
     "tip.saveCivitaiData": "Image Saver가 Civitai 모델 메타데이터를 다운로드해 임베드하도록 합니다.",
     "tip.saveEasyRemix": "Image Saver easy-remix 메타데이터 필드를 켭니다.",
     "tip.saveCustom": "Image Saver에 그대로 전달할 custom metadata입니다.",
@@ -1483,6 +1716,7 @@ const AIO_TOOLTIP_TEXT = {
     "tip.saveClipSkip": "Image Saver が記録する clip skip metadata 値です。",
     "tip.saveEmbedWorkflow": "保存画像に ComfyUI workflow を埋め込み、再読み込み可能にします。",
     "tip.saveWorkflowJson": "workflow JSON sidecar も保存します。",
+    "tip.savePromptMetadata": "Image Saver metadata に positive/negative prompt text を書き込みます。無効にすると prompt text は空で保存されます。",
     "tip.saveCivitaiData": "Image Saver が Civitai model metadata を取得して埋め込むようにします。",
     "tip.saveEasyRemix": "Image Saver easy-remix metadata fields を有効化します。",
     "tip.saveCustom": "Image Saver にそのまま渡す custom metadata です。",
@@ -1579,6 +1813,7 @@ const AIO_TOOLTIP_TEXT = {
     "tip.saveClipSkip": "Image Saver 写入的 clip skip metadata 值。",
     "tip.saveEmbedWorkflow": "将 ComfyUI workflow 嵌入保存图像，便于重新加载。",
     "tip.saveWorkflowJson": "同时保存 workflow JSON sidecar 文件。",
+    "tip.savePromptMetadata": "将 positive/negative prompt text 写入 Image Saver metadata。关闭后以空 prompt text 保存。",
     "tip.saveCivitaiData": "让 Image Saver 下载并嵌入 Civitai model metadata。",
     "tip.saveEasyRemix": "启用 Image Saver easy-remix metadata fields。",
     "tip.saveCustom": "直接传给 Image Saver 的 custom metadata。",
@@ -1666,7 +1901,37 @@ const AIO_FIELD_TOOLTIP_KEYS = {
   "PAG rescale": "tip.safePagRescale",
   "PAG rescale mode": "tip.safePagRescaleMode",
   "Enable highres": "tip.highresEnabled",
+  "Enable upscale": "tip.upscaleEnabled",
+  "Enable postprocess": "tip.postprocessEnabled",
   "Scale by": "tip.highresScale",
+  "Upscale backend": "tip.upscaleBackend",
+  "Upscale model": "tip.usduUpscaleModel",
+  "Auto tile size": "tip.usduAutoTile",
+  "Auto tile target": "tip.usduAutoTile",
+  "Auto tile min": "tip.usduAutoTile",
+  "Auto tile max": "tip.usduAutoTile",
+  "USDU prompt": "tip.usduPrompt",
+  "Fit final size": "tip.finalFit",
+  "Fit by": "tip.finalFit",
+  "Max long edge": "tip.finalFit",
+  "Max megapixels": "tip.finalFit",
+  "Fit method": "tip.finalFit",
+  "Tile width": "tip.usduTile",
+  "Tile height": "tip.usduTile",
+  "Mask blur": "tip.usduTile",
+  "Tile padding": "tip.usduTile",
+  "Seam fix": "tip.usduSeam",
+  "Seam denoise": "tip.usduSeam",
+  "Seam width": "tip.usduSeam",
+  "Seam mask blur": "tip.usduSeam",
+  "Seam padding": "tip.usduSeam",
+  "Force uniform tiles": "tip.usduTile",
+  "Tiled decode": "tip.usduTile",
+  "Tile batch": "tip.resshiftTiling",
+  "Student": "tip.resshiftStudent",
+  "Dtype": "tip.resshiftDtype",
+  "Chop": "tip.resshiftTiling",
+  "Overlap": "tip.resshiftTiling",
   "Method": "tip.highresMethod",
   "Multiple": "tip.highresMultiple",
   "Max long edge": "tip.highresMaxEdge",
@@ -1704,6 +1969,7 @@ const AIO_FIELD_TOOLTIP_KEYS = {
   "Clip skip": "tip.saveClipSkip",
   "Embed workflow": "tip.saveEmbedWorkflow",
   "Workflow JSON": "tip.saveWorkflowJson",
+  "Save prompt metadata": "tip.savePromptMetadata",
   "Civitai data": "tip.saveCivitaiData",
   "Easy remix": "tip.saveEasyRemix",
   "Custom metadata": "tip.saveCustom",
@@ -1719,6 +1985,10 @@ const AIO_STATIC_TEXT_KEYS = {
   "Highres Settings": "dialog.highres.title",
   "Image scaling, highres resampling, and Spectrum optimization are saved with the node.": "dialog.highres.subtitle",
   "Image scaling and Highres resampling settings are saved with the node.": "dialog.highres.subtitle",
+  "Upscale Settings": "dialog.upscale.title",
+  "Final-stage upscale runs after Detailer and before Save. Choose USDU or ResShift.": "dialog.upscale.subtitle",
+  "Postprocess Settings": "dialog.postprocess.title",
+  "Final size fit runs after Detailer and Upscale, before Save. Cap by long edge or megapixels.": "dialog.postprocess.subtitle",
   "Detailer Settings": "dialog.detailer.title",
   "SAM3 detection and Impact detailer settings are saved with the node.": "dialog.detailer.subtitle",
   "Preview Options": "dialog.preview.title",
@@ -1737,6 +2007,11 @@ const AIO_STATIC_TEXT_KEYS = {
   "Image Scale": "section.imageScale",
   "Highres Sampler": "section.highresSampler",
   "Highres Optimization": "section.highresOptimization",
+  "USDU Upscale": "section.usduUpscale",
+  "USDU Sampler": "section.usduSampler",
+  "USDU Spectrum/DCW": "section.usduOptimization",
+  "ResShift Upscale": "section.resshiftUpscale",
+  "Final Size Fit": "section.finalFit",
   "Detailer": "section.detailer",
   "Detailer Blocks": "section.detailerBlocks",
   "SAM3 Detect": "section.sam3Detect",
@@ -1800,7 +2075,36 @@ const AIO_FIELD_LABEL_KEYS = {
   "Scale": "label.scaleBy",
   "Sigma": "field.sigma",
   "Enable highres": "field.enableHighres",
+  "Enable upscale": "field.enableUpscale",
+  "Enable postprocess": "field.enablePostprocess",
   "Scale by": "field.scaleBy",
+  "Upscale backend": "field.upscaleBackend",
+  "Upscale model": "field.upscaleModel",
+  "Auto tile size": "field.autoTileSize",
+  "Auto tile target": "field.autoTileTarget",
+  "Auto tile min": "field.autoTileMin",
+  "Auto tile max": "field.autoTileMax",
+  "USDU prompt": "field.usduPrompt",
+  "Fit final size": "field.fitFinalSize",
+  "Fit by": "field.fitMode",
+  "Max megapixels": "field.maxMegapixels",
+  "Fit method": "field.fitMethod",
+  "Tile width": "field.tileWidth",
+  "Tile height": "field.tileHeight",
+  "Mask blur": "field.maskBlur",
+  "Tile padding": "field.tilePadding",
+  "Seam fix": "field.seamFix",
+  "Seam denoise": "field.seamDenoise",
+  "Seam width": "field.seamWidth",
+  "Seam mask blur": "field.seamMaskBlur",
+  "Seam padding": "field.seamPadding",
+  "Force uniform tiles": "field.forceUniformTiles",
+  "Tiled decode": "field.tiledDecode",
+  "Tile batch": "field.tileBatch",
+  "Student": "field.student",
+  "Dtype": "field.dtype",
+  "Chop": "field.chop",
+  "Overlap": "field.overlap",
   "Method": "field.method",
   "Multiple": "field.multiple",
   "Max long edge": "field.maxLongEdge",
@@ -1844,6 +2148,7 @@ const AIO_FIELD_LABEL_KEYS = {
   "Clip skip": "field.clipSkip",
   "Embed workflow": "field.embedWorkflow",
   "Workflow JSON": "field.workflowJson",
+  "Save prompt metadata": "field.savePromptMetadata",
   "Additional hashes": "field.additionalHashes",
   "Manual hash bundles": "field.manualHashBundles",
   "Civitai Hash Fetchers": "field.civitaiHashFetchers",
@@ -2057,6 +2362,22 @@ function optionalDependencyPack(key) {
   return GENERATOR_OPTIONAL_DEPENDENCY_SPECS[key]?.pack || key || "";
 }
 
+function upscaleBackendDependencyKeys(backend) {
+  if (backend === "usdu") {
+    return ["ultimateSdUpscale", "upscaleModelLoader"];
+  }
+  if (backend === "resshift") {
+    return ["resShiftLoader", "resShiftUpscale"];
+  }
+  return [];
+}
+
+function upscaleBackendMissingPacks(backend) {
+  return upscaleBackendDependencyKeys(backend)
+    .filter((key) => !optionalDependencyAvailable(key))
+    .map((key) => optionalDependencyPack(key));
+}
+
 function optionalDependencyNodeInfo(key) {
   return generatorOptionalDependencyState.nodeInfo?.[key] || null;
 }
@@ -2077,6 +2398,11 @@ function nodeInputTooltip(dependencyKey, inputName) {
   const spec = nodeInputSpec(dependencyKey, inputName);
   const options = Array.isArray(spec) && spec[1] && typeof spec[1] === "object" ? spec[1] : null;
   return options?.tooltip ? String(options.tooltip) : "";
+}
+
+function nodeInputChoiceOptions(dependencyKey, inputName, current, fallback = []) {
+  const values = choiceSpecValues(nodeInputSpec(dependencyKey, inputName));
+  return optionsWithCurrent(values.length ? values : fallback, current);
 }
 
 function nodeInputSupported(dependencyKey, inputName) {
@@ -2224,7 +2550,7 @@ function disableGeneratorSpectrumOptions(target) {
 }
 
 function sanitizeGeneratorSettingsForOptionalDependencies(settings) {
-  const next = mergeDefaults(DEFAULT_GENERATION_SETTINGS, settings);
+  const next = migrateGeneratorPostprocessSettings(mergeDefaults(DEFAULT_GENERATION_SETTINGS, settings));
   delete next.sampler.dave;
   const backendDependency = GENERATOR_BACKEND_DEPENDENCIES[next.sampler.backend];
   if (backendDependency && !optionalDependencyAvailable(backendDependency)) {
@@ -2234,6 +2560,7 @@ function sanitizeGeneratorSettingsForOptionalDependencies(settings) {
   if (!optionalDependencyAvailable("spectrumPatch")) {
     disableGeneratorSpectrumOptions(next.sampler);
     disableGeneratorSpectrumOptions(next.highres);
+    disableGeneratorSpectrumOptions(next.upscale);
     for (const targetName of normalizeDetailerOrder(next.detailer?.order, next.detailer)) {
       disableGeneratorSpectrumOptions(next.detailer?.[targetName]);
     }
@@ -2266,6 +2593,9 @@ function sanitizeGeneratorSettingsForOptionalDependencies(settings) {
         next.detailer[targetName].enabled = false;
       }
     }
+  }
+  if (next.upscale?.enabled && upscaleBackendMissingPacks(next.upscale.backend).length) {
+    next.upscale.enabled = false;
   }
   return next;
 }
@@ -2334,12 +2664,43 @@ function mergeDefaults(defaults, value) {
   return merge(output, value);
 }
 
+function migrateGeneratorPostprocessSettings(settings) {
+  if (!settings || typeof settings !== "object" || Array.isArray(settings)) {
+    return settings;
+  }
+  const legacyFit = settings.upscale?.fit;
+  if (legacyFit && typeof legacyFit === "object" && !Array.isArray(legacyFit)) {
+    const defaults = DEFAULT_GENERATION_SETTINGS.postprocess;
+    const defaultFit = defaults.fit;
+    settings.postprocess = mergeDefaults(defaults, settings.postprocess || {});
+    settings.postprocess.fit = mergeDefaults(defaultFit, settings.postprocess.fit || {});
+    if (asBool(legacyFit.enabled, false)) {
+      settings.postprocess.enabled = true;
+    }
+    for (const key of ["mode", "max_long_edge", "max_megapixels", "method"]) {
+      if (
+        Object.prototype.hasOwnProperty.call(legacyFit, key)
+        && settings.postprocess.fit[key] === defaultFit[key]
+      ) {
+        settings.postprocess.fit[key] = legacyFit[key];
+      }
+    }
+  }
+  if (settings.upscale && typeof settings.upscale === "object" && !Array.isArray(settings.upscale)) {
+    delete settings.upscale.fit;
+  }
+  return settings;
+}
+
 function parseSettings(widget, defaults) {
   if (!widget) {
     return clone(defaults);
   }
   try {
-    return mergeDefaults(defaults, JSON.parse(widget.value || "{}"));
+    const parsed = mergeDefaults(defaults, JSON.parse(widget.value || "{}"));
+    return defaults === DEFAULT_GENERATION_SETTINGS
+      ? migrateGeneratorPostprocessSettings(parsed)
+      : parsed;
   } catch {
     return clone(defaults);
   }
@@ -3685,6 +4046,31 @@ function clampGeneratorNumber(value, fallback, min, max) {
   return Math.max(min, Math.min(max, next));
 }
 
+function normalizeGeneratorUsduAutoTileRange(usdu) {
+  const defaults = DEFAULT_GENERATION_SETTINGS.upscale.usdu;
+  const target = Math.trunc(clampGeneratorNumber(usdu.auto_tile_target, defaults.auto_tile_target, 64, 16384));
+  let min = Math.trunc(clampGeneratorNumber(usdu.auto_tile_min, defaults.auto_tile_min, 64, 16384));
+  let max = Math.trunc(clampGeneratorNumber(usdu.auto_tile_max, defaults.auto_tile_max, 64, 16384));
+  max = Math.max(min, max);
+  if (target < min) {
+    min = target;
+  }
+  if (target > max) {
+    max = target;
+  }
+  usdu.auto_tile_target = target;
+  usdu.auto_tile_min = min;
+  usdu.auto_tile_max = Math.max(min, max);
+  return usdu;
+}
+
+function setGeneratorUsduAutoTileTarget(settings, value) {
+  settings.upscale ||= {};
+  settings.upscale.usdu ||= {};
+  settings.upscale.usdu.auto_tile_target = Math.trunc(clampGeneratorNumber(value, 1024, 64, 16384));
+  normalizeGeneratorUsduAutoTileRange(settings.upscale.usdu);
+}
+
 function isDetailerTargetName(name) {
   return name === "face" || name === "eye" || /^custom_\d+$/.test(name);
 }
@@ -3800,7 +4186,7 @@ function normalizeGeneratorInputValues(node, settings = DEFAULT_GENERATION_SETTI
 }
 
 function mergeVisibleGeneratorSettings(node, settings) {
-  const next = mergeDefaults(DEFAULT_GENERATION_SETTINGS, settings);
+  const next = migrateGeneratorPostprocessSettings(mergeDefaults(DEFAULT_GENERATION_SETTINGS, settings));
   const inputs = normalizeGeneratorInputValues(node, next);
   next.sampler.seed = inputs.seed;
   next.sampler.seed_after_generate = normalizeSeedControl(next.sampler.seed_after_generate);
@@ -4969,6 +5355,23 @@ function createDomSettingsNumberControl(node, value, step, updater, options = {}
   return input;
 }
 
+function createDomSettingsSelectControl(node, value, options, updater, settings = {}) {
+  const select = selectInput(options, String(value ?? ""));
+  select.addEventListener("change", () => {
+    updateGeneratorSettings(node, (nextSettings) => {
+      updater?.(nextSettings, select.value);
+    });
+    if (settings.rerender) {
+      renderGeneratorPanel(node);
+    } else {
+      updateGeneratorDomSummary(node);
+      scheduleGeneratorLayout(node);
+      markNodeDirty(node);
+    }
+  });
+  return select;
+}
+
 function createDomSelectControl(node, name, value, fallbackOptions = []) {
   const select = selectInput(widgetOptions(node, name, fallbackOptions), String(value ?? ""));
   select.addEventListener("change", () => {
@@ -5464,7 +5867,165 @@ function renderGeneratorPanel(node) {
   }
   detailerBlock.append(detailerBody);
 
-  settingsScroll.append(samplerGrid, highresBlock, detailerBlock);
+  const upscaleBlock = document.createElement("div");
+  upscaleBlock.className = "easyuse-anima-aio-node-stage-block";
+  const upscaleEnabled = createDomSettingsCheckboxControl(
+    node,
+    settings.upscale.enabled,
+    (nextSettings, value) => {
+      nextSettings.upscale ||= {};
+      nextSettings.upscale.enabled = value;
+    },
+    { rerender: true },
+  );
+  upscaleBlock.append(makeStageHeader(
+    aioText("title.upscale"),
+    upscaleEnabled,
+    "tip.upscaleEnabled",
+    [makeIconButton("⚙", () => openUpscaleSettings(node), "tip.upscaleSettings")],
+  ));
+  const upscaleBody = document.createElement("div");
+  upscaleBody.className = "easyuse-anima-aio-node-stage-body";
+  if (settings.upscale.enabled) {
+    const backend = createDomSettingsSelectControl(
+      node,
+      settings.upscale.backend || "usdu",
+      ["usdu", "resshift"],
+      (nextSettings, value) => {
+        nextSettings.upscale ||= {};
+        nextSettings.upscale.backend = value || "usdu";
+      },
+      { rerender: true },
+    );
+    upscaleBody.append(
+      createNodeField(aioText("label.mode"), backend, "wide", "tip.upscaleBackend"),
+    );
+    if (settings.upscale.backend === "usdu") {
+      const usdu = normalizeGeneratorUsduAutoTileRange(
+        mergeDefaults(DEFAULT_GENERATION_SETTINGS.upscale.usdu, settings.upscale.usdu || {}),
+      );
+      upscaleBody.append(
+        createNodeField(
+          aioText("label.scaleBy"),
+          createDomSettingsSliderNumberControl(
+            node,
+            settings.upscale.scale_by,
+            { min: 1, max: 4, step: 0.05, decimals: 2 },
+            (nextSettings, value) => {
+              nextSettings.upscale ||= {};
+              nextSettings.upscale.scale_by = value;
+            },
+          ),
+          "wide",
+          "tip.upscaleScale",
+        ),
+        createNodeField(
+          aioText("label.steps"),
+          createDomSettingsSliderNumberControl(
+            node,
+            settings.upscale.steps,
+            { min: 1, max: 75, step: 1, decimals: 0 },
+            (nextSettings, value) => {
+              nextSettings.upscale ||= {};
+              nextSettings.upscale.steps = Math.trunc(value);
+            },
+          ),
+          "wide",
+          "tip.steps",
+        ),
+        createNodeField(
+          aioText("label.denoise"),
+          createDomSettingsSliderNumberControl(
+            node,
+            settings.upscale.denoise,
+            { min: 0, max: 1, step: 0.01, decimals: 2 },
+            (nextSettings, value) => {
+              nextSettings.upscale ||= {};
+              nextSettings.upscale.denoise = value;
+            },
+          ),
+          "wide",
+          "tip.denoise",
+        ),
+        createNodeField(
+          aioText("field.autoTileSize"),
+          createDomSettingsCheckboxControl(
+            node,
+            usdu.auto_tile_size,
+            (nextSettings, value) => {
+              nextSettings.upscale ||= {};
+              nextSettings.upscale.usdu ||= {};
+              nextSettings.upscale.usdu.auto_tile_size = value;
+            },
+            { rerender: true },
+          ),
+          "wide",
+          "tip.usduAutoTile",
+        ),
+      );
+      if (usdu.auto_tile_size) {
+        upscaleBody.append(
+          createNodeField(
+            aioText("field.autoTileTarget"),
+            createDomSettingsSliderNumberControl(
+              node,
+              usdu.auto_tile_target,
+              { min: 256, max: 2048, step: 64, decimals: 0 },
+              (nextSettings, value) => {
+                setGeneratorUsduAutoTileTarget(nextSettings, value);
+              },
+            ),
+            "wide",
+            "tip.usduAutoTile",
+          ),
+        );
+      }
+      upscaleBody.append(
+        makeNote(
+          usdu.auto_tile_size ? "text.usduAutoTile" : "text.usduManualTile",
+          usdu.auto_tile_size ? "tip.usduAutoTile" : "tip.usduTile",
+        ),
+      );
+    } else {
+      upscaleBody.append(makeNote(`ResShift ${settings.upscale.resshift?.scale || "x2"}`, "tip.resshiftScale"));
+    }
+  } else {
+    upscaleBody.append(makeNote("text.upscaleDisabled", "tip.upscaleEnabled"));
+  }
+  upscaleBlock.append(upscaleBody);
+
+  const postprocess = mergeDefaults(DEFAULT_GENERATION_SETTINGS.postprocess, settings.postprocess || {});
+  const postprocessBlock = document.createElement("div");
+  postprocessBlock.className = "easyuse-anima-aio-node-stage-block";
+  const postprocessEnabled = createDomSettingsCheckboxControl(
+    node,
+    postprocess.enabled,
+    (nextSettings, value) => {
+      nextSettings.postprocess ||= {};
+      nextSettings.postprocess.enabled = value;
+    },
+    { rerender: true },
+  );
+  postprocessBlock.append(makeStageHeader(
+    aioText("title.postprocess"),
+    postprocessEnabled,
+    "tip.postprocessEnabled",
+    [makeIconButton("⚙", () => openPostprocessSettings(node), "tip.postprocessSettings")],
+  ));
+  const postprocessBody = document.createElement("div");
+  postprocessBody.className = "easyuse-anima-aio-node-stage-body";
+  if (postprocess.enabled) {
+    const fit = mergeDefaults(DEFAULT_GENERATION_SETTINGS.postprocess.fit, postprocess.fit || {});
+    const fitText = fit.mode === "megapixels"
+      ? `Fit <= ${fit.max_megapixels || 4}MP`
+      : `Fit <= ${fit.max_long_edge || 2048}px`;
+    postprocessBody.append(makeNote(fitText, "tip.finalFit"));
+  } else {
+    postprocessBody.append(makeNote("text.postprocessDisabled", "tip.postprocessEnabled"));
+  }
+  postprocessBlock.append(postprocessBody);
+
+  settingsScroll.append(samplerGrid, highresBlock, detailerBlock, upscaleBlock, postprocessBlock);
 
   samplerCard.append(samplerHeader, settingsScroll);
 
@@ -6118,6 +6679,307 @@ function openHighresSettings(node) {
       denoise: clampGeneratorNumber(denoise.value, DEFAULT_GENERATION_SETTINGS.highres.denoise, 0, 1),
       ...optimized,
     };
+    writeSettings(node, widget, next);
+    renderGeneratorPanel(node);
+    backdrop.remove();
+  });
+}
+
+function openUpscaleSettings(node) {
+  const widget = findWidget(node, GENERATOR_SETTINGS_WIDGET);
+  const settings = generatorSettings(node);
+  const upscale = mergeDefaults(DEFAULT_GENERATION_SETTINGS.upscale, settings.upscale || {});
+  const usdu = mergeDefaults(DEFAULT_GENERATION_SETTINGS.upscale.usdu, upscale.usdu || {});
+  const resshift = mergeDefaults(DEFAULT_GENERATION_SETTINGS.upscale.resshift, upscale.resshift || {});
+  const { backdrop, body, actions } = createDialog(
+    "Upscale Settings",
+    "Final-stage upscale runs after Detailer and before Save. Choose USDU or ResShift."
+  );
+  body.classList.add("easyuse-anima-aio-one-column");
+
+  const main = document.createElement("section");
+  main.className = "easyuse-anima-aio-section";
+  main.append(Object.assign(document.createElement("h3"), { textContent: aioStaticText("Image Scale") }));
+  const enabled = field(main, "Enable upscale", checkbox(upscale.enabled), "tip.upscaleEnabled");
+  const backend = field(
+    main,
+    "Upscale backend",
+    selectInput(["usdu", "resshift"], upscale.backend || "usdu"),
+    "tip.upscaleBackend",
+  );
+  const dependencyWarning = document.createElement("div");
+  dependencyWarning.className = "easyuse-anima-aio-warning";
+  dependencyWarning.hidden = true;
+  main.append(dependencyWarning);
+
+  const usduSection = document.createElement("section");
+  usduSection.className = "easyuse-anima-aio-section";
+  usduSection.append(Object.assign(document.createElement("h3"), { textContent: aioStaticText("USDU Upscale") }));
+  const scaleBy = field(usduSection, "Scale by", numberInput(upscale.scale_by, "0.05"), "tip.upscaleScale");
+  scaleBy.min = "0.05";
+  scaleBy.max = "4";
+  const upscaleModel = field(
+    usduSection,
+    "Upscale model",
+    selectInput(
+      nodeInputChoiceOptions("upscaleModelLoader", "model_name", usdu.upscale_model_name, [usdu.upscale_model_name]),
+      usdu.upscale_model_name,
+    ),
+    "tip.usduUpscaleModel",
+  );
+  const promptMode = field(
+    usduSection,
+    "USDU prompt",
+    selectInput(["full", "no_general"], usdu.prompt_mode === "quality_tags_only" ? "no_general" : usdu.prompt_mode || "full"),
+    "tip.usduPrompt",
+  );
+  const autoTile = field(usduSection, "Auto tile size", checkbox(usdu.auto_tile_size), "tip.usduAutoTile");
+  const autoTileTarget = field(usduSection, "Auto tile target", numberInput(usdu.auto_tile_target, "64"), "tip.usduAutoTile");
+  const autoTileMin = field(usduSection, "Auto tile min", numberInput(usdu.auto_tile_min, "64"), "tip.usduAutoTile");
+  const autoTileMax = field(usduSection, "Auto tile max", numberInput(usdu.auto_tile_max, "64"), "tip.usduAutoTile");
+  const modeType = field(usduSection, "Mode", selectInput(["Linear", "Chess", "None"], usdu.mode_type || "Linear"), "tip.usduMode");
+  const tileWidth = field(usduSection, "Tile width", numberInput(usdu.tile_width, "8"), "tip.usduTile");
+  const tileHeight = field(usduSection, "Tile height", numberInput(usdu.tile_height, "8"), "tip.usduTile");
+  const maskBlur = field(usduSection, "Mask blur", numberInput(usdu.mask_blur, "1"), "tip.usduTile");
+  const tilePadding = field(usduSection, "Tile padding", numberInput(usdu.tile_padding, "8"), "tip.usduTile");
+  const forceUniformTiles = field(usduSection, "Force uniform tiles", checkbox(usdu.force_uniform_tiles), "tip.usduTile");
+  const tiledDecode = field(usduSection, "Tiled decode", checkbox(usdu.tiled_decode), "tip.usduTile");
+  const batchSize = field(usduSection, "Tile batch", numberInput(usdu.batch_size, "1"), "tip.usduTile");
+  const seamFix = field(
+    usduSection,
+    "Seam fix",
+    selectInput(["None", "Band Pass", "Half Tile", "Half Tile + Intersections"], usdu.seam_fix_mode || "None"),
+    "tip.usduSeam",
+  );
+  const seamDenoise = field(usduSection, "Seam denoise", numberInput(usdu.seam_fix_denoise, "0.01"), "tip.usduSeam");
+  const seamWidth = field(usduSection, "Seam width", numberInput(usdu.seam_fix_width, "8"), "tip.usduSeam");
+  const seamMaskBlur = field(usduSection, "Seam mask blur", numberInput(usdu.seam_fix_mask_blur, "1"), "tip.usduSeam");
+  const seamPadding = field(usduSection, "Seam padding", numberInput(usdu.seam_fix_padding, "8"), "tip.usduSeam");
+
+  const usduSampler = document.createElement("section");
+  usduSampler.className = "easyuse-anima-aio-section";
+  usduSampler.append(Object.assign(document.createElement("h3"), { textContent: aioStaticText("USDU Sampler") }));
+  const inheritSampler = field(usduSampler, "Follow main sampler", checkbox(upscale.inherit_sampler_settings), "tip.highresFollow");
+  const steps = field(usduSampler, "Steps", numberInput(upscale.steps, "1"), "tip.steps");
+  const cfg = field(usduSampler, "CFG", numberInput(upscale.cfg, "0.1"), "tip.cfg");
+  const samplerName = field(
+    usduSampler,
+    "Sampler",
+    selectInput(widgetOptions(node, "sampler_name", GENERATOR_FALLBACK_SAMPLER_NAMES), upscale.sampler_name),
+    "tip.sampler",
+  );
+  const scheduler = field(
+    usduSampler,
+    "Scheduler",
+    selectInput(widgetOptions(node, "scheduler", GENERATOR_FALLBACK_SCHEDULER_NAMES), upscale.scheduler),
+    "tip.scheduler",
+  );
+  const denoise = field(usduSampler, "Denoise", numberInput(upscale.denoise, "0.01"), "tip.denoise");
+  const optimization = createStageOptimizationEditor("USDU Spectrum/DCW", upscale, DEFAULT_GENERATION_SETTINGS.upscale);
+
+  const resshiftSection = document.createElement("section");
+  resshiftSection.className = "easyuse-anima-aio-section";
+  resshiftSection.append(Object.assign(document.createElement("h3"), { textContent: aioStaticText("ResShift Upscale") }));
+  const resshiftScale = field(resshiftSection, "Scale", selectInput(["x2", "x4"], resshift.scale || "x2"), "tip.resshiftScale");
+  const student = field(
+    resshiftSection,
+    "Student",
+    selectInput(
+      nodeInputChoiceOptions("resShiftLoader", "student_name", resshift.student_name, ["(auto-download)"]),
+      resshift.student_name || "(auto-download)",
+    ),
+    "tip.resshiftStudent",
+  );
+  const dtype = field(resshiftSection, "Dtype", selectInput(["bf16", "fp32"], resshift.dtype || "bf16"), "tip.resshiftDtype");
+  const chop = field(resshiftSection, "Chop", numberInput(resshift.chop, "256"), "tip.resshiftTiling");
+  const overlap = field(resshiftSection, "Overlap", numberInput(resshift.overlap, "16"), "tip.resshiftTiling");
+  const tileBatch = field(resshiftSection, "Tile batch", numberInput(resshift.tile_batch, "1"), "tip.resshiftTiling");
+
+  const updateVisibility = () => {
+    const isUsdu = backend.value === "usdu";
+    usduSection.classList.toggle("hidden", !isUsdu);
+    usduSampler.classList.toggle("hidden", !isUsdu);
+    optimization.section.classList.toggle("hidden", !isUsdu);
+    resshiftSection.classList.toggle("hidden", isUsdu);
+    const autoTileDisplay = autoTile.checked ? "" : "none";
+    for (const control of [autoTileTarget, autoTileMin, autoTileMax]) {
+      if (control?.parentElement) {
+        control.parentElement.style.display = autoTileDisplay;
+      }
+    }
+    const manualTileDisplay = autoTile.checked ? "none" : "";
+    for (const control of [tileWidth, tileHeight]) {
+      if (control?.parentElement) {
+        control.parentElement.style.display = manualTileDisplay;
+      }
+    }
+    const samplerOverrideDisplay = inheritSampler.checked ? "none" : "";
+    for (const control of [cfg, samplerName, scheduler]) {
+      if (control?.parentElement) {
+        control.parentElement.style.display = samplerOverrideDisplay;
+      }
+    }
+  };
+  const refreshDependencyLocks = () => {
+    const messages = [];
+    for (const option of Array.from(backend.options)) {
+      const missingPacks = upscaleBackendMissingPacks(option.value);
+      option.disabled = missingPacks.length > 0;
+      option.textContent = missingPacks.length
+        ? `${option.value} (${missingPacks.join(", ")} missing)`
+        : option.value;
+      if (option.selected && missingPacks.length) {
+        messages.push(aioFormat("warning.optionalDependencyMissing", {
+          backend: option.value,
+          pack: missingPacks.join(", "),
+        }));
+        enabled.checked = false;
+      }
+    }
+    dependencyWarning.hidden = messages.length === 0;
+    dependencyWarning.textContent = messages.join(" ");
+    updateVisibility();
+  };
+  backend.addEventListener("change", refreshDependencyLocks);
+  autoTile.addEventListener("change", updateVisibility);
+  inheritSampler.addEventListener("change", updateVisibility);
+  body.append(main, usduSection, usduSampler, optimization.section, resshiftSection);
+  updateVisibility();
+  refreshDependencyLocks();
+  loadGeneratorOptionalDependencies().then(refreshDependencyLocks);
+
+  const cancel = document.createElement("button");
+  cancel.textContent = aioText("button.cancel");
+  const apply = document.createElement("button");
+  apply.className = "primary";
+  apply.textContent = aioText("button.apply");
+  actions.append(cancel, apply);
+  cancel.addEventListener("click", () => backdrop.remove());
+  apply.addEventListener("click", () => {
+    const next = mergeDefaults(DEFAULT_GENERATION_SETTINGS, settings);
+    const missingPacks = upscaleBackendMissingPacks(backend.value);
+    const optimized = optimization.values();
+    next.upscale = {
+      ...next.upscale,
+      enabled: enabled.checked && missingPacks.length === 0,
+      backend: backend.value || "usdu",
+      scale_by: clampGeneratorNumber(scaleBy.value, DEFAULT_GENERATION_SETTINGS.upscale.scale_by, 0.05, 4),
+      steps: Math.trunc(clampGeneratorNumber(steps.value, DEFAULT_GENERATION_SETTINGS.upscale.steps, 1, 1000)),
+      inherit_sampler_settings: inheritSampler.checked,
+      cfg: clampGeneratorNumber(cfg.value, DEFAULT_GENERATION_SETTINGS.upscale.cfg, 0, 100),
+      sampler_name: samplerName.value || "euler",
+      scheduler: scheduler.value || "simple",
+      denoise: clampGeneratorNumber(denoise.value, DEFAULT_GENERATION_SETTINGS.upscale.denoise, 0, 1),
+      ...optimized,
+      usdu: normalizeGeneratorUsduAutoTileRange({
+        upscale_model_name: upscaleModel.value || DEFAULT_GENERATION_SETTINGS.upscale.usdu.upscale_model_name,
+        auto_tile_size: autoTile.checked,
+        prompt_mode: promptMode.value || "full",
+        mode_type: modeType.value || "Linear",
+        auto_tile_target: Math.trunc(clampGeneratorNumber(autoTileTarget.value, 1024, 64, 16384)),
+        auto_tile_min: Math.trunc(clampGeneratorNumber(autoTileMin.value, 512, 64, 16384)),
+        auto_tile_max: Math.trunc(clampGeneratorNumber(autoTileMax.value, 2048, 64, 16384)),
+        tile_width: Math.trunc(clampGeneratorNumber(tileWidth.value, 512, 64, 16384)),
+        tile_height: Math.trunc(clampGeneratorNumber(tileHeight.value, 512, 64, 16384)),
+        mask_blur: Math.trunc(clampGeneratorNumber(maskBlur.value, 8, 0, 64)),
+        tile_padding: Math.trunc(clampGeneratorNumber(tilePadding.value, 32, 0, 16384)),
+        seam_fix_mode: seamFix.value || "None",
+        seam_fix_denoise: clampGeneratorNumber(seamDenoise.value, 1, 0, 1),
+        seam_fix_width: Math.trunc(clampGeneratorNumber(seamWidth.value, 64, 0, 16384)),
+        seam_fix_mask_blur: Math.trunc(clampGeneratorNumber(seamMaskBlur.value, 8, 0, 64)),
+        seam_fix_padding: Math.trunc(clampGeneratorNumber(seamPadding.value, 16, 0, 16384)),
+        force_uniform_tiles: forceUniformTiles.checked,
+        tiled_decode: tiledDecode.checked,
+        batch_size: Math.trunc(clampGeneratorNumber(batchSize.value, 1, 1, 4096)),
+      }),
+      resshift: {
+        scale: resshiftScale.value || "x2",
+        student_name: student.value || "(auto-download)",
+        dtype: dtype.value || "bf16",
+        chop: Math.trunc(clampGeneratorNumber(chop.value, 512, 256, 4096)),
+        overlap: Math.trunc(clampGeneratorNumber(overlap.value, 64, 0, 512)),
+        tile_batch: Math.trunc(clampGeneratorNumber(tileBatch.value, 4, 1, 32)),
+      },
+    };
+    writeSettings(node, widget, next);
+    renderGeneratorPanel(node);
+    backdrop.remove();
+  });
+}
+
+function openPostprocessSettings(node) {
+  const widget = findWidget(node, GENERATOR_SETTINGS_WIDGET);
+  const settings = generatorSettings(node);
+  const postprocess = mergeDefaults(DEFAULT_GENERATION_SETTINGS.postprocess, settings.postprocess || {});
+  const fit = mergeDefaults(DEFAULT_GENERATION_SETTINGS.postprocess.fit, postprocess.fit || {});
+  const { backdrop, body, actions } = createDialog(
+    "Postprocess Settings",
+    "Final size fit runs after Detailer and Upscale, before Save. Cap by long edge or megapixels."
+  );
+  body.classList.add("easyuse-anima-aio-one-column");
+
+  const fitSection = document.createElement("section");
+  fitSection.className = "easyuse-anima-aio-section";
+  fitSection.append(Object.assign(document.createElement("h3"), { textContent: aioStaticText("Final Size Fit") }));
+  const enabled = field(fitSection, "Enable postprocess", checkbox(postprocess.enabled), "tip.postprocessEnabled");
+  const fitMode = field(
+    fitSection,
+    "Fit by",
+    selectInput([
+      { value: "max_long_edge", label: "Max long edge" },
+      { value: "megapixels", label: "Megapixels" },
+    ], fit.mode || "max_long_edge"),
+    "tip.finalFit",
+  );
+  const fitMaxLongEdge = field(fitSection, "Max long edge", numberInput(fit.max_long_edge, "64"), "tip.finalFit");
+  const fitMaxMegapixels = field(fitSection, "Max megapixels", numberInput(fit.max_megapixels, "0.1"), "tip.finalFit");
+  const fitMethod = field(
+    fitSection,
+    "Fit method",
+    selectInput(["bicubic", "lanczos", "area", "bilinear", "nearest-exact"], fit.method || "bicubic"),
+    "tip.finalFit",
+  );
+
+  const updateVisibility = () => {
+    const fitDisplay = enabled.checked ? "" : "none";
+    for (const control of [fitMode, fitMethod]) {
+      if (control?.parentElement) {
+        control.parentElement.style.display = fitDisplay;
+      }
+    }
+    const longEdgeDisplay = enabled.checked && fitMode.value === "max_long_edge" ? "" : "none";
+    const megapixelsDisplay = enabled.checked && fitMode.value === "megapixels" ? "" : "none";
+    if (fitMaxLongEdge?.parentElement) {
+      fitMaxLongEdge.parentElement.style.display = longEdgeDisplay;
+    }
+    if (fitMaxMegapixels?.parentElement) {
+      fitMaxMegapixels.parentElement.style.display = megapixelsDisplay;
+    }
+  };
+  enabled.addEventListener("change", updateVisibility);
+  fitMode.addEventListener("change", updateVisibility);
+  body.append(fitSection);
+  updateVisibility();
+
+  const cancel = document.createElement("button");
+  cancel.textContent = aioText("button.cancel");
+  const apply = document.createElement("button");
+  apply.className = "primary";
+  apply.textContent = aioText("button.apply");
+  actions.append(cancel, apply);
+  cancel.addEventListener("click", () => backdrop.remove());
+  apply.addEventListener("click", () => {
+    const next = mergeDefaults(DEFAULT_GENERATION_SETTINGS, settings);
+    next.postprocess = {
+      enabled: enabled.checked,
+      fit: {
+        mode: fitMode.value || "max_long_edge",
+        max_long_edge: Math.trunc(clampGeneratorNumber(fitMaxLongEdge.value, 2048, 64, 16384)),
+        max_megapixels: clampGeneratorNumber(fitMaxMegapixels.value, 4, 0.1, 256),
+        method: fitMethod.value || "bicubic",
+      },
+    };
+    delete next.upscale?.fit;
     writeSettings(node, widget, next);
     renderGeneratorPanel(node);
     backdrop.remove();
@@ -6797,6 +7659,7 @@ function openSaveSettings(node) {
   const clipSkip = field(metadata, "Clip skip", numberInput(imageSaver.clip_skip, "1"));
   const embedWorkflow = field(metadata, "Embed workflow", checkbox(imageSaver.embed_workflow));
   const saveWorkflowJson = field(metadata, "Workflow JSON", checkbox(imageSaver.save_workflow_as_json));
+  const savePromptMetadata = field(metadata, "Save prompt metadata", checkbox(imageSaver.save_prompt_metadata));
   const additionalHashes = field(metadata, "Additional hashes", textInput(imageSaver.additional_hashes), "tip.additionalHashes");
   const hashBundles = createImageSaverHashBundleEditor(imageSaver.additional_hash_bundles);
   field(metadata, "Manual hash bundles", hashBundles.element, "tip.hashBundles");
@@ -6832,6 +7695,7 @@ function openSaveSettings(node) {
       time_format: timeFormat.value || "%Y-%m-%d-%H%M%S",
       save_workflow_as_json: saveWorkflowJson.checked,
       embed_workflow: embedWorkflow.checked,
+      save_prompt_metadata: savePromptMetadata.checked,
       additional_hashes: additionalHashes.value || "",
       additional_hash_bundles: hashBundles.values(),
       civitai_hash_fetchers: civitaiHashFetchers.values(),

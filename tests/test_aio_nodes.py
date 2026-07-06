@@ -126,6 +126,7 @@ class AIOSettingsStorageTests(unittest.TestCase):
         self.assertNotIn("filename_prefix", settings["save"])
         self.assertEqual(settings["save"]["image_saver"]["extension"], "webp")
         self.assertEqual(settings["save"]["image_saver"]["quality_jpeg_or_webp"], 97)
+        self.assertTrue(settings["save"]["image_saver"]["save_prompt_metadata"])
         self.assertEqual(settings["save"]["image_saver"]["additional_hash_bundles"], [])
         self.assertEqual(settings["save"]["image_saver"]["civitai_hash_fetchers"], [])
         self.assertNotIn("show_preview", settings["save"]["image_saver"])
@@ -134,6 +135,66 @@ class AIOSettingsStorageTests(unittest.TestCase):
         self.assertTrue(settings["preview"]["image_feed"])
         self.assertEqual(settings["preview"]["feed_count"], 12)
         self.assertEqual(settings["future_section"]["value"], 42)
+
+    def test_generation_settings_normalize_final_upscale(self):
+        settings = nodes._normalize_aio_generation_settings(json.dumps({
+            "upscale": {
+                "enabled": True,
+                "backend": "invalid",
+                "scale_by": 9,
+                "spectrum": {
+                    "enabled": True,
+                    "window_size": 5,
+                },
+                "dit_corrections": {
+                    "enabled": True,
+                    "dcw_mode": "manual",
+                },
+                "usdu": {
+                    "auto_tile_size": True,
+                    "prompt_mode": "quality_tags_only",
+                    "auto_tile_target": 9000,
+                    "auto_tile_min": 128,
+                    "auto_tile_max": 256,
+                    "tile_width": 4,
+                },
+                "fit": {
+                    "enabled": True,
+                    "mode": "megapixels",
+                    "max_long_edge": 8,
+                    "max_megapixels": 999,
+                    "method": "bad",
+                },
+                "resshift": {
+                    "scale": "x9",
+                    "dtype": "bad",
+                    "tile_batch": 128,
+                },
+            },
+        }))
+
+        self.assertTrue(settings["upscale"]["enabled"])
+        self.assertEqual(settings["upscale"]["backend"], "usdu")
+        self.assertEqual(settings["upscale"]["scale_by"], 4.0)
+        self.assertTrue(settings["upscale"]["spectrum"]["enabled"])
+        self.assertEqual(settings["upscale"]["spectrum"]["window_size"], 5.0)
+        self.assertTrue(settings["upscale"]["dit_corrections"]["enabled"])
+        self.assertEqual(settings["upscale"]["dit_corrections"]["dcw_mode"], "manual")
+        self.assertTrue(settings["upscale"]["usdu"]["auto_tile_size"])
+        self.assertEqual(settings["upscale"]["usdu"]["prompt_mode"], "no_general")
+        self.assertEqual(settings["upscale"]["usdu"]["auto_tile_target"], 9000)
+        self.assertEqual(settings["upscale"]["usdu"]["auto_tile_min"], 128)
+        self.assertEqual(settings["upscale"]["usdu"]["auto_tile_max"], 9000)
+        self.assertEqual(settings["upscale"]["usdu"]["tile_width"], 64)
+        self.assertNotIn("fit", settings["upscale"])
+        self.assertTrue(settings["postprocess"]["enabled"])
+        self.assertEqual(settings["postprocess"]["fit"]["mode"], "megapixels")
+        self.assertEqual(settings["postprocess"]["fit"]["max_long_edge"], 64)
+        self.assertEqual(settings["postprocess"]["fit"]["max_megapixels"], 256.0)
+        self.assertEqual(settings["postprocess"]["fit"]["method"], "bicubic")
+        self.assertEqual(settings["upscale"]["resshift"]["scale"], "x2")
+        self.assertEqual(settings["upscale"]["resshift"]["dtype"], "bf16")
+        self.assertEqual(settings["upscale"]["resshift"]["tile_batch"], 32)
 
     def test_generation_settings_preserve_custom_detailer_blocks(self):
         settings = nodes._normalize_aio_generation_settings(json.dumps({
@@ -508,6 +569,8 @@ class AIOImageSaverDependencyTests(unittest.TestCase):
         self.assertEqual(calls[0]["path"], "EasyUseAnima/Test")
         self.assertTrue(calls[0]["embed_workflow"])
         self.assertTrue(calls[0]["save_workflow_as_json"])
+        self.assertEqual(calls[0]["positive"], "positive")
+        self.assertEqual(calls[0]["negative"], "negative")
         self.assertFalse(calls[0]["show_preview"])
         self.assertEqual(calls[0]["modelname"], "anima")
         self.assertEqual(calls[0]["width"], 768)
@@ -545,6 +608,44 @@ class AIOImageSaverDependencyTests(unittest.TestCase):
 
         self.assertIn("<lora:styles/foo:0.75>", calls[0]["positive"])
         self.assertIn("<lora:bar:1>", calls[0]["positive"])
+
+    def test_image_saver_can_skip_prompt_metadata(self):
+        calls = []
+
+        class FakeImageSaver:
+            def save_files(self, **kwargs):
+                calls.append(kwargs)
+                return {"ui": {"images": [{"filename": "preview.webp"}]}}
+
+        settings = nodes._normalize_aio_generation_settings(json.dumps({
+            "save": {
+                "image_saver": {
+                    "save_prompt_metadata": False,
+                },
+            },
+        }))
+
+        with patch.object(nodes, "_find_comfy_node_class", return_value=FakeImageSaver):
+            nodes._save_image_with_image_saver(
+                images="images",
+                save_settings=settings["save"],
+                positive_prompt="positive prompt",
+                negative_prompt="negative prompt",
+                width=768,
+                height=1024,
+                sampler_settings=settings["sampler"],
+                applied_loras=[
+                    {"name": "styles\\foo.safetensors", "strength_model": 0.75, "strength_clip": 1.0},
+                ],
+                resource_info={"unet_name": "anima"},
+                workflow_prompt={"1": {}},
+                extra_pnginfo={"workflow": {}},
+            )
+
+        self.assertEqual(calls[0]["positive"], "")
+        self.assertEqual(calls[0]["negative"], "")
+        self.assertEqual(calls[0]["prompt"], {"1": {}})
+        self.assertEqual(calls[0]["extra_pnginfo"], {"workflow": {}})
 
 
 class AIOLoraStackTests(unittest.TestCase):
@@ -1457,6 +1558,278 @@ class AIOHighresDetailerStageTests(unittest.TestCase):
         self.assertEqual(metadata["order"], ["face", "custom_1", "eye"])
 
 
+class AIOFinalUpscaleStageTests(unittest.TestCase):
+    class _Image:
+        def __init__(self, width=512, height=768):
+            self.shape = (1, height, width, 3)
+
+    def test_usdu_auto_tile_size_has_practical_floor_and_alignment(self):
+        for target in (64, 512, 1536, 3072):
+            tile_size = nodes._aio_usdu_auto_tile_dimension(target)
+            self.assertGreaterEqual(tile_size, 512)
+            self.assertLessEqual(tile_size, 2048)
+            self.assertEqual(tile_size % 64, 0)
+
+    def test_usdu_auto_tile_size_uses_configurable_bounds(self):
+        tile_size = nodes._aio_usdu_auto_tile_dimension(
+            4096,
+            preferred_size=640,
+            min_size=384,
+            max_size=768,
+        )
+
+        self.assertGreaterEqual(tile_size, 384)
+        self.assertLessEqual(tile_size, 768)
+        self.assertEqual(tile_size % 64, 0)
+
+    def test_final_fit_size_downscales_by_long_edge_or_megapixels(self):
+        self.assertEqual(
+            nodes._aio_final_fit_size(4096, 2048, {
+                "enabled": True,
+                "mode": "max_long_edge",
+                "max_long_edge": 2048,
+            })[:2],
+            (2048, 1024),
+        )
+        width, height, scale = nodes._aio_final_fit_size(4000, 3000, {
+            "enabled": True,
+            "mode": "megapixels",
+            "max_megapixels": 4,
+        })
+
+        self.assertLess(scale, 1.0)
+        self.assertLessEqual(width * height, 4_000_000)
+        self.assertEqual(width % 8, 0)
+        self.assertEqual(height % 8, 0)
+
+    def test_postprocess_stage_applies_final_fit(self):
+        with (
+            patch.object(
+                nodes,
+                "_apply_aio_final_fit",
+                return_value=(
+                    AIOFinalUpscaleStageTests._Image(2048, 1536),
+                    {
+                        "enabled": True,
+                        "applied": True,
+                        "mode": "max_long_edge",
+                        "max_long_edge": 2048,
+                        "max_megapixels": 4.0,
+                        "method": "bicubic",
+                        "width": 4096,
+                        "height": 3072,
+                        "target_width": 2048,
+                        "target_height": 1536,
+                    },
+                ),
+            ) as fit,
+            self.assertLogs("ComfyUI-EasyUseAnima", level="INFO") as logs,
+        ):
+            image, metadata = nodes._run_aio_postprocess_stage(
+                AIOFinalUpscaleStageTests._Image(4096, 3072),
+                {
+                    "enabled": True,
+                    "fit": {
+                        "mode": "max_long_edge",
+                        "max_long_edge": 2048,
+                    },
+                },
+            )
+
+        self.assertIsInstance(image, AIOFinalUpscaleStageTests._Image)
+        fit.assert_called_once()
+        self.assertTrue(metadata["enabled"])
+        self.assertTrue(metadata["fit"]["applied"])
+        self.assertEqual(metadata["width"], 2048)
+        self.assertEqual(metadata["height"], 1536)
+        self.assertIn("Postprocess final fit", "\n".join(logs.output))
+
+    def test_usdu_no_general_prompt_keeps_artist_and_trigger_without_duplicate_quality(self):
+        prompt_data = {
+            "pin_trigger_tags_to_front": True,
+            "fields": [
+                {"pane": "positive", "type": "quality", "text": "best quality", "enabled": True},
+                {"pane": "positive", "type": "artist", "text": "@sample artist", "enabled": True},
+                {"pane": "positive", "type": "trigger", "text": "lora trigger", "enabled": True, "pin": True},
+                {"pane": "positive", "type": "general", "text": "1girl, city background", "enabled": True},
+            ],
+        }
+
+        prompt, has_fields = nodes._aio_usdu_prompt_without_general(
+            prompt_data,
+            "positive",
+            include_quality=False,
+        )
+
+        self.assertTrue(has_fields)
+        self.assertIn("@sample artist", prompt)
+        self.assertIn("lora trigger", prompt)
+        self.assertNotIn("best quality", prompt)
+        self.assertNotIn("1girl", prompt)
+        self.assertNotIn("city background", prompt)
+
+    def test_upscale_stage_runs_usdu_with_no_general_prompt_and_stage_patches(self):
+        settings = nodes._normalize_aio_generation_settings(json.dumps({
+            "sampler": {
+                "seed": 123,
+                "steps": 30,
+                "cfg": 5,
+            },
+            "upscale": {
+                "enabled": True,
+                "backend": "usdu",
+                "scale_by": 2,
+                "spectrum": {
+                    "enabled": True,
+                    "window_size": 6,
+                },
+                "dit_corrections": {
+                    "enabled": True,
+                    "dcw_mode": "manual",
+                },
+                "usdu": {
+                    "prompt_mode": "no_general",
+                    "auto_tile_size": True,
+                    "auto_tile_target": 768,
+                    "upscale_model_name": "model.safetensors",
+                },
+            },
+        }))
+        prompt_data = {
+            "fields": [
+                {"pane": "positive", "type": "quality", "text": "quality tags", "enabled": True},
+                {"pane": "positive", "type": "artist", "text": "@artist", "enabled": True},
+                {"pane": "positive", "type": "trigger", "text": "trigger word", "enabled": True, "pin": True},
+                {"pane": "positive", "type": "general", "text": "removed content", "enabled": True},
+                {"pane": "negative", "type": "quality", "text": "quality negative", "enabled": True},
+                {"pane": "negative", "type": "general", "text": "removed negative content", "enabled": True},
+            ],
+        }
+        calls = {}
+
+        class FakeUSDU:
+            def upscale(self, **kwargs):
+                calls["usdu"] = kwargs
+                return (AIOFinalUpscaleStageTests._Image(1024, 1536),)
+
+        with (
+            patch.object(nodes, "_require_custom_node_class", return_value=FakeUSDU) as require,
+            patch.object(nodes, "_load_upscale_model_with_comfy", return_value="upscale_model") as load_upscale,
+            patch.object(nodes, "_encode_with_comfy_clip", side_effect=lambda clip, prompt: f"encoded:{prompt}") as encode,
+            patch.object(nodes, "_apply_aio_spectrum_model_patches_for_comfy_sampler", return_value="stage_model") as patch_stage,
+            patch.object(nodes, "_cleanup_aio_ephemeral_model") as cleanup,
+            self.assertLogs("ComfyUI-EasyUseAnima", level="INFO") as logs,
+        ):
+            image, metadata = nodes._run_aio_upscale_stage(
+                "model",
+                "clip",
+                "vae",
+                "positive",
+                "negative",
+                self._Image(512, 768),
+                settings["sampler"],
+                settings["upscale"],
+                "quality tags",
+                "quality negative",
+                prompt_data,
+                exclude_positive_quality=True,
+            )
+
+        self.assertIsInstance(image, self._Image)
+        require.assert_called_once()
+        load_upscale.assert_called_once_with("model.safetensors")
+        self.assertEqual(encode.call_args_list[0].args, ("clip", "@artist, trigger word"))
+        self.assertEqual(encode.call_args_list[1].args, ("clip", "quality negative"))
+        self.assertEqual(patch_stage.call_args.args[2], "encoded:@artist, trigger word")
+        stage_sampler = patch_stage.call_args.args[3]
+        self.assertTrue(stage_sampler["spectrum"]["enabled"])
+        self.assertEqual(stage_sampler["spectrum"]["window_size"], 6.0)
+        self.assertTrue(stage_sampler["dit_corrections"]["enabled"])
+        self.assertEqual(stage_sampler["dit_corrections"]["dcw_mode"], "manual")
+        self.assertEqual(calls["usdu"]["model"], "stage_model")
+        self.assertEqual(calls["usdu"]["positive"], "encoded:@artist, trigger word")
+        self.assertEqual(calls["usdu"]["negative"], "encoded:quality negative")
+        self.assertEqual(calls["usdu"]["upscale_model"], "upscale_model")
+        self.assertEqual(calls["usdu"]["tile_width"], 512)
+        self.assertEqual(calls["usdu"]["tile_height"], 768)
+        self.assertEqual(metadata["backend"], "usdu")
+        self.assertEqual(metadata["prompt_mode"], "no_general")
+        self.assertTrue(metadata["tile_auto"])
+        self.assertEqual(metadata["tile_target_width"], 1024)
+        self.assertEqual(metadata["tile_target_height"], 1536)
+        self.assertNotIn("fit", metadata)
+        log_text = "\n".join(logs.output)
+        self.assertIn("USDU auto tile", log_text)
+        self.assertIn("resolved_tile=512x768", log_text)
+        self.assertIn("USDU sampler: steps=20", log_text)
+        cleanup.assert_called_once_with("stage_model", "model")
+
+    def test_upscale_stage_runs_only_resshift_when_selected(self):
+        settings = nodes._normalize_aio_generation_settings(json.dumps({
+            "sampler": {
+                "seed": 321,
+            },
+            "upscale": {
+                "enabled": True,
+                "backend": "resshift",
+                "resshift": {
+                    "scale": "x4",
+                    "student_name": "student.ckpt",
+                    "dtype": "fp32",
+                    "chop": 1024,
+                    "overlap": 96,
+                    "tile_batch": 2,
+                },
+            },
+        }))
+        calls = {}
+
+        class FakeLoader:
+            def load(self, scale, student_name, dtype):
+                calls["loader"] = (scale, student_name, dtype)
+                return ("resshift_model",)
+
+        class FakeUpscale:
+            def upscale(self, *args):
+                calls["upscale"] = args
+                return (AIOFinalUpscaleStageTests._Image(2048, 3072),)
+
+        def fake_require(node_id, *_args):
+            if node_id == "ResShiftLoader":
+                return FakeLoader
+            if node_id == "ResShiftUpscale":
+                return FakeUpscale
+            raise AssertionError(f"unexpected node lookup: {node_id}")
+
+        input_image = self._Image(512, 768)
+        with (
+            patch.object(nodes, "_require_custom_node_class", side_effect=fake_require) as require,
+            patch.object(nodes, "_load_upscale_model_with_comfy") as load_upscale,
+            patch.object(nodes, "_apply_aio_spectrum_model_patches_for_comfy_sampler") as patch_stage,
+        ):
+            image, metadata = nodes._run_aio_upscale_stage(
+                "model",
+                "clip",
+                "vae",
+                "positive",
+                "negative",
+                input_image,
+                settings["sampler"],
+                settings["upscale"],
+            )
+
+        self.assertIsInstance(image, self._Image)
+        self.assertEqual(require.call_count, 2)
+        load_upscale.assert_not_called()
+        patch_stage.assert_not_called()
+        self.assertEqual(calls["loader"], ("x4", "student.ckpt", "fp32"))
+        self.assertEqual(calls["upscale"][0], "resshift_model")
+        self.assertIs(calls["upscale"][1], input_image)
+        self.assertEqual(calls["upscale"][2:], (321, 1024, 96, 2))
+        self.assertEqual(metadata["backend"], "resshift")
+        self.assertEqual(metadata["scale"], "x4")
+
+
 class AIOGeneratorRuntimeTests(unittest.TestCase):
     def setUp(self):
         nodes._clear_aio_first_pass_cache()
@@ -1674,6 +2047,84 @@ class AIOGeneratorRuntimeTests(unittest.TestCase):
         comfy_patch.assert_not_called()
         self.assertEqual(sample.call_args.args[0], "patched_model")
         self.assertEqual(detailer.call_args.args[0], "mod_guidance_model")
+
+    def test_generator_runs_postprocess_after_upscale_before_save(self):
+        context = self._context()
+        events = []
+        upscaled_image = AIOFinalUpscaleStageTests._Image(1024, 1536)
+
+        def fake_detailer(*_args):
+            events.append("detailer")
+            return "detail_image", {"enabled": True}
+
+        def fake_upscale(*_args, **_kwargs):
+            events.append("upscale")
+            return upscaled_image, {"enabled": True, "backend": "usdu", "width": 1024, "height": 1536}
+
+        def fake_postprocess(*_args, **_kwargs):
+            events.append("postprocess")
+            return AIOFinalUpscaleStageTests._Image(900, 1350), {
+                "enabled": True,
+                "width": 900,
+                "height": 1350,
+                "fit": {
+                    "applied": True,
+                },
+            }
+
+        def fake_save(*_args, **_kwargs):
+            events.append("save")
+            return {"ui": {"images": [{"filename": "final.webp"}]}}
+
+        with (
+            patch.object(nodes, "_load_aio_resources_from_input_context", return_value=("base_model", "base_clip", "vae")),
+            patch.object(nodes, "_apply_aio_lora_stack", return_value=("lora_model", "lora_clip", [])),
+            patch.object(nodes, "_apply_aio_model_patches", return_value="patched_model"),
+            patch.object(nodes, "_advanced_outputs_from_prompt_data", return_value=("p", "n", "q", "qn", False, False, "", "", 512, 768)),
+            patch.object(nodes, "_encode_prompt_data_positive_conditioning", return_value="positive"),
+            patch.object(nodes, "_encode_with_comfy_clip", return_value="negative"),
+            patch.object(nodes, "_generate_empty_latent_with_comfy", return_value="latent_image"),
+            patch.object(nodes, "_sample_latent_with_aio_backend", return_value="latent"),
+            patch.object(nodes, "_decode_latent_with_comfy", return_value="first_image"),
+            patch.object(nodes, "_run_aio_highres_stage", return_value=("latent", "first_image", 512, 768, {"enabled": False})),
+            patch.object(nodes, "_run_aio_detailer_stage", side_effect=fake_detailer),
+            patch.object(nodes, "_run_aio_upscale_stage", side_effect=fake_upscale) as upscale,
+            patch.object(nodes, "_run_aio_postprocess_stage", side_effect=fake_postprocess) as postprocess,
+            patch.object(nodes, "_encode_image_with_comfy_vae", side_effect=["upscaled_latent", "postprocess_latent"]) as encode,
+            patch.object(nodes, "_save_image_with_image_saver", side_effect=fake_save) as save,
+            patch.object(nodes, "_cleanup_aio_ephemeral_model"),
+        ):
+            result = nodes.EasyUseAnimaAIOGenerator().generate(
+                context,
+                generation_settings=json.dumps({
+                    "detailer": {
+                        "enabled": True,
+                        "face": {
+                            "enabled": True,
+                        },
+                    },
+                    "upscale": {
+                        "enabled": True,
+                        "backend": "usdu",
+                    },
+                    "postprocess": {
+                        "enabled": True,
+                    },
+                    "save": {
+                        "enabled": True,
+                    },
+                }),
+                unique_id=213,
+            )
+
+        self.assertEqual(events, ["detailer", "upscale", "postprocess", "save"])
+        self.assertIsInstance(result["result"][0], AIOFinalUpscaleStageTests._Image)
+        self.assertEqual(result["result"][1], "postprocess_latent")
+        self.assertEqual(upscale.call_args.args[5], "detail_image")
+        self.assertIs(postprocess.call_args.args[0], upscaled_image)
+        self.assertEqual(encode.call_count, 2)
+        self.assertEqual(save.call_args.kwargs["width"], 900)
+        self.assertEqual(save.call_args.kwargs["height"], 1350)
 
     def test_generator_save_metadata_uses_first_pass_sampler_and_final_size(self):
         context = self._context()

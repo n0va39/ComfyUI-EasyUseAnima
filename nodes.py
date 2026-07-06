@@ -8,7 +8,7 @@ import os
 import random
 import re
 import sys
-from math import gcd, isfinite, lcm, log
+from math import ceil, gcd, isfinite, lcm, log, sqrt
 from typing import Any, Optional
 
 try:
@@ -395,6 +395,88 @@ AIO_GENERATION_DEFAULT_SETTINGS = {
             "replace_existing_cfg": False,
         },
     },
+    "upscale": {
+        "enabled": False,
+        "backend": "usdu",
+        "scale_by": 2.0,
+        "steps": 20,
+        "inherit_sampler_settings": True,
+        "cfg": 8.0,
+        "sampler_name": "euler",
+        "scheduler": "simple",
+        "denoise": 0.2,
+        "spectrum": {
+            "enabled": False,
+            "window_size": 2.0,
+            "flex_window": 0.2,
+            "warmup_steps": 7,
+            "tail_actual_steps": 4,
+            "blend_w": 0.3,
+            "cheby_degree": 3,
+            "ridge_lambda": 0.1,
+            "history_size": 100,
+            "one_sampler_only": False,
+            "verbose": False,
+            "compat_policy": "conservative",
+        },
+        "dit_corrections": {
+            "enabled": False,
+            "dcw_mode": "off",
+            "dcw_lambda": 0.02,
+            "dcw_band_mask": "LL",
+            "dcw_calibrator": "(auto-download default)",
+            "smc_cfg": False,
+            "adaptive_smc_alpha": 0.0,
+            "smc_cfg_lambda": 6.0,
+            "cfgpp": False,
+            "cfgpp_lambda": 0.0,
+            "fsg": False,
+            "fsg_band_lo": 0.59,
+            "fsg_band_hi": 0.75,
+            "fsg_k": 3,
+            "fsg_d_sigma": 0.1,
+            "fsg_gamma": 0.0,
+            "replace_existing_cfg": False,
+        },
+        "usdu": {
+            "upscale_model_name": "2x-AnimeSharpV4_Fast_RCAN_PU.safetensors",
+            "auto_tile_size": True,
+            "prompt_mode": "full",
+            "mode_type": "Linear",
+            "auto_tile_target": 1024,
+            "auto_tile_min": 512,
+            "auto_tile_max": 2048,
+            "tile_width": 512,
+            "tile_height": 512,
+            "mask_blur": 8,
+            "tile_padding": 32,
+            "seam_fix_mode": "None",
+            "seam_fix_denoise": 1.0,
+            "seam_fix_width": 64,
+            "seam_fix_mask_blur": 8,
+            "seam_fix_padding": 16,
+            "force_uniform_tiles": True,
+            "tiled_decode": False,
+            "batch_size": 1,
+        },
+        "resshift": {
+            "scale": "x2",
+            "student_name": "(auto-download)",
+            "dtype": "bf16",
+            "chop": 512,
+            "overlap": 64,
+            "tile_batch": 4,
+        },
+    },
+    "postprocess": {
+        "enabled": False,
+        "fit": {
+            "mode": "max_long_edge",
+            "max_long_edge": 2048,
+            "max_megapixels": 4.0,
+            "method": "bicubic",
+        },
+    },
     "detailer": {
         "enabled": False,
         "order": ["face", "eye"],
@@ -550,6 +632,7 @@ AIO_GENERATION_DEFAULT_SETTINGS = {
             "time_format": "%Y-%m-%d-%H%M%S",
             "save_workflow_as_json": False,
             "embed_workflow": True,
+            "save_prompt_metadata": True,
             "additional_hashes": "",
             "additional_hash_bundles": [],
             "civitai_hash_fetchers": [],
@@ -628,6 +711,15 @@ NAI_1MP = 1024 * 1024
 LATENT_ALIGN = 8
 IMAGE_UPSCALE_METHODS = ["nearest-exact", "bilinear", "area", "bicubic", "lanczos"]
 IMAGE_SCALE_MULTIPLES = ["8", "16", "32", "64"]
+AIO_FINAL_UPSCALE_BACKENDS = ("usdu", "resshift")
+AIO_USDU_MODE_TYPES = ("Linear", "Chess", "None")
+AIO_USDU_SEAM_FIX_MODES = ("None", "Band Pass", "Half Tile", "Half Tile + Intersections")
+AIO_USDU_PROMPT_FULL = "full"
+AIO_USDU_PROMPT_NO_GENERAL = "no_general"
+AIO_USDU_PROMPT_MODES = (AIO_USDU_PROMPT_FULL, AIO_USDU_PROMPT_NO_GENERAL)
+AIO_FINAL_FIT_MODES = ("max_long_edge", "megapixels")
+AIO_RESHIFT_SCALES = ("x2", "x4")
+AIO_RESHIFT_DTYPES = ("bf16", "fp32")
 ADVANCED_RESOLUTION_BUCKETS = {
     "512": (
         (256, 1024), (1024, 256),
@@ -1474,7 +1566,7 @@ def _normalize_aio_generation_settings(value) -> dict[str, Any]:
         1.0,
     )
 
-    for key in ("highres", "detailer", "save"):
+    for key in ("highres", "detailer", "upscale", "postprocess", "save"):
         section = settings.setdefault(key, {})
         if not isinstance(section, dict):
             section = {}
@@ -1518,6 +1610,140 @@ def _normalize_aio_generation_settings(value) -> dict[str, Any]:
         highres.get("dit_corrections"),
         default_highres["dit_corrections"],
     )
+    upscale = settings["upscale"]
+    default_upscale = AIO_GENERATION_DEFAULT_SETTINGS["upscale"]
+    upscale["backend"] = _choice(
+        upscale.get("backend"),
+        AIO_FINAL_UPSCALE_BACKENDS,
+        default_upscale["backend"],
+    )
+    upscale["scale_by"] = max(0.05, min(4.0, _as_float(upscale.get("scale_by"), default_upscale["scale_by"])))
+    upscale["steps"] = max(1, min(1000, _as_int(upscale.get("steps"), default_upscale["steps"])))
+    upscale["inherit_sampler_settings"] = _as_bool(
+        upscale.get("inherit_sampler_settings"),
+        default_upscale["inherit_sampler_settings"],
+    )
+    upscale["cfg"] = max(0.0, min(100.0, _as_float(upscale.get("cfg"), default_upscale["cfg"])))
+    upscale["sampler_name"] = _choice(
+        upscale.get("sampler_name"),
+        _comfy_sampler_names(),
+        default_upscale["sampler_name"],
+    )
+    upscale["scheduler"] = _choice(
+        upscale.get("scheduler"),
+        _comfy_scheduler_names(),
+        default_upscale["scheduler"],
+    )
+    upscale["denoise"] = max(0.0, min(1.0, _as_float(upscale.get("denoise"), default_upscale["denoise"])))
+    max_resolution = _comfy_max_resolution()
+    legacy_upscale_fit = upscale.pop("fit", None)
+    upscale["spectrum"] = _normalize_aio_spectrum_settings(
+        upscale.get("spectrum"),
+        default_upscale["spectrum"],
+    )
+    upscale["dit_corrections"] = _normalize_aio_dit_corrections_settings(
+        upscale.get("dit_corrections"),
+        default_upscale["dit_corrections"],
+    )
+    usdu = upscale.setdefault("usdu", {})
+    if not isinstance(usdu, dict):
+        usdu = {}
+        upscale["usdu"] = usdu
+    default_usdu = default_upscale["usdu"]
+    usdu["upscale_model_name"] = str(
+        usdu.get("upscale_model_name") or default_usdu["upscale_model_name"]
+    )
+    usdu["auto_tile_size"] = _as_bool(usdu.get("auto_tile_size"), default_usdu["auto_tile_size"])
+    prompt_mode = str(usdu.get("prompt_mode") or default_usdu["prompt_mode"])
+    if prompt_mode == "quality_tags_only":
+        prompt_mode = AIO_USDU_PROMPT_NO_GENERAL
+    usdu["prompt_mode"] = _choice(prompt_mode, AIO_USDU_PROMPT_MODES, default_usdu["prompt_mode"])
+    usdu["mode_type"] = _choice(usdu.get("mode_type"), AIO_USDU_MODE_TYPES, default_usdu["mode_type"])
+    auto_tile_target = max(
+        64,
+        min(max_resolution, _as_int(usdu.get("auto_tile_target"), default_usdu["auto_tile_target"])),
+    )
+    auto_tile_min = max(
+        64,
+        min(max_resolution, _as_int(usdu.get("auto_tile_min"), default_usdu["auto_tile_min"])),
+    )
+    auto_tile_max = max(
+        auto_tile_min,
+        min(max_resolution, _as_int(usdu.get("auto_tile_max"), default_usdu["auto_tile_max"])),
+    )
+    if auto_tile_target < auto_tile_min:
+        auto_tile_min = auto_tile_target
+    if auto_tile_target > auto_tile_max:
+        auto_tile_max = auto_tile_target
+    usdu["auto_tile_target"] = auto_tile_target
+    usdu["auto_tile_min"] = auto_tile_min
+    usdu["auto_tile_max"] = max(auto_tile_min, auto_tile_max)
+    usdu["tile_width"] = max(64, min(max_resolution, _as_int(usdu.get("tile_width"), default_usdu["tile_width"])))
+    usdu["tile_height"] = max(64, min(max_resolution, _as_int(usdu.get("tile_height"), default_usdu["tile_height"])))
+    usdu["mask_blur"] = max(0, min(64, _as_int(usdu.get("mask_blur"), default_usdu["mask_blur"])))
+    usdu["tile_padding"] = max(0, min(max_resolution, _as_int(usdu.get("tile_padding"), default_usdu["tile_padding"])))
+    usdu["seam_fix_mode"] = _choice(
+        usdu.get("seam_fix_mode"),
+        AIO_USDU_SEAM_FIX_MODES,
+        default_usdu["seam_fix_mode"],
+    )
+    usdu["seam_fix_denoise"] = max(
+        0.0,
+        min(1.0, _as_float(usdu.get("seam_fix_denoise"), default_usdu["seam_fix_denoise"])),
+    )
+    usdu["seam_fix_width"] = max(
+        0,
+        min(max_resolution, _as_int(usdu.get("seam_fix_width"), default_usdu["seam_fix_width"])),
+    )
+    usdu["seam_fix_mask_blur"] = max(
+        0,
+        min(64, _as_int(usdu.get("seam_fix_mask_blur"), default_usdu["seam_fix_mask_blur"])),
+    )
+    usdu["seam_fix_padding"] = max(
+        0,
+        min(max_resolution, _as_int(usdu.get("seam_fix_padding"), default_usdu["seam_fix_padding"])),
+    )
+    usdu["force_uniform_tiles"] = _as_bool(usdu.get("force_uniform_tiles"), default_usdu["force_uniform_tiles"])
+    usdu["tiled_decode"] = _as_bool(usdu.get("tiled_decode"), default_usdu["tiled_decode"])
+    usdu["batch_size"] = max(1, min(4096, _as_int(usdu.get("batch_size"), default_usdu["batch_size"])))
+    resshift = upscale.setdefault("resshift", {})
+    if not isinstance(resshift, dict):
+        resshift = {}
+        upscale["resshift"] = resshift
+    default_resshift = default_upscale["resshift"]
+    resshift["scale"] = _choice(resshift.get("scale"), AIO_RESHIFT_SCALES, default_resshift["scale"])
+    resshift["student_name"] = str(resshift.get("student_name") or default_resshift["student_name"])
+    resshift["dtype"] = _choice(resshift.get("dtype"), AIO_RESHIFT_DTYPES, default_resshift["dtype"])
+    resshift["chop"] = max(256, min(4096, _as_int(resshift.get("chop"), default_resshift["chop"])))
+    resshift["overlap"] = max(0, min(512, _as_int(resshift.get("overlap"), default_resshift["overlap"])))
+    resshift["tile_batch"] = max(1, min(32, _as_int(resshift.get("tile_batch"), default_resshift["tile_batch"])))
+    postprocess = settings.setdefault("postprocess", {})
+    if not isinstance(postprocess, dict):
+        postprocess = {}
+        settings["postprocess"] = postprocess
+    default_postprocess = AIO_GENERATION_DEFAULT_SETTINGS["postprocess"]
+    fit = postprocess.setdefault("fit", {})
+    if not isinstance(fit, dict):
+        fit = {}
+        postprocess["fit"] = fit
+    default_fit = default_postprocess["fit"]
+    if isinstance(legacy_upscale_fit, dict):
+        if _as_bool(legacy_upscale_fit.get("enabled"), False):
+            postprocess["enabled"] = True
+        for key in ("mode", "max_long_edge", "max_megapixels", "method"):
+            if key in legacy_upscale_fit and fit.get(key) == default_fit.get(key):
+                fit[key] = legacy_upscale_fit[key]
+    postprocess["enabled"] = _as_bool(postprocess.get("enabled"), default_postprocess["enabled"])
+    fit["mode"] = _choice(fit.get("mode"), AIO_FINAL_FIT_MODES, default_fit["mode"])
+    fit["max_long_edge"] = max(
+        64,
+        min(max_resolution, _as_int(fit.get("max_long_edge"), default_fit["max_long_edge"])),
+    )
+    fit["max_megapixels"] = max(
+        0.1,
+        min(256.0, _as_float(fit.get("max_megapixels"), default_fit["max_megapixels"])),
+    )
+    fit["method"] = _choice(fit.get("method"), IMAGE_UPSCALE_METHODS, default_fit["method"])
     detailer = settings["detailer"]
     sam3 = detailer.setdefault("sam3", {})
     if not isinstance(sam3, dict):
@@ -1629,6 +1855,10 @@ def _normalize_aio_generation_settings(value) -> dict[str, Any]:
     image_saver["embed_workflow"] = _as_bool(
         image_saver.get("embed_workflow"),
         default_image_saver["embed_workflow"],
+    )
+    image_saver["save_prompt_metadata"] = _as_bool(
+        image_saver.get("save_prompt_metadata"),
+        default_image_saver["save_prompt_metadata"],
     )
     image_saver["additional_hashes"] = str(image_saver.get("additional_hashes") or "")
     image_saver["additional_hash_bundles"] = _normalize_aio_hash_bundles(
@@ -3112,6 +3342,33 @@ def _resize_image_to_size_if_needed(
     return resized.movedim(1, -1), True
 
 
+def _load_upscale_model_with_comfy(model_name: str):
+    model_name = str(model_name or "").strip()
+    if not model_name:
+        raise RuntimeError(
+            "[EasyUseAnima] USDU final upscale requires an upscale_model_name. "
+            "Choose a model from ComfyUI models/upscale_models."
+        )
+    loader_cls = _find_comfy_node_class("UpscaleModelLoader")
+    if loader_cls is None:
+        try:
+            from comfy_extras.nodes_upscale_model import UpscaleModelLoader  # type: ignore
+
+            loader_cls = UpscaleModelLoader
+        except Exception:
+            loader_cls = None
+    if loader_cls is None:
+        raise RuntimeError("[EasyUseAnima] Could not find ComfyUI UpscaleModelLoader.")
+    loader = loader_cls()
+    method = getattr(loader, "load_model", None) or getattr(loader, "execute", None)
+    if method is None:
+        raise RuntimeError("[EasyUseAnima] UpscaleModelLoader does not expose load_model().")
+    values = _node_output_tuple(method(model_name))
+    if not values:
+        raise RuntimeError("[EasyUseAnima] UpscaleModelLoader returned no UPSCALE_MODEL.")
+    return values[0]
+
+
 def _aio_stage_sampler_settings(
     base_sampler: dict[str, Any],
     stage_settings: dict[str, Any],
@@ -3246,6 +3503,466 @@ def _run_aio_highres_stage(
         "applied_scale": float(applied_scale),
         "sampler": _prompt_data_json_safe(stage_sampler),
     }
+
+
+def _aio_usdu_auto_tile_dimension(
+    target_size: int,
+    preferred_size: int = 1024,
+    min_size: int = 512,
+    max_size: int = 2048,
+) -> int:
+    target_size = max(1, int(target_size))
+    min_size = max(64, int(min_size))
+    max_size = max(min_size, int(max_size))
+    preferred = max(min_size, min(max_size, int(preferred_size)))
+    tile_count = max(1, ceil(target_size / preferred))
+    tile_size = ceil(target_size / tile_count)
+    tile_size = _align_nearest(tile_size, 64)
+    return max(min_size, min(max_size, tile_size))
+
+
+def _aio_usdu_tile_plan(image, scale_by: float, usdu_settings: dict[str, Any]) -> dict[str, Any]:
+    width, height = _image_tensor_size(image, 512, 512)
+    target_width = max(1, int(round(width * max(0.05, float(scale_by)))))
+    target_height = max(1, int(round(height * max(0.05, float(scale_by)))))
+    auto_tile = _as_bool(usdu_settings.get("auto_tile_size"), True)
+    if not auto_tile:
+        return {
+            "auto": False,
+            "input_width": int(width),
+            "input_height": int(height),
+            "target_width": int(target_width),
+            "target_height": int(target_height),
+            "tile_width": _as_int(usdu_settings.get("tile_width"), 512),
+            "tile_height": _as_int(usdu_settings.get("tile_height"), 512),
+        }
+    preferred = _as_int(usdu_settings.get("auto_tile_target"), 1024)
+    min_size = _as_int(usdu_settings.get("auto_tile_min"), 512)
+    max_size = _as_int(usdu_settings.get("auto_tile_max"), 2048)
+    return {
+        "auto": True,
+        "input_width": int(width),
+        "input_height": int(height),
+        "target_width": int(target_width),
+        "target_height": int(target_height),
+        "preferred": int(preferred),
+        "min": int(min_size),
+        "max": int(max_size),
+        "tile_width": _aio_usdu_auto_tile_dimension(target_width, preferred, min_size, max_size),
+        "tile_height": _aio_usdu_auto_tile_dimension(target_height, preferred, min_size, max_size),
+    }
+
+
+def _aio_usdu_tile_size(image, scale_by: float, usdu_settings: dict[str, Any]) -> tuple[int, int]:
+    tile_plan = _aio_usdu_tile_plan(image, scale_by, usdu_settings)
+    return int(tile_plan["tile_width"]), int(tile_plan["tile_height"])
+
+
+def _aio_prompt_data_fields_for_usdu(prompt_data: str | dict | None) -> list[dict]:
+    data = _normalize_prompt_data(prompt_data)
+    fields = data.get("fields")
+    if not isinstance(fields, list):
+        fields = data.get("saved_fields")
+    return _normalize_advanced_fields(fields)
+
+
+def _aio_usdu_prompt_without_general(
+    prompt_data: str | dict | None,
+    pane: str,
+    include_quality: bool,
+) -> tuple[str, bool]:
+    fields = _aio_prompt_data_fields_for_usdu(prompt_data)
+    if not fields:
+        return "", False
+    allowed_types = {"artist", "trigger"}
+    if include_quality:
+        allowed_types.add("quality")
+    selected = [
+        field
+        for field in _advanced_enabled_pane_fields(fields, pane)
+        if field.get("type") in allowed_types
+    ]
+    if not selected:
+        return "", True
+    artist_prompt = _advanced_artist_field_prompt(selected, pane)
+    force_pin_triggers = _as_bool(_normalize_prompt_data(prompt_data).get("pin_trigger_tags_to_front"), False)
+    return (
+        _correct_advanced_field_sequence(
+            selected,
+            include_quality=include_quality,
+            artist_overrides=artist_prompt,
+            force_pin_triggers=force_pin_triggers,
+        ),
+        True,
+    )
+
+
+def _aio_usdu_conditioning(
+    clip,
+    positive,
+    negative,
+    usdu_settings: dict[str, Any],
+    quality_tags: str,
+    quality_neg: str,
+    prompt_data: str | dict | None = None,
+    exclude_positive_quality: bool = False,
+    exclude_negative_quality: bool = False,
+):
+    prompt_mode = str(usdu_settings.get("prompt_mode") or AIO_USDU_PROMPT_FULL)
+    if prompt_mode == "quality_tags_only":
+        prompt_mode = AIO_USDU_PROMPT_NO_GENERAL
+    if prompt_mode != AIO_USDU_PROMPT_NO_GENERAL:
+        return positive, negative
+    prompt, has_fields = _aio_usdu_prompt_without_general(
+        prompt_data,
+        "positive",
+        include_quality=not _as_bool(exclude_positive_quality, False),
+    )
+    negative_prompt, has_negative_fields = _aio_usdu_prompt_without_general(
+        prompt_data,
+        "negative",
+        include_quality=not _as_bool(exclude_negative_quality, False),
+    )
+    if not has_fields and not prompt:
+        prompt = "" if _as_bool(exclude_positive_quality, False) else str(quality_tags or "highres, best quality")
+    if not has_negative_fields and not negative_prompt:
+        negative_prompt = "" if _as_bool(exclude_negative_quality, False) else str(quality_neg or "")
+    return _encode_with_comfy_clip(clip, prompt), _encode_with_comfy_clip(clip, negative_prompt)
+
+
+def _aio_final_fit_size(width: int, height: int, fit_settings: dict[str, Any]) -> tuple[int, int, float]:
+    width = max(1, int(width))
+    height = max(1, int(height))
+    if not _as_bool(fit_settings.get("enabled"), False):
+        return width, height, 1.0
+    mode = str(fit_settings.get("mode") or "max_long_edge")
+    scale = 1.0
+    if mode == "megapixels":
+        max_pixels = max(1.0, _as_float(fit_settings.get("max_megapixels"), 4.0) * 1_000_000.0)
+        pixels = float(width * height)
+        if pixels > max_pixels:
+            scale = sqrt(max_pixels / pixels)
+    else:
+        max_long_edge = max(1, _as_int(fit_settings.get("max_long_edge"), 2048))
+        long_edge = max(width, height)
+        if long_edge > max_long_edge:
+            scale = max_long_edge / long_edge
+    if scale >= 1.0:
+        return width, height, 1.0
+    target_width = _align_down(round(width * scale), LATENT_ALIGN)
+    target_height = _align_down(round(height * scale), LATENT_ALIGN)
+    return max(1, target_width), max(1, target_height), scale
+
+
+def _apply_aio_final_fit(image, postprocess_settings: dict[str, Any]) -> tuple[Any, dict[str, Any]]:
+    fit_settings = postprocess_settings.get("fit", {})
+    if not isinstance(fit_settings, dict):
+        fit_settings = {}
+    fit_settings = dict(fit_settings)
+    fit_settings["enabled"] = _as_bool(postprocess_settings.get("enabled"), False)
+    width, height = _image_tensor_size(image, 0, 0)
+    target_width, target_height, scale = _aio_final_fit_size(width, height, fit_settings)
+    metadata = {
+        "enabled": _as_bool(postprocess_settings.get("enabled"), False),
+        "mode": str(fit_settings.get("mode") or "max_long_edge"),
+        "max_long_edge": _as_int(fit_settings.get("max_long_edge"), 2048),
+        "max_megapixels": _as_float(fit_settings.get("max_megapixels"), 4.0),
+        "method": str(fit_settings.get("method") or "bicubic"),
+        "applied": scale < 1.0,
+        "scale": float(scale),
+        "width": int(width),
+        "height": int(height),
+        "target_width": int(target_width),
+        "target_height": int(target_height),
+    }
+    if scale >= 1.0:
+        return image, metadata
+    output, resized = _resize_image_to_size_if_needed(
+        image,
+        target_width,
+        target_height,
+        str(fit_settings.get("method") or "bicubic"),
+    )
+    metadata["applied"] = bool(resized)
+    return output, metadata
+
+
+def _run_aio_postprocess_stage(image, postprocess_settings: dict[str, Any]) -> tuple[Any, dict[str, Any]]:
+    if not _as_bool(postprocess_settings.get("enabled"), False):
+        width, height = _image_tensor_size(image, 0, 0)
+        return image, {
+            "enabled": False,
+            "width": int(width),
+            "height": int(height),
+        }
+    output, fit_metadata = _apply_aio_final_fit(image, postprocess_settings)
+    width, height = _image_tensor_size(output, fit_metadata.get("target_width", 0), fit_metadata.get("target_height", 0))
+    limit = (
+        f"{fit_metadata.get('max_megapixels')}MP"
+        if fit_metadata.get("mode") == "megapixels"
+        else f"{fit_metadata.get('max_long_edge')}px"
+    )
+    logger.info(
+        "[EasyUseAnima][AiO] Postprocess final fit: input=%sx%s mode=%s limit=%s method=%s applied=%s output=%sx%s",
+        fit_metadata.get("width"),
+        fit_metadata.get("height"),
+        fit_metadata.get("mode"),
+        limit,
+        fit_metadata.get("method"),
+        bool(fit_metadata.get("applied")),
+        width,
+        height,
+    )
+    return output, {
+        "enabled": True,
+        "width": int(width),
+        "height": int(height),
+        "fit": fit_metadata,
+    }
+
+
+def _run_aio_usdu_upscale_stage(
+    model,
+    clip,
+    vae,
+    positive,
+    negative,
+    image,
+    sampler_settings: dict[str, Any],
+    upscale_settings: dict[str, Any],
+    quality_tags: str = "",
+    quality_neg: str = "",
+    prompt_data: str | dict | None = None,
+    exclude_positive_quality: bool = False,
+    exclude_negative_quality: bool = False,
+) -> tuple[Any, dict[str, Any]]:
+    usdu_settings = upscale_settings.get("usdu", {})
+    if not isinstance(usdu_settings, dict):
+        usdu_settings = {}
+    usdu_cls = _require_custom_node_class(
+        "UltimateSDUpscale",
+        "ComfyUI_UltimateSDUpscale",
+        "Required for AiO Generator final Upscale > USDU.",
+    )
+    upscale_model = _load_upscale_model_with_comfy(str(usdu_settings.get("upscale_model_name") or ""))
+    stage_sampler = _aio_stage_sampler_settings(
+        sampler_settings,
+        upscale_settings,
+        scheduler_default="simple",
+    )
+    scale_by = _as_float(upscale_settings.get("scale_by"), 2.0)
+    tile_plan = _aio_usdu_tile_plan(image, scale_by, usdu_settings)
+    tile_width = int(tile_plan["tile_width"])
+    tile_height = int(tile_plan["tile_height"])
+    if tile_plan.get("auto"):
+        logger.info(
+            "[EasyUseAnima][AiO] USDU auto tile: input=%sx%s scale_by=%.3g expected=%sx%s target/min/max=%s/%s/%s resolved_tile=%sx%s",
+            tile_plan.get("input_width"),
+            tile_plan.get("input_height"),
+            scale_by,
+            tile_plan.get("target_width"),
+            tile_plan.get("target_height"),
+            tile_plan.get("preferred"),
+            tile_plan.get("min"),
+            tile_plan.get("max"),
+            tile_width,
+            tile_height,
+        )
+    else:
+        logger.info(
+            "[EasyUseAnima][AiO] USDU manual tile: input=%sx%s scale_by=%.3g expected=%sx%s tile=%sx%s",
+            tile_plan.get("input_width"),
+            tile_plan.get("input_height"),
+            scale_by,
+            tile_plan.get("target_width"),
+            tile_plan.get("target_height"),
+            tile_width,
+            tile_height,
+        )
+    logger.info(
+        "[EasyUseAnima][AiO] USDU sampler: steps=%s denoise=%.3f cfg=%.3g sampler=%s scheduler=%s",
+        _as_int(stage_sampler.get("steps"), 20),
+        _as_float(stage_sampler.get("denoise"), 0.2),
+        _as_float(stage_sampler.get("cfg"), 8.0),
+        str(stage_sampler.get("sampler_name") or "euler"),
+        str(stage_sampler.get("scheduler") or "simple"),
+    )
+    usdu_positive, usdu_negative = _aio_usdu_conditioning(
+        clip,
+        positive,
+        negative,
+        usdu_settings,
+        quality_tags,
+        quality_neg,
+        prompt_data,
+        exclude_positive_quality,
+        exclude_negative_quality,
+    )
+    stage_model = _apply_aio_spectrum_model_patches_for_comfy_sampler(
+        model,
+        clip,
+        usdu_positive,
+        stage_sampler,
+    )
+    try:
+        result = usdu_cls().upscale(
+            image=image,
+            model=stage_model,
+            positive=usdu_positive,
+            negative=usdu_negative,
+            vae=vae,
+            upscale_by=scale_by,
+            seed=_resolve_aio_runtime_seed(stage_sampler.get("seed")),
+            steps=_as_int(stage_sampler.get("steps"), 20),
+            cfg=_as_float(stage_sampler.get("cfg"), 8.0),
+            sampler_name=str(stage_sampler.get("sampler_name") or "euler"),
+            scheduler=str(stage_sampler.get("scheduler") or "simple"),
+            denoise=_as_float(stage_sampler.get("denoise"), 0.2),
+            upscale_model=upscale_model,
+            mode_type=str(usdu_settings.get("mode_type") or "Linear"),
+            tile_width=tile_width,
+            tile_height=tile_height,
+            mask_blur=_as_int(usdu_settings.get("mask_blur"), 8),
+            tile_padding=_as_int(usdu_settings.get("tile_padding"), 32),
+            seam_fix_mode=str(usdu_settings.get("seam_fix_mode") or "None"),
+            seam_fix_denoise=_as_float(usdu_settings.get("seam_fix_denoise"), 1.0),
+            seam_fix_mask_blur=_as_int(usdu_settings.get("seam_fix_mask_blur"), 8),
+            seam_fix_width=_as_int(usdu_settings.get("seam_fix_width"), 64),
+            seam_fix_padding=_as_int(usdu_settings.get("seam_fix_padding"), 16),
+            force_uniform_tiles=_as_bool(usdu_settings.get("force_uniform_tiles"), True),
+            tiled_decode=_as_bool(usdu_settings.get("tiled_decode"), False),
+            batch_size=_as_int(usdu_settings.get("batch_size"), 1),
+        )
+    finally:
+        _cleanup_aio_ephemeral_model(stage_model, model)
+    values = _node_output_tuple(result)
+    if not values:
+        raise RuntimeError("[EasyUseAnima] UltimateSDUpscale returned no IMAGE.")
+    output = values[0]
+    width, height = _image_tensor_size(output, 0, 0)
+    return output, {
+        "enabled": True,
+        "backend": "usdu",
+        "width": int(width),
+        "height": int(height),
+        "scale_by": scale_by,
+        "tile_width": int(tile_width),
+        "tile_height": int(tile_height),
+        "tile_auto": bool(tile_plan.get("auto")),
+        "tile_target_width": int(tile_plan.get("target_width") or 0),
+        "tile_target_height": int(tile_plan.get("target_height") or 0),
+        "prompt_mode": str(usdu_settings.get("prompt_mode") or AIO_USDU_PROMPT_FULL),
+        "sampler": _prompt_data_json_safe(stage_sampler),
+    }
+
+
+def _run_aio_resshift_upscale_stage(
+    image,
+    sampler_settings: dict[str, Any],
+    upscale_settings: dict[str, Any],
+    quality_tags: str = "",
+    quality_neg: str = "",
+    prompt_data: str | dict | None = None,
+    exclude_positive_quality: bool = False,
+    exclude_negative_quality: bool = False,
+) -> tuple[Any, dict[str, Any]]:
+    resshift_settings = upscale_settings.get("resshift", {})
+    if not isinstance(resshift_settings, dict):
+        resshift_settings = {}
+    loader_cls = _require_custom_node_class(
+        "ResShiftLoader",
+        "ComfyUI-Distilled-ResShift",
+        "Required for AiO Generator final Upscale > ResShift.",
+    )
+    upscale_cls = _require_custom_node_class(
+        "ResShiftUpscale",
+        "ComfyUI-Distilled-ResShift",
+        "Required for AiO Generator final Upscale > ResShift.",
+    )
+    loader = loader_cls()
+    load = getattr(loader, "load", None)
+    if load is None:
+        raise RuntimeError("[EasyUseAnima] ResShiftLoader does not expose load().")
+    model_values = _node_output_tuple(load(
+        str(resshift_settings.get("scale") or "x2"),
+        str(resshift_settings.get("student_name") or "(auto-download)"),
+        str(resshift_settings.get("dtype") or "bf16"),
+    ))
+    if not model_values:
+        raise RuntimeError("[EasyUseAnima] ResShiftLoader returned no RESSHIFT_MODEL.")
+    upscaler = upscale_cls()
+    upscale = getattr(upscaler, "upscale", None)
+    if upscale is None:
+        raise RuntimeError("[EasyUseAnima] ResShiftUpscale does not expose upscale().")
+    values = _node_output_tuple(upscale(
+        model_values[0],
+        image,
+        _resolve_aio_runtime_seed(sampler_settings.get("seed")),
+        _as_int(resshift_settings.get("chop"), 512),
+        _as_int(resshift_settings.get("overlap"), 64),
+        _as_int(resshift_settings.get("tile_batch"), 4),
+    ))
+    if not values:
+        raise RuntimeError("[EasyUseAnima] ResShiftUpscale returned no IMAGE.")
+    output = values[0]
+    width, height = _image_tensor_size(output, 0, 0)
+    return output, {
+        "enabled": True,
+        "backend": "resshift",
+        "width": int(width),
+        "height": int(height),
+        "scale": str(resshift_settings.get("scale") or "x2"),
+    }
+
+
+def _run_aio_upscale_stage(
+    model,
+    clip,
+    vae,
+    positive,
+    negative,
+    image,
+    sampler_settings: dict[str, Any],
+    upscale_settings: dict[str, Any],
+    quality_tags: str = "",
+    quality_neg: str = "",
+    prompt_data: str | dict | None = None,
+    exclude_positive_quality: bool = False,
+    exclude_negative_quality: bool = False,
+) -> tuple[Any, dict[str, Any]]:
+    if not _as_bool(upscale_settings.get("enabled"), False):
+        return image, {"enabled": False}
+    backend = str(upscale_settings.get("backend") or "usdu")
+    if backend == "usdu":
+        output, metadata = _run_aio_usdu_upscale_stage(
+            model,
+            clip,
+            vae,
+            positive,
+            negative,
+            image,
+            sampler_settings,
+            upscale_settings,
+            quality_tags,
+            quality_neg,
+            prompt_data,
+            exclude_positive_quality,
+            exclude_negative_quality,
+        )
+    elif backend == "resshift":
+        output, metadata = _run_aio_resshift_upscale_stage(
+            image,
+            sampler_settings,
+            upscale_settings,
+            quality_tags,
+            quality_neg,
+            prompt_data,
+            exclude_positive_quality,
+            exclude_negative_quality,
+        )
+    else:
+        raise RuntimeError(f"[EasyUseAnima] Unsupported final upscale backend: {backend}")
+    return output, metadata
 
 
 def _load_aio_sam3_context(detailer_settings: dict[str, Any]) -> dict[str, Any]:
@@ -3411,6 +4128,8 @@ AIO_PREVIEW_STAGE_LABELS = {
     "highres": "Highres",
     "detailer_face": "Detailer: face",
     "detailer_eye": "Detailer: eye",
+    "upscale": "Upscale",
+    "postprocess": "Postprocess",
     "final": "Final",
 }
 AIO_PREVIEW_EVENT = "easyuse-anima-aio-preview"
@@ -3630,6 +4349,16 @@ def _save_image_with_image_saver(
         image_saver = {}
     defaults = AIO_GENERATION_DEFAULT_SETTINGS["save"]["image_saver"]
     modelname = str((resource_info or {}).get("unet_name") or "")
+    save_prompt_metadata = _as_bool(
+        image_saver.get("save_prompt_metadata"),
+        defaults["save_prompt_metadata"],
+    )
+    metadata_positive = (
+        _aio_prompt_with_lora_metadata(str(positive_prompt or "unknown"), applied_loras)
+        if save_prompt_metadata
+        else ""
+    )
+    metadata_negative = str(negative_prompt or "unknown") if save_prompt_metadata else ""
     return save_files(
         images=images,
         filename=str(image_saver.get("filename") or defaults["filename"]),
@@ -3640,11 +4369,8 @@ def _save_image_with_image_saver(
         modelname=modelname,
         sampler_name=str(sampler_settings.get("sampler_name") or ""),
         scheduler_name=str(sampler_settings.get("scheduler") or "normal"),
-        positive=_aio_prompt_with_lora_metadata(
-            str(positive_prompt or "unknown"),
-            applied_loras,
-        ),
-        negative=str(negative_prompt or "unknown"),
+        positive=metadata_positive,
+        negative=metadata_negative,
         seed_value=_resolve_aio_runtime_seed(sampler_settings.get("seed")),
         width=_as_int(width, 512),
         height=_as_int(height, 512),
@@ -3767,6 +4493,12 @@ def _align_nearest(value: int, alignment: int) -> int:
     if (value - lower) < (upper - value):
         return lower
     return upper
+
+
+def _align_down(value: int, alignment: int) -> int:
+    value = max(1, int(value))
+    alignment = max(1, int(alignment))
+    return max(1, (value // alignment) * alignment)
 
 
 def _scale_by_value(value, default: float = 1.0) -> float:
@@ -9512,6 +10244,8 @@ class EasyUseAnimaAIOGenerator:
         mod_guidance = settings["mod_guidance"]
         will_run_highres = _as_bool(settings["highres"].get("enabled"), False)
         will_run_detailer = _aio_detailer_has_enabled_targets(settings["detailer"])
+        will_run_upscale = _as_bool(settings["upscale"].get("enabled"), False)
+        will_run_postprocess = _as_bool(settings["postprocess"].get("enabled"), False)
         profile = _normalize_anima_mod_guidance_profile(mod_guidance["profile"])
         use_mod_guidance = _resolve_anima_mod_guidance_enabled(
             use_anima_mod_guidance,
@@ -9665,6 +10399,42 @@ class EasyUseAnimaAIOGenerator:
             stage_metadata["detailer"] = detailer_metadata
             if detailer_metadata.get("enabled"):
                 width, height = _image_tensor_size(image, width, height)
+            image, upscale_metadata = _run_aio_upscale_stage(
+                ensure_standalone_mod_guidance_model() if will_run_upscale else mod_guidance_model,
+                clip,
+                vae,
+                positive,
+                negative,
+                image,
+                sampler,
+                settings["upscale"],
+                quality_tags,
+                quality_neg,
+                prompt_data,
+                exclude_positive_quality=can_apply_standalone_mod_guidance,
+                exclude_negative_quality=can_apply_standalone_mod_guidance and use_negative_anima_mod_guidance,
+            )
+            stage_metadata["upscale"] = upscale_metadata
+            if upscale_metadata.get("enabled"):
+                width, height = _image_tensor_size(image, width, height)
+                latent = _encode_image_with_comfy_vae(vae, image)
+                if preview_settings["intermediate_images"]:
+                    add_preview("upscale", image)
+            image, postprocess_metadata = _run_aio_postprocess_stage(
+                image,
+                settings["postprocess"],
+            )
+            stage_metadata["postprocess"] = postprocess_metadata
+            if postprocess_metadata.get("enabled"):
+                width, height = _image_tensor_size(image, width, height)
+                postprocess_changed = _as_bool(
+                    (postprocess_metadata.get("fit") or {}).get("applied"),
+                    False,
+                )
+                if postprocess_changed:
+                    latent = _encode_image_with_comfy_vae(vae, image)
+                if preview_settings["intermediate_images"] and postprocess_changed and will_run_postprocess:
+                    add_preview("postprocess", image)
         finally:
             seen_model_ids: set[int] = set()
             for ephemeral_model in (base_sample_model, mod_guidance_model, model, model_with_lora):
