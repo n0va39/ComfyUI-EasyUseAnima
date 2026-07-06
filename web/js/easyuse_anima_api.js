@@ -75,7 +75,9 @@ export async function easyuseAnimaGetSettings(options = {}) {
 }
 
 export async function easyuseAnimaFetchComfyJson(apiClient, url, options = {}) {
-  const fetcher = apiClient?.fetchApi ? apiClient.fetchApi.bind(apiClient) : fetch;
+  const fetcher = apiClient?.fetchApi
+    ? (requestUrl, requestOptions) => apiClient.fetchApi(requestUrl, requestOptions)
+    : fetch;
   return easyuseAnimaFetchJson(url, { fetcher, ...options });
 }
 
