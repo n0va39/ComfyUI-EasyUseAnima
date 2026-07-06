@@ -7,6 +7,7 @@ license = { file = "LICENSE" }
 requires-python = ">=3.10"
 dependencies = [
     "requests>=2.28",
+    "googletrans-py==4.0.0",
 ]
 classifiers = [
     "Operating System :: OS Independent",
