@@ -16,6 +16,10 @@
 - Added AiO Generator controls for the Anima Safe PAG model patch.
 - Added an Image Saver prompt metadata toggle so positive/negative prompt text
   can be omitted from saved metadata when needed.
+- Added bundled autocomplete CSV sources from
+  `DraconicDragon/dbr-e621-lists-archive`: Danbooru 2025-09-01, e621
+  2025-09-01, and a Danbooru+e621 merged CSV. The source license is
+  Unlicense.
 
 ### Changed
 
@@ -23,11 +27,18 @@
   during settings normalization.
 - Registry publishing now uses checked-in plain text changelog files for the
   release changelog path.
+- Changed the default autocomplete CSV to `danbooru_2025-09-01.csv`, with the
+  previous `danbooru_tags_classified.csv` documented as the Korean-search
+  source.
+- Documented that the Danbooru+e621 merged CSV has upstream merge/category
+  collision risk and should be used only when a single mixed source is needed.
 
 ### Fixed
 
 - Fixed wildcard syntax reference table rendering by escaping literal pipe
   characters in the English and Korean wildcard docs.
+- Normalized e621 and merged e621 category offsets into EasyUse Anima's
+  existing Prompt Studio highlight sections.
 
 ### Validation Notes
 
@@ -36,6 +47,8 @@
   Safe PAG patch routing, and Image Saver prompt metadata toggling.
 - Added frontend source guards for the new Upscale/Postprocess dialogs, USDU
   sampler controls, Safe PAG labels, and Image Saver metadata toggle.
+- Added autocomplete source-list and e621 category-normalization regression
+  coverage.
 - Validated during 0.3.1 release preparation with Python unit tests, compile
   checks, JavaScript syntax checks, JSON/TOML metadata checks, Registry
   changelog extraction, and `git diff --check`.

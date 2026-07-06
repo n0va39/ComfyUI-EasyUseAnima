@@ -8,3 +8,5 @@ User-visible changes:
 5. Image Saver metadata can omit positive/negative prompt text when Save prompt metadata is disabled.
 6. AiO Generator now exposes Anima Safe PAG model patch controls.
 7. Wildcard syntax reference tables now render literal pipe syntax correctly in the English and Korean docs.
+8. Autocomplete now ships Danbooru 2025-09-01, e621 2025-09-01, and Danbooru+e621 merged CSV sources from DraconicDragon/dbr-e621-lists-archive under Unlicense. The default source is Danbooru 2025-09-01; the previous Korean CSV remains available for Korean search.
+9. The Danbooru+e621 merged CSV is documented as opt-in because the upstream merge format can have future category-collision risk.
