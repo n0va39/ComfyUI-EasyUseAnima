@@ -3472,6 +3472,10 @@ function ensureStyle() {
     .${GENERATOR_VUE_NODE_CLASS} img.pointer-events-none.object-contain + .text-node-component-header-text,
     .${GENERATOR_VUE_NODE_CLASS} .text-node-component-header-text,
     .${GENERATOR_VUE_NODE_CLASS} .text-node-component-header-text.mt-1.text-center.text-xs,
+    .lg-node:has(.easyuse-anima-aio-node-panel) .text-node-component-header-text,
+    .lg-node:has(.easyuse-anima-aio-node-panel) .pt-2.text-center.text-xs.text-base-foreground,
+    [data-node-id]:has(.easyuse-anima-aio-node-panel) .text-node-component-header-text,
+    [data-node-id]:has(.easyuse-anima-aio-node-panel) .pt-2.text-center.text-xs.text-base-foreground,
     .${GENERATOR_VUE_NODE_CLASS} [data-testid="main-image"],
     .${GENERATOR_VUE_NODE_CLASS} .easyuse-anima-aio-native-live-preview-hidden {
       display: none !important;

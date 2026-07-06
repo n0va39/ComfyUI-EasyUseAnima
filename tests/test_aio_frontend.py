@@ -22,6 +22,8 @@ class AIOFrontendSourceTests(unittest.TestCase):
         self.assertIn("nodeType.prototype.hideOutputImages = true", source)
         self.assertIn("module?.useNodeOutputStore || module?.cn || module?.L", source)
         self.assertIn("outputStore.revokePreviewsByLocatorId?.(locator);", source)
+        self.assertIn(".lg-node:has(.easyuse-anima-aio-node-panel) .text-node-component-header-text", source)
+        self.assertIn(".lg-node:has(.easyuse-anima-aio-node-panel) .pt-2.text-center.text-xs.text-base-foreground", source)
         self.assertIn("scheduleGeneratorDefaultPreviewSuppression(this);", body)
         self.assertIn("updateGeneratorExecutedStatus(this, message);", body)
         self.assertNotIn("onExecuted?.apply", body)
