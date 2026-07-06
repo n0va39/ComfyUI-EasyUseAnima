@@ -1,5 +1,45 @@
 # Release Notes
 
+## 0.3.1
+
+### Added
+
+- Added the AiO Generator final Upscale stage after Detailer and before Save,
+  with mutually exclusive USDU and ResShift backends.
+- Added USDU helpers for practical final upscaling: automatic tile sizing with
+  target/min/max controls, no-general prompt rebuilding that keeps quality,
+  artist, and trigger fields, required sampler controls in the main settings,
+  per-USDU Spectrum/DCW settings, and info logs for resolved tile and sampler
+  decisions.
+- Added a Postprocess stage for final size fitting after Detailer/Upscale and
+  before Save, with long-edge and megapixel caps.
+- Added AiO Generator controls for the Anima Safe PAG model patch.
+- Added an Image Saver prompt metadata toggle so positive/negative prompt text
+  can be omitted from saved metadata when needed.
+
+### Changed
+
+- Moved legacy Upscale final-fit settings into the dedicated Postprocess stage
+  during settings normalization.
+- Registry publishing now uses checked-in plain text changelog files for the
+  release changelog path.
+
+### Fixed
+
+- Fixed wildcard syntax reference table rendering by escaping literal pipe
+  characters in the English and Korean wildcard docs.
+
+### Validation Notes
+
+- Added AiO Generator regression coverage for final Upscale, USDU tile
+  normalization and logging, ResShift dispatch, Postprocess final-fit ordering,
+  Safe PAG patch routing, and Image Saver prompt metadata toggling.
+- Added frontend source guards for the new Upscale/Postprocess dialogs, USDU
+  sampler controls, Safe PAG labels, and Image Saver metadata toggle.
+- Validated during 0.3.1 release preparation with Python unit tests, compile
+  checks, JavaScript syntax checks, JSON/TOML metadata checks, Registry
+  changelog extraction, and `git diff --check`.
+
 ## 0.3.0
 
 ### Changed
