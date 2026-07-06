@@ -22,13 +22,15 @@ class AIOFrontendSourceTests(unittest.TestCase):
         self.assertIn("nodeType.prototype.hideOutputImages = true", source)
         self.assertIn("module?.useNodeOutputStore || module?.cn || module?.L", source)
         self.assertIn("outputStore.revokePreviewsByLocatorId?.(locator);", source)
+        self.assertIn('Object.defineProperty(node, "imgs"', source)
+        self.assertIn("lockGeneratorLegacyCanvasPreview(node);", source)
         self.assertIn(".lg-node:has(.easyuse-anima-aio-node-panel) .text-node-component-header-text", source)
         self.assertIn(".lg-node:has(.easyuse-anima-aio-node-panel) .pt-2.text-center.text-xs.text-base-foreground", source)
         self.assertIn("scheduleGeneratorDefaultPreviewSuppression(this);", body)
         self.assertIn("updateGeneratorExecutedStatus(this, message);", body)
         self.assertNotIn("onExecuted?.apply", body)
 
-    def test_generator_preview_meta_does_not_show_resolution(self):
+    def test_generator_preview_meta_keeps_dedicated_resolution_label(self):
         source = AIO_JS.read_text(encoding="utf-8")
         start = source.index("function updateGeneratorDomPreview")
         end = source.index("\nfunction cssEscape", start)
@@ -38,8 +40,8 @@ class AIOFrontendSourceTests(unittest.TestCase):
         meta_parts = body[meta_start:meta_end]
 
         self.assertIn("generatorPreviewImageName(currentImage)", meta_parts)
+        self.assertIn("generatorPreviewResolution(currentImage)", meta_parts)
         self.assertIn("generatorPreviewFileSize(currentImage)", meta_parts)
-        self.assertNotIn("generatorPreviewResolution(currentImage)", meta_parts)
 
     def test_detailer_target_editor_builds_optimization_before_visibility_refresh(self):
         source = AIO_JS.read_text(encoding="utf-8")

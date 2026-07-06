@@ -4647,6 +4647,7 @@ function updateGeneratorDomPreview(node) {
   if (metaEl) {
     const parts = [
       generatorPreviewImageName(currentImage),
+      generatorPreviewResolution(currentImage),
       generatorPreviewFileSize(currentImage),
     ].filter((part) => part && part !== "-");
     const metaText = parts.length ? parts.join(" · ") : "-";
@@ -5096,6 +5097,7 @@ function suppressGeneratorDefaultPreview(node, options = {}) {
   if (!node) {
     return;
   }
+  lockGeneratorLegacyCanvasPreview(node);
   const shouldMarkDirty = options.markDirty !== false;
   let changed = false;
   if (node.hideOutputImages !== true) {
@@ -5120,6 +5122,28 @@ function suppressGeneratorDefaultPreview(node, options = {}) {
   }
   if (changed && shouldMarkDirty) {
     markNodeDirty(node);
+  }
+}
+
+function lockGeneratorLegacyCanvasPreview(node) {
+  if (!node || node.__easyuseAnimaLegacyCanvasPreviewLocked) {
+    return;
+  }
+  node.__easyuseAnimaLegacyCanvasPreviewLocked = true;
+  try {
+    Object.defineProperty(node, "imgs", {
+      configurable: true,
+      enumerable: false,
+      get() {
+        return [];
+      },
+      set() {
+        // Comfy syncs ui.images into node.imgs for legacy canvas previews.
+        // AiO keeps queue/history images but renders its own in-node preview.
+      },
+    });
+  } catch {
+    node.imgs = [];
   }
 }
 
