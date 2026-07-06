@@ -185,11 +185,12 @@ class AIOSettingsStorageTests(unittest.TestCase):
         self.assertEqual(settings["upscale"]["usdu"]["auto_tile_min"], 128)
         self.assertEqual(settings["upscale"]["usdu"]["auto_tile_max"], 256)
         self.assertEqual(settings["upscale"]["usdu"]["tile_width"], 64)
-        self.assertTrue(settings["upscale"]["fit"]["enabled"])
-        self.assertEqual(settings["upscale"]["fit"]["mode"], "megapixels")
-        self.assertEqual(settings["upscale"]["fit"]["max_long_edge"], 64)
-        self.assertEqual(settings["upscale"]["fit"]["max_megapixels"], 256.0)
-        self.assertEqual(settings["upscale"]["fit"]["method"], "bicubic")
+        self.assertNotIn("fit", settings["upscale"])
+        self.assertTrue(settings["postprocess"]["enabled"])
+        self.assertEqual(settings["postprocess"]["fit"]["mode"], "megapixels")
+        self.assertEqual(settings["postprocess"]["fit"]["max_long_edge"], 64)
+        self.assertEqual(settings["postprocess"]["fit"]["max_megapixels"], 256.0)
+        self.assertEqual(settings["postprocess"]["fit"]["method"], "bicubic")
         self.assertEqual(settings["upscale"]["resshift"]["scale"], "x2")
         self.assertEqual(settings["upscale"]["resshift"]["dtype"], "bf16")
         self.assertEqual(settings["upscale"]["resshift"]["tile_batch"], 32)
@@ -1560,6 +1561,38 @@ class AIOFinalUpscaleStageTests(unittest.TestCase):
         self.assertEqual(width % 8, 0)
         self.assertEqual(height % 8, 0)
 
+    def test_postprocess_stage_applies_final_fit(self):
+        with patch.object(
+            nodes,
+            "_apply_aio_final_fit",
+            return_value=(
+                AIOFinalUpscaleStageTests._Image(2048, 1536),
+                {
+                    "enabled": True,
+                    "applied": True,
+                    "target_width": 2048,
+                    "target_height": 1536,
+                },
+            ),
+        ) as fit:
+            image, metadata = nodes._run_aio_postprocess_stage(
+                AIOFinalUpscaleStageTests._Image(4096, 3072),
+                {
+                    "enabled": True,
+                    "fit": {
+                        "mode": "max_long_edge",
+                        "max_long_edge": 2048,
+                    },
+                },
+            )
+
+        self.assertIsInstance(image, AIOFinalUpscaleStageTests._Image)
+        fit.assert_called_once()
+        self.assertTrue(metadata["enabled"])
+        self.assertTrue(metadata["fit"]["applied"])
+        self.assertEqual(metadata["width"], 2048)
+        self.assertEqual(metadata["height"], 1536)
+
     def test_usdu_no_general_prompt_keeps_artist_and_trigger_without_duplicate_quality(self):
         prompt_data = {
             "pin_trigger_tags_to_front": True,
@@ -1669,7 +1702,7 @@ class AIOFinalUpscaleStageTests(unittest.TestCase):
         self.assertEqual(calls["usdu"]["tile_height"], 768)
         self.assertEqual(metadata["backend"], "usdu")
         self.assertEqual(metadata["prompt_mode"], "no_general")
-        self.assertFalse(metadata["fit"]["applied"])
+        self.assertNotIn("fit", metadata)
         cleanup.assert_called_once_with("stage_model", "model")
 
     def test_upscale_stage_runs_only_resshift_when_selected(self):
@@ -1956,9 +1989,10 @@ class AIOGeneratorRuntimeTests(unittest.TestCase):
         self.assertEqual(sample.call_args.args[0], "patched_model")
         self.assertEqual(detailer.call_args.args[0], "mod_guidance_model")
 
-    def test_generator_runs_final_upscale_after_detailer_before_save(self):
+    def test_generator_runs_postprocess_after_upscale_before_save(self):
         context = self._context()
         events = []
+        upscaled_image = AIOFinalUpscaleStageTests._Image(1024, 1536)
 
         def fake_detailer(*_args):
             events.append("detailer")
@@ -1966,7 +2000,18 @@ class AIOGeneratorRuntimeTests(unittest.TestCase):
 
         def fake_upscale(*_args, **_kwargs):
             events.append("upscale")
-            return AIOFinalUpscaleStageTests._Image(1024, 1536), {"enabled": True, "backend": "usdu", "width": 1024, "height": 1536}
+            return upscaled_image, {"enabled": True, "backend": "usdu", "width": 1024, "height": 1536}
+
+        def fake_postprocess(*_args, **_kwargs):
+            events.append("postprocess")
+            return AIOFinalUpscaleStageTests._Image(900, 1350), {
+                "enabled": True,
+                "width": 900,
+                "height": 1350,
+                "fit": {
+                    "applied": True,
+                },
+            }
 
         def fake_save(*_args, **_kwargs):
             events.append("save")
@@ -1985,7 +2030,8 @@ class AIOGeneratorRuntimeTests(unittest.TestCase):
             patch.object(nodes, "_run_aio_highres_stage", return_value=("latent", "first_image", 512, 768, {"enabled": False})),
             patch.object(nodes, "_run_aio_detailer_stage", side_effect=fake_detailer),
             patch.object(nodes, "_run_aio_upscale_stage", side_effect=fake_upscale) as upscale,
-            patch.object(nodes, "_encode_image_with_comfy_vae", return_value="upscaled_latent") as encode,
+            patch.object(nodes, "_run_aio_postprocess_stage", side_effect=fake_postprocess) as postprocess,
+            patch.object(nodes, "_encode_image_with_comfy_vae", side_effect=["upscaled_latent", "postprocess_latent"]) as encode,
             patch.object(nodes, "_save_image_with_image_saver", side_effect=fake_save) as save,
             patch.object(nodes, "_cleanup_aio_ephemeral_model"),
         ):
@@ -2002,6 +2048,9 @@ class AIOGeneratorRuntimeTests(unittest.TestCase):
                         "enabled": True,
                         "backend": "usdu",
                     },
+                    "postprocess": {
+                        "enabled": True,
+                    },
                     "save": {
                         "enabled": True,
                     },
@@ -2009,13 +2058,14 @@ class AIOGeneratorRuntimeTests(unittest.TestCase):
                 unique_id=213,
             )
 
-        self.assertEqual(events, ["detailer", "upscale", "save"])
+        self.assertEqual(events, ["detailer", "upscale", "postprocess", "save"])
         self.assertIsInstance(result["result"][0], AIOFinalUpscaleStageTests._Image)
-        self.assertEqual(result["result"][1], "upscaled_latent")
+        self.assertEqual(result["result"][1], "postprocess_latent")
         self.assertEqual(upscale.call_args.args[5], "detail_image")
-        encode.assert_called_once_with("vae", result["result"][0])
-        self.assertEqual(save.call_args.kwargs["width"], 1024)
-        self.assertEqual(save.call_args.kwargs["height"], 1536)
+        self.assertIs(postprocess.call_args.args[0], upscaled_image)
+        self.assertEqual(encode.call_count, 2)
+        self.assertEqual(save.call_args.kwargs["width"], 900)
+        self.assertEqual(save.call_args.kwargs["height"], 1350)
 
     def test_generator_save_metadata_uses_first_pass_sampler_and_final_size(self):
         context = self._context()

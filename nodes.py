@@ -405,13 +405,6 @@ AIO_GENERATION_DEFAULT_SETTINGS = {
         "sampler_name": "euler",
         "scheduler": "simple",
         "denoise": 0.2,
-        "fit": {
-            "enabled": False,
-            "mode": "max_long_edge",
-            "max_long_edge": 2048,
-            "max_megapixels": 4.0,
-            "method": "bicubic",
-        },
         "spectrum": {
             "enabled": False,
             "window_size": 2.0,
@@ -473,6 +466,15 @@ AIO_GENERATION_DEFAULT_SETTINGS = {
             "chop": 512,
             "overlap": 64,
             "tile_batch": 4,
+        },
+    },
+    "postprocess": {
+        "enabled": False,
+        "fit": {
+            "mode": "max_long_edge",
+            "max_long_edge": 2048,
+            "max_megapixels": 4.0,
+            "method": "bicubic",
         },
     },
     "detailer": {
@@ -1563,7 +1565,7 @@ def _normalize_aio_generation_settings(value) -> dict[str, Any]:
         1.0,
     )
 
-    for key in ("highres", "detailer", "upscale", "save"):
+    for key in ("highres", "detailer", "upscale", "postprocess", "save"):
         section = settings.setdefault(key, {})
         if not isinstance(section, dict):
             section = {}
@@ -1633,22 +1635,7 @@ def _normalize_aio_generation_settings(value) -> dict[str, Any]:
     )
     upscale["denoise"] = max(0.0, min(1.0, _as_float(upscale.get("denoise"), default_upscale["denoise"])))
     max_resolution = _comfy_max_resolution()
-    fit = upscale.setdefault("fit", {})
-    if not isinstance(fit, dict):
-        fit = {}
-        upscale["fit"] = fit
-    default_fit = default_upscale["fit"]
-    fit["enabled"] = _as_bool(fit.get("enabled"), default_fit["enabled"])
-    fit["mode"] = _choice(fit.get("mode"), AIO_FINAL_FIT_MODES, default_fit["mode"])
-    fit["max_long_edge"] = max(
-        64,
-        min(max_resolution, _as_int(fit.get("max_long_edge"), default_fit["max_long_edge"])),
-    )
-    fit["max_megapixels"] = max(
-        0.1,
-        min(256.0, _as_float(fit.get("max_megapixels"), default_fit["max_megapixels"])),
-    )
-    fit["method"] = _choice(fit.get("method"), IMAGE_UPSCALE_METHODS, default_fit["method"])
+    legacy_upscale_fit = upscale.pop("fit", None)
     upscale["spectrum"] = _normalize_aio_spectrum_settings(
         upscale.get("spectrum"),
         default_upscale["spectrum"],
@@ -1723,6 +1710,33 @@ def _normalize_aio_generation_settings(value) -> dict[str, Any]:
     resshift["chop"] = max(256, min(4096, _as_int(resshift.get("chop"), default_resshift["chop"])))
     resshift["overlap"] = max(0, min(512, _as_int(resshift.get("overlap"), default_resshift["overlap"])))
     resshift["tile_batch"] = max(1, min(32, _as_int(resshift.get("tile_batch"), default_resshift["tile_batch"])))
+    postprocess = settings.setdefault("postprocess", {})
+    if not isinstance(postprocess, dict):
+        postprocess = {}
+        settings["postprocess"] = postprocess
+    default_postprocess = AIO_GENERATION_DEFAULT_SETTINGS["postprocess"]
+    fit = postprocess.setdefault("fit", {})
+    if not isinstance(fit, dict):
+        fit = {}
+        postprocess["fit"] = fit
+    default_fit = default_postprocess["fit"]
+    if isinstance(legacy_upscale_fit, dict):
+        if _as_bool(legacy_upscale_fit.get("enabled"), False):
+            postprocess["enabled"] = True
+        for key in ("mode", "max_long_edge", "max_megapixels", "method"):
+            if key in legacy_upscale_fit and fit.get(key) == default_fit.get(key):
+                fit[key] = legacy_upscale_fit[key]
+    postprocess["enabled"] = _as_bool(postprocess.get("enabled"), default_postprocess["enabled"])
+    fit["mode"] = _choice(fit.get("mode"), AIO_FINAL_FIT_MODES, default_fit["mode"])
+    fit["max_long_edge"] = max(
+        64,
+        min(max_resolution, _as_int(fit.get("max_long_edge"), default_fit["max_long_edge"])),
+    )
+    fit["max_megapixels"] = max(
+        0.1,
+        min(256.0, _as_float(fit.get("max_megapixels"), default_fit["max_megapixels"])),
+    )
+    fit["method"] = _choice(fit.get("method"), IMAGE_UPSCALE_METHODS, default_fit["method"])
     detailer = settings["detailer"]
     sam3 = detailer.setdefault("sam3", {})
     if not isinstance(sam3, dict):
@@ -3610,14 +3624,16 @@ def _aio_final_fit_size(width: int, height: int, fit_settings: dict[str, Any]) -
     return max(1, target_width), max(1, target_height), scale
 
 
-def _apply_aio_final_fit(image, upscale_settings: dict[str, Any]) -> tuple[Any, dict[str, Any]]:
-    fit_settings = upscale_settings.get("fit", {})
+def _apply_aio_final_fit(image, postprocess_settings: dict[str, Any]) -> tuple[Any, dict[str, Any]]:
+    fit_settings = postprocess_settings.get("fit", {})
     if not isinstance(fit_settings, dict):
         fit_settings = {}
+    fit_settings = dict(fit_settings)
+    fit_settings["enabled"] = _as_bool(postprocess_settings.get("enabled"), False)
     width, height = _image_tensor_size(image, 0, 0)
     target_width, target_height, scale = _aio_final_fit_size(width, height, fit_settings)
     metadata = {
-        "enabled": _as_bool(fit_settings.get("enabled"), False),
+        "enabled": _as_bool(postprocess_settings.get("enabled"), False),
         "mode": str(fit_settings.get("mode") or "max_long_edge"),
         "max_long_edge": _as_int(fit_settings.get("max_long_edge"), 2048),
         "max_megapixels": _as_float(fit_settings.get("max_megapixels"), 4.0),
@@ -3639,6 +3655,24 @@ def _apply_aio_final_fit(image, upscale_settings: dict[str, Any]) -> tuple[Any, 
     )
     metadata["applied"] = bool(resized)
     return output, metadata
+
+
+def _run_aio_postprocess_stage(image, postprocess_settings: dict[str, Any]) -> tuple[Any, dict[str, Any]]:
+    if not _as_bool(postprocess_settings.get("enabled"), False):
+        width, height = _image_tensor_size(image, 0, 0)
+        return image, {
+            "enabled": False,
+            "width": int(width),
+            "height": int(height),
+        }
+    output, fit_metadata = _apply_aio_final_fit(image, postprocess_settings)
+    width, height = _image_tensor_size(output, fit_metadata.get("target_width", 0), fit_metadata.get("target_height", 0))
+    return output, {
+        "enabled": True,
+        "width": int(width),
+        "height": int(height),
+        "fit": fit_metadata,
+    }
 
 
 def _run_aio_usdu_upscale_stage(
@@ -3844,9 +3878,6 @@ def _run_aio_upscale_stage(
         )
     else:
         raise RuntimeError(f"[EasyUseAnima] Unsupported final upscale backend: {backend}")
-    output, fit_metadata = _apply_aio_final_fit(output, upscale_settings)
-    metadata["fit"] = fit_metadata
-    metadata["width"], metadata["height"] = _image_tensor_size(output, metadata.get("width", 0), metadata.get("height", 0))
     return output, metadata
 
 
@@ -4014,6 +4045,7 @@ AIO_PREVIEW_STAGE_LABELS = {
     "detailer_face": "Detailer: face",
     "detailer_eye": "Detailer: eye",
     "upscale": "Upscale",
+    "postprocess": "Postprocess",
     "final": "Final",
 }
 AIO_PREVIEW_EVENT = "easyuse-anima-aio-preview"
@@ -10122,6 +10154,7 @@ class EasyUseAnimaAIOGenerator:
         will_run_highres = _as_bool(settings["highres"].get("enabled"), False)
         will_run_detailer = _aio_detailer_has_enabled_targets(settings["detailer"])
         will_run_upscale = _as_bool(settings["upscale"].get("enabled"), False)
+        will_run_postprocess = _as_bool(settings["postprocess"].get("enabled"), False)
         profile = _normalize_anima_mod_guidance_profile(mod_guidance["profile"])
         use_mod_guidance = _resolve_anima_mod_guidance_enabled(
             use_anima_mod_guidance,
@@ -10296,6 +10329,21 @@ class EasyUseAnimaAIOGenerator:
                 latent = _encode_image_with_comfy_vae(vae, image)
                 if preview_settings["intermediate_images"]:
                     add_preview("upscale", image)
+            image, postprocess_metadata = _run_aio_postprocess_stage(
+                image,
+                settings["postprocess"],
+            )
+            stage_metadata["postprocess"] = postprocess_metadata
+            if postprocess_metadata.get("enabled"):
+                width, height = _image_tensor_size(image, width, height)
+                postprocess_changed = _as_bool(
+                    (postprocess_metadata.get("fit") or {}).get("applied"),
+                    False,
+                )
+                if postprocess_changed:
+                    latent = _encode_image_with_comfy_vae(vae, image)
+                if preview_settings["intermediate_images"] and postprocess_changed and will_run_postprocess:
+                    add_preview("postprocess", image)
         finally:
             seen_model_ids: set[int] = set()
             for ephemeral_model in (base_sample_model, mod_guidance_model, model, model_with_lora):

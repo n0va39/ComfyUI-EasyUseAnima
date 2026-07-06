@@ -38,7 +38,7 @@ class AIOFrontendSourceTests(unittest.TestCase):
     def test_upscale_settings_offer_single_backend_and_usdu_helpers(self):
         source = AIO_JS.read_text(encoding="utf-8")
         start = source.index("function openUpscaleSettings")
-        end = source.index("\nfunction createDetailerTargetEditor", start)
+        end = source.index("\nfunction openPostprocessSettings", start)
         body = source[start:end]
 
         self.assertIn('selectInput(["usdu", "resshift"]', body)
@@ -50,16 +50,34 @@ class AIOFrontendSourceTests(unittest.TestCase):
         self.assertIn("auto_tile_target: Math.trunc", body)
         self.assertIn("auto_tile_min: Math.trunc", body)
         self.assertIn("auto_tile_max: Math.trunc", body)
-        self.assertIn('textContent: aioStaticText("Final Size Fit")', body)
-        self.assertIn("fit: {", body)
-        self.assertIn("max_long_edge: Math.trunc", body)
-        self.assertIn("max_megapixels: clampGeneratorNumber", body)
+        self.assertNotIn('textContent: aioStaticText("Final Size Fit")', body)
+        self.assertNotIn("fit: {", body)
+        self.assertNotIn("max_long_edge: Math.trunc", body)
+        self.assertNotIn("max_megapixels: clampGeneratorNumber", body)
         self.assertIn('nodeInputChoiceOptions("upscaleModelLoader", "model_name"', body)
         self.assertIn('nodeInputChoiceOptions("resShiftLoader", "student_name"', body)
         self.assertIn("upscaleBackendMissingPacks(backend.value)", body)
         self.assertIn("enabled: enabled.checked && missingPacks.length === 0", body)
-        self.assertNotIn("reshiftSection", body)
-        self.assertNotIn("reshift:", body)
+        self.assertIn("resshiftSection", body)
+        self.assertIn("resshift:", body)
+
+    def test_postprocess_settings_own_final_fit_controls(self):
+        source = AIO_JS.read_text(encoding="utf-8")
+        start = source.index("function openPostprocessSettings")
+        end = source.index("\nfunction createDetailerTargetEditor", start)
+        body = source[start:end]
+
+        self.assertIn('createDialog(', body)
+        self.assertIn('"Postprocess Settings"', body)
+        self.assertIn('textContent: aioStaticText("Final Size Fit")', body)
+        self.assertIn('"Enable postprocess"', body)
+        self.assertIn('"max_long_edge"', body)
+        self.assertIn('"megapixels"', body)
+        self.assertIn("next.postprocess = {", body)
+        self.assertIn("fit: {", body)
+        self.assertIn("max_long_edge: Math.trunc", body)
+        self.assertIn("max_megapixels: clampGeneratorNumber", body)
+        self.assertIn("delete next.upscale?.fit", body)
 
     def test_upscale_optional_dependency_sanitizer_disables_missing_backend(self):
         source = AIO_JS.read_text(encoding="utf-8")
@@ -78,8 +96,10 @@ class AIOFrontendSourceTests(unittest.TestCase):
         body = source[start:end]
 
         self.assertLess(body.index("const detailerBlock"), body.index("const upscaleBlock"))
-        self.assertIn("settingsScroll.append(samplerGrid, highresBlock, detailerBlock, upscaleBlock)", body)
+        self.assertLess(body.index("const upscaleBlock"), body.index("const postprocessBlock"))
+        self.assertIn("settingsScroll.append(samplerGrid, highresBlock, detailerBlock, upscaleBlock, postprocessBlock)", body)
         self.assertIn("openUpscaleSettings(node)", body)
+        self.assertIn("openPostprocessSettings(node)", body)
         self.assertNotIn("backendBadge", body)
 
     def test_safe_pag_advanced_labels_do_not_reuse_generic_labels(self):
