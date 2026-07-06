@@ -3472,6 +3472,10 @@ function ensureStyle() {
     .${GENERATOR_VUE_NODE_CLASS} img.pointer-events-none.object-contain + .text-node-component-header-text,
     .${GENERATOR_VUE_NODE_CLASS} .text-node-component-header-text,
     .${GENERATOR_VUE_NODE_CLASS} .text-node-component-header-text.mt-1.text-center.text-xs,
+    .lg-node:has(.easyuse-anima-aio-node-panel) .text-node-component-header-text,
+    .lg-node:has(.easyuse-anima-aio-node-panel) .pt-2.text-center.text-xs.text-base-foreground,
+    [data-node-id]:has(.easyuse-anima-aio-node-panel) .text-node-component-header-text,
+    [data-node-id]:has(.easyuse-anima-aio-node-panel) .pt-2.text-center.text-xs.text-base-foreground,
     .${GENERATOR_VUE_NODE_CLASS} [data-testid="main-image"],
     .${GENERATOR_VUE_NODE_CLASS} .easyuse-anima-aio-native-live-preview-hidden {
       display: none !important;
@@ -4952,7 +4956,7 @@ async function generatorNativePreviewStores() {
       try {
         const module = await import(url);
         return {
-          useNodeOutputStore: module?.useNodeOutputStore || module?.L,
+          useNodeOutputStore: module?.useNodeOutputStore || module?.cn || module?.L,
           useWorkflowStore: module?.useWorkflowStore || module?.M,
         };
       } catch {
@@ -5093,6 +5097,7 @@ function suppressGeneratorDefaultPreview(node, options = {}) {
   if (!node) {
     return;
   }
+  lockGeneratorLegacyCanvasPreview(node);
   const shouldMarkDirty = options.markDirty !== false;
   let changed = false;
   if (node.hideOutputImages !== true) {
@@ -5117,6 +5122,28 @@ function suppressGeneratorDefaultPreview(node, options = {}) {
   }
   if (changed && shouldMarkDirty) {
     markNodeDirty(node);
+  }
+}
+
+function lockGeneratorLegacyCanvasPreview(node) {
+  if (!node || node.__easyuseAnimaLegacyCanvasPreviewLocked) {
+    return;
+  }
+  node.__easyuseAnimaLegacyCanvasPreviewLocked = true;
+  try {
+    Object.defineProperty(node, "imgs", {
+      configurable: true,
+      enumerable: false,
+      get() {
+        return [];
+      },
+      set() {
+        // Comfy syncs ui.images into node.imgs for legacy canvas previews.
+        // AiO keeps queue/history images but renders its own in-node preview.
+      },
+    });
+  } catch {
+    node.imgs = [];
   }
 }
 
