@@ -6546,12 +6546,12 @@ function openUpscaleSettings(node) {
   const denoise = field(usduSampler, "Denoise", numberInput(upscale.denoise, "0.01"), "tip.denoise");
   const optimization = createStageOptimizationEditor("USDU Spectrum/DCW", upscale, DEFAULT_GENERATION_SETTINGS.upscale);
 
-  const reshiftSection = document.createElement("section");
-  reshiftSection.className = "easyuse-anima-aio-section";
-  reshiftSection.append(Object.assign(document.createElement("h3"), { textContent: aioStaticText("ResShift Upscale") }));
-  const reshiftScale = field(resshiftSection, "Scale", selectInput(["x2", "x4"], resshift.scale || "x2"), "tip.resshiftScale");
+  const resshiftSection = document.createElement("section");
+  resshiftSection.className = "easyuse-anima-aio-section";
+  resshiftSection.append(Object.assign(document.createElement("h3"), { textContent: aioStaticText("ResShift Upscale") }));
+  const resshiftScale = field(resshiftSection, "Scale", selectInput(["x2", "x4"], resshift.scale || "x2"), "tip.resshiftScale");
   const student = field(
-    reshiftSection,
+    resshiftSection,
     "Student",
     selectInput(
       nodeInputChoiceOptions("resShiftLoader", "student_name", resshift.student_name, ["(auto-download)"]),
@@ -6569,7 +6569,7 @@ function openUpscaleSettings(node) {
     usduSection.classList.toggle("hidden", !isUsdu);
     usduSampler.classList.toggle("hidden", !isUsdu);
     optimization.section.classList.toggle("hidden", !isUsdu);
-    reshiftSection.classList.toggle("hidden", isUsdu);
+    resshiftSection.classList.toggle("hidden", isUsdu);
     const manualTileDisplay = autoTile.checked ? "none" : "";
     for (const control of [tileWidth, tileHeight]) {
       if (control?.parentElement) {
@@ -6606,7 +6606,7 @@ function openUpscaleSettings(node) {
   backend.addEventListener("change", refreshDependencyLocks);
   autoTile.addEventListener("change", updateVisibility);
   inheritSampler.addEventListener("change", updateVisibility);
-  body.append(main, usduSection, usduSampler, optimization.section, reshiftSection);
+  body.append(main, usduSection, usduSampler, optimization.section, resshiftSection);
   updateVisibility();
   refreshDependencyLocks();
   loadGeneratorOptionalDependencies().then(refreshDependencyLocks);
@@ -6652,8 +6652,8 @@ function openUpscaleSettings(node) {
         tiled_decode: tiledDecode.checked,
         batch_size: Math.trunc(clampGeneratorNumber(batchSize.value, 1, 1, 4096)),
       },
-      reshift: {
-        scale: reshiftScale.value || "x2",
+      resshift: {
+        scale: resshiftScale.value || "x2",
         student_name: student.value || "(auto-download)",
         dtype: dtype.value || "bf16",
         chop: Math.trunc(clampGeneratorNumber(chop.value, 512, 256, 4096)),

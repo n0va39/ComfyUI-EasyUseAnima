@@ -50,6 +50,8 @@ class AIOFrontendSourceTests(unittest.TestCase):
         self.assertIn('nodeInputChoiceOptions("resShiftLoader", "student_name"', body)
         self.assertIn("upscaleBackendMissingPacks(backend.value)", body)
         self.assertIn("enabled: enabled.checked && missingPacks.length === 0", body)
+        self.assertNotIn("reshiftSection", body)
+        self.assertNotIn("reshift:", body)
 
     def test_upscale_optional_dependency_sanitizer_disables_missing_backend(self):
         source = AIO_JS.read_text(encoding="utf-8")
