@@ -1,0 +1,6 @@
+EasyUse Anima 0.3.2 is a dependency hotfix for Google prompt translation.
+
+User-visible changes:
+1. Google prompt translation now declares googletrans-py 4.0.0 in both package metadata files.
+2. Registry and Manager installs should install the supported googletrans-py package instead of relying on a loose or missing dependency declaration.
+3. Node behavior and workflow formats are unchanged in this hotfix.
