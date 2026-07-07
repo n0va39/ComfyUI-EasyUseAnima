@@ -1,2 +1,2 @@
 requests>=2.28
-googletrans-py
+googletrans-py==4.0.0

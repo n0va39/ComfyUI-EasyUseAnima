@@ -1,5 +1,18 @@
 # Release Notes
 
+## 0.3.2
+
+### Fixed
+
+- Fixed Registry and Manager dependency metadata for Google prompt translation
+  by declaring `googletrans-py==4.0.0` in both `pyproject.toml` and
+  `requirements.txt`.
+
+### Validation Notes
+
+- Verified `pyproject.toml` parsing and dependency metadata alignment.
+- Verified the release diff with `git diff --check`.
+
 ## 0.3.1
 
 ### Added

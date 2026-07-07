@@ -1,12 +1,13 @@
 [project]
 name = "comfyui-easyuse-anima"
 description = "Prompt editing, ANIMA prompt correction, NAIA prompt integration, LoRA preset management, wildcard expansion, AiO generation, and ANIMA/Spectrum workflow helpers for ComfyUI."
-version = "0.3.1"
+version = "0.3.2"
 readme = "README.md"
 license = { file = "LICENSE" }
 requires-python = ">=3.10"
 dependencies = [
     "requests>=2.28",
+    "googletrans-py==4.0.0",
 ]
 classifiers = [
     "Operating System :: OS Independent",
