@@ -122,6 +122,39 @@ class AIOFrontendSourceTests(unittest.TestCase):
         self.assertIn("upscaleBackendMissingPacks(next.upscale.backend).length", body)
         self.assertIn("next.upscale.enabled = false", body)
 
+    def test_optional_dependency_query_reports_results_without_treating_errors_as_missing(self):
+        source = AIO_JS.read_text(encoding="utf-8")
+        fetch_start = source.index("async function fetchGeneratorOptionalDependencies")
+        fetch_end = source.index("\nfunction optionalDependencyResultLabel", fetch_start)
+        fetch_body = source[fetch_start:fetch_end]
+        available_start = source.index("function optionalDependencyAvailable")
+        available_end = source.index("\nfunction backendDependencyMissing", available_start)
+        available_body = source[available_start:available_end]
+        report_start = source.index("function reportGeneratorOptionalDependencyStatus")
+        report_end = source.index("\nfunction loadGeneratorOptionalDependencies", report_start)
+        report_body = source[report_start:report_end]
+
+        self.assertIn('nextStatus[key] = "error"', fetch_body)
+        self.assertNotIn("next[key] = false", fetch_body)
+        self.assertIn('optionalDependencyStatus(key) !== "missing"', available_body)
+        self.assertIn('console.info("[EasyUseAnima] AiO optional dependency query result", rows)', report_body)
+        self.assertIn('severity: failed.length ? "warn" : "info"', report_body)
+        self.assertIn("app.ui.dialog.show", report_body)
+
+    def test_optional_dependency_query_retries_errors_before_queueing(self):
+        source = AIO_JS.read_text(encoding="utf-8")
+        load_start = source.index("function loadGeneratorOptionalDependencies")
+        load_end = source.index("\nfunction optionalDependencyStatus", load_start)
+        load_body = source[load_start:load_end]
+        queue_start = source.index("function installGeneratorQueuePromptHook")
+        queue_end = source.index("\nfunction ensureButton", queue_start)
+        queue_body = source[queue_start:queue_end]
+
+        self.assertIn("retryErrors = false", load_body)
+        self.assertIn('includes("error")', load_body)
+        self.assertIn("generatorOptionalDependencyState.loading = null", load_body)
+        self.assertIn("loadGeneratorOptionalDependencies({ retryErrors: true })", queue_body)
+
     def test_generator_panel_renders_upscale_after_detailer(self):
         source = AIO_JS.read_text(encoding="utf-8")
         start = source.index("function renderGeneratorPanel")

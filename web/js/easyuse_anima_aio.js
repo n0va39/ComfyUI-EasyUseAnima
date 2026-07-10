@@ -1436,6 +1436,10 @@ const AIO_TOOLTIP_TEXT = {
     "tip.torchCompileVram": "Disables ComfyUI dynamic VRAM handling around compiled model execution when enabled.",
     "tip.samplerBackend": "Selects the actual first-pass execution path. Model patches selected in Advanced Options are applied before this backend runs. SPD/SPEED is Euler-only, so its sampler is normalized to euler.",
     "warning.optionalDependencyMissing": "{backend} is locked because {pack} is not installed.",
+    "info.optionalDependency.title": "EasyUseAnima AiO dependency check",
+    "info.optionalDependency.complete": "Available: {available}/{total}.",
+    "info.optionalDependency.missing": "Missing: {items}. Related features will be disabled or changed before queueing.",
+    "info.optionalDependency.error": "Query failed: {items}. Settings were kept unchanged and will be checked again before queueing.",
     "tip.modMode": "Controls whether Mod Guidance follows prompt_data, is forced on, or is disabled.",
     "tip.modProfile": "Preset layer profile for Anima Mod Guidance. Off disables Mod Guidance even when prompt_data asks for it.",
     "tip.modAdapter": "Adapter name passed to Spectrum Mod Guidance. Auto-download default uses the node pack default adapter.",
@@ -1542,6 +1546,10 @@ const AIO_TOOLTIP_TEXT = {
     "tip.torchCompileVram": "켜면 compiled model 실행 중 ComfyUI dynamic VRAM 처리를 끕니다.",
     "tip.samplerBackend": "실제 1차 샘플링 경로를 선택합니다. Advanced Options에서 선택한 모델 패치는 이 백엔드 실행 전에 적용됩니다. SPD/SPEED는 Euler 전용이라 내부 sampler는 euler로 정규화됩니다.",
     "warning.optionalDependencyMissing": "{pack}이 설치되지 않아 {backend} 옵션을 잠갔습니다.",
+    "info.optionalDependency.title": "EasyUseAnima AiO 의존성 조회",
+    "info.optionalDependency.complete": "사용 가능: {available}/{total}.",
+    "info.optionalDependency.missing": "미설치: {items}. 관련 기능은 큐 실행 전에 비활성화되거나 대체됩니다.",
+    "info.optionalDependency.error": "조회 실패: {items}. 설정을 변경하지 않았으며 다음 큐 실행 전에 다시 조회합니다.",
     "tip.modMode": "Mod Guidance를 prompt_data에 따르게 할지, 강제로 켤지, 끌지 정합니다.",
     "tip.modProfile": "Anima Mod Guidance 레이어 프리셋입니다. off는 prompt_data가 켜져 있어도 Mod Guidance를 비활성화합니다.",
     "tip.modAdapter": "Spectrum Mod Guidance에 전달할 adapter입니다. auto-download default는 노드팩 기본 adapter를 사용합니다.",
@@ -1648,6 +1656,10 @@ const AIO_TOOLTIP_TEXT = {
     "tip.torchCompileVram": "有効時、compiled model 実行中の ComfyUI dynamic VRAM 処理を無効化します。",
     "tip.samplerBackend": "一回目の実行経路を選択します。Advanced Options で選んだ model patch は、この backend 実行前に適用されます。SPD/SPEED は Euler 専用のため、sampler は内部で euler に正規化されます。",
     "warning.optionalDependencyMissing": "{pack} が未インストールのため {backend} をロックしました。",
+    "info.optionalDependency.title": "EasyUseAnima AiO 依存関係チェック",
+    "info.optionalDependency.complete": "利用可能: {available}/{total}。",
+    "info.optionalDependency.missing": "未インストール: {items}。関連機能はキュー実行前に無効化または変更されます。",
+    "info.optionalDependency.error": "照会失敗: {items}。設定は変更せず、次回のキュー実行前に再確認します。",
     "tip.modMode": "Mod Guidance を prompt_data に従わせるか、強制有効または無効にするかを選択します。",
     "tip.modProfile": "Anima Mod Guidance の layer profile です。off は prompt_data が有効でも Mod Guidance を無効化します。",
     "tip.modAdapter": "Spectrum Mod Guidance に渡す adapter です。auto-download default は node pack の既定 adapter を使います。",
@@ -1745,6 +1757,10 @@ const AIO_TOOLTIP_TEXT = {
     "tip.torchCompileVram": "启用后，在 compiled model 执行期间关闭 ComfyUI dynamic VRAM 处理。",
     "tip.samplerBackend": "选择第一次采样的实际执行路径。Advanced Options 中选择的 model patch 会在此 backend 执行前应用。SPD/SPEED 仅支持 Euler，因此内部 sampler 会规范化为 euler。",
     "warning.optionalDependencyMissing": "{pack} 未安装，因此已锁定 {backend} 选项。",
+    "info.optionalDependency.title": "EasyUseAnima AiO 依赖项检查",
+    "info.optionalDependency.complete": "可用: {available}/{total}。",
+    "info.optionalDependency.missing": "未安装: {items}。相关功能将在加入队列前被禁用或替换。",
+    "info.optionalDependency.error": "查询失败: {items}。设置未被修改，并将在下次加入队列前重新检查。",
     "tip.modMode": "选择 Mod Guidance 跟随 prompt_data、强制开启或关闭。",
     "tip.modProfile": "Anima Mod Guidance layer profile。off 会禁用 Mod Guidance，即使 prompt_data 要求启用。",
     "tip.modAdapter": "传给 Spectrum Mod Guidance 的 adapter。auto-download default 使用节点包默认 adapter。",
@@ -2247,7 +2263,10 @@ const generatorOptionalDependencyState = {
   loaded: false,
   loading: null,
   available: {},
+  status: {},
   nodeInfo: {},
+  errors: {},
+  reportedSignature: "",
 };
 
 function uniqueStrings(values) {
@@ -2313,44 +2332,119 @@ function loadGeneratorSamplerOptions() {
 
 async function fetchGeneratorOptionalDependencies() {
   const next = {};
+  const nextStatus = {};
   const nextInfo = {};
+  const nextErrors = {};
   for (const [key, spec] of Object.entries(GENERATOR_OPTIONAL_DEPENDENCY_SPECS)) {
     try {
       const data = await easyuseAnimaFetchComfyJson(api, `/object_info/${encodeURIComponent(spec.nodeId)}`);
       const info = data?.[spec.nodeId] || null;
       next[key] = !!info;
+      nextStatus[key] = info ? "available" : "missing";
       nextInfo[key] = info;
-    } catch {
-      next[key] = false;
+    } catch (error) {
+      nextStatus[key] = "error";
       nextInfo[key] = null;
+      nextErrors[key] = error instanceof Error ? error.message : String(error || "Unknown error");
     }
   }
   generatorOptionalDependencyState.available = next;
+  generatorOptionalDependencyState.status = nextStatus;
   generatorOptionalDependencyState.nodeInfo = nextInfo;
+  generatorOptionalDependencyState.errors = nextErrors;
 }
 
-function loadGeneratorOptionalDependencies() {
-  if (generatorOptionalDependencyState.loaded) {
+function optionalDependencyResultLabel(key) {
+  const spec = GENERATOR_OPTIONAL_DEPENDENCY_SPECS[key];
+  return spec ? `${spec.nodeId} (${spec.pack})` : key;
+}
+
+function reportGeneratorOptionalDependencyStatus() {
+  const rows = Object.entries(GENERATOR_OPTIONAL_DEPENDENCY_SPECS).map(([key, spec]) => ({
+    key,
+    node: spec.nodeId,
+    pack: spec.pack,
+    status: generatorOptionalDependencyState.status[key] || "error",
+    error: generatorOptionalDependencyState.errors[key] || "",
+  }));
+  const available = rows.filter((row) => row.status === "available");
+  const missing = rows.filter((row) => row.status === "missing");
+  const failed = rows.filter((row) => row.status === "error");
+  console.info("[EasyUseAnima] AiO optional dependency query result", rows);
+
+  const details = [aioFormat("info.optionalDependency.complete", {
+    available: available.length,
+    total: rows.length,
+  })];
+  if (missing.length) {
+    details.push(aioFormat("info.optionalDependency.missing", {
+      items: missing.map((row) => optionalDependencyResultLabel(row.key)).join(", "),
+    }));
+  }
+  if (failed.length) {
+    details.push(aioFormat("info.optionalDependency.error", {
+      items: failed.map((row) => optionalDependencyResultLabel(row.key)).join(", "),
+    }));
+  }
+
+  const signature = rows.map((row) => `${row.key}:${row.status}:${row.error}`).join("|");
+  if (signature === generatorOptionalDependencyState.reportedSignature) {
+    return;
+  }
+  generatorOptionalDependencyState.reportedSignature = signature;
+  const summary = aioText("info.optionalDependency.title");
+  const detail = details.join(" ");
+  const toast = app?.extensionManager?.toast;
+  if (typeof toast?.add === "function") {
+    toast.add({
+      severity: failed.length ? "warn" : "info",
+      summary,
+      detail,
+      life: failed.length || missing.length ? 10000 : 5000,
+    });
+  } else if (typeof app?.ui?.dialog?.show === "function") {
+    app.ui.dialog.show(`${summary}\n${detail}`);
+  }
+}
+
+function loadGeneratorOptionalDependencies({ retryErrors = false } = {}) {
+  const hasQueryErrors = Object.values(generatorOptionalDependencyState.status).includes("error");
+  if (generatorOptionalDependencyState.loaded && (!retryErrors || !hasQueryErrors)) {
     return Promise.resolve(generatorOptionalDependencyState);
   }
   if (!generatorOptionalDependencyState.loading) {
     generatorOptionalDependencyState.loading = fetchGeneratorOptionalDependencies()
       .catch((error) => {
         console.warn("[EasyUseAnima] Failed to load optional dependency status.", error);
+        const message = error instanceof Error ? error.message : String(error || "Unknown error");
+        generatorOptionalDependencyState.status = Object.fromEntries(
+          Object.keys(GENERATOR_OPTIONAL_DEPENDENCY_SPECS).map((key) => [key, "error"]),
+        );
+        generatorOptionalDependencyState.errors = Object.fromEntries(
+          Object.keys(GENERATOR_OPTIONAL_DEPENDENCY_SPECS).map((key) => [key, message]),
+        );
+      })
+      .then(() => {
+        generatorOptionalDependencyState.loaded = true;
+        reportGeneratorOptionalDependencyStatus();
+        return generatorOptionalDependencyState;
       })
       .finally(() => {
-        generatorOptionalDependencyState.loaded = true;
-      })
-      .then(() => generatorOptionalDependencyState);
+        generatorOptionalDependencyState.loading = null;
+      });
   }
   return generatorOptionalDependencyState.loading;
 }
 
-function optionalDependencyAvailable(key) {
+function optionalDependencyStatus(key) {
   if (!key || !generatorOptionalDependencyState.loaded) {
-    return true;
+    return "unknown";
   }
-  return !!generatorOptionalDependencyState.available[key];
+  return generatorOptionalDependencyState.status[key] || "unknown";
+}
+
+function optionalDependencyAvailable(key) {
+  return optionalDependencyStatus(key) !== "missing";
 }
 
 function backendDependencyMissing(backend) {
@@ -2406,10 +2500,11 @@ function nodeInputChoiceOptions(dependencyKey, inputName, current, fallback = []
 }
 
 function nodeInputSupported(dependencyKey, inputName) {
-  if (!generatorOptionalDependencyState.loaded) {
+  const status = optionalDependencyStatus(dependencyKey);
+  if (status === "unknown" || status === "error") {
     return true;
   }
-  if (!optionalDependencyAvailable(dependencyKey)) {
+  if (status === "missing") {
     return false;
   }
   return !!nodeInputSpec(dependencyKey, inputName);
@@ -8168,7 +8263,7 @@ function installGeneratorQueuePromptHook() {
   }
   const queuePrompt = api.queuePrompt;
   api.queuePrompt = async function (number, prompt, ...args) {
-    await loadGeneratorOptionalDependencies();
+    await loadGeneratorOptionalDependencies({ retryErrors: true });
     prepareGeneratorPromptForQueue(prompt);
     return queuePrompt.call(this, number, prompt, ...args);
   };
