@@ -146,13 +146,17 @@ Settings의 대형 분리는 별도 후속 이슈로 넘긴다.
 
 예상: 0.5일
 
-- 공식 frontend 검사는 `tools/check_frontend.ps1`로 유지한다.
-- 공식 Python full suite는 현재 저장소 계약인 `unittest discover`로 고정한다.
-- `pytest`를 지원할지, 명시적으로 비지원할지 별도 결정한다.
-- 지원한다면 root package 수집 문제를 해결한 뒤 두 runner 결과가 일치함을
-  검증한다.
-- 지원하지 않는다면 workspace 지침과 자동화가 `pytest`를 기본 full-suite로
-  안내하지 않도록 별도 승인 범위에서 정렬한다.
+결정:
+
+- 공식 project 검사는 `tools/check_project.ps1`로 통합한다.
+- 공식 frontend 검사는 이 entrypoint가 호출하는
+  `tools/check_frontend.ps1`로 유지한다.
+- 공식 Python full suite는 `unittest discover`로 고정한다.
+- `pytest`는 공식 runner로 지원하지 않는다. 현재 custom-node root package를
+  top-level `__init__` module로 수집해 test body 실행 전에 실패하며,
+  import mode, rootdir, ignore 옵션만으로 해결되지 않는다.
+- workspace의 ComfyUI 테스트 지침과 helper는 저장소가 소유한 runner 계약을
+  우선하도록 정렬한다.
 
 이 PR에는 frontend 구조 변경을 넣지 않는다.
 

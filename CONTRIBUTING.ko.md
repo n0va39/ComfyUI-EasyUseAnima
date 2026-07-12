@@ -117,8 +117,17 @@ node --check web/js/<changed-file>.js
 워크플로우 템플릿을 변경했다면:
 
 ```bash
-python -m unittest tests.test_workflows
+python -m unittest discover -s tests -p test_workflows.py
 ```
+
+PowerShell에서는 다음 명령으로 저장소 전체 검증을 실행할 수 있습니다.
+
+```powershell
+powershell -ExecutionPolicy Bypass -File tools\check_project.ps1 -Profile full
+```
+
+Python suite의 공식 runner는 `unittest`입니다. 이 custom-node package
+구조에서는 pytest를 full-suite runner로 지원하지 않습니다.
 
 변경이 실제 ComfyUI 동작에 의존한다면 실제 ComfyUI 인스턴스에서도 테스트하고,
 PR에 테스트한 ComfyUI 버전을 적어 주세요.
