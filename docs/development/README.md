@@ -89,6 +89,7 @@ conversation.
 
 ## Validation Shortlist
 
+- `powershell -ExecutionPolicy Bypass -File tools\check_project.ps1 -Profile full`
 - `python -m unittest discover -s tests`
 - `python -m compileall -q .`
 - `git diff --check`

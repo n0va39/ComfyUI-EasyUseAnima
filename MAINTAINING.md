@@ -63,17 +63,26 @@ This repository is prepared for future ComfyUI Manager / Comfy Registry registra
 
 ## Checks
 
-Run from `D:\ComfyUI\custom_nodes_workplace`:
+Run the checked-in validation entrypoint from the repository root:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File tools\check_custom_node.ps1 -Project ComfyUI-EasyUseAnima
+powershell -ExecutionPolicy Bypass -File tools\check_project.ps1 -Profile full
 ```
 
-Before publishing, also test installation in the active ComfyUI instance:
+Use `-Profile quick` for Python compile, frontend, and diff checks. The `full`
+profile additionally runs the complete Python suite. Pass
+`-Python <path-to-python>` when the ComfyUI environment is not the default
+`python` command.
 
-```text
-D:\ComfyUI\ComfyUI_main\instances\ComfyUI_v0.24.0\custom_nodes
-```
+The checked-in Python suite is based on `unittest`. Do not substitute
+`python -m pytest tests -q`: with this custom-node package layout, pytest tries
+to import the repository-root `__init__.py` as a top-level module and fails
+before test bodies run. Supporting pytest would require a separate package and
+runner design change.
+
+Before publishing, also install and test the node pack in a supported ComfyUI
+instance. Record the tested ComfyUI and frontend versions instead of relying on
+a fixed local instance path.
 
 ## Comfy Registry Release Procedure
 
@@ -109,21 +118,12 @@ Use this procedure when publishing a release to Comfy Registry / ComfyUI Manager
 Run from repository root:
 
 ```powershell
-node --check web\js\easyuse_anima_settings.js
-node --check web\js\easyuse_anima_prompt_studio.js
-node --check web\js\easyuse_anima_lora_preset.js
-node --check web\js\easyuse_anima_naia.js
-node --check web\js\easyuse_anima_autocomplete.js
-.venv\Scripts\python.exe -m unittest discover -s tests
-git diff --check
-git status --short
+powershell -ExecutionPolicy Bypass -File tools\check_project.ps1 -Profile full
+comfy node validate
 ```
 
-Also verify ComfyUI starts with the active test instance after copying changed files:
-
-```text
-D:\ComfyUI\ComfyUI_main\instances\ComfyUI_v0.24.0\custom_nodes\ComfyUI-EasyUseAnima
-```
+Also verify ComfyUI starts with the intended test installation after applying
+the candidate changes.
 
 ### 4. Manual Publish With Comfy CLI
 
