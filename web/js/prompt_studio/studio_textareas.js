@@ -52,7 +52,7 @@ function studioVisualMinimumHeight(widget) {
   return Math.min(studioDefaultHeight(widget), 54);
 }
 
-function studioMinimumHeight(widget, input = findStudioInput(widget)) {
+function studioMinimumHeight(widget) {
   return studioVisualMinimumHeight(widget);
 }
 
@@ -79,7 +79,7 @@ function setStudioInputHeight(node, widget, height, refresh = false, hooks = {})
   if (!input) {
     return;
   }
-  const minimumHeight = studioMinimumHeight(widget, input);
+  const minimumHeight = studioMinimumHeight(widget);
   const nextHeight = Math.max(minimumHeight, Math.round(Number(height) || 0));
   widget.__easyuseAnimaLayoutHeight = nextHeight + STUDIO_WIDGET_VERTICAL_GAP;
   if (Math.abs(nextHeight - (widget.__easyuseAnimaHeight || 0)) > 1) {

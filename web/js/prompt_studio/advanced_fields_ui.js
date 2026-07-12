@@ -191,7 +191,7 @@ function createAdvancedFieldElement(node, field, hooks = {}) {
       const nextValue = !findWidget(node, "use_naia")?.value;
       setAdvancedControlValue(node, "consume_naia_on_queue", true);
       setAdvancedControlValue(node, "use_naia", nextValue);
-      hooks.applyAdvancedNaiaGeneralAutoToggle?.(node, currentFields);
+      hooks.applyAdvancedNaiaGeneralAutoToggle?.(currentFields);
       hooks.writeAdvancedFields?.(node, currentFields, { render: true });
     }, linkedUseNaia || field.enabled === false, field.enabled !== false && !!useNaiaWidget?.value);
     fillButton.classList.add("easyuse-anima-naia-fill");

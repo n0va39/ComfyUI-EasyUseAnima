@@ -8,6 +8,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 JSCONFIG = ROOT / "jsconfig.json"
+FRONTEND_CHECK_SCRIPT = ROOT / "tools" / "check_frontend.ps1"
 WEB_JS = ROOT / "web" / "js"
 API_JS = WEB_JS / "easyuse_anima_api.js"
 PROMPT_STUDIO_JS = WEB_JS / "easyuse_anima_prompt_studio.js"
@@ -799,6 +800,8 @@ class FrontendModuleStructureTests(unittest.TestCase):
         self.assertTrue(config["compilerOptions"]["allowJs"])
         self.assertTrue(config["compilerOptions"]["checkJs"])
         self.assertTrue(config["compilerOptions"]["noEmit"])
+        self.assertTrue(config["compilerOptions"]["noUnusedLocals"])
+        self.assertTrue(config["compilerOptions"]["noUnusedParameters"])
 
         for path in (
             "web/js/easyuse_anima_prompt_studio.js",
@@ -806,6 +809,14 @@ class FrontendModuleStructureTests(unittest.TestCase):
         ):
             with self.subTest(path=path):
                 self.assertIn(path, config["include"])
+
+    def test_frontend_check_script_runs_syntax_and_typecheck(self):
+        source = FRONTEND_CHECK_SCRIPT.read_text(encoding="utf-8")
+
+        self.assertIn('Get-ChildItem -File -Recurse -Path "web\\js"', source)
+        self.assertIn("& node --check", source)
+        self.assertIn('"typescript@$TypeScriptVersion"', source)
+        self.assertIn("tsc -p jsconfig.json", source)
 
     def test_prompt_studio_split_modules_start_with_ts_check(self):
         for path in sorted(PROMPT_STUDIO_MODULES.glob("*.js")):

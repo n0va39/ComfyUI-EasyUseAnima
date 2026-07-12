@@ -108,7 +108,7 @@ function hookStudioNode(node, attempt = 0, hooks = {}) {
 
     if (!widget.__easyuseAnimaStudioHooked) {
       const callback = widget.callback;
-      widget.callback = function (value) {
+      widget.callback = function (_value) {
         const result = callback?.apply(this, arguments);
         widget.__easyuseAnimaExecutedText = null;
         updateHighlight(node, widget);

@@ -68,7 +68,7 @@ function applyAdvancedExecutedInputs(node, message, hooks = {}) {
     syncAdvancedFieldsBackup(node, widget.value);
   }
   const fields = hooks.parseAdvancedFields?.(node) || [];
-  if (mergeAdvancedFieldInputValues(node, fields, node.__easyuseAnimaAdvancedFieldInputValues)) {
+  if (mergeAdvancedFieldInputValues(fields, node.__easyuseAnimaAdvancedFieldInputValues)) {
     hooks.writeAdvancedFields?.(node, fields, { syncInputs: false });
   } else {
     setAdvancedFields(node, fields);

@@ -74,7 +74,7 @@ function renderAdvancedEditor(node, hooks = {}) {
     return;
   }
   const fields = setAdvancedFields(node, parseAdvancedFields(node));
-  applyAdvancedNaiaGeneralAutoToggle(node, fields);
+  applyAdvancedNaiaGeneralAutoToggle(fields);
   editor.innerHTML = "";
   updateAdvancedEditorWidth(node);
   const panes = document.createElement("div");
