@@ -614,12 +614,6 @@ const PROMPT_STUDIO_FONT_SIZE_MIN = 8;
 const PROMPT_STUDIO_FONT_SIZE_MAX = 24;
 const PROMPT_STUDIO_FONT_FAMILY = 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
 
-const WEIGHT_NUMBER_RE = /^[+-]?(?:\d+(?:\.\d*)?|\.\d+)$/;
-const WEIGHTED_TOKEN_RE = /^\((.*):[+-]?(?:\d+(?:\.\d*)?|\.\d+)\)$/s;
-const WEIGHT_NUMBER_COLOR = "#fb923c";
-const WILDCARD_HIGHLIGHT_RE = /(?:\d+#)?__[\w.\-+/*\\]+?__/g;
-const ARTIST_MIX_GROUP_HIGHLIGHT_RE = /\[\[[\s\S]*?(?::[-+]?(?:\d+(?:\.\d*)?|\.\d+))?\]\]/g;
-const INLINE_SPACE_RE = /[ \t]+/g;
 const HIGHLIGHT_TEXT_METRIC_PROPERTIES = [
   "font",
   "fontFamily",
@@ -957,12 +951,6 @@ export {
   PROMPT_STUDIO_FONT_SIZE_MIN,
   PROMPT_STUDIO_FONT_SIZE_MAX,
   PROMPT_STUDIO_FONT_FAMILY,
-  WEIGHT_NUMBER_RE,
-  WEIGHTED_TOKEN_RE,
-  WEIGHT_NUMBER_COLOR,
-  WILDCARD_HIGHLIGHT_RE,
-  ARTIST_MIX_GROUP_HIGHLIGHT_RE,
-  INLINE_SPACE_RE,
   HIGHLIGHT_TEXT_METRIC_PROPERTIES,
   AUTOCOMPLETE_TOOLTIP_SECTIONS,
   ADVANCED_NATIVE_CONTROL_SELECTOR,
