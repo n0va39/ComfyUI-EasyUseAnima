@@ -14,7 +14,9 @@ conversation.
    - workflow docs or release templates: `docs/Anima AiO/Workflow_Management.md`
    - user-facing AiO docs: `docs/Anima AiO/README.md`
    - custom-node model patch integrations: `docs/development/custom-node-integrations.md`
-   - frontend JS maintainability and Issue #14:
+   - current frontend maintenance roadmap and Issue #14 close boundary:
+     `docs/development/frontend-maintenance-roadmap.md`
+   - historical Issue #14 PR #18 execution plan:
      `docs/development/issue-14-frontend-js-maintenance.md`
    - deferred Node 2.0 DOM widget resize investigation:
      `docs/development/node2-dom-widget-resize-limitation.md`
@@ -34,7 +36,9 @@ conversation.
 - User-facing node documentation: `docs/nodes/`
 - User-facing wildcard syntax: `docs/wildcards.ko.md` /
   `docs/wildcards.en.md`
-- Issue #14 frontend maintainability plan:
+- Current frontend maintenance roadmap:
+  `docs/development/frontend-maintenance-roadmap.md`
+- Historical Issue #14 PR #18 execution plan:
   `docs/development/issue-14-frontend-js-maintenance.md`
 - Deferred Node 2.0 DOM widget resize investigation:
   `docs/development/node2-dom-widget-resize-limitation.md`
@@ -53,7 +57,7 @@ conversation.
   - `web/js/easyuse_anima_prompt_studio.js`
   - `web/js/easyuse_anima_prompt_studio_common.js`
   - `web/js/easyuse_anima_settings.js`
-  - `docs/development/issue-14-frontend-js-maintenance.md`
+  - `docs/development/frontend-maintenance-roadmap.md`
   - prompt-related tests
   - `tests/test_wildcards.py`
   - `docs/nodes/anima-prompt-studio-advanced.*.md`

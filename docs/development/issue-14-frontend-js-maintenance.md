@@ -1,25 +1,33 @@
 # Issue 14 Frontend JS Maintenance Plan
 
+> Historical record: this document is the execution plan and checklist used for
+> PR #18, which was squash-merged into `dev` as `4eb7992` on 2026-07-05. It is
+> not the current work queue. Use
+> `docs/development/frontend-maintenance-roadmap.md` for the verified current
+> status, remaining work, estimates, and Issue #14 close boundary.
+
 ## Position
 
-Issue #14 is accepted as a frontend maintainability track. It should not be
-closed until this PR is reviewed, merged, and any remaining follow-up items are
-confirmed.
+Issue #14 was accepted as a frontend maintainability track. This file records
+the scope and validation rules used by the initial implementation PR. Tracking
+checkboxes below describe that historical PR boundary and must not be read as
+the current status of the entire frontend.
 
-The active PR is:
+The completed PR was:
 
 ```text
 Issue #14 Phase 1-4 frontend maintainability work
 ```
 
-The active PR centralizes shared frontend API helpers, splits Prompt Studio
-JavaScript responsibilities into tested modules, adds a no-build JS typecheck
-gate, documents the no-build Vite/TypeScript decision, and records v0.24.0
+That PR centralized shared frontend API helpers, split Prompt Studio
+JavaScript responsibilities into tested modules, added a no-build JS typecheck
+gate, documented the no-build Vite/TypeScript decision, and recorded v0.24.0
 workflow/load/queue smoke evidence.
 
-## Close Criteria
+## Historical Close Criteria
 
-Issue #14 can be closed only after these conditions are satisfied:
+The initial plan used these conditions to decide whether its implementation PR
+was complete:
 
 - Repeated frontend API request code is centralized in shared helpers.
 - Large Prompt Studio JavaScript responsibilities are split into modules.
@@ -50,17 +58,17 @@ before future frontend refactors start.
 ### Tasks
 
 - Link this file from `docs/development/README.md`.
-- Keep the current PR scope and non-goals visible in the PR body.
+- Keep the PR #18 scope and non-goals visible in its PR body.
 - Keep Issue #14 open after Phase 1 unless the close criteria are all met.
 - Track follow-up work in Issue #14 or follow-up PRs.
 
 ### Required Notes
 
 - This work is maintainability work, not a user-facing feature.
-- The active PR records each frontend module split in tested commits.
+- PR #18 records each frontend module split in tested commits.
 - Prompt Studio entry-file slim-down is follow-up work until the entry is only
   registration and orchestration code.
-- TypeScript/Vite is not introduced in the current PR.
+- TypeScript/Vite was not introduced in PR #18.
 - Workflow compatibility must be preserved.
 - Frontend JS changes require a browser hard refresh for manual validation.
 - PRs must state whether live ComfyUI smoke testing was performed.
@@ -73,13 +81,13 @@ before future frontend refactors start.
 
 ## Phase 1: Shared Frontend API Helpers
 
-Status: completed in the active PR.
+Status: completed in PR #18.
 
 ### Goal
 
 Centralize repeated frontend request helpers while preserving runtime behavior.
 
-### Current PR Scope
+### PR #18 Scope
 
 - Add `web/js/easyuse_anima_api.js`.
 - Provide shared JSON fetch handling.
@@ -98,7 +106,7 @@ Centralize repeated frontend request helpers while preserving runtime behavior.
 
 ### Non-Goals
 
-- Do not split `easyuse_anima_prompt_studio.js` in this PR.
+- Do not split `easyuse_anima_prompt_studio.js` in the Phase 1 slice.
 - Do not add Vite, TypeScript, npm, or pnpm dependencies.
 - Do not change Python node behavior.
 - Do not rename API routes.
@@ -106,7 +114,7 @@ Centralize repeated frontend request helpers while preserving runtime behavior.
   serialized property key, or `widgets_values` order.
 - Do not make UI behavior changes.
 - Do not make broad CSS structure changes.
-- Do not sync to a live ComfyUI instance in this PR.
+- Do not sync to a live ComfyUI instance in the Phase 1 slice.
 
 ### API Helper Checklist
 
@@ -285,8 +293,8 @@ web/js/
 ### PR Split
 
 Prefer splitting Phase 2 into separate PRs when review size is the main risk.
-In the active branch, Phase 2 slices are kept as separate tested commits in the
-same PR by request.
+In PR #18, Phase 2 slices were kept as separate tested commits in the same PR
+by request.
 
 Planned slices:
 
@@ -654,7 +662,7 @@ stable.
 ### Decision
 
 Do not introduce Vite, TypeScript source files, npm dependencies, or a `dist`
-tree in this PR.
+tree in PR #18.
 
 Current evidence:
 
@@ -667,7 +675,7 @@ Current evidence:
 - HTTP runtime smoke on `ComfyUI_v0.24.0` loads the raw entry and split modules
   from `/extensions/comfyui-easyuse-anima/js/...`.
 
-Policy for this PR:
+Policy used for PR #18:
 
 - Build command: none.
 - `dist` output: none.
