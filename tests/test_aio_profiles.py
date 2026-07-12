@@ -1,0 +1,217 @@
+from __future__ import annotations
+
+import importlib.util
+import shutil
+import subprocess
+import sys
+import tempfile
+import textwrap
+import types
+import unittest
+from pathlib import Path
+from unittest.mock import patch
+
+
+ROOT = Path(__file__).resolve().parents[1]
+PRESETS_JS = ROOT / "web" / "js" / "aio" / "presets.js"
+
+
+def load_api_module():
+    package_name = "easyuse_anima_aio_profile_test_package"
+    package = types.ModuleType(package_name)
+    package.__path__ = [str(ROOT)]
+    sys.modules[package_name] = package
+
+    spec = importlib.util.spec_from_file_location(
+        f"{package_name}.api",
+        ROOT / "api.py",
+    )
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[spec.name] = module
+    spec.loader.exec_module(module)
+    return module
+
+
+class AIOProfileStorageTests(unittest.TestCase):
+    def test_save_load_list_rename_and_delete_profile(self):
+        api = load_api_module()
+        with tempfile.TemporaryDirectory() as tmp:
+            with patch.object(api, "AIO_PROFILE_DIR", Path(tmp)):
+                saved = api._save_aio_profile(
+                    "My: Profile",
+                    {
+                        "settings": {
+                            "schema": "easyuse_anima_aio_generation_settings",
+                            "future_section": {"kept": True},
+                        }
+                    },
+                )
+                self.assertEqual(saved["name"], "My_ Profile")
+                self.assertTrue((Path(tmp) / "My_ Profile.json").is_file())
+                self.assertEqual(
+                    [profile["name"] for profile in api._list_aio_profiles()],
+                    ["My_ Profile"],
+                )
+                self.assertTrue(
+                    api._load_aio_profile("my_ profile")["settings"]["future_section"]["kept"]
+                )
+
+                renamed = api._rename_aio_profile("My_ Profile", "Production")
+                self.assertEqual(renamed["name"], "Production")
+                self.assertFalse((Path(tmp) / "My_ Profile.json").exists())
+                self.assertTrue((Path(tmp) / "Production.json").is_file())
+
+                deleted = api._delete_aio_profile("production")
+                self.assertEqual(deleted["name"], "Production")
+                self.assertEqual(api._list_aio_profiles(), [])
+
+    def test_conflicts_require_explicit_overwrite(self):
+        api = load_api_module()
+        with tempfile.TemporaryDirectory() as tmp:
+            with patch.object(api, "AIO_PROFILE_DIR", Path(tmp)):
+                api._save_aio_profile("Keep", {"settings": {"sampler": {"steps": 30}}})
+                with self.assertRaises(FileExistsError):
+                    api._save_aio_profile("keep", {"settings": {"sampler": {"steps": 10}}})
+                overwritten = api._save_aio_profile(
+                    "keep",
+                    {"settings": {"sampler": {"steps": 10}}},
+                    overwrite=True,
+                )
+                self.assertEqual(overwritten["settings"]["sampler"]["steps"], 10)
+
+    def test_builtin_names_and_invalid_payloads_are_rejected(self):
+        api = load_api_module()
+        for name in ("Normal", "터보", "최적화"):
+            with self.subTest(name=name), self.assertRaises(ValueError):
+                api._sanitize_aio_profile_name(name)
+        with self.assertRaises(ValueError):
+            api._normalize_aio_profile_payload("custom", {"settings": []})
+
+    def test_invalid_saved_json_is_reported_as_profile_error(self):
+        api = load_api_module()
+        with tempfile.TemporaryDirectory() as tmp:
+            with patch.object(api, "AIO_PROFILE_DIR", Path(tmp)):
+                (Path(tmp) / "Broken.json").write_text("{", encoding="utf-8")
+                with self.assertRaisesRegex(ValueError, "Profile data is invalid"):
+                    api._load_aio_profile("Broken")
+
+
+class AIOBuiltinProfileTests(unittest.TestCase):
+    def test_builtin_profiles_follow_normal_turbo_and_optimized_contract(self):
+        node_bin = shutil.which("node")
+        if not node_bin:
+            self.skipTest("node executable is not available")
+
+        runner = textwrap.dedent(
+            r"""
+            const assert = require("assert");
+            const fs = require("fs");
+            let source = fs.readFileSync(process.argv[1], "utf8");
+            source = source.replaceAll("export function ", "function ");
+            source += "\nglobalThis.__aioPresetExports = { aioBuiltinProfileSettings };\n";
+            eval(source);
+            const makeDefaults = () => ({
+              sampler: {
+                steps: 32,
+                cfg: 5,
+                sampler_name: "er_sde",
+                scheduler: "simple",
+                spectrum: { enabled: true },
+                dit_corrections: {
+                  enabled: true,
+                  dcw_mode: "manual",
+                  smc_cfg: true,
+                  cfgpp: true,
+                  fsg: true,
+                  replace_existing_cfg: true,
+                },
+              },
+              model_patches: {
+                dave: { enabled: true },
+                safe_pag: { enabled: true },
+                kj: {
+                  fp16_accumulation: false,
+                  sage_attention: "disabled",
+                  sage_allow_compile: false,
+                  torch_compile: {
+                    enabled: false,
+                    mode: "max-autotune-no-cudagraphs",
+                  },
+                },
+              },
+              highres: {
+                spectrum: { enabled: true },
+                dit_corrections: { enabled: true, dcw_mode: "manual" },
+              },
+              upscale: {
+                spectrum: { enabled: true },
+                dit_corrections: { enabled: true, dcw_mode: "manual" },
+              },
+              detailer: {
+                enabled: false,
+                order: ["face"],
+                sam3: {},
+                face: {
+                  spectrum: { enabled: true },
+                  dit_corrections: { enabled: true, dcw_mode: "manual" },
+                },
+              },
+            });
+            const defaults = makeDefaults();
+            const build = globalThis.__aioPresetExports.aioBuiltinProfileSettings;
+
+            const normal = build("normal", defaults);
+            for (const target of [normal.sampler, normal.highres, normal.upscale, normal.detailer.face]) {
+              assert.strictEqual(target.spectrum.enabled, false);
+              assert.strictEqual(target.dit_corrections.enabled, false);
+              assert.strictEqual(target.dit_corrections.dcw_mode, "off");
+            }
+            assert.strictEqual(normal.model_patches.dave.enabled, false);
+            assert.strictEqual(normal.model_patches.safe_pag.enabled, false);
+            assert.strictEqual(normal.model_patches.kj.fp16_accumulation, false);
+            assert.strictEqual(normal.model_patches.kj.sage_attention, "disabled");
+            assert.strictEqual(normal.model_patches.kj.torch_compile.enabled, false);
+
+            const turbo = build("turbo", defaults);
+            assert.deepStrictEqual(
+              [turbo.sampler.steps, turbo.sampler.cfg, turbo.sampler.sampler_name, turbo.sampler.scheduler],
+              [10, 1, "er_sde", "simple"],
+            );
+
+            const optimized = build("optimized", defaults);
+            for (const target of [optimized.sampler, optimized.highres, optimized.upscale, optimized.detailer.face]) {
+              assert.strictEqual(target.spectrum.enabled, true);
+              assert.strictEqual(target.dit_corrections.enabled, true);
+              assert.strictEqual(target.dit_corrections.dcw_mode, "auto");
+            }
+            assert.strictEqual(optimized.model_patches.kj.fp16_accumulation, true);
+            assert.strictEqual(optimized.model_patches.kj.sage_attention, "auto");
+            assert.strictEqual(optimized.model_patches.kj.sage_allow_compile, true);
+            assert.strictEqual(optimized.model_patches.kj.torch_compile.enabled, true);
+            assert.strictEqual(
+              optimized.model_patches.kj.torch_compile.mode,
+              "max-autotune-no-cudagraphs",
+            );
+            assert.strictEqual(optimized.model_patches.dave.enabled, false);
+            assert.strictEqual(optimized.model_patches.safe_pag.enabled, false);
+
+            assert.strictEqual(defaults.sampler.spectrum.enabled, true);
+            assert.throws(() => build("missing", defaults), /Unknown AiO built-in profile/);
+            """
+        )
+        completed = subprocess.run(
+            [node_bin, "-e", runner, str(PRESETS_JS)],
+            cwd=ROOT,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        self.assertEqual(
+            completed.returncode,
+            0,
+            f"stdout:\n{completed.stdout}\nstderr:\n{completed.stderr}",
+        )
+
+
+if __name__ == "__main__":
+    unittest.main()

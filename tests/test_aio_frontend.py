@@ -7,11 +7,46 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 AIO_JS = ROOT / "web" / "js" / "easyuse_anima_aio.js"
 AIO_WHEEL_JS = ROOT / "web" / "js" / "aio" / "wheel.js"
+AIO_PRESETS_JS = ROOT / "web" / "js" / "aio" / "presets.js"
 AUTOCOMPLETE_JS = ROOT / "web" / "js" / "easyuse_anima_autocomplete.js"
 PROMPT_STUDIO_COMMON_JS = ROOT / "web" / "js" / "easyuse_anima_prompt_studio_common.js"
 
 
 class AIOFrontendSourceTests(unittest.TestCase):
+    def test_generator_profile_ui_uses_versioned_settings_and_user_storage_api(self):
+        source = AIO_JS.read_text(encoding="utf-8")
+        presets_source = AIO_PRESETS_JS.read_text(encoding="utf-8")
+        render_start = source.index("function renderGeneratorPanel")
+        render_end = source.index("\nfunction ensureGeneratorPanel", render_start)
+        render_body = source[render_start:render_end]
+        apply_start = source.index("function applyGeneratorProfileSettings")
+        apply_end = source.index("\nasync function applyGeneratorProfile", apply_start)
+        apply_body = source[apply_start:apply_end]
+        serialize_start = source.index("function syncGeneratorSerializedWidgets")
+        serialize_end = source.index("\nfunction markNodeDirty", serialize_start)
+        serialize_body = source[serialize_start:serialize_end]
+
+        self.assertIn('from "./aio/presets.js"', source)
+        self.assertIn('"normal", "turbo", "optimized"', presets_source)
+        self.assertIn('settings.sampler.steps = 10', presets_source)
+        self.assertIn('settings.sampler.cfg = 1.0', presets_source)
+        self.assertIn('target.dit_corrections.dcw_mode = enabled ? "auto" : "off"', presets_source)
+        self.assertIn('kj.sage_attention = enabled ? "auto" : "disabled"', presets_source)
+        self.assertIn("compile.enabled = enabled", presets_source)
+        self.assertIn("applyVisibleGeneratorSettings(node, next)", apply_body)
+        self.assertIn("writeGeneratorSettingsFromState(node, next, true)", apply_body)
+        self.assertIn('panel.append(profileBar, main)', render_body)
+        self.assertIn('generatorSettings(node)', source[source.index("async function saveGeneratorUserProfile"):render_start])
+        for path in (
+            "/easyuse_anima/aio_profiles",
+            "/easyuse_anima/aio_profiles/save",
+            "/easyuse_anima/aio_profiles/load",
+            "/easyuse_anima/aio_profiles/rename",
+            "/easyuse_anima/aio_profiles/delete",
+        ):
+            self.assertIn(path, source)
+        self.assertNotIn("__easyuseAnimaGeneratorProfileValue", serialize_body)
+
     def test_generator_panel_height_is_owned_by_comfyui(self):
         source = AIO_JS.read_text(encoding="utf-8")
 
