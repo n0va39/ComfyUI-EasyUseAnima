@@ -1,9 +1,6 @@
 // @ts-check
 
 import {
-  advancedEditorWidgetHeight,
-  advancedMinimumNodeHeight,
-  clampAdvancedNodeToMinimumHeight,
   updateAdvancedEditorWidth,
 } from "./layout.js";
 import {
@@ -131,7 +128,6 @@ function finalizeAdvancedResize(node, hooks = {}) {
     return;
   }
   updateAdvancedEditorWidth(node);
-  clampAdvancedNodeToMinimumHeight(node);
   scheduleAdvancedLayout(node, "resize", hooks);
 }
 
@@ -171,20 +167,7 @@ function applyAdvancedLayout(node, reason = "layout", hooks = {}) {
   try {
     updateAdvancedEditorWidth(node);
     const previousMetrics = advancedEditorLayoutMetrics(editor);
-
-    const currentWidth = Number(node.size[0]) || 360;
-    const currentHeight = Number(node.size[1]) || 0;
-    const minimumHeight = advancedMinimumNodeHeight(node);
-    const widgetHeight = advancedEditorWidgetHeight(node);
-    editor.style.height = `${widgetHeight}px`;
-    editor.style.maxHeight = `${widgetHeight}px`;
-    node.__easyuseAnimaAdvancedWidgetHeight = widgetHeight;
-    node.__easyuseAnimaAdvancedLastEditorHeight = widgetHeight;
     node.__easyuseAnimaAdvancedLastLayoutReason = reason;
-
-    if (typeof node.setSize === "function" && currentHeight < minimumHeight - 1) {
-      node.setSize([currentWidth, minimumHeight]);
-    }
 
     scheduleAdvancedScrollbarRemeasure(node, editor, previousMetrics, hooks);
 

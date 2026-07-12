@@ -465,13 +465,10 @@ class FrontendModuleStructureTests(unittest.TestCase):
                 self.assertIn(f"  {name},", widgets_source)
 
         for name in (
-            "advancedEditorMinimumHeight",
-            "advancedEditorWidgetHeight",
-            "advancedMinimumNodeHeight",
+            "advancedEditorWidth",
             "advancedTextareaContentHeight",
             "advancedTextareaCurrentHeight",
             "advancedTextareaMinimumHeight",
-            "clampAdvancedNodeToMinimumHeight",
             "updateAdvancedEditorWidth",
         ):
             with self.subTest(module="layout", symbol=name):
@@ -641,6 +638,62 @@ class FrontendModuleStructureTests(unittest.TestCase):
         )
         self.assertIn("observeAdvancedEditorWidth(node);", advanced_node_ui_source)
         self.assertIn("disconnectAdvancedEditorWidthObserver?.(this);", node_hooks_source)
+
+    def test_advanced_dom_widget_height_is_host_owned(self):
+        advanced_node_ui_source = (
+            PROMPT_STUDIO_MODULES / "advanced_node_ui.js"
+        ).read_text(encoding="utf-8")
+        layout_source = (PROMPT_STUDIO_MODULES / "layout.js").read_text(
+            encoding="utf-8"
+        )
+        controller_source = (
+            PROMPT_STUDIO_MODULES / "advanced_layout_controller.js"
+        ).read_text(encoding="utf-8")
+        style_source = (PROMPT_STUDIO_MODULES / "style.js").read_text(
+            encoding="utf-8"
+        )
+
+        self.assertIn(
+            "getMinHeight: () => ADVANCED_EDITOR_MIN_VIEWPORT_HEIGHT",
+            advanced_node_ui_source,
+        )
+        self.assertNotIn("getHeight:", advanced_node_ui_source)
+        self.assertNotIn("widget.computeLayoutSize =", advanced_node_ui_source)
+        self.assertNotRegex(
+            advanced_node_ui_source + layout_source + controller_source,
+            r"\.computedHeight\s*=",
+        )
+
+        for forbidden in (
+            "advancedAvailableEditorViewportHeight",
+            "advancedEditorWidgetHeight",
+            "advancedMinimumNodeHeight",
+            "advancedNodeChromeOffset",
+            "clampAdvancedNodeToMinimumHeight",
+        ):
+            with self.subTest(forbidden=forbidden):
+                self.assertNotIn(forbidden, layout_source)
+                self.assertNotIn(forbidden, controller_source)
+
+        self.assertNotIn("node.setSize(", controller_source)
+        self.assertNotIn("node.setSize?.(", controller_source)
+        self.assertNotRegex(
+            controller_source,
+            r"editor\.style\.(?:height|maxHeight)\s*=",
+        )
+
+        editor_style_start = style_source.index(
+            ".easyuse-anima-advanced-editor {"
+        )
+        editor_style_end = style_source.index("\n    }", editor_style_start)
+        editor_style = style_source[editor_style_start:editor_style_end]
+        self.assertIn(
+            "min-height: ${ADVANCED_EDITOR_MIN_VIEWPORT_HEIGHT}px;",
+            editor_style,
+        )
+        self.assertIn("flex: 1 1 0%;", editor_style)
+        self.assertIn("contain: size;", editor_style)
+        self.assertIn("overflow-y: auto;", editor_style)
 
     def test_prompt_studio_phase_3_typedefs_are_documented(self):
         types_source = (PROMPT_STUDIO_MODULES / "types.js").read_text(
