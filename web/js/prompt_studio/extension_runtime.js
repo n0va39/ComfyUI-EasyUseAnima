@@ -95,7 +95,6 @@ import {
   remeasureAdvancedTextareaHeightsForWidth as remeasureAdvancedTextareaHeightsForWidthWithHooks,
 } from "./advanced_fields_ui.js";
 import {
-  hookAdvancedNode as hookAdvancedNodeWithHooks,
   renderAdvancedEditor as renderAdvancedEditorWithHooks,
   scheduleHookAdvancedNode as scheduleHookAdvancedNodeWithHooks,
 } from "./advanced_node_ui.js";
@@ -341,10 +340,6 @@ function createPromptStudioExtensionRuntime(app) {
 
   function renderAdvancedEditor(node) {
     renderAdvancedEditorWithHooks(node, advancedNodeUiHooks());
-  }
-
-  function hookAdvancedNode(node) {
-    hookAdvancedNodeWithHooks(node, advancedNodeUiHooks());
   }
 
   function scheduleHookAdvancedNode(node) {

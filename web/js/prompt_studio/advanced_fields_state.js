@@ -166,7 +166,7 @@ function writeAdvancedFields(node, fields, { render = false, syncInputs = true }
   }
 }
 
-function applyAdvancedNaiaGeneralAutoToggle(node, fields) {
+function applyAdvancedNaiaGeneralAutoToggle(fields) {
   if (!PROMPT_STUDIO_SETTINGS.naiaGeneralAboveAutoToggle || !Array.isArray(fields)) {
     return false;
   }
