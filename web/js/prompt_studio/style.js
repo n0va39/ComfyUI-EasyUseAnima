@@ -1,5 +1,9 @@
 // @ts-check
 
+import {
+  ADVANCED_EDITOR_MIN_VIEWPORT_HEIGHT,
+} from "./constants.js";
+
 function ensureAdvancedStyle() {
   if (document.getElementById("easyuse-anima-advanced-style")) {
     return;
@@ -11,6 +15,9 @@ function ensureAdvancedStyle() {
       box-sizing: border-box;
       width: 100%;
       min-width: 0;
+      min-height: ${ADVANCED_EDITOR_MIN_VIEWPORT_HEIGHT}px;
+      flex: 1 1 0%;
+      contain: size;
       overflow-x: hidden;
       overflow-y: auto;
       overscroll-behavior: contain;

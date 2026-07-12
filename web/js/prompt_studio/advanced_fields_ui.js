@@ -5,7 +5,10 @@ import {
 } from "./constants.js";
 import { debounce } from "./utils.js";
 import { advancedFieldInputName } from "./schema.js";
-import { getAdvancedFields } from "./state.js";
+import {
+  getAdvancedEditorElement,
+  getAdvancedFields,
+} from "./state.js";
 import {
   advancedPaneFields,
   hasAdvancedNaia,
@@ -66,6 +69,42 @@ function setAdvancedTextareaHeight(node, textarea, height, options = {}, hooks =
     hooks.updateAdvancedFieldHighlight?.(node, field, textarea);
   }
   return nextHeight;
+}
+
+/**
+ * Width reflow may increase wrapped textarea content, but it must never take
+ * ownership of the node or DOM-widget viewport height. Grow a field only when
+ * the new content minimum no longer fits, preserve larger/manual heights, and
+ * let the Advanced editor's own scrollbar absorb the resulting content height.
+ */
+function remeasureAdvancedTextareaHeightsForWidth(node, hooks = {}) {
+  const editor = getAdvancedEditorElement(node);
+  if (!editor) {
+    return false;
+  }
+  const fields = getAdvancedFields(node) || hooks.parseAdvancedFields?.(node) || [];
+  const fieldsById = new Map(fields.map((field) => [field.id, field]));
+  let changed = false;
+  for (const textarea of editor.querySelectorAll("textarea[data-easyuse-anima-advanced-field-id]")) {
+    const field = fieldsById.get(String(textarea.dataset.easyuseAnimaAdvancedFieldId || ""));
+    if (!field) {
+      continue;
+    }
+    const currentHeight = advancedTextareaCurrentHeight(textarea);
+    const nextHeight = setAdvancedTextareaHeight(node, textarea, currentHeight, {
+      syncField: false,
+      refreshHighlight: false,
+    }, hooks);
+    if (nextHeight > (Math.round(Number(field.height) || 0) + 1)) {
+      field.height = nextHeight;
+      changed = true;
+    }
+    requestOverlaySync(textarea);
+  }
+  if (changed) {
+    hooks.writeAdvancedFields?.(node, fields, { syncInputs: false });
+  }
+  return changed;
 }
 
 function createAdvancedFieldElement(node, field, hooks = {}) {
@@ -330,5 +369,6 @@ export {
   addAdvancedField,
   createAdvancedFieldElement,
   createAdvancedPane,
+  remeasureAdvancedTextareaHeightsForWidth,
   setAdvancedTextareaHeight,
 };

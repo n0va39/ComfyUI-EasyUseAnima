@@ -1,9 +1,6 @@
 // @ts-check
 
 import {
-  advancedEditorWidgetHeight,
-  advancedMinimumNodeHeight,
-  clampAdvancedNodeToMinimumHeight,
   updateAdvancedEditorWidth,
 } from "./layout.js";
 import {
@@ -12,16 +9,8 @@ import {
 
 const ADVANCED_RESIZE_SETTLE_DELAY = 120;
 
-function advancedEditorLayoutMetrics(editor) {
-  return {
-    clientWidth: Math.ceil(Number(editor?.clientWidth) || 0),
-    scrollHeight: Math.ceil(Number(editor?.scrollHeight) || 0),
-  };
-}
-
-function advancedEditorLayoutMetricsChanged(previous, current) {
-  return Math.abs(current.clientWidth - previous.clientWidth) > 1
-    || Math.abs(current.scrollHeight - previous.scrollHeight) > 1;
+function advancedEditorClientWidth(editor) {
+  return Math.ceil(Number(editor?.clientWidth) || 0);
 }
 
 function disconnectAdvancedEditorWidthObserver(node) {
@@ -46,6 +35,7 @@ function scheduleAdvancedWidthRemeasure(node, hooks = {}) {
     if (!node.graph || !getAdvancedEditorElement(node)?.isConnected) {
       return;
     }
+    hooks.remeasureAdvancedTextareaHeightsForWidth?.(node);
     scheduleAdvancedLayout(node, "width", hooks);
   }, ADVANCED_RESIZE_SETTLE_DELAY);
 }
@@ -64,7 +54,7 @@ function observeAdvancedEditorWidth(node, hooks = {}) {
 
   disconnectAdvancedEditorWidthObserver(node);
   node.__easyuseAnimaAdvancedWidthObserverEditor = editor;
-  node.__easyuseAnimaAdvancedObservedEditorWidth = advancedEditorLayoutMetrics(editor).clientWidth;
+  node.__easyuseAnimaAdvancedObservedEditorWidth = advancedEditorClientWidth(editor);
   if (typeof ResizeObserver !== "function") {
     return;
   }
@@ -79,7 +69,7 @@ function observeAdvancedEditorWidth(node, hooks = {}) {
       return;
     }
     const previousWidth = Number(node.__easyuseAnimaAdvancedObservedEditorWidth) || 0;
-    const currentWidth = advancedEditorLayoutMetrics(editor).clientWidth;
+    const currentWidth = advancedEditorClientWidth(editor);
     node.__easyuseAnimaAdvancedObservedEditorWidth = currentWidth;
     if (Math.abs(currentWidth - previousWidth) > 1) {
       scheduleAdvancedWidthRemeasure(node, hooks);
@@ -87,23 +77,6 @@ function observeAdvancedEditorWidth(node, hooks = {}) {
   });
   node.__easyuseAnimaAdvancedWidthObserver = observer;
   observer.observe(editor);
-}
-
-function scheduleAdvancedScrollbarRemeasure(node, editor, previousMetrics, hooks = {}) {
-  cancelAnimationFrame(node?.__easyuseAnimaAdvancedScrollbarMeasureFrame);
-  if (!node || !editor?.isConnected) {
-    return;
-  }
-  node.__easyuseAnimaAdvancedScrollbarMeasureFrame = requestAnimationFrame(() => {
-    node.__easyuseAnimaAdvancedScrollbarMeasureFrame = null;
-    if (!node.graph || !editor.isConnected) {
-      return;
-    }
-    const currentMetrics = advancedEditorLayoutMetrics(editor);
-    if (advancedEditorLayoutMetricsChanged(previousMetrics, currentMetrics)) {
-      scheduleAdvancedLayout(node, "scrollbar", hooks);
-    }
-  });
 }
 
 function clearAdvancedResizeEndListeners(node) {
@@ -131,7 +104,6 @@ function finalizeAdvancedResize(node, hooks = {}) {
     return;
   }
   updateAdvancedEditorWidth(node);
-  clampAdvancedNodeToMinimumHeight(node);
   scheduleAdvancedLayout(node, "resize", hooks);
 }
 
@@ -170,23 +142,7 @@ function applyAdvancedLayout(node, reason = "layout", hooks = {}) {
   node.__easyuseAnimaApplyingLayout = true;
   try {
     updateAdvancedEditorWidth(node);
-    const previousMetrics = advancedEditorLayoutMetrics(editor);
-
-    const currentWidth = Number(node.size[0]) || 360;
-    const currentHeight = Number(node.size[1]) || 0;
-    const minimumHeight = advancedMinimumNodeHeight(node);
-    const widgetHeight = advancedEditorWidgetHeight(node);
-    editor.style.height = `${widgetHeight}px`;
-    editor.style.maxHeight = `${widgetHeight}px`;
-    node.__easyuseAnimaAdvancedWidgetHeight = widgetHeight;
-    node.__easyuseAnimaAdvancedLastEditorHeight = widgetHeight;
     node.__easyuseAnimaAdvancedLastLayoutReason = reason;
-
-    if (typeof node.setSize === "function" && currentHeight < minimumHeight - 1) {
-      node.setSize([currentWidth, minimumHeight]);
-    }
-
-    scheduleAdvancedScrollbarRemeasure(node, editor, previousMetrics, hooks);
 
     hooks.markGraphDirty?.();
     requestAnimationFrame(() => hooks.markGraphDirty?.());
@@ -194,7 +150,7 @@ function applyAdvancedLayout(node, reason = "layout", hooks = {}) {
     node.__easyuseAnimaApplyingLayout = false;
   }
   hooks.scheduleAdvancedHighlights?.(node, {
-    classify: reason !== "resize" && reason !== "scrollbar" && reason !== "width",
+    classify: reason !== "resize" && reason !== "width",
   });
 }
 
@@ -205,7 +161,6 @@ const ADVANCED_LAYOUT_REASON_PRIORITY = {
   connections: 1,
   executed: 1,
   settings: 1,
-  scrollbar: 2,
   width: 2,
   resize: 3,
 };
