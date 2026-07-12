@@ -480,8 +480,10 @@ class FrontendModuleStructureTests(unittest.TestCase):
         for name in (
             "applyAdvancedLayout",
             "clearAdvancedResizeEndListeners",
+            "disconnectAdvancedEditorWidthObserver",
             "finalizeAdvancedResize",
             "installAdvancedResizeEndListeners",
+            "observeAdvancedEditorWidth",
             "scheduleAdvancedLayout",
             "scheduleAdvancedResizeFinalize",
         ):
@@ -606,7 +608,7 @@ class FrontendModuleStructureTests(unittest.TestCase):
             with self.subTest(module="extension_runtime", symbol=name):
                 self.assertIn(f"  {name},", extension_runtime_source)
 
-    def test_advanced_layout_remeasures_after_scrollbar_changes_width_or_wrapping(self):
+    def test_advanced_layout_remeasures_after_scrollbar_or_editor_width_changes(self):
         source = (PROMPT_STUDIO_MODULES / "advanced_layout_controller.js").read_text(
             encoding="utf-8"
         )
@@ -622,8 +624,23 @@ class FrontendModuleStructureTests(unittest.TestCase):
         self.assertIn("advancedEditorLayoutMetricsChanged", metrics_body)
         self.assertIn("scheduleAdvancedScrollbarRemeasure", apply_body)
         self.assertIn('scheduleAdvancedLayout(node, "scrollbar", hooks)', source)
+        self.assertIn("new ResizeObserver", source)
+        self.assertIn("scheduleAdvancedWidthRemeasure(node, hooks)", source)
+        self.assertIn('scheduleAdvancedLayout(node, "width", hooks)', source)
+        self.assertIn("ADVANCED_RESIZE_SETTLE_DELAY", source)
         self.assertIn("scrollbar: 2", source)
+        self.assertIn("width: 2", source)
         self.assertIn('reason !== "scrollbar"', apply_body)
+        self.assertIn('reason !== "width"', apply_body)
+
+        advanced_node_ui_source = (
+            PROMPT_STUDIO_MODULES / "advanced_node_ui.js"
+        ).read_text(encoding="utf-8")
+        node_hooks_source = (PROMPT_STUDIO_MODULES / "node_hooks.js").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn("observeAdvancedEditorWidth(node);", advanced_node_ui_source)
+        self.assertIn("disconnectAdvancedEditorWidthObserver?.(this);", node_hooks_source)
 
     def test_prompt_studio_phase_3_typedefs_are_documented(self):
         types_source = (PROMPT_STUDIO_MODULES / "types.js").read_text(

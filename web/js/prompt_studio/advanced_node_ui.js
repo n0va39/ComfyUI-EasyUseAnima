@@ -103,6 +103,7 @@ function hookAdvancedNode(node, hooks = {}) {
   const {
     hideAdvancedControlWidgets = () => {},
     installAdvancedSaveSync = () => {},
+    observeAdvancedEditorWidth = () => {},
   } = hooks;
   ensureAdvancedStyle();
   installAdvancedSaveSync();
@@ -141,6 +142,7 @@ function hookAdvancedNode(node, hooks = {}) {
       };
     }
   }
+  observeAdvancedEditorWidth(node);
   renderAdvancedEditor(node, hooks);
 }
 
