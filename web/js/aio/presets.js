@@ -1,4 +1,5 @@
 const BUILTIN_PROFILE_IDS = ["normal", "turbo", "optimized"];
+const BUILTIN_FINGERPRINT_CACHE = new WeakMap();
 
 function cloneJson(value) {
   return JSON.parse(JSON.stringify(value));
@@ -93,6 +94,43 @@ export function aioBuiltinProfileSettings(profileId, defaultSettings) {
     setKjOptimizations(settings, true);
   }
   return settings;
+}
+
+function canonicalizeSettings(value) {
+  if (Array.isArray(value)) {
+    return value.map(canonicalizeSettings);
+  }
+  if (value && typeof value === "object") {
+    return Object.fromEntries(
+      Object.keys(value)
+        .sort()
+        .map((key) => [key, canonicalizeSettings(value[key])]),
+    );
+  }
+  return value;
+}
+
+export function aioProfileSettingsFingerprint(settings) {
+  return JSON.stringify(canonicalizeSettings(settings));
+}
+
+export function aioBuiltinProfileIdForSettings(settings, defaultSettings) {
+  if (!defaultSettings || typeof defaultSettings !== "object") {
+    return "";
+  }
+  let fingerprints = BUILTIN_FINGERPRINT_CACHE.get(defaultSettings);
+  if (!fingerprints) {
+    fingerprints = Object.fromEntries(BUILTIN_PROFILE_IDS.map((profileId) => [
+      profileId,
+      aioProfileSettingsFingerprint(aioBuiltinProfileSettings(profileId, defaultSettings)),
+    ]));
+    BUILTIN_FINGERPRINT_CACHE.set(defaultSettings, fingerprints);
+  }
+
+  // Profile identity intentionally covers the complete settings snapshot. Any
+  // changed value must read as Custom instead of implying a built-in profile.
+  const fingerprint = aioProfileSettingsFingerprint(settings);
+  return BUILTIN_PROFILE_IDS.find((profileId) => fingerprints[profileId] === fingerprint) || "";
 }
 
 export function aioUserProfileValue(name) {

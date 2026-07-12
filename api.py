@@ -47,13 +47,17 @@ AIO_RESERVED_PROFILE_NAMES = {
     "normal",
     "turbo",
     "optimized",
+    "custom",
     "일반",
     "터보",
     "최적화",
+    "커스텀",
     "通常",
     "最適化",
+    "カスタム",
     "普通",
     "优化",
+    "自定义",
 }
 
 
@@ -343,7 +347,7 @@ def _sanitize_aio_profile_name(name: str) -> str:
         raise ValueError("Profile name is required")
     safe_name = safe_name[:80]
     if safe_name.casefold() in {item.casefold() for item in AIO_RESERVED_PROFILE_NAMES}:
-        raise ValueError("Built-in profile names are reserved")
+        raise ValueError("System profile names are reserved")
     return safe_name
 
 

@@ -81,7 +81,7 @@ class AIOProfileStorageTests(unittest.TestCase):
 
     def test_builtin_names_and_invalid_payloads_are_rejected(self):
         api = load_api_module()
-        for name in ("Normal", "터보", "최적화"):
+        for name in ("Normal", "터보", "최적화", "Custom", "커스텀"):
             with self.subTest(name=name), self.assertRaises(ValueError):
                 api._sanitize_aio_profile_name(name)
         with self.assertRaises(ValueError):
@@ -108,7 +108,11 @@ class AIOBuiltinProfileTests(unittest.TestCase):
             const fs = require("fs");
             let source = fs.readFileSync(process.argv[1], "utf8");
             source = source.replaceAll("export function ", "function ");
-            source += "\nglobalThis.__aioPresetExports = { aioBuiltinProfileSettings };\n";
+            source += "\nglobalThis.__aioPresetExports = {"
+              + " aioBuiltinProfileIdForSettings,"
+              + " aioBuiltinProfileSettings,"
+              + " aioProfileSettingsFingerprint"
+              + " };\n";
             eval(source);
             const makeDefaults = () => ({
               sampler: {
@@ -159,6 +163,8 @@ class AIOBuiltinProfileTests(unittest.TestCase):
             });
             const defaults = makeDefaults();
             const build = globalThis.__aioPresetExports.aioBuiltinProfileSettings;
+            const identify = globalThis.__aioPresetExports.aioBuiltinProfileIdForSettings;
+            const fingerprint = globalThis.__aioPresetExports.aioProfileSettingsFingerprint;
 
             const normal = build("normal", defaults);
             for (const target of [normal.sampler, normal.highres, normal.upscale, normal.detailer.face]) {
@@ -194,6 +200,18 @@ class AIOBuiltinProfileTests(unittest.TestCase):
             );
             assert.strictEqual(optimized.model_patches.dave.enabled, false);
             assert.strictEqual(optimized.model_patches.safe_pag.enabled, false);
+
+            assert.strictEqual(identify(normal, defaults), "normal");
+            assert.strictEqual(identify(turbo, defaults), "turbo");
+            assert.strictEqual(identify(optimized, defaults), "optimized");
+            const changed = JSON.parse(JSON.stringify(normal));
+            changed.sampler.cfg = 4.5;
+            assert.strictEqual(identify(changed, defaults), "");
+            assert.strictEqual(
+              fingerprint({ b: 2, a: { d: 4, c: 3 } }),
+              fingerprint({ a: { c: 3, d: 4 }, b: 2 }),
+            );
+            assert.notStrictEqual(fingerprint(normal), fingerprint(changed));
 
             assert.strictEqual(defaults.sampler.spectrum.enabled, true);
             assert.throws(() => build("missing", defaults), /Unknown AiO built-in profile/);
