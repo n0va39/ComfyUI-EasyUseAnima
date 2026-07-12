@@ -653,7 +653,9 @@ const AIO_TEXT = {
     "profile.normal": "Normal",
     "profile.turbo": "Turbo",
     "profile.optimized": "Optimized",
-    "profile.selectTip": "Choose a profile, then apply it. Applying a profile replaces the node's complete generation settings.",
+    "profile.selectTip": "Choose a generation profile. Applying a profile replaces the node's complete generation settings.",
+    "dialog.profile.title": "Generation Profiles",
+    "dialog.profile.subtitle": "Choose a built-in profile or manage complete user setting snapshots.",
     "profile.savePrompt": "Save the current AiO settings as a user profile:",
     "profile.renamePrompt": "Rename the selected user profile:",
     "profile.overwriteConfirm": "A user profile named {name} already exists. Overwrite it?",
@@ -980,7 +982,9 @@ const AIO_TEXT = {
     "profile.normal": "일반",
     "profile.turbo": "터보",
     "profile.optimized": "최적화",
-    "profile.selectTip": "프로필을 선택한 뒤 적용합니다. 프로필 적용 시 노드의 전체 생성 설정이 교체됩니다.",
+    "profile.selectTip": "생성 프로필을 선택합니다. 프로필 적용 시 노드의 전체 생성 설정이 교체됩니다.",
+    "dialog.profile.title": "생성 프로필",
+    "dialog.profile.subtitle": "기본 프로필을 선택하거나 전체 설정을 저장한 사용자 프로필을 관리합니다.",
     "profile.savePrompt": "현재 AiO 설정을 사용자 프로필로 저장합니다:",
     "profile.renamePrompt": "선택한 사용자 프로필의 새 이름을 입력합니다:",
     "profile.overwriteConfirm": "{name} 사용자 프로필이 이미 있습니다. 덮어쓸까요?",
@@ -2828,8 +2832,8 @@ async function applyGeneratorProfile(node, value) {
   applyGeneratorProfileSettings(node, aioUserProfileValue(profile.name || name), profile.settings);
 }
 
-async function saveGeneratorUserProfile(node) {
-  const selectedName = aioUserProfileName(node.__easyuseAnimaGeneratorProfileValue);
+async function saveGeneratorUserProfile(node, selectedValue = node.__easyuseAnimaGeneratorProfileValue) {
+  const selectedName = aioUserProfileName(selectedValue);
   const requestedName = window.prompt(aioText("profile.savePrompt"), selectedName || "");
   if (requestedName == null) {
     return;
@@ -2854,8 +2858,8 @@ async function saveGeneratorUserProfile(node) {
   refreshGeneratorPanels();
 }
 
-async function renameGeneratorUserProfile(node) {
-  const oldName = aioUserProfileName(node.__easyuseAnimaGeneratorProfileValue);
+async function renameGeneratorUserProfile(node, selectedValue = node.__easyuseAnimaGeneratorProfileValue) {
+  const oldName = aioUserProfileName(selectedValue);
   if (!oldName) {
     return;
   }
@@ -2883,8 +2887,8 @@ async function renameGeneratorUserProfile(node) {
   refreshGeneratorPanels();
 }
 
-async function deleteGeneratorUserProfile(node) {
-  const name = aioUserProfileName(node.__easyuseAnimaGeneratorProfileValue);
+async function deleteGeneratorUserProfile(node, selectedValue = node.__easyuseAnimaGeneratorProfileValue) {
+  const name = aioUserProfileName(selectedValue);
   if (!name || !window.confirm(aioFormat("profile.deleteConfirm", { name }))) {
     return;
   }
@@ -2892,6 +2896,130 @@ async function deleteGeneratorUserProfile(node) {
   await loadGeneratorUserProfiles({ force: true });
   node.__easyuseAnimaGeneratorProfileValue = "builtin:normal";
   refreshGeneratorPanels();
+}
+
+function normalizedGeneratorProfileValue(value) {
+  const textValue = String(value || "builtin:normal");
+  const userName = aioUserProfileName(textValue);
+  if (userName && !generatorUserProfileByName(userName)) {
+    return "builtin:normal";
+  }
+  if (textValue.startsWith("builtin:") && aioBuiltinProfileIds().includes(textValue.slice(8))) {
+    return textValue;
+  }
+  return userName ? textValue : "builtin:normal";
+}
+
+function generatorProfileDisplayLabel(value) {
+  const textValue = normalizedGeneratorProfileValue(value);
+  const userName = aioUserProfileName(textValue);
+  return userName || aioText(`profile.${textValue.slice(8)}`);
+}
+
+function openGeneratorProfileSettings(node) {
+  const { backdrop, body, actions } = createDialog(
+    aioText("dialog.profile.title"),
+    aioText("dialog.profile.subtitle"),
+  );
+  body.classList.add("easyuse-anima-aio-one-column");
+
+  const section = document.createElement("section");
+  section.className = "easyuse-anima-aio-section full";
+  const profileSelect = document.createElement("select");
+  profileSelect.title = aioText("profile.selectTip");
+  const builtInGroup = document.createElement("optgroup");
+  builtInGroup.label = aioText("profile.groupBuiltIn");
+  for (const profileId of aioBuiltinProfileIds()) {
+    const option = document.createElement("option");
+    option.value = `builtin:${profileId}`;
+    option.textContent = aioText(`profile.${profileId}`);
+    builtInGroup.append(option);
+  }
+  profileSelect.append(builtInGroup);
+  if (generatorProfileState.profiles.length) {
+    const userGroup = document.createElement("optgroup");
+    userGroup.label = aioText("profile.groupUser");
+    for (const profile of generatorProfileState.profiles) {
+      const option = document.createElement("option");
+      option.value = aioUserProfileValue(profile.name);
+      option.textContent = profile.name;
+      userGroup.append(option);
+    }
+    profileSelect.append(userGroup);
+  }
+  profileSelect.value = normalizedGeneratorProfileValue(node.__easyuseAnimaGeneratorProfileValue);
+  field(section, "Profile", profileSelect, "profile.selectTip");
+
+  const managerActions = document.createElement("div");
+  managerActions.className = "easyuse-anima-aio-profile-manager-actions";
+  const makeActionButton = (label) => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.textContent = label;
+    return button;
+  };
+  const saveProfile = makeActionButton(aioText("button.profileSave"));
+  const renameProfile = makeActionButton(aioText("button.profileRename"));
+  const deleteProfile = makeActionButton(aioText("button.profileDelete"));
+  managerActions.append(saveProfile, renameProfile, deleteProfile);
+  section.append(managerActions);
+  body.append(section);
+
+  const cancel = makeActionButton(aioText("button.cancel"));
+  const apply = makeActionButton(aioText("button.profileApply"));
+  apply.className = "primary";
+  actions.append(cancel, apply);
+
+  let busy = false;
+  const refreshActions = () => {
+    const isUserProfile = !!aioUserProfileName(profileSelect.value);
+    renameProfile.disabled = busy || !isUserProfile;
+    deleteProfile.disabled = busy || !isUserProfile;
+    saveProfile.disabled = busy;
+    cancel.disabled = busy;
+    apply.disabled = busy;
+  };
+  const run = async (callback, { reopen = false } = {}) => {
+    if (busy) {
+      return;
+    }
+    busy = true;
+    refreshActions();
+    try {
+      await callback();
+      backdrop.remove();
+      if (reopen) {
+        openGeneratorProfileSettings(node);
+      }
+    } catch (error) {
+      window.alert(aioFormat("profile.requestFailed", {
+        message: generatorProfileErrorMessage(error),
+      }));
+    } finally {
+      busy = false;
+      if (backdrop.isConnected) {
+        refreshActions();
+      }
+    }
+  };
+  profileSelect.addEventListener("change", refreshActions);
+  cancel.addEventListener("click", () => backdrop.remove());
+  apply.addEventListener("click", () => run(
+    () => applyGeneratorProfile(node, profileSelect.value),
+  ));
+  saveProfile.addEventListener("click", () => run(
+    () => saveGeneratorUserProfile(node, profileSelect.value),
+    { reopen: true },
+  ));
+  renameProfile.addEventListener("click", () => run(
+    () => renameGeneratorUserProfile(node, profileSelect.value),
+    { reopen: true },
+  ));
+  deleteProfile.addEventListener("click", () => run(
+    () => deleteGeneratorUserProfile(node, profileSelect.value),
+    { reopen: true },
+  ));
+  refreshActions();
 }
 
 function findWidget(node, name) {
@@ -3342,6 +3470,7 @@ function ensureStyle() {
       padding: 0 20px 18px;
     }
     .easyuse-anima-aio-actions button,
+    .easyuse-anima-aio-profile-manager-actions button,
     .easyuse-anima-aio-close {
       color: #f3f0e8;
       background: #26313a;
@@ -3354,6 +3483,12 @@ function ensureStyle() {
     .easyuse-anima-aio-actions button.primary {
       background: #2b6655;
       border-color: #78c8aa;
+    }
+    .easyuse-anima-aio-profile-manager-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      margin-top: 12px;
     }
     .easyuse-anima-aio-node-panel {
       box-sizing: border-box;
@@ -3378,27 +3513,14 @@ function ensureStyle() {
         transform: rotate(360deg);
       }
     }
-    .easyuse-anima-aio-node-topbar {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      margin-bottom: 8px;
-    }
-    .easyuse-anima-aio-node-profile-select {
-      flex: 1 1 auto;
-      min-width: 0;
-      height: 26px;
-      padding: 3px 7px;
-      color: #f2eee5;
-      background: #10151a;
-      border: 1px solid #53616c;
-      border-radius: 5px;
-      font: 12px "Segoe UI", sans-serif;
-    }
-    .easyuse-anima-aio-node-topbar .easyuse-anima-aio-node-button {
-      flex: 0 0 auto;
-      padding-left: 8px;
-      padding-right: 8px;
+    .easyuse-anima-aio-node-profile-button {
+      max-width: 76px;
+      min-width: 44px;
+      flex: 0 1 auto;
+      overflow: hidden;
+      padding-left: 7px;
+      padding-right: 7px;
+      text-overflow: ellipsis;
     }
     .easyuse-anima-aio-node-main {
       display: grid;
@@ -5814,77 +5936,25 @@ function renderGeneratorPanel(node) {
     renderGeneratorPanel(node);
   };
 
-  const runProfileAction = (callback) => {
-    Promise.resolve()
-      .then(callback)
-      .catch((error) => {
-        window.alert(aioFormat("profile.requestFailed", {
-          message: generatorProfileErrorMessage(error),
-        }));
-      });
-  };
-
-  const profileBar = document.createElement("div");
-  profileBar.className = "easyuse-anima-aio-node-topbar";
-  const profileSelect = document.createElement("select");
-  profileSelect.className = "easyuse-anima-aio-node-profile-select";
-  profileSelect.title = aioText("profile.selectTip");
-  const builtInGroup = document.createElement("optgroup");
-  builtInGroup.label = aioText("profile.groupBuiltIn");
-  for (const profileId of aioBuiltinProfileIds()) {
-    const option = document.createElement("option");
-    option.value = `builtin:${profileId}`;
-    option.textContent = aioText(`profile.${profileId}`);
-    builtInGroup.append(option);
-  }
-  profileSelect.append(builtInGroup);
-  if (generatorProfileState.profiles.length) {
-    const userGroup = document.createElement("optgroup");
-    userGroup.label = aioText("profile.groupUser");
-    for (const profile of generatorProfileState.profiles) {
-      const option = document.createElement("option");
-      option.value = aioUserProfileValue(profile.name);
-      option.textContent = profile.name;
-      userGroup.append(option);
-    }
-    profileSelect.append(userGroup);
-  }
-  const selectedProfile = String(node.__easyuseAnimaGeneratorProfileValue || "builtin:normal");
-  profileSelect.value = [...profileSelect.options].some((option) => option.value === selectedProfile)
-    ? selectedProfile
-    : "builtin:normal";
-  node.__easyuseAnimaGeneratorProfileValue = profileSelect.value;
-
-  const applyProfile = makeButton(aioText("button.profileApply"), () => {
-    runProfileAction(() => applyGeneratorProfile(node, profileSelect.value));
-  });
-  const saveProfile = makeButton(aioText("button.profileSave"), () => {
-    runProfileAction(() => saveGeneratorUserProfile(node));
-  });
-  const renameProfile = makeButton(aioText("button.profileRename"), () => {
-    runProfileAction(() => renameGeneratorUserProfile(node));
-  });
-  const deleteProfile = makeButton(aioText("button.profileDelete"), () => {
-    runProfileAction(() => deleteGeneratorUserProfile(node));
-  });
-  const refreshProfileActions = () => {
-    const isUserProfile = !!aioUserProfileName(profileSelect.value);
-    renameProfile.disabled = !isUserProfile;
-    deleteProfile.disabled = !isUserProfile;
-    node.__easyuseAnimaGeneratorProfileValue = profileSelect.value;
-  };
-  profileSelect.addEventListener("change", refreshProfileActions);
-  refreshProfileActions();
-  profileBar.append(profileSelect, applyProfile, saveProfile, renameProfile, deleteProfile);
-
   const main = document.createElement("div");
   main.className = "easyuse-anima-aio-node-main";
 
   const samplerCard = document.createElement("section");
   samplerCard.className = "easyuse-anima-aio-node-card easyuse-anima-aio-node-settings";
+  node.__easyuseAnimaGeneratorProfileValue = normalizedGeneratorProfileValue(
+    node.__easyuseAnimaGeneratorProfileValue,
+  );
+  const profileButton = makeButton(
+    generatorProfileDisplayLabel(node.__easyuseAnimaGeneratorProfileValue),
+    () => openGeneratorProfileSettings(node),
+    "easyuse-anima-aio-node-profile-button",
+    "profile.selectTip",
+  );
+  profileButton.setAttribute("data-aio-profile-button", "");
   const saveIcon = makeIconButton("💾", () => openSaveSettings(node), "tip.saveOptions");
   saveIcon.setAttribute("data-aio-save-button", "");
   const samplerHeader = makeCardHeader(aioText("title.sampler"), [
+    profileButton,
     makeIconButton("⚙", () => openSamplerSettings(node), "tip.samplerDetails"),
     makeIconButton("⋯", () => openAdvancedSettings(node), "tip.advancedOptions"),
     saveIcon,
@@ -6416,7 +6486,7 @@ function renderGeneratorPanel(node) {
   previewCard.append(previewHeader, previewBox, previewMeta, previewFeed);
 
   main.append(samplerCard, previewCard);
-  panel.append(profileBar, main);
+  panel.append(main);
   stopGeneratorControlPropagation(panel);
   updateGeneratorDomSummary(node);
   refreshGeneratorSeedButtons(node);

@@ -19,6 +19,12 @@ class AIOFrontendSourceTests(unittest.TestCase):
         render_start = source.index("function renderGeneratorPanel")
         render_end = source.index("\nfunction ensureGeneratorPanel", render_start)
         render_body = source[render_start:render_end]
+        header_start = render_body.index("const samplerHeader = makeCardHeader")
+        header_end = render_body.index("const settingsScroll", header_start)
+        header_body = render_body[header_start:header_end]
+        dialog_start = source.index("function openGeneratorProfileSettings")
+        dialog_end = source.index("\nfunction findWidget", dialog_start)
+        dialog_body = source[dialog_start:dialog_end]
         apply_start = source.index("function applyGeneratorProfileSettings")
         apply_end = source.index("\nasync function applyGeneratorProfile", apply_start)
         apply_body = source[apply_start:apply_end]
@@ -35,7 +41,15 @@ class AIOFrontendSourceTests(unittest.TestCase):
         self.assertIn("compile.enabled = enabled", presets_source)
         self.assertIn("applyVisibleGeneratorSettings(node, next)", apply_body)
         self.assertIn("writeGeneratorSettingsFromState(node, next, true)", apply_body)
-        self.assertIn('panel.append(profileBar, main)', render_body)
+        self.assertIn('profileButton.setAttribute("data-aio-profile-button", "")', render_body)
+        self.assertIn("profileButton,", header_body)
+        self.assertLess(header_body.index("profileButton,"), header_body.index('makeIconButton("⚙"'))
+        self.assertIn("function openGeneratorProfileSettings", source)
+        self.assertIn('field(section, "Profile", profileSelect, "profile.selectTip")', dialog_body)
+        self.assertIn("managerActions.append(saveProfile, renameProfile, deleteProfile)", dialog_body)
+        self.assertIn("actions.append(cancel, apply)", dialog_body)
+        self.assertIn('panel.append(main)', render_body)
+        self.assertNotIn("profileBar", render_body)
         self.assertIn('generatorSettings(node)', source[source.index("async function saveGeneratorUserProfile"):render_start])
         for path in (
             "/easyuse_anima/aio_profiles",
