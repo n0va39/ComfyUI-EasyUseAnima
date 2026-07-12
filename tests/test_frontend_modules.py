@@ -16,6 +16,9 @@ PROMPT_STUDIO_COMMON_JS = WEB_JS / "easyuse_anima_prompt_studio_common.js"
 PROMPT_STUDIO_MODULES = WEB_JS / "prompt_studio"
 PROMPT_STUDIO_HIGHLIGHT_JS = PROMPT_STUDIO_MODULES / "highlight.js"
 PROMPT_STUDIO_HIGHLIGHT_CORE_JS = PROMPT_STUDIO_MODULES / "highlight_core.js"
+PROMPT_STUDIO_HIGHLIGHT_OVERLAY_CORE_JS = (
+    PROMPT_STUDIO_MODULES / "highlight_overlay_core.js"
+)
 STATIC_IMPORT_RE = re.compile(r"""from\s+["'](\./[^"']+\.js)["']""")
 
 
@@ -163,6 +166,58 @@ class FrontendModuleStructureTests(unittest.TestCase):
 
         for source in (modular_source, regional_source, constants_source):
             self.assertNotIn("WILDCARD_HIGHLIGHT_RE", source)
+
+    def test_prompt_highlight_overlay_core_is_shared(self):
+        core_source = PROMPT_STUDIO_HIGHLIGHT_OVERLAY_CORE_JS.read_text(
+            encoding="utf-8"
+        )
+        modular_source = PROMPT_STUDIO_HIGHLIGHT_JS.read_text(encoding="utf-8")
+        regional_source = PROMPT_STUDIO_COMMON_JS.read_text(encoding="utf-8")
+        constants_source = (PROMPT_STUDIO_MODULES / "constants.js").read_text(
+            encoding="utf-8"
+        )
+
+        self.assertIn('from "./highlight_overlay_core.js"', modular_source)
+        self.assertIn(
+            'from "./prompt_studio/highlight_overlay_core.js"', regional_source
+        )
+        for source in (modular_source, regional_source):
+            self.assertIn(
+                "const highlightOverlayHtml = createHighlightOverlayRenderer({",
+                source,
+            )
+
+        for name in (
+            "cssPixelNumber",
+            "cssPixel",
+            "overlayScrollbarPadding",
+            "applyOverlayScrollbarPadding",
+            "overlayBounds",
+            "autocompletePreviewSpanHtml",
+            "highlightOverlayPreviewHtml",
+            "highlightOverlayHtml",
+            "copyInputTextMetrics",
+            "syncOverlayBounds",
+        ):
+            with self.subTest(symbol=name):
+                self.assertIn(f"function {name}", core_source)
+                self.assertNotIn(f"function {name}", modular_source)
+                self.assertNotIn(f"function {name}", regional_source)
+
+        self.assertIn("const HIGHLIGHT_TEXT_METRIC_PROPERTIES", core_source)
+        for source in (modular_source, regional_source, constants_source):
+            self.assertNotIn("const HIGHLIGHT_TEXT_METRIC_PROPERTIES", source)
+
+        for name in (
+            "HIGHLIGHT_TEXT_METRIC_PROPERTIES",
+            "copyInputTextMetrics",
+            "createHighlightOverlayRenderer",
+            "overlayBounds",
+            "overlayScrollbarPadding",
+            "syncOverlayBounds",
+        ):
+            with self.subTest(export=name):
+                self.assertIn(f"  {name},", core_source)
 
     def test_prompt_studio_phase_2_modules_export_expected_symbols(self):
         advanced_controls_source = (
@@ -851,6 +906,9 @@ class FrontendModuleStructureTests(unittest.TestCase):
         self.assertIn('Get-ChildItem -File -Recurse -Path "web\\js"', source)
         self.assertIn("& node --check", source)
         self.assertIn(r'& node "tests\frontend_highlight_core_smoke.mjs"', source)
+        self.assertIn(
+            r'& node "tests\frontend_highlight_overlay_core_smoke.mjs"', source
+        )
         self.assertIn('"typescript@$TypeScriptVersion"', source)
         self.assertIn("tsc -p jsconfig.json", source)
 
@@ -902,6 +960,7 @@ class FrontendModuleStructureTests(unittest.TestCase):
             "extend_slots.js",
             "fields.js",
             "highlight_core.js",
+            "highlight_overlay_core.js",
             "highlight_ui.js",
             "legend.js",
             "node_hooks.js",

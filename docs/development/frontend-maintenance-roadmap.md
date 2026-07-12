@@ -23,8 +23,8 @@
 
 ```text
 branch: dev
-HEAD: 2c818b6375e48f7803b29d6656b7e2a38f6747e5
-origin/dev: 2c818b6375e48f7803b29d6656b7e2a38f6747e5
+HEAD: c7897a824b3bf28b41f826f557bb0330918e40a1
+origin/dev: c7897a824b3bf28b41f826f557bb0330918e40a1
 working tree: clean
 ```
 
@@ -35,6 +35,8 @@ Issue #14는 열려 있다. 다음 변경은 `dev`에 병합됐다.
 | #18 | `4eb7992` | 공통 API helper, Prompt Studio 모듈 분리, no-build JS typecheck, Vite 보류 결정 |
 | #46 | `e75eb96` | 미사용 코드 검사, 통합 frontend 검사 스크립트 |
 | #47 | `2c818b6` | Main/Advanced와 Regional의 prompt highlight parser/renderer core 공통화 |
+| #48 | `781b4c4` | Issue #14 현재 로드맵과 종료 범위 정리 |
+| #49 | `c7897a8` | 저장소 소유 project/frontend/unittest 검증 명령 계약 통합 |
 
 ## 현재 상태
 
@@ -48,17 +50,19 @@ Issue #14는 열려 있다. 다음 변경은 `dev`에 병합됐다.
   분리됐다.
 - prompt 문법 파싱, token matching, highlight HTML 생성은
   `prompt_studio/highlight_core.js`가 소유한다.
-- `tools/check_frontend.ps1`은 전체 frontend JS 문법 검사, highlight semantic
-  smoke, 고정 버전 TypeScript 검사를 한 번에 실행한다.
+- overlay geometry, text metric 복사, autocomplete preview 조합은
+  `prompt_studio/highlight_overlay_core.js`가 소유한다.
+- `tools/check_frontend.ps1`은 전체 frontend JS 문법 검사, parser/renderer와
+  overlay semantic smoke, 고정 버전 TypeScript 검사를 한 번에 실행한다.
 - `noUnusedLocals`와 `noUnusedParameters`가 현재 typecheck 범위에 적용된다.
 - Vite/TypeScript build chain을 당장 도입하지 않고 raw ES module과 no-build
   typecheck를 유지하기로 결정했다.
 
 ### 정량 스냅샷
 
-`web/js`에는 JavaScript 52개, 총 28,825줄이 있다. `jsconfig.json`에 명시된
-include 대상은 Prompt Studio entry와 `prompt_studio/*.js` 40개, 8,386줄로
-전체 라인의 29.1%다. import를 따라 추가로 검사되는 dependency는 이 수치에
+`web/js`에는 JavaScript 53개, 총 28,782줄이 있다. `jsconfig.json`에 명시된
+include 대상은 Prompt Studio entry와 `prompt_studio/*.js` 41개, 8,485줄로
+전체 라인의 29.5%다. import를 따라 추가로 검사되는 dependency는 이 수치에
 포함하지 않았다.
 
 | 파일 | 줄 수 | 전체 비율 | 현재 판단 |
@@ -68,18 +72,18 @@ include 대상은 Prompt Studio entry와 `prompt_studio/*.js` 40개, 8,386줄로
 | `easyuse_anima_prompt_studio_regional.js` | 2,284 | 7.9% | Issue #14 종료 전에 분리할 대상 |
 | `easyuse_anima_autocomplete.js` | 2,067 | 7.2% | parser, popup, input runtime이 결합 |
 | `easyuse_anima_settings.js` | 1,935 | 6.7% | 설정 정의와 여러 editor 구현이 결합 |
-| `easyuse_anima_prompt_studio_common.js` | 1,561 | 5.4% | 현재 Regional만 import하는 legacy common layer |
+| `easyuse_anima_prompt_studio_common.js` | 1,419 | 4.9% | 현재 Regional만 import하는 legacy common layer |
 
-상위 6개 파일이 전체 frontend JS의 약 68.1%를 차지한다. 줄 수 자체를 목표로
+상위 6개 파일이 전체 frontend JS의 약 67.7%를 차지한다. 줄 수 자체를 목표로
 삼지는 않지만, 책임 경계와 검증 비용이 이 파일들에 집중돼 있다는 신호로
 사용한다.
 
 ### 남은 Prompt Studio 중복과 경계 문제
 
 - `easyuse_anima_prompt_studio_common.js`와
-  `prompt_studio/highlight.js`에는 동일 이름 함수가 19개 남아 있다.
-- 이 중 pixel 변환, scrollbar padding, overlay bounds, text metric 복사,
-  preview HTML, overlay 위치 동기화는 DOM overlay core 후보이다.
+  `prompt_studio/highlight.js`에 남은 동일 이름 함수는 9개다.
+- pixel 변환, scrollbar padding, overlay bounds, text metric 복사,
+  preview HTML, overlay 위치 동기화는 DOM overlay core로 공통화됐다.
 - 색상 설정, tooltip 문구, 설정 저장소, node별 highlight state와 listener
   lifecycle은 화면별 adapter에 남기는 편이 안전하다.
 - Regional entry는 constants, schema, serialization, mask geometry/editor,
@@ -164,7 +168,18 @@ Settings의 대형 분리는 별도 후속 이슈로 넘긴다.
 
 예상: 0.5-1일
 
-우선 후보:
+구현:
+
+- `prompt_studio/highlight_overlay_core.js`가 geometry, text metric,
+  autocomplete preview 조합을 소유한다.
+- Main/Advanced와 Regional adapter는 화면별 renderer와 escape 함수만
+  factory에 주입한다.
+- 설정, tooltip, node/field state, listener와 classification lifecycle은
+  기존 adapter에 유지한다.
+- `frontend_highlight_overlay_core_smoke.mjs`가 scrollbar padding, bounds,
+  metric 복사, scroll 동기화, preview와 stale-preview fallback을 검증한다.
+
+공통화 범위:
 
 - CSS pixel parsing과 scrollbar padding
 - input/textarea bounds 측정

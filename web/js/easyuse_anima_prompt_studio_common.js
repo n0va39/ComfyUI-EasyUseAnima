@@ -1,6 +1,11 @@
 import { easyuseAnimaClassifyPrompt, easyuseAnimaGetSettings } from "./easyuse_anima_api.js";
 import { easyuseAnimaText } from "./easyuse_anima_i18n.js";
 import { createPromptHighlightRenderer } from "./prompt_studio/highlight_core.js";
+import {
+  copyInputTextMetrics,
+  createHighlightOverlayRenderer,
+  syncOverlayBounds,
+} from "./prompt_studio/highlight_overlay_core.js";
 
 export const PROMPT_STUDIO_VARIANT_FIELD_TYPES = ["quality", "artist", "trigger", "general"];
 export const PROMPT_STUDIO_VARIANT_FIELD_LABELS = {
@@ -242,37 +247,6 @@ let promptStudioCommonTagTooltip = null;
 let promptStudioCommonTagTooltipMoveFrame = 0;
 let promptStudioCommonTagTooltipPendingMove = null;
 let promptStudioCommonTagTooltipLastTarget = null;
-const HIGHLIGHT_TEXT_METRIC_PROPERTIES = [
-  "font",
-  "fontFamily",
-  "fontSize",
-  "fontSizeAdjust",
-  "fontStretch",
-  "fontWeight",
-  "fontStyle",
-  "fontVariant",
-  "fontKerning",
-  "fontOpticalSizing",
-  "fontFeatureSettings",
-  "fontVariationSettings",
-  "lineHeight",
-  "letterSpacing",
-  "wordSpacing",
-  "textIndent",
-  "padding",
-  "border",
-  "borderRadius",
-  "boxSizing",
-  "textAlign",
-  "textTransform",
-  "textRendering",
-  "direction",
-  "tabSize",
-  "whiteSpace",
-  "overflowWrap",
-  "wordBreak",
-];
-
 function commonText(key) {
   return easyuseAnimaText(PROMPT_STUDIO_COMMON_TEXT, key);
 }
@@ -1166,126 +1140,10 @@ const renderHighlightedText = createPromptHighlightRenderer({
   preferSyntaxBeforeToken: true,
 });
 
-function cssPixelNumber(value) {
-  const parsed = Number.parseFloat(value);
-  return Number.isFinite(parsed) ? parsed : 0;
-}
-
-function cssPixel(value) {
-  const rounded = Math.round(Number(value || 0) * 100) / 100;
-  return `${rounded}px`;
-}
-
-function overlayScrollbarPadding(input, style = getComputedStyle(input)) {
-  const verticalGutter = Math.max(
-    0,
-    (Number(input.offsetWidth) || 0)
-      - (Number(input.clientWidth) || 0)
-      - cssPixelNumber(style.borderLeftWidth)
-      - cssPixelNumber(style.borderRightWidth),
-  );
-  const horizontalGutter = Math.max(
-    0,
-    (Number(input.offsetHeight) || 0)
-      - (Number(input.clientHeight) || 0)
-      - cssPixelNumber(style.borderTopWidth)
-      - cssPixelNumber(style.borderBottomWidth),
-  );
-  return {
-    right: cssPixel(cssPixelNumber(style.paddingRight) + verticalGutter),
-    bottom: cssPixel(cssPixelNumber(style.paddingBottom) + horizontalGutter),
-  };
-}
-
-function applyOverlayScrollbarPadding(input, overlay, style = getComputedStyle(input)) {
-  const padding = overlayScrollbarPadding(input, style);
-  if (overlay.style.paddingRight !== padding.right) overlay.style.paddingRight = padding.right;
-  if (overlay.style.paddingBottom !== padding.bottom) overlay.style.paddingBottom = padding.bottom;
-}
-
-function overlayBounds(input) {
-  return {
-    left: `${input.offsetLeft}px`,
-    top: `${input.offsetTop}px`,
-    width: `${input.offsetWidth}px`,
-    height: `${input.offsetHeight}px`,
-  };
-}
-
-function autocompletePreviewSpanHtml(text, preview, opacity = 0.95) {
-  const color = String(preview?.color || "rgba(203, 213, 225, 0.86)");
-  return `<span style="font: inherit; line-height: inherit; letter-spacing: inherit; vertical-align: baseline; color: ${escapeHtml(color)}; opacity: ${opacity}">`
-    + escapeHtml(text)
-    + "</span>";
-}
-
-function highlightOverlayPreviewHtml(value, tokens, preview) {
-  if (!preview || String(preview.sourceValue || "") !== String(value || "")) {
-    return null;
-  }
-  const text = String(preview.value || "");
-  const candidateStart = Math.max(0, Math.min(Number(preview.candidateStart ?? preview.ghostStart) || 0, text.length));
-  const candidateEnd = Math.max(candidateStart, Math.min(Number(preview.candidateEnd ?? preview.ghostEnd) || 0, text.length));
-  const ghostStart = Math.max(0, Math.min(Number(preview.ghostStart) || 0, text.length));
-  const ghostEnd = Math.max(ghostStart, Math.min(Number(preview.ghostEnd) || 0, text.length));
-  if (!text || candidateEnd <= candidateStart || ghostEnd <= ghostStart) {
-    return null;
-  }
-  const safeGhostStart = Math.max(candidateStart, Math.min(ghostStart, candidateEnd));
-  const safeGhostEnd = Math.max(safeGhostStart, Math.min(ghostEnd, candidateEnd));
-  const html = [
-    renderHighlightedText(text.slice(0, candidateStart), tokens || []),
-    autocompletePreviewSpanHtml(text.slice(candidateStart, safeGhostStart), preview, 0.95),
-    autocompletePreviewSpanHtml(text.slice(safeGhostStart, safeGhostEnd), preview, 0.52),
-    autocompletePreviewSpanHtml(text.slice(safeGhostEnd, candidateEnd), preview, 0.95),
-    renderHighlightedText(text.slice(candidateEnd), tokens || []),
-  ].join("");
-  return text.endsWith("\n") ? `${html} ` : html;
-}
-
-function highlightOverlayHtml(value, tokens, placeholder = "", input = null) {
-  const text = String(value || "");
-  if (!text) {
-    return `<span style="opacity: 0.45">${escapeHtml(placeholder)}</span>`;
-  }
-  const previewHtml = highlightOverlayPreviewHtml(text, tokens, input?.__easyuseAnimaAutocompletePreview);
-  if (previewHtml != null) {
-    return previewHtml;
-  }
-  const html = renderHighlightedText(text, tokens);
-  return text.endsWith("\n") ? `${html} ` : html;
-}
-
-function copyInputTextMetrics(input, overlay, style = getComputedStyle(input)) {
-  for (const property of HIGHLIGHT_TEXT_METRIC_PROPERTIES) {
-    const val = style[property];
-    if (overlay.style[property] !== val) {
-      overlay.style[property] = val;
-    }
-  }
-  overlay.style.boxSizing = "border-box";
-  overlay.style.whiteSpace = "pre-wrap";
-  overlay.style.overflowWrap = "break-word";
-  overlay.style.wordWrap = "break-word";
-  overlay.style.wordBreak = "normal";
-  overlay.style.margin = "0";
-  applyOverlayScrollbarPadding(input, overlay, style);
-}
-
-function syncOverlayBounds(input, overlay) {
-  if (!overlay) return;
-  const style = getComputedStyle(input);
-  const { left, top, width, height } = overlayBounds(input);
-
-  if (overlay.style.left !== left) overlay.style.left = left;
-  if (overlay.style.top !== top) overlay.style.top = top;
-  if (overlay.style.width !== width) overlay.style.width = width;
-  if (overlay.style.height !== height) overlay.style.height = height;
-  applyOverlayScrollbarPadding(input, overlay, style);
-
-  if (overlay.scrollTop !== input.scrollTop) overlay.scrollTop = input.scrollTop;
-  if (overlay.scrollLeft !== input.scrollLeft) overlay.scrollLeft = input.scrollLeft;
-}
+const highlightOverlayHtml = createHighlightOverlayRenderer({
+  escapeHtml,
+  renderHighlightedText,
+});
 
 export function requestPromptStudioOverlaySync(input, forceCopyMetrics = false) {
   const overlay = input?.__easyuseAnimaHighlightOverlay;
