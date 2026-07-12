@@ -9,6 +9,7 @@ import {
   ADVANCED_WIDGET_INDEX,
 } from "./constants.js";
 import {
+  installAdvancedWheelForwarder,
   installMiddlePanForwarder,
 } from "./canvas_forwarding.js";
 import {
@@ -90,6 +91,9 @@ import {
 import {
   hookStudioNode as hookStudioNodeWithHooks,
 } from "./studio_node_ui.js";
+import {
+  remeasureAdvancedTextareaHeightsForWidth as remeasureAdvancedTextareaHeightsForWidthWithHooks,
+} from "./advanced_fields_ui.js";
 import {
   hookAdvancedNode as hookAdvancedNodeWithHooks,
   renderAdvancedEditor as renderAdvancedEditorWithHooks,
@@ -252,8 +256,16 @@ function createPromptStudioExtensionRuntime(app) {
   function advancedLayoutControllerHooks() {
     return {
       markGraphDirty,
+      remeasureAdvancedTextareaHeightsForWidth,
       scheduleAdvancedHighlights,
     };
+  }
+
+  function remeasureAdvancedTextareaHeightsForWidth(node) {
+    return remeasureAdvancedTextareaHeightsForWidthWithHooks(node, {
+      parseAdvancedFields,
+      writeAdvancedFields,
+    });
   }
 
   function scheduleAdvancedLayout(node, reason = "layout") {
@@ -356,6 +368,7 @@ function createPromptStudioExtensionRuntime(app) {
 
   return {
     async setup() {
+      installAdvancedWheelForwarder();
       installMiddlePanForwarder();
       installAdvancedSaveSync(app, syncAllAdvancedNodes);
       installPromptHighlightOverlayRefresh(app, applyPromptStudioTextStyle);

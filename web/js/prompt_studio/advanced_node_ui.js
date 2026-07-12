@@ -5,9 +5,6 @@ import {
   ADVANCED_NATIVE_CONTROL_EVENTS,
 } from "./constants.js";
 import {
-  forwardAdvancedWheelToCanvas,
-} from "./canvas_forwarding.js";
-import {
   createAdvancedControlBar,
   createAdvancedResolutionBar,
   createAdvancedWildcardBar,
@@ -118,7 +115,6 @@ function hookAdvancedNode(node, hooks = {}) {
   if (!getAdvancedEditorElement(node)) {
     const editor = document.createElement("div");
     editor.className = "easyuse-anima-advanced-editor";
-    editor.addEventListener("wheel", forwardAdvancedWheelToCanvas, { capture: true, passive: false });
     for (const eventName of ADVANCED_NATIVE_CONTROL_EVENTS) {
       editor.addEventListener(eventName, guardAdvancedEditorNativeControlEvent);
     }

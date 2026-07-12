@@ -5,9 +5,9 @@
 // @ts-expect-error ComfyUI provides this host module at runtime.
 import { app } from "../../../../scripts/app.js";
 import {
-  canAdvancedEditorScrollWheelDelta,
+  advancedEditorFromWheelEvent,
+  consumeAdvancedEditorWheel,
   isMiddlePanExcludedTarget,
-  shouldKeepAdvancedWheelEvent,
 } from "./wheel.js";
 
 let middlePanForwardActive = false;
@@ -169,18 +169,34 @@ function startCanvasPanFromDom(event) {
 
 function forwardAdvancedWheelToCanvas(event) {
   if (event.__easyuseAnimaForwarded) {
-    return;
+    return false;
   }
-  const editor = event.currentTarget;
-  if (shouldKeepAdvancedWheelEvent(event, editor)) {
-    return;
+  const editor = advancedEditorFromWheelEvent(event);
+  if (!editor) {
+    return false;
   }
-  if (canAdvancedEditorScrollWheelDelta(editor, Number(event.deltaY) || 0)) {
-    return;
+  if (consumeAdvancedEditorWheel(event, editor)) {
+    return true;
   }
   event.preventDefault();
   event.stopPropagation();
+  event.stopImmediatePropagation?.();
   dispatchCanvasWheelEvent(event);
+  return true;
+}
+
+function installAdvancedWheelForwarder() {
+  const hostWindow = promptStudioWindow();
+  if (hostWindow.__easyuseAnimaWheelForwarderInstalled) {
+    return;
+  }
+  hostWindow.__easyuseAnimaWheelForwarderInstalled = true;
+  // Node 2.0 handles wheel on an ancestor of the DOM widget. Window capture
+  // must decide ownership before that ancestor can zoom the canvas.
+  hostWindow.addEventListener("wheel", forwardAdvancedWheelToCanvas, {
+    capture: true,
+    passive: false,
+  });
 }
 
 function installMiddlePanForwarder() {
@@ -201,5 +217,6 @@ function installMiddlePanForwarder() {
 
 export {
   forwardAdvancedWheelToCanvas,
+  installAdvancedWheelForwarder,
   installMiddlePanForwarder,
 };

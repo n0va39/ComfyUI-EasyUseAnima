@@ -55,6 +55,7 @@
  * @typedef {Window & typeof globalThis & {
  *   __easyuseAnimaHighlightOverlayRefreshInstalled?: boolean,
  *   __easyuseAnimaMiddlePanForwarderInstalled?: boolean,
+ *   __easyuseAnimaWheelForwarderInstalled?: boolean,
  *   __easyuseAnimaPendingAutocompleteInputs?: Array<{ input: Element, options: unknown }>,
  *   easyuseAnimaAutocompleteEntryTooltip?: (entry: unknown) => PromptStudioAutocompleteTooltip | null | undefined,
  *   easyuseAnimaHookAutocompleteInput?: (input: Element, options: unknown) => void
