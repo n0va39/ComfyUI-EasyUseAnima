@@ -1,5 +1,52 @@
 # Release Notes
 
+## 0.4.0
+
+### Added
+
+- Added built-in AiO generation profiles in the `SAMPLER` header:
+  `Normal`, `Turbo`, and `Optimized`.
+- Added named user profiles that save the complete AiO generation settings and
+  can be loaded, overwritten, renamed, or deleted across ComfyUI restarts.
+- Added exact profile-state detection. Settings that do not match a built-in
+  profile are shown as `Custom`, and edited user profiles return to `Custom`.
+- Added regression coverage for AiO profile storage, built-in settings,
+  profile-state fingerprints, wheel ownership, and frontend placement.
+
+### Changed
+
+- AiO optional dependency discovery now distinguishes available, missing, and
+  query-failed states and reports the result instead of silently disabling
+  settings after a lookup failure.
+- Prompt Studio Advanced and AiO Generator now let ComfyUI own the current node
+  and DOM-widget viewport height while EasyUse Anima declares only the required
+  minimum layout.
+- Scrollbars now exclusively own wheel input, including at their boundaries.
+  Canvas zoom receives wheel input only when the relevant editor or AiO panel
+  has no intended scrollbar.
+- Updated maintained release workflow metadata to package version `0.4.0`.
+
+### Fixed
+
+- Fixed Prompt Studio Advanced height recalculation after node-width changes
+  alter textarea wrapping.
+- Fixed repeated or conflicting height updates between ComfyUI, Prompt Studio
+  Advanced, and AiO Generator in Node 2.0 and legacy canvas.
+- Fixed AiO panel resize behavior so settings can scroll without the preview
+  forcing the node back to a larger height.
+- Kept AiO final images in ComfyUI queue/history output while suppressing the
+  duplicate legacy canvas image label.
+
+### Validation Notes
+
+- Verified Python unit tests, compile checks, all frontend JavaScript syntax,
+  locale JSON, workflow JSON/link/package metadata, Registry scanner patterns,
+  and `comfy node validate`.
+- Verified the profile, resize, text-wrap, and wheel ownership changes on
+  ComfyUI 0.27.0 Node 2.0 and legacy canvas during the feature PRs.
+- Verified the user-facing ComfyUI 0.27.0 instance after the final profile
+  integration.
+
 ## 0.3.2
 
 ### Fixed

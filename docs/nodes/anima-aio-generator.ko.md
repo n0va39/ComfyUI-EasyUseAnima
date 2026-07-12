@@ -16,6 +16,26 @@
 3. `Easy Use Anima Input` 출력을 `Anima AiO Generator`의 `easy use anima input`에 연결합니다.
 4. 필요하면 `Anima LoRA Preset`의 `LORA_STACK`을 `lora_stack`에 연결합니다.
 
+## 생성 프로필
+
+`SAMPLER` 헤더의 프로필 버튼은 생성 설정 전체 스냅샷을 적용합니다.
+
+- `일반`은 현재 기본값을 유지하고 선택적인 Spectrum/DCW 및 KJ 실행 최적화를
+  모두 끕니다.
+- `터보`는 `steps=10`, `CFG=1`, `er_sde`, `simple`을 사용합니다.
+- `최적화`는 모든 샘플링 단계의 Spectrum/DCW와 권장 KJ FP16 accumulation,
+  SageAttention, Sage compile, Torch Compile 값을 활성화합니다. DAVE와 Safe
+  PAG는 별도 선택 기능이므로 꺼진 상태를 유지합니다.
+
+현재 설정이 기본 프로필과 정확히 일치하지 않으면 버튼에 `커스텀`이
+표시됩니다. 이름 지정 사용자 프로필은 현재 생성 설정 전체를 ComfyUI 사용자
+데이터에 저장하며, 재시작 후에도 불러오기, 덮어쓰기, 이름 변경, 삭제가
+가능합니다. 적용한 사용자 프로필 값을 수정하면 다시 `커스텀`으로 표시됩니다.
+
+워크플로우에는 선택한 프로필 이름이 아니라 생성 설정 전체가 직렬화됩니다.
+따라서 다른 ComfyUI 설치에 같은 이름의 프로필이 없어도 생성 설정은
+유지됩니다.
+
 ## 샘플러 모드
 
 `Sampler` 설정의 `Mode`는 실제 호출 경로를 결정합니다.
