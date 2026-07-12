@@ -6,11 +6,102 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 AIO_JS = ROOT / "web" / "js" / "easyuse_anima_aio.js"
+AIO_WHEEL_JS = ROOT / "web" / "js" / "aio" / "wheel.js"
 AUTOCOMPLETE_JS = ROOT / "web" / "js" / "easyuse_anima_autocomplete.js"
 PROMPT_STUDIO_COMMON_JS = ROOT / "web" / "js" / "easyuse_anima_prompt_studio_common.js"
 
 
 class AIOFrontendSourceTests(unittest.TestCase):
+    def test_generator_panel_height_is_owned_by_comfyui(self):
+        source = AIO_JS.read_text(encoding="utf-8")
+
+        layout_start = source.index("function applyGeneratorLayout")
+        layout_end = source.index("\nfunction scheduleGeneratorLayout", layout_start)
+        layout_body = source[layout_start:layout_end]
+        panel_start = source.index("    .easyuse-anima-aio-node-panel {")
+        panel_end = source.index("\n    .easyuse-anima-aio-node-panel *", panel_start)
+        panel_style = source[panel_start:panel_end]
+        main_start = source.index("    .easyuse-anima-aio-node-main {")
+        main_end = source.index("\n    .easyuse-anima-aio-node-card {", main_start)
+        main_style = source[main_start:main_end]
+        settings_start = source.index("    .easyuse-anima-aio-node-settings {")
+        settings_end = source.index("\n    .easyuse-anima-aio-node-settings-scroll {", settings_start)
+        settings_style = source[settings_start:settings_end]
+        scroll_start = settings_end + 1
+        scroll_end = source.index("\n    .easyuse-anima-aio-node-settings-scroll::-webkit-scrollbar", scroll_start)
+        scroll_style = source[scroll_start:scroll_end]
+        preview_start = source.index("    .easyuse-anima-aio-node-preview {")
+        preview_end = source.index("\n    .easyuse-anima-aio-node-sampler-actions {", preview_start)
+        preview_style = source[preview_start:preview_end]
+        preview_box_start = source.index("    .easyuse-anima-aio-node-preview-box {")
+        preview_box_end = source.index("\n    .easyuse-anima-aio-node-preview-box img {", preview_box_start)
+        preview_box_style = source[preview_box_start:preview_box_end]
+        panel_registration_start = source.index("function ensureGeneratorPanel")
+        panel_registration_end = source.index("\nfunction field", panel_registration_start)
+        panel_registration = source[panel_registration_start:panel_registration_end]
+
+        self.assertIn("getMinHeight: () => GENERATOR_PANEL_MIN_HEIGHT", panel_registration)
+        self.assertNotIn("getHeight:", panel_registration)
+        self.assertNotIn("computeLayoutSize", panel_registration)
+        self.assertNotIn("computedHeight =", source)
+        self.assertNotIn("generatorNodeChromeOffset", source)
+        self.assertNotIn("generatorAvailablePanelHeight", source)
+        self.assertNotIn("generatorPanelHeight", source)
+        self.assertNotIn("node.setSize?.(", layout_body)
+        self.assertNotIn("node.setSize(", layout_body)
+        self.assertNotIn("panel.style.height =", layout_body)
+        self.assertIn('panel.style.removeProperty("height")', layout_body)
+        self.assertIn('panel.style.removeProperty("max-height")', layout_body)
+
+        self.assertIn("flex: 1 1 0%;", panel_style)
+        self.assertIn("contain: size;", panel_style)
+        self.assertIn("min-height: 0;", main_style)
+        self.assertIn("overflow: hidden;", main_style)
+        self.assertNotIn("height: 100%;", main_style)
+        self.assertNotIn("min-height: 284px;", main_style)
+        self.assertNotIn("height: 100%;", settings_style)
+        self.assertIn("flex: 1 1 0%;", scroll_style)
+        self.assertIn("overflow-y: auto;", scroll_style)
+        self.assertIn("overscroll-behavior: contain;", scroll_style)
+        self.assertIn("min-height: 0;", preview_style)
+        self.assertIn("overflow: hidden;", preview_style)
+        self.assertNotIn("height: 100%;", preview_style)
+        self.assertNotIn("min-height: 284px;", preview_style)
+        self.assertIn("min-height: 0;", preview_box_style)
+        self.assertNotIn("min-height: 210px;", preview_box_style)
+
+    def test_generator_wheel_router_decides_scroll_ownership_before_canvas(self):
+        source = AIO_JS.read_text(encoding="utf-8")
+        wheel_source = AIO_WHEEL_JS.read_text(encoding="utf-8")
+        stop_start = source.index("function stopGeneratorControlPropagation")
+        stop_end = source.index("\nfunction dispatchGeneratorCanvasWheelEvent", stop_start)
+        stop_body = source[stop_start:stop_end]
+        forward_start = source.index("function forwardGeneratorPanelWheel")
+        forward_end = source.index("\nfunction installGeneratorWheelForwarder", forward_start)
+        forward_body = source[forward_start:forward_end]
+        install_start = forward_end + 1
+        install_end = source.index("\nfunction samplerModeLabel", install_start)
+        install_body = source[install_start:install_end]
+        setup_start = source.index("  async setup() {")
+        setup_end = source.index("\n  async beforeRegisterNodeDef", setup_start)
+        setup_body = source[setup_start:setup_end]
+
+        self.assertIn('from "./aio/wheel.js"', source)
+        self.assertIn('root.addEventListener("wheel", forwardGeneratorPanelWheel', stop_body)
+        self.assertIn("capture: true", stop_body)
+        self.assertIn("passive: false", stop_body)
+        self.assertIn("consumeAioPanelWheel(event, panel)", forward_body)
+        self.assertLess(
+            forward_body.index("consumeAioPanelWheel(event, panel)"),
+            forward_body.index("dispatchGeneratorCanvasWheelEvent(event)"),
+        )
+        self.assertIn('window.addEventListener("wheel", forwardGeneratorPanelWheel', install_body)
+        self.assertIn("capture: true", install_body)
+        self.assertIn("passive: false", install_body)
+        self.assertIn("installGeneratorWheelForwarder();", setup_body)
+        self.assertIn("owns the wheel even at either boundary", wheel_source)
+        self.assertIn("Canvas zoom is allowed only when neither intended scrollbar exists", wheel_source)
+
     def test_generator_keeps_native_output_preview_suppressed_after_execution(self):
         source = AIO_JS.read_text(encoding="utf-8")
         registration_start = source.index("async beforeRegisterNodeDef")
