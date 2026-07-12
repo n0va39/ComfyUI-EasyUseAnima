@@ -16,6 +16,27 @@ Prompt Studio, so the generator UI does not expose prompt fields.
 3. Connect `Easy Use Anima Input` to the generator's `easy use anima input` socket.
 4. Optionally connect `LORA_STACK` from `Anima LoRA Preset` to `lora_stack`.
 
+## Generation Profiles
+
+The profile button in the `SAMPLER` header applies one complete generation
+settings snapshot.
+
+- `Normal` keeps the standard defaults and disables optional Spectrum/DCW and
+  KJ execution optimizations.
+- `Turbo` uses `steps=10`, `CFG=1`, `er_sde`, and `simple`.
+- `Optimized` enables Spectrum/DCW across sampling stages plus the recommended
+  KJ FP16 accumulation, SageAttention, Sage compile, and Torch Compile values.
+  DAVE and Safe PAG remain separate choices and stay disabled.
+
+If the current settings do not exactly match a built-in profile, the button
+shows `Custom`. A named user profile stores the complete current settings in
+ComfyUI user data and can be loaded, overwritten, renamed, or deleted after a
+restart. Editing an applied user profile changes the label back to `Custom`.
+
+Workflows serialize the complete generation settings, not the selected profile
+name. This preserves the generated setup even when the named profile is not
+available on another ComfyUI installation.
+
 ## Sampler Modes
 
 The `Mode` field in Sampler settings selects the actual execution path.

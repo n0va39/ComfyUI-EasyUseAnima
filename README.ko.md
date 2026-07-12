@@ -46,7 +46,7 @@ Registry 기준 외부 연동 기본값:
 | 와일드카드 | Impact Pack 계열 문법과 호환되는 wildcard 확장, 순차 선택, `__wildcard__` 자동완성을 제공합니다. |
 | LoRA 프리셋 | 스타일 프롬프트와 LoRA stack을 프로필로 저장하고, trigger word와 LoRA metadata를 workflow 안에서 관리하기 쉽게 만듭니다. |
 | 호환성 노드 | Detailer crop 크기를 32배수로 정렬하거나, Highres용 이미지 크기를 유효 배율로 맞추는 보조 노드를 제공합니다. |
-| AiO 생성 | `Easy Use Anima Input`과 `Anima AiO Generator`로 모델 선택, 1차 샘플링, Highres, Detailer, Preview, Save를 하나의 흐름으로 묶습니다. |
+| AiO 생성 | `Easy Use Anima Input`과 `Anima AiO Generator`로 모델 선택, 생성 프로필, 1차 샘플링, Highres, Detailer, Preview, Save를 하나의 흐름으로 묶습니다. |
 
 ## 데모 영상
 

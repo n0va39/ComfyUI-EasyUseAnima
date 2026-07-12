@@ -1,0 +1,11 @@
+EasyUse Anima 0.4.0 adds AiO generation profiles and stabilizes Node 2.0 and legacy canvas behavior.
+
+User-visible changes:
+1. Anima AiO Generator now includes Normal, Turbo, and Optimized generation profiles.
+2. Complete AiO settings can be saved as named user profiles and loaded, overwritten, renamed, or deleted after restarting ComfyUI.
+3. Settings that do not exactly match a built-in profile are shown as Custom. Editing an applied user profile also returns it to Custom.
+4. Prompt Studio Advanced and AiO Generator now keep wheel input inside an existing scrollbar, including at the top or bottom boundary. Canvas zoom is used only when no intended scrollbar exists.
+5. Prompt Studio Advanced now recalculates wrapped text height after node-width changes.
+6. Node resizing is more stable in both Node 2.0 and legacy canvas.
+7. AiO optional dependency checks now distinguish available, missing, and query-failed states instead of silently disabling settings after a lookup failure.
+8. AiO final images remain available in ComfyUI queue and history output while the duplicate legacy canvas label stays suppressed.
