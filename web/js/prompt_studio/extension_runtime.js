@@ -65,6 +65,8 @@ import {
   updateAdvancedEditorWidth,
 } from "./layout.js";
 import {
+  disconnectAdvancedEditorWidthObserver,
+  observeAdvancedEditorWidth as observeAdvancedEditorWidthWithHooks,
   scheduleAdvancedLayout as scheduleAdvancedLayoutWithHooks,
   scheduleAdvancedResizeFinalize as scheduleAdvancedResizeFinalizeWithHooks,
 } from "./advanced_layout_controller.js";
@@ -262,6 +264,10 @@ function createPromptStudioExtensionRuntime(app) {
     scheduleAdvancedResizeFinalizeWithHooks(node, advancedLayoutControllerHooks());
   }
 
+  function observeAdvancedEditorWidth(node) {
+    observeAdvancedEditorWidthWithHooks(node, advancedLayoutControllerHooks());
+  }
+
   function extendSlotControlHooks() {
     return {
       expandStudioInputToContent,
@@ -314,6 +320,7 @@ function createPromptStudioExtensionRuntime(app) {
     return {
       hideAdvancedControlWidgets,
       installAdvancedSaveSync: installAdvancedSaveSyncForApp,
+      observeAdvancedEditorWidth,
       scheduleAdvancedHighlights,
       scheduleAdvancedLayout,
       writeAdvancedFields,
@@ -386,6 +393,7 @@ function createPromptStudioExtensionRuntime(app) {
         captureAdvancedConfigure: (node, serialized) => (
           captureAdvancedConfigure(node, serialized, advancedWidget(node))
         ),
+        disconnectAdvancedEditorWidthObserver,
         hookStudioNode,
         isExtendNode,
         layoutExtendPromptWidgets,
