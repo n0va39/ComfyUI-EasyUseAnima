@@ -7,11 +7,79 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 AIO_JS = ROOT / "web" / "js" / "easyuse_anima_aio.js"
 AIO_WHEEL_JS = ROOT / "web" / "js" / "aio" / "wheel.js"
+AIO_PRESETS_JS = ROOT / "web" / "js" / "aio" / "presets.js"
 AUTOCOMPLETE_JS = ROOT / "web" / "js" / "easyuse_anima_autocomplete.js"
 PROMPT_STUDIO_COMMON_JS = ROOT / "web" / "js" / "easyuse_anima_prompt_studio_common.js"
 
 
 class AIOFrontendSourceTests(unittest.TestCase):
+    def test_generator_profile_ui_uses_versioned_settings_and_user_storage_api(self):
+        source = AIO_JS.read_text(encoding="utf-8")
+        presets_source = AIO_PRESETS_JS.read_text(encoding="utf-8")
+        render_start = source.index("function renderGeneratorPanel")
+        render_end = source.index("\nfunction ensureGeneratorPanel", render_start)
+        render_body = source[render_start:render_end]
+        header_start = render_body.index("const samplerHeader = makeCardHeader")
+        header_end = render_body.index("const settingsScroll", header_start)
+        header_body = render_body[header_start:header_end]
+        dialog_start = source.index("function openGeneratorProfileSettings")
+        dialog_end = source.index("\nfunction findWidget", dialog_start)
+        dialog_body = source[dialog_start:dialog_end]
+        apply_start = source.index("function applyGeneratorProfileSettings")
+        apply_end = source.index("\nasync function applyGeneratorProfile", apply_start)
+        apply_body = source[apply_start:apply_end]
+        resolve_start = source.index("function resolvedGeneratorProfileValue")
+        resolve_end = source.index("\nfunction generatorProfileDisplayLabel", resolve_start)
+        resolve_body = source[resolve_start:resolve_end]
+        summary_start = source.index("function updateGeneratorDomSummary")
+        summary_end = source.index("\nfunction renderGeneratorPreviewFeed", summary_start)
+        summary_body = source[summary_start:summary_end]
+        serialize_start = source.index("function syncGeneratorSerializedWidgets")
+        serialize_end = source.index("\nfunction markNodeDirty", serialize_start)
+        serialize_body = source[serialize_start:serialize_end]
+
+        self.assertIn('from "./aio/presets.js"', source)
+        self.assertIn("aioBuiltinProfileIdForSettings", source)
+        self.assertIn("aioProfileSettingsFingerprint", source)
+        self.assertIn('"profile.custom": "Custom"', source)
+        self.assertIn('"normal", "turbo", "optimized"', presets_source)
+        self.assertIn('settings.sampler.steps = 10', presets_source)
+        self.assertIn('settings.sampler.cfg = 1.0', presets_source)
+        self.assertIn('target.dit_corrections.dcw_mode = enabled ? "auto" : "off"', presets_source)
+        self.assertIn('kj.sage_attention = enabled ? "auto" : "disabled"', presets_source)
+        self.assertIn("compile.enabled = enabled", presets_source)
+        self.assertIn("applyVisibleGeneratorSettings(node, next)", apply_body)
+        self.assertIn("writeGeneratorSettingsFromState(node, next, true)", apply_body)
+        self.assertIn("aioProfileSettingsFingerprint", apply_body)
+        self.assertIn("aioBuiltinProfileIdForSettings(settings, DEFAULT_GENERATION_SETTINGS)", resolve_body)
+        self.assertIn("return GENERATOR_PROFILE_CUSTOM_VALUE", resolve_body)
+        self.assertIn("syncGeneratorProfileValue(node, settings)", render_body)
+        self.assertIn('profileButton.setAttribute("data-aio-profile-button", "")', render_body)
+        self.assertIn('panel.querySelector("[data-aio-profile-button]")', summary_body)
+        self.assertIn("generatorProfileDisplayLabel(profileValue)", summary_body)
+        self.assertIn("profileButton,", header_body)
+        self.assertLess(header_body.index("profileButton,"), header_body.index('makeIconButton("⚙"'))
+        self.assertIn("function openGeneratorProfileSettings", source)
+        self.assertIn('field(section, "Profile", profileSelect, "profile.selectTip")', dialog_body)
+        self.assertIn("currentValue === GENERATOR_PROFILE_CUSTOM_VALUE", dialog_body)
+        self.assertIn('customOption.textContent = aioText("profile.custom")', dialog_body)
+        self.assertIn("profileSelect.value = currentValue", dialog_body)
+        self.assertIn("apply.disabled = busy || profileSelect.value === GENERATOR_PROFILE_CUSTOM_VALUE", dialog_body)
+        self.assertIn("managerActions.append(saveProfile, renameProfile, deleteProfile)", dialog_body)
+        self.assertIn("actions.append(cancel, apply)", dialog_body)
+        self.assertIn('panel.append(main)', render_body)
+        self.assertNotIn("profileBar", render_body)
+        self.assertIn('generatorSettings(node)', source[source.index("async function saveGeneratorUserProfile"):render_start])
+        for path in (
+            "/easyuse_anima/aio_profiles",
+            "/easyuse_anima/aio_profiles/save",
+            "/easyuse_anima/aio_profiles/load",
+            "/easyuse_anima/aio_profiles/rename",
+            "/easyuse_anima/aio_profiles/delete",
+        ):
+            self.assertIn(path, source)
+        self.assertNotIn("__easyuseAnimaGeneratorProfileValue", serialize_body)
+
     def test_generator_panel_height_is_owned_by_comfyui(self):
         source = AIO_JS.read_text(encoding="utf-8")
 
