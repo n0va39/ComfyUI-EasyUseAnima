@@ -2,6 +2,7 @@ import { app } from "../../../scripts/app.js";
 import { api } from "../../../scripts/api.js";
 import { easyuseAnimaFetchComfyJson, easyuseAnimaFetchText } from "./easyuse_anima_api.js";
 import { easyuseAnimaText, easyuseAnimaWatchLocale } from "./easyuse_anima_i18n.js";
+import { aioPanelFromWheelEvent, consumeAioPanelWheel } from "./aio/wheel.js";
 
 const INPUT_NODE_TYPE = "EasyUseAnimaInput";
 const GENERATOR_NODE_TYPE = "EasyUseAnimaAIOGenerator";
@@ -3180,6 +3181,8 @@ function ensureStyle() {
       font: 12px "Segoe UI", sans-serif;
       display: flex;
       flex-direction: column;
+      flex: 1 1 0%;
+      contain: size;
       overflow: hidden;
       user-select: none;
     }
@@ -3201,9 +3204,10 @@ function ensureStyle() {
       display: grid;
       grid-template-columns: 260px minmax(0, 1fr);
       gap: 8px;
-      flex: 1 1 auto;
-      min-height: 284px;
-      height: 100%;
+      flex: 1 1 0%;
+      min-width: 0;
+      min-height: 0;
+      overflow: hidden;
     }
     .easyuse-anima-aio-node-card {
       min-width: 0;
@@ -3216,14 +3220,14 @@ function ensureStyle() {
       display: flex;
       flex-direction: column;
       min-height: 0;
-      height: 100%;
       overflow: hidden;
     }
     .easyuse-anima-aio-node-settings-scroll {
-      flex: 1 1 auto;
+      flex: 1 1 0%;
       min-height: 0;
       overflow-y: auto;
       overflow-x: hidden;
+      overscroll-behavior: contain;
       padding-right: 4px;
     }
     .easyuse-anima-aio-node-settings-scroll::-webkit-scrollbar {
@@ -3490,8 +3494,8 @@ function ensureStyle() {
     .easyuse-anima-aio-node-preview {
       display: flex;
       flex-direction: column;
-      height: 100%;
       min-height: 0;
+      overflow: hidden;
     }
     .easyuse-anima-aio-node-sampler-actions {
       display: grid;
@@ -3510,14 +3514,11 @@ function ensureStyle() {
       padding-right: 5px;
       text-align: center;
     }
-    .easyuse-anima-aio-node-preview {
-      min-height: 284px;
-    }
     .easyuse-anima-aio-node-preview-box {
       position: relative;
-      flex: 1 1 auto;
+      flex: 1 1 0%;
       height: auto;
-      min-height: 210px;
+      min-height: 0;
       overflow: hidden;
       border: 1px solid #3c4952;
       border-radius: 6px;
@@ -4425,46 +4426,71 @@ function stopGeneratorControlPropagation(root) {
   ]) {
     root.addEventListener(eventName, stop);
   }
-  root.addEventListener("wheel", (event) => {
-    const previewFeed = event.target?.closest?.(".easyuse-anima-aio-node-preview-feed");
-    if (previewFeed && previewFeed.scrollWidth > previewFeed.clientWidth) {
-      event.preventDefault();
-      event.stopPropagation();
-      previewFeed.scrollLeft += event.deltaX || event.deltaY;
-      return;
-    }
-    const scrollArea = event.target?.closest?.(".easyuse-anima-aio-node-settings-scroll");
-    if (scrollArea && scrollArea.scrollHeight > scrollArea.clientHeight) {
-      event.stopPropagation();
-      return;
-    }
-    if (event.target?.closest?.(GENERATOR_PANEL_CONTROL_SELECTOR)) {
-      return;
-    }
-    const canvas = app?.canvas?.canvas;
-    if (!canvas) {
-      return;
-    }
-    event.preventDefault();
-    event.stopPropagation();
-    canvas.dispatchEvent(new WheelEvent("wheel", {
-      bubbles: true,
-      cancelable: true,
-      deltaX: event.deltaX,
-      deltaY: event.deltaY,
-      deltaZ: event.deltaZ,
-      deltaMode: event.deltaMode,
-      clientX: event.clientX,
-      clientY: event.clientY,
-      screenX: event.screenX,
-      screenY: event.screenY,
-      ctrlKey: event.ctrlKey,
-      shiftKey: event.shiftKey,
-      altKey: event.altKey,
-      metaKey: event.metaKey,
-    }));
-  }, { passive: false });
+  // Legacy canvas bubbles DOM-widget wheel events through the panel. Keep this
+  // local guard as a fallback; Node 2.0 still needs the window capture router
+  // installed below because its Vue ancestor can handle wheel first.
+  root.addEventListener("wheel", forwardGeneratorPanelWheel, {
+    capture: true,
+    passive: false,
+  });
   root.__easyuseAnimaAioStopPropagation = true;
+}
+
+function dispatchGeneratorCanvasWheelEvent(sourceEvent) {
+  const canvas = app?.canvas?.canvas;
+  if (!canvas) {
+    return;
+  }
+  const event = new WheelEvent("wheel", {
+    bubbles: true,
+    cancelable: true,
+    view: window,
+    deltaX: sourceEvent.deltaX,
+    deltaY: sourceEvent.deltaY,
+    deltaZ: sourceEvent.deltaZ,
+    deltaMode: sourceEvent.deltaMode,
+    clientX: sourceEvent.clientX,
+    clientY: sourceEvent.clientY,
+    screenX: sourceEvent.screenX,
+    screenY: sourceEvent.screenY,
+    ctrlKey: sourceEvent.ctrlKey,
+    shiftKey: sourceEvent.shiftKey,
+    altKey: sourceEvent.altKey,
+    metaKey: sourceEvent.metaKey,
+  });
+  Object.defineProperty(event, "__easyuseAnimaForwarded", { value: true });
+  canvas.dispatchEvent(event);
+}
+
+function forwardGeneratorPanelWheel(event) {
+  if (event.__easyuseAnimaForwarded) {
+    return false;
+  }
+  const panel = aioPanelFromWheelEvent(event);
+  if (!panel) {
+    return false;
+  }
+  if (consumeAioPanelWheel(event, panel)) {
+    return true;
+  }
+  event.preventDefault();
+  event.stopPropagation();
+  event.stopImmediatePropagation?.();
+  dispatchGeneratorCanvasWheelEvent(event);
+  return true;
+}
+
+function installGeneratorWheelForwarder() {
+  if (window.__easyuseAnimaAioWheelForwarderInstalled) {
+    return;
+  }
+  window.__easyuseAnimaAioWheelForwarderInstalled = true;
+  // Node 2.0 handles wheel on an ancestor of the DOM widget, so ownership must
+  // be decided during window capture before that ancestor can zoom the canvas.
+  window.addEventListener("wheel", forwardGeneratorPanelWheel, {
+    capture: true,
+    passive: false,
+  });
 }
 
 function samplerModeLabel(settingsOrBackend) {
@@ -4499,75 +4525,20 @@ function generatorPanelWidth(node) {
   return Math.max(240, Math.floor((Number(node?.size?.[0]) || GENERATOR_NODE_DEFAULT_WIDTH) - 20));
 }
 
-function generatorPanelWidget(node) {
-  return node?.__easyuseAnimaGeneratorPanelWidget
-    || node?.widgets?.find?.((widget) => widget?.name === GENERATOR_DOM_WIDGET)
-    || null;
-}
-
-function generatorNodeChromeOffset(node) {
-  const widget = generatorPanelWidget(node);
-  const widgetY = Math.max(Number(widget?.last_y) || 0, Number(widget?.y) || 0);
-  return Math.ceil(Math.max(70, widgetY + 12));
-}
-
-function generatorPanelHeight(node) {
-  return Math.max(GENERATOR_PANEL_MIN_HEIGHT, Number(node?.__easyuseAnimaGeneratorPanelHeight) || 0);
-}
-
-function generatorPanelMinHeight(node) {
-  return Math.max(GENERATOR_PANEL_MIN_HEIGHT, Number(node?.__easyuseAnimaGeneratorPanelMinHeight) || 0);
-}
-
-function generatorAvailablePanelHeight(node) {
-  const nodeHeight = Number(node?.size?.[1]) || 0;
-  if (nodeHeight <= 0) {
-    return 0;
-  }
-  return Math.max(0, Math.floor(nodeHeight - generatorNodeChromeOffset(node)));
-}
-
-function measureGeneratorPanelContentHeight(node) {
-  const panel = node?.__easyuseAnimaGeneratorPanelEl;
-  if (!panel) {
-    return GENERATOR_PANEL_MIN_HEIGHT;
-  }
-  const minHeight = GENERATOR_PANEL_MIN_HEIGHT;
-  node.__easyuseAnimaGeneratorPanelMinHeight = minHeight;
-  return minHeight;
-}
-
-function generatorMinimumNodeHeight(node) {
-  return Math.ceil(generatorPanelMinHeight(node) + generatorNodeChromeOffset(node));
-}
-
 function applyGeneratorLayout(node) {
   const panel = node?.__easyuseAnimaGeneratorPanelEl;
-  if (!panel || !node.size || node.__easyuseAnimaGeneratorApplyingLayout) {
+  if (!panel) {
     return;
   }
-  node.__easyuseAnimaGeneratorApplyingLayout = true;
-  try {
-    const width = generatorPanelWidth(node);
-    panel.style.width = `${width}px`;
-    panel.style.maxWidth = `${width}px`;
-    const minPanelHeight = measureGeneratorPanelContentHeight(node);
-    const panelHeight = Math.max(minPanelHeight, generatorAvailablePanelHeight(node));
-    node.__easyuseAnimaGeneratorPanelHeight = panelHeight;
-    panel.style.height = `${panelHeight}px`;
-    const currentWidth = Number(node.size[0]) || GENERATOR_NODE_DEFAULT_WIDTH;
-    const currentHeight = Number(node.size[1]) || 0;
-    const minHeight = generatorMinimumNodeHeight(node);
-    if (currentHeight < minHeight - 1 || currentWidth < GENERATOR_NODE_MIN_WIDTH) {
-      node.setSize?.([
-        Math.max(currentWidth, GENERATOR_NODE_DEFAULT_WIDTH),
-        Math.max(currentHeight, minHeight),
-      ]);
-    }
-    markNodeDirty(node);
-  } finally {
-    node.__easyuseAnimaGeneratorApplyingLayout = false;
-  }
+  const width = generatorPanelWidth(node);
+  panel.style.width = `${width}px`;
+  panel.style.maxWidth = `${width}px`;
+  // ComfyUI owns the node and DOM-widget viewport height. AiO owns only child
+  // content: the settings column scrolls while the preview stays in that host
+  // viewport. Never derive height from node.size or write node.setSize here.
+  panel.style.removeProperty("height");
+  panel.style.removeProperty("max-height");
+  markNodeDirty(node);
 }
 
 function scheduleGeneratorLayout(node) {
@@ -6201,20 +6172,11 @@ function ensureGeneratorPanel(node) {
     const panel = document.createElement("div");
     panel.className = "easyuse-anima-aio-node-panel";
     node.__easyuseAnimaGeneratorPanelEl = panel;
-    const widget = node.addDOMWidget?.(GENERATOR_DOM_WIDGET, "EasyUseAnimaGeneratorPanel", panel, {
+    node.addDOMWidget?.(GENERATOR_DOM_WIDGET, "EasyUseAnimaGeneratorPanel", panel, {
       serialize: false,
       hideOnZoom: false,
-      getMinHeight: () => generatorPanelMinHeight(node),
-      getHeight: () => generatorPanelHeight(node),
+      getMinHeight: () => GENERATOR_PANEL_MIN_HEIGHT,
     });
-    if (widget) {
-      node.__easyuseAnimaGeneratorPanelWidget = widget;
-      widget.computeLayoutSize = () => ({
-        minHeight: generatorPanelMinHeight(node),
-        height: generatorPanelHeight(node),
-        minWidth: GENERATOR_NODE_MIN_WIDTH - 18,
-      });
-    }
   }
   markGeneratorNativeLivePreviewHidden(node);
   renderGeneratorPanel(node);
@@ -8462,6 +8424,7 @@ app.registerExtension({
   name: "easyuse-anima.aio",
   async setup() {
     ensureStyle();
+    installGeneratorWheelForwarder();
     installGeneratorQueuePromptHook();
     easyuseAnimaWatchLocale(refreshGeneratorPanels);
     api.addEventListener(GENERATOR_PREVIEW_EVENT, handleGeneratorPreviewEvent);
