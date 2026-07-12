@@ -46,7 +46,7 @@ Registry-facing integration defaults:
 | Wildcards | Expands wildcard text with Impact Pack style syntax, sequential selection, and `__wildcard__` autocomplete. |
 | LoRA presets | Stores style prompts and LoRA stacks as profiles, with trigger-word and LoRA metadata management. |
 | Compatibility helpers | Aligns detailer crop sizes to safe multiples and scales images to valid Highres-friendly dimensions. |
-| AiO generation | Combines model selection, first-pass sampling, Highres, Detailer, Preview, and Save through `Easy Use Anima Input` and `Anima AiO Generator`. |
+| AiO generation | Combines model selection, generation profiles, first-pass sampling, Highres, Detailer, Preview, and Save through `Easy Use Anima Input` and `Anima AiO Generator`. |
 
 ## Demo Videos
 

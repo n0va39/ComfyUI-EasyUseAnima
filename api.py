@@ -40,6 +40,25 @@ LORA_PREVIEW_EXTENSIONS = (".webp", ".png", ".jpg", ".jpeg")
 LORA_PROFILE_DIR = USER_DATA_DIR / "profiles"
 MAX_LORA_PROFILES = 16
 INVALID_PROFILE_NAME_CHARS = re.compile(r'[<>:"/\\|?*\x00-\x1f]+')
+AIO_PROFILE_DIR = USER_DATA_DIR / "aio_profiles"
+MAX_AIO_PROFILES = 64
+MAX_AIO_PROFILE_BYTES = 1024 * 1024
+AIO_RESERVED_PROFILE_NAMES = {
+    "normal",
+    "turbo",
+    "optimized",
+    "custom",
+    "일반",
+    "터보",
+    "최적화",
+    "커스텀",
+    "通常",
+    "最適化",
+    "カスタム",
+    "普通",
+    "优化",
+    "自定义",
+}
 
 
 def _sanitize_lora_profile_name(name: str) -> str:
@@ -322,6 +341,121 @@ def _load_lora_profile(name: str) -> dict:
     return payload
 
 
+def _sanitize_aio_profile_name(name: str) -> str:
+    safe_name = INVALID_PROFILE_NAME_CHARS.sub("_", str(name or "")).strip(" ._")
+    if not safe_name:
+        raise ValueError("Profile name is required")
+    safe_name = safe_name[:80]
+    if safe_name.casefold() in {item.casefold() for item in AIO_RESERVED_PROFILE_NAMES}:
+        raise ValueError("System profile names are reserved")
+    return safe_name
+
+
+def _aio_profile_path(name: str, profile_dir: Path | None = None) -> Path:
+    safe_name = _sanitize_aio_profile_name(name)
+    root = (profile_dir or AIO_PROFILE_DIR).resolve()
+    path = (root / f"{safe_name}.json").resolve()
+    if os.path.commonpath((str(root), str(path))) != str(root):
+        raise ValueError("Invalid profile path")
+    return path
+
+
+def _find_aio_profile_path(name: str, profile_dir: Path | None = None) -> Path | None:
+    safe_name = _sanitize_aio_profile_name(name)
+    root = profile_dir or AIO_PROFILE_DIR
+    if not root.is_dir():
+        return None
+    expected = safe_name.casefold()
+    return next(
+        (path for path in root.glob("*.json") if path.stem.casefold() == expected),
+        None,
+    )
+
+
+def _normalize_aio_profile_payload(name: str, data: dict) -> dict:
+    safe_name = _sanitize_aio_profile_name(name)
+    settings = data.get("settings") if isinstance(data, dict) else None
+    if not isinstance(settings, dict):
+        raise ValueError("Profile settings must be an object")
+    payload = {
+        "version": 1,
+        "name": safe_name,
+        "settings": settings,
+    }
+    encoded = json.dumps(payload, ensure_ascii=False, indent=2)
+    if len(encoded.encode("utf-8")) > MAX_AIO_PROFILE_BYTES:
+        raise ValueError("Profile settings are too large")
+    return payload
+
+
+def _list_aio_profiles(profile_dir: Path | None = None) -> list[dict]:
+    root = profile_dir or AIO_PROFILE_DIR
+    if not root.is_dir():
+        return []
+    return [
+        {
+            "name": path.stem,
+            "modified": int(path.stat().st_mtime),
+        }
+        for path in sorted(root.glob("*.json"), key=lambda item: item.stem.casefold())
+    ]
+
+
+def _save_aio_profile(name: str, data: dict, *, overwrite: bool = False) -> dict:
+    payload = _normalize_aio_profile_payload(name, data)
+    AIO_PROFILE_DIR.mkdir(parents=True, exist_ok=True)
+    existing = _find_aio_profile_path(payload["name"])
+    if existing is not None and not overwrite:
+        raise FileExistsError("Profile already exists")
+    if existing is None and len(_list_aio_profiles()) >= MAX_AIO_PROFILES:
+        raise ValueError(f"A maximum of {MAX_AIO_PROFILES} profiles can be saved")
+    path = existing or _aio_profile_path(payload["name"])
+    payload["name"] = path.stem
+    path.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
+    return payload
+
+
+def _load_aio_profile(name: str) -> dict:
+    path = _find_aio_profile_path(name)
+    if path is None or not path.is_file():
+        raise FileNotFoundError("Profile not found")
+    try:
+        data = json.loads(path.read_text(encoding="utf-8") or "{}")
+    except json.JSONDecodeError as exc:
+        raise ValueError("Profile data is invalid") from exc
+    return _normalize_aio_profile_payload(path.stem, data if isinstance(data, dict) else {})
+
+
+def _delete_aio_profile(name: str) -> dict:
+    path = _find_aio_profile_path(name)
+    if path is None or not path.is_file():
+        raise FileNotFoundError("Profile not found")
+    deleted_name = path.stem
+    path.unlink()
+    return {"name": deleted_name}
+
+
+def _rename_aio_profile(old_name: str, new_name: str, *, overwrite: bool = False) -> dict:
+    source = _find_aio_profile_path(old_name)
+    if source is None or not source.is_file():
+        raise FileNotFoundError("Profile not found")
+    safe_new_name = _sanitize_aio_profile_name(new_name)
+    if source.stem.casefold() == safe_new_name.casefold():
+        return _load_aio_profile(source.stem)
+
+    target = _find_aio_profile_path(safe_new_name)
+    if target is not None and not overwrite:
+        raise FileExistsError("Profile already exists")
+
+    payload = _load_aio_profile(source.stem)
+    payload["name"] = safe_new_name
+    target_path = target or _aio_profile_path(safe_new_name)
+    target_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
+    source.unlink()
+    payload["name"] = target_path.stem
+    return payload
+
+
 def _resolve_lora_preview_path(lora_name: str):
     try:
         import folder_paths  # type: ignore
@@ -513,6 +647,63 @@ if web is not None and routes is not None:
     async def load_lora_profile_handler(request):
         try:
             payload = _load_lora_profile(request.query.get("name", ""))
+        except ValueError as exc:
+            return web.json_response({"status": "error", "message": str(exc)}, status=400)
+        except FileNotFoundError as exc:
+            return web.json_response({"status": "error", "message": str(exc)}, status=404)
+        return web.json_response({"status": "ok", "profile": payload})
+
+    @routes.get("/easyuse_anima/aio_profiles")
+    async def aio_profiles_handler(request):
+        return web.json_response({"status": "ok", "profiles": _list_aio_profiles()})
+
+    @routes.post("/easyuse_anima/aio_profiles/save")
+    async def save_aio_profile_handler(request):
+        data = await request.json()
+        try:
+            payload = _save_aio_profile(
+                str(data.get("name") or ""),
+                data,
+                overwrite=bool(data.get("overwrite", False)),
+            )
+        except FileExistsError as exc:
+            return web.json_response({"status": "error", "message": str(exc)}, status=409)
+        except ValueError as exc:
+            return web.json_response({"status": "error", "message": str(exc)}, status=400)
+        return web.json_response({"status": "ok", "profile": payload})
+
+    @routes.get("/easyuse_anima/aio_profiles/load")
+    async def load_aio_profile_handler(request):
+        try:
+            payload = _load_aio_profile(request.query.get("name", ""))
+        except ValueError as exc:
+            return web.json_response({"status": "error", "message": str(exc)}, status=400)
+        except FileNotFoundError as exc:
+            return web.json_response({"status": "error", "message": str(exc)}, status=404)
+        return web.json_response({"status": "ok", "profile": payload})
+
+    @routes.post("/easyuse_anima/aio_profiles/delete")
+    async def delete_aio_profile_handler(request):
+        data = await request.json()
+        try:
+            payload = _delete_aio_profile(str(data.get("name") or ""))
+        except ValueError as exc:
+            return web.json_response({"status": "error", "message": str(exc)}, status=400)
+        except FileNotFoundError as exc:
+            return web.json_response({"status": "error", "message": str(exc)}, status=404)
+        return web.json_response({"status": "ok", "profile": payload})
+
+    @routes.post("/easyuse_anima/aio_profiles/rename")
+    async def rename_aio_profile_handler(request):
+        data = await request.json()
+        try:
+            payload = _rename_aio_profile(
+                str(data.get("old_name") or ""),
+                str(data.get("new_name") or ""),
+                overwrite=bool(data.get("overwrite", False)),
+            )
+        except FileExistsError as exc:
+            return web.json_response({"status": "error", "message": str(exc)}, status=409)
         except ValueError as exc:
             return web.json_response({"status": "error", "message": str(exc)}, status=400)
         except FileNotFoundError as exc:

@@ -258,6 +258,7 @@ class FrontendModuleStructureTests(unittest.TestCase):
             "addAdvancedField",
             "createAdvancedFieldElement",
             "createAdvancedPane",
+            "remeasureAdvancedTextareaHeightsForWidth",
             "setAdvancedTextareaHeight",
         ):
             with self.subTest(module="advanced_fields_ui", symbol=name):
@@ -332,6 +333,7 @@ class FrontendModuleStructureTests(unittest.TestCase):
 
         for name in (
             "forwardAdvancedWheelToCanvas",
+            "installAdvancedWheelForwarder",
             "installMiddlePanForwarder",
         ):
             with self.subTest(module="canvas_forwarding", symbol=name):
@@ -465,13 +467,10 @@ class FrontendModuleStructureTests(unittest.TestCase):
                 self.assertIn(f"  {name},", widgets_source)
 
         for name in (
-            "advancedEditorMinimumHeight",
-            "advancedEditorWidgetHeight",
-            "advancedMinimumNodeHeight",
+            "advancedEditorWidth",
             "advancedTextareaContentHeight",
             "advancedTextareaCurrentHeight",
             "advancedTextareaMinimumHeight",
-            "clampAdvancedNodeToMinimumHeight",
             "updateAdvancedEditorWidth",
         ):
             with self.subTest(module="layout", symbol=name):
@@ -480,8 +479,10 @@ class FrontendModuleStructureTests(unittest.TestCase):
         for name in (
             "applyAdvancedLayout",
             "clearAdvancedResizeEndListeners",
+            "disconnectAdvancedEditorWidthObserver",
             "finalizeAdvancedResize",
             "installAdvancedResizeEndListeners",
+            "observeAdvancedEditorWidth",
             "scheduleAdvancedLayout",
             "scheduleAdvancedResizeFinalize",
         ):
@@ -563,11 +564,12 @@ class FrontendModuleStructureTests(unittest.TestCase):
                 self.assertIn(f"  {name},", textarea_source)
 
         for name in (
+            "advancedEditorFromWheelEvent",
             "advancedEditorMaxScrollTop",
-            "canAdvancedEditorScrollWheelDelta",
+            "advancedWheelDeltaPixels",
+            "consumeAdvancedEditorWheel",
             "guardAdvancedEditorNativeControlEvent",
             "isMiddlePanExcludedTarget",
-            "shouldKeepAdvancedWheelEvent",
         ):
             with self.subTest(module="wheel", symbol=name):
                 self.assertIn(f"  {name},", wheel_source)
@@ -605,6 +607,166 @@ class FrontendModuleStructureTests(unittest.TestCase):
         ):
             with self.subTest(module="extension_runtime", symbol=name):
                 self.assertIn(f"  {name},", extension_runtime_source)
+
+    def test_advanced_width_reflow_grows_content_without_owning_node_height(self):
+        controller_source = (PROMPT_STUDIO_MODULES / "advanced_layout_controller.js").read_text(
+            encoding="utf-8"
+        )
+        fields_ui_source = (PROMPT_STUDIO_MODULES / "advanced_fields_ui.js").read_text(
+            encoding="utf-8"
+        )
+        runtime_source = (PROMPT_STUDIO_MODULES / "extension_runtime.js").read_text(
+            encoding="utf-8"
+        )
+
+        remeasure_start = fields_ui_source.index(
+            "function remeasureAdvancedTextareaHeightsForWidth"
+        )
+        remeasure_end = fields_ui_source.index(
+            "\nfunction createAdvancedFieldElement", remeasure_start
+        )
+        remeasure_body = fields_ui_source[remeasure_start:remeasure_end]
+
+        self.assertIn("new ResizeObserver", controller_source)
+        self.assertIn("advancedEditorClientWidth(editor)", controller_source)
+        self.assertIn("scheduleAdvancedWidthRemeasure(node, hooks)", controller_source)
+        self.assertIn(
+            "hooks.remeasureAdvancedTextareaHeightsForWidth?.(node)",
+            controller_source,
+        )
+        self.assertIn('scheduleAdvancedLayout(node, "width", hooks)', controller_source)
+        self.assertIn("ADVANCED_RESIZE_SETTLE_DELAY", controller_source)
+        self.assertIn("width: 2", controller_source)
+        self.assertIn('reason !== "width"', controller_source)
+        self.assertNotIn("scheduleAdvancedScrollbarRemeasure", controller_source)
+        self.assertNotIn("advancedEditorLayoutMetricsChanged", controller_source)
+
+        self.assertIn(
+            'querySelectorAll("textarea[data-easyuse-anima-advanced-field-id]")',
+            remeasure_body,
+        )
+        self.assertIn("advancedTextareaCurrentHeight(textarea)", remeasure_body)
+        self.assertIn("setAdvancedTextareaHeight(", remeasure_body)
+        self.assertIn("if (nextHeight >", remeasure_body)
+        self.assertNotIn("field.heightMode =", remeasure_body)
+        self.assertIn(
+            "hooks.writeAdvancedFields?.(node, fields, { syncInputs: false })",
+            remeasure_body,
+        )
+        self.assertIn("remeasureAdvancedTextareaHeightsForWidth,", runtime_source)
+
+        advanced_node_ui_source = (
+            PROMPT_STUDIO_MODULES / "advanced_node_ui.js"
+        ).read_text(encoding="utf-8")
+        node_hooks_source = (PROMPT_STUDIO_MODULES / "node_hooks.js").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn("observeAdvancedEditorWidth(node);", advanced_node_ui_source)
+        self.assertIn("disconnectAdvancedEditorWidthObserver?.(this);", node_hooks_source)
+
+    def test_advanced_editor_scrollbar_exclusively_owns_wheel_events(self):
+        wheel_source = (PROMPT_STUDIO_MODULES / "wheel.js").read_text(
+            encoding="utf-8"
+        )
+        forwarding_source = (PROMPT_STUDIO_MODULES / "canvas_forwarding.js").read_text(
+            encoding="utf-8"
+        )
+        advanced_node_ui_source = (
+            PROMPT_STUDIO_MODULES / "advanced_node_ui.js"
+        ).read_text(encoding="utf-8")
+        runtime_source = (PROMPT_STUDIO_MODULES / "extension_runtime.js").read_text(
+            encoding="utf-8"
+        )
+        consume_start = wheel_source.index("function consumeAdvancedEditorWheel")
+        consume_end = wheel_source.index("\nexport {", consume_start)
+        consume_body = wheel_source[consume_start:consume_end]
+        forward_start = forwarding_source.index("function forwardAdvancedWheelToCanvas")
+        forward_end = forwarding_source.index("\nfunction installAdvancedWheelForwarder", forward_start)
+        forward_body = forwarding_source[forward_start:forward_end]
+        install_start = forwarding_source.index("function installAdvancedWheelForwarder")
+        install_end = forwarding_source.index("\nfunction installMiddlePanForwarder", install_start)
+        install_body = forwarding_source[install_start:install_end]
+
+        self.assertIn("if (maxScrollTop <= 1)", consume_body)
+        self.assertIn("event.preventDefault?.()", consume_body)
+        self.assertIn("event.stopPropagation?.()", consume_body)
+        self.assertIn("event.stopImmediatePropagation?.()", consume_body)
+        self.assertIn("editor.scrollTop = nextScrollTop", consume_body)
+        self.assertIn("return true", consume_body)
+        self.assertNotIn("canAdvancedEditorScrollWheelDelta", wheel_source)
+        self.assertNotIn("shouldKeepAdvancedWheelEvent", wheel_source)
+
+        consume_call = "if (consumeAdvancedEditorWheel(event, editor))"
+        self.assertIn("advancedEditorFromWheelEvent(event)", forward_body)
+        self.assertIn(consume_call, forward_body)
+        self.assertLess(
+            forward_body.index(consume_call),
+            forward_body.index("dispatchCanvasWheelEvent(event)"),
+        )
+        self.assertIn(
+            'hostWindow.addEventListener("wheel", forwardAdvancedWheelToCanvas',
+            install_body,
+        )
+        self.assertIn("capture: true", install_body)
+        self.assertIn("passive: false", install_body)
+        self.assertNotIn('editor.addEventListener("wheel"', advanced_node_ui_source)
+        self.assertIn("installAdvancedWheelForwarder();", runtime_source)
+
+    def test_advanced_dom_widget_height_is_host_owned(self):
+        advanced_node_ui_source = (
+            PROMPT_STUDIO_MODULES / "advanced_node_ui.js"
+        ).read_text(encoding="utf-8")
+        layout_source = (PROMPT_STUDIO_MODULES / "layout.js").read_text(
+            encoding="utf-8"
+        )
+        controller_source = (
+            PROMPT_STUDIO_MODULES / "advanced_layout_controller.js"
+        ).read_text(encoding="utf-8")
+        style_source = (PROMPT_STUDIO_MODULES / "style.js").read_text(
+            encoding="utf-8"
+        )
+
+        self.assertIn(
+            "getMinHeight: () => ADVANCED_EDITOR_MIN_VIEWPORT_HEIGHT",
+            advanced_node_ui_source,
+        )
+        self.assertNotIn("getHeight:", advanced_node_ui_source)
+        self.assertNotIn("widget.computeLayoutSize =", advanced_node_ui_source)
+        self.assertNotRegex(
+            advanced_node_ui_source + layout_source + controller_source,
+            r"\.computedHeight\s*=",
+        )
+
+        for forbidden in (
+            "advancedAvailableEditorViewportHeight",
+            "advancedEditorWidgetHeight",
+            "advancedMinimumNodeHeight",
+            "advancedNodeChromeOffset",
+            "clampAdvancedNodeToMinimumHeight",
+        ):
+            with self.subTest(forbidden=forbidden):
+                self.assertNotIn(forbidden, layout_source)
+                self.assertNotIn(forbidden, controller_source)
+
+        self.assertNotIn("node.setSize(", controller_source)
+        self.assertNotIn("node.setSize?.(", controller_source)
+        self.assertNotRegex(
+            controller_source,
+            r"editor\.style\.(?:height|maxHeight)\s*=",
+        )
+
+        editor_style_start = style_source.index(
+            ".easyuse-anima-advanced-editor {"
+        )
+        editor_style_end = style_source.index("\n    }", editor_style_start)
+        editor_style = style_source[editor_style_start:editor_style_end]
+        self.assertIn(
+            "min-height: ${ADVANCED_EDITOR_MIN_VIEWPORT_HEIGHT}px;",
+            editor_style,
+        )
+        self.assertIn("flex: 1 1 0%;", editor_style)
+        self.assertIn("contain: size;", editor_style)
+        self.assertIn("overflow-y: auto;", editor_style)
 
     def test_prompt_studio_phase_3_typedefs_are_documented(self):
         types_source = (PROMPT_STUDIO_MODULES / "types.js").read_text(

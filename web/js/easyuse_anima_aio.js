@@ -2,11 +2,21 @@ import { app } from "../../../scripts/app.js";
 import { api } from "../../../scripts/api.js";
 import { easyuseAnimaFetchComfyJson, easyuseAnimaFetchText } from "./easyuse_anima_api.js";
 import { easyuseAnimaText, easyuseAnimaWatchLocale } from "./easyuse_anima_i18n.js";
+import { aioPanelFromWheelEvent, consumeAioPanelWheel } from "./aio/wheel.js";
+import {
+  aioBuiltinProfileIdForSettings,
+  aioBuiltinProfileIds,
+  aioBuiltinProfileSettings,
+  aioProfileSettingsFingerprint,
+  aioUserProfileName,
+  aioUserProfileValue,
+} from "./aio/presets.js";
 
 const INPUT_NODE_TYPE = "EasyUseAnimaInput";
 const GENERATOR_NODE_TYPE = "EasyUseAnimaAIOGenerator";
 const INPUT_SETTINGS_WIDGET = "input_settings";
 const GENERATOR_SETTINGS_WIDGET = "generation_settings";
+const GENERATOR_PROFILE_CUSTOM_VALUE = "custom";
 const GENERATOR_DOM_WIDGET = "easyuse_anima_generator_panel";
 const GENERATOR_PREVIEW_EVENT = "easyuse-anima-aio-preview";
 const GENERATOR_DENOISE_PREVIEW_NODE_KEYS = [
@@ -641,6 +651,21 @@ const AIO_TEXT = {
     "label.image": "image",
     "label.resolution": "resolution",
     "label.fileSize": "file size",
+    "profile.groupBuiltIn": "Built-in profiles",
+    "profile.groupUser": "User profiles",
+    "profile.normal": "Normal",
+    "profile.turbo": "Turbo",
+    "profile.optimized": "Optimized",
+    "profile.custom": "Custom",
+    "profile.selectTip": "Choose a generation profile. Applying a profile replaces the node's complete generation settings.",
+    "dialog.profile.title": "Generation Profiles",
+    "dialog.profile.subtitle": "Choose a built-in profile or manage complete user setting snapshots.",
+    "profile.savePrompt": "Save the current AiO settings as a user profile:",
+    "profile.renamePrompt": "Rename the selected user profile:",
+    "profile.overwriteConfirm": "A user profile named {name} already exists. Overwrite it?",
+    "profile.deleteConfirm": "Delete the user profile {name}?",
+    "profile.nameRequired": "Enter a profile name.",
+    "profile.requestFailed": "Profile operation failed: {message}",
     "dialog.input.title": "Easy Use Anima Input Settings",
     "dialog.input.subtitle": "Advanced resource options are saved internally with the workflow.",
     "dialog.sampler.title": "Sampler Details",
@@ -847,6 +872,10 @@ const AIO_TEXT = {
     "button.addHashBundle": "+ Add Hash Fetcher Bundle",
     "button.addCivitaiFetcher": "+ Add Civitai Hash Fetcher",
     "button.remove": "Remove",
+    "button.profileApply": "Apply",
+    "button.profileSave": "Save",
+    "button.profileRename": "Rename",
+    "button.profileDelete": "Delete",
     "text.previewTitle": "Generated Image Preview",
     "text.previewSubtitle": "Preview slot is reserved for this node output.",
     "text.previewOptionsSubtitle": "Preview settings control only this node UI. They do not change saved image metadata.",
@@ -952,6 +981,21 @@ const AIO_TEXT = {
     "label.image": "이미지",
     "label.resolution": "해상도",
     "label.fileSize": "저장용량",
+    "profile.groupBuiltIn": "기본 프로필",
+    "profile.groupUser": "사용자 프로필",
+    "profile.normal": "일반",
+    "profile.turbo": "터보",
+    "profile.optimized": "최적화",
+    "profile.custom": "커스텀",
+    "profile.selectTip": "생성 프로필을 선택합니다. 프로필 적용 시 노드의 전체 생성 설정이 교체됩니다.",
+    "dialog.profile.title": "생성 프로필",
+    "dialog.profile.subtitle": "기본 프로필을 선택하거나 전체 설정을 저장한 사용자 프로필을 관리합니다.",
+    "profile.savePrompt": "현재 AiO 설정을 사용자 프로필로 저장합니다:",
+    "profile.renamePrompt": "선택한 사용자 프로필의 새 이름을 입력합니다:",
+    "profile.overwriteConfirm": "{name} 사용자 프로필이 이미 있습니다. 덮어쓸까요?",
+    "profile.deleteConfirm": "{name} 사용자 프로필을 삭제할까요?",
+    "profile.nameRequired": "프로필 이름을 입력하세요.",
+    "profile.requestFailed": "프로필 작업 실패: {message}",
     "dialog.input.title": "Easy Use Anima Input 설정",
     "dialog.input.subtitle": "고급 리소스 옵션은 워크플로우 내부 설정으로 저장됩니다.",
     "dialog.sampler.title": "샘플러 상세 설정",
@@ -1158,6 +1202,10 @@ const AIO_TEXT = {
     "button.addHashBundle": "+ Hash Fetcher 묶음 추가",
     "button.addCivitaiFetcher": "+ Civitai Hash Fetcher 추가",
     "button.remove": "삭제",
+    "button.profileApply": "적용",
+    "button.profileSave": "저장",
+    "button.profileRename": "이름 변경",
+    "button.profileDelete": "삭제",
     "text.previewTitle": "생성 이미지 미리보기",
     "text.previewSubtitle": "이 노드 출력 전용 미리보기 영역입니다.",
     "text.previewOptionsSubtitle": "프리뷰 설정은 이 노드 UI에만 적용됩니다. 저장 이미지 메타데이터는 바꾸지 않습니다.",
@@ -1436,6 +1484,10 @@ const AIO_TOOLTIP_TEXT = {
     "tip.torchCompileVram": "Disables ComfyUI dynamic VRAM handling around compiled model execution when enabled.",
     "tip.samplerBackend": "Selects the actual first-pass execution path. Model patches selected in Advanced Options are applied before this backend runs. SPD/SPEED is Euler-only, so its sampler is normalized to euler.",
     "warning.optionalDependencyMissing": "{backend} is locked because {pack} is not installed.",
+    "info.optionalDependency.title": "EasyUseAnima AiO dependency check",
+    "info.optionalDependency.complete": "Available: {available}/{total}.",
+    "info.optionalDependency.missing": "Missing: {items}. Related features will be disabled or changed before queueing.",
+    "info.optionalDependency.error": "Query failed: {items}. Settings were kept unchanged and will be checked again before queueing.",
     "tip.modMode": "Controls whether Mod Guidance follows prompt_data, is forced on, or is disabled.",
     "tip.modProfile": "Preset layer profile for Anima Mod Guidance. Off disables Mod Guidance even when prompt_data asks for it.",
     "tip.modAdapter": "Adapter name passed to Spectrum Mod Guidance. Auto-download default uses the node pack default adapter.",
@@ -1542,6 +1594,10 @@ const AIO_TOOLTIP_TEXT = {
     "tip.torchCompileVram": "켜면 compiled model 실행 중 ComfyUI dynamic VRAM 처리를 끕니다.",
     "tip.samplerBackend": "실제 1차 샘플링 경로를 선택합니다. Advanced Options에서 선택한 모델 패치는 이 백엔드 실행 전에 적용됩니다. SPD/SPEED는 Euler 전용이라 내부 sampler는 euler로 정규화됩니다.",
     "warning.optionalDependencyMissing": "{pack}이 설치되지 않아 {backend} 옵션을 잠갔습니다.",
+    "info.optionalDependency.title": "EasyUseAnima AiO 의존성 조회",
+    "info.optionalDependency.complete": "사용 가능: {available}/{total}.",
+    "info.optionalDependency.missing": "미설치: {items}. 관련 기능은 큐 실행 전에 비활성화되거나 대체됩니다.",
+    "info.optionalDependency.error": "조회 실패: {items}. 설정을 변경하지 않았으며 다음 큐 실행 전에 다시 조회합니다.",
     "tip.modMode": "Mod Guidance를 prompt_data에 따르게 할지, 강제로 켤지, 끌지 정합니다.",
     "tip.modProfile": "Anima Mod Guidance 레이어 프리셋입니다. off는 prompt_data가 켜져 있어도 Mod Guidance를 비활성화합니다.",
     "tip.modAdapter": "Spectrum Mod Guidance에 전달할 adapter입니다. auto-download default는 노드팩 기본 adapter를 사용합니다.",
@@ -1648,6 +1704,10 @@ const AIO_TOOLTIP_TEXT = {
     "tip.torchCompileVram": "有効時、compiled model 実行中の ComfyUI dynamic VRAM 処理を無効化します。",
     "tip.samplerBackend": "一回目の実行経路を選択します。Advanced Options で選んだ model patch は、この backend 実行前に適用されます。SPD/SPEED は Euler 専用のため、sampler は内部で euler に正規化されます。",
     "warning.optionalDependencyMissing": "{pack} が未インストールのため {backend} をロックしました。",
+    "info.optionalDependency.title": "EasyUseAnima AiO 依存関係チェック",
+    "info.optionalDependency.complete": "利用可能: {available}/{total}。",
+    "info.optionalDependency.missing": "未インストール: {items}。関連機能はキュー実行前に無効化または変更されます。",
+    "info.optionalDependency.error": "照会失敗: {items}。設定は変更せず、次回のキュー実行前に再確認します。",
     "tip.modMode": "Mod Guidance を prompt_data に従わせるか、強制有効または無効にするかを選択します。",
     "tip.modProfile": "Anima Mod Guidance の layer profile です。off は prompt_data が有効でも Mod Guidance を無効化します。",
     "tip.modAdapter": "Spectrum Mod Guidance に渡す adapter です。auto-download default は node pack の既定 adapter を使います。",
@@ -1745,6 +1805,10 @@ const AIO_TOOLTIP_TEXT = {
     "tip.torchCompileVram": "启用后，在 compiled model 执行期间关闭 ComfyUI dynamic VRAM 处理。",
     "tip.samplerBackend": "选择第一次采样的实际执行路径。Advanced Options 中选择的 model patch 会在此 backend 执行前应用。SPD/SPEED 仅支持 Euler，因此内部 sampler 会规范化为 euler。",
     "warning.optionalDependencyMissing": "{pack} 未安装，因此已锁定 {backend} 选项。",
+    "info.optionalDependency.title": "EasyUseAnima AiO 依赖项检查",
+    "info.optionalDependency.complete": "可用: {available}/{total}。",
+    "info.optionalDependency.missing": "未安装: {items}。相关功能将在加入队列前被禁用或替换。",
+    "info.optionalDependency.error": "查询失败: {items}。设置未被修改，并将在下次加入队列前重新检查。",
     "tip.modMode": "选择 Mod Guidance 跟随 prompt_data、强制开启或关闭。",
     "tip.modProfile": "Anima Mod Guidance layer profile。off 会禁用 Mod Guidance，即使 prompt_data 要求启用。",
     "tip.modAdapter": "传给 Spectrum Mod Guidance 的 adapter。auto-download default 使用节点包默认 adapter。",
@@ -2247,7 +2311,15 @@ const generatorOptionalDependencyState = {
   loaded: false,
   loading: null,
   available: {},
+  status: {},
   nodeInfo: {},
+  errors: {},
+  reportedSignature: "",
+};
+const generatorProfileState = {
+  loaded: false,
+  loading: null,
+  profiles: [],
 };
 
 function uniqueStrings(values) {
@@ -2313,44 +2385,119 @@ function loadGeneratorSamplerOptions() {
 
 async function fetchGeneratorOptionalDependencies() {
   const next = {};
+  const nextStatus = {};
   const nextInfo = {};
+  const nextErrors = {};
   for (const [key, spec] of Object.entries(GENERATOR_OPTIONAL_DEPENDENCY_SPECS)) {
     try {
       const data = await easyuseAnimaFetchComfyJson(api, `/object_info/${encodeURIComponent(spec.nodeId)}`);
       const info = data?.[spec.nodeId] || null;
       next[key] = !!info;
+      nextStatus[key] = info ? "available" : "missing";
       nextInfo[key] = info;
-    } catch {
-      next[key] = false;
+    } catch (error) {
+      nextStatus[key] = "error";
       nextInfo[key] = null;
+      nextErrors[key] = error instanceof Error ? error.message : String(error || "Unknown error");
     }
   }
   generatorOptionalDependencyState.available = next;
+  generatorOptionalDependencyState.status = nextStatus;
   generatorOptionalDependencyState.nodeInfo = nextInfo;
+  generatorOptionalDependencyState.errors = nextErrors;
 }
 
-function loadGeneratorOptionalDependencies() {
-  if (generatorOptionalDependencyState.loaded) {
+function optionalDependencyResultLabel(key) {
+  const spec = GENERATOR_OPTIONAL_DEPENDENCY_SPECS[key];
+  return spec ? `${spec.nodeId} (${spec.pack})` : key;
+}
+
+function reportGeneratorOptionalDependencyStatus() {
+  const rows = Object.entries(GENERATOR_OPTIONAL_DEPENDENCY_SPECS).map(([key, spec]) => ({
+    key,
+    node: spec.nodeId,
+    pack: spec.pack,
+    status: generatorOptionalDependencyState.status[key] || "error",
+    error: generatorOptionalDependencyState.errors[key] || "",
+  }));
+  const available = rows.filter((row) => row.status === "available");
+  const missing = rows.filter((row) => row.status === "missing");
+  const failed = rows.filter((row) => row.status === "error");
+  console.info("[EasyUseAnima] AiO optional dependency query result", rows);
+
+  const details = [aioFormat("info.optionalDependency.complete", {
+    available: available.length,
+    total: rows.length,
+  })];
+  if (missing.length) {
+    details.push(aioFormat("info.optionalDependency.missing", {
+      items: missing.map((row) => optionalDependencyResultLabel(row.key)).join(", "),
+    }));
+  }
+  if (failed.length) {
+    details.push(aioFormat("info.optionalDependency.error", {
+      items: failed.map((row) => optionalDependencyResultLabel(row.key)).join(", "),
+    }));
+  }
+
+  const signature = rows.map((row) => `${row.key}:${row.status}:${row.error}`).join("|");
+  if (signature === generatorOptionalDependencyState.reportedSignature) {
+    return;
+  }
+  generatorOptionalDependencyState.reportedSignature = signature;
+  const summary = aioText("info.optionalDependency.title");
+  const detail = details.join(" ");
+  const toast = app?.extensionManager?.toast;
+  if (typeof toast?.add === "function") {
+    toast.add({
+      severity: failed.length ? "warn" : "info",
+      summary,
+      detail,
+      life: failed.length || missing.length ? 10000 : 5000,
+    });
+  } else if (typeof app?.ui?.dialog?.show === "function") {
+    app.ui.dialog.show(`${summary}\n${detail}`);
+  }
+}
+
+function loadGeneratorOptionalDependencies({ retryErrors = false } = {}) {
+  const hasQueryErrors = Object.values(generatorOptionalDependencyState.status).includes("error");
+  if (generatorOptionalDependencyState.loaded && (!retryErrors || !hasQueryErrors)) {
     return Promise.resolve(generatorOptionalDependencyState);
   }
   if (!generatorOptionalDependencyState.loading) {
     generatorOptionalDependencyState.loading = fetchGeneratorOptionalDependencies()
       .catch((error) => {
         console.warn("[EasyUseAnima] Failed to load optional dependency status.", error);
+        const message = error instanceof Error ? error.message : String(error || "Unknown error");
+        generatorOptionalDependencyState.status = Object.fromEntries(
+          Object.keys(GENERATOR_OPTIONAL_DEPENDENCY_SPECS).map((key) => [key, "error"]),
+        );
+        generatorOptionalDependencyState.errors = Object.fromEntries(
+          Object.keys(GENERATOR_OPTIONAL_DEPENDENCY_SPECS).map((key) => [key, message]),
+        );
+      })
+      .then(() => {
+        generatorOptionalDependencyState.loaded = true;
+        reportGeneratorOptionalDependencyStatus();
+        return generatorOptionalDependencyState;
       })
       .finally(() => {
-        generatorOptionalDependencyState.loaded = true;
-      })
-      .then(() => generatorOptionalDependencyState);
+        generatorOptionalDependencyState.loading = null;
+      });
   }
   return generatorOptionalDependencyState.loading;
 }
 
-function optionalDependencyAvailable(key) {
+function optionalDependencyStatus(key) {
   if (!key || !generatorOptionalDependencyState.loaded) {
-    return true;
+    return "unknown";
   }
-  return !!generatorOptionalDependencyState.available[key];
+  return generatorOptionalDependencyState.status[key] || "unknown";
+}
+
+function optionalDependencyAvailable(key) {
+  return optionalDependencyStatus(key) !== "missing";
 }
 
 function backendDependencyMissing(backend) {
@@ -2406,10 +2553,11 @@ function nodeInputChoiceOptions(dependencyKey, inputName, current, fallback = []
 }
 
 function nodeInputSupported(dependencyKey, inputName) {
-  if (!generatorOptionalDependencyState.loaded) {
+  const status = optionalDependencyStatus(dependencyKey);
+  if (status === "unknown" || status === "error") {
     return true;
   }
-  if (!optionalDependencyAvailable(dependencyKey)) {
+  if (status === "missing") {
     return false;
   }
   return !!nodeInputSpec(dependencyKey, inputName);
@@ -2612,6 +2760,317 @@ function refreshGeneratorPanels() {
   for (const node of generatorGraphNodes()) {
     renderGeneratorPanel(node);
   }
+}
+
+function generatorProfileErrorMessage(error) {
+  return error instanceof Error ? error.message : String(error || "Unknown error");
+}
+
+function generatorUserProfileByName(name) {
+  const expected = String(name || "").toLowerCase();
+  return generatorProfileState.profiles.find(
+    (profile) => String(profile?.name || "").toLowerCase() === expected,
+  ) || null;
+}
+
+async function loadGeneratorUserProfiles({ force = false } = {}) {
+  if (generatorProfileState.loaded && !force) {
+    return generatorProfileState.profiles;
+  }
+  if (!generatorProfileState.loading) {
+    generatorProfileState.loading = easyuseAnimaFetchComfyJson(api, "/easyuse_anima/aio_profiles")
+      .then((data) => {
+        generatorProfileState.profiles = Array.isArray(data?.profiles)
+          ? data.profiles.filter((profile) => String(profile?.name || "").trim())
+          : [];
+        generatorProfileState.loaded = true;
+        return generatorProfileState.profiles;
+      })
+      .finally(() => {
+        generatorProfileState.loading = null;
+      });
+  }
+  return generatorProfileState.loading;
+}
+
+async function postGeneratorProfile(path, payload) {
+  return easyuseAnimaFetchComfyJson(api, path, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload || {}),
+  });
+}
+
+async function loadGeneratorUserProfile(name) {
+  const data = await easyuseAnimaFetchComfyJson(
+    api,
+    `/easyuse_anima/aio_profiles/load?name=${encodeURIComponent(name)}`,
+  );
+  return data?.profile || null;
+}
+
+function applyGeneratorProfileSettings(node, value, settings) {
+  const next = migrateGeneratorPostprocessSettings(mergeDefaults(DEFAULT_GENERATION_SETTINGS, settings));
+  applyVisibleGeneratorSettings(node, next);
+  writeGeneratorSettingsFromState(node, next, true);
+  node.__easyuseAnimaGeneratorProfileValue = value;
+  node.__easyuseAnimaGeneratorProfileFingerprint = aioProfileSettingsFingerprint(
+    generatorSettings(node),
+  );
+  renderGeneratorPanel(node);
+  markNodeDirty(node);
+}
+
+async function applyGeneratorProfile(node, value) {
+  const textValue = String(value || GENERATOR_PROFILE_CUSTOM_VALUE);
+  if (textValue === GENERATOR_PROFILE_CUSTOM_VALUE) {
+    return;
+  }
+  if (textValue.startsWith("builtin:")) {
+    const profileId = textValue.slice(8);
+    applyGeneratorProfileSettings(
+      node,
+      textValue,
+      aioBuiltinProfileSettings(profileId, DEFAULT_GENERATION_SETTINGS),
+    );
+    return;
+  }
+  const name = aioUserProfileName(textValue);
+  const profile = await loadGeneratorUserProfile(name);
+  if (!profile?.settings || typeof profile.settings !== "object") {
+    throw new Error("Profile settings are missing");
+  }
+  applyGeneratorProfileSettings(node, aioUserProfileValue(profile.name || name), profile.settings);
+}
+
+async function saveGeneratorUserProfile(node, selectedValue = node.__easyuseAnimaGeneratorProfileValue) {
+  const selectedName = aioUserProfileName(selectedValue);
+  const requestedName = window.prompt(aioText("profile.savePrompt"), selectedName || "");
+  if (requestedName == null) {
+    return;
+  }
+  const name = requestedName.trim();
+  if (!name) {
+    window.alert(aioText("profile.nameRequired"));
+    return;
+  }
+  const existing = generatorUserProfileByName(name);
+  const overwrite = !!existing;
+  if (overwrite && !window.confirm(aioFormat("profile.overwriteConfirm", { name: existing.name }))) {
+    return;
+  }
+  const settings = generatorSettings(node);
+  const data = await postGeneratorProfile("/easyuse_anima/aio_profiles/save", {
+    name,
+    overwrite,
+    settings,
+  });
+  await loadGeneratorUserProfiles({ force: true });
+  node.__easyuseAnimaGeneratorProfileValue = aioUserProfileValue(data?.profile?.name || name);
+  node.__easyuseAnimaGeneratorProfileFingerprint = aioProfileSettingsFingerprint(settings);
+  refreshGeneratorPanels();
+}
+
+async function renameGeneratorUserProfile(node, selectedValue = node.__easyuseAnimaGeneratorProfileValue) {
+  const oldName = aioUserProfileName(selectedValue);
+  if (!oldName) {
+    return;
+  }
+  const currentName = aioUserProfileName(syncGeneratorProfileValue(node));
+  const requestedName = window.prompt(aioText("profile.renamePrompt"), oldName);
+  if (requestedName == null) {
+    return;
+  }
+  const newName = requestedName.trim();
+  if (!newName) {
+    window.alert(aioText("profile.nameRequired"));
+    return;
+  }
+  const existing = generatorUserProfileByName(newName);
+  const overwrite = !!existing && existing.name.toLowerCase() !== oldName.toLowerCase();
+  if (overwrite && !window.confirm(aioFormat("profile.overwriteConfirm", { name: existing.name }))) {
+    return;
+  }
+  const data = await postGeneratorProfile("/easyuse_anima/aio_profiles/rename", {
+    old_name: oldName,
+    new_name: newName,
+    overwrite,
+  });
+  await loadGeneratorUserProfiles({ force: true });
+  if (currentName.toLowerCase() === oldName.toLowerCase()) {
+    node.__easyuseAnimaGeneratorProfileValue = aioUserProfileValue(data?.profile?.name || newName);
+  }
+  refreshGeneratorPanels();
+}
+
+async function deleteGeneratorUserProfile(node, selectedValue = node.__easyuseAnimaGeneratorProfileValue) {
+  const name = aioUserProfileName(selectedValue);
+  if (!name || !window.confirm(aioFormat("profile.deleteConfirm", { name }))) {
+    return;
+  }
+  const currentName = aioUserProfileName(syncGeneratorProfileValue(node));
+  await postGeneratorProfile("/easyuse_anima/aio_profiles/delete", { name });
+  await loadGeneratorUserProfiles({ force: true });
+  if (currentName.toLowerCase() === name.toLowerCase()) {
+    node.__easyuseAnimaGeneratorProfileValue = GENERATOR_PROFILE_CUSTOM_VALUE;
+    delete node.__easyuseAnimaGeneratorProfileFingerprint;
+  }
+  refreshGeneratorPanels();
+}
+
+function resolvedGeneratorProfileValue(node, settings = generatorSettings(node)) {
+  const builtinId = aioBuiltinProfileIdForSettings(settings, DEFAULT_GENERATION_SETTINGS);
+  if (builtinId) {
+    return `builtin:${builtinId}`;
+  }
+  const textValue = String(node?.__easyuseAnimaGeneratorProfileValue || "");
+  const userName = aioUserProfileName(textValue);
+  const fingerprint = aioProfileSettingsFingerprint(settings);
+  if (
+    userName
+    && generatorUserProfileByName(userName)
+    && node?.__easyuseAnimaGeneratorProfileFingerprint === fingerprint
+  ) {
+    return textValue;
+  }
+  return GENERATOR_PROFILE_CUSTOM_VALUE;
+}
+
+function syncGeneratorProfileValue(node, settings = generatorSettings(node)) {
+  const value = resolvedGeneratorProfileValue(node, settings);
+  node.__easyuseAnimaGeneratorProfileValue = value;
+  if (value === GENERATOR_PROFILE_CUSTOM_VALUE) {
+    delete node.__easyuseAnimaGeneratorProfileFingerprint;
+  }
+  return value;
+}
+
+function generatorProfileDisplayLabel(value) {
+  const textValue = String(value || GENERATOR_PROFILE_CUSTOM_VALUE);
+  if (textValue === GENERATOR_PROFILE_CUSTOM_VALUE) {
+    return aioText("profile.custom");
+  }
+  const userName = aioUserProfileName(textValue);
+  if (userName) {
+    return userName;
+  }
+  const builtinId = textValue.startsWith("builtin:") ? textValue.slice(8) : "";
+  return aioBuiltinProfileIds().includes(builtinId)
+    ? aioText(`profile.${builtinId}`)
+    : aioText("profile.custom");
+}
+
+function openGeneratorProfileSettings(node) {
+  const currentValue = syncGeneratorProfileValue(node);
+  const { backdrop, body, actions } = createDialog(
+    aioText("dialog.profile.title"),
+    aioText("dialog.profile.subtitle"),
+  );
+  body.classList.add("easyuse-anima-aio-one-column");
+
+  const section = document.createElement("section");
+  section.className = "easyuse-anima-aio-section full";
+  const profileSelect = document.createElement("select");
+  profileSelect.title = aioText("profile.selectTip");
+  if (currentValue === GENERATOR_PROFILE_CUSTOM_VALUE) {
+    const customOption = document.createElement("option");
+    customOption.value = GENERATOR_PROFILE_CUSTOM_VALUE;
+    customOption.textContent = aioText("profile.custom");
+    profileSelect.append(customOption);
+  }
+  const builtInGroup = document.createElement("optgroup");
+  builtInGroup.label = aioText("profile.groupBuiltIn");
+  for (const profileId of aioBuiltinProfileIds()) {
+    const option = document.createElement("option");
+    option.value = `builtin:${profileId}`;
+    option.textContent = aioText(`profile.${profileId}`);
+    builtInGroup.append(option);
+  }
+  profileSelect.append(builtInGroup);
+  if (generatorProfileState.profiles.length) {
+    const userGroup = document.createElement("optgroup");
+    userGroup.label = aioText("profile.groupUser");
+    for (const profile of generatorProfileState.profiles) {
+      const option = document.createElement("option");
+      option.value = aioUserProfileValue(profile.name);
+      option.textContent = profile.name;
+      userGroup.append(option);
+    }
+    profileSelect.append(userGroup);
+  }
+  profileSelect.value = currentValue;
+  field(section, "Profile", profileSelect, "profile.selectTip");
+
+  const managerActions = document.createElement("div");
+  managerActions.className = "easyuse-anima-aio-profile-manager-actions";
+  const makeActionButton = (label) => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.textContent = label;
+    return button;
+  };
+  const saveProfile = makeActionButton(aioText("button.profileSave"));
+  const renameProfile = makeActionButton(aioText("button.profileRename"));
+  const deleteProfile = makeActionButton(aioText("button.profileDelete"));
+  managerActions.append(saveProfile, renameProfile, deleteProfile);
+  section.append(managerActions);
+  body.append(section);
+
+  const cancel = makeActionButton(aioText("button.cancel"));
+  const apply = makeActionButton(aioText("button.profileApply"));
+  apply.className = "primary";
+  actions.append(cancel, apply);
+
+  let busy = false;
+  const refreshActions = () => {
+    const isUserProfile = !!aioUserProfileName(profileSelect.value);
+    renameProfile.disabled = busy || !isUserProfile;
+    deleteProfile.disabled = busy || !isUserProfile;
+    saveProfile.disabled = busy;
+    cancel.disabled = busy;
+    apply.disabled = busy || profileSelect.value === GENERATOR_PROFILE_CUSTOM_VALUE;
+  };
+  const run = async (callback, { reopen = false } = {}) => {
+    if (busy) {
+      return;
+    }
+    busy = true;
+    refreshActions();
+    try {
+      await callback();
+      backdrop.remove();
+      if (reopen) {
+        openGeneratorProfileSettings(node);
+      }
+    } catch (error) {
+      window.alert(aioFormat("profile.requestFailed", {
+        message: generatorProfileErrorMessage(error),
+      }));
+    } finally {
+      busy = false;
+      if (backdrop.isConnected) {
+        refreshActions();
+      }
+    }
+  };
+  profileSelect.addEventListener("change", refreshActions);
+  cancel.addEventListener("click", () => backdrop.remove());
+  apply.addEventListener("click", () => run(
+    () => applyGeneratorProfile(node, profileSelect.value),
+  ));
+  saveProfile.addEventListener("click", () => run(
+    () => saveGeneratorUserProfile(node, profileSelect.value),
+    { reopen: true },
+  ));
+  renameProfile.addEventListener("click", () => run(
+    () => renameGeneratorUserProfile(node, profileSelect.value),
+    { reopen: true },
+  ));
+  deleteProfile.addEventListener("click", () => run(
+    () => deleteGeneratorUserProfile(node, profileSelect.value),
+    { reopen: true },
+  ));
+  refreshActions();
 }
 
 function findWidget(node, name) {
@@ -3062,6 +3521,7 @@ function ensureStyle() {
       padding: 0 20px 18px;
     }
     .easyuse-anima-aio-actions button,
+    .easyuse-anima-aio-profile-manager-actions button,
     .easyuse-anima-aio-close {
       color: #f3f0e8;
       background: #26313a;
@@ -3075,6 +3535,12 @@ function ensureStyle() {
       background: #2b6655;
       border-color: #78c8aa;
     }
+    .easyuse-anima-aio-profile-manager-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      margin-top: 12px;
+    }
     .easyuse-anima-aio-node-panel {
       box-sizing: border-box;
       width: 100%;
@@ -3085,6 +3551,8 @@ function ensureStyle() {
       font: 12px "Segoe UI", sans-serif;
       display: flex;
       flex-direction: column;
+      flex: 1 1 0%;
+      contain: size;
       overflow: hidden;
       user-select: none;
     }
@@ -3096,19 +3564,23 @@ function ensureStyle() {
         transform: rotate(360deg);
       }
     }
-    .easyuse-anima-aio-node-topbar {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      margin-bottom: 8px;
+    .easyuse-anima-aio-node-profile-button {
+      max-width: 76px;
+      min-width: 44px;
+      flex: 0 1 auto;
+      overflow: hidden;
+      padding-left: 7px;
+      padding-right: 7px;
+      text-overflow: ellipsis;
     }
     .easyuse-anima-aio-node-main {
       display: grid;
       grid-template-columns: 260px minmax(0, 1fr);
       gap: 8px;
-      flex: 1 1 auto;
-      min-height: 284px;
-      height: 100%;
+      flex: 1 1 0%;
+      min-width: 0;
+      min-height: 0;
+      overflow: hidden;
     }
     .easyuse-anima-aio-node-card {
       min-width: 0;
@@ -3121,14 +3593,14 @@ function ensureStyle() {
       display: flex;
       flex-direction: column;
       min-height: 0;
-      height: 100%;
       overflow: hidden;
     }
     .easyuse-anima-aio-node-settings-scroll {
-      flex: 1 1 auto;
+      flex: 1 1 0%;
       min-height: 0;
       overflow-y: auto;
       overflow-x: hidden;
+      overscroll-behavior: contain;
       padding-right: 4px;
     }
     .easyuse-anima-aio-node-settings-scroll::-webkit-scrollbar {
@@ -3395,8 +3867,8 @@ function ensureStyle() {
     .easyuse-anima-aio-node-preview {
       display: flex;
       flex-direction: column;
-      height: 100%;
       min-height: 0;
+      overflow: hidden;
     }
     .easyuse-anima-aio-node-sampler-actions {
       display: grid;
@@ -3415,14 +3887,11 @@ function ensureStyle() {
       padding-right: 5px;
       text-align: center;
     }
-    .easyuse-anima-aio-node-preview {
-      min-height: 284px;
-    }
     .easyuse-anima-aio-node-preview-box {
       position: relative;
-      flex: 1 1 auto;
+      flex: 1 1 0%;
       height: auto;
-      min-height: 210px;
+      min-height: 0;
       overflow: hidden;
       border: 1px solid #3c4952;
       border-radius: 6px;
@@ -3472,6 +3941,10 @@ function ensureStyle() {
     .${GENERATOR_VUE_NODE_CLASS} img.pointer-events-none.object-contain + .text-node-component-header-text,
     .${GENERATOR_VUE_NODE_CLASS} .text-node-component-header-text,
     .${GENERATOR_VUE_NODE_CLASS} .text-node-component-header-text.mt-1.text-center.text-xs,
+    .lg-node:has(.easyuse-anima-aio-node-panel) .text-node-component-header-text,
+    .lg-node:has(.easyuse-anima-aio-node-panel) .pt-2.text-center.text-xs.text-base-foreground,
+    [data-node-id]:has(.easyuse-anima-aio-node-panel) .text-node-component-header-text,
+    [data-node-id]:has(.easyuse-anima-aio-node-panel) .pt-2.text-center.text-xs.text-base-foreground,
     .${GENERATOR_VUE_NODE_CLASS} [data-testid="main-image"],
     .${GENERATOR_VUE_NODE_CLASS} .easyuse-anima-aio-native-live-preview-hidden {
       display: none !important;
@@ -4326,46 +4799,71 @@ function stopGeneratorControlPropagation(root) {
   ]) {
     root.addEventListener(eventName, stop);
   }
-  root.addEventListener("wheel", (event) => {
-    const previewFeed = event.target?.closest?.(".easyuse-anima-aio-node-preview-feed");
-    if (previewFeed && previewFeed.scrollWidth > previewFeed.clientWidth) {
-      event.preventDefault();
-      event.stopPropagation();
-      previewFeed.scrollLeft += event.deltaX || event.deltaY;
-      return;
-    }
-    const scrollArea = event.target?.closest?.(".easyuse-anima-aio-node-settings-scroll");
-    if (scrollArea && scrollArea.scrollHeight > scrollArea.clientHeight) {
-      event.stopPropagation();
-      return;
-    }
-    if (event.target?.closest?.(GENERATOR_PANEL_CONTROL_SELECTOR)) {
-      return;
-    }
-    const canvas = app?.canvas?.canvas;
-    if (!canvas) {
-      return;
-    }
-    event.preventDefault();
-    event.stopPropagation();
-    canvas.dispatchEvent(new WheelEvent("wheel", {
-      bubbles: true,
-      cancelable: true,
-      deltaX: event.deltaX,
-      deltaY: event.deltaY,
-      deltaZ: event.deltaZ,
-      deltaMode: event.deltaMode,
-      clientX: event.clientX,
-      clientY: event.clientY,
-      screenX: event.screenX,
-      screenY: event.screenY,
-      ctrlKey: event.ctrlKey,
-      shiftKey: event.shiftKey,
-      altKey: event.altKey,
-      metaKey: event.metaKey,
-    }));
-  }, { passive: false });
+  // Legacy canvas bubbles DOM-widget wheel events through the panel. Keep this
+  // local guard as a fallback; Node 2.0 still needs the window capture router
+  // installed below because its Vue ancestor can handle wheel first.
+  root.addEventListener("wheel", forwardGeneratorPanelWheel, {
+    capture: true,
+    passive: false,
+  });
   root.__easyuseAnimaAioStopPropagation = true;
+}
+
+function dispatchGeneratorCanvasWheelEvent(sourceEvent) {
+  const canvas = app?.canvas?.canvas;
+  if (!canvas) {
+    return;
+  }
+  const event = new WheelEvent("wheel", {
+    bubbles: true,
+    cancelable: true,
+    view: window,
+    deltaX: sourceEvent.deltaX,
+    deltaY: sourceEvent.deltaY,
+    deltaZ: sourceEvent.deltaZ,
+    deltaMode: sourceEvent.deltaMode,
+    clientX: sourceEvent.clientX,
+    clientY: sourceEvent.clientY,
+    screenX: sourceEvent.screenX,
+    screenY: sourceEvent.screenY,
+    ctrlKey: sourceEvent.ctrlKey,
+    shiftKey: sourceEvent.shiftKey,
+    altKey: sourceEvent.altKey,
+    metaKey: sourceEvent.metaKey,
+  });
+  Object.defineProperty(event, "__easyuseAnimaForwarded", { value: true });
+  canvas.dispatchEvent(event);
+}
+
+function forwardGeneratorPanelWheel(event) {
+  if (event.__easyuseAnimaForwarded) {
+    return false;
+  }
+  const panel = aioPanelFromWheelEvent(event);
+  if (!panel) {
+    return false;
+  }
+  if (consumeAioPanelWheel(event, panel)) {
+    return true;
+  }
+  event.preventDefault();
+  event.stopPropagation();
+  event.stopImmediatePropagation?.();
+  dispatchGeneratorCanvasWheelEvent(event);
+  return true;
+}
+
+function installGeneratorWheelForwarder() {
+  if (window.__easyuseAnimaAioWheelForwarderInstalled) {
+    return;
+  }
+  window.__easyuseAnimaAioWheelForwarderInstalled = true;
+  // Node 2.0 handles wheel on an ancestor of the DOM widget, so ownership must
+  // be decided during window capture before that ancestor can zoom the canvas.
+  window.addEventListener("wheel", forwardGeneratorPanelWheel, {
+    capture: true,
+    passive: false,
+  });
 }
 
 function samplerModeLabel(settingsOrBackend) {
@@ -4400,75 +4898,20 @@ function generatorPanelWidth(node) {
   return Math.max(240, Math.floor((Number(node?.size?.[0]) || GENERATOR_NODE_DEFAULT_WIDTH) - 20));
 }
 
-function generatorPanelWidget(node) {
-  return node?.__easyuseAnimaGeneratorPanelWidget
-    || node?.widgets?.find?.((widget) => widget?.name === GENERATOR_DOM_WIDGET)
-    || null;
-}
-
-function generatorNodeChromeOffset(node) {
-  const widget = generatorPanelWidget(node);
-  const widgetY = Math.max(Number(widget?.last_y) || 0, Number(widget?.y) || 0);
-  return Math.ceil(Math.max(70, widgetY + 12));
-}
-
-function generatorPanelHeight(node) {
-  return Math.max(GENERATOR_PANEL_MIN_HEIGHT, Number(node?.__easyuseAnimaGeneratorPanelHeight) || 0);
-}
-
-function generatorPanelMinHeight(node) {
-  return Math.max(GENERATOR_PANEL_MIN_HEIGHT, Number(node?.__easyuseAnimaGeneratorPanelMinHeight) || 0);
-}
-
-function generatorAvailablePanelHeight(node) {
-  const nodeHeight = Number(node?.size?.[1]) || 0;
-  if (nodeHeight <= 0) {
-    return 0;
-  }
-  return Math.max(0, Math.floor(nodeHeight - generatorNodeChromeOffset(node)));
-}
-
-function measureGeneratorPanelContentHeight(node) {
-  const panel = node?.__easyuseAnimaGeneratorPanelEl;
-  if (!panel) {
-    return GENERATOR_PANEL_MIN_HEIGHT;
-  }
-  const minHeight = GENERATOR_PANEL_MIN_HEIGHT;
-  node.__easyuseAnimaGeneratorPanelMinHeight = minHeight;
-  return minHeight;
-}
-
-function generatorMinimumNodeHeight(node) {
-  return Math.ceil(generatorPanelMinHeight(node) + generatorNodeChromeOffset(node));
-}
-
 function applyGeneratorLayout(node) {
   const panel = node?.__easyuseAnimaGeneratorPanelEl;
-  if (!panel || !node.size || node.__easyuseAnimaGeneratorApplyingLayout) {
+  if (!panel) {
     return;
   }
-  node.__easyuseAnimaGeneratorApplyingLayout = true;
-  try {
-    const width = generatorPanelWidth(node);
-    panel.style.width = `${width}px`;
-    panel.style.maxWidth = `${width}px`;
-    const minPanelHeight = measureGeneratorPanelContentHeight(node);
-    const panelHeight = Math.max(minPanelHeight, generatorAvailablePanelHeight(node));
-    node.__easyuseAnimaGeneratorPanelHeight = panelHeight;
-    panel.style.height = `${panelHeight}px`;
-    const currentWidth = Number(node.size[0]) || GENERATOR_NODE_DEFAULT_WIDTH;
-    const currentHeight = Number(node.size[1]) || 0;
-    const minHeight = generatorMinimumNodeHeight(node);
-    if (currentHeight < minHeight - 1 || currentWidth < GENERATOR_NODE_MIN_WIDTH) {
-      node.setSize?.([
-        Math.max(currentWidth, GENERATOR_NODE_DEFAULT_WIDTH),
-        Math.max(currentHeight, minHeight),
-      ]);
-    }
-    markNodeDirty(node);
-  } finally {
-    node.__easyuseAnimaGeneratorApplyingLayout = false;
-  }
+  const width = generatorPanelWidth(node);
+  panel.style.width = `${width}px`;
+  panel.style.maxWidth = `${width}px`;
+  // ComfyUI owns the node and DOM-widget viewport height. AiO owns only child
+  // content: the settings column scrolls while the preview stays in that host
+  // viewport. Never derive height from node.size or write node.setSize here.
+  panel.style.removeProperty("height");
+  panel.style.removeProperty("max-height");
+  markNodeDirty(node);
 }
 
 function scheduleGeneratorLayout(node) {
@@ -4509,6 +4952,12 @@ function updateGeneratorDomSummary(node) {
   }
   const status = node.__easyuseAnimaGeneratorStatus || {};
   const settings = generatorSettings(node);
+  const profileValue = syncGeneratorProfileValue(node, settings);
+  const profileButtonEl = panel.querySelector("[data-aio-profile-button]");
+  if (profileButtonEl) {
+    profileButtonEl.textContent = generatorProfileDisplayLabel(profileValue);
+    profileButtonEl.title = aioText("profile.selectTip");
+  }
   const backendSummaryEl = panel.querySelector("[data-aio-backend-summary]");
   const saveButtonEl = panel.querySelector("[data-aio-save-button]");
   if (saveButtonEl) {
@@ -4952,7 +5401,7 @@ async function generatorNativePreviewStores() {
       try {
         const module = await import(url);
         return {
-          useNodeOutputStore: module?.useNodeOutputStore || module?.L,
+          useNodeOutputStore: module?.useNodeOutputStore || module?.cn || module?.L,
           useWorkflowStore: module?.useWorkflowStore || module?.M,
         };
       } catch {
@@ -5093,6 +5542,7 @@ function suppressGeneratorDefaultPreview(node, options = {}) {
   if (!node) {
     return;
   }
+  lockGeneratorLegacyCanvasPreview(node);
   const shouldMarkDirty = options.markDirty !== false;
   let changed = false;
   if (node.hideOutputImages !== true) {
@@ -5117,6 +5567,28 @@ function suppressGeneratorDefaultPreview(node, options = {}) {
   }
   if (changed && shouldMarkDirty) {
     markNodeDirty(node);
+  }
+}
+
+function lockGeneratorLegacyCanvasPreview(node) {
+  if (!node || node.__easyuseAnimaLegacyCanvasPreviewLocked) {
+    return;
+  }
+  node.__easyuseAnimaLegacyCanvasPreviewLocked = true;
+  try {
+    Object.defineProperty(node, "imgs", {
+      configurable: true,
+      enumerable: false,
+      get() {
+        return [];
+      },
+      set() {
+        // Comfy syncs ui.images into node.imgs for legacy canvas previews.
+        // AiO keeps queue/history images but renders its own in-node preview.
+      },
+    });
+  } catch {
+    node.imgs = [];
   }
 }
 
@@ -5526,9 +5998,18 @@ function renderGeneratorPanel(node) {
 
   const samplerCard = document.createElement("section");
   samplerCard.className = "easyuse-anima-aio-node-card easyuse-anima-aio-node-settings";
+  const profileValue = syncGeneratorProfileValue(node, settings);
+  const profileButton = makeButton(
+    generatorProfileDisplayLabel(profileValue),
+    () => openGeneratorProfileSettings(node),
+    "easyuse-anima-aio-node-profile-button",
+    "profile.selectTip",
+  );
+  profileButton.setAttribute("data-aio-profile-button", "");
   const saveIcon = makeIconButton("💾", () => openSaveSettings(node), "tip.saveOptions");
   saveIcon.setAttribute("data-aio-save-button", "");
   const samplerHeader = makeCardHeader(aioText("title.sampler"), [
+    profileButton,
     makeIconButton("⚙", () => openSamplerSettings(node), "tip.samplerDetails"),
     makeIconButton("⋯", () => openAdvancedSettings(node), "tip.advancedOptions"),
     saveIcon,
@@ -6079,20 +6560,11 @@ function ensureGeneratorPanel(node) {
     const panel = document.createElement("div");
     panel.className = "easyuse-anima-aio-node-panel";
     node.__easyuseAnimaGeneratorPanelEl = panel;
-    const widget = node.addDOMWidget?.(GENERATOR_DOM_WIDGET, "EasyUseAnimaGeneratorPanel", panel, {
+    node.addDOMWidget?.(GENERATOR_DOM_WIDGET, "EasyUseAnimaGeneratorPanel", panel, {
       serialize: false,
       hideOnZoom: false,
-      getMinHeight: () => generatorPanelMinHeight(node),
-      getHeight: () => generatorPanelHeight(node),
+      getMinHeight: () => GENERATOR_PANEL_MIN_HEIGHT,
     });
-    if (widget) {
-      node.__easyuseAnimaGeneratorPanelWidget = widget;
-      widget.computeLayoutSize = () => ({
-        minHeight: generatorPanelMinHeight(node),
-        height: generatorPanelHeight(node),
-        minWidth: GENERATOR_NODE_MIN_WIDTH - 18,
-      });
-    }
   }
   markGeneratorNativeLivePreviewHidden(node);
   renderGeneratorPanel(node);
@@ -8141,7 +8613,7 @@ function installGeneratorQueuePromptHook() {
   }
   const queuePrompt = api.queuePrompt;
   api.queuePrompt = async function (number, prompt, ...args) {
-    await loadGeneratorOptionalDependencies();
+    await loadGeneratorOptionalDependencies({ retryErrors: true });
     prepareGeneratorPromptForQueue(prompt);
     return queuePrompt.call(this, number, prompt, ...args);
   };
@@ -8340,6 +8812,7 @@ app.registerExtension({
   name: "easyuse-anima.aio",
   async setup() {
     ensureStyle();
+    installGeneratorWheelForwarder();
     installGeneratorQueuePromptHook();
     easyuseAnimaWatchLocale(refreshGeneratorPanels);
     api.addEventListener(GENERATOR_PREVIEW_EVENT, handleGeneratorPreviewEvent);
@@ -8351,6 +8824,11 @@ app.registerExtension({
     api.addEventListener("execution_interrupted", clearGeneratorDenoisePreviews);
     api.addEventListener("execution_success", clearGeneratorDenoisePreviews);
     loadGeneratorSamplerOptions().then(refreshGeneratorPanels);
+    loadGeneratorUserProfiles()
+      .then(refreshGeneratorPanels)
+      .catch((error) => {
+        console.warn("[EasyUseAnima] Failed to load AiO user profiles.", error);
+      });
   },
   async beforeRegisterNodeDef(nodeType, nodeData) {
     if (nodeData.name !== INPUT_NODE_TYPE && nodeData.name !== GENERATOR_NODE_TYPE) {

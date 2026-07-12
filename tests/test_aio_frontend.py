@@ -6,11 +6,202 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 AIO_JS = ROOT / "web" / "js" / "easyuse_anima_aio.js"
+AIO_WHEEL_JS = ROOT / "web" / "js" / "aio" / "wheel.js"
+AIO_PRESETS_JS = ROOT / "web" / "js" / "aio" / "presets.js"
 AUTOCOMPLETE_JS = ROOT / "web" / "js" / "easyuse_anima_autocomplete.js"
 PROMPT_STUDIO_COMMON_JS = ROOT / "web" / "js" / "easyuse_anima_prompt_studio_common.js"
 
 
 class AIOFrontendSourceTests(unittest.TestCase):
+    def test_generator_profile_ui_uses_versioned_settings_and_user_storage_api(self):
+        source = AIO_JS.read_text(encoding="utf-8")
+        presets_source = AIO_PRESETS_JS.read_text(encoding="utf-8")
+        render_start = source.index("function renderGeneratorPanel")
+        render_end = source.index("\nfunction ensureGeneratorPanel", render_start)
+        render_body = source[render_start:render_end]
+        header_start = render_body.index("const samplerHeader = makeCardHeader")
+        header_end = render_body.index("const settingsScroll", header_start)
+        header_body = render_body[header_start:header_end]
+        dialog_start = source.index("function openGeneratorProfileSettings")
+        dialog_end = source.index("\nfunction findWidget", dialog_start)
+        dialog_body = source[dialog_start:dialog_end]
+        apply_start = source.index("function applyGeneratorProfileSettings")
+        apply_end = source.index("\nasync function applyGeneratorProfile", apply_start)
+        apply_body = source[apply_start:apply_end]
+        resolve_start = source.index("function resolvedGeneratorProfileValue")
+        resolve_end = source.index("\nfunction generatorProfileDisplayLabel", resolve_start)
+        resolve_body = source[resolve_start:resolve_end]
+        summary_start = source.index("function updateGeneratorDomSummary")
+        summary_end = source.index("\nfunction renderGeneratorPreviewFeed", summary_start)
+        summary_body = source[summary_start:summary_end]
+        serialize_start = source.index("function syncGeneratorSerializedWidgets")
+        serialize_end = source.index("\nfunction markNodeDirty", serialize_start)
+        serialize_body = source[serialize_start:serialize_end]
+
+        self.assertIn('from "./aio/presets.js"', source)
+        self.assertIn("aioBuiltinProfileIdForSettings", source)
+        self.assertIn("aioProfileSettingsFingerprint", source)
+        self.assertIn('"profile.custom": "Custom"', source)
+        self.assertIn('"normal", "turbo", "optimized"', presets_source)
+        self.assertIn('settings.sampler.steps = 10', presets_source)
+        self.assertIn('settings.sampler.cfg = 1.0', presets_source)
+        self.assertIn('target.dit_corrections.dcw_mode = enabled ? "auto" : "off"', presets_source)
+        self.assertIn('kj.sage_attention = enabled ? "auto" : "disabled"', presets_source)
+        self.assertIn("compile.enabled = enabled", presets_source)
+        self.assertIn("applyVisibleGeneratorSettings(node, next)", apply_body)
+        self.assertIn("writeGeneratorSettingsFromState(node, next, true)", apply_body)
+        self.assertIn("aioProfileSettingsFingerprint", apply_body)
+        self.assertIn("aioBuiltinProfileIdForSettings(settings, DEFAULT_GENERATION_SETTINGS)", resolve_body)
+        self.assertIn("return GENERATOR_PROFILE_CUSTOM_VALUE", resolve_body)
+        self.assertIn("syncGeneratorProfileValue(node, settings)", render_body)
+        self.assertIn('profileButton.setAttribute("data-aio-profile-button", "")', render_body)
+        self.assertIn('panel.querySelector("[data-aio-profile-button]")', summary_body)
+        self.assertIn("generatorProfileDisplayLabel(profileValue)", summary_body)
+        self.assertIn("profileButton,", header_body)
+        self.assertLess(header_body.index("profileButton,"), header_body.index('makeIconButton("⚙"'))
+        self.assertIn("function openGeneratorProfileSettings", source)
+        self.assertIn('field(section, "Profile", profileSelect, "profile.selectTip")', dialog_body)
+        self.assertIn("currentValue === GENERATOR_PROFILE_CUSTOM_VALUE", dialog_body)
+        self.assertIn('customOption.textContent = aioText("profile.custom")', dialog_body)
+        self.assertIn("profileSelect.value = currentValue", dialog_body)
+        self.assertIn("apply.disabled = busy || profileSelect.value === GENERATOR_PROFILE_CUSTOM_VALUE", dialog_body)
+        self.assertIn("managerActions.append(saveProfile, renameProfile, deleteProfile)", dialog_body)
+        self.assertIn("actions.append(cancel, apply)", dialog_body)
+        self.assertIn('panel.append(main)', render_body)
+        self.assertNotIn("profileBar", render_body)
+        self.assertIn('generatorSettings(node)', source[source.index("async function saveGeneratorUserProfile"):render_start])
+        for path in (
+            "/easyuse_anima/aio_profiles",
+            "/easyuse_anima/aio_profiles/save",
+            "/easyuse_anima/aio_profiles/load",
+            "/easyuse_anima/aio_profiles/rename",
+            "/easyuse_anima/aio_profiles/delete",
+        ):
+            self.assertIn(path, source)
+        self.assertNotIn("__easyuseAnimaGeneratorProfileValue", serialize_body)
+
+    def test_generator_panel_height_is_owned_by_comfyui(self):
+        source = AIO_JS.read_text(encoding="utf-8")
+
+        layout_start = source.index("function applyGeneratorLayout")
+        layout_end = source.index("\nfunction scheduleGeneratorLayout", layout_start)
+        layout_body = source[layout_start:layout_end]
+        panel_start = source.index("    .easyuse-anima-aio-node-panel {")
+        panel_end = source.index("\n    .easyuse-anima-aio-node-panel *", panel_start)
+        panel_style = source[panel_start:panel_end]
+        main_start = source.index("    .easyuse-anima-aio-node-main {")
+        main_end = source.index("\n    .easyuse-anima-aio-node-card {", main_start)
+        main_style = source[main_start:main_end]
+        settings_start = source.index("    .easyuse-anima-aio-node-settings {")
+        settings_end = source.index("\n    .easyuse-anima-aio-node-settings-scroll {", settings_start)
+        settings_style = source[settings_start:settings_end]
+        scroll_start = settings_end + 1
+        scroll_end = source.index("\n    .easyuse-anima-aio-node-settings-scroll::-webkit-scrollbar", scroll_start)
+        scroll_style = source[scroll_start:scroll_end]
+        preview_start = source.index("    .easyuse-anima-aio-node-preview {")
+        preview_end = source.index("\n    .easyuse-anima-aio-node-sampler-actions {", preview_start)
+        preview_style = source[preview_start:preview_end]
+        preview_box_start = source.index("    .easyuse-anima-aio-node-preview-box {")
+        preview_box_end = source.index("\n    .easyuse-anima-aio-node-preview-box img {", preview_box_start)
+        preview_box_style = source[preview_box_start:preview_box_end]
+        panel_registration_start = source.index("function ensureGeneratorPanel")
+        panel_registration_end = source.index("\nfunction field", panel_registration_start)
+        panel_registration = source[panel_registration_start:panel_registration_end]
+
+        self.assertIn("getMinHeight: () => GENERATOR_PANEL_MIN_HEIGHT", panel_registration)
+        self.assertNotIn("getHeight:", panel_registration)
+        self.assertNotIn("computeLayoutSize", panel_registration)
+        self.assertNotIn("computedHeight =", source)
+        self.assertNotIn("generatorNodeChromeOffset", source)
+        self.assertNotIn("generatorAvailablePanelHeight", source)
+        self.assertNotIn("generatorPanelHeight", source)
+        self.assertNotIn("node.setSize?.(", layout_body)
+        self.assertNotIn("node.setSize(", layout_body)
+        self.assertNotIn("panel.style.height =", layout_body)
+        self.assertIn('panel.style.removeProperty("height")', layout_body)
+        self.assertIn('panel.style.removeProperty("max-height")', layout_body)
+
+        self.assertIn("flex: 1 1 0%;", panel_style)
+        self.assertIn("contain: size;", panel_style)
+        self.assertIn("min-height: 0;", main_style)
+        self.assertIn("overflow: hidden;", main_style)
+        self.assertNotIn("height: 100%;", main_style)
+        self.assertNotIn("min-height: 284px;", main_style)
+        self.assertNotIn("height: 100%;", settings_style)
+        self.assertIn("flex: 1 1 0%;", scroll_style)
+        self.assertIn("overflow-y: auto;", scroll_style)
+        self.assertIn("overscroll-behavior: contain;", scroll_style)
+        self.assertIn("min-height: 0;", preview_style)
+        self.assertIn("overflow: hidden;", preview_style)
+        self.assertNotIn("height: 100%;", preview_style)
+        self.assertNotIn("min-height: 284px;", preview_style)
+        self.assertIn("min-height: 0;", preview_box_style)
+        self.assertNotIn("min-height: 210px;", preview_box_style)
+
+    def test_generator_wheel_router_decides_scroll_ownership_before_canvas(self):
+        source = AIO_JS.read_text(encoding="utf-8")
+        wheel_source = AIO_WHEEL_JS.read_text(encoding="utf-8")
+        stop_start = source.index("function stopGeneratorControlPropagation")
+        stop_end = source.index("\nfunction dispatchGeneratorCanvasWheelEvent", stop_start)
+        stop_body = source[stop_start:stop_end]
+        forward_start = source.index("function forwardGeneratorPanelWheel")
+        forward_end = source.index("\nfunction installGeneratorWheelForwarder", forward_start)
+        forward_body = source[forward_start:forward_end]
+        install_start = forward_end + 1
+        install_end = source.index("\nfunction samplerModeLabel", install_start)
+        install_body = source[install_start:install_end]
+        setup_start = source.index("  async setup() {")
+        setup_end = source.index("\n  async beforeRegisterNodeDef", setup_start)
+        setup_body = source[setup_start:setup_end]
+
+        self.assertIn('from "./aio/wheel.js"', source)
+        self.assertIn('root.addEventListener("wheel", forwardGeneratorPanelWheel', stop_body)
+        self.assertIn("capture: true", stop_body)
+        self.assertIn("passive: false", stop_body)
+        self.assertIn("consumeAioPanelWheel(event, panel)", forward_body)
+        self.assertLess(
+            forward_body.index("consumeAioPanelWheel(event, panel)"),
+            forward_body.index("dispatchGeneratorCanvasWheelEvent(event)"),
+        )
+        self.assertIn('window.addEventListener("wheel", forwardGeneratorPanelWheel', install_body)
+        self.assertIn("capture: true", install_body)
+        self.assertIn("passive: false", install_body)
+        self.assertIn("installGeneratorWheelForwarder();", setup_body)
+        self.assertIn("owns the wheel even at either boundary", wheel_source)
+        self.assertIn("Canvas zoom is allowed only when neither intended scrollbar exists", wheel_source)
+
+    def test_generator_keeps_native_output_preview_suppressed_after_execution(self):
+        source = AIO_JS.read_text(encoding="utf-8")
+        registration_start = source.index("async beforeRegisterNodeDef")
+        generator_block = source[source.index("if (nodeData.name === GENERATOR_NODE_TYPE)", registration_start):]
+        start = generator_block.index("nodeType.prototype.onExecuted = function")
+        end = generator_block.index("\n      const onResize", start)
+        body = generator_block[start:end]
+
+        self.assertIn("nodeType.prototype.hideOutputImages = true", source)
+        self.assertIn("module?.useNodeOutputStore || module?.cn || module?.L", source)
+        self.assertIn("outputStore.revokePreviewsByLocatorId?.(locator);", source)
+        self.assertIn('Object.defineProperty(node, "imgs"', source)
+        self.assertIn("lockGeneratorLegacyCanvasPreview(node);", source)
+        self.assertIn(".lg-node:has(.easyuse-anima-aio-node-panel) .text-node-component-header-text", source)
+        self.assertIn(".lg-node:has(.easyuse-anima-aio-node-panel) .pt-2.text-center.text-xs.text-base-foreground", source)
+        self.assertIn("scheduleGeneratorDefaultPreviewSuppression(this);", body)
+        self.assertIn("updateGeneratorExecutedStatus(this, message);", body)
+        self.assertNotIn("onExecuted?.apply", body)
+
+    def test_generator_preview_meta_keeps_dedicated_resolution_label(self):
+        source = AIO_JS.read_text(encoding="utf-8")
+        start = source.index("function updateGeneratorDomPreview")
+        end = source.index("\nfunction cssEscape", start)
+        body = source[start:end]
+        meta_start = body.index("const parts = [")
+        meta_end = body.index("].filter", meta_start)
+        meta_parts = body[meta_start:meta_end]
+
+        self.assertIn("generatorPreviewImageName(currentImage)", meta_parts)
+        self.assertIn("generatorPreviewResolution(currentImage)", meta_parts)
+        self.assertIn("generatorPreviewFileSize(currentImage)", meta_parts)
+
     def test_detailer_target_editor_builds_optimization_before_visibility_refresh(self):
         source = AIO_JS.read_text(encoding="utf-8")
         start = source.index("function createDetailerTargetEditor")
@@ -89,6 +280,39 @@ class AIOFrontendSourceTests(unittest.TestCase):
         self.assertIn("disableGeneratorSpectrumOptions(next.upscale)", body)
         self.assertIn("upscaleBackendMissingPacks(next.upscale.backend).length", body)
         self.assertIn("next.upscale.enabled = false", body)
+
+    def test_optional_dependency_query_reports_results_without_treating_errors_as_missing(self):
+        source = AIO_JS.read_text(encoding="utf-8")
+        fetch_start = source.index("async function fetchGeneratorOptionalDependencies")
+        fetch_end = source.index("\nfunction optionalDependencyResultLabel", fetch_start)
+        fetch_body = source[fetch_start:fetch_end]
+        available_start = source.index("function optionalDependencyAvailable")
+        available_end = source.index("\nfunction backendDependencyMissing", available_start)
+        available_body = source[available_start:available_end]
+        report_start = source.index("function reportGeneratorOptionalDependencyStatus")
+        report_end = source.index("\nfunction loadGeneratorOptionalDependencies", report_start)
+        report_body = source[report_start:report_end]
+
+        self.assertIn('nextStatus[key] = "error"', fetch_body)
+        self.assertNotIn("next[key] = false", fetch_body)
+        self.assertIn('optionalDependencyStatus(key) !== "missing"', available_body)
+        self.assertIn('console.info("[EasyUseAnima] AiO optional dependency query result", rows)', report_body)
+        self.assertIn('severity: failed.length ? "warn" : "info"', report_body)
+        self.assertIn("app.ui.dialog.show", report_body)
+
+    def test_optional_dependency_query_retries_errors_before_queueing(self):
+        source = AIO_JS.read_text(encoding="utf-8")
+        load_start = source.index("function loadGeneratorOptionalDependencies")
+        load_end = source.index("\nfunction optionalDependencyStatus", load_start)
+        load_body = source[load_start:load_end]
+        queue_start = source.index("function installGeneratorQueuePromptHook")
+        queue_end = source.index("\nfunction ensureButton", queue_start)
+        queue_body = source[queue_start:queue_end]
+
+        self.assertIn("retryErrors = false", load_body)
+        self.assertIn('includes("error")', load_body)
+        self.assertIn("generatorOptionalDependencyState.loading = null", load_body)
+        self.assertIn("loadGeneratorOptionalDependencies({ retryErrors: true })", queue_body)
 
     def test_generator_panel_renders_upscale_after_detailer(self):
         source = AIO_JS.read_text(encoding="utf-8")

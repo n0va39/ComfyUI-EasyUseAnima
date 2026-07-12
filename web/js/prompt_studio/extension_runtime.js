@@ -9,6 +9,7 @@ import {
   ADVANCED_WIDGET_INDEX,
 } from "./constants.js";
 import {
+  installAdvancedWheelForwarder,
   installMiddlePanForwarder,
 } from "./canvas_forwarding.js";
 import {
@@ -65,6 +66,8 @@ import {
   updateAdvancedEditorWidth,
 } from "./layout.js";
 import {
+  disconnectAdvancedEditorWidthObserver,
+  observeAdvancedEditorWidth as observeAdvancedEditorWidthWithHooks,
   scheduleAdvancedLayout as scheduleAdvancedLayoutWithHooks,
   scheduleAdvancedResizeFinalize as scheduleAdvancedResizeFinalizeWithHooks,
 } from "./advanced_layout_controller.js";
@@ -88,6 +91,9 @@ import {
 import {
   hookStudioNode as hookStudioNodeWithHooks,
 } from "./studio_node_ui.js";
+import {
+  remeasureAdvancedTextareaHeightsForWidth as remeasureAdvancedTextareaHeightsForWidthWithHooks,
+} from "./advanced_fields_ui.js";
 import {
   hookAdvancedNode as hookAdvancedNodeWithHooks,
   renderAdvancedEditor as renderAdvancedEditorWithHooks,
@@ -250,8 +256,16 @@ function createPromptStudioExtensionRuntime(app) {
   function advancedLayoutControllerHooks() {
     return {
       markGraphDirty,
+      remeasureAdvancedTextareaHeightsForWidth,
       scheduleAdvancedHighlights,
     };
+  }
+
+  function remeasureAdvancedTextareaHeightsForWidth(node) {
+    return remeasureAdvancedTextareaHeightsForWidthWithHooks(node, {
+      parseAdvancedFields,
+      writeAdvancedFields,
+    });
   }
 
   function scheduleAdvancedLayout(node, reason = "layout") {
@@ -260,6 +274,10 @@ function createPromptStudioExtensionRuntime(app) {
 
   function scheduleAdvancedResizeFinalize(node) {
     scheduleAdvancedResizeFinalizeWithHooks(node, advancedLayoutControllerHooks());
+  }
+
+  function observeAdvancedEditorWidth(node) {
+    observeAdvancedEditorWidthWithHooks(node, advancedLayoutControllerHooks());
   }
 
   function extendSlotControlHooks() {
@@ -314,6 +332,7 @@ function createPromptStudioExtensionRuntime(app) {
     return {
       hideAdvancedControlWidgets,
       installAdvancedSaveSync: installAdvancedSaveSyncForApp,
+      observeAdvancedEditorWidth,
       scheduleAdvancedHighlights,
       scheduleAdvancedLayout,
       writeAdvancedFields,
@@ -349,6 +368,7 @@ function createPromptStudioExtensionRuntime(app) {
 
   return {
     async setup() {
+      installAdvancedWheelForwarder();
       installMiddlePanForwarder();
       installAdvancedSaveSync(app, syncAllAdvancedNodes);
       installPromptHighlightOverlayRefresh(app, applyPromptStudioTextStyle);
@@ -386,6 +406,7 @@ function createPromptStudioExtensionRuntime(app) {
         captureAdvancedConfigure: (node, serialized) => (
           captureAdvancedConfigure(node, serialized, advancedWidget(node))
         ),
+        disconnectAdvancedEditorWidthObserver,
         hookStudioNode,
         isExtendNode,
         layoutExtendPromptWidgets,

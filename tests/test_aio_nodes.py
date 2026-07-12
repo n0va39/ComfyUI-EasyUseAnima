@@ -1846,7 +1846,7 @@ class AIOGeneratorRuntimeTests(unittest.TestCase):
             "input_settings": {},
         }
 
-    def test_generator_uses_custom_preview_key_instead_of_default_images(self):
+    def test_generator_exposes_standard_images_and_custom_preview_key(self):
         context = self._context()
 
         with (
@@ -1868,7 +1868,7 @@ class AIOGeneratorRuntimeTests(unittest.TestCase):
                 lora_stack=[("a.safetensors", 1.0, 1.0)],
             )
 
-        self.assertNotIn("images", result["ui"])
+        self.assertEqual(result["ui"]["images"][0]["filename"], "preview.webp")
         self.assertEqual(result["ui"]["easyuse_anima_preview"][0]["filename"], "preview.webp")
         self.assertEqual(result["ui"]["sampler_backend"], ["comfy_ksampler"])
         self.assertIn("easyuse_anima_run_id", result["ui"])
@@ -2351,7 +2351,8 @@ class AIOGeneratorRuntimeTests(unittest.TestCase):
                 }),
             )
 
-        self.assertNotIn("images", result["ui"])
+        self.assertEqual([item["stage"] for item in result["ui"]["images"]], ["final"])
+        self.assertEqual(result["ui"]["images"][0]["filename"], "final.webp")
         self.assertEqual(preview_calls, [("first_pass", "image")])
         self.assertEqual(
             [item["stage"] for item in result["ui"]["easyuse_anima_preview"]],

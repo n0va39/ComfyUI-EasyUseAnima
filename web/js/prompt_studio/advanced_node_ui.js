@@ -1,11 +1,9 @@
 // @ts-check
 
 import {
+  ADVANCED_EDITOR_MIN_VIEWPORT_HEIGHT,
   ADVANCED_NATIVE_CONTROL_EVENTS,
 } from "./constants.js";
-import {
-  forwardAdvancedWheelToCanvas,
-} from "./canvas_forwarding.js";
 import {
   createAdvancedControlBar,
   createAdvancedResolutionBar,
@@ -28,8 +26,6 @@ import {
   updateAdvancedFieldHighlight,
 } from "./advanced_highlights.js";
 import {
-  advancedEditorMinimumHeight,
-  advancedEditorWidgetHeight,
   updateAdvancedEditorWidth,
 } from "./layout.js";
 import {
@@ -103,6 +99,7 @@ function hookAdvancedNode(node, hooks = {}) {
   const {
     hideAdvancedControlWidgets = () => {},
     installAdvancedSaveSync = () => {},
+    observeAdvancedEditorWidth = () => {},
   } = hooks;
   ensureAdvancedStyle();
   installAdvancedSaveSync();
@@ -118,7 +115,6 @@ function hookAdvancedNode(node, hooks = {}) {
   if (!getAdvancedEditorElement(node)) {
     const editor = document.createElement("div");
     editor.className = "easyuse-anima-advanced-editor";
-    editor.addEventListener("wheel", forwardAdvancedWheelToCanvas, { capture: true, passive: false });
     for (const eventName of ADVANCED_NATIVE_CONTROL_EVENTS) {
       editor.addEventListener(eventName, guardAdvancedEditorNativeControlEvent);
     }
@@ -126,21 +122,13 @@ function hookAdvancedNode(node, hooks = {}) {
     const widget = node.addDOMWidget?.("easyuse_anima_advanced_editor", "EasyUseAnimaAdvancedEditor", editor, {
       serialize: false,
       hideOnZoom: false,
-      getMinHeight: () => advancedEditorMinimumHeight(node),
-      getHeight: () => advancedEditorWidgetHeight(node),
+      getMinHeight: () => ADVANCED_EDITOR_MIN_VIEWPORT_HEIGHT,
     });
     if (widget) {
       node.__easyuseAnimaAdvancedDomWidget = widget;
-      widget.computeLayoutSize = () => {
-        const height = advancedEditorWidgetHeight(node);
-        return {
-          minHeight: advancedEditorMinimumHeight(node),
-          height,
-          minWidth: 280,
-        };
-      };
     }
   }
+  observeAdvancedEditorWidth(node);
   renderAdvancedEditor(node, hooks);
 }
 

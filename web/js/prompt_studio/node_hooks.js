@@ -95,6 +95,15 @@ function registerPromptStudioNodeHooks(nodeType, nodeData, hooks) {
     }
   };
 
+  const onRemoved = nodeType.prototype.onRemoved;
+  nodeType.prototype.onRemoved = function () {
+    const result = onRemoved?.apply(this, arguments);
+    if (isAdvanced) {
+      hooks.disconnectAdvancedEditorWidthObserver?.(this);
+    }
+    return result;
+  };
+
   const onConnectionsChange = nodeType.prototype.onConnectionsChange;
   nodeType.prototype.onConnectionsChange = function () {
     const result = onConnectionsChange?.apply(this, arguments);
