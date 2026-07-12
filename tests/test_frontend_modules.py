@@ -12,7 +12,10 @@ FRONTEND_CHECK_SCRIPT = ROOT / "tools" / "check_frontend.ps1"
 WEB_JS = ROOT / "web" / "js"
 API_JS = WEB_JS / "easyuse_anima_api.js"
 PROMPT_STUDIO_JS = WEB_JS / "easyuse_anima_prompt_studio.js"
+PROMPT_STUDIO_COMMON_JS = WEB_JS / "easyuse_anima_prompt_studio_common.js"
 PROMPT_STUDIO_MODULES = WEB_JS / "prompt_studio"
+PROMPT_STUDIO_HIGHLIGHT_JS = PROMPT_STUDIO_MODULES / "highlight.js"
+PROMPT_STUDIO_HIGHLIGHT_CORE_JS = PROMPT_STUDIO_MODULES / "highlight_core.js"
 STATIC_IMPORT_RE = re.compile(r"""from\s+["'](\./[^"']+\.js)["']""")
 
 
@@ -128,6 +131,38 @@ class FrontendModuleStructureTests(unittest.TestCase):
         self.assertIn('./wheel.js"', advanced_node_ui_source)
         self.assertIn("./serialization.js", extension_runtime_source)
         self.assertIn("./runtime_canvas.js", extension_runtime_source)
+
+    def test_prompt_highlight_parser_and_renderer_are_shared(self):
+        core_source = PROMPT_STUDIO_HIGHLIGHT_CORE_JS.read_text(encoding="utf-8")
+        modular_source = PROMPT_STUDIO_HIGHLIGHT_JS.read_text(encoding="utf-8")
+        regional_source = PROMPT_STUDIO_COMMON_JS.read_text(encoding="utf-8")
+        constants_source = (PROMPT_STUDIO_MODULES / "constants.js").read_text(
+            encoding="utf-8"
+        )
+
+        self.assertIn('from "./highlight_core.js"', modular_source)
+        self.assertIn(
+            'from "./prompt_studio/highlight_core.js"', regional_source
+        )
+        self.assertIn("preferSyntaxBeforeToken: false", modular_source)
+        self.assertIn("preferSyntaxBeforeToken: true", regional_source)
+        self.assertIn("  createPromptHighlightRenderer,", core_source)
+
+        for name in (
+            "normalize",
+            "splitPromptText",
+            "artistMixGroupParts",
+            "findTokenMatch",
+            "renderSequentialBody",
+            "renderHighlightedText",
+        ):
+            with self.subTest(symbol=name):
+                self.assertIn(f"function {name}", core_source)
+                self.assertNotIn(f"function {name}", modular_source)
+                self.assertNotIn(f"function {name}", regional_source)
+
+        for source in (modular_source, regional_source, constants_source):
+            self.assertNotIn("WILDCARD_HIGHLIGHT_RE", source)
 
     def test_prompt_studio_phase_2_modules_export_expected_symbols(self):
         advanced_controls_source = (
@@ -815,6 +850,7 @@ class FrontendModuleStructureTests(unittest.TestCase):
 
         self.assertIn('Get-ChildItem -File -Recurse -Path "web\\js"', source)
         self.assertIn("& node --check", source)
+        self.assertIn(r'& node "tests\frontend_highlight_core_smoke.mjs"', source)
         self.assertIn('"typescript@$TypeScriptVersion"', source)
         self.assertIn("tsc -p jsconfig.json", source)
 
@@ -865,6 +901,7 @@ class FrontendModuleStructureTests(unittest.TestCase):
             "extend_layout.js",
             "extend_slots.js",
             "fields.js",
+            "highlight_core.js",
             "highlight_ui.js",
             "legend.js",
             "node_hooks.js",
