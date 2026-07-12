@@ -10,6 +10,35 @@ import {
   getAdvancedEditorElement,
 } from "./state.js";
 
+function advancedEditorLayoutMetrics(editor) {
+  return {
+    clientWidth: Math.ceil(Number(editor?.clientWidth) || 0),
+    scrollHeight: Math.ceil(Number(editor?.scrollHeight) || 0),
+  };
+}
+
+function advancedEditorLayoutMetricsChanged(previous, current) {
+  return Math.abs(current.clientWidth - previous.clientWidth) > 1
+    || Math.abs(current.scrollHeight - previous.scrollHeight) > 1;
+}
+
+function scheduleAdvancedScrollbarRemeasure(node, editor, previousMetrics, hooks = {}) {
+  cancelAnimationFrame(node?.__easyuseAnimaAdvancedScrollbarMeasureFrame);
+  if (!node || !editor?.isConnected) {
+    return;
+  }
+  node.__easyuseAnimaAdvancedScrollbarMeasureFrame = requestAnimationFrame(() => {
+    node.__easyuseAnimaAdvancedScrollbarMeasureFrame = null;
+    if (!node.graph || !editor.isConnected) {
+      return;
+    }
+    const currentMetrics = advancedEditorLayoutMetrics(editor);
+    if (advancedEditorLayoutMetricsChanged(previousMetrics, currentMetrics)) {
+      scheduleAdvancedLayout(node, "scrollbar", hooks);
+    }
+  });
+}
+
 function clearAdvancedResizeEndListeners(node) {
   const handler = node?.__easyuseAnimaAdvancedResizeEndHandler;
   if (!handler) {
@@ -74,6 +103,7 @@ function applyAdvancedLayout(node, reason = "layout", hooks = {}) {
   node.__easyuseAnimaApplyingLayout = true;
   try {
     updateAdvancedEditorWidth(node);
+    const previousMetrics = advancedEditorLayoutMetrics(editor);
 
     const currentWidth = Number(node.size[0]) || 360;
     const currentHeight = Number(node.size[1]) || 0;
@@ -89,12 +119,16 @@ function applyAdvancedLayout(node, reason = "layout", hooks = {}) {
       node.setSize([currentWidth, minimumHeight]);
     }
 
+    scheduleAdvancedScrollbarRemeasure(node, editor, previousMetrics, hooks);
+
     hooks.markGraphDirty?.();
     requestAnimationFrame(() => hooks.markGraphDirty?.());
   } finally {
     node.__easyuseAnimaApplyingLayout = false;
   }
-  hooks.scheduleAdvancedHighlights?.(node, { classify: reason !== "resize" });
+  hooks.scheduleAdvancedHighlights?.(node, {
+    classify: reason !== "resize" && reason !== "scrollbar",
+  });
 }
 
 const ADVANCED_LAYOUT_REASON_PRIORITY = {
@@ -104,6 +138,7 @@ const ADVANCED_LAYOUT_REASON_PRIORITY = {
   connections: 1,
   executed: 1,
   settings: 1,
+  scrollbar: 2,
   resize: 3,
 };
 

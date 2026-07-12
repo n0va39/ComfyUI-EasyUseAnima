@@ -606,6 +606,25 @@ class FrontendModuleStructureTests(unittest.TestCase):
             with self.subTest(module="extension_runtime", symbol=name):
                 self.assertIn(f"  {name},", extension_runtime_source)
 
+    def test_advanced_layout_remeasures_after_scrollbar_changes_width_or_wrapping(self):
+        source = (PROMPT_STUDIO_MODULES / "advanced_layout_controller.js").read_text(
+            encoding="utf-8"
+        )
+        metrics_start = source.index("function advancedEditorLayoutMetrics")
+        metrics_end = source.index("\nfunction scheduleAdvancedScrollbarRemeasure", metrics_start)
+        metrics_body = source[metrics_start:metrics_end]
+        apply_start = source.index("function applyAdvancedLayout")
+        apply_end = source.index("\nconst ADVANCED_LAYOUT_REASON_PRIORITY", apply_start)
+        apply_body = source[apply_start:apply_end]
+
+        self.assertIn("editor?.clientWidth", metrics_body)
+        self.assertIn("editor?.scrollHeight", metrics_body)
+        self.assertIn("advancedEditorLayoutMetricsChanged", metrics_body)
+        self.assertIn("scheduleAdvancedScrollbarRemeasure", apply_body)
+        self.assertIn('scheduleAdvancedLayout(node, "scrollbar", hooks)', source)
+        self.assertIn("scrollbar: 2", source)
+        self.assertIn('reason !== "scrollbar"', apply_body)
+
     def test_prompt_studio_phase_3_typedefs_are_documented(self):
         types_source = (PROMPT_STUDIO_MODULES / "types.js").read_text(
             encoding="utf-8"
