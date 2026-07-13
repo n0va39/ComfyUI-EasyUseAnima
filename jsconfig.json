@@ -13,6 +13,7 @@
     "strict": false
   },
   "include": [
+    "web/js/aio/**/*.js",
     "web/js/easyuse_anima_prompt_studio.js",
     "web/js/easyuse_anima_prompt_studio_regional.js",
     "web/js/prompt_studio/**/*.js"

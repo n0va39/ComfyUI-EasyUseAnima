@@ -31,6 +31,9 @@ class AIOFrontendSourceTests(unittest.TestCase):
         apply_start = source.index("function applyGeneratorProfileSettings")
         apply_end = source.index("\nasync function applyGeneratorProfile", apply_start)
         apply_body = source[apply_start:apply_end]
+        lookup_start = source.index("function generatorUserProfileByName")
+        lookup_end = source.index("\nasync function loadGeneratorUserProfiles", lookup_start)
+        lookup_body = source[lookup_start:lookup_end]
         resolve_start = source.index("function resolvedGeneratorProfileValue")
         resolve_end = source.index("\nfunction generatorProfileDisplayLabel", resolve_start)
         resolve_body = source[resolve_start:resolve_end]
@@ -44,6 +47,10 @@ class AIOFrontendSourceTests(unittest.TestCase):
         self.assertIn('from "./aio/presets.js"', source)
         self.assertIn("aioBuiltinProfileIdForSettings", source)
         self.assertIn("aioProfileSettingsFingerprint", source)
+        for helper in ("aioFindUserProfileByName", "aioResolvedProfileValue"):
+            with self.subTest(profile_core_helper=helper):
+                self.assertIn(f"export function {helper}(", presets_source)
+                self.assertIn(helper, source)
         self.assertIn('"profile.custom": "Custom"', source)
         self.assertIn('"normal", "turbo", "optimized"', presets_source)
         self.assertIn('settings.sampler.steps = 10', presets_source)
@@ -54,8 +61,21 @@ class AIOFrontendSourceTests(unittest.TestCase):
         self.assertIn("applyVisibleGeneratorSettings(node, next)", apply_body)
         self.assertIn("writeGeneratorSettingsFromState(node, next, true)", apply_body)
         self.assertIn("aioProfileSettingsFingerprint", apply_body)
-        self.assertIn("aioBuiltinProfileIdForSettings(settings, DEFAULT_GENERATION_SETTINGS)", resolve_body)
-        self.assertIn("return GENERATOR_PROFILE_CUSTOM_VALUE", resolve_body)
+        self.assertIn(
+            "aioFindUserProfileByName(generatorProfileState.profiles, name)",
+            lookup_body,
+        )
+        self.assertIn("return aioResolvedProfileValue({", resolve_body)
+        self.assertIn("settings,", resolve_body)
+        for option in (
+            "defaultSettings",
+            "selectedValue",
+            "selectedFingerprint",
+            "profiles",
+            "customValue",
+        ):
+            with self.subTest(profile_resolution_option=option):
+                self.assertIn(f"{option}:", resolve_body)
         self.assertIn("syncGeneratorProfileValue(node, settings)", render_body)
         self.assertIn('profileButton.setAttribute("data-aio-profile-button", "")', render_body)
         self.assertIn('panel.querySelector("[data-aio-profile-button]")', summary_body)
