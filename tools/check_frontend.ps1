@@ -39,6 +39,11 @@ try {
         throw "Frontend highlight overlay core smoke failed with exit code $LASTEXITCODE."
     }
 
+    & node "tests\frontend_regional_pure_data_smoke.mjs"
+    if ($LASTEXITCODE -ne 0) {
+        throw "Frontend Regional pure data smoke failed with exit code $LASTEXITCODE."
+    }
+
     & npx --yes --package "typescript@$TypeScriptVersion" -- tsc -p jsconfig.json
     if ($LASTEXITCODE -ne 0) {
         throw "TypeScript check failed with exit code $LASTEXITCODE."
