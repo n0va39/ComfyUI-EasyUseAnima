@@ -19,6 +19,11 @@ PROMPT_STUDIO_HIGHLIGHT_CORE_JS = PROMPT_STUDIO_MODULES / "highlight_core.js"
 PROMPT_STUDIO_HIGHLIGHT_OVERLAY_CORE_JS = (
     PROMPT_STUDIO_MODULES / "highlight_overlay_core.js"
 )
+PROMPT_STUDIO_REGIONAL_JS = WEB_JS / "easyuse_anima_prompt_studio_regional.js"
+PROMPT_STUDIO_REGIONAL_MODULES = PROMPT_STUDIO_MODULES / "regional"
+PROMPT_STUDIO_REGIONAL_PURE_DATA_SMOKE = (
+    ROOT / "tests" / "frontend_regional_pure_data_smoke.mjs"
+)
 STATIC_IMPORT_RE = re.compile(r"""from\s+["'](\./[^"']+\.js)["']""")
 
 
@@ -218,6 +223,104 @@ class FrontendModuleStructureTests(unittest.TestCase):
         ):
             with self.subTest(export=name):
                 self.assertIn(f"  {name},", core_source)
+
+    def test_regional_pure_data_modules_own_dom_free_rules(self):
+        entry_source = PROMPT_STUDIO_REGIONAL_JS.read_text(encoding="utf-8")
+        common_source = PROMPT_STUDIO_COMMON_JS.read_text(encoding="utf-8")
+        frontend_check_source = FRONTEND_CHECK_SCRIPT.read_text(encoding="utf-8")
+        expected_modules = {
+            "constants.js": (
+                "REGIONAL_WIDGET_INDEX",
+                "PROMPT_STUDIO_RESOLUTION_BUCKETS",
+                "PROMPT_STUDIO_VARIANT_FIELD_TYPES",
+            ),
+            "resolution.js": (
+                "ratioLabel",
+                "normalizeResolutionBucket",
+                "readRegionalResolutionValues",
+            ),
+            "schema.js": (
+                "createDefaultRegionalFields",
+                "normalizeRegionalField",
+                "normalizeRegionalConfig",
+            ),
+            "serialization.js": (
+                "normalizeRegionalFieldsString",
+                "normalizeRegionalConfigString",
+                "serializedRegionalValue",
+            ),
+            "mask_geometry.js": (
+                "normalizeGeometry",
+                "findMaskAt",
+                "moveGeometry",
+                "resizeGeometry",
+            ),
+        }
+
+        for filename, symbols in expected_modules.items():
+            with self.subTest(module=filename):
+                path = PROMPT_STUDIO_REGIONAL_MODULES / filename
+                self.assertTrue(path.is_file())
+                source = path.read_text(encoding="utf-8")
+                self.assertTrue(source.startswith("// @ts-check"))
+                self.assertNotRegex(source, r"\b(?:document|window|app)\b")
+                for symbol in symbols:
+                    self.assertRegex(
+                        source,
+                        rf"export (?:const|function) {symbol}\b",
+                    )
+                self.assertIn(
+                    f'./prompt_studio/regional/{filename}"',
+                    entry_source,
+                )
+
+        for name in (
+            "ratioLabel",
+            "resolutionLabel",
+            "resolutionOptions",
+            "normalizeResolutionBucket",
+            "normalizeResolutionSize",
+            "snapResolution32",
+            "defaultFields",
+            "normalizeMaskIds",
+            "normalizeField",
+            "normalizeFieldsValue",
+            "normalizeGeometry",
+            "geometryToCanvasRect",
+            "maskHandlePoints",
+            "findMaskHandleAt",
+            "findMaskAt",
+            "moveGeometry",
+            "resizeGeometry",
+        ):
+            with self.subTest(extracted=name):
+                self.assertNotIn(f"function {name}", entry_source)
+
+        self.assertIn(
+            'from "./prompt_studio/regional/constants.js"',
+            common_source,
+        )
+        self.assertNotIn(
+            "export const PROMPT_STUDIO_RESOLUTION_BUCKETS",
+            common_source,
+        )
+        self.assertTrue(PROMPT_STUDIO_REGIONAL_PURE_DATA_SMOKE.is_file())
+        self.assertIn(
+            'node "tests\\frontend_regional_pure_data_smoke.mjs"',
+            frontend_check_source,
+        )
+
+        write_fields_source = entry_source[
+            entry_source.index("function writeRegionalFields"):
+            entry_source.index("function writeRegionalConfig")
+        ]
+        write_config_source = entry_source[
+            entry_source.index("function writeRegionalConfig"):
+            entry_source.index("function updateRegionalConfigCanvas")
+        ]
+        self.assertIn("if (syncInputs)", write_fields_source)
+        self.assertIn("syncRegionalFieldInputs(node, normalized)", write_fields_source)
+        self.assertNotIn("syncRegionalFieldInputs", write_config_source)
 
     def test_prompt_studio_phase_2_modules_export_expected_symbols(self):
         advanced_controls_source = (

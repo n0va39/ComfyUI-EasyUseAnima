@@ -1,14 +1,5 @@
 import { app } from "../../../scripts/app.js";
 import {
-  PROMPT_STUDIO_VARIANT_FIELD_LABELS,
-  PROMPT_STUDIO_VARIANT_FIELD_TYPES,
-  PROMPT_STUDIO_CUSTOM_RESOLUTION_BUCKET,
-  PROMPT_STUDIO_DEFAULT_RESOLUTION_BUCKET,
-  PROMPT_STUDIO_DEFAULT_RESOLUTION_SIZE,
-  PROMPT_STUDIO_RESOLUTION_BUCKETS,
-  PROMPT_STUDIO_WILDCARD_DEFAULT_MODE,
-  PROMPT_STUDIO_WILDCARD_MODES,
-  PROMPT_STUDIO_WILDCARD_SEED_CONTROLS,
   createPromptStudioActionButton,
   ensurePromptStudioVariantStyle,
   promptStudioFieldIndexLabel,
@@ -20,32 +11,62 @@ import {
   schedulePromptStudioFieldHighlight,
   updatePromptStudioFieldHighlight,
 } from "./easyuse_anima_prompt_studio_common.js";
+import {
+  PROMPT_STUDIO_CUSTOM_RESOLUTION_BUCKET,
+  PROMPT_STUDIO_RESOLUTION_BUCKETS,
+  PROMPT_STUDIO_VARIANT_FIELD_LABELS as REGIONAL_FIELD_LABELS,
+  PROMPT_STUDIO_VARIANT_FIELD_TYPES as REGIONAL_FIELD_TYPES,
+  PROMPT_STUDIO_WILDCARD_DEFAULT_MODE,
+  PROMPT_STUDIO_WILDCARD_MODES,
+  PROMPT_STUDIO_WILDCARD_SEED_CONTROLS,
+  REGIONAL_CONDITIONING_NODE_TYPE,
+  REGIONAL_CONFIG_PROPERTY,
+  REGIONAL_FIELDS_PROPERTY,
+  REGIONAL_INTERNAL_WIDGET_NAMES,
+  REGIONAL_NODE_TYPE,
+  REGIONAL_WIDGET_INDEX,
+} from "./prompt_studio/regional/constants.js";
+import {
+  clampRegionalValue as clamp,
+  findMaskAt,
+  findMaskHandleAt,
+  geometryToCanvasRect,
+  maskHandlePoints,
+  moveGeometry,
+  normalizeGeometry,
+  resizeGeometry,
+} from "./prompt_studio/regional/mask_geometry.js";
+import {
+  normalizeResolutionBucket,
+  normalizeResolutionSize,
+  ratioLabel,
+  readRegionalResolutionValues,
+  resolutionLabel,
+  resolutionOptions,
+  snapResolution32,
+} from "./prompt_studio/regional/resolution.js";
+import {
+  createDefaultRegionalConfig,
+  createDefaultRegionalFields as defaultFields,
+  firstRegionalValue as firstValue,
+  isRegionalConditioningAreaMode,
+  normalizeRegionalConditioningWidgetValues,
+  normalizeRegionalConfig,
+  normalizeRegionalField as normalizeField,
+  normalizeRegionalFields as normalizeFieldsValue,
+  normalizeRegionalMaskIds as normalizeMaskIds,
+  toRegionalInteger as asInt,
+} from "./prompt_studio/regional/schema.js";
+import {
+  normalizeRegionalConfigString,
+  normalizeRegionalFieldsString as normalizedFieldsString,
+  serializedRegionalValue as readSerializedRegionalValue,
+} from "./prompt_studio/regional/serialization.js";
 
-const REGIONAL_NODE_TYPE = "EasyUseAnimaPromptStudioRegional";
-const REGIONAL_CONDITIONING_NODE_TYPE = "EasyUseAnimaRegionalConditioning";
-const REGIONAL_FIELDS_PROPERTY = "easyuse_anima_regional_fields";
-const REGIONAL_CONFIG_PROPERTY = "easyuse_anima_regional_config";
-const REGIONAL_WIDGET_INDEX = {
-  regional_fields: 0,
-  regional_config: 1,
-  resolution_bucket: 2,
-  resolution_size: 3,
-  resolution_custom_width: 4,
-  resolution_custom_height: 5,
-  wildcard_mode: 6,
-  wildcard_seed: 7,
-  wildcard_seed_after_generate: 8,
-};
-const REGIONAL_INTERNAL_WIDGET_NAMES = new Set(Object.keys(REGIONAL_WIDGET_INDEX));
-const REGIONAL_FIELD_TYPES = PROMPT_STUDIO_VARIANT_FIELD_TYPES;
-const REGIONAL_FIELD_LABELS = PROMPT_STUDIO_VARIANT_FIELD_LABELS;
 const REGIONAL_NODE_MIN_WIDTH = 560;
 const REGIONAL_NODE_DEFAULT_WIDTH = 620;
 const REGIONAL_EDITOR_MIN_VIEWPORT_HEIGHT = 360;
 const REGIONAL_EDITOR_MAX_AUTO_VIEWPORT_HEIGHT = 640;
-const MASK_MIN_SIZE = 0.01;
-const MASK_HANDLE_RADIUS = 0.018;
-const MASK_HANDLE_NAMES = ["nw", "n", "ne", "e", "se", "s", "sw", "w"];
 const REGIONAL_LAYOUT_REASON_PRIORITY = {
   layout: 0,
   render: 1,
@@ -54,41 +75,10 @@ const REGIONAL_LAYOUT_REASON_PRIORITY = {
   settings: 1,
   resize: 3,
 };
-const REGIONAL_CONDITIONING_AREA_MODES = new Set(["mask bounds", "default"]);
 let activeMaskPopover = null;
-
-function deepClone(value) {
-  return JSON.parse(JSON.stringify(value));
-}
 
 function findWidget(node, name) {
   return node?.widgets?.find((widget) => widget.name === name) || null;
-}
-
-function isRegionalConditioningAreaMode(value) {
-  return REGIONAL_CONDITIONING_AREA_MODES.has(String(value || ""));
-}
-
-function normalizeRegionalConditioningWidgetValues(values) {
-  const raw = Array.isArray(values) ? values : [];
-  let maskStrength = null;
-  let setCondArea = null;
-  for (const value of raw) {
-    if (maskStrength == null && value != null && value !== "") {
-      const number = Number(value);
-      if (Number.isFinite(number) && !isRegionalConditioningAreaMode(value)) {
-        maskStrength = number;
-        continue;
-      }
-    }
-    if (setCondArea == null && isRegionalConditioningAreaMode(value)) {
-      setCondArea = String(value);
-    }
-  }
-  return [
-    maskStrength == null ? 1.0 : maskStrength,
-    setCondArea || "mask bounds",
-  ];
 }
 
 function repairRegionalConditioningWidgets(node, serialized = null) {
@@ -140,92 +130,6 @@ function wrapRegionalConditioningNode(nodeType) {
   };
 }
 
-function firstValue(value, fallback = null) {
-  return Array.isArray(value) ? (value.length ? value[0] : fallback) : (value ?? fallback);
-}
-
-function asBool(value, fallback = false) {
-  if (value == null) {
-    return fallback;
-  }
-  if (typeof value === "string") {
-    return ["true", "1", "yes", "on", "enabled"].includes(value.trim().toLowerCase());
-  }
-  return !!value;
-}
-
-function asInt(value, fallback = 0) {
-  const parsed = Number.parseInt(value, 10);
-  return Number.isFinite(parsed) ? parsed : fallback;
-}
-
-function clamp(value, min, max) {
-  return Math.max(min, Math.min(max, value));
-}
-
-function ratioLabel(width, height) {
-  const gcd = (a, b) => (b ? gcd(b, a % b) : a);
-  const divisor = gcd(Math.max(1, width), Math.max(1, height));
-  return `${Math.floor(width / divisor)}:${Math.floor(height / divisor)}`;
-}
-
-function resolutionLabel(width, height) {
-  return `${width} * ${height} (${ratioLabel(width, height)})`;
-}
-
-function resolutionOptions(bucket) {
-  const values = PROMPT_STUDIO_RESOLUTION_BUCKETS[bucket]
-    || PROMPT_STUDIO_RESOLUTION_BUCKETS[PROMPT_STUDIO_DEFAULT_RESOLUTION_BUCKET];
-  return [...values]
-    .sort((a, b) => (a[0] / a[1]) - (b[0] / b[1]) || a[0] - b[0] || a[1] - b[1])
-    .map(([width, height]) => resolutionLabel(width, height));
-}
-
-function normalizeResolutionBucket(value) {
-  const bucket = String(value || "").trim();
-  if (bucket === PROMPT_STUDIO_CUSTOM_RESOLUTION_BUCKET) {
-    return bucket;
-  }
-  return Object.prototype.hasOwnProperty.call(PROMPT_STUDIO_RESOLUTION_BUCKETS, bucket)
-    ? bucket
-    : PROMPT_STUDIO_DEFAULT_RESOLUTION_BUCKET;
-}
-
-function resolutionRatioFromLabel(value) {
-  const match = String(value || "").match(/(\d+)\s*(?:\*|x|×)\s*(\d+)/i);
-  if (!match) {
-    return "";
-  }
-  return ratioLabel(Number(match[1]), Number(match[2]));
-}
-
-function normalizeResolutionSize(bucket, value) {
-  if (bucket === PROMPT_STUDIO_CUSTOM_RESOLUTION_BUCKET) {
-    return String(value || PROMPT_STUDIO_DEFAULT_RESOLUTION_SIZE);
-  }
-  const options = resolutionOptions(bucket);
-  const raw = String(value || "").trim();
-  if (options.includes(raw)) {
-    return raw;
-  }
-  const sameRatio = resolutionRatioFromLabel(raw);
-  if (sameRatio) {
-    const matched = options.find((option) => resolutionRatioFromLabel(option) === sameRatio);
-    if (matched) {
-      return matched;
-    }
-  }
-  return options.includes(PROMPT_STUDIO_DEFAULT_RESOLUTION_SIZE)
-    ? PROMPT_STUDIO_DEFAULT_RESOLUTION_SIZE
-    : options[0];
-}
-
-function snapResolution32(value, fallback = 1024) {
-  const raw = Number.parseInt(value, 10);
-  const base = Number.isFinite(raw) && raw > 0 ? raw : fallback;
-  return Math.max(32, Math.round(base / 32) * 32);
-}
-
 function customResolution(node) {
   return {
     width: snapResolution32(findWidget(node, "resolution_custom_width")?.value, 1024),
@@ -257,227 +161,20 @@ function setCustomResolution(node, width, height, { normalize = false } = {}) {
 }
 
 function readResolution(node) {
-  const width = Math.max(32, asInt(findWidget(node, "resolution_custom_width")?.value, 1024));
-  const height = Math.max(32, asInt(findWidget(node, "resolution_custom_height")?.value, 1024));
-  const size = String(findWidget(node, "resolution_size")?.value || "");
-  const match = size.match(/(\d+)\s*(?:\*|x|×)\s*(\d+)/i);
-  if (normalizeResolutionBucket(findWidget(node, "resolution_bucket")?.value) !== PROMPT_STUDIO_CUSTOM_RESOLUTION_BUCKET && match) {
-    return {
-      width: Math.max(32, asInt(match[1], width)),
-      height: Math.max(32, asInt(match[2], height)),
-    };
-  }
-  return { width, height };
-}
-
-function defaultFields() {
-  return [
-    {
-      id: "positive_quality",
-      pane: "positive",
-      type: "quality",
-      label: "Quality Tags",
-      text: "newest, masterpiece, best quality, score_8, score_7:, highres, absurdres, very aesthetic",
-      height: 72,
-      enabled: true,
-      pin: false,
-      collapsed: false,
-      mask_ids: [],
-    },
-    {
-      id: "positive_artist",
-      pane: "positive",
-      type: "artist",
-      label: "Artist Tags",
-      text: "",
-      height: 72,
-      enabled: true,
-      pin: false,
-      collapsed: false,
-      mask_ids: [],
-    },
-    {
-      id: "positive_trigger",
-      pane: "positive",
-      type: "trigger",
-      label: "Trigger Words",
-      text: "",
-      height: 72,
-      enabled: true,
-      pin: true,
-      collapsed: false,
-      mask_ids: [],
-    },
-    {
-      id: "positive_general",
-      pane: "positive",
-      type: "general",
-      label: "General Tags",
-      text: "",
-      height: 150,
-      enabled: true,
-      pin: false,
-      collapsed: false,
-      mask_ids: [],
-    },
-    {
-      id: "negative_general",
-      pane: "negative",
-      type: "general",
-      label: "Negative Prompt",
-      text: "",
-      height: 120,
-      enabled: true,
-      pin: false,
-      collapsed: false,
-      mask_ids: [],
-    },
-  ];
+  return readRegionalResolutionValues({
+    bucket: findWidget(node, "resolution_bucket")?.value,
+    size: findWidget(node, "resolution_size")?.value,
+    customWidth: findWidget(node, "resolution_custom_width")?.value,
+    customHeight: findWidget(node, "resolution_custom_height")?.value,
+  });
 }
 
 function defaultConfig(node = null) {
-  const { width, height } = node ? readResolution(node) : { width: 1024, height: 1024 };
-  return {
-    version: 1,
-    canvas: {
-      width,
-      height,
-      aspect_ratio: ratioLabel(width, height),
-      source: "resolution_fields",
-    },
-    mask_authoring: {
-      render_space: "image_pixels",
-      storage_space: "normalized_canvas",
-      preview_enabled: true,
-    },
-    global_prompt: "",
-    negative_prompt: "",
-    next_mask_id: 1,
-    masks: [],
-    regional_enabled: false,
-    mask_prompts: [],
-    assignments: [],
-    artist_mix: {},
-    conditioning_settings: {},
-    regional_settings: {},
-  };
-}
-
-function parseJson(value, fallback) {
-  if (value == null || value === "") {
-    return deepClone(fallback);
-  }
-  try {
-    const parsed = typeof value === "string" ? JSON.parse(value) : value;
-    return parsed == null ? deepClone(fallback) : parsed;
-  } catch {
-    return deepClone(fallback);
-  }
-}
-
-function normalizeMaskIds(value) {
-  const values = Array.isArray(value) ? value : String(value ?? "").split(/[,\s;]+/);
-  const result = [];
-  for (const raw of values) {
-    const id = asInt(raw, 0);
-    if (id > 0 && !result.includes(id)) {
-      result.push(id);
-    }
-  }
-  return result;
-}
-
-function normalizeField(field, index = 0) {
-  const pane = field?.pane === "negative" ? "negative" : "positive";
-  let type = String(field?.type || "general").toLowerCase();
-  if (!REGIONAL_FIELD_TYPES.includes(type)) {
-    type = "general";
-  }
-  if (pane === "negative" && type === "trigger") {
-    type = "general";
-  }
-  const label = String(field?.label || REGIONAL_FIELD_LABELS[type] || "Prompt").trim();
-  const id = String(field?.id || `${pane}_${type}_${index + 1}`).trim() || `${pane}_${type}_${index + 1}`;
-  return {
-    id,
-    pane,
-    type,
-    label,
-    text: String(field?.text || ""),
-    height: Math.max(36, asInt(field?.height, 72)),
-    enabled: asBool(field?.enabled, true),
-    pin: asBool(field?.pin, type === "trigger"),
-    collapsed: asBool(field?.collapsed, false),
-    mask_ids: pane === "positive" ? normalizeMaskIds(field?.mask_ids) : [],
-  };
-}
-
-function normalizeFieldsValue(value) {
-  const parsed = parseJson(value, []);
-  const raw = Array.isArray(parsed) && parsed.length ? parsed : defaultFields();
-  const fields = raw.map((field, index) => normalizeField(field, index));
-  return fields.length ? fields : defaultFields();
-}
-
-function normalizeGeometry(geometry) {
-  const raw = geometry && typeof geometry === "object" ? geometry : {};
-  const shape = String(raw.type || "rect").toLowerCase() === "ellipse" ? "ellipse" : "rect";
-  const x = clamp(Number(raw.x ?? 0.1), 0, 1);
-  const y = clamp(Number(raw.y ?? 0.1), 0, 1);
-  const width = clamp(Number(raw.width ?? 0.35), 0.01, 1);
-  const height = clamp(Number(raw.height ?? 0.35), 0.01, 1);
-  return {
-    type: shape,
-    x: Number(clamp(x, 0, 0.99).toFixed(6)),
-    y: Number(clamp(y, 0, 0.99).toFixed(6)),
-    width: Number(clamp(width, 0.01, 1 - x).toFixed(6)),
-    height: Number(clamp(height, 0.01, 1 - y).toFixed(6)),
-  };
-}
-
-function normalizeMask(mask, index) {
-  const maskId = asInt(mask?.mask_id ?? mask?.id, index + 1);
-  const label = String(mask?.label || mask?.name || `Mask ${maskId}`);
-  const color = /^#[0-9A-Fa-f]{6}$/.test(String(mask?.color || "")) ? String(mask.color) : "#3b82f6";
-  return {
-    mask_id: maskId,
-    label,
-    name: String(mask?.name || ""),
-    color,
-    enabled: asBool(mask?.enabled, true),
-    geometry: normalizeGeometry(mask?.geometry),
-    strokes: Array.isArray(mask?.strokes) ? mask.strokes : undefined,
-    shapes: Array.isArray(mask?.shapes) ? mask.shapes : undefined,
-  };
+  return createDefaultRegionalConfig(node ? readResolution(node) : null);
 }
 
 function normalizeConfigValue(node, value) {
-  const parsed = parseJson(value, {});
-  const base = defaultConfig(node);
-  const rawMasks = Array.isArray(parsed.masks) ? parsed.masks : (Array.isArray(parsed.regions) ? parsed.regions : []);
-  const used = new Set();
-  const masks = [];
-  for (const [index, raw] of rawMasks.entries()) {
-    const mask = normalizeMask(raw, index);
-    if (mask.mask_id <= 0 || used.has(mask.mask_id)) {
-      continue;
-    }
-    used.add(mask.mask_id);
-    masks.push(mask);
-  }
-  const maxMaskId = masks.reduce((max, mask) => Math.max(max, mask.mask_id), 0);
-  return {
-    ...base,
-    artist_mix: parsed.artist_mix && typeof parsed.artist_mix === "object" ? parsed.artist_mix : {},
-    conditioning_settings: parsed.conditioning_settings && typeof parsed.conditioning_settings === "object" ? parsed.conditioning_settings : {},
-    regional_settings: parsed.regional_settings && typeof parsed.regional_settings === "object" ? parsed.regional_settings : {},
-    mask_authoring: {
-      ...base.mask_authoring,
-      ...(parsed.mask_authoring && typeof parsed.mask_authoring === "object" ? parsed.mask_authoring : {}),
-    },
-    next_mask_id: Math.max(1, asInt(parsed.next_mask_id, 1), maxMaskId + 1),
-    masks,
-  };
+  return normalizeRegionalConfig(value, node ? readResolution(node) : null);
 }
 
 function regionalFieldsWidget(node) {
@@ -504,25 +201,12 @@ function configBackup(node) {
   return typeof value === "string" && value.trim() ? value : "";
 }
 
-function normalizedFieldsString(value) {
-  return JSON.stringify(normalizeFieldsValue(value));
-}
-
 function normalizedConfigString(node, value) {
-  return JSON.stringify(normalizeConfigValue(node, value));
+  return normalizeRegionalConfigString(value, node ? readResolution(node) : null);
 }
 
 function serializedRegionalValue(node, serialized, name) {
-  const propertyName = name === "regional_fields" ? REGIONAL_FIELDS_PROPERTY : REGIONAL_CONFIG_PROPERTY;
-  const propertyValue = serialized?.properties?.[propertyName];
-  if (propertyValue != null && String(propertyValue).trim()) {
-    return name === "regional_fields" ? normalizedFieldsString(propertyValue) : normalizedConfigString(node, propertyValue);
-  }
-  const widgetValue = serialized?.widgets_values?.[REGIONAL_WIDGET_INDEX[name]];
-  if (widgetValue != null && String(widgetValue).trim()) {
-    return name === "regional_fields" ? normalizedFieldsString(widgetValue) : normalizedConfigString(node, widgetValue);
-  }
-  return "";
+  return readSerializedRegionalValue(serialized, name, node ? readResolution(node) : null);
 }
 
 function captureRegionalConfigure(node, serialized) {
@@ -1401,15 +1085,6 @@ function drawMaskCanvas(canvas, config, activeMaskId = 0) {
   }
 }
 
-function geometryToCanvasRect(geometry, width, height) {
-  return {
-    x: geometry.x * width,
-    y: geometry.y * height,
-    width: geometry.width * width,
-    height: geometry.height * height,
-  };
-}
-
 function drawMaskShape(ctx, geometry, rect, fill = true) {
   ctx.beginPath();
   if (geometry.type === "ellipse") {
@@ -1429,25 +1104,6 @@ function drawMaskShape(ctx, geometry, rect, fill = true) {
     ctx.fill();
   }
   ctx.stroke();
-}
-
-function maskHandlePoints(geometry) {
-  const left = geometry.x;
-  const top = geometry.y;
-  const right = geometry.x + geometry.width;
-  const bottom = geometry.y + geometry.height;
-  const midX = geometry.x + geometry.width / 2;
-  const midY = geometry.y + geometry.height / 2;
-  return {
-    nw: { x: left, y: top },
-    n: { x: midX, y: top },
-    ne: { x: right, y: top },
-    e: { x: right, y: midY },
-    se: { x: right, y: bottom },
-    s: { x: midX, y: bottom },
-    sw: { x: left, y: bottom },
-    w: { x: left, y: midY },
-  };
 }
 
 function drawMaskHandles(ctx, geometry, width, height) {
@@ -1473,118 +1129,6 @@ function canvasPoint(canvas, event) {
     x: clamp((event.clientX - rect.left) / rect.width, 0, 1),
     y: clamp((event.clientY - rect.top) / rect.height, 0, 1),
   };
-}
-
-function hitTestMaskHandle(geometry, point) {
-  const points = maskHandlePoints(geometry);
-  for (const name of MASK_HANDLE_NAMES) {
-    const handle = points[name];
-    if (Math.abs(point.x - handle.x) <= MASK_HANDLE_RADIUS && Math.abs(point.y - handle.y) <= MASK_HANDLE_RADIUS) {
-      return name;
-    }
-  }
-  return "";
-}
-
-function maskContainsPoint(geometry, point) {
-  if (
-    point.x < geometry.x
-    || point.x > geometry.x + geometry.width
-    || point.y < geometry.y
-    || point.y > geometry.y + geometry.height
-  ) {
-    return false;
-  }
-  if (geometry.type !== "ellipse") {
-    return true;
-  }
-  const rx = Math.max(MASK_MIN_SIZE / 2, geometry.width / 2);
-  const ry = Math.max(MASK_MIN_SIZE / 2, geometry.height / 2);
-  const cx = geometry.x + geometry.width / 2;
-  const cy = geometry.y + geometry.height / 2;
-  return (((point.x - cx) / rx) ** 2 + ((point.y - cy) / ry) ** 2) <= 1;
-}
-
-function findMaskHandleAt(config, point, activeMaskId = 0) {
-  const masks = Array.isArray(config.masks) ? config.masks : [];
-  const active = masks.find((mask) => mask.mask_id === activeMaskId);
-  if (!active) {
-    return null;
-  }
-  const geometry = normalizeGeometry(active.geometry);
-  const handle = hitTestMaskHandle(geometry, point);
-  return handle ? { mask: active, geometry, handle } : null;
-}
-
-function findMaskAt(config, point) {
-  const masks = Array.isArray(config.masks) ? [...config.masks].reverse() : [];
-  for (const mask of masks) {
-    const geometry = normalizeGeometry(mask.geometry);
-    if (maskContainsPoint(geometry, point)) {
-      return mask;
-    }
-  }
-  return null;
-}
-
-function moveGeometry(geometry, dx, dy) {
-  const width = clamp(geometry.width, MASK_MIN_SIZE, 1);
-  const height = clamp(geometry.height, MASK_MIN_SIZE, 1);
-  return normalizeGeometry({
-    ...geometry,
-    x: clamp(geometry.x + dx, 0, Math.max(0, 1 - width)),
-    y: clamp(geometry.y + dy, 0, Math.max(0, 1 - height)),
-    width,
-    height,
-  });
-}
-
-function resizeGeometry(geometry, handle, dx, dy) {
-  let left = geometry.x;
-  let top = geometry.y;
-  let right = geometry.x + geometry.width;
-  let bottom = geometry.y + geometry.height;
-
-  if (handle.includes("w")) {
-    left += dx;
-  }
-  if (handle.includes("e")) {
-    right += dx;
-  }
-  if (handle.includes("n")) {
-    top += dy;
-  }
-  if (handle.includes("s")) {
-    bottom += dy;
-  }
-
-  left = clamp(left, 0, 1 - MASK_MIN_SIZE);
-  top = clamp(top, 0, 1 - MASK_MIN_SIZE);
-  right = clamp(right, MASK_MIN_SIZE, 1);
-  bottom = clamp(bottom, MASK_MIN_SIZE, 1);
-
-  if (right - left < MASK_MIN_SIZE) {
-    if (handle.includes("w")) {
-      left = right - MASK_MIN_SIZE;
-    } else {
-      right = left + MASK_MIN_SIZE;
-    }
-  }
-  if (bottom - top < MASK_MIN_SIZE) {
-    if (handle.includes("n")) {
-      top = bottom - MASK_MIN_SIZE;
-    } else {
-      bottom = top + MASK_MIN_SIZE;
-    }
-  }
-
-  return normalizeGeometry({
-    type: geometry.type,
-    x: left,
-    y: top,
-    width: right - left,
-    height: bottom - top,
-  });
 }
 
 function openMaskEditor(node) {

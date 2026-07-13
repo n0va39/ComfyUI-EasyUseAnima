@@ -23,8 +23,8 @@
 
 ```text
 branch: dev
-HEAD: c7897a824b3bf28b41f826f557bb0330918e40a1
-origin/dev: c7897a824b3bf28b41f826f557bb0330918e40a1
+HEAD: 55a68ea0c49dc215fed05c39b896bea771b0b5b8
+origin/dev: 55a68ea0c49dc215fed05c39b896bea771b0b5b8
 working tree: clean
 ```
 
@@ -37,6 +37,7 @@ Issue #14는 열려 있다. 다음 변경은 `dev`에 병합됐다.
 | #47 | `2c818b6` | Main/Advanced와 Regional의 prompt highlight parser/renderer core 공통화 |
 | #48 | `781b4c4` | Issue #14 현재 로드맵과 종료 범위 정리 |
 | #49 | `c7897a8` | 저장소 소유 project/frontend/unittest 검증 명령 계약 통합 |
+| #50 | `55a68ea` | Prompt Studio DOM highlight overlay geometry/preview core 공통화 |
 
 ## 현재 상태
 
@@ -52,29 +53,33 @@ Issue #14는 열려 있다. 다음 변경은 `dev`에 병합됐다.
   `prompt_studio/highlight_core.js`가 소유한다.
 - overlay geometry, text metric 복사, autocomplete preview 조합은
   `prompt_studio/highlight_overlay_core.js`가 소유한다.
+- Regional의 상수, field/config schema와 migration, resolution 규칙,
+  serialization 정규화, mask geometry/hit-test는
+  `prompt_studio/regional/` 아래 DOM-free 모듈이 소유한다.
 - `tools/check_frontend.ps1`은 전체 frontend JS 문법 검사, parser/renderer와
-  overlay semantic smoke, 고정 버전 TypeScript 검사를 한 번에 실행한다.
+  overlay 및 Regional pure-data semantic smoke, 고정 버전 TypeScript 검사를
+  한 번에 실행한다.
 - `noUnusedLocals`와 `noUnusedParameters`가 현재 typecheck 범위에 적용된다.
 - Vite/TypeScript build chain을 당장 도입하지 않고 raw ES module과 no-build
   typecheck를 유지하기로 결정했다.
 
 ### 정량 스냅샷
 
-`web/js`에는 JavaScript 53개, 총 28,782줄이 있다. `jsconfig.json`에 명시된
+`web/js`에는 JavaScript 58개, 총 28,920줄이 있다. `jsconfig.json`에 명시된
 include 대상은 Prompt Studio entry와 `prompt_studio/*.js` 41개, 8,485줄로
-전체 라인의 29.5%다. import를 따라 추가로 검사되는 dependency는 이 수치에
+전체 라인의 29.3%다. import를 따라 추가로 검사되는 dependency는 이 수치에
 포함하지 않았다.
 
 | 파일 | 줄 수 | 전체 비율 | 현재 판단 |
 | --- | ---: | ---: | --- |
-| `easyuse_anima_aio.js` | 8,879 | 30.8% | 가장 큰 후속 hotspot |
+| `easyuse_anima_aio.js` | 8,879 | 30.7% | 가장 큰 후속 hotspot |
 | `easyuse_anima_lora_preset.js` | 2,907 | 10.1% | canvas/UI/API/state가 한 파일에 결합 |
-| `easyuse_anima_prompt_studio_regional.js` | 2,284 | 7.9% | Issue #14 종료 전에 분리할 대상 |
-| `easyuse_anima_autocomplete.js` | 2,067 | 7.2% | parser, popup, input runtime이 결합 |
+| `easyuse_anima_autocomplete.js` | 2,067 | 7.1% | parser, popup, input runtime이 결합 |
 | `easyuse_anima_settings.js` | 1,935 | 6.7% | 설정 정의와 여러 editor 구현이 결합 |
-| `easyuse_anima_prompt_studio_common.js` | 1,419 | 4.9% | 현재 Regional만 import하는 legacy common layer |
+| `easyuse_anima_prompt_studio_regional.js` | 1,828 | 6.3% | UI/editor/runtime 분리가 남은 Issue #14 대상 |
+| `easyuse_anima_prompt_studio_common.js` | 1,365 | 4.7% | 현재 Regional만 import하는 legacy common layer |
 
-상위 6개 파일이 전체 frontend JS의 약 67.7%를 차지한다. 줄 수 자체를 목표로
+상위 6개 파일이 전체 frontend JS의 약 65.6%를 차지한다. 줄 수 자체를 목표로
 삼지는 않지만, 책임 경계와 검증 비용이 이 파일들에 집중돼 있다는 신호로
 사용한다.
 
@@ -86,8 +91,9 @@ include 대상은 Prompt Studio entry와 `prompt_studio/*.js` 41개, 8,485줄로
   preview HTML, overlay 위치 동기화는 DOM overlay core로 공통화됐다.
 - 색상 설정, tooltip 문구, 설정 저장소, node별 highlight state와 listener
   lifecycle은 화면별 adapter에 남기는 편이 안전하다.
-- Regional entry는 constants, schema, serialization, mask geometry/editor,
-  DOM 생성, layout, hook 설치, extension 등록을 한 파일에서 담당한다.
+- Regional entry에서 constants, schema/migration, resolution, serialization,
+  mask geometry/hit-test가 분리됐다. DOM 생성, mask canvas draw/editor,
+  layout, hook 설치와 extension 등록은 R4 범위로 남아 있다.
 - `easyuse_anima_prompt_studio_common.js`는 Regional만 사용하므로 이름과 역할이
   현재 구조를 설명하지 못한다. Regional 분리 후 제거하거나 얇은 호환 adapter로
   축소해야 한다.
@@ -218,6 +224,13 @@ web/js/prompt_studio/regional/
   mask_geometry.js
 ```
 
+현재 구현:
+
+- 위 5개 모듈이 `web/js/prompt_studio/regional/`에 분리돼 있다.
+- `frontend_regional_pure_data_smoke.mjs`가 field/config migration,
+  resolution, mask geometry, save/reload 정규화를 DOM 없이 검증한다.
+- legacy common은 기존 Regional 상수 export를 호환 re-export로 유지한다.
+
 완료 기준:
 
 - field/config normalization과 migration이 DOM 없이 테스트된다.
@@ -283,16 +296,13 @@ web/js/prompt_studio/regional/
 
 ## Issue #14 예상 잔여 시간
 
-R1-R6은 약 4-7 작업일로 본다. 가장 큰 변수는 Regional mask/editor의 browser
-smoke와 workflow compatibility 확인이다. 한 PR로 묶지 않고 다음 정도로
-나누는 것이 적절하다.
+R4-R6은 약 2.5-4.5 작업일로 본다. 가장 큰 변수는 Regional mask/editor의
+browser smoke와 workflow compatibility 확인이다. 남은 작업은 한 PR로 묶지
+않고 다음 순서로 진행한다.
 
-1. validation contract
-2. overlay core
-3. Regional pure data
-4. Regional UI/runtime
-5. common retirement와 typecheck
-6. closure validation과 Issue update
+1. Regional UI/runtime
+2. common retirement와 typecheck
+3. closure validation과 Issue update
 
 ## Issue #14 이후 후속 트랙
 
