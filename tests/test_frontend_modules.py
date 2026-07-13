@@ -24,6 +24,9 @@ PROMPT_STUDIO_REGIONAL_MODULES = PROMPT_STUDIO_MODULES / "regional"
 PROMPT_STUDIO_REGIONAL_PURE_DATA_SMOKE = (
     ROOT / "tests" / "frontend_regional_pure_data_smoke.mjs"
 )
+PROMPT_STUDIO_REGIONAL_RUNTIME_SMOKE = (
+    ROOT / "tests" / "frontend_regional_runtime_smoke.mjs"
+)
 STATIC_IMPORT_RE = re.compile(r"""from\s+["'](\./[^"']+\.js)["']""")
 
 
@@ -228,6 +231,11 @@ class FrontendModuleStructureTests(unittest.TestCase):
         entry_source = PROMPT_STUDIO_REGIONAL_JS.read_text(encoding="utf-8")
         common_source = PROMPT_STUDIO_COMMON_JS.read_text(encoding="utf-8")
         frontend_check_source = FRONTEND_CHECK_SCRIPT.read_text(encoding="utf-8")
+        regional_sources = {
+            path.name: path.read_text(encoding="utf-8")
+            for path in PROMPT_STUDIO_REGIONAL_MODULES.glob("*.js")
+        }
+        combined_regional_source = "\n".join(regional_sources.values())
         expected_modules = {
             "constants.js": (
                 "REGIONAL_WIDGET_INDEX",
@@ -269,10 +277,7 @@ class FrontendModuleStructureTests(unittest.TestCase):
                         source,
                         rf"export (?:const|function) {symbol}\b",
                     )
-                self.assertIn(
-                    f'./prompt_studio/regional/{filename}"',
-                    entry_source,
-                )
+                self.assertIn(f'"./{filename}"', combined_regional_source)
 
         for name in (
             "ratioLabel",
@@ -310,17 +315,86 @@ class FrontendModuleStructureTests(unittest.TestCase):
             frontend_check_source,
         )
 
-        write_fields_source = entry_source[
-            entry_source.index("function writeRegionalFields"):
-            entry_source.index("function writeRegionalConfig")
+        runtime_source = regional_sources["runtime.js"]
+        write_fields_source = runtime_source[
+            runtime_source.index("function writeRegionalFields"):
+            runtime_source.index("function writeRegionalConfig")
         ]
-        write_config_source = entry_source[
-            entry_source.index("function writeRegionalConfig"):
-            entry_source.index("function updateRegionalConfigCanvas")
+        write_config_source = runtime_source[
+            runtime_source.index("function writeRegionalConfig"):
+            runtime_source.index("function updateRegionalConfigCanvas")
         ]
-        self.assertIn("if (syncInputs)", write_fields_source)
+        self.assertIn("options.syncInputs !== false", write_fields_source)
         self.assertIn("syncRegionalFieldInputs(node, normalized)", write_fields_source)
         self.assertNotIn("syncRegionalFieldInputs", write_config_source)
+
+    def test_regional_ui_runtime_modules_have_owned_lifecycle(self):
+        entry_source = PROMPT_STUDIO_REGIONAL_JS.read_text(encoding="utf-8")
+        frontend_check_source = FRONTEND_CHECK_SCRIPT.read_text(encoding="utf-8")
+        combined_regional_source = "\n".join(
+            path.read_text(encoding="utf-8")
+            for path in PROMPT_STUDIO_REGIONAL_MODULES.glob("*.js")
+        )
+        expected_modules = {
+            "extension.js": (
+                "createRegionalExtensionRuntime",
+                "installRegionalSaveSync",
+                "registerRegionalNodeHooks",
+            ),
+            "field_editor.js": (
+                "createRegionalFieldEditor",
+                "moveRegionalFieldInPane",
+            ),
+            "layout.js": (
+                "createRegionalLayout",
+                "REGIONAL_NODE_MIN_WIDTH",
+            ),
+            "lifecycle.js": (
+                "disposeRegionalNodeLifecycle",
+                "scheduleRegionalNodeFrame",
+                "setRegionalNodeCleanup",
+            ),
+            "mask_editor.js": (
+                "createRegionalMaskEditor",
+                "drawMaskCanvas",
+                "canvasPoint",
+            ),
+            "runtime.js": (
+                "createRegionalRuntime",
+            ),
+        }
+
+        for filename, symbols in expected_modules.items():
+            with self.subTest(module=filename):
+                path = PROMPT_STUDIO_REGIONAL_MODULES / filename
+                self.assertTrue(path.is_file())
+                source = path.read_text(encoding="utf-8")
+                self.assertTrue(source.startswith("// @ts-check"))
+                self.assertNotIn("app.registerExtension", source)
+                self.assertNotRegex(
+                    source,
+                    re.compile(r"^(?:document|window)\.", re.MULTILINE),
+                )
+                for symbol in symbols:
+                    self.assertRegex(source, rf"\b{symbol}\b")
+                if filename == "lifecycle.js":
+                    self.assertIn('"./lifecycle.js"', combined_regional_source)
+                else:
+                    self.assertIn(
+                        f'./prompt_studio/regional/{filename}"',
+                        entry_source,
+                    )
+
+        self.assertLess(len(entry_source.splitlines()), 100)
+        self.assertEqual(entry_source.count("app.registerExtension("), 1)
+        self.assertNotIn("function openMaskEditor", entry_source)
+        self.assertNotIn("function renderRegionalEditor", entry_source)
+        self.assertNotIn("prototype.onRemoved", entry_source)
+        self.assertTrue(PROMPT_STUDIO_REGIONAL_RUNTIME_SMOKE.is_file())
+        self.assertIn(
+            'node "tests\\frontend_regional_runtime_smoke.mjs"',
+            frontend_check_source,
+        )
 
     def test_prompt_studio_phase_2_modules_export_expected_symbols(self):
         advanced_controls_source = (
