@@ -14,6 +14,9 @@ API_JS = WEB_JS / "easyuse_anima_api.js"
 PROMPT_STUDIO_JS = WEB_JS / "easyuse_anima_prompt_studio.js"
 PROMPT_STUDIO_COMMON_JS = WEB_JS / "easyuse_anima_prompt_studio_common.js"
 PROMPT_STUDIO_MODULES = WEB_JS / "prompt_studio"
+PROMPT_STUDIO_REGIONAL_ADAPTER_JS = (
+    PROMPT_STUDIO_MODULES / "regional" / "editor_adapter.js"
+)
 PROMPT_STUDIO_HIGHLIGHT_JS = PROMPT_STUDIO_MODULES / "highlight.js"
 PROMPT_STUDIO_HIGHLIGHT_CORE_JS = PROMPT_STUDIO_MODULES / "highlight_core.js"
 PROMPT_STUDIO_HIGHLIGHT_OVERLAY_CORE_JS = (
@@ -27,7 +30,9 @@ PROMPT_STUDIO_REGIONAL_PURE_DATA_SMOKE = (
 PROMPT_STUDIO_REGIONAL_RUNTIME_SMOKE = (
     ROOT / "tests" / "frontend_regional_runtime_smoke.mjs"
 )
-STATIC_IMPORT_RE = re.compile(r"""from\s+["'](\./[^"']+\.js)["']""")
+STATIC_IMPORT_RE = re.compile(
+    r"""from\s+["']((?:\.\.?/)+[^"']+\.js)["']"""
+)
 
 
 class FrontendModuleStructureTests(unittest.TestCase):
@@ -50,7 +55,7 @@ class FrontendModuleStructureTests(unittest.TestCase):
             "easyuse_anima_autocomplete.js": './easyuse_anima_api.js"',
             "easyuse_anima_lora_preset.js": './easyuse_anima_api.js"',
             "easyuse_anima_aio.js": './easyuse_anima_api.js"',
-            "easyuse_anima_prompt_studio_common.js": './easyuse_anima_api.js"',
+            "prompt_studio/regional/editor_adapter.js": '../../easyuse_anima_api.js"',
             "easyuse_anima_settings.js": './easyuse_anima_api.js"',
             "prompt_studio/highlight.js": '../easyuse_anima_api.js"',
         }
@@ -59,6 +64,46 @@ class FrontendModuleStructureTests(unittest.TestCase):
             with self.subTest(filename=filename):
                 source = (WEB_JS / filename).read_text(encoding="utf-8")
                 self.assertIn(import_path, source)
+
+    def test_legacy_regional_common_is_thin_compatibility_adapter(self):
+        common_source = PROMPT_STUDIO_COMMON_JS.read_text(encoding="utf-8")
+        entry_source = PROMPT_STUDIO_REGIONAL_JS.read_text(encoding="utf-8")
+
+        self.assertLessEqual(len(common_source.splitlines()), 6)
+        self.assertIn(
+            'export * from "./prompt_studio/regional/editor_adapter.js";',
+            common_source,
+        )
+        self.assertNotIn("easyuseAnimaGetSettings", common_source)
+        self.assertNotIn("window.addEventListener", common_source)
+        self.assertIn(
+            'from "./prompt_studio/regional/editor_adapter.js"',
+            entry_source,
+        )
+        self.assertNotIn("easyuse_anima_prompt_studio_common.js", entry_source)
+
+    def test_regional_adapter_function_exports_are_consumed_by_entry(self):
+        adapter_source = PROMPT_STUDIO_REGIONAL_ADAPTER_JS.read_text(
+            encoding="utf-8"
+        )
+        entry_source = PROMPT_STUDIO_REGIONAL_JS.read_text(encoding="utf-8")
+        import_match = re.search(
+            r'import\s+\{(?P<names>[^}]*)\}\s+from\s+'
+            r'"\./prompt_studio/regional/editor_adapter\.js";',
+            entry_source,
+            re.DOTALL,
+        )
+        self.assertIsNotNone(import_match)
+        imported_functions = {
+            name.strip()
+            for name in import_match.group("names").split(",")
+            if name.strip()
+        }
+        exported_functions = set(
+            re.findall(r"export function ([A-Za-z0-9_]+)\(", adapter_source)
+        )
+
+        self.assertEqual(exported_functions, imported_functions)
 
     def test_settings_endpoint_access_is_centralized(self):
         for path in WEB_JS.glob("*.js"):
@@ -146,14 +191,16 @@ class FrontendModuleStructureTests(unittest.TestCase):
     def test_prompt_highlight_parser_and_renderer_are_shared(self):
         core_source = PROMPT_STUDIO_HIGHLIGHT_CORE_JS.read_text(encoding="utf-8")
         modular_source = PROMPT_STUDIO_HIGHLIGHT_JS.read_text(encoding="utf-8")
-        regional_source = PROMPT_STUDIO_COMMON_JS.read_text(encoding="utf-8")
+        regional_source = PROMPT_STUDIO_REGIONAL_ADAPTER_JS.read_text(
+            encoding="utf-8"
+        )
         constants_source = (PROMPT_STUDIO_MODULES / "constants.js").read_text(
             encoding="utf-8"
         )
 
         self.assertIn('from "./highlight_core.js"', modular_source)
         self.assertIn(
-            'from "./prompt_studio/highlight_core.js"', regional_source
+            'from "../highlight_core.js"', regional_source
         )
         self.assertIn("preferSyntaxBeforeToken: false", modular_source)
         self.assertIn("preferSyntaxBeforeToken: true", regional_source)
@@ -180,14 +227,16 @@ class FrontendModuleStructureTests(unittest.TestCase):
             encoding="utf-8"
         )
         modular_source = PROMPT_STUDIO_HIGHLIGHT_JS.read_text(encoding="utf-8")
-        regional_source = PROMPT_STUDIO_COMMON_JS.read_text(encoding="utf-8")
+        regional_source = PROMPT_STUDIO_REGIONAL_ADAPTER_JS.read_text(
+            encoding="utf-8"
+        )
         constants_source = (PROMPT_STUDIO_MODULES / "constants.js").read_text(
             encoding="utf-8"
         )
 
         self.assertIn('from "./highlight_overlay_core.js"', modular_source)
         self.assertIn(
-            'from "./prompt_studio/highlight_overlay_core.js"', regional_source
+            'from "../highlight_overlay_core.js"', regional_source
         )
         for source in (modular_source, regional_source):
             self.assertIn(
@@ -229,7 +278,9 @@ class FrontendModuleStructureTests(unittest.TestCase):
 
     def test_regional_pure_data_modules_own_dom_free_rules(self):
         entry_source = PROMPT_STUDIO_REGIONAL_JS.read_text(encoding="utf-8")
-        common_source = PROMPT_STUDIO_COMMON_JS.read_text(encoding="utf-8")
+        adapter_source = PROMPT_STUDIO_REGIONAL_ADAPTER_JS.read_text(
+            encoding="utf-8"
+        )
         frontend_check_source = FRONTEND_CHECK_SCRIPT.read_text(encoding="utf-8")
         regional_sources = {
             path.name: path.read_text(encoding="utf-8")
@@ -302,12 +353,12 @@ class FrontendModuleStructureTests(unittest.TestCase):
                 self.assertNotIn(f"function {name}", entry_source)
 
         self.assertIn(
-            'from "./prompt_studio/regional/constants.js"',
-            common_source,
+            'from "./constants.js"',
+            adapter_source,
         )
         self.assertNotIn(
             "export const PROMPT_STUDIO_RESOLUTION_BUCKETS",
-            common_source,
+            adapter_source,
         )
         self.assertTrue(PROMPT_STUDIO_REGIONAL_PURE_DATA_SMOKE.is_file())
         self.assertIn(
@@ -336,6 +387,10 @@ class FrontendModuleStructureTests(unittest.TestCase):
             for path in PROMPT_STUDIO_REGIONAL_MODULES.glob("*.js")
         )
         expected_modules = {
+            "editor_adapter.js": (
+                "installPromptStudioRegionalAdapter",
+                "refreshPromptStudioHighlights",
+            ),
             "extension.js": (
                 "createRegionalExtensionRuntime",
                 "installRegionalSaveSync",
@@ -1072,7 +1127,8 @@ class FrontendModuleStructureTests(unittest.TestCase):
 
         for path in (
             "web/js/easyuse_anima_prompt_studio.js",
-            "web/js/prompt_studio/*.js",
+            "web/js/easyuse_anima_prompt_studio_regional.js",
+            "web/js/prompt_studio/**/*.js",
         ):
             with self.subTest(path=path):
                 self.assertIn(path, config["include"])
@@ -1090,20 +1146,28 @@ class FrontendModuleStructureTests(unittest.TestCase):
         self.assertIn("tsc -p jsconfig.json", source)
 
     def test_prompt_studio_split_modules_start_with_ts_check(self):
-        for path in sorted(PROMPT_STUDIO_MODULES.glob("*.js")):
-            with self.subTest(filename=path.name):
+        for path in sorted(PROMPT_STUDIO_MODULES.rglob("*.js")):
+            relative = path.relative_to(PROMPT_STUDIO_MODULES).as_posix()
+            with self.subTest(filename=relative):
                 first_line = path.read_text(encoding="utf-8").splitlines()[0]
                 self.assertEqual(first_line, "// @ts-check")
 
     def test_prompt_studio_split_modules_have_no_import_cycles(self):
         module_paths = {
-            path.name: path for path in sorted(PROMPT_STUDIO_MODULES.glob("*.js"))
+            path.relative_to(PROMPT_STUDIO_MODULES).as_posix(): path
+            for path in sorted(PROMPT_STUDIO_MODULES.rglob("*.js"))
         }
         graph = {name: [] for name in module_paths}
         for name, path in module_paths.items():
             source = path.read_text(encoding="utf-8")
             for import_path in STATIC_IMPORT_RE.findall(source):
-                target = Path(import_path).name
+                target_path = (path.parent / import_path).resolve()
+                try:
+                    target = target_path.relative_to(
+                        PROMPT_STUDIO_MODULES.resolve()
+                    ).as_posix()
+                except ValueError:
+                    continue
                 if target in module_paths:
                     graph[name].append(target)
 
@@ -1186,6 +1250,38 @@ class FrontendModuleStructureTests(unittest.TestCase):
 
                 self.assertNotIn("app.registerExtension", source)
                 self.assertNotIn("fetch(", source)
+
+    def test_regional_modules_have_explicit_runtime_installation(self):
+        for path in sorted(PROMPT_STUDIO_REGIONAL_MODULES.glob("*.js")):
+            with self.subTest(filename=path.name):
+                source = path.read_text(encoding="utf-8")
+                self.assertNotIn("app.registerExtension", source)
+                self.assertNotIn("fetch(", source)
+                self.assertNotRegex(
+                    source,
+                    re.compile(r"^(?:document|window)\.", re.MULTILINE),
+                )
+
+        adapter_source = PROMPT_STUDIO_REGIONAL_ADAPTER_JS.read_text(
+            encoding="utf-8"
+        )
+        extension_source = (
+            PROMPT_STUDIO_REGIONAL_MODULES / "extension.js"
+        ).read_text(encoding="utf-8")
+        self.assertIn(
+            "export function installPromptStudioRegionalAdapter()",
+            adapter_source,
+        )
+        self.assertNotIn(
+            'if (typeof window !== "undefined") {\n'
+            "  loadPromptStudioCommonSettings();",
+            adapter_source,
+        )
+        self.assertIn("hooks.installRegionalAdapter();", extension_source)
+        self.assertLess(
+            extension_source.index("hooks.installRegionalAdapter();"),
+            extension_source.index("installSaveSync();", extension_source.index("async setup()")),
+        )
 
 
 if __name__ == "__main__":

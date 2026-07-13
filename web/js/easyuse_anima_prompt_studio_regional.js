@@ -5,6 +5,7 @@ import { app } from "../../../scripts/app.js";
 import {
   createPromptStudioActionButton,
   ensurePromptStudioVariantStyle,
+  installPromptStudioRegionalAdapter,
   promptStudioFieldIndexLabel,
   promptStudioFieldLabel,
   promptStudioText,
@@ -13,7 +14,7 @@ import {
   requestPromptStudioOverlaySync,
   schedulePromptStudioFieldHighlight,
   updatePromptStudioFieldHighlight,
-} from "./easyuse_anima_prompt_studio_common.js";
+} from "./prompt_studio/regional/editor_adapter.js";
 import {
   createRegionalExtensionRuntime,
 } from "./prompt_studio/regional/extension.js";
@@ -58,5 +59,6 @@ app.registerExtension({
   name: "easyuse-anima.prompt-studio-regional",
   ...createRegionalExtensionRuntime(app, runtime, layout, fieldEditor, {
     ensureRegionalStyle: ensurePromptStudioVariantStyle,
+    installRegionalAdapter: installPromptStudioRegionalAdapter,
   }),
 });

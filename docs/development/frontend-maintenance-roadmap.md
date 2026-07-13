@@ -22,10 +22,10 @@
 기준 브랜치와 커밋:
 
 ```text
-branch: dev
-HEAD: 83d16009ba837a8331e6809c9853f40a64a3f587
-origin/dev: 83d16009ba837a8331e6809c9853f40a64a3f587
-working tree: clean
+base branch: dev
+base commit: ebf9c6661b6d30909225a64e65930701737d9887
+worktree branch: codex/prompt-studio-common-retirement
+scope: R5 legacy common retirement and typecheck expansion
 ```
 
 Issue #14는 열려 있다. 다음 변경은 `dev`에 병합됐다.
@@ -39,6 +39,7 @@ Issue #14는 열려 있다. 다음 변경은 `dev`에 병합됐다.
 | #49 | `c7897a8` | 저장소 소유 project/frontend/unittest 검증 명령 계약 통합 |
 | #50 | `55a68ea` | Prompt Studio DOM highlight overlay geometry/preview core 공통화 |
 | #51 | `83d1600` | Regional schema, resolution, serialization, mask geometry pure-data 분리 |
+| #52 | `ebf9c66` | Regional UI/runtime 모듈 분리, node별 lifecycle ownership과 양쪽 canvas 검증 |
 
 ## 현재 상태
 
@@ -60,6 +61,11 @@ Issue #14는 열려 있다. 다음 변경은 `dev`에 병합됐다.
 - Regional의 field/mask editor, layout, runtime, extension hook과 node별 cleanup은
   같은 디렉터리의 UI/runtime 모듈이 나눠 소유한다. entry 파일은 의존성 조립과
   extension 등록만 담당한다.
+- Regional 화면별 text, style, tooltip, highlight state와 textarea adapter는
+  `prompt_studio/regional/editor_adapter.js`가 소유한다. 기존
+  `easyuse_anima_prompt_studio_common.js`는 호환 re-export만 유지한다.
+- Regional 모듈은 recursive typecheck, import-cycle, no-unused와 명시적 runtime
+  installation guard의 검사 대상이다.
 - `tools/check_frontend.ps1`은 전체 frontend JS 문법 검사, parser/renderer와
   overlay 및 Regional pure-data/runtime lifecycle semantic smoke, 고정 버전
   TypeScript 검사를 한 번에 실행한다.
@@ -69,28 +75,29 @@ Issue #14는 열려 있다. 다음 변경은 `dev`에 병합됐다.
 
 ### 정량 스냅샷
 
-`web/js`에는 JavaScript 64개, 총 29,777줄이 있다. `jsconfig.json`에 명시된
-include 대상은 Prompt Studio entry와 `prompt_studio/*.js` 41개, 8,485줄로
-전체 라인의 28.5%다. import를 따라 추가로 검사되는 dependency는 이 수치에
-포함하지 않았다.
+`web/js`에는 JavaScript 65개, 총 29,841줄이 있다. `jsconfig.json`에 명시된
+include 대상은 Prompt Studio entry 2개와 `prompt_studio/**/*.js` 52개,
+총 54개·13,242줄로 전체 라인의 44.4%다. import를 따라 추가로 검사되는
+dependency는 이 수치에 포함하지 않았다.
 
 | 파일 | 줄 수 | 전체 비율 | 현재 판단 |
 | --- | ---: | ---: | --- |
 | `easyuse_anima_aio.js` | 8,879 | 29.8% | 가장 큰 후속 hotspot |
-| `easyuse_anima_lora_preset.js` | 2,907 | 9.8% | canvas/UI/API/state가 한 파일에 결합 |
+| `easyuse_anima_lora_preset.js` | 2,907 | 9.7% | canvas/UI/API/state가 한 파일에 결합 |
 | `easyuse_anima_autocomplete.js` | 2,067 | 6.9% | parser, popup, input runtime이 결합 |
 | `easyuse_anima_settings.js` | 1,935 | 6.5% | 설정 정의와 여러 editor 구현이 결합 |
-| `easyuse_anima_prompt_studio_common.js` | 1,365 | 4.6% | 현재 Regional만 import하는 legacy common layer |
-| `easyuse_anima_prompt_studio_regional.js` | 62 | 0.2% | registration과 runtime 조립만 담당 |
+| `prompt_studio/regional/editor_adapter.js` | 1,410 | 4.7% | Regional text/style/tooltip/highlight/textarea adapter |
+| `easyuse_anima_prompt_studio_common.js` | 5 | 0.0% | 이전 import 경로를 위한 호환 re-export |
+| `easyuse_anima_prompt_studio_regional.js` | 64 | 0.2% | registration과 runtime 조립만 담당 |
 
 앞의 대형 5개 파일이 전체 frontend JS의 약 57.6%를 차지한다. 줄 수 자체를
 목표로 삼지는 않지만, 책임 경계와 검증 비용이 이 파일들에 집중돼 있다는
 신호로 사용한다. Regional entry의 축소는 줄 수보다 소유권 이동의 결과다.
 
-### 남은 Prompt Studio 중복과 경계 문제
+### Prompt Studio adapter 경계
 
-- `easyuse_anima_prompt_studio_common.js`와
-  `prompt_studio/highlight.js`에 남은 동일 이름 함수는 9개다.
+- `prompt_studio/regional/editor_adapter.js`와 `prompt_studio/highlight.js`에는
+  화면별 highlight adapter 흐름이 각각 남아 있다.
 - pixel 변환, scrollbar padding, overlay bounds, text metric 복사,
   preview HTML, overlay 위치 동기화는 DOM overlay core로 공통화됐다.
 - 색상 설정, tooltip 문구, 설정 저장소, node별 highlight state와 listener
@@ -98,9 +105,9 @@ include 대상은 Prompt Studio entry와 `prompt_studio/*.js` 41개, 8,485줄로
 - Regional entry에서 constants, schema/migration, resolution, serialization,
   mask geometry/hit-test뿐 아니라 DOM editor, layout, runtime, hook 설치와
   lifecycle cleanup도 분리됐다.
-- `easyuse_anima_prompt_studio_common.js`는 Regional만 사용하므로 이름과 역할이
-  현재 구조를 설명하지 못한다. Regional 분리 후 제거하거나 얇은 호환 adapter로
-  축소해야 한다.
+- Regional entry는 `editor_adapter.js`를 직접 import한다.
+  `easyuse_anima_prompt_studio_common.js`는 이전 경로 호환용 re-export만 유지하며
+  settings, tooltip, style, listener lifecycle을 소유하지 않는다.
 
 ## 과거 문서에서 바로잡는 내용
 
@@ -301,20 +308,24 @@ web/js/prompt_studio/regional/
 
 ### R5. Legacy common 정리와 typecheck 확장
 
-예상: 0.5-1일
+상태: 구현 및 검증 완료
 
-- Regional이 새 모듈을 직접 사용하도록 import를 정리한다.
-- `easyuse_anima_prompt_studio_common.js`를 제거하거나 얇은 호환 adapter로
-  축소한다.
-- 새 Regional 모듈을 `jsconfig.json`에 포함한다.
-- import cycle, unused export, top-level side effect guard를 확장한다.
+- Regional entry가 화면별 `editor_adapter.js`를 직접 사용한다.
+- `easyuse_anima_prompt_studio_common.js`는 이전 import 경로를 위한 5줄짜리
+  호환 re-export로 축소했다.
+- `prompt_studio/**/*.js`를 `jsconfig.json`의 재귀 typecheck 범위에 포함했다.
+- 재귀 import cycle, adapter unused export, `@ts-check`, 명시적 runtime 설치와
+  top-level side-effect guard를 추가했다.
 
-완료 기준:
+검증 결과:
 
-- Prompt Studio의 Main/Advanced와 Regional 책임 경계가 파일 이름에 드러난다.
-- 새 모듈에 typecheck warning과 unused code가 없다.
-- common layer가 화면별 settings, tooltip, layout lifecycle을 다시 소유하지
-  않는다.
+- 공식 full validation은 Python 325개와 frontend JavaScript 65개 검사를
+  통과했다.
+- ComfyUI 0.27.0 Codex test instance에서 legacy canvas와 Node 2.0을 각각
+  활성화해 Regional editor 연결, Vue node 구분, style 중복 부재를 확인했다.
+- browser load마다 ComfyUI의 기존 `ComfyApp graph accessed before initialization`
+  로그가 반복됐지만, Regional setup smoke는 setup 단계의 `app.graph` 접근이
+  0회임을 별도로 검증한다. R5 adapter에는 해당 접근이 없다.
 
 ### R6. 종료 검증과 Issue 갱신
 
@@ -330,11 +341,8 @@ web/js/prompt_studio/regional/
 
 ## Issue #14 예상 잔여 시간
 
-R4 구현과 browser compatibility 확인 이후 R5-R6은 약 1-2 작업일로 본다.
-남은 작업은 한 PR로 묶지 않고 다음 순서로 진행한다.
-
-1. common retirement와 typecheck 확장
-2. closure validation과 Issue update
+R5까지 구현과 browser compatibility 확인을 마쳤다. R5 PR의 review·merge 후
+R6 closure validation과 Issue 갱신에 약 0.5-1 작업일이 남는다.
 
 ## Issue #14 이후 후속 트랙
 
@@ -342,7 +350,7 @@ R4 구현과 browser compatibility 확인 이후 R5-R6은 약 1-2 작업일로 �
 
 ### F1. AiO Generator 분리
 
-현재 8,879줄이며 frontend 전체의 30.8%다. 가장 큰 장기 위험이다.
+현재 8,879줄이며 frontend 전체의 29.8%다. 가장 큰 장기 위험이다.
 
 분리 순서:
 

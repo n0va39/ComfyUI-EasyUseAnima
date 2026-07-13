@@ -75,6 +75,14 @@ export function snapResolution32(value, fallback = 1024) {
   return Math.max(32, Math.round(base / 32) * 32);
 }
 
+/**
+ * @param {{
+ *   bucket?: any,
+ *   size?: any,
+ *   customWidth?: any,
+ *   customHeight?: any,
+ * }} [values]
+ */
 export function readRegionalResolutionValues({
   bucket,
   size,

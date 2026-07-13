@@ -170,7 +170,10 @@ function registerRegionalNodeHooks(nodeType, hooks) {
  * @param {any} runtime
  * @param {any} layout
  * @param {any} fieldEditor
- * @param {{ ensureRegionalStyle: () => void }} hooks
+ * @param {{
+ *   ensureRegionalStyle: () => void,
+ *   installRegionalAdapter: () => void,
+ * }} hooks
  */
 function createRegionalExtensionRuntime(app, runtime, layout, fieldEditor, hooks) {
   /** @param {any} node */
@@ -299,6 +302,7 @@ function createRegionalExtensionRuntime(app, runtime, layout, fieldEditor, hooks
 
   return {
     async setup() {
+      hooks.installRegionalAdapter();
       installSaveSync();
     },
     async beforeRegisterNodeDef(nodeType, nodeData) {
