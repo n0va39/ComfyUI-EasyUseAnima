@@ -2,6 +2,19 @@ import { app } from "../../../scripts/app.js";
 import { api } from "../../../scripts/api.js";
 import { easyuseAnimaFetchComfyJson, easyuseAnimaFetchText } from "./easyuse_anima_api.js";
 import { easyuseAnimaText, easyuseAnimaWatchLocale } from "./easyuse_anima_i18n.js";
+import {
+  AIO_BACKEND_DEPENDENCIES,
+  AIO_OPTIONAL_DEPENDENCY_SPECS,
+  aioNodeInputMap,
+  aioNodeInputSpec,
+  aioNodeInputSupported,
+  aioNodeInputTooltip,
+  aioOptionalDependencyAvailable,
+  aioOptionalDependencyPack,
+  aioOptionalDependencyStatus,
+  aioQueryOptionalDependencies,
+  aioUpscaleBackendMissingPacks,
+} from "./aio/dependencies.js";
 import { aioPanelFromWheelEvent, consumeAioPanelWheel } from "./aio/wheel.js";
 import {
   aioBuiltinProfileIdForSettings,
@@ -76,79 +89,6 @@ const GENERATOR_FALLBACK_SCHEDULER_NAMES = [
   "OSS FLUX",
   "OSS Wan",
   "OSS Chroma",
-];
-const GENERATOR_OPTIONAL_DEPENDENCY_SPECS = {
-  spectrumAdvanced: {
-    nodeId: "SpectrumKSamplerAdvanced",
-    pack: "ComfyUI-Spectrum-KSampler",
-  },
-  spectrumSpd: {
-    nodeId: "SpectrumSPDKSampler",
-    pack: "ComfyUI-Spectrum-KSampler",
-  },
-  spectrumPatch: {
-    nodeId: "DiTSpectrumPatchAdvanced",
-    pack: "ComfyUI-Spectrum-KSampler",
-  },
-  spectrumCorrections: {
-    nodeId: "DiTCFGFSGPatch",
-    pack: "ComfyUI-Spectrum-KSampler",
-  },
-  dave: {
-    nodeId: "AnimaDAVE",
-    pack: "ComfyUI-Anima-DAVE",
-  },
-  safePag: {
-    nodeId: "AnimaSafePAG",
-    pack: "Anima Safe PAG",
-  },
-  imageSaver: {
-    nodeId: "Image Saver",
-    pack: "ComfyUI-Image-Saver",
-  },
-  upscaleModelLoader: {
-    nodeId: "UpscaleModelLoader",
-    pack: "ComfyUI built-in upscale model loader",
-  },
-  ultimateSdUpscale: {
-    nodeId: "UltimateSDUpscale",
-    pack: "ComfyUI_UltimateSDUpscale",
-  },
-  resShiftLoader: {
-    nodeId: "ResShiftLoader",
-    pack: "ComfyUI-Distilled-ResShift",
-  },
-  resShiftUpscale: {
-    nodeId: "ResShiftUpscale",
-    pack: "ComfyUI-Distilled-ResShift",
-  },
-  kjFp16: {
-    nodeId: "ModelPatchTorchSettings",
-    pack: "ComfyUI-KJNodes",
-  },
-  kjSage: {
-    nodeId: "PathchSageAttentionKJ",
-    pack: "ComfyUI-KJNodes",
-  },
-  kjTorchCompile: {
-    nodeId: "TorchCompileModelAdvanced",
-    pack: "ComfyUI-KJNodes",
-  },
-  impactDetailer: {
-    nodeId: "DetailerForEach",
-    pack: "ComfyUI-Impact-Pack",
-  },
-  impactMaskToSegs: {
-    nodeId: "MaskToSEGS",
-    pack: "ComfyUI-Impact-Pack",
-  },
-};
-const GENERATOR_BACKEND_DEPENDENCIES = {
-  spectrum_mod_guidance_advanced: "spectrumAdvanced",
-  spectrum_spd_speed: "spectrumSpd",
-};
-const GENERATOR_HIGHRES_BACKENDS = [
-  "comfy_ksampler",
 ];
 const SPECTRUM_ADVANCED_KNOWN_INPUTS = new Set([
   "model",
@@ -2386,36 +2326,26 @@ function loadGeneratorSamplerOptions() {
 }
 
 async function fetchGeneratorOptionalDependencies() {
-  const next = {};
-  const nextStatus = {};
-  const nextInfo = {};
-  const nextErrors = {};
-  for (const [key, spec] of Object.entries(GENERATOR_OPTIONAL_DEPENDENCY_SPECS)) {
-    try {
+  const next = await aioQueryOptionalDependencies(
+    AIO_OPTIONAL_DEPENDENCY_SPECS,
+    async (spec) => {
       const data = await easyuseAnimaFetchComfyJson(api, `/object_info/${encodeURIComponent(spec.nodeId)}`);
-      const info = data?.[spec.nodeId] || null;
-      next[key] = !!info;
-      nextStatus[key] = info ? "available" : "missing";
-      nextInfo[key] = info;
-    } catch (error) {
-      nextStatus[key] = "error";
-      nextInfo[key] = null;
-      nextErrors[key] = error instanceof Error ? error.message : String(error || "Unknown error");
-    }
-  }
-  generatorOptionalDependencyState.available = next;
-  generatorOptionalDependencyState.status = nextStatus;
-  generatorOptionalDependencyState.nodeInfo = nextInfo;
-  generatorOptionalDependencyState.errors = nextErrors;
+      return data?.[spec.nodeId] || null;
+    },
+  );
+  generatorOptionalDependencyState.available = next.available;
+  generatorOptionalDependencyState.status = next.status;
+  generatorOptionalDependencyState.nodeInfo = next.nodeInfo;
+  generatorOptionalDependencyState.errors = next.errors;
 }
 
 function optionalDependencyResultLabel(key) {
-  const spec = GENERATOR_OPTIONAL_DEPENDENCY_SPECS[key];
+  const spec = AIO_OPTIONAL_DEPENDENCY_SPECS[key];
   return spec ? `${spec.nodeId} (${spec.pack})` : key;
 }
 
 function reportGeneratorOptionalDependencyStatus() {
-  const rows = Object.entries(GENERATOR_OPTIONAL_DEPENDENCY_SPECS).map(([key, spec]) => ({
+  const rows = Object.entries(AIO_OPTIONAL_DEPENDENCY_SPECS).map(([key, spec]) => ({
     key,
     node: spec.nodeId,
     pack: spec.pack,
@@ -2473,10 +2403,10 @@ function loadGeneratorOptionalDependencies({ retryErrors = false } = {}) {
         console.warn("[EasyUseAnima] Failed to load optional dependency status.", error);
         const message = error instanceof Error ? error.message : String(error || "Unknown error");
         generatorOptionalDependencyState.status = Object.fromEntries(
-          Object.keys(GENERATOR_OPTIONAL_DEPENDENCY_SPECS).map((key) => [key, "error"]),
+          Object.keys(AIO_OPTIONAL_DEPENDENCY_SPECS).map((key) => [key, "error"]),
         );
         generatorOptionalDependencyState.errors = Object.fromEntries(
-          Object.keys(GENERATOR_OPTIONAL_DEPENDENCY_SPECS).map((key) => [key, message]),
+          Object.keys(AIO_OPTIONAL_DEPENDENCY_SPECS).map((key) => [key, message]),
         );
       })
       .then(() => {
@@ -2492,61 +2422,31 @@ function loadGeneratorOptionalDependencies({ retryErrors = false } = {}) {
 }
 
 function optionalDependencyStatus(key) {
-  if (!key || !generatorOptionalDependencyState.loaded) {
-    return "unknown";
-  }
-  return generatorOptionalDependencyState.status[key] || "unknown";
+  return aioOptionalDependencyStatus(generatorOptionalDependencyState, key);
 }
 
 function optionalDependencyAvailable(key) {
-  return optionalDependencyStatus(key) !== "missing";
-}
-
-function backendDependencyMissing(backend) {
-  const dependencyKey = GENERATOR_BACKEND_DEPENDENCIES[backend];
-  return dependencyKey && !optionalDependencyAvailable(dependencyKey);
+  return aioOptionalDependencyAvailable(generatorOptionalDependencyState, key);
 }
 
 function optionalDependencyPack(key) {
-  return GENERATOR_OPTIONAL_DEPENDENCY_SPECS[key]?.pack || key || "";
-}
-
-function upscaleBackendDependencyKeys(backend) {
-  if (backend === "usdu") {
-    return ["ultimateSdUpscale", "upscaleModelLoader"];
-  }
-  if (backend === "resshift") {
-    return ["resShiftLoader", "resShiftUpscale"];
-  }
-  return [];
+  return aioOptionalDependencyPack(key);
 }
 
 function upscaleBackendMissingPacks(backend) {
-  return upscaleBackendDependencyKeys(backend)
-    .filter((key) => !optionalDependencyAvailable(key))
-    .map((key) => optionalDependencyPack(key));
-}
-
-function optionalDependencyNodeInfo(key) {
-  return generatorOptionalDependencyState.nodeInfo?.[key] || null;
+  return aioUpscaleBackendMissingPacks(generatorOptionalDependencyState, backend);
 }
 
 function nodeInputMap(dependencyKey) {
-  const input = optionalDependencyNodeInfo(dependencyKey)?.input || {};
-  return {
-    ...(input.required || {}),
-    ...(input.optional || {}),
-  };
+  return aioNodeInputMap(generatorOptionalDependencyState, dependencyKey);
 }
 
 function nodeInputSpec(dependencyKey, inputName) {
-  return nodeInputMap(dependencyKey)?.[inputName] || null;
+  return aioNodeInputSpec(generatorOptionalDependencyState, dependencyKey, inputName);
 }
 
 function nodeInputTooltip(dependencyKey, inputName) {
-  const spec = nodeInputSpec(dependencyKey, inputName);
-  const options = Array.isArray(spec) && spec[1] && typeof spec[1] === "object" ? spec[1] : null;
-  return options?.tooltip ? String(options.tooltip) : "";
+  return aioNodeInputTooltip(generatorOptionalDependencyState, dependencyKey, inputName);
 }
 
 function nodeInputChoiceOptions(dependencyKey, inputName, current, fallback = []) {
@@ -2555,14 +2455,7 @@ function nodeInputChoiceOptions(dependencyKey, inputName, current, fallback = []
 }
 
 function nodeInputSupported(dependencyKey, inputName) {
-  const status = optionalDependencyStatus(dependencyKey);
-  if (status === "unknown" || status === "error") {
-    return true;
-  }
-  if (status === "missing") {
-    return false;
-  }
-  return !!nodeInputSpec(dependencyKey, inputName);
+  return aioNodeInputSupported(generatorOptionalDependencyState, dependencyKey, inputName);
 }
 
 function applyNodeInputInfo(control, dependencyKey, inputName, fallbackTooltipKey = "") {
@@ -2702,7 +2595,7 @@ function disableGeneratorSpectrumOptions(target) {
 function sanitizeGeneratorSettingsForOptionalDependencies(settings) {
   const next = migrateGeneratorPostprocessSettings(mergeDefaults(DEFAULT_GENERATION_SETTINGS, settings));
   delete next.sampler.dave;
-  const backendDependency = GENERATOR_BACKEND_DEPENDENCIES[next.sampler.backend];
+  const backendDependency = AIO_BACKEND_DEPENDENCIES[next.sampler.backend];
   if (backendDependency && !optionalDependencyAvailable(backendDependency)) {
     next.sampler.backend = "comfy_ksampler";
   }
@@ -6813,7 +6706,7 @@ function openSamplerSettings(node) {
   const refreshDependencyLocks = () => {
     const messages = [];
     for (const option of Array.from(backend.options)) {
-      const dependencyKey = GENERATOR_BACKEND_DEPENDENCIES[option.value];
+      const dependencyKey = AIO_BACKEND_DEPENDENCIES[option.value];
       const pack = optionalDependencyPack(dependencyKey);
       const missing = !!dependencyKey && !optionalDependencyAvailable(dependencyKey);
       option.disabled = missing;

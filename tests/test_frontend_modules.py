@@ -13,6 +13,8 @@ WEB_JS = ROOT / "web" / "js"
 API_JS = WEB_JS / "easyuse_anima_api.js"
 AIO_JS = WEB_JS / "easyuse_anima_aio.js"
 AIO_MODULES = WEB_JS / "aio"
+AIO_DEPENDENCIES_JS = AIO_MODULES / "dependencies.js"
+AIO_DEPENDENCY_CORE_SMOKE = ROOT / "tests" / "frontend_aio_dependency_core_smoke.mjs"
 AIO_PRESETS_JS = AIO_MODULES / "presets.js"
 AIO_PROFILE_CORE_SMOKE = ROOT / "tests" / "frontend_aio_profile_core_smoke.mjs"
 PROMPT_STUDIO_JS = WEB_JS / "easyuse_anima_prompt_studio.js"
@@ -84,6 +86,93 @@ class FrontendModuleStructureTests(unittest.TestCase):
         self.assertTrue(AIO_PROFILE_CORE_SMOKE.is_file())
         self.assertIn(
             r'node "tests\frontend_aio_profile_core_smoke.mjs"',
+            frontend_check_source,
+        )
+
+    def test_aio_dependency_core_module_owns_dom_free_capability_rules(self):
+        source = AIO_DEPENDENCIES_JS.read_text(encoding="utf-8")
+        entry_source = AIO_JS.read_text(encoding="utf-8")
+        frontend_check_source = FRONTEND_CHECK_SCRIPT.read_text(encoding="utf-8")
+
+        self.assertEqual(source.splitlines()[0], "// @ts-check")
+
+        expected_constants = {
+            "AIO_BACKEND_DEPENDENCIES",
+            "AIO_OPTIONAL_DEPENDENCY_SPECS",
+        }
+        exported_constants = set(
+            re.findall(r"export const ([A-Za-z0-9_]+)\s*=", source)
+        )
+        self.assertEqual(exported_constants, expected_constants)
+
+        expected_functions = {
+            "aioNodeInputMap",
+            "aioNodeInputSpec",
+            "aioNodeInputSupported",
+            "aioNodeInputTooltip",
+            "aioOptionalDependencyAvailable",
+            "aioOptionalDependencyPack",
+            "aioOptionalDependencyStatus",
+            "aioQueryOptionalDependencies",
+            "aioUpscaleBackendDependencyKeys",
+            "aioUpscaleBackendMissingPacks",
+        }
+        exported_functions = set(
+            re.findall(r"export (?:async )?function ([A-Za-z0-9_]+)\(", source)
+        )
+        self.assertEqual(exported_functions, expected_functions)
+
+        import_match = re.search(
+            r'import\s+\{(?P<names>[^}]*)\}\s+from\s+'
+            r'"\./aio/dependencies\.js";',
+            entry_source,
+            re.DOTALL,
+        )
+        self.assertIsNotNone(import_match)
+        imported_names = {
+            name.strip()
+            for name in import_match.group("names").split(",")
+            if name.strip()
+        }
+        self.assertEqual(
+            imported_names,
+            {
+                "AIO_BACKEND_DEPENDENCIES",
+                "AIO_OPTIONAL_DEPENDENCY_SPECS",
+                "aioNodeInputMap",
+                "aioNodeInputSpec",
+                "aioNodeInputSupported",
+                "aioNodeInputTooltip",
+                "aioOptionalDependencyAvailable",
+                "aioOptionalDependencyPack",
+                "aioOptionalDependencyStatus",
+                "aioQueryOptionalDependencies",
+                "aioUpscaleBackendMissingPacks",
+            },
+        )
+
+        self.assertNotRegex(source, r"\b(?:document|window|app)\b")
+        self.assertNotIn("app.registerExtension", source)
+        self.assertNotIn("fetch(", source)
+        self.assertNotIn("const GENERATOR_OPTIONAL_DEPENDENCY_SPECS", entry_source)
+        self.assertNotIn("const GENERATOR_BACKEND_DEPENDENCIES", entry_source)
+        self.assertNotIn("function upscaleBackendDependencyKeys", entry_source)
+
+        for delegation in (
+            "aioOptionalDependencyStatus(generatorOptionalDependencyState, key)",
+            "aioOptionalDependencyAvailable(generatorOptionalDependencyState, key)",
+            "aioUpscaleBackendMissingPacks(generatorOptionalDependencyState, backend)",
+            "aioNodeInputMap(generatorOptionalDependencyState, dependencyKey)",
+            "aioNodeInputSpec(generatorOptionalDependencyState, dependencyKey, inputName)",
+            "aioNodeInputTooltip(generatorOptionalDependencyState, dependencyKey, inputName)",
+            "aioNodeInputSupported(generatorOptionalDependencyState, dependencyKey, inputName)",
+        ):
+            with self.subTest(delegation=delegation):
+                self.assertIn(delegation, entry_source)
+
+        self.assertTrue(AIO_DEPENDENCY_CORE_SMOKE.is_file())
+        self.assertIn(
+            r'node "tests\frontend_aio_dependency_core_smoke.mjs"',
             frontend_check_source,
         )
 
@@ -1167,6 +1256,9 @@ class FrontendModuleStructureTests(unittest.TestCase):
         )
         self.assertIn(
             r'& node "tests\frontend_aio_profile_core_smoke.mjs"', source
+        )
+        self.assertIn(
+            r'& node "tests\frontend_aio_dependency_core_smoke.mjs"', source
         )
         self.assertIn('"typescript@$TypeScriptVersion"', source)
         self.assertIn("tsc -p jsconfig.json", source)
