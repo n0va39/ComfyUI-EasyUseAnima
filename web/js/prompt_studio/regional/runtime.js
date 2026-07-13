@@ -420,8 +420,8 @@ function createRegionalRuntime(app, hooks = {}) {
     return String(field?.text || "");
   }
 
-  /** @param {any} node @param {any[]} fields @param {any} values */
-  function mergeRegionalFieldInputValues(node, fields, values) {
+  /** @param {any[]} fields @param {any} values */
+  function mergeRegionalFieldInputValues(fields, values) {
     if (!values || typeof values !== "object" || !Array.isArray(fields)) {
       return false;
     }
@@ -524,7 +524,7 @@ function createRegionalRuntime(app, hooks = {}) {
     }
     ensureRegionalWidgetValues(node);
     const fields = node.__easyuseAnimaRegionalFields || createDefaultRegionalFields();
-    if (mergeRegionalFieldInputValues(node, fields, node.__easyuseAnimaRegionalFieldInputValues)) {
+    if (mergeRegionalFieldInputValues(fields, node.__easyuseAnimaRegionalFieldInputValues)) {
       writeRegionalFields(node, fields, { syncInputs: false });
     } else {
       syncRegionalFieldInputs(node, fields);

@@ -9,7 +9,9 @@ AIO_JS = ROOT / "web" / "js" / "easyuse_anima_aio.js"
 AIO_WHEEL_JS = ROOT / "web" / "js" / "aio" / "wheel.js"
 AIO_PRESETS_JS = ROOT / "web" / "js" / "aio" / "presets.js"
 AUTOCOMPLETE_JS = ROOT / "web" / "js" / "easyuse_anima_autocomplete.js"
-PROMPT_STUDIO_COMMON_JS = ROOT / "web" / "js" / "easyuse_anima_prompt_studio_common.js"
+PROMPT_STUDIO_REGIONAL_ADAPTER_JS = (
+    ROOT / "web" / "js" / "prompt_studio" / "regional" / "editor_adapter.js"
+)
 PROMPT_STUDIO_HIGHLIGHT_CORE_JS = ROOT / "web" / "js" / "prompt_studio" / "highlight_core.js"
 
 
@@ -643,7 +645,9 @@ class AIOFrontendSourceTests(unittest.TestCase):
 
     def test_prompt_highlight_wildcards_accept_unicode_keys(self):
         source = PROMPT_STUDIO_HIGHLIGHT_CORE_JS.read_text(encoding="utf-8")
-        common_source = PROMPT_STUDIO_COMMON_JS.read_text(encoding="utf-8")
+        common_source = PROMPT_STUDIO_REGIONAL_ADAPTER_JS.read_text(
+            encoding="utf-8"
+        )
 
         self.assertIn(r"const WILDCARD_HIGHLIGHT_RE = /(?:\d+#)?__[\p{L}\p{N}_.\-+/*\\]+?__/gu;", source)
         self.assertNotIn(r"const WILDCARD_HIGHLIGHT_RE = /(?:\d+#)?__[\w.\-+/*\\]+?__/g;", source)
