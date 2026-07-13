@@ -23,9 +23,9 @@
 
 ```text
 base branch: dev
-base commit: ebf9c6661b6d30909225a64e65930701737d9887
-worktree branch: codex/prompt-studio-common-retirement
-scope: R5 legacy common retirement and typecheck expansion
+base commit: 24b13b6073d1df3697a35d6047151cb3d8a1bf73
+worktree branch: codex/issue-14-closure
+scope: R6 closure validation and follow-up issue handoff
 ```
 
 Issue #14는 열려 있다. 다음 변경은 `dev`에 병합됐다.
@@ -40,6 +40,7 @@ Issue #14는 열려 있다. 다음 변경은 `dev`에 병합됐다.
 | #50 | `55a68ea` | Prompt Studio DOM highlight overlay geometry/preview core 공통화 |
 | #51 | `83d1600` | Regional schema, resolution, serialization, mask geometry pure-data 분리 |
 | #52 | `ebf9c66` | Regional UI/runtime 모듈 분리, node별 lifecycle ownership과 양쪽 canvas 검증 |
+| #53 | `24b13b6` | legacy common 호환 re-export 축소, Regional adapter 직접 연결, 재귀 typecheck 확장 |
 
 ## 현재 상태
 
@@ -268,7 +269,7 @@ web/js/prompt_studio/regional/
 
 현재 구현:
 
-- `easyuse_anima_prompt_studio_regional.js`는 62줄의 composition entry로
+- `easyuse_anima_prompt_studio_regional.js`는 64줄의 composition entry로
   축소됐고 extension 등록은 이 파일 한 곳에서만 수행한다.
 - `runtime.js`는 widget/config/socket/serialization/executed state를,
   `field_editor.js`는 field DOM과 add/delete/move/rename을 소유한다.
@@ -324,31 +325,50 @@ web/js/prompt_studio/regional/
 - ComfyUI 0.27.0 Codex test instance에서 legacy canvas와 Node 2.0을 각각
   활성화해 Regional editor 연결, Vue node 구분, style 중복 부재를 확인했다.
 - browser load마다 ComfyUI의 기존 `ComfyApp graph accessed before initialization`
-  로그가 반복됐지만, Regional setup smoke는 setup 단계의 `app.graph` 접근이
-  0회임을 별도로 검증한다. R5 adapter에는 해당 접근이 없다.
+  로그가 반복됐지만, R6의 페이지 초기 계측에서 ComfyUI 0.27.0 core
+  `dialogService`의 VueUse computed가 extension 등록 전에 `rootGraph`를 읽는
+  경로로 확인했다. Regional setup smoke는 setup 단계의 `app.graph` 접근이
+  0회임을 별도로 검증하며 R5 adapter에는 해당 접근이 없다.
 
 ### R6. 종료 검증과 Issue 갱신
 
-예상: 0.5-1일
+상태: 구현 및 검증 완료, R6 PR 병합 후 Issue #14 종료 예정
 
-- frontend 통합 검사와 focused/full Python suite를 실행한다.
-- 기존 Advanced와 Regional workflow를 load, queue, save/reload한다.
-- Node 2.0과 legacy canvas에서 hard refresh 후 module 404, SyntaxError,
-  ReferenceError, 반복 listener/observer 오류가 없는지 확인한다.
-- Issue #14에 #18, #46, #47과 후속 PR 결과를 요약한다.
-- AiO, LoRA Preset, Autocomplete, Settings는 별도 이슈로 연결하고 Issue #14를
-  닫는다.
+검증 결과:
+
+- 공식 full validation에서 Python 325개와 frontend JavaScript 65개 검사를
+  통과했다. TypeScript 6.0.3 기반 recursive typecheck, import-cycle,
+  no-unused, semantic smoke와 `git diff --check`가 포함된다.
+- ComfyUI 0.27.0 Codex test instance에서 저장된 Advanced+Regional 결합
+  workflow를 legacy canvas와 Node 2.0에 각각 load했다.
+- 두 모드에서 Advanced editor 3개와 Regional editor 2개를 확인했다.
+  legacy canvas는 Vue node 0개, Node 2.0은 Vue node 8개로 분리 확인했다.
+- 두 모드에서 workflow 저장 후 reload했으며 주요 Advanced/Regional field 값이
+  유지됐다.
+- 두 모드에서 queue가 서버 실행 경로까지 도달했다. 테스트 인스턴스에
+  `comfyui-spectrum-ksampler`가 없어 `AnimaModGuidance` dependency 오류로
+  종료됐으며 frontend 구조 변경 오류는 아니었다.
+- 새 module 404, SyntaxError, ReferenceError, unhandled rejection,
+  listener/observer 반복 오류는 없었다.
+- 반복되는 `ComfyApp graph accessed before initialization`은 ComfyUI 0.27.0
+  core 초기화 기준선으로 스택을 확인했다. EasyUseAnima 우회 코드는 추가하지
+  않았다.
+- 대형 후속 트랙은 #54 AiO, #55 LoRA Preset, #56 Autocomplete,
+  #57 Settings로 분리했다. 이 이슈들은 Issue #14 종료를 막지 않는다.
+
+Issue #14에는 R6 PR을 연결해 #18, #46-#53과 위 검증 결과를 요약한다. 실제
+종료는 R6 PR이 `dev`에 병합된 뒤 수행한다.
 
 ## Issue #14 예상 잔여 시간
 
-R5까지 구현과 browser compatibility 확인을 마쳤다. R5 PR의 review·merge 후
-R6 closure validation과 Issue 갱신에 약 0.5-1 작업일이 남는다.
+구현과 closure validation은 완료됐다. 남은 작업은 R6 PR review·merge와
+Issue #14 종료 코멘트·상태 갱신이다.
 
 ## Issue #14 이후 후속 트랙
 
 아래 작업은 Issue #14 종료를 막지 않는다. 각각 별도 이슈와 여러 PR로 진행한다.
 
-### F1. AiO Generator 분리
+### F1. AiO Generator 분리 (#54)
 
 현재 8,879줄이며 frontend 전체의 29.8%다. 가장 큰 장기 위험이다.
 
@@ -363,7 +383,7 @@ R6 closure validation과 Issue 갱신에 약 0.5-1 작업일이 남는다.
 
 예상: 4-6개 PR, 5-8 작업일
 
-### F2. LoRA Preset 분리
+### F2. LoRA Preset 분리 (#55)
 
 분리 순서:
 
@@ -375,7 +395,7 @@ R6 closure validation과 Issue 갱신에 약 0.5-1 작업일이 남는다.
 
 예상: 2-3개 PR, 2-3 작업일
 
-### F3. Autocomplete 분리
+### F3. Autocomplete 분리 (#56)
 
 분리 순서:
 
@@ -386,7 +406,7 @@ R6 closure validation과 Issue 갱신에 약 0.5-1 작업일이 남는다.
 
 예상: 2개 PR, 1.5-2.5 작업일
 
-### F4. Settings UI 분리
+### F4. Settings UI 분리 (#57)
 
 분리 순서:
 
