@@ -15,6 +15,26 @@ import {
   aioQueryOptionalDependencies,
   aioUpscaleBackendMissingPacks,
 } from "./aio/dependencies.js";
+import {
+  aioAppendPreviewFeed,
+  aioCreatePreviewProgressTracker,
+  aioDefaultPreviewIndex,
+  aioDeletePreviewStoreEntry,
+  aioMainPreviewImage,
+  aioMergePreviewImages,
+  aioPreviewEventDetail,
+  aioPreviewFileSize,
+  aioPreviewImageLabel,
+  aioPreviewImageName,
+  aioPreviewImages,
+  aioPreviewNodeIdsFromDetail,
+  aioPreviewResolution,
+  aioPreviewRunId,
+  aioRemovePreviewRun,
+  aioSelectedPreviewIndex,
+  aioSuppressDefaultPreview,
+  aioTagPreviewRun,
+} from "./aio/preview.js";
 import { aioPanelFromWheelEvent, consumeAioPanelWheel } from "./aio/wheel.js";
 import {
   aioBuiltinProfileIdForSettings,
@@ -34,17 +54,6 @@ const GENERATOR_SETTINGS_WIDGET = "generation_settings";
 const GENERATOR_PROFILE_CUSTOM_VALUE = "custom";
 const GENERATOR_DOM_WIDGET = "easyuse_anima_generator_panel";
 const GENERATOR_PREVIEW_EVENT = "easyuse-anima-aio-preview";
-const GENERATOR_DENOISE_PREVIEW_NODE_KEYS = [
-  "displayNodeId",
-  "nodeId",
-  "realNodeId",
-  "parentNodeId",
-  "display_node_id",
-  "node_id",
-  "real_node_id",
-  "parent_node_id",
-  "node",
-];
 const GENERATOR_SEED_CONTROLS = ["fixed", "randomize", "increment", "decrement"];
 const GENERATOR_SPECIAL_SEED_RANDOM = -1;
 const GENERATOR_SPECIAL_SEED_INCREMENT = -2;
@@ -4100,69 +4109,12 @@ function firstValue(value, fallback = "") {
   return value ?? fallback;
 }
 
-const GENERATOR_PROGRESS_BY_NODE = new Map();
-
-function normalizeGeneratorNodeId(value) {
-  return value == null ? "" : String(value).trim();
-}
-
-function generatorNodeIdsFromDetail(detail) {
-  const ids = [];
-  for (const key of GENERATOR_DENOISE_PREVIEW_NODE_KEYS) {
-    const id = normalizeGeneratorNodeId(detail?.[key]);
-    if (id && !ids.includes(id)) {
-      ids.push(id);
-    }
-  }
-  return ids;
-}
-
-function rememberGeneratorProgress(detail) {
-  const ids = generatorNodeIdsFromDetail(detail);
-  if (!ids.length) {
-    return;
-  }
-  const value = Number(detail?.value);
-  const max = Number(detail?.max);
-  const promptId = normalizeGeneratorNodeId(detail?.prompt_id ?? detail?.jobId ?? detail?.job_id);
-  const entry = {
-    value: Number.isFinite(value) ? value : 0,
-    max: Number.isFinite(max) ? max : 0,
-    promptId,
-    updatedAt: Date.now(),
-  };
-  for (const id of ids) {
-    GENERATOR_PROGRESS_BY_NODE.set(id, entry);
-  }
-}
-
-function rememberGeneratorProgressState(detail) {
-  const nodes = detail?.nodes;
-  if (!nodes || typeof nodes !== "object") {
-    return;
-  }
-  for (const state of Object.values(nodes)) {
-    rememberGeneratorProgress({
-      ...state,
-      prompt_id: state?.prompt_id || detail?.prompt_id,
-    });
-  }
-}
-
-function generatorProgressForPreviewDetail(detail) {
-  const promptId = normalizeGeneratorNodeId(detail?.prompt_id ?? detail?.jobId ?? detail?.job_id);
-  for (const id of generatorNodeIdsFromDetail(detail)) {
-    const progress = GENERATOR_PROGRESS_BY_NODE.get(id);
-    if (!progress) {
-      continue;
-    }
-    if (promptId && progress.promptId && promptId !== progress.promptId) {
-      continue;
-    }
-    return progress;
-  }
-  return null;
-}
+const {
+  remember: rememberGeneratorProgress,
+  rememberState: rememberGeneratorProgressState,
+  find: generatorProgressForPreviewDetail,
+  clear: clearGeneratorPreviewProgress,
+} = aioCreatePreviewProgressTracker();
 
 function generatorDenoisePreviewLabel(preview) {
   const base = aioText("text.previewDenoise");
@@ -4214,100 +4166,6 @@ function setGeneratorDenoisePreview(node, blob, detail = {}) {
   markNodeDirty(node);
 }
 
-function generatorPreviewImages(message) {
-  const value = message?.easyuse_anima_preview;
-  const raw = Array.isArray(value) ? value : [firstValue(value, null)];
-  const images = [];
-  for (const item of raw) {
-    if (Array.isArray(item)) {
-      images.push(...item);
-    } else if (item) {
-      images.push(item);
-    }
-  }
-  return images.filter((item) => item && typeof item === "object" && !Array.isArray(item));
-}
-
-function generatorPreviewRunId(message) {
-  return String(firstValue(message?.easyuse_anima_run_id ?? message?.run_id, "") || "");
-}
-
-function generatorPreviewFeedLimit(settings) {
-  return Math.trunc(clampGeneratorNumber(
-    settings?.preview?.feed_count,
-    DEFAULT_GENERATION_SETTINGS.preview.feed_count,
-    1,
-    100,
-  ));
-}
-
-function generatorPreviewIdentity(image) {
-  return [
-    image?.stage || "",
-    image?.type || "",
-    image?.subfolder || "",
-    image?.filename || image?.name || "",
-  ].map((part) => String(part)).join("\u0001");
-}
-
-function tagGeneratorPreviewRun(images, runId = "", startIndex = 0) {
-  const normalizedRunId = runId || `${Date.now()}-${Math.random().toString(36).slice(2)}`;
-  return images.map((image, index) => ({
-    ...image,
-    __aio_run_id: image.__aio_run_id || normalizedRunId,
-    __aio_run_index: Number.isInteger(image.__aio_run_index) ? image.__aio_run_index : startIndex + index,
-  }));
-}
-
-function mergeGeneratorPreviewImages(existingImages, nextImages, runId = "", limit = 0) {
-  const existing = Array.isArray(existingImages)
-    ? existingImages.filter((item) => item && typeof item === "object" && !Array.isArray(item))
-    : [];
-  const tagged = tagGeneratorPreviewRun(nextImages, runId, existing.length);
-  const merged = [];
-  const indexByKey = new Map();
-  for (const item of [...existing, ...tagged]) {
-    const key = generatorPreviewIdentity(item);
-    if (!key.replace(/\u0001/g, "")) {
-      merged.push(item);
-      continue;
-    }
-    if (indexByKey.has(key)) {
-      const index = indexByKey.get(key);
-      merged[index] = { ...merged[index], ...item };
-    } else {
-      indexByKey.set(key, merged.length);
-      merged.push(item);
-    }
-  }
-  return limit > 0 ? merged.slice(Math.max(0, merged.length - limit)) : merged;
-}
-
-function appendGeneratorPreviewFeed(existingImages, nextImages, settings, runId = "") {
-  return mergeGeneratorPreviewImages(
-    existingImages,
-    nextImages,
-    runId,
-    generatorPreviewFeedLimit(settings),
-  );
-}
-
-function removeGeneratorPreviewRun(images, runId = "") {
-  const normalizedRunId = String(runId || "");
-  if (!normalizedRunId || !Array.isArray(images)) {
-    return Array.isArray(images) ? images : [];
-  }
-  return images.filter((item) => String(item?.__aio_run_id || "") !== normalizedRunId);
-}
-
-function generatorPreviewEventDetail(event) {
-  const detail = event?.detail || {};
-  if (detail?.data && typeof detail.data === "object") {
-    return detail.data;
-  }
-  return detail;
-}
-
 function generatorImageUrl(image) {
   if (!image || typeof image !== "object") {
     return "";
@@ -4324,61 +4182,6 @@ function generatorImageUrl(image) {
   params.set("preview", "webp;90");
   const path = `/view?${params.toString()}`;
   return typeof api?.apiURL === "function" ? api.apiURL(path) : path;
-}
-
-function generatorPreviewImageLabel(image) {
-  return String(image?.label || image?.stage || "Preview");
-}
-
-function generatorPreviewImageName(image) {
-  return String(image?.filename || image?.name || generatorPreviewImageLabel(image) || "-");
-}
-
-function generatorPreviewResolution(image) {
-  const width = Number(image?.width || 0);
-  const height = Number(image?.height || 0);
-  return width > 0 && height > 0 ? `${Math.trunc(width)} x ${Math.trunc(height)}` : "-";
-}
-
-function generatorPreviewFileSize(image) {
-  const bytes = Number(image?.bytes || image?.size || 0);
-  if (!Number.isFinite(bytes) || bytes <= 0) {
-    return "-";
-  }
-  const units = ["B", "KB", "MB", "GB"];
-  let value = bytes;
-  let unit = 0;
-  while (value >= 1024 && unit < units.length - 1) {
-    value /= 1024;
-    unit += 1;
-  }
-  const decimals = unit === 0 || value >= 10 ? 0 : 1;
-  return `${value.toFixed(decimals)} ${units[unit]}`;
-}
-
-function generatorDefaultPreviewIndex(images) {
-  if (!Array.isArray(images) || !images.length) {
-    return -1;
-  }
-  for (let index = images.length - 1; index >= 0; index -= 1) {
-    if (String(images[index]?.stage || "") === "final") {
-      return index;
-    }
-  }
-  return images.length - 1;
-}
-
-function generatorSelectedPreviewIndex(node, images) {
-  const selected = Number(node?.__easyuseAnimaSelectedPreviewIndex);
-  if (Number.isInteger(selected) && selected >= 0 && selected < images.length) {
-    return selected;
-  }
-  return generatorDefaultPreviewIndex(images);
-}
-
-function generatorMainPreviewImage(node, images) {
-  const index = generatorSelectedPreviewIndex(node, images);
-  return index >= 0 ? images[index] : null;
 }
 
 function normalizeSeedControl(value) {
@@ -4881,13 +4684,13 @@ function renderGeneratorPreviewFeed(node, panel, images, settings, selectedIndex
       thumb.classList.add("active");
       selectedThumb = thumb;
     }
-    thumb.title = generatorPreviewImageLabel(image);
+    thumb.title = aioPreviewImageLabel(image);
     const thumbImage = document.createElement("img");
     thumbImage.src = thumbUrl;
     thumbImage.alt = "";
     thumbImage.loading = "lazy";
     const label = document.createElement("span");
-    label.textContent = generatorPreviewImageLabel(image);
+    label.textContent = aioPreviewImageLabel(image);
     thumb.append(thumbImage, label);
     thumb.addEventListener("click", () => {
       node.__easyuseAnimaSelectedPreviewIndex = index;
@@ -4941,7 +4744,7 @@ function updateGeneratorDomPreview(node) {
       panel,
       feedImages,
       settings,
-      generatorSelectedPreviewIndex(node, feedImages),
+      aioSelectedPreviewIndex(node, feedImages),
       { showPending: true },
     );
     const metaEl = panel.querySelector("[data-aio-preview-meta]");
@@ -4967,18 +4770,18 @@ function updateGeneratorDomPreview(node) {
     }
     return;
   }
-  const currentImage = generatorMainPreviewImage(node, images);
+  const currentImage = aioMainPreviewImage(node, images);
   const imageUrl = generatorImageUrl(currentImage);
   if (!currentImage || !imageUrl) {
     return;
   }
-  const selectedIndex = generatorSelectedPreviewIndex(node, images);
+  const selectedIndex = aioSelectedPreviewIndex(node, images);
   const metaEl = panel.querySelector("[data-aio-preview-meta]");
   if (metaEl) {
     const parts = [
-      generatorPreviewImageName(currentImage),
-      generatorPreviewResolution(currentImage),
-      generatorPreviewFileSize(currentImage),
+      aioPreviewImageName(currentImage),
+      aioPreviewResolution(currentImage),
+      aioPreviewFileSize(currentImage),
     ].filter((part) => part && part !== "-");
     const metaText = parts.length ? parts.join(" · ") : "-";
     metaEl.textContent = metaText;
@@ -5030,8 +4833,8 @@ function updateGeneratorDomPreview(node) {
     const labels = document.createElement("div");
     labels.className = "easyuse-anima-aio-node-preview-compare-labels";
     labels.append(
-      makeCompareLabel("current", `${aioText("text.previewCurrent")} · ${generatorPreviewImageLabel(currentImage)}`),
-      makeCompareLabel("previous", `${aioText("text.previewPrevious")} · ${generatorPreviewImageLabel(previousImage)}`),
+      makeCompareLabel("current", `${aioText("text.previewCurrent")} · ${aioPreviewImageLabel(currentImage)}`),
+      makeCompareLabel("previous", `${aioText("text.previewPrevious")} · ${aioPreviewImageLabel(previousImage)}`),
     );
     compare.append(
       makeLayer("before", currentImage),
@@ -5141,10 +4944,8 @@ function generatorPreviewLocatorCandidates(node, detail = null) {
   if (node?.id != null) {
     addGeneratorPreviewLocatorCandidate(ids, node.id);
   }
-  for (const key of GENERATOR_DENOISE_PREVIEW_NODE_KEYS) {
-    if (detail?.[key] != null) {
-      addGeneratorPreviewLocatorCandidate(ids, detail[key]);
-    }
+  for (const id of aioPreviewNodeIdsFromDetail(detail)) {
+    addGeneratorPreviewLocatorCandidate(ids, id);
   }
   for (const root of generatorVueNodeRoots(node)) {
     addGeneratorPreviewLocatorCandidate(ids, root.getAttribute?.("data-node-id"));
@@ -5297,24 +5098,6 @@ async function generatorNativePreviewStores() {
   return generatorNativePreviewStoresPromise;
 }
 
-function deleteGeneratorPreviewStoreEntry(container, locator) {
-  if (!container || !locator) {
-    return;
-  }
-  try {
-    const target = container.value && typeof container.value === "object"
-      ? container.value
-      : container;
-    if (target instanceof Map) {
-      target.delete(locator);
-    } else if (typeof target === "object") {
-      delete target[locator];
-    }
-  } catch {
-    // Store shape differs across ComfyUI frontend builds; DOM fallback still runs.
-  }
-}
-
 async function purgeGeneratorNativeLivePreviewStore(node, detail = null) {
   try {
     if (!node) {
@@ -5326,7 +5109,7 @@ async function purgeGeneratorNativeLivePreviewStore(node, detail = null) {
     }
     if (app.nodePreviewImages && typeof app.nodePreviewImages === "object") {
       for (const id of ids) {
-        deleteGeneratorPreviewStoreEntry(app.nodePreviewImages, id);
+        aioDeletePreviewStoreEntry(app.nodePreviewImages, id);
       }
     }
 
@@ -5350,7 +5133,7 @@ async function purgeGeneratorNativeLivePreviewStore(node, detail = null) {
     }
     for (const locator of locators) {
       outputStore.revokePreviewsByLocatorId?.(locator);
-      deleteGeneratorPreviewStoreEntry(outputStore.nodePreviewImages, locator);
+      aioDeletePreviewStoreEntry(outputStore.nodePreviewImages, locator);
     }
   } catch {
     // Native preview store access is version-dependent; CSS/DOM fallback remains scoped to this node.
@@ -5424,57 +5207,10 @@ function scheduleGeneratorNativeLivePreviewHidden(node) {
 }
 
 function suppressGeneratorDefaultPreview(node, options = {}) {
-  if (!node) {
-    return;
-  }
-  lockGeneratorLegacyCanvasPreview(node);
-  const shouldMarkDirty = options.markDirty !== false;
-  let changed = false;
-  if (node.hideOutputImages !== true) {
-    node.hideOutputImages = true;
-    changed = true;
-  }
-  for (const key of ["imgs", "images", "imageRects"]) {
-    if (!Array.isArray(node[key]) || node[key].length) {
-      node[key] = [];
-      changed = true;
-    }
-  }
-  for (const key of ["imageIndex", "overIndex"]) {
-    if (node[key] !== null) {
-      node[key] = null;
-      changed = true;
-    }
-  }
-  if (node.previewMediaType !== undefined) {
-    node.previewMediaType = undefined;
-    changed = true;
-  }
-  if (changed && shouldMarkDirty) {
-    markNodeDirty(node);
-  }
-}
-
-function lockGeneratorLegacyCanvasPreview(node) {
-  if (!node || node.__easyuseAnimaLegacyCanvasPreviewLocked) {
-    return;
-  }
-  node.__easyuseAnimaLegacyCanvasPreviewLocked = true;
-  try {
-    Object.defineProperty(node, "imgs", {
-      configurable: true,
-      enumerable: false,
-      get() {
-        return [];
-      },
-      set() {
-        // Comfy syncs ui.images into node.imgs for legacy canvas previews.
-        // AiO keeps queue/history images but renders its own in-node preview.
-      },
-    });
-  } catch {
-    node.imgs = [];
-  }
+  return aioSuppressDefaultPreview(node, {
+    markDirty: options.markDirty,
+    markNodeDirty,
+  });
 }
 
 function scheduleGeneratorDefaultPreviewSuppression(node, options = {}) {
@@ -7942,7 +7678,7 @@ function openPreviewSettings(node) {
     node.__easyuseAnimaGeneratorPreviewImages = next.preview.image_feed
       ? (node.__easyuseAnimaGeneratorPreviewFeedImages || [])
       : (node.__easyuseAnimaGeneratorCurrentRunImages || []);
-    node.__easyuseAnimaSelectedPreviewIndex = generatorDefaultPreviewIndex(node.__easyuseAnimaGeneratorPreviewImages);
+    node.__easyuseAnimaSelectedPreviewIndex = aioDefaultPreviewIndex(node.__easyuseAnimaGeneratorPreviewImages);
     applyVisibleGeneratorSettings(node, next);
     writeSettings(node, widget, next);
     renderGeneratorPanel(node);
@@ -8583,23 +8319,24 @@ function addGeneratorPreviewImagesToNode(node, nextImages, runId = "", options =
   const currentBase = replaceCurrentRun || (runId && currentRunId && currentRunId !== runId)
     ? []
     : currentImages;
-  const taggedNextImages = tagGeneratorPreviewRun(nextImages, runId, currentBase.length);
-  node.__easyuseAnimaGeneratorCurrentRunImages = mergeGeneratorPreviewImages(currentBase, taggedNextImages, runId);
+  const taggedNextImages = aioTagPreviewRun(nextImages, runId, currentBase.length);
+  node.__easyuseAnimaGeneratorCurrentRunImages = aioMergePreviewImages(currentBase, taggedNextImages, runId);
   if (settings.preview.image_feed) {
     const feedBase = replaceCurrentRun
-      ? removeGeneratorPreviewRun(node.__easyuseAnimaGeneratorPreviewFeedImages, runId)
+      ? aioRemovePreviewRun(node.__easyuseAnimaGeneratorPreviewFeedImages, runId)
       : node.__easyuseAnimaGeneratorPreviewFeedImages;
-    node.__easyuseAnimaGeneratorPreviewFeedImages = appendGeneratorPreviewFeed(
+    node.__easyuseAnimaGeneratorPreviewFeedImages = aioAppendPreviewFeed(
       feedBase,
       taggedNextImages,
       settings,
       runId,
+      DEFAULT_GENERATION_SETTINGS.preview.feed_count,
     );
     node.__easyuseAnimaGeneratorPreviewImages = node.__easyuseAnimaGeneratorPreviewFeedImages;
   } else {
     node.__easyuseAnimaGeneratorPreviewImages = node.__easyuseAnimaGeneratorCurrentRunImages;
   }
-  node.__easyuseAnimaSelectedPreviewIndex = generatorDefaultPreviewIndex(node.__easyuseAnimaGeneratorPreviewImages);
+  node.__easyuseAnimaSelectedPreviewIndex = aioDefaultPreviewIndex(node.__easyuseAnimaGeneratorPreviewImages);
   updateGeneratorDomSummary(node);
   requestAnimationFrame(() => updateGeneratorDomSummary(node));
   scheduleGeneratorLayout(node);
@@ -8610,8 +8347,8 @@ function updateGeneratorExecutedStatus(node, message) {
   if (!node) {
     return;
   }
-  const nextImages = generatorPreviewImages(message);
-  const runId = generatorPreviewRunId(message);
+  const nextImages = aioPreviewImages(message);
+  const runId = aioPreviewRunId(message);
   addGeneratorPreviewImagesToNode(node, nextImages, runId, { replaceCurrentRun: true });
   node.__easyuseAnimaGeneratorStatus = {
     status: String(firstValue(message?.status, "generated") || "generated"),
@@ -8624,19 +8361,19 @@ function updateGeneratorExecutedStatus(node, message) {
 }
 
 function handleGeneratorPreviewEvent(event) {
-  const detail = generatorPreviewEventDetail(event);
+  const detail = aioPreviewEventDetail(event);
   const node = findGeneratorNodeByQualifiedId(app.graph, detail.node);
   if (!node || node.type !== GENERATOR_NODE_TYPE) {
     return;
   }
   scheduleGeneratorNativeLivePreviewPurge(node, detail);
-  const images = generatorPreviewImages({ easyuse_anima_preview: detail.images });
+  const images = aioPreviewImages({ easyuse_anima_preview: detail.images });
   scheduleGeneratorDefaultPreviewSuppression(node, { purgeStore: false });
   addGeneratorPreviewImagesToNode(node, images, String(detail.run_id || ""));
 }
 
 function findGeneratorNodeForDenoisePreview(detail) {
-  for (const id of generatorNodeIdsFromDetail(detail)) {
+  for (const id of aioPreviewNodeIdsFromDetail(detail)) {
     const node = findGeneratorNodeByQualifiedId(app.graph, id);
     if (node?.type === GENERATOR_NODE_TYPE) {
       return node;
@@ -8646,15 +8383,15 @@ function findGeneratorNodeForDenoisePreview(detail) {
 }
 
 function handleGeneratorProgressEvent(event) {
-  rememberGeneratorProgress(generatorPreviewEventDetail(event));
+  rememberGeneratorProgress(aioPreviewEventDetail(event));
 }
 
 function handleGeneratorProgressStateEvent(event) {
-  rememberGeneratorProgressState(generatorPreviewEventDetail(event));
+  rememberGeneratorProgressState(aioPreviewEventDetail(event));
 }
 
 function handleGeneratorDenoisePreviewEvent(event) {
-  const detail = generatorPreviewEventDetail(event);
+  const detail = aioPreviewEventDetail(event);
   const node = findGeneratorNodeForDenoisePreview(detail);
   const blob = detail?.blob;
   if (!node || !blob) {
@@ -8667,7 +8404,7 @@ function handleGeneratorDenoisePreviewEvent(event) {
 }
 
 function handleGeneratorExecutingEvent(event) {
-  const nodeId = generatorPreviewEventDetail(event);
+  const nodeId = aioPreviewEventDetail(event);
   const node = findGeneratorNodeByQualifiedId(app.graph, nodeId);
   if (node?.type === GENERATOR_NODE_TYPE) {
     clearGeneratorDenoisePreview(node, true);
@@ -8676,7 +8413,7 @@ function handleGeneratorExecutingEvent(event) {
 }
 
 function clearGeneratorDenoisePreviews() {
-  GENERATOR_PROGRESS_BY_NODE.clear();
+  clearGeneratorPreviewProgress();
   for (const node of generatorGraphNodes()) {
     if (node?.type === GENERATOR_NODE_TYPE) {
       clearGeneratorDenoisePreview(node, true);
