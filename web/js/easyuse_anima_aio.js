@@ -7,7 +7,9 @@ import {
   aioBuiltinProfileIdForSettings,
   aioBuiltinProfileIds,
   aioBuiltinProfileSettings,
+  aioFindUserProfileByName,
   aioProfileSettingsFingerprint,
+  aioResolvedProfileValue,
   aioUserProfileName,
   aioUserProfileValue,
 } from "./aio/presets.js";
@@ -2767,10 +2769,7 @@ function generatorProfileErrorMessage(error) {
 }
 
 function generatorUserProfileByName(name) {
-  const expected = String(name || "").toLowerCase();
-  return generatorProfileState.profiles.find(
-    (profile) => String(profile?.name || "").toLowerCase() === expected,
-  ) || null;
+  return aioFindUserProfileByName(generatorProfileState.profiles, name);
 }
 
 async function loadGeneratorUserProfiles({ force = false } = {}) {
@@ -2919,21 +2918,14 @@ async function deleteGeneratorUserProfile(node, selectedValue = node.__easyuseAn
 }
 
 function resolvedGeneratorProfileValue(node, settings = generatorSettings(node)) {
-  const builtinId = aioBuiltinProfileIdForSettings(settings, DEFAULT_GENERATION_SETTINGS);
-  if (builtinId) {
-    return `builtin:${builtinId}`;
-  }
-  const textValue = String(node?.__easyuseAnimaGeneratorProfileValue || "");
-  const userName = aioUserProfileName(textValue);
-  const fingerprint = aioProfileSettingsFingerprint(settings);
-  if (
-    userName
-    && generatorUserProfileByName(userName)
-    && node?.__easyuseAnimaGeneratorProfileFingerprint === fingerprint
-  ) {
-    return textValue;
-  }
-  return GENERATOR_PROFILE_CUSTOM_VALUE;
+  return aioResolvedProfileValue({
+    settings,
+    defaultSettings: DEFAULT_GENERATION_SETTINGS,
+    selectedValue: node?.__easyuseAnimaGeneratorProfileValue,
+    selectedFingerprint: node?.__easyuseAnimaGeneratorProfileFingerprint,
+    profiles: generatorProfileState.profiles,
+    customValue: GENERATOR_PROFILE_CUSTOM_VALUE,
+  });
 }
 
 function syncGeneratorProfileValue(node, settings = generatorSettings(node)) {

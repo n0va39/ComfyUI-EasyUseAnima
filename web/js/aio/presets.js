@@ -141,3 +141,36 @@ export function aioUserProfileName(value) {
   const text = String(value || "");
   return text.startsWith("user:") ? text.slice(5) : "";
 }
+
+export function aioFindUserProfileByName(profiles, name) {
+  const expected = String(name || "").toLowerCase();
+  return (Array.isArray(profiles) ? profiles : []).find(
+    (profile) => String(profile?.name || "").toLowerCase() === expected,
+  ) || null;
+}
+
+export function aioResolvedProfileValue({
+  settings,
+  defaultSettings,
+  selectedValue,
+  selectedFingerprint,
+  profiles,
+  customValue = "custom",
+}) {
+  const builtinId = aioBuiltinProfileIdForSettings(settings, defaultSettings);
+  if (builtinId) {
+    return `builtin:${builtinId}`;
+  }
+
+  const textValue = String(selectedValue || "");
+  const userName = aioUserProfileName(textValue);
+  const fingerprint = aioProfileSettingsFingerprint(settings);
+  if (
+    userName
+    && aioFindUserProfileByName(profiles, userName)
+    && selectedFingerprint === fingerprint
+  ) {
+    return textValue;
+  }
+  return customValue;
+}

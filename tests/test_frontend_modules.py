@@ -11,6 +11,10 @@ JSCONFIG = ROOT / "jsconfig.json"
 FRONTEND_CHECK_SCRIPT = ROOT / "tools" / "check_frontend.ps1"
 WEB_JS = ROOT / "web" / "js"
 API_JS = WEB_JS / "easyuse_anima_api.js"
+AIO_JS = WEB_JS / "easyuse_anima_aio.js"
+AIO_MODULES = WEB_JS / "aio"
+AIO_PRESETS_JS = AIO_MODULES / "presets.js"
+AIO_PROFILE_CORE_SMOKE = ROOT / "tests" / "frontend_aio_profile_core_smoke.mjs"
 PROMPT_STUDIO_JS = WEB_JS / "easyuse_anima_prompt_studio.js"
 PROMPT_STUDIO_COMMON_JS = WEB_JS / "easyuse_anima_prompt_studio_common.js"
 PROMPT_STUDIO_MODULES = WEB_JS / "prompt_studio"
@@ -64,6 +68,24 @@ class FrontendModuleStructureTests(unittest.TestCase):
             with self.subTest(filename=filename):
                 source = (WEB_JS / filename).read_text(encoding="utf-8")
                 self.assertIn(import_path, source)
+
+    def test_aio_profile_core_module_owns_dom_free_resolution_rules(self):
+        source = AIO_PRESETS_JS.read_text(encoding="utf-8")
+        entry_source = AIO_JS.read_text(encoding="utf-8")
+        frontend_check_source = FRONTEND_CHECK_SCRIPT.read_text(encoding="utf-8")
+
+        for helper in ("aioFindUserProfileByName", "aioResolvedProfileValue"):
+            with self.subTest(helper=helper):
+                self.assertIn(f"export function {helper}(", source)
+                self.assertIn(helper, entry_source)
+
+        self.assertNotRegex(source, r"\b(?:document|window|app)\b")
+        self.assertNotIn("fetch(", source)
+        self.assertTrue(AIO_PROFILE_CORE_SMOKE.is_file())
+        self.assertIn(
+            r'node "tests\frontend_aio_profile_core_smoke.mjs"',
+            frontend_check_source,
+        )
 
     def test_legacy_regional_common_is_thin_compatibility_adapter(self):
         common_source = PROMPT_STUDIO_COMMON_JS.read_text(encoding="utf-8")
@@ -1126,6 +1148,7 @@ class FrontendModuleStructureTests(unittest.TestCase):
         self.assertTrue(config["compilerOptions"]["noUnusedParameters"])
 
         for path in (
+            "web/js/aio/**/*.js",
             "web/js/easyuse_anima_prompt_studio.js",
             "web/js/easyuse_anima_prompt_studio_regional.js",
             "web/js/prompt_studio/**/*.js",
@@ -1141,6 +1164,9 @@ class FrontendModuleStructureTests(unittest.TestCase):
         self.assertIn(r'& node "tests\frontend_highlight_core_smoke.mjs"', source)
         self.assertIn(
             r'& node "tests\frontend_highlight_overlay_core_smoke.mjs"', source
+        )
+        self.assertIn(
+            r'& node "tests\frontend_aio_profile_core_smoke.mjs"', source
         )
         self.assertIn('"typescript@$TypeScriptVersion"', source)
         self.assertIn("tsc -p jsconfig.json", source)
