@@ -614,37 +614,6 @@ const PROMPT_STUDIO_FONT_SIZE_MIN = 8;
 const PROMPT_STUDIO_FONT_SIZE_MAX = 24;
 const PROMPT_STUDIO_FONT_FAMILY = 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
 
-const HIGHLIGHT_TEXT_METRIC_PROPERTIES = [
-  "font",
-  "fontFamily",
-  "fontSize",
-  "fontSizeAdjust",
-  "fontStretch",
-  "fontWeight",
-  "fontStyle",
-  "fontVariant",
-  "fontKerning",
-  "fontOpticalSizing",
-  "fontFeatureSettings",
-  "fontVariationSettings",
-  "lineHeight",
-  "letterSpacing",
-  "wordSpacing",
-  "textIndent",
-  "padding",
-  "border",
-  "borderRadius",
-  "boxSizing",
-  "textAlign",
-  "textTransform",
-  "textRendering",
-  "direction",
-  "tabSize",
-  "whiteSpace",
-  "overflowWrap",
-  "wordBreak",
-];
-
 const AUTOCOMPLETE_TOOLTIP_SECTIONS = new Set([
   "quality",
   "safety",
@@ -951,7 +920,6 @@ export {
   PROMPT_STUDIO_FONT_SIZE_MIN,
   PROMPT_STUDIO_FONT_SIZE_MAX,
   PROMPT_STUDIO_FONT_FAMILY,
-  HIGHLIGHT_TEXT_METRIC_PROPERTIES,
   AUTOCOMPLETE_TOOLTIP_SECTIONS,
   ADVANCED_NATIVE_CONTROL_SELECTOR,
   ADVANCED_NATIVE_CONTROL_EVENTS,
