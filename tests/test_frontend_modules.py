@@ -15,6 +15,8 @@ AIO_JS = WEB_JS / "easyuse_anima_aio.js"
 AIO_MODULES = WEB_JS / "aio"
 AIO_DEPENDENCIES_JS = AIO_MODULES / "dependencies.js"
 AIO_DEPENDENCY_CORE_SMOKE = ROOT / "tests" / "frontend_aio_dependency_core_smoke.mjs"
+AIO_PREVIEW_JS = AIO_MODULES / "preview.js"
+AIO_PREVIEW_CORE_SMOKE = ROOT / "tests" / "frontend_aio_preview_core_smoke.mjs"
 AIO_PRESETS_JS = AIO_MODULES / "presets.js"
 AIO_PROFILE_CORE_SMOKE = ROOT / "tests" / "frontend_aio_profile_core_smoke.mjs"
 PROMPT_STUDIO_JS = WEB_JS / "easyuse_anima_prompt_studio.js"
@@ -173,6 +175,101 @@ class FrontendModuleStructureTests(unittest.TestCase):
         self.assertTrue(AIO_DEPENDENCY_CORE_SMOKE.is_file())
         self.assertIn(
             r'node "tests\frontend_aio_dependency_core_smoke.mjs"',
+            frontend_check_source,
+        )
+
+    def test_aio_preview_core_module_owns_dom_free_preview_rules(self):
+        source = AIO_PREVIEW_JS.read_text(encoding="utf-8")
+        entry_source = AIO_JS.read_text(encoding="utf-8")
+        frontend_check_source = FRONTEND_CHECK_SCRIPT.read_text(encoding="utf-8")
+
+        self.assertEqual(source.splitlines()[0], "// @ts-check")
+
+        expected_functions = {
+            "aioAppendPreviewFeed",
+            "aioCreatePreviewProgressTracker",
+            "aioDefaultPreviewIndex",
+            "aioDeletePreviewStoreEntry",
+            "aioMainPreviewImage",
+            "aioMergePreviewImages",
+            "aioPreviewEventDetail",
+            "aioPreviewFileSize",
+            "aioPreviewImageLabel",
+            "aioPreviewImageName",
+            "aioPreviewImages",
+            "aioPreviewNodeIdsFromDetail",
+            "aioPreviewResolution",
+            "aioPreviewRunId",
+            "aioRemovePreviewRun",
+            "aioSelectedPreviewIndex",
+            "aioSuppressDefaultPreview",
+            "aioTagPreviewRun",
+        }
+        exported_functions = set(
+            re.findall(r"export (?:async )?function ([A-Za-z0-9_]+)\(", source)
+        )
+        self.assertEqual(exported_functions, expected_functions)
+        self.assertNotRegex(source, r"export const [A-Za-z0-9_]+\s*=")
+
+        import_match = re.search(
+            r'import\s+\{(?P<names>[^}]*)\}\s+from\s+'
+            r'"\./aio/preview\.js";',
+            entry_source,
+            re.DOTALL,
+        )
+        self.assertIsNotNone(import_match)
+        imported_names = {
+            name.strip()
+            for name in import_match.group("names").split(",")
+            if name.strip()
+        }
+        self.assertEqual(imported_names, expected_functions)
+
+        self.assertNotRegex(source, r"\b(?:document|window|app)\b")
+        self.assertNotIn("app.registerExtension", source)
+        self.assertNotIn("fetch(", source)
+        self.assertNotIn("const GENERATOR_PROGRESS_BY_NODE", entry_source)
+        self.assertIn("aioCreatePreviewProgressTracker();", entry_source)
+        for local_function in (
+            "appendGeneratorPreviewFeed",
+            "deleteGeneratorPreviewStoreEntry",
+            "generatorDefaultPreviewIndex",
+            "generatorMainPreviewImage",
+            "generatorNodeIdsFromDetail",
+            "generatorPreviewEventDetail",
+            "generatorPreviewFeedLimit",
+            "generatorPreviewFileSize",
+            "generatorPreviewIdentity",
+            "generatorPreviewImageLabel",
+            "generatorPreviewImageName",
+            "generatorPreviewImages",
+            "generatorPreviewResolution",
+            "generatorPreviewRunId",
+            "generatorSelectedPreviewIndex",
+            "lockGeneratorLegacyCanvasPreview",
+            "mergeGeneratorPreviewImages",
+            "normalizeGeneratorNodeId",
+            "removeGeneratorPreviewRun",
+            "tagGeneratorPreviewRun",
+        ):
+            with self.subTest(local_function=local_function):
+                self.assertNotIn(f"function {local_function}(", entry_source)
+
+        suppress_start = entry_source.index(
+            "function suppressGeneratorDefaultPreview(node, options = {})"
+        )
+        suppress_end = entry_source.index(
+            "\nfunction scheduleGeneratorDefaultPreviewSuppression", suppress_start
+        )
+        suppress_body = entry_source[suppress_start:suppress_end]
+        self.assertIn("return aioSuppressDefaultPreview(node, {", suppress_body)
+        self.assertIn("markDirty: options.markDirty", suppress_body)
+        self.assertIn("markNodeDirty,", suppress_body)
+        self.assertNotIn('Object.defineProperty(node, "imgs"', suppress_body)
+
+        self.assertTrue(AIO_PREVIEW_CORE_SMOKE.is_file())
+        self.assertIn(
+            r'node "tests\frontend_aio_preview_core_smoke.mjs"',
             frontend_check_source,
         )
 
@@ -1259,6 +1356,9 @@ class FrontendModuleStructureTests(unittest.TestCase):
         )
         self.assertIn(
             r'& node "tests\frontend_aio_dependency_core_smoke.mjs"', source
+        )
+        self.assertIn(
+            r'& node "tests\frontend_aio_preview_core_smoke.mjs"', source
         )
         self.assertIn('"typescript@$TypeScriptVersion"', source)
         self.assertIn("tsc -p jsconfig.json", source)
