@@ -19,6 +19,8 @@ AIO_PREVIEW_JS = AIO_MODULES / "preview.js"
 AIO_PREVIEW_CORE_SMOKE = ROOT / "tests" / "frontend_aio_preview_core_smoke.mjs"
 AIO_PRESETS_JS = AIO_MODULES / "presets.js"
 AIO_PROFILE_CORE_SMOKE = ROOT / "tests" / "frontend_aio_profile_core_smoke.mjs"
+AIO_SETTINGS_JS = AIO_MODULES / "settings.js"
+AIO_SETTINGS_CORE_SMOKE = ROOT / "tests" / "frontend_aio_settings_core_smoke.mjs"
 PROMPT_STUDIO_JS = WEB_JS / "easyuse_anima_prompt_studio.js"
 PROMPT_STUDIO_COMMON_JS = WEB_JS / "easyuse_anima_prompt_studio_common.js"
 PROMPT_STUDIO_MODULES = WEB_JS / "prompt_studio"
@@ -270,6 +272,104 @@ class FrontendModuleStructureTests(unittest.TestCase):
         self.assertTrue(AIO_PREVIEW_CORE_SMOKE.is_file())
         self.assertIn(
             r'node "tests\frontend_aio_preview_core_smoke.mjs"',
+            frontend_check_source,
+        )
+
+    def test_aio_settings_core_module_owns_dom_free_storage_rules(self):
+        source = AIO_SETTINGS_JS.read_text(encoding="utf-8")
+        entry_source = AIO_JS.read_text(encoding="utf-8")
+        frontend_check_source = FRONTEND_CHECK_SCRIPT.read_text(encoding="utf-8")
+
+        self.assertEqual(source.splitlines()[0], "// @ts-check")
+
+        expected_constants = {
+            "AIO_DEFAULT_GENERATION_SETTINGS",
+            "AIO_DEFAULT_INPUT_SETTINGS",
+            "AIO_GENERATOR_MAX_SEED",
+            "AIO_GENERATOR_SEED_CONTROLS",
+            "AIO_GENERATOR_SPECIAL_SEED_DECREMENT",
+            "AIO_GENERATOR_SPECIAL_SEED_INCREMENT",
+            "AIO_GENERATOR_SPECIAL_SEED_RANDOM",
+        }
+        exported_constants = set(
+            re.findall(r"export const ([A-Za-z0-9_]+)\s*=", source)
+        )
+        self.assertEqual(exported_constants, expected_constants)
+
+        expected_functions = {
+            "aioAsBool",
+            "aioCloneJson",
+            "aioMergeDefaults",
+            "aioMigrateGeneratorPostprocessSettings",
+            "aioNormalizeGeneratorPreviewSettings",
+            "aioNormalizeSeedControl",
+            "aioNormalizeSeedValue",
+            "aioParseSettingsValue",
+            "aioSettingsToCompactJson",
+        }
+        exported_functions = set(
+            re.findall(r"export (?:async )?function ([A-Za-z0-9_]+)\(", source)
+        )
+        self.assertEqual(exported_functions, expected_functions)
+
+        import_match = re.search(
+            r'import\s+\{(?P<names>[^}]*)\}\s+from\s+'
+            r'"\./aio/settings\.js";',
+            entry_source,
+            re.DOTALL,
+        )
+        self.assertIsNotNone(import_match)
+        imported_exports = {
+            name.strip().split(" as ", 1)[0].strip()
+            for name in import_match.group("names").split(",")
+            if name.strip()
+        }
+        self.assertEqual(imported_exports, expected_constants | expected_functions)
+
+        self.assertNotRegex(source, r"\b(?:document|window|app|api)\b")
+        self.assertNotIn("app.registerExtension", source)
+        self.assertNotIn("fetch(", source)
+        for ui_dependency in (
+            "findWidget",
+            "widgetValue",
+            "setWidgetValue",
+            "setDirtyCanvas",
+        ):
+            with self.subTest(ui_dependency=ui_dependency):
+                self.assertNotIn(ui_dependency, source)
+
+        for local_constant in (
+            "DEFAULT_GENERATION_SETTINGS",
+            "DEFAULT_INPUT_SETTINGS",
+            "GENERATOR_MAX_SEED",
+            "GENERATOR_SEED_CONTROLS",
+            "GENERATOR_SPECIAL_SEED_RANDOM",
+            "GENERATOR_SPECIAL_SEED_INCREMENT",
+            "GENERATOR_SPECIAL_SEED_DECREMENT",
+        ):
+            with self.subTest(local_constant=local_constant):
+                self.assertNotRegex(
+                    entry_source,
+                    rf"const\s+{local_constant}\s*=",
+                )
+
+        for local_function in (
+            "asBool",
+            "clone",
+            "mergeDefaults",
+            "migrateGeneratorPostprocessSettings",
+            "normalizeGeneratorPreviewSettings",
+            "normalizeSeedControl",
+            "normalizeSeedValue",
+            "settingsToCompactJson",
+        ):
+            with self.subTest(local_function=local_function):
+                self.assertNotIn(f"function {local_function}(", entry_source)
+
+        self.assertNotIn("JSON.parse(widget.value ||", entry_source)
+        self.assertTrue(AIO_SETTINGS_CORE_SMOKE.is_file())
+        self.assertIn(
+            r'node "tests\frontend_aio_settings_core_smoke.mjs"',
             frontend_check_source,
         )
 
@@ -1359,6 +1459,9 @@ class FrontendModuleStructureTests(unittest.TestCase):
         )
         self.assertIn(
             r'& node "tests\frontend_aio_preview_core_smoke.mjs"', source
+        )
+        self.assertIn(
+            r'& node "tests\frontend_aio_settings_core_smoke.mjs"', source
         )
         self.assertIn('"typescript@$TypeScriptVersion"', source)
         self.assertIn("tsc -p jsconfig.json", source)
