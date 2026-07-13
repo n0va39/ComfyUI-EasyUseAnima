@@ -7,6 +7,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 AIO_JS = ROOT / "web" / "js" / "easyuse_anima_aio.js"
 AIO_PREVIEW_JS = ROOT / "web" / "js" / "aio" / "preview.js"
+AIO_SETTINGS_JS = ROOT / "web" / "js" / "aio" / "settings.js"
 AIO_WHEEL_JS = ROOT / "web" / "js" / "aio" / "wheel.js"
 AIO_PRESETS_JS = ROOT / "web" / "js" / "aio" / "presets.js"
 AUTOCOMPLETE_JS = ROOT / "web" / "js" / "easyuse_anima_autocomplete.js"
@@ -386,14 +387,12 @@ class AIOFrontendSourceTests(unittest.TestCase):
 
     def test_save_settings_expose_prompt_metadata_toggle(self):
         source = AIO_JS.read_text(encoding="utf-8")
-        defaults_start = source.index("const DEFAULT_GENERATION_SETTINGS")
-        defaults_end = source.index("\nconst AIO_TEXT", defaults_start)
-        defaults_body = source[defaults_start:defaults_end]
+        settings_source = AIO_SETTINGS_JS.read_text(encoding="utf-8")
         start = source.index("function openSaveSettings")
         end = source.index("\nfunction openAdvancedSettings", start)
         body = source[start:end]
 
-        self.assertIn("save_prompt_metadata: true", defaults_body)
+        self.assertIn("save_prompt_metadata: true", settings_source)
         self.assertIn('field(metadata, "Save prompt metadata"', body)
         self.assertIn("checkbox(imageSaver.save_prompt_metadata)", body)
         self.assertIn("save_prompt_metadata: savePromptMetadata.checked", body)

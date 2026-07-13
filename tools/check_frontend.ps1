@@ -54,6 +54,11 @@ try {
         throw "Frontend AiO preview core smoke failed with exit code $LASTEXITCODE."
     }
 
+    & node "tests\frontend_aio_settings_core_smoke.mjs"
+    if ($LASTEXITCODE -ne 0) {
+        throw "Frontend AiO settings core smoke failed with exit code $LASTEXITCODE."
+    }
+
     & node "tests\frontend_regional_pure_data_smoke.mjs"
     if ($LASTEXITCODE -ne 0) {
         throw "Frontend Regional pure data smoke failed with exit code $LASTEXITCODE."
