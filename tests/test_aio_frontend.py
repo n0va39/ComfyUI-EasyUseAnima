@@ -130,7 +130,9 @@ class AIOFrontendSourceTests(unittest.TestCase):
         preview_box_end = source.index("\n    .easyuse-anima-aio-node-preview-box img {", preview_box_start)
         preview_box_style = source[preview_box_start:preview_box_end]
         panel_registration_start = source.index("function ensureGeneratorPanel")
-        panel_registration_end = source.index("\nfunction field", panel_registration_start)
+        panel_registration_end = source.index(
+            "\nfunction openInputSettings", panel_registration_start
+        )
         panel_registration = source[panel_registration_start:panel_registration_end]
 
         self.assertIn("getMinHeight: () => GENERATOR_PANEL_MIN_HEIGHT", panel_registration)

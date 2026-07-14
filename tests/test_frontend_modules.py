@@ -19,6 +19,10 @@ AIO_DOM_CONTROLS_JS = AIO_MODULES / "dom_controls.js"
 AIO_DOM_CONTROLS_CORE_SMOKE = (
     ROOT / "tests" / "frontend_aio_dom_controls_core_smoke.mjs"
 )
+AIO_DIALOG_PRIMITIVES_JS = AIO_MODULES / "dialog_primitives.js"
+AIO_DIALOG_PRIMITIVES_SMOKE = (
+    ROOT / "tests" / "frontend_aio_dialog_primitives_smoke.mjs"
+)
 AIO_PREVIEW_JS = AIO_MODULES / "preview.js"
 AIO_PREVIEW_CORE_SMOKE = ROOT / "tests" / "frontend_aio_preview_core_smoke.mjs"
 AIO_PRESETS_JS = AIO_MODULES / "presets.js"
@@ -442,6 +446,73 @@ class FrontendModuleStructureTests(unittest.TestCase):
         self.assertTrue(AIO_DOM_CONTROLS_CORE_SMOKE.is_file())
         self.assertIn(
             r'node "tests\frontend_aio_dom_controls_core_smoke.mjs"',
+            frontend_check_source,
+        )
+
+    def test_aio_dialog_primitives_module_owns_shared_dom_shells(self):
+        source = AIO_DIALOG_PRIMITIVES_JS.read_text(encoding="utf-8")
+        entry_source = AIO_JS.read_text(encoding="utf-8")
+        frontend_check_source = FRONTEND_CHECK_SCRIPT.read_text(encoding="utf-8")
+
+        self.assertEqual(source.splitlines()[0], "// @ts-check")
+        self.assertEqual(
+            re.findall(r"export function ([A-Za-z0-9_]+)\(", source),
+            ["aioCreateDialogPrimitives"],
+        )
+        self.assertNotRegex(source, re.compile(r"^\s*import\s", re.MULTILINE))
+        self.assertNotRegex(source, r"\b(?:app|api)\b")
+        self.assertNotIn("app.registerExtension", source)
+        self.assertNotIn("fetch(", source)
+        self.assertNotRegex(
+            source,
+            re.compile(r"^(?:window|globalThis)\.[A-Za-z_$]", re.MULTILINE),
+        )
+
+        self.assertIn(
+            'import { aioCreateDialogPrimitives } from "./aio/dialog_primitives.js";',
+            entry_source,
+        )
+        factory_match = re.search(
+            r"const\s+\{\s*createDialog,\s*createNodeField,\s*field,\s*\}\s*="
+            r"\s*aioCreateDialogPrimitives\(\{(?P<dependencies>.*?)\}\);",
+            entry_source,
+            re.DOTALL,
+        )
+        self.assertIsNotNone(factory_match)
+        for dependency in (
+            "document",
+            "ensureStyle",
+            "staticText: aioStaticText",
+            "text: aioText",
+            "resolveFieldPresentation: aioFieldPresentation",
+            "applyTooltip",
+            "applyTooltipText",
+        ):
+            with self.subTest(dependency=dependency):
+                self.assertIn(dependency, factory_match.group("dependencies"))
+
+        presentation_start = entry_source.index("function aioFieldPresentation")
+        presentation_end = entry_source.index(
+            "\nfunction applyTooltip", presentation_start
+        )
+        presentation_body = entry_source[presentation_start:presentation_end]
+        self.assertIn("aioFieldLabel(label)", presentation_body)
+        self.assertIn(
+            "tooltipKey || AIO_FIELD_TOOLTIP_KEYS[label]",
+            presentation_body,
+        )
+        self.assertIn('aioFormat("tip.fieldGeneric"', presentation_body)
+
+        for local_function in ("createDialog", "createNodeField", "field"):
+            with self.subTest(local_function=local_function):
+                self.assertNotRegex(
+                    entry_source,
+                    rf"\bfunction\s+{local_function}\(",
+                )
+
+        self.assertTrue(AIO_DIALOG_PRIMITIVES_SMOKE.is_file())
+        self.assertIn(
+            r'node "tests\frontend_aio_dialog_primitives_smoke.mjs"',
             frontend_check_source,
         )
 

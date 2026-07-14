@@ -64,6 +64,11 @@ try {
         throw "Frontend AiO DOM controls core smoke failed with exit code $LASTEXITCODE."
     }
 
+    & node "tests\frontend_aio_dialog_primitives_smoke.mjs"
+    if ($LASTEXITCODE -ne 0) {
+        throw "Frontend AiO dialog primitives smoke failed with exit code $LASTEXITCODE."
+    }
+
     & node "tests\frontend_regional_pure_data_smoke.mjs"
     if ($LASTEXITCODE -ne 0) {
         throw "Frontend Regional pure data smoke failed with exit code $LASTEXITCODE."
