@@ -3,6 +3,17 @@ import { api } from "../../../scripts/api.js";
 import { easyuseAnimaFetchComfyJson, easyuseAnimaFetchText } from "./easyuse_anima_api.js";
 import { easyuseAnimaText, easyuseAnimaWatchLocale } from "./easyuse_anima_i18n.js";
 import {
+  aioCreateCheckboxInput as checkbox,
+  aioCreateNumberInput as numberInput,
+  aioCreateSelectInput as selectInput,
+  aioCreateTextareaInput as textareaInput,
+  aioCreateTextInput as textInput,
+  aioNodeInputControlForSpec as nodeInputControlForSpec,
+  aioNodeInputDefault as nodeInputDefault,
+  aioValueFromNodeInputControl as valueFromNodeInputControl,
+} from "./aio/dom_controls.js";
+import { aioCreateDialogPrimitives } from "./aio/dialog_primitives.js";
+import {
   AIO_BACKEND_DEPENDENCIES,
   AIO_OPTIONAL_DEPENDENCY_SPECS,
   aioNodeInputMap,
@@ -1816,6 +1827,15 @@ function aioFormat(key, values = {}) {
   return text;
 }
 
+function aioFieldPresentation(label, tooltipKey = "") {
+  const displayLabel = aioFieldLabel(label);
+  const resolvedTooltipKey = tooltipKey || AIO_FIELD_TOOLTIP_KEYS[label] || "";
+  const tooltipText = resolvedTooltipKey
+    ? aioText(resolvedTooltipKey)
+    : aioFormat("tip.fieldGeneric", { label: displayLabel });
+  return { displayLabel, tooltipText };
+}
+
 function applyTooltip(element, key) {
   if (!element || !key) {
     return element;
@@ -2073,53 +2093,6 @@ function applyNodeInputInfo(control, dependencyKey, inputName, fallbackTooltipKe
     row.classList.toggle("easyuse-anima-aio-unsupported", !supported);
   }
   return control;
-}
-
-function nodeInputDefault(spec, fallback = "") {
-  const options = Array.isArray(spec) && spec[1] && typeof spec[1] === "object" ? spec[1] : null;
-  if (options && Object.prototype.hasOwnProperty.call(options, "default")) {
-    return options.default;
-  }
-  return fallback;
-}
-
-function nodeInputControlForSpec(spec, value) {
-  if (!Array.isArray(spec)) {
-    return null;
-  }
-  const type = spec[0];
-  if (Array.isArray(type)) {
-    return selectInput(type, value ?? nodeInputDefault(spec, type[0] ?? ""));
-  }
-  const normalizedType = String(type || "").toUpperCase();
-  if (normalizedType === "BOOLEAN") {
-    return checkbox(value ?? nodeInputDefault(spec, false));
-  }
-  if (normalizedType === "INT") {
-    const input = numberInput(value ?? nodeInputDefault(spec, 0), "1");
-    input.step = "1";
-    return input;
-  }
-  if (normalizedType === "FLOAT") {
-    return numberInput(value ?? nodeInputDefault(spec, 0), "0.01");
-  }
-  if (normalizedType === "STRING") {
-    return textInput(value ?? nodeInputDefault(spec, ""));
-  }
-  return null;
-}
-
-function valueFromNodeInputControl(control) {
-  if (!control) {
-    return null;
-  }
-  if (control.type === "checkbox") {
-    return !!control.checked;
-  }
-  if (control.type === "number") {
-    return Number(control.value || 0);
-  }
-  return control.value;
 }
 
 function createDynamicNodeInputEditor(title, dependencyKey, knownInputs, values = {}) {
@@ -3537,56 +3510,19 @@ function ensureStyle() {
   document.head.append(style);
 }
 
-function numberInput(value, step = "1") {
-  const input = document.createElement("input");
-  input.type = "number";
-  input.step = step;
-  input.value = value;
-  return input;
-}
-
-function textInput(value) {
-  const input = document.createElement("input");
-  input.type = "text";
-  input.value = value ?? "";
-  return input;
-}
-
-function textareaInput(value) {
-  const textarea = document.createElement("textarea");
-  textarea.value = value ?? "";
-  return textarea;
-}
-
-function checkbox(value) {
-  const input = document.createElement("input");
-  input.type = "checkbox";
-  input.checked = !!value;
-  return input;
-}
-
-function selectInput(options, value) {
-  const select = document.createElement("select");
-  for (const optionSpec of options) {
-    const optionValue = typeof optionSpec === "object" && optionSpec
-      ? String(optionSpec.value ?? "")
-      : String(optionSpec ?? "");
-    const option = document.createElement("option");
-    option.value = optionValue;
-    option.textContent = typeof optionSpec === "object" && optionSpec
-      ? String(optionSpec.label ?? optionValue)
-      : optionValue;
-    option.disabled = !!(typeof optionSpec === "object" && optionSpec?.disabled);
-    if (typeof optionSpec === "object" && optionSpec?.title) {
-      option.title = String(optionSpec.title);
-    }
-    if (optionValue === value) {
-      option.selected = true;
-    }
-    select.append(option);
-  }
-  return select;
-}
+const {
+  createDialog,
+  createNodeField,
+  field,
+} = aioCreateDialogPrimitives({
+  document,
+  ensureStyle,
+  staticText: aioStaticText,
+  text: aioText,
+  resolveFieldPresentation: aioFieldPresentation,
+  applyTooltip,
+  applyTooltipText,
+});
 
 function widgetValue(node, name, fallback) {
   if (Object.prototype.hasOwnProperty.call(node?.__easyuseAnimaGeneratorUiValues || {}, name)) {
@@ -4698,26 +4634,6 @@ function scheduleGeneratorDefaultPreviewSuppression(node, options = {}) {
   }, 360);
 }
 
-function createNodeField(label, control, className = "", tooltipKey = "") {
-  const wrapper = document.createElement("div");
-  wrapper.className = `easyuse-anima-aio-node-field ${className}`.trim();
-  const labelEl = document.createElement("label");
-  applyTooltip(wrapper, tooltipKey);
-  applyTooltip(labelEl, tooltipKey);
-  applyTooltip(control, tooltipKey);
-  if (control?.type === "checkbox") {
-    wrapper.classList.add("checkbox");
-    const text = document.createElement("span");
-    text.textContent = label;
-    labelEl.append(text, control);
-    wrapper.append(labelEl);
-  } else {
-    labelEl.textContent = label;
-    wrapper.append(labelEl, control);
-  }
-  return wrapper;
-}
-
 function createDomNumberControl(node, name, value, step = "1") {
   const input = numberInput(value, step);
   input.addEventListener("input", () => {
@@ -5648,65 +5564,6 @@ function ensureGeneratorPanel(node) {
   markGeneratorNativeLivePreviewHidden(node);
   renderGeneratorPanel(node);
   markGeneratorNativeLivePreviewHidden(node);
-}
-
-function field(section, label, control, tooltipKey = "") {
-  const row = document.createElement("div");
-  row.className = "easyuse-anima-aio-field";
-  const labelEl = document.createElement("label");
-  const displayLabel = aioFieldLabel(label);
-  const resolvedTooltipKey = tooltipKey || AIO_FIELD_TOOLTIP_KEYS[label] || "";
-  const tooltipText = resolvedTooltipKey
-    ? aioText(resolvedTooltipKey)
-    : aioFormat("tip.fieldGeneric", { label: displayLabel });
-  applyTooltipText(row, tooltipText);
-  applyTooltipText(labelEl, tooltipText);
-  applyTooltipText(control, tooltipText);
-  if (control?.type === "checkbox") {
-    row.classList.add("checkbox");
-    const text = document.createElement("span");
-    text.textContent = displayLabel;
-    labelEl.append(text, control);
-    row.append(labelEl);
-  } else {
-    labelEl.textContent = displayLabel;
-    row.append(labelEl, control);
-  }
-  section.append(row);
-  return control;
-}
-
-function createDialog(title, subtitle) {
-  ensureStyle();
-  const backdrop = document.createElement("div");
-  backdrop.className = "easyuse-anima-aio-backdrop";
-  const dialog = document.createElement("div");
-  dialog.className = "easyuse-anima-aio-dialog";
-  const header = document.createElement("header");
-  const titleBox = document.createElement("div");
-  const heading = document.createElement("h2");
-  heading.textContent = aioStaticText(title);
-  const desc = document.createElement("p");
-  desc.textContent = aioStaticText(subtitle);
-  titleBox.append(heading, desc);
-  const close = document.createElement("button");
-  close.className = "easyuse-anima-aio-close";
-  close.textContent = aioText("button.close");
-  header.append(titleBox, close);
-  const body = document.createElement("div");
-  body.className = "easyuse-anima-aio-body";
-  const actions = document.createElement("div");
-  actions.className = "easyuse-anima-aio-actions";
-  dialog.append(header, body, actions);
-  backdrop.append(dialog);
-  close.addEventListener("click", () => backdrop.remove());
-  backdrop.addEventListener("pointerdown", (event) => {
-    if (event.target === backdrop) {
-      backdrop.remove();
-    }
-  });
-  document.body.append(backdrop);
-  return { backdrop, body, actions };
 }
 
 function openInputSettings(node) {
