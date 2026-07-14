@@ -131,7 +131,7 @@ class AIOFrontendSourceTests(unittest.TestCase):
         preview_box_style = source[preview_box_start:preview_box_end]
         panel_registration_start = source.index("function ensureGeneratorPanel")
         panel_registration_end = source.index(
-            "\nfunction openInputSettings", panel_registration_start
+            "\nfunction openSamplerSettings", panel_registration_start
         )
         panel_registration = source[panel_registration_start:panel_registration_end]
 

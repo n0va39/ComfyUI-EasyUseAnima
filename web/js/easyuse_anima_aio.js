@@ -13,6 +13,7 @@ import {
   aioValueFromNodeInputControl as valueFromNodeInputControl,
 } from "./aio/dom_controls.js";
 import { aioCreateDialogPrimitives } from "./aio/dialog_primitives.js";
+import { aioCreateInputSettingsDialog } from "./aio/input_settings_dialog.js";
 import {
   AIO_BACKEND_DEPENDENCIES,
   AIO_OPTIONAL_DEPENDENCY_SPECS,
@@ -5566,49 +5567,6 @@ function ensureGeneratorPanel(node) {
   markGeneratorNativeLivePreviewHidden(node);
 }
 
-function openInputSettings(node) {
-  const widget = findWidget(node, INPUT_SETTINGS_WIDGET);
-  const settings = parseSettings(widget, DEFAULT_INPUT_SETTINGS);
-  const { backdrop, body, actions } = createDialog(
-    "Easy Use Anima Input Settings",
-    "Advanced resource options are saved internally with the workflow."
-  );
-  const section = document.createElement("section");
-  section.className = "easyuse-anima-aio-section full";
-  section.append(Object.assign(document.createElement("h3"), { textContent: aioStaticText("Loader Options") }));
-  const weightDtype = field(
-    section,
-    "UNET weight dtype",
-    selectInput(["default", "fp8_e4m3fn", "fp8_e4m3fn_fast", "fp8_e5m2"], settings.resources.unet_weight_dtype)
-  );
-  const clipDevice = field(
-    section,
-    "CLIP device",
-    selectInput(["default", "cpu"], settings.resources.clip_device)
-  );
-  const loaderMode = document.createElement("p");
-  loaderMode.textContent = aioText("text.inputLoaderMode");
-  section.append(loaderMode);
-  body.append(section);
-
-  const cancel = document.createElement("button");
-  cancel.textContent = aioText("button.cancel");
-  const apply = document.createElement("button");
-  apply.className = "primary";
-  apply.textContent = aioText("button.apply");
-  actions.append(cancel, apply);
-  cancel.addEventListener("click", () => backdrop.remove());
-  apply.addEventListener("click", () => {
-    const next = mergeDefaults(DEFAULT_INPUT_SETTINGS, settings);
-    next.resources.loader_mode = "split";
-    next.resources.clip_loader = "single";
-    next.resources.unet_weight_dtype = weightDtype.value || "default";
-    next.resources.clip_device = clipDevice.value || "default";
-    writeSettings(node, widget, next);
-    backdrop.remove();
-  });
-}
-
 function openSamplerSettings(node) {
   const widget = findWidget(node, GENERATOR_SETTINGS_WIDGET);
   const settings = mergeVisibleGeneratorSettings(node, parseSettings(widget, DEFAULT_GENERATION_SETTINGS));
@@ -7566,6 +7524,21 @@ function ensureButton(node, key, label, callback) {
     widget.serialize = false;
   }
 }
+
+const openInputSettings = aioCreateInputSettingsDialog({
+  document,
+  createDialog,
+  field,
+  selectInput,
+  staticText: aioStaticText,
+  text: aioText,
+  defaultInputSettings: DEFAULT_INPUT_SETTINGS,
+  inputSettingsWidget: INPUT_SETTINGS_WIDGET,
+  findWidget,
+  parseSettings,
+  mergeDefaults,
+  writeSettings,
+});
 
 function hookInputNode(node) {
   node.serialize_widgets = true;
