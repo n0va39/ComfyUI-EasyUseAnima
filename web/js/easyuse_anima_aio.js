@@ -3,6 +3,16 @@ import { api } from "../../../scripts/api.js";
 import { easyuseAnimaFetchComfyJson, easyuseAnimaFetchText } from "./easyuse_anima_api.js";
 import { easyuseAnimaText, easyuseAnimaWatchLocale } from "./easyuse_anima_i18n.js";
 import {
+  aioCreateCheckboxInput as checkbox,
+  aioCreateNumberInput as numberInput,
+  aioCreateSelectInput as selectInput,
+  aioCreateTextareaInput as textareaInput,
+  aioCreateTextInput as textInput,
+  aioNodeInputControlForSpec as nodeInputControlForSpec,
+  aioNodeInputDefault as nodeInputDefault,
+  aioValueFromNodeInputControl as valueFromNodeInputControl,
+} from "./aio/dom_controls.js";
+import {
   AIO_BACKEND_DEPENDENCIES,
   AIO_OPTIONAL_DEPENDENCY_SPECS,
   aioNodeInputMap,
@@ -2075,53 +2085,6 @@ function applyNodeInputInfo(control, dependencyKey, inputName, fallbackTooltipKe
   return control;
 }
 
-function nodeInputDefault(spec, fallback = "") {
-  const options = Array.isArray(spec) && spec[1] && typeof spec[1] === "object" ? spec[1] : null;
-  if (options && Object.prototype.hasOwnProperty.call(options, "default")) {
-    return options.default;
-  }
-  return fallback;
-}
-
-function nodeInputControlForSpec(spec, value) {
-  if (!Array.isArray(spec)) {
-    return null;
-  }
-  const type = spec[0];
-  if (Array.isArray(type)) {
-    return selectInput(type, value ?? nodeInputDefault(spec, type[0] ?? ""));
-  }
-  const normalizedType = String(type || "").toUpperCase();
-  if (normalizedType === "BOOLEAN") {
-    return checkbox(value ?? nodeInputDefault(spec, false));
-  }
-  if (normalizedType === "INT") {
-    const input = numberInput(value ?? nodeInputDefault(spec, 0), "1");
-    input.step = "1";
-    return input;
-  }
-  if (normalizedType === "FLOAT") {
-    return numberInput(value ?? nodeInputDefault(spec, 0), "0.01");
-  }
-  if (normalizedType === "STRING") {
-    return textInput(value ?? nodeInputDefault(spec, ""));
-  }
-  return null;
-}
-
-function valueFromNodeInputControl(control) {
-  if (!control) {
-    return null;
-  }
-  if (control.type === "checkbox") {
-    return !!control.checked;
-  }
-  if (control.type === "number") {
-    return Number(control.value || 0);
-  }
-  return control.value;
-}
-
 function createDynamicNodeInputEditor(title, dependencyKey, knownInputs, values = {}) {
   const section = document.createElement("div");
   section.className = "easyuse-anima-aio-subsection";
@@ -3535,57 +3498,6 @@ function ensureStyle() {
     }
   `;
   document.head.append(style);
-}
-
-function numberInput(value, step = "1") {
-  const input = document.createElement("input");
-  input.type = "number";
-  input.step = step;
-  input.value = value;
-  return input;
-}
-
-function textInput(value) {
-  const input = document.createElement("input");
-  input.type = "text";
-  input.value = value ?? "";
-  return input;
-}
-
-function textareaInput(value) {
-  const textarea = document.createElement("textarea");
-  textarea.value = value ?? "";
-  return textarea;
-}
-
-function checkbox(value) {
-  const input = document.createElement("input");
-  input.type = "checkbox";
-  input.checked = !!value;
-  return input;
-}
-
-function selectInput(options, value) {
-  const select = document.createElement("select");
-  for (const optionSpec of options) {
-    const optionValue = typeof optionSpec === "object" && optionSpec
-      ? String(optionSpec.value ?? "")
-      : String(optionSpec ?? "");
-    const option = document.createElement("option");
-    option.value = optionValue;
-    option.textContent = typeof optionSpec === "object" && optionSpec
-      ? String(optionSpec.label ?? optionValue)
-      : optionValue;
-    option.disabled = !!(typeof optionSpec === "object" && optionSpec?.disabled);
-    if (typeof optionSpec === "object" && optionSpec?.title) {
-      option.title = String(optionSpec.title);
-    }
-    if (optionValue === value) {
-      option.selected = true;
-    }
-    select.append(option);
-  }
-  return select;
 }
 
 function widgetValue(node, name, fallback) {
