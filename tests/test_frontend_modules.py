@@ -51,6 +51,10 @@ AIO_STAGE_SETTINGS_DIALOGS_JS = AIO_MODULES / "stage_settings_dialogs.js"
 AIO_STAGE_SETTINGS_DIALOGS_SMOKE = (
     ROOT / "tests" / "frontend_aio_stage_settings_dialogs_smoke.mjs"
 )
+AIO_DETAILER_SETTINGS_DIALOG_JS = AIO_MODULES / "detailer_settings_dialog.js"
+AIO_DETAILER_SETTINGS_DIALOG_SMOKE = (
+    ROOT / "tests" / "frontend_aio_detailer_settings_dialog_smoke.mjs"
+)
 AIO_PREVIEW_JS = AIO_MODULES / "preview.js"
 AIO_PREVIEW_CORE_SMOKE = ROOT / "tests" / "frontend_aio_preview_core_smoke.mjs"
 AIO_PRESETS_JS = AIO_MODULES / "presets.js"
@@ -544,11 +548,7 @@ class FrontendModuleStructureTests(unittest.TestCase):
             with self.subTest(moved_function=moved_function):
                 self.assertRegex(source, rf"\bfunction\s+{moved_function}\(")
                 self.assertNotRegex(entry_source, rf"\bfunction\s+{moved_function}\(")
-        for entry_owned_function in (
-            "createDetailerTargetEditor",
-            "openDetailerSettings",
-            "openSamplerSettings",
-        ):
+        for entry_owned_function in ("openSamplerSettings",):
             with self.subTest(entry_owned_function=entry_owned_function):
                 self.assertRegex(entry_source, rf"\bfunction\s+{entry_owned_function}\(")
                 self.assertNotRegex(source, rf"\bfunction\s+{entry_owned_function}\(")
@@ -579,7 +579,7 @@ class FrontendModuleStructureTests(unittest.TestCase):
         )
         composition_start = composition_match.start()
         composition_end = entry_source.index(
-            "\n\nconst generatorPanelRuntime", composition_start
+            "\n\nconst openDetailerSettings", composition_start
         )
         composition = entry_source[composition_start:composition_end]
         for expected in (
@@ -596,20 +596,73 @@ class FrontendModuleStructureTests(unittest.TestCase):
         ):
             with self.subTest(composition_dependency=expected):
                 self.assertIn(expected, composition)
-        self.assertNotIn("openDetailerSettings,", composition)
-        detailer_start = entry_source.index("function createDetailerTargetEditor")
-        detailer_end = entry_source.index("\nfunction openDetailerSettings", detailer_start)
-        self.assertIn(
-            "createStageOptimizationEditor(`${title} Optimization`, target, defaults)",
-            entry_source[detailer_start:detailer_end],
-        )
         self.assertLess(
             composition_match.start(),
-            entry_source.index("const generatorPanelRuntime"),
+            entry_source.index("const openDetailerSettings"),
         )
         self.assertTrue(AIO_STAGE_SETTINGS_DIALOGS_SMOKE.is_file())
         self.assertIn(
             r'node "tests\frontend_aio_stage_settings_dialogs_smoke.mjs"',
+            frontend_check_source,
+        )
+
+    def test_aio_detailer_settings_dialog_has_closed_lifecycle_boundary(self):
+        source = AIO_DETAILER_SETTINGS_DIALOG_JS.read_text(encoding="utf-8")
+        stage_source = AIO_STAGE_SETTINGS_DIALOGS_JS.read_text(encoding="utf-8")
+        entry_source = AIO_JS.read_text(encoding="utf-8")
+        frontend_check_source = FRONTEND_CHECK_SCRIPT.read_text(encoding="utf-8")
+
+        self.assertTrue(source.startswith("// @ts-check\n"))
+        self.assertEqual(STATIC_IMPORT_RE.findall(source), [])
+        self.assertNotRegex(source, r"(?m)^\s*import\s")
+        self.assertNotIn("fetch(", source)
+        self.assertNotIn("app.registerExtension", source)
+        self.assertEqual(
+            re.findall(r"^export function ([A-Za-z0-9_]+)\(", source, re.MULTILINE),
+            ["aioCreateDetailerSettingsDialog"],
+        )
+        self.assertIn(
+            'import { aioCreateDetailerSettingsDialog } from "./aio/detailer_settings_dialog.js";',
+            entry_source,
+        )
+        for moved_function in ("createDetailerTargetEditor", "openDetailerSettings"):
+            with self.subTest(moved_function=moved_function):
+                self.assertRegex(source, rf"\bfunction\s+{moved_function}\(")
+                self.assertNotRegex(entry_source, rf"\bfunction\s+{moved_function}\(")
+                self.assertNotRegex(stage_source, rf"\bfunction\s+{moved_function}\(")
+
+        composition_start = entry_source.index(
+            "const openDetailerSettings = aioCreateDetailerSettingsDialog({"
+        )
+        composition_end = entry_source.index("\n\nconst generatorPanelRuntime", composition_start)
+        composition = entry_source[composition_start:composition_end]
+        for expected in (
+            "createDialog,",
+            "defaultGenerationSettings: DEFAULT_GENERATION_SETTINGS,",
+            "normalizeDetailerOrder,",
+            "stageOptimizationEditor: createStageOptimizationEditor,",
+            "getSettings: generatorSettings,",
+            "renderPanel: renderGeneratorPanel,",
+            "load: loadGeneratorOptionalDependencies,",
+        ):
+            with self.subTest(composition_dependency=expected):
+                self.assertIn(expected, composition)
+        stage_composition = entry_source.index("aioCreateStageSettingsDialogs({")
+        generator_panel_composition = entry_source.index("const generatorPanelRuntime")
+        self.assertLess(stage_composition, composition_start)
+        self.assertLess(composition_start, generator_panel_composition)
+
+        editor_start = source.index("function createDetailerTargetEditor")
+        editor_end = source.index("\n  function openDetailerSettings", editor_start)
+        editor_body = source[editor_start:editor_end]
+        self.assertIn(
+            "createStageOptimizationEditor(`${title} Optimization`, target, defaults)",
+            editor_body,
+        )
+        self.assertIn("return openDetailerSettings;", source)
+        self.assertTrue(AIO_DETAILER_SETTINGS_DIALOG_SMOKE.is_file())
+        self.assertIn(
+            r'node "tests\frontend_aio_detailer_settings_dialog_smoke.mjs"',
             frontend_check_source,
         )
 
