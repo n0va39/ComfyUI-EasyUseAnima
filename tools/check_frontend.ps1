@@ -74,6 +74,11 @@ try {
         throw "Frontend AiO Input Settings dialog smoke failed with exit code $LASTEXITCODE."
     }
 
+    & node "tests\frontend_aio_postprocess_settings_dialog_smoke.mjs"
+    if ($LASTEXITCODE -ne 0) {
+        throw "Frontend AiO Postprocess Settings dialog smoke failed with exit code $LASTEXITCODE."
+    }
+
     & node "tests\frontend_regional_pure_data_smoke.mjs"
     if ($LASTEXITCODE -ne 0) {
         throw "Frontend Regional pure data smoke failed with exit code $LASTEXITCODE."

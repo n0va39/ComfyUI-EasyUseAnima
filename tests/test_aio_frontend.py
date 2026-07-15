@@ -6,6 +6,9 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 AIO_JS = ROOT / "web" / "js" / "easyuse_anima_aio.js"
+AIO_POSTPROCESS_SETTINGS_DIALOG_JS = (
+    ROOT / "web" / "js" / "aio" / "postprocess_settings_dialog.js"
+)
 AIO_PREVIEW_JS = ROOT / "web" / "js" / "aio" / "preview.js"
 AIO_SETTINGS_JS = ROOT / "web" / "js" / "aio" / "settings.js"
 AIO_WHEEL_JS = ROOT / "web" / "js" / "aio" / "wheel.js"
@@ -260,7 +263,7 @@ class AIOFrontendSourceTests(unittest.TestCase):
     def test_upscale_settings_offer_single_backend_and_usdu_helpers(self):
         source = AIO_JS.read_text(encoding="utf-8")
         start = source.index("function openUpscaleSettings")
-        end = source.index("\nfunction openPostprocessSettings", start)
+        end = source.index("\nfunction createDetailerTargetEditor", start)
         body = source[start:end]
 
         self.assertIn('selectInput(["usdu", "resshift"]', body)
@@ -285,21 +288,20 @@ class AIOFrontendSourceTests(unittest.TestCase):
         self.assertIn("resshift:", body)
 
     def test_postprocess_settings_own_final_fit_controls(self):
-        source = AIO_JS.read_text(encoding="utf-8")
-        start = source.index("function openPostprocessSettings")
-        end = source.index("\nfunction createDetailerTargetEditor", start)
-        body = source[start:end]
+        body = AIO_POSTPROCESS_SETTINGS_DIALOG_JS.read_text(encoding="utf-8")
 
         self.assertIn('createDialog(', body)
         self.assertIn('"Postprocess Settings"', body)
-        self.assertIn('textContent: aioStaticText("Final Size Fit")', body)
+        self.assertIn('textContent: staticText("Final Size Fit")', body)
         self.assertIn('"Enable postprocess"', body)
         self.assertIn('"max_long_edge"', body)
         self.assertIn('"megapixels"', body)
         self.assertIn("next.postprocess = {", body)
         self.assertIn("fit: {", body)
         self.assertIn("max_long_edge: Math.trunc", body)
-        self.assertIn("max_megapixels: clampGeneratorNumber", body)
+        self.assertIn("max_megapixels: clampNumber", body)
+        self.assertIn("...postprocess", body)
+        self.assertIn("...fit", body)
         self.assertIn("delete next.upscale?.fit", body)
 
     def test_upscale_optional_dependency_sanitizer_disables_missing_backend(self):
