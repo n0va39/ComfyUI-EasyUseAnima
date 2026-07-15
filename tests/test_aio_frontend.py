@@ -15,6 +15,9 @@ AIO_PROFILE_API_CLIENT_JS = (
 AIO_PROFILE_SETTINGS_RUNTIME_JS = (
     ROOT / "web" / "js" / "aio" / "profile_settings_runtime.js"
 )
+AIO_GENERATOR_PANEL_RUNTIME_JS = (
+    ROOT / "web" / "js" / "aio" / "generator_panel_runtime.js"
+)
 AIO_PREVIEW_JS = ROOT / "web" / "js" / "aio" / "preview.js"
 AIO_SETTINGS_JS = ROOT / "web" / "js" / "aio" / "settings.js"
 AIO_WHEEL_JS = ROOT / "web" / "js" / "aio" / "wheel.js"
@@ -37,15 +40,7 @@ class AIOFrontendSourceTests(unittest.TestCase):
         source = AIO_JS.read_text(encoding="utf-8")
         presets_source = AIO_PRESETS_JS.read_text(encoding="utf-8")
         api_client_source = AIO_PROFILE_API_CLIENT_JS.read_text(encoding="utf-8")
-        render_start = source.index("function renderGeneratorPanel")
-        render_end = source.index("\nfunction ensureGeneratorPanel", render_start)
-        render_body = source[render_start:render_end]
-        header_start = render_body.index("const samplerHeader = makeCardHeader")
-        header_end = render_body.index("const settingsScroll", header_start)
-        header_body = render_body[header_start:header_end]
-        summary_start = source.index("function updateGeneratorDomSummary")
-        summary_end = source.index("\nfunction renderGeneratorPreviewFeed", summary_start)
-        summary_body = source[summary_start:summary_end]
+        panel_source = AIO_GENERATOR_PANEL_RUNTIME_JS.read_text(encoding="utf-8")
         serialize_start = source.index("function syncGeneratorSerializedWidgets")
         serialize_end = source.index("\nfunction markNodeDirty", serialize_start)
         serialize_body = source[serialize_start:serialize_end]
@@ -71,16 +66,21 @@ class AIOFrontendSourceTests(unittest.TestCase):
         self.assertIn('target.dit_corrections.dcw_mode = enabled ? "auto" : "off"', presets_source)
         self.assertIn('kj.sage_attention = enabled ? "auto" : "disabled"', presets_source)
         self.assertIn("compile.enabled = enabled", presets_source)
-        self.assertIn("syncGeneratorProfileValue(node, settings)", render_body)
-        self.assertIn('profileButton.setAttribute("data-aio-profile-button", "")', render_body)
-        self.assertIn('panel.querySelector("[data-aio-profile-button]")', summary_body)
-        self.assertIn("generatorProfileDisplayLabel(profileValue)", summary_body)
-        self.assertIn("profileButton,", header_body)
-        self.assertLess(header_body.index("profileButton,"), header_body.index('makeIconButton("⚙"'))
+        self.assertIn("syncGeneratorProfileValue(node, settings)", panel_source)
+        self.assertIn(
+            'profileButton.setAttribute("data-aio-profile-button", "")',
+            panel_source,
+        )
+        self.assertIn(
+            'panel.querySelector("[data-aio-profile-button]")',
+            panel_source,
+        )
+        self.assertIn("generatorProfileDisplayLabel(profileValue)", panel_source)
         self.assertNotIn("function openGeneratorProfileSettings", source)
         self.assertIn("open: openGeneratorProfileSettings,", source)
-        self.assertIn('panel.append(main)', render_body)
-        self.assertNotIn("profileBar", render_body)
+        self.assertIn("openProfileSettings: openGeneratorProfileSettings,", source)
+        self.assertIn("panel.append(main)", panel_source)
+        self.assertNotIn("profileBar", panel_source)
         for path in (
             "/easyuse_anima/aio_profiles",
             "/easyuse_anima/aio_profiles/save",
@@ -101,10 +101,7 @@ class AIOFrontendSourceTests(unittest.TestCase):
 
     def test_generator_panel_height_is_owned_by_comfyui(self):
         source = AIO_JS.read_text(encoding="utf-8")
-
-        layout_start = source.index("function applyGeneratorLayout")
-        layout_end = source.index("\nfunction scheduleGeneratorLayout", layout_start)
-        layout_body = source[layout_start:layout_end]
+        panel_source = AIO_GENERATOR_PANEL_RUNTIME_JS.read_text(encoding="utf-8")
         panel_start = source.index("    .easyuse-anima-aio-node-panel {")
         panel_end = source.index("\n    .easyuse-anima-aio-node-panel *", panel_start)
         panel_style = source[panel_start:panel_end]
@@ -123,24 +120,19 @@ class AIOFrontendSourceTests(unittest.TestCase):
         preview_box_start = source.index("    .easyuse-anima-aio-node-preview-box {")
         preview_box_end = source.index("\n    .easyuse-anima-aio-node-preview-box img {", preview_box_start)
         preview_box_style = source[preview_box_start:preview_box_end]
-        panel_registration_start = source.index("function ensureGeneratorPanel")
-        panel_registration_end = source.index(
-            "\nfunction openSamplerSettings", panel_registration_start
-        )
-        panel_registration = source[panel_registration_start:panel_registration_end]
-
-        self.assertIn("getMinHeight: () => GENERATOR_PANEL_MIN_HEIGHT", panel_registration)
-        self.assertNotIn("getHeight:", panel_registration)
-        self.assertNotIn("computeLayoutSize", panel_registration)
-        self.assertNotIn("computedHeight =", source)
-        self.assertNotIn("generatorNodeChromeOffset", source)
-        self.assertNotIn("generatorAvailablePanelHeight", source)
-        self.assertNotIn("generatorPanelHeight", source)
-        self.assertNotIn("node.setSize?.(", layout_body)
-        self.assertNotIn("node.setSize(", layout_body)
-        self.assertNotIn("panel.style.height =", layout_body)
-        self.assertIn('panel.style.removeProperty("height")', layout_body)
-        self.assertIn('panel.style.removeProperty("max-height")', layout_body)
+        self.assertIn("getMinHeight: () => GENERATOR_PANEL_MIN_HEIGHT", panel_source)
+        self.assertNotIn("getHeight:", panel_source)
+        self.assertNotIn("computeLayoutSize", panel_source)
+        combined_source = source + panel_source
+        self.assertNotIn("computedHeight =", combined_source)
+        self.assertNotIn("generatorNodeChromeOffset", combined_source)
+        self.assertNotIn("generatorAvailablePanelHeight", combined_source)
+        self.assertNotIn("generatorPanelHeight", combined_source)
+        self.assertNotIn("node.setSize?.(", panel_source)
+        self.assertNotIn("node.setSize(", panel_source)
+        self.assertNotIn("panel.style.height =", panel_source)
+        self.assertIn('panel.style.removeProperty("height")', panel_source)
+        self.assertIn('panel.style.removeProperty("max-height")', panel_source)
 
         self.assertIn("flex: 1 1 0%;", panel_style)
         self.assertIn("contain: size;", panel_style)
@@ -161,24 +153,25 @@ class AIOFrontendSourceTests(unittest.TestCase):
 
     def test_generator_wheel_router_decides_scroll_ownership_before_canvas(self):
         source = AIO_JS.read_text(encoding="utf-8")
+        panel_source = AIO_GENERATOR_PANEL_RUNTIME_JS.read_text(encoding="utf-8")
         wheel_source = AIO_WHEEL_JS.read_text(encoding="utf-8")
-        stop_start = source.index("function stopGeneratorControlPropagation")
-        stop_end = source.index("\nfunction dispatchGeneratorCanvasWheelEvent", stop_start)
-        stop_body = source[stop_start:stop_end]
         forward_start = source.index("function forwardGeneratorPanelWheel")
         forward_end = source.index("\nfunction installGeneratorWheelForwarder", forward_start)
         forward_body = source[forward_start:forward_end]
         install_start = forward_end + 1
-        install_end = source.index("\nfunction samplerModeLabel", install_start)
+        install_end = source.index("\nfunction generatorSettings", install_start)
         install_body = source[install_start:install_end]
         setup_start = source.index("  async setup() {")
         setup_end = source.index("\n  async beforeRegisterNodeDef", setup_start)
         setup_body = source[setup_start:setup_end]
 
         self.assertIn('from "./aio/wheel.js"', source)
-        self.assertIn('root.addEventListener("wheel", forwardGeneratorPanelWheel', stop_body)
-        self.assertIn("capture: true", stop_body)
-        self.assertIn("passive: false", stop_body)
+        self.assertIn(
+            'root.addEventListener("wheel", forwardGeneratorPanelWheel',
+            panel_source,
+        )
+        self.assertIn("capture: true", panel_source)
+        self.assertIn("passive: false", panel_source)
         self.assertIn("consumeAioPanelWheel(event, panel)", forward_body)
         self.assertLess(
             forward_body.index("consumeAioPanelWheel(event, panel)"),
@@ -215,13 +208,10 @@ class AIOFrontendSourceTests(unittest.TestCase):
         self.assertNotIn("onExecuted?.apply", body)
 
     def test_generator_preview_meta_keeps_dedicated_resolution_label(self):
-        source = AIO_JS.read_text(encoding="utf-8")
-        start = source.index("function updateGeneratorDomPreview")
-        end = source.index("\nfunction cssEscape", start)
-        body = source[start:end]
-        meta_start = body.index("const parts = [")
-        meta_end = body.index("].filter", meta_start)
-        meta_parts = body[meta_start:meta_end]
+        source = AIO_GENERATOR_PANEL_RUNTIME_JS.read_text(encoding="utf-8")
+        meta_start = source.index("const parts = [")
+        meta_end = source.index("].filter", meta_start)
+        meta_parts = source[meta_start:meta_end]
 
         self.assertIn("aioPreviewImageName(currentImage)", meta_parts)
         self.assertIn("aioPreviewResolution(currentImage)", meta_parts)
@@ -346,10 +336,7 @@ class AIOFrontendSourceTests(unittest.TestCase):
         self.assertIn("loadGeneratorOptionalDependencies({ retryErrors: true })", queue_body)
 
     def test_generator_panel_renders_upscale_after_detailer(self):
-        source = AIO_JS.read_text(encoding="utf-8")
-        start = source.index("function renderGeneratorPanel")
-        end = source.index("\nfunction ensureGeneratorPanel", start)
-        body = source[start:end]
+        body = AIO_GENERATOR_PANEL_RUNTIME_JS.read_text(encoding="utf-8")
 
         self.assertLess(body.index("const detailerBlock"), body.index("const upscaleBlock"))
         self.assertLess(body.index("const upscaleBlock"), body.index("const postprocessBlock"))

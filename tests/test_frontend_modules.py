@@ -43,6 +43,10 @@ AIO_PROFILE_SETTINGS_RUNTIME_JS = AIO_MODULES / "profile_settings_runtime.js"
 AIO_PROFILE_SETTINGS_RUNTIME_SMOKE = (
     ROOT / "tests" / "frontend_aio_profile_settings_runtime_smoke.mjs"
 )
+AIO_GENERATOR_PANEL_RUNTIME_JS = AIO_MODULES / "generator_panel_runtime.js"
+AIO_GENERATOR_PANEL_RUNTIME_SMOKE = (
+    ROOT / "tests" / "frontend_aio_generator_panel_runtime_smoke.mjs"
+)
 AIO_PREVIEW_JS = AIO_MODULES / "preview.js"
 AIO_PREVIEW_CORE_SMOKE = ROOT / "tests" / "frontend_aio_preview_core_smoke.mjs"
 AIO_PRESETS_JS = AIO_MODULES / "presets.js"
@@ -304,6 +308,210 @@ class FrontendModuleStructureTests(unittest.TestCase):
         self.assertTrue(AIO_PROFILE_SETTINGS_RUNTIME_SMOKE.is_file())
         self.assertIn(
             r'node "tests\frontend_aio_profile_settings_runtime_smoke.mjs"',
+            frontend_check_source,
+        )
+
+    def test_aio_generator_panel_runtime_has_closed_view_boundary(self):
+        source = AIO_GENERATOR_PANEL_RUNTIME_JS.read_text(encoding="utf-8")
+        entry_source = AIO_JS.read_text(encoding="utf-8")
+        frontend_check_source = FRONTEND_CHECK_SCRIPT.read_text(encoding="utf-8")
+
+        self.assertEqual(source.splitlines()[0], "// @ts-check")
+        self.assertEqual(
+            re.findall(r"export function ([A-Za-z0-9_]+)\(", source),
+            ["aioCreateGeneratorPanelRuntime"],
+        )
+        self.assertNotRegex(source, re.compile(r"^\s*import\s", re.MULTILINE))
+        self.assertNotRegex(source, r"\b(?:app|api)\b")
+        self.assertNotIn("fetch(", source)
+        self.assertNotIn("app.registerExtension", source)
+        self.assertNotRegex(
+            source,
+            re.compile(r"^(?:window|globalThis)\.[A-Za-z_$]", re.MULTILINE),
+        )
+
+        self.assertIn(
+            'import { aioCreateGeneratorPanelRuntime } from '
+            '"./aio/generator_panel_runtime.js";',
+            entry_source,
+        )
+        factory_match = re.search(
+            r"const\s+generatorPanelRuntime\s*=\s*"
+            r"aioCreateGeneratorPanelRuntime\(\{(?P<dependencies>.*?)\n\}\);",
+            entry_source,
+            re.DOTALL,
+        )
+        self.assertIsNotNone(factory_match)
+        runtime_dependencies = factory_match.group("dependencies")
+        for dependency in (
+            "document,",
+            "window,",
+            "requestAnimationFrame: (callback) => requestAnimationFrame(callback),",
+            "panelMinHeight: GENERATOR_PANEL_MIN_HEIGHT,",
+        ):
+            with self.subTest(top_level_dependency=dependency):
+                self.assertRegex(
+                    runtime_dependencies,
+                    rf"(?m)^  {re.escape(dependency)}$",
+                )
+
+        nested_dependencies = {
+            "controls": [
+                "numberInput,",
+                "checkbox,",
+                "selectInput,",
+                "createNodeField,",
+            ],
+            "text": [
+                "get: aioText,",
+                "format: aioFormat,",
+                "applyTooltip,",
+            ],
+            "settingsCore": [
+                "defaultGenerationSettings: DEFAULT_GENERATION_SETTINGS,",
+                "specialSeedRandom: GENERATOR_SPECIAL_SEED_RANDOM,",
+                "fallbackSamplerNames: GENERATOR_FALLBACK_SAMPLER_NAMES,",
+                "fallbackSchedulerNames: GENERATOR_FALLBACK_SCHEDULER_NAMES,",
+                "mergeDefaults,",
+                "normalizeSeedControl,",
+                "normalizeSeedValue,",
+                "clampNumber: clampGeneratorNumber,",
+                "normalizeUsduAutoTileRange: normalizeGeneratorUsduAutoTileRange,",
+                "setUsduAutoTileTarget: setGeneratorUsduAutoTileTarget,",
+                "normalizeDetailerOrder,",
+                "detailerTargetDefaults,",
+                "detailerTargetTitle,",
+            ],
+            "nodeAdapter": [
+                "getSettings: generatorSettings,",
+                "applyVisibleSettings: applyVisibleGeneratorSettings,",
+                "writeSettings: writeGeneratorSettingsFromState,",
+                "syncSettingsFromVisible: syncGeneratorSettingsFromVisible,",
+                "widgetValue,",
+                "widgetOptions,",
+                "setWidgetValueIfChanged,",
+                "markDirty: markNodeDirty,",
+                "ensureStyle,",
+                "suppressDefaultPreview: suppressGeneratorDefaultPreview,",
+                "markNativePreviewHidden: markGeneratorNativeLivePreviewHidden,",
+                "imageUrl: generatorImageUrl,",
+                "randomSeed,",
+                "forwardPanelWheel: forwardGeneratorPanelWheel,",
+            ],
+            "profileAdapter": [
+                "syncValue: syncGeneratorProfileValue,",
+                "displayLabel: generatorProfileDisplayLabel,",
+            ],
+            "previewAdapter": [
+                "mainImage: aioMainPreviewImage,",
+                "selectedIndex: aioSelectedPreviewIndex,",
+                "imageLabel: aioPreviewImageLabel,",
+                "imageName: aioPreviewImageName,",
+                "imageResolution: aioPreviewResolution,",
+                "imageFileSize: aioPreviewFileSize,",
+            ],
+            "actions": [
+                "openProfileSettings: openGeneratorProfileSettings,",
+                "openSaveSettings,",
+                "openSamplerSettings,",
+                "openAdvancedSettings,",
+                "openHighresSettings,",
+                "openDetailerSettings,",
+                "openUpscaleSettings,",
+                "openPostprocessSettings,",
+                "openPreviewSettings,",
+            ],
+        }
+        for group_name, expected_lines in nested_dependencies.items():
+            with self.subTest(dependency_group=group_name):
+                group_match = re.search(
+                    rf"(?ms)^  {group_name}: \{{\n(?P<body>.*?)^  \}},$",
+                    runtime_dependencies,
+                )
+                self.assertIsNotNone(group_match)
+                self.assertEqual(
+                    [line.strip() for line in group_match.group("body").splitlines()],
+                    expected_lines,
+                )
+
+        wrappers = {
+            "renderGeneratorPanel": "renderPanel",
+            "ensureGeneratorPanel": "ensurePanel",
+            "updateGeneratorDomSummary": "updateSummary",
+            "scheduleGeneratorLayout": "scheduleLayout",
+            "refreshGeneratorSeedButtons": "refreshSeedButtons",
+        }
+        for wrapper, method in wrappers.items():
+            with self.subTest(public_wrapper=wrapper):
+                self.assertRegex(
+                    entry_source,
+                    rf"function {wrapper}\(node\) \{{\n"
+                    rf"  return generatorPanelRuntime\.{method}\(node\);\n\}}",
+                )
+
+        for moved_function in (
+            "generatorDenoisePreviewLabel",
+            "stopGeneratorControlPropagation",
+            "samplerModeLabel",
+            "generatorPanelWidth",
+            "applyGeneratorLayout",
+            "updateGeneratorSettings",
+            "renderGeneratorPreviewFeed",
+            "updateGeneratorDomPreview",
+            "createDomNumberControl",
+            "createDomSliderNumberControl",
+            "createDomSettingsSliderNumberControl",
+            "createDomSettingsCheckboxControl",
+            "createDomSettingsNumberControl",
+            "createDomSettingsSelectControl",
+            "createDomSelectControl",
+            "setGeneratorSeedFromUi",
+        ):
+            with self.subTest(moved_function=moved_function):
+                self.assertNotRegex(
+                    entry_source,
+                    rf"\bfunction\s+{moved_function}\(",
+                )
+                self.assertRegex(source, rf"\bfunction\s+{moved_function}\(")
+
+        for removed_function in (
+            "createDomTextControl",
+            "createDomCheckboxControl",
+            "createSeedControlSelect",
+        ):
+            with self.subTest(removed_dead_function=removed_function):
+                self.assertNotIn(removed_function, entry_source)
+                self.assertNotIn(removed_function, source)
+
+        for entry_owned_function in (
+            "syncGeneratorSerializedWidgets",
+            "installGeneratorWheelForwarder",
+            "installGeneratorQueuePromptHook",
+            "suppressGeneratorDefaultPreview",
+            "openSamplerSettings",
+            "hookGeneratorNode",
+        ):
+            with self.subTest(entry_owned_function=entry_owned_function):
+                self.assertRegex(
+                    entry_source,
+                    rf"\bfunction\s+{entry_owned_function}\(",
+                )
+                self.assertNotRegex(
+                    source,
+                    rf"\bfunction\s+{entry_owned_function}\(",
+                )
+
+        self.assertLess(
+            entry_source.index("const openPreviewSettings"),
+            entry_source.index("const generatorPanelRuntime"),
+        )
+        self.assertLess(
+            entry_source.index("const generatorPanelRuntime"),
+            entry_source.index("function hookInputNode"),
+        )
+        self.assertTrue(AIO_GENERATOR_PANEL_RUNTIME_SMOKE.is_file())
+        self.assertIn(
+            r'node "tests\frontend_aio_generator_panel_runtime_smoke.mjs"',
             frontend_check_source,
         )
 
@@ -801,6 +1009,7 @@ class FrontendModuleStructureTests(unittest.TestCase):
     def test_aio_postprocess_settings_dialog_has_closed_controller_boundary(self):
         source = AIO_POSTPROCESS_SETTINGS_DIALOG_JS.read_text(encoding="utf-8")
         entry_source = AIO_JS.read_text(encoding="utf-8")
+        panel_source = AIO_GENERATOR_PANEL_RUNTIME_JS.read_text(encoding="utf-8")
         frontend_check_source = FRONTEND_CHECK_SCRIPT.read_text(encoding="utf-8")
 
         self.assertEqual(source.splitlines()[0], "// @ts-check")
@@ -865,11 +1074,8 @@ class FrontendModuleStructureTests(unittest.TestCase):
         )
         self.assertIn("const openInputSettings = aioCreateInputSettingsDialog", entry_source)
 
-        render_start = entry_source.index("function renderGeneratorPanel")
-        render_end = entry_source.index("\nfunction ensureGeneratorPanel", render_start)
-        render_body = entry_source[render_start:render_end]
-        self.assertIn("openPostprocessSettings(node)", render_body)
-        self.assertEqual(entry_source.count("openPostprocessSettings(node)"), 1)
+        self.assertIn("openPostprocessSettings(node)", panel_source)
+        self.assertEqual(panel_source.count("openPostprocessSettings(node)"), 1)
 
         self.assertIn("...postprocess", source)
         self.assertIn("...fit", source)
@@ -882,6 +1088,7 @@ class FrontendModuleStructureTests(unittest.TestCase):
     def test_aio_preview_settings_dialog_has_closed_controller_boundary(self):
         source = AIO_PREVIEW_SETTINGS_DIALOG_JS.read_text(encoding="utf-8")
         entry_source = AIO_JS.read_text(encoding="utf-8")
+        panel_source = AIO_GENERATOR_PANEL_RUNTIME_JS.read_text(encoding="utf-8")
         frontend_check_source = FRONTEND_CHECK_SCRIPT.read_text(encoding="utf-8")
 
         self.assertEqual(source.splitlines()[0], "// @ts-check")
@@ -941,11 +1148,8 @@ class FrontendModuleStructureTests(unittest.TestCase):
         )
 
         self.assertNotRegex(entry_source, r"\bfunction\s+openPreviewSettings\(")
-        render_start = entry_source.index("function renderGeneratorPanel")
-        render_end = entry_source.index("\nfunction ensureGeneratorPanel", render_start)
-        render_body = entry_source[render_start:render_end]
-        self.assertIn("openPreviewSettings(node)", render_body)
-        self.assertEqual(entry_source.count("openPreviewSettings(node)"), 1)
+        self.assertIn("openPreviewSettings(node)", panel_source)
+        self.assertEqual(panel_source.count("openPreviewSettings(node)"), 1)
 
         self.assertTrue(AIO_PREVIEW_SETTINGS_DIALOG_SMOKE.is_file())
         self.assertIn(
