@@ -15,6 +15,7 @@ import {
 import { createPromptStudioColorEditorButtonFactory } from "./settings/color_editor.js";
 import { createLongTextEditorButtonFactory } from "./settings/long_text_editor.js";
 import { createResolutionEditors } from "./settings/resolution_editors.js";
+import { createSettingsRuntime } from "./settings/runtime.js";
 import { createWildcardExtraPathsEditorFactory } from "./settings/wildcard_path_editor.js";
 
 
@@ -521,50 +522,28 @@ function tip(item) {
   return easyuseAnimaLocaleText(item?.tip);
 }
 
-
-function updateInternalSetting(id, value, type = "text") {
-  const internalKey = INTERNAL_KEYS[id];
-  if (!internalKey) {
-    return;
-  }
-  window.__easyuseAnimaSettings ||= {};
-  window.__easyuseAnimaSettings[internalKey] = normalizeValue(type, value);
-  window.dispatchEvent(
-    new CustomEvent("easyuse-anima-settings-updated", {
-      detail: { ...window.__easyuseAnimaSettings },
-    }),
-  );
-}
-
-function readInternalSetting(key, fallback) {
-  if (
-    window.__easyuseAnimaSettings
-    && Object.prototype.hasOwnProperty.call(window.__easyuseAnimaSettings, key)
-  ) {
-    return window.__easyuseAnimaSettings[key];
-  }
-  return fallback;
-}
-
-async function loadLongTextSettings() {
-  const data = await easyuseAnimaFetchJson("/easyuse_anima/long_text_settings", { fallbackJson: {} });
-  const values = data.values || {};
-  window.__easyuseAnimaSettings ||= {};
-  Object.assign(window.__easyuseAnimaSettings, data.settings || {}, values);
-  return { ...window.__easyuseAnimaSettings };
-}
-
-async function saveLongTextSettings(values) {
-  const data = await easyuseAnimaPostJson("/easyuse_anima/long_text_settings/save", { values }, { fallbackJson: {} });
-  window.__easyuseAnimaSettings ||= {};
-  Object.assign(window.__easyuseAnimaSettings, data.settings || {}, data.values || {});
-  window.dispatchEvent(
-    new CustomEvent("easyuse-anima-settings-updated", {
-      detail: { ...window.__easyuseAnimaSettings },
-    }),
-  );
-  return data;
-}
+const {
+  updateInternalSetting,
+  readInternalSetting,
+  loadLongTextSettings,
+  saveLongTextSettings,
+  loadInitialSettings,
+} = createSettingsRuntime({
+  getSettingsState: () => window.__easyuseAnimaSettings,
+  setSettingsState: (value) => {
+    window.__easyuseAnimaSettings = value;
+  },
+  notifySettingsUpdated: (detail) => {
+    window.dispatchEvent(
+      new CustomEvent("easyuse-anima-settings-updated", { detail }),
+    );
+  },
+  internalKeys: INTERNAL_KEYS,
+  normalizeValue,
+  fetchInitialSettings: easyuseAnimaGetSettings,
+  fetchJson: easyuseAnimaFetchJson,
+  postJson: easyuseAnimaPostJson,
+});
 
 const createLongTextEditorButton = createLongTextEditorButtonFactory({
   document,
@@ -979,14 +958,6 @@ const EASYUSE_ANIMA_SETTINGS = [
     }),
   ),
 ];
-
-async function loadInitialSettings() {
-  try {
-    return await easyuseAnimaGetSettings();
-  } catch {
-    return {};
-  }
-}
 
 function addSettingsFallback() {
   const addSetting = app?.ui?.settings?.addSetting;
