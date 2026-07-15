@@ -24,6 +24,9 @@ AIO_STAGE_SETTINGS_DIALOGS_JS = (
 AIO_DETAILER_SETTINGS_DIALOG_JS = (
     ROOT / "web" / "js" / "aio" / "detailer_settings_dialog.js"
 )
+AIO_SAVE_SETTINGS_DIALOG_JS = (
+    ROOT / "web" / "js" / "aio" / "save_settings_dialog.js"
+)
 AIO_PREVIEW_JS = ROOT / "web" / "js" / "aio" / "preview.js"
 AIO_SETTINGS_JS = ROOT / "web" / "js" / "aio" / "settings.js"
 AIO_WHEEL_JS = ROOT / "web" / "js" / "aio" / "wheel.js"
@@ -374,17 +377,18 @@ class AIOFrontendSourceTests(unittest.TestCase):
         self.assertNotIn('field(safePag, "Rescale"', body)
 
     def test_save_settings_expose_prompt_metadata_toggle(self):
-        source = AIO_JS.read_text(encoding="utf-8")
+        entry_source = AIO_JS.read_text(encoding="utf-8")
+        source = AIO_SAVE_SETTINGS_DIALOG_JS.read_text(encoding="utf-8")
         settings_source = AIO_SETTINGS_JS.read_text(encoding="utf-8")
         start = source.index("function openSaveSettings")
-        end = source.index("\nfunction openAdvancedSettings", start)
+        end = source.index("\n\n  return openSaveSettings", start)
         body = source[start:end]
 
         self.assertIn("save_prompt_metadata: true", settings_source)
         self.assertIn('field(metadata, "Save prompt metadata"', body)
         self.assertIn("checkbox(imageSaver.save_prompt_metadata)", body)
         self.assertIn("save_prompt_metadata: savePromptMetadata.checked", body)
-        self.assertIn('"Save prompt metadata": "tip.savePromptMetadata"', source)
+        self.assertIn('"Save prompt metadata": "tip.savePromptMetadata"', entry_source)
 
     def test_detailer_settings_support_custom_blocks(self):
         source = AIO_DETAILER_SETTINGS_DIALOG_JS.read_text(encoding="utf-8")
