@@ -11,6 +11,10 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 LORA_PRESET_ENTRY = ROOT / "web" / "js" / "easyuse_anima_lora_preset.js"
+LORA_PRESET_API_CLIENT = ROOT / "web" / "js" / "lora_preset" / "api_client.js"
+LORA_PRESET_API_CLIENT_SMOKE = (
+    ROOT / "tests" / "frontend_lora_preset_api_client_smoke.mjs"
+)
 LORA_PRESET_PROFILE_DATA = ROOT / "web" / "js" / "lora_preset" / "profile_data.js"
 LORA_PRESET_PROFILE_DATA_SMOKE = (
     ROOT / "tests" / "frontend_lora_preset_profile_data_smoke.mjs"
@@ -24,6 +28,122 @@ FRONTEND_CHECK_SCRIPT = ROOT / "tools" / "check_frontend.ps1"
 
 
 class LoraPresetFrontendTests(unittest.TestCase):
+    def test_api_client_module_boundary(self):
+        module_source = LORA_PRESET_API_CLIENT.read_text(encoding="utf-8")
+        entry_source = LORA_PRESET_ENTRY.read_text(encoding="utf-8")
+        config = json.loads(JSCONFIG.read_text(encoding="utf-8"))
+        frontend_check_source = FRONTEND_CHECK_SCRIPT.read_text(encoding="utf-8")
+
+        self.assertEqual(module_source.splitlines()[0], "// @ts-check")
+        self.assertEqual(
+            re.findall(
+                r"^export\s+(?:const|function|class)\s+([A-Za-z0-9_]+)",
+                module_source,
+                re.MULTILINE,
+            ),
+            ["createLoraPresetApiClient"],
+        )
+        self.assertNotRegex(
+            module_source,
+            re.compile(r"^\s*import\b", re.MULTILINE),
+        )
+        self.assertNotRegex(
+            module_source,
+            (
+                r"\b(?:document|window|app|api|fetch|LiteGraph|registerExtension|"
+                r"addEventListener|removeEventListener|MutationObserver)\b"
+            ),
+        )
+
+        self.assertIn(
+            'import { createLoraPresetApiClient } from '
+            '"./lora_preset/api_client.js";',
+            entry_source,
+        )
+        factory_match = re.search(
+            r"const\s+loraPresetApi\s*=\s*"
+            r"createLoraPresetApiClient"
+            r"\(\{(?P<dependencies>.*?)\}\);",
+            entry_source,
+            re.DOTALL,
+        )
+        self.assertIsNotNone(factory_match)
+        dependency_entries = {
+            line.strip().rstrip(",")
+            for line in factory_match.group("dependencies").splitlines()
+            if line.strip()
+        }
+        self.assertEqual(
+            dependency_entries,
+            {
+                "fetchJson",
+                "encodeURIComponent: encodeRFC3986URIComponent",
+            },
+        )
+
+        self.assertNotIn("/easyuse_anima/lora_profiles", entry_source)
+        self.assertNotIn('"/easyuse_anima/loras"', entry_source)
+        self.assertEqual(
+            len(
+                re.findall(
+                    r'fetchJson\("/easyuse_anima/lora_profiles"\)',
+                    module_source,
+                )
+            ),
+            1,
+        )
+        for route in (
+            "/easyuse_anima/lora_profiles/load?name=",
+            "/easyuse_anima/lora_profiles/save",
+            "/easyuse_anima/lora_profiles/fix",
+            "/easyuse_anima/loras",
+        ):
+            with self.subTest(route=route):
+                self.assertEqual(module_source.count(route), 1)
+
+        self.assertEqual(entry_source.count("loraPresetApi.listProfiles()"), 1)
+        self.assertEqual(entry_source.count("loraPresetApi.loadProfile(name)"), 1)
+        self.assertEqual(entry_source.count("loraPresetApi.saveProfile("), 1)
+        self.assertEqual(entry_source.count("loraPresetApi.fixProfile("), 2)
+        self.assertEqual(entry_source.count("loraPresetApi.listLoras()"), 1)
+        self.assertRegex(
+            entry_source,
+            (
+                r"loraPresetApi\.saveProfile\(\s*"
+                r"trimmedName,\s*selectedProfilePayload\(node\),?\s*\)"
+            ),
+        )
+        self.assertIn(
+            "loraPresetApi.fixProfile(fullProfilePayload(node))",
+            entry_source,
+        )
+        self.assertIn("async function fetchJson(url, options = {})", entry_source)
+        self.assertIn("api.fetchApi(requestUrl, requestOptions)", entry_source)
+        self.assertIn("easyuseAnimaFetchJson(url, { ...options, fetcher })", entry_source)
+
+        self.assertTrue(LORA_PRESET_API_CLIENT_SMOKE.is_file())
+        self.assertIn("web/js/lora_preset/**/*.js", config["include"])
+        self.assertIn(
+            r'node "tests\frontend_lora_preset_api_client_smoke.mjs"',
+            frontend_check_source,
+        )
+
+    def test_api_client_module_semantics(self):
+        node_bin = shutil.which("node")
+        if not node_bin:
+            self.skipTest("node executable is not available")
+
+        completed = subprocess.run(
+            [node_bin, str(LORA_PRESET_API_CLIENT_SMOKE)],
+            cwd=ROOT,
+            text=True,
+            capture_output=True,
+            check=False,
+        )
+
+        if completed.returncode != 0:
+            self.fail((completed.stdout + completed.stderr).strip())
+
     def test_lora_state_module_boundary(self):
         module_source = LORA_PRESET_LORA_STATE.read_text(encoding="utf-8")
         entry_source = LORA_PRESET_ENTRY.read_text(encoding="utf-8")
@@ -215,7 +335,7 @@ class LoraPresetFrontendTests(unittest.TestCase):
         if completed.returncode != 0:
             self.fail((completed.stdout + completed.stderr).strip())
 
-    def test_lora_row_non_toggle_controls_do_not_throw(self):
+    def test_lora_row_controls_and_api_wiring_runtime(self):
         node_bin = shutil.which("node")
         if not node_bin:
             self.skipTest("node executable is not available")
@@ -229,6 +349,7 @@ class LoraPresetFrontendTests(unittest.TestCase):
             const sourcePath = process.argv[1];
             const profileDataPath = process.argv[2];
             const loraStatePath = process.argv[3];
+            const apiClientPath = process.argv[4];
             let profileDataSource = fs.readFileSync(profileDataPath, "utf8");
             profileDataSource = profileDataSource.replace(
               /^export\s+(?=(?:const|function|class)\b)/gm,
@@ -239,10 +360,15 @@ class LoraPresetFrontendTests(unittest.TestCase):
               /^export\s+(?=(?:const|function|class)\b)/gm,
               "",
             );
+            let apiClientSource = fs.readFileSync(apiClientPath, "utf8");
+            apiClientSource = apiClientSource.replace(
+              /^export\s+(?=(?:const|function|class)\b)/gm,
+              "",
+            );
             let source = fs.readFileSync(sourcePath, "utf8");
             source = source.replace(/^import[\s\S]*?;\r?\n/gm, "");
-            source = `${profileDataSource}\n${loraStateSource}\n${source}`;
-            source += "\nglobalThis.__loraPresetTest = { LoraRowWidget, LORA_PRESET_SETTINGS, applyLoraPresetSettings, loraMenuElementValue, loraMenuItems };\n";
+            source = `${profileDataSource}\n${loraStateSource}\n${apiClientSource}\n${source}`;
+            source += "\nglobalThis.__loraPresetTest = { LoraRowWidget, LORA_PRESET_SETTINGS, applyLoraPresetSettings, loraMenuElementValue, loraMenuItems, loraPresetApi, saveProfileSet };\n";
 
             class StubElement {
               constructor(tagName = "div") {
@@ -289,6 +415,7 @@ class LoraPresetFrontendTests(unittest.TestCase):
               },
               easyuseAnimaText: (maps, key) => maps.en[key] || key,
               easyuseAnimaWatchLocale: () => {},
+              encodeRFC3986URIComponent: (value) => String(value),
             };
             context.globalThis = context;
             context.self = context;
@@ -331,6 +458,8 @@ class LoraPresetFrontendTests(unittest.TestCase):
               applyLoraPresetSettings,
               loraMenuElementValue,
               loraMenuItems,
+              loraPresetApi,
+              saveProfileSet,
             } = context.__loraPresetTest;
 
             function widget(name, value) {
@@ -477,6 +606,32 @@ class LoraPresetFrontendTests(unittest.TestCase):
               assert.strictEqual(LORA_PRESET_SETTINGS.strengthDragStep, 0.025);
               assert.strictEqual(LORA_PRESET_SETTINGS.strengthDragPixels, 12);
             }
+
+            (async () => {
+              const node = makeNode();
+              let saveCall = null;
+              loraPresetApi.saveProfile = async (name, payload) => {
+                saveCall = { name, payload };
+                return { profile: { name } };
+              };
+              context.window.prompt = () => "  Demo  ";
+
+              await saveProfileSet(node);
+
+              assert.ok(saveCall, "saveProfileSet must call the API client");
+              assert.strictEqual(saveCall.name, "Demo");
+              const payload = JSON.parse(JSON.stringify(saveCall.payload));
+              assert.strictEqual(payload.profile_count, 1);
+              assert.strictEqual(payload.profile_index, 1);
+              assert.strictEqual(payload.profile_data["1"].style_prompt, "");
+              assert.strictEqual(
+                payload.profile_data["1"].loras[0].name,
+                "style/foo.safetensors",
+              );
+            })().catch((error) => {
+              console.error(error);
+              process.exitCode = 1;
+            });
             """
         )
 
@@ -488,6 +643,7 @@ class LoraPresetFrontendTests(unittest.TestCase):
                 str(LORA_PRESET_ENTRY),
                 str(LORA_PRESET_PROFILE_DATA),
                 str(LORA_PRESET_LORA_STATE),
+                str(LORA_PRESET_API_CLIENT),
             ],
             cwd=ROOT,
             text=True,
