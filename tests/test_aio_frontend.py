@@ -27,6 +27,9 @@ AIO_DETAILER_SETTINGS_DIALOG_JS = (
 AIO_SAVE_SETTINGS_DIALOG_JS = (
     ROOT / "web" / "js" / "aio" / "save_settings_dialog.js"
 )
+AIO_ADVANCED_SETTINGS_DIALOG_JS = (
+    ROOT / "web" / "js" / "aio" / "advanced_settings_dialog.js"
+)
 AIO_PREVIEW_JS = ROOT / "web" / "js" / "aio" / "preview.js"
 AIO_SETTINGS_JS = ROOT / "web" / "js" / "aio" / "settings.js"
 AIO_WHEEL_JS = ROOT / "web" / "js" / "aio" / "wheel.js"
@@ -360,9 +363,9 @@ class AIOFrontendSourceTests(unittest.TestCase):
         self.assertNotIn("backendBadge", body)
 
     def test_safe_pag_advanced_labels_do_not_reuse_generic_labels(self):
-        source = AIO_JS.read_text(encoding="utf-8")
+        source = AIO_ADVANCED_SETTINGS_DIALOG_JS.read_text(encoding="utf-8")
         start = source.index("function openAdvancedSettings")
-        end = source.index("\nfunction openGeneratorSettings", start)
+        end = source.index("  return openAdvancedSettings;", start)
         body = source[start:end]
 
         self.assertIn('"Safe PAG scale"', body)
