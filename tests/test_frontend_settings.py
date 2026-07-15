@@ -28,6 +28,8 @@ SETTINGS_RESOLUTION_EDITORS = (
 SETTINGS_RESOLUTION_EDITORS_SMOKE = (
     ROOT / "tests" / "frontend_settings_resolution_editors_smoke.mjs"
 )
+SETTINGS_RUNTIME = ROOT / "web" / "js" / "settings" / "runtime.js"
+SETTINGS_RUNTIME_SMOKE = ROOT / "tests" / "frontend_settings_runtime_smoke.mjs"
 SETTINGS_WILDCARD_PATH_EDITOR = (
     ROOT / "web" / "js" / "settings" / "wildcard_path_editor.js"
 )
@@ -39,6 +41,138 @@ FRONTEND_CHECK_SCRIPT = ROOT / "tools" / "check_frontend.ps1"
 
 
 class SettingsFrontendTests(unittest.TestCase):
+    def test_runtime_module_boundary(self):
+        module_source = SETTINGS_RUNTIME.read_text(encoding="utf-8")
+        entry_source = SETTINGS_ENTRY.read_text(encoding="utf-8")
+        config = json.loads(JSCONFIG.read_text(encoding="utf-8"))
+        frontend_check_source = FRONTEND_CHECK_SCRIPT.read_text(encoding="utf-8")
+
+        self.assertEqual(module_source.splitlines()[0], "// @ts-check")
+        self.assertEqual(
+            re.findall(
+                r"^export\s+(?:const|function|class)\s+([A-Za-z0-9_]+)",
+                module_source,
+                re.MULTILINE,
+            ),
+            ["createSettingsRuntime"],
+        )
+        self.assertNotRegex(
+            module_source,
+            re.compile(r"^\s*import\b", re.MULTILINE),
+        )
+        self.assertNotRegex(
+            module_source,
+            r"\b(?:window|CustomEvent|app|registerExtension|document|localStorage)\b",
+        )
+
+        self.assertIn(
+            'import { createSettingsRuntime } from "./settings/runtime.js";',
+            entry_source,
+        )
+        factory_match = re.search(
+            r"const\s*\{\s*"
+            r"updateInternalSetting\s*,\s*"
+            r"readInternalSetting\s*,\s*"
+            r"loadLongTextSettings\s*,\s*"
+            r"saveLongTextSettings\s*,\s*"
+            r"loadInitialSettings\s*,?\s*"
+            r"\}\s*=\s*createSettingsRuntime"
+            r"\(\{(?P<dependencies>.*?)\}\);",
+            entry_source,
+            re.DOTALL,
+        )
+        self.assertIsNotNone(factory_match)
+        self.assertEqual(
+            {
+                line.strip().rstrip(",")
+                for line in factory_match.group("dependencies").splitlines()
+                if line.strip()
+            },
+            {
+                "getSettingsState: () => window.__easyuseAnimaSettings",
+                "setSettingsState: (value) => {",
+                "window.__easyuseAnimaSettings = value;",
+                "}",
+                "notifySettingsUpdated: (detail) => {",
+                "window.dispatchEvent(",
+                'new CustomEvent("easyuse-anima-settings-updated", { detail })',
+                ");",
+                "internalKeys: INTERNAL_KEYS",
+                "normalizeValue",
+                "fetchInitialSettings: easyuseAnimaGetSettings",
+                "fetchJson: easyuseAnimaFetchJson",
+                "postJson: easyuseAnimaPostJson",
+            },
+        )
+
+        for moved_name in (
+            "updateInternalSetting",
+            "readInternalSetting",
+            "loadLongTextSettings",
+            "saveLongTextSettings",
+            "loadInitialSettings",
+        ):
+            with self.subTest(moved_name=moved_name):
+                self.assertNotRegex(
+                    entry_source,
+                    rf"(?:async\s+)?function\s+{re.escape(moved_name)}\b",
+                )
+                self.assertIn(moved_name, module_source)
+
+        for endpoint in (
+            '"/easyuse_anima/long_text_settings"',
+            '"/easyuse_anima/long_text_settings/save"',
+        ):
+            with self.subTest(endpoint=endpoint):
+                self.assertNotIn(endpoint, entry_source)
+                self.assertIn(endpoint, module_source)
+
+        self.assertIn(
+            'new CustomEvent("easyuse-anima-settings-updated", { detail })',
+            entry_source,
+        )
+        self.assertRegex(entry_source, r"function\s+addSettingsFallback\(")
+        self.assertEqual(entry_source.count("app.registerExtension("), 1)
+        setup_match = re.search(
+            r"app\.registerExtension\(\{.*?async\s+setup\(\)\s*\{"
+            r"(?P<body>.*?)\}\s*,?\s*\}\);",
+            entry_source,
+            re.DOTALL,
+        )
+        self.assertIsNotNone(setup_match)
+        self.assertIn('name: "easyuse-anima.settings"', setup_match.group(0))
+        self.assertIn(
+            "settings: EASYUSE_ANIMA_SETTINGS",
+            setup_match.group(0),
+        )
+        self.assertRegex(
+            setup_match.group("body"),
+            r"window\.__easyuseAnimaSettings\s*=\s*await\s+loadInitialSettings\(\);"
+            r"\s*addSettingsFallback\(\);",
+        )
+        self.assertTrue(SETTINGS_RUNTIME_SMOKE.is_file())
+        self.assertIn("web/js/settings/**/*.js", config["include"])
+        self.assertIn(
+            r'node "tests\frontend_settings_runtime_smoke.mjs"',
+            frontend_check_source,
+        )
+
+    def test_runtime_module_semantics(self):
+        node_bin = shutil.which("node")
+        if not node_bin:
+            self.skipTest("node executable is not available")
+
+        completed = subprocess.run(
+            [node_bin, str(SETTINGS_RUNTIME_SMOKE)],
+            cwd=ROOT,
+            text=True,
+            capture_output=True,
+            check=False,
+        )
+
+        if completed.returncode != 0:
+            self.fail((completed.stdout + completed.stderr).strip())
+
     def test_color_editor_module_boundary(self):
         module_source = SETTINGS_COLOR_EDITOR.read_text(encoding="utf-8")
         entry_source = SETTINGS_ENTRY.read_text(encoding="utf-8")
@@ -135,8 +269,6 @@ class SettingsFrontendTests(unittest.TestCase):
         )
         self.assertRegex(entry_source, r"function\s+label\(")
         self.assertRegex(entry_source, r"function\s+tip\(")
-        self.assertRegex(entry_source, r"function\s+readInternalSetting\(")
-        self.assertRegex(entry_source, r"function\s+updateInternalSetting\(")
         self.assertTrue(SETTINGS_COLOR_EDITOR_SMOKE.is_file())
         self.assertIn("web/js/settings/**/*.js", config["include"])
         self.assertIn(
@@ -245,8 +377,6 @@ class SettingsFrontendTests(unittest.TestCase):
             "render: createWildcardExtraPathsEditor,",
             setting_match.group("body"),
         )
-        self.assertRegex(entry_source, r"function\s+readInternalSetting\(")
-        self.assertRegex(entry_source, r"function\s+updateInternalSetting\(")
         self.assertTrue(SETTINGS_WILDCARD_PATH_EDITOR_SMOKE.is_file())
         self.assertIn("web/js/settings/**/*.js", config["include"])
         self.assertIn(
@@ -374,19 +504,6 @@ class SettingsFrontendTests(unittest.TestCase):
                     setting_match.group("body"),
                 )
 
-        self.assertIn(
-            """function readInternalSetting(key, fallback) {
-  if (
-    window.__easyuseAnimaSettings
-    && Object.prototype.hasOwnProperty.call(window.__easyuseAnimaSettings, key)
-  ) {
-    return window.__easyuseAnimaSettings[key];
-  }
-  return fallback;
-}""",
-            entry_source,
-        )
-        self.assertRegex(entry_source, r"function\s+updateInternalSetting\(")
         self.assertIn("window.__easyuseAnimaSettings", entry_source)
         self.assertTrue(SETTINGS_RESOLUTION_EDITORS_SMOKE.is_file())
         self.assertIn("web/js/settings/**/*.js", config["include"])
@@ -483,10 +600,6 @@ class SettingsFrontendTests(unittest.TestCase):
         self.assertIn("easyuse-anima-long-text-overlay", module_source)
         self.assertIn("easyuse-anima-long-text-panel", module_source)
 
-        self.assertIn("async function loadLongTextSettings()", entry_source)
-        self.assertIn("async function saveLongTextSettings(values)", entry_source)
-        self.assertIn('"/easyuse_anima/long_text_settings"', entry_source)
-        self.assertIn('"/easyuse_anima/long_text_settings/save"', entry_source)
         self.assertIn("window.__easyuseAnimaSettings", entry_source)
         self.assertIn('new CustomEvent("easyuse-anima-settings-updated"', entry_source)
 
@@ -595,12 +708,8 @@ class SettingsFrontendTests(unittest.TestCase):
         )
 
         for adapter in (
-            "updateInternalSetting",
-            "loadLongTextSettings",
-            "saveLongTextSettings",
             "setting",
             "customSetting",
-            "loadInitialSettings",
             "addSettingsFallback",
         ):
             with self.subTest(entry_adapter=adapter):
