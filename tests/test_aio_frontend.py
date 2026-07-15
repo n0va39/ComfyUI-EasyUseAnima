@@ -18,6 +18,9 @@ AIO_PROFILE_SETTINGS_RUNTIME_JS = (
 AIO_GENERATOR_PANEL_RUNTIME_JS = (
     ROOT / "web" / "js" / "aio" / "generator_panel_runtime.js"
 )
+AIO_STAGE_SETTINGS_DIALOGS_JS = (
+    ROOT / "web" / "js" / "aio" / "stage_settings_dialogs.js"
+)
 AIO_PREVIEW_JS = ROOT / "web" / "js" / "aio" / "preview.js"
 AIO_SETTINGS_JS = ROOT / "web" / "js" / "aio" / "settings.js"
 AIO_WHEEL_JS = ROOT / "web" / "js" / "aio" / "wheel.js"
@@ -230,9 +233,9 @@ class AIOFrontendSourceTests(unittest.TestCase):
         self.assertNotIn('optimization.section.classList.toggle("hidden"', body)
 
     def test_highres_settings_save_stage_optimization(self):
-        source = AIO_JS.read_text(encoding="utf-8")
+        source = AIO_STAGE_SETTINGS_DIALOGS_JS.read_text(encoding="utf-8")
         start = source.index("function openHighresSettings")
-        end = source.index("\nfunction createDetailerTargetEditor", start)
+        end = source.index("\n  function openUpscaleSettings", start)
         body = source[start:end]
 
         self.assertIn('createStageOptimizationEditor("Highres Optimization"', body)
@@ -242,9 +245,9 @@ class AIOFrontendSourceTests(unittest.TestCase):
         self.assertNotIn("next.highres.dit_corrections = mergeDefaults", body)
 
     def test_upscale_settings_offer_single_backend_and_usdu_helpers(self):
-        source = AIO_JS.read_text(encoding="utf-8")
+        source = AIO_STAGE_SETTINGS_DIALOGS_JS.read_text(encoding="utf-8")
         start = source.index("function openUpscaleSettings")
-        end = source.index("\nfunction createDetailerTargetEditor", start)
+        end = source.index("\n\n  return {", start)
         body = source[start:end]
 
         self.assertIn('selectInput(["usdu", "resshift"]', body)
