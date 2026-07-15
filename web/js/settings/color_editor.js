@@ -272,7 +272,10 @@ export function createPromptStudioColorEditorButtonFactory(dependencies) {
     const normalized = {};
     for (const [key, value] of Object.entries(colors || {})) {
       const color = String(value || "").trim();
-      if (PROMPT_STUDIO_COLORS[key] && /^#[0-9a-f]{6}$/i.test(color)) {
+      if (
+        Object.prototype.hasOwnProperty.call(PROMPT_STUDIO_COLORS, key)
+        && /^#[0-9a-f]{6}$/i.test(color)
+      ) {
         normalized[key] = color;
       }
     }

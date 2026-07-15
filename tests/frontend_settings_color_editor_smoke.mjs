@@ -443,6 +443,45 @@ assert.equal(updateCalls.at(-1).value, '{"quality":"#0a0b0c"}');
 button(currentPanel, "Close").onclick();
 
 internalValues.delete("prompt_studio.colors");
+const inheritedOnlySetterCalls = [];
+const inheritedOnlyTrigger = createPromptStudioColorEditorButton(
+  "Inherited only",
+  (value) => inheritedOnlySetterCalls.push(value),
+  '{"constructor":"#111111","toString":"#222222","valueOf":"#333333","hasOwnProperty":"#444444","__proto__":"#555555"}',
+);
+button(inheritedOnlyTrigger, "Open editor").onclick();
+currentOverlay = overlay(document);
+currentPanel = panel(currentOverlay);
+inputs = colorInputs(currentPanel);
+assert.deepEqual(inputs.map((input) => input.value), TAG_DEFAULTS);
+inputs[0].value = "invalid";
+inputs[0].emit("input");
+assert.equal(
+  updateCalls.at(-1).value,
+  "",
+  "Object prototype property names must not pass the color allowlist",
+);
+assert.deepEqual(inheritedOnlySetterCalls, [""]);
+button(currentPanel, "Close").onclick();
+
+internalValues.delete("prompt_studio.colors");
+const inheritedMixedSetterCalls = [];
+const inheritedMixedTrigger = createPromptStudioColorEditorButton(
+  "Inherited mixed",
+  (value) => inheritedMixedSetterCalls.push(value),
+  '{"quality":"#ABCDEF","constructor":"#111111","toString":"#222222","__proto__":"#333333"}',
+);
+button(inheritedMixedTrigger, "Open editor").onclick();
+currentOverlay = overlay(document);
+currentPanel = panel(currentOverlay);
+inputs = colorInputs(currentPanel);
+assert.equal(inputs[0].value, "#ABCDEF");
+inputs[0].emit("change");
+assert.equal(updateCalls.at(-1).value, '{"quality":"#ABCDEF"}');
+assert.deepEqual(inheritedMixedSetterCalls, ['{"quality":"#ABCDEF"}']);
+button(currentPanel, "Close").onclick();
+
+internalValues.delete("prompt_studio.colors");
 const malformedSetterCalls = [];
 const malformedTrigger = createPromptStudioColorEditorButton(
   "Malformed",
