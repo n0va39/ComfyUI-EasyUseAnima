@@ -12,11 +12,119 @@ SETTINGS_DEFINITION_DATA = ROOT / "web" / "js" / "settings" / "definition_data.j
 SETTINGS_DEFINITION_DATA_SMOKE = (
     ROOT / "tests" / "frontend_settings_definition_data_smoke.mjs"
 )
+SETTINGS_LONG_TEXT_EDITOR = (
+    ROOT / "web" / "js" / "settings" / "long_text_editor.js"
+)
+SETTINGS_LONG_TEXT_EDITOR_SMOKE = (
+    ROOT / "tests" / "frontend_settings_long_text_editor_smoke.mjs"
+)
 JSCONFIG = ROOT / "jsconfig.json"
 FRONTEND_CHECK_SCRIPT = ROOT / "tools" / "check_frontend.ps1"
 
 
 class SettingsFrontendTests(unittest.TestCase):
+    def test_long_text_editor_module_boundary(self):
+        module_source = SETTINGS_LONG_TEXT_EDITOR.read_text(encoding="utf-8")
+        entry_source = SETTINGS_ENTRY.read_text(encoding="utf-8")
+        config = json.loads(JSCONFIG.read_text(encoding="utf-8"))
+        frontend_check_source = FRONTEND_CHECK_SCRIPT.read_text(encoding="utf-8")
+
+        self.assertEqual(module_source.splitlines()[0], "// @ts-check")
+        self.assertEqual(
+            re.findall(
+                r"^export\s+(?:const|function|class)\s+([A-Za-z0-9_]+)",
+                module_source,
+                re.MULTILINE,
+            ),
+            ["createLongTextEditorButtonFactory"],
+        )
+        self.assertNotRegex(
+            module_source,
+            re.compile(r"^\s*import\b", re.MULTILINE),
+        )
+        self.assertNotRegex(
+            module_source,
+            r"\b(?:app|api|registerExtension|window|CustomEvent)\b",
+        )
+        self.assertNotIn("/easyuse_anima/long_text_settings", module_source)
+
+        self.assertIn(
+            'import { createLongTextEditorButtonFactory } from '
+            '"./settings/long_text_editor.js";',
+            entry_source,
+        )
+        factory_match = re.search(
+            r"const\s+createLongTextEditorButton\s*=\s*"
+            r"createLongTextEditorButtonFactory"
+            r"\(\{(?P<dependencies>.*?)\}\);",
+            entry_source,
+            re.DOTALL,
+        )
+        self.assertIsNotNone(factory_match)
+        dependency_entries = {
+            line.strip().rstrip(",")
+            for line in factory_match.group("dependencies").splitlines()
+            if line.strip()
+        }
+        self.assertEqual(
+            dependency_entries,
+            {
+                "document",
+                "fieldGroups: LONG_TEXT_FIELD_GROUPS",
+                "text: t",
+                "loadSettings: loadLongTextSettings",
+                "saveSettings: saveLongTextSettings",
+                "schedule: setTimeout",
+            },
+        )
+
+        for moved_name in (
+            "activeLongTextEditor",
+            "openLongTextEditor",
+            "closeLongTextEditor",
+        ):
+            with self.subTest(moved_name=moved_name):
+                self.assertNotIn(moved_name, entry_source)
+                self.assertIn(moved_name, module_source)
+        self.assertNotRegex(
+            entry_source,
+            r"function\s+createLongTextEditorButton\(",
+        )
+        self.assertNotIn("easyuse-anima-long-text-overlay", entry_source)
+        self.assertNotIn("easyuse-anima-long-text-panel", entry_source)
+        self.assertIn("easyuse-anima-long-text-overlay", module_source)
+        self.assertIn("easyuse-anima-long-text-panel", module_source)
+
+        self.assertIn("async function loadLongTextSettings()", entry_source)
+        self.assertIn("async function saveLongTextSettings(values)", entry_source)
+        self.assertIn('"/easyuse_anima/long_text_settings"', entry_source)
+        self.assertIn('"/easyuse_anima/long_text_settings/save"', entry_source)
+        self.assertIn("window.__easyuseAnimaSettings", entry_source)
+        self.assertIn('new CustomEvent("easyuse-anima-settings-updated"', entry_source)
+
+        self.assertTrue(SETTINGS_LONG_TEXT_EDITOR_SMOKE.is_file())
+        self.assertIn("web/js/settings/**/*.js", config["include"])
+        self.assertIn(
+            r'node "tests\frontend_settings_long_text_editor_smoke.mjs"',
+            frontend_check_source,
+        )
+
+    def test_long_text_editor_module_semantics(self):
+        node_bin = shutil.which("node")
+        if not node_bin:
+            self.skipTest("node executable is not available")
+
+        completed = subprocess.run(
+            [node_bin, str(SETTINGS_LONG_TEXT_EDITOR_SMOKE)],
+            cwd=ROOT,
+            text=True,
+            capture_output=True,
+            check=False,
+        )
+
+        if completed.returncode != 0:
+            self.fail((completed.stdout + completed.stderr).strip())
+
     def test_definition_data_module_boundary(self):
         module_source = SETTINGS_DEFINITION_DATA.read_text(encoding="utf-8")
         entry_source = SETTINGS_ENTRY.read_text(encoding="utf-8")
@@ -87,7 +195,6 @@ class SettingsFrontendTests(unittest.TestCase):
             "updateInternalSetting",
             "loadLongTextSettings",
             "saveLongTextSettings",
-            "createLongTextEditorButton",
             "createPromptStudioColorEditorButton",
             "createWildcardExtraPathsEditor",
             "createNaiaResolutionModeEditor",
