@@ -40,11 +40,46 @@ SETTINGS_WILDCARD_PATH_EDITOR = (
 SETTINGS_WILDCARD_PATH_EDITOR_SMOKE = (
     ROOT / "tests" / "frontend_settings_wildcard_path_editor_smoke.mjs"
 )
+SETTINGS_FAKE_DOM_HARNESS = ROOT / "tests" / "frontend_support" / "fake_dom.mjs"
+SETTINGS_EDITOR_SMOKES = (
+    SETTINGS_COLOR_EDITOR_SMOKE,
+    SETTINGS_LONG_TEXT_EDITOR_SMOKE,
+    SETTINGS_RESOLUTION_EDITORS_SMOKE,
+    SETTINGS_WILDCARD_PATH_EDITOR_SMOKE,
+)
 JSCONFIG = ROOT / "jsconfig.json"
 FRONTEND_CHECK_SCRIPT = ROOT / "tools" / "check_frontend.ps1"
 
 
 class SettingsFrontendTests(unittest.TestCase):
+    def test_editor_smokes_share_fake_dom_harness(self):
+        harness_source = SETTINGS_FAKE_DOM_HARNESS.read_text(encoding="utf-8")
+
+        self.assertEqual(
+            re.findall(
+                r"^export\s+(?:class|function)\s+([A-Za-z0-9_]+)",
+                harness_source,
+                re.MULTILINE,
+            ),
+            ["createFakeDocument", "descendants"],
+        )
+
+        for smoke_path in SETTINGS_EDITOR_SMOKES:
+            with self.subTest(smoke=smoke_path.name):
+                smoke_source = smoke_path.read_text(encoding="utf-8")
+                self.assertIn(
+                    'from "./frontend_support/fake_dom.mjs";',
+                    smoke_source,
+                )
+                self.assertNotRegex(
+                    smoke_source,
+                    re.compile(
+                        r"^(?:class\s+Fake(?:Element|Document)|"
+                        r"function\s+descendants)\b",
+                        re.MULTILINE,
+                    ),
+                )
+
     def test_runtime_module_boundary(self):
         module_source = SETTINGS_RUNTIME.read_text(encoding="utf-8")
         entry_source = SETTINGS_ENTRY.read_text(encoding="utf-8")

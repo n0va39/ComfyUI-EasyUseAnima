@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
+import { createFakeDocument, descendants } from "./frontend_support/fake_dom.mjs";
 
 function dataModule(relativePath, replacements = {}) {
   let source = readFileSync(new URL(relativePath, import.meta.url), "utf8");
@@ -20,102 +21,6 @@ assert.deepEqual(
   Object.keys(wildcardPathEditorModule),
   ["createWildcardExtraPathsEditorFactory"],
 );
-
-class FakeElement {
-  constructor(tagName) {
-    this.tagName = String(tagName).toUpperCase();
-    this.children = [];
-    this.parentElement = null;
-    this.style = { cssText: "" };
-    this.listeners = new Map();
-    this.attributes = new Map();
-    this.textContent = "";
-    this.title = "";
-    this.type = "";
-    this.value = "";
-    this.placeholder = "";
-    this.spellcheck = true;
-    this.focused = false;
-  }
-
-  append(...children) {
-    for (const child of children) {
-      child.parentElement = this;
-      this.children.push(child);
-    }
-  }
-
-  replaceChildren(...children) {
-    for (const child of this.children) {
-      child.parentElement = null;
-    }
-    this.children = [];
-    this.append(...children);
-  }
-
-  get lastElementChild() {
-    return this.children.at(-1) ?? null;
-  }
-
-  setAttribute(name, value) {
-    this.attributes.set(name, String(value));
-  }
-
-  addEventListener(type, handler) {
-    const handlers = this.listeners.get(type) || [];
-    handlers.push(handler);
-    this.listeners.set(type, handlers);
-  }
-
-  emit(type, event = {}) {
-    const nextEvent = {
-      target: this,
-      defaultPrevented: false,
-      preventDefault() {
-        this.defaultPrevented = true;
-      },
-      ...event,
-    };
-    for (const handler of this.listeners.get(type) || []) {
-      handler(nextEvent);
-    }
-    return nextEvent;
-  }
-
-  querySelector(selector) {
-    const expectedTag = String(selector).toUpperCase();
-    return descendants(this).find((element) => element.tagName === expectedTag) ?? null;
-  }
-
-  focus() {
-    this.focused = true;
-  }
-
-  blur() {
-    this.focused = false;
-    this.emit("blur");
-  }
-}
-
-class FakeDocument {
-  constructor() {
-    this.createdElements = [];
-  }
-
-  createElement(tagName) {
-    const element = new FakeElement(tagName);
-    this.createdElements.push(element);
-    return element;
-  }
-}
-
-function descendants(root) {
-  const values = [];
-  for (const child of root.children) {
-    values.push(child, ...descendants(child));
-  }
-  return values;
-}
 
 function findAll(root, tagName) {
   return [root, ...descendants(root)].filter(
@@ -140,7 +45,7 @@ const TEXT = {
   addWildcardPath: "Add path",
 };
 
-const document = new FakeDocument();
+const document = createFakeDocument();
 const internalValues = new Map([
   ["wildcard.extra_paths", '  first path  \r\n"second path"'],
 ]);
@@ -265,7 +170,7 @@ assert.ok(
   "Every internal update must preserve the text setting type",
 );
 
-const fallbackDocument = new FakeDocument();
+const fallbackDocument = createFakeDocument();
 const fallbackEditor = wildcardPathEditorModule.createWildcardExtraPathsEditorFactory({
   document: fallbackDocument,
   text: (key) => TEXT[key] ?? key,
@@ -281,7 +186,7 @@ const emptyRow = fallbackEditor("Paths", null, undefined);
 assert.deepEqual(findAll(emptyRow, "INPUT").map((input) => input.value), [""]);
 
 const emptyInternalEditor = wildcardPathEditorModule.createWildcardExtraPathsEditorFactory({
-  document: new FakeDocument(),
+  document: createFakeDocument(),
   text: (key) => TEXT[key] ?? key,
   readInternalSetting: () => "",
   updateInternalSetting() {},

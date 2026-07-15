@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
+import { createFakeDocument, descendants } from "./frontend_support/fake_dom.mjs";
 
 function dataModule(relativePath) {
   const source = readFileSync(new URL(relativePath, import.meta.url), "utf8");
@@ -13,124 +14,6 @@ const colorEditorModule = await import(
 assert.deepEqual(Object.keys(colorEditorModule), [
   "createPromptStudioColorEditorButtonFactory",
 ]);
-
-class FakeElement {
-  constructor(tagName) {
-    this.tagName = String(tagName).toUpperCase();
-    this.children = [];
-    this.parentElement = null;
-    this.style = { cssText: "", background: "", borderColor: "" };
-    this.listeners = new Map();
-    this.attributes = new Map();
-    this.className = "";
-    this.textContent = "";
-    this.type = "";
-    this.value = "";
-    this.removed = false;
-    this.onclick = null;
-  }
-
-  append(...children) {
-    for (const child of children) {
-      child.parentElement = this;
-      this.children.push(child);
-    }
-  }
-
-  replaceChildren(...children) {
-    for (const child of this.children) {
-      child.parentElement = null;
-    }
-    this.children = [];
-    this.append(...children);
-  }
-
-  setAttribute(name, value) {
-    this.attributes.set(name, String(value));
-  }
-
-  getAttribute(name) {
-    return this.attributes.get(name) ?? null;
-  }
-
-  addEventListener(type, handler) {
-    const handlers = this.listeners.get(type) || [];
-    handlers.push(handler);
-    this.listeners.set(type, handlers);
-  }
-
-  emit(type, event = {}) {
-    const nextEvent = {
-      target: this,
-      propagationStopped: false,
-      stopPropagation() {
-        this.propagationStopped = true;
-      },
-      ...event,
-    };
-    for (const handler of this.listeners.get(type) || []) {
-      handler(nextEvent);
-    }
-    return nextEvent;
-  }
-
-  remove() {
-    if (this.parentElement) {
-      const index = this.parentElement.children.indexOf(this);
-      if (index >= 0) {
-        this.parentElement.children.splice(index, 1);
-      }
-    }
-    this.parentElement = null;
-    this.removed = true;
-  }
-}
-
-class FakeDocument {
-  constructor() {
-    this.body = new FakeElement("body");
-    this.createdElements = [];
-    this.listeners = new Map();
-  }
-
-  createElement(tagName) {
-    const element = new FakeElement(tagName);
-    this.createdElements.push(element);
-    return element;
-  }
-
-  addEventListener(type, handler, capture = false) {
-    const entries = this.listeners.get(type) || [];
-    entries.push({ handler, capture });
-    this.listeners.set(type, entries);
-  }
-
-  removeEventListener(type, handler, capture = false) {
-    const entries = this.listeners.get(type) || [];
-    this.listeners.set(
-      type,
-      entries.filter((entry) => entry.handler !== handler || entry.capture !== capture),
-    );
-  }
-
-  dispatchKey(key) {
-    for (const entry of [...(this.listeners.get("keydown") || [])]) {
-      entry.handler({ key });
-    }
-  }
-
-  listenerCount(type) {
-    return (this.listeners.get(type) || []).length;
-  }
-}
-
-function descendants(root) {
-  const values = [];
-  for (const child of root.children) {
-    values.push(child, ...descendants(child));
-  }
-  return values;
-}
 
 function findAll(root, predicate) {
   return [root, ...descendants(root)].filter(predicate);
@@ -224,7 +107,7 @@ const SYNTAX_LABELS = [
 ];
 const SYNTAX_DEFAULTS = ["#cbd5e1", "#22d3ee", "#c084fc", "#9ca3af"];
 
-const document = new FakeDocument();
+const document = createFakeDocument();
 const internalValues = new Map([
   ["prompt_studio.colors", '{"quality":"#000000"}'],
 ]);
