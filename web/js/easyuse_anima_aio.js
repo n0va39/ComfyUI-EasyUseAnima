@@ -16,6 +16,8 @@ import { aioCreateDialogPrimitives } from "./aio/dialog_primitives.js";
 import { aioCreateInputSettingsDialog } from "./aio/input_settings_dialog.js";
 import { aioCreatePostprocessSettingsDialog } from "./aio/postprocess_settings_dialog.js";
 import { aioCreatePreviewSettingsDialog } from "./aio/preview_settings_dialog.js";
+import { createAioProfileApiClient } from "./aio/profile_api_client.js";
+import { aioCreateProfileSettingsRuntime } from "./aio/profile_settings_runtime.js";
 import {
   AIO_BACKEND_DEPENDENCIES,
   AIO_OPTIONAL_DEPENDENCY_SPECS,
@@ -51,7 +53,6 @@ import {
 } from "./aio/preview.js";
 import { aioPanelFromWheelEvent, consumeAioPanelWheel } from "./aio/wheel.js";
 import {
-  aioBuiltinProfileIdForSettings,
   aioBuiltinProfileIds,
   aioBuiltinProfileSettings,
   aioFindUserProfileByName,
@@ -1874,11 +1875,6 @@ const generatorOptionalDependencyState = {
   errors: {},
   reportedSignature: "",
 };
-const generatorProfileState = {
-  loaded: false,
-  loading: null,
-  profiles: [],
-};
 
 function uniqueStrings(values) {
   const output = [];
@@ -2224,307 +2220,6 @@ function refreshGeneratorPanels() {
   for (const node of generatorGraphNodes()) {
     renderGeneratorPanel(node);
   }
-}
-
-function generatorProfileErrorMessage(error) {
-  return error instanceof Error ? error.message : String(error || "Unknown error");
-}
-
-function generatorUserProfileByName(name) {
-  return aioFindUserProfileByName(generatorProfileState.profiles, name);
-}
-
-async function loadGeneratorUserProfiles({ force = false } = {}) {
-  if (generatorProfileState.loaded && !force) {
-    return generatorProfileState.profiles;
-  }
-  if (!generatorProfileState.loading) {
-    generatorProfileState.loading = easyuseAnimaFetchComfyJson(api, "/easyuse_anima/aio_profiles")
-      .then((data) => {
-        generatorProfileState.profiles = Array.isArray(data?.profiles)
-          ? data.profiles.filter((profile) => String(profile?.name || "").trim())
-          : [];
-        generatorProfileState.loaded = true;
-        return generatorProfileState.profiles;
-      })
-      .finally(() => {
-        generatorProfileState.loading = null;
-      });
-  }
-  return generatorProfileState.loading;
-}
-
-async function postGeneratorProfile(path, payload) {
-  return easyuseAnimaFetchComfyJson(api, path, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload || {}),
-  });
-}
-
-async function loadGeneratorUserProfile(name) {
-  const data = await easyuseAnimaFetchComfyJson(
-    api,
-    `/easyuse_anima/aio_profiles/load?name=${encodeURIComponent(name)}`,
-  );
-  return data?.profile || null;
-}
-
-function applyGeneratorProfileSettings(node, value, settings) {
-  const next = migrateGeneratorPostprocessSettings(mergeDefaults(DEFAULT_GENERATION_SETTINGS, settings));
-  applyVisibleGeneratorSettings(node, next);
-  writeGeneratorSettingsFromState(node, next, true);
-  node.__easyuseAnimaGeneratorProfileValue = value;
-  node.__easyuseAnimaGeneratorProfileFingerprint = aioProfileSettingsFingerprint(
-    generatorSettings(node),
-  );
-  renderGeneratorPanel(node);
-  markNodeDirty(node);
-}
-
-async function applyGeneratorProfile(node, value) {
-  const textValue = String(value || GENERATOR_PROFILE_CUSTOM_VALUE);
-  if (textValue === GENERATOR_PROFILE_CUSTOM_VALUE) {
-    return;
-  }
-  if (textValue.startsWith("builtin:")) {
-    const profileId = textValue.slice(8);
-    applyGeneratorProfileSettings(
-      node,
-      textValue,
-      aioBuiltinProfileSettings(profileId, DEFAULT_GENERATION_SETTINGS),
-    );
-    return;
-  }
-  const name = aioUserProfileName(textValue);
-  const profile = await loadGeneratorUserProfile(name);
-  if (!profile?.settings || typeof profile.settings !== "object") {
-    throw new Error("Profile settings are missing");
-  }
-  applyGeneratorProfileSettings(node, aioUserProfileValue(profile.name || name), profile.settings);
-}
-
-async function saveGeneratorUserProfile(node, selectedValue = node.__easyuseAnimaGeneratorProfileValue) {
-  const selectedName = aioUserProfileName(selectedValue);
-  const requestedName = window.prompt(aioText("profile.savePrompt"), selectedName || "");
-  if (requestedName == null) {
-    return;
-  }
-  const name = requestedName.trim();
-  if (!name) {
-    window.alert(aioText("profile.nameRequired"));
-    return;
-  }
-  const existing = generatorUserProfileByName(name);
-  const overwrite = !!existing;
-  if (overwrite && !window.confirm(aioFormat("profile.overwriteConfirm", { name: existing.name }))) {
-    return;
-  }
-  const settings = generatorSettings(node);
-  const data = await postGeneratorProfile("/easyuse_anima/aio_profiles/save", {
-    name,
-    overwrite,
-    settings,
-  });
-  await loadGeneratorUserProfiles({ force: true });
-  node.__easyuseAnimaGeneratorProfileValue = aioUserProfileValue(data?.profile?.name || name);
-  node.__easyuseAnimaGeneratorProfileFingerprint = aioProfileSettingsFingerprint(settings);
-  refreshGeneratorPanels();
-}
-
-async function renameGeneratorUserProfile(node, selectedValue = node.__easyuseAnimaGeneratorProfileValue) {
-  const oldName = aioUserProfileName(selectedValue);
-  if (!oldName) {
-    return;
-  }
-  const currentName = aioUserProfileName(syncGeneratorProfileValue(node));
-  const requestedName = window.prompt(aioText("profile.renamePrompt"), oldName);
-  if (requestedName == null) {
-    return;
-  }
-  const newName = requestedName.trim();
-  if (!newName) {
-    window.alert(aioText("profile.nameRequired"));
-    return;
-  }
-  const existing = generatorUserProfileByName(newName);
-  const overwrite = !!existing && existing.name.toLowerCase() !== oldName.toLowerCase();
-  if (overwrite && !window.confirm(aioFormat("profile.overwriteConfirm", { name: existing.name }))) {
-    return;
-  }
-  const data = await postGeneratorProfile("/easyuse_anima/aio_profiles/rename", {
-    old_name: oldName,
-    new_name: newName,
-    overwrite,
-  });
-  await loadGeneratorUserProfiles({ force: true });
-  if (currentName.toLowerCase() === oldName.toLowerCase()) {
-    node.__easyuseAnimaGeneratorProfileValue = aioUserProfileValue(data?.profile?.name || newName);
-  }
-  refreshGeneratorPanels();
-}
-
-async function deleteGeneratorUserProfile(node, selectedValue = node.__easyuseAnimaGeneratorProfileValue) {
-  const name = aioUserProfileName(selectedValue);
-  if (!name || !window.confirm(aioFormat("profile.deleteConfirm", { name }))) {
-    return;
-  }
-  const currentName = aioUserProfileName(syncGeneratorProfileValue(node));
-  await postGeneratorProfile("/easyuse_anima/aio_profiles/delete", { name });
-  await loadGeneratorUserProfiles({ force: true });
-  if (currentName.toLowerCase() === name.toLowerCase()) {
-    node.__easyuseAnimaGeneratorProfileValue = GENERATOR_PROFILE_CUSTOM_VALUE;
-    delete node.__easyuseAnimaGeneratorProfileFingerprint;
-  }
-  refreshGeneratorPanels();
-}
-
-function resolvedGeneratorProfileValue(node, settings = generatorSettings(node)) {
-  return aioResolvedProfileValue({
-    settings,
-    defaultSettings: DEFAULT_GENERATION_SETTINGS,
-    selectedValue: node?.__easyuseAnimaGeneratorProfileValue,
-    selectedFingerprint: node?.__easyuseAnimaGeneratorProfileFingerprint,
-    profiles: generatorProfileState.profiles,
-    customValue: GENERATOR_PROFILE_CUSTOM_VALUE,
-  });
-}
-
-function syncGeneratorProfileValue(node, settings = generatorSettings(node)) {
-  const value = resolvedGeneratorProfileValue(node, settings);
-  node.__easyuseAnimaGeneratorProfileValue = value;
-  if (value === GENERATOR_PROFILE_CUSTOM_VALUE) {
-    delete node.__easyuseAnimaGeneratorProfileFingerprint;
-  }
-  return value;
-}
-
-function generatorProfileDisplayLabel(value) {
-  const textValue = String(value || GENERATOR_PROFILE_CUSTOM_VALUE);
-  if (textValue === GENERATOR_PROFILE_CUSTOM_VALUE) {
-    return aioText("profile.custom");
-  }
-  const userName = aioUserProfileName(textValue);
-  if (userName) {
-    return userName;
-  }
-  const builtinId = textValue.startsWith("builtin:") ? textValue.slice(8) : "";
-  return aioBuiltinProfileIds().includes(builtinId)
-    ? aioText(`profile.${builtinId}`)
-    : aioText("profile.custom");
-}
-
-function openGeneratorProfileSettings(node) {
-  const currentValue = syncGeneratorProfileValue(node);
-  const { backdrop, body, actions } = createDialog(
-    aioText("dialog.profile.title"),
-    aioText("dialog.profile.subtitle"),
-  );
-  body.classList.add("easyuse-anima-aio-one-column");
-
-  const section = document.createElement("section");
-  section.className = "easyuse-anima-aio-section full";
-  const profileSelect = document.createElement("select");
-  profileSelect.title = aioText("profile.selectTip");
-  if (currentValue === GENERATOR_PROFILE_CUSTOM_VALUE) {
-    const customOption = document.createElement("option");
-    customOption.value = GENERATOR_PROFILE_CUSTOM_VALUE;
-    customOption.textContent = aioText("profile.custom");
-    profileSelect.append(customOption);
-  }
-  const builtInGroup = document.createElement("optgroup");
-  builtInGroup.label = aioText("profile.groupBuiltIn");
-  for (const profileId of aioBuiltinProfileIds()) {
-    const option = document.createElement("option");
-    option.value = `builtin:${profileId}`;
-    option.textContent = aioText(`profile.${profileId}`);
-    builtInGroup.append(option);
-  }
-  profileSelect.append(builtInGroup);
-  if (generatorProfileState.profiles.length) {
-    const userGroup = document.createElement("optgroup");
-    userGroup.label = aioText("profile.groupUser");
-    for (const profile of generatorProfileState.profiles) {
-      const option = document.createElement("option");
-      option.value = aioUserProfileValue(profile.name);
-      option.textContent = profile.name;
-      userGroup.append(option);
-    }
-    profileSelect.append(userGroup);
-  }
-  profileSelect.value = currentValue;
-  field(section, "Profile", profileSelect, "profile.selectTip");
-
-  const managerActions = document.createElement("div");
-  managerActions.className = "easyuse-anima-aio-profile-manager-actions";
-  const makeActionButton = (label) => {
-    const button = document.createElement("button");
-    button.type = "button";
-    button.textContent = label;
-    return button;
-  };
-  const saveProfile = makeActionButton(aioText("button.profileSave"));
-  const renameProfile = makeActionButton(aioText("button.profileRename"));
-  const deleteProfile = makeActionButton(aioText("button.profileDelete"));
-  managerActions.append(saveProfile, renameProfile, deleteProfile);
-  section.append(managerActions);
-  body.append(section);
-
-  const cancel = makeActionButton(aioText("button.cancel"));
-  const apply = makeActionButton(aioText("button.profileApply"));
-  apply.className = "primary";
-  actions.append(cancel, apply);
-
-  let busy = false;
-  const refreshActions = () => {
-    const isUserProfile = !!aioUserProfileName(profileSelect.value);
-    renameProfile.disabled = busy || !isUserProfile;
-    deleteProfile.disabled = busy || !isUserProfile;
-    saveProfile.disabled = busy;
-    cancel.disabled = busy;
-    apply.disabled = busy || profileSelect.value === GENERATOR_PROFILE_CUSTOM_VALUE;
-  };
-  const run = async (callback, { reopen = false } = {}) => {
-    if (busy) {
-      return;
-    }
-    busy = true;
-    refreshActions();
-    try {
-      await callback();
-      backdrop.remove();
-      if (reopen) {
-        openGeneratorProfileSettings(node);
-      }
-    } catch (error) {
-      window.alert(aioFormat("profile.requestFailed", {
-        message: generatorProfileErrorMessage(error),
-      }));
-    } finally {
-      busy = false;
-      if (backdrop.isConnected) {
-        refreshActions();
-      }
-    }
-  };
-  profileSelect.addEventListener("change", refreshActions);
-  cancel.addEventListener("click", () => backdrop.remove());
-  apply.addEventListener("click", () => run(
-    () => applyGeneratorProfile(node, profileSelect.value),
-  ));
-  saveProfile.addEventListener("click", () => run(
-    () => saveGeneratorUserProfile(node, profileSelect.value),
-    { reopen: true },
-  ));
-  renameProfile.addEventListener("click", () => run(
-    () => renameGeneratorUserProfile(node, profileSelect.value),
-    { reopen: true },
-  ));
-  deleteProfile.addEventListener("click", () => run(
-    () => deleteGeneratorUserProfile(node, profileSelect.value),
-    { reopen: true },
-  ));
-  refreshActions();
 }
 
 function findWidget(node, name) {
@@ -7372,6 +7067,55 @@ function ensureButton(node, key, label, callback) {
     widget.serialize = false;
   }
 }
+
+const generatorProfileApi = createAioProfileApiClient({
+  fetchJson: (url, options) => easyuseAnimaFetchComfyJson(api, url, options),
+  encodeURIComponent,
+});
+
+const generatorProfileRuntime = aioCreateProfileSettingsRuntime({
+  document,
+  createDialog,
+  field,
+  text: aioText,
+  format: aioFormat,
+  dialogs: {
+    prompt: (message, defaultValue) => window.prompt(message, defaultValue),
+    alert: (message) => window.alert(message),
+    confirm: (message) => window.confirm(message),
+  },
+  profileApi: generatorProfileApi,
+  profileCore: {
+    customValue: GENERATOR_PROFILE_CUSTOM_VALUE,
+    builtinIds: aioBuiltinProfileIds,
+    builtinSettings: aioBuiltinProfileSettings,
+    fingerprint: aioProfileSettingsFingerprint,
+    userValue: aioUserProfileValue,
+    userName: aioUserProfileName,
+    findUser: aioFindUserProfileByName,
+    resolveValue: aioResolvedProfileValue,
+  },
+  settingsCore: {
+    defaultSettings: DEFAULT_GENERATION_SETTINGS,
+    mergeDefaults,
+    migratePostprocess: migrateGeneratorPostprocessSettings,
+  },
+  nodeAdapter: {
+    getSettings: generatorSettings,
+    applyVisibleSettings: applyVisibleGeneratorSettings,
+    writeSettings: writeGeneratorSettingsFromState,
+    renderPanel: renderGeneratorPanel,
+    refreshPanels: refreshGeneratorPanels,
+    markDirty: markNodeDirty,
+  },
+});
+
+const {
+  loadProfiles: loadGeneratorUserProfiles,
+  syncValue: syncGeneratorProfileValue,
+  displayLabel: generatorProfileDisplayLabel,
+  open: openGeneratorProfileSettings,
+} = generatorProfileRuntime;
 
 const openInputSettings = aioCreateInputSettingsDialog({
   document,

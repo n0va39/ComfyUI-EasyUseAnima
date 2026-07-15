@@ -35,6 +35,14 @@ AIO_PREVIEW_SETTINGS_DIALOG_JS = AIO_MODULES / "preview_settings_dialog.js"
 AIO_PREVIEW_SETTINGS_DIALOG_SMOKE = (
     ROOT / "tests" / "frontend_aio_preview_settings_dialog_smoke.mjs"
 )
+AIO_PROFILE_API_CLIENT_JS = AIO_MODULES / "profile_api_client.js"
+AIO_PROFILE_API_CLIENT_SMOKE = (
+    ROOT / "tests" / "frontend_aio_profile_api_client_smoke.mjs"
+)
+AIO_PROFILE_SETTINGS_RUNTIME_JS = AIO_MODULES / "profile_settings_runtime.js"
+AIO_PROFILE_SETTINGS_RUNTIME_SMOKE = (
+    ROOT / "tests" / "frontend_aio_profile_settings_runtime_smoke.mjs"
+)
 AIO_PREVIEW_JS = AIO_MODULES / "preview.js"
 AIO_PREVIEW_CORE_SMOKE = ROOT / "tests" / "frontend_aio_preview_core_smoke.mjs"
 AIO_PRESETS_JS = AIO_MODULES / "presets.js"
@@ -110,6 +118,192 @@ class FrontendModuleStructureTests(unittest.TestCase):
         self.assertTrue(AIO_PROFILE_CORE_SMOKE.is_file())
         self.assertIn(
             r'node "tests\frontend_aio_profile_core_smoke.mjs"',
+            frontend_check_source,
+        )
+
+    def test_aio_profile_api_client_has_closed_transport_boundary(self):
+        source = AIO_PROFILE_API_CLIENT_JS.read_text(encoding="utf-8")
+        entry_source = AIO_JS.read_text(encoding="utf-8")
+        frontend_check_source = FRONTEND_CHECK_SCRIPT.read_text(encoding="utf-8")
+
+        self.assertEqual(source.splitlines()[0], "// @ts-check")
+        self.assertEqual(
+            re.findall(r"export function ([A-Za-z0-9_]+)\(", source),
+            ["createAioProfileApiClient"],
+        )
+        self.assertLessEqual(len(source.splitlines()), 80)
+        self.assertNotRegex(source, re.compile(r"^\s*import\s", re.MULTILINE))
+        self.assertNotRegex(source, r"\b(?:document|window|app|api)\b")
+        self.assertNotIn("fetch(", source)
+        self.assertNotIn("app.registerExtension", source)
+
+        self.assertIn(
+            'import { createAioProfileApiClient } from "./aio/profile_api_client.js";',
+            entry_source,
+        )
+        factory_match = re.search(
+            r"const\s+generatorProfileApi\s*=\s*createAioProfileApiClient"
+            r"\(\{(?P<dependencies>.*?)\}\);",
+            entry_source,
+            re.DOTALL,
+        )
+        self.assertIsNotNone(factory_match)
+        self.assertIn(
+            "fetchJson: (url, options) => easyuseAnimaFetchComfyJson(api, url, options)",
+            factory_match.group("dependencies"),
+        )
+        self.assertIn("encodeURIComponent", factory_match.group("dependencies"))
+
+        for path in (
+            "/easyuse_anima/aio_profiles",
+            "/easyuse_anima/aio_profiles/save",
+            "/easyuse_anima/aio_profiles/load",
+            "/easyuse_anima/aio_profiles/rename",
+            "/easyuse_anima/aio_profiles/delete",
+        ):
+            with self.subTest(path=path):
+                self.assertIn(path, source)
+                self.assertNotIn(path, entry_source)
+
+        self.assertTrue(AIO_PROFILE_API_CLIENT_SMOKE.is_file())
+        self.assertIn(
+            r'node "tests\frontend_aio_profile_api_client_smoke.mjs"',
+            frontend_check_source,
+        )
+
+    def test_aio_profile_settings_runtime_has_closed_controller_boundary(self):
+        source = AIO_PROFILE_SETTINGS_RUNTIME_JS.read_text(encoding="utf-8")
+        entry_source = AIO_JS.read_text(encoding="utf-8")
+        frontend_check_source = FRONTEND_CHECK_SCRIPT.read_text(encoding="utf-8")
+
+        self.assertEqual(source.splitlines()[0], "// @ts-check")
+        self.assertEqual(
+            re.findall(r"export function ([A-Za-z0-9_]+)\(", source),
+            ["aioCreateProfileSettingsRuntime"],
+        )
+        self.assertLessEqual(len(source.splitlines()), 430)
+        self.assertNotRegex(source, re.compile(r"^\s*import\s", re.MULTILINE))
+        self.assertNotRegex(source, r"\b(?:window|app|api)\b")
+        self.assertNotIn("fetch(", source)
+        self.assertNotIn("app.registerExtension", source)
+        self.assertNotRegex(
+            source,
+            re.compile(r"^(?:globalThis)\.[A-Za-z_$]", re.MULTILINE),
+        )
+
+        self.assertIn(
+            'import { aioCreateProfileSettingsRuntime } from '
+            '"./aio/profile_settings_runtime.js";',
+            entry_source,
+        )
+        self.assertIn(
+            "const generatorProfileRuntime = aioCreateProfileSettingsRuntime({",
+            entry_source,
+        )
+        factory_match = re.search(
+            r"const\s+generatorProfileRuntime\s*=\s*"
+            r"aioCreateProfileSettingsRuntime\(\{(?P<dependencies>.*?)\n\}\);",
+            entry_source,
+            re.DOTALL,
+        )
+        self.assertIsNotNone(factory_match)
+        runtime_dependencies = factory_match.group("dependencies")
+        for dependency in (
+            "document,",
+            "createDialog,",
+            "field,",
+            "text: aioText,",
+            "format: aioFormat,",
+            "profileApi: generatorProfileApi,",
+        ):
+            with self.subTest(dependency=dependency):
+                self.assertRegex(
+                    runtime_dependencies,
+                    rf"(?m)^  {re.escape(dependency)}$",
+                )
+
+        nested_dependencies = {
+            "dialogs": [
+                "prompt: (message, defaultValue) => window.prompt(message, defaultValue),",
+                "alert: (message) => window.alert(message),",
+                "confirm: (message) => window.confirm(message),",
+            ],
+            "profileCore": [
+                "customValue: GENERATOR_PROFILE_CUSTOM_VALUE,",
+                "builtinIds: aioBuiltinProfileIds,",
+                "builtinSettings: aioBuiltinProfileSettings,",
+                "fingerprint: aioProfileSettingsFingerprint,",
+                "userValue: aioUserProfileValue,",
+                "userName: aioUserProfileName,",
+                "findUser: aioFindUserProfileByName,",
+                "resolveValue: aioResolvedProfileValue,",
+            ],
+            "settingsCore": [
+                "defaultSettings: DEFAULT_GENERATION_SETTINGS,",
+                "mergeDefaults,",
+                "migratePostprocess: migrateGeneratorPostprocessSettings,",
+            ],
+            "nodeAdapter": [
+                "getSettings: generatorSettings,",
+                "applyVisibleSettings: applyVisibleGeneratorSettings,",
+                "writeSettings: writeGeneratorSettingsFromState,",
+                "renderPanel: renderGeneratorPanel,",
+                "refreshPanels: refreshGeneratorPanels,",
+                "markDirty: markNodeDirty,",
+            ],
+        }
+        for group_name, expected_lines in nested_dependencies.items():
+            with self.subTest(dependency_group=group_name):
+                group_match = re.search(
+                    rf"(?ms)^  {group_name}: \{{\n(?P<body>.*?)^  \}},$",
+                    runtime_dependencies,
+                )
+                self.assertIsNotNone(group_match)
+                self.assertEqual(
+                    [line.strip() for line in group_match.group("body").splitlines()],
+                    expected_lines,
+                )
+
+        self.assertIn(
+            "loadProfiles: loadGeneratorUserProfiles,",
+            entry_source,
+        )
+        self.assertIn("syncValue: syncGeneratorProfileValue,", entry_source)
+        self.assertIn("displayLabel: generatorProfileDisplayLabel,", entry_source)
+        self.assertIn("open: openGeneratorProfileSettings,", entry_source)
+
+        for local_function in (
+            "generatorProfileErrorMessage",
+            "generatorUserProfileByName",
+            "loadGeneratorUserProfiles",
+            "postGeneratorProfile",
+            "loadGeneratorUserProfile",
+            "applyGeneratorProfileSettings",
+            "applyGeneratorProfile",
+            "saveGeneratorUserProfile",
+            "renameGeneratorUserProfile",
+            "deleteGeneratorUserProfile",
+            "resolvedGeneratorProfileValue",
+            "syncGeneratorProfileValue",
+            "generatorProfileDisplayLabel",
+            "openGeneratorProfileSettings",
+        ):
+            with self.subTest(local_function=local_function):
+                self.assertNotRegex(
+                    entry_source,
+                    rf"\bfunction\s+{local_function}\(",
+                )
+
+        setup_start = entry_source.index("  async setup() {")
+        setup_end = entry_source.index("\n  async beforeRegisterNodeDef", setup_start)
+        setup_body = entry_source[setup_start:setup_end]
+        self.assertEqual(setup_body.count("loadGeneratorUserProfiles()"), 1)
+        self.assertIn(".then(refreshGeneratorPanels)", setup_body)
+        self.assertNotIn("__easyuseAnimaGeneratorProfileValue", source[source.index("return {"):])
+
+        self.assertTrue(AIO_PROFILE_SETTINGS_RUNTIME_SMOKE.is_file())
+        self.assertIn(
+            r'node "tests\frontend_aio_profile_settings_runtime_smoke.mjs"',
             frontend_check_source,
         )
 
