@@ -16,6 +16,10 @@ SETTINGS_DEFINITION_DATA = ROOT / "web" / "js" / "settings" / "definition_data.j
 SETTINGS_DEFINITION_DATA_SMOKE = (
     ROOT / "tests" / "frontend_settings_definition_data_smoke.mjs"
 )
+SETTINGS_DEFINITIONS = ROOT / "web" / "js" / "settings" / "definitions.js"
+SETTINGS_DEFINITIONS_SMOKE = (
+    ROOT / "tests" / "frontend_settings_definitions_smoke.mjs"
+)
 SETTINGS_LONG_TEXT_EDITOR = (
     ROOT / "web" / "js" / "settings" / "long_text_editor.js"
 )
@@ -176,6 +180,7 @@ class SettingsFrontendTests(unittest.TestCase):
     def test_color_editor_module_boundary(self):
         module_source = SETTINGS_COLOR_EDITOR.read_text(encoding="utf-8")
         entry_source = SETTINGS_ENTRY.read_text(encoding="utf-8")
+        definitions_source = SETTINGS_DEFINITIONS.read_text(encoding="utf-8")
         config = json.loads(JSCONFIG.read_text(encoding="utf-8"))
         frontend_check_source = FRONTEND_CHECK_SCRIPT.read_text(encoding="utf-8")
 
@@ -259,7 +264,7 @@ class SettingsFrontendTests(unittest.TestCase):
         setting_match = re.search(
             r'customSetting\(\{\s*id:\s*"EasyUseAnima\.Prompt\.HighlightColors",'
             r"(?P<body>.*?)\}\),",
-            entry_source,
+            definitions_source,
             re.DOTALL,
         )
         self.assertIsNotNone(setting_match)
@@ -295,6 +300,7 @@ class SettingsFrontendTests(unittest.TestCase):
     def test_wildcard_path_editor_module_boundary(self):
         module_source = SETTINGS_WILDCARD_PATH_EDITOR.read_text(encoding="utf-8")
         entry_source = SETTINGS_ENTRY.read_text(encoding="utf-8")
+        definitions_source = SETTINGS_DEFINITIONS.read_text(encoding="utf-8")
         config = json.loads(JSCONFIG.read_text(encoding="utf-8"))
         frontend_check_source = FRONTEND_CHECK_SCRIPT.read_text(encoding="utf-8")
 
@@ -369,7 +375,7 @@ class SettingsFrontendTests(unittest.TestCase):
         setting_match = re.search(
             r'customSetting\(\{\s*id:\s*"EasyUseAnima\.Wildcard\.ExtraPaths",'
             r"(?P<body>.*?)\}\),",
-            entry_source,
+            definitions_source,
             re.DOTALL,
         )
         self.assertIsNotNone(setting_match)
@@ -403,6 +409,7 @@ class SettingsFrontendTests(unittest.TestCase):
     def test_resolution_editors_module_boundary(self):
         module_source = SETTINGS_RESOLUTION_EDITORS.read_text(encoding="utf-8")
         entry_source = SETTINGS_ENTRY.read_text(encoding="utf-8")
+        definitions_source = SETTINGS_DEFINITIONS.read_text(encoding="utf-8")
         config = json.loads(JSCONFIG.read_text(encoding="utf-8"))
         frontend_check_source = FRONTEND_CHECK_SCRIPT.read_text(encoding="utf-8")
 
@@ -495,7 +502,7 @@ class SettingsFrontendTests(unittest.TestCase):
                 setting_match = re.search(
                     rf'customSetting\(\{{\s*id:\s*"{re.escape(setting_id)}",'
                     r"(?P<body>.*?)\}\),",
-                    entry_source,
+                    definitions_source,
                     re.DOTALL,
                 )
                 self.assertIsNotNone(setting_match)
@@ -626,6 +633,134 @@ class SettingsFrontendTests(unittest.TestCase):
         if completed.returncode != 0:
             self.fail((completed.stdout + completed.stderr).strip())
 
+    def test_definitions_module_boundary(self):
+        module_source = SETTINGS_DEFINITIONS.read_text(encoding="utf-8")
+        entry_source = SETTINGS_ENTRY.read_text(encoding="utf-8")
+        config = json.loads(JSCONFIG.read_text(encoding="utf-8"))
+        frontend_check_source = FRONTEND_CHECK_SCRIPT.read_text(encoding="utf-8")
+
+        self.assertEqual(module_source.splitlines()[0], "// @ts-check")
+        self.assertEqual(
+            re.findall(
+                r"^export\s+(?:const|function|class)\s+([A-Za-z0-9_]+)",
+                module_source,
+                re.MULTILINE,
+            ),
+            ["createEasyUseAnimaSettings"],
+        )
+        module_import = re.search(
+            r'^import\s*\{(?P<names>[^}]*)\}\s*from\s*"\./definition_data\.js";',
+            module_source,
+            re.MULTILINE,
+        )
+        self.assertIsNotNone(module_import)
+        self.assertEqual(
+            {
+                name.strip().rstrip(",")
+                for name in module_import.group("names").splitlines()
+                if name.strip()
+            },
+            {
+                "LONG_TEXT_FIELD_GROUPS",
+                "NAIA_PREPROCESSING_OPTIONS",
+                "NAIA_RESOLUTION_BUCKET_OPTIONS",
+                "ROOT_CATEGORY",
+            },
+        )
+        self.assertNotRegex(
+            module_source,
+            (
+                r"\b(?:document|window|app|api|fetch|registerExtension|"
+                r"CustomEvent|localStorage|addEventListener|removeEventListener)\b"
+            ),
+        )
+
+        self.assertIn(
+            'import { createEasyUseAnimaSettings } from '
+            '"./settings/definitions.js";',
+            entry_source,
+        )
+        factory_match = re.search(
+            r"const\s+EASYUSE_ANIMA_SETTINGS\s*=\s*"
+            r"createEasyUseAnimaSettings\(\{(?P<dependencies>.*?)\}\);",
+            entry_source,
+            re.DOTALL,
+        )
+        self.assertIsNotNone(factory_match)
+        self.assertEqual(
+            {
+                line.strip().rstrip(",")
+                for line in factory_match.group("dependencies").splitlines()
+                if line.strip()
+            },
+            {
+                "text: t",
+                "localeLabel: label",
+                "updateInternalSetting",
+                "createLongTextEditorButton",
+                "createPromptStudioColorEditorButton",
+                "createWildcardExtraPathsEditor",
+                "createNaiaResolutionModeEditor",
+                "createNaiaResolutionScaleEditor",
+            },
+        )
+        self.assertEqual(entry_source.count("createEasyUseAnimaSettings("), 1)
+
+        for adapter in ("setting", "customSetting"):
+            with self.subTest(adapter=adapter):
+                self.assertNotRegex(
+                    entry_source,
+                    rf"function\s+{re.escape(adapter)}\(",
+                )
+                self.assertRegex(
+                    module_source,
+                    rf"function\s+{re.escape(adapter)}\(",
+                )
+        self.assertNotIn("const EASYUSE_ANIMA_SETTINGS = [", entry_source)
+        self.assertIn("return [", module_source)
+        self.assertNotIn("addSettingsFallback", module_source)
+        self.assertNotIn("app.registerExtension", module_source)
+
+        self.assertRegex(entry_source, r"function\s+addSettingsFallback\(")
+        self.assertIn(
+            "for (const item of EASYUSE_ANIMA_SETTINGS)",
+            entry_source,
+        )
+        self.assertIn(
+            "addSetting.call(app.ui.settings, item)",
+            entry_source,
+        )
+        self.assertEqual(entry_source.count("app.registerExtension("), 1)
+        self.assertRegex(
+            entry_source,
+            r"app\.registerExtension\(\{\s*"
+            r'name:\s*"easyuse-anima\.settings",\s*'
+            r"settings:\s*EASYUSE_ANIMA_SETTINGS,",
+        )
+
+        self.assertTrue(SETTINGS_DEFINITIONS_SMOKE.is_file())
+        self.assertIn("web/js/settings/**/*.js", config["include"])
+        self.assertIn(
+            r'node "tests\frontend_settings_definitions_smoke.mjs"',
+            frontend_check_source,
+        )
+
+    def test_definitions_module_semantics(self):
+        node_bin = shutil.which("node")
+        if not node_bin:
+            self.skipTest("node executable is not available")
+
+        completed = subprocess.run(
+            [node_bin, str(SETTINGS_DEFINITIONS_SMOKE)],
+            cwd=ROOT,
+            text=True,
+            capture_output=True,
+            check=False,
+        )
+
+        if completed.returncode != 0:
+            self.fail((completed.stdout + completed.stderr).strip())
+
     def test_definition_data_module_boundary(self):
         module_source = SETTINGS_DEFINITION_DATA.read_text(encoding="utf-8")
         entry_source = SETTINGS_ENTRY.read_text(encoding="utf-8")
@@ -646,22 +781,11 @@ class SettingsFrontendTests(unittest.TestCase):
             "parseWildcardExtraPathItems",
             "serializeWildcardExtraPathItems",
         }
-        resolution_imports = {
-            "NAIA_RESOLUTION_MODE_BUCKET",
-            "NAIA_RESOLUTION_MODE_SCALE",
-            "normalizeNaiaResolutionModeValue",
-            "normalizeNaiaResolutionScaleValue",
+        expected_entry_imports = {
+            "INTERNAL_KEYS",
+            "LONG_TEXT_FIELD_GROUPS",
+            "normalizeValue",
         }
-        wildcard_imports = {
-            "parseWildcardExtraPathItems",
-            "serializeWildcardExtraPathItems",
-        }
-        expected_imports = (
-            expected_exports
-            - {"LONG_TEXT_FIELDS"}
-            - resolution_imports
-            - wildcard_imports
-        )
 
         exported_names = set(
             re.findall(
@@ -683,7 +807,7 @@ class SettingsFrontendTests(unittest.TestCase):
             for name in import_match.group("names").splitlines()
             if name.strip()
         }
-        self.assertEqual(imported_names, expected_imports)
+        self.assertEqual(imported_names, expected_entry_imports)
 
         self.assertEqual(module_source.splitlines()[0], "// @ts-check")
         self.assertNotRegex(module_source, re.compile(r"^\s*import\b", re.MULTILINE))
@@ -707,17 +831,11 @@ class SettingsFrontendTests(unittest.TestCase):
             entry_source,
         )
 
-        for adapter in (
-            "setting",
-            "customSetting",
-            "addSettingsFallback",
-        ):
-            with self.subTest(entry_adapter=adapter):
-                self.assertRegex(
-                    entry_source,
-                    rf"(?:async\s+)?function\s+{re.escape(adapter)}\(",
-                )
-        self.assertIn("const EASYUSE_ANIMA_SETTINGS = [", entry_source)
+        self.assertRegex(entry_source, r"function\s+addSettingsFallback\(")
+        self.assertIn(
+            "const EASYUSE_ANIMA_SETTINGS = createEasyUseAnimaSettings({",
+            entry_source,
+        )
         self.assertEqual(entry_source.count("app.registerExtension("), 1)
 
         self.assertTrue(SETTINGS_DEFINITION_DATA_SMOKE.is_file())
