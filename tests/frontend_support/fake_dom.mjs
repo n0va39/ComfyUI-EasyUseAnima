@@ -51,22 +51,30 @@ class FakeStyle {
     this.background = "";
     this.borderColor = "";
     this.values = new Map();
+    this.priorities = new Map();
   }
 
-  setProperty(name, value) {
+  setProperty(name, value, priority = "") {
+    const key = String(name);
     const text = String(value);
-    this.values.set(String(name), text);
-    this[name] = text;
+    this.values.set(key, text);
+    this.priorities.set(key, String(priority || ""));
+    this[key] = text;
   }
 
   getPropertyValue(name) {
     return this.values.get(String(name)) ?? this[name] ?? "";
   }
 
+  getPropertyPriority(name) {
+    return this.priorities.get(String(name)) ?? "";
+  }
+
   removeProperty(name) {
     const key = String(name);
     const previous = this.getPropertyValue(key);
     this.values.delete(key);
+    this.priorities.delete(key);
     delete this[key];
     return previous;
   }
@@ -78,15 +86,44 @@ function matchesSelector(element, selector) {
     if (!expected) {
       return false;
     }
-    if (expected.startsWith(".")) {
-      return element.classList.contains(expected.slice(1));
+    const attributes = [];
+    const withoutAttributes = expected.replace(
+      /\[([A-Za-z0-9_:-]+)(?:(\$?=)"([^"]*)")?\]/g,
+      (_match, name, operator, value) => {
+        attributes.push({ name, operator: operator || "", value: value ?? "" });
+        return "";
+      },
+    );
+    if (withoutAttributes.includes("[") || withoutAttributes.includes("]")) {
+      return false;
     }
-    const attribute = expected.match(/^\[([^=\]]+)(?:="([^"]*)")?\]$/);
-    if (attribute) {
-      const actual = element.getAttribute(attribute[1]);
-      return actual != null && (attribute[2] == null || actual === attribute[2]);
+    const tagMatch = withoutAttributes.match(/^[A-Za-z][A-Za-z0-9-]*/);
+    const tagName = tagMatch?.[0] || "";
+    if (tagName && element.tagName !== tagName.toUpperCase()) {
+      return false;
     }
-    return element.tagName === expected.toUpperCase();
+    const classNames = [...withoutAttributes.matchAll(/\.([A-Za-z0-9_-]+)/g)]
+      .map((match) => match[1]);
+    if (classNames.some((name) => !element.classList.contains(name))) {
+      return false;
+    }
+    const remainder = withoutAttributes
+      .slice(tagName.length)
+      .replace(/\.[A-Za-z0-9_-]+/g, "")
+      .trim();
+    if (remainder) {
+      return false;
+    }
+    return attributes.every(({ name, operator, value }) => {
+      const actual = element.getAttribute(name);
+      if (actual == null) {
+        return false;
+      }
+      if (!operator) {
+        return true;
+      }
+      return operator === "$=" ? actual.endsWith(value) : actual === value;
+    });
   });
 }
 
@@ -190,6 +227,14 @@ class FakeElement {
     return descendants(this).filter((element) => matchesSelector(element, selector));
   }
 
+  matches(selector) {
+    return matchesSelector(this, selector);
+  }
+
+  contains(element) {
+    return element === this || descendants(this).includes(element);
+  }
+
   closest(selector) {
     let current = this;
     while (current) {
@@ -256,6 +301,10 @@ class FakeDocument {
     element.textContent = String(value);
     this.createdElements.push(element);
     return element;
+  }
+
+  querySelectorAll(selector) {
+    return this.body.querySelectorAll(selector);
   }
 
   addEventListener(type, handler, capture = false) {

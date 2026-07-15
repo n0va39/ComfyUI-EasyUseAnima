@@ -47,6 +47,10 @@ AIO_GENERATOR_PANEL_RUNTIME_JS = AIO_MODULES / "generator_panel_runtime.js"
 AIO_GENERATOR_PANEL_RUNTIME_SMOKE = (
     ROOT / "tests" / "frontend_aio_generator_panel_runtime_smoke.mjs"
 )
+AIO_NATIVE_PREVIEW_RUNTIME_JS = AIO_MODULES / "native_preview_runtime.js"
+AIO_NATIVE_PREVIEW_RUNTIME_SMOKE = (
+    ROOT / "tests" / "frontend_aio_native_preview_runtime_smoke.mjs"
+)
 AIO_STAGE_SETTINGS_DIALOGS_JS = AIO_MODULES / "stage_settings_dialogs.js"
 AIO_STAGE_SETTINGS_DIALOGS_SMOKE = (
     ROOT / "tests" / "frontend_aio_stage_settings_dialogs_smoke.mjs"
@@ -507,7 +511,6 @@ class FrontendModuleStructureTests(unittest.TestCase):
             "syncGeneratorSerializedWidgets",
             "installGeneratorWheelForwarder",
             "installGeneratorQueuePromptHook",
-            "suppressGeneratorDefaultPreview",
             "hookGeneratorNode",
         ):
             with self.subTest(entry_owned_function=entry_owned_function):
@@ -531,6 +534,308 @@ class FrontendModuleStructureTests(unittest.TestCase):
         self.assertTrue(AIO_GENERATOR_PANEL_RUNTIME_SMOKE.is_file())
         self.assertIn(
             r'node "tests\frontend_aio_generator_panel_runtime_smoke.mjs"',
+            frontend_check_source,
+        )
+
+    def test_aio_native_preview_runtime_owns_dom_store_scheduler_and_event_lifecycle(self):
+        source = AIO_NATIVE_PREVIEW_RUNTIME_JS.read_text(encoding="utf-8")
+        entry_source = AIO_JS.read_text(encoding="utf-8")
+        panel_source = AIO_GENERATOR_PANEL_RUNTIME_JS.read_text(encoding="utf-8")
+        preview_source = AIO_PREVIEW_JS.read_text(encoding="utf-8")
+        frontend_check_source = FRONTEND_CHECK_SCRIPT.read_text(encoding="utf-8")
+
+        self.assertTrue(source.startswith("// @ts-check\n"))
+        self.assertEqual(STATIC_IMPORT_RE.findall(source), [])
+        self.assertNotRegex(source, re.compile(r"^\s*import\s", re.MULTILINE))
+        self.assertNotIn("fetch(", source)
+        self.assertNotIn("app.registerExtension", source)
+        self.assertNotIn("api.addEventListener", source)
+        self.assertNotIn("nodeType.prototype", source)
+        self.assertEqual(
+            re.findall(r"^export function ([A-Za-z0-9_]+)\(", source, re.MULTILINE),
+            ["aioCreateNativePreviewRuntime"],
+        )
+        self.assertEqual(len(re.findall(r"(?m)^export\s+", source)), 1)
+        self.assertIn(
+            'import { aioCreateNativePreviewRuntime } from '
+            '"./aio/native_preview_runtime.js";',
+            entry_source,
+        )
+
+        moved_functions = {
+            "cssEscape",
+            "generatorVueNodeRoots",
+            "generatorNativePreviewRootMatchesNode",
+            "addGeneratorPreviewLocatorCandidate",
+            "generatorPreviewLocatorCandidates",
+            "hideGeneratorNativeLivePreviewElement",
+            "isGeneratorNativeDimensionLabel",
+            "hideGeneratorComfyOutputPreviewElements",
+            "hideGeneratorNativeLivePreviewElements",
+            "markGeneratorNativeLivePreviewHidden",
+            "generatorDialogServiceAssetUrl",
+            "generatorNativePreviewStores",
+            "purgeGeneratorNativeLivePreviewStore",
+            "scheduleGeneratorNativeLivePreviewPurge",
+            "stopGeneratorNativeLivePreviewObserver",
+            "ensureGeneratorNativeLivePreviewObserver",
+            "scheduleGeneratorNativeLivePreviewHidden",
+            "suppressGeneratorDefaultPreview",
+            "scheduleGeneratorDefaultPreviewSuppression",
+            "findGeneratorNodeByQualifiedId",
+            "handleGeneratorPreviewEvent",
+            "findGeneratorNodeForDenoisePreview",
+            "handleGeneratorProgressEvent",
+            "handleGeneratorProgressStateEvent",
+            "handleGeneratorDenoisePreviewEvent",
+            "handleGeneratorExecutingEvent",
+            "clearGeneratorDenoisePreviews",
+        }
+        for moved_function in sorted(moved_functions):
+            with self.subTest(moved_function=moved_function):
+                self.assertRegex(source, rf"\bfunction\s+{moved_function}\(")
+                self.assertNotRegex(
+                    entry_source,
+                    rf"\bfunction\s+{moved_function}\(",
+                )
+
+        for moved_state in (
+            "generatorNativePreviewStoresPromise",
+            "generatorDialogServiceAssetUrlPromise",
+        ):
+            with self.subTest(moved_state=moved_state):
+                self.assertRegex(source, rf"\blet\s+{moved_state}\s*=")
+                self.assertNotRegex(entry_source, rf"\blet\s+{moved_state}\s*=")
+
+        expected_facades = {
+            "markGeneratorNativeLivePreviewHidden",
+            "suppressGeneratorDefaultPreview",
+            "scheduleGeneratorDefaultPreviewSuppression",
+            "handleGeneratorPreviewEvent",
+            "handleGeneratorProgressEvent",
+            "handleGeneratorProgressStateEvent",
+            "handleGeneratorDenoisePreviewEvent",
+            "handleGeneratorExecutingEvent",
+            "clearGeneratorDenoisePreviews",
+        }
+        return_match = re.search(
+            r"(?ms)^  return \{(?P<facades>[A-Za-z0-9_,\s]+)\};\s*\}\s*$",
+            source,
+        )
+        self.assertIsNotNone(return_match)
+        self.assertEqual(
+            set(re.findall(r"\b[A-Za-z_][A-Za-z0-9_]*\b", return_match.group("facades"))),
+            expected_facades,
+        )
+
+        composition_match = re.search(
+            r"const\s+\{(?P<facades>[A-Za-z0-9_,\s]+?)\}\s*=\s*"
+            r"aioCreateNativePreviewRuntime\(\{(?P<dependencies>.*?)\n\}\);",
+            entry_source,
+            re.DOTALL,
+        )
+        self.assertIsNotNone(composition_match)
+        self.assertEqual(
+            set(
+                re.findall(
+                    r"\b[A-Za-z_][A-Za-z0-9_]*\b",
+                    composition_match.group("facades"),
+                )
+            ),
+            expected_facades,
+        )
+
+        dependencies = composition_match.group("dependencies")
+        expected_dependency_groups = {
+            "environment": {
+                "document",
+                "window",
+                "MutationObserver",
+                "requestAnimationFrame",
+                "setTimeout",
+                "clearTimeout",
+            },
+            "constants": {
+                "generatorNodeType",
+                "generatorVueNodeClass",
+            },
+            "storeAdapter": {
+                "getLegacyPreviewImages",
+                "loadDirectStoreModules",
+                "fetchFrontendHtml",
+                "importAssetModule",
+            },
+            "previewCore": {
+                "deleteStoreEntry",
+                "eventDetail",
+                "images",
+                "nodeIdsFromDetail",
+                "suppressDefaultPreview",
+            },
+            "nodeAdapter": {
+                "getGraph",
+                "listGeneratorNodes",
+                "addPreviewImages",
+                "clearDenoisePreview",
+                "setDenoisePreview",
+                "markDirty",
+            },
+            "progressAdapter": {
+                "remember",
+                "rememberState",
+                "clear",
+            },
+        }
+        actual_dependency_groups = set(
+            re.findall(r"(?m)^  ([A-Za-z_][A-Za-z0-9_]*): \{$", dependencies)
+        )
+        self.assertEqual(actual_dependency_groups, set(expected_dependency_groups))
+        for group_name, expected_keys in expected_dependency_groups.items():
+            with self.subTest(dependency_group=group_name):
+                group_match = re.search(
+                    rf"(?ms)^  {group_name}: \{{\n(?P<body>.*?)^  \}},?$",
+                    dependencies,
+                )
+                self.assertIsNotNone(group_match)
+                actual_keys = set(
+                    re.findall(
+                        r"(?m)^    ([A-Za-z_][A-Za-z0-9_]*)(?:\s*:|,)",
+                        group_match.group("body"),
+                    )
+                )
+                self.assertEqual(actual_keys, expected_keys)
+
+        expected_adapter_values = {
+            "legacy preview store getter": (
+                r"getLegacyPreviewImages\s*:\s*\(\s*\)\s*=>\s*"
+                r"app\.nodePreviewImages"
+            ),
+            "entry-relative direct store imports": (
+                r"loadDirectStoreModules\s*:\s*\(\s*\)\s*=>\s*"
+                r"Promise\.all\(\s*\[\s*"
+                r'import\(\s*"\.\./\.\./\.\./stores/nodeOutputStore\.js"\s*\)\s*,\s*'
+                r'import\(\s*"\.\./\.\./\.\./platform/workflow/management/'
+                r'stores/workflowStore\.js"\s*\)\s*,?\s*'
+                r"\]\s*\)"
+            ),
+            "frontend HTML fetch": (
+                r"fetchFrontendHtml\s*:\s*\(\s*\)\s*=>\s*"
+                r'easyuseAnimaFetchText\(\s*"/"\s*\)'
+            ),
+            "lazy asset importer": (
+                r"importAssetModule\s*:\s*\(\s*url\s*\)\s*=>\s*"
+                r"import\(\s*url\s*\)"
+            ),
+            "live graph getter": (
+                r"getGraph\s*:\s*\(\s*\)\s*=>\s*app\.graph"
+            ),
+        }
+        for adapter_name, pattern in expected_adapter_values.items():
+            with self.subTest(composition_adapter_value=adapter_name):
+                self.assertRegex(dependencies, re.compile(pattern, re.DOTALL))
+
+        self.assertLess(
+            entry_source.index("const openAdvancedSettings"),
+            composition_match.start(),
+        )
+        self.assertLess(
+            composition_match.end(),
+            entry_source.index("const generatorPanelRuntime"),
+        )
+        self.assertLess(
+            entry_source.index("const generatorPanelRuntime"),
+            entry_source.index("function hookInputNode"),
+        )
+        self.assertIn(
+            "suppressDefaultPreview: suppressGeneratorDefaultPreview,",
+            entry_source,
+        )
+        self.assertIn(
+            "markNativePreviewHidden: markGeneratorNativeLivePreviewHidden,",
+            entry_source,
+        )
+        self.assertNotRegex(
+            panel_source,
+            r"\bfunction\s+(?:suppressGeneratorDefaultPreview|"
+            r"markGeneratorNativeLivePreviewHidden)\(",
+        )
+
+        suppress_match = re.search(
+            r"(?ms)^  function suppressGeneratorDefaultPreview\(node, options = \{\}\) \{"
+            r"(?P<body>.*?)^  \}",
+            source,
+        )
+        self.assertIsNotNone(suppress_match)
+        suppress_body = suppress_match.group("body")
+        self.assertIn("aioSuppressDefaultPreview(node, {", suppress_body)
+        self.assertIn("markDirty: options.markDirty", suppress_body)
+        self.assertIn("markNodeDirty,", suppress_body)
+        self.assertNotIn('Object.defineProperty(node, "imgs"', suppress_body)
+        self.assertIn(
+            'Object.defineProperty(node, "imgs"',
+            preview_source,
+        )
+        self.assertNotRegex(preview_source, r"\b(?:document|window|app)\b")
+
+        for entry_owned_function in (
+            "generatorGraphNodes",
+            "clearGeneratorDenoisePreview",
+            "setGeneratorDenoisePreview",
+            "addGeneratorPreviewImagesToNode",
+            "updateGeneratorExecutedStatus",
+            "hookGeneratorNode",
+        ):
+            with self.subTest(entry_owned_function=entry_owned_function):
+                self.assertRegex(
+                    entry_source,
+                    rf"\bfunction\s+{entry_owned_function}\(",
+                )
+                self.assertNotRegex(
+                    source,
+                    rf"\bfunction\s+{entry_owned_function}\(",
+                )
+
+        for progress_facade in (
+            "rememberGeneratorProgress",
+            "rememberGeneratorProgressState",
+            "generatorProgressForPreviewDetail",
+            "clearGeneratorPreviewProgress",
+        ):
+            with self.subTest(entry_owned_progress_facade=progress_facade):
+                self.assertIn(progress_facade, entry_source)
+                self.assertNotRegex(
+                    source,
+                    rf"\b(?:const|let|function)\s+{progress_facade}\b",
+                )
+
+        self.assertIn("app.registerExtension({", entry_source)
+        for listener_registration in (
+            "api.addEventListener(GENERATOR_PREVIEW_EVENT, handleGeneratorPreviewEvent);",
+            'api.addEventListener("progress", handleGeneratorProgressEvent);',
+            'api.addEventListener("progress_state", handleGeneratorProgressStateEvent);',
+            'api.addEventListener("b_preview_with_metadata", '
+            "handleGeneratorDenoisePreviewEvent, true);",
+            'api.addEventListener("executing", handleGeneratorExecutingEvent);',
+            'api.addEventListener("execution_error", clearGeneratorDenoisePreviews);',
+            'api.addEventListener("execution_interrupted", clearGeneratorDenoisePreviews);',
+            'api.addEventListener("execution_success", clearGeneratorDenoisePreviews);',
+        ):
+            with self.subTest(entry_owned_listener_registration=listener_registration):
+                self.assertIn(listener_registration, entry_source)
+        for prototype_hook in (
+            "onNodeCreated",
+            "onConfigure",
+            "onSerialize",
+            "onExecuted",
+            "onResize",
+        ):
+            with self.subTest(entry_owned_prototype_hook=prototype_hook):
+                self.assertIn(f"nodeType.prototype.{prototype_hook}", entry_source)
+                self.assertNotIn(f"nodeType.prototype.{prototype_hook}", source)
+
+        self.assertTrue(AIO_NATIVE_PREVIEW_RUNTIME_SMOKE.is_file())
+        self.assertIn(
+            r'node "tests\frontend_aio_native_preview_runtime_smoke.mjs"',
             frontend_check_source,
         )
 
@@ -1050,18 +1355,6 @@ class FrontendModuleStructureTests(unittest.TestCase):
         ):
             with self.subTest(local_function=local_function):
                 self.assertNotIn(f"function {local_function}(", entry_source)
-
-        suppress_start = entry_source.index(
-            "function suppressGeneratorDefaultPreview(node, options = {})"
-        )
-        suppress_end = entry_source.index(
-            "\nfunction scheduleGeneratorDefaultPreviewSuppression", suppress_start
-        )
-        suppress_body = entry_source[suppress_start:suppress_end]
-        self.assertIn("return aioSuppressDefaultPreview(node, {", suppress_body)
-        self.assertIn("markDirty: options.markDirty", suppress_body)
-        self.assertIn("markNodeDirty,", suppress_body)
-        self.assertNotIn('Object.defineProperty(node, "imgs"', suppress_body)
 
         self.assertTrue(AIO_PREVIEW_CORE_SMOKE.is_file())
         self.assertIn(
@@ -2615,6 +2908,10 @@ class FrontendModuleStructureTests(unittest.TestCase):
         )
         self.assertIn(
             r'& node "tests\frontend_aio_preview_core_smoke.mjs"', source
+        )
+        self.assertIn(
+            r'& node "tests\frontend_aio_native_preview_runtime_smoke.mjs"',
+            source,
         )
         self.assertIn(
             r'& node "tests\frontend_aio_settings_core_smoke.mjs"', source

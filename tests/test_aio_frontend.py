@@ -18,6 +18,9 @@ AIO_PROFILE_SETTINGS_RUNTIME_JS = (
 AIO_GENERATOR_PANEL_RUNTIME_JS = (
     ROOT / "web" / "js" / "aio" / "generator_panel_runtime.js"
 )
+AIO_NATIVE_PREVIEW_RUNTIME_JS = (
+    ROOT / "web" / "js" / "aio" / "native_preview_runtime.js"
+)
 AIO_STAGE_SETTINGS_DIALOGS_JS = (
     ROOT / "web" / "js" / "aio" / "stage_settings_dialogs.js"
 )
@@ -198,6 +201,9 @@ class AIOFrontendSourceTests(unittest.TestCase):
 
     def test_generator_keeps_native_output_preview_suppressed_after_execution(self):
         source = AIO_JS.read_text(encoding="utf-8")
+        native_preview_source = AIO_NATIVE_PREVIEW_RUNTIME_JS.read_text(
+            encoding="utf-8"
+        )
         preview_source = AIO_PREVIEW_JS.read_text(encoding="utf-8")
         registration_start = source.index("async beforeRegisterNodeDef")
         generator_block = source[source.index("if (nodeData.name === GENERATOR_NODE_TYPE)", registration_start):]
@@ -206,13 +212,26 @@ class AIOFrontendSourceTests(unittest.TestCase):
         body = generator_block[start:end]
 
         self.assertIn("nodeType.prototype.hideOutputImages = true", source)
-        self.assertIn("module?.useNodeOutputStore || module?.cn || module?.L", source)
-        self.assertIn("outputStore.revokePreviewsByLocatorId?.(locator);", source)
-        self.assertIn("aioDeletePreviewStoreEntry(app.nodePreviewImages, id);", source)
-        self.assertIn("aioDeletePreviewStoreEntry(outputStore.nodePreviewImages, locator);", source)
+        self.assertIn(
+            "module?.useNodeOutputStore || module?.cn || module?.L",
+            native_preview_source,
+        )
+        self.assertIn(
+            "outputStore.revokePreviewsByLocatorId?.(locator);",
+            native_preview_source,
+        )
+        self.assertIn("getLegacyPreviewImages: () => app.nodePreviewImages", source)
+        self.assertIn(
+            "aioDeletePreviewStoreEntry(legacyPreviewImages, id);",
+            native_preview_source,
+        )
+        self.assertIn(
+            "aioDeletePreviewStoreEntry(outputStore.nodePreviewImages, locator);",
+            native_preview_source,
+        )
         self.assertIn('Object.defineProperty(node, "imgs"', preview_source)
         self.assertIn("lockLegacyCanvasPreview(node);", preview_source)
-        self.assertIn("aioSuppressDefaultPreview", source)
+        self.assertIn("aioSuppressDefaultPreview", native_preview_source)
         self.assertIn(".lg-node:has(.easyuse-anima-aio-node-panel) .text-node-component-header-text", source)
         self.assertIn(".lg-node:has(.easyuse-anima-aio-node-panel) .pt-2.text-center.text-xs.text-base-foreground", source)
         self.assertIn("scheduleGeneratorDefaultPreviewSuppression(this);", body)
