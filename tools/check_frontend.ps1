@@ -64,6 +64,11 @@ try {
         throw "Frontend AiO stage settings dialogs smoke failed with exit code $LASTEXITCODE."
     }
 
+    & node "tests\frontend_aio_detailer_settings_dialog_smoke.mjs"
+    if ($LASTEXITCODE -ne 0) {
+        throw "Frontend AiO Detailer settings dialog smoke failed with exit code $LASTEXITCODE."
+    }
+
     & node "tests\frontend_aio_dependency_core_smoke.mjs"
     if ($LASTEXITCODE -ne 0) {
         throw "Frontend AiO dependency core smoke failed with exit code $LASTEXITCODE."

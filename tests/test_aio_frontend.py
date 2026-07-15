@@ -21,6 +21,9 @@ AIO_GENERATOR_PANEL_RUNTIME_JS = (
 AIO_STAGE_SETTINGS_DIALOGS_JS = (
     ROOT / "web" / "js" / "aio" / "stage_settings_dialogs.js"
 )
+AIO_DETAILER_SETTINGS_DIALOG_JS = (
+    ROOT / "web" / "js" / "aio" / "detailer_settings_dialog.js"
+)
 AIO_PREVIEW_JS = ROOT / "web" / "js" / "aio" / "preview.js"
 AIO_SETTINGS_JS = ROOT / "web" / "js" / "aio" / "settings.js"
 AIO_WHEEL_JS = ROOT / "web" / "js" / "aio" / "wheel.js"
@@ -221,9 +224,9 @@ class AIOFrontendSourceTests(unittest.TestCase):
         self.assertIn("aioPreviewFileSize(currentImage)", meta_parts)
 
     def test_detailer_target_editor_builds_optimization_before_visibility_refresh(self):
-        source = AIO_JS.read_text(encoding="utf-8")
+        source = AIO_DETAILER_SETTINGS_DIALOG_JS.read_text(encoding="utf-8")
         start = source.index("function createDetailerTargetEditor")
-        end = source.index("\nfunction openDetailerSettings", start)
+        end = source.index("\n  function openDetailerSettings", start)
         body = source[start:end]
 
         self.assertLess(
@@ -384,9 +387,9 @@ class AIOFrontendSourceTests(unittest.TestCase):
         self.assertIn('"Save prompt metadata": "tip.savePromptMetadata"', source)
 
     def test_detailer_settings_support_custom_blocks(self):
-        source = AIO_JS.read_text(encoding="utf-8")
+        source = AIO_DETAILER_SETTINGS_DIALOG_JS.read_text(encoding="utf-8")
         start = source.index("function openDetailerSettings")
-        end = source.index("\nfunction normalizeImageSaverHashBundles", start)
+        end = source.index("\n\n  return openDetailerSettings", start)
         body = source[start:end]
 
         self.assertIn('addBlock.textContent = aioText("button.addDetailerBlock");', body)
