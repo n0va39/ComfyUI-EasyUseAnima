@@ -8,6 +8,10 @@ import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
 SETTINGS_ENTRY = ROOT / "web" / "js" / "easyuse_anima_settings.js"
+SETTINGS_COLOR_EDITOR = ROOT / "web" / "js" / "settings" / "color_editor.js"
+SETTINGS_COLOR_EDITOR_SMOKE = (
+    ROOT / "tests" / "frontend_settings_color_editor_smoke.mjs"
+)
 SETTINGS_DEFINITION_DATA = ROOT / "web" / "js" / "settings" / "definition_data.js"
 SETTINGS_DEFINITION_DATA_SMOKE = (
     ROOT / "tests" / "frontend_settings_definition_data_smoke.mjs"
@@ -35,6 +39,127 @@ FRONTEND_CHECK_SCRIPT = ROOT / "tools" / "check_frontend.ps1"
 
 
 class SettingsFrontendTests(unittest.TestCase):
+    def test_color_editor_module_boundary(self):
+        module_source = SETTINGS_COLOR_EDITOR.read_text(encoding="utf-8")
+        entry_source = SETTINGS_ENTRY.read_text(encoding="utf-8")
+        config = json.loads(JSCONFIG.read_text(encoding="utf-8"))
+        frontend_check_source = FRONTEND_CHECK_SCRIPT.read_text(encoding="utf-8")
+
+        self.assertEqual(module_source.splitlines()[0], "// @ts-check")
+        self.assertEqual(
+            re.findall(
+                r"^export\s+(?:const|function|class)\s+([A-Za-z0-9_]+)",
+                module_source,
+                re.MULTILINE,
+            ),
+            ["createPromptStudioColorEditorButtonFactory"],
+        )
+        self.assertNotRegex(
+            module_source,
+            re.compile(r"^\s*import\b", re.MULTILINE),
+        )
+        self.assertNotRegex(
+            module_source,
+            r"\b(?:window|app|api|fetch|registerExtension|CustomEvent|localStorage)\b",
+        )
+
+        self.assertIn(
+            'import { createPromptStudioColorEditorButtonFactory } from '
+            '"./settings/color_editor.js";',
+            entry_source,
+        )
+        factory_match = re.search(
+            r"const\s+createPromptStudioColorEditorButton\s*=\s*"
+            r"createPromptStudioColorEditorButtonFactory"
+            r"\(\{(?P<dependencies>.*?)\}\);",
+            entry_source,
+            re.DOTALL,
+        )
+        self.assertIsNotNone(factory_match)
+        self.assertEqual(
+            {
+                line.strip().rstrip(",")
+                for line in factory_match.group("dependencies").splitlines()
+                if line.strip()
+            },
+            {
+                "document",
+                "text: t",
+                "label",
+                "tip",
+                "readInternalSetting",
+                "updateInternalSetting",
+            },
+        )
+
+        for moved_name in (
+            "PROMPT_STUDIO_COLORS",
+            "PROMPT_STUDIO_COLOR_GROUPS",
+            "activePromptStudioColorEditor",
+            "parseColors",
+            "promptStudioColorSettingValue",
+            "serializePromptStudioColors",
+            "persistPromptStudioColorSettings",
+            "openPromptStudioColorEditor",
+            "closePromptStudioColorEditor",
+        ):
+            with self.subTest(moved_name=moved_name):
+                self.assertNotRegex(
+                    entry_source,
+                    rf"\b(?:const|let|var|function|class)\s+{re.escape(moved_name)}\b",
+                )
+                self.assertIn(moved_name, module_source)
+        self.assertNotRegex(
+            entry_source,
+            r"function\s+createPromptStudioColorEditorButton\b",
+        )
+        self.assertIn(
+            "function createPromptStudioColorEditorButton(_name, setter, value)",
+            module_source,
+        )
+        self.assertNotIn("easyuse-anima-prompt-color-overlay", entry_source)
+        self.assertNotIn("easyuse-anima-prompt-color-panel", entry_source)
+        self.assertIn("easyuse-anima-prompt-color-overlay", module_source)
+        self.assertIn("easyuse-anima-prompt-color-panel", module_source)
+
+        setting_match = re.search(
+            r'customSetting\(\{\s*id:\s*"EasyUseAnima\.Prompt\.HighlightColors",'
+            r"(?P<body>.*?)\}\),",
+            entry_source,
+            re.DOTALL,
+        )
+        self.assertIsNotNone(setting_match)
+        self.assertIn(
+            "render: createPromptStudioColorEditorButton,",
+            setting_match.group("body"),
+        )
+        self.assertRegex(entry_source, r"function\s+label\(")
+        self.assertRegex(entry_source, r"function\s+tip\(")
+        self.assertRegex(entry_source, r"function\s+readInternalSetting\(")
+        self.assertRegex(entry_source, r"function\s+updateInternalSetting\(")
+        self.assertTrue(SETTINGS_COLOR_EDITOR_SMOKE.is_file())
+        self.assertIn("web/js/settings/**/*.js", config["include"])
+        self.assertIn(
+            r'node "tests\frontend_settings_color_editor_smoke.mjs"',
+            frontend_check_source,
+        )
+
+    def test_color_editor_module_semantics(self):
+        node_bin = shutil.which("node")
+        if not node_bin:
+            self.skipTest("node executable is not available")
+
+        completed = subprocess.run(
+            [node_bin, str(SETTINGS_COLOR_EDITOR_SMOKE)],
+            cwd=ROOT,
+            text=True,
+            capture_output=True,
+            check=False,
+        )
+
+        if completed.returncode != 0:
+            self.fail((completed.stdout + completed.stderr).strip())
+
     def test_wildcard_path_editor_module_boundary(self):
         module_source = SETTINGS_WILDCARD_PATH_EDITOR.read_text(encoding="utf-8")
         entry_source = SETTINGS_ENTRY.read_text(encoding="utf-8")
@@ -473,7 +598,6 @@ class SettingsFrontendTests(unittest.TestCase):
             "updateInternalSetting",
             "loadLongTextSettings",
             "saveLongTextSettings",
-            "createPromptStudioColorEditorButton",
             "setting",
             "customSetting",
             "loadInitialSettings",

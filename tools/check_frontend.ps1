@@ -134,6 +134,11 @@ try {
         throw "Frontend settings wildcard path editor smoke failed with exit code $LASTEXITCODE."
     }
 
+    & node "tests\frontend_settings_color_editor_smoke.mjs"
+    if ($LASTEXITCODE -ne 0) {
+        throw "Frontend settings color editor smoke failed with exit code $LASTEXITCODE."
+    }
+
     & node "tests\frontend_settings_definition_data_smoke.mjs"
     if ($LASTEXITCODE -ne 0) {
         throw "Frontend settings definition data smoke failed with exit code $LASTEXITCODE."
