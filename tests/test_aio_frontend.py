@@ -14,6 +14,9 @@ AIO_SETTINGS_JS = ROOT / "web" / "js" / "aio" / "settings.js"
 AIO_WHEEL_JS = ROOT / "web" / "js" / "aio" / "wheel.js"
 AIO_PRESETS_JS = ROOT / "web" / "js" / "aio" / "presets.js"
 AUTOCOMPLETE_JS = ROOT / "web" / "js" / "easyuse_anima_autocomplete.js"
+AUTOCOMPLETE_DATA_ADAPTER_JS = (
+    ROOT / "web" / "js" / "autocomplete" / "data_adapter.js"
+)
 AUTOCOMPLETE_TEXT_MODEL_JS = (
     ROOT / "web" / "js" / "autocomplete" / "text_model.js"
 )
@@ -576,6 +579,7 @@ class AIOFrontendSourceTests(unittest.TestCase):
 
     def test_autocomplete_wildcards_accept_empty_and_unicode_queries(self):
         source = AUTOCOMPLETE_JS.read_text(encoding="utf-8")
+        data_adapter_source = AUTOCOMPLETE_DATA_ADAPTER_JS.read_text(encoding="utf-8")
         model_source = AUTOCOMPLETE_TEXT_MODEL_JS.read_text(encoding="utf-8")
         start = model_source.index("export function currentWildcardToken")
         end = model_source.index(
@@ -595,9 +599,9 @@ class AIOFrontendSourceTests(unittest.TestCase):
         self.assertIn('replaceAll("\\\\", "/")', normalize_body)
         self.assertIn('replace(/[ _]+/g, "-")', normalize_body)
 
-        start = source.index("async function searchWildcards")
-        end = source.index("\nfunction scrollActiveAutocompleteItemIntoView", start)
-        search_body = source[start:end]
+        start = data_adapter_source.index("async function searchWildcards")
+        end = data_adapter_source.index("\n\n  return {", start)
+        search_body = data_adapter_source[start:end]
 
         self.assertIn("normalizeWildcardSearchText(query)", search_body)
         self.assertIn("normalizeWildcardSearchText(item).includes(normalized)", search_body)

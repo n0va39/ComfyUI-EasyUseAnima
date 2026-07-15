@@ -8,6 +8,12 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 AUTOCOMPLETE_ENTRY = ROOT / "web" / "js" / "easyuse_anima_autocomplete.js"
+AUTOCOMPLETE_DATA_ADAPTER = (
+    ROOT / "web" / "js" / "autocomplete" / "data_adapter.js"
+)
+AUTOCOMPLETE_DATA_ADAPTER_SMOKE = (
+    ROOT / "tests" / "frontend_autocomplete_data_adapter_smoke.mjs"
+)
 AUTOCOMPLETE_TEXT_MODEL = (
     ROOT / "web" / "js" / "autocomplete" / "text_model.js"
 )
@@ -19,6 +25,103 @@ FRONTEND_CHECK_SCRIPT = ROOT / "tools" / "check_frontend.ps1"
 
 
 class AutocompleteFrontendBoundaryTests(unittest.TestCase):
+    def test_data_adapter_has_exact_io_boundary(self):
+        module_source = AUTOCOMPLETE_DATA_ADAPTER.read_text(encoding="utf-8")
+        entry_source = AUTOCOMPLETE_ENTRY.read_text(encoding="utf-8")
+
+        self.assertEqual(module_source.splitlines()[0], "// @ts-check")
+        self.assertEqual(
+            re.findall(
+                r"^export\s+(?:const|function|class)\s+([A-Za-z0-9_]+)",
+                module_source,
+                re.MULTILINE,
+            ),
+            ["createAutocompleteDataAdapter"],
+        )
+        self.assertNotRegex(
+            module_source,
+            re.compile(r"^\s*import\b", re.MULTILINE),
+        )
+        self.assertNotRegex(
+            module_source,
+            (
+                r"\b(?:document|window|app|api|registerExtension|"
+                r"addEventListener|removeEventListener|MutationObserver|"
+                r"HTMLElement|HTMLInputElement|HTMLTextAreaElement)\b"
+            ),
+        )
+
+        self.assertIn(
+            'import { createAutocompleteDataAdapter } from '
+            '"./autocomplete/data_adapter.js";',
+            entry_source,
+        )
+        factory_match = re.search(
+            r"const\s+autocompleteData\s*=\s*"
+            r"createAutocompleteDataAdapter"
+            r"\(\{(?P<dependencies>.*?)\}\);",
+            entry_source,
+            re.DOTALL,
+        )
+        self.assertIsNotNone(factory_match)
+        dependency_entries = {
+            line.strip().rstrip(",")
+            for line in factory_match.group("dependencies").splitlines()
+            if line.strip()
+        }
+        self.assertEqual(
+            dependency_entries,
+            {
+                "fetchJson: easyuseAnimaFetchJson",
+                "normalizeWildcardSearchText",
+                "getLimit: () => maxResults",
+            },
+        )
+
+        for moved_declaration in (
+            "cache",
+            "wildcardItemsCache",
+            "search",
+            "loadWildcardItems",
+            "searchWildcards",
+        ):
+            with self.subTest(moved_declaration=moved_declaration):
+                self.assertNotRegex(
+                    entry_source,
+                    rf"\b(?:const|let|var|function|class)\s+"
+                    rf"{re.escape(moved_declaration)}\b",
+                )
+
+        self.assertNotIn("/easyuse_anima/autocomplete", entry_source)
+        self.assertNotIn("/easyuse_anima/wildcards", entry_source)
+        self.assertEqual(entry_source.count("autocompleteData.search("), 1)
+        self.assertEqual(
+            entry_source.count("autocompleteData.searchWildcards("),
+            1,
+        )
+        self.assertEqual(
+            entry_source.count("autocompleteData.clearResults()"),
+            4,
+        )
+        self.assertEqual(
+            entry_source.count("autocompleteData.clearWildcards()"),
+            1,
+        )
+        self.assertIn("app.registerExtension({", entry_source)
+        self.assertIn('document.addEventListener("pointerdown"', entry_source)
+        self.assertIn("function hookInput(", entry_source)
+
+    def test_data_adapter_is_in_static_and_semantic_runners(self):
+        config = json.loads(JSCONFIG.read_text(encoding="utf-8"))
+        frontend_check_source = FRONTEND_CHECK_SCRIPT.read_text(encoding="utf-8")
+
+        self.assertTrue(AUTOCOMPLETE_DATA_ADAPTER_SMOKE.is_file())
+        self.assertIn("web/js/autocomplete/**/*.js", config["include"])
+        self.assertIn(
+            r'node "tests\frontend_autocomplete_data_adapter_smoke.mjs"',
+            frontend_check_source,
+        )
+
     def test_text_model_has_exact_dom_free_boundary(self):
         module_source = AUTOCOMPLETE_TEXT_MODEL.read_text(encoding="utf-8")
         entry_source = AUTOCOMPLETE_ENTRY.read_text(encoding="utf-8")

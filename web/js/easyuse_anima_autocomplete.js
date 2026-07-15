@@ -5,6 +5,7 @@ import {
 } from "./easyuse_anima_prompt_rules.js";
 import { easyuseAnimaFetchJson, easyuseAnimaGetSettings } from "./easyuse_anima_api.js";
 import { easyuseAnimaText } from "./easyuse_anima_i18n.js";
+import { createAutocompleteDataAdapter } from "./autocomplete/data_adapter.js";
 import {
   autocompleteQuery,
   currentToken as currentAutocompleteToken,
@@ -162,8 +163,6 @@ const PREVIEW_STYLES = {
   unknown: { color: "#cbd5e1", background: "transparent", weight: 500 },
 };
 const MIN_QUERY_LENGTH = 1;
-const cache = new Map();
-let wildcardItemsCache = null;
 
 let maxResults = DEFAULT_MAX_RESULTS;
 let autocompleteMode = DEFAULT_AUTOCOMPLETE_MODE;
@@ -179,6 +178,12 @@ let activeRefreshFrame = null;
 let middlePanForwardActive = false;
 const hookedAutocompleteInputs = new Set();
 window.__easyuseAnimaPendingAutocompleteInputs ||= [];
+
+const autocompleteData = createAutocompleteDataAdapter({
+  fetchJson: easyuseAnimaFetchJson,
+  normalizeWildcardSearchText,
+  getLimit: () => maxResults,
+});
 
 function clamp(value, min, max) {
   return Math.min(max, Math.max(min, value));
@@ -278,7 +283,7 @@ function setAutocompleteMode(value) {
   if (!autocompleteEnabledForState(activeState)) {
     hidePopup();
   }
-  cache.clear();
+  autocompleteData.clearResults();
 }
 
 function isEasyUseAnimaNode(node) {
@@ -343,7 +348,7 @@ async function refreshAutocompleteSettings() {
     const nextMaxResults = clampMaxResults(settings["autocomplete.limit"]);
     if (nextMaxResults !== maxResults) {
       maxResults = nextMaxResults;
-      cache.clear();
+      autocompleteData.clearResults();
     }
     setAutocompleteMode(settings["autocomplete.mode"]);
     setAutocompleteCommitKey(settings["autocomplete.commit_key"]);
@@ -770,49 +775,6 @@ function positionPopup(input) {
   menu.style.top = `${top}px`;
   menu.style.width = `${width}px`;
   menu.style.maxHeight = `${Math.min(280, maxHeight)}px`;
-}
-
-async function search(query, category = "") {
-  const key = `${category || "all"}:${maxResults}:${query.toLocaleLowerCase()}`;
-  if (cache.has(key)) {
-    return cache.get(key);
-  }
-  const categoryParam = category ? `&category=${encodeURIComponent(category)}` : "";
-  const data = await easyuseAnimaFetchJson(
-    `/easyuse_anima/autocomplete?q=${encodeURIComponent(query)}&limit=${maxResults}${categoryParam}`,
-  );
-  const results = Array.isArray(data.results) ? data.results : [];
-  cache.set(key, results);
-  return results;
-}
-
-async function loadWildcardItems() {
-  if (Array.isArray(wildcardItemsCache)) {
-    return wildcardItemsCache;
-  }
-  const data = await easyuseAnimaFetchJson("/easyuse_anima/wildcards");
-  wildcardItemsCache = Array.isArray(data.items) ? data.items.map((item) => String(item || "")).filter(Boolean) : [];
-  return wildcardItemsCache;
-}
-
-async function searchWildcards(query) {
-  const normalized = normalizeWildcardSearchText(query);
-  const key = `wildcard:${maxResults}:${normalized}`;
-  if (cache.has(key)) {
-    return cache.get(key);
-  }
-  const items = await loadWildcardItems();
-  const results = items
-    .filter((item) => !normalized || normalizeWildcardSearchText(item).includes(normalized))
-    .slice(0, maxResults)
-    .map((item) => ({
-      tag: item,
-      category: "wildcard",
-      count: 0,
-      kind: "wildcard",
-    }));
-  cache.set(key, results);
-  return results;
 }
 
 function scrollActiveAutocompleteItemIntoView(menu, index) {
@@ -1452,8 +1414,8 @@ function hookInput(input, options = {}) {
     const seq = ++updateSeq;
     try {
       const results = context.kind === "wildcard"
-        ? await searchWildcards(context.query)
-        : await search(context.query, context.category);
+        ? await autocompleteData.searchWildcards(context.query)
+        : await autocompleteData.search(context.query, context.category);
       if (document.activeElement === input && seq === updateSeq && !shouldSuppressAutocomplete(input)) {
         renderResults(state, strictAutocompleteResults(context, token, state, results), signature);
       }
@@ -1738,15 +1700,14 @@ window.addEventListener("easyuse-anima-settings-updated", (event) => {
   }
   if ("autocomplete.limit" in detail) {
     maxResults = clampMaxResults(detail["autocomplete.limit"]);
-    cache.clear();
+    autocompleteData.clearResults();
   }
   if ("autocomplete.source" in detail) {
-    cache.clear();
+    autocompleteData.clearResults();
     hidePopup();
   }
   if ("wildcard.extra_paths" in detail) {
-    wildcardItemsCache = null;
-    cache.clear();
+    autocompleteData.clearWildcards();
     hidePopup();
   }
   scheduleActiveRefresh();
