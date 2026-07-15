@@ -16,6 +16,8 @@ conversation.
    - custom-node model patch integrations: `docs/development/custom-node-integrations.md`
    - current frontend maintenance roadmap and Issue #14 close boundary:
      `docs/development/frontend-maintenance-roadmap.md`
+   - repeatable legacy-canvas and Node 2.0 browser validation:
+     `docs/development/browser-smoke-matrix.md`
    - historical Issue #14 PR #18 execution plan:
      `docs/development/issue-14-frontend-js-maintenance.md`
    - deferred Node 2.0 DOM widget resize investigation:
@@ -38,6 +40,8 @@ conversation.
   `docs/wildcards.en.md`
 - Current frontend maintenance roadmap:
   `docs/development/frontend-maintenance-roadmap.md`
+- Dual-canvas browser smoke matrix:
+  `docs/development/browser-smoke-matrix.md`
 - Historical Issue #14 PR #18 execution plan:
   `docs/development/issue-14-frontend-js-maintenance.md`
 - Deferred Node 2.0 DOM widget resize investigation:
@@ -89,11 +93,14 @@ conversation.
 
 ## Validation Shortlist
 
-- `powershell -ExecutionPolicy Bypass -File tools\check_project.ps1 -Profile full`
-- `python -m unittest discover -s tests`
-- `python -m compileall -q .`
-- `git diff --check`
-- `node --check web/js/<changed-file>.js`
+- PR-ready official full, once per final diff:
+  `powershell -ExecutionPolicy Bypass -File tools\check_project.ps1 -Profile full`
+- Focused implementation checks as applicable:
+  `node --check web/js/<changed-file>.js`,
+  `node tests/<focused-frontend-smoke>.mjs`,
+  `python -m unittest <focused test modules>`, and `git diff --check`
+- Frontend behavior changes: follow
+  `docs/development/browser-smoke-matrix.md` once per final diff
 - Registry scanner grep from `docs/development/registry-scanner-safety.md`
 - `comfy node validate` before Registry publish
 - Workflow JSON parse and package-version checks for

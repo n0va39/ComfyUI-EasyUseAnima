@@ -17,18 +17,19 @@
 
 ## 점검 기준
 
-점검일: 2026-07-13
+점검일: 2026-07-15
 
 기준 브랜치와 커밋:
 
 ```text
 base branch: dev
-base commit: 24b13b6073d1df3697a35d6047151cb3d8a1bf73
-worktree branch: codex/issue-14-closure
-scope: R6 closure validation and follow-up issue handoff
+base commit: fb5c8c9eef06be47cbb86afd5729fd9701b6c74c
+worktree branch: codex/docs-browser-smoke-matrix
+scope: follow-up maintenance status and dual-canvas validation contract
 ```
 
-Issue #14는 열려 있다. 다음 변경은 `dev`에 병합됐다.
+Issue #14는 PR #58 병합 후 2026-07-13에 완료 상태로 닫혔다. 다음 변경은
+Issue #14 범위에서 `dev`에 병합됐다.
 
 | PR | 병합 커밋 | 완료 범위 |
 | --- | --- | --- |
@@ -41,6 +42,7 @@ Issue #14는 열려 있다. 다음 변경은 `dev`에 병합됐다.
 | #51 | `83d1600` | Regional schema, resolution, serialization, mask geometry pure-data 분리 |
 | #52 | `ebf9c66` | Regional UI/runtime 모듈 분리, node별 lifecycle ownership과 양쪽 canvas 검증 |
 | #53 | `24b13b6` | legacy common 호환 re-export 축소, Regional adapter 직접 연결, 재귀 typecheck 확장 |
+| #58 | `e302d1d` | 종료 검증, 후속 #54-#57 분리, Issue #14 완료 처리 |
 
 ## 현재 상태
 
@@ -76,22 +78,23 @@ Issue #14는 열려 있다. 다음 변경은 `dev`에 병합됐다.
 
 ### 정량 스냅샷
 
-`web/js`에는 JavaScript 65개, 총 29,841줄이 있다. `jsconfig.json`에 명시된
-include 대상은 Prompt Studio entry 2개와 `prompt_studio/**/*.js` 52개,
-총 54개·13,242줄로 전체 라인의 44.4%다. import를 따라 추가로 검사되는
-dependency는 이 수치에 포함하지 않았다.
+`web/js`에는 JavaScript 85개, 총 30,857줄이 있다. `jsconfig.json`의 명시적
+include 패턴은 중복 제거 기준 76개·17,586줄로 전체 라인의 57.0%다. 이 중
+Prompt Studio entry 2개와 `prompt_studio/**/*.js` 52개는 총 54개·13,242줄로
+전체 라인의 42.9%다. import를 따라 추가로 검사되는 dependency는 이 수치에
+포함하지 않았다.
 
 | 파일 | 줄 수 | 전체 비율 | 현재 판단 |
 | --- | ---: | ---: | --- |
-| `easyuse_anima_aio.js` | 8,879 | 29.8% | 가장 큰 후속 hotspot |
-| `easyuse_anima_lora_preset.js` | 2,907 | 9.7% | canvas/UI/API/state가 한 파일에 결합 |
-| `easyuse_anima_autocomplete.js` | 2,067 | 6.9% | parser, popup, input runtime이 결합 |
-| `easyuse_anima_settings.js` | 1,935 | 6.5% | 설정 정의와 여러 editor 구현이 결합 |
-| `prompt_studio/regional/editor_adapter.js` | 1,410 | 4.7% | Regional text/style/tooltip/highlight/textarea adapter |
+| `easyuse_anima_aio.js` | 7,676 | 24.9% | 가장 큰 후속 hotspot |
+| `easyuse_anima_lora_preset.js` | 2,670 | 8.7% | canvas/UI/state lifecycle이 남음 |
+| `easyuse_anima_autocomplete.js` | 1,739 | 5.6% | popup, input runtime이 남음 |
+| `easyuse_anima_settings.js` | 613 | 2.0% | 등록과 fallback lifecycle 중심 entry |
+| `prompt_studio/regional/editor_adapter.js` | 1,410 | 4.6% | Regional text/style/tooltip/highlight/textarea adapter |
 | `easyuse_anima_prompt_studio_common.js` | 5 | 0.0% | 이전 import 경로를 위한 호환 re-export |
 | `easyuse_anima_prompt_studio_regional.js` | 64 | 0.2% | registration과 runtime 조립만 담당 |
 
-앞의 대형 5개 파일이 전체 frontend JS의 약 57.6%를 차지한다. 줄 수 자체를
+앞의 5개 파일이 전체 frontend JS의 약 45.7%를 차지한다. 줄 수 자체를
 목표로 삼지는 않지만, 책임 경계와 검증 비용이 이 파일들에 집중돼 있다는
 신호로 사용한다. Regional entry의 축소는 줄 수보다 소유권 이동의 결과다.
 
@@ -130,7 +133,9 @@ dependency는 이 수치에 포함하지 않았다.
 
 ## 범위 원칙
 
-- PR 하나에는 한 종류의 위험만 넣는다.
+- PR 하나에는 한 종류의 위험과 하나의 reviewable ownership 경계를 넣는다.
+- 기계적인 pure extraction을 지나치게 쪼개지 않고 관련 helper 2-3개 또는
+  하나의 lifecycle 경계를 묶는다. 실제 동작 변경은 별도 PR로 유지한다.
 - pure data와 pure rendering helper를 DOM lifecycle보다 먼저 분리한다.
 - 이동과 동작 변경을 같은 PR에 섞지 않는다.
 - node type, widget/socket 이름, `widgets_values` 순서, serialized property,
@@ -142,6 +147,11 @@ dependency는 이 수치에 포함하지 않았다.
 - line count 감소보다 소유권, 의존 방향, 독립 테스트 가능성을 우선한다.
 - Vite 도입은 raw module 배포가 실제 장애가 되거나 no-build 검사로 잡지 못하는
   문제가 반복될 때 다시 평가한다.
+- 기계적 이동은 behavior와 test-contract 감사를 거친다. 실제 동작 변경이나
+  복잡한 UI lifecycle은 architecture 감사를 추가한다.
+- 병합된 경계, 검증 증거, 보류 finding은 owning Issue의 누적 ledger에 남긴다.
+- GitHub mutation이 abort 또는 timeout으로 끝나면 재시도 전에 원격 상태를
+  read-back한다.
 
 ## Issue #14 종료 로드맵
 
@@ -332,7 +342,7 @@ web/js/prompt_studio/regional/
 
 ### R6. 종료 검증과 Issue 갱신
 
-상태: 구현 및 검증 완료, R6 PR 병합 후 Issue #14 종료 예정
+상태: 구현, 검증, PR #58 병합과 Issue #14 종료 완료
 
 검증 결과:
 
@@ -356,13 +366,13 @@ web/js/prompt_studio/regional/
 - 대형 후속 트랙은 #54 AiO, #55 LoRA Preset, #56 Autocomplete,
   #57 Settings로 분리했다. 이 이슈들은 Issue #14 종료를 막지 않는다.
 
-Issue #14에는 R6 PR을 연결해 #18, #46-#53과 위 검증 결과를 요약한다. 실제
-종료는 R6 PR이 `dev`에 병합된 뒤 수행한다.
+PR #58은 #18, #46-#53과 위 검증 결과를 요약해 `dev`에 squash merge됐고,
+Issue #14는 완료 상태로 닫혔다.
 
 ## Issue #14 예상 잔여 시간
 
-구현과 closure validation은 완료됐다. 남은 작업은 R6 PR review·merge와
-Issue #14 종료 코멘트·상태 갱신이다.
+남은 작업은 없다. 구현과 closure validation, PR #58 병합, 종료 코멘트와
+Issue 상태 갱신이 2026-07-13에 완료됐다. #54-#57은 독립된 후속 트랙이다.
 
 ## Issue #14 이후 후속 트랙
 
@@ -370,70 +380,106 @@ Issue #14 종료 코멘트·상태 갱신이다.
 
 ### F1. AiO Generator 분리 (#54)
 
-현재 8,879줄이며 frontend 전체의 29.8%다. 가장 큰 장기 위험이다.
+상태: 진행 중. entry는 초기 8,879줄에서 7,676줄로 축소됐다.
 
-분리 순서:
+병합된 경계:
 
-1. settings schema, normalization, preset/profile data
-2. optional dependency와 backend capability 조회
-3. preview state와 native preview suppression
-4. DOM control builders와 settings dialogs
-5. queue/runtime hooks와 extension entry
-6. typecheck와 browser regression matrix
+- #59: profile 판정 pure-data
+- #60: optional dependency와 backend capability 판정
+- #61: preview state와 native-preview suppression primitive
+- #63: settings schema, normalization, storage와 migration
+- #65: DOM controls와 dialog primitives
+- #67: Input Settings dialog lifecycle
+- #68: Postprocess Settings dialog lifecycle
+- #74: Preview Options dialog lifecycle
 
-예상: 4-6개 PR, 5-8 작업일
+남은 주요 경계:
+
+- profile API, CRUD와 profile settings dialog
+- generator panel view/render lifecycle
+- Sampler, Highres/Upscale, Detailer, Save, Advanced dialog
+- native-preview store, observer와 event runtime
+- queue preparation, node hooks와 extension entry
+- 최종 AiO load, queue, save/reload dual-canvas matrix와 완료 ledger
+
+관련 pure helper 2-3개 또는 하나의 lifecycle 경계를 묶는 기준으로 약 6-7개
+reviewable slice를 예상한다.
 
 ### F2. LoRA Preset 분리 (#55)
 
-분리 순서:
+상태: 진행 중. entry는 초기 2,907줄에서 2,670줄로 축소됐다.
 
-1. profile API와 serialization
-2. LoRA lookup/fix state
-3. menu/search/preview lifecycle
-4. canvas rendering과 hit testing
-5. extension hooks와 typecheck
+병합된 경계:
 
-예상: 2-3개 PR, 2-3 작업일
+- #69: profile data와 serialization pure rules
+- #72: LoRA lookup과 FIX pending state
+- #76: profile, FIX와 LoRA API client
+
+남은 주요 경계:
+
+- menu, search, preview, style과 observer lifecycle
+- canvas drawing, hit testing, strength drag와 canvas widget class
+- profile mutation, node initialize/configure/serialize runtime
+- save sync, wheel listener와 extension entry
+- 최종 load, edit, FIX, queue, save/reload dual-canvas matrix와 완료 ledger
+
+약 3개 lifecycle slice를 예상한다.
 
 ### F3. Autocomplete 분리 (#56)
 
-분리 순서:
+상태: 진행 중. entry는 초기 2,067줄에서 1,739줄로 축소됐으며 열린 세
+트랙 중 종료에 가장 가깝다.
 
-1. token/query parser와 insertion plan
-2. search/data adapter
-3. caret geometry와 popup view
-4. input controller와 extension hooks
+병합된 경계:
 
-예상: 2개 PR, 1.5-2.5 작업일
+- #71: token/query parser와 insertion plan
+- #75: tag/wildcard search data adapter와 cold/warm cache semantics
+
+남은 주요 경계:
+
+- caret geometry와 popup view
+- input, keyboard와 composition controller
+- external DOM input hook, listener installer와 extension entry
+- 최종 입력, 선택, 닫기, save/reload dual-canvas matrix와 완료 ledger
+
+약 2개 lifecycle slice를 예상한다.
 
 ### F4. Settings UI 분리 (#57)
 
-분리 순서:
+상태: 완료 (2026-07-15)
 
-1. setting definitions와 normalization
-2. long-text, color, path, resolution editor
-3. persistence adapter와 extension registration
+- #73: setting definition data와 normalization
+- #77-#80: long-text, resolution, wildcard, color editor lifecycle
+- #81: persistence runtime
+- #82: 52개 setting definition 조립과 color inherited-key hardening
+- #83: settings smoke 공용 Fake DOM test harness 후속 정리
 
-예상: 2개 PR, 1.5-2.5 작업일
+최종 #82 검증은 Python unittest 359개와 frontend 85개 파일을 통과했다.
+legacy canvas와 Node 2.0에서 설정 중복, 일반 설정, resolution, long-text,
+wildcard, color persistence/reset 및 queue success를 각각 확인했고 Issue
+#57에 완료 ledger를 남겼다. #83은 production 변경이 없는 test-only 후속
+조각이며 Python unittest 360개와 frontend 85개 파일을 통과했다.
 
 ## 공통 검증 기준
 
-모든 frontend refactor PR:
+구현 중에는 변경 경계의 focused 검사만 실행한다. 예:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File tools/check_frontend.ps1
+node --check web/js/<changed-file>.js
+node tests/<focused-frontend-smoke>.mjs
 python -m unittest <focused test modules>
 git diff --check
 ```
 
-주요 checkpoint와 PR 준비:
+PR 최종 diff가 확정되면 저장소가 소유한 공식 full runner를 한 번 실행한다.
 
 ```powershell
-python -m unittest discover -s tests
-python -m compileall -q .
+powershell -ExecutionPolicy Bypass -File tools/check_project.ps1 -Profile full
 ```
 
 브라우저에서 확인할 공통 항목:
+
+반복 절차는 `docs/development/browser-smoke-matrix.md`를 따른다.
 
 - hard refresh 후 module request 200
 - console에 새 SyntaxError, ReferenceError, unhandled rejection 없음
@@ -443,9 +489,13 @@ python -m compileall -q .
 - textarea/input/select wheel이 canvas로 잘못 전달되지 않음
 - listener, observer, animation frame 중복 설치 없음
 
-Python, API, workflow schema를 건드리지 않은 작은 pure-helper PR에서는 focused
-검사를 먼저 실행하고, full suite와 browser smoke는 주요 checkpoint에서
-실행한다. 생략한 검증은 PR에 명시한다.
+frontend 실제 동작이 바뀐 PR은 final diff에서 legacy canvas와 Node 2.0을
+각각 한 번 검증한다. Issue-close checkpoint에서도 현재 final diff의 양쪽
+surface 증거를 확인한다. pure extraction과 test-only 조각은 browser smoke를
+생략할 수 있으며 이유를 PR에 기록한다. 같은 final diff의 유효한 증거는
+반복하지 않고, 코드 변경이나 환경 오류로 무효화된 경우에만 재실행 이유와
+함께 다시 검증한다. 사용자 v0.27.0 인스턴스는 전체 maintenance goal 완료 후
+한 번만 반영하고 수동 확인한다.
 
 ## Issue #14 완료 정의
 
