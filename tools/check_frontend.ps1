@@ -119,6 +119,11 @@ try {
         throw "Frontend autocomplete text model smoke failed with exit code $LASTEXITCODE."
     }
 
+    & node "tests\frontend_settings_long_text_editor_smoke.mjs"
+    if ($LASTEXITCODE -ne 0) {
+        throw "Frontend settings long-text editor smoke failed with exit code $LASTEXITCODE."
+    }
+
     & node "tests\frontend_settings_definition_data_smoke.mjs"
     if ($LASTEXITCODE -ne 0) {
         throw "Frontend settings definition data smoke failed with exit code $LASTEXITCODE."
