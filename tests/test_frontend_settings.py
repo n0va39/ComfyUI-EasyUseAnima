@@ -18,11 +18,158 @@ SETTINGS_LONG_TEXT_EDITOR = (
 SETTINGS_LONG_TEXT_EDITOR_SMOKE = (
     ROOT / "tests" / "frontend_settings_long_text_editor_smoke.mjs"
 )
+SETTINGS_RESOLUTION_EDITORS = (
+    ROOT / "web" / "js" / "settings" / "resolution_editors.js"
+)
+SETTINGS_RESOLUTION_EDITORS_SMOKE = (
+    ROOT / "tests" / "frontend_settings_resolution_editors_smoke.mjs"
+)
 JSCONFIG = ROOT / "jsconfig.json"
 FRONTEND_CHECK_SCRIPT = ROOT / "tools" / "check_frontend.ps1"
 
 
 class SettingsFrontendTests(unittest.TestCase):
+    def test_resolution_editors_module_boundary(self):
+        module_source = SETTINGS_RESOLUTION_EDITORS.read_text(encoding="utf-8")
+        entry_source = SETTINGS_ENTRY.read_text(encoding="utf-8")
+        config = json.loads(JSCONFIG.read_text(encoding="utf-8"))
+        frontend_check_source = FRONTEND_CHECK_SCRIPT.read_text(encoding="utf-8")
+
+        self.assertEqual(module_source.splitlines()[0], "// @ts-check")
+        self.assertEqual(
+            re.findall(
+                r"^export\s+(?:const|function|class)\s+([A-Za-z0-9_]+)",
+                module_source,
+                re.MULTILINE,
+            ),
+            ["createResolutionEditors"],
+        )
+        module_import = re.search(
+            r'^import\s*\{(?P<names>[^}]*)\}\s*from\s*"\./definition_data\.js";',
+            module_source,
+            re.MULTILINE,
+        )
+        self.assertIsNotNone(module_import)
+        self.assertEqual(
+            {
+                name.strip().rstrip(",")
+                for name in module_import.group("names").splitlines()
+                if name.strip()
+            },
+            {
+                "NAIA_RESOLUTION_MODE_BUCKET",
+                "NAIA_RESOLUTION_MODE_SCALE",
+                "normalizeNaiaResolutionModeValue",
+                "normalizeNaiaResolutionScaleValue",
+            },
+        )
+        self.assertNotRegex(
+            module_source,
+            r"\b(?:window|app|api|fetch|registerExtension|CustomEvent)\b",
+        )
+
+        self.assertIn(
+            'import { createResolutionEditors } from '
+            '"./settings/resolution_editors.js";',
+            entry_source,
+        )
+        factory_match = re.search(
+            r"const\s*\{\s*"
+            r"createNaiaResolutionModeEditor\s*,\s*"
+            r"createNaiaResolutionScaleEditor\s*,?\s*"
+            r"\}\s*=\s*createResolutionEditors"
+            r"\(\{(?P<dependencies>.*?)\}\);",
+            entry_source,
+            re.DOTALL,
+        )
+        self.assertIsNotNone(factory_match)
+        self.assertEqual(
+            {
+                line.strip().rstrip(",")
+                for line in factory_match.group("dependencies").splitlines()
+                if line.strip()
+            },
+            {
+                "document",
+                "text: t",
+                "readInternalSetting",
+                "updateInternalSetting",
+            },
+        )
+
+        for moved_name in (
+            "naiaResolutionModeSettingValue",
+            "createNaiaResolutionModeEditor",
+            "naiaResolutionScaleSettingValue",
+            "createNaiaResolutionScaleEditor",
+        ):
+            with self.subTest(moved_name=moved_name):
+                self.assertNotRegex(
+                    entry_source,
+                    rf"(?:function|const|let|var)\s+{re.escape(moved_name)}\b",
+                )
+                self.assertIn(moved_name, module_source)
+
+        for setting_id, render_name in (
+            (
+                "EasyUseAnima.NAIA.ResolutionMode",
+                "createNaiaResolutionModeEditor",
+            ),
+            (
+                "EasyUseAnima.NAIA.ResolutionScale",
+                "createNaiaResolutionScaleEditor",
+            ),
+        ):
+            with self.subTest(setting_id=setting_id):
+                setting_match = re.search(
+                    rf'customSetting\(\{{\s*id:\s*"{re.escape(setting_id)}",'
+                    r"(?P<body>.*?)\}\),",
+                    entry_source,
+                    re.DOTALL,
+                )
+                self.assertIsNotNone(setting_match)
+                self.assertIn(
+                    f"render: {render_name},",
+                    setting_match.group("body"),
+                )
+
+        self.assertIn(
+            """function readInternalSetting(key, fallback) {
+  if (
+    window.__easyuseAnimaSettings
+    && Object.prototype.hasOwnProperty.call(window.__easyuseAnimaSettings, key)
+  ) {
+    return window.__easyuseAnimaSettings[key];
+  }
+  return fallback;
+}""",
+            entry_source,
+        )
+        self.assertRegex(entry_source, r"function\s+updateInternalSetting\(")
+        self.assertIn("window.__easyuseAnimaSettings", entry_source)
+        self.assertTrue(SETTINGS_RESOLUTION_EDITORS_SMOKE.is_file())
+        self.assertIn("web/js/settings/**/*.js", config["include"])
+        self.assertIn(
+            r'node "tests\frontend_settings_resolution_editors_smoke.mjs"',
+            frontend_check_source,
+        )
+
+    def test_resolution_editors_module_semantics(self):
+        node_bin = shutil.which("node")
+        if not node_bin:
+            self.skipTest("node executable is not available")
+
+        completed = subprocess.run(
+            [node_bin, str(SETTINGS_RESOLUTION_EDITORS_SMOKE)],
+            cwd=ROOT,
+            text=True,
+            capture_output=True,
+            check=False,
+        )
+
+        if completed.returncode != 0:
+            self.fail((completed.stdout + completed.stderr).strip())
+
     def test_long_text_editor_module_boundary(self):
         module_source = SETTINGS_LONG_TEXT_EDITOR.read_text(encoding="utf-8")
         entry_source = SETTINGS_ENTRY.read_text(encoding="utf-8")
@@ -145,7 +292,13 @@ class SettingsFrontendTests(unittest.TestCase):
             "parseWildcardExtraPathItems",
             "serializeWildcardExtraPathItems",
         }
-        expected_imports = expected_exports - {"LONG_TEXT_FIELDS"}
+        resolution_imports = {
+            "NAIA_RESOLUTION_MODE_BUCKET",
+            "NAIA_RESOLUTION_MODE_SCALE",
+            "normalizeNaiaResolutionModeValue",
+            "normalizeNaiaResolutionScaleValue",
+        }
+        expected_imports = expected_exports - {"LONG_TEXT_FIELDS"} - resolution_imports
 
         exported_names = set(
             re.findall(
@@ -197,8 +350,6 @@ class SettingsFrontendTests(unittest.TestCase):
             "saveLongTextSettings",
             "createPromptStudioColorEditorButton",
             "createWildcardExtraPathsEditor",
-            "createNaiaResolutionModeEditor",
-            "createNaiaResolutionScaleEditor",
             "setting",
             "customSetting",
             "loadInitialSettings",

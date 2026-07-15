@@ -9,16 +9,13 @@ import {
   LONG_TEXT_FIELD_GROUPS,
   NAIA_PREPROCESSING_OPTIONS,
   NAIA_RESOLUTION_BUCKET_OPTIONS,
-  NAIA_RESOLUTION_MODE_BUCKET,
-  NAIA_RESOLUTION_MODE_SCALE,
   ROOT_CATEGORY,
-  normalizeNaiaResolutionModeValue,
-  normalizeNaiaResolutionScaleValue,
   normalizeValue,
   parseWildcardExtraPathItems,
   serializeWildcardExtraPathItems,
 } from "./settings/definition_data.js";
 import { createLongTextEditorButtonFactory } from "./settings/long_text_editor.js";
+import { createResolutionEditors } from "./settings/resolution_editors.js";
 
 const PROMPT_STUDIO_COLORS = {
   quality: {
@@ -776,6 +773,16 @@ function updateInternalSetting(id, value, type = "text") {
   );
 }
 
+function readInternalSetting(key, fallback) {
+  if (
+    window.__easyuseAnimaSettings
+    && Object.prototype.hasOwnProperty.call(window.__easyuseAnimaSettings, key)
+  ) {
+    return window.__easyuseAnimaSettings[key];
+  }
+  return fallback;
+}
+
 async function loadLongTextSettings() {
   const data = await easyuseAnimaFetchJson("/easyuse_anima/long_text_settings", { fallbackJson: {} });
   const values = data.values || {};
@@ -803,6 +810,16 @@ const createLongTextEditorButton = createLongTextEditorButtonFactory({
   loadSettings: loadLongTextSettings,
   saveSettings: saveLongTextSettings,
   schedule: setTimeout,
+});
+
+const {
+  createNaiaResolutionModeEditor,
+  createNaiaResolutionScaleEditor,
+} = createResolutionEditors({
+  document,
+  text: t,
+  readInternalSetting,
+  updateInternalSetting,
 });
 
 function promptStudioColorSettingValue(value) {
@@ -963,122 +980,6 @@ function createWildcardExtraPathsEditor(name, setter, value) {
   wrapper.append(list, addButton);
   controlCell.append(wrapper);
   row.append(labelCell, controlCell);
-  return row;
-}
-
-function naiaResolutionModeSettingValue(value) {
-  if (
-    window.__easyuseAnimaSettings
-    && Object.prototype.hasOwnProperty.call(window.__easyuseAnimaSettings, "naia.resolution_mode")
-  ) {
-    return window.__easyuseAnimaSettings["naia.resolution_mode"];
-  }
-  return value ?? NAIA_RESOLUTION_MODE_SCALE;
-}
-
-function createNaiaResolutionModeEditor(name, setter, value) {
-  const settingId = "EasyUseAnima.NAIA.ResolutionMode";
-  let persistedValue = normalizeNaiaResolutionModeValue(naiaResolutionModeSettingValue(value));
-
-  const row = document.createElement("tr");
-
-  const labelCell = document.createElement("td");
-  const labelEl = document.createElement("label");
-  labelEl.textContent = name;
-  labelEl.title = t("naiaResolutionModeTip");
-  labelCell.append(labelEl);
-
-  const controlCell = document.createElement("td");
-  const select = document.createElement("select");
-  select.setAttribute("aria-label", name);
-  select.style.cssText = "box-sizing: border-box; min-width: 150px; padding: 4px 6px;";
-  for (const [mode, labelKey] of [
-    [NAIA_RESOLUTION_MODE_SCALE, "naiaResolutionModeOriginalScale"],
-    [NAIA_RESOLUTION_MODE_BUCKET, "naiaResolutionModeBucketFit"],
-  ]) {
-    const option = document.createElement("option");
-    option.value = mode;
-    option.textContent = t(labelKey);
-    option.selected = mode === persistedValue;
-    select.append(option);
-  }
-
-  const persist = () => {
-    const nextValue = normalizeNaiaResolutionModeValue(select.value);
-    select.value = nextValue;
-    updateInternalSetting(settingId, nextValue, "text");
-    if (nextValue === persistedValue) {
-      return;
-    }
-    persistedValue = nextValue;
-    setter?.(nextValue);
-  };
-
-  select.addEventListener("change", persist);
-  controlCell.append(select);
-  row.append(labelCell, controlCell);
-  updateInternalSetting(settingId, persistedValue, "text");
-  return row;
-}
-
-function naiaResolutionScaleSettingValue(value) {
-  if (
-    window.__easyuseAnimaSettings
-    && Object.prototype.hasOwnProperty.call(window.__easyuseAnimaSettings, "naia.resolution_scale")
-  ) {
-    return window.__easyuseAnimaSettings["naia.resolution_scale"];
-  }
-  return value ?? "1.0";
-}
-
-function createNaiaResolutionScaleEditor(name, setter, value) {
-  const settingId = "EasyUseAnima.NAIA.ResolutionScale";
-  let persistedValue = normalizeNaiaResolutionScaleValue(naiaResolutionScaleSettingValue(value));
-
-  const row = document.createElement("tr");
-
-  const labelCell = document.createElement("td");
-  const labelEl = document.createElement("label");
-  labelEl.textContent = name;
-  labelEl.title = t("naiaResolutionScaleTip");
-  labelCell.append(labelEl);
-
-  const controlCell = document.createElement("td");
-  const input = document.createElement("input");
-  input.type = "text";
-  input.inputMode = "decimal";
-  input.value = persistedValue;
-  input.placeholder = "1.5";
-  input.spellcheck = false;
-  input.style.cssText = "box-sizing: border-box; width: 92px; padding: 4px 6px;";
-
-  const syncRaw = () => {
-    updateInternalSetting(settingId, input.value.replace(",", "."), "text");
-  };
-  const persist = () => {
-    const normalized = normalizeNaiaResolutionScaleValue(input.value);
-    input.value = normalized;
-    updateInternalSetting(settingId, normalized, "text");
-    if (normalized === persistedValue) {
-      return;
-    }
-    persistedValue = normalized;
-    setter?.(normalized);
-  };
-
-  input.addEventListener("input", syncRaw);
-  input.addEventListener("change", persist);
-  input.addEventListener("blur", persist);
-  input.addEventListener("keydown", (event) => {
-    if (event.key === "Enter") {
-      event.preventDefault();
-      input.blur();
-    }
-  });
-
-  controlCell.append(input);
-  row.append(labelCell, controlCell);
-  updateInternalSetting(settingId, persistedValue, "text");
   return row;
 }
 
