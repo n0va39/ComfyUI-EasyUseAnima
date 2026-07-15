@@ -55,6 +55,10 @@ AIO_DETAILER_SETTINGS_DIALOG_JS = AIO_MODULES / "detailer_settings_dialog.js"
 AIO_DETAILER_SETTINGS_DIALOG_SMOKE = (
     ROOT / "tests" / "frontend_aio_detailer_settings_dialog_smoke.mjs"
 )
+AIO_SAMPLER_SETTINGS_DIALOG_JS = AIO_MODULES / "sampler_settings_dialog.js"
+AIO_SAMPLER_SETTINGS_DIALOG_SMOKE = (
+    ROOT / "tests" / "frontend_aio_sampler_settings_dialog_smoke.mjs"
+)
 AIO_PREVIEW_JS = AIO_MODULES / "preview.js"
 AIO_PREVIEW_CORE_SMOKE = ROOT / "tests" / "frontend_aio_preview_core_smoke.mjs"
 AIO_PRESETS_JS = AIO_MODULES / "presets.js"
@@ -496,7 +500,6 @@ class FrontendModuleStructureTests(unittest.TestCase):
             "installGeneratorWheelForwarder",
             "installGeneratorQueuePromptHook",
             "suppressGeneratorDefaultPreview",
-            "openSamplerSettings",
             "hookGeneratorNode",
         ):
             with self.subTest(entry_owned_function=entry_owned_function):
@@ -548,11 +551,6 @@ class FrontendModuleStructureTests(unittest.TestCase):
             with self.subTest(moved_function=moved_function):
                 self.assertRegex(source, rf"\bfunction\s+{moved_function}\(")
                 self.assertNotRegex(entry_source, rf"\bfunction\s+{moved_function}\(")
-        for entry_owned_function in ("openSamplerSettings",):
-            with self.subTest(entry_owned_function=entry_owned_function):
-                self.assertRegex(entry_source, rf"\bfunction\s+{entry_owned_function}\(")
-                self.assertNotRegex(source, rf"\bfunction\s+{entry_owned_function}\(")
-
         return_match = re.search(
             r"(?ms)^  return \{(?P<facades>[A-Za-z0-9_,\s]+)\};\s*\}\s*$",
             source,
@@ -634,7 +632,7 @@ class FrontendModuleStructureTests(unittest.TestCase):
         composition_start = entry_source.index(
             "const openDetailerSettings = aioCreateDetailerSettingsDialog({"
         )
-        composition_end = entry_source.index("\n\nconst generatorPanelRuntime", composition_start)
+        composition_end = entry_source.index("\n\nconst openSamplerSettings", composition_start)
         composition = entry_source[composition_start:composition_end]
         for expected in (
             "createDialog,",
@@ -648,9 +646,9 @@ class FrontendModuleStructureTests(unittest.TestCase):
             with self.subTest(composition_dependency=expected):
                 self.assertIn(expected, composition)
         stage_composition = entry_source.index("aioCreateStageSettingsDialogs({")
-        generator_panel_composition = entry_source.index("const generatorPanelRuntime")
+        sampler_composition = entry_source.index("const openSamplerSettings")
         self.assertLess(stage_composition, composition_start)
-        self.assertLess(composition_start, generator_panel_composition)
+        self.assertLess(composition_start, sampler_composition)
 
         editor_start = source.index("function createDetailerTargetEditor")
         editor_end = source.index("\n  function openDetailerSettings", editor_start)
@@ -663,6 +661,77 @@ class FrontendModuleStructureTests(unittest.TestCase):
         self.assertTrue(AIO_DETAILER_SETTINGS_DIALOG_SMOKE.is_file())
         self.assertIn(
             r'node "tests\frontend_aio_detailer_settings_dialog_smoke.mjs"',
+            frontend_check_source,
+        )
+
+    def test_aio_sampler_settings_dialog_has_closed_lifecycle_boundary(self):
+        source = AIO_SAMPLER_SETTINGS_DIALOG_JS.read_text(encoding="utf-8")
+        entry_source = AIO_JS.read_text(encoding="utf-8")
+        frontend_check_source = FRONTEND_CHECK_SCRIPT.read_text(encoding="utf-8")
+
+        self.assertTrue(source.startswith("// @ts-check\n"))
+        self.assertEqual(STATIC_IMPORT_RE.findall(source), [])
+        self.assertNotRegex(source, r"(?m)^\s*import\s")
+        self.assertNotIn("fetch(", source)
+        self.assertNotIn("app.registerExtension", source)
+        self.assertEqual(
+            re.findall(r"^export function ([A-Za-z0-9_]+)\(", source, re.MULTILINE),
+            ["aioCreateSamplerSettingsDialog"],
+        )
+        self.assertEqual(len(re.findall(r"(?m)^export\s+", source)), 1)
+        self.assertIn(
+            'import { aioCreateSamplerSettingsDialog } from "./aio/sampler_settings_dialog.js";',
+            entry_source,
+        )
+        for moved_function in (
+            "applyNodeInputInfo",
+            "createDynamicNodeInputEditor",
+            "openSamplerSettings",
+        ):
+            with self.subTest(moved_function=moved_function):
+                self.assertRegex(source, rf"\bfunction\s+{moved_function}\(")
+                self.assertNotRegex(entry_source, rf"\bfunction\s+{moved_function}\(")
+        for moved_constant in (
+            "SPECTRUM_ADVANCED_KNOWN_INPUTS",
+            "SPECTRUM_SPD_KNOWN_INPUTS",
+        ):
+            with self.subTest(moved_constant=moved_constant):
+                self.assertRegex(source, rf"\bconst\s+{moved_constant}\s*=")
+                self.assertNotRegex(entry_source, rf"\bconst\s+{moved_constant}\s*=")
+
+        composition_start = entry_source.index(
+            "const openSamplerSettings = aioCreateSamplerSettingsDialog({"
+        )
+        composition_end = entry_source.index("\n\nconst generatorPanelRuntime", composition_start)
+        composition = entry_source[composition_start:composition_end]
+        for expected in (
+            "createDialog,",
+            "nodeInputControlForSpec,",
+            "valueFromNodeInputControl,",
+            "defaultGenerationSettings: DEFAULT_GENERATION_SETTINGS,",
+            "seedControls: GENERATOR_SEED_CONTROLS,",
+            "specialSeedRandom: GENERATOR_SPECIAL_SEED_RANDOM,",
+            "mergeVisibleSettings: mergeVisibleGeneratorSettings,",
+            "applyVisibleSettings: applyVisibleGeneratorSettings,",
+            "writeSettings,",
+            "renderPanel: renderGeneratorPanel,",
+            "backendDependencies: AIO_BACKEND_DEPENDENCIES,",
+            "isLoaded: () => generatorOptionalDependencyState.loaded,",
+            "nodeInputMap,",
+            "nodeInputTooltip,",
+            "nodeInputSupported,",
+            "load: loadGeneratorOptionalDependencies,",
+        ):
+            with self.subTest(composition_dependency=expected):
+                self.assertIn(expected, composition)
+        detailer_composition = entry_source.index("const openDetailerSettings")
+        generator_panel_composition = entry_source.index("const generatorPanelRuntime")
+        self.assertLess(detailer_composition, composition_start)
+        self.assertLess(composition_start, generator_panel_composition)
+        self.assertIn("return openSamplerSettings;", source)
+        self.assertTrue(AIO_SAMPLER_SETTINGS_DIALOG_SMOKE.is_file())
+        self.assertIn(
+            r'node "tests\frontend_aio_sampler_settings_dialog_smoke.mjs"',
             frontend_check_source,
         )
 
