@@ -15,11 +15,123 @@ LORA_PRESET_PROFILE_DATA = ROOT / "web" / "js" / "lora_preset" / "profile_data.j
 LORA_PRESET_PROFILE_DATA_SMOKE = (
     ROOT / "tests" / "frontend_lora_preset_profile_data_smoke.mjs"
 )
+LORA_PRESET_LORA_STATE = ROOT / "web" / "js" / "lora_preset" / "lora_state.js"
+LORA_PRESET_LORA_STATE_SMOKE = (
+    ROOT / "tests" / "frontend_lora_preset_lora_state_smoke.mjs"
+)
 JSCONFIG = ROOT / "jsconfig.json"
 FRONTEND_CHECK_SCRIPT = ROOT / "tools" / "check_frontend.ps1"
 
 
 class LoraPresetFrontendTests(unittest.TestCase):
+    def test_lora_state_module_boundary(self):
+        module_source = LORA_PRESET_LORA_STATE.read_text(encoding="utf-8")
+        entry_source = LORA_PRESET_ENTRY.read_text(encoding="utf-8")
+        config = json.loads(JSCONFIG.read_text(encoding="utf-8"))
+        frontend_check_source = FRONTEND_CHECK_SCRIPT.read_text(encoding="utf-8")
+        expected_exports = {
+            "buildLoraLookup",
+            "comboEntryText",
+            "hasLoraPathProblem",
+            "isAnyLoraFixPending",
+            "isLoraFixPending",
+            "localLoraMatch",
+            "loraFileKey",
+            "loraFixPendingSet",
+            "normalizeLoraKey",
+            "normalizeLoraNameList",
+            "validComboEntryText",
+        }
+        expected_imports = expected_exports - {
+            "comboEntryText",
+            "loraFileKey",
+            "normalizeLoraKey",
+        }
+
+        exported_names = set(
+            re.findall(
+                r"^export\s+(?:const|function|class)\s+([A-Za-z0-9_]+)",
+                module_source,
+                re.MULTILINE,
+            )
+        )
+        self.assertEqual(exported_names, expected_exports)
+
+        import_match = re.search(
+            r'^import\s*\{(?P<names>[^}]*)\}\s*from\s*"\./lora_preset/lora_state\.js";',
+            entry_source,
+            re.MULTILINE,
+        )
+        self.assertIsNotNone(import_match)
+        imported_names = {
+            name.strip().rstrip(",")
+            for name in import_match.group("names").splitlines()
+            if name.strip()
+        }
+        self.assertEqual(imported_names, expected_imports)
+
+        self.assertEqual(module_source.splitlines()[0], "// @ts-check")
+        self.assertNotRegex(
+            module_source,
+            re.compile(r"^\s*import\b", re.MULTILINE),
+        )
+        self.assertNotRegex(
+            module_source,
+            (
+                r"\b(?:document|window|app|api|fetch|registerExtension|"
+                r"addEventListener|removeEventListener|MutationObserver|"
+                r"HTMLElement|HTMLInputElement|HTMLTextAreaElement)\b"
+            ),
+        )
+        for name in expected_exports | {"putUniqueLoraMatch"}:
+            with self.subTest(moved_declaration=name):
+                self.assertNotRegex(
+                    entry_source,
+                    rf"\b(?:const|let|var|function|class)\s+{re.escape(name)}\b",
+                )
+
+        for adapter in (
+            "comboValues",
+            "loraNameValues",
+            "loraResolveState",
+            "setLoraLookup",
+            "fetchLoraNameValues",
+            "refreshLoraAvailability",
+            "fixProfileLoras",
+            "fixSingleLoraEntry",
+        ):
+            with self.subTest(entry_adapter=adapter):
+                self.assertIn(f"function {adapter}(", entry_source)
+        self.assertIn(
+            "return localLoraMatch(normalizeLoraEntry(lora), node?.__easyuseAnimaLoraLookup);",
+            entry_source,
+        )
+        self.assertIn("return normalizeLoraNameList(comboValues(", entry_source)
+        self.assertIn("node.__easyuseAnimaLoraLookup = buildLoraLookup(values);", entry_source)
+
+        self.assertTrue(LORA_PRESET_LORA_STATE_SMOKE.is_file())
+        self.assertIn("web/js/lora_preset/**/*.js", config["include"])
+        self.assertIn(
+            r'node "tests\frontend_lora_preset_lora_state_smoke.mjs"',
+            frontend_check_source,
+        )
+
+    def test_lora_state_module_semantics(self):
+        node_bin = shutil.which("node")
+        if not node_bin:
+            self.skipTest("node executable is not available")
+
+        completed = subprocess.run(
+            [node_bin, str(LORA_PRESET_LORA_STATE_SMOKE)],
+            cwd=ROOT,
+            text=True,
+            capture_output=True,
+            check=False,
+        )
+
+        if completed.returncode != 0:
+            self.fail((completed.stdout + completed.stderr).strip())
+
     def test_profile_data_module_boundary(self):
         module_source = LORA_PRESET_PROFILE_DATA.read_text(encoding="utf-8")
         entry_source = LORA_PRESET_ENTRY.read_text(encoding="utf-8")
@@ -116,14 +228,20 @@ class LoraPresetFrontendTests(unittest.TestCase):
 
             const sourcePath = process.argv[1];
             const profileDataPath = process.argv[2];
+            const loraStatePath = process.argv[3];
             let profileDataSource = fs.readFileSync(profileDataPath, "utf8");
             profileDataSource = profileDataSource.replace(
               /^export\s+(?=(?:const|function|class)\b)/gm,
               "",
             );
+            let loraStateSource = fs.readFileSync(loraStatePath, "utf8");
+            loraStateSource = loraStateSource.replace(
+              /^export\s+(?=(?:const|function|class)\b)/gm,
+              "",
+            );
             let source = fs.readFileSync(sourcePath, "utf8");
             source = source.replace(/^import[\s\S]*?;\r?\n/gm, "");
-            source = `${profileDataSource}\n${source}`;
+            source = `${profileDataSource}\n${loraStateSource}\n${source}`;
             source += "\nglobalThis.__loraPresetTest = { LoraRowWidget, LORA_PRESET_SETTINGS, applyLoraPresetSettings, loraMenuElementValue, loraMenuItems };\n";
 
             class StubElement {
@@ -369,6 +487,7 @@ class LoraPresetFrontendTests(unittest.TestCase):
                 runner,
                 str(LORA_PRESET_ENTRY),
                 str(LORA_PRESET_PROFILE_DATA),
+                str(LORA_PRESET_LORA_STATE),
             ],
             cwd=ROOT,
             text=True,

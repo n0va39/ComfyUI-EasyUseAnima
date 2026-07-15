@@ -94,6 +94,11 @@ try {
         throw "Frontend LoRA preset profile data smoke failed with exit code $LASTEXITCODE."
     }
 
+    & node "tests\frontend_lora_preset_lora_state_smoke.mjs"
+    if ($LASTEXITCODE -ne 0) {
+        throw "Frontend LoRA preset state smoke failed with exit code $LASTEXITCODE."
+    }
+
     & node "tests\frontend_autocomplete_text_model_smoke.mjs"
     if ($LASTEXITCODE -ne 0) {
         throw "Frontend autocomplete text model smoke failed with exit code $LASTEXITCODE."
