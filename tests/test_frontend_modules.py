@@ -27,6 +27,10 @@ AIO_INPUT_SETTINGS_DIALOG_JS = AIO_MODULES / "input_settings_dialog.js"
 AIO_INPUT_SETTINGS_DIALOG_SMOKE = (
     ROOT / "tests" / "frontend_aio_input_settings_dialog_smoke.mjs"
 )
+AIO_POSTPROCESS_SETTINGS_DIALOG_JS = AIO_MODULES / "postprocess_settings_dialog.js"
+AIO_POSTPROCESS_SETTINGS_DIALOG_SMOKE = (
+    ROOT / "tests" / "frontend_aio_postprocess_settings_dialog_smoke.mjs"
+)
 AIO_PREVIEW_JS = AIO_MODULES / "preview.js"
 AIO_PREVIEW_CORE_SMOKE = ROOT / "tests" / "frontend_aio_preview_core_smoke.mjs"
 AIO_PRESETS_JS = AIO_MODULES / "presets.js"
@@ -575,7 +579,7 @@ class FrontendModuleStructureTests(unittest.TestCase):
         )
 
         self.assertNotRegex(entry_source, r"\bfunction\s+openInputSettings\(")
-        for entry_owned_dialog in ("openPostprocessSettings", "openPreviewSettings"):
+        for entry_owned_dialog in ("openPreviewSettings",):
             with self.subTest(entry_owned_dialog=entry_owned_dialog):
                 self.assertRegex(
                     entry_source,
@@ -595,6 +599,84 @@ class FrontendModuleStructureTests(unittest.TestCase):
         self.assertTrue(AIO_INPUT_SETTINGS_DIALOG_SMOKE.is_file())
         self.assertIn(
             r'node "tests\frontend_aio_input_settings_dialog_smoke.mjs"',
+            frontend_check_source,
+        )
+
+    def test_aio_postprocess_settings_dialog_has_closed_controller_boundary(self):
+        source = AIO_POSTPROCESS_SETTINGS_DIALOG_JS.read_text(encoding="utf-8")
+        entry_source = AIO_JS.read_text(encoding="utf-8")
+        frontend_check_source = FRONTEND_CHECK_SCRIPT.read_text(encoding="utf-8")
+
+        self.assertEqual(source.splitlines()[0], "// @ts-check")
+        self.assertEqual(
+            re.findall(r"export function ([A-Za-z0-9_]+)\(", source),
+            ["aioCreatePostprocessSettingsDialog"],
+        )
+        self.assertLessEqual(len(source.splitlines()), 150)
+        self.assertNotRegex(source, re.compile(r"^\s*import\s", re.MULTILINE))
+        self.assertNotRegex(source, r"\b(?:app|api)\b")
+        self.assertNotIn("app.registerExtension", source)
+        self.assertNotIn("fetch(", source)
+        self.assertNotRegex(
+            source,
+            re.compile(r"^(?:window|globalThis)\.[A-Za-z_$]", re.MULTILINE),
+        )
+
+        self.assertIn(
+            'import { aioCreatePostprocessSettingsDialog } from '
+            '"./aio/postprocess_settings_dialog.js";',
+            entry_source,
+        )
+        factory_match = re.search(
+            r"const\s+openPostprocessSettings\s*=\s*"
+            r"aioCreatePostprocessSettingsDialog"
+            r"\(\{(?P<dependencies>.*?)\}\);",
+            entry_source,
+            re.DOTALL,
+        )
+        self.assertIsNotNone(factory_match)
+        dependency_entries = {
+            line.strip().removesuffix(",")
+            for line in factory_match.group("dependencies").splitlines()
+            if line.strip()
+        }
+        self.assertEqual(
+            dependency_entries,
+            {
+                "document",
+                "createDialog",
+                "field",
+                "checkbox",
+                "selectInput",
+                "numberInput",
+                "staticText: aioStaticText",
+                "text: aioText",
+                "defaultGenerationSettings: DEFAULT_GENERATION_SETTINGS",
+                "generatorSettingsWidget: GENERATOR_SETTINGS_WIDGET",
+                "findWidget",
+                "generatorSettings",
+                "mergeDefaults",
+                "clampNumber: clampGeneratorNumber",
+                "writeSettings",
+                "renderGeneratorPanel",
+            },
+        )
+
+        self.assertNotRegex(entry_source, r"\bfunction\s+openPostprocessSettings\(")
+        self.assertRegex(entry_source, r"\bfunction\s+openPreviewSettings\(")
+        self.assertIn("const openInputSettings = aioCreateInputSettingsDialog", entry_source)
+
+        render_start = entry_source.index("function renderGeneratorPanel")
+        render_end = entry_source.index("\nfunction ensureGeneratorPanel", render_start)
+        render_body = entry_source[render_start:render_end]
+        self.assertIn("openPostprocessSettings(node)", render_body)
+        self.assertEqual(entry_source.count("openPostprocessSettings(node)"), 1)
+
+        self.assertIn("...postprocess", source)
+        self.assertIn("...fit", source)
+        self.assertTrue(AIO_POSTPROCESS_SETTINGS_DIALOG_SMOKE.is_file())
+        self.assertIn(
+            r'node "tests\frontend_aio_postprocess_settings_dialog_smoke.mjs"',
             frontend_check_source,
         )
 
