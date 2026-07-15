@@ -53,6 +53,25 @@ This document records decisions that supersede earlier experimental notes.
   and legacy canvas smoke checks were run. If one surface is not checked, state
   the gap explicitly.
 
+## Frontend Maintenance Workflow
+
+- Keep each PR at one reviewable ownership boundary. Group two or three related
+  pure helpers or one complete UI lifecycle instead of creating a PR for every
+  mechanical extraction.
+- Keep observable behavior changes separate from mechanical moves. Preserve the
+  original order, return values, `this`, serialization keys, API payloads, and
+  registration count in extraction-only slices.
+- For a mechanical move, require independent behavior and test-contract audits.
+  Add an architecture/lifecycle audit when behavior changes or the UI lifecycle
+  is complex.
+- After each maintenance PR is merged, append its completed boundary, merge PR,
+  validation evidence, and deferred findings to the owning Issue ledger. At the
+  close checkpoint, reconcile the cumulative ledger with every completion item.
+- If a GitHub push, PR, or merge mutation reports abort or timeout, read the
+  remote branch or PR state before retrying. Do not assume the mutation failed.
+- Follow `docs/development/browser-smoke-matrix.md` for focused, full,
+  dual-canvas, and final user-instance validation timing.
+
 ## Detailer and SAM3
 
 - Do not copy or reimplement Impact Pack `DetailerForEach` core logic in EasyUse Anima.
@@ -95,9 +114,16 @@ This document records decisions that supersede earlier experimental notes.
 
 ## Local ComfyUI Instance Usage
 
-- Use the ComfyUI 0.24 instance for Codex agent implementation and queue
-  validation only.
-- Reserve the ComfyUI 0.25 instance for user-side manual testing.
+- Implement changes in the assigned `codex/*` worktree. Use the
+  workspace-managed Codex test instance only for API, queue, and browser
+  validation.
+- Treat the user-side instance as a separate manual surface. The current manual
+  baseline is ComfyUI v0.27.0 unless the user explicitly changes it.
+- Agent-run frontend smoke must record the legacy canvas and Node 2.0 as
+  separate surfaces by following
+  `docs/development/browser-smoke-matrix.md`.
+- Sync or update the user instance only when explicitly requested or once at
+  the end of the active maintenance goal.
 - When both instances may be running, use separate ports and state clearly which
   instance was used for validation.
 - Do not overwrite user-edited workflow files while syncing to an agent-only
