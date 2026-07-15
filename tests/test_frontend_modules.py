@@ -63,6 +63,10 @@ AIO_SAVE_SETTINGS_DIALOG_JS = AIO_MODULES / "save_settings_dialog.js"
 AIO_SAVE_SETTINGS_DIALOG_SMOKE = (
     ROOT / "tests" / "frontend_aio_save_settings_dialog_smoke.mjs"
 )
+AIO_ADVANCED_SETTINGS_DIALOG_JS = AIO_MODULES / "advanced_settings_dialog.js"
+AIO_ADVANCED_SETTINGS_DIALOG_SMOKE = (
+    ROOT / "tests" / "frontend_aio_advanced_settings_dialog_smoke.mjs"
+)
 AIO_PREVIEW_JS = AIO_MODULES / "preview.js"
 AIO_PREVIEW_CORE_SMOKE = ROOT / "tests" / "frontend_aio_preview_core_smoke.mjs"
 AIO_PRESETS_JS = AIO_MODULES / "presets.js"
@@ -772,7 +776,10 @@ class FrontendModuleStructureTests(unittest.TestCase):
         composition_start = entry_source.index(
             "const openSaveSettings = aioCreateSaveSettingsDialog({"
         )
-        composition_end = entry_source.index("\n\nconst generatorPanelRuntime", composition_start)
+        composition_end = entry_source.index(
+            "const openAdvancedSettings = aioCreateAdvancedSettingsDialog({",
+            composition_start,
+        )
         composition = entry_source[composition_start:composition_end]
         for expected in (
             "createDialog,",
@@ -803,13 +810,80 @@ class FrontendModuleStructureTests(unittest.TestCase):
             with self.subTest(composition_dependency=expected):
                 self.assertIn(expected, composition)
         sampler_composition = entry_source.index("const openSamplerSettings")
-        generator_panel_composition = entry_source.index("const generatorPanelRuntime")
+        advanced_composition = entry_source.index("const openAdvancedSettings")
         self.assertLess(sampler_composition, composition_start)
-        self.assertLess(composition_start, generator_panel_composition)
+        self.assertLess(composition_start, advanced_composition)
         self.assertIn("return openSaveSettings;", source)
         self.assertTrue(AIO_SAVE_SETTINGS_DIALOG_SMOKE.is_file())
         self.assertIn(
             r'node "tests\frontend_aio_save_settings_dialog_smoke.mjs"',
+            frontend_check_source,
+        )
+
+    def test_aio_advanced_settings_dialog_has_closed_lifecycle_boundary(self):
+        source = AIO_ADVANCED_SETTINGS_DIALOG_JS.read_text(encoding="utf-8")
+        entry_source = AIO_JS.read_text(encoding="utf-8")
+        frontend_check_source = FRONTEND_CHECK_SCRIPT.read_text(encoding="utf-8")
+
+        self.assertTrue(source.startswith("// @ts-check\n"))
+        self.assertEqual(STATIC_IMPORT_RE.findall(source), [])
+        self.assertNotRegex(source, r"(?m)^\s*import\s")
+        self.assertNotIn("fetch(", source)
+        self.assertNotIn("app.registerExtension", source)
+        self.assertEqual(
+            re.findall(r"^export function ([A-Za-z0-9_]+)\(", source, re.MULTILINE),
+            ["aioCreateAdvancedSettingsDialog"],
+        )
+        self.assertEqual(len(re.findall(r"(?m)^export\s+", source)), 1)
+        self.assertIn(
+            'import { aioCreateAdvancedSettingsDialog } from '
+            '"./aio/advanced_settings_dialog.js";',
+            entry_source,
+        )
+        self.assertRegex(source, r"\bfunction\s+openAdvancedSettings\(")
+        self.assertNotRegex(entry_source, r"\bfunction\s+openAdvancedSettings\(")
+        self.assertNotRegex(source, r"\bfunction\s+openGeneratorSettings\(")
+
+        composition_start = entry_source.index(
+            "const openAdvancedSettings = aioCreateAdvancedSettingsDialog({"
+        )
+        composition_end = entry_source.index(
+            "const generatorPanelRuntime = aioCreateGeneratorPanelRuntime({",
+            composition_start,
+        )
+        composition = entry_source[composition_start:composition_end]
+        for expected in (
+            "createDialog,",
+            "field,",
+            "checkbox,",
+            "textInput,",
+            "numberInput,",
+            "selectInput,",
+            "staticText: aioStaticText,",
+            "get: aioText,",
+            "format: aioFormat,",
+            "defaultGenerationSettings: DEFAULT_GENERATION_SETTINGS,",
+            "mergeDefaults,",
+            "clampNumber: clampGeneratorNumber,",
+            "generatorSettingsWidget: GENERATOR_SETTINGS_WIDGET,",
+            "findWidget,",
+            "getSettings: generatorSettings,",
+            "writeSettings,",
+            "renderPanel: renderGeneratorPanel,",
+            "available: optionalDependencyAvailable,",
+            "pack: optionalDependencyPack,",
+            "load: loadGeneratorOptionalDependencies,",
+        ):
+            with self.subTest(composition_dependency=expected):
+                self.assertIn(expected, composition)
+        save_composition = entry_source.index("const openSaveSettings")
+        generator_panel_composition = entry_source.index("const generatorPanelRuntime")
+        self.assertLess(save_composition, composition_start)
+        self.assertLess(composition_start, generator_panel_composition)
+        self.assertIn("return openAdvancedSettings;", source)
+        self.assertTrue(AIO_ADVANCED_SETTINGS_DIALOG_SMOKE.is_file())
+        self.assertIn(
+            r'node "tests\frontend_aio_advanced_settings_dialog_smoke.mjs"',
             frontend_check_source,
         )
 
