@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
+import { createFakeDocument, descendants } from "./frontend_support/fake_dom.mjs";
 
 function dataModule(relativePath) {
   const source = readFileSync(new URL(relativePath, import.meta.url), "utf8");
@@ -16,119 +17,6 @@ const definitionData = await import(
 assert.deepEqual(Object.keys(longTextEditorModule), [
   "createLongTextEditorButtonFactory",
 ]);
-
-class FakeElement {
-  constructor(tagName) {
-    this.tagName = String(tagName).toUpperCase();
-    this.children = [];
-    this.parentElement = null;
-    this.style = { cssText: "" };
-    this.listeners = new Map();
-    this.className = "";
-    this.textContent = "";
-    this.type = "";
-    this.value = "";
-    this.rows = 0;
-    this.spellcheck = true;
-    this.disabled = false;
-    this.focused = false;
-    this.removed = false;
-    this.onclick = null;
-  }
-
-  append(...children) {
-    for (const child of children) {
-      child.parentElement = this;
-      this.children.push(child);
-    }
-  }
-
-  prepend(...children) {
-    for (const child of [...children].reverse()) {
-      child.parentElement = this;
-      this.children.unshift(child);
-    }
-  }
-
-  addEventListener(type, handler) {
-    const handlers = this.listeners.get(type) || [];
-    handlers.push(handler);
-    this.listeners.set(type, handlers);
-  }
-
-  emit(type, event = {}) {
-    const nextEvent = {
-      target: this,
-      stopPropagation() {},
-      ...event,
-    };
-    for (const handler of this.listeners.get(type) || []) {
-      handler(nextEvent);
-    }
-    return nextEvent;
-  }
-
-  focus() {
-    this.focused = true;
-  }
-
-  remove() {
-    if (this.parentElement) {
-      const index = this.parentElement.children.indexOf(this);
-      if (index >= 0) {
-        this.parentElement.children.splice(index, 1);
-      }
-    }
-    this.parentElement = null;
-    this.removed = true;
-  }
-}
-
-class FakeDocument {
-  constructor() {
-    this.body = new FakeElement("body");
-    this.createdElements = [];
-    this.listeners = new Map();
-  }
-
-  createElement(tagName) {
-    const element = new FakeElement(tagName);
-    this.createdElements.push(element);
-    return element;
-  }
-
-  addEventListener(type, handler, capture = false) {
-    const entries = this.listeners.get(type) || [];
-    entries.push({ handler, capture });
-    this.listeners.set(type, entries);
-  }
-
-  removeEventListener(type, handler, capture = false) {
-    const entries = this.listeners.get(type) || [];
-    this.listeners.set(
-      type,
-      entries.filter((entry) => entry.handler !== handler || entry.capture !== capture),
-    );
-  }
-
-  dispatchKey(key) {
-    for (const entry of [...(this.listeners.get("keydown") || [])]) {
-      entry.handler({ key });
-    }
-  }
-
-  listenerCount(type) {
-    return (this.listeners.get(type) || []).length;
-  }
-}
-
-function descendants(root) {
-  const values = [];
-  for (const child of root.children) {
-    values.push(child, ...descendants(child));
-  }
-  return values;
-}
 
 function findOne(root, predicate, message) {
   const found = [root, ...descendants(root)].find(predicate);
@@ -188,7 +76,7 @@ const TEXT = {
   autoHide: "Auto hide",
 };
 
-const document = new FakeDocument();
+const document = createFakeDocument();
 const loadCalls = [];
 const saveCalls = [];
 const scheduled = [];
