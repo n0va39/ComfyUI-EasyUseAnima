@@ -11,6 +11,7 @@
  *     window: any,
  *     MutationObserver: any,
  *     requestAnimationFrame: (callback: any) => any,
+ *     cancelAnimationFrame: (frame: any) => void,
  *     setTimeout: (callback: any, delay: number) => any,
  *     clearTimeout: (timer: any) => void,
  *   },
@@ -52,6 +53,7 @@ export function aioCreateNativePreviewRuntime(dependencies) {
     window,
     MutationObserver,
     requestAnimationFrame,
+    cancelAnimationFrame,
     setTimeout,
     clearTimeout,
   } = dependencies.environment;
@@ -85,6 +87,140 @@ export function aioCreateNativePreviewRuntime(dependencies) {
     rememberState: rememberGeneratorProgressState,
     clear: clearGeneratorPreviewProgress,
   } = dependencies.progressAdapter;
+
+  const generatorNativePreviewLifecycleStates = new WeakMap();
+  const disposedGeneratorNativePreviewNodes = new WeakSet();
+
+  function createGeneratorNativePreviewLifecycleState() {
+    return {
+      frames: new Map(),
+      timers: new Map(),
+      observers: new Map(),
+      purgeBatchActive: false,
+      purgeIds: new Set(),
+      purgeStorePromise: null,
+      hideBatchActive: false,
+      suppressionBatchActive: false,
+      suppressionShouldPurge: false,
+      suppressionPurgeIds: new Set(),
+      suppressionStorePromise: null,
+    };
+  }
+
+  function activateGeneratorNativePreviewLifecycle(node) {
+    if (!node) {
+      return false;
+    }
+    disposedGeneratorNativePreviewNodes.delete(node);
+    if (!generatorNativePreviewLifecycleStates.has(node)) {
+      generatorNativePreviewLifecycleStates.set(
+        node,
+        createGeneratorNativePreviewLifecycleState(),
+      );
+    }
+    return true;
+  }
+
+  function isGeneratorNativePreviewDisposed(node) {
+    return !node || disposedGeneratorNativePreviewNodes.has(node);
+  }
+
+  function generatorNativePreviewLifecycleState(node) {
+    if (isGeneratorNativePreviewDisposed(node)) {
+      return null;
+    }
+    activateGeneratorNativePreviewLifecycle(node);
+    return generatorNativePreviewLifecycleStates.get(node) || null;
+  }
+
+  function isGeneratorNativePreviewLifecycleCurrent(node, state) {
+    return (
+      !!state
+      && !isGeneratorNativePreviewDisposed(node)
+      && generatorNativePreviewLifecycleStates.get(node) === state
+    );
+  }
+
+  function scheduleGeneratorNativePreviewFrame(node, key, callback) {
+    const state = generatorNativePreviewLifecycleState(node);
+    if (!state) {
+      return null;
+    }
+    const existing = state.frames.get(key);
+    if (existing != null) {
+      return existing;
+    }
+    let frame = null;
+    frame = requestAnimationFrame(() => {
+      if (state.frames.get(key) !== frame) {
+        return;
+      }
+      state.frames.delete(key);
+      if (isGeneratorNativePreviewLifecycleCurrent(node, state)) {
+        callback(state);
+      }
+    });
+    state.frames.set(key, frame);
+    return frame;
+  }
+
+  function scheduleGeneratorNativePreviewTimer(node, key, delay, callback, options = {}) {
+    const state = generatorNativePreviewLifecycleState(node);
+    if (!state) {
+      return null;
+    }
+    const existing = state.timers.get(key);
+    if (existing != null) {
+      if (options.replace !== true) {
+        return existing;
+      }
+      clearTimeout(existing);
+      state.timers.delete(key);
+    }
+    let timer = null;
+    timer = setTimeout(() => {
+      if (state.timers.get(key) !== timer) {
+        return;
+      }
+      state.timers.delete(key);
+      if (isGeneratorNativePreviewLifecycleCurrent(node, state)) {
+        callback(state);
+      }
+    }, delay);
+    state.timers.set(key, timer);
+    return timer;
+  }
+
+  function disconnectGeneratorNativePreviewObservers(state) {
+    for (const observer of state?.observers?.values?.() || []) {
+      observer.disconnect();
+    }
+    state?.observers?.clear?.();
+  }
+
+  function disposeGeneratorNativePreviewLifecycle(node) {
+    if (!node || disposedGeneratorNativePreviewNodes.has(node)) {
+      return false;
+    }
+    disposedGeneratorNativePreviewNodes.add(node);
+    const state = generatorNativePreviewLifecycleStates.get(node);
+    if (state) {
+      for (const frame of state.frames.values()) {
+        cancelAnimationFrame(frame);
+      }
+      state.frames.clear();
+      for (const timer of state.timers.values()) {
+        clearTimeout(timer);
+      }
+      state.timers.clear();
+      disconnectGeneratorNativePreviewObservers(state);
+      state.purgeIds.clear();
+      state.suppressionPurgeIds.clear();
+      generatorNativePreviewLifecycleStates.delete(node);
+    }
+    clearGeneratorDenoisePreview(node, false);
+    return true;
+  }
 
   function cssEscape(value) {
     if (typeof CSS !== "undefined" && typeof CSS.escape === "function") {
@@ -265,22 +401,26 @@ export function aioCreateNativePreviewRuntime(dependencies) {
     }
   }
 
+  function hideGeneratorNativeLivePreviewRoot(root) {
+    root.classList?.add?.(GENERATOR_VUE_NODE_CLASS);
+    hideGeneratorNativeLivePreviewElements(root);
+  }
+
   function markGeneratorNativeLivePreviewHidden(node) {
-    if (!node || typeof document === "undefined") {
+    if (isGeneratorNativePreviewDisposed(node) || typeof document === "undefined") {
       return;
     }
     for (const root of generatorVueNodeRoots(node)) {
-      root.classList.add(GENERATOR_VUE_NODE_CLASS);
-      hideGeneratorNativeLivePreviewElements(root);
+      hideGeneratorNativeLivePreviewRoot(root);
     }
   }
 
   let generatorNativePreviewStoresPromise = null;
   let generatorDialogServiceAssetUrlPromise = null;
 
-  async function generatorDialogServiceAssetUrl() {
+  function generatorDialogServiceAssetUrl() {
     if (!generatorDialogServiceAssetUrlPromise) {
-      generatorDialogServiceAssetUrlPromise = (async () => {
+      const attempt = (async () => {
         if (typeof document !== "undefined") {
           const elements = document.querySelectorAll("link[href], script[src]");
           for (const element of elements) {
@@ -294,19 +434,29 @@ export function aioCreateNativePreviewRuntime(dependencies) {
         const match = html.match(/(?:\.\/)?assets\/dialogService-[^"'<>]+\.js/);
         return match ? new URL(match[0], window.location.href).href : "";
       })().catch(() => "");
+      generatorDialogServiceAssetUrlPromise = attempt;
+      void attempt.then((url) => {
+        if (!url && generatorDialogServiceAssetUrlPromise === attempt) {
+          generatorDialogServiceAssetUrlPromise = null;
+        }
+      });
     }
     return generatorDialogServiceAssetUrlPromise;
   }
 
-  async function generatorNativePreviewStores() {
+  function generatorNativePreviewStores() {
     if (!generatorNativePreviewStoresPromise) {
-      generatorNativePreviewStoresPromise = (async () => {
+      const attempt = (async () => {
         try {
           const [nodeOutputStoreModule, workflowStoreModule] = await loadDirectStoreModules();
-          if (nodeOutputStoreModule?.useNodeOutputStore && workflowStoreModule?.useWorkflowStore) {
+          const useNodeOutputStore = nodeOutputStoreModule?.useNodeOutputStore;
+          const useWorkflowStore = workflowStoreModule?.useWorkflowStore;
+          if (typeof useNodeOutputStore === "function") {
             return {
-              useNodeOutputStore: nodeOutputStoreModule.useNodeOutputStore,
-              useWorkflowStore: workflowStoreModule.useWorkflowStore,
+              useNodeOutputStore,
+              useWorkflowStore: typeof useWorkflowStore === "function"
+                ? useWorkflowStore
+                : null,
             };
           }
         } catch {
@@ -319,50 +469,83 @@ export function aioCreateNativePreviewRuntime(dependencies) {
         }
         try {
           const module = await importAssetModule(url);
-          return {
-            useNodeOutputStore: module?.useNodeOutputStore || module?.cn || module?.L,
-            useWorkflowStore: module?.useWorkflowStore || module?.M,
+          const useNodeOutputStore = [
+            module?.useNodeOutputStore,
+            module?.cn,
+            module?.L,
+          ].find((candidate) => typeof candidate === "function") || null;
+          const useWorkflowStore = [
+            module?.useWorkflowStore,
+            module?.M,
+          ].find((candidate) => typeof candidate === "function") || null;
+          const stores = {
+            useNodeOutputStore,
+            useWorkflowStore: typeof useWorkflowStore === "function"
+              ? useWorkflowStore
+              : null,
           };
+          if (typeof stores.useNodeOutputStore === "function") {
+            return stores;
+          }
+          return null;
         } catch {
           return null;
         }
-      })();
+      })().catch(() => null);
+      generatorNativePreviewStoresPromise = attempt;
+      void attempt.then((stores) => {
+        if (!stores && generatorNativePreviewStoresPromise === attempt) {
+          generatorNativePreviewStoresPromise = null;
+        }
+      });
     }
     return generatorNativePreviewStoresPromise;
   }
 
-  async function purgeGeneratorNativeLivePreviewStore(node, detail = null) {
+  async function purgeGeneratorNativeLivePreviewStore(node, ids, storesPromise, lifecycleState) {
     try {
-      if (!node) {
+      if (!isGeneratorNativePreviewLifecycleCurrent(node, lifecycleState)) {
         return;
       }
-      const ids = generatorPreviewLocatorCandidates(node, detail);
-      if (!ids.length) {
+      const purgeIds = [...new Set(ids || [])].filter(Boolean);
+      if (!purgeIds.length) {
         return;
       }
       const legacyPreviewImages = getLegacyPreviewImages();
       if (legacyPreviewImages && typeof legacyPreviewImages === "object") {
-        for (const id of ids) {
+        for (const id of purgeIds) {
           aioDeletePreviewStoreEntry(legacyPreviewImages, id);
         }
       }
 
-      const stores = await generatorNativePreviewStores();
+      const stores = await storesPromise;
+      if (!isGeneratorNativePreviewLifecycleCurrent(node, lifecycleState)) {
+        return;
+      }
       const outputStore = stores?.useNodeOutputStore?.();
       if (!outputStore) {
         return;
       }
-      const workflowStore = stores?.useWorkflowStore?.();
-      const locators = new Set(ids);
-      for (const id of ids) {
+      let workflowStore = null;
+      try {
+        workflowStore = stores?.useWorkflowStore?.() ?? null;
+      } catch {
+        // Workflow locator support is optional; raw output locators must still be purged.
+      }
+      const locators = new Set(purgeIds);
+      for (const id of purgeIds) {
         const leaf = String(id).split(":").pop();
         if (!leaf) {
           continue;
         }
         locators.add(leaf);
-        const locator = workflowStore?.nodeIdToNodeLocatorId?.(leaf);
-        if (locator) {
-          locators.add(locator);
+        try {
+          const locator = workflowStore?.nodeIdToNodeLocatorId?.(leaf);
+          if (locator) {
+            locators.add(locator);
+          }
+        } catch {
+          // Keep best-effort workflow mapping isolated from raw output-store cleanup.
         }
       }
       for (const locator of locators) {
@@ -374,36 +557,78 @@ export function aioCreateNativePreviewRuntime(dependencies) {
     }
   }
 
+  function addGeneratorNativePreviewPurgeIds(target, node, detail = null) {
+    const ids = generatorPreviewLocatorCandidates(node, detail);
+    for (const id of ids) {
+      target.add(id);
+    }
+    return ids;
+  }
+
   function scheduleGeneratorNativeLivePreviewPurge(node, detail = null) {
-    void purgeGeneratorNativeLivePreviewStore(node, detail);
-    requestAnimationFrame(() => {
-      void purgeGeneratorNativeLivePreviewStore(node, detail);
-    });
-    setTimeout(() => {
-      void purgeGeneratorNativeLivePreviewStore(node, detail);
-    }, 80);
-    setTimeout(() => {
-      void purgeGeneratorNativeLivePreviewStore(node, detail);
-    }, 240);
+    const state = generatorNativePreviewLifecycleState(node);
+    if (!state) {
+      return;
+    }
+    const requestIds = addGeneratorNativePreviewPurgeIds(state.purgeIds, node, detail);
+    if (!requestIds.length) {
+      return;
+    }
+    if (!state.purgeStorePromise) {
+      state.purgeStorePromise = generatorNativePreviewStores();
+    }
+    void purgeGeneratorNativeLivePreviewStore(
+      node,
+      requestIds,
+      state.purgeStorePromise,
+      state,
+    );
+    if (!state.purgeBatchActive) {
+      state.purgeBatchActive = true;
+      scheduleGeneratorNativePreviewFrame(node, "purge", (current) => {
+        addGeneratorNativePreviewPurgeIds(current.purgeIds, node);
+        void purgeGeneratorNativeLivePreviewStore(
+          node,
+          [...current.purgeIds],
+          current.purgeStorePromise,
+          current,
+        );
+      });
+    }
+    scheduleGeneratorNativePreviewTimer(node, "purge-80", 80, (current) => {
+      addGeneratorNativePreviewPurgeIds(current.purgeIds, node);
+      void purgeGeneratorNativeLivePreviewStore(
+        node,
+        [...current.purgeIds],
+        current.purgeStorePromise,
+        current,
+      );
+    }, { replace: true });
+    scheduleGeneratorNativePreviewTimer(node, "purge-240", 240, (current) => {
+      addGeneratorNativePreviewPurgeIds(current.purgeIds, node);
+      const pendingIds = [...current.purgeIds];
+      const storePromise = current.purgeStorePromise;
+      current.purgeBatchActive = false;
+      current.purgeIds.clear();
+      current.purgeStorePromise = null;
+      void purgeGeneratorNativeLivePreviewStore(node, pendingIds, storePromise, current);
+    }, { replace: true });
   }
 
   function stopGeneratorNativeLivePreviewObserver(node) {
-    const observers = node?.__easyuseAnimaNativeLivePreviewObservers;
-    if (!observers) {
+    const state = generatorNativePreviewLifecycleStates.get(node);
+    if (!state) {
       return;
     }
-    for (const observer of observers.values()) {
-      observer.disconnect();
-    }
-    observers.clear();
+    disconnectGeneratorNativePreviewObservers(state);
   }
 
   function ensureGeneratorNativeLivePreviewObserver(node) {
-    if (!node || !MutationObserver) {
+    const state = generatorNativePreviewLifecycleState(node);
+    if (!state || !MutationObserver) {
       return;
     }
-    const observers = node.__easyuseAnimaNativeLivePreviewObservers || new Map();
-    node.__easyuseAnimaNativeLivePreviewObservers = observers;
+    const { observers } = state;
     for (const [root, observer] of observers) {
       if (!root?.isConnected) {
         observer.disconnect();
@@ -414,33 +639,55 @@ export function aioCreateNativePreviewRuntime(dependencies) {
       if (!root || observers.has(root)) {
         continue;
       }
-      const observer = new MutationObserver(() => markGeneratorNativeLivePreviewHidden(node));
+      const observer = new MutationObserver(() => {
+        if (!isGeneratorNativePreviewLifecycleCurrent(node, state)) {
+          return;
+        }
+        if (!root?.isConnected) {
+          return;
+        }
+        if (state.frames.has(root)) {
+          return;
+        }
+        hideGeneratorNativeLivePreviewRoot(root);
+        scheduleGeneratorNativePreviewFrame(node, root, () => {
+          if (root?.isConnected) {
+            hideGeneratorNativeLivePreviewRoot(root);
+          }
+        });
+      });
       observer.observe(root, { childList: true, subtree: true });
       observers.set(root, observer);
     }
-    clearTimeout(node.__easyuseAnimaNativeLivePreviewObserverStopTimer);
-    node.__easyuseAnimaNativeLivePreviewObserverStopTimer = setTimeout(() => {
+    scheduleGeneratorNativePreviewTimer(node, "observer-stop", 5000, () => {
       stopGeneratorNativeLivePreviewObserver(node);
-    }, 5000);
+    }, { replace: true });
   }
 
   function scheduleGeneratorNativeLivePreviewHidden(node) {
-    markGeneratorNativeLivePreviewHidden(node);
-    ensureGeneratorNativeLivePreviewObserver(node);
-    if (node.__easyuseAnimaNativeLivePreviewHideScheduled) {
+    const state = generatorNativePreviewLifecycleState(node);
+    if (!state) {
       return;
     }
-    node.__easyuseAnimaNativeLivePreviewHideScheduled = true;
+    markGeneratorNativeLivePreviewHidden(node);
+    ensureGeneratorNativeLivePreviewObserver(node);
+    if (state.hideBatchActive) {
+      return;
+    }
+    state.hideBatchActive = true;
     const hide = () => markGeneratorNativeLivePreviewHidden(node);
-    requestAnimationFrame(hide);
-    setTimeout(hide, 80);
-    setTimeout(() => {
-      node.__easyuseAnimaNativeLivePreviewHideScheduled = false;
+    scheduleGeneratorNativePreviewFrame(node, "hide", hide);
+    scheduleGeneratorNativePreviewTimer(node, "hide-80", 80, hide);
+    scheduleGeneratorNativePreviewTimer(node, "hide-240", 240, (current) => {
+      current.hideBatchActive = false;
       hide();
-    }, 240);
+    });
   }
 
   function suppressGeneratorDefaultPreview(node, options = {}) {
+    if (isGeneratorNativePreviewDisposed(node)) {
+      return false;
+    }
     return aioSuppressDefaultPreview(node, {
       markDirty: options.markDirty,
       markNodeDirty,
@@ -448,30 +695,50 @@ export function aioCreateNativePreviewRuntime(dependencies) {
   }
 
   function scheduleGeneratorDefaultPreviewSuppression(node, options = {}) {
+    const state = generatorNativePreviewLifecycleState(node);
+    if (!state) {
+      return;
+    }
     const shouldPurgeStore = options.purgeStore !== false;
     const purgeDetail = options.purgeDetail || null;
     suppressGeneratorDefaultPreview(node);
     if (shouldPurgeStore) {
+      addGeneratorNativePreviewPurgeIds(state.suppressionPurgeIds, node, purgeDetail);
+      state.suppressionShouldPurge = true;
       scheduleGeneratorNativeLivePreviewPurge(node, purgeDetail);
+      state.suppressionStorePromise ||= state.purgeStorePromise;
     }
     scheduleGeneratorNativeLivePreviewHidden(node);
-    if (node.__easyuseAnimaDefaultPreviewSuppressionScheduled) {
+    if (state.suppressionBatchActive) {
       return;
     }
-    node.__easyuseAnimaDefaultPreviewSuppressionScheduled = true;
-    const suppress = () => {
+    state.suppressionBatchActive = true;
+    const suppress = (current, final = false) => {
       suppressGeneratorDefaultPreview(node);
-      if (shouldPurgeStore) {
-        scheduleGeneratorNativeLivePreviewPurge(node, purgeDetail);
+      if (current.suppressionShouldPurge) {
+        addGeneratorNativePreviewPurgeIds(current.suppressionPurgeIds, node);
+        const pendingIds = [...current.suppressionPurgeIds];
+        const storePromise = current.suppressionStorePromise;
+        if (final) {
+          current.suppressionShouldPurge = false;
+          current.suppressionPurgeIds.clear();
+          current.suppressionStorePromise = null;
+        }
+        void purgeGeneratorNativeLivePreviewStore(
+          node,
+          pendingIds,
+          storePromise,
+          current,
+        );
       }
       markGeneratorNativeLivePreviewHidden(node);
     };
-    requestAnimationFrame(suppress);
-    setTimeout(suppress, 120);
-    setTimeout(() => {
-      node.__easyuseAnimaDefaultPreviewSuppressionScheduled = false;
-      suppress();
-    }, 360);
+    scheduleGeneratorNativePreviewFrame(node, "suppress", suppress);
+    scheduleGeneratorNativePreviewTimer(node, "suppress-120", 120, suppress);
+    scheduleGeneratorNativePreviewTimer(node, "suppress-360", 360, (current) => {
+      current.suppressionBatchActive = false;
+      suppress(current, true);
+    });
   }
 
   function findGeneratorNodeByQualifiedId(rootGraph, nodeId) {
@@ -510,7 +777,7 @@ export function aioCreateNativePreviewRuntime(dependencies) {
   function handleGeneratorPreviewEvent(event) {
     const detail = aioPreviewEventDetail(event);
     const node = findGeneratorNodeByQualifiedId(getGraph(), detail.node);
-    if (!node || node.type !== GENERATOR_NODE_TYPE) {
+    if (!node || node.type !== GENERATOR_NODE_TYPE || isGeneratorNativePreviewDisposed(node)) {
       return;
     }
     scheduleGeneratorNativeLivePreviewPurge(node, detail);
@@ -522,7 +789,7 @@ export function aioCreateNativePreviewRuntime(dependencies) {
   function findGeneratorNodeForDenoisePreview(detail) {
     for (const id of aioPreviewNodeIdsFromDetail(detail)) {
       const node = findGeneratorNodeByQualifiedId(getGraph(), id);
-      if (node?.type === GENERATOR_NODE_TYPE) {
+      if (node?.type === GENERATOR_NODE_TYPE && !isGeneratorNativePreviewDisposed(node)) {
         return node;
       }
     }
@@ -553,7 +820,7 @@ export function aioCreateNativePreviewRuntime(dependencies) {
   function handleGeneratorExecutingEvent(event) {
     const nodeId = aioPreviewEventDetail(event);
     const node = findGeneratorNodeByQualifiedId(getGraph(), nodeId);
-    if (node?.type === GENERATOR_NODE_TYPE) {
+    if (node?.type === GENERATOR_NODE_TYPE && !isGeneratorNativePreviewDisposed(node)) {
       clearGeneratorDenoisePreview(node, true);
       scheduleGeneratorDefaultPreviewSuppression(node);
     }
@@ -562,7 +829,7 @@ export function aioCreateNativePreviewRuntime(dependencies) {
   function clearGeneratorDenoisePreviews() {
     clearGeneratorPreviewProgress();
     for (const node of listGeneratorNodes()) {
-      if (node?.type === GENERATOR_NODE_TYPE) {
+      if (node?.type === GENERATOR_NODE_TYPE && !isGeneratorNativePreviewDisposed(node)) {
         clearGeneratorDenoisePreview(node, true);
         scheduleGeneratorDefaultPreviewSuppression(node);
       }
@@ -570,6 +837,8 @@ export function aioCreateNativePreviewRuntime(dependencies) {
   }
 
   return {
+    activateGeneratorNativePreviewLifecycle,
+    disposeGeneratorNativePreviewLifecycle,
     markGeneratorNativeLivePreviewHidden,
     suppressGeneratorDefaultPreview,
     scheduleGeneratorDefaultPreviewSuppression,

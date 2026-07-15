@@ -212,9 +212,19 @@ class AIOFrontendSourceTests(unittest.TestCase):
         body = generator_block[start:end]
 
         self.assertIn("nodeType.prototype.hideOutputImages = true", source)
-        self.assertIn(
-            "module?.useNodeOutputStore || module?.cn || module?.L",
-            native_preview_source,
+        for store_alias in (
+            "module?.useNodeOutputStore,",
+            "module?.cn,",
+            "module?.L,",
+            "module?.useWorkflowStore,",
+            "module?.M,",
+        ):
+            self.assertIn(store_alias, native_preview_source)
+        self.assertGreaterEqual(
+            native_preview_source.count(
+                '.find((candidate) => typeof candidate === "function")'
+            ),
+            2,
         )
         self.assertIn(
             "outputStore.revokePreviewsByLocatorId?.(locator);",
@@ -236,7 +246,84 @@ class AIOFrontendSourceTests(unittest.TestCase):
         self.assertIn(".lg-node:has(.easyuse-anima-aio-node-panel) .pt-2.text-center.text-xs.text-base-foreground", source)
         self.assertIn("scheduleGeneratorDefaultPreviewSuppression(this);", body)
         self.assertIn("updateGeneratorExecutedStatus(this, message);", body)
+        self.assertIn(
+            "scheduleGeneratorDefaultPreviewSuppression(this, { purgeStore: false });",
+            body,
+        )
+        self.assertEqual(
+            body.count("scheduleGeneratorDefaultPreviewSuppression(this"),
+            2,
+        )
+        self.assertLess(
+            body.index("scheduleGeneratorDefaultPreviewSuppression(this);"),
+            body.index("updateGeneratorExecutedStatus(this, message);"),
+        )
+        self.assertLess(
+            body.index("updateGeneratorExecutedStatus(this, message);"),
+            body.index(
+                "scheduleGeneratorDefaultPreviewSuppression(this, "
+                "{ purgeStore: false });"
+            ),
+        )
         self.assertNotIn("onExecuted?.apply", body)
+
+        suppression_start = native_preview_source.index(
+            "function scheduleGeneratorDefaultPreviewSuppression"
+        )
+        suppression_end = native_preview_source.index(
+            "\n  function findGeneratorNodeByQualifiedId", suppression_start
+        )
+        suppression_body = native_preview_source[suppression_start:suppression_end]
+        delayed_start = suppression_body.index("const suppress =")
+        delayed_end = suppression_body.index(
+            "\n    scheduleGeneratorNativePreviewFrame", delayed_start
+        )
+        delayed_body = suppression_body[delayed_start:delayed_end]
+        self.assertIn(
+            "scheduleGeneratorNativeLivePreviewPurge(node, purgeDetail);",
+            suppression_body[:delayed_start],
+        )
+        self.assertNotIn(
+            "scheduleGeneratorNativeLivePreviewPurge(",
+            delayed_body,
+        )
+
+    def test_generator_native_preview_lifecycle_disposes_on_generator_removal(self):
+        source = AIO_JS.read_text(encoding="utf-8")
+        registration_start = source.index("async beforeRegisterNodeDef")
+        configure_start = source.index(
+            "const onConfigure = nodeType.prototype.onConfigure;",
+            registration_start,
+        )
+        generator_hooks_start = source.index(
+            "    if (nodeData.name === GENERATOR_NODE_TYPE) {",
+            configure_start,
+        )
+        generator_hooks_end = source.index(
+            "\n    }\n  },\n});",
+            generator_hooks_start,
+        )
+        generator_hooks = source[generator_hooks_start:generator_hooks_end]
+
+        self.assertNotIn(
+            "const onRemoved = nodeType.prototype.onRemoved;",
+            source[registration_start:generator_hooks_start],
+        )
+        self.assertEqual(
+            source.count("const onRemoved = nodeType.prototype.onRemoved;"),
+            1,
+        )
+        self.assertIn(
+            """      const onRemoved = nodeType.prototype.onRemoved;
+      nodeType.prototype.onRemoved = function () {
+        try {
+          return onRemoved?.apply(this, arguments);
+        } finally {
+          disposeGeneratorNativePreviewLifecycle(this);
+        }
+      };""",
+            generator_hooks,
+        )
 
     def test_generator_preview_meta_keeps_dedicated_resolution_label(self):
         source = AIO_GENERATOR_PANEL_RUNTIME_JS.read_text(encoding="utf-8")

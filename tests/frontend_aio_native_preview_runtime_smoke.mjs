@@ -18,15 +18,27 @@ function createScheduler() {
   const frames = [];
   const timers = new Map();
   const cleared = [];
+  const canceledFrames = [];
+  const staleFrames = [];
+  const staleTimers = [];
 
   return {
     frames,
     timers,
     cleared,
+    canceledFrames,
     requestAnimationFrame(callback) {
       const id = nextId++;
       frames.push({ id, callback });
       return id;
+    },
+    cancelAnimationFrame(id) {
+      canceledFrames.push(id);
+      const index = frames.findIndex((frame) => frame.id === id);
+      if (index >= 0) {
+        staleFrames.push(frames[index]);
+        frames.splice(index, 1);
+      }
     },
     setTimeout(callback, delay) {
       const id = nextId++;
@@ -35,12 +47,21 @@ function createScheduler() {
     },
     clearTimeout(id) {
       cleared.push(id);
+      const timer = timers.get(id);
+      if (timer) {
+        staleTimers.push(timer);
+      }
       timers.delete(id);
     },
     runNextFrame() {
       const frame = frames.shift();
       assert.ok(frame, "missing scheduled animation frame");
       frame.callback();
+    },
+    runAllFrames() {
+      while (frames.length) {
+        this.runNextFrame();
+      }
     },
     runDelay(delay) {
       const entries = [...timers.values()]
@@ -55,7 +76,40 @@ function createScheduler() {
     delays() {
       return [...timers.values()].map(({ delay }) => delay).sort((left, right) => left - right);
     },
+    runCanceledCallbacks() {
+      const callbacks = [
+        ...staleFrames.splice(0).map(({ callback }) => callback),
+        ...staleTimers.splice(0).map(({ callback }) => callback),
+      ];
+      for (const callback of callbacks) {
+        callback();
+      }
+    },
   };
+}
+
+function createDeferred() {
+  let resolve;
+  let reject;
+  const promise = new Promise((resolvePromise, rejectPromise) => {
+    resolve = resolvePromise;
+    reject = rejectPromise;
+  });
+  return { promise, resolve, reject };
+}
+
+function plannedResult(plan, fallback, context) {
+  if (!plan?.length) {
+    return fallback();
+  }
+  const value = plan.shift();
+  if (value instanceof Error) {
+    throw value;
+  }
+  if (typeof value === "function") {
+    return value(context);
+  }
+  return value;
 }
 
 function graphFromNodes(nodes) {
@@ -104,6 +158,9 @@ function createFixture({
   graph = graphFromNodes([]),
   generatorNodes = [],
   suppressResult = true,
+  directStorePlan = null,
+  frontendHtmlPlan = null,
+  assetImportPlan = null,
 } = {}) {
   const document = createFakeDocument();
   const scheduler = createScheduler();
@@ -173,6 +230,7 @@ function createFixture({
       window: { location: { href: "https://comfy.test/" } },
       MutationObserver: FakeMutationObserver,
       requestAnimationFrame: scheduler.requestAnimationFrame,
+      cancelAnimationFrame: scheduler.cancelAnimationFrame,
       setTimeout: scheduler.setTimeout,
       clearTimeout: scheduler.clearTimeout,
     },
@@ -187,29 +245,45 @@ function createFixture({
       },
       async loadDirectStoreModules() {
         calls.directStoreLoads += 1;
-        if (storeMode !== "direct") {
-          throw new Error("direct stores unavailable");
-        }
-        return [
-          { useNodeOutputStore: () => outputStore },
-          { useWorkflowStore: () => workflowStore },
-        ];
+        return plannedResult(
+          directStorePlan,
+          () => {
+            if (storeMode !== "direct") {
+              throw new Error("direct stores unavailable");
+            }
+            return [
+              { useNodeOutputStore: () => outputStore },
+              { useWorkflowStore: () => workflowStore },
+            ];
+          },
+          { outputStore, workflowStore },
+        );
       },
       async fetchFrontendHtml() {
         calls.frontendFetches += 1;
-        return storeMode === "html-fallback"
-          ? '<script src="./assets/dialogService-html.js"></script>'
-          : "";
+        return plannedResult(
+          frontendHtmlPlan,
+          () => storeMode === "html-fallback"
+            ? '<script src="./assets/dialogService-html.js"></script>'
+            : "",
+          { outputStore, workflowStore },
+        );
       },
       async importAssetModule(url) {
         calls.assetImports.push(url);
-        if (storeMode === "hashed" || storeMode === "html-fallback") {
-          return {
-            cn: () => outputStore,
-            M: () => workflowStore,
-          };
-        }
-        throw new Error("hashed store unavailable");
+        return plannedResult(
+          assetImportPlan,
+          () => {
+            if (storeMode === "hashed" || storeMode === "html-fallback") {
+              return {
+                cn: () => outputStore,
+                M: () => workflowStore,
+              };
+            }
+            throw new Error("hashed store unavailable");
+          },
+          { outputStore, workflowStore, url },
+        );
       },
     },
     previewCore: {
@@ -303,6 +377,17 @@ function assertHidden(element, message) {
   assert.equal(element.style.getPropertyPriority("display"), "important", message);
 }
 
+async function drainScheduledPreviewWork(fixture) {
+  fixture.scheduler.runAllFrames();
+  await flushPromises();
+  for (const delay of [80, 120, 240, 360]) {
+    if (fixture.scheduler.delays().includes(delay)) {
+      fixture.scheduler.runDelay(delay);
+      await flushPromises();
+    }
+  }
+}
+
 {
   const fixture = createFixture({ suppressResult: "suppressed" });
   assert.equal(fixture.document.createdElements.length, 0, "Factory must not create DOM elements");
@@ -321,8 +406,10 @@ function assertHidden(element, message) {
   assert.equal(fixture.revokeCalls.length, 0);
   assert.equal(fixture.workflowLocatorCalls.length, 0);
   assert.deepEqual(
-    Object.keys(fixture.runtime),
+    Object.keys(fixture.runtime).sort(),
     [
+      "activateGeneratorNativePreviewLifecycle",
+      "disposeGeneratorNativePreviewLifecycle",
       "markGeneratorNativeLivePreviewHidden",
       "suppressGeneratorDefaultPreview",
       "scheduleGeneratorDefaultPreviewSuppression",
@@ -332,7 +419,7 @@ function assertHidden(element, message) {
       "handleGeneratorDenoisePreviewEvent",
       "handleGeneratorExecutingEvent",
       "clearGeneratorDenoisePreviews",
-    ],
+    ].sort(),
     "Runtime facade changed",
   );
 
@@ -526,6 +613,103 @@ function assertHidden(element, message) {
 
 {
   const node = { id: 42, type: GENERATOR_NODE_TYPE };
+  const fixture = createFixture({ graph: graphFromNodes([node]), storeMode: "direct" });
+  appendNodeRoot(fixture.document, "42");
+  const detailOnlyIds = ["91", "92", "93"];
+  for (const [index, realNodeId] of detailOnlyIds.entries()) {
+    fixture.runtime.handleGeneratorPreviewEvent({
+      detail: {
+        data: {
+          node: "42",
+          realNodeId,
+          images: [{ filename: `burst-${index}.webp` }],
+          run_id: `burst-${index}`,
+        },
+      },
+    });
+  }
+  await flushPromises();
+
+  assert.equal(fixture.calls.legacyGets, detailOnlyIds.length, "Every burst request needs its immediate purge");
+  assert.equal(fixture.scheduler.frames.length, 3, "Burst requests must share purge, hide, and suppression RAF tails");
+  assert.deepEqual(
+    fixture.scheduler.delays(),
+    [80, 80, 120, 240, 240, 360, 5000],
+    "Burst requests must keep one bounded timer set",
+  );
+  for (const id of detailOnlyIds) {
+    assert.equal(fixture.revokeCalls.filter((value) => value === `locator:${id}`).length, 1);
+  }
+
+  await drainScheduledPreviewWork(fixture);
+  assert.equal(
+    fixture.calls.legacyGets,
+    detailOnlyIds.length + 3,
+    "A burst of N requests must add only one shared RAF/80/240 purge tail",
+  );
+  assert.equal(fixture.scheduler.frames.length, 0);
+  assert.deepEqual(fixture.scheduler.delays(), [5000]);
+  for (const id of detailOnlyIds) {
+    assert.equal(
+      fixture.revokeCalls.filter((value) => value === `locator:${id}`).length,
+      4,
+      `The shared tail lost a burst locator: ${id}`,
+    );
+  }
+
+  fixture.runtime.handleGeneratorPreviewEvent({
+    detail: {
+      data: {
+        node: "42",
+        realNodeId: "94",
+        images: [{ filename: "next-batch.webp" }],
+        run_id: "next-batch",
+      },
+    },
+  });
+  await flushPromises();
+  assert.equal(fixture.calls.legacyGets, detailOnlyIds.length + 4, "A terminal batch must release the next immediate purge");
+  assert.equal(fixture.scheduler.frames.length, 3, "A new post-terminal request must own a fresh tail");
+  await drainScheduledPreviewWork(fixture);
+  assert.equal(fixture.calls.legacyGets, detailOnlyIds.length + 7);
+  assert.equal(fixture.revokeCalls.filter((value) => value === "locator:94").length, 4);
+  assert.equal(fixture.calls.directStoreLoads, 1, "Purge coalescing must preserve the positive store cache");
+}
+
+{
+  const node = { id: 42, type: GENERATOR_NODE_TYPE };
+  const fixture = createFixture({ storeMode: "direct" });
+  appendNodeRoot(fixture.document, "42");
+  fixture.runtime.scheduleGeneratorDefaultPreviewSuppression(node);
+  await flushPromises();
+  assert.equal(fixture.calls.legacyGets, 1);
+  assert.equal(fixture.scheduler.frames.length, 3);
+  assert.deepEqual(fixture.scheduler.delays(), [80, 80, 120, 240, 240, 360, 5000]);
+
+  await drainScheduledPreviewWork(fixture);
+  assert.equal(
+    fixture.calls.legacyGets,
+    7,
+    "Default suppression may run three direct delayed purges but must not recursively schedule purge waves",
+  );
+  assert.equal(fixture.revokeCalls.filter((value) => value === "locator:42").length, 7);
+  assert.equal(fixture.scheduler.frames.length, 0);
+  assert.deepEqual(fixture.scheduler.delays(), [5000]);
+
+  const noPurgeFixture = createFixture({ storeMode: "direct" });
+  appendNodeRoot(noPurgeFixture.document, "42");
+  noPurgeFixture.runtime.scheduleGeneratorDefaultPreviewSuppression(
+    { id: 42 },
+    { purgeStore: false },
+  );
+  await drainScheduledPreviewWork(noPurgeFixture);
+  assert.equal(noPurgeFixture.calls.legacyGets, 0);
+  assert.equal(noPurgeFixture.calls.directStoreLoads, 0);
+  assert.equal(noPurgeFixture.revokeCalls.length, 0, "purgeStore false must survive every delayed callback");
+}
+
+{
+  const node = { id: 42, type: GENERATOR_NODE_TYPE };
   const fixture = createFixture({ graph: graphFromNodes([node]), storeMode: "hashed" });
   const script = fixture.document.createElement("script");
   script.setAttribute("src", "/assets/dialogService-hash.js?build=1");
@@ -551,6 +735,125 @@ function assertHidden(element, message) {
   await flushPromises();
   assert.equal(fixture.calls.directStoreLoads, 1, "Store resolution must stay promise-cached");
   assert.equal(fixture.calls.assetImports.length, 1, "Hashed module import must stay promise-cached");
+}
+
+for (const { label, assetModule, expectWorkflowPurge } of [
+  {
+    label: "later-callable-aliases",
+    assetModule: ({ outputStore, workflowStore }) => ({
+      useNodeOutputStore: "not-a-function",
+      cn: () => outputStore,
+      useWorkflowStore: { invalid: true },
+      M: () => workflowStore,
+    }),
+    expectWorkflowPurge: true,
+  },
+  {
+    label: "workflow-alias-unavailable",
+    assetModule: ({ outputStore }) => ({
+      useNodeOutputStore: "not-a-function",
+      cn: () => outputStore,
+      useWorkflowStore: { invalid: true },
+      M: "not-a-function",
+    }),
+    expectWorkflowPurge: false,
+  },
+]) {
+  const node = { id: 42, type: GENERATOR_NODE_TYPE };
+  const fixture = createFixture({
+    graph: graphFromNodes([node]),
+    storeMode: "none",
+    assetImportPlan: [assetModule],
+  });
+  const script = fixture.document.createElement("script");
+  script.setAttribute("src", `/assets/dialogService-${label}.js`);
+  fixture.document.body.append(script);
+  fixture.outputPreviewImages.set("42", true);
+  fixture.outputPreviewImages.set("locator:42", true);
+
+  fixture.runtime.handleGeneratorPreviewEvent({
+    detail: { data: { node: "42", images: [{ filename: `${label}.webp` }] } },
+  });
+  await flushPromises();
+
+  assert.equal(fixture.calls.directStoreLoads, 1);
+  assert.equal(fixture.calls.frontendFetches, 0);
+  assert.deepEqual(
+    fixture.calls.assetImports,
+    [`https://comfy.test/assets/dialogService-${label}.js`],
+  );
+  assert.equal(fixture.outputPreviewImages.has("42"), false);
+  assert.equal(
+    fixture.outputPreviewImages.has("locator:42"),
+    !expectWorkflowPurge,
+    `Unexpected workflow-locator purge for ${label}`,
+  );
+  assert.equal(
+    fixture.workflowLocatorCalls.length > 0,
+    expectWorkflowPurge,
+    `Unexpected workflow provider normalization for ${label}`,
+  );
+}
+
+for (const label of ["workflow-provider-throws", "workflow-mapper-throws"]) {
+  const node = { id: 42, type: GENERATOR_NODE_TYPE };
+  const workflowBoundaryCalls = [];
+  const useWorkflowStore = label === "workflow-provider-throws"
+    ? () => {
+      workflowBoundaryCalls.push("provider");
+      throw new Error("optional workflow provider unavailable");
+    }
+    : () => ({
+      nodeIdToNodeLocatorId(id) {
+        workflowBoundaryCalls.push(String(id));
+        throw new Error("optional workflow mapper unavailable");
+      },
+    });
+  const fixture = createFixture({
+    graph: graphFromNodes([node]),
+    storeMode: "none",
+    directStorePlan: [({ outputStore }) => [
+      { useNodeOutputStore: () => outputStore },
+      { useWorkflowStore },
+    ]],
+  });
+  appendNodeRoot(fixture.document, "7:42");
+  const rawLocators = ["42", "7:42", "8:42", "99"];
+  for (const locator of [...rawLocators, "locator:42", "locator:99"]) {
+    fixture.outputPreviewImages.set(locator, true);
+  }
+
+  fixture.runtime.handleGeneratorPreviewEvent({
+    detail: {
+      data: {
+        node: "42",
+        displayNodeId: "8:42",
+        realNodeId: "99",
+        images: [{ filename: `${label}.webp` }],
+      },
+    },
+  });
+  await flushPromises();
+
+  assert.equal(fixture.calls.directStoreLoads, 1);
+  assert.equal(fixture.calls.frontendFetches, 0);
+  assert.equal(fixture.calls.assetImports.length, 0);
+  for (const locator of rawLocators) {
+    assert.equal(fixture.outputPreviewImages.has(locator), false, `${label} retained ${locator}`);
+    assert.equal(
+      fixture.revokeCalls.includes(locator),
+      true,
+      `${label} prevented raw/leaf revoke for ${locator}`,
+    );
+  }
+  assert.equal(fixture.outputPreviewImages.has("locator:42"), true);
+  assert.equal(fixture.outputPreviewImages.has("locator:99"), true);
+  if (label === "workflow-provider-throws") {
+    assert.deepEqual(workflowBoundaryCalls, ["provider"]);
+  } else {
+    assert.equal(workflowBoundaryCalls.includes("42"), true);
+    assert.equal(workflowBoundaryCalls.includes("99"), true);
+  }
 }
 
 {
@@ -580,22 +883,364 @@ function assertHidden(element, message) {
   assert.equal(fixture.calls.assetImports.length, 1, "HTML-discovered module import must stay cached");
 }
 
+for (const [label, workflowStoreModule] of [
+  ["absent", {}],
+  ["non-function", { useWorkflowStore: "not-a-function" }],
+]) {
+  const node = { id: 42, type: GENERATOR_NODE_TYPE };
+  const fixture = createFixture({
+    graph: graphFromNodes([node]),
+    storeMode: "none",
+    directStorePlan: [({ outputStore }) => [
+      { useNodeOutputStore: () => outputStore },
+      workflowStoreModule,
+    ]],
+  });
+  fixture.outputPreviewImages.set("42", true);
+  fixture.outputPreviewImages.set("locator:42", true);
+
+  fixture.runtime.handleGeneratorPreviewEvent({
+    detail: { data: { node: "42", images: [{ filename: `output-only-${label}.webp` }] } },
+  });
+  await flushPromises();
+
+  assert.equal(fixture.calls.directStoreLoads, 1);
+  assert.equal(
+    fixture.calls.frontendFetches,
+    0,
+    `An output-only direct tuple must not fall back when workflow is ${label}`,
+  );
+  assert.equal(fixture.calls.assetImports.length, 0);
+  assert.equal(fixture.workflowLocatorCalls.length, 0);
+  assert.equal(fixture.outputPreviewImages.has("42"), false);
+  assert.equal(
+    fixture.outputPreviewImages.has("locator:42"),
+    true,
+    "Without a workflow provider only raw output locators can be purged",
+  );
+}
+
+{
+  const node = { id: 42, type: GENERATOR_NODE_TYPE };
+  const fixture = createFixture({
+    graph: graphFromNodes([node]),
+    storeMode: "none",
+    directStorePlan: [({ workflowStore }) => [
+      { useNodeOutputStore: "not-a-function" },
+      { useWorkflowStore: () => workflowStore },
+    ]],
+    frontendHtmlPlan: ['<script src="./assets/dialogService-invalid-output.js"></script>'],
+    assetImportPlan: [({ outputStore, workflowStore }) => ({
+      cn: () => outputStore,
+      M: () => workflowStore,
+    })],
+  });
+  fixture.outputPreviewImages.set("42", true);
+  fixture.outputPreviewImages.set("locator:42", true);
+
+  fixture.runtime.handleGeneratorPreviewEvent({
+    detail: { data: { node: "42", images: [{ filename: "invalid-output.webp" }] } },
+  });
+  await flushPromises();
+
+  assert.equal(fixture.calls.directStoreLoads, 1);
+  assert.equal(
+    fixture.calls.frontendFetches,
+    1,
+    "An invalid output provider must fall through to frontend discovery",
+  );
+  assert.deepEqual(
+    fixture.calls.assetImports,
+    ["https://comfy.test/assets/dialogService-invalid-output.js"],
+  );
+  assert.equal(fixture.outputPreviewImages.has("42"), false);
+  assert.equal(fixture.outputPreviewImages.has("locator:42"), false);
+}
+
+{
+  const pendingDirectStore = createDeferred();
+  const node = { id: 42, type: GENERATOR_NODE_TYPE };
+  const directStorePlan = [
+    pendingDirectStore.promise,
+    ({ outputStore, workflowStore }) => [
+      { useNodeOutputStore: () => outputStore },
+      { useWorkflowStore: () => workflowStore },
+    ],
+  ];
+  const fixture = createFixture({
+    graph: graphFromNodes([node]),
+    storeMode: "none",
+    directStorePlan,
+    frontendHtmlPlan: [""],
+  });
+  const previewEvent = (realNodeId) => ({
+    detail: {
+      data: {
+        node: "42",
+        realNodeId,
+        images: [{ filename: `${realNodeId}.webp` }],
+        run_id: `retry-${realNodeId}`,
+      },
+    },
+  });
+
+  fixture.runtime.handleGeneratorPreviewEvent(previewEvent("91"));
+  fixture.runtime.handleGeneratorPreviewEvent(previewEvent("92"));
+  await flushPromises();
+  assert.equal(fixture.calls.directStoreLoads, 1, "Concurrent purges must share one provider attempt");
+  pendingDirectStore.reject(new Error("transient direct-store failure"));
+  await flushPromises();
+  assert.equal(fixture.calls.frontendFetches, 1);
+  await drainScheduledPreviewWork(fixture);
+  assert.equal(fixture.calls.directStoreLoads, 1, "A failed provider lookup must not retry inside its active batch");
+  assert.equal(fixture.calls.frontendFetches, 1);
+
+  fixture.outputPreviewImages.set("93", true);
+  fixture.outputPreviewImages.set("locator:93", true);
+  fixture.runtime.handleGeneratorPreviewEvent(previewEvent("93"));
+  await flushPromises();
+  assert.equal(fixture.calls.directStoreLoads, 2, "A later batch must retry a transient direct-store failure");
+  assert.equal(fixture.outputPreviewImages.has("93"), false);
+  assert.equal(fixture.outputPreviewImages.has("locator:93"), false);
+
+  await drainScheduledPreviewWork(fixture);
+  fixture.runtime.handleGeneratorPreviewEvent(previewEvent("94"));
+  await flushPromises();
+  assert.equal(
+    fixture.calls.directStoreLoads,
+    2,
+    "A successful retry must remain positive-cached in a later batch",
+  );
+  assert.equal(fixture.calls.frontendFetches, 1);
+}
+
+{
+  const node = { id: 42, type: GENERATOR_NODE_TYPE };
+  const fixture = createFixture({
+    graph: graphFromNodes([node]),
+    storeMode: "none",
+    directStorePlan: [
+      new Error("direct unavailable first batch"),
+      new Error("direct unavailable second batch"),
+    ],
+    frontendHtmlPlan: [
+      "",
+      '<script src="./assets/dialogService-retry-html.js"></script>',
+    ],
+    assetImportPlan: [({ outputStore, workflowStore }) => ({
+      cn: () => outputStore,
+      M: () => workflowStore,
+    })],
+  });
+  const event = {
+    detail: { data: { node: "42", images: [{ filename: "html-retry.webp" }] } },
+  };
+
+  fixture.runtime.handleGeneratorPreviewEvent(event);
+  await flushPromises();
+  assert.equal(fixture.calls.directStoreLoads, 1);
+  assert.equal(fixture.calls.frontendFetches, 1);
+  assert.equal(fixture.calls.assetImports.length, 0);
+  await drainScheduledPreviewWork(fixture);
+  assert.equal(fixture.calls.frontendFetches, 1, "Empty HTML discovery must stay bounded to one active batch");
+
+  fixture.outputPreviewImages.set("42", true);
+  fixture.outputPreviewImages.set("locator:42", true);
+  fixture.runtime.handleGeneratorPreviewEvent(event);
+  await flushPromises();
+  assert.equal(fixture.calls.directStoreLoads, 2);
+  assert.equal(fixture.calls.frontendFetches, 2, "A later batch must retry empty HTML discovery");
+  assert.deepEqual(
+    fixture.calls.assetImports,
+    ["https://comfy.test/assets/dialogService-retry-html.js"],
+  );
+  assert.equal(fixture.outputPreviewImages.has("42"), false);
+  assert.equal(fixture.outputPreviewImages.has("locator:42"), false);
+
+  await drainScheduledPreviewWork(fixture);
+  fixture.runtime.handleGeneratorPreviewEvent(event);
+  await flushPromises();
+  assert.equal(fixture.calls.directStoreLoads, 2);
+  assert.equal(fixture.calls.frontendFetches, 2);
+  assert.equal(
+    fixture.calls.assetImports.length,
+    1,
+    "Recovered HTML providers must remain positive-cached in a later batch",
+  );
+}
+
+{
+  const node = { id: 42, type: GENERATOR_NODE_TYPE };
+  const fixture = createFixture({
+    graph: graphFromNodes([node]),
+    storeMode: "none",
+    directStorePlan: [
+      new Error("direct unavailable first batch"),
+      new Error("direct unavailable second batch"),
+    ],
+    frontendHtmlPlan: ['<script src="./assets/dialogService-retry-import.js"></script>'],
+    assetImportPlan: [
+      new Error("transient asset import failure"),
+      ({ outputStore, workflowStore }) => ({
+        cn: () => outputStore,
+        M: () => workflowStore,
+      }),
+    ],
+  });
+  const event = {
+    detail: { data: { node: "42", images: [{ filename: "import-retry.webp" }] } },
+  };
+
+  fixture.runtime.handleGeneratorPreviewEvent(event);
+  await flushPromises();
+  assert.equal(fixture.calls.directStoreLoads, 1);
+  assert.equal(fixture.calls.frontendFetches, 1);
+  assert.equal(fixture.calls.assetImports.length, 1);
+  await drainScheduledPreviewWork(fixture);
+  assert.equal(fixture.calls.assetImports.length, 1, "A failed import must not retry inside its active batch");
+
+  fixture.outputPreviewImages.set("42", true);
+  fixture.outputPreviewImages.set("locator:42", true);
+  fixture.runtime.handleGeneratorPreviewEvent(event);
+  await flushPromises();
+  assert.equal(fixture.calls.directStoreLoads, 2);
+  assert.equal(fixture.calls.frontendFetches, 1, "A successful asset URL may remain cached across import retry");
+  assert.equal(fixture.calls.assetImports.length, 2, "A later batch must retry a transient asset import failure");
+  assert.equal(fixture.outputPreviewImages.has("42"), false);
+  assert.equal(fixture.outputPreviewImages.has("locator:42"), false);
+
+  await drainScheduledPreviewWork(fixture);
+  fixture.runtime.handleGeneratorPreviewEvent(event);
+  await flushPromises();
+  assert.equal(fixture.calls.directStoreLoads, 2);
+  assert.equal(fixture.calls.frontendFetches, 1);
+  assert.equal(
+    fixture.calls.assetImports.length,
+    2,
+    "Recovered asset providers must remain positive-cached in a later batch",
+  );
+}
+
+{
+  const pendingStores = createDeferred();
+  const nodeA = { id: 41, type: GENERATOR_NODE_TYPE };
+  const nodeB = { id: 42, type: GENERATOR_NODE_TYPE };
+  const fixture = createFixture({
+    graph: graphFromNodes([nodeA, nodeB]),
+    storeMode: "none",
+    directStorePlan: [pendingStores.promise],
+  });
+  const rootA = appendNodeRoot(fixture.document, "41");
+  const rootB = appendNodeRoot(fixture.document, "42");
+  for (const locator of ["41", "locator:41", "42", "locator:42"]) {
+    fixture.outputPreviewImages.set(locator, true);
+  }
+  const previewEvent = (nodeId) => ({
+    detail: {
+      data: {
+        node: String(nodeId),
+        images: [{ filename: `multi-${nodeId}.webp` }],
+        run_id: `multi-${nodeId}`,
+      },
+    },
+  });
+
+  fixture.runtime.handleGeneratorPreviewEvent(previewEvent(41));
+  await flushPromises();
+  const nodeAFrameIds = fixture.scheduler.frames.map(({ id }) => id);
+  const nodeATimerIds = [...fixture.scheduler.timers.keys()];
+  const nodeAObserver = fixture.mutationObservers[0];
+  assert.equal(fixture.calls.directStoreLoads, 1);
+  assert.equal(nodeAFrameIds.length, 3);
+  assert.equal(nodeATimerIds.length, 7);
+
+  fixture.runtime.handleGeneratorPreviewEvent(previewEvent(42));
+  await flushPromises();
+  const nodeBFrameIds = fixture.scheduler.frames
+    .map(({ id }) => id)
+    .filter((id) => !nodeAFrameIds.includes(id));
+  const nodeBTimerIds = [...fixture.scheduler.timers.keys()]
+    .filter((id) => !nodeATimerIds.includes(id));
+  const nodeBObserver = fixture.mutationObservers[1];
+  assert.equal(
+    fixture.calls.directStoreLoads,
+    1,
+    "Concurrent nodes must share one unresolved provider attempt",
+  );
+  assert.equal(nodeBFrameIds.length, 3);
+  assert.equal(nodeBTimerIds.length, 7);
+  assert.equal(fixture.mutationObservers.length, 2);
+
+  fixture.runtime.disposeGeneratorNativePreviewLifecycle(nodeA);
+  assert.deepEqual(
+    fixture.scheduler.frames.map(({ id }) => id).sort((left, right) => left - right),
+    [...nodeBFrameIds].sort((left, right) => left - right),
+    "Disposing node A must retain every node B frame",
+  );
+  assert.deepEqual(
+    [...fixture.scheduler.timers.keys()].sort((left, right) => left - right),
+    [...nodeBTimerIds].sort((left, right) => left - right),
+    "Disposing node A must retain every node B timer",
+  );
+  assert.deepEqual(
+    [...fixture.scheduler.canceledFrames].sort((left, right) => left - right),
+    [...nodeAFrameIds].sort((left, right) => left - right),
+  );
+  for (const timerId of nodeATimerIds) {
+    assert.equal(fixture.scheduler.cleared.includes(timerId), true);
+  }
+  assert.equal(nodeAObserver.disconnectCalls, 1);
+  assert.equal(nodeBObserver.disconnectCalls, 0);
+
+  const lateNodeAImage = fixture.document.createElement("img");
+  lateNodeAImage.className = "pointer-events-none object-contain";
+  rootA.append(lateNodeAImage);
+  const afterDisposeSnapshot = adapterChannelSnapshot(fixture.calls);
+  fixture.scheduler.runCanceledCallbacks();
+  nodeAObserver.trigger();
+  assert.deepEqual(
+    adapterChannelSnapshot(fixture.calls),
+    afterDisposeSnapshot,
+    "Node A stale callbacks must not affect node B adapters",
+  );
+  assert.equal(lateNodeAImage.classList.contains(NATIVE_HIDDEN_CLASS), false);
+  assert.deepEqual(fixture.scheduler.frames.map(({ id }) => id), nodeBFrameIds);
+  assert.deepEqual([...fixture.scheduler.timers.keys()], nodeBTimerIds);
+  assert.equal(nodeBObserver.disconnectCalls, 0);
+
+  pendingStores.resolve([
+    { useNodeOutputStore: () => fixture.outputStore },
+    { useWorkflowStore: () => fixture.workflowStore },
+  ]);
+  await flushPromises();
+  assert.equal(fixture.calls.directStoreLoads, 1);
+  assert.equal(fixture.outputPreviewImages.has("41"), true);
+  assert.equal(fixture.outputPreviewImages.has("locator:41"), true);
+  assert.equal(fixture.revokeCalls.filter((value) => value === "locator:41").length, 0);
+  assert.equal(fixture.outputPreviewImages.has("42"), false);
+  assert.equal(fixture.outputPreviewImages.has("locator:42"), false);
+  assert.equal(fixture.revokeCalls.filter((value) => value === "locator:42").length, 1);
+
+  await drainScheduledPreviewWork(fixture);
+  assert.equal(fixture.scheduler.frames.length, 0);
+  assert.deepEqual(fixture.scheduler.delays(), [5000]);
+  assert.equal(fixture.revokeCalls.filter((value) => value === "locator:41").length, 0);
+  assert.equal(fixture.revokeCalls.filter((value) => value === "locator:42").length, 4);
+  const lateNodeBImage = fixture.document.createElement("img");
+  lateNodeBImage.className = "pointer-events-none object-contain";
+  rootB.append(lateNodeBImage);
+  nodeBObserver.trigger();
+  assertHidden(lateNodeBImage, "Node B observer must remain live after node A disposal");
+  assert.equal(nodeBObserver.disconnectCalls, 0);
+}
+
 {
   const fixture = createFixture({ storeMode: "none" });
   const root = appendNodeRoot(fixture.document, "42");
   const node = { id: 42 };
-  const staleRoot = { isConnected: false };
-  const staleObserver = {
-    disconnectCalls: 0,
-    disconnect() {
-      this.disconnectCalls += 1;
-    },
-  };
-  node.__easyuseAnimaNativeLivePreviewObservers = new Map([[staleRoot, staleObserver]]);
 
   fixture.runtime.scheduleGeneratorDefaultPreviewSuppression(node, { purgeStore: false });
   assert.equal(fixture.calls.suppress.length, 1);
-  assert.equal(staleObserver.disconnectCalls, 1, "Disconnected roots must be pruned");
   assert.equal(fixture.mutationObservers.length, 1);
   assert.deepEqual(
     fixture.mutationObservers[0].observeCalls,
@@ -618,49 +1263,230 @@ function assertHidden(element, message) {
   assertHidden(qualifiedImage, "A newly matched qualified root must be hidden immediately");
   assert.equal(fixture.calls.suppress.length, 2, "A deduped call must still suppress immediately");
   assert.equal(fixture.mutationObservers.length, 2, "Only the new qualified root needs an observer");
-  assert.equal(node.__easyuseAnimaNativeLivePreviewObservers.get(root), existingObserver);
   assert.equal(existingObserver.disconnectCalls, 0, "The existing connected observer must be retained");
   assert.deepEqual(
     fixture.mutationObservers[1].observeCalls,
     [{ root: qualifiedRoot, options: { childList: true, subtree: true } }],
   );
-  assert.equal(node.__easyuseAnimaNativeLivePreviewObservers.has(unrelatedRoot), false);
-  assert.equal(node.__easyuseAnimaNativeLivePreviewObservers.size, 2);
+  const observedRoots = fixture.mutationObservers.flatMap(
+    (observer) => observer.observeCalls.map(({ root: observedRoot }) => observedRoot),
+  );
+  assert.equal(observedRoots.includes(unrelatedRoot), false);
+  assert.deepEqual(observedRoots, [root, qualifiedRoot]);
   assert.equal(fixture.scheduler.frames.length, 2, "A deduped call must not add delayed RAF batches");
   assert.deepEqual(fixture.scheduler.delays(), [80, 120, 240, 360, 5000]);
-  assert.equal(fixture.scheduler.cleared.length, 2, "Observer stop timer must be refreshed on each ensure");
+  assert.equal(fixture.scheduler.cleared.length, 1, "Observer stop timer must be refreshed on each ensure");
 
   fixture.runtime.scheduleGeneratorDefaultPreviewSuppression(node, { purgeStore: false });
   assert.equal(fixture.calls.suppress.length, 3);
   assert.equal(fixture.mutationObservers.length, 2, "Existing root observers must not be duplicated");
-  assert.equal(node.__easyuseAnimaNativeLivePreviewObservers.get(root), existingObserver);
+  assert.equal(existingObserver.disconnectCalls, 0);
   assert.equal(fixture.scheduler.frames.length, 2, "Partial dedupe must retain the original RAF batches");
   assert.deepEqual(fixture.scheduler.delays(), [80, 120, 240, 360, 5000]);
-  assert.equal(fixture.scheduler.cleared.length, 3);
-
-  const observerImage = fixture.document.createElement("img");
-  observerImage.className = "pointer-events-none object-contain";
-  root.append(observerImage);
-  fixture.mutationObservers[0].trigger();
-  assertHidden(observerImage, "Observer callback must re-hide late native previews");
+  assert.equal(fixture.scheduler.cleared.length, 2);
 
   fixture.scheduler.runNextFrame();
   fixture.scheduler.runNextFrame();
   assert.equal(fixture.calls.suppress.length, 4);
+  assert.equal(fixture.scheduler.frames.length, 0);
+
+  const observerImage = fixture.document.createElement("img");
+  observerImage.className = "pointer-events-none object-contain";
+  root.append(observerImage);
+  const unobservedQualifiedRoot = appendNodeRoot(fixture.document, "8:42");
+  const unobservedQualifiedImage = fixture.document.createElement("img");
+  unobservedQualifiedImage.className = "pointer-events-none object-contain";
+  unobservedQualifiedRoot.append(unobservedQualifiedImage);
+  fixture.mutationObservers[0].trigger();
+  assertHidden(observerImage, "Observer callback must re-hide late native previews");
+  assert.equal(
+    unobservedQualifiedImage.classList.contains(NATIVE_HIDDEN_CLASS),
+    false,
+    "A root-scoped observer callback must not rescan and hide another unobserved root",
+  );
+  assert.equal(unobservedQualifiedRoot.classList.contains(GENERATOR_VUE_NODE_CLASS), false);
+  assert.equal(fixture.scheduler.frames.length, 1, "The first mutation must schedule one root tail");
+
+  const burstObserverImage = fixture.document.createElement("img");
+  burstObserverImage.className = "pointer-events-none object-contain";
+  root.append(burstObserverImage);
+  fixture.mutationObservers[0].trigger();
+  fixture.mutationObservers[0].trigger();
+  assert.equal(
+    fixture.scheduler.frames.length,
+    1,
+    "Repeated callbacks in one mutation burst must share one root-scoped RAF tail",
+  );
+  assert.equal(
+    burstObserverImage.classList.contains(NATIVE_HIDDEN_CLASS),
+    false,
+    "A coalesced burst must not repeat its immediate root scan",
+  );
+  fixture.scheduler.runNextFrame();
+  assertHidden(burstObserverImage, "The shared observer RAF tail must re-scan its root");
+  assert.equal(unobservedQualifiedImage.classList.contains(NATIVE_HIDDEN_CLASS), false);
+  assert.equal(fixture.scheduler.frames.length, 0);
+
+  fixture.mutationObservers[0].trigger();
+  fixture.mutationObservers[1].trigger();
+  const rootScopedFrameIds = fixture.scheduler.frames.map(({ id }) => id);
+  assert.equal(
+    rootScopedFrameIds.length,
+    2,
+    "Two observed roots must reserve independent RAF tails in the same mutation burst",
+  );
+  const rootTailImage = fixture.document.createElement("img");
+  rootTailImage.className = "pointer-events-none object-contain";
+  root.append(rootTailImage);
+  const qualifiedTailImage = fixture.document.createElement("img");
+  qualifiedTailImage.className = "pointer-events-none object-contain";
+  qualifiedRoot.append(qualifiedTailImage);
+  fixture.mutationObservers[0].trigger();
+  fixture.mutationObservers[1].trigger();
+  assert.deepEqual(
+    fixture.scheduler.frames.map(({ id }) => id),
+    rootScopedFrameIds,
+    "Repeated callbacks must retain exactly one RAF tail per observed root",
+  );
+  assert.equal(rootTailImage.classList.contains(NATIVE_HIDDEN_CLASS), false);
+  assert.equal(qualifiedTailImage.classList.contains(NATIVE_HIDDEN_CLASS), false);
+
+  fixture.scheduler.runNextFrame();
+  assertHidden(rootTailImage, "The first root tail must re-scan only its own root");
+  assert.equal(qualifiedTailImage.classList.contains(NATIVE_HIDDEN_CLASS), false);
+  fixture.scheduler.runNextFrame();
+  assertHidden(qualifiedTailImage, "The qualified root must execute its independent tail");
+  assert.equal(fixture.scheduler.frames.length, 0);
   fixture.scheduler.runDelay(80);
   fixture.scheduler.runDelay(120);
   assert.equal(fixture.calls.suppress.length, 5);
   fixture.scheduler.runDelay(240);
   fixture.scheduler.runDelay(360);
   assert.equal(fixture.calls.suppress.length, 6);
-  assert.equal(node.__easyuseAnimaNativeLivePreviewHideScheduled, false);
-  assert.equal(node.__easyuseAnimaDefaultPreviewSuppressionScheduled, false);
+  assert.equal(fixture.scheduler.frames.length, 0);
+  assert.deepEqual(fixture.scheduler.delays(), [5000]);
   assert.equal(fixture.calls.legacyGets, 0, "purgeStore false must survive every delayed callback");
 
   fixture.scheduler.runDelay(5000);
   assert.equal(existingObserver.disconnectCalls, 1);
   assert.equal(fixture.mutationObservers[1].disconnectCalls, 1);
-  assert.equal(node.__easyuseAnimaNativeLivePreviewObservers.size, 0);
+}
+
+{
+  const fixture = createFixture({ storeMode: "none" });
+  const node = { id: 42 };
+  const staleRoot = appendNodeRoot(fixture.document, "42");
+  fixture.runtime.scheduleGeneratorDefaultPreviewSuppression(node, { purgeStore: false });
+  const staleObserver = fixture.mutationObservers[0];
+
+  staleRoot.remove();
+  staleRoot.isConnected = false;
+  const replacementRoot = appendNodeRoot(fixture.document, "42");
+  fixture.runtime.scheduleGeneratorDefaultPreviewSuppression(node, { purgeStore: false });
+
+  assert.equal(staleObserver.disconnectCalls, 1, "Disconnected roots must be pruned");
+  assert.equal(fixture.mutationObservers.length, 2);
+  assert.deepEqual(
+    fixture.mutationObservers[1].observeCalls,
+    [{ root: replacementRoot, options: { childList: true, subtree: true } }],
+  );
+}
+
+{
+  const pendingDirectStore = createDeferred();
+  const node = { id: 42, type: GENERATOR_NODE_TYPE };
+  const fixture = createFixture({
+    storeMode: "none",
+    directStorePlan: [pendingDirectStore.promise],
+  });
+  const root = appendNodeRoot(fixture.document, "42");
+
+  fixture.runtime.scheduleGeneratorDefaultPreviewSuppression(node);
+  await flushPromises();
+  assert.equal(fixture.calls.directStoreLoads, 1);
+  assert.equal(fixture.mutationObservers.length, 1);
+  const disposedObserver = fixture.mutationObservers[0];
+  const pendingFrameIds = fixture.scheduler.frames.map(({ id }) => id).sort((left, right) => left - right);
+  const pendingTimerIds = [...fixture.scheduler.timers.keys()].sort((left, right) => left - right);
+
+  fixture.runtime.disposeGeneratorNativePreviewLifecycle(node);
+  assert.equal(fixture.scheduler.frames.length, 0, "Dispose must cancel every node-owned RAF");
+  assert.equal(fixture.scheduler.timers.size, 0, "Dispose must clear every node-owned timer");
+  assert.deepEqual(
+    [...fixture.scheduler.canceledFrames].sort((left, right) => left - right),
+    pendingFrameIds,
+  );
+  for (const timerId of pendingTimerIds) {
+    assert.equal(fixture.scheduler.cleared.includes(timerId), true, `Dispose retained timer ${timerId}`);
+  }
+  assert.equal(disposedObserver.disconnectCalls, 1, "Dispose must disconnect each observer once");
+
+  const canceledFramesAfterDispose = [...fixture.scheduler.canceledFrames];
+  const clearedAfterDispose = [...fixture.scheduler.cleared];
+  fixture.runtime.disposeGeneratorNativePreviewLifecycle(node);
+  assert.deepEqual(fixture.scheduler.canceledFrames, canceledFramesAfterDispose, "Dispose must be idempotent");
+  assert.deepEqual(fixture.scheduler.cleared, clearedAfterDispose, "Idempotent dispose must not clear twice");
+  assert.equal(disposedObserver.disconnectCalls, 1);
+
+  const disposedSnapshot = adapterChannelSnapshot(fixture.calls);
+  fixture.runtime.scheduleGeneratorDefaultPreviewSuppression(node);
+  assert.deepEqual(
+    adapterChannelSnapshot(fixture.calls),
+    disposedSnapshot,
+    "A disposed lifecycle must reject new scheduling",
+  );
+  assert.equal(fixture.scheduler.frames.length, 0);
+  assert.equal(fixture.scheduler.timers.size, 0);
+  assert.equal(fixture.mutationObservers.length, 1);
+
+  fixture.runtime.activateGeneratorNativePreviewLifecycle(node);
+  fixture.runtime.scheduleGeneratorDefaultPreviewSuppression(node, { purgeStore: false });
+  assert.equal(fixture.calls.suppress.length, disposedSnapshot.suppress + 1);
+  assert.equal(fixture.mutationObservers.length, 2, "Activate must permit a fresh observer");
+  const activeObserver = fixture.mutationObservers[1];
+  const activeFrameIds = fixture.scheduler.frames.map(({ id }) => id);
+  const activeTimerIds = [...fixture.scheduler.timers.keys()];
+  const reactivatedTarget = fixture.document.createElement("img");
+  reactivatedTarget.className = "pointer-events-none object-contain";
+  root.append(reactivatedTarget);
+  const unobservedRoot = appendNodeRoot(fixture.document, "7:42");
+  const unobservedTarget = fixture.document.createElement("img");
+  unobservedTarget.className = "pointer-events-none object-contain";
+  unobservedRoot.append(unobservedTarget);
+  const activeSnapshot = adapterChannelSnapshot(fixture.calls);
+
+  fixture.scheduler.runCanceledCallbacks();
+  assert.deepEqual(
+    adapterChannelSnapshot(fixture.calls),
+    activeSnapshot,
+    "Canceled callbacks from a disposed generation must remain no-ops after activate",
+  );
+  assert.deepEqual(fixture.scheduler.frames.map(({ id }) => id), activeFrameIds);
+  assert.deepEqual([...fixture.scheduler.timers.keys()], activeTimerIds);
+  assert.equal(activeObserver.disconnectCalls, 0, "A stale stop timer must not disconnect the active observer");
+  disposedObserver.trigger();
+  assert.equal(
+    reactivatedTarget.classList.contains(NATIVE_HIDDEN_CLASS),
+    false,
+    "An observer from the disposed generation must not touch the reactivated root",
+  );
+  assert.equal(
+    unobservedTarget.classList.contains(NATIVE_HIDDEN_CLASS),
+    false,
+    "An observer from the disposed generation must not rescan an unobserved root",
+  );
+
+  pendingDirectStore.resolve([
+    { useNodeOutputStore: () => fixture.outputStore },
+    { useWorkflowStore: () => fixture.workflowStore },
+  ]);
+  await flushPromises();
+  assert.equal(fixture.revokeCalls.length, 0, "A late store resolution from a disposed generation must be ignored");
+  assert.equal(fixture.workflowLocatorCalls.length, 0);
+
+  activeObserver.trigger();
+  assertHidden(reactivatedTarget, "Activate must restore the current observer lifecycle");
+  assert.equal(unobservedTarget.classList.contains(NATIVE_HIDDEN_CLASS), false);
 }
 
 {
