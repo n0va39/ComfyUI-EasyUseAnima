@@ -94,6 +94,11 @@ try {
         throw "Frontend LoRA preset profile data smoke failed with exit code $LASTEXITCODE."
     }
 
+    & node "tests\frontend_autocomplete_text_model_smoke.mjs"
+    if ($LASTEXITCODE -ne 0) {
+        throw "Frontend autocomplete text model smoke failed with exit code $LASTEXITCODE."
+    }
+
     & npx --yes --package "typescript@$TypeScriptVersion" -- tsc -p jsconfig.json
     if ($LASTEXITCODE -ne 0) {
         throw "TypeScript check failed with exit code $LASTEXITCODE."

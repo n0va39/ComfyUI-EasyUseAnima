@@ -5,6 +5,17 @@ import {
 } from "./easyuse_anima_prompt_rules.js";
 import { easyuseAnimaFetchJson, easyuseAnimaGetSettings } from "./easyuse_anima_api.js";
 import { easyuseAnimaText } from "./easyuse_anima_i18n.js";
+import {
+  autocompleteQuery,
+  currentToken as currentAutocompleteToken,
+  currentWildcardToken as currentAutocompleteWildcardToken,
+  isCaretInComment,
+  isCaretInPromptTranslationMarker as caretInPromptTranslationMarker,
+  normalizeWildcardSearchText,
+  parseAutocompleteText,
+  planAutocompleteInsertion,
+  wildcardAutocompleteQuery,
+} from "./autocomplete/text_model.js";
 
 const TARGETS = {
   EasyUseAnimaPromptBuilder: new Set([
@@ -81,7 +92,6 @@ const AUTOCOMPLETE_COMMIT_KEYS = new Set([
   "enter",
   "tab",
 ]);
-const SENTENCE_PERIODS = new Set([".", "。", "．", "｡"]);
 const TEXT_EDITING_SHORTCUT_KEYS = new Set(["a", "c", "v", "x", "z", "y"]);
 const AUTOCOMPLETE_TEXT = {
   en: {
@@ -581,215 +591,32 @@ function findInputEl(widget) {
   return null;
 }
 
-function isEscaped(value, index) {
-  let count = 0;
-  for (let cursor = index - 1; cursor >= 0 && value[cursor] === "\\"; cursor -= 1) {
-    count += 1;
-  }
-  return count % 2 === 1;
-}
-
-function isSentencePeriod(value, index) {
-  if (!SENTENCE_PERIODS.has(value[index]) || isEscaped(value, index)) {
-    return false;
-  }
-  return !(/\d/.test(value[index - 1] || "") && /\d/.test(value[index + 1] || ""));
-}
-
-function naturalSentenceStart(value, segmentStart, caret) {
-  if (!autocompleteDetectNaturalSentences) {
-    return segmentStart;
-  }
-  for (let index = caret - 1; index >= segmentStart; index -= 1) {
-    if (!isSentencePeriod(value, index)) {
-      continue;
-    }
-    let start = index + 1;
-    while (start < caret && /[ \t]/.test(value[start])) {
-      start += 1;
-    }
-    return start < caret ? start : segmentStart;
-  }
-  return segmentStart;
-}
-
-function naturalSentenceEnd(value, caret, segmentEnd) {
-  for (let index = caret; index < segmentEnd; index += 1) {
-    if (isSentencePeriod(value, index)) {
-      return index;
-    }
-  }
-  return segmentEnd;
-}
-
-function trimPromptSyntaxPrefix(value, start, end) {
-  let cursor = start;
-  while (cursor < end && /[ \t]/.test(value[cursor])) {
-    cursor += 1;
-  }
-  if (value.slice(cursor, cursor + 2) === "[[") {
-    cursor += 2;
-    while (cursor < end && /[ \t]/.test(value[cursor])) {
-      cursor += 1;
-    }
-  }
-  if (value[cursor] === "(") {
-    cursor += 1;
-    while (cursor < end && /[ \t]/.test(value[cursor])) {
-      cursor += 1;
-    }
-  }
-  return cursor;
-}
-
-function trimPromptSyntaxSuffix(value, start, end) {
-  let cursor = end;
-  while (cursor > start && /[ \t]/.test(value[cursor - 1])) {
-    cursor -= 1;
-  }
-  if (value.slice(Math.max(start, cursor - 2), cursor) === "]]") {
-    cursor -= 2;
-    while (cursor > start && /[ \t]/.test(value[cursor - 1])) {
-      cursor -= 1;
-    }
-  }
-  if (value[cursor - 1] === ")" && !isEscaped(value, cursor - 1)) {
-    cursor -= 1;
-    while (cursor > start && /[ \t]/.test(value[cursor - 1])) {
-      cursor -= 1;
-    }
-  }
-  const tokenText = value.slice(start, cursor);
-  const weight = /\s*:\s*[+-]?(?:\d+(?:\.\d*)?|\.\d+)\s*$/.exec(tokenText);
-  if (weight) {
-    cursor -= weight[0].length;
-  }
-  return Math.max(start, cursor);
-}
-
 function currentToken(input) {
-  const value = input.value || "";
-  const caret = input.selectionStart ?? value.length;
-  let segmentStart = caret;
-  while (segmentStart > 0 && value[segmentStart - 1] !== "," && value[segmentStart - 1] !== "\n") {
-    segmentStart -= 1;
-  }
-  let segmentEnd = caret;
-  while (segmentEnd < value.length && value[segmentEnd] !== "," && value[segmentEnd] !== "\n") {
-    segmentEnd += 1;
-  }
-  const naturalStart = naturalSentenceStart(value, segmentStart, caret);
-  const sentenceDelimited = naturalStart > segmentStart;
-  if (sentenceDelimited) {
-    segmentStart = naturalStart;
-    segmentEnd = naturalSentenceEnd(value, caret, segmentEnd);
-  }
-  const replaceStart = trimPromptSyntaxPrefix(value, segmentStart, segmentEnd);
-  const replaceEnd = trimPromptSyntaxSuffix(value, replaceStart, segmentEnd);
-  const queryEnd = clamp(caret, replaceStart, replaceEnd);
-  const strictRaw = value.slice(replaceStart, queryEnd);
-  const legacyRaw = value.slice(segmentStart, caret);
-  const segment = value.slice(segmentStart, segmentEnd);
-  const strictActive = caret >= replaceStart && caret <= replaceEnd && queryEnd > replaceStart;
-  const legacyActive = legacyRaw.trim().length > 0;
-  const useStrictToken = !!autocompletePreviewCompletion;
-  return {
+  const value = input?.value || "";
+  return currentAutocompleteToken(
     value,
-    start: replaceStart,
-    end: replaceEnd,
-    caret,
-    segmentStart,
-    segmentEnd,
-    segment,
-    tokenSegment: value.slice(replaceStart, replaceEnd),
-    sentenceDelimited,
-    query: (useStrictToken ? strictRaw : legacyRaw).trim(),
-    active: useStrictToken ? strictActive : legacyActive,
-  };
+    input?.selectionStart ?? value.length,
+    {
+      detectNaturalSentences: autocompleteDetectNaturalSentences,
+      previewCompletion: autocompletePreviewCompletion,
+    },
+  );
 }
 
 function currentWildcardToken(input) {
-  const value = input.value || "";
-  const caret = input.selectionStart ?? value.length;
-  let opening = -1;
-  let index = 0;
-  while (index < caret) {
-    const found = value.indexOf("__", index);
-    if (found < 0 || found >= caret) {
-      break;
-    }
-    opening = opening < 0 ? found : -1;
-    index = found + 2;
-  }
-  if (opening < 0) {
-    return null;
-  }
-  const query = value.slice(opening + 2, caret);
-  if (/[\r\n,]/.test(query)) {
-    return null;
-  }
-  const closing = value.indexOf("__", caret);
-  const end = closing >= 0 ? closing + 2 : caret;
-  const active = caret >= opening + 2 && (closing < 0 || caret <= closing);
-  return {
+  const value = input?.value || "";
+  return currentAutocompleteWildcardToken(
     value,
-    start: opening,
-    end,
-    caret,
-    segment: value.slice(opening, end),
-    query,
-    wildcard: true,
-    active,
-  };
+    input?.selectionStart ?? value.length,
+  );
 }
 
 function isCaretInPromptTranslationMarker(input) {
   const value = input?.value || "";
-  const caret = input?.selectionStart ?? value.length;
-  let index = 0;
-  while (index < caret) {
-    const start = value.indexOf("%{", index);
-    if (start < 0 || start >= caret) {
-      return false;
-    }
-    if (isEscaped(value, start)) {
-      index = start + 2;
-      continue;
-    }
-    let end = -1;
-    for (let cursor = start + 2; cursor < value.length; cursor += 1) {
-      if (value[cursor] === "}" && !isEscaped(value, cursor)) {
-        end = cursor + 1;
-        break;
-      }
-    }
-    if (end < 0) {
-      return caret > start;
-    }
-    if (caret > start && caret < end) {
-      return true;
-    }
-    index = end;
-  }
-  return false;
-}
-
-function autocompleteQuery(token, forceArtistOnly = false) {
-  const raw = String(token.query || "");
-  const parsed = parseAutocompleteText(raw);
-  const artistOnly = forceArtistOnly || parsed.artistOnly;
-  const query = parsed.query;
-  const category = artistOnly ? "artist" : "";
-  return { query, artistOnly, category };
-}
-
-function wildcardAutocompleteQuery(token) {
-  return {
-    query: String(token?.query || "").toLocaleLowerCase(),
-    artistOnly: false,
-    category: "wildcard",
-    kind: "wildcard",
-  };
+  return caretInPromptTranslationMarker(
+    value,
+    input?.selectionStart ?? value.length,
+  );
 }
 
 function autocompleteStateSignature(token, context, state) {
@@ -808,43 +635,6 @@ function autocompleteStateSignature(token, context, state) {
     previewClosingBrackets: autocompletePreviewClosingBrackets,
     previewCompletion: autocompletePreviewCompletion,
   });
-}
-
-function stripPromptSyntaxClosingParens(value) {
-  let cursor = String(value || "").length;
-  while (cursor > 0 && /[ \t]/.test(value[cursor - 1])) {
-    cursor -= 1;
-  }
-  while (cursor > 0 && value[cursor - 1] === ")" && !isEscaped(value, cursor - 1)) {
-    cursor -= 1;
-    while (cursor > 0 && /[ \t]/.test(value[cursor - 1])) {
-      cursor -= 1;
-    }
-  }
-  return value.slice(0, cursor);
-}
-
-function parseAutocompleteText(value) {
-  let query = String(value || "").trim();
-  query = query.replace(/^\[\[\s*/g, "");
-  query = query.replace(/^\(\s*/g, "");
-  const artistOnly = query.startsWith("@");
-  if (artistOnly) {
-    query = query.slice(1).trimStart();
-  }
-  query = stripPromptSyntaxClosingParens(query);
-  query = query.replace(/:\s*[+-]?(?:\d+(?:\.\d*)?|\.\d+)\s*$/, "");
-  query = stripPromptSyntaxClosingParens(query);
-  return { query, artistOnly };
-}
-
-function normalizeWildcardSearchText(value) {
-  return String(value || "")
-    .normalize("NFKC")
-    .replaceAll("\\", "/")
-    .replace(/[ _]+/g, "-")
-    .trim()
-    .toLocaleLowerCase();
 }
 
 function strictAutocompleteResults(context, token, state, results) {
@@ -1091,65 +881,6 @@ function resetVisibleAutocompleteMenuSoon(menu, input) {
   });
 }
 
-function endsWithSentencePeriod(value) {
-  const text = String(value || "").replace(/[ \t]+$/g, "");
-  return text.length > 0 && isSentencePeriod(text, text.length - 1);
-}
-
-function startsWithSentencePeriod(value) {
-  const text = String(value || "").replace(/^[ \t]+/g, "");
-  return text.length > 0 && isSentencePeriod(text, 0);
-}
-
-function insertPrefixForBefore(before) {
-  if (!before || before.endsWith("\n")) {
-    return "";
-  }
-  const trimmed = before.replace(/[ \t]+$/g, "");
-  if (trimmed.endsWith("(") || trimmed.endsWith("[[")) {
-    return "";
-  }
-  if (before.endsWith(",")) {
-    return " ";
-  }
-  if (/[ \t]$/.test(before)) {
-    return "";
-  }
-  if (autocompleteNoCommaAfterPeriod && endsWithSentencePeriod(before)) {
-    return " ";
-  }
-  return ", ";
-}
-
-function insertSuffixForAfter(after, appendSeparator = false) {
-  if (!after) {
-    return appendSeparator ? ", " : "";
-  }
-  if (/^[ \t]*:\s*[+-]?(?:\d+(?:\.\d*)?|\.\d+)/.test(after) || /^[ \t]*(?:\)|\]\])/.test(after)) {
-    return "";
-  }
-  if (after.startsWith("\n") || after.startsWith(",")) {
-    return "";
-  }
-  if (autocompleteNoCommaAfterPeriod && startsWithSentencePeriod(after)) {
-    return "";
-  }
-  return ", ";
-}
-
-function insertSuffixPlanForAfter(after, appendSeparator = false) {
-  const text = String(after || "");
-  const suffix = insertSuffixForAfter(text, appendSeparator);
-  if (!text) {
-    return { suffix, consumeAfter: 0, caretExtra: suffix.length };
-  }
-  if (appendSeparator && text.startsWith(",")) {
-    const match = /^,[ \t]*/.exec(text);
-    return { suffix: ", ", consumeAfter: match?.[0]?.length || 1, caretExtra: 2 };
-  }
-  return { suffix, consumeAfter: 0, caretExtra: 0 };
-}
-
 function replaceInputRange(input, start, end, replacement, caretOffset) {
   input.focus?.();
   input.setSelectionRange(start, end);
@@ -1294,30 +1025,24 @@ function forwardMiddlePanFromAutocompleteInput(event) {
 }
 
 function commitSuggestion(state, entry, options = {}) {
-  const token = currentToken(state.input);
+  const promptToken = currentToken(state.input);
   const wildcardToken = entry?.kind === "wildcard" ? currentWildcardToken(state.input) : null;
-  if (wildcardToken) {
-    const replacement = `__${String(entry.tag || "").replace(/^__|__$/g, "")}__`;
-    replaceInputRange(state.input, wildcardToken.start, wildcardToken.end, replacement, replacement.length);
-    syncWidgetValue(state);
-    state.onCommit?.(state.input.value);
-    if (options.suppressPopup) {
-      suppressAutocompleteUntilInputChanges(state.input);
-    }
-    hidePopup();
+  const token = wildcardToken || promptToken;
+  const insert = completionText(token, entry, state.forceArtistOnly);
+  const plan = planAutocompleteInsertion(token, insert, {
+    appendSeparator: autocompleteAppendSeparator,
+    noCommaAfterPeriod: autocompleteNoCommaAfterPeriod,
+  });
+  if (!plan) {
     return;
   }
-  const before = token.value.slice(0, token.start);
-  const after = token.value.slice(token.end);
-  const insert = completionText(token, entry, state.forceArtistOnly);
-  const prefix = insertPrefixForBefore(before);
-  const suffixPlan = insertSuffixPlanForAfter(after, autocompleteAppendSeparator);
-  const suffix = suffixPlan.suffix;
-  const replacement = `${prefix}${insert}${suffix}`;
-  const caretOffset = prefix.length
-    + insert.length
-    + suffixPlan.caretExtra;
-  replaceInputRange(state.input, token.start, token.end + suffixPlan.consumeAfter, replacement, caretOffset);
+  replaceInputRange(
+    state.input,
+    plan.start,
+    plan.end,
+    plan.replacement,
+    plan.caretOffset,
+  );
   syncWidgetValue(state);
   state.onCommit?.(state.input.value);
   if (options.suppressPopup) {
@@ -1420,41 +1145,32 @@ function completionPreviewPlan(state, entry) {
     return null;
   }
   const sourceValue = String(state.input.value || "");
-  if (entry?.kind === "wildcard") {
-    const token = currentWildcardToken(state.input);
-    if (!token) {
-      return null;
-    }
-    const insert = `__${String(entry.tag || "").replace(/^__|__$/g, "")}__`;
+  const wildcardToken = entry?.kind === "wildcard" ? currentWildcardToken(state.input) : null;
+  if (entry?.kind === "wildcard" && !wildcardToken) {
+    return null;
+  }
+  const token = wildcardToken || currentToken(state.input);
+  const insert = completionText(token, entry, state.forceArtistOnly);
+  const plan = planAutocompleteInsertion(token, insert, {
+    appendSeparator: autocompleteAppendSeparator,
+    noCommaAfterPeriod: autocompleteNoCommaAfterPeriod,
+  });
+  if (!plan) {
+    return null;
+  }
+  let typedLength;
+  if (token.wildcard) {
     const typed = token.value.slice(token.start, token.caret);
     const lowerInsert = insert.toLocaleLowerCase();
     const lowerTyped = typed.toLocaleLowerCase();
-    const typedLength = typed && lowerInsert.startsWith(lowerTyped)
+    typedLength = typed && lowerInsert.startsWith(lowerTyped)
       ? typed.length
       : 0;
-    const value = `${sourceValue.slice(0, token.start)}${insert}${sourceValue.slice(token.end)}`;
-    return {
-      sourceValue,
-      value,
-      candidateStart: token.start,
-      candidateEnd: token.start + insert.length,
-      ghostStart: token.start + typedLength,
-      ghostEnd: token.start + insert.length,
-      category: "wildcard",
-    };
+  } else {
+    typedLength = plan.prefix ? 0 : typedCompletionLength(token, insert);
   }
-  const token = currentToken(state.input);
-  const insert = completionText(token, entry, state.forceArtistOnly);
-  const before = token.value.slice(0, token.start);
-  const after = token.value.slice(token.end);
-  const prefix = insertPrefixForBefore(before);
-  const suffixPlan = insertSuffixPlanForAfter(after, autocompleteAppendSeparator);
-  const suffix = suffixPlan.suffix;
-  const replacement = `${prefix}${insert}${suffix}`;
-  const replaceEnd = token.end + suffixPlan.consumeAfter;
-  const value = `${sourceValue.slice(0, token.start)}${replacement}${sourceValue.slice(replaceEnd)}`;
-  const typedLength = prefix ? 0 : typedCompletionLength(token, insert);
-  const candidateStart = token.start + prefix.length;
+  const value = `${sourceValue.slice(0, plan.start)}${plan.replacement}${sourceValue.slice(plan.end)}`;
+  const candidateStart = plan.start + plan.prefix.length;
   const candidateEnd = candidateStart + insert.length;
   const ghostStart = candidateStart + typedLength;
   const ghostEnd = candidateEnd;
@@ -1465,7 +1181,9 @@ function completionPreviewPlan(state, entry) {
     candidateEnd,
     ghostStart,
     ghostEnd,
-    category: autocompletePreviewCategory(state, entry, token),
+    category: token.wildcard
+      ? "wildcard"
+      : autocompletePreviewCategory(state, entry, token),
   };
 }
 
@@ -1629,13 +1347,6 @@ function renderResults(state, results, signature = "") {
   resetActiveAutocompleteMenu(menu);
   resetVisibleAutocompleteMenuSoon(menu, state.input);
   updateAutocompletePreview();
-}
-
-function isCaretInComment(value, caret) {
-  const text = String(value ?? "");
-  const safeCaret = Math.max(0, Math.min(Number(caret) || 0, text.length));
-  const lineStart = text.lastIndexOf("\n", safeCaret - 1) + 1;
-  return /^[ \t]*#/.test(text.slice(lineStart, safeCaret));
 }
 
 function debounce(fn, delay = 120) {

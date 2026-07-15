@@ -14,6 +14,9 @@ AIO_SETTINGS_JS = ROOT / "web" / "js" / "aio" / "settings.js"
 AIO_WHEEL_JS = ROOT / "web" / "js" / "aio" / "wheel.js"
 AIO_PRESETS_JS = ROOT / "web" / "js" / "aio" / "presets.js"
 AUTOCOMPLETE_JS = ROOT / "web" / "js" / "easyuse_anima_autocomplete.js"
+AUTOCOMPLETE_TEXT_MODEL_JS = (
+    ROOT / "web" / "js" / "autocomplete" / "text_model.js"
+)
 PROMPT_STUDIO_REGIONAL_ADAPTER_JS = (
     ROOT / "web" / "js" / "prompt_studio" / "regional" / "editor_adapter.js"
 )
@@ -486,7 +489,7 @@ class AIOFrontendSourceTests(unittest.TestCase):
         self.assertIn("menu.scrollTop", scroll_body)
 
         start = source.index("function setActive")
-        end = source.index("\nfunction endsWithSentencePeriod", start)
+        end = source.index("\nfunction resetAutocompleteMenuToTop", start)
         set_active_body = source[start:end]
 
         self.assertIn("const menu = ensurePopup();", set_active_body)
@@ -526,7 +529,7 @@ class AIOFrontendSourceTests(unittest.TestCase):
         self.assertIn("resetAutocompleteMenuToTop(menu);", reset_body)
 
         start = source.index("function resetVisibleAutocompleteMenuSoon")
-        end = source.index("\nfunction endsWithSentencePeriod", start)
+        end = source.index("\nfunction replaceInputRange", start)
         visible_reset_body = source[start:end]
 
         self.assertIn("resetAutocompleteMenuToTop(menu);", visible_reset_body)
@@ -535,7 +538,7 @@ class AIOFrontendSourceTests(unittest.TestCase):
         self.assertNotIn("resetActiveAutocompleteMenu(menu);", visible_reset_body)
 
         start = source.index("function renderResults")
-        end = source.index("\nfunction isCaretInComment", start)
+        end = source.index("\nfunction debounce", start)
         body = source[start:end]
 
         self.assertIn("resetAutocompleteMenuToTop(menu);", body)
@@ -573,17 +576,21 @@ class AIOFrontendSourceTests(unittest.TestCase):
 
     def test_autocomplete_wildcards_accept_empty_and_unicode_queries(self):
         source = AUTOCOMPLETE_JS.read_text(encoding="utf-8")
-        start = source.index("function currentWildcardToken")
-        end = source.index("\nfunction autocompleteQuery", start)
-        token_body = source[start:end]
+        model_source = AUTOCOMPLETE_TEXT_MODEL_JS.read_text(encoding="utf-8")
+        start = model_source.index("export function currentWildcardToken")
+        end = model_source.index(
+            "\nexport function isCaretInPromptTranslationMarker",
+            start,
+        )
+        token_body = model_source[start:end]
 
-        self.assertIn("caret >= opening + 2", token_body)
+        self.assertIn("safeCaret >= opening + 2", token_body)
         self.assertIn(r"/[\r\n,]/.test(query)", token_body)
         self.assertNotIn(r"/^[\w.\-+/*\\]*$/i.test(query)", token_body)
 
-        start = source.index("function normalizeWildcardSearchText")
-        end = source.index("\nfunction strictAutocompleteResults", start)
-        normalize_body = source[start:end]
+        start = model_source.index("export function normalizeWildcardSearchText")
+        end = model_source.index("\nfunction endsWithSentencePeriod", start)
+        normalize_body = model_source[start:end]
 
         self.assertIn('replaceAll("\\\\", "/")', normalize_body)
         self.assertIn('replace(/[ _]+/g, "-")', normalize_body)
@@ -602,17 +609,17 @@ class AIOFrontendSourceTests(unittest.TestCase):
         self.assertIn('return context.kind === "wildcard" ? results : [];', strict_body)
 
     def test_autocomplete_strips_prompt_syntax_from_search_query(self):
-        source = AUTOCOMPLETE_JS.read_text(encoding="utf-8")
+        source = AUTOCOMPLETE_TEXT_MODEL_JS.read_text(encoding="utf-8")
 
-        start = source.index("function autocompleteQuery")
-        end = source.index("\nfunction wildcardAutocompleteQuery", start)
+        start = source.index("export function autocompleteQuery")
+        end = source.index("\nexport function wildcardAutocompleteQuery", start)
         query_body = source[start:end]
 
         self.assertIn("const query = parsed.query;", query_body)
         self.assertNotIn("artistOnly ? parsed.query : raw.trim()", query_body)
 
-        start = source.index("function parseAutocompleteText")
-        end = source.index("\nfunction normalizeWildcardSearchText", start)
+        start = source.index("export function parseAutocompleteText")
+        end = source.index("\nexport function autocompleteQuery", start)
         parse_body = source[start:end]
 
         self.assertIn('query = query.replace(/^\\[\\[\\s*/g, "");', parse_body)
@@ -625,7 +632,7 @@ class AIOFrontendSourceTests(unittest.TestCase):
         self.assertNotIn('query = query.replace(/\\)+\\s*$/, "");', parse_body)
 
         start = source.index("function trimPromptSyntaxSuffix")
-        end = source.index("\nfunction currentToken", start)
+        end = source.index("\nexport function currentToken", start)
         trim_body = source[start:end]
 
         self.assertIn('value[cursor - 1] === ")" && !isEscaped(value, cursor - 1)', trim_body)
@@ -644,7 +651,7 @@ class AIOFrontendSourceTests(unittest.TestCase):
         self.assertIn("typeNames.includes(\"TEXTAREA\")", source)
 
         start = source.index("function findInputEl")
-        end = source.index("\nfunction isEscaped", start)
+        end = source.index("\nfunction currentToken", start)
         input_body = source[start:end]
 
         self.assertIn("widget?.inputEl || widget?.element", input_body)
