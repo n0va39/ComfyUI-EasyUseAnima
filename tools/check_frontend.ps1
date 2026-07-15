@@ -44,6 +44,16 @@ try {
         throw "Frontend AiO profile core smoke failed with exit code $LASTEXITCODE."
     }
 
+    & node "tests\frontend_aio_profile_api_client_smoke.mjs"
+    if ($LASTEXITCODE -ne 0) {
+        throw "Frontend AiO profile API client smoke failed with exit code $LASTEXITCODE."
+    }
+
+    & node "tests\frontend_aio_profile_settings_runtime_smoke.mjs"
+    if ($LASTEXITCODE -ne 0) {
+        throw "Frontend AiO profile settings runtime smoke failed with exit code $LASTEXITCODE."
+    }
+
     & node "tests\frontend_aio_dependency_core_smoke.mjs"
     if ($LASTEXITCODE -ne 0) {
         throw "Frontend AiO dependency core smoke failed with exit code $LASTEXITCODE."
