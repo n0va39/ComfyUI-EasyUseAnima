@@ -2,17 +2,24 @@ import { app } from "../../../scripts/app.js";
 import { api } from "../../../scripts/api.js";
 import { easyuseAnimaEncodeRFC3986URIComponent as encodeRFC3986URIComponent, easyuseAnimaFetchJson, easyuseAnimaGetSettings } from "./easyuse_anima_api.js";
 import { easyuseAnimaText, easyuseAnimaWatchLocale } from "./easyuse_anima_i18n.js";
+import {
+  INTERNAL_WIDGET_DEFAULTS,
+  MAX_PROFILES,
+  WIDGET_INDEX,
+  emptyProfile,
+  isMeaningfulProfile,
+  normalizeLoraEntry,
+  normalizeProfileDataValue,
+  normalizeSerializedWidgets,
+  profileContent,
+  profileKey,
+  profileSavedName,
+  profileSnapshot,
+  withSavedMeta,
+  wrapProfileIndex,
+} from "./lora_preset/profile_data.js";
 
 const NODE_TYPE = "EasyUseAnimaLoraPreset";
-const MAX_PROFILES = 16;
-const WIDGET_INDEX = {
-  stylePrompt: 0,
-  profileIndex: 1,
-  profileCount: 2,
-  loraName: 3,
-  loras: 4,
-  profileData: 5,
-};
 const MIN_NODE_WIDTH = 520;
 const PROFILE_CONTROLS_HEIGHT = 30;
 const PROFILE_ROW_HEIGHT = 22;
@@ -194,13 +201,6 @@ const LORA_PRESET_TEXT = {
     "lora.add": "+ 添加 LoRA",
   },
 };
-const INTERNAL_WIDGET_DEFAULTS = {
-  profile_count: "4",
-  lora_name: "None",
-  loras: "[]",
-  profile_data: "{}",
-};
-
 function lpText(key) {
   return easyuseAnimaText(LORA_PRESET_TEXT, key);
 }
@@ -211,37 +211,6 @@ function lpFormat(key, values = {}) {
 
 function errorMessage(error) {
   return String(error?.message || error || "");
-}
-
-function looksLikeProfileData(value) {
-  if (typeof value !== "string") {
-    return false;
-  }
-  try {
-    const parsed = JSON.parse(value || "{}");
-    return parsed && typeof parsed === "object" && !Array.isArray(parsed);
-  } catch {
-    return false;
-  }
-}
-
-function normalizeSerializedWidgets(info) {
-  const values = info?.widgets_values;
-  if (!Array.isArray(values)) {
-    return;
-  }
-  if (values[WIDGET_INDEX.profileCount] == null || values[WIDGET_INDEX.profileCount] === "") {
-    values[WIDGET_INDEX.profileCount] = INTERNAL_WIDGET_DEFAULTS.profile_count;
-  }
-  values[WIDGET_INDEX.loraName] = INTERNAL_WIDGET_DEFAULTS.lora_name;
-  if (Array.isArray(values[WIDGET_INDEX.loras])) {
-    values[WIDGET_INDEX.loras] = JSON.stringify(values[WIDGET_INDEX.loras]);
-  } else if (typeof values[WIDGET_INDEX.loras] !== "string") {
-    values[WIDGET_INDEX.loras] = INTERNAL_WIDGET_DEFAULTS.loras;
-  }
-  if (!looksLikeProfileData(values[WIDGET_INDEX.profileData])) {
-    values[WIDGET_INDEX.profileData] = INTERNAL_WIDGET_DEFAULTS.profile_data;
-  }
 }
 
 function createEl(tagName, options = {}) {
@@ -381,21 +350,8 @@ function resetInternalLoraSelector(node) {
   }
 }
 
-function profileKey(index) {
-  return String(Math.max(1, Math.min(MAX_PROFILES, Number.parseInt(index, 10) || 1)));
-}
-
 function parseProfileData(widget) {
   return normalizeProfileDataValue(widgetValue(widget, "{}"));
-}
-
-function normalizeProfileDataValue(value) {
-  try {
-    const parsed = typeof value === "string" ? JSON.parse(String(value || "{}")) : value;
-    return parsed && typeof parsed === "object" && !Array.isArray(parsed) ? parsed : {};
-  } catch {
-    return {};
-  }
 }
 
 function writeProfileData(widget, data) {
@@ -404,12 +360,6 @@ function writeProfileData(widget, data) {
 
 function profileCount(node) {
   return Math.max(1, Math.min(MAX_PROFILES, Number.parseInt(widgetValue(findWidget(node, "profile_count"), 4), 10) || 4));
-}
-
-function wrapProfileIndex(index, count) {
-  const safeCount = Math.max(1, Math.min(MAX_PROFILES, Number.parseInt(count, 10) || 1));
-  const safeIndex = Math.max(1, Number.parseInt(index, 10) || 1);
-  return ((safeIndex - 1) % safeCount) + 1;
 }
 
 function selectedProfileIndex(node) {
@@ -469,19 +419,6 @@ function lorasWidgetValue(node) {
   }
 }
 
-function normalizeLoraEntry(entry) {
-  const name = String(entry?.name ?? entry?.lora ?? "").trim();
-  const strength = Number.isFinite(Number(entry?.strength)) ? Number(entry.strength) : 1;
-  const strengthTwoRaw = entry?.strengthTwo ?? entry?.clipStrength;
-  const strengthTwo = strengthTwoRaw == null || strengthTwoRaw === "" ? null : Number(strengthTwoRaw);
-  return {
-    name,
-    on: entry?.on ?? entry?.active ?? true,
-    strength,
-    strengthTwo: Number.isFinite(strengthTwo) ? strengthTwo : null,
-  };
-}
-
 function setLorasWidgetValue(node, loras, options = {}) {
   const widget = findWidget(node, "loras");
   if (!widget) {
@@ -496,39 +433,6 @@ function setLorasWidgetValue(node, loras, options = {}) {
   } else {
     node.setDirtyCanvas?.(true, true);
   }
-}
-
-function profileContent(profile) {
-  return {
-    style_prompt: String(profile?.style_prompt || ""),
-    loras: Array.isArray(profile?.loras)
-      ? profile.loras.map(normalizeLoraEntry).filter((entry) => entry.name)
-      : [],
-  };
-}
-
-function profileSnapshot(profile) {
-  return JSON.stringify(profileContent(profile));
-}
-
-function isMeaningfulProfile(profile) {
-  const content = profileContent(profile);
-  return !!content.style_prompt.trim() || content.loras.length > 0;
-}
-
-function profileSavedName(profile) {
-  return String(profile?.saved_name || "").trim();
-}
-
-function withSavedMeta(content, previous) {
-  const profile = profileContent(content);
-  const savedName = profileSavedName(previous);
-  const savedSnapshot = String(previous?.saved_snapshot || "");
-  if (savedName && savedSnapshot) {
-    profile.saved_name = savedName;
-    profile.saved_snapshot = savedSnapshot;
-  }
-  return profile;
 }
 
 function currentProfileContent(node) {
@@ -554,13 +458,6 @@ function saveProfile(node, index) {
 
 function saveCurrentProfile(node) {
   saveProfile(node, activeProfileIndex(node));
-}
-
-function emptyProfile(index = 1) {
-  return {
-    style_prompt: "",
-    loras: [],
-  };
 }
 
 function loadProfile(node, index, options = {}) {
