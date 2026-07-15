@@ -15,6 +15,7 @@ import {
 import { aioCreateDialogPrimitives } from "./aio/dialog_primitives.js";
 import { aioCreateInputSettingsDialog } from "./aio/input_settings_dialog.js";
 import { aioCreatePostprocessSettingsDialog } from "./aio/postprocess_settings_dialog.js";
+import { aioCreatePreviewSettingsDialog } from "./aio/preview_settings_dialog.js";
 import {
   AIO_BACKEND_DEPENDENCIES,
   AIO_OPTIONAL_DEPENDENCY_SPECS,
@@ -6806,81 +6807,6 @@ function createImageSaverCivitaiHashFetcherEditor(initialFetchers) {
   };
 }
 
-function openPreviewSettings(node) {
-  const widget = findWidget(node, GENERATOR_SETTINGS_WIDGET);
-  const settings = generatorSettings(node);
-  const preview = mergeDefaults(DEFAULT_GENERATION_SETTINGS.preview, settings.preview || {});
-  const { backdrop, body, actions } = createDialog(
-    "Preview Options",
-    aioText("text.previewOptionsSubtitle"),
-  );
-  const section = document.createElement("section");
-  section.className = "easyuse-anima-aio-section full";
-  section.append(Object.assign(document.createElement("h3"), { textContent: aioStaticText("Node Preview") }));
-  const intermediate = field(
-    section,
-    "Intermediate images",
-    checkbox(preview.intermediate_images),
-    "tip.previewIntermediate",
-  );
-  const comparePrevious = field(
-    section,
-    "Compare previous",
-    checkbox(preview.compare_previous),
-    "tip.previewComparePrevious",
-  );
-  const imageFeed = field(
-    section,
-    "Image feed",
-    checkbox(preview.image_feed),
-    "tip.previewImageFeed",
-  );
-  const feedCount = field(
-    section,
-    "Feed count",
-    numberInput(preview.feed_count, "1"),
-    "tip.previewFeedCount",
-  );
-  feedCount.min = "1";
-  feedCount.max = "100";
-  const syncFeedCount = () => {
-    feedCount.disabled = !imageFeed.checked;
-  };
-  imageFeed.addEventListener("change", syncFeedCount);
-  syncFeedCount();
-  body.append(section);
-
-  const cancel = document.createElement("button");
-  cancel.textContent = aioText("button.cancel");
-  const apply = document.createElement("button");
-  apply.className = "primary";
-  apply.textContent = aioText("button.apply");
-  actions.append(cancel, apply);
-  cancel.addEventListener("click", () => backdrop.remove());
-  apply.addEventListener("click", () => {
-    const next = mergeDefaults(DEFAULT_GENERATION_SETTINGS, settings);
-    next.preview = {
-      intermediate_images: intermediate.checked,
-      compare_previous: comparePrevious.checked,
-      image_feed: imageFeed.checked,
-      feed_count: Math.trunc(clampGeneratorNumber(feedCount.value, preview.feed_count, 1, 100)),
-    };
-    if (Array.isArray(node.__easyuseAnimaGeneratorPreviewFeedImages)) {
-      node.__easyuseAnimaGeneratorPreviewFeedImages = node.__easyuseAnimaGeneratorPreviewFeedImages.slice(
-        -next.preview.feed_count,
-      );
-    }
-    node.__easyuseAnimaGeneratorPreviewImages = next.preview.image_feed
-      ? (node.__easyuseAnimaGeneratorPreviewFeedImages || [])
-      : (node.__easyuseAnimaGeneratorCurrentRunImages || []);
-    node.__easyuseAnimaSelectedPreviewIndex = aioDefaultPreviewIndex(node.__easyuseAnimaGeneratorPreviewImages);
-    applyVisibleGeneratorSettings(node, next);
-    writeSettings(node, widget, next);
-    renderGeneratorPanel(node);
-    backdrop.remove();
-  });
-}
-
 function openSaveSettings(node) {
   const widget = findWidget(node, GENERATOR_SETTINGS_WIDGET);
   const settings = generatorSettings(node);
@@ -7477,6 +7403,26 @@ const openPostprocessSettings = aioCreatePostprocessSettingsDialog({
   generatorSettings,
   mergeDefaults,
   clampNumber: clampGeneratorNumber,
+  writeSettings,
+  renderGeneratorPanel,
+});
+
+const openPreviewSettings = aioCreatePreviewSettingsDialog({
+  document,
+  createDialog,
+  field,
+  checkbox,
+  numberInput,
+  staticText: aioStaticText,
+  text: aioText,
+  defaultGenerationSettings: DEFAULT_GENERATION_SETTINGS,
+  generatorSettingsWidget: GENERATOR_SETTINGS_WIDGET,
+  findWidget,
+  generatorSettings,
+  mergeDefaults,
+  clampNumber: clampGeneratorNumber,
+  defaultPreviewIndex: aioDefaultPreviewIndex,
+  applyVisibleSettings: applyVisibleGeneratorSettings,
   writeSettings,
   renderGeneratorPanel,
 });
