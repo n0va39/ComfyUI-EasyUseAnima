@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import json
+import re
 import shutil
 import subprocess
 import textwrap
@@ -8,9 +10,99 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
+LORA_PRESET_ENTRY = ROOT / "web" / "js" / "easyuse_anima_lora_preset.js"
+LORA_PRESET_PROFILE_DATA = ROOT / "web" / "js" / "lora_preset" / "profile_data.js"
+LORA_PRESET_PROFILE_DATA_SMOKE = (
+    ROOT / "tests" / "frontend_lora_preset_profile_data_smoke.mjs"
+)
+JSCONFIG = ROOT / "jsconfig.json"
+FRONTEND_CHECK_SCRIPT = ROOT / "tools" / "check_frontend.ps1"
 
 
 class LoraPresetFrontendTests(unittest.TestCase):
+    def test_profile_data_module_boundary(self):
+        module_source = LORA_PRESET_PROFILE_DATA.read_text(encoding="utf-8")
+        entry_source = LORA_PRESET_ENTRY.read_text(encoding="utf-8")
+        config = json.loads(JSCONFIG.read_text(encoding="utf-8"))
+        frontend_check_source = FRONTEND_CHECK_SCRIPT.read_text(encoding="utf-8")
+
+        expected_exports = {
+            "INTERNAL_WIDGET_DEFAULTS",
+            "MAX_PROFILES",
+            "WIDGET_INDEX",
+            "emptyProfile",
+            "isMeaningfulProfile",
+            "normalizeLoraEntry",
+            "normalizeProfileDataValue",
+            "normalizeSerializedWidgets",
+            "profileContent",
+            "profileKey",
+            "profileSavedName",
+            "profileSnapshot",
+            "withSavedMeta",
+            "wrapProfileIndex",
+        }
+        exported_names = set(
+            re.findall(
+                r"^export\s+(?:const|function|class)\s+([A-Za-z0-9_]+)",
+                module_source,
+                re.MULTILINE,
+            )
+        )
+        self.assertEqual(exported_names, expected_exports)
+
+        import_match = re.search(
+            r'^import\s*\{(?P<names>[^}]*)\}\s*from\s*"\./lora_preset/profile_data\.js";',
+            entry_source,
+            re.MULTILINE,
+        )
+        self.assertIsNotNone(import_match)
+        imported_names = {
+            name.strip().rstrip(",")
+            for name in import_match.group("names").splitlines()
+            if name.strip()
+        }
+        self.assertEqual(imported_names, expected_exports)
+
+        self.assertEqual(module_source.splitlines()[0], "// @ts-check")
+        self.assertNotRegex(
+            module_source,
+            re.compile(r"^\s*import\b", re.MULTILINE),
+        )
+        self.assertNotRegex(
+            module_source,
+            r"\b(?:document|window|app|api|LiteGraph|fetch|registerExtension)\b",
+        )
+        for name in expected_exports:
+            with self.subTest(moved_declaration=name):
+                self.assertNotRegex(
+                    entry_source,
+                    rf"\b(?:const|let|var|function|class)\s+{re.escape(name)}\b",
+                )
+
+        self.assertTrue(LORA_PRESET_PROFILE_DATA_SMOKE.is_file())
+        self.assertIn("web/js/lora_preset/**/*.js", config["include"])
+        self.assertIn(
+            r'node "tests\frontend_lora_preset_profile_data_smoke.mjs"',
+            frontend_check_source,
+        )
+
+    def test_profile_data_module_semantics(self):
+        node_bin = shutil.which("node")
+        if not node_bin:
+            self.skipTest("node executable is not available")
+
+        completed = subprocess.run(
+            [node_bin, str(LORA_PRESET_PROFILE_DATA_SMOKE)],
+            cwd=ROOT,
+            text=True,
+            capture_output=True,
+            check=False,
+        )
+
+        if completed.returncode != 0:
+            self.fail((completed.stdout + completed.stderr).strip())
+
     def test_lora_row_non_toggle_controls_do_not_throw(self):
         node_bin = shutil.which("node")
         if not node_bin:
@@ -23,8 +115,15 @@ class LoraPresetFrontendTests(unittest.TestCase):
             const vm = require("vm");
 
             const sourcePath = process.argv[1];
+            const profileDataPath = process.argv[2];
+            let profileDataSource = fs.readFileSync(profileDataPath, "utf8");
+            profileDataSource = profileDataSource.replace(
+              /^export\s+(?=(?:const|function|class)\b)/gm,
+              "",
+            );
             let source = fs.readFileSync(sourcePath, "utf8");
-            source = source.replace(/^import\s+.*;\r?\n/gm, "");
+            source = source.replace(/^import[\s\S]*?;\r?\n/gm, "");
+            source = `${profileDataSource}\n${source}`;
             source += "\nglobalThis.__loraPresetTest = { LoraRowWidget, LORA_PRESET_SETTINGS, applyLoraPresetSettings, loraMenuElementValue, loraMenuItems };\n";
 
             class StubElement {
@@ -264,7 +363,13 @@ class LoraPresetFrontendTests(unittest.TestCase):
         )
 
         completed = subprocess.run(
-            [node_bin, "-e", runner, str(ROOT / "web" / "js" / "easyuse_anima_lora_preset.js")],
+            [
+                node_bin,
+                "-e",
+                runner,
+                str(LORA_PRESET_ENTRY),
+                str(LORA_PRESET_PROFILE_DATA),
+            ],
             cwd=ROOT,
             text=True,
             capture_output=True,
