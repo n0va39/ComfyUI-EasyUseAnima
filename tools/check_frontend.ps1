@@ -129,6 +129,11 @@ try {
         throw "Frontend settings resolution editors smoke failed with exit code $LASTEXITCODE."
     }
 
+    & node "tests\frontend_settings_wildcard_path_editor_smoke.mjs"
+    if ($LASTEXITCODE -ne 0) {
+        throw "Frontend settings wildcard path editor smoke failed with exit code $LASTEXITCODE."
+    }
+
     & node "tests\frontend_settings_definition_data_smoke.mjs"
     if ($LASTEXITCODE -ne 0) {
         throw "Frontend settings definition data smoke failed with exit code $LASTEXITCODE."
