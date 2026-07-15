@@ -2,6 +2,7 @@ import { app } from "../../../scripts/app.js";
 import { api } from "../../../scripts/api.js";
 import { easyuseAnimaEncodeRFC3986URIComponent as encodeRFC3986URIComponent, easyuseAnimaFetchJson, easyuseAnimaGetSettings } from "./easyuse_anima_api.js";
 import { easyuseAnimaText, easyuseAnimaWatchLocale } from "./easyuse_anima_i18n.js";
+import { createLoraPresetApiClient } from "./lora_preset/api_client.js";
 import {
   INTERNAL_WIDGET_DEFAULTS,
   MAX_PROFILES,
@@ -291,6 +292,11 @@ async function fetchJson(url, options = {}) {
     : fetch;
   return easyuseAnimaFetchJson(url, { ...options, fetcher });
 }
+
+const loraPresetApi = createLoraPresetApiClient({
+  fetchJson,
+  encodeURIComponent: encodeRFC3986URIComponent,
+});
 
 function firstValue(value, fallback = null) {
   if (Array.isArray(value)) {
@@ -666,14 +672,10 @@ async function saveProfileSet(node) {
     return;
   }
   try {
-    const data = await fetchJson("/easyuse_anima/lora_profiles/save", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        name: trimmedName,
-        ...selectedProfilePayload(node),
-      }),
-    });
+    const data = await loraPresetApi.saveProfile(
+      trimmedName,
+      selectedProfilePayload(node),
+    );
     markSelectedProfileSaved(node, data?.profile?.name || trimmedName);
     renderProfileBar(node);
     node.setDirtyCanvas?.(true, true);
@@ -684,7 +686,7 @@ async function saveProfileSet(node) {
 
 async function loadProfileSet(node, name) {
   try {
-    const data = await fetchJson(`/easyuse_anima/lora_profiles/load?name=${encodeRFC3986URIComponent(name)}`);
+    const data = await loraPresetApi.loadProfile(name);
     appendProfilePayload(node, data.profile);
   } catch (error) {
     window.alert(lpFormat("profile.loadFailed", { message: errorMessage(error) }));
@@ -694,7 +696,7 @@ async function loadProfileSet(node, name) {
 async function openProfileLoadMenu(node, event, pos) {
   let profiles = [];
   try {
-    const data = await fetchJson("/easyuse_anima/lora_profiles");
+    const data = await loraPresetApi.listProfiles();
     profiles = Array.isArray(data?.profiles) ? data.profiles : [];
   } catch (error) {
     window.alert(lpFormat("profile.listFailed", { message: errorMessage(error) }));
@@ -792,11 +794,7 @@ async function fixProfileLoras(node) {
       window.alert(lpText("profile.fixNoIssue"));
       return;
     }
-    const data = await fetchJson("/easyuse_anima/lora_profiles/fix", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(fullProfilePayload(node)),
-    });
+    const data = await loraPresetApi.fixProfile(fullProfilePayload(node));
     const profile = data?.profile || data || {};
     applyFixedProfilePayload(node, profile);
     window.alert(lpFormat("profile.fixResult", {
@@ -832,19 +830,15 @@ async function fixSingleLoraEntry(node, index) {
       window.alert(lpText("lora.fixNoIssue"));
       return;
     }
-    const data = await fetchJson("/easyuse_anima/lora_profiles/fix", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        profile_count: 1,
-        profile_index: 1,
-        profile_data: {
-          "1": {
-            style_prompt: "",
-            loras: [lora],
-          },
+    const data = await loraPresetApi.fixProfile({
+      profile_count: 1,
+      profile_index: 1,
+      profile_data: {
+        "1": {
+          style_prompt: "",
+          loras: [lora],
         },
-      }),
+      },
     });
     const profile = data?.profile || data || {};
     const fixedLora = normalizeLoraEntry(profile?.profile_data?.["1"]?.loras?.[0] || {});
@@ -899,7 +893,7 @@ function setLoraLookup(node, values) {
 
 async function fetchLoraNameValues(node) {
   try {
-    const data = await fetchJson("/easyuse_anima/loras");
+    const data = await loraPresetApi.listLoras();
     const values = normalizeLoraNameList(data?.loras);
     for (const name of values) {
       missingPreviewNames.delete(name);

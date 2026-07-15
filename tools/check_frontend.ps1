@@ -94,6 +94,11 @@ try {
         throw "Frontend Regional runtime lifecycle smoke failed with exit code $LASTEXITCODE."
     }
 
+    & node "tests\frontend_lora_preset_api_client_smoke.mjs"
+    if ($LASTEXITCODE -ne 0) {
+        throw "Frontend LoRA preset API client smoke failed with exit code $LASTEXITCODE."
+    }
+
     & node "tests\frontend_lora_preset_profile_data_smoke.mjs"
     if ($LASTEXITCODE -ne 0) {
         throw "Frontend LoRA preset profile data smoke failed with exit code $LASTEXITCODE."
