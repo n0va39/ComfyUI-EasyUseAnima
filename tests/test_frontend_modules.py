@@ -47,6 +47,10 @@ AIO_GENERATOR_PANEL_RUNTIME_JS = AIO_MODULES / "generator_panel_runtime.js"
 AIO_GENERATOR_PANEL_RUNTIME_SMOKE = (
     ROOT / "tests" / "frontend_aio_generator_panel_runtime_smoke.mjs"
 )
+AIO_STAGE_SETTINGS_DIALOGS_JS = AIO_MODULES / "stage_settings_dialogs.js"
+AIO_STAGE_SETTINGS_DIALOGS_SMOKE = (
+    ROOT / "tests" / "frontend_aio_stage_settings_dialogs_smoke.mjs"
+)
 AIO_PREVIEW_JS = AIO_MODULES / "preview.js"
 AIO_PREVIEW_CORE_SMOKE = ROOT / "tests" / "frontend_aio_preview_core_smoke.mjs"
 AIO_PRESETS_JS = AIO_MODULES / "presets.js"
@@ -512,6 +516,100 @@ class FrontendModuleStructureTests(unittest.TestCase):
         self.assertTrue(AIO_GENERATOR_PANEL_RUNTIME_SMOKE.is_file())
         self.assertIn(
             r'node "tests\frontend_aio_generator_panel_runtime_smoke.mjs"',
+            frontend_check_source,
+        )
+
+    def test_aio_stage_settings_dialogs_have_closed_lifecycle_boundary(self):
+        source = AIO_STAGE_SETTINGS_DIALOGS_JS.read_text(encoding="utf-8")
+        entry_source = AIO_JS.read_text(encoding="utf-8")
+        frontend_check_source = FRONTEND_CHECK_SCRIPT.read_text(encoding="utf-8")
+
+        self.assertTrue(source.startswith("// @ts-check\n"))
+        self.assertEqual(STATIC_IMPORT_RE.findall(source), [])
+        self.assertNotIn("fetch(", source)
+        self.assertNotIn("app.registerExtension", source)
+        self.assertEqual(
+            re.findall(r"^export function ([A-Za-z0-9_]+)\(", source, re.MULTILINE),
+            ["aioCreateStageSettingsDialogs"],
+        )
+        self.assertIn(
+            'import { aioCreateStageSettingsDialogs } from "./aio/stage_settings_dialogs.js";',
+            entry_source,
+        )
+        for moved_function in (
+            "createStageOptimizationEditor",
+            "openHighresSettings",
+            "openUpscaleSettings",
+        ):
+            with self.subTest(moved_function=moved_function):
+                self.assertRegex(source, rf"\bfunction\s+{moved_function}\(")
+                self.assertNotRegex(entry_source, rf"\bfunction\s+{moved_function}\(")
+        for entry_owned_function in (
+            "createDetailerTargetEditor",
+            "openDetailerSettings",
+            "openSamplerSettings",
+        ):
+            with self.subTest(entry_owned_function=entry_owned_function):
+                self.assertRegex(entry_source, rf"\bfunction\s+{entry_owned_function}\(")
+                self.assertNotRegex(source, rf"\bfunction\s+{entry_owned_function}\(")
+
+        return_match = re.search(
+            r"(?ms)^  return \{(?P<facades>[A-Za-z0-9_,\s]+)\};\s*\}\s*$",
+            source,
+        )
+        self.assertIsNotNone(return_match)
+        expected_facades = {
+            "createStageOptimizationEditor",
+            "openHighresSettings",
+            "openUpscaleSettings",
+        }
+        self.assertEqual(
+            set(re.findall(r"\b[A-Za-z_][A-Za-z0-9_]*\b", return_match.group("facades"))),
+            expected_facades,
+        )
+        composition_match = re.search(
+            r"(?ms)const\s*\{(?P<facades>[A-Za-z0-9_,\s]+?)\}\s*=\s*"
+            r"aioCreateStageSettingsDialogs\(\{",
+            entry_source,
+        )
+        self.assertIsNotNone(composition_match)
+        self.assertEqual(
+            set(re.findall(r"\b[A-Za-z_][A-Za-z0-9_]*\b", composition_match.group("facades"))),
+            expected_facades,
+        )
+        composition_start = composition_match.start()
+        composition_end = entry_source.index(
+            "\n\nconst generatorPanelRuntime", composition_start
+        )
+        composition = entry_source[composition_start:composition_end]
+        for expected in (
+            "createStageOptimizationEditor,",
+            "openHighresSettings,",
+            "openUpscaleSettings,",
+            "createDialog,",
+            "defaultGenerationSettings: DEFAULT_GENERATION_SETTINGS,",
+            "normalizeUsduAutoTileRange: normalizeGeneratorUsduAutoTileRange,",
+            "getSettings: generatorSettings,",
+            "renderPanel: renderGeneratorPanel,",
+            "upscaleBackendMissingPacks,",
+            "load: loadGeneratorOptionalDependencies,",
+        ):
+            with self.subTest(composition_dependency=expected):
+                self.assertIn(expected, composition)
+        self.assertNotIn("openDetailerSettings,", composition)
+        detailer_start = entry_source.index("function createDetailerTargetEditor")
+        detailer_end = entry_source.index("\nfunction openDetailerSettings", detailer_start)
+        self.assertIn(
+            "createStageOptimizationEditor(`${title} Optimization`, target, defaults)",
+            entry_source[detailer_start:detailer_end],
+        )
+        self.assertLess(
+            composition_match.start(),
+            entry_source.index("const generatorPanelRuntime"),
+        )
+        self.assertTrue(AIO_STAGE_SETTINGS_DIALOGS_SMOKE.is_file())
+        self.assertIn(
+            r'node "tests\frontend_aio_stage_settings_dialogs_smoke.mjs"',
             frontend_check_source,
         )
 
