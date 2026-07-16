@@ -47,6 +47,10 @@ AIO_GENERATOR_PANEL_RUNTIME_JS = AIO_MODULES / "generator_panel_runtime.js"
 AIO_GENERATOR_PANEL_RUNTIME_SMOKE = (
     ROOT / "tests" / "frontend_aio_generator_panel_runtime_smoke.mjs"
 )
+AIO_GENERATOR_QUEUE_RUNTIME_JS = AIO_MODULES / "generator_queue_runtime.js"
+AIO_GENERATOR_QUEUE_RUNTIME_SMOKE = (
+    ROOT / "tests" / "frontend_aio_generator_queue_runtime_smoke.mjs"
+)
 AIO_NATIVE_PREVIEW_RUNTIME_JS = AIO_MODULES / "native_preview_runtime.js"
 AIO_NATIVE_PREVIEW_RUNTIME_SMOKE = (
     ROOT / "tests" / "frontend_aio_native_preview_runtime_smoke.mjs"
@@ -414,6 +418,7 @@ class FrontendModuleStructureTests(unittest.TestCase):
                 "widgetValue,",
                 "widgetOptions,",
                 "setWidgetValueIfChanged,",
+                "commitSeedValue: commitGeneratorSeedValue,",
                 "markDirty: markNodeDirty,",
                 "ensureStyle,",
                 "suppressDefaultPreview: suppressGeneratorDefaultPreview,",
@@ -497,6 +502,7 @@ class FrontendModuleStructureTests(unittest.TestCase):
             "createDomSettingsNumberControl",
             "createDomSettingsSelectControl",
             "createDomSelectControl",
+            "updateGeneratorSeed",
             "setGeneratorSeedFromUi",
         ):
             with self.subTest(moved_function=moved_function):
@@ -516,6 +522,7 @@ class FrontendModuleStructureTests(unittest.TestCase):
                 self.assertNotIn(removed_function, source)
 
         for entry_owned_function in (
+            "commitGeneratorSeedValue",
             "syncGeneratorSerializedWidgets",
             "installGeneratorWheelForwarder",
             "installGeneratorQueuePromptHook",
@@ -531,6 +538,24 @@ class FrontendModuleStructureTests(unittest.TestCase):
                     rf"\bfunction\s+{entry_owned_function}\(",
                 )
 
+        seed_commit_start = entry_source.index("function commitGeneratorSeedValue")
+        seed_commit_end = entry_source.index(
+            "\nfunction syncGeneratorSerializedWidgets",
+            seed_commit_start,
+        )
+        seed_commit_body = entry_source[seed_commit_start:seed_commit_end]
+        self.assertLess(
+            seed_commit_body.index("seedWidget.value = seed;"),
+            seed_commit_body.index("seedWidget?.callback?.(seed);"),
+        )
+        self.assertLess(
+            seed_commit_body.index("settingsWidget.value = serializedSettings;"),
+            seed_commit_body.index("settingsWidget?.callback?.(serializedSettings);"),
+        )
+        self.assertEqual(seed_commit_body.count("} catch {"), 2)
+        self.assertNotIn("previousSeedWidgetValue", seed_commit_body)
+        self.assertNotIn("previousSettingsWidgetValue", seed_commit_body)
+
         self.assertLess(
             entry_source.index("const openPreviewSettings"),
             entry_source.index("const generatorPanelRuntime"),
@@ -542,6 +567,118 @@ class FrontendModuleStructureTests(unittest.TestCase):
         self.assertTrue(AIO_GENERATOR_PANEL_RUNTIME_SMOKE.is_file())
         self.assertIn(
             r'node "tests\frontend_aio_generator_panel_runtime_smoke.mjs"',
+            frontend_check_source,
+        )
+
+    def test_aio_generator_queue_runtime_has_transaction_boundary(self):
+        source = AIO_GENERATOR_QUEUE_RUNTIME_JS.read_text(encoding="utf-8")
+        panel_source = AIO_GENERATOR_PANEL_RUNTIME_JS.read_text(encoding="utf-8")
+        entry_source = AIO_JS.read_text(encoding="utf-8")
+        frontend_check_source = FRONTEND_CHECK_SCRIPT.read_text(encoding="utf-8")
+
+        self.assertEqual(source.splitlines()[0], "// @ts-check")
+        self.assertEqual(
+            re.findall(r"export function ([A-Za-z0-9_]+)\(", source),
+            ["aioCreateGeneratorQueueRuntime"],
+        )
+        self.assertNotRegex(source, re.compile(r"^\s*import\s", re.MULTILINE))
+        self.assertNotRegex(source, r"\b(?:document|window|app)\b")
+        self.assertNotIn("fetch(", source)
+        self.assertNotIn("app.registerExtension", source)
+
+        self.assertIn(
+            'import { aioCreateGeneratorQueueRuntime } from '
+            '"./aio/generator_queue_runtime.js";',
+            entry_source,
+        )
+        factory_match = re.search(
+            r"const\s+generatorQueueRuntime\s*=\s*"
+            r"aioCreateGeneratorQueueRuntime\(\{(?P<dependencies>.*?)\n\}\);",
+            entry_source,
+            re.DOTALL,
+        )
+        self.assertIsNotNone(factory_match)
+        runtime_dependencies = factory_match.group("dependencies")
+        for expected in (
+            "settingsWidgetName: GENERATOR_SETTINGS_WIDGET,",
+            "minSeed: 0,",
+            "maxSeed: GENERATOR_MAX_SEED,",
+            "specialSeedRandom: GENERATOR_SPECIAL_SEED_RANDOM,",
+            "specialSeedIncrement: GENERATOR_SPECIAL_SEED_INCREMENT,",
+            "specialSeedDecrement: GENERATOR_SPECIAL_SEED_DECREMENT,",
+            "normalizeSeedValue,",
+            "normalizeSeedControl,",
+            "cloneJson: clone,",
+            "settingsToCompactJson,",
+            "listNodes: generatorGraphNodes,",
+            "getSettings: generatorSettings,",
+            "sanitizeSettings: sanitizeGeneratorSettingsForOptionalDependencies,",
+            "getLastQueuedSeed: (node) => node.__easyuseAnimaLastQueuedSeed,",
+            "commitLastQueuedSeed: (node, seed) => {",
+            "node.__easyuseAnimaLastQueuedSeed = seed;",
+            "updateSeed: (node, seed, options) => generatorPanelRuntime.updateSeed(node, seed, options),",
+            "loadOptionalDependencies: loadGeneratorOptionalDependencies,",
+            "randomSeed,",
+        ):
+            with self.subTest(composition_dependency=expected):
+                self.assertIn(expected, runtime_dependencies)
+        self.assertNotIn("syncGeneratorStateFromDom", runtime_dependencies)
+
+        for moved_function in (
+            "findWorkflowNode",
+            "partialExecutionTargetIds",
+            "resolveQueuedSeed",
+            "preparePrompt",
+            "stageWorkflowSettingsValue",
+            "applyQueuedSettingsTransaction",
+            "invalidCommitTargetIds",
+        ):
+            with self.subTest(moved_function=moved_function):
+                self.assertRegex(source, rf"\bfunction\s+{moved_function}\(")
+        for removed_entry_function in (
+            "findWorkflowNode",
+            "resolveGeneratorSeedForQueue",
+            "prepareGeneratorPromptForQueue",
+            "setWorkflowWidgetValue",
+        ):
+            with self.subTest(removed_entry_function=removed_entry_function):
+                self.assertNotRegex(
+                    entry_source,
+                    rf"\bfunction\s+{removed_entry_function}\(",
+                )
+
+        self.assertRegex(
+            entry_source,
+            r"\bfunction\s+installGeneratorQueuePromptHook\(",
+        )
+        self.assertNotRegex(
+            source,
+            r"\bfunction\s+installGeneratorQueuePromptHook\(",
+        )
+        install_start = entry_source.index("function installGeneratorQueuePromptHook")
+        install_end = entry_source.index("\nfunction ensureButton", install_start)
+        install_body = entry_source[install_start:install_end]
+        self.assertIn(
+            "if (!api?.queuePrompt || api.queuePrompt.__easyuseAnimaAioWrapped)",
+            install_body,
+        )
+        self.assertIn(
+            "api.queuePrompt = generatorQueueRuntime.wrapQueuePrompt(queuePrompt);",
+            install_body,
+        )
+        self.assertIn("api.queuePrompt.__easyuseAnimaAioWrapped = true;", install_body)
+        self.assertIn("updateSeed: updateGeneratorSeed,", panel_source)
+        self.assertLess(
+            entry_source.index("const generatorPanelRuntime"),
+            entry_source.index("const generatorQueueRuntime"),
+        )
+        self.assertLess(
+            entry_source.index("const generatorQueueRuntime"),
+            entry_source.index("function hookInputNode"),
+        )
+        self.assertTrue(AIO_GENERATOR_QUEUE_RUNTIME_SMOKE.is_file())
+        self.assertIn(
+            r'node "tests\frontend_aio_generator_queue_runtime_smoke.mjs"',
             frontend_check_source,
         )
 

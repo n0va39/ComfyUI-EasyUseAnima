@@ -59,6 +59,11 @@ try {
         throw "Frontend AiO generator panel runtime smoke failed with exit code $LASTEXITCODE."
     }
 
+    & node "tests\frontend_aio_generator_queue_runtime_smoke.mjs"
+    if ($LASTEXITCODE -ne 0) {
+        throw "Frontend AiO generator queue runtime smoke failed with exit code $LASTEXITCODE."
+    }
+
     & node "tests\frontend_aio_stage_settings_dialogs_smoke.mjs"
     if ($LASTEXITCODE -ne 0) {
         throw "Frontend AiO stage settings dialogs smoke failed with exit code $LASTEXITCODE."

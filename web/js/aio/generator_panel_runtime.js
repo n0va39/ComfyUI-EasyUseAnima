@@ -46,6 +46,7 @@ const GENERATOR_PANEL_CONTROL_SELECTOR = "input, select, textarea, button";
  * @property {(node: any, name: string, fallback: any) => any} widgetValue
  * @property {(node: any, name: string, fallback: any[]) => any[]} widgetOptions
  * @property {(node: any, name: string, value: any) => void} setWidgetValueIfChanged
+ * @property {(node: any, seed: number) => void} commitSeedValue
  * @property {(node: any) => void} markDirty
  * @property {() => void} ensureStyle
  * @property {(node: any, options?: Record<string, any>) => void} suppressDefaultPreview
@@ -157,6 +158,7 @@ export function aioCreateGeneratorPanelRuntime(dependencies) {
     widgetValue,
     widgetOptions,
     setWidgetValueIfChanged,
+    commitSeedValue,
     markDirty: markNodeDirty,
     ensureStyle,
     suppressDefaultPreview: suppressGeneratorDefaultPreview,
@@ -1017,18 +1019,29 @@ export function aioCreateGeneratorPanelRuntime(dependencies) {
     return select;
   }
 
-  function setGeneratorSeedFromUi(node, value) {
+  function updateGeneratorSeed(node, value, options = {}) {
     const seed = normalizeSeedValue(value, GENERATOR_SPECIAL_SEED_RANDOM);
+    commitSeedValue(node, seed);
     const panel = node?.__easyuseAnimaGeneratorPanelEl;
     const seedInput = panel?.querySelector?.("[data-aio-seed-input]");
     if (seedInput) {
       seedInput.value = seed;
     }
-    setWidgetValueIfChanged(node, "seed", seed);
-    syncGeneratorSettingsFromVisible(node);
-    updateGeneratorDomSummary(node);
-    refreshGeneratorSeedButtons(node);
-    markNodeDirty(node);
+    try {
+      updateGeneratorDomSummary(node);
+      refreshGeneratorSeedButtons(node);
+    } catch {
+      // The seed transaction is already committed. A stale/disposed panel must
+      // not make the queue wrapper treat that durable state change as failed.
+    }
+    if (options.markDirty !== false) {
+      markNodeDirty(node);
+    }
+    return seed;
+  }
+
+  function setGeneratorSeedFromUi(node, value) {
+    return updateGeneratorSeed(node, value);
   }
 
   function refreshGeneratorSeedButtons(node) {
@@ -1729,5 +1742,6 @@ export function aioCreateGeneratorPanelRuntime(dependencies) {
     updateSummary: updateGeneratorDomSummary,
     scheduleLayout: scheduleGeneratorLayout,
     refreshSeedButtons: refreshGeneratorSeedButtons,
+    updateSeed: updateGeneratorSeed,
   };
 }
