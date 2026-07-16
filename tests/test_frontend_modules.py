@@ -9,6 +9,9 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 JSCONFIG = ROOT / "jsconfig.json"
 FRONTEND_CHECK_SCRIPT = ROOT / "tools" / "check_frontend.ps1"
+PROMPT_STUDIO_ADVANCED_QUEUE_SEED_RUNTIME_SMOKE = (
+    ROOT / "tests" / "frontend_prompt_studio_advanced_queue_seed_runtime_smoke.mjs"
+)
 WEB_JS = ROOT / "web" / "js"
 API_JS = WEB_JS / "easyuse_anima_api.js"
 AIO_JS = WEB_JS / "easyuse_anima_aio.js"
@@ -2079,6 +2082,7 @@ class FrontendModuleStructureTests(unittest.TestCase):
         ).read_text(encoding="utf-8")
 
         self.assertIn("app.registerExtension", source)
+        self.assertIn('../../../scripts/api.js"', source)
         self.assertIn('./prompt_studio/extension_runtime.js"', source)
         self.assertIn("./constants.js", extension_runtime_source)
         self.assertIn('./advanced_controls.js"', advanced_node_ui_source)
@@ -2086,6 +2090,17 @@ class FrontendModuleStructureTests(unittest.TestCase):
         self.assertIn('./advanced_fields_ui.js"', advanced_node_ui_source)
         self.assertIn("./advanced_fields_state.js", extension_runtime_source)
         self.assertIn("./advanced_values.js", extension_runtime_source)
+        self.assertIn("./advanced_queue_seed_runtime.js", extension_runtime_source)
+        self.assertIn("installAdvancedQueueSeedQueueHook", extension_runtime_source)
+        self.assertIn("advancedQueueSeedRuntime.shouldApplyExecutedSeed", extension_runtime_source)
+        self.assertTrue(PROMPT_STUDIO_ADVANCED_QUEUE_SEED_RUNTIME_SMOKE.is_file())
+        self.assertIn(
+            r'node "tests\frontend_prompt_studio_advanced_queue_seed_runtime_smoke.mjs"',
+            FRONTEND_CHECK_SCRIPT.read_text(encoding="utf-8"),
+        )
+        self.assertIn("hooks.shouldApplyExecutedSeed?.", (
+            PROMPT_STUDIO_MODULES / "advanced_values.js"
+        ).read_text(encoding="utf-8"))
         self.assertIn('./utils.js"', studio_node_ui_source)
         self.assertIn("./canvas_forwarding.js", extension_runtime_source)
         self.assertIn("./extend_slot_controls.js", extension_runtime_source)
@@ -3140,6 +3155,7 @@ class FrontendModuleStructureTests(unittest.TestCase):
             "state.js",
             "advanced_fields_state.js",
             "advanced_values.js",
+            "advanced_queue_seed_runtime.js",
             "extend_layout.js",
             "extend_slots.js",
             "fields.js",

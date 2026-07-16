@@ -103,6 +103,10 @@ import {
   syncAdvancedValues as syncAdvancedValuesWithHooks,
 } from "./advanced_values.js";
 import {
+  createAdvancedQueueSeedRuntime,
+  installAdvancedQueueSeedQueueHook,
+} from "./advanced_queue_seed_runtime.js";
+import {
   applyWildcardExecutedInputs as applyWildcardExecutedInputsWithHooks,
 } from "./wildcard_values.js";
 import {
@@ -116,7 +120,7 @@ import {
   refreshNodeSize as refreshNodeSizeWithApp,
 } from "./runtime_canvas.js";
 
-function createPromptStudioExtensionRuntime(app) {
+function createPromptStudioExtensionRuntime(app, api = null) {
   function markNodeDirty(node) {
     markNodeDirtyWithApp(app, node);
   }
@@ -148,6 +152,7 @@ function createPromptStudioExtensionRuntime(app) {
       parseAdvancedFields,
       repairAdvancedInternalWidgetValues,
       renderAdvancedEditor,
+      shouldApplyExecutedSeed: advancedQueueSeedRuntime.shouldApplyExecutedSeed,
       writeAdvancedFields,
     };
   }
@@ -163,6 +168,31 @@ function createPromptStudioExtensionRuntime(app) {
   function applyWildcardExecutedInputs(node, message) {
     applyWildcardExecutedInputsWithHooks(node, message, { markNodeDirty });
   }
+
+  const advancedQueueSeedRuntime = createAdvancedQueueSeedRuntime({
+    seedWidgetIndex: ADVANCED_WIDGET_INDEX.wildcard_seed,
+    listNodes: () => app.graph?._nodes || [],
+    isAdvancedNode,
+    isOutputNode: (node) => node?.constructor?.nodeData?.output_node === true,
+    getSeed: (node) => findWidget(node, "wildcard_seed")?.value,
+    updateSeed(node, seed) {
+      const widget = findWidget(node, "wildcard_seed");
+      if (!widget) {
+        throw new Error("Prompt Studio wildcard_seed widget is unavailable.");
+      }
+      widget.value = seed;
+      renderAdvancedEditor(node);
+    },
+    clonePrompt: (value) => JSON.parse(JSON.stringify(value)),
+    randomSeed() {
+      const values = new Uint32Array(2);
+      if (globalThis.crypto?.getRandomValues) {
+        globalThis.crypto.getRandomValues(values);
+        return (values[0] & 0x1fffff) * 0x100000000 + values[1];
+      }
+      return Math.floor(Math.random() * Number.MAX_SAFE_INTEGER);
+    },
+  });
 
   function refreshNodeSize(node, options = {}) {
     refreshNodeSizeWithApp(app, node, options);
@@ -366,6 +396,7 @@ function createPromptStudioExtensionRuntime(app) {
       installAdvancedWheelForwarder();
       installMiddlePanForwarder();
       installAdvancedSaveSync(app, syncAllAdvancedNodes);
+      installAdvancedQueueSeedQueueHook(api, advancedQueueSeedRuntime);
       installPromptHighlightOverlayRefresh(app, applyPromptStudioTextStyle);
       await loadPromptStudioSettings({
         hideTrainedTagTooltip,

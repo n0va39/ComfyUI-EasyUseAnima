@@ -1186,11 +1186,114 @@ class PromptBuilderTests(unittest.TestCase):
         self.assertEqual(prompt_data["parameters"]["resolution_bucket"], "1024")
         self.assertEqual(prompt_data["parameters"]["resolution_size"], "896 * 1152 (7:9)")
         self.assertEqual(prompt_data["parameters"]["wildcard_mode"], "순차")
+        self.assertEqual(prompt_data["parameters"]["wildcard_seed"], 123)
+        self.assertEqual(prompt_data["wildcard"]["seed"], 123)
+        self.assertEqual(prompt_data["wildcard"]["next_seed"], 124)
         self.assertEqual(prompt_data["parameters"]["artist_mix_mode"], ARTIST_MIX_MODE_CLUSTERED)
         self.assertEqual(prompt_data["parameters"]["artist_mix_cluster_count"], 5)
         self.assertFalse(prompt_data["parameters"]["artist_mix_dominant_isolation"])
         self.assertTrue(prompt_data["naia"]["use_naia"])
         self.assertFalse(prompt_data["naia"]["consume_on_queue"])
+
+    def test_prompt_studio_advanced_v2_consumes_reserved_queue_next_seed(self):
+        fields = [
+            {
+                "id": "general",
+                "pane": "positive",
+                "type": "general",
+                "label": "General Tags",
+                "text": "1girl",
+                "height": 120,
+            },
+        ]
+        reservation_key = "easyuse_anima_reserved_wildcard_next_seed"
+        reservation_value = json.dumps({
+            "version": 1,
+            "current_seed": 123,
+            "next_seed": 456,
+            "mode": "populate",
+            "control": "randomize",
+        })
+        workflow_prompt = {
+            "42": {"inputs": {reservation_key: reservation_value}}
+        }
+        extra_pnginfo = {
+            "workflow": {
+                "nodes": [
+                    {
+                        "id": 42,
+                        "widgets_values": [],
+                    }
+                ]
+            }
+        }
+
+        result = EasyUseAnimaPromptStudioAdvancedV2().build(
+            False,
+            False,
+            False,
+            False,
+            json.dumps(fields),
+            wildcard_mode="일반 채우기",
+            wildcard_seed=123,
+            wildcard_seed_after_generate="randomize",
+            workflow_prompt=workflow_prompt,
+            extra_pnginfo=extra_pnginfo,
+            unique_id="42",
+            **{reservation_key: reservation_value},
+        )
+
+        prompt_data = result["result"][0]
+        self.assertEqual(prompt_data["parameters"]["wildcard_seed"], 123)
+        self.assertEqual(prompt_data["wildcard"]["seed"], 123)
+        self.assertEqual(prompt_data["wildcard"]["next_seed"], 456)
+        self.assertEqual(result["ui"]["prompt_studio_advanced"][0]["wildcard_seed"], 456)
+        self.assertNotIn(
+            reservation_key,
+            extra_pnginfo["workflow"]["nodes"][0].get("properties", {}),
+        )
+        self.assertNotIn(reservation_key, workflow_prompt["42"]["inputs"])
+
+        malformed_pnginfo = {
+            "workflow": {
+                "nodes": [
+                    {
+                        "id": 42,
+                        "widgets_values": [],
+                    }
+                ]
+            }
+        }
+        mismatched_value = json.dumps({
+            "version": 1,
+            "current_seed": 123,
+            "next_seed": 456,
+            "mode": "sequential",
+            "control": "increment",
+        })
+        malformed_prompt = {
+            "42": {"inputs": {reservation_key: mismatched_value}}
+        }
+        fallback = EasyUseAnimaPromptStudioAdvancedV2().build(
+            False,
+            False,
+            False,
+            False,
+            json.dumps(fields),
+            wildcard_mode="순차",
+            wildcard_seed=123,
+            wildcard_seed_after_generate="increment",
+            workflow_prompt=malformed_prompt,
+            extra_pnginfo=malformed_pnginfo,
+            unique_id="42",
+            **{reservation_key: mismatched_value},
+        )
+        self.assertEqual(fallback["result"][0]["wildcard"]["next_seed"], 124)
+        self.assertNotIn(
+            reservation_key,
+            malformed_pnginfo["workflow"]["nodes"][0].get("properties", {}),
+        )
+        self.assertNotIn(reservation_key, malformed_prompt["42"]["inputs"])
 
     def test_prompt_studio_advanced_v2_artist_mix_mode_separates_artist_prompt(self):
         fields = [

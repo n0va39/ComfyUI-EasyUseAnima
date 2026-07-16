@@ -83,11 +83,19 @@ function applyAdvancedExecutedInputs(node, message, hooks = {}) {
       widget.value = payload[name];
     }
   }
-  for (const name of ["wildcard_mode", "wildcard_seed", "wildcard_seed_after_generate"]) {
+  for (const name of ["wildcard_mode", "wildcard_seed_after_generate"]) {
     const widget = findWidget(node, name);
     if (widget && payload[name] != null) {
       widget.value = payload[name];
     }
+  }
+  const wildcardSeed = findWidget(node, "wildcard_seed");
+  if (
+    wildcardSeed
+    && payload.wildcard_seed != null
+    && hooks.shouldApplyExecutedSeed?.(node, payload.wildcard_seed) !== false
+  ) {
+    wildcardSeed.value = payload.wildcard_seed;
   }
   for (const name of [
     "artist_mix_mode",
