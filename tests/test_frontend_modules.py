@@ -2211,6 +2211,8 @@ class FrontendModuleStructureTests(unittest.TestCase):
         self.assertIn("installAdvancedQueueSeedQueueHook", extension_runtime_source)
         self.assertIn("advancedQueueSeedRuntime.shouldApplyExecutedSeed", extension_runtime_source)
         self.assertIn("installAdvancedQueueSeedGraphCleanup", extension_runtime_source)
+        self.assertIn("getRootGraph: () => app.graph,", extension_runtime_source)
+        self.assertNotIn("rootGraph: app.graph,", extension_runtime_source)
         self.assertIn(
             "attachAdvancedQueueSeedNode: advancedQueueSeedRuntime.attachNode",
             extension_runtime_source,

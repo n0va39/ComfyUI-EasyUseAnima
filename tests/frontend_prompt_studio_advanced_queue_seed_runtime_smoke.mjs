@@ -1370,24 +1370,33 @@ function reservedSeedState(prompt, nodeId) {
     nodes: [node],
     delayedRootGraph: true,
   });
-  const prompt = subgraphPromptFor(fixture, {
-    connections: [{ executionId: "50:10", targetId: 20 }],
-  });
   fixture.setRootGraph(fixture.rootGraph);
 
-  let received = null;
+  const queued = [];
   const wrapped = fixture.runtime.wrapQueuePrompt((_number, nextPrompt) => {
-    received = nextPrompt;
-    return { prompt_id: "delayed-root-graph", node_errors: {} };
+    queued.push({
+      current: queuedSeed(nextPrompt, "50:10"),
+      workflow: workflowSeed(nextPrompt, "50:10"),
+      next: reservedNextSeed(nextPrompt, "50:10"),
+    });
+    return {
+      prompt_id: `delayed-root-graph-rapid-${queued.length}`,
+      node_errors: {},
+    };
   });
-  await wrapped(0, prompt);
+  await Promise.all([
+    wrapped(0, subgraphPromptFor(fixture)),
+    wrapped(0, subgraphPromptFor(fixture)),
+    wrapped(0, subgraphPromptFor(fixture)),
+  ]);
 
-  assert.notEqual(received, prompt);
-  assert.equal(queuedSeed(received, "50:10"), 7);
-  assert.equal(workflowSeed(received, "50:10"), 7);
-  assert.equal(reservedNextSeed(received, "50:10"), 8);
-  assert.equal(node.widgets[1].value, 8);
-  assert.equal(fixture.cloneCalls(), 1);
+  assert.deepEqual(queued, [
+    { current: 7, workflow: 7, next: 8 },
+    { current: 8, workflow: 8, next: 9 },
+    { current: 9, workflow: 9, next: 10 },
+  ]);
+  assert.equal(node.widgets[1].value, 10);
+  assert.equal(fixture.cloneCalls(), 3);
 }
 
 {
