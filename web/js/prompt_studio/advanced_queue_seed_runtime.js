@@ -525,6 +525,17 @@ function createAdvancedQueueSeedRuntime(dependencies) {
         const executionIds = entry.executionIds.filter((nodeId) => (
           contract.supportsSubgraph === true || !String(nodeId).includes(":")
         ));
+        if (!executionIds.length && entry.executionIds.length) {
+          const state = nodeStates.get(stateKey);
+          if (state) {
+            // Top-level-only contracts remain backend-owned when their only
+            // executions are colon-qualified subgraph instances. Release the
+            // configured authority guard so backend next-seed metadata can
+            // settle the live widget after the unmanaged queue completes.
+            retireState(state);
+          }
+          return [];
+        }
         const executions = executionIds.flatMap((nodeId) => {
           const inputs = output[nodeId]?.inputs;
           if (!isRecord(inputs)) {

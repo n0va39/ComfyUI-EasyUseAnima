@@ -1610,6 +1610,8 @@ function reservedSeedState(prompt, nodeId) {
 {
   const node = wildcardNode(15, 7);
   const fixture = createSubgraphFixture({ nodes: [node] });
+  assert.equal(fixture.runtime.attachNode(node), true);
+  assert.equal(fixture.runtime.shouldApplyExecutedSeed(node, 8), false);
   const prompt = subgraphPromptFor(fixture, {
     connections: [{ executionId: "50:15", targetId: 20 }],
   });
@@ -1624,6 +1626,18 @@ function reservedSeedState(prompt, nodeId) {
   assert.equal(reservedSeedState(received, "50:15"), undefined);
   assert.equal(node.widgets.find((widget) => widget.name === "seed").value, 7);
   assert.equal(fixture.cloneCalls(), 0);
+  assert.equal(fixture.runtime.trackedStateCount(), 0);
+  assert.equal(
+    fixture.runtime.shouldApplyExecutedSeed(node, 8),
+    true,
+    "native Wildcard colon pass-through must release the configured guard",
+  );
+  wildcardValuesModule.applyWildcardExecutedInputs(
+    node,
+    { wildcard: [{ seed: 8 }] },
+    fixture.runtime,
+  );
+  assert.equal(node.widgets.find((widget) => widget.name === "seed").value, 8);
 }
 
 {
@@ -2229,6 +2243,8 @@ function reservedSeedState(prompt, nodeId) {
 {
   const node = regionalNode(30, 7);
   const fixture = createSubgraphFixture({ nodes: [node] });
+  assert.equal(fixture.runtime.attachNode(node), true);
+  assert.equal(fixture.runtime.shouldApplyExecutedSeed(node, 8), false);
   const prompt = subgraphPromptFor(fixture, {
     connections: [{ executionId: "50:30", targetId: 20 }],
   });
@@ -2242,6 +2258,12 @@ function reservedSeedState(prompt, nodeId) {
   assert.equal(fixture.cloneCalls(), 0);
   assert.equal(node.widgets[1].value, 7);
   assert.equal(reservedSeedState(prompt, "50:30"), undefined);
+  assert.equal(fixture.runtime.trackedStateCount(), 0);
+  assert.equal(
+    fixture.runtime.shouldApplyExecutedSeed(node, 8),
+    true,
+    "Regional colon pass-through must release the configured guard",
+  );
 }
 
 {
