@@ -231,6 +231,69 @@ class WildcardSeedContractTests(unittest.TestCase):
 
 
 class WildcardNodeTests(unittest.TestCase):
+    def test_native_wildcard_consumes_reserved_queue_seed_and_scrubs_token(self):
+        reservation = json.dumps({
+            "version": 1,
+            "current_seed": 2,
+            "next_seed": 47,
+            "mode": "populate",
+            "control": "randomize",
+        })
+        workflow_prompt = {
+            "7": {
+                "inputs": {
+                    "text": "__style__",
+                    "populated_text": "",
+                    "mode": "일반 채우기",
+                    "seed": 2,
+                    "seed_after_generate": "randomize",
+                    "easyuse_anima_reserved_wildcard_next_seed": reservation,
+                }
+            }
+        }
+        extra_pnginfo = {
+            "workflow": {
+                "nodes": [{
+                    "id": 7,
+                    "widgets_values": ["__style__", "", "일반 채우기", 2, "randomize"],
+                }]
+            }
+        }
+
+        with (
+            patch(
+                "nodes.expand_wildcards",
+                return_value=WildcardExpansionResult(
+                    text="expanded style",
+                    changed=True,
+                    used_keys=("style",),
+                    missing_keys=(),
+                ),
+            ),
+            patch("nodes.next_seed") as backend_next_seed,
+        ):
+            result = EasyUseAnimaWildcard().generate(
+                "__style__",
+                "",
+                "일반 채우기",
+                2,
+                "randomize",
+                workflow_prompt=workflow_prompt,
+                extra_pnginfo=extra_pnginfo,
+                unique_id="7",
+                easyuse_anima_reserved_wildcard_next_seed=reservation,
+            )
+
+        backend_next_seed.assert_not_called()
+        self.assertEqual(result["result"], ("expanded style", 47))
+        self.assertEqual(result["ui"]["wildcard"][0]["seed"], 47)
+        self.assertNotIn(
+            "easyuse_anima_reserved_wildcard_next_seed",
+            workflow_prompt["7"]["inputs"],
+        )
+        self.assertEqual(workflow_prompt["7"]["inputs"]["seed"], 2)
+        self.assertEqual(extra_pnginfo["workflow"]["nodes"][0]["widgets_values"][3], 2)
+
     def test_node_stores_reproduce_metadata_for_saved_workflow(self):
         workflow_prompt = {
             "7": {
