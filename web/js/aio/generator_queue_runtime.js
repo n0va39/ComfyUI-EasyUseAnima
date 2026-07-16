@@ -15,7 +15,8 @@
  * @property {(node: any) => any} getSettings
  * @property {(settings: any) => any} sanitizeSettings
  * @property {(node: any) => any} getLastQueuedSeed
- * @property {(node: any, seed: number, options: {lastQueuedSeed: number, markDirty: boolean}) => void} updateSeed
+ * @property {(node: any, seed: number) => void} commitLastQueuedSeed
+ * @property {(node: any, seed: number, options: {markDirty: boolean}) => void} updateSeed
  */
 
 /**
@@ -63,6 +64,7 @@ export function aioCreateGeneratorQueueRuntime(dependencies) {
     getSettings,
     sanitizeSettings,
     getLastQueuedSeed,
+    commitLastQueuedSeed,
     updateSeed,
   } = nodeAdapter;
   const { loadOptionalDependencies } = queueAdapter;
@@ -135,27 +137,75 @@ export function aioCreateGeneratorQueueRuntime(dependencies) {
     ) || null;
   }
 
-  function setWorkflowSettingsValue(node, workflowNode, value) {
+  function stageWorkflowSettingsValue(node, workflowNode, value) {
     if (
       !workflowNode
       || !Array.isArray(workflowNode.widgets_values)
       || !Array.isArray(node?.widgets)
     ) {
-      return;
+      return false;
     }
     const index = node.widgets.findIndex(
       (widget) => widget?.name === settingsWidgetName,
     );
     if (index < 0) {
-      return;
+      return false;
     }
-    while (workflowNode.widgets_values.length <= index) {
-      workflowNode.widgets_values.push(null);
+    const nextValues = [...workflowNode.widgets_values];
+    while (nextValues.length <= index) {
+      nextValues.push(null);
     }
-    workflowNode.widgets_values[index] = value;
+    nextValues[index] = value;
+    return {
+      workflowNode,
+      previousValues: workflowNode.widgets_values,
+      nextValues,
+    };
   }
 
-  function candidateNodes(prompt) {
+  function applyQueuedSettingsTransaction(queuedInputs, serializedSettings, workflowWrite) {
+    const hadOutputSettings = Object.prototype.hasOwnProperty.call(
+      queuedInputs,
+      "generation_settings",
+    );
+    const previousOutputSettings = queuedInputs.generation_settings;
+    try {
+      queuedInputs.generation_settings = serializedSettings;
+      workflowWrite.workflowNode.widgets_values = workflowWrite.nextValues;
+    } catch (error) {
+      try {
+        if (hadOutputSettings) {
+          queuedInputs.generation_settings = previousOutputSettings;
+        } else {
+          delete queuedInputs.generation_settings;
+        }
+      } catch {
+        // A hostile/malformed output setter may reject both apply and rollback.
+      }
+      try {
+        workflowWrite.workflowNode.widgets_values = workflowWrite.previousValues;
+      } catch {
+        // A hostile/malformed workflow setter may reject both operations.
+      }
+      throw error;
+    }
+  }
+
+  function partialExecutionTargetIds(options) {
+    if (
+      !isRecord(options)
+      || !Object.prototype.hasOwnProperty.call(options, "partialExecutionTargets")
+      || options.partialExecutionTargets == null
+    ) {
+      return null;
+    }
+    if (!Array.isArray(options.partialExecutionTargets)) {
+      return new Set();
+    }
+    return new Set(options.partialExecutionTargets.map((target) => String(target)));
+  }
+
+  function candidateNodes(prompt, options) {
     let output;
     try {
       output = prompt?.output;
@@ -174,12 +224,18 @@ export function aioCreateGeneratorQueueRuntime(dependencies) {
     if (!Array.isArray(nodes)) {
       return [];
     }
+    const targetIds = partialExecutionTargetIds(options);
     return nodes.filter((node) => {
       if (!node) {
         return false;
       }
       try {
-        return !isBypassed(node) && isRecord(output[String(node.id)]?.inputs);
+        const nodeId = String(node.id);
+        return (
+          !isBypassed(node)
+          && (!targetIds || targetIds.has(nodeId))
+          && isRecord(output[nodeId]?.inputs)
+        );
       } catch {
         return false;
       }
@@ -191,9 +247,10 @@ export function aioCreateGeneratorQueueRuntime(dependencies) {
    * null means the original prompt should pass through untouched.
    *
    * @param {any} prompt
+   * @param {any} [options]
    */
-  function preparePrompt(prompt) {
-    const nodes = candidateNodes(prompt);
+  function preparePrompt(prompt, options = null) {
+    const nodes = candidateNodes(prompt, options);
     if (!nodes.length) {
       return null;
     }
@@ -230,14 +287,22 @@ export function aioCreateGeneratorQueueRuntime(dependencies) {
         if (typeof serializedSettings !== "string") {
           continue;
         }
-        queuedInputs.generation_settings = serializedSettings;
-        setWorkflowSettingsValue(
+        const workflowWrite = stageWorkflowSettingsValue(
           node,
           findWorkflowNode(queuedPrompt.workflow, node.id),
           serializedSettings,
         );
+        if (!workflowWrite) {
+          continue;
+        }
+        applyQueuedSettingsTransaction(
+          queuedInputs,
+          serializedSettings,
+          workflowWrite,
+        );
         commits.push({
           node,
+          nodeId: String(node.id),
           queuedSeed,
           liveSeed: nextLiveSeed(
             queuedSettings.sampler.seed_after_generate,
@@ -253,36 +318,59 @@ export function aioCreateGeneratorQueueRuntime(dependencies) {
     return commits.length ? { prompt: queuedPrompt, commits } : null;
   }
 
-  function hasNodeErrors(result) {
+  function invalidCommitTargetIds(result) {
     try {
+      const promptId = result?.prompt_id;
+      if (promptId == null || String(promptId).trim() === "") {
+        return null;
+      }
       const nodeErrors = result?.node_errors;
       if (nodeErrors == null) {
-        return false;
+        return new Set();
       }
       if (typeof nodeErrors === "string" || Array.isArray(nodeErrors)) {
-        return nodeErrors.length > 0;
+        return nodeErrors.length > 0 ? null : new Set();
       }
       if (typeof nodeErrors === "object") {
-        return Object.keys(nodeErrors).length > 0;
+        const invalidTargets = new Set();
+        for (const [nodeId, details] of Object.entries(nodeErrors)) {
+          invalidTargets.add(String(nodeId));
+          if (Array.isArray(details?.dependent_outputs)) {
+            for (const dependentOutput of details.dependent_outputs) {
+              invalidTargets.add(String(dependentOutput));
+            }
+          }
+        }
+        return invalidTargets;
       }
-      return !!nodeErrors;
+      return nodeErrors ? null : new Set();
     } catch {
       // Treat malformed validation metadata conservatively without changing
       // the original accepted queue return into a local wrapper rejection.
-      return true;
+      return null;
     }
   }
 
-  function commitPreparedSeeds(transaction) {
+  function commitPreparedSeeds(transaction, result) {
+    const invalidTargets = invalidCommitTargetIds(result);
+    if (!invalidTargets) {
+      return;
+    }
     for (const commit of transaction.commits) {
+      if (invalidTargets.has(commit.nodeId)) {
+        continue;
+      }
       try {
-        updateSeed(commit.node, commit.liveSeed, {
-          lastQueuedSeed: commit.queuedSeed,
-          markDirty: false,
-        });
+        commitLastQueuedSeed(commit.node, commit.queuedSeed);
       } catch {
-        // A local panel/widget update cannot turn an already accepted queue
-        // response into a rejection or block another node's seed commit.
+        continue;
+      }
+      try {
+        updateSeed(commit.node, commit.liveSeed, { markDirty: false });
+      } catch {
+        // The durable last-seed reservation is already committed. A local
+        // panel/widget failure cannot reject the accepted queue result or block
+        // another node's reservation and live-seed update.
       }
     }
   }
@@ -296,14 +384,14 @@ export function aioCreateGeneratorQueueRuntime(dependencies) {
   function wrapQueuePrompt(queuePrompt) {
     return async function (...args) {
       await loadOptionalDependencies({ retryErrors: true });
-      const transaction = preparePrompt(args[1]);
+      const transaction = preparePrompt(args[1], args[2]);
       const queueArgs = transaction ? [...args] : args;
       if (transaction) {
         queueArgs[1] = transaction.prompt;
       }
       const result = await queuePrompt.apply(this, queueArgs);
-      if (transaction && !hasNodeErrors(result)) {
-        commitPreparedSeeds(transaction);
+      if (transaction) {
+        commitPreparedSeeds(transaction, result);
       }
       return result;
     };

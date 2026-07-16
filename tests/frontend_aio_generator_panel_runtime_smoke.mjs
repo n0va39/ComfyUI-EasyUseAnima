@@ -50,6 +50,58 @@ assert.deepEqual(
   "Generator panel runtime must expose only its factory contract",
 );
 
+{
+  const entrySource = readFileSync(
+    new URL("../web/js/easyuse_anima_aio.js", import.meta.url),
+    "utf8",
+  );
+  const functionStart = entrySource.indexOf("function commitGeneratorSeedValue");
+  const functionEnd = entrySource.indexOf(
+    "\nfunction syncGeneratorSerializedWidgets",
+    functionStart,
+  );
+  assert.ok(functionStart >= 0 && functionEnd > functionStart);
+  const commitGeneratorSeedValue = new Function(
+    "findWidget",
+    "GENERATOR_SETTINGS_WIDGET",
+    "generatorSettings",
+    `"use strict";\n${entrySource.slice(functionStart, functionEnd)}\nreturn commitGeneratorSeedValue;`,
+  )(
+    (node, name) => node.widgets.find((widget) => widget.name === name),
+    "generation_settings",
+    (node) => clone(node.settings),
+  );
+  const seedCallbackError = new Error("seed callback failed");
+  const settingsCallbackError = new Error("settings callback failed");
+  const callbackTrace = [];
+  const seedWidget = {
+    name: "seed",
+    value: 10,
+    callback() {
+      callbackTrace.push("seed");
+      throw seedCallbackError;
+    },
+  };
+  const settingsWidget = {
+    name: "generation_settings",
+    value: JSON.stringify({ sampler: { seed: 10 } }),
+    callback() {
+      callbackTrace.push("settings");
+      throw settingsCallbackError;
+    },
+  };
+  const atomicNode = {
+    widgets: [seedWidget, settingsWidget],
+    settings: { sampler: { seed: 10, seed_after_generate: "increment" } },
+    __easyuseAnimaGeneratorUiValues: { seed: 10 },
+  };
+  assert.doesNotThrow(() => commitGeneratorSeedValue(atomicNode, 11));
+  assert.deepEqual(callbackTrace, ["seed", "settings"]);
+  assert.equal(seedWidget.value, 11);
+  assert.equal(atomicNode.__easyuseAnimaGeneratorUiValues.seed, 11);
+  assert.equal(JSON.parse(settingsWidget.value).sampler.seed, 11);
+}
+
 function createFixture() {
   let dependencyCalls = 0;
   let nextAnimationFrameId = 1;
@@ -260,6 +312,15 @@ function createFixture() {
       dependencyCalls += 1;
       trace.push("set-widget:" + name + ":" + value);
       node.widgetValues[name] = value;
+    },
+    commitSeedValue(node, seed) {
+      dependencyCalls += 1;
+      trace.push("commit-seed:" + seed);
+      if (node.failSeedCommit) {
+        throw node.failSeedCommit;
+      }
+      node.widgetValues.seed = seed;
+      node.settings.sampler.seed = seed;
     },
     markDirty(node) {
       dependencyCalls += 1;
@@ -816,9 +877,9 @@ assert.equal(previewMeta.textContent, "-");
 assert.equal(previewMeta.title, "");
 
 fixture.trace.length = 0;
+node.__easyuseAnimaLastQueuedSeed = 777;
 assert.equal(
   fixture.runtime.updateSeed(node, 776, {
-    lastQueuedSeed: 777,
     markDirty: false,
   }),
   776,
@@ -836,6 +897,19 @@ assert.equal(
   panel.querySelector("[data-aio-seed-last]").textContent,
   'format:button.useLast:{"seed":777}',
 );
+const seedCommitFailure = new Error("seed callback failed");
+node.failSeedCommit = seedCommitFailure;
+assert.throws(
+  () => fixture.runtime.updateSeed(node, 888, {
+    markDirty: false,
+  }),
+  (error) => error === seedCommitFailure,
+);
+delete node.failSeedCommit;
+assert.equal(node.__easyuseAnimaLastQueuedSeed, 777);
+assert.equal(node.widgetValues.seed, 776);
+assert.equal(node.settings.sampler.seed, 776);
+assert.equal(panel.querySelector("[data-aio-seed-input]").value, 776);
 
 node.__easyuseAnimaLastQueuedSeed = 777;
 fixture.runtime.refreshSeedButtons(node);
@@ -847,14 +921,14 @@ findByText(panel, "text:button.newFixed").emit("click");
 assert.equal(node.widgetValues.seed, 123456);
 assert.equal(node.settings.sampler.seed, 123456);
 assert.equal(fixture.trace.includes("random-seed"), true);
-assert.ok(fixture.trace.indexOf("set-widget:seed:123456") < fixture.trace.indexOf("sync-visible"));
-assert.ok(fixture.trace.indexOf("sync-visible") < fixture.trace.indexOf("get-settings"));
+assert.ok(fixture.trace.indexOf("random-seed") < fixture.trace.indexOf("commit-seed:123456"));
+assert.ok(fixture.trace.indexOf("commit-seed:123456") < fixture.trace.indexOf("get-settings"));
 assert.ok(fixture.trace.indexOf("get-settings") < fixture.trace.lastIndexOf("dirty"));
 fixture.trace.length = 0;
 findByText(panel, "text:button.randomEach").emit("click");
 assert.equal(node.widgetValues.seed, -1);
 assert.equal(node.settings.sampler.seed, -1);
-assert.ok(fixture.trace.indexOf("set-widget:seed:-1") < fixture.trace.indexOf("sync-visible"));
+assert.ok(fixture.trace.indexOf("commit-seed:-1") < fixture.trace.indexOf("get-settings"));
 const seedInput = panel.querySelector("[data-aio-seed-input]");
 seedInput.value = "314";
 fixture.trace.length = 0;

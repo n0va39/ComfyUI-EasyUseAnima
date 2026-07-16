@@ -418,6 +418,7 @@ class FrontendModuleStructureTests(unittest.TestCase):
                 "widgetValue,",
                 "widgetOptions,",
                 "setWidgetValueIfChanged,",
+                "commitSeedValue: commitGeneratorSeedValue,",
                 "markDirty: markNodeDirty,",
                 "ensureStyle,",
                 "suppressDefaultPreview: suppressGeneratorDefaultPreview,",
@@ -521,6 +522,7 @@ class FrontendModuleStructureTests(unittest.TestCase):
                 self.assertNotIn(removed_function, source)
 
         for entry_owned_function in (
+            "commitGeneratorSeedValue",
             "syncGeneratorSerializedWidgets",
             "installGeneratorWheelForwarder",
             "installGeneratorQueuePromptHook",
@@ -535,6 +537,24 @@ class FrontendModuleStructureTests(unittest.TestCase):
                     source,
                     rf"\bfunction\s+{entry_owned_function}\(",
                 )
+
+        seed_commit_start = entry_source.index("function commitGeneratorSeedValue")
+        seed_commit_end = entry_source.index(
+            "\nfunction syncGeneratorSerializedWidgets",
+            seed_commit_start,
+        )
+        seed_commit_body = entry_source[seed_commit_start:seed_commit_end]
+        self.assertLess(
+            seed_commit_body.index("seedWidget.value = seed;"),
+            seed_commit_body.index("seedWidget?.callback?.(seed);"),
+        )
+        self.assertLess(
+            seed_commit_body.index("settingsWidget.value = serializedSettings;"),
+            seed_commit_body.index("settingsWidget?.callback?.(serializedSettings);"),
+        )
+        self.assertEqual(seed_commit_body.count("} catch {"), 2)
+        self.assertNotIn("previousSeedWidgetValue", seed_commit_body)
+        self.assertNotIn("previousSettingsWidgetValue", seed_commit_body)
 
         self.assertLess(
             entry_source.index("const openPreviewSettings"),
@@ -591,22 +611,27 @@ class FrontendModuleStructureTests(unittest.TestCase):
             "cloneJson: clone,",
             "settingsToCompactJson,",
             "listNodes: generatorGraphNodes,",
-            "syncGeneratorStateFromDom(node);",
-            "return generatorSettings(node);",
+            "getSettings: generatorSettings,",
             "sanitizeSettings: sanitizeGeneratorSettingsForOptionalDependencies,",
             "getLastQueuedSeed: (node) => node.__easyuseAnimaLastQueuedSeed,",
+            "commitLastQueuedSeed: (node, seed) => {",
+            "node.__easyuseAnimaLastQueuedSeed = seed;",
             "updateSeed: (node, seed, options) => generatorPanelRuntime.updateSeed(node, seed, options),",
             "loadOptionalDependencies: loadGeneratorOptionalDependencies,",
             "randomSeed,",
         ):
             with self.subTest(composition_dependency=expected):
                 self.assertIn(expected, runtime_dependencies)
+        self.assertNotIn("syncGeneratorStateFromDom", runtime_dependencies)
 
         for moved_function in (
             "findWorkflowNode",
+            "partialExecutionTargetIds",
             "resolveQueuedSeed",
             "preparePrompt",
-            "setWorkflowSettingsValue",
+            "stageWorkflowSettingsValue",
+            "applyQueuedSettingsTransaction",
+            "invalidCommitTargetIds",
         ):
             with self.subTest(moved_function=moved_function):
                 self.assertRegex(source, rf"\bfunction\s+{moved_function}\(")
@@ -633,6 +658,10 @@ class FrontendModuleStructureTests(unittest.TestCase):
         install_start = entry_source.index("function installGeneratorQueuePromptHook")
         install_end = entry_source.index("\nfunction ensureButton", install_start)
         install_body = entry_source[install_start:install_end]
+        self.assertIn(
+            "if (!api?.queuePrompt || api.queuePrompt.__easyuseAnimaAioWrapped)",
+            install_body,
+        )
         self.assertIn(
             "api.queuePrompt = generatorQueueRuntime.wrapQueuePrompt(queuePrompt);",
             install_body,

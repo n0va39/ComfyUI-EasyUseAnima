@@ -3388,6 +3388,33 @@ function setWidgetValueIfChanged(node, name, value) {
   setWidgetValue(node, name, value);
 }
 
+function commitGeneratorSeedValue(node, seed) {
+  const seedWidget = findWidget(node, "seed");
+  const settingsWidget = findWidget(node, GENERATOR_SETTINGS_WIDGET);
+  const settings = generatorSettings(node);
+  settings.sampler.seed = seed;
+  const serializedSettings = JSON.stringify(settings);
+
+  if (seedWidget) {
+    seedWidget.value = seed;
+  }
+  node.__easyuseAnimaGeneratorUiValues ||= {};
+  node.__easyuseAnimaGeneratorUiValues.seed = seed;
+  if (settingsWidget) {
+    settingsWidget.value = serializedSettings;
+  }
+  try {
+    seedWidget?.callback?.(seed);
+  } catch {
+    // Widget callbacks are notifications after the durable state write.
+  }
+  try {
+    settingsWidget?.callback?.(serializedSettings);
+  } catch {
+    // Hidden-widget callbacks are also best-effort notifications.
+  }
+}
+
 function syncGeneratorSerializedWidgets(node, serialized = null) {
   const widget = findWidget(node, GENERATOR_SETTINGS_WIDGET);
   const settings = generatorSettings(node);
@@ -3974,6 +4001,7 @@ const generatorPanelRuntime = aioCreateGeneratorPanelRuntime({
     widgetValue,
     widgetOptions,
     setWidgetValueIfChanged,
+    commitSeedValue: commitGeneratorSeedValue,
     markDirty: markNodeDirty,
     ensureStyle,
     suppressDefaultPreview: suppressGeneratorDefaultPreview,
@@ -4025,12 +4053,12 @@ const generatorQueueRuntime = aioCreateGeneratorQueueRuntime({
   nodeAdapter: {
     listNodes: generatorGraphNodes,
     isBypassed: (node) => node.mode === 4 || node.mode === globalThis.LiteGraph?.NEVER,
-    getSettings(node) {
-      syncGeneratorStateFromDom(node);
-      return generatorSettings(node);
-    },
+    getSettings: generatorSettings,
     sanitizeSettings: sanitizeGeneratorSettingsForOptionalDependencies,
     getLastQueuedSeed: (node) => node.__easyuseAnimaLastQueuedSeed,
+    commitLastQueuedSeed: (node, seed) => {
+      node.__easyuseAnimaLastQueuedSeed = seed;
+    },
     updateSeed: (node, seed, options) => generatorPanelRuntime.updateSeed(node, seed, options),
   },
   queueAdapter: {
