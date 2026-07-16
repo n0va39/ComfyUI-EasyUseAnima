@@ -3940,6 +3940,8 @@ const openAdvancedSettings = aioCreateAdvancedSettingsDialog({
 });
 
 const {
+  activateGeneratorNativePreviewLifecycle,
+  disposeGeneratorNativePreviewLifecycle,
   markGeneratorNativeLivePreviewHidden,
   suppressGeneratorDefaultPreview,
   scheduleGeneratorDefaultPreviewSuppression,
@@ -3955,6 +3957,7 @@ const {
     window,
     MutationObserver: globalThis.MutationObserver,
     requestAnimationFrame: (callback) => requestAnimationFrame(callback),
+    cancelAnimationFrame: (frame) => cancelAnimationFrame(frame),
     setTimeout: (callback, delay) => setTimeout(callback, delay),
     clearTimeout: (timer) => clearTimeout(timer),
   },
@@ -3965,8 +3968,8 @@ const {
   storeAdapter: {
     getLegacyPreviewImages: () => app.nodePreviewImages,
     loadDirectStoreModules: () => Promise.all([
-      import("../../../stores/nodeOutputStore.js"),
-      import("../../../platform/workflow/management/stores/workflowStore.js"),
+      import("../../../stores/nodeOutputStore.js").catch(() => null),
+      import("../../../platform/workflow/management/stores/workflowStore.js").catch(() => null),
     ]),
     fetchFrontendHtml: () => easyuseAnimaFetchText("/"),
     importAssetModule: (url) => import(url),
@@ -4072,6 +4075,7 @@ function hookInputNode(node) {
 }
 
 function hookGeneratorNode(node) {
+  activateGeneratorNativePreviewLifecycle(node);
   node.serialize_widgets = true;
   suppressGeneratorDefaultPreview(node, { markDirty: false });
   hideWidget(findWidget(node, GENERATOR_SETTINGS_WIDGET));
@@ -4205,7 +4209,7 @@ app.registerExtension({
       nodeType.prototype.onExecuted = function (message) {
         scheduleGeneratorDefaultPreviewSuppression(this);
         updateGeneratorExecutedStatus(this, message);
-        scheduleGeneratorDefaultPreviewSuppression(this);
+        scheduleGeneratorDefaultPreviewSuppression(this, { purgeStore: false });
         return undefined;
       };
       const onResize = nodeType.prototype.onResize;
@@ -4213,6 +4217,14 @@ app.registerExtension({
         const result = onResize?.apply(this, arguments);
         scheduleGeneratorLayout(this);
         return result;
+      };
+      const onRemoved = nodeType.prototype.onRemoved;
+      nodeType.prototype.onRemoved = function () {
+        try {
+          return onRemoved?.apply(this, arguments);
+        } finally {
+          disposeGeneratorNativePreviewLifecycle(this);
+        }
       };
     }
   },

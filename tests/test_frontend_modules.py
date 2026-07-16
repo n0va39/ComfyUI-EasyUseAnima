@@ -563,7 +563,9 @@ class FrontendModuleStructureTests(unittest.TestCase):
         )
 
         moved_functions = {
+            "activateGeneratorNativePreviewLifecycle",
             "cssEscape",
+            "disposeGeneratorNativePreviewLifecycle",
             "generatorVueNodeRoots",
             "generatorNativePreviewRootMatchesNode",
             "addGeneratorPreviewLocatorCandidate",
@@ -608,6 +610,8 @@ class FrontendModuleStructureTests(unittest.TestCase):
                 self.assertNotRegex(entry_source, rf"\blet\s+{moved_state}\s*=")
 
         expected_facades = {
+            "activateGeneratorNativePreviewLifecycle",
+            "disposeGeneratorNativePreviewLifecycle",
             "markGeneratorNativeLivePreviewHidden",
             "suppressGeneratorDefaultPreview",
             "scheduleGeneratorDefaultPreviewSuppression",
@@ -652,6 +656,7 @@ class FrontendModuleStructureTests(unittest.TestCase):
                 "window",
                 "MutationObserver",
                 "requestAnimationFrame",
+                "cancelAnimationFrame",
                 "setTimeout",
                 "clearTimeout",
             },
@@ -713,9 +718,11 @@ class FrontendModuleStructureTests(unittest.TestCase):
             "entry-relative direct store imports": (
                 r"loadDirectStoreModules\s*:\s*\(\s*\)\s*=>\s*"
                 r"Promise\.all\(\s*\[\s*"
-                r'import\(\s*"\.\./\.\./\.\./stores/nodeOutputStore\.js"\s*\)\s*,\s*'
+                r'import\(\s*"\.\./\.\./\.\./stores/nodeOutputStore\.js"\s*\)\s*'
+                r"\.catch\(\s*\(\s*\)\s*=>\s*null\s*\)\s*,\s*"
                 r'import\(\s*"\.\./\.\./\.\./platform/workflow/management/'
-                r'stores/workflowStore\.js"\s*\)\s*,?\s*'
+                r'stores/workflowStore\.js"\s*\)\s*'
+                r"\.catch\(\s*\(\s*\)\s*=>\s*null\s*\)\s*,?\s*"
                 r"\]\s*\)"
             ),
             "frontend HTML fetch": (
@@ -728,6 +735,10 @@ class FrontendModuleStructureTests(unittest.TestCase):
             ),
             "live graph getter": (
                 r"getGraph\s*:\s*\(\s*\)\s*=>\s*app\.graph"
+            ),
+            "animation frame canceler": (
+                r"cancelAnimationFrame\s*:\s*\(\s*frame\s*\)\s*=>\s*"
+                r"cancelAnimationFrame\(\s*frame\s*\)"
             ),
         }
         for adapter_name, pattern in expected_adapter_values.items():
@@ -795,6 +806,17 @@ class FrontendModuleStructureTests(unittest.TestCase):
                     rf"\bfunction\s+{entry_owned_function}\(",
                 )
 
+        hook_start = entry_source.index("function hookGeneratorNode")
+        hook_end = entry_source.index(
+            "\nfunction addGeneratorPreviewImagesToNode", hook_start
+        )
+        hook_body = entry_source[hook_start:hook_end]
+        self.assertIn("activateGeneratorNativePreviewLifecycle(node);", hook_body)
+        self.assertLess(
+            hook_body.index("activateGeneratorNativePreviewLifecycle(node);"),
+            hook_body.index("suppressGeneratorDefaultPreview(node"),
+        )
+
         for progress_facade in (
             "rememberGeneratorProgress",
             "rememberGeneratorProgressState",
@@ -828,6 +850,7 @@ class FrontendModuleStructureTests(unittest.TestCase):
             "onSerialize",
             "onExecuted",
             "onResize",
+            "onRemoved",
         ):
             with self.subTest(entry_owned_prototype_hook=prototype_hook):
                 self.assertIn(f"nodeType.prototype.{prototype_hook}", entry_source)
