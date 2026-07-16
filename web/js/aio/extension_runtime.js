@@ -4,6 +4,49 @@ const INPUT_PROTOTYPE_HOOK_MARKER = "__easyuseAnimaAioInputHooksInstalled";
 const GENERATOR_PROTOTYPE_HOOK_MARKER = "__easyuseAnimaAioGeneratorHooksInstalled";
 const EXTENSION_SETUP_HOST_MARKER = "__easyuseAnimaAioExtensionSetupInstalled";
 
+function graphNodes(graph) {
+  if (Array.isArray(graph?.nodes)) {
+    return graph.nodes;
+  }
+  if (Array.isArray(graph?._nodes)) {
+    return graph._nodes;
+  }
+  return Object.values(graph?._nodes_by_id || {});
+}
+
+/**
+ * List generator nodes reachable from the current root graph through attached
+ * ComfyUI SubgraphNode.subgraph definitions. Shared or cyclic graph references
+ * and repeated node objects are visited once per refresh.
+ */
+export function aioListAttachedGeneratorNodes(rootGraph, isGeneratorNode) {
+  const result = [];
+  const pendingGraphs = [rootGraph];
+  const visitedGraphs = new Set();
+  const visitedNodes = new Set();
+  for (let index = 0; index < pendingGraphs.length; index += 1) {
+    const graph = pendingGraphs[index];
+    if (!graph || visitedGraphs.has(graph)) {
+      continue;
+    }
+    visitedGraphs.add(graph);
+    for (const node of graphNodes(graph)) {
+      if (!node) {
+        continue;
+      }
+      if (node.subgraph && !visitedGraphs.has(node.subgraph)) {
+        pendingGraphs.push(node.subgraph);
+      }
+      if (visitedNodes.has(node) || !isGeneratorNode(node)) {
+        continue;
+      }
+      visitedNodes.add(node);
+      result.push(node);
+    }
+  }
+  return result;
+}
+
 function extensionSetupState(api) {
   const existing = api[EXTENSION_SETUP_HOST_MARKER];
   if (
