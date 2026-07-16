@@ -494,8 +494,12 @@ function createRegionalRuntime(app, hooks = {}) {
     }
   }
 
-  /** @param {any} node @param {any} message */
-  function applyRegionalExecutedInputs(node, message) {
+  /**
+   * @param {any} node
+   * @param {any} message
+   * @param {{ shouldApplyExecutedSeed?: (node: any, value: any) => boolean }} [options]
+   */
+  function applyRegionalExecutedInputs(node, message, options = {}) {
     const payload = firstRegionalValue(message?.prompt_studio_regional, null);
     if (!payload || typeof payload !== "object") {
       return false;
@@ -518,9 +522,21 @@ function createRegionalRuntime(app, hooks = {}) {
     }
     for (const name of ["wildcard_mode", "wildcard_seed", "wildcard_seed_after_generate"]) {
       const widget = findWidget(node, name);
-      if (widget && payload[name] != null) {
-        widget.value = payload[name];
+      if (!widget || payload[name] == null) {
+        continue;
       }
+      if (name === "wildcard_seed" && typeof options.shouldApplyExecutedSeed === "function") {
+        let shouldApply = false;
+        try {
+          shouldApply = options.shouldApplyExecutedSeed(node, payload[name]) !== false;
+        } catch {
+          // A failed authority check must not let stale execution metadata win.
+        }
+        if (!shouldApply) {
+          continue;
+        }
+      }
+      widget.value = payload[name];
     }
     ensureRegionalWidgetValues(node);
     const fields = node.__easyuseAnimaRegionalFields || createDefaultRegionalFields();
