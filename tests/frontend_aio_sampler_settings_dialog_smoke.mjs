@@ -705,7 +705,7 @@ for (const testCase of [
 
 {
   const fixture = createFixture({
-    available: { spectrumAdvanced: true },
+    available: { spectrumAdvanced: true, spectrumSpd: true },
     settings: {
       sampler: {
         spectrum_extra: Object.fromEntries([
@@ -721,28 +721,58 @@ for (const testCase of [
         ["toString", [["speed", "quality"], { default: "speed" }]],
         ["__proto__", ["BOOLEAN", { default: false }]],
       ]),
+      spectrumSpd: Object.fromEntries([
+        ["constructor", ["FLOAT", { default: 1.25 }]],
+        ["toString", [["speed", "quality"], { default: "speed" }]],
+        ["__proto__", ["BOOLEAN", { default: false }]],
+      ]),
     },
   });
   fixture.openSamplerSettings(fixture.node);
   const dialog = fixture.dialogs[0];
   const dynamicSpectrum = sectionByHeading(dialog, "Detected Spectrum Inputs");
+  const dynamicSpd = sectionByHeading(dialog, "Detected SPD Inputs");
   assert.equal(controlIn(dynamicSpectrum, "constructor").value, "2.5");
   assert.equal(controlIn(dynamicSpectrum, "toString").value, "quality");
   assert.equal(controlIn(dynamicSpectrum, "__proto__").checked, true);
+  assert.equal(controlIn(dynamicSpd, "constructor").value, "1.25");
+  assert.equal(controlIn(dynamicSpd, "toString").value, "speed");
+  assert.equal(controlIn(dynamicSpd, "__proto__").checked, false);
 
   controlIn(dynamicSpectrum, "constructor").value = "3.5";
   setSelectValue(controlIn(dynamicSpectrum, "toString"), "speed");
   controlIn(dynamicSpectrum, "__proto__").checked = false;
   action(dialog, "button.apply").emit("click");
 
+  const expectedSpecialExtras = Object.fromEntries([
+    ["constructor", 3.5],
+    ["toString", "speed"],
+    ["__proto__", false],
+  ]);
   assert.deepEqual(
     fixture.node.settings.sampler.spectrum_extra,
-    Object.fromEntries([
-      ["constructor", 3.5],
-      ["toString", "speed"],
-      ["__proto__", false],
-    ]),
+    expectedSpecialExtras,
     "Dynamic input values must retain own-key semantics for Object prototype names",
+  );
+  assert.deepEqual(
+    JSON.parse(fixture.node.widgets[0].value).sampler.spectrum_extra,
+    expectedSpecialExtras,
+    "Special dynamic input names must survive hidden-widget JSON serialization",
+  );
+  const expectedNewSpecialExtras = Object.fromEntries([
+    ["constructor", 1.25],
+    ["toString", "speed"],
+    ["__proto__", false],
+  ]);
+  assert.deepEqual(
+    fixture.node.settings.sampler.spd_extra,
+    expectedNewSpecialExtras,
+    "New special dynamic input names must use defaults instead of inherited values",
+  );
+  assert.deepEqual(
+    JSON.parse(fixture.node.widgets[0].value).sampler.spd_extra,
+    expectedNewSpecialExtras,
+    "New special dynamic input names must retain own keys in hidden-widget JSON",
   );
 }
 
