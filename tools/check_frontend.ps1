@@ -159,6 +159,11 @@ try {
         throw "Frontend autocomplete data adapter smoke failed with exit code $LASTEXITCODE."
     }
 
+    & node "tests\frontend_autocomplete_popup_geometry_smoke.mjs"
+    if ($LASTEXITCODE -ne 0) {
+        throw "Frontend autocomplete popup geometry smoke failed with exit code $LASTEXITCODE."
+    }
+
     & node "tests\frontend_autocomplete_text_model_smoke.mjs"
     if ($LASTEXITCODE -ne 0) {
         throw "Frontend autocomplete text model smoke failed with exit code $LASTEXITCODE."

@@ -90,11 +90,41 @@ class AutocompleteFrontendBoundaryTests(unittest.TestCase):
         popup_body = entry_source[popup_start:scroll_start]
         self.assertIn("calculateCaretMirrorGeometry(", caret_body)
         self.assertIn("normalizeCaretClientRect(", caret_body)
+        self.assertRegex(
+            caret_body,
+            re.compile(
+                r"const fallbackLineHeight = \(\s*"
+                r"Number\.isFinite\(markerRect\.left\)\s*"
+                r"&& Number\.isFinite\(markerRect\.top\)\s*"
+                r"&& !markerRect\.height\s*\)\s*"
+                r"\? Number\.parseFloat\("
+                r"getComputedStyle\(input\)\.lineHeight\)\s*"
+                r": 0;",
+                re.DOTALL,
+            ),
+        )
         self.assertIn("calculateAutocompletePopupGeometry(", popup_body)
+        self.assertRegex(
+            popup_body,
+            re.compile(
+                r"const fallbackLineHeight = caretRect\.height\s*"
+                r"\? 0\s*"
+                r": Number\.parseFloat\("
+                r"getComputedStyle\(input\)\.lineHeight\);",
+                re.DOTALL,
+            ),
+        )
         self.assertNotIn("Math.max(260", popup_body)
         self.assertNotIn("const caretLeft =", popup_body)
 
     def test_popup_geometry_module_semantics(self):
+        frontend_check_source = FRONTEND_CHECK_SCRIPT.read_text(encoding="utf-8")
+        self.assertTrue(AUTOCOMPLETE_POPUP_GEOMETRY_SMOKE.is_file())
+        self.assertIn(
+            r'node "tests\frontend_autocomplete_popup_geometry_smoke.mjs"',
+            frontend_check_source,
+        )
+
         node_bin = shutil.which("node")
         if not node_bin:
             self.skipTest("node executable is not available")

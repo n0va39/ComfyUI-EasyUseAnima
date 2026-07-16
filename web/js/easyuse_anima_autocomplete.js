@@ -744,10 +744,17 @@ function caretClientRect(input) {
   mirror.scrollLeft = input.scrollLeft;
   const markerRect = marker.getBoundingClientRect();
   mirror.remove();
+  const fallbackLineHeight = (
+    Number.isFinite(markerRect.left)
+    && Number.isFinite(markerRect.top)
+    && !markerRect.height
+  )
+    ? Number.parseFloat(getComputedStyle(input).lineHeight)
+    : 0;
   return normalizeCaretClientRect(
     markerRect,
     rect,
-    Number.parseFloat(getComputedStyle(input).lineHeight),
+    fallbackLineHeight,
   );
 }
 
@@ -755,11 +762,14 @@ function positionPopup(input) {
   const menu = ensurePopup();
   const inputRect = input.getBoundingClientRect();
   const caretRect = caretClientRect(input);
+  const fallbackLineHeight = caretRect.height
+    ? 0
+    : Number.parseFloat(getComputedStyle(input).lineHeight);
   const geometry = calculateAutocompletePopupGeometry(
     inputRect,
     caretRect,
     { width: window.innerWidth, height: window.innerHeight },
-    Number.parseFloat(getComputedStyle(input).lineHeight),
+    fallbackLineHeight,
   );
   menu.style.left = `${geometry.left}px`;
   menu.style.top = `${geometry.top}px`;
