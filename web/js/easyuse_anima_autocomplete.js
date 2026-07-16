@@ -7,6 +7,11 @@ import { easyuseAnimaFetchJson, easyuseAnimaGetSettings } from "./easyuse_anima_
 import { easyuseAnimaText } from "./easyuse_anima_i18n.js";
 import { createAutocompleteDataAdapter } from "./autocomplete/data_adapter.js";
 import {
+  calculateAutocompletePopupGeometry,
+  calculateCaretMirrorGeometry,
+  normalizeCaretClientRect,
+} from "./autocomplete/popup_geometry.js";
+import {
   autocompleteQuery,
   currentToken as currentAutocompleteToken,
   currentWildcardToken as currentAutocompleteWildcardToken,
@@ -697,10 +702,12 @@ function caretClientRect(input) {
   const mirror = document.createElement("div");
   const marker = document.createElement("span");
   const value = String(input.value || "");
-  const layoutWidth = input.offsetWidth || rect.width || 1;
-  const layoutHeight = input.offsetHeight || rect.height || 1;
-  const scaleX = rect.width > 0 ? rect.width / layoutWidth : 1;
-  const scaleY = rect.height > 0 ? rect.height / layoutHeight : scaleX;
+  const {
+    layoutWidth,
+    layoutHeight,
+    scaleX,
+    scaleY,
+  } = calculateCaretMirrorGeometry(rect, input.offsetWidth, input.offsetHeight);
 
   mirror.style.cssText = [
     "position: fixed",
@@ -737,44 +744,27 @@ function caretClientRect(input) {
   mirror.scrollLeft = input.scrollLeft;
   const markerRect = marker.getBoundingClientRect();
   mirror.remove();
-
-  if (!Number.isFinite(markerRect.left) || !Number.isFinite(markerRect.top)) {
-    return rect;
-  }
-  return {
-    left: markerRect.left,
-    right: markerRect.right,
-    top: markerRect.top,
-    bottom: markerRect.bottom,
-    width: markerRect.width,
-    height: markerRect.height || Number.parseFloat(getComputedStyle(input).lineHeight) || 18,
-  };
+  return normalizeCaretClientRect(
+    markerRect,
+    rect,
+    Number.parseFloat(getComputedStyle(input).lineHeight),
+  );
 }
 
 function positionPopup(input) {
   const menu = ensurePopup();
   const inputRect = input.getBoundingClientRect();
   const caretRect = caretClientRect(input);
-  const width = Math.max(260, Math.min(380, inputRect.width, window.innerWidth - 8));
-  const lineHeight = Math.max(14, caretRect.height || Number.parseFloat(getComputedStyle(input).lineHeight) || 18);
-  const caretLeft = clamp(caretRect.left, inputRect.left, inputRect.right);
-  const caretTop = clamp(
-    caretRect.top,
-    inputRect.top,
-    Math.max(inputRect.top, inputRect.bottom - lineHeight),
+  const geometry = calculateAutocompletePopupGeometry(
+    inputRect,
+    caretRect,
+    { width: window.innerWidth, height: window.innerHeight },
+    Number.parseFloat(getComputedStyle(input).lineHeight),
   );
-  const caretBottom = clamp(
-    caretTop + lineHeight,
-    inputRect.top + lineHeight,
-    inputRect.bottom,
-  );
-  const left = clamp(caretLeft, 4, Math.max(4, window.innerWidth - width - 4));
-  const top = caretBottom + lineHeight + 12;
-  const maxHeight = Math.max(56, window.innerHeight - top - 8);
-  menu.style.left = `${left}px`;
-  menu.style.top = `${top}px`;
-  menu.style.width = `${width}px`;
-  menu.style.maxHeight = `${Math.min(280, maxHeight)}px`;
+  menu.style.left = `${geometry.left}px`;
+  menu.style.top = `${geometry.top}px`;
+  menu.style.width = `${geometry.width}px`;
+  menu.style.maxHeight = `${geometry.maxHeight}px`;
 }
 
 function scrollActiveAutocompleteItemIntoView(menu, index) {
