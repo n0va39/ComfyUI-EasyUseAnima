@@ -448,17 +448,25 @@ export function aioMergeDefaults(defaults, value) {
   }
   const merge = (base, incoming) => {
     for (const [key, incomingValue] of Object.entries(incoming)) {
+      const baseValue = Object.prototype.hasOwnProperty.call(base, key)
+        ? base[key]
+        : undefined;
       if (
-        base[key]
-        && typeof base[key] === "object"
-        && !Array.isArray(base[key])
+        baseValue
+        && typeof baseValue === "object"
+        && !Array.isArray(baseValue)
         && incomingValue
         && typeof incomingValue === "object"
         && !Array.isArray(incomingValue)
       ) {
-        merge(base[key], incomingValue);
+        merge(baseValue, incomingValue);
       } else {
-        base[key] = incomingValue;
+        Object.defineProperty(base, key, {
+          value: incomingValue,
+          enumerable: true,
+          configurable: true,
+          writable: true,
+        });
       }
     }
     return base;

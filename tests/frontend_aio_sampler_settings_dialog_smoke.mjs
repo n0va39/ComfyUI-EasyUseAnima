@@ -634,6 +634,152 @@ for (const testCase of [
   const fixture = createFixture({
     loaded: false,
     deferLoads: true,
+    settings: {
+      sampler: {
+        spectrum_extra: {
+          future_gain: 1.5,
+          future_mode: "quality",
+        },
+        spd_extra: {
+          future_flag: true,
+        },
+      },
+    },
+    nodeInputs: {
+      spectrumAdvanced: {
+        future_gain: ["FLOAT", { default: 1 }],
+        future_mode: [["speed", "quality"], { default: "speed" }],
+      },
+      spectrumSpd: {
+        future_flag: ["BOOLEAN", { default: false }],
+      },
+    },
+  });
+  fixture.openSamplerSettings(fixture.node);
+  const dialog = fixture.dialogs[0];
+  assert.equal(sectionByHeading(dialog, "Detected Spectrum Inputs").classList.contains("hidden"), true);
+  assert.equal(sectionByHeading(dialog, "Detected SPD Inputs").classList.contains("hidden"), true);
+
+  action(dialog, "button.apply").emit("click");
+
+  assert.deepEqual(
+    fixture.node.settings.sampler.spectrum_extra,
+    { future_gain: 1.5, future_mode: "quality" },
+    "Fast Apply before optional dependency discovery must preserve Spectrum extras",
+  );
+  assert.deepEqual(
+    fixture.node.settings.sampler.spd_extra,
+    { future_flag: true },
+    "Fast Apply before optional dependency discovery must preserve SPD extras",
+  );
+  assert.deepEqual(dialog.trace.slice(-5), ["merge", "apply-visible", "write", "render", "remove"]);
+}
+
+{
+  const fixture = createFixture({
+    loaded: false,
+    deferLoads: true,
+    settings: {
+      sampler: {
+        spectrum_extra: ["invalid"],
+        spd_extra: "invalid",
+      },
+    },
+  });
+  fixture.openSamplerSettings(fixture.node);
+  const dialog = fixture.dialogs[0];
+
+  action(dialog, "button.apply").emit("click");
+
+  assert.deepEqual(
+    fixture.node.settings.sampler.spectrum_extra,
+    {},
+    "Malformed Spectrum extras must not be serialized as numeric array keys",
+  );
+  assert.deepEqual(
+    fixture.node.settings.sampler.spd_extra,
+    {},
+    "Malformed SPD extras must not be serialized as numeric string keys",
+  );
+}
+
+{
+  const fixture = createFixture({
+    available: { spectrumAdvanced: true, spectrumSpd: true },
+    settings: {
+      sampler: {
+        spectrum_extra: Object.fromEntries([
+          ["constructor", 2.5],
+          ["toString", "quality"],
+          ["__proto__", true],
+        ]),
+      },
+    },
+    nodeInputs: {
+      spectrumAdvanced: Object.fromEntries([
+        ["constructor", ["FLOAT", { default: 1 }]],
+        ["toString", [["speed", "quality"], { default: "speed" }]],
+        ["__proto__", ["BOOLEAN", { default: false }]],
+      ]),
+      spectrumSpd: Object.fromEntries([
+        ["constructor", ["FLOAT", { default: 1.25 }]],
+        ["toString", [["speed", "quality"], { default: "speed" }]],
+        ["__proto__", ["BOOLEAN", { default: false }]],
+      ]),
+    },
+  });
+  fixture.openSamplerSettings(fixture.node);
+  const dialog = fixture.dialogs[0];
+  const dynamicSpectrum = sectionByHeading(dialog, "Detected Spectrum Inputs");
+  const dynamicSpd = sectionByHeading(dialog, "Detected SPD Inputs");
+  assert.equal(controlIn(dynamicSpectrum, "constructor").value, "2.5");
+  assert.equal(controlIn(dynamicSpectrum, "toString").value, "quality");
+  assert.equal(controlIn(dynamicSpectrum, "__proto__").checked, true);
+  assert.equal(controlIn(dynamicSpd, "constructor").value, "1.25");
+  assert.equal(controlIn(dynamicSpd, "toString").value, "speed");
+  assert.equal(controlIn(dynamicSpd, "__proto__").checked, false);
+
+  controlIn(dynamicSpectrum, "constructor").value = "3.5";
+  setSelectValue(controlIn(dynamicSpectrum, "toString"), "speed");
+  controlIn(dynamicSpectrum, "__proto__").checked = false;
+  action(dialog, "button.apply").emit("click");
+
+  const expectedSpecialExtras = Object.fromEntries([
+    ["constructor", 3.5],
+    ["toString", "speed"],
+    ["__proto__", false],
+  ]);
+  assert.deepEqual(
+    fixture.node.settings.sampler.spectrum_extra,
+    expectedSpecialExtras,
+    "Dynamic input values must retain own-key semantics for Object prototype names",
+  );
+  assert.deepEqual(
+    JSON.parse(fixture.node.widgets[0].value).sampler.spectrum_extra,
+    expectedSpecialExtras,
+    "Special dynamic input names must survive hidden-widget JSON serialization",
+  );
+  const expectedNewSpecialExtras = Object.fromEntries([
+    ["constructor", 1.25],
+    ["toString", "speed"],
+    ["__proto__", false],
+  ]);
+  assert.deepEqual(
+    fixture.node.settings.sampler.spd_extra,
+    expectedNewSpecialExtras,
+    "New special dynamic input names must use defaults instead of inherited values",
+  );
+  assert.deepEqual(
+    JSON.parse(fixture.node.widgets[0].value).sampler.spd_extra,
+    expectedNewSpecialExtras,
+    "New special dynamic input names must retain own keys in hidden-widget JSON",
+  );
+}
+
+{
+  const fixture = createFixture({
+    loaded: false,
+    deferLoads: true,
     available: {
       spectrumAdvanced: true,
       spectrumSpd: true,
@@ -652,7 +798,8 @@ for (const testCase of [
         spd_extra: {
           future_variant: "single",
           future_strength: 1.25,
-          retired_spd_input: "remove-on-render",
+          retired_spd_input: "preserve-unrendered",
+          unsupported_image: "opaque-image-ref",
         },
         dave: { legacy: true },
         preserved_sampler_key: "keep-sampler",
@@ -780,12 +927,17 @@ for (const testCase of [
   assert.equal(written.preserved_root_key, "keep-root");
   assert.deepEqual(
     written.sampler.spectrum_extra,
-    {},
-    "Unavailable dynamic Spectrum controls retain the existing rendered-controls-only serialization behavior",
+    {
+      future_gain: 1.5,
+      retired_spectrum_input: "tracked-separately",
+    },
+    "Unavailable dynamic Spectrum controls must preserve existing extra values",
   );
   assert.deepEqual(written.sampler.spd_extra, {
     future_variant: "dual",
     future_strength: 2.5,
+    retired_spd_input: "preserve-unrendered",
+    unsupported_image: "opaque-image-ref",
   });
   assert.deepEqual(JSON.parse(fixture.node.widgets[0].value), written);
   assert.equal(fixture.applyVisibleCalls[0].sampler.seed, settingsModule.AIO_GENERATOR_MAX_SEED);
