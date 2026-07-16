@@ -56,13 +56,15 @@ function registerPromptStudioNodeHooks(nodeType, nodeData, hooks) {
 
   const onConfigure = nodeType.prototype.onConfigure;
   nodeType.prototype.onConfigure = function (serialized) {
-    onConfigure?.apply(this, arguments);
+    const result = onConfigure?.apply(this, arguments);
     if (isAdvanced) {
       hooks.captureAdvancedConfigure(this, serialized);
+      hooks.attachAdvancedQueueSeedNode?.(this);
       hooks.scheduleHookAdvancedNode(this);
     } else if (!isWildcard) {
       hooks.hookStudioNode(this);
     }
+    return result;
   };
 
   const onResize = nodeType.prototype.onResize;
@@ -97,9 +99,29 @@ function registerPromptStudioNodeHooks(nodeType, nodeData, hooks) {
 
   const onRemoved = nodeType.prototype.onRemoved;
   nodeType.prototype.onRemoved = function () {
-    const result = onRemoved?.apply(this, arguments);
+    let result;
+    let didThrow = false;
+    let originalError;
+    try {
+      result = onRemoved?.apply(this, arguments);
+    } catch (error) {
+      didThrow = true;
+      originalError = error;
+    }
     if (isAdvanced) {
-      hooks.disconnectAdvancedEditorWidthObserver?.(this);
+      try {
+        hooks.disconnectAdvancedEditorWidthObserver?.(this);
+      } catch {
+        // Cleanup failures must not replace the node's original lifecycle result.
+      }
+      try {
+        hooks.detachAdvancedQueueSeedNode?.(this);
+      } catch {
+        // State cleanup remains isolated from other node removal handlers.
+      }
+    }
+    if (didThrow) {
+      throw originalError;
     }
     return result;
   };

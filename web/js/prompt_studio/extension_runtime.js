@@ -104,6 +104,7 @@ import {
 } from "./advanced_values.js";
 import {
   createAdvancedQueueSeedRuntime,
+  installAdvancedQueueSeedGraphCleanup,
   installAdvancedQueueSeedQueueHook,
 } from "./advanced_queue_seed_runtime.js";
 import {
@@ -396,6 +397,7 @@ function createPromptStudioExtensionRuntime(app, api = null) {
       installAdvancedWheelForwarder();
       installMiddlePanForwarder();
       installAdvancedSaveSync(app, syncAllAdvancedNodes);
+      installAdvancedQueueSeedGraphCleanup(app.graph, advancedQueueSeedRuntime);
       installAdvancedQueueSeedQueueHook(api, advancedQueueSeedRuntime);
       installPromptHighlightOverlayRefresh(app, applyPromptStudioTextStyle);
       await loadPromptStudioSettings({
@@ -425,6 +427,7 @@ function createPromptStudioExtensionRuntime(app, api = null) {
     },
     async beforeRegisterNodeDef(nodeType, nodeData) {
       registerPromptStudioNodeHooks(nodeType, nodeData, {
+        attachAdvancedQueueSeedNode: advancedQueueSeedRuntime.attachNode,
         applyAdvancedExecutedInputs,
         applyExecutedInputs,
         applyExtendSlotVisibility,
@@ -433,6 +436,7 @@ function createPromptStudioExtensionRuntime(app, api = null) {
           captureAdvancedConfigure(node, serialized, advancedWidget(node))
         ),
         disconnectAdvancedEditorWidthObserver,
+        detachAdvancedQueueSeedNode: advancedQueueSeedRuntime.detachNode,
         hookStudioNode,
         isExtendNode,
         layoutExtendPromptWidgets,
