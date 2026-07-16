@@ -89,6 +89,7 @@ const GENERATOR_PANEL_CONTROL_SELECTOR = "input, select, textarea, button";
  * @property {any} document
  * @property {any} window
  * @property {(callback: (...args: any[]) => any) => any} requestAnimationFrame
+ * @property {(frame: any) => void} cancelAnimationFrame
  * @property {number} panelMinHeight
  * @property {AioGeneratorPanelControls} controls
  * @property {AioGeneratorPanelText} text
@@ -112,6 +113,7 @@ export function aioCreateGeneratorPanelRuntime(dependencies) {
     document,
     window,
     requestAnimationFrame,
+    cancelAnimationFrame,
     panelMinHeight: GENERATOR_PANEL_MIN_HEIGHT,
     controls,
     text,
@@ -187,6 +189,202 @@ export function aioCreateGeneratorPanelRuntime(dependencies) {
     openPreviewSettings,
   } = actions;
 
+  const generatorPanelLifecycleStates = new WeakMap();
+  const disposedGeneratorPanelNodes = new WeakSet();
+
+  function createGeneratorPanelLifecycleState() {
+    return {
+      frames: new Map(),
+      sliderDragCleanups: new Set(),
+    };
+  }
+
+  function activateGeneratorPanel(node) {
+    if (!node) {
+      return null;
+    }
+    disposedGeneratorPanelNodes.delete(node);
+    if (!generatorPanelLifecycleStates.has(node)) {
+      generatorPanelLifecycleStates.set(node, createGeneratorPanelLifecycleState());
+    }
+    return generatorPanelLifecycleStates.get(node) || null;
+  }
+
+  function generatorPanelLifecycleState(node) {
+    if (!node || disposedGeneratorPanelNodes.has(node)) {
+      return null;
+    }
+    return generatorPanelLifecycleStates.get(node) || null;
+  }
+
+  function isGeneratorPanelLifecycleCurrent(node, state) {
+    return (
+      !!state
+      && !disposedGeneratorPanelNodes.has(node)
+      && generatorPanelLifecycleStates.get(node) === state
+    );
+  }
+
+  function scheduleGeneratorPanelFrame(node, key, callback) {
+    const state = generatorPanelLifecycleState(node);
+    if (!state) {
+      return null;
+    }
+    const existing = state.frames.get(key);
+    if (existing) {
+      return existing.frame;
+    }
+    const pending = { frame: null };
+    state.frames.set(key, pending);
+    pending.frame = requestAnimationFrame(() => {
+      if (state.frames.get(key) !== pending) {
+        return;
+      }
+      state.frames.delete(key);
+      if (isGeneratorPanelLifecycleCurrent(node, state)) {
+        callback(state);
+      }
+    });
+    return pending.frame;
+  }
+
+  function cleanupGeneratorSliderDrags(state) {
+    let hasError = false;
+    let firstError = null;
+    for (const cleanup of [...(state?.sliderDragCleanups || [])]) {
+      try {
+        cleanup();
+      } catch (error) {
+        if (!hasError) {
+          hasError = true;
+          firstError = error;
+        }
+      }
+    }
+    state?.sliderDragCleanups?.clear?.();
+    if (hasError) {
+      throw firstError;
+    }
+  }
+
+  function disposeGeneratorPanel(node) {
+    if (!node || disposedGeneratorPanelNodes.has(node)) {
+      return false;
+    }
+    disposedGeneratorPanelNodes.add(node);
+    let hasError = false;
+    let firstError = null;
+    const cleanup = (callback) => {
+      try {
+        callback?.();
+      } catch (error) {
+        if (!hasError) {
+          hasError = true;
+          firstError = error;
+        }
+      }
+    };
+    const state = generatorPanelLifecycleStates.get(node);
+    if (state) {
+      for (const pending of state.frames.values()) {
+        cleanup(() => cancelAnimationFrame(pending.frame));
+      }
+      state.frames.clear();
+      cleanup(() => cleanupGeneratorSliderDrags(state));
+    }
+    generatorPanelLifecycleStates.delete(node);
+    node.__easyuseAnimaGeneratorLayoutScheduled = false;
+    const panel = node.__easyuseAnimaGeneratorPanelEl;
+    const widget = node.__easyuseAnimaGeneratorPanelWidget;
+    cleanup(() => panel?.__easyuseAnimaAioDisposeListeners?.());
+    cleanup(() => widget?.onRemove?.());
+    cleanup(() => panel?.replaceChildren?.());
+    cleanup(() => panel?.remove?.());
+    if (widget && Array.isArray(node.widgets)) {
+      cleanup(() => {
+        const widgetIndex = node.widgets.indexOf(widget);
+        if (widgetIndex >= 0) {
+          node.widgets.splice(widgetIndex, 1);
+        }
+      });
+    }
+    delete node.__easyuseAnimaGeneratorPanelWidget;
+    delete node.__easyuseAnimaGeneratorPanelEl;
+    if (hasError) {
+      throw firstError;
+    }
+    return true;
+  }
+
+  function generatorPanelFocusControls(panel) {
+    return Array.from(panel?.querySelectorAll?.(GENERATOR_PANEL_CONTROL_SELECTOR) || []);
+  }
+
+  function generatorPanelFocusSignature(element) {
+    return {
+      tagName: String(element?.tagName || ""),
+      type: String(element?.type || ""),
+      className: String(element?.className || ""),
+    };
+  }
+
+  function generatorPanelFocusMatches(element, signature) {
+    const next = generatorPanelFocusSignature(element);
+    return (
+      next.tagName === signature?.tagName
+      && next.type === signature?.type
+      && next.className === signature?.className
+    );
+  }
+
+  function captureGeneratorPanelViewState(panel) {
+    const settingsScroll = panel?.querySelector?.(".easyuse-anima-aio-node-settings-scroll");
+    const previewFeed = panel?.querySelector?.("[data-aio-preview-feed]");
+    const controls = generatorPanelFocusControls(panel);
+    const activeElement = document?.activeElement;
+    const activeIndex = controls.indexOf(activeElement);
+    let focus = null;
+    if (activeIndex >= 0) {
+      focus = {
+        key: activeElement.getAttribute?.("data-aio-focus-key") || "",
+        index: activeIndex,
+        signature: generatorPanelFocusSignature(activeElement),
+      };
+    }
+    return {
+      scrollTop: Number(settingsScroll?.scrollTop) || 0,
+      scrollLeft: Number(settingsScroll?.scrollLeft) || 0,
+      previewFeedScrollLeft: Number(previewFeed?.scrollLeft) || 0,
+      focus,
+    };
+  }
+
+  function restoreGeneratorPanelViewState(panel, viewState) {
+    const settingsScroll = panel?.querySelector?.(".easyuse-anima-aio-node-settings-scroll");
+    const previewFeed = panel?.querySelector?.("[data-aio-preview-feed]");
+    const controls = generatorPanelFocusControls(panel);
+    const focus = viewState?.focus;
+    let target = null;
+    if (focus?.key) {
+      target = controls.find(
+        (control) => control.getAttribute?.("data-aio-focus-key") === focus.key,
+      ) || null;
+    } else if (focus && focus.index >= 0) {
+      const candidate = controls[focus.index] || null;
+      target = generatorPanelFocusMatches(candidate, focus.signature) ? candidate : null;
+    }
+    if (target && !target.disabled) {
+      target.focus?.({ preventScroll: true });
+    }
+    if (settingsScroll) {
+      settingsScroll.scrollTop = Number(viewState?.scrollTop) || 0;
+      settingsScroll.scrollLeft = Number(viewState?.scrollLeft) || 0;
+    }
+    if (previewFeed) {
+      previewFeed.scrollLeft = Number(viewState?.previewFeedScrollLeft) || 0;
+    }
+  }
+
   function generatorDenoisePreviewLabel(preview) {
     const base = aioText("text.previewDenoise");
     const value = Number(preview?.value);
@@ -198,6 +396,17 @@ export function aioCreateGeneratorPanelRuntime(dependencies) {
     return base;
   }
 
+  function createGeneratorPreviewPlaceholder() {
+    const placeholder = document.createElement("div");
+    placeholder.className = "easyuse-anima-aio-node-preview-placeholder";
+    const title = document.createElement("strong");
+    title.textContent = aioText("text.previewTitle");
+    const subtitle = document.createElement("span");
+    subtitle.textContent = aioText("text.previewSubtitle");
+    placeholder.append(title, subtitle);
+    return placeholder;
+  }
+
   function stopGeneratorControlPropagation(root) {
     if (!root || root.__easyuseAnimaAioStopPropagation) {
       return;
@@ -207,7 +416,7 @@ export function aioCreateGeneratorPanelRuntime(dependencies) {
         event.stopPropagation();
       }
     };
-    for (const eventName of [
+    const eventNames = [
       "pointerdown",
       "mousedown",
       "pointerup",
@@ -216,7 +425,8 @@ export function aioCreateGeneratorPanelRuntime(dependencies) {
       "dblclick",
       "keydown",
       "keyup",
-    ]) {
+    ];
+    for (const eventName of eventNames) {
       root.addEventListener(eventName, stop);
     }
     // Legacy canvas bubbles DOM-widget wheel events through the panel. Keep this
@@ -226,6 +436,14 @@ export function aioCreateGeneratorPanelRuntime(dependencies) {
       capture: true,
       passive: false,
     });
+    root.__easyuseAnimaAioDisposeListeners = () => {
+      for (const eventName of eventNames) {
+        root.removeEventListener(eventName, stop);
+      }
+      root.removeEventListener("wheel", forwardGeneratorPanelWheel, true);
+      delete root.__easyuseAnimaAioDisposeListeners;
+      delete root.__easyuseAnimaAioStopPropagation;
+    };
     root.__easyuseAnimaAioStopPropagation = true;
   }
 
@@ -262,6 +480,9 @@ export function aioCreateGeneratorPanelRuntime(dependencies) {
   }
 
   function applyGeneratorLayout(node) {
+    if (!generatorPanelLifecycleState(node)) {
+      return;
+    }
     const panel = node?.__easyuseAnimaGeneratorPanelEl;
     if (!panel) {
       return;
@@ -278,11 +499,15 @@ export function aioCreateGeneratorPanelRuntime(dependencies) {
   }
 
   function scheduleGeneratorLayout(node) {
-    if (!node?.__easyuseAnimaGeneratorPanelEl || node.__easyuseAnimaGeneratorLayoutScheduled) {
+    const state = generatorPanelLifecycleState(node);
+    if (!state || !node?.__easyuseAnimaGeneratorPanelEl) {
       return;
     }
+    if (state.frames.has("layout")) {
+      return state.frames.get("layout")?.frame ?? null;
+    }
     node.__easyuseAnimaGeneratorLayoutScheduled = true;
-    requestAnimationFrame(() => {
+    return scheduleGeneratorPanelFrame(node, "layout", () => {
       node.__easyuseAnimaGeneratorLayoutScheduled = false;
       applyGeneratorLayout(node);
     });
@@ -294,11 +519,13 @@ export function aioCreateGeneratorPanelRuntime(dependencies) {
     settings.sampler.seed_after_generate = normalizeSeedControl(settings.sampler.seed_after_generate);
     applyVisibleGeneratorSettings(node, settings);
     writeGeneratorSettingsFromState(node, settings, markDirty);
-    updateGeneratorDomSummary(node);
     return settings;
   }
 
   function updateGeneratorDomSummary(node) {
+    if (!generatorPanelLifecycleState(node)) {
+      return;
+    }
     const panel = node?.__easyuseAnimaGeneratorPanelEl;
     if (!panel) {
       return;
@@ -323,15 +550,55 @@ export function aioCreateGeneratorPanelRuntime(dependencies) {
     updateGeneratorDomPreview(node);
   }
 
+  function scheduleGeneratorSummary(node) {
+    if (!node?.__easyuseAnimaGeneratorPanelEl) {
+      return null;
+    }
+    return scheduleGeneratorPanelFrame(node, "summary", () => {
+      updateGeneratorDomSummary(node);
+    });
+  }
+
+  function generatorPreviewFeedSignature(images, settings, selectedIndex, options = {}) {
+    return JSON.stringify([
+      !!settings.preview.image_feed,
+      !!options.showPending,
+      selectedIndex,
+      images.map((image, index) => [
+        index,
+        generatorImageUrl(image),
+        aioPreviewImageLabel(image),
+      ]),
+    ]);
+  }
+
   function renderGeneratorPreviewFeed(node, panel, images, settings, selectedIndex, options = {}) {
     const feed = panel?.querySelector?.("[data-aio-preview-feed]");
     if (!feed) {
       return;
     }
     const showPending = !!options.showPending;
+    const state = generatorPanelLifecycleState(node);
+    const signature = generatorPreviewFeedSignature(
+      images,
+      settings,
+      selectedIndex,
+      options,
+    );
+    if (state?.previewFeedElement === feed && state.previewFeedSignature === signature) {
+      return;
+    }
+    const rememberRenderedFeed = () => {
+      if (state) {
+        state.previewFeedElement = feed;
+        state.previewFeedSignature = signature;
+      }
+    };
+    const hasRenderableImage = images.some((image) => !!generatorImageUrl(image));
     feed.replaceChildren();
-    feed.hidden = !settings.preview.image_feed || (!images.length && !showPending);
+    feed.hidden = !settings.preview.image_feed || (!hasRenderableImage && !showPending);
     if (feed.hidden) {
+      rememberRenderedFeed();
       return;
     }
     let selectedThumb = null;
@@ -376,6 +643,7 @@ export function aioCreateGeneratorPanelRuntime(dependencies) {
       feed.append(pendingThumb);
     }
     (pendingThumb || selectedThumb)?.scrollIntoView?.({ block: "nearest", inline: "nearest" });
+    rememberRenderedFeed();
   }
 
   function updateGeneratorDomPreview(node) {
@@ -422,24 +690,28 @@ export function aioCreateGeneratorPanelRuntime(dependencies) {
       ? node.__easyuseAnimaGeneratorPreviewImages
       : [];
     if (!images.length) {
-      const feed = panel?.querySelector?.("[data-aio-preview-feed]");
-      if (feed) {
-        feed.hidden = true;
-        feed.replaceChildren();
-      }
+      previewBox.replaceChildren(createGeneratorPreviewPlaceholder());
       const metaEl = panel.querySelector("[data-aio-preview-meta]");
       if (metaEl) {
         metaEl.textContent = "-";
         metaEl.title = "";
       }
-      return;
-    }
-    const currentImage = aioMainPreviewImage(node, images);
-    const imageUrl = generatorImageUrl(currentImage);
-    if (!currentImage || !imageUrl) {
+      renderGeneratorPreviewFeed(node, panel, images, settings, -1);
       return;
     }
     const selectedIndex = aioSelectedPreviewIndex(node, images);
+    const currentImage = aioMainPreviewImage(node, images);
+    const imageUrl = generatorImageUrl(currentImage);
+    if (!currentImage || !imageUrl) {
+      previewBox.replaceChildren(createGeneratorPreviewPlaceholder());
+      const metaEl = panel.querySelector("[data-aio-preview-meta]");
+      if (metaEl) {
+        metaEl.textContent = "-";
+        metaEl.title = "";
+      }
+      renderGeneratorPreviewFeed(node, panel, images, settings, selectedIndex);
+      return;
+    }
     const metaEl = panel.querySelector("[data-aio-preview-meta]");
     if (metaEl) {
       const parts = [
@@ -514,6 +786,13 @@ export function aioCreateGeneratorPanelRuntime(dependencies) {
     renderGeneratorPreviewFeed(node, panel, images, settings, selectedIndex);
   }
 
+  function applyGeneratorControlFocusKey(control, options = {}) {
+    if (options.focusKey) {
+      control?.setAttribute?.("data-aio-focus-key", String(options.focusKey));
+    }
+    return control;
+  }
+
   function createDomNumberControl(node, name, value, step = "1") {
     const input = numberInput(value, step);
     input.addEventListener("input", () => {
@@ -577,7 +856,7 @@ export function aioCreateGeneratorPanelRuntime(dependencies) {
         setWidgetValueIfChanged(node, name, normalized);
         syncGeneratorSettingsFromVisible(node);
       }
-      updateGeneratorDomSummary(node);
+      scheduleGeneratorSummary(node);
       updateSlider();
       markNodeDirty(node);
     };
@@ -596,24 +875,51 @@ export function aioCreateGeneratorPanelRuntime(dependencies) {
 
     input.addEventListener("input", () => commit(input.value));
     track.addEventListener("pointerdown", (event) => {
+      const state = generatorPanelLifecycleState(node);
+      if (!state) {
+        return;
+      }
+      cleanupGeneratorSliderDrags(state);
       event.preventDefault();
       event.stopPropagation();
       const pointerId = event.pointerId;
       track.setPointerCapture?.(pointerId);
-      commit(valueFromPointer(event));
-      const move = (moveEvent) => {
+      let active = true;
+      function cleanup() {
+        if (!active) {
+          return;
+        }
+        active = false;
+        try {
+          track.releasePointerCapture?.(pointerId);
+        } catch {
+          // Pointer capture may already be released by cancel, blur, or removal.
+        }
+        window.removeEventListener("pointermove", move, true);
+        window.removeEventListener("pointerup", finish, true);
+        window.removeEventListener("pointercancel", finish, true);
+        window.removeEventListener("blur", finish, true);
+        state.sliderDragCleanups.delete(cleanup);
+      }
+      function move(moveEvent) {
+        if (!isGeneratorPanelLifecycleCurrent(node, state)) {
+          cleanup();
+          return;
+        }
         moveEvent.preventDefault();
         moveEvent.stopPropagation();
         commit(valueFromPointer(moveEvent));
-      };
-      const up = (upEvent) => {
-        upEvent.stopPropagation();
-        track.releasePointerCapture?.(pointerId);
-        window.removeEventListener("pointermove", move, true);
-        window.removeEventListener("pointerup", up, true);
-      };
+      }
+      function finish(finishEvent) {
+        finishEvent?.stopPropagation?.();
+        cleanup();
+      }
+      state.sliderDragCleanups.add(cleanup);
       window.addEventListener("pointermove", move, true);
-      window.addEventListener("pointerup", up, true);
+      window.addEventListener("pointerup", finish, true);
+      window.addEventListener("pointercancel", finish, true);
+      window.addEventListener("blur", finish, true);
+      commit(valueFromPointer(event));
     });
     wrapper.append(input, track);
     updateSlider();
@@ -632,7 +938,7 @@ export function aioCreateGeneratorPanelRuntime(dependencies) {
   }
 
   function createDomSettingsCheckboxControl(node, value, updater, options = {}) {
-    const input = checkbox(value);
+    const input = applyGeneratorControlFocusKey(checkbox(value), options);
     input.addEventListener("change", () => {
       updateGeneratorSettings(node, (settings) => {
         updater?.(settings, input.checked);
@@ -649,7 +955,7 @@ export function aioCreateGeneratorPanelRuntime(dependencies) {
   }
 
   function createDomSettingsNumberControl(node, value, step, updater, options = {}) {
-    const input = numberInput(value, step);
+    const input = applyGeneratorControlFocusKey(numberInput(value, step), options);
     if (options.min != null) {
       input.min = String(options.min);
     }
@@ -681,7 +987,10 @@ export function aioCreateGeneratorPanelRuntime(dependencies) {
   }
 
   function createDomSettingsSelectControl(node, value, options, updater, settings = {}) {
-    const select = selectInput(options, String(value ?? ""));
+    const select = applyGeneratorControlFocusKey(
+      selectInput(options, String(value ?? "")),
+      settings,
+    );
     select.addEventListener("change", () => {
       updateGeneratorSettings(node, (nextSettings) => {
         updater?.(nextSettings, select.value);
@@ -723,6 +1032,9 @@ export function aioCreateGeneratorPanelRuntime(dependencies) {
   }
 
   function refreshGeneratorSeedButtons(node) {
+    if (!generatorPanelLifecycleState(node)) {
+      return;
+    }
     const panel = node?.__easyuseAnimaGeneratorPanelEl;
     if (!panel) {
       return;
@@ -740,11 +1052,20 @@ export function aioCreateGeneratorPanelRuntime(dependencies) {
     }
   }
 
-  function renderGeneratorPanel(node) {
+  function renderGeneratorPanel(node, expectedLifecycle = null) {
+    const lifecycleState = generatorPanelLifecycleState(node);
+    if (
+      !lifecycleState
+      || (expectedLifecycle && lifecycleState !== expectedLifecycle)
+    ) {
+      return;
+    }
     const panel = node?.__easyuseAnimaGeneratorPanelEl;
     if (!panel) {
       return;
     }
+    const viewState = captureGeneratorPanelViewState(panel);
+    cleanupGeneratorSliderDrags(lifecycleState);
     const settings = generatorSettings(node);
     panel.replaceChildren();
 
@@ -847,6 +1168,7 @@ export function aioCreateGeneratorPanelRuntime(dependencies) {
     const seedBlock = document.createElement("div");
     const seedInput = createDomNumberControl(node, "seed", settings.sampler.seed);
     seedInput.setAttribute("data-aio-seed-input", "");
+    seedInput.setAttribute("data-aio-focus-key", "sampler.seed");
     applyTooltip(seedInput, "tip.seed");
     const seedActions = document.createElement("div");
     seedActions.className = "easyuse-anima-aio-node-seed-actions";
@@ -955,7 +1277,7 @@ export function aioCreateGeneratorPanelRuntime(dependencies) {
         nextSettings.highres ||= {};
         nextSettings.highres.enabled = value;
       },
-      { rerender: true },
+      { rerender: true, focusKey: "highres.enabled" },
     );
     highresBlock.append(makeStageHeader(
       aioText("title.highres"),
@@ -975,7 +1297,7 @@ export function aioCreateGeneratorPanelRuntime(dependencies) {
           nextSettings.highres ||= {};
           nextSettings.highres.inherit_sampler_settings = value;
         },
-        { rerender: true },
+        { rerender: true, focusKey: "highres.inherit-sampler-settings" },
       );
       const stageMode = Object.assign(document.createElement("div"), {
         className: "easyuse-anima-aio-node-mode-badge",
@@ -1068,7 +1390,7 @@ export function aioCreateGeneratorPanelRuntime(dependencies) {
         nextSettings.detailer ||= {};
         nextSettings.detailer.enabled = value;
       },
-      { rerender: true },
+      { rerender: true, focusKey: "detailer.enabled" },
     );
     detailerBlock.append(makeStageHeader(
       aioText("title.detailer"),
@@ -1096,6 +1418,8 @@ export function aioCreateGeneratorPanelRuntime(dependencies) {
         targetTools.className = "easyuse-anima-aio-node-stage-tools";
         const moveUp = makeIconButton("↑", () => moveDetailerTarget(targetName, -1), "tip.detailerOrder");
         const moveDown = makeIconButton("↓", () => moveDetailerTarget(targetName, 1), "tip.detailerOrder");
+        moveUp.setAttribute("data-aio-focus-key", `detailer.${targetName}.move-up`);
+        moveDown.setAttribute("data-aio-focus-key", `detailer.${targetName}.move-down`);
         moveUp.disabled = index === 0;
         moveDown.disabled = index === order.length - 1;
         targetTools.append(moveUp, moveDown);
@@ -1112,7 +1436,7 @@ export function aioCreateGeneratorPanelRuntime(dependencies) {
             nextSettings.detailer[targetName] ||= {};
             nextSettings.detailer[targetName].enabled = value;
           },
-          { rerender: true },
+          { rerender: true, focusKey: `detailer.${targetName}.enabled` },
         );
         targetGrid.append(createNodeField(aioText("label.enabled"), targetEnabled, "wide", "tip.detailerBlock"));
         if (target.enabled) {
@@ -1124,7 +1448,7 @@ export function aioCreateGeneratorPanelRuntime(dependencies) {
               nextSettings.detailer[targetName] ||= {};
               nextSettings.detailer[targetName].inherit_sampler_settings = value;
             },
-            { rerender: true },
+            { rerender: true, focusKey: `detailer.${targetName}.inherit-sampler-settings` },
           );
           targetGrid.append(
             createNodeField(aioText("label.followMainSampler"), followMain, "wide", "tip.detailerFollow"),
@@ -1181,7 +1505,7 @@ export function aioCreateGeneratorPanelRuntime(dependencies) {
         nextSettings.upscale ||= {};
         nextSettings.upscale.enabled = value;
       },
-      { rerender: true },
+      { rerender: true, focusKey: "upscale.enabled" },
     );
     upscaleBlock.append(makeStageHeader(
       aioText("title.upscale"),
@@ -1200,7 +1524,7 @@ export function aioCreateGeneratorPanelRuntime(dependencies) {
           nextSettings.upscale ||= {};
           nextSettings.upscale.backend = value || "usdu";
         },
-        { rerender: true },
+        { rerender: true, focusKey: "upscale.backend" },
       );
       upscaleBody.append(
         createNodeField(aioText("label.mode"), backend, "wide", "tip.upscaleBackend"),
@@ -1262,7 +1586,7 @@ export function aioCreateGeneratorPanelRuntime(dependencies) {
                 nextSettings.upscale.usdu ||= {};
                 nextSettings.upscale.usdu.auto_tile_size = value;
               },
-              { rerender: true },
+              { rerender: true, focusKey: "upscale.usdu.auto-tile-size" },
             ),
             "wide",
             "tip.usduAutoTile",
@@ -1309,7 +1633,7 @@ export function aioCreateGeneratorPanelRuntime(dependencies) {
         nextSettings.postprocess ||= {};
         nextSettings.postprocess.enabled = value;
       },
-      { rerender: true },
+      { rerender: true, focusKey: "postprocess.enabled" },
     );
     postprocessBlock.append(makeStageHeader(
       aioText("title.postprocess"),
@@ -1342,14 +1666,7 @@ export function aioCreateGeneratorPanelRuntime(dependencies) {
     const previewBox = document.createElement("div");
     previewBox.className = "easyuse-anima-aio-node-preview-box";
     previewBox.setAttribute("data-aio-preview-box", "");
-    const previewPlaceholder = document.createElement("div");
-    previewPlaceholder.className = "easyuse-anima-aio-node-preview-placeholder";
-    const previewStrong = document.createElement("strong");
-    previewStrong.textContent = aioText("text.previewTitle");
-    const previewText = document.createElement("span");
-    previewText.textContent = aioText("text.previewSubtitle");
-    previewPlaceholder.append(previewStrong, previewText);
-    previewBox.append(previewPlaceholder);
+    previewBox.append(createGeneratorPreviewPlaceholder());
 
     const previewMeta = document.createElement("div");
     previewMeta.className = "easyuse-anima-aio-node-preview-meta";
@@ -1370,9 +1687,14 @@ export function aioCreateGeneratorPanelRuntime(dependencies) {
     updateGeneratorDomSummary(node);
     refreshGeneratorSeedButtons(node);
     scheduleGeneratorLayout(node);
+    restoreGeneratorPanelViewState(panel, viewState);
   }
 
   function ensureGeneratorPanel(node) {
+    const lifecycleState = activateGeneratorPanel(node);
+    if (!lifecycleState) {
+      return;
+    }
     ensureStyle();
     node.serialize_widgets = true;
     suppressGeneratorDefaultPreview(node, { markDirty: false });
@@ -1384,20 +1706,26 @@ export function aioCreateGeneratorPanelRuntime(dependencies) {
       const panel = document.createElement("div");
       panel.className = "easyuse-anima-aio-node-panel";
       node.__easyuseAnimaGeneratorPanelEl = panel;
-      node.addDOMWidget?.(GENERATOR_DOM_WIDGET, "EasyUseAnimaGeneratorPanel", panel, {
+      const widget = node.addDOMWidget?.(GENERATOR_DOM_WIDGET, "EasyUseAnimaGeneratorPanel", panel, {
         serialize: false,
         hideOnZoom: false,
         getMinHeight: () => GENERATOR_PANEL_MIN_HEIGHT,
       });
+      if (widget) {
+        node.__easyuseAnimaGeneratorPanelWidget = widget;
+      }
     }
     markGeneratorNativeLivePreviewHidden(node);
-    renderGeneratorPanel(node);
+    renderGeneratorPanel(node, lifecycleState);
     markGeneratorNativeLivePreviewHidden(node);
   }
 
   return {
+    activatePanel: activateGeneratorPanel,
+    disposePanel: disposeGeneratorPanel,
     ensurePanel: ensureGeneratorPanel,
     renderPanel: renderGeneratorPanel,
+    scheduleSummary: scheduleGeneratorSummary,
     updateSummary: updateGeneratorDomSummary,
     scheduleLayout: scheduleGeneratorLayout,
     refreshSeedButtons: refreshGeneratorSeedButtons,
