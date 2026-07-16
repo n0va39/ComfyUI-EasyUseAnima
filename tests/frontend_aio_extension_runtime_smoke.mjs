@@ -20,6 +20,8 @@ const GENERATOR_PREVIEW_EVENT = "easyuse-anima-aio-preview";
 function createFixture(options = {}) {
   const trace = [];
   const eventRegistrations = [];
+  let samplerSetupFailures = Number(options.samplerSetupFailures || 0);
+  let userSetupFailures = Number(options.userSetupFailures || 0);
   const callbacks = {
     refreshPanels() {
       trace.push("refreshPanels");
@@ -32,13 +34,14 @@ function createFixture(options = {}) {
     clearDenoisePreviews() {},
   };
   let localeRefresh = null;
-  const runtime = extensionModule.aioCreateExtensionRuntime({
-    api: {
-      addEventListener(name, handler, capture) {
-        eventRegistrations.push({ name, handler, capture });
-        trace.push(`event:${name}:${capture === true}`);
-      },
+  const api = options.api || {
+    addEventListener(name, handler, capture) {
+      eventRegistrations.push({ name, handler, capture });
+      trace.push(`event:${name}:${capture === true}`);
     },
+  };
+  const runtime = extensionModule.aioCreateExtensionRuntime({
+    api,
     constants: {
       inputNodeType: INPUT_NODE_TYPE,
       generatorNodeType: GENERATOR_NODE_TYPE,
@@ -50,6 +53,7 @@ function createFixture(options = {}) {
       },
       installWheelForwarder() {
         trace.push("installWheelForwarder");
+        options.onInstallWheelForwarder?.();
       },
       installQueuePromptHook() {
         trace.push("installQueuePromptHook");
@@ -67,10 +71,18 @@ function createFixture(options = {}) {
       clearDenoisePreviews: callbacks.clearDenoisePreviews,
       loadSamplerOptions() {
         trace.push("loadSamplerOptions");
+        if (samplerSetupFailures > 0) {
+          samplerSetupFailures -= 1;
+          throw options.samplerSetupError;
+        }
         return Promise.resolve();
       },
       loadUserProfiles() {
         trace.push("loadUserProfiles");
+        if (userSetupFailures > 0) {
+          userSetupFailures -= 1;
+          throw options.userSetupError;
+        }
         return options.profileError
           ? Promise.reject(options.profileError)
           : Promise.resolve();
@@ -126,6 +138,7 @@ function createFixture(options = {}) {
     },
   });
   return {
+    api,
     runtime,
     trace,
     callbacks,
@@ -259,6 +272,140 @@ function createNodeType(trace, options = {}) {
   assert.equal(fixture.localeRefresh(), fixture.callbacks.refreshPanels);
   fixture.localeRefresh()();
   assert.equal(fixture.trace.filter((item) => item === "refreshPanels").length, 3);
+
+  const firstSetupTrace = [...fixture.trace];
+  const firstSetupRegistrations = [...fixture.eventRegistrations];
+  assert.equal(await fixture.runtime.setup(), undefined);
+  await Promise.resolve();
+  assert.deepEqual(
+    fixture.trace,
+    firstSetupTrace,
+    "repeated setup must not reload data or reinstall global listeners",
+  );
+  assert.deepEqual(fixture.eventRegistrations, firstSetupRegistrations);
+}
+
+{
+  const ownerFixture = createFixture();
+  await ownerFixture.runtime.setup();
+  await Promise.resolve();
+  const reentryFixture = createFixture({ api: ownerFixture.api });
+  assert.equal(await reentryFixture.runtime.setup(), undefined);
+  await Promise.resolve();
+  assert.deepEqual(
+    reentryFixture.trace,
+    [],
+    "a new runtime sharing the installed API owner must not repeat setup",
+  );
+}
+
+{
+  let reentryFixture = null;
+  let reentryPromise = null;
+  const ownerFixture = createFixture({
+    onInstallWheelForwarder() {
+      reentryPromise = reentryFixture.runtime.setup();
+    },
+  });
+  reentryFixture = createFixture({ api: ownerFixture.api });
+  assert.equal(await ownerFixture.runtime.setup(), undefined);
+  assert.equal(await reentryPromise, undefined);
+  await Promise.resolve();
+  assert.deepEqual(
+    reentryFixture.trace,
+    [],
+    "a second factory must not enter setup while the shared API state is in progress",
+  );
+  assert.equal(ownerFixture.eventRegistrations.length, 8);
+}
+
+{
+  const setupError = new Error("sampler setup failed");
+  const factoryA = createFixture({
+    samplerSetupError: setupError,
+    samplerSetupFailures: 1,
+  });
+  let caught = null;
+  try {
+    await factoryA.runtime.setup();
+  } catch (error) {
+    caught = error;
+  }
+  assert.equal(caught, setupError, "setup must preserve the original synchronous error");
+  const factoryB = createFixture({ api: factoryA.api });
+  assert.equal(await factoryB.runtime.setup(), undefined);
+  await Promise.resolve();
+  const combinedTrace = [...factoryA.trace, ...factoryB.trace];
+  for (const completedStep of [
+    "ensureStyle",
+    "installWheelForwarder",
+    "installQueuePromptHook",
+    "watchLocale",
+  ]) {
+    assert.equal(
+      combinedTrace.filter((item) => item === completedStep).length,
+      1,
+      `${completedStep} must remain owned by factory A after the later failure`,
+    );
+  }
+  assert.equal(
+    factoryA.eventRegistrations.length,
+    8,
+    "factory B must not duplicate factory A's completed API listener steps",
+  );
+  assert.equal(
+    combinedTrace.filter((item) => item === "loadSamplerOptions").length,
+    2,
+    "only the failing sampler loader step must retry in factory B",
+  );
+  assert.equal(
+    combinedTrace.filter((item) => item === "loadUserProfiles").length,
+    1,
+    "factory B must continue with the first not-yet-run step",
+  );
+
+  const factoryC = createFixture({ api: factoryA.api });
+  assert.equal(await factoryC.runtime.setup(), undefined);
+  await Promise.resolve();
+  assert.deepEqual(
+    factoryC.trace,
+    [],
+    "the successful retry must publish durable setup ownership",
+  );
+}
+
+{
+  const setupError = new Error("user profile setup failed");
+  const factoryA = createFixture({
+    userSetupError: setupError,
+    userSetupFailures: 1,
+  });
+  let caught = null;
+  try {
+    await factoryA.runtime.setup();
+  } catch (error) {
+    caught = error;
+  }
+  assert.equal(caught, setupError);
+  const factoryB = createFixture({ api: factoryA.api });
+  assert.equal(await factoryB.runtime.setup(), undefined);
+  await Promise.resolve();
+  const combinedTrace = [...factoryA.trace, ...factoryB.trace];
+  assert.equal(
+    combinedTrace.filter((item) => item === "loadSamplerOptions").length,
+    1,
+    "a sampler loader and its refresh tail must not restart after a later step fails",
+  );
+  assert.equal(
+    combinedTrace.filter((item) => item === "loadUserProfiles").length,
+    2,
+    "the failing user-profile loader step alone must retry",
+  );
+  assert.equal(
+    combinedTrace.filter((item) => item === "refreshPanels").length,
+    2,
+    "the sampler and successful user-profile refresh tails must each run once",
+  );
 }
 
 {
@@ -295,6 +442,59 @@ function createNodeType(trace, options = {}) {
 }
 
 {
+  const installError = new Error("prototype install failed");
+  const fixture = createFixture();
+  const { NodeType, returns } = createNodeType(fixture.trace);
+  const originalOnNodeCreated = NodeType.prototype.onNodeCreated;
+  let currentOnConfigure = NodeType.prototype.onConfigure;
+  let configureAssignmentFailures = 1;
+  Object.defineProperty(NodeType.prototype, "onConfigure", {
+    configurable: true,
+    get() {
+      return currentOnConfigure;
+    },
+    set(value) {
+      if (configureAssignmentFailures > 0) {
+        configureAssignmentFailures -= 1;
+        throw installError;
+      }
+      currentOnConfigure = value;
+    },
+  });
+
+  let caught = null;
+  try {
+    await fixture.runtime.beforeRegisterNodeDef(NodeType, { name: GENERATOR_NODE_TYPE });
+  } catch (error) {
+    caught = error;
+  }
+  assert.equal(caught, installError, "prototype install must preserve its original error");
+  assert.equal(
+    NodeType.prototype.onNodeCreated,
+    originalOnNodeCreated,
+    "a partial install must roll back hooks patched before the failure",
+  );
+  assert.equal(NodeType.prototype.hideOutputImages, undefined);
+  assert.equal(
+    Object.prototype.hasOwnProperty.call(
+      NodeType.prototype,
+      "__easyuseAnimaAioGeneratorHooksInstalled",
+    ),
+    false,
+    "a failed install must not publish prototype ownership",
+  );
+
+  await fixture.runtime.beforeRegisterNodeDef(NodeType, { name: GENERATOR_NODE_TYPE });
+  const node = new NodeType();
+  assert.equal(node.onNodeCreated("retry"), returns.created);
+  assert.deepEqual(fixture.trace, [
+    "suppressDefaultPreview:markDirty=false",
+    "original:onNodeCreated:retry",
+    "hookGeneratorNode",
+  ]);
+}
+
+{
   const fixture = createFixture();
   const { NodeType, returns } = createNodeType(fixture.trace);
   const generatorOnlyHooks = {
@@ -304,6 +504,14 @@ function createNodeType(trace, options = {}) {
     onRemoved: NodeType.prototype.onRemoved,
   };
   await fixture.runtime.beforeRegisterNodeDef(NodeType, { name: INPUT_NODE_TYPE });
+  const installedHooks = {
+    onNodeCreated: NodeType.prototype.onNodeCreated,
+    onConfigure: NodeType.prototype.onConfigure,
+  };
+  await fixture.runtime.beforeRegisterNodeDef(NodeType, { name: INPUT_NODE_TYPE });
+  for (const [name, hook] of Object.entries(installedHooks)) {
+    assert.equal(NodeType.prototype[name], hook, `input ${name} must not be wrapped twice`);
+  }
   const node = new NodeType();
 
   assert.equal(node.onNodeCreated("a", "b"), returns.created);
@@ -327,6 +535,24 @@ function createNodeType(trace, options = {}) {
   const fixture = createFixture();
   const { NodeType, returns } = createNodeType(fixture.trace);
   await fixture.runtime.beforeRegisterNodeDef(NodeType, { name: GENERATOR_NODE_TYPE });
+  const installedHooks = {
+    onNodeCreated: NodeType.prototype.onNodeCreated,
+    onConfigure: NodeType.prototype.onConfigure,
+    onSerialize: NodeType.prototype.onSerialize,
+    onExecuted: NodeType.prototype.onExecuted,
+    onResize: NodeType.prototype.onResize,
+    onRemoved: NodeType.prototype.onRemoved,
+  };
+  const reentryFixture = createFixture();
+  await reentryFixture.runtime.beforeRegisterNodeDef(NodeType, { name: GENERATOR_NODE_TYPE });
+  for (const [name, hook] of Object.entries(installedHooks)) {
+    assert.equal(NodeType.prototype[name], hook, `generator ${name} must not be wrapped twice`);
+  }
+  assert.deepEqual(
+    reentryFixture.trace,
+    [],
+    "a second runtime must not take ownership of an already-installed prototype",
+  );
   const node = new NodeType();
 
   assert.equal(NodeType.prototype.hideOutputImages, true);

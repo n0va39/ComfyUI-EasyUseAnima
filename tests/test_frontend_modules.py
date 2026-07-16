@@ -368,6 +368,18 @@ class FrontendModuleStructureTests(unittest.TestCase):
             ["aioCreateExtensionRuntime"],
         )
         self.assertIn(
+            'const EXTENSION_SETUP_HOST_MARKER = '
+            '"__easyuseAnimaAioExtensionSetupInstalled";',
+            source,
+        )
+        self.assertIn("function extensionSetupState(api)", source)
+        self.assertIn("completedSteps: new Set(),", source)
+        self.assertIn("function runExtensionSetupStep(state, step, install)", source)
+        self.assertIn("setupState.complete = true;", source)
+        self.assertIn("const originalDescriptors = new Map(", source)
+        self.assertIn("Object.defineProperty(nodeType.prototype, prototypeHookMarker", source)
+        self.assertIn("throw error;", source)
+        self.assertIn(
             'import { aioCreateExtensionRuntime } from "./aio/extension_runtime.js";',
             entry_source,
         )
@@ -674,7 +686,10 @@ class FrontendModuleStructureTests(unittest.TestCase):
         self.assertEqual(source.splitlines()[0], "// @ts-check")
         self.assertEqual(
             re.findall(r"export function ([A-Za-z0-9_]+)\(", source),
-            ["aioCreateGeneratorQueueRuntime"],
+            [
+                "aioCreateGeneratorQueueRuntime",
+                "aioInstallGeneratorQueuePromptHook",
+            ],
         )
         self.assertNotRegex(source, re.compile(r"^\s*import\s", re.MULTILINE))
         self.assertNotRegex(source, r"\b(?:document|window|app)\b")
@@ -682,8 +697,9 @@ class FrontendModuleStructureTests(unittest.TestCase):
         self.assertNotIn("app.registerExtension", source)
 
         self.assertIn(
-            'import { aioCreateGeneratorQueueRuntime } from '
-            '"./aio/generator_queue_runtime.js";',
+            "  aioCreateGeneratorQueueRuntime,\n"
+            "  aioInstallGeneratorQueuePromptHook,\n"
+            '} from "./aio/generator_queue_runtime.js";',
             entry_source,
         )
         factory_match = re.search(
@@ -754,14 +770,15 @@ class FrontendModuleStructureTests(unittest.TestCase):
         install_end = entry_source.index("\nfunction ensureButton", install_start)
         install_body = entry_source[install_start:install_end]
         self.assertIn(
-            "if (!api?.queuePrompt || api.queuePrompt.__easyuseAnimaAioWrapped)",
+            "return aioInstallGeneratorQueuePromptHook(api, generatorQueueRuntime);",
             install_body,
         )
         self.assertIn(
-            "api.queuePrompt = generatorQueueRuntime.wrapQueuePrompt(queuePrompt);",
-            install_body,
+            'const QUEUE_HOST_MARKER = "__easyuseAnimaAioQueuePromptInstalled";',
+            source,
         )
-        self.assertIn("api.queuePrompt.__easyuseAnimaAioWrapped = true;", install_body)
+        self.assertIn("queueHost[QUEUE_HOST_MARKER]", source)
+        self.assertIn("wrappedQueuePrompt[QUEUE_HOOK_MARKER] = true;", source)
         self.assertIn("updateSeed: updateGeneratorSeed,", panel_source)
         self.assertLess(
             entry_source.index("const generatorPanelRuntime"),

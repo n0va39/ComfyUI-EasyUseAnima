@@ -1,5 +1,8 @@
 // @ts-check
 
+const QUEUE_HOOK_MARKER = "__easyuseAnimaAioWrapped";
+const QUEUE_HOST_MARKER = "__easyuseAnimaAioQueuePromptInstalled";
+
 /**
  * @typedef {object} AioGeneratorQueueSettingsCore
  * @property {(value: any, fallback?: number) => number} normalizeSeedValue
@@ -401,4 +404,31 @@ export function aioCreateGeneratorQueueRuntime(dependencies) {
     preparePrompt,
     wrapQueuePrompt,
   };
+}
+
+/**
+ * Install the AiO queue wrapper once per queue owner. The owner marker remains
+ * visible when another extension later wraps queuePrompt, so repeated setup
+ * cannot hide and then stack another AiO wrapper.
+ *
+ * @param {any} queueHost
+ * @param {{wrapQueuePrompt: (queuePrompt: (...args: any[]) => any) => (...args: any[]) => any}} runtime
+ */
+export function aioInstallGeneratorQueuePromptHook(queueHost, runtime) {
+  if (
+    !queueHost
+    || typeof queueHost.queuePrompt !== "function"
+    || queueHost[QUEUE_HOST_MARKER]
+  ) {
+    return false;
+  }
+  if (queueHost.queuePrompt[QUEUE_HOOK_MARKER]) {
+    queueHost[QUEUE_HOST_MARKER] = true;
+    return false;
+  }
+  const wrappedQueuePrompt = runtime.wrapQueuePrompt(queueHost.queuePrompt);
+  wrappedQueuePrompt[QUEUE_HOOK_MARKER] = true;
+  queueHost.queuePrompt = wrappedQueuePrompt;
+  queueHost[QUEUE_HOST_MARKER] = true;
+  return true;
 }

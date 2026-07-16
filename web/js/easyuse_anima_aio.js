@@ -19,7 +19,10 @@ import { aioCreatePreviewSettingsDialog } from "./aio/preview_settings_dialog.js
 import { createAioProfileApiClient } from "./aio/profile_api_client.js";
 import { aioCreateProfileSettingsRuntime } from "./aio/profile_settings_runtime.js";
 import { aioCreateGeneratorPanelRuntime } from "./aio/generator_panel_runtime.js";
-import { aioCreateGeneratorQueueRuntime } from "./aio/generator_queue_runtime.js";
+import {
+  aioCreateGeneratorQueueRuntime,
+  aioInstallGeneratorQueuePromptHook,
+} from "./aio/generator_queue_runtime.js";
 import { aioCreateStageSettingsDialogs } from "./aio/stage_settings_dialogs.js";
 import { aioCreateDetailerSettingsDialog } from "./aio/detailer_settings_dialog.js";
 import { aioCreateSamplerSettingsDialog } from "./aio/sampler_settings_dialog.js";
@@ -3573,12 +3576,7 @@ function generatorGraphNodes() {
 }
 
 function installGeneratorQueuePromptHook() {
-  if (!api?.queuePrompt || api.queuePrompt.__easyuseAnimaAioWrapped) {
-    return;
-  }
-  const queuePrompt = api.queuePrompt;
-  api.queuePrompt = generatorQueueRuntime.wrapQueuePrompt(queuePrompt);
-  api.queuePrompt.__easyuseAnimaAioWrapped = true;
+  return aioInstallGeneratorQueuePromptHook(api, generatorQueueRuntime);
 }
 
 function ensureButton(node, key, label, callback) {
