@@ -80,6 +80,10 @@ class FakeStyle {
   }
 }
 
+function listenerCapture(options = false) {
+  return typeof options === "boolean" ? options : !!options?.capture;
+}
+
 function matchesSelector(element, selector) {
   return String(selector).split(",").some((candidate) => {
     const expected = candidate.trim();
@@ -128,8 +132,9 @@ function matchesSelector(element, selector) {
 }
 
 class FakeElement {
-  constructor(tagName) {
+  constructor(tagName, ownerDocument = null) {
     this.tagName = String(tagName).toUpperCase();
+    this.ownerDocument = ownerDocument;
     this.children = [];
     this.parentElement = null;
     this.style = new FakeStyle();
@@ -151,6 +156,8 @@ class FakeElement {
     this.hidden = false;
     this.focused = false;
     this.removed = false;
+    this.scrollTop = 0;
+    this.scrollLeft = 0;
     this.onclick = null;
     this.scrollIntoViewCalls = [];
     this.boundingClientRect = { left: 0, top: 0, width: 100, height: 20 };
@@ -176,6 +183,7 @@ class FakeElement {
 
   replaceChildren(...children) {
     for (const child of this.children) {
+      child.detachActiveElement();
       child.parentElement = null;
     }
     this.children = [];
@@ -194,10 +202,31 @@ class FakeElement {
     return this.attributes.get(name) ?? null;
   }
 
-  addEventListener(type, handler) {
-    const handlers = this.listeners.get(type) || [];
-    handlers.push(handler);
-    this.listeners.set(type, handlers);
+  addEventListener(type, handler, options = false) {
+    const entries = this.listeners.get(type) || [];
+    const capture = listenerCapture(options);
+    if (!entries.some((entry) => entry.handler === handler && entry.capture === capture)) {
+      entries.push({ handler, capture });
+    }
+    this.listeners.set(type, entries);
+  }
+
+  removeEventListener(type, handler, options = false) {
+    const entries = this.listeners.get(type) || [];
+    const capture = listenerCapture(options);
+    this.listeners.set(
+      type,
+      entries.filter((entry) => entry.handler !== handler || entry.capture !== capture),
+    );
+  }
+
+  listenerCount(type, options) {
+    const entries = this.listeners.get(type) || [];
+    if (arguments.length < 2) {
+      return entries.length;
+    }
+    const capture = listenerCapture(options);
+    return entries.filter((entry) => entry.capture === capture).length;
   }
 
   emit(type, event = {}) {
@@ -213,8 +242,8 @@ class FakeElement {
       },
       ...event,
     };
-    for (const handler of this.listeners.get(type) || []) {
-      handler(nextEvent);
+    for (const entry of this.listeners.get(type) || []) {
+      entry.handler(nextEvent);
     }
     return nextEvent;
   }
@@ -247,12 +276,31 @@ class FakeElement {
   }
 
   focus() {
+    const activeElement = this.ownerDocument?.activeElement;
+    if (activeElement && activeElement !== this) {
+      activeElement.focused = false;
+    }
+    if (this.ownerDocument) {
+      this.ownerDocument.activeElement = this;
+    }
     this.focused = true;
   }
 
   blur() {
     this.focused = false;
+    if (this.ownerDocument?.activeElement === this) {
+      this.ownerDocument.activeElement = this.ownerDocument.body;
+    }
     this.emit("blur");
+  }
+
+  detachActiveElement() {
+    const document = this.ownerDocument;
+    const activeElement = document?.activeElement;
+    if (activeElement && this.contains(activeElement)) {
+      activeElement.focused = false;
+      document.activeElement = document.body;
+    }
   }
 
   getBoundingClientRect() {
@@ -272,6 +320,7 @@ class FakeElement {
   }
 
   remove() {
+    this.detachActiveElement();
     if (this.parentElement) {
       const index = this.parentElement.children.indexOf(this);
       if (index >= 0) {
@@ -285,19 +334,20 @@ class FakeElement {
 
 class FakeDocument {
   constructor() {
-    this.body = new FakeElement("body");
+    this.body = new FakeElement("body", this);
+    this.activeElement = this.body;
     this.createdElements = [];
     this.listeners = new Map();
   }
 
   createElement(tagName) {
-    const element = new FakeElement(tagName);
+    const element = new FakeElement(tagName, this);
     this.createdElements.push(element);
     return element;
   }
 
   createTextNode(value) {
-    const element = new FakeElement("#text");
+    const element = new FakeElement("#text", this);
     element.textContent = String(value);
     this.createdElements.push(element);
     return element;
@@ -307,14 +357,18 @@ class FakeDocument {
     return this.body.querySelectorAll(selector);
   }
 
-  addEventListener(type, handler, capture = false) {
+  addEventListener(type, handler, options = false) {
     const entries = this.listeners.get(type) || [];
-    entries.push({ handler, capture });
+    const capture = listenerCapture(options);
+    if (!entries.some((entry) => entry.handler === handler && entry.capture === capture)) {
+      entries.push({ handler, capture });
+    }
     this.listeners.set(type, entries);
   }
 
-  removeEventListener(type, handler, capture = false) {
+  removeEventListener(type, handler, options = false) {
     const entries = this.listeners.get(type) || [];
+    const capture = listenerCapture(options);
     this.listeners.set(
       type,
       entries.filter((entry) => entry.handler !== handler || entry.capture !== capture),
@@ -327,8 +381,13 @@ class FakeDocument {
     }
   }
 
-  listenerCount(type) {
-    return (this.listeners.get(type) || []).length;
+  listenerCount(type, options) {
+    const entries = this.listeners.get(type) || [];
+    if (arguments.length < 2) {
+      return entries.length;
+    }
+    const capture = listenerCapture(options);
+    return entries.filter((entry) => entry.capture === capture).length;
   }
 }
 

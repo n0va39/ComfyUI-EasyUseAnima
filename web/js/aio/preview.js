@@ -200,6 +200,17 @@ export function aioRemovePreviewRun(images, runId = "") {
   return images.filter((item) => String(item?.__aio_run_id || "") !== normalizedRunId);
 }
 
+export function aioResolveTerminalPreviewState(existingFeedImages, settings, runId = "") {
+  const previewFeedImages = aioRemovePreviewRun(existingFeedImages, runId);
+  const previewImages = settings?.preview?.image_feed ? previewFeedImages : [];
+  return {
+    currentRunImages: [],
+    previewFeedImages,
+    previewImages,
+    selectedIndex: previewImages.length ? aioDefaultPreviewIndex(previewImages) : -1,
+  };
+}
+
 export function aioPreviewEventDetail(event) {
   const detail = event?.detail || {};
   if (detail?.data && typeof detail.data === "object") {

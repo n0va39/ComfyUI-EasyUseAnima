@@ -54,6 +54,7 @@ import {
   aioPreviewResolution,
   aioPreviewRunId,
   aioRemovePreviewRun,
+  aioResolveTerminalPreviewState,
   aioSelectedPreviewIndex,
   aioSuppressDefaultPreview,
   aioTagPreviewRun,
@@ -3489,8 +3490,16 @@ function writeGeneratorSettingsFromState(node, settings, markDirty = true) {
   writeSettings(node, widget, settings, markDirty);
 }
 
-function renderGeneratorPanel(node) {
-  return generatorPanelRuntime.renderPanel(node);
+function activateGeneratorPanel(node) {
+  return generatorPanelRuntime.activatePanel(node);
+}
+
+function disposeGeneratorPanel(node) {
+  return generatorPanelRuntime.disposePanel(node);
+}
+
+function renderGeneratorPanel(node, expectedLifecycle = null) {
+  return generatorPanelRuntime.renderPanel(node, expectedLifecycle);
 }
 
 function ensureGeneratorPanel(node) {
@@ -3503,6 +3512,10 @@ function updateGeneratorDomSummary(node) {
 
 function scheduleGeneratorLayout(node) {
   return generatorPanelRuntime.scheduleLayout(node);
+}
+
+function scheduleGeneratorSummary(node) {
+  return generatorPanelRuntime.scheduleSummary(node);
 }
 
 function refreshGeneratorSeedButtons(node) {
@@ -4000,6 +4013,7 @@ const generatorPanelRuntime = aioCreateGeneratorPanelRuntime({
   document,
   window,
   requestAnimationFrame: (callback) => requestAnimationFrame(callback),
+  cancelAnimationFrame: (frame) => cancelAnimationFrame(frame),
   panelMinHeight: GENERATOR_PANEL_MIN_HEIGHT,
   controls: {
     numberInput,
@@ -4075,6 +4089,7 @@ function hookInputNode(node) {
 }
 
 function hookGeneratorNode(node) {
+  const panelLifecycle = activateGeneratorPanel(node);
   activateGeneratorNativePreviewLifecycle(node);
   node.serialize_widgets = true;
   suppressGeneratorDefaultPreview(node, { markDirty: false });
@@ -4083,19 +4098,42 @@ function hookGeneratorNode(node) {
   syncGeneratorStateFromDom(node);
   scheduleGeneratorDefaultPreviewSuppression(node);
   loadGeneratorSamplerOptions().then(() => {
-    if (node?.__easyuseAnimaGeneratorPanelEl) {
-      renderGeneratorPanel(node);
-    }
+    renderGeneratorPanel(node, panelLifecycle);
   });
 }
 
 function addGeneratorPreviewImagesToNode(node, nextImages, runId = "", options = {}) {
-  if (!node || !Array.isArray(nextImages) || !nextImages.length) {
+  if (!node || !Array.isArray(nextImages)) {
+    return;
+  }
+  const replaceCurrentRun = !!options.replaceCurrentRun;
+  if (!nextImages.length) {
+    if (!replaceCurrentRun) {
+      return;
+    }
+    clearGeneratorDenoisePreview(node);
+    const settings = generatorSettings(node);
+    const terminalState = aioResolveTerminalPreviewState(
+      node.__easyuseAnimaGeneratorPreviewFeedImages,
+      settings,
+      runId,
+    );
+    node.__easyuseAnimaGeneratorCurrentRunImages = terminalState.currentRunImages;
+    node.__easyuseAnimaGeneratorPreviewFeedImages = terminalState.previewFeedImages;
+    node.__easyuseAnimaGeneratorPreviewImages = terminalState.previewImages;
+    if (terminalState.selectedIndex >= 0) {
+      node.__easyuseAnimaSelectedPreviewIndex = terminalState.selectedIndex;
+    } else {
+      delete node.__easyuseAnimaSelectedPreviewIndex;
+    }
+    updateGeneratorDomSummary(node);
+    scheduleGeneratorSummary(node);
+    scheduleGeneratorLayout(node);
+    markNodeDirty(node);
     return;
   }
   clearGeneratorDenoisePreview(node);
   const settings = generatorSettings(node);
-  const replaceCurrentRun = !!options.replaceCurrentRun;
   const currentImages = Array.isArray(node.__easyuseAnimaGeneratorCurrentRunImages)
     ? node.__easyuseAnimaGeneratorCurrentRunImages
     : [];
@@ -4122,7 +4160,7 @@ function addGeneratorPreviewImagesToNode(node, nextImages, runId = "", options =
   }
   node.__easyuseAnimaSelectedPreviewIndex = aioDefaultPreviewIndex(node.__easyuseAnimaGeneratorPreviewImages);
   updateGeneratorDomSummary(node);
-  requestAnimationFrame(() => updateGeneratorDomSummary(node));
+  scheduleGeneratorSummary(node);
   scheduleGeneratorLayout(node);
   markNodeDirty(node);
 }
@@ -4223,7 +4261,11 @@ app.registerExtension({
         try {
           return onRemoved?.apply(this, arguments);
         } finally {
-          disposeGeneratorNativePreviewLifecycle(this);
+          try {
+            disposeGeneratorPanel(this);
+          } finally {
+            disposeGeneratorNativePreviewLifecycle(this);
+          }
         }
       };
     }

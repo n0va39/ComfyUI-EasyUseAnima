@@ -32,6 +32,7 @@ const {
   aioPreviewResolution,
   aioPreviewRunId,
   aioRemovePreviewRun,
+  aioResolveTerminalPreviewState,
   aioSelectedPreviewIndex,
   aioSuppressDefaultPreview,
   aioTagPreviewRun,
@@ -196,6 +197,122 @@ assertJsonEqual(
   [multipleRuns[1]],
   "Removing a preview run must preserve images from every other run",
 );
+
+const previousPreview = Object.freeze({
+  stage: "first_pass",
+  filename: "previous-preview.webp",
+  __aio_run_id: "previous",
+});
+const previousFinal = Object.freeze({
+  stage: "final",
+  filename: "previous-final.webp",
+  __aio_run_id: "previous",
+});
+const currentPreview = Object.freeze({
+  stage: "final",
+  filename: "current-final.webp",
+  __aio_run_id: "current",
+});
+const terminalFeed = Object.freeze([previousPreview, previousFinal, currentPreview]);
+const terminalFeedSnapshot = JSON.stringify(terminalFeed);
+const terminalFeedOn = aioResolveTerminalPreviewState(
+  terminalFeed,
+  { preview: { image_feed: true } },
+  "current",
+);
+assertJsonEqual(
+  {
+    currentRunImages: terminalFeedOn.currentRunImages,
+    previewFeedImages: terminalFeedOn.previewFeedImages.map((image) => image.filename),
+    previewImages: terminalFeedOn.previewImages.map((image) => image.filename),
+    selectedIndex: terminalFeedOn.selectedIndex,
+  },
+  {
+    currentRunImages: [],
+    previewFeedImages: ["previous-preview.webp", "previous-final.webp"],
+    previewImages: ["previous-preview.webp", "previous-final.webp"],
+    selectedIndex: 1,
+  },
+  "Terminal feed-on state must remove the completed run while retaining visible history",
+);
+assert(
+  terminalFeedOn.previewImages === terminalFeedOn.previewFeedImages,
+  "Feed-on terminal state must expose the retained storage list as the visible list",
+);
+assert(
+  terminalFeedOn.previewFeedImages !== terminalFeed
+    && terminalFeedOn.previewFeedImages[0] === previousPreview
+    && terminalFeedOn.previewFeedImages[1] === previousFinal,
+  "Terminal resolution must return a new list while preserving retained image identity",
+);
+
+const terminalFeedOff = aioResolveTerminalPreviewState(
+  terminalFeed,
+  { preview: { image_feed: false } },
+  "current",
+);
+assertJsonEqual(
+  {
+    currentRunImages: terminalFeedOff.currentRunImages,
+    previewFeedImages: terminalFeedOff.previewFeedImages.map((image) => image.filename),
+    previewImages: terminalFeedOff.previewImages,
+    selectedIndex: terminalFeedOff.selectedIndex,
+  },
+  {
+    currentRunImages: [],
+    previewFeedImages: ["previous-preview.webp", "previous-final.webp"],
+    previewImages: [],
+    selectedIndex: -1,
+  },
+  "Terminal feed-off state must still clean storage while hiding retained history",
+);
+assert(
+  terminalFeedOff.previewFeedImages[0] === previousPreview
+    && terminalFeedOff.previewFeedImages[1] === previousFinal,
+  "Feed-off storage cleanup must preserve retained image identity",
+);
+assert(
+  JSON.stringify(terminalFeed) === terminalFeedSnapshot,
+  "Terminal preview resolution must not mutate its input feed or image objects",
+);
+
+for (const invalidFeed of [[], undefined, null, {}, "invalid"]) {
+  const terminalEmpty = aioResolveTerminalPreviewState(
+    invalidFeed,
+    { preview: { image_feed: true } },
+    "current",
+  );
+  assertJsonEqual(
+    terminalEmpty,
+    {
+      currentRunImages: [],
+      previewFeedImages: [],
+      previewImages: [],
+      selectedIndex: -1,
+    },
+    "Invalid terminal feed input must normalize to an empty state",
+  );
+}
+
+const terminalMissingSettings = aioResolveTerminalPreviewState(
+  terminalFeed,
+  null,
+  "current",
+);
+assertJsonEqual(
+  {
+    previewFeedImages: terminalMissingSettings.previewFeedImages.map((image) => image.filename),
+    previewImages: terminalMissingSettings.previewImages,
+    selectedIndex: terminalMissingSettings.selectedIndex,
+  },
+  {
+    previewFeedImages: ["previous-preview.webp", "previous-final.webp"],
+    previewImages: [],
+    selectedIndex: -1,
+  },
+  "Missing settings must keep storage cleanup safe while defaulting visibility off",
+);
+
 const replacedCurrentRunFeed = aioAppendPreviewFeed(
   aioRemovePreviewRun(
     [

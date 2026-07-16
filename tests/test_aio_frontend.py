@@ -313,17 +313,219 @@ class AIOFrontendSourceTests(unittest.TestCase):
             source.count("const onRemoved = nodeType.prototype.onRemoved;"),
             1,
         )
-        self.assertIn(
-            """      const onRemoved = nodeType.prototype.onRemoved;
-      nodeType.prototype.onRemoved = function () {
-        try {
-          return onRemoved?.apply(this, arguments);
-        } finally {
-          disposeGeneratorNativePreviewLifecycle(this);
-        }
-      };""",
-            generator_hooks,
+        on_removed_start = generator_hooks.index(
+            "const onRemoved = nodeType.prototype.onRemoved;"
         )
+        on_removed_end = generator_hooks.index("\n      };", on_removed_start)
+        on_removed_body = generator_hooks[on_removed_start:on_removed_end]
+
+        original_return = on_removed_body.index(
+            "return onRemoved?.apply(this, arguments);"
+        )
+        outer_finally = on_removed_body.index("finally", original_return)
+        panel_cleanup = on_removed_body.index(
+            "disposeGeneratorPanel(this);",
+            outer_finally,
+        )
+        nested_finally = on_removed_body.index("finally", panel_cleanup)
+        native_cleanup = on_removed_body.index(
+            "disposeGeneratorNativePreviewLifecycle(this);",
+            nested_finally,
+        )
+
+        self.assertLess(on_removed_body.index("try"), original_return)
+        self.assertLess(original_return, outer_finally)
+        self.assertLess(outer_finally, panel_cleanup)
+        self.assertLess(panel_cleanup, nested_finally)
+        self.assertLess(nested_finally, native_cleanup)
+        self.assertEqual(on_removed_body.count("disposeGeneratorPanel(this);"), 1)
+        self.assertEqual(
+            on_removed_body.count("disposeGeneratorNativePreviewLifecycle(this);"),
+            1,
+        )
+
+    def test_generator_panel_runtime_exposes_cancellable_lifecycle_facades(self):
+        panel_source = AIO_GENERATOR_PANEL_RUNTIME_JS.read_text(encoding="utf-8")
+        entry_source = AIO_JS.read_text(encoding="utf-8")
+
+        factory_start = panel_source.index(
+            "export function aioCreateGeneratorPanelRuntime(dependencies)"
+        )
+        dependency_end = panel_source.index("} = dependencies;", factory_start)
+        dependency_block = panel_source[factory_start:dependency_end]
+        for dependency in ("requestAnimationFrame", "cancelAnimationFrame"):
+            with self.subTest(runtime_dependency=dependency):
+                self.assertRegex(dependency_block, rf"\b{dependency}\s*,")
+
+        return_start = panel_source.rindex("\n  return {")
+        return_end = panel_source.index("\n  };", return_start)
+        return_body = panel_source[return_start:return_end]
+        for public_method in ("disposePanel", "scheduleSummary"):
+            with self.subTest(runtime_public_method=public_method):
+                self.assertRegex(
+                    return_body,
+                    rf"(?m)^\s*{public_method}(?:\s*:\s*[A-Za-z_$][\w$]*)?,\s*$",
+                )
+
+        dispose_start = panel_source.index("function disposeGeneratorPanel(node)")
+        dispose_end = panel_source.index("\n  function ", dispose_start + 1)
+        dispose_body = panel_source[dispose_start:dispose_end]
+        self.assertIn("cancelAnimationFrame(", dispose_body)
+
+        summary_start = panel_source.index("function scheduleGeneratorSummary(node)")
+        summary_end = panel_source.index("\n  function ", summary_start + 1)
+        summary_body = panel_source[summary_start:summary_end]
+        self.assertIn(
+            'scheduleGeneratorPanelFrame(node, "summary"',
+            summary_body,
+        )
+        self.assertNotIn("requestAnimationFrame", summary_body)
+
+        entry_factory_start = entry_source.index(
+            "const generatorPanelRuntime = aioCreateGeneratorPanelRuntime({"
+        )
+        entry_factory_end = entry_source.index("\n});", entry_factory_start)
+        entry_factory = entry_source[entry_factory_start:entry_factory_end]
+        self.assertRegex(
+            entry_factory,
+            r"cancelAnimationFrame:\s*\([^)]*\)\s*=>\s*cancelAnimationFrame\([^)]*\),",
+        )
+
+        dispose_wrapper_start = entry_source.index(
+            "function disposeGeneratorPanel(node)"
+        )
+        dispose_wrapper_end = entry_source.index(
+            "\nfunction ",
+            dispose_wrapper_start + 1,
+        )
+        dispose_wrapper = entry_source[dispose_wrapper_start:dispose_wrapper_end]
+        self.assertIn("generatorPanelRuntime.disposePanel(node)", dispose_wrapper)
+
+    def test_generator_preview_summary_uses_runtime_scheduler_facade(self):
+        source = AIO_JS.read_text(encoding="utf-8")
+
+        wrapper_start = source.index("function scheduleGeneratorSummary(node)")
+        wrapper_end = source.index("\nfunction ", wrapper_start + 1)
+        wrapper_body = source[wrapper_start:wrapper_end]
+        self.assertIn("generatorPanelRuntime.scheduleSummary(node)", wrapper_body)
+
+        preview_start = source.index("function addGeneratorPreviewImagesToNode")
+        preview_end = source.index(
+            "\nfunction updateGeneratorExecutedStatus",
+            preview_start,
+        )
+        preview_body = source[preview_start:preview_end]
+        self.assertIn("scheduleGeneratorSummary(node);", preview_body)
+        self.assertNotIn("requestAnimationFrame", preview_body)
+
+    def test_generator_terminal_empty_uses_pure_preview_state(self):
+        source = AIO_JS.read_text(encoding="utf-8")
+        preview_import_end = source.index('from "./aio/preview.js";')
+        self.assertIn(
+            "aioResolveTerminalPreviewState,",
+            source[:preview_import_end],
+        )
+
+        preview_start = source.index("function addGeneratorPreviewImagesToNode")
+        preview_end = source.index(
+            "\nfunction updateGeneratorExecutedStatus",
+            preview_start,
+        )
+        preview_body = source[preview_start:preview_end]
+        empty_start = preview_body.index("if (!nextImages.length)")
+        normal_preview_start = preview_body.index(
+            "\n  clearGeneratorDenoisePreview(node);",
+            empty_start,
+        )
+        empty_body = preview_body[empty_start:normal_preview_start]
+
+        self.assertEqual(empty_body.count("aioResolveTerminalPreviewState("), 1)
+        self.assertIn("clearGeneratorDenoisePreview(node);", empty_body)
+        for assignment in (
+            "node.__easyuseAnimaGeneratorCurrentRunImages = terminalState.currentRunImages;",
+            "node.__easyuseAnimaGeneratorPreviewFeedImages = terminalState.previewFeedImages;",
+            "node.__easyuseAnimaGeneratorPreviewImages = terminalState.previewImages;",
+            "node.__easyuseAnimaSelectedPreviewIndex = terminalState.selectedIndex;",
+        ):
+            with self.subTest(terminal_assignment=assignment):
+                self.assertIn(assignment, empty_body)
+        self.assertIn("delete node.__easyuseAnimaSelectedPreviewIndex;", empty_body)
+        self.assertIn("updateGeneratorDomSummary(node);", empty_body)
+        self.assertIn("scheduleGeneratorSummary(node);", empty_body)
+        self.assertIn("scheduleGeneratorLayout(node);", empty_body)
+        self.assertNotIn("aioRemovePreviewRun(", empty_body)
+
+        helper_call = empty_body.index("aioResolveTerminalPreviewState(")
+        self.assertLess(empty_body.index("clearGeneratorDenoisePreview(node);"), helper_call)
+        self.assertLess(
+            helper_call,
+            empty_body.index("scheduleGeneratorSummary(node);"),
+        )
+
+    def test_generator_denoise_blob_cleanup_stays_native_lifecycle_owned(self):
+        source = AIO_JS.read_text(encoding="utf-8")
+        panel_source = AIO_GENERATOR_PANEL_RUNTIME_JS.read_text(encoding="utf-8")
+        native_source = AIO_NATIVE_PREVIEW_RUNTIME_JS.read_text(encoding="utf-8")
+
+        clear_start = source.index("function clearGeneratorDenoisePreview")
+        clear_end = source.index("\nfunction setGeneratorDenoisePreview", clear_start)
+        clear_body = source[clear_start:clear_end]
+        revoke = clear_body.index("URL.revokeObjectURL(preview.url);")
+        delete = clear_body.index(
+            "delete node.__easyuseAnimaGeneratorDenoisePreview;"
+        )
+        self.assertLess(revoke, delete)
+
+        native_factory_start = source.index("aioCreateNativePreviewRuntime({")
+        native_factory_end = source.index("\n});", native_factory_start)
+        native_factory = source[native_factory_start:native_factory_end]
+        self.assertIn(
+            "clearDenoisePreview: clearGeneratorDenoisePreview,",
+            native_factory,
+        )
+        dispose_start = native_source.index(
+            "function disposeGeneratorNativePreviewLifecycle(node)"
+        )
+        dispose_end = native_source.index("\n  function ", dispose_start + 1)
+        dispose_body = native_source[dispose_start:dispose_end]
+        self.assertIn("clearGeneratorDenoisePreview(node, false);", dispose_body)
+        self.assertNotIn("URL.revokeObjectURL", panel_source)
+
+    def test_generator_panel_lifecycle_keeps_entry_behavior_boundaries(self):
+        source = AIO_JS.read_text(encoding="utf-8")
+        panel_source = AIO_GENERATOR_PANEL_RUNTIME_JS.read_text(encoding="utf-8")
+
+        for entry_owned_function in (
+            "loadGeneratorSamplerOptions",
+            "resolveGeneratorSeedForQueue",
+            "prepareGeneratorPromptForQueue",
+            "installGeneratorQueuePromptHook",
+            "installGeneratorWheelForwarder",
+        ):
+            with self.subTest(entry_owned_function=entry_owned_function):
+                self.assertRegex(
+                    source,
+                    rf"\bfunction\s+{entry_owned_function}\(",
+                )
+                self.assertNotRegex(
+                    panel_source,
+                    rf"\bfunction\s+{entry_owned_function}\(",
+                )
+
+        setup_start = source.index("  async setup() {")
+        setup_end = source.index("\n  async beforeRegisterNodeDef", setup_start)
+        setup_body = source[setup_start:setup_end]
+        self.assertIn("installGeneratorWheelForwarder();", setup_body)
+        self.assertIn("installGeneratorQueuePromptHook();", setup_body)
+
+        for unchanged_adapter in (
+            "specialSeedRandom: GENERATOR_SPECIAL_SEED_RANDOM,",
+            "fallbackSamplerNames: GENERATOR_FALLBACK_SAMPLER_NAMES,",
+            "fallbackSchedulerNames: GENERATOR_FALLBACK_SCHEDULER_NAMES,",
+            "randomSeed,",
+        ):
+            with self.subTest(unchanged_panel_adapter=unchanged_adapter):
+                self.assertIn(unchanged_adapter, source)
 
     def test_generator_preview_meta_keeps_dedicated_resolution_label(self):
         source = AIO_GENERATOR_PANEL_RUNTIME_JS.read_text(encoding="utf-8")

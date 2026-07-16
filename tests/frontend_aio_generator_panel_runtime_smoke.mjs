@@ -26,6 +26,22 @@ function findByText(root, textContent) {
   return find(root, (element) => element.textContent === textContent);
 }
 
+const PANEL_EVENT_NAMES = [
+  "pointerdown",
+  "mousedown",
+  "pointerup",
+  "mouseup",
+  "click",
+  "dblclick",
+  "keydown",
+  "keyup",
+  "wheel",
+];
+
+function listenerCapture(options = false) {
+  return typeof options === "boolean" ? options : !!options?.capture;
+}
+
 const panelModule = await import(dataModule("../web/js/aio/generator_panel_runtime.js"));
 const settingsModule = await import(dataModule("../web/js/aio/settings.js"));
 assert.deepEqual(
@@ -36,24 +52,75 @@ assert.deepEqual(
 
 function createFixture() {
   let dependencyCalls = 0;
+  let nextAnimationFrameId = 1;
   const trace = [];
   const animationFrames = [];
+  const canceledAnimationFrames = [];
+  const staleAnimationFrames = [];
+  const domWidgetStore = new Set();
   const actionCalls = [];
   const document = createFakeDocument();
   const windowListeners = new Map();
   const window = {
-    addEventListener(type, listener) {
+    addEventListener(type, handler, options = false) {
       dependencyCalls += 1;
-      const listeners = windowListeners.get(type) || [];
-      listeners.push(listener);
-      windowListeners.set(type, listeners);
+      const entries = windowListeners.get(type) || [];
+      const capture = listenerCapture(options);
+      if (!entries.some((entry) => entry.handler === handler && entry.capture === capture)) {
+        entries.push({ handler, capture });
+      }
+      windowListeners.set(type, entries);
     },
-    removeEventListener(type, listener) {
+    removeEventListener(type, handler, options = false) {
       dependencyCalls += 1;
-      const listeners = windowListeners.get(type) || [];
-      windowListeners.set(type, listeners.filter((candidate) => candidate !== listener));
+      const entries = windowListeners.get(type) || [];
+      const capture = listenerCapture(options);
+      windowListeners.set(
+        type,
+        entries.filter((entry) => entry.handler !== handler || entry.capture !== capture),
+      );
     },
   };
+
+  function requestAnimationFrame(callback) {
+    dependencyCalls += 1;
+    callback.__frameId = nextAnimationFrameId;
+    nextAnimationFrameId += 1;
+    animationFrames.push(callback);
+    return callback.__frameId;
+  }
+
+  function cancelAnimationFrame(frameId) {
+    dependencyCalls += 1;
+    canceledAnimationFrames.push(frameId);
+    const index = animationFrames.findIndex(
+      (callback) => callback.__frameId === frameId,
+    );
+    if (index >= 0) {
+      staleAnimationFrames.push(...animationFrames.splice(index, 1));
+    }
+  }
+
+  function windowListenerCount(type, options) {
+    const entries = windowListeners.get(type) || [];
+    if (arguments.length < 2) {
+      return entries.length;
+    }
+    const capture = listenerCapture(options);
+    return entries.filter((entry) => entry.capture === capture).length;
+  }
+
+  function dispatchWindow(type, event = {}) {
+    for (const entry of [...(windowListeners.get(type) || [])]) {
+      entry.handler(event);
+    }
+  }
+
+  function runStaleAnimationFrames() {
+    for (const callback of staleAnimationFrames.splice(0)) {
+      callback();
+    }
+  }
 
   function numberInput(value, step = "1") {
     dependencyCalls += 1;
@@ -295,10 +362,8 @@ function createFixture() {
   const runtime = panelModule.aioCreateGeneratorPanelRuntime({
     document,
     window,
-    requestAnimationFrame(callback) {
-      dependencyCalls += 1;
-      animationFrames.push(callback);
-    },
+    requestAnimationFrame,
+    cancelAnimationFrame,
     panelMinHeight: 430,
     controls: {
       numberInput,
@@ -321,8 +386,14 @@ function createFixture() {
   return {
     runtime,
     document,
+    window,
     trace,
     animationFrames,
+    canceledAnimationFrames,
+    domWidgetStore,
+    runStaleAnimationFrames,
+    windowListenerCount,
+    dispatchWindow,
     actionCalls,
     defaultSettings,
     dependencyCalls: () => dependencyCalls,
@@ -331,13 +402,37 @@ function createFixture() {
 
 const fixture = createFixture();
 assert.deepEqual(Object.keys(fixture.runtime).sort(), [
+  "activatePanel",
+  "disposePanel",
   "ensurePanel",
   "refreshSeedButtons",
   "renderPanel",
   "scheduleLayout",
+  "scheduleSummary",
   "updateSummary",
 ]);
 assert.equal(fixture.dependencyCalls(), 0, "factory creation must have no side effects");
+
+const captureProbe = () => {};
+const captureElement = fixture.document.createElement("div");
+captureElement.addEventListener("probe", captureProbe, { capture: true });
+captureElement.removeEventListener("probe", captureProbe, false);
+assert.equal(
+  captureElement.listenerCount("probe", true),
+  1,
+  "element listener removal with the wrong capture flag must be a no-op",
+);
+captureElement.removeEventListener("probe", captureProbe, true);
+assert.equal(captureElement.listenerCount("probe"), 0);
+fixture.window.addEventListener("probe", captureProbe, { capture: true });
+fixture.window.removeEventListener("probe", captureProbe, false);
+assert.equal(
+  fixture.windowListenerCount("probe", true),
+  1,
+  "window listener removal with the wrong capture flag must be a no-op",
+);
+fixture.window.removeEventListener("probe", captureProbe, true);
+assert.equal(fixture.windowListenerCount("probe"), 0);
 
 const settings = clone(fixture.defaultSettings);
 settings.sampler.spectrum.enabled = true;
@@ -376,6 +471,8 @@ const images = [
 const widgetCalls = [];
 const node = {
   settings,
+  widgets: [],
+  widgets_values: ["serialized-widget-state"],
   widgetValues: {
     seed: settings.sampler.seed,
     steps: settings.sampler.steps,
@@ -390,7 +487,26 @@ const node = {
   __easyuseAnimaGeneratorPreviewImages: images,
   __easyuseAnimaSelectedPreviewIndex: 1,
   addDOMWidget(name, type, element, options) {
-    widgetCalls.push({ name, type, element, options });
+    const widget = {
+      name,
+      type,
+      element,
+      options,
+      onRemoveCalls: 0,
+      onRemoveError: null,
+      onRemove() {
+        this.onRemoveCalls += 1;
+        fixture.domWidgetStore.delete(this);
+        if (this.onRemoveError) {
+          throw this.onRemoveError;
+        }
+      },
+    };
+    widgetCalls.push(widget);
+    this.widgets.push(widget);
+    fixture.domWidgetStore.add(widget);
+    fixture.document.body.append(element);
+    return widget;
   },
 };
 
@@ -402,6 +518,8 @@ const firstMain = panel.children[0];
 const secondEnsureStart = fixture.trace.length;
 fixture.runtime.ensurePanel(node);
 const secondEnsureTrace = fixture.trace.slice(secondEnsureStart);
+const initialPanelLifecycle = fixture.runtime.activatePanel(node);
+assert.equal(fixture.runtime.activatePanel(node), initialPanelLifecycle);
 const assertEnsureOrder = (runTrace) => {
   const ensureStyleIndex = runTrace.indexOf("ensure-style");
   const suppressIndex = runTrace.indexOf('suppress:{"markDirty":false}');
@@ -419,6 +537,10 @@ assert.equal(node.__easyuseAnimaGeneratorPanelEl, panel, "panel root identity mu
 assert.equal(panel.className, "easyuse-anima-aio-node-panel");
 assert.equal(firstMain.parentElement, null, "rerender must replace children without replacing the root");
 assert.equal(widgetCalls.length, 1, "repeated ensure must not add another DOM widget");
+const panelWidget = widgetCalls[0];
+assert.equal(node.__easyuseAnimaGeneratorPanelWidget, panelWidget);
+assert.equal(fixture.domWidgetStore.size, 1);
+assert.equal(fixture.domWidgetStore.has(panelWidget), true);
 assert.equal(node.serialize_widgets, true);
 assert.equal(node.minWidth, 560);
 assert.deepEqual(node.size, [620, 700]);
@@ -434,18 +556,13 @@ assert.equal(
   2,
 );
 assert.equal(fixture.trace.filter((value) => value === "native-hidden").length, 4);
-for (const eventName of [
-  "pointerdown",
-  "mousedown",
-  "pointerup",
-  "mouseup",
-  "click",
-  "dblclick",
-  "keydown",
-  "keyup",
-  "wheel",
-]) {
+for (const eventName of PANEL_EVENT_NAMES) {
   assert.equal(panel.listeners.get(eventName)?.length, 1, eventName + " listener must bind once");
+  assert.equal(
+    panel.listenerCount(eventName, eventName === "wheel"),
+    1,
+    eventName + " listener must bind with the expected capture flag",
+  );
 }
 
 assert.equal(fixture.animationFrames.length, 1, "two renders before a frame must coalesce layout");
@@ -453,7 +570,7 @@ panel.style.height = "999px";
 panel.style["max-height"] = "999px";
 const dirtyBeforeFirstLayout = node.dirtyCount || 0;
 fixture.animationFrames.shift()();
-assert.equal(node.__easyuseAnimaGeneratorLayoutScheduled, false);
+assert.equal(fixture.animationFrames.length, 0);
 assert.equal(panel.style.width, "600px");
 assert.equal(panel.style.maxWidth, "600px");
 assert.equal(panel.style.getPropertyValue("height"), "");
@@ -603,6 +720,18 @@ assert.equal(previewFeed.children[0].children[0].src, "/view/first.png");
 assert.equal(previewFeed.children[1].children[0].src, "/view/second.png");
 assert.equal(previewFeed.children[1].classList.contains("active"), true);
 assert.equal(previewFeed.children[1].scrollIntoViewCalls.length, 1);
+const stablePreviewThumbs = [...previewFeed.children];
+const stableSelectedScrollCalls = stablePreviewThumbs[1].scrollIntoViewCalls.length;
+previewFeed.scrollLeft = 47;
+fixture.runtime.updateSummary(node);
+assert.equal(previewFeed.children[0], stablePreviewThumbs[0]);
+assert.equal(previewFeed.children[1], stablePreviewThumbs[1]);
+assert.equal(previewFeed.scrollLeft, 47);
+assert.equal(
+  stablePreviewThumbs[1].scrollIntoViewCalls.length,
+  stableSelectedScrollCalls,
+  "an unchanged preview signature must not auto-scroll the selected thumbnail again",
+);
 previewFeed.children[0].emit("click");
 assert.equal(node.__easyuseAnimaSelectedPreviewIndex, 0);
 assert.equal(previewBox.children[0].tagName, "IMG");
@@ -632,16 +761,58 @@ assert.equal(pendingThumb.classList.contains("pending"), true);
 assert.equal(pendingThumb.disabled, true);
 assert.equal(pendingThumb.scrollIntoViewCalls.length, 1);
 
+const staleDenoisePreview = previewBox.children[0];
 delete node.__easyuseAnimaGeneratorDenoisePreview;
 node.__easyuseAnimaGeneratorPreviewImages = [];
 fixture.runtime.updateSummary(node);
 assert.equal(previewFeed.hidden, true);
+assert.equal(previewFeed.children.length, 0);
 assert.equal(previewMeta.textContent, "-");
+assert.equal(previewMeta.title, "");
+assert.equal(staleDenoisePreview.parentElement, null);
 assert.equal(
   previewBox.children[0].className,
-  "easyuse-anima-aio-node-denoise-preview",
-  "mechanical extraction must preserve the current no-image placeholder behavior",
+  "easyuse-anima-aio-node-preview-placeholder",
+  "no image must restore the standard preview placeholder",
 );
+assert.equal(previewBox.children[0].children[0].textContent, "text:text.previewTitle");
+assert.equal(previewBox.children[0].children[1].textContent, "text:text.previewSubtitle");
+assert.equal(previewBox.querySelector("img"), null);
+
+node.__easyuseAnimaGeneratorPreviewImages = [images[0]];
+fixture.runtime.updateSummary(node);
+const staleValidPreview = previewBox.children[0];
+assert.equal(staleValidPreview.tagName, "IMG");
+node.__easyuseAnimaGeneratorPreviewImages = [images[0], { label: "Missing URL" }];
+node.__easyuseAnimaSelectedPreviewIndex = 1;
+fixture.runtime.updateSummary(node);
+assert.equal(staleValidPreview.parentElement, null);
+assert.equal(previewBox.children[0].className, "easyuse-anima-aio-node-preview-placeholder");
+assert.equal(previewBox.querySelector("img"), null);
+assert.equal(previewFeed.hidden, false);
+assert.equal(previewFeed.children.length, 1);
+assert.equal(previewFeed.children[0].children[0].src, "/view/first.png");
+assert.equal(previewMeta.textContent, "-");
+assert.equal(previewMeta.title, "");
+previewFeed.children[0].emit("click");
+assert.equal(node.__easyuseAnimaSelectedPreviewIndex, 0);
+assert.equal(previewBox.children[0].tagName, "IMG");
+assert.equal(previewBox.children[0].src, "/view/first.png");
+assert.equal(previewMeta.textContent, "first · 512x768 · 1 MB");
+
+const recoveredValidPreview = previewBox.children[0];
+node.__easyuseAnimaGeneratorPreviewImages = [
+  { label: "Missing URL A" },
+  { label: "Missing URL B" },
+];
+node.__easyuseAnimaSelectedPreviewIndex = 1;
+fixture.runtime.updateSummary(node);
+assert.equal(recoveredValidPreview.parentElement, null);
+assert.equal(previewBox.children[0].className, "easyuse-anima-aio-node-preview-placeholder");
+assert.equal(previewFeed.hidden, true);
+assert.equal(previewFeed.children.length, 0);
+assert.equal(previewMeta.textContent, "-");
+assert.equal(previewMeta.title, "");
 
 node.__easyuseAnimaLastQueuedSeed = 777;
 fixture.runtime.refreshSeedButtons(node);
@@ -695,5 +866,287 @@ assert.ok(
 );
 assert.notEqual(panel.children[0], main, "rerendering a stage toggle must replace panel children");
 
-assert.equal(findByClass(panel, "easyuse-anima-aio-node-main") != null, true);
+while (fixture.animationFrames.length) {
+  fixture.animationFrames.shift()();
+}
+
+const beforeStatefulRenderMain = panel.children[0];
+const beforeStatefulRenderScroll = panel.querySelector(
+  ".easyuse-anima-aio-node-settings-scroll",
+);
+const beforeStatefulRenderFeed = panel.querySelector("[data-aio-preview-feed]");
+const beforeStatefulRenderSeed = panel.querySelector("[data-aio-seed-input]");
+beforeStatefulRenderScroll.scrollTop = 137;
+beforeStatefulRenderScroll.scrollLeft = 11;
+beforeStatefulRenderFeed.scrollLeft = 29;
+beforeStatefulRenderSeed.focus();
+const beforeStatefulRenderSlider = findByClass(
+  panel,
+  "easyuse-anima-aio-node-slider-track",
+);
+const beforeStatefulRenderSliderInput = beforeStatefulRenderSlider.parentElement.children[0];
+beforeStatefulRenderSlider.emit("pointerdown", {
+  pointerId: 17,
+  clientX: 40,
+});
+assert.equal(fixture.windowListenerCount("pointermove"), 1);
+assert.equal(fixture.windowListenerCount("pointerup"), 1);
+assert.equal(fixture.windowListenerCount("pointercancel"), 1);
+assert.equal(fixture.windowListenerCount("blur"), 1);
+for (const eventName of ["pointermove", "pointerup", "pointercancel", "blur"]) {
+  assert.equal(
+    fixture.windowListenerCount(eventName, true),
+    1,
+    eventName + " drag listener must use capture",
+  );
+}
+assert.equal(
+  fixture.animationFrames.length,
+  1,
+  "slider pointerdown must schedule the initial summary frame",
+);
+fixture.animationFrames.shift()();
+assert.equal(fixture.animationFrames.length, 0);
+for (const clientX of [50, 60, 70]) {
+  fixture.dispatchWindow("pointermove", {
+    clientX,
+    preventDefault() {},
+    stopPropagation() {},
+  });
+}
+assert.equal(
+  fixture.animationFrames.length,
+  1,
+  "multiple slider pointer moves must schedule one new coalesced summary frame",
+);
+assert.equal(
+  beforeStatefulRenderSliderInput.value,
+  "53",
+  "the final slider input value must reflect the last pointer position",
+);
+fixture.dispatchWindow("pointercancel");
+assert.equal(fixture.windowListenerCount("pointermove"), 0);
+assert.equal(fixture.windowListenerCount("pointerup"), 0);
+assert.equal(fixture.windowListenerCount("pointercancel"), 0);
+assert.equal(fixture.windowListenerCount("blur"), 0);
+beforeStatefulRenderSlider.emit("pointerdown", {
+  pointerId: 18,
+  clientX: 45,
+});
+assert.equal(fixture.windowListenerCount("pointermove"), 1);
+assert.equal(fixture.windowListenerCount("pointerup"), 1);
+assert.equal(fixture.windowListenerCount("pointercancel"), 1);
+assert.equal(fixture.windowListenerCount("blur"), 1);
+
+fixture.runtime.renderPanel(node);
+const restoredScroll = panel.querySelector(".easyuse-anima-aio-node-settings-scroll");
+const restoredFeed = panel.querySelector("[data-aio-preview-feed]");
+const restoredSeed = panel.querySelector("[data-aio-seed-input]");
+assert.notEqual(panel.children[0], beforeStatefulRenderMain);
+assert.notEqual(restoredScroll, beforeStatefulRenderScroll);
+assert.notEqual(restoredSeed, beforeStatefulRenderSeed);
+assert.equal(restoredScroll.scrollTop, 137);
+assert.equal(restoredScroll.scrollLeft, 11);
+assert.notEqual(restoredFeed, beforeStatefulRenderFeed);
+assert.equal(restoredFeed.scrollLeft, 29);
+assert.equal(fixture.document.activeElement, restoredSeed);
+assert.equal(restoredSeed.focused, true);
+assert.equal(beforeStatefulRenderSeed.focused, false);
+assert.equal(fixture.windowListenerCount("pointermove"), 0);
+assert.equal(fixture.windowListenerCount("pointerup"), 0);
+assert.equal(fixture.windowListenerCount("pointercancel"), 0);
+assert.equal(fixture.windowListenerCount("blur"), 0);
+for (const eventName of PANEL_EVENT_NAMES) {
+  assert.equal(panel.listenerCount(eventName), 1, eventName + " listener must remain singular");
+}
+
+while (fixture.animationFrames.length) {
+  fixture.animationFrames.shift()();
+}
+const summaryTraceStart = fixture.trace.length;
+fixture.runtime.scheduleSummary(node);
+fixture.runtime.scheduleSummary(node);
+assert.equal(fixture.animationFrames.length, 1, "summary requests must coalesce per frame");
+fixture.animationFrames.shift()();
+assert.equal(fixture.animationFrames.length, 0);
+assert.equal(
+  fixture.trace.slice(summaryTraceStart).includes("get-settings"),
+  true,
+  "scheduled summary must run the normal summary update",
+);
+
+fixture.runtime.scheduleLayout(node);
+fixture.runtime.scheduleLayout(node);
+fixture.runtime.scheduleSummary(node);
+fixture.runtime.scheduleSummary(node);
+assert.equal(
+  fixture.animationFrames.length,
+  2,
+  "layout and summary must retain independent keyed frame ownership",
+);
+const pendingFrameIds = fixture.animationFrames
+  .map((callback) => callback.__frameId)
+  .sort((left, right) => left - right);
+const activeDisposeSlider = findByClass(panel, "easyuse-anima-aio-node-slider-track");
+activeDisposeSlider.emit("pointerdown", {
+  pointerId: 23,
+  clientX: 60,
+});
+assert.equal(fixture.windowListenerCount("pointermove"), 1);
+assert.equal(fixture.windowListenerCount("pointerup"), 1);
+assert.equal(fixture.windowListenerCount("pointercancel"), 1);
+assert.equal(fixture.windowListenerCount("blur"), 1);
+
+const serializedWidgetValues = node.widgets_values;
+const finalPreviewImages = node.__easyuseAnimaGeneratorPreviewImages;
+const widgetCleanupError = new Error("injected DOM widget cleanup failure");
+panelWidget.onRemoveError = widgetCleanupError;
+const canceledBeforeDispose = fixture.canceledAnimationFrames.length;
+let observedDisposeError = null;
+try {
+  fixture.runtime.disposePanel(node);
+} catch (error) {
+  observedDisposeError = error;
+}
+assert.equal(
+  observedDisposeError == null || observedDisposeError === widgetCleanupError,
+  true,
+  "dispose may propagate the injected cleanup error only after completing teardown",
+);
+assert.deepEqual(
+  fixture.canceledAnimationFrames
+    .slice(canceledBeforeDispose)
+    .sort((left, right) => left - right),
+  pendingFrameIds,
+  "dispose must cancel the exact pending layout and summary frames",
+);
+assert.equal(fixture.animationFrames.length, 0);
+assert.equal(fixture.windowListenerCount("pointermove"), 0);
+assert.equal(fixture.windowListenerCount("pointerup"), 0);
+assert.equal(fixture.windowListenerCount("pointercancel"), 0);
+assert.equal(fixture.windowListenerCount("blur"), 0);
+for (const eventName of PANEL_EVENT_NAMES) {
+  assert.equal(panel.listenerCount(eventName), 0, eventName + " listener must be disposed");
+}
+assert.equal(panel.parentElement, null);
+assert.equal(panel.removed, true);
+assert.equal(Object.hasOwn(node, "__easyuseAnimaGeneratorPanelEl"), false);
+assert.equal(Object.hasOwn(node, "__easyuseAnimaGeneratorPanelWidget"), false);
+assert.equal(node.widgets.length, 0);
+assert.equal(panelWidget.onRemoveCalls, 1);
+assert.equal(fixture.domWidgetStore.size, 0);
+assert.equal(fixture.domWidgetStore.has(panelWidget), false);
+assert.equal(node.widgets_values, serializedWidgetValues);
+assert.equal(node.__easyuseAnimaGeneratorPreviewImages, finalPreviewImages);
+
+const styleAfterDispose = {
+  width: panel.style.width,
+  maxWidth: panel.style.maxWidth,
+  height: panel.style.getPropertyValue("height"),
+  maxHeight: panel.style.getPropertyValue("max-height"),
+};
+const childrenAfterDispose = panel.children.length;
+const forwardWheelBeforeStale = fixture.trace.filter(
+  (value) => value === "forward-wheel",
+).length;
+panel.emit("wheel", { target: panel });
+assert.equal(
+  fixture.trace.filter((value) => value === "forward-wheel").length,
+  forwardWheelBeforeStale,
+  "disposed delegated listeners must stay inert",
+);
+
+const canceledBeforeSecondDispose = fixture.canceledAnimationFrames.length;
+fixture.runtime.disposePanel(node);
+fixture.runtime.scheduleLayout(node);
+fixture.runtime.scheduleSummary(node);
+assert.equal(fixture.canceledAnimationFrames.length, canceledBeforeSecondDispose);
+assert.equal(fixture.animationFrames.length, 0);
+assert.equal(fixture.windowListenerCount("pointermove"), 0);
+assert.equal(fixture.windowListenerCount("pointerup"), 0);
+assert.equal(fixture.windowListenerCount("pointercancel"), 0);
+assert.equal(fixture.windowListenerCount("blur"), 0);
+assert.equal(panelWidget.onRemoveCalls, 1);
+assert.equal(fixture.domWidgetStore.size, 0);
+
+const widgetCallsBeforeReactivate = widgetCalls.length;
+fixture.runtime.ensurePanel(node);
+const reactivatedLifecycle = fixture.runtime.activatePanel(node);
+assert.notEqual(reactivatedLifecycle, initialPanelLifecycle);
+assert.equal(fixture.runtime.activatePanel(node), reactivatedLifecycle);
+const reactivatedPanel = node.__easyuseAnimaGeneratorPanelEl;
+assert.notEqual(reactivatedPanel, panel);
+assert.equal(reactivatedPanel.parentElement, fixture.document.body);
+assert.equal(widgetCalls.length, widgetCallsBeforeReactivate + 1);
+assert.equal(node.widgets.length, 1);
+const reactivatedWidget = widgetCalls.at(-1);
+assert.notEqual(reactivatedWidget, panelWidget);
+assert.equal(reactivatedWidget.onRemoveCalls, 0);
+assert.equal(fixture.domWidgetStore.size, 1);
+assert.equal(fixture.domWidgetStore.has(reactivatedWidget), true);
+assert.equal(fixture.domWidgetStore.has(panelWidget), false);
+assert.equal(
+  fixture.document.body.querySelectorAll(".easyuse-anima-aio-node-panel").length,
+  1,
+);
+assert.equal(node.widgets_values, serializedWidgetValues);
+assert.equal(node.__easyuseAnimaGeneratorPreviewImages, finalPreviewImages);
+for (const eventName of PANEL_EVENT_NAMES) {
+  assert.equal(
+    reactivatedPanel.listenerCount(eventName),
+    1,
+    eventName + " listener must reactivate exactly once",
+  );
+  assert.equal(
+    reactivatedPanel.listenerCount(eventName, eventName === "wheel"),
+    1,
+    eventName + " listener must reactivate with the expected capture flag",
+  );
+}
+assert.equal(fixture.animationFrames.length, 1, "reactivation must restore layout scheduling");
+const reactivatedMain = reactivatedPanel.children[0];
+const reactivatedPreview = reactivatedPanel
+  .querySelector("[data-aio-preview-box]")
+  .children[0];
+const reactivatedFrameIds = fixture.animationFrames.map((callback) => callback.__frameId);
+const traceBeforeStaleGeneration = fixture.trace.length;
+const dirtyBeforeStaleGeneration = node.dirtyCount || 0;
+fixture.runStaleAnimationFrames();
+assert.equal(reactivatedPanel.children[0], reactivatedMain);
+assert.equal(
+  reactivatedPanel.querySelector("[data-aio-preview-box]").children[0],
+  reactivatedPreview,
+);
+assert.deepEqual(
+  fixture.animationFrames.map((callback) => callback.__frameId),
+  reactivatedFrameIds,
+  "callbacks canceled by the old lifecycle must not consume the new layout frame",
+);
+assert.equal(fixture.trace.length, traceBeforeStaleGeneration);
+assert.equal(node.dirtyCount || 0, dirtyBeforeStaleGeneration);
+assert.deepEqual({
+  width: panel.style.width,
+  maxWidth: panel.style.maxWidth,
+  height: panel.style.getPropertyValue("height"),
+  maxHeight: panel.style.getPropertyValue("max-height"),
+}, styleAfterDispose);
+assert.equal(panel.children.length, childrenAfterDispose);
+
+fixture.runtime.renderPanel(node, initialPanelLifecycle);
+assert.equal(
+  reactivatedPanel.children[0],
+  reactivatedMain,
+  "a continuation holding the old lifecycle token must not rerender the new panel",
+);
+assert.deepEqual(
+  fixture.animationFrames.map((callback) => callback.__frameId),
+  reactivatedFrameIds,
+);
+fixture.animationFrames.shift()();
+assert.equal(reactivatedPanel.style.width, "600px");
+assert.equal(
+  reactivatedPanel.querySelector("[data-aio-preview-box]").children[0].className,
+  "easyuse-anima-aio-node-preview-placeholder",
+);
+assert.equal(findByClass(reactivatedPanel, "easyuse-anima-aio-node-main") != null, true);
 console.log("AiO generator panel runtime smoke passed.");

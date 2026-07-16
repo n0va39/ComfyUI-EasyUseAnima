@@ -459,18 +459,26 @@ class FrontendModuleStructureTests(unittest.TestCase):
                 )
 
         wrappers = {
-            "renderGeneratorPanel": "renderPanel",
-            "ensureGeneratorPanel": "ensurePanel",
-            "updateGeneratorDomSummary": "updateSummary",
-            "scheduleGeneratorLayout": "scheduleLayout",
-            "refreshGeneratorSeedButtons": "refreshSeedButtons",
+            "activateGeneratorPanel": ("node", "activatePanel", "node"),
+            "disposeGeneratorPanel": ("node", "disposePanel", "node"),
+            "renderGeneratorPanel": (
+                "node, expectedLifecycle = null",
+                "renderPanel",
+                "node, expectedLifecycle",
+            ),
+            "ensureGeneratorPanel": ("node", "ensurePanel", "node"),
+            "updateGeneratorDomSummary": ("node", "updateSummary", "node"),
+            "scheduleGeneratorLayout": ("node", "scheduleLayout", "node"),
+            "scheduleGeneratorSummary": ("node", "scheduleSummary", "node"),
+            "refreshGeneratorSeedButtons": ("node", "refreshSeedButtons", "node"),
         }
-        for wrapper, method in wrappers.items():
+        for wrapper, (parameters, method, arguments) in wrappers.items():
             with self.subTest(public_wrapper=wrapper):
                 self.assertRegex(
                     entry_source,
-                    rf"function {wrapper}\(node\) \{{\n"
-                    rf"  return generatorPanelRuntime\.{method}\(node\);\n\}}",
+                    rf"function {wrapper}\({re.escape(parameters)}\) \{{\n"
+                    rf"  return generatorPanelRuntime\.{method}"
+                    rf"\({re.escape(arguments)}\);\n\}}",
                 )
 
         for moved_function in (
@@ -1325,6 +1333,7 @@ class FrontendModuleStructureTests(unittest.TestCase):
             "aioPreviewResolution",
             "aioPreviewRunId",
             "aioRemovePreviewRun",
+            "aioResolveTerminalPreviewState",
             "aioSelectedPreviewIndex",
             "aioSuppressDefaultPreview",
             "aioTagPreviewRun",
