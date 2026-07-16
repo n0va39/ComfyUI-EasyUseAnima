@@ -363,6 +363,21 @@ function createFixture(options = {}) {
   };
 }
 
+function registerWildcardRuntimeHooks(nodeType, runtime) {
+  return nodeHooksModule.registerPromptStudioNodeHooks(
+    nodeType,
+    { name: WILDCARD },
+    {
+      hookWildcardSeedWidget() {},
+      attachAdvancedQueueSeedNode: (node) => runtime.attachNode(node),
+      detachAdvancedQueueSeedNode: (node) => runtime.detachNode(node),
+      applyWildcardExecutedInputs(node, message) {
+        wildcardValuesModule.applyWildcardExecutedInputs(node, message, runtime);
+      },
+    },
+  );
+}
+
 function queuedSeed(prompt, nodeId) {
   const promptNode = prompt.output[String(nodeId)];
   const contract = promptNode.class_type === WILDCARD
@@ -922,6 +937,91 @@ function reservedSeedState(prompt, nodeId) {
 }
 
 {
+  for (const { control, backendNextSeed } of [
+    { control: "increment", backendNextSeed: 8 },
+    { control: "randomize", backendNextSeed: 41 },
+  ]) {
+    function ConfiguredWildcardNodeType() {}
+    ConfiguredWildcardNodeType.prototype.onConfigure = function (serialized) {
+      for (const name of ["mode", "seed", "seed_after_generate"]) {
+        this.widgets.find((widget) => widget.name === name).value = serialized[name];
+      }
+    };
+    const node = Object.assign(new ConfiguredWildcardNodeType(), wildcardNode(15, 0));
+    const fixture = createFixture({ nodes: [node], randomValues: [99] });
+    assert.equal(registerWildcardRuntimeHooks(ConfiguredWildcardNodeType, fixture.runtime), true);
+
+    node.onConfigure({ mode: "재현", seed: 7, seed_after_generate: control });
+    assert.equal(
+      fixture.runtime.shouldApplyExecutedSeed(node, backendNextSeed),
+      false,
+      "configure must initially guard native Wildcard against an unknown executed seed",
+    );
+    const prompt = promptFor([node]);
+    let received = null;
+    const wrapped = fixture.runtime.wrapQueuePrompt((_number, nextPrompt) => {
+      received = nextPrompt;
+      return { prompt_id: `native-reproduce-${control}`, node_errors: {} };
+    });
+    await wrapped(0, prompt);
+
+    assert.equal(received, prompt, "native reproduce must stay on the backend pass-through path");
+    assert.equal(fixture.runtime.trackedStateCount(), 0);
+    assert.equal(
+      fixture.runtime.shouldApplyExecutedSeed(node, backendNextSeed),
+      true,
+      "an unmanaged reproduce queue must release the configured executed-seed guard",
+    );
+    node.onExecuted({ wildcard: [{ seed: backendNextSeed }] });
+    assert.equal(
+      node.widgets.find((widget) => widget.name === "seed").value,
+      backendNextSeed,
+      `native reproduce ${control} must publish the backend next seed`,
+    );
+    assert.equal(fixture.randomCalls(), 0, "reproduce randomization remains backend-owned");
+  }
+}
+
+{
+  const node = wildcardNode(15, 7);
+  const fixture = createFixture({ nodes: [node] });
+  assert.equal(fixture.runtime.attachNode(node), true);
+  const gate = deferred();
+  const received = [];
+  const wrapped = fixture.runtime.wrapQueuePrompt((_number, prompt) => {
+    received.push(prompt);
+    return received.length === 1
+      ? gate.promise
+      : { prompt_id: "native-reproduce-after-pending", node_errors: {} };
+  });
+  const managedPrompt = promptFor([node]);
+  const pending = wrapped(0, managedPrompt);
+
+  node.widgets.find((widget) => widget.name === "mode").value = "재현";
+  const reproducePrompt = promptFor([node]);
+  await wrapped(0, reproducePrompt);
+  assert.notEqual(received[0], managedPrompt, "the first managed queue must keep its clone");
+  assert.equal(received[1], reproducePrompt, "the reproduce queue must pass through unchanged");
+  assert.equal(
+    fixture.runtime.trackedStateCount(),
+    1,
+    "the retired pending reservation must remain tracked until settlement",
+  );
+  assert.equal(fixture.runtime.shouldApplyExecutedSeed(node, 50), true);
+  wildcardValuesModule.applyWildcardExecutedInputs(
+    node,
+    { wildcard: [{ seed: 50 }] },
+    fixture.runtime,
+  );
+
+  gate.resolve({ prompt_id: "managed-before-reproduce", node_errors: {} });
+  await pending;
+  assert.deepEqual(fixture.commits, [], "retired managed work must lose live publish authority");
+  assert.equal(node.widgets.find((widget) => widget.name === "seed").value, 50);
+  assert.equal(fixture.runtime.trackedStateCount(), 0);
+}
+
+{
   const fixture = createFixture();
   const failure = new Error("queue rejected");
   let attempts = 0;
@@ -1353,6 +1453,60 @@ function reservedSeedState(prompt, nodeId) {
   assert.equal(received, prompt);
   assert.equal(fixture.nodes[0].widgets[1].value, 7);
   assert.equal(fixture.cloneCalls(), 1);
+}
+
+{
+  const node = wildcardNode(15, 7);
+  const cloneError = new Error("native clone failed");
+  const fixture = createFixture({ nodes: [node], cloneError });
+  assert.equal(fixture.runtime.attachNode(node), true);
+  assert.equal(fixture.runtime.shouldApplyExecutedSeed(node, 8), false);
+  const prompt = promptFor([node]);
+  let received = null;
+  const wrapped = fixture.runtime.wrapQueuePrompt((_number, nextPrompt) => {
+    received = nextPrompt;
+    return { prompt_id: "native-clone-pass-through", node_errors: {} };
+  });
+  await wrapped(0, prompt);
+
+  assert.equal(received, prompt);
+  assert.equal(fixture.runtime.trackedStateCount(), 0);
+  assert.equal(
+    fixture.runtime.shouldApplyExecutedSeed(node, 8),
+    true,
+    "clone failure must not leave a configured guard on the backend pass-through queue",
+  );
+  wildcardValuesModule.applyWildcardExecutedInputs(
+    node,
+    { wildcard: [{ seed: 8 }] },
+    fixture.runtime,
+  );
+  assert.equal(node.widgets.find((widget) => widget.name === "seed").value, 8);
+}
+
+{
+  const node = wildcardNode(15, 7);
+  const fixture = createFixture({ nodes: [node] });
+  assert.equal(fixture.runtime.attachNode(node), true);
+  const prompt = promptFor([node]);
+  prompt.workflow.nodes = prompt.workflow.nodes.filter(
+    (workflowNodeValue) => String(workflowNodeValue.id) !== String(node.id),
+  );
+  let received = null;
+  const wrapped = fixture.runtime.wrapQueuePrompt((_number, nextPrompt) => {
+    received = nextPrompt;
+    return { prompt_id: "native-workflow-pass-through", node_errors: {} };
+  });
+  await wrapped(0, prompt);
+
+  assert.equal(received, prompt);
+  assert.equal(fixture.cloneCalls(), 1);
+  assert.equal(fixture.runtime.trackedStateCount(), 0);
+  assert.equal(
+    fixture.runtime.shouldApplyExecutedSeed(node, 8),
+    true,
+    "missing workflow seed storage must release the unmanaged queue guard",
+  );
 }
 
 {

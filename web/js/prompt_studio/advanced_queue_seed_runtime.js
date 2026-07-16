@@ -252,6 +252,19 @@ function createAdvancedQueueSeedRuntime(dependencies) {
     forgetState(state);
   }
 
+  function retireCandidateState(candidate) {
+    const state = nodeStates.get(candidate.nodeId);
+    if (state) {
+      retireState(state);
+    }
+  }
+
+  function retireCandidateStates(candidates) {
+    for (const candidate of candidates) {
+      retireCandidateState(candidate);
+    }
+  }
+
   function createState(node, nodeId, inputSeed, contract, blockUnknownExecuted) {
     return {
       node,
@@ -423,28 +436,34 @@ function createAdvancedQueueSeedRuntime(dependencies) {
     try {
       queuedPrompt = clonePrompt(prompt);
     } catch {
+      retireCandidateStates(candidates);
       return null;
     }
     if (!isRecord(queuedPrompt) || !isRecord(queuedPrompt.output)) {
+      retireCandidateStates(candidates);
       return null;
     }
 
     const reservations = [];
-    for (const { node, nodeId, targetIds, contract } of candidates) {
+    for (const candidate of candidates) {
+      const { node, nodeId, targetIds, contract } = candidate;
       try {
         const inputs = queuedPrompt.output[nodeId]?.inputs;
         const workflow = workflowNode(queuedPrompt.workflow, nodeId);
         if (!isRecord(inputs) || !workflow || !Array.isArray(workflow.widgets_values)) {
+          retireCandidateState(candidate);
           continue;
         }
         const mode = normalizeMode(inputs[contract.modeInputName]);
         if (!ACTIVE_WILDCARD_MODES.has(mode)) {
+          retireCandidateState(candidate);
           continue;
         }
         const inputSeed = optionalSeed(inputs[contract.seedInputName]);
         if (inputSeed == null) {
           // JavaScript cannot reserve 64-bit backend seeds without losing
           // precision. Preserve the original queue payload for those values.
+          retireCandidateState(candidate);
           continue;
         }
         const state = stateForNode(node, nodeId, inputSeed, contract);
@@ -485,7 +504,9 @@ function createAdvancedQueueSeedRuntime(dependencies) {
         state.reservations.push(reservation);
         reservations.push(reservation);
       } catch {
-        // One malformed Advanced node must not block unrelated prompt nodes.
+        // One malformed wildcard-seed node must not block unrelated prompt
+        // nodes or leave its configured guard attached to an unmanaged queue.
+        retireCandidateState(candidate);
       }
     }
     return reservations.length ? { prompt: queuedPrompt, reservations } : null;
