@@ -29,7 +29,10 @@ import { aioCreateSamplerSettingsDialog } from "./aio/sampler_settings_dialog.js
 import { aioCreateSaveSettingsDialog } from "./aio/save_settings_dialog.js";
 import { aioCreateAdvancedSettingsDialog } from "./aio/advanced_settings_dialog.js";
 import { aioCreateNativePreviewRuntime } from "./aio/native_preview_runtime.js";
-import { aioCreateExtensionRuntime } from "./aio/extension_runtime.js";
+import {
+  aioCreateExtensionRuntime,
+  aioListAttachedGeneratorNodes,
+} from "./aio/extension_runtime.js";
 import {
   AIO_BACKEND_DEPENDENCIES,
   AIO_OPTIONAL_DEPENDENCY_SPECS,
@@ -2096,7 +2099,7 @@ function schedulerNameOptions(current) {
 }
 
 function refreshGeneratorPanels() {
-  for (const node of generatorGraphNodes()) {
+  for (const node of aioListAttachedGeneratorNodes(app.graph, isGeneratorGraphNode)) {
     renderGeneratorPanel(node);
   }
 }

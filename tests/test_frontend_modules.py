@@ -365,7 +365,7 @@ class FrontendModuleStructureTests(unittest.TestCase):
             re.findall(
                 r"^export function ([A-Za-z0-9_]+)\(", source, re.MULTILINE
             ),
-            ["aioCreateExtensionRuntime"],
+            ["aioListAttachedGeneratorNodes", "aioCreateExtensionRuntime"],
         )
         self.assertIn(
             'const EXTENSION_SETUP_HOST_MARKER = '
@@ -380,7 +380,10 @@ class FrontendModuleStructureTests(unittest.TestCase):
         self.assertIn("Object.defineProperty(nodeType.prototype, prototypeHookMarker", source)
         self.assertIn("throw error;", source)
         self.assertIn(
-            'import { aioCreateExtensionRuntime } from "./aio/extension_runtime.js";',
+            "import {\n"
+            "  aioCreateExtensionRuntime,\n"
+            "  aioListAttachedGeneratorNodes,\n"
+            '} from "./aio/extension_runtime.js";',
             entry_source,
         )
         factory_match = re.search(

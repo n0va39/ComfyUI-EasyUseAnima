@@ -9,8 +9,8 @@ function dataModule(relativePath) {
 const extensionModule = await import(dataModule("../web/js/aio/extension_runtime.js"));
 assert.deepEqual(
   Object.keys(extensionModule),
-  ["aioCreateExtensionRuntime"],
-  "AiO extension runtime must expose only its factory contract",
+  ["aioCreateExtensionRuntime", "aioListAttachedGeneratorNodes"],
+  "AiO extension runtime must expose only its factory and attached-node traversal contracts",
 );
 
 const INPUT_NODE_TYPE = "EasyUseAnimaInput";
@@ -25,6 +25,22 @@ function createFixture(options = {}) {
   const callbacks = {
     refreshPanels() {
       trace.push("refreshPanels");
+      if (options.getGraph || options.rootGraph) {
+        const rootGraph = options.getGraph?.() ?? options.rootGraph;
+        const isGeneratorNode = options.isGeneratorNode
+          || ((node) => (
+            node?.type === GENERATOR_NODE_TYPE
+            || node?.comfyClass === GENERATOR_NODE_TYPE
+          ));
+        for (
+          const node of extensionModule.aioListAttachedGeneratorNodes(
+            rootGraph,
+            isGeneratorNode,
+          )
+        ) {
+          options.renderGeneratorPanel?.(node);
+        }
+      }
     },
     handlePreviewEvent() {},
     handleProgressEvent() {},
@@ -290,19 +306,46 @@ function createNodeType(trace, options = {}) {
   const samplerOptionsPromise = new Promise((resolve) => {
     resolveSamplerOptions = resolve;
   });
+  const rootGraph = { _nodes: [] };
+  const refreshedPanels = [];
   const fixture = createFixture({
     samplerOptionsPromise,
     userProfilesPromise: new Promise(() => {}),
+    getGraph: () => rootGraph,
+    renderGeneratorPanel(node) {
+      refreshedPanels.push(node);
+    },
   });
   await fixture.runtime.setup();
   const { NodeType } = createNodeType(fixture.trace);
   await fixture.runtime.beforeRegisterNodeDef(NodeType, { name: GENERATOR_NODE_TYPE });
-  new NodeType().onNodeCreated("cold-a");
-  new NodeType().onConfigure("cold-b");
+  const topGenerator = Object.assign(new NodeType(), {
+    id: 1,
+    type: GENERATOR_NODE_TYPE,
+    graph: rootGraph,
+  });
+  const subgraph = { nodes: [] };
+  const subgraphGenerator = Object.assign(new NodeType(), {
+    id: 7,
+    type: GENERATOR_NODE_TYPE,
+    graph: subgraph,
+  });
+  const detachedGenerator = Object.assign(new NodeType(), {
+    id: 99,
+    type: GENERATOR_NODE_TYPE,
+  });
+  const firstSubgraphNode = { id: 5, type: "Subgraph", graph: rootGraph, subgraph };
+  const secondSubgraphNode = { id: 6, type: "Subgraph", graph: rootGraph, subgraph };
+
+  topGenerator.onNodeCreated("cold-top");
+  subgraphGenerator.onConfigure("cold-subgraph");
+  detachedGenerator.onNodeCreated("cold-detached");
+  subgraph.nodes.push(subgraphGenerator);
+  rootGraph._nodes.push(topGenerator, firstSubgraphNode, secondSubgraphNode);
 
   assert.equal(
     fixture.trace.filter((item) => item === "hookGeneratorNode").length,
-    2,
+    3,
     "generator creation/configure must keep their normal per-node hook path while hydration is pending",
   );
   assert.equal(
@@ -310,6 +353,7 @@ function createNodeType(trace, options = {}) {
     0,
     "sampler hydration must not refresh panels before its shared load resolves",
   );
+  assert.deepEqual(refreshedPanels, []);
 
   resolveSamplerOptions();
   await samplerOptionsPromise;
@@ -319,6 +363,69 @@ function createNodeType(trace, options = {}) {
     1,
     "sampler hydration must have one extension-owned global panel refresh regardless of node hook count",
   );
+  assert.deepEqual(
+    refreshedPanels,
+    [topGenerator, subgraphGenerator],
+    "the shared hydration refresh must render each attached top-level/subgraph panel once and skip detached nodes",
+  );
+}
+
+{
+  let rootGraph;
+  const refreshedPanels = [];
+  const fixture = createFixture({
+    getGraph: () => rootGraph,
+    userProfilesPromise: new Promise(() => {}),
+    renderGeneratorPanel(node) {
+      refreshedPanels.push(node);
+    },
+  });
+  await fixture.runtime.setup();
+  await Promise.resolve();
+  assert.equal(
+    fixture.trace.filter((item) => item === "refreshPanels").length,
+    1,
+    "sampler hydration before lazy graph initialization must complete as one safe no-op refresh",
+  );
+  assert.deepEqual(refreshedPanels, []);
+
+  rootGraph = { nodes: [] };
+  const { NodeType } = createNodeType(fixture.trace);
+  await fixture.runtime.beforeRegisterNodeDef(NodeType, { name: GENERATOR_NODE_TYPE });
+  const warmTopGenerator = Object.assign(new NodeType(), {
+    id: 11,
+    type: GENERATOR_NODE_TYPE,
+    graph: rootGraph,
+  });
+  const warmSubgraph = { _nodes: [] };
+  const warmSubgraphGenerator = Object.assign(new NodeType(), {
+    id: 17,
+    type: GENERATOR_NODE_TYPE,
+    graph: warmSubgraph,
+  });
+  const warmSubgraphNode = {
+    id: 15,
+    type: "Subgraph",
+    graph: rootGraph,
+    subgraph: warmSubgraph,
+  };
+  rootGraph.nodes.push(warmTopGenerator, warmSubgraphNode);
+  warmSubgraph._nodes.push(warmSubgraphGenerator);
+  warmTopGenerator.onNodeCreated("warm-top");
+  warmSubgraphGenerator.onConfigure("warm-subgraph");
+  await Promise.resolve();
+
+  assert.equal(
+    fixture.trace.filter((item) => item === "hookGeneratorNode").length,
+    2,
+    "warm top-level/subgraph nodes must keep their per-node initial hook path",
+  );
+  assert.equal(
+    fixture.trace.filter((item) => item === "refreshPanels").length,
+    1,
+    "warm node hooks must not restore a per-node sampler hydration refresh owner",
+  );
+  assert.deepEqual(refreshedPanels, []);
 }
 
 {

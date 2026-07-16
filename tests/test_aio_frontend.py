@@ -561,6 +561,22 @@ class AIOFrontendSourceTests(unittest.TestCase):
             setup_body.count("loadSamplerOptions().then(refreshPanels);"),
             1,
         )
+        refresh_start = source.index("function refreshGeneratorPanels()")
+        refresh_end = source.index("\nfunction findWidget", refresh_start)
+        refresh_body = source[refresh_start:refresh_end]
+        self.assertIn(
+            "aioListAttachedGeneratorNodes(app.graph, isGeneratorGraphNode)",
+            refresh_body,
+        )
+        self.assertNotIn("generatorGraphNodes()", refresh_body)
+        self.assertIn(
+            "export function aioListAttachedGeneratorNodes(",
+            extension_source,
+        )
+        self.assertIn("Array.isArray(graph?.nodes)", extension_source)
+        self.assertIn("node.subgraph", extension_source)
+        self.assertIn("visitedGraphs", extension_source)
+        self.assertIn("visitedNodes", extension_source)
         self.assertIn(
             "loadSamplerOptions: loadGeneratorSamplerOptions,", source
         )
