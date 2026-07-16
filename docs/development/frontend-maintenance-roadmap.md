@@ -8,6 +8,8 @@
 명시하는 것이 목적이다.
 
 - 현재 로드맵: 이 문서
+- active Goal의 task/branch/worktree와 통합 증거 ledger:
+  `docs/development/frontend-maintenance-execution-plan.md`
 - 초기 실행 계획과 체크리스트:
   `docs/development/issue-14-frontend-js-maintenance.md`
 - 대상 이슈: `https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/14`

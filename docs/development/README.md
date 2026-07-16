@@ -16,6 +16,8 @@ conversation.
    - custom-node model patch integrations: `docs/development/custom-node-integrations.md`
    - current frontend maintenance roadmap and Issue #14 close boundary:
      `docs/development/frontend-maintenance-roadmap.md`
+   - active frontend maintenance Goal, lane ownership, and integration gates:
+     `docs/development/frontend-maintenance-execution-plan.md`
    - repeatable legacy-canvas and Node 2.0 browser validation:
      `docs/development/browser-smoke-matrix.md`
    - historical Issue #14 PR #18 execution plan:
@@ -40,6 +42,8 @@ conversation.
   `docs/wildcards.en.md`
 - Current frontend maintenance roadmap:
   `docs/development/frontend-maintenance-roadmap.md`
+- Active frontend maintenance execution ledger:
+  `docs/development/frontend-maintenance-execution-plan.md`
 - Dual-canvas browser smoke matrix:
   `docs/development/browser-smoke-matrix.md`
 - Historical Issue #14 PR #18 execution plan:
