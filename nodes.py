@@ -10890,6 +10890,14 @@ class EasyUseAnimaPromptStudioRegional:
             if wildcard_mode_key == WILDCARD_MODE_SEQUENTIAL
             else str(wildcard_seed_after_generate or SEED_CONTROL_FIXED)
         )
+        reserved_next_wildcard_seed = _consume_reserved_wildcard_next_seed(
+            field_inputs,
+            workflow_prompt,
+            unique_id,
+            wildcard_seed_value,
+            wildcard_mode_key,
+            wildcard_effective_seed_control,
+        )
         ui_updates: dict[str, Any] = {}
         metadata_updates: dict[str, Any] = {}
 
@@ -10906,7 +10914,11 @@ class EasyUseAnimaPromptStudioRegional:
         effective_fields = _translate_prompt_fields(effective_fields)
         wildcard_changed = bool(saved_wildcard["changed"] or effective_wildcard["changed"])
         if wildcard_mode_key in {WILDCARD_MODE_POPULATE, WILDCARD_MODE_FIXED, WILDCARD_MODE_SEQUENTIAL}:
-            next_wildcard_seed = next_seed(wildcard_seed_value, wildcard_effective_seed_control)
+            next_wildcard_seed = (
+                reserved_next_wildcard_seed
+                if reserved_next_wildcard_seed is not None
+                else next_seed(wildcard_seed_value, wildcard_effective_seed_control)
+            )
             ui_updates.update({
                 "wildcard_mode": str(wildcard_mode or WILDCARD_MODE_LABELS[1]),
                 "wildcard_seed": next_wildcard_seed,

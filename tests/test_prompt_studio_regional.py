@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import unittest
+from unittest.mock import patch
 
 import nodes as easy_nodes
 from nodes import (
@@ -253,6 +254,97 @@ class PromptStudioRegionalTests(unittest.TestCase):
             result["ui"]["prompt_studio_regional"][0]["field_inputs"],
             {"field_masked_general": "blue hair girl"},
         )
+
+    def test_build_consumes_reserved_queue_seed_and_scrubs_token(self):
+        reservation_key = easy_nodes.WILDCARD_RESERVED_NEXT_SEED_INPUT
+        reservation = json.dumps({
+            "version": 1,
+            "current_seed": 2,
+            "next_seed": 47,
+            "mode": "populate",
+            "control": "randomize",
+        })
+        workflow_prompt = {
+            "42": {
+                "inputs": {
+                    "wildcard_mode": "일반 채우기",
+                    "wildcard_seed": 2,
+                    "wildcard_seed_after_generate": "randomize",
+                    reservation_key: reservation,
+                }
+            }
+        }
+        extra_pnginfo = {
+            "workflow": {
+                "nodes": [{
+                    "id": 42,
+                    "type": "EasyUseAnimaPromptStudioRegional",
+                    "widgets_values": [
+                        "[]",
+                        "{}",
+                        "1024",
+                        "1024 * 1024 (1:1)",
+                        1024,
+                        1024,
+                        "일반 채우기",
+                        2,
+                        "randomize",
+                    ],
+                    "properties": {},
+                }]
+            }
+        }
+
+        with patch("nodes.next_seed") as fallback_next_seed:
+            result = EasyUseAnimaPromptStudioRegional().build(
+                "",
+                "",
+                wildcard_mode="일반 채우기",
+                wildcard_seed=2,
+                wildcard_seed_after_generate="randomize",
+                workflow_prompt=workflow_prompt,
+                extra_pnginfo=extra_pnginfo,
+                unique_id="42",
+                **{reservation_key: reservation},
+            )
+
+        fallback_next_seed.assert_not_called()
+        payload = result["ui"]["prompt_studio_regional"][0]
+        self.assertEqual(payload["wildcard_seed"], 47)
+        self.assertNotIn(reservation_key, payload["field_inputs"])
+        self.assertNotIn(reservation_key, workflow_prompt["42"]["inputs"])
+        self.assertEqual(extra_pnginfo["workflow"]["nodes"][0]["widgets_values"][7], 2)
+
+    def test_invalid_reserved_queue_seed_scrubs_token_and_uses_fallback(self):
+        reservation_key = easy_nodes.WILDCARD_RESERVED_NEXT_SEED_INPUT
+        mismatched_reservation = json.dumps({
+            "version": 1,
+            "current_seed": 2,
+            "next_seed": 47,
+            "mode": "populate",
+            "control": "randomize",
+        })
+        workflow_prompt = {
+            "42": {"inputs": {reservation_key: mismatched_reservation}}
+        }
+
+        with patch("nodes.next_seed", return_value=3) as fallback_next_seed:
+            result = EasyUseAnimaPromptStudioRegional().build(
+                "",
+                "",
+                wildcard_mode="순차",
+                wildcard_seed=2,
+                wildcard_seed_after_generate="increment",
+                workflow_prompt=workflow_prompt,
+                unique_id="42",
+                **{reservation_key: mismatched_reservation},
+            )
+
+        fallback_next_seed.assert_called_once_with(2, "increment")
+        payload = result["ui"]["prompt_studio_regional"][0]
+        self.assertEqual(payload["wildcard_seed"], 3)
+        self.assertNotIn(reservation_key, payload["field_inputs"])
+        self.assertNotIn(reservation_key, workflow_prompt["42"]["inputs"])
 
 
 if __name__ == "__main__":

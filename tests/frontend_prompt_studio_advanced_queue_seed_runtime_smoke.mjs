@@ -153,8 +153,10 @@ for (const surface of ["Advanced", "Regional"]) {
 const ADVANCED = "EasyUseAnimaPromptStudioAdvanced";
 const ADVANCED_V2 = "EasyUseAnimaPromptStudioAdvancedV2";
 const WILDCARD = "EasyUseAnimaWildcard";
+const REGIONAL = "EasyUseAnimaPromptStudioRegional";
 const SEED_INDEX = 11;
 const WILDCARD_SEED_INDEX = 3;
+const REGIONAL_SEED_INDEX = 7;
 const RESERVED_NEXT_SEED_INPUT = "easyuse_anima_reserved_wildcard_next_seed";
 const ADVANCED_QUEUE_SEED_CONTRACT = Object.freeze({
   modeInputName: "wildcard_mode",
@@ -168,6 +170,13 @@ const WILDCARD_QUEUE_SEED_CONTRACT = Object.freeze({
   seedInputName: "seed",
   controlInputName: "seed_after_generate",
   seedWidgetIndex: WILDCARD_SEED_INDEX,
+});
+const REGIONAL_QUEUE_SEED_CONTRACT = Object.freeze({
+  modeInputName: "wildcard_mode",
+  seedInputName: "wildcard_seed",
+  controlInputName: "wildcard_seed_after_generate",
+  seedWidgetIndex: REGIONAL_SEED_INDEX,
+  supportsSubgraph: false,
 });
 
 const nodeHookConstants = sourceModule(`
@@ -227,6 +236,10 @@ function wildcardWidgetValues(seed, mode = "순차", control = "increment") {
   return ["__style__", "", mode, seed, control];
 }
 
+function regionalWidgetValues(seed, mode = "순차", control = "increment") {
+  return ["[]", "{}", "1024", "1024 * 1024 (1:1)", 1024, 1024, mode, seed, control];
+}
+
 function advancedNode(id, type = ADVANCED, seed = 7) {
   return {
     id,
@@ -255,9 +268,25 @@ function wildcardNode(id, seed = 7) {
   };
 }
 
+function regionalNode(id, seed = 7) {
+  return {
+    id,
+    type: REGIONAL,
+    comfyClass: REGIONAL,
+    widgets: [
+      { name: "wildcard_mode", value: "순차" },
+      { name: "wildcard_seed", value: seed },
+      { name: "wildcard_seed_after_generate", value: "increment" },
+    ],
+  };
+}
+
 function queueSeedContract(node) {
   if ([ADVANCED, ADVANCED_V2].includes(node?.type)) {
     return ADVANCED_QUEUE_SEED_CONTRACT;
+  }
+  if (node?.type === REGIONAL) {
+    return REGIONAL_QUEUE_SEED_CONTRACT;
   }
   return node?.type === WILDCARD ? WILDCARD_QUEUE_SEED_CONTRACT : null;
 }
@@ -270,20 +299,31 @@ function promptFor(nodes, options = {}) {
     const mode = node.widgets.find((widget) => widget.name === contract.modeInputName).value;
     const seed = node.widgets.find((widget) => widget.name === contract.seedInputName).value;
     const control = node.widgets.find((widget) => widget.name === contract.controlInputName).value;
-    const inputs = node.type === WILDCARD
-      ? {
+    let inputs;
+    if (node.type === WILDCARD) {
+      inputs = {
           text: "__style__",
           populated_text: "",
           mode,
           seed,
           seed_after_generate: control,
-        }
-      : {
+        };
+    } else if (node.type === REGIONAL) {
+      inputs = {
+          regional_fields: "[]",
+          regional_config: "{}",
+          wildcard_mode: mode,
+          wildcard_seed: seed,
+          wildcard_seed_after_generate: control,
+        };
+    } else {
+      inputs = {
           advanced_fields: "[]",
           wildcard_mode: mode,
           wildcard_seed: seed,
           wildcard_seed_after_generate: control,
         };
+    }
     output[String(node.id)] = {
       class_type: node.type,
       inputs,
@@ -293,7 +333,9 @@ function promptFor(nodes, options = {}) {
       type: node.type,
       widgets_values: node.type === WILDCARD
         ? wildcardWidgetValues(seed, mode, control)
-        : widgetValues(seed, mode, control),
+        : (node.type === REGIONAL
+          ? regionalWidgetValues(seed, mode, control)
+          : widgetValues(seed, mode, control)),
     });
   }
   const consumers = Object.prototype.hasOwnProperty.call(options, "consumers")
@@ -369,15 +411,25 @@ function seedPromptInputs(node) {
   const mode = node.widgets.find((widget) => widget.name === contract.modeInputName).value;
   const seed = node.widgets.find((widget) => widget.name === contract.seedInputName).value;
   const control = node.widgets.find((widget) => widget.name === contract.controlInputName).value;
-  return node.type === WILDCARD
-    ? {
+  if (node.type === WILDCARD) {
+    return {
         text: "__style__",
         populated_text: "",
         mode,
         seed,
         seed_after_generate: control,
-      }
-    : {
+      };
+  }
+  if (node.type === REGIONAL) {
+    return {
+        regional_fields: "[]",
+        regional_config: "{}",
+        wildcard_mode: mode,
+        wildcard_seed: seed,
+        wildcard_seed_after_generate: control,
+      };
+  }
+  return {
         advanced_fields: "[]",
         wildcard_mode: mode,
         wildcard_seed: seed,
@@ -392,11 +444,17 @@ function seedWorkflowNode(node) {
     type: node.type,
     widgets_values: node.type === WILDCARD
       ? wildcardWidgetValues(inputs.seed, inputs.mode, inputs.seed_after_generate)
-      : widgetValues(
+      : (node.type === REGIONAL
+        ? regionalWidgetValues(
           inputs.wildcard_seed,
           inputs.wildcard_mode,
           inputs.wildcard_seed_after_generate,
-        ),
+        )
+        : widgetValues(
+          inputs.wildcard_seed,
+          inputs.wildcard_mode,
+          inputs.wildcard_seed_after_generate,
+        )),
   };
 }
 
@@ -552,17 +610,13 @@ function registerWildcardRuntimeHooks(nodeType, runtime) {
 
 function queuedSeed(prompt, nodeId) {
   const promptNode = prompt.output[String(nodeId)];
-  const contract = promptNode.class_type === WILDCARD
-    ? WILDCARD_QUEUE_SEED_CONTRACT
-    : ADVANCED_QUEUE_SEED_CONTRACT;
+  const contract = queueSeedContract({ type: promptNode.class_type });
   return promptNode.inputs[contract.seedInputName];
 }
 
 function workflowSeed(prompt, nodeId) {
   const promptNode = prompt.output[String(nodeId)];
-  const contract = promptNode.class_type === WILDCARD
-    ? WILDCARD_QUEUE_SEED_CONTRACT
-    : ADVANCED_QUEUE_SEED_CONTRACT;
+  const contract = queueSeedContract({ type: promptNode.class_type });
   const nodeIds = String(nodeId).split(":");
   const definitions = new Map(
     (prompt.workflow.definitions?.subgraphs || []).map((definition) => [
@@ -1556,6 +1610,8 @@ function reservedSeedState(prompt, nodeId) {
 {
   const node = wildcardNode(15, 7);
   const fixture = createSubgraphFixture({ nodes: [node] });
+  assert.equal(fixture.runtime.attachNode(node), true);
+  assert.equal(fixture.runtime.shouldApplyExecutedSeed(node, 8), false);
   const prompt = subgraphPromptFor(fixture, {
     connections: [{ executionId: "50:15", targetId: 20 }],
   });
@@ -1570,6 +1626,18 @@ function reservedSeedState(prompt, nodeId) {
   assert.equal(reservedSeedState(received, "50:15"), undefined);
   assert.equal(node.widgets.find((widget) => widget.name === "seed").value, 7);
   assert.equal(fixture.cloneCalls(), 0);
+  assert.equal(fixture.runtime.trackedStateCount(), 0);
+  assert.equal(
+    fixture.runtime.shouldApplyExecutedSeed(node, 8),
+    true,
+    "native Wildcard colon pass-through must release the configured guard",
+  );
+  wildcardValuesModule.applyWildcardExecutedInputs(
+    node,
+    { wildcard: [{ seed: 8 }] },
+    fixture.runtime,
+  );
+  assert.equal(node.widgets.find((widget) => widget.name === "seed").value, 8);
 }
 
 {
@@ -1999,6 +2067,216 @@ function reservedSeedState(prompt, nodeId) {
   const wrapped = fixture.runtime.wrapQueuePrompt(() => result);
   assert.equal(await wrapped(0, promptFor(fixture.nodes)), result);
   assert.equal(fixture.nodes[0].widgets[1].value, 7);
+}
+
+{
+  const node = regionalNode(30, 7);
+  const fixture = createFixture({ nodes: [node] });
+  const gates = [deferred(), deferred(), deferred()];
+  const queued = [];
+  const wrapped = fixture.runtime.wrapQueuePrompt((_number, prompt) => {
+    queued.push({
+      current: queuedSeed(prompt, node.id),
+      workflow: workflowSeed(prompt, node.id),
+      next: reservedNextSeed(prompt, node.id),
+    });
+    return gates[queued.length - 1].promise;
+  });
+  const pending = [
+    wrapped(0, promptFor([node])),
+    wrapped(0, promptFor([node])),
+    wrapped(0, promptFor([node])),
+  ];
+
+  assert.deepEqual(queued, [
+    { current: 7, workflow: 7, next: 8 },
+    { current: 8, workflow: 8, next: 9 },
+    { current: 9, workflow: 9, next: 10 },
+  ]);
+  assert.equal(node.widgets[1].value, 7, "Regional live seed changes only after acceptance");
+
+  gates[1].resolve({ prompt_id: "regional-second", node_errors: {} });
+  await pending[1];
+  assert.equal(node.widgets[1].value, 7, "Regional out-of-order settlement must wait for FIFO");
+  gates[0].resolve({ node_errors: {} });
+  await pending[0];
+  assert.equal(node.widgets[1].value, 9, "a missing prompt_id rolls back only its reservation");
+  gates[2].resolve({ prompt_id: "regional-third", node_errors: {} });
+  await pending[2];
+  assert.equal(node.widgets[1].value, 10);
+  assert.equal(fixture.runtime.shouldApplyExecutedSeed(node, 8), false);
+  assert.equal(fixture.runtime.shouldApplyExecutedSeed(node, 10), true);
+}
+
+{
+  const node = regionalNode(30, 7);
+  const fixture = createFixture({ nodes: [node] });
+  const seen = [];
+  const results = [
+    { prompt_id: "   ", node_errors: {} },
+    { prompt_id: "regional-retry", node_errors: {} },
+  ];
+  const wrapped = fixture.runtime.wrapQueuePrompt((_number, prompt) => {
+    seen.push(queuedSeed(prompt, node.id));
+    return results.shift();
+  });
+  await wrapped(0, promptFor([node]));
+  assert.equal(node.widgets[1].value, 7, "an empty Regional prompt_id must not advance live state");
+  await wrapped(0, promptFor([node]));
+  assert.deepEqual(seen, [7, 7], "a rejected Regional seed must remain reusable");
+  assert.equal(node.widgets[1].value, 8);
+}
+
+{
+  const nodes = [regionalNode(30, 7), regionalNode(31, 30)];
+  const outputNodes = [{ id: 40, outputNode: true }, { id: 41, outputNode: true }];
+  const fixture = createFixture({ nodes, outputNodes });
+  const prompt = promptFor(nodes, {
+    consumers: [
+      { id: 40, source: 30 },
+      { id: 41, source: 31 },
+    ],
+  });
+  let received = null;
+  const rejected = fixture.runtime.wrapQueuePrompt((_number, nextPrompt) => {
+    received = nextPrompt;
+    return {
+      prompt_id: "regional-partial-error",
+      node_errors: {
+        30: { dependent_outputs: ["40"] },
+      },
+    };
+  });
+  await rejected(0, prompt, { partialExecutionTargets: [40] });
+  assert.equal(reservedNextSeed(received, 30), 8);
+  assert.equal(reservedSeedState(received, 31), undefined);
+  assert.equal(nodes[0].widgets[1].value, 7, "a related Regional node_error must rollback");
+  assert.equal(nodes[1].widgets[1].value, 30, "a disjoint partial target must not consume seed");
+
+  const accepted = fixture.runtime.wrapQueuePrompt(() => ({
+    prompt_id: "regional-partial-valid",
+    node_errors: {},
+  }));
+  await accepted(0, promptFor(nodes, {
+    consumers: [
+      { id: 40, source: 30 },
+      { id: 41, source: 31 },
+    ],
+  }), { partialExecutionTargets: [40] });
+  assert.equal(nodes[0].widgets[1].value, 8);
+  assert.equal(nodes[1].widgets[1].value, 30);
+}
+
+{
+  const nodes = [regionalNode(30, 7), regionalNode(31, 30)];
+  const fixture = createFixture({
+    nodes,
+    outputNodes: [{ id: 40, outputNode: true }],
+  });
+  let received = null;
+  const wrapped = fixture.runtime.wrapQueuePrompt((_number, prompt) => {
+    received = prompt;
+    return { prompt_id: "regional-connected-only", node_errors: {} };
+  });
+  await wrapped(0, promptFor(nodes, {
+    consumers: [{ id: 40, source: 30 }],
+  }));
+  assert.equal(nodes[0].widgets[1].value, 8);
+  assert.equal(nodes[1].widgets[1].value, 30, "a disconnected Regional node must not consume seed");
+  assert.equal(reservedNextSeed(received, 30), 8);
+  assert.equal(reservedSeedState(received, 31), undefined);
+}
+
+{
+  const node = regionalNode(30, 7);
+  const fixture = createFixture({ nodes: [node] });
+  const failure = new Error("Regional queue rejected");
+  const wrapped = fixture.runtime.wrapQueuePrompt(() => Promise.reject(failure));
+  await assert.rejects(wrapped(0, promptFor([node])), (error) => error === failure);
+  assert.equal(node.widgets[1].value, 7, "a thrown Regional queue must rollback its reservation");
+}
+
+{
+  const node = regionalNode(30, 7);
+  const fixture = createFixture({ nodes: [node], cloneError: new Error("Regional clone failed") });
+  assert.equal(fixture.runtime.attachNode(node), true);
+  assert.equal(fixture.runtime.shouldApplyExecutedSeed(node, 8), false);
+  const prompt = promptFor([node]);
+  let received = null;
+  const wrapped = fixture.runtime.wrapQueuePrompt((_number, nextPrompt) => {
+    received = nextPrompt;
+    return { prompt_id: "regional-clone-pass-through", node_errors: {} };
+  });
+  await wrapped(0, prompt);
+  assert.equal(received, prompt);
+  assert.equal(fixture.runtime.trackedStateCount(), 0);
+  assert.equal(
+    fixture.runtime.shouldApplyExecutedSeed(node, 8),
+    true,
+    "Regional clone failure must release the configured authority guard",
+  );
+}
+
+{
+  const node = regionalNode(30, 7);
+  const fixture = createFixture({ nodes: [node] });
+  assert.equal(fixture.runtime.attachNode(node), true);
+  const prompt = promptFor([node]);
+  prompt.workflow.nodes = prompt.workflow.nodes.filter(
+    (workflowNodeValue) => String(workflowNodeValue.id) !== String(node.id),
+  );
+  let received = null;
+  const wrapped = fixture.runtime.wrapQueuePrompt((_number, nextPrompt) => {
+    received = nextPrompt;
+    return { prompt_id: "regional-workflow-pass-through", node_errors: {} };
+  });
+  await wrapped(0, prompt);
+  assert.equal(received, prompt);
+  assert.equal(fixture.runtime.trackedStateCount(), 0);
+  assert.equal(
+    fixture.runtime.shouldApplyExecutedSeed(node, 8),
+    true,
+    "Regional workflow preparation failure must release the unmanaged guard",
+  );
+}
+
+{
+  const node = regionalNode(30, 7);
+  const fixture = createSubgraphFixture({ nodes: [node] });
+  assert.equal(fixture.runtime.attachNode(node), true);
+  assert.equal(fixture.runtime.shouldApplyExecutedSeed(node, 8), false);
+  const prompt = subgraphPromptFor(fixture, {
+    connections: [{ executionId: "50:30", targetId: 20 }],
+  });
+  let received = null;
+  const wrapped = fixture.runtime.wrapQueuePrompt((_number, nextPrompt) => {
+    received = nextPrompt;
+    return { prompt_id: "regional-colon-pass-through", node_errors: {} };
+  });
+  await wrapped(0, prompt);
+  assert.equal(received, prompt, "Regional colon execution ids must remain backend-owned");
+  assert.equal(fixture.cloneCalls(), 0);
+  assert.equal(node.widgets[1].value, 7);
+  assert.equal(reservedSeedState(prompt, "50:30"), undefined);
+  assert.equal(fixture.runtime.trackedStateCount(), 0);
+  assert.equal(
+    fixture.runtime.shouldApplyExecutedSeed(node, 8),
+    true,
+    "Regional colon pass-through must release the configured guard",
+  );
+}
+
+{
+  const node = regionalNode(30, 7);
+  const fixture = createFixture({ nodes: [node] });
+  const gate = deferred();
+  const wrapped = fixture.runtime.wrapQueuePrompt(() => gate.promise);
+  const pending = wrapped(0, promptFor([node]));
+  fixture.runtime.clearGraphNodes();
+  gate.resolve({ prompt_id: "regional-retired-on-clear", node_errors: {} });
+  await pending;
+  assert.equal(node.widgets[1].value, 7, "graph clear must retire Regional publish authority");
+  assert.equal(fixture.runtime.trackedStateCount(), 0);
 }
 
 console.log("Frontend Prompt Studio Advanced queue seed runtime smoke passed.");

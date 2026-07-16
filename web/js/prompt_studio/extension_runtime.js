@@ -109,6 +109,13 @@ import {
   installAdvancedQueueSeedQueueHook,
 } from "./advanced_queue_seed_runtime.js";
 import {
+  promptStudioQueueSeedBridge,
+} from "./queue_seed_bridge.js";
+import {
+  REGIONAL_NODE_TYPE,
+  REGIONAL_WIDGET_INDEX,
+} from "./regional/constants.js";
+import {
   applyWildcardExecutedInputs as applyWildcardExecutedInputsWithHooks,
   hookWildcardSeedWidget,
   setRegularWidgetValue,
@@ -140,8 +147,21 @@ const WILDCARD_QUEUE_SEED_CONTRACT = Object.freeze({
   controlInputName: "seed_after_generate",
   seedWidgetIndex: 3,
 });
+const REGIONAL_QUEUE_SEED_CONTRACT = Object.freeze({
+  modeInputName: "wildcard_mode",
+  seedInputName: "wildcard_seed",
+  controlInputName: "wildcard_seed_after_generate",
+  seedWidgetIndex: REGIONAL_WIDGET_INDEX.wildcard_seed,
+  supportsSubgraph: false,
+});
+
+function isRegionalQueueSeedNode(node) {
+  return node?.type === REGIONAL_NODE_TYPE || node?.comfyClass === REGIONAL_NODE_TYPE;
+}
 
 function createPromptStudioExtensionRuntime(app, api = null) {
+  const queueSeedBridge = promptStudioQueueSeedBridge(app);
+
   function markNodeDirty(node) {
     markNodeDirtyWithApp(app, node);
   }
@@ -200,6 +220,9 @@ function createPromptStudioExtensionRuntime(app, api = null) {
       if (isAdvancedNode(node)) {
         return ADVANCED_QUEUE_SEED_CONTRACT;
       }
+      if (isRegionalQueueSeedNode(node)) {
+        return REGIONAL_QUEUE_SEED_CONTRACT;
+      }
       return isWildcardNode(node) ? WILDCARD_QUEUE_SEED_CONTRACT : null;
     },
     isOutputNode: (node) => node?.constructor?.nodeData?.output_node === true,
@@ -209,6 +232,19 @@ function createPromptStudioExtensionRuntime(app, api = null) {
         if (!setRegularWidgetValue(node, "seed", seed, { markNodeDirty })) {
           throw new Error("Anima Wildcard seed widget is unavailable.");
         }
+        return;
+      }
+      if (contract === REGIONAL_QUEUE_SEED_CONTRACT) {
+        if (queueSeedBridge.publishRegionalSeed(node, seed)) {
+          return;
+        }
+        const widget = findWidget(node, contract.seedInputName);
+        if (!widget) {
+          throw new Error("Prompt Studio Regional wildcard_seed widget is unavailable.");
+        }
+        widget.value = seed;
+        widget.callback?.(widget.value);
+        markNodeDirty(node);
         return;
       }
       const widget = findWidget(node, contract.seedInputName);
@@ -228,6 +264,7 @@ function createPromptStudioExtensionRuntime(app, api = null) {
       return randomWildcardSeed();
     },
   });
+  queueSeedBridge.bindRuntime(advancedQueueSeedRuntime);
 
   function refreshNodeSize(node, options = {}) {
     refreshNodeSizeWithApp(app, node, options);
