@@ -65,6 +65,7 @@ function registerPromptStudioNodeHooks(nodeType, nodeData, hooks) {
       hooks.scheduleHookAdvancedNode(this);
     } else if (isWildcard) {
       hooks.hookWildcardSeedWidget?.(this);
+      hooks.attachAdvancedQueueSeedNode?.(this);
     } else {
       hooks.hookStudioNode(this);
     }
@@ -118,6 +119,12 @@ function registerPromptStudioNodeHooks(nodeType, nodeData, hooks) {
       } catch {
         // Cleanup failures must not replace the node's original lifecycle result.
       }
+      try {
+        hooks.detachAdvancedQueueSeedNode?.(this);
+      } catch {
+        // State cleanup remains isolated from other node removal handlers.
+      }
+    } else if (isWildcard) {
       try {
         hooks.detachAdvancedQueueSeedNode?.(this);
       } catch {

@@ -154,7 +154,20 @@ const ADVANCED = "EasyUseAnimaPromptStudioAdvanced";
 const ADVANCED_V2 = "EasyUseAnimaPromptStudioAdvancedV2";
 const WILDCARD = "EasyUseAnimaWildcard";
 const SEED_INDEX = 11;
+const WILDCARD_SEED_INDEX = 3;
 const RESERVED_NEXT_SEED_INPUT = "easyuse_anima_reserved_wildcard_next_seed";
+const ADVANCED_QUEUE_SEED_CONTRACT = Object.freeze({
+  modeInputName: "wildcard_mode",
+  seedInputName: "wildcard_seed",
+  controlInputName: "wildcard_seed_after_generate",
+  seedWidgetIndex: SEED_INDEX,
+});
+const WILDCARD_QUEUE_SEED_CONTRACT = Object.freeze({
+  modeInputName: "mode",
+  seedInputName: "seed",
+  controlInputName: "seed_after_generate",
+  seedWidgetIndex: WILDCARD_SEED_INDEX,
+});
 
 const nodeHookConstants = sourceModule(`
   export const NODE_TYPE = "EasyUseAnimaPromptStudio";
@@ -209,6 +222,10 @@ function widgetValues(seed, mode = "순차", control = "increment") {
   return values;
 }
 
+function wildcardWidgetValues(seed, mode = "순차", control = "increment") {
+  return ["__style__", "", mode, seed, control];
+}
+
 function advancedNode(id, type = ADVANCED, seed = 7) {
   return {
     id,
@@ -222,28 +239,60 @@ function advancedNode(id, type = ADVANCED, seed = 7) {
   };
 }
 
+function wildcardNode(id, seed = 7) {
+  return {
+    id,
+    type: WILDCARD,
+    comfyClass: WILDCARD,
+    widgets: [
+      { name: "text", value: "__style__" },
+      { name: "populated_text", value: "" },
+      { name: "mode", value: "순차" },
+      { name: "seed", value: seed },
+      { name: "seed_after_generate", value: "increment" },
+    ],
+  };
+}
+
+function queueSeedContract(node) {
+  if ([ADVANCED, ADVANCED_V2].includes(node?.type)) {
+    return ADVANCED_QUEUE_SEED_CONTRACT;
+  }
+  return node?.type === WILDCARD ? WILDCARD_QUEUE_SEED_CONTRACT : null;
+}
+
 function promptFor(nodes, options = {}) {
   const output = {};
   const workflowNodes = [];
   for (const node of nodes) {
-    const mode = node.widgets.find((widget) => widget.name === "wildcard_mode").value;
-    const seed = node.widgets.find((widget) => widget.name === "wildcard_seed").value;
-    const control = node.widgets.find(
-      (widget) => widget.name === "wildcard_seed_after_generate",
-    ).value;
+    const contract = queueSeedContract(node);
+    const mode = node.widgets.find((widget) => widget.name === contract.modeInputName).value;
+    const seed = node.widgets.find((widget) => widget.name === contract.seedInputName).value;
+    const control = node.widgets.find((widget) => widget.name === contract.controlInputName).value;
+    const inputs = node.type === WILDCARD
+      ? {
+          text: "__style__",
+          populated_text: "",
+          mode,
+          seed,
+          seed_after_generate: control,
+        }
+      : {
+          advanced_fields: "[]",
+          wildcard_mode: mode,
+          wildcard_seed: seed,
+          wildcard_seed_after_generate: control,
+        };
     output[String(node.id)] = {
       class_type: node.type,
-      inputs: {
-        advanced_fields: "[]",
-        wildcard_mode: mode,
-        wildcard_seed: seed,
-        wildcard_seed_after_generate: control,
-      },
+      inputs,
     };
     workflowNodes.push({
       id: node.id,
       type: node.type,
-      widgets_values: widgetValues(seed, mode, control),
+      widgets_values: node.type === WILDCARD
+        ? wildcardWidgetValues(seed, mode, control)
+        : widgetValues(seed, mode, control),
     });
   }
   const consumers = Object.prototype.hasOwnProperty.call(options, "consumers")
@@ -279,20 +328,19 @@ function createFixture(options = {}) {
   let cloneCalls = 0;
   let updateFailures = Number(options.updateFailures || 0);
   const runtime = queueModule.createAdvancedQueueSeedRuntime({
-    seedWidgetIndex: SEED_INDEX,
     listNodes: () => [...nodes, ...outputNodes],
-    isAdvancedNode: (node) => [ADVANCED, ADVANCED_V2].includes(node?.type),
+    getNodeContract: queueSeedContract,
     isOutputNode: (node) => node?.outputNode === true,
-    getSeed(node) {
-      return node.widgets.find((widget) => widget.name === "wildcard_seed")?.value;
+    getSeed(node, contract) {
+      return node.widgets.find((widget) => widget.name === contract.seedInputName)?.value;
     },
-    updateSeed(node, seed) {
+    updateSeed(node, seed, contract) {
       if (updateFailures > 0) {
         updateFailures -= 1;
         throw new Error("seed publish failed");
       }
       commits.push([node.id, seed]);
-      node.widgets.find((widget) => widget.name === "wildcard_seed").value = seed;
+      node.widgets.find((widget) => widget.name === contract.seedInputName).value = seed;
     },
     clonePrompt(value) {
       cloneCalls += 1;
@@ -315,13 +363,36 @@ function createFixture(options = {}) {
   };
 }
 
+function registerWildcardRuntimeHooks(nodeType, runtime) {
+  return nodeHooksModule.registerPromptStudioNodeHooks(
+    nodeType,
+    { name: WILDCARD },
+    {
+      hookWildcardSeedWidget() {},
+      attachAdvancedQueueSeedNode: (node) => runtime.attachNode(node),
+      detachAdvancedQueueSeedNode: (node) => runtime.detachNode(node),
+      applyWildcardExecutedInputs(node, message) {
+        wildcardValuesModule.applyWildcardExecutedInputs(node, message, runtime);
+      },
+    },
+  );
+}
+
 function queuedSeed(prompt, nodeId) {
-  return prompt.output[String(nodeId)].inputs.wildcard_seed;
+  const promptNode = prompt.output[String(nodeId)];
+  const contract = promptNode.class_type === WILDCARD
+    ? WILDCARD_QUEUE_SEED_CONTRACT
+    : ADVANCED_QUEUE_SEED_CONTRACT;
+  return promptNode.inputs[contract.seedInputName];
 }
 
 function workflowSeed(prompt, nodeId) {
+  const promptNode = prompt.output[String(nodeId)];
+  const contract = promptNode.class_type === WILDCARD
+    ? WILDCARD_QUEUE_SEED_CONTRACT
+    : ADVANCED_QUEUE_SEED_CONTRACT;
   return prompt.workflow.nodes.find((node) => String(node.id) === String(nodeId))
-    .widgets_values[SEED_INDEX];
+    .widgets_values[contract.seedWidgetIndex];
 }
 
 function reservedNextSeed(prompt, nodeId) {
@@ -432,6 +503,7 @@ function reservedSeedState(prompt, nodeId) {
   const configureResult = Symbol("wildcard-configure-result");
   const originalCallbackResult = Symbol("wildcard-callback-result");
   const originalCallbackCalls = [];
+  const queueLifecycleCalls = [];
   function WildcardNodeType() {}
   WildcardNodeType.prototype.onConfigure = function (serialized) {
     this.widgets.find((widget) => widget.name === "seed").value = serialized.seed;
@@ -439,6 +511,8 @@ function reservedSeedState(prompt, nodeId) {
   };
   const hooks = {
     hookWildcardSeedWidget: wildcardValuesModule.hookWildcardSeedWidget,
+    attachAdvancedQueueSeedNode: (node) => queueLifecycleCalls.push(["attach", node]),
+    detachAdvancedQueueSeedNode: (node) => queueLifecycleCalls.push(["detach", node]),
   };
   assert.equal(
     nodeHooksModule.registerPromptStudioNodeHooks(
@@ -497,6 +571,29 @@ function reservedSeedState(prompt, nodeId) {
   widget.callback.call(node, "2e3");
   assert.equal(widget.value, unsafeSeed);
   assert.equal(originalCallbackCalls.length, 1);
+  assert.equal(node.onRemoved(), undefined);
+  assert.deepEqual(queueLifecycleCalls, [
+    ["attach", node],
+    ["attach", node],
+    ["detach", node],
+  ]);
+}
+
+{
+  const node = wildcardNode(15, 30);
+  const seedWidget = node.widgets.find((widget) => widget.name === "seed");
+  wildcardValuesModule.applyWildcardExecutedInputs(
+    node,
+    { wildcard: [{ seed: 8 }] },
+    { shouldApplyExecutedSeed: () => false },
+  );
+  assert.equal(seedWidget.value, 30, "stale native onExecuted seed must not replace a reservation");
+  wildcardValuesModule.applyWildcardExecutedInputs(
+    node,
+    { wildcard: [{ seed: 31 }] },
+    { shouldApplyExecutedSeed: () => true },
+  );
+  assert.equal(seedWidget.value, 31, "an allowed native onExecuted seed remains publishable");
 }
 
 {
@@ -657,6 +754,36 @@ function reservedSeedState(prompt, nodeId) {
 }
 
 {
+  const node = wildcardNode(15, 7);
+  node.widgets.find((widget) => widget.name === "mode").value = "일반 채우기";
+  node.widgets.find((widget) => widget.name === "seed_after_generate").value = "randomize";
+  const fixture = createFixture({ nodes: [node], randomValues: [41, 42, 43] });
+  const queued = [];
+  const wrapped = fixture.runtime.wrapQueuePrompt((_number, prompt) => {
+    queued.push({
+      current: queuedSeed(prompt, 15),
+      workflow: workflowSeed(prompt, 15),
+      next: reservedNextSeed(prompt, 15),
+    });
+    return { prompt_id: `native-wildcard-${queued.length}`, node_errors: {} };
+  });
+  await Promise.all([
+    wrapped(0, promptFor([node])),
+    wrapped(0, promptFor([node])),
+    wrapped(0, promptFor([node])),
+  ]);
+  assert.deepEqual(queued, [
+    { current: 7, workflow: 7, next: 41 },
+    { current: 41, workflow: 41, next: 42 },
+    { current: 42, workflow: 42, next: 43 },
+  ]);
+  assert.equal(node.widgets.find((widget) => widget.name === "seed").value, 43);
+  assert.equal(fixture.runtime.shouldApplyExecutedSeed(node, 41), false);
+  assert.equal(fixture.runtime.shouldApplyExecutedSeed(node, 43), true);
+  assert.equal(fixture.randomCalls(), 3);
+}
+
+{
   const fixed = advancedNode(10, ADVANCED, 7);
   fixed.widgets[0].value = "고정";
   fixed.widgets[2].value = "randomize";
@@ -810,6 +937,91 @@ function reservedSeedState(prompt, nodeId) {
 }
 
 {
+  for (const { control, backendNextSeed } of [
+    { control: "increment", backendNextSeed: 8 },
+    { control: "randomize", backendNextSeed: 41 },
+  ]) {
+    function ConfiguredWildcardNodeType() {}
+    ConfiguredWildcardNodeType.prototype.onConfigure = function (serialized) {
+      for (const name of ["mode", "seed", "seed_after_generate"]) {
+        this.widgets.find((widget) => widget.name === name).value = serialized[name];
+      }
+    };
+    const node = Object.assign(new ConfiguredWildcardNodeType(), wildcardNode(15, 0));
+    const fixture = createFixture({ nodes: [node], randomValues: [99] });
+    assert.equal(registerWildcardRuntimeHooks(ConfiguredWildcardNodeType, fixture.runtime), true);
+
+    node.onConfigure({ mode: "재현", seed: 7, seed_after_generate: control });
+    assert.equal(
+      fixture.runtime.shouldApplyExecutedSeed(node, backendNextSeed),
+      false,
+      "configure must initially guard native Wildcard against an unknown executed seed",
+    );
+    const prompt = promptFor([node]);
+    let received = null;
+    const wrapped = fixture.runtime.wrapQueuePrompt((_number, nextPrompt) => {
+      received = nextPrompt;
+      return { prompt_id: `native-reproduce-${control}`, node_errors: {} };
+    });
+    await wrapped(0, prompt);
+
+    assert.equal(received, prompt, "native reproduce must stay on the backend pass-through path");
+    assert.equal(fixture.runtime.trackedStateCount(), 0);
+    assert.equal(
+      fixture.runtime.shouldApplyExecutedSeed(node, backendNextSeed),
+      true,
+      "an unmanaged reproduce queue must release the configured executed-seed guard",
+    );
+    node.onExecuted({ wildcard: [{ seed: backendNextSeed }] });
+    assert.equal(
+      node.widgets.find((widget) => widget.name === "seed").value,
+      backendNextSeed,
+      `native reproduce ${control} must publish the backend next seed`,
+    );
+    assert.equal(fixture.randomCalls(), 0, "reproduce randomization remains backend-owned");
+  }
+}
+
+{
+  const node = wildcardNode(15, 7);
+  const fixture = createFixture({ nodes: [node] });
+  assert.equal(fixture.runtime.attachNode(node), true);
+  const gate = deferred();
+  const received = [];
+  const wrapped = fixture.runtime.wrapQueuePrompt((_number, prompt) => {
+    received.push(prompt);
+    return received.length === 1
+      ? gate.promise
+      : { prompt_id: "native-reproduce-after-pending", node_errors: {} };
+  });
+  const managedPrompt = promptFor([node]);
+  const pending = wrapped(0, managedPrompt);
+
+  node.widgets.find((widget) => widget.name === "mode").value = "재현";
+  const reproducePrompt = promptFor([node]);
+  await wrapped(0, reproducePrompt);
+  assert.notEqual(received[0], managedPrompt, "the first managed queue must keep its clone");
+  assert.equal(received[1], reproducePrompt, "the reproduce queue must pass through unchanged");
+  assert.equal(
+    fixture.runtime.trackedStateCount(),
+    1,
+    "the retired pending reservation must remain tracked until settlement",
+  );
+  assert.equal(fixture.runtime.shouldApplyExecutedSeed(node, 50), true);
+  wildcardValuesModule.applyWildcardExecutedInputs(
+    node,
+    { wildcard: [{ seed: 50 }] },
+    fixture.runtime,
+  );
+
+  gate.resolve({ prompt_id: "managed-before-reproduce", node_errors: {} });
+  await pending;
+  assert.deepEqual(fixture.commits, [], "retired managed work must lose live publish authority");
+  assert.equal(node.widgets.find((widget) => widget.name === "seed").value, 50);
+  assert.equal(fixture.runtime.trackedStateCount(), 0);
+}
+
+{
   const fixture = createFixture();
   const failure = new Error("queue rejected");
   let attempts = 0;
@@ -906,6 +1118,28 @@ function reservedSeedState(prompt, nodeId) {
   assert.equal(nodes[1].widgets[1].value, 30, "disconnected Advanced nodes must not reserve seeds");
   assert.equal(reservedNextSeed(received, 10), 8);
   assert.equal(reservedSeedState(received, 11), undefined);
+}
+
+{
+  const nodes = [wildcardNode(15, 7), wildcardNode(16, 30)];
+  const fixture = createFixture({ nodes });
+  const prompt = promptFor(nodes, { consumers: [{ id: 20, source: 15 }] });
+  let received = null;
+  const wrapped = fixture.runtime.wrapQueuePrompt((_number, nextPrompt) => {
+    received = nextPrompt;
+    return { prompt_id: "connected-native-only", node_errors: {} };
+  });
+  await wrapped(0, prompt);
+  assert.equal(nodes[0].widgets.find((widget) => widget.name === "seed").value, 8);
+  assert.equal(
+    nodes[1].widgets.find((widget) => widget.name === "seed").value,
+    30,
+    "a disconnected native Wildcard must not reserve a seed",
+  );
+  assert.equal(reservedNextSeed(received, 15), 8);
+  assert.equal(reservedSeedState(received, 16), undefined);
+  assert.equal(queuedSeed(received, 16), 30);
+  assert.equal(workflowSeed(received, 16), 30);
 }
 
 {
@@ -1219,6 +1453,60 @@ function reservedSeedState(prompt, nodeId) {
   assert.equal(received, prompt);
   assert.equal(fixture.nodes[0].widgets[1].value, 7);
   assert.equal(fixture.cloneCalls(), 1);
+}
+
+{
+  const node = wildcardNode(15, 7);
+  const cloneError = new Error("native clone failed");
+  const fixture = createFixture({ nodes: [node], cloneError });
+  assert.equal(fixture.runtime.attachNode(node), true);
+  assert.equal(fixture.runtime.shouldApplyExecutedSeed(node, 8), false);
+  const prompt = promptFor([node]);
+  let received = null;
+  const wrapped = fixture.runtime.wrapQueuePrompt((_number, nextPrompt) => {
+    received = nextPrompt;
+    return { prompt_id: "native-clone-pass-through", node_errors: {} };
+  });
+  await wrapped(0, prompt);
+
+  assert.equal(received, prompt);
+  assert.equal(fixture.runtime.trackedStateCount(), 0);
+  assert.equal(
+    fixture.runtime.shouldApplyExecutedSeed(node, 8),
+    true,
+    "clone failure must not leave a configured guard on the backend pass-through queue",
+  );
+  wildcardValuesModule.applyWildcardExecutedInputs(
+    node,
+    { wildcard: [{ seed: 8 }] },
+    fixture.runtime,
+  );
+  assert.equal(node.widgets.find((widget) => widget.name === "seed").value, 8);
+}
+
+{
+  const node = wildcardNode(15, 7);
+  const fixture = createFixture({ nodes: [node] });
+  assert.equal(fixture.runtime.attachNode(node), true);
+  const prompt = promptFor([node]);
+  prompt.workflow.nodes = prompt.workflow.nodes.filter(
+    (workflowNodeValue) => String(workflowNodeValue.id) !== String(node.id),
+  );
+  let received = null;
+  const wrapped = fixture.runtime.wrapQueuePrompt((_number, nextPrompt) => {
+    received = nextPrompt;
+    return { prompt_id: "native-workflow-pass-through", node_errors: {} };
+  });
+  await wrapped(0, prompt);
+
+  assert.equal(received, prompt);
+  assert.equal(fixture.cloneCalls(), 1);
+  assert.equal(fixture.runtime.trackedStateCount(), 0);
+  assert.equal(
+    fixture.runtime.shouldApplyExecutedSeed(node, 8),
+    true,
+    "missing workflow seed storage must release the unmanaged queue guard",
+  );
 }
 
 {

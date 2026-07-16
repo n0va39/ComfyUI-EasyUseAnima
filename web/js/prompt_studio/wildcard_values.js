@@ -75,7 +75,10 @@ function applyWildcardExecutedInputs(node, message, hooks = {}) {
   if (payload.mode != null) {
     setRegularWidgetValue(node, "mode", String(payload.mode), hooks);
   }
-  if (payload.seed != null) {
+  if (
+    payload.seed != null
+    && hooks.shouldApplyExecutedSeed?.(node, payload.seed) !== false
+  ) {
     setRegularWidgetValue(node, "seed", Number(payload.seed), hooks);
   }
 }

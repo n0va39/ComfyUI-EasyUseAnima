@@ -29,6 +29,7 @@ import {
 import {
   isAdvancedNode,
   isExtendNode,
+  isWildcardNode,
   installAdvancedSaveSync,
   registerPromptStudioNodeHooks,
   syncAdvancedNodes,
@@ -110,6 +111,7 @@ import {
 import {
   applyWildcardExecutedInputs as applyWildcardExecutedInputsWithHooks,
   hookWildcardSeedWidget,
+  setRegularWidgetValue,
 } from "./wildcard_values.js";
 import {
   randomWildcardSeed,
@@ -124,6 +126,19 @@ import {
   markNodeDirty as markNodeDirtyWithApp,
   refreshNodeSize as refreshNodeSizeWithApp,
 } from "./runtime_canvas.js";
+
+const ADVANCED_QUEUE_SEED_CONTRACT = Object.freeze({
+  modeInputName: "wildcard_mode",
+  seedInputName: "wildcard_seed",
+  controlInputName: "wildcard_seed_after_generate",
+  seedWidgetIndex: ADVANCED_WIDGET_INDEX.wildcard_seed,
+});
+const WILDCARD_QUEUE_SEED_CONTRACT = Object.freeze({
+  modeInputName: "mode",
+  seedInputName: "seed",
+  controlInputName: "seed_after_generate",
+  seedWidgetIndex: 3,
+});
 
 function createPromptStudioExtensionRuntime(app, api = null) {
   function markNodeDirty(node) {
@@ -171,17 +186,30 @@ function createPromptStudioExtensionRuntime(app, api = null) {
   }
 
   function applyWildcardExecutedInputs(node, message) {
-    applyWildcardExecutedInputsWithHooks(node, message, { markNodeDirty });
+    applyWildcardExecutedInputsWithHooks(node, message, {
+      markNodeDirty,
+      shouldApplyExecutedSeed: advancedQueueSeedRuntime.shouldApplyExecutedSeed,
+    });
   }
 
   const advancedQueueSeedRuntime = createAdvancedQueueSeedRuntime({
-    seedWidgetIndex: ADVANCED_WIDGET_INDEX.wildcard_seed,
     listNodes: () => app.graph?._nodes || [],
-    isAdvancedNode,
+    getNodeContract(node) {
+      if (isAdvancedNode(node)) {
+        return ADVANCED_QUEUE_SEED_CONTRACT;
+      }
+      return isWildcardNode(node) ? WILDCARD_QUEUE_SEED_CONTRACT : null;
+    },
     isOutputNode: (node) => node?.constructor?.nodeData?.output_node === true,
-    getSeed: (node) => findWidget(node, "wildcard_seed")?.value,
-    updateSeed(node, seed) {
-      const widget = findWidget(node, "wildcard_seed");
+    getSeed: (node, contract) => findWidget(node, contract.seedInputName)?.value,
+    updateSeed(node, seed, contract) {
+      if (contract === WILDCARD_QUEUE_SEED_CONTRACT) {
+        if (!setRegularWidgetValue(node, "seed", seed, { markNodeDirty })) {
+          throw new Error("Anima Wildcard seed widget is unavailable.");
+        }
+        return;
+      }
+      const widget = findWidget(node, contract.seedInputName);
       if (!widget) {
         throw new Error("Prompt Studio wildcard_seed widget is unavailable.");
       }

@@ -92,8 +92,8 @@ ADVANCED_FIELD_LABELS = {
     "naia": "NAIA Prompt",
 }
 ADVANCED_FIELDS_WORKFLOW_PROPERTY = "easyuse_anima_advanced_fields"
-ADVANCED_RESERVED_NEXT_SEED_INPUT = "easyuse_anima_reserved_wildcard_next_seed"
-ADVANCED_QUEUE_MAX_SAFE_SEED = PUBLIC_MAX_SEED
+WILDCARD_RESERVED_NEXT_SEED_INPUT = "easyuse_anima_reserved_wildcard_next_seed"
+WILDCARD_QUEUE_MAX_SAFE_SEED = PUBLIC_MAX_SEED
 WILDCARD_SEED_RANGE_NOTE = (
     f"Browser/public editing and next-seed range: 0..{PUBLIC_MAX_SEED}. The Python "
     "backend continues accepting uint64 values for legacy workflow validation, but "
@@ -7753,25 +7753,25 @@ def _get_workflow_node(extra_pnginfo, node_id: str):
     return found
 
 
-def _consume_advanced_reserved_next_seed(
-    field_inputs,
+def _consume_reserved_wildcard_next_seed(
+    reservation_inputs,
     workflow_prompt,
     node_id,
     current_seed,
     wildcard_mode,
     seed_control,
 ):
-    if not isinstance(field_inputs, dict):
+    if not isinstance(reservation_inputs, dict):
         return None
     raw_reservation = _single_value(
-        field_inputs.pop(ADVANCED_RESERVED_NEXT_SEED_INPUT, None)
+        reservation_inputs.pop(WILDCARD_RESERVED_NEXT_SEED_INPUT, None)
     )
     node_id = _single_value(node_id)
     if isinstance(workflow_prompt, dict) and node_id is not None:
         prompt_node = workflow_prompt.get(str(node_id))
         prompt_inputs = prompt_node.get("inputs") if isinstance(prompt_node, dict) else None
         if isinstance(prompt_inputs, dict):
-            prompt_inputs.pop(ADVANCED_RESERVED_NEXT_SEED_INPUT, None)
+            prompt_inputs.pop(WILDCARD_RESERVED_NEXT_SEED_INPUT, None)
     if not isinstance(raw_reservation, str):
         return None
     try:
@@ -7791,7 +7791,7 @@ def _consume_advanced_reserved_next_seed(
     def reserved_seed(value):
         if isinstance(value, bool) or not isinstance(value, int):
             return None
-        return value if 0 <= value <= ADVANCED_QUEUE_MAX_SAFE_SEED else None
+        return value if 0 <= value <= WILDCARD_QUEUE_MAX_SAFE_SEED else None
 
     reservation_current_seed = reserved_seed(reservation.get("current_seed"))
     reservation_next_seed = reserved_seed(reservation.get("next_seed"))
@@ -7820,12 +7820,12 @@ def _consume_advanced_reserved_next_seed(
     elif reservation_control == SEED_CONTROL_INCREMENT:
         expected_next_seed = (
             0
-            if reservation_current_seed >= ADVANCED_QUEUE_MAX_SAFE_SEED
+            if reservation_current_seed >= WILDCARD_QUEUE_MAX_SAFE_SEED
             else reservation_current_seed + 1
         )
     elif reservation_control == SEED_CONTROL_DECREMENT:
         expected_next_seed = (
-            ADVANCED_QUEUE_MAX_SAFE_SEED
+            WILDCARD_QUEUE_MAX_SAFE_SEED
             if reservation_current_seed <= 0
             else reservation_current_seed - 1
         )
@@ -8301,6 +8301,7 @@ class EasyUseAnimaWildcard:
                 "extra_pnginfo": "EXTRA_PNGINFO",
                 "unique_id": "UNIQUE_ID",
             },
+            "optional": _FlexibleOptionalInputType("STRING"),
         }
 
     RETURN_TYPES = ("STRING", "INT")
@@ -8400,6 +8401,7 @@ class EasyUseAnimaWildcard:
         workflow_prompt=None,
         extra_pnginfo=None,
         unique_id=None,
+        **reservation_inputs,
     ):
         mode_key = normalize_wildcard_mode(mode)
         seed_value = normalize_seed(seed)
@@ -8423,7 +8425,19 @@ class EasyUseAnimaWildcard:
             if mode_key == WILDCARD_MODE_SEQUENTIAL
             else seed_after_generate
         )
-        next_seed_value = next_seed(seed_value, effective_seed_control)
+        reserved_next_seed = _consume_reserved_wildcard_next_seed(
+            reservation_inputs,
+            workflow_prompt,
+            unique_id,
+            seed_value,
+            mode_key,
+            effective_seed_control,
+        )
+        next_seed_value = (
+            reserved_next_seed
+            if reserved_next_seed is not None
+            else next_seed(seed_value, effective_seed_control)
+        )
         self._update_metadata_cache(
             workflow_prompt,
             extra_pnginfo,
@@ -8976,7 +8990,7 @@ class EasyUseAnimaPromptStudioAdvanced:
             if wildcard_mode_key == WILDCARD_MODE_SEQUENTIAL
             else str(wildcard_seed_after_generate or SEED_CONTROL_FIXED)
         )
-        reserved_next_wildcard_seed = _consume_advanced_reserved_next_seed(
+        reserved_next_wildcard_seed = _consume_reserved_wildcard_next_seed(
             field_inputs,
             workflow_prompt,
             unique_id,

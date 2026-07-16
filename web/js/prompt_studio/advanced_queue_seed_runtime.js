@@ -195,28 +195,34 @@ function reservationWasAccepted(result, reservation, prompt) {
 }
 
 /**
- * @typedef {object} AdvancedQueueSeedDependencies
+ * @typedef {object} WildcardQueueSeedContract
+ * @property {string} modeInputName
+ * @property {string} seedInputName
+ * @property {string} controlInputName
  * @property {number} seedWidgetIndex
+ */
+
+/**
+ * @typedef {object} AdvancedQueueSeedDependencies
  * @property {() => any[]} listNodes
- * @property {(node: any) => boolean} isAdvancedNode
+ * @property {(node: any) => WildcardQueueSeedContract | null} getNodeContract
  * @property {(node: any) => boolean} isOutputNode
- * @property {(node: any) => any} getSeed
- * @property {(node: any, seed: number) => void} updateSeed
+ * @property {(node: any, contract: WildcardQueueSeedContract) => any} getSeed
+ * @property {(node: any, seed: number, contract: WildcardQueueSeedContract) => void} updateSeed
  * @property {(value: any) => any} clonePrompt
  * @property {() => number} randomSeed
  */
 
 /**
- * Reserve Prompt Studio Advanced wildcard seeds in queue-only prompt clones.
+ * Reserve top-level wildcard seeds in queue-only prompt clones.
  * Live widgets advance only after ComfyUI accepts the corresponding queue.
  *
  * @param {AdvancedQueueSeedDependencies} dependencies
  */
 function createAdvancedQueueSeedRuntime(dependencies) {
   const {
-    seedWidgetIndex,
     listNodes,
-    isAdvancedNode,
+    getNodeContract,
     isOutputNode,
     getSeed,
     updateSeed,
@@ -246,10 +252,24 @@ function createAdvancedQueueSeedRuntime(dependencies) {
     forgetState(state);
   }
 
-  function createState(node, nodeId, inputSeed, blockUnknownExecuted) {
+  function retireCandidateState(candidate) {
+    const state = nodeStates.get(candidate.nodeId);
+    if (state) {
+      retireState(state);
+    }
+  }
+
+  function retireCandidateStates(candidates) {
+    for (const candidate of candidates) {
+      retireCandidateState(candidate);
+    }
+  }
+
+  function createState(node, nodeId, inputSeed, contract, blockUnknownExecuted) {
     return {
       node,
       nodeId,
+      contract,
       attached: true,
       committedSeed: normalizeSeed(inputSeed),
       authoritative: false,
@@ -259,14 +279,14 @@ function createAdvancedQueueSeedRuntime(dependencies) {
     };
   }
 
-  function stateForNode(node, nodeId, inputSeed) {
+  function stateForNode(node, nodeId, inputSeed, contract) {
     let state = nodeStates.get(nodeId);
     if (!state || state.node !== node) {
       const replacedState = state;
       if (replacedState) {
         retireState(replacedState);
       }
-      state = createState(node, nodeId, inputSeed, !!replacedState);
+      state = createState(node, nodeId, inputSeed, contract, !!replacedState);
       nodeStates.set(nodeId, state);
       return state;
     }
@@ -274,13 +294,13 @@ function createAdvancedQueueSeedRuntime(dependencies) {
     if (!state.reservations.length) {
       if (state.publishFailed) {
         try {
-          updateSeed(node, state.committedSeed);
+          updateSeed(node, state.committedSeed, state.contract);
           state.publishFailed = false;
         } catch {
           return state;
         }
       }
-      const liveSeed = optionalSeed(getSeed(node));
+      const liveSeed = optionalSeed(getSeed(node, state.contract));
       if (liveSeed != null && liveSeed !== state.committedSeed) {
         state.committedSeed = liveSeed;
         state.authoritative = false;
@@ -312,7 +332,7 @@ function createAdvancedQueueSeedRuntime(dependencies) {
       && nodeStates.get(state.nodeId) === state
     ) {
       try {
-        updateSeed(node, state.committedSeed);
+        updateSeed(node, state.committedSeed, state.contract);
         state.publishFailed = false;
       } catch {
         state.publishFailed = true;
@@ -376,15 +396,16 @@ function createAdvancedQueueSeedRuntime(dependencies) {
       try {
         const nodeId = normalizeNodeId(node?.id);
         const inputs = nodeId == null ? null : output[nodeId]?.inputs;
+        const contract = node ? getNodeContract(node) : null;
         if (
           !node
           || nodeId == null
-          || !isAdvancedNode(node)
+          || !contract
           || !isRecord(inputs)
         ) {
           return [];
         }
-        if (optionalSeed(inputs.wildcard_seed) == null) {
+        if (optionalSeed(inputs[contract.seedInputName]) == null) {
           const state = nodeStates.get(nodeId);
           if (state) {
             // Unsafe 64-bit values stay entirely on the pre-existing backend
@@ -399,7 +420,7 @@ function createAdvancedQueueSeedRuntime(dependencies) {
         const targetIds = targets.filter(
           (targetId) => isUpstreamOf(output, nodeId, targetId, memo),
         );
-        return targetIds.length ? [{ node, nodeId, targetIds }] : [];
+        return targetIds.length ? [{ node, nodeId, targetIds, contract }] : [];
       } catch {
         return [];
       }
@@ -415,35 +436,41 @@ function createAdvancedQueueSeedRuntime(dependencies) {
     try {
       queuedPrompt = clonePrompt(prompt);
     } catch {
+      retireCandidateStates(candidates);
       return null;
     }
     if (!isRecord(queuedPrompt) || !isRecord(queuedPrompt.output)) {
+      retireCandidateStates(candidates);
       return null;
     }
 
     const reservations = [];
-    for (const { node, nodeId, targetIds } of candidates) {
+    for (const candidate of candidates) {
+      const { node, nodeId, targetIds, contract } = candidate;
       try {
         const inputs = queuedPrompt.output[nodeId]?.inputs;
         const workflow = workflowNode(queuedPrompt.workflow, nodeId);
         if (!isRecord(inputs) || !workflow || !Array.isArray(workflow.widgets_values)) {
+          retireCandidateState(candidate);
           continue;
         }
-        const mode = normalizeMode(inputs.wildcard_mode);
+        const mode = normalizeMode(inputs[contract.modeInputName]);
         if (!ACTIVE_WILDCARD_MODES.has(mode)) {
+          retireCandidateState(candidate);
           continue;
         }
-        const inputSeed = optionalSeed(inputs.wildcard_seed);
+        const inputSeed = optionalSeed(inputs[contract.seedInputName]);
         if (inputSeed == null) {
           // JavaScript cannot reserve 64-bit backend seeds without losing
           // precision. Preserve the original queue payload for those values.
+          retireCandidateState(candidate);
           continue;
         }
-        const state = stateForNode(node, nodeId, inputSeed);
+        const state = stateForNode(node, nodeId, inputSeed, contract);
         const queuedSeed = reservedCurrentSeed(state);
         const effectiveControl = mode === "sequential"
           ? "increment"
-          : normalizeControl(inputs.wildcard_seed_after_generate);
+          : normalizeControl(inputs[contract.controlInputName]);
         const reservedNextSeed = nextSeed(
           queuedSeed,
           mode,
@@ -451,10 +478,10 @@ function createAdvancedQueueSeedRuntime(dependencies) {
           randomSeed,
         );
         const workflowValues = [...workflow.widgets_values];
-        while (workflowValues.length <= seedWidgetIndex) {
+        while (workflowValues.length <= contract.seedWidgetIndex) {
           workflowValues.push(null);
         }
-        workflowValues[seedWidgetIndex] = queuedSeed;
+        workflowValues[contract.seedWidgetIndex] = queuedSeed;
         workflow.widgets_values = workflowValues;
         inputs[RESERVED_NEXT_SEED_INPUT] = JSON.stringify({
           version: 1,
@@ -463,7 +490,7 @@ function createAdvancedQueueSeedRuntime(dependencies) {
           mode,
           control: effectiveControl,
         });
-        inputs.wildcard_seed = queuedSeed;
+        inputs[contract.seedInputName] = queuedSeed;
         const reservation = {
           id: ++reservationId,
           node,
@@ -477,7 +504,9 @@ function createAdvancedQueueSeedRuntime(dependencies) {
         state.reservations.push(reservation);
         reservations.push(reservation);
       } catch {
-        // One malformed Advanced node must not block unrelated prompt nodes.
+        // One malformed wildcard-seed node must not block unrelated prompt
+        // nodes or leave its configured guard attached to an unmanaged queue.
+        retireCandidateState(candidate);
       }
     }
     return reservations.length ? { prompt: queuedPrompt, reservations } : null;
@@ -526,14 +555,15 @@ function createAdvancedQueueSeedRuntime(dependencies) {
   }
 
   function attachNode(node) {
-    if (!node || !isAdvancedNode(node)) {
+    const contract = node ? getNodeContract(node) : null;
+    if (!node || !contract) {
       return false;
     }
     const nodeId = normalizeNodeId(node.id);
     if (nodeId == null) {
       return false;
     }
-    const inputSeed = optionalSeed(getSeed(node));
+    const inputSeed = optionalSeed(getSeed(node, contract));
     const existing = nodeStates.get(nodeId);
     if (inputSeed == null) {
       if (existing) {
@@ -544,7 +574,7 @@ function createAdvancedQueueSeedRuntime(dependencies) {
     if (existing?.node === node) {
       if (existing.reservations.length) {
         retireState(existing);
-        const state = createState(node, nodeId, inputSeed, true);
+        const state = createState(node, nodeId, inputSeed, contract, true);
         nodeStates.set(nodeId, state);
         return true;
       }
@@ -558,7 +588,7 @@ function createAdvancedQueueSeedRuntime(dependencies) {
     if (existing) {
       retireState(existing);
     }
-    const state = createState(node, nodeId, inputSeed, true);
+    const state = createState(node, nodeId, inputSeed, contract, true);
     nodeStates.set(nodeId, state);
     return true;
   }
@@ -609,7 +639,7 @@ function createAdvancedQueueSeedRuntime(dependencies) {
       state.publishFailed = false;
       return true;
     }
-    const liveSeed = optionalSeed(getSeed(node));
+    const liveSeed = optionalSeed(getSeed(node, state.contract));
     return liveSeed != null
       && liveSeed === state.committedSeed
       && executedSeed === state.committedSeed;
