@@ -15,6 +15,12 @@ LORA_PRESET_API_CLIENT = ROOT / "web" / "js" / "lora_preset" / "api_client.js"
 LORA_PRESET_API_CLIENT_SMOKE = (
     ROOT / "tests" / "frontend_lora_preset_api_client_smoke.mjs"
 )
+LORA_PRESET_PREVIEW_LIFECYCLE = (
+    ROOT / "web" / "js" / "lora_preset" / "preview_lifecycle.js"
+)
+LORA_PRESET_PREVIEW_LIFECYCLE_SMOKE = (
+    ROOT / "tests" / "frontend_lora_preset_preview_lifecycle_smoke.mjs"
+)
 LORA_PRESET_PROFILE_DATA = ROOT / "web" / "js" / "lora_preset" / "profile_data.js"
 LORA_PRESET_PROFILE_DATA_SMOKE = (
     ROOT / "tests" / "frontend_lora_preset_profile_data_smoke.mjs"
@@ -135,6 +141,102 @@ class LoraPresetFrontendTests(unittest.TestCase):
 
         completed = subprocess.run(
             [node_bin, str(LORA_PRESET_API_CLIENT_SMOKE)],
+            cwd=ROOT,
+            text=True,
+            capture_output=True,
+            check=False,
+        )
+
+        if completed.returncode != 0:
+            self.fail((completed.stdout + completed.stderr).strip())
+
+    def test_preview_lifecycle_module_boundary(self):
+        module_source = LORA_PRESET_PREVIEW_LIFECYCLE.read_text(encoding="utf-8")
+        entry_source = LORA_PRESET_ENTRY.read_text(encoding="utf-8")
+        config = json.loads(JSCONFIG.read_text(encoding="utf-8"))
+        frontend_check_source = FRONTEND_CHECK_SCRIPT.read_text(encoding="utf-8")
+
+        self.assertEqual(module_source.splitlines()[0], "// @ts-check")
+        self.assertEqual(
+            set(
+                re.findall(
+                    r"^export\s+(?:const|function|class)\s+([A-Za-z0-9_]+)",
+                    module_source,
+                    re.MULTILINE,
+                )
+            ),
+            {
+                "createLoraPresetPreviewLifecycle",
+                "loraPreviewPosition",
+            },
+        )
+        self.assertNotRegex(
+            module_source,
+            re.compile(r"^\s*import\b", re.MULTILINE),
+        )
+        self.assertNotRegex(
+            module_source,
+            r"\b(?:app|api|LiteGraph|registerExtension|MutationObserver)\b",
+        )
+        self.assertIn(
+            'import { createLoraPresetPreviewLifecycle } from '
+            '"./lora_preset/preview_lifecycle.js";',
+            entry_source,
+        )
+
+        factory_match = re.search(
+            r"const\s+loraPreviewLifecycle\s*=\s*"
+            r"createLoraPresetPreviewLifecycle"
+            r"\(\{(?P<dependencies>.*?)\}\);",
+            entry_source,
+            re.DOTALL,
+        )
+        self.assertIsNotNone(factory_match)
+        dependency_entries = {
+            line.strip().rstrip(",")
+            for line in factory_match.group("dependencies").splitlines()
+            if line.strip()
+        }
+        self.assertEqual(
+            dependency_entries,
+            {
+                "document",
+                "encodeURIComponent: encodeRFC3986URIComponent",
+                "previewSize: PREVIEW_SIZE",
+            },
+        )
+
+        for moved_name in (
+            "missingPreviewNames",
+            "positionPreview",
+            "showPreview",
+            "hidePreview",
+        ):
+            with self.subTest(moved_declaration=moved_name):
+                self.assertNotRegex(
+                    entry_source,
+                    rf"\b(?:const|let|var|function|class)\s+{moved_name}\b",
+                )
+        self.assertEqual(entry_source.count("loraPreviewLifecycle.showPreview"), 4)
+        self.assertEqual(entry_source.count("loraPreviewLifecycle.hidePreview"), 6)
+        self.assertEqual(
+            entry_source.count("loraPreviewLifecycle.forgetMissingPreview"),
+            1,
+        )
+        self.assertTrue(LORA_PRESET_PREVIEW_LIFECYCLE_SMOKE.is_file())
+        self.assertIn("web/js/lora_preset/**/*.js", config["include"])
+        self.assertIn(
+            r'node "tests\frontend_lora_preset_preview_lifecycle_smoke.mjs"',
+            frontend_check_source,
+        )
+
+    def test_preview_lifecycle_module_semantics(self):
+        node_bin = shutil.which("node")
+        if not node_bin:
+            self.skipTest("node executable is not available")
+
+        completed = subprocess.run(
+            [node_bin, str(LORA_PRESET_PREVIEW_LIFECYCLE_SMOKE)],
             cwd=ROOT,
             text=True,
             capture_output=True,
@@ -350,6 +452,7 @@ class LoraPresetFrontendTests(unittest.TestCase):
             const profileDataPath = process.argv[2];
             const loraStatePath = process.argv[3];
             const apiClientPath = process.argv[4];
+            const previewLifecyclePath = process.argv[5];
             let profileDataSource = fs.readFileSync(profileDataPath, "utf8");
             profileDataSource = profileDataSource.replace(
               /^export\s+(?=(?:const|function|class)\b)/gm,
@@ -365,10 +468,28 @@ class LoraPresetFrontendTests(unittest.TestCase):
               /^export\s+(?=(?:const|function|class)\b)/gm,
               "",
             );
+            let previewLifecycleSource = fs.readFileSync(previewLifecyclePath, "utf8");
+            previewLifecycleSource = previewLifecycleSource.replace(
+              /^export\s+(?=(?:const|function|class)\b)/gm,
+              "",
+            );
             let source = fs.readFileSync(sourcePath, "utf8");
             source = source.replace(/^import[\s\S]*?;\r?\n/gm, "");
-            source = `${profileDataSource}\n${loraStateSource}\n${apiClientSource}\n${source}`;
-            source += "\nglobalThis.__loraPresetTest = { LoraRowWidget, LORA_PRESET_SETTINGS, applyLoraPresetSettings, loraMenuElementValue, loraMenuItems, loraPresetApi, saveProfileSet };\n";
+            source = `${profileDataSource}\n${loraStateSource}\n${apiClientSource}\n${previewLifecycleSource}\n${source}`;
+            source += "\nglobalThis.__loraPresetTest = { LoraRowWidget, LORA_PRESET_SETTINGS, addLoraMenuEntryHandlers, applyLoraPresetSettings, loraMenuElementValue, loraMenuItems, loraPresetApi, loraPreviewLifecycle, saveProfileSet };\n";
+
+            const mutationObservers = [];
+            class StubMutationObserver {
+              constructor(callback) {
+                this.callback = callback;
+                mutationObservers.push(this);
+              }
+              observe(target, options) {
+                this.target = target;
+                this.options = options;
+              }
+              disconnect() {}
+            }
 
             class StubElement {
               constructor(tagName = "div") {
@@ -401,7 +522,7 @@ class LoraPresetFrontendTests(unittest.TestCase):
               MouseEvent: class { constructor(type, options = {}) { this.type = type; Object.assign(this, options); } },
               HTMLInputElement: class {},
               HTMLTextAreaElement: class {},
-              MutationObserver: class { constructor() {} observe() {} disconnect() {} },
+              MutationObserver: StubMutationObserver,
               LiteGraph: {
                 WIDGET_TEXT_COLOR: "#ddd",
                 WIDGET_BGCOLOR: "#222",
@@ -455,10 +576,12 @@ class LoraPresetFrontendTests(unittest.TestCase):
             const {
               LoraRowWidget,
               LORA_PRESET_SETTINGS,
+              addLoraMenuEntryHandlers,
               applyLoraPresetSettings,
               loraMenuElementValue,
               loraMenuItems,
               loraPresetApi,
+              loraPreviewLifecycle,
               saveProfileSet,
             } = context.__loraPresetTest;
 
@@ -500,6 +623,99 @@ class LoraPresetFrontendTests(unittest.TestCase):
 
             function loras(node) {
               return JSON.parse(node.widgets.find((item) => item.name === "loras").value);
+            }
+
+            {
+              const node = makeNode();
+              const row = makeRow();
+              const shown = [];
+              let hidden = 0;
+              const originalShowPreview = loraPreviewLifecycle.showPreview;
+              const originalHidePreview = loraPreviewLifecycle.hidePreview;
+              loraPreviewLifecycle.showPreview = (name, event) => {
+                shown.push({ name, event });
+              };
+              loraPreviewLifecycle.hidePreview = () => {
+                hidden += 1;
+              };
+
+              const hoverEvent = { type: "pointermove", clientX: 205, clientY: 10 };
+              assert.strictEqual(row.mouse(hoverEvent, [205, 10], node), false);
+              assert.strictEqual(shown.length, 1);
+              assert.strictEqual(shown[0].name, "style/foo.safetensors");
+              assert.strictEqual(shown[0].event, hoverEvent);
+              assert.strictEqual(row.mouse({ type: "pointermove" }, [10, 10], node), false);
+              assert.strictEqual(hidden, 1);
+              assert.strictEqual(row.mouse({ type: "pointerout" }, [10, 10], node), false);
+              assert.strictEqual(hidden, 2);
+
+              loraPreviewLifecycle.showPreview = originalShowPreview;
+              loraPreviewLifecycle.hidePreview = originalHidePreview;
+            }
+
+            {
+              const listeners = new Map();
+              const item = {
+                addEventListener(type, listener, options) {
+                  listeners.set(type, { listener, options });
+                },
+              };
+              const shown = [];
+              let hidden = 0;
+              const originalShowPreview = loraPreviewLifecycle.showPreview;
+              const originalHidePreview = loraPreviewLifecycle.hidePreview;
+              loraPreviewLifecycle.showPreview = (name, event) => {
+                shown.push({ name, event });
+              };
+              loraPreviewLifecycle.hidePreview = () => {
+                hidden += 1;
+              };
+
+              addLoraMenuEntryHandlers(item, "style/menu.safetensors");
+              assert.deepStrictEqual(Array.from(listeners.keys()).sort(), ["mousemove", "mouseout", "mouseover"]);
+              for (const { options } of listeners.values()) {
+                assert.strictEqual(options.passive, true);
+              }
+              const mouseoverEvent = { type: "mouseover", clientX: 120, clientY: 80 };
+              const mousemoveEvent = { type: "mousemove", clientX: 124, clientY: 84 };
+              listeners.get("mouseover").listener(mouseoverEvent);
+              listeners.get("mousemove").listener(mousemoveEvent);
+              listeners.get("mouseout").listener({ type: "mouseout" });
+              assert.deepStrictEqual(shown, [
+                { name: "style/menu.safetensors", event: mouseoverEvent },
+                { name: "style/menu.safetensors", event: mousemoveEvent },
+              ]);
+              assert.strictEqual(hidden, 1);
+
+              loraPreviewLifecycle.showPreview = originalShowPreview;
+              loraPreviewLifecycle.hidePreview = originalHidePreview;
+            }
+
+            {
+              const node = makeNode();
+              context.app.canvas.current_node = node;
+              let hidden = 0;
+              const originalHidePreview = loraPreviewLifecycle.hidePreview;
+              loraPreviewLifecycle.hidePreview = () => {
+                hidden += 1;
+              };
+
+              context.app.__extension.init();
+              assert.strictEqual(mutationObservers.length, 1);
+              const removedMenu = {
+                classList: {
+                  contains(className) {
+                    return className === "litecontextmenu";
+                  },
+                },
+              };
+              mutationObservers[0].callback([{
+                removedNodes: [removedMenu],
+                addedNodes: [],
+              }]);
+              assert.strictEqual(hidden, 1);
+
+              loraPreviewLifecycle.hidePreview = originalHidePreview;
             }
 
             {
@@ -644,6 +860,7 @@ class LoraPresetFrontendTests(unittest.TestCase):
                 str(LORA_PRESET_PROFILE_DATA),
                 str(LORA_PRESET_LORA_STATE),
                 str(LORA_PRESET_API_CLIENT),
+                str(LORA_PRESET_PREVIEW_LIFECYCLE),
             ],
             cwd=ROOT,
             text=True,

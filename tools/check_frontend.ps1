@@ -154,6 +154,11 @@ try {
         throw "Frontend LoRA preset state smoke failed with exit code $LASTEXITCODE."
     }
 
+    & node "tests\frontend_lora_preset_preview_lifecycle_smoke.mjs"
+    if ($LASTEXITCODE -ne 0) {
+        throw "Frontend LoRA preset preview lifecycle smoke failed with exit code $LASTEXITCODE."
+    }
+
     & node "tests\frontend_autocomplete_data_adapter_smoke.mjs"
     if ($LASTEXITCODE -ne 0) {
         throw "Frontend autocomplete data adapter smoke failed with exit code $LASTEXITCODE."
