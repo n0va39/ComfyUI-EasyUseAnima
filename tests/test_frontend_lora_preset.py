@@ -796,7 +796,8 @@ class LoraPresetFrontendTests(unittest.TestCase):
               const removedMenu = {
                 classList: {
                   contains(className) {
-                    return className === "litecontextmenu";
+                    return className === "litecontextmenu"
+                      || className === "easyuse-anima-lora-menu";
                   },
                 },
               };
