@@ -1,6 +1,11 @@
 // @ts-check
 
-const MAX_SAFE_SEED = Number.MAX_SAFE_INTEGER;
+import {
+  nextWildcardSeed,
+  normalizeWildcardSeed as normalizeSeed,
+  optionalWildcardSeed as optionalSeed,
+} from "./wildcard_seed_contract.js";
+
 const ACTIVE_WILDCARD_MODES = new Set(["populate", "fixed", "sequential"]);
 const WILDCARD_MODE_ALIASES = new Map([
   ["populate", "populate"],
@@ -25,23 +30,6 @@ function isRecord(value) {
   return !!value && typeof value === "object" && !Array.isArray(value);
 }
 
-function normalizeSeed(value) {
-  const numberValue = Number(value);
-  if (!Number.isFinite(numberValue)) {
-    return 0;
-  }
-  return Math.max(0, Math.min(MAX_SAFE_SEED, Math.trunc(numberValue)));
-}
-
-function optionalSeed(value) {
-  const numberValue = Number(value);
-  return Number.isSafeInteger(numberValue)
-    && numberValue >= 0
-    && numberValue <= MAX_SAFE_SEED
-    ? numberValue
-    : null;
-}
-
 function normalizeNodeId(value) {
   if (typeof value === "number") {
     return Number.isSafeInteger(value) && value >= 0 ? String(value) : null;
@@ -62,26 +50,9 @@ function normalizeControl(value) {
   return SEED_CONTROLS.has(normalized) ? normalized : "fixed";
 }
 
-function incrementSeed(seed) {
-  return seed >= MAX_SAFE_SEED ? 0 : seed + 1;
-}
-
-function decrementSeed(seed) {
-  return seed <= 0 ? MAX_SAFE_SEED : seed - 1;
-}
-
 function nextSeed(seed, mode, control, randomSeed) {
   const effectiveControl = mode === "sequential" ? "increment" : normalizeControl(control);
-  if (effectiveControl === "randomize") {
-    return normalizeSeed(randomSeed());
-  }
-  if (effectiveControl === "increment") {
-    return incrementSeed(seed);
-  }
-  if (effectiveControl === "decrement") {
-    return decrementSeed(seed);
-  }
-  return seed;
+  return nextWildcardSeed(seed, effectiveControl, randomSeed);
 }
 
 function workflowNode(workflow, nodeId) {
@@ -415,11 +386,13 @@ function createAdvancedQueueSeedRuntime(dependencies) {
         }
         if (optionalSeed(inputs.wildcard_seed) == null) {
           const state = nodeStates.get(nodeId);
-          if (!state?.reservations.length) {
+          if (state) {
             // Unsafe 64-bit values stay entirely on the pre-existing backend
-            // path. Drop idle managed state so its executed UI update is not
-            // filtered by a previous safe reservation or node owner.
-            nodeStates.delete(nodeId);
+            // path. Retire even pending safe reservations so a late accepted
+            // response can finish bookkeeping without publishing over the
+            // unsafe live widget or remaining authoritative for its backend
+            // onExecuted update.
+            retireState(state);
           }
           return [];
         }

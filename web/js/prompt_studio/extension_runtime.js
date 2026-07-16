@@ -109,7 +109,11 @@ import {
 } from "./advanced_queue_seed_runtime.js";
 import {
   applyWildcardExecutedInputs as applyWildcardExecutedInputsWithHooks,
+  hookWildcardSeedWidget,
 } from "./wildcard_values.js";
+import {
+  randomWildcardSeed,
+} from "./wildcard_seed_contract.js";
 import {
   captureAdvancedConfigure,
   pruneDisconnectedAdvancedFieldInputValues,
@@ -191,7 +195,7 @@ function createPromptStudioExtensionRuntime(app, api = null) {
         globalThis.crypto.getRandomValues(values);
         return (values[0] & 0x1fffff) * 0x100000000 + values[1];
       }
-      return Math.floor(Math.random() * Number.MAX_SAFE_INTEGER);
+      return randomWildcardSeed();
     },
   });
 
@@ -437,6 +441,7 @@ function createPromptStudioExtensionRuntime(app, api = null) {
         ),
         disconnectAdvancedEditorWidthObserver,
         detachAdvancedQueueSeedNode: advancedQueueSeedRuntime.detachNode,
+        hookWildcardSeedWidget,
         hookStudioNode,
         isExtendNode,
         layoutExtendPromptWidgets,

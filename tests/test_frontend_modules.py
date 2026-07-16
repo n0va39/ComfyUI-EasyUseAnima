@@ -2503,6 +2503,49 @@ class FrontendModuleStructureTests(unittest.TestCase):
             frontend_check_source,
         )
 
+    def test_prompt_studio_wildcard_seed_controls_share_public_contract(self):
+        contract_source = (
+            PROMPT_STUDIO_MODULES / "wildcard_seed_contract.js"
+        ).read_text(encoding="utf-8")
+        queue_source = (
+            PROMPT_STUDIO_MODULES / "advanced_queue_seed_runtime.js"
+        ).read_text(encoding="utf-8")
+        advanced_source = (
+            PROMPT_STUDIO_MODULES / "advanced_controls.js"
+        ).read_text(encoding="utf-8")
+        regional_source = (
+            PROMPT_STUDIO_REGIONAL_MODULES / "field_editor.js"
+        ).read_text(encoding="utf-8")
+        extension_source = (
+            PROMPT_STUDIO_MODULES / "extension_runtime.js"
+        ).read_text(encoding="utf-8")
+        wildcard_values_source = (
+            PROMPT_STUDIO_MODULES / "wildcard_values.js"
+        ).read_text(encoding="utf-8")
+        node_hooks_source = (
+            PROMPT_STUDIO_MODULES / "node_hooks.js"
+        ).read_text(encoding="utf-8")
+
+        self.assertIn("Number.MAX_SAFE_INTEGER", contract_source)
+        self.assertIn("BigInt(decimal)", contract_source)
+        self.assertIn("bindWildcardSeedInput", contract_source)
+        self.assertIn("normalizeWildcardSeedInput", contract_source)
+        self.assertIn("nextWildcardSeed", contract_source)
+        self.assertIn("./wildcard_seed_contract.js", queue_source)
+        self.assertIn("nextWildcardSeed", queue_source)
+        self.assertIn("./wildcard_seed_contract.js", extension_source)
+        self.assertIn("return randomWildcardSeed();", extension_source)
+        self.assertIn("hookWildcardSeedWidget,", extension_source)
+        self.assertIn("hookWildcardSeedWidget", wildcard_values_source)
+        self.assertEqual(
+            node_hooks_source.count("hooks.hookWildcardSeedWidget?.(this);"),
+            2,
+        )
+        for source in (advanced_source, regional_source):
+            with self.subTest(module="seed-control"):
+                self.assertIn("wildcard_seed_contract.js", source)
+                self.assertIn("bindWildcardSeedInput", source)
+
     def test_prompt_studio_phase_2_modules_export_expected_symbols(self):
         advanced_controls_source = (
             PROMPT_STUDIO_MODULES / "advanced_controls.js"
@@ -2923,6 +2966,7 @@ class FrontendModuleStructureTests(unittest.TestCase):
 
         for name in (
             "applyWildcardExecutedInputs",
+            "hookWildcardSeedWidget",
             "setRegularWidgetValue",
         ):
             with self.subTest(module="wildcard_values", symbol=name):
@@ -3282,6 +3326,7 @@ class FrontendModuleStructureTests(unittest.TestCase):
             "studio_resizable_input.js",
             "studio_node_ui.js",
             "studio_values.js",
+            "wildcard_seed_contract.js",
             "wildcard_values.js",
             "textarea.js",
             "wheel.js",

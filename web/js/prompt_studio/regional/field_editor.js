@@ -24,6 +24,9 @@ import {
 import {
   scheduleRegionalNodeFrame,
 } from "./lifecycle.js";
+import {
+  bindWildcardSeedInput,
+} from "../wildcard_seed_contract.js";
 
 /**
  * Move a field within its current pane without changing its id or crossing the
@@ -113,8 +116,6 @@ function createRegionalFieldEditor(runtime, layout, maskEditor, hooks) {
 
     const seedInput = document.createElement("input");
     seedInput.type = "number";
-    seedInput.min = "0";
-    seedInput.step = "1";
     seedInput.value = String(seedWidget.value ?? "0");
     seedInput.setAttribute("aria-label", hooks.promptStudioText("advanced.wildcardSeed"));
 
@@ -147,11 +148,6 @@ function createRegionalFieldEditor(runtime, layout, maskEditor, hooks) {
       }
       renderRegionalEditor(node);
     };
-    const syncSeed = () => {
-      const seed = Math.max(0, Math.trunc(Number(seedInput.value) || 0));
-      seedInput.value = String(seed);
-      runtime.setRegionalWidgetValue(node, "wildcard_seed", seed);
-    };
     const syncControl = () => {
       runtime.setRegionalWidgetValue(
         node,
@@ -161,8 +157,11 @@ function createRegionalFieldEditor(runtime, layout, maskEditor, hooks) {
     };
 
     modeSelect.addEventListener("change", syncMode);
-    seedInput.addEventListener("change", syncSeed);
-    seedInput.addEventListener("blur", syncSeed);
+    bindWildcardSeedInput(
+      seedInput,
+      () => seedWidget.value,
+      (seed) => runtime.setRegionalWidgetValue(node, "wildcard_seed", seed),
+    );
     controlSelect.addEventListener("change", syncControl);
     row.append(modeSelect, seedInput, controlSelect);
     return row;

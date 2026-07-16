@@ -36,6 +36,9 @@ function flushFrames() {
 }
 
 const constantsUrl = dataModule("../web/js/prompt_studio/regional/constants.js");
+const wildcardSeedContractUrl = dataModule(
+  "../web/js/prompt_studio/wildcard_seed_contract.js",
+);
 const maskGeometryUrl = dataModule("../web/js/prompt_studio/regional/mask_geometry.js");
 const resolutionUrl = dataModule("../web/js/prompt_studio/regional/resolution.js", {
   "./constants.js": constantsUrl,
@@ -59,6 +62,7 @@ const fieldEditorUrl = dataModule("../web/js/prompt_studio/regional/field_editor
   "./resolution.js": resolutionUrl,
   "./schema.js": schemaUrl,
   "./lifecycle.js": lifecycleUrl,
+  "../wildcard_seed_contract.js": wildcardSeedContractUrl,
 });
 
 const lifecycle = await import(lifecycleUrl);

@@ -22,6 +22,7 @@ try:
     from .prompt_translation import has_prompt_translation_markers, translate_prompt_markers
     from .wildcard_engine import (
         MAX_SEED,
+        PUBLIC_MAX_SEED,
         SEED_CONTROL_DECREMENT,
         SEED_CONTROL_FIXED,
         SEED_CONTROL_INCREMENT,
@@ -50,6 +51,7 @@ except ImportError:  # allows simple local import tests outside ComfyUI's packag
     from prompt_translation import has_prompt_translation_markers, translate_prompt_markers
     from wildcard_engine import (
         MAX_SEED,
+        PUBLIC_MAX_SEED,
         SEED_CONTROL_DECREMENT,
         SEED_CONTROL_FIXED,
         SEED_CONTROL_INCREMENT,
@@ -91,7 +93,15 @@ ADVANCED_FIELD_LABELS = {
 }
 ADVANCED_FIELDS_WORKFLOW_PROPERTY = "easyuse_anima_advanced_fields"
 ADVANCED_RESERVED_NEXT_SEED_INPUT = "easyuse_anima_reserved_wildcard_next_seed"
-ADVANCED_QUEUE_MAX_SAFE_SEED = (1 << 53) - 1
+ADVANCED_QUEUE_MAX_SAFE_SEED = PUBLIC_MAX_SEED
+WILDCARD_SEED_RANGE_NOTE = (
+    f"Browser/public editing and next-seed range: 0..{PUBLIC_MAX_SEED}. The Python "
+    "backend continues accepting uint64 values for legacy workflow validation, but "
+    "values above the public maximum are best-effort in the browser because JavaScript "
+    "may already have lost integer precision. Fixed does not intentionally advance a "
+    "legacy value; increment, decrement, and randomize return the next seed to the "
+    "public range."
+)
 REGIONAL_FIELDS_WORKFLOW_PROPERTY = "easyuse_anima_regional_fields"
 REGIONAL_CONFIG_WORKFLOW_PROPERTY = "easyuse_anima_regional_config"
 REGIONAL_FIELD_TYPES = {"quality", "artist", "trigger", "general"}
@@ -8276,7 +8286,10 @@ class EasyUseAnimaWildcard:
                     "default": 0,
                     "min": 0,
                     "max": MAX_SEED,
-                    "tooltip": "Wildcard seed. Sequential mode uses seed % option_count for each wildcard.",
+                    "tooltip": (
+                        "Wildcard seed. Sequential mode uses seed % option_count for each wildcard. "
+                        f"{WILDCARD_SEED_RANGE_NOTE}"
+                    ),
                 }),
                 "seed_after_generate": (SEED_CONTROL_MODES, {
                     "default": SEED_CONTROL_FIXED,
@@ -8755,7 +8768,10 @@ class EasyUseAnimaPromptStudioAdvanced:
                     "default": 0,
                     "min": 0,
                     "max": MAX_SEED,
-                    "tooltip": "Wildcard seed used by Advanced Prompt Studio fields.",
+                    "tooltip": (
+                        "Wildcard seed used by Advanced Prompt Studio fields. "
+                        f"{WILDCARD_SEED_RANGE_NOTE}"
+                    ),
                 }),
                 "wildcard_seed_after_generate": (SEED_CONTROL_MODES, {
                     "default": SEED_CONTROL_FIXED,
@@ -10674,7 +10690,10 @@ class EasyUseAnimaPromptStudioRegional:
                     "default": 0,
                     "min": 0,
                     "max": MAX_SEED,
-                    "tooltip": "Wildcard seed used by Regional Prompt Studio fields.",
+                    "tooltip": (
+                        "Wildcard seed used by Regional Prompt Studio fields. "
+                        f"{WILDCARD_SEED_RANGE_NOTE}"
+                    ),
                 }),
                 "wildcard_seed_after_generate": (SEED_CONTROL_MODES, {
                     "default": SEED_CONTROL_FIXED,

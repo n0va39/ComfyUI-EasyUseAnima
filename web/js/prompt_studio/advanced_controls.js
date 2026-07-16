@@ -38,6 +38,9 @@ import {
   findWidget,
   isWidgetInputLinked,
 } from "./widgets.js";
+import {
+  bindWildcardSeedInput,
+} from "./wildcard_seed_contract.js";
 
 function setAdvancedControlValue(node, name, value) {
   const widget = findWidget(node, name);
@@ -540,8 +543,6 @@ function createAdvancedWildcardSettingsBody(node) {
   const seedInput = document.createElement("input");
   protectAdvancedNativeControl(seedInput);
   seedInput.type = "number";
-  seedInput.min = "0";
-  seedInput.step = "1";
   seedInput.value = String(seedWidget.value ?? "0");
   seedInput.setAttribute("aria-label", psText("advanced.wildcardSeed"));
   seedInput.title = psText("advanced.wildcardSeedTitle");
@@ -573,20 +574,18 @@ function createAdvancedWildcardSettingsBody(node) {
     controlSelect.disabled = nextMode === "순차";
     refreshSummary();
   };
-  const syncSeed = () => {
-    const seed = Math.max(0, Math.trunc(Number(seedInput.value) || 0));
-    seedInput.value = String(seed);
-    setAdvancedWidgetValue(node, "wildcard_seed", seed);
-    refreshSummary();
-  };
   const syncControl = () => {
     setAdvancedWidgetValue(node, "wildcard_seed_after_generate", normalizeAdvancedSeedControl(controlSelect.value));
     refreshSummary();
   };
 
   modeSelect.addEventListener("change", syncMode);
-  seedInput.addEventListener("change", syncSeed);
-  seedInput.addEventListener("blur", syncSeed);
+  bindWildcardSeedInput(
+    seedInput,
+    () => seedWidget.value,
+    (seed) => setAdvancedWidgetValue(node, "wildcard_seed", seed),
+    refreshSummary,
+  );
   controlSelect.addEventListener("change", syncControl);
 
   body.append(
