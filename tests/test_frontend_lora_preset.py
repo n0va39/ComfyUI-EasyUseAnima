@@ -154,6 +154,7 @@ class LoraPresetFrontendTests(unittest.TestCase):
         module_source = LORA_PRESET_PREVIEW_LIFECYCLE.read_text(encoding="utf-8")
         entry_source = LORA_PRESET_ENTRY.read_text(encoding="utf-8")
         config = json.loads(JSCONFIG.read_text(encoding="utf-8"))
+        frontend_check_source = FRONTEND_CHECK_SCRIPT.read_text(encoding="utf-8")
 
         self.assertEqual(module_source.splitlines()[0], "// @ts-check")
         self.assertEqual(
@@ -224,6 +225,10 @@ class LoraPresetFrontendTests(unittest.TestCase):
         )
         self.assertTrue(LORA_PRESET_PREVIEW_LIFECYCLE_SMOKE.is_file())
         self.assertIn("web/js/lora_preset/**/*.js", config["include"])
+        self.assertIn(
+            r'node "tests\frontend_lora_preset_preview_lifecycle_smoke.mjs"',
+            frontend_check_source,
+        )
 
     def test_preview_lifecycle_module_semantics(self):
         node_bin = shutil.which("node")
