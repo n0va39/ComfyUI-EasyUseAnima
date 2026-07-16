@@ -225,7 +225,7 @@ class AIOFrontendSourceTests(unittest.TestCase):
             ):
         ]
         start = generator_block.index("nodeType.prototype.onExecuted = function")
-        end = generator_block.index("\n        const onResize", start)
+        end = generator_block.index("const onResize = nodeType.prototype.onResize;", start)
         body = generator_block[start:end]
 
         self.assertIn("nodeType.prototype.hideOutputImages = true", extension_source)
@@ -346,7 +346,7 @@ class AIOFrontendSourceTests(unittest.TestCase):
         on_removed_start = generator_hooks.index(
             "const onRemoved = nodeType.prototype.onRemoved;"
         )
-        on_removed_end = generator_hooks.index("\n        };", on_removed_start)
+        on_removed_end = generator_hooks.index("};", on_removed_start)
         on_removed_body = generator_hooks[on_removed_start:on_removed_end]
 
         original_return = on_removed_body.index(

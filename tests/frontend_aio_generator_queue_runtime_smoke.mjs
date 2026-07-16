@@ -13,8 +13,8 @@ function clone(value) {
 const queueModule = await import(dataModule("../web/js/aio/generator_queue_runtime.js"));
 assert.deepEqual(
   Object.keys(queueModule),
-  ["aioCreateGeneratorQueueRuntime"],
-  "Generator queue runtime must expose only its factory contract",
+  ["aioCreateGeneratorQueueRuntime", "aioInstallGeneratorQueuePromptHook"],
+  "Generator queue runtime must expose only its factory and installer contracts",
 );
 
 const SPECIAL_RANDOM = -1;
@@ -390,6 +390,47 @@ for (const seed of [SPECIAL_RANDOM, SPECIAL_INCREMENT, SPECIAL_DECREMENT]) {
 }
 
 {
+  const fixture = createFixture({ seed: 10, seedControl: "increment" });
+  const host = {
+    calls: 0,
+    queuePrompt() {
+      this.calls += 1;
+      return { prompt_id: "installed", node_errors: {} };
+    },
+  };
+  assert.equal(
+    queueModule.aioInstallGeneratorQueuePromptHook(host, fixture.runtime),
+    true,
+  );
+  const installed = host.queuePrompt;
+  assert.equal(
+    queueModule.aioInstallGeneratorQueuePromptHook(host, fixture.runtime),
+    false,
+  );
+  assert.equal(host.queuePrompt, installed, "repeated setup must not stack AiO wrappers");
+
+  host.queuePrompt = async function (...args) {
+    return installed.apply(this, args);
+  };
+  const foreignWrapper = host.queuePrompt;
+  assert.equal(
+    queueModule.aioInstallGeneratorQueuePromptHook(host, fixture.runtime),
+    false,
+  );
+  assert.equal(
+    host.queuePrompt,
+    foreignWrapper,
+    "the queue-owner marker must survive foreign outer wrapper composition",
+  );
+  const result = await host.queuePrompt(0, createPrompt(), "tail");
+  assert.equal(result.prompt_id, "installed");
+  assert.equal(host.calls, 1, "foreign composition must still reach the original queue once");
+  assert.deepEqual(fixture.trace, ["load:true", "sanitize", "commit:11:10:false"]);
+  assert.equal(fixture.node.lastSeed, 10);
+  assert.equal(fixture.node.settings.sampler.seed, 11);
+}
+
+{
   const skippedNode = createGeneratorNode({
     nodeId: 42,
     seed: 10,
@@ -588,6 +629,31 @@ for (const emptyNodeErrors of [undefined, null, [], "", false, 0]) {
   assert.equal(await wrapped(0, createPrompt()), result);
   assert.equal(fixture.node.settings.sampler.seed, 15);
   assert.equal(fixture.node.lastSeed, 14);
+}
+
+for (const result of [
+  { node_errors: {} },
+  { prompt_id: null, node_errors: {} },
+  { prompt_id: "", node_errors: {} },
+  { prompt_id: " \t\r\n", node_errors: {} },
+]) {
+  const fixture = createFixture({ seed: 16, seedControl: "increment" });
+  const wrapped = fixture.runtime.wrapQueuePrompt(() => result);
+  assert.equal(await wrapped(0, createPrompt()), result);
+  assert.equal(
+    fixture.node.lastSeed,
+    undefined,
+    "missing or blank prompt ids must not commit a queued seed reservation",
+  );
+  assert.equal(
+    fixture.node.settings.sampler.seed,
+    16,
+    "missing or blank prompt ids must not advance the live seed",
+  );
+  assert.equal(
+    fixture.trace.some((item) => item.startsWith("commit:")),
+    false,
+  );
 }
 
 {
