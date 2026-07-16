@@ -6,7 +6,11 @@ import json
 from pathlib import Path
 from unittest.mock import patch
 
-from nodes import EasyUseAnimaPromptStudioAdvanced, EasyUseAnimaWildcard
+from nodes import (
+    EasyUseAnimaPromptStudioAdvanced,
+    EasyUseAnimaPromptStudioRegional,
+    EasyUseAnimaWildcard,
+)
 from settings import public_settings
 import wildcard_engine
 from wildcard_engine import (
@@ -111,6 +115,119 @@ class WildcardEngineTests(unittest.TestCase):
 
         self.assertEqual(items, ["하츠"])
         self.assertEqual(result.text, "hatsune option")
+
+
+class WildcardSeedContractTests(unittest.TestCase):
+    def test_public_seed_controls_share_the_javascript_safe_range(self):
+        public_max = wildcard_engine.PUBLIC_MAX_SEED
+
+        self.assertEqual(public_max, (1 << 53) - 1)
+        self.assertEqual(wildcard_engine.next_seed(0, "fixed"), 0)
+        self.assertEqual(wildcard_engine.next_seed(public_max, "fixed"), public_max)
+        self.assertEqual(wildcard_engine.next_seed(public_max, "increment"), 0)
+        self.assertEqual(wildcard_engine.next_seed(0, "decrement"), public_max)
+        self.assertEqual(
+            wildcard_engine.next_seed(public_max, "decrement"),
+            public_max - 1,
+        )
+        with patch("wildcard_engine.random.SystemRandom") as system_random:
+            system_random.return_value.randrange.return_value = public_max
+
+            self.assertEqual(
+                wildcard_engine.next_seed(123, "randomize"),
+                public_max,
+            )
+
+            system_random.return_value.randrange.assert_called_once_with(
+                0,
+                public_max + 1,
+            )
+
+    def test_legacy_uint64_seed_is_preserved_until_a_control_advances_it(self):
+        public_max = wildcard_engine.PUBLIC_MAX_SEED
+        legacy_max = wildcard_engine.MAX_SEED
+
+        self.assertEqual(wildcard_engine.normalize_seed(legacy_max), legacy_max)
+        self.assertEqual(wildcard_engine.normalize_seed(legacy_max + 1), legacy_max)
+        self.assertEqual(wildcard_engine.next_seed(legacy_max, "fixed"), legacy_max)
+        self.assertEqual(wildcard_engine.next_seed(legacy_max + 1, "fixed"), legacy_max)
+        self.assertEqual(wildcard_engine.next_seed(legacy_max, "increment"), 0)
+        self.assertEqual(
+            wildcard_engine.next_seed(legacy_max, "decrement"),
+            public_max - 1,
+        )
+
+    def test_node_inputs_advertise_public_range_without_rejecting_legacy_workflows(self):
+        node_inputs = (
+            (EasyUseAnimaWildcard, "seed"),
+            (EasyUseAnimaPromptStudioAdvanced, "wildcard_seed"),
+            (EasyUseAnimaPromptStudioRegional, "wildcard_seed"),
+        )
+
+        for node_class, input_name in node_inputs:
+            with self.subTest(node=node_class.__name__):
+                _input_type, config = node_class.INPUT_TYPES()["required"][input_name]
+                self.assertEqual(config["max"], wildcard_engine.MAX_SEED)
+                self.assertIn(str(wildcard_engine.PUBLIC_MAX_SEED), config["tooltip"])
+                self.assertIn("legacy", config["tooltip"].lower())
+
+    def test_all_wildcard_node_surfaces_publish_the_public_decrement_wrap(self):
+        public_max = wildcard_engine.PUBLIC_MAX_SEED
+        wildcard = EasyUseAnimaWildcard().generate(
+            "",
+            "",
+            "일반 채우기",
+            0,
+            "decrement",
+        )
+        advanced = EasyUseAnimaPromptStudioAdvanced().build(
+            False,
+            True,
+            False,
+            False,
+            "[]",
+            wildcard_mode="일반 채우기",
+            wildcard_seed=0,
+            wildcard_seed_after_generate="decrement",
+        )
+        regional = EasyUseAnimaPromptStudioRegional().build(
+            "[]",
+            "{}",
+            wildcard_mode="일반 채우기",
+            wildcard_seed=0,
+            wildcard_seed_after_generate="decrement",
+        )
+
+        self.assertEqual(wildcard["ui"]["wildcard"][0]["seed"], public_max)
+        self.assertEqual(
+            advanced["ui"]["prompt_studio_advanced"][0]["wildcard_seed"],
+            public_max,
+        )
+        self.assertEqual(
+            regional["ui"]["prompt_studio_regional"][0]["wildcard_seed"],
+            public_max,
+        )
+
+    def test_legacy_current_seed_is_used_before_next_seed_reenters_public_range(self):
+        legacy_max = wildcard_engine.MAX_SEED
+        expansion = WildcardExpansionResult(
+            text="expanded style",
+            changed=True,
+            used_keys=("style",),
+            missing_keys=(),
+        )
+
+        with patch("nodes.expand_wildcards", return_value=expansion) as expand:
+            result = EasyUseAnimaWildcard().generate(
+                "__style__",
+                "",
+                "일반 채우기",
+                legacy_max,
+                "increment",
+            )
+
+        self.assertEqual(expand.call_args.kwargs["seed"], legacy_max)
+        self.assertEqual(result["result"], ("expanded style", 0))
 
 
 class WildcardNodeTests(unittest.TestCase):

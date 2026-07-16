@@ -49,7 +49,9 @@ function registerPromptStudioNodeHooks(nodeType, nodeData, hooks) {
     onNodeCreated?.apply(this, arguments);
     if (isAdvanced) {
       hooks.scheduleHookAdvancedNode(this);
-    } else if (!isWildcard) {
+    } else if (isWildcard) {
+      hooks.hookWildcardSeedWidget?.(this);
+    } else {
       hooks.hookStudioNode(this);
     }
   };
@@ -61,7 +63,9 @@ function registerPromptStudioNodeHooks(nodeType, nodeData, hooks) {
       hooks.captureAdvancedConfigure(this, serialized);
       hooks.attachAdvancedQueueSeedNode?.(this);
       hooks.scheduleHookAdvancedNode(this);
-    } else if (!isWildcard) {
+    } else if (isWildcard) {
+      hooks.hookWildcardSeedWidget?.(this);
+    } else {
       hooks.hookStudioNode(this);
     }
     return result;

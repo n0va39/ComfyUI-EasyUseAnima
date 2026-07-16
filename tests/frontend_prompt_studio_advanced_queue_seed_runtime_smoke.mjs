@@ -14,9 +14,15 @@ function clone(value) {
   return JSON.parse(JSON.stringify(value));
 }
 
-const queueModule = await import(
-  dataModule("../web/js/prompt_studio/advanced_queue_seed_runtime.js")
+const seedContractUrl = dataModule(
+  "../web/js/prompt_studio/wildcard_seed_contract.js",
 );
+const queueSource = readFileSync(
+  new URL("../web/js/prompt_studio/advanced_queue_seed_runtime.js", import.meta.url),
+  "utf8",
+).replace('from "./wildcard_seed_contract.js"', `from "${seedContractUrl}"`);
+const queueModule = await import(sourceModule(queueSource));
+const seedContract = await import(seedContractUrl);
 assert.deepEqual(
   Object.keys(queueModule).sort(),
   [
@@ -25,9 +31,128 @@ assert.deepEqual(
     "installAdvancedQueueSeedQueueHook",
   ],
 );
+assert.deepEqual(
+  Object.keys(seedContract).sort(),
+  [
+    "WILDCARD_SEED_MAX",
+    "bindWildcardSeedInput",
+    "nextWildcardSeed",
+    "normalizeWildcardSeed",
+    "normalizeWildcardSeedInput",
+    "optionalWildcardSeed",
+    "randomWildcardSeed",
+  ],
+);
+assert.equal(seedContract.WILDCARD_SEED_MAX, Number.MAX_SAFE_INTEGER);
+assert.equal(seedContract.optionalWildcardSeed(0), 0);
+assert.equal(
+  seedContract.optionalWildcardSeed(Number.MAX_SAFE_INTEGER),
+  Number.MAX_SAFE_INTEGER,
+);
+assert.equal(seedContract.optionalWildcardSeed(Number.MAX_SAFE_INTEGER + 1), null);
+assert.equal(seedContract.normalizeWildcardSeedInput(0), 0);
+assert.equal(seedContract.normalizeWildcardSeedInput("00042"), 42);
+assert.equal(
+  seedContract.normalizeWildcardSeedInput(String(Number.MAX_SAFE_INTEGER)),
+  Number.MAX_SAFE_INTEGER,
+);
+assert.equal(seedContract.normalizeWildcardSeedInput(-1), null);
+assert.equal(seedContract.normalizeWildcardSeedInput(12.9), null);
+assert.equal(seedContract.normalizeWildcardSeedInput("12.9"), null);
+assert.equal(seedContract.normalizeWildcardSeedInput("1e3"), null);
+assert.equal(seedContract.normalizeWildcardSeedInput("9007199254740990.9"), null);
+assert.equal(seedContract.normalizeWildcardSeedInput("9007199254740991.0"), null);
+assert.equal(seedContract.normalizeWildcardSeedInput("9007199254740992"), null);
+assert.equal(seedContract.normalizeWildcardSeedInput(Number.MAX_SAFE_INTEGER + 1), null);
+assert.equal(seedContract.nextWildcardSeed(0, "fixed"), 0);
+assert.equal(seedContract.nextWildcardSeed(Number.MAX_SAFE_INTEGER, "increment"), 0);
+assert.equal(
+  seedContract.nextWildcardSeed(0, "decrement"),
+  Number.MAX_SAFE_INTEGER,
+);
+assert.equal(
+  seedContract.nextWildcardSeed(Number.MAX_SAFE_INTEGER, "decrement"),
+  Number.MAX_SAFE_INTEGER - 1,
+);
+assert.equal(
+  seedContract.nextWildcardSeed(7, "randomize", () => Number.MAX_SAFE_INTEGER),
+  Number.MAX_SAFE_INTEGER,
+);
+assert.equal(
+  seedContract.randomWildcardSeed(() => 1),
+  Number.MAX_SAFE_INTEGER,
+);
+
+function seedInputFixture(value) {
+  const listeners = new Map();
+  return {
+    value,
+    min: "",
+    max: "",
+    step: "",
+    addEventListener(type, listener) {
+      const current = listeners.get(type) || [];
+      current.push(listener);
+      listeners.set(type, current);
+    },
+    dispatch(type) {
+      for (const listener of listeners.get(type) || []) {
+        listener({ type, target: this });
+      }
+    },
+  };
+}
+
+for (const surface of ["Advanced", "Regional"]) {
+  const unsafeSeed = Number.MAX_SAFE_INTEGER + 1;
+  let currentSeed = unsafeSeed;
+  const published = [];
+  const afterPublish = [];
+  const input = seedInputFixture(String(unsafeSeed));
+  seedContract.bindWildcardSeedInput(
+    input,
+    () => currentSeed,
+    (seed) => {
+      currentSeed = seed;
+      published.push(seed);
+    },
+    surface === "Advanced" ? (seed) => afterPublish.push(seed) : undefined,
+  );
+  assert.equal(input.min, "0", `${surface} input minimum must use the public contract`);
+  assert.equal(
+    input.max,
+    String(Number.MAX_SAFE_INTEGER),
+    `${surface} input maximum must use the public contract`,
+  );
+  assert.equal(input.step, "1", `${surface} input step must be an exact integer`);
+
+  input.dispatch("blur");
+  assert.equal(input.value, String(unsafeSeed), `${surface} loaded unsafe seed must stay unchanged`);
+  assert.deepEqual(published, [], `${surface} unsafe blur must not publish`);
+
+  input.value = "41";
+  input.dispatch("change");
+  input.value = "42";
+  input.dispatch("blur");
+  assert.deepEqual(published, [41, 42], `${surface} change and blur must publish safe integers`);
+  assert.equal(currentSeed, 42);
+
+  for (const invalid of ["42.0", "4.2e1", "9007199254740991.1"]) {
+    input.value = invalid;
+    input.dispatch("change");
+    assert.equal(input.value, "42", `${surface} invalid edit must restore the prior seed`);
+  }
+  assert.deepEqual(published, [41, 42], `${surface} invalid edits must not publish`);
+  assert.deepEqual(
+    afterPublish,
+    surface === "Advanced" ? [41, 42] : [],
+    `${surface} post-publish hook must match successful edits`,
+  );
+}
 
 const ADVANCED = "EasyUseAnimaPromptStudioAdvanced";
 const ADVANCED_V2 = "EasyUseAnimaPromptStudioAdvancedV2";
+const WILDCARD = "EasyUseAnimaWildcard";
 const SEED_INDEX = 11;
 const RESERVED_NEXT_SEED_INPUT = "easyuse_anima_reserved_wildcard_next_seed";
 
@@ -43,6 +168,28 @@ const nodeHooksSource = readFileSync(
   "utf8",
 ).replace('from "./constants.js"', `from "${nodeHookConstants}"`);
 const nodeHooksModule = await import(sourceModule(nodeHooksSource));
+const wildcardWidgetHelpers = sourceModule(`
+  export function findWidget(node, name) {
+    return node?.widgets?.find((widget) => widget?.name === name) || null;
+  }
+  export function findInputEl() { return null; }
+  export function firstValue(value, fallback) {
+    const first = Array.isArray(value) ? value[0] : value;
+    return first == null ? fallback : first;
+  }
+`);
+const wildcardValuesSource = readFileSync(
+  new URL("../web/js/prompt_studio/wildcard_values.js", import.meta.url),
+  "utf8",
+)
+  .replace('from "./widgets.js"', `from "${wildcardWidgetHelpers}"`)
+  .replace('from "./wildcard_seed_contract.js"', `from "${seedContractUrl}"`);
+const wildcardValuesModule = await import(sourceModule(wildcardValuesSource));
+assert.deepEqual(Object.keys(wildcardValuesModule).sort(), [
+  "applyWildcardExecutedInputs",
+  "hookWildcardSeedWidget",
+  "setRegularWidgetValue",
+]);
 
 function deferred() {
   let resolve;
@@ -282,6 +429,77 @@ function reservedSeedState(prompt, nodeId) {
 }
 
 {
+  const configureResult = Symbol("wildcard-configure-result");
+  const originalCallbackResult = Symbol("wildcard-callback-result");
+  const originalCallbackCalls = [];
+  function WildcardNodeType() {}
+  WildcardNodeType.prototype.onConfigure = function (serialized) {
+    this.widgets.find((widget) => widget.name === "seed").value = serialized.seed;
+    return configureResult;
+  };
+  const hooks = {
+    hookWildcardSeedWidget: wildcardValuesModule.hookWildcardSeedWidget,
+  };
+  assert.equal(
+    nodeHooksModule.registerPromptStudioNodeHooks(
+      WildcardNodeType,
+      { name: WILDCARD },
+      hooks,
+    ),
+    true,
+  );
+  assert.equal(
+    nodeHooksModule.registerPromptStudioNodeHooks(
+      WildcardNodeType,
+      { name: WILDCARD },
+      hooks,
+    ),
+    false,
+    "Wildcard prototype hook must install only once",
+  );
+
+  const widget = {
+    name: "seed",
+    value: 0,
+    options: { min: -10, max: 0, step: 0.5 },
+    callback(value, ...args) {
+      originalCallbackCalls.push([this, value, args]);
+      return originalCallbackResult;
+    },
+  };
+  const node = Object.assign(new WildcardNodeType(), { widgets: [widget] });
+  node.onNodeCreated();
+  assert.equal(widget.options.min, 0);
+  assert.equal(widget.options.max, Number.MAX_SAFE_INTEGER);
+  assert.equal(widget.options.step, 1);
+  const wrappedCallback = widget.callback;
+
+  const unsafeSeed = Number.MAX_SAFE_INTEGER + 1;
+  assert.equal(node.onConfigure({ seed: unsafeSeed }), configureResult);
+  assert.equal(widget.value, unsafeSeed, "configure must preserve a loaded unsafe seed");
+  assert.equal(widget.callback, wrappedCallback, "configure must not stack the callback guard");
+
+  for (const invalid of ["1.5", "1e3", "9007199254740991.1"]) {
+    widget.value = invalid;
+    assert.equal(widget.callback.call(node, invalid), undefined);
+    assert.equal(widget.value, unsafeSeed, "invalid native edit must restore the configured value");
+  }
+  assert.deepEqual(originalCallbackCalls, [], "invalid native edits must not call the original callback");
+
+  widget.value = "42";
+  assert.equal(widget.callback.call(node, "42", "tail"), originalCallbackResult);
+  assert.equal(widget.value, 42);
+  assert.deepEqual(originalCallbackCalls, [[node, 42, ["tail"]]]);
+
+  assert.equal(node.onConfigure({ seed: unsafeSeed }), configureResult);
+  assert.equal(widget.callback, wrappedCallback, "reconfigure must keep one callback guard");
+  widget.value = "2e3";
+  widget.callback.call(node, "2e3");
+  assert.equal(widget.value, unsafeSeed);
+  assert.equal(originalCallbackCalls.length, 1);
+}
+
+{
   for (const originalError of [
     new Error("original removal failure"),
     null,
@@ -470,6 +688,28 @@ function reservedSeedState(prompt, nodeId) {
 }
 
 {
+  const increment = advancedNode(10, ADVANCED, Number.MAX_SAFE_INTEGER);
+  const fixture = createFixture({ nodes: [increment] });
+  const transaction = fixture.runtime.preparePrompt(promptFor([increment]));
+  assert.ok(transaction);
+  assert.equal(queuedSeed(transaction.prompt, 10), Number.MAX_SAFE_INTEGER);
+  assert.equal(reservedNextSeed(transaction.prompt, 10), 0);
+}
+
+{
+  const randomize = advancedNode(10, ADVANCED, 7);
+  randomize.widgets[0].value = "일반 채우기";
+  randomize.widgets[2].value = "randomize";
+  const fixture = createFixture({
+    nodes: [randomize],
+    randomValues: [Number.MAX_SAFE_INTEGER],
+  });
+  const transaction = fixture.runtime.preparePrompt(promptFor([randomize]));
+  assert.ok(transaction);
+  assert.equal(reservedNextSeed(transaction.prompt, 10), Number.MAX_SAFE_INTEGER);
+}
+
+{
   const fixture = createFixture();
   let received = null;
   const wrapped = fixture.runtime.wrapQueuePrompt((_number, nextPrompt) => {
@@ -489,6 +729,47 @@ function reservedSeedState(prompt, nodeId) {
     true,
     "an old safe-state guard must not block the backend pass-through path",
   );
+}
+
+{
+  const node = advancedNode(10, ADVANCED, 7);
+  const fixture = createFixture({ nodes: [node] });
+  const oldSafeResponse = deferred();
+  let calls = 0;
+  let unsafeReceived = null;
+  const wrapped = fixture.runtime.wrapQueuePrompt((_number, nextPrompt) => {
+    calls += 1;
+    if (calls === 1) {
+      return oldSafeResponse.promise;
+    }
+    unsafeReceived = nextPrompt;
+    return { prompt_id: "unsafe-new", node_errors: {} };
+  });
+
+  const oldSafeQueue = wrapped(0, promptFor([node]));
+  node.widgets[1].value = Number.MAX_SAFE_INTEGER + 1;
+  const unsafePrompt = promptFor([node]);
+  await wrapped(0, unsafePrompt);
+  assert.equal(unsafeReceived, unsafePrompt, "unsafe prompt must bypass the managed clone");
+
+  oldSafeResponse.resolve({ prompt_id: "safe-old", node_errors: {} });
+  await oldSafeQueue;
+  assert.equal(
+    node.widgets[1].value,
+    Number.MAX_SAFE_INTEGER + 1,
+    "a late accepted safe response must not overwrite the unsafe live seed",
+  );
+  assert.deepEqual(fixture.commits, [], "retired safe reservations must lose publish authority");
+  assert.equal(fixture.runtime.trackedStateCount(), 0);
+
+  const unsafeBackendNext = 0;
+  assert.equal(
+    fixture.runtime.shouldApplyExecutedSeed(node, unsafeBackendNext),
+    true,
+    "the unsafe backend next seed must not be filtered by retired safe state",
+  );
+  node.widgets[1].value = unsafeBackendNext;
+  assert.equal(node.widgets[1].value, 0);
 }
 
 {
