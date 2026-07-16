@@ -161,6 +161,7 @@ const ADVANCED_QUEUE_SEED_CONTRACT = Object.freeze({
   seedInputName: "wildcard_seed",
   controlInputName: "wildcard_seed_after_generate",
   seedWidgetIndex: SEED_INDEX,
+  supportsSubgraph: true,
 });
 const WILDCARD_QUEUE_SEED_CONTRACT = Object.freeze({
   modeInputName: "mode",
@@ -363,6 +364,169 @@ function createFixture(options = {}) {
   };
 }
 
+function seedPromptInputs(node) {
+  const contract = queueSeedContract(node);
+  const mode = node.widgets.find((widget) => widget.name === contract.modeInputName).value;
+  const seed = node.widgets.find((widget) => widget.name === contract.seedInputName).value;
+  const control = node.widgets.find((widget) => widget.name === contract.controlInputName).value;
+  return node.type === WILDCARD
+    ? {
+        text: "__style__",
+        populated_text: "",
+        mode,
+        seed,
+        seed_after_generate: control,
+      }
+    : {
+        advanced_fields: "[]",
+        wildcard_mode: mode,
+        wildcard_seed: seed,
+        wildcard_seed_after_generate: control,
+      };
+}
+
+function seedWorkflowNode(node) {
+  const inputs = seedPromptInputs(node);
+  return {
+    id: node.id,
+    type: node.type,
+    widgets_values: node.type === WILDCARD
+      ? wildcardWidgetValues(inputs.seed, inputs.mode, inputs.seed_after_generate)
+      : widgetValues(
+          inputs.wildcard_seed,
+          inputs.wildcard_mode,
+          inputs.wildcard_seed_after_generate,
+        ),
+  };
+}
+
+function createSubgraphFixture(options = {}) {
+  const nodes = options.nodes || [advancedNode(10)];
+  const definition = {
+    id: options.definitionId || "advanced-subgraph-definition",
+    name: "Advanced seed subgraph",
+    _nodes: nodes,
+  };
+  for (const node of nodes) {
+    node.graph = definition;
+  }
+  const containers = (options.containerIds || [50]).map((id) => ({
+    id,
+    type: definition.id,
+    subgraph: definition,
+  }));
+  const outputNodes = options.outputNodes || [{ id: 20, outputNode: true }];
+  const rootGraph = {
+    id: "root-graph",
+    isRootGraph: true,
+    _nodes: [...containers, ...outputNodes],
+  };
+  for (const node of rootGraph._nodes) {
+    node.graph = rootGraph;
+  }
+
+  const randomValues = [...(options.randomValues || [41, 42, 43, 44])];
+  const commits = [];
+  let randomCalls = 0;
+  let cloneCalls = 0;
+  const runtime = queueModule.createAdvancedQueueSeedRuntime({
+    listNodes: () => rootGraph._nodes,
+    rootGraph,
+    getNodeContract: queueSeedContract,
+    isOutputNode: (node) => node?.outputNode === true,
+    getSeed(node, contract) {
+      return node.widgets.find((widget) => widget.name === contract.seedInputName)?.value;
+    },
+    updateSeed(node, seed, contract) {
+      commits.push([definition.id, node.id, seed]);
+      node.widgets.find((widget) => widget.name === contract.seedInputName).value = seed;
+    },
+    clonePrompt(value) {
+      cloneCalls += 1;
+      return clone(value);
+    },
+    randomSeed() {
+      randomCalls += 1;
+      return randomValues.shift() ?? 0;
+    },
+  });
+  return {
+    commits,
+    containers,
+    definition,
+    nodes,
+    outputNodes,
+    rootGraph,
+    runtime,
+    cloneCalls: () => cloneCalls,
+    randomCalls: () => randomCalls,
+  };
+}
+
+function subgraphPromptFor(fixture, options = {}) {
+  const omittedContainerIds = new Set(
+    (options.omittedContainerIds || []).map((value) => String(value)),
+  );
+  const output = {};
+  for (const container of fixture.containers) {
+    if (omittedContainerIds.has(String(container.id))) {
+      continue;
+    }
+    for (const node of fixture.nodes) {
+      output[`${container.id}:${node.id}`] = {
+        class_type: node.type,
+        inputs: seedPromptInputs(node),
+      };
+    }
+  }
+
+  const connections = options.connections || [{
+    executionId: `${fixture.containers[0].id}:${fixture.nodes[0].id}`,
+    targetId: fixture.outputNodes[0].id,
+  }];
+  for (const outputNode of fixture.outputNodes) {
+    const inputs = {};
+    connections
+      .filter((connection) => String(connection.targetId) === String(outputNode.id))
+      .forEach((connection, index) => {
+        inputs[`source_${index}`] = [String(connection.executionId), 0];
+      });
+    output[String(outputNode.id)] = {
+      class_type: "PreviewImage",
+      inputs,
+    };
+  }
+
+  return {
+    output,
+    workflow: {
+      nodes: [
+        ...fixture.containers.map((container) => ({
+          id: container.id,
+          type: fixture.definition.id,
+          mode: omittedContainerIds.has(String(container.id)) ? 4 : 0,
+          widgets_values: [],
+        })),
+        ...fixture.outputNodes.map((node) => ({
+          id: node.id,
+          type: "PreviewImage",
+          widgets_values: [],
+        })),
+      ],
+      definitions: {
+        subgraphs: [{
+          id: fixture.definition.id,
+          name: fixture.definition.name,
+          inputNode: { id: -10 },
+          outputNode: { id: -20 },
+          nodes: fixture.nodes.map(seedWorkflowNode),
+        }],
+      },
+      links: [],
+    },
+  };
+}
+
 function registerWildcardRuntimeHooks(nodeType, runtime) {
   return nodeHooksModule.registerPromptStudioNodeHooks(
     nodeType,
@@ -391,8 +555,23 @@ function workflowSeed(prompt, nodeId) {
   const contract = promptNode.class_type === WILDCARD
     ? WILDCARD_QUEUE_SEED_CONTRACT
     : ADVANCED_QUEUE_SEED_CONTRACT;
-  return prompt.workflow.nodes.find((node) => String(node.id) === String(nodeId))
-    .widgets_values[contract.seedWidgetIndex];
+  const nodeIds = String(nodeId).split(":");
+  const definitions = new Map(
+    (prompt.workflow.definitions?.subgraphs || []).map((definition) => [
+      String(definition.id),
+      definition,
+    ]),
+  );
+  let nodes = prompt.workflow.nodes;
+  let workflowNodeValue = null;
+  for (let index = 0; index < nodeIds.length; index += 1) {
+    workflowNodeValue = nodes.find((node) => String(node.id) === nodeIds[index]) || null;
+    if (!workflowNodeValue || index === nodeIds.length - 1) {
+      break;
+    }
+    nodes = definitions.get(String(workflowNodeValue.type))?.nodes || [];
+  }
+  return workflowNodeValue.widgets_values[contract.seedWidgetIndex];
 }
 
 function reservedNextSeed(prompt, nodeId) {
@@ -1140,6 +1319,244 @@ function reservedSeedState(prompt, nodeId) {
   assert.equal(reservedSeedState(received, 16), undefined);
   assert.equal(queuedSeed(received, 16), 30);
   assert.equal(workflowSeed(received, 16), 30);
+}
+
+{
+  const nodes = [advancedNode(10, ADVANCED, 7), advancedNode(11, ADVANCED_V2, 30)];
+  const fixture = createSubgraphFixture({ nodes });
+  const prompt = subgraphPromptFor(fixture, {
+    connections: [{ executionId: "50:10", targetId: 20 }],
+  });
+  let received = null;
+  const wrapped = fixture.runtime.wrapQueuePrompt((_number, nextPrompt) => {
+    received = nextPrompt;
+    return { prompt_id: "subgraph-connected-only", node_errors: {} };
+  });
+  await wrapped(0, prompt);
+
+  assert.notEqual(received, prompt);
+  assert.equal(queuedSeed(received, "50:10"), 7);
+  assert.equal(workflowSeed(received, "50:10"), 7);
+  assert.deepEqual(reservedSeedState(received, "50:10"), {
+    version: 1,
+    current_seed: 7,
+    next_seed: 8,
+    mode: "sequential",
+    control: "increment",
+  });
+  assert.equal(nodes[0].widgets[1].value, 8);
+  assert.equal(
+    nodes[1].widgets[1].value,
+    30,
+    "a disconnected Advanced V2 node in the same definition must not reserve",
+  );
+  assert.equal(reservedSeedState(received, "50:11"), undefined);
+  assert.equal(workflowSeed(received, "50:11"), 30);
+  assert.equal(reservedSeedState(prompt, "50:10"), undefined, "the caller prompt stays immutable");
+  assert.equal(workflowSeed(prompt, "50:10"), 7);
+}
+
+{
+  const node = advancedNode(10, ADVANCED_V2, 7);
+  node.widgets[0].value = "일반 채우기";
+  node.widgets[2].value = "randomize";
+  const fixture = createSubgraphFixture({ nodes: [node], randomValues: [41, 42, 43] });
+  const queued = [];
+  const wrapped = fixture.runtime.wrapQueuePrompt((_number, prompt) => {
+    queued.push({
+      current: queuedSeed(prompt, "50:10"),
+      workflow: workflowSeed(prompt, "50:10"),
+      next: reservedNextSeed(prompt, "50:10"),
+    });
+    return { prompt_id: `subgraph-rapid-${queued.length}`, node_errors: {} };
+  });
+  await Promise.all([
+    wrapped(0, subgraphPromptFor(fixture)),
+    wrapped(0, subgraphPromptFor(fixture)),
+    wrapped(0, subgraphPromptFor(fixture)),
+  ]);
+  assert.deepEqual(queued, [
+    { current: 7, workflow: 7, next: 41 },
+    { current: 41, workflow: 41, next: 42 },
+    { current: 42, workflow: 42, next: 43 },
+  ]);
+  assert.equal(node.widgets[1].value, 43);
+  assert.equal(fixture.randomCalls(), 3);
+}
+
+{
+  const node = advancedNode(10, ADVANCED, 7);
+  node.widgets[0].value = "일반 채우기";
+  node.widgets[2].value = "randomize";
+  const fixture = createSubgraphFixture({
+    nodes: [node],
+    containerIds: [50, 51],
+    randomValues: [41, 42],
+  });
+  const prompt = subgraphPromptFor(fixture, {
+    connections: [
+      { executionId: "50:10", targetId: 20 },
+      { executionId: "51:10", targetId: 20 },
+    ],
+  });
+  let received = null;
+  const wrapped = fixture.runtime.wrapQueuePrompt((_number, nextPrompt) => {
+    received = nextPrompt;
+    return { prompt_id: "shared-subgraph-definition", node_errors: {} };
+  });
+  await wrapped(0, prompt);
+
+  for (const executionId of ["50:10", "51:10"]) {
+    assert.equal(queuedSeed(received, executionId), 7);
+    assert.equal(reservedNextSeed(received, executionId), 41);
+  }
+  assert.equal(workflowSeed(received, "50:10"), 7);
+  assert.equal(node.widgets[1].value, 41);
+  assert.equal(fixture.randomCalls(), 1, "one shared live definition reserves one next seed");
+  assert.deepEqual(fixture.commits, [[fixture.definition.id, 10, 41]]);
+}
+
+{
+  const node = advancedNode(10, ADVANCED_V2, 7);
+  const fixture = createSubgraphFixture({
+    nodes: [node],
+    definitionId: "inner-advanced-definition",
+    containerIds: [60],
+  });
+  const innerDefinition = fixture.definition;
+  const innerContainer = {
+    id: 50,
+    type: innerDefinition.id,
+    subgraph: innerDefinition,
+  };
+  const outerDefinition = {
+    id: "outer-advanced-definition",
+    name: "Outer Advanced seed subgraph",
+    _nodes: [innerContainer],
+  };
+  innerContainer.graph = outerDefinition;
+  fixture.containers[0].type = outerDefinition.id;
+  fixture.containers[0].subgraph = outerDefinition;
+  const prompt = {
+    output: {
+      "60:50:10": {
+        class_type: node.type,
+        inputs: seedPromptInputs(node),
+      },
+      20: {
+        class_type: "PreviewImage",
+        inputs: { source: ["60:50:10", 0] },
+      },
+    },
+    workflow: {
+      nodes: [
+        { id: 60, type: outerDefinition.id, widgets_values: [] },
+        { id: 20, type: "PreviewImage", widgets_values: [] },
+      ],
+      definitions: {
+        subgraphs: [
+          {
+            id: outerDefinition.id,
+            name: outerDefinition.name,
+            inputNode: { id: -10 },
+            outputNode: { id: -20 },
+            nodes: [{ id: 50, type: innerDefinition.id, widgets_values: [] }],
+          },
+          {
+            id: innerDefinition.id,
+            name: innerDefinition.name,
+            inputNode: { id: -10 },
+            outputNode: { id: -20 },
+            nodes: [seedWorkflowNode(node)],
+          },
+        ],
+      },
+      links: [],
+    },
+  };
+  let received = null;
+  const wrapped = fixture.runtime.wrapQueuePrompt((_number, nextPrompt) => {
+    received = nextPrompt;
+    return { prompt_id: "nested-subgraph", node_errors: {} };
+  });
+  await wrapped(0, prompt);
+
+  assert.equal(queuedSeed(received, "60:50:10"), 7);
+  assert.equal(workflowSeed(received, "60:50:10"), 7);
+  assert.equal(reservedNextSeed(received, "60:50:10"), 8);
+  assert.equal(node.widgets[1].value, 8);
+}
+
+{
+  const node = advancedNode(10, ADVANCED, 7);
+  node.widgets[0].value = "일반 채우기";
+  node.widgets[2].value = "randomize";
+  const fixture = createSubgraphFixture({ nodes: [node], randomValues: [41] });
+  const prompt = subgraphPromptFor(fixture, {
+    omittedContainerIds: [50],
+    connections: [],
+  });
+  let received = null;
+  const wrapped = fixture.runtime.wrapQueuePrompt((_number, nextPrompt) => {
+    received = nextPrompt;
+    return { prompt_id: "bypassed-subgraph", node_errors: {} };
+  });
+  await wrapped(0, prompt);
+
+  assert.equal(received, prompt, "a bypassed subgraph stays on the unmanaged queue path");
+  assert.equal(fixture.cloneCalls(), 0);
+  assert.equal(fixture.randomCalls(), 0);
+  assert.deepEqual(fixture.commits, []);
+  assert.equal(node.widgets[1].value, 7);
+}
+
+{
+  const node = wildcardNode(15, 7);
+  const fixture = createSubgraphFixture({ nodes: [node] });
+  const prompt = subgraphPromptFor(fixture, {
+    connections: [{ executionId: "50:15", targetId: 20 }],
+  });
+  let received = null;
+  const wrapped = fixture.runtime.wrapQueuePrompt((_number, nextPrompt) => {
+    received = nextPrompt;
+    return { prompt_id: "native-wildcard-subgraph-pass-through", node_errors: {} };
+  });
+  await wrapped(0, prompt);
+
+  assert.equal(received, prompt, "#103 native Wildcard support remains top-level only");
+  assert.equal(reservedSeedState(received, "50:15"), undefined);
+  assert.equal(node.widgets.find((widget) => widget.name === "seed").value, 7);
+  assert.equal(fixture.cloneCalls(), 0);
+}
+
+{
+  const node = advancedNode(10, ADVANCED, 7);
+  node.widgets[0].value = "일반 채우기";
+  node.widgets[2].value = "randomize";
+  const fixture = createSubgraphFixture({
+    nodes: [node],
+    containerIds: [50, 51],
+    randomValues: [41],
+  });
+  const prompt = subgraphPromptFor(fixture, {
+    connections: [
+      { executionId: "50:10", targetId: 20 },
+      { executionId: "51:10", targetId: 20 },
+    ],
+  });
+  prompt.output["51:10"].inputs.wildcard_seed = 99;
+  let received = null;
+  const wrapped = fixture.runtime.wrapQueuePrompt((_number, nextPrompt) => {
+    received = nextPrompt;
+    return { prompt_id: "promoted-seed-mismatch", node_errors: {} };
+  });
+  await wrapped(0, prompt);
+
+  assert.equal(received, prompt, "different per-instance seeds cannot share one workflow value");
+  assert.equal(fixture.cloneCalls(), 0);
+  assert.equal(fixture.randomCalls(), 0);
+  assert.deepEqual(fixture.commits, []);
+  assert.equal(node.widgets[1].value, 7);
 }
 
 {

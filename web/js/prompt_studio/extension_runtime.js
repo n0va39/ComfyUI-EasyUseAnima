@@ -132,6 +132,7 @@ const ADVANCED_QUEUE_SEED_CONTRACT = Object.freeze({
   seedInputName: "wildcard_seed",
   controlInputName: "wildcard_seed_after_generate",
   seedWidgetIndex: ADVANCED_WIDGET_INDEX.wildcard_seed,
+  supportsSubgraph: true,
 });
 const WILDCARD_QUEUE_SEED_CONTRACT = Object.freeze({
   modeInputName: "mode",
@@ -194,6 +195,7 @@ function createPromptStudioExtensionRuntime(app, api = null) {
 
   const advancedQueueSeedRuntime = createAdvancedQueueSeedRuntime({
     listNodes: () => app.graph?._nodes || [],
+    rootGraph: app.graph,
     getNodeContract(node) {
       if (isAdvancedNode(node)) {
         return ADVANCED_QUEUE_SEED_CONTRACT;

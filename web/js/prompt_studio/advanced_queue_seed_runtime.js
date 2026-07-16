@@ -55,11 +55,102 @@ function nextSeed(seed, mode, control, randomSeed) {
   return nextWildcardSeed(seed, effectiveControl, randomSeed);
 }
 
-function workflowNode(workflow, nodeId) {
+function workflowSubgraphDefinitions(workflow) {
+  const definitions = new Map();
+  const pending = Array.isArray(workflow?.definitions?.subgraphs)
+    ? [...workflow.definitions.subgraphs]
+    : [];
+  while (pending.length) {
+    const definition = pending.shift();
+    const definitionId = normalizeNodeId(definition?.id);
+    if (definitionId == null || definitions.has(definitionId)) {
+      continue;
+    }
+    definitions.set(definitionId, definition);
+    if (Array.isArray(definition?.definitions?.subgraphs)) {
+      pending.push(...definition.definitions.subgraphs);
+    }
+  }
+  return definitions;
+}
+
+function workflowNode(workflow, executionId) {
   if (!Array.isArray(workflow?.nodes)) {
     return null;
   }
-  return workflow.nodes.find((node) => normalizeNodeId(node?.id) === nodeId) || null;
+  const nodeIds = String(executionId || "")
+    .split(":")
+    .map((value) => normalizeNodeId(value));
+  if (!nodeIds.length || nodeIds.some((value) => value == null)) {
+    return null;
+  }
+  const definitions = workflowSubgraphDefinitions(workflow);
+  let nodes = workflow.nodes;
+  let found = null;
+  for (let index = 0; index < nodeIds.length; index += 1) {
+    found = nodes.find((node) => normalizeNodeId(node?.id) === nodeIds[index]) || null;
+    if (!found || index === nodeIds.length - 1) {
+      break;
+    }
+    const definition = definitions.get(normalizeNodeId(found.type));
+    if (!Array.isArray(definition?.nodes)) {
+      return null;
+    }
+    nodes = definition.nodes;
+  }
+  return found;
+}
+
+function graphNodeEntries(rootGraph) {
+  if (!Array.isArray(rootGraph?._nodes)) {
+    return [];
+  }
+  const entries = new Map();
+
+  function visit(graph, parentPath, ancestors) {
+    if (!Array.isArray(graph?._nodes)) {
+      return;
+    }
+    for (const node of graph._nodes) {
+      const nodeId = normalizeNodeId(node?.id);
+      if (!node || nodeId == null) {
+        continue;
+      }
+      const executionId = [...parentPath, nodeId].join(":");
+      let entry = entries.get(node);
+      if (!entry) {
+        entry = { node, executionIds: [] };
+        entries.set(node, entry);
+      }
+      if (!entry.executionIds.includes(executionId)) {
+        entry.executionIds.push(executionId);
+      }
+
+      const subgraph = node.subgraph;
+      if (!Array.isArray(subgraph?._nodes) || ancestors.has(node)) {
+        continue;
+      }
+      const nestedAncestors = new Set(ancestors);
+      nestedAncestors.add(node);
+      visit(subgraph, [...parentPath, nodeId], nestedAncestors);
+    }
+  }
+
+  visit(rootGraph, [], new Set());
+  return [...entries.values()];
+}
+
+function nodeStateKey(rootGraph, node) {
+  const nodeId = normalizeNodeId(node?.id);
+  if (nodeId == null) {
+    return null;
+  }
+  const graph = node?.graph;
+  if (!rootGraph || !graph || graph === rootGraph || graph.isRootGraph === true) {
+    return nodeId;
+  }
+  const graphId = normalizeNodeId(graph.id);
+  return graphId == null ? nodeId : `${graphId}:${nodeId}`;
 }
 
 function inputSourceIds(value, output, result = new Set()) {
@@ -200,11 +291,13 @@ function reservationWasAccepted(result, reservation, prompt) {
  * @property {string} seedInputName
  * @property {string} controlInputName
  * @property {number} seedWidgetIndex
+ * @property {boolean} [supportsSubgraph]
  */
 
 /**
  * @typedef {object} AdvancedQueueSeedDependencies
  * @property {() => any[]} listNodes
+ * @property {any} [rootGraph]
  * @property {(node: any) => WildcardQueueSeedContract | null} getNodeContract
  * @property {(node: any) => boolean} isOutputNode
  * @property {(node: any, contract: WildcardQueueSeedContract) => any} getSeed
@@ -214,7 +307,7 @@ function reservationWasAccepted(result, reservation, prompt) {
  */
 
 /**
- * Reserve top-level wildcard seeds in queue-only prompt clones.
+ * Reserve eligible wildcard seeds upstream of root output targets in queue-only prompt clones.
  * Live widgets advance only after ComfyUI accepts the corresponding queue.
  *
  * @param {AdvancedQueueSeedDependencies} dependencies
@@ -222,6 +315,7 @@ function reservationWasAccepted(result, reservation, prompt) {
 function createAdvancedQueueSeedRuntime(dependencies) {
   const {
     listNodes,
+    rootGraph = null,
     getNodeContract,
     isOutputNode,
     getSeed,
@@ -234,8 +328,8 @@ function createAdvancedQueueSeedRuntime(dependencies) {
   let reservationId = 0;
 
   function forgetState(state) {
-    if (nodeStates.get(state.nodeId) === state) {
-      nodeStates.delete(state.nodeId);
+    if (nodeStates.get(state.stateKey) === state) {
+      nodeStates.delete(state.stateKey);
     }
     retiredStates.delete(state);
   }
@@ -243,8 +337,8 @@ function createAdvancedQueueSeedRuntime(dependencies) {
   function retireState(state) {
     state.attached = false;
     if (state.reservations.length) {
-      if (nodeStates.get(state.nodeId) === state) {
-        nodeStates.delete(state.nodeId);
+      if (nodeStates.get(state.stateKey) === state) {
+        nodeStates.delete(state.stateKey);
       }
       retiredStates.add(state);
       return;
@@ -253,7 +347,7 @@ function createAdvancedQueueSeedRuntime(dependencies) {
   }
 
   function retireCandidateState(candidate) {
-    const state = nodeStates.get(candidate.nodeId);
+    const state = nodeStates.get(candidate.stateKey);
     if (state) {
       retireState(state);
     }
@@ -265,10 +359,10 @@ function createAdvancedQueueSeedRuntime(dependencies) {
     }
   }
 
-  function createState(node, nodeId, inputSeed, contract, blockUnknownExecuted) {
+  function createState(node, stateKey, inputSeed, contract, blockUnknownExecuted) {
     return {
       node,
-      nodeId,
+      stateKey,
       contract,
       attached: true,
       committedSeed: normalizeSeed(inputSeed),
@@ -279,15 +373,15 @@ function createAdvancedQueueSeedRuntime(dependencies) {
     };
   }
 
-  function stateForNode(node, nodeId, inputSeed, contract) {
-    let state = nodeStates.get(nodeId);
+  function stateForNode(node, stateKey, inputSeed, contract) {
+    let state = nodeStates.get(stateKey);
     if (!state || state.node !== node) {
       const replacedState = state;
       if (replacedState) {
         retireState(replacedState);
       }
-      state = createState(node, nodeId, inputSeed, contract, !!replacedState);
-      nodeStates.set(nodeId, state);
+      state = createState(node, stateKey, inputSeed, contract, !!replacedState);
+      nodeStates.set(stateKey, state);
       return state;
     }
     state.attached = true;
@@ -329,7 +423,7 @@ function createAdvancedQueueSeedRuntime(dependencies) {
       committed
       && state.attached
       && state.node === node
-      && nodeStates.get(state.nodeId) === state
+      && nodeStates.get(state.stateKey) === state
     ) {
       try {
         updateSeed(node, state.committedSeed, state.contract);
@@ -365,18 +459,32 @@ function createAdvancedQueueSeedRuntime(dependencies) {
     if (!isRecord(prompt) || !isRecord(output)) {
       return [];
     }
-    let nodes;
+    let entries;
+    let rootNodes;
     try {
-      nodes = listNodes();
+      if (rootGraph) {
+        entries = graphNodeEntries(rootGraph);
+        rootNodes = Array.isArray(rootGraph?._nodes) ? rootGraph._nodes : [];
+      } else {
+        const nodes = listNodes();
+        if (!Array.isArray(nodes)) {
+          return [];
+        }
+        rootNodes = nodes;
+        entries = nodes.map((node) => ({
+          node,
+          executionIds: [normalizeNodeId(node?.id)].filter((value) => value != null),
+        }));
+      }
     } catch {
       return [];
     }
-    if (!Array.isArray(nodes)) {
+    if (!Array.isArray(entries) || !Array.isArray(rootNodes)) {
       return [];
     }
     let targets = partialExecutionTargets(options, output);
     if (targets == null) {
-      targets = nodes.flatMap((node) => {
+      targets = rootNodes.flatMap((node) => {
         try {
           const nodeId = normalizeNodeId(node?.id);
           if (nodeId == null) {
@@ -392,35 +500,49 @@ function createAdvancedQueueSeedRuntime(dependencies) {
       return [];
     }
     const memo = new Map();
-    return nodes.flatMap((node) => {
+    return entries.flatMap((entry) => {
       try {
-        const nodeId = normalizeNodeId(node?.id);
-        const inputs = nodeId == null ? null : output[nodeId]?.inputs;
+        const node = entry?.node;
         const contract = node ? getNodeContract(node) : null;
-        if (
-          !node
-          || nodeId == null
-          || !contract
-          || !isRecord(inputs)
-        ) {
+        const stateKey = nodeStateKey(rootGraph, node);
+        if (!node || !contract || stateKey == null || !Array.isArray(entry.executionIds)) {
           return [];
         }
-        if (optionalSeed(inputs[contract.seedInputName]) == null) {
-          const state = nodeStates.get(nodeId);
+        const executionIds = entry.executionIds.filter((nodeId) => (
+          contract.supportsSubgraph === true || !String(nodeId).includes(":")
+        ));
+        const executions = executionIds.flatMap((nodeId) => {
+          const inputs = output[nodeId]?.inputs;
+          if (!isRecord(inputs)) {
+            return [];
+          }
+          const targetIds = targets.filter(
+            (targetId) => isUpstreamOf(output, nodeId, targetId, memo),
+          );
+          return targetIds.length ? [{ nodeId, inputs, targetIds }] : [];
+        });
+        if (!executions.length) {
+          return [];
+        }
+        const inputSeeds = executions.map(
+          ({ inputs }) => optionalSeed(inputs[contract.seedInputName]),
+        );
+        if (
+          inputSeeds.some((value) => value == null)
+          || inputSeeds.some((value) => value !== inputSeeds[0])
+        ) {
+          const state = nodeStates.get(stateKey);
           if (state) {
             // Unsafe 64-bit values stay entirely on the pre-existing backend
-            // path. Retire even pending safe reservations so a late accepted
-            // response can finish bookkeeping without publishing over the
-            // unsafe live widget or remaining authoritative for its backend
-            // onExecuted update.
+            // path. Multiple live instances that resolve the same definition
+            // node to different seeds are also backend-owned because one
+            // workflow definition cannot persist distinct current values.
             retireState(state);
           }
           return [];
         }
-        const targetIds = targets.filter(
-          (targetId) => isUpstreamOf(output, nodeId, targetId, memo),
-        );
-        return targetIds.length ? [{ node, nodeId, targetIds, contract }] : [];
+        const targetIds = [...new Set(executions.flatMap((value) => value.targetIds))];
+        return [{ node, stateKey, executions, targetIds, contract }];
       } catch {
         return [];
       }
@@ -446,31 +568,48 @@ function createAdvancedQueueSeedRuntime(dependencies) {
 
     const reservations = [];
     for (const candidate of candidates) {
-      const { node, nodeId, targetIds, contract } = candidate;
+      const { node, stateKey, executions, targetIds, contract } = candidate;
       try {
-        const inputs = queuedPrompt.output[nodeId]?.inputs;
-        const workflow = workflowNode(queuedPrompt.workflow, nodeId);
-        if (!isRecord(inputs) || !workflow || !Array.isArray(workflow.widgets_values)) {
+        const preparedExecutions = executions.map(({ nodeId }) => {
+          const inputs = queuedPrompt.output[nodeId]?.inputs;
+          const workflow = workflowNode(queuedPrompt.workflow, nodeId);
+          if (!isRecord(inputs) || !workflow || !Array.isArray(workflow.widgets_values)) {
+            return null;
+          }
+          const mode = normalizeMode(inputs[contract.modeInputName]);
+          const inputSeed = optionalSeed(inputs[contract.seedInputName]);
+          const effectiveControl = mode === "sequential"
+            ? "increment"
+            : normalizeControl(inputs[contract.controlInputName]);
+          return { nodeId, inputs, workflow, mode, inputSeed, effectiveControl };
+        });
+        if (preparedExecutions.some((value) => value == null)) {
           retireCandidateState(candidate);
           continue;
         }
-        const mode = normalizeMode(inputs[contract.modeInputName]);
+        const first = preparedExecutions[0];
+        const { workflow, mode, inputSeed, effectiveControl } = first;
         if (!ACTIVE_WILDCARD_MODES.has(mode)) {
           retireCandidateState(candidate);
           continue;
         }
-        const inputSeed = optionalSeed(inputs[contract.seedInputName]);
-        if (inputSeed == null) {
+        if (
+          inputSeed == null
+          || preparedExecutions.some((value) => (
+            value.workflow !== workflow
+            || value.mode !== mode
+            || value.inputSeed !== inputSeed
+            || value.effectiveControl !== effectiveControl
+          ))
+        ) {
           // JavaScript cannot reserve 64-bit backend seeds without losing
-          // precision. Preserve the original queue payload for those values.
+          // precision. Per-instance promoted values also stay backend-owned
+          // when one shared definition cannot persist one coherent state.
           retireCandidateState(candidate);
           continue;
         }
-        const state = stateForNode(node, nodeId, inputSeed, contract);
+        const state = stateForNode(node, stateKey, inputSeed, contract);
         const queuedSeed = reservedCurrentSeed(state);
-        const effectiveControl = mode === "sequential"
-          ? "increment"
-          : normalizeControl(inputs[contract.controlInputName]);
         const reservedNextSeed = nextSeed(
           queuedSeed,
           mode,
@@ -483,18 +622,22 @@ function createAdvancedQueueSeedRuntime(dependencies) {
         }
         workflowValues[contract.seedWidgetIndex] = queuedSeed;
         workflow.widgets_values = workflowValues;
-        inputs[RESERVED_NEXT_SEED_INPUT] = JSON.stringify({
+        const reservationInput = JSON.stringify({
           version: 1,
           current_seed: queuedSeed,
           next_seed: reservedNextSeed,
           mode,
           control: effectiveControl,
         });
-        inputs[contract.seedInputName] = queuedSeed;
+        for (const { inputs } of preparedExecutions) {
+          inputs[RESERVED_NEXT_SEED_INPUT] = reservationInput;
+          inputs[contract.seedInputName] = queuedSeed;
+        }
         const reservation = {
           id: ++reservationId,
           node,
-          nodeId,
+          nodeId: first.nodeId,
+          nodeIds: preparedExecutions.map((value) => value.nodeId),
           state,
           targetIds,
           queuedSeed,
@@ -559,12 +702,12 @@ function createAdvancedQueueSeedRuntime(dependencies) {
     if (!node || !contract) {
       return false;
     }
-    const nodeId = normalizeNodeId(node.id);
-    if (nodeId == null) {
+    const stateKey = nodeStateKey(rootGraph, node);
+    if (stateKey == null) {
       return false;
     }
     const inputSeed = optionalSeed(getSeed(node, contract));
-    const existing = nodeStates.get(nodeId);
+    const existing = nodeStates.get(stateKey);
     if (inputSeed == null) {
       if (existing) {
         retireState(existing);
@@ -574,8 +717,8 @@ function createAdvancedQueueSeedRuntime(dependencies) {
     if (existing?.node === node) {
       if (existing.reservations.length) {
         retireState(existing);
-        const state = createState(node, nodeId, inputSeed, contract, true);
-        nodeStates.set(nodeId, state);
+        const state = createState(node, stateKey, inputSeed, contract, true);
+        nodeStates.set(stateKey, state);
         return true;
       }
       existing.attached = true;
@@ -588,17 +731,17 @@ function createAdvancedQueueSeedRuntime(dependencies) {
     if (existing) {
       retireState(existing);
     }
-    const state = createState(node, nodeId, inputSeed, contract, true);
-    nodeStates.set(nodeId, state);
+    const state = createState(node, stateKey, inputSeed, contract, true);
+    nodeStates.set(stateKey, state);
     return true;
   }
 
   function detachNode(node) {
-    const nodeId = normalizeNodeId(node?.id);
-    if (nodeId == null) {
+    const stateKey = nodeStateKey(rootGraph, node);
+    if (stateKey == null) {
       return false;
     }
-    const state = nodeStates.get(nodeId);
+    const state = nodeStates.get(stateKey);
     if (!state || state.node !== node) {
       return false;
     }
@@ -617,11 +760,11 @@ function createAdvancedQueueSeedRuntime(dependencies) {
   }
 
   function shouldApplyExecutedSeed(node, value) {
-    const nodeId = normalizeNodeId(node?.id);
-    if (nodeId == null) {
+    const stateKey = nodeStateKey(rootGraph, node);
+    if (stateKey == null) {
       return true;
     }
-    const state = nodeStates.get(nodeId);
+    const state = nodeStates.get(stateKey);
     if (!state) {
       return true;
     }
