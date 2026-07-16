@@ -471,7 +471,20 @@ class LoraPresetFrontendTests(unittest.TestCase):
             let source = fs.readFileSync(sourcePath, "utf8");
             source = source.replace(/^import[\s\S]*?;\r?\n/gm, "");
             source = `${profileDataSource}\n${loraStateSource}\n${apiClientSource}\n${previewLifecycleSource}\n${source}`;
-            source += "\nglobalThis.__loraPresetTest = { LoraRowWidget, LORA_PRESET_SETTINGS, applyLoraPresetSettings, loraMenuElementValue, loraMenuItems, loraPresetApi, loraPreviewLifecycle, saveProfileSet };\n";
+            source += "\nglobalThis.__loraPresetTest = { LoraRowWidget, LORA_PRESET_SETTINGS, addLoraMenuEntryHandlers, applyLoraPresetSettings, loraMenuElementValue, loraMenuItems, loraPresetApi, loraPreviewLifecycle, saveProfileSet };\n";
+
+            const mutationObservers = [];
+            class StubMutationObserver {
+              constructor(callback) {
+                this.callback = callback;
+                mutationObservers.push(this);
+              }
+              observe(target, options) {
+                this.target = target;
+                this.options = options;
+              }
+              disconnect() {}
+            }
 
             class StubElement {
               constructor(tagName = "div") {
@@ -504,7 +517,7 @@ class LoraPresetFrontendTests(unittest.TestCase):
               MouseEvent: class { constructor(type, options = {}) { this.type = type; Object.assign(this, options); } },
               HTMLInputElement: class {},
               HTMLTextAreaElement: class {},
-              MutationObserver: class { constructor() {} observe() {} disconnect() {} },
+              MutationObserver: StubMutationObserver,
               LiteGraph: {
                 WIDGET_TEXT_COLOR: "#ddd",
                 WIDGET_BGCOLOR: "#222",
@@ -558,6 +571,7 @@ class LoraPresetFrontendTests(unittest.TestCase):
             const {
               LoraRowWidget,
               LORA_PRESET_SETTINGS,
+              addLoraMenuEntryHandlers,
               applyLoraPresetSettings,
               loraMenuElementValue,
               loraMenuItems,
@@ -631,6 +645,71 @@ class LoraPresetFrontendTests(unittest.TestCase):
               assert.strictEqual(hidden, 2);
 
               loraPreviewLifecycle.showPreview = originalShowPreview;
+              loraPreviewLifecycle.hidePreview = originalHidePreview;
+            }
+
+            {
+              const listeners = new Map();
+              const item = {
+                addEventListener(type, listener, options) {
+                  listeners.set(type, { listener, options });
+                },
+              };
+              const shown = [];
+              let hidden = 0;
+              const originalShowPreview = loraPreviewLifecycle.showPreview;
+              const originalHidePreview = loraPreviewLifecycle.hidePreview;
+              loraPreviewLifecycle.showPreview = (name, event) => {
+                shown.push({ name, event });
+              };
+              loraPreviewLifecycle.hidePreview = () => {
+                hidden += 1;
+              };
+
+              addLoraMenuEntryHandlers(item, "style/menu.safetensors");
+              assert.deepStrictEqual(Array.from(listeners.keys()).sort(), ["mousemove", "mouseout", "mouseover"]);
+              for (const { options } of listeners.values()) {
+                assert.strictEqual(options.passive, true);
+              }
+              const mouseoverEvent = { type: "mouseover", clientX: 120, clientY: 80 };
+              const mousemoveEvent = { type: "mousemove", clientX: 124, clientY: 84 };
+              listeners.get("mouseover").listener(mouseoverEvent);
+              listeners.get("mousemove").listener(mousemoveEvent);
+              listeners.get("mouseout").listener({ type: "mouseout" });
+              assert.deepStrictEqual(shown, [
+                { name: "style/menu.safetensors", event: mouseoverEvent },
+                { name: "style/menu.safetensors", event: mousemoveEvent },
+              ]);
+              assert.strictEqual(hidden, 1);
+
+              loraPreviewLifecycle.showPreview = originalShowPreview;
+              loraPreviewLifecycle.hidePreview = originalHidePreview;
+            }
+
+            {
+              const node = makeNode();
+              context.app.canvas.current_node = node;
+              let hidden = 0;
+              const originalHidePreview = loraPreviewLifecycle.hidePreview;
+              loraPreviewLifecycle.hidePreview = () => {
+                hidden += 1;
+              };
+
+              context.app.__extension.init();
+              assert.strictEqual(mutationObservers.length, 1);
+              const removedMenu = {
+                classList: {
+                  contains(className) {
+                    return className === "litecontextmenu";
+                  },
+                },
+              };
+              mutationObservers[0].callback([{
+                removedNodes: [removedMenu],
+                addedNodes: [],
+              }]);
+              assert.strictEqual(hidden, 1);
+
               loraPreviewLifecycle.hidePreview = originalHidePreview;
             }
 
