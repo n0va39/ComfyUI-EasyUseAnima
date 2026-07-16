@@ -195,7 +195,7 @@ function createPromptStudioExtensionRuntime(app, api = null) {
 
   const advancedQueueSeedRuntime = createAdvancedQueueSeedRuntime({
     listNodes: () => app.graph?._nodes || [],
-    rootGraph: app.graph,
+    getRootGraph: () => app.graph,
     getNodeContract(node) {
       if (isAdvancedNode(node)) {
         return ADVANCED_QUEUE_SEED_CONTRACT;

@@ -146,7 +146,7 @@ function nodeStateKey(rootGraph, node) {
     return null;
   }
   const graph = node?.graph;
-  if (!rootGraph || !graph || graph === rootGraph || graph.isRootGraph === true) {
+  if (!graph || graph === rootGraph || graph.isRootGraph === true) {
     return nodeId;
   }
   const graphId = normalizeNodeId(graph.id);
@@ -297,6 +297,7 @@ function reservationWasAccepted(result, reservation, prompt) {
 /**
  * @typedef {object} AdvancedQueueSeedDependencies
  * @property {() => any[]} listNodes
+ * @property {() => any} [getRootGraph]
  * @property {any} [rootGraph]
  * @property {(node: any) => WildcardQueueSeedContract | null} getNodeContract
  * @property {(node: any) => boolean} isOutputNode
@@ -315,7 +316,8 @@ function reservationWasAccepted(result, reservation, prompt) {
 function createAdvancedQueueSeedRuntime(dependencies) {
   const {
     listNodes,
-    rootGraph = null,
+    getRootGraph = null,
+    rootGraph: initialRootGraph = null,
     getNodeContract,
     isOutputNode,
     getSeed,
@@ -326,6 +328,17 @@ function createAdvancedQueueSeedRuntime(dependencies) {
   const nodeStates = new Map();
   const retiredStates = new Set();
   let reservationId = 0;
+
+  function resolveRootGraph() {
+    if (typeof getRootGraph === "function") {
+      try {
+        return getRootGraph() || initialRootGraph;
+      } catch {
+        return initialRootGraph;
+      }
+    }
+    return initialRootGraph;
+  }
 
   function forgetState(state) {
     if (nodeStates.get(state.stateKey) === state) {
@@ -459,6 +472,7 @@ function createAdvancedQueueSeedRuntime(dependencies) {
     if (!isRecord(prompt) || !isRecord(output)) {
       return [];
     }
+    const rootGraph = resolveRootGraph();
     let entries;
     let rootNodes;
     try {
@@ -702,7 +716,7 @@ function createAdvancedQueueSeedRuntime(dependencies) {
     if (!node || !contract) {
       return false;
     }
-    const stateKey = nodeStateKey(rootGraph, node);
+    const stateKey = nodeStateKey(resolveRootGraph(), node);
     if (stateKey == null) {
       return false;
     }
@@ -737,7 +751,7 @@ function createAdvancedQueueSeedRuntime(dependencies) {
   }
 
   function detachNode(node) {
-    const stateKey = nodeStateKey(rootGraph, node);
+    const stateKey = nodeStateKey(resolveRootGraph(), node);
     if (stateKey == null) {
       return false;
     }
@@ -760,7 +774,7 @@ function createAdvancedQueueSeedRuntime(dependencies) {
   }
 
   function shouldApplyExecutedSeed(node, value) {
-    const stateKey = nodeStateKey(rootGraph, node);
+    const stateKey = nodeStateKey(resolveRootGraph(), node);
     if (stateKey == null) {
       return true;
     }

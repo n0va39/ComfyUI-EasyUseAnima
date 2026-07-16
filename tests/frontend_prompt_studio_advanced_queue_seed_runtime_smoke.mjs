@@ -429,9 +429,14 @@ function createSubgraphFixture(options = {}) {
   const commits = [];
   let randomCalls = 0;
   let cloneCalls = 0;
+  const graphHolder = {
+    current: options.delayedRootGraph ? undefined : rootGraph,
+  };
   const runtime = queueModule.createAdvancedQueueSeedRuntime({
-    listNodes: () => rootGraph._nodes,
-    rootGraph,
+    listNodes: () => graphHolder.current?._nodes || [],
+    ...(options.delayedRootGraph
+      ? { getRootGraph: () => graphHolder.current }
+      : { rootGraph }),
     getNodeContract: queueSeedContract,
     isOutputNode: (node) => node?.outputNode === true,
     getSeed(node, contract) {
@@ -458,6 +463,9 @@ function createSubgraphFixture(options = {}) {
     outputNodes,
     rootGraph,
     runtime,
+    setRootGraph(graph) {
+      graphHolder.current = graph;
+    },
     cloneCalls: () => cloneCalls,
     randomCalls: () => randomCalls,
   };
@@ -1354,6 +1362,32 @@ function reservedSeedState(prompt, nodeId) {
   assert.equal(workflowSeed(received, "50:11"), 30);
   assert.equal(reservedSeedState(prompt, "50:10"), undefined, "the caller prompt stays immutable");
   assert.equal(workflowSeed(prompt, "50:10"), 7);
+}
+
+{
+  const node = advancedNode(10, ADVANCED_V2, 7);
+  const fixture = createSubgraphFixture({
+    nodes: [node],
+    delayedRootGraph: true,
+  });
+  const prompt = subgraphPromptFor(fixture, {
+    connections: [{ executionId: "50:10", targetId: 20 }],
+  });
+  fixture.setRootGraph(fixture.rootGraph);
+
+  let received = null;
+  const wrapped = fixture.runtime.wrapQueuePrompt((_number, nextPrompt) => {
+    received = nextPrompt;
+    return { prompt_id: "delayed-root-graph", node_errors: {} };
+  });
+  await wrapped(0, prompt);
+
+  assert.notEqual(received, prompt);
+  assert.equal(queuedSeed(received, "50:10"), 7);
+  assert.equal(workflowSeed(received, "50:10"), 7);
+  assert.equal(reservedNextSeed(received, "50:10"), 8);
+  assert.equal(node.widgets[1].value, 8);
+  assert.equal(fixture.cloneCalls(), 1);
 }
 
 {
