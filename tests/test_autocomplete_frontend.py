@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import json
 import re
+import shutil
+import subprocess
 import unittest
 from pathlib import Path
 
@@ -20,11 +22,124 @@ AUTOCOMPLETE_TEXT_MODEL = (
 AUTOCOMPLETE_TEXT_MODEL_SMOKE = (
     ROOT / "tests" / "frontend_autocomplete_text_model_smoke.mjs"
 )
+AUTOCOMPLETE_POPUP_GEOMETRY = (
+    ROOT / "web" / "js" / "autocomplete" / "popup_geometry.js"
+)
+AUTOCOMPLETE_POPUP_GEOMETRY_SMOKE = (
+    ROOT / "tests" / "frontend_autocomplete_popup_geometry_smoke.mjs"
+)
 JSCONFIG = ROOT / "jsconfig.json"
 FRONTEND_CHECK_SCRIPT = ROOT / "tools" / "check_frontend.ps1"
 
 
 class AutocompleteFrontendBoundaryTests(unittest.TestCase):
+    def test_popup_geometry_has_exact_dom_free_boundary(self):
+        module_source = AUTOCOMPLETE_POPUP_GEOMETRY.read_text(encoding="utf-8")
+        entry_source = AUTOCOMPLETE_ENTRY.read_text(encoding="utf-8")
+        expected_exports = {
+            "calculateAutocompletePopupGeometry",
+            "calculateCaretMirrorGeometry",
+            "normalizeCaretClientRect",
+        }
+
+        exported_names = set(
+            re.findall(
+                r"^export\s+(?:const|function|class)\s+([A-Za-z0-9_]+)",
+                module_source,
+                re.MULTILINE,
+            )
+        )
+        self.assertEqual(exported_names, expected_exports)
+        self.assertEqual(module_source.splitlines()[0], "// @ts-check")
+        self.assertNotRegex(
+            module_source,
+            re.compile(r"^\s*import\b", re.MULTILINE),
+        )
+        self.assertNotRegex(
+            module_source,
+            (
+                r"\b(?:document|window|app|api|fetch|registerExtension|"
+                r"addEventListener|removeEventListener|MutationObserver|"
+                r"HTMLElement|HTMLInputElement|HTMLTextAreaElement)\b"
+            ),
+        )
+
+        import_match = re.search(
+            (
+                r'^import\s*\{(?P<names>[^}]*)\}\s*from\s*'
+                r'"\./autocomplete/popup_geometry\.js";'
+            ),
+            entry_source,
+            re.MULTILINE,
+        )
+        self.assertIsNotNone(import_match)
+        imported_names = {
+            name.strip().rstrip(",")
+            for name in import_match.group("names").splitlines()
+            if name.strip()
+        }
+        self.assertEqual(imported_names, expected_exports)
+
+        caret_start = entry_source.index("function caretClientRect")
+        popup_start = entry_source.index("\nfunction positionPopup", caret_start)
+        scroll_start = entry_source.index(
+            "\nfunction scrollActiveAutocompleteItemIntoView",
+            popup_start,
+        )
+        caret_body = entry_source[caret_start:popup_start]
+        popup_body = entry_source[popup_start:scroll_start]
+        self.assertIn("calculateCaretMirrorGeometry(", caret_body)
+        self.assertIn("normalizeCaretClientRect(", caret_body)
+        self.assertRegex(
+            caret_body,
+            re.compile(
+                r"const fallbackLineHeight = \(\s*"
+                r"Number\.isFinite\(markerRect\.left\)\s*"
+                r"&& Number\.isFinite\(markerRect\.top\)\s*"
+                r"&& !markerRect\.height\s*\)\s*"
+                r"\? Number\.parseFloat\("
+                r"getComputedStyle\(input\)\.lineHeight\)\s*"
+                r": 0;",
+                re.DOTALL,
+            ),
+        )
+        self.assertIn("calculateAutocompletePopupGeometry(", popup_body)
+        self.assertRegex(
+            popup_body,
+            re.compile(
+                r"const fallbackLineHeight = caretRect\.height\s*"
+                r"\? 0\s*"
+                r": Number\.parseFloat\("
+                r"getComputedStyle\(input\)\.lineHeight\);",
+                re.DOTALL,
+            ),
+        )
+        self.assertNotIn("Math.max(260", popup_body)
+        self.assertNotIn("const caretLeft =", popup_body)
+
+    def test_popup_geometry_module_semantics(self):
+        frontend_check_source = FRONTEND_CHECK_SCRIPT.read_text(encoding="utf-8")
+        self.assertTrue(AUTOCOMPLETE_POPUP_GEOMETRY_SMOKE.is_file())
+        self.assertIn(
+            r'node "tests\frontend_autocomplete_popup_geometry_smoke.mjs"',
+            frontend_check_source,
+        )
+
+        node_bin = shutil.which("node")
+        if not node_bin:
+            self.skipTest("node executable is not available")
+
+        completed = subprocess.run(
+            [node_bin, str(AUTOCOMPLETE_POPUP_GEOMETRY_SMOKE)],
+            cwd=ROOT,
+            text=True,
+            capture_output=True,
+            check=False,
+        )
+
+        if completed.returncode != 0:
+            self.fail((completed.stdout + completed.stderr).strip())
+
     def test_data_adapter_has_exact_io_boundary(self):
         module_source = AUTOCOMPLETE_DATA_ADAPTER.read_text(encoding="utf-8")
         entry_source = AUTOCOMPLETE_ENTRY.read_text(encoding="utf-8")
