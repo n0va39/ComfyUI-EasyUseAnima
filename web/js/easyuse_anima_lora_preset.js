@@ -3,6 +3,7 @@ import { api } from "../../../scripts/api.js";
 import { easyuseAnimaEncodeRFC3986URIComponent as encodeRFC3986URIComponent, easyuseAnimaFetchJson, easyuseAnimaGetSettings } from "./easyuse_anima_api.js";
 import { easyuseAnimaText, easyuseAnimaWatchLocale } from "./easyuse_anima_i18n.js";
 import { createLoraPresetApiClient } from "./lora_preset/api_client.js";
+import { createLoraPresetPreviewLifecycle } from "./lora_preset/preview_lifecycle.js";
 import {
   INTERNAL_WIDGET_DEFAULTS,
   MAX_PROFILES,
@@ -43,7 +44,6 @@ const DEFAULT_STRENGTH_BUTTON_STEP = 0.05;
 const DEFAULT_STRENGTH_DRAG_STEP = 0.05;
 const DEFAULT_STRENGTH_DRAG_PIXELS = 8;
 const PREVIEW_SIZE = 360;
-const missingPreviewNames = new Set();
 let activeLoraMenuNode = null;
 let activeProfileWheelTarget = null;
 let profileWheelListenerInstalled = false;
@@ -296,6 +296,11 @@ async function fetchJson(url, options = {}) {
 const loraPresetApi = createLoraPresetApiClient({
   fetchJson,
   encodeURIComponent: encodeRFC3986URIComponent,
+});
+const loraPreviewLifecycle = createLoraPresetPreviewLifecycle({
+  document,
+  encodeURIComponent: encodeRFC3986URIComponent,
+  previewSize: PREVIEW_SIZE,
 });
 
 function firstValue(value, fallback = null) {
@@ -896,7 +901,7 @@ async function fetchLoraNameValues(node) {
     const data = await loraPresetApi.listLoras();
     const values = normalizeLoraNameList(data?.loras);
     for (const name of values) {
-      missingPreviewNames.delete(name);
+      loraPreviewLifecycle.forgetMissingPreview(name);
     }
     setLoraLookup(node, values);
     return values;
@@ -1347,73 +1352,6 @@ function normalizeSearchText(value) {
     .toLowerCase();
 }
 
-function positionPreview(element, event) {
-  const body = document.body.getBoundingClientRect();
-  let left = Number(event?.clientX || body.width / 2) + 18;
-  let top = Number(event?.clientY || body.height / 2) + 18;
-  if (left + PREVIEW_SIZE > body.width) {
-    left = Math.max(0, Number(event?.clientX || body.width / 2) - PREVIEW_SIZE - 18);
-  }
-  if (top + PREVIEW_SIZE > body.height) {
-    top = Math.max(0, body.height - PREVIEW_SIZE - 12);
-  }
-  element.style.left = `${left}px`;
-  element.style.top = `${top}px`;
-}
-
-function showPreview(name, event) {
-  if (!name || name === "None") {
-    hidePreview();
-    return;
-  }
-  if (missingPreviewNames.has(name)) {
-    hidePreview();
-    return;
-  }
-  let preview = document.querySelector(".easyuse-anima-lora-preview");
-  if (!preview) {
-    preview = createEl("img", { className: "easyuse-anima-lora-preview" });
-    preview.addEventListener("error", () => {
-      const failedName = preview.getAttribute("data-name");
-      if (failedName) {
-        missingPreviewNames.add(failedName);
-      }
-      preview.style.display = "none";
-      preview.removeAttribute("data-name");
-      preview.removeAttribute("data-loaded");
-      preview.removeAttribute("data-visible");
-    });
-    preview.addEventListener("load", () => {
-      preview.setAttribute("data-loaded", "1");
-      if (preview.getAttribute("data-name") && preview.getAttribute("data-visible") === "1") {
-        preview.style.display = "block";
-      }
-    });
-    document.body.appendChild(preview);
-  }
-  preview.setAttribute("data-visible", "1");
-  positionPreview(preview, event);
-  const src = `/easyuse_anima/lora_preview?name=${encodeRFC3986URIComponent(name)}`;
-  if (preview.getAttribute("data-name") !== name) {
-    preview.setAttribute("data-name", name);
-    preview.removeAttribute("data-loaded");
-    preview.style.display = "none";
-    preview.src = src;
-    return;
-  }
-  if (preview.getAttribute("data-loaded") === "1" && preview.naturalWidth > 0) {
-    preview.style.display = "block";
-  }
-}
-
-function hidePreview() {
-  const preview = document.querySelector(".easyuse-anima-lora-preview");
-  if (preview) {
-    preview.removeAttribute("data-visible");
-    preview.style.display = "none";
-  }
-}
-
 function loraDisplayName(name) {
   const text = String(name || "");
   if (LORA_PRESET_SETTINGS.nameDisplay === "path") {
@@ -1556,9 +1494,9 @@ function addLoraMenuEntryHandlers(item, value) {
     return;
   }
   item.__easyuseAnimaPreviewValue = value;
-  item.addEventListener("mouseover", (event) => showPreview(value, event), { passive: true });
-  item.addEventListener("mousemove", (event) => showPreview(value, event), { passive: true });
-  item.addEventListener("mouseout", hidePreview, { passive: true });
+  item.addEventListener("mouseover", (event) => loraPreviewLifecycle.showPreview(value, event), { passive: true });
+  item.addEventListener("mousemove", (event) => loraPreviewLifecycle.showPreview(value, event), { passive: true });
+  item.addEventListener("mouseout", loraPreviewLifecycle.hidePreview, { passive: true });
 }
 
 function normalizeLoraMenuEntries(menu, node, options = {}) {
@@ -2138,19 +2076,19 @@ class LoraRowWidget {
       return false;
     }
     if (event.type === "pointerout" || event.type === "pointerleave") {
-      hidePreview();
+      loraPreviewLifecycle.hidePreview();
       return false;
     }
     if (event.type === "pointercancel") {
-      hidePreview();
+      loraPreviewLifecycle.hidePreview();
       clearLoraStrengthDrag(node);
       return false;
     }
     if (event.type === "pointermove") {
       if (pointInArea(pos, this.hitAreas.info)) {
-        showPreview(lora.name, event);
+        loraPreviewLifecycle.showPreview(lora.name, event);
       } else {
-        hidePreview();
+        loraPreviewLifecycle.hidePreview();
       }
     }
     if (event.type !== "pointerdown") {
@@ -2181,7 +2119,7 @@ class LoraRowWidget {
       return true;
     }
     if (pointInArea(pos, this.hitAreas.info)) {
-      showPreview(lora.name, event);
+      loraPreviewLifecycle.showPreview(lora.name, event);
       return true;
     }
     if (pointInArea(pos, this.hitAreas.dec)) {
@@ -2562,7 +2500,7 @@ app.registerExtension({
       applyLoraPresetSettings(event.detail || {});
       refreshLoraPresetNodes();
     });
-    document.addEventListener("pointerdown", hidePreview, true);
+    document.addEventListener("pointerdown", loraPreviewLifecycle.hidePreview, true);
     installProfileWheelListener();
 
     document.head.appendChild(createEl("style", {
@@ -2625,7 +2563,7 @@ app.registerExtension({
       for (const mutation of mutations) {
         for (const removed of mutation.removedNodes) {
           if (removed.classList?.contains("litecontextmenu")) {
-            hidePreview();
+            loraPreviewLifecycle.hidePreview();
           }
         }
         for (const added of mutation.addedNodes) {
