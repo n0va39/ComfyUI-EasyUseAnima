@@ -711,6 +711,7 @@ for (const testCase of [
         spectrum_extra: Object.fromEntries([
           ["constructor", 2.5],
           ["toString", "quality"],
+          ["__proto__", true],
         ]),
       },
     },
@@ -718,7 +719,7 @@ for (const testCase of [
       spectrumAdvanced: Object.fromEntries([
         ["constructor", ["FLOAT", { default: 1 }]],
         ["toString", [["speed", "quality"], { default: "speed" }]],
-        ["__proto__", ["BOOLEAN", { default: true }]],
+        ["__proto__", ["BOOLEAN", { default: false }]],
       ]),
     },
   });

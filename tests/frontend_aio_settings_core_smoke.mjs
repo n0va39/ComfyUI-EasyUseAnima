@@ -119,6 +119,33 @@ assert(
     && JSON.stringify(mergeValue) === mergeValueSnapshot,
   "Default merging must not mutate either input while merging",
 );
+
+const prototypePollutionKey = "__easyuseAnimaMergePollution";
+delete Object.prototype[prototypePollutionKey];
+try {
+  const specialKeyMerge = aioMergeDefaults({}, JSON.parse(`{
+    "__proto__": {"${prototypePollutionKey}": true},
+    "constructor": {"mode": "saved"},
+    "toString": "saved"
+  }`));
+  assert(
+    Object.getPrototypeOf(specialKeyMerge) === Object.prototype
+      && !Object.prototype.hasOwnProperty.call(Object.prototype, prototypePollutionKey),
+    "Default merging must not mutate Object.prototype",
+  );
+  assertJsonEqual(
+    specialKeyMerge,
+    JSON.parse(`{
+      "__proto__": {"${prototypePollutionKey}": true},
+      "constructor": {"mode": "saved"},
+      "toString": "saved"
+    }`),
+    "Default merging must preserve special names as own data properties",
+  );
+} finally {
+  delete Object.prototype[prototypePollutionKey];
+}
+
 assertJsonEqual(
   aioMergeDefaults(mergeDefaults, null),
   mergeDefaults,
