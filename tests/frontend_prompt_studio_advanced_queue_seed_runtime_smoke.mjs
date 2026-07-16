@@ -6,6 +6,10 @@ function dataModule(relativePath) {
   return "data:text/javascript;base64," + Buffer.from(source).toString("base64");
 }
 
+function sourceModule(source) {
+  return "data:text/javascript;base64," + Buffer.from(source).toString("base64");
+}
+
 function clone(value) {
   return JSON.parse(JSON.stringify(value));
 }
@@ -17,6 +21,7 @@ assert.deepEqual(
   Object.keys(queueModule).sort(),
   [
     "createAdvancedQueueSeedRuntime",
+    "installAdvancedQueueSeedGraphCleanup",
     "installAdvancedQueueSeedQueueHook",
   ],
 );
@@ -25,6 +30,19 @@ const ADVANCED = "EasyUseAnimaPromptStudioAdvanced";
 const ADVANCED_V2 = "EasyUseAnimaPromptStudioAdvancedV2";
 const SEED_INDEX = 11;
 const RESERVED_NEXT_SEED_INPUT = "easyuse_anima_reserved_wildcard_next_seed";
+
+const nodeHookConstants = sourceModule(`
+  export const NODE_TYPE = "EasyUseAnimaPromptStudio";
+  export const ADVANCED_NODE_TYPE = "${ADVANCED}";
+  export const ADVANCED_V2_NODE_TYPE = "${ADVANCED_V2}";
+  export const EXTEND_NODE_TYPE = "EasyUseAnimaPromptStudioExtend";
+  export const WILDCARD_NODE_TYPE = "EasyUseAnimaWildcard";
+`);
+const nodeHooksSource = readFileSync(
+  new URL("../web/js/prompt_studio/node_hooks.js", import.meta.url),
+  "utf8",
+).replace('from "./constants.js"', `from "${nodeHookConstants}"`);
+const nodeHooksModule = await import(sourceModule(nodeHooksSource));
 
 function deferred() {
   let resolve;
@@ -166,6 +184,149 @@ function reservedNextSeed(prompt, nodeId) {
 function reservedSeedState(prompt, nodeId) {
   const raw = prompt.output[String(nodeId)].inputs[RESERVED_NEXT_SEED_INPUT];
   return raw == null ? undefined : JSON.parse(raw);
+}
+
+{
+  const events = [];
+  const clearResult = { cleared: true };
+  const firstArg = { first: true };
+  const secondArg = { second: true };
+  const graph = {
+    clear(...args) {
+      events.push(["clear", this, args]);
+      return clearResult;
+    },
+  };
+  const owner = { graphOwner: true };
+  const runtime = {
+    clearGraphNodes() {
+      events.push(["cleanup"]);
+    },
+  };
+  assert.equal(queueModule.installAdvancedQueueSeedGraphCleanup(graph, runtime), true);
+  const installed = graph.clear;
+  assert.equal(queueModule.installAdvancedQueueSeedGraphCleanup(graph, runtime), false);
+  assert.equal(graph.clear, installed, "graph cleanup wrapper must install only once");
+  assert.equal(graph.clear.call(owner, firstArg, secondArg), clearResult);
+  assert.deepEqual(events, [
+    ["clear", owner, [firstArg, secondArg]],
+    ["cleanup"],
+  ]);
+
+  const clearError = new Error("graph clear failed");
+  let failedCleanupCalls = 0;
+  const failingGraph = {
+    clear() {
+      throw clearError;
+    },
+  };
+  queueModule.installAdvancedQueueSeedGraphCleanup(failingGraph, {
+    clearGraphNodes() {
+      failedCleanupCalls += 1;
+    },
+  });
+  assert.throws(() => failingGraph.clear(), (error) => error === clearError);
+  assert.equal(
+    failedCleanupCalls,
+    0,
+    "a failed original graph clear must preserve managed owners for the still-live graph",
+  );
+}
+
+{
+  const events = [];
+  const configureResult = Symbol("configure-result");
+  const removeResult = Symbol("remove-result");
+  const serialized = { workflow: true };
+  const configureTail = { extra: true };
+  const removeArg = { reason: "test" };
+  function AdvancedNodeType() {}
+  AdvancedNodeType.prototype.onConfigure = function (...args) {
+    events.push(["configure", this, args]);
+    return configureResult;
+  };
+  AdvancedNodeType.prototype.onRemoved = function (...args) {
+    events.push(["remove", this, args]);
+    return removeResult;
+  };
+  const hooks = {
+    captureAdvancedConfigure: (node, value) => events.push(["capture", node, value]),
+    attachAdvancedQueueSeedNode: (node) => events.push(["attach", node]),
+    scheduleHookAdvancedNode: (node) => events.push(["schedule", node]),
+    disconnectAdvancedEditorWidthObserver: (node) => {
+      events.push(["disconnect", node]);
+      throw new Error("isolated observer cleanup failure");
+    },
+    detachAdvancedQueueSeedNode: (node) => events.push(["detach", node]),
+  };
+  assert.equal(
+    nodeHooksModule.registerPromptStudioNodeHooks(
+      AdvancedNodeType,
+      { name: ADVANCED },
+      hooks,
+    ),
+    true,
+  );
+  const node = new AdvancedNodeType();
+  assert.equal(node.onConfigure(serialized, configureTail), configureResult);
+  assert.equal(node.onRemoved(removeArg), removeResult);
+  assert.deepEqual(events, [
+    ["configure", node, [serialized, configureTail]],
+    ["capture", node, serialized],
+    ["attach", node],
+    ["schedule", node],
+    ["remove", node, [removeArg]],
+    ["disconnect", node],
+    ["detach", node],
+  ]);
+}
+
+{
+  for (const originalError of [
+    new Error("original removal failure"),
+    null,
+    undefined,
+    0,
+    false,
+  ]) {
+    const events = [];
+    function FailingAdvancedNodeType() {}
+    FailingAdvancedNodeType.prototype.onRemoved = function () {
+      events.push(["remove", this]);
+      throw originalError;
+    };
+    nodeHooksModule.registerPromptStudioNodeHooks(
+      FailingAdvancedNodeType,
+      { name: ADVANCED_V2 },
+      {
+        captureAdvancedConfigure() {},
+        scheduleHookAdvancedNode() {},
+        disconnectAdvancedEditorWidthObserver(node) {
+          events.push(["disconnect", node]);
+          throw new Error("secondary disconnect failure");
+        },
+        detachAdvancedQueueSeedNode(node) {
+          events.push(["detach", node]);
+          throw new Error("secondary state cleanup failure");
+        },
+      },
+    );
+    const node = new FailingAdvancedNodeType();
+    const notThrown = Symbol("not-thrown");
+    let caught = notThrown;
+    try {
+      node.onRemoved();
+    } catch (error) {
+      caught = error;
+    }
+    assert.notEqual(caught, notThrown, "the original removal throw must not be swallowed");
+    assert.equal(caught, originalError, "cleanup must preserve the original throw identity");
+    assert.deepEqual(events, [
+      ["remove", node],
+      ["disconnect", node],
+      ["detach", node],
+    ]);
+  }
 }
 
 {
@@ -554,6 +715,147 @@ function reservedSeedState(prompt, nodeId) {
   }
   assert.equal(fixture.nodes[0].widgets[1].value, 7);
   assert.equal(fixture.cloneCalls(), 0);
+}
+
+{
+  const fixture = createFixture();
+  const gate = deferred();
+  const node = fixture.nodes[0];
+  const wrapped = fixture.runtime.wrapQueuePrompt(() => gate.promise);
+  const pending = wrapped(0, promptFor([node]));
+  assert.equal(fixture.runtime.trackedStateCount(), 1);
+  assert.equal(
+    fixture.runtime.attachNode(node),
+    true,
+    "reconfiguring the same object must attach a new lifecycle epoch",
+  );
+  assert.equal(fixture.runtime.trackedStateCount(), 2);
+  assert.equal(
+    fixture.runtime.shouldApplyExecutedSeed(node, 8),
+    false,
+    "the new same-object epoch must block the old epoch's executed seed",
+  );
+  gate.resolve({ prompt_id: "same-object-old-epoch", node_errors: {} });
+  await pending;
+  assert.deepEqual(fixture.commits, []);
+  assert.equal(node.widgets[1].value, 7, "late settlement must not publish across epochs");
+  assert.equal(fixture.runtime.trackedStateCount(), 1);
+  fixture.runtime.detachNode(node);
+  assert.equal(fixture.runtime.trackedStateCount(), 0);
+}
+
+{
+  for (const invalidId of [
+    null,
+    undefined,
+    "",
+    "   ",
+    -1,
+    "-1",
+    1.5,
+    Number.MAX_SAFE_INTEGER + 1,
+    Number.NaN,
+    Infinity,
+    -Infinity,
+  ]) {
+    const node = advancedNode(invalidId, ADVANCED, 7);
+    const fixture = createFixture({ nodes: [node] });
+    const prompt = promptFor([node]);
+    assert.equal(fixture.runtime.attachNode(node), false);
+    assert.equal(fixture.runtime.trackedStateCount(), 0);
+    assert.equal(fixture.runtime.preparePrompt(prompt), null);
+    assert.equal(fixture.runtime.trackedStateCount(), 0);
+    let received = null;
+    const result = { prompt_id: "invalid-node-id-pass-through", node_errors: {} };
+    const wrapped = fixture.runtime.wrapQueuePrompt((_number, nextPrompt) => {
+      received = nextPrompt;
+      return result;
+    });
+    assert.equal(await wrapped(0, prompt), result);
+    assert.equal(received, prompt, "invalid node ids must remain on the unmanaged pass-through path");
+    assert.equal(fixture.runtime.trackedStateCount(), 0);
+    assert.equal(fixture.runtime.detachNode(node), false);
+    assert.equal(fixture.runtime.shouldApplyExecutedSeed(node, 8), true);
+  }
+}
+
+{
+  const fixture = createFixture();
+  const node = fixture.nodes[0];
+  assert.equal(fixture.runtime.attachNode(node), true);
+  assert.equal(fixture.runtime.trackedStateCount(), 1);
+  assert.equal(fixture.runtime.detachNode(node), true);
+  assert.equal(
+    fixture.runtime.trackedStateCount(),
+    0,
+    "removing an idle node must release its managed state immediately",
+  );
+}
+
+{
+  const fixture = createFixture();
+  let current = fixture.nodes[0];
+  fixture.runtime.attachNode(current);
+  for (let index = 0; index < 50; index += 1) {
+    assert.equal(fixture.runtime.detachNode(current), true);
+    current = advancedNode(1000 + index, ADVANCED, index);
+    fixture.nodes.splice(0, 1, current);
+    assert.equal(fixture.runtime.attachNode(current), true);
+    assert.equal(
+      fixture.runtime.trackedStateCount(),
+      1,
+      "repeated workflow replacement must retain only the live idle owner",
+    );
+  }
+  fixture.runtime.clearGraphNodes();
+  assert.equal(
+    fixture.runtime.trackedStateCount(),
+    0,
+    "graph clear must release every idle managed owner",
+  );
+}
+
+{
+  const fixture = createFixture();
+  const gate = deferred();
+  const oldNode = fixture.nodes[0];
+  const wrapped = fixture.runtime.wrapQueuePrompt(() => gate.promise);
+  const pending = wrapped(0, promptFor([oldNode]));
+  assert.equal(fixture.runtime.trackedStateCount(), 1);
+
+  fixture.runtime.clearGraphNodes();
+  assert.equal(
+    fixture.runtime.trackedStateCount(),
+    1,
+    "graph clear must retain a detached state until its queue settles",
+  );
+
+  const replacement = advancedNode(10, ADVANCED, 100);
+  fixture.nodes.splice(0, 1, replacement);
+  assert.equal(fixture.runtime.attachNode(replacement), true);
+  assert.equal(
+    fixture.runtime.trackedStateCount(),
+    2,
+    "a pending retired owner and its same-id replacement must have separate identities",
+  );
+  assert.equal(
+    fixture.runtime.shouldApplyExecutedSeed(replacement, 8),
+    false,
+    "a configured same-id replacement must reject the retired owner's executed seed",
+  );
+
+  gate.resolve({ prompt_id: "retired-owner", node_errors: {} });
+  await pending;
+  assert.equal(oldNode.widgets[1].value, 7, "late settlement must not publish to a removed owner");
+  assert.equal(replacement.widgets[1].value, 100, "late settlement must not publish to a new owner");
+  assert.deepEqual(fixture.commits, []);
+  assert.equal(
+    fixture.runtime.trackedStateCount(),
+    1,
+    "settlement must release the retired state and retain only the live owner",
+  );
+  fixture.runtime.detachNode(replacement);
+  assert.equal(fixture.runtime.trackedStateCount(), 0);
 }
 
 {

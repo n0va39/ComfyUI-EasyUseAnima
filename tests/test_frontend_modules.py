@@ -2174,6 +2174,9 @@ class FrontendModuleStructureTests(unittest.TestCase):
         studio_node_ui_source = (
             PROMPT_STUDIO_MODULES / "studio_node_ui.js"
         ).read_text(encoding="utf-8")
+        node_hooks_source = (
+            PROMPT_STUDIO_MODULES / "node_hooks.js"
+        ).read_text(encoding="utf-8")
         advanced_node_ui_source = (
             PROMPT_STUDIO_MODULES / "advanced_node_ui.js"
         ).read_text(encoding="utf-8")
@@ -2190,6 +2193,17 @@ class FrontendModuleStructureTests(unittest.TestCase):
         self.assertIn("./advanced_queue_seed_runtime.js", extension_runtime_source)
         self.assertIn("installAdvancedQueueSeedQueueHook", extension_runtime_source)
         self.assertIn("advancedQueueSeedRuntime.shouldApplyExecutedSeed", extension_runtime_source)
+        self.assertIn("installAdvancedQueueSeedGraphCleanup", extension_runtime_source)
+        self.assertIn(
+            "attachAdvancedQueueSeedNode: advancedQueueSeedRuntime.attachNode",
+            extension_runtime_source,
+        )
+        self.assertIn(
+            "detachAdvancedQueueSeedNode: advancedQueueSeedRuntime.detachNode",
+            extension_runtime_source,
+        )
+        self.assertIn("hooks.attachAdvancedQueueSeedNode?.(this);", node_hooks_source)
+        self.assertIn("hooks.detachAdvancedQueueSeedNode?.(this);", node_hooks_source)
         self.assertTrue(PROMPT_STUDIO_ADVANCED_QUEUE_SEED_RUNTIME_SMOKE.is_file())
         self.assertIn(
             r'node "tests\frontend_prompt_studio_advanced_queue_seed_runtime_smoke.mjs"',

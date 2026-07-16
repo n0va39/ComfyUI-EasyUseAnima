@@ -18,6 +18,7 @@ const WILDCARD_MODE_ALIASES = new Map([
 const SEED_CONTROLS = new Set(["fixed", "randomize", "increment", "decrement"]);
 const QUEUE_HOOK_MARKER = "__easyuseAnimaAdvancedQueueSeedWrapped";
 const QUEUE_HOST_MARKER = "__easyuseAnimaAdvancedQueueSeedInstalled";
+const GRAPH_CLEANUP_MARKER = "__easyuseAnimaAdvancedQueueSeedCleanup";
 const RESERVED_NEXT_SEED_INPUT = "easyuse_anima_reserved_wildcard_next_seed";
 
 function isRecord(value) {
@@ -39,6 +40,17 @@ function optionalSeed(value) {
     && numberValue <= MAX_SAFE_SEED
     ? numberValue
     : null;
+}
+
+function normalizeNodeId(value) {
+  if (typeof value === "number") {
+    return Number.isSafeInteger(value) && value >= 0 ? String(value) : null;
+  }
+  if (typeof value !== "string") {
+    return null;
+  }
+  const normalized = value.trim();
+  return normalized && normalized !== "-1" ? normalized : null;
 }
 
 function normalizeMode(value) {
@@ -76,19 +88,20 @@ function workflowNode(workflow, nodeId) {
   if (!Array.isArray(workflow?.nodes)) {
     return null;
   }
-  return workflow.nodes.find((node) => String(node?.id) === String(nodeId)) || null;
+  return workflow.nodes.find((node) => normalizeNodeId(node?.id) === nodeId) || null;
 }
 
 function inputSourceIds(value, output, result = new Set()) {
   if (!Array.isArray(value)) {
     return result;
   }
+  const sourceId = normalizeNodeId(value[0]);
   if (
     value.length >= 2
-    && (typeof value[0] === "string" || typeof value[0] === "number")
-    && Object.prototype.hasOwnProperty.call(output, String(value[0]))
+    && sourceId != null
+    && Object.prototype.hasOwnProperty.call(output, sourceId)
   ) {
-    result.add(String(value[0]));
+    result.add(sourceId);
     return result;
   }
   for (const item of value) {
@@ -151,8 +164,10 @@ function partialExecutionTargets(options, output) {
     return [];
   }
   return rawTargets
-    .map((target) => String(target))
-    .filter((target) => Object.prototype.hasOwnProperty.call(output, target));
+    .map((target) => normalizeNodeId(target))
+    .filter((target) => (
+      target != null && Object.prototype.hasOwnProperty.call(output, target)
+    ));
 }
 
 function queueResultPromptId(result) {
@@ -238,23 +253,53 @@ function createAdvancedQueueSeedRuntime(dependencies) {
     randomSeed,
   } = dependencies;
   const nodeStates = new Map();
+  const retiredStates = new Set();
   let reservationId = 0;
 
-  function stateForNode(node, inputSeed) {
-    const nodeId = String(node.id);
+  function forgetState(state) {
+    if (nodeStates.get(state.nodeId) === state) {
+      nodeStates.delete(state.nodeId);
+    }
+    retiredStates.delete(state);
+  }
+
+  function retireState(state) {
+    state.attached = false;
+    if (state.reservations.length) {
+      if (nodeStates.get(state.nodeId) === state) {
+        nodeStates.delete(state.nodeId);
+      }
+      retiredStates.add(state);
+      return;
+    }
+    forgetState(state);
+  }
+
+  function createState(node, nodeId, inputSeed, blockUnknownExecuted) {
+    return {
+      node,
+      nodeId,
+      attached: true,
+      committedSeed: normalizeSeed(inputSeed),
+      authoritative: false,
+      blockUnknownExecuted,
+      publishFailed: false,
+      reservations: [],
+    };
+  }
+
+  function stateForNode(node, nodeId, inputSeed) {
     let state = nodeStates.get(nodeId);
     if (!state || state.node !== node) {
-      state = {
-        node,
-        committedSeed: normalizeSeed(inputSeed),
-        authoritative: false,
-        blockUnknownExecuted: !!state,
-        publishFailed: false,
-        reservations: [],
-      };
+      const replacedState = state;
+      if (replacedState) {
+        retireState(replacedState);
+      }
+      state = createState(node, nodeId, inputSeed, !!replacedState);
       nodeStates.set(nodeId, state);
       return state;
     }
+    state.attached = true;
     if (!state.reservations.length) {
       if (state.publishFailed) {
         try {
@@ -289,13 +334,21 @@ function createAdvancedQueueSeedRuntime(dependencies) {
         committed = true;
       }
     }
-    if (committed) {
+    if (
+      committed
+      && state.attached
+      && state.node === node
+      && nodeStates.get(state.nodeId) === state
+    ) {
       try {
         updateSeed(node, state.committedSeed);
         state.publishFailed = false;
       } catch {
         state.publishFailed = true;
       }
+    }
+    if (!state.reservations.length && !state.attached) {
+      forgetState(state);
     }
   }
 
@@ -334,7 +387,10 @@ function createAdvancedQueueSeedRuntime(dependencies) {
     if (targets == null) {
       targets = nodes.flatMap((node) => {
         try {
-          const nodeId = String(node?.id);
+          const nodeId = normalizeNodeId(node?.id);
+          if (nodeId == null) {
+            return [];
+          }
           return node && isOutputNode(node) && isRecord(output[nodeId]) ? [nodeId] : [];
         } catch {
           return [];
@@ -347,16 +403,17 @@ function createAdvancedQueueSeedRuntime(dependencies) {
     const memo = new Map();
     return nodes.flatMap((node) => {
       try {
-        const inputs = output[String(node?.id)]?.inputs;
+        const nodeId = normalizeNodeId(node?.id);
+        const inputs = nodeId == null ? null : output[nodeId]?.inputs;
         if (
           !node
+          || nodeId == null
           || !isAdvancedNode(node)
           || !isRecord(inputs)
         ) {
           return [];
         }
         if (optionalSeed(inputs.wildcard_seed) == null) {
-          const nodeId = String(node.id);
           const state = nodeStates.get(nodeId);
           if (!state?.reservations.length) {
             // Unsafe 64-bit values stay entirely on the pre-existing backend
@@ -367,9 +424,9 @@ function createAdvancedQueueSeedRuntime(dependencies) {
           return [];
         }
         const targetIds = targets.filter(
-          (targetId) => isUpstreamOf(output, node.id, targetId, memo),
+          (targetId) => isUpstreamOf(output, nodeId, targetId, memo),
         );
-        return targetIds.length ? [{ node, targetIds }] : [];
+        return targetIds.length ? [{ node, nodeId, targetIds }] : [];
       } catch {
         return [];
       }
@@ -392,10 +449,10 @@ function createAdvancedQueueSeedRuntime(dependencies) {
     }
 
     const reservations = [];
-    for (const { node, targetIds } of candidates) {
+    for (const { node, nodeId, targetIds } of candidates) {
       try {
-        const inputs = queuedPrompt.output[String(node.id)]?.inputs;
-        const workflow = workflowNode(queuedPrompt.workflow, node.id);
+        const inputs = queuedPrompt.output[nodeId]?.inputs;
+        const workflow = workflowNode(queuedPrompt.workflow, nodeId);
         if (!isRecord(inputs) || !workflow || !Array.isArray(workflow.widgets_values)) {
           continue;
         }
@@ -409,7 +466,7 @@ function createAdvancedQueueSeedRuntime(dependencies) {
           // precision. Preserve the original queue payload for those values.
           continue;
         }
-        const state = stateForNode(node, inputSeed);
+        const state = stateForNode(node, nodeId, inputSeed);
         const queuedSeed = reservedCurrentSeed(state);
         const effectiveControl = mode === "sequential"
           ? "increment"
@@ -437,7 +494,7 @@ function createAdvancedQueueSeedRuntime(dependencies) {
         const reservation = {
           id: ++reservationId,
           node,
-          nodeId: String(node.id),
+          nodeId,
           state,
           targetIds,
           queuedSeed,
@@ -495,8 +552,73 @@ function createAdvancedQueueSeedRuntime(dependencies) {
     };
   }
 
+  function attachNode(node) {
+    if (!node || !isAdvancedNode(node)) {
+      return false;
+    }
+    const nodeId = normalizeNodeId(node.id);
+    if (nodeId == null) {
+      return false;
+    }
+    const inputSeed = optionalSeed(getSeed(node));
+    const existing = nodeStates.get(nodeId);
+    if (inputSeed == null) {
+      if (existing) {
+        retireState(existing);
+      }
+      return false;
+    }
+    if (existing?.node === node) {
+      if (existing.reservations.length) {
+        retireState(existing);
+        const state = createState(node, nodeId, inputSeed, true);
+        nodeStates.set(nodeId, state);
+        return true;
+      }
+      existing.attached = true;
+      existing.committedSeed = inputSeed;
+      existing.authoritative = false;
+      existing.blockUnknownExecuted = true;
+      existing.publishFailed = false;
+      return true;
+    }
+    if (existing) {
+      retireState(existing);
+    }
+    const state = createState(node, nodeId, inputSeed, true);
+    nodeStates.set(nodeId, state);
+    return true;
+  }
+
+  function detachNode(node) {
+    const nodeId = normalizeNodeId(node?.id);
+    if (nodeId == null) {
+      return false;
+    }
+    const state = nodeStates.get(nodeId);
+    if (!state || state.node !== node) {
+      return false;
+    }
+    retireState(state);
+    return true;
+  }
+
+  function clearGraphNodes() {
+    for (const state of [...nodeStates.values()]) {
+      retireState(state);
+    }
+  }
+
+  function trackedStateCount() {
+    return nodeStates.size + retiredStates.size;
+  }
+
   function shouldApplyExecutedSeed(node, value) {
-    const state = nodeStates.get(String(node?.id));
+    const nodeId = normalizeNodeId(node?.id);
+    if (nodeId == null) {
+      return true;
+    }
+    const state = nodeStates.get(nodeId);
     if (!state) {
       return true;
     }
@@ -521,10 +643,33 @@ function createAdvancedQueueSeedRuntime(dependencies) {
   }
 
   return {
+    attachNode,
+    clearGraphNodes,
+    detachNode,
     preparePrompt,
     shouldApplyExecutedSeed,
+    trackedStateCount,
     wrapQueuePrompt,
   };
+}
+
+function installAdvancedQueueSeedGraphCleanup(graph, runtime) {
+  if (
+    !graph
+    || typeof graph.clear !== "function"
+    || graph.clear[GRAPH_CLEANUP_MARKER]
+  ) {
+    return false;
+  }
+  const clear = graph.clear;
+  const wrappedClear = function () {
+    const result = clear.apply(this, arguments);
+    runtime.clearGraphNodes();
+    return result;
+  };
+  wrappedClear[GRAPH_CLEANUP_MARKER] = true;
+  graph.clear = wrappedClear;
+  return true;
 }
 
 function installAdvancedQueueSeedQueueHook(queueHost, runtime) {
@@ -545,5 +690,6 @@ function installAdvancedQueueSeedQueueHook(queueHost, runtime) {
 
 export {
   createAdvancedQueueSeedRuntime,
+  installAdvancedQueueSeedGraphCleanup,
   installAdvancedQueueSeedQueueHook,
 };
