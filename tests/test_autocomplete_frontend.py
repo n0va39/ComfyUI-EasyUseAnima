@@ -16,6 +16,12 @@ AUTOCOMPLETE_DATA_ADAPTER = (
 AUTOCOMPLETE_DATA_ADAPTER_SMOKE = (
     ROOT / "tests" / "frontend_autocomplete_data_adapter_smoke.mjs"
 )
+AUTOCOMPLETE_INPUT_CONTROLLER = (
+    ROOT / "web" / "js" / "autocomplete" / "input_controller.js"
+)
+AUTOCOMPLETE_INPUT_CONTROLLER_SMOKE = (
+    ROOT / "tests" / "frontend_autocomplete_input_controller_smoke.mjs"
+)
 AUTOCOMPLETE_TEXT_MODEL = (
     ROOT / "web" / "js" / "autocomplete" / "text_model.js"
 )
@@ -33,6 +39,94 @@ FRONTEND_CHECK_SCRIPT = ROOT / "tools" / "check_frontend.ps1"
 
 
 class AutocompleteFrontendBoundaryTests(unittest.TestCase):
+    def test_input_controller_has_exact_lifecycle_boundary(self):
+        module_source = AUTOCOMPLETE_INPUT_CONTROLLER.read_text(encoding="utf-8")
+        entry_source = AUTOCOMPLETE_ENTRY.read_text(encoding="utf-8")
+
+        self.assertEqual(module_source.splitlines()[0], "// @ts-check")
+        self.assertEqual(
+            re.findall(
+                r"^export\s+(?:const|function|class)\s+([A-Za-z0-9_]+)",
+                module_source,
+                re.MULTILINE,
+            ),
+            ["createAutocompleteInputController"],
+        )
+        self.assertNotRegex(
+            module_source,
+            re.compile(r"^\s*import\b", re.MULTILINE),
+        )
+        self.assertNotRegex(
+            module_source,
+            (
+                r"\b(?:document|window|app|api|fetch|registerExtension|"
+                r"addEventListener|removeEventListener|MutationObserver|"
+                r"HTMLElement|HTMLInputElement|HTMLTextAreaElement)\b"
+            ),
+        )
+        self.assertIn(
+            'import { createAutocompleteInputController } from '
+            '"./autocomplete/input_controller.js";',
+            entry_source,
+        )
+        self.assertEqual(
+            entry_source.count("createAutocompleteInputController({"),
+            1,
+        )
+
+        hook_start = entry_source.index("function hookInput")
+        hook_end = entry_source.index("\nfunction hookWidget", hook_start)
+        hook_body = entry_source[hook_start:hook_end]
+        self.assertNotIn("let composing", hook_body)
+        self.assertNotIn("let updateSeq", hook_body)
+        self.assertNotIn("requestAnimationFrame(updateNow)", hook_body)
+        self.assertNotIn("setTimeout(updateNow, 0)", hook_body)
+        self.assertIn("const controller = createAutocompleteInputController({", hook_body)
+        self.assertIn(
+            'input.addEventListener("compositionstart", controller.beginComposition);',
+            hook_body,
+        )
+        self.assertIn(
+            'input.addEventListener("compositionupdate", controller.scheduleUpdate);',
+            hook_body,
+        )
+        self.assertIn(
+            'input.addEventListener("compositionend", controller.endComposition);',
+            hook_body,
+        )
+        self.assertIn("const results = await request(", hook_body)
+        self.assertIn("isCurrent()", hook_body)
+        self.assertIn("controller.invalidate();", hook_body)
+        self.assertIn("controller.isComposing(event)", hook_body)
+        self.assertIn("state?.controller?.invalidate();", entry_source)
+
+        keydown_start = hook_body.rindex(
+            'input.addEventListener("keydown", (event) => {'
+        )
+        keydown_body = hook_body[keydown_start:]
+        self.assertLess(
+            keydown_body.index('event.key === "Escape"'),
+            keydown_body.index("!activeState"),
+        )
+
+    def test_input_controller_module_semantics(self):
+        self.assertTrue(AUTOCOMPLETE_INPUT_CONTROLLER_SMOKE.is_file())
+
+        node_bin = shutil.which("node")
+        if not node_bin:
+            self.skipTest("node executable is not available")
+
+        completed = subprocess.run(
+            [node_bin, str(AUTOCOMPLETE_INPUT_CONTROLLER_SMOKE)],
+            cwd=ROOT,
+            text=True,
+            capture_output=True,
+            check=False,
+        )
+
+        if completed.returncode != 0:
+            self.fail((completed.stdout + completed.stderr).strip())
+
     def test_popup_geometry_has_exact_dom_free_boundary(self):
         module_source = AUTOCOMPLETE_POPUP_GEOMETRY.read_text(encoding="utf-8")
         entry_source = AUTOCOMPLETE_ENTRY.read_text(encoding="utf-8")

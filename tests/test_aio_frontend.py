@@ -47,6 +47,9 @@ AUTOCOMPLETE_JS = ROOT / "web" / "js" / "easyuse_anima_autocomplete.js"
 AUTOCOMPLETE_DATA_ADAPTER_JS = (
     ROOT / "web" / "js" / "autocomplete" / "data_adapter.js"
 )
+AUTOCOMPLETE_INPUT_CONTROLLER_JS = (
+    ROOT / "web" / "js" / "autocomplete" / "input_controller.js"
+)
 AUTOCOMPLETE_TEXT_MODEL_JS = (
     ROOT / "web" / "js" / "autocomplete" / "text_model.js"
 )
@@ -791,23 +794,46 @@ class AIOFrontendSourceTests(unittest.TestCase):
 
     def test_autocomplete_refreshes_during_ime_composition_without_committing(self):
         source = AUTOCOMPLETE_JS.read_text(encoding="utf-8")
-        start = source.index("  const updateNow = async () => {")
-        end = source.index("  const update = debounce(updateNow);", start)
-        update_body = source[start:end]
+        controller_source = AUTOCOMPLETE_INPUT_CONTROLLER_JS.read_text(
+            encoding="utf-8"
+        )
+        hook_start = source.index("function hookInput")
+        hook_end = source.index("\nfunction hookWidget", hook_start)
+        hook_body = source[hook_start:hook_end]
 
-        self.assertIn("document.activeElement !== input", update_body)
-        self.assertNotIn("composing || document.activeElement", update_body)
-        self.assertIn('input.addEventListener("compositionupdate", update);', source)
+        self.assertIn("document.activeElement !== input", hook_body)
+        self.assertIn(
+            'input.addEventListener("compositionstart", '
+            "controller.beginComposition);",
+            hook_body,
+        )
+        self.assertIn(
+            'input.addEventListener("compositionupdate", '
+            "controller.scheduleUpdate);",
+            hook_body,
+        )
+        self.assertIn(
+            'input.addEventListener("compositionend", controller.endComposition);',
+            hook_body,
+        )
+        self.assertIn("function beginComposition()", controller_source)
+        self.assertIn("function endComposition()", controller_source)
+        self.assertIn("function scheduleUpdate()", controller_source)
+        self.assertIn("function isComposing(event = null)", controller_source)
+        self.assertIn(
+            "if (!controller.isComposing(event) "
+            "&& handleBracketPreviewKeydown(state, event))",
+            hook_body,
+        )
 
         autocomplete_done = source.index("  input.__easyuseAnimaAutocompleteHooked = true;")
         keydown_start = source.rindex('  input.addEventListener("keydown", (event) => {', 0, autocomplete_done)
         keydown_end = source.index("  });", keydown_start)
         keydown_body = source[keydown_start:keydown_end]
 
-        self.assertIn("event.isComposing", keydown_body)
-        self.assertIn("event.keyCode === 229", keydown_body)
+        self.assertIn("controller.isComposing(event)", keydown_body)
         self.assertLess(
-            keydown_body.index("event.isComposing"),
+            keydown_body.index("controller.isComposing(event)"),
             keydown_body.index("!activeState"),
         )
 
@@ -864,6 +890,7 @@ class AIOFrontendSourceTests(unittest.TestCase):
         hide_body = source[start:end]
 
         self.assertIn("markAutocompleteInputInactive(input);", hide_body)
+        self.assertIn("controller?.invalidate();", hide_body)
         self.assertIn("resetAutocompleteMenuToTop(popup);", hide_body)
         self.assertLess(hide_body.index("popup.replaceChildren();"), hide_body.index("resetAutocompleteMenuToTop(popup);"))
         self.assertLess(hide_body.index("resetAutocompleteMenuToTop(popup);"), hide_body.index('popup.classList.add("hidden");'))
@@ -900,7 +927,7 @@ class AIOFrontendSourceTests(unittest.TestCase):
         self.assertNotIn("resetActiveAutocompleteMenu(menu);", visible_reset_body)
 
         start = source.index("function renderResults")
-        end = source.index("\nfunction debounce", start)
+        end = source.index("\nfunction isTextEditingShortcut", start)
         body = source[start:end]
 
         self.assertIn("resetAutocompleteMenuToTop(menu);", body)
@@ -915,8 +942,8 @@ class AIOFrontendSourceTests(unittest.TestCase):
         self.assertLess(body.index('menu.classList.remove("hidden");'), body.index("resetVisibleAutocompleteMenuSoon(menu, state.input);"))
         self.assertLess(body.index("resetVisibleAutocompleteMenuSoon(menu, state.input);"), body.index("updateAutocompletePreview();"))
 
-        start = source.index("  const updateNow = async () => {")
-        end = source.index("    const seq = ++updateSeq;", start)
+        start = source.index("    onUpdate: async ({ isCurrent, request }) => {")
+        end = source.index("      const results = await request(", start)
         update_body = source[start:end]
 
         self.assertIn("lastAutocompleteSignature: undefined", source)

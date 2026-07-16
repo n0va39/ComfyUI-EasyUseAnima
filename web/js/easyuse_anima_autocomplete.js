@@ -6,6 +6,7 @@ import {
 import { easyuseAnimaFetchJson, easyuseAnimaGetSettings } from "./easyuse_anima_api.js";
 import { easyuseAnimaText } from "./easyuse_anima_i18n.js";
 import { createAutocompleteDataAdapter } from "./autocomplete/data_adapter.js";
+import { createAutocompleteInputController } from "./autocomplete/input_controller.js";
 import {
   calculateAutocompletePopupGeometry,
   calculateCaretMirrorGeometry,
@@ -331,6 +332,9 @@ function syncAutocompleteInputFlag(input, state = input?.__easyuseAnimaAutocompl
     return;
   }
   input.__easyuseAnimaAutocomplete = autocompleteEnabledForState(state);
+  if (!input.__easyuseAnimaAutocomplete) {
+    state?.controller?.invalidate();
+  }
 }
 
 function syncAutocompleteInputFlags() {
@@ -433,8 +437,11 @@ function ensurePopup() {
   return popup;
 }
 
-function hidePopup() {
+function hidePopup(options = {}) {
   const input = activeState?.input;
+  if (!options.preserveController) {
+    input?.__easyuseAnimaAutocompleteState?.controller?.invalidate();
+  }
   markAutocompleteInputInactive(input);
   if (popup) {
     popup.replaceChildren();
@@ -1311,16 +1318,6 @@ function renderResults(state, results, signature = "") {
   updateAutocompletePreview();
 }
 
-function debounce(fn, delay = 120) {
-  let timer = null;
-  const wrapped = (...args) => {
-    clearTimeout(timer);
-    timer = setTimeout(() => fn(...args), delay);
-  };
-  wrapped.cancel = () => clearTimeout(timer);
-  return wrapped;
-}
-
 function isTextEditingShortcut(event) {
   if (!(event.ctrlKey || event.metaKey) || event.altKey) {
     return false;
@@ -1345,8 +1342,6 @@ function hookInput(input, options = {}) {
     return;
   }
 
-  let composing = false;
-  let updateSeq = 0;
   const state = {
     node: options.node || null,
     widget: options.widget || null,
@@ -1361,95 +1356,102 @@ function hookInput(input, options = {}) {
     state.lastAutocompleteSignature = "";
   };
 
-  const updateNow = async () => {
-    if (document.activeElement !== input || !autocompleteEnabledForState(state)) {
-      if (activeState?.input === input) {
+  const controller = createAutocompleteInputController({
+    requestFrame: (callback) => requestAnimationFrame(callback),
+    cancelFrame: (handle) => cancelAnimationFrame(handle),
+    setTimer: (callback, delay) => setTimeout(callback, delay),
+    clearTimer: (handle) => clearTimeout(handle),
+    onUpdate: async ({ isCurrent, request }) => {
+      if (document.activeElement !== input || !autocompleteEnabledForState(state)) {
+        if (activeState?.input === input) {
+          hidePopup();
+        }
+        return;
+      }
+      if (shouldSuppressAutocomplete(input)) {
+        markAutocompleteInactive();
+        if (activeState?.input === input) {
+          hidePopup();
+        }
+        return;
+      }
+      if (isCaretInComment(input.value || "", input.selectionStart ?? 0)) {
+        markAutocompleteInactive();
         hidePopup();
+        return;
       }
-      return;
-    }
-    if (shouldSuppressAutocomplete(input)) {
-      markAutocompleteInactive();
-      if (activeState?.input === input) {
+      if (isCaretInPromptTranslationMarker(input)) {
+        markAutocompleteInactive();
         hidePopup();
+        return;
       }
-      return;
-    }
-    if (isCaretInComment(input.value || "", input.selectionStart ?? 0)) {
-      markAutocompleteInactive();
-      hidePopup();
-      return;
-    }
-    if (isCaretInPromptTranslationMarker(input)) {
-      markAutocompleteInactive();
-      hidePopup();
-      return;
-    }
-    const wildcardToken = currentWildcardToken(input);
-    const token = wildcardToken || currentToken(input);
-    if (!token?.active) {
-      markAutocompleteInactive();
-      hidePopup();
-      return;
-    }
-    const context = wildcardToken
-      ? wildcardAutocompleteQuery(wildcardToken)
-      : autocompleteQuery(token, state.forceArtistOnly);
-    if (context.kind !== "wildcard" && context.query.length < MIN_QUERY_LENGTH) {
-      markAutocompleteInactive();
-      hidePopup();
-      return;
-    }
-    const signature = autocompleteStateSignature(token, context, state);
-    const previousSignature = state.lastAutocompleteSignature;
-    state.lastAutocompleteSignature = signature;
-    if (activeState?.input === input && activeState.signature === signature) {
-      if (previousSignature !== undefined && previousSignature !== signature) {
-        resetActiveAutocompleteMenu(ensurePopup());
+      const wildcardToken = currentWildcardToken(input);
+      const token = wildcardToken || currentToken(input);
+      if (!token?.active) {
+        markAutocompleteInactive();
+        hidePopup();
+        return;
       }
-      positionPopup(input);
-      updateAutocompletePreview();
-      return;
-    }
-    const seq = ++updateSeq;
-    try {
-      const results = context.kind === "wildcard"
-        ? await autocompleteData.searchWildcards(context.query)
-        : await autocompleteData.search(context.query, context.category);
-      if (document.activeElement === input && seq === updateSeq && !shouldSuppressAutocomplete(input)) {
+      const context = wildcardToken
+        ? wildcardAutocompleteQuery(wildcardToken)
+        : autocompleteQuery(token, state.forceArtistOnly);
+      if (context.kind !== "wildcard" && context.query.length < MIN_QUERY_LENGTH) {
+        markAutocompleteInactive();
+        hidePopup();
+        return;
+      }
+      const signature = autocompleteStateSignature(token, context, state);
+      const previousSignature = state.lastAutocompleteSignature;
+      state.lastAutocompleteSignature = signature;
+      if (activeState?.input === input && activeState.signature === signature) {
+        if (previousSignature !== undefined && previousSignature !== signature) {
+          resetActiveAutocompleteMenu(ensurePopup());
+        }
+        positionPopup(input);
+        updateAutocompletePreview();
+        return;
+      }
+      const results = await request(
+        signature,
+        () => context.kind === "wildcard"
+          ? autocompleteData.searchWildcards(context.query)
+          : autocompleteData.search(context.query, context.category),
+      );
+      if (
+        isCurrent()
+        && document.activeElement === input
+        && autocompleteEnabledForState(state)
+        && !shouldSuppressAutocomplete(input)
+      ) {
         renderResults(state, strictAutocompleteResults(context, token, state, results), signature);
       }
-    } catch {
-      hidePopup();
-    }
-  };
-  const update = debounce(updateNow);
-  const updateFromCaret = () => {
-    update.cancel();
-    updateNow();
-  };
-  const updateAfterCaretMove = () => {
-    update.cancel();
-    requestAnimationFrame(updateNow);
-    setTimeout(updateNow, 0);
-  };
-  state.refresh = updateFromCaret;
+    },
+    onError: () => {
+      if (document.activeElement === input && (!activeState || activeState.input === input)) {
+        hidePopup();
+      }
+    },
+  });
+  state.controller = controller;
+  state.refresh = controller.updateNow;
   state.reposition = () => positionPopup(input);
+  const scheduleInputUpdate = () => {
+    const preserveController = controller.isCompositionEndUpdatePending();
+    if (activeState?.input === input) {
+      hidePopup({ preserveController });
+    }
+    controller.scheduleUpdate();
+  };
 
-  input.addEventListener("compositionstart", () => {
-    composing = true;
-  });
-  input.addEventListener("compositionupdate", update);
-  input.addEventListener("compositionend", () => {
-    composing = false;
-    updateAfterCaretMove();
-  });
-  input.addEventListener("input", update);
-  input.addEventListener("focus", updateFromCaret);
-  input.addEventListener("click", updateAfterCaretMove);
-  input.addEventListener("mousedown", updateAfterCaretMove);
-  input.addEventListener("mouseup", updateAfterCaretMove);
-  input.addEventListener("pointerup", updateAfterCaretMove);
+  input.addEventListener("compositionstart", controller.beginComposition);
+  input.addEventListener("compositionupdate", controller.scheduleUpdate);
+  input.addEventListener("compositionend", controller.endComposition);
+  input.addEventListener("input", scheduleInputUpdate);
+  input.addEventListener("focus", controller.updateNow);
+  input.addEventListener("click", controller.scheduleCaretUpdate);
+  input.addEventListener("mousedown", controller.scheduleCaretUpdate);
+  input.addEventListener("mouseup", controller.scheduleCaretUpdate);
+  input.addEventListener("pointerup", controller.scheduleCaretUpdate);
   input.addEventListener("pointerdown", (event) => {
     if (forwardMiddlePanFromAutocompleteInput(event)) {
       hidePopup();
@@ -1468,11 +1470,12 @@ function hookInput(input, options = {}) {
   }, true);
   input.addEventListener("keyup", (event) => {
     if (["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", "Home", "End", "PageUp", "PageDown"].includes(event.key)) {
-      updateAfterCaretMove();
+      controller.scheduleCaretUpdate();
     }
   });
-  input.addEventListener("select", updateAfterCaretMove);
+  input.addEventListener("select", controller.scheduleCaretUpdate);
   input.addEventListener("blur", () => {
+    controller.invalidate();
     setTimeout(() => {
       if (activeState?.input === input) {
         hidePopup();
@@ -1485,12 +1488,20 @@ function hookInput(input, options = {}) {
     }
   });
   input.addEventListener("keydown", (event) => {
-    if (handleBracketPreviewKeydown(state, event)) {
-      updateAfterCaretMove();
+    if (!controller.isComposing(event) && handleBracketPreviewKeydown(state, event)) {
+      controller.scheduleCaretUpdate();
     }
   });
   input.addEventListener("keydown", (event) => {
-    if (composing || event.isComposing || event.keyCode === 229) {
+    if (controller.isComposing(event)) {
+      return;
+    }
+    if (event.key === "Escape") {
+      controller.invalidate();
+      if (activeState?.input === input) {
+        event.preventDefault();
+        hidePopup();
+      }
       return;
     }
     if (!activeState || activeState.input !== input) {
@@ -1513,9 +1524,6 @@ function hookInput(input, options = {}) {
       commitSuggestion(activeState, activeState.results[activeState.index], {
         suppressPopup: true,
       });
-    } else if (event.key === "Escape") {
-      event.preventDefault();
-      hidePopup();
     }
   });
 
