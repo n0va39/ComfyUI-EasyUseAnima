@@ -530,6 +530,41 @@ class AIOFrontendSourceTests(unittest.TestCase):
         self.assertIn("clearGeneratorDenoisePreview(node, false);", dispose_body)
         self.assertNotIn("URL.revokeObjectURL", panel_source)
 
+    def test_generator_sampler_hydration_refresh_has_single_owner(self):
+        source = AIO_JS.read_text(encoding="utf-8")
+        extension_source = AIO_EXTENSION_RUNTIME_JS.read_text(encoding="utf-8")
+        panel_source = AIO_GENERATOR_PANEL_RUNTIME_JS.read_text(encoding="utf-8")
+
+        hook_start = source.index("function hookGeneratorNode(node)")
+        hook_end = source.index(
+            "\nfunction addGeneratorPreviewImagesToNode", hook_start
+        )
+        hook_body = source[hook_start:hook_end]
+        self.assertEqual(hook_body.count("ensureGeneratorPanel(node);"), 1)
+        self.assertNotIn("loadGeneratorSamplerOptions(", hook_body)
+        self.assertNotIn("renderGeneratorPanel(", hook_body)
+
+        ensure_start = panel_source.index("  function ensureGeneratorPanel(node)")
+        ensure_end = panel_source.index("\n\n  return {", ensure_start)
+        ensure_body = panel_source[ensure_start:ensure_end]
+        self.assertEqual(
+            ensure_body.count("renderGeneratorPanel(node, lifecycleState);"),
+            1,
+        )
+
+        setup_start = extension_source.index("    async setup() {")
+        setup_end = extension_source.index(
+            "\n    async beforeRegisterNodeDef", setup_start
+        )
+        setup_body = extension_source[setup_start:setup_end]
+        self.assertEqual(
+            setup_body.count("loadSamplerOptions().then(refreshPanels);"),
+            1,
+        )
+        self.assertIn(
+            "loadSamplerOptions: loadGeneratorSamplerOptions,", source
+        )
+
     def test_generator_panel_lifecycle_keeps_entry_behavior_boundaries(self):
         source = AIO_JS.read_text(encoding="utf-8")
         extension_source = AIO_EXTENSION_RUNTIME_JS.read_text(encoding="utf-8")

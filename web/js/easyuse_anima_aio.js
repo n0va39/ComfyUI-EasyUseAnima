@@ -4073,7 +4073,7 @@ function hookInputNode(node) {
 }
 
 function hookGeneratorNode(node) {
-  const panelLifecycle = activateGeneratorPanel(node);
+  activateGeneratorPanel(node);
   activateGeneratorNativePreviewLifecycle(node);
   node.serialize_widgets = true;
   suppressGeneratorDefaultPreview(node, { markDirty: false });
@@ -4081,9 +4081,6 @@ function hookGeneratorNode(node) {
   ensureGeneratorPanel(node);
   syncGeneratorStateFromDom(node);
   scheduleGeneratorDefaultPreviewSuppression(node);
-  loadGeneratorSamplerOptions().then(() => {
-    renderGeneratorPanel(node, panelLifecycle);
-  });
 }
 
 function addGeneratorPreviewImagesToNode(node, nextImages, runId = "", options = {}) {

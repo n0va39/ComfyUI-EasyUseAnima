@@ -75,7 +75,7 @@ function createFixture(options = {}) {
           samplerSetupFailures -= 1;
           throw options.samplerSetupError;
         }
-        return Promise.resolve();
+        return options.samplerOptionsPromise ?? Promise.resolve();
       },
       loadUserProfiles() {
         trace.push("loadUserProfiles");
@@ -85,7 +85,7 @@ function createFixture(options = {}) {
         }
         return options.profileError
           ? Promise.reject(options.profileError)
-          : Promise.resolve();
+          : options.userProfilesPromise ?? Promise.resolve();
       },
       warnUserProfiles(error) {
         trace.push(`warnUserProfiles:${error.message}`);
@@ -283,6 +283,42 @@ function createNodeType(trace, options = {}) {
     "repeated setup must not reload data or reinstall global listeners",
   );
   assert.deepEqual(fixture.eventRegistrations, firstSetupRegistrations);
+}
+
+{
+  let resolveSamplerOptions;
+  const samplerOptionsPromise = new Promise((resolve) => {
+    resolveSamplerOptions = resolve;
+  });
+  const fixture = createFixture({
+    samplerOptionsPromise,
+    userProfilesPromise: new Promise(() => {}),
+  });
+  await fixture.runtime.setup();
+  const { NodeType } = createNodeType(fixture.trace);
+  await fixture.runtime.beforeRegisterNodeDef(NodeType, { name: GENERATOR_NODE_TYPE });
+  new NodeType().onNodeCreated("cold-a");
+  new NodeType().onConfigure("cold-b");
+
+  assert.equal(
+    fixture.trace.filter((item) => item === "hookGeneratorNode").length,
+    2,
+    "generator creation/configure must keep their normal per-node hook path while hydration is pending",
+  );
+  assert.equal(
+    fixture.trace.filter((item) => item === "refreshPanels").length,
+    0,
+    "sampler hydration must not refresh panels before its shared load resolves",
+  );
+
+  resolveSamplerOptions();
+  await samplerOptionsPromise;
+  await Promise.resolve();
+  assert.equal(
+    fixture.trace.filter((item) => item === "refreshPanels").length,
+    1,
+    "sampler hydration must have one extension-owned global panel refresh regardless of node hook count",
+  );
 }
 
 {
