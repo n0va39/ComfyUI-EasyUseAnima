@@ -16,7 +16,8 @@ GitHub Issue ledgers, or live Git/GitHub/Codex/process read-back.
 - Before using this snapshot, fetch and reconcile the external state named in
   the relevant row.
 
-Snapshot: 2026-07-17 KST, immediately after PR #119 cleanup.
+Snapshot: 2026-07-17 KST, immediately after PR #120 cleanup and creation of the
+#102 documentation lane.
 
 ## Goal Boundary
 
@@ -42,9 +43,9 @@ Excluded without separate approval:
 
 | Surface | Confirmed state |
 | --- | --- |
-| `origin/dev` | `4119012881f4d1b35f61a29704fb18d23602a06d` |
+| `origin/dev` | `37c14f8cc10bd43fd33d3a1be76eeeeba435b920` |
 | local `dev` | same SHA, clean |
-| latest integration | PR #119, AiO sampler hydration ownership |
+| latest integration | PR #120, frontend maintenance execution ledger and project Skill |
 | Codex test server | stopped; port 8194 listener and related server/launcher count 0 |
 | test-instance canvas setting | `Comfy.VueNodes.Enabled=false` restored |
 | user v0.27.0 instance | not synced for this Goal |
@@ -57,7 +58,7 @@ Excluded without separate approval:
 | #54 AiO Generator | open | PR #107 lifecycle, #113 API queue/hook reentry and missing `prompt_id` no-commit regression, #119 sampler hydration owner and attached-subgraph refresh | direct concurrent API serialization/reservation, final broader matrix, #62/#66 triage, and optional #119 cycle/repeated-node/remove/root-replacement fixtures |
 | #55 LoRA Preset | open | #108 extraction, #115/#109 lifecycle hardening | integrate canvas-widget extraction; then profile mutation, initialize/configure/serialize, save-sync/wheel/entry, final matrix |
 | #56 Autocomplete | open | #116 input/keyboard/composition controller | integrate #99 adapter epoch; then external input hook, listener installer/entry, #98/#100, final matrix |
-| #102 seed range | open | production contract merged in #112 | approved Korean/English user docs; record #111 as non-blocking Node 2.0 display mismatch |
+| #102 seed range | open | production contract merged in #112 | integrate the current Korean/English user-doc lane, record #111 as a separate non-blocking Node 2.0 display mismatch, then reconcile the Issue ledger |
 | #103 Regional seed | closed | PR #118 and final ledger | none |
 | #104 subgraph Advanced seed | closed | PR #117 and final ledger | optional non-blocking settlement coverage only |
 | #105 seed lifecycle | closed | PR #110 and final ledger | do not reimplement |
@@ -83,6 +84,7 @@ in the roadmap and owning Issue ledgers.
 | #117 | `4b68cc4dfc1b402070939f51fd216c40e8b632a8` | Advanced node native-subgraph reservation | complete | status recorded in #104 | recorded |
 | #118 | `44eb91c1335f563e7ec05a9bf65fa74e1e219676` | Regional queue seed reservation | 395/395; 103 JS; TS 6.0.3 | Legacy and Node 2.0, 512×512 rapid queue 3/3 each | #103 final ledger |
 | #119 | `4119012881f4d1b35f61a29704fb18d23602a06d` | AiO sampler hydration single owner and attached-subgraph refresh | 396/396; 103 JS; TS 6.0.3 | Legacy and Node 2.0 512×512 queue/save-reload; attached native subgraph; EasyUse errors 0 | #54 ledger; Issue remains open |
+| #120 | `37c14f8cc10bd43fd33d3a1be76eeeeba435b920` | frontend maintenance execution ledger and repo-local coordination Skill | 396/396; 103 JS; TS 6.0.3 | not required: internal docs/procedure only | no owning feature Issue; merge/read-back and cleanup recorded here |
 
 ## Production Lane Ownership
 
@@ -90,8 +92,7 @@ in the roadmap and owning Issue ledgers.
 | --- | --- | --- | --- | --- |
 | #55 canvas widgets | `019f6b77-702f-7863-8706-cc5db859b360` | `codex/extract-lora-canvas-widgets`; `worktrees/ComfyUI-EasyUseAnima/codex/extract-lora-canvas-widgets` | clean HEAD `6d2386777181d24472b6cfa4ce090ee630a12d71` on `4119012`; focused checks and two audits passed | `web/js/lora_preset/canvas_widgets.js`, LoRA entry, dedicated smoke and unittest |
 | #56/#99 adapter epoch | `019f6bc5-c33b-7960-b84e-0f2300525f2a` | `codex/fix-autocomplete-adapter-epoch`; `worktrees/ComfyUI-EasyUseAnima/codex/fix-autocomplete-adapter-epoch` | clean HEAD `f34bdaa224a34c2bd3097c24e77cd45258486079` on `4119012`; focused 43/43 and two audits passed | `web/js/autocomplete/data_adapter.js`, dedicated adapter smoke |
-| coordination plan/Skill | integration owner | `codex/docs-frontend-maintenance-plan`; `worktrees/ComfyUI-EasyUseAnima/codex/docs-frontend-maintenance-plan` | base `4119012`; active | this plan, repo-local Skill, development-doc links only |
-| #102 user docs | queued | branch/worktree/task not created | start from latest `origin/dev` after coordination PR cleanup | `docs/wildcards.ko.md`, `docs/wildcards.en.md`; optional canonical links only |
+| #102 user docs | `019f6a32-3b0f-7ed0-8ff6-03de8546f402` (integration owner) | `codex/docs-wildcard-seed-contract`; `worktrees/ComfyUI-EasyUseAnima/codex/docs-wildcard-seed-contract` | active on clean base `37c14f8`; focused contract check and final audits passed | `docs/wildcards.ko.md`, `docs/wildcards.en.md`, and this checkpoint only |
 
 ## Integration Gates
 
@@ -99,12 +100,11 @@ Only one row may enter push/PR/merge at a time.
 
 | Order | Slice | Focused / audit | Full | Browser | Blocker / finding | Gate |
 | ---: | --- | --- | --- | --- | --- | --- |
-| 1 | coordination plan/Skill | structure, link, YAML, and Skill validation plus two final audits passed after review-fix | run once on final diff | not required: internal docs/procedure only | no known blocker | current |
-| 2 | #102 user docs | production evidence already merged; docs review pending | run once on final diff | reuse #112 identical production evidence; docs do not change runtime | #111 is non-blocking and separately tracked | queued |
-| 3 | #55 canvas widgets | focused tests and two extraction audits passed | integration owner registers smoke, then one full run | omit for mechanical extraction; final #55 matrix remains required before Issue close | no known blocker | queued |
-| 4 | #56/#99 adapter epoch | focused 43/43, range-diff, and two audits passed | one full run | required once per final behavior diff on legacy and Node 2.0 | no known blocker | queued |
-| 5 | remaining #54/#55/#56 slices | create only after file ownership and priority audit | per PR-ready diff | per behavior diff; final Issue matrices required | sequence and overlap audit required | backlog |
-| 6 | final user-instance sync | all agreed Issues/bugs reconciled first | use merged `dev` evidence | one manual v0.27.0 confirmation | blocked by remaining Goal work and prerequisites | queued |
+| 1 | #102 user docs | focused contract check plus final contract, ledger, and readability audits passed | run once on final diff | reuse #112 identical production evidence; docs do not change runtime | #111 is non-blocking and separately tracked | current |
+| 2 | #55 canvas widgets | focused tests and two extraction audits passed | integration owner registers smoke, then one full run | omit for mechanical extraction; final #55 matrix remains required before Issue close | rebase from `4119012` after #102 cleanup | queued |
+| 3 | #56/#99 adapter epoch | focused 43/43, range-diff, and two audits passed | one full run | required once per final behavior diff on legacy and Node 2.0 | rebase from `4119012` after preceding integrations | queued |
+| 4 | remaining #54/#55/#56 slices | create only after file ownership and priority audit | per PR-ready diff | per behavior diff; final Issue matrices required | sequence and overlap audit required | backlog |
+| 5 | final user-instance sync | all agreed Issues/bugs reconciled first | use merged `dev` evidence | one manual v0.27.0 confirmation | blocked by remaining Goal work and prerequisites | queued |
 
 Known validation note: Windows sandbox may fail before command/test setup with
 `CreateProcessAsUserW 1312`. Record cwd, TEMP variables, runner, and failure
@@ -113,7 +113,7 @@ sandbox. Do not report the environment spawn error as a code failure.
 
 ## Current Blockers And Findings
 
-- Blocking the current coordination gate: none known.
+- Blocking the current #102 documentation gate: none known.
 - Non-blocking #111: ComfyUI frontend 1.45.20 Node 2.0 can display a newly
   entered unsafe seed while the widget and saved workflow retain max-safe.
   Prefer an upstream fix or stable public-API boundary over a private-DOM hook.
@@ -134,8 +134,9 @@ sandbox. Do not report the environment spawn error as a code failure.
 
 ## Cleanup And Sync
 
-- The #103 Regional lane and #54 sampler-hydration lane branches/worktrees were
-  removed after merge-tree equality and clean-state checks.
+- The #103 Regional, #54 sampler-hydration, and #120 coordination
+  branches/worktrees were removed after merge-tree equality and clean-state
+  checks.
 - Existing unrelated `codex/*`, `fix/*`, and `feature/*` worktrees are untouched.
 - The Codex test server is stopped and port 8194 is free.
 - The user v0.27.0 instance remains untouched until all agreed maintenance and
