@@ -2079,6 +2079,7 @@ class FrontendModuleStructureTests(unittest.TestCase):
         ).read_text(encoding="utf-8")
 
         self.assertIn("app.registerExtension", source)
+        self.assertIn('../../../scripts/api.js"', source)
         self.assertIn('./prompt_studio/extension_runtime.js"', source)
         self.assertIn("./constants.js", extension_runtime_source)
         self.assertIn('./advanced_controls.js"', advanced_node_ui_source)
@@ -2086,6 +2087,12 @@ class FrontendModuleStructureTests(unittest.TestCase):
         self.assertIn('./advanced_fields_ui.js"', advanced_node_ui_source)
         self.assertIn("./advanced_fields_state.js", extension_runtime_source)
         self.assertIn("./advanced_values.js", extension_runtime_source)
+        self.assertIn("./advanced_queue_seed_runtime.js", extension_runtime_source)
+        self.assertIn("installAdvancedQueueSeedQueueHook", extension_runtime_source)
+        self.assertIn("advancedQueueSeedRuntime.shouldApplyExecutedSeed", extension_runtime_source)
+        self.assertIn("hooks.shouldApplyExecutedSeed?.", (
+            PROMPT_STUDIO_MODULES / "advanced_values.js"
+        ).read_text(encoding="utf-8"))
         self.assertIn('./utils.js"', studio_node_ui_source)
         self.assertIn("./canvas_forwarding.js", extension_runtime_source)
         self.assertIn("./extend_slot_controls.js", extension_runtime_source)
@@ -3140,6 +3147,7 @@ class FrontendModuleStructureTests(unittest.TestCase):
             "state.js",
             "advanced_fields_state.js",
             "advanced_values.js",
+            "advanced_queue_seed_runtime.js",
             "extend_layout.js",
             "extend_slots.js",
             "fields.js",

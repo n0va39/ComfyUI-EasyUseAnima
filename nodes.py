@@ -9286,6 +9286,7 @@ class EasyUseAnimaPromptStudioAdvancedV2(EasyUseAnimaPromptStudioAdvanced):
             },
             ui_payload,
         )
+        prompt_data_parameters["wildcard_seed"] = normalize_seed(wildcard_seed)
         prompt_data = _build_advanced_prompt_data(
             compat_result,
             effective_fields,

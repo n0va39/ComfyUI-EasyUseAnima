@@ -261,6 +261,7 @@ class WildcardNodeTests(unittest.TestCase):
         self.assertEqual(saved_image_fields[0]["text"], "expanded style")
         self.assertEqual(workflow_prompt["9"]["inputs"]["wildcard_mode"], "재현")
         self.assertEqual(workflow_prompt["9"]["inputs"]["wildcard_seed"], 2)
+        self.assertEqual(extra_pnginfo["workflow"]["nodes"][0]["widgets_values"][11], 2)
         self.assertEqual(result["ui"]["prompt_studio_advanced"][0]["wildcard_seed"], 3)
 
     def test_prompt_studio_advanced_fixed_mode_expands_inline_multiselect(self):
