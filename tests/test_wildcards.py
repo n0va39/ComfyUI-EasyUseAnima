@@ -199,7 +199,14 @@ class WildcardNodeTests(unittest.TestCase):
                     "advanced_fields": json.dumps(fields),
                     "wildcard_mode": "일반 채우기",
                     "wildcard_seed": 2,
-                    "wildcard_seed_after_generate": "increment",
+                    "wildcard_seed_after_generate": "randomize",
+                    "easyuse_anima_reserved_wildcard_next_seed": json.dumps({
+                        "version": 1,
+                        "current_seed": 2,
+                        "next_seed": 47,
+                        "mode": "populate",
+                        "control": "randomize",
+                    }),
                 }
             }
         }
@@ -221,7 +228,7 @@ class WildcardNodeTests(unittest.TestCase):
                             False,
                             "일반 채우기",
                             2,
-                            "increment",
+                            "randomize",
                         ],
                     }
                 ]
@@ -245,10 +252,17 @@ class WildcardNodeTests(unittest.TestCase):
                 json.dumps(fields),
                 wildcard_mode="일반 채우기",
                 wildcard_seed=2,
-                wildcard_seed_after_generate="increment",
+                wildcard_seed_after_generate="randomize",
                 workflow_prompt=workflow_prompt,
                 extra_pnginfo=extra_pnginfo,
                 unique_id="9",
+                easyuse_anima_reserved_wildcard_next_seed=json.dumps({
+                    "version": 1,
+                    "current_seed": 2,
+                    "next_seed": 47,
+                    "mode": "populate",
+                    "control": "randomize",
+                }),
             )
 
         payload_fields = json.loads(result["ui"]["prompt_studio_advanced"][0]["advanced_fields"])
@@ -261,8 +275,12 @@ class WildcardNodeTests(unittest.TestCase):
         self.assertEqual(saved_image_fields[0]["text"], "expanded style")
         self.assertEqual(workflow_prompt["9"]["inputs"]["wildcard_mode"], "재현")
         self.assertEqual(workflow_prompt["9"]["inputs"]["wildcard_seed"], 2)
+        self.assertNotIn(
+            "easyuse_anima_reserved_wildcard_next_seed",
+            workflow_prompt["9"]["inputs"],
+        )
         self.assertEqual(extra_pnginfo["workflow"]["nodes"][0]["widgets_values"][11], 2)
-        self.assertEqual(result["ui"]["prompt_studio_advanced"][0]["wildcard_seed"], 3)
+        self.assertEqual(result["ui"]["prompt_studio_advanced"][0]["wildcard_seed"], 47)
 
     def test_prompt_studio_advanced_fixed_mode_expands_inline_multiselect(self):
         fields = [

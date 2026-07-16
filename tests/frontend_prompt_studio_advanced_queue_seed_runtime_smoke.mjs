@@ -24,6 +24,7 @@ assert.deepEqual(
 const ADVANCED = "EasyUseAnimaPromptStudioAdvanced";
 const ADVANCED_V2 = "EasyUseAnimaPromptStudioAdvancedV2";
 const SEED_INDEX = 11;
+const RESERVED_NEXT_SEED_INPUT = "easyuse_anima_reserved_wildcard_next_seed";
 
 function deferred() {
   let resolve;
@@ -80,7 +81,10 @@ function promptFor(nodes, options = {}) {
       widgets_values: widgetValues(seed, mode, control),
     });
   }
-  for (const consumer of options.consumers || []) {
+  const consumers = Object.prototype.hasOwnProperty.call(options, "consumers")
+    ? options.consumers
+    : nodes.map((node, index) => ({ id: 20 + index, source: node.id }));
+  for (const consumer of consumers) {
     output[String(consumer.id)] = {
       class_type: consumer.type || "PreviewImage",
       inputs: { source: [consumer.source, 0] },
@@ -100,18 +104,28 @@ function promptFor(nodes, options = {}) {
 
 function createFixture(options = {}) {
   const nodes = options.nodes || [advancedNode(10)];
+  const outputNodes = options.outputNodes || nodes.map((_, index) => ({
+    id: 20 + index,
+    outputNode: true,
+  }));
   const randomValues = [...(options.randomValues || [41, 42, 43, 44])];
   const commits = [];
   let randomCalls = 0;
   let cloneCalls = 0;
+  let updateFailures = Number(options.updateFailures || 0);
   const runtime = queueModule.createAdvancedQueueSeedRuntime({
     seedWidgetIndex: SEED_INDEX,
-    listNodes: () => nodes,
+    listNodes: () => [...nodes, ...outputNodes],
     isAdvancedNode: (node) => [ADVANCED, ADVANCED_V2].includes(node?.type),
+    isOutputNode: (node) => node?.outputNode === true,
     getSeed(node) {
       return node.widgets.find((widget) => widget.name === "wildcard_seed")?.value;
     },
     updateSeed(node, seed) {
+      if (updateFailures > 0) {
+        updateFailures -= 1;
+        throw new Error("seed publish failed");
+      }
       commits.push([node.id, seed]);
       node.widgets.find((widget) => widget.name === "wildcard_seed").value = seed;
     },
@@ -145,6 +159,15 @@ function workflowSeed(prompt, nodeId) {
     .widgets_values[SEED_INDEX];
 }
 
+function reservedNextSeed(prompt, nodeId) {
+  return reservedSeedState(prompt, nodeId)?.next_seed;
+}
+
+function reservedSeedState(prompt, nodeId) {
+  const raw = prompt.output[String(nodeId)].inputs[RESERVED_NEXT_SEED_INPUT];
+  return raw == null ? undefined : JSON.parse(raw);
+}
+
 {
   const nodes = [advancedNode(10, ADVANCED, 7), advancedNode(11, ADVANCED_V2, 27)];
   const fixture = createFixture({ nodes });
@@ -159,8 +182,10 @@ function workflowSeed(prompt, nodeId) {
   assert.equal(nodes[1].widgets[1].value, 27, "V2 live state must remain unchanged");
   assert.equal(queuedSeed(transaction.prompt, 10), 7);
   assert.equal(workflowSeed(transaction.prompt, 10), 7);
+  assert.equal(reservedNextSeed(transaction.prompt, 10), 8);
   assert.equal(queuedSeed(transaction.prompt, 11), 27);
   assert.equal(workflowSeed(transaction.prompt, 11), 27);
+  assert.equal(reservedNextSeed(transaction.prompt, 11), 28);
   assert.deepEqual(transaction.prompt.extra_data, { untouched: true });
 }
 
@@ -185,6 +210,7 @@ function workflowSeed(prompt, nodeId) {
   ];
   assert.deepEqual(calls.map((call) => queuedSeed(call.args[1], 10)), [7, 8, 9]);
   assert.deepEqual(calls.map((call) => workflowSeed(call.args[1], 10)), [7, 8, 9]);
+  assert.deepEqual(calls.map((call) => reservedNextSeed(call.args[1], 10)), [8, 9, 10]);
   assert.deepEqual(prompt, original, "rapid reservations must keep the caller payload immutable");
   assert.equal(fixture.nodes[0].widgets[1].value, 7, "live seed changes only after acceptance");
   for (const call of calls) {
@@ -231,7 +257,10 @@ function workflowSeed(prompt, nodeId) {
   const fixture = createFixture({ nodes: [node], randomValues: [41, 42, 43] });
   const queued = [];
   const wrapped = fixture.runtime.wrapQueuePrompt((_number, prompt) => {
-    queued.push(queuedSeed(prompt, 10));
+    queued.push({
+      current: queuedSeed(prompt, 10),
+      next: reservedNextSeed(prompt, 10),
+    });
     return { prompt_id: `random-${queued.length}`, node_errors: {} };
   });
   await Promise.all([
@@ -239,9 +268,66 @@ function workflowSeed(prompt, nodeId) {
     wrapped(0, promptFor([node])),
     wrapped(0, promptFor([node])),
   ]);
-  assert.deepEqual(queued, [7, 41, 42]);
+  assert.deepEqual(queued, [
+    { current: 7, next: 41 },
+    { current: 41, next: 42 },
+    { current: 42, next: 43 },
+  ]);
   assert.equal(node.widgets[1].value, 43);
   assert.equal(fixture.randomCalls(), 3);
+}
+
+{
+  const fixed = advancedNode(10, ADVANCED, 7);
+  fixed.widgets[0].value = "고정";
+  fixed.widgets[2].value = "randomize";
+  const fixture = createFixture({ nodes: [fixed], randomValues: [41, 42, 43] });
+  const queued = [];
+  const wrapped = fixture.runtime.wrapQueuePrompt((_number, prompt) => {
+    queued.push([queuedSeed(prompt, 10), reservedNextSeed(prompt, 10)]);
+    return { prompt_id: `fixed-random-${queued.length}`, node_errors: {} };
+  });
+  await Promise.all([
+    wrapped(0, promptFor([fixed])),
+    wrapped(0, promptFor([fixed])),
+    wrapped(0, promptFor([fixed])),
+  ]);
+  assert.deepEqual(queued, [[7, 41], [41, 42], [42, 43]]);
+  assert.equal(fixed.widgets[1].value, 43);
+  assert.equal(fixture.randomCalls(), 3);
+}
+
+{
+  const decrement = advancedNode(10, ADVANCED, 0);
+  decrement.widgets[0].value = "일반 채우기";
+  decrement.widgets[2].value = "decrement";
+  const fixture = createFixture({ nodes: [decrement] });
+  const transaction = fixture.runtime.preparePrompt(promptFor([decrement]));
+  assert.ok(transaction);
+  assert.equal(queuedSeed(transaction.prompt, 10), 0);
+  assert.equal(reservedNextSeed(transaction.prompt, 10), Number.MAX_SAFE_INTEGER);
+}
+
+{
+  const fixture = createFixture();
+  let received = null;
+  const wrapped = fixture.runtime.wrapQueuePrompt((_number, nextPrompt) => {
+    received = nextPrompt;
+    return { prompt_id: "unsafe-pass-through", node_errors: {} };
+  });
+  await wrapped(0, promptFor(fixture.nodes));
+  assert.equal(fixture.nodes[0].widgets[1].value, 8);
+  fixture.nodes[0].widgets[1].value = Number.MAX_SAFE_INTEGER + 1;
+  const prompt = promptFor(fixture.nodes);
+  await wrapped(0, prompt);
+  assert.equal(received, prompt, "unsafe 64-bit seeds must not be rounded in a queue clone");
+  assert.equal(fixture.nodes[0].widgets[1].value, Number.MAX_SAFE_INTEGER + 1);
+  assert.equal(fixture.cloneCalls(), 1, "the unsafe transition itself must not clone");
+  assert.equal(
+    fixture.runtime.shouldApplyExecutedSeed(fixture.nodes[0], Number.MAX_SAFE_INTEGER),
+    true,
+    "an old safe-state guard must not block the backend pass-through path",
+  );
 }
 
 {
@@ -302,6 +388,110 @@ function workflowSeed(prompt, nodeId) {
 }
 
 {
+  const fixture = createFixture();
+  const calls = [];
+  const gates = [deferred(), deferred(), deferred()];
+  const wrapped = fixture.runtime.wrapQueuePrompt((_number, prompt) => {
+    calls.push(queuedSeed(prompt, 10));
+    return gates[calls.length - 1].promise;
+  });
+  const pending = [
+    wrapped(0, promptFor(fixture.nodes)),
+    wrapped(0, promptFor(fixture.nodes)),
+    wrapped(0, promptFor(fixture.nodes)),
+  ];
+  gates[1].resolve({ prompt_id: "second", node_errors: {} });
+  await pending[1];
+  assert.equal(fixture.nodes[0].widgets[1].value, 7, "later results wait for FIFO settlement");
+  gates[0].resolve({ prompt_id: "   ", node_errors: {} });
+  await pending[0];
+  assert.equal(fixture.nodes[0].widgets[1].value, 9, "blank prompt ids reject only their reservation");
+  gates[2].resolve({ prompt_id: "third", node_errors: {} });
+  await pending[2];
+  assert.deepEqual(calls, [7, 8, 9]);
+  assert.equal(fixture.nodes[0].widgets[1].value, 10);
+}
+
+{
+  const fixture = createFixture({ updateFailures: 1 });
+  const queued = [];
+  const wrapped = fixture.runtime.wrapQueuePrompt((_number, prompt) => {
+    queued.push(queuedSeed(prompt, 10));
+    return { prompt_id: `publish-${queued.length}`, node_errors: {} };
+  });
+  await wrapped(0, promptFor(fixture.nodes));
+  assert.equal(fixture.nodes[0].widgets[1].value, 7, "failed publication leaves the widget untouched");
+  await wrapped(0, promptFor(fixture.nodes));
+  assert.deepEqual(queued, [7, 8], "a failed widget refresh must not reuse an accepted seed");
+  assert.equal(fixture.nodes[0].widgets[1].value, 9);
+  assert.deepEqual(fixture.commits, [[10, 8], [10, 9]]);
+}
+
+{
+  const fixture = createFixture();
+  const accepted = fixture.runtime.wrapQueuePrompt(() => ({
+    prompt_id: "accepted-before-manual-edit", node_errors: {},
+  }));
+  await accepted(0, promptFor(fixture.nodes));
+  assert.equal(fixture.nodes[0].widgets[1].value, 8);
+  fixture.nodes[0].widgets[1].value = 100;
+  const rejected = fixture.runtime.wrapQueuePrompt(() => ({
+    prompt_id: "", node_errors: {},
+  }));
+  await rejected(0, promptFor(fixture.nodes));
+  assert.equal(fixture.nodes[0].widgets[1].value, 100);
+  assert.equal(
+    fixture.runtime.shouldApplyExecutedSeed(fixture.nodes[0], 8),
+    false,
+    "a rejected queue after a manual edit must not reopen an older executed seed",
+  );
+  await accepted(0, promptFor(fixture.nodes));
+  assert.equal(fixture.nodes[0].widgets[1].value, 101);
+  assert.equal(fixture.runtime.shouldApplyExecutedSeed(fixture.nodes[0], 101), true);
+}
+
+{
+  const nodes = [advancedNode(10, ADVANCED, 7), advancedNode(11, ADVANCED_V2, 30)];
+  const fixture = createFixture({ nodes });
+  const prompt = promptFor(nodes, { consumers: [{ id: 20, source: 10 }] });
+  let received = null;
+  const wrapped = fixture.runtime.wrapQueuePrompt((_number, nextPrompt) => {
+    received = nextPrompt;
+    return { prompt_id: "connected-only", node_errors: {} };
+  });
+  await wrapped(0, prompt);
+  assert.equal(nodes[0].widgets[1].value, 8);
+  assert.equal(nodes[1].widgets[1].value, 30, "disconnected Advanced nodes must not reserve seeds");
+  assert.equal(reservedNextSeed(received, 10), 8);
+  assert.equal(reservedSeedState(received, 11), undefined);
+}
+
+{
+  const nodes = [advancedNode(10, ADVANCED, 7)];
+  const fixture = createFixture({
+    nodes,
+    outputNodes: [
+      { id: 20, outputNode: true },
+      { id: 21, outputNode: true },
+    ],
+  });
+  const prompt = promptFor(nodes, {
+    consumers: [
+      { id: 20, source: 10 },
+      { id: 21, source: 10 },
+    ],
+  });
+  const wrapped = fixture.runtime.wrapQueuePrompt(() => ({
+    prompt_id: "one-valid-output",
+    node_errors: {
+      99: { errors: ["bad input"], dependent_outputs: ["20"] },
+    },
+  }));
+  await wrapped(0, prompt);
+  assert.equal(nodes[0].widgets[1].value, 8, "a shared upstream seed commits when one output executes");
+}
+
+{
   const nodes = [advancedNode(10, ADVANCED, 7), advancedNode(11, ADVANCED_V2, 30)];
   const fixture = createFixture({ nodes });
   const prompt = promptFor(nodes, {
@@ -348,6 +538,69 @@ function workflowSeed(prompt, nodeId) {
 
 {
   const fixture = createFixture();
+  const prompt = promptFor(fixture.nodes);
+  for (const options of [
+    { partialExecutionTargets: [] },
+    { partialExecutionTargets: "20" },
+    { partialExecutionTargets: [999] },
+  ]) {
+    let received = null;
+    const wrapped = fixture.runtime.wrapQueuePrompt((_number, nextPrompt) => {
+      received = nextPrompt;
+      return { prompt_id: "empty-partial", node_errors: {} };
+    });
+    await wrapped(0, prompt, options);
+    assert.equal(received, prompt, "empty or invalid partial execution must pass through");
+  }
+  assert.equal(fixture.nodes[0].widgets[1].value, 7);
+  assert.equal(fixture.cloneCalls(), 0);
+}
+
+{
+  const fixture = createFixture();
+  const wrapped = fixture.runtime.wrapQueuePrompt(() => ({
+    prompt_id: "old-workflow", node_errors: {},
+  }));
+  await wrapped(0, promptFor(fixture.nodes));
+  const oldNode = fixture.nodes[0];
+  const replacement = advancedNode(10, ADVANCED, 100);
+  fixture.nodes.splice(0, 1, replacement);
+  assert.equal(
+    fixture.runtime.shouldApplyExecutedSeed(replacement, 8),
+    false,
+    "a late executed event must not overwrite a reloaded node with the same id",
+  );
+  await wrapped(0, promptFor([replacement]));
+  assert.equal(replacement.widgets[1].value, 101);
+  assert.equal(fixture.runtime.shouldApplyExecutedSeed(replacement, 101), true);
+  assert.equal(fixture.runtime.shouldApplyExecutedSeed(oldNode, 101), false);
+}
+
+{
+  const fixture = createFixture();
+  const wrapped = fixture.runtime.wrapQueuePrompt(() => ({
+    prompt_id: "old-safe-workflow", node_errors: {},
+  }));
+  await wrapped(0, promptFor(fixture.nodes));
+  const replacement = advancedNode(10, ADVANCED, Number.MAX_SAFE_INTEGER + 1);
+  fixture.nodes.splice(0, 1, replacement);
+  const prompt = promptFor([replacement]);
+  let received = null;
+  const passThrough = fixture.runtime.wrapQueuePrompt((_number, nextPrompt) => {
+    received = nextPrompt;
+    return { prompt_id: "replacement-unsafe", node_errors: {} };
+  });
+  await passThrough(0, prompt);
+  assert.equal(received, prompt);
+  assert.equal(
+    fixture.runtime.shouldApplyExecutedSeed(replacement, 0),
+    true,
+    "a replacement's backend pass-through update may return to the safe range",
+  );
+}
+
+{
+  const fixture = createFixture();
   const host = {
     calls: 0,
     queuePrompt() {
@@ -359,6 +612,12 @@ function workflowSeed(prompt, nodeId) {
   const installed = host.queuePrompt;
   assert.equal(queueModule.installAdvancedQueueSeedQueueHook(host, fixture.runtime), false);
   assert.equal(host.queuePrompt, installed, "repeated setup must not stack wrappers");
+  host.queuePrompt = async function (...args) {
+    return installed.apply(this, args);
+  };
+  const foreignWrapper = host.queuePrompt;
+  assert.equal(queueModule.installAdvancedQueueSeedQueueHook(host, fixture.runtime), false);
+  assert.equal(host.queuePrompt, foreignWrapper, "the host marker survives foreign wrapper composition");
   const result = await host.queuePrompt(0, promptFor(fixture.nodes));
   assert.equal(result.prompt_id, "installed");
   assert.equal(host.calls, 1);

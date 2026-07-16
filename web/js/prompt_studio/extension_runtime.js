@@ -173,11 +173,12 @@ function createPromptStudioExtensionRuntime(app, api = null) {
     seedWidgetIndex: ADVANCED_WIDGET_INDEX.wildcard_seed,
     listNodes: () => app.graph?._nodes || [],
     isAdvancedNode,
+    isOutputNode: (node) => node?.constructor?.nodeData?.output_node === true,
     getSeed: (node) => findWidget(node, "wildcard_seed")?.value,
     updateSeed(node, seed) {
       const widget = findWidget(node, "wildcard_seed");
       if (!widget) {
-        return;
+        throw new Error("Prompt Studio wildcard_seed widget is unavailable.");
       }
       widget.value = seed;
       renderAdvancedEditor(node);

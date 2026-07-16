@@ -18,6 +18,7 @@ const WILDCARD_MODE_ALIASES = new Map([
 const SEED_CONTROLS = new Set(["fixed", "randomize", "increment", "decrement"]);
 const QUEUE_HOOK_MARKER = "__easyuseAnimaAdvancedQueueSeedWrapped";
 const QUEUE_HOST_MARKER = "__easyuseAnimaAdvancedQueueSeedInstalled";
+const RESERVED_NEXT_SEED_INPUT = "easyuse_anima_reserved_wildcard_next_seed";
 
 function isRecord(value) {
   return !!value && typeof value === "object" && !Array.isArray(value);
@@ -33,7 +34,11 @@ function normalizeSeed(value) {
 
 function optionalSeed(value) {
   const numberValue = Number(value);
-  return Number.isFinite(numberValue) ? normalizeSeed(numberValue) : null;
+  return Number.isSafeInteger(numberValue)
+    && numberValue >= 0
+    && numberValue <= MAX_SAFE_SEED
+    ? numberValue
+    : null;
 }
 
 function normalizeMode(value) {
@@ -131,12 +136,19 @@ function isUpstreamOf(output, sourceId, targetId, memo = new Map()) {
 function partialExecutionTargets(options, output) {
   let rawTargets;
   try {
-    rawTargets = options?.partialExecutionTargets;
+    if (
+      !isRecord(options)
+      || !Object.prototype.hasOwnProperty.call(options, "partialExecutionTargets")
+      || options.partialExecutionTargets == null
+    ) {
+      return null;
+    }
+    rawTargets = options.partialExecutionTargets;
   } catch {
-    return null;
+    return [];
   }
-  if (!Array.isArray(rawTargets) || !rawTargets.length) {
-    return null;
+  if (!Array.isArray(rawTargets)) {
+    return [];
   }
   return rawTargets
     .map((target) => String(target))
@@ -146,7 +158,7 @@ function partialExecutionTargets(options, output) {
 function queueResultPromptId(result) {
   try {
     const promptId = result?.prompt_id;
-    return promptId == null || promptId === "" ? null : promptId;
+    return promptId == null || String(promptId).trim() === "" ? null : promptId;
   } catch {
     return null;
   }
@@ -183,21 +195,17 @@ function reservationWasAccepted(result, reservation, prompt) {
     return false;
   }
   const memo = new Map();
-  for (const [errorNodeId, detail] of entries) {
-    if (isUpstreamOf(output, reservation.nodeId, errorNodeId, memo)) {
-      return false;
+  return reservation.targetIds.some((targetId) => !entries.some(([errorNodeId, detail]) => {
+    if (
+      String(errorNodeId) === String(targetId)
+      || isUpstreamOf(output, errorNodeId, targetId, memo)
+    ) {
+      return true;
     }
     const dependentOutputs = isRecord(detail) ? detail.dependent_outputs : null;
-    if (!Array.isArray(dependentOutputs)) {
-      continue;
-    }
-    if (dependentOutputs.some(
-      (targetId) => isUpstreamOf(output, reservation.nodeId, targetId, memo),
-    )) {
-      return false;
-    }
-  }
-  return true;
+    return Array.isArray(dependentOutputs)
+      && dependentOutputs.some((value) => String(value) === String(targetId));
+  }));
 }
 
 /**
@@ -205,6 +213,7 @@ function reservationWasAccepted(result, reservation, prompt) {
  * @property {number} seedWidgetIndex
  * @property {() => any[]} listNodes
  * @property {(node: any) => boolean} isAdvancedNode
+ * @property {(node: any) => boolean} isOutputNode
  * @property {(node: any) => any} getSeed
  * @property {(node: any, seed: number) => void} updateSeed
  * @property {(value: any) => any} clonePrompt
@@ -222,30 +231,44 @@ function createAdvancedQueueSeedRuntime(dependencies) {
     seedWidgetIndex,
     listNodes,
     isAdvancedNode,
+    isOutputNode,
     getSeed,
     updateSeed,
     clonePrompt,
     randomSeed,
   } = dependencies;
-  const nodeStates = new WeakMap();
+  const nodeStates = new Map();
   let reservationId = 0;
 
   function stateForNode(node, inputSeed) {
-    let state = nodeStates.get(node);
-    if (!state) {
+    const nodeId = String(node.id);
+    let state = nodeStates.get(nodeId);
+    if (!state || state.node !== node) {
       state = {
+        node,
         committedSeed: normalizeSeed(inputSeed),
         authoritative: false,
+        blockUnknownExecuted: !!state,
+        publishFailed: false,
         reservations: [],
       };
-      nodeStates.set(node, state);
+      nodeStates.set(nodeId, state);
       return state;
     }
     if (!state.reservations.length) {
+      if (state.publishFailed) {
+        try {
+          updateSeed(node, state.committedSeed);
+          state.publishFailed = false;
+        } catch {
+          return state;
+        }
+      }
       const liveSeed = optionalSeed(getSeed(node));
       if (liveSeed != null && liveSeed !== state.committedSeed) {
         state.committedSeed = liveSeed;
         state.authoritative = false;
+        state.blockUnknownExecuted = true;
       }
     }
     return state;
@@ -269,8 +292,9 @@ function createAdvancedQueueSeedRuntime(dependencies) {
     if (committed) {
       try {
         updateSeed(node, state.committedSeed);
+        state.publishFailed = false;
       } catch {
-        // A local widget refresh cannot change an already accepted API result.
+        state.publishFailed = true;
       }
     }
   }
@@ -306,26 +330,55 @@ function createAdvancedQueueSeedRuntime(dependencies) {
     if (!Array.isArray(nodes)) {
       return [];
     }
-    const targets = partialExecutionTargets(options, output);
+    let targets = partialExecutionTargets(options, output);
+    if (targets == null) {
+      targets = nodes.flatMap((node) => {
+        try {
+          const nodeId = String(node?.id);
+          return node && isOutputNode(node) && isRecord(output[nodeId]) ? [nodeId] : [];
+        } catch {
+          return [];
+        }
+      });
+    }
+    if (!targets.length) {
+      return [];
+    }
     const memo = new Map();
-    return nodes.filter((node) => {
+    return nodes.flatMap((node) => {
       try {
-        if (!node || !isAdvancedNode(node) || !isRecord(output[String(node.id)]?.inputs)) {
-          return false;
+        const inputs = output[String(node?.id)]?.inputs;
+        if (
+          !node
+          || !isAdvancedNode(node)
+          || !isRecord(inputs)
+        ) {
+          return [];
         }
-        if (!targets) {
-          return true;
+        if (optionalSeed(inputs.wildcard_seed) == null) {
+          const nodeId = String(node.id);
+          const state = nodeStates.get(nodeId);
+          if (!state?.reservations.length) {
+            // Unsafe 64-bit values stay entirely on the pre-existing backend
+            // path. Drop idle managed state so its executed UI update is not
+            // filtered by a previous safe reservation or node owner.
+            nodeStates.delete(nodeId);
+          }
+          return [];
         }
-        return targets.some((targetId) => isUpstreamOf(output, node.id, targetId, memo));
+        const targetIds = targets.filter(
+          (targetId) => isUpstreamOf(output, node.id, targetId, memo),
+        );
+        return targetIds.length ? [{ node, targetIds }] : [];
       } catch {
-        return false;
+        return [];
       }
     });
   }
 
   function preparePrompt(prompt, options = null) {
-    const nodes = candidateNodes(prompt, options);
-    if (!nodes.length) {
+    const candidates = candidateNodes(prompt, options);
+    if (!candidates.length) {
       return null;
     }
     let queuedPrompt;
@@ -339,7 +392,7 @@ function createAdvancedQueueSeedRuntime(dependencies) {
     }
 
     const reservations = [];
-    for (const node of nodes) {
+    for (const { node, targetIds } of candidates) {
       try {
         const inputs = queuedPrompt.output[String(node.id)]?.inputs;
         const workflow = workflowNode(queuedPrompt.workflow, node.id);
@@ -350,12 +403,21 @@ function createAdvancedQueueSeedRuntime(dependencies) {
         if (!ACTIVE_WILDCARD_MODES.has(mode)) {
           continue;
         }
-        const state = stateForNode(node, inputs.wildcard_seed);
+        const inputSeed = optionalSeed(inputs.wildcard_seed);
+        if (inputSeed == null) {
+          // JavaScript cannot reserve 64-bit backend seeds without losing
+          // precision. Preserve the original queue payload for those values.
+          continue;
+        }
+        const state = stateForNode(node, inputSeed);
         const queuedSeed = reservedCurrentSeed(state);
+        const effectiveControl = mode === "sequential"
+          ? "increment"
+          : normalizeControl(inputs.wildcard_seed_after_generate);
         const reservedNextSeed = nextSeed(
           queuedSeed,
           mode,
-          inputs.wildcard_seed_after_generate,
+          effectiveControl,
           randomSeed,
         );
         const workflowValues = [...workflow.widgets_values];
@@ -364,12 +426,20 @@ function createAdvancedQueueSeedRuntime(dependencies) {
         }
         workflowValues[seedWidgetIndex] = queuedSeed;
         workflow.widgets_values = workflowValues;
+        inputs[RESERVED_NEXT_SEED_INPUT] = JSON.stringify({
+          version: 1,
+          current_seed: queuedSeed,
+          next_seed: reservedNextSeed,
+          mode,
+          control: effectiveControl,
+        });
         inputs.wildcard_seed = queuedSeed;
         const reservation = {
           id: ++reservationId,
           node,
           nodeId: String(node.id),
           state,
+          targetIds,
           queuedSeed,
           nextSeed: reservedNextSeed,
           status: "pending",
@@ -426,14 +496,28 @@ function createAdvancedQueueSeedRuntime(dependencies) {
   }
 
   function shouldApplyExecutedSeed(node, value) {
-    const state = nodeStates.get(node);
-    if (!state?.authoritative) {
+    const state = nodeStates.get(String(node?.id));
+    if (!state) {
+      return true;
+    }
+    if (state.node !== node) {
+      return false;
+    }
+    if (state.blockUnknownExecuted && !state.authoritative) {
+      return false;
+    }
+    if (!state.authoritative) {
+      return true;
+    }
+    const executedSeed = normalizeSeed(value);
+    if (state.publishFailed && executedSeed === state.committedSeed) {
+      state.publishFailed = false;
       return true;
     }
     const liveSeed = optionalSeed(getSeed(node));
     return liveSeed != null
       && liveSeed === state.committedSeed
-      && normalizeSeed(value) === state.committedSeed;
+      && executedSeed === state.committedSeed;
   }
 
   return {
