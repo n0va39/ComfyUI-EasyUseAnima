@@ -219,10 +219,14 @@ export function aioCreateSamplerSettingsDialog(dependencies) {
     section.className = "easyuse-anima-aio-subsection";
     section.append(Object.assign(document.createElement("h4"), { textContent: aioStaticText(title) }));
     const controls = new Map();
+    const currentValues = new Map(
+      values && typeof values === "object" && !Array.isArray(values)
+        ? Object.entries(values)
+        : [],
+    );
     const render = () => {
-      const currentValues = { ...(values || {}) };
       for (const [name, control] of controls.entries()) {
-        currentValues[name] = valueFromNodeInputControl(control);
+        currentValues.set(name, valueFromNodeInputControl(control));
       }
       controls.clear();
       section.replaceChildren(Object.assign(document.createElement("h4"), { textContent: aioStaticText(title) }));
@@ -239,7 +243,7 @@ export function aioCreateSamplerSettingsDialog(dependencies) {
       section.classList.remove("hidden");
       for (const name of dynamicNames) {
         const spec = inputMap[name];
-        const control = nodeInputControlForSpec(spec, currentValues[name]);
+        const control = nodeInputControlForSpec(spec, currentValues.get(name));
         if (!control) {
           continue;
         }
@@ -256,11 +260,11 @@ export function aioCreateSamplerSettingsDialog(dependencies) {
     return {
       section,
       values() {
-        const output = {};
+        const output = new Map(currentValues);
         for (const [name, control] of controls.entries()) {
-          output[name] = valueFromNodeInputControl(control);
+          output.set(name, valueFromNodeInputControl(control));
         }
-        return output;
+        return Object.fromEntries(output);
       },
     };
   }
