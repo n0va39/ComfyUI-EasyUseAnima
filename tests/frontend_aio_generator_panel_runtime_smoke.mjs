@@ -409,6 +409,7 @@ assert.deepEqual(Object.keys(fixture.runtime).sort(), [
   "renderPanel",
   "scheduleLayout",
   "scheduleSummary",
+  "updateSeed",
   "updateSummary",
 ]);
 assert.equal(fixture.dependencyCalls(), 0, "factory creation must have no side effects");
@@ -813,6 +814,28 @@ assert.equal(previewFeed.hidden, true);
 assert.equal(previewFeed.children.length, 0);
 assert.equal(previewMeta.textContent, "-");
 assert.equal(previewMeta.title, "");
+
+fixture.trace.length = 0;
+assert.equal(
+  fixture.runtime.updateSeed(node, 776, {
+    lastQueuedSeed: 777,
+    markDirty: false,
+  }),
+  776,
+);
+assert.equal(node.__easyuseAnimaLastQueuedSeed, 777);
+assert.equal(node.widgetValues.seed, 776);
+assert.equal(node.settings.sampler.seed, 776);
+assert.equal(panel.querySelector("[data-aio-seed-input]").value, 776);
+assert.equal(
+  fixture.trace.includes("dirty"),
+  false,
+  "accepted queue seed updates must not mark the workflow dirty",
+);
+assert.equal(
+  panel.querySelector("[data-aio-seed-last]").textContent,
+  'format:button.useLast:{"seed":777}',
+);
 
 node.__easyuseAnimaLastQueuedSeed = 777;
 fixture.runtime.refreshSeedButtons(node);

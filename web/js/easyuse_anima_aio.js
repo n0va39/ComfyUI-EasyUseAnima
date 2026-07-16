@@ -19,6 +19,7 @@ import { aioCreatePreviewSettingsDialog } from "./aio/preview_settings_dialog.js
 import { createAioProfileApiClient } from "./aio/profile_api_client.js";
 import { aioCreateProfileSettingsRuntime } from "./aio/profile_settings_runtime.js";
 import { aioCreateGeneratorPanelRuntime } from "./aio/generator_panel_runtime.js";
+import { aioCreateGeneratorQueueRuntime } from "./aio/generator_queue_runtime.js";
 import { aioCreateStageSettingsDialogs } from "./aio/stage_settings_dialogs.js";
 import { aioCreateDetailerSettingsDialog } from "./aio/detailer_settings_dialog.js";
 import { aioCreateSamplerSettingsDialog } from "./aio/sampler_settings_dialog.js";
@@ -3387,20 +3388,6 @@ function setWidgetValueIfChanged(node, name, value) {
   setWidgetValue(node, name, value);
 }
 
-function setWorkflowWidgetValue(node, workflowNode, name, value) {
-  if (!workflowNode || !Array.isArray(workflowNode.widgets_values) || !Array.isArray(node?.widgets)) {
-    return;
-  }
-  const index = node.widgets.findIndex((widget) => widget?.name === name);
-  if (index < 0) {
-    return;
-  }
-  while (workflowNode.widgets_values.length <= index) {
-    workflowNode.widgets_values.push(null);
-  }
-  workflowNode.widgets_values[index] = value;
-}
-
 function syncGeneratorSerializedWidgets(node, serialized = null) {
   const widget = findWidget(node, GENERATOR_SETTINGS_WIDGET);
   const settings = generatorSettings(node);
@@ -3557,74 +3544,12 @@ function generatorGraphNodes() {
   return Object.values(app.graph?._nodes_by_id || {}).filter(isGeneratorGraphNode);
 }
 
-function findWorkflowNode(workflow, id) {
-  const nodes = workflow?.nodes;
-  if (!Array.isArray(nodes)) {
-    return null;
-  }
-  return nodes.find((workflowNode) => String(workflowNode?.id) === String(id)) || null;
-}
-
-function resolveGeneratorSeedForQueue(node, inputSeed) {
-  const seed = normalizeSeedValue(inputSeed, GENERATOR_SPECIAL_SEED_RANDOM);
-  if (!isSpecialSeed(seed)) {
-    return seed;
-  }
-  const lastSeed = Number(node.__easyuseAnimaLastQueuedSeed);
-  if (Number.isFinite(lastSeed) && !isSpecialSeed(lastSeed)) {
-    if (seed === GENERATOR_SPECIAL_SEED_INCREMENT) {
-      return Math.min(GENERATOR_MAX_SEED, lastSeed + 1);
-    }
-    if (seed === GENERATOR_SPECIAL_SEED_DECREMENT) {
-      return Math.max(0, lastSeed - 1);
-    }
-  }
-  return randomSeed();
-}
-
-function prepareGeneratorPromptForQueue(prompt) {
-  const output = prompt?.output;
-  if (!output || typeof output !== "object") {
-    return;
-  }
-  for (const node of generatorGraphNodes()) {
-    if (node.mode === 4 || node.mode === globalThis.LiteGraph?.NEVER) {
-      continue;
-    }
-    const outputNode = output[String(node.id)];
-    const outputInputs = outputNode?.inputs;
-    if (!outputInputs) {
-      continue;
-    }
-    syncGeneratorStateFromDom(node);
-    const settings = sanitizeGeneratorSettingsForOptionalDependencies(generatorSettings(node));
-    const inputSeed = normalizeSeedValue(settings.sampler.seed, GENERATOR_SPECIAL_SEED_RANDOM);
-    const seedToUse = resolveGeneratorSeedForQueue(node, inputSeed);
-    settings.sampler.seed = seedToUse;
-    outputInputs.generation_settings = settingsToCompactJson(settings);
-
-    const workflowNode = findWorkflowNode(prompt.workflow, node.id);
-    setWorkflowWidgetValue(node, workflowNode, GENERATOR_SETTINGS_WIDGET, outputInputs.generation_settings);
-    const settingsWidget = findWidget(node, GENERATOR_SETTINGS_WIDGET);
-    if (settingsWidget) {
-      writeSettings(node, settingsWidget, settings, false);
-    }
-
-    node.__easyuseAnimaLastQueuedSeed = seedToUse;
-    refreshGeneratorSeedButtons(node);
-  }
-}
-
 function installGeneratorQueuePromptHook() {
   if (!api?.queuePrompt || api.queuePrompt.__easyuseAnimaAioWrapped) {
     return;
   }
   const queuePrompt = api.queuePrompt;
-  api.queuePrompt = async function (number, prompt, ...args) {
-    await loadGeneratorOptionalDependencies({ retryErrors: true });
-    prepareGeneratorPromptForQueue(prompt);
-    return queuePrompt.call(this, number, prompt, ...args);
-  };
+  api.queuePrompt = generatorQueueRuntime.wrapQueuePrompt(queuePrompt);
   api.queuePrompt.__easyuseAnimaAioWrapped = true;
 }
 
@@ -4080,6 +4005,38 @@ const generatorPanelRuntime = aioCreateGeneratorPanelRuntime({
     openPostprocessSettings,
     openPreviewSettings,
   },
+});
+
+const generatorQueueRuntime = aioCreateGeneratorQueueRuntime({
+  constants: {
+    settingsWidgetName: GENERATOR_SETTINGS_WIDGET,
+    minSeed: 0,
+    maxSeed: GENERATOR_MAX_SEED,
+    specialSeedRandom: GENERATOR_SPECIAL_SEED_RANDOM,
+    specialSeedIncrement: GENERATOR_SPECIAL_SEED_INCREMENT,
+    specialSeedDecrement: GENERATOR_SPECIAL_SEED_DECREMENT,
+  },
+  settingsCore: {
+    normalizeSeedValue,
+    normalizeSeedControl,
+    cloneJson: clone,
+    settingsToCompactJson,
+  },
+  nodeAdapter: {
+    listNodes: generatorGraphNodes,
+    isBypassed: (node) => node.mode === 4 || node.mode === globalThis.LiteGraph?.NEVER,
+    getSettings(node) {
+      syncGeneratorStateFromDom(node);
+      return generatorSettings(node);
+    },
+    sanitizeSettings: sanitizeGeneratorSettingsForOptionalDependencies,
+    getLastQueuedSeed: (node) => node.__easyuseAnimaLastQueuedSeed,
+    updateSeed: (node, seed, options) => generatorPanelRuntime.updateSeed(node, seed, options),
+  },
+  queueAdapter: {
+    loadOptionalDependencies: loadGeneratorOptionalDependencies,
+  },
+  randomSeed,
 });
 
 function hookInputNode(node) {

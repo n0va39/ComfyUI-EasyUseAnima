@@ -1017,8 +1017,11 @@ export function aioCreateGeneratorPanelRuntime(dependencies) {
     return select;
   }
 
-  function setGeneratorSeedFromUi(node, value) {
+  function updateGeneratorSeed(node, value, options = {}) {
     const seed = normalizeSeedValue(value, GENERATOR_SPECIAL_SEED_RANDOM);
+    if (Object.prototype.hasOwnProperty.call(options, "lastQueuedSeed")) {
+      node.__easyuseAnimaLastQueuedSeed = options.lastQueuedSeed;
+    }
     const panel = node?.__easyuseAnimaGeneratorPanelEl;
     const seedInput = panel?.querySelector?.("[data-aio-seed-input]");
     if (seedInput) {
@@ -1028,7 +1031,14 @@ export function aioCreateGeneratorPanelRuntime(dependencies) {
     syncGeneratorSettingsFromVisible(node);
     updateGeneratorDomSummary(node);
     refreshGeneratorSeedButtons(node);
-    markNodeDirty(node);
+    if (options.markDirty !== false) {
+      markNodeDirty(node);
+    }
+    return seed;
+  }
+
+  function setGeneratorSeedFromUi(node, value) {
+    return updateGeneratorSeed(node, value);
   }
 
   function refreshGeneratorSeedButtons(node) {
@@ -1729,5 +1739,6 @@ export function aioCreateGeneratorPanelRuntime(dependencies) {
     updateSummary: updateGeneratorDomSummary,
     scheduleLayout: scheduleGeneratorLayout,
     refreshSeedButtons: refreshGeneratorSeedButtons,
+    updateSeed: updateGeneratorSeed,
   };
 }
