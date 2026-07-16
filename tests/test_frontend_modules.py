@@ -54,6 +54,10 @@ AIO_GENERATOR_QUEUE_RUNTIME_JS = AIO_MODULES / "generator_queue_runtime.js"
 AIO_GENERATOR_QUEUE_RUNTIME_SMOKE = (
     ROOT / "tests" / "frontend_aio_generator_queue_runtime_smoke.mjs"
 )
+AIO_EXTENSION_RUNTIME_JS = AIO_MODULES / "extension_runtime.js"
+AIO_EXTENSION_RUNTIME_SMOKE = (
+    ROOT / "tests" / "frontend_aio_extension_runtime_smoke.mjs"
+)
 AIO_NATIVE_PREVIEW_RUNTIME_JS = AIO_MODULES / "native_preview_runtime.js"
 AIO_NATIVE_PREVIEW_RUNTIME_SMOKE = (
     ROOT / "tests" / "frontend_aio_native_preview_runtime_smoke.mjs"
@@ -209,6 +213,7 @@ class FrontendModuleStructureTests(unittest.TestCase):
     def test_aio_profile_settings_runtime_has_closed_controller_boundary(self):
         source = AIO_PROFILE_SETTINGS_RUNTIME_JS.read_text(encoding="utf-8")
         entry_source = AIO_JS.read_text(encoding="utf-8")
+        extension_source = AIO_EXTENSION_RUNTIME_JS.read_text(encoding="utf-8")
         frontend_check_source = FRONTEND_CHECK_SCRIPT.read_text(encoding="utf-8")
 
         self.assertEqual(source.splitlines()[0], "// @ts-check")
@@ -329,16 +334,103 @@ class FrontendModuleStructureTests(unittest.TestCase):
                     rf"\bfunction\s+{local_function}\(",
                 )
 
-        setup_start = entry_source.index("  async setup() {")
-        setup_end = entry_source.index("\n  async beforeRegisterNodeDef", setup_start)
-        setup_body = entry_source[setup_start:setup_end]
-        self.assertEqual(setup_body.count("loadGeneratorUserProfiles()"), 1)
-        self.assertIn(".then(refreshGeneratorPanels)", setup_body)
+        setup_start = extension_source.index("    async setup() {")
+        setup_end = extension_source.index(
+            "\n    async beforeRegisterNodeDef", setup_start
+        )
+        setup_body = extension_source[setup_start:setup_end]
+        self.assertEqual(setup_body.count("loadSamplerOptions()"), 1)
+        self.assertEqual(setup_body.count("loadUserProfiles()"), 1)
+        self.assertEqual(setup_body.count(".then(refreshPanels)"), 2)
+        self.assertIn("loadSamplerOptions: loadGeneratorSamplerOptions,", entry_source)
+        self.assertIn("loadUserProfiles: loadGeneratorUserProfiles,", entry_source)
+        self.assertIn("refreshPanels: refreshGeneratorPanels,", entry_source)
         self.assertNotIn("__easyuseAnimaGeneratorProfileValue", source[source.index("return {"):])
 
         self.assertTrue(AIO_PROFILE_SETTINGS_RUNTIME_SMOKE.is_file())
         self.assertIn(
             r'node "tests\frontend_aio_profile_settings_runtime_smoke.mjs"',
+            frontend_check_source,
+        )
+
+    def test_aio_extension_runtime_owns_registration_lifecycle(self):
+        source = AIO_EXTENSION_RUNTIME_JS.read_text(encoding="utf-8")
+        entry_source = AIO_JS.read_text(encoding="utf-8")
+        frontend_check_source = FRONTEND_CHECK_SCRIPT.read_text(encoding="utf-8")
+
+        self.assertEqual(source.splitlines()[0], "// @ts-check")
+        self.assertEqual(STATIC_IMPORT_RE.findall(source), [])
+        self.assertNotIn("app.registerExtension", source)
+        self.assertEqual(
+            re.findall(
+                r"^export function ([A-Za-z0-9_]+)\(", source, re.MULTILINE
+            ),
+            ["aioCreateExtensionRuntime"],
+        )
+        self.assertIn(
+            'import { aioCreateExtensionRuntime } from "./aio/extension_runtime.js";',
+            entry_source,
+        )
+        factory_match = re.search(
+            r"const\s+aioExtensionRuntime\s*=\s*"
+            r"aioCreateExtensionRuntime\(\{(?P<dependencies>.*?)\n\}\);",
+            entry_source,
+            re.DOTALL,
+        )
+        self.assertIsNotNone(factory_match)
+        dependencies = factory_match.group("dependencies")
+        for expected_wiring in (
+            "api,",
+            "inputNodeType: INPUT_NODE_TYPE,",
+            "generatorNodeType: GENERATOR_NODE_TYPE,",
+            "generatorPreviewEvent: GENERATOR_PREVIEW_EVENT,",
+            "installWheelForwarder: installGeneratorWheelForwarder,",
+            "installQueuePromptHook: installGeneratorQueuePromptHook,",
+            "watchLocale: easyuseAnimaWatchLocale,",
+            "refreshPanels: refreshGeneratorPanels,",
+            "handlePreviewEvent: handleGeneratorPreviewEvent,",
+            "handleProgressEvent: handleGeneratorProgressEvent,",
+            "handleProgressStateEvent: handleGeneratorProgressStateEvent,",
+            "handleDenoisePreviewEvent: handleGeneratorDenoisePreviewEvent,",
+            "handleExecutingEvent: handleGeneratorExecutingEvent,",
+            "clearDenoisePreviews: clearGeneratorDenoisePreviews,",
+            "loadSamplerOptions: loadGeneratorSamplerOptions,",
+            "loadUserProfiles: loadGeneratorUserProfiles,",
+            "suppressDefaultPreview: suppressGeneratorDefaultPreview,",
+            "hookInputNode,",
+            "hookGeneratorNode,",
+            "syncSerializedWidgets: syncGeneratorSerializedWidgets,",
+            "scheduleDefaultPreviewSuppression: scheduleGeneratorDefaultPreviewSuppression,",
+            "updateExecutedStatus: updateGeneratorExecutedStatus,",
+            "scheduleLayout: scheduleGeneratorLayout,",
+            "disposePanel: disposeGeneratorPanel,",
+            "disposeNativePreviewLifecycle: disposeGeneratorNativePreviewLifecycle,",
+        ):
+            with self.subTest(factory_wiring=expected_wiring):
+                self.assertIn(expected_wiring, dependencies)
+
+        for entry_forbidden_lifecycle in (
+            "async setup()",
+            "beforeRegisterNodeDef",
+            "api.addEventListener",
+            "nodeType.prototype",
+        ):
+            with self.subTest(entry_forbidden_lifecycle=entry_forbidden_lifecycle):
+                self.assertNotIn(entry_forbidden_lifecycle, entry_source)
+        self.assertEqual(entry_source.count("app.registerExtension("), 1)
+        self.assertRegex(
+            entry_source,
+            re.compile(
+                r'app\.registerExtension\(\{\s*'
+                r'name:\s*"easyuse-anima\.aio",\s*'
+                r'\.\.\.aioExtensionRuntime,\s*'
+                r'\}\);\s*$',
+                re.DOTALL,
+            ),
+        )
+        self.assertTrue(AIO_EXTENSION_RUNTIME_SMOKE.is_file())
+        self.assertIn(
+            r'node "tests\frontend_aio_extension_runtime_smoke.mjs"',
             frontend_check_source,
         )
 
@@ -688,6 +780,7 @@ class FrontendModuleStructureTests(unittest.TestCase):
     def test_aio_native_preview_runtime_owns_dom_store_scheduler_and_event_lifecycle(self):
         source = AIO_NATIVE_PREVIEW_RUNTIME_JS.read_text(encoding="utf-8")
         entry_source = AIO_JS.read_text(encoding="utf-8")
+        extension_source = AIO_EXTENSION_RUNTIME_JS.read_text(encoding="utf-8")
         panel_source = AIO_GENERATOR_PANEL_RUNTIME_JS.read_text(encoding="utf-8")
         preview_source = AIO_PREVIEW_JS.read_text(encoding="utf-8")
         frontend_check_source = FRONTEND_CHECK_SCRIPT.read_text(encoding="utf-8")
@@ -980,18 +1073,19 @@ class FrontendModuleStructureTests(unittest.TestCase):
 
         self.assertIn("app.registerExtension({", entry_source)
         for listener_registration in (
-            "api.addEventListener(GENERATOR_PREVIEW_EVENT, handleGeneratorPreviewEvent);",
-            'api.addEventListener("progress", handleGeneratorProgressEvent);',
-            'api.addEventListener("progress_state", handleGeneratorProgressStateEvent);',
+            "api.addEventListener(GENERATOR_PREVIEW_EVENT, handlePreviewEvent);",
+            'api.addEventListener("progress", handleProgressEvent);',
+            'api.addEventListener("progress_state", handleProgressStateEvent);',
             'api.addEventListener("b_preview_with_metadata", '
-            "handleGeneratorDenoisePreviewEvent, true);",
-            'api.addEventListener("executing", handleGeneratorExecutingEvent);',
-            'api.addEventListener("execution_error", clearGeneratorDenoisePreviews);',
-            'api.addEventListener("execution_interrupted", clearGeneratorDenoisePreviews);',
-            'api.addEventListener("execution_success", clearGeneratorDenoisePreviews);',
+            "handleDenoisePreviewEvent, true);",
+            'api.addEventListener("executing", handleExecutingEvent);',
+            'api.addEventListener("execution_error", clearDenoisePreviews);',
+            'api.addEventListener("execution_interrupted", clearDenoisePreviews);',
+            'api.addEventListener("execution_success", clearDenoisePreviews);',
         ):
-            with self.subTest(entry_owned_listener_registration=listener_registration):
-                self.assertIn(listener_registration, entry_source)
+            with self.subTest(runtime_owned_listener_registration=listener_registration):
+                self.assertIn(listener_registration, extension_source)
+        self.assertNotIn("api.addEventListener", entry_source)
         for prototype_hook in (
             "onNodeCreated",
             "onConfigure",
@@ -1000,8 +1094,11 @@ class FrontendModuleStructureTests(unittest.TestCase):
             "onResize",
             "onRemoved",
         ):
-            with self.subTest(entry_owned_prototype_hook=prototype_hook):
-                self.assertIn(f"nodeType.prototype.{prototype_hook}", entry_source)
+            with self.subTest(runtime_owned_prototype_hook=prototype_hook):
+                self.assertIn(
+                    f"nodeType.prototype.{prototype_hook}", extension_source
+                )
+                self.assertNotIn(f"nodeType.prototype.{prototype_hook}", entry_source)
                 self.assertNotIn(f"nodeType.prototype.{prototype_hook}", source)
 
         self.assertTrue(AIO_NATIVE_PREVIEW_RUNTIME_SMOKE.is_file())

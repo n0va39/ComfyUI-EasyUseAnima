@@ -21,6 +21,9 @@ AIO_GENERATOR_PANEL_RUNTIME_JS = (
 AIO_GENERATOR_QUEUE_RUNTIME_JS = (
     ROOT / "web" / "js" / "aio" / "generator_queue_runtime.js"
 )
+AIO_EXTENSION_RUNTIME_JS = (
+    ROOT / "web" / "js" / "aio" / "extension_runtime.js"
+)
 AIO_NATIVE_PREVIEW_RUNTIME_JS = (
     ROOT / "web" / "js" / "aio" / "native_preview_runtime.js"
 )
@@ -171,6 +174,7 @@ class AIOFrontendSourceTests(unittest.TestCase):
 
     def test_generator_wheel_router_decides_scroll_ownership_before_canvas(self):
         source = AIO_JS.read_text(encoding="utf-8")
+        extension_source = AIO_EXTENSION_RUNTIME_JS.read_text(encoding="utf-8")
         panel_source = AIO_GENERATOR_PANEL_RUNTIME_JS.read_text(encoding="utf-8")
         wheel_source = AIO_WHEEL_JS.read_text(encoding="utf-8")
         forward_start = source.index("function forwardGeneratorPanelWheel")
@@ -179,9 +183,11 @@ class AIOFrontendSourceTests(unittest.TestCase):
         install_start = forward_end + 1
         install_end = source.index("\nfunction generatorSettings", install_start)
         install_body = source[install_start:install_end]
-        setup_start = source.index("  async setup() {")
-        setup_end = source.index("\n  async beforeRegisterNodeDef", setup_start)
-        setup_body = source[setup_start:setup_end]
+        setup_start = extension_source.index("    async setup() {")
+        setup_end = extension_source.index(
+            "\n    async beforeRegisterNodeDef", setup_start
+        )
+        setup_body = extension_source[setup_start:setup_end]
 
         self.assertIn('from "./aio/wheel.js"', source)
         self.assertIn(
@@ -198,23 +204,31 @@ class AIOFrontendSourceTests(unittest.TestCase):
         self.assertIn('window.addEventListener("wheel", forwardGeneratorPanelWheel', install_body)
         self.assertIn("capture: true", install_body)
         self.assertIn("passive: false", install_body)
-        self.assertIn("installGeneratorWheelForwarder();", setup_body)
+        self.assertIn("installWheelForwarder();", setup_body)
+        self.assertIn(
+            "installWheelForwarder: installGeneratorWheelForwarder,", source
+        )
         self.assertIn("owns the wheel even at either boundary", wheel_source)
         self.assertIn("Canvas zoom is allowed only when neither intended scrollbar exists", wheel_source)
 
     def test_generator_keeps_native_output_preview_suppressed_after_execution(self):
         source = AIO_JS.read_text(encoding="utf-8")
+        extension_source = AIO_EXTENSION_RUNTIME_JS.read_text(encoding="utf-8")
         native_preview_source = AIO_NATIVE_PREVIEW_RUNTIME_JS.read_text(
             encoding="utf-8"
         )
         preview_source = AIO_PREVIEW_JS.read_text(encoding="utf-8")
-        registration_start = source.index("async beforeRegisterNodeDef")
-        generator_block = source[source.index("if (nodeData.name === GENERATOR_NODE_TYPE)", registration_start):]
+        registration_start = extension_source.index("async beforeRegisterNodeDef")
+        generator_block = extension_source[
+            extension_source.index(
+                "if (nodeData.name === GENERATOR_NODE_TYPE)", registration_start
+            ):
+        ]
         start = generator_block.index("nodeType.prototype.onExecuted = function")
-        end = generator_block.index("\n      const onResize", start)
+        end = generator_block.index("\n        const onResize", start)
         body = generator_block[start:end]
 
-        self.assertIn("nodeType.prototype.hideOutputImages = true", source)
+        self.assertIn("nodeType.prototype.hideOutputImages = true", extension_source)
         for store_alias in (
             "module?.useNodeOutputStore,",
             "module?.cn,",
@@ -247,28 +261,36 @@ class AIOFrontendSourceTests(unittest.TestCase):
         self.assertIn("aioSuppressDefaultPreview", native_preview_source)
         self.assertIn(".lg-node:has(.easyuse-anima-aio-node-panel) .text-node-component-header-text", source)
         self.assertIn(".lg-node:has(.easyuse-anima-aio-node-panel) .pt-2.text-center.text-xs.text-base-foreground", source)
-        self.assertIn("scheduleGeneratorDefaultPreviewSuppression(this);", body)
-        self.assertIn("updateGeneratorExecutedStatus(this, message);", body)
+        self.assertIn("scheduleDefaultPreviewSuppression(this);", body)
+        self.assertIn("updateExecutedStatus(this, message);", body)
         self.assertIn(
-            "scheduleGeneratorDefaultPreviewSuppression(this, { purgeStore: false });",
+            "scheduleDefaultPreviewSuppression(this, { purgeStore: false });",
             body,
         )
         self.assertEqual(
-            body.count("scheduleGeneratorDefaultPreviewSuppression(this"),
+            body.count("scheduleDefaultPreviewSuppression(this"),
             2,
         )
         self.assertLess(
-            body.index("scheduleGeneratorDefaultPreviewSuppression(this);"),
-            body.index("updateGeneratorExecutedStatus(this, message);"),
+            body.index("scheduleDefaultPreviewSuppression(this);"),
+            body.index("updateExecutedStatus(this, message);"),
         )
         self.assertLess(
-            body.index("updateGeneratorExecutedStatus(this, message);"),
+            body.index("updateExecutedStatus(this, message);"),
             body.index(
-                "scheduleGeneratorDefaultPreviewSuppression(this, "
+                "scheduleDefaultPreviewSuppression(this, "
                 "{ purgeStore: false });"
             ),
         )
         self.assertNotIn("onExecuted?.apply", body)
+        self.assertIn(
+            "scheduleDefaultPreviewSuppression: "
+            "scheduleGeneratorDefaultPreviewSuppression,",
+            source,
+        )
+        self.assertIn(
+            "updateExecutedStatus: updateGeneratorExecutedStatus,", source
+        )
 
         suppression_start = native_preview_source.index(
             "function scheduleGeneratorDefaultPreviewSuppression"
@@ -293,33 +315,38 @@ class AIOFrontendSourceTests(unittest.TestCase):
 
     def test_generator_native_preview_lifecycle_disposes_on_generator_removal(self):
         source = AIO_JS.read_text(encoding="utf-8")
-        registration_start = source.index("async beforeRegisterNodeDef")
-        configure_start = source.index(
+        extension_source = AIO_EXTENSION_RUNTIME_JS.read_text(encoding="utf-8")
+        registration_start = extension_source.index("async beforeRegisterNodeDef")
+        configure_start = extension_source.index(
             "const onConfigure = nodeType.prototype.onConfigure;",
             registration_start,
         )
-        generator_hooks_start = source.index(
-            "    if (nodeData.name === GENERATOR_NODE_TYPE) {",
+        generator_hooks_start = extension_source.index(
+            "      if (nodeData.name === GENERATOR_NODE_TYPE) {",
             configure_start,
         )
-        generator_hooks_end = source.index(
-            "\n    }\n  },\n});",
+        generator_hooks_end = extension_source.index(
+            "\n      }\n    },\n  };",
             generator_hooks_start,
         )
-        generator_hooks = source[generator_hooks_start:generator_hooks_end]
+        generator_hooks = extension_source[
+            generator_hooks_start:generator_hooks_end
+        ]
 
         self.assertNotIn(
             "const onRemoved = nodeType.prototype.onRemoved;",
-            source[registration_start:generator_hooks_start],
+            extension_source[registration_start:generator_hooks_start],
         )
         self.assertEqual(
-            source.count("const onRemoved = nodeType.prototype.onRemoved;"),
+            extension_source.count(
+                "const onRemoved = nodeType.prototype.onRemoved;"
+            ),
             1,
         )
         on_removed_start = generator_hooks.index(
             "const onRemoved = nodeType.prototype.onRemoved;"
         )
-        on_removed_end = generator_hooks.index("\n      };", on_removed_start)
+        on_removed_end = generator_hooks.index("\n        };", on_removed_start)
         on_removed_body = generator_hooks[on_removed_start:on_removed_end]
 
         original_return = on_removed_body.index(
@@ -327,12 +354,12 @@ class AIOFrontendSourceTests(unittest.TestCase):
         )
         outer_finally = on_removed_body.index("finally", original_return)
         panel_cleanup = on_removed_body.index(
-            "disposeGeneratorPanel(this);",
+            "disposePanel(this);",
             outer_finally,
         )
         nested_finally = on_removed_body.index("finally", panel_cleanup)
         native_cleanup = on_removed_body.index(
-            "disposeGeneratorNativePreviewLifecycle(this);",
+            "disposeNativePreviewLifecycle(this);",
             nested_finally,
         )
 
@@ -341,10 +368,16 @@ class AIOFrontendSourceTests(unittest.TestCase):
         self.assertLess(outer_finally, panel_cleanup)
         self.assertLess(panel_cleanup, nested_finally)
         self.assertLess(nested_finally, native_cleanup)
-        self.assertEqual(on_removed_body.count("disposeGeneratorPanel(this);"), 1)
+        self.assertEqual(on_removed_body.count("disposePanel(this);"), 1)
         self.assertEqual(
-            on_removed_body.count("disposeGeneratorNativePreviewLifecycle(this);"),
+            on_removed_body.count("disposeNativePreviewLifecycle(this);"),
             1,
+        )
+        self.assertIn("disposePanel: disposeGeneratorPanel,", source)
+        self.assertIn(
+            "disposeNativePreviewLifecycle: "
+            "disposeGeneratorNativePreviewLifecycle,",
+            source,
         )
 
     def test_generator_panel_runtime_exposes_cancellable_lifecycle_facades(self):
@@ -496,6 +529,7 @@ class AIOFrontendSourceTests(unittest.TestCase):
 
     def test_generator_panel_lifecycle_keeps_entry_behavior_boundaries(self):
         source = AIO_JS.read_text(encoding="utf-8")
+        extension_source = AIO_EXTENSION_RUNTIME_JS.read_text(encoding="utf-8")
         panel_source = AIO_GENERATOR_PANEL_RUNTIME_JS.read_text(encoding="utf-8")
         queue_source = AIO_GENERATOR_QUEUE_RUNTIME_JS.read_text(encoding="utf-8")
 
@@ -526,11 +560,19 @@ class AIOFrontendSourceTests(unittest.TestCase):
         self.assertNotIn("resolveGeneratorSeedForQueue", source)
         self.assertNotIn("prepareGeneratorPromptForQueue", source)
 
-        setup_start = source.index("  async setup() {")
-        setup_end = source.index("\n  async beforeRegisterNodeDef", setup_start)
-        setup_body = source[setup_start:setup_end]
-        self.assertIn("installGeneratorWheelForwarder();", setup_body)
-        self.assertIn("installGeneratorQueuePromptHook();", setup_body)
+        setup_start = extension_source.index("    async setup() {")
+        setup_end = extension_source.index(
+            "\n    async beforeRegisterNodeDef", setup_start
+        )
+        setup_body = extension_source[setup_start:setup_end]
+        self.assertIn("installWheelForwarder();", setup_body)
+        self.assertIn("installQueuePromptHook();", setup_body)
+        self.assertIn(
+            "installWheelForwarder: installGeneratorWheelForwarder,", source
+        )
+        self.assertIn(
+            "installQueuePromptHook: installGeneratorQueuePromptHook,", source
+        )
 
         for unchanged_adapter in (
             "specialSeedRandom: GENERATOR_SPECIAL_SEED_RANDOM,",

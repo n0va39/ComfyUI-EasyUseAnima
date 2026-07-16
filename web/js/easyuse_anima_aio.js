@@ -26,6 +26,7 @@ import { aioCreateSamplerSettingsDialog } from "./aio/sampler_settings_dialog.js
 import { aioCreateSaveSettingsDialog } from "./aio/save_settings_dialog.js";
 import { aioCreateAdvancedSettingsDialog } from "./aio/advanced_settings_dialog.js";
 import { aioCreateNativePreviewRuntime } from "./aio/native_preview_runtime.js";
+import { aioCreateExtensionRuntime } from "./aio/extension_runtime.js";
 import {
   AIO_BACKEND_DEPENDENCIES,
   AIO_OPTIONAL_DEPENDENCY_SPECS,
@@ -4167,92 +4168,45 @@ function updateGeneratorExecutedStatus(node, message) {
   updateGeneratorDomSummary(node);
 }
 
-function hookNode(node, nodeData) {
-  if (nodeData.name === INPUT_NODE_TYPE) {
-    hookInputNode(node);
-  } else if (nodeData.name === GENERATOR_NODE_TYPE) {
-    hookGeneratorNode(node);
-  }
-}
+const aioExtensionRuntime = aioCreateExtensionRuntime({
+  api,
+  constants: {
+    inputNodeType: INPUT_NODE_TYPE,
+    generatorNodeType: GENERATOR_NODE_TYPE,
+    generatorPreviewEvent: GENERATOR_PREVIEW_EVENT,
+  },
+  setup: {
+    ensureStyle,
+    installWheelForwarder: installGeneratorWheelForwarder,
+    installQueuePromptHook: installGeneratorQueuePromptHook,
+    watchLocale: easyuseAnimaWatchLocale,
+    refreshPanels: refreshGeneratorPanels,
+    handlePreviewEvent: handleGeneratorPreviewEvent,
+    handleProgressEvent: handleGeneratorProgressEvent,
+    handleProgressStateEvent: handleGeneratorProgressStateEvent,
+    handleDenoisePreviewEvent: handleGeneratorDenoisePreviewEvent,
+    handleExecutingEvent: handleGeneratorExecutingEvent,
+    clearDenoisePreviews: clearGeneratorDenoisePreviews,
+    loadSamplerOptions: loadGeneratorSamplerOptions,
+    loadUserProfiles: loadGeneratorUserProfiles,
+    warnUserProfiles(error) {
+      console.warn("[EasyUseAnima] Failed to load AiO user profiles.", error);
+    },
+  },
+  nodes: {
+    suppressDefaultPreview: suppressGeneratorDefaultPreview,
+    hookInputNode,
+    hookGeneratorNode,
+    syncSerializedWidgets: syncGeneratorSerializedWidgets,
+    scheduleDefaultPreviewSuppression: scheduleGeneratorDefaultPreviewSuppression,
+    updateExecutedStatus: updateGeneratorExecutedStatus,
+    scheduleLayout: scheduleGeneratorLayout,
+    disposePanel: disposeGeneratorPanel,
+    disposeNativePreviewLifecycle: disposeGeneratorNativePreviewLifecycle,
+  },
+});
 
 app.registerExtension({
   name: "easyuse-anima.aio",
-  async setup() {
-    ensureStyle();
-    installGeneratorWheelForwarder();
-    installGeneratorQueuePromptHook();
-    easyuseAnimaWatchLocale(refreshGeneratorPanels);
-    api.addEventListener(GENERATOR_PREVIEW_EVENT, handleGeneratorPreviewEvent);
-    api.addEventListener("progress", handleGeneratorProgressEvent);
-    api.addEventListener("progress_state", handleGeneratorProgressStateEvent);
-    api.addEventListener("b_preview_with_metadata", handleGeneratorDenoisePreviewEvent, true);
-    api.addEventListener("executing", handleGeneratorExecutingEvent);
-    api.addEventListener("execution_error", clearGeneratorDenoisePreviews);
-    api.addEventListener("execution_interrupted", clearGeneratorDenoisePreviews);
-    api.addEventListener("execution_success", clearGeneratorDenoisePreviews);
-    loadGeneratorSamplerOptions().then(refreshGeneratorPanels);
-    loadGeneratorUserProfiles()
-      .then(refreshGeneratorPanels)
-      .catch((error) => {
-        console.warn("[EasyUseAnima] Failed to load AiO user profiles.", error);
-      });
-  },
-  async beforeRegisterNodeDef(nodeType, nodeData) {
-    if (nodeData.name !== INPUT_NODE_TYPE && nodeData.name !== GENERATOR_NODE_TYPE) {
-      return;
-    }
-    if (nodeData.name === GENERATOR_NODE_TYPE) {
-      nodeType.prototype.hideOutputImages = true;
-    }
-    const onNodeCreated = nodeType.prototype.onNodeCreated;
-    nodeType.prototype.onNodeCreated = function () {
-      if (nodeData.name === GENERATOR_NODE_TYPE) {
-        suppressGeneratorDefaultPreview(this, { markDirty: false });
-      }
-      const result = onNodeCreated?.apply(this, arguments);
-      hookNode(this, nodeData);
-      return result;
-    };
-    const onConfigure = nodeType.prototype.onConfigure;
-    nodeType.prototype.onConfigure = function () {
-      if (nodeData.name === GENERATOR_NODE_TYPE) {
-        suppressGeneratorDefaultPreview(this, { markDirty: false });
-      }
-      const result = onConfigure?.apply(this, arguments);
-      hookNode(this, nodeData);
-      return result;
-    };
-    if (nodeData.name === GENERATOR_NODE_TYPE) {
-      const onSerialize = nodeType.prototype.onSerialize;
-      nodeType.prototype.onSerialize = function (serialized) {
-        const result = onSerialize?.apply(this, arguments);
-        syncGeneratorSerializedWidgets(this, serialized);
-        return result;
-      };
-      nodeType.prototype.onExecuted = function (message) {
-        scheduleGeneratorDefaultPreviewSuppression(this);
-        updateGeneratorExecutedStatus(this, message);
-        scheduleGeneratorDefaultPreviewSuppression(this, { purgeStore: false });
-        return undefined;
-      };
-      const onResize = nodeType.prototype.onResize;
-      nodeType.prototype.onResize = function () {
-        const result = onResize?.apply(this, arguments);
-        scheduleGeneratorLayout(this);
-        return result;
-      };
-      const onRemoved = nodeType.prototype.onRemoved;
-      nodeType.prototype.onRemoved = function () {
-        try {
-          return onRemoved?.apply(this, arguments);
-        } finally {
-          try {
-            disposeGeneratorPanel(this);
-          } finally {
-            disposeGeneratorNativePreviewLifecycle(this);
-          }
-        }
-      };
-    }
-  },
+  ...aioExtensionRuntime,
 });
