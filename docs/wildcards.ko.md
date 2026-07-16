@@ -137,6 +137,37 @@ seed control:
 - `increment`
 - `decrement`
 
+## Seed 범위와 기존 workflow 호환성
+
+이 범위 계약은 `Anima Prompt Studio Advanced`,
+`Anima Prompt Studio Advanced v2`, `Anima Prompt Studio Regional`,
+`Anima Wildcard`의 와일드카드 seed에 공통으로 적용됩니다.
+
+- 브라우저에서 새로 입력하거나 편집하는 현재 seed와 일반적인 다음 seed의 공개
+  범위는 `0..Number.MAX_SAFE_INTEGER` (`0..9007199254740991`)이며 양 끝값을
+  포함합니다.
+- `fixed`는 현재 seed를 그대로 유지합니다.
+- `increment`는 최댓값 다음에 `0`으로 돌아가고, `decrement`는 `0` 다음에
+  최댓값으로 돌아갑니다.
+- `randomize`도 같은 공개 범위 전체에서 seed를 선택하며 `0`과 최댓값을 모두
+  포함할 수 있습니다.
+- 새 편집값은 이 범위 안의 부호 없는 10진 숫자만 사용할 수 있습니다. `+`나
+  `-` 부호, 소수, 지수 표기와 최댓값 초과 입력은 실제 widget이나 저장
+  workflow에 반영하지 않고 이전 seed를 유지합니다.
+
+Python backend는 기존 workflow 호환을 위해 uint64 범위
+`0..18446744073709551615`를 계속 읽습니다. EasyUse Anima는 이미 저장된 공개
+범위 초과 seed를 의도적으로 공개 범위로 clamp하지 않으며, 브라우저가 정확히
+표현할 수 있는 값은 load/save에서 그대로 보존합니다. backend는 현재 generation에
+그 seed를 사용하고 `fixed`는 값을 유지합니다. 다만 JavaScript는 모든 큰 정수의
+정밀도를 보장하지 못하므로 정확한 화면 표시와 save/reload round-trip은
+best-effort입니다. `increment`, `decrement`, `randomize`로 상태를 진행하면 다음
+seed는 다시 공개 범위로 들어옵니다.
+
+일부 Node 2.0 frontend에서는 거부된 최댓값 초과 문자열이 입력칸에 일시적으로
+남을 수 있습니다. 이 경우에도 실제 widget과 저장 workflow는 이전 유효 seed를
+유지하며, workflow를 다시 열면 저장된 값이 표시됩니다.
+
 ## Prompt Studio Advanced
 
 `Anima Prompt Studio Advanced`에는 `와일드카드 시드` 버튼과 현재 설정 요약이
