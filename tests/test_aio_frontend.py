@@ -1097,8 +1097,10 @@ class AIOFrontendSourceTests(unittest.TestCase):
         end = source.index("\nexport function autocompleteQuery", start)
         parse_body = source[start:end]
 
-        self.assertIn('query = query.replace(/^\\[\\[\\s*/g, "");', parse_body)
-        self.assertIn('query = query.replace(/^\\(\\s*/g, "");', parse_body)
+        self.assertIn(
+            "query = query.slice(trimPromptSyntaxPrefix(query, 0, query.length));",
+            parse_body,
+        )
         self.assertIn("query = stripPromptSyntaxClosingParens(query);", parse_body)
         self.assertIn(
             'query = query.replace(/:\\s*[+-]?(?:\\d+(?:\\.\\d*)?|\\.\\d+)\\s*$/, "");',
