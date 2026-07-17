@@ -96,6 +96,7 @@ assert.deepEqual(Object.keys(adapter).sort(), [
   "clearWildcards",
   "search",
   "searchWildcards",
+  "syncSourceSettings",
 ]);
 assert.equal(fetchCalls.length, 0, "factory creation must not fetch data");
 assert.equal(normalizeCalls, 0, "factory creation must not normalize data");
@@ -195,6 +196,88 @@ limit = 1;
 const oneWildcard = await adapter.searchWildcards("folder");
 assert.deepEqual(oneWildcard, [folderResults[0]]);
 assert.equal(wildcardFetchCount, 2, "limit changes must not reload wildcard source items");
+
+const settingsFetchCalls = [];
+const settingsAdapter = dataAdapterModule.createAutocompleteDataAdapter({
+  fetchJson: async (url) => {
+    settingsFetchCalls.push(url);
+    return url === "/easyuse_anima/wildcards"
+      ? { items: ["folder/setting"] }
+      : { results: [{ tag: `result-${settingsFetchCalls.length}` }] };
+  },
+  normalizeWildcardSearchText: textModel.normalizeWildcardSearchText,
+  getLimit: () => 20,
+});
+const initialSettingsSnapshot = {
+  "autocomplete.source": "source-a",
+  "wildcard.extra_paths": "path-a",
+};
+assert.equal(
+  settingsAdapter.syncSourceSettings(initialSettingsSnapshot, { initialize: true }),
+  false,
+  "the initial full settings snapshot must establish identity without invalidating requests",
+);
+const settingsAutocompleteFirst = await settingsAdapter.search("snapshot");
+const settingsWildcardFirst = await settingsAdapter.searchWildcards("folder");
+assert.equal(settingsFetchCalls.length, 2);
+assert.equal(
+  settingsAdapter.syncSourceSettings({
+    ...initialSettingsSnapshot,
+    "autocomplete.commit_key": "enter",
+  }),
+  false,
+  "an unrelated full settings snapshot must not invalidate autocomplete data",
+);
+assert.equal(await settingsAdapter.search("snapshot"), settingsAutocompleteFirst);
+assert.equal(await settingsAdapter.searchWildcards("folder"), settingsWildcardFirst);
+assert.equal(settingsFetchCalls.length, 2, "unchanged source settings must remain cache hits");
+
+assert.equal(
+  settingsAdapter.syncSourceSettings({ "autocomplete.source": "source-b" }),
+  true,
+  "an autocomplete source change must invalidate result ownership",
+);
+const settingsAutocompleteSecond = await settingsAdapter.search("snapshot");
+assert.notEqual(settingsAutocompleteSecond, settingsAutocompleteFirst);
+assert.equal(settingsFetchCalls.length, 3);
+
+const settingsWildcardBeforePathChange = await settingsAdapter.searchWildcards("folder");
+assert.notEqual(settingsWildcardBeforePathChange, settingsWildcardFirst);
+assert.equal(
+  settingsAdapter.syncSourceSettings({ "wildcard.extra_paths": "path-b" }),
+  true,
+  "a wildcard path change must invalidate the wildcard source and derived results",
+);
+const settingsWildcardAfterPathChange = await settingsAdapter.searchWildcards("folder");
+assert.notEqual(settingsWildcardAfterPathChange, settingsWildcardBeforePathChange);
+assert.equal(settingsFetchCalls.length, 4);
+
+const firstEventAdapter = dataAdapterModule.createAutocompleteDataAdapter({
+  fetchJson: async () => ({ results: [] }),
+  normalizeWildcardSearchText: textModel.normalizeWildcardSearchText,
+  getLimit: () => 20,
+});
+assert.equal(
+  firstEventAdapter.syncSourceSettings({ "autocomplete.source": "source-first-event" }),
+  true,
+  "a live settings event without an initial snapshot must invalidate conservatively",
+);
+assert.equal(
+  firstEventAdapter.syncSourceSettings(
+    { "autocomplete.source": "source-late-setup" },
+    { initialize: true },
+  ),
+  true,
+  "a late setup snapshot must not overwrite a live-event identity without invalidation",
+);
+assert.equal(
+  firstEventAdapter.syncSourceSettings(
+    { "autocomplete.source": "source-late-setup" },
+    { initialize: true },
+  ),
+  false,
+  "a repeated setup snapshot with the current identity must remain a no-op",
+);
 
 const singleFlightRequests = [];
 const singleFlightAdapter = dataAdapterModule.createAutocompleteDataAdapter({

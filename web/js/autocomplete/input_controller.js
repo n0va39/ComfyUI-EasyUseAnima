@@ -18,6 +18,39 @@
  */
 
 /**
+ * @typedef {object} AutocompleteInputControllerHandle
+ * @property {() => void} invalidate
+ */
+
+/**
+ * @typedef {object} AutocompleteControllerState
+ * @property {AutocompleteInputControllerHandle | null | undefined} [controller]
+ */
+
+/**
+ * Invalidate every distinct input controller that can still publish results.
+ * The active popup state may be a shallow clone of its hooked input state, so
+ * controller identity owns de-duplication rather than state identity.
+ *
+ * @param {Iterable<AutocompleteControllerState | null | undefined>} states
+ * @param {AutocompleteControllerState | null | undefined} [activeState]
+ */
+export function invalidateAutocompleteControllerStates(states, activeState = null) {
+  const controllers = new Set();
+  for (const state of states) {
+    if (state?.controller) {
+      controllers.add(state.controller);
+    }
+  }
+  if (activeState?.controller) {
+    controllers.add(activeState.controller);
+  }
+  for (const controller of controllers) {
+    controller.invalidate();
+  }
+}
+
+/**
  * Own one autocomplete input's scheduled updates, composition state, and
  * asynchronous request authority. DOM listeners and popup rendering stay in
  * the entry module; this controller only decides which update is current.

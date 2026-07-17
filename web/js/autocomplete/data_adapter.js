@@ -20,8 +20,8 @@
  */
 
 /**
- * Own autocomplete result caching and wildcard source loading without taking
- * ownership of settings, DOM, popup, or extension lifecycle.
+ * Own autocomplete result caching, wildcard source loading, and source-setting
+ * identity without taking ownership of DOM, popup, or extension lifecycle.
  *
  * @param {AutocompleteDataAdapterDependencies} dependencies
  */
@@ -41,12 +41,24 @@ export function createAutocompleteDataAdapter(dependencies) {
   let wildcardItemsCache = null;
   /** @type {WildcardSourceRequestOwner | null} */
   let wildcardLoadOwner = null;
+  let autocompleteSourceSeen = false;
+  let autocompleteSourceSignature = "";
+  let wildcardExtraPathsSeen = false;
+  let wildcardExtraPathsSignature = "";
+
+  function dataSettingSignature(value) {
+    try {
+      return JSON.stringify([value]);
+    } catch {
+      return String(value);
+    }
+  }
 
   /**
    * @param {string} key
    * @param {() => Promise<any[]>} load
-  * @returns {Promise<any[]>}
-  */
+   * @returns {Promise<any[]>}
+   */
   function requestResults(key, load) {
     const cachedResults = cache.get(key);
     if (cachedResults) {
@@ -115,6 +127,56 @@ export function createAutocompleteDataAdapter(dependencies) {
     wildcardItemsCache = null;
     wildcardLoadOwner = null;
     clearResults();
+  }
+
+  /**
+   * Track the backend settings that select autocomplete and wildcard sources.
+   * Settings events carry a full snapshot, so key presence alone cannot own
+   * invalidation without turning unrelated setting updates into fresh fetches.
+   *
+   * @param {Record<string, any> | null | undefined} settings
+   * @param {{initialize?: boolean}} [options]
+   * @returns {boolean}
+   */
+  function syncSourceSettings(settings, options = {}) {
+    const initialize = !!options.initialize;
+    let resultsChanged = false;
+    let wildcardSourceChanged = false;
+
+    if (
+      settings
+      && Object.prototype.hasOwnProperty.call(settings, "autocomplete.source")
+    ) {
+      const nextSignature = dataSettingSignature(settings["autocomplete.source"]);
+      const changed = !autocompleteSourceSeen
+        || nextSignature !== autocompleteSourceSignature;
+      if (changed && (!initialize || autocompleteSourceSeen)) {
+        resultsChanged = true;
+      }
+      autocompleteSourceSeen = true;
+      autocompleteSourceSignature = nextSignature;
+    }
+
+    if (
+      settings
+      && Object.prototype.hasOwnProperty.call(settings, "wildcard.extra_paths")
+    ) {
+      const nextSignature = dataSettingSignature(settings["wildcard.extra_paths"]);
+      const changed = !wildcardExtraPathsSeen
+        || nextSignature !== wildcardExtraPathsSignature;
+      if (changed && (!initialize || wildcardExtraPathsSeen)) {
+        wildcardSourceChanged = true;
+      }
+      wildcardExtraPathsSeen = true;
+      wildcardExtraPathsSignature = nextSignature;
+    }
+
+    if (wildcardSourceChanged) {
+      clearWildcards();
+    } else if (resultsChanged) {
+      clearResults();
+    }
+    return resultsChanged || wildcardSourceChanged;
   }
 
   async function search(query, category = "") {
@@ -219,5 +281,6 @@ export function createAutocompleteDataAdapter(dependencies) {
     searchWildcards,
     clearResults,
     clearWildcards,
+    syncSourceSettings,
   };
 }
