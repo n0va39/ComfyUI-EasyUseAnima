@@ -247,16 +247,13 @@ class AutocompleteFrontendBoundaryTests(unittest.TestCase):
     def test_input_controller_module_semantics(self):
         self.assertTrue(AUTOCOMPLETE_INPUT_CONTROLLER_SMOKE.is_file())
         self.assertTrue(AUTOCOMPLETE_INPUT_BINDING_SMOKE.is_file())
-        controller_smoke_source = AUTOCOMPLETE_INPUT_CONTROLLER_SMOKE.read_text(
-            encoding="utf-8"
-        )
         frontend_check_source = FRONTEND_CHECK_SCRIPT.read_text(encoding="utf-8")
         self.assertIn(
-            'await import("./frontend_autocomplete_input_binding_smoke.mjs");',
-            controller_smoke_source,
+            r'node "tests\frontend_autocomplete_input_controller_smoke.mjs"',
+            frontend_check_source,
         )
         self.assertIn(
-            r'node "tests\frontend_autocomplete_input_controller_smoke.mjs"',
+            r'node "tests\frontend_autocomplete_input_binding_smoke.mjs"',
             frontend_check_source,
         )
 

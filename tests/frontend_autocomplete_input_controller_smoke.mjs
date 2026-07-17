@@ -269,5 +269,3 @@ const {
 }
 
 console.log("Autocomplete input controller smoke passed.");
-
-await import("./frontend_autocomplete_input_binding_smoke.mjs");
