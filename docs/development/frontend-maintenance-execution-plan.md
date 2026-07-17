@@ -16,8 +16,8 @@ GitHub Issue ledgers, or live Git/GitHub/Codex/process read-back.
 - Before using this snapshot, fetch and reconcile the external state named in
   the relevant row.
 
-Snapshot: 2026-07-17 KST, immediately after PR #122/#55 canvas-lane cleanup and
-creation of the #56/#99 adapter-epoch integration branch.
+Snapshot: 2026-07-17 KST, immediately before the #56/#99 adapter-epoch PR after
+the final full and dual-canvas browser gates.
 
 ## Goal Boundary
 
@@ -62,7 +62,7 @@ Excluded without separate approval:
 | #55 LoRA Preset | open | #108 menu extraction, #115/#109 lifecycle hardening, #122 canvas-widget extraction | profile mutation, initialize/configure/serialize, save-sync/wheel/entry, final matrix |
 | #56 Autocomplete | open | #116 input/keyboard/composition controller | integrate the current #99 adapter epoch; then external input hook, listener installer/entry, #98/#100, final matrix |
 | #98 Autocomplete replacement syntax | open | none | deferred until the current adapter-epoch gate is integrated; preserve nested parentheses, weights, and artist prefix |
-| #99 Autocomplete request epochs | open | #116 controller generation and current adapter/result/source epoch working diff | finish focused/full/dual-canvas evidence, merge and ledger, then close if the full reported boundary is satisfied |
+| #99 Autocomplete request epochs | open | #116 controller generation plus the final adapter/result/source epoch working diff; focused, full, Legacy, and Node 2.0 gates passed | open the PR, squash merge/read back, write the final ledger, and close completed |
 | #100 Autocomplete result limit | open | none | deferred backend limit audit for configured values 51–100 |
 | #102 seed range | closed | production contract #112 and Korean/English user docs #121 | none; #111 remains a separate non-blocking Node 2.0 display mismatch |
 | #103 Regional seed | closed | PR #118 and final ledger | none |
@@ -98,7 +98,7 @@ in the roadmap and owning Issue ledgers.
 
 | Slice | Codex task | Branch / worktree | Base and status | Expected files |
 | --- | --- | --- | --- | --- |
-| #56/#99 adapter epoch | source task `019f6bc5-c33b-7960-b84e-0f2300525f2a`; integration owner `019f6a32-3b0f-7ed0-8ff6-03de8546f402` | clean source `codex/fix-autocomplete-adapter-epoch` / `f34bdaa`; active integration `codex/integrate-autocomplete-adapter-epoch` / `worktrees/ComfyUI-EasyUseAnima/codex/integrate-autocomplete-adapter-epoch` | source patch range-diff `=` as integration commit `b460f5e` on `3f8a6c0`; integration review fix supersedes hooked/active controller authority on setup and live setting invalidation | data adapter and smoke; input controller helper/smoke; autocomplete entry/static contract; this checkpoint |
+| #56/#99 adapter epoch | source task `019f6bc5-c33b-7960-b84e-0f2300525f2a`; integration owner `019f6a32-3b0f-7ed0-8ff6-03de8546f402` | clean source `codex/fix-autocomplete-adapter-epoch` / `f34bdaa`; active integration `codex/integrate-autocomplete-adapter-epoch` / `worktrees/ComfyUI-EasyUseAnima/codex/integrate-autocomplete-adapter-epoch` | source patch range-diff `=` as integration commit `b460f5e` plus review-fix/checkpoint HEAD `bc1d455` on `3f8a6c0`; focused, full, and dual-canvas gates passed | data adapter and smoke; input controller helper/smoke; autocomplete entry/static contract; this checkpoint |
 
 ## Integration Gates
 
@@ -106,7 +106,7 @@ Only one row may enter push/PR/merge at a time.
 
 | Order | Slice | Focused / audit | Full | Browser | Blocker / finding | Gate |
 | ---: | --- | --- | --- | --- | --- | --- |
-| 1 | #56/#99 adapter epoch | source range-diff; final four semantic smokes, related unittest 43/43, TS 6.0.3, diff check, and three no-P0-P3 audits passed | one full run | required once per final behavior diff on legacy and Node 2.0 | no known code blocker; full/browser pending | current |
+| 1 | #56/#99 adapter epoch | source range-diff; final four semantic smokes, related unittest 43/43, TS 6.0.3, diff check, and three no-P0-P3 audits passed | 398/398; 104 JavaScript files; TypeScript 6.0.3; diff check | Legacy and Node 2.0: Danbooru 20 -> e621 2 -> Danbooru 20, Escape/ArrowDown/Tab, save/reload, EasyUse errors 0 | no code blocker; the first stale-tab cache attempt was excluded and a fresh exact-diff tab passed | ready for PR |
 | 2 | 0.5.x release checkpoint | enter only after #99 has a merged/read-back safe checkpoint; then read back main/dev/tags/Releases/Registry before choosing the version | reuse identical final-diff evidence; rerun only if code/base changes | reuse valid merged evidence | blocked by current working diff | queued |
 | 3 | remaining #54/#55/#56 slices | create only after file ownership and priority audit | per PR-ready diff | per behavior diff; final Issue matrices required | sequence and overlap audit required | backlog |
 | 4 | final user-instance sync | all agreed Issues/bugs reconciled first | use merged `dev` evidence | one manual v0.27.0 confirmation | blocked by remaining Goal work and prerequisites | queued |
@@ -125,8 +125,12 @@ sandbox. Do not report the environment spawn error as a code failure.
   current. Source identities now make unchanged snapshots no-ops, while actual
   source, limit, mode, or query-shaping changes invalidate every hooked/active
   controller, preserve controller ownership while closing the popup, and
-  schedule a fresh update only for an enabled focused input. Final focused and
-  three independent audits passed; full/browser evidence is pending.
+  schedule a fresh update only for an enabled focused input. Final focused,
+  three independent audits, official full, and both canvas gates passed. The
+  initial Node 2.0 no-popup observation came from a tab retaining a stale
+  extension module; temporary test-instance diagnostics were excluded, the
+  exact branch file was restored and hash-checked, and a fresh exact-diff tab
+  passed the complete Node 2.0 matrix.
 - Non-blocking #111: ComfyUI frontend 1.45.20 Node 2.0 can display a newly
   entered unsafe seed while the widget and saved workflow retain max-safe.
   Prefer an upstream fix or stable public-API boundary over a private-DOM hook.
