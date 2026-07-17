@@ -5,6 +5,7 @@ import { easyuseAnimaText, easyuseAnimaWatchLocale } from "./easyuse_anima_i18n.
 import { createLoraPresetApiClient } from "./lora_preset/api_client.js";
 import { createLoraPresetCanvasWidgets } from "./lora_preset/canvas_widgets.js";
 import { createLoraPresetMenuLifecycle } from "./lora_preset/menu_lifecycle.js";
+import { createLoraPresetNodeRuntime } from "./lora_preset/node_runtime.js";
 import { createLoraPresetPreviewLifecycle } from "./lora_preset/preview_lifecycle.js";
 import {
   INTERNAL_WIDGET_DEFAULTS,
@@ -352,13 +353,31 @@ const loraCanvasWidgets = createLoraPresetCanvasWidgets({
   setActiveProfileWheelTarget,
   enforceNodeLayout,
 });
-
-function firstValue(value, fallback = null) {
-  if (Array.isArray(value)) {
-    return value.length ? value[0] : fallback;
-  }
-  return value ?? fallback;
-}
+const loraPresetNodeRuntime = createLoraPresetNodeRuntime({
+  nodeTypeName: NODE_TYPE,
+  internalWidgetDefaults: INTERNAL_WIDGET_DEFAULTS,
+  widgetIndex: WIDGET_INDEX,
+  findWidget,
+  findInputEl,
+  widgetValue,
+  ensureWidgetValue,
+  resetInternalLoraSelector,
+  normalizeSerializedWidgets,
+  profileCount,
+  selectedProfileIndex,
+  activeProfileIndex,
+  wrapProfileIndex,
+  setProfileIndex,
+  lorasWidgetValue,
+  saveProfile,
+  saveCurrentProfile,
+  loadProfile,
+  scrollProfileBarTo,
+  refreshLoraAvailability,
+  canvasWidgets: loraCanvasWidgets,
+  enforceNodeLayout,
+  requestAnimationFrame: (callback) => window.requestAnimationFrame(callback),
+});
 
 function findWidget(node, name) {
   return node.__easyuseAnimaHiddenWidgets?.[name]
@@ -1074,68 +1093,6 @@ function openLoraEntryMenu(node, event, index) {
   });
 }
 
-function hideInternalWidget(node, name) {
-  const widget = findWidget(node, name);
-  if (!widget) {
-    return;
-  }
-  ensureWidgetValue(node, name);
-  if (name === "lora_name") {
-    resetInternalLoraSelector(node);
-  }
-  widget.__easyuseAnimaHidden = true;
-  widget.hidden = true;
-  widget.serialize = true;
-  widget.options ||= {};
-  widget.options.hidden = true;
-  widget.computeSize = () => [0, 0];
-  widget.draw = () => {};
-  const input = findInputEl(widget);
-  if (input) {
-    input.style.display = "none";
-    input.style.pointerEvents = "none";
-    input.tabIndex = -1;
-  }
-  node.__easyuseAnimaHiddenWidgets ||= {};
-  node.__easyuseAnimaHiddenWidgets[name] = widget;
-  node.setDirtyCanvas?.(true, true);
-}
-
-function restoreInternalWidgetsForConfigure(node) {
-  const hidden = node.__easyuseAnimaHiddenWidgets;
-  if (!hidden || !Array.isArray(node.widgets)) {
-    return;
-  }
-  const entries = [
-    ["profile_count", WIDGET_INDEX.profileCount],
-    ["lora_name", WIDGET_INDEX.loraName],
-    ["loras", WIDGET_INDEX.loras],
-    ["profile_data", WIDGET_INDEX.profileData],
-  ];
-  for (const [name, index] of entries) {
-    const widget = hidden[name];
-    if (!widget || node.widgets.includes(widget)) {
-      continue;
-    }
-    widget.__easyuseAnimaHidden = true;
-    widget.hidden = true;
-    widget.serialize = true;
-    widget.options ||= {};
-    widget.options.hidden = true;
-    widget.computeSize = () => [0, 0];
-    widget.draw = () => {};
-    node.widgets.splice(Math.min(index, node.widgets.length), 0, widget);
-  }
-}
-
-function finalizeInternalWidgets(node) {
-  resetInternalLoraSelector(node);
-  hideInternalWidget(node, "profile_data");
-  hideInternalWidget(node, "profile_count");
-  hideInternalWidget(node, "lora_name");
-  hideInternalWidget(node, "loras");
-}
-
 function enforceNodeLayout(node) {
   if (!node?.size || typeof node.setSize !== "function") {
     return;
@@ -1149,12 +1106,6 @@ function enforceNodeLayout(node) {
     node.setSize([nextWidth, nextHeight]);
   }
   node.setDirtyCanvas?.(true, true);
-}
-
-function ensureLoraStackInput(node) {
-  if (!node.inputs?.some((input) => input.name === "lora_stack")) {
-    node.addInput?.("lora_stack", "LORA_STACK");
-  }
 }
 
 function canvasPointToClient(point) {
@@ -1274,28 +1225,6 @@ async function openLoraMenu(node, event, pos, onChoose) {
   });
 }
 
-function wrapWidgetCallback(node, name, callback) {
-  const widget = findWidget(node, name);
-  if (!widget || widget.__easyuseAnimaLoraWrapped) {
-    return;
-  }
-  widget.__easyuseAnimaLoraWrapped = true;
-  const previous = widget.callback;
-  widget.callback = function (...args) {
-    const result = previous?.apply(this, args);
-    callback?.();
-    return result;
-  };
-}
-
-function syncAfterWidgetChange(node) {
-  if (node.__easyuseAnimaLoadingProfile) {
-    return;
-  }
-  saveCurrentProfile(node);
-  loraCanvasWidgets.renderProfileBar(node);
-}
-
 function syncLoraPresetNode(node) {
   if (!node || node.comfyClass !== NODE_TYPE) {
     return;
@@ -1328,28 +1257,6 @@ function installLoraPresetSaveSync() {
     };
     app.queuePrompt.__easyuseAnimaLoraPresetWrapped = true;
   }
-}
-
-function applyExecutedProfile(node, message) {
-  const payload = firstValue(message?.lora_preset_profile, null);
-  const index = Number.parseInt(payload?.profile_index, 10);
-  if (!Number.isFinite(index)) {
-    return;
-  }
-  const nextIndex = wrapProfileIndex(index, profileCount(node));
-  const currentIndex = activeProfileIndex(node);
-  if (nextIndex === currentIndex) {
-    loraCanvasWidgets.renderProfileBar(node);
-    return;
-  }
-  saveProfile(node, currentIndex);
-  setProfileIndex(node, nextIndex);
-  node.__easyuseAnimaActiveProfileIndex = nextIndex;
-  loadProfile(node, nextIndex);
-  scrollProfileBarTo(node, nextIndex);
-  loraCanvasWidgets.renderProfileBar(node);
-  loraCanvasWidgets.renderLoraWidgets(node);
-  node.setDirtyCanvas?.(true, true);
 }
 
 function refreshLoraPresetNodes() {
@@ -1455,81 +1362,6 @@ function installProfileWheelListener() {
   document.addEventListener("wheel", scrollProfileListFromWheel, { capture: true, passive: false });
 }
 
-function initializeNode(node) {
-  if (node.__easyuseAnimaLoraPresetInitialized) {
-    return;
-  }
-  node.__easyuseAnimaLoraPresetInitialized = true;
-  node.serialize_widgets = true;
-  ensureLoraStackInput(node);
-  for (const name of Object.keys(INTERNAL_WIDGET_DEFAULTS)) {
-    ensureWidgetValue(node, name);
-  }
-  resetInternalLoraSelector(node);
-
-  wrapWidgetCallback(node, "style_prompt", () => syncAfterWidgetChange(node));
-  wrapWidgetCallback(node, "loras", () => syncAfterWidgetChange(node));
-  wrapWidgetCallback(node, "profile_count", () => {
-    if (!node.__easyuseAnimaSuppressProfileCountCallback) {
-      saveCurrentProfile(node);
-      loraCanvasWidgets.renderProfileBar(node);
-    }
-  });
-  wrapWidgetCallback(node, "profile_index", () => {
-    if (node.__easyuseAnimaSuppressProfileIndexCallback) {
-      return;
-    }
-    const index = selectedProfileIndex(node);
-    const current = activeProfileIndex(node);
-    if (index !== current) {
-      saveProfile(node, current);
-    }
-    node.__easyuseAnimaActiveProfileIndex = index;
-    loadProfile(node, index);
-    scrollProfileBarTo(node, index);
-    loraCanvasWidgets.renderProfileBar(node);
-  });
-
-  const originalOnSerialize = node.onSerialize;
-  node.onSerialize = function (workflowNode) {
-    saveCurrentProfile(this);
-    originalOnSerialize?.apply(this, arguments);
-    const dataWidget = findWidget(this, "profile_data");
-    if (workflowNode?.widgets_values && dataWidget) {
-      workflowNode.widgets_values[WIDGET_INDEX.profileCount] = String(widgetValue(findWidget(this, "profile_count"), profileCount(this)) || "4");
-      workflowNode.widgets_values[WIDGET_INDEX.loraName] = INTERNAL_WIDGET_DEFAULTS.lora_name;
-      workflowNode.widgets_values[WIDGET_INDEX.loras] = JSON.stringify(lorasWidgetValue(this));
-      workflowNode.widgets_values[WIDGET_INDEX.profileData] = widgetValue(dataWidget, "{}");
-    }
-  };
-
-  const originalOnConfigure = node.onConfigure;
-  node.onConfigure = function (...args) {
-    originalOnConfigure?.apply(this, args);
-    window.requestAnimationFrame(() => {
-      finalizeInternalWidgets(this);
-      loraCanvasWidgets.ensureProfileBar(this);
-      this.__easyuseAnimaActiveProfileIndex = selectedProfileIndex(this);
-      loadProfile(this, selectedProfileIndex(this), { initializeFromCurrent: true });
-      scrollProfileBarTo(this, selectedProfileIndex(this));
-      loraCanvasWidgets.renderProfileBar(this);
-      refreshLoraAvailability(this);
-      enforceNodeLayout(this);
-    });
-  };
-
-  window.requestAnimationFrame(() => {
-    finalizeInternalWidgets(node);
-    loraCanvasWidgets.ensureProfileBar(node);
-    node.__easyuseAnimaActiveProfileIndex = selectedProfileIndex(node);
-    loadProfile(node, selectedProfileIndex(node), { initializeFromCurrent: true });
-    scrollProfileBarTo(node, selectedProfileIndex(node));
-    loraCanvasWidgets.renderProfileBar(node);
-    refreshLoraAvailability(node);
-    enforceNodeLayout(node);
-  });
-}
-
 app.registerExtension({
   name: "EasyUseAnima.LoraPreset",
   init() {
@@ -1548,25 +1380,6 @@ app.registerExtension({
     installLoraPresetSaveSync();
   },
   async beforeRegisterNodeDef(nodeType, nodeData) {
-    if (nodeData.name !== NODE_TYPE) {
-      return;
-    }
-    const originalConfigure = nodeType.prototype.configure;
-    nodeType.prototype.configure = function (info) {
-      restoreInternalWidgetsForConfigure(this);
-      normalizeSerializedWidgets(info);
-      return originalConfigure?.apply(this, arguments);
-    };
-    const originalOnNodeCreated = nodeType.prototype.onNodeCreated;
-    nodeType.prototype.onNodeCreated = function (...args) {
-      const result = originalOnNodeCreated?.apply(this, args);
-      initializeNode(this);
-      return result;
-    };
-    const originalOnExecuted = nodeType.prototype.onExecuted;
-    nodeType.prototype.onExecuted = function (message) {
-      originalOnExecuted?.apply(this, arguments);
-      applyExecutedProfile(this, message);
-    };
+    loraPresetNodeRuntime.beforeRegisterNodeDef(nodeType, nodeData);
   },
 });
