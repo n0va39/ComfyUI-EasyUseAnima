@@ -1,6 +1,7 @@
 // @ts-check
 
 const AUTOCOMPLETE_ENTRY_OWNER = "__easyuseAnimaAutocompleteEntryOwner";
+const AUTOCOMPLETE_ENTRY_GENERATION = "__easyuseAnimaAutocompleteEntryGeneration";
 const EXTERNAL_AUTOCOMPLETE_DISPOSE = "__easyuseAnimaExternalAutocompleteDispose";
 
 /**
@@ -138,6 +139,8 @@ export function createAutocompleteEntryLifecycle(dependencies) {
   const listeners = [];
   const timers = new Set();
   const wrappers = new Map();
+  const generation = (Number(hostWindow[AUTOCOMPLETE_ENTRY_GENERATION]) || 0) + 1;
+  hostWindow[AUTOCOMPLETE_ENTRY_GENERATION] = generation;
   let installed = false;
 
   const externalHook = (input, options = {}) => hookInput(input, options);
@@ -154,6 +157,9 @@ export function createAutocompleteEntryLifecycle(dependencies) {
   }
 
   function install() {
+    if (hostWindow[AUTOCOMPLETE_ENTRY_GENERATION] !== generation) {
+      return false;
+    }
     if (isActive()) {
       return false;
     }

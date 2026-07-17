@@ -68,6 +68,16 @@ const entrySource = readFileSync(
   "utf8",
 );
 assert.match(entrySource, /createAutocompleteEntryLifecycle\(\{/);
+assert.match(
+  entrySource,
+  /async init\(\)\s*{\s*autocompleteEntryLifecycle\.install\(\);\s*}/,
+  "entry lifecycle must install during init before beforeRegisterNodeDef and initial graph configuration",
+);
+assert.match(
+  entrySource,
+  /async setup\(\)\s*{\s*autocompleteEntryLifecycle\.install\(\);\s*if \(!autocompleteEntryLifecycle\.isActive\(\)\)\s*{\s*return;\s*}/,
+  "a stale setup must not refresh settings after losing entry ownership",
+);
 assert.match(entrySource, /autocompleteEntryLifecycle\.install\(\)/);
 assert.match(entrySource, /autocompleteEntryLifecycle\.installNodeTypeHooks\(nodeType, nodeData\)/);
 assert.doesNotMatch(entrySource, /document\.addEventListener\("(?:focusin|scroll|wheel|pointerdown|mousedown|selectionchange)"/);
@@ -149,6 +159,32 @@ function createRuntime(hostWindow, hostDocument, name) {
     },
   });
   return { calls, runtime, timers };
+}
+
+{
+  const hostWindow = new FakeTarget();
+  const hostDocument = new FakeTarget();
+  hostDocument.activeElement = null;
+  const stale = createRuntime(hostWindow, hostDocument, "stale");
+  const latest = createRuntime(hostWindow, hostDocument, "latest");
+  class NodeType {}
+  const nodeData = { name: "Prompt" };
+
+  assert.equal(stale.runtime.install(), false, "a stale init must not claim entry ownership");
+  assert.equal(latest.runtime.install(), true, "the newest init must claim entry ownership");
+  assert.equal(stale.runtime.installNodeTypeHooks(NodeType, nodeData), false);
+  assert.equal(latest.runtime.installNodeTypeHooks(NodeType, nodeData), true);
+  const latestWrapper = NodeType.prototype.onNodeCreated;
+
+  assert.equal(stale.runtime.install(), false, "a stale setup must not reclaim entry ownership");
+  assert.equal(latest.runtime.install(), false, "the active setup re-entry must be idempotent");
+  assert.equal(
+    NodeType.prototype.onNodeCreated,
+    latestWrapper,
+    "stale setup must not dispose the newest prototype wrapper",
+  );
+  latest.runtime.dispose();
+  assert.equal(stale.runtime.install(), false, "disposing the newest owner must not resurrect a stale owner");
 }
 
 {

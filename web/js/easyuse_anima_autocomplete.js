@@ -1807,8 +1807,14 @@ autocompleteEntryLifecycle = createAutocompleteEntryLifecycle({
 
 app.registerExtension({
   name: "easyuse-anima.autocomplete",
+  async init() {
+    autocompleteEntryLifecycle.install();
+  },
   async setup() {
     autocompleteEntryLifecycle.install();
+    if (!autocompleteEntryLifecycle.isActive()) {
+      return;
+    }
     await refreshAutocompleteSettings();
   },
   async beforeRegisterNodeDef(nodeType, nodeData) {

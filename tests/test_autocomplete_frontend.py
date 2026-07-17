@@ -28,6 +28,12 @@ AUTOCOMPLETE_INPUT_BINDING = (
 AUTOCOMPLETE_INPUT_BINDING_SMOKE = (
     ROOT / "tests" / "frontend_autocomplete_input_binding_smoke.mjs"
 )
+AUTOCOMPLETE_ENTRY_LIFECYCLE = (
+    ROOT / "web" / "js" / "autocomplete" / "entry_lifecycle.js"
+)
+AUTOCOMPLETE_ENTRY_LIFECYCLE_SMOKE = (
+    ROOT / "tests" / "frontend_autocomplete_entry_lifecycle_smoke.mjs"
+)
 AUTOCOMPLETE_TEXT_MODEL = (
     ROOT / "web" / "js" / "autocomplete" / "text_model.js"
 )
@@ -271,6 +277,15 @@ class AutocompleteFrontendBoundaryTests(unittest.TestCase):
 
         if completed.returncode != 0:
             self.fail((completed.stdout + completed.stderr).strip())
+
+    def test_entry_lifecycle_is_in_semantic_runner(self):
+        self.assertTrue(AUTOCOMPLETE_ENTRY_LIFECYCLE.is_file())
+        self.assertTrue(AUTOCOMPLETE_ENTRY_LIFECYCLE_SMOKE.is_file())
+        frontend_check_source = FRONTEND_CHECK_SCRIPT.read_text(encoding="utf-8")
+        self.assertIn(
+            r'node "tests\frontend_autocomplete_entry_lifecycle_smoke.mjs"',
+            frontend_check_source,
+        )
 
     def test_input_binding_has_exact_listener_lifecycle_boundary(self):
         module_source = AUTOCOMPLETE_INPUT_BINDING.read_text(encoding="utf-8")
