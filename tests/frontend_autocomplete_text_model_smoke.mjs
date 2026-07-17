@@ -123,6 +123,45 @@ assert.equal(
   "[[ @new_name:1.25]]",
 );
 
+for (const previewCompletion of [false, true]) {
+  for (const [value, typed, insert, expected, artistOnly] of [
+    ["((old_tag))", "old_tag", "new tag", "((new tag))", false],
+    ["(((old_tag)))", "old_tag", "new tag", "(((new tag)))", false],
+    ["((old_tag:1.2))", "old_tag", "new tag", "((new tag:1.2))", false],
+    ["((@old_artist))", "@old_artist", "@new artist", "((@new artist))", true],
+    ["manual_trigger, ((old_tag))", "old_tag", "new tag", "manual_trigger, ((new tag))", false],
+  ]) {
+    const start = value.indexOf(typed);
+    const caret = start + typed.length;
+    const token = currentToken(value, caret, {
+      detectNaturalSentences: false,
+      previewCompletion,
+    });
+    const query = autocompleteQuery(token);
+    assert.equal(token.start, start);
+    assert.equal(token.end, caret);
+    assert.equal(query.artistOnly, artistOnly);
+    assert.equal(query.query, typed.replace(/^@/, ""));
+    const applied = appliedPlan(token, insert);
+    assert.equal(applied.value, expected);
+    assert.equal(applied.caret, start + insert.length);
+    assert.equal(applied.value.slice(applied.caret), expected.slice(start + insert.length));
+  }
+}
+
+for (const previewCompletion of [false, true]) {
+  const value = "((old_tag:1.2))";
+  const start = value.indexOf("old_tag");
+  const token = currentToken(value, start + "old".length, {
+    detectNaturalSentences: false,
+    previewCompletion,
+  });
+  assert.equal(autocompleteQuery(token).query, "old");
+  assert.equal(token.start, start);
+  assert.equal(token.end, start + "old_tag".length);
+  assert.equal(appliedPlan(token, "new tag").value, "((new tag:1.2))");
+}
+
 const strictAtClosing = currentToken(
   weightedValue,
   weightedValue.length,
@@ -153,6 +192,10 @@ assert.deepEqual(parseAutocompleteText("(@artist_name):1.25"), {
   artistOnly: true,
 });
 assert.deepEqual(parseAutocompleteText("[[ (@artist_name)))"), {
+  query: "artist_name",
+  artistOnly: true,
+});
+assert.deepEqual(parseAutocompleteText("((@artist_name))"), {
   query: "artist_name",
   artistOnly: true,
 });
