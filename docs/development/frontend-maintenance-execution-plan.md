@@ -16,12 +16,12 @@ GitHub Issue ledgers, or live Git/GitHub/Codex/process read-back.
 - Before using this snapshot, fetch and reconcile the external state named in
   the relevant row.
 
-Snapshot: 2026-07-17 KST, after PR #136 recorded and cleaned the PR #134/#135
-checkpoint, followed by creation of three bounded production lanes from the
-same current `origin/dev`: #56 installer/entry lifecycle, #54 direct concurrent
-API contract, and #55 profile-mutation/save-sync lifecycle. The formal
-maintenance Goal remains active for the open #54/#55/#56 boundaries and
-directly related #62/#98 work.
+Snapshot: 2026-07-17 KST, after the integration owner merged PR #138, updated
+the #56 ledger, and removed its local/remote branch and worktree. Three bounded
+production lanes were run as real sidebar Codex tasks with explicit model and
+reasoning settings. #54 and #55 completed their focused lane work and remain
+separate pending sequential integration. The formal maintenance Goal remains
+active for the open #54/#55/#56 boundaries and directly related #62/#98 work.
 
 ## Goal Boundary
 
@@ -51,12 +51,12 @@ Excluded without separate approval:
 
 | Surface | Confirmed state |
 | --- | --- |
-| `origin/dev` | `3ddcd5a8bc06730c241e1994235dd142649a21cd` |
+| `origin/dev` | `86c1a304bf130fef7954892c1f2da5b7ad1e47a7` |
 | local `dev` | same SHA, clean |
 | `origin/main` | `02a9a84634c03cc3afaa20000f136c03164308ce` (`v0.5.1`) |
 | local `main` | same SHA, clean |
-| main/dev alignment | main is an ancestor of dev; dev additionally contains the post-release integrations and checkpoints through PR #136 |
-| latest dev integration | PR #136, PR #134/#135 maintenance checkpoint ledger, squash merge `3ddcd5a8bc06730c241e1994235dd142649a21cd` |
+| main/dev alignment | main is an ancestor of dev; dev additionally contains the post-release integrations and checkpoints through PR #138 |
+| latest dev integration | PR #138, Autocomplete entry/extension lifecycle, squash merge `86c1a304bf130fef7954892c1f2da5b7ad1e47a7` |
 | GitHub Release | `v0.5.1` public/Latest with verified manual-install ZIP; broken `v0.5.0` Release/tag absent |
 | Registry | live versions API on 2026-07-17: 0.5.1 and 0.4.0 `NodeVersionStatusFlagged`, 0.3.2 latest active, deleted 0.5.0 absent; read back again before release/Registry action |
 | Codex test server | stopped; port 8194 listener and related server/launcher count 0 |
@@ -68,9 +68,9 @@ Excluded without separate approval:
 
 | Issue | State | Completed boundary | Remaining or next action |
 | --- | --- | --- | --- |
-| #54 AiO Generator | open | PR #107 lifecycle, #113 API queue/hook reentry and missing `prompt_id` no-commit regression, #119 sampler hydration owner/attached-subgraph refresh, #133 preview-wheel ownership | direct concurrent API serialization/reservation, final broader matrix, #62 Detailer threshold, #66 triage, and optional #119 fixtures |
-| #55 LoRA Preset | open | #108 menu extraction, #115/#109 lifecycle hardening, #122 canvas-widget extraction, #132 node initialize/configure/serialize lifecycle extraction | profile mutation, save-sync/wheel/entry, final matrix |
-| #56 Autocomplete | open | #116 controller, #123 request epochs, #127 Registry import closure, #131 1-100 result limit, and #135 per-input listener/disposer lifecycle | external DOM owner disposal, global listener/window hook/prototype wrapper installer/entry lifecycle, #98, and final cumulative matrix; user-instance confirmation remains blocked until the final Goal sync |
+| #54 AiO Generator | open | PR #107 lifecycle, #113 API queue/hook reentry and missing `prompt_id` no-commit regression, #119 sampler hydration owner/attached-subgraph refresh, #133 preview-wheel ownership; direct concurrent reservation lane focused-complete at rebased `ff689a8` | integration-owner full/direct API gate, final broader matrix, #62 Detailer threshold, #66 triage, and optional #119 fixtures |
+| #55 LoRA Preset | open | #108 menu extraction, #115/#109 lifecycle hardening, #122 canvas-widget extraction, #132 node initialize/configure/serialize lifecycle extraction; profile/save-sync lane focused-complete at `8d686ec` | rebase and integration gate, wheel/entry, final matrix |
+| #56 Autocomplete | open | #116 controller, #123 request epochs, #127 Registry import closure, #131 result limit, #135 per-input lifecycle, and PR #138 entry/external-owner/global installer lifecycle | #98 parser/text replacement and final cumulative/user-instance matrix |
 | #98 Autocomplete replacement syntax | open | adapter epoch prerequisite complete | preserve nested parentheses, weights, and artist prefix |
 | #99 Autocomplete request epochs | closed | PR #123; focused/full/Legacy/Node 2.0 evidence and final ledger recorded | none |
 | #100 Autocomplete result limit | closed | PR #131; backend/API/frontend normalized 1-100 contract and completion ledger | none |
@@ -116,6 +116,8 @@ in the roadmap and owning Issue ledgers.
 | #134 | `e4deeec6b722d2fde9b849a2358dabb4eb584e9b` | record PR #130-#133 checkpoint and lane model-selection policy | Skill validation and independent audit; no runtime diff | not required: docs/Skill-only diff | merge/read-back and cleanup recorded here |
 | #135 | `19a8968a15885801b43f831ef9c582380bf514f9` | Autocomplete per-input listener, controller, timer, middle-pan, registry, and disposer lifecycle | 405/405; 106 JS; TS 6.0.3; focused 50/50; diff checks | Legacy and Node 2.0 suggestion/keyboard/Escape/blur/single-popup/save-reload; separate output-capable fixture 512x512 queue success; no new relevant browser error | #56 lifecycle ledger; Issue remains open |
 | #136 | `3ddcd5a8bc06730c241e1994235dd142649a21cd` | record PR #134/#135 checkpoint, live Registry Flagged gate, and next-lane order | diff checks and independent consistency audit; no runtime diff | not required: docs-only diff | merge/read-back and cleanup recorded here |
+| #137 | `4d65170e5c3986e037d7e28be3efb8f53b1d6745` | record the initial #56/#54/#55 lane ownership and model-selection checkpoint | docs-focused validation; no runtime diff | not required: docs-only diff | merged and cleaned; task ownership corrected at the next checkpoint |
+| #138 | `86c1a304bf130fef7954892c1f2da5b7ad1e47a7` | Autocomplete entry, external DOM owner, and global installer lifecycle | 406/406; 107 JS; TS 6.0.3; diff checks | Legacy and Node 2.0 one-popup/20-result/keyboard/close/reload matrix; resources 200/no-store; EasyUse errors 0 | #56 ledger updated; Issue remains open for #98/final matrix |
 
 ## 0.5.0 Release And Withdrawal Checkpoint
 
@@ -162,10 +164,10 @@ before the single final user-instance sync.
 
 | Slice | Codex task | Branch / worktree | Base and status | Expected files |
 | --- | --- | --- | --- | --- |
-| #56 installer/entry lifecycle | team agent `/root/autocomplete_entry_lane`; `gpt-5.6-sol`, high | `codex/refactor-autocomplete-entry-lifecycle` / `worktrees/ComfyUI-EasyUseAnima/codex/refactor-autocomplete-entry-lifecycle` | base `3ddcd5a`; active production lane; focused checks and clean commit only | Autocomplete entry/global installer/external-owner modules and focused tests; no #98 parser work |
-| #54 concurrent API contract | team agent `/root/aio_concurrent_api_lane`; `gpt-5.6-sol`, high | `codex/fix-aio-concurrent-api-contract` / `worktrees/ComfyUI-EasyUseAnima/codex/fix-aio-concurrent-api-contract` | base `3ddcd5a`; active production lane; focused checks and clean commit only | AiO direct API queue/reservation runtime and focused tests; no #62 threshold work |
-| #55 profile/save-sync lifecycle | team agent `/root/lora_profile_sync_lane`; `gpt-5.6-terra`, high | `codex/refactor-lora-profile-save-sync` / `worktrees/ComfyUI-EasyUseAnima/codex/refactor-lora-profile-save-sync` | base `3ddcd5a`; active production lane; focused checks and clean commit only | LoRA profile mutation/save synchronization runtime and focused tests; wheel/entry deferred |
-| active-lane checkpoint ledger | integration owner `019f6f25-d26c-77a1-95dc-092cdb8e756c` | `codex/record-active-lanes-56-54-55` / `worktrees/ComfyUI-EasyUseAnima/codex/record-active-lanes-56-54-55` | base `3ddcd5a`; docs-only checkpoint active | this execution ledger only |
+| #56 installer/entry lifecycle | task `019f6fdc-44af-7af2-9d97-21396ae46461`; `gpt-5.6-sol`, high | former `codex/refactor-autocomplete-entry-lifecycle` worktree | PR #138 merged at `86c1a30`; Issue ledger read back; worktree and local/remote branch removed | integrated; #98 remains a separate later lane |
+| #54 concurrent API contract | task `019f6fdc-603c-7af1-871b-1e8392e752e4`; `gpt-5.6-sol`, high | `codex/fix-aio-concurrent-api-contract` / `worktrees/ComfyUI-EasyUseAnima/codex/fix-aio-concurrent-api-contract` | rebased base `86c1a30`; clean `ff689a8`; focused contract GO; integration gate active | AiO direct API queue/reservation runtime and focused tests; no #62 threshold work |
+| #55 profile/save-sync lifecycle | task `019f6fdc-6ffb-7641-9ff8-8d1ee5104d24`; `gpt-5.6-terra`, high | `codex/refactor-lora-profile-save-sync` / `worktrees/ComfyUI-EasyUseAnima/codex/refactor-lora-profile-save-sync` | original base `3ddcd5a`; clean `8d686ec`; focused lane complete; queued behind #54 | LoRA profile mutation/save synchronization runtime and focused tests; wheel/entry deferred |
+| PR #138/task-ownership checkpoint | integration owner `019f6f25-d26c-77a1-95dc-092cdb8e756c` | `codex/record-pr138-task-ownership-checkpoint` / `worktrees/ComfyUI-EasyUseAnima/codex/record-pr138-task-ownership-checkpoint` | base `86c1a30`; docs-only checkpoint active | this execution ledger only |
 
 ## Integration Gates
 
@@ -183,10 +185,10 @@ Only one row may enter push/PR/merge at a time.
 | 8 | #130-#133 checkpoint ledger/Skill | PR #134 merged, read back, and cleaned | no runtime/full repeat | no browser repeat | no production code change | complete |
 | 9 | #56 per-input binding lifecycle | PR #135 merged; correctness/test/scope audits and Issue read-back complete | 405/405; 106 JS; TS 6.0.3 | Legacy and Node 2.0 popup lifecycle/save-reload and queue complete | package failure remains attributed to #127; installer/global lifecycle remains | complete |
 | 10 | #135 checkpoint ledger | PR #136 merged, read back, and cleaned | no runtime/full repeat | no browser repeat | current Registry 0.5.1 Flagged gate recorded without inferring cause | complete |
-| 11 | active-lane ownership checkpoint | current docs-only branch; focused validation and read-back required | no runtime/full repeat | no browser repeat | no production code change | active |
-| 12 | #56 installer/entry lifecycle | production lane active from exact base `3ddcd5a`; integration owner admits it first | pending final diff | dual-canvas re-entry and cumulative input matrix after audit/full | external DOM owner disposal and global installer authority remain | production |
-| 13 | #54 concurrent API contract | production lane active from exact base `3ddcd5a`; integration waits behind #56 | pending final diff | direct API evidence first; browser only if final diff changes browser-observable flow | reservation/serialization contract must remain isolated from #62 | production |
-| 14 | #55 profile/save-sync lifecycle | production lane active from exact base `3ddcd5a`; integration waits behind earlier gates | pending final diff | dual-canvas profile/save evidence after audit/full if behavior changes | wheel/entry and final cumulative matrix remain separate | production |
+| 11 | initial active-lane ownership checkpoint | PR #137 merged, read back, and cleaned | no runtime/full repeat | no browser repeat | initial task ownership text superseded by the actual sidebar-task read-back below | complete |
+| 12 | #56 installer/entry lifecycle | PR #138 merged; full, dual-canvas, resource/module, Issue read-back, and cleanup complete | 406/406; 107 JS; TS 6.0.3 | Legacy and Node 2.0 re-entry/reload matrix complete | apparent reload failure was ambiguous target selection, not a module/lifecycle failure; #98/final user matrix remain | complete |
+| 13 | #54 concurrent API contract | focused lane GO at rebased `ff689a8`; integration owner running exact-head gate | official full pending on final checkpoint tree | direct concurrent API evidence required; browser only if needed to prove the observable contract | reservation/serialization contract remains isolated from #62 | integration |
+| 14 | #55 profile/save-sync lifecycle | focused lane complete at `8d686ec`; waits behind #54 | pending rebase/final diff | dual-canvas profile/save evidence after audit/full | wheel/entry and final cumulative matrix remain separate | queued |
 | 15 | direct #62/#98 and remaining #54/#55 boundaries | bounded lanes from the then-current `origin/dev` | per PR-ready diff | per behavior diff; final Issue matrices required | sequence and overlap audit required | backlog |
 | 16 | release, Registry, and final user-instance sync | all agreed boundaries, direct blockers, and current Registry Flagged cause reconciled first | final merged `dev` full | final dual-canvas plus one compatible v0.27.0 bundle confirmation | blocked by remaining Goal work and Registry gate | queued |
 
@@ -225,6 +227,14 @@ sandbox. Do not report the environment spawn error as a code failure.
   node, so its expected `Prompt has no outputs` signal was recorded and queue
   evidence came from the established output-capable AiO fixture on both
   surfaces.
+- Completed #138 boundary: process-wide listeners, external input and tooltip
+  hooks, popup UI, retry timer, and prototype wrappers now have a
+  generation-aware entry owner. Legacy and Node 2.0 reloads restored multiple
+  prompt textareas; explicitly selecting the textarea containing the query
+  produced one 20-result popup and passed keyboard, close, and re-entry checks.
+  The earlier apparent post-reload failure was the diagnostic guard refusing an
+  ambiguous target, not a missing served module or failed lifecycle. Issue #56
+  remains open only for #98 and the final cumulative/user-instance matrix.
 - Completed #133 wheel boundary: main preview and non-overflow feed now consume
   wheel input in both canvas modes, while unrelated panel space preserves canvas
   forwarding. The live workflow did not produce an overflowing feed, so X-axis
@@ -291,17 +301,19 @@ sandbox. Do not report the environment spawn error as a code failure.
 - The #128 release-prep branch/worktree and remote branch were removed after
   the dev/main merges, public archive read-backs, and tree-equality checks.
 - The #130 checkpoint, #131 Autocomplete limit, #132 LoRA node runtime, #133
-  AiO preview-wheel, #134/#136 checkpoints, and #135 Autocomplete input-binding
+  AiO preview-wheel, #134/#136/#137 checkpoints, and #135 Autocomplete input-binding
   branches/worktrees and remote branches were removed after the applicable
   squash-tree/read-back, Issue ledger, and clean-state checks.
-- Main `02a9a84` is an ancestor of dev `3ddcd5a`; dev now contains the verified
-  post-release maintenance and documentation checkpoints through PR #136.
-- The three current production branch/worktrees are owned only by the named
-  team agents and started clean from the same `3ddcd5a` base. They remain
-  separate from the integration-owner checkpoint branch.
-- The current `record-active-lanes-56-54-55` branch/worktree is owned only by
-  the integration task and will be removed after its docs-only PR merge and
-  read-back.
+- The PR #138 Autocomplete entry branch/worktree and remote branch were removed
+  after tree equality, full/browser/resource checks, and #56 ledger read-back.
+- Main `02a9a84` is an ancestor of dev `86c1a30`; dev now contains the verified
+  post-release maintenance and documentation checkpoints through PR #138.
+- #54 and #55 remain in separate task-owned branch/worktrees. #54 is rebased on
+  current dev for integration; #55 stays on its clean original focused result
+  until the earlier gate completes.
+- The current `record-pr138-task-ownership-checkpoint` branch/worktree is owned
+  only by the integration task and will be removed after its docs-only PR merge
+  and read-back.
 - Existing unrelated `codex/*`, `fix/*`, and `feature/*` worktrees are untouched.
 - The Codex test server is stopped and port 8194 is free.
 - The integration owner has not synced the user v0.27.0 instance. The user
