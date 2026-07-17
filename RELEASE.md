@@ -1,5 +1,40 @@
 # Release Notes
 
+## 0.5.1
+
+### Fixed
+
+- Fixed the Registry package so `web/js/autocomplete/` and every
+  repository-local static dependency imported by the Autocomplete entry module
+  are included. The 0.5.0 package omitted these modules because its
+  `.comfyignore` pattern matched both the root user-data directory and the
+  frontend runtime directory.
+- Added a recursive package-surface regression check that follows the
+  Autocomplete entry module's relative imports and verifies that every resolved
+  file is Git tracked and not ignored from the Registry archive.
+
+### Important
+
+- 0.5.0 was withdrawn from Comfy Registry because typed Autocomplete
+  suggestions could not load from its incomplete package. Install 0.5.1 or
+  later, restart ComfyUI, and perform a hard browser refresh.
+- 0.5.1 is a replacement package for 0.5.0. It does not reuse or overwrite the
+  0.5.0 version payload.
+
+### Validation Notes
+
+- Official full validation on the frozen hotfix tree passed Python unittest
+  400/400, 104 frontend JavaScript files, TypeScript 6.0.3, and diff checks.
+- `comfy node validate` passed, and an actual `comfy node pack` archive
+  contained the Autocomplete entry plus its complete eight-file local import
+  closure.
+- Legacy canvas and Node 2.0 each passed Autocomplete input, suggestion display,
+  keyboard selection, Escape close, and workflow save/reload checks with no
+  relevant EasyUse Anima module or 404 errors.
+- This release-preparation slice changes only version, Registry, workflow, and
+  maintenance documentation metadata; it does not change production Python or
+  JavaScript beyond the already validated hotfix.
+
 ## 0.5.0
 
 ### Changed
