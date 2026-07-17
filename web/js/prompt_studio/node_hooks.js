@@ -120,6 +120,11 @@ function registerPromptStudioNodeHooks(nodeType, nodeData, hooks) {
         // Cleanup failures must not replace the node's original lifecycle result.
       }
       try {
+        hooks.disposeAdvancedAutocompleteInputs?.(this);
+      } catch {
+        // Autocomplete cleanup remains isolated from other node removal handlers.
+      }
+      try {
         hooks.detachAdvancedQueueSeedNode?.(this);
       } catch {
         // State cleanup remains isolated from other node removal handlers.

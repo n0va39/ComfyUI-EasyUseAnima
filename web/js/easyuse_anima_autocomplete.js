@@ -11,6 +11,7 @@ import {
   invalidateAutocompleteControllerStates,
 } from "./autocomplete/input_controller.js";
 import { createAutocompleteInputBinding } from "./autocomplete/input_binding.js";
+import { createAutocompleteEntryLifecycle } from "./autocomplete/entry_lifecycle.js";
 import {
   calculateAutocompletePopupGeometry,
   calculateCaretMirrorGeometry,
@@ -188,7 +189,7 @@ let activeRefreshFrame = null;
 let middlePanForwardCleanup = null;
 const autocompleteInputOwner = {};
 const hookedAutocompleteInputs = new Set();
-window.__easyuseAnimaPendingAutocompleteInputs ||= [];
+let autocompleteEntryLifecycle = null;
 
 const autocompleteData = createAutocompleteDataAdapter({
   fetchJson: easyuseAnimaFetchJson,
@@ -1663,23 +1664,24 @@ function hookFocusedDomInput(input) {
   });
 }
 
-function installExternalInputHook() {
-  window.easyuseAnimaHookAutocompleteInput = (input, options = {}) => {
-    return hookInput(input, options);
-  };
-  window.easyuseAnimaAutocompleteEntryTooltip = (entry) => autocompleteEntryTooltip(entry);
-  const pending = window.__easyuseAnimaPendingAutocompleteInputs || [];
-  window.__easyuseAnimaPendingAutocompleteInputs = [];
-  for (const item of pending) {
-    hookInput(item?.input, item?.options || {});
+function handleAutocompleteScroll(event) {
+  if (popup?.contains(event.target)) {
+    return;
   }
-  document.addEventListener("focusin", (event) => {
-    hookFocusedDomInput(event.target);
-  }, true);
-  hookFocusedDomInput(document.activeElement);
+  scheduleActiveRefresh();
+}
+
+function handleAutocompleteWheel(event) {
+  if (popup?.contains(event.target)) {
+    return;
+  }
+  scheduleActiveRefresh();
 }
 
 function hookNode(node, nodeData, attempt = 0) {
+  if (!autocompleteEntryLifecycle?.isActive()) {
+    return;
+  }
   const names = targetWidgets(nodeData);
   if (!names || (!hasExplicitTargets(nodeData) && shouldSkipNode(node, nodeData))) {
     return;
@@ -1696,22 +1698,10 @@ function hookNode(node, nodeData, attempt = 0) {
     }
   }
   if (pendingInput && attempt < 12) {
-    setTimeout(() => hookNode(node, nodeData, attempt + 1), 80);
+    autocompleteEntryLifecycle.schedule(() => hookNode(node, nodeData, attempt + 1), 80);
   }
 }
 
-document.addEventListener("scroll", (event) => {
-  if (popup?.contains(event.target)) {
-    return;
-  }
-  scheduleActiveRefresh();
-}, true);
-document.addEventListener("wheel", (event) => {
-  if (popup?.contains(event.target)) {
-    return;
-  }
-  scheduleActiveRefresh();
-}, true);
 function handleOutsideAutocompletePointer(event) {
   if (!activeState || popup?.contains(event.target)) {
     return;
@@ -1724,11 +1714,7 @@ function handleOutsideAutocompletePointer(event) {
   hidePopup();
 }
 
-document.addEventListener("pointerdown", handleOutsideAutocompletePointer, true);
-document.addEventListener("mousedown", handleOutsideAutocompletePointer, true);
-document.addEventListener("selectionchange", scheduleActiveRefresh);
-window.addEventListener("resize", scheduleActiveRefresh);
-window.addEventListener("easyuse-anima-settings-updated", (event) => {
+function handleAutocompleteSettingsUpdated(event) {
   const detail = event?.detail || {};
   let dataRequestsInvalidated = false;
   if ("autocomplete.mode" in detail) {
@@ -1780,12 +1766,49 @@ window.addEventListener("easyuse-anima-settings-updated", (event) => {
   } else {
     scheduleActiveRefresh();
   }
+}
+
+function disposeAutocompleteEntryInputs() {
+  for (const input of [...hookedAutocompleteInputs]) {
+    disposeAutocompleteInput(input);
+  }
+  hookedAutocompleteInputs.clear();
+}
+
+function disposeAutocompleteEntryUi() {
+  if (activeRefreshFrame != null) {
+    cancelAnimationFrame(activeRefreshFrame);
+    activeRefreshFrame = null;
+  }
+  middlePanForwardCleanup?.();
+  middlePanForwardCleanup = null;
+  hidePopup();
+  popup?.remove?.();
+  popup = null;
+  document.getElementById("easyuse-anima-autocomplete-style")?.remove?.();
+}
+
+autocompleteEntryLifecycle = createAutocompleteEntryLifecycle({
+  hostWindow: window,
+  hostDocument: document,
+  hookInput,
+  hookFocusedInput: hookFocusedDomInput,
+  entryTooltip: autocompleteEntryTooltip,
+  handleScroll: handleAutocompleteScroll,
+  handleWheel: handleAutocompleteWheel,
+  handleOutsidePointer: handleOutsideAutocompletePointer,
+  handleSelectionChange: scheduleActiveRefresh,
+  handleResize: scheduleActiveRefresh,
+  handleSettingsUpdated: handleAutocompleteSettingsUpdated,
+  hookNode: (node, nodeData) => hookNode(node, nodeData),
+  disposeInputs: disposeAutocompleteEntryInputs,
+  disposeUi: disposeAutocompleteEntryUi,
 });
 
 app.registerExtension({
   name: "easyuse-anima.autocomplete",
   async setup() {
-    installExternalInputHook();
+    autocompleteEntryLifecycle.install();
     await refreshAutocompleteSettings();
   },
   async beforeRegisterNodeDef(nodeType, nodeData) {
@@ -1793,16 +1816,6 @@ app.registerExtension({
       return;
     }
 
-    const onNodeCreated = nodeType.prototype.onNodeCreated;
-    nodeType.prototype.onNodeCreated = function () {
-      onNodeCreated?.apply(this, arguments);
-      hookNode(this, nodeData);
-    };
-
-    const onConfigure = nodeType.prototype.onConfigure;
-    nodeType.prototype.onConfigure = function () {
-      onConfigure?.apply(this, arguments);
-      hookNode(this, nodeData);
-    };
+    autocompleteEntryLifecycle.installNodeTypeHooks(nodeType, nodeData);
   },
 });

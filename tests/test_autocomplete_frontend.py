@@ -191,10 +191,10 @@ class AutocompleteFrontendBoundaryTests(unittest.TestCase):
         )
 
         settings_start = entry_source.index(
-            'window.addEventListener("easyuse-anima-settings-updated"'
+            "function handleAutocompleteSettingsUpdated"
         )
         settings_end = entry_source.index(
-            "\n\napp.registerExtension({", settings_start
+            "\nfunction disposeAutocompleteEntryInputs", settings_start
         )
         settings_body = entry_source[settings_start:settings_end]
         self.assertIn("let dataRequestsInvalidated = false;", settings_body)
@@ -535,7 +535,8 @@ class AutocompleteFrontendBoundaryTests(unittest.TestCase):
             2,
         )
         self.assertIn("app.registerExtension({", entry_source)
-        self.assertIn('document.addEventListener("pointerdown"', entry_source)
+        self.assertIn("createAutocompleteEntryLifecycle({", entry_source)
+        self.assertIn("handleOutsidePointer: handleOutsideAutocompletePointer", entry_source)
         self.assertIn("function hookInput(", entry_source)
 
     def test_data_adapter_is_in_static_and_semantic_runners(self):
@@ -707,7 +708,8 @@ class AutocompleteFrontendBoundaryTests(unittest.TestCase):
 
         self.assertEqual(source.count("planAutocompleteInsertion("), 2)
         self.assertIn("app.registerExtension({", source)
-        self.assertIn('document.addEventListener("pointerdown"', source)
+        self.assertIn("createAutocompleteEntryLifecycle({", source)
+        self.assertIn("handleOutsidePointer: handleOutsideAutocompletePointer", source)
         self.assertIn("function hookInput(", source)
 
     def test_text_model_is_in_static_and_semantic_runners(self):
