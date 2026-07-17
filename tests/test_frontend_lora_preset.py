@@ -47,6 +47,13 @@ LORA_PRESET_LORA_STATE = ROOT / "web" / "js" / "lora_preset" / "lora_state.js"
 LORA_PRESET_LORA_STATE_SMOKE = (
     ROOT / "tests" / "frontend_lora_preset_lora_state_smoke.mjs"
 )
+LORA_PRESET_PROFILE_MUTATIONS = (
+    ROOT / "web" / "js" / "lora_preset" / "profile_mutations.js"
+)
+LORA_PRESET_SAVE_SYNC = ROOT / "web" / "js" / "lora_preset" / "save_sync.js"
+LORA_PRESET_PROFILE_MUTATIONS_SMOKE = (
+    ROOT / "tests" / "frontend_lora_preset_profile_mutations_smoke.mjs"
+)
 JSCONFIG = ROOT / "jsconfig.json"
 FRONTEND_CHECK_SCRIPT = ROOT / "tools" / "check_frontend.ps1"
 
@@ -238,17 +245,10 @@ class LoraPresetFrontendTests(unittest.TestCase):
                 self.assertEqual(module_source.count(route), 1)
 
         self.assertEqual(entry_source.count("loraPresetApi.listProfiles()"), 1)
-        self.assertEqual(entry_source.count("loraPresetApi.loadProfile(name)"), 1)
-        self.assertEqual(entry_source.count("loraPresetApi.saveProfile("), 1)
+        self.assertEqual(entry_source.count("loraPresetApi.loadProfile(name)"), 0)
+        self.assertEqual(entry_source.count("loraPresetApi.saveProfile("), 0)
         self.assertEqual(entry_source.count("loraPresetApi.fixProfile("), 2)
         self.assertEqual(entry_source.count("loraPresetApi.listLoras()"), 1)
-        self.assertRegex(
-            entry_source,
-            (
-                r"loraPresetApi\.saveProfile\(\s*"
-                r"trimmedName,\s*selectedProfilePayload\(node\),?\s*\)"
-            ),
-        )
         self.assertIn(
             "loraPresetApi.fixProfile(fullProfilePayload(node))",
             entry_source,
@@ -312,7 +312,7 @@ class LoraPresetFrontendTests(unittest.TestCase):
         )
 
         factory_match = re.search(
-            r"const\s+loraCanvasWidgets\s*=\s*"
+            r"loraCanvasWidgets\s*=\s*"
             r"createLoraPresetCanvasWidgets"
             r"\(\{(?P<dependencies>.*?)\}\);",
             entry_source,
@@ -419,11 +419,6 @@ class LoraPresetFrontendTests(unittest.TestCase):
         self.assertIn("loraMenuLifecycle.install()", entry_source)
         self.assertNotIn("loraMenuLifecycle.install()", module_source)
         for entry_owned_token in (
-            "function addProfile(",
-            "function deleteProfile(",
-            "function saveCurrentProfile(",
-            "function mutateLoras(",
-            "function installLoraPresetSaveSync(",
             "function scrollProfileListFromWheel(",
             "function installProfileWheelListener(",
             "app.registerExtension({",
@@ -431,8 +426,8 @@ class LoraPresetFrontendTests(unittest.TestCase):
             with self.subTest(entry_owned_token=entry_owned_token):
                 self.assertIn(entry_owned_token, entry_source)
                 self.assertNotIn(entry_owned_token, module_source)
-        self.assertGreater(entry_source.count("loraCanvasWidgets.renderProfileBar("), 0)
-        self.assertGreater(entry_source.count("loraCanvasWidgets.renderLoraWidgets("), 0)
+        self.assertIn("let loraCanvasWidgets;", entry_source)
+        self.assertIn("getCanvasWidgets: () => loraCanvasWidgets", entry_source)
         self.assertTrue(LORA_PRESET_CANVAS_WIDGETS_SMOKE.is_file())
         self.assertIn("web/js/lora_preset/**/*.js", config["include"])
 
@@ -821,7 +816,20 @@ class LoraPresetFrontendTests(unittest.TestCase):
             for name in import_match.group("names").splitlines()
             if name.strip()
         }
-        self.assertEqual(imported_names, expected_exports)
+        self.assertEqual(
+            imported_names,
+            {
+                "INTERNAL_WIDGET_DEFAULTS",
+                "MAX_PROFILES",
+                "WIDGET_INDEX",
+                "normalizeLoraEntry",
+                "normalizeProfileDataValue",
+                "normalizeSerializedWidgets",
+                "profileKey",
+                "profileSavedName",
+                "wrapProfileIndex",
+            },
+        )
 
         self.assertEqual(module_source.splitlines()[0], "// @ts-check")
         self.assertNotRegex(
@@ -862,6 +870,64 @@ class LoraPresetFrontendTests(unittest.TestCase):
         if completed.returncode != 0:
             self.fail((completed.stdout + completed.stderr).strip())
 
+    def test_profile_mutations_and_save_sync_module_boundary(self):
+        mutations_source = LORA_PRESET_PROFILE_MUTATIONS.read_text(encoding="utf-8")
+        save_sync_source = LORA_PRESET_SAVE_SYNC.read_text(encoding="utf-8")
+        entry_source = LORA_PRESET_ENTRY.read_text(encoding="utf-8")
+        frontend_check_source = FRONTEND_CHECK_SCRIPT.read_text(encoding="utf-8")
+
+        self.assertEqual(mutations_source.splitlines()[0], "import {")
+        self.assertEqual(save_sync_source.splitlines()[0], "/** Installs the graph-save and queue-preparation synchronization hooks. */")
+        self.assertEqual(
+            re.findall(
+                r"^export\s+(?:const|function|class)\s+([A-Za-z0-9_]+)",
+                mutations_source,
+                re.MULTILINE,
+            ),
+            ["createLoraPresetProfileMutations"],
+        )
+        self.assertEqual(
+            re.findall(
+                r"^export\s+(?:const|function|class)\s+([A-Za-z0-9_]+)",
+                save_sync_source,
+                re.MULTILINE,
+            ),
+            ["createLoraPresetSaveSync"],
+        )
+        self.assertIn(
+            'import { createLoraPresetProfileMutations } from '
+            '"./lora_preset/profile_mutations.js";',
+            entry_source,
+        )
+        self.assertIn(
+            'import { createLoraPresetSaveSync } from "./lora_preset/save_sync.js";',
+            entry_source,
+        )
+        self.assertIn("const loraProfileMutations = createLoraPresetProfileMutations({", entry_source)
+        self.assertIn("const loraPresetSaveSync = createLoraPresetSaveSync({", entry_source)
+        self.assertIn("loraPresetSaveSync.install();", entry_source)
+        self.assertTrue(LORA_PRESET_PROFILE_MUTATIONS_SMOKE.is_file())
+        self.assertIn(
+            r'node "tests\frontend_lora_preset_profile_mutations_smoke.mjs"',
+            frontend_check_source,
+        )
+
+    def test_profile_mutations_and_save_sync_module_semantics(self):
+        node_bin = shutil.which("node")
+        if not node_bin:
+            self.skipTest("node executable is not available")
+
+        completed = subprocess.run(
+            [node_bin, str(LORA_PRESET_PROFILE_MUTATIONS_SMOKE)],
+            cwd=ROOT,
+            text=True,
+            capture_output=True,
+            check=False,
+        )
+
+        if completed.returncode != 0:
+            self.fail((completed.stdout + completed.stderr).strip())
+
     def test_lora_row_controls_and_api_wiring_runtime(self):
         node_bin = shutil.which("node")
         if not node_bin:
@@ -881,6 +947,8 @@ class LoraPresetFrontendTests(unittest.TestCase):
             const menuLifecyclePath = process.argv[6];
             const canvasWidgetsPath = process.argv[7];
             const nodeRuntimePath = process.argv[8];
+            const profileMutationsPath = process.argv[9];
+            const saveSyncPath = process.argv[10];
             let profileDataSource = fs.readFileSync(profileDataPath, "utf8");
             profileDataSource = profileDataSource.replace(
               /^export\s+(?=(?:const|function|class)\b)/gm,
@@ -916,9 +984,20 @@ class LoraPresetFrontendTests(unittest.TestCase):
               /^export\s+(?=(?:const|function|class)\b)/gm,
               "",
             );
+            let profileMutationsSource = fs.readFileSync(profileMutationsPath, "utf8");
+            profileMutationsSource = profileMutationsSource.replace(/^import[\s\S]*?;\r?\n/gm, "");
+            profileMutationsSource = profileMutationsSource.replace(
+              /^export\s+(?=(?:const|function|class)\b)/gm,
+              "",
+            );
+            let saveSyncSource = fs.readFileSync(saveSyncPath, "utf8");
+            saveSyncSource = saveSyncSource.replace(
+              /^export\s+(?=(?:const|function|class)\b)/gm,
+              "",
+            );
             let source = fs.readFileSync(sourcePath, "utf8");
             source = source.replace(/^import[\s\S]*?;\r?\n/gm, "");
-            source = `${profileDataSource}\n${loraStateSource}\n${apiClientSource}\n${previewLifecycleSource}\n${menuLifecycleSource}\n${canvasWidgetsSource}\n${nodeRuntimeSource}\n${source}`;
+            source = `${profileDataSource}\n${loraStateSource}\n${apiClientSource}\n${previewLifecycleSource}\n${menuLifecycleSource}\n${canvasWidgetsSource}\n${nodeRuntimeSource}\n${profileMutationsSource}\n${saveSyncSource}\n${source}`;
             source += "\nglobalThis.__loraPresetTest = { loraCanvasWidgets, LORA_PRESET_SETTINGS, applyLoraPresetSettings, loraPresetApi, loraPreviewLifecycle, loraMenuLifecycle, saveProfileSet };\n";
 
             const mutationObservers = [];
@@ -1251,6 +1330,8 @@ class LoraPresetFrontendTests(unittest.TestCase):
                 str(LORA_PRESET_MENU_LIFECYCLE),
                 str(LORA_PRESET_CANVAS_WIDGETS),
                 str(LORA_PRESET_NODE_RUNTIME),
+                str(LORA_PRESET_PROFILE_MUTATIONS),
+                str(LORA_PRESET_SAVE_SYNC),
             ],
             cwd=ROOT,
             text=True,

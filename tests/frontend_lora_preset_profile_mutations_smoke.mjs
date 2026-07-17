@@ -72,12 +72,31 @@ assert.ok(renderCalls.profile > 0);
 
 const syncCalls = [];
 const graphPrototype = {
-  serialize(value) { return { receiver: this, value }; },
+  serialize(value) {
+    if (value === "throw") {
+      throw new Error("serialize failure");
+    }
+    return { receiver: this, value };
+  },
 };
 const graph = { _nodes: [{ comfyClass: "EasyUseAnimaLoraPreset", id: 1 }, { comfyClass: "Other", id: 2 }] };
+const secondaryGraph = { _nodes: [{ comfyClass: "EasyUseAnimaLoraPreset", id: 3 }] };
+const pendingResult = Promise.resolve({ queued: true });
+const rejectedResult = Promise.reject(new Error("queue failure"));
 const app = {
   graph,
-  queuePrompt(value) { return { receiver: this, value }; },
+  queuePrompt(value) {
+    if (value === "throw") {
+      throw new Error("queue throw");
+    }
+    if (value === "promise") {
+      return pendingResult;
+    }
+    if (value === "reject") {
+      return rejectedResult;
+    }
+    return { receiver: this, value };
+  },
 };
 const saveSync = createLoraPresetSaveSync({
   app,
@@ -87,12 +106,51 @@ const saveSync = createLoraPresetSaveSync({
 });
 saveSync.install();
 saveSync.install();
-const serialized = graphPrototype.serialize.call(graph, "serialize-value");
+const serialized = graphPrototype.serialize.call(secondaryGraph, "serialize-value");
 const queued = app.queuePrompt.call(app, "queue-value");
-assert.deepEqual(syncCalls, [1, 1]);
-assert.strictEqual(serialized.receiver, graph);
+assert.deepEqual(syncCalls, [3, 1]);
+assert.strictEqual(serialized.receiver, secondaryGraph);
 assert.equal(serialized.value, "serialize-value");
 assert.strictEqual(queued.receiver, app);
 assert.equal(queued.value, "queue-value");
+
+const previousSerialize = graphPrototype.serialize;
+let serializeWrapperThis = null;
+let serializeWrapperArgs = null;
+graphPrototype.serialize = function () {
+  serializeWrapperThis = this;
+  serializeWrapperArgs = [...arguments];
+  return previousSerialize.apply(this, arguments);
+};
+const previousQueuePrompt = app.queuePrompt;
+let queueWrapperThis = null;
+let queueWrapperArgs = null;
+app.queuePrompt = function () {
+  queueWrapperThis = this;
+  queueWrapperArgs = [...arguments];
+  return previousQueuePrompt.apply(this, arguments);
+};
+
+saveSync.install();
+saveSync.install();
+syncCalls.length = 0;
+const reinstalledSerialized = graphPrototype.serialize.call(secondaryGraph, "reinstall-value");
+const reinstalledQueued = app.queuePrompt.call(app, "reinstall-queue");
+assert.deepEqual(syncCalls, [3, 1], "reinstall must not stack stale synchronization wrappers");
+assert.strictEqual(serializeWrapperThis, secondaryGraph);
+assert.deepEqual(serializeWrapperArgs, ["reinstall-value"]);
+assert.strictEqual(reinstalledSerialized.receiver, secondaryGraph);
+assert.strictEqual(queueWrapperThis, app);
+assert.deepEqual(queueWrapperArgs, ["reinstall-queue"]);
+assert.strictEqual(reinstalledQueued.receiver, app);
+
+assert.throws(() => graphPrototype.serialize.call(secondaryGraph, "throw"), /serialize failure/);
+assert.throws(() => app.queuePrompt.call(app, "throw"), /queue throw/);
+const returnedPromise = app.queuePrompt.call(app, "promise");
+assert.strictEqual(returnedPromise, pendingResult);
+assert.deepEqual(await returnedPromise, { queued: true });
+const returnedRejection = app.queuePrompt.call(app, "reject");
+assert.strictEqual(returnedRejection, rejectedResult);
+await assert.rejects(returnedRejection, /queue failure/);
 
 console.log("LoRA profile mutation and save-sync smoke passed");

@@ -11,30 +11,39 @@ export function createLoraPresetSaveSync({
     }
   }
 
-  function syncAllNodes() {
-    for (const node of app.graph?._nodes || []) {
+  function syncAllNodes(graph = app.graph) {
+    for (const node of graph?._nodes || []) {
       syncNode(node);
     }
   }
 
+  const serializeInstall = { target: null, wrapper: null };
+  const queueInstall = { target: null, wrapper: null };
+
+  function installWrapper(state, target, methodName, syncBeforeCall) {
+    const current = target?.[methodName];
+    if (typeof current !== "function" || (state.target === target && current === state.wrapper)) {
+      return;
+    }
+    const wrapper = function () {
+      // A host extension can wrap our previous function between installs.  Only
+      // the outermost current wrapper owns synchronization, so reinstalling
+      // composes with that extension without double-saving profiles.
+      if (state.target === target && state.wrapper === wrapper) {
+        syncBeforeCall(this);
+      }
+      return current.apply(this, arguments);
+    };
+    wrapper.__easyuseAnimaLoraPresetWrapped = true;
+    state.target = target;
+    state.wrapper = wrapper;
+    target[methodName] = wrapper;
+  }
+
   function install() {
     const graphPrototype = getGraphPrototype();
-    if (graphPrototype?.serialize && !graphPrototype.serialize.__easyuseAnimaLoraPresetWrapped) {
-      const serialize = graphPrototype.serialize;
-      graphPrototype.serialize = function () {
-        syncAllNodes();
-        return serialize.apply(this, arguments);
-      };
-      graphPrototype.serialize.__easyuseAnimaLoraPresetWrapped = true;
-    }
-    if (app.queuePrompt && !app.queuePrompt.__easyuseAnimaLoraPresetWrapped) {
-      const queuePrompt = app.queuePrompt;
-      app.queuePrompt = function () {
-        syncAllNodes();
-        return queuePrompt.apply(this, arguments);
-      };
-      app.queuePrompt.__easyuseAnimaLoraPresetWrapped = true;
-    }
+    installWrapper(serializeInstall, graphPrototype, "serialize", (graph) => syncAllNodes(graph));
+    installWrapper(queueInstall, app, "queuePrompt", () => syncAllNodes());
   }
 
   return { install, syncNode, syncAllNodes };

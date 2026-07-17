@@ -3277,6 +3277,10 @@ class FrontendModuleStructureTests(unittest.TestCase):
         self.assertIn(
             r'& node "tests\frontend_aio_settings_core_smoke.mjs"', source
         )
+        self.assertIn(
+            r'& node "tests\frontend_lora_preset_profile_mutations_smoke.mjs"',
+            source,
+        )
         self.assertIn('"typescript@$TypeScriptVersion"', source)
         self.assertIn("tsc -p jsconfig.json", source)
 
