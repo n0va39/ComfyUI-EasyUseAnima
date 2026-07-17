@@ -240,15 +240,21 @@ assert.equal(workflowWidgetValue(workflowFindWidget(workflowNode, "style_prompt"
 // The canvas-owned active index is authoritative even when a property-panel
 // snapshot still exposes the deleted profile index.
 workflowFindWidget(workflowNode, "profile_index").value = 3;
+workflowNode.widgets.splice(WIDGET_INDEX.loraName, 0, {
+  name: "easyuse_anima_profile_bar",
+  value: null,
+  serialize: false,
+});
 const workflowGraphPrototype = {
   serialize() {
-    const workflowNodeSnapshot = {
-      widgets_values: ["profile-alpha", 3, "3", "None", "[]", JSON.stringify({
-        "1": { style_prompt: "profile-alpha", loras: [] },
-        "2": { style_prompt: "profile-beta", loras: [] },
-        "3": { style_prompt: "", loras: [] },
-      })],
-    };
+    const widgetsValues = [];
+    for (const [index, widget] of workflowNode.widgets.entries()) {
+      if (widget.serialize === false) {
+        continue;
+      }
+      widgetsValues[index] = widget.value ?? null;
+    }
+    const workflowNodeSnapshot = { widgets_values: widgetsValues };
     workflowNode.onSerialize(workflowNodeSnapshot);
     return workflowNodeSnapshot;
   },
@@ -264,6 +270,7 @@ workflowSaveSync.install();
 const savedWorkflowNode = workflowGraphPrototype.serialize.call(workflowGraph);
 assert.equal(savedWorkflowNode.widgets_values[WIDGET_INDEX.profileIndex], 2);
 assert.equal(savedWorkflowNode.widgets_values[WIDGET_INDEX.profileCount], "2");
+assert.equal(savedWorkflowNode.widgets_values.length, WIDGET_INDEX.profileData + 1);
 const savedProfileData = JSON.parse(savedWorkflowNode.widgets_values[WIDGET_INDEX.profileData]);
 assert.deepEqual(Object.keys(savedProfileData), ["1", "2"]);
 assert.equal(savedProfileData["1"].style_prompt, "profile-alpha");

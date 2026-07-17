@@ -31,6 +31,30 @@ export function createLoraPresetNodeRuntime({
   enforceNodeLayout,
   requestAnimationFrame,
 }) {
+  function compactSerializedWidgetValues(node, workflowNode) {
+    const values = workflowNode?.widgets_values;
+    const widgets = node?.widgets;
+    if (!Array.isArray(values) || !Array.isArray(widgets)) {
+      return values;
+    }
+    const serializableCount = widgets.reduce(
+      (count, widget) => count + (widget?.serialize === false ? 0 : 1),
+      0,
+    );
+    if (values.length <= serializableCount) {
+      return values.slice(0, serializableCount);
+    }
+    const compact = [];
+    for (let widgetIndex = 0; widgetIndex < widgets.length; widgetIndex += 1) {
+      const widget = widgets[widgetIndex];
+      if (widget?.serialize === false) {
+        continue;
+      }
+      compact.push(values[widgetIndex] ?? widgetValue(widget, null));
+    }
+    return compact;
+  }
+
   function hideInternalWidget(node, name) {
     const widget = findWidget(node, name);
     if (!widget) {
@@ -175,11 +199,13 @@ export function createLoraPresetNodeRuntime({
       originalOnSerialize?.apply(this, arguments);
       const dataWidget = findWidget(this, "profile_data");
       if (workflowNode?.widgets_values && dataWidget) {
-        workflowNode.widgets_values[widgetIndex.profileIndex] = activeProfileIndex(this);
-        workflowNode.widgets_values[widgetIndex.profileCount] = String(profileCount(this));
-        workflowNode.widgets_values[widgetIndex.loraName] = internalWidgetDefaults.lora_name;
-        workflowNode.widgets_values[widgetIndex.loras] = JSON.stringify(lorasWidgetValue(this));
-        workflowNode.widgets_values[widgetIndex.profileData] = widgetValue(dataWidget, "{}");
+        const values = compactSerializedWidgetValues(this, workflowNode);
+        workflowNode.widgets_values = values;
+        values[widgetIndex.profileIndex] = activeProfileIndex(this);
+        values[widgetIndex.profileCount] = String(profileCount(this));
+        values[widgetIndex.loraName] = internalWidgetDefaults.lora_name;
+        values[widgetIndex.loras] = JSON.stringify(lorasWidgetValue(this));
+        values[widgetIndex.profileData] = widgetValue(dataWidget, "{}");
       }
     };
 
