@@ -19,6 +19,11 @@
   },
   "versions": [
     {
+      "version": "0.5.0",
+      "deprecated": false,
+      "changelog_file": "changelogs/0.5.0.txt"
+    },
+    {
       "version": "0.4.0",
       "deprecated": false,
       "changelog_file": "changelogs/0.4.0.txt"
@@ -30,17 +35,17 @@
     },
     {
       "version": "0.3.1",
-      "deprecated": false,
+      "deprecated": true,
       "changelog_file": "changelogs/0.3.1.txt"
     },
     {
       "version": "0.3.0",
-      "deprecated": false,
+      "deprecated": true,
       "changelog_file": "changelogs/0.3.0.txt"
     },
     {
       "version": "0.2.7",
-      "deprecated": false,
+      "deprecated": true,
       "changelog": "### Fixed\n\n- Fixed global autocomplete attachment in ComfyUI Nodes 2.0 for prompt fields created or re-rendered after extension startup.\n- Fixed escaped prompt parenthesis search so literal tags such as `\\(blue archive\\)` match correctly.\n- Fixed autocomplete popup scroll reset timing after hide/show cycles.\n\n### Changed\n\n- Hardened popup reset timing and disabled scroll anchoring for stable suggestion list reopening."
     },
     {

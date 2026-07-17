@@ -1,5 +1,48 @@
 # Release Notes
 
+## 0.5.0
+
+### Changed
+
+- Split the AiO Generator, LoRA Preset, Autocomplete, Settings, Prompt Studio,
+  and Regional Prompt Studio frontends into smaller lifecycle and pure-data
+  modules while preserving existing node, workflow, and API contracts.
+- Unified the public Wildcard and Prompt Studio seed range at
+  `0..9007199254740991`, including increment/decrement wrapping and full-range
+  randomization, while preserving loaded legacy Python `uint64` workflow seeds.
+- Expanded the checked-in frontend semantic-smoke runner, TypeScript checking,
+  dual-canvas browser matrix, and maintenance handoff ledger.
+- Updated maintained release workflow metadata to package version `0.5.0`.
+
+### Fixed
+
+- Fixed rapid consecutive queue seed ownership for native Wildcard and Regional
+  Prompt Studio queues, and for Advanced queues including nodes inside attached
+  subgraphs, with queue rejection, graph clear, and workflow re-entry boundaries.
+- Fixed AiO Generator queue transactions and extension re-entry so missing or
+  empty prompt IDs do not commit state, duplicate hooks do not queue twice, and
+  sampler hydration refreshes top-level and attached-subgraph panels once.
+- Fixed AiO preview, settings-dialog, panel-render, profile, resize, and scroll
+  lifecycle ownership without changing saved generation-settings contracts.
+- Fixed Autocomplete input, IME composition, keyboard, popup geometry, and
+  request/source epoch handling so stale or failed responses cannot replace or
+  close the current suggestion list after a source change.
+- Fixed LoRA Preset menu, preview, and canvas-widget lifecycle ownership,
+  including escaped folder labels, idempotent installation/disposal, and
+  preview cleanup when the current node changes.
+
+### Validation Notes
+
+- Reused the frozen production-tree evidence from the final 0.5.0 maintenance
+  checkpoint: Python unittest 398/398, 104 frontend JavaScript files,
+  TypeScript 6.0.3, and diff checks.
+- Verified the final Autocomplete source-switch, keyboard, commit, and
+  save/reload matrix on both legacy canvas and Node 2.0 in the Codex test
+  instance, with no EasyUse Anima browser errors.
+- Release preparation changes only version, changelog, Registry, workflow
+  metadata, and maintenance documentation; no production Python or JavaScript
+  is changed in the release-prep slice.
+
 ## 0.4.0
 
 ### Added

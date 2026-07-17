@@ -16,8 +16,9 @@ GitHub Issue ledgers, or live Git/GitHub/Codex/process read-back.
 - Before using this snapshot, fetch and reconcile the external state named in
   the relevant row.
 
-Snapshot: 2026-07-17 KST, immediately before the #56/#99 adapter-epoch PR after
-the final full and dual-canvas browser gates.
+Snapshot: 2026-07-17 KST, after PR #123 merge/read-back and cleanup, the live
+0.5.0 release-state audit, and final release-prep focused validation. The
+metadata-only diff on frozen production checkpoint `f5c8694` is ready for PR.
 
 ## Goal Boundary
 
@@ -46,9 +47,11 @@ Excluded without separate approval:
 
 | Surface | Confirmed state |
 | --- | --- |
-| `origin/dev` | `3f8a6c0acd25fb0819818b39d3b6f29d70d39f51` |
+| `origin/dev` | `f5c8694cd161c0c304c66666836e6eb8fa816928` |
 | local `dev` | same SHA, clean |
-| latest integration | PR #122, LoRA Preset canvas widget extraction |
+| `origin/main` | `8d49c5584b092aa0999ae536a57c40f3ff57af42` (`v0.4.0`) |
+| latest integration | PR #123, Autocomplete adapter/request epoch hardening |
+| next release | 0.5.0; no conflicting tag, GitHub Release, or Registry version |
 | Codex test server | stopped; port 8194 listener and related server/launcher count 0 |
 | test-instance canvas setting | `Comfy.VueNodes.Enabled=false` restored |
 | user v0.27.0 instance | not synced for this Goal |
@@ -60,9 +63,9 @@ Excluded without separate approval:
 | --- | --- | --- | --- |
 | #54 AiO Generator | open | PR #107 lifecycle, #113 API queue/hook reentry and missing `prompt_id` no-commit regression, #119 sampler hydration owner and attached-subgraph refresh | direct concurrent API serialization/reservation, final broader matrix, #62/#66 triage, and optional #119 cycle/repeated-node/remove/root-replacement fixtures |
 | #55 LoRA Preset | open | #108 menu extraction, #115/#109 lifecycle hardening, #122 canvas-widget extraction | profile mutation, initialize/configure/serialize, save-sync/wheel/entry, final matrix |
-| #56 Autocomplete | open | #116 input/keyboard/composition controller | integrate the current #99 adapter epoch; then external input hook, listener installer/entry, #98/#100, final matrix |
-| #98 Autocomplete replacement syntax | open | none | deferred until the current adapter-epoch gate is integrated; preserve nested parentheses, weights, and artist prefix |
-| #99 Autocomplete request epochs | open | #116 controller generation plus the final adapter/result/source epoch working diff; focused, full, Legacy, and Node 2.0 gates passed | open the PR, squash merge/read back, write the final ledger, and close completed |
+| #56 Autocomplete | open | #116 input/keyboard/composition controller and #123 adapter/result/source epoch hardening | external input hook, listener installer/entry, #98/#100, final matrix |
+| #98 Autocomplete replacement syntax | open | adapter epoch prerequisite complete | preserve nested parentheses, weights, and artist prefix |
+| #99 Autocomplete request epochs | closed | PR #123; focused/full/Legacy/Node 2.0 evidence and final ledger recorded | none |
 | #100 Autocomplete result limit | open | none | deferred backend limit audit for configured values 51–100 |
 | #102 seed range | closed | production contract #112 and Korean/English user docs #121 | none; #111 remains a separate non-blocking Node 2.0 display mismatch |
 | #103 Regional seed | closed | PR #118 and final ledger | none |
@@ -93,12 +96,14 @@ in the roadmap and owning Issue ledgers.
 | #120 | `37c14f8cc10bd43fd33d3a1be76eeeeba435b920` | frontend maintenance execution ledger and repo-local coordination Skill | 396/396; 103 JS; TS 6.0.3 | not required: internal docs/procedure only | no owning feature Issue; merge/read-back and cleanup recorded here |
 | #121 | `e7a2cc4c95d40930a5076c25fd5f06a9bcc78c14` | bilingual wildcard seed range and legacy workflow user documentation | 396/396; 103 JS; TS 6.0.3 | reused #112 identical production evidence; docs-only diff | #102 final ledger; Issue closed completed |
 | #122 | `3f8a6c0acd25fb0819818b39d3b6f29d70d39f51` | LoRA Preset canvas drawing/hit-testing/strength-drag/widget extraction | 398/398; 104 JS; TS 6.0.3 | not repeated: mechanically identical extraction; final #55 matrix remains | #55 ledger; Issue remains open |
+| #123 | `f5c8694cd161c0c304c66666836e6eb8fa816928` | Autocomplete adapter/result/source request epochs | 398/398; 104 JS; TS 6.0.3 | Legacy and Node 2.0 source switch, keyboard, commit, save/reload; errors 0 | #99 final ledger; Issue closed completed; #56 progress ledger |
 
 ## Production Lane Ownership
 
 | Slice | Codex task | Branch / worktree | Base and status | Expected files |
 | --- | --- | --- | --- | --- |
-| #56/#99 adapter epoch | source task `019f6bc5-c33b-7960-b84e-0f2300525f2a`; integration owner `019f6a32-3b0f-7ed0-8ff6-03de8546f402` | clean source `codex/fix-autocomplete-adapter-epoch` / `f34bdaa`; active integration `codex/integrate-autocomplete-adapter-epoch` / `worktrees/ComfyUI-EasyUseAnima/codex/integrate-autocomplete-adapter-epoch` | source patch range-diff `=` as integration commit `b460f5e` plus review-fix/checkpoint HEAD `bc1d455` on `3f8a6c0`; focused, full, and dual-canvas gates passed | data adapter and smoke; input controller helper/smoke; autocomplete entry/static contract; this checkpoint |
+| 0.5.0 release preparation | integration owner `019f6a32-3b0f-7ed0-8ff6-03de8546f402` | `codex/release-0.5.0` / `worktrees/ComfyUI-EasyUseAnima/codex/release-0.5.0` | base `f5c8694`; production checkpoint frozen; final diff validated and ready for PR | `pyproject.toml`, release/Registry changelog and ledger, development release docs, 11 maintained workflow package versions, this checkpoint |
+| remaining production lanes | none active | no branch/worktree assigned | create from latest `origin/dev` only after the release gate and ownership audit | next #54/#55/#56 reviewable slices |
 
 ## Integration Gates
 
@@ -106,9 +111,9 @@ Only one row may enter push/PR/merge at a time.
 
 | Order | Slice | Focused / audit | Full | Browser | Blocker / finding | Gate |
 | ---: | --- | --- | --- | --- | --- | --- |
-| 1 | #56/#99 adapter epoch | source range-diff; final four semantic smokes, related unittest 43/43, TS 6.0.3, diff check, and three no-P0-P3 audits passed | 398/398; 104 JavaScript files; TypeScript 6.0.3; diff check | Legacy and Node 2.0: Danbooru 20 -> e621 2 -> Danbooru 20, Escape/ArrowDown/Tab, save/reload, EasyUse errors 0 | no code blocker; the first stale-tab cache attempt was excluded and a fresh exact-diff tab passed | ready for PR |
-| 2 | 0.5.x release checkpoint | enter only after #99 has a merged/read-back safe checkpoint; then read back main/dev/tags/Releases/Registry before choosing the version | reuse identical final-diff evidence; rerun only if code/base changes | reuse valid merged evidence | blocked by current working diff | queued |
-| 3 | remaining #54/#55/#56 slices | create only after file ownership and priority audit | per PR-ready diff | per behavior diff; final Issue matrices required | sequence and overlap audit required | backlog |
+| 1 | 0.5.0 release preparation | workflow 9/9, validation contract 4/4, scanner safety 4/4, changelog extraction, Registry dry-run, official quick runner (104 JS; TS 6.0.3), `comfy node validate`, diff check, and two no-blocker audits passed | reused frozen `f5c8694` production evidence: unittest 398/398; no repeat because production code/base are unchanged | reused valid #123 Legacy and Node 2.0 evidence | P2 subgraph wording corrected; Registry 0.4.0 is scanner-flagged and 0.5.0 may require administrator approval after publish | ready for release-prep PR |
+| 2 | 0.5.0 dev -> main, tag, Release, Registry | enter after release-prep PR squash merge/read-back | release metadata checks must remain valid | no repeat for metadata-only integration | mutation timeout/abort requires read-back before retry | queued |
+| 3 | remaining #54/#55/#56 slices | create only after release read-back, cleanup, file ownership, and priority audit | per PR-ready diff | per behavior diff; final Issue matrices required | sequence and overlap audit required | backlog |
 | 4 | final user-instance sync | all agreed Issues/bugs reconciled first | use merged `dev` evidence | one manual v0.27.0 confirmation | blocked by remaining Goal work and prerequisites | queued |
 
 Known validation note: Windows sandbox may fail before command/test setup with
@@ -118,19 +123,19 @@ sandbox. Do not report the environment spawn error as a code failure.
 
 ## Current Blockers And Findings
 
-- Current #56/#99 review findings, fixed in the working diff: adapter-only epoch
-  clearing left pending input authority current; full settings snapshots also
-  made source-key presence over-invalidate unrelated changes; and saved/live
-  natural-sentence or completion-preview changes could leave an old token query
-  current. Source identities now make unchanged snapshots no-ops, while actual
-  source, limit, mode, or query-shaping changes invalidate every hooked/active
-  controller, preserve controller ownership while closing the popup, and
-  schedule a fresh update only for an enabled focused input. Final focused,
-  three independent audits, official full, and both canvas gates passed. The
-  initial Node 2.0 no-popup observation came from a tab retaining a stale
-  extension module; temporary test-instance diagnostics were excluded, the
-  exact branch file was restored and hash-checked, and a fresh exact-diff tab
-  passed the complete Node 2.0 matrix.
+- Completed #99 finding: adapter-only epoch clearing could leave pending input
+  authority current, and source-key or query-shaping changes could leave a stale
+  token query current. PR #123 now invalidates the complete controller request
+  authority only when relevant source or query state changes. The first Node 2.0
+  stale-tab attempt was excluded; a fresh exact-diff tab passed the full matrix.
+- Registry 0.4.0 is `NodeVersionStatusFlagged` because the informational
+  network-request scanner detects the explicit, timeout-bound NAIA
+  `requests.post` path. The latest active Registry version is therefore 0.3.2.
+  Publishing 0.5.0 may succeed but remain unavailable pending administrator
+  review. This is not a code blocker and must be reported after publish.
+- Registry metadata dry-run showed live 0.3.1, 0.3.0, and 0.2.7 deprecated while
+  the previous checked-in ledger marked them active. Release preparation aligns
+  those flags so later metadata sync cannot reactivate historical versions.
 - Non-blocking #111: ComfyUI frontend 1.45.20 Node 2.0 can display a newly
   entered unsafe seed while the widget and saved workflow retain max-safe.
   Prefer an upstream fix or stable public-API boundary over a private-DOM hook.
@@ -148,18 +153,18 @@ sandbox. Do not report the environment spawn error as a code failure.
   another approval during this Goal.
 - User documentation for #102 and the coordination plan/repo-local Skill are
   explicitly approved.
-- At a sufficiently validated safe checkpoint, `main` merge, a GitHub bugfix
-  Release, and Registry publish/registration are approved. Select the exact
-  0.5.x version only after live state read-back and do not pull an unfrozen lane
-  into the release.
+- The live main/dev/tag/Release/Registry read-back selected 0.5.0 as the next
+  non-conflicting version. After release-prep validation, `main` merge, the
+  GitHub Release, and Registry publish/registration are explicitly approved.
+  Do not pull any open or unfrozen maintenance lane into that release.
 - Early user-instance changes remain unapproved.
 - GitHub mutation timeout/abort always requires state read-back before retry.
 
 ## Cleanup And Sync
 
 - The #103 Regional, #54 sampler-hydration, #120 coordination, #121 user-doc,
-  and #122 LoRA canvas source/integration branches/worktrees were removed after
-  merge-tree equality and clean-state checks.
+  #122 LoRA canvas, and #123 Autocomplete source/integration branches and
+  worktrees were removed after merge-tree equality and clean-state checks.
 - Existing unrelated `codex/*`, `fix/*`, and `feature/*` worktrees are untouched.
 - The Codex test server is stopped and port 8194 is free.
 - The user v0.27.0 instance remains untouched until all agreed maintenance and
