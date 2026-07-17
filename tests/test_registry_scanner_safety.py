@@ -1,10 +1,91 @@
 from __future__ import annotations
 
+import re
+import subprocess
 import unittest
 from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
+AUTOCOMPLETE_ENTRY = ROOT / "web" / "js" / "easyuse_anima_autocomplete.js"
+EXPECTED_AUTOCOMPLETE_MODULES = {
+    "web/js/autocomplete/data_adapter.js",
+    "web/js/autocomplete/input_controller.js",
+    "web/js/autocomplete/popup_geometry.js",
+    "web/js/autocomplete/text_model.js",
+}
+STATIC_IMPORT_FROM_RE = re.compile(
+    r"""
+    ^[ \t]*(?:import|export)[ \t\r\n]+
+    (?:(?!;).)*?\bfrom[ \t\r\n]*
+    (?P<quote>["'])
+    (?P<specifier>\.{1,2}/[^"']+)
+    (?P=quote)[ \t\r\n]*;
+    """,
+    re.MULTILINE | re.DOTALL | re.VERBOSE,
+)
+STATIC_SIDE_EFFECT_IMPORT_RE = re.compile(
+    r"""
+    ^[ \t]*import[ \t\r\n]+
+    (?P<quote>["'])
+    (?P<specifier>\.{1,2}/[^"']+)
+    (?P=quote)[ \t\r\n]*;
+    """,
+    re.MULTILINE | re.VERBOSE,
+)
+
+
+def _static_relative_imports(source: str) -> set[str]:
+    imports = set()
+    for pattern in (STATIC_IMPORT_FROM_RE, STATIC_SIDE_EFFECT_IMPORT_RE):
+        imports.update(match.group("specifier") for match in pattern.finditer(source))
+    return imports
+
+
+def _repository_static_import_closure(entry: Path) -> set[str]:
+    root = ROOT.resolve()
+    pending = [entry.resolve()]
+    visited: set[Path] = set()
+
+    while pending:
+        source_path = pending.pop()
+        if source_path in visited:
+            continue
+        try:
+            source_path.relative_to(root)
+        except ValueError:
+            continue
+        if not source_path.is_file():
+            raise AssertionError(f"missing static import source: {source_path}")
+        visited.add(source_path)
+
+        source = source_path.read_text(encoding="utf-8")
+        for specifier in _static_relative_imports(source):
+            imported_path = (source_path.parent / specifier).resolve()
+            try:
+                imported_path.relative_to(root)
+            except ValueError:
+                continue
+            if not imported_path.is_file():
+                raise AssertionError(
+                    f"missing repository static import: {source_path} -> {specifier}"
+                )
+            pending.append(imported_path)
+
+    return {path.relative_to(root).as_posix() for path in visited}
+
+
+def _git_paths(*args: str) -> set[str]:
+    result = subprocess.run(
+        ["git", *args],
+        cwd=ROOT,
+        check=True,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        timeout=10,
+    )
+    return {line for line in result.stdout.splitlines() if line}
 
 
 class RegistryScannerSafetyTests(unittest.TestCase):
@@ -71,7 +152,7 @@ class RegistryScannerSafetyTests(unittest.TestCase):
             "workflows/",
             "wildcards/",
             "styles/",
-            "autocomplete/",
+            "/autocomplete/",
             "web_beta/",
             "web_version/dev/",
             "*.cache",
@@ -91,6 +172,57 @@ class RegistryScannerSafetyTests(unittest.TestCase):
         for required_readme in ("README.md", "README.en.md", "README.ko.md", "*.md"):
             with self.subTest(required_readme=required_readme):
                 self.assertNotIn(required_readme, ignored_lines)
+        self.assertNotIn("autocomplete/", ignored_lines)
+
+    def test_static_relative_import_parser_covers_supported_forms(self):
+        source = """
+            import defaultExport from "./default.js";
+            import {
+              namedExport,
+            } from '../named.js';
+            export { forwarded } from "./forwarded.js";
+            export * from "../export_all.js";
+            import "./side_effect.js";
+            import external from "external-package";
+            import "/absolute.js";
+            const dynamic = import("./dynamic.js");
+        """
+        self.assertEqual(
+            _static_relative_imports(source),
+            {
+                "./default.js",
+                "../named.js",
+                "./forwarded.js",
+                "../export_all.js",
+                "./side_effect.js",
+            },
+        )
+
+    def test_autocomplete_static_import_closure_is_in_registry_package_surface(self):
+        closure = _repository_static_import_closure(AUTOCOMPLETE_ENTRY)
+        self.assertFalse(
+            EXPECTED_AUTOCOMPLETE_MODULES - closure,
+            f"expected autocomplete modules missing from static import closure: "
+            f"{sorted(EXPECTED_AUTOCOMPLETE_MODULES - closure)}",
+        )
+
+        tracked = _git_paths("ls-files", "--cached")
+        self.assertFalse(
+            closure - tracked,
+            f"autocomplete static import closure is not tracked: {sorted(closure - tracked)}",
+        )
+
+        ignored = _git_paths(
+            "ls-files",
+            "--cached",
+            "--ignored",
+            "--exclude-from=.comfyignore",
+        )
+        self.assertFalse(
+            closure & ignored,
+            f"autocomplete static import closure is excluded from the Registry package: "
+            f"{sorted(closure & ignored)}",
+        )
 
     def test_registry_safety_doc_is_linked_from_development_entry(self):
         entry = (ROOT / "docs" / "development" / "README.md").read_text(encoding="utf-8")
