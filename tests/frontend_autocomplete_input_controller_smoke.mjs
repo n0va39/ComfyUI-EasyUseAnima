@@ -66,9 +66,66 @@ function createScheduler() {
 const controllerModule = await import(
   dataModule("../web/js/autocomplete/input_controller.js")
 );
-assert.deepEqual(Object.keys(controllerModule), ["createAutocompleteInputController"]);
+assert.deepEqual(Object.keys(controllerModule), [
+  "createAutocompleteInputController",
+  "invalidateAutocompleteControllerStates",
+]);
 
-const { createAutocompleteInputController } = controllerModule;
+const {
+  createAutocompleteInputController,
+  invalidateAutocompleteControllerStates,
+} = controllerModule;
+
+{
+  let sharedInvalidations = 0;
+  let activeInvalidations = 0;
+  let detachedActiveInvalidations = 0;
+  const sharedController = {
+    invalidate() {
+      sharedInvalidations += 1;
+    },
+  };
+  const activeController = {
+    invalidate() {
+      activeInvalidations += 1;
+    },
+  };
+  const detachedActiveController = {
+    invalidate() {
+      detachedActiveInvalidations += 1;
+    },
+  };
+
+  invalidateAutocompleteControllerStates(
+    [
+      { controller: sharedController },
+      { controller: sharedController },
+      { controller: activeController },
+      {},
+      null,
+    ],
+    { controller: activeController },
+  );
+  assert.equal(
+    sharedInvalidations,
+    1,
+    "duplicate state references must invalidate a shared controller once",
+  );
+  assert.equal(
+    activeInvalidations,
+    1,
+    "the active popup clone must not invalidate its controller twice",
+  );
+
+  invalidateAutocompleteControllerStates([], {
+    controller: detachedActiveController,
+  });
+  assert.equal(
+    detachedActiveInvalidations,
+    1,
+    "an active popup controller must be invalidated even after input-set cleanup",
+  );
+}
 
 {
   const scheduler = createScheduler();

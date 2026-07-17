@@ -6,7 +6,10 @@ import {
 import { easyuseAnimaFetchJson, easyuseAnimaGetSettings } from "./easyuse_anima_api.js";
 import { easyuseAnimaText } from "./easyuse_anima_i18n.js";
 import { createAutocompleteDataAdapter } from "./autocomplete/data_adapter.js";
-import { createAutocompleteInputController } from "./autocomplete/input_controller.js";
+import {
+  createAutocompleteInputController,
+  invalidateAutocompleteControllerStates,
+} from "./autocomplete/input_controller.js";
 import {
   calculateAutocompletePopupGeometry,
   calculateCaretMirrorGeometry,
@@ -354,18 +357,38 @@ async function refreshAutocompleteSettings() {
     if (!settings) {
       return;
     }
+    let dataRequestsInvalidated = autocompleteData.syncSourceSettings(
+      settings,
+      { initialize: true },
+    );
     const nextMaxResults = clampMaxResults(settings["autocomplete.limit"]);
     if (nextMaxResults !== maxResults) {
       maxResults = nextMaxResults;
       autocompleteData.clearResults();
+      dataRequestsInvalidated = true;
     }
+    const previousMode = autocompleteMode;
     setAutocompleteMode(settings["autocomplete.mode"]);
+    if (autocompleteMode !== previousMode) {
+      dataRequestsInvalidated = true;
+    }
     setAutocompleteCommitKey(settings["autocomplete.commit_key"]);
     setAutocompleteAppendSeparator(settings["autocomplete.append_separator"]);
     setAutocompleteNoCommaAfterPeriod(settings["autocomplete.no_comma_after_period"]);
+    const previousDetectNaturalSentences = autocompleteDetectNaturalSentences;
     setAutocompleteDetectNaturalSentences(settings["autocomplete.detect_natural_sentences"]);
+    if (autocompleteDetectNaturalSentences !== previousDetectNaturalSentences) {
+      dataRequestsInvalidated = true;
+    }
     setAutocompletePreviewClosingBrackets(settings["autocomplete.preview_closing_brackets"]);
+    const previousPreviewCompletion = autocompletePreviewCompletion;
     setAutocompletePreviewCompletion(settings["autocomplete.preview_completion"]);
+    if (autocompletePreviewCompletion !== previousPreviewCompletion) {
+      dataRequestsInvalidated = true;
+    }
+    if (dataRequestsInvalidated) {
+      invalidateAutocompleteDataRequests();
+    }
   } catch {
     // Keep the built-in default if settings cannot be read.
   }
@@ -462,6 +485,27 @@ function markAutocompleteInputInactive(input) {
 function hideTrainedTagTooltips() {
   for (const tooltip of document.querySelectorAll(".easyuse-anima-trained-tag-tooltip")) {
     tooltip.classList.add("hidden");
+  }
+}
+
+function invalidateAutocompleteDataRequests() {
+  const states = [];
+  let focusedState = null;
+  for (const input of [...hookedAutocompleteInputs]) {
+    const state = input?.__easyuseAnimaAutocompleteState;
+    if (!state) {
+      hookedAutocompleteInputs.delete(input);
+      continue;
+    }
+    states.push(state);
+    if (document.activeElement === input) {
+      focusedState = state;
+    }
+  }
+  invalidateAutocompleteControllerStates(states, activeState);
+  hidePopup({ preserveController: true });
+  if (autocompleteEnabledForState(focusedState)) {
+    focusedState.controller.scheduleUpdate();
   }
 }
 
@@ -1685,8 +1729,13 @@ document.addEventListener("selectionchange", scheduleActiveRefresh);
 window.addEventListener("resize", scheduleActiveRefresh);
 window.addEventListener("easyuse-anima-settings-updated", (event) => {
   const detail = event?.detail || {};
+  let dataRequestsInvalidated = false;
   if ("autocomplete.mode" in detail) {
+    const previousMode = autocompleteMode;
     setAutocompleteMode(detail["autocomplete.mode"]);
+    if (autocompleteMode !== previousMode) {
+      dataRequestsInvalidated = true;
+    }
   }
   if ("autocomplete.commit_key" in detail) {
     setAutocompleteCommitKey(detail["autocomplete.commit_key"]);
@@ -1698,27 +1747,38 @@ window.addEventListener("easyuse-anima-settings-updated", (event) => {
     setAutocompleteNoCommaAfterPeriod(detail["autocomplete.no_comma_after_period"]);
   }
   if ("autocomplete.detect_natural_sentences" in detail) {
+    const previousDetectNaturalSentences = autocompleteDetectNaturalSentences;
     setAutocompleteDetectNaturalSentences(detail["autocomplete.detect_natural_sentences"]);
+    if (autocompleteDetectNaturalSentences !== previousDetectNaturalSentences) {
+      dataRequestsInvalidated = true;
+    }
   }
   if ("autocomplete.preview_closing_brackets" in detail) {
     setAutocompletePreviewClosingBrackets(detail["autocomplete.preview_closing_brackets"]);
   }
   if ("autocomplete.preview_completion" in detail) {
+    const previousPreviewCompletion = autocompletePreviewCompletion;
     setAutocompletePreviewCompletion(detail["autocomplete.preview_completion"]);
+    if (autocompletePreviewCompletion !== previousPreviewCompletion) {
+      dataRequestsInvalidated = true;
+    }
   }
   if ("autocomplete.limit" in detail) {
-    maxResults = clampMaxResults(detail["autocomplete.limit"]);
-    autocompleteData.clearResults();
+    const nextMaxResults = clampMaxResults(detail["autocomplete.limit"]);
+    if (nextMaxResults !== maxResults) {
+      maxResults = nextMaxResults;
+      autocompleteData.clearResults();
+      dataRequestsInvalidated = true;
+    }
   }
-  if ("autocomplete.source" in detail) {
-    autocompleteData.clearResults();
-    hidePopup();
+  if (autocompleteData.syncSourceSettings(detail)) {
+    dataRequestsInvalidated = true;
   }
-  if ("wildcard.extra_paths" in detail) {
-    autocompleteData.clearWildcards();
-    hidePopup();
+  if (dataRequestsInvalidated) {
+    invalidateAutocompleteDataRequests();
+  } else {
+    scheduleActiveRefresh();
   }
-  scheduleActiveRefresh();
 });
 
 app.registerExtension({

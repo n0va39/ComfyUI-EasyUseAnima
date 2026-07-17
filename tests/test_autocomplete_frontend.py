@@ -50,7 +50,10 @@ class AutocompleteFrontendBoundaryTests(unittest.TestCase):
                 module_source,
                 re.MULTILINE,
             ),
-            ["createAutocompleteInputController"],
+            [
+                "invalidateAutocompleteControllerStates",
+                "createAutocompleteInputController",
+            ],
         )
         self.assertNotRegex(
             module_source,
@@ -64,10 +67,26 @@ class AutocompleteFrontendBoundaryTests(unittest.TestCase):
                 r"HTMLElement|HTMLInputElement|HTMLTextAreaElement)\b"
             ),
         )
-        self.assertIn(
-            'import { createAutocompleteInputController } from '
-            '"./autocomplete/input_controller.js";',
+        import_match = re.search(
+            (
+                r'^import\s*\{(?P<names>[^}]*)\}\s*from\s*'
+                r'"\./autocomplete/input_controller\.js";'
+            ),
             entry_source,
+            re.MULTILINE,
+        )
+        self.assertIsNotNone(import_match)
+        imported_names = {
+            name.strip().rstrip(",")
+            for name in import_match.group("names").splitlines()
+            if name.strip()
+        }
+        self.assertEqual(
+            imported_names,
+            {
+                "createAutocompleteInputController",
+                "invalidateAutocompleteControllerStates",
+            },
         )
         self.assertEqual(
             entry_source.count("createAutocompleteInputController({"),
@@ -99,6 +118,138 @@ class AutocompleteFrontendBoundaryTests(unittest.TestCase):
         self.assertIn("controller.invalidate();", hook_body)
         self.assertIn("controller.isComposing(event)", hook_body)
         self.assertIn("state?.controller?.invalidate();", entry_source)
+
+        invalidate_start = entry_source.index(
+            "function invalidateAutocompleteDataRequests"
+        )
+        invalidate_end = entry_source.index(
+            "\nfunction refreshActiveAutocomplete", invalidate_start
+        )
+        invalidate_body = entry_source[invalidate_start:invalidate_end]
+        self.assertIn(
+            "invalidateAutocompleteControllerStates(states, activeState);",
+            invalidate_body,
+        )
+        self.assertIn("for (const input of [...hookedAutocompleteInputs])", invalidate_body)
+        self.assertIn("states.push(state);", invalidate_body)
+        self.assertIn("if (document.activeElement === input) {", invalidate_body)
+        self.assertIn("hidePopup({ preserveController: true });", invalidate_body)
+        self.assertIn("focusedState.controller.scheduleUpdate();", invalidate_body)
+        self.assertIn("autocompleteEnabledForState(focusedState)", invalidate_body)
+        self.assertLess(
+            invalidate_body.index(
+                "invalidateAutocompleteControllerStates(states, activeState);"
+            ),
+            invalidate_body.index("hidePopup({ preserveController: true });"),
+        )
+        self.assertLess(
+            invalidate_body.index("hidePopup({ preserveController: true });"),
+            invalidate_body.index("focusedState.controller.scheduleUpdate();"),
+        )
+
+        refresh_start = entry_source.index(
+            "async function refreshAutocompleteSettings"
+        )
+        refresh_end = entry_source.index("\nfunction ensureStyle", refresh_start)
+        refresh_body = entry_source[refresh_start:refresh_end]
+        self.assertIn(
+            "let dataRequestsInvalidated = autocompleteData.syncSourceSettings(",
+            refresh_body,
+        )
+        self.assertIn(
+            "const previousMode = autocompleteMode;",
+            refresh_body,
+        )
+        self.assertRegex(
+            refresh_body,
+            re.compile(
+                r"autocompleteData\.syncSourceSettings\(\s*"
+                r"settings,\s*\{ initialize: true \},\s*\)",
+                re.DOTALL,
+            ),
+        )
+        self.assertIn(
+            "const previousDetectNaturalSentences = "
+            "autocompleteDetectNaturalSentences;",
+            refresh_body,
+        )
+        self.assertIn(
+            "const previousPreviewCompletion = autocompletePreviewCompletion;",
+            refresh_body,
+        )
+        self.assertIn(
+            "if (autocompleteDetectNaturalSentences !== "
+            "previousDetectNaturalSentences) {",
+            refresh_body,
+        )
+        self.assertIn(
+            "if (autocompletePreviewCompletion !== previousPreviewCompletion) {",
+            refresh_body,
+        )
+        self.assertIn(
+            "invalidateAutocompleteDataRequests();",
+            refresh_body,
+        )
+        self.assertIn(
+            "if (dataRequestsInvalidated) {\n"
+            "      invalidateAutocompleteDataRequests();\n"
+            "    }",
+            refresh_body,
+        )
+
+        settings_start = entry_source.index(
+            'window.addEventListener("easyuse-anima-settings-updated"'
+        )
+        settings_end = entry_source.index(
+            "\n\napp.registerExtension({", settings_start
+        )
+        settings_body = entry_source[settings_start:settings_end]
+        self.assertIn("let dataRequestsInvalidated = false;", settings_body)
+        self.assertIn("dataRequestsInvalidated = true;", settings_body)
+        self.assertIn(
+            'const nextMaxResults = clampMaxResults(detail["autocomplete.limit"]);',
+            settings_body,
+        )
+        self.assertIn("if (nextMaxResults !== maxResults) {", settings_body)
+        self.assertIn(
+            "if (autocompleteMode !== previousMode) {\n"
+            "      dataRequestsInvalidated = true;\n"
+            "    }",
+            settings_body,
+        )
+        self.assertIn(
+            "if (autocompleteData.syncSourceSettings(detail)) {\n"
+            "    dataRequestsInvalidated = true;\n"
+            "  }",
+            settings_body,
+        )
+        self.assertIn(
+            "const previousDetectNaturalSentences = "
+            "autocompleteDetectNaturalSentences;",
+            settings_body,
+        )
+        self.assertIn(
+            "const previousPreviewCompletion = autocompletePreviewCompletion;",
+            settings_body,
+        )
+        self.assertIn(
+            "if (autocompleteDetectNaturalSentences !== "
+            "previousDetectNaturalSentences) {",
+            settings_body,
+        )
+        self.assertIn(
+            "if (autocompletePreviewCompletion !== previousPreviewCompletion) {",
+            settings_body,
+        )
+        self.assertIn(
+            "invalidateAutocompleteDataRequests();",
+            settings_body,
+        )
+        self.assertIn(
+            "} else {\n    scheduleActiveRefresh();\n  }",
+            settings_body,
+        )
+        self.assertNotIn("hidePopup();", settings_body)
 
         keydown_start = hook_body.rindex(
             'input.addEventListener("keydown", (event) => {'
@@ -310,11 +461,15 @@ class AutocompleteFrontendBoundaryTests(unittest.TestCase):
         )
         self.assertEqual(
             entry_source.count("autocompleteData.clearResults()"),
-            4,
+            3,
         )
         self.assertEqual(
             entry_source.count("autocompleteData.clearWildcards()"),
-            1,
+            0,
+        )
+        self.assertEqual(
+            entry_source.count("autocompleteData.syncSourceSettings("),
+            2,
         )
         self.assertIn("app.registerExtension({", entry_source)
         self.assertIn('document.addEventListener("pointerdown"', entry_source)
