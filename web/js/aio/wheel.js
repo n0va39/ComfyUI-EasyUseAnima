@@ -2,6 +2,7 @@
 
 const AIO_PANEL_SELECTOR = ".easyuse-anima-aio-node-panel";
 const AIO_SETTINGS_SCROLL_SELECTOR = ".easyuse-anima-aio-node-settings-scroll";
+const AIO_PREVIEW_SELECTOR = ".easyuse-anima-aio-node-preview";
 const AIO_PREVIEW_FEED_SELECTOR = ".easyuse-anima-aio-node-preview-feed";
 
 function wheelPathElement(event, selector) {
@@ -21,6 +22,16 @@ function aioPanelFromWheelEvent(event) {
 function aioPreviewFeedFromWheelEvent(event, panel) {
   const feed = wheelPathElement(event, AIO_PREVIEW_FEED_SELECTOR);
   return feed && panel?.contains?.(feed) ? feed : null;
+}
+
+function aioPreviewSurfaceFromWheelEvent(event, panel) {
+  const preview = wheelPathElement(event, AIO_PREVIEW_SELECTOR);
+  return preview && panel?.contains?.(preview) ? preview : null;
+}
+
+function aioSettingsScrollFromWheelEvent(event, panel) {
+  const settingsScroll = wheelPathElement(event, AIO_SETTINGS_SCROLL_SELECTOR);
+  return settingsScroll && panel?.contains?.(settingsScroll) ? settingsScroll : null;
 }
 
 function aioScrollMaximum(element, axis) {
@@ -47,6 +58,13 @@ function aioWheelDeltaPixels(event, element, axis) {
   return delta;
 }
 
+function consumeAioWheelEvent(event) {
+  event.preventDefault?.();
+  event.stopPropagation?.();
+  event.stopImmediatePropagation?.();
+  return true;
+}
+
 function consumeAioScrollAreaWheel(event, element, axis) {
   const maximum = aioScrollMaximum(element, axis);
   if (maximum <= 1) {
@@ -55,9 +73,7 @@ function consumeAioScrollAreaWheel(event, element, axis) {
 
   // A visible scrollbar owns the wheel even at either boundary. Do not let a
   // no-op boundary wheel fall through to ComfyUI canvas zoom.
-  event.preventDefault?.();
-  event.stopPropagation?.();
-  event.stopImmediatePropagation?.();
+  consumeAioWheelEvent(event);
   const property = axis === "x" ? "scrollLeft" : "scrollTop";
   const current = Number(element[property]) || 0;
   element[property] = Math.max(
@@ -68,28 +84,35 @@ function consumeAioScrollAreaWheel(event, element, axis) {
 }
 
 /**
- * AiO uses one vertical scroll owner: the left settings column. Its scrollbar
- * owns wheel input from anywhere in the panel. The preview feed remains a more
- * local horizontal owner only while the pointer is over that overflowing feed.
- * Canvas zoom is allowed only when neither intended scrollbar exists.
+ * The preview surface always owns wheel input so it cannot scroll settings or
+ * zoom the canvas. An overflowing preview feed maps that input to horizontal
+ * scrolling. Settings owns vertical input only under its own surface, leaving
+ * unrelated panel space available for the existing canvas forwarding path.
  */
 function consumeAioPanelWheel(event, panel) {
   const previewFeed = aioPreviewFeedFromWheelEvent(event, panel);
   if (previewFeed && consumeAioScrollAreaWheel(event, previewFeed, "x")) {
     return true;
   }
-  const settingsScroll = panel?.querySelector?.(AIO_SETTINGS_SCROLL_SELECTOR);
+  if (aioPreviewSurfaceFromWheelEvent(event, panel)) {
+    return consumeAioWheelEvent(event);
+  }
+  const settingsScroll = aioSettingsScrollFromWheelEvent(event, panel);
   return consumeAioScrollAreaWheel(event, settingsScroll, "y");
 }
 
 export {
   AIO_PANEL_SELECTOR,
+  AIO_PREVIEW_SELECTOR,
   AIO_PREVIEW_FEED_SELECTOR,
   AIO_SETTINGS_SCROLL_SELECTOR,
   aioPanelFromWheelEvent,
   aioPreviewFeedFromWheelEvent,
+  aioPreviewSurfaceFromWheelEvent,
   aioScrollMaximum,
+  aioSettingsScrollFromWheelEvent,
   aioWheelDeltaPixels,
   consumeAioPanelWheel,
   consumeAioScrollAreaWheel,
+  consumeAioWheelEvent,
 };

@@ -12,7 +12,7 @@ WHEEL_JS = ROOT / "web" / "js" / "aio" / "wheel.js"
 
 
 class AIOWheelTests(unittest.TestCase):
-    def test_scroll_owners_consume_wheel_even_at_boundaries(self):
+    def test_preview_settings_and_canvas_wheel_ownership(self):
         node_bin = shutil.which("node")
         if not node_bin:
             self.skipTest("node executable is not available")
@@ -70,19 +70,22 @@ class AIOWheelTests(unittest.TestCase):
 
             const findPanel = globalThis.__aioWheelExports.aioPanelFromWheelEvent;
             const consumePanelWheel = globalThis.__aioWheelExports.consumeAioPanelWheel;
-            const makeEvent = (target, path, deltaY, deltaX = 0, deltaMode = 0) => ({
-              target,
-              deltaX,
-              deltaY,
-              deltaMode,
-              prevented: 0,
-              stopped: 0,
-              stoppedImmediately: 0,
-              composedPath: () => path,
-              preventDefault() { this.prevented += 1; },
-              stopPropagation() { this.stopped += 1; },
-              stopImmediatePropagation() { this.stoppedImmediately += 1; },
-            });
+            const makeEvent = (target, path, deltaY, deltaX = 0, deltaMode = 0) => {
+              const event = {
+                target,
+                deltaX,
+                deltaY,
+                deltaMode,
+                prevented: 0,
+                stopped: 0,
+                stoppedImmediately: 0,
+                preventDefault() { this.prevented += 1; },
+                stopPropagation() { this.stopped += 1; },
+                stopImmediatePropagation() { this.stoppedImmediately += 1; },
+              };
+              if (path !== null) event.composedPath = () => path;
+              return event;
+            };
 
             const panel = new HTMLElement(["easyuse-anima-aio-node-panel"]);
             const settings = new HTMLElement(
@@ -90,21 +93,70 @@ class AIOWheelTests(unittest.TestCase):
               { scrollHeight: 600, clientHeight: 200, scrollTop: 0 },
             );
             settings.parentElement = panel;
-            panel.queries.set(".easyuse-anima-aio-node-settings-scroll", settings);
+            const settingsTarget = new HTMLElement(["settings-target"]);
+            settingsTarget.parentElement = settings;
+            const previewCard = new HTMLElement(["easyuse-anima-aio-node-preview"]);
+            previewCard.parentElement = panel;
             const previewTarget = new HTMLElement(["preview-target"]);
-            previewTarget.parentElement = panel;
+            previewTarget.parentElement = previewCard;
 
-            let event = makeEvent(previewTarget, [previewTarget, panel], 120);
+            // The main preview consumes wheel input without moving settings or
+            // allowing the caller to forward the event to canvas zoom.
+            let event = makeEvent(previewTarget, [previewTarget, previewCard, panel], 120);
             assert.strictEqual(findPanel(event), panel);
             assert.strictEqual(consumePanelWheel(event, panel), true);
-            assert.strictEqual(settings.scrollTop, 120);
+            assert.strictEqual(settings.scrollTop, 0);
             assert.deepStrictEqual(
               [event.prevented, event.stopped, event.stoppedImmediately],
               [1, 1, 1],
             );
 
+            // A non-overflowing preview feed has the same ownership. Omitting
+            // composedPath exercises the target.closest() fallback.
+            const feed = new HTMLElement(
+              ["easyuse-anima-aio-node-preview-feed"],
+              { scrollWidth: 200, clientWidth: 200, scrollLeft: 0 },
+            );
+            feed.parentElement = previewCard;
+            const feedTarget = new HTMLElement(["feed-target"]);
+            feedTarget.parentElement = feed;
+            event = makeEvent(feedTarget, null, 100);
+            assert.strictEqual(consumePanelWheel(event, panel), true);
+            assert.strictEqual(feed.scrollLeft, 0);
+            assert.strictEqual(settings.scrollTop, 0);
+            assert.deepStrictEqual(
+              [event.prevented, event.stopped, event.stoppedImmediately],
+              [1, 1, 1],
+            );
+
+            // An overflowing feed translates the vertical wheel delta to X.
+            feed.scrollWidth = 500;
+            event = makeEvent(feedTarget, [feedTarget, feed, previewCard, panel], 100);
+            assert.strictEqual(consumePanelWheel(event, panel), true);
+            assert.strictEqual(feed.scrollLeft, 100);
+            assert.strictEqual(settings.scrollTop, 0);
+            assert.deepStrictEqual(
+              [event.prevented, event.stopped, event.stoppedImmediately],
+              [1, 1, 1],
+            );
+
+            feed.scrollLeft = 300;
+            event = makeEvent(feedTarget, [feedTarget, feed, previewCard, panel], 100);
+            assert.strictEqual(consumePanelWheel(event, panel), true);
+            assert.strictEqual(feed.scrollLeft, 300);
+            assert.deepStrictEqual(
+              [event.prevented, event.stopped, event.stoppedImmediately],
+              [1, 1, 1],
+            );
+
+            // Settings owns vertical wheel input only when the event target is
+            // inside the settings scroll surface.
+            event = makeEvent(settingsTarget, [settingsTarget, settings, panel], 120);
+            assert.strictEqual(consumePanelWheel(event, panel), true);
+            assert.strictEqual(settings.scrollTop, 120);
+
             settings.scrollTop = 400;
-            event = makeEvent(previewTarget, [previewTarget, panel], 120);
+            event = makeEvent(settingsTarget, [settingsTarget, settings, panel], 120);
             assert.strictEqual(consumePanelWheel(event, panel), true);
             assert.strictEqual(settings.scrollTop, 400);
             assert.deepStrictEqual(
@@ -113,41 +165,15 @@ class AIOWheelTests(unittest.TestCase):
             );
 
             settings.scrollTop = 0;
-            event = makeEvent(previewTarget, [previewTarget, panel], -120);
-            assert.strictEqual(consumePanelWheel(event, panel), true);
-            assert.strictEqual(settings.scrollTop, 0);
-            assert.deepStrictEqual(
-              [event.prevented, event.stopped, event.stoppedImmediately],
-              [1, 1, 1],
-            );
-
-            event = makeEvent(previewTarget, [previewTarget, panel], 2, 0, 1);
+            event = makeEvent(settingsTarget, [settingsTarget, settings, panel], 2, 0, 1);
             assert.strictEqual(consumePanelWheel(event, panel), true);
             assert.strictEqual(settings.scrollTop, 32);
 
-            const feed = new HTMLElement(
-              ["easyuse-anima-aio-node-preview-feed"],
-              { scrollWidth: 500, clientWidth: 200, scrollLeft: 0 },
-            );
-            feed.parentElement = panel;
+            // Unrelated panel space remains unconsumed for canvas forwarding.
             settings.scrollTop = 0;
-            event = makeEvent(feed, [feed, panel], 100);
-            assert.strictEqual(consumePanelWheel(event, panel), true);
-            assert.strictEqual(feed.scrollLeft, 100);
-            assert.strictEqual(settings.scrollTop, 0);
-
-            feed.scrollLeft = 300;
-            event = makeEvent(feed, [feed, panel], 100);
-            assert.strictEqual(consumePanelWheel(event, panel), true);
-            assert.strictEqual(feed.scrollLeft, 300);
-            assert.deepStrictEqual(
-              [event.prevented, event.stopped, event.stoppedImmediately],
-              [1, 1, 1],
-            );
-
-            settings.scrollHeight = 200;
-            settings.clientHeight = 200;
-            event = makeEvent(previewTarget, [previewTarget, panel], 120);
+            const panelTarget = new HTMLElement(["panel-target"]);
+            panelTarget.parentElement = panel;
+            event = makeEvent(panelTarget, [panelTarget, panel], 120);
             assert.strictEqual(consumePanelWheel(event, panel), false);
             assert.strictEqual(settings.scrollTop, 0);
             assert.deepStrictEqual(

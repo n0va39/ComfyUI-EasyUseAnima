@@ -211,8 +211,12 @@ class AIOFrontendSourceTests(unittest.TestCase):
         self.assertIn(
             "installWheelForwarder: installGeneratorWheelForwarder,", source
         )
-        self.assertIn("owns the wheel even at either boundary", wheel_source)
-        self.assertIn("Canvas zoom is allowed only when neither intended scrollbar exists", wheel_source)
+        self.assertIn(
+            'const AIO_PREVIEW_SELECTOR = ".easyuse-anima-aio-node-preview";',
+            wheel_source,
+        )
+        self.assertIn("The preview surface always owns wheel input", wheel_source)
+        self.assertIn("unrelated panel space available", wheel_source)
 
     def test_generator_keeps_native_output_preview_suppressed_after_execution(self):
         source = AIO_JS.read_text(encoding="utf-8")
