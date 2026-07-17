@@ -13,6 +13,7 @@ const { createLoraPresetNodeRuntime } = await import(
 const events = [];
 const animationFrames = [];
 const widgetIndex = {
+  profileIndex: 1,
   profileCount: 2,
   loraName: 3,
   loras: 4,
@@ -161,16 +162,18 @@ for (const index of [2, 3, 4, 5]) {
   assert.equal(node.widgets[index].options.hidden, true);
 }
 
-const serialized = { widgets_values: Array(6).fill("") };
+node.widgets.splice(3, 0, { name: "easyuse_anima_profile_bar", value: null, serialize: false });
+const serialized = { widgets_values: ["", 1, "4", null, "legacy", "[]", "{}"] };
 node.onSerialize(serialized);
 assert.deepEqual(serialized.widgets_values, [
   "",
-  "",
+  1,
   "4",
   "None",
   JSON.stringify([{ name: "styles/example.safetensors", on: true, strength: 1 }]),
   "{}",
 ]);
+assert.equal(serialized.widgets_values.length, 6);
 assert.ok(events.indexOf("save-current:node-a") < events.indexOf("serialized:node-a"));
 
 node.widgets = [node.widgets[0], node.widgets[1]];
