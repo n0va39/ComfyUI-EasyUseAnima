@@ -6,8 +6,9 @@ conversation.
 ## Read Order
 
 1. `docs/development/current-policies.md`
-2. Active version plan, currently `docs/development/0.5.0.md`
-3. Latest released baseline, currently `docs/development/0.4.0.md`
+2. Active frontend maintenance execution plan:
+   `docs/development/frontend-maintenance-execution-plan.md`
+3. Latest released baseline: `docs/development/0.5.0.md`
 4. Relevant topic guide:
    - Registry publish or flagged-version prevention:
      `docs/development/registry-scanner-safety.md`
@@ -16,8 +17,6 @@ conversation.
    - custom-node model patch integrations: `docs/development/custom-node-integrations.md`
    - current frontend maintenance roadmap and Issue #14 close boundary:
      `docs/development/frontend-maintenance-roadmap.md`
-   - active frontend maintenance Goal, lane ownership, and integration gates:
-     `docs/development/frontend-maintenance-execution-plan.md`
    - repeatable legacy-canvas and Node 2.0 browser validation:
      `docs/development/browser-smoke-matrix.md`
    - historical Issue #14 PR #18 execution plan:
@@ -31,8 +30,9 @@ conversation.
 ## Source Map
 
 - Current policy baseline: `docs/development/current-policies.md`
-- Active next-version plan: `docs/development/0.5.0.md`
-- Latest released baseline: `docs/development/0.4.0.md`
+- Active frontend maintenance execution ledger:
+  `docs/development/frontend-maintenance-execution-plan.md`
+- Latest released baseline: `docs/development/0.5.0.md`
 - Registry scanner safety: `docs/development/registry-scanner-safety.md`
 - Older implementation history: `docs/version-plans/`
 - Public workflow JSON templates and preview/source images: `docs/example_workflows/`
@@ -42,8 +42,6 @@ conversation.
   `docs/wildcards.en.md`
 - Current frontend maintenance roadmap:
   `docs/development/frontend-maintenance-roadmap.md`
-- Active frontend maintenance execution ledger:
-  `docs/development/frontend-maintenance-execution-plan.md`
 - Dual-canvas browser smoke matrix:
   `docs/development/browser-smoke-matrix.md`
 - Historical Issue #14 PR #18 execution plan:

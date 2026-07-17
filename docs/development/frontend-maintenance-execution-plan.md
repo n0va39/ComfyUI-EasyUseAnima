@@ -16,9 +16,12 @@ GitHub Issue ledgers, or live Git/GitHub/Codex/process read-back.
 - Before using this snapshot, fetch and reconcile the external state named in
   the relevant row.
 
-Snapshot: 2026-07-17 KST, after PR #123 merge/read-back and cleanup, the live
-0.5.0 release-state audit, and final release-prep focused validation. The
-metadata-only diff on frozen production checkpoint `f5c8694` is ready for PR.
+Snapshot: 2026-07-17 KST, after the complete 0.5.0 release checkpoint:
+release-prep PR #124, main release PR #125, annotated tag, GitHub Release,
+Registry publish/metadata sync, and tree-identical main-to-dev ancestry
+alignment. Registry 0.5.0 is published and pending administrator review.
+A later user-manual 0.5.0 application produced a separate #56 runtime failure
+report; reproduction surface and installation completeness remain unconfirmed.
 
 ## Goal Boundary
 
@@ -40,21 +43,25 @@ Included:
 Excluded without separate approval:
 
 - Security or permission changes beyond the existing protected-branch flow.
-- Early or partial sync to the user instance.
+- Agent-driven early or partial sync to the user instance. The user's later
+  manual 0.5.0 application is diagnostic input, not an agent sync checkpoint.
 - Cleanup of unrelated worktrees whose ownership is not confirmed.
 
 ## Current Baseline
 
 | Surface | Confirmed state |
 | --- | --- |
-| `origin/dev` | `f5c8694cd161c0c304c66666836e6eb8fa816928` |
+| `origin/dev` | `a590b1a9fe3130708e96b6d545a471cae3256aa2` |
 | local `dev` | same SHA, clean |
-| `origin/main` | `8d49c5584b092aa0999ae536a57c40f3ff57af42` (`v0.4.0`) |
-| latest integration | PR #123, Autocomplete adapter/request epoch hardening |
-| next release | 0.5.0; no conflicting tag, GitHub Release, or Registry version |
+| `origin/main` | `f559993a33f86f1345ce027e83100834da8c600f` (`v0.5.0`) |
+| local `main` | same SHA, clean |
+| main/dev alignment | main is an ancestor of dev; both tree `6089f47214a004eb350301fdb626981b1a35aa53` |
+| latest dev integration | PR #124, 0.5.0 release preparation; ancestry alignment `a590b1a` |
+| GitHub Release | `v0.5.0`, published with manual-install ZIP |
+| Registry | 0.5.0 published; metadata matches; `NodeVersionStatusPending` |
 | Codex test server | stopped; port 8194 listener and related server/launcher count 0 |
 | test-instance canvas setting | `Comfy.VueNodes.Enabled=false` restored |
-| user v0.27.0 instance | not synced for this Goal |
+| user v0.27.0 instance | user manually applied 0.5.0; tag tooltip works but typed Autocomplete suggestions never appear; exact canvas/settings/load state not yet confirmed |
 | integration-owner task | `019f6a32-3b0f-7ed0-8ff6-03de8546f402` |
 
 ## Issue Dashboard
@@ -63,7 +70,7 @@ Excluded without separate approval:
 | --- | --- | --- | --- |
 | #54 AiO Generator | open | PR #107 lifecycle, #113 API queue/hook reentry and missing `prompt_id` no-commit regression, #119 sampler hydration owner and attached-subgraph refresh | direct concurrent API serialization/reservation, final broader matrix, #62/#66 triage, and optional #119 cycle/repeated-node/remove/root-replacement fixtures |
 | #55 LoRA Preset | open | #108 menu extraction, #115/#109 lifecycle hardening, #122 canvas-widget extraction | profile mutation, initialize/configure/serialize, save-sync/wheel/entry, final matrix |
-| #56 Autocomplete | open | #116 input/keyboard/composition controller and #123 adapter/result/source epoch hardening | external input hook, listener installer/entry, #98/#100, final matrix |
+| #56 Autocomplete | open | #116 input/keyboard/composition controller and #123 adapter/result/source epoch hardening | highest-priority separate 0.5.0 runtime failure report: tooltip works but suggestions never appear; diagnose before calling it a code regression or associating it with #98/#99/#100, then external input hook, listener installer/entry, #98/#100, and final matrix |
 | #98 Autocomplete replacement syntax | open | adapter epoch prerequisite complete | preserve nested parentheses, weights, and artist prefix |
 | #99 Autocomplete request epochs | closed | PR #123; focused/full/Legacy/Node 2.0 evidence and final ledger recorded | none |
 | #100 Autocomplete result limit | open | none | deferred backend limit audit for configured values 51–100 |
@@ -97,13 +104,32 @@ in the roadmap and owning Issue ledgers.
 | #121 | `e7a2cc4c95d40930a5076c25fd5f06a9bcc78c14` | bilingual wildcard seed range and legacy workflow user documentation | 396/396; 103 JS; TS 6.0.3 | reused #112 identical production evidence; docs-only diff | #102 final ledger; Issue closed completed |
 | #122 | `3f8a6c0acd25fb0819818b39d3b6f29d70d39f51` | LoRA Preset canvas drawing/hit-testing/strength-drag/widget extraction | 398/398; 104 JS; TS 6.0.3 | not repeated: mechanically identical extraction; final #55 matrix remains | #55 ledger; Issue remains open |
 | #123 | `f5c8694cd161c0c304c66666836e6eb8fa816928` | Autocomplete adapter/result/source request epochs | 398/398; 104 JS; TS 6.0.3 | Legacy and Node 2.0 source switch, keyboard, commit, save/reload; errors 0 | #99 final ledger; Issue closed completed; #56 progress ledger |
+| #124 | `1c614ad3f6d617b47f137d7d65d7414d0cd0721b` | 0.5.0 package, Registry, changelog, workflow, release, and execution metadata | release-focused tests, quick runner, `comfy node validate`, and two audits passed; reused frozen production full 398/398 | reused #123 valid Legacy and Node 2.0 evidence; metadata-only diff | release-prep merge/read-back; no feature Issue closure |
+
+## 0.5.0 Release Checkpoint
+
+| Surface | Final evidence |
+| --- | --- |
+| release-prep PR | #124, squash merge `1c614ad3f6d617b47f137d7d65d7414d0cd0721b` |
+| main release PR | #125, squash merge `f559993a33f86f1345ce027e83100834da8c600f` |
+| tag | annotated `v0.5.0`; tag object `7dd2c4a0211a2679be279208bf84e74ba3aca3b3`; peeled commit `f559993a` |
+| GitHub Release | `https://github.com/n0va39/ComfyUI-EasyUseAnima/releases/tag/v0.5.0` |
+| manual ZIP | `ComfyUI-EasyUseAnima-0.5.0-manual-install.zip`, 27,157,336 bytes, SHA256 `5AB89C901D24547CF5228AB86505DC72E3913E4F5CA4B5FD20F984090507CC87` |
+| Registry publish | workflow run `29554118840`, main `f559993a`, success; validation and upload successful |
+| Registry metadata | workflow run `29554178068`, main `f559993a`, success; final dry-run is a metadata no-op |
+| Registry status | 0.5.0 `NodeVersionStatusPending`; 0.4.0 `NodeVersionStatusFlagged`; administrator review remains external |
+| dev alignment | `a590b1a9fe3130708e96b6d545a471cae3256aa2`, tree-identical merge of `origin/main` into `dev` |
+
+The release checkpoint does not close the maintenance Goal. Open #54, #55,
+and #56 boundaries and the agreed related bugs remain scheduled before the
+single final user-instance sync.
 
 ## Production Lane Ownership
 
 | Slice | Codex task | Branch / worktree | Base and status | Expected files |
 | --- | --- | --- | --- | --- |
-| 0.5.0 release preparation | integration owner `019f6a32-3b0f-7ed0-8ff6-03de8546f402` | `codex/release-0.5.0` / `worktrees/ComfyUI-EasyUseAnima/codex/release-0.5.0` | base `f5c8694`; production checkpoint frozen; final diff validated and ready for PR | `pyproject.toml`, release/Registry changelog and ledger, development release docs, 11 maintained workflow package versions, this checkpoint |
-| remaining production lanes | none active | no branch/worktree assigned | create from latest `origin/dev` only after the release gate and ownership audit | next #54/#55/#56 reviewable slices |
+| 0.5.0 release checkpoint ledger | integration owner `019f6a32-3b0f-7ed0-8ff6-03de8546f402` | `codex/record-0.5.0-release-checkpoint` / `worktrees/ComfyUI-EasyUseAnima/codex/record-0.5.0-release-checkpoint` | base `a590b1a`; docs-only checkpoint active | this execution ledger and development entry index only |
+| remaining production lanes | none active | no branch/worktree assigned | create from latest `origin/dev` only after this checkpoint merge/cleanup and ownership audit | next #54/#55/#56 reviewable slices |
 
 ## Integration Gates
 
@@ -111,10 +137,11 @@ Only one row may enter push/PR/merge at a time.
 
 | Order | Slice | Focused / audit | Full | Browser | Blocker / finding | Gate |
 | ---: | --- | --- | --- | --- | --- | --- |
-| 1 | 0.5.0 release preparation | workflow 9/9, validation contract 4/4, scanner safety 4/4, changelog extraction, Registry dry-run, official quick runner (104 JS; TS 6.0.3), `comfy node validate`, diff check, and two no-blocker audits passed | reused frozen `f5c8694` production evidence: unittest 398/398; no repeat because production code/base are unchanged | reused valid #123 Legacy and Node 2.0 evidence | P2 subgraph wording corrected; Registry 0.4.0 is scanner-flagged and 0.5.0 may require administrator approval after publish | ready for release-prep PR |
-| 2 | 0.5.0 dev -> main, tag, Release, Registry | enter after release-prep PR squash merge/read-back | release metadata checks must remain valid | no repeat for metadata-only integration | mutation timeout/abort requires read-back before retry | queued |
-| 3 | remaining #54/#55/#56 slices | create only after release read-back, cleanup, file ownership, and priority audit | per PR-ready diff | per behavior diff; final Issue matrices required | sequence and overlap audit required | backlog |
-| 4 | final user-instance sync | all agreed Issues/bugs reconciled first | use merged `dev` evidence | one manual v0.27.0 confirmation | blocked by remaining Goal work and prerequisites | queued |
+| 1 | 0.5.0 release checkpoint | PR #124/#125, tag, Release, ZIP digest, publish run, metadata run, Registry dry-run, and main/dev ancestry/tree read-back complete | reused frozen `f5c8694` production full 398/398; release-only metadata focused checks passed | reused valid #123 Legacy and Node 2.0 evidence | Registry 0.5.0 is pending external administrator review | complete |
+| 2 | post-release execution ledger | docs entry and this ledger only; diff check and content audit required | no runtime/full repeat | no browser repeat | no production code or runtime behavior change | active |
+| 3 | #56 0.5.0 runtime failure report | first determine Legacy/Node 2.0 surface, settings/source, input/composition and external DOM hooks, listener/extension install, popup DOM/visibility, served modules/cache, and console/API errors | focused diagnosis first; regression coverage required after a code root cause | Legacy and Node 2.0 input/select/close/save-reload required after any fix | keep separate from #98/#99/#100 until evidence identifies the cause | next blocker |
+| 4 | remaining #54/#55/#56 slices | create only after checkpoint merge/cleanup, file ownership, and priority audit | per PR-ready diff | per behavior diff; final Issue matrices required | sequence and overlap audit required | backlog |
+| 5 | final user-instance sync | all agreed Issues/bugs and the new #56 runtime failure reconciled first | use merged `dev` evidence | one final manual v0.27.0 confirmation | blocked by the new runtime failure report and remaining Goal work | queued |
 
 Known validation note: Windows sandbox may fail before command/test setup with
 `CreateProcessAsUserW 1312`. Record cwd, TEMP variables, runner, and failure
@@ -123,19 +150,32 @@ sandbox. Do not report the environment spawn error as a code failure.
 
 ## Current Blockers And Findings
 
+- New #56 runtime blocker from the user-manually-updated 0.5.0 instance:
+  hover tag-meaning tooltips work, but typing never shows the Autocomplete
+  suggestion list. Tooltip success proves only that part of tag metadata is
+  available; it does not prove suggestion controller or input-hook ownership.
+  The exact canvas surface, settings/source, input/composition hook, external
+  DOM input hook, listener/extension installation, popup DOM/visibility, module
+  import/404/API console state, and browser-loaded module cache are unconfirmed.
+  Audit every `web/js/autocomplete/*` dependency and served response, not only
+  the entry-file hash, because the manual update may have been partial. Keep
+  this separate from #98/#99/#100 until a root cause is reproduced. The
+  dedicated checklist is recorded in Issue #56 comment `4998957365`.
+
 - Completed #99 finding: adapter-only epoch clearing could leave pending input
   authority current, and source-key or query-shaping changes could leave a stale
   token query current. PR #123 now invalidates the complete controller request
   authority only when relevant source or query state changes. The first Node 2.0
   stale-tab attempt was excluded; a fresh exact-diff tab passed the full matrix.
-- Registry 0.4.0 is `NodeVersionStatusFlagged` because the informational
+- Registry 0.5.0 upload and metadata sync succeeded, but the version is
+  `NodeVersionStatusPending` until external administrator review completes.
+  Registry 0.4.0 remains `NodeVersionStatusFlagged` because the informational
   network-request scanner detects the explicit, timeout-bound NAIA
-  `requests.post` path. The latest active Registry version is therefore 0.3.2.
-  Publishing 0.5.0 may succeed but remain unavailable pending administrator
-  review. This is not a code blocker and must be reported after publish.
-- Registry metadata dry-run showed live 0.3.1, 0.3.0, and 0.2.7 deprecated while
-  the previous checked-in ledger marked them active. Release preparation aligns
-  those flags so later metadata sync cannot reactivate historical versions.
+  `requests.post` path. The latest active Registry version remains 0.3.2.
+  This external review state is reported and is not a maintenance code blocker.
+- Registry node metadata, every checked-in version changelog, and historical
+  deprecation flags now match the live service. The final metadata dry-run is
+  a no-op and cannot reactivate 0.3.1, 0.3.0, or 0.2.7.
 - Non-blocking #111: ComfyUI frontend 1.45.20 Node 2.0 can display a newly
   entered unsafe seed while the widget and saved workflow retain max-safe.
   Prefer an upstream fix or stable public-API boundary over a private-DOM hook.
@@ -153,11 +193,11 @@ sandbox. Do not report the environment spawn error as a code failure.
   another approval during this Goal.
 - User documentation for #102 and the coordination plan/repo-local Skill are
   explicitly approved.
-- The live main/dev/tag/Release/Registry read-back selected 0.5.0 as the next
-  non-conflicting version. After release-prep validation, `main` merge, the
-  GitHub Release, and Registry publish/registration are explicitly approved.
-  Do not pull any open or unfrozen maintenance lane into that release.
-- Early user-instance changes remain unapproved.
+- The approved 0.5.0 `main` merge, GitHub Release, and Registry publish are
+  complete. The release did not include open or unfrozen maintenance lanes.
+  Any later release still requires a new state read-back and safe checkpoint.
+- Agent-driven early user-instance changes remain unapproved. User-performed
+  manual state is diagnostic input and does not expand agent sync authority.
 - GitHub mutation timeout/abort always requires state read-back before retry.
 
 ## Cleanup And Sync
@@ -165,11 +205,18 @@ sandbox. Do not report the environment spawn error as a code failure.
 - The #103 Regional, #54 sampler-hydration, #120 coordination, #121 user-doc,
   #122 LoRA canvas, and #123 Autocomplete source/integration branches and
   worktrees were removed after merge-tree equality and clean-state checks.
+- The #124 release-prep branch/worktree and remote branch were removed after
+  squash-merge tree equality and local/remote read-back.
+- Main `f559993a` is an ancestor of dev `a590b1a`, and their trees are equal.
+- The temporary release ZIP, GitHub notes, and extracted changelog were removed
+  after the uploaded asset digest and public Release were read back.
 - Existing unrelated `codex/*`, `fix/*`, and `feature/*` worktrees are untouched.
 - The Codex test server is stopped and port 8194 is free.
-- The user v0.27.0 instance remains untouched until all agreed maintenance and
-  related bug work is merged. At that point sync the compatible full bundle
-  once immediately before the manual check.
+- The integration owner has not synced the user v0.27.0 instance. The user
+  manually applied 0.5.0 and reported the #56 suggestion-popup failure.
+  Read-only diagnosis is now required; do not treat this as the final sync.
+  After all agreed maintenance and related bugs are merged, apply one compatible
+  full bundle immediately before the final manual confirmation.
 
 ## Checkpoint Rules
 
