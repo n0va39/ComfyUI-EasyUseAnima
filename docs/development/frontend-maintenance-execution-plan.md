@@ -16,11 +16,11 @@ GitHub Issue ledgers, or live Git/GitHub/Codex/process read-back.
 - Before using this snapshot, fetch and reconcile the external state named in
   the relevant row.
 
-Snapshot: 2026-07-17 KST, after PR #127 fixed the confirmed 0.5.0 Registry
-package omission and passed final package plus dual-canvas validation. Registry
-0.5.0 is deleted, while its GitHub Release/tag remain public until the verified
-0.5.1 replacement is published. Release-preparation branch
-`codex/release-0.5.1` is active from `b902868`; production code is frozen.
+Snapshot: 2026-07-17 KST, after the complete 0.5.1 replacement checkpoint:
+PR #128 to `dev`, PR #129 to protected `main`, annotated tag, GitHub Release,
+Registry publish and metadata sync, public archive read-back, broken 0.5.0
+GitHub Release/tag removal, and tree-identical main-to-dev ancestry alignment.
+The maintenance Goal remains active for the open #54/#55/#56 boundaries.
 
 ## Goal Boundary
 
@@ -50,14 +50,14 @@ Excluded without separate approval:
 
 | Surface | Confirmed state |
 | --- | --- |
-| `origin/dev` | `b90286848cfb178204a33fca6493548b652fd0c4` |
+| `origin/dev` | `1efcb401a999c42246d41bf21371b12912297b6e` |
 | local `dev` | same SHA, clean |
-| `origin/main` | `f559993a33f86f1345ce027e83100834da8c600f` (`v0.5.0`) |
+| `origin/main` | `02a9a84634c03cc3afaa20000f136c03164308ce` (`v0.5.1`) |
 | local `main` | same SHA, clean |
-| main/dev alignment | main is an ancestor of dev; dev tree `fd4d161330235be6f031abe524cc8f3ba7c7fbe5`, main tree `6089f47214a004eb350301fdb626981b1a35aa53` |
-| latest dev integration | PR #127, Autocomplete Registry package-surface correction |
-| GitHub Release | broken `v0.5.0` Release/tag still public; withdraw only after verified 0.5.1 replacement |
-| Registry | 0.5.0 `NodeVersionStatusDeleted`; latest active remains 0.3.2; 0.5.1 not yet published |
+| main/dev alignment | main is an ancestor of dev; both tree `24dd6376a16c68a2766a7de2d1eebec7ddeb462b` |
+| latest dev integration | PR #128 release preparation, followed by tree-neutral main ancestry alignment `1efcb40` |
+| GitHub Release | `v0.5.1` public/Latest with verified manual-install ZIP; broken `v0.5.0` Release/tag absent |
+| Registry | 0.5.1 `NodeVersionStatusPending` with verified CDN archive; 0.5.0 `NodeVersionStatusDeleted`; latest active remains 0.3.2 while 0.5.1 review is pending |
 | Codex test server | stopped; port 8194 listener and related server/launcher count 0 |
 | test-instance canvas setting | `Comfy.VueNodes.Enabled=false` restored |
 | user v0.27.0 instance | user manually applied broken 0.5.0; no agent-driven replacement sync before the final Goal checkpoint |
@@ -106,6 +106,7 @@ in the roadmap and owning Issue ledgers.
 | #124 | `1c614ad3f6d617b47f137d7d65d7414d0cd0721b` | 0.5.0 package, Registry, changelog, workflow, release, and execution metadata | release-focused tests, quick runner, `comfy node validate`, and two audits passed; reused frozen production full 398/398 | reused #123 valid Legacy and Node 2.0 evidence; metadata-only diff | release-prep merge/read-back; no feature Issue closure |
 | #126 | `1bd6ee1b727fddfb37616644a30fd95605fc9d5e` | 0.5.0 release checkpoint ledger | docs-focused checks; no production diff | not required | release state recorded before the package defect was confirmed |
 | #127 | `b90286848cfb178204a33fca6493548b652fd0c4` | preserve the complete Autocomplete import closure in Registry packages | 400/400; 104 JS; TS 6.0.3; `comfy node validate`; actual package closure 8/8 | Legacy and Node 2.0 input, suggestions, keyboard select, close, save/reload; relevant errors 0 | #56 package-regression ledger; Issue remains open |
+| #128 | `c74708d29b53c62b483282b2d10fbada12ee6642` | 0.5.1 package, Registry, changelog, workflow, release, and execution metadata | focused 19/19; quick runner; `comfy node validate`; actual package 138 files; two audits GO | reused exact #127 Legacy and Node 2.0 evidence; metadata/docs/workflow-only diff | release-prep merge/read-back; no feature Issue closure |
 
 ## 0.5.0 Release And Withdrawal Checkpoint
 
@@ -113,9 +114,9 @@ in the roadmap and owning Issue ledgers.
 | --- | --- |
 | release-prep PR | #124, squash merge `1c614ad3f6d617b47f137d7d65d7414d0cd0721b` |
 | main release PR | #125, squash merge `f559993a33f86f1345ce027e83100834da8c600f` |
-| tag | annotated `v0.5.0`; tag object `7dd2c4a0211a2679be279208bf84e74ba3aca3b3`; peeled commit `f559993a` |
-| GitHub Release | `https://github.com/n0va39/ComfyUI-EasyUseAnima/releases/tag/v0.5.0` |
-| manual ZIP | `ComfyUI-EasyUseAnima-0.5.0-manual-install.zip`, 27,157,336 bytes, SHA256 `5AB89C901D24547CF5228AB86505DC72E3913E4F5CA4B5FD20F984090507CC87` |
+| tag | former annotated `v0.5.0` tag object `7dd2c4a0211a2679be279208bf84e74ba3aca3b3`; remote and local tag now deleted |
+| GitHub Release | Release and asset deleted after 0.5.1 replacement verification |
+| manual ZIP | deleted public asset; historical digest was SHA256 `5AB89C901D24547CF5228AB86505DC72E3913E4F5CA4B5FD20F984090507CC87` |
 | Registry publish | workflow run `29554118840`, main `f559993a`, success; validation and upload successful |
 | Registry metadata | workflow run `29554178068`, main `f559993a`, success; final dry-run is a metadata no-op |
 | Registry status | 0.5.0 is now `NodeVersionStatusDeleted`; its CDN object can still return the old payload and must not be treated as active |
@@ -123,19 +124,26 @@ in the roadmap and owning Issue ledgers.
 
 The 0.5.0 package is withdrawn because `.comfyignore` omitted required
 Autocomplete controller modules. The defect is fixed in PR #127; 0.5.0 must
-not be republished. Its GitHub Release/tag will be withdrawn only after 0.5.1
-is independently downloadable and verified, avoiding a gap with no replacement.
+not be republished. Both 0.5.1 archives were independently downloaded and
+verified before the broken public 0.5.0 GitHub surfaces were removed.
 
 ## 0.5.1 Replacement Checkpoint
 
-| Surface | Current evidence |
+| Surface | Final evidence |
 | --- | --- |
-| release-prep owner | integration owner, `codex/release-0.5.1`, base `b90286848cfb178204a33fca6493548b652fd0c4` |
+| release-prep PR | #128, squash merge `c74708d29b53c62b483282b2d10fbada12ee6642` |
+| main release PR | #129, squash merge `02a9a84634c03cc3afaa20000f136c03164308ce` |
+| tag | annotated `v0.5.1`; tag object `07fb6fcc8ed06fdb7390107b01e2bd75e812906d`; peeled commit `02a9a846` |
+| GitHub Release | `https://github.com/n0va39/ComfyUI-EasyUseAnima/releases/tag/v0.5.1`; public and Latest |
+| manual ZIP | 27,163,430 bytes; exact 345-file tagged tree under `ComfyUI-EasyUseAnima/`; SHA256 `AC9813B49E87C83CC22F66C5BC9A444720615663270A2811DC6AA7C505362552` |
 | production tree | frozen at PR #127; release preparation changes metadata, docs, and maintained workflow versions only |
 | frozen full | Python unittest 400/400; 104 frontend JavaScript files; TypeScript 6.0.3; diff checks |
-| package validation | `comfy node validate` passed; actual 0.5.1 package 138 files; package version 0.5.1; Autocomplete import closure 8/8; final published digests pending exact-`main` read-back |
+| Registry publish | run `29558688905`, exact main `02a9a84`, success; validation and upload passed |
+| Registry metadata | run `29558759993`, exact main `02a9a84`, success; final dry-run no-op |
+| Registry archive | 12,883,225 bytes; 138 files; every file byte-equal to exact-main Git blobs; package version 0.5.1; Autocomplete closure 8/8; SHA256 `30A5AB952D478DB3E9A05F12F928FB3663C8119264389A4AF5BC0BB16CA241D9` |
+| Registry status | 0.5.1 `NodeVersionStatusPending`; 0.4.0 `NodeVersionStatusFlagged`; Registry/admin review remains external |
 | browser | Legacy and Node 2.0 input, 20-result popup, keyboard select, Escape close, and save/reload passed; relevant module/404 errors 0 |
-| next action | validate release metadata, merge `dev`, merge protected `main`, publish and verify 0.5.1, then withdraw public GitHub 0.5.0 surfaces |
+| dev alignment | `1efcb401a999c42246d41bf21371b12912297b6e`, tree-identical merge of `origin/main` into `dev` |
 
 This replacement checkpoint also does not close the maintenance Goal. Open
 #54, #55, and #56 boundaries and the agreed related bugs remain scheduled
@@ -145,8 +153,8 @@ before the single final user-instance sync.
 
 | Slice | Codex task | Branch / worktree | Base and status | Expected files |
 | --- | --- | --- | --- | --- |
-| 0.5.1 release preparation | integration owner `019f6a32-3b0f-7ed0-8ff6-03de8546f402` | `codex/release-0.5.1` / `worktrees/ComfyUI-EasyUseAnima/codex/release-0.5.1` | base `b902868`; metadata/docs/workflow-only diff active | version, Registry changelog/metadata, release notes, maintained workflow versions, and this ledger |
-| remaining production lanes | none active | no branch/worktree assigned | create from latest `origin/dev` only after replacement release merge/cleanup and ownership audit | next #54/#55/#56 reviewable slices |
+| 0.5.1 post-release ledger/docs | integration owner `019f6a32-3b0f-7ed0-8ff6-03de8546f402` | `codex/record-0.5.1-release-checkpoint` / `worktrees/ComfyUI-EasyUseAnima/codex/record-0.5.1-release-checkpoint` | base `1efcb40`; docs-only checkpoint active | this ledger, 0.5.1 notes, Registry scanner guide, and maintainer publish guide |
+| remaining production lanes | none active | no branch/worktree assigned | create from latest `origin/dev` only after this docs checkpoint merge/cleanup and ownership audit | next #54/#55/#56 reviewable slices |
 
 ## Integration Gates
 
@@ -155,10 +163,11 @@ Only one row may enter push/PR/merge at a time.
 | Order | Slice | Focused / audit | Full | Browser | Blocker / finding | Gate |
 | ---: | --- | --- | --- | --- | --- | --- |
 | 1 | #56 Registry package hotfix | PR #127 merged; actual archive/import-closure validation and audits complete | 400/400; 104 JS; TS 6.0.3 | Legacy and Node 2.0 complete | no production finding remains | complete |
-| 2 | 0.5.1 release preparation | TOML/JSON/changelog extraction/workflow/package validation and two final audits required | reuse exact PR #127 frozen full | reuse exact PR #127 dual-canvas evidence | metadata/docs/workflow-only diff must remain production-tree neutral | active |
-| 3 | 0.5.1 publish and replacement | protected dev/main PRs, tag, GitHub asset, Registry publish/metadata, downloadable archive read-back | no repeat unless production tree/base changes | no repeat unless production tree/base changes | withdraw public 0.5.0 GitHub surfaces only after 0.5.1 succeeds | queued |
-| 4 | remaining #54/#55/#56 slices | create only after release merge/cleanup, file ownership, and priority audit | per PR-ready diff | per behavior diff; final Issue matrices required | sequence and overlap audit required | backlog |
-| 5 | final user-instance sync | all agreed Issues/bugs reconciled first | use merged `dev` evidence | one final manual v0.27.0 confirmation | blocked by remaining Goal work | queued |
+| 2 | 0.5.1 release preparation | PR #128 focused validation, actual package, and two audits complete | reused exact PR #127 frozen full | reused exact PR #127 dual-canvas evidence | production-tree neutral | complete |
+| 3 | 0.5.1 publish and replacement | PR #129, tag, GitHub asset, Registry runs, both public archive read-backs, and 0.5.0 removal complete | no repeat; production tree unchanged | no repeat; production tree unchanged | Registry 0.5.1 pending external review | complete |
+| 4 | post-release ledger/docs | exact evidence and maintainer/scanner guide correction; docs-focused checks and audit required | no runtime/full repeat | no browser repeat | no production code change | active |
+| 5 | remaining #54/#55/#56 slices | create after docs checkpoint merge/cleanup, file ownership, and priority audit | per PR-ready diff | per behavior diff; final Issue matrices required | sequence and overlap audit required | backlog |
+| 6 | final user-instance sync | all agreed Issues/bugs reconciled first | use merged `dev` evidence | one final manual v0.27.0 confirmation | blocked by remaining Goal work | queued |
 
 Known validation note: Windows sandbox may fail before command/test setup with
 `CreateProcessAsUserW 1312`. Record cwd, TEMP variables, runner, and failure
@@ -180,21 +189,21 @@ sandbox. Do not report the environment spawn error as a code failure.
   token query current. PR #123 now invalidates the complete controller request
   authority only when relevant source or query state changes. The first Node 2.0
   stale-tab attempt was excluded; a fresh exact-diff tab passed the full matrix.
-- Registry 0.5.0 is `NodeVersionStatusDeleted`; the CDN object may remain
-  physically reachable and is not evidence of an active version. Registry
-  0.4.0 remains `NodeVersionStatusFlagged` because the informational
+- Registry 0.5.1 is `NodeVersionStatusPending`; its public CDN archive is
+  available and verified, while activation remains external review. Registry
+  0.5.0 is `NodeVersionStatusDeleted`; its old CDN object may remain physically
+  reachable and is not evidence of an active version. Registry 0.4.0 remains
+  `NodeVersionStatusFlagged` because the informational
   network-request scanner detects the explicit, timeout-bound NAIA
   `requests.post` path. The latest active Registry version remains 0.3.2.
   This external review state is reported and is not a maintenance code blocker.
 - The 0.5.1 metadata list intentionally omits deleted 0.5.0 so metadata sync
   cannot present it as a current target. Historical deprecated versions remain
   unchanged and cannot be reactivated by the planned sync.
-- Non-blocking release-doc follow-up: `MAINTAINING.md` still describes the older
-  `publish-node-action` and tag ordering instead of the current mode/version
-  `comfy node publish` workflow, and `registry-scanner-safety.md` should spell
-  the root-only `/autocomplete/` pattern exactly. The actual workflow,
-  `.comfyignore`, and regression tests are correct; reconcile these docs in the
-  post-release ledger/docs checkpoint rather than expanding this release diff.
+- Resolved release-doc finding in the current docs checkpoint:
+  `MAINTAINING.md` now follows the mode/version `comfy node publish` workflow
+  and pre-publish annotated-tag gate; `registry-scanner-safety.md` spells the
+  root-only `/autocomplete/` pattern and its runtime-directory hazard.
 - Non-blocking #111: ComfyUI frontend 1.45.20 Node 2.0 can display a newly
   entered unsafe seed while the widget and saved workflow retain max-safe.
   Prefer an upstream fix or stable public-API boundary over a private-DOM hook.
@@ -213,9 +222,9 @@ sandbox. Do not report the environment spawn error as a code failure.
 - User documentation for #102 and the coordination plan/repo-local Skill are
   explicitly approved.
 - The user explicitly authorized protected `main` merge, GitHub Release, and
-  Registry publish for safe checkpoints. 0.5.1 is the approved replacement for
-  the deleted broken 0.5.0 package. Read back every remote mutation, and do not
-  withdraw the public GitHub 0.5.0 surfaces until 0.5.1 is verified available.
+  Registry publish for safe checkpoints. The approved 0.5.1 replacement and
+  broken 0.5.0 GitHub withdrawal are complete. Any later release still requires
+  a fresh state read-back and validated checkpoint.
 - Agent-driven early user-instance changes remain unapproved. User-performed
   manual state is diagnostic input and does not expand agent sync authority.
 - GitHub mutation timeout/abort always requires state read-back before retry.
@@ -229,10 +238,13 @@ sandbox. Do not report the environment spawn error as a code failure.
   squash-merge tree equality and local/remote read-back.
 - The #127 hotfix branch/worktree and remote branch were removed after squash
   merge, tree equality, package/browser validation, and Issue ledger read-back.
-- Main `f559993a` is an ancestor of dev `b902868`; their trees differ only by
-  the post-release ledger and package hotfix until the 0.5.1 release merge.
-- The temporary release ZIP, GitHub notes, and extracted changelog were removed
-  after the uploaded asset digest and public Release were read back.
+- The #128 release-prep branch/worktree and remote branch were removed after
+  the dev/main merges, public archive read-backs, and tree-equality checks.
+- Main `02a9a84` is an ancestor of dev `1efcb40`; both share tree
+  `24dd6376a16c68a2766a7de2d1eebec7ddeb462b` before this docs-only checkpoint.
+- Task-owned release verification artifacts are retained only until this ledger
+  PR merges and will then be removed after their recorded public digests are
+  read back once more.
 - Existing unrelated `codex/*`, `fix/*`, and `feature/*` worktrees are untouched.
 - The Codex test server is stopped and port 8194 is free.
 - The integration owner has not synced the user v0.27.0 instance. The user
