@@ -44,7 +44,7 @@ workflow/
 workflows/
 wildcards/
 styles/
-autocomplete/
+/autocomplete/
 web_beta/
 web_version/dev/
 node.tar.gz

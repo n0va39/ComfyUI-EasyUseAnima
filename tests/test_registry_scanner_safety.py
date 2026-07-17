@@ -1,10 +1,18 @@
 from __future__ import annotations
 
+import subprocess
 import unittest
 from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
+AUTOCOMPLETE_RUNTIME_PATHS = {
+    "web/js/easyuse_anima_autocomplete.js",
+    "web/js/autocomplete/data_adapter.js",
+    "web/js/autocomplete/input_controller.js",
+    "web/js/autocomplete/popup_geometry.js",
+    "web/js/autocomplete/text_model.js",
+}
 
 
 class RegistryScannerSafetyTests(unittest.TestCase):
@@ -71,7 +79,7 @@ class RegistryScannerSafetyTests(unittest.TestCase):
             "workflows/",
             "wildcards/",
             "styles/",
-            "autocomplete/",
+            "/autocomplete/",
             "web_beta/",
             "web_version/dev/",
             "*.cache",
@@ -91,6 +99,38 @@ class RegistryScannerSafetyTests(unittest.TestCase):
         for required_readme in ("README.md", "README.en.md", "README.ko.md", "*.md"):
             with self.subTest(required_readme=required_readme):
                 self.assertNotIn(required_readme, ignored_lines)
+        self.assertNotIn("autocomplete/", ignored_lines)
+
+    def test_autocomplete_runtime_imports_are_in_registry_package_surface(self):
+        entry = ROOT / "web" / "js" / "easyuse_anima_autocomplete.js"
+        source = entry.read_text(encoding="utf-8")
+        for runtime_path in sorted(AUTOCOMPLETE_RUNTIME_PATHS - {entry.relative_to(ROOT).as_posix()}):
+            module = Path(runtime_path)
+            self.assertTrue((ROOT / module).is_file())
+            specifier = f"./{module.relative_to('web/js').as_posix()}"
+            with self.subTest(specifier=specifier):
+                self.assertIn(f'from "{specifier}"', source)
+
+        result = subprocess.run(
+            [
+                "git",
+                "ls-files",
+                "--cached",
+                "--ignored",
+                "--exclude-from=.comfyignore",
+            ],
+            cwd=ROOT,
+            check=True,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+        )
+        ignored = {line for line in result.stdout.splitlines() if line}
+        self.assertFalse(
+            AUTOCOMPLETE_RUNTIME_PATHS & ignored,
+            f"autocomplete runtime imports are excluded from the Registry package: "
+            f"{sorted(AUTOCOMPLETE_RUNTIME_PATHS & ignored)}",
+        )
 
     def test_registry_safety_doc_is_linked_from_development_entry(self):
         entry = (ROOT / "docs" / "development" / "README.md").read_text(encoding="utf-8")
