@@ -16,11 +16,12 @@ GitHub Issue ledgers, or live Git/GitHub/Codex/process read-back.
 - Before using this snapshot, fetch and reconcile the external state named in
   the relevant row.
 
-Snapshot: 2026-07-17 KST, after the complete 0.5.1 replacement checkpoint:
-PR #128 to `dev`, PR #129 to protected `main`, annotated tag, GitHub Release,
-Registry publish and metadata sync, public archive read-back, broken 0.5.0
-GitHub Release/tag removal, and tree-identical main-to-dev ancestry alignment.
-The maintenance Goal remains active for the open #54/#55/#56 boundaries.
+Snapshot: 2026-07-17 KST, after the complete 0.5.1 replacement checkpoint and
+the sequential post-release integrations through PR #133: Autocomplete result
+limit #100, LoRA Preset node lifecycle extraction, and AiO preview-wheel
+ownership. PR/Issue read-back, lane cleanup, dual-canvas evidence where
+required, and Codex server cleanup are complete. The maintenance Goal remains
+active for the open #54/#55/#56 boundaries.
 
 ## Goal Boundary
 
@@ -50,29 +51,30 @@ Excluded without separate approval:
 
 | Surface | Confirmed state |
 | --- | --- |
-| `origin/dev` | `1efcb401a999c42246d41bf21371b12912297b6e` |
+| `origin/dev` | `2dc93fe0bf17623b51203bcf40db0854776ee8bf` |
 | local `dev` | same SHA, clean |
 | `origin/main` | `02a9a84634c03cc3afaa20000f136c03164308ce` (`v0.5.1`) |
 | local `main` | same SHA, clean |
-| main/dev alignment | main is an ancestor of dev; both tree `24dd6376a16c68a2766a7de2d1eebec7ddeb462b` |
-| latest dev integration | PR #128 release preparation, followed by tree-neutral main ancestry alignment `1efcb40` |
+| main/dev alignment | main is an ancestor of dev; dev additionally contains the post-release #130-#133 checkpoints |
+| latest dev integration | PR #133, AiO preview-wheel ownership, squash merge `2dc93fe0bf17623b51203bcf40db0854776ee8bf` |
 | GitHub Release | `v0.5.1` public/Latest with verified manual-install ZIP; broken `v0.5.0` Release/tag absent |
-| Registry | 0.5.1 `NodeVersionStatusPending` with verified CDN archive; 0.5.0 `NodeVersionStatusDeleted`; latest active remains 0.3.2 while 0.5.1 review is pending |
+| Registry | last confirmed at the 0.5.1 checkpoint: 0.5.1 `NodeVersionStatusPending` with verified CDN archive; 0.5.0 `NodeVersionStatusDeleted`; read back again before release/Registry action |
 | Codex test server | stopped; port 8194 listener and related server/launcher count 0 |
 | test-instance canvas setting | `Comfy.VueNodes.Enabled=false` restored |
-| user v0.27.0 instance | user manually applied broken 0.5.0; no agent-driven replacement sync before the final Goal checkpoint |
+| user v0.27.0 instance | user classified the manual 0.5.0 state as invalid and planned its removal; no agent-driven replacement sync before the final Goal checkpoint |
 | integration-owner task | `019f6a32-3b0f-7ed0-8ff6-03de8546f402` |
 
 ## Issue Dashboard
 
 | Issue | State | Completed boundary | Remaining or next action |
 | --- | --- | --- | --- |
-| #54 AiO Generator | open | PR #107 lifecycle, #113 API queue/hook reentry and missing `prompt_id` no-commit regression, #119 sampler hydration owner and attached-subgraph refresh | direct concurrent API serialization/reservation, final broader matrix, #62/#66 triage, and optional #119 cycle/repeated-node/remove/root-replacement fixtures |
-| #55 LoRA Preset | open | #108 menu extraction, #115/#109 lifecycle hardening, #122 canvas-widget extraction | profile mutation, initialize/configure/serialize, save-sync/wheel/entry, final matrix |
-| #56 Autocomplete | open | #116 input/keyboard/composition controller, #123 adapter/result/source epoch hardening, and #127 confirmed/fixed missing Registry runtime modules | external input hook, listener installer/entry, #98/#100, and final matrix; user-instance confirmation remains blocked until the final Goal sync |
+| #54 AiO Generator | open | PR #107 lifecycle, #113 API queue/hook reentry and missing `prompt_id` no-commit regression, #119 sampler hydration owner/attached-subgraph refresh, #133 preview-wheel ownership | direct concurrent API serialization/reservation, final broader matrix, #62 Detailer threshold, #66 triage, and optional #119 fixtures |
+| #55 LoRA Preset | open | #108 menu extraction, #115/#109 lifecycle hardening, #122 canvas-widget extraction, #132 node initialize/configure/serialize lifecycle extraction | profile mutation, save-sync/wheel/entry, final matrix |
+| #56 Autocomplete | open | #116 input/keyboard/composition controller, #123 adapter/result/source epoch hardening, #127 Registry import closure, and #131 1-100 result-limit contract | external input hook, listener installer/entry, #98, and final matrix; user-instance confirmation remains blocked until the final Goal sync |
 | #98 Autocomplete replacement syntax | open | adapter epoch prerequisite complete | preserve nested parentheses, weights, and artist prefix |
 | #99 Autocomplete request epochs | closed | PR #123; focused/full/Legacy/Node 2.0 evidence and final ledger recorded | none |
-| #100 Autocomplete result limit | open | none | deferred backend limit audit for configured values 51–100 |
+| #100 Autocomplete result limit | closed | PR #131; backend/API/frontend normalized 1-100 contract and completion ledger | none |
+| #62 AiO Detailer/preview behavior | open | PR #133 completed the preview-wheel boundary with full and dual-canvas evidence | Detailer threshold behavior remains; do not close from the wheel slice |
 | #102 seed range | closed | production contract #112 and Korean/English user docs #121 | none; #111 remains a separate non-blocking Node 2.0 display mismatch |
 | #103 Regional seed | closed | PR #118 and final ledger | none |
 | #104 subgraph Advanced seed | closed | PR #117 and final ledger | optional non-blocking settlement coverage only |
@@ -107,6 +109,10 @@ in the roadmap and owning Issue ledgers.
 | #126 | `1bd6ee1b727fddfb37616644a30fd95605fc9d5e` | 0.5.0 release checkpoint ledger | docs-focused checks; no production diff | not required | release state recorded before the package defect was confirmed |
 | #127 | `b90286848cfb178204a33fca6493548b652fd0c4` | preserve the complete Autocomplete import closure in Registry packages | 400/400; 104 JS; TS 6.0.3; `comfy node validate`; actual package closure 8/8 | Legacy and Node 2.0 input, suggestions, keyboard select, close, save/reload; relevant errors 0 | #56 package-regression ledger; Issue remains open |
 | #128 | `c74708d29b53c62b483282b2d10fbada12ee6642` | 0.5.1 package, Registry, changelog, workflow, release, and execution metadata | focused 19/19; quick runner; `comfy node validate`; actual package 138 files; two audits GO | reused exact #127 Legacy and Node 2.0 evidence; metadata/docs/workflow-only diff | release-prep merge/read-back; no feature Issue closure |
+| #130 | `715384d93698009111dea158395d2541d905674e` | record the verified 0.5.1 replacement and corrected release/Registry guidance | docs/Skill-focused validation; no production diff | not required | checkpoint, merge/read-back, and cleanup recorded |
+| #131 | `b5743b0da6b4f51ddbd146257cbf2803cceeddc0` | Autocomplete configured result limit 1-100 | 402/402; 104 JS; TS 6.0.3 | not required: backend/API/frontend contract regression | #100 final ledger; Issue closed completed; #56 progress ledger |
+| #132 | `72d55c74e1ba02aeb6eb522ab398fc75220ae053` | LoRA Preset per-node initialize/configure/serialize lifecycle extraction | 404/404; 105 JS; TS 6.0.3 | not repeated: mechanical extraction with behavior and ownership audits | #55 ledger; Issue remains open |
+| #133 | `2dc93fe0bf17623b51203bcf40db0854776ee8bf` | AiO preview/non-overflow-feed wheel ownership | 404/404; 105 JS; TS 6.0.3 | Legacy and Node 2.0 512x512 queue, preview/feed wheel, canvas forwarding, save/reload; EasyUse errors 0 | #54/#62 ledgers; both Issues remain open |
 
 ## 0.5.0 Release And Withdrawal Checkpoint
 
@@ -153,8 +159,8 @@ before the single final user-instance sync.
 
 | Slice | Codex task | Branch / worktree | Base and status | Expected files |
 | --- | --- | --- | --- | --- |
-| 0.5.1 post-release ledger/docs | integration owner `019f6a32-3b0f-7ed0-8ff6-03de8546f402` | `codex/record-0.5.1-release-checkpoint` / `worktrees/ComfyUI-EasyUseAnima/codex/record-0.5.1-release-checkpoint` | base `1efcb40`; docs-only checkpoint active | this ledger, 0.5.1 notes, Registry scanner guide, and maintainer publish guide |
-| remaining production lanes | none active | no branch/worktree assigned | create from latest `origin/dev` only after this docs checkpoint merge/cleanup and ownership audit | next #54/#55/#56 reviewable slices |
+| #130-#133 checkpoint ledger/Skill | integration owner `019f6a32-3b0f-7ed0-8ff6-03de8546f402` | `codex/record-maintenance-checkpoint-133` / `worktrees/ComfyUI-EasyUseAnima/codex/record-maintenance-checkpoint-133` | base `2dc93fe`; docs/Skill-only checkpoint active | this ledger and repo-local maintenance Skill |
+| remaining production lanes | none active | no branch/worktree assigned | create from latest `origin/dev` only after this checkpoint merge/cleanup and ownership audit | next #54/#55/#56 reviewable slices |
 
 ## Integration Gates
 
@@ -165,9 +171,13 @@ Only one row may enter push/PR/merge at a time.
 | 1 | #56 Registry package hotfix | PR #127 merged; actual archive/import-closure validation and audits complete | 400/400; 104 JS; TS 6.0.3 | Legacy and Node 2.0 complete | no production finding remains | complete |
 | 2 | 0.5.1 release preparation | PR #128 focused validation, actual package, and two audits complete | reused exact PR #127 frozen full | reused exact PR #127 dual-canvas evidence | production-tree neutral | complete |
 | 3 | 0.5.1 publish and replacement | PR #129, tag, GitHub asset, Registry runs, both public archive read-backs, and 0.5.0 removal complete | no repeat; production tree unchanged | no repeat; production tree unchanged | Registry 0.5.1 pending external review | complete |
-| 4 | post-release ledger/docs | exact evidence and maintainer/scanner guide correction; docs-focused checks and audit required | no runtime/full repeat | no browser repeat | no production code change | active |
-| 5 | remaining #54/#55/#56 slices | create after docs checkpoint merge/cleanup, file ownership, and priority audit | per PR-ready diff | per behavior diff; final Issue matrices required | sequence and overlap audit required | backlog |
-| 6 | final user-instance sync | all agreed Issues/bugs reconciled first | use merged `dev` evidence | one final manual v0.27.0 confirmation | blocked by remaining Goal work | queued |
+| 4 | post-release ledger/docs | PR #130 merged and cleaned | no runtime/full repeat | no browser repeat | no production code change | complete |
+| 5 | #100 Autocomplete result limit | PR #131 merged; correctness and regression audits GO | 402/402; 104 JS; TS 6.0.3 | deterministic backend/API/frontend boundary; no browser repeat | no finding remains; Issue #100 closed | complete |
+| 6 | #55 LoRA node lifecycle extraction | PR #132 merged; behavior and ownership audits GO | 404/404; 105 JS; TS 6.0.3 | mechanical extraction; no browser repeat | #55 remains open for profile/save-sync/entry/final matrix | complete |
+| 7 | #54/#62 AiO preview wheel | PR #133 merged; three audits GO | 404/404; 105 JS; TS 6.0.3 | Legacy and Node 2.0 512x512 queue/wheel/save-reload complete | live feed did not overflow; deterministic X-scroll/boundary regression passed; Detailer threshold remains | complete |
+| 8 | #130-#133 checkpoint ledger/Skill | current docs/Skill-only branch; focused validation and read-back required | no runtime/full repeat | no browser repeat | no production code change | active |
+| 9 | remaining #54/#55/#56 slices | create after checkpoint merge/cleanup, file ownership, and priority audit | per PR-ready diff | per behavior diff; final Issue matrices required | sequence and overlap audit required | backlog |
+| 10 | final user-instance sync | all agreed Issues/bugs reconciled first | use merged `dev` evidence | one final manual v0.27.0 confirmation | blocked by remaining Goal work | queued |
 
 Known validation note: Windows sandbox may fail before command/test setup with
 `CreateProcessAsUserW 1312`. Record cwd, TEMP variables, runner, and failure
@@ -189,6 +199,17 @@ sandbox. Do not report the environment spawn error as a code failure.
   token query current. PR #123 now invalidates the complete controller request
   authority only when relevant source or query state changes. The first Node 2.0
   stale-tab attempt was excluded; a fresh exact-diff tab passed the full matrix.
+- Completed #100 finding: the backend capped candidate scanning at 50 even when
+  a configured/API limit requested 51-100. PR #131 normalizes one effective
+  1-100 limit and uses it for both scanning and final slicing; direct/API and
+  frontend cache-partition regressions passed. Issue #100 is closed.
+- Completed #133 wheel boundary: main preview and non-overflow feed now consume
+  wheel input in both canvas modes, while unrelated panel space preserves canvas
+  forwarding. The live workflow did not produce an overflowing feed, so X-axis
+  movement and boundary consumption remain deterministic focused evidence. The
+  repeated core `ComfyApp graph accessed before initialization` reload message
+  is the previously traced ComfyUI 0.27.0/frontend 1.45.20 baseline; EasyUse
+  warning/error logs were empty. Issue #62 remains open for Detailer threshold.
 - Registry 0.5.1 is `NodeVersionStatusPending`; its public CDN archive is
   available and verified, while activation remains external review. Registry
   0.5.0 is `NodeVersionStatusDeleted`; its old CDN object may remain physically
@@ -221,6 +242,10 @@ sandbox. Do not report the environment spawn error as a code failure.
   another approval during this Goal.
 - User documentation for #102 and the coordination plan/repo-local Skill are
   explicitly approved.
+- For newly created Codex production tasks, the integration owner selects the
+  available model and reasoning level from slice complexity, risk, latency, and
+  review needs. Do not default every lane to `sol`/`max`, and do not claim a
+  speed setting that the task API does not expose.
 - The user explicitly authorized protected `main` merge, GitHub Release, and
   Registry publish for safe checkpoints. The approved 0.5.1 replacement and
   broken 0.5.0 GitHub withdrawal are complete. Any later release still requires
@@ -240,17 +265,20 @@ sandbox. Do not report the environment spawn error as a code failure.
   merge, tree equality, package/browser validation, and Issue ledger read-back.
 - The #128 release-prep branch/worktree and remote branch were removed after
   the dev/main merges, public archive read-backs, and tree-equality checks.
-- Main `02a9a84` is an ancestor of dev `1efcb40`; both share tree
-  `24dd6376a16c68a2766a7de2d1eebec7ddeb462b` before this docs-only checkpoint.
-- Task-owned release verification artifacts are retained only until this ledger
-  PR merges and will then be removed after their recorded public digests are
-  read back once more.
+- The #130 checkpoint, #131 Autocomplete limit, #132 LoRA node runtime, and #133
+  AiO preview-wheel branches/worktrees and remote branches were removed after
+  squash-merge/read-back, Issue ledger, and clean-state checks.
+- Main `02a9a84` is an ancestor of dev `2dc93fe`; dev now contains the verified
+  post-release maintenance and documentation checkpoints through PR #133.
+- The current `record-maintenance-checkpoint-133` branch/worktree is owned only
+  by the integration task and will be removed after its docs/Skill PR merge and
+  read-back.
 - Existing unrelated `codex/*`, `fix/*`, and `feature/*` worktrees are untouched.
 - The Codex test server is stopped and port 8194 is free.
 - The integration owner has not synced the user v0.27.0 instance. The user
-  manually applied broken 0.5.0 and reported the #56 suggestion-popup failure.
-  The package root cause is fixed, but do not treat that manual state as the
-  final sync.
+  classified the manual 0.5.0 state as invalid and planned its removal after
+  reporting the #56 suggestion-popup failure. The package root cause is fixed,
+  but do not treat any manual 0.5.0 state as the final sync.
   After all agreed maintenance and related bugs are merged, apply one compatible
   full bundle immediately before the final manual confirmation.
 

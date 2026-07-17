@@ -38,8 +38,11 @@ frontend-support files. Do not copy volatile state into this Skill.
 - A lane implements, runs sandbox-safe focused checks, commits, and leaves a
   clean worktree. It does not run the official full suite, browser/server smoke,
   push, PR, merge, shared-runner edits, or user-instance sync.
-- New user-owned Codex tasks use `thinking: max`. Do not claim a speed setting
-  that the task API does not expose.
+- Select each new user-owned Codex task's available model and reasoning level
+  from slice complexity, risk, latency, and review needs. Use balanced settings
+  for bounded audits or mechanical extractions and higher reasoning for
+  intertwined runtime behavior or integration risk; do not default every task
+  to `sol`/`max`. Do not claim a speed setting that the task API does not expose.
 
 ## Advance The Integration Gate
 
