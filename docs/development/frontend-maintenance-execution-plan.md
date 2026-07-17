@@ -16,8 +16,8 @@ GitHub Issue ledgers, or live Git/GitHub/Codex/process read-back.
 - Before using this snapshot, fetch and reconcile the external state named in
   the relevant row.
 
-Snapshot: 2026-07-17 KST, immediately after PR #120 cleanup and creation of the
-#102 documentation lane.
+Snapshot: 2026-07-17 KST, immediately after PR #121 and Issue #102 cleanup and
+creation of the #55 canvas-widget integration branch.
 
 ## Goal Boundary
 
@@ -43,9 +43,9 @@ Excluded without separate approval:
 
 | Surface | Confirmed state |
 | --- | --- |
-| `origin/dev` | `37c14f8cc10bd43fd33d3a1be76eeeeba435b920` |
+| `origin/dev` | `e7a2cc4c95d40930a5076c25fd5f06a9bcc78c14` |
 | local `dev` | same SHA, clean |
-| latest integration | PR #120, frontend maintenance execution ledger and project Skill |
+| latest integration | PR #121, wildcard seed range user documentation |
 | Codex test server | stopped; port 8194 listener and related server/launcher count 0 |
 | test-instance canvas setting | `Comfy.VueNodes.Enabled=false` restored |
 | user v0.27.0 instance | not synced for this Goal |
@@ -56,9 +56,9 @@ Excluded without separate approval:
 | Issue | State | Completed boundary | Remaining or next action |
 | --- | --- | --- | --- |
 | #54 AiO Generator | open | PR #107 lifecycle, #113 API queue/hook reentry and missing `prompt_id` no-commit regression, #119 sampler hydration owner and attached-subgraph refresh | direct concurrent API serialization/reservation, final broader matrix, #62/#66 triage, and optional #119 cycle/repeated-node/remove/root-replacement fixtures |
-| #55 LoRA Preset | open | #108 extraction, #115/#109 lifecycle hardening | integrate canvas-widget extraction; then profile mutation, initialize/configure/serialize, save-sync/wheel/entry, final matrix |
+| #55 LoRA Preset | open | #108 extraction, #115/#109 lifecycle hardening | integrate the current canvas-widget extraction; then profile mutation, initialize/configure/serialize, save-sync/wheel/entry, final matrix |
 | #56 Autocomplete | open | #116 input/keyboard/composition controller | integrate #99 adapter epoch; then external input hook, listener installer/entry, #98/#100, final matrix |
-| #102 seed range | open | production contract merged in #112 | integrate the current Korean/English user-doc lane, record #111 as a separate non-blocking Node 2.0 display mismatch, then reconcile the Issue ledger |
+| #102 seed range | closed | production contract #112 and Korean/English user docs #121 | none; #111 remains a separate non-blocking Node 2.0 display mismatch |
 | #103 Regional seed | closed | PR #118 and final ledger | none |
 | #104 subgraph Advanced seed | closed | PR #117 and final ledger | optional non-blocking settlement coverage only |
 | #105 seed lifecycle | closed | PR #110 and final ledger | do not reimplement |
@@ -85,14 +85,14 @@ in the roadmap and owning Issue ledgers.
 | #118 | `44eb91c1335f563e7ec05a9bf65fa74e1e219676` | Regional queue seed reservation | 395/395; 103 JS; TS 6.0.3 | Legacy and Node 2.0, 512×512 rapid queue 3/3 each | #103 final ledger |
 | #119 | `4119012881f4d1b35f61a29704fb18d23602a06d` | AiO sampler hydration single owner and attached-subgraph refresh | 396/396; 103 JS; TS 6.0.3 | Legacy and Node 2.0 512×512 queue/save-reload; attached native subgraph; EasyUse errors 0 | #54 ledger; Issue remains open |
 | #120 | `37c14f8cc10bd43fd33d3a1be76eeeeba435b920` | frontend maintenance execution ledger and repo-local coordination Skill | 396/396; 103 JS; TS 6.0.3 | not required: internal docs/procedure only | no owning feature Issue; merge/read-back and cleanup recorded here |
+| #121 | `e7a2cc4c95d40930a5076c25fd5f06a9bcc78c14` | bilingual wildcard seed range and legacy workflow user documentation | 396/396; 103 JS; TS 6.0.3 | reused #112 identical production evidence; docs-only diff | #102 final ledger; Issue closed completed |
 
 ## Production Lane Ownership
 
 | Slice | Codex task | Branch / worktree | Base and status | Expected files |
 | --- | --- | --- | --- | --- |
-| #55 canvas widgets | `019f6b77-702f-7863-8706-cc5db859b360` | `codex/extract-lora-canvas-widgets`; `worktrees/ComfyUI-EasyUseAnima/codex/extract-lora-canvas-widgets` | clean HEAD `6d2386777181d24472b6cfa4ce090ee630a12d71` on `4119012`; focused checks and two audits passed | `web/js/lora_preset/canvas_widgets.js`, LoRA entry, dedicated smoke and unittest |
+| #55 canvas widgets | source task `019f6b77-702f-7863-8706-cc5db859b360`; integration owner `019f6a32-3b0f-7ed0-8ff6-03de8546f402` | clean source `codex/extract-lora-canvas-widgets` / `6d238677`; active integration `codex/integrate-lora-canvas-widgets` / `worktrees/ComfyUI-EasyUseAnima/codex/integrate-lora-canvas-widgets` | source patch range-diff `=` as integration commit `0cca9ea` on `e7a2cc4`; shared runner/checkpoint focused checks and final audits passed | canvas module, LoRA entry, dedicated smoke/unittest, runner registration, and this checkpoint |
 | #56/#99 adapter epoch | `019f6bc5-c33b-7960-b84e-0f2300525f2a` | `codex/fix-autocomplete-adapter-epoch`; `worktrees/ComfyUI-EasyUseAnima/codex/fix-autocomplete-adapter-epoch` | clean HEAD `f34bdaa224a34c2bd3097c24e77cd45258486079` on `4119012`; focused 43/43 and two audits passed | `web/js/autocomplete/data_adapter.js`, dedicated adapter smoke |
-| #102 user docs | `019f6a32-3b0f-7ed0-8ff6-03de8546f402` (integration owner) | `codex/docs-wildcard-seed-contract`; `worktrees/ComfyUI-EasyUseAnima/codex/docs-wildcard-seed-contract` | active on clean base `37c14f8`; focused contract check and final audits passed | `docs/wildcards.ko.md`, `docs/wildcards.en.md`, and this checkpoint only |
 
 ## Integration Gates
 
@@ -100,11 +100,10 @@ Only one row may enter push/PR/merge at a time.
 
 | Order | Slice | Focused / audit | Full | Browser | Blocker / finding | Gate |
 | ---: | --- | --- | --- | --- | --- | --- |
-| 1 | #102 user docs | focused contract check plus final contract, ledger, and readability audits passed | run once on final diff | reuse #112 identical production evidence; docs do not change runtime | #111 is non-blocking and separately tracked | current |
-| 2 | #55 canvas widgets | focused tests and two extraction audits passed | integration owner registers smoke, then one full run | omit for mechanical extraction; final #55 matrix remains required before Issue close | rebase from `4119012` after #102 cleanup | queued |
-| 3 | #56/#99 adapter epoch | focused 43/43, range-diff, and two audits passed | one full run | required once per final behavior diff on legacy and Node 2.0 | rebase from `4119012` after preceding integrations | queued |
-| 4 | remaining #54/#55/#56 slices | create only after file ownership and priority audit | per PR-ready diff | per behavior diff; final Issue matrices required | sequence and overlap audit required | backlog |
-| 5 | final user-instance sync | all agreed Issues/bugs reconciled first | use merged `dev` evidence | one manual v0.27.0 confirmation | blocked by remaining Goal work and prerequisites | queued |
+| 1 | #55 canvas widgets | source and integration focused checks, range-diff, and final production/runner/plan audits passed | run once on final diff | omit for mechanical extraction; final #55 matrix remains required before Issue close | no known blocker | current |
+| 2 | #56/#99 adapter epoch | focused 43/43, range-diff, and two audits passed | one full run | required once per final behavior diff on legacy and Node 2.0 | rebase from `4119012` after #55 cleanup | queued |
+| 3 | remaining #54/#55/#56 slices | create only after file ownership and priority audit | per PR-ready diff | per behavior diff; final Issue matrices required | sequence and overlap audit required | backlog |
+| 4 | final user-instance sync | all agreed Issues/bugs reconciled first | use merged `dev` evidence | one manual v0.27.0 confirmation | blocked by remaining Goal work and prerequisites | queued |
 
 Known validation note: Windows sandbox may fail before command/test setup with
 `CreateProcessAsUserW 1312`. Record cwd, TEMP variables, runner, and failure
@@ -113,12 +112,15 @@ sandbox. Do not report the environment spawn error as a code failure.
 
 ## Current Blockers And Findings
 
-- Blocking the current #102 documentation gate: none known.
+- Blocking the current #55 canvas-widget gate: none known.
 - Non-blocking #111: ComfyUI frontend 1.45.20 Node 2.0 can display a newly
   entered unsafe seed while the widget and saved workflow retain max-safe.
   Prefer an upstream fix or stable public-API boundary over a private-DOM hook.
 - Non-blocking #119 coverage gap: explicit cycle, repeated generator object,
   hydration-before-remove, and root-replacement fixtures remain optional.
+- Non-blocking #55 coverage gap: the dedicated smoke is registered and runs in
+  the official frontend runner, but no Python static assertion locks that runner
+  line; exact canvas paint pixels and extreme scroll counts remain optional.
 - Environment: sandbox `CreateProcessAsUserW 1312` is a pre-test process-spawn
   failure, not a repository blocker, when the identical approved rerun passes.
 
@@ -134,7 +136,7 @@ sandbox. Do not report the environment spawn error as a code failure.
 
 ## Cleanup And Sync
 
-- The #103 Regional, #54 sampler-hydration, and #120 coordination
+- The #103 Regional, #54 sampler-hydration, #120 coordination, and #121 user-doc
   branches/worktrees were removed after merge-tree equality and clean-state
   checks.
 - Existing unrelated `codex/*`, `fix/*`, and `feature/*` worktrees are untouched.

@@ -179,6 +179,11 @@ try {
         throw "Frontend LoRA preset menu lifecycle smoke failed with exit code $LASTEXITCODE."
     }
 
+    & node "tests\frontend_lora_preset_canvas_widgets_smoke.mjs"
+    if ($LASTEXITCODE -ne 0) {
+        throw "Frontend LoRA preset canvas widgets smoke failed with exit code $LASTEXITCODE."
+    }
+
     & node "tests\frontend_autocomplete_data_adapter_smoke.mjs"
     if ($LASTEXITCODE -ne 0) {
         throw "Frontend autocomplete data adapter smoke failed with exit code $LASTEXITCODE."
