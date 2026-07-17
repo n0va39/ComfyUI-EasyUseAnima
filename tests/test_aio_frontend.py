@@ -53,6 +53,9 @@ AUTOCOMPLETE_INPUT_CONTROLLER_JS = (
 AUTOCOMPLETE_INPUT_BINDING_JS = (
     ROOT / "web" / "js" / "autocomplete" / "input_binding.js"
 )
+AUTOCOMPLETE_ENTRY_LIFECYCLE_JS = (
+    ROOT / "web" / "js" / "autocomplete" / "entry_lifecycle.js"
+)
 AUTOCOMPLETE_TEXT_MODEL_JS = (
     ROOT / "web" / "js" / "autocomplete" / "text_model.js"
 )
@@ -1022,15 +1025,28 @@ class AIOFrontendSourceTests(unittest.TestCase):
         self.assertIn("resetActiveAutocompleteMenu(ensurePopup());", update_body)
 
         start = source.index("function handleOutsideAutocompletePointer")
-        end = source.index("\ndocument.addEventListener(\"pointerdown\"", start)
+        end = source.index("\nfunction handleAutocompleteSettingsUpdated", start)
         pointer_body = source[start:end]
 
         self.assertIn("popup?.contains(event.target)", pointer_body)
         self.assertIn("event.target === input", pointer_body)
         self.assertIn("markAutocompleteInputInactive(input);", pointer_body)
         self.assertIn("hidePopup();", pointer_body)
-        self.assertIn('document.addEventListener("pointerdown", handleOutsideAutocompletePointer, true);', source)
-        self.assertIn('document.addEventListener("mousedown", handleOutsideAutocompletePointer, true);', source)
+        self.assertIn(
+            "handleOutsidePointer: handleOutsideAutocompletePointer",
+            source,
+        )
+        lifecycle_source = AUTOCOMPLETE_ENTRY_LIFECYCLE_JS.read_text(
+            encoding="utf-8"
+        )
+        self.assertIn(
+            'listen(hostDocument, "pointerdown", handleOutsidePointer, true);',
+            lifecycle_source,
+        )
+        self.assertIn(
+            'listen(hostDocument, "mousedown", handleOutsidePointer, true);',
+            lifecycle_source,
+        )
 
     def test_autocomplete_wildcards_accept_empty_and_unicode_queries(self):
         source = AUTOCOMPLETE_JS.read_text(encoding="utf-8")
@@ -1131,7 +1147,7 @@ class AIOFrontendSourceTests(unittest.TestCase):
     def test_autocomplete_hooks_focused_nodes_v2_dom_inputs(self):
         source = AUTOCOMPLETE_JS.read_text(encoding="utf-8")
         start = source.index("function hookFocusedDomInput")
-        end = source.index("\nfunction installExternalInputHook", start)
+        end = source.index("\nfunction handleAutocompleteScroll", start)
         focus_body = source[start:end]
 
         self.assertIn("isAutocompleteDomInput(input)", focus_body)
@@ -1140,8 +1156,15 @@ class AIOFrontendSourceTests(unittest.TestCase):
         self.assertIn("const targets = nodeData ? targetWidgets(nodeData) : null;", focus_body)
         self.assertIn("const widget = widgetForDomInput(node, input);", focus_body)
         self.assertIn("hookInput(input", focus_body)
-        self.assertIn('document.addEventListener("focusin"', source)
-        self.assertIn("hookFocusedDomInput(document.activeElement);", source)
+        self.assertIn("hookFocusedInput: hookFocusedDomInput", source)
+        lifecycle_source = AUTOCOMPLETE_ENTRY_LIFECYCLE_JS.read_text(
+            encoding="utf-8"
+        )
+        self.assertIn(
+            'listen(hostDocument, "focusin", focusHook, true);',
+            lifecycle_source,
+        )
+        self.assertIn("hookFocusedInput(hostDocument.activeElement);", lifecycle_source)
         self.assertNotIn("easyuseAnimaDebugAutocomplete", source)
 
     def test_prompt_highlight_wildcards_accept_unicode_keys(self):
