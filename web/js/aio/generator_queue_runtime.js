@@ -76,6 +76,10 @@ export function aioCreateGeneratorQueueRuntime(dependencies) {
     specialSeedIncrement,
     specialSeedDecrement,
   ]);
+  // Direct api.queuePrompt callers can overlap outside the higher-level queue
+  // lifecycle. Keep per-node reservations weakly owned and settle them FIFO so
+  // request concurrency does not duplicate or regress seed state.
+  const nodeReservationStates = new WeakMap();
 
   function isRecord(value) {
     return !!value && typeof value === "object" && !Array.isArray(value);
@@ -103,12 +107,11 @@ export function aioCreateGeneratorQueueRuntime(dependencies) {
     return clampConcreteSeed(value);
   }
 
-  function resolveQueuedSeed(node, inputSeed) {
+  function resolveQueuedSeed(inputSeed, lastSeed = null) {
     const seed = normalizeSeedValue(inputSeed, specialSeedRandom);
     if (!specialSeeds.has(seed)) {
       return clampConcreteSeed(seed);
     }
-    const lastSeed = lastConcreteSeed(node);
     if (lastSeed != null && seed === specialSeedIncrement) {
       return clampConcreteSeed(lastSeed + 1);
     }
@@ -129,6 +132,72 @@ export function aioCreateGeneratorQueueRuntime(dependencies) {
       default:
         return normalizeSeedValue(inputSeed, specialSeedRandom);
     }
+  }
+
+  function reservationStateForNode(node, liveInputSeed) {
+    const normalizedLiveSeed = normalizeSeedValue(liveInputSeed, specialSeedRandom);
+    let state = nodeReservationStates.get(node);
+    if (!state) {
+      state = {
+        node,
+        liveSeed: normalizedLiveSeed,
+        lastQueuedSeed: lastConcreteSeed(node),
+        publishFailed: false,
+        reservations: [],
+      };
+      nodeReservationStates.set(node, state);
+      return state;
+    }
+    if (!state.reservations.length && !state.publishFailed) {
+      state.liveSeed = normalizedLiveSeed;
+      state.lastQueuedSeed = lastConcreteSeed(node);
+    }
+    return state;
+  }
+
+  function reservationBasis(state) {
+    const tail = state.reservations[state.reservations.length - 1];
+    return tail
+      ? { inputSeed: tail.liveSeed, lastQueuedSeed: tail.queuedSeed }
+      : { inputSeed: state.liveSeed, lastQueuedSeed: state.lastQueuedSeed };
+  }
+
+  function flushSettledReservations(state) {
+    while (state.reservations.length && state.reservations[0].status !== "pending") {
+      const reservation = state.reservations.shift();
+      if (reservation.status !== "accepted") {
+        continue;
+      }
+      state.lastQueuedSeed = reservation.queuedSeed;
+      state.liveSeed = reservation.liveSeed;
+      try {
+        commitLastQueuedSeed(reservation.node, reservation.queuedSeed);
+      } catch {
+        state.publishFailed = true;
+        continue;
+      }
+      try {
+        updateSeed(reservation.node, reservation.liveSeed, { markDirty: false });
+        state.publishFailed = false;
+      } catch {
+        // Keep the accepted reservation authoritative even when the local
+        // panel/widget cannot publish it. A following direct API call must not
+        // reuse a seed that ComfyUI already accepted.
+        state.publishFailed = true;
+      }
+    }
+  }
+
+  function settleReservation(reservation, accepted) {
+    if (reservation.status !== "pending") {
+      return;
+    }
+    reservation.status = accepted ? "accepted" : "rejected";
+    const { state } = reservation;
+    while (state.reservations[state.reservations.length - 1]?.status === "rejected") {
+      state.reservations.pop();
+    }
+    flushSettledReservations(state);
   }
 
   function findWorkflowNode(workflow, id) {
@@ -251,8 +320,9 @@ export function aioCreateGeneratorQueueRuntime(dependencies) {
    *
    * @param {any} prompt
    * @param {any} [options]
+   * @param {boolean} [reserve]
    */
-  function preparePrompt(prompt, options = null) {
+  function preparePrompt(prompt, options = null, reserve = false) {
     const nodes = candidateNodes(prompt, options);
     if (!nodes.length) {
       return null;
@@ -280,11 +350,14 @@ export function aioCreateGeneratorQueueRuntime(dependencies) {
         if (!isRecord(queuedSettings) || !isRecord(queuedSettings.sampler)) {
           continue;
         }
-        const inputSeed = normalizeSeedValue(
+        const liveInputSeed = normalizeSeedValue(
           queuedSettings.sampler.seed,
           specialSeedRandom,
         );
-        const queuedSeed = resolveQueuedSeed(node, inputSeed);
+        const state = reservationStateForNode(node, liveInputSeed);
+        const basis = reservationBasis(state);
+        const inputSeed = basis.inputSeed;
+        const queuedSeed = resolveQueuedSeed(inputSeed, basis.lastQueuedSeed);
         queuedSettings.sampler.seed = queuedSeed;
         const serializedSettings = settingsToCompactJson(queuedSettings);
         if (typeof serializedSettings !== "string") {
@@ -303,16 +376,22 @@ export function aioCreateGeneratorQueueRuntime(dependencies) {
           serializedSettings,
           workflowWrite,
         );
-        commits.push({
+        const reservation = {
           node,
           nodeId: String(node.id),
+          state,
           queuedSeed,
           liveSeed: nextLiveSeed(
             queuedSettings.sampler.seed_after_generate,
             inputSeed,
             queuedSeed,
           ),
-        });
+          status: "pending",
+        };
+        if (reserve) {
+          state.reservations.push(reservation);
+        }
+        commits.push(reservation);
       } catch {
         // One malformed generator must not prevent unrelated prompt nodes from
         // queueing. It remains untouched in the cloned payload.
@@ -354,27 +433,19 @@ export function aioCreateGeneratorQueueRuntime(dependencies) {
     }
   }
 
-  function commitPreparedSeeds(transaction, result) {
+  function settlePreparedSeeds(transaction, result) {
     const invalidTargets = invalidCommitTargetIds(result);
-    if (!invalidTargets) {
-      return;
+    for (const reservation of transaction.commits) {
+      settleReservation(
+        reservation,
+        !!invalidTargets && !invalidTargets.has(reservation.nodeId),
+      );
     }
-    for (const commit of transaction.commits) {
-      if (invalidTargets.has(commit.nodeId)) {
-        continue;
-      }
-      try {
-        commitLastQueuedSeed(commit.node, commit.queuedSeed);
-      } catch {
-        continue;
-      }
-      try {
-        updateSeed(commit.node, commit.liveSeed, { markDirty: false });
-      } catch {
-        // The durable last-seed reservation is already committed. A local
-        // panel/widget failure cannot reject the accepted queue result or block
-        // another node's reservation and live-seed update.
-      }
+  }
+
+  function rejectPreparedSeeds(transaction) {
+    for (const reservation of transaction.commits) {
+      settleReservation(reservation, false);
     }
   }
 
@@ -387,14 +458,22 @@ export function aioCreateGeneratorQueueRuntime(dependencies) {
   function wrapQueuePrompt(queuePrompt) {
     return async function (...args) {
       await loadOptionalDependencies({ retryErrors: true });
-      const transaction = preparePrompt(args[1], args[2]);
+      const transaction = preparePrompt(args[1], args[2], true);
       const queueArgs = transaction ? [...args] : args;
       if (transaction) {
         queueArgs[1] = transaction.prompt;
       }
-      const result = await queuePrompt.apply(this, queueArgs);
+      let result;
+      try {
+        result = await queuePrompt.apply(this, queueArgs);
+      } catch (error) {
+        if (transaction) {
+          rejectPreparedSeeds(transaction);
+        }
+        throw error;
+      }
       if (transaction) {
-        commitPreparedSeeds(transaction, result);
+        settlePreparedSeeds(transaction, result);
       }
       return result;
     };
