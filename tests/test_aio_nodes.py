@@ -224,6 +224,19 @@ class AIOSettingsStorageTests(unittest.TestCase):
         self.assertEqual(settings["detailer"]["custom_1"]["spectrum"]["window_size"], 4.0)
         self.assertEqual(settings["detailer"]["custom_1"]["dit_corrections"]["dcw_mode"], "manual")
 
+    def test_generation_settings_clamp_detailer_thresholds(self):
+        settings = nodes._normalize_aio_generation_settings(json.dumps({
+            "detailer": {
+                "face": {"threshold": -1},
+                "eye": {"threshold": 2},
+                "custom_1": {"threshold": 0.63},
+            },
+        }))
+
+        self.assertEqual(settings["detailer"]["face"]["threshold"], 0.0)
+        self.assertEqual(settings["detailer"]["eye"]["threshold"], 1.0)
+        self.assertEqual(settings["detailer"]["custom_1"]["threshold"], 0.63)
+
     def test_legacy_filename_prefix_is_not_kept_in_generation_settings(self):
         settings = nodes._normalize_aio_generation_settings(json.dumps({
             "save": {
@@ -1433,6 +1446,7 @@ class AIOHighresDetailerStageTests(unittest.TestCase):
             "detailer": {
                 "face": {
                     "enabled": True,
+                    "threshold": 0.63,
                     "spectrum": {
                         "enabled": True,
                         "window_size": 4,
@@ -1468,6 +1482,7 @@ class AIOHighresDetailerStageTests(unittest.TestCase):
         self.assertTrue(metadata["detected"])
         self.assertEqual(detailer.call_args.kwargs["model"], "detail_model")
         self.assertEqual(detailer.call_args.kwargs["scheduler"], settings["sampler"]["scheduler"])
+        self.assertEqual(detailer.call_args.kwargs["threshold"], 0.63)
         stage_sampler = comfy_patch.call_args.args[3]
         self.assertTrue(stage_sampler["spectrum"]["enabled"])
         self.assertEqual(stage_sampler["spectrum"]["window_size"], 4.0)

@@ -1470,6 +1470,21 @@ export function aioCreateGeneratorPanelRuntime(dependencies) {
               "tip.detailerFollow",
             ),
             createNodeField(
+              aioText("field.threshold"),
+              createDomSettingsSliderNumberControl(
+                node,
+                target.threshold,
+                { min: 0, max: 1, step: 0.01, decimals: 2 },
+                (nextSettings, value) => {
+                  nextSettings.detailer ||= {};
+                  nextSettings.detailer[targetName] ||= {};
+                  nextSettings.detailer[targetName].threshold = value;
+                },
+              ),
+              "wide",
+              "tip.detailerThreshold",
+            ),
+            createNodeField(
               aioText("label.steps"),
               createDomSettingsSliderNumberControl(
                 node,
