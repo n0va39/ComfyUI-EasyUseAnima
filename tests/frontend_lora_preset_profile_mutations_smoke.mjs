@@ -1,6 +1,11 @@
 import assert from "node:assert/strict";
 import { createLoraPresetProfileMutations } from "../web/js/lora_preset/profile_mutations.js";
-import { MAX_PROFILES } from "../web/js/lora_preset/profile_data.js";
+import {
+  INTERNAL_WIDGET_DEFAULTS,
+  MAX_PROFILES,
+  WIDGET_INDEX,
+} from "../web/js/lora_preset/profile_data.js";
+import { createLoraPresetNodeRuntime } from "../web/js/lora_preset/node_runtime.js";
 import { createLoraPresetSaveSync } from "../web/js/lora_preset/save_sync.js";
 
 function createProfileNode() {
@@ -134,6 +139,135 @@ mutations.appendProfilePayload(partialNode, {
   profile_data: { "1": { style_prompt: "ignored", loras: [] } },
 });
 assert.equal(host.alerts.at(-1), "profile.maxReached");
+
+function createWorkflowNode() {
+  return {
+    id: "workflow-node",
+    comfyClass: "EasyUseAnimaLoraPreset",
+    widgets: [
+      { name: "style_prompt", value: "" },
+      { name: "profile_index", value: 1 },
+      { name: "profile_count", value: "2" },
+      { name: "lora_name", value: "None" },
+      { name: "loras", value: "[]" },
+      { name: "profile_data", value: JSON.stringify({
+        "1": { style_prompt: "profile-alpha", loras: [] },
+        "2": { style_prompt: "profile-beta", loras: [] },
+      }) },
+    ],
+    inputs: [],
+    addInput(name, type) { this.inputs.push({ name, type }); },
+    setDirtyCanvas() {},
+  };
+}
+
+const workflowFindWidget = (profileNode, name) => profileNode.__easyuseAnimaHiddenWidgets?.[name]
+  || profileNode.widgets.find((widget) => widget.name === name);
+const workflowWidgetValue = (widget, fallback) => widget?.value ?? fallback;
+const workflowSetWidgetValue = (widget, value) => {
+  widget.value = value;
+  widget.callback?.(value);
+};
+const workflowLoras = (profileNode) => JSON.parse(workflowWidgetValue(workflowFindWidget(profileNode, "loras"), "[]"));
+const workflowSetLoras = (profileNode, loras) => {
+  workflowSetWidgetValue(workflowFindWidget(profileNode, "loras"), JSON.stringify(loras));
+};
+const workflowCanvasWidgets = {
+  profileVisibleRows: 2,
+  ensureProfileBar() {},
+  renderProfileBar() {},
+  renderLoraWidgets() {},
+};
+const workflowMutations = createLoraPresetProfileMutations({
+  findWidget: workflowFindWidget,
+  widgetValue: workflowWidgetValue,
+  setWidgetValue: workflowSetWidgetValue,
+  lorasWidgetValue: workflowLoras,
+  setLorasWidgetValue: workflowSetLoras,
+  getCanvasWidgets: () => workflowCanvasWidgets,
+  text: (key) => key,
+  formatText: (key) => key,
+  apiClient: {},
+  host: { confirm: () => true },
+});
+function WorkflowNodeType() {}
+const workflowRuntime = createLoraPresetNodeRuntime({
+  nodeTypeName: "EasyUseAnimaLoraPreset",
+  internalWidgetDefaults: INTERNAL_WIDGET_DEFAULTS,
+  widgetIndex: WIDGET_INDEX,
+  findWidget: workflowFindWidget,
+  findInputEl: () => null,
+  widgetValue: workflowWidgetValue,
+  ensureWidgetValue(profileNode, name) {
+    const widget = workflowFindWidget(profileNode, name);
+    if (widget && (widget.value == null || widget.value === "")) {
+      workflowSetWidgetValue(widget, INTERNAL_WIDGET_DEFAULTS[name]);
+    }
+  },
+  resetInternalLoraSelector(profileNode) {
+    workflowSetWidgetValue(workflowFindWidget(profileNode, "lora_name"), INTERNAL_WIDGET_DEFAULTS.lora_name);
+  },
+  normalizeSerializedWidgets() {},
+  profileCount: workflowMutations.profileCount,
+  selectedProfileIndex: workflowMutations.selectedProfileIndex,
+  activeProfileIndex: workflowMutations.activeProfileIndex,
+  wrapProfileIndex(index, count) { return ((Number(index) - 1) % count + count) % count + 1; },
+  setProfileIndex: workflowMutations.setProfileIndex,
+  lorasWidgetValue: workflowLoras,
+  saveProfile: workflowMutations.saveProfile,
+  saveCurrentProfile: workflowMutations.saveCurrentProfile,
+  loadProfile: workflowMutations.loadProfile,
+  scrollProfileBarTo: workflowMutations.scrollProfileBarTo,
+  refreshLoraAvailability() {},
+  canvasWidgets: workflowCanvasWidgets,
+  enforceNodeLayout() {},
+  requestAnimationFrame(callback) { callback(); },
+});
+workflowRuntime.beforeRegisterNodeDef(WorkflowNodeType, { name: "EasyUseAnimaLoraPreset" });
+const workflowNode = Object.assign(new WorkflowNodeType(), createWorkflowNode());
+workflowNode.onNodeCreated();
+assert.equal(workflowWidgetValue(workflowFindWidget(workflowNode, "style_prompt")), "profile-alpha");
+workflowMutations.addProfile(workflowNode);
+assert.equal(workflowMutations.activeProfileIndex(workflowNode), 3);
+workflowMutations.switchProfile(workflowNode, 1);
+assert.equal(workflowWidgetValue(workflowFindWidget(workflowNode, "style_prompt")), "profile-alpha");
+workflowMutations.switchProfile(workflowNode, 3);
+workflowMutations.deleteProfile(workflowNode, 3);
+assert.equal(workflowMutations.activeProfileIndex(workflowNode), 2);
+assert.equal(workflowMutations.profileCount(workflowNode), 2);
+assert.equal(workflowWidgetValue(workflowFindWidget(workflowNode, "style_prompt")), "profile-beta");
+
+// The canvas-owned active index is authoritative even when a property-panel
+// snapshot still exposes the deleted profile index.
+workflowFindWidget(workflowNode, "profile_index").value = 3;
+const workflowGraphPrototype = {
+  serialize() {
+    const workflowNodeSnapshot = {
+      widgets_values: ["profile-alpha", 3, "3", "None", "[]", JSON.stringify({
+        "1": { style_prompt: "profile-alpha", loras: [] },
+        "2": { style_prompt: "profile-beta", loras: [] },
+        "3": { style_prompt: "", loras: [] },
+      })],
+    };
+    workflowNode.onSerialize(workflowNodeSnapshot);
+    return workflowNodeSnapshot;
+  },
+};
+const workflowGraph = { _nodes: [workflowNode] };
+const workflowSaveSync = createLoraPresetSaveSync({
+  app: { graph: workflowGraph, queuePrompt() {} },
+  nodeTypeName: "EasyUseAnimaLoraPreset",
+  saveCurrentProfile: workflowMutations.saveCurrentProfile,
+  getGraphPrototype: () => workflowGraphPrototype,
+});
+workflowSaveSync.install();
+const savedWorkflowNode = workflowGraphPrototype.serialize.call(workflowGraph);
+assert.equal(savedWorkflowNode.widgets_values[WIDGET_INDEX.profileIndex], 2);
+assert.equal(savedWorkflowNode.widgets_values[WIDGET_INDEX.profileCount], "2");
+const savedProfileData = JSON.parse(savedWorkflowNode.widgets_values[WIDGET_INDEX.profileData]);
+assert.deepEqual(Object.keys(savedProfileData), ["1", "2"]);
+assert.equal(savedProfileData["1"].style_prompt, "profile-alpha");
+assert.equal(savedProfileData["2"].style_prompt, "profile-beta");
 
 const syncCalls = [];
 const graphPrototype = {

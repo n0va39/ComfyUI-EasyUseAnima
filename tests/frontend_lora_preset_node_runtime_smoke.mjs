@@ -13,6 +13,7 @@ const { createLoraPresetNodeRuntime } = await import(
 const events = [];
 const animationFrames = [];
 const widgetIndex = {
+  profileIndex: 1,
   profileCount: 2,
   loraName: 3,
   loras: 4,
@@ -165,7 +166,7 @@ const serialized = { widgets_values: Array(6).fill("") };
 node.onSerialize(serialized);
 assert.deepEqual(serialized.widgets_values, [
   "",
-  "",
+  1,
   "4",
   "None",
   JSON.stringify([{ name: "styles/example.safetensors", on: true, strength: 1 }]),

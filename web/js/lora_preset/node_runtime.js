@@ -175,7 +175,8 @@ export function createLoraPresetNodeRuntime({
       originalOnSerialize?.apply(this, arguments);
       const dataWidget = findWidget(this, "profile_data");
       if (workflowNode?.widgets_values && dataWidget) {
-        workflowNode.widgets_values[widgetIndex.profileCount] = String(widgetValue(findWidget(this, "profile_count"), profileCount(this)) || "4");
+        workflowNode.widgets_values[widgetIndex.profileIndex] = activeProfileIndex(this);
+        workflowNode.widgets_values[widgetIndex.profileCount] = String(profileCount(this));
         workflowNode.widgets_values[widgetIndex.loraName] = internalWidgetDefaults.lora_name;
         workflowNode.widgets_values[widgetIndex.loras] = JSON.stringify(lorasWidgetValue(this));
         workflowNode.widgets_values[widgetIndex.profileData] = widgetValue(dataWidget, "{}");
