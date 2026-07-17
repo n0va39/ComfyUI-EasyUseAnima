@@ -69,6 +69,7 @@ SEED_CONTROL_MODES = (
 )
 
 MAX_SEED = 0xFFFFFFFFFFFFFFFF
+PUBLIC_MAX_SEED = (1 << 53) - 1
 REPLACE_DEPTH = 100
 WILDCARD_EXTENSIONS = {".txt", ".yaml", ".yml"}
 
@@ -125,14 +126,25 @@ def normalize_seed(value) -> int:
 
 
 def next_seed(seed, control: str) -> int:
+    """Return the next public wildcard seed without breaking legacy inputs.
+
+    Existing workflows may contain uint64 values that JavaScript cannot
+    represent exactly.  The current generation still consumes that legacy
+    value, and ``fixed`` preserves it.  Controls that advance the state first
+    project the value onto the public JavaScript-safe range so every returned
+    non-fixed seed uses the same inclusive range in Python and JavaScript.
+    """
     seed = normalize_seed(seed)
     control = str(control or SEED_CONTROL_FIXED).strip()
+    if control == SEED_CONTROL_FIXED:
+        return seed
     if control == SEED_CONTROL_RANDOMIZE:
-        return random.SystemRandom().randrange(0, MAX_SEED + 1)
+        return random.SystemRandom().randrange(0, PUBLIC_MAX_SEED + 1)
+    public_seed = min(seed, PUBLIC_MAX_SEED)
     if control == SEED_CONTROL_INCREMENT:
-        return (seed + 1) & MAX_SEED
+        return 0 if public_seed >= PUBLIC_MAX_SEED else public_seed + 1
     if control == SEED_CONTROL_DECREMENT:
-        return (seed - 1) & MAX_SEED
+        return PUBLIC_MAX_SEED if public_seed <= 0 else public_seed - 1
     return seed
 
 

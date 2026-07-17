@@ -6,7 +6,11 @@ import json
 from pathlib import Path
 from unittest.mock import patch
 
-from nodes import EasyUseAnimaPromptStudioAdvanced, EasyUseAnimaWildcard
+from nodes import (
+    EasyUseAnimaPromptStudioAdvanced,
+    EasyUseAnimaPromptStudioRegional,
+    EasyUseAnimaWildcard,
+)
 from settings import public_settings
 import wildcard_engine
 from wildcard_engine import (
@@ -113,7 +117,183 @@ class WildcardEngineTests(unittest.TestCase):
         self.assertEqual(result.text, "hatsune option")
 
 
+class WildcardSeedContractTests(unittest.TestCase):
+    def test_public_seed_controls_share_the_javascript_safe_range(self):
+        public_max = wildcard_engine.PUBLIC_MAX_SEED
+
+        self.assertEqual(public_max, (1 << 53) - 1)
+        self.assertEqual(wildcard_engine.next_seed(0, "fixed"), 0)
+        self.assertEqual(wildcard_engine.next_seed(public_max, "fixed"), public_max)
+        self.assertEqual(wildcard_engine.next_seed(public_max, "increment"), 0)
+        self.assertEqual(wildcard_engine.next_seed(0, "decrement"), public_max)
+        self.assertEqual(
+            wildcard_engine.next_seed(public_max, "decrement"),
+            public_max - 1,
+        )
+        with patch("wildcard_engine.random.SystemRandom") as system_random:
+            system_random.return_value.randrange.return_value = public_max
+
+            self.assertEqual(
+                wildcard_engine.next_seed(123, "randomize"),
+                public_max,
+            )
+
+            system_random.return_value.randrange.assert_called_once_with(
+                0,
+                public_max + 1,
+            )
+
+    def test_legacy_uint64_seed_is_preserved_until_a_control_advances_it(self):
+        public_max = wildcard_engine.PUBLIC_MAX_SEED
+        legacy_max = wildcard_engine.MAX_SEED
+
+        self.assertEqual(wildcard_engine.normalize_seed(legacy_max), legacy_max)
+        self.assertEqual(wildcard_engine.normalize_seed(legacy_max + 1), legacy_max)
+        self.assertEqual(wildcard_engine.next_seed(legacy_max, "fixed"), legacy_max)
+        self.assertEqual(wildcard_engine.next_seed(legacy_max + 1, "fixed"), legacy_max)
+        self.assertEqual(wildcard_engine.next_seed(legacy_max, "increment"), 0)
+        self.assertEqual(
+            wildcard_engine.next_seed(legacy_max, "decrement"),
+            public_max - 1,
+        )
+
+    def test_node_inputs_advertise_public_range_without_rejecting_legacy_workflows(self):
+        node_inputs = (
+            (EasyUseAnimaWildcard, "seed"),
+            (EasyUseAnimaPromptStudioAdvanced, "wildcard_seed"),
+            (EasyUseAnimaPromptStudioRegional, "wildcard_seed"),
+        )
+
+        for node_class, input_name in node_inputs:
+            with self.subTest(node=node_class.__name__):
+                _input_type, config = node_class.INPUT_TYPES()["required"][input_name]
+                self.assertEqual(config["max"], wildcard_engine.MAX_SEED)
+                self.assertIn(str(wildcard_engine.PUBLIC_MAX_SEED), config["tooltip"])
+                self.assertIn("legacy", config["tooltip"].lower())
+
+    def test_all_wildcard_node_surfaces_publish_the_public_decrement_wrap(self):
+        public_max = wildcard_engine.PUBLIC_MAX_SEED
+        wildcard = EasyUseAnimaWildcard().generate(
+            "",
+            "",
+            "일반 채우기",
+            0,
+            "decrement",
+        )
+        advanced = EasyUseAnimaPromptStudioAdvanced().build(
+            False,
+            True,
+            False,
+            False,
+            "[]",
+            wildcard_mode="일반 채우기",
+            wildcard_seed=0,
+            wildcard_seed_after_generate="decrement",
+        )
+        regional = EasyUseAnimaPromptStudioRegional().build(
+            "[]",
+            "{}",
+            wildcard_mode="일반 채우기",
+            wildcard_seed=0,
+            wildcard_seed_after_generate="decrement",
+        )
+
+        self.assertEqual(wildcard["ui"]["wildcard"][0]["seed"], public_max)
+        self.assertEqual(
+            advanced["ui"]["prompt_studio_advanced"][0]["wildcard_seed"],
+            public_max,
+        )
+        self.assertEqual(
+            regional["ui"]["prompt_studio_regional"][0]["wildcard_seed"],
+            public_max,
+        )
+
+    def test_legacy_current_seed_is_used_before_next_seed_reenters_public_range(self):
+        legacy_max = wildcard_engine.MAX_SEED
+        expansion = WildcardExpansionResult(
+            text="expanded style",
+            changed=True,
+            used_keys=("style",),
+            missing_keys=(),
+        )
+
+        with patch("nodes.expand_wildcards", return_value=expansion) as expand:
+            result = EasyUseAnimaWildcard().generate(
+                "__style__",
+                "",
+                "일반 채우기",
+                legacy_max,
+                "increment",
+            )
+
+        self.assertEqual(expand.call_args.kwargs["seed"], legacy_max)
+        self.assertEqual(result["result"], ("expanded style", 0))
+
+
 class WildcardNodeTests(unittest.TestCase):
+    def test_native_wildcard_consumes_reserved_queue_seed_and_scrubs_token(self):
+        reservation = json.dumps({
+            "version": 1,
+            "current_seed": 2,
+            "next_seed": 47,
+            "mode": "populate",
+            "control": "randomize",
+        })
+        workflow_prompt = {
+            "7": {
+                "inputs": {
+                    "text": "__style__",
+                    "populated_text": "",
+                    "mode": "일반 채우기",
+                    "seed": 2,
+                    "seed_after_generate": "randomize",
+                    "easyuse_anima_reserved_wildcard_next_seed": reservation,
+                }
+            }
+        }
+        extra_pnginfo = {
+            "workflow": {
+                "nodes": [{
+                    "id": 7,
+                    "widgets_values": ["__style__", "", "일반 채우기", 2, "randomize"],
+                }]
+            }
+        }
+
+        with (
+            patch(
+                "nodes.expand_wildcards",
+                return_value=WildcardExpansionResult(
+                    text="expanded style",
+                    changed=True,
+                    used_keys=("style",),
+                    missing_keys=(),
+                ),
+            ),
+            patch("nodes.next_seed") as backend_next_seed,
+        ):
+            result = EasyUseAnimaWildcard().generate(
+                "__style__",
+                "",
+                "일반 채우기",
+                2,
+                "randomize",
+                workflow_prompt=workflow_prompt,
+                extra_pnginfo=extra_pnginfo,
+                unique_id="7",
+                easyuse_anima_reserved_wildcard_next_seed=reservation,
+            )
+
+        backend_next_seed.assert_not_called()
+        self.assertEqual(result["result"], ("expanded style", 47))
+        self.assertEqual(result["ui"]["wildcard"][0]["seed"], 47)
+        self.assertNotIn(
+            "easyuse_anima_reserved_wildcard_next_seed",
+            workflow_prompt["7"]["inputs"],
+        )
+        self.assertEqual(workflow_prompt["7"]["inputs"]["seed"], 2)
+        self.assertEqual(extra_pnginfo["workflow"]["nodes"][0]["widgets_values"][3], 2)
+
     def test_node_stores_reproduce_metadata_for_saved_workflow(self):
         workflow_prompt = {
             "7": {
@@ -199,7 +379,14 @@ class WildcardNodeTests(unittest.TestCase):
                     "advanced_fields": json.dumps(fields),
                     "wildcard_mode": "일반 채우기",
                     "wildcard_seed": 2,
-                    "wildcard_seed_after_generate": "increment",
+                    "wildcard_seed_after_generate": "randomize",
+                    "easyuse_anima_reserved_wildcard_next_seed": json.dumps({
+                        "version": 1,
+                        "current_seed": 2,
+                        "next_seed": 47,
+                        "mode": "populate",
+                        "control": "randomize",
+                    }),
                 }
             }
         }
@@ -221,7 +408,7 @@ class WildcardNodeTests(unittest.TestCase):
                             False,
                             "일반 채우기",
                             2,
-                            "increment",
+                            "randomize",
                         ],
                     }
                 ]
@@ -245,10 +432,17 @@ class WildcardNodeTests(unittest.TestCase):
                 json.dumps(fields),
                 wildcard_mode="일반 채우기",
                 wildcard_seed=2,
-                wildcard_seed_after_generate="increment",
+                wildcard_seed_after_generate="randomize",
                 workflow_prompt=workflow_prompt,
                 extra_pnginfo=extra_pnginfo,
                 unique_id="9",
+                easyuse_anima_reserved_wildcard_next_seed=json.dumps({
+                    "version": 1,
+                    "current_seed": 2,
+                    "next_seed": 47,
+                    "mode": "populate",
+                    "control": "randomize",
+                }),
             )
 
         payload_fields = json.loads(result["ui"]["prompt_studio_advanced"][0]["advanced_fields"])
@@ -261,7 +455,12 @@ class WildcardNodeTests(unittest.TestCase):
         self.assertEqual(saved_image_fields[0]["text"], "expanded style")
         self.assertEqual(workflow_prompt["9"]["inputs"]["wildcard_mode"], "재현")
         self.assertEqual(workflow_prompt["9"]["inputs"]["wildcard_seed"], 2)
-        self.assertEqual(result["ui"]["prompt_studio_advanced"][0]["wildcard_seed"], 3)
+        self.assertNotIn(
+            "easyuse_anima_reserved_wildcard_next_seed",
+            workflow_prompt["9"]["inputs"],
+        )
+        self.assertEqual(extra_pnginfo["workflow"]["nodes"][0]["widgets_values"][11], 2)
+        self.assertEqual(result["ui"]["prompt_studio_advanced"][0]["wildcard_seed"], 47)
 
     def test_prompt_studio_advanced_fixed_mode_expands_inline_multiselect(self):
         fields = [

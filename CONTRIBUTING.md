@@ -124,8 +124,17 @@ node --check web/js/<changed-file>.js
 For changed workflow templates:
 
 ```bash
-python -m unittest tests.test_workflows
+python -m unittest discover -s tests -p test_workflows.py
 ```
+
+On PowerShell, the complete repository check is available as:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File tools\check_project.ps1 -Profile full
+```
+
+The Python suite uses `unittest`. Pytest is not a supported full-suite runner
+for this custom-node package layout.
 
 If a change depends on live ComfyUI behavior, also test it in a real ComfyUI
 instance and mention the tested ComfyUI version in the PR.

@@ -217,7 +217,7 @@ function advancedFieldDisplayText(node, field) {
   return String(field?.text || "");
 }
 
-function mergeAdvancedFieldInputValues(node, fields, values) {
+function mergeAdvancedFieldInputValues(fields, values) {
   if (!values || typeof values !== "object" || !Array.isArray(fields)) {
     return false;
   }

@@ -1,0 +1,4 @@
+interface:
+  display_name: "EasyUseAnima Frontend Maintenance"
+  short_description: "Coordinate EasyUseAnima frontend maintenance"
+  default_prompt: "Use $easyuse-anima-frontend-maintenance to reconcile the execution plan and advance the next integration checkpoint."

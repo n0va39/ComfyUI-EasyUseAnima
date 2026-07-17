@@ -6,15 +6,21 @@ conversation.
 ## Read Order
 
 1. `docs/development/current-policies.md`
-2. Active version plan, currently `docs/development/0.4.0.md`
-3. Latest released baseline, currently `docs/development/0.3.2.md`
+2. Active version plan, currently `docs/development/0.5.0.md`
+3. Latest released baseline, currently `docs/development/0.4.0.md`
 4. Relevant topic guide:
    - Registry publish or flagged-version prevention:
      `docs/development/registry-scanner-safety.md`
    - workflow docs or release templates: `docs/Anima AiO/Workflow_Management.md`
    - user-facing AiO docs: `docs/Anima AiO/README.md`
    - custom-node model patch integrations: `docs/development/custom-node-integrations.md`
-   - frontend JS maintainability and Issue #14:
+   - current frontend maintenance roadmap and Issue #14 close boundary:
+     `docs/development/frontend-maintenance-roadmap.md`
+   - active frontend maintenance Goal, lane ownership, and integration gates:
+     `docs/development/frontend-maintenance-execution-plan.md`
+   - repeatable legacy-canvas and Node 2.0 browser validation:
+     `docs/development/browser-smoke-matrix.md`
+   - historical Issue #14 PR #18 execution plan:
      `docs/development/issue-14-frontend-js-maintenance.md`
    - deferred Node 2.0 DOM widget resize investigation:
      `docs/development/node2-dom-widget-resize-limitation.md`
@@ -25,8 +31,8 @@ conversation.
 ## Source Map
 
 - Current policy baseline: `docs/development/current-policies.md`
-- Active next-version plan: `docs/development/0.4.0.md`
-- Latest released baseline: `docs/development/0.3.2.md`
+- Active next-version plan: `docs/development/0.5.0.md`
+- Latest released baseline: `docs/development/0.4.0.md`
 - Registry scanner safety: `docs/development/registry-scanner-safety.md`
 - Older implementation history: `docs/version-plans/`
 - Public workflow JSON templates and preview/source images: `docs/example_workflows/`
@@ -34,7 +40,13 @@ conversation.
 - User-facing node documentation: `docs/nodes/`
 - User-facing wildcard syntax: `docs/wildcards.ko.md` /
   `docs/wildcards.en.md`
-- Issue #14 frontend maintainability plan:
+- Current frontend maintenance roadmap:
+  `docs/development/frontend-maintenance-roadmap.md`
+- Active frontend maintenance execution ledger:
+  `docs/development/frontend-maintenance-execution-plan.md`
+- Dual-canvas browser smoke matrix:
+  `docs/development/browser-smoke-matrix.md`
+- Historical Issue #14 PR #18 execution plan:
   `docs/development/issue-14-frontend-js-maintenance.md`
 - Deferred Node 2.0 DOM widget resize investigation:
   `docs/development/node2-dom-widget-resize-limitation.md`
@@ -53,7 +65,7 @@ conversation.
   - `web/js/easyuse_anima_prompt_studio.js`
   - `web/js/easyuse_anima_prompt_studio_common.js`
   - `web/js/easyuse_anima_settings.js`
-  - `docs/development/issue-14-frontend-js-maintenance.md`
+  - `docs/development/frontend-maintenance-roadmap.md`
   - prompt-related tests
   - `tests/test_wildcards.py`
   - `docs/nodes/anima-prompt-studio-advanced.*.md`
@@ -85,10 +97,14 @@ conversation.
 
 ## Validation Shortlist
 
-- `python -m unittest discover -s tests`
-- `python -m compileall -q .`
-- `git diff --check`
-- `node --check web/js/<changed-file>.js`
+- PR-ready official full, once per final diff:
+  `powershell -ExecutionPolicy Bypass -File tools\check_project.ps1 -Profile full`
+- Focused implementation checks as applicable:
+  `node --check web/js/<changed-file>.js`,
+  `node tests/<focused-frontend-smoke>.mjs`,
+  `python -m unittest <focused test modules>`, and `git diff --check`
+- Frontend behavior changes: follow
+  `docs/development/browser-smoke-matrix.md` once per final diff
 - Registry scanner grep from `docs/development/registry-scanner-safety.md`
 - `comfy node validate` before Registry publish
 - Workflow JSON parse and package-version checks for

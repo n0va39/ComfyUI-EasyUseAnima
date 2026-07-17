@@ -22,6 +22,8 @@ try:
     from .prompt_translation import has_prompt_translation_markers, translate_prompt_markers
     from .wildcard_engine import (
         MAX_SEED,
+        PUBLIC_MAX_SEED,
+        SEED_CONTROL_DECREMENT,
         SEED_CONTROL_FIXED,
         SEED_CONTROL_INCREMENT,
         SEED_CONTROL_MODES,
@@ -49,6 +51,8 @@ except ImportError:  # allows simple local import tests outside ComfyUI's packag
     from prompt_translation import has_prompt_translation_markers, translate_prompt_markers
     from wildcard_engine import (
         MAX_SEED,
+        PUBLIC_MAX_SEED,
+        SEED_CONTROL_DECREMENT,
         SEED_CONTROL_FIXED,
         SEED_CONTROL_INCREMENT,
         SEED_CONTROL_MODES,
@@ -88,6 +92,16 @@ ADVANCED_FIELD_LABELS = {
     "naia": "NAIA Prompt",
 }
 ADVANCED_FIELDS_WORKFLOW_PROPERTY = "easyuse_anima_advanced_fields"
+WILDCARD_RESERVED_NEXT_SEED_INPUT = "easyuse_anima_reserved_wildcard_next_seed"
+WILDCARD_QUEUE_MAX_SAFE_SEED = PUBLIC_MAX_SEED
+WILDCARD_SEED_RANGE_NOTE = (
+    f"Browser/public editing and next-seed range: 0..{PUBLIC_MAX_SEED}. The Python "
+    "backend continues accepting uint64 values for legacy workflow validation, but "
+    "values above the public maximum are best-effort in the browser because JavaScript "
+    "may already have lost integer precision. Fixed does not intentionally advance a "
+    "legacy value; increment, decrement, and randomize return the next seed to the "
+    "public range."
+)
 REGIONAL_FIELDS_WORKFLOW_PROPERTY = "easyuse_anima_regional_fields"
 REGIONAL_CONFIG_WORKFLOW_PROPERTY = "easyuse_anima_regional_config"
 REGIONAL_FIELD_TYPES = {"quality", "artist", "trigger", "general"}
@@ -7739,6 +7753,87 @@ def _get_workflow_node(extra_pnginfo, node_id: str):
     return found
 
 
+def _consume_reserved_wildcard_next_seed(
+    reservation_inputs,
+    workflow_prompt,
+    node_id,
+    current_seed,
+    wildcard_mode,
+    seed_control,
+):
+    if not isinstance(reservation_inputs, dict):
+        return None
+    raw_reservation = _single_value(
+        reservation_inputs.pop(WILDCARD_RESERVED_NEXT_SEED_INPUT, None)
+    )
+    node_id = _single_value(node_id)
+    if isinstance(workflow_prompt, dict) and node_id is not None:
+        prompt_node = workflow_prompt.get(str(node_id))
+        prompt_inputs = prompt_node.get("inputs") if isinstance(prompt_node, dict) else None
+        if isinstance(prompt_inputs, dict):
+            prompt_inputs.pop(WILDCARD_RESERVED_NEXT_SEED_INPUT, None)
+    if not isinstance(raw_reservation, str):
+        return None
+    try:
+        reservation = json.loads(raw_reservation)
+    except (TypeError, ValueError, json.JSONDecodeError):
+        return None
+    if (
+        not isinstance(reservation, dict)
+        or isinstance(reservation.get("version"), bool)
+        or reservation.get("version") != 1
+    ):
+        return None
+    required_keys = {"current_seed", "next_seed", "mode", "control"}
+    if not required_keys.issubset(reservation):
+        return None
+
+    def reserved_seed(value):
+        if isinstance(value, bool) or not isinstance(value, int):
+            return None
+        return value if 0 <= value <= WILDCARD_QUEUE_MAX_SAFE_SEED else None
+
+    reservation_current_seed = reserved_seed(reservation.get("current_seed"))
+    reservation_next_seed = reserved_seed(reservation.get("next_seed"))
+    if reservation_current_seed is None or reservation_next_seed is None:
+        return None
+    reservation_mode = str(reservation.get("mode") or "")
+    if reservation_mode not in {
+        WILDCARD_MODE_POPULATE,
+        WILDCARD_MODE_FIXED,
+        WILDCARD_MODE_SEQUENTIAL,
+    }:
+        return None
+    reservation_control = str(reservation.get("control") or "")
+    if reservation_control not in set(SEED_CONTROL_MODES):
+        return None
+    if reservation_current_seed != normalize_seed(current_seed):
+        return None
+    if reservation_mode != normalize_wildcard_mode(wildcard_mode):
+        return None
+    if reservation_control != str(seed_control or SEED_CONTROL_FIXED):
+        return None
+    if reservation_control == SEED_CONTROL_RANDOMIZE:
+        return reservation_next_seed
+    if reservation_control == SEED_CONTROL_FIXED:
+        expected_next_seed = reservation_current_seed
+    elif reservation_control == SEED_CONTROL_INCREMENT:
+        expected_next_seed = (
+            0
+            if reservation_current_seed >= WILDCARD_QUEUE_MAX_SAFE_SEED
+            else reservation_current_seed + 1
+        )
+    elif reservation_control == SEED_CONTROL_DECREMENT:
+        expected_next_seed = (
+            WILDCARD_QUEUE_MAX_SAFE_SEED
+            if reservation_current_seed <= 0
+            else reservation_current_seed - 1
+        )
+    else:
+        return None
+    return reservation_next_seed if reservation_next_seed == expected_next_seed else None
+
+
 def _profile_key(profile_index: int) -> str:
     return str(max(1, _as_int(profile_index, 1)))
 
@@ -8191,7 +8286,10 @@ class EasyUseAnimaWildcard:
                     "default": 0,
                     "min": 0,
                     "max": MAX_SEED,
-                    "tooltip": "Wildcard seed. Sequential mode uses seed % option_count for each wildcard.",
+                    "tooltip": (
+                        "Wildcard seed. Sequential mode uses seed % option_count for each wildcard. "
+                        f"{WILDCARD_SEED_RANGE_NOTE}"
+                    ),
                 }),
                 "seed_after_generate": (SEED_CONTROL_MODES, {
                     "default": SEED_CONTROL_FIXED,
@@ -8203,6 +8301,7 @@ class EasyUseAnimaWildcard:
                 "extra_pnginfo": "EXTRA_PNGINFO",
                 "unique_id": "UNIQUE_ID",
             },
+            "optional": _FlexibleOptionalInputType("STRING"),
         }
 
     RETURN_TYPES = ("STRING", "INT")
@@ -8302,6 +8401,7 @@ class EasyUseAnimaWildcard:
         workflow_prompt=None,
         extra_pnginfo=None,
         unique_id=None,
+        **reservation_inputs,
     ):
         mode_key = normalize_wildcard_mode(mode)
         seed_value = normalize_seed(seed)
@@ -8325,7 +8425,19 @@ class EasyUseAnimaWildcard:
             if mode_key == WILDCARD_MODE_SEQUENTIAL
             else seed_after_generate
         )
-        next_seed_value = next_seed(seed_value, effective_seed_control)
+        reserved_next_seed = _consume_reserved_wildcard_next_seed(
+            reservation_inputs,
+            workflow_prompt,
+            unique_id,
+            seed_value,
+            mode_key,
+            effective_seed_control,
+        )
+        next_seed_value = (
+            reserved_next_seed
+            if reserved_next_seed is not None
+            else next_seed(seed_value, effective_seed_control)
+        )
         self._update_metadata_cache(
             workflow_prompt,
             extra_pnginfo,
@@ -8670,7 +8782,10 @@ class EasyUseAnimaPromptStudioAdvanced:
                     "default": 0,
                     "min": 0,
                     "max": MAX_SEED,
-                    "tooltip": "Wildcard seed used by Advanced Prompt Studio fields.",
+                    "tooltip": (
+                        "Wildcard seed used by Advanced Prompt Studio fields. "
+                        f"{WILDCARD_SEED_RANGE_NOTE}"
+                    ),
                 }),
                 "wildcard_seed_after_generate": (SEED_CONTROL_MODES, {
                     "default": SEED_CONTROL_FIXED,
@@ -8875,6 +8990,14 @@ class EasyUseAnimaPromptStudioAdvanced:
             if wildcard_mode_key == WILDCARD_MODE_SEQUENTIAL
             else str(wildcard_seed_after_generate or SEED_CONTROL_FIXED)
         )
+        reserved_next_wildcard_seed = _consume_reserved_wildcard_next_seed(
+            field_inputs,
+            workflow_prompt,
+            unique_id,
+            wildcard_seed_value,
+            wildcard_mode_key,
+            wildcard_effective_seed_control,
+        )
         width, height = _advanced_resolution_from_selection(
             resolution_bucket,
             resolution_size,
@@ -8935,7 +9058,11 @@ class EasyUseAnimaPromptStudioAdvanced:
         effective_fields = _translate_prompt_fields(effective_fields)
         wildcard_changed = bool(saved_wildcard["changed"] or effective_wildcard["changed"])
         if wildcard_mode_key in {WILDCARD_MODE_POPULATE, WILDCARD_MODE_FIXED, WILDCARD_MODE_SEQUENTIAL}:
-            next_wildcard_seed = next_seed(wildcard_seed_value, wildcard_effective_seed_control)
+            next_wildcard_seed = (
+                reserved_next_wildcard_seed
+                if reserved_next_wildcard_seed is not None
+                else next_seed(wildcard_seed_value, wildcard_effective_seed_control)
+            )
             ui_updates.update({
                 "wildcard_mode": str(wildcard_mode or WILDCARD_MODE_LABELS[1]),
                 "wildcard_seed": next_wildcard_seed,
@@ -9286,6 +9413,7 @@ class EasyUseAnimaPromptStudioAdvancedV2(EasyUseAnimaPromptStudioAdvanced):
             },
             ui_payload,
         )
+        prompt_data_parameters["wildcard_seed"] = normalize_seed(wildcard_seed)
         prompt_data = _build_advanced_prompt_data(
             compat_result,
             effective_fields,
@@ -10576,7 +10704,10 @@ class EasyUseAnimaPromptStudioRegional:
                     "default": 0,
                     "min": 0,
                     "max": MAX_SEED,
-                    "tooltip": "Wildcard seed used by Regional Prompt Studio fields.",
+                    "tooltip": (
+                        "Wildcard seed used by Regional Prompt Studio fields. "
+                        f"{WILDCARD_SEED_RANGE_NOTE}"
+                    ),
                 }),
                 "wildcard_seed_after_generate": (SEED_CONTROL_MODES, {
                     "default": SEED_CONTROL_FIXED,
@@ -10759,6 +10890,14 @@ class EasyUseAnimaPromptStudioRegional:
             if wildcard_mode_key == WILDCARD_MODE_SEQUENTIAL
             else str(wildcard_seed_after_generate or SEED_CONTROL_FIXED)
         )
+        reserved_next_wildcard_seed = _consume_reserved_wildcard_next_seed(
+            field_inputs,
+            workflow_prompt,
+            unique_id,
+            wildcard_seed_value,
+            wildcard_mode_key,
+            wildcard_effective_seed_control,
+        )
         ui_updates: dict[str, Any] = {}
         metadata_updates: dict[str, Any] = {}
 
@@ -10775,7 +10914,11 @@ class EasyUseAnimaPromptStudioRegional:
         effective_fields = _translate_prompt_fields(effective_fields)
         wildcard_changed = bool(saved_wildcard["changed"] or effective_wildcard["changed"])
         if wildcard_mode_key in {WILDCARD_MODE_POPULATE, WILDCARD_MODE_FIXED, WILDCARD_MODE_SEQUENTIAL}:
-            next_wildcard_seed = next_seed(wildcard_seed_value, wildcard_effective_seed_control)
+            next_wildcard_seed = (
+                reserved_next_wildcard_seed
+                if reserved_next_wildcard_seed is not None
+                else next_seed(wildcard_seed_value, wildcard_effective_seed_control)
+            )
             ui_updates.update({
                 "wildcard_mode": str(wildcard_mode or WILDCARD_MODE_LABELS[1]),
                 "wildcard_seed": next_wildcard_seed,

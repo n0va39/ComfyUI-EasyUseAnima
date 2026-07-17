@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import json
+import re
 import shutil
 import subprocess
 import textwrap
@@ -8,10 +10,744 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
+LORA_PRESET_ENTRY = ROOT / "web" / "js" / "easyuse_anima_lora_preset.js"
+LORA_PRESET_API_CLIENT = ROOT / "web" / "js" / "lora_preset" / "api_client.js"
+LORA_PRESET_API_CLIENT_SMOKE = (
+    ROOT / "tests" / "frontend_lora_preset_api_client_smoke.mjs"
+)
+LORA_PRESET_CANVAS_WIDGETS = (
+    ROOT / "web" / "js" / "lora_preset" / "canvas_widgets.js"
+)
+LORA_PRESET_CANVAS_WIDGETS_SMOKE = (
+    ROOT / "tests" / "frontend_lora_preset_canvas_widgets_smoke.mjs"
+)
+LORA_PRESET_PREVIEW_LIFECYCLE = (
+    ROOT / "web" / "js" / "lora_preset" / "preview_lifecycle.js"
+)
+LORA_PRESET_PREVIEW_LIFECYCLE_SMOKE = (
+    ROOT / "tests" / "frontend_lora_preset_preview_lifecycle_smoke.mjs"
+)
+LORA_PRESET_MENU_LIFECYCLE = (
+    ROOT / "web" / "js" / "lora_preset" / "menu_lifecycle.js"
+)
+LORA_PRESET_MENU_LIFECYCLE_SMOKE = (
+    ROOT / "tests" / "frontend_lora_preset_menu_lifecycle_smoke.mjs"
+)
+LORA_PRESET_PROFILE_DATA = ROOT / "web" / "js" / "lora_preset" / "profile_data.js"
+LORA_PRESET_PROFILE_DATA_SMOKE = (
+    ROOT / "tests" / "frontend_lora_preset_profile_data_smoke.mjs"
+)
+LORA_PRESET_LORA_STATE = ROOT / "web" / "js" / "lora_preset" / "lora_state.js"
+LORA_PRESET_LORA_STATE_SMOKE = (
+    ROOT / "tests" / "frontend_lora_preset_lora_state_smoke.mjs"
+)
+JSCONFIG = ROOT / "jsconfig.json"
+FRONTEND_CHECK_SCRIPT = ROOT / "tools" / "check_frontend.ps1"
 
 
 class LoraPresetFrontendTests(unittest.TestCase):
-    def test_lora_row_non_toggle_controls_do_not_throw(self):
+    def test_api_client_module_boundary(self):
+        module_source = LORA_PRESET_API_CLIENT.read_text(encoding="utf-8")
+        entry_source = LORA_PRESET_ENTRY.read_text(encoding="utf-8")
+        config = json.loads(JSCONFIG.read_text(encoding="utf-8"))
+        frontend_check_source = FRONTEND_CHECK_SCRIPT.read_text(encoding="utf-8")
+
+        self.assertEqual(module_source.splitlines()[0], "// @ts-check")
+        self.assertEqual(
+            re.findall(
+                r"^export\s+(?:const|function|class)\s+([A-Za-z0-9_]+)",
+                module_source,
+                re.MULTILINE,
+            ),
+            ["createLoraPresetApiClient"],
+        )
+        self.assertNotRegex(
+            module_source,
+            re.compile(r"^\s*import\b", re.MULTILINE),
+        )
+        self.assertNotRegex(
+            module_source,
+            (
+                r"\b(?:document|window|app|api|fetch|LiteGraph|registerExtension|"
+                r"addEventListener|removeEventListener|MutationObserver)\b"
+            ),
+        )
+
+        self.assertIn(
+            'import { createLoraPresetApiClient } from '
+            '"./lora_preset/api_client.js";',
+            entry_source,
+        )
+        factory_match = re.search(
+            r"const\s+loraPresetApi\s*=\s*"
+            r"createLoraPresetApiClient"
+            r"\(\{(?P<dependencies>.*?)\}\);",
+            entry_source,
+            re.DOTALL,
+        )
+        self.assertIsNotNone(factory_match)
+        dependency_entries = {
+            line.strip().rstrip(",")
+            for line in factory_match.group("dependencies").splitlines()
+            if line.strip()
+        }
+        self.assertEqual(
+            dependency_entries,
+            {
+                "fetchJson",
+                "encodeURIComponent: encodeRFC3986URIComponent",
+            },
+        )
+
+        self.assertNotIn("/easyuse_anima/lora_profiles", entry_source)
+        self.assertNotIn('"/easyuse_anima/loras"', entry_source)
+        self.assertEqual(
+            len(
+                re.findall(
+                    r'fetchJson\("/easyuse_anima/lora_profiles"\)',
+                    module_source,
+                )
+            ),
+            1,
+        )
+        for route in (
+            "/easyuse_anima/lora_profiles/load?name=",
+            "/easyuse_anima/lora_profiles/save",
+            "/easyuse_anima/lora_profiles/fix",
+            "/easyuse_anima/loras",
+        ):
+            with self.subTest(route=route):
+                self.assertEqual(module_source.count(route), 1)
+
+        self.assertEqual(entry_source.count("loraPresetApi.listProfiles()"), 1)
+        self.assertEqual(entry_source.count("loraPresetApi.loadProfile(name)"), 1)
+        self.assertEqual(entry_source.count("loraPresetApi.saveProfile("), 1)
+        self.assertEqual(entry_source.count("loraPresetApi.fixProfile("), 2)
+        self.assertEqual(entry_source.count("loraPresetApi.listLoras()"), 1)
+        self.assertRegex(
+            entry_source,
+            (
+                r"loraPresetApi\.saveProfile\(\s*"
+                r"trimmedName,\s*selectedProfilePayload\(node\),?\s*\)"
+            ),
+        )
+        self.assertIn(
+            "loraPresetApi.fixProfile(fullProfilePayload(node))",
+            entry_source,
+        )
+        self.assertIn("async function fetchJson(url, options = {})", entry_source)
+        self.assertIn("api.fetchApi(requestUrl, requestOptions)", entry_source)
+        self.assertIn("easyuseAnimaFetchJson(url, { ...options, fetcher })", entry_source)
+
+        self.assertTrue(LORA_PRESET_API_CLIENT_SMOKE.is_file())
+        self.assertIn("web/js/lora_preset/**/*.js", config["include"])
+        self.assertIn(
+            r'node "tests\frontend_lora_preset_api_client_smoke.mjs"',
+            frontend_check_source,
+        )
+
+    def test_api_client_module_semantics(self):
+        node_bin = shutil.which("node")
+        if not node_bin:
+            self.skipTest("node executable is not available")
+
+        completed = subprocess.run(
+            [node_bin, str(LORA_PRESET_API_CLIENT_SMOKE)],
+            cwd=ROOT,
+            text=True,
+            capture_output=True,
+            check=False,
+        )
+
+        if completed.returncode != 0:
+            self.fail((completed.stdout + completed.stderr).strip())
+
+    def test_canvas_widgets_module_boundary(self):
+        module_source = LORA_PRESET_CANVAS_WIDGETS.read_text(encoding="utf-8")
+        entry_source = LORA_PRESET_ENTRY.read_text(encoding="utf-8")
+        config = json.loads(JSCONFIG.read_text(encoding="utf-8"))
+
+        self.assertEqual(module_source.splitlines()[0], "// @ts-check")
+        self.assertEqual(
+            re.findall(
+                r"^export\s+(?:const|function|class)\s+([A-Za-z0-9_]+)",
+                module_source,
+                re.MULTILINE,
+            ),
+            ["createLoraPresetCanvasWidgets"],
+        )
+        self.assertNotRegex(
+            module_source,
+            re.compile(r"^\s*import\b", re.MULTILINE),
+        )
+        self.assertNotRegex(
+            module_source,
+            (
+                r"\b(?:document|window|app|api|fetch|registerExtension|"
+                r"MutationObserver)\b"
+            ),
+        )
+        self.assertIn(
+            'import { createLoraPresetCanvasWidgets } from '
+            '"./lora_preset/canvas_widgets.js";',
+            entry_source,
+        )
+
+        factory_match = re.search(
+            r"const\s+loraCanvasWidgets\s*=\s*"
+            r"createLoraPresetCanvasWidgets"
+            r"\(\{(?P<dependencies>.*?)\}\);",
+            entry_source,
+            re.DOTALL,
+        )
+        self.assertIsNotNone(factory_match)
+        dependency_entries = {
+            line.strip().rstrip(",")
+            for line in factory_match.group("dependencies").splitlines()
+            if line.strip()
+        }
+        self.assertEqual(
+            dependency_entries,
+            {
+                "getCanvas: () => app.canvas",
+                "getLiteGraph: () => LiteGraph",
+                "getSettings: () => LORA_PRESET_SETTINGS",
+                "text: lpText",
+                "formatText: lpFormat",
+                "normalizeLoraEntry",
+                "lorasWidgetValue",
+                "mutateLoras",
+                "updateLoraEntry",
+                "loraResolveState",
+                "hasLoraPathProblem",
+                "isAnyLoraFixPending",
+                "isLoraFixPending",
+                "loraDisplayName",
+                "previewLifecycle: loraPreviewLifecycle",
+                "openLoraMenu",
+                "openLoraEntryMenu",
+                "addLoraEntry",
+                "fixSingleLoraEntry",
+                "profileCount",
+                "activeProfileIndex",
+                "profileSaveStatus",
+                "addProfile",
+                "deleteProfile",
+                "saveProfileSet",
+                "openProfileLoadMenu",
+                "fixProfileLoras",
+                "switchProfile",
+                "nodePosToClient",
+                "getActiveProfileWheelTarget",
+                "setActiveProfileWheelTarget",
+                "enforceNodeLayout",
+            },
+        )
+
+        moved_declarations = {
+            "MIN_NODE_WIDTH",
+            "PROFILE_CONTROLS_HEIGHT",
+            "PROFILE_ROW_HEIGHT",
+            "PROFILE_LIST_PADDING",
+            "PROFILE_VISIBLE_ROWS",
+            "LORA_HEADER_HEIGHT",
+            "LORA_ROW_HEIGHT",
+            "LORA_ADD_HEIGHT",
+            "roundStrength",
+            "clearLoraStrengthDrag",
+            "beginLoraStrengthDrag",
+            "handleLoraStrengthDrag",
+            "fitCanvasText",
+            "roundedRect",
+            "pointInArea",
+            "drawToggle",
+            "drawNumberPart",
+            "nodeWidgetWidth",
+            "ProfileBarWidget",
+            "LoraHeaderWidget",
+            "LoraRowWidget",
+            "AddLoraWidget",
+            "renderProfileBar",
+            "renderLoraWidgets",
+            "ensureProfileBar",
+        }
+        for name in moved_declarations:
+            with self.subTest(moved_declaration=name):
+                self.assertNotRegex(
+                    entry_source,
+                    rf"\b(?:const|let|var|function|class)\s+{re.escape(name)}\b",
+                )
+
+        for class_name in (
+            "ProfileBarWidget",
+            "LoraHeaderWidget",
+            "LoraRowWidget",
+            "AddLoraWidget",
+        ):
+            with self.subTest(canvas_widget_class=class_name):
+                self.assertIn(f"class {class_name}", module_source)
+        self.assertEqual(module_source.count("this.serialize = false;"), 4)
+        self.assertEqual(
+            module_source.count('this.options = { serialize: false };'),
+            4,
+        )
+        self.assertIn("let activeProfileWheelTarget = null;", entry_source)
+        self.assertIn(
+            'document.addEventListener("wheel", scrollProfileListFromWheel, '
+            '{ capture: true, passive: false });',
+            entry_source,
+        )
+        self.assertIn("function scrollProfileListFromWheel(event)", entry_source)
+        self.assertIn("loraMenuLifecycle.install()", entry_source)
+        self.assertNotIn("loraMenuLifecycle.install()", module_source)
+        for entry_owned_token in (
+            "function addProfile(",
+            "function deleteProfile(",
+            "function saveCurrentProfile(",
+            "function mutateLoras(",
+            "function installLoraPresetSaveSync(",
+            "function scrollProfileListFromWheel(",
+            "function installProfileWheelListener(",
+            "function initializeNode(",
+            "node.onSerialize = function",
+            "node.onConfigure = function",
+            "app.registerExtension({",
+        ):
+            with self.subTest(entry_owned_token=entry_owned_token):
+                self.assertIn(entry_owned_token, entry_source)
+                self.assertNotIn(entry_owned_token, module_source)
+        self.assertGreater(entry_source.count("loraCanvasWidgets.renderProfileBar("), 0)
+        self.assertGreater(entry_source.count("loraCanvasWidgets.renderLoraWidgets("), 0)
+        self.assertTrue(LORA_PRESET_CANVAS_WIDGETS_SMOKE.is_file())
+        self.assertIn("web/js/lora_preset/**/*.js", config["include"])
+
+    def test_canvas_widgets_module_semantics(self):
+        node_bin = shutil.which("node")
+        if not node_bin:
+            self.skipTest("node executable is not available")
+
+        completed = subprocess.run(
+            [node_bin, str(LORA_PRESET_CANVAS_WIDGETS_SMOKE)],
+            cwd=ROOT,
+            text=True,
+            capture_output=True,
+            check=False,
+        )
+
+        if completed.returncode != 0:
+            self.fail((completed.stdout + completed.stderr).strip())
+
+    def test_preview_lifecycle_module_boundary(self):
+        module_source = LORA_PRESET_PREVIEW_LIFECYCLE.read_text(encoding="utf-8")
+        entry_source = LORA_PRESET_ENTRY.read_text(encoding="utf-8")
+        canvas_widgets_source = LORA_PRESET_CANVAS_WIDGETS.read_text(
+            encoding="utf-8"
+        )
+        config = json.loads(JSCONFIG.read_text(encoding="utf-8"))
+        frontend_check_source = FRONTEND_CHECK_SCRIPT.read_text(encoding="utf-8")
+
+        self.assertEqual(module_source.splitlines()[0], "// @ts-check")
+        self.assertEqual(
+            set(
+                re.findall(
+                    r"^export\s+(?:const|function|class)\s+([A-Za-z0-9_]+)",
+                    module_source,
+                    re.MULTILINE,
+                )
+            ),
+            {
+                "createLoraPresetPreviewLifecycle",
+                "loraPreviewPosition",
+            },
+        )
+        self.assertNotRegex(
+            module_source,
+            re.compile(r"^\s*import\b", re.MULTILINE),
+        )
+        self.assertNotRegex(
+            module_source,
+            r"\b(?:app|api|LiteGraph|registerExtension|MutationObserver)\b",
+        )
+        self.assertIn(
+            'import { createLoraPresetPreviewLifecycle } from '
+            '"./lora_preset/preview_lifecycle.js";',
+            entry_source,
+        )
+
+        factory_match = re.search(
+            r"const\s+loraPreviewLifecycle\s*=\s*"
+            r"createLoraPresetPreviewLifecycle"
+            r"\(\{(?P<dependencies>.*?)\}\);",
+            entry_source,
+            re.DOTALL,
+        )
+        self.assertIsNotNone(factory_match)
+        dependency_entries = {
+            line.strip().rstrip(",")
+            for line in factory_match.group("dependencies").splitlines()
+            if line.strip()
+        }
+        self.assertEqual(
+            dependency_entries,
+            {
+                "document",
+                "encodeURIComponent: encodeRFC3986URIComponent",
+                "previewSize: PREVIEW_SIZE",
+            },
+        )
+
+        for moved_name in (
+            "missingPreviewNames",
+            "positionPreview",
+            "showPreview",
+            "hidePreview",
+        ):
+            with self.subTest(moved_declaration=moved_name):
+                self.assertNotRegex(
+                    entry_source,
+                    rf"\b(?:const|let|var|function|class)\s+{moved_name}\b",
+                )
+        self.assertEqual(entry_source.count("loraPreviewLifecycle.showPreview"), 0)
+        self.assertEqual(entry_source.count("loraPreviewLifecycle.hidePreview"), 1)
+        self.assertEqual(canvas_widgets_source.count("previewLifecycle.showPreview"), 2)
+        self.assertEqual(canvas_widgets_source.count("previewLifecycle.hidePreview"), 3)
+        self.assertEqual(
+            entry_source.count("loraPreviewLifecycle.forgetMissingPreview"),
+            1,
+        )
+        self.assertTrue(LORA_PRESET_PREVIEW_LIFECYCLE_SMOKE.is_file())
+        self.assertIn("web/js/lora_preset/**/*.js", config["include"])
+        self.assertIn(
+            r'node "tests\frontend_lora_preset_preview_lifecycle_smoke.mjs"',
+            frontend_check_source,
+        )
+
+    def test_preview_lifecycle_module_semantics(self):
+        node_bin = shutil.which("node")
+        if not node_bin:
+            self.skipTest("node executable is not available")
+
+        completed = subprocess.run(
+            [node_bin, str(LORA_PRESET_PREVIEW_LIFECYCLE_SMOKE)],
+            cwd=ROOT,
+            text=True,
+            capture_output=True,
+            check=False,
+        )
+
+        if completed.returncode != 0:
+            self.fail((completed.stdout + completed.stderr).strip())
+
+    def test_menu_lifecycle_module_boundary(self):
+        module_source = LORA_PRESET_MENU_LIFECYCLE.read_text(encoding="utf-8")
+        entry_source = LORA_PRESET_ENTRY.read_text(encoding="utf-8")
+        config = json.loads(JSCONFIG.read_text(encoding="utf-8"))
+        frontend_check_source = FRONTEND_CHECK_SCRIPT.read_text(encoding="utf-8")
+
+        self.assertEqual(module_source.splitlines()[0], "// @ts-check")
+        self.assertEqual(
+            re.findall(
+                r"^export\s+(?:const|function|class)\s+([A-Za-z0-9_]+)",
+                module_source,
+                re.MULTILINE,
+            ),
+            ["createLoraPresetMenuLifecycle"],
+        )
+        self.assertNotRegex(
+            module_source,
+            re.compile(r"^\s*import\b", re.MULTILINE),
+        )
+        self.assertNotRegex(
+            module_source,
+            r"\b(?:app|api|registerExtension)\b",
+        )
+        self.assertIn(
+            'import { createLoraPresetMenuLifecycle } from '
+            '"./lora_preset/menu_lifecycle.js";',
+            entry_source,
+        )
+
+        factory_match = re.search(
+            r"const\s+loraMenuLifecycle\s*=\s*"
+            r"createLoraPresetMenuLifecycle"
+            r"\(\{(?P<dependencies>.*?)\}\);",
+            entry_source,
+            re.DOTALL,
+        )
+        self.assertIsNotNone(factory_match)
+        dependency_entries = {
+            line.strip().rstrip(",")
+            for line in factory_match.group("dependencies").splitlines()
+            if line.strip()
+        }
+        self.assertEqual(
+            dependency_entries,
+            {
+                "document",
+                "window",
+                "MutationObserver",
+                "createElement: createEl",
+                "validComboEntryText",
+                "previewLifecycle: loraPreviewLifecycle",
+                "positionMenu",
+                "text: lpText",
+                "getMenuMode: () => LORA_PRESET_SETTINGS.menuMode",
+                "getCurrentNode: () => app.canvas?.current_node",
+                "nodeType: NODE_TYPE",
+                "previewSize: PREVIEW_SIZE",
+            },
+        )
+
+        for moved_name in (
+            "normalizeSearchText",
+            "escapeHtml",
+            "loraMenuItems",
+            "ensureLoraMenuSearch",
+            "applyLoraMenuSearch",
+            "loraMenuElementValue",
+            "addLoraMenuEntryHandlers",
+            "normalizeLoraMenuEntries",
+            "updateLoraMenuList",
+            "updateLoraMenuTree",
+            "updateLoraMenu",
+        ):
+            with self.subTest(moved_declaration=moved_name):
+                self.assertNotRegex(
+                    entry_source,
+                    rf"\b(?:const|let|var|function|class)\s+{moved_name}\b",
+                )
+
+        self.assertEqual(
+            entry_source.count("loraMenuLifecycle.createMenuItems(values)"),
+            1,
+        )
+        self.assertEqual(
+            entry_source.count(
+                "loraMenuLifecycle.activateMenu(node, clientPoint, menuItems)"
+            ),
+            1,
+        )
+        self.assertEqual(entry_source.count("loraMenuLifecycle.install()"), 1)
+        self.assertNotIn("new MutationObserver", entry_source)
+        self.assertNotIn("easyuse-anima-lora-search {", entry_source)
+        self.assertIn("new MutationObserver", module_source)
+        self.assertIn("easyuse-anima-lora-search {", module_source)
+
+        self.assertTrue(LORA_PRESET_MENU_LIFECYCLE_SMOKE.is_file())
+        self.assertIn("web/js/lora_preset/**/*.js", config["include"])
+        self.assertIn(
+            r'node "tests\frontend_lora_preset_menu_lifecycle_smoke.mjs"',
+            frontend_check_source,
+        )
+
+    def test_menu_lifecycle_module_semantics(self):
+        node_bin = shutil.which("node")
+        if not node_bin:
+            self.skipTest("node executable is not available")
+
+        completed = subprocess.run(
+            [node_bin, str(LORA_PRESET_MENU_LIFECYCLE_SMOKE)],
+            cwd=ROOT,
+            text=True,
+            capture_output=True,
+            check=False,
+        )
+
+        if completed.returncode != 0:
+            self.fail((completed.stdout + completed.stderr).strip())
+
+    def test_lora_state_module_boundary(self):
+        module_source = LORA_PRESET_LORA_STATE.read_text(encoding="utf-8")
+        entry_source = LORA_PRESET_ENTRY.read_text(encoding="utf-8")
+        config = json.loads(JSCONFIG.read_text(encoding="utf-8"))
+        frontend_check_source = FRONTEND_CHECK_SCRIPT.read_text(encoding="utf-8")
+        expected_exports = {
+            "buildLoraLookup",
+            "comboEntryText",
+            "hasLoraPathProblem",
+            "isAnyLoraFixPending",
+            "isLoraFixPending",
+            "localLoraMatch",
+            "loraFileKey",
+            "loraFixPendingSet",
+            "normalizeLoraKey",
+            "normalizeLoraNameList",
+            "validComboEntryText",
+        }
+        expected_imports = expected_exports - {
+            "comboEntryText",
+            "loraFileKey",
+            "normalizeLoraKey",
+        }
+
+        exported_names = set(
+            re.findall(
+                r"^export\s+(?:const|function|class)\s+([A-Za-z0-9_]+)",
+                module_source,
+                re.MULTILINE,
+            )
+        )
+        self.assertEqual(exported_names, expected_exports)
+
+        import_match = re.search(
+            r'^import\s*\{(?P<names>[^}]*)\}\s*from\s*"\./lora_preset/lora_state\.js";',
+            entry_source,
+            re.MULTILINE,
+        )
+        self.assertIsNotNone(import_match)
+        imported_names = {
+            name.strip().rstrip(",")
+            for name in import_match.group("names").splitlines()
+            if name.strip()
+        }
+        self.assertEqual(imported_names, expected_imports)
+
+        self.assertEqual(module_source.splitlines()[0], "// @ts-check")
+        self.assertNotRegex(
+            module_source,
+            re.compile(r"^\s*import\b", re.MULTILINE),
+        )
+        self.assertNotRegex(
+            module_source,
+            (
+                r"\b(?:document|window|app|api|fetch|registerExtension|"
+                r"addEventListener|removeEventListener|MutationObserver|"
+                r"HTMLElement|HTMLInputElement|HTMLTextAreaElement)\b"
+            ),
+        )
+        for name in expected_exports | {"putUniqueLoraMatch"}:
+            with self.subTest(moved_declaration=name):
+                self.assertNotRegex(
+                    entry_source,
+                    rf"\b(?:const|let|var|function|class)\s+{re.escape(name)}\b",
+                )
+
+        for adapter in (
+            "comboValues",
+            "loraNameValues",
+            "loraResolveState",
+            "setLoraLookup",
+            "fetchLoraNameValues",
+            "refreshLoraAvailability",
+            "fixProfileLoras",
+            "fixSingleLoraEntry",
+        ):
+            with self.subTest(entry_adapter=adapter):
+                self.assertIn(f"function {adapter}(", entry_source)
+        self.assertIn(
+            "return localLoraMatch(normalizeLoraEntry(lora), node?.__easyuseAnimaLoraLookup);",
+            entry_source,
+        )
+        self.assertIn("return normalizeLoraNameList(comboValues(", entry_source)
+        self.assertIn("node.__easyuseAnimaLoraLookup = buildLoraLookup(values);", entry_source)
+
+        self.assertTrue(LORA_PRESET_LORA_STATE_SMOKE.is_file())
+        self.assertIn("web/js/lora_preset/**/*.js", config["include"])
+        self.assertIn(
+            r'node "tests\frontend_lora_preset_lora_state_smoke.mjs"',
+            frontend_check_source,
+        )
+
+    def test_lora_state_module_semantics(self):
+        node_bin = shutil.which("node")
+        if not node_bin:
+            self.skipTest("node executable is not available")
+
+        completed = subprocess.run(
+            [node_bin, str(LORA_PRESET_LORA_STATE_SMOKE)],
+            cwd=ROOT,
+            text=True,
+            capture_output=True,
+            check=False,
+        )
+
+        if completed.returncode != 0:
+            self.fail((completed.stdout + completed.stderr).strip())
+
+    def test_profile_data_module_boundary(self):
+        module_source = LORA_PRESET_PROFILE_DATA.read_text(encoding="utf-8")
+        entry_source = LORA_PRESET_ENTRY.read_text(encoding="utf-8")
+        config = json.loads(JSCONFIG.read_text(encoding="utf-8"))
+        frontend_check_source = FRONTEND_CHECK_SCRIPT.read_text(encoding="utf-8")
+
+        expected_exports = {
+            "INTERNAL_WIDGET_DEFAULTS",
+            "MAX_PROFILES",
+            "WIDGET_INDEX",
+            "emptyProfile",
+            "isMeaningfulProfile",
+            "normalizeLoraEntry",
+            "normalizeProfileDataValue",
+            "normalizeSerializedWidgets",
+            "profileContent",
+            "profileKey",
+            "profileSavedName",
+            "profileSnapshot",
+            "withSavedMeta",
+            "wrapProfileIndex",
+        }
+        exported_names = set(
+            re.findall(
+                r"^export\s+(?:const|function|class)\s+([A-Za-z0-9_]+)",
+                module_source,
+                re.MULTILINE,
+            )
+        )
+        self.assertEqual(exported_names, expected_exports)
+
+        import_match = re.search(
+            r'^import\s*\{(?P<names>[^}]*)\}\s*from\s*"\./lora_preset/profile_data\.js";',
+            entry_source,
+            re.MULTILINE,
+        )
+        self.assertIsNotNone(import_match)
+        imported_names = {
+            name.strip().rstrip(",")
+            for name in import_match.group("names").splitlines()
+            if name.strip()
+        }
+        self.assertEqual(imported_names, expected_exports)
+
+        self.assertEqual(module_source.splitlines()[0], "// @ts-check")
+        self.assertNotRegex(
+            module_source,
+            re.compile(r"^\s*import\b", re.MULTILINE),
+        )
+        self.assertNotRegex(
+            module_source,
+            r"\b(?:document|window|app|api|LiteGraph|fetch|registerExtension)\b",
+        )
+        for name in expected_exports:
+            with self.subTest(moved_declaration=name):
+                self.assertNotRegex(
+                    entry_source,
+                    rf"\b(?:const|let|var|function|class)\s+{re.escape(name)}\b",
+                )
+
+        self.assertTrue(LORA_PRESET_PROFILE_DATA_SMOKE.is_file())
+        self.assertIn("web/js/lora_preset/**/*.js", config["include"])
+        self.assertIn(
+            r'node "tests\frontend_lora_preset_profile_data_smoke.mjs"',
+            frontend_check_source,
+        )
+
+    def test_profile_data_module_semantics(self):
+        node_bin = shutil.which("node")
+        if not node_bin:
+            self.skipTest("node executable is not available")
+
+        completed = subprocess.run(
+            [node_bin, str(LORA_PRESET_PROFILE_DATA_SMOKE)],
+            cwd=ROOT,
+            text=True,
+            capture_output=True,
+            check=False,
+        )
+
+        if completed.returncode != 0:
+            self.fail((completed.stdout + completed.stderr).strip())
+
+    def test_lora_row_controls_and_api_wiring_runtime(self):
         node_bin = shutil.which("node")
         if not node_bin:
             self.skipTest("node executable is not available")
@@ -23,9 +759,59 @@ class LoraPresetFrontendTests(unittest.TestCase):
             const vm = require("vm");
 
             const sourcePath = process.argv[1];
+            const profileDataPath = process.argv[2];
+            const loraStatePath = process.argv[3];
+            const apiClientPath = process.argv[4];
+            const previewLifecyclePath = process.argv[5];
+            const menuLifecyclePath = process.argv[6];
+            const canvasWidgetsPath = process.argv[7];
+            let profileDataSource = fs.readFileSync(profileDataPath, "utf8");
+            profileDataSource = profileDataSource.replace(
+              /^export\s+(?=(?:const|function|class)\b)/gm,
+              "",
+            );
+            let loraStateSource = fs.readFileSync(loraStatePath, "utf8");
+            loraStateSource = loraStateSource.replace(
+              /^export\s+(?=(?:const|function|class)\b)/gm,
+              "",
+            );
+            let apiClientSource = fs.readFileSync(apiClientPath, "utf8");
+            apiClientSource = apiClientSource.replace(
+              /^export\s+(?=(?:const|function|class)\b)/gm,
+              "",
+            );
+            let previewLifecycleSource = fs.readFileSync(previewLifecyclePath, "utf8");
+            previewLifecycleSource = previewLifecycleSource.replace(
+              /^export\s+(?=(?:const|function|class)\b)/gm,
+              "",
+            );
+            let menuLifecycleSource = fs.readFileSync(menuLifecyclePath, "utf8");
+            menuLifecycleSource = menuLifecycleSource.replace(
+              /^export\s+(?=(?:const|function|class)\b)/gm,
+              "",
+            );
+            let canvasWidgetsSource = fs.readFileSync(canvasWidgetsPath, "utf8");
+            canvasWidgetsSource = canvasWidgetsSource.replace(
+              /^export\s+(?=(?:const|function|class)\b)/gm,
+              "",
+            );
             let source = fs.readFileSync(sourcePath, "utf8");
-            source = source.replace(/^import\s+.*;\r?\n/gm, "");
-            source += "\nglobalThis.__loraPresetTest = { LoraRowWidget, LORA_PRESET_SETTINGS, applyLoraPresetSettings, loraMenuElementValue, loraMenuItems };\n";
+            source = source.replace(/^import[\s\S]*?;\r?\n/gm, "");
+            source = `${profileDataSource}\n${loraStateSource}\n${apiClientSource}\n${previewLifecycleSource}\n${menuLifecycleSource}\n${canvasWidgetsSource}\n${source}`;
+            source += "\nglobalThis.__loraPresetTest = { loraCanvasWidgets, LORA_PRESET_SETTINGS, applyLoraPresetSettings, loraPresetApi, loraPreviewLifecycle, loraMenuLifecycle, saveProfileSet };\n";
+
+            const mutationObservers = [];
+            class StubMutationObserver {
+              constructor(callback) {
+                this.callback = callback;
+                mutationObservers.push(this);
+              }
+              observe(target, options) {
+                this.target = target;
+                this.options = options;
+              }
+              disconnect() {}
+            }
 
             class StubElement {
               constructor(tagName = "div") {
@@ -58,7 +844,7 @@ class LoraPresetFrontendTests(unittest.TestCase):
               MouseEvent: class { constructor(type, options = {}) { this.type = type; Object.assign(this, options); } },
               HTMLInputElement: class {},
               HTMLTextAreaElement: class {},
-              MutationObserver: class { constructor() {} observe() {} disconnect() {} },
+              MutationObserver: StubMutationObserver,
               LiteGraph: {
                 WIDGET_TEXT_COLOR: "#ddd",
                 WIDGET_BGCOLOR: "#222",
@@ -72,6 +858,7 @@ class LoraPresetFrontendTests(unittest.TestCase):
               },
               easyuseAnimaText: (maps, key) => maps.en[key] || key,
               easyuseAnimaWatchLocale: () => {},
+              encodeRFC3986URIComponent: (value) => String(value),
             };
             context.globalThis = context;
             context.self = context;
@@ -109,12 +896,15 @@ class LoraPresetFrontendTests(unittest.TestCase):
             vm.runInContext(source, context, { filename: sourcePath });
 
             const {
-              LoraRowWidget,
+              loraCanvasWidgets,
               LORA_PRESET_SETTINGS,
               applyLoraPresetSettings,
-              loraMenuElementValue,
-              loraMenuItems,
+              loraPresetApi,
+              loraPreviewLifecycle,
+              loraMenuLifecycle,
+              saveProfileSet,
             } = context.__loraPresetTest;
+            const { LoraRowWidget } = loraCanvasWidgets;
 
             function widget(name, value) {
               return { name, value };
@@ -154,6 +944,63 @@ class LoraPresetFrontendTests(unittest.TestCase):
 
             function loras(node) {
               return JSON.parse(node.widgets.find((item) => item.name === "loras").value);
+            }
+
+            {
+              const node = makeNode();
+              const row = makeRow();
+              const shown = [];
+              let hidden = 0;
+              const originalShowPreview = loraPreviewLifecycle.showPreview;
+              const originalHidePreview = loraPreviewLifecycle.hidePreview;
+              loraPreviewLifecycle.showPreview = (name, event) => {
+                shown.push({ name, event });
+              };
+              loraPreviewLifecycle.hidePreview = () => {
+                hidden += 1;
+              };
+
+              const hoverEvent = { type: "pointermove", clientX: 205, clientY: 10 };
+              assert.strictEqual(row.mouse(hoverEvent, [205, 10], node), false);
+              assert.strictEqual(shown.length, 1);
+              assert.strictEqual(shown[0].name, "style/foo.safetensors");
+              assert.strictEqual(shown[0].event, hoverEvent);
+              assert.strictEqual(row.mouse({ type: "pointermove" }, [10, 10], node), false);
+              assert.strictEqual(hidden, 1);
+              assert.strictEqual(row.mouse({ type: "pointerout" }, [10, 10], node), false);
+              assert.strictEqual(hidden, 2);
+
+              loraPreviewLifecycle.showPreview = originalShowPreview;
+              loraPreviewLifecycle.hidePreview = originalHidePreview;
+            }
+
+            {
+              const node = makeNode();
+              context.app.canvas.current_node = node;
+              let hidden = 0;
+              const originalHidePreview = loraPreviewLifecycle.hidePreview;
+              loraPreviewLifecycle.hidePreview = () => {
+                hidden += 1;
+              };
+
+              context.app.__extension.init();
+              assert.strictEqual(mutationObservers.length, 1);
+              assert.ok(loraMenuLifecycle);
+              const removedMenu = {
+                classList: {
+                  contains(className) {
+                    return className === "litecontextmenu"
+                      || className === "easyuse-anima-lora-menu";
+                  },
+                },
+              };
+              mutationObservers[0].callback([{
+                removedNodes: [removedMenu],
+                addedNodes: [],
+              }]);
+              assert.strictEqual(hidden, 1);
+
+              loraPreviewLifecycle.hidePreview = originalHidePreview;
             }
 
             {
@@ -228,25 +1075,6 @@ class LoraPresetFrontendTests(unittest.TestCase):
             }
 
             {
-              const items = loraMenuItems(["style/foo.safetensors", "style/x<y.safetensors"]);
-              assert.strictEqual(items[0].content, "style/foo.safetensors");
-              assert.strictEqual(items[0].value, "style/foo.safetensors");
-              assert.strictEqual(items[1].content, "style/x&lt;y.safetensors");
-
-              const badDomItem = {
-                dataset: {},
-                textContent: "[object Object]",
-                value: null,
-                __value: null,
-                getAttribute(name) {
-                  return name === "data-value" ? "[object Object]" : null;
-                },
-              };
-              assert.strictEqual(
-                loraMenuElementValue(badDomItem, "fixed/path.safetensors"),
-                "fixed/path.safetensors",
-              );
-
               applyLoraPresetSettings({ "lora_preset.menu_mode": "list" });
               assert.strictEqual(LORA_PRESET_SETTINGS.menuMode, "list");
               applyLoraPresetSettings({ "lora_preset.menu_mode": "bad" });
@@ -260,11 +1088,48 @@ class LoraPresetFrontendTests(unittest.TestCase):
               assert.strictEqual(LORA_PRESET_SETTINGS.strengthDragStep, 0.025);
               assert.strictEqual(LORA_PRESET_SETTINGS.strengthDragPixels, 12);
             }
+
+            (async () => {
+              const node = makeNode();
+              let saveCall = null;
+              loraPresetApi.saveProfile = async (name, payload) => {
+                saveCall = { name, payload };
+                return { profile: { name } };
+              };
+              context.window.prompt = () => "  Demo  ";
+
+              await saveProfileSet(node);
+
+              assert.ok(saveCall, "saveProfileSet must call the API client");
+              assert.strictEqual(saveCall.name, "Demo");
+              const payload = JSON.parse(JSON.stringify(saveCall.payload));
+              assert.strictEqual(payload.profile_count, 1);
+              assert.strictEqual(payload.profile_index, 1);
+              assert.strictEqual(payload.profile_data["1"].style_prompt, "");
+              assert.strictEqual(
+                payload.profile_data["1"].loras[0].name,
+                "style/foo.safetensors",
+              );
+            })().catch((error) => {
+              console.error(error);
+              process.exitCode = 1;
+            });
             """
         )
 
         completed = subprocess.run(
-            [node_bin, "-e", runner, str(ROOT / "web" / "js" / "easyuse_anima_lora_preset.js")],
+            [
+                node_bin,
+                "-e",
+                runner,
+                str(LORA_PRESET_ENTRY),
+                str(LORA_PRESET_PROFILE_DATA),
+                str(LORA_PRESET_LORA_STATE),
+                str(LORA_PRESET_API_CLIENT),
+                str(LORA_PRESET_PREVIEW_LIFECYCLE),
+                str(LORA_PRESET_MENU_LIFECYCLE),
+                str(LORA_PRESET_CANVAS_WIDGETS),
+            ],
             cwd=ROOT,
             text=True,
             capture_output=True,

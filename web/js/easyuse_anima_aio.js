@@ -2,48 +2,112 @@ import { app } from "../../../scripts/app.js";
 import { api } from "../../../scripts/api.js";
 import { easyuseAnimaFetchComfyJson, easyuseAnimaFetchText } from "./easyuse_anima_api.js";
 import { easyuseAnimaText, easyuseAnimaWatchLocale } from "./easyuse_anima_i18n.js";
+import {
+  aioCreateCheckboxInput as checkbox,
+  aioCreateNumberInput as numberInput,
+  aioCreateSelectInput as selectInput,
+  aioCreateTextareaInput as textareaInput,
+  aioCreateTextInput as textInput,
+  aioNodeInputControlForSpec as nodeInputControlForSpec,
+  aioNodeInputDefault as nodeInputDefault,
+  aioValueFromNodeInputControl as valueFromNodeInputControl,
+} from "./aio/dom_controls.js";
+import { aioCreateDialogPrimitives } from "./aio/dialog_primitives.js";
+import { aioCreateInputSettingsDialog } from "./aio/input_settings_dialog.js";
+import { aioCreatePostprocessSettingsDialog } from "./aio/postprocess_settings_dialog.js";
+import { aioCreatePreviewSettingsDialog } from "./aio/preview_settings_dialog.js";
+import { createAioProfileApiClient } from "./aio/profile_api_client.js";
+import { aioCreateProfileSettingsRuntime } from "./aio/profile_settings_runtime.js";
+import { aioCreateGeneratorPanelRuntime } from "./aio/generator_panel_runtime.js";
+import {
+  aioCreateGeneratorQueueRuntime,
+  aioInstallGeneratorQueuePromptHook,
+} from "./aio/generator_queue_runtime.js";
+import { aioCreateStageSettingsDialogs } from "./aio/stage_settings_dialogs.js";
+import { aioCreateDetailerSettingsDialog } from "./aio/detailer_settings_dialog.js";
+import { aioCreateSamplerSettingsDialog } from "./aio/sampler_settings_dialog.js";
+import { aioCreateSaveSettingsDialog } from "./aio/save_settings_dialog.js";
+import { aioCreateAdvancedSettingsDialog } from "./aio/advanced_settings_dialog.js";
+import { aioCreateNativePreviewRuntime } from "./aio/native_preview_runtime.js";
+import {
+  aioCreateExtensionRuntime,
+  aioListAttachedGeneratorNodes,
+} from "./aio/extension_runtime.js";
+import {
+  AIO_BACKEND_DEPENDENCIES,
+  AIO_OPTIONAL_DEPENDENCY_SPECS,
+  aioNodeInputMap,
+  aioNodeInputSpec,
+  aioNodeInputSupported,
+  aioNodeInputTooltip,
+  aioOptionalDependencyAvailable,
+  aioOptionalDependencyPack,
+  aioOptionalDependencyStatus,
+  aioQueryOptionalDependencies,
+  aioUpscaleBackendMissingPacks,
+} from "./aio/dependencies.js";
+import {
+  aioAppendPreviewFeed,
+  aioCreatePreviewProgressTracker,
+  aioDefaultPreviewIndex,
+  aioDeletePreviewStoreEntry,
+  aioMainPreviewImage,
+  aioMergePreviewImages,
+  aioPreviewEventDetail,
+  aioPreviewFileSize,
+  aioPreviewImageLabel,
+  aioPreviewImageName,
+  aioPreviewImages,
+  aioPreviewNodeIdsFromDetail,
+  aioPreviewResolution,
+  aioPreviewRunId,
+  aioRemovePreviewRun,
+  aioResolveTerminalPreviewState,
+  aioSelectedPreviewIndex,
+  aioSuppressDefaultPreview,
+  aioTagPreviewRun,
+} from "./aio/preview.js";
 import { aioPanelFromWheelEvent, consumeAioPanelWheel } from "./aio/wheel.js";
 import {
-  aioBuiltinProfileIdForSettings,
   aioBuiltinProfileIds,
   aioBuiltinProfileSettings,
+  aioFindUserProfileByName,
   aioProfileSettingsFingerprint,
+  aioResolvedProfileValue,
   aioUserProfileName,
   aioUserProfileValue,
 } from "./aio/presets.js";
+import {
+  AIO_DEFAULT_GENERATION_SETTINGS as DEFAULT_GENERATION_SETTINGS,
+  AIO_DEFAULT_INPUT_SETTINGS as DEFAULT_INPUT_SETTINGS,
+  AIO_GENERATOR_MAX_SEED as GENERATOR_MAX_SEED,
+  AIO_GENERATOR_SEED_CONTROLS as GENERATOR_SEED_CONTROLS,
+  AIO_GENERATOR_SPECIAL_SEED_DECREMENT as GENERATOR_SPECIAL_SEED_DECREMENT,
+  AIO_GENERATOR_SPECIAL_SEED_INCREMENT as GENERATOR_SPECIAL_SEED_INCREMENT,
+  AIO_GENERATOR_SPECIAL_SEED_RANDOM as GENERATOR_SPECIAL_SEED_RANDOM,
+  aioAsBool as asBool,
+  aioCloneJson as clone,
+  aioMergeDefaults as mergeDefaults,
+  aioMigrateGeneratorPostprocessSettings as migrateGeneratorPostprocessSettings,
+  aioNormalizeGeneratorPreviewSettings as normalizeGeneratorPreviewSettings,
+  aioNormalizeSeedControl as normalizeSeedControl,
+  aioNormalizeSeedValue as normalizeSeedValue,
+  aioParseSettingsValue,
+  aioSettingsToCompactJson as settingsToCompactJson,
+} from "./aio/settings.js";
 
 const INPUT_NODE_TYPE = "EasyUseAnimaInput";
 const GENERATOR_NODE_TYPE = "EasyUseAnimaAIOGenerator";
 const INPUT_SETTINGS_WIDGET = "input_settings";
 const GENERATOR_SETTINGS_WIDGET = "generation_settings";
 const GENERATOR_PROFILE_CUSTOM_VALUE = "custom";
-const GENERATOR_DOM_WIDGET = "easyuse_anima_generator_panel";
 const GENERATOR_PREVIEW_EVENT = "easyuse-anima-aio-preview";
-const GENERATOR_DENOISE_PREVIEW_NODE_KEYS = [
-  "displayNodeId",
-  "nodeId",
-  "realNodeId",
-  "parentNodeId",
-  "display_node_id",
-  "node_id",
-  "real_node_id",
-  "parent_node_id",
-  "node",
-];
-const GENERATOR_SEED_CONTROLS = ["fixed", "randomize", "increment", "decrement"];
-const GENERATOR_SPECIAL_SEED_RANDOM = -1;
-const GENERATOR_SPECIAL_SEED_INCREMENT = -2;
-const GENERATOR_SPECIAL_SEED_DECREMENT = -3;
+const GENERATOR_PANEL_MIN_HEIGHT = 430;
 const GENERATOR_SPECIAL_SEEDS = [
   GENERATOR_SPECIAL_SEED_RANDOM,
   GENERATOR_SPECIAL_SEED_INCREMENT,
   GENERATOR_SPECIAL_SEED_DECREMENT,
 ];
-const GENERATOR_MAX_SEED = 1125899906842624;
-const GENERATOR_NODE_MIN_WIDTH = 560;
-const GENERATOR_NODE_DEFAULT_WIDTH = 620;
-const GENERATOR_PANEL_MIN_HEIGHT = 430;
-const GENERATOR_PANEL_CONTROL_SELECTOR = "input, select, textarea, button";
 const GENERATOR_VUE_NODE_CLASS = "easyuse-anima-aio-hide-native-live-preview";
 const GENERATOR_FALLBACK_SAMPLER_NAMES = [
   "er_sde",
@@ -75,555 +139,8 @@ const GENERATOR_FALLBACK_SCHEDULER_NAMES = [
   "OSS Wan",
   "OSS Chroma",
 ];
-const GENERATOR_OPTIONAL_DEPENDENCY_SPECS = {
-  spectrumAdvanced: {
-    nodeId: "SpectrumKSamplerAdvanced",
-    pack: "ComfyUI-Spectrum-KSampler",
-  },
-  spectrumSpd: {
-    nodeId: "SpectrumSPDKSampler",
-    pack: "ComfyUI-Spectrum-KSampler",
-  },
-  spectrumPatch: {
-    nodeId: "DiTSpectrumPatchAdvanced",
-    pack: "ComfyUI-Spectrum-KSampler",
-  },
-  spectrumCorrections: {
-    nodeId: "DiTCFGFSGPatch",
-    pack: "ComfyUI-Spectrum-KSampler",
-  },
-  dave: {
-    nodeId: "AnimaDAVE",
-    pack: "ComfyUI-Anima-DAVE",
-  },
-  safePag: {
-    nodeId: "AnimaSafePAG",
-    pack: "Anima Safe PAG",
-  },
-  imageSaver: {
-    nodeId: "Image Saver",
-    pack: "ComfyUI-Image-Saver",
-  },
-  upscaleModelLoader: {
-    nodeId: "UpscaleModelLoader",
-    pack: "ComfyUI built-in upscale model loader",
-  },
-  ultimateSdUpscale: {
-    nodeId: "UltimateSDUpscale",
-    pack: "ComfyUI_UltimateSDUpscale",
-  },
-  resShiftLoader: {
-    nodeId: "ResShiftLoader",
-    pack: "ComfyUI-Distilled-ResShift",
-  },
-  resShiftUpscale: {
-    nodeId: "ResShiftUpscale",
-    pack: "ComfyUI-Distilled-ResShift",
-  },
-  kjFp16: {
-    nodeId: "ModelPatchTorchSettings",
-    pack: "ComfyUI-KJNodes",
-  },
-  kjSage: {
-    nodeId: "PathchSageAttentionKJ",
-    pack: "ComfyUI-KJNodes",
-  },
-  kjTorchCompile: {
-    nodeId: "TorchCompileModelAdvanced",
-    pack: "ComfyUI-KJNodes",
-  },
-  impactDetailer: {
-    nodeId: "DetailerForEach",
-    pack: "ComfyUI-Impact-Pack",
-  },
-  impactMaskToSegs: {
-    nodeId: "MaskToSEGS",
-    pack: "ComfyUI-Impact-Pack",
-  },
-};
-const GENERATOR_BACKEND_DEPENDENCIES = {
-  spectrum_mod_guidance_advanced: "spectrumAdvanced",
-  spectrum_spd_speed: "spectrumSpd",
-};
-const GENERATOR_HIGHRES_BACKENDS = [
-  "comfy_ksampler",
-];
-const SPECTRUM_ADVANCED_KNOWN_INPUTS = new Set([
-  "model",
-  "clip",
-  "seed",
-  "steps",
-  "cfg",
-  "sampler_name",
-  "scheduler",
-  "positive",
-  "negative",
-  "latent_image",
-  "adapter",
-  "quality_tags",
-  "mod_w",
-  "quality_neg",
-  "mod_start_layer",
-  "mod_end_layer",
-  "mod_taper",
-  "mod_taper_scale",
-  "mod_final_w",
-  "denoise",
-  "window_size",
-  "flex_window",
-  "warmup_steps",
-  "blend_w",
-  "cheby_degree",
-  "ridge_lambda",
-  "dcw_mode",
-  "dcw_lambda",
-  "dcw_band_mask",
-  "dcw_calibrator",
-  "cfgpp_lambda",
-  "fsg",
-  "fsg_band_lo",
-  "fsg_band_hi",
-  "fsg_k",
-  "fsg_d_sigma",
-  "fsg_gamma",
-  "adaptive_smc_alpha",
-  "smc_cfg_lambda",
-]);
-const SPECTRUM_SPD_KNOWN_INPUTS = new Set([
-  "model",
-  "seed",
-  "steps",
-  "cfg",
-  "sampler_name",
-  "scheduler",
-  "positive",
-  "negative",
-  "latent_image",
-  "split_mode",
-  "spd_scale",
-  "spd_sigma",
-  "denoise",
-  "adaptive_smc_alpha",
-]);
 
-const DEFAULT_GENERATION_SETTINGS = {
-  schema: "easyuse_anima_aio_generation_settings",
-  version: 1,
-  mode: "txt2img",
-  sampler: {
-    backend: "comfy_ksampler",
-    seed: GENERATOR_SPECIAL_SEED_RANDOM,
-    seed_after_generate: "fixed",
-    steps: 32,
-    cfg: 5.0,
-    sampler_name: "er_sde",
-    scheduler: "simple",
-    denoise: 1.0,
-    spectrum: {
-      enabled: false,
-      window_size: 2.0,
-      flex_window: 0.25,
-      warmup_steps: 6,
-      tail_actual_steps: 3,
-      blend_w: 0.3,
-      cheby_degree: 3,
-      ridge_lambda: 0.1,
-      history_size: 100,
-      one_sampler_only: false,
-      verbose: false,
-      compat_policy: "conservative",
-    },
-    spd: {
-      split_mode: "single",
-      scale: 0.5,
-      sigma: 0.7,
-      adaptive_smc_alpha: 0.0,
-    },
-    spectrum_extra: {},
-    spd_extra: {},
-    dit_corrections: {
-      enabled: false,
-      dcw_mode: "off",
-      dcw_lambda: 0.01,
-      dcw_band_mask: "LL",
-      dcw_calibrator: "(auto-download default)",
-      smc_cfg: false,
-      adaptive_smc_alpha: 0.0,
-      smc_cfg_lambda: 6.0,
-      cfgpp: false,
-      cfgpp_lambda: 0.0,
-      fsg: false,
-      fsg_band_lo: 0.59,
-      fsg_band_hi: 0.75,
-      fsg_k: 3,
-      fsg_d_sigma: 0.1,
-      fsg_gamma: 0.0,
-      replace_existing_cfg: false,
-    },
-  },
-  model_patches: {
-    aura_flow: {
-      shift: 3.0,
-    },
-    dave: {
-      enabled: false,
-      mask: "dave_alpha.npz",
-      strength: 0.30,
-      tau: 0.10,
-    },
-    safe_pag: {
-      enabled: false,
-      scale: 4.0,
-      block_indices: "18",
-      perturbation_strength: 0.75,
-      head_indices: "",
-      start_percent: 0.0,
-      end_percent: 0.7,
-      rescale: 0.2,
-      rescale_mode: "full",
-    },
-    kj: {
-      fp16_accumulation: false,
-      sage_attention: "disabled",
-      sage_allow_compile: false,
-      torch_compile: {
-        enabled: false,
-        backend: "inductor",
-        fullgraph: false,
-        mode: "max-autotune-no-cudagraphs",
-        dynamic: "false",
-        compile_transformer_blocks_only: true,
-        dynamo_cache_size_limit: 64,
-        debug_compile_keys: false,
-        disable_dynamic_vram: true,
-      },
-    },
-  },
-  mod_guidance: {
-    mode: "prompt_data",
-    profile: "step_i8_skip27",
-    advanced: {
-      adapter: "(auto-download default)",
-      quality_tags: "highres, best quality, score_7",
-      quality_neg: "score_1, score_2, score_3, worst quality, lowres, old, bad hands, bad anatomy",
-      mod_w: 3.0,
-      mod_start_layer: 8,
-      mod_end_layer: 27,
-      mod_taper: 0,
-      mod_taper_scale: 0.25,
-      mod_final_w: 0.0,
-    },
-  },
-  artist_mix: {
-    mode: "prompt_data",
-    start_percent: 0.5,
-    strength_scale: 1.0,
-    style_gain: 1.35,
-    rms_scale_cap: 2.0,
-    exact_top_k: 4,
-    cluster_count: 4,
-    dominant_isolation: true,
-    dominant_threshold: 0.25,
-  },
-  highres: {
-    enabled: false,
-    scale_by: 1.5,
-    upscale_method: "bicubic",
-    multiple: "32",
-    max_long_edge: 2560,
-    steps: 20,
-    inherit_sampler_settings: true,
-    cfg: 8.0,
-    sampler_name: "euler",
-    scheduler: "simple",
-    denoise: 0.25,
-    spectrum: {
-      enabled: false,
-      window_size: 2.0,
-      flex_window: 0.2,
-      warmup_steps: 7,
-      tail_actual_steps: 4,
-      blend_w: 0.3,
-      cheby_degree: 3,
-      ridge_lambda: 0.1,
-      history_size: 100,
-      one_sampler_only: false,
-      verbose: false,
-      compat_policy: "conservative",
-    },
-    dit_corrections: {
-      enabled: false,
-      dcw_mode: "off",
-      dcw_lambda: 0.02,
-      dcw_band_mask: "LL",
-      dcw_calibrator: "(auto-download default)",
-      smc_cfg: false,
-      adaptive_smc_alpha: 0.0,
-      smc_cfg_lambda: 6.0,
-      cfgpp: false,
-      cfgpp_lambda: 0.0,
-      fsg: false,
-      fsg_band_lo: 0.59,
-      fsg_band_hi: 0.75,
-      fsg_k: 3,
-      fsg_d_sigma: 0.1,
-      fsg_gamma: 0.0,
-      replace_existing_cfg: false,
-    },
-  },
-  upscale: {
-    enabled: false,
-    backend: "usdu",
-    scale_by: 2.0,
-    steps: 20,
-    inherit_sampler_settings: true,
-    cfg: 8.0,
-    sampler_name: "euler",
-    scheduler: "simple",
-    denoise: 0.2,
-    spectrum: {
-      enabled: false,
-      window_size: 2.0,
-      flex_window: 0.2,
-      warmup_steps: 7,
-      tail_actual_steps: 4,
-      blend_w: 0.3,
-      cheby_degree: 3,
-      ridge_lambda: 0.1,
-      history_size: 100,
-      one_sampler_only: false,
-      verbose: false,
-      compat_policy: "conservative",
-    },
-    dit_corrections: {
-      enabled: false,
-      dcw_mode: "off",
-      dcw_lambda: 0.02,
-      dcw_band_mask: "LL",
-      dcw_calibrator: "(auto-download default)",
-      smc_cfg: false,
-      adaptive_smc_alpha: 0.0,
-      smc_cfg_lambda: 6.0,
-      cfgpp: false,
-      cfgpp_lambda: 0.0,
-      fsg: false,
-      fsg_band_lo: 0.59,
-      fsg_band_hi: 0.75,
-      fsg_k: 3,
-      fsg_d_sigma: 0.1,
-      fsg_gamma: 0.0,
-      replace_existing_cfg: false,
-    },
-    usdu: {
-      upscale_model_name: "2x-AnimeSharpV4_Fast_RCAN_PU.safetensors",
-      auto_tile_size: true,
-      prompt_mode: "full",
-      mode_type: "Linear",
-      auto_tile_target: 1024,
-      auto_tile_min: 512,
-      auto_tile_max: 2048,
-      tile_width: 512,
-      tile_height: 512,
-      mask_blur: 8,
-      tile_padding: 32,
-      seam_fix_mode: "None",
-      seam_fix_denoise: 1.0,
-      seam_fix_width: 64,
-      seam_fix_mask_blur: 8,
-      seam_fix_padding: 16,
-      force_uniform_tiles: true,
-      tiled_decode: false,
-      batch_size: 1,
-    },
-    resshift: {
-      scale: "x2",
-      student_name: "(auto-download)",
-      dtype: "bf16",
-      chop: 512,
-      overlap: 64,
-      tile_batch: 4,
-    },
-  },
-  postprocess: {
-    enabled: false,
-    fit: {
-      mode: "max_long_edge",
-      max_long_edge: 2048,
-      max_megapixels: 4.0,
-      method: "bicubic",
-    },
-  },
-  detailer: {
-    enabled: false,
-    order: ["face", "eye"],
-    sam3: {
-      context: "load_checkpoint",
-      checkpoint: "sam3.1_multiplex_fp16.safetensors",
-    },
-    face: {
-      label: "Face Detailer",
-      enabled: false,
-      detect_prompt: "face",
-      detect_count: 1,
-      threshold: 0.52,
-      refine_iterations: 2,
-      individual_masks: true,
-      combined: false,
-      crop_factor: 4.0,
-      bbox_fill: false,
-      drop_size: 100,
-      contour_fill: true,
-      guide_size: 1024,
-      guide_size_for: false,
-      max_size: 2048,
-      steps: 20,
-      inherit_sampler_settings: true,
-      cfg: 8.0,
-      sampler_name: "euler",
-      scheduler: "sgm_uniform",
-      denoise: 0.33,
-      feather: 5,
-      noise_mask: true,
-      force_inpaint: true,
-      wildcard: "",
-      cycle: 1,
-      alignment: "32",
-      inpaint_model: false,
-      noise_mask_feather: 10,
-      tiled_encode: false,
-      tiled_decode: false,
-      spectrum: {
-        enabled: true,
-        window_size: 2.0,
-        flex_window: 0.15,
-        warmup_steps: 6,
-        tail_actual_steps: 3,
-        blend_w: 0.3,
-        cheby_degree: 3,
-        ridge_lambda: 0.1,
-        history_size: 100,
-        one_sampler_only: false,
-        verbose: false,
-        compat_policy: "conservative",
-      },
-      dit_corrections: {
-        enabled: false,
-        dcw_mode: "off",
-        dcw_lambda: 0.02,
-        dcw_band_mask: "LL",
-        dcw_calibrator: "(auto-download default)",
-        smc_cfg: false,
-        adaptive_smc_alpha: 0.0,
-        smc_cfg_lambda: 6.0,
-        cfgpp: false,
-        cfgpp_lambda: 0.0,
-        fsg: false,
-        fsg_band_lo: 0.59,
-        fsg_band_hi: 0.75,
-        fsg_k: 3,
-        fsg_d_sigma: 0.1,
-        fsg_gamma: 0.0,
-        replace_existing_cfg: false,
-      },
-    },
-    eye: {
-      label: "Eye Detailer",
-      enabled: false,
-      detect_prompt: "eyes",
-      detect_count: 1,
-      threshold: 0.5,
-      refine_iterations: 2,
-      individual_masks: true,
-      combined: false,
-      crop_factor: 6.0,
-      bbox_fill: false,
-      drop_size: 40,
-      contour_fill: true,
-      guide_size: 1024,
-      guide_size_for: false,
-      max_size: 2048,
-      steps: 20,
-      inherit_sampler_settings: true,
-      cfg: 8.0,
-      sampler_name: "euler",
-      scheduler: "sgm_uniform",
-      denoise: 0.29,
-      feather: 6,
-      noise_mask: true,
-      force_inpaint: true,
-      wildcard: "",
-      cycle: 1,
-      alignment: "32",
-      inpaint_model: false,
-      noise_mask_feather: 20,
-      tiled_encode: false,
-      tiled_decode: false,
-      spectrum: {
-        enabled: true,
-        window_size: 2.0,
-        flex_window: 0.15,
-        warmup_steps: 6,
-        tail_actual_steps: 3,
-        blend_w: 0.3,
-        cheby_degree: 3,
-        ridge_lambda: 0.1,
-        history_size: 100,
-        one_sampler_only: false,
-        verbose: false,
-        compat_policy: "conservative",
-      },
-      dit_corrections: {
-        enabled: false,
-        dcw_mode: "off",
-        dcw_lambda: 0.02,
-        dcw_band_mask: "LL",
-        dcw_calibrator: "(auto-download default)",
-        smc_cfg: false,
-        adaptive_smc_alpha: 0.0,
-        smc_cfg_lambda: 6.0,
-        cfgpp: false,
-        cfgpp_lambda: 0.0,
-        fsg: false,
-        fsg_band_lo: 0.59,
-        fsg_band_hi: 0.75,
-        fsg_k: 3,
-        fsg_d_sigma: 0.1,
-        fsg_gamma: 0.0,
-        replace_existing_cfg: false,
-      },
-    },
-  },
-  save: {
-    enabled: true,
-    backend: "image_saver",
-    image_saver: {
-      filename: "%time_%basemodelname",
-      path: "EasyUseAnima/AiO",
-      extension: "webp",
-      lossless_webp: false,
-      quality_jpeg_or_webp: 97,
-      optimize_png: true,
-      counter: 0,
-      clip_skip: 0,
-      time_format: "%Y-%m-%d-%H%M%S",
-      save_workflow_as_json: false,
-      embed_workflow: true,
-      save_prompt_metadata: true,
-      additional_hashes: "",
-      additional_hash_bundles: [],
-      civitai_hash_fetchers: [],
-      download_civitai_data: true,
-      easy_remix: true,
-      custom: "",
-    },
-  },
-  preview: {
-    intermediate_images: false,
-    compare_previous: false,
-    image_feed: true,
-    feed_count: 12,
-  },
-};
+
 
 const AIO_TEXT = {
   en: {
@@ -2270,6 +1787,15 @@ function aioFormat(key, values = {}) {
   return text;
 }
 
+function aioFieldPresentation(label, tooltipKey = "") {
+  const displayLabel = aioFieldLabel(label);
+  const resolvedTooltipKey = tooltipKey || AIO_FIELD_TOOLTIP_KEYS[label] || "";
+  const tooltipText = resolvedTooltipKey
+    ? aioText(resolvedTooltipKey)
+    : aioFormat("tip.fieldGeneric", { label: displayLabel });
+  return { displayLabel, tooltipText };
+}
+
 function applyTooltip(element, key) {
   if (!element || !key) {
     return element;
@@ -2289,17 +1815,6 @@ function applyTooltipText(element, text) {
   return element;
 }
 
-const DEFAULT_INPUT_SETTINGS = {
-  schema: "easy_use_anima_input",
-  version: 1,
-  resources: {
-    loader_mode: "split",
-    clip_loader: "single",
-    unet_weight_dtype: "default",
-    clip_device: "default",
-  },
-  metadata: {},
-};
 
 const generatorSamplerOptionState = {
   loaded: false,
@@ -2315,11 +1830,6 @@ const generatorOptionalDependencyState = {
   nodeInfo: {},
   errors: {},
   reportedSignature: "",
-};
-const generatorProfileState = {
-  loaded: false,
-  loading: null,
-  profiles: [],
 };
 
 function uniqueStrings(values) {
@@ -2384,36 +1894,26 @@ function loadGeneratorSamplerOptions() {
 }
 
 async function fetchGeneratorOptionalDependencies() {
-  const next = {};
-  const nextStatus = {};
-  const nextInfo = {};
-  const nextErrors = {};
-  for (const [key, spec] of Object.entries(GENERATOR_OPTIONAL_DEPENDENCY_SPECS)) {
-    try {
+  const next = await aioQueryOptionalDependencies(
+    AIO_OPTIONAL_DEPENDENCY_SPECS,
+    async (spec) => {
       const data = await easyuseAnimaFetchComfyJson(api, `/object_info/${encodeURIComponent(spec.nodeId)}`);
-      const info = data?.[spec.nodeId] || null;
-      next[key] = !!info;
-      nextStatus[key] = info ? "available" : "missing";
-      nextInfo[key] = info;
-    } catch (error) {
-      nextStatus[key] = "error";
-      nextInfo[key] = null;
-      nextErrors[key] = error instanceof Error ? error.message : String(error || "Unknown error");
-    }
-  }
-  generatorOptionalDependencyState.available = next;
-  generatorOptionalDependencyState.status = nextStatus;
-  generatorOptionalDependencyState.nodeInfo = nextInfo;
-  generatorOptionalDependencyState.errors = nextErrors;
+      return data?.[spec.nodeId] || null;
+    },
+  );
+  generatorOptionalDependencyState.available = next.available;
+  generatorOptionalDependencyState.status = next.status;
+  generatorOptionalDependencyState.nodeInfo = next.nodeInfo;
+  generatorOptionalDependencyState.errors = next.errors;
 }
 
 function optionalDependencyResultLabel(key) {
-  const spec = GENERATOR_OPTIONAL_DEPENDENCY_SPECS[key];
+  const spec = AIO_OPTIONAL_DEPENDENCY_SPECS[key];
   return spec ? `${spec.nodeId} (${spec.pack})` : key;
 }
 
 function reportGeneratorOptionalDependencyStatus() {
-  const rows = Object.entries(GENERATOR_OPTIONAL_DEPENDENCY_SPECS).map(([key, spec]) => ({
+  const rows = Object.entries(AIO_OPTIONAL_DEPENDENCY_SPECS).map(([key, spec]) => ({
     key,
     node: spec.nodeId,
     pack: spec.pack,
@@ -2471,10 +1971,10 @@ function loadGeneratorOptionalDependencies({ retryErrors = false } = {}) {
         console.warn("[EasyUseAnima] Failed to load optional dependency status.", error);
         const message = error instanceof Error ? error.message : String(error || "Unknown error");
         generatorOptionalDependencyState.status = Object.fromEntries(
-          Object.keys(GENERATOR_OPTIONAL_DEPENDENCY_SPECS).map((key) => [key, "error"]),
+          Object.keys(AIO_OPTIONAL_DEPENDENCY_SPECS).map((key) => [key, "error"]),
         );
         generatorOptionalDependencyState.errors = Object.fromEntries(
-          Object.keys(GENERATOR_OPTIONAL_DEPENDENCY_SPECS).map((key) => [key, message]),
+          Object.keys(AIO_OPTIONAL_DEPENDENCY_SPECS).map((key) => [key, message]),
         );
       })
       .then(() => {
@@ -2490,61 +1990,31 @@ function loadGeneratorOptionalDependencies({ retryErrors = false } = {}) {
 }
 
 function optionalDependencyStatus(key) {
-  if (!key || !generatorOptionalDependencyState.loaded) {
-    return "unknown";
-  }
-  return generatorOptionalDependencyState.status[key] || "unknown";
+  return aioOptionalDependencyStatus(generatorOptionalDependencyState, key);
 }
 
 function optionalDependencyAvailable(key) {
-  return optionalDependencyStatus(key) !== "missing";
-}
-
-function backendDependencyMissing(backend) {
-  const dependencyKey = GENERATOR_BACKEND_DEPENDENCIES[backend];
-  return dependencyKey && !optionalDependencyAvailable(dependencyKey);
+  return aioOptionalDependencyAvailable(generatorOptionalDependencyState, key);
 }
 
 function optionalDependencyPack(key) {
-  return GENERATOR_OPTIONAL_DEPENDENCY_SPECS[key]?.pack || key || "";
-}
-
-function upscaleBackendDependencyKeys(backend) {
-  if (backend === "usdu") {
-    return ["ultimateSdUpscale", "upscaleModelLoader"];
-  }
-  if (backend === "resshift") {
-    return ["resShiftLoader", "resShiftUpscale"];
-  }
-  return [];
+  return aioOptionalDependencyPack(key);
 }
 
 function upscaleBackendMissingPacks(backend) {
-  return upscaleBackendDependencyKeys(backend)
-    .filter((key) => !optionalDependencyAvailable(key))
-    .map((key) => optionalDependencyPack(key));
-}
-
-function optionalDependencyNodeInfo(key) {
-  return generatorOptionalDependencyState.nodeInfo?.[key] || null;
+  return aioUpscaleBackendMissingPacks(generatorOptionalDependencyState, backend);
 }
 
 function nodeInputMap(dependencyKey) {
-  const input = optionalDependencyNodeInfo(dependencyKey)?.input || {};
-  return {
-    ...(input.required || {}),
-    ...(input.optional || {}),
-  };
+  return aioNodeInputMap(generatorOptionalDependencyState, dependencyKey);
 }
 
 function nodeInputSpec(dependencyKey, inputName) {
-  return nodeInputMap(dependencyKey)?.[inputName] || null;
+  return aioNodeInputSpec(generatorOptionalDependencyState, dependencyKey, inputName);
 }
 
 function nodeInputTooltip(dependencyKey, inputName) {
-  const spec = nodeInputSpec(dependencyKey, inputName);
-  const options = Array.isArray(spec) && spec[1] && typeof spec[1] === "object" ? spec[1] : null;
-  return options?.tooltip ? String(options.tooltip) : "";
+  return aioNodeInputTooltip(generatorOptionalDependencyState, dependencyKey, inputName);
 }
 
 function nodeInputChoiceOptions(dependencyKey, inputName, current, fallback = []) {
@@ -2553,137 +2023,9 @@ function nodeInputChoiceOptions(dependencyKey, inputName, current, fallback = []
 }
 
 function nodeInputSupported(dependencyKey, inputName) {
-  const status = optionalDependencyStatus(dependencyKey);
-  if (status === "unknown" || status === "error") {
-    return true;
-  }
-  if (status === "missing") {
-    return false;
-  }
-  return !!nodeInputSpec(dependencyKey, inputName);
+  return aioNodeInputSupported(generatorOptionalDependencyState, dependencyKey, inputName);
 }
 
-function applyNodeInputInfo(control, dependencyKey, inputName, fallbackTooltipKey = "") {
-  if (!control) {
-    return control;
-  }
-  const objectTooltip = nodeInputTooltip(dependencyKey, inputName);
-  const fallback = fallbackTooltipKey ? aioText(fallbackTooltipKey) : "";
-  const supported = nodeInputSupported(dependencyKey, inputName);
-  control.disabled = !supported;
-  control.title = supported
-    ? (objectTooltip || fallback || control.title || "")
-    : aioFormat("warning.optionalDependencyMissing", {
-      backend: inputName,
-      pack: optionalDependencyPack(dependencyKey),
-    });
-  const row = control.parentElement?.classList?.contains("easyuse-anima-aio-field")
-    ? control.parentElement
-    : null;
-  if (row) {
-    row.title = control.title;
-    row.classList.toggle("easyuse-anima-aio-unsupported", !supported);
-  }
-  return control;
-}
-
-function nodeInputDefault(spec, fallback = "") {
-  const options = Array.isArray(spec) && spec[1] && typeof spec[1] === "object" ? spec[1] : null;
-  if (options && Object.prototype.hasOwnProperty.call(options, "default")) {
-    return options.default;
-  }
-  return fallback;
-}
-
-function nodeInputControlForSpec(spec, value) {
-  if (!Array.isArray(spec)) {
-    return null;
-  }
-  const type = spec[0];
-  if (Array.isArray(type)) {
-    return selectInput(type, value ?? nodeInputDefault(spec, type[0] ?? ""));
-  }
-  const normalizedType = String(type || "").toUpperCase();
-  if (normalizedType === "BOOLEAN") {
-    return checkbox(value ?? nodeInputDefault(spec, false));
-  }
-  if (normalizedType === "INT") {
-    const input = numberInput(value ?? nodeInputDefault(spec, 0), "1");
-    input.step = "1";
-    return input;
-  }
-  if (normalizedType === "FLOAT") {
-    return numberInput(value ?? nodeInputDefault(spec, 0), "0.01");
-  }
-  if (normalizedType === "STRING") {
-    return textInput(value ?? nodeInputDefault(spec, ""));
-  }
-  return null;
-}
-
-function valueFromNodeInputControl(control) {
-  if (!control) {
-    return null;
-  }
-  if (control.type === "checkbox") {
-    return !!control.checked;
-  }
-  if (control.type === "number") {
-    return Number(control.value || 0);
-  }
-  return control.value;
-}
-
-function createDynamicNodeInputEditor(title, dependencyKey, knownInputs, values = {}) {
-  const section = document.createElement("div");
-  section.className = "easyuse-anima-aio-subsection";
-  section.append(Object.assign(document.createElement("h4"), { textContent: aioStaticText(title) }));
-  const controls = new Map();
-  const render = () => {
-    const currentValues = { ...(values || {}) };
-    for (const [name, control] of controls.entries()) {
-      currentValues[name] = valueFromNodeInputControl(control);
-    }
-    controls.clear();
-    section.replaceChildren(Object.assign(document.createElement("h4"), { textContent: aioStaticText(title) }));
-    if (!generatorOptionalDependencyState.loaded || !optionalDependencyAvailable(dependencyKey)) {
-      section.classList.add("hidden");
-      return;
-    }
-    const inputMap = nodeInputMap(dependencyKey);
-    const dynamicNames = Object.keys(inputMap).filter((name) => !knownInputs.has(name));
-    if (!dynamicNames.length) {
-      section.classList.add("hidden");
-      return;
-    }
-    section.classList.remove("hidden");
-    for (const name of dynamicNames) {
-      const spec = inputMap[name];
-      const control = nodeInputControlForSpec(spec, currentValues[name]);
-      if (!control) {
-        continue;
-      }
-      controls.set(name, control);
-      field(section, name, control);
-      applyTooltipText(control, nodeInputTooltip(dependencyKey, name));
-    }
-    if (!controls.size) {
-      section.classList.add("hidden");
-    }
-  };
-  render();
-  loadGeneratorOptionalDependencies().then(render);
-  return {
-    section,
-    values() {
-      const output = {};
-      for (const [name, control] of controls.entries()) {
-        output[name] = valueFromNodeInputControl(control);
-      }
-      return output;
-    },
-  };
-}
 
 function disableGeneratorSpectrumOptions(target) {
   if (!target || typeof target !== "object") {
@@ -2700,7 +2042,7 @@ function disableGeneratorSpectrumOptions(target) {
 function sanitizeGeneratorSettingsForOptionalDependencies(settings) {
   const next = migrateGeneratorPostprocessSettings(mergeDefaults(DEFAULT_GENERATION_SETTINGS, settings));
   delete next.sampler.dave;
-  const backendDependency = GENERATOR_BACKEND_DEPENDENCIES[next.sampler.backend];
+  const backendDependency = AIO_BACKEND_DEPENDENCIES[next.sampler.backend];
   if (backendDependency && !optionalDependencyAvailable(backendDependency)) {
     next.sampler.backend = "comfy_ksampler";
   }
@@ -2757,320 +2099,9 @@ function schedulerNameOptions(current) {
 }
 
 function refreshGeneratorPanels() {
-  for (const node of generatorGraphNodes()) {
+  for (const node of aioListAttachedGeneratorNodes(app.graph, isGeneratorGraphNode)) {
     renderGeneratorPanel(node);
   }
-}
-
-function generatorProfileErrorMessage(error) {
-  return error instanceof Error ? error.message : String(error || "Unknown error");
-}
-
-function generatorUserProfileByName(name) {
-  const expected = String(name || "").toLowerCase();
-  return generatorProfileState.profiles.find(
-    (profile) => String(profile?.name || "").toLowerCase() === expected,
-  ) || null;
-}
-
-async function loadGeneratorUserProfiles({ force = false } = {}) {
-  if (generatorProfileState.loaded && !force) {
-    return generatorProfileState.profiles;
-  }
-  if (!generatorProfileState.loading) {
-    generatorProfileState.loading = easyuseAnimaFetchComfyJson(api, "/easyuse_anima/aio_profiles")
-      .then((data) => {
-        generatorProfileState.profiles = Array.isArray(data?.profiles)
-          ? data.profiles.filter((profile) => String(profile?.name || "").trim())
-          : [];
-        generatorProfileState.loaded = true;
-        return generatorProfileState.profiles;
-      })
-      .finally(() => {
-        generatorProfileState.loading = null;
-      });
-  }
-  return generatorProfileState.loading;
-}
-
-async function postGeneratorProfile(path, payload) {
-  return easyuseAnimaFetchComfyJson(api, path, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload || {}),
-  });
-}
-
-async function loadGeneratorUserProfile(name) {
-  const data = await easyuseAnimaFetchComfyJson(
-    api,
-    `/easyuse_anima/aio_profiles/load?name=${encodeURIComponent(name)}`,
-  );
-  return data?.profile || null;
-}
-
-function applyGeneratorProfileSettings(node, value, settings) {
-  const next = migrateGeneratorPostprocessSettings(mergeDefaults(DEFAULT_GENERATION_SETTINGS, settings));
-  applyVisibleGeneratorSettings(node, next);
-  writeGeneratorSettingsFromState(node, next, true);
-  node.__easyuseAnimaGeneratorProfileValue = value;
-  node.__easyuseAnimaGeneratorProfileFingerprint = aioProfileSettingsFingerprint(
-    generatorSettings(node),
-  );
-  renderGeneratorPanel(node);
-  markNodeDirty(node);
-}
-
-async function applyGeneratorProfile(node, value) {
-  const textValue = String(value || GENERATOR_PROFILE_CUSTOM_VALUE);
-  if (textValue === GENERATOR_PROFILE_CUSTOM_VALUE) {
-    return;
-  }
-  if (textValue.startsWith("builtin:")) {
-    const profileId = textValue.slice(8);
-    applyGeneratorProfileSettings(
-      node,
-      textValue,
-      aioBuiltinProfileSettings(profileId, DEFAULT_GENERATION_SETTINGS),
-    );
-    return;
-  }
-  const name = aioUserProfileName(textValue);
-  const profile = await loadGeneratorUserProfile(name);
-  if (!profile?.settings || typeof profile.settings !== "object") {
-    throw new Error("Profile settings are missing");
-  }
-  applyGeneratorProfileSettings(node, aioUserProfileValue(profile.name || name), profile.settings);
-}
-
-async function saveGeneratorUserProfile(node, selectedValue = node.__easyuseAnimaGeneratorProfileValue) {
-  const selectedName = aioUserProfileName(selectedValue);
-  const requestedName = window.prompt(aioText("profile.savePrompt"), selectedName || "");
-  if (requestedName == null) {
-    return;
-  }
-  const name = requestedName.trim();
-  if (!name) {
-    window.alert(aioText("profile.nameRequired"));
-    return;
-  }
-  const existing = generatorUserProfileByName(name);
-  const overwrite = !!existing;
-  if (overwrite && !window.confirm(aioFormat("profile.overwriteConfirm", { name: existing.name }))) {
-    return;
-  }
-  const settings = generatorSettings(node);
-  const data = await postGeneratorProfile("/easyuse_anima/aio_profiles/save", {
-    name,
-    overwrite,
-    settings,
-  });
-  await loadGeneratorUserProfiles({ force: true });
-  node.__easyuseAnimaGeneratorProfileValue = aioUserProfileValue(data?.profile?.name || name);
-  node.__easyuseAnimaGeneratorProfileFingerprint = aioProfileSettingsFingerprint(settings);
-  refreshGeneratorPanels();
-}
-
-async function renameGeneratorUserProfile(node, selectedValue = node.__easyuseAnimaGeneratorProfileValue) {
-  const oldName = aioUserProfileName(selectedValue);
-  if (!oldName) {
-    return;
-  }
-  const currentName = aioUserProfileName(syncGeneratorProfileValue(node));
-  const requestedName = window.prompt(aioText("profile.renamePrompt"), oldName);
-  if (requestedName == null) {
-    return;
-  }
-  const newName = requestedName.trim();
-  if (!newName) {
-    window.alert(aioText("profile.nameRequired"));
-    return;
-  }
-  const existing = generatorUserProfileByName(newName);
-  const overwrite = !!existing && existing.name.toLowerCase() !== oldName.toLowerCase();
-  if (overwrite && !window.confirm(aioFormat("profile.overwriteConfirm", { name: existing.name }))) {
-    return;
-  }
-  const data = await postGeneratorProfile("/easyuse_anima/aio_profiles/rename", {
-    old_name: oldName,
-    new_name: newName,
-    overwrite,
-  });
-  await loadGeneratorUserProfiles({ force: true });
-  if (currentName.toLowerCase() === oldName.toLowerCase()) {
-    node.__easyuseAnimaGeneratorProfileValue = aioUserProfileValue(data?.profile?.name || newName);
-  }
-  refreshGeneratorPanels();
-}
-
-async function deleteGeneratorUserProfile(node, selectedValue = node.__easyuseAnimaGeneratorProfileValue) {
-  const name = aioUserProfileName(selectedValue);
-  if (!name || !window.confirm(aioFormat("profile.deleteConfirm", { name }))) {
-    return;
-  }
-  const currentName = aioUserProfileName(syncGeneratorProfileValue(node));
-  await postGeneratorProfile("/easyuse_anima/aio_profiles/delete", { name });
-  await loadGeneratorUserProfiles({ force: true });
-  if (currentName.toLowerCase() === name.toLowerCase()) {
-    node.__easyuseAnimaGeneratorProfileValue = GENERATOR_PROFILE_CUSTOM_VALUE;
-    delete node.__easyuseAnimaGeneratorProfileFingerprint;
-  }
-  refreshGeneratorPanels();
-}
-
-function resolvedGeneratorProfileValue(node, settings = generatorSettings(node)) {
-  const builtinId = aioBuiltinProfileIdForSettings(settings, DEFAULT_GENERATION_SETTINGS);
-  if (builtinId) {
-    return `builtin:${builtinId}`;
-  }
-  const textValue = String(node?.__easyuseAnimaGeneratorProfileValue || "");
-  const userName = aioUserProfileName(textValue);
-  const fingerprint = aioProfileSettingsFingerprint(settings);
-  if (
-    userName
-    && generatorUserProfileByName(userName)
-    && node?.__easyuseAnimaGeneratorProfileFingerprint === fingerprint
-  ) {
-    return textValue;
-  }
-  return GENERATOR_PROFILE_CUSTOM_VALUE;
-}
-
-function syncGeneratorProfileValue(node, settings = generatorSettings(node)) {
-  const value = resolvedGeneratorProfileValue(node, settings);
-  node.__easyuseAnimaGeneratorProfileValue = value;
-  if (value === GENERATOR_PROFILE_CUSTOM_VALUE) {
-    delete node.__easyuseAnimaGeneratorProfileFingerprint;
-  }
-  return value;
-}
-
-function generatorProfileDisplayLabel(value) {
-  const textValue = String(value || GENERATOR_PROFILE_CUSTOM_VALUE);
-  if (textValue === GENERATOR_PROFILE_CUSTOM_VALUE) {
-    return aioText("profile.custom");
-  }
-  const userName = aioUserProfileName(textValue);
-  if (userName) {
-    return userName;
-  }
-  const builtinId = textValue.startsWith("builtin:") ? textValue.slice(8) : "";
-  return aioBuiltinProfileIds().includes(builtinId)
-    ? aioText(`profile.${builtinId}`)
-    : aioText("profile.custom");
-}
-
-function openGeneratorProfileSettings(node) {
-  const currentValue = syncGeneratorProfileValue(node);
-  const { backdrop, body, actions } = createDialog(
-    aioText("dialog.profile.title"),
-    aioText("dialog.profile.subtitle"),
-  );
-  body.classList.add("easyuse-anima-aio-one-column");
-
-  const section = document.createElement("section");
-  section.className = "easyuse-anima-aio-section full";
-  const profileSelect = document.createElement("select");
-  profileSelect.title = aioText("profile.selectTip");
-  if (currentValue === GENERATOR_PROFILE_CUSTOM_VALUE) {
-    const customOption = document.createElement("option");
-    customOption.value = GENERATOR_PROFILE_CUSTOM_VALUE;
-    customOption.textContent = aioText("profile.custom");
-    profileSelect.append(customOption);
-  }
-  const builtInGroup = document.createElement("optgroup");
-  builtInGroup.label = aioText("profile.groupBuiltIn");
-  for (const profileId of aioBuiltinProfileIds()) {
-    const option = document.createElement("option");
-    option.value = `builtin:${profileId}`;
-    option.textContent = aioText(`profile.${profileId}`);
-    builtInGroup.append(option);
-  }
-  profileSelect.append(builtInGroup);
-  if (generatorProfileState.profiles.length) {
-    const userGroup = document.createElement("optgroup");
-    userGroup.label = aioText("profile.groupUser");
-    for (const profile of generatorProfileState.profiles) {
-      const option = document.createElement("option");
-      option.value = aioUserProfileValue(profile.name);
-      option.textContent = profile.name;
-      userGroup.append(option);
-    }
-    profileSelect.append(userGroup);
-  }
-  profileSelect.value = currentValue;
-  field(section, "Profile", profileSelect, "profile.selectTip");
-
-  const managerActions = document.createElement("div");
-  managerActions.className = "easyuse-anima-aio-profile-manager-actions";
-  const makeActionButton = (label) => {
-    const button = document.createElement("button");
-    button.type = "button";
-    button.textContent = label;
-    return button;
-  };
-  const saveProfile = makeActionButton(aioText("button.profileSave"));
-  const renameProfile = makeActionButton(aioText("button.profileRename"));
-  const deleteProfile = makeActionButton(aioText("button.profileDelete"));
-  managerActions.append(saveProfile, renameProfile, deleteProfile);
-  section.append(managerActions);
-  body.append(section);
-
-  const cancel = makeActionButton(aioText("button.cancel"));
-  const apply = makeActionButton(aioText("button.profileApply"));
-  apply.className = "primary";
-  actions.append(cancel, apply);
-
-  let busy = false;
-  const refreshActions = () => {
-    const isUserProfile = !!aioUserProfileName(profileSelect.value);
-    renameProfile.disabled = busy || !isUserProfile;
-    deleteProfile.disabled = busy || !isUserProfile;
-    saveProfile.disabled = busy;
-    cancel.disabled = busy;
-    apply.disabled = busy || profileSelect.value === GENERATOR_PROFILE_CUSTOM_VALUE;
-  };
-  const run = async (callback, { reopen = false } = {}) => {
-    if (busy) {
-      return;
-    }
-    busy = true;
-    refreshActions();
-    try {
-      await callback();
-      backdrop.remove();
-      if (reopen) {
-        openGeneratorProfileSettings(node);
-      }
-    } catch (error) {
-      window.alert(aioFormat("profile.requestFailed", {
-        message: generatorProfileErrorMessage(error),
-      }));
-    } finally {
-      busy = false;
-      if (backdrop.isConnected) {
-        refreshActions();
-      }
-    }
-  };
-  profileSelect.addEventListener("change", refreshActions);
-  cancel.addEventListener("click", () => backdrop.remove());
-  apply.addEventListener("click", () => run(
-    () => applyGeneratorProfile(node, profileSelect.value),
-  ));
-  saveProfile.addEventListener("click", () => run(
-    () => saveGeneratorUserProfile(node, profileSelect.value),
-    { reopen: true },
-  ));
-  renameProfile.addEventListener("click", () => run(
-    () => renameGeneratorUserProfile(node, profileSelect.value),
-    { reopen: true },
-  ));
-  deleteProfile.addEventListener("click", () => run(
-    () => deleteGeneratorUserProfile(node, profileSelect.value),
-    { reopen: true },
-  ));
-  refreshActions();
 }
 
 function findWidget(node, name) {
@@ -3094,75 +2125,11 @@ function hideWidget(widget) {
   }
 }
 
-function clone(value) {
-  return JSON.parse(JSON.stringify(value));
-}
-
-function mergeDefaults(defaults, value) {
-  const output = clone(defaults);
-  if (!value || typeof value !== "object" || Array.isArray(value)) {
-    return output;
-  }
-  const merge = (base, incoming) => {
-    for (const [key, incomingValue] of Object.entries(incoming)) {
-      if (
-        base[key]
-        && typeof base[key] === "object"
-        && !Array.isArray(base[key])
-        && incomingValue
-        && typeof incomingValue === "object"
-        && !Array.isArray(incomingValue)
-      ) {
-        merge(base[key], incomingValue);
-      } else {
-        base[key] = incomingValue;
-      }
-    }
-    return base;
-  };
-  return merge(output, value);
-}
-
-function migrateGeneratorPostprocessSettings(settings) {
-  if (!settings || typeof settings !== "object" || Array.isArray(settings)) {
-    return settings;
-  }
-  const legacyFit = settings.upscale?.fit;
-  if (legacyFit && typeof legacyFit === "object" && !Array.isArray(legacyFit)) {
-    const defaults = DEFAULT_GENERATION_SETTINGS.postprocess;
-    const defaultFit = defaults.fit;
-    settings.postprocess = mergeDefaults(defaults, settings.postprocess || {});
-    settings.postprocess.fit = mergeDefaults(defaultFit, settings.postprocess.fit || {});
-    if (asBool(legacyFit.enabled, false)) {
-      settings.postprocess.enabled = true;
-    }
-    for (const key of ["mode", "max_long_edge", "max_megapixels", "method"]) {
-      if (
-        Object.prototype.hasOwnProperty.call(legacyFit, key)
-        && settings.postprocess.fit[key] === defaultFit[key]
-      ) {
-        settings.postprocess.fit[key] = legacyFit[key];
-      }
-    }
-  }
-  if (settings.upscale && typeof settings.upscale === "object" && !Array.isArray(settings.upscale)) {
-    delete settings.upscale.fit;
-  }
-  return settings;
-}
-
 function parseSettings(widget, defaults) {
   if (!widget) {
     return clone(defaults);
   }
-  try {
-    const parsed = mergeDefaults(defaults, JSON.parse(widget.value || "{}"));
-    return defaults === DEFAULT_GENERATION_SETTINGS
-      ? migrateGeneratorPostprocessSettings(parsed)
-      : parsed;
-  } catch {
-    return clone(defaults);
-  }
+  return aioParseSettingsValue(widget.value, defaults);
 }
 
 function writeSettings(node, widget, value, markDirty = true) {
@@ -4123,56 +3090,19 @@ function ensureStyle() {
   document.head.append(style);
 }
 
-function numberInput(value, step = "1") {
-  const input = document.createElement("input");
-  input.type = "number";
-  input.step = step;
-  input.value = value;
-  return input;
-}
-
-function textInput(value) {
-  const input = document.createElement("input");
-  input.type = "text";
-  input.value = value ?? "";
-  return input;
-}
-
-function textareaInput(value) {
-  const textarea = document.createElement("textarea");
-  textarea.value = value ?? "";
-  return textarea;
-}
-
-function checkbox(value) {
-  const input = document.createElement("input");
-  input.type = "checkbox";
-  input.checked = !!value;
-  return input;
-}
-
-function selectInput(options, value) {
-  const select = document.createElement("select");
-  for (const optionSpec of options) {
-    const optionValue = typeof optionSpec === "object" && optionSpec
-      ? String(optionSpec.value ?? "")
-      : String(optionSpec ?? "");
-    const option = document.createElement("option");
-    option.value = optionValue;
-    option.textContent = typeof optionSpec === "object" && optionSpec
-      ? String(optionSpec.label ?? optionValue)
-      : optionValue;
-    option.disabled = !!(typeof optionSpec === "object" && optionSpec?.disabled);
-    if (typeof optionSpec === "object" && optionSpec?.title) {
-      option.title = String(optionSpec.title);
-    }
-    if (optionValue === value) {
-      option.selected = true;
-    }
-    select.append(option);
-  }
-  return select;
-}
+const {
+  createDialog,
+  createNodeField,
+  field,
+} = aioCreateDialogPrimitives({
+  document,
+  ensureStyle,
+  staticText: aioStaticText,
+  text: aioText,
+  resolveFieldPresentation: aioFieldPresentation,
+  applyTooltip,
+  applyTooltipText,
+});
 
 function widgetValue(node, name, fallback) {
   if (Object.prototype.hasOwnProperty.call(node?.__easyuseAnimaGeneratorUiValues || {}, name)) {
@@ -4192,22 +3122,6 @@ function setWidgetValue(node, name, value) {
   node.__easyuseAnimaGeneratorUiValues[name] = value;
 }
 
-function asBool(value, fallback = false) {
-  if (typeof value === "boolean") {
-    return value;
-  }
-  if (typeof value === "string") {
-    const normalized = value.trim().toLowerCase();
-    if (["true", "1", "yes", "on"].includes(normalized)) {
-      return true;
-    }
-    if (["false", "0", "no", "off"].includes(normalized)) {
-      return false;
-    }
-  }
-  return value == null ? fallback : !!value;
-}
-
 function firstValue(value, fallback = "") {
   if (Array.isArray(value)) {
     return value.length > 0 ? value[0] : fallback;
@@ -4215,80 +3129,13 @@ function firstValue(value, fallback = "") {
   return value ?? fallback;
 }
 
-const GENERATOR_PROGRESS_BY_NODE = new Map();
+const {
+  remember: rememberGeneratorProgress,
+  rememberState: rememberGeneratorProgressState,
+  find: generatorProgressForPreviewDetail,
+  clear: clearGeneratorPreviewProgress,
+} = aioCreatePreviewProgressTracker();
 
-function normalizeGeneratorNodeId(value) {
-  return value == null ? "" : String(value).trim();
-}
-
-function generatorNodeIdsFromDetail(detail) {
-  const ids = [];
-  for (const key of GENERATOR_DENOISE_PREVIEW_NODE_KEYS) {
-    const id = normalizeGeneratorNodeId(detail?.[key]);
-    if (id && !ids.includes(id)) {
-      ids.push(id);
-    }
-  }
-  return ids;
-}
-
-function rememberGeneratorProgress(detail) {
-  const ids = generatorNodeIdsFromDetail(detail);
-  if (!ids.length) {
-    return;
-  }
-  const value = Number(detail?.value);
-  const max = Number(detail?.max);
-  const promptId = normalizeGeneratorNodeId(detail?.prompt_id ?? detail?.jobId ?? detail?.job_id);
-  const entry = {
-    value: Number.isFinite(value) ? value : 0,
-    max: Number.isFinite(max) ? max : 0,
-    promptId,
-    updatedAt: Date.now(),
-  };
-  for (const id of ids) {
-    GENERATOR_PROGRESS_BY_NODE.set(id, entry);
-  }
-}
-
-function rememberGeneratorProgressState(detail) {
-  const nodes = detail?.nodes;
-  if (!nodes || typeof nodes !== "object") {
-    return;
-  }
-  for (const state of Object.values(nodes)) {
-    rememberGeneratorProgress({
-      ...state,
-      prompt_id: state?.prompt_id || detail?.prompt_id,
-    });
-  }
-}
-
-function generatorProgressForPreviewDetail(detail) {
-  const promptId = normalizeGeneratorNodeId(detail?.prompt_id ?? detail?.jobId ?? detail?.job_id);
-  for (const id of generatorNodeIdsFromDetail(detail)) {
-    const progress = GENERATOR_PROGRESS_BY_NODE.get(id);
-    if (!progress) {
-      continue;
-    }
-    if (promptId && progress.promptId && promptId !== progress.promptId) {
-      continue;
-    }
-    return progress;
-  }
-  return null;
-}
-
-function generatorDenoisePreviewLabel(preview) {
-  const base = aioText("text.previewDenoise");
-  const value = Number(preview?.value);
-  const max = Number(preview?.max);
-  if (Number.isFinite(value) && Number.isFinite(max) && max > 0) {
-    const current = Math.max(0, Math.min(max, Math.round(value)));
-    return `${base} · ${current}/${Math.round(max)}`;
-  }
-  return base;
-}
 
 function clearGeneratorDenoisePreview(node, update = false) {
   const preview = node?.__easyuseAnimaGeneratorDenoisePreview;
@@ -4329,100 +3176,6 @@ function setGeneratorDenoisePreview(node, blob, detail = {}) {
   markNodeDirty(node);
 }
 
-function generatorPreviewImages(message) {
-  const value = message?.easyuse_anima_preview;
-  const raw = Array.isArray(value) ? value : [firstValue(value, null)];
-  const images = [];
-  for (const item of raw) {
-    if (Array.isArray(item)) {
-      images.push(...item);
-    } else if (item) {
-      images.push(item);
-    }
-  }
-  return images.filter((item) => item && typeof item === "object" && !Array.isArray(item));
-}
-
-function generatorPreviewRunId(message) {
-  return String(firstValue(message?.easyuse_anima_run_id ?? message?.run_id, "") || "");
-}
-
-function generatorPreviewFeedLimit(settings) {
-  return Math.trunc(clampGeneratorNumber(
-    settings?.preview?.feed_count,
-    DEFAULT_GENERATION_SETTINGS.preview.feed_count,
-    1,
-    100,
-  ));
-}
-
-function generatorPreviewIdentity(image) {
-  return [
-    image?.stage || "",
-    image?.type || "",
-    image?.subfolder || "",
-    image?.filename || image?.name || "",
-  ].map((part) => String(part)).join("\u0001");
-}
-
-function tagGeneratorPreviewRun(images, runId = "", startIndex = 0) {
-  const normalizedRunId = runId || `${Date.now()}-${Math.random().toString(36).slice(2)}`;
-  return images.map((image, index) => ({
-    ...image,
-    __aio_run_id: image.__aio_run_id || normalizedRunId,
-    __aio_run_index: Number.isInteger(image.__aio_run_index) ? image.__aio_run_index : startIndex + index,
-  }));
-}
-
-function mergeGeneratorPreviewImages(existingImages, nextImages, runId = "", limit = 0) {
-  const existing = Array.isArray(existingImages)
-    ? existingImages.filter((item) => item && typeof item === "object" && !Array.isArray(item))
-    : [];
-  const tagged = tagGeneratorPreviewRun(nextImages, runId, existing.length);
-  const merged = [];
-  const indexByKey = new Map();
-  for (const item of [...existing, ...tagged]) {
-    const key = generatorPreviewIdentity(item);
-    if (!key.replace(/\u0001/g, "")) {
-      merged.push(item);
-      continue;
-    }
-    if (indexByKey.has(key)) {
-      const index = indexByKey.get(key);
-      merged[index] = { ...merged[index], ...item };
-    } else {
-      indexByKey.set(key, merged.length);
-      merged.push(item);
-    }
-  }
-  return limit > 0 ? merged.slice(Math.max(0, merged.length - limit)) : merged;
-}
-
-function appendGeneratorPreviewFeed(existingImages, nextImages, settings, runId = "") {
-  return mergeGeneratorPreviewImages(
-    existingImages,
-    nextImages,
-    runId,
-    generatorPreviewFeedLimit(settings),
-  );
-}
-
-function removeGeneratorPreviewRun(images, runId = "") {
-  const normalizedRunId = String(runId || "");
-  if (!normalizedRunId || !Array.isArray(images)) {
-    return Array.isArray(images) ? images : [];
-  }
-  return images.filter((item) => String(item?.__aio_run_id || "") !== normalizedRunId);
-}
-
-function generatorPreviewEventDetail(event) {
-  const detail = event?.detail || {};
-  if (detail?.data && typeof detail.data === "object") {
-    return detail.data;
-  }
-  return detail;
-}
-
 function generatorImageUrl(image) {
   if (!image || typeof image !== "object") {
     return "";
@@ -4441,76 +3194,8 @@ function generatorImageUrl(image) {
   return typeof api?.apiURL === "function" ? api.apiURL(path) : path;
 }
 
-function generatorPreviewImageLabel(image) {
-  return String(image?.label || image?.stage || "Preview");
-}
-
-function generatorPreviewImageName(image) {
-  return String(image?.filename || image?.name || generatorPreviewImageLabel(image) || "-");
-}
-
-function generatorPreviewResolution(image) {
-  const width = Number(image?.width || 0);
-  const height = Number(image?.height || 0);
-  return width > 0 && height > 0 ? `${Math.trunc(width)} x ${Math.trunc(height)}` : "-";
-}
-
-function generatorPreviewFileSize(image) {
-  const bytes = Number(image?.bytes || image?.size || 0);
-  if (!Number.isFinite(bytes) || bytes <= 0) {
-    return "-";
-  }
-  const units = ["B", "KB", "MB", "GB"];
-  let value = bytes;
-  let unit = 0;
-  while (value >= 1024 && unit < units.length - 1) {
-    value /= 1024;
-    unit += 1;
-  }
-  const decimals = unit === 0 || value >= 10 ? 0 : 1;
-  return `${value.toFixed(decimals)} ${units[unit]}`;
-}
-
-function generatorDefaultPreviewIndex(images) {
-  if (!Array.isArray(images) || !images.length) {
-    return -1;
-  }
-  for (let index = images.length - 1; index >= 0; index -= 1) {
-    if (String(images[index]?.stage || "") === "final") {
-      return index;
-    }
-  }
-  return images.length - 1;
-}
-
-function generatorSelectedPreviewIndex(node, images) {
-  const selected = Number(node?.__easyuseAnimaSelectedPreviewIndex);
-  if (Number.isInteger(selected) && selected >= 0 && selected < images.length) {
-    return selected;
-  }
-  return generatorDefaultPreviewIndex(images);
-}
-
-function generatorMainPreviewImage(node, images) {
-  const index = generatorSelectedPreviewIndex(node, images);
-  return index >= 0 ? images[index] : null;
-}
-
-function normalizeSeedControl(value) {
-  const normalized = String(value || "").trim();
-  return GENERATOR_SEED_CONTROLS.includes(normalized) ? normalized : "fixed";
-}
-
 function isSpecialSeed(value) {
   return GENERATOR_SPECIAL_SEEDS.includes(Number(value));
-}
-
-function normalizeSeedValue(value, fallback = GENERATOR_SPECIAL_SEED_RANDOM) {
-  const numberValue = Number(value);
-  if (!Number.isFinite(numberValue)) {
-    return fallback;
-  }
-  return Math.max(GENERATOR_SPECIAL_SEED_DECREMENT, Math.min(GENERATOR_MAX_SEED, Math.trunc(numberValue)));
 }
 
 function clampGeneratorNumber(value, fallback, min, max) {
@@ -4619,32 +3304,6 @@ function nextDetailerTargetName(order, detailer = null) {
   return `custom_${Date.now()}`;
 }
 
-function normalizeGeneratorPreviewSettings(settings) {
-  settings.preview = mergeDefaults(DEFAULT_GENERATION_SETTINGS.preview, settings.preview || {});
-  settings.preview.intermediate_images = asBool(
-    settings.preview.intermediate_images,
-    DEFAULT_GENERATION_SETTINGS.preview.intermediate_images,
-  );
-  settings.preview.compare_previous = asBool(
-    settings.preview.compare_previous,
-    DEFAULT_GENERATION_SETTINGS.preview.compare_previous,
-  );
-  settings.preview.image_feed = asBool(
-    settings.preview.image_feed,
-    DEFAULT_GENERATION_SETTINGS.preview.image_feed,
-  );
-  settings.preview.feed_count = Math.trunc(clampGeneratorNumber(
-    settings.preview.feed_count,
-    DEFAULT_GENERATION_SETTINGS.preview.feed_count,
-    1,
-    100,
-  ));
-  if (settings.save?.image_saver) {
-    delete settings.save.image_saver.show_preview;
-  }
-  return settings.preview;
-}
-
 function normalizeGeneratorInputValues(node, settings = DEFAULT_GENERATION_SETTINGS) {
   const merged = mergeDefaults(DEFAULT_GENERATION_SETTINGS, settings);
   return {
@@ -4736,25 +3395,31 @@ function setWidgetValueIfChanged(node, name, value) {
   setWidgetValue(node, name, value);
 }
 
-function setWorkflowWidgetValue(node, workflowNode, name, value) {
-  if (!workflowNode || !Array.isArray(workflowNode.widgets_values) || !Array.isArray(node?.widgets)) {
-    return;
-  }
-  const index = node.widgets.findIndex((widget) => widget?.name === name);
-  if (index < 0) {
-    return;
-  }
-  while (workflowNode.widgets_values.length <= index) {
-    workflowNode.widgets_values.push(null);
-  }
-  workflowNode.widgets_values[index] = value;
-}
+function commitGeneratorSeedValue(node, seed) {
+  const seedWidget = findWidget(node, "seed");
+  const settingsWidget = findWidget(node, GENERATOR_SETTINGS_WIDGET);
+  const settings = generatorSettings(node);
+  settings.sampler.seed = seed;
+  const serializedSettings = JSON.stringify(settings);
 
-function settingsToCompactJson(settings) {
-  const next = mergeDefaults(DEFAULT_GENERATION_SETTINGS, settings);
-  delete next.save?.filename_prefix;
-  normalizeGeneratorPreviewSettings(next);
-  return JSON.stringify(next);
+  if (seedWidget) {
+    seedWidget.value = seed;
+  }
+  node.__easyuseAnimaGeneratorUiValues ||= {};
+  node.__easyuseAnimaGeneratorUiValues.seed = seed;
+  if (settingsWidget) {
+    settingsWidget.value = serializedSettings;
+  }
+  try {
+    seedWidget?.callback?.(seed);
+  } catch {
+    // Widget callbacks are notifications after the durable state write.
+  }
+  try {
+    settingsWidget?.callback?.(serializedSettings);
+  } catch {
+    // Hidden-widget callbacks are also best-effort notifications.
+  }
 }
 
 function syncGeneratorSerializedWidgets(node, serialized = null) {
@@ -4778,36 +3443,6 @@ function markNodeDirty(node) {
   app.graph?.setDirtyCanvas?.(true, true);
 }
 
-function stopGeneratorControlPropagation(root) {
-  if (!root || root.__easyuseAnimaAioStopPropagation) {
-    return;
-  }
-  const stop = (event) => {
-    if (event.target?.closest?.(GENERATOR_PANEL_CONTROL_SELECTOR)) {
-      event.stopPropagation();
-    }
-  };
-  for (const eventName of [
-    "pointerdown",
-    "mousedown",
-    "pointerup",
-    "mouseup",
-    "click",
-    "dblclick",
-    "keydown",
-    "keyup",
-  ]) {
-    root.addEventListener(eventName, stop);
-  }
-  // Legacy canvas bubbles DOM-widget wheel events through the panel. Keep this
-  // local guard as a fallback; Node 2.0 still needs the window capture router
-  // installed below because its Vue ancestor can handle wheel first.
-  root.addEventListener("wheel", forwardGeneratorPanelWheel, {
-    capture: true,
-    passive: false,
-  });
-  root.__easyuseAnimaAioStopPropagation = true;
-}
 
 function dispatchGeneratorCanvasWheelEvent(sourceEvent) {
   const canvas = app?.canvas?.canvas;
@@ -4866,65 +3501,6 @@ function installGeneratorWheelForwarder() {
   });
 }
 
-function samplerModeLabel(settingsOrBackend) {
-  const settings = typeof settingsOrBackend === "object" && settingsOrBackend
-    ? settingsOrBackend
-    : null;
-  const sampler = settings?.sampler || {};
-  const backend = String(settings ? sampler.backend : settingsOrBackend || "comfy_ksampler");
-  const corrections = !!sampler?.dit_corrections?.enabled;
-  const spectrum = !!sampler?.spectrum?.enabled;
-  switch (backend) {
-    case "spectrum_mod_guidance_advanced":
-      return corrections ? "Spectrum Mod Guidance + Corrections" : "Spectrum Mod Guidance";
-    case "spectrum_spd_speed":
-      return "Spectrum SPD / SPEED";
-    case "comfy_ksampler": {
-      const extras = [];
-      if (spectrum) {
-        extras.push("Spectrum Patch");
-      }
-      if (corrections) {
-        extras.push("Corrections");
-      }
-      return extras.length ? `${extras.join(" + ")} / Comfy KSampler` : "Standard Comfy KSampler";
-    }
-    default:
-      return "Standard Comfy KSampler";
-  }
-}
-
-function generatorPanelWidth(node) {
-  return Math.max(240, Math.floor((Number(node?.size?.[0]) || GENERATOR_NODE_DEFAULT_WIDTH) - 20));
-}
-
-function applyGeneratorLayout(node) {
-  const panel = node?.__easyuseAnimaGeneratorPanelEl;
-  if (!panel) {
-    return;
-  }
-  const width = generatorPanelWidth(node);
-  panel.style.width = `${width}px`;
-  panel.style.maxWidth = `${width}px`;
-  // ComfyUI owns the node and DOM-widget viewport height. AiO owns only child
-  // content: the settings column scrolls while the preview stays in that host
-  // viewport. Never derive height from node.size or write node.setSize here.
-  panel.style.removeProperty("height");
-  panel.style.removeProperty("max-height");
-  markNodeDirty(node);
-}
-
-function scheduleGeneratorLayout(node) {
-  if (!node?.__easyuseAnimaGeneratorPanelEl || node.__easyuseAnimaGeneratorLayoutScheduled) {
-    return;
-  }
-  node.__easyuseAnimaGeneratorLayoutScheduled = true;
-  requestAnimationFrame(() => {
-    node.__easyuseAnimaGeneratorLayoutScheduled = false;
-    applyGeneratorLayout(node);
-  });
-}
-
 function generatorSettings(node) {
   const widget = findWidget(node, GENERATOR_SETTINGS_WIDGET);
   return mergeVisibleGeneratorSettings(node, parseSettings(widget, DEFAULT_GENERATION_SETTINGS));
@@ -4935,935 +3511,36 @@ function writeGeneratorSettingsFromState(node, settings, markDirty = true) {
   writeSettings(node, widget, settings, markDirty);
 }
 
-function updateGeneratorSettings(node, updater, markDirty = true) {
-  const settings = generatorSettings(node);
-  updater?.(settings);
-  settings.sampler.seed_after_generate = normalizeSeedControl(settings.sampler.seed_after_generate);
-  applyVisibleGeneratorSettings(node, settings);
-  writeGeneratorSettingsFromState(node, settings, markDirty);
-  updateGeneratorDomSummary(node);
-  return settings;
+function activateGeneratorPanel(node) {
+  return generatorPanelRuntime.activatePanel(node);
+}
+
+function disposeGeneratorPanel(node) {
+  return generatorPanelRuntime.disposePanel(node);
+}
+
+function renderGeneratorPanel(node, expectedLifecycle = null) {
+  return generatorPanelRuntime.renderPanel(node, expectedLifecycle);
+}
+
+function ensureGeneratorPanel(node) {
+  return generatorPanelRuntime.ensurePanel(node);
 }
 
 function updateGeneratorDomSummary(node) {
-  const panel = node?.__easyuseAnimaGeneratorPanelEl;
-  if (!panel) {
-    return;
-  }
-  const status = node.__easyuseAnimaGeneratorStatus || {};
-  const settings = generatorSettings(node);
-  const profileValue = syncGeneratorProfileValue(node, settings);
-  const profileButtonEl = panel.querySelector("[data-aio-profile-button]");
-  if (profileButtonEl) {
-    profileButtonEl.textContent = generatorProfileDisplayLabel(profileValue);
-    profileButtonEl.title = aioText("profile.selectTip");
-  }
-  const backendSummaryEl = panel.querySelector("[data-aio-backend-summary]");
-  const saveButtonEl = panel.querySelector("[data-aio-save-button]");
-  if (saveButtonEl) {
-    saveButtonEl.classList.toggle("active", !!settings.save.enabled);
-    saveButtonEl.title = settings.save.enabled ? aioText("button.saveOn") : aioText("button.saveOff");
-  }
-  if (backendSummaryEl) {
-    backendSummaryEl.textContent = samplerModeLabel(settings);
-    backendSummaryEl.title = samplerModeLabel(settings);
-  }
-  updateGeneratorDomPreview(node);
+  return generatorPanelRuntime.updateSummary(node);
 }
 
-function renderGeneratorPreviewFeed(node, panel, images, settings, selectedIndex, options = {}) {
-  const feed = panel?.querySelector?.("[data-aio-preview-feed]");
-  if (!feed) {
-    return;
-  }
-  const showPending = !!options.showPending;
-  feed.replaceChildren();
-  feed.hidden = !settings.preview.image_feed || (!images.length && !showPending);
-  if (feed.hidden) {
-    return;
-  }
-  let selectedThumb = null;
-  let pendingThumb = null;
-  for (const [index, image] of images.entries()) {
-    const thumbUrl = generatorImageUrl(image);
-    if (!thumbUrl) {
-      continue;
-    }
-    const thumb = document.createElement("button");
-    thumb.type = "button";
-    thumb.className = "easyuse-anima-aio-node-preview-thumb";
-    if (index === selectedIndex) {
-      thumb.classList.add("active");
-      selectedThumb = thumb;
-    }
-    thumb.title = generatorPreviewImageLabel(image);
-    const thumbImage = document.createElement("img");
-    thumbImage.src = thumbUrl;
-    thumbImage.alt = "";
-    thumbImage.loading = "lazy";
-    const label = document.createElement("span");
-    label.textContent = generatorPreviewImageLabel(image);
-    thumb.append(thumbImage, label);
-    thumb.addEventListener("click", () => {
-      node.__easyuseAnimaSelectedPreviewIndex = index;
-      updateGeneratorDomPreview(node);
-    });
-    feed.append(thumb);
-  }
-  if (showPending) {
-    const pendingLabel = aioText("text.previewGenerating");
-    pendingThumb = document.createElement("button");
-    pendingThumb.type = "button";
-    pendingThumb.className = "easyuse-anima-aio-node-preview-thumb pending";
-    pendingThumb.disabled = true;
-    pendingThumb.title = pendingLabel;
-    pendingThumb.setAttribute("aria-label", pendingLabel);
-    const label = document.createElement("span");
-    label.textContent = pendingLabel;
-    pendingThumb.append(label);
-    feed.append(pendingThumb);
-  }
-  (pendingThumb || selectedThumb)?.scrollIntoView?.({ block: "nearest", inline: "nearest" });
+function scheduleGeneratorLayout(node) {
+  return generatorPanelRuntime.scheduleLayout(node);
 }
 
-function updateGeneratorDomPreview(node) {
-  const panel = node?.__easyuseAnimaGeneratorPanelEl;
-  const previewBox = panel?.querySelector?.("[data-aio-preview-box]");
-  if (!previewBox) {
-    return;
-  }
-  const settings = generatorSettings(node);
-  const denoisePreview = node.__easyuseAnimaGeneratorDenoisePreview;
-  if (denoisePreview?.url) {
-    const label = generatorDenoisePreviewLabel(denoisePreview);
-    const preview = document.createElement("div");
-    preview.className = "easyuse-anima-aio-node-denoise-preview";
-    const img = document.createElement("img");
-    img.src = denoisePreview.url;
-    img.alt = "";
-    img.decoding = "async";
-    const labelEl = document.createElement("div");
-    labelEl.className = "easyuse-anima-aio-node-denoise-preview-label";
-    labelEl.textContent = label;
-    labelEl.title = label;
-    preview.append(img, labelEl);
-    previewBox.replaceChildren(preview);
-    const feedImages = Array.isArray(node.__easyuseAnimaGeneratorPreviewImages)
-      ? node.__easyuseAnimaGeneratorPreviewImages
-      : [];
-    renderGeneratorPreviewFeed(
-      node,
-      panel,
-      feedImages,
-      settings,
-      generatorSelectedPreviewIndex(node, feedImages),
-      { showPending: true },
-    );
-    const metaEl = panel.querySelector("[data-aio-preview-meta]");
-    if (metaEl) {
-      metaEl.textContent = "";
-      metaEl.title = "";
-    }
-    return;
-  }
-  const images = Array.isArray(node.__easyuseAnimaGeneratorPreviewImages)
-    ? node.__easyuseAnimaGeneratorPreviewImages
-    : [];
-  if (!images.length) {
-    const feed = panel?.querySelector?.("[data-aio-preview-feed]");
-    if (feed) {
-      feed.hidden = true;
-      feed.replaceChildren();
-    }
-    const metaEl = panel.querySelector("[data-aio-preview-meta]");
-    if (metaEl) {
-      metaEl.textContent = "-";
-      metaEl.title = "";
-    }
-    return;
-  }
-  const currentImage = generatorMainPreviewImage(node, images);
-  const imageUrl = generatorImageUrl(currentImage);
-  if (!currentImage || !imageUrl) {
-    return;
-  }
-  const selectedIndex = generatorSelectedPreviewIndex(node, images);
-  const metaEl = panel.querySelector("[data-aio-preview-meta]");
-  if (metaEl) {
-    const parts = [
-      generatorPreviewImageName(currentImage),
-      generatorPreviewResolution(currentImage),
-      generatorPreviewFileSize(currentImage),
-    ].filter((part) => part && part !== "-");
-    const metaText = parts.length ? parts.join(" · ") : "-";
-    metaEl.textContent = metaText;
-    metaEl.title = metaText === "-" ? "" : metaText;
-  }
-
-  const makeImage = (image) => {
-    const img = document.createElement("img");
-    img.src = generatorImageUrl(image);
-    img.alt = "";
-    img.loading = "lazy";
-    return img;
-  };
-  const makeLayer = (className, image) => {
-    const pane = document.createElement("div");
-    pane.className = `easyuse-anima-aio-node-preview-layer ${className}`.trim();
-    pane.append(makeImage(image));
-    return pane;
-  };
-  const makeCompareLabel = (className, label) => {
-    const labelEl = document.createElement("div");
-    labelEl.className = `easyuse-anima-aio-node-preview-pane-label ${className}`.trim();
-    labelEl.textContent = label;
-    labelEl.title = label;
-    return labelEl;
-  };
-  const previousImage = selectedIndex > 0 ? images[selectedIndex - 1] : null;
-  const canCompare = (
-    settings.preview.compare_previous
-    && previousImage
-    && generatorImageUrl(previousImage)
-  );
-  if (canCompare) {
-    const compare = document.createElement("div");
-    compare.className = "easyuse-anima-aio-node-preview-compare";
-    compare.style.setProperty("--aio-compare-x", "50%");
-    const updateCompareX = (event) => {
-      const rect = compare.getBoundingClientRect();
-      const x = Math.max(0, Math.min(rect.width, event.clientX - rect.left));
-      const percent = rect.width > 0 ? (x / rect.width) * 100 : 50;
-      compare.style.setProperty("--aio-compare-x", `${percent.toFixed(2)}%`);
-    };
-    for (const eventName of ["pointerdown", "pointermove"]) {
-      compare.addEventListener(eventName, (event) => {
-        event.stopPropagation();
-        updateCompareX(event);
-      });
-    }
-    const labels = document.createElement("div");
-    labels.className = "easyuse-anima-aio-node-preview-compare-labels";
-    labels.append(
-      makeCompareLabel("current", `${aioText("text.previewCurrent")} · ${generatorPreviewImageLabel(currentImage)}`),
-      makeCompareLabel("previous", `${aioText("text.previewPrevious")} · ${generatorPreviewImageLabel(previousImage)}`),
-    );
-    compare.append(
-      makeLayer("before", currentImage),
-      makeLayer("after", previousImage),
-      Object.assign(document.createElement("div"), { className: "easyuse-anima-aio-node-preview-divider" }),
-      labels,
-    );
-    previewBox.replaceChildren(compare);
-  } else {
-    previewBox.replaceChildren(makeImage(currentImage));
-  }
-
-  renderGeneratorPreviewFeed(node, panel, images, settings, selectedIndex);
+function scheduleGeneratorSummary(node) {
+  return generatorPanelRuntime.scheduleSummary(node);
 }
 
-function cssEscape(value) {
-  if (typeof CSS !== "undefined" && typeof CSS.escape === "function") {
-    return CSS.escape(value);
-  }
-  return String(value).replace(/["\\]/g, "\\$&");
-}
-
-function generatorVueNodeRoots(node) {
-  const roots = new Set();
-  if (!node || typeof document === "undefined") {
-    return roots;
-  }
-  const panel = node?.__easyuseAnimaGeneratorPanelEl;
-  if (panel) {
-    const panelNodeRoot = panel.closest?.(".lg-node");
-    const panelDataRoot = panel.closest?.("[data-node-id]");
-    if (panelNodeRoot) {
-      roots.add(panelNodeRoot);
-    }
-    if (panelDataRoot) {
-      roots.add(panelDataRoot);
-    }
-  }
-  const id = node?.id;
-  if (id == null) {
-    return roots;
-  }
-  const textId = String(id);
-  const escapedId = cssEscape(textId);
-  const selectors = [
-    `[data-node-id="${escapedId}"]`,
-    `[data-node-id$=":${escapedId}"]`,
-  ];
-  for (const selector of selectors) {
-    for (const element of document.querySelectorAll(selector)) {
-      roots.add(element);
-    }
-  }
-  if (!roots.size) {
-    for (const element of document.querySelectorAll(".easyuse-anima-aio-node-panel")) {
-      const root = element.closest?.(".lg-node") || element.closest?.("[data-node-id]");
-      if (generatorNativePreviewRootMatchesNode(root, node)) {
-        roots.add(root);
-      }
-    }
-  }
-  if (!roots.size) {
-    for (const element of document.querySelectorAll(".text-node-component-header-text")) {
-      const root = element.closest?.("[data-node-id]");
-      if (generatorNativePreviewRootMatchesNode(root, node)) {
-        roots.add(root);
-      }
-    }
-  }
-  return roots;
-}
-
-function generatorNativePreviewRootMatchesNode(root, node) {
-  if (!root || !node) {
-    return false;
-  }
-  const panel = node.__easyuseAnimaGeneratorPanelEl;
-  if (panel && root.contains?.(panel)) {
-    return true;
-  }
-  const id = node.id == null ? "" : String(node.id);
-  const rootId = String(root.getAttribute?.("data-node-id") || "");
-  if (!id || !rootId) {
-    return false;
-  }
-  if (rootId === id) {
-    return true;
-  }
-  const parts = rootId.split(":");
-  return parts[parts.length - 1] === id;
-}
-
-function addGeneratorPreviewLocatorCandidate(ids, value) {
-  const text = String(value ?? "").trim();
-  if (!text) {
-    return;
-  }
-  ids.add(text);
-  const leaf = text.split(":").pop();
-  if (leaf) {
-    ids.add(leaf);
-  }
-}
-
-function generatorPreviewLocatorCandidates(node, detail = null) {
-  const ids = new Set();
-  if (node?.id != null) {
-    addGeneratorPreviewLocatorCandidate(ids, node.id);
-  }
-  for (const key of GENERATOR_DENOISE_PREVIEW_NODE_KEYS) {
-    if (detail?.[key] != null) {
-      addGeneratorPreviewLocatorCandidate(ids, detail[key]);
-    }
-  }
-  for (const root of generatorVueNodeRoots(node)) {
-    addGeneratorPreviewLocatorCandidate(ids, root.getAttribute?.("data-node-id"));
-  }
-  return [...ids].filter(Boolean);
-}
-
-function hideGeneratorNativeLivePreviewElement(element) {
-  if (!element) {
-    return;
-  }
-  element.classList?.add("easyuse-anima-aio-native-live-preview-hidden");
-  element.setAttribute?.("aria-hidden", "true");
-  element.style?.setProperty?.("display", "none", "important");
-}
-
-function isGeneratorNativeDimensionLabel(element) {
-  const text = String(element?.textContent || "").trim();
-  return /^\d+\s*[x×]\s*\d+$/i.test(text) || /calculating dimensions/i.test(text);
-}
-
-function hideGeneratorComfyOutputPreviewElements(root) {
-  const contentRoots = root.matches?.(".lg-node-content")
-    ? [root, ...root.querySelectorAll(".lg-node-content")]
-    : root.querySelectorAll(".lg-node-content");
-  for (const content of contentRoots) {
-    if (content.querySelector?.(".easyuse-anima-aio-node-panel")) {
-      continue;
-    }
-    if (
-      content.querySelector?.('[data-testid="main-image"]')
-      || content.querySelector?.(".text-node-component-header-text")
-      || content.textContent?.match?.(/\b\d+\s*[x×]\s*\d+\b/i)
-    ) {
-      hideGeneratorNativeLivePreviewElement(content);
-    }
-  }
-  for (const image of root.querySelectorAll('[data-testid="main-image"]')) {
-    const content = image.closest?.(".lg-node-content");
-    if (content && !content.querySelector?.(".easyuse-anima-aio-node-panel")) {
-      hideGeneratorNativeLivePreviewElement(content);
-      continue;
-    }
-    hideGeneratorNativeLivePreviewElement(image);
-    const previewRoot = image.closest?.(".flex-auto, .relative, .overflow-hidden");
-    if (previewRoot && !previewRoot.querySelector?.(".easyuse-anima-aio-node-panel")) {
-      hideGeneratorNativeLivePreviewElement(previewRoot);
-    }
-  }
-}
-
-function hideGeneratorNativeLivePreviewElements(root) {
-  if (!root?.querySelectorAll) {
-    return;
-  }
-  hideGeneratorComfyOutputPreviewElements(root);
-  for (const image of root.querySelectorAll("img.pointer-events-none.object-contain")) {
-    if (image.closest?.(".easyuse-anima-aio-node-panel")) {
-      continue;
-    }
-    hideGeneratorNativeLivePreviewElement(image);
-  }
-  for (const element of root.querySelectorAll(".text-node-component-header-text, div, span")) {
-    if (element.closest?.(".easyuse-anima-aio-node-panel")) {
-      continue;
-    }
-    const shouldHide = element.classList?.contains("text-node-component-header-text")
-      || (!element.children?.length && isGeneratorNativeDimensionLabel(element));
-    if (!shouldHide) {
-      continue;
-    }
-    hideGeneratorNativeLivePreviewElement(element);
-    const parent = element.parentElement;
-    if (
-      parent
-      && !parent.querySelector?.(".easyuse-anima-aio-node-panel")
-      && parent.querySelector?.("img.pointer-events-none.object-contain")
-    ) {
-      hideGeneratorNativeLivePreviewElement(parent);
-    }
-  }
-}
-
-function markGeneratorNativeLivePreviewHidden(node) {
-  if (!node || typeof document === "undefined") {
-    return;
-  }
-  for (const root of generatorVueNodeRoots(node)) {
-    root.classList.add(GENERATOR_VUE_NODE_CLASS);
-    hideGeneratorNativeLivePreviewElements(root);
-  }
-}
-
-let generatorNativePreviewStoresPromise = null;
-let generatorDialogServiceAssetUrlPromise = null;
-
-async function generatorDialogServiceAssetUrl() {
-  if (!generatorDialogServiceAssetUrlPromise) {
-    generatorDialogServiceAssetUrlPromise = (async () => {
-      if (typeof document !== "undefined") {
-        const elements = document.querySelectorAll("link[href], script[src]");
-        for (const element of elements) {
-          const value = element.getAttribute("href") || element.getAttribute("src") || "";
-          if (/\/?assets\/dialogService-[^/]+\.js(?:$|\?)/.test(value)) {
-            return new URL(value, window.location.href).href;
-          }
-        }
-      }
-      const html = await easyuseAnimaFetchText("/");
-      const match = html.match(/(?:\.\/)?assets\/dialogService-[^"'<>]+\.js/);
-      return match ? new URL(match[0], window.location.href).href : "";
-    })().catch(() => "");
-  }
-  return generatorDialogServiceAssetUrlPromise;
-}
-
-async function generatorNativePreviewStores() {
-  if (!generatorNativePreviewStoresPromise) {
-    generatorNativePreviewStoresPromise = (async () => {
-      try {
-        const [nodeOutputStoreModule, workflowStoreModule] = await Promise.all([
-          import("../../../stores/nodeOutputStore.js"),
-          import("../../../platform/workflow/management/stores/workflowStore.js"),
-        ]);
-        if (nodeOutputStoreModule?.useNodeOutputStore && workflowStoreModule?.useWorkflowStore) {
-          return {
-            useNodeOutputStore: nodeOutputStoreModule.useNodeOutputStore,
-            useWorkflowStore: workflowStoreModule.useWorkflowStore,
-          };
-        }
-      } catch {
-        // Packaged ComfyUI frontend builds bundle these stores into hashed assets.
-      }
-
-      const url = await generatorDialogServiceAssetUrl();
-      if (!url) {
-        return null;
-      }
-      try {
-        const module = await import(url);
-        return {
-          useNodeOutputStore: module?.useNodeOutputStore || module?.cn || module?.L,
-          useWorkflowStore: module?.useWorkflowStore || module?.M,
-        };
-      } catch {
-        return null;
-      }
-    })();
-  }
-  return generatorNativePreviewStoresPromise;
-}
-
-function deleteGeneratorPreviewStoreEntry(container, locator) {
-  if (!container || !locator) {
-    return;
-  }
-  try {
-    const target = container.value && typeof container.value === "object"
-      ? container.value
-      : container;
-    if (target instanceof Map) {
-      target.delete(locator);
-    } else if (typeof target === "object") {
-      delete target[locator];
-    }
-  } catch {
-    // Store shape differs across ComfyUI frontend builds; DOM fallback still runs.
-  }
-}
-
-async function purgeGeneratorNativeLivePreviewStore(node, detail = null) {
-  try {
-    if (!node) {
-      return;
-    }
-    const ids = generatorPreviewLocatorCandidates(node, detail);
-    if (!ids.length) {
-      return;
-    }
-    if (app.nodePreviewImages && typeof app.nodePreviewImages === "object") {
-      for (const id of ids) {
-        deleteGeneratorPreviewStoreEntry(app.nodePreviewImages, id);
-      }
-    }
-
-    const stores = await generatorNativePreviewStores();
-    const outputStore = stores?.useNodeOutputStore?.();
-    if (!outputStore) {
-      return;
-    }
-    const workflowStore = stores?.useWorkflowStore?.();
-    const locators = new Set(ids);
-    for (const id of ids) {
-      const leaf = String(id).split(":").pop();
-      if (!leaf) {
-        continue;
-      }
-      locators.add(leaf);
-      const locator = workflowStore?.nodeIdToNodeLocatorId?.(leaf);
-      if (locator) {
-        locators.add(locator);
-      }
-    }
-    for (const locator of locators) {
-      outputStore.revokePreviewsByLocatorId?.(locator);
-      deleteGeneratorPreviewStoreEntry(outputStore.nodePreviewImages, locator);
-    }
-  } catch {
-    // Native preview store access is version-dependent; CSS/DOM fallback remains scoped to this node.
-  }
-}
-
-function scheduleGeneratorNativeLivePreviewPurge(node, detail = null) {
-  void purgeGeneratorNativeLivePreviewStore(node, detail);
-  requestAnimationFrame(() => {
-    void purgeGeneratorNativeLivePreviewStore(node, detail);
-  });
-  setTimeout(() => {
-    void purgeGeneratorNativeLivePreviewStore(node, detail);
-  }, 80);
-  setTimeout(() => {
-    void purgeGeneratorNativeLivePreviewStore(node, detail);
-  }, 240);
-}
-
-function stopGeneratorNativeLivePreviewObserver(node) {
-  const observers = node?.__easyuseAnimaNativeLivePreviewObservers;
-  if (!observers) {
-    return;
-  }
-  for (const observer of observers.values()) {
-    observer.disconnect();
-  }
-  observers.clear();
-}
-
-function ensureGeneratorNativeLivePreviewObserver(node) {
-  if (!node || typeof MutationObserver === "undefined") {
-    return;
-  }
-  const observers = node.__easyuseAnimaNativeLivePreviewObservers || new Map();
-  node.__easyuseAnimaNativeLivePreviewObservers = observers;
-  for (const [root, observer] of observers) {
-    if (!root?.isConnected) {
-      observer.disconnect();
-      observers.delete(root);
-    }
-  }
-  for (const root of generatorVueNodeRoots(node)) {
-    if (!root || observers.has(root)) {
-      continue;
-    }
-    const observer = new MutationObserver(() => markGeneratorNativeLivePreviewHidden(node));
-    observer.observe(root, { childList: true, subtree: true });
-    observers.set(root, observer);
-  }
-  clearTimeout(node.__easyuseAnimaNativeLivePreviewObserverStopTimer);
-  node.__easyuseAnimaNativeLivePreviewObserverStopTimer = setTimeout(() => {
-    stopGeneratorNativeLivePreviewObserver(node);
-  }, 5000);
-}
-
-function scheduleGeneratorNativeLivePreviewHidden(node) {
-  markGeneratorNativeLivePreviewHidden(node);
-  ensureGeneratorNativeLivePreviewObserver(node);
-  if (node.__easyuseAnimaNativeLivePreviewHideScheduled) {
-    return;
-  }
-  node.__easyuseAnimaNativeLivePreviewHideScheduled = true;
-  const hide = () => markGeneratorNativeLivePreviewHidden(node);
-  requestAnimationFrame(hide);
-  setTimeout(hide, 80);
-  setTimeout(() => {
-    node.__easyuseAnimaNativeLivePreviewHideScheduled = false;
-    hide();
-  }, 240);
-}
-
-function suppressGeneratorDefaultPreview(node, options = {}) {
-  if (!node) {
-    return;
-  }
-  lockGeneratorLegacyCanvasPreview(node);
-  const shouldMarkDirty = options.markDirty !== false;
-  let changed = false;
-  if (node.hideOutputImages !== true) {
-    node.hideOutputImages = true;
-    changed = true;
-  }
-  for (const key of ["imgs", "images", "imageRects"]) {
-    if (!Array.isArray(node[key]) || node[key].length) {
-      node[key] = [];
-      changed = true;
-    }
-  }
-  for (const key of ["imageIndex", "overIndex"]) {
-    if (node[key] !== null) {
-      node[key] = null;
-      changed = true;
-    }
-  }
-  if (node.previewMediaType !== undefined) {
-    node.previewMediaType = undefined;
-    changed = true;
-  }
-  if (changed && shouldMarkDirty) {
-    markNodeDirty(node);
-  }
-}
-
-function lockGeneratorLegacyCanvasPreview(node) {
-  if (!node || node.__easyuseAnimaLegacyCanvasPreviewLocked) {
-    return;
-  }
-  node.__easyuseAnimaLegacyCanvasPreviewLocked = true;
-  try {
-    Object.defineProperty(node, "imgs", {
-      configurable: true,
-      enumerable: false,
-      get() {
-        return [];
-      },
-      set() {
-        // Comfy syncs ui.images into node.imgs for legacy canvas previews.
-        // AiO keeps queue/history images but renders its own in-node preview.
-      },
-    });
-  } catch {
-    node.imgs = [];
-  }
-}
-
-function scheduleGeneratorDefaultPreviewSuppression(node, options = {}) {
-  const shouldPurgeStore = options.purgeStore !== false;
-  const purgeDetail = options.purgeDetail || null;
-  suppressGeneratorDefaultPreview(node);
-  if (shouldPurgeStore) {
-    scheduleGeneratorNativeLivePreviewPurge(node, purgeDetail);
-  }
-  scheduleGeneratorNativeLivePreviewHidden(node);
-  if (node.__easyuseAnimaDefaultPreviewSuppressionScheduled) {
-    return;
-  }
-  node.__easyuseAnimaDefaultPreviewSuppressionScheduled = true;
-  const suppress = () => {
-    suppressGeneratorDefaultPreview(node);
-    if (shouldPurgeStore) {
-      scheduleGeneratorNativeLivePreviewPurge(node, purgeDetail);
-    }
-    markGeneratorNativeLivePreviewHidden(node);
-  };
-  requestAnimationFrame(suppress);
-  setTimeout(suppress, 120);
-  setTimeout(() => {
-    node.__easyuseAnimaDefaultPreviewSuppressionScheduled = false;
-    suppress();
-  }, 360);
-}
-
-function createNodeField(label, control, className = "", tooltipKey = "") {
-  const wrapper = document.createElement("div");
-  wrapper.className = `easyuse-anima-aio-node-field ${className}`.trim();
-  const labelEl = document.createElement("label");
-  applyTooltip(wrapper, tooltipKey);
-  applyTooltip(labelEl, tooltipKey);
-  applyTooltip(control, tooltipKey);
-  if (control?.type === "checkbox") {
-    wrapper.classList.add("checkbox");
-    const text = document.createElement("span");
-    text.textContent = label;
-    labelEl.append(text, control);
-    wrapper.append(labelEl);
-  } else {
-    labelEl.textContent = label;
-    wrapper.append(labelEl, control);
-  }
-  return wrapper;
-}
-
-function createDomNumberControl(node, name, value, step = "1") {
-  const input = numberInput(value, step);
-  input.addEventListener("input", () => {
-    const nextValue = name === "seed"
-      ? normalizeSeedValue(input.value, GENERATOR_SPECIAL_SEED_RANDOM)
-      : Number(input.value || 0);
-    setWidgetValueIfChanged(node, name, nextValue);
-    syncGeneratorSettingsFromVisible(node);
-    updateGeneratorDomSummary(node);
-    if (name === "seed") {
-      refreshGeneratorSeedButtons(node);
-    }
-    markNodeDirty(node);
-  });
-  return input;
-}
-
-function createDomSliderNumberControl(node, name, value, options = {}) {
-  const min = Number(options.min ?? 0);
-  const max = Number(options.max ?? 100);
-  const step = Number(options.step ?? 1);
-  const decimals = Number(options.decimals ?? 0);
-  const clamp = (next) => Math.max(min, Math.min(max, Number(next)));
-  const snap = (next) => {
-    const clamped = clamp(next);
-    if (!Number.isFinite(step) || step <= 0) {
-      return clamped;
-    }
-    return min + Math.round((clamped - min) / step) * step;
-  };
-  const round = (next) => {
-    const factor = 10 ** decimals;
-    return Math.round(clamp(snap(next)) * factor) / factor;
-  };
-  const currentValue = round(value);
-  const wrapper = document.createElement("div");
-  wrapper.className = "easyuse-anima-aio-node-slider-control";
-  const input = numberInput(currentValue, String(step));
-  input.min = String(min);
-  input.max = String(max);
-  const track = document.createElement("div");
-  track.className = "easyuse-anima-aio-node-slider-track";
-  const rail = document.createElement("div");
-  rail.className = "easyuse-anima-aio-node-slider-rail";
-  const fill = document.createElement("div");
-  fill.className = "easyuse-anima-aio-node-slider-fill";
-  const thumb = document.createElement("div");
-  thumb.className = "easyuse-anima-aio-node-slider-thumb";
-  track.append(rail, fill, thumb);
-
-  const normalizeValue = typeof options.normalize === "function"
-    ? options.normalize
-    : (next) => (name === "steps" ? Math.trunc(next) : next);
-  const commit = (nextValue) => {
-    const next = round(nextValue);
-    input.value = String(next);
-    const normalized = normalizeValue(next);
-    if (typeof options.onCommit === "function") {
-      options.onCommit(normalized);
-    } else {
-      setWidgetValueIfChanged(node, name, normalized);
-      syncGeneratorSettingsFromVisible(node);
-    }
-    updateGeneratorDomSummary(node);
-    updateSlider();
-    markNodeDirty(node);
-  };
-  const updateSlider = () => {
-    const next = round(input.value || currentValue);
-    const percent = max <= min ? 0 : ((next - min) / (max - min)) * 100;
-    const clampedPercent = Math.max(0, Math.min(100, percent));
-    fill.style.width = `${clampedPercent}%`;
-    thumb.style.left = `${clampedPercent}%`;
-  };
-  const valueFromPointer = (pointerEvent) => {
-    const rect = track.getBoundingClientRect();
-    const relative = rect.width > 0 ? (pointerEvent.clientX - rect.left) / rect.width : 0;
-    return round(min + Math.max(0, Math.min(1, relative)) * (max - min));
-  };
-
-  input.addEventListener("input", () => commit(input.value));
-  track.addEventListener("pointerdown", (event) => {
-    event.preventDefault();
-    event.stopPropagation();
-    const pointerId = event.pointerId;
-    track.setPointerCapture?.(pointerId);
-    commit(valueFromPointer(event));
-    const move = (moveEvent) => {
-      moveEvent.preventDefault();
-      moveEvent.stopPropagation();
-      commit(valueFromPointer(moveEvent));
-    };
-    const up = (upEvent) => {
-      upEvent.stopPropagation();
-      track.releasePointerCapture?.(pointerId);
-      window.removeEventListener("pointermove", move, true);
-      window.removeEventListener("pointerup", up, true);
-    };
-    window.addEventListener("pointermove", move, true);
-    window.addEventListener("pointerup", up, true);
-  });
-  wrapper.append(input, track);
-  updateSlider();
-  return wrapper;
-}
-
-function createDomSettingsSliderNumberControl(node, value, options, updater) {
-  return createDomSliderNumberControl(node, "__settings__", value, {
-    ...options,
-    onCommit(nextValue) {
-      updateGeneratorSettings(node, (settings) => {
-        updater?.(settings, nextValue);
-      });
-    },
-  });
-}
-
-function createDomTextControl(node, name, value) {
-  const input = textInput(value);
-  input.addEventListener("input", () => {
-    setWidgetValueIfChanged(node, name, input.value);
-    syncGeneratorSettingsFromVisible(node);
-    updateGeneratorDomSummary(node);
-    markNodeDirty(node);
-  });
-  return input;
-}
-
-function createDomCheckboxControl(node, name, value) {
-  const input = checkbox(value);
-  input.addEventListener("change", () => {
-    setWidgetValueIfChanged(node, name, input.checked);
-    syncGeneratorSettingsFromVisible(node);
-    updateGeneratorDomSummary(node);
-    markNodeDirty(node);
-  });
-  return input;
-}
-
-function createDomSettingsCheckboxControl(node, value, updater, options = {}) {
-  const input = checkbox(value);
-  input.addEventListener("change", () => {
-    updateGeneratorSettings(node, (settings) => {
-      updater?.(settings, input.checked);
-    });
-    if (options.rerender) {
-      renderGeneratorPanel(node);
-    } else {
-      updateGeneratorDomSummary(node);
-      scheduleGeneratorLayout(node);
-      markNodeDirty(node);
-    }
-  });
-  return input;
-}
-
-function createDomSettingsNumberControl(node, value, step, updater, options = {}) {
-  const input = numberInput(value, step);
-  if (options.min != null) {
-    input.min = String(options.min);
-  }
-  if (options.max != null) {
-    input.max = String(options.max);
-  }
-  const decimals = Number(options.decimals ?? 0);
-  const commit = () => {
-    const fallback = Number(value) || 0;
-    const min = Number(options.min ?? -Infinity);
-    const max = Number(options.max ?? Infinity);
-    const factor = 10 ** decimals;
-    const clamped = clampGeneratorNumber(input.value, fallback, min, max);
-    const nextValue = decimals > 0 ? Math.round(clamped * factor) / factor : Math.trunc(clamped);
-    input.value = nextValue;
-    updateGeneratorSettings(node, (settings) => {
-      updater?.(settings, nextValue);
-    });
-    if (options.rerender) {
-      renderGeneratorPanel(node);
-    } else {
-      updateGeneratorDomSummary(node);
-      scheduleGeneratorLayout(node);
-      markNodeDirty(node);
-    }
-  };
-  input.addEventListener("input", commit);
-  return input;
-}
-
-function createDomSettingsSelectControl(node, value, options, updater, settings = {}) {
-  const select = selectInput(options, String(value ?? ""));
-  select.addEventListener("change", () => {
-    updateGeneratorSettings(node, (nextSettings) => {
-      updater?.(nextSettings, select.value);
-    });
-    if (settings.rerender) {
-      renderGeneratorPanel(node);
-    } else {
-      updateGeneratorDomSummary(node);
-      scheduleGeneratorLayout(node);
-      markNodeDirty(node);
-    }
-  });
-  return select;
-}
-
-function createDomSelectControl(node, name, value, fallbackOptions = []) {
-  const select = selectInput(widgetOptions(node, name, fallbackOptions), String(value ?? ""));
-  select.addEventListener("change", () => {
-    setWidgetValueIfChanged(node, name, select.value);
-    syncGeneratorSettingsFromVisible(node);
-    updateGeneratorDomSummary(node);
-    markNodeDirty(node);
-  });
-  return select;
-}
-
-function createSeedControlSelect(node, value) {
-  const select = selectInput(GENERATOR_SEED_CONTROLS, normalizeSeedControl(value));
-  select.addEventListener("change", () => {
-    updateGeneratorSettings(node, (settings) => {
-      settings.sampler.seed_after_generate = normalizeSeedControl(select.value);
-    });
-    markNodeDirty(node);
-  });
-  return select;
+function refreshGeneratorSeedButtons(node) {
+  return generatorPanelRuntime.refreshSeedButtons(node);
 }
 
 function syncGeneratorStateFromDom(node) {
@@ -5884,2655 +3561,7 @@ function randomSeed() {
   return isSpecialSeed(seed) ? 0 : seed;
 }
 
-function setGeneratorSeedFromUi(node, value) {
-  const seed = normalizeSeedValue(value, GENERATOR_SPECIAL_SEED_RANDOM);
-  const panel = node?.__easyuseAnimaGeneratorPanelEl;
-  const seedInput = panel?.querySelector?.("[data-aio-seed-input]");
-  if (seedInput) {
-    seedInput.value = seed;
-  }
-  setWidgetValueIfChanged(node, "seed", seed);
-  syncGeneratorSettingsFromVisible(node);
-  updateGeneratorDomSummary(node);
-  refreshGeneratorSeedButtons(node);
-  markNodeDirty(node);
-}
 
-function refreshGeneratorSeedButtons(node) {
-  const panel = node?.__easyuseAnimaGeneratorPanelEl;
-  if (!panel) {
-    return;
-  }
-  const lastSeed = node.__easyuseAnimaLastQueuedSeed;
-  const currentSeed = normalizeSeedValue(widgetValue(node, "seed", GENERATOR_SPECIAL_SEED_RANDOM));
-  const lastButton = panel.querySelector("[data-aio-seed-last]");
-  if (lastButton) {
-    const hasLastSeed = lastSeed != null;
-    lastButton.disabled = !hasLastSeed || Number(lastSeed) === currentSeed;
-    lastButton.textContent = hasLastSeed
-      ? aioFormat("button.useLast", { seed: lastSeed })
-      : aioText("button.useLastNone");
-    lastButton.title = aioText("tip.useLast");
-  }
-}
-
-function renderGeneratorPanel(node) {
-  const panel = node?.__easyuseAnimaGeneratorPanelEl;
-  if (!panel) {
-    return;
-  }
-  const settings = generatorSettings(node);
-  panel.replaceChildren();
-
-  const makeButton = (label, callback, className = "", tooltipKey = "") => {
-    const button = document.createElement("button");
-    button.className = `easyuse-anima-aio-node-button ${className}`.trim();
-    button.type = "button";
-    button.textContent = label;
-    applyTooltip(button, tooltipKey);
-    button.addEventListener("click", callback);
-    return button;
-  };
-  const makeIconButton = (label, callback, tooltipKey = "") => {
-    const button = document.createElement("button");
-    button.className = "easyuse-anima-aio-node-icon-button";
-    button.type = "button";
-    button.textContent = label;
-    applyTooltip(button, tooltipKey);
-    button.addEventListener("click", callback);
-    return button;
-  };
-  const makeCardHeader = (title, actions = []) => {
-    const header = document.createElement("div");
-    header.className = "easyuse-anima-aio-node-card-header";
-    const titleEl = document.createElement("div");
-    titleEl.className = "easyuse-anima-aio-node-card-title";
-    titleEl.textContent = title;
-    const actionBox = document.createElement("div");
-    actionBox.className = "easyuse-anima-aio-node-card-actions";
-    actionBox.append(...actions.filter(Boolean));
-    header.append(titleEl, actionBox);
-    return header;
-  };
-  const makeStageHeader = (title, toggle, tooltipKey = "", actions = []) => {
-    const header = document.createElement("div");
-    header.className = "easyuse-anima-aio-node-stage-header";
-    const titleEl = document.createElement("div");
-    titleEl.className = "easyuse-anima-aio-node-stage-title";
-    titleEl.textContent = title;
-    applyTooltip(titleEl, tooltipKey);
-    const toggleLabel = document.createElement("label");
-    toggleLabel.className = "easyuse-anima-aio-node-stage-toggle";
-    toggleLabel.append(toggle, document.createTextNode(aioText("label.enabled")));
-    applyTooltip(toggleLabel, tooltipKey);
-    const actionBox = document.createElement("div");
-    actionBox.className = "easyuse-anima-aio-node-stage-tools";
-    actionBox.append(...actions.filter(Boolean), toggleLabel);
-    header.append(titleEl, actionBox);
-    return header;
-  };
-  const makeNote = (textKey, tooltipKey = "") => {
-    const note = document.createElement("div");
-    note.className = "easyuse-anima-aio-node-stage-note";
-    note.textContent = aioText(textKey);
-    applyTooltip(note, tooltipKey);
-    return note;
-  };
-  const moveDetailerTarget = (targetName, delta) => {
-    updateGeneratorSettings(node, (nextSettings) => {
-      const order = normalizeDetailerOrder(nextSettings.detailer?.order, nextSettings.detailer);
-      const currentIndex = order.indexOf(targetName);
-      const nextIndex = currentIndex + delta;
-      if (currentIndex < 0 || nextIndex < 0 || nextIndex >= order.length) {
-        return;
-      }
-      [order[currentIndex], order[nextIndex]] = [order[nextIndex], order[currentIndex]];
-      nextSettings.detailer ||= {};
-      nextSettings.detailer.order = order;
-    });
-    renderGeneratorPanel(node);
-  };
-
-  const main = document.createElement("div");
-  main.className = "easyuse-anima-aio-node-main";
-
-  const samplerCard = document.createElement("section");
-  samplerCard.className = "easyuse-anima-aio-node-card easyuse-anima-aio-node-settings";
-  const profileValue = syncGeneratorProfileValue(node, settings);
-  const profileButton = makeButton(
-    generatorProfileDisplayLabel(profileValue),
-    () => openGeneratorProfileSettings(node),
-    "easyuse-anima-aio-node-profile-button",
-    "profile.selectTip",
-  );
-  profileButton.setAttribute("data-aio-profile-button", "");
-  const saveIcon = makeIconButton("💾", () => openSaveSettings(node), "tip.saveOptions");
-  saveIcon.setAttribute("data-aio-save-button", "");
-  const samplerHeader = makeCardHeader(aioText("title.sampler"), [
-    profileButton,
-    makeIconButton("⚙", () => openSamplerSettings(node), "tip.samplerDetails"),
-    makeIconButton("⋯", () => openAdvancedSettings(node), "tip.advancedOptions"),
-    saveIcon,
-  ]);
-  const settingsScroll = document.createElement("div");
-  settingsScroll.className = "easyuse-anima-aio-node-settings-scroll";
-
-  const samplerGrid = document.createElement("div");
-  samplerGrid.className = "easyuse-anima-aio-node-sampler-grid";
-
-  const seedBlock = document.createElement("div");
-  const seedInput = createDomNumberControl(node, "seed", settings.sampler.seed);
-  seedInput.setAttribute("data-aio-seed-input", "");
-  applyTooltip(seedInput, "tip.seed");
-  const seedActions = document.createElement("div");
-  seedActions.className = "easyuse-anima-aio-node-seed-actions";
-  const seedRandomEach = makeButton(
-    aioText("button.randomEach"),
-    () => setGeneratorSeedFromUi(node, GENERATOR_SPECIAL_SEED_RANDOM),
-    "",
-    "tip.randomEach",
-  );
-  const seedNewFixed = makeButton(
-    aioText("button.newFixed"),
-    () => setGeneratorSeedFromUi(node, randomSeed()),
-    "",
-    "tip.newFixed",
-  );
-  const seedLast = makeButton(
-    aioText("button.useLastNone"),
-    () => {
-      if (node.__easyuseAnimaLastQueuedSeed == null) {
-        return;
-      }
-      setGeneratorSeedFromUi(node, node.__easyuseAnimaLastQueuedSeed);
-    },
-    "",
-    "tip.useLast",
-  );
-  seedLast.setAttribute("data-aio-seed-last", "");
-  seedActions.append(seedRandomEach, seedNewFixed, seedLast);
-  seedBlock.append(seedInput, seedActions);
-
-  const modeBadge = Object.assign(document.createElement("div"), {
-    className: "easyuse-anima-aio-node-mode-badge",
-  });
-  modeBadge.setAttribute("data-aio-backend-summary", "");
-  samplerGrid.append(
-    createNodeField(aioText("label.mode"), modeBadge, "wide", "tip.mode"),
-    createNodeField(aioText("label.seed"), seedBlock, "seed", "tip.seed"),
-    createNodeField(
-      aioText("label.steps"),
-      createDomSliderNumberControl(node, "steps", settings.sampler.steps, {
-        min: 1,
-        max: 75,
-        step: 1,
-        decimals: 0,
-      }),
-      "wide",
-      "tip.steps",
-    ),
-    createNodeField(
-      aioText("label.cfg"),
-      createDomSliderNumberControl(node, "cfg", settings.sampler.cfg, {
-        min: 1,
-        max: 10,
-        step: 0.1,
-        decimals: 1,
-      }),
-      "wide",
-      "tip.cfg",
-    ),
-    createNodeField(
-      aioText("label.shift"),
-      createDomSettingsSliderNumberControl(
-        node,
-        settings.model_patches.aura_flow.shift ?? DEFAULT_GENERATION_SETTINGS.model_patches.aura_flow.shift,
-        {
-          min: 1,
-          max: 10,
-          step: 0.5,
-          decimals: 1,
-        },
-        (nextSettings, value) => {
-          nextSettings.model_patches.aura_flow ||= {};
-          delete nextSettings.model_patches.aura_flow.enabled;
-          nextSettings.model_patches.aura_flow.shift = value;
-        },
-      ),
-      "wide",
-      "tip.shift",
-    ),
-    createNodeField(
-      aioText("label.denoise"),
-      createDomNumberControl(node, "denoise", settings.sampler.denoise, "0.01"),
-      "",
-      "tip.denoise",
-    ),
-    createNodeField(
-      aioText("label.sampler"),
-      createDomSelectControl(node, "sampler_name", settings.sampler.sampler_name, GENERATOR_FALLBACK_SAMPLER_NAMES),
-      "wide",
-      "tip.sampler",
-    ),
-    createNodeField(
-      aioText("label.scheduler"),
-      createDomSelectControl(node, "scheduler", settings.sampler.scheduler, GENERATOR_FALLBACK_SCHEDULER_NAMES),
-      "wide",
-      "tip.scheduler",
-    ),
-  );
-
-  const highresBlock = document.createElement("div");
-  highresBlock.className = "easyuse-anima-aio-node-stage-block";
-  const highresEnabled = createDomSettingsCheckboxControl(
-    node,
-    settings.highres.enabled,
-    (nextSettings, value) => {
-      nextSettings.highres ||= {};
-      nextSettings.highres.enabled = value;
-    },
-    { rerender: true },
-  );
-  highresBlock.append(makeStageHeader(
-    aioText("title.highres"),
-    highresEnabled,
-    "tip.highresEnabled",
-    [makeIconButton("⚙", () => openHighresSettings(node), "tip.highresSettings")],
-  ));
-  const highresBody = document.createElement("div");
-  highresBody.className = "easyuse-anima-aio-node-stage-body";
-  if (settings.highres.enabled) {
-    const mainBackendIsSpd = settings.sampler.backend === "spectrum_spd_speed";
-    const highresFollowsMain = !!settings.highres.inherit_sampler_settings;
-    const followMain = createDomSettingsCheckboxControl(
-      node,
-      highresFollowsMain,
-      (nextSettings, value) => {
-        nextSettings.highres ||= {};
-        nextSettings.highres.inherit_sampler_settings = value;
-      },
-      { rerender: true },
-    );
-    const stageMode = Object.assign(document.createElement("div"), {
-      className: "easyuse-anima-aio-node-mode-badge",
-      textContent: samplerModeLabel({
-        sampler: {
-          backend: settings.highres.backend || "comfy_ksampler",
-          spectrum: settings.highres.spectrum || {},
-          dit_corrections: settings.highres.dit_corrections || {},
-        },
-      }),
-    });
-    const noteKey = mainBackendIsSpd && highresFollowsMain
-      ? "text.highresSpdManualRequired"
-      : (highresFollowsMain ? "text.inheritsMainSampler" : "text.usesStageSamplerOverride");
-    highresBody.append(
-      createNodeField(aioText("label.followMainSampler"), followMain, "wide", "tip.highresFollow"),
-      makeNote(noteKey, "tip.highresFollow"),
-      ...(highresFollowsMain ? [] : [
-        createNodeField(aioText("label.mode"), stageMode, "wide", "tip.highresBackend"),
-      ]),
-      createNodeField(
-        aioText("label.scaleBy"),
-        createDomSettingsSliderNumberControl(
-          node,
-          settings.highres.scale_by,
-          { min: 1, max: 4, step: 0.05, decimals: 2 },
-          (nextSettings, value) => {
-            nextSettings.highres ||= {};
-            nextSettings.highres.scale_by = value;
-          },
-        ),
-        "wide",
-        "tip.highresScale",
-      ),
-      createNodeField(
-        aioText("label.steps"),
-        createDomSettingsSliderNumberControl(
-          node,
-          settings.highres.steps,
-          { min: 1, max: 75, step: 1, decimals: 0 },
-          (nextSettings, value) => {
-            nextSettings.highres ||= {};
-            nextSettings.highres.steps = Math.trunc(value);
-          },
-        ),
-        "wide",
-        "tip.highresSteps",
-      ),
-      createNodeField(
-        aioText("label.denoise"),
-        createDomSettingsSliderNumberControl(
-          node,
-          settings.highres.denoise,
-          { min: 0, max: 1, step: 0.01, decimals: 2 },
-          (nextSettings, value) => {
-            nextSettings.highres ||= {};
-            nextSettings.highres.denoise = value;
-          },
-        ),
-        "wide",
-        "tip.highresDenoise",
-      ),
-      createNodeField(
-        aioText("label.maxLongEdge"),
-        createDomSettingsNumberControl(
-          node,
-          settings.highres.max_long_edge,
-          "32",
-          (nextSettings, value) => {
-            nextSettings.highres ||= {};
-            nextSettings.highres.max_long_edge = Math.trunc(value);
-          },
-          { min: 0, max: 16384, decimals: 0 },
-        ),
-        "wide",
-        "tip.highresMaxEdge",
-      ),
-    );
-  } else {
-    highresBody.append(makeNote("text.highresDisabled", "tip.highresEnabled"));
-  }
-  highresBlock.append(highresBody);
-
-  const detailerBlock = document.createElement("div");
-  detailerBlock.className = "easyuse-anima-aio-node-stage-block";
-  const detailerEnabled = createDomSettingsCheckboxControl(
-    node,
-    settings.detailer.enabled,
-    (nextSettings, value) => {
-      nextSettings.detailer ||= {};
-      nextSettings.detailer.enabled = value;
-    },
-    { rerender: true },
-  );
-  detailerBlock.append(makeStageHeader(
-    aioText("title.detailer"),
-    detailerEnabled,
-    "tip.detailerEnabled",
-    [makeIconButton("⚙", () => openDetailerSettings(node), "tip.detailerSettings")],
-  ));
-  const detailerBody = document.createElement("div");
-  detailerBody.className = "easyuse-anima-aio-node-stage-body";
-  if (settings.detailer.enabled) {
-    const order = normalizeDetailerOrder(settings.detailer.order, settings.detailer);
-    for (const [index, targetName] of order.entries()) {
-      const defaults = detailerTargetDefaults(targetName);
-      const target = mergeDefaults(defaults, settings.detailer[targetName] || {});
-      const targetBlock = document.createElement("div");
-      targetBlock.className = "easyuse-anima-aio-node-stage-mini";
-      applyTooltip(targetBlock, "tip.detailerBlock");
-      const targetHeader = document.createElement("div");
-      targetHeader.className = "easyuse-anima-aio-node-stage-mini-header";
-      const targetTitle = document.createElement("div");
-      targetTitle.className = "easyuse-anima-aio-node-stage-mini-title";
-      targetTitle.textContent = `${index + 1}. ${detailerTargetTitle(targetName, target, index)}`;
-      applyTooltip(targetTitle, "tip.detailerBlock");
-      const targetTools = document.createElement("div");
-      targetTools.className = "easyuse-anima-aio-node-stage-tools";
-      const moveUp = makeIconButton("↑", () => moveDetailerTarget(targetName, -1), "tip.detailerOrder");
-      const moveDown = makeIconButton("↓", () => moveDetailerTarget(targetName, 1), "tip.detailerOrder");
-      moveUp.disabled = index === 0;
-      moveDown.disabled = index === order.length - 1;
-      targetTools.append(moveUp, moveDown);
-      targetHeader.append(targetTitle, targetTools);
-      targetBlock.append(targetHeader);
-
-      const targetGrid = document.createElement("div");
-      targetGrid.className = "easyuse-anima-aio-node-stage-body";
-      const targetEnabled = createDomSettingsCheckboxControl(
-        node,
-        target.enabled,
-        (nextSettings, value) => {
-          nextSettings.detailer ||= {};
-          nextSettings.detailer[targetName] ||= {};
-          nextSettings.detailer[targetName].enabled = value;
-        },
-        { rerender: true },
-      );
-      targetGrid.append(createNodeField(aioText("label.enabled"), targetEnabled, "wide", "tip.detailerBlock"));
-      if (target.enabled) {
-        const followMain = createDomSettingsCheckboxControl(
-          node,
-          target.inherit_sampler_settings,
-          (nextSettings, value) => {
-            nextSettings.detailer ||= {};
-            nextSettings.detailer[targetName] ||= {};
-            nextSettings.detailer[targetName].inherit_sampler_settings = value;
-          },
-          { rerender: true },
-        );
-        targetGrid.append(
-          createNodeField(aioText("label.followMainSampler"), followMain, "wide", "tip.detailerFollow"),
-          makeNote(
-            target.inherit_sampler_settings ? "text.inheritsMainSampler" : "text.usesStageSamplerOverride",
-            "tip.detailerFollow",
-          ),
-          createNodeField(
-            aioText("label.steps"),
-            createDomSettingsSliderNumberControl(
-              node,
-              target.steps,
-              { min: 1, max: 75, step: 1, decimals: 0 },
-              (nextSettings, value) => {
-                nextSettings.detailer ||= {};
-                nextSettings.detailer[targetName] ||= {};
-                nextSettings.detailer[targetName].steps = Math.trunc(value);
-              },
-            ),
-            "wide",
-            "tip.detailerSteps",
-          ),
-          createNodeField(
-            aioText("label.denoise"),
-            createDomSettingsSliderNumberControl(
-              node,
-              target.denoise,
-              { min: 0, max: 1, step: 0.01, decimals: 2 },
-              (nextSettings, value) => {
-                nextSettings.detailer ||= {};
-                nextSettings.detailer[targetName] ||= {};
-                nextSettings.detailer[targetName].denoise = value;
-              },
-            ),
-            "wide",
-            "tip.detailerDenoise",
-          ),
-        );
-      }
-      targetBlock.append(targetGrid);
-      detailerBody.append(targetBlock);
-    }
-  } else {
-    detailerBody.append(makeNote("text.detailerDisabled", "tip.detailerEnabled"));
-  }
-  detailerBlock.append(detailerBody);
-
-  const upscaleBlock = document.createElement("div");
-  upscaleBlock.className = "easyuse-anima-aio-node-stage-block";
-  const upscaleEnabled = createDomSettingsCheckboxControl(
-    node,
-    settings.upscale.enabled,
-    (nextSettings, value) => {
-      nextSettings.upscale ||= {};
-      nextSettings.upscale.enabled = value;
-    },
-    { rerender: true },
-  );
-  upscaleBlock.append(makeStageHeader(
-    aioText("title.upscale"),
-    upscaleEnabled,
-    "tip.upscaleEnabled",
-    [makeIconButton("⚙", () => openUpscaleSettings(node), "tip.upscaleSettings")],
-  ));
-  const upscaleBody = document.createElement("div");
-  upscaleBody.className = "easyuse-anima-aio-node-stage-body";
-  if (settings.upscale.enabled) {
-    const backend = createDomSettingsSelectControl(
-      node,
-      settings.upscale.backend || "usdu",
-      ["usdu", "resshift"],
-      (nextSettings, value) => {
-        nextSettings.upscale ||= {};
-        nextSettings.upscale.backend = value || "usdu";
-      },
-      { rerender: true },
-    );
-    upscaleBody.append(
-      createNodeField(aioText("label.mode"), backend, "wide", "tip.upscaleBackend"),
-    );
-    if (settings.upscale.backend === "usdu") {
-      const usdu = normalizeGeneratorUsduAutoTileRange(
-        mergeDefaults(DEFAULT_GENERATION_SETTINGS.upscale.usdu, settings.upscale.usdu || {}),
-      );
-      upscaleBody.append(
-        createNodeField(
-          aioText("label.scaleBy"),
-          createDomSettingsSliderNumberControl(
-            node,
-            settings.upscale.scale_by,
-            { min: 1, max: 4, step: 0.05, decimals: 2 },
-            (nextSettings, value) => {
-              nextSettings.upscale ||= {};
-              nextSettings.upscale.scale_by = value;
-            },
-          ),
-          "wide",
-          "tip.upscaleScale",
-        ),
-        createNodeField(
-          aioText("label.steps"),
-          createDomSettingsSliderNumberControl(
-            node,
-            settings.upscale.steps,
-            { min: 1, max: 75, step: 1, decimals: 0 },
-            (nextSettings, value) => {
-              nextSettings.upscale ||= {};
-              nextSettings.upscale.steps = Math.trunc(value);
-            },
-          ),
-          "wide",
-          "tip.steps",
-        ),
-        createNodeField(
-          aioText("label.denoise"),
-          createDomSettingsSliderNumberControl(
-            node,
-            settings.upscale.denoise,
-            { min: 0, max: 1, step: 0.01, decimals: 2 },
-            (nextSettings, value) => {
-              nextSettings.upscale ||= {};
-              nextSettings.upscale.denoise = value;
-            },
-          ),
-          "wide",
-          "tip.denoise",
-        ),
-        createNodeField(
-          aioText("field.autoTileSize"),
-          createDomSettingsCheckboxControl(
-            node,
-            usdu.auto_tile_size,
-            (nextSettings, value) => {
-              nextSettings.upscale ||= {};
-              nextSettings.upscale.usdu ||= {};
-              nextSettings.upscale.usdu.auto_tile_size = value;
-            },
-            { rerender: true },
-          ),
-          "wide",
-          "tip.usduAutoTile",
-        ),
-      );
-      if (usdu.auto_tile_size) {
-        upscaleBody.append(
-          createNodeField(
-            aioText("field.autoTileTarget"),
-            createDomSettingsSliderNumberControl(
-              node,
-              usdu.auto_tile_target,
-              { min: 256, max: 2048, step: 64, decimals: 0 },
-              (nextSettings, value) => {
-                setGeneratorUsduAutoTileTarget(nextSettings, value);
-              },
-            ),
-            "wide",
-            "tip.usduAutoTile",
-          ),
-        );
-      }
-      upscaleBody.append(
-        makeNote(
-          usdu.auto_tile_size ? "text.usduAutoTile" : "text.usduManualTile",
-          usdu.auto_tile_size ? "tip.usduAutoTile" : "tip.usduTile",
-        ),
-      );
-    } else {
-      upscaleBody.append(makeNote(`ResShift ${settings.upscale.resshift?.scale || "x2"}`, "tip.resshiftScale"));
-    }
-  } else {
-    upscaleBody.append(makeNote("text.upscaleDisabled", "tip.upscaleEnabled"));
-  }
-  upscaleBlock.append(upscaleBody);
-
-  const postprocess = mergeDefaults(DEFAULT_GENERATION_SETTINGS.postprocess, settings.postprocess || {});
-  const postprocessBlock = document.createElement("div");
-  postprocessBlock.className = "easyuse-anima-aio-node-stage-block";
-  const postprocessEnabled = createDomSettingsCheckboxControl(
-    node,
-    postprocess.enabled,
-    (nextSettings, value) => {
-      nextSettings.postprocess ||= {};
-      nextSettings.postprocess.enabled = value;
-    },
-    { rerender: true },
-  );
-  postprocessBlock.append(makeStageHeader(
-    aioText("title.postprocess"),
-    postprocessEnabled,
-    "tip.postprocessEnabled",
-    [makeIconButton("⚙", () => openPostprocessSettings(node), "tip.postprocessSettings")],
-  ));
-  const postprocessBody = document.createElement("div");
-  postprocessBody.className = "easyuse-anima-aio-node-stage-body";
-  if (postprocess.enabled) {
-    const fit = mergeDefaults(DEFAULT_GENERATION_SETTINGS.postprocess.fit, postprocess.fit || {});
-    const fitText = fit.mode === "megapixels"
-      ? `Fit <= ${fit.max_megapixels || 4}MP`
-      : `Fit <= ${fit.max_long_edge || 2048}px`;
-    postprocessBody.append(makeNote(fitText, "tip.finalFit"));
-  } else {
-    postprocessBody.append(makeNote("text.postprocessDisabled", "tip.postprocessEnabled"));
-  }
-  postprocessBlock.append(postprocessBody);
-
-  settingsScroll.append(samplerGrid, highresBlock, detailerBlock, upscaleBlock, postprocessBlock);
-
-  samplerCard.append(samplerHeader, settingsScroll);
-
-  const previewCard = document.createElement("section");
-  previewCard.className = "easyuse-anima-aio-node-card easyuse-anima-aio-node-preview";
-  const previewHeader = makeCardHeader(aioText("title.preview"), [
-    makeIconButton("⚙", () => openPreviewSettings(node), "tip.previewOptions"),
-  ]);
-  const previewBox = document.createElement("div");
-  previewBox.className = "easyuse-anima-aio-node-preview-box";
-  previewBox.setAttribute("data-aio-preview-box", "");
-  const previewPlaceholder = document.createElement("div");
-  previewPlaceholder.className = "easyuse-anima-aio-node-preview-placeholder";
-  const previewStrong = document.createElement("strong");
-  previewStrong.textContent = aioText("text.previewTitle");
-  const previewText = document.createElement("span");
-  previewText.textContent = aioText("text.previewSubtitle");
-  previewPlaceholder.append(previewStrong, previewText);
-  previewBox.append(previewPlaceholder);
-
-  const previewMeta = document.createElement("div");
-  previewMeta.className = "easyuse-anima-aio-node-preview-meta";
-  previewMeta.setAttribute("data-aio-preview-meta", "");
-  previewMeta.textContent = "-";
-  applyTooltip(previewMeta, "tip.size");
-
-  const previewFeed = document.createElement("div");
-  previewFeed.className = "easyuse-anima-aio-node-preview-feed";
-  previewFeed.setAttribute("data-aio-preview-feed", "");
-  previewFeed.hidden = true;
-
-  previewCard.append(previewHeader, previewBox, previewMeta, previewFeed);
-
-  main.append(samplerCard, previewCard);
-  panel.append(main);
-  stopGeneratorControlPropagation(panel);
-  updateGeneratorDomSummary(node);
-  refreshGeneratorSeedButtons(node);
-  scheduleGeneratorLayout(node);
-}
-
-function ensureGeneratorPanel(node) {
-  ensureStyle();
-  node.serialize_widgets = true;
-  suppressGeneratorDefaultPreview(node, { markDirty: false });
-  node.minWidth = Math.max(Number(node.minWidth) || 0, GENERATOR_NODE_MIN_WIDTH);
-  if (Array.isArray(node.size)) {
-    node.size[0] = Math.max(Number(node.size[0]) || 0, GENERATOR_NODE_DEFAULT_WIDTH);
-  }
-  if (!node.__easyuseAnimaGeneratorPanelEl) {
-    const panel = document.createElement("div");
-    panel.className = "easyuse-anima-aio-node-panel";
-    node.__easyuseAnimaGeneratorPanelEl = panel;
-    node.addDOMWidget?.(GENERATOR_DOM_WIDGET, "EasyUseAnimaGeneratorPanel", panel, {
-      serialize: false,
-      hideOnZoom: false,
-      getMinHeight: () => GENERATOR_PANEL_MIN_HEIGHT,
-    });
-  }
-  markGeneratorNativeLivePreviewHidden(node);
-  renderGeneratorPanel(node);
-  markGeneratorNativeLivePreviewHidden(node);
-}
-
-function field(section, label, control, tooltipKey = "") {
-  const row = document.createElement("div");
-  row.className = "easyuse-anima-aio-field";
-  const labelEl = document.createElement("label");
-  const displayLabel = aioFieldLabel(label);
-  const resolvedTooltipKey = tooltipKey || AIO_FIELD_TOOLTIP_KEYS[label] || "";
-  const tooltipText = resolvedTooltipKey
-    ? aioText(resolvedTooltipKey)
-    : aioFormat("tip.fieldGeneric", { label: displayLabel });
-  applyTooltipText(row, tooltipText);
-  applyTooltipText(labelEl, tooltipText);
-  applyTooltipText(control, tooltipText);
-  if (control?.type === "checkbox") {
-    row.classList.add("checkbox");
-    const text = document.createElement("span");
-    text.textContent = displayLabel;
-    labelEl.append(text, control);
-    row.append(labelEl);
-  } else {
-    labelEl.textContent = displayLabel;
-    row.append(labelEl, control);
-  }
-  section.append(row);
-  return control;
-}
-
-function createDialog(title, subtitle) {
-  ensureStyle();
-  const backdrop = document.createElement("div");
-  backdrop.className = "easyuse-anima-aio-backdrop";
-  const dialog = document.createElement("div");
-  dialog.className = "easyuse-anima-aio-dialog";
-  const header = document.createElement("header");
-  const titleBox = document.createElement("div");
-  const heading = document.createElement("h2");
-  heading.textContent = aioStaticText(title);
-  const desc = document.createElement("p");
-  desc.textContent = aioStaticText(subtitle);
-  titleBox.append(heading, desc);
-  const close = document.createElement("button");
-  close.className = "easyuse-anima-aio-close";
-  close.textContent = aioText("button.close");
-  header.append(titleBox, close);
-  const body = document.createElement("div");
-  body.className = "easyuse-anima-aio-body";
-  const actions = document.createElement("div");
-  actions.className = "easyuse-anima-aio-actions";
-  dialog.append(header, body, actions);
-  backdrop.append(dialog);
-  close.addEventListener("click", () => backdrop.remove());
-  backdrop.addEventListener("pointerdown", (event) => {
-    if (event.target === backdrop) {
-      backdrop.remove();
-    }
-  });
-  document.body.append(backdrop);
-  return { backdrop, body, actions };
-}
-
-function openInputSettings(node) {
-  const widget = findWidget(node, INPUT_SETTINGS_WIDGET);
-  const settings = parseSettings(widget, DEFAULT_INPUT_SETTINGS);
-  const { backdrop, body, actions } = createDialog(
-    "Easy Use Anima Input Settings",
-    "Advanced resource options are saved internally with the workflow."
-  );
-  const section = document.createElement("section");
-  section.className = "easyuse-anima-aio-section full";
-  section.append(Object.assign(document.createElement("h3"), { textContent: aioStaticText("Loader Options") }));
-  const weightDtype = field(
-    section,
-    "UNET weight dtype",
-    selectInput(["default", "fp8_e4m3fn", "fp8_e4m3fn_fast", "fp8_e5m2"], settings.resources.unet_weight_dtype)
-  );
-  const clipDevice = field(
-    section,
-    "CLIP device",
-    selectInput(["default", "cpu"], settings.resources.clip_device)
-  );
-  const loaderMode = document.createElement("p");
-  loaderMode.textContent = aioText("text.inputLoaderMode");
-  section.append(loaderMode);
-  body.append(section);
-
-  const cancel = document.createElement("button");
-  cancel.textContent = aioText("button.cancel");
-  const apply = document.createElement("button");
-  apply.className = "primary";
-  apply.textContent = aioText("button.apply");
-  actions.append(cancel, apply);
-  cancel.addEventListener("click", () => backdrop.remove());
-  apply.addEventListener("click", () => {
-    const next = mergeDefaults(DEFAULT_INPUT_SETTINGS, settings);
-    next.resources.loader_mode = "split";
-    next.resources.clip_loader = "single";
-    next.resources.unet_weight_dtype = weightDtype.value || "default";
-    next.resources.clip_device = clipDevice.value || "default";
-    writeSettings(node, widget, next);
-    backdrop.remove();
-  });
-}
-
-function openSamplerSettings(node) {
-  const widget = findWidget(node, GENERATOR_SETTINGS_WIDGET);
-  const settings = mergeVisibleGeneratorSettings(node, parseSettings(widget, DEFAULT_GENERATION_SETTINGS));
-  const { backdrop, body, actions } = createDialog(
-    "Sampler Details",
-    "Choose one of three sampler paths. Missing optional node packs are locked before queue execution."
-  );
-
-  const makeSection = (title, className = "easyuse-anima-aio-section full") => {
-    const section = document.createElement("section");
-    section.className = className;
-    section.append(Object.assign(document.createElement("h3"), { textContent: aioStaticText(title) }));
-    return section;
-  };
-  const makeSubsection = (title) => {
-    const section = document.createElement("div");
-    section.className = "easyuse-anima-aio-subsection";
-    section.append(Object.assign(document.createElement("h4"), { textContent: aioStaticText(title) }));
-    return section;
-  };
-
-  const base = makeSection("Base Parameters");
-  const seed = field(base, "Seed", numberInput(settings.sampler.seed));
-  const seedControl = field(
-    base,
-    "Seed mode",
-    selectInput(GENERATOR_SEED_CONTROLS, normalizeSeedControl(settings.sampler.seed_after_generate))
-  );
-  const steps = field(base, "Steps", numberInput(settings.sampler.steps));
-  steps.min = "1";
-  steps.max = "75";
-  const cfg = field(base, "CFG", numberInput(settings.sampler.cfg, "0.1"));
-  cfg.min = "1";
-  cfg.max = "10";
-  const denoise = field(base, "Denoise", numberInput(settings.sampler.denoise, "0.01"));
-
-  const sampler = makeSection("Sampler Backend");
-  const backendValues = [
-    "comfy_ksampler",
-    "spectrum_mod_guidance_advanced",
-    "spectrum_spd_speed",
-  ];
-  const backend = field(
-    sampler,
-    "Mode",
-    selectInput(backendValues, settings.sampler.backend || "comfy_ksampler")
-  );
-  const dependencyWarning = document.createElement("div");
-  dependencyWarning.className = "easyuse-anima-aio-warning";
-  dependencyWarning.hidden = true;
-  sampler.append(dependencyWarning);
-  const samplerName = field(
-    sampler,
-    "Sampler",
-    selectInput(widgetOptions(node, "sampler_name", GENERATOR_FALLBACK_SAMPLER_NAMES), settings.sampler.sampler_name)
-  );
-  const scheduler = field(
-    sampler,
-    "Scheduler",
-    selectInput(widgetOptions(node, "scheduler", GENERATOR_FALLBACK_SCHEDULER_NAMES), settings.sampler.scheduler)
-  );
-
-  const modGuidance = makeSubsection("Mod Guidance");
-  const modMode = field(
-    modGuidance,
-    "Mode",
-    selectInput(["prompt_data", "enabled", "disabled"], settings.mod_guidance.mode),
-    "tip.modMode",
-  );
-  const modProfile = field(
-    modGuidance,
-    "Profile",
-    selectInput(["off", "step_i8_skip27", "step_i14", "uniform_w3"], settings.mod_guidance.profile)
-  );
-  const modAdvanced = document.createElement("div");
-  modGuidance.append(modAdvanced);
-  const modAdapter = field(modAdvanced, "Adapter", textInput(settings.mod_guidance.advanced.adapter));
-  const modW = field(modAdvanced, "Mod W", numberInput(settings.mod_guidance.advanced.mod_w, "0.1"));
-  const modStart = field(modAdvanced, "Start layer", numberInput(settings.mod_guidance.advanced.mod_start_layer));
-  const modEnd = field(modAdvanced, "End layer", numberInput(settings.mod_guidance.advanced.mod_end_layer));
-  const modTaper = field(modAdvanced, "Taper", numberInput(settings.mod_guidance.advanced.mod_taper));
-  const modTaperScale = field(modAdvanced, "Taper scale", numberInput(settings.mod_guidance.advanced.mod_taper_scale, "0.05"));
-  const modFinalW = field(modAdvanced, "Final W", numberInput(settings.mod_guidance.advanced.mod_final_w, "0.1"));
-  sampler.append(modGuidance);
-
-  const backendDetails = document.createElement("div");
-  const spectrum = makeSubsection("Spectrum Patch / Advanced Sampler");
-  const spectrumPatchEnabled = field(spectrum, "Use Spectrum patch", checkbox(settings.sampler.spectrum.enabled));
-  const windowSize = field(spectrum, "Window size", numberInput(settings.sampler.spectrum.window_size, "0.25"));
-  const flexWindow = field(spectrum, "Flex window", numberInput(settings.sampler.spectrum.flex_window, "0.05"));
-  const warmupSteps = field(spectrum, "Warmup steps", numberInput(settings.sampler.spectrum.warmup_steps));
-  const tailSteps = field(spectrum, "Tail actual", numberInput(settings.sampler.spectrum.tail_actual_steps));
-  const blendW = field(spectrum, "Blend W", numberInput(settings.sampler.spectrum.blend_w, "0.05"));
-  const chebyDegree = field(spectrum, "Cheby degree", numberInput(settings.sampler.spectrum.cheby_degree));
-  const ridgeLambda = field(spectrum, "Ridge lambda", numberInput(settings.sampler.spectrum.ridge_lambda, "0.01"));
-  const spectrumCompat = field(
-    spectrum,
-    "Compat policy",
-    selectInput(["conservative", "legacy", "strict"], settings.sampler.spectrum.compat_policy || "conservative")
-  );
-
-  const corrections = makeSubsection("Spectrum Advanced Corrections");
-  const correctionsEnabled = field(corrections, "Use corrections", checkbox(settings.sampler.dit_corrections.enabled));
-  const dcwMode = field(corrections, "DCW mode", selectInput(["off", "manual", "auto"], settings.sampler.dit_corrections.dcw_mode));
-  const dcwLambda = field(corrections, "DCW lambda", numberInput(settings.sampler.dit_corrections.dcw_lambda, "0.001"));
-  const dcwBand = field(corrections, "DCW band", selectInput(["LL", "all", "HH", "LH+HL+HH"], settings.sampler.dit_corrections.dcw_band_mask));
-  const smcCfg = field(corrections, "SMC-CFG", checkbox(settings.sampler.dit_corrections.smc_cfg));
-  const smcAlpha = field(corrections, "SMC alpha", numberInput(settings.sampler.dit_corrections.adaptive_smc_alpha, "0.01"));
-  const smcLambda = field(corrections, "SMC lambda", numberInput(settings.sampler.dit_corrections.smc_cfg_lambda, "0.1"));
-  const cfgpp = field(corrections, "CFG++", checkbox(settings.sampler.dit_corrections.cfgpp));
-  const cfgppLambda = field(corrections, "CFG++ lambda", numberInput(settings.sampler.dit_corrections.cfgpp_lambda, "0.1"));
-  const fsg = field(corrections, "FSG", checkbox(settings.sampler.dit_corrections.fsg));
-  spectrum.append(corrections);
-  const spectrumExtra = createDynamicNodeInputEditor(
-    "Detected Spectrum Inputs",
-    "spectrumAdvanced",
-    SPECTRUM_ADVANCED_KNOWN_INPUTS,
-    settings.sampler.spectrum_extra || {},
-  );
-  spectrum.append(spectrumExtra.section);
-
-  const spd = makeSubsection("Spectrum + SPD / SPEED");
-  const spdScale = field(spd, "Scale", numberInput(settings.sampler.spd.scale, "0.05"));
-  const spdSigma = field(spd, "Sigma", numberInput(settings.sampler.spd.sigma, "0.01"));
-  const spdSmc = field(spd, "SMC alpha", numberInput(settings.sampler.spd.adaptive_smc_alpha, "0.01"));
-  const spdExtra = createDynamicNodeInputEditor(
-    "Detected SPD Inputs",
-    "spectrumSpd",
-    SPECTRUM_SPD_KNOWN_INPUTS,
-    settings.sampler.spd_extra || {},
-  );
-  spd.append(spdExtra.section);
-  backendDetails.append(spectrum, spd);
-  sampler.append(backendDetails);
-  body.append(base, sampler);
-
-  const refreshBackendDetails = () => {
-    const isComfy = backend.value === "comfy_ksampler";
-    const isSpectrumAdvanced = backend.value === "spectrum_mod_guidance_advanced";
-    spectrum.classList.toggle("hidden", !(isComfy || isSpectrumAdvanced));
-    spectrumPatchEnabled.parentElement.style.display = isComfy ? "" : "none";
-    spectrumCompat.parentElement.style.display = isComfy ? "" : "none";
-    modAdvanced.style.display = isSpectrumAdvanced ? "" : "none";
-    spd.classList.toggle("hidden", backend.value !== "spectrum_spd_speed");
-  };
-  const refreshDependencyLocks = () => {
-    const messages = [];
-    for (const option of Array.from(backend.options)) {
-      const dependencyKey = GENERATOR_BACKEND_DEPENDENCIES[option.value];
-      const pack = optionalDependencyPack(dependencyKey);
-      const missing = !!dependencyKey && !optionalDependencyAvailable(dependencyKey);
-      option.disabled = missing;
-      option.textContent = missing ? `${option.value} (${pack} missing)` : option.value;
-      if (missing && option.selected) {
-        messages.push(aioFormat("warning.optionalDependencyMissing", {
-          backend: option.value,
-          pack,
-        }));
-        backend.value = "comfy_ksampler";
-      }
-    }
-    const spectrumPatchMissing = !optionalDependencyAvailable("spectrumPatch");
-    spectrumPatchEnabled.disabled = spectrumPatchMissing;
-    correctionsEnabled.disabled = spectrumPatchMissing;
-    const spectrumInputDependency = backend.value === "comfy_ksampler" ? "spectrumPatch" : "spectrumAdvanced";
-    const correctionInputDependency = backend.value === "comfy_ksampler" ? "spectrumCorrections" : "spectrumAdvanced";
-    const spectrumControls = [
-      [windowSize, "window_size", "tip.spectrumWindow"],
-      [flexWindow, "flex_window", "tip.spectrumFlex"],
-      [warmupSteps, "warmup_steps", "tip.spectrumWarmup"],
-      [tailSteps, "tail_actual_steps", "tip.spectrumTail"],
-      [blendW, "blend_w", "tip.spectrumBlend"],
-      [chebyDegree, "cheby_degree", "tip.spectrumCheby"],
-      [ridgeLambda, "ridge_lambda", "tip.spectrumRidge"],
-      [dcwMode, "dcw_mode", "tip.dcwMode"],
-      [dcwLambda, "dcw_lambda", "tip.dcwLambda"],
-      [dcwBand, "dcw_band_mask", "tip.dcwBand"],
-      [cfgppLambda, "cfgpp_lambda", "tip.cfgppLambda"],
-      [fsg, "fsg", "tip.fsg"],
-      [smcAlpha, "adaptive_smc_alpha", "tip.smcAlpha"],
-      [smcLambda, "smc_cfg_lambda", "tip.smcLambda"],
-    ];
-    for (const [control, inputName, tooltipKey] of spectrumControls.slice(0, 7)) {
-      applyNodeInputInfo(control, spectrumInputDependency, inputName, tooltipKey);
-    }
-    for (const [control, inputName, tooltipKey] of spectrumControls.slice(7)) {
-      applyNodeInputInfo(control, correctionInputDependency, inputName, tooltipKey);
-    }
-    applyNodeInputInfo(spdScale, "spectrumSpd", "spd_scale", "tip.spdScale");
-    applyNodeInputInfo(spdSigma, "spectrumSpd", "spd_sigma", "tip.spdSigma");
-    applyNodeInputInfo(spdSmc, "spectrumSpd", "adaptive_smc_alpha", "tip.smcAlpha");
-    if (spectrumPatchMissing && (spectrumPatchEnabled.checked || correctionsEnabled.checked)) {
-      messages.push(aioFormat("warning.optionalDependencyMissing", {
-        backend: "Spectrum Patch",
-        pack: optionalDependencyPack("spectrumPatch"),
-      }));
-      spectrumPatchEnabled.checked = false;
-      correctionsEnabled.checked = false;
-    }
-    dependencyWarning.hidden = messages.length === 0;
-    dependencyWarning.textContent = messages.join(" ");
-    refreshBackendDetails();
-  };
-  backend.addEventListener("change", refreshDependencyLocks);
-  refreshBackendDetails();
-  refreshDependencyLocks();
-  loadGeneratorOptionalDependencies().then(refreshDependencyLocks);
-
-  const cancel = document.createElement("button");
-  cancel.textContent = aioText("button.cancel");
-  const apply = document.createElement("button");
-  apply.className = "primary";
-  apply.textContent = aioText("button.apply");
-  actions.append(cancel, apply);
-  cancel.addEventListener("click", () => backdrop.remove());
-  apply.addEventListener("click", () => {
-    const next = mergeDefaults(DEFAULT_GENERATION_SETTINGS, settings);
-    delete next.sampler.dave;
-    next.sampler.backend = backend.value || "comfy_ksampler";
-    next.sampler.seed = normalizeSeedValue(seed.value, GENERATOR_SPECIAL_SEED_RANDOM);
-    next.sampler.seed_after_generate = normalizeSeedControl(seedControl.value);
-    next.sampler.steps = Math.trunc(clampGeneratorNumber(steps.value, DEFAULT_GENERATION_SETTINGS.sampler.steps, 1, 75));
-    next.sampler.cfg = clampGeneratorNumber(cfg.value, DEFAULT_GENERATION_SETTINGS.sampler.cfg, 1, 10);
-    next.sampler.denoise = clampGeneratorNumber(denoise.value, DEFAULT_GENERATION_SETTINGS.sampler.denoise, 0, 1);
-    next.sampler.sampler_name = samplerName.value || DEFAULT_GENERATION_SETTINGS.sampler.sampler_name;
-    next.sampler.scheduler = scheduler.value || DEFAULT_GENERATION_SETTINGS.sampler.scheduler;
-    next.sampler.spectrum.enabled = (
-      next.sampler.backend === "spectrum_mod_guidance_advanced"
-      || (next.sampler.backend === "comfy_ksampler" && spectrumPatchEnabled.checked && !spectrumPatchEnabled.disabled)
-    );
-    next.sampler.spectrum.window_size = Number(windowSize.value || 2);
-    next.sampler.spectrum.flex_window = Number(flexWindow.value || 0.25);
-    next.sampler.spectrum.warmup_steps = Number(warmupSteps.value || 6);
-    next.sampler.spectrum.tail_actual_steps = Number(tailSteps.value || 3);
-    next.sampler.spectrum.blend_w = Number(blendW.value || 0.3);
-    next.sampler.spectrum.cheby_degree = Number(chebyDegree.value || 3);
-    next.sampler.spectrum.ridge_lambda = Number(ridgeLambda.value || 0.1);
-    next.sampler.spectrum.compat_policy = spectrumCompat.value || "conservative";
-    next.sampler.spd.scale = Number(spdScale.value || 0.5);
-    next.sampler.spd.sigma = Number(spdSigma.value || 0.7);
-    next.sampler.spd.adaptive_smc_alpha = Number(spdSmc.value || 0);
-    next.sampler.spectrum_extra = spectrumExtra.values();
-    next.sampler.spd_extra = spdExtra.values();
-    next.sampler.dit_corrections.enabled = correctionsEnabled.checked && !correctionsEnabled.disabled;
-    next.sampler.dit_corrections.dcw_mode = dcwMode.value || "off";
-    next.sampler.dit_corrections.dcw_lambda = Number(dcwLambda.value || 0.01);
-    next.sampler.dit_corrections.dcw_band_mask = dcwBand.value || "LL";
-    next.sampler.dit_corrections.smc_cfg = smcCfg.checked;
-    next.sampler.dit_corrections.adaptive_smc_alpha = Number(smcAlpha.value || 0);
-    next.sampler.dit_corrections.smc_cfg_lambda = Number(smcLambda.value || 6);
-    next.sampler.dit_corrections.cfgpp = cfgpp.checked;
-    next.sampler.dit_corrections.cfgpp_lambda = Number(cfgppLambda.value || 0);
-    next.sampler.dit_corrections.fsg = fsg.checked;
-    next.mod_guidance.mode = modMode.value || "prompt_data";
-    next.mod_guidance.profile = modProfile.value || "step_i8_skip27";
-    next.mod_guidance.advanced.adapter = modAdapter.value || "(auto-download default)";
-    next.mod_guidance.advanced.mod_w = Number(modW.value || 3);
-    next.mod_guidance.advanced.mod_start_layer = Number(modStart.value || 8);
-    next.mod_guidance.advanced.mod_end_layer = Number(modEnd.value || 27);
-    next.mod_guidance.advanced.mod_taper = Number(modTaper.value || 0);
-    next.mod_guidance.advanced.mod_taper_scale = Number(modTaperScale.value || 0.25);
-    next.mod_guidance.advanced.mod_final_w = Number(modFinalW.value || 0);
-    applyVisibleGeneratorSettings(node, next);
-    writeSettings(node, widget, next);
-    renderGeneratorPanel(node);
-    backdrop.remove();
-  });
-}
-
-function createStageOptimizationEditor(title, values, defaults) {
-  const section = document.createElement("section");
-  section.className = "easyuse-anima-aio-section";
-  section.append(Object.assign(document.createElement("h3"), { textContent: aioStaticText(title) }));
-  const spectrumValues = mergeDefaults(defaults.spectrum || {}, values.spectrum || {});
-  const correctionValues = mergeDefaults(defaults.dit_corrections || {}, values.dit_corrections || {});
-
-  const spectrumEnabled = field(section, "Spectrum patch", checkbox(spectrumValues.enabled));
-  const windowSize = field(section, "Window size", numberInput(spectrumValues.window_size, "0.25"));
-  const flexWindow = field(section, "Flex window", numberInput(spectrumValues.flex_window, "0.05"));
-  const warmupSteps = field(section, "Warmup", numberInput(spectrumValues.warmup_steps, "1"));
-  const tailSteps = field(section, "Tail actual", numberInput(spectrumValues.tail_actual_steps, "1"));
-  const blendW = field(section, "Blend W", numberInput(spectrumValues.blend_w, "0.05"));
-  const chebyDegree = field(section, "Cheby", numberInput(spectrumValues.cheby_degree, "1"));
-  const ridgeLambda = field(section, "Ridge lambda", numberInput(spectrumValues.ridge_lambda, "0.01"));
-  const compatPolicy = field(
-    section,
-    "Compat",
-    selectInput(["conservative", "legacy", "strict"], spectrumValues.compat_policy || "conservative")
-  );
-
-  const corrections = document.createElement("div");
-  corrections.className = "easyuse-anima-aio-subsection";
-  corrections.append(Object.assign(document.createElement("h4"), { textContent: aioStaticText("Spectrum DCW / Corrections") }));
-  const correctionsEnabled = field(corrections, "Use corrections", checkbox(correctionValues.enabled));
-  const dcwMode = field(corrections, "DCW mode", selectInput(["off", "manual", "auto"], correctionValues.dcw_mode || "off"));
-  const dcwLambda = field(corrections, "DCW lambda", numberInput(correctionValues.dcw_lambda, "0.001"));
-  const dcwBand = field(corrections, "DCW band", selectInput(["LL", "all", "HH", "LH+HL+HH"], correctionValues.dcw_band_mask || "LL"));
-  const smcCfg = field(corrections, "SMC-CFG", checkbox(correctionValues.smc_cfg));
-  const smcAlpha = field(corrections, "SMC alpha", numberInput(correctionValues.adaptive_smc_alpha, "0.01"));
-  const smcLambda = field(corrections, "SMC lambda", numberInput(correctionValues.smc_cfg_lambda, "0.1"));
-  const cfgpp = field(corrections, "CFG++", checkbox(correctionValues.cfgpp));
-  const cfgppLambda = field(corrections, "CFG++ lambda", numberInput(correctionValues.cfgpp_lambda, "0.1"));
-  const fsg = field(corrections, "FSG", checkbox(correctionValues.fsg));
-  section.append(corrections);
-  const dependencyWarning = document.createElement("div");
-  dependencyWarning.className = "easyuse-anima-aio-warning";
-  dependencyWarning.hidden = true;
-  section.append(dependencyWarning);
-  const refreshDependencyLocks = () => {
-    const spectrumPatchMissing = !optionalDependencyAvailable("spectrumPatch");
-    spectrumEnabled.disabled = spectrumPatchMissing;
-    correctionsEnabled.disabled = spectrumPatchMissing;
-    if (spectrumPatchMissing) {
-      spectrumEnabled.checked = false;
-      correctionsEnabled.checked = false;
-      dependencyWarning.hidden = false;
-      dependencyWarning.textContent = aioFormat("warning.optionalDependencyMissing", {
-        backend: title,
-        pack: optionalDependencyPack("spectrumPatch"),
-      });
-    } else {
-      dependencyWarning.hidden = true;
-      dependencyWarning.textContent = "";
-    }
-  };
-  refreshDependencyLocks();
-  loadGeneratorOptionalDependencies().then(refreshDependencyLocks);
-
-  return {
-    section,
-    setIntegratedMode(isIntegrated) {
-      if (spectrumEnabled?.parentElement) {
-        spectrumEnabled.parentElement.style.display = isIntegrated ? "none" : "";
-      }
-      if (compatPolicy?.parentElement) {
-        compatPolicy.parentElement.style.display = isIntegrated ? "none" : "";
-      }
-    },
-    values() {
-      return {
-        spectrum: {
-          enabled: spectrumEnabled.checked && !spectrumEnabled.disabled,
-          window_size: Number(windowSize.value || defaults.spectrum.window_size || 2),
-          flex_window: Number(flexWindow.value || defaults.spectrum.flex_window || 0.25),
-          warmup_steps: Number(warmupSteps.value || defaults.spectrum.warmup_steps || 6),
-          tail_actual_steps: Number(tailSteps.value || defaults.spectrum.tail_actual_steps || 3),
-          blend_w: Number(blendW.value || defaults.spectrum.blend_w || 0.3),
-          cheby_degree: Number(chebyDegree.value || defaults.spectrum.cheby_degree || 3),
-          ridge_lambda: Number(ridgeLambda.value || defaults.spectrum.ridge_lambda || 0.1),
-          history_size: Number(spectrumValues.history_size || defaults.spectrum.history_size || 100),
-          one_sampler_only: !!spectrumValues.one_sampler_only,
-          verbose: !!spectrumValues.verbose,
-          compat_policy: compatPolicy.value || "conservative",
-        },
-        dit_corrections: {
-          enabled: correctionsEnabled.checked && !correctionsEnabled.disabled,
-          dcw_mode: dcwMode.value || "off",
-          dcw_lambda: Number(dcwLambda.value || defaults.dit_corrections.dcw_lambda || 0.01),
-          dcw_band_mask: dcwBand.value || "LL",
-          dcw_calibrator: correctionValues.dcw_calibrator || "(auto-download default)",
-          smc_cfg: smcCfg.checked,
-          adaptive_smc_alpha: Number(smcAlpha.value || defaults.dit_corrections.adaptive_smc_alpha || 0),
-          smc_cfg_lambda: Number(smcLambda.value || defaults.dit_corrections.smc_cfg_lambda || 6),
-          cfgpp: cfgpp.checked,
-          cfgpp_lambda: Number(cfgppLambda.value || defaults.dit_corrections.cfgpp_lambda || 0),
-          fsg: fsg.checked,
-          fsg_band_lo: Number(correctionValues.fsg_band_lo || defaults.dit_corrections.fsg_band_lo || 0.59),
-          fsg_band_hi: Number(correctionValues.fsg_band_hi || defaults.dit_corrections.fsg_band_hi || 0.75),
-          fsg_k: Number(correctionValues.fsg_k || defaults.dit_corrections.fsg_k || 3),
-          fsg_d_sigma: Number(correctionValues.fsg_d_sigma || defaults.dit_corrections.fsg_d_sigma || 0.1),
-          fsg_gamma: Number(correctionValues.fsg_gamma || defaults.dit_corrections.fsg_gamma || 0),
-          replace_existing_cfg: !!correctionValues.replace_existing_cfg,
-        },
-      };
-    },
-  };
-}
-
-function openHighresSettings(node) {
-  const widget = findWidget(node, GENERATOR_SETTINGS_WIDGET);
-  const settings = generatorSettings(node);
-  const highres = mergeDefaults(DEFAULT_GENERATION_SETTINGS.highres, settings.highres || {});
-  const mainBackendIsSpd = settings.sampler?.backend === "spectrum_spd_speed";
-  const { backdrop, body, actions } = createDialog(
-    "Highres Settings",
-    "Image scaling and Highres resampling settings are saved with the node."
-  );
-  body.classList.add("easyuse-anima-aio-one-column");
-
-  const image = document.createElement("section");
-  image.className = "easyuse-anima-aio-section";
-  image.append(Object.assign(document.createElement("h3"), { textContent: aioStaticText("Image Scale") }));
-  const enabled = field(image, "Enable highres", checkbox(highres.enabled));
-  const scaleBy = field(image, "Scale by", numberInput(highres.scale_by, "0.01"));
-  const upscaleMethod = field(image, "Method", selectInput(["bicubic", "nearest-exact", "bilinear", "area", "lanczos"], highres.upscale_method));
-  const multiple = field(image, "Multiple", selectInput(["8", "16", "32", "64"], highres.multiple));
-  const maxLongEdge = field(image, "Max long edge", numberInput(highres.max_long_edge, "32"));
-
-  const sampler = document.createElement("section");
-  sampler.className = "easyuse-anima-aio-section";
-  sampler.append(Object.assign(document.createElement("h3"), { textContent: aioStaticText("Highres Sampler") }));
-  const steps = field(sampler, "Steps", numberInput(highres.steps, "1"));
-  steps.min = "1";
-  steps.max = "75";
-  const effectiveInherit = !!highres.inherit_sampler_settings;
-  const inheritSampler = field(
-    sampler,
-    "Follow main sampler",
-    checkbox(effectiveInherit),
-    "tip.highresFollow",
-  );
-  const dependencyWarning = document.createElement("div");
-  dependencyWarning.className = "easyuse-anima-aio-warning";
-  dependencyWarning.hidden = true;
-  sampler.append(dependencyWarning);
-  const cfg = field(sampler, "CFG", numberInput(highres.cfg, "0.1"));
-  cfg.min = "1";
-  cfg.max = "10";
-  const samplerName = field(
-    sampler,
-    "Sampler",
-    selectInput(widgetOptions(node, "sampler_name", GENERATOR_FALLBACK_SAMPLER_NAMES), highres.sampler_name)
-  );
-  const scheduler = field(
-    sampler,
-    "Scheduler",
-    selectInput(widgetOptions(node, "scheduler", GENERATOR_FALLBACK_SCHEDULER_NAMES), highres.scheduler)
-  );
-  const denoise = field(sampler, "Denoise", numberInput(highres.denoise, "0.01"));
-  const optimization = createStageOptimizationEditor("Highres Optimization", highres, DEFAULT_GENERATION_SETTINGS.highres);
-  const updateInheritedRows = () => {
-    const usesMain = inheritSampler.checked;
-    const display = usesMain ? "none" : "";
-    for (const control of [cfg, samplerName, scheduler]) {
-      if (control?.parentElement) {
-        control.parentElement.style.display = display;
-      }
-    }
-  };
-  const refreshDependencyLocks = () => {
-    const messages = [];
-    if (mainBackendIsSpd && inheritSampler.checked) {
-      messages.push(aioText("text.highresSpdManualRequired"));
-    }
-    dependencyWarning.hidden = messages.length === 0;
-    dependencyWarning.textContent = messages.join(" ");
-    updateInheritedRows();
-  };
-  inheritSampler.addEventListener("change", refreshDependencyLocks);
-  updateInheritedRows();
-  refreshDependencyLocks();
-  body.append(image, sampler, optimization.section);
-
-  const cancel = document.createElement("button");
-  cancel.textContent = aioText("button.cancel");
-  const apply = document.createElement("button");
-  apply.className = "primary";
-  apply.textContent = aioText("button.apply");
-  actions.append(cancel, apply);
-  cancel.addEventListener("click", () => backdrop.remove());
-  apply.addEventListener("click", () => {
-    const next = mergeDefaults(DEFAULT_GENERATION_SETTINGS, settings);
-    const optimized = optimization.values();
-    next.highres = {
-      ...next.highres,
-      enabled: enabled.checked,
-      scale_by: clampGeneratorNumber(scaleBy.value, DEFAULT_GENERATION_SETTINGS.highres.scale_by, 0.01, 8),
-      upscale_method: upscaleMethod.value || "bicubic",
-      multiple: multiple.value || "32",
-      max_long_edge: Math.trunc(clampGeneratorNumber(maxLongEdge.value, 2560, 0, 16384)),
-      steps: Math.trunc(clampGeneratorNumber(steps.value, 20, 1, 75)),
-      inherit_sampler_settings: inheritSampler.checked,
-      cfg: clampGeneratorNumber(cfg.value, 8, 1, 10),
-      sampler_name: samplerName.value || "euler",
-      scheduler: scheduler.value || "simple",
-      denoise: clampGeneratorNumber(denoise.value, DEFAULT_GENERATION_SETTINGS.highres.denoise, 0, 1),
-      ...optimized,
-    };
-    writeSettings(node, widget, next);
-    renderGeneratorPanel(node);
-    backdrop.remove();
-  });
-}
-
-function openUpscaleSettings(node) {
-  const widget = findWidget(node, GENERATOR_SETTINGS_WIDGET);
-  const settings = generatorSettings(node);
-  const upscale = mergeDefaults(DEFAULT_GENERATION_SETTINGS.upscale, settings.upscale || {});
-  const usdu = mergeDefaults(DEFAULT_GENERATION_SETTINGS.upscale.usdu, upscale.usdu || {});
-  const resshift = mergeDefaults(DEFAULT_GENERATION_SETTINGS.upscale.resshift, upscale.resshift || {});
-  const { backdrop, body, actions } = createDialog(
-    "Upscale Settings",
-    "Final-stage upscale runs after Detailer and before Save. Choose USDU or ResShift."
-  );
-  body.classList.add("easyuse-anima-aio-one-column");
-
-  const main = document.createElement("section");
-  main.className = "easyuse-anima-aio-section";
-  main.append(Object.assign(document.createElement("h3"), { textContent: aioStaticText("Image Scale") }));
-  const enabled = field(main, "Enable upscale", checkbox(upscale.enabled), "tip.upscaleEnabled");
-  const backend = field(
-    main,
-    "Upscale backend",
-    selectInput(["usdu", "resshift"], upscale.backend || "usdu"),
-    "tip.upscaleBackend",
-  );
-  const dependencyWarning = document.createElement("div");
-  dependencyWarning.className = "easyuse-anima-aio-warning";
-  dependencyWarning.hidden = true;
-  main.append(dependencyWarning);
-
-  const usduSection = document.createElement("section");
-  usduSection.className = "easyuse-anima-aio-section";
-  usduSection.append(Object.assign(document.createElement("h3"), { textContent: aioStaticText("USDU Upscale") }));
-  const scaleBy = field(usduSection, "Scale by", numberInput(upscale.scale_by, "0.05"), "tip.upscaleScale");
-  scaleBy.min = "0.05";
-  scaleBy.max = "4";
-  const upscaleModel = field(
-    usduSection,
-    "Upscale model",
-    selectInput(
-      nodeInputChoiceOptions("upscaleModelLoader", "model_name", usdu.upscale_model_name, [usdu.upscale_model_name]),
-      usdu.upscale_model_name,
-    ),
-    "tip.usduUpscaleModel",
-  );
-  const promptMode = field(
-    usduSection,
-    "USDU prompt",
-    selectInput(["full", "no_general"], usdu.prompt_mode === "quality_tags_only" ? "no_general" : usdu.prompt_mode || "full"),
-    "tip.usduPrompt",
-  );
-  const autoTile = field(usduSection, "Auto tile size", checkbox(usdu.auto_tile_size), "tip.usduAutoTile");
-  const autoTileTarget = field(usduSection, "Auto tile target", numberInput(usdu.auto_tile_target, "64"), "tip.usduAutoTile");
-  const autoTileMin = field(usduSection, "Auto tile min", numberInput(usdu.auto_tile_min, "64"), "tip.usduAutoTile");
-  const autoTileMax = field(usduSection, "Auto tile max", numberInput(usdu.auto_tile_max, "64"), "tip.usduAutoTile");
-  const modeType = field(usduSection, "Mode", selectInput(["Linear", "Chess", "None"], usdu.mode_type || "Linear"), "tip.usduMode");
-  const tileWidth = field(usduSection, "Tile width", numberInput(usdu.tile_width, "8"), "tip.usduTile");
-  const tileHeight = field(usduSection, "Tile height", numberInput(usdu.tile_height, "8"), "tip.usduTile");
-  const maskBlur = field(usduSection, "Mask blur", numberInput(usdu.mask_blur, "1"), "tip.usduTile");
-  const tilePadding = field(usduSection, "Tile padding", numberInput(usdu.tile_padding, "8"), "tip.usduTile");
-  const forceUniformTiles = field(usduSection, "Force uniform tiles", checkbox(usdu.force_uniform_tiles), "tip.usduTile");
-  const tiledDecode = field(usduSection, "Tiled decode", checkbox(usdu.tiled_decode), "tip.usduTile");
-  const batchSize = field(usduSection, "Tile batch", numberInput(usdu.batch_size, "1"), "tip.usduTile");
-  const seamFix = field(
-    usduSection,
-    "Seam fix",
-    selectInput(["None", "Band Pass", "Half Tile", "Half Tile + Intersections"], usdu.seam_fix_mode || "None"),
-    "tip.usduSeam",
-  );
-  const seamDenoise = field(usduSection, "Seam denoise", numberInput(usdu.seam_fix_denoise, "0.01"), "tip.usduSeam");
-  const seamWidth = field(usduSection, "Seam width", numberInput(usdu.seam_fix_width, "8"), "tip.usduSeam");
-  const seamMaskBlur = field(usduSection, "Seam mask blur", numberInput(usdu.seam_fix_mask_blur, "1"), "tip.usduSeam");
-  const seamPadding = field(usduSection, "Seam padding", numberInput(usdu.seam_fix_padding, "8"), "tip.usduSeam");
-
-  const usduSampler = document.createElement("section");
-  usduSampler.className = "easyuse-anima-aio-section";
-  usduSampler.append(Object.assign(document.createElement("h3"), { textContent: aioStaticText("USDU Sampler") }));
-  const inheritSampler = field(usduSampler, "Follow main sampler", checkbox(upscale.inherit_sampler_settings), "tip.highresFollow");
-  const steps = field(usduSampler, "Steps", numberInput(upscale.steps, "1"), "tip.steps");
-  const cfg = field(usduSampler, "CFG", numberInput(upscale.cfg, "0.1"), "tip.cfg");
-  const samplerName = field(
-    usduSampler,
-    "Sampler",
-    selectInput(widgetOptions(node, "sampler_name", GENERATOR_FALLBACK_SAMPLER_NAMES), upscale.sampler_name),
-    "tip.sampler",
-  );
-  const scheduler = field(
-    usduSampler,
-    "Scheduler",
-    selectInput(widgetOptions(node, "scheduler", GENERATOR_FALLBACK_SCHEDULER_NAMES), upscale.scheduler),
-    "tip.scheduler",
-  );
-  const denoise = field(usduSampler, "Denoise", numberInput(upscale.denoise, "0.01"), "tip.denoise");
-  const optimization = createStageOptimizationEditor("USDU Spectrum/DCW", upscale, DEFAULT_GENERATION_SETTINGS.upscale);
-
-  const resshiftSection = document.createElement("section");
-  resshiftSection.className = "easyuse-anima-aio-section";
-  resshiftSection.append(Object.assign(document.createElement("h3"), { textContent: aioStaticText("ResShift Upscale") }));
-  const resshiftScale = field(resshiftSection, "Scale", selectInput(["x2", "x4"], resshift.scale || "x2"), "tip.resshiftScale");
-  const student = field(
-    resshiftSection,
-    "Student",
-    selectInput(
-      nodeInputChoiceOptions("resShiftLoader", "student_name", resshift.student_name, ["(auto-download)"]),
-      resshift.student_name || "(auto-download)",
-    ),
-    "tip.resshiftStudent",
-  );
-  const dtype = field(resshiftSection, "Dtype", selectInput(["bf16", "fp32"], resshift.dtype || "bf16"), "tip.resshiftDtype");
-  const chop = field(resshiftSection, "Chop", numberInput(resshift.chop, "256"), "tip.resshiftTiling");
-  const overlap = field(resshiftSection, "Overlap", numberInput(resshift.overlap, "16"), "tip.resshiftTiling");
-  const tileBatch = field(resshiftSection, "Tile batch", numberInput(resshift.tile_batch, "1"), "tip.resshiftTiling");
-
-  const updateVisibility = () => {
-    const isUsdu = backend.value === "usdu";
-    usduSection.classList.toggle("hidden", !isUsdu);
-    usduSampler.classList.toggle("hidden", !isUsdu);
-    optimization.section.classList.toggle("hidden", !isUsdu);
-    resshiftSection.classList.toggle("hidden", isUsdu);
-    const autoTileDisplay = autoTile.checked ? "" : "none";
-    for (const control of [autoTileTarget, autoTileMin, autoTileMax]) {
-      if (control?.parentElement) {
-        control.parentElement.style.display = autoTileDisplay;
-      }
-    }
-    const manualTileDisplay = autoTile.checked ? "none" : "";
-    for (const control of [tileWidth, tileHeight]) {
-      if (control?.parentElement) {
-        control.parentElement.style.display = manualTileDisplay;
-      }
-    }
-    const samplerOverrideDisplay = inheritSampler.checked ? "none" : "";
-    for (const control of [cfg, samplerName, scheduler]) {
-      if (control?.parentElement) {
-        control.parentElement.style.display = samplerOverrideDisplay;
-      }
-    }
-  };
-  const refreshDependencyLocks = () => {
-    const messages = [];
-    for (const option of Array.from(backend.options)) {
-      const missingPacks = upscaleBackendMissingPacks(option.value);
-      option.disabled = missingPacks.length > 0;
-      option.textContent = missingPacks.length
-        ? `${option.value} (${missingPacks.join(", ")} missing)`
-        : option.value;
-      if (option.selected && missingPacks.length) {
-        messages.push(aioFormat("warning.optionalDependencyMissing", {
-          backend: option.value,
-          pack: missingPacks.join(", "),
-        }));
-        enabled.checked = false;
-      }
-    }
-    dependencyWarning.hidden = messages.length === 0;
-    dependencyWarning.textContent = messages.join(" ");
-    updateVisibility();
-  };
-  backend.addEventListener("change", refreshDependencyLocks);
-  autoTile.addEventListener("change", updateVisibility);
-  inheritSampler.addEventListener("change", updateVisibility);
-  body.append(main, usduSection, usduSampler, optimization.section, resshiftSection);
-  updateVisibility();
-  refreshDependencyLocks();
-  loadGeneratorOptionalDependencies().then(refreshDependencyLocks);
-
-  const cancel = document.createElement("button");
-  cancel.textContent = aioText("button.cancel");
-  const apply = document.createElement("button");
-  apply.className = "primary";
-  apply.textContent = aioText("button.apply");
-  actions.append(cancel, apply);
-  cancel.addEventListener("click", () => backdrop.remove());
-  apply.addEventListener("click", () => {
-    const next = mergeDefaults(DEFAULT_GENERATION_SETTINGS, settings);
-    const missingPacks = upscaleBackendMissingPacks(backend.value);
-    const optimized = optimization.values();
-    next.upscale = {
-      ...next.upscale,
-      enabled: enabled.checked && missingPacks.length === 0,
-      backend: backend.value || "usdu",
-      scale_by: clampGeneratorNumber(scaleBy.value, DEFAULT_GENERATION_SETTINGS.upscale.scale_by, 0.05, 4),
-      steps: Math.trunc(clampGeneratorNumber(steps.value, DEFAULT_GENERATION_SETTINGS.upscale.steps, 1, 1000)),
-      inherit_sampler_settings: inheritSampler.checked,
-      cfg: clampGeneratorNumber(cfg.value, DEFAULT_GENERATION_SETTINGS.upscale.cfg, 0, 100),
-      sampler_name: samplerName.value || "euler",
-      scheduler: scheduler.value || "simple",
-      denoise: clampGeneratorNumber(denoise.value, DEFAULT_GENERATION_SETTINGS.upscale.denoise, 0, 1),
-      ...optimized,
-      usdu: normalizeGeneratorUsduAutoTileRange({
-        upscale_model_name: upscaleModel.value || DEFAULT_GENERATION_SETTINGS.upscale.usdu.upscale_model_name,
-        auto_tile_size: autoTile.checked,
-        prompt_mode: promptMode.value || "full",
-        mode_type: modeType.value || "Linear",
-        auto_tile_target: Math.trunc(clampGeneratorNumber(autoTileTarget.value, 1024, 64, 16384)),
-        auto_tile_min: Math.trunc(clampGeneratorNumber(autoTileMin.value, 512, 64, 16384)),
-        auto_tile_max: Math.trunc(clampGeneratorNumber(autoTileMax.value, 2048, 64, 16384)),
-        tile_width: Math.trunc(clampGeneratorNumber(tileWidth.value, 512, 64, 16384)),
-        tile_height: Math.trunc(clampGeneratorNumber(tileHeight.value, 512, 64, 16384)),
-        mask_blur: Math.trunc(clampGeneratorNumber(maskBlur.value, 8, 0, 64)),
-        tile_padding: Math.trunc(clampGeneratorNumber(tilePadding.value, 32, 0, 16384)),
-        seam_fix_mode: seamFix.value || "None",
-        seam_fix_denoise: clampGeneratorNumber(seamDenoise.value, 1, 0, 1),
-        seam_fix_width: Math.trunc(clampGeneratorNumber(seamWidth.value, 64, 0, 16384)),
-        seam_fix_mask_blur: Math.trunc(clampGeneratorNumber(seamMaskBlur.value, 8, 0, 64)),
-        seam_fix_padding: Math.trunc(clampGeneratorNumber(seamPadding.value, 16, 0, 16384)),
-        force_uniform_tiles: forceUniformTiles.checked,
-        tiled_decode: tiledDecode.checked,
-        batch_size: Math.trunc(clampGeneratorNumber(batchSize.value, 1, 1, 4096)),
-      }),
-      resshift: {
-        scale: resshiftScale.value || "x2",
-        student_name: student.value || "(auto-download)",
-        dtype: dtype.value || "bf16",
-        chop: Math.trunc(clampGeneratorNumber(chop.value, 512, 256, 4096)),
-        overlap: Math.trunc(clampGeneratorNumber(overlap.value, 64, 0, 512)),
-        tile_batch: Math.trunc(clampGeneratorNumber(tileBatch.value, 4, 1, 32)),
-      },
-    };
-    writeSettings(node, widget, next);
-    renderGeneratorPanel(node);
-    backdrop.remove();
-  });
-}
-
-function openPostprocessSettings(node) {
-  const widget = findWidget(node, GENERATOR_SETTINGS_WIDGET);
-  const settings = generatorSettings(node);
-  const postprocess = mergeDefaults(DEFAULT_GENERATION_SETTINGS.postprocess, settings.postprocess || {});
-  const fit = mergeDefaults(DEFAULT_GENERATION_SETTINGS.postprocess.fit, postprocess.fit || {});
-  const { backdrop, body, actions } = createDialog(
-    "Postprocess Settings",
-    "Final size fit runs after Detailer and Upscale, before Save. Cap by long edge or megapixels."
-  );
-  body.classList.add("easyuse-anima-aio-one-column");
-
-  const fitSection = document.createElement("section");
-  fitSection.className = "easyuse-anima-aio-section";
-  fitSection.append(Object.assign(document.createElement("h3"), { textContent: aioStaticText("Final Size Fit") }));
-  const enabled = field(fitSection, "Enable postprocess", checkbox(postprocess.enabled), "tip.postprocessEnabled");
-  const fitMode = field(
-    fitSection,
-    "Fit by",
-    selectInput([
-      { value: "max_long_edge", label: "Max long edge" },
-      { value: "megapixels", label: "Megapixels" },
-    ], fit.mode || "max_long_edge"),
-    "tip.finalFit",
-  );
-  const fitMaxLongEdge = field(fitSection, "Max long edge", numberInput(fit.max_long_edge, "64"), "tip.finalFit");
-  const fitMaxMegapixels = field(fitSection, "Max megapixels", numberInput(fit.max_megapixels, "0.1"), "tip.finalFit");
-  const fitMethod = field(
-    fitSection,
-    "Fit method",
-    selectInput(["bicubic", "lanczos", "area", "bilinear", "nearest-exact"], fit.method || "bicubic"),
-    "tip.finalFit",
-  );
-
-  const updateVisibility = () => {
-    const fitDisplay = enabled.checked ? "" : "none";
-    for (const control of [fitMode, fitMethod]) {
-      if (control?.parentElement) {
-        control.parentElement.style.display = fitDisplay;
-      }
-    }
-    const longEdgeDisplay = enabled.checked && fitMode.value === "max_long_edge" ? "" : "none";
-    const megapixelsDisplay = enabled.checked && fitMode.value === "megapixels" ? "" : "none";
-    if (fitMaxLongEdge?.parentElement) {
-      fitMaxLongEdge.parentElement.style.display = longEdgeDisplay;
-    }
-    if (fitMaxMegapixels?.parentElement) {
-      fitMaxMegapixels.parentElement.style.display = megapixelsDisplay;
-    }
-  };
-  enabled.addEventListener("change", updateVisibility);
-  fitMode.addEventListener("change", updateVisibility);
-  body.append(fitSection);
-  updateVisibility();
-
-  const cancel = document.createElement("button");
-  cancel.textContent = aioText("button.cancel");
-  const apply = document.createElement("button");
-  apply.className = "primary";
-  apply.textContent = aioText("button.apply");
-  actions.append(cancel, apply);
-  cancel.addEventListener("click", () => backdrop.remove());
-  apply.addEventListener("click", () => {
-    const next = mergeDefaults(DEFAULT_GENERATION_SETTINGS, settings);
-    next.postprocess = {
-      enabled: enabled.checked,
-      fit: {
-        mode: fitMode.value || "max_long_edge",
-        max_long_edge: Math.trunc(clampGeneratorNumber(fitMaxLongEdge.value, 2048, 64, 16384)),
-        max_megapixels: clampGeneratorNumber(fitMaxMegapixels.value, 4, 0.1, 256),
-        method: fitMethod.value || "bicubic",
-      },
-    };
-    delete next.upscale?.fit;
-    writeSettings(node, widget, next);
-    renderGeneratorPanel(node);
-    backdrop.remove();
-  });
-}
-
-function createDetailerTargetEditor(node, title, values, defaults, onLabelChange = null) {
-  const target = mergeDefaults(defaults, values || {});
-  const section = document.createElement("section");
-  section.className = "easyuse-anima-aio-detailer-target-panel";
-  const header = document.createElement("div");
-  header.className = "easyuse-anima-aio-node-stage-mini-header";
-  header.append(Object.assign(document.createElement("h3"), { textContent: aioStaticText(title) }));
-  section.append(header);
-  const labelInput = field(
-    section,
-    "Block name",
-    textInput(target.label || defaults.label || title),
-    "tip.detailerName",
-  );
-  labelInput.addEventListener("input", () => onLabelChange?.());
-  const enabled = field(section, "Enable", checkbox(target.enabled));
-
-  const detect = document.createElement("div");
-  detect.className = "easyuse-anima-aio-subsection";
-  detect.append(Object.assign(document.createElement("h4"), { textContent: aioStaticText("SAM3 Detect") }));
-  const detectPrompt = field(detect, "Prompt", textInput(target.detect_prompt));
-  const detectCount = field(detect, "Count", numberInput(target.detect_count, "1"));
-  const threshold = field(detect, "Threshold", numberInput(target.threshold, "0.01"));
-  const refine = field(detect, "Refine", numberInput(target.refine_iterations, "1"));
-  const individual = field(detect, "Individual", checkbox(target.individual_masks));
-  const combined = field(detect, "Combined", checkbox(target.combined));
-  section.append(detect);
-
-  const segs = document.createElement("div");
-  segs.className = "easyuse-anima-aio-subsection";
-  segs.append(Object.assign(document.createElement("h4"), { textContent: aioStaticText("MaskToSEGS") }));
-  const cropFactor = field(segs, "Crop factor", numberInput(target.crop_factor, "0.1"));
-  const bboxFill = field(segs, "BBox fill", checkbox(target.bbox_fill));
-  const dropSize = field(segs, "Drop size", numberInput(target.drop_size, "1"));
-  const contourFill = field(segs, "Contour fill", checkbox(target.contour_fill));
-  section.append(segs);
-
-  const detail = document.createElement("div");
-  detail.className = "easyuse-anima-aio-subsection";
-  detail.append(Object.assign(document.createElement("h4"), { textContent: aioStaticText("Impact Detailer") }));
-  const guideSize = field(detail, "Guide size", numberInput(target.guide_size, "8"));
-  const maxSize = field(detail, "Max size", numberInput(target.max_size, "8"));
-  const steps = field(detail, "Steps", numberInput(target.steps, "1"));
-  steps.min = "1";
-  steps.max = "75";
-  const inheritSampler = field(
-    detail,
-    "Follow main sampler",
-    checkbox(target.inherit_sampler_settings),
-    "tip.detailerFollow",
-  );
-  const cfg = field(detail, "CFG", numberInput(target.cfg, "0.1"));
-  cfg.min = "1";
-  cfg.max = "10";
-  const samplerName = field(detail, "Sampler", selectInput(widgetOptions(node, "sampler_name", GENERATOR_FALLBACK_SAMPLER_NAMES), target.sampler_name));
-  const scheduler = field(detail, "Scheduler", selectInput(widgetOptions(node, "scheduler", GENERATOR_FALLBACK_SCHEDULER_NAMES), target.scheduler));
-  const denoise = field(detail, "Denoise", numberInput(target.denoise, "0.01"));
-  const feather = field(detail, "Feather", numberInput(target.feather, "1"));
-  const noiseMask = field(detail, "Noise mask", checkbox(target.noise_mask));
-  const forceInpaint = field(detail, "Force inpaint", checkbox(target.force_inpaint));
-  const noiseMaskFeather = field(detail, "Mask feather", numberInput(target.noise_mask_feather, "1"));
-  const cycle = field(detail, "Cycle", numberInput(target.cycle, "1"));
-  const alignment = field(detail, "Alignment", selectInput(["impact", "none", "32", "64"], target.alignment || "32"));
-  const optimization = createStageOptimizationEditor(`${title} Optimization`, target, defaults);
-  const updateInheritedRows = () => {
-    const display = inheritSampler.checked ? "none" : "";
-    for (const control of [cfg, samplerName, scheduler]) {
-      if (control?.parentElement) {
-        control.parentElement.style.display = display;
-      }
-    }
-  };
-  inheritSampler.addEventListener("change", updateInheritedRows);
-  updateInheritedRows();
-  section.append(detail);
-
-  section.append(optimization.section);
-
-  return {
-    section,
-    label() {
-      return String(labelInput.value || defaults.label || title).trim() || title;
-    },
-    values() {
-      const optimized = optimization.values();
-      return {
-        ...target,
-        label: String(labelInput.value || defaults.label || title).trim() || title,
-        enabled: enabled.checked,
-        detect_prompt: detectPrompt.value || defaults.detect_prompt,
-        detect_count: Number(detectCount.value || defaults.detect_count),
-        threshold: Number(threshold.value || defaults.threshold),
-        refine_iterations: Number(refine.value || defaults.refine_iterations),
-        individual_masks: individual.checked,
-        combined: combined.checked,
-        crop_factor: Number(cropFactor.value || defaults.crop_factor),
-        bbox_fill: bboxFill.checked,
-        drop_size: Number(dropSize.value || defaults.drop_size),
-        contour_fill: contourFill.checked,
-        guide_size: Number(guideSize.value || defaults.guide_size),
-        guide_size_for: false,
-        max_size: Number(maxSize.value || defaults.max_size),
-        steps: Math.trunc(clampGeneratorNumber(steps.value, defaults.steps, 1, 75)),
-        inherit_sampler_settings: inheritSampler.checked,
-        cfg: clampGeneratorNumber(cfg.value, defaults.cfg, 1, 10),
-        sampler_name: samplerName.value || defaults.sampler_name,
-        scheduler: scheduler.value || defaults.scheduler,
-        denoise: clampGeneratorNumber(denoise.value, defaults.denoise, 0, 1),
-        feather: Number(feather.value || defaults.feather),
-        noise_mask: noiseMask.checked,
-        force_inpaint: forceInpaint.checked,
-        wildcard: target.wildcard || "",
-        cycle: Number(cycle.value || defaults.cycle),
-        alignment: alignment.value || "32",
-        inpaint_model: false,
-        noise_mask_feather: Number(noiseMaskFeather.value || defaults.noise_mask_feather || 0),
-        tiled_encode: false,
-        tiled_decode: false,
-        ...optimized,
-      };
-    },
-  };
-}
-
-function openDetailerSettings(node) {
-  const widget = findWidget(node, GENERATOR_SETTINGS_WIDGET);
-  const settings = generatorSettings(node);
-  const detailer = mergeDefaults(DEFAULT_GENERATION_SETTINGS.detailer, settings.detailer || {});
-  const { backdrop, body, actions } = createDialog(
-    "Detailer Settings",
-    "SAM3 detection and Impact detailer settings are saved with the node."
-  );
-  body.classList.add("easyuse-anima-aio-one-column");
-  const main = document.createElement("section");
-  main.className = "easyuse-anima-aio-section full";
-  main.append(Object.assign(document.createElement("h3"), { textContent: aioStaticText("Detailer") }));
-  const enabled = field(main, "Enable detailer", checkbox(detailer.enabled));
-  const checkpoint = field(main, "SAM3 checkpoint", textInput(detailer.sam3.checkpoint));
-  const dependencyWarning = document.createElement("div");
-  dependencyWarning.className = "easyuse-anima-aio-warning";
-  dependencyWarning.hidden = true;
-  main.append(dependencyWarning);
-  body.append(main);
-
-  const currentOrder = normalizeDetailerOrder(detailer.order, detailer);
-  let activeTargetName = currentOrder[0] || "face";
-  const tabsSection = document.createElement("section");
-  tabsSection.className = "easyuse-anima-aio-section full";
-  tabsSection.append(Object.assign(document.createElement("h3"), { textContent: aioStaticText("Detailer Blocks") }));
-  const addBlock = document.createElement("button");
-  addBlock.type = "button";
-  addBlock.className = "easyuse-anima-aio-add-row";
-  addBlock.textContent = aioText("button.addDetailerBlock");
-  applyTooltip(addBlock, "tip.addDetailerBlock");
-  const tabBar = document.createElement("div");
-  tabBar.className = "easyuse-anima-aio-tabs";
-  const tabPanel = document.createElement("div");
-  tabPanel.className = "easyuse-anima-aio-tab-panel";
-  tabsSection.append(addBlock, tabBar, tabPanel);
-  body.append(tabsSection);
-
-  let editors = {};
-  const createEditor = (targetName, values = null) => {
-    const defaults = detailerTargetDefaults(targetName);
-    const targetValues = mergeDefaults(defaults, values || detailer[targetName] || {});
-    return createDetailerTargetEditor(
-      node,
-      detailerTargetTitle(targetName, targetValues),
-      targetValues,
-      defaults,
-      renderDetailerTabs,
-    );
-  };
-  const moveTarget = (targetName, delta) => {
-    const index = currentOrder.indexOf(targetName);
-    const nextIndex = index + delta;
-    if (index < 0 || nextIndex < 0 || nextIndex >= currentOrder.length) {
-      return;
-    }
-    [currentOrder[index], currentOrder[nextIndex]] = [currentOrder[nextIndex], currentOrder[index]];
-    renderDetailerTabs();
-  };
-  const selectTarget = (targetName) => {
-    activeTargetName = targetName;
-    renderDetailerTabs();
-  };
-  const removeTarget = (targetName) => {
-    if (!isCustomDetailerTargetName(targetName)) {
-      return;
-    }
-    const index = currentOrder.indexOf(targetName);
-    if (index < 0) {
-      return;
-    }
-    currentOrder.splice(index, 1);
-    delete editors[targetName];
-    if (activeTargetName === targetName) {
-      activeTargetName = currentOrder[Math.min(index, currentOrder.length - 1)] || "face";
-    }
-    renderDetailerTabs();
-  };
-  const addTarget = () => {
-    const targetName = nextDetailerTargetName(currentOrder, detailer);
-    const defaults = detailerTargetDefaults(targetName);
-    const targetValues = {
-      ...defaults,
-      enabled: true,
-    };
-    currentOrder.push(targetName);
-    editors[targetName] = createEditor(targetName, targetValues);
-    activeTargetName = targetName;
-    renderDetailerTabs();
-  };
-  addBlock.addEventListener("click", addTarget);
-  function renderDetailerTabs() {
-    tabBar.replaceChildren();
-    for (const [index, targetName] of currentOrder.entries()) {
-      const editor = editors[targetName];
-      if (!editor) {
-        continue;
-      }
-      const tab = document.createElement("div");
-      tab.className = "easyuse-anima-aio-tab";
-      tab.classList.toggle("active", targetName === activeTargetName);
-      tab.tabIndex = 0;
-      tab.setAttribute("role", "button");
-      tab.setAttribute("aria-selected", targetName === activeTargetName ? "true" : "false");
-      applyTooltip(tab, "tip.detailerBlock");
-      const label = document.createElement("span");
-      label.className = "easyuse-anima-aio-tab-label";
-      label.textContent = editor.label();
-      const tools = document.createElement("span");
-      tools.className = "easyuse-anima-aio-tab-tools";
-      const moveLeft = document.createElement("button");
-      moveLeft.type = "button";
-      moveLeft.textContent = "<";
-      moveLeft.disabled = index === 0;
-      applyTooltip(moveLeft, "tip.detailerOrder");
-      const moveRight = document.createElement("button");
-      moveRight.type = "button";
-      moveRight.textContent = ">";
-      moveRight.disabled = index === currentOrder.length - 1;
-      applyTooltip(moveRight, "tip.detailerOrder");
-      moveLeft.addEventListener("click", (event) => {
-        event.stopPropagation();
-        moveTarget(targetName, -1);
-      });
-      moveRight.addEventListener("click", (event) => {
-        event.stopPropagation();
-        moveTarget(targetName, 1);
-      });
-      const remove = document.createElement("button");
-      remove.type = "button";
-      remove.textContent = "x";
-      remove.disabled = !isCustomDetailerTargetName(targetName);
-      applyTooltip(remove, "button.remove");
-      remove.addEventListener("click", (event) => {
-        event.stopPropagation();
-        removeTarget(targetName);
-      });
-      tools.append(moveLeft, moveRight, remove);
-      tab.append(label, tools);
-      tab.addEventListener("click", () => selectTarget(targetName));
-      tab.addEventListener("keydown", (event) => {
-        if (event.key === "Enter" || event.key === " ") {
-          event.preventDefault();
-          selectTarget(targetName);
-        }
-      });
-      tabBar.append(tab);
-    }
-    if (!editors[activeTargetName]) {
-      activeTargetName = currentOrder[0] || "face";
-    }
-    tabPanel.replaceChildren(editors[activeTargetName]?.section || document.createElement("div"));
-  }
-  editors = Object.fromEntries(currentOrder.map((targetName) => [targetName, createEditor(targetName)]));
-  renderDetailerTabs();
-  const refreshDetailerDependencyLocks = () => {
-    const missingPacks = [];
-    if (!optionalDependencyAvailable("impactDetailer")) {
-      missingPacks.push(optionalDependencyPack("impactDetailer"));
-    }
-    if (!optionalDependencyAvailable("impactMaskToSegs")) {
-      missingPacks.push(optionalDependencyPack("impactMaskToSegs"));
-    }
-    const missing = missingPacks.length > 0;
-    enabled.disabled = missing;
-    if (missing && enabled.checked) {
-      enabled.checked = false;
-    }
-    dependencyWarning.hidden = !missing;
-    dependencyWarning.textContent = missing
-      ? aioFormat("warning.optionalDependencyMissing", {
-          backend: "Detailer",
-          pack: [...new Set(missingPacks)].join(", "),
-        })
-      : "";
-  };
-  refreshDetailerDependencyLocks();
-  loadGeneratorOptionalDependencies().then(refreshDetailerDependencyLocks);
-
-  const cancel = document.createElement("button");
-  cancel.textContent = aioText("button.cancel");
-  const apply = document.createElement("button");
-  apply.className = "primary";
-  apply.textContent = aioText("button.apply");
-  actions.append(cancel, apply);
-  cancel.addEventListener("click", () => backdrop.remove());
-  apply.addEventListener("click", () => {
-    const next = mergeDefaults(DEFAULT_GENERATION_SETTINGS, settings);
-    const detailerEnabled = enabled.checked && !enabled.disabled;
-    const nextDetailer = {
-      ...next.detailer,
-      enabled: detailerEnabled,
-      sam3: {
-        context: "load_checkpoint",
-        checkpoint: checkpoint.value || "sam3.1_multiplex_fp16.safetensors",
-      },
-    };
-    for (const targetName of Object.keys(nextDetailer)) {
-      if (isCustomDetailerTargetName(targetName)) {
-        delete nextDetailer[targetName];
-      }
-    }
-    for (const targetName of currentOrder) {
-      const editor = editors[targetName];
-      if (!editor) {
-        continue;
-      }
-      const values = editor.values();
-      if (!detailerEnabled) {
-        values.enabled = false;
-      }
-      nextDetailer[targetName] = values;
-    }
-    nextDetailer.order = normalizeDetailerOrder(currentOrder, nextDetailer);
-    next.detailer = nextDetailer;
-    writeSettings(node, widget, next);
-    renderGeneratorPanel(node);
-    backdrop.remove();
-  });
-}
-
-function normalizeImageSaverHashBundles(value) {
-  if (typeof value === "string") {
-    try {
-      return normalizeImageSaverHashBundles(JSON.parse(value || "[]"));
-    } catch {
-      return value.trim() ? [value.trim()] : [];
-    }
-  }
-  if (!Array.isArray(value)) {
-    return [];
-  }
-  return value
-    .map((item) => String(item ?? "").trim().replace(/^[,\s]+|[,\s]+$/g, ""))
-    .filter(Boolean);
-}
-
-function normalizeImageSaverCivitaiHashFetchers(value) {
-  if (typeof value === "string") {
-    try {
-      return normalizeImageSaverCivitaiHashFetchers(JSON.parse(value || "[]"));
-    } catch {
-      return [];
-    }
-  }
-  if (!Array.isArray(value)) {
-    return [];
-  }
-  return value
-    .filter((item) => item && typeof item === "object" && !Array.isArray(item))
-    .map((item) => ({
-      enabled: asBool(item.enabled, true),
-      username: String(item.username || "").trim(),
-      model_name: String(item.model_name || "").trim(),
-      version: String(item.version || "").trim(),
-    }))
-    .filter((item) => item.username || item.model_name || item.version);
-}
-
-function createImageSaverHashBundleEditor(initialBundles) {
-  const wrapper = document.createElement("div");
-  const list = document.createElement("div");
-  list.className = "easyuse-anima-aio-hash-bundle-list";
-  const addButton = document.createElement("button");
-  addButton.type = "button";
-  addButton.className = "easyuse-anima-aio-add-row";
-  addButton.textContent = aioText("button.addHashBundle");
-
-  const addRow = (value = "") => {
-    const row = document.createElement("div");
-    row.className = "easyuse-anima-aio-hash-bundle-row";
-    const textarea = textareaInput(value);
-    textarea.placeholder = "Name:HASH, HASH:Weight, Name:HASH:Weight";
-    applyTooltip(textarea, "tip.hashBundles");
-    const remove = document.createElement("button");
-    remove.type = "button";
-    remove.textContent = aioText("button.remove");
-    applyTooltip(remove, "tip.hashBundles");
-    remove.addEventListener("click", () => {
-      row.remove();
-    });
-    row.append(textarea, remove);
-    list.append(row);
-  };
-
-  const bundles = normalizeImageSaverHashBundles(initialBundles);
-  if (bundles.length) {
-    for (const bundle of bundles) {
-      addRow(bundle);
-    }
-  } else {
-    addRow();
-  }
-  addButton.addEventListener("click", () => addRow());
-  wrapper.append(list, addButton);
-
-  return {
-    element: wrapper,
-    values() {
-      return [...list.querySelectorAll("textarea")]
-        .map((textarea) => String(textarea.value || "").trim().replace(/^[,\s]+|[,\s]+$/g, ""))
-        .filter(Boolean);
-    },
-  };
-}
-
-function createImageSaverCivitaiHashFetcherEditor(initialFetchers) {
-  const wrapper = document.createElement("div");
-  const list = document.createElement("div");
-  list.className = "easyuse-anima-aio-civitai-fetcher-list";
-  const addButton = document.createElement("button");
-  addButton.type = "button";
-  addButton.className = "easyuse-anima-aio-add-row";
-  addButton.textContent = aioText("button.addCivitaiFetcher");
-  applyTooltip(addButton, "tip.civitaiHashFetchers");
-
-  const miniField = (label, control, tooltipKey) => {
-    const item = document.createElement("div");
-    item.className = "easyuse-anima-aio-mini-field";
-    const labelEl = document.createElement("label");
-    labelEl.textContent = label;
-    const tooltip = aioText(tooltipKey);
-    applyTooltipText(item, tooltip);
-    applyTooltipText(labelEl, tooltip);
-    applyTooltipText(control, tooltip);
-    item.append(labelEl, control);
-    return item;
-  };
-
-  const addRow = (value = {}) => {
-    const row = document.createElement("div");
-    row.className = "easyuse-anima-aio-civitai-fetcher-row";
-    applyTooltip(row, "tip.civitaiHashFetchers");
-
-    const header = document.createElement("div");
-    header.className = "easyuse-anima-aio-civitai-fetcher-head";
-    const enabledLabel = document.createElement("label");
-    enabledLabel.className = "easyuse-anima-aio-civitai-fetcher-enabled";
-    const enabled = checkbox(value.enabled !== false);
-    enabledLabel.append(enabled, document.createTextNode(aioText("label.enabled")));
-    applyTooltip(enabledLabel, "tip.civitaiHashFetchers");
-    const remove = document.createElement("button");
-    remove.type = "button";
-    remove.textContent = aioText("button.remove");
-    applyTooltip(remove, "tip.civitaiHashFetchers");
-    remove.addEventListener("click", () => row.remove());
-    header.append(enabledLabel, remove);
-
-    const grid = document.createElement("div");
-    grid.className = "easyuse-anima-aio-civitai-fetcher-grid";
-    const username = textInput(value.username || "");
-    const modelName = textInput(value.model_name || "");
-    const version = textInput(value.version || "");
-    username.placeholder = "N0VA39";
-    modelName.placeholder = "Anima All in One workflow";
-    version.placeholder = "";
-    grid.append(
-      miniField("Username", username, "tip.civitaiUsername"),
-      miniField("Model name", modelName, "tip.civitaiModelName"),
-      miniField("Version", version, "tip.civitaiVersion"),
-    );
-
-    const preview = document.createElement("div");
-    preview.className = "easyuse-anima-aio-civitai-fetcher-preview";
-    applyTooltip(preview, "tip.civitaiHashFetchers");
-    const updatePreview = () => {
-      const name = String(modelName.value || "").trim() || "model_name";
-      preview.textContent = aioFormat("text.civitaiHashPreview", { model: name });
-    };
-    modelName.addEventListener("input", updatePreview);
-    updatePreview();
-
-    row.append(header, grid, preview);
-    list.append(row);
-  };
-
-  const fetchers = normalizeImageSaverCivitaiHashFetchers(initialFetchers);
-  if (fetchers.length) {
-    for (const fetcher of fetchers) {
-      addRow(fetcher);
-    }
-  } else {
-    addRow();
-  }
-  addButton.addEventListener("click", () => addRow());
-  wrapper.append(list, addButton);
-
-  return {
-    element: wrapper,
-    values() {
-      return [...list.querySelectorAll(".easyuse-anima-aio-civitai-fetcher-row")]
-        .map((row) => {
-          const inputs = row.querySelectorAll("input");
-          const enabled = inputs[0]?.checked !== false;
-          const username = String(inputs[1]?.value || "").trim();
-          const modelName = String(inputs[2]?.value || "").trim();
-          const version = String(inputs[3]?.value || "").trim();
-          return {
-            enabled,
-            username,
-            model_name: modelName,
-            version,
-          };
-        })
-        .filter((item) => item.username || item.model_name || item.version);
-    },
-  };
-}
-
-function openPreviewSettings(node) {
-  const widget = findWidget(node, GENERATOR_SETTINGS_WIDGET);
-  const settings = generatorSettings(node);
-  const preview = mergeDefaults(DEFAULT_GENERATION_SETTINGS.preview, settings.preview || {});
-  const { backdrop, body, actions } = createDialog(
-    "Preview Options",
-    aioText("text.previewOptionsSubtitle"),
-  );
-  const section = document.createElement("section");
-  section.className = "easyuse-anima-aio-section full";
-  section.append(Object.assign(document.createElement("h3"), { textContent: aioStaticText("Node Preview") }));
-  const intermediate = field(
-    section,
-    "Intermediate images",
-    checkbox(preview.intermediate_images),
-    "tip.previewIntermediate",
-  );
-  const comparePrevious = field(
-    section,
-    "Compare previous",
-    checkbox(preview.compare_previous),
-    "tip.previewComparePrevious",
-  );
-  const imageFeed = field(
-    section,
-    "Image feed",
-    checkbox(preview.image_feed),
-    "tip.previewImageFeed",
-  );
-  const feedCount = field(
-    section,
-    "Feed count",
-    numberInput(preview.feed_count, "1"),
-    "tip.previewFeedCount",
-  );
-  feedCount.min = "1";
-  feedCount.max = "100";
-  const syncFeedCount = () => {
-    feedCount.disabled = !imageFeed.checked;
-  };
-  imageFeed.addEventListener("change", syncFeedCount);
-  syncFeedCount();
-  body.append(section);
-
-  const cancel = document.createElement("button");
-  cancel.textContent = aioText("button.cancel");
-  const apply = document.createElement("button");
-  apply.className = "primary";
-  apply.textContent = aioText("button.apply");
-  actions.append(cancel, apply);
-  cancel.addEventListener("click", () => backdrop.remove());
-  apply.addEventListener("click", () => {
-    const next = mergeDefaults(DEFAULT_GENERATION_SETTINGS, settings);
-    next.preview = {
-      intermediate_images: intermediate.checked,
-      compare_previous: comparePrevious.checked,
-      image_feed: imageFeed.checked,
-      feed_count: Math.trunc(clampGeneratorNumber(feedCount.value, preview.feed_count, 1, 100)),
-    };
-    if (Array.isArray(node.__easyuseAnimaGeneratorPreviewFeedImages)) {
-      node.__easyuseAnimaGeneratorPreviewFeedImages = node.__easyuseAnimaGeneratorPreviewFeedImages.slice(
-        -next.preview.feed_count,
-      );
-    }
-    node.__easyuseAnimaGeneratorPreviewImages = next.preview.image_feed
-      ? (node.__easyuseAnimaGeneratorPreviewFeedImages || [])
-      : (node.__easyuseAnimaGeneratorCurrentRunImages || []);
-    node.__easyuseAnimaSelectedPreviewIndex = generatorDefaultPreviewIndex(node.__easyuseAnimaGeneratorPreviewImages);
-    applyVisibleGeneratorSettings(node, next);
-    writeSettings(node, widget, next);
-    renderGeneratorPanel(node);
-    backdrop.remove();
-  });
-}
-
-function openSaveSettings(node) {
-  const widget = findWidget(node, GENERATOR_SETTINGS_WIDGET);
-  const settings = generatorSettings(node);
-  const imageSaver = mergeDefaults(
-    DEFAULT_GENERATION_SETTINGS.save.image_saver,
-    settings.save.image_saver,
-  );
-  const { backdrop, body, actions } = createDialog(
-    "Save Options",
-    "Image Saver requires ComfyUI-Image-Saver. Missing node packs are reported during queue execution."
-  );
-  body.classList.add("easyuse-anima-aio-save-body");
-  const main = document.createElement("section");
-  main.className = "easyuse-anima-aio-section full";
-  main.append(Object.assign(document.createElement("h3"), { textContent: aioStaticText("Save Backend") }));
-  const save = field(main, "Save image", checkbox(settings.save.enabled));
-  const backend = field(
-    main,
-    "Backend",
-    selectInput(["image_saver", "comfy_save_image"], settings.save.backend || "image_saver"),
-  );
-  const dependencyWarning = document.createElement("div");
-  dependencyWarning.className = "easyuse-anima-aio-warning";
-  dependencyWarning.hidden = true;
-  main.append(dependencyWarning);
-  const refreshSaveDependencyLocks = () => {
-    const imageSaverMissing = !optionalDependencyAvailable("imageSaver");
-    for (const option of Array.from(backend.options)) {
-      if (option.value === "image_saver") {
-        option.disabled = imageSaverMissing;
-        option.textContent = imageSaverMissing
-          ? `image_saver (${optionalDependencyPack("imageSaver")} missing)`
-          : "image_saver";
-      }
-    }
-    if (imageSaverMissing && backend.value === "image_saver") {
-      backend.value = "comfy_save_image";
-      dependencyWarning.hidden = false;
-      dependencyWarning.textContent = aioFormat("warning.optionalDependencyMissing", {
-        backend: "image_saver",
-        pack: optionalDependencyPack("imageSaver"),
-      });
-    } else {
-      dependencyWarning.hidden = true;
-      dependencyWarning.textContent = "";
-    }
-  };
-
-  const files = document.createElement("section");
-  files.className = "easyuse-anima-aio-section full";
-  files.append(Object.assign(document.createElement("h3"), { textContent: aioStaticText("Image Saver Files") }));
-  const filename = field(files, "Filename", textInput(imageSaver.filename));
-  const path = field(files, "Path", textInput(imageSaver.path));
-  const extension = field(files, "Extension", selectInput(["webp", "png", "jpeg", "jpg"], imageSaver.extension));
-  const quality = field(files, "JPEG/WebP quality", numberInput(imageSaver.quality_jpeg_or_webp, "1"));
-  const losslessWebp = field(files, "Lossless WebP", checkbox(imageSaver.lossless_webp));
-  const optimizePng = field(files, "Optimize PNG", checkbox(imageSaver.optimize_png));
-  const counter = field(files, "Counter", numberInput(imageSaver.counter, "1"));
-
-  const metadata = document.createElement("section");
-  metadata.className = "easyuse-anima-aio-section full";
-  metadata.append(Object.assign(document.createElement("h3"), { textContent: aioStaticText("Image Saver Metadata") }));
-  const timeFormat = field(metadata, "Time format", textInput(imageSaver.time_format));
-  const clipSkip = field(metadata, "Clip skip", numberInput(imageSaver.clip_skip, "1"));
-  const embedWorkflow = field(metadata, "Embed workflow", checkbox(imageSaver.embed_workflow));
-  const saveWorkflowJson = field(metadata, "Workflow JSON", checkbox(imageSaver.save_workflow_as_json));
-  const savePromptMetadata = field(metadata, "Save prompt metadata", checkbox(imageSaver.save_prompt_metadata));
-  const additionalHashes = field(metadata, "Additional hashes", textInput(imageSaver.additional_hashes), "tip.additionalHashes");
-  const hashBundles = createImageSaverHashBundleEditor(imageSaver.additional_hash_bundles);
-  field(metadata, "Manual hash bundles", hashBundles.element, "tip.hashBundles");
-  const civitaiHashFetchers = createImageSaverCivitaiHashFetcherEditor(imageSaver.civitai_hash_fetchers);
-  field(metadata, "Civitai Hash Fetchers", civitaiHashFetchers.element, "tip.civitaiHashFetchers");
-  const civitai = field(metadata, "Civitai data", checkbox(imageSaver.download_civitai_data));
-  const easyRemix = field(metadata, "Easy remix", checkbox(imageSaver.easy_remix));
-  const custom = field(metadata, "Custom metadata", textareaInput(imageSaver.custom));
-  body.append(main, files, metadata);
-  refreshSaveDependencyLocks();
-  loadGeneratorOptionalDependencies().then(refreshSaveDependencyLocks);
-
-  const cancel = document.createElement("button");
-  cancel.textContent = aioText("button.cancel");
-  const apply = document.createElement("button");
-  apply.className = "primary";
-  apply.textContent = aioText("button.apply");
-  actions.append(cancel, apply);
-  cancel.addEventListener("click", () => backdrop.remove());
-  apply.addEventListener("click", () => {
-    const next = mergeDefaults(DEFAULT_GENERATION_SETTINGS, settings);
-    next.save.enabled = save.checked;
-    next.save.backend = backend.value || "image_saver";
-    next.save.image_saver = {
-      filename: filename.value || "%time_%basemodelname",
-      path: path.value || "EasyUseAnima/AiO",
-      extension: extension.value || "webp",
-      lossless_webp: losslessWebp.checked,
-      quality_jpeg_or_webp: Number(quality.value || 97),
-      optimize_png: optimizePng.checked,
-      counter: Number(counter.value || 0),
-      clip_skip: Number(clipSkip.value || 0),
-      time_format: timeFormat.value || "%Y-%m-%d-%H%M%S",
-      save_workflow_as_json: saveWorkflowJson.checked,
-      embed_workflow: embedWorkflow.checked,
-      save_prompt_metadata: savePromptMetadata.checked,
-      additional_hashes: additionalHashes.value || "",
-      additional_hash_bundles: hashBundles.values(),
-      civitai_hash_fetchers: civitaiHashFetchers.values(),
-      download_civitai_data: civitai.checked,
-      easy_remix: easyRemix.checked,
-      custom: custom.value || "",
-    };
-    applyVisibleGeneratorSettings(node, next);
-    writeSettings(node, widget, next);
-    renderGeneratorPanel(node);
-    backdrop.remove();
-  });
-}
-
-function openAdvancedSettings(node) {
-  const widget = findWidget(node, GENERATOR_SETTINGS_WIDGET);
-  const settings = generatorSettings(node);
-  const { backdrop, body, actions } = createDialog(
-    "Advanced Options",
-    "Advanced generation options stay in a popup and are serialized as versioned settings."
-  );
-
-  const makeSubsection = (title) => {
-    const section = document.createElement("div");
-    section.className = "easyuse-anima-aio-subsection";
-    section.append(Object.assign(document.createElement("h4"), { textContent: aioStaticText(title) }));
-    return section;
-  };
-
-  const modelPatches = document.createElement("section");
-  modelPatches.className = "easyuse-anima-aio-section full";
-  modelPatches.append(Object.assign(document.createElement("h3"), { textContent: aioStaticText("Model Patch / Optimization") }));
-
-  const auraShift = field(
-    modelPatches,
-    "AuraFlow shift",
-    numberInput(settings.model_patches.aura_flow.shift, "0.5"),
-    "tip.shift",
-  );
-  auraShift.min = "1";
-  auraShift.max = "10";
-
-  const dave = makeSubsection("Anima DAVE");
-  const daveEnabled = field(dave, "Use DAVE", checkbox(settings.model_patches.dave.enabled), "tip.daveEnabled");
-  const daveMask = field(dave, "Mask", textInput(settings.model_patches.dave.mask || "dave_alpha.npz"), "tip.daveMask");
-  const daveStrength = field(dave, "DAVE strength", numberInput(settings.model_patches.dave.strength ?? 0.30, "0.01"), "tip.daveStrength");
-  const daveTau = field(dave, "DAVE tau", numberInput(settings.model_patches.dave.tau ?? 0.10, "0.01"), "tip.daveTau");
-  daveStrength.min = "0";
-  daveTau.min = "0";
-  daveTau.max = "1";
-
-  const safePag = makeSubsection("Anima Safe PAG");
-  const safePagSettings = settings.model_patches.safe_pag || DEFAULT_GENERATION_SETTINGS.model_patches.safe_pag;
-  const safePagEnabled = field(safePag, "Use Safe PAG", checkbox(safePagSettings.enabled), "tip.safePagEnabled");
-  const safePagScale = field(safePag, "Safe PAG scale", numberInput(safePagSettings.scale ?? 4.0, "0.1"), "tip.safePagScale");
-  const safePagBlocks = field(safePag, "Safe PAG blocks", textInput(safePagSettings.block_indices || "18"), "tip.safePagBlocks");
-  const safePagPerturbation = field(
-    safePag,
-    "PAG perturbation",
-    numberInput(safePagSettings.perturbation_strength ?? 0.75, "0.01"),
-    "tip.safePagPerturbation",
-  );
-  const safePagHeads = field(safePag, "PAG heads", textInput(safePagSettings.head_indices || ""), "tip.safePagHeads");
-  const safePagStart = field(
-    safePag,
-    "PAG start percent",
-    numberInput(safePagSettings.start_percent ?? 0.0, "0.001"),
-    "tip.safePagStart",
-  );
-  const safePagEnd = field(
-    safePag,
-    "PAG end percent",
-    numberInput(safePagSettings.end_percent ?? 0.7, "0.001"),
-    "tip.safePagEnd",
-  );
-  const safePagRescale = field(safePag, "PAG rescale", numberInput(safePagSettings.rescale ?? 0.2, "0.01"), "tip.safePagRescale");
-  const safePagRescaleMode = field(
-    safePag,
-    "PAG rescale mode",
-    selectInput(["full", "partial"], safePagSettings.rescale_mode || "full"),
-    "tip.safePagRescaleMode",
-  );
-  safePagScale.min = "0";
-  safePagScale.max = "100";
-  safePagPerturbation.min = "0";
-  safePagPerturbation.max = "1";
-  safePagStart.min = "0";
-  safePagStart.max = "1";
-  safePagEnd.min = "0";
-  safePagEnd.max = "1";
-  safePagRescale.min = "0";
-  safePagRescale.max = "1";
-
-  const kj = makeSubsection("KJNodes Optimization");
-  const fp16Accum = field(kj, "KJNodes FP16 accum", checkbox(settings.model_patches.kj.fp16_accumulation), "tip.kjFp16Accum");
-
-  const sage = makeSubsection("SageAttention (KJNodes)");
-  const sageAttention = field(
-    sage,
-    "Mode",
-    selectInput([
-      "disabled",
-      "auto",
-      "sageattn",
-      "sageattn_qk_int8_pv_fp16_cuda",
-      "sageattn_qk_int8_pv_fp8_cuda",
-    ], settings.model_patches.kj.sage_attention),
-    "tip.kjSageMode",
-  );
-  const sageAllowCompile = field(sage, "Allow compile", checkbox(settings.model_patches.kj.sage_allow_compile), "tip.kjSageCompile");
-  kj.append(sage);
-
-  const torch = makeSubsection("Torch Compile (KJNodes)");
-  const torchCompileEnabled = field(
-    torch,
-    "Use Torch compile",
-    checkbox(settings.model_patches.kj.torch_compile.enabled),
-    "tip.torchCompileEnabled",
-  );
-  const torchDetails = document.createElement("div");
-  torchDetails.className = "easyuse-anima-aio-subsection";
-  torchDetails.append(Object.assign(document.createElement("h4"), { textContent: aioStaticText("Torch Compile Parameters") }));
-  const torchCompileBackend = field(torchDetails, "Backend", textInput(settings.model_patches.kj.torch_compile.backend), "tip.torchCompileBackend");
-  const torchCompileFullgraph = field(torchDetails, "Fullgraph", checkbox(settings.model_patches.kj.torch_compile.fullgraph), "tip.torchCompileFullgraph");
-  const torchCompileMode = field(
-    torchDetails,
-    "Mode",
-    selectInput([
-      "default",
-      "reduce-overhead",
-      "max-autotune",
-      "max-autotune-no-cudagraphs",
-    ], settings.model_patches.kj.torch_compile.mode),
-    "tip.torchCompileMode",
-  );
-  const torchCompileDynamic = field(
-    torchDetails,
-    "Dynamic",
-    selectInput(["false", "true", "default"], settings.model_patches.kj.torch_compile.dynamic),
-    "tip.torchCompileDynamic",
-  );
-  const torchCompileBlocksOnly = field(
-    torchDetails,
-    "Transformer blocks only",
-    checkbox(settings.model_patches.kj.torch_compile.compile_transformer_blocks_only),
-    "tip.torchCompileBlocks",
-  );
-  const torchCompileCache = field(
-    torchDetails,
-    "Dynamo cache limit",
-    numberInput(settings.model_patches.kj.torch_compile.dynamo_cache_size_limit, "1"),
-    "tip.torchCompileCache",
-  );
-  const torchCompileDebug = field(
-    torchDetails,
-    "Debug keys",
-    checkbox(settings.model_patches.kj.torch_compile.debug_compile_keys),
-    "tip.torchCompileDebug",
-  );
-  const torchCompileDisableVram = field(
-    torchDetails,
-    "Disable dynamic VRAM",
-    checkbox(settings.model_patches.kj.torch_compile.disable_dynamic_vram),
-    "tip.torchCompileVram",
-  );
-  torch.append(torchDetails);
-  kj.append(torch);
-
-  const modelWarning = document.createElement("div");
-  modelWarning.className = "easyuse-anima-aio-warning";
-  modelWarning.hidden = true;
-  modelPatches.append(dave, safePag, kj, modelWarning);
-  body.append(modelPatches);
-
-  const artistMix = document.createElement("section");
-  artistMix.className = "easyuse-anima-aio-section full";
-  artistMix.append(Object.assign(document.createElement("h3"), { textContent: aioStaticText("Artist Mix") }));
-  const artistMode = field(
-    artistMix,
-    "Mode",
-    selectInput([
-      "prompt_data",
-      "off",
-      "prompt",
-      "average",
-      "delta_rms",
-      "hybrid",
-      "clustered",
-      "exact",
-      "composite_exact",
-      "late_exact",
-      "average_late_exact",
-      "scheduled_average",
-    ], settings.artist_mix.mode),
-    "tip.artistMixMode",
-  );
-  const artistStart = field(artistMix, "Start", numberInput(settings.artist_mix.start_percent, "0.01"));
-  const artistStrength = field(artistMix, "Strength", numberInput(settings.artist_mix.strength_scale, "0.01"));
-  body.append(artistMix);
-
-  const refreshSageDetails = () => {
-    sageAllowCompile.parentElement.style.display = sageAttention.value === "disabled" ? "none" : "";
-  };
-  const refreshTorchDetails = () => {
-    torchDetails.style.display = torchCompileEnabled.checked ? "" : "none";
-  };
-  const setControlsDisabled = (controls, disabled) => {
-    for (const control of controls) {
-      if (control) {
-        control.disabled = disabled;
-      }
-    }
-  };
-  const refreshAdvancedDependencyLocks = () => {
-    const messages = [];
-
-    const daveMissing = !optionalDependencyAvailable("dave");
-    setControlsDisabled([daveEnabled, daveMask, daveStrength, daveTau], daveMissing);
-    if (daveMissing && daveEnabled.checked) {
-      daveEnabled.checked = false;
-    }
-    if (daveMissing) {
-      messages.push(aioFormat("warning.optionalDependencyMissing", {
-        backend: "Anima DAVE",
-        pack: optionalDependencyPack("dave"),
-      }));
-    }
-
-    const safePagMissing = !optionalDependencyAvailable("safePag");
-    setControlsDisabled([
-      safePagEnabled,
-      safePagScale,
-      safePagBlocks,
-      safePagPerturbation,
-      safePagHeads,
-      safePagStart,
-      safePagEnd,
-      safePagRescale,
-      safePagRescaleMode,
-    ], safePagMissing);
-    if (safePagMissing && safePagEnabled.checked) {
-      safePagEnabled.checked = false;
-    }
-    if (safePagMissing) {
-      messages.push(aioFormat("warning.optionalDependencyMissing", {
-        backend: "Anima Safe PAG",
-        pack: optionalDependencyPack("safePag"),
-      }));
-    }
-
-    const kjFp16Missing = !optionalDependencyAvailable("kjFp16");
-    fp16Accum.disabled = kjFp16Missing;
-    if (kjFp16Missing && fp16Accum.checked) {
-      fp16Accum.checked = false;
-    }
-    if (kjFp16Missing) {
-      messages.push(aioFormat("warning.optionalDependencyMissing", {
-        backend: "KJNodes FP16 accum",
-        pack: optionalDependencyPack("kjFp16"),
-      }));
-    }
-
-    const kjSageMissing = !optionalDependencyAvailable("kjSage");
-    setControlsDisabled([sageAttention, sageAllowCompile], kjSageMissing);
-    if (kjSageMissing && sageAttention.value !== "disabled") {
-      sageAttention.value = "disabled";
-      sageAllowCompile.checked = false;
-    }
-    if (kjSageMissing) {
-      messages.push(aioFormat("warning.optionalDependencyMissing", {
-        backend: "SageAttention",
-        pack: optionalDependencyPack("kjSage"),
-      }));
-    }
-
-    const kjCompileMissing = !optionalDependencyAvailable("kjTorchCompile");
-    setControlsDisabled([
-      torchCompileEnabled,
-      torchCompileBackend,
-      torchCompileFullgraph,
-      torchCompileMode,
-      torchCompileDynamic,
-      torchCompileBlocksOnly,
-      torchCompileCache,
-      torchCompileDebug,
-      torchCompileDisableVram,
-    ], kjCompileMissing);
-    if (kjCompileMissing && torchCompileEnabled.checked) {
-      torchCompileEnabled.checked = false;
-    }
-    if (kjCompileMissing) {
-      messages.push(aioFormat("warning.optionalDependencyMissing", {
-        backend: "Torch Compile",
-        pack: optionalDependencyPack("kjTorchCompile"),
-      }));
-    }
-
-    modelWarning.hidden = messages.length === 0;
-    modelWarning.textContent = messages.join(" ");
-    refreshSageDetails();
-    refreshTorchDetails();
-  };
-  sageAttention.addEventListener("change", refreshSageDetails);
-  torchCompileEnabled.addEventListener("change", refreshTorchDetails);
-  refreshSageDetails();
-  refreshTorchDetails();
-  refreshAdvancedDependencyLocks();
-  loadGeneratorOptionalDependencies().then(refreshAdvancedDependencyLocks);
-
-  const cancel = document.createElement("button");
-  cancel.textContent = aioText("button.cancel");
-  const apply = document.createElement("button");
-  apply.className = "primary";
-  apply.textContent = aioText("button.apply");
-  actions.append(cancel, apply);
-  cancel.addEventListener("click", () => backdrop.remove());
-  apply.addEventListener("click", () => {
-    const next = mergeDefaults(DEFAULT_GENERATION_SETTINGS, settings);
-    delete next.sampler.dave;
-    delete next.model_patches.aura_flow.enabled;
-    next.model_patches.aura_flow.shift = clampGeneratorNumber(
-      auraShift.value,
-      DEFAULT_GENERATION_SETTINGS.model_patches.aura_flow.shift,
-      1,
-      10,
-    );
-    next.model_patches.dave.enabled = daveEnabled.checked && !daveEnabled.disabled;
-    next.model_patches.dave.mask = daveMask.value || "dave_alpha.npz";
-    next.model_patches.dave.strength = Number(daveStrength.value || 0.30);
-    next.model_patches.dave.tau = Number(daveTau.value || 0.10);
-    next.model_patches.safe_pag ||= {};
-    next.model_patches.safe_pag.enabled = safePagEnabled.checked && !safePagEnabled.disabled;
-    next.model_patches.safe_pag.scale = clampGeneratorNumber(safePagScale.value, 4.0, 0, 100);
-    next.model_patches.safe_pag.block_indices = safePagBlocks.value || "18";
-    next.model_patches.safe_pag.perturbation_strength = clampGeneratorNumber(
-      safePagPerturbation.value,
-      0.75,
-      0,
-      1,
-    );
-    next.model_patches.safe_pag.head_indices = safePagHeads.value || "";
-    next.model_patches.safe_pag.start_percent = clampGeneratorNumber(safePagStart.value, 0.0, 0, 1);
-    next.model_patches.safe_pag.end_percent = clampGeneratorNumber(safePagEnd.value, 0.7, 0, 1);
-    next.model_patches.safe_pag.rescale = clampGeneratorNumber(safePagRescale.value, 0.2, 0, 1);
-    next.model_patches.safe_pag.rescale_mode = safePagRescaleMode.value || "full";
-    next.model_patches.kj.fp16_accumulation = fp16Accum.checked && !fp16Accum.disabled;
-    next.model_patches.kj.sage_attention = sageAttention.disabled ? "disabled" : (sageAttention.value || "disabled");
-    next.model_patches.kj.sage_allow_compile = sageAllowCompile.checked && !sageAttention.disabled;
-    next.model_patches.kj.torch_compile.enabled = torchCompileEnabled.checked && !torchCompileEnabled.disabled;
-    next.model_patches.kj.torch_compile.backend = torchCompileBackend.value || "inductor";
-    next.model_patches.kj.torch_compile.fullgraph = torchCompileFullgraph.checked;
-    next.model_patches.kj.torch_compile.mode = torchCompileMode.value || "max-autotune-no-cudagraphs";
-    next.model_patches.kj.torch_compile.dynamic = torchCompileDynamic.value || "false";
-    next.model_patches.kj.torch_compile.compile_transformer_blocks_only = torchCompileBlocksOnly.checked;
-    next.model_patches.kj.torch_compile.dynamo_cache_size_limit = Number(torchCompileCache.value || 64);
-    next.model_patches.kj.torch_compile.debug_compile_keys = torchCompileDebug.checked;
-    next.model_patches.kj.torch_compile.disable_dynamic_vram = torchCompileDisableVram.checked;
-    next.artist_mix.mode = artistMode.value || "prompt_data";
-    next.artist_mix.start_percent = Number(artistStart.value || 0.5);
-    next.artist_mix.strength_scale = Number(artistStrength.value || 1.0);
-    writeSettings(node, widget, next);
-    renderGeneratorPanel(node);
-    backdrop.remove();
-  });
-}
 
 function openGeneratorSettings(node) {
   openAdvancedSettings(node);
@@ -8549,75 +3578,8 @@ function generatorGraphNodes() {
   return Object.values(app.graph?._nodes_by_id || {}).filter(isGeneratorGraphNode);
 }
 
-function findWorkflowNode(workflow, id) {
-  const nodes = workflow?.nodes;
-  if (!Array.isArray(nodes)) {
-    return null;
-  }
-  return nodes.find((workflowNode) => String(workflowNode?.id) === String(id)) || null;
-}
-
-function resolveGeneratorSeedForQueue(node, inputSeed) {
-  const seed = normalizeSeedValue(inputSeed, GENERATOR_SPECIAL_SEED_RANDOM);
-  if (!isSpecialSeed(seed)) {
-    return seed;
-  }
-  const lastSeed = Number(node.__easyuseAnimaLastQueuedSeed);
-  if (Number.isFinite(lastSeed) && !isSpecialSeed(lastSeed)) {
-    if (seed === GENERATOR_SPECIAL_SEED_INCREMENT) {
-      return Math.min(GENERATOR_MAX_SEED, lastSeed + 1);
-    }
-    if (seed === GENERATOR_SPECIAL_SEED_DECREMENT) {
-      return Math.max(0, lastSeed - 1);
-    }
-  }
-  return randomSeed();
-}
-
-function prepareGeneratorPromptForQueue(prompt) {
-  const output = prompt?.output;
-  if (!output || typeof output !== "object") {
-    return;
-  }
-  for (const node of generatorGraphNodes()) {
-    if (node.mode === 4 || node.mode === globalThis.LiteGraph?.NEVER) {
-      continue;
-    }
-    const outputNode = output[String(node.id)];
-    const outputInputs = outputNode?.inputs;
-    if (!outputInputs) {
-      continue;
-    }
-    syncGeneratorStateFromDom(node);
-    const settings = sanitizeGeneratorSettingsForOptionalDependencies(generatorSettings(node));
-    const inputSeed = normalizeSeedValue(settings.sampler.seed, GENERATOR_SPECIAL_SEED_RANDOM);
-    const seedToUse = resolveGeneratorSeedForQueue(node, inputSeed);
-    settings.sampler.seed = seedToUse;
-    outputInputs.generation_settings = settingsToCompactJson(settings);
-
-    const workflowNode = findWorkflowNode(prompt.workflow, node.id);
-    setWorkflowWidgetValue(node, workflowNode, GENERATOR_SETTINGS_WIDGET, outputInputs.generation_settings);
-    const settingsWidget = findWidget(node, GENERATOR_SETTINGS_WIDGET);
-    if (settingsWidget) {
-      writeSettings(node, settingsWidget, settings, false);
-    }
-
-    node.__easyuseAnimaLastQueuedSeed = seedToUse;
-    refreshGeneratorSeedButtons(node);
-  }
-}
-
 function installGeneratorQueuePromptHook() {
-  if (!api?.queuePrompt || api.queuePrompt.__easyuseAnimaAioWrapped) {
-    return;
-  }
-  const queuePrompt = api.queuePrompt;
-  api.queuePrompt = async function (number, prompt, ...args) {
-    await loadGeneratorOptionalDependencies({ retryErrors: true });
-    prepareGeneratorPromptForQueue(prompt);
-    return queuePrompt.call(this, number, prompt, ...args);
-  };
-  api.queuePrompt.__easyuseAnimaAioWrapped = true;
+  return aioInstallGeneratorQueuePromptHook(api, generatorQueueRuntime);
 }
 
 function ensureButton(node, key, label, callback) {
@@ -8631,6 +3593,482 @@ function ensureButton(node, key, label, callback) {
   }
 }
 
+const generatorProfileApi = createAioProfileApiClient({
+  fetchJson: (url, options) => easyuseAnimaFetchComfyJson(api, url, options),
+  encodeURIComponent,
+});
+
+const generatorProfileRuntime = aioCreateProfileSettingsRuntime({
+  document,
+  createDialog,
+  field,
+  text: aioText,
+  format: aioFormat,
+  dialogs: {
+    prompt: (message, defaultValue) => window.prompt(message, defaultValue),
+    alert: (message) => window.alert(message),
+    confirm: (message) => window.confirm(message),
+  },
+  profileApi: generatorProfileApi,
+  profileCore: {
+    customValue: GENERATOR_PROFILE_CUSTOM_VALUE,
+    builtinIds: aioBuiltinProfileIds,
+    builtinSettings: aioBuiltinProfileSettings,
+    fingerprint: aioProfileSettingsFingerprint,
+    userValue: aioUserProfileValue,
+    userName: aioUserProfileName,
+    findUser: aioFindUserProfileByName,
+    resolveValue: aioResolvedProfileValue,
+  },
+  settingsCore: {
+    defaultSettings: DEFAULT_GENERATION_SETTINGS,
+    mergeDefaults,
+    migratePostprocess: migrateGeneratorPostprocessSettings,
+  },
+  nodeAdapter: {
+    getSettings: generatorSettings,
+    applyVisibleSettings: applyVisibleGeneratorSettings,
+    writeSettings: writeGeneratorSettingsFromState,
+    renderPanel: renderGeneratorPanel,
+    refreshPanels: refreshGeneratorPanels,
+    markDirty: markNodeDirty,
+  },
+});
+
+const {
+  loadProfiles: loadGeneratorUserProfiles,
+  syncValue: syncGeneratorProfileValue,
+  displayLabel: generatorProfileDisplayLabel,
+  open: openGeneratorProfileSettings,
+} = generatorProfileRuntime;
+
+const openInputSettings = aioCreateInputSettingsDialog({
+  document,
+  createDialog,
+  field,
+  selectInput,
+  staticText: aioStaticText,
+  text: aioText,
+  defaultInputSettings: DEFAULT_INPUT_SETTINGS,
+  inputSettingsWidget: INPUT_SETTINGS_WIDGET,
+  findWidget,
+  parseSettings,
+  mergeDefaults,
+  writeSettings,
+});
+
+const openPostprocessSettings = aioCreatePostprocessSettingsDialog({
+  document,
+  createDialog,
+  field,
+  checkbox,
+  selectInput,
+  numberInput,
+  staticText: aioStaticText,
+  text: aioText,
+  defaultGenerationSettings: DEFAULT_GENERATION_SETTINGS,
+  generatorSettingsWidget: GENERATOR_SETTINGS_WIDGET,
+  findWidget,
+  generatorSettings,
+  mergeDefaults,
+  clampNumber: clampGeneratorNumber,
+  writeSettings,
+  renderGeneratorPanel,
+});
+
+const openPreviewSettings = aioCreatePreviewSettingsDialog({
+  document,
+  createDialog,
+  field,
+  checkbox,
+  numberInput,
+  staticText: aioStaticText,
+  text: aioText,
+  defaultGenerationSettings: DEFAULT_GENERATION_SETTINGS,
+  generatorSettingsWidget: GENERATOR_SETTINGS_WIDGET,
+  findWidget,
+  generatorSettings,
+  mergeDefaults,
+  clampNumber: clampGeneratorNumber,
+  defaultPreviewIndex: aioDefaultPreviewIndex,
+  applyVisibleSettings: applyVisibleGeneratorSettings,
+  writeSettings,
+  renderGeneratorPanel,
+});
+
+const {
+  createStageOptimizationEditor,
+  openHighresSettings,
+  openUpscaleSettings,
+} = aioCreateStageSettingsDialogs({
+  document,
+  controls: {
+    createDialog,
+    field,
+    numberInput,
+    checkbox,
+    selectInput,
+  },
+  text: {
+    staticText: aioStaticText,
+    get: aioText,
+    format: aioFormat,
+  },
+  settingsCore: {
+    defaultGenerationSettings: DEFAULT_GENERATION_SETTINGS,
+    fallbackSamplerNames: GENERATOR_FALLBACK_SAMPLER_NAMES,
+    fallbackSchedulerNames: GENERATOR_FALLBACK_SCHEDULER_NAMES,
+    mergeDefaults,
+    clampNumber: clampGeneratorNumber,
+    normalizeUsduAutoTileRange: normalizeGeneratorUsduAutoTileRange,
+  },
+  nodeAdapter: {
+    generatorSettingsWidget: GENERATOR_SETTINGS_WIDGET,
+    findWidget,
+    getSettings: generatorSettings,
+    widgetOptions,
+    nodeInputChoiceOptions,
+    writeSettings,
+    renderPanel: renderGeneratorPanel,
+  },
+  dependencyAdapter: {
+    available: optionalDependencyAvailable,
+    pack: optionalDependencyPack,
+    upscaleBackendMissingPacks,
+    load: loadGeneratorOptionalDependencies,
+  },
+});
+
+const openDetailerSettings = aioCreateDetailerSettingsDialog({
+  document,
+  controls: {
+    createDialog,
+    field,
+    checkbox,
+    textInput,
+    numberInput,
+    selectInput,
+  },
+  text: {
+    staticText: aioStaticText,
+    get: aioText,
+    format: aioFormat,
+    applyTooltip,
+  },
+  settingsCore: {
+    defaultGenerationSettings: DEFAULT_GENERATION_SETTINGS,
+    fallbackSamplerNames: GENERATOR_FALLBACK_SAMPLER_NAMES,
+    fallbackSchedulerNames: GENERATOR_FALLBACK_SCHEDULER_NAMES,
+    mergeDefaults,
+    clampNumber: clampGeneratorNumber,
+    normalizeDetailerOrder,
+    isCustomDetailerTargetName,
+    nextDetailerTargetName,
+    detailerTargetDefaults,
+    detailerTargetTitle,
+  },
+  stageOptimizationEditor: createStageOptimizationEditor,
+  nodeAdapter: {
+    generatorSettingsWidget: GENERATOR_SETTINGS_WIDGET,
+    findWidget,
+    getSettings: generatorSettings,
+    widgetOptions,
+    writeSettings,
+    renderPanel: renderGeneratorPanel,
+  },
+  dependencyAdapter: {
+    available: optionalDependencyAvailable,
+    pack: optionalDependencyPack,
+    load: loadGeneratorOptionalDependencies,
+  },
+});
+
+const openSamplerSettings = aioCreateSamplerSettingsDialog({
+  document,
+  controls: {
+    createDialog,
+    field,
+    numberInput,
+    selectInput,
+    checkbox,
+    textInput,
+    nodeInputControlForSpec,
+    valueFromNodeInputControl,
+  },
+  text: {
+    staticText: aioStaticText,
+    get: aioText,
+    format: aioFormat,
+    applyTooltipText,
+  },
+  settingsCore: {
+    defaultGenerationSettings: DEFAULT_GENERATION_SETTINGS,
+    seedControls: GENERATOR_SEED_CONTROLS,
+    specialSeedRandom: GENERATOR_SPECIAL_SEED_RANDOM,
+    fallbackSamplerNames: GENERATOR_FALLBACK_SAMPLER_NAMES,
+    fallbackSchedulerNames: GENERATOR_FALLBACK_SCHEDULER_NAMES,
+    mergeDefaults,
+    normalizeSeedControl,
+    normalizeSeedValue,
+    clampNumber: clampGeneratorNumber,
+  },
+  nodeAdapter: {
+    generatorSettingsWidget: GENERATOR_SETTINGS_WIDGET,
+    findWidget,
+    parseSettings,
+    mergeVisibleSettings: mergeVisibleGeneratorSettings,
+    widgetOptions,
+    applyVisibleSettings: applyVisibleGeneratorSettings,
+    writeSettings,
+    renderPanel: renderGeneratorPanel,
+  },
+  dependencyAdapter: {
+    backendDependencies: AIO_BACKEND_DEPENDENCIES,
+    isLoaded: () => generatorOptionalDependencyState.loaded,
+    available: optionalDependencyAvailable,
+    pack: optionalDependencyPack,
+    nodeInputMap,
+    nodeInputTooltip,
+    nodeInputSupported,
+    load: loadGeneratorOptionalDependencies,
+  },
+});
+
+const openSaveSettings = aioCreateSaveSettingsDialog({
+  document,
+  controls: {
+    createDialog,
+    field,
+    checkbox,
+    selectInput,
+    textInput,
+    numberInput,
+    textareaInput,
+  },
+  text: {
+    staticText: aioStaticText,
+    get: aioText,
+    format: aioFormat,
+    applyTooltip,
+    applyTooltipText,
+  },
+  settingsCore: {
+    defaultGenerationSettings: DEFAULT_GENERATION_SETTINGS,
+    asBool,
+    mergeDefaults,
+  },
+  nodeAdapter: {
+    generatorSettingsWidget: GENERATOR_SETTINGS_WIDGET,
+    findWidget,
+    getSettings: generatorSettings,
+    applyVisibleSettings: applyVisibleGeneratorSettings,
+    writeSettings,
+    renderPanel: renderGeneratorPanel,
+  },
+  dependencyAdapter: {
+    available: optionalDependencyAvailable,
+    pack: optionalDependencyPack,
+    load: loadGeneratorOptionalDependencies,
+  },
+});
+
+const openAdvancedSettings = aioCreateAdvancedSettingsDialog({
+  document,
+  controls: {
+    createDialog,
+    field,
+    numberInput,
+    checkbox,
+    textInput,
+    selectInput,
+  },
+  text: {
+    staticText: aioStaticText,
+    get: aioText,
+    format: aioFormat,
+  },
+  settingsCore: {
+    defaultGenerationSettings: DEFAULT_GENERATION_SETTINGS,
+    mergeDefaults,
+    clampNumber: clampGeneratorNumber,
+  },
+  nodeAdapter: {
+    generatorSettingsWidget: GENERATOR_SETTINGS_WIDGET,
+    findWidget,
+    getSettings: generatorSettings,
+    writeSettings,
+    renderPanel: renderGeneratorPanel,
+  },
+  dependencyAdapter: {
+    available: optionalDependencyAvailable,
+    pack: optionalDependencyPack,
+    load: loadGeneratorOptionalDependencies,
+  },
+});
+
+const {
+  activateGeneratorNativePreviewLifecycle,
+  disposeGeneratorNativePreviewLifecycle,
+  markGeneratorNativeLivePreviewHidden,
+  suppressGeneratorDefaultPreview,
+  scheduleGeneratorDefaultPreviewSuppression,
+  handleGeneratorPreviewEvent,
+  handleGeneratorProgressEvent,
+  handleGeneratorProgressStateEvent,
+  handleGeneratorDenoisePreviewEvent,
+  handleGeneratorExecutingEvent,
+  clearGeneratorDenoisePreviews,
+} = aioCreateNativePreviewRuntime({
+  environment: {
+    document,
+    window,
+    MutationObserver: globalThis.MutationObserver,
+    requestAnimationFrame: (callback) => requestAnimationFrame(callback),
+    cancelAnimationFrame: (frame) => cancelAnimationFrame(frame),
+    setTimeout: (callback, delay) => setTimeout(callback, delay),
+    clearTimeout: (timer) => clearTimeout(timer),
+  },
+  constants: {
+    generatorNodeType: GENERATOR_NODE_TYPE,
+    generatorVueNodeClass: GENERATOR_VUE_NODE_CLASS,
+  },
+  storeAdapter: {
+    getLegacyPreviewImages: () => app.nodePreviewImages,
+    loadDirectStoreModules: () => Promise.all([
+      import("../../../stores/nodeOutputStore.js").catch(() => null),
+      import("../../../platform/workflow/management/stores/workflowStore.js").catch(() => null),
+    ]),
+    fetchFrontendHtml: () => easyuseAnimaFetchText("/"),
+    importAssetModule: (url) => import(url),
+  },
+  previewCore: {
+    deleteStoreEntry: aioDeletePreviewStoreEntry,
+    eventDetail: aioPreviewEventDetail,
+    images: aioPreviewImages,
+    nodeIdsFromDetail: aioPreviewNodeIdsFromDetail,
+    suppressDefaultPreview: aioSuppressDefaultPreview,
+  },
+  nodeAdapter: {
+    getGraph: () => app.graph,
+    listGeneratorNodes: generatorGraphNodes,
+    addPreviewImages: addGeneratorPreviewImagesToNode,
+    clearDenoisePreview: clearGeneratorDenoisePreview,
+    setDenoisePreview: setGeneratorDenoisePreview,
+    markDirty: markNodeDirty,
+  },
+  progressAdapter: {
+    remember: rememberGeneratorProgress,
+    rememberState: rememberGeneratorProgressState,
+    clear: clearGeneratorPreviewProgress,
+  },
+});
+
+const generatorPanelRuntime = aioCreateGeneratorPanelRuntime({
+  document,
+  window,
+  requestAnimationFrame: (callback) => requestAnimationFrame(callback),
+  cancelAnimationFrame: (frame) => cancelAnimationFrame(frame),
+  panelMinHeight: GENERATOR_PANEL_MIN_HEIGHT,
+  controls: {
+    numberInput,
+    checkbox,
+    selectInput,
+    createNodeField,
+  },
+  text: {
+    get: aioText,
+    format: aioFormat,
+    applyTooltip,
+  },
+  settingsCore: {
+    defaultGenerationSettings: DEFAULT_GENERATION_SETTINGS,
+    specialSeedRandom: GENERATOR_SPECIAL_SEED_RANDOM,
+    fallbackSamplerNames: GENERATOR_FALLBACK_SAMPLER_NAMES,
+    fallbackSchedulerNames: GENERATOR_FALLBACK_SCHEDULER_NAMES,
+    mergeDefaults,
+    normalizeSeedControl,
+    normalizeSeedValue,
+    clampNumber: clampGeneratorNumber,
+    normalizeUsduAutoTileRange: normalizeGeneratorUsduAutoTileRange,
+    setUsduAutoTileTarget: setGeneratorUsduAutoTileTarget,
+    normalizeDetailerOrder,
+    detailerTargetDefaults,
+    detailerTargetTitle,
+  },
+  nodeAdapter: {
+    getSettings: generatorSettings,
+    applyVisibleSettings: applyVisibleGeneratorSettings,
+    writeSettings: writeGeneratorSettingsFromState,
+    syncSettingsFromVisible: syncGeneratorSettingsFromVisible,
+    widgetValue,
+    widgetOptions,
+    setWidgetValueIfChanged,
+    commitSeedValue: commitGeneratorSeedValue,
+    markDirty: markNodeDirty,
+    ensureStyle,
+    suppressDefaultPreview: suppressGeneratorDefaultPreview,
+    markNativePreviewHidden: markGeneratorNativeLivePreviewHidden,
+    imageUrl: generatorImageUrl,
+    randomSeed,
+    forwardPanelWheel: forwardGeneratorPanelWheel,
+  },
+  profileAdapter: {
+    syncValue: syncGeneratorProfileValue,
+    displayLabel: generatorProfileDisplayLabel,
+  },
+  previewAdapter: {
+    mainImage: aioMainPreviewImage,
+    selectedIndex: aioSelectedPreviewIndex,
+    imageLabel: aioPreviewImageLabel,
+    imageName: aioPreviewImageName,
+    imageResolution: aioPreviewResolution,
+    imageFileSize: aioPreviewFileSize,
+  },
+  actions: {
+    openProfileSettings: openGeneratorProfileSettings,
+    openSaveSettings,
+    openSamplerSettings,
+    openAdvancedSettings,
+    openHighresSettings,
+    openDetailerSettings,
+    openUpscaleSettings,
+    openPostprocessSettings,
+    openPreviewSettings,
+  },
+});
+
+const generatorQueueRuntime = aioCreateGeneratorQueueRuntime({
+  constants: {
+    settingsWidgetName: GENERATOR_SETTINGS_WIDGET,
+    minSeed: 0,
+    maxSeed: GENERATOR_MAX_SEED,
+    specialSeedRandom: GENERATOR_SPECIAL_SEED_RANDOM,
+    specialSeedIncrement: GENERATOR_SPECIAL_SEED_INCREMENT,
+    specialSeedDecrement: GENERATOR_SPECIAL_SEED_DECREMENT,
+  },
+  settingsCore: {
+    normalizeSeedValue,
+    normalizeSeedControl,
+    cloneJson: clone,
+    settingsToCompactJson,
+  },
+  nodeAdapter: {
+    listNodes: generatorGraphNodes,
+    isBypassed: (node) => node.mode === 4 || node.mode === globalThis.LiteGraph?.NEVER,
+    getSettings: generatorSettings,
+    sanitizeSettings: sanitizeGeneratorSettingsForOptionalDependencies,
+    getLastQueuedSeed: (node) => node.__easyuseAnimaLastQueuedSeed,
+    commitLastQueuedSeed: (node, seed) => {
+      node.__easyuseAnimaLastQueuedSeed = seed;
+    },
+    updateSeed: (node, seed, options) => generatorPanelRuntime.updateSeed(node, seed, options),
+  },
+  queueAdapter: {
+    loadOptionalDependencies: loadGeneratorOptionalDependencies,
+  },
+  randomSeed,
+});
+
 function hookInputNode(node) {
   node.serialize_widgets = true;
   hideWidget(findWidget(node, INPUT_SETTINGS_WIDGET));
@@ -8638,59 +4076,48 @@ function hookInputNode(node) {
 }
 
 function hookGeneratorNode(node) {
+  activateGeneratorPanel(node);
+  activateGeneratorNativePreviewLifecycle(node);
   node.serialize_widgets = true;
   suppressGeneratorDefaultPreview(node, { markDirty: false });
   hideWidget(findWidget(node, GENERATOR_SETTINGS_WIDGET));
   ensureGeneratorPanel(node);
   syncGeneratorStateFromDom(node);
   scheduleGeneratorDefaultPreviewSuppression(node);
-  loadGeneratorSamplerOptions().then(() => {
-    if (node?.__easyuseAnimaGeneratorPanelEl) {
-      renderGeneratorPanel(node);
-    }
-  });
-}
-
-function findGeneratorNodeByQualifiedId(rootGraph, nodeId) {
-  if (!rootGraph || nodeId == null) {
-    return null;
-  }
-  const textId = String(nodeId);
-  if (!textId.includes(":")) {
-    const numericId = Number(textId);
-    return rootGraph.getNodeById?.(Number.isFinite(numericId) ? numericId : textId)
-      || rootGraph.getNodeById?.(textId)
-      || rootGraph._nodes_by_id?.[textId]
-      || rootGraph._nodes_by_id?.[numericId]
-      || null;
-  }
-  const parts = textId.split(":");
-  let graph = rootGraph;
-  for (let index = 0; index < parts.length - 1; index += 1) {
-    const parentId = Number(parts[index]);
-    if (!Number.isFinite(parentId)) {
-      return null;
-    }
-    const parentNode = graph?.getNodeById?.(parentId) || graph?._nodes_by_id?.[parentId];
-    if (!parentNode?.subgraph) {
-      return null;
-    }
-    graph = parentNode.subgraph;
-  }
-  const leafId = Number(parts[parts.length - 1]);
-  if (!Number.isFinite(leafId)) {
-    return null;
-  }
-  return graph?.getNodeById?.(leafId) || graph?._nodes_by_id?.[leafId] || null;
 }
 
 function addGeneratorPreviewImagesToNode(node, nextImages, runId = "", options = {}) {
-  if (!node || !Array.isArray(nextImages) || !nextImages.length) {
+  if (!node || !Array.isArray(nextImages)) {
+    return;
+  }
+  const replaceCurrentRun = !!options.replaceCurrentRun;
+  if (!nextImages.length) {
+    if (!replaceCurrentRun) {
+      return;
+    }
+    clearGeneratorDenoisePreview(node);
+    const settings = generatorSettings(node);
+    const terminalState = aioResolveTerminalPreviewState(
+      node.__easyuseAnimaGeneratorPreviewFeedImages,
+      settings,
+      runId,
+    );
+    node.__easyuseAnimaGeneratorCurrentRunImages = terminalState.currentRunImages;
+    node.__easyuseAnimaGeneratorPreviewFeedImages = terminalState.previewFeedImages;
+    node.__easyuseAnimaGeneratorPreviewImages = terminalState.previewImages;
+    if (terminalState.selectedIndex >= 0) {
+      node.__easyuseAnimaSelectedPreviewIndex = terminalState.selectedIndex;
+    } else {
+      delete node.__easyuseAnimaSelectedPreviewIndex;
+    }
+    updateGeneratorDomSummary(node);
+    scheduleGeneratorSummary(node);
+    scheduleGeneratorLayout(node);
+    markNodeDirty(node);
     return;
   }
   clearGeneratorDenoisePreview(node);
   const settings = generatorSettings(node);
-  const replaceCurrentRun = !!options.replaceCurrentRun;
   const currentImages = Array.isArray(node.__easyuseAnimaGeneratorCurrentRunImages)
     ? node.__easyuseAnimaGeneratorCurrentRunImages
     : [];
@@ -8698,25 +4125,26 @@ function addGeneratorPreviewImagesToNode(node, nextImages, runId = "", options =
   const currentBase = replaceCurrentRun || (runId && currentRunId && currentRunId !== runId)
     ? []
     : currentImages;
-  const taggedNextImages = tagGeneratorPreviewRun(nextImages, runId, currentBase.length);
-  node.__easyuseAnimaGeneratorCurrentRunImages = mergeGeneratorPreviewImages(currentBase, taggedNextImages, runId);
+  const taggedNextImages = aioTagPreviewRun(nextImages, runId, currentBase.length);
+  node.__easyuseAnimaGeneratorCurrentRunImages = aioMergePreviewImages(currentBase, taggedNextImages, runId);
   if (settings.preview.image_feed) {
     const feedBase = replaceCurrentRun
-      ? removeGeneratorPreviewRun(node.__easyuseAnimaGeneratorPreviewFeedImages, runId)
+      ? aioRemovePreviewRun(node.__easyuseAnimaGeneratorPreviewFeedImages, runId)
       : node.__easyuseAnimaGeneratorPreviewFeedImages;
-    node.__easyuseAnimaGeneratorPreviewFeedImages = appendGeneratorPreviewFeed(
+    node.__easyuseAnimaGeneratorPreviewFeedImages = aioAppendPreviewFeed(
       feedBase,
       taggedNextImages,
       settings,
       runId,
+      DEFAULT_GENERATION_SETTINGS.preview.feed_count,
     );
     node.__easyuseAnimaGeneratorPreviewImages = node.__easyuseAnimaGeneratorPreviewFeedImages;
   } else {
     node.__easyuseAnimaGeneratorPreviewImages = node.__easyuseAnimaGeneratorCurrentRunImages;
   }
-  node.__easyuseAnimaSelectedPreviewIndex = generatorDefaultPreviewIndex(node.__easyuseAnimaGeneratorPreviewImages);
+  node.__easyuseAnimaSelectedPreviewIndex = aioDefaultPreviewIndex(node.__easyuseAnimaGeneratorPreviewImages);
   updateGeneratorDomSummary(node);
-  requestAnimationFrame(() => updateGeneratorDomSummary(node));
+  scheduleGeneratorSummary(node);
   scheduleGeneratorLayout(node);
   markNodeDirty(node);
 }
@@ -8725,8 +4153,8 @@ function updateGeneratorExecutedStatus(node, message) {
   if (!node) {
     return;
   }
-  const nextImages = generatorPreviewImages(message);
-  const runId = generatorPreviewRunId(message);
+  const nextImages = aioPreviewImages(message);
+  const runId = aioPreviewRunId(message);
   addGeneratorPreviewImagesToNode(node, nextImages, runId, { replaceCurrentRun: true });
   node.__easyuseAnimaGeneratorStatus = {
     status: String(firstValue(message?.status, "generated") || "generated"),
@@ -8738,142 +4166,45 @@ function updateGeneratorExecutedStatus(node, message) {
   updateGeneratorDomSummary(node);
 }
 
-function handleGeneratorPreviewEvent(event) {
-  const detail = generatorPreviewEventDetail(event);
-  const node = findGeneratorNodeByQualifiedId(app.graph, detail.node);
-  if (!node || node.type !== GENERATOR_NODE_TYPE) {
-    return;
-  }
-  scheduleGeneratorNativeLivePreviewPurge(node, detail);
-  const images = generatorPreviewImages({ easyuse_anima_preview: detail.images });
-  scheduleGeneratorDefaultPreviewSuppression(node, { purgeStore: false });
-  addGeneratorPreviewImagesToNode(node, images, String(detail.run_id || ""));
-}
-
-function findGeneratorNodeForDenoisePreview(detail) {
-  for (const id of generatorNodeIdsFromDetail(detail)) {
-    const node = findGeneratorNodeByQualifiedId(app.graph, id);
-    if (node?.type === GENERATOR_NODE_TYPE) {
-      return node;
-    }
-  }
-  return null;
-}
-
-function handleGeneratorProgressEvent(event) {
-  rememberGeneratorProgress(generatorPreviewEventDetail(event));
-}
-
-function handleGeneratorProgressStateEvent(event) {
-  rememberGeneratorProgressState(generatorPreviewEventDetail(event));
-}
-
-function handleGeneratorDenoisePreviewEvent(event) {
-  const detail = generatorPreviewEventDetail(event);
-  const node = findGeneratorNodeForDenoisePreview(detail);
-  const blob = detail?.blob;
-  if (!node || !blob) {
-    return;
-  }
-  event.stopImmediatePropagation?.();
-  scheduleGeneratorNativeLivePreviewPurge(node, detail);
-  scheduleGeneratorDefaultPreviewSuppression(node, { purgeStore: false });
-  setGeneratorDenoisePreview(node, blob, detail);
-}
-
-function handleGeneratorExecutingEvent(event) {
-  const nodeId = generatorPreviewEventDetail(event);
-  const node = findGeneratorNodeByQualifiedId(app.graph, nodeId);
-  if (node?.type === GENERATOR_NODE_TYPE) {
-    clearGeneratorDenoisePreview(node, true);
-    scheduleGeneratorDefaultPreviewSuppression(node);
-  }
-}
-
-function clearGeneratorDenoisePreviews() {
-  GENERATOR_PROGRESS_BY_NODE.clear();
-  for (const node of generatorGraphNodes()) {
-    if (node?.type === GENERATOR_NODE_TYPE) {
-      clearGeneratorDenoisePreview(node, true);
-      scheduleGeneratorDefaultPreviewSuppression(node);
-    }
-  }
-}
-
-function hookNode(node, nodeData) {
-  if (nodeData.name === INPUT_NODE_TYPE) {
-    hookInputNode(node);
-  } else if (nodeData.name === GENERATOR_NODE_TYPE) {
-    hookGeneratorNode(node);
-  }
-}
+const aioExtensionRuntime = aioCreateExtensionRuntime({
+  api,
+  constants: {
+    inputNodeType: INPUT_NODE_TYPE,
+    generatorNodeType: GENERATOR_NODE_TYPE,
+    generatorPreviewEvent: GENERATOR_PREVIEW_EVENT,
+  },
+  setup: {
+    ensureStyle,
+    installWheelForwarder: installGeneratorWheelForwarder,
+    installQueuePromptHook: installGeneratorQueuePromptHook,
+    watchLocale: easyuseAnimaWatchLocale,
+    refreshPanels: refreshGeneratorPanels,
+    handlePreviewEvent: handleGeneratorPreviewEvent,
+    handleProgressEvent: handleGeneratorProgressEvent,
+    handleProgressStateEvent: handleGeneratorProgressStateEvent,
+    handleDenoisePreviewEvent: handleGeneratorDenoisePreviewEvent,
+    handleExecutingEvent: handleGeneratorExecutingEvent,
+    clearDenoisePreviews: clearGeneratorDenoisePreviews,
+    loadSamplerOptions: loadGeneratorSamplerOptions,
+    loadUserProfiles: loadGeneratorUserProfiles,
+    warnUserProfiles(error) {
+      console.warn("[EasyUseAnima] Failed to load AiO user profiles.", error);
+    },
+  },
+  nodes: {
+    suppressDefaultPreview: suppressGeneratorDefaultPreview,
+    hookInputNode,
+    hookGeneratorNode,
+    syncSerializedWidgets: syncGeneratorSerializedWidgets,
+    scheduleDefaultPreviewSuppression: scheduleGeneratorDefaultPreviewSuppression,
+    updateExecutedStatus: updateGeneratorExecutedStatus,
+    scheduleLayout: scheduleGeneratorLayout,
+    disposePanel: disposeGeneratorPanel,
+    disposeNativePreviewLifecycle: disposeGeneratorNativePreviewLifecycle,
+  },
+});
 
 app.registerExtension({
   name: "easyuse-anima.aio",
-  async setup() {
-    ensureStyle();
-    installGeneratorWheelForwarder();
-    installGeneratorQueuePromptHook();
-    easyuseAnimaWatchLocale(refreshGeneratorPanels);
-    api.addEventListener(GENERATOR_PREVIEW_EVENT, handleGeneratorPreviewEvent);
-    api.addEventListener("progress", handleGeneratorProgressEvent);
-    api.addEventListener("progress_state", handleGeneratorProgressStateEvent);
-    api.addEventListener("b_preview_with_metadata", handleGeneratorDenoisePreviewEvent, true);
-    api.addEventListener("executing", handleGeneratorExecutingEvent);
-    api.addEventListener("execution_error", clearGeneratorDenoisePreviews);
-    api.addEventListener("execution_interrupted", clearGeneratorDenoisePreviews);
-    api.addEventListener("execution_success", clearGeneratorDenoisePreviews);
-    loadGeneratorSamplerOptions().then(refreshGeneratorPanels);
-    loadGeneratorUserProfiles()
-      .then(refreshGeneratorPanels)
-      .catch((error) => {
-        console.warn("[EasyUseAnima] Failed to load AiO user profiles.", error);
-      });
-  },
-  async beforeRegisterNodeDef(nodeType, nodeData) {
-    if (nodeData.name !== INPUT_NODE_TYPE && nodeData.name !== GENERATOR_NODE_TYPE) {
-      return;
-    }
-    if (nodeData.name === GENERATOR_NODE_TYPE) {
-      nodeType.prototype.hideOutputImages = true;
-    }
-    const onNodeCreated = nodeType.prototype.onNodeCreated;
-    nodeType.prototype.onNodeCreated = function () {
-      if (nodeData.name === GENERATOR_NODE_TYPE) {
-        suppressGeneratorDefaultPreview(this, { markDirty: false });
-      }
-      const result = onNodeCreated?.apply(this, arguments);
-      hookNode(this, nodeData);
-      return result;
-    };
-    const onConfigure = nodeType.prototype.onConfigure;
-    nodeType.prototype.onConfigure = function () {
-      if (nodeData.name === GENERATOR_NODE_TYPE) {
-        suppressGeneratorDefaultPreview(this, { markDirty: false });
-      }
-      const result = onConfigure?.apply(this, arguments);
-      hookNode(this, nodeData);
-      return result;
-    };
-    if (nodeData.name === GENERATOR_NODE_TYPE) {
-      const onSerialize = nodeType.prototype.onSerialize;
-      nodeType.prototype.onSerialize = function (serialized) {
-        const result = onSerialize?.apply(this, arguments);
-        syncGeneratorSerializedWidgets(this, serialized);
-        return result;
-      };
-      nodeType.prototype.onExecuted = function (message) {
-        scheduleGeneratorDefaultPreviewSuppression(this);
-        updateGeneratorExecutedStatus(this, message);
-        scheduleGeneratorDefaultPreviewSuppression(this);
-        return undefined;
-      };
-      const onResize = nodeType.prototype.onResize;
-      nodeType.prototype.onResize = function () {
-        const result = onResize?.apply(this, arguments);
-        scheduleGeneratorLayout(this);
-        return result;
-      };
-    }
-  },
+  ...aioExtensionRuntime,
 });

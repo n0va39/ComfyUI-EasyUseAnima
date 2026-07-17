@@ -137,6 +137,38 @@ Seed controls:
 - `increment`
 - `decrement`
 
+## Seed Range and Legacy Workflows
+
+This range contract applies to wildcard seeds in `Anima Prompt Studio
+Advanced`, `Anima Prompt Studio Advanced v2`, `Anima Prompt Studio Regional`,
+and `Anima Wildcard`.
+
+- The public range for a current seed newly entered or edited in the browser,
+  and for a normal next seed, is `0..Number.MAX_SAFE_INTEGER`
+  (`0..9007199254740991`), inclusive.
+- `fixed` keeps the current seed unchanged.
+- `increment` wraps from the maximum to `0`, while `decrement` wraps from `0`
+  to the maximum.
+- `randomize` selects from the same inclusive public range, so both `0` and the
+  maximum are possible.
+- A new edit must contain only unsigned base-10 digits in that range. Inputs
+  with a `+` or `-` sign, a fraction, exponential notation, or an over-maximum
+  value are not published to the real widget or saved workflow; the previous
+  seed is kept.
+
+For compatibility with existing workflows, the Python backend continues to
+read the uint64 range `0..18446744073709551615`. EasyUse Anima does not
+intentionally clamp an existing seed above the public range, and values the
+browser can represent exactly are preserved across load/save. The backend uses
+that seed for the current generation and `fixed` keeps it unchanged. JavaScript
+cannot represent every large integer exactly, so exact browser display and
+save/reload round trips are best-effort. Advancing the state with `increment`,
+`decrement`, or `randomize` returns the next seed to the public range.
+
+Some Node 2.0 frontend versions can temporarily leave a rejected over-maximum
+string visible in the input. The real widget and saved workflow still keep the
+previous valid seed; reopening the workflow shows the stored value.
+
 ## Prompt Studio Advanced
 
 `Anima Prompt Studio Advanced` shows a `Wildcard Seed` button and a compact

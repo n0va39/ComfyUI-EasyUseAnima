@@ -29,6 +29,7 @@ import {
 import {
   isAdvancedNode,
   isExtendNode,
+  isWildcardNode,
   installAdvancedSaveSync,
   registerPromptStudioNodeHooks,
   syncAdvancedNodes,
@@ -95,7 +96,6 @@ import {
   remeasureAdvancedTextareaHeightsForWidth as remeasureAdvancedTextareaHeightsForWidthWithHooks,
 } from "./advanced_fields_ui.js";
 import {
-  hookAdvancedNode as hookAdvancedNodeWithHooks,
   renderAdvancedEditor as renderAdvancedEditorWithHooks,
   scheduleHookAdvancedNode as scheduleHookAdvancedNodeWithHooks,
 } from "./advanced_node_ui.js";
@@ -104,8 +104,25 @@ import {
   syncAdvancedValues as syncAdvancedValuesWithHooks,
 } from "./advanced_values.js";
 import {
+  createAdvancedQueueSeedRuntime,
+  installAdvancedQueueSeedGraphCleanup,
+  installAdvancedQueueSeedQueueHook,
+} from "./advanced_queue_seed_runtime.js";
+import {
+  promptStudioQueueSeedBridge,
+} from "./queue_seed_bridge.js";
+import {
+  REGIONAL_NODE_TYPE,
+  REGIONAL_WIDGET_INDEX,
+} from "./regional/constants.js";
+import {
   applyWildcardExecutedInputs as applyWildcardExecutedInputsWithHooks,
+  hookWildcardSeedWidget,
+  setRegularWidgetValue,
 } from "./wildcard_values.js";
+import {
+  randomWildcardSeed,
+} from "./wildcard_seed_contract.js";
 import {
   captureAdvancedConfigure,
   pruneDisconnectedAdvancedFieldInputValues,
@@ -117,7 +134,34 @@ import {
   refreshNodeSize as refreshNodeSizeWithApp,
 } from "./runtime_canvas.js";
 
-function createPromptStudioExtensionRuntime(app) {
+const ADVANCED_QUEUE_SEED_CONTRACT = Object.freeze({
+  modeInputName: "wildcard_mode",
+  seedInputName: "wildcard_seed",
+  controlInputName: "wildcard_seed_after_generate",
+  seedWidgetIndex: ADVANCED_WIDGET_INDEX.wildcard_seed,
+  supportsSubgraph: true,
+});
+const WILDCARD_QUEUE_SEED_CONTRACT = Object.freeze({
+  modeInputName: "mode",
+  seedInputName: "seed",
+  controlInputName: "seed_after_generate",
+  seedWidgetIndex: 3,
+});
+const REGIONAL_QUEUE_SEED_CONTRACT = Object.freeze({
+  modeInputName: "wildcard_mode",
+  seedInputName: "wildcard_seed",
+  controlInputName: "wildcard_seed_after_generate",
+  seedWidgetIndex: REGIONAL_WIDGET_INDEX.wildcard_seed,
+  supportsSubgraph: false,
+});
+
+function isRegionalQueueSeedNode(node) {
+  return node?.type === REGIONAL_NODE_TYPE || node?.comfyClass === REGIONAL_NODE_TYPE;
+}
+
+function createPromptStudioExtensionRuntime(app, api = null) {
+  const queueSeedBridge = promptStudioQueueSeedBridge(app);
+
   function markNodeDirty(node) {
     markNodeDirtyWithApp(app, node);
   }
@@ -149,6 +193,7 @@ function createPromptStudioExtensionRuntime(app) {
       parseAdvancedFields,
       repairAdvancedInternalWidgetValues,
       renderAdvancedEditor,
+      shouldApplyExecutedSeed: advancedQueueSeedRuntime.shouldApplyExecutedSeed,
       writeAdvancedFields,
     };
   }
@@ -162,8 +207,64 @@ function createPromptStudioExtensionRuntime(app) {
   }
 
   function applyWildcardExecutedInputs(node, message) {
-    applyWildcardExecutedInputsWithHooks(node, message, { markNodeDirty });
+    applyWildcardExecutedInputsWithHooks(node, message, {
+      markNodeDirty,
+      shouldApplyExecutedSeed: advancedQueueSeedRuntime.shouldApplyExecutedSeed,
+    });
   }
+
+  const advancedQueueSeedRuntime = createAdvancedQueueSeedRuntime({
+    listNodes: () => app.graph?._nodes || [],
+    getRootGraph: () => app.graph,
+    getNodeContract(node) {
+      if (isAdvancedNode(node)) {
+        return ADVANCED_QUEUE_SEED_CONTRACT;
+      }
+      if (isRegionalQueueSeedNode(node)) {
+        return REGIONAL_QUEUE_SEED_CONTRACT;
+      }
+      return isWildcardNode(node) ? WILDCARD_QUEUE_SEED_CONTRACT : null;
+    },
+    isOutputNode: (node) => node?.constructor?.nodeData?.output_node === true,
+    getSeed: (node, contract) => findWidget(node, contract.seedInputName)?.value,
+    updateSeed(node, seed, contract) {
+      if (contract === WILDCARD_QUEUE_SEED_CONTRACT) {
+        if (!setRegularWidgetValue(node, "seed", seed, { markNodeDirty })) {
+          throw new Error("Anima Wildcard seed widget is unavailable.");
+        }
+        return;
+      }
+      if (contract === REGIONAL_QUEUE_SEED_CONTRACT) {
+        if (queueSeedBridge.publishRegionalSeed(node, seed)) {
+          return;
+        }
+        const widget = findWidget(node, contract.seedInputName);
+        if (!widget) {
+          throw new Error("Prompt Studio Regional wildcard_seed widget is unavailable.");
+        }
+        widget.value = seed;
+        widget.callback?.(widget.value);
+        markNodeDirty(node);
+        return;
+      }
+      const widget = findWidget(node, contract.seedInputName);
+      if (!widget) {
+        throw new Error("Prompt Studio wildcard_seed widget is unavailable.");
+      }
+      widget.value = seed;
+      renderAdvancedEditor(node);
+    },
+    clonePrompt: (value) => JSON.parse(JSON.stringify(value)),
+    randomSeed() {
+      const values = new Uint32Array(2);
+      if (globalThis.crypto?.getRandomValues) {
+        globalThis.crypto.getRandomValues(values);
+        return (values[0] & 0x1fffff) * 0x100000000 + values[1];
+      }
+      return randomWildcardSeed();
+    },
+  });
+  queueSeedBridge.bindRuntime(advancedQueueSeedRuntime);
 
   function refreshNodeSize(node, options = {}) {
     refreshNodeSizeWithApp(app, node, options);
@@ -343,10 +444,6 @@ function createPromptStudioExtensionRuntime(app) {
     renderAdvancedEditorWithHooks(node, advancedNodeUiHooks());
   }
 
-  function hookAdvancedNode(node) {
-    hookAdvancedNodeWithHooks(node, advancedNodeUiHooks());
-  }
-
   function scheduleHookAdvancedNode(node) {
     scheduleHookAdvancedNodeWithHooks(node, advancedNodeUiHooks());
   }
@@ -371,6 +468,8 @@ function createPromptStudioExtensionRuntime(app) {
       installAdvancedWheelForwarder();
       installMiddlePanForwarder();
       installAdvancedSaveSync(app, syncAllAdvancedNodes);
+      installAdvancedQueueSeedGraphCleanup(app.graph, advancedQueueSeedRuntime);
+      installAdvancedQueueSeedQueueHook(api, advancedQueueSeedRuntime);
       installPromptHighlightOverlayRefresh(app, applyPromptStudioTextStyle);
       await loadPromptStudioSettings({
         hideTrainedTagTooltip,
@@ -399,6 +498,7 @@ function createPromptStudioExtensionRuntime(app) {
     },
     async beforeRegisterNodeDef(nodeType, nodeData) {
       registerPromptStudioNodeHooks(nodeType, nodeData, {
+        attachAdvancedQueueSeedNode: advancedQueueSeedRuntime.attachNode,
         applyAdvancedExecutedInputs,
         applyExecutedInputs,
         applyExtendSlotVisibility,
@@ -407,6 +507,8 @@ function createPromptStudioExtensionRuntime(app) {
           captureAdvancedConfigure(node, serialized, advancedWidget(node))
         ),
         disconnectAdvancedEditorWidthObserver,
+        detachAdvancedQueueSeedNode: advancedQueueSeedRuntime.detachNode,
+        hookWildcardSeedWidget,
         hookStudioNode,
         isExtendNode,
         layoutExtendPromptWidgets,

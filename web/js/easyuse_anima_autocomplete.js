@@ -5,6 +5,27 @@ import {
 } from "./easyuse_anima_prompt_rules.js";
 import { easyuseAnimaFetchJson, easyuseAnimaGetSettings } from "./easyuse_anima_api.js";
 import { easyuseAnimaText } from "./easyuse_anima_i18n.js";
+import { createAutocompleteDataAdapter } from "./autocomplete/data_adapter.js";
+import {
+  createAutocompleteInputController,
+  invalidateAutocompleteControllerStates,
+} from "./autocomplete/input_controller.js";
+import {
+  calculateAutocompletePopupGeometry,
+  calculateCaretMirrorGeometry,
+  normalizeCaretClientRect,
+} from "./autocomplete/popup_geometry.js";
+import {
+  autocompleteQuery,
+  currentToken as currentAutocompleteToken,
+  currentWildcardToken as currentAutocompleteWildcardToken,
+  isCaretInComment,
+  isCaretInPromptTranslationMarker as caretInPromptTranslationMarker,
+  normalizeWildcardSearchText,
+  parseAutocompleteText,
+  planAutocompleteInsertion,
+  wildcardAutocompleteQuery,
+} from "./autocomplete/text_model.js";
 
 const TARGETS = {
   EasyUseAnimaPromptBuilder: new Set([
@@ -81,7 +102,6 @@ const AUTOCOMPLETE_COMMIT_KEYS = new Set([
   "enter",
   "tab",
 ]);
-const SENTENCE_PERIODS = new Set([".", "。", "．", "｡"]);
 const TEXT_EDITING_SHORTCUT_KEYS = new Set(["a", "c", "v", "x", "z", "y"]);
 const AUTOCOMPLETE_TEXT = {
   en: {
@@ -152,8 +172,6 @@ const PREVIEW_STYLES = {
   unknown: { color: "#cbd5e1", background: "transparent", weight: 500 },
 };
 const MIN_QUERY_LENGTH = 1;
-const cache = new Map();
-let wildcardItemsCache = null;
 
 let maxResults = DEFAULT_MAX_RESULTS;
 let autocompleteMode = DEFAULT_AUTOCOMPLETE_MODE;
@@ -169,6 +187,12 @@ let activeRefreshFrame = null;
 let middlePanForwardActive = false;
 const hookedAutocompleteInputs = new Set();
 window.__easyuseAnimaPendingAutocompleteInputs ||= [];
+
+const autocompleteData = createAutocompleteDataAdapter({
+  fetchJson: easyuseAnimaFetchJson,
+  normalizeWildcardSearchText,
+  getLimit: () => maxResults,
+});
 
 function clamp(value, min, max) {
   return Math.min(max, Math.max(min, value));
@@ -268,7 +292,7 @@ function setAutocompleteMode(value) {
   if (!autocompleteEnabledForState(activeState)) {
     hidePopup();
   }
-  cache.clear();
+  autocompleteData.clearResults();
 }
 
 function isEasyUseAnimaNode(node) {
@@ -311,6 +335,9 @@ function syncAutocompleteInputFlag(input, state = input?.__easyuseAnimaAutocompl
     return;
   }
   input.__easyuseAnimaAutocomplete = autocompleteEnabledForState(state);
+  if (!input.__easyuseAnimaAutocomplete) {
+    state?.controller?.invalidate();
+  }
 }
 
 function syncAutocompleteInputFlags() {
@@ -330,18 +357,38 @@ async function refreshAutocompleteSettings() {
     if (!settings) {
       return;
     }
+    let dataRequestsInvalidated = autocompleteData.syncSourceSettings(
+      settings,
+      { initialize: true },
+    );
     const nextMaxResults = clampMaxResults(settings["autocomplete.limit"]);
     if (nextMaxResults !== maxResults) {
       maxResults = nextMaxResults;
-      cache.clear();
+      autocompleteData.clearResults();
+      dataRequestsInvalidated = true;
     }
+    const previousMode = autocompleteMode;
     setAutocompleteMode(settings["autocomplete.mode"]);
+    if (autocompleteMode !== previousMode) {
+      dataRequestsInvalidated = true;
+    }
     setAutocompleteCommitKey(settings["autocomplete.commit_key"]);
     setAutocompleteAppendSeparator(settings["autocomplete.append_separator"]);
     setAutocompleteNoCommaAfterPeriod(settings["autocomplete.no_comma_after_period"]);
+    const previousDetectNaturalSentences = autocompleteDetectNaturalSentences;
     setAutocompleteDetectNaturalSentences(settings["autocomplete.detect_natural_sentences"]);
+    if (autocompleteDetectNaturalSentences !== previousDetectNaturalSentences) {
+      dataRequestsInvalidated = true;
+    }
     setAutocompletePreviewClosingBrackets(settings["autocomplete.preview_closing_brackets"]);
+    const previousPreviewCompletion = autocompletePreviewCompletion;
     setAutocompletePreviewCompletion(settings["autocomplete.preview_completion"]);
+    if (autocompletePreviewCompletion !== previousPreviewCompletion) {
+      dataRequestsInvalidated = true;
+    }
+    if (dataRequestsInvalidated) {
+      invalidateAutocompleteDataRequests();
+    }
   } catch {
     // Keep the built-in default if settings cannot be read.
   }
@@ -413,8 +460,11 @@ function ensurePopup() {
   return popup;
 }
 
-function hidePopup() {
+function hidePopup(options = {}) {
   const input = activeState?.input;
+  if (!options.preserveController) {
+    input?.__easyuseAnimaAutocompleteState?.controller?.invalidate();
+  }
   markAutocompleteInputInactive(input);
   if (popup) {
     popup.replaceChildren();
@@ -435,6 +485,27 @@ function markAutocompleteInputInactive(input) {
 function hideTrainedTagTooltips() {
   for (const tooltip of document.querySelectorAll(".easyuse-anima-trained-tag-tooltip")) {
     tooltip.classList.add("hidden");
+  }
+}
+
+function invalidateAutocompleteDataRequests() {
+  const states = [];
+  let focusedState = null;
+  for (const input of [...hookedAutocompleteInputs]) {
+    const state = input?.__easyuseAnimaAutocompleteState;
+    if (!state) {
+      hookedAutocompleteInputs.delete(input);
+      continue;
+    }
+    states.push(state);
+    if (document.activeElement === input) {
+      focusedState = state;
+    }
+  }
+  invalidateAutocompleteControllerStates(states, activeState);
+  hidePopup({ preserveController: true });
+  if (autocompleteEnabledForState(focusedState)) {
+    focusedState.controller.scheduleUpdate();
   }
 }
 
@@ -581,215 +652,32 @@ function findInputEl(widget) {
   return null;
 }
 
-function isEscaped(value, index) {
-  let count = 0;
-  for (let cursor = index - 1; cursor >= 0 && value[cursor] === "\\"; cursor -= 1) {
-    count += 1;
-  }
-  return count % 2 === 1;
-}
-
-function isSentencePeriod(value, index) {
-  if (!SENTENCE_PERIODS.has(value[index]) || isEscaped(value, index)) {
-    return false;
-  }
-  return !(/\d/.test(value[index - 1] || "") && /\d/.test(value[index + 1] || ""));
-}
-
-function naturalSentenceStart(value, segmentStart, caret) {
-  if (!autocompleteDetectNaturalSentences) {
-    return segmentStart;
-  }
-  for (let index = caret - 1; index >= segmentStart; index -= 1) {
-    if (!isSentencePeriod(value, index)) {
-      continue;
-    }
-    let start = index + 1;
-    while (start < caret && /[ \t]/.test(value[start])) {
-      start += 1;
-    }
-    return start < caret ? start : segmentStart;
-  }
-  return segmentStart;
-}
-
-function naturalSentenceEnd(value, caret, segmentEnd) {
-  for (let index = caret; index < segmentEnd; index += 1) {
-    if (isSentencePeriod(value, index)) {
-      return index;
-    }
-  }
-  return segmentEnd;
-}
-
-function trimPromptSyntaxPrefix(value, start, end) {
-  let cursor = start;
-  while (cursor < end && /[ \t]/.test(value[cursor])) {
-    cursor += 1;
-  }
-  if (value.slice(cursor, cursor + 2) === "[[") {
-    cursor += 2;
-    while (cursor < end && /[ \t]/.test(value[cursor])) {
-      cursor += 1;
-    }
-  }
-  if (value[cursor] === "(") {
-    cursor += 1;
-    while (cursor < end && /[ \t]/.test(value[cursor])) {
-      cursor += 1;
-    }
-  }
-  return cursor;
-}
-
-function trimPromptSyntaxSuffix(value, start, end) {
-  let cursor = end;
-  while (cursor > start && /[ \t]/.test(value[cursor - 1])) {
-    cursor -= 1;
-  }
-  if (value.slice(Math.max(start, cursor - 2), cursor) === "]]") {
-    cursor -= 2;
-    while (cursor > start && /[ \t]/.test(value[cursor - 1])) {
-      cursor -= 1;
-    }
-  }
-  if (value[cursor - 1] === ")" && !isEscaped(value, cursor - 1)) {
-    cursor -= 1;
-    while (cursor > start && /[ \t]/.test(value[cursor - 1])) {
-      cursor -= 1;
-    }
-  }
-  const tokenText = value.slice(start, cursor);
-  const weight = /\s*:\s*[+-]?(?:\d+(?:\.\d*)?|\.\d+)\s*$/.exec(tokenText);
-  if (weight) {
-    cursor -= weight[0].length;
-  }
-  return Math.max(start, cursor);
-}
-
 function currentToken(input) {
-  const value = input.value || "";
-  const caret = input.selectionStart ?? value.length;
-  let segmentStart = caret;
-  while (segmentStart > 0 && value[segmentStart - 1] !== "," && value[segmentStart - 1] !== "\n") {
-    segmentStart -= 1;
-  }
-  let segmentEnd = caret;
-  while (segmentEnd < value.length && value[segmentEnd] !== "," && value[segmentEnd] !== "\n") {
-    segmentEnd += 1;
-  }
-  const naturalStart = naturalSentenceStart(value, segmentStart, caret);
-  const sentenceDelimited = naturalStart > segmentStart;
-  if (sentenceDelimited) {
-    segmentStart = naturalStart;
-    segmentEnd = naturalSentenceEnd(value, caret, segmentEnd);
-  }
-  const replaceStart = trimPromptSyntaxPrefix(value, segmentStart, segmentEnd);
-  const replaceEnd = trimPromptSyntaxSuffix(value, replaceStart, segmentEnd);
-  const queryEnd = clamp(caret, replaceStart, replaceEnd);
-  const strictRaw = value.slice(replaceStart, queryEnd);
-  const legacyRaw = value.slice(segmentStart, caret);
-  const segment = value.slice(segmentStart, segmentEnd);
-  const strictActive = caret >= replaceStart && caret <= replaceEnd && queryEnd > replaceStart;
-  const legacyActive = legacyRaw.trim().length > 0;
-  const useStrictToken = !!autocompletePreviewCompletion;
-  return {
+  const value = input?.value || "";
+  return currentAutocompleteToken(
     value,
-    start: replaceStart,
-    end: replaceEnd,
-    caret,
-    segmentStart,
-    segmentEnd,
-    segment,
-    tokenSegment: value.slice(replaceStart, replaceEnd),
-    sentenceDelimited,
-    query: (useStrictToken ? strictRaw : legacyRaw).trim(),
-    active: useStrictToken ? strictActive : legacyActive,
-  };
+    input?.selectionStart ?? value.length,
+    {
+      detectNaturalSentences: autocompleteDetectNaturalSentences,
+      previewCompletion: autocompletePreviewCompletion,
+    },
+  );
 }
 
 function currentWildcardToken(input) {
-  const value = input.value || "";
-  const caret = input.selectionStart ?? value.length;
-  let opening = -1;
-  let index = 0;
-  while (index < caret) {
-    const found = value.indexOf("__", index);
-    if (found < 0 || found >= caret) {
-      break;
-    }
-    opening = opening < 0 ? found : -1;
-    index = found + 2;
-  }
-  if (opening < 0) {
-    return null;
-  }
-  const query = value.slice(opening + 2, caret);
-  if (/[\r\n,]/.test(query)) {
-    return null;
-  }
-  const closing = value.indexOf("__", caret);
-  const end = closing >= 0 ? closing + 2 : caret;
-  const active = caret >= opening + 2 && (closing < 0 || caret <= closing);
-  return {
+  const value = input?.value || "";
+  return currentAutocompleteWildcardToken(
     value,
-    start: opening,
-    end,
-    caret,
-    segment: value.slice(opening, end),
-    query,
-    wildcard: true,
-    active,
-  };
+    input?.selectionStart ?? value.length,
+  );
 }
 
 function isCaretInPromptTranslationMarker(input) {
   const value = input?.value || "";
-  const caret = input?.selectionStart ?? value.length;
-  let index = 0;
-  while (index < caret) {
-    const start = value.indexOf("%{", index);
-    if (start < 0 || start >= caret) {
-      return false;
-    }
-    if (isEscaped(value, start)) {
-      index = start + 2;
-      continue;
-    }
-    let end = -1;
-    for (let cursor = start + 2; cursor < value.length; cursor += 1) {
-      if (value[cursor] === "}" && !isEscaped(value, cursor)) {
-        end = cursor + 1;
-        break;
-      }
-    }
-    if (end < 0) {
-      return caret > start;
-    }
-    if (caret > start && caret < end) {
-      return true;
-    }
-    index = end;
-  }
-  return false;
-}
-
-function autocompleteQuery(token, forceArtistOnly = false) {
-  const raw = String(token.query || "");
-  const parsed = parseAutocompleteText(raw);
-  const artistOnly = forceArtistOnly || parsed.artistOnly;
-  const query = parsed.query;
-  const category = artistOnly ? "artist" : "";
-  return { query, artistOnly, category };
-}
-
-function wildcardAutocompleteQuery(token) {
-  return {
-    query: String(token?.query || "").toLocaleLowerCase(),
-    artistOnly: false,
-    category: "wildcard",
-    kind: "wildcard",
-  };
+  return caretInPromptTranslationMarker(
+    value,
+    input?.selectionStart ?? value.length,
+  );
 }
 
 function autocompleteStateSignature(token, context, state) {
@@ -808,43 +696,6 @@ function autocompleteStateSignature(token, context, state) {
     previewClosingBrackets: autocompletePreviewClosingBrackets,
     previewCompletion: autocompletePreviewCompletion,
   });
-}
-
-function stripPromptSyntaxClosingParens(value) {
-  let cursor = String(value || "").length;
-  while (cursor > 0 && /[ \t]/.test(value[cursor - 1])) {
-    cursor -= 1;
-  }
-  while (cursor > 0 && value[cursor - 1] === ")" && !isEscaped(value, cursor - 1)) {
-    cursor -= 1;
-    while (cursor > 0 && /[ \t]/.test(value[cursor - 1])) {
-      cursor -= 1;
-    }
-  }
-  return value.slice(0, cursor);
-}
-
-function parseAutocompleteText(value) {
-  let query = String(value || "").trim();
-  query = query.replace(/^\[\[\s*/g, "");
-  query = query.replace(/^\(\s*/g, "");
-  const artistOnly = query.startsWith("@");
-  if (artistOnly) {
-    query = query.slice(1).trimStart();
-  }
-  query = stripPromptSyntaxClosingParens(query);
-  query = query.replace(/:\s*[+-]?(?:\d+(?:\.\d*)?|\.\d+)\s*$/, "");
-  query = stripPromptSyntaxClosingParens(query);
-  return { query, artistOnly };
-}
-
-function normalizeWildcardSearchText(value) {
-  return String(value || "")
-    .normalize("NFKC")
-    .replaceAll("\\", "/")
-    .replace(/[ _]+/g, "-")
-    .trim()
-    .toLocaleLowerCase();
 }
 
 function strictAutocompleteResults(context, token, state, results) {
@@ -902,10 +753,12 @@ function caretClientRect(input) {
   const mirror = document.createElement("div");
   const marker = document.createElement("span");
   const value = String(input.value || "");
-  const layoutWidth = input.offsetWidth || rect.width || 1;
-  const layoutHeight = input.offsetHeight || rect.height || 1;
-  const scaleX = rect.width > 0 ? rect.width / layoutWidth : 1;
-  const scaleY = rect.height > 0 ? rect.height / layoutHeight : scaleX;
+  const {
+    layoutWidth,
+    layoutHeight,
+    scaleX,
+    scaleY,
+  } = calculateCaretMirrorGeometry(rect, input.offsetWidth, input.offsetHeight);
 
   mirror.style.cssText = [
     "position: fixed",
@@ -942,87 +795,37 @@ function caretClientRect(input) {
   mirror.scrollLeft = input.scrollLeft;
   const markerRect = marker.getBoundingClientRect();
   mirror.remove();
-
-  if (!Number.isFinite(markerRect.left) || !Number.isFinite(markerRect.top)) {
-    return rect;
-  }
-  return {
-    left: markerRect.left,
-    right: markerRect.right,
-    top: markerRect.top,
-    bottom: markerRect.bottom,
-    width: markerRect.width,
-    height: markerRect.height || Number.parseFloat(getComputedStyle(input).lineHeight) || 18,
-  };
+  const fallbackLineHeight = (
+    Number.isFinite(markerRect.left)
+    && Number.isFinite(markerRect.top)
+    && !markerRect.height
+  )
+    ? Number.parseFloat(getComputedStyle(input).lineHeight)
+    : 0;
+  return normalizeCaretClientRect(
+    markerRect,
+    rect,
+    fallbackLineHeight,
+  );
 }
 
 function positionPopup(input) {
   const menu = ensurePopup();
   const inputRect = input.getBoundingClientRect();
   const caretRect = caretClientRect(input);
-  const width = Math.max(260, Math.min(380, inputRect.width, window.innerWidth - 8));
-  const lineHeight = Math.max(14, caretRect.height || Number.parseFloat(getComputedStyle(input).lineHeight) || 18);
-  const caretLeft = clamp(caretRect.left, inputRect.left, inputRect.right);
-  const caretTop = clamp(
-    caretRect.top,
-    inputRect.top,
-    Math.max(inputRect.top, inputRect.bottom - lineHeight),
+  const fallbackLineHeight = caretRect.height
+    ? 0
+    : Number.parseFloat(getComputedStyle(input).lineHeight);
+  const geometry = calculateAutocompletePopupGeometry(
+    inputRect,
+    caretRect,
+    { width: window.innerWidth, height: window.innerHeight },
+    fallbackLineHeight,
   );
-  const caretBottom = clamp(
-    caretTop + lineHeight,
-    inputRect.top + lineHeight,
-    inputRect.bottom,
-  );
-  const left = clamp(caretLeft, 4, Math.max(4, window.innerWidth - width - 4));
-  const top = caretBottom + lineHeight + 12;
-  const maxHeight = Math.max(56, window.innerHeight - top - 8);
-  menu.style.left = `${left}px`;
-  menu.style.top = `${top}px`;
-  menu.style.width = `${width}px`;
-  menu.style.maxHeight = `${Math.min(280, maxHeight)}px`;
-}
-
-async function search(query, category = "") {
-  const key = `${category || "all"}:${maxResults}:${query.toLocaleLowerCase()}`;
-  if (cache.has(key)) {
-    return cache.get(key);
-  }
-  const categoryParam = category ? `&category=${encodeURIComponent(category)}` : "";
-  const data = await easyuseAnimaFetchJson(
-    `/easyuse_anima/autocomplete?q=${encodeURIComponent(query)}&limit=${maxResults}${categoryParam}`,
-  );
-  const results = Array.isArray(data.results) ? data.results : [];
-  cache.set(key, results);
-  return results;
-}
-
-async function loadWildcardItems() {
-  if (Array.isArray(wildcardItemsCache)) {
-    return wildcardItemsCache;
-  }
-  const data = await easyuseAnimaFetchJson("/easyuse_anima/wildcards");
-  wildcardItemsCache = Array.isArray(data.items) ? data.items.map((item) => String(item || "")).filter(Boolean) : [];
-  return wildcardItemsCache;
-}
-
-async function searchWildcards(query) {
-  const normalized = normalizeWildcardSearchText(query);
-  const key = `wildcard:${maxResults}:${normalized}`;
-  if (cache.has(key)) {
-    return cache.get(key);
-  }
-  const items = await loadWildcardItems();
-  const results = items
-    .filter((item) => !normalized || normalizeWildcardSearchText(item).includes(normalized))
-    .slice(0, maxResults)
-    .map((item) => ({
-      tag: item,
-      category: "wildcard",
-      count: 0,
-      kind: "wildcard",
-    }));
-  cache.set(key, results);
-  return results;
+  menu.style.left = `${geometry.left}px`;
+  menu.style.top = `${geometry.top}px`;
+  menu.style.width = `${geometry.width}px`;
+  menu.style.maxHeight = `${geometry.maxHeight}px`;
 }
 
 function scrollActiveAutocompleteItemIntoView(menu, index) {
@@ -1089,65 +892,6 @@ function resetVisibleAutocompleteMenuSoon(menu, input) {
       resetAutocompleteMenuToTop(menu);
     }
   });
-}
-
-function endsWithSentencePeriod(value) {
-  const text = String(value || "").replace(/[ \t]+$/g, "");
-  return text.length > 0 && isSentencePeriod(text, text.length - 1);
-}
-
-function startsWithSentencePeriod(value) {
-  const text = String(value || "").replace(/^[ \t]+/g, "");
-  return text.length > 0 && isSentencePeriod(text, 0);
-}
-
-function insertPrefixForBefore(before) {
-  if (!before || before.endsWith("\n")) {
-    return "";
-  }
-  const trimmed = before.replace(/[ \t]+$/g, "");
-  if (trimmed.endsWith("(") || trimmed.endsWith("[[")) {
-    return "";
-  }
-  if (before.endsWith(",")) {
-    return " ";
-  }
-  if (/[ \t]$/.test(before)) {
-    return "";
-  }
-  if (autocompleteNoCommaAfterPeriod && endsWithSentencePeriod(before)) {
-    return " ";
-  }
-  return ", ";
-}
-
-function insertSuffixForAfter(after, appendSeparator = false) {
-  if (!after) {
-    return appendSeparator ? ", " : "";
-  }
-  if (/^[ \t]*:\s*[+-]?(?:\d+(?:\.\d*)?|\.\d+)/.test(after) || /^[ \t]*(?:\)|\]\])/.test(after)) {
-    return "";
-  }
-  if (after.startsWith("\n") || after.startsWith(",")) {
-    return "";
-  }
-  if (autocompleteNoCommaAfterPeriod && startsWithSentencePeriod(after)) {
-    return "";
-  }
-  return ", ";
-}
-
-function insertSuffixPlanForAfter(after, appendSeparator = false) {
-  const text = String(after || "");
-  const suffix = insertSuffixForAfter(text, appendSeparator);
-  if (!text) {
-    return { suffix, consumeAfter: 0, caretExtra: suffix.length };
-  }
-  if (appendSeparator && text.startsWith(",")) {
-    const match = /^,[ \t]*/.exec(text);
-    return { suffix: ", ", consumeAfter: match?.[0]?.length || 1, caretExtra: 2 };
-  }
-  return { suffix, consumeAfter: 0, caretExtra: 0 };
 }
 
 function replaceInputRange(input, start, end, replacement, caretOffset) {
@@ -1294,30 +1038,24 @@ function forwardMiddlePanFromAutocompleteInput(event) {
 }
 
 function commitSuggestion(state, entry, options = {}) {
-  const token = currentToken(state.input);
+  const promptToken = currentToken(state.input);
   const wildcardToken = entry?.kind === "wildcard" ? currentWildcardToken(state.input) : null;
-  if (wildcardToken) {
-    const replacement = `__${String(entry.tag || "").replace(/^__|__$/g, "")}__`;
-    replaceInputRange(state.input, wildcardToken.start, wildcardToken.end, replacement, replacement.length);
-    syncWidgetValue(state);
-    state.onCommit?.(state.input.value);
-    if (options.suppressPopup) {
-      suppressAutocompleteUntilInputChanges(state.input);
-    }
-    hidePopup();
+  const token = wildcardToken || promptToken;
+  const insert = completionText(token, entry, state.forceArtistOnly);
+  const plan = planAutocompleteInsertion(token, insert, {
+    appendSeparator: autocompleteAppendSeparator,
+    noCommaAfterPeriod: autocompleteNoCommaAfterPeriod,
+  });
+  if (!plan) {
     return;
   }
-  const before = token.value.slice(0, token.start);
-  const after = token.value.slice(token.end);
-  const insert = completionText(token, entry, state.forceArtistOnly);
-  const prefix = insertPrefixForBefore(before);
-  const suffixPlan = insertSuffixPlanForAfter(after, autocompleteAppendSeparator);
-  const suffix = suffixPlan.suffix;
-  const replacement = `${prefix}${insert}${suffix}`;
-  const caretOffset = prefix.length
-    + insert.length
-    + suffixPlan.caretExtra;
-  replaceInputRange(state.input, token.start, token.end + suffixPlan.consumeAfter, replacement, caretOffset);
+  replaceInputRange(
+    state.input,
+    plan.start,
+    plan.end,
+    plan.replacement,
+    plan.caretOffset,
+  );
   syncWidgetValue(state);
   state.onCommit?.(state.input.value);
   if (options.suppressPopup) {
@@ -1420,41 +1158,32 @@ function completionPreviewPlan(state, entry) {
     return null;
   }
   const sourceValue = String(state.input.value || "");
-  if (entry?.kind === "wildcard") {
-    const token = currentWildcardToken(state.input);
-    if (!token) {
-      return null;
-    }
-    const insert = `__${String(entry.tag || "").replace(/^__|__$/g, "")}__`;
+  const wildcardToken = entry?.kind === "wildcard" ? currentWildcardToken(state.input) : null;
+  if (entry?.kind === "wildcard" && !wildcardToken) {
+    return null;
+  }
+  const token = wildcardToken || currentToken(state.input);
+  const insert = completionText(token, entry, state.forceArtistOnly);
+  const plan = planAutocompleteInsertion(token, insert, {
+    appendSeparator: autocompleteAppendSeparator,
+    noCommaAfterPeriod: autocompleteNoCommaAfterPeriod,
+  });
+  if (!plan) {
+    return null;
+  }
+  let typedLength;
+  if (token.wildcard) {
     const typed = token.value.slice(token.start, token.caret);
     const lowerInsert = insert.toLocaleLowerCase();
     const lowerTyped = typed.toLocaleLowerCase();
-    const typedLength = typed && lowerInsert.startsWith(lowerTyped)
+    typedLength = typed && lowerInsert.startsWith(lowerTyped)
       ? typed.length
       : 0;
-    const value = `${sourceValue.slice(0, token.start)}${insert}${sourceValue.slice(token.end)}`;
-    return {
-      sourceValue,
-      value,
-      candidateStart: token.start,
-      candidateEnd: token.start + insert.length,
-      ghostStart: token.start + typedLength,
-      ghostEnd: token.start + insert.length,
-      category: "wildcard",
-    };
+  } else {
+    typedLength = plan.prefix ? 0 : typedCompletionLength(token, insert);
   }
-  const token = currentToken(state.input);
-  const insert = completionText(token, entry, state.forceArtistOnly);
-  const before = token.value.slice(0, token.start);
-  const after = token.value.slice(token.end);
-  const prefix = insertPrefixForBefore(before);
-  const suffixPlan = insertSuffixPlanForAfter(after, autocompleteAppendSeparator);
-  const suffix = suffixPlan.suffix;
-  const replacement = `${prefix}${insert}${suffix}`;
-  const replaceEnd = token.end + suffixPlan.consumeAfter;
-  const value = `${sourceValue.slice(0, token.start)}${replacement}${sourceValue.slice(replaceEnd)}`;
-  const typedLength = prefix ? 0 : typedCompletionLength(token, insert);
-  const candidateStart = token.start + prefix.length;
+  const value = `${sourceValue.slice(0, plan.start)}${plan.replacement}${sourceValue.slice(plan.end)}`;
+  const candidateStart = plan.start + plan.prefix.length;
   const candidateEnd = candidateStart + insert.length;
   const ghostStart = candidateStart + typedLength;
   const ghostEnd = candidateEnd;
@@ -1465,7 +1194,9 @@ function completionPreviewPlan(state, entry) {
     candidateEnd,
     ghostStart,
     ghostEnd,
-    category: autocompletePreviewCategory(state, entry, token),
+    category: token.wildcard
+      ? "wildcard"
+      : autocompletePreviewCategory(state, entry, token),
   };
 }
 
@@ -1631,23 +1362,6 @@ function renderResults(state, results, signature = "") {
   updateAutocompletePreview();
 }
 
-function isCaretInComment(value, caret) {
-  const text = String(value ?? "");
-  const safeCaret = Math.max(0, Math.min(Number(caret) || 0, text.length));
-  const lineStart = text.lastIndexOf("\n", safeCaret - 1) + 1;
-  return /^[ \t]*#/.test(text.slice(lineStart, safeCaret));
-}
-
-function debounce(fn, delay = 120) {
-  let timer = null;
-  const wrapped = (...args) => {
-    clearTimeout(timer);
-    timer = setTimeout(() => fn(...args), delay);
-  };
-  wrapped.cancel = () => clearTimeout(timer);
-  return wrapped;
-}
-
 function isTextEditingShortcut(event) {
   if (!(event.ctrlKey || event.metaKey) || event.altKey) {
     return false;
@@ -1672,8 +1386,6 @@ function hookInput(input, options = {}) {
     return;
   }
 
-  let composing = false;
-  let updateSeq = 0;
   const state = {
     node: options.node || null,
     widget: options.widget || null,
@@ -1688,95 +1400,102 @@ function hookInput(input, options = {}) {
     state.lastAutocompleteSignature = "";
   };
 
-  const updateNow = async () => {
-    if (document.activeElement !== input || !autocompleteEnabledForState(state)) {
-      if (activeState?.input === input) {
+  const controller = createAutocompleteInputController({
+    requestFrame: (callback) => requestAnimationFrame(callback),
+    cancelFrame: (handle) => cancelAnimationFrame(handle),
+    setTimer: (callback, delay) => setTimeout(callback, delay),
+    clearTimer: (handle) => clearTimeout(handle),
+    onUpdate: async ({ isCurrent, request }) => {
+      if (document.activeElement !== input || !autocompleteEnabledForState(state)) {
+        if (activeState?.input === input) {
+          hidePopup();
+        }
+        return;
+      }
+      if (shouldSuppressAutocomplete(input)) {
+        markAutocompleteInactive();
+        if (activeState?.input === input) {
+          hidePopup();
+        }
+        return;
+      }
+      if (isCaretInComment(input.value || "", input.selectionStart ?? 0)) {
+        markAutocompleteInactive();
         hidePopup();
+        return;
       }
-      return;
-    }
-    if (shouldSuppressAutocomplete(input)) {
-      markAutocompleteInactive();
-      if (activeState?.input === input) {
+      if (isCaretInPromptTranslationMarker(input)) {
+        markAutocompleteInactive();
         hidePopup();
+        return;
       }
-      return;
-    }
-    if (isCaretInComment(input.value || "", input.selectionStart ?? 0)) {
-      markAutocompleteInactive();
-      hidePopup();
-      return;
-    }
-    if (isCaretInPromptTranslationMarker(input)) {
-      markAutocompleteInactive();
-      hidePopup();
-      return;
-    }
-    const wildcardToken = currentWildcardToken(input);
-    const token = wildcardToken || currentToken(input);
-    if (!token?.active) {
-      markAutocompleteInactive();
-      hidePopup();
-      return;
-    }
-    const context = wildcardToken
-      ? wildcardAutocompleteQuery(wildcardToken)
-      : autocompleteQuery(token, state.forceArtistOnly);
-    if (context.kind !== "wildcard" && context.query.length < MIN_QUERY_LENGTH) {
-      markAutocompleteInactive();
-      hidePopup();
-      return;
-    }
-    const signature = autocompleteStateSignature(token, context, state);
-    const previousSignature = state.lastAutocompleteSignature;
-    state.lastAutocompleteSignature = signature;
-    if (activeState?.input === input && activeState.signature === signature) {
-      if (previousSignature !== undefined && previousSignature !== signature) {
-        resetActiveAutocompleteMenu(ensurePopup());
+      const wildcardToken = currentWildcardToken(input);
+      const token = wildcardToken || currentToken(input);
+      if (!token?.active) {
+        markAutocompleteInactive();
+        hidePopup();
+        return;
       }
-      positionPopup(input);
-      updateAutocompletePreview();
-      return;
-    }
-    const seq = ++updateSeq;
-    try {
-      const results = context.kind === "wildcard"
-        ? await searchWildcards(context.query)
-        : await search(context.query, context.category);
-      if (document.activeElement === input && seq === updateSeq && !shouldSuppressAutocomplete(input)) {
+      const context = wildcardToken
+        ? wildcardAutocompleteQuery(wildcardToken)
+        : autocompleteQuery(token, state.forceArtistOnly);
+      if (context.kind !== "wildcard" && context.query.length < MIN_QUERY_LENGTH) {
+        markAutocompleteInactive();
+        hidePopup();
+        return;
+      }
+      const signature = autocompleteStateSignature(token, context, state);
+      const previousSignature = state.lastAutocompleteSignature;
+      state.lastAutocompleteSignature = signature;
+      if (activeState?.input === input && activeState.signature === signature) {
+        if (previousSignature !== undefined && previousSignature !== signature) {
+          resetActiveAutocompleteMenu(ensurePopup());
+        }
+        positionPopup(input);
+        updateAutocompletePreview();
+        return;
+      }
+      const results = await request(
+        signature,
+        () => context.kind === "wildcard"
+          ? autocompleteData.searchWildcards(context.query)
+          : autocompleteData.search(context.query, context.category),
+      );
+      if (
+        isCurrent()
+        && document.activeElement === input
+        && autocompleteEnabledForState(state)
+        && !shouldSuppressAutocomplete(input)
+      ) {
         renderResults(state, strictAutocompleteResults(context, token, state, results), signature);
       }
-    } catch {
-      hidePopup();
-    }
-  };
-  const update = debounce(updateNow);
-  const updateFromCaret = () => {
-    update.cancel();
-    updateNow();
-  };
-  const updateAfterCaretMove = () => {
-    update.cancel();
-    requestAnimationFrame(updateNow);
-    setTimeout(updateNow, 0);
-  };
-  state.refresh = updateFromCaret;
+    },
+    onError: () => {
+      if (document.activeElement === input && (!activeState || activeState.input === input)) {
+        hidePopup();
+      }
+    },
+  });
+  state.controller = controller;
+  state.refresh = controller.updateNow;
   state.reposition = () => positionPopup(input);
+  const scheduleInputUpdate = () => {
+    const preserveController = controller.isCompositionEndUpdatePending();
+    if (activeState?.input === input) {
+      hidePopup({ preserveController });
+    }
+    controller.scheduleUpdate();
+  };
 
-  input.addEventListener("compositionstart", () => {
-    composing = true;
-  });
-  input.addEventListener("compositionupdate", update);
-  input.addEventListener("compositionend", () => {
-    composing = false;
-    updateAfterCaretMove();
-  });
-  input.addEventListener("input", update);
-  input.addEventListener("focus", updateFromCaret);
-  input.addEventListener("click", updateAfterCaretMove);
-  input.addEventListener("mousedown", updateAfterCaretMove);
-  input.addEventListener("mouseup", updateAfterCaretMove);
-  input.addEventListener("pointerup", updateAfterCaretMove);
+  input.addEventListener("compositionstart", controller.beginComposition);
+  input.addEventListener("compositionupdate", controller.scheduleUpdate);
+  input.addEventListener("compositionend", controller.endComposition);
+  input.addEventListener("input", scheduleInputUpdate);
+  input.addEventListener("focus", controller.updateNow);
+  input.addEventListener("click", controller.scheduleCaretUpdate);
+  input.addEventListener("mousedown", controller.scheduleCaretUpdate);
+  input.addEventListener("mouseup", controller.scheduleCaretUpdate);
+  input.addEventListener("pointerup", controller.scheduleCaretUpdate);
   input.addEventListener("pointerdown", (event) => {
     if (forwardMiddlePanFromAutocompleteInput(event)) {
       hidePopup();
@@ -1795,11 +1514,12 @@ function hookInput(input, options = {}) {
   }, true);
   input.addEventListener("keyup", (event) => {
     if (["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", "Home", "End", "PageUp", "PageDown"].includes(event.key)) {
-      updateAfterCaretMove();
+      controller.scheduleCaretUpdate();
     }
   });
-  input.addEventListener("select", updateAfterCaretMove);
+  input.addEventListener("select", controller.scheduleCaretUpdate);
   input.addEventListener("blur", () => {
+    controller.invalidate();
     setTimeout(() => {
       if (activeState?.input === input) {
         hidePopup();
@@ -1812,12 +1532,20 @@ function hookInput(input, options = {}) {
     }
   });
   input.addEventListener("keydown", (event) => {
-    if (handleBracketPreviewKeydown(state, event)) {
-      updateAfterCaretMove();
+    if (!controller.isComposing(event) && handleBracketPreviewKeydown(state, event)) {
+      controller.scheduleCaretUpdate();
     }
   });
   input.addEventListener("keydown", (event) => {
-    if (composing || event.isComposing || event.keyCode === 229) {
+    if (controller.isComposing(event)) {
+      return;
+    }
+    if (event.key === "Escape") {
+      controller.invalidate();
+      if (activeState?.input === input) {
+        event.preventDefault();
+        hidePopup();
+      }
       return;
     }
     if (!activeState || activeState.input !== input) {
@@ -1840,9 +1568,6 @@ function hookInput(input, options = {}) {
       commitSuggestion(activeState, activeState.results[activeState.index], {
         suppressPopup: true,
       });
-    } else if (event.key === "Escape") {
-      event.preventDefault();
-      hidePopup();
     }
   });
 
@@ -2004,8 +1729,13 @@ document.addEventListener("selectionchange", scheduleActiveRefresh);
 window.addEventListener("resize", scheduleActiveRefresh);
 window.addEventListener("easyuse-anima-settings-updated", (event) => {
   const detail = event?.detail || {};
+  let dataRequestsInvalidated = false;
   if ("autocomplete.mode" in detail) {
+    const previousMode = autocompleteMode;
     setAutocompleteMode(detail["autocomplete.mode"]);
+    if (autocompleteMode !== previousMode) {
+      dataRequestsInvalidated = true;
+    }
   }
   if ("autocomplete.commit_key" in detail) {
     setAutocompleteCommitKey(detail["autocomplete.commit_key"]);
@@ -2017,28 +1747,38 @@ window.addEventListener("easyuse-anima-settings-updated", (event) => {
     setAutocompleteNoCommaAfterPeriod(detail["autocomplete.no_comma_after_period"]);
   }
   if ("autocomplete.detect_natural_sentences" in detail) {
+    const previousDetectNaturalSentences = autocompleteDetectNaturalSentences;
     setAutocompleteDetectNaturalSentences(detail["autocomplete.detect_natural_sentences"]);
+    if (autocompleteDetectNaturalSentences !== previousDetectNaturalSentences) {
+      dataRequestsInvalidated = true;
+    }
   }
   if ("autocomplete.preview_closing_brackets" in detail) {
     setAutocompletePreviewClosingBrackets(detail["autocomplete.preview_closing_brackets"]);
   }
   if ("autocomplete.preview_completion" in detail) {
+    const previousPreviewCompletion = autocompletePreviewCompletion;
     setAutocompletePreviewCompletion(detail["autocomplete.preview_completion"]);
+    if (autocompletePreviewCompletion !== previousPreviewCompletion) {
+      dataRequestsInvalidated = true;
+    }
   }
   if ("autocomplete.limit" in detail) {
-    maxResults = clampMaxResults(detail["autocomplete.limit"]);
-    cache.clear();
+    const nextMaxResults = clampMaxResults(detail["autocomplete.limit"]);
+    if (nextMaxResults !== maxResults) {
+      maxResults = nextMaxResults;
+      autocompleteData.clearResults();
+      dataRequestsInvalidated = true;
+    }
   }
-  if ("autocomplete.source" in detail) {
-    cache.clear();
-    hidePopup();
+  if (autocompleteData.syncSourceSettings(detail)) {
+    dataRequestsInvalidated = true;
   }
-  if ("wildcard.extra_paths" in detail) {
-    wildcardItemsCache = null;
-    cache.clear();
-    hidePopup();
+  if (dataRequestsInvalidated) {
+    invalidateAutocompleteDataRequests();
+  } else {
+    scheduleActiveRefresh();
   }
-  scheduleActiveRefresh();
 });
 
 app.registerExtension({

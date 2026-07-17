@@ -8,10 +8,17 @@
     "moduleResolution": "Bundler",
     "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "skipLibCheck": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
     "strict": false
   },
   "include": [
+    "web/js/aio/**/*.js",
+    "web/js/autocomplete/**/*.js",
+    "web/js/lora_preset/**/*.js",
+    "web/js/settings/**/*.js",
     "web/js/easyuse_anima_prompt_studio.js",
-    "web/js/prompt_studio/*.js"
+    "web/js/easyuse_anima_prompt_studio_regional.js",
+    "web/js/prompt_studio/**/*.js"
   ]
 }
