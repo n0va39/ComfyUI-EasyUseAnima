@@ -1,3 +1,4 @@
+import asyncio
 import importlib.util
 import sys
 import tempfile
@@ -231,6 +232,65 @@ class LoraProfileStorageTests(unittest.TestCase):
         self.assertEqual(fixed["fixed"], [])
         self.assertEqual(fixed["unresolved"], [])
         self.assertEqual(fixed["missing"], 0)
+
+
+class AutocompleteApiRouteTests(unittest.TestCase):
+    def test_autocomplete_route_forwards_valid_limits_and_uses_resolver_fallback(self):
+        class RouteRegistry:
+            def __init__(self):
+                self.get_handlers = {}
+
+            def get(self, path):
+                def register(handler):
+                    self.get_handlers[path] = handler
+                    return handler
+
+                return register
+
+            def post(self, path):
+                return self.get(path)
+
+        routes = RouteRegistry()
+        fake_server = types.ModuleType("server")
+        fake_server.PromptServer = type(
+            "PromptServer",
+            (),
+            {"instance": types.SimpleNamespace(routes=routes)},
+        )
+        fake_aiohttp = types.ModuleType("aiohttp")
+        fake_aiohttp.web = types.SimpleNamespace(
+            json_response=lambda payload, status=200: {"payload": payload, "status": status},
+        )
+
+        with patch.dict(sys.modules, {"server": fake_server, "aiohttp": fake_aiohttp}):
+            api = load_api_module()
+
+        calls = []
+
+        def search(query, *, limit, path, category):
+            calls.append({"query": query, "limit": limit, "path": path, "category": category})
+            return {"results": [{"tag": f"match {index}"} for index in range(limit)]}
+
+        handler = routes.get_handlers["/easyuse_anima/autocomplete"]
+        with (
+            patch.object(api, "resolve_autocomplete_limit", return_value=51),
+            patch.object(api, "resolve_autocomplete_source", return_value="test_source"),
+            patch.object(
+                api,
+                "resolve_autocomplete_source_path",
+                return_value=("test_source", Path("tags.csv")),
+            ),
+            patch.object(api, "search_autocomplete", side_effect=search),
+        ):
+            for raw_limit, expected_limit in (("51", 51), ("100", 100), ("bad", 51)):
+                with self.subTest(raw_limit=raw_limit):
+                    response = asyncio.run(
+                        handler(types.SimpleNamespace(query={"q": "match", "limit": raw_limit}))
+                    )
+                    self.assertEqual(response["status"], 200)
+                    self.assertEqual(len(response["payload"]["results"]), expected_limit)
+
+        self.assertEqual([call["limit"] for call in calls], [51, 100, 51])
 
 
 if __name__ == "__main__":

@@ -626,6 +626,7 @@ def search_autocomplete(
     category: str | None = None,
 ) -> dict:
     started = time.perf_counter()
+    effective_limit = max(1, min(limit, 100))
     normalized_query = _normalize(query)
     category = str(category or "").strip()
     categories = {item.strip() for item in category.split(",") if item.strip()}
@@ -653,11 +654,11 @@ def search_autocomplete(
         else:
             continue
         results.append((score, entry))
-        if len(results) >= max(limit * 8, limit):
+        if len(results) >= max(effective_limit * 8, effective_limit):
             break
 
     results.sort(key=lambda item: (item[0], -item[1].count, item[1].tag))
-    limited = results[: max(1, min(limit, 50))]
+    limited = results[:effective_limit]
     return {
         "query": query,
         "category": category,
