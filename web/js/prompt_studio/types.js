@@ -33,6 +33,7 @@
  * @typedef {(HTMLTextAreaElement | HTMLInputElement) & {
  *   __easyuseAnimaHighlightOverlay?: HTMLElement | null,
  *   __easyuseAnimaHighlightRefresh?: (force?: boolean) => void,
+ *   __easyuseAnimaExternalAutocompleteDispose?: () => void,
  *   __easyuseAnimaStudioResizable?: boolean
  * }} PromptStudioInputElement
  */
@@ -56,9 +57,13 @@
  *   __easyuseAnimaHighlightOverlayRefreshInstalled?: boolean,
  *   __easyuseAnimaMiddlePanForwarderInstalled?: boolean,
  *   __easyuseAnimaWheelForwarderInstalled?: boolean,
- *   __easyuseAnimaPendingAutocompleteInputs?: Array<{ input: Element, options: unknown }>,
+ *   __easyuseAnimaPendingAutocompleteInputs?: Array<{
+ *     input: Element,
+ *     options: unknown,
+ *     onBound?: (dispose: (() => void) | null) => void
+ *   }>,
  *   easyuseAnimaAutocompleteEntryTooltip?: (entry: unknown) => PromptStudioAutocompleteTooltip | null | undefined,
- *   easyuseAnimaHookAutocompleteInput?: (input: Element, options: unknown) => void
+ *   easyuseAnimaHookAutocompleteInput?: (input: Element, options: unknown) => (() => void) | null
  * }} PromptStudioWindow
  */
 

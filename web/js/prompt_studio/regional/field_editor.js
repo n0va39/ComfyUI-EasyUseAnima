@@ -27,6 +27,7 @@ import {
 import {
   bindWildcardSeedInput,
 } from "../wildcard_seed_contract.js";
+import { disposeExternalAutocompleteInputs } from "../../autocomplete/entry_lifecycle.js";
 
 /**
  * Move a field within its current pane without changing its id or crossing the
@@ -634,6 +635,7 @@ function createRegionalFieldEditor(runtime, layout, maskEditor, hooks) {
     const fields = node.__easyuseAnimaRegionalFields || createDefaultRegionalFields();
     const config = node.__easyuseAnimaRegionalConfig || runtime.defaultConfig(node);
     maskEditor.closeMaskPopover(node);
+    disposeExternalAutocompleteInputs(window, editor);
     editor.innerHTML = "";
 
     const toolbar = document.createElement("div");

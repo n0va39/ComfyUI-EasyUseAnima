@@ -204,6 +204,11 @@ try {
         throw "Frontend autocomplete input binding smoke failed with exit code $LASTEXITCODE."
     }
 
+    & node "tests\frontend_autocomplete_entry_lifecycle_smoke.mjs"
+    if ($LASTEXITCODE -ne 0) {
+        throw "Frontend autocomplete entry lifecycle smoke failed with exit code $LASTEXITCODE."
+    }
+
     & node "tests\frontend_autocomplete_popup_geometry_smoke.mjs"
     if ($LASTEXITCODE -ne 0) {
         throw "Frontend autocomplete popup geometry smoke failed with exit code $LASTEXITCODE."

@@ -28,6 +28,12 @@ AUTOCOMPLETE_INPUT_BINDING = (
 AUTOCOMPLETE_INPUT_BINDING_SMOKE = (
     ROOT / "tests" / "frontend_autocomplete_input_binding_smoke.mjs"
 )
+AUTOCOMPLETE_ENTRY_LIFECYCLE = (
+    ROOT / "web" / "js" / "autocomplete" / "entry_lifecycle.js"
+)
+AUTOCOMPLETE_ENTRY_LIFECYCLE_SMOKE = (
+    ROOT / "tests" / "frontend_autocomplete_entry_lifecycle_smoke.mjs"
+)
 AUTOCOMPLETE_TEXT_MODEL = (
     ROOT / "web" / "js" / "autocomplete" / "text_model.js"
 )
@@ -191,10 +197,10 @@ class AutocompleteFrontendBoundaryTests(unittest.TestCase):
         )
 
         settings_start = entry_source.index(
-            'window.addEventListener("easyuse-anima-settings-updated"'
+            "function handleAutocompleteSettingsUpdated"
         )
         settings_end = entry_source.index(
-            "\n\napp.registerExtension({", settings_start
+            "\nfunction disposeAutocompleteEntryInputs", settings_start
         )
         settings_body = entry_source[settings_start:settings_end]
         self.assertIn("let dataRequestsInvalidated = false;", settings_body)
@@ -271,6 +277,15 @@ class AutocompleteFrontendBoundaryTests(unittest.TestCase):
 
         if completed.returncode != 0:
             self.fail((completed.stdout + completed.stderr).strip())
+
+    def test_entry_lifecycle_is_in_semantic_runner(self):
+        self.assertTrue(AUTOCOMPLETE_ENTRY_LIFECYCLE.is_file())
+        self.assertTrue(AUTOCOMPLETE_ENTRY_LIFECYCLE_SMOKE.is_file())
+        frontend_check_source = FRONTEND_CHECK_SCRIPT.read_text(encoding="utf-8")
+        self.assertIn(
+            r'node "tests\frontend_autocomplete_entry_lifecycle_smoke.mjs"',
+            frontend_check_source,
+        )
 
     def test_input_binding_has_exact_listener_lifecycle_boundary(self):
         module_source = AUTOCOMPLETE_INPUT_BINDING.read_text(encoding="utf-8")
@@ -535,7 +550,8 @@ class AutocompleteFrontendBoundaryTests(unittest.TestCase):
             2,
         )
         self.assertIn("app.registerExtension({", entry_source)
-        self.assertIn('document.addEventListener("pointerdown"', entry_source)
+        self.assertIn("createAutocompleteEntryLifecycle({", entry_source)
+        self.assertIn("handleOutsidePointer: handleOutsideAutocompletePointer", entry_source)
         self.assertIn("function hookInput(", entry_source)
 
     def test_data_adapter_is_in_static_and_semantic_runners(self):
@@ -707,7 +723,8 @@ class AutocompleteFrontendBoundaryTests(unittest.TestCase):
 
         self.assertEqual(source.count("planAutocompleteInsertion("), 2)
         self.assertIn("app.registerExtension({", source)
-        self.assertIn('document.addEventListener("pointerdown"', source)
+        self.assertIn("createAutocompleteEntryLifecycle({", source)
+        self.assertIn("handleOutsidePointer: handleOutsideAutocompletePointer", source)
         self.assertIn("function hookInput(", source)
 
     def test_text_model_is_in_static_and_semantic_runners(self):

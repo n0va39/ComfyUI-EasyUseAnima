@@ -19,6 +19,7 @@ import {
   getAdvancedEditorElement,
   getAdvancedFields,
 } from "./state.js";
+import { registerExternalAutocompleteInput } from "../autocomplete/entry_lifecycle.js";
 
 /** @typedef {import("./types.js").PromptStudioAdvancedTextarea} PromptStudioAdvancedTextarea */
 /** @typedef {import("./types.js").PromptStudioWindow} PromptStudioWindow */
@@ -124,12 +125,7 @@ function registerAdvancedAutocompleteInput(node, field, textarea) {
     forceArtistOnly: field?.type === "artist",
   };
   const hostWindow = promptStudioWindow();
-  if (typeof hostWindow.easyuseAnimaHookAutocompleteInput === "function") {
-    hostWindow.easyuseAnimaHookAutocompleteInput(textarea, options);
-    return;
-  }
-  hostWindow.__easyuseAnimaPendingAutocompleteInputs ||= [];
-  hostWindow.__easyuseAnimaPendingAutocompleteInputs.push({ input: textarea, options });
+  registerExternalAutocompleteInput(hostWindow, textarea, options);
 }
 
 function refreshAdvancedHighlights(node, { classify = true, forceCopyMetrics = false } = {}) {

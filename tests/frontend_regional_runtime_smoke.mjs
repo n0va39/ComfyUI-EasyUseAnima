@@ -53,6 +53,9 @@ const serializationUrl = dataModule("../web/js/prompt_studio/regional/serializat
   "./schema.js": schemaUrl,
 });
 const queueSeedBridgeUrl = dataModule("../web/js/prompt_studio/queue_seed_bridge.js");
+const autocompleteEntryLifecycleUrl = dataModule(
+  "../web/js/autocomplete/entry_lifecycle.js",
+);
 const lifecycleUrl = dataModule("../web/js/prompt_studio/regional/lifecycle.js");
 const layoutUrl = dataModule("../web/js/prompt_studio/regional/layout.js", {
   "./lifecycle.js": lifecycleUrl,
@@ -62,6 +65,7 @@ const extensionUrl = dataModule("../web/js/prompt_studio/regional/extension.js",
   "./lifecycle.js": lifecycleUrl,
   "./layout.js": layoutUrl,
   "../queue_seed_bridge.js": queueSeedBridgeUrl,
+  "../../autocomplete/entry_lifecycle.js": autocompleteEntryLifecycleUrl,
 });
 const regionalRuntimeUrl = dataModule("../web/js/prompt_studio/regional/runtime.js", {
   "./constants.js": constantsUrl,
@@ -75,6 +79,7 @@ const fieldEditorUrl = dataModule("../web/js/prompt_studio/regional/field_editor
   "./schema.js": schemaUrl,
   "./lifecycle.js": lifecycleUrl,
   "../wildcard_seed_contract.js": wildcardSeedContractUrl,
+  "../../autocomplete/entry_lifecycle.js": autocompleteEntryLifecycleUrl,
 });
 
 const lifecycle = await import(lifecycleUrl);

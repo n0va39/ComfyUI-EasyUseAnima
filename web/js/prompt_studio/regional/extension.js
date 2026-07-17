@@ -17,6 +17,7 @@ import {
 import {
   promptStudioQueueSeedBridge,
 } from "../queue_seed_bridge.js";
+import { disposeExternalAutocompleteInputs } from "../../autocomplete/entry_lifecycle.js";
 
 /**
  * @param {any} nodeType
@@ -197,6 +198,7 @@ function createRegionalExtensionRuntime(app, runtime, layout, fieldEditor, hooks
   function cleanupRegionalEditor(node) {
     const editor = node?.__easyuseAnimaRegionalEditorEl;
     if (editor) {
+      disposeExternalAutocompleteInputs(globalThis, editor);
       for (const textarea of editor.querySelectorAll("textarea")) {
         const frame = Number(textarea.__easyuseAnimaHighlightSyncRaf) || 0;
         if (frame) {
