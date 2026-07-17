@@ -194,7 +194,7 @@ export function aioCreateGeneratorQueueRuntime(dependencies) {
     }
     reservation.status = accepted ? "accepted" : "rejected";
     const { state } = reservation;
-    if (!accepted && state.reservations[state.reservations.length - 1] === reservation) {
+    while (state.reservations[state.reservations.length - 1]?.status === "rejected") {
       state.reservations.pop();
     }
     flushSettledReservations(state);
