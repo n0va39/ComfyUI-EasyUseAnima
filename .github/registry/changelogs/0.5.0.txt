@@ -1,0 +1,9 @@
+EasyUse Anima 0.5.0 is a frontend maintenance and queue-state reliability release.
+
+User-visible changes:
+1. Rapid consecutive queue seeds are now reserved without duplication for native Wildcard and Regional Prompt Studio queues, and for Prompt Studio Advanced queues including attached subgraphs, with rejection and workflow re-entry boundaries.
+2. Wildcard and Prompt Studio seed editing now shares the JavaScript-safe range 0 through 9007199254740991, with wrapping controls and full-range randomization, while loaded legacy Python uint64 workflow seeds remain compatible.
+3. AiO Generator queue transactions, extension re-entry, native preview, settings dialogs, panel rendering, profiles, and sampler hydration are more reliable; missing prompt IDs do not commit state and attached-subgraph panels hydrate once.
+4. Autocomplete input, IME composition, keyboard navigation, popup geometry, and request/source epochs are more stable, so stale or failed responses cannot replace or close the latest suggestions after a source change.
+5. LoRA Preset menu, preview, and canvas widgets now have idempotent lifecycle cleanup, escaped folder labels, and correct preview cleanup when the current node changes.
+6. Settings, Prompt Studio, Regional Prompt Studio, AiO Generator, LoRA Preset, and Autocomplete now use smaller maintained frontend modules with expanded semantic smoke and TypeScript coverage while preserving existing node and workflow contracts.
