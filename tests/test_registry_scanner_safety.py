@@ -10,6 +10,7 @@ ROOT = Path(__file__).resolve().parents[1]
 AUTOCOMPLETE_ENTRY = ROOT / "web" / "js" / "easyuse_anima_autocomplete.js"
 EXPECTED_AUTOCOMPLETE_MODULES = {
     "web/js/autocomplete/data_adapter.js",
+    "web/js/autocomplete/input_binding.js",
     "web/js/autocomplete/input_controller.js",
     "web/js/autocomplete/popup_geometry.js",
     "web/js/autocomplete/text_model.js",

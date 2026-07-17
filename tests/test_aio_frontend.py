@@ -50,6 +50,9 @@ AUTOCOMPLETE_DATA_ADAPTER_JS = (
 AUTOCOMPLETE_INPUT_CONTROLLER_JS = (
     ROOT / "web" / "js" / "autocomplete" / "input_controller.js"
 )
+AUTOCOMPLETE_INPUT_BINDING_JS = (
+    ROOT / "web" / "js" / "autocomplete" / "input_binding.js"
+)
 AUTOCOMPLETE_TEXT_MODEL_JS = (
     ROOT / "web" / "js" / "autocomplete" / "text_model.js"
 )
@@ -852,24 +855,23 @@ class AIOFrontendSourceTests(unittest.TestCase):
         controller_source = AUTOCOMPLETE_INPUT_CONTROLLER_JS.read_text(
             encoding="utf-8"
         )
+        binding_source = AUTOCOMPLETE_INPUT_BINDING_JS.read_text(encoding="utf-8")
         hook_start = source.index("function hookInput")
         hook_end = source.index("\nfunction hookWidget", hook_start)
         hook_body = source[hook_start:hook_end]
 
         self.assertIn("document.activeElement !== input", hook_body)
         self.assertIn(
-            'input.addEventListener("compositionstart", '
-            "controller.beginComposition);",
-            hook_body,
+            'listen("compositionstart", controller.beginComposition);',
+            binding_source,
         )
         self.assertIn(
-            'input.addEventListener("compositionupdate", '
-            "controller.scheduleUpdate);",
-            hook_body,
+            'listen("compositionupdate", controller.scheduleUpdate);',
+            binding_source,
         )
         self.assertIn(
-            'input.addEventListener("compositionend", controller.endComposition);',
-            hook_body,
+            'listen("compositionend", controller.endComposition);',
+            binding_source,
         )
         self.assertIn("function beginComposition()", controller_source)
         self.assertIn("function endComposition()", controller_source)
@@ -878,22 +880,22 @@ class AIOFrontendSourceTests(unittest.TestCase):
         self.assertIn(
             "if (!controller.isComposing(event) "
             "&& handleBracketPreviewKeydown(state, event))",
-            hook_body,
+            binding_source,
         )
 
-        autocomplete_done = source.index("  input.__easyuseAnimaAutocompleteHooked = true;")
-        keydown_start = source.rindex('  input.addEventListener("keydown", (event) => {', 0, autocomplete_done)
-        keydown_end = source.index("  });", keydown_start)
-        keydown_body = source[keydown_start:keydown_end]
+        keydown_start = binding_source.index("function handleNavigation")
+        keydown_end = binding_source.index("\n\n  listen(", keydown_start)
+        keydown_body = binding_source[keydown_start:keydown_end]
 
         self.assertIn("controller.isComposing(event)", keydown_body)
         self.assertLess(
             keydown_body.index("controller.isComposing(event)"),
-            keydown_body.index("!activeState"),
+            keydown_body.index("const active = activeForInput();"),
         )
 
     def test_autocomplete_public_flag_tracks_enabled_state(self):
         source = AUTOCOMPLETE_JS.read_text(encoding="utf-8")
+        binding_source = AUTOCOMPLETE_INPUT_BINDING_JS.read_text(encoding="utf-8")
 
         self.assertIn("const hookedAutocompleteInputs = new Set();", source)
         self.assertIn("input.__easyuseAnimaAutocompleteHooked", source)
@@ -916,10 +918,22 @@ class AIOFrontendSourceTests(unittest.TestCase):
         end = source.index("\nfunction hookWidget", start)
         hook_body = source[start:end]
 
-        self.assertIn("if (input.__easyuseAnimaAutocompleteHooked) {", hook_body)
+        self.assertIn(
+            'existing?.owner === autocompleteInputOwner && typeof existing.dispose === "function"',
+            hook_body,
+        )
         self.assertIn("syncAutocompleteInputFlag(input, existing);", hook_body)
-        self.assertIn("hookedAutocompleteInputs.add(input);", hook_body)
+        self.assertIn(
+            "input.__easyuseAnimaAutocompleteDispose = existing.dispose;",
+            hook_body,
+        )
+        self.assertIn("state.binding = createAutocompleteInputBinding({", hook_body)
+        self.assertIn("owner: autocompleteInputOwner,", hook_body)
+        self.assertIn("registry: hookedAutocompleteInputs,", hook_body)
+        self.assertIn("registry.add(input);", binding_source)
         self.assertIn("syncAutocompleteInputFlag(input, state);", hook_body)
+        self.assertIn("return existing.dispose;", hook_body)
+        self.assertIn("return state.dispose;", hook_body)
 
     def test_autocomplete_arrow_navigation_keeps_adjacent_items_visible(self):
         source = AUTOCOMPLETE_JS.read_text(encoding="utf-8")
