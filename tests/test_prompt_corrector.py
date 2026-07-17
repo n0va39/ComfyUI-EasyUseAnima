@@ -8,6 +8,7 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
+import autocomplete_dataset
 import settings as easyuse_settings
 from nodes import (
     ADVANCED_FIELDS_WORKFLOW_PROPERTY,
@@ -3078,6 +3079,48 @@ class DetailerHookTests(unittest.TestCase):
 
 
 class AutocompleteDatasetTests(unittest.TestCase):
+    def test_search_autocomplete_normalizes_result_limit_and_bounds_scanning(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "tags.csv"
+            path.write_text(
+                "\n".join(
+                    f'limit match {index:03d},0,{1000 - index},"[일반] 제한 테스트"'
+                    for index in range(120)
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+
+            for requested_limit in (1, 50, 51, 100):
+                with self.subTest(requested_limit=requested_limit):
+                    result = search_autocomplete("limit match", limit=requested_limit, path=path)
+                    self.assertEqual(len(result["results"]), requested_limit)
+
+            self.assertEqual(len(search_autocomplete("limit match", limit=0, path=path)["results"]), 1)
+            self.assertEqual(len(search_autocomplete("limit match", limit=-1, path=path)["results"]), 1)
+            self.assertEqual(len(search_autocomplete("limit match", limit=10_000, path=path)["results"]), 100)
+
+        scanned = 0
+
+        def entries():
+            nonlocal scanned
+            for index in range(801):
+                scanned += 1
+                yield autocomplete_dataset.AutocompleteEntry(
+                    tag=f"scan match {index:03d}",
+                    tag_key=f"scan match {index:03d}",
+                    category="general",
+                    count=1000 - index,
+                    description="[일반] 스캔 제한 테스트",
+                    search=f"scan match {index:03d}",
+                )
+
+        with patch.object(autocomplete_dataset, "_entries", return_value=entries()):
+            result = search_autocomplete("scan match", limit=10_000, path=Path("missing.csv"))
+
+        self.assertEqual(len(result["results"]), 100)
+        self.assertEqual(scanned, 800)
+
     def test_searches_english_tags_and_korean_descriptions(self):
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "tags.csv"
