@@ -202,23 +202,27 @@ class AtomicJsonStore:
         except _RECOVERABLE_READ_ERRORS:
             return False
 
-        backup_temp = self._write_temp(self.backup_path, raw)
+        backup_temp: Path | None = self._write_temp(self.backup_path, raw)
         try:
             os.replace(backup_temp, self.backup_path)
+            backup_temp = None
             _fsync_directory(self.path.parent)
         finally:
-            _unlink_if_present(backup_temp)
+            if backup_temp is not None:
+                _unlink_if_present(backup_temp)
         return True
 
     def _write_bytes_unlocked(self, encoded: bytes) -> None:
         self.path.parent.mkdir(parents=True, exist_ok=True)
-        primary_temp = self._write_temp(self.path, encoded)
+        primary_temp: Path | None = self._write_temp(self.path, encoded)
         try:
             self._backup_primary_unlocked()
             os.replace(primary_temp, self.path)
+            primary_temp = None
             _fsync_directory(self.path.parent)
         finally:
-            _unlink_if_present(primary_temp)
+            if primary_temp is not None:
+                _unlink_if_present(primary_temp)
 
     @staticmethod
     def _encode(value, *, indent: int | None, trailing_newline: bool) -> bytes:

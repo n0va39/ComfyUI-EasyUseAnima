@@ -53,8 +53,35 @@ from .api_contract import (
     json_integer,
     json_object,
     json_string,
+    json_uuid_string,
     parse_json_object,
 )
+try:
+    from .easyuse_anima.profiles.contract import (
+        PROFILE_KIND_AIO,
+        PROFILE_KIND_LORA,
+        ProfileContractError,
+        build_profile_document,
+        create_profile_document,
+        interpret_profile_document,
+        legacy_profile_id,
+        normalize_profile_filename_identity,
+        rename_profile_document,
+        update_profile_document,
+    )
+except ImportError:
+    from easyuse_anima.profiles.contract import (
+        PROFILE_KIND_AIO,
+        PROFILE_KIND_LORA,
+        ProfileContractError,
+        build_profile_document,
+        create_profile_document,
+        interpret_profile_document,
+        legacy_profile_id,
+        normalize_profile_filename_identity,
+        rename_profile_document,
+        update_profile_document,
+    )
 try:
     from .storage import AtomicJsonStore, USER_DATA_DIR
 except ImportError:
@@ -276,7 +303,7 @@ async def _run_file_io(function, /, *args, **kwargs):
 
 
 def _windows_profile_filename_identity(name: str) -> str:
-    return str(name or "").rstrip(" .").casefold()
+    return normalize_profile_filename_identity(name)
 
 
 def _sanitize_profile_name(name: str) -> str:
@@ -378,12 +405,7 @@ def _list_lora_profiles() -> list[dict]:
     for path in sorted(LORA_PROFILE_DIR.glob("*.json"), key=lambda item: item.stem.lower()):
         if path.name == ".gitignore":
             continue
-        profiles.append(
-            {
-                "name": path.stem,
-                "modified": int(path.stat().st_mtime),
-            }
-        )
+        profiles.append(_profile_list_item(PROFILE_KIND_LORA, path))
     return profiles
 
 
@@ -574,7 +596,40 @@ def _read_profile_json(path: Path):
             raise
 
 
-def _save_lora_profile(name: str, data: dict, *, overwrite: bool = False) -> dict:
+def _profile_list_item(profile_kind: str, path: Path) -> dict:
+    try:
+        data = _read_profile_json(path)
+        if not isinstance(data, dict):
+            raise ProfileContractError("Profile data is invalid")
+        interpreted = interpret_profile_document(profile_kind, path.stem, data)
+        profile_id = interpreted["profile_id"]
+        revision = interpreted["revision"]
+    except (
+        OSError,
+        UnicodeError,
+        json.JSONDecodeError,
+        ProfileContractError,
+    ):
+        profile_id = legacy_profile_id(profile_kind, path.stem)
+        revision = 0
+    return {
+        "name": path.stem,
+        "modified": int(path.stat().st_mtime),
+        "profile_id": profile_id,
+        "revision": revision,
+    }
+
+
+def _save_lora_profile(
+    name: str,
+    data: dict,
+    *,
+    overwrite: bool = False,
+    profile_id: str | None = None,
+    revision: int | None = None,
+) -> dict:
+    # Parsed optimistic-concurrency tokens are reserved for Issue #163 Part 3C.
+    _ = profile_id, revision
     safe_name = _sanitize_lora_profile_name(name)
     payload = _normalize_lora_profile_payload(data)
     LORA_PROFILE_DIR.mkdir(parents=True, exist_ok=True)
@@ -584,9 +639,27 @@ def _save_lora_profile(name: str, data: dict, *, overwrite: bool = False) -> dic
         if existing is not None and not overwrite:
             raise FileExistsError("Profile already exists")
         path = existing or requested_path
-        payload["name"] = path.stem
-        AtomicJsonStore(path).write(payload)
-    return payload
+        try:
+            if existing is None:
+                document = create_profile_document(
+                    PROFILE_KIND_LORA,
+                    path.stem,
+                    payload,
+                )
+            else:
+                current = _read_profile_json(path)
+                if not isinstance(current, dict):
+                    raise ProfileContractError("Profile data is invalid")
+                document = update_profile_document(
+                    PROFILE_KIND_LORA,
+                    path.stem,
+                    current,
+                    payload,
+                )
+        except ProfileContractError as exc:
+            raise InvalidProfileDataError(str(exc)) from exc
+        AtomicJsonStore(path).write(document)
+    return document
 
 
 def _load_lora_profile(name: str) -> dict:
@@ -607,8 +680,16 @@ def _load_lora_profile(name: str) -> dict:
     elif not isinstance(profile_data, dict):
         raise InvalidProfileDataError("Profile data is invalid")
     payload = _normalize_lora_profile_payload(data)
-    payload["name"] = path.stem
-    return payload
+    try:
+        interpreted = interpret_profile_document(PROFILE_KIND_LORA, path.stem, data)
+        return build_profile_document(
+            name=path.stem,
+            profile_id=interpreted["profile_id"],
+            revision=interpreted["revision"],
+            payload=payload,
+        )
+    except ProfileContractError as exc:
+        raise InvalidProfileDataError(str(exc)) from exc
 
 
 def _sanitize_aio_profile_name(name: str) -> str:
@@ -664,15 +745,27 @@ def _list_aio_profiles(profile_dir: Path | None = None) -> list[dict]:
     if not root.is_dir():
         return []
     return [
-        {
-            "name": path.stem,
-            "modified": int(path.stat().st_mtime),
-        }
+        _profile_list_item(PROFILE_KIND_AIO, path)
         for path in sorted(root.glob("*.json"), key=lambda item: item.stem.casefold())
     ]
 
 
-def _save_aio_profile(name: str, data: dict, *, overwrite: bool = False) -> dict:
+def _validate_aio_profile_size(document: dict) -> None:
+    encoded = json.dumps(document, ensure_ascii=False, indent=2)
+    if len(encoded.encode("utf-8")) > MAX_AIO_PROFILE_BYTES:
+        raise ValueError("Profile settings are too large")
+
+
+def _save_aio_profile(
+    name: str,
+    data: dict,
+    *,
+    overwrite: bool = False,
+    profile_id: str | None = None,
+    revision: int | None = None,
+) -> dict:
+    # Parsed optimistic-concurrency tokens are reserved for Issue #163 Part 3C.
+    _ = profile_id, revision
     payload = _normalize_aio_profile_payload(name, data)
     AIO_PROFILE_DIR.mkdir(parents=True, exist_ok=True)
     requested_path = _aio_profile_path(payload["name"])
@@ -683,17 +776,44 @@ def _save_aio_profile(name: str, data: dict, *, overwrite: bool = False) -> dict
         if existing is None and len(_list_aio_profiles()) >= MAX_AIO_PROFILES:
             raise ValueError(f"A maximum of {MAX_AIO_PROFILES} profiles can be saved")
         path = existing or requested_path
-        payload["name"] = path.stem
-        AtomicJsonStore(path).write(payload)
-    return payload
+        try:
+            if existing is None:
+                document = create_profile_document(
+                    PROFILE_KIND_AIO,
+                    path.stem,
+                    payload,
+                )
+            else:
+                current = _read_profile_json(path)
+                if not isinstance(current, dict):
+                    raise ProfileContractError("Profile data is invalid")
+                document = update_profile_document(
+                    PROFILE_KIND_AIO,
+                    path.stem,
+                    current,
+                    payload,
+                )
+        except ProfileContractError as exc:
+            raise InvalidProfileDataError(str(exc)) from exc
+        _validate_aio_profile_size(document)
+        AtomicJsonStore(path).write(document)
+    return document
 
 
 def _normalize_stored_aio_profile_payload(name: str, data) -> dict:
     if not isinstance(data, dict):
         raise InvalidProfileDataError("Profile data is invalid")
     try:
-        return _normalize_aio_profile_payload(name, data)
-    except ValueError as exc:
+        payload = _normalize_aio_profile_payload(name, data)
+        interpreted = interpret_profile_document(PROFILE_KIND_AIO, name, data)
+        document = build_profile_document(
+            name=name,
+            profile_id=interpreted["profile_id"],
+            revision=interpreted["revision"],
+            payload=payload,
+        )
+        return document
+    except (ProfileContractError, ValueError) as exc:
         raise InvalidProfileDataError(str(exc)) from exc
 
 
@@ -708,40 +828,105 @@ def _load_aio_profile(name: str) -> dict:
     return _normalize_stored_aio_profile_payload(path.stem, data)
 
 
-def _delete_aio_profile(name: str) -> dict:
+def _delete_aio_profile(
+    name: str,
+    *,
+    profile_id: str | None = None,
+    revision: int | None = None,
+) -> dict:
+    # Parsed optimistic-concurrency tokens are reserved for Issue #163 Part 3C.
+    _ = profile_id, revision
     path = _find_aio_profile_path(name)
     if path is None or not path.is_file():
         raise FileNotFoundError("Profile not found")
-    deleted_name = path.stem
+    try:
+        data = _read_profile_json(path)
+        if not isinstance(data, dict):
+            raise ProfileContractError("Profile data is invalid")
+        interpreted = interpret_profile_document(PROFILE_KIND_AIO, path.stem, data)
+        deleted_profile_id = interpreted["profile_id"]
+        deleted_revision = interpreted["revision"]
+    except (OSError, UnicodeError, json.JSONDecodeError, ProfileContractError):
+        deleted_profile_id = legacy_profile_id(PROFILE_KIND_AIO, path.stem)
+        deleted_revision = 0
     try:
         AtomicJsonStore(path).delete()
     except FileNotFoundError as exc:
         raise FileNotFoundError("Profile not found") from exc
-    return {"name": deleted_name}
+    return {
+        "name": path.stem,
+        "profile_id": deleted_profile_id,
+        "revision": deleted_revision,
+    }
 
 
-def _rename_aio_profile(old_name: str, new_name: str, *, overwrite: bool = False) -> dict:
+def _rename_aio_profile(
+    old_name: str,
+    new_name: str,
+    *,
+    overwrite: bool = False,
+    profile_id: str | None = None,
+    revision: int | None = None,
+    target_profile_id: str | None = None,
+    target_revision: int | None = None,
+) -> dict:
+    # Parsed optimistic-concurrency tokens are reserved for Issue #163 Part 3C.
+    _ = profile_id, revision, target_profile_id, target_revision
     source = _find_aio_profile_path(old_name)
     if source is None or not source.is_file():
         raise FileNotFoundError("Profile not found")
     safe_new_name = _sanitize_aio_profile_name(new_name)
     if source.stem.casefold() == safe_new_name.casefold():
-        return _load_aio_profile(source.stem)
+        data = _read_profile_json(source)
+        normalized = _normalize_stored_aio_profile_payload(source.stem, data)
+        try:
+            renamed = rename_profile_document(
+                PROFILE_KIND_AIO,
+                source.stem,
+                source.stem,
+                data,
+                normalized,
+            )
+        except ProfileContractError as exc:
+            raise InvalidProfileDataError(str(exc)) from exc
+        _validate_aio_profile_size(renamed)
+        if data != renamed:
+            AtomicJsonStore(source, backup=False).write(renamed)
+        return renamed
 
     target = _find_aio_profile_path(safe_new_name)
     if target is not None and not overwrite:
         raise FileExistsError("Profile already exists")
 
     target_path = target or _aio_profile_path(safe_new_name)
-    return AtomicJsonStore(target_path).replace_from(
+    renamed = AtomicJsonStore(target_path).replace_from(
         AtomicJsonStore(source),
         overwrite=overwrite,
         backup_target=True,
-        transform=lambda data: _normalize_stored_aio_profile_payload(
+        transform=lambda data: _rename_aio_profile_payload(
+            source.stem,
             target_path.stem,
             data,
         ),
     )
+    AtomicJsonStore(target_path, backup=False).write(renamed)
+    return renamed
+
+
+def _rename_aio_profile_payload(source_name: str, target_name: str, data) -> dict:
+    normalized = _normalize_stored_aio_profile_payload(source_name, data)
+    try:
+        document = rename_profile_document(
+            PROFILE_KIND_AIO,
+            source_name,
+            target_name,
+            data,
+            normalized,
+        )
+    except ProfileContractError as exc:
+        raise InvalidProfileDataError(str(exc)) from exc
+    _validate_aio_profile_size(document)
+    return document
 
 
 def _resolve_lora_preview_path(lora_name: str):
@@ -1063,6 +1248,17 @@ if web is not None and routes is not None:
             overwrite = json_boolean(data, "overwrite")
             if "profile_data" in data:
                 json_object(data, "profile_data")
+            profile_id = json_uuid_string(
+                data,
+                "profile_id",
+                required=False,
+            )
+            revision = json_integer(
+                data,
+                "revision",
+                default=None,
+                minimum=0,
+            )
         except ApiContractError as exc:
             return _contract_error_response(exc)
         try:
@@ -1071,6 +1267,8 @@ if web is not None and routes is not None:
                 name,
                 data,
                 overwrite=overwrite,
+                profile_id=profile_id,
+                revision=revision,
             )
         except (FileExistsError, ValueError) as exc:
             return _profile_error_response(exc)
@@ -1108,6 +1306,17 @@ if web is not None and routes is not None:
             name = json_string(data, "name", allow_empty=False)
             json_object(data, "settings")
             overwrite = json_boolean(data, "overwrite")
+            profile_id = json_uuid_string(
+                data,
+                "profile_id",
+                required=False,
+            )
+            revision = json_integer(
+                data,
+                "revision",
+                default=None,
+                minimum=0,
+            )
         except ApiContractError as exc:
             return _contract_error_response(exc)
         try:
@@ -1116,6 +1325,8 @@ if web is not None and routes is not None:
                 name,
                 data,
                 overwrite=overwrite,
+                profile_id=profile_id,
+                revision=revision,
             )
         except (FileExistsError, ValueError) as exc:
             return _profile_error_response(exc)
@@ -1139,10 +1350,26 @@ if web is not None and routes is not None:
         try:
             data = await parse_json_object(request)
             name = json_string(data, "name", allow_empty=False)
+            profile_id = json_uuid_string(
+                data,
+                "profile_id",
+                required=False,
+            )
+            revision = json_integer(
+                data,
+                "revision",
+                default=None,
+                minimum=0,
+            )
         except ApiContractError as exc:
             return _contract_error_response(exc)
         try:
-            payload = await _run_file_io(_delete_aio_profile, name)
+            payload = await _run_file_io(
+                _delete_aio_profile,
+                name,
+                profile_id=profile_id,
+                revision=revision,
+            )
         except (FileNotFoundError, ValueError) as exc:
             return _profile_error_response(exc)
         return web.json_response({"status": "ok", "profile": payload})
@@ -1155,6 +1382,28 @@ if web is not None and routes is not None:
             old_name = json_string(data, "old_name", allow_empty=False)
             new_name = json_string(data, "new_name", allow_empty=False)
             overwrite = json_boolean(data, "overwrite")
+            profile_id = json_uuid_string(
+                data,
+                "profile_id",
+                required=False,
+            )
+            revision = json_integer(
+                data,
+                "revision",
+                default=None,
+                minimum=0,
+            )
+            target_profile_id = json_uuid_string(
+                data,
+                "target_profile_id",
+                required=False,
+            )
+            target_revision = json_integer(
+                data,
+                "target_revision",
+                default=None,
+                minimum=0,
+            )
         except ApiContractError as exc:
             return _contract_error_response(exc)
         try:
@@ -1163,6 +1412,10 @@ if web is not None and routes is not None:
                 old_name,
                 new_name,
                 overwrite=overwrite,
+                profile_id=profile_id,
+                revision=revision,
+                target_profile_id=target_profile_id,
+                target_revision=target_revision,
             )
         except (FileExistsError, FileNotFoundError, ValueError) as exc:
             return _profile_error_response(exc)

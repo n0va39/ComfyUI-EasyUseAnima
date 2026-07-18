@@ -539,6 +539,45 @@ class ApiRequestContractTests(unittest.TestCase):
                         "Profile data is invalid",
                     )
 
+    def test_invalid_profile_version_taxonomy_keeps_422_and_request_id_contract(self):
+        api, routes = load_api_routes()
+        request_id = "52345678-1234-4567-89ab-1234567890ab"
+        cases = (
+            (
+                "/easyuse_anima/lora_profiles/load",
+                "LORA_PROFILE_DIR",
+                {"version": True, "profile_data": {}},
+            ),
+            (
+                "/easyuse_anima/aio_profiles/load",
+                "AIO_PROFILE_DIR",
+                {"version": 2.0, "settings": {}},
+            ),
+        )
+
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            for route, directory_name, stored in cases:
+                with self.subTest(route=route):
+                    (root / "InvalidVersion.json").write_text(
+                        json.dumps(stored),
+                        encoding="utf-8",
+                    )
+                    with (
+                        patch.object(api, directory_name, root),
+                        patch.object(api, "create_request_id", return_value=request_id),
+                    ):
+                        response = asyncio.run(
+                            routes.handlers[route](
+                                JsonRequest(query={"name": "InvalidVersion"})
+                            )
+                        )
+
+                    self.assertEqual(response["status"], 422)
+                    self.assertEqual(response["payload"]["code"], "invalid_profile_data")
+                    self.assertEqual(response["payload"]["request_id"], request_id)
+                    self.assertEqual(response.headers["X-Request-ID"], request_id)
+
     def test_invalid_utf8_profile_files_have_stable_redacted_422_code(self):
         api, routes = load_api_routes()
         cases = (
