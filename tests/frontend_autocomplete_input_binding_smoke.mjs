@@ -567,4 +567,107 @@ function replacementBinding(input, state, owner, registry, controller) {
   assert.equal(input.listenerCount(), 0);
 }
 
+{
+  class FakeTextAreaElement extends FakeInput {}
+  class FakeHtmlInputElement extends FakeInput {}
+  class FakeContainer {
+    constructor(nested = null) {
+      this.nested = nested;
+    }
+
+    querySelector(selector) {
+      assert.equal(selector, "textarea, input");
+      return this.nested;
+    }
+  }
+
+  const findStart = entrySource.indexOf("function findInputEl");
+  const findEnd = entrySource.indexOf("\nfunction currentToken", findStart);
+  assert.ok(findStart >= 0 && findEnd > findStart);
+  const findInputEl = new Function(
+    "HTMLTextAreaElement",
+    "HTMLInputElement",
+    `"use strict";\n${entrySource.slice(findStart, findEnd)}\nreturn findInputEl;`,
+  )(FakeTextAreaElement, FakeHtmlInputElement);
+
+  const disconnected = new FakeTextAreaElement();
+  disconnected.isConnected = false;
+  assert.equal(
+    findInputEl({ inputEl: disconnected, element: disconnected }),
+    null,
+    "a pre-mount legacy textarea must stay pending instead of receiving a disposable binding",
+  );
+
+  const connectedFallback = new FakeTextAreaElement();
+  const fallbackContainer = new FakeContainer(connectedFallback);
+  assert.equal(
+    findInputEl({ inputEl: disconnected, element: fallbackContainer }),
+    connectedFallback,
+    "a connected nested element must win over a stale direct inputEl",
+  );
+
+  const direct = new FakeHtmlInputElement();
+  assert.equal(findInputEl({ inputEl: direct }), direct);
+
+  const hookStart = entrySource.indexOf("function hookNode");
+  const hookEnd = entrySource.indexOf("\nfunction handleOutsideAutocompletePointer", hookStart);
+  assert.ok(hookStart >= 0 && hookEnd > hookStart);
+
+  const scheduled = [];
+  const hooked = [];
+  const lifecycle = {
+    isActive: () => true,
+    schedule(callback, delay) {
+      scheduled.push({ callback, delay });
+    },
+  };
+  const targetWidgets = () => new Set(["text", "populated_text"]);
+  const hookNode = new Function(
+    "autocompleteEntryLifecycle",
+    "targetWidgets",
+    "hasExplicitTargets",
+    "shouldSkipNode",
+    "artistOnlyWidgets",
+    "findInputEl",
+    "hookWidget",
+    `"use strict";\n${entrySource.slice(hookStart, hookEnd)}\nreturn hookNode;`,
+  )(
+    lifecycle,
+    targetWidgets,
+    () => true,
+    () => false,
+    () => new Set(),
+    findInputEl,
+    (_node, widget) => {
+      const input = findInputEl(widget);
+      if (input) {
+        hooked.push(input);
+      }
+    },
+  );
+
+  const textInput = new FakeTextAreaElement();
+  const populatedInput = new FakeTextAreaElement();
+  textInput.isConnected = false;
+  populatedInput.isConnected = false;
+  const node = {
+    widgets: [
+      { name: "text", inputEl: textInput, element: textInput },
+      { name: "populated_text", inputEl: populatedInput, element: populatedInput },
+    ],
+  };
+
+  hookNode(node, { name: "EasyUseAnimaWildcard" });
+  assert.equal(hooked.length, 0);
+  assert.equal(scheduled.length, 1);
+  assert.equal(scheduled[0].delay, 80);
+
+  textInput.isConnected = true;
+  populatedInput.isConnected = true;
+  scheduled.shift().callback();
+
+  assert.deepEqual(hooked, [textInput, populatedInput]);
+  assert.equal(scheduled.length, 0, "both ready inputs must stop the bounded retry loop");
+}
+
 console.log("Autocomplete input binding smoke passed.");

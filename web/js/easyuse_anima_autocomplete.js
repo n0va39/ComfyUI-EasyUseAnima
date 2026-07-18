@@ -701,13 +701,20 @@ function shouldSkipNode(node, nodeData) {
 }
 
 function findInputEl(widget) {
-  const input = widget?.inputEl || widget?.element;
-  if (input instanceof HTMLTextAreaElement || input instanceof HTMLInputElement) {
-    return input;
-  }
-  const nested = input?.querySelector?.("textarea, input");
-  if (nested instanceof HTMLTextAreaElement || nested instanceof HTMLInputElement) {
-    return nested;
+  for (const candidate of [widget?.inputEl, widget?.element]) {
+    if (
+      (candidate instanceof HTMLTextAreaElement || candidate instanceof HTMLInputElement)
+      && candidate.isConnected !== false
+    ) {
+      return candidate;
+    }
+    const nested = candidate?.querySelector?.("textarea, input");
+    if (
+      (nested instanceof HTMLTextAreaElement || nested instanceof HTMLInputElement)
+      && nested.isConnected !== false
+    ) {
+      return nested;
+    }
   }
   return null;
 }

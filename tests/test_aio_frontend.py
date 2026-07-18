@@ -1144,8 +1144,13 @@ class AIOFrontendSourceTests(unittest.TestCase):
         end = source.index("\nfunction currentToken", start)
         input_body = source[start:end]
 
-        self.assertIn("widget?.inputEl || widget?.element", input_body)
-        self.assertIn('querySelector?.("textarea, input")', input_body)
+        self.assertIn(
+            "for (const candidate of [widget?.inputEl, widget?.element])",
+            input_body,
+        )
+        self.assertIn("candidate.isConnected !== false", input_body)
+        self.assertIn('candidate?.querySelector?.("textarea, input")', input_body)
+        self.assertIn("nested.isConnected !== false", input_body)
 
     def test_autocomplete_avoids_double_callback_for_nodes_v2_dom_widgets(self):
         source = AUTOCOMPLETE_JS.read_text(encoding="utf-8")
