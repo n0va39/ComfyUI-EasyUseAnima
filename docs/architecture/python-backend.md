@@ -27,6 +27,11 @@ At the baseline above, the migration has not started:
 - `api.py`, `settings.py`, `storage.py`, `autocomplete_dataset.py`,
   `wildcard_engine.py`, `prompt_translation.py`, and `anima_prompt/` are still
   implementation modules, not compatibility shims.
+- Issue #165 Phase C adds root `api_contract.py` as a temporary implementation
+  surface for JSON-object parsing, typed request fields, and additive stable
+  error payloads. D-02 moves that responsibility to
+  `easyuse_anima.api.requests`/`responses`/`errors`; D-14 freezes any root shim
+  that consumer evidence still requires.
 - PR [#189](https://github.com/n0va39/ComfyUI-EasyUseAnima/pull/189)
   added the 0.5.2 node/workflow contract fixture and an import-boundary analyzer
   seed. Those files are useful A-02/A-03 foundations, but they do not complete
@@ -111,6 +116,7 @@ ComfyUI-EasyUseAnima/
 |-- __init__.py                         # ComfyUI entrypoint
 |-- nodes.py                            # public node compatibility shim
 |-- api.py                              # temporary API compatibility shim
+|-- api_contract.py                     # temporary Phase C implementation; D-02/D-14 target
 |-- settings.py                         # temporary settings shim
 |-- storage.py                          # temporary storage shim
 |-- autocomplete_dataset.py             # temporary autocomplete shim

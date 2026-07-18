@@ -44,6 +44,7 @@ not added to a shim merely because tests import them.
 | Root `__init__.py` exports | Permanent ComfyUI entrypoint, not a shim | root entrypoint plus `easyuse_anima.registration`/`bootstrap` | #184/#185 | Existing 0.5.2 surface; B-11 rewires internals | ComfyUI loader; node contract fixture | Not removable as a package entrypoint |
 | `nodes.py` mapped public classes | Current implementation; planned node shim | `easyuse_anima.nodes.*_nodes` | #184 B-11, #188 | Existing 0.5.2 surface; convert in B-11 | Root mappings, workflows, tests, possible external Python imports | No scheduled removal; public breaking-change gate after N+1 at earliest |
 | `api.py` route-registration surface | Current implementation; planned API shim | `easyuse_anima.api.router` and `easyuse_anima.api.routes.*` | #165, #186 D-02-D-07 | Existing 0.5.2 surface; convert during D-02-D-07/D-14 | Root entrypoint side-effect import, frontend endpoints, API tests | Unscheduled; N+1 gate and route parity |
+| `api_contract.py` request/error helpers | Phase C temporary implementation; D-02 move and D-14 shim decision pending | `easyuse_anima.api.requests`, `responses`, and `errors` | #165, #186 D-02/D-14 | Introduced by #165; convert in D-02 and freeze any required root shim in D-14 | `api.py`, API contract tests, Registry package-closure test | Unscheduled; internal consumers canonical and contract/package parity pass |
 | `settings.py` | Current implementation; planned settings shim | `easyuse_anima.settings.*` | #163, #186 D-09 | Existing 0.5.2 surface; convert in D-09/D-14 | `api.py`, `nodes.py`, `wildcard_engine.py`, settings tests | Unscheduled; N+1 gate and settings migration/round-trip |
 | `storage.py` | Current implementation; planned filesystem shim | `easyuse_anima.infrastructure.filesystem.*` | #163, #186 D-08 | Existing 0.5.2 surface; convert in D-08/D-14 | `api.py`, `settings.py`, `wildcard_engine.py`, storage/profile tests | Unscheduled; N+1 gate and last-known-good/atomic-write parity |
 | `autocomplete_dataset.py` | Current implementation; planned autocomplete shim | `easyuse_anima.autocomplete.*` | #162, #186 D-11 | Existing 0.5.2 surface; convert in D-11/D-14 | `api.py`, autocomplete/frontend API tests | Unscheduled; N+1 gate and result/ranking/API parity |
@@ -108,6 +109,19 @@ EasyUseAnimaWildcard
 - Removal gate: root entrypoint no longer imports `api.py`; repeated initialize
   registers no duplicate routes; the #165 request/error matrix and 0.5.2 API
   parity pass; actual package import succeeds.
+
+### `api_contract.py`
+
+- Candidate scope: the internal JSON-object parser, typed field validators,
+  stable error type, and additive error-payload helper introduced by #165.
+- State: temporary Phase C root implementation, not a declared public Python
+  API. D-02 moves the implementation and `api.py` consumer to
+  `easyuse_anima.api.requests`, `responses`, and `errors`; D-14 decides whether
+  consumer evidence requires a supported root re-export shim.
+- Removal gate: the #165 request/error and frontend compatibility matrices pass,
+  internal imports are canonical, and the actual Registry package retains
+  import closure. If a root shim is retained, ADR-002 identity and N+1 gates
+  apply.
 
 ### `settings.py`
 
