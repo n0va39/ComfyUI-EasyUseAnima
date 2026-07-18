@@ -15,6 +15,7 @@ from settings import public_settings
 import wildcard_engine
 from wildcard_engine import (
     DEFAULT_TEST_WILDCARD_FILE,
+    WildcardExpansionBudget,
     WildcardExpansionResult,
     ensure_default_wildcard_root,
     expand_wildcards,
@@ -95,6 +96,148 @@ class WildcardEngineTests(unittest.TestCase):
         values = [part.strip() for part in result.text.split(",")]
         self.assertEqual(len(values), 2)
         self.assertEqual(len(set(values)), 2)
+
+    def test_direct_self_reference_stops_with_unresolved_token(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            (root / "a.txt").write_text("__a__\n", encoding="utf-8")
+
+            first = expand_wildcards("__a__", seed=0, roots=[root])
+            second = expand_wildcards("__a__", seed=0, roots=[root])
+
+        self.assertEqual(first, second)
+        self.assertEqual(first.text, "__a__")
+        self.assertEqual(first.limit_reason, "cycle")
+        self.assertEqual(first.replacement_count, 0)
+
+    def test_proliferating_self_reference_is_blocked_before_growth(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            (root / "a.txt").write_text("__a____a__\n", encoding="utf-8")
+
+            result = expand_wildcards("__a__", seed=0, roots=[root])
+
+        self.assertEqual(result.text, "__a__")
+        self.assertEqual(result.limit_reason, "cycle")
+        self.assertEqual(result.replacement_count, 0)
+
+    def test_indirect_cycle_reports_the_same_reason_and_count(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            (root / "a.txt").write_text("__b__\n", encoding="utf-8")
+            (root / "b.txt").write_text("__a__\n", encoding="utf-8")
+
+            first = expand_wildcards("__a__", seed=0, roots=[root])
+            second = expand_wildcards("__a__", seed=0, roots=[root])
+
+        self.assertEqual(first, second)
+        self.assertEqual(first.text, "__b__")
+        self.assertEqual(first.limit_reason, "cycle")
+        self.assertEqual(first.replacement_count, 1)
+
+    def test_five_level_nested_wildcard_expands_normally(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            for current, following in zip("abcde", ("b", "c", "d", "e", None)):
+                value = f"__{following}__" if following is not None else "finished"
+                (root / f"{current}.txt").write_text(f"{value}\n", encoding="utf-8")
+
+            result = expand_wildcards("__a__", seed=0, roots=[root])
+
+        self.assertEqual(result.text, "finished")
+        self.assertIsNone(result.limit_reason)
+        self.assertEqual(result.replacement_count, 5)
+
+    def test_depth_and_replacement_limits_leave_deterministic_tokens(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            (root / "a.txt").write_text("__b__ __b__\n", encoding="utf-8")
+            (root / "b.txt").write_text("__c__\n", encoding="utf-8")
+            (root / "c.txt").write_text("finished\n", encoding="utf-8")
+
+            depth_limited = expand_wildcards(
+                "__b__",
+                seed=0,
+                roots=[root],
+                budget=WildcardExpansionBudget(max_depth=1),
+            )
+            replacement_limited = expand_wildcards(
+                "__a__",
+                seed=0,
+                roots=[root],
+                budget=WildcardExpansionBudget(max_replacements=2),
+            )
+            repeated_replacement_limit = expand_wildcards(
+                "__a__",
+                seed=0,
+                roots=[root],
+                budget=WildcardExpansionBudget(max_replacements=2),
+            )
+
+        self.assertEqual(depth_limited.text, "__c__")
+        self.assertEqual(depth_limited.limit_reason, "max_depth")
+        self.assertEqual(depth_limited.replacement_count, 1)
+        self.assertEqual(replacement_limited.text, "__c__ __b__")
+        self.assertEqual(replacement_limited.limit_reason, "max_replacements")
+        self.assertEqual(replacement_limited.replacement_count, 2)
+        self.assertEqual(replacement_limited, repeated_replacement_limit)
+
+    def test_expansion_budget_clamps_callers_to_explicit_hard_caps(self):
+        budget = WildcardExpansionBudget(
+            max_depth=10**9,
+            max_replacements=10**9,
+            max_output_chars=10**9,
+            max_growth_per_pass=10**9,
+        )
+
+        self.assertEqual(budget.max_depth, wildcard_engine.MAX_EXPANSION_DEPTH)
+        self.assertEqual(budget.max_replacements, wildcard_engine.MAX_EXPANSION_REPLACEMENTS)
+        self.assertEqual(budget.max_output_chars, wildcard_engine.MAX_EXPANSION_OUTPUT_CHARS)
+        self.assertEqual(
+            budget.max_growth_per_pass,
+            wildcard_engine.MAX_EXPANSION_GROWTH_PER_PASS,
+        )
+
+    def test_output_and_growth_limits_check_candidates_before_append(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            (root / "unicode.txt").write_text(f"{'가' * 5}\n", encoding="utf-8")
+            (root / "growth.txt").write_text(f"{'x' * 21}\n", encoding="utf-8")
+
+            output_limited = expand_wildcards(
+                "__unicode__",
+                seed=0,
+                roots=[root],
+                budget=WildcardExpansionBudget(max_output_chars=12),
+            )
+            growth_limited = expand_wildcards(
+                "__growth__",
+                seed=0,
+                roots=[root],
+                budget=WildcardExpansionBudget(
+                    max_output_chars=100,
+                    max_growth_per_pass=2.0,
+                ),
+            )
+
+        self.assertEqual(output_limited.text, "__unicode__")
+        self.assertEqual(output_limited.limit_reason, "max_output_chars")
+        self.assertEqual(output_limited.replacement_count, 0)
+        self.assertLessEqual(len(output_limited.text), 12)
+        self.assertLessEqual(len(output_limited.text.encode("utf-8")), 12)
+        self.assertEqual(growth_limited.text, "__growth__")
+        self.assertEqual(growth_limited.limit_reason, "max_growth_per_pass")
+        self.assertEqual(growth_limited.replacement_count, 0)
+
+    def test_existing_seeded_expansion_result_is_preserved(self):
+        source = "{2$$red|blue|green}, {soft|hard}"
+
+        first = expand_wildcards(source, seed=7)
+        second = expand_wildcards(source, seed=7)
+
+        self.assertEqual(first.text, "blue, green, hard")
+        self.assertEqual(first, second)
+        self.assertIsNone(first.limit_reason)
 
     def test_random_multiselect_excludes_zero_weight_options_in_both_backends(self):
         numpy_module = wildcard_engine.np
