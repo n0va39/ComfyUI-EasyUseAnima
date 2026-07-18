@@ -417,6 +417,35 @@ class WildcardEngineTests(unittest.TestCase):
         self.assertEqual(left_signature["roots"], [str(left), str(right)])
         self.assertEqual(right_signature["roots"], [str(right), str(left)])
 
+    def test_runtime_library_reuses_snapshot_mapping_and_helper_returns_mutable_copy(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            (root / "color.txt").write_text("red\nblue\ngreen\n", encoding="utf-8")
+            snapshot = wildcard_engine._wildcard_snapshot([root])
+
+            with patch.object(
+                wildcard_engine,
+                "_load_wildcard_map",
+                side_effect=AssertionError("runtime library copied the snapshot mapping"),
+            ):
+                library = wildcard_engine._WildcardLibrary([root])
+
+            exact_options = library.options_for("color")
+            mutable_copy = wildcard_engine._load_wildcard_map([root])
+            mutable_copy["color"].append(wildcard_engine.WildcardOption("mutated"))
+            first = expand_wildcards("{2$$__color__}", seed=7, roots=[root])
+            second = expand_wildcards("{2$$__color__}", seed=7, roots=[root])
+
+        self.assertIs(library.mapping, snapshot.mapping)
+        self.assertIs(exact_options, snapshot.mapping["color"])
+        self.assertIsInstance(exact_options, tuple)
+        self.assertIsInstance(mutable_copy, dict)
+        self.assertIsInstance(mutable_copy["color"], list)
+        self.assertEqual(len(mutable_copy["color"]), 4)
+        self.assertEqual(len(snapshot.mapping["color"]), 3)
+        self.assertEqual(first, second)
+        self.assertNotIn("mutated", first.text)
+
     def test_yaml_snapshot_refreshes_after_add_modify_and_delete(self):
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp)
@@ -450,6 +479,119 @@ class WildcardEngineTests(unittest.TestCase):
         self.assertEqual(after_delete, ["shapes"])
         self.assertEqual(missing.text, "__colors__")
         self.assertEqual(missing.missing_keys, ("colors",))
+
+    def test_transient_loader_oserror_is_not_cached(self):
+        original_loader = wildcard_engine._load_wildcard_file
+        attempts = []
+
+        def flaky_loader(root, path):
+            attempts.append(path)
+            if len(attempts) == 1:
+                raise OSError("transient read failure")
+            return original_loader(root, path)
+
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            (root / "color.txt").write_text("red\n", encoding="utf-8")
+            cache_key = wildcard_engine._scan_wildcard_sources((root,)).cache_key
+
+            with patch.object(
+                wildcard_engine,
+                "_load_wildcard_file",
+                side_effect=flaky_loader,
+            ) as loader:
+                first = expand_wildcards("__color__", seed=0, roots=[root])
+                with wildcard_engine._SNAPSHOT_CONDITION:
+                    self.assertNotIn(cache_key, wildcard_engine._SNAPSHOT_CACHE)
+                    self.assertNotIn(cache_key, wildcard_engine._SNAPSHOT_BUILDING)
+                second = expand_wildcards("__color__", seed=0, roots=[root])
+
+        self.assertEqual(first.text, "__color__")
+        self.assertEqual(second.text, "red")
+        self.assertEqual(loader.call_count, 2)
+
+    def test_invalid_yaml_parse_remains_cacheable_as_empty(self):
+        self.assertIsNotNone(wildcard_engine.yaml)
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            (root / "invalid.yaml").write_text("color: [red\n", encoding="utf-8")
+            cache_key = wildcard_engine._scan_wildcard_sources((root,)).cache_key
+
+            with patch.object(
+                wildcard_engine.yaml,
+                "safe_load",
+                wraps=wildcard_engine.yaml.safe_load,
+            ) as safe_load:
+                first = expand_wildcards("__color__", seed=0, roots=[root])
+                second = expand_wildcards("__color__", seed=0, roots=[root])
+
+            with wildcard_engine._SNAPSHOT_CONDITION:
+                self.assertIn(cache_key, wildcard_engine._SNAPSHOT_CACHE)
+
+        self.assertEqual(first.text, "__color__")
+        self.assertEqual(second.text, "__color__")
+        self.assertEqual(safe_load.call_count, 1)
+
+    def test_persistent_yaml_read_oserror_never_caches_or_leaves_building_key(self):
+        read_started = threading.Event()
+        release_read = threading.Event()
+        waiter_entered = threading.Event()
+        read_calls = []
+        original_wait = wildcard_engine._SNAPSHOT_CONDITION.wait
+
+        def unreadable_yaml(path):
+            read_calls.append(path)
+            if len(read_calls) == 1:
+                read_started.set()
+                if not release_read.wait(5):
+                    raise AssertionError("timed out waiting for parallel wildcard request")
+            raise OSError("persistent read failure")
+
+        def observed_wait(timeout=None):
+            waiter_entered.set()
+            return original_wait(timeout)
+
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            (root / "library.yaml").write_text("color: [red]\n", encoding="utf-8")
+            cache_key = wildcard_engine._scan_wildcard_sources((root,)).cache_key
+
+            with patch.object(
+                wildcard_engine,
+                "_read_text_file",
+                side_effect=unreadable_yaml,
+            ), patch.object(
+                wildcard_engine._SNAPSHOT_CONDITION,
+                "wait",
+                side_effect=observed_wait,
+            ), ThreadPoolExecutor(max_workers=2) as executor:
+                first = executor.submit(
+                    expand_wildcards,
+                    "__color__",
+                    seed=0,
+                    roots=[root],
+                )
+                try:
+                    self.assertTrue(read_started.wait(5))
+                    second = executor.submit(
+                        expand_wildcards,
+                        "__color__",
+                        seed=0,
+                        roots=[root],
+                    )
+                    self.assertTrue(waiter_entered.wait(5))
+                finally:
+                    release_read.set()
+                first_result = first.result(timeout=5)
+                second_result = second.result(timeout=5)
+
+            with wildcard_engine._SNAPSHOT_CONDITION:
+                self.assertNotIn(cache_key, wildcard_engine._SNAPSHOT_CACHE)
+                self.assertNotIn(cache_key, wildcard_engine._SNAPSHOT_BUILDING)
+
+        self.assertEqual(first_result.text, "__color__")
+        self.assertEqual(second_result.text, "__color__")
+        self.assertEqual(len(read_calls), 2)
 
     def test_file_change_during_build_retries_before_publish(self):
         build_started = threading.Event()

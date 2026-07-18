@@ -12,7 +12,7 @@ import threading
 from dataclasses import dataclass
 from pathlib import Path
 from types import MappingProxyType
-from typing import Iterable, Mapping
+from typing import Iterable, Mapping, Sequence
 
 try:
     import numpy as np
@@ -146,6 +146,7 @@ class _WildcardSnapshot:
     wildcard_names: tuple[str, ...]
     roots: tuple[str, ...]
     files: tuple[_WildcardSourceFile, ...]
+    cacheable: bool
 
     def public_signature(self) -> dict:
         return {
@@ -670,8 +671,9 @@ def _yaml_entries(data, prefix: str = "") -> dict[str, list[WildcardOption]]:
 def _load_yaml_entries(path: Path) -> dict[str, list[WildcardOption]]:
     if yaml is None:
         return {}
+    text = _read_text_file(path)
     try:
-        data = yaml.safe_load(_read_text_file(path))
+        data = yaml.safe_load(text)
     except Exception:
         return {}
     return _yaml_entries(data)
@@ -738,11 +740,13 @@ def _scan_wildcard_sources(roots: tuple[Path, ...]) -> _WildcardSourceState:
 
 def _build_wildcard_snapshot(source_state: _WildcardSourceState) -> _WildcardSnapshot:
     mapping: dict[str, list[WildcardOption]] = {}
+    cacheable = True
     for source in source_state.files:
         root = source_state.roots[source.root_index]
         try:
             entries = _load_wildcard_file(root, source.path)
         except OSError:
+            cacheable = False
             continue
         for key, options in entries.items():
             if key not in mapping and options:
@@ -757,6 +761,7 @@ def _build_wildcard_snapshot(source_state: _WildcardSourceState) -> _WildcardSna
         wildcard_names=tuple(sorted(frozen_mapping)),
         roots=tuple(str(root) for root in source_state.roots),
         files=source_state.files,
+        cacheable=cacheable,
     )
 
 
@@ -787,7 +792,7 @@ def _wildcard_snapshot(roots: Iterable[Path]) -> _WildcardSnapshot:
         finally:
             with _SNAPSHOT_CONDITION:
                 _SNAPSHOT_BUILDING.discard(cache_key)
-                if snapshot is not None:
+                if snapshot is not None and snapshot.cacheable:
                     _SNAPSHOT_CACHE[cache_key] = snapshot
                     _SNAPSHOT_CACHE.move_to_end(cache_key)
                     while len(_SNAPSHOT_CACHE) > _SNAPSHOT_CACHE_LIMIT:
@@ -839,11 +844,15 @@ class _Selector:
             return int(self.rng.integers(minimum, maximum + 1))
         return self.rng.randint(minimum, maximum)
 
-    def choose_one(self, options: list[WildcardOption]) -> WildcardOption | None:
+    def choose_one(self, options: Sequence[WildcardOption]) -> WildcardOption | None:
         selected = self.choose_many(options, 1)
         return selected[0] if selected else None
 
-    def choose_many(self, options: list[WildcardOption], count: int) -> list[WildcardOption]:
+    def choose_many(
+        self,
+        options: Sequence[WildcardOption],
+        count: int,
+    ) -> list[WildcardOption]:
         if not options or count <= 0:
             return []
         if self.sequential:
@@ -887,7 +896,7 @@ class _Selector:
 
 class _WildcardLibrary:
     def __init__(self, roots: Iterable[Path]):
-        self.mapping = _load_wildcard_map(roots)
+        self.mapping = _wildcard_snapshot(roots).mapping
         self.used: list[str] = []
         self.missing: list[str] = []
 
@@ -899,7 +908,7 @@ class _WildcardLibrary:
         if key not in self.missing:
             self.missing.append(key)
 
-    def options_for(self, raw_key: str) -> list[WildcardOption]:
+    def options_for(self, raw_key: str) -> Sequence[WildcardOption]:
         key = _normalize_wildcard_key(raw_key)
         if key is None:
             return []
@@ -910,7 +919,7 @@ class _WildcardLibrary:
             self._record_missing(key)
         return options
 
-    def _options_for_normalized_key(self, key: str) -> list[WildcardOption]:
+    def _options_for_normalized_key(self, key: str) -> Sequence[WildcardOption]:
         if key in self.mapping:
             return self.mapping[key]
         if "/" not in key and "*" not in key:
@@ -984,7 +993,7 @@ def _parse_count_spec(spec: str, selector: _Selector) -> int | None:
 def _expand_multiselect_options(
     options: list[WildcardOption],
     library: _WildcardLibrary,
-) -> tuple[list[WildcardOption], str | None]:
+) -> tuple[Sequence[WildcardOption], str | None]:
     if len(options) != 1:
         return options, None
     match = WILDCARD_FULL_RE.match(options[0].text.strip())
