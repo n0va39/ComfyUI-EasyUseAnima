@@ -224,6 +224,21 @@ function createFixture() {
     }
   }
 
+  function dispatchDocument(type, event = {}) {
+    const nextEvent = {
+      target: document.body,
+      defaultPrevented: false,
+      preventDefault() {
+        this.defaultPrevented = true;
+      },
+      ...event,
+    };
+    for (const entry of [...(document.listeners.get(type) || [])]) {
+      entry.handler(nextEvent);
+    }
+    return nextEvent;
+  }
+
   function runStaleAnimationFrames() {
     for (const callback of staleAnimationFrames.splice(0)) {
       callback();
@@ -519,10 +534,223 @@ function createFixture() {
     runStaleAnimationFrames,
     windowListenerCount,
     dispatchWindow,
+    dispatchDocument,
     actionCalls,
     defaultSettings,
     dependencyCalls: () => dependencyCalls,
   };
+}
+
+function createOwnerTestNode(fixture, settings) {
+  const nodeSettings = clone(settings);
+  return {
+    settings: nodeSettings,
+    widgets: [],
+    widgets_values: ["owner-test-widget-state"],
+    widgetValues: {
+      seed: nodeSettings.sampler.seed,
+      steps: nodeSettings.sampler.steps,
+      cfg: nodeSettings.sampler.cfg,
+      denoise: nodeSettings.sampler.denoise,
+      sampler_name: nodeSettings.sampler.sampler_name,
+      scheduler: nodeSettings.sampler.scheduler,
+    },
+    profileValue: "custom",
+    size: [620, 700],
+    minWidth: 560,
+    __easyuseAnimaGeneratorPreviewImages: [],
+    __easyuseAnimaSelectedPreviewIndex: 0,
+    addDOMWidget(name, type, element, options) {
+      const widget = {
+        name,
+        type,
+        element,
+        options,
+        onRemoveCalls: 0,
+        onRemove() {
+          this.onRemoveCalls += 1;
+          fixture.domWidgetStore.delete(this);
+        },
+      };
+      this.widgets.push(widget);
+      fixture.domWidgetStore.add(widget);
+      fixture.document.body.append(element);
+      return widget;
+    },
+  };
+}
+
+function infoTooltipFor(fixture, button) {
+  return findByAttribute(
+    fixture.document.body,
+    "id",
+    button.getAttribute("aria-describedby"),
+  );
+}
+
+function visibleInfoTooltips(fixture) {
+  return fixture.document
+    .querySelectorAll("[data-aio-info-tooltip]")
+    .filter((tooltip) => !tooltip.hidden);
+}
+
+function clickInfoTrigger(fixture, button) {
+  fixture.dispatchDocument("pointerdown", { target: button });
+  fixture.dispatchDocument("click", { target: button });
+  button.emit("click");
+}
+
+const OWNER_DOCUMENT_EVENT_NAMES = ["pointerdown", "click", "touchstart", "keydown"];
+
+function assertOwnerDocumentListenerCount(fixture, expected, message) {
+  for (const eventName of OWNER_DOCUMENT_EVENT_NAMES) {
+    assert.equal(
+      fixture.document.listenerCount(eventName, true),
+      expected,
+      message + ": " + eventName,
+    );
+  }
+}
+
+{
+  const ownerFixture = createFixture();
+  const ownerSettings = clone(ownerFixture.defaultSettings);
+  ownerSettings.highres.enabled = true;
+  ownerSettings.highres.inherit_sampler_settings = false;
+  ownerSettings.detailer.enabled = true;
+  ownerSettings.detailer.face.enabled = true;
+  const firstNode = createOwnerTestNode(ownerFixture, ownerSettings);
+  const secondNode = createOwnerTestNode(ownerFixture, ownerSettings);
+  ownerFixture.runtime.ensurePanel(firstNode);
+  ownerFixture.runtime.ensurePanel(secondNode);
+  const firstPanel = firstNode.__easyuseAnimaGeneratorPanelEl;
+  const secondPanel = secondNode.__easyuseAnimaGeneratorPanelEl;
+  const firstHighres = findByAttribute(firstPanel, "data-aio-focus-key", "highres.info");
+  const firstDetailer = findByAttribute(
+    firstPanel,
+    "data-aio-focus-key",
+    "detailer.face.follow-main.info",
+  );
+  const secondDetailer = findByAttribute(
+    secondPanel,
+    "data-aio-focus-key",
+    "detailer.face.follow-main.info",
+  );
+  assert.ok(firstHighres && firstDetailer && secondDetailer);
+  const firstHighresTooltip = infoTooltipFor(ownerFixture, firstHighres);
+  const firstDetailerTooltip = infoTooltipFor(ownerFixture, firstDetailer);
+  const secondDetailerTooltip = infoTooltipFor(ownerFixture, secondDetailer);
+  assert.ok(firstHighresTooltip && firstDetailerTooltip && secondDetailerTooltip);
+  assertOwnerDocumentListenerCount(ownerFixture, 0, "closed tooltips must not own document listeners");
+
+  clickInfoTrigger(ownerFixture, firstHighres);
+  assert.equal(visibleInfoTooltips(ownerFixture).length, 1);
+  assert.equal(firstHighres.getAttribute("aria-expanded"), "true");
+  clickInfoTrigger(ownerFixture, firstDetailer);
+  assert.equal(
+    visibleInfoTooltips(ownerFixture).length,
+    1,
+    "opening Detailer after Highres must leave exactly one visible portal",
+  );
+  assert.equal(firstHighresTooltip.hidden, true);
+  assert.equal(firstHighres.getAttribute("aria-expanded"), "false");
+  assert.equal(firstDetailerTooltip.hidden, false);
+  assert.equal(firstDetailer.getAttribute("aria-expanded"), "true");
+  assertOwnerDocumentListenerCount(ownerFixture, 1, "the current owner must bind once");
+
+  clickInfoTrigger(ownerFixture, firstDetailer);
+  assert.equal(visibleInfoTooltips(ownerFixture).length, 0, "trigger click must toggle closed");
+  clickInfoTrigger(ownerFixture, firstDetailer);
+  assert.equal(visibleInfoTooltips(ownerFixture).length, 1, "trigger click must toggle open");
+  ownerFixture.dispatchDocument("pointerdown", { target: firstDetailerTooltip });
+  ownerFixture.dispatchDocument("click", { target: firstDetailerTooltip });
+  ownerFixture.dispatchDocument("touchstart", { target: firstDetailerTooltip });
+  assert.equal(
+    firstDetailerTooltip.hidden,
+    false,
+    "tooltip-contained interaction must preserve the current owner",
+  );
+
+  const outside = ownerFixture.document.createElement("div");
+  ownerFixture.document.body.append(outside);
+  ownerFixture.dispatchDocument("pointerdown", { target: outside });
+  assert.equal(visibleInfoTooltips(ownerFixture).length, 0);
+  assert.equal(firstDetailer.getAttribute("aria-expanded"), "false");
+  clickInfoTrigger(ownerFixture, firstDetailer);
+  ownerFixture.dispatchDocument("click", { target: outside });
+  assert.equal(visibleInfoTooltips(ownerFixture).length, 0);
+  clickInfoTrigger(ownerFixture, firstDetailer);
+  ownerFixture.dispatchDocument("touchstart", { target: outside });
+  assert.equal(visibleInfoTooltips(ownerFixture).length, 0);
+  assertOwnerDocumentListenerCount(ownerFixture, 0, "outside close must release document listeners");
+
+  clickInfoTrigger(ownerFixture, firstHighres);
+  clickInfoTrigger(ownerFixture, firstDetailer);
+  const escapeEvent = ownerFixture.dispatchDocument("keydown", {
+    key: "Escape",
+    target: outside,
+  });
+  assert.equal(escapeEvent.defaultPrevented, true);
+  assert.equal(visibleInfoTooltips(ownerFixture).length, 0, "Escape must close the global owner");
+  assert.equal(firstHighres.getAttribute("aria-expanded"), "false");
+  assert.equal(firstDetailer.getAttribute("aria-expanded"), "false");
+
+  clickInfoTrigger(ownerFixture, firstHighres);
+  const staleOutsideHandler = ownerFixture.document.listeners.get("click")[0].handler;
+  clickInfoTrigger(ownerFixture, secondDetailer);
+  assert.equal(firstHighresTooltip.hidden, true);
+  assert.equal(secondDetailerTooltip.hidden, false);
+  staleOutsideHandler({ target: outside });
+  assert.equal(
+    secondDetailerTooltip.hidden,
+    false,
+    "a stale owner close callback must not close the newer owner",
+  );
+  ownerFixture.runtime.disposePanel(firstNode);
+  assert.equal(
+    secondDetailerTooltip.hidden,
+    false,
+    "stale panel dispose must not close the newer owner",
+  );
+  assertOwnerDocumentListenerCount(ownerFixture, 1, "stale cleanup must preserve the newer listener owner");
+  ownerFixture.runtime.ensurePanel(firstNode);
+
+  const otherFixture = createFixture();
+  const otherNode = createOwnerTestNode(otherFixture, ownerSettings);
+  otherFixture.runtime.ensurePanel(otherNode);
+  const otherHighres = findByAttribute(
+    otherNode.__easyuseAnimaGeneratorPanelEl,
+    "data-aio-focus-key",
+    "highres.info",
+  );
+  const otherHighresTooltip = infoTooltipFor(otherFixture, otherHighres);
+  assert.ok(otherHighres && otherHighresTooltip);
+  clickInfoTrigger(otherFixture, otherHighres);
+  assert.equal(visibleInfoTooltips(ownerFixture).length, 1);
+  assert.equal(visibleInfoTooltips(otherFixture).length, 1);
+  assert.equal(secondDetailerTooltip.hidden, false);
+  assert.equal(otherHighresTooltip.hidden, false, "different documents must retain independent owners");
+
+  const rerenderedFirstHighres = findByAttribute(
+    firstNode.__easyuseAnimaGeneratorPanelEl,
+    "data-aio-focus-key",
+    "highres.info",
+  );
+  clickInfoTrigger(ownerFixture, rerenderedFirstHighres);
+  assert.equal(secondDetailerTooltip.hidden, true);
+  assert.equal(otherHighresTooltip.hidden, false);
+  ownerFixture.runtime.disposePanel(firstNode);
+  assert.equal(visibleInfoTooltips(ownerFixture).length, 0);
+  assert.equal(otherHighresTooltip.hidden, false, "disposing another document must not close its owner");
+  assertOwnerDocumentListenerCount(ownerFixture, 0, "current panel dispose must restore baseline");
+  ownerFixture.runtime.disposePanel(secondNode);
+  assert.equal(ownerFixture.document.querySelectorAll("[data-aio-info-tooltip]").length, 0);
+
+  otherFixture.runtime.renderPanel(otherNode);
+  assert.equal(otherHighresTooltip.parentElement, null, "rerender must remove the owned portal");
+  assertOwnerDocumentListenerCount(otherFixture, 0, "current panel rerender must restore baseline");
+  otherFixture.runtime.disposePanel(otherNode);
+  assert.equal(otherFixture.document.querySelectorAll("[data-aio-info-tooltip]").length, 0);
 }
 
 const fixture = createFixture();
