@@ -1,0 +1,2327 @@
+{
+  "dynamic_inputs": {
+    "diffusion_models": [
+      "contract/diffusion_model.safetensors"
+    ],
+    "impact_schedulers": [
+      "contract_impact_scheduler"
+    ],
+    "lora_models": [
+      "None",
+      "contract/style.safetensors"
+    ],
+    "samplers": [
+      "contract_sampler_a",
+      "contract_sampler_b"
+    ],
+    "schedulers": [
+      "contract_scheduler_a",
+      "contract_scheduler_b"
+    ],
+    "text_encoders": [
+      "contract/text_encoder.safetensors"
+    ],
+    "vae_models": [
+      "contract/vae.safetensors"
+    ]
+  },
+  "is_changed": [
+    {
+      "id": "EasyUseAnimaPromptCorrector",
+      "inputs": {
+        "artist_exclusions": "",
+        "artist_overrides": "",
+        "prompt": "1girl, blue eyes"
+      },
+      "result": "{\"artist_exclusions\":\"\",\"artist_overrides\":\"\",\"mode\":\"prompt_corrector\",\"prompt\":\"1girl, blue eyes\",\"prompt_translation\":{\"enabled\":false}}"
+    },
+    {
+      "id": "EasyUseAnimaWildcard",
+      "inputs": {
+        "mode": "reproduce",
+        "populated_text": "",
+        "seed": 17,
+        "seed_after_generate": "fixed",
+        "text": "plain contract prompt"
+      },
+      "result": "{\"mode\":\"reproduce\",\"populated_text\":\"\",\"seed\":\"17\",\"seed_after_generate\":\"fixed\",\"text\":\"plain contract prompt\",\"wildcard_sources\":{\"files\":[]}}"
+    },
+    {
+      "id": "EasyUseAnimaPromptStudioAdvancedV2",
+      "inputs": {
+        "advanced_fields": "[]",
+        "artist_mix_mode": "off",
+        "use_naia": false
+      },
+      "result": "{\"artist_mix_cluster_count\":4,\"artist_mix_dominant_isolation\":true,\"artist_mix_dominant_threshold\":0.25,\"artist_mix_exact_top_k\":4,\"artist_mix_mode\":\"off\",\"artist_mix_rms_scale_cap\":2.0,\"artist_mix_start_percent\":0.5,\"artist_mix_strength_scale\":1.0,\"artist_mix_style_gain\":1.35,\"base\":\"{\\\"advanced_fields\\\":\\\"[{\\\\\\\"id\\\\\\\":\\\\\\\"positive_quality\\\\\\\",\\\\\\\"pane\\\\\\\":\\\\\\\"positive\\\\\\\",\\\\\\\"type\\\\\\\":\\\\\\\"quality\\\\\\\",\\\\\\\"label\\\\\\\":\\\\\\\"Quality Tags\\\\\\\",\\\\\\\"text\\\\\\\":\\\\\\\"newest, masterpiece, best quality, score_8, score_7:, highres, absurdres, very aesthetic\\\\\\\",\\\\\\\"height\\\\\\\":72,\\\\\\\"enabled\\\\\\\":true,\\\\\\\"pin\\\\\\\":false},{\\\\\\\"id\\\\\\\":\\\\\\\"positive_artist\\\\\\\",\\\\\\\"pane\\\\\\\":\\\\\\\"positive\\\\\\\",\\\\\\\"type\\\\\\\":\\\\\\\"artist\\\\\\\",\\\\\\\"label\\\\\\\":\\\\\\\"Artist Tags\\\\\\\",\\\\\\\"text\\\\\\\":\\\\\\\"\\\\\\\",\\\\\\\"height\\\\\\\":72,\\\\\\\"enabled\\\\\\\":true,\\\\\\\"pin\\\\\\\":false},{\\\\\\\"id\\\\\\\":\\\\\\\"positive_trigger\\\\\\\",\\\\\\\"pane\\\\\\\":\\\\\\\"positive\\\\\\\",\\\\\\\"type\\\\\\\":\\\\\\\"trigger\\\\\\\",\\\\\\\"label\\\\\\\":\\\\\\\"Trigger Words\\\\\\\",\\\\\\\"text\\\\\\\":\\\\\\\"\\\\\\\",\\\\\\\"height\\\\\\\":72,\\\\\\\"enabled\\\\\\\":true,\\\\\\\"pin\\\\\\\":true},{\\\\\\\"id\\\\\\\":\\\\\\\"positive_general\\\\\\\",\\\\\\\"pane\\\\\\\":\\\\\\\"positive\\\\\\\",\\\\\\\"type\\\\\\\":\\\\\\\"general\\\\\\\",\\\\\\\"label\\\\\\\":\\\\\\\"General Tags\\\\\\\",\\\\\\\"text\\\\\\\":\\\\\\\"\\\\\\\",\\\\\\\"height\\\\\\\":150,\\\\\\\"enabled\\\\\\\":true,\\\\\\\"pin\\\\\\\":false},{\\\\\\\"id\\\\\\\":\\\\\\\"positive_trailing\\\\\\\",\\\\\\\"pane\\\\\\\":\\\\\\\"positive\\\\\\\",\\\\\\\"type\\\\\\\":\\\\\\\"general\\\\\\\",\\\\\\\"label\\\\\\\":\\\\\\\"General Tags\\\\\\\",\\\\\\\"text\\\\\\\":\\\\\\\"location, (A highly aesthetic Pixiv style illustration, clean composition, high-quality digital art, detailed background, sharp focus on facial expressions.:0.6)\\\\\\\",\\\\\\\"height\\\\\\\":72,\\\\\\\"enabled\\\\\\\":true,\\\\\\\"pin\\\\\\\":false},{\\\\\\\"id\\\\\\\":\\\\\\\"negative_general\\\\\\\",\\\\\\\"pane\\\\\\\":\\\\\\\"negative\\\\\\\",\\\\\\\"type\\\\\\\":\\\\\\\"general\\\\\\\",\\\\\\\"label\\\\\\\":\\\\\\\"General Tags\\\\\\\",\\\\\\\"text\\\\\\\":\\\\\\\"\\\\\\\",\\\\\\\"height\\\\\\\":120,\\\\\\\"enabled\\\\\\\":true,\\\\\\\"pin\\\\\\\":false}]\\\",\\\"metadata_filter_words\\\":[\\\"contract-filter\\\"],\\\"mode\\\":\\\"prompt_studio_advanced\\\",\\\"pin_trigger_tags_to_front\\\":false,\\\"prompt_translation\\\":{\\\"enabled\\\":false},\\\"resolution\\\":[1024,1024],\\\"use_anima_mod_guidance\\\":false,\\\"use_negative_anima_mod_guidance\\\":false,\\\"wildcard_mode\\\":\\\"fixed\\\",\\\"wildcard_seed\\\":0,\\\"wildcard_seed_after_generate\\\":\\\"fixed\\\",\\\"wildcard_sources\\\":{\\\"files\\\":[]}}\"}"
+    },
+    {
+      "id": "EasyUseAnimaInput",
+      "inputs": {
+        "EASYUSE_ANIMA_PROMPT_DATA": {
+          "height": 1024,
+          "negative_prompt": "",
+          "positive_prompt": "contract prompt",
+          "width": 1024
+        },
+        "clip_name": "contract/text_encoder.safetensors",
+        "clip_type": "qwen_image",
+        "input_settings": {},
+        "unet_name": "contract/diffusion_model.safetensors",
+        "vae_name": "contract/vae.safetensors"
+      },
+      "result": "{\"clip_name\":\"contract/text_encoder.safetensors\",\"clip_type\":\"qwen_image\",\"input_settings\":{\"metadata\":{},\"resources\":{\"clip_device\":\"default\",\"clip_loader\":\"single\",\"loader_mode\":\"split\",\"unet_weight_dtype\":\"default\"},\"schema\":\"easy_use_anima_input\",\"version\":1},\"mode\":\"easy_use_anima_input\",\"prompt_data\":{\"height\":1024,\"negative_prompt\":\"\",\"positive_prompt\":\"contract prompt\",\"width\":1024},\"unet_name\":\"contract/diffusion_model.safetensors\",\"vae_name\":\"contract/vae.safetensors\"}"
+    },
+    {
+      "id": "EasyUseAnimaAIOGenerator",
+      "inputs": {
+        "easy_use_anima_input": {
+          "input_settings": {
+            "metadata": {},
+            "resources": {
+              "clip_device": "default",
+              "clip_loader": "single",
+              "loader_mode": "split",
+              "unet_weight_dtype": "default"
+            },
+            "schema": "easy_use_anima_input",
+            "version": 1
+          },
+          "prompt_data": {
+            "easy_use_anima_input": {
+              "resource_info": {
+                "clip_device": "default",
+                "clip_name": "contract/text_encoder.safetensors",
+                "clip_type": "qwen_image",
+                "loader_mode": "split",
+                "unet_name": "contract/diffusion_model.safetensors",
+                "unet_weight_dtype": "default",
+                "vae_name": "contract/vae.safetensors"
+              },
+              "schema": "easy_use_anima_input",
+              "version": 1
+            },
+            "height": 1024,
+            "negative_prompt": "",
+            "positive_prompt": "contract prompt",
+            "width": 1024
+          },
+          "resource_info": {
+            "clip_device": "default",
+            "clip_name": "contract/text_encoder.safetensors",
+            "clip_type": "qwen_image",
+            "loader_mode": "split",
+            "unet_name": "contract/diffusion_model.safetensors",
+            "unet_weight_dtype": "default",
+            "vae_name": "contract/vae.safetensors"
+          },
+          "schema": "easy_use_anima_input",
+          "version": 1
+        },
+        "generation_settings": {
+          "sampler": {
+            "seed": 17
+          }
+        },
+        "lora_stack": null
+      },
+      "result": "{\"generation_settings\":{\"artist_mix\":{\"cluster_count\":4,\"dominant_isolation\":true,\"dominant_threshold\":0.25,\"exact_top_k\":4,\"mode\":\"prompt_data\",\"rms_scale_cap\":2.0,\"start_percent\":0.5,\"strength_scale\":1.0,\"style_gain\":1.35},\"detailer\":{\"enabled\":false,\"eye\":{\"alignment\":\"32\",\"bbox_fill\":false,\"cfg\":8.0,\"combined\":false,\"contour_fill\":true,\"crop_factor\":6.0,\"cycle\":1,\"denoise\":0.29,\"detect_count\":1,\"detect_prompt\":\"eyes\",\"dit_corrections\":{\"adaptive_smc_alpha\":0.0,\"cfgpp\":false,\"cfgpp_lambda\":0.0,\"dcw_band_mask\":\"LL\",\"dcw_calibrator\":\"(auto-download default)\",\"dcw_lambda\":0.02,\"dcw_mode\":\"off\",\"enabled\":false,\"fsg\":false,\"fsg_band_hi\":0.75,\"fsg_band_lo\":0.59,\"fsg_d_sigma\":0.1,\"fsg_gamma\":0.0,\"fsg_k\":3,\"replace_existing_cfg\":false,\"smc_cfg\":false,\"smc_cfg_lambda\":6.0},\"drop_size\":40,\"enabled\":false,\"feather\":6,\"force_inpaint\":true,\"guide_size\":1024,\"guide_size_for\":false,\"individual_masks\":true,\"inherit_sampler_settings\":true,\"inpaint_model\":false,\"label\":\"Eye Detailer\",\"max_size\":2048,\"noise_mask\":true,\"noise_mask_feather\":20,\"refine_iterations\":2,\"sampler_name\":\"contract_sampler_a\",\"scheduler\":\"contract_impact_scheduler\",\"spectrum\":{\"blend_w\":0.3,\"cheby_degree\":3,\"compat_policy\":\"conservative\",\"enabled\":true,\"flex_window\":0.15,\"history_size\":100,\"one_sampler_only\":false,\"ridge_lambda\":0.1,\"tail_actual_steps\":3,\"verbose\":false,\"warmup_steps\":6,\"window_size\":2.0},\"steps\":20,\"threshold\":0.5,\"tiled_decode\":false,\"tiled_encode\":false,\"wildcard\":\"\"},\"face\":{\"alignment\":\"32\",\"bbox_fill\":false,\"cfg\":8.0,\"combined\":false,\"contour_fill\":true,\"crop_factor\":4.0,\"cycle\":1,\"denoise\":0.33,\"detect_count\":1,\"detect_prompt\":\"face\",\"dit_corrections\":{\"adaptive_smc_alpha\":0.0,\"cfgpp\":false,\"cfgpp_lambda\":0.0,\"dcw_band_mask\":\"LL\",\"dcw_calibrator\":\"(auto-download default)\",\"dcw_lambda\":0.02,\"dcw_mode\":\"off\",\"enabled\":false,\"fsg\":false,\"fsg_band_hi\":0.75,\"fsg_band_lo\":0.59,\"fsg_d_sigma\":0.1,\"fsg_gamma\":0.0,\"fsg_k\":3,\"replace_existing_cfg\":false,\"smc_cfg\":false,\"smc_cfg_lambda\":6.0},\"drop_size\":100,\"enabled\":false,\"feather\":5,\"force_inpaint\":true,\"guide_size\":1024,\"guide_size_for\":false,\"individual_masks\":true,\"inherit_sampler_settings\":true,\"inpaint_model\":false,\"label\":\"Face Detailer\",\"max_size\":2048,\"noise_mask\":true,\"noise_mask_feather\":10,\"refine_iterations\":2,\"sampler_name\":\"contract_sampler_a\",\"scheduler\":\"contract_impact_scheduler\",\"spectrum\":{\"blend_w\":0.3,\"cheby_degree\":3,\"compat_policy\":\"conservative\",\"enabled\":true,\"flex_window\":0.15,\"history_size\":100,\"one_sampler_only\":false,\"ridge_lambda\":0.1,\"tail_actual_steps\":3,\"verbose\":false,\"warmup_steps\":6,\"window_size\":2.0},\"steps\":20,\"threshold\":0.52,\"tiled_decode\":false,\"tiled_encode\":false,\"wildcard\":\"\"},\"order\":[\"face\",\"eye\"],\"sam3\":{\"checkpoint\":\"sam3.1_multiplex_fp16.safetensors\",\"context\":\"load_checkpoint\"}},\"highres\":{\"cfg\":8.0,\"denoise\":0.25,\"dit_corrections\":{\"adaptive_smc_alpha\":0.0,\"cfgpp\":false,\"cfgpp_lambda\":0.0,\"dcw_band_mask\":\"LL\",\"dcw_calibrator\":\"(auto-download default)\",\"dcw_lambda\":0.02,\"dcw_mode\":\"off\",\"enabled\":false,\"fsg\":false,\"fsg_band_hi\":0.75,\"fsg_band_lo\":0.59,\"fsg_d_sigma\":0.1,\"fsg_gamma\":0.0,\"fsg_k\":3,\"replace_existing_cfg\":false,\"smc_cfg\":false,\"smc_cfg_lambda\":6.0},\"enabled\":false,\"inherit_sampler_settings\":true,\"max_long_edge\":2560,\"multiple\":\"32\",\"sampler_name\":\"contract_sampler_a\",\"scale_by\":1.5,\"scheduler\":\"contract_scheduler_a\",\"spectrum\":{\"blend_w\":0.3,\"cheby_degree\":3,\"compat_policy\":\"conservative\",\"enabled\":false,\"flex_window\":0.2,\"history_size\":100,\"one_sampler_only\":false,\"ridge_lambda\":0.1,\"tail_actual_steps\":4,\"verbose\":false,\"warmup_steps\":7,\"window_size\":2.0},\"steps\":20,\"upscale_method\":\"bicubic\"},\"mod_guidance\":{\"advanced\":{\"adapter\":\"(auto-download default)\",\"mod_end_layer\":27,\"mod_final_w\":0.0,\"mod_start_layer\":8,\"mod_taper\":0,\"mod_taper_scale\":0.25,\"mod_w\":3.0,\"quality_neg\":\"score_1, score_2, score_3, worst quality, lowres, old, bad hands, bad anatomy\",\"quality_tags\":\"highres, best quality, score_7\"},\"mode\":\"prompt_data\",\"profile\":\"step_i8_skip27\"},\"mode\":\"txt2img\",\"model_patches\":{\"aura_flow\":{\"shift\":3.0},\"dave\":{\"enabled\":false,\"mask\":\"dave_alpha.npz\",\"strength\":0.3,\"tau\":0.1},\"kj\":{\"fp16_accumulation\":false,\"sage_allow_compile\":false,\"sage_attention\":\"disabled\",\"torch_compile\":{\"backend\":\"inductor\",\"compile_transformer_blocks_only\":true,\"debug_compile_keys\":false,\"disable_dynamic_vram\":true,\"dynamic\":\"false\",\"dynamo_cache_size_limit\":64,\"enabled\":false,\"fullgraph\":false,\"mode\":\"max-autotune-no-cudagraphs\"}},\"safe_pag\":{\"block_indices\":\"18\",\"enabled\":false,\"end_percent\":0.7,\"head_indices\":\"\",\"perturbation_strength\":0.75,\"rescale\":0.2,\"rescale_mode\":\"full\",\"scale\":4.0,\"start_percent\":0.0}},\"postprocess\":{\"enabled\":false,\"fit\":{\"max_long_edge\":2048,\"max_megapixels\":4.0,\"method\":\"bicubic\",\"mode\":\"max_long_edge\"}},\"preview\":{\"compare_previous\":false,\"feed_count\":12,\"image_feed\":true,\"intermediate_images\":false},\"sampler\":{\"backend\":\"comfy_ksampler\",\"cfg\":5.0,\"denoise\":1.0,\"dit_corrections\":{\"adaptive_smc_alpha\":0.0,\"cfgpp\":false,\"cfgpp_lambda\":0.0,\"dcw_band_mask\":\"LL\",\"dcw_calibrator\":\"(auto-download default)\",\"dcw_lambda\":0.01,\"dcw_mode\":\"off\",\"enabled\":false,\"fsg\":false,\"fsg_band_hi\":0.75,\"fsg_band_lo\":0.59,\"fsg_d_sigma\":0.1,\"fsg_gamma\":0.0,\"fsg_k\":3,\"replace_existing_cfg\":false,\"smc_cfg\":false,\"smc_cfg_lambda\":6.0},\"sampler_name\":\"contract_sampler_a\",\"scheduler\":\"contract_scheduler_a\",\"seed\":17,\"seed_after_generate\":\"fixed\",\"spd\":{\"adaptive_smc_alpha\":0.0,\"scale\":0.5,\"sigma\":0.7,\"split_mode\":\"single\"},\"spd_extra\":{},\"spectrum\":{\"blend_w\":0.3,\"cheby_degree\":3,\"compat_policy\":\"conservative\",\"enabled\":false,\"flex_window\":0.25,\"history_size\":100,\"one_sampler_only\":false,\"ridge_lambda\":0.1,\"tail_actual_steps\":3,\"verbose\":false,\"warmup_steps\":6,\"window_size\":2.0},\"spectrum_extra\":{},\"steps\":32},\"save\":{\"backend\":\"image_saver\",\"enabled\":true,\"image_saver\":{\"additional_hash_bundles\":[],\"additional_hashes\":\"\",\"civitai_hash_fetchers\":[],\"clip_skip\":0,\"counter\":0,\"custom\":\"\",\"download_civitai_data\":true,\"easy_remix\":true,\"embed_workflow\":true,\"extension\":\"webp\",\"filename\":\"%time_%basemodelname\",\"lossless_webp\":false,\"optimize_png\":true,\"path\":\"EasyUseAnima/AiO\",\"quality_jpeg_or_webp\":97,\"save_prompt_metadata\":true,\"save_workflow_as_json\":false,\"time_format\":\"%Y-%m-%d-%H%M%S\"}},\"schema\":\"easyuse_anima_aio_generation_settings\",\"upscale\":{\"backend\":\"usdu\",\"cfg\":8.0,\"denoise\":0.2,\"dit_corrections\":{\"adaptive_smc_alpha\":0.0,\"cfgpp\":false,\"cfgpp_lambda\":0.0,\"dcw_band_mask\":\"LL\",\"dcw_calibrator\":\"(auto-download default)\",\"dcw_lambda\":0.02,\"dcw_mode\":\"off\",\"enabled\":false,\"fsg\":false,\"fsg_band_hi\":0.75,\"fsg_band_lo\":0.59,\"fsg_d_sigma\":0.1,\"fsg_gamma\":0.0,\"fsg_k\":3,\"replace_existing_cfg\":false,\"smc_cfg\":false,\"smc_cfg_lambda\":6.0},\"enabled\":false,\"inherit_sampler_settings\":true,\"resshift\":{\"chop\":512,\"dtype\":\"bf16\",\"overlap\":64,\"scale\":\"x2\",\"student_name\":\"(auto-download)\",\"tile_batch\":4},\"sampler_name\":\"contract_sampler_a\",\"scale_by\":2.0,\"scheduler\":\"contract_scheduler_a\",\"spectrum\":{\"blend_w\":0.3,\"cheby_degree\":3,\"compat_policy\":\"conservative\",\"enabled\":false,\"flex_window\":0.2,\"history_size\":100,\"one_sampler_only\":false,\"ridge_lambda\":0.1,\"tail_actual_steps\":4,\"verbose\":false,\"warmup_steps\":7,\"window_size\":2.0},\"steps\":20,\"usdu\":{\"auto_tile_max\":2048,\"auto_tile_min\":512,\"auto_tile_size\":true,\"auto_tile_target\":1024,\"batch_size\":1,\"force_uniform_tiles\":true,\"mask_blur\":8,\"mode_type\":\"Linear\",\"prompt_mode\":\"full\",\"seam_fix_denoise\":1.0,\"seam_fix_mask_blur\":8,\"seam_fix_mode\":\"None\",\"seam_fix_padding\":16,\"seam_fix_width\":64,\"tile_height\":512,\"tile_padding\":32,\"tile_width\":512,\"tiled_decode\":false,\"upscale_model_name\":\"2x-AnimeSharpV4_Fast_RCAN_PU.safetensors\"}},\"version\":1},\"input\":{\"input_settings\":{\"metadata\":{},\"resources\":{\"clip_device\":\"default\",\"clip_loader\":\"single\",\"loader_mode\":\"split\",\"unet_weight_dtype\":\"default\"},\"schema\":\"easy_use_anima_input\",\"version\":1},\"prompt_data\":{\"easy_use_anima_input\":{\"resource_info\":{\"clip_device\":\"default\",\"clip_name\":\"contract/text_encoder.safetensors\",\"clip_type\":\"qwen_image\",\"loader_mode\":\"split\",\"unet_name\":\"contract/diffusion_model.safetensors\",\"unet_weight_dtype\":\"default\",\"vae_name\":\"contract/vae.safetensors\"},\"schema\":\"easy_use_anima_input\",\"version\":1},\"height\":1024,\"negative_prompt\":\"\",\"positive_prompt\":\"contract prompt\",\"width\":1024},\"resource_info\":{\"clip_device\":\"default\",\"clip_name\":\"contract/text_encoder.safetensors\",\"clip_type\":\"qwen_image\",\"loader_mode\":\"split\",\"unet_name\":\"contract/diffusion_model.safetensors\",\"unet_weight_dtype\":\"default\",\"vae_name\":\"contract/vae.safetensors\"},\"schema\":\"easy_use_anima_input\",\"version\":1},\"lora_stack\":[],\"mode\":\"easy_use_anima_generator\"}"
+    },
+    {
+      "id": "EasyUseAnimaNAIARandomPrompt",
+      "inputs": {
+        "height": 1024,
+        "negative_prompt": "",
+        "prompt": "contract prompt",
+        "use_naia_bridge": false,
+        "width": 1024
+      },
+      "result": "{\"height\":1024,\"mode\":\"disabled\",\"negative_prompt\":\"\",\"prompt\":\"contract prompt\",\"width\":1024}"
+    }
+  ],
+  "nodes": [
+    {
+      "category": "EasyUse Anima/AiO",
+      "class_name": "EasyUseAnimaAIOGenerator",
+      "display_name": "Anima AiO Generator",
+      "function": "generate",
+      "id": "EasyUseAnimaAIOGenerator",
+      "input_sections": [
+        {
+          "entries": [
+            {
+              "config": {
+                "forceInput": true
+              },
+              "name": "easy_use_anima_input",
+              "type": "EASY_USE_ANIMA_INPUT"
+            },
+            {
+              "config": {
+                "default": "{\"schema\":\"easyuse_anima_aio_generation_settings\",\"version\":1,\"mode\":\"txt2img\",\"sampler\":{\"backend\":\"comfy_ksampler\",\"seed\":-1,\"seed_after_generate\":\"fixed\",\"steps\":32,\"cfg\":5.0,\"sampler_name\":\"er_sde\",\"scheduler\":\"simple\",\"denoise\":1.0,\"spectrum\":{\"enabled\":false,\"window_size\":2.0,\"flex_window\":0.25,\"warmup_steps\":6,\"tail_actual_steps\":3,\"blend_w\":0.3,\"cheby_degree\":3,\"ridge_lambda\":0.1,\"history_size\":100,\"one_sampler_only\":false,\"verbose\":false,\"compat_policy\":\"conservative\"},\"spd\":{\"split_mode\":\"single\",\"scale\":0.5,\"sigma\":0.7,\"adaptive_smc_alpha\":0.0},\"spectrum_extra\":{},\"spd_extra\":{},\"dit_corrections\":{\"enabled\":false,\"dcw_mode\":\"off\",\"dcw_lambda\":0.01,\"dcw_band_mask\":\"LL\",\"dcw_calibrator\":\"(auto-download default)\",\"smc_cfg\":false,\"adaptive_smc_alpha\":0.0,\"smc_cfg_lambda\":6.0,\"cfgpp\":false,\"cfgpp_lambda\":0.0,\"fsg\":false,\"fsg_band_lo\":0.59,\"fsg_band_hi\":0.75,\"fsg_k\":3,\"fsg_d_sigma\":0.1,\"fsg_gamma\":0.0,\"replace_existing_cfg\":false}},\"model_patches\":{\"aura_flow\":{\"shift\":3.0},\"dave\":{\"enabled\":false,\"mask\":\"dave_alpha.npz\",\"strength\":0.3,\"tau\":0.1},\"safe_pag\":{\"enabled\":false,\"scale\":4.0,\"block_indices\":\"18\",\"perturbation_strength\":0.75,\"head_indices\":\"\",\"start_percent\":0.0,\"end_percent\":0.7,\"rescale\":0.2,\"rescale_mode\":\"full\"},\"kj\":{\"fp16_accumulation\":false,\"sage_attention\":\"disabled\",\"sage_allow_compile\":false,\"torch_compile\":{\"enabled\":false,\"backend\":\"inductor\",\"fullgraph\":false,\"mode\":\"max-autotune-no-cudagraphs\",\"dynamic\":\"false\",\"compile_transformer_blocks_only\":true,\"dynamo_cache_size_limit\":64,\"debug_compile_keys\":false,\"disable_dynamic_vram\":true}}},\"mod_guidance\":{\"mode\":\"prompt_data\",\"profile\":\"step_i8_skip27\",\"advanced\":{\"adapter\":\"(auto-download default)\",\"quality_tags\":\"highres, best quality, score_7\",\"quality_neg\":\"score_1, score_2, score_3, worst quality, lowres, old, bad hands, bad anatomy\",\"mod_w\":3.0,\"mod_start_layer\":8,\"mod_end_layer\":27,\"mod_taper\":0,\"mod_taper_scale\":0.25,\"mod_final_w\":0.0}},\"artist_mix\":{\"mode\":\"prompt_data\",\"start_percent\":0.5,\"strength_scale\":1.0,\"style_gain\":1.35,\"rms_scale_cap\":2.0,\"exact_top_k\":4,\"cluster_count\":4,\"dominant_isolation\":true,\"dominant_threshold\":0.25},\"highres\":{\"enabled\":false,\"scale_by\":1.5,\"upscale_method\":\"bicubic\",\"multiple\":\"32\",\"max_long_edge\":2560,\"steps\":20,\"inherit_sampler_settings\":true,\"cfg\":8.0,\"sampler_name\":\"euler\",\"scheduler\":\"simple\",\"denoise\":0.25,\"spectrum\":{\"enabled\":false,\"window_size\":2.0,\"flex_window\":0.2,\"warmup_steps\":7,\"tail_actual_steps\":4,\"blend_w\":0.3,\"cheby_degree\":3,\"ridge_lambda\":0.1,\"history_size\":100,\"one_sampler_only\":false,\"verbose\":false,\"compat_policy\":\"conservative\"},\"dit_corrections\":{\"enabled\":false,\"dcw_mode\":\"off\",\"dcw_lambda\":0.02,\"dcw_band_mask\":\"LL\",\"dcw_calibrator\":\"(auto-download default)\",\"smc_cfg\":false,\"adaptive_smc_alpha\":0.0,\"smc_cfg_lambda\":6.0,\"cfgpp\":false,\"cfgpp_lambda\":0.0,\"fsg\":false,\"fsg_band_lo\":0.59,\"fsg_band_hi\":0.75,\"fsg_k\":3,\"fsg_d_sigma\":0.1,\"fsg_gamma\":0.0,\"replace_existing_cfg\":false}},\"upscale\":{\"enabled\":false,\"backend\":\"usdu\",\"scale_by\":2.0,\"steps\":20,\"inherit_sampler_settings\":true,\"cfg\":8.0,\"sampler_name\":\"euler\",\"scheduler\":\"simple\",\"denoise\":0.2,\"spectrum\":{\"enabled\":false,\"window_size\":2.0,\"flex_window\":0.2,\"warmup_steps\":7,\"tail_actual_steps\":4,\"blend_w\":0.3,\"cheby_degree\":3,\"ridge_lambda\":0.1,\"history_size\":100,\"one_sampler_only\":false,\"verbose\":false,\"compat_policy\":\"conservative\"},\"dit_corrections\":{\"enabled\":false,\"dcw_mode\":\"off\",\"dcw_lambda\":0.02,\"dcw_band_mask\":\"LL\",\"dcw_calibrator\":\"(auto-download default)\",\"smc_cfg\":false,\"adaptive_smc_alpha\":0.0,\"smc_cfg_lambda\":6.0,\"cfgpp\":false,\"cfgpp_lambda\":0.0,\"fsg\":false,\"fsg_band_lo\":0.59,\"fsg_band_hi\":0.75,\"fsg_k\":3,\"fsg_d_sigma\":0.1,\"fsg_gamma\":0.0,\"replace_existing_cfg\":false},\"usdu\":{\"upscale_model_name\":\"2x-AnimeSharpV4_Fast_RCAN_PU.safetensors\",\"auto_tile_size\":true,\"prompt_mode\":\"full\",\"mode_type\":\"Linear\",\"auto_tile_target\":1024,\"auto_tile_min\":512,\"auto_tile_max\":2048,\"tile_width\":512,\"tile_height\":512,\"mask_blur\":8,\"tile_padding\":32,\"seam_fix_mode\":\"None\",\"seam_fix_denoise\":1.0,\"seam_fix_width\":64,\"seam_fix_mask_blur\":8,\"seam_fix_padding\":16,\"force_uniform_tiles\":true,\"tiled_decode\":false,\"batch_size\":1},\"resshift\":{\"scale\":\"x2\",\"student_name\":\"(auto-download)\",\"dtype\":\"bf16\",\"chop\":512,\"overlap\":64,\"tile_batch\":4}},\"postprocess\":{\"enabled\":false,\"fit\":{\"mode\":\"max_long_edge\",\"max_long_edge\":2048,\"max_megapixels\":4.0,\"method\":\"bicubic\"}},\"detailer\":{\"enabled\":false,\"order\":[\"face\",\"eye\"],\"sam3\":{\"context\":\"load_checkpoint\",\"checkpoint\":\"sam3.1_multiplex_fp16.safetensors\"},\"face\":{\"label\":\"Face Detailer\",\"enabled\":false,\"detect_prompt\":\"face\",\"detect_count\":1,\"threshold\":0.52,\"refine_iterations\":2,\"individual_masks\":true,\"combined\":false,\"crop_factor\":4.0,\"bbox_fill\":false,\"drop_size\":100,\"contour_fill\":true,\"guide_size\":1024,\"guide_size_for\":false,\"max_size\":2048,\"steps\":20,\"inherit_sampler_settings\":true,\"cfg\":8.0,\"sampler_name\":\"euler\",\"scheduler\":\"sgm_uniform\",\"denoise\":0.33,\"feather\":5,\"noise_mask\":true,\"force_inpaint\":true,\"wildcard\":\"\",\"cycle\":1,\"alignment\":\"32\",\"inpaint_model\":false,\"noise_mask_feather\":10,\"tiled_encode\":false,\"tiled_decode\":false,\"spectrum\":{\"enabled\":true,\"window_size\":2.0,\"flex_window\":0.15,\"warmup_steps\":6,\"tail_actual_steps\":3,\"blend_w\":0.3,\"cheby_degree\":3,\"ridge_lambda\":0.1,\"history_size\":100,\"one_sampler_only\":false,\"verbose\":false,\"compat_policy\":\"conservative\"},\"dit_corrections\":{\"enabled\":false,\"dcw_mode\":\"off\",\"dcw_lambda\":0.02,\"dcw_band_mask\":\"LL\",\"dcw_calibrator\":\"(auto-download default)\",\"smc_cfg\":false,\"adaptive_smc_alpha\":0.0,\"smc_cfg_lambda\":6.0,\"cfgpp\":false,\"cfgpp_lambda\":0.0,\"fsg\":false,\"fsg_band_lo\":0.59,\"fsg_band_hi\":0.75,\"fsg_k\":3,\"fsg_d_sigma\":0.1,\"fsg_gamma\":0.0,\"replace_existing_cfg\":false}},\"eye\":{\"label\":\"Eye Detailer\",\"enabled\":false,\"detect_prompt\":\"eyes\",\"detect_count\":1,\"threshold\":0.5,\"refine_iterations\":2,\"individual_masks\":true,\"combined\":false,\"crop_factor\":6.0,\"bbox_fill\":false,\"drop_size\":40,\"contour_fill\":true,\"guide_size\":1024,\"guide_size_for\":false,\"max_size\":2048,\"steps\":20,\"inherit_sampler_settings\":true,\"cfg\":8.0,\"sampler_name\":\"euler\",\"scheduler\":\"sgm_uniform\",\"denoise\":0.29,\"feather\":6,\"noise_mask\":true,\"force_inpaint\":true,\"wildcard\":\"\",\"cycle\":1,\"alignment\":\"32\",\"inpaint_model\":false,\"noise_mask_feather\":20,\"tiled_encode\":false,\"tiled_decode\":false,\"spectrum\":{\"enabled\":true,\"window_size\":2.0,\"flex_window\":0.15,\"warmup_steps\":6,\"tail_actual_steps\":3,\"blend_w\":0.3,\"cheby_degree\":3,\"ridge_lambda\":0.1,\"history_size\":100,\"one_sampler_only\":false,\"verbose\":false,\"compat_policy\":\"conservative\"},\"dit_corrections\":{\"enabled\":false,\"dcw_mode\":\"off\",\"dcw_lambda\":0.02,\"dcw_band_mask\":\"LL\",\"dcw_calibrator\":\"(auto-download default)\",\"smc_cfg\":false,\"adaptive_smc_alpha\":0.0,\"smc_cfg_lambda\":6.0,\"cfgpp\":false,\"cfgpp_lambda\":0.0,\"fsg\":false,\"fsg_band_lo\":0.59,\"fsg_band_hi\":0.75,\"fsg_k\":3,\"fsg_d_sigma\":0.1,\"fsg_gamma\":0.0,\"replace_existing_cfg\":false}}},\"save\":{\"enabled\":true,\"backend\":\"image_saver\",\"image_saver\":{\"filename\":\"%time_%basemodelname\",\"path\":\"EasyUseAnima/AiO\",\"extension\":\"webp\",\"lossless_webp\":false,\"quality_jpeg_or_webp\":97,\"optimize_png\":true,\"counter\":0,\"clip_skip\":0,\"time_format\":\"%Y-%m-%d-%H%M%S\",\"save_workflow_as_json\":false,\"embed_workflow\":true,\"save_prompt_metadata\":true,\"additional_hashes\":\"\",\"additional_hash_bundles\":[],\"civitai_hash_fetchers\":[],\"download_civitai_data\":true,\"easy_remix\":true,\"custom\":\"\"}},\"preview\":{\"intermediate_images\":false,\"compare_previous\":false,\"image_feed\":true,\"feed_count\":12}}",
+                "hidden": true,
+                "multiline": true
+              },
+              "name": "generation_settings",
+              "type": "STRING"
+            }
+          ],
+          "name": "required"
+        },
+        {
+          "entries": [
+            {
+              "config": {},
+              "name": "workflow_prompt",
+              "type": "PROMPT"
+            },
+            {
+              "config": {},
+              "name": "extra_pnginfo",
+              "type": "EXTRA_PNGINFO"
+            },
+            {
+              "config": {},
+              "name": "unique_id",
+              "type": "UNIQUE_ID"
+            }
+          ],
+          "name": "hidden"
+        },
+        {
+          "entries": [
+            {
+              "config": {
+                "forceInput": true
+              },
+              "name": "lora_stack",
+              "type": "LORA_STACK"
+            }
+          ],
+          "name": "optional"
+        }
+      ],
+      "output_node": true,
+      "return_names": [
+        "image",
+        "latent",
+        "metadata_json"
+      ],
+      "return_types": [
+        "IMAGE",
+        "LATENT",
+        "STRING"
+      ]
+    },
+    {
+      "category": "EasyUse Anima/Detailer",
+      "class_name": "EasyUseAnimaDetailerAlignHook",
+      "display_name": "Anima Detailer Align Hook",
+      "function": "build",
+      "id": "EasyUseAnimaDetailerAlignHook",
+      "input_sections": [
+        {
+          "entries": [
+            {
+              "config": {
+                "default": "32"
+              },
+              "name": "alignment",
+              "type": [
+                "none",
+                "8",
+                "16",
+                "32",
+                "64"
+              ]
+            }
+          ],
+          "name": "required"
+        },
+        {
+          "entries": [
+            {
+              "config": {},
+              "name": "detailer_hook",
+              "type": "DETAILER_HOOK"
+            }
+          ],
+          "name": "optional"
+        }
+      ],
+      "output_node": false,
+      "return_names": [
+        "detailer_hook"
+      ],
+      "return_types": [
+        "DETAILER_HOOK"
+      ]
+    },
+    {
+      "category": "EasyUse Anima/Prompt",
+      "class_name": "EasyUseAnimaArtistMixConditioning",
+      "display_name": "Anima Artist Mix Conditioning",
+      "function": "encode",
+      "id": "EasyUseAnimaArtistMixConditioning",
+      "input_sections": [
+        {
+          "entries": [
+            {
+              "config": {},
+              "name": "clip",
+              "type": "CLIP"
+            },
+            {
+              "config": {
+                "default": "",
+                "multiline": true
+              },
+              "name": "prompt",
+              "type": "STRING"
+            },
+            {
+              "config": {
+                "default": "",
+                "multiline": true
+              },
+              "name": "artist_tags",
+              "type": "STRING"
+            },
+            {
+              "config": {
+                "default": "correct"
+              },
+              "name": "artist_position",
+              "type": [
+                "correct",
+                "front",
+                "back"
+              ]
+            },
+            {
+              "config": {
+                "default": "prompt"
+              },
+              "name": "artist_mix_mode",
+              "type": [
+                "prompt",
+                "average",
+                "delta_rms",
+                "hybrid",
+                "clustered",
+                "exact",
+                "composite_exact",
+                "late_exact",
+                "average_late_exact",
+                "scheduled_average"
+              ]
+            },
+            {
+              "config": {
+                "default": 0.5,
+                "max": 1.0,
+                "min": 0.0,
+                "step": 0.01
+              },
+              "name": "artist_mix_start_percent",
+              "type": "FLOAT"
+            },
+            {
+              "config": {
+                "default": 1.0,
+                "max": 5.0,
+                "min": 0.0,
+                "step": 0.01
+              },
+              "name": "artist_mix_strength_scale",
+              "type": "FLOAT"
+            },
+            {
+              "config": {
+                "default": 1.35,
+                "max": 3.0,
+                "min": 0.0,
+                "step": 0.01
+              },
+              "name": "artist_mix_style_gain",
+              "type": "FLOAT"
+            },
+            {
+              "config": {
+                "default": 2.0,
+                "max": 5.0,
+                "min": 1.0,
+                "step": 0.01
+              },
+              "name": "artist_mix_rms_scale_cap",
+              "type": "FLOAT"
+            },
+            {
+              "config": {
+                "default": 4,
+                "max": 64,
+                "min": 0
+              },
+              "name": "artist_mix_exact_top_k",
+              "type": "INT"
+            },
+            {
+              "config": {
+                "default": 4,
+                "max": 32,
+                "min": 1
+              },
+              "name": "artist_mix_cluster_count",
+              "type": "INT"
+            },
+            {
+              "config": {
+                "default": true
+              },
+              "name": "artist_mix_dominant_isolation",
+              "type": "BOOLEAN"
+            },
+            {
+              "config": {
+                "default": 0.25,
+                "max": 1.0,
+                "min": 0.0,
+                "step": 0.01
+              },
+              "name": "artist_mix_dominant_threshold",
+              "type": "FLOAT"
+            }
+          ],
+          "name": "required"
+        }
+      ],
+      "output_node": false,
+      "return_names": [
+        "positive"
+      ],
+      "return_types": [
+        "CONDITIONING"
+      ]
+    },
+    {
+      "category": "EasyUse Anima/AiO",
+      "class_name": "EasyUseAnimaInput",
+      "display_name": "Easy Use Anima Input",
+      "function": "build",
+      "id": "EasyUseAnimaInput",
+      "input_sections": [
+        {
+          "entries": [
+            {
+              "config": {
+                "forceInput": true
+              },
+              "name": "EASYUSE_ANIMA_PROMPT_DATA",
+              "type": "EASYUSE_ANIMA_PROMPT_DATA"
+            },
+            {
+              "config": {
+                "default": "contract/diffusion_model.safetensors"
+              },
+              "name": "unet_name",
+              "type": [
+                "contract/diffusion_model.safetensors"
+              ]
+            },
+            {
+              "config": {
+                "default": "contract/vae.safetensors"
+              },
+              "name": "vae_name",
+              "type": [
+                "contract/vae.safetensors"
+              ]
+            },
+            {
+              "config": {
+                "default": "contract/text_encoder.safetensors"
+              },
+              "name": "clip_name",
+              "type": [
+                "contract/text_encoder.safetensors"
+              ]
+            },
+            {
+              "config": {
+                "default": "qwen_image"
+              },
+              "name": "clip_type",
+              "type": [
+                "qwen_image",
+                "stable_diffusion"
+              ]
+            },
+            {
+              "config": {
+                "default": "{\"schema\":\"easy_use_anima_input\",\"version\":1,\"resources\":{\"loader_mode\":\"split\",\"clip_loader\":\"single\",\"unet_weight_dtype\":\"default\",\"clip_device\":\"default\"},\"metadata\":{}}",
+                "hidden": true,
+                "multiline": true
+              },
+              "name": "input_settings",
+              "type": "STRING"
+            }
+          ],
+          "name": "required"
+        }
+      ],
+      "output_node": false,
+      "return_names": [
+        "easy use anima input"
+      ],
+      "return_types": [
+        "EASY_USE_ANIMA_INPUT"
+      ]
+    },
+    {
+      "category": "EasyUse Anima/Image",
+      "class_name": "EasyUseAnimaImageScaleByMultiple",
+      "display_name": "Anima Image Scale By Multiple",
+      "function": "upscale",
+      "id": "EasyUseAnimaImageScaleByMultiple",
+      "input_sections": [
+        {
+          "entries": [
+            {
+              "config": {},
+              "name": "image",
+              "type": "IMAGE"
+            },
+            {
+              "config": {
+                "default": 1.5,
+                "max": 8.0,
+                "min": 0.01,
+                "step": 0.01
+              },
+              "name": "scale_by",
+              "type": "FLOAT"
+            },
+            {
+              "config": {
+                "default": "bicubic"
+              },
+              "name": "upscale_method",
+              "type": [
+                "nearest-exact",
+                "bilinear",
+                "area",
+                "bicubic",
+                "lanczos"
+              ]
+            },
+            {
+              "config": {
+                "default": "32"
+              },
+              "name": "multiple",
+              "type": [
+                "8",
+                "16",
+                "32",
+                "64"
+              ]
+            },
+            {
+              "config": {
+                "default": 0,
+                "max": 16384,
+                "min": 0,
+                "step": 32
+              },
+              "name": "max_long_edge",
+              "type": "INT"
+            }
+          ],
+          "name": "required"
+        }
+      ],
+      "output_node": false,
+      "return_names": [
+        "image",
+        "width",
+        "height",
+        "applied_scale"
+      ],
+      "return_types": [
+        "IMAGE",
+        "INT",
+        "INT",
+        "FLOAT"
+      ]
+    },
+    {
+      "category": "EasyUse Anima/LoRA",
+      "class_name": "EasyUseAnimaLoraPreset",
+      "display_name": "Anima LoRA Preset",
+      "function": "build",
+      "id": "EasyUseAnimaLoraPreset",
+      "input_sections": [
+        {
+          "entries": [
+            {
+              "config": {
+                "default": "",
+                "multiline": true
+              },
+              "name": "style_prompt",
+              "type": "STRING"
+            },
+            {
+              "config": {
+                "default": 1,
+                "max": 16,
+                "min": 1,
+                "step": 1
+              },
+              "name": "profile_index",
+              "type": "INT"
+            },
+            {
+              "config": {
+                "default": "4"
+              },
+              "name": "profile_count",
+              "type": "STRING"
+            },
+            {
+              "config": {
+                "default": "None"
+              },
+              "name": "lora_name",
+              "type": [
+                "None",
+                "contract/style.safetensors"
+              ]
+            },
+            {
+              "config": {
+                "default": "[]",
+                "multiline": true
+              },
+              "name": "loras",
+              "type": "STRING"
+            },
+            {
+              "config": {
+                "default": "{}",
+                "multiline": true
+              },
+              "name": "profile_data",
+              "type": "STRING"
+            }
+          ],
+          "name": "required"
+        },
+        {
+          "entries": [],
+          "name": "optional"
+        }
+      ],
+      "output_node": false,
+      "return_names": [
+        "style_prompt",
+        "LORA_STACK",
+        "trigger_words",
+        "active_loras",
+        "profile_index"
+      ],
+      "return_types": [
+        "STRING",
+        "LORA_STACK",
+        "STRING",
+        "STRING",
+        "INT"
+      ]
+    },
+    {
+      "category": "NAIA Bridge/API",
+      "class_name": "EasyUseAnimaNAIARandomPrompt",
+      "display_name": "Anima NAIA Random Prompt",
+      "function": "request",
+      "id": "EasyUseAnimaNAIARandomPrompt",
+      "input_sections": [
+        {
+          "entries": [
+            {
+              "config": {
+                "default": true
+              },
+              "name": "use_naia_bridge",
+              "type": "BOOLEAN"
+            },
+            {
+              "config": {
+                "default": false
+              },
+              "name": "freeze_naia_output",
+              "type": "BOOLEAN"
+            },
+            {
+              "config": {
+                "default": true
+              },
+              "name": "show_preview",
+              "type": "BOOLEAN"
+            },
+            {
+              "config": {
+                "default": "",
+                "multiline": true
+              },
+              "name": "cached_prompt",
+              "type": "STRING"
+            },
+            {
+              "config": {
+                "default": "",
+                "multiline": true
+              },
+              "name": "cached_negative_prompt",
+              "type": "STRING"
+            },
+            {
+              "config": {
+                "default": 0,
+                "max": 8192,
+                "min": 0,
+                "step": 8
+              },
+              "name": "cached_width",
+              "type": "INT"
+            },
+            {
+              "config": {
+                "default": 0,
+                "max": 8192,
+                "min": 0,
+                "step": 8
+              },
+              "name": "cached_height",
+              "type": "INT"
+            },
+            {
+              "config": {
+                "default": "",
+                "multiline": true
+              },
+              "name": "cached_signature",
+              "type": "STRING"
+            },
+            {
+              "config": {
+                "default": "",
+                "multiline": false,
+                "placeholder": "prompt"
+              },
+              "name": "prompt",
+              "type": "STRING"
+            },
+            {
+              "config": {
+                "default": true
+              },
+              "name": "override_prompt",
+              "type": "BOOLEAN"
+            },
+            {
+              "config": {
+                "default": "",
+                "multiline": false,
+                "placeholder": "negative_prompt"
+              },
+              "name": "negative_prompt",
+              "type": "STRING"
+            },
+            {
+              "config": {
+                "default": true
+              },
+              "name": "override_negative",
+              "type": "BOOLEAN"
+            },
+            {
+              "config": {
+                "default": 1024,
+                "max": 8192,
+                "min": 64,
+                "step": 8
+              },
+              "name": "width",
+              "type": "INT"
+            },
+            {
+              "config": {
+                "default": true
+              },
+              "name": "override_width",
+              "type": "BOOLEAN"
+            },
+            {
+              "config": {
+                "default": 1024,
+                "max": 8192,
+                "min": 64,
+                "step": 8
+              },
+              "name": "height",
+              "type": "INT"
+            },
+            {
+              "config": {
+                "default": true
+              },
+              "name": "override_height",
+              "type": "BOOLEAN"
+            },
+            {
+              "config": {
+                "default": true
+              },
+              "name": "use_naia_settings",
+              "type": "BOOLEAN"
+            },
+            {
+              "config": {
+                "default": "",
+                "multiline": true,
+                "placeholder": "pre_prompt"
+              },
+              "name": "pre_prompt",
+              "type": "STRING"
+            },
+            {
+              "config": {
+                "default": "",
+                "multiline": true,
+                "placeholder": "post_prompt"
+              },
+              "name": "post_prompt",
+              "type": "STRING"
+            },
+            {
+              "config": {
+                "default": "",
+                "multiline": true,
+                "placeholder": "auto_hide"
+              },
+              "name": "auto_hide",
+              "type": "STRING"
+            },
+            {
+              "config": {
+                "advanced": true,
+                "default": "skip",
+                "socketless": true
+              },
+              "name": "remove_author",
+              "type": [
+                "skip",
+                "on",
+                "off"
+              ]
+            },
+            {
+              "config": {
+                "advanced": true,
+                "default": "skip",
+                "socketless": true
+              },
+              "name": "remove_work_title",
+              "type": [
+                "skip",
+                "on",
+                "off"
+              ]
+            },
+            {
+              "config": {
+                "advanced": true,
+                "default": "skip",
+                "socketless": true
+              },
+              "name": "remove_character_name",
+              "type": [
+                "skip",
+                "on",
+                "off"
+              ]
+            },
+            {
+              "config": {
+                "advanced": true,
+                "default": "skip",
+                "socketless": true
+              },
+              "name": "remove_character_features",
+              "type": [
+                "skip",
+                "on",
+                "off"
+              ]
+            },
+            {
+              "config": {
+                "advanced": true,
+                "default": "skip",
+                "socketless": true
+              },
+              "name": "remove_clothes",
+              "type": [
+                "skip",
+                "on",
+                "off"
+              ]
+            },
+            {
+              "config": {
+                "advanced": true,
+                "default": "skip",
+                "socketless": true
+              },
+              "name": "remove_color",
+              "type": [
+                "skip",
+                "on",
+                "off"
+              ]
+            },
+            {
+              "config": {
+                "advanced": true,
+                "default": "skip",
+                "socketless": true
+              },
+              "name": "remove_location_and_background_color",
+              "type": [
+                "skip",
+                "on",
+                "off"
+              ]
+            },
+            {
+              "config": {
+                "advanced": true,
+                "default": "skip",
+                "socketless": true
+              },
+              "name": "remove_expression",
+              "type": [
+                "skip",
+                "on",
+                "off"
+              ]
+            },
+            {
+              "config": {
+                "advanced": true,
+                "default": "skip",
+                "socketless": true
+              },
+              "name": "remove_pose_action",
+              "type": [
+                "skip",
+                "on",
+                "off"
+              ]
+            },
+            {
+              "config": {
+                "advanced": true,
+                "default": "skip",
+                "socketless": true
+              },
+              "name": "remove_meta_tags",
+              "type": [
+                "skip",
+                "on",
+                "off"
+              ]
+            },
+            {
+              "config": {
+                "advanced": true,
+                "default": "skip",
+                "socketless": true
+              },
+              "name": "remove_object_tags",
+              "type": [
+                "skip",
+                "on",
+                "off"
+              ]
+            },
+            {
+              "config": {
+                "advanced": true,
+                "default": "skip",
+                "socketless": true
+              },
+              "name": "remove_noise_tags",
+              "type": [
+                "skip",
+                "on",
+                "off"
+              ]
+            },
+            {
+              "config": {
+                "advanced": false,
+                "default": "skip",
+                "socketless": false
+              },
+              "name": "e621_auto_boost",
+              "type": [
+                "skip",
+                "on",
+                "off"
+              ]
+            },
+            {
+              "config": {
+                "advanced": false,
+                "default": "skip",
+                "socketless": false
+              },
+              "name": "danbooru_auto_weight",
+              "type": [
+                "skip",
+                "on",
+                "off"
+              ]
+            },
+            {
+              "config": {
+                "advanced": false,
+                "default": "skip",
+                "socketless": false
+              },
+              "name": "tag_implication_compression",
+              "type": [
+                "skip",
+                "on",
+                "off"
+              ]
+            },
+            {
+              "config": {
+                "default": "127.0.0.1"
+              },
+              "name": "host",
+              "type": "STRING"
+            },
+            {
+              "config": {
+                "default": 7243,
+                "max": 65535,
+                "min": 1
+              },
+              "name": "port",
+              "type": "INT"
+            }
+          ],
+          "name": "required"
+        },
+        {
+          "entries": [
+            {
+              "config": {},
+              "name": "workflow_prompt",
+              "type": "PROMPT"
+            },
+            {
+              "config": {},
+              "name": "extra_pnginfo",
+              "type": "EXTRA_PNGINFO"
+            },
+            {
+              "config": {},
+              "name": "unique_id",
+              "type": "UNIQUE_ID"
+            }
+          ],
+          "name": "hidden"
+        }
+      ],
+      "output_node": false,
+      "return_names": [
+        "prompt",
+        "negative_prompt",
+        "width",
+        "height"
+      ],
+      "return_types": [
+        "STRING",
+        "STRING",
+        "INT",
+        "INT"
+      ]
+    },
+    {
+      "category": "EasyUse Anima/Prompt",
+      "class_name": "EasyUseAnimaPromptDataConditioning",
+      "display_name": "Anima Prompt Data Conditioning",
+      "function": "apply",
+      "id": "EasyUseAnimaPromptDataConditioning",
+      "input_sections": [
+        {
+          "entries": [
+            {
+              "config": {},
+              "name": "model",
+              "type": "MODEL"
+            },
+            {
+              "config": {},
+              "name": "clip",
+              "type": "CLIP"
+            },
+            {
+              "config": {
+                "forceInput": true
+              },
+              "name": "EASYUSE_ANIMA_PROMPT_DATA",
+              "type": "EASYUSE_ANIMA_PROMPT_DATA"
+            },
+            {
+              "config": {
+                "default": "prompt_data"
+              },
+              "name": "mod_guidance_mode",
+              "type": [
+                "prompt_data",
+                "enabled",
+                "disabled"
+              ]
+            },
+            {
+              "config": {
+                "default": "step_i8_skip27"
+              },
+              "name": "mod_w_profile",
+              "type": [
+                "off",
+                "step_i8_skip27",
+                "step_i14",
+                "uniform_w3"
+              ]
+            },
+            {
+              "config": {
+                "default": "prompt_data"
+              },
+              "name": "artist_mix_mode",
+              "type": [
+                "prompt_data",
+                "off",
+                "prompt",
+                "average",
+                "delta_rms",
+                "hybrid",
+                "clustered",
+                "exact",
+                "composite_exact",
+                "late_exact",
+                "average_late_exact",
+                "scheduled_average"
+              ]
+            },
+            {
+              "config": {
+                "default": 0.5,
+                "max": 1.0,
+                "min": 0.0,
+                "step": 0.01
+              },
+              "name": "artist_mix_start_percent",
+              "type": "FLOAT"
+            },
+            {
+              "config": {
+                "default": 1.0,
+                "max": 5.0,
+                "min": 0.0,
+                "step": 0.01
+              },
+              "name": "artist_mix_strength_scale",
+              "type": "FLOAT"
+            },
+            {
+              "config": {
+                "default": 1.35,
+                "max": 3.0,
+                "min": 0.0,
+                "step": 0.01
+              },
+              "name": "artist_mix_style_gain",
+              "type": "FLOAT"
+            },
+            {
+              "config": {
+                "default": 2.0,
+                "max": 5.0,
+                "min": 1.0,
+                "step": 0.01
+              },
+              "name": "artist_mix_rms_scale_cap",
+              "type": "FLOAT"
+            },
+            {
+              "config": {
+                "default": 4,
+                "max": 64,
+                "min": 0
+              },
+              "name": "artist_mix_exact_top_k",
+              "type": "INT"
+            },
+            {
+              "config": {
+                "default": 4,
+                "max": 32,
+                "min": 1
+              },
+              "name": "artist_mix_cluster_count",
+              "type": "INT"
+            },
+            {
+              "config": {
+                "default": true
+              },
+              "name": "artist_mix_dominant_isolation",
+              "type": "BOOLEAN"
+            },
+            {
+              "config": {
+                "default": 0.25,
+                "max": 1.0,
+                "min": 0.0,
+                "step": 0.01
+              },
+              "name": "artist_mix_dominant_threshold",
+              "type": "FLOAT"
+            }
+          ],
+          "name": "required"
+        }
+      ],
+      "output_node": false,
+      "return_names": [
+        "model",
+        "positive",
+        "negative",
+        "latent_image"
+      ],
+      "return_types": [
+        "MODEL",
+        "CONDITIONING",
+        "CONDITIONING",
+        "LATENT"
+      ]
+    },
+    {
+      "category": "EasyUse Anima/Prompt",
+      "class_name": "EasyUseAnimaPromptDataUnpack",
+      "display_name": "EASYUSE_ANIMA_PROMPT_DATA",
+      "function": "unpack",
+      "id": "EasyUseAnimaPromptDataUnpack",
+      "input_sections": [
+        {
+          "entries": [
+            {
+              "config": {
+                "forceInput": true
+              },
+              "name": "EASYUSE_ANIMA_PROMPT_DATA",
+              "type": "EASYUSE_ANIMA_PROMPT_DATA"
+            }
+          ],
+          "name": "required"
+        },
+        {
+          "entries": [
+            {
+              "config": {
+                "forceInput": true
+              },
+              "name": "positive_prompt",
+              "type": "STRING"
+            },
+            {
+              "config": {
+                "forceInput": true
+              },
+              "name": "negative_prompt",
+              "type": "STRING"
+            },
+            {
+              "config": {
+                "forceInput": true
+              },
+              "name": "anima_mod_guidance_quality_tags",
+              "type": "STRING"
+            },
+            {
+              "config": {
+                "forceInput": true
+              },
+              "name": "anima_mod_guidance_negative_prompt",
+              "type": "STRING"
+            },
+            {
+              "config": {
+                "forceInput": true
+              },
+              "name": "use_anima_mod_guidance",
+              "type": "BOOLEAN"
+            },
+            {
+              "config": {
+                "forceInput": true
+              },
+              "name": "use_negative_anima_mod_guidance",
+              "type": "BOOLEAN"
+            },
+            {
+              "config": {
+                "forceInput": true
+              },
+              "name": "metadata_prompt",
+              "type": "STRING"
+            },
+            {
+              "config": {
+                "forceInput": true
+              },
+              "name": "metadata_negative_prompt",
+              "type": "STRING"
+            },
+            {
+              "config": {
+                "forceInput": true
+              },
+              "name": "width",
+              "type": "INT"
+            },
+            {
+              "config": {
+                "forceInput": true
+              },
+              "name": "height",
+              "type": "INT"
+            }
+          ],
+          "name": "optional"
+        }
+      ],
+      "output_node": false,
+      "return_names": [
+        "EASYUSE_ANIMA_PROMPT_DATA",
+        "positive_prompt",
+        "negative_prompt",
+        "anima_mod_guidance_quality_tags",
+        "anima_mod_guidance_negative_prompt",
+        "use_anima_mod_guidance",
+        "use_negative_anima_mod_guidance",
+        "metadata_prompt",
+        "metadata_negative_prompt",
+        "width",
+        "height"
+      ],
+      "return_types": [
+        "EASYUSE_ANIMA_PROMPT_DATA",
+        "STRING",
+        "STRING",
+        "STRING",
+        "STRING",
+        "BOOLEAN",
+        "BOOLEAN",
+        "STRING",
+        "STRING",
+        "INT",
+        "INT"
+      ]
+    },
+    {
+      "category": "EasyUse Anima/Prompt",
+      "class_name": "EasyUseAnimaPromptBuilder",
+      "display_name": "Anima Prompt Builder",
+      "function": "build",
+      "id": "EasyUseAnimaPromptBuilder",
+      "input_sections": [
+        {
+          "entries": [
+            {
+              "config": {
+                "default": false
+              },
+              "name": "use_anima_mod_guidance",
+              "type": "BOOLEAN"
+            },
+            {
+              "config": {
+                "default": false
+              },
+              "name": "pin_trigger_tags_to_front",
+              "type": "BOOLEAN"
+            },
+            {
+              "config": {
+                "default": "",
+                "multiline": false
+              },
+              "name": "lora_trigger_tags",
+              "type": "STRING"
+            },
+            {
+              "config": {
+                "default": "newest, masterpiece, best quality, score_8, score_7:, highres, absurdres, very aesthetic",
+                "multiline": true
+              },
+              "name": "quality_tags",
+              "type": "STRING"
+            },
+            {
+              "config": {
+                "default": "",
+                "multiline": true
+              },
+              "name": "trigger_and_artist_tags",
+              "type": "STRING"
+            },
+            {
+              "config": {
+                "default": "",
+                "multiline": true
+              },
+              "name": "prompt",
+              "type": "STRING"
+            },
+            {
+              "config": {
+                "default": "location, (A highly aesthetic Pixiv style illustration, clean composition, high-quality digital art, detailed background, sharp focus on facial expressions.:0.6)",
+                "multiline": true
+              },
+              "name": "trailing_quality_tags",
+              "type": "STRING"
+            }
+          ],
+          "name": "required"
+        }
+      ],
+      "output_node": false,
+      "return_names": [
+        "prompt",
+        "anima_mod_guidance_quality_tags",
+        "use_anima_mod_guidance",
+        "metadata_prompt"
+      ],
+      "return_types": [
+        "STRING",
+        "STRING",
+        "BOOLEAN",
+        "STRING"
+      ]
+    },
+    {
+      "category": "EasyUse Anima/Prompt",
+      "class_name": "EasyUseAnimaPromptCorrector",
+      "display_name": "Anima Prompt Corrector",
+      "function": "correct",
+      "id": "EasyUseAnimaPromptCorrector",
+      "input_sections": [
+        {
+          "entries": [
+            {
+              "config": {
+                "default": "",
+                "multiline": true
+              },
+              "name": "prompt",
+              "type": "STRING"
+            },
+            {
+              "config": {
+                "default": "",
+                "multiline": true
+              },
+              "name": "artist_overrides",
+              "type": "STRING"
+            },
+            {
+              "config": {
+                "default": "",
+                "multiline": true
+              },
+              "name": "artist_exclusions",
+              "type": "STRING"
+            }
+          ],
+          "name": "required"
+        }
+      ],
+      "output_node": false,
+      "return_names": [
+        "corrected_prompt",
+        "report"
+      ],
+      "return_types": [
+        "STRING",
+        "STRING"
+      ]
+    },
+    {
+      "category": "EasyUse Anima/Prompt",
+      "class_name": "EasyUseAnimaPromptCorrectorSimple",
+      "display_name": "Anima Prompt Corrector Simple",
+      "function": "correct",
+      "id": "EasyUseAnimaPromptCorrectorSimple",
+      "input_sections": [
+        {
+          "entries": [
+            {
+              "config": {
+                "default": "",
+                "multiline": true
+              },
+              "name": "prompt",
+              "type": "STRING"
+            }
+          ],
+          "name": "required"
+        }
+      ],
+      "output_node": false,
+      "return_names": [
+        "prompt"
+      ],
+      "return_types": [
+        "STRING"
+      ]
+    },
+    {
+      "category": "EasyUse Anima/Prompt",
+      "class_name": "EasyUseAnimaPromptStudio",
+      "display_name": "Anima Prompt Studio",
+      "function": "build",
+      "id": "EasyUseAnimaPromptStudio",
+      "input_sections": [
+        {
+          "entries": [
+            {
+              "config": {
+                "default": false
+              },
+              "name": "use_anima_mod_guidance",
+              "type": "BOOLEAN"
+            },
+            {
+              "config": {
+                "default": false
+              },
+              "name": "pin_trigger_tags_to_front",
+              "type": "BOOLEAN"
+            },
+            {
+              "config": {
+                "default": "",
+                "multiline": false
+              },
+              "name": "lora_trigger_tags",
+              "type": "STRING"
+            },
+            {
+              "config": {
+                "default": "newest, masterpiece, best quality, score_8, score_7:, highres, absurdres, very aesthetic",
+                "multiline": true
+              },
+              "name": "quality_tags",
+              "type": "STRING"
+            },
+            {
+              "config": {
+                "default": "",
+                "multiline": true
+              },
+              "name": "trigger_and_artist_tags",
+              "type": "STRING"
+            },
+            {
+              "config": {
+                "default": "",
+                "multiline": true
+              },
+              "name": "prompt",
+              "type": "STRING"
+            },
+            {
+              "config": {
+                "default": "location, (A highly aesthetic Pixiv style illustration, clean composition, high-quality digital art, detailed background, sharp focus on facial expressions.:0.6)",
+                "multiline": true
+              },
+              "name": "trailing_quality_tags",
+              "type": "STRING"
+            }
+          ],
+          "name": "required"
+        }
+      ],
+      "output_node": false,
+      "return_names": [
+        "prompt",
+        "anima_mod_guidance_quality_tags",
+        "use_anima_mod_guidance",
+        "metadata_prompt"
+      ],
+      "return_types": [
+        "STRING",
+        "STRING",
+        "BOOLEAN",
+        "STRING"
+      ]
+    },
+    {
+      "category": "EasyUse Anima/Prompt",
+      "class_name": "EasyUseAnimaPromptStudioAdvanced",
+      "display_name": "Anima Prompt Studio Advanced",
+      "function": "build",
+      "id": "EasyUseAnimaPromptStudioAdvanced",
+      "input_sections": [
+        {
+          "entries": [
+            {
+              "config": {
+                "default": false
+              },
+              "name": "use_naia",
+              "type": "BOOLEAN"
+            },
+            {
+              "config": {
+                "default": true
+              },
+              "name": "consume_naia_on_queue",
+              "type": "BOOLEAN"
+            },
+            {
+              "config": {
+                "default": false
+              },
+              "name": "use_anima_mod_guidance",
+              "type": "BOOLEAN"
+            },
+            {
+              "config": {
+                "default": "1024"
+              },
+              "name": "resolution_bucket",
+              "type": "STRING"
+            },
+            {
+              "config": {
+                "default": "1024 * 1024 (1:1)"
+              },
+              "name": "resolution_size",
+              "type": "STRING"
+            },
+            {
+              "config": {
+                "default": 1024,
+                "max": 8192,
+                "min": 32,
+                "step": 32
+              },
+              "name": "resolution_custom_width",
+              "type": "INT"
+            },
+            {
+              "config": {
+                "default": 1024,
+                "max": 8192,
+                "min": 32,
+                "step": 32
+              },
+              "name": "resolution_custom_height",
+              "type": "INT"
+            },
+            {
+              "config": {
+                "default": false
+              },
+              "name": "pin_trigger_tags_to_front",
+              "type": "BOOLEAN"
+            },
+            {
+              "config": {
+                "default": "[{\"id\":\"positive_quality\",\"pane\":\"positive\",\"type\":\"quality\",\"label\":\"Quality Tags\",\"text\":\"newest, masterpiece, best quality, score_8, score_7:, highres, absurdres, very aesthetic\",\"height\":72,\"enabled\":true},{\"id\":\"positive_artist\",\"pane\":\"positive\",\"type\":\"artist\",\"label\":\"Artist Tags\",\"text\":\"\",\"height\":72,\"enabled\":true},{\"id\":\"positive_trigger\",\"pane\":\"positive\",\"type\":\"trigger\",\"label\":\"Trigger Words\",\"text\":\"\",\"height\":72,\"enabled\":true,\"pin\":true},{\"id\":\"positive_general\",\"pane\":\"positive\",\"type\":\"general\",\"label\":\"General Tags\",\"text\":\"\",\"height\":150,\"enabled\":true},{\"id\":\"positive_trailing\",\"pane\":\"positive\",\"type\":\"general\",\"label\":\"General Tags\",\"text\":\"location, (A highly aesthetic Pixiv style illustration, clean composition, high-quality digital art, detailed background, sharp focus on facial expressions.:0.6)\",\"height\":72,\"enabled\":true},{\"id\":\"negative_general\",\"pane\":\"negative\",\"type\":\"general\",\"label\":\"General Tags\",\"text\":\"\",\"height\":120,\"enabled\":true}]",
+                "multiline": true
+              },
+              "name": "advanced_fields",
+              "type": "STRING"
+            },
+            {
+              "config": {
+                "default": false
+              },
+              "name": "use_negative_anima_mod_guidance",
+              "type": "BOOLEAN"
+            },
+            {
+              "config": {
+                "default": "고정"
+              },
+              "name": "wildcard_mode",
+              "type": [
+                "일반 채우기",
+                "고정",
+                "순차",
+                "재현"
+              ]
+            },
+            {
+              "config": {
+                "default": 0,
+                "max": 18446744073709551615,
+                "min": 0
+              },
+              "name": "wildcard_seed",
+              "type": "INT"
+            },
+            {
+              "config": {
+                "default": "fixed"
+              },
+              "name": "wildcard_seed_after_generate",
+              "type": [
+                "fixed",
+                "randomize",
+                "increment",
+                "decrement"
+              ]
+            }
+          ],
+          "name": "required"
+        },
+        {
+          "entries": [],
+          "name": "optional"
+        },
+        {
+          "entries": [
+            {
+              "config": {},
+              "name": "workflow_prompt",
+              "type": "PROMPT"
+            },
+            {
+              "config": {},
+              "name": "extra_pnginfo",
+              "type": "EXTRA_PNGINFO"
+            },
+            {
+              "config": {},
+              "name": "unique_id",
+              "type": "UNIQUE_ID"
+            }
+          ],
+          "name": "hidden"
+        }
+      ],
+      "output_node": false,
+      "return_names": [
+        "positive_prompt",
+        "negative_prompt",
+        "anima_mod_guidance_quality_tags",
+        "anima_mod_guidance_negative_prompt",
+        "use_anima_mod_guidance",
+        "use_negative_anima_mod_guidance",
+        "metadata_prompt",
+        "metadata_negative_prompt",
+        "width",
+        "height"
+      ],
+      "return_types": [
+        "STRING",
+        "STRING",
+        "STRING",
+        "STRING",
+        "BOOLEAN",
+        "BOOLEAN",
+        "STRING",
+        "STRING",
+        "INT",
+        "INT"
+      ]
+    },
+    {
+      "category": "EasyUse Anima/Prompt",
+      "class_name": "EasyUseAnimaPromptStudioAdvancedV2",
+      "display_name": "Anima Prompt Studio Advanced v2",
+      "function": "build",
+      "id": "EasyUseAnimaPromptStudioAdvancedV2",
+      "input_sections": [
+        {
+          "entries": [
+            {
+              "config": {
+                "default": false
+              },
+              "name": "use_naia",
+              "type": "BOOLEAN"
+            },
+            {
+              "config": {
+                "default": true
+              },
+              "name": "consume_naia_on_queue",
+              "type": "BOOLEAN"
+            },
+            {
+              "config": {
+                "default": false
+              },
+              "name": "use_anima_mod_guidance",
+              "type": "BOOLEAN"
+            },
+            {
+              "config": {
+                "default": "1024"
+              },
+              "name": "resolution_bucket",
+              "type": "STRING"
+            },
+            {
+              "config": {
+                "default": "1024 * 1024 (1:1)"
+              },
+              "name": "resolution_size",
+              "type": "STRING"
+            },
+            {
+              "config": {
+                "default": 1024,
+                "max": 8192,
+                "min": 32,
+                "step": 32
+              },
+              "name": "resolution_custom_width",
+              "type": "INT"
+            },
+            {
+              "config": {
+                "default": 1024,
+                "max": 8192,
+                "min": 32,
+                "step": 32
+              },
+              "name": "resolution_custom_height",
+              "type": "INT"
+            },
+            {
+              "config": {
+                "default": false
+              },
+              "name": "pin_trigger_tags_to_front",
+              "type": "BOOLEAN"
+            },
+            {
+              "config": {
+                "default": "[{\"id\":\"positive_quality\",\"pane\":\"positive\",\"type\":\"quality\",\"label\":\"Quality Tags\",\"text\":\"newest, masterpiece, best quality, score_8, score_7:, highres, absurdres, very aesthetic\",\"height\":72,\"enabled\":true},{\"id\":\"positive_artist\",\"pane\":\"positive\",\"type\":\"artist\",\"label\":\"Artist Tags\",\"text\":\"\",\"height\":72,\"enabled\":true},{\"id\":\"positive_trigger\",\"pane\":\"positive\",\"type\":\"trigger\",\"label\":\"Trigger Words\",\"text\":\"\",\"height\":72,\"enabled\":true,\"pin\":true},{\"id\":\"positive_general\",\"pane\":\"positive\",\"type\":\"general\",\"label\":\"General Tags\",\"text\":\"\",\"height\":150,\"enabled\":true},{\"id\":\"positive_trailing\",\"pane\":\"positive\",\"type\":\"general\",\"label\":\"General Tags\",\"text\":\"location, (A highly aesthetic Pixiv style illustration, clean composition, high-quality digital art, detailed background, sharp focus on facial expressions.:0.6)\",\"height\":72,\"enabled\":true},{\"id\":\"negative_general\",\"pane\":\"negative\",\"type\":\"general\",\"label\":\"General Tags\",\"text\":\"\",\"height\":120,\"enabled\":true}]",
+                "multiline": true
+              },
+              "name": "advanced_fields",
+              "type": "STRING"
+            },
+            {
+              "config": {
+                "default": false
+              },
+              "name": "use_negative_anima_mod_guidance",
+              "type": "BOOLEAN"
+            },
+            {
+              "config": {
+                "default": "고정"
+              },
+              "name": "wildcard_mode",
+              "type": [
+                "일반 채우기",
+                "고정",
+                "순차",
+                "재현"
+              ]
+            },
+            {
+              "config": {
+                "default": 0,
+                "max": 18446744073709551615,
+                "min": 0
+              },
+              "name": "wildcard_seed",
+              "type": "INT"
+            },
+            {
+              "config": {
+                "default": "fixed"
+              },
+              "name": "wildcard_seed_after_generate",
+              "type": [
+                "fixed",
+                "randomize",
+                "increment",
+                "decrement"
+              ]
+            },
+            {
+              "config": {
+                "default": "off"
+              },
+              "name": "artist_mix_mode",
+              "type": [
+                "off",
+                "average",
+                "delta_rms",
+                "hybrid",
+                "clustered",
+                "exact",
+                "composite_exact",
+                "late_exact",
+                "average_late_exact",
+                "scheduled_average"
+              ]
+            },
+            {
+              "config": {
+                "default": 0.5,
+                "max": 1.0,
+                "min": 0.0,
+                "step": 0.01
+              },
+              "name": "artist_mix_start_percent",
+              "type": "FLOAT"
+            },
+            {
+              "config": {
+                "default": 1.0,
+                "max": 5.0,
+                "min": 0.0,
+                "step": 0.01
+              },
+              "name": "artist_mix_strength_scale",
+              "type": "FLOAT"
+            },
+            {
+              "config": {
+                "default": 1.35,
+                "max": 3.0,
+                "min": 0.0,
+                "step": 0.01
+              },
+              "name": "artist_mix_style_gain",
+              "type": "FLOAT"
+            },
+            {
+              "config": {
+                "default": 2.0,
+                "max": 5.0,
+                "min": 1.0,
+                "step": 0.01
+              },
+              "name": "artist_mix_rms_scale_cap",
+              "type": "FLOAT"
+            },
+            {
+              "config": {
+                "default": 4,
+                "max": 64,
+                "min": 0
+              },
+              "name": "artist_mix_exact_top_k",
+              "type": "INT"
+            },
+            {
+              "config": {
+                "default": 4,
+                "max": 32,
+                "min": 1
+              },
+              "name": "artist_mix_cluster_count",
+              "type": "INT"
+            },
+            {
+              "config": {
+                "default": true
+              },
+              "name": "artist_mix_dominant_isolation",
+              "type": "BOOLEAN"
+            },
+            {
+              "config": {
+                "default": 0.25,
+                "max": 1.0,
+                "min": 0.0,
+                "step": 0.01
+              },
+              "name": "artist_mix_dominant_threshold",
+              "type": "FLOAT"
+            }
+          ],
+          "name": "required"
+        },
+        {
+          "entries": [],
+          "name": "optional"
+        },
+        {
+          "entries": [
+            {
+              "config": {},
+              "name": "workflow_prompt",
+              "type": "PROMPT"
+            },
+            {
+              "config": {},
+              "name": "extra_pnginfo",
+              "type": "EXTRA_PNGINFO"
+            },
+            {
+              "config": {},
+              "name": "unique_id",
+              "type": "UNIQUE_ID"
+            }
+          ],
+          "name": "hidden"
+        }
+      ],
+      "output_node": false,
+      "return_names": [
+        "EASYUSE_ANIMA_PROMPT_DATA"
+      ],
+      "return_types": [
+        "EASYUSE_ANIMA_PROMPT_DATA"
+      ]
+    },
+    {
+      "category": "EasyUse Anima/Prompt",
+      "class_name": "EasyUseAnimaPromptStudioRegional",
+      "display_name": "Anima Prompt Studio Regional",
+      "function": "build",
+      "id": "EasyUseAnimaPromptStudioRegional",
+      "input_sections": [
+        {
+          "entries": [
+            {
+              "config": {
+                "default": "[{\"id\":\"positive_quality\",\"pane\":\"positive\",\"type\":\"quality\",\"label\":\"Quality Tags\",\"text\":\"newest, masterpiece, best quality, score_8, score_7:, highres, absurdres, very aesthetic\",\"height\":72,\"enabled\":true,\"mask_ids\":[]},{\"id\":\"positive_artist\",\"pane\":\"positive\",\"type\":\"artist\",\"label\":\"Artist Tags\",\"text\":\"\",\"height\":72,\"enabled\":true,\"mask_ids\":[]},{\"id\":\"positive_trigger\",\"pane\":\"positive\",\"type\":\"trigger\",\"label\":\"Trigger Words\",\"text\":\"\",\"height\":72,\"enabled\":true,\"pin\":true,\"mask_ids\":[]},{\"id\":\"positive_general\",\"pane\":\"positive\",\"type\":\"general\",\"label\":\"General Tags\",\"text\":\"\",\"height\":150,\"enabled\":true,\"mask_ids\":[]},{\"id\":\"positive_trailing\",\"pane\":\"positive\",\"type\":\"general\",\"label\":\"General Tags\",\"text\":\"location, (A highly aesthetic Pixiv style illustration, clean composition, high-quality digital art, detailed background, sharp focus on facial expressions.:0.6)\",\"height\":72,\"enabled\":true,\"mask_ids\":[]},{\"id\":\"negative_general\",\"pane\":\"negative\",\"type\":\"general\",\"label\":\"General Tags\",\"text\":\"\",\"height\":120,\"enabled\":true,\"mask_ids\":[]}]",
+                "multiline": true
+              },
+              "name": "regional_fields",
+              "type": "STRING"
+            },
+            {
+              "config": {
+                "default": "{\"version\":1,\"canvas\":{\"width\":1024,\"height\":1024,\"aspect_ratio\":\"1:1\",\"source\":\"resolution_fields\"},\"mask_authoring\":{\"render_space\":\"image_pixels\",\"storage_space\":\"normalized_canvas\",\"preview_enabled\":true},\"global_prompt\":\"\",\"negative_prompt\":\"\",\"next_mask_id\":1,\"masks\":[],\"regional_enabled\":false,\"mask_prompts\":[],\"assignments\":[],\"artist_mix\":{},\"conditioning_settings\":{},\"regional_settings\":{}}",
+                "multiline": true
+              },
+              "name": "regional_config",
+              "type": "STRING"
+            },
+            {
+              "config": {
+                "default": "1024"
+              },
+              "name": "resolution_bucket",
+              "type": "STRING"
+            },
+            {
+              "config": {
+                "default": "1024 * 1024 (1:1)"
+              },
+              "name": "resolution_size",
+              "type": "STRING"
+            },
+            {
+              "config": {
+                "default": 1024,
+                "max": 8192,
+                "min": 32,
+                "step": 32
+              },
+              "name": "resolution_custom_width",
+              "type": "INT"
+            },
+            {
+              "config": {
+                "default": 1024,
+                "max": 8192,
+                "min": 32,
+                "step": 32
+              },
+              "name": "resolution_custom_height",
+              "type": "INT"
+            },
+            {
+              "config": {
+                "default": "고정"
+              },
+              "name": "wildcard_mode",
+              "type": [
+                "일반 채우기",
+                "고정",
+                "순차",
+                "재현"
+              ]
+            },
+            {
+              "config": {
+                "default": 0,
+                "max": 18446744073709551615,
+                "min": 0
+              },
+              "name": "wildcard_seed",
+              "type": "INT"
+            },
+            {
+              "config": {
+                "default": "fixed"
+              },
+              "name": "wildcard_seed_after_generate",
+              "type": [
+                "fixed",
+                "randomize",
+                "increment",
+                "decrement"
+              ]
+            }
+          ],
+          "name": "required"
+        },
+        {
+          "entries": [],
+          "name": "optional"
+        },
+        {
+          "entries": [
+            {
+              "config": {},
+              "name": "workflow_prompt",
+              "type": "PROMPT"
+            },
+            {
+              "config": {},
+              "name": "extra_pnginfo",
+              "type": "EXTRA_PNGINFO"
+            },
+            {
+              "config": {},
+              "name": "unique_id",
+              "type": "UNIQUE_ID"
+            }
+          ],
+          "name": "hidden"
+        }
+      ],
+      "output_node": false,
+      "return_names": [
+        "metadata_prompt",
+        "metadata_negative_prompt",
+        "width",
+        "height",
+        "regional_prompt_data"
+      ],
+      "return_types": [
+        "STRING",
+        "STRING",
+        "INT",
+        "INT",
+        "EASYUSE_ANIMA_REGIONAL_PROMPT_DATA"
+      ]
+    },
+    {
+      "category": "EasyUse Anima/Prompt",
+      "class_name": "EasyUseAnimaRegionalConditioning",
+      "display_name": "Anima Regional Conditioning",
+      "function": "encode",
+      "id": "EasyUseAnimaRegionalConditioning",
+      "input_sections": [
+        {
+          "entries": [
+            {
+              "config": {},
+              "name": "clip",
+              "type": "CLIP"
+            },
+            {
+              "config": {
+                "forceInput": true
+              },
+              "name": "regional_prompt_data",
+              "type": "EASYUSE_ANIMA_REGIONAL_PROMPT_DATA"
+            },
+            {
+              "config": {
+                "default": 1.0,
+                "max": 10.0,
+                "min": 0.0,
+                "step": 0.01
+              },
+              "name": "mask_strength",
+              "type": "FLOAT"
+            },
+            {
+              "config": {
+                "default": "mask bounds"
+              },
+              "name": "set_cond_area",
+              "type": [
+                "mask bounds",
+                "default"
+              ]
+            }
+          ],
+          "name": "required"
+        }
+      ],
+      "output_node": false,
+      "return_names": [
+        "positive",
+        "negative"
+      ],
+      "return_types": [
+        "CONDITIONING",
+        "CONDITIONING"
+      ]
+    },
+    {
+      "category": "EasyUse Anima/Prompt",
+      "class_name": "EasyUseAnimaWildcard",
+      "display_name": "Anima Wildcard",
+      "function": "generate",
+      "id": "EasyUseAnimaWildcard",
+      "input_sections": [
+        {
+          "entries": [
+            {
+              "config": {
+                "default": "",
+                "multiline": true
+              },
+              "name": "text",
+              "type": "STRING"
+            },
+            {
+              "config": {
+                "default": "",
+                "multiline": true
+              },
+              "name": "populated_text",
+              "type": "STRING"
+            },
+            {
+              "config": {
+                "default": "일반 채우기"
+              },
+              "name": "mode",
+              "type": [
+                "일반 채우기",
+                "고정",
+                "순차",
+                "재현"
+              ]
+            },
+            {
+              "config": {
+                "default": 0,
+                "max": 18446744073709551615,
+                "min": 0
+              },
+              "name": "seed",
+              "type": "INT"
+            },
+            {
+              "config": {
+                "default": "fixed"
+              },
+              "name": "seed_after_generate",
+              "type": [
+                "fixed",
+                "randomize",
+                "increment",
+                "decrement"
+              ]
+            }
+          ],
+          "name": "required"
+        },
+        {
+          "entries": [
+            {
+              "config": {},
+              "name": "workflow_prompt",
+              "type": "PROMPT"
+            },
+            {
+              "config": {},
+              "name": "extra_pnginfo",
+              "type": "EXTRA_PNGINFO"
+            },
+            {
+              "config": {},
+              "name": "unique_id",
+              "type": "UNIQUE_ID"
+            }
+          ],
+          "name": "hidden"
+        },
+        {
+          "entries": [],
+          "name": "optional"
+        }
+      ],
+      "output_node": false,
+      "return_names": [
+        "text",
+        "seed"
+      ],
+      "return_types": [
+        "STRING",
+        "INT"
+      ]
+    }
+  ],
+  "package_version": "0.5.2",
+  "schema_version": 1,
+  "workflow_nodes": [
+    {
+      "class_id": "EasyUseAnimaPromptDataConditioning",
+      "node_number": 24,
+      "source": "docs/example_workflows/EasyUse_Anima_artist_mix_release_ko.json",
+      "widgets_values": [
+        "prompt_data",
+        "step_i8_skip27",
+        "prompt_data",
+        0.5,
+        1,
+        1.35,
+        2,
+        4,
+        4,
+        true,
+        0.25
+      ]
+    },
+    {
+      "class_id": "EasyUseAnimaRegionalConditioning",
+      "node_number": 3,
+      "source": "docs/example_workflows/EasyUse_Anima_regional_prompt_release_ko.json",
+      "widgets_values": [
+        1,
+        "mask bounds"
+      ]
+    }
+  ]
+}
