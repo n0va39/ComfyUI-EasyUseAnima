@@ -1,15 +1,18 @@
 from __future__ import annotations
 
 import bisect
+from collections import OrderedDict
 import fnmatch
 import hashlib
 import math
 import os
 import random
 import re
+import threading
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Iterable
+from types import MappingProxyType
+from typing import Iterable, Mapping
 
 try:
     import numpy as np
@@ -105,6 +108,64 @@ COUNT_SPEC_RE = re.compile(
 class WildcardOption:
     text: str
     weight: float = 1.0
+
+
+@dataclass(frozen=True)
+class _WildcardSourceFile:
+    root_index: int
+    root: str
+    relative_path: str
+    path: Path
+    mtime_ns: int
+    size: int
+
+    @property
+    def cache_key(self) -> tuple[int, str, int, int]:
+        return (self.root_index, self.relative_path, self.mtime_ns, self.size)
+
+
+@dataclass(frozen=True)
+class _WildcardSourceState:
+    roots: tuple[Path, ...]
+    root_identities: tuple[str, ...]
+    files: tuple[_WildcardSourceFile, ...]
+
+    @property
+    def cache_key(self) -> tuple:
+        roots = tuple(
+            (identity, str(root))
+            for identity, root in zip(self.root_identities, self.roots)
+        )
+        return roots, tuple(source.cache_key for source in self.files)
+
+
+@dataclass(frozen=True)
+class _WildcardSnapshot:
+    cache_key: tuple
+    mapping: Mapping[str, tuple[WildcardOption, ...]]
+    wildcard_names: tuple[str, ...]
+    roots: tuple[str, ...]
+    files: tuple[_WildcardSourceFile, ...]
+
+    def public_signature(self) -> dict:
+        return {
+            "roots": list(self.roots),
+            "files": [
+                {
+                    "root": source.root,
+                    "path": source.relative_path,
+                    "mtime_ns": source.mtime_ns,
+                    "size": source.size,
+                }
+                for source in self.files
+            ],
+        }
+
+
+_SNAPSHOT_CACHE_LIMIT = 16
+_SNAPSHOT_CONDITION = threading.Condition()
+_SNAPSHOT_CACHE: OrderedDict[tuple, _WildcardSnapshot] = OrderedDict()
+_SNAPSHOT_BUILDING: set[tuple] = set()
 
 
 def _bounded_int(value, default: int, minimum: int, maximum: int) -> int:
@@ -571,39 +632,37 @@ def _stringify_yaml_scalar(value) -> str:
 
 def _yaml_entries(data, prefix: str = "") -> dict[str, list[WildcardOption]]:
     entries: dict[str, list[WildcardOption]] = {}
-    if isinstance(data, dict):
-        aggregate = []
-        for raw_key, value in data.items():
-            child_key = _normalize_wildcard_key(raw_key)
-            if child_key is None:
-                continue
-            path_key = f"{prefix}/{child_key}" if prefix else child_key
-            child_entries = _yaml_entries(value, path_key)
-            for key, options in child_entries.items():
-                entries.setdefault(key, []).extend(options)
-                aggregate.extend(options)
-        if prefix and aggregate:
-            entries.setdefault(prefix, []).extend(aggregate)
-        return entries
-    if isinstance(data, list):
-        options = []
-        for item in data:
-            if isinstance(item, (dict, list)):
-                child_entries = _yaml_entries(item, prefix)
-                for key, child_options in child_entries.items():
-                    entries.setdefault(key, []).extend(child_options)
-                    options.extend(child_options)
-                continue
-            option = _parse_option(_stringify_yaml_scalar(item))
+
+    def collect(value, path_prefix: str, publish_alias: bool = True) -> list[WildcardOption]:
+        aggregate: list[WildcardOption] = []
+        if isinstance(value, dict):
+            for raw_key, child_value in value.items():
+                child_key = _normalize_wildcard_key(raw_key)
+                if child_key is None:
+                    continue
+                path_key = f"{path_prefix}/{child_key}" if path_prefix else child_key
+                aggregate.extend(collect(child_value, path_key))
+        elif isinstance(value, list):
+            for item in value:
+                if isinstance(item, (dict, list)):
+                    # The containing list owns this alias. Nested containers still
+                    # publish their distinct child paths, but not the same prefix
+                    # again through an intermediate recursion frame.
+                    aggregate.extend(collect(item, path_prefix, publish_alias=False))
+                    continue
+                option = _parse_option(_stringify_yaml_scalar(item))
+                if option is not None:
+                    aggregate.append(option)
+        else:
+            option = _parse_option(_stringify_yaml_scalar(value))
             if option is not None:
-                options.append(option)
-        if prefix and options:
-            entries.setdefault(prefix, []).extend(options)
-        return entries
-    if prefix:
-        option = _parse_option(_stringify_yaml_scalar(data))
-        if option is not None:
-            entries[prefix] = [option]
+                aggregate.append(option)
+
+        if publish_alias and path_prefix and aggregate:
+            entries.setdefault(path_prefix, []).extend(aggregate)
+        return aggregate
+
+    collect(data, prefix)
     return entries
 
 
@@ -633,50 +692,130 @@ def _load_wildcard_file(root: Path, path: Path) -> dict[str, list[WildcardOption
     return {key: _options_from_lines(_read_text_file(path))}
 
 
-def _load_wildcard_map(roots: Iterable[Path]) -> dict[str, list[WildcardOption]]:
-    mapping: dict[str, list[WildcardOption]] = {}
-    for root in roots:
+def _wildcard_root_identity(root: Path) -> str:
+    try:
+        return os.path.normcase(os.path.abspath(os.fspath(root)))
+    except (OSError, TypeError, ValueError):
+        return os.path.normcase(str(root))
+
+
+def _scan_wildcard_sources(roots: tuple[Path, ...]) -> _WildcardSourceState:
+    files: list[_WildcardSourceFile] = []
+    for root_index, root in enumerate(roots):
         if not root.is_dir():
             continue
-        for path in sorted(root.rglob("*"), key=lambda item: item.as_posix().lower()):
-            if not path.is_file() or path.suffix.lower() not in WILDCARD_EXTENSIONS:
+        try:
+            candidates = sorted(root.rglob("*"), key=lambda item: item.as_posix().lower())
+        except OSError:
+            continue
+        for path in candidates:
+            if path.suffix.lower() not in WILDCARD_EXTENSIONS:
                 continue
             try:
-                entries = _load_wildcard_file(root, path)
-            except OSError:
+                if not path.is_file():
+                    continue
+                stat = path.stat()
+                relative = path.relative_to(root).as_posix()
+            except (OSError, ValueError):
                 continue
-            for key, options in entries.items():
-                if key not in mapping and options:
-                    mapping[key] = options
-    return mapping
+            files.append(
+                _WildcardSourceFile(
+                    root_index=root_index,
+                    root=str(root),
+                    relative_path=relative,
+                    path=path,
+                    mtime_ns=stat.st_mtime_ns,
+                    size=stat.st_size,
+                )
+            )
+    return _WildcardSourceState(
+        roots=roots,
+        root_identities=tuple(_wildcard_root_identity(root) for root in roots),
+        files=tuple(files),
+    )
+
+
+def _build_wildcard_snapshot(source_state: _WildcardSourceState) -> _WildcardSnapshot:
+    mapping: dict[str, list[WildcardOption]] = {}
+    for source in source_state.files:
+        root = source_state.roots[source.root_index]
+        try:
+            entries = _load_wildcard_file(root, source.path)
+        except OSError:
+            continue
+        for key, options in entries.items():
+            if key not in mapping and options:
+                mapping[key] = options
+
+    frozen_mapping = MappingProxyType(
+        {key: tuple(options) for key, options in mapping.items()}
+    )
+    return _WildcardSnapshot(
+        cache_key=source_state.cache_key,
+        mapping=frozen_mapping,
+        wildcard_names=tuple(sorted(frozen_mapping)),
+        roots=tuple(str(root) for root in source_state.roots),
+        files=source_state.files,
+    )
+
+
+def _wildcard_snapshot(roots: Iterable[Path]) -> _WildcardSnapshot:
+    resolved_roots = tuple(Path(root) for root in roots)
+    while True:
+        source_state = _scan_wildcard_sources(resolved_roots)
+        cache_key = source_state.cache_key
+        with _SNAPSHOT_CONDITION:
+            cached = _SNAPSHOT_CACHE.get(cache_key)
+            if cached is not None:
+                _SNAPSHOT_CACHE.move_to_end(cache_key)
+                return cached
+            if cache_key in _SNAPSHOT_BUILDING:
+                _SNAPSHOT_CONDITION.wait()
+                continue
+            _SNAPSHOT_BUILDING.add(cache_key)
+
+        snapshot = None
+        failure: BaseException | None = None
+        try:
+            candidate = _build_wildcard_snapshot(source_state)
+            verified_state = _scan_wildcard_sources(resolved_roots)
+            if verified_state.cache_key == cache_key:
+                snapshot = candidate
+        except BaseException as exc:
+            failure = exc
+        finally:
+            with _SNAPSHOT_CONDITION:
+                _SNAPSHOT_BUILDING.discard(cache_key)
+                if snapshot is not None:
+                    _SNAPSHOT_CACHE[cache_key] = snapshot
+                    _SNAPSHOT_CACHE.move_to_end(cache_key)
+                    while len(_SNAPSHOT_CACHE) > _SNAPSHOT_CACHE_LIMIT:
+                        _SNAPSHOT_CACHE.popitem(last=False)
+                _SNAPSHOT_CONDITION.notify_all()
+
+        if failure is not None:
+            raise failure
+        if snapshot is not None:
+            return snapshot
+
+
+def _load_wildcard_map(roots: Iterable[Path]) -> dict[str, list[WildcardOption]]:
+    snapshot = _wildcard_snapshot(roots)
+    return {key: list(options) for key, options in snapshot.mapping.items()}
 
 
 def list_wildcards(extra_paths: str | None = None, roots: Iterable[Path] | None = None) -> list[str]:
-    mapping = _load_wildcard_map(roots if roots is not None else resolve_wildcard_roots(extra_paths))
-    return sorted(mapping)
+    snapshot = _wildcard_snapshot(
+        roots if roots is not None else resolve_wildcard_roots(extra_paths)
+    )
+    return list(snapshot.wildcard_names)
 
 
 def wildcard_sources_signature(extra_paths: str | None = None, roots: Iterable[Path] | None = None) -> dict:
-    resolved_roots = [Path(root) for root in (roots if roots is not None else resolve_wildcard_roots(extra_paths))]
-    files = []
-    for root in resolved_roots:
-        if not root.is_dir():
-            continue
-        for path in sorted(root.rglob("*"), key=lambda item: item.as_posix().lower()):
-            if not path.is_file() or path.suffix.lower() not in WILDCARD_EXTENSIONS:
-                continue
-            try:
-                stat = path.stat()
-                relative = path.relative_to(root).as_posix()
-            except OSError:
-                continue
-            files.append({
-                "root": str(root),
-                "path": relative,
-                "mtime_ns": stat.st_mtime_ns,
-                "size": stat.st_size,
-            })
-    return {"roots": [str(root) for root in resolved_roots], "files": files}
+    snapshot = _wildcard_snapshot(
+        roots if roots is not None else resolve_wildcard_roots(extra_paths)
+    )
+    return snapshot.public_signature()
 
 
 class _Selector:

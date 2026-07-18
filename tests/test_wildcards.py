@@ -1,8 +1,10 @@
 from __future__ import annotations
 
-import tempfile
-import unittest
 import json
+import tempfile
+import threading
+import unittest
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from unittest.mock import patch
 
@@ -285,6 +287,224 @@ class WildcardEngineTests(unittest.TestCase):
 
             self.assertEqual(result.text, source)
             self.assertFalse(result.changed)
+
+    def test_deep_yaml_leaf_is_aggregated_once_per_parent_alias(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            lines = [f"{'  ' * depth}level-{depth}:" for depth in range(10)]
+            lines.append(f"{'  ' * 10}- only-leaf")
+            (root / "deep.yaml").write_text("\n".join(lines), encoding="utf-8")
+
+            mapping = wildcard_engine._load_wildcard_map([root])
+
+        for depth in range(10):
+            alias = "/".join(f"level-{index}" for index in range(depth + 1))
+            with self.subTest(alias=alias):
+                self.assertEqual([option.text for option in mapping[alias]], ["only-leaf"])
+
+    def test_yaml_parent_aggregation_preserves_siblings_and_explicit_duplicates(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            (root / "weighted.yaml").write_text(
+                "root:\n"
+                "  branch-a:\n"
+                "    leaf: [same, same]\n"
+                "  branch-b:\n"
+                "    leaf: [same]\n",
+                encoding="utf-8",
+            )
+
+            mapping = wildcard_engine._load_wildcard_map([root])
+
+        self.assertEqual(
+            [option.text for option in mapping["root/branch-a/leaf"]],
+            ["same", "same"],
+        )
+        self.assertEqual(
+            [option.text for option in mapping["root/branch-b/leaf"]],
+            ["same"],
+        )
+        self.assertEqual(
+            [option.text for option in mapping["root"]],
+            ["same", "same", "same"],
+        )
+
+    def test_unchanged_list_signature_and_expand_reuse_one_yaml_parse(self):
+        self.assertIsNotNone(wildcard_engine.yaml)
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            (root / "colors.yaml").write_text("colors: [red]\n", encoding="utf-8")
+
+            with patch.object(
+                wildcard_engine.yaml,
+                "safe_load",
+                wraps=wildcard_engine.yaml.safe_load,
+            ) as safe_load:
+                first_list = list_wildcards(roots=[root])
+                first_signature = wildcard_engine.wildcard_sources_signature(roots=[root])
+                first_expansion = expand_wildcards("__colors__", seed=0, roots=[root])
+                second_list = list_wildcards(roots=[root])
+                second_signature = wildcard_engine.wildcard_sources_signature(roots=[root])
+                second_expansion = expand_wildcards("__colors__", seed=0, roots=[root])
+
+        self.assertEqual(safe_load.call_count, 1)
+        self.assertEqual(first_list, second_list)
+        self.assertEqual(first_signature, second_signature)
+        self.assertEqual(first_expansion, second_expansion)
+
+    def test_snapshot_cache_key_preserves_root_identity_and_order(self):
+        with tempfile.TemporaryDirectory() as temp:
+            base = Path(temp)
+            left = base / "left"
+            right = base / "right"
+            left.mkdir()
+            right.mkdir()
+            (left / "style.txt").write_text("left\n", encoding="utf-8")
+            (right / "style.txt").write_text("right\n", encoding="utf-8")
+
+            left_first = expand_wildcards("__style__", seed=0, roots=[left, right])
+            right_first = expand_wildcards("__style__", seed=0, roots=[right, left])
+            left_signature = wildcard_engine.wildcard_sources_signature(roots=[left, right])
+            right_signature = wildcard_engine.wildcard_sources_signature(roots=[right, left])
+
+        self.assertEqual(left_first.text, "left")
+        self.assertEqual(right_first.text, "right")
+        self.assertEqual(left_signature["roots"], [str(left), str(right)])
+        self.assertEqual(right_signature["roots"], [str(right), str(left)])
+
+    def test_yaml_snapshot_refreshes_after_add_modify_and_delete(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            colors = root / "colors.yaml"
+            shapes = root / "shapes.yaml"
+            colors.write_text("colors: [red]\n", encoding="utf-8")
+
+            initial_signature = wildcard_engine.wildcard_sources_signature(roots=[root])
+            initial = expand_wildcards("__colors__", seed=0, roots=[root])
+
+            colors.write_text("colors: [blue, green]\n", encoding="utf-8")
+            modified_signature = wildcard_engine.wildcard_sources_signature(roots=[root])
+            modified = expand_wildcards(
+                "__colors__",
+                seed=0,
+                mode="sequential",
+                roots=[root],
+            )
+
+            shapes.write_text("shapes: [circle]\n", encoding="utf-8")
+            after_add = list_wildcards(roots=[root])
+
+            colors.unlink()
+            after_delete = list_wildcards(roots=[root])
+            missing = expand_wildcards("__colors__", seed=0, roots=[root])
+
+        self.assertEqual(initial.text, "red")
+        self.assertNotEqual(initial_signature, modified_signature)
+        self.assertEqual(modified.text, "blue")
+        self.assertEqual(after_add, ["colors", "shapes"])
+        self.assertEqual(after_delete, ["shapes"])
+        self.assertEqual(missing.text, "__colors__")
+        self.assertEqual(missing.missing_keys, ("colors",))
+
+    def test_file_change_during_build_retries_before_publish(self):
+        build_started = threading.Event()
+        release_build = threading.Event()
+        build_calls = []
+        original_build = wildcard_engine._build_wildcard_snapshot
+
+        def blocked_first_build(source_state):
+            snapshot = original_build(source_state)
+            build_calls.append(source_state.cache_key)
+            if len(build_calls) == 1:
+                build_started.set()
+                if not release_build.wait(5):
+                    raise AssertionError("timed out waiting to mutate wildcard source")
+            return snapshot
+
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            colors = root / "colors.yaml"
+            colors.write_text("colors: [red]\n", encoding="utf-8")
+
+            with patch.object(
+                wildcard_engine,
+                "_build_wildcard_snapshot",
+                side_effect=blocked_first_build,
+            ), ThreadPoolExecutor(max_workers=1) as executor:
+                future = executor.submit(
+                    expand_wildcards,
+                    "__colors__",
+                    seed=0,
+                    roots=[root],
+                )
+                try:
+                    self.assertTrue(build_started.wait(5))
+                    colors.write_text("colors: [blue-new]\n", encoding="utf-8")
+                finally:
+                    release_build.set()
+                result = future.result(timeout=5)
+
+        self.assertEqual(result.text, "blue-new")
+        self.assertEqual(len(build_calls), 2)
+
+    def test_parallel_same_key_build_is_single_flight_and_atomically_published(self):
+        build_ready = threading.Event()
+        release_build = threading.Event()
+        waiter_entered = threading.Event()
+        build_calls = []
+        original_build = wildcard_engine._build_wildcard_snapshot
+        original_wait = wildcard_engine._SNAPSHOT_CONDITION.wait
+
+        def blocked_build(source_state):
+            snapshot = original_build(source_state)
+            build_calls.append(source_state.cache_key)
+            build_ready.set()
+            if not release_build.wait(5):
+                raise AssertionError("timed out waiting for parallel wildcard request")
+            return snapshot
+
+        def observed_wait(timeout=None):
+            waiter_entered.set()
+            return original_wait(timeout)
+
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            (root / "library.yaml").write_text(
+                "alpha: [one]\nbeta: [two]\n",
+                encoding="utf-8",
+            )
+
+            with patch.object(
+                wildcard_engine,
+                "_build_wildcard_snapshot",
+                side_effect=blocked_build,
+            ), patch.object(
+                wildcard_engine._SNAPSHOT_CONDITION,
+                "wait",
+                side_effect=observed_wait,
+            ), ThreadPoolExecutor(max_workers=2) as executor:
+                first = executor.submit(list_wildcards, roots=[root])
+                try:
+                    self.assertTrue(build_ready.wait(5))
+                    with wildcard_engine._SNAPSHOT_CONDITION:
+                        self.assertFalse(
+                            any(
+                                snapshot.roots == (str(root),)
+                                for snapshot in wildcard_engine._SNAPSHOT_CACHE.values()
+                            )
+                        )
+                    second = executor.submit(list_wildcards, roots=[root])
+                    self.assertTrue(waiter_entered.wait(5))
+                    self.assertFalse(first.done())
+                    self.assertFalse(second.done())
+                finally:
+                    release_build.set()
+                first_result = first.result(timeout=5)
+                second_result = second.result(timeout=5)
+
+        self.assertEqual(len(build_calls), 1)
+        self.assertEqual(first_result, ["alpha", "beta"])
+        self.assertEqual(second_result, ["alpha", "beta"])
 
     def test_list_wildcards_returns_relative_keys_only(self):
         with tempfile.TemporaryDirectory() as temp:
