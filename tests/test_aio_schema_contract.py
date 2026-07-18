@@ -136,6 +136,87 @@ def _deterministic_capabilities(
         yield
 
 
+def _authoritative_static_enum_choices() -> dict[tuple[str, ...], tuple[str, ...]]:
+    choices = {
+        ("mode",): ("txt2img", "img2img", "inpaint"),
+        ("sampler", "backend"): (
+            "comfy_ksampler",
+            "spectrum_mod_guidance_advanced",
+            "spectrum_spd_speed",
+        ),
+        ("sampler", "seed_after_generate"): tuple(nodes.SEED_CONTROL_MODES),
+        ("sampler", "spd", "split_mode"): ("single",),
+        ("model_patches", "safe_pag", "rescale_mode"): ("full", "partial"),
+        ("model_patches", "kj", "sage_attention"): (
+            "disabled",
+            "auto",
+            "sageattn_qk_int8_pv_fp16_cuda",
+            "sageattn_qk_int8_pv_fp16_triton",
+            "sageattn_qk_int8_pv_fp8_cuda",
+            "sageattn_qk_int8_pv_fp8_cuda++",
+            "sageattn3",
+            "sageattn3_per_block_mean",
+        ),
+        ("model_patches", "kj", "torch_compile", "backend"): ("inductor", "cudagraphs"),
+        ("model_patches", "kj", "torch_compile", "mode"): (
+            "default",
+            "max-autotune",
+            "max-autotune-no-cudagraphs",
+            "reduce-overhead",
+        ),
+        ("model_patches", "kj", "torch_compile", "dynamic"): ("auto", "true", "false"),
+        ("mod_guidance", "mode"): tuple(nodes.ANIMA_MOD_GUIDANCE_MODES),
+        ("mod_guidance", "profile"): tuple(nodes.ANIMA_MOD_GUIDANCE_PROFILES),
+        ("artist_mix", "mode"): tuple(nodes.ARTIST_MIX_INPUT_MODES),
+        ("highres", "upscale_method"): tuple(nodes.IMAGE_UPSCALE_METHODS),
+        ("highres", "multiple"): tuple(nodes.IMAGE_SCALE_MULTIPLES),
+        ("upscale", "backend"): tuple(nodes.AIO_FINAL_UPSCALE_BACKENDS),
+        ("upscale", "usdu", "prompt_mode"): tuple(nodes.AIO_USDU_PROMPT_MODES),
+        ("upscale", "usdu", "mode_type"): tuple(nodes.AIO_USDU_MODE_TYPES),
+        ("upscale", "usdu", "seam_fix_mode"): tuple(nodes.AIO_USDU_SEAM_FIX_MODES),
+        ("upscale", "resshift", "scale"): tuple(nodes.AIO_RESHIFT_SCALES),
+        ("upscale", "resshift", "dtype"): tuple(nodes.AIO_RESHIFT_DTYPES),
+        ("postprocess", "fit", "mode"): tuple(nodes.AIO_FINAL_FIT_MODES),
+        ("postprocess", "fit", "method"): tuple(nodes.IMAGE_UPSCALE_METHODS),
+        ("detailer", "sam3", "context"): ("load_checkpoint",),
+        ("save", "backend"): ("image_saver", "comfy_save_image"),
+        ("save", "image_saver", "extension"): ("png", "jpeg", "jpg", "webp"),
+    }
+    for prefix in (
+        ("sampler",),
+        ("highres",),
+        ("upscale",),
+        ("detailer", "face"),
+        ("detailer", "eye"),
+    ):
+        choices[(*prefix, "spectrum", "compat_policy")] = ("legacy", "conservative", "strict")
+        choices[(*prefix, "dit_corrections", "dcw_mode")] = ("off", "manual", "auto")
+        choices[(*prefix, "dit_corrections", "dcw_band_mask")] = ("LL", "all", "HH", "LH+HL+HH")
+    for target_name in ("face", "eye"):
+        choices[("detailer", target_name, "alignment")] = ("impact", "none", "32", "64")
+    return choices
+
+
+def _runtime_static_enum_choices(path: tuple[str, ...]) -> tuple[str, ...]:
+    if path == ("mod_guidance", "profile"):
+        return tuple(nodes.ANIMA_MOD_GUIDANCE_PROFILES)
+
+    marker = "__capture_runtime_static_enum_choices__"
+    observed: list[tuple[str, ...]] = []
+    original_choice = nodes._choice
+
+    def capture_choice(value, choices, default):
+        if value == marker:
+            observed.append(tuple(choices or ()))
+        return original_choice(value, choices, default)
+
+    with _deterministic_capabilities(), patch.object(nodes, "_choice", side_effect=capture_choice):
+        nodes._normalize_aio_generation_settings(_payload_with(path, marker))
+    if len(observed) != 1:
+        raise AssertionError(f"Expected one runtime choice source for {path}, got {observed}")
+    return observed[0]
+
+
 class AIOGenerationSettingsManifestTests(unittest.TestCase):
     def test_manifest_default_matches_python_runtime_default(self):
         manifest = _manifest()
@@ -179,21 +260,45 @@ class AIOGenerationSettingsManifestTests(unittest.TestCase):
                 if "maximum" in contract:
                     self.assertLessEqual(value, contract["maximum"])
 
-    def test_static_enum_and_bounds_match_backend_normalization(self):
+    def test_static_enum_sets_and_members_match_backend_normalization(self):
         manifest = _manifest()
         defaults = manifest["default"]
+        contracts = dict(_leaf_contracts(manifest, manifest["shape"]))
+        enum_contracts = {
+            path: contract
+            for path, contract in contracts.items()
+            if "enum" in contract
+        }
+        authoritative = _authoritative_static_enum_choices()
+
+        self.assertEqual(set(enum_contracts), set(authoritative))
+        for path, contract in enum_contracts.items():
+            with self.subTest(path="/" + "/".join(path), rule="accepted-set"):
+                self.assertEqual(tuple(contract["enum"]), authoritative[path])
+                self.assertEqual(_runtime_static_enum_choices(path), authoritative[path])
+
+        with _deterministic_capabilities():
+            for path, contract in enum_contracts.items():
+                default = _get_path(defaults, path)
+                with self.subTest(path="/" + "/".join(path), rule="invalid"):
+                    normalized = nodes._normalize_aio_generation_settings(
+                        _payload_with(path, "__invalid_manifest_choice__")
+                    )
+                    self.assertEqual(_get_path(normalized, path), default)
+
+                for member in contract["enum"]:
+                    with self.subTest(path="/" + "/".join(path), rule="round-trip", member=member):
+                        normalized = nodes._normalize_aio_generation_settings(
+                            _payload_with(path, member)
+                        )
+                        self.assertEqual(_get_path(normalized, path), member)
+
+    def test_static_bounds_match_backend_normalization(self):
+        manifest = _manifest()
         contracts = dict(_leaf_contracts(manifest, manifest["shape"]))
 
         with _deterministic_capabilities():
             for path, contract in contracts.items():
-                default = _get_path(defaults, path)
-                if "enum" in contract:
-                    with self.subTest(path="/" + "/".join(path), rule="enum"):
-                        normalized = nodes._normalize_aio_generation_settings(
-                            _payload_with(path, "__invalid_manifest_choice__")
-                        )
-                        self.assertEqual(_get_path(normalized, path), default)
-
                 if "minimum" in contract:
                     with self.subTest(path="/" + "/".join(path), rule="minimum"):
                         minimum = contract["minimum"]
@@ -227,6 +332,41 @@ class AIOGenerationSettingsManifestTests(unittest.TestCase):
         self.assertEqual(nodes._choice(" two ", ("one", "two"), "one"), "two")
         self.assertEqual(nodes._choice("missing", ("one", "two"), "one"), "one")
         self.assertEqual(coercions["choice"]["invalid"]["static_enum"], "default")
+        self.assertEqual(coercions["backend_boolean"]["list_or_tuple"], "first-value")
+        self.assertEqual(coercions["backend_boolean"]["empty_list_or_tuple"], "default")
+        self.assertTrue(nodes._as_bool(["yes"], False))
+        self.assertTrue(nodes._as_bool(("enabled",), False))
+        self.assertFalse(nodes._as_bool(["off"], True))
+        self.assertTrue(nodes._as_bool([], True))
+        self.assertFalse(nodes._as_bool((), False))
+
+    def test_field_specific_choice_coercions_match_current_backend(self):
+        manifest = _manifest()
+        contracts = dict(_leaf_contracts(manifest, manifest["shape"]))
+        self.assertEqual(contracts[("mod_guidance", "profile")]["coercion"], "mod-guidance-profile")
+        self.assertEqual(contracts[("upscale", "usdu", "prompt_mode")]["coercion"], "string-then-choice")
+        self.assertEqual(contracts[("detailer", "face", "alignment")]["coercion"], "string-then-choice")
+
+        cases = (
+            (("mod_guidance", "profile"), "step_i14", "step_i14"),
+            (("mod_guidance", "profile"), " step_i14 ", nodes.ANIMA_MOD_GUIDANCE_DEFAULT_PROFILE),
+            (("mod_guidance", "profile"), "STEP_I14", nodes.ANIMA_MOD_GUIDANCE_DEFAULT_PROFILE),
+            (("mod_guidance", "profile"), ["step_i14"], nodes.ANIMA_MOD_GUIDANCE_DEFAULT_PROFILE),
+            (("mod_guidance", "profile"), ("step_i14",), nodes.ANIMA_MOD_GUIDANCE_DEFAULT_PROFILE),
+            (("upscale", "usdu", "prompt_mode"), " no_general ", "no_general"),
+            (("upscale", "usdu", "prompt_mode"), "quality_tags_only", "no_general"),
+            (("upscale", "usdu", "prompt_mode"), " quality_tags_only ", "full"),
+            (("upscale", "usdu", "prompt_mode"), ["no_general"], "full"),
+            (("upscale", "usdu", "prompt_mode"), ("no_general",), "full"),
+            (("detailer", "face", "alignment"), " none ", "none"),
+            (("detailer", "face", "alignment"), ["none"], "32"),
+            (("detailer", "face", "alignment"), ("none",), "32"),
+        )
+        with _deterministic_capabilities():
+            for path, value, expected in cases:
+                with self.subTest(path="/" + "/".join(path), value=value):
+                    normalized = nodes._normalize_aio_generation_settings(_payload_with(path, value))
+                    self.assertEqual(_get_path(normalized, path), expected)
 
     def test_every_referenced_coercion_has_a_self_contained_definition(self):
         manifest = _manifest()
@@ -240,6 +380,8 @@ class AIOGenerationSettingsManifestTests(unittest.TestCase):
         self.assertEqual(referenced - defined, set())
         self.assertTrue({
             "constant",
+            "string-then-choice",
+            "mod-guidance-profile",
             "string-or-default",
             "string",
             "string-list",

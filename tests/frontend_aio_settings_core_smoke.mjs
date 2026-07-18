@@ -128,6 +128,17 @@ assertJsonEqual(
   "Dynamic capability choices must not use the static-enum fallback claim",
 );
 assert(
+  generationManifest.coercions.backend_boolean.list_or_tuple === "first-value"
+    && generationManifest.coercions.backend_boolean.empty_list_or_tuple === "default",
+  "Backend boolean coercion must record first-value and empty-container fallback behavior",
+);
+assert(
+  generationManifest.shape.fields.mod_guidance.fields.profile.coercion === "mod-guidance-profile"
+    && generationManifest.shape.fields.upscale.fields.usdu.fields.prompt_mode.coercion === "string-then-choice"
+    && generationManifest.definitions.detailer_target.fields.alignment.coercion === "string-then-choice",
+  "Field-specific backend choice pipelines must not claim the generic choice coercion",
+);
+assert(
   AIO_DEFAULT_GENERATION_SETTINGS.sampler.seed === AIO_GENERATOR_SPECIAL_SEED_RANDOM
     && AIO_DEFAULT_GENERATION_SETTINGS.sampler.steps === 32
     && AIO_DEFAULT_GENERATION_SETTINGS.sampler.cfg === 5

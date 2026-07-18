@@ -51,10 +51,16 @@ execution은 기존 코드다.
 
 ### Coercion
 
-- Backend boolean은 첫 list/tuple 값을 사용하고 `true`, `1`, `yes`, `on`, `enable`, `enabled` 문자열을 true로
-  처리한다. 다른 문자열은 false다.
+- Backend boolean은 첫 list/tuple 값을 사용하고 빈 list/tuple은 field default를 쓴다. `true`, `1`, `yes`,
+  `on`, `enable`, `enabled` 문자열은 true이며 다른 문자열은 false다.
 - Backend integer/number는 각각 Python `int()`/`float()` 변환을 사용하고 실패하면 해당 default를 쓴다.
-- Choice는 첫 list/tuple 값을 trimmed string으로 만든 뒤 exact membership을 확인하고 실패하면 default를 쓴다.
+- Generic `choice`는 첫 list/tuple 값을 trimmed string으로 만든 뒤 exact membership을 확인하고 실패하면 default를
+  쓴다. 다음 field는 generic pipeline을 사용하지 않으므로 전용 coercion을 갖는다.
+  - `mod_guidance.profile`: whole value를 `str(value or default)`로 바꾼 뒤 trim/case 변환 없이 exact membership을
+    확인한다. list/tuple은 첫 요소가 아니라 container 전체 문자열이 되어 invalid fallback한다.
+  - `upscale.usdu.prompt_mode`, Detailer target `alignment`: whole value를 먼저 `str(value or default)`로 바꾸고
+    그 scalar string을 generic choice에 전달한다. 따라서 whitespace는 trim되지만 list/tuple은 첫 요소로
+    취급되지 않는다. `prompt_mode`의 `quality_tags_only` alias는 string 변환 후 choice 전에만 적용한다.
 - 단, runtime capability를 쓰는 dynamic choice는 preferred default가 현재 capability 목록에 있을 때만 default를
   쓴다. 없으면 첫 capability, capability가 비었으면 preferred default를 쓴다. 이는 static enum의 invalid 정책과
   다른 `default-if-present-else-first` 정책이다.
@@ -67,6 +73,10 @@ execution은 기존 코드다.
   보존한다. backend normalizer가 schema constant를 canonical 값으로 강제하는 동작과 혼동하지 않는다.
 - Static enum과 bound는 manifest가 소유한다. sampler/scheduler 목록과 Comfy max resolution처럼 실행 환경에
   따라 달라지는 값은 `dynamic_enum`/`maximum_source`로만 참조한다.
+- Static enum golden gate는 manifest의 각 member가 해당 backend field에서 round-trip되는지 확인한다. 또한 모든
+  field에 sentinel을 주입해 실제 `_choice` accepted set을 캡처하고, `_choice`를 거치지 않는 profile은 runtime
+  constant를 직접 사용해 manifest/명시 fixture/runtime source의 3자 equality를 검증한다. 따라서 manifest extra
+  member와 runtime accepted member 누락을 모두 차단한다.
 
 ## Dynamic Comfy capability 비소유
 
@@ -128,7 +138,8 @@ write-on-read는 금지한다. 후속 version migration은 명시적인 순수 �
 ## Golden gate
 
 `tests/test_aio_schema_contract.py`는 manifest default와 현재 Python default의 deep equality, 전체 default leaf와
-field contract coverage, coercion 참조 완결성, empty container item 및 pattern/ref coverage, static enum/min/max,
+field contract coverage, coercion 참조 완결성, empty container item 및 pattern/ref coverage, static enum 양방향
+accepted-set/member round-trip과 min/max,
 legacy/unknown 정책, dynamic capability 비소유와 fallback 양쪽 분기를 검증한다.
 `tests/frontend_aio_settings_core_smoke.mjs`는 manifest default와 현재 JavaScript default의 deep equality 및
 frontend coercion/unknown-field 정책과 manifest 내부 coercion/item 정의 완결성을 검증한다.

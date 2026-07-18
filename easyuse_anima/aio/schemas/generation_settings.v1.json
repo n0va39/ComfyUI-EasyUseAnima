@@ -12,7 +12,9 @@
       "true_strings": ["true", "1", "yes", "on", "enable", "enabled"],
       "other_strings": false,
       "null": "default",
-      "non_strings": "python-bool"
+      "non_strings": "python-bool",
+      "list_or_tuple": "first-value",
+      "empty_list_or_tuple": "default"
     },
     "frontend_boolean": {
       "true_strings": ["true", "1", "yes", "on"],
@@ -47,6 +49,34 @@
         }
       },
       "list_or_tuple": "first-value"
+    },
+    "string-then-choice": {
+      "backend": {
+        "operation": [
+          "python-str-of-value-or-field-default",
+          "trimmed-string-exact-membership"
+        ],
+        "null_or_falsy": "field-default",
+        "list_or_tuple": "python-str-whole-value",
+        "whitespace": "trim-before-membership",
+        "invalid": "default"
+      },
+      "frontend": {
+        "operation": "not-normalized-by-default-merge"
+      }
+    },
+    "mod-guidance-profile": {
+      "backend": {
+        "operation": "python-str-of-value-or-field-default-then-exact-membership",
+        "null_or_falsy": "field-default",
+        "list_or_tuple": "python-str-whole-value",
+        "whitespace": "preserve",
+        "case": "preserve",
+        "invalid": "default"
+      },
+      "frontend": {
+        "operation": "not-normalized-by-default-merge"
+      }
     },
     "constant": {
       "backend": {
@@ -360,7 +390,7 @@
         "force_inpaint": {"type": "boolean", "coercion": "backend_boolean"},
         "wildcard": {"type": "string", "coercion": "string"},
         "cycle": {"type": "integer", "coercion": "backend_integer", "minimum": 1, "maximum": 16},
-        "alignment": {"type": "string", "coercion": "choice", "enum": ["impact", "none", "32", "64"]},
+        "alignment": {"type": "string", "coercion": "string-then-choice", "enum": ["impact", "none", "32", "64"]},
         "inpaint_model": {"type": "boolean", "coercion": "backend_boolean"},
         "noise_mask_feather": {"type": "integer", "coercion": "backend_integer", "minimum": 0, "maximum": 256},
         "tiled_encode": {"type": "boolean", "coercion": "backend_boolean"},
@@ -447,7 +477,7 @@
       },
       "mod_guidance": {"type": "object", "unknown_fields": "preserve", "fields": {
         "mode": {"type": "string", "coercion": "choice", "enum": ["prompt_data", "enabled", "disabled"]},
-        "profile": {"type": "string", "coercion": "choice", "enum": ["off", "step_i8_skip27", "step_i14", "uniform_w3"]},
+        "profile": {"type": "string", "coercion": "mod-guidance-profile", "enum": ["off", "step_i8_skip27", "step_i14", "uniform_w3"]},
         "advanced": {"type": "object", "unknown_fields": "preserve", "fields": {
           "adapter": {"type": "string", "coercion": "string-or-default"},
           "quality_tags": {"type": "string", "coercion": "string-or-default"},
@@ -501,7 +531,7 @@
         "usdu": {"type": "object", "unknown_fields": "preserve", "fields": {
           "upscale_model_name": {"type": "string", "coercion": "string-or-default"},
           "auto_tile_size": {"type": "boolean", "coercion": "backend_boolean"},
-          "prompt_mode": {"type": "string", "coercion": "choice", "enum": ["full", "no_general"]},
+          "prompt_mode": {"type": "string", "coercion": "string-then-choice", "enum": ["full", "no_general"], "pre_choice_aliases": {"quality_tags_only": "no_general"}},
           "mode_type": {"type": "string", "coercion": "choice", "enum": ["Linear", "Chess", "None"]},
           "auto_tile_target": {"type": "integer", "coercion": "backend_integer", "minimum": 64, "maximum_source": "comfy.max_resolution"},
           "auto_tile_min": {"type": "integer", "coercion": "backend_integer", "minimum": 64, "maximum_source": "comfy.max_resolution"},
