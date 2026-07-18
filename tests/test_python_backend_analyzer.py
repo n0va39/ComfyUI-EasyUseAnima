@@ -3,6 +3,7 @@ from __future__ import annotations
 import ast
 import importlib.util
 import json
+import subprocess
 import unittest
 from pathlib import Path
 
@@ -29,6 +30,19 @@ analyzer = load_analyzer()
 
 def import_edges(report, *, source="__init__.py"):
     return [edge for edge in report["imports"]["edges"] if edge["source"] == source]
+
+
+def git_paths(*args):
+    result = subprocess.run(
+        ["git", *args],
+        cwd=ROOT,
+        check=True,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        timeout=10,
+    )
+    return {line for line in result.stdout.splitlines() if line}
 
 
 class PythonBackendAnalyzerTests(unittest.TestCase):
@@ -100,6 +114,112 @@ second = load("external.plugin")
             edge_keys,
         )
 
+    def test_literal_dynamic_aliases_do_not_leak_between_lexical_scopes(self):
+        sources = {
+            "__init__.py": """\
+from importlib import import_module as module_load
+
+def dynamic_loader():
+    from importlib import import_module as load
+    return load(".plugin", __package__)
+
+def parameter_loader(load):
+    return load("not.a.dynamic.import")
+
+def assigned_loader():
+    load = user_loader
+    return load("also.not.dynamic")
+
+def lexical_late_shadow():
+    value = module_load("still.not.dynamic")
+    module_load = user_loader
+    return value
+""",
+            "plugin.py": "VALUE = 1\n",
+        }
+
+        report = analyzer.analyze_source_set(sources)
+        dynamic_edges = [
+            edge
+            for edge in report["imports"]["edges"]
+            if edge["kind"] == "literal_dynamic"
+        ]
+
+        self.assertEqual(
+            [(edge["scope"], edge["imported"], edge.get("target")) for edge in dynamic_edges],
+            [("dynamic_loader", ".plugin", "plugin.py")],
+        )
+
+    def test_try_branch_context_and_compatibility_fallback_taxonomy(self):
+        sources = {
+            "__init__.py": """\
+try:
+    from .runtime import VALUE
+except ImportError:
+    from runtime import VALUE
+
+try:
+    import optional_dependency
+except ImportError:
+    optional_dependency = None
+else:
+    import else_dependency
+finally:
+    import final_dependency
+""",
+            "runtime.py": "VALUE = 1\n",
+            "nodes.py": """\
+def comfy_runtime():
+    try:
+        import nodes as comfy_nodes
+    except Exception:
+        return None
+    return comfy_nodes
+""",
+        }
+
+        report = analyzer.analyze_source_set(sources)
+        root_edges = import_edges(report)
+        primary = next(edge for edge in root_edges if edge["imported"] == ".runtime:VALUE")
+        fallback = next(edge for edge in root_edges if edge["imported"] == "runtime:VALUE")
+        optional = next(edge for edge in root_edges if edge["imported"] == "optional_dependency")
+        else_edge = next(edge for edge in root_edges if edge["imported"] == "else_dependency")
+        finally_edge = next(edge for edge in root_edges if edge["imported"] == "final_dependency")
+        comfy_nodes = next(
+            edge
+            for edge in import_edges(report, source="nodes.py")
+            if edge["imported"] == "nodes"
+        )
+
+        self.assertEqual(primary["classification"], "internal")
+        self.assertEqual(primary["role"], "compatibility_primary")
+        self.assertFalse(primary["optional"])
+        self.assertEqual(primary["branch_context"][-1]["branch"], "body")
+        self.assertEqual(fallback["classification"], "compatibility_fallback")
+        self.assertEqual(fallback["target"], "runtime.py")
+        self.assertEqual(fallback["role"], "compatibility_fallback")
+        self.assertTrue(fallback["conditional"])
+        self.assertFalse(fallback["optional"])
+        self.assertEqual(fallback["branch_context"][-1]["branch"], "except")
+        self.assertEqual(
+            fallback["branch_context"][-1]["exceptions"],
+            ["ImportError"],
+        )
+        self.assertEqual(optional["role"], "optional_dependency")
+        self.assertTrue(optional["optional"])
+        self.assertEqual(else_edge["branch_context"][-1]["branch"], "else")
+        self.assertEqual(finally_edge["branch_context"][-1]["branch"], "finally")
+        self.assertEqual(comfy_nodes["classification"], "external")
+        self.assertNotEqual(comfy_nodes["role"], "compatibility_fallback")
+        self.assertEqual(
+            report["imports"]["module_graph"],
+            [{"from": "__init__.py", "to": "runtime.py"}],
+        )
+        self.assertEqual(
+            report["imports"]["module_graph_policy"]["duplicate_policy"],
+            "collapse by source and target path",
+        )
+
     def test_scc_ordering_is_stable(self):
         sources = {
             "__init__.py": "from . import a\n",
@@ -159,6 +279,54 @@ CLIENT = ApiClient()
         self.assertIn("single_flight", owners["INFLIGHT"])
         self.assertIn("executor", owners["EXECUTOR"])
         self.assertIn("client", owners["CLIENT"])
+
+    def test_module_control_flow_mutables_and_extended_constructors_are_stable(self):
+        lf_source = """\
+from collections import OrderedDict, defaultdict, deque
+
+if ENABLED:
+    IF_CACHE = {}
+try:
+    TRY_VALUES = []
+except Exception:
+    FALLBACK_SET = set()
+with manager():
+    WITH_CACHE = OrderedDict()
+match mode:
+    case "queue":
+        MATCH_QUEUE = deque()
+    case _:
+        MATCH_MAP = defaultdict(list)
+
+def ignored_function():
+    LOCAL_CACHE = {}
+
+class IgnoredClass:
+    CLASS_CACHE = {}
+"""
+        lf_report = analyzer.analyze_source_set({"__init__.py": lf_source})
+        crlf_report = analyzer.analyze_source_set(
+            {"__init__.py": lf_source.replace("\n", "\r\n")}
+        )
+        mutable = [
+            (item["name"], item["line"], item["kind"])
+            for item in lf_report["state"]["mutable_globals"]
+        ]
+
+        self.assertEqual(lf_report, crlf_report)
+        self.assertEqual(
+            mutable,
+            [
+                ("FALLBACK_SET", 8, "set"),
+                ("IF_CACHE", 4, "dict"),
+                ("MATCH_MAP", 15, "dict"),
+                ("MATCH_QUEUE", 13, "list"),
+                ("TRY_VALUES", 6, "list"),
+                ("WITH_CACHE", 10, "dict"),
+            ],
+        )
+        self.assertNotIn("LOCAL_CACHE", {item[0] for item in mutable})
+        self.assertNotIn("CLASS_CACHE", {item[0] for item in mutable})
 
     def test_import_time_side_effect_candidates_exclude_function_bodies(self):
         sources = {
@@ -231,17 +399,88 @@ except ImportError:
             ["optional_dependency"],
         )
 
+    def test_comfyignore_anchoring_slashes_negation_and_escaped_markers(self):
+        sources = {
+            "__init__.py": "VALUE = 1\n",
+            "autocomplete/root.py": "VALUE = 1\n",
+            "nested/autocomplete/keep.py": "VALUE = 1\n",
+            "web_version/dev/root.py": "VALUE = 1\n",
+            "nested/web_version/dev/keep.py": "VALUE = 1\n",
+            "#literal.py": "VALUE = 1\n",
+            "!literal.py": "VALUE = 1\n",
+            "drop.tmp.py": "VALUE = 1\n",
+            "keep.tmp.py": "VALUE = 1\n",
+            "nested/direct.py": "VALUE = 1\n",
+            "nested/deeper/direct.py": "VALUE = 1\n",
+            "ignored/keep.py": "VALUE = 1\n",
+        }
+        ignore = r"""\
+/autocomplete/
+web_version/dev/
+\#literal.py
+\!literal.py
+*.tmp.py
+!keep.tmp.py
+nested/*.py
+ignored/
+!ignored/keep.py
+"""
+
+        report = analyzer.analyze_source_set(sources, comfyignore=ignore)
+
+        self.assertEqual(
+            report["registry"]["shipped_python_modules"],
+            [
+                "__init__.py",
+                "keep.tmp.py",
+                "nested/autocomplete/keep.py",
+                "nested/deeper/direct.py",
+                "nested/web_version/dev/keep.py",
+            ],
+        )
+
+    def test_current_registry_python_surface_matches_git_exclude_contract(self):
+        report = analyzer.analyze_repository(ROOT)
+        tracked = git_paths("ls-files", "--cached")
+        ignored = git_paths(
+            "ls-files",
+            "--cached",
+            "--ignored",
+            "--exclude-from=.comfyignore",
+        )
+        expected = sorted(
+            path
+            for path in tracked - ignored
+            if path.endswith(".py")
+        )
+
+        self.assertEqual(report["registry"]["shipped_python_modules"], expected)
+
     def test_analyzer_source_has_no_production_import_or_execution_escape_hatch(self):
         tree = ast.parse(ANALYZER_PATH.read_text(encoding="utf-8"))
         imported_roots = set()
-        call_names = set()
+        aliases = {}
+        call_nodes = []
         for node in ast.walk(tree):
             if isinstance(node, ast.Import):
-                imported_roots.update(alias.name.split(".", 1)[0] for alias in node.names)
+                for alias in node.names:
+                    imported_roots.add(alias.name.split(".", 1)[0])
+                    aliases[alias.asname or alias.name.split(".", 1)[0]] = alias.name
             elif isinstance(node, ast.ImportFrom) and node.module:
                 imported_roots.add(node.module.split(".", 1)[0])
+                for alias in node.names:
+                    aliases[alias.asname or alias.name] = f"{node.module}.{alias.name}"
             elif isinstance(node, ast.Call):
-                call_names.add(analyzer._call_name(node.func))
+                call_nodes.append(node)
+
+        resolved_call_names = set()
+        for node in call_nodes:
+            callee = analyzer._call_name(node.func)
+            root, separator, suffix = callee.partition(".")
+            target = aliases.get(root)
+            resolved_call_names.add(
+                f"{target}.{suffix}" if target and separator else target or callee
+            )
 
         self.assertTrue(
             imported_roots.isdisjoint(
@@ -253,7 +492,9 @@ except ImportError:
                     "settings",
                     "storage",
                     "wildcard_engine",
+                    "importlib",
                     "requests",
+                    "runpy",
                     "socket",
                     "subprocess",
                     "urllib",
@@ -261,16 +502,24 @@ except ImportError:
             )
         )
         self.assertTrue(
-            call_names.isdisjoint(
+            resolved_call_names.isdisjoint(
                 {
                     "__import__",
+                    "builtins.eval",
+                    "builtins.exec",
                     "eval",
                     "exec",
+                    "importlib.import_module",
                     "os.system",
+                    "runpy.run_module",
+                    "runpy.run_path",
                     "subprocess.Popen",
                     "subprocess.run",
                 }
             )
+        )
+        self.assertFalse(
+            [name for name in resolved_call_names if name.startswith("subprocess.")]
         )
 
     def test_current_repository_fixture_matches_and_uses_real_runtime_surface(self):
@@ -278,6 +527,7 @@ except ImportError:
         expected_text = BASELINE_PATH.read_text(encoding="utf-8")
 
         self.assertEqual(analyzer.render_json(report), expected_text)
+        self.assertEqual(report["schema_version"], 2)
         self.assertGreaterEqual(report["inventory"]["module_count"], 10)
         self.assertIn("nodes.py", report["registry"]["shipped_python_modules"])
         self.assertIn("api.py", report["registry"]["runtime_import_closure"])
@@ -289,12 +539,55 @@ except ImportError:
             "tools/analyze_python_backend.py",
             report["registry"]["shipped_python_modules"],
         )
+        fallback_targets = {
+            (item["source"], item["target"])
+            for item in report["registry"]["compatibility_fallback_imports"]
+        }
+        self.assertTrue(
+            {
+                ("api.py", "storage.py"),
+                ("nodes.py", "prompt_translation.py"),
+                ("nodes.py", "settings.py"),
+                ("nodes.py", "wildcard_engine.py"),
+                ("wildcard_engine.py", "settings.py"),
+            }.issubset(fallback_targets)
+        )
+        self.assertFalse(
+            [
+                item
+                for item in report["registry"]["external_imports"]
+                if (item["source"], item.get("target")) in fallback_targets
+            ]
+        )
+        mutable_by_name = {
+            (item["module"], item["name"]): item["kind"]
+            for item in report["state"]["mutable_globals"]
+        }
+        self.assertEqual(
+            mutable_by_name[("wildcard_engine.py", "_SNAPSHOT_CACHE")],
+            "dict",
+        )
+        owner_by_name = {
+            (item["module"], item["name"]): set(item["categories"])
+            for item in report["state"]["owner_candidates"]
+        }
+        self.assertIn(
+            "cache",
+            owner_by_name[("wildcard_engine.py", "_SNAPSHOT_CACHE")],
+        )
         json.loads(expected_text)
 
     def test_human_render_has_module_edge_and_state_review_sections(self):
         report = analyzer.analyze_source_set(
             {
-                "__init__.py": "from .runtime import VALUE\nCACHE = {}\n",
+                "__init__.py": """\
+try:
+    from .runtime import VALUE
+except ImportError:
+    from runtime import VALUE
+import os
+CACHE = {}
+""",
                 "runtime.py": "VALUE = 1\n",
             }
         )
@@ -305,6 +598,9 @@ except ImportError:
         self.assertIn("[edges]\n", rendered)
         self.assertIn("[state.mutable_globals]\n", rendered)
         self.assertIn("[state.owner_candidates]\n", rendered)
+        self.assertIn("ordinary", rendered)
+        self.assertIn("compatibility_fallback", rendered)
+        self.assertIn("try@", rendered)
 
 
 if __name__ == "__main__":

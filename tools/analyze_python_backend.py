@@ -19,9 +19,9 @@ from __future__ import annotations
 
 import argparse
 import ast
-import fnmatch
 import hashlib
 import json
+import re
 from collections import deque
 from pathlib import Path
 from typing import Iterable, Mapping, Sequence
@@ -29,9 +29,16 @@ from typing import Iterable, Mapping, Sequence
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
 ROOT_MODULE = "__root__"
-SCHEMA_VERSION = 1
+SCHEMA_VERSION = 2
 DYNAMIC_IMPORT_CALLEES = frozenset({"__import__", "importlib.import_module"})
 MUTABLE_CONSTRUCTORS = {
+    "ChainMap": "dict",
+    "Counter": "dict",
+    "OrderedDict": "dict",
+    "UserDict": "dict",
+    "UserList": "list",
+    "defaultdict": "dict",
+    "deque": "list",
     "dict": "dict",
     "list": "list",
     "set": "set",
@@ -92,18 +99,27 @@ def _internal_name(module_name: str) -> str:
     return "" if module_name == ROOT_MODULE else module_name
 
 
+def _strip_unescaped_trailing_spaces(line: str) -> str:
+    while line.endswith(" ") and not line.endswith("\\ "):
+        line = line[:-1]
+    return line.replace("\\ ", " ")
+
+
 def _ignore_rules(ignore_text: str) -> list[dict[str, object]]:
     rules = []
     for line_number, raw_line in enumerate(ignore_text.splitlines(), start=1):
-        stripped = raw_line.strip()
-        if not stripped or stripped.startswith("#"):
+        line = _strip_unescaped_trailing_spaces(raw_line)
+        if not line:
             continue
-        negated = stripped.startswith("!")
-        pattern = stripped[1:] if negated else stripped
+        escaped_marker = line.startswith((r"\#", r"\!"))
+        if line.startswith("#") and not escaped_marker:
+            continue
+        negated = line.startswith("!") and not escaped_marker
+        pattern = line[1:] if negated or escaped_marker else line
         directory_only = pattern.endswith("/")
         pattern = pattern.rstrip("/")
         anchored = pattern.startswith("/")
-        pattern = pattern.lstrip("/")
+        pattern = pattern[1:] if anchored else pattern
         if not pattern:
             continue
         rules.append(
@@ -118,84 +134,124 @@ def _ignore_rules(ignore_text: str) -> list[dict[str, object]]:
     return rules
 
 
-def _match_path_pattern(path: str, pattern: str, *, anchored: bool) -> bool:
-    if "/" not in pattern:
-        return fnmatch.fnmatchcase(path.rsplit("/", 1)[-1], pattern)
-    if fnmatch.fnmatchcase(path, pattern):
-        return True
-    if anchored:
-        return False
-    parts = path.split("/")
-    return any(
-        fnmatch.fnmatchcase("/".join(parts[index:]), pattern)
-        for index in range(1, len(parts))
-    )
+def _glob_regex(pattern: str) -> re.Pattern[str]:
+    pieces = ["^"]
+    index = 0
+    while index < len(pattern):
+        character = pattern[index]
+        if character == "\\" and index + 1 < len(pattern):
+            index += 1
+            pieces.append(re.escape(pattern[index]))
+        elif pattern.startswith("**/", index):
+            pieces.append("(?:.*/)?")
+            index += 2
+        elif pattern.startswith("**", index):
+            pieces.append(".*")
+            index += 1
+        elif character == "*":
+            pieces.append("[^/]*")
+        elif character == "?":
+            pieces.append("[^/]")
+        elif character == "[":
+            closing = pattern.find("]", index + 1)
+            if closing == -1:
+                pieces.append(r"\[")
+            else:
+                content = pattern[index + 1 : closing]
+                if content.startswith("!"):
+                    content = "^" + content[1:]
+                elif content.startswith("^"):
+                    content = "\\" + content
+                pieces.append(f"(?!/)[{content}]")
+                index = closing
+        else:
+            pieces.append(re.escape(character))
+        index += 1
+    pieces.append("$")
+    return re.compile("".join(pieces))
 
 
-def _rule_matches(path: str, rule: Mapping[str, object]) -> bool:
+def _match_path_pattern(path: str, pattern: str) -> bool:
+    return bool(_glob_regex(pattern).fullmatch(path))
+
+
+def _rule_matches(
+    path: str,
+    rule: Mapping[str, object],
+    *,
+    is_directory: bool,
+) -> bool:
     parts = path.split("/")
     pattern = str(rule["pattern"])
     anchored = bool(rule["anchored"])
-    if bool(rule["directory_only"]):
-        directories = ["/".join(parts[:index]) for index in range(1, len(parts))]
-        if "/" not in pattern and not anchored:
-            return any(fnmatch.fnmatchcase(part, pattern) for part in parts[:-1])
-        return any(
-            _match_path_pattern(directory, pattern, anchored=anchored)
-            for directory in directories
-        )
-    return _match_path_pattern(path, pattern, anchored=anchored)
+    directory_only = bool(rule["directory_only"])
+    candidates = []
+    for length in range(1, len(parts) + 1):
+        candidate_is_directory = length < len(parts) or is_directory
+        if directory_only and not candidate_is_directory:
+            continue
+        candidate = "/".join(parts[:length])
+        candidates.append((candidate, candidate.rsplit("/", 1)[-1]))
+    if anchored or "/" in pattern:
+        return any(_match_path_pattern(candidate, pattern) for candidate, _ in candidates)
+    return any(_match_path_pattern(basename, pattern) for _, basename in candidates)
 
 
-def _is_ignored(path: str, rules: Sequence[Mapping[str, object]]) -> bool:
+def _is_ignored(
+    path: str,
+    rules: Sequence[Mapping[str, object]],
+    *,
+    is_directory: bool = False,
+) -> bool:
     ignored = False
-    for rule in rules:
-        if _rule_matches(path, rule):
-            ignored = not bool(rule["negated"])
+    for index, rule in enumerate(rules):
+        if not _rule_matches(path, rule, is_directory=is_directory):
+            continue
+        if not bool(rule["negated"]):
+            ignored = True
+            continue
+        parent_parts = path.split("/")[:-1]
+        parent_is_ignored = any(
+            _is_ignored(
+                "/".join(parent_parts[:length]),
+                rules[:index],
+                is_directory=True,
+            )
+            for length in range(1, len(parent_parts) + 1)
+        )
+        if not parent_is_ignored:
+            ignored = False
     return ignored
 
 
-def _collect_dynamic_aliases(tree: ast.AST) -> dict[str, set[str]]:
-    aliases: dict[str, set[str]] = {}
-
-    def bind(name: str, target: str) -> None:
-        aliases.setdefault(name, set()).add(target)
-
-    for node in ast.walk(tree):
-        if isinstance(node, ast.Import):
-            for alias in node.names:
-                if alias.asname:
-                    bind(alias.asname, alias.name)
-                else:
-                    bind(alias.name.split(".", 1)[0], alias.name.split(".", 1)[0])
-        elif isinstance(node, ast.ImportFrom):
-            module = "." * node.level + (node.module or "")
-            for alias in node.names:
-                if alias.name != "*":
-                    target = f"{module}.{alias.name}" if module else alias.name
-                    bind(alias.asname or alias.name, target)
-    return aliases
-
-
-def _resolve_callee_aliases(callee: str, aliases: Mapping[str, set[str]]) -> set[str]:
-    resolved = {callee}
-    root, separator, suffix = callee.partition(".")
-    for target in aliases.get(root, set()):
-        resolved.add(f"{target}.{suffix}" if separator else target)
-    return resolved
-
-
-def _caught_import_error(handler_type: ast.AST | None) -> bool:
+def _handler_exception_names(handler_type: ast.AST | None) -> list[str]:
     if handler_type is None:
-        return True
-    names = (
-        handler_type.elts
-        if isinstance(handler_type, ast.Tuple)
-        else [handler_type]
+        return ["<bare>"]
+    nodes = handler_type.elts if isinstance(handler_type, ast.Tuple) else [handler_type]
+    return sorted(
+        {
+            _call_name(node).rsplit(".", 1)[-1] or "<expression>"
+            for node in nodes
+        }
     )
-    return any(
-        _call_name(item).rsplit(".", 1)[-1] in {"ImportError", "ModuleNotFoundError"}
-        for item in names
+
+
+def _catches_import_error(handler_type: ast.AST | None) -> bool:
+    names = set(_handler_exception_names(handler_type))
+    return bool(names & {"<bare>", "ImportError", "ModuleNotFoundError"})
+
+
+def _catches_import_failure(handler_type: ast.AST | None) -> bool:
+    names = set(_handler_exception_names(handler_type))
+    return bool(
+        names
+        & {
+            "<bare>",
+            "BaseException",
+            "Exception",
+            "ImportError",
+            "ModuleNotFoundError",
+        }
     )
 
 
@@ -203,17 +259,151 @@ def _is_type_checking_test(node: ast.AST) -> bool:
     return _call_name(node).rsplit(".", 1)[-1] == "TYPE_CHECKING"
 
 
+class _FunctionLocalBindingVisitor(ast.NodeVisitor):
+    """Find names statically local to one function without entering nested scopes."""
+
+    def __init__(self) -> None:
+        self.names: set[str] = set()
+        self.global_names: set[str] = set()
+        self.nonlocal_names: set[str] = set()
+
+    def _add_target(self, target: ast.AST) -> None:
+        self.names.update(_assigned_names(target))
+
+    def visit_Global(self, node: ast.Global) -> None:
+        self.global_names.update(node.names)
+
+    def visit_Nonlocal(self, node: ast.Nonlocal) -> None:
+        self.nonlocal_names.update(node.names)
+
+    def visit_FunctionDef(self, node: ast.FunctionDef) -> None:
+        self.names.add(node.name)
+
+    def visit_AsyncFunctionDef(self, node: ast.AsyncFunctionDef) -> None:
+        self.names.add(node.name)
+
+    def visit_ClassDef(self, node: ast.ClassDef) -> None:
+        self.names.add(node.name)
+
+    def visit_Lambda(self, node: ast.Lambda) -> None:
+        return None
+
+    def visit_Import(self, node: ast.Import) -> None:
+        self.names.update(
+            alias.asname or alias.name.split(".", 1)[0]
+            for alias in node.names
+        )
+
+    def visit_ImportFrom(self, node: ast.ImportFrom) -> None:
+        self.names.update(
+            alias.asname or alias.name
+            for alias in node.names
+            if alias.name != "*"
+        )
+
+    def visit_Assign(self, node: ast.Assign) -> None:
+        for target in node.targets:
+            self._add_target(target)
+        self.visit(node.value)
+
+    def visit_AnnAssign(self, node: ast.AnnAssign) -> None:
+        self._add_target(node.target)
+        if node.value:
+            self.visit(node.value)
+
+    def visit_AugAssign(self, node: ast.AugAssign) -> None:
+        self._add_target(node.target)
+        self.visit(node.value)
+
+    def visit_NamedExpr(self, node: ast.NamedExpr) -> None:
+        self._add_target(node.target)
+        self.visit(node.value)
+
+    def visit_For(self, node: ast.For) -> None:
+        self._add_target(node.target)
+        self.generic_visit(node)
+
+    def visit_AsyncFor(self, node: ast.AsyncFor) -> None:
+        self.visit_For(node)
+
+    def visit_With(self, node: ast.With) -> None:
+        for item in node.items:
+            if item.optional_vars:
+                self._add_target(item.optional_vars)
+        self.generic_visit(node)
+
+    def visit_AsyncWith(self, node: ast.AsyncWith) -> None:
+        self.visit_With(node)
+
+    def visit_ExceptHandler(self, node: ast.ExceptHandler) -> None:
+        if node.name:
+            self.names.add(node.name)
+        self.generic_visit(node)
+
+
+def _function_local_names(
+    node: ast.FunctionDef | ast.AsyncFunctionDef,
+) -> set[str]:
+    visitor = _FunctionLocalBindingVisitor()
+    for statement in node.body:
+        visitor.visit(statement)
+    return visitor.names - visitor.global_names - visitor.nonlocal_names
+
+
 class _ImportCandidateVisitor(ast.NodeVisitor):
-    def __init__(self, aliases: Mapping[str, set[str]]) -> None:
-        self.aliases = aliases
+    def __init__(self) -> None:
         self.candidates: list[dict[str, object]] = []
         self.scope_parts: list[str] = []
-        self.optional_depth = 0
-        self.conditional_depth = 0
+        self.alias_scopes: list[dict[str, set[str] | None]] = [{}]
+        self.branch_context: list[dict[str, object]] = []
 
     @property
     def scope(self) -> str:
         return ".".join(self.scope_parts) if self.scope_parts else "<module>"
+
+    def _bind_alias(self, name: str, target: str) -> None:
+        self.alias_scopes[-1][name] = {target}
+
+    def _shadow_names(self, names: Iterable[str]) -> None:
+        for name in names:
+            self.alias_scopes[-1][name] = None
+
+    def _resolve_callee_aliases(self, callee: str) -> set[str]:
+        resolved = {callee}
+        root, separator, suffix = callee.partition(".")
+        for aliases in reversed(self.alias_scopes):
+            if root not in aliases:
+                continue
+            targets = aliases[root]
+            if targets:
+                resolved.update(
+                    f"{target}.{suffix}" if separator else target
+                    for target in targets
+                )
+            break
+        return resolved
+
+    def _push_branch(self, context: dict[str, object]) -> None:
+        self.branch_context.append(context)
+
+    def _pop_branch(self) -> None:
+        self.branch_context.pop()
+
+    def _optional_candidate(self) -> bool:
+        for context in self.branch_context:
+            if (
+                context["kind"] == "try"
+                and context["branch"] == "body"
+                and context.get("handles_import_failure")
+            ):
+                return True
+            if (
+                context["kind"] == "if"
+                and context["branch"] == "body"
+                and context.get("type_checking")
+            ):
+                return True
+        return False
 
     def _append(
         self,
@@ -233,24 +423,65 @@ class _ImportCandidateVisitor(ast.NodeVisitor):
                 "line": node.lineno,
                 "column": node.col_offset,
                 "scope": self.scope,
-                "optional": self.optional_depth > 0,
-                "conditional": self.conditional_depth > 0,
+                "branch_context": [dict(item) for item in self.branch_context],
+                "optional_candidate": self._optional_candidate(),
+                "conditional": bool(self.branch_context),
             }
         )
 
-    def _visit_scope(self, node: ast.AST, name: str) -> None:
-        self.scope_parts.append(name)
-        self.generic_visit(node)
+    def _visit_function_scope(
+        self,
+        node: ast.FunctionDef | ast.AsyncFunctionDef,
+    ) -> None:
+        for decorator in node.decorator_list:
+            self.visit(decorator)
+        for default in (
+            *node.args.defaults,
+            *[item for item in node.args.kw_defaults if item],
+        ):
+            self.visit(default)
+        argument_names = {
+            argument.arg
+            for argument in (
+                *node.args.posonlyargs,
+                *node.args.args,
+                *node.args.kwonlyargs,
+            )
+        }
+        if node.args.vararg:
+            argument_names.add(node.args.vararg.arg)
+        if node.args.kwarg:
+            argument_names.add(node.args.kwarg.arg)
+        self.scope_parts.append(node.name)
+        local_names = argument_names | _function_local_names(node)
+        self.alias_scopes.append({name: None for name in local_names})
+        for statement in node.body:
+            self.visit(statement)
+        self.alias_scopes.pop()
         self.scope_parts.pop()
 
     def visit_FunctionDef(self, node: ast.FunctionDef) -> None:
-        self._visit_scope(node, node.name)
+        self._shadow_names([node.name])
+        self._visit_function_scope(node)
 
     def visit_AsyncFunctionDef(self, node: ast.AsyncFunctionDef) -> None:
-        self._visit_scope(node, node.name)
+        self._shadow_names([node.name])
+        self._visit_function_scope(node)
 
     def visit_ClassDef(self, node: ast.ClassDef) -> None:
-        self._visit_scope(node, node.name)
+        self._shadow_names([node.name])
+        for decorator in node.decorator_list:
+            self.visit(decorator)
+        for base in node.bases:
+            self.visit(base)
+        for keyword in node.keywords:
+            self.visit(keyword.value)
+        self.scope_parts.append(node.name)
+        self.alias_scopes.append({})
+        for statement in node.body:
+            self.visit(statement)
+        self.alias_scopes.pop()
+        self.scope_parts.pop()
 
     def visit_Import(self, node: ast.Import) -> None:
         for alias in node.names:
@@ -261,6 +492,11 @@ class _ImportCandidateVisitor(ast.NodeVisitor):
                 name=None,
                 alias=alias.asname,
             )
+            if alias.asname:
+                self._bind_alias(alias.asname, alias.name)
+            else:
+                root_name = alias.name.split(".", 1)[0]
+                self._bind_alias(root_name, root_name)
 
     def visit_ImportFrom(self, node: ast.ImportFrom) -> None:
         requested = "." * node.level + (node.module or "")
@@ -272,10 +508,18 @@ class _ImportCandidateVisitor(ast.NodeVisitor):
                 name=alias.name,
                 alias=alias.asname,
             )
+            if alias.name != "*":
+                if requested.endswith("."):
+                    target = f"{requested}{alias.name}"
+                elif requested:
+                    target = f"{requested}.{alias.name}"
+                else:
+                    target = alias.name
+                self._bind_alias(alias.asname or alias.name, target)
 
     def visit_Call(self, node: ast.Call) -> None:
         callee = _call_name(node.func)
-        if _resolve_callee_aliases(callee, self.aliases).intersection(DYNAMIC_IMPORT_CALLEES):
+        if self._resolve_callee_aliases(callee).intersection(DYNAMIC_IMPORT_CALLEES):
             if node.args and isinstance(node.args[0], ast.Constant) and isinstance(node.args[0].value, str):
                 self._append(
                     node=node,
@@ -286,33 +530,120 @@ class _ImportCandidateVisitor(ast.NodeVisitor):
                 )
         self.generic_visit(node)
 
-    def visit_Try(self, node: ast.Try) -> None:
-        catches_import_error = any(_caught_import_error(handler.type) for handler in node.handlers)
-        if catches_import_error:
-            self.optional_depth += 1
+    def visit_Assign(self, node: ast.Assign) -> None:
+        self.visit(node.value)
+        self._shadow_names(
+            name
+            for target in node.targets
+            for name in _assigned_names(target)
+        )
+
+    def visit_AnnAssign(self, node: ast.AnnAssign) -> None:
+        if node.value:
+            self.visit(node.value)
+        self._shadow_names(_assigned_names(node.target))
+
+    def visit_AugAssign(self, node: ast.AugAssign) -> None:
+        self.visit(node.value)
+        self._shadow_names(_assigned_names(node.target))
+
+    def visit_NamedExpr(self, node: ast.NamedExpr) -> None:
+        self.visit(node.value)
+        self._shadow_names(_assigned_names(node.target))
+
+    def visit_For(self, node: ast.For) -> None:
+        self.visit(node.iter)
+        self._shadow_names(_assigned_names(node.target))
+        for statement in (*node.body, *node.orelse):
+            self.visit(statement)
+
+    def visit_AsyncFor(self, node: ast.AsyncFor) -> None:
+        self.visit_For(node)
+
+    def visit_With(self, node: ast.With) -> None:
+        for item in node.items:
+            self.visit(item.context_expr)
+            if item.optional_vars:
+                self._shadow_names(_assigned_names(item.optional_vars))
         for statement in node.body:
             self.visit(statement)
-        if catches_import_error:
-            self.optional_depth -= 1
+
+    def visit_AsyncWith(self, node: ast.AsyncWith) -> None:
+        self.visit_With(node)
+
+    def visit_Try(self, node: ast.Try) -> None:
+        catches_import_error = any(
+            _catches_import_error(handler.type) for handler in node.handlers
+        )
+        handles_import_failure = any(
+            _catches_import_failure(handler.type) for handler in node.handlers
+        )
+        self._push_branch(
+            {
+                "kind": "try",
+                "line": node.lineno,
+                "branch": "body",
+                "handles_import_failure": handles_import_failure,
+                "has_import_fallback_handler": catches_import_error,
+            }
+        )
+        for statement in node.body:
+            self.visit(statement)
+        self._pop_branch()
         for handler in node.handlers:
-            self.visit(handler)
+            self._push_branch(
+                {
+                    "kind": "try",
+                    "line": node.lineno,
+                    "branch": "except",
+                    "handler_line": handler.lineno,
+                    "exceptions": _handler_exception_names(handler.type),
+                    "catches_import_error": _catches_import_error(handler.type),
+                }
+            )
+            for statement in handler.body:
+                self.visit(statement)
+            self._pop_branch()
+        self._push_branch(
+            {"kind": "try", "line": node.lineno, "branch": "else"}
+        )
         for statement in node.orelse:
             self.visit(statement)
+        self._pop_branch()
+        self._push_branch(
+            {"kind": "try", "line": node.lineno, "branch": "finally"}
+        )
         for statement in node.finalbody:
             self.visit(statement)
+        self._pop_branch()
+
+    visit_TryStar = visit_Try
 
     def visit_If(self, node: ast.If) -> None:
         self.visit(node.test)
-        self.conditional_depth += 1
-        if _is_type_checking_test(node.test):
-            self.optional_depth += 1
+        type_checking = _is_type_checking_test(node.test)
+        self._push_branch(
+            {
+                "kind": "if",
+                "line": node.lineno,
+                "branch": "body",
+                "type_checking": type_checking,
+            }
+        )
         for statement in node.body:
             self.visit(statement)
-        if _is_type_checking_test(node.test):
-            self.optional_depth -= 1
+        self._pop_branch()
+        self._push_branch(
+            {
+                "kind": "if",
+                "line": node.lineno,
+                "branch": "else",
+                "type_checking": type_checking,
+            }
+        )
         for statement in node.orelse:
             self.visit(statement)
-        self.conditional_depth -= 1
+        self._pop_branch()
 
 
 def _mutable_kind(value: ast.AST | None) -> str | None:
@@ -377,20 +708,53 @@ def _owner_categories(
     return sorted(categories)
 
 
-def _direct_assignments(tree: ast.Module) -> list[tuple[str, int, ast.AST | None]]:
-    assignments = []
-    for statement in tree.body:
-        if isinstance(statement, ast.Assign):
-            for target in statement.targets:
-                for name in _assigned_names(target):
-                    assignments.append((name, statement.lineno, statement.value))
-        elif isinstance(statement, ast.AnnAssign):
-            for name in _assigned_names(statement.target):
-                assignments.append((name, statement.lineno, statement.value))
-        elif isinstance(statement, ast.AugAssign):
-            for name in _assigned_names(statement.target):
-                assignments.append((name, statement.lineno, statement.value))
-    return assignments
+class _ModuleAssignmentVisitor(ast.NodeVisitor):
+    """Collect assignments executed in module control flow, excluding local scopes."""
+
+    def __init__(self) -> None:
+        self.assignments: list[tuple[str, int, ast.AST | None]] = []
+
+    def _append(self, target: ast.AST, line: int, value: ast.AST | None) -> None:
+        self.assignments.extend(
+            (name, line, value)
+            for name in _assigned_names(target)
+        )
+
+    def visit_FunctionDef(self, node: ast.FunctionDef) -> None:
+        return None
+
+    def visit_AsyncFunctionDef(self, node: ast.AsyncFunctionDef) -> None:
+        return None
+
+    def visit_ClassDef(self, node: ast.ClassDef) -> None:
+        return None
+
+    def visit_Lambda(self, node: ast.Lambda) -> None:
+        return None
+
+    def visit_Assign(self, node: ast.Assign) -> None:
+        for target in node.targets:
+            self._append(target, node.lineno, node.value)
+        self.visit(node.value)
+
+    def visit_AnnAssign(self, node: ast.AnnAssign) -> None:
+        self._append(node.target, node.lineno, node.value)
+        if node.value:
+            self.visit(node.value)
+
+    def visit_AugAssign(self, node: ast.AugAssign) -> None:
+        self._append(node.target, node.lineno, node.value)
+        self.visit(node.value)
+
+    def visit_NamedExpr(self, node: ast.NamedExpr) -> None:
+        self._append(node.target, node.lineno, node.value)
+        self.visit(node.value)
+
+
+def _module_assignments(tree: ast.Module) -> list[tuple[str, int, ast.AST | None]]:
+    visitor = _ModuleAssignmentVisitor()
+    visitor.visit(tree)
+    return visitor.assignments
 
 
 def _context_assignment_names(node: ast.Assign | ast.AnnAssign | ast.AugAssign) -> list[str]:
@@ -518,7 +882,7 @@ def _analyze_module(path: str, data: bytes) -> dict[str, object]:
         elif isinstance(statement, ast.ClassDef):
             class_count += 1
 
-    assignments = _direct_assignments(tree)
+    assignments = _module_assignments(tree)
     globals_by_name: dict[str, int] = {}
     mutable_globals = []
     owner_candidates = []
@@ -555,8 +919,7 @@ def _analyze_module(path: str, data: bytes) -> dict[str, object]:
         if name == "__all__":
             declared_all = _literal_string_sequence(value)
 
-    aliases = _collect_dynamic_aliases(tree)
-    import_visitor = _ImportCandidateVisitor(aliases)
+    import_visitor = _ImportCandidateVisitor()
     import_visitor.visit(tree)
     side_effect_visitor = _ImportTimeCallVisitor()
     side_effect_visitor.visit(tree)
@@ -610,6 +973,50 @@ def _edge_display(candidate: Mapping[str, object]) -> str:
     return f"{requested}:{name}" if name else requested
 
 
+def _bound_name(candidate: Mapping[str, object]) -> str | None:
+    alias = candidate.get("alias")
+    if alias:
+        return str(alias)
+    imported_name = candidate.get("name")
+    if imported_name and imported_name != "*":
+        return str(imported_name)
+    if candidate["kind"] == "static_import":
+        return str(candidate["requested"]).split(".", 1)[0]
+    return None
+
+
+def _nearest_try_context(
+    edge: Mapping[str, object],
+    branch: str,
+) -> Mapping[str, object] | None:
+    for context in reversed(edge["branch_context"]):
+        if context["kind"] == "try" and context["branch"] == branch:
+            return context
+    return None
+
+
+def _absolute_local_target(
+    edge: Mapping[str, object],
+    path_by_internal_name: Mapping[str, str],
+) -> str | None:
+    requested = str(edge["requested"])
+    if requested.startswith("."):
+        return None
+    options = []
+    imported_name = edge.get("name")
+    if imported_name and imported_name != "*":
+        options.append(f"{requested}.{imported_name}")
+    options.append(requested)
+    return next(
+        (
+            path_by_internal_name[option]
+            for option in options
+            if option in path_by_internal_name
+        ),
+        None,
+    )
+
+
 def _resolve_import_candidate(
     candidate: Mapping[str, object],
     *,
@@ -654,13 +1061,98 @@ def _resolve_import_candidate(
         "requested": requested,
         "name": imported_name,
         "alias": candidate.get("alias"),
-        "optional": bool(candidate["optional"]),
+        "bound_name": _bound_name(candidate),
+        "branch_context": candidate["branch_context"],
+        "optional": bool(candidate["optional_candidate"]),
         "conditional": bool(candidate["conditional"]),
         "classification": classification,
+        "role": (
+            "optional_dependency"
+            if candidate["optional_candidate"]
+            else "ordinary"
+        ),
     }
     if target is not None:
         edge["target"] = target
     return edge
+
+
+def _classify_compatibility_fallbacks(
+    edges: list[dict[str, object]],
+    *,
+    path_by_internal_name: Mapping[str, str],
+) -> None:
+    primary_by_key: dict[
+        tuple[str, str, int, str, str],
+        list[dict[str, object]],
+    ] = {}
+    for edge in edges:
+        context = _nearest_try_context(edge, "body")
+        bound_name = edge.get("bound_name")
+        target = edge.get("target")
+        if (
+            edge["classification"] != "internal"
+            or not str(edge["requested"]).startswith(".")
+            or context is None
+            or not context.get("has_import_fallback_handler")
+            or not bound_name
+            or not target
+        ):
+            continue
+        key = (
+            str(edge["source"]),
+            str(edge["scope"]),
+            int(context["line"]),
+            str(bound_name),
+            str(target),
+        )
+        primary_by_key.setdefault(key, []).append(edge)
+
+    for fallback in edges:
+        context = _nearest_try_context(fallback, "except")
+        bound_name = fallback.get("bound_name")
+        if (
+            fallback["classification"] != "external"
+            or context is None
+            or not context.get("catches_import_error")
+            or not bound_name
+        ):
+            continue
+        target = _absolute_local_target(fallback, path_by_internal_name)
+        if target is None:
+            continue
+        key = (
+            str(fallback["source"]),
+            str(fallback["scope"]),
+            int(context["line"]),
+            str(bound_name),
+            target,
+        )
+        primaries = primary_by_key.get(key)
+        if not primaries:
+            continue
+        pair = {
+            "try_line": int(context["line"]),
+            "bound_name": str(bound_name),
+            "target": target,
+        }
+        fallback.update(
+            {
+                "classification": "compatibility_fallback",
+                "target": target,
+                "role": "compatibility_fallback",
+                "optional": False,
+                "compatibility_pair": pair,
+            }
+        )
+        for primary in primaries:
+            primary.update(
+                {
+                    "role": "compatibility_primary",
+                    "optional": False,
+                    "compatibility_pair": pair,
+                }
+            )
 
 
 def _strongly_connected_components(
@@ -763,7 +1255,10 @@ def _edge_summary(edge: Mapping[str, object]) -> dict[str, object]:
         "kind": edge["kind"],
         "imported": edge["imported"],
         "classification": edge["classification"],
+        "role": edge["role"],
         "optional": edge["optional"],
+        "conditional": edge["conditional"],
+        "branch_context": edge["branch_context"],
     }
     if "target" in edge:
         summary["target"] = edge["target"]
@@ -871,6 +1366,10 @@ def analyze_source_set(
                     path_by_internal_name=path_by_internal_name,
                 )
             )
+    _classify_compatibility_fallbacks(
+        edges,
+        path_by_internal_name=path_by_internal_name,
+    )
     edges.sort(
         key=lambda item: (
             str(item["source"]),
@@ -885,7 +1384,8 @@ def analyze_source_set(
         {
             (str(edge["source"]), str(edge["target"]))
             for edge in edges
-            if edge["classification"] == "internal"
+            if edge["classification"]
+            in {"compatibility_fallback", "internal"}
         }
     )
     graph_records = [{"from": source, "to": target} for source, target in graph_edges]
@@ -930,6 +1430,13 @@ def analyze_source_set(
         "imports": {
             "edges": edges,
             "module_graph": graph_records,
+            "module_graph_policy": {
+                "included_classifications": [
+                    "compatibility_fallback",
+                    "internal",
+                ],
+                "duplicate_policy": "collapse by source and target path",
+            },
             "sccs": _strongly_connected_components(shipped_paths, graph_records),
         },
         "state": {
@@ -952,6 +1459,11 @@ def analyze_source_set(
                 _edge_summary(edge)
                 for edge in closure_edges
                 if edge["classification"] == "missing_internal"
+            ],
+            "compatibility_fallback_imports": [
+                _edge_summary(edge)
+                for edge in closure_edges
+                if edge["classification"] == "compatibility_fallback"
             ],
             "external_imports": [
                 _edge_summary(edge)
@@ -986,6 +1498,17 @@ def render_json(report: Mapping[str, object]) -> str:
     return json.dumps(report, ensure_ascii=False, indent=2, sort_keys=True) + "\n"
 
 
+def _render_branch_context(contexts: Sequence[Mapping[str, object]]) -> str:
+    labels = []
+    for context in contexts:
+        label = f"{context['kind']}@{context['line']}:{context['branch']}"
+        exceptions = context.get("exceptions")
+        if exceptions:
+            label += f"[{','.join(str(item) for item in exceptions)}]"
+        labels.append(label)
+    return " > ".join(labels) if labels else "module"
+
+
 def render_text(report: Mapping[str, object]) -> str:
     lines = [
         f"Python backend inventory schema {report['schema_version']}",
@@ -1003,12 +1526,19 @@ def render_text(report: Mapping[str, object]) -> str:
     lines.extend(("", "[edges]"))
     for edge in report["imports"]["edges"]:
         target = edge.get("target", edge["imported"])
-        flags = [str(edge["classification"]), str(edge["kind"])]
+        flags = [
+            str(edge["classification"]),
+            str(edge["role"]),
+            str(edge["kind"]),
+        ]
         if edge["optional"]:
             flags.append("optional")
         if edge["conditional"]:
             flags.append("conditional")
-        lines.append(f"{edge['source']}:{edge['line']} -> {target} | {', '.join(flags)}")
+        lines.append(
+            f"{edge['source']}:{edge['line']} -> {target} | "
+            f"{', '.join(flags)} | {_render_branch_context(edge['branch_context'])}"
+        )
 
     lines.extend(("", "[scc]"))
     for component in report["imports"]["sccs"]:
@@ -1049,6 +1579,10 @@ def render_text(report: Mapping[str, object]) -> str:
         f"{', '.join(registry['unreachable_shipped_python_modules']) or '<none>'}"
     )
     lines.append(f"missing_internal_imports: {len(registry['missing_internal_imports'])}")
+    lines.append(
+        f"compatibility_fallback_imports: "
+        f"{len(registry['compatibility_fallback_imports'])}"
+    )
     lines.append(f"external_imports: {len(registry['external_imports'])}")
     lines.append(f"optional_imports: {len(registry['optional_imports'])}")
     return "\n".join(lines) + "\n"
