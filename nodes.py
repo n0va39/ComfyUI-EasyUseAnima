@@ -723,6 +723,7 @@ HTTP_TIMEOUT = NAIA_REQUEST_TIMEOUT + 5.0
 
 NAI_1MP = 1024 * 1024
 LATENT_ALIGN = 8
+NAIA_MAX_RESOLUTION = 8192
 IMAGE_UPSCALE_METHODS = ["nearest-exact", "bilinear", "area", "bicubic", "lanczos"]
 IMAGE_SCALE_MULTIPLES = ["8", "16", "32", "64"]
 AIO_FINAL_UPSCALE_BACKENDS = ("usdu", "resshift")
@@ -7635,16 +7636,14 @@ def _fit_to_1mp(width: int, height: int) -> tuple[int, int]:
     if width * height <= NAI_1MP:
         return width, height
 
-    ratio = width / height
-    target_w = (NAI_1MP * ratio) ** 0.5
-    target_h = (NAI_1MP / ratio) ** 0.5
-    new_w = max(LATENT_ALIGN, round(target_w / LATENT_ALIGN) * LATENT_ALIGN)
-    new_h = max(LATENT_ALIGN, round(target_h / LATENT_ALIGN) * LATENT_ALIGN)
-    while new_w * new_h > NAI_1MP and new_w > LATENT_ALIGN and new_h > LATENT_ALIGN:
+    scale = sqrt(NAI_1MP / (width * height))
+    new_w = max(LATENT_ALIGN, round(width * scale / LATENT_ALIGN) * LATENT_ALIGN)
+    new_h = max(LATENT_ALIGN, round(height * scale / LATENT_ALIGN) * LATENT_ALIGN)
+    if new_w * new_h > NAI_1MP:
         if new_w >= new_h:
-            new_w -= LATENT_ALIGN
+            new_w = (NAI_1MP // new_h // LATENT_ALIGN) * LATENT_ALIGN
         else:
-            new_h -= LATENT_ALIGN
+            new_h = (NAI_1MP // new_w // LATENT_ALIGN) * LATENT_ALIGN
     return new_w, new_h
 
 
@@ -7706,6 +7705,14 @@ def _parse_random_response(resp: dict) -> tuple[str, str, int, int]:
         raw_width, raw_height = int(w_raw), int(h_raw)
     except (TypeError, ValueError):
         raise RuntimeError(f"[EasyUse Anima] Invalid NAIA width/height: {w_raw!r}, {h_raw!r}")
+    if not (
+        1 <= raw_width <= NAIA_MAX_RESOLUTION
+        and 1 <= raw_height <= NAIA_MAX_RESOLUTION
+    ):
+        raise RuntimeError(
+            f"[EasyUse Anima] Invalid NAIA width/height: {w_raw!r}, {h_raw!r}; "
+            f"expected values from 1 to {NAIA_MAX_RESOLUTION}."
+        )
     width, height = _fit_to_1mp(raw_width, raw_height)
     return prompt, negative, width, height
 
@@ -12151,11 +12158,11 @@ class EasyUseAnimaNAIARandomPrompt:
                 "tooltip": "Stored negative prompt used for frozen output and saved-image reproduction.",
             }),
             "cached_width": ("INT", {
-                "default": 0, "min": 0, "max": 8192, "step": 8,
+                "default": 0, "min": 0, "max": NAIA_MAX_RESOLUTION, "step": 8,
                 "tooltip": "Stored width used for frozen output and saved-image reproduction.",
             }),
             "cached_height": ("INT", {
-                "default": 0, "min": 0, "max": 8192, "step": 8,
+                "default": 0, "min": 0, "max": NAIA_MAX_RESOLUTION, "step": 8,
                 "tooltip": "Stored height used for frozen output and saved-image reproduction.",
             }),
             "cached_signature": ("STRING", {
@@ -12184,7 +12191,7 @@ class EasyUseAnimaNAIARandomPrompt:
                 "tooltip": "true: use NAIA negative prompt. false: preserve input negative_prompt.",
             }),
             "width": ("INT", {
-                "default": 1024, "min": 64, "max": 8192, "step": 8,
+                "default": 1024, "min": 64, "max": NAIA_MAX_RESOLUTION, "step": 8,
                 "tooltip": "Returned as-is when bypassed or when override_width is false.",
             }),
             "override_width": ("BOOLEAN", {
@@ -12192,7 +12199,7 @@ class EasyUseAnimaNAIARandomPrompt:
                 "tooltip": "true: use NAIA width. false: preserve input width.",
             }),
             "height": ("INT", {
-                "default": 1024, "min": 64, "max": 8192, "step": 8,
+                "default": 1024, "min": 64, "max": NAIA_MAX_RESOLUTION, "step": 8,
                 "tooltip": "Returned as-is when bypassed or when override_height is false.",
             }),
             "override_height": ("BOOLEAN", {
