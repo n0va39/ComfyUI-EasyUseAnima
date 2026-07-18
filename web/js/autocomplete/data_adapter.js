@@ -2,22 +2,49 @@
 
 /**
  * @typedef {object} AutocompleteDataAdapterDependencies
- * @property {(url: string) => Promise<any>} fetchJson
+ * @property {(url: string, options?: {signal?: AbortSignal}) => Promise<any>} fetchJson
  * @property {(value: any) => string} normalizeWildcardSearchText
  * @property {() => number} getLimit
+ * @property {() => number} [now]
+ */
+
+/**
+ * @typedef {object} ResolvedResultCacheEntry
+ * @property {any[]} results
+ * @property {number} expiresAt
  */
 
 /**
  * @typedef {object} ResultRequestOwner
+ * @property {string} key
  * @property {number} epoch
  * @property {Promise<any[]>} promise
+ * @property {AbortController} controller
+ * @property {number} consumers
+ * @property {boolean} settled
  */
 
 /**
  * @typedef {object} WildcardSourceRequestOwner
  * @property {number} epoch
  * @property {Promise<string[]>} promise
+ * @property {AbortController} controller
+ * @property {boolean} settled
  */
+
+/** @typedef {Promise<any[]> & {abort: () => void}} AbortableResultPromise */
+
+// A 256-entry cap bounds arrays of up to 100 suggestions while retaining a
+// useful editing-session working set; five minutes keeps warm-query latency low
+// without preserving resolved backend data for an entire long-running session.
+const RESOLVED_CACHE_MAX_ENTRIES = 256;
+const RESOLVED_CACHE_TTL_MS = 5 * 60 * 1000;
+
+function createAbortError() {
+  const error = new Error("The autocomplete request was aborted.");
+  error.name = "AbortError";
+  return error;
+}
 
 /**
  * Own autocomplete result caching, wildcard source loading, and source-setting
@@ -30,8 +57,9 @@ export function createAutocompleteDataAdapter(dependencies) {
     fetchJson,
     normalizeWildcardSearchText,
     getLimit,
+    now = Date.now,
   } = dependencies;
-  /** @type {Map<string, any[]>} */
+  /** @type {Map<string, ResolvedResultCacheEntry>} */
   const cache = new Map();
   /** @type {Map<string, ResultRequestOwner>} */
   const pendingResults = new Map();
@@ -55,20 +83,138 @@ export function createAutocompleteDataAdapter(dependencies) {
   }
 
   /**
+   * Read one unexpired result and promote it to the most-recently-used slot.
+   * TTL is measured from resolution rather than extended by cache hits.
+   *
    * @param {string} key
-   * @param {() => Promise<any[]>} load
-   * @returns {Promise<any[]>}
+   * @returns {any[] | null}
+   */
+  function getCachedResults(key) {
+    const entry = cache.get(key);
+    if (!entry) {
+      return null;
+    }
+    if (entry.expiresAt <= now()) {
+      cache.delete(key);
+      return null;
+    }
+    cache.delete(key);
+    cache.set(key, entry);
+    return entry.results;
+  }
+
+  /**
+   * @param {string} key
+   * @param {any[]} results
+   */
+  function cacheResults(key, results) {
+    cache.delete(key);
+    cache.set(key, {
+      results,
+      expiresAt: now() + RESOLVED_CACHE_TTL_MS,
+    });
+    while (cache.size > RESOLVED_CACHE_MAX_ENTRIES) {
+      const oldestKey = cache.keys().next().value;
+      if (oldestKey === undefined) {
+        break;
+      }
+      cache.delete(oldestKey);
+    }
+  }
+
+  /**
+   * @param {any[]} results
+   * @returns {AbortableResultPromise}
+   */
+  function resolvedResults(results) {
+    const promise = /** @type {AbortableResultPromise} */ (Promise.resolve(results));
+    promise.abort = () => {};
+    return promise;
+  }
+
+  /**
+   * Give each caller independent cancellation while retaining one shared load.
+   * The underlying request is aborted only after its final consumer releases it.
+   *
+   * @param {ResultRequestOwner} owner
+   * @returns {AbortableResultPromise}
+   */
+  function consumeResults(owner) {
+    /** @type {(value: any[]) => void} */
+    let resolveConsumer = () => {};
+    /** @type {(reason?: any) => void} */
+    let rejectConsumer = () => {};
+    let consumerSettled = false;
+    let released = false;
+    owner.consumers += 1;
+
+    const release = (abortWhenUnused) => {
+      if (released) {
+        return;
+      }
+      released = true;
+      owner.consumers = Math.max(0, owner.consumers - 1);
+      if (abortWhenUnused && owner.consumers === 0 && !owner.settled) {
+        owner.controller.abort();
+        if (pendingResults.get(owner.key) === owner) {
+          pendingResults.delete(owner.key);
+        }
+      }
+    };
+
+    const consumerPromise = /** @type {AbortableResultPromise} */ (new Promise(
+      (resolve, reject) => {
+        resolveConsumer = resolve;
+        rejectConsumer = reject;
+      },
+    ));
+    owner.promise.then(
+      (results) => {
+        if (consumerSettled) {
+          return;
+        }
+        consumerSettled = true;
+        release(false);
+        resolveConsumer(results);
+      },
+      (error) => {
+        if (consumerSettled) {
+          return;
+        }
+        consumerSettled = true;
+        release(false);
+        rejectConsumer(error);
+      },
+    );
+    consumerPromise.abort = () => {
+      if (consumerSettled) {
+        return;
+      }
+      consumerSettled = true;
+      release(true);
+      rejectConsumer(createAbortError());
+    };
+    return consumerPromise;
+  }
+
+  /**
+   * @param {string} key
+   * @param {(signal: AbortSignal) => Promise<any[]>} load
+   * @returns {AbortableResultPromise}
    */
   function requestResults(key, load) {
-    const cachedResults = cache.get(key);
-    if (cachedResults) {
-      return Promise.resolve(cachedResults);
+    const cachedResults = getCachedResults(key);
+    if (cachedResults !== null) {
+      return resolvedResults(cachedResults);
     }
 
     const epoch = resultsEpoch;
     const existingOwner = pendingResults.get(key);
-    if (existingOwner?.epoch === epoch) {
-      return existingOwner.promise;
+    if (
+      existingOwner?.epoch === epoch
+      && !existingOwner.controller.signal.aborted
+    ) {
+      return consumeResults(existingOwner);
     }
 
     /** @type {(value: any[]) => void} */
@@ -80,25 +226,39 @@ export function createAutocompleteDataAdapter(dependencies) {
       resolveRequest = resolve;
       rejectRequest = reject;
     });
-    const owner = { epoch, promise };
+    const controller = new AbortController();
+    const owner = {
+      key,
+      epoch,
+      promise,
+      controller,
+      consumers: 0,
+      settled: false,
+    };
     pendingResults.set(key, owner);
 
     /** @type {Promise<any[]>} */
     let loadPromise;
     try {
-      loadPromise = load();
+      loadPromise = load(controller.signal);
     } catch (error) {
+      owner.settled = true;
       if (pendingResults.get(key) === owner) {
         pendingResults.delete(key);
       }
       rejectRequest(error);
-      return promise;
+      return consumeResults(owner);
     }
 
     Promise.resolve(loadPromise).then(
       (results) => {
-        if (resultsEpoch === epoch && pendingResults.get(key) === owner) {
-          cache.set(key, results);
+        owner.settled = true;
+        if (
+          resultsEpoch === epoch
+          && pendingResults.get(key) === owner
+          && !controller.signal.aborted
+        ) {
+          cacheResults(key, results);
         }
         if (pendingResults.get(key) === owner) {
           pendingResults.delete(key);
@@ -106,6 +266,7 @@ export function createAutocompleteDataAdapter(dependencies) {
         resolveRequest(results);
       },
       (error) => {
+        owner.settled = true;
         if (pendingResults.get(key) === owner) {
           pendingResults.delete(key);
         }
@@ -113,18 +274,26 @@ export function createAutocompleteDataAdapter(dependencies) {
       },
     );
 
-    return promise;
+    return consumeResults(owner);
   }
 
   function clearResults() {
     resultsEpoch += 1;
     cache.clear();
+    for (const owner of pendingResults.values()) {
+      if (!owner.settled) {
+        owner.controller.abort();
+      }
+    }
     pendingResults.clear();
   }
 
   function clearWildcards() {
     wildcardSourceEpoch += 1;
     wildcardItemsCache = null;
+    if (wildcardLoadOwner && !wildcardLoadOwner.settled) {
+      wildcardLoadOwner.controller.abort();
+    }
     wildcardLoadOwner = null;
     clearResults();
   }
@@ -179,7 +348,7 @@ export function createAutocompleteDataAdapter(dependencies) {
     return resultsChanged || wildcardSourceChanged;
   }
 
-  async function search(query, category = "") {
+  function search(query, category = "") {
     const limit = getLimit();
     const normalizedCategory = category || "";
     const key = JSON.stringify([
@@ -194,8 +363,8 @@ export function createAutocompleteDataAdapter(dependencies) {
     const url = "/easyuse_anima/autocomplete"
       + `?q=${encodeURIComponent(query)}`
       + `&limit=${limit}${categoryParam}`;
-    return requestResults(key, async () => {
-      const data = await fetchJson(url);
+    return requestResults(key, async (signal) => {
+      const data = await fetchJson(url, { signal });
       return Array.isArray(data.results) ? data.results : [];
     });
   }
@@ -206,7 +375,10 @@ export function createAutocompleteDataAdapter(dependencies) {
     }
 
     const epoch = wildcardSourceEpoch;
-    if (wildcardLoadOwner?.epoch === epoch) {
+    if (
+      wildcardLoadOwner?.epoch === epoch
+      && !wildcardLoadOwner.controller.signal.aborted
+    ) {
       return wildcardLoadOwner.promise;
     }
 
@@ -219,14 +391,23 @@ export function createAutocompleteDataAdapter(dependencies) {
       resolveRequest = resolve;
       rejectRequest = reject;
     });
-    const owner = { epoch, promise };
+    const controller = new AbortController();
+    const owner = {
+      epoch,
+      promise,
+      controller,
+      settled: false,
+    };
     wildcardLoadOwner = owner;
 
     /** @type {Promise<any>} */
     let loadPromise;
     try {
-      loadPromise = fetchJson("/easyuse_anima/wildcards");
+      loadPromise = fetchJson("/easyuse_anima/wildcards", {
+        signal: controller.signal,
+      });
     } catch (error) {
+      owner.settled = true;
       if (wildcardLoadOwner === owner) {
         wildcardLoadOwner = null;
       }
@@ -236,10 +417,15 @@ export function createAutocompleteDataAdapter(dependencies) {
 
     Promise.resolve(loadPromise).then(
       (data) => {
+        owner.settled = true;
         const items = Array.isArray(data.items)
           ? data.items.map((item) => String(item || "")).filter(Boolean)
           : [];
-        if (wildcardSourceEpoch === epoch && wildcardLoadOwner === owner) {
+        if (
+          wildcardSourceEpoch === epoch
+          && wildcardLoadOwner === owner
+          && !controller.signal.aborted
+        ) {
           wildcardItemsCache = items;
         }
         if (wildcardLoadOwner === owner) {
@@ -248,6 +434,7 @@ export function createAutocompleteDataAdapter(dependencies) {
         resolveRequest(items);
       },
       (error) => {
+        owner.settled = true;
         if (wildcardLoadOwner === owner) {
           wildcardLoadOwner = null;
         }
@@ -258,7 +445,7 @@ export function createAutocompleteDataAdapter(dependencies) {
     return promise;
   }
 
-  async function searchWildcards(query) {
+  function searchWildcards(query) {
     const normalized = normalizeWildcardSearchText(query);
     const limit = getLimit();
     const key = JSON.stringify(["wildcard", limit, normalized]);
