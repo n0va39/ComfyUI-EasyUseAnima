@@ -6,10 +6,12 @@ conversation.
 ## Read Order
 
 1. `docs/development/current-policies.md`
-2. Active frontend maintenance execution plan:
+2. Python backend architecture or migration work:
+   [`docs/architecture/README.md`](../architecture/README.md)
+3. Active frontend maintenance execution plan:
    `docs/development/frontend-maintenance-execution-plan.md`
-3. Current release candidate: `docs/development/0.5.2.md`
-4. Relevant topic guide:
+4. Current release candidate: `docs/development/0.5.2.md`
+5. Relevant topic guide:
    - Registry publish or flagged-version prevention:
      `docs/development/registry-scanner-safety.md`
    - workflow docs or release templates: `docs/Anima AiO/Workflow_Management.md`
@@ -24,12 +26,14 @@ conversation.
    - deferred Node 2.0 DOM widget resize investigation:
      `docs/development/node2-dom-widget-resize-limitation.md`
    - language or locale work: `docs/development/language-management.md`
-5. `git status --short`
-6. Relevant source and tests for the target area.
+6. `git status --short`
+7. Relevant source and tests for the target area.
 
 ## Source Map
 
 - Current policy baseline: `docs/development/current-policies.md`
+- Python backend architecture and compatibility-shim registry:
+  [`docs/architecture/README.md`](../architecture/README.md)
 - Active frontend maintenance execution ledger:
   `docs/development/frontend-maintenance-execution-plan.md`
 - Current release candidate: `docs/development/0.5.2.md`
