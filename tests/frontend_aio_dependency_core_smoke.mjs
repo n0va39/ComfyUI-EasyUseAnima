@@ -35,6 +35,10 @@ assert(
   AIO_OPTIONAL_DEPENDENCY_SPECS.imageSaver.nodeId === "Image Saver",
   "The Image Saver object-info node id must remain stable",
 );
+assert(
+  AIO_OPTIONAL_DEPENDENCY_SPECS.checkpointLoader.nodeId === "CheckpointLoaderSimple",
+  "SAM3 choices must use the built-in checkpoint loader object-info catalog",
+);
 
 const queriedSpecs = {
   present: { nodeId: "PresentNode", pack: "Present Pack" },

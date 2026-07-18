@@ -1190,6 +1190,7 @@ class FrontendModuleStructureTests(unittest.TestCase):
             "normalizeUsduAutoTileRange: normalizeGeneratorUsduAutoTileRange,",
             "getSettings: generatorSettings,",
             "renderPanel: renderGeneratorPanel,",
+            "reconcileSelectInput,",
             "upscaleBackendMissingPacks,",
             "load: loadGeneratorOptionalDependencies,",
         ):
@@ -1241,6 +1242,8 @@ class FrontendModuleStructureTests(unittest.TestCase):
             "normalizeDetailerOrder,",
             "stageOptimizationEditor: createStageOptimizationEditor,",
             "getSettings: generatorSettings,",
+            "nodeInputChoiceOptions,",
+            "reconcileSelectInput,",
             "renderPanel: renderGeneratorPanel,",
             "load: loadGeneratorOptionalDependencies,",
         ):
@@ -1760,6 +1763,7 @@ class FrontendModuleStructureTests(unittest.TestCase):
             "aioCreateCheckboxInput",
             "aioCreateNumberInput",
             "aioCreateSelectInput",
+            "aioReconcileSelectInput",
             "aioCreateTextInput",
             "aioCreateTextareaInput",
             "aioNodeInputControlForSpec",

@@ -8,6 +8,7 @@
  * @property {(value: any) => any} textInput
  * @property {(value: any, step?: string) => any} numberInput
  * @property {(options: any[], value: any) => any} selectInput
+ * @property {(select: any, options: any[]) => any} reconcileSelectInput
  */
 
 /**
@@ -38,6 +39,7 @@
  * @property {(node: any, name: string) => any} findWidget
  * @property {(node: any) => any} getSettings
  * @property {(node: any, name: string, fallback: any[]) => any[]} widgetOptions
+ * @property {(dependencyKey: string, inputName: string, current: any, fallback?: any[]) => any[]} nodeInputChoiceOptions
  * @property {(node: any, widget: any, settings: any) => void} writeSettings
  * @property {(node: any) => void} renderPanel
  */
@@ -85,6 +87,7 @@ export function aioCreateDetailerSettingsDialog(dependencies) {
     textInput,
     numberInput,
     selectInput,
+    reconcileSelectInput,
   } = controls;
   const {
     staticText: aioStaticText,
@@ -109,6 +112,7 @@ export function aioCreateDetailerSettingsDialog(dependencies) {
     findWidget,
     getSettings: generatorSettings,
     widgetOptions,
+    nodeInputChoiceOptions,
     writeSettings,
     renderPanel: renderGeneratorPanel,
   } = nodeAdapter;
@@ -251,11 +255,24 @@ export function aioCreateDetailerSettingsDialog(dependencies) {
       "SAM3 detection and Impact detailer settings are saved with the node."
     );
     body.classList.add("easyuse-anima-aio-one-column");
+    let closed = false;
     const main = document.createElement("section");
     main.className = "easyuse-anima-aio-section full";
     main.append(Object.assign(document.createElement("h3"), { textContent: aioStaticText("Detailer") }));
     const enabled = field(main, "Enable detailer", checkbox(detailer.enabled));
-    const checkpoint = field(main, "SAM3 checkpoint", textInput(detailer.sam3.checkpoint));
+    const checkpoint = field(
+      main,
+      "SAM3 checkpoint",
+      selectInput(
+        nodeInputChoiceOptions(
+          "checkpointLoader",
+          "ckpt_name",
+          detailer.sam3.checkpoint,
+          [detailer.sam3.checkpoint],
+        ),
+        detailer.sam3.checkpoint,
+      ),
+    );
     const dependencyWarning = document.createElement("div");
     dependencyWarning.className = "easyuse-anima-aio-warning";
     dependencyWarning.hidden = true;
@@ -418,7 +435,21 @@ export function aioCreateDetailerSettingsDialog(dependencies) {
         : "";
     };
     refreshDetailerDependencyLocks();
-    loadGeneratorOptionalDependencies().then(refreshDetailerDependencyLocks);
+    loadGeneratorOptionalDependencies().then(() => {
+      if (closed || backdrop.isConnected === false) {
+        return;
+      }
+      reconcileSelectInput(
+        checkpoint,
+        nodeInputChoiceOptions(
+          "checkpointLoader",
+          "ckpt_name",
+          checkpoint.value,
+          [checkpoint.value],
+        ),
+      );
+      refreshDetailerDependencyLocks();
+    });
 
     const cancel = document.createElement("button");
     cancel.textContent = aioText("button.cancel");
@@ -426,7 +457,10 @@ export function aioCreateDetailerSettingsDialog(dependencies) {
     apply.className = "primary";
     apply.textContent = aioText("button.apply");
     actions.append(cancel, apply);
-    cancel.addEventListener("click", () => backdrop.remove());
+    cancel.addEventListener("click", () => {
+      closed = true;
+      backdrop.remove();
+    });
     apply.addEventListener("click", () => {
       const next = mergeDefaults(DEFAULT_GENERATION_SETTINGS, settings);
       const detailerEnabled = enabled.checked && !enabled.disabled;
@@ -458,6 +492,7 @@ export function aioCreateDetailerSettingsDialog(dependencies) {
       next.detailer = nextDetailer;
       writeSettings(node, widget, next);
       renderGeneratorPanel(node);
+      closed = true;
       backdrop.remove();
     });
   }

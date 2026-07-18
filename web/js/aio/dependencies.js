@@ -33,6 +33,10 @@ export const AIO_OPTIONAL_DEPENDENCY_SPECS = {
     nodeId: "UpscaleModelLoader",
     pack: "ComfyUI built-in upscale model loader",
   },
+  checkpointLoader: {
+    nodeId: "CheckpointLoaderSimple",
+    pack: "ComfyUI built-in checkpoint loader",
+  },
   ultimateSdUpscale: {
     nodeId: "UltimateSDUpscale",
     pack: "ComfyUI_UltimateSDUpscale",
