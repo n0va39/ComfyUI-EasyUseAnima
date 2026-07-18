@@ -194,6 +194,11 @@ try {
         throw "Frontend LoRA preset profile mutation and save-sync smoke failed with exit code $LASTEXITCODE."
     }
 
+    & node "tests\frontend_lora_preset_entry_lifecycle_smoke.mjs"
+    if ($LASTEXITCODE -ne 0) {
+        throw "Frontend LoRA preset entry lifecycle smoke failed with exit code $LASTEXITCODE."
+    }
+
     & node "tests\frontend_autocomplete_data_adapter_smoke.mjs"
     if ($LASTEXITCODE -ne 0) {
         throw "Frontend autocomplete data adapter smoke failed with exit code $LASTEXITCODE."
