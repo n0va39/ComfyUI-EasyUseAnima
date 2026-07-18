@@ -8024,7 +8024,7 @@
     ]
   },
   "inventory": {
-    "module_count": 17,
+    "module_count": 24,
     "modules": [
       {
         "is_package": true,
@@ -8168,6 +8168,90 @@
           "class_count": 6,
           "function_count": 15,
           "global_count": 4
+        }
+      },
+      {
+        "is_package": true,
+        "loc": 3,
+        "module": "easyuse_anima",
+        "normalized_git_blob_sha1": "9929d9f7b1b98cbd8ae63bae889e60307115c260",
+        "path": "easyuse_anima/__init__.py",
+        "top_level": {
+          "class_count": 0,
+          "function_count": 0,
+          "global_count": 1
+        }
+      },
+      {
+        "is_package": true,
+        "loc": 3,
+        "module": "easyuse_anima.aio",
+        "normalized_git_blob_sha1": "cdd29d4a45e7bc038001e6e791811c2bd22220ef",
+        "path": "easyuse_anima/aio/__init__.py",
+        "top_level": {
+          "class_count": 0,
+          "function_count": 0,
+          "global_count": 1
+        }
+      },
+      {
+        "is_package": true,
+        "loc": 3,
+        "module": "easyuse_anima.image",
+        "normalized_git_blob_sha1": "2fd82a5b8e61b6263a880f228253dc606839a60a",
+        "path": "easyuse_anima/image/__init__.py",
+        "top_level": {
+          "class_count": 0,
+          "function_count": 0,
+          "global_count": 1
+        }
+      },
+      {
+        "is_package": true,
+        "loc": 3,
+        "module": "easyuse_anima.infrastructure",
+        "normalized_git_blob_sha1": "ab60081d39183567dcdb11aabd81f06726a9c83c",
+        "path": "easyuse_anima/infrastructure/__init__.py",
+        "top_level": {
+          "class_count": 0,
+          "function_count": 0,
+          "global_count": 1
+        }
+      },
+      {
+        "is_package": true,
+        "loc": 3,
+        "module": "easyuse_anima.infrastructure.comfy",
+        "normalized_git_blob_sha1": "f34c540f23ec0305ad547ba436d953c688d9cec0",
+        "path": "easyuse_anima/infrastructure/comfy/__init__.py",
+        "top_level": {
+          "class_count": 0,
+          "function_count": 0,
+          "global_count": 1
+        }
+      },
+      {
+        "is_package": true,
+        "loc": 3,
+        "module": "easyuse_anima.nodes",
+        "normalized_git_blob_sha1": "f980638ca8dbf3ba310d407154513156bcbf4502",
+        "path": "easyuse_anima/nodes/__init__.py",
+        "top_level": {
+          "class_count": 0,
+          "function_count": 0,
+          "global_count": 1
+        }
+      },
+      {
+        "is_package": true,
+        "loc": 3,
+        "module": "easyuse_anima.prompt",
+        "normalized_git_blob_sha1": "afa59976058fdbd03ff11463234c7813b532df28",
+        "path": "easyuse_anima/prompt/__init__.py",
+        "top_level": {
+          "class_count": 0,
+          "function_count": 0,
+          "global_count": 1
         }
       },
       {
@@ -12824,13 +12908,28 @@
       "api_contract.py",
       "autocomplete_dataset.py",
       "autocomplete_index.py",
+      "easyuse_anima/__init__.py",
+      "easyuse_anima/aio/__init__.py",
+      "easyuse_anima/image/__init__.py",
+      "easyuse_anima/infrastructure/__init__.py",
+      "easyuse_anima/infrastructure/comfy/__init__.py",
+      "easyuse_anima/nodes/__init__.py",
+      "easyuse_anima/prompt/__init__.py",
       "nodes.py",
       "prompt_translation.py",
       "settings.py",
       "storage.py",
       "wildcard_engine.py"
     ],
-    "unreachable_shipped_python_modules": []
+    "unreachable_shipped_python_modules": [
+      "easyuse_anima/__init__.py",
+      "easyuse_anima/aio/__init__.py",
+      "easyuse_anima/image/__init__.py",
+      "easyuse_anima/infrastructure/__init__.py",
+      "easyuse_anima/infrastructure/comfy/__init__.py",
+      "easyuse_anima/nodes/__init__.py",
+      "easyuse_anima/prompt/__init__.py"
+    ]
   },
   "schema_version": 2,
   "side_effects": {
