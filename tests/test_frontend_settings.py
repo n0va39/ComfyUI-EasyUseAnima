@@ -52,6 +52,27 @@ FRONTEND_CHECK_SCRIPT = ROOT / "tools" / "check_frontend.ps1"
 
 
 class SettingsFrontendTests(unittest.TestCase):
+    def test_prompt_translation_setting_discloses_external_marker_text_transfer(self):
+        entry_source = SETTINGS_ENTRY.read_text(encoding="utf-8")
+        definitions_source = SETTINGS_DEFINITIONS.read_text(encoding="utf-8")
+
+        for notice in (
+            "the text inside each %{...} marker is sent to Google's external translation service",
+            "각 %{...} 마커 안의 텍스트가 Google 외부 번역 서비스로 전송됩니다",
+            "各 %{...} マーカー内のテキストが Google の外部翻訳サービスへ送信されます",
+            "每个 %{...} 标记内的文本都会发送到 Google 外部翻译服务",
+        ):
+            with self.subTest(notice=notice):
+                self.assertIn(notice, entry_source)
+
+        provider_start = definitions_source.index(
+            'id: "EasyUseAnima.Prompt.TranslationProvider"'
+        )
+        provider_end = definitions_source.index("}),", provider_start)
+        provider_definition = definitions_source[provider_start:provider_end]
+        self.assertIn('defaultValue: "off"', provider_definition)
+        self.assertIn('options: ["off", "google"]', provider_definition)
+
     def test_editor_smokes_share_fake_dom_harness(self):
         harness_source = SETTINGS_FAKE_DOM_HARNESS.read_text(encoding="utf-8")
 

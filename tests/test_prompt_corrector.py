@@ -142,6 +142,46 @@ class PromptCorrectorTests(unittest.TestCase):
         self.assertNotIn("GOOGLE_TRANSLATION_API_KEY", source)
         self.assertNotIn("requests.post", source)
 
+    def test_sync_node_output_and_translation_change_key_contracts_are_preserved(self):
+        off_settings = PromptTranslationSettings(
+            provider=PROMPT_TRANSLATION_PROVIDER_OFF,
+            source="auto",
+            target="en",
+        )
+        google_settings = PromptTranslationSettings(
+            provider=PROMPT_TRANSLATION_PROVIDER_GOOGLE,
+            source="ko",
+            target="ja",
+        )
+
+        with patch("nodes.resolve_prompt_translation_settings", return_value=off_settings):
+            result = EasyUseAnimaPromptCorrectorSimple().correct("%{long_hair, 1girl}")
+            off_key = EasyUseAnimaPromptCorrectorSimple.IS_CHANGED(
+                prompt="%{long_hair, 1girl}"
+            )
+            repeated_off_key = EasyUseAnimaPromptCorrectorSimple.IS_CHANGED(
+                prompt="%{long_hair, 1girl}"
+            )
+
+        with patch("nodes.resolve_prompt_translation_settings", return_value=google_settings):
+            google_key = EasyUseAnimaPromptCorrectorSimple.IS_CHANGED(
+                prompt="%{long_hair, 1girl}"
+            )
+
+        self.assertEqual(result, ("1girl, long hair",))
+        self.assertEqual(EasyUseAnimaPromptCorrectorSimple.RETURN_TYPES, ("STRING",))
+        self.assertEqual(EasyUseAnimaPromptCorrectorSimple.RETURN_NAMES, ("prompt",))
+        self.assertEqual(off_key, repeated_off_key)
+        self.assertNotEqual(off_key, google_key)
+        self.assertEqual(
+            json.loads(off_key)["prompt_translation"],
+            {"provider": "off", "source": "auto", "target": "en"},
+        )
+        self.assertEqual(
+            json.loads(google_key)["prompt_translation"],
+            {"provider": "google", "source": "ko", "target": "ja"},
+        )
+
     def test_prompt_correctors_translate_marked_text_before_correction(self):
         with (
             patch(
