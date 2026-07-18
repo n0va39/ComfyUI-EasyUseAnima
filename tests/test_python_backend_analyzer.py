@@ -683,9 +683,9 @@ ignored/
 
         self.assertEqual(analyzer.render_json(report), expected_text)
         self.assertEqual(report["schema_version"], 2)
-        self.assertEqual(report["inventory"]["module_count"], 16)
-        self.assertEqual(len(report["registry"]["shipped_python_modules"]), 16)
-        self.assertEqual(len(report["registry"]["runtime_import_closure"]), 16)
+        self.assertEqual(report["inventory"]["module_count"], 17)
+        self.assertEqual(len(report["registry"]["shipped_python_modules"]), 17)
+        self.assertEqual(len(report["registry"]["runtime_import_closure"]), 17)
         self.assertEqual(report["registry"]["missing_internal_imports"], [])
         self.assertEqual(
             report["registry"]["unreachable_shipped_python_modules"],
@@ -699,6 +699,14 @@ ignored/
         )
         self.assertIn(
             "api_contract.py",
+            report["registry"]["runtime_import_closure"],
+        )
+        self.assertIn(
+            "autocomplete_index.py",
+            report["registry"]["shipped_python_modules"],
+        )
+        self.assertIn(
+            "autocomplete_index.py",
             report["registry"]["runtime_import_closure"],
         )
         self.assertIn(
