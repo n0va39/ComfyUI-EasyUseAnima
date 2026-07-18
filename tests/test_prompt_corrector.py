@@ -3279,6 +3279,157 @@ class AutocompleteDatasetTests(unittest.TestCase):
         self.assertEqual(korean["results"][0]["category"], "character")
         self.assertEqual(status["count"], 2)
 
+    def test_autocomplete_status_uses_builtin_manifest_without_loading_dataset(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "built-in.csv"
+            path.write_text(
+                'first tag,0,100,"[일반] first"\nsecond tag,0,90,"[일반] second"\n',
+                encoding="utf-8",
+            )
+            expected_mtime = path.stat().st_mtime_ns / 1_000_000_000
+            sources = {
+                "fixture": {
+                    "label": "Fixture",
+                    "path": path,
+                    "entry_count": 2,
+                }
+            }
+
+            with (
+                patch.object(autocomplete_dataset, "AUTOCOMPLETE_SOURCES", sources),
+                patch.object(
+                    autocomplete_dataset,
+                    "_snapshot",
+                    side_effect=AssertionError("status must not load a snapshot"),
+                ) as snapshot,
+                patch.object(
+                    autocomplete_dataset,
+                    "_load_entries",
+                    side_effect=AssertionError("status must not load entries"),
+                ) as load_entries,
+            ):
+                status = autocomplete_status(path)
+
+        self.assertEqual(set(status), {"path", "exists", "count", "mtime"})
+        self.assertEqual(status["path"], str(path))
+        self.assertTrue(status["exists"])
+        self.assertEqual(status["count"], 2)
+        self.assertEqual(status["mtime"], expected_mtime)
+        snapshot.assert_not_called()
+        load_entries.assert_not_called()
+
+    def test_autocomplete_status_builtin_missing_and_non_file_preserve_policy(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            targets = (root / "missing.csv", root)
+            for target in targets:
+                with self.subTest(target=target):
+                    sources = {
+                        "fixture": {
+                            "label": "Fixture",
+                            "path": target,
+                            "entry_count": 99,
+                        }
+                    }
+                    with (
+                        patch.object(
+                            autocomplete_dataset,
+                            "AUTOCOMPLETE_SOURCES",
+                            sources,
+                        ),
+                        patch.object(
+                            autocomplete_dataset,
+                            "_snapshot",
+                            side_effect=AssertionError("missing status must stay metadata-only"),
+                        ) as snapshot,
+                        patch.object(
+                            autocomplete_dataset,
+                            "_load_entries",
+                            side_effect=AssertionError("missing status must not load entries"),
+                        ) as load_entries,
+                    ):
+                        status = autocomplete_status(target)
+
+                    self.assertEqual(
+                        status,
+                        {
+                            "path": str(target),
+                            "exists": False,
+                            "count": 0,
+                            "mtime": 0,
+                        },
+                    )
+                    snapshot.assert_not_called()
+                    load_entries.assert_not_called()
+
+    def test_autocomplete_status_custom_path_preserves_exact_snapshot_fallback(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "custom.csv"
+            path.write_text('first tag,0,100,"[일반] first"\n', encoding="utf-8")
+            original_load = autocomplete_dataset._load_entries
+
+            with (
+                patch.object(autocomplete_dataset, "AUTOCOMPLETE_SOURCES", {}),
+                patch.object(
+                    autocomplete_dataset,
+                    "_load_entries",
+                    wraps=original_load,
+                ) as load_entries,
+            ):
+                first = autocomplete_status(path)
+                first_stat = path.stat()
+                path.write_text(
+                    'second tag,0,100,"[일반] second"\n'
+                    'third longer tag,0,90,"[일반] third"\n',
+                    encoding="utf-8",
+                )
+                next_mtime = first_stat.st_mtime_ns + 1_000_000_000
+                os.utime(path, ns=(next_mtime, next_mtime))
+                second = autocomplete_status(path)
+
+        self.assertEqual(first["count"], 1)
+        self.assertEqual(second["count"], 2)
+        self.assertEqual(load_entries.call_count, 2)
+
+    def test_search_classify_and_status_report_the_same_snapshot_status(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "built-in.csv"
+            path.write_text(
+                'shared tag,0,100,"[일반] shared"\n'
+                'other tag,0,90,"[일반] other"\n',
+                encoding="utf-8",
+            )
+            sources = {
+                "fixture": {
+                    "label": "Fixture",
+                    "path": path,
+                    "entry_count": 2,
+                }
+            }
+
+            with patch.object(
+                autocomplete_dataset,
+                "AUTOCOMPLETE_SOURCES",
+                sources,
+            ):
+                searched = search_autocomplete("shared", path=path)
+                classified = classify_prompt_text("shared tag", path=path)
+                status = autocomplete_status(path)
+
+        self.assertEqual(searched["status"], classified["status"])
+        self.assertEqual(searched["status"], status)
+        self.assertEqual(status["count"], 2)
+
+    def test_autocomplete_snapshot_records_use_slots(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "slots.csv"
+            path.write_text('slotted tag,0,100,"[일반] slotted"\n', encoding="utf-8")
+            snapshot = autocomplete_dataset._snapshot(path)
+
+        self.assertFalse(hasattr(snapshot, "__dict__"))
+        self.assertFalse(hasattr(snapshot.key, "__dict__"))
+        self.assertFalse(hasattr(snapshot.entries[0], "__dict__"))
+
     def test_searches_escaped_literal_parentheses(self):
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "tags.csv"
