@@ -123,6 +123,51 @@ class WildcardEngineTests(unittest.TestCase):
         self.assertEqual(result.limit_reason, "cycle")
         self.assertEqual(result.replacement_count, 0)
 
+    def test_cycle_only_blocks_its_own_branch_in_either_input_order(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            (root / "a.txt").write_text("__a__\n", encoding="utf-8")
+            (root / "b.txt").write_text("done\n", encoding="utf-8")
+
+            cycle_first = expand_wildcards("__a__ __b__", seed=0, roots=[root])
+            cycle_last = expand_wildcards("__b__ __a__", seed=0, roots=[root])
+
+        self.assertEqual(cycle_first.text, "__a__ done")
+        self.assertEqual(cycle_last.text, "done __a__")
+        for result in (cycle_first, cycle_last):
+            self.assertEqual(result.limit_reason, "cycle")
+            self.assertEqual(result.replacement_count, 1)
+
+    def test_cycle_does_not_stop_an_independent_later_pass(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            (root / "a.txt").write_text("__a__\n", encoding="utf-8")
+            (root / "b.txt").write_text("__c__\n", encoding="utf-8")
+            (root / "c.txt").write_text("done\n", encoding="utf-8")
+
+            result = expand_wildcards("__a__ __b__", seed=0, roots=[root])
+
+        self.assertEqual(result.text, "__a__ done")
+        self.assertEqual(result.limit_reason, "cycle")
+        self.assertEqual(result.replacement_count, 2)
+
+    def test_fatal_budget_reason_takes_precedence_over_cycle_diagnostic(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            (root / "a.txt").write_text("__a__\n", encoding="utf-8")
+            (root / "b.txt").write_text("done\n", encoding="utf-8")
+
+            result = expand_wildcards(
+                "__a__ __b__",
+                seed=0,
+                roots=[root],
+                budget=WildcardExpansionBudget(max_replacements=0),
+            )
+
+        self.assertEqual(result.text, "__a__ __b__")
+        self.assertEqual(result.limit_reason, "max_replacements")
+        self.assertEqual(result.replacement_count, 0)
+
     def test_indirect_cycle_reports_the_same_reason_and_count(self):
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp)

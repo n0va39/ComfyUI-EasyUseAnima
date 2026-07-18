@@ -357,6 +357,7 @@ class _ExpansionState:
         self.budget = budget
         self.replacement_count = 0
         self.limit_reason: str | None = None
+        self.cycle_detected = False
         self._pass_base_chars = 0
         self._pass_base_bytes = 0
 
@@ -382,7 +383,7 @@ class _ExpansionState:
             for match in WILDCARD_RE.finditer(part):
                 key = _normalize_wildcard_key(match.group("keyword"))
                 if key is not None and key in key_stack:
-                    self.stop("cycle")
+                    self.cycle_detected = True
                     return None
         return candidate
 
@@ -1155,5 +1156,5 @@ def expand_wildcards(
         used_keys=tuple(library.used),
         missing_keys=tuple(library.missing),
         replacement_count=state.replacement_count,
-        limit_reason=state.limit_reason,
+        limit_reason=state.limit_reason or ("cycle" if state.cycle_detected else None),
     )
