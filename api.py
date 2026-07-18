@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import json
 import os
 import re
@@ -29,7 +30,13 @@ from .autocomplete_dataset import (
     search_autocomplete,
 )
 from .wildcard_engine import list_wildcards, resolve_wildcard_roots
-from .prompt_translation import translate_prompt_markers
+from .prompt_translation import (
+    PromptTranslationError,
+    TranslationCancelledError,
+    TranslationTimeoutError,
+    TranslationUpstreamError,
+    translate_prompt_markers,
+)
 try:
     from .storage import AtomicJsonStore, USER_DATA_DIR
 except ImportError:
@@ -69,6 +76,37 @@ WINDOWS_RESERVED_FILE_BASENAMES = {
     *(f"com{index}" for index in ("¹", "²", "³")),
     *(f"lpt{index}" for index in ("¹", "²", "³")),
 }
+PROMPT_TRANSLATION_ROUTE_TIMEOUT_SECONDS = 15.0
+
+
+def _translate_prompt_sync(text: str) -> str:
+    return translate_prompt_markers(text, resolve_prompt_translation_settings())
+
+
+async def _translate_prompt_for_route(text: str) -> str:
+    try:
+        return await asyncio.wait_for(
+            asyncio.to_thread(_translate_prompt_sync, text),
+            timeout=PROMPT_TRANSLATION_ROUTE_TIMEOUT_SECONDS,
+        )
+    except asyncio.CancelledError as exc:
+        # asyncio cannot stop a synchronous worker thread. Cancellation stops
+        # waiting immediately and is mapped by this route; the underlying sync
+        # provider call may still finish in the executor.
+        raise TranslationCancelledError() from exc
+    except asyncio.TimeoutError as exc:
+        raise TranslationTimeoutError() from exc
+
+
+def _prompt_translation_error_response(exc: PromptTranslationError):
+    return web.json_response(
+        {
+            "status": "error",
+            "code": exc.code,
+            "message": exc.message,
+        },
+        status=exc.status,
+    )
 
 
 def _parse_json_boolean(data: dict, key: str, *, default: bool = False) -> bool:
@@ -682,12 +720,11 @@ if web is not None and routes is not None:
     async def translate_prompt_handler(request):
         data = await request.json()
         try:
-            translated = translate_prompt_markers(
-                str(data.get("text") or ""),
-                resolve_prompt_translation_settings(),
-            )
-        except RuntimeError as exc:
-            return web.json_response({"status": "error", "message": str(exc)}, status=400)
+            translated = await _translate_prompt_for_route(str(data.get("text") or ""))
+        except PromptTranslationError as exc:
+            return _prompt_translation_error_response(exc)
+        except Exception:
+            return _prompt_translation_error_response(TranslationUpstreamError())
         return web.json_response({"status": "ok", "text": translated})
 
     @routes.get("/easyuse_anima/lora_preview")
