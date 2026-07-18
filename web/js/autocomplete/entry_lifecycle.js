@@ -7,7 +7,8 @@ const EXTERNAL_AUTOCOMPLETE_DISPOSE = "__easyuseAnimaExternalAutocompleteDispose
 /**
  * Register a Prompt Studio or other externally-created DOM input with the
  * autocomplete entry. The call site keeps one stable disposer even when the
- * entry is installed after the input or replaced by a newer entry owner.
+ * entry is installed after the input, the input mounts after registration, or
+ * the entry is replaced by a newer owner.
  *
  * @param {any} hostWindow
  * @param {any} input
@@ -22,6 +23,9 @@ export function registerExternalAutocompleteInput(hostWindow, input, options = {
 
   let disposed = false;
   let boundDispose = null;
+  let registered = false;
+  let mountFrame = null;
+  let waitingForMountFocus = false;
   const pendingEntry = {
     input,
     options,
@@ -34,11 +38,42 @@ export function registerExternalAutocompleteInput(hostWindow, input, options = {
     },
   };
 
+  const handleMountFocus = () => {
+    bindWhenMounted();
+  };
+
+  const stopWaitingForMount = () => {
+    if (waitingForMountFocus) {
+      input.removeEventListener?.("focus", handleMountFocus, true);
+      waitingForMountFocus = false;
+    }
+    if (mountFrame != null) {
+      hostWindow?.cancelAnimationFrame?.(mountFrame);
+      mountFrame = null;
+    }
+  };
+
+  const bindWhenMounted = () => {
+    if (disposed || registered || input.isConnected === false) {
+      return false;
+    }
+    registered = true;
+    stopWaitingForMount();
+    if (typeof hostWindow.easyuseAnimaHookAutocompleteInput === "function") {
+      pendingEntry.onBound(hostWindow.easyuseAnimaHookAutocompleteInput(input, options));
+    } else {
+      hostWindow.__easyuseAnimaPendingAutocompleteInputs ||= [];
+      hostWindow.__easyuseAnimaPendingAutocompleteInputs.push(pendingEntry);
+    }
+    return true;
+  };
+
   const dispose = () => {
     if (disposed) {
       return;
     }
     disposed = true;
+    stopWaitingForMount();
     const pending = hostWindow.__easyuseAnimaPendingAutocompleteInputs;
     if (Array.isArray(pending)) {
       hostWindow.__easyuseAnimaPendingAutocompleteInputs = pending.filter(
@@ -58,11 +93,20 @@ export function registerExternalAutocompleteInput(hostWindow, input, options = {
   };
 
   input[EXTERNAL_AUTOCOMPLETE_DISPOSE] = dispose;
-  if (typeof hostWindow.easyuseAnimaHookAutocompleteInput === "function") {
-    pendingEntry.onBound(hostWindow.easyuseAnimaHookAutocompleteInput(input, options));
-  } else {
-    hostWindow.__easyuseAnimaPendingAutocompleteInputs ||= [];
-    hostWindow.__easyuseAnimaPendingAutocompleteInputs.push(pendingEntry);
+  if (!bindWhenMounted() && input.isConnected === false) {
+    if (
+      typeof input.addEventListener === "function"
+      && typeof input.removeEventListener === "function"
+    ) {
+      input.addEventListener("focus", handleMountFocus, true);
+      waitingForMountFocus = true;
+    }
+    if (typeof hostWindow?.requestAnimationFrame === "function") {
+      mountFrame = hostWindow.requestAnimationFrame(() => {
+        mountFrame = null;
+        bindWhenMounted();
+      });
+    }
   }
   return dispose;
 }
