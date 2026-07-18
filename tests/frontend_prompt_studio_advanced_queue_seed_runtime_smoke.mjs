@@ -17,10 +17,15 @@ function clone(value) {
 const seedContractUrl = dataModule(
   "../web/js/prompt_studio/wildcard_seed_contract.js",
 );
+const hostHookRegistryUrl = dataModule(
+  "../web/js/lifecycle/host_hook_registry.js",
+);
 const queueSource = readFileSync(
   new URL("../web/js/prompt_studio/advanced_queue_seed_runtime.js", import.meta.url),
   "utf8",
-).replace('from "./wildcard_seed_contract.js"', `from "${seedContractUrl}"`);
+)
+  .replace('from "./wildcard_seed_contract.js"', `from "${seedContractUrl}"`)
+  .replace('from "../lifecycle/host_hook_registry.js"', `from "${hostHookRegistryUrl}"`);
 const queueModule = await import(sourceModule(queueSource));
 const seedContract = await import(seedContractUrl);
 assert.deepEqual(
@@ -189,7 +194,9 @@ const nodeHookConstants = sourceModule(`
 const nodeHooksSource = readFileSync(
   new URL("../web/js/prompt_studio/node_hooks.js", import.meta.url),
   "utf8",
-).replace('from "./constants.js"', `from "${nodeHookConstants}"`);
+)
+  .replace('from "./constants.js"', `from "${nodeHookConstants}"`)
+  .replace('from "../lifecycle/host_hook_registry.js"', `from "${hostHookRegistryUrl}"`);
 const nodeHooksModule = await import(sourceModule(nodeHooksSource));
 const wildcardWidgetHelpers = sourceModule(`
   export function findWidget(node, name) {
@@ -662,15 +669,20 @@ function reservedSeedState(prompt, nodeId) {
       events.push(["cleanup"]);
     },
   };
-  assert.equal(queueModule.installAdvancedQueueSeedGraphCleanup(graph, runtime), true);
+  const originalClear = graph.clear;
+  const disposeCleanup = queueModule.installAdvancedQueueSeedGraphCleanup(graph, runtime);
+  assert.equal(typeof disposeCleanup, "function");
   const installed = graph.clear;
-  assert.equal(queueModule.installAdvancedQueueSeedGraphCleanup(graph, runtime), false);
+  const disposeDuplicate = queueModule.installAdvancedQueueSeedGraphCleanup(graph, runtime);
+  assert.equal(disposeDuplicate(), false);
   assert.equal(graph.clear, installed, "graph cleanup wrapper must install only once");
   assert.equal(graph.clear.call(owner, firstArg, secondArg), clearResult);
   assert.deepEqual(events, [
     ["clear", owner, [firstArg, secondArg]],
     ["cleanup"],
   ]);
+  assert.equal(disposeCleanup(), true);
+  assert.equal(graph.clear, originalClear);
 
   const clearError = new Error("graph clear failed");
   let failedCleanupCalls = 0;
@@ -1953,19 +1965,27 @@ function reservedSeedState(prompt, nodeId) {
       return { prompt_id: "installed", node_errors: {} };
     },
   };
-  assert.equal(queueModule.installAdvancedQueueSeedQueueHook(host, fixture.runtime), true);
+  const disposeQueueHook = queueModule.installAdvancedQueueSeedQueueHook(host, fixture.runtime);
+  assert.equal(typeof disposeQueueHook, "function");
   const installed = host.queuePrompt;
-  assert.equal(queueModule.installAdvancedQueueSeedQueueHook(host, fixture.runtime), false);
+  const disposeDuplicate = queueModule.installAdvancedQueueSeedQueueHook(host, fixture.runtime);
+  assert.equal(disposeDuplicate(), false);
   assert.equal(host.queuePrompt, installed, "repeated setup must not stack wrappers");
   host.queuePrompt = async function (...args) {
     return installed.apply(this, args);
   };
   const foreignWrapper = host.queuePrompt;
-  assert.equal(queueModule.installAdvancedQueueSeedQueueHook(host, fixture.runtime), false);
+  const disposeForeignDuplicate = queueModule.installAdvancedQueueSeedQueueHook(
+    host,
+    fixture.runtime,
+  );
+  assert.equal(disposeForeignDuplicate(), false);
   assert.equal(host.queuePrompt, foreignWrapper, "the host marker survives foreign wrapper composition");
   const result = await host.queuePrompt(0, promptFor(fixture.nodes));
   assert.equal(result.prompt_id, "installed");
   assert.equal(host.calls, 1);
+  assert.equal(disposeQueueHook(), true);
+  assert.equal(host.queuePrompt, foreignWrapper, "dispose must preserve a foreign outer wrapper");
 }
 
 {

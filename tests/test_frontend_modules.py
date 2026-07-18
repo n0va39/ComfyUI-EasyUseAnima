@@ -9,10 +9,12 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 JSCONFIG = ROOT / "jsconfig.json"
 FRONTEND_CHECK_SCRIPT = ROOT / "tools" / "check_frontend.ps1"
+HOST_HOOK_REGISTRY_SMOKE = ROOT / "tests" / "frontend_host_hook_registry_smoke.mjs"
 PROMPT_STUDIO_ADVANCED_QUEUE_SEED_RUNTIME_SMOKE = (
     ROOT / "tests" / "frontend_prompt_studio_advanced_queue_seed_runtime_smoke.mjs"
 )
 WEB_JS = ROOT / "web" / "js"
+HOST_HOOK_REGISTRY_JS = WEB_JS / "lifecycle" / "host_hook_registry.js"
 API_JS = WEB_JS / "easyuse_anima_api.js"
 AIO_JS = WEB_JS / "easyuse_anima_aio.js"
 AIO_MODULES = WEB_JS / "aio"
@@ -113,6 +115,46 @@ STATIC_IMPORT_RE = re.compile(
 
 
 class FrontendModuleStructureTests(unittest.TestCase):
+    def test_host_hook_registry_phase_1_is_owned_and_focused(self):
+        registry_source = HOST_HOOK_REGISTRY_JS.read_text(encoding="utf-8")
+        node_hooks_source = (
+            PROMPT_STUDIO_MODULES / "node_hooks.js"
+        ).read_text(encoding="utf-8")
+        regional_extension_source = (
+            PROMPT_STUDIO_REGIONAL_MODULES / "extension.js"
+        ).read_text(encoding="utf-8")
+        queue_seed_source = (
+            PROMPT_STUDIO_MODULES / "advanced_queue_seed_runtime.js"
+        ).read_text(encoding="utf-8")
+        frontend_check_source = FRONTEND_CHECK_SCRIPT.read_text(encoding="utf-8")
+        config = json.loads(JSCONFIG.read_text(encoding="utf-8"))
+
+        self.assertTrue(HOST_HOOK_REGISTRY_SMOKE.is_file())
+        self.assertIn("web/js/lifecycle/**/*.js", config["include"])
+        self.assertIn(
+            r'node "tests\frontend_host_hook_registry_smoke.mjs"',
+            frontend_check_source,
+        )
+        self.assertIn("export function registerHostHookCallbacks", registry_source)
+        for source in (node_hooks_source, queue_seed_source):
+            self.assertIn('../lifecycle/host_hook_registry.js"', source)
+        self.assertIn('../../lifecycle/host_hook_registry.js"', regional_extension_source)
+
+        for source in (node_hooks_source, regional_extension_source, queue_seed_source):
+            self.assertIn("registerHostHookCallbacks({", source)
+        self.assertNotIn("__easyuseAnimaAdvancedWrapped", node_hooks_source)
+        self.assertNotIn("serialize.__easyuseAnimaRegionalWrapped", regional_extension_source)
+        self.assertNotIn("AdvancedQueueSeedInstalled", queue_seed_source)
+
+        self.assertNotIn(
+            "host_hook_registry",
+            AIO_GENERATOR_QUEUE_RUNTIME_JS.read_text(encoding="utf-8"),
+        )
+        self.assertNotIn(
+            "host_hook_registry",
+            (WEB_JS / "lora_preset" / "save_sync.js").read_text(encoding="utf-8"),
+        )
+
     def test_shared_api_module_exports_runtime_helpers(self):
         source = API_JS.read_text(encoding="utf-8")
 

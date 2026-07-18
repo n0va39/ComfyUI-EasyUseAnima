@@ -56,6 +56,9 @@ const queueSeedBridgeUrl = dataModule("../web/js/prompt_studio/queue_seed_bridge
 const autocompleteEntryLifecycleUrl = dataModule(
   "../web/js/autocomplete/entry_lifecycle.js",
 );
+const hostHookRegistryUrl = dataModule(
+  "../web/js/lifecycle/host_hook_registry.js",
+);
 const lifecycleUrl = dataModule("../web/js/prompt_studio/regional/lifecycle.js");
 const layoutUrl = dataModule("../web/js/prompt_studio/regional/layout.js", {
   "./lifecycle.js": lifecycleUrl,
@@ -66,6 +69,18 @@ const extensionUrl = dataModule("../web/js/prompt_studio/regional/extension.js",
   "./layout.js": layoutUrl,
   "../queue_seed_bridge.js": queueSeedBridgeUrl,
   "../../autocomplete/entry_lifecycle.js": autocompleteEntryLifecycleUrl,
+  "../../lifecycle/host_hook_registry.js": hostHookRegistryUrl,
+});
+const nodeHookConstantsUrl = `data:text/javascript;base64,${Buffer.from(`
+  export const NODE_TYPE = "EasyUseAnimaPromptStudio";
+  export const ADVANCED_NODE_TYPE = "EasyUseAnimaPromptStudioAdvanced";
+  export const ADVANCED_V2_NODE_TYPE = "EasyUseAnimaPromptStudioAdvancedV2";
+  export const EXTEND_NODE_TYPE = "EasyUseAnimaPromptStudioExtend";
+  export const WILDCARD_NODE_TYPE = "EasyUseAnimaWildcard";
+`).toString("base64")}`;
+const nodeHooksUrl = dataModule("../web/js/prompt_studio/node_hooks.js", {
+  "./constants.js": nodeHookConstantsUrl,
+  "../lifecycle/host_hook_registry.js": hostHookRegistryUrl,
 });
 const regionalRuntimeUrl = dataModule("../web/js/prompt_studio/regional/runtime.js", {
   "./constants.js": constantsUrl,
@@ -84,6 +99,7 @@ const fieldEditorUrl = dataModule("../web/js/prompt_studio/regional/field_editor
 
 const lifecycle = await import(lifecycleUrl);
 const extension = await import(extensionUrl);
+const nodeHooks = await import(nodeHooksUrl);
 const fieldEditor = await import(fieldEditorUrl);
 const queueSeedBridgeModule = await import(queueSeedBridgeUrl);
 const regionalRuntimeModule = await import(regionalRuntimeUrl);
@@ -402,14 +418,50 @@ const app = {
     return { owner: this, value };
   },
 };
-let syncRuns = 0;
-extension.installRegionalSaveSync(app, () => { syncRuns += 1; });
-extension.installRegionalSaveSync(app, () => { syncRuns += 100; });
+const originalSerialize = Graph.prototype.serialize;
+const originalQueuePrompt = app.queuePrompt;
+const syncOrder = [];
+const disposeAdvanced = nodeHooks.installAdvancedSaveSync(
+  app,
+  () => { syncOrder.push("advanced"); },
+);
+const installedSerialize = Graph.prototype.serialize;
+const installedQueuePrompt = app.queuePrompt;
+const disposeAdvancedDuplicate = nodeHooks.installAdvancedSaveSync(
+  app,
+  () => { syncOrder.push("advanced-duplicate"); },
+);
+const disposeRegional = extension.installRegionalSaveSync(
+  app,
+  () => { syncOrder.push("regional"); },
+);
+const disposeRegionalDuplicate = extension.installRegionalSaveSync(
+  app,
+  () => { syncOrder.push("regional-duplicate"); },
+);
+assert(disposeAdvancedDuplicate() === false, "Advanced duplicate setup owned a callback");
+assert(disposeRegionalDuplicate() === false, "Regional duplicate setup owned a callback");
+assert(Graph.prototype.serialize === installedSerialize, "Prompt Studio stacked serialize wrappers");
+assert(app.queuePrompt === installedQueuePrompt, "Prompt Studio stacked queue wrappers");
 const graphResult = app.graph.serialize("save");
 const queueResult = app.queuePrompt("queue");
 assert(graphResult.owner === app.graph && graphResult.value === "save", "Graph serialize context or return changed");
 assert(queueResult.owner === app && queueResult.value === "queue", "queuePrompt context or return changed");
-assert(syncRuns === 2, "Save/queue sync wrapper installed more than once");
+assert(
+  syncOrder.join(",") === "regional,advanced,regional,advanced",
+  `Prompt Studio callback order changed: ${syncOrder.join(",")}`,
+);
+
+syncOrder.length = 0;
+assert(disposeRegional() === true, "Regional disposer did not release its callbacks");
+app.graph.serialize("advanced-only");
+app.queuePrompt("advanced-only");
+assert(syncOrder.join(",") === "advanced,advanced", "Regional disposer removed another owner");
+assert(Graph.prototype.serialize === installedSerialize, "Serialize restored before the last owner left");
+assert(app.queuePrompt === installedQueuePrompt, "Queue restored before the last owner left");
+assert(disposeAdvanced() === true, "Advanced disposer did not release its callbacks");
+assert(Graph.prototype.serialize === originalSerialize, "Last serialize owner did not restore the original");
+assert(app.queuePrompt === originalQueuePrompt, "Last queue owner did not restore the original");
 
 delete globalThis.LGraph;
 let prematureGraphReads = 0;
@@ -422,8 +474,9 @@ const setupApp = {
     return "queued";
   },
 };
-extension.installRegionalSaveSync(setupApp, () => {});
+const disposeSetup = extension.installRegionalSaveSync(setupApp, () => {});
 assert(prematureGraphReads === 0, "Save sync read app.graph during extension setup");
 assert(setupApp.queuePrompt() === "queued", "Setup queue wrapper changed return value");
+assert(disposeSetup() === true, "Setup queue callback was not disposable");
 
 console.log("Regional runtime lifecycle smoke passed.");

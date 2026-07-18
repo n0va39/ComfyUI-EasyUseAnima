@@ -18,6 +18,13 @@ import {
   promptStudioQueueSeedBridge,
 } from "../queue_seed_bridge.js";
 import { disposeExternalAutocompleteInputs } from "../../autocomplete/entry_lifecycle.js";
+import {
+  registerHostHookCallbacks,
+} from "../../lifecycle/host_hook_registry.js";
+
+const REGIONAL_SAVE_SYNC_OWNER = Symbol.for(
+  "easyuse-anima.prompt-studio.regional-save-sync",
+);
 
 /**
  * @param {any} nodeType
@@ -60,24 +67,13 @@ function registerRegionalConditioningNodeHooks(nodeType, repairWidgets) {
  */
 function installRegionalSaveSync(app, syncAllRegionalNodes, graph = null) {
   const graphProto = globalThis.LGraph?.prototype || graph?.constructor?.prototype;
-  if (graphProto?.serialize && !graphProto.serialize.__easyuseAnimaRegionalWrapped) {
-    const serialize = graphProto.serialize;
-    const wrappedSerialize = function () {
-      syncAllRegionalNodes();
-      return serialize.apply(this, arguments);
-    };
-    wrappedSerialize.__easyuseAnimaRegionalWrapped = true;
-    graphProto.serialize = wrappedSerialize;
-  }
-  if (app.queuePrompt && !app.queuePrompt.__easyuseAnimaRegionalWrapped) {
-    const queuePrompt = app.queuePrompt;
-    const wrappedQueuePrompt = function () {
-      syncAllRegionalNodes();
-      return queuePrompt.apply(this, arguments);
-    };
-    wrappedQueuePrompt.__easyuseAnimaRegionalWrapped = true;
-    app.queuePrompt = wrappedQueuePrompt;
-  }
+  return registerHostHookCallbacks({
+    owner: REGIONAL_SAVE_SYNC_OWNER,
+    serializeHost: graphProto,
+    queueHost: app,
+    beforeSerialize: syncAllRegionalNodes,
+    beforeQueue: syncAllRegionalNodes,
+  });
 }
 
 /**
