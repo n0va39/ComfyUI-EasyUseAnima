@@ -1,39 +1,38 @@
 # Release Notes
 
+## 0.5.2
+
+### Fixed
+
+- Autocomplete can show up to 100 suggestions, preserves nested prompt syntax
+  when a suggestion is selected, and reconnects after workflow reloads.
+- AiO Generator keeps simultaneous queue seeds distinct, keeps preview scrolling
+  inside the preview, exposes the Detailer threshold, and preserves valid
+  resource and Detailer choices as options load.
+- LoRA Preset saves and restores profiles consistently and keeps Node 2.0 list
+  scrolling from zooming the canvas.
+
+### Compatibility
+
+- Existing workflows and settings remain compatible.
+- Compatibility was confirmed on ComfyUI 0.27.0 with LoRA Manager enabled.
+
+### Update
+
+- After updating, restart ComfyUI and hard-refresh the browser.
+
 ## 0.5.1
 
 ### Fixed
 
-- Fixed the Registry package so `web/js/autocomplete/` and every
-  repository-local static dependency imported by the Autocomplete entry module
-  are included. The 0.5.0 package omitted these modules because its
-  `.comfyignore` pattern matched both the root user-data directory and the
-  frontend runtime directory.
-- Added a recursive package-surface regression check that follows the
-  Autocomplete entry module's relative imports and verifies that every resolved
-  file is Git tracked and not ignored from the Registry archive.
+- Fixed Autocomplete suggestions that did not open in the withdrawn 0.5.0
+  package.
 
-### Important
+### Update
 
-- 0.5.0 was withdrawn from Comfy Registry because typed Autocomplete
-  suggestions could not load from its incomplete package. Install 0.5.1 or
-  later, restart ComfyUI, and perform a hard browser refresh.
-- 0.5.1 is a replacement package for 0.5.0. It does not reuse or overwrite the
-  0.5.0 version payload.
-
-### Validation Notes
-
-- Official full validation on the frozen hotfix tree passed Python unittest
-  400/400, 104 frontend JavaScript files, TypeScript 6.0.3, and diff checks.
-- `comfy node validate` passed, and an actual `comfy node pack` archive
-  contained the Autocomplete entry plus its complete eight-file local import
-  closure.
-- Legacy canvas and Node 2.0 each passed Autocomplete input, suggestion display,
-  keyboard selection, Escape close, and workflow save/reload checks with no
-  relevant EasyUse Anima module or 404 errors.
-- This release-preparation slice changes only version, Registry, workflow, and
-  maintenance documentation metadata; it does not change production Python or
-  JavaScript beyond the already validated hotfix.
+- If you installed 0.5.0, update to 0.5.1 or later, restart ComfyUI, and
+  hard-refresh the browser.
+- Existing workflows and settings remain compatible.
 
 ## 0.5.0
 

@@ -71,6 +71,13 @@ server/launcher, and confirm the port and related processes are gone.
 
 - Keep `main` merge, release, tags, and Registry publishing out of scope unless
   separately approved.
+- When Registry work is approved, write the current version changelog for
+  installing users in plain text. Lead with the user outcome and required
+  action; keep PRs, commits, internal files/modules, tests, scanner findings,
+  and release bookkeeping out of public Registry copy.
+- Copy an artifact hash into public release text only from a freshly computed
+  artifact or the live release asset digest. Never expand a truncated handoff
+  value, and read back the edited release body against the live asset digest.
 - Keep the user ComfyUI instance untouched until all agreed maintenance and bug
   boundaries are integrated.
 - At the final checkpoint, sync the complete compatible node-pack bundle once,
