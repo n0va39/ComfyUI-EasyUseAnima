@@ -55,7 +55,14 @@ assert.equal(encodedValues.length, 0, "factory creation must not encode a name")
 const errorContracts = [
   {
     payload: { status: "error", message: "Legacy conflict" },
-    expected: { message: "Legacy conflict", status: 409, code: undefined, details: undefined },
+    headerRequestId: "",
+    expected: {
+      message: "Legacy conflict",
+      status: 409,
+      code: undefined,
+      details: undefined,
+      requestId: undefined,
+    },
   },
   {
     payload: {
@@ -63,23 +70,40 @@ const errorContracts = [
       code: "profile_exists",
       message: "Profile already exists",
       details: { field: "name" },
+      request_id: "body-request-id",
     },
+    headerRequestId: "different-header-id",
     expected: {
       message: "Profile already exists",
       status: 409,
       code: "profile_exists",
       details: { field: "name" },
+      requestId: "body-request-id",
+    },
+  },
+  {
+    payload: { status: "error", message: "Raw legacy error" },
+    headerRequestId: "header-request-id",
+    expected: {
+      message: "Raw legacy error",
+      status: 409,
+      code: undefined,
+      details: undefined,
+      requestId: "header-request-id",
     },
   },
 ];
 
-for (const { payload, expected } of errorContracts) {
+for (const { payload, headerRequestId, expected } of errorContracts) {
   await assert.rejects(
     sharedApiModule.easyuseAnimaFetchJson("/contract", {
       fetcher: async () => ({
         ok: false,
         status: 409,
         statusText: "Conflict",
+        headers: {
+          get: (name) => name.toLowerCase() === "x-request-id" ? headerRequestId : null,
+        },
         json: async () => payload,
       }),
     }),
@@ -88,6 +112,7 @@ for (const { payload, expected } of errorContracts) {
       assert.equal(error.status, expected.status);
       assert.equal(error.code, expected.code);
       assert.deepEqual(error.details, expected.details);
+      assert.equal(error.requestId, expected.requestId);
       return true;
     },
     "shared API transport must accept legacy and coded error payloads",

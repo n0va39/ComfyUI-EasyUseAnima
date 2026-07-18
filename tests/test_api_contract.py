@@ -11,6 +11,7 @@ import threading
 import time
 import types
 import unittest
+import uuid
 import weakref
 from itertools import count
 from pathlib import Path
@@ -34,6 +35,45 @@ class RouteRegistry:
 
     def post(self, path):
         return self.get(path)
+
+
+class FakeJsonResponse(dict):
+    def __init__(self, payload, status=200):
+        super().__init__(payload=payload, status=status)
+        self.status = status
+        self.headers = {}
+        self.content_type = "application/json"
+
+    @property
+    def text(self):
+        return json.dumps(self["payload"])
+
+    @text.setter
+    def text(self, value):
+        self["payload"] = json.loads(value)
+
+
+class FakeResponse:
+    def __init__(self, *, status=200, headers=None, body=b""):
+        self.status = status
+        self.headers = dict(headers or {})
+        self.body = body
+        self.content_type = "application/octet-stream"
+
+
+class FakeFileResponse(FakeResponse):
+    def __init__(self, path, *, headers=None):
+        super().__init__(headers=headers)
+        self.path = path
+
+
+class FakeHTTPException(Exception):
+    def __init__(self, *, status=400, body=b""):
+        super().__init__(f"HTTP {status}")
+        self.status = status
+        self.body = body
+        self.headers = {}
+        self.content_type = "text/plain"
 
 
 class JsonRequest:
@@ -63,7 +103,10 @@ def load_api_routes():
     )
     fake_aiohttp = types.ModuleType("aiohttp")
     fake_aiohttp.web = types.SimpleNamespace(
-        json_response=lambda payload, status=200: {"payload": payload, "status": status},
+        json_response=FakeJsonResponse,
+        Response=FakeResponse,
+        FileResponse=FakeFileResponse,
+        HTTPException=FakeHTTPException,
     )
 
     spec = importlib.util.spec_from_file_location(
@@ -87,6 +130,224 @@ def response_strings(value):
             yield from response_strings(item)
     elif isinstance(value, str):
         yield value
+
+
+class ApiRequestCorrelationTests(unittest.TestCase):
+    ROUTES = {
+        "/easyuse_anima/settings",
+        "/easyuse_anima/set_setting",
+        "/easyuse_anima/long_text_settings",
+        "/easyuse_anima/wildcards",
+        "/easyuse_anima/long_text_settings/save",
+        "/easyuse_anima/autocomplete_status",
+        "/easyuse_anima/autocomplete",
+        "/easyuse_anima/classify_prompt",
+        "/easyuse_anima/translate_prompt",
+        "/easyuse_anima/lora_preview",
+        "/easyuse_anima/loras",
+        "/easyuse_anima/lora_profiles",
+        "/easyuse_anima/lora_profiles/save",
+        "/easyuse_anima/lora_profiles/load",
+        "/easyuse_anima/aio_profiles",
+        "/easyuse_anima/aio_profiles/save",
+        "/easyuse_anima/aio_profiles/load",
+        "/easyuse_anima/aio_profiles/delete",
+        "/easyuse_anima/aio_profiles/rename",
+        "/easyuse_anima/lora_profiles/fix",
+    }
+
+    def test_every_owned_route_has_source_and_registration_correlation(self):
+        source = (ROOT / "api.py").read_text(encoding="utf-8")
+        decorated_paths = set(
+            re.findall(
+                r'@routes\.(?:get|post)\("(/easyuse_anima/[^"\n]+)"\)\s+'
+                r"@_request_correlated",
+                source,
+            )
+        )
+        self.assertEqual(decorated_paths, self.ROUTES)
+
+        _api, routes = load_api_routes()
+        self.assertEqual(set(routes.handlers), self.ROUTES)
+        for path, handler in routes.handlers.items():
+            with self.subTest(path=path):
+                self.assertTrue(
+                    getattr(handler, "_easyuse_anima_request_correlation", False)
+                )
+
+    def test_json_error_body_and_header_share_one_uuid(self):
+        api, routes = load_api_routes()
+        request_id = "12345678-1234-4567-89ab-1234567890ab"
+        with patch.object(api, "create_request_id", return_value=request_id):
+            response = asyncio.run(
+                routes.handlers["/easyuse_anima/set_setting"](JsonRequest([]))
+            )
+
+        self.assertEqual(response["status"], 400)
+        self.assertEqual(response["payload"]["code"], "json_object_required")
+        self.assertEqual(response["payload"]["request_id"], request_id)
+        self.assertEqual(response.headers["X-Request-ID"], request_id)
+        self.assertEqual(str(uuid.UUID(response["payload"]["request_id"])), request_id)
+
+    def test_real_aiohttp_json_response_keeps_correlated_header_and_body(self):
+        from aiohttp import web as aiohttp_web
+
+        api, _routes = load_api_routes()
+        request_id = "17345678-1234-4567-89ab-1234567890ab"
+        response = aiohttp_web.json_response(
+            {
+                "status": "error",
+                "code": "invalid_request",
+                "message": "Request validation failed",
+                "details": {"field": "name"},
+            },
+            status=422,
+        )
+
+        correlated = api.correlate_response(response, request_id)
+
+        self.assertIs(correlated, response)
+        self.assertEqual(response.headers["X-Request-ID"], request_id)
+        self.assertEqual(json.loads(response.text)["request_id"], request_id)
+        self.assertEqual(response.status, 422)
+        self.assertEqual(response.content_type, "application/json")
+
+    def test_success_response_has_header_without_body_contract_change(self):
+        api, routes = load_api_routes()
+        request_id = "22345678-1234-4567-89ab-1234567890ab"
+        payload = {"future": {"kept": True}}
+        with (
+            patch.object(api, "create_request_id", return_value=request_id),
+            patch.object(api, "_get_settings_payload_sync", return_value=payload),
+        ):
+            response = asyncio.run(
+                routes.handlers["/easyuse_anima/settings"](JsonRequest())
+            )
+
+        self.assertEqual(response["payload"], payload)
+        self.assertNotIn("request_id", response["payload"])
+        self.assertEqual(response.headers["X-Request-ID"], request_id)
+
+    def test_translation_status_taxonomy_keeps_request_correlation(self):
+        api, routes = load_api_routes()
+
+        class TranslationUpstreamTestError(api.PromptTranslationError):
+            status = 502
+            code = "translation_upstream_error"
+
+        cases = (
+            (api.TranslationCancelledError(), 499, "translation_cancelled"),
+            (TranslationUpstreamTestError(), 502, "translation_upstream_error"),
+            (api.TranslationBusyError(), 503, "translation_busy"),
+            (api.TranslationTimeoutError(), 504, "translation_timeout"),
+        )
+        handler = routes.handlers["/easyuse_anima/translate_prompt"]
+
+        for error, status, code in cases:
+            with self.subTest(code=code), patch.object(
+                api,
+                "_translate_prompt_for_route",
+                side_effect=error,
+            ):
+                response = asyncio.run(handler(JsonRequest({"text": "%{text}"})))
+            self.assertEqual(response["status"], status)
+            self.assertEqual(response["payload"]["code"], code)
+            self.assertEqual(
+                response["payload"]["request_id"],
+                response.headers["X-Request-ID"],
+            )
+
+    def test_unexpected_exception_is_safe_500_and_logged_with_request_id(self):
+        api, routes = load_api_routes()
+        request_id = "32345678-1234-4567-89ab-1234567890ab"
+        secret = r"C:\Users\alice\secret.json API_TOKEN=top-secret"
+        with (
+            patch.object(api, "create_request_id", return_value=request_id),
+            patch.object(api, "_list_aio_profiles", side_effect=RuntimeError(secret)),
+            patch.object(api._LOGGER, "exception") as log_exception,
+        ):
+            response = asyncio.run(
+                routes.handlers["/easyuse_anima/aio_profiles"](JsonRequest())
+            )
+
+        self.assertEqual(response["status"], 500)
+        self.assertEqual(
+            response["payload"],
+            {
+                "status": "error",
+                "code": "internal_error",
+                "message": "An unexpected server error occurred.",
+                "request_id": request_id,
+            },
+        )
+        self.assertEqual(response.headers["X-Request-ID"], request_id)
+        log_exception.assert_called_once()
+        self.assertEqual(log_exception.call_args.args[1], request_id)
+        serialized = json.dumps(response["payload"])
+        for forbidden in ("alice", "secret.json", "API_TOKEN", "top-secret", "Traceback"):
+            self.assertNotIn(forbidden, serialized)
+
+    def test_cancelled_request_is_not_normalized_or_logged(self):
+        api, routes = load_api_routes()
+        with (
+            patch.object(api, "_run_file_io", side_effect=asyncio.CancelledError()),
+            patch.object(api._LOGGER, "exception") as log_exception,
+        ):
+            with self.assertRaises(asyncio.CancelledError):
+                asyncio.run(
+                    routes.handlers["/easyuse_anima/aio_profiles"](JsonRequest())
+                )
+        log_exception.assert_not_called()
+
+    def test_http_exception_preserves_control_flow_and_body_with_header(self):
+        from aiohttp import web as aiohttp_web
+
+        api, _routes = load_api_routes()
+        request_id = "42345678-1234-4567-89ab-1234567890ab"
+        original = aiohttp_web.HTTPNotFound(text="not found")
+
+        @api._request_correlated
+        async def raises_http_exception(_request):
+            raise original
+
+        with (
+            patch.object(api, "create_request_id", return_value=request_id),
+            patch.object(api.web, "HTTPException", aiohttp_web.HTTPException),
+            patch.object(api._LOGGER, "exception") as log_exception,
+        ):
+            with self.assertRaises(aiohttp_web.HTTPNotFound) as raised:
+                asyncio.run(raises_http_exception(JsonRequest()))
+
+        self.assertEqual(raised.exception.status, 404)
+        self.assertEqual(raised.exception.text, "not found")
+        self.assertEqual(raised.exception.headers["X-Request-ID"], request_id)
+        log_exception.assert_not_called()
+
+    def test_lora_preview_keeps_raw_and_binary_contracts_with_header(self):
+        api, routes = load_api_routes()
+        handler = routes.handlers["/easyuse_anima/lora_preview"]
+
+        with patch.object(api, "_resolve_lora_preview_path", return_value=None):
+            missing = asyncio.run(handler(JsonRequest(query={"name": "missing"})))
+        self.assertIsInstance(missing, FakeResponse)
+        self.assertEqual(missing.status, 404)
+        self.assertEqual(missing.body, b"")
+        self.assertIn("X-Request-ID", missing.headers)
+
+        preview_path = r"C:\safe-test\preview.webp"
+        with patch.object(
+            api,
+            "_resolve_lora_preview_path",
+            return_value=preview_path,
+        ):
+            found = asyncio.run(handler(JsonRequest(query={"name": "preview"})))
+        self.assertIsInstance(found, FakeFileResponse)
+        self.assertEqual(found.path, preview_path)
+        self.assertEqual(
+            found.headers["Content-Disposition"],
+            'filename="preview.webp"',
+        )
+        self.assertIn("X-Request-ID", found.headers)
 
 
 class ApiRequestContractTests(unittest.TestCase):
@@ -427,15 +688,26 @@ class ApiRequestContractTests(unittest.TestCase):
         for forbidden in ("alice", "profile.json", "API_TOKEN", "top-secret", "Traceback"):
             self.assertNotIn(forbidden, serialized)
 
-    def test_unexpected_worker_exception_is_not_reclassified(self):
+    def test_unexpected_worker_exception_is_normalized_only_at_route_boundary(self):
         api, routes = load_api_routes()
-        with patch.object(
-            api,
-            "_list_aio_profiles",
-            side_effect=RuntimeError("storage programming error"),
+        with (
+            patch.object(
+                api,
+                "_list_aio_profiles",
+                side_effect=RuntimeError("storage programming error"),
+            ),
+            patch.object(api._LOGGER, "exception") as log_exception,
         ):
-            with self.assertRaisesRegex(RuntimeError, "storage programming error"):
-                asyncio.run(routes.handlers["/easyuse_anima/aio_profiles"](JsonRequest()))
+            response = asyncio.run(
+                routes.handlers["/easyuse_anima/aio_profiles"](JsonRequest())
+            )
+        self.assertEqual(response["status"], 500)
+        self.assertEqual(response["payload"]["code"], "internal_error")
+        self.assertEqual(
+            response["payload"]["request_id"],
+            response.headers["X-Request-ID"],
+        )
+        log_exception.assert_called_once()
 
     def test_normal_settings_and_profile_success_payloads_remain_compatible(self):
         api, routes = load_api_routes()

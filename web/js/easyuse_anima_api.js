@@ -29,7 +29,7 @@ function easyuseAnimaApiError(response, data, errorMessage) {
     || response.statusText
     || (response.status ? `HTTP ${response.status}` : errorMessage)
     || DEFAULT_REQUEST_FAILED;
-  const error = /** @type {Error & {status: number, code?: string, details?: any}} */ (
+  const error = /** @type {Error & {status: number, code?: string, details?: any, requestId?: string}} */ (
     new Error(message)
   );
   error.status = Number(response?.status) || 0;
@@ -38,6 +38,12 @@ function easyuseAnimaApiError(response, data, errorMessage) {
   }
   if (data?.details !== undefined) {
     error.details = data.details;
+  }
+  const requestId = (typeof data?.request_id === "string" && data.request_id)
+    || response?.headers?.get?.("X-Request-ID")
+    || "";
+  if (requestId) {
+    error.requestId = requestId;
   }
   return error;
 }

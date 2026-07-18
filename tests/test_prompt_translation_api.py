@@ -307,13 +307,19 @@ class PromptTranslationApiTests(unittest.TestCase):
             TimeoutError("settings storage timeout"),
         ):
             with self.subTest(error=type(error).__name__):
-                with patch.object(
-                    api,
-                    "resolve_prompt_translation_settings",
-                    side_effect=error,
+                with (
+                    patch.object(
+                        api,
+                        "resolve_prompt_translation_settings",
+                        side_effect=error,
+                    ),
+                    patch.object(api._LOGGER, "exception") as log_exception,
                 ):
-                    with self.assertRaisesRegex(type(error), str(error)):
-                        asyncio.run(handler(JsonRequest({"text": "%{text}"})))
+                    response = asyncio.run(handler(JsonRequest({"text": "%{text}"})))
+                self.assertEqual(response["status"], 500)
+                self.assertEqual(response["payload"]["code"], "internal_error")
+                self.assertNotEqual(response["payload"]["code"], "translation_upstream_error")
+                log_exception.assert_called_once()
 
         response = asyncio.run(handler(JsonRequest([])))
         self.assertEqual(response["status"], 400)

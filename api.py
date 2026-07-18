@@ -3,11 +3,13 @@ from __future__ import annotations
 import atexit
 import asyncio
 import json
+import logging
 import os
 import re
 import threading
 import weakref
 from concurrent.futures import Future, ThreadPoolExecutor
+from functools import wraps
 from pathlib import Path
 
 try:
@@ -43,6 +45,9 @@ from .prompt_translation import (
 )
 from .api_contract import (
     ApiContractError,
+    attach_request_id_header,
+    correlate_response,
+    create_request_id,
     error_payload,
     json_boolean,
     json_integer,
@@ -91,6 +96,7 @@ WINDOWS_RESERVED_FILE_BASENAMES = {
 }
 PROMPT_TRANSLATION_ROUTE_TIMEOUT_SECONDS = 15.0
 FILE_IO_MAX_IN_FLIGHT = 4
+_LOGGER = logging.getLogger(__name__)
 
 
 class InvalidProfileDataError(ValueError):
@@ -175,13 +181,10 @@ async def _translate_prompt_for_route(text: str) -> str:
 
 
 def _prompt_translation_error_response(exc: PromptTranslationError):
-    return web.json_response(
-        {
-            "status": "error",
-            "code": exc.code,
-            "message": exc.message,
-        },
-        status=exc.status,
+    return _error_response(
+        exc.status,
+        exc.code,
+        exc.message,
     )
 
 
@@ -205,6 +208,34 @@ def _contract_error_response(exc: ApiContractError):
         exc.message,
         details=exc.details,
     )
+
+
+def _request_correlated(handler):
+    @wraps(handler)
+    async def correlated_handler(request):
+        request_id = create_request_id()
+        try:
+            response = await handler(request)
+        except asyncio.CancelledError:
+            raise
+        except Exception as exc:
+            http_exception_type = getattr(web, "HTTPException", ())
+            if isinstance(exc, http_exception_type):
+                attach_request_id_header(exc, request_id)
+                raise
+            _LOGGER.exception(
+                "Unhandled EasyUseAnima API error (request_id=%s)",
+                request_id,
+            )
+            response = _error_response(
+                500,
+                "internal_error",
+                "An unexpected server error occurred.",
+            )
+        return correlate_response(response, request_id)
+
+    correlated_handler._easyuse_anima_request_correlation = True
+    return correlated_handler
 
 
 def _file_io_limiter() -> asyncio.Semaphore:
@@ -897,10 +928,12 @@ routes = _get_prompt_routes()
 if web is not None and routes is not None:
 
     @routes.get("/easyuse_anima/settings")
+    @_request_correlated
     async def get_settings_handler(request):
         return web.json_response(await _run_file_io(_get_settings_payload_sync))
 
     @routes.post("/easyuse_anima/set_setting")
+    @_request_correlated
     async def set_setting_handler(request):
         try:
             data = await parse_json_object(request)
@@ -918,16 +951,19 @@ if web is not None and routes is not None:
         return web.json_response(payload)
 
     @routes.get("/easyuse_anima/long_text_settings")
+    @_request_correlated
     async def get_long_text_settings_handler(request):
         return web.json_response(
             await _run_file_io(_get_long_text_settings_payload_sync)
         )
 
     @routes.get("/easyuse_anima/wildcards")
+    @_request_correlated
     async def get_wildcards_handler(request):
         return web.json_response(await _run_file_io(_wildcards_payload_sync))
 
     @routes.post("/easyuse_anima/long_text_settings/save")
+    @_request_correlated
     async def save_long_text_settings_handler(request):
         try:
             data = await parse_json_object(request)
@@ -939,10 +975,12 @@ if web is not None and routes is not None:
         )
 
     @routes.get("/easyuse_anima/autocomplete_status")
+    @_request_correlated
     async def autocomplete_status_handler(request):
         return web.json_response(await _run_file_io(_autocomplete_status_payload_sync))
 
     @routes.get("/easyuse_anima/autocomplete")
+    @_request_correlated
     async def autocomplete_handler(request):
         query = request.query.get("q", "")
         category = request.query.get("category", "")
@@ -960,6 +998,7 @@ if web is not None and routes is not None:
         )
 
     @routes.post("/easyuse_anima/classify_prompt")
+    @_request_correlated
     async def classify_prompt_handler(request):
         try:
             data = await parse_json_object(request)
@@ -978,6 +1017,7 @@ if web is not None and routes is not None:
         )
 
     @routes.post("/easyuse_anima/translate_prompt")
+    @_request_correlated
     async def translate_prompt_handler(request):
         try:
             data = await parse_json_object(request)
@@ -991,6 +1031,7 @@ if web is not None and routes is not None:
         return web.json_response({"status": "ok", "text": translated})
 
     @routes.get("/easyuse_anima/lora_preview")
+    @_request_correlated
     async def lora_preview_handler(request):
         preview_path = await _run_file_io(
             _resolve_lora_preview_path,
@@ -1004,14 +1045,17 @@ if web is not None and routes is not None:
         )
 
     @routes.get("/easyuse_anima/loras")
+    @_request_correlated
     async def loras_handler(request):
         return web.json_response({"loras": await _run_file_io(_list_loras)})
 
     @routes.get("/easyuse_anima/lora_profiles")
+    @_request_correlated
     async def lora_profiles_handler(request):
         return web.json_response({"profiles": await _run_file_io(_list_lora_profiles)})
 
     @routes.post("/easyuse_anima/lora_profiles/save")
+    @_request_correlated
     async def save_lora_profile_handler(request):
         try:
             data = await parse_json_object(request)
@@ -1033,6 +1077,7 @@ if web is not None and routes is not None:
         return web.json_response({"status": "ok", "profile": payload})
 
     @routes.get("/easyuse_anima/lora_profiles/load")
+    @_request_correlated
     async def load_lora_profile_handler(request):
         try:
             payload = await _run_file_io(
@@ -1049,12 +1094,14 @@ if web is not None and routes is not None:
         return web.json_response({"status": "ok", "profile": payload})
 
     @routes.get("/easyuse_anima/aio_profiles")
+    @_request_correlated
     async def aio_profiles_handler(request):
         return web.json_response(
             {"status": "ok", "profiles": await _run_file_io(_list_aio_profiles)}
         )
 
     @routes.post("/easyuse_anima/aio_profiles/save")
+    @_request_correlated
     async def save_aio_profile_handler(request):
         try:
             data = await parse_json_object(request)
@@ -1075,6 +1122,7 @@ if web is not None and routes is not None:
         return web.json_response({"status": "ok", "profile": payload})
 
     @routes.get("/easyuse_anima/aio_profiles/load")
+    @_request_correlated
     async def load_aio_profile_handler(request):
         try:
             payload = await _run_file_io(
@@ -1086,6 +1134,7 @@ if web is not None and routes is not None:
         return web.json_response({"status": "ok", "profile": payload})
 
     @routes.post("/easyuse_anima/aio_profiles/delete")
+    @_request_correlated
     async def delete_aio_profile_handler(request):
         try:
             data = await parse_json_object(request)
@@ -1099,6 +1148,7 @@ if web is not None and routes is not None:
         return web.json_response({"status": "ok", "profile": payload})
 
     @routes.post("/easyuse_anima/aio_profiles/rename")
+    @_request_correlated
     async def rename_aio_profile_handler(request):
         try:
             data = await parse_json_object(request)
@@ -1119,6 +1169,7 @@ if web is not None and routes is not None:
         return web.json_response({"status": "ok", "profile": payload})
 
     @routes.post("/easyuse_anima/lora_profiles/fix")
+    @_request_correlated
     async def fix_lora_profile_handler(request):
         try:
             data = await parse_json_object(request)
