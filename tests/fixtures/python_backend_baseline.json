@@ -1216,6 +1216,23 @@
       },
       {
         "alias": null,
+        "bound_name": "logging",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "logging",
+        "kind": "static_import",
+        "line": 6,
+        "name": null,
+        "optional": false,
+        "requested": "logging",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "api.py"
+      },
+      {
+        "alias": null,
         "bound_name": "os",
         "branch_context": [],
         "classification": "external",
@@ -1223,7 +1240,7 @@
         "conditional": false,
         "imported": "os",
         "kind": "static_import",
-        "line": 6,
+        "line": 7,
         "name": null,
         "optional": false,
         "requested": "os",
@@ -1240,7 +1257,7 @@
         "conditional": false,
         "imported": "re",
         "kind": "static_import",
-        "line": 7,
+        "line": 8,
         "name": null,
         "optional": false,
         "requested": "re",
@@ -1257,7 +1274,7 @@
         "conditional": false,
         "imported": "threading",
         "kind": "static_import",
-        "line": 8,
+        "line": 9,
         "name": null,
         "optional": false,
         "requested": "threading",
@@ -1274,7 +1291,7 @@
         "conditional": false,
         "imported": "weakref",
         "kind": "static_import",
-        "line": 9,
+        "line": 10,
         "name": null,
         "optional": false,
         "requested": "weakref",
@@ -1291,7 +1308,7 @@
         "conditional": false,
         "imported": "concurrent.futures:Future",
         "kind": "static_from",
-        "line": 10,
+        "line": 11,
         "name": "Future",
         "optional": false,
         "requested": "concurrent.futures",
@@ -1308,10 +1325,27 @@
         "conditional": false,
         "imported": "concurrent.futures:ThreadPoolExecutor",
         "kind": "static_from",
-        "line": 10,
+        "line": 11,
         "name": "ThreadPoolExecutor",
         "optional": false,
         "requested": "concurrent.futures",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "api.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "wraps",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "functools:wraps",
+        "kind": "static_from",
+        "line": 12,
+        "name": "wraps",
+        "optional": false,
+        "requested": "functools",
         "role": "ordinary",
         "scope": "<module>",
         "source": "api.py"
@@ -1325,7 +1359,7 @@
         "conditional": false,
         "imported": "pathlib:Path",
         "kind": "static_from",
-        "line": 11,
+        "line": 13,
         "name": "Path",
         "optional": false,
         "requested": "pathlib",
@@ -1342,7 +1376,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": true,
             "kind": "try",
-            "line": 13
+            "line": 15
           }
         ],
         "classification": "external",
@@ -1350,7 +1384,7 @@
         "conditional": true,
         "imported": "server",
         "kind": "static_import",
-        "line": 14,
+        "line": 16,
         "name": null,
         "optional": true,
         "requested": "server",
@@ -1367,7 +1401,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": true,
             "kind": "try",
-            "line": 13
+            "line": 15
           }
         ],
         "classification": "external",
@@ -1375,7 +1409,7 @@
         "conditional": true,
         "imported": "aiohttp:web",
         "kind": "static_from",
-        "line": 15,
+        "line": 17,
         "name": "web",
         "optional": true,
         "requested": "aiohttp",
@@ -1392,7 +1426,7 @@
         "conditional": false,
         "imported": ".settings:load_long_text_settings",
         "kind": "static_from",
-        "line": 20,
+        "line": 22,
         "name": "load_long_text_settings",
         "optional": false,
         "requested": ".settings",
@@ -1410,7 +1444,7 @@
         "conditional": false,
         "imported": ".settings:public_settings",
         "kind": "static_from",
-        "line": 20,
+        "line": 22,
         "name": "public_settings",
         "optional": false,
         "requested": ".settings",
@@ -1428,7 +1462,7 @@
         "conditional": false,
         "imported": ".settings:resolve_autocomplete_limit",
         "kind": "static_from",
-        "line": 20,
+        "line": 22,
         "name": "resolve_autocomplete_limit",
         "optional": false,
         "requested": ".settings",
@@ -1446,7 +1480,7 @@
         "conditional": false,
         "imported": ".settings:resolve_autocomplete_source",
         "kind": "static_from",
-        "line": 20,
+        "line": 22,
         "name": "resolve_autocomplete_source",
         "optional": false,
         "requested": ".settings",
@@ -1464,7 +1498,7 @@
         "conditional": false,
         "imported": ".settings:resolve_prompt_translation_settings",
         "kind": "static_from",
-        "line": 20,
+        "line": 22,
         "name": "resolve_prompt_translation_settings",
         "optional": false,
         "requested": ".settings",
@@ -1482,7 +1516,7 @@
         "conditional": false,
         "imported": ".settings:save_long_text_settings",
         "kind": "static_from",
-        "line": 20,
+        "line": 22,
         "name": "save_long_text_settings",
         "optional": false,
         "requested": ".settings",
@@ -1500,7 +1534,7 @@
         "conditional": false,
         "imported": ".settings:save_setting",
         "kind": "static_from",
-        "line": 20,
+        "line": 22,
         "name": "save_setting",
         "optional": false,
         "requested": ".settings",
@@ -1518,7 +1552,7 @@
         "conditional": false,
         "imported": ".autocomplete_dataset:autocomplete_status",
         "kind": "static_from",
-        "line": 29,
+        "line": 31,
         "name": "autocomplete_status",
         "optional": false,
         "requested": ".autocomplete_dataset",
@@ -1536,7 +1570,7 @@
         "conditional": false,
         "imported": ".autocomplete_dataset:available_autocomplete_sources",
         "kind": "static_from",
-        "line": 29,
+        "line": 31,
         "name": "available_autocomplete_sources",
         "optional": false,
         "requested": ".autocomplete_dataset",
@@ -1554,7 +1588,7 @@
         "conditional": false,
         "imported": ".autocomplete_dataset:classify_prompt_text",
         "kind": "static_from",
-        "line": 29,
+        "line": 31,
         "name": "classify_prompt_text",
         "optional": false,
         "requested": ".autocomplete_dataset",
@@ -1572,7 +1606,7 @@
         "conditional": false,
         "imported": ".autocomplete_dataset:resolve_autocomplete_source",
         "kind": "static_from",
-        "line": 29,
+        "line": 31,
         "name": "resolve_autocomplete_source",
         "optional": false,
         "requested": ".autocomplete_dataset",
@@ -1590,7 +1624,7 @@
         "conditional": false,
         "imported": ".autocomplete_dataset:search_autocomplete",
         "kind": "static_from",
-        "line": 29,
+        "line": 31,
         "name": "search_autocomplete",
         "optional": false,
         "requested": ".autocomplete_dataset",
@@ -1608,7 +1642,7 @@
         "conditional": false,
         "imported": ".wildcard_engine:list_wildcards",
         "kind": "static_from",
-        "line": 36,
+        "line": 38,
         "name": "list_wildcards",
         "optional": false,
         "requested": ".wildcard_engine",
@@ -1626,7 +1660,7 @@
         "conditional": false,
         "imported": ".wildcard_engine:resolve_wildcard_roots",
         "kind": "static_from",
-        "line": 36,
+        "line": 38,
         "name": "resolve_wildcard_roots",
         "optional": false,
         "requested": ".wildcard_engine",
@@ -1644,7 +1678,7 @@
         "conditional": false,
         "imported": ".prompt_translation:PromptTranslationError",
         "kind": "static_from",
-        "line": 37,
+        "line": 39,
         "name": "PromptTranslationError",
         "optional": false,
         "requested": ".prompt_translation",
@@ -1662,7 +1696,7 @@
         "conditional": false,
         "imported": ".prompt_translation:TranslationBusyError",
         "kind": "static_from",
-        "line": 37,
+        "line": 39,
         "name": "TranslationBusyError",
         "optional": false,
         "requested": ".prompt_translation",
@@ -1680,7 +1714,7 @@
         "conditional": false,
         "imported": ".prompt_translation:TranslationCancelledError",
         "kind": "static_from",
-        "line": 37,
+        "line": 39,
         "name": "TranslationCancelledError",
         "optional": false,
         "requested": ".prompt_translation",
@@ -1698,7 +1732,7 @@
         "conditional": false,
         "imported": ".prompt_translation:TranslationTimeoutError",
         "kind": "static_from",
-        "line": 37,
+        "line": 39,
         "name": "TranslationTimeoutError",
         "optional": false,
         "requested": ".prompt_translation",
@@ -1716,7 +1750,7 @@
         "conditional": false,
         "imported": ".prompt_translation:translate_prompt_markers",
         "kind": "static_from",
-        "line": 37,
+        "line": 39,
         "name": "translate_prompt_markers",
         "optional": false,
         "requested": ".prompt_translation",
@@ -1734,8 +1768,62 @@
         "conditional": false,
         "imported": ".api_contract:ApiContractError",
         "kind": "static_from",
-        "line": 44,
+        "line": 46,
         "name": "ApiContractError",
+        "optional": false,
+        "requested": ".api_contract",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "api.py",
+        "target": "api_contract.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "attach_request_id_header",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".api_contract:attach_request_id_header",
+        "kind": "static_from",
+        "line": 46,
+        "name": "attach_request_id_header",
+        "optional": false,
+        "requested": ".api_contract",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "api.py",
+        "target": "api_contract.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "correlate_response",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".api_contract:correlate_response",
+        "kind": "static_from",
+        "line": 46,
+        "name": "correlate_response",
+        "optional": false,
+        "requested": ".api_contract",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "api.py",
+        "target": "api_contract.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "create_request_id",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".api_contract:create_request_id",
+        "kind": "static_from",
+        "line": 46,
+        "name": "create_request_id",
         "optional": false,
         "requested": ".api_contract",
         "role": "ordinary",
@@ -1752,7 +1840,7 @@
         "conditional": false,
         "imported": ".api_contract:error_payload",
         "kind": "static_from",
-        "line": 44,
+        "line": 46,
         "name": "error_payload",
         "optional": false,
         "requested": ".api_contract",
@@ -1770,7 +1858,7 @@
         "conditional": false,
         "imported": ".api_contract:json_boolean",
         "kind": "static_from",
-        "line": 44,
+        "line": 46,
         "name": "json_boolean",
         "optional": false,
         "requested": ".api_contract",
@@ -1788,7 +1876,7 @@
         "conditional": false,
         "imported": ".api_contract:json_integer",
         "kind": "static_from",
-        "line": 44,
+        "line": 46,
         "name": "json_integer",
         "optional": false,
         "requested": ".api_contract",
@@ -1806,7 +1894,7 @@
         "conditional": false,
         "imported": ".api_contract:json_object",
         "kind": "static_from",
-        "line": 44,
+        "line": 46,
         "name": "json_object",
         "optional": false,
         "requested": ".api_contract",
@@ -1824,7 +1912,7 @@
         "conditional": false,
         "imported": ".api_contract:json_string",
         "kind": "static_from",
-        "line": 44,
+        "line": 46,
         "name": "json_string",
         "optional": false,
         "requested": ".api_contract",
@@ -1842,7 +1930,7 @@
         "conditional": false,
         "imported": ".api_contract:parse_json_object",
         "kind": "static_from",
-        "line": 44,
+        "line": 46,
         "name": "parse_json_object",
         "optional": false,
         "requested": ".api_contract",
@@ -1860,7 +1948,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": true,
             "kind": "try",
-            "line": 53
+            "line": 58
           }
         ],
         "classification": "internal",
@@ -1868,12 +1956,12 @@
         "compatibility_pair": {
           "bound_name": "AtomicJsonStore",
           "target": "storage.py",
-          "try_line": 53
+          "try_line": 58
         },
         "conditional": true,
         "imported": ".storage:AtomicJsonStore",
         "kind": "static_from",
-        "line": 54,
+        "line": 59,
         "name": "AtomicJsonStore",
         "optional": false,
         "requested": ".storage",
@@ -1891,7 +1979,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": true,
             "kind": "try",
-            "line": 53
+            "line": 58
           }
         ],
         "classification": "internal",
@@ -1899,12 +1987,12 @@
         "compatibility_pair": {
           "bound_name": "USER_DATA_DIR",
           "target": "storage.py",
-          "try_line": 53
+          "try_line": 58
         },
         "conditional": true,
         "imported": ".storage:USER_DATA_DIR",
         "kind": "static_from",
-        "line": 54,
+        "line": 59,
         "name": "USER_DATA_DIR",
         "optional": false,
         "requested": ".storage",
@@ -1923,9 +2011,9 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 55,
+            "handler_line": 60,
             "kind": "try",
-            "line": 53
+            "line": 58
           }
         ],
         "classification": "compatibility_fallback",
@@ -1933,12 +2021,12 @@
         "compatibility_pair": {
           "bound_name": "AtomicJsonStore",
           "target": "storage.py",
-          "try_line": 53
+          "try_line": 58
         },
         "conditional": true,
         "imported": "storage:AtomicJsonStore",
         "kind": "static_from",
-        "line": 56,
+        "line": 61,
         "name": "AtomicJsonStore",
         "optional": false,
         "requested": "storage",
@@ -1957,9 +2045,9 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 55,
+            "handler_line": 60,
             "kind": "try",
-            "line": 53
+            "line": 58
           }
         ],
         "classification": "compatibility_fallback",
@@ -1967,12 +2055,12 @@
         "compatibility_pair": {
           "bound_name": "USER_DATA_DIR",
           "target": "storage.py",
-          "try_line": 53
+          "try_line": 58
         },
         "conditional": true,
         "imported": "storage:USER_DATA_DIR",
         "kind": "static_from",
-        "line": 56,
+        "line": 61,
         "name": "USER_DATA_DIR",
         "optional": false,
         "requested": "storage",
@@ -1990,7 +2078,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 371
+            "line": 402
           }
         ],
         "classification": "external",
@@ -1998,7 +2086,7 @@
         "conditional": true,
         "imported": "folder_paths",
         "kind": "static_import",
-        "line": 372,
+        "line": 403,
         "name": null,
         "optional": true,
         "requested": "folder_paths",
@@ -2015,7 +2103,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 397
+            "line": 428
           }
         ],
         "classification": "external",
@@ -2023,7 +2111,7 @@
         "conditional": true,
         "imported": "folder_paths",
         "kind": "static_import",
-        "line": 398,
+        "line": 429,
         "name": null,
         "optional": true,
         "requested": "folder_paths",
@@ -2040,7 +2128,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 717
+            "line": 748
           }
         ],
         "classification": "external",
@@ -2048,7 +2136,7 @@
         "conditional": true,
         "imported": "folder_paths",
         "kind": "static_import",
-        "line": 718,
+        "line": 749,
         "name": null,
         "optional": true,
         "requested": "folder_paths",
@@ -2092,6 +2180,23 @@
       },
       {
         "alias": null,
+        "bound_name": "uuid",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "uuid",
+        "kind": "static_import",
+        "line": 4,
+        "name": null,
+        "optional": false,
+        "requested": "uuid",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "api_contract.py"
+      },
+      {
+        "alias": null,
         "bound_name": "Any",
         "branch_context": [],
         "classification": "external",
@@ -2099,7 +2204,7 @@
         "conditional": false,
         "imported": "typing:Any",
         "kind": "static_from",
-        "line": 4,
+        "line": 5,
         "name": "Any",
         "optional": false,
         "requested": "typing",
@@ -2116,7 +2221,7 @@
         "conditional": false,
         "imported": "typing:Mapping",
         "kind": "static_from",
-        "line": 4,
+        "line": 5,
         "name": "Mapping",
         "optional": false,
         "requested": "typing",
@@ -9090,26 +9195,26 @@
       },
       {
         "is_package": false,
-        "loc": 1130,
+        "loc": 1181,
         "module": "api",
-        "normalized_git_blob_sha1": "ee5bf095b79089fc5f7ec9306df3e906d312abab",
+        "normalized_git_blob_sha1": "d92db7ffb0350bb478e4f669b33e9422e517c1cc",
         "path": "api.py",
         "top_level": {
           "class_count": 2,
-          "function_count": 55,
-          "global_count": 18
+          "function_count": 56,
+          "global_count": 19
         }
       },
       {
         "is_package": false,
-        "loc": 138,
+        "loc": 179,
         "module": "api_contract",
-        "normalized_git_blob_sha1": "51acfd3601fe1ab671b5ddf3e7694cc2ba05c394",
+        "normalized_git_blob_sha1": "d6e98857583f2d1d400bf82a166d739d99861b39",
         "path": "api_contract.py",
         "top_level": {
           "class_count": 1,
-          "function_count": 7,
-          "global_count": 0
+          "function_count": 10,
+          "global_count": 1
         }
       },
       {
@@ -9522,16 +9627,16 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 55,
+            "handler_line": 60,
             "kind": "try",
-            "line": 53
+            "line": 58
           }
         ],
         "classification": "compatibility_fallback",
         "conditional": true,
         "imported": "storage:AtomicJsonStore",
         "kind": "static_from",
-        "line": 56,
+        "line": 61,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "api.py",
@@ -9545,16 +9650,16 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 55,
+            "handler_line": 60,
             "kind": "try",
-            "line": 53
+            "line": 58
           }
         ],
         "classification": "compatibility_fallback",
         "conditional": true,
         "imported": "storage:USER_DATA_DIR",
         "kind": "static_from",
-        "line": 56,
+        "line": 61,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "api.py",
@@ -11186,7 +11291,7 @@
         "branch_context": [],
         "classification": "external",
         "conditional": false,
-        "imported": "os",
+        "imported": "logging",
         "kind": "static_import",
         "line": 6,
         "optional": false,
@@ -11197,7 +11302,7 @@
         "branch_context": [],
         "classification": "external",
         "conditional": false,
-        "imported": "re",
+        "imported": "os",
         "kind": "static_import",
         "line": 7,
         "optional": false,
@@ -11208,7 +11313,7 @@
         "branch_context": [],
         "classification": "external",
         "conditional": false,
-        "imported": "threading",
+        "imported": "re",
         "kind": "static_import",
         "line": 8,
         "optional": false,
@@ -11219,7 +11324,7 @@
         "branch_context": [],
         "classification": "external",
         "conditional": false,
-        "imported": "weakref",
+        "imported": "threading",
         "kind": "static_import",
         "line": 9,
         "optional": false,
@@ -11230,9 +11335,20 @@
         "branch_context": [],
         "classification": "external",
         "conditional": false,
+        "imported": "weakref",
+        "kind": "static_import",
+        "line": 10,
+        "optional": false,
+        "role": "ordinary",
+        "source": "api.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
         "imported": "concurrent.futures:Future",
         "kind": "static_from",
-        "line": 10,
+        "line": 11,
         "optional": false,
         "role": "ordinary",
         "source": "api.py"
@@ -11243,7 +11359,18 @@
         "conditional": false,
         "imported": "concurrent.futures:ThreadPoolExecutor",
         "kind": "static_from",
-        "line": 10,
+        "line": 11,
+        "optional": false,
+        "role": "ordinary",
+        "source": "api.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "functools:wraps",
+        "kind": "static_from",
+        "line": 12,
         "optional": false,
         "role": "ordinary",
         "source": "api.py"
@@ -11254,7 +11381,7 @@
         "conditional": false,
         "imported": "pathlib:Path",
         "kind": "static_from",
-        "line": 11,
+        "line": 13,
         "optional": false,
         "role": "ordinary",
         "source": "api.py"
@@ -11266,14 +11393,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": true,
             "kind": "try",
-            "line": 13
+            "line": 15
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "server",
         "kind": "static_import",
-        "line": 14,
+        "line": 16,
         "optional": true,
         "role": "optional_dependency",
         "source": "api.py"
@@ -11285,14 +11412,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": true,
             "kind": "try",
-            "line": 13
+            "line": 15
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "aiohttp:web",
         "kind": "static_from",
-        "line": 15,
+        "line": 17,
         "optional": true,
         "role": "optional_dependency",
         "source": "api.py"
@@ -11304,14 +11431,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 371
+            "line": 402
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "folder_paths",
         "kind": "static_import",
-        "line": 372,
+        "line": 403,
         "optional": true,
         "role": "optional_dependency",
         "source": "api.py"
@@ -11323,14 +11450,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 397
+            "line": 428
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "folder_paths",
         "kind": "static_import",
-        "line": 398,
+        "line": 429,
         "optional": true,
         "role": "optional_dependency",
         "source": "api.py"
@@ -11342,14 +11469,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 717
+            "line": 748
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "folder_paths",
         "kind": "static_import",
-        "line": 718,
+        "line": 749,
         "optional": true,
         "role": "optional_dependency",
         "source": "api.py"
@@ -11380,9 +11507,20 @@
         "branch_context": [],
         "classification": "external",
         "conditional": false,
+        "imported": "uuid",
+        "kind": "static_import",
+        "line": 4,
+        "optional": false,
+        "role": "ordinary",
+        "source": "api_contract.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
         "imported": "typing:Any",
         "kind": "static_from",
-        "line": 4,
+        "line": 5,
         "optional": false,
         "role": "ordinary",
         "source": "api_contract.py"
@@ -11393,7 +11531,7 @@
         "conditional": false,
         "imported": "typing:Mapping",
         "kind": "static_from",
-        "line": 4,
+        "line": 5,
         "optional": false,
         "role": "ordinary",
         "source": "api_contract.py"
@@ -13233,14 +13371,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": true,
             "kind": "try",
-            "line": 13
+            "line": 15
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "server",
         "kind": "static_import",
-        "line": 14,
+        "line": 16,
         "optional": true,
         "role": "optional_dependency",
         "source": "api.py"
@@ -13252,14 +13390,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": true,
             "kind": "try",
-            "line": 13
+            "line": 15
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "aiohttp:web",
         "kind": "static_from",
-        "line": 15,
+        "line": 17,
         "optional": true,
         "role": "optional_dependency",
         "source": "api.py"
@@ -13271,14 +13409,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 371
+            "line": 402
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "folder_paths",
         "kind": "static_import",
-        "line": 372,
+        "line": 403,
         "optional": true,
         "role": "optional_dependency",
         "source": "api.py"
@@ -13290,14 +13428,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 397
+            "line": 428
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "folder_paths",
         "kind": "static_import",
-        "line": 398,
+        "line": 429,
         "optional": true,
         "role": "optional_dependency",
         "source": "api.py"
@@ -13309,14 +13447,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 717
+            "line": 748
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "folder_paths",
         "kind": "static_import",
-        "line": 718,
+        "line": 749,
         "optional": true,
         "role": "optional_dependency",
         "source": "api.py"
@@ -14482,7 +14620,7 @@
         "column": 29,
         "context": "assign:INVALID_PROFILE_NAME_CHARS",
         "kind": "import_time_call",
-        "line": 62,
+        "line": 67,
         "module": "api.py",
         "scope": "<module>"
       },
@@ -14491,7 +14629,7 @@
         "column": 33,
         "context": "assign:WINDOWS_RESERVED_FILE_BASENAMES",
         "kind": "import_time_call",
-        "line": 87,
+        "line": 92,
         "module": "api.py",
         "scope": "<module>"
       },
@@ -14500,7 +14638,16 @@
         "column": 33,
         "context": "assign:WINDOWS_RESERVED_FILE_BASENAMES",
         "kind": "import_time_call",
-        "line": 88,
+        "line": 93,
+        "module": "api.py",
+        "scope": "<module>"
+      },
+      {
+        "callee": "logging.getLogger",
+        "column": 10,
+        "context": "assign:_LOGGER",
+        "kind": "import_time_call",
+        "line": 99,
         "module": "api.py",
         "scope": "<module>"
       },
@@ -14509,7 +14656,7 @@
         "column": 25,
         "context": "assign:_FILE_IO_LIMITERS_LOCK",
         "kind": "import_time_call",
-        "line": 100,
+        "line": 106,
         "module": "api.py",
         "scope": "<module>"
       },
@@ -14518,7 +14665,7 @@
         "column": 47,
         "context": "assign:_FILE_IO_LIMITERS",
         "kind": "import_time_call",
-        "line": 101,
+        "line": 107,
         "module": "api.py",
         "scope": "<module>"
       },
@@ -14527,7 +14674,7 @@
         "column": 29,
         "context": "assign:_PROMPT_TRANSLATION_WORKER",
         "kind": "import_time_call",
-        "line": 150,
+        "line": 156,
         "module": "api.py",
         "scope": "<module>"
       },
@@ -14536,7 +14683,7 @@
         "column": 0,
         "context": "expression",
         "kind": "import_time_call",
-        "line": 151,
+        "line": 157,
         "module": "api.py",
         "scope": "<module>"
       },
@@ -14545,7 +14692,7 @@
         "column": 36,
         "context": "assign:_SAFE_PROFILE_VALIDATION_MESSAGES",
         "kind": "import_time_call",
-        "line": 744,
+        "line": 775,
         "module": "api.py",
         "scope": "<module>"
       },
@@ -14554,7 +14701,7 @@
         "column": 9,
         "context": "assign:routes",
         "kind": "route_registry_creation",
-        "line": 894,
+        "line": 925,
         "module": "api.py",
         "scope": "<module>"
       },
@@ -14563,7 +14710,7 @@
         "column": 5,
         "context": "decorator:get_settings_handler",
         "kind": "route_registration",
-        "line": 899,
+        "line": 930,
         "module": "api.py",
         "scope": "<module>"
       },
@@ -14572,7 +14719,7 @@
         "column": 5,
         "context": "decorator:set_setting_handler",
         "kind": "route_registration",
-        "line": 903,
+        "line": 935,
         "module": "api.py",
         "scope": "<module>"
       },
@@ -14581,7 +14728,7 @@
         "column": 5,
         "context": "decorator:get_long_text_settings_handler",
         "kind": "route_registration",
-        "line": 920,
+        "line": 953,
         "module": "api.py",
         "scope": "<module>"
       },
@@ -14590,7 +14737,7 @@
         "column": 5,
         "context": "decorator:get_wildcards_handler",
         "kind": "route_registration",
-        "line": 926,
+        "line": 960,
         "module": "api.py",
         "scope": "<module>"
       },
@@ -14599,7 +14746,7 @@
         "column": 5,
         "context": "decorator:save_long_text_settings_handler",
         "kind": "route_registration",
-        "line": 930,
+        "line": 965,
         "module": "api.py",
         "scope": "<module>"
       },
@@ -14608,7 +14755,7 @@
         "column": 5,
         "context": "decorator:autocomplete_status_handler",
         "kind": "route_registration",
-        "line": 941,
+        "line": 977,
         "module": "api.py",
         "scope": "<module>"
       },
@@ -14617,7 +14764,7 @@
         "column": 5,
         "context": "decorator:autocomplete_handler",
         "kind": "route_registration",
-        "line": 945,
+        "line": 982,
         "module": "api.py",
         "scope": "<module>"
       },
@@ -14626,7 +14773,7 @@
         "column": 5,
         "context": "decorator:classify_prompt_handler",
         "kind": "route_registration",
-        "line": 962,
+        "line": 1000,
         "module": "api.py",
         "scope": "<module>"
       },
@@ -14635,7 +14782,7 @@
         "column": 5,
         "context": "decorator:translate_prompt_handler",
         "kind": "route_registration",
-        "line": 980,
+        "line": 1019,
         "module": "api.py",
         "scope": "<module>"
       },
@@ -14644,7 +14791,7 @@
         "column": 5,
         "context": "decorator:lora_preview_handler",
         "kind": "route_registration",
-        "line": 993,
+        "line": 1033,
         "module": "api.py",
         "scope": "<module>"
       },
@@ -14653,7 +14800,7 @@
         "column": 5,
         "context": "decorator:loras_handler",
         "kind": "route_registration",
-        "line": 1006,
+        "line": 1047,
         "module": "api.py",
         "scope": "<module>"
       },
@@ -14662,7 +14809,7 @@
         "column": 5,
         "context": "decorator:lora_profiles_handler",
         "kind": "route_registration",
-        "line": 1010,
+        "line": 1052,
         "module": "api.py",
         "scope": "<module>"
       },
@@ -14671,7 +14818,7 @@
         "column": 5,
         "context": "decorator:save_lora_profile_handler",
         "kind": "route_registration",
-        "line": 1014,
+        "line": 1057,
         "module": "api.py",
         "scope": "<module>"
       },
@@ -14680,7 +14827,7 @@
         "column": 5,
         "context": "decorator:load_lora_profile_handler",
         "kind": "route_registration",
-        "line": 1035,
+        "line": 1079,
         "module": "api.py",
         "scope": "<module>"
       },
@@ -14689,7 +14836,7 @@
         "column": 5,
         "context": "decorator:aio_profiles_handler",
         "kind": "route_registration",
-        "line": 1051,
+        "line": 1096,
         "module": "api.py",
         "scope": "<module>"
       },
@@ -14698,7 +14845,7 @@
         "column": 5,
         "context": "decorator:save_aio_profile_handler",
         "kind": "route_registration",
-        "line": 1057,
+        "line": 1103,
         "module": "api.py",
         "scope": "<module>"
       },
@@ -14707,7 +14854,7 @@
         "column": 5,
         "context": "decorator:load_aio_profile_handler",
         "kind": "route_registration",
-        "line": 1077,
+        "line": 1124,
         "module": "api.py",
         "scope": "<module>"
       },
@@ -14716,7 +14863,7 @@
         "column": 5,
         "context": "decorator:delete_aio_profile_handler",
         "kind": "route_registration",
-        "line": 1088,
+        "line": 1136,
         "module": "api.py",
         "scope": "<module>"
       },
@@ -14725,7 +14872,7 @@
         "column": 5,
         "context": "decorator:rename_aio_profile_handler",
         "kind": "route_registration",
-        "line": 1101,
+        "line": 1150,
         "module": "api.py",
         "scope": "<module>"
       },
@@ -14734,7 +14881,7 @@
         "column": 5,
         "context": "decorator:fix_lora_profile_handler",
         "kind": "route_registration",
-        "line": 1121,
+        "line": 1171,
         "module": "api.py",
         "scope": "<module>"
       },
@@ -15329,13 +15476,13 @@
       },
       {
         "kind": "set",
-        "line": 66,
+        "line": 71,
         "module": "api.py",
         "name": "AIO_RESERVED_PROFILE_NAMES"
       },
       {
         "kind": "set",
-        "line": 82,
+        "line": 87,
         "module": "api.py",
         "name": "WINDOWS_RESERVED_FILE_BASENAMES"
       },
@@ -15622,7 +15769,7 @@
           "lock"
         ],
         "initializer": "threading.Lock",
-        "line": 100,
+        "line": 106,
         "module": "api.py",
         "name": "_FILE_IO_LIMITERS_LOCK"
       },
@@ -15631,7 +15778,7 @@
           "executor"
         ],
         "initializer": "_PromptTranslationWorker",
-        "line": 150,
+        "line": 156,
         "module": "api.py",
         "name": "_PROMPT_TRANSLATION_WORKER"
       },
