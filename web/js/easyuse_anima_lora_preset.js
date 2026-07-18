@@ -4,6 +4,7 @@ import { easyuseAnimaEncodeRFC3986URIComponent as encodeRFC3986URIComponent, eas
 import { easyuseAnimaText, easyuseAnimaWatchLocale } from "./easyuse_anima_i18n.js";
 import { createLoraPresetApiClient } from "./lora_preset/api_client.js";
 import { createLoraPresetCanvasWidgets } from "./lora_preset/canvas_widgets.js";
+import { createLoraPresetEntryLifecycle } from "./lora_preset/entry_lifecycle.js";
 import { createLoraPresetMenuLifecycle } from "./lora_preset/menu_lifecycle.js";
 import { createLoraPresetNodeRuntime } from "./lora_preset/node_runtime.js";
 import { createLoraPresetProfileMutations } from "./lora_preset/profile_mutations.js";
@@ -36,8 +37,6 @@ const DEFAULT_STRENGTH_BUTTON_STEP = 0.05;
 const DEFAULT_STRENGTH_DRAG_STEP = 0.05;
 const DEFAULT_STRENGTH_DRAG_PIXELS = 8;
 const PREVIEW_SIZE = 360;
-let activeProfileWheelTarget = null;
-let profileWheelListenerInstalled = false;
 const LORA_PRESET_SETTINGS = {
   nameDisplay: "name",
   menuMode: "tree",
@@ -45,14 +44,6 @@ const LORA_PRESET_SETTINGS = {
   strengthDragStep: DEFAULT_STRENGTH_DRAG_STEP,
   strengthDragPixels: DEFAULT_STRENGTH_DRAG_PIXELS,
 };
-
-function getActiveProfileWheelTarget() {
-  return activeProfileWheelTarget;
-}
-
-function setActiveProfileWheelTarget(target) {
-  activeProfileWheelTarget = target;
-}
 
 const LORA_PRESET_TEXT = {
   en: {
@@ -317,6 +308,7 @@ const loraMenuLifecycle = createLoraPresetMenuLifecycle({
   previewSize: PREVIEW_SIZE,
 });
 let loraCanvasWidgets;
+let loraPresetEntryLifecycle;
 const loraProfileMutations = createLoraPresetProfileMutations({
   findWidget,
   widgetValue,
@@ -388,8 +380,8 @@ loraCanvasWidgets = createLoraPresetCanvasWidgets({
   fixProfileLoras,
   switchProfile,
   nodePosToClient,
-  getActiveProfileWheelTarget,
-  setActiveProfileWheelTarget,
+  getActiveProfileWheelTarget: () => loraPresetEntryLifecycle?.getActiveProfileWheelTarget() || null,
+  setActiveProfileWheelTarget: (target) => loraPresetEntryLifecycle?.setActiveProfileWheelTarget(target),
   enforceNodeLayout,
 });
 const loraPresetNodeRuntime = createLoraPresetNodeRuntime({
@@ -421,6 +413,23 @@ const loraPresetSaveSync = createLoraPresetSaveSync({
   app,
   nodeTypeName: NODE_TYPE,
   saveCurrentProfile,
+});
+loraPresetEntryLifecycle = createLoraPresetEntryLifecycle({
+  app,
+  hostDocument: document,
+  hostWindow: window,
+  nodeTypeName: NODE_TYPE,
+  canvasWidgets: loraCanvasWidgets,
+  clientPointToCanvas,
+  profileCount,
+  saveSync: loraPresetSaveSync,
+  loadSettings: loadLoraPresetSettings,
+  refreshNodes: refreshLoraPresetNodes,
+  watchLocale: easyuseAnimaWatchLocale,
+  applySettings: applyLoraPresetSettings,
+  previewLifecycle: loraPreviewLifecycle,
+  menuLifecycle: loraMenuLifecycle,
+  nodeRuntime: loraPresetNodeRuntime,
 });
 
 function findWidget(node, name) {
@@ -922,115 +931,4 @@ function refreshLoraPresetNodes() {
   }
 }
 
-function scrollProfileListFromWheel(event) {
-  const clientPos = [Number(event?.clientX || 0), Number(event?.clientY || 0)];
-  if (
-    activeProfileWheelTarget?.node?.comfyClass === NODE_TYPE
-    && activeProfileWheelTarget?.widget
-    && (performance.now() - activeProfileWheelTarget.time) < 30000
-    && (app.graph?._nodes || []).includes(activeProfileWheelTarget.node)
-  ) {
-    if (!loraCanvasWidgets.pointInArea(clientPos, activeProfileWheelTarget.widget.listClientArea)) {
-      activeProfileWheelTarget = null;
-    } else {
-      activeProfileWheelTarget.time = performance.now();
-      const handled = activeProfileWheelTarget.widget.scrollByWheel(event.deltaY, activeProfileWheelTarget.node);
-      if (handled) {
-        event.preventDefault?.();
-        event.stopPropagation?.();
-        return true;
-      }
-    }
-  }
-
-  const nodesByZ = [...(app.graph?._nodes || [])].reverse();
-  for (const node of nodesByZ) {
-    const bar = node?.comfyClass === NODE_TYPE ? node.__easyuseAnimaProfileBar : null;
-    if (!bar || !loraCanvasWidgets.pointInArea(clientPos, bar.listClientArea)) {
-      continue;
-    }
-    const handled = bar.scrollByWheel(event.deltaY, node);
-    if (handled) {
-      activeProfileWheelTarget = {
-        node,
-        widget: bar,
-        time: performance.now(),
-      };
-      event.preventDefault?.();
-      event.stopPropagation?.();
-      return true;
-    }
-  }
-
-  const canvas = app.canvas?.canvas;
-  const rect = canvas?.getBoundingClientRect?.();
-  if (
-    !canvas
-    || !rect
-    || Number(event?.clientX || 0) < rect.left
-    || Number(event?.clientX || 0) > rect.right
-    || Number(event?.clientY || 0) < rect.top
-    || Number(event?.clientY || 0) > rect.bottom
-  ) {
-    return false;
-  }
-  const graphPoint = clientPointToCanvas(event);
-  for (const node of nodesByZ) {
-    if (node?.comfyClass !== NODE_TYPE || !node.__easyuseAnimaProfileBar || !Array.isArray(node.pos)) {
-      continue;
-    }
-    const localPos = [
-      Number(graphPoint[0] || 0) - Number(node.pos[0] || 0),
-      Number(graphPoint[1] || 0) - Number(node.pos[1] || 0),
-    ];
-    const bar = node.__easyuseAnimaProfileBar;
-    if (!loraCanvasWidgets.pointInArea(localPos, bar.listArea)) {
-      continue;
-    }
-    const count = profileCount(node);
-    const maxOffset = Math.max(0, count - loraCanvasWidgets.profileVisibleRows);
-    if (maxOffset <= 0) {
-      return false;
-    }
-    const direction = Number(event.deltaY || 0) > 0 ? 1 : -1;
-    const nextOffset = Math.max(0, Math.min(maxOffset, (bar.scrollOffset || 0) + direction));
-    if (nextOffset !== bar.scrollOffset) {
-      bar.scrollOffset = nextOffset;
-      node.setDirtyCanvas?.(true, true);
-    }
-    event.preventDefault?.();
-    event.stopPropagation?.();
-    return true;
-  }
-  return false;
-}
-
-function installProfileWheelListener() {
-  if (profileWheelListenerInstalled) {
-    return;
-  }
-  profileWheelListenerInstalled = true;
-  document.addEventListener("wheel", scrollProfileListFromWheel, { capture: true, passive: false });
-}
-
-app.registerExtension({
-  name: "EasyUseAnima.LoraPreset",
-  init() {
-    loraPresetSaveSync.install();
-    loadLoraPresetSettings().then(refreshLoraPresetNodes);
-    easyuseAnimaWatchLocale(refreshLoraPresetNodes);
-    window.addEventListener("easyuse-anima-settings-updated", (event) => {
-      applyLoraPresetSettings(event.detail || {});
-      refreshLoraPresetNodes();
-    });
-    document.addEventListener("pointerdown", loraPreviewLifecycle.hidePreview, true);
-    installProfileWheelListener();
-    loraMenuLifecycle.install();
-  },
-  setup() {
-    loraPresetSaveSync.install();
-  },
-  async beforeRegisterNodeDef(nodeType, nodeData) {
-    loraPresetNodeRuntime.beforeRegisterNodeDef(nodeType, nodeData);
-  },
-});
+app.registerExtension(loraPresetEntryLifecycle.extension);
