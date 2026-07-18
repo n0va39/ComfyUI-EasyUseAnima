@@ -76,18 +76,28 @@ class AutocompleteIndexTests(unittest.TestCase):
                 'needle,1,2,"[작가] duplicate exact"',
                 'percent 100% ready,0,600,"[일반] literal percent"',
                 'korean description,0,500,"[일반] 한글 설명 검색"',
+                'literal under score,0,490,"[일반] normalized underscore"',
+                'glob*star literal,0,480,"[일반] literal asterisk"',
+                'glob?question literal,0,470,"[일반] literal question"',
+                'glob[bracket literal,0,460,"[일반] literal bracket"',
+                '"quote ""and"" or literal",0,450,"[일반] quote operator"',
             ],
         )
 
         cases = [
-            ("needle", 3, ""),
-            ("needle", 6, "artist"),
-            ("needle", 100, "artist,general"),
-            ("100%", 20, ""),
-            ("한글 설명", 20, "general"),
+            ("needle", 3, "", "needle"),
+            ("needle", 6, "artist", "needle"),
+            ("needle", 100, "artist,general", "needle"),
+            ("100%", 20, "", "percent 100% ready"),
+            ("한글 설명", 20, "general", "korean description"),
+            ("literal_under", 20, "", "literal under score"),
+            ("glob*star", 20, "", "glob*star literal"),
+            ("glob?question", 20, "", "glob?question literal"),
+            ("glob[bracket", 20, "", "glob[bracket literal"),
+            ('quote "and" OR', 20, "", 'quote "and" or literal'),
         ]
         outcomes = []
-        for query, limit, category in cases:
+        for query, limit, category, expected_first in cases:
             with self.subTest(query=query, limit=limit, category=category):
                 result, diagnostics = self._search(
                     query,
@@ -106,6 +116,7 @@ class AutocompleteIndexTests(unittest.TestCase):
                     ),
                 )
                 self.assertLessEqual(len(result["results"]), max(1, min(limit, 100)))
+                self.assertEqual(result["results"][0]["tag"], expected_first)
 
         self.assertEqual(outcomes[0], "rebuild")
         self.assertTrue(all(outcome == "hit" for outcome in outcomes[1:]))
@@ -118,6 +129,44 @@ class AutocompleteIndexTests(unittest.TestCase):
             warm, diagnostics = self._search("needle", path=path, limit=2)
         self.assertEqual(diagnostics.outcome, "hit")
         self.assertEqual(len(warm["results"]), 2)
+
+    def test_glob_candidate_pattern_is_literal_and_uses_the_trigram_plan(self):
+        self.assertEqual(
+            autocomplete_index._glob_pattern('%_"OR"*?[literal'),
+            '*%_"OR"[*][?][[]literal*',
+        )
+        path = self._write(
+            "query-plan.csv",
+            [
+                f'candidate tag {index:04d},0,{2000 - index},"[일반] indexed candidate"'
+                for index in range(1000)
+            ],
+        )
+        _result, diagnostics = self._search("candidate tag 050", path=path)
+        self.assertEqual(diagnostics.backend, "fts5_trigram")
+        self.assertIsNotNone(diagnostics.index_path)
+        assert diagnostics.index_path is not None
+
+        connection = sqlite3.connect(diagnostics.index_path)
+        try:
+            plan = connection.execute(
+                "EXPLAIN QUERY PLAN "
+                "SELECT e.tag FROM autocomplete_entries_fts AS f "
+                "JOIN autocomplete_entries AS e ON e.id = f.rowid "
+                "WHERE f.tag_key GLOB ? AND instr(e.tag_key, ?) > 0",
+                (
+                    autocomplete_index._glob_pattern("candidate tag 050"),
+                    "candidate tag 050",
+                ),
+            ).fetchall()
+        finally:
+            connection.close()
+
+        details = [str(row[3]) for row in plan]
+        self.assertTrue(
+            any("VIRTUAL TABLE INDEX 0:G0" in detail for detail in details),
+            details,
+        )
 
     def test_source_revision_change_rebuilds_the_same_index(self):
         path = self._write(

@@ -8160,9 +8160,9 @@
       },
       {
         "is_package": false,
-        "loc": 576,
+        "loc": 580,
         "module": "autocomplete_index",
-        "normalized_git_blob_sha1": "8f6efd75c9ff057ea77c44d192f0237d164d0a2b",
+        "normalized_git_blob_sha1": "885fefac3b7ba0b71f5ce22a3aa6ce070ee62c62",
         "path": "autocomplete_index.py",
         "top_level": {
           "class_count": 6,

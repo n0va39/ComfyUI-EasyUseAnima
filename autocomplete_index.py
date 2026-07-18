@@ -166,9 +166,13 @@ def _prefix_upper_bound(value: str) -> str | None:
     return None
 
 
-def _like_pattern(value: str) -> str:
-    escaped = value.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
-    return f"%{escaped}%"
+def _glob_pattern(value: str) -> str:
+    # GLOB has no ESCAPE clause. Bracket expressions quote its three pattern
+    # metacharacters while leaving normalized percent signs, underscores,
+    # quotes, and FTS operators literal. Keeping this as GLOB (not LIKE with
+    # ESCAPE) lets the FTS5 trigram virtual table select its indexed G0 plan.
+    escaped = value.replace("[", "[[]").replace("*", "[*]").replace("?", "[?]")
+    return f"*{escaped}*"
 
 
 def _category_clause(categories: set[str]) -> tuple[str, list[str]]:
@@ -253,12 +257,12 @@ def _query_rows(
                 "JOIN autocomplete_entries AS e ON e.id = f.rowid"
             )
             conditions = (
-                "f.tag_key LIKE ? ESCAPE '\\' "
+                "f.tag_key GLOB ? "
                 "AND instr(e.tag_key, ?) > 0 "
                 "AND substr(e.tag_key, 1, length(?)) <> ?"
             )
             parameters = [
-                _like_pattern(normalized_query),
+                _glob_pattern(normalized_query),
                 normalized_query,
                 normalized_query,
                 normalized_query,
@@ -289,11 +293,11 @@ def _query_rows(
                 "JOIN autocomplete_entries AS e ON e.id = f.rowid"
             )
             conditions = (
-                "f.search LIKE ? ESCAPE '\\' "
+                "f.search GLOB ? "
                 "AND instr(e.search, ?) > 0 AND instr(e.tag_key, ?) = 0"
             )
             parameters = [
-                _like_pattern(normalized_query),
+                _glob_pattern(normalized_query),
                 normalized_query,
                 normalized_query,
             ]
