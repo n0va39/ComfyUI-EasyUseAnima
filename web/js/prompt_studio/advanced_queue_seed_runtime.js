@@ -5,6 +5,9 @@ import {
   normalizeWildcardSeed as normalizeSeed,
   optionalWildcardSeed as optionalSeed,
 } from "./wildcard_seed_contract.js";
+import {
+  registerHostHookCallbacks,
+} from "../lifecycle/host_hook_registry.js";
 
 const ACTIVE_WILDCARD_MODES = new Set(["populate", "fixed", "sequential"]);
 const WILDCARD_MODE_ALIASES = new Map([
@@ -21,9 +24,12 @@ const WILDCARD_MODE_ALIASES = new Map([
   ["재현", "reproduce"],
 ]);
 const SEED_CONTROLS = new Set(["fixed", "randomize", "increment", "decrement"]);
-const QUEUE_HOOK_MARKER = "__easyuseAnimaAdvancedQueueSeedWrapped";
-const QUEUE_HOST_MARKER = "__easyuseAnimaAdvancedQueueSeedInstalled";
-const GRAPH_CLEANUP_MARKER = "__easyuseAnimaAdvancedQueueSeedCleanup";
+const ADVANCED_QUEUE_SEED_OWNER = Symbol.for(
+  "easyuse-anima.prompt-studio.advanced-queue-seed",
+);
+const ADVANCED_QUEUE_SEED_CLEAR_OWNER = Symbol.for(
+  "easyuse-anima.prompt-studio.advanced-queue-seed-clear",
+);
 const RESERVED_NEXT_SEED_INPUT = "easyuse_anima_reserved_wildcard_next_seed";
 
 function isRecord(value) {
@@ -699,25 +705,40 @@ function createAdvancedQueueSeedRuntime(dependencies) {
     }
   }
 
+  function beforeQueue(context) {
+    const transaction = preparePrompt(context.args[1], context.args[2]);
+    if (transaction) {
+      const queueArgs = [...context.args];
+      queueArgs[1] = transaction.prompt;
+      context.args = queueArgs;
+    }
+    return transaction;
+  }
+
+  function afterQueue(context) {
+    const transaction = context.callbackState;
+    if (!transaction) {
+      return;
+    }
+    if (context.ok) {
+      settleTransaction(transaction, context.result);
+    } else {
+      rejectTransaction(transaction);
+    }
+  }
+
   function wrapQueuePrompt(queuePrompt) {
     return async function (...args) {
-      const transaction = preparePrompt(args[1], args[2]);
-      const queueArgs = transaction ? [...args] : args;
-      if (transaction) {
-        queueArgs[1] = transaction.prompt;
-      }
+      const context = { args };
+      const transaction = beforeQueue(context);
       let result;
       try {
-        result = await queuePrompt.apply(this, queueArgs);
+        result = await queuePrompt.apply(this, context.args);
       } catch (error) {
-        if (transaction) {
-          rejectTransaction(transaction);
-        }
+        afterQueue({ callbackState: transaction, ok: false, error });
         throw error;
       }
-      if (transaction) {
-        settleTransaction(transaction, result);
-      }
+      afterQueue({ callbackState: transaction, ok: true, result });
       return result;
     };
   }
@@ -814,7 +835,9 @@ function createAdvancedQueueSeedRuntime(dependencies) {
   }
 
   return {
+    afterQueue,
     attachNode,
+    beforeQueue,
     clearGraphNodes,
     detachNode,
     preparePrompt,
@@ -825,38 +848,20 @@ function createAdvancedQueueSeedRuntime(dependencies) {
 }
 
 function installAdvancedQueueSeedGraphCleanup(graph, runtime) {
-  if (
-    !graph
-    || typeof graph.clear !== "function"
-    || graph.clear[GRAPH_CLEANUP_MARKER]
-  ) {
-    return false;
-  }
-  const clear = graph.clear;
-  const wrappedClear = function () {
-    const result = clear.apply(this, arguments);
-    runtime.clearGraphNodes();
-    return result;
-  };
-  wrappedClear[GRAPH_CLEANUP_MARKER] = true;
-  graph.clear = wrappedClear;
-  return true;
+  return registerHostHookCallbacks({
+    owner: ADVANCED_QUEUE_SEED_CLEAR_OWNER,
+    graphHost: graph,
+    onGraphClear: runtime.clearGraphNodes,
+  });
 }
 
 function installAdvancedQueueSeedQueueHook(queueHost, runtime) {
-  if (
-    !queueHost
-    || typeof queueHost.queuePrompt !== "function"
-    || queueHost[QUEUE_HOST_MARKER]
-    || queueHost.queuePrompt[QUEUE_HOOK_MARKER]
-  ) {
-    return false;
-  }
-  const wrappedQueuePrompt = runtime.wrapQueuePrompt(queueHost.queuePrompt);
-  wrappedQueuePrompt[QUEUE_HOOK_MARKER] = true;
-  queueHost.queuePrompt = wrappedQueuePrompt;
-  queueHost[QUEUE_HOST_MARKER] = true;
-  return true;
+  return registerHostHookCallbacks({
+    owner: ADVANCED_QUEUE_SEED_OWNER,
+    queueHost,
+    beforeQueue: runtime.beforeQueue,
+    afterQueue: runtime.afterQueue,
+  });
 }
 
 export {
