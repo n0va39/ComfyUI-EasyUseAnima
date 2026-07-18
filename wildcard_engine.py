@@ -82,6 +82,9 @@ WILDCARD_QUANTIFIER_RE = re.compile(
     re.IGNORECASE,
 )
 WEIGHT_PREFIX_RE = re.compile(r"^\s*([+-]?(?:\d+(?:\.\d*)?|\.\d+))::(.*)$", re.DOTALL)
+COUNT_SPEC_RE = re.compile(
+    r"(?:(?P<fixed>\d+)|(?P<minimum>\d*)\s*-\s*(?P<maximum>\d*))"
+)
 
 
 @dataclass(frozen=True)
@@ -402,22 +405,35 @@ class _Selector:
     def choose_many(self, options: list[WildcardOption], count: int) -> list[WildcardOption]:
         if not options or count <= 0:
             return []
-        count = min(count, len(options))
         if self.sequential:
+            count = min(count, len(options))
             start = self.seed % len(options)
             return [options[(start + offset) % len(options)] for offset in range(count)]
 
         weights = [max(0.0, option.weight) for option in options]
-        total = sum(weights)
-        if np is not None:
-            probabilities = [weight / total for weight in weights] if total > 0 else None
-            indices = self.rng.choice(len(options), size=count, replace=False, p=probabilities)
-            return [options[int(index)] for index in indices]
-
-        if total > 0:
-            selected = []
+        positive = [
+            (option, weight)
+            for option, weight in zip(options, weights)
+            if weight > 0
+        ]
+        if positive:
+            pool = [option for option, _weight in positive]
+            pool_weights = [weight for _option, weight in positive]
+        else:
             pool = list(options)
-            pool_weights = weights[:]
+            pool_weights = None
+
+        count = min(count, len(pool))
+        if np is not None:
+            probabilities = None
+            if pool_weights is not None:
+                total = sum(pool_weights)
+                probabilities = [weight / total for weight in pool_weights]
+            indices = self.rng.choice(len(pool), size=count, replace=False, p=probabilities)
+            return [pool[int(index)] for index in indices]
+
+        if pool_weights is not None:
+            selected = []
             for _ in range(count):
                 choice = self.rng.choices(pool, weights=pool_weights, k=1)[0]
                 index = pool.index(choice)
@@ -425,7 +441,7 @@ class _Selector:
                 pool.pop(index)
                 pool_weights.pop(index)
             return selected
-        return self.rng.sample(options, count)
+        return self.rng.sample(pool, count)
 
 
 class _WildcardLibrary:
@@ -505,19 +521,23 @@ def _parse_dynamic_options(value: str) -> list[WildcardOption]:
     return options
 
 
-def _parse_count_spec(spec: str, selector: _Selector) -> int:
+def _parse_count_spec(spec: str, selector: _Selector) -> int | None:
     text = str(spec or "").strip()
     if not text:
         return 1
-    if "-" in text:
-        left, _, right = text.partition("-")
-        minimum = int(left) if left.strip() else 0
-        maximum = int(right) if right.strip() else minimum
-        return selector.count_from_range(minimum, maximum)
-    try:
-        return max(0, int(text))
-    except ValueError:
-        return 1
+    match = COUNT_SPEC_RE.fullmatch(text)
+    if match is None:
+        return None
+    fixed = match.group("fixed")
+    if fixed is not None:
+        return int(fixed)
+    left = match.group("minimum")
+    right = match.group("maximum")
+    if not left and not right:
+        return None
+    minimum = int(left) if left else 0
+    maximum = int(right) if right else minimum
+    return selector.count_from_range(minimum, maximum)
 
 
 def _expand_multiselect_options(options: list[WildcardOption], library: _WildcardLibrary) -> list[WildcardOption]:
@@ -538,6 +558,8 @@ def _replace_dynamic(text: str, selector: _Selector, library: _WildcardLibrary) 
         first_parts = raw_options[0].split("$$")
         if len(first_parts) > 1:
             count = _parse_count_spec(first_parts[0], selector)
+            if count is None:
+                return match.group(0)
             separator = ", "
             if len(first_parts) == 2:
                 first_candidate = first_parts[1]

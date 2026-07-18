@@ -96,6 +96,53 @@ class WildcardEngineTests(unittest.TestCase):
         self.assertEqual(len(values), 2)
         self.assertEqual(len(set(values)), 2)
 
+    def test_random_multiselect_excludes_zero_weight_options_in_both_backends(self):
+        numpy_module = wildcard_engine.np
+        self.assertIsNotNone(numpy_module)
+
+        for backend_name, backend in (("numpy", numpy_module), ("python", None)):
+            with self.subTest(backend=backend_name), patch.object(wildcard_engine, "np", backend):
+                result = expand_wildcards("{2$$0::zero|1::positive}", seed=0)
+
+            self.assertEqual(result.text, "positive")
+
+    def test_all_zero_weights_use_the_full_pool_deterministically_in_both_backends(self):
+        numpy_module = wildcard_engine.np
+        self.assertIsNotNone(numpy_module)
+        source = "{5$$0::red|0::blue|0::green}"
+
+        for backend_name, backend in (("numpy", numpy_module), ("python", None)):
+            with self.subTest(backend=backend_name), patch.object(wildcard_engine, "np", backend):
+                first = expand_wildcards(source, seed=7)
+                second = expand_wildcards(source, seed=7)
+
+            self.assertEqual(first.text, second.text)
+            values = [part.strip() for part in first.text.split(",")]
+            self.assertEqual(len(values), 3)
+            self.assertEqual(set(values), {"red", "blue", "green"})
+
+    def test_sequential_multiselect_keeps_zero_weight_candidates(self):
+        result = expand_wildcards(
+            "{3$$0::zero|1::positive}",
+            seed=0,
+            mode="순차",
+        )
+
+        self.assertEqual(result.text, "zero, positive")
+
+    def test_malformed_count_ranges_preserve_the_original_expression(self):
+        for source in (
+            "{a-b$$red|blue}",
+            "{1-x$$red|blue}",
+            "{-x$$red|blue}",
+            "{1-2-3$$red|blue}",
+        ):
+            with self.subTest(source=source):
+                result = expand_wildcards(source, seed=0)
+
+            self.assertEqual(result.text, source)
+            self.assertFalse(result.changed)
+
     def test_list_wildcards_returns_relative_keys_only(self):
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp)
