@@ -2714,6 +2714,150 @@ class SettingsTests(unittest.TestCase):
                         self.assertEqual(persisted[key], expected)
                         self.assertEqual(reloaded[key], expected)
 
+    def test_parallel_save_setting_updates_do_not_lose_different_keys(self):
+        root = Path(__file__).resolve().parents[1] / "__pycache__" / "parallel_settings_test"
+        shutil.rmtree(root, ignore_errors=True)
+        root.mkdir(parents=True, exist_ok=True)
+        settings_file = root / "settings.json"
+        long_text_settings_file = root / "long_text_settings.json"
+        first_read = threading.Event()
+        release_first = threading.Event()
+        second_started = threading.Event()
+        second_done = threading.Event()
+        errors: list[BaseException] = []
+        original_read = easyuse_settings._read_json_file
+
+        def coordinated_read(path: Path) -> dict:
+            data = original_read(path)
+            if Path(path) == settings_file and threading.current_thread().name == "first-setting":
+                first_read.set()
+                if not release_first.wait(2):
+                    raise AssertionError("first settings read was not released")
+            return data
+
+        def save_first():
+            try:
+                easyuse_settings.save_setting("autocomplete.limit", 33)
+            except BaseException as exc:
+                errors.append(exc)
+
+        def save_second():
+            second_started.set()
+            try:
+                easyuse_settings.save_setting("prompt_studio.font_family", "Inter")
+            except BaseException as exc:
+                errors.append(exc)
+            finally:
+                second_done.set()
+
+        try:
+            with (
+                patch.object(easyuse_settings, "SETTINGS_FILE", settings_file),
+                patch.object(easyuse_settings, "LONG_TEXT_SETTINGS_FILE", long_text_settings_file),
+                patch.object(easyuse_settings, "_load_comfy_settings", return_value={}),
+                patch.object(easyuse_settings, "_read_json_file", side_effect=coordinated_read),
+            ):
+                first = threading.Thread(target=save_first, name="first-setting")
+                second = threading.Thread(target=save_second, name="second-setting")
+                first.start()
+                self.assertTrue(first_read.wait(2))
+                second.start()
+                self.assertTrue(second_started.wait(2))
+                self.assertFalse(second_done.wait(0.05))
+                release_first.set()
+                first.join(2)
+                second.join(2)
+
+            self.assertFalse(first.is_alive())
+            self.assertFalse(second.is_alive())
+            self.assertEqual(errors, [])
+            persisted = json.loads(settings_file.read_text(encoding="utf-8"))
+            self.assertEqual(persisted["autocomplete.limit"], "33")
+            self.assertEqual(persisted["prompt_studio.font_family"], "Inter")
+        finally:
+            release_first.set()
+            shutil.rmtree(root, ignore_errors=True)
+
+    def test_parallel_long_text_updates_do_not_lose_different_keys(self):
+        root = Path(__file__).resolve().parents[1] / "__pycache__" / "parallel_long_text_test"
+        shutil.rmtree(root, ignore_errors=True)
+        root.mkdir(parents=True, exist_ok=True)
+        long_text_settings_file = root / "long_text_settings.json"
+        first_read = threading.Event()
+        release_first = threading.Event()
+        second_started = threading.Event()
+        second_done = threading.Event()
+        errors: list[BaseException] = []
+        store_class = easyuse_settings.AtomicJsonStore
+        original_read = store_class._read_unlocked
+
+        def coordinated_read(store, *args, **kwargs):
+            data = original_read(store, *args, **kwargs)
+            if (
+                store.path == long_text_settings_file.resolve()
+                and threading.current_thread().name == "first-long-text"
+            ):
+                first_read.set()
+                if not release_first.wait(2):
+                    raise AssertionError("first long-text read was not released")
+            return data
+
+        def save_first():
+            try:
+                easyuse_settings.save_long_text_settings(
+                    {"prompt.metadata_filter_words": "metadata"}
+                )
+            except BaseException as exc:
+                errors.append(exc)
+
+        def save_second():
+            second_started.set()
+            try:
+                easyuse_settings.save_long_text_settings({"naia.pre_prompt": "prefix"})
+            except BaseException as exc:
+                errors.append(exc)
+            finally:
+                second_done.set()
+
+        try:
+            with (
+                patch.object(
+                    easyuse_settings,
+                    "LONG_TEXT_SETTINGS_FILE",
+                    long_text_settings_file,
+                ),
+                patch.object(
+                    store_class,
+                    "_read_unlocked",
+                    autospec=True,
+                    side_effect=coordinated_read,
+                ),
+            ):
+                first = threading.Thread(target=save_first, name="first-long-text")
+                second = threading.Thread(target=save_second, name="second-long-text")
+                first.start()
+                self.assertTrue(first_read.wait(2))
+                second.start()
+                self.assertTrue(second_started.wait(2))
+                self.assertFalse(second_done.wait(0.05))
+                release_first.set()
+                first.join(2)
+                second.join(2)
+
+            self.assertFalse(first.is_alive())
+            self.assertFalse(second.is_alive())
+            self.assertEqual(errors, [])
+            persisted = json.loads(long_text_settings_file.read_text(encoding="utf-8"))
+            self.assertEqual(persisted["values"]["prompt.metadata_filter_words"], "metadata")
+            self.assertEqual(persisted["values"]["naia.pre_prompt"], "prefix")
+        finally:
+            release_first.set()
+            shutil.rmtree(root, ignore_errors=True)
+
+    def test_save_setting_preserves_unknown_key_rejection_contract(self):
+        with self.assertRaisesRegex(KeyError, "Unknown setting"):
+            easyuse_settings.save_setting("future.unknown", "value")
+
     def test_public_settings_does_not_expose_token_file(self):
         settings = public_settings()
         self.assertEqual(

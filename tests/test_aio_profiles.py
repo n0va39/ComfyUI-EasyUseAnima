@@ -2,11 +2,13 @@ from __future__ import annotations
 
 import asyncio
 import importlib.util
+import json
 import shutil
 import subprocess
 import sys
 import tempfile
 import textwrap
+import threading
 import types
 import unittest
 from pathlib import Path
@@ -181,6 +183,161 @@ class AIOProfileStorageTests(unittest.TestCase):
                 (Path(tmp) / "Broken.json").write_text("{", encoding="utf-8")
                 with self.assertRaisesRegex(ValueError, "Profile data is invalid"):
                     api._load_aio_profile("Broken")
+
+    def test_empty_profile_preserves_legacy_payload_validation_contract(self):
+        api = load_api_module()
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            with patch.object(api, "AIO_PROFILE_DIR", root):
+                (root / "Empty.json").write_text("", encoding="utf-8")
+
+                with self.assertRaisesRegex(ValueError, "Profile settings must be an object"):
+                    api._load_aio_profile("Empty")
+
+    def test_invalid_primary_recovers_last_valid_backup(self):
+        api = load_api_module()
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            with patch.object(api, "AIO_PROFILE_DIR", root):
+                api._save_aio_profile("Recoverable", {"settings": {"value": "first"}})
+                api._save_aio_profile(
+                    "Recoverable",
+                    {"settings": {"value": "second"}},
+                    overwrite=True,
+                )
+                (root / "Recoverable.json").write_text("{", encoding="utf-8")
+
+                recovered = api._load_aio_profile("Recoverable")
+
+        self.assertEqual(recovered["name"], "Recoverable")
+        self.assertEqual(recovered["settings"]["value"], "first")
+
+    def test_concurrent_profile_publish_never_exposes_partial_json(self):
+        api = load_api_module()
+        profile_storage = sys.modules[api.AtomicJsonStore.__module__]
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            profile_path = (root / "Concurrent.json").resolve()
+            publish_ready = threading.Event()
+            release_publish = threading.Event()
+            errors: list[BaseException] = []
+            real_replace = profile_storage.os.replace
+
+            with patch.object(api, "AIO_PROFILE_DIR", root):
+                api._save_aio_profile("Concurrent", {"settings": {"value": "old"}})
+
+                def block_primary_publish(source, target):
+                    if Path(target) == profile_path:
+                        publish_ready.set()
+                        if not release_publish.wait(2):
+                            raise AssertionError("profile publish was not released")
+                    return real_replace(source, target)
+
+                def overwrite_profile():
+                    try:
+                        api._save_aio_profile(
+                            "Concurrent",
+                            {"settings": {"value": "new", "items": list(range(1000))}},
+                            overwrite=True,
+                        )
+                    except BaseException as exc:
+                        errors.append(exc)
+
+                with patch.object(profile_storage.os, "replace", side_effect=block_primary_publish):
+                    writer = threading.Thread(target=overwrite_profile)
+                    writer.start()
+                    self.assertTrue(publish_ready.wait(2))
+                    visible = json.loads(profile_path.read_text(encoding="utf-8"))
+                    self.assertEqual(visible["settings"]["value"], "old")
+                    release_publish.set()
+                    writer.join(2)
+
+                self.assertFalse(writer.is_alive())
+                self.assertEqual(errors, [])
+                self.assertEqual(api._load_aio_profile("Concurrent")["settings"]["value"], "new")
+
+    def test_rename_overwrite_atomically_moves_source_and_keeps_target_backup(self):
+        api = load_api_module()
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            with patch.object(api, "AIO_PROFILE_DIR", root):
+                api._save_aio_profile("Source", {"settings": {"value": "source"}})
+                api._save_aio_profile("Target", {"settings": {"value": "target"}})
+
+                renamed = api._rename_aio_profile("Source", "Target", overwrite=True)
+
+                backup = json.loads((root / "Target.json.bak").read_text(encoding="utf-8"))
+                self.assertEqual(renamed["name"], "Target")
+                self.assertEqual(renamed["settings"]["value"], "source")
+                self.assertEqual(backup["settings"]["value"], "target")
+                self.assertFalse((root / "Source.json").exists())
+
+    def test_rename_move_failure_preserves_source_target_and_backup(self):
+        api = load_api_module()
+        profile_storage = sys.modules[api.AtomicJsonStore.__module__]
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            source = (root / "Source.json").resolve()
+            target = (root / "Target.json").resolve()
+            real_replace = profile_storage.os.replace
+
+            with patch.object(api, "AIO_PROFILE_DIR", root):
+                api._save_aio_profile("Source", {"settings": {"value": "source"}})
+                api._save_aio_profile("Target", {"settings": {"value": "target"}})
+
+                def fail_move(current, destination):
+                    if Path(current) == source and Path(destination) == target:
+                        raise OSError("rename move failed")
+                    return real_replace(current, destination)
+
+                with patch.object(profile_storage.os, "replace", side_effect=fail_move):
+                    with self.assertRaisesRegex(OSError, "rename move failed"):
+                        api._rename_aio_profile("Source", "Target", overwrite=True)
+
+                self.assertEqual(api._load_aio_profile("Source")["settings"]["value"], "source")
+                self.assertEqual(api._load_aio_profile("Target")["settings"]["value"], "target")
+                backup = json.loads((root / "Target.json.bak").read_text(encoding="utf-8"))
+                self.assertEqual(backup["settings"]["value"], "target")
+                self.assertEqual([path for path in root.iterdir() if path.name.endswith(".tmp")], [])
+
+    def test_rename_target_backup_failure_preserves_source_and_target(self):
+        api = load_api_module()
+        profile_storage = sys.modules[api.AtomicJsonStore.__module__]
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            backup_path = (root / "Target.json.bak").resolve()
+            real_replace = profile_storage.os.replace
+
+            with patch.object(api, "AIO_PROFILE_DIR", root):
+                api._save_aio_profile("Source", {"settings": {"value": "source"}})
+                api._save_aio_profile("Target", {"settings": {"value": "target"}})
+
+                def fail_backup(current, destination):
+                    if Path(destination) == backup_path:
+                        raise OSError("target backup failed")
+                    return real_replace(current, destination)
+
+                with patch.object(profile_storage.os, "replace", side_effect=fail_backup):
+                    with self.assertRaisesRegex(OSError, "target backup failed"):
+                        api._rename_aio_profile("Source", "Target", overwrite=True)
+
+                self.assertEqual(api._load_aio_profile("Source")["settings"]["value"], "source")
+                self.assertEqual(api._load_aio_profile("Target")["settings"]["value"], "target")
+                self.assertEqual([path for path in root.iterdir() if path.name.endswith(".tmp")], [])
+
+    def test_rename_does_not_depend_on_a_separate_unlink(self):
+        api = load_api_module()
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            with patch.object(api, "AIO_PROFILE_DIR", root):
+                api._save_aio_profile("Source", {"settings": {"value": "source"}})
+
+                with patch.object(Path, "unlink", side_effect=OSError("unlink failed")):
+                    renamed = api._rename_aio_profile("Source", "Renamed")
+
+                self.assertEqual(renamed["name"], "Renamed")
+                self.assertFalse((root / "Source.json").exists())
+                self.assertTrue((root / "Renamed.json").is_file())
 
 
 class AIOProfileApiRouteTests(unittest.TestCase):

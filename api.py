@@ -31,9 +31,9 @@ from .autocomplete_dataset import (
 from .wildcard_engine import list_wildcards, resolve_wildcard_roots
 from .prompt_translation import translate_prompt_markers
 try:
-    from .storage import USER_DATA_DIR
+    from .storage import AtomicJsonStore, USER_DATA_DIR
 except ImportError:
-    from storage import USER_DATA_DIR
+    from storage import AtomicJsonStore, USER_DATA_DIR
 
 
 LORA_PREVIEW_EXTENSIONS = (".webp", ".png", ".jpg", ".jpeg")
@@ -368,16 +368,29 @@ def _fix_lora_profile_payload(data: dict) -> dict:
     return payload
 
 
+def _read_profile_json(path: Path):
+    store = AtomicJsonStore(path)
+    with store.locked():
+        try:
+            return store.read()
+        except json.JSONDecodeError:
+            if path.read_text(encoding="utf-8") == "":
+                return {}
+            raise
+
+
 def _save_lora_profile(name: str, data: dict, *, overwrite: bool = False) -> dict:
     safe_name = _sanitize_lora_profile_name(name)
     payload = _normalize_lora_profile_payload(data)
     LORA_PROFILE_DIR.mkdir(parents=True, exist_ok=True)
-    existing = _find_lora_profile_path(safe_name)
-    if existing is not None and not overwrite:
-        raise FileExistsError("Profile already exists")
-    path = existing or _lora_profile_path(safe_name)
-    payload["name"] = path.stem
-    path.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
+    requested_path = _lora_profile_path(safe_name)
+    with AtomicJsonStore(requested_path).locked():
+        existing = _find_lora_profile_path(safe_name)
+        if existing is not None and not overwrite:
+            raise FileExistsError("Profile already exists")
+        path = existing or requested_path
+        payload["name"] = path.stem
+        AtomicJsonStore(path).write(payload)
     return payload
 
 
@@ -385,7 +398,7 @@ def _load_lora_profile(name: str) -> dict:
     path = _find_lora_profile_path(name)
     if path is None or not path.is_file():
         raise FileNotFoundError("Profile not found")
-    data = json.loads(path.read_text(encoding="utf-8") or "{}")
+    data = _read_profile_json(path)
     if not isinstance(data, dict):
         data = {}
     payload = _normalize_lora_profile_payload(data)
@@ -457,14 +470,16 @@ def _list_aio_profiles(profile_dir: Path | None = None) -> list[dict]:
 def _save_aio_profile(name: str, data: dict, *, overwrite: bool = False) -> dict:
     payload = _normalize_aio_profile_payload(name, data)
     AIO_PROFILE_DIR.mkdir(parents=True, exist_ok=True)
-    existing = _find_aio_profile_path(payload["name"])
-    if existing is not None and not overwrite:
-        raise FileExistsError("Profile already exists")
-    if existing is None and len(_list_aio_profiles()) >= MAX_AIO_PROFILES:
-        raise ValueError(f"A maximum of {MAX_AIO_PROFILES} profiles can be saved")
-    path = existing or _aio_profile_path(payload["name"])
-    payload["name"] = path.stem
-    path.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
+    requested_path = _aio_profile_path(payload["name"])
+    with AtomicJsonStore(requested_path).locked():
+        existing = _find_aio_profile_path(payload["name"])
+        if existing is not None and not overwrite:
+            raise FileExistsError("Profile already exists")
+        if existing is None and len(_list_aio_profiles()) >= MAX_AIO_PROFILES:
+            raise ValueError(f"A maximum of {MAX_AIO_PROFILES} profiles can be saved")
+        path = existing or requested_path
+        payload["name"] = path.stem
+        AtomicJsonStore(path).write(payload)
     return payload
 
 
@@ -473,7 +488,7 @@ def _load_aio_profile(name: str) -> dict:
     if path is None or not path.is_file():
         raise FileNotFoundError("Profile not found")
     try:
-        data = json.loads(path.read_text(encoding="utf-8") or "{}")
+        data = _read_profile_json(path)
     except json.JSONDecodeError as exc:
         raise ValueError("Profile data is invalid") from exc
     return _normalize_aio_profile_payload(path.stem, data if isinstance(data, dict) else {})
@@ -500,13 +515,13 @@ def _rename_aio_profile(old_name: str, new_name: str, *, overwrite: bool = False
     if target is not None and not overwrite:
         raise FileExistsError("Profile already exists")
 
-    payload = _load_aio_profile(source.stem)
-    payload["name"] = safe_new_name
     target_path = target or _aio_profile_path(safe_new_name)
-    target_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
-    source.unlink()
-    payload["name"] = target_path.stem
-    return payload
+    AtomicJsonStore(target_path).replace_from(
+        AtomicJsonStore(source),
+        overwrite=overwrite,
+        backup_target=True,
+    )
+    return _load_aio_profile(target_path.stem)
 
 
 def _resolve_lora_preview_path(lora_name: str):
