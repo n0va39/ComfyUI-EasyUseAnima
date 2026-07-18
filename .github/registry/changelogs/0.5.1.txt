@@ -1,9 +1,8 @@
-EasyUse Anima 0.5.1 replaces the withdrawn 0.5.0 package.
+EasyUse Anima 0.5.1 fixes Autocomplete suggestions that did not open in the withdrawn 0.5.0 package.
 
-Fixed:
-1. The Registry archive now includes the web/js/autocomplete modules required by the Autocomplete entry module. In 0.5.0, an overly broad .comfyignore pattern omitted those files and prevented typed suggestions from opening.
-2. Package validation now follows the Autocomplete entry module's repository-local static imports recursively and verifies that every dependency is tracked and included in the Registry archive.
+Changes:
+1. Typing in supported prompt fields opens Autocomplete suggestions again.
+2. Existing workflows and settings remain compatible.
 
-Important:
-- If you installed 0.5.0, update to 0.5.1 or later, restart ComfyUI, and perform a hard browser refresh.
-- The runtime behavior is otherwise the validated 0.5.0 maintenance checkpoint, including the queue, lifecycle, seed, and dual-canvas fixes described in the 0.5.0 notes.
+Action required:
+If you installed 0.5.0, update to 0.5.1 or later, restart ComfyUI, and hard-refresh the browser.

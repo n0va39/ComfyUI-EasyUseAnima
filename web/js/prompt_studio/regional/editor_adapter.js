@@ -9,6 +9,7 @@ import {
   syncOverlayBounds,
 } from "../highlight_overlay_core.js";
 import { PROMPT_STUDIO_VARIANT_FIELD_LABELS } from "./constants.js";
+import { registerExternalAutocompleteInput } from "../../autocomplete/entry_lifecycle.js";
 
 /** @typedef {import("../types.js").PromptStudioInputElement} PromptStudioInputElement */
 /** @typedef {import("../types.js").PromptStudioWindow} PromptStudioWindow */
@@ -1322,12 +1323,7 @@ function registerPromptStudioAutocompleteInput(node, field, textarea) {
     forceArtistOnly: field?.type === "artist",
   };
   const hostWindow = promptStudioWindow();
-  if (typeof hostWindow.easyuseAnimaHookAutocompleteInput === "function") {
-    hostWindow.easyuseAnimaHookAutocompleteInput(textarea, options);
-    return;
-  }
-  hostWindow.__easyuseAnimaPendingAutocompleteInputs ||= [];
-  hostWindow.__easyuseAnimaPendingAutocompleteInputs.push({ input: textarea, options });
+  registerExternalAutocompleteInput(hostWindow, textarea, options);
 }
 
 /** @param {RegionalPromptStudioTextarea} textarea */

@@ -8,7 +8,7 @@ conversation.
 1. `docs/development/current-policies.md`
 2. Active frontend maintenance execution plan:
    `docs/development/frontend-maintenance-execution-plan.md`
-3. Latest released baseline: `docs/development/0.5.1.md`
+3. Current release candidate: `docs/development/0.5.2.md`
 4. Relevant topic guide:
    - Registry publish or flagged-version prevention:
      `docs/development/registry-scanner-safety.md`
@@ -32,7 +32,7 @@ conversation.
 - Current policy baseline: `docs/development/current-policies.md`
 - Active frontend maintenance execution ledger:
   `docs/development/frontend-maintenance-execution-plan.md`
-- Latest released baseline: `docs/development/0.5.1.md`
+- Current release candidate: `docs/development/0.5.2.md`
 - Registry scanner safety: `docs/development/registry-scanner-safety.md`
 - Older implementation history: `docs/version-plans/`
 - Public workflow JSON templates and preview/source images: `docs/example_workflows/`

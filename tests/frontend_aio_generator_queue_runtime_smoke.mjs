@@ -10,6 +10,16 @@ function clone(value) {
   return JSON.parse(JSON.stringify(value));
 }
 
+function deferred() {
+  let resolve;
+  let reject;
+  const promise = new Promise((resolvePromise, rejectPromise) => {
+    resolve = resolvePromise;
+    reject = rejectPromise;
+  });
+  return { promise, resolve, reject };
+}
+
 const queueModule = await import(dataModule("../web/js/aio/generator_queue_runtime.js"));
 assert.deepEqual(
   Object.keys(queueModule),
@@ -390,6 +400,152 @@ for (const seed of [SPECIAL_RANDOM, SPECIAL_INCREMENT, SPECIAL_DECREMENT]) {
 }
 
 {
+  const fixture = createFixture({ seed: 7, seedControl: "increment" });
+  assert.ok(fixture.runtime.preparePrompt(createPrompt()));
+  let queuedSeed = null;
+  const wrapped = fixture.runtime.wrapQueuePrompt((_number, prompt) => {
+    queuedSeed = JSON.parse(
+      prompt.output["42"].inputs.generation_settings,
+    ).sampler.seed;
+    return { prompt_id: "after-standalone-prepare", node_errors: {} };
+  });
+
+  await wrapped(0, createPrompt());
+  assert.equal(queuedSeed, 7, "standalone preparation must not consume a queue reservation");
+  assert.equal(fixture.node.settings.sampler.seed, 8);
+}
+
+{
+  const fixture = createFixture({ seed: 7, seedControl: "increment" });
+  const calls = [];
+  const gates = [deferred(), deferred(), deferred()];
+  const wrapped = fixture.runtime.wrapQueuePrompt(function (...args) {
+    calls.push({ owner: this, args });
+    return gates[calls.length - 1].promise;
+  });
+  const owner = { name: "direct-api-owner" };
+  const options = { partialExecutionTargets: [42], previewMethod: "latent2rgb" };
+  const tail = { preserve: true };
+  const prompt = createPrompt();
+  const originalPrompt = clone(prompt);
+
+  const pending = [
+    wrapped.call(owner, 0, prompt, options, tail),
+    wrapped.call(owner, 0, prompt, options, tail),
+    wrapped.call(owner, 0, prompt, options, tail),
+  ];
+  await Promise.resolve();
+  await Promise.resolve();
+
+  assert.equal(calls.length, 3, "direct API submissions must remain concurrent");
+  assert.deepEqual(
+    calls.map(({ args }) => JSON.parse(args[1].output["42"].inputs.generation_settings).sampler.seed),
+    [7, 8, 9],
+    "concurrent direct API submissions must reserve distinct sequential seeds",
+  );
+  assert.deepEqual(prompt, originalPrompt, "concurrent reservations must not mutate the caller prompt");
+  assert.equal(fixture.node.settings.sampler.seed, 7, "live seed changes only after FIFO settlement");
+  for (const call of calls) {
+    assert.equal(call.owner, owner);
+    assert.equal(call.args.length, 4);
+    assert.equal(call.args[0], 0);
+    assert.equal(call.args[2], options, "queue options identity must survive reservation");
+    assert.equal(call.args[3], tail, "queue argument tail identity must survive reservation");
+  }
+
+  gates[1].resolve({ prompt_id: "second", node_errors: {} });
+  await pending[1];
+  assert.equal(
+    fixture.node.settings.sampler.seed,
+    7,
+    "an accepted later reservation must wait for earlier direct API settlement",
+  );
+
+  gates[0].resolve({ prompt_id: "   ", node_errors: {} });
+  await pending[0];
+  assert.equal(
+    fixture.node.settings.sampler.seed,
+    9,
+    "a blank prompt id must reject only its reservation and release the accepted successor",
+  );
+  assert.equal(fixture.node.lastSeed, 8);
+
+  gates[2].resolve({ prompt_id: "third", node_errors: {} });
+  await pending[2];
+  assert.equal(fixture.node.settings.sampler.seed, 10);
+  assert.equal(fixture.node.lastSeed, 9);
+}
+
+{
+  const fixture = createFixture({ seed: 7, seedControl: "increment" });
+  const queuedSeeds = [];
+  const results = [
+    { prompt_id: "", node_errors: {} },
+    { prompt_id: "retry", node_errors: {} },
+  ];
+  const wrapped = fixture.runtime.wrapQueuePrompt((_number, prompt) => {
+    queuedSeeds.push(
+      JSON.parse(prompt.output["42"].inputs.generation_settings).sampler.seed,
+    );
+    return results.shift();
+  });
+
+  await wrapped(0, createPrompt());
+  assert.equal(fixture.node.settings.sampler.seed, 7);
+  await wrapped(0, createPrompt());
+  assert.deepEqual(queuedSeeds, [7, 7], "a rejected tail reservation must remain reusable");
+  assert.equal(fixture.node.settings.sampler.seed, 8);
+  assert.equal(fixture.node.lastSeed, 7);
+}
+
+{
+  const fixture = createFixture({ seed: 7, seedControl: "increment" });
+  const queuedSeeds = [];
+  const gates = [deferred(), deferred(), deferred(), deferred()];
+  const wrapped = fixture.runtime.wrapQueuePrompt((_number, prompt) => {
+    queuedSeeds.push(
+      JSON.parse(prompt.output["42"].inputs.generation_settings).sampler.seed,
+    );
+    return gates[queuedSeeds.length - 1].promise;
+  });
+  const pending = [
+    wrapped(0, createPrompt()),
+    wrapped(0, createPrompt()),
+    wrapped(0, createPrompt()),
+  ];
+  await Promise.resolve();
+  await Promise.resolve();
+
+  gates[1].resolve({ prompt_id: "", node_errors: {} });
+  await pending[1];
+  const rejection = new Error("rejected-tail");
+  gates[2].reject(rejection);
+  let caught = null;
+  try {
+    await pending[2];
+  } catch (error) {
+    caught = error;
+  }
+  assert.equal(caught, rejection);
+
+  const retry = wrapped(0, createPrompt());
+  await Promise.resolve();
+  await Promise.resolve();
+  assert.deepEqual(
+    queuedSeeds,
+    [7, 8, 9, 8],
+    "contiguous rejected tail reservations must collapse to the earliest reusable seed",
+  );
+  gates[3].resolve({ prompt_id: "retry", node_errors: {} });
+  await retry;
+  assert.equal(fixture.node.settings.sampler.seed, 7);
+  gates[0].resolve({ prompt_id: "first", node_errors: {} });
+  await pending[0];
+  assert.equal(fixture.node.settings.sampler.seed, 9);
+  assert.equal(fixture.node.lastSeed, 8);
+}
+
+{
   const fixture = createFixture({ seed: 10, seedControl: "increment" });
   const host = {
     calls: 0,
@@ -588,7 +744,13 @@ for (const failAt of ["getSettings", "sanitize", "serialize", "output", "workflo
     commitError,
   });
   const result = { prompt_id: "accepted-despite-local-commit", node_errors: {} };
-  const wrapped = fixture.runtime.wrapQueuePrompt(() => result);
+  const queuedSeeds = [];
+  const wrapped = fixture.runtime.wrapQueuePrompt((_number, prompt) => {
+    queuedSeeds.push(
+      JSON.parse(prompt.output["42"].inputs.generation_settings).sampler.seed,
+    );
+    return result;
+  });
   assert.equal(
     await wrapped(0, createPrompt()),
     result,
@@ -597,6 +759,14 @@ for (const failAt of ["getSettings", "sanitize", "serialize", "output", "workflo
   assert.equal(fixture.node.settings.sampler.seed, 18);
   assert.equal(fixture.node.lastSeed, 18);
   assert.equal(fixture.trace.includes("commit:19:18:false"), true);
+  assert.equal(await wrapped(0, createPrompt()), result);
+  assert.deepEqual(
+    queuedSeeds,
+    [18, 19],
+    "an accepted reservation remains authoritative after updateSeed fails",
+  );
+  assert.equal(fixture.node.settings.sampler.seed, 18);
+  assert.equal(fixture.node.lastSeed, 19);
 }
 
 for (const nodeErrors of [
@@ -673,11 +843,20 @@ for (const result of [
 for (const failureMode of ["throw", "reject"]) {
   const fixture = createFixture({ seed: 15, seedControl: "decrement" });
   const failure = new Error(`queue-${failureMode}`);
-  const wrapped = fixture.runtime.wrapQueuePrompt(() => {
-    if (failureMode === "throw") {
+  const queuedSeeds = [];
+  let queueCalls = 0;
+  const wrapped = fixture.runtime.wrapQueuePrompt((_number, prompt) => {
+    queueCalls += 1;
+    queuedSeeds.push(
+      JSON.parse(prompt.output["42"].inputs.generation_settings).sampler.seed,
+    );
+    if (queueCalls === 1 && failureMode === "throw") {
       throw failure;
     }
-    return Promise.reject(failure);
+    if (queueCalls === 1) {
+      return Promise.reject(failure);
+    }
+    return { prompt_id: `retry-${failureMode}`, node_errors: {} };
   });
   let caught = null;
   try {
@@ -689,6 +868,14 @@ for (const failureMode of ["throw", "reject"]) {
   assert.equal(fixture.node.lastSeed, undefined);
   assert.equal(fixture.node.settings.sampler.seed, 15);
   assert.equal(fixture.trace.some((item) => item.startsWith("commit:")), false);
+  await wrapped(0, createPrompt());
+  assert.deepEqual(
+    queuedSeeds,
+    [15, 15],
+    `${failureMode}: rejected tail seed must remain reusable`,
+  );
+  assert.equal(fixture.node.lastSeed, 15);
+  assert.equal(fixture.node.settings.sampler.seed, 14);
 }
 
 {

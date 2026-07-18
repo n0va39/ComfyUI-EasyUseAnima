@@ -58,7 +58,7 @@ function trimPromptSyntaxPrefix(value, start, end) {
       cursor += 1;
     }
   }
-  if (value[cursor] === "(") {
+  while (value[cursor] === "(" && !isEscaped(value, cursor)) {
     cursor += 1;
     while (cursor < end && /[ \t]/.test(value[cursor])) {
       cursor += 1;
@@ -78,7 +78,7 @@ function trimPromptSyntaxSuffix(value, start, end) {
       cursor -= 1;
     }
   }
-  if (value[cursor - 1] === ")" && !isEscaped(value, cursor - 1)) {
+  while (value[cursor - 1] === ")" && !isEscaped(value, cursor - 1)) {
     cursor -= 1;
     while (cursor > start && /[ \t]/.test(value[cursor - 1])) {
       cursor -= 1;
@@ -227,8 +227,7 @@ function stripPromptSyntaxClosingParens(value) {
 
 export function parseAutocompleteText(value) {
   let query = String(value || "").trim();
-  query = query.replace(/^\[\[\s*/g, "");
-  query = query.replace(/^\(\s*/g, "");
+  query = query.slice(trimPromptSyntaxPrefix(query, 0, query.length));
   const artistOnly = query.startsWith("@");
   if (artistOnly) {
     query = query.slice(1).trimStart();

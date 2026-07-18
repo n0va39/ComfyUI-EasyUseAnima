@@ -184,6 +184,21 @@ try {
         throw "Frontend LoRA preset canvas widgets smoke failed with exit code $LASTEXITCODE."
     }
 
+    & node "tests\frontend_lora_preset_node_runtime_smoke.mjs"
+    if ($LASTEXITCODE -ne 0) {
+        throw "Frontend LoRA preset node runtime smoke failed with exit code $LASTEXITCODE."
+    }
+
+    & node "tests\frontend_lora_preset_profile_mutations_smoke.mjs"
+    if ($LASTEXITCODE -ne 0) {
+        throw "Frontend LoRA preset profile mutation and save-sync smoke failed with exit code $LASTEXITCODE."
+    }
+
+    & node "tests\frontend_lora_preset_entry_lifecycle_smoke.mjs"
+    if ($LASTEXITCODE -ne 0) {
+        throw "Frontend LoRA preset entry lifecycle smoke failed with exit code $LASTEXITCODE."
+    }
+
     & node "tests\frontend_autocomplete_data_adapter_smoke.mjs"
     if ($LASTEXITCODE -ne 0) {
         throw "Frontend autocomplete data adapter smoke failed with exit code $LASTEXITCODE."
@@ -192,6 +207,16 @@ try {
     & node "tests\frontend_autocomplete_input_controller_smoke.mjs"
     if ($LASTEXITCODE -ne 0) {
         throw "Frontend autocomplete input controller smoke failed with exit code $LASTEXITCODE."
+    }
+
+    & node "tests\frontend_autocomplete_input_binding_smoke.mjs"
+    if ($LASTEXITCODE -ne 0) {
+        throw "Frontend autocomplete input binding smoke failed with exit code $LASTEXITCODE."
+    }
+
+    & node "tests\frontend_autocomplete_entry_lifecycle_smoke.mjs"
+    if ($LASTEXITCODE -ne 0) {
+        throw "Frontend autocomplete entry lifecycle smoke failed with exit code $LASTEXITCODE."
     }
 
     & node "tests\frontend_autocomplete_popup_geometry_smoke.mjs"

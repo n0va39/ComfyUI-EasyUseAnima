@@ -74,6 +74,54 @@ export function aioCreateSelectInput(options, value) {
 }
 
 /**
+ * Replace a native select's choices without losing the value selected after
+ * the control was created. A value missing from the refreshed catalog is kept
+ * as an explicit compatibility option.
+ *
+ * @param {HTMLSelectElement} select
+ * @param {any[]} options
+ * @returns {HTMLSelectElement}
+ */
+export function aioReconcileSelectInput(select, options) {
+  const currentValue = String(select?.value ?? "");
+  const normalizedOptions = [];
+  const seen = new Set();
+  for (const optionSpec of options || []) {
+    const optionValue = typeof optionSpec === "object" && optionSpec
+      ? String(optionSpec.value ?? "")
+      : String(optionSpec ?? "");
+    if (seen.has(optionValue)) {
+      continue;
+    }
+    seen.add(optionValue);
+    normalizedOptions.push(optionSpec);
+  }
+  if (currentValue && !seen.has(currentValue)) {
+    normalizedOptions.unshift(currentValue);
+  }
+
+  select.replaceChildren();
+  for (const optionSpec of normalizedOptions) {
+    const optionValue = typeof optionSpec === "object" && optionSpec
+      ? String(optionSpec.value ?? "")
+      : String(optionSpec ?? "");
+    const option = document.createElement("option");
+    option.value = optionValue;
+    option.textContent = typeof optionSpec === "object" && optionSpec
+      ? String(optionSpec.label ?? optionValue)
+      : optionValue;
+    option.disabled = !!(typeof optionSpec === "object" && optionSpec?.disabled);
+    if (typeof optionSpec === "object" && optionSpec?.title) {
+      option.title = String(optionSpec.title);
+    }
+    option.selected = optionValue === currentValue;
+    select.append(option);
+  }
+  select.value = currentValue;
+  return select;
+}
+
+/**
  * @param {any} spec
  * @param {any} [fallback]
  * @returns {any}

@@ -22,6 +22,18 @@ AUTOCOMPLETE_INPUT_CONTROLLER = (
 AUTOCOMPLETE_INPUT_CONTROLLER_SMOKE = (
     ROOT / "tests" / "frontend_autocomplete_input_controller_smoke.mjs"
 )
+AUTOCOMPLETE_INPUT_BINDING = (
+    ROOT / "web" / "js" / "autocomplete" / "input_binding.js"
+)
+AUTOCOMPLETE_INPUT_BINDING_SMOKE = (
+    ROOT / "tests" / "frontend_autocomplete_input_binding_smoke.mjs"
+)
+AUTOCOMPLETE_ENTRY_LIFECYCLE = (
+    ROOT / "web" / "js" / "autocomplete" / "entry_lifecycle.js"
+)
+AUTOCOMPLETE_ENTRY_LIFECYCLE_SMOKE = (
+    ROOT / "tests" / "frontend_autocomplete_entry_lifecycle_smoke.mjs"
+)
 AUTOCOMPLETE_TEXT_MODEL = (
     ROOT / "web" / "js" / "autocomplete" / "text_model.js"
 )
@@ -101,22 +113,9 @@ class AutocompleteFrontendBoundaryTests(unittest.TestCase):
         self.assertNotIn("requestAnimationFrame(updateNow)", hook_body)
         self.assertNotIn("setTimeout(updateNow, 0)", hook_body)
         self.assertIn("const controller = createAutocompleteInputController({", hook_body)
-        self.assertIn(
-            'input.addEventListener("compositionstart", controller.beginComposition);',
-            hook_body,
-        )
-        self.assertIn(
-            'input.addEventListener("compositionupdate", controller.scheduleUpdate);',
-            hook_body,
-        )
-        self.assertIn(
-            'input.addEventListener("compositionend", controller.endComposition);',
-            hook_body,
-        )
+        self.assertIn("state.binding = createAutocompleteInputBinding({", hook_body)
         self.assertIn("const results = await request(", hook_body)
         self.assertIn("isCurrent()", hook_body)
-        self.assertIn("controller.invalidate();", hook_body)
-        self.assertIn("controller.isComposing(event)", hook_body)
         self.assertIn("state?.controller?.invalidate();", entry_source)
 
         invalidate_start = entry_source.index(
@@ -198,10 +197,10 @@ class AutocompleteFrontendBoundaryTests(unittest.TestCase):
         )
 
         settings_start = entry_source.index(
-            'window.addEventListener("easyuse-anima-settings-updated"'
+            "function handleAutocompleteSettingsUpdated"
         )
         settings_end = entry_source.index(
-            "\n\napp.registerExtension({", settings_start
+            "\nfunction disposeAutocompleteEntryInputs", settings_start
         )
         settings_body = entry_source[settings_start:settings_end]
         self.assertIn("let dataRequestsInvalidated = false;", settings_body)
@@ -251,17 +250,18 @@ class AutocompleteFrontendBoundaryTests(unittest.TestCase):
         )
         self.assertNotIn("hidePopup();", settings_body)
 
-        keydown_start = hook_body.rindex(
-            'input.addEventListener("keydown", (event) => {'
-        )
-        keydown_body = hook_body[keydown_start:]
-        self.assertLess(
-            keydown_body.index('event.key === "Escape"'),
-            keydown_body.index("!activeState"),
-        )
-
     def test_input_controller_module_semantics(self):
         self.assertTrue(AUTOCOMPLETE_INPUT_CONTROLLER_SMOKE.is_file())
+        self.assertTrue(AUTOCOMPLETE_INPUT_BINDING_SMOKE.is_file())
+        frontend_check_source = FRONTEND_CHECK_SCRIPT.read_text(encoding="utf-8")
+        self.assertIn(
+            r'node "tests\frontend_autocomplete_input_controller_smoke.mjs"',
+            frontend_check_source,
+        )
+        self.assertIn(
+            r'node "tests\frontend_autocomplete_input_binding_smoke.mjs"',
+            frontend_check_source,
+        )
 
         node_bin = shutil.which("node")
         if not node_bin:
@@ -277,6 +277,84 @@ class AutocompleteFrontendBoundaryTests(unittest.TestCase):
 
         if completed.returncode != 0:
             self.fail((completed.stdout + completed.stderr).strip())
+
+    def test_entry_lifecycle_is_in_semantic_runner(self):
+        self.assertTrue(AUTOCOMPLETE_ENTRY_LIFECYCLE.is_file())
+        self.assertTrue(AUTOCOMPLETE_ENTRY_LIFECYCLE_SMOKE.is_file())
+        frontend_check_source = FRONTEND_CHECK_SCRIPT.read_text(encoding="utf-8")
+        self.assertIn(
+            r'node "tests\frontend_autocomplete_entry_lifecycle_smoke.mjs"',
+            frontend_check_source,
+        )
+
+    def test_input_binding_has_exact_listener_lifecycle_boundary(self):
+        module_source = AUTOCOMPLETE_INPUT_BINDING.read_text(encoding="utf-8")
+        entry_source = AUTOCOMPLETE_ENTRY.read_text(encoding="utf-8")
+
+        self.assertEqual(module_source.splitlines()[0], "// @ts-check")
+        self.assertEqual(
+            re.findall(
+                r"^export\s+(?:const|function|class)\s+([A-Za-z0-9_]+)",
+                module_source,
+                re.MULTILINE,
+            ),
+            ["createAutocompleteInputBinding"],
+        )
+        self.assertNotRegex(
+            module_source,
+            re.compile(r"^\s*import\b", re.MULTILINE),
+        )
+        self.assertNotRegex(
+            module_source,
+            (
+                r"\b(?:document|window|app|api|fetch|registerExtension|"
+                r"MutationObserver|HTMLElement|HTMLInputElement|"
+                r"HTMLTextAreaElement)\b"
+            ),
+        )
+        self.assertIn(
+            'import { createAutocompleteInputBinding } from '
+            '"./autocomplete/input_binding.js";',
+            entry_source,
+        )
+        self.assertEqual(entry_source.count("createAutocompleteInputBinding({"), 1)
+
+        hook_start = entry_source.index("function hookInput")
+        hook_end = entry_source.index("\nfunction hookWidget", hook_start)
+        hook_body = entry_source[hook_start:hook_end]
+        self.assertIn("state.binding = createAutocompleteInputBinding({", hook_body)
+        self.assertIn("return existing.dispose;", hook_body)
+        self.assertIn("return state.dispose;", hook_body)
+        self.assertNotIn("input.addEventListener(", hook_body)
+
+        self.assertIn('listen("compositionstart", controller.beginComposition);', module_source)
+        self.assertIn('listen("compositionupdate", controller.scheduleUpdate);', module_source)
+        self.assertIn('listen("compositionend", controller.endComposition);', module_source)
+        self.assertEqual(module_source.count('listen("keydown"'), 3)
+        self.assertIn("input.removeEventListener(type, listener, options);", module_source)
+        self.assertIn("controller.dispose();", module_source)
+        self.assertIn("clearTimer(blurTimer);", module_source)
+        self.assertIn("middlePanCleanup?.();", module_source)
+        self.assertIn(
+            "const staleDispose = input.__easyuseAnimaAutocompleteDispose;",
+            module_source,
+        )
+        self.assertIn('typeof staleDispose === "function"', module_source)
+        self.assertIn("staleDispose();", module_source)
+
+        dispose_start = entry_source.index("function disposeAutocompleteInput")
+        dispose_end = entry_source.index("\nfunction syncAutocompleteInputFlags", dispose_start)
+        dispose_body = entry_source[dispose_start:dispose_end]
+        self.assertIn(
+            "const staleDispose = input.__easyuseAnimaAutocompleteDispose;",
+            dispose_body,
+        )
+        self.assertIn("staleDispose();", dispose_body)
+        self.assertIn("expectedState.binding?.dispose();", dispose_body)
+        self.assertIn("expectedState.controller?.dispose?.();", dispose_body)
+        self.assertIn("input.__easyuseAnimaAutocompleteState === expectedState", dispose_body)
+        self.assertIn("input?.isConnected === false", dispose_body)
+        self.assertIn("pruneDisconnectedAutocompleteInputs(input);", hook_body)
 
     def test_popup_geometry_has_exact_dom_free_boundary(self):
         module_source = AUTOCOMPLETE_POPUP_GEOMETRY.read_text(encoding="utf-8")
@@ -472,7 +550,8 @@ class AutocompleteFrontendBoundaryTests(unittest.TestCase):
             2,
         )
         self.assertIn("app.registerExtension({", entry_source)
-        self.assertIn('document.addEventListener("pointerdown"', entry_source)
+        self.assertIn("createAutocompleteEntryLifecycle({", entry_source)
+        self.assertIn("handleOutsidePointer: handleOutsideAutocompletePointer", entry_source)
         self.assertIn("function hookInput(", entry_source)
 
     def test_data_adapter_is_in_static_and_semantic_runners(self):
@@ -644,7 +723,8 @@ class AutocompleteFrontendBoundaryTests(unittest.TestCase):
 
         self.assertEqual(source.count("planAutocompleteInsertion("), 2)
         self.assertIn("app.registerExtension({", source)
-        self.assertIn('document.addEventListener("pointerdown"', source)
+        self.assertIn("createAutocompleteEntryLifecycle({", source)
+        self.assertIn("handleOutsidePointer: handleOutsideAutocompletePointer", source)
         self.assertIn("function hookInput(", source)
 
     def test_text_model_is_in_static_and_semantic_runners(self):

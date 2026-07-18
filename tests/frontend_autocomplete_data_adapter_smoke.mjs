@@ -133,6 +133,17 @@ const limitedUrl = "/easyuse_anima/autocomplete"
   + `&category=${encodeURIComponent(firstCategory)}`;
 await adapter.search(firstQuery, firstCategory);
 assert.equal(autocompleteFetchCounts.get(limitedUrl), 1, "limit must partition the cache");
+limit = 100;
+const maximumLimitUrl = "/easyuse_anima/autocomplete"
+  + `?q=${encodeURIComponent(firstQuery)}`
+  + "&limit=100"
+  + `&category=${encodeURIComponent(firstCategory)}`;
+await adapter.search(firstQuery, firstCategory);
+assert.equal(
+  autocompleteFetchCounts.get(maximumLimitUrl),
+  1,
+  "the configured maximum limit must be forwarded in the request URL",
+);
 limit = 20;
 assert.equal(await adapter.search(firstQuery, firstCategory), firstResults);
 

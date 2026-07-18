@@ -22,6 +22,10 @@ This repository is prepared for future ComfyUI Manager / Comfy Registry registra
 ## Registry Rules
 
 - `pyproject.toml` `[project].name` is the Registry node id. Use the lowercase repository-style name: `comfyui-easyuse-anima`.
+- Write each new Registry changelog for installing users: lead with the outcome
+  and include only user-visible changes and required actions in plain text.
+  Keep PRs, commits, internal file/module work, test bookkeeping, scanner
+  findings, and release mechanics in maintainer notes instead.
 - `[tool.comfy].PublisherId` must match the Comfy Registry publisher id. It is currently set to `n0va39`.
 - Comfy Registry display name for the publisher is `N0VA`; this is informational. The publish identity is the publisher id `n0va39`.
 - Keep `[project.urls].Repository` pointed at the public GitHub repository.
@@ -98,6 +102,8 @@ Use this procedure when publishing a release to Comfy Registry / ComfyUI Manager
   - `[tool.comfy].PublisherId = "n0va39"`
   - `[tool.comfy].DisplayName = "ComfyUI EasyUse Anima"`
 - If a version was already published, never reuse it. Bump to a new version.
+- Confirm the current package version has a `changelog_file`, that the file
+  exists, and that its copy follows the user-facing plain-text rule above.
 - Keep the top summary in `README.md`, `README.en.md`, and `README.ko.md`
   aligned with `[project].description`.
 - Keep the GitHub repository description aligned with `[project].description`
@@ -144,13 +150,25 @@ This repository keeps `.github/workflows/publish_action.yml` as a manual-only
 workflow to avoid accidental Registry publishing while release metadata is being
 edited. Trigger it from GitHub Actions with `workflow_dispatch`.
 
-The checked-in workflow is:
+The checked-in workflow accepts a required `mode`, an optional `version`, and
+a `dry_run` switch used by metadata mode. Its release-relevant shape is shown
+below; `.github/workflows/publish_action.yml` remains the executable source of
+truth:
 
 ```yaml
 name: Publish to Comfy registry
 
 on:
   workflow_dispatch:
+    inputs:
+      mode:
+        type: choice
+        options: [publish, metadata]
+      version:
+        required: false
+      dry_run:
+        type: choice
+        options: [true, false]
 
 jobs:
   publish-node:
@@ -159,18 +177,55 @@ jobs:
     steps:
       - name: Check out code
         uses: actions/checkout@v4
+      - name: Install uv
+        if: ${{ inputs.mode == 'publish' }}
+        uses: astral-sh/setup-uv@v5
+      - name: Extract Registry changelog
+        if: ${{ inputs.mode == 'publish' }}
+        run: |
+          python .github/scripts/extract_release_changelog.py \
+            --version "${{ inputs.version }}" \
+            --output "$RUNNER_TEMP/comfy-node-changelog.md"
+      - name: Validate node package
+        if: ${{ inputs.mode == 'publish' }}
+        run: |
+          uvx --from comfy-cli comfy --skip-prompt node validate
       - name: Publish Custom Node
-        uses: Comfy-Org/publish-node-action@main
-        with:
-          personal_access_token: ${{ secrets.REGISTRY_ACCESS_TOKEN }}
+        if: ${{ inputs.mode == 'publish' }}
+        env:
+          REGISTRY_ACCESS_TOKEN: ${{ secrets.REGISTRY_ACCESS_TOKEN }}
+        run: |
+          uvx --from comfy-cli comfy --skip-prompt node publish \
+            --token "$REGISTRY_ACCESS_TOKEN" \
+            --changelog-file "$RUNNER_TEMP/comfy-node-changelog.md"
+      - name: Sync existing metadata
+        if: ${{ inputs.mode == 'metadata' }}
+        env:
+          REGISTRY_ACCESS_TOKEN: ${{ secrets.REGISTRY_ACCESS_TOKEN }}
+        run: |
+          python .github/scripts/sync_comfy_registry_metadata.py \
+            --dry-run "${{ inputs.dry_run }}"
 ```
 
-If automatic publishing is wanted later, add a guarded `push` trigger for
-`pyproject.toml` version changes after the release process is stable.
+For a new version, merge the validated release metadata to protected `main`,
+create and read back the matching immutable annotated tag, then dispatch
+`publish_action.yml` from `main` with `mode=publish` and the exact version.
+After Registry read-back, dispatch `registry_metadata.yml` with
+`dry_run=false`, then run a final local metadata dry-run and verify that it is a
+no-op. Do not add an automatic push trigger without a separately reviewed
+release-policy change.
 
 ### 6. After Publishing
 
 - Confirm the Registry page for publisher `n0va39` shows the new version.
 - Confirm install through ComfyUI Manager / Registry.
-- Create and push a matching Git tag, for example `v0.1.2`, unless the tag was already created before publishing.
+- Confirm the already-pushed annotated tag resolves to the released `main`
+  commit. Tag creation is a pre-publish gate, not a post-publish repair step.
+- Download the Registry `node.zip` and compare every packaged file with the
+  tagged Git blobs. Also download the GitHub manual-install asset and verify its
+  recorded SHA256 and top-level custom-node folder.
+- Copy a public SHA256 only from the freshly built artifact or the live asset
+  digest. Do not expand a shortened value from a handoff, log, or summary; after
+  editing release copy, read it back and compare the complete value with the
+  live asset.
 - Do not rewrite the tag after public release. Use a new patch version for fixes.

@@ -6,6 +6,7 @@ import {
   aioCreateCheckboxInput as checkbox,
   aioCreateNumberInput as numberInput,
   aioCreateSelectInput as selectInput,
+  aioReconcileSelectInput as reconcileSelectInput,
   aioCreateTextareaInput as textareaInput,
   aioCreateTextInput as textInput,
   aioNodeInputControlForSpec as nodeInputControlForSpec,
@@ -36,6 +37,8 @@ import {
 import {
   AIO_BACKEND_DEPENDENCIES,
   AIO_OPTIONAL_DEPENDENCY_SPECS,
+  aioChoiceOptionsWithCurrent,
+  aioChoiceSpecValues,
   aioNodeInputMap,
   aioNodeInputSpec,
   aioNodeInputSupported,
@@ -305,6 +308,11 @@ const AIO_TEXT = {
     "field.prompt": "Prompt",
     "field.count": "Count",
     "field.threshold": "Threshold",
+    "field.wildcard": "Wildcard",
+    "field.guideSizeBasis": "Guide size basis",
+    "field.inpaintModel": "Inpaint model",
+    "field.tiledEncode": "Tiled encode",
+    "field.tiledDecode": "Tiled decode",
     "field.refine": "Refine",
     "field.individual": "Individual",
     "field.combined": "Combined",
@@ -635,6 +643,11 @@ const AIO_TEXT = {
     "field.prompt": "프롬프트",
     "field.count": "개수",
     "field.threshold": "임계값",
+    "field.wildcard": "와일드카드",
+    "field.guideSizeBasis": "가이드 크기 기준",
+    "field.inpaintModel": "인페인트 모델",
+    "field.tiledEncode": "타일 인코드",
+    "field.tiledDecode": "타일 디코드",
     "field.refine": "정제",
     "field.individual": "개별 마스크",
     "field.combined": "통합 마스크",
@@ -1053,6 +1066,7 @@ const AIO_TOOLTIP_TEXT = {
     "tip.detailerPrompt": "SAM3 text prompt used to detect the target region for this block.",
     "tip.detailerCount": "Maximum number of detected regions to process.",
     "tip.detailerThreshold": "SAM3 detection threshold. Higher values keep only stronger detections.",
+    "tip.detailerWildcard": "Impact Detailer wildcard text shared with the detailed settings dialog.",
     "tip.detailerRefine": "SAM3 mask refinement iterations before MaskToSEGS conversion.",
     "tip.detailerIndividual": "Processes detected masks independently instead of only as one combined mask.",
     "tip.detailerCombined": "Adds a combined SEGS entry from all detected masks.",
@@ -1163,6 +1177,7 @@ const AIO_TOOLTIP_TEXT = {
     "tip.detailerPrompt": "이 블럭의 대상 영역을 찾기 위해 SAM3에 전달할 텍스트 프롬프트입니다.",
     "tip.detailerCount": "처리할 최대 감지 영역 개수입니다.",
     "tip.detailerThreshold": "SAM3 감지 threshold입니다. 높을수록 강한 감지만 남습니다.",
+    "tip.detailerWildcard": "상세 설정 dialog와 공유하는 Impact Detailer wildcard 텍스트입니다.",
     "tip.detailerRefine": "MaskToSEGS 변환 전 SAM3 mask refinement 반복 수입니다.",
     "tip.detailerIndividual": "감지된 mask를 하나씩 독립 처리합니다.",
     "tip.detailerCombined": "감지된 모든 mask를 합친 SEGS 항목을 추가합니다.",
@@ -1695,6 +1710,11 @@ const AIO_FIELD_LABEL_KEYS = {
   "Prompt": "field.prompt",
   "Count": "field.count",
   "Threshold": "field.threshold",
+  "Wildcard": "field.wildcard",
+  "Guide size basis": "field.guideSizeBasis",
+  "Inpaint model": "field.inpaintModel",
+  "Tiled encode": "field.tiledEncode",
+  "Tiled decode": "field.tiledDecode",
   "Refine": "field.refine",
   "Individual": "field.individual",
   "Combined": "field.combined",
@@ -1832,42 +1852,12 @@ const generatorOptionalDependencyState = {
   reportedSignature: "",
 };
 
-function uniqueStrings(values) {
-  const output = [];
-  for (const value of values || []) {
-    const normalized = String(value ?? "");
-    if (normalized && !output.includes(normalized)) {
-      output.push(normalized);
-    }
-  }
-  return output;
-}
-
-function choiceSpecValues(spec) {
-  if (!Array.isArray(spec)) {
-    return [];
-  }
-  if (Array.isArray(spec[0])) {
-    return uniqueStrings(spec[0]);
-  }
-  return uniqueStrings(spec);
-}
-
-function optionsWithCurrent(options, current) {
-  const merged = uniqueStrings(options);
-  const normalized = String(current ?? "");
-  if (normalized && !merged.includes(normalized)) {
-    merged.unshift(normalized);
-  }
-  return merged;
-}
-
 async function fetchGeneratorSamplerOptions() {
   const data = await easyuseAnimaFetchComfyJson(api, "/object_info/KSampler");
   const ksamplerInfo = data?.KSampler || data;
   const required = ksamplerInfo?.input?.required || {};
-  const samplerNames = choiceSpecValues(required.sampler_name);
-  const schedulerNames = choiceSpecValues(required.scheduler);
+  const samplerNames = aioChoiceSpecValues(required.sampler_name);
+  const schedulerNames = aioChoiceSpecValues(required.scheduler);
   if (samplerNames.length) {
     generatorSamplerOptionState.samplerNames = samplerNames;
   }
@@ -2018,8 +2008,8 @@ function nodeInputTooltip(dependencyKey, inputName) {
 }
 
 function nodeInputChoiceOptions(dependencyKey, inputName, current, fallback = []) {
-  const values = choiceSpecValues(nodeInputSpec(dependencyKey, inputName));
-  return optionsWithCurrent(values.length ? values : fallback, current);
+  const values = aioChoiceSpecValues(nodeInputSpec(dependencyKey, inputName));
+  return aioChoiceOptionsWithCurrent(values.length ? values : fallback, current);
 }
 
 function nodeInputSupported(dependencyKey, inputName) {
@@ -2091,11 +2081,11 @@ function sanitizeGeneratorSettingsForOptionalDependencies(settings) {
 }
 
 function samplerNameOptions(current) {
-  return optionsWithCurrent(generatorSamplerOptionState.samplerNames, current);
+  return aioChoiceOptionsWithCurrent(generatorSamplerOptionState.samplerNames, current);
 }
 
 function schedulerNameOptions(current) {
-  return optionsWithCurrent(generatorSamplerOptionState.schedulerNames, current);
+  return aioChoiceOptionsWithCurrent(generatorSamplerOptionState.schedulerNames, current);
 }
 
 function refreshGeneratorPanels() {
@@ -2703,7 +2693,8 @@ function ensureStyle() {
       min-width: 0;
     }
     .easyuse-anima-aio-node-field input,
-    .easyuse-anima-aio-node-field select {
+    .easyuse-anima-aio-node-field select,
+    .easyuse-anima-aio-node-field textarea {
       width: 100%;
       height: 24px;
       min-width: 0;
@@ -2714,6 +2705,11 @@ function ensureStyle() {
       border-radius: 5px;
       font: 12px "Segoe UI", sans-serif;
       outline: none;
+    }
+    .easyuse-anima-aio-node-field textarea {
+      height: 48px;
+      min-height: 48px;
+      resize: vertical;
     }
     .easyuse-anima-aio-node-mode-badge {
       width: 100%;
@@ -3380,7 +3376,7 @@ function widgetOptions(node, name, fallback = []) {
   const widget = findWidget(node, name);
   const values = widget?.options?.values;
   const options = Array.isArray(values) ? values : fallback;
-  return optionsWithCurrent(options, current);
+  return aioChoiceOptionsWithCurrent(options, current);
 }
 
 function setWidgetValueIfChanged(node, name, value) {
@@ -3708,6 +3704,7 @@ const {
     numberInput,
     checkbox,
     selectInput,
+    reconcileSelectInput,
   },
   text: {
     staticText: aioStaticText,
@@ -3746,8 +3743,10 @@ const openDetailerSettings = aioCreateDetailerSettingsDialog({
     field,
     checkbox,
     textInput,
+    textareaInput,
     numberInput,
     selectInput,
+    reconcileSelectInput,
   },
   text: {
     staticText: aioStaticText,
@@ -3773,6 +3772,7 @@ const openDetailerSettings = aioCreateDetailerSettingsDialog({
     findWidget,
     getSettings: generatorSettings,
     widgetOptions,
+    nodeInputChoiceOptions,
     writeSettings,
     renderPanel: renderGeneratorPanel,
   },
@@ -3972,6 +3972,7 @@ const generatorPanelRuntime = aioCreateGeneratorPanelRuntime({
   controls: {
     numberInput,
     checkbox,
+    textareaInput,
     selectInput,
     createNodeField,
   },

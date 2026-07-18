@@ -7,6 +7,7 @@
  * @property {(value: any, step?: string) => any} numberInput
  * @property {(value: any) => any} checkbox
  * @property {(options: any[], value: any) => any} selectInput
+ * @property {(select: any, options: any[]) => any} reconcileSelectInput
  */
 
 /**
@@ -82,6 +83,7 @@ export function aioCreateStageSettingsDialogs(dependencies) {
     numberInput,
     checkbox,
     selectInput,
+    reconcileSelectInput,
   } = controls;
   const {
     staticText: aioStaticText,
@@ -338,6 +340,7 @@ export function aioCreateStageSettingsDialogs(dependencies) {
       "Final-stage upscale runs after Detailer and before Save. Choose USDU or ResShift."
     );
     body.classList.add("easyuse-anima-aio-one-column");
+    let closed = false;
 
     const main = document.createElement("section");
     main.className = "easyuse-anima-aio-section";
@@ -488,7 +491,30 @@ export function aioCreateStageSettingsDialogs(dependencies) {
     body.append(main, usduSection, usduSampler, optimization.section, resshiftSection);
     updateVisibility();
     refreshDependencyLocks();
-    loadGeneratorOptionalDependencies().then(refreshDependencyLocks);
+    loadGeneratorOptionalDependencies().then(() => {
+      if (closed || backdrop.isConnected === false) {
+        return;
+      }
+      reconcileSelectInput(
+        upscaleModel,
+        nodeInputChoiceOptions(
+          "upscaleModelLoader",
+          "model_name",
+          upscaleModel.value,
+          [upscaleModel.value],
+        ),
+      );
+      reconcileSelectInput(
+        student,
+        nodeInputChoiceOptions(
+          "resShiftLoader",
+          "student_name",
+          student.value,
+          ["(auto-download)"],
+        ),
+      );
+      refreshDependencyLocks();
+    });
 
     const cancel = document.createElement("button");
     cancel.textContent = aioText("button.cancel");
@@ -496,7 +522,10 @@ export function aioCreateStageSettingsDialogs(dependencies) {
     apply.className = "primary";
     apply.textContent = aioText("button.apply");
     actions.append(cancel, apply);
-    cancel.addEventListener("click", () => backdrop.remove());
+    cancel.addEventListener("click", () => {
+      closed = true;
+      backdrop.remove();
+    });
     apply.addEventListener("click", () => {
       const next = mergeDefaults(DEFAULT_GENERATION_SETTINGS, settings);
       const missingPacks = upscaleBackendMissingPacks(backend.value);
@@ -545,6 +574,7 @@ export function aioCreateStageSettingsDialogs(dependencies) {
       };
       writeSettings(node, widget, next);
       renderGeneratorPanel(node);
+      closed = true;
       backdrop.remove();
     });
   }

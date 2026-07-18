@@ -40,8 +40,12 @@ updating a release branch that will be scanned by Registry automation.
 - workflow samples and generated assets
 - videos, screenshots, preview images, HTML exports, and archives
 - local/user-generated folders such as `workflow/`, `wildcards/`, `styles/`,
-  `autocomplete/`, and development-only frontend builds
+  root-only `/autocomplete/`, and development-only frontend builds
 - local caches, virtual environments, logs, and temporary directories
+
+Use the leading slash for `/autocomplete/`. A bare `autocomplete/` pattern also
+matches `web/js/autocomplete/` in Comfy Registry packaging and can remove the
+runtime controller modules while leaving unrelated tooltip metadata available.
 
 Keep runtime Python files, `anima_prompt/`, `__easyuse_anima__/`, `web/`,
 `locales/`, `requirements.txt`, `pyproject.toml`, `README*`, and `LICENSE`

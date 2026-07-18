@@ -42,6 +42,7 @@ import {
 import {
   guardAdvancedEditorNativeControlEvent,
 } from "./wheel.js";
+import { disposeExternalAutocompleteInputs } from "../autocomplete/entry_lifecycle.js";
 
 function advancedControlHooks(hooks = {}) {
   return {
@@ -64,6 +65,10 @@ function advancedFieldsUiHooks(hooks = {}) {
   };
 }
 
+function disposeAdvancedAutocompleteInputs(node) {
+  disposeExternalAutocompleteInputs(window, getAdvancedEditorElement(node));
+}
+
 function renderAdvancedEditor(node, hooks = {}) {
   const {
     scheduleAdvancedLayout = () => {},
@@ -75,6 +80,7 @@ function renderAdvancedEditor(node, hooks = {}) {
   }
   const fields = setAdvancedFields(node, parseAdvancedFields(node));
   applyAdvancedNaiaGeneralAutoToggle(fields);
+  disposeAdvancedAutocompleteInputs(node);
   editor.innerHTML = "";
   updateAdvancedEditorWidth(node);
   const panes = document.createElement("div");
@@ -144,6 +150,7 @@ function scheduleHookAdvancedNode(node, hooks = {}) {
 }
 
 export {
+  disposeAdvancedAutocompleteInputs,
   hookAdvancedNode,
   renderAdvancedEditor,
   scheduleHookAdvancedNode,

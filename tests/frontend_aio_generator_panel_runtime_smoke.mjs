@@ -26,6 +26,10 @@ function findByText(root, textContent) {
   return find(root, (element) => element.textContent === textContent);
 }
 
+function findField(root, label) {
+  return find(root, (element) => element.getAttribute("data-test-label") === label);
+}
+
 const PANEL_EVENT_NAMES = [
   "pointerdown",
   "mousedown",
@@ -49,6 +53,16 @@ assert.deepEqual(
   ["aioCreateGeneratorPanelRuntime"],
   "Generator panel runtime must expose only its factory contract",
 );
+
+{
+  const document = createFakeDocument();
+  const input = document.createElement("input");
+  const textarea = document.createElement("textarea");
+  input.value = "first\nsecond";
+  textarea.value = "first\nsecond";
+  assert.equal(input.value, "firstsecond", "Fake input must model browser newline stripping");
+  assert.equal(textarea.value, "first\nsecond", "Fake textarea must preserve multiline values");
+}
 
 {
   const entrySource = readFileSync(
@@ -189,6 +203,13 @@ function createFixture() {
     input.type = "checkbox";
     input.checked = !!value;
     return input;
+  }
+
+  function textareaInput(value) {
+    dependencyCalls += 1;
+    const textarea = document.createElement("textarea");
+    textarea.value = String(value ?? "");
+    return textarea;
   }
 
   function selectInput(options, value) {
@@ -429,6 +450,7 @@ function createFixture() {
     controls: {
       numberInput,
       checkbox,
+      textareaInput,
       selectInput,
       createNodeField,
     },
@@ -503,6 +525,7 @@ settings.highres.enabled = true;
 settings.highres.inherit_sampler_settings = false;
 settings.detailer.enabled = true;
 settings.detailer.face.enabled = true;
+settings.detailer.face.preserved_unknown = { nested: "keep-panel" };
 settings.detailer.eye.enabled = true;
 settings.upscale.enabled = true;
 settings.upscale.backend = "usdu";
@@ -962,6 +985,100 @@ assert.ok(
   "settings write must complete before summary/profile refresh",
 );
 assert.notEqual(panel.children[0], main, "rerendering a stage toggle must replace panel children");
+
+while (fixture.animationFrames.length) {
+  fixture.animationFrames.shift()();
+}
+
+const detailerScroll = panel.querySelector(".easyuse-anima-aio-node-settings-scroll");
+const detailerStage = detailerScroll.children[2];
+const faceTitle = findByText(detailerStage, "1. Face Detailer");
+const faceBlock = faceTitle.parentElement.parentElement;
+const faceThreshold = findField(faceBlock, "text:field.threshold");
+const faceThresholdInput = faceThreshold.children[0].children[0];
+const faceWildcard = findField(faceBlock, "text:field.wildcard");
+const faceWildcardInput = faceWildcard.children[0];
+assert.equal(faceThresholdInput.value, "0.52");
+assert.equal(faceThresholdInput.min, "0");
+assert.equal(faceThresholdInput.max, "1");
+assert.equal(faceThresholdInput.step, "0.01");
+assert.equal(faceThreshold.getAttribute("data-test-tooltip"), "tip.detailerThreshold");
+assert.equal(faceWildcardInput.value, "");
+assert.equal(faceWildcardInput.tagName, "TEXTAREA");
+assert.equal(
+  faceWildcardInput.getAttribute("data-aio-focus-key"),
+  "detailer.face.wildcard",
+  "Detailer wildcard textarea must retain its stable focus key",
+);
+assert.equal(faceWildcard.getAttribute("data-test-tooltip"), "tip.detailerWildcard");
+
+faceThresholdInput.value = "0.63";
+faceThresholdInput.emit("input");
+assert.equal(node.settings.detailer.face.threshold, 0.63);
+const multilineFaceWildcard = "codex_live_face\nsecond_line";
+faceWildcardInput.value = multilineFaceWildcard;
+faceWildcardInput.emit("input");
+assert.equal(
+  node.settings.detailer.face.wildcard,
+  multilineFaceWildcard,
+  "Detailer wildcard input must immediately write the exact multiline value",
+);
+assert.deepEqual(node.settings.detailer.face.preserved_unknown, { nested: "keep-panel" });
+
+const serializedDetailerSettings = JSON.stringify(node.settings);
+node.settings = JSON.parse(serializedDetailerSettings);
+fixture.runtime.renderPanel(node);
+let reloadedDetailerStage = panel.querySelector(
+  ".easyuse-anima-aio-node-settings-scroll",
+).children[2];
+let reloadedFaceTitle = findByText(reloadedDetailerStage, "1. Face Detailer");
+let reloadedFaceBlock = reloadedFaceTitle.parentElement.parentElement;
+assert.equal(
+  findField(reloadedFaceBlock, "text:field.threshold").children[0].children[0].value,
+  "0.63",
+  "serialized Detailer threshold must reload into the external target card",
+);
+assert.equal(
+  findField(reloadedFaceBlock, "text:field.wildcard").children[0].tagName,
+  "TEXTAREA",
+  "serialized Detailer wildcard must reload into a textarea",
+);
+assert.equal(
+  findField(reloadedFaceBlock, "text:field.wildcard").children[0].value,
+  multilineFaceWildcard,
+  "serialized Detailer wildcard must reload into the external target card",
+);
+
+const reloadedFaceEnabled = findField(reloadedFaceBlock, "text:label.enabled").children[0];
+reloadedFaceEnabled.checked = false;
+reloadedFaceEnabled.emit("change");
+reloadedDetailerStage = panel.querySelector(
+  ".easyuse-anima-aio-node-settings-scroll",
+).children[2];
+reloadedFaceTitle = findByText(reloadedDetailerStage, "1. Face Detailer");
+reloadedFaceBlock = reloadedFaceTitle.parentElement.parentElement;
+assert.equal(node.settings.detailer.face.enabled, false);
+assert.equal(findField(reloadedFaceBlock, "text:field.threshold"), null);
+
+const disabledFaceEnabled = findField(reloadedFaceBlock, "text:label.enabled").children[0];
+disabledFaceEnabled.checked = true;
+disabledFaceEnabled.emit("change");
+reloadedDetailerStage = panel.querySelector(
+  ".easyuse-anima-aio-node-settings-scroll",
+).children[2];
+reloadedFaceTitle = findByText(reloadedDetailerStage, "1. Face Detailer");
+reloadedFaceBlock = reloadedFaceTitle.parentElement.parentElement;
+assert.equal(node.settings.detailer.face.enabled, true);
+assert.equal(
+  findField(reloadedFaceBlock, "text:field.threshold").children[0].children[0].value,
+  "0.63",
+  "re-enabling a Detailer target must preserve its threshold",
+);
+assert.equal(
+  findField(reloadedFaceBlock, "text:field.wildcard").children[0].value,
+  multilineFaceWildcard,
+  "re-enabling a Detailer target must preserve its wildcard",
+);
 
 while (fixture.animationFrames.length) {
   fixture.animationFrames.shift()();

@@ -497,6 +497,7 @@ class FrontendModuleStructureTests(unittest.TestCase):
             "controls": [
                 "numberInput,",
                 "checkbox,",
+                "textareaInput,",
                 "selectInput,",
                 "createNodeField,",
             ],
@@ -611,6 +612,7 @@ class FrontendModuleStructureTests(unittest.TestCase):
             "createDomSettingsCheckboxControl",
             "createDomSettingsNumberControl",
             "createDomSettingsSelectControl",
+            "createDomSettingsTextareaControl",
             "createDomSelectControl",
             "updateGeneratorSeed",
             "setGeneratorSeedFromUi",
@@ -625,6 +627,7 @@ class FrontendModuleStructureTests(unittest.TestCase):
         for removed_function in (
             "createDomTextControl",
             "createDomCheckboxControl",
+            "createDomSettingsTextControl",
             "createSeedControlSelect",
         ):
             with self.subTest(removed_dead_function=removed_function):
@@ -673,6 +676,10 @@ class FrontendModuleStructureTests(unittest.TestCase):
         self.assertLess(
             entry_source.index("const generatorPanelRuntime"),
             entry_source.index("function hookInputNode"),
+        )
+        self.assertIn(
+            "nextSettings.detailer[targetName].wildcard = value;",
+            source,
         )
         self.assertTrue(AIO_GENERATOR_PANEL_RUNTIME_SMOKE.is_file())
         self.assertIn(
@@ -1190,6 +1197,7 @@ class FrontendModuleStructureTests(unittest.TestCase):
             "normalizeUsduAutoTileRange: normalizeGeneratorUsduAutoTileRange,",
             "getSettings: generatorSettings,",
             "renderPanel: renderGeneratorPanel,",
+            "reconcileSelectInput,",
             "upscaleBackendMissingPacks,",
             "load: loadGeneratorOptionalDependencies,",
         ):
@@ -1237,10 +1245,13 @@ class FrontendModuleStructureTests(unittest.TestCase):
         composition = entry_source[composition_start:composition_end]
         for expected in (
             "createDialog,",
+            "textareaInput,",
             "defaultGenerationSettings: DEFAULT_GENERATION_SETTINGS,",
             "normalizeDetailerOrder,",
             "stageOptimizationEditor: createStageOptimizationEditor,",
             "getSettings: generatorSettings,",
+            "nodeInputChoiceOptions,",
+            "reconcileSelectInput,",
             "renderPanel: renderGeneratorPanel,",
             "load: loadGeneratorOptionalDependencies,",
         ):
@@ -1258,6 +1269,23 @@ class FrontendModuleStructureTests(unittest.TestCase):
             "createStageOptimizationEditor(`${title} Optimization`, target, defaults)",
             editor_body,
         )
+        for field_contract in (
+            'guide_size_for: guideSizeFor.value === "bbox"',
+            'wildcard: String(wildcard.value || "")',
+            "inpaint_model: inpaintModel.checked",
+            "tiled_encode: tiledEncode.checked",
+            "tiled_decode: tiledDecode.checked",
+        ):
+            with self.subTest(detailer_field_contract=field_contract):
+                self.assertIn(field_contract, editor_body)
+        for destructive_default in (
+            "guide_size_for: false",
+            "inpaint_model: false",
+            "tiled_encode: false",
+            "tiled_decode: false",
+        ):
+            with self.subTest(destructive_default=destructive_default):
+                self.assertNotIn(destructive_default, editor_body)
         self.assertIn("return openDetailerSettings;", source)
         self.assertTrue(AIO_DETAILER_SETTINGS_DIALOG_SMOKE.is_file())
         self.assertIn(
@@ -1497,6 +1525,8 @@ class FrontendModuleStructureTests(unittest.TestCase):
         self.assertEqual(exported_constants, expected_constants)
 
         expected_functions = {
+            "aioChoiceOptionsWithCurrent",
+            "aioChoiceSpecValues",
             "aioNodeInputMap",
             "aioNodeInputSpec",
             "aioNodeInputSupported",
@@ -1530,6 +1560,8 @@ class FrontendModuleStructureTests(unittest.TestCase):
             {
                 "AIO_BACKEND_DEPENDENCIES",
                 "AIO_OPTIONAL_DEPENDENCY_SPECS",
+                "aioChoiceOptionsWithCurrent",
+                "aioChoiceSpecValues",
                 "aioNodeInputMap",
                 "aioNodeInputSpec",
                 "aioNodeInputSupported",
@@ -1547,6 +1579,9 @@ class FrontendModuleStructureTests(unittest.TestCase):
         self.assertNotIn("fetch(", source)
         self.assertNotIn("const GENERATOR_OPTIONAL_DEPENDENCY_SPECS", entry_source)
         self.assertNotIn("const GENERATOR_BACKEND_DEPENDENCIES", entry_source)
+        self.assertNotIn("function choiceSpecValues", entry_source)
+        self.assertNotIn("function optionsWithCurrent", entry_source)
+        self.assertNotRegex(entry_source, r"\boptionsWithCurrent\s*\(")
         self.assertNotIn("function upscaleBackendDependencyKeys", entry_source)
 
         for delegation in (
@@ -1760,6 +1795,7 @@ class FrontendModuleStructureTests(unittest.TestCase):
             "aioCreateCheckboxInput",
             "aioCreateNumberInput",
             "aioCreateSelectInput",
+            "aioReconcileSelectInput",
             "aioCreateTextInput",
             "aioCreateTextareaInput",
             "aioNodeInputControlForSpec",
@@ -3276,6 +3312,10 @@ class FrontendModuleStructureTests(unittest.TestCase):
         )
         self.assertIn(
             r'& node "tests\frontend_aio_settings_core_smoke.mjs"', source
+        )
+        self.assertIn(
+            r'& node "tests\frontend_lora_preset_profile_mutations_smoke.mjs"',
+            source,
         )
         self.assertIn('"typescript@$TypeScriptVersion"', source)
         self.assertIn("tsc -p jsconfig.json", source)

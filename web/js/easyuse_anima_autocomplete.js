@@ -10,6 +10,8 @@ import {
   createAutocompleteInputController,
   invalidateAutocompleteControllerStates,
 } from "./autocomplete/input_controller.js";
+import { createAutocompleteInputBinding } from "./autocomplete/input_binding.js";
+import { createAutocompleteEntryLifecycle } from "./autocomplete/entry_lifecycle.js";
 import {
   calculateAutocompletePopupGeometry,
   calculateCaretMirrorGeometry,
@@ -184,9 +186,10 @@ let autocompletePreviewCompletion = false;
 let popup = null;
 let activeState = null;
 let activeRefreshFrame = null;
-let middlePanForwardActive = false;
+let middlePanForwardCleanup = null;
+const autocompleteInputOwner = {};
 const hookedAutocompleteInputs = new Set();
-window.__easyuseAnimaPendingAutocompleteInputs ||= [];
+let autocompleteEntryLifecycle = null;
 
 const autocompleteData = createAutocompleteDataAdapter({
   fetchJson: easyuseAnimaFetchJson,
@@ -340,7 +343,62 @@ function syncAutocompleteInputFlag(input, state = input?.__easyuseAnimaAutocompl
   }
 }
 
+function disposeAutocompleteInput(input, expectedState = input?.__easyuseAnimaAutocompleteState) {
+  if (!input) {
+    return;
+  }
+  if (!expectedState) {
+    const staleDispose = input.__easyuseAnimaAutocompleteDispose;
+    if (typeof staleDispose === "function") {
+      staleDispose();
+    }
+    if (!input.__easyuseAnimaAutocompleteState) {
+      hookedAutocompleteInputs.delete(input);
+      delete input.__easyuseAnimaAutocompleteHooked;
+      delete input.__easyuseAnimaAutocompleteDispose;
+      input.__easyuseAnimaAutocomplete = false;
+    }
+    return;
+  }
+  if (typeof expectedState.dispose === "function") {
+    expectedState.dispose();
+    return;
+  }
+  const ownsCurrentState = input.__easyuseAnimaAutocompleteState === expectedState;
+  if (activeState?.input === input && activeState.controller === expectedState.controller) {
+    hidePopup();
+  } else if (ownsCurrentState) {
+    clearAutocompletePreview(input);
+  }
+  expectedState.binding?.dispose();
+  expectedState.controller?.dispose?.();
+  expectedState.binding = null;
+  if (!ownsCurrentState) {
+    return;
+  }
+  hookedAutocompleteInputs.delete(input);
+  if (input.__easyuseAnimaAutocompleteDispose === expectedState.dispose) {
+    delete input.__easyuseAnimaAutocompleteDispose;
+  }
+  delete input.__easyuseAnimaAutocompleteState;
+  delete input.__easyuseAnimaAutocompleteHooked;
+  input.__easyuseAnimaAutocomplete = false;
+}
+
+function pruneDisconnectedAutocompleteInputs(exceptInput = null) {
+  for (const input of [...hookedAutocompleteInputs]) {
+    if (input === exceptInput) {
+      continue;
+    }
+    const state = input?.__easyuseAnimaAutocompleteState;
+    if (!state || input?.isConnected === false) {
+      disposeAutocompleteInput(input, state);
+    }
+  }
+}
+
 function syncAutocompleteInputFlags() {
+  pruneDisconnectedAutocompleteInputs();
   for (const input of [...hookedAutocompleteInputs]) {
     const state = input?.__easyuseAnimaAutocompleteState;
     if (!state) {
@@ -489,6 +547,7 @@ function hideTrainedTagTooltips() {
 }
 
 function invalidateAutocompleteDataRequests() {
+  pruneDisconnectedAutocompleteInputs();
   const states = [];
   let focusedState = null;
   for (const input of [...hookedAutocompleteInputs]) {
@@ -510,6 +569,7 @@ function invalidateAutocompleteDataRequests() {
 }
 
 function refreshActiveAutocomplete() {
+  pruneDisconnectedAutocompleteInputs();
   if (!activeState?.input || document.activeElement !== activeState.input || !autocompleteEnabledForState(activeState)) {
     hidePopup();
     return;
@@ -641,13 +701,20 @@ function shouldSkipNode(node, nodeData) {
 }
 
 function findInputEl(widget) {
-  const input = widget?.inputEl || widget?.element;
-  if (input instanceof HTMLTextAreaElement || input instanceof HTMLInputElement) {
-    return input;
-  }
-  const nested = input?.querySelector?.("textarea, input");
-  if (nested instanceof HTMLTextAreaElement || nested instanceof HTMLInputElement) {
-    return nested;
+  for (const candidate of [widget?.inputEl, widget?.element]) {
+    if (
+      (candidate instanceof HTMLTextAreaElement || candidate instanceof HTMLInputElement)
+      && candidate.isConnected !== false
+    ) {
+      return candidate;
+    }
+    const nested = candidate?.querySelector?.("textarea, input");
+    if (
+      (nested instanceof HTMLTextAreaElement || nested instanceof HTMLInputElement)
+      && nested.isConnected !== false
+    ) {
+      return nested;
+    }
   }
   return null;
 }
@@ -993,14 +1060,13 @@ function dispatchAutocompleteCanvasMouseEvent(type, sourceEvent, overrides = {})
 
 function forwardMiddlePanFromAutocompleteInput(event) {
   if (event.__easyuseAnimaForwarded || event.button !== 1 || !app.canvas?.canvas) {
-    return false;
+    return null;
   }
   event.preventDefault();
   event.stopPropagation();
-  if (middlePanForwardActive) {
-    return true;
+  if (middlePanForwardCleanup) {
+    return middlePanForwardCleanup;
   }
-  middlePanForwardActive = true;
   document.activeElement?.blur?.();
   dispatchAutocompleteCanvasPointerEvent("pointerdown", event, { button: 1, buttons: 4 });
   dispatchAutocompleteCanvasMouseEvent("mousedown", event, { button: 1, buttons: 4 });
@@ -1014,27 +1080,34 @@ function forwardMiddlePanFromAutocompleteInput(event) {
     dispatchAutocompleteCanvasPointerEvent("pointermove", moveEvent, { button: 1, buttons: 4 });
     dispatchAutocompleteCanvasMouseEvent("mousemove", moveEvent, { button: 1, buttons: 4 });
   };
-  const stop = (upEvent) => {
-    if (upEvent.__easyuseAnimaForwarded) {
+  const cleanup = (upEvent = null) => {
+    if (middlePanForwardCleanup !== cleanup) {
       return;
     }
-    upEvent.preventDefault();
-    upEvent.stopPropagation();
-    dispatchAutocompleteCanvasPointerEvent("pointerup", upEvent, { button: 1, buttons: 0 });
-    dispatchAutocompleteCanvasMouseEvent("mouseup", upEvent, { button: 1, buttons: 0 });
-    middlePanForwardActive = false;
+    const releaseEvent = upEvent || event;
+    upEvent?.preventDefault?.();
+    upEvent?.stopPropagation?.();
+    dispatchAutocompleteCanvasPointerEvent("pointerup", releaseEvent, { button: 1, buttons: 0 });
+    dispatchAutocompleteCanvasMouseEvent("mouseup", releaseEvent, { button: 1, buttons: 0 });
+    middlePanForwardCleanup = null;
     document.removeEventListener("pointermove", move, true);
     document.removeEventListener("pointerup", stop, true);
     document.removeEventListener("pointercancel", stop, true);
     document.removeEventListener("mousemove", move, true);
     document.removeEventListener("mouseup", stop, true);
   };
+  const stop = (upEvent) => {
+    if (!upEvent.__easyuseAnimaForwarded) {
+      cleanup(upEvent);
+    }
+  };
+  middlePanForwardCleanup = cleanup;
   document.addEventListener("pointermove", move, true);
   document.addEventListener("pointerup", stop, true);
   document.addEventListener("pointercancel", stop, true);
   document.addEventListener("mousemove", move, true);
   document.addEventListener("mouseup", stop, true);
-  return true;
+  return cleanup;
 }
 
 function commitSuggestion(state, entry, options = {}) {
@@ -1371,22 +1444,24 @@ function isTextEditingShortcut(event) {
 
 function hookInput(input, options = {}) {
   if (!input) {
-    return;
+    return null;
   }
-  if (input.__easyuseAnimaAutocompleteHooked) {
-    const existing = input.__easyuseAnimaAutocompleteState;
-    if (existing) {
-      existing.node = options.node || existing.node || null;
-      existing.widget = options.widget || existing.widget || null;
-      existing.scope = autocompleteScope(options);
-      existing.forceArtistOnly = !!options.forceArtistOnly;
-      existing.onCommit = typeof options.onCommit === "function" ? options.onCommit : existing.onCommit;
-      syncAutocompleteInputFlag(input, existing);
-    }
-    return;
+  pruneDisconnectedAutocompleteInputs(input);
+  const existing = input.__easyuseAnimaAutocompleteState;
+  if (existing?.owner === autocompleteInputOwner && typeof existing.dispose === "function") {
+    input.__easyuseAnimaAutocompleteHooked = true;
+    input.__easyuseAnimaAutocompleteDispose = existing.dispose;
+    existing.node = options.node || existing.node || null;
+    existing.widget = options.widget || existing.widget || null;
+    existing.scope = autocompleteScope(options);
+    existing.forceArtistOnly = !!options.forceArtistOnly;
+    existing.onCommit = typeof options.onCommit === "function" ? options.onCommit : existing.onCommit;
+    syncAutocompleteInputFlag(input, existing);
+    return existing.dispose;
   }
 
   const state = {
+    owner: autocompleteInputOwner,
     node: options.node || null,
     widget: options.widget || null,
     input,
@@ -1394,6 +1469,8 @@ function hookInput(input, options = {}) {
     forceArtistOnly: !!options.forceArtistOnly,
     onCommit: typeof options.onCommit === "function" ? options.onCommit : null,
     lastAutocompleteSignature: undefined,
+    binding: null,
+    dispose: null,
   };
 
   const markAutocompleteInactive = () => {
@@ -1479,102 +1556,34 @@ function hookInput(input, options = {}) {
   state.controller = controller;
   state.refresh = controller.updateNow;
   state.reposition = () => positionPopup(input);
-  const scheduleInputUpdate = () => {
-    const preserveController = controller.isCompositionEndUpdatePending();
-    if (activeState?.input === input) {
-      hidePopup({ preserveController });
-    }
-    controller.scheduleUpdate();
-  };
-
-  input.addEventListener("compositionstart", controller.beginComposition);
-  input.addEventListener("compositionupdate", controller.scheduleUpdate);
-  input.addEventListener("compositionend", controller.endComposition);
-  input.addEventListener("input", scheduleInputUpdate);
-  input.addEventListener("focus", controller.updateNow);
-  input.addEventListener("click", controller.scheduleCaretUpdate);
-  input.addEventListener("mousedown", controller.scheduleCaretUpdate);
-  input.addEventListener("mouseup", controller.scheduleCaretUpdate);
-  input.addEventListener("pointerup", controller.scheduleCaretUpdate);
-  input.addEventListener("pointerdown", (event) => {
-    if (forwardMiddlePanFromAutocompleteInput(event)) {
-      hidePopup();
-    }
-  }, true);
-  input.addEventListener("mousedown", (event) => {
-    if (forwardMiddlePanFromAutocompleteInput(event)) {
-      hidePopup();
-    }
-  }, true);
-  input.addEventListener("auxclick", (event) => {
-    if (event.button === 1) {
-      event.preventDefault();
-      event.stopPropagation();
-    }
-  }, true);
-  input.addEventListener("keyup", (event) => {
-    if (["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", "Home", "End", "PageUp", "PageDown"].includes(event.key)) {
-      controller.scheduleCaretUpdate();
-    }
-  });
-  input.addEventListener("select", controller.scheduleCaretUpdate);
-  input.addEventListener("blur", () => {
-    controller.invalidate();
-    setTimeout(() => {
-      if (activeState?.input === input) {
-        hidePopup();
+  state.binding = createAutocompleteInputBinding({
+    input,
+    state,
+    owner: autocompleteInputOwner,
+    registry: hookedAutocompleteInputs,
+    controller,
+    onBeforeDispose: (ownedInput, ownedState, ownsCurrentState) => {
+      if (activeState?.input === ownedInput && activeState.controller === ownedState.controller) {
+        hidePopup({ preserveController: true });
+        return;
       }
-    }, 120);
-  });
-  input.addEventListener("keydown", (event) => {
-    if (isTextEditingShortcut(event)) {
-      event.stopPropagation();
-    }
-  });
-  input.addEventListener("keydown", (event) => {
-    if (!controller.isComposing(event) && handleBracketPreviewKeydown(state, event)) {
-      controller.scheduleCaretUpdate();
-    }
-  });
-  input.addEventListener("keydown", (event) => {
-    if (controller.isComposing(event)) {
-      return;
-    }
-    if (event.key === "Escape") {
-      controller.invalidate();
-      if (activeState?.input === input) {
-        event.preventDefault();
-        hidePopup();
+      if (ownsCurrentState) {
+        clearAutocompletePreview(ownedInput);
       }
-      return;
-    }
-    if (!activeState || activeState.input !== input) {
-      return;
-    }
-    if (event.key === "Enter" && event.shiftKey) {
-      return;
-    }
-    if (event.key === "ArrowDown") {
-      event.preventDefault();
-      setActive(activeState.index + 1);
-    } else if (event.key === "ArrowUp") {
-      event.preventDefault();
-      setActive(activeState.index - 1);
-    } else if (
-      (event.key === "Tab" && !event.shiftKey)
-      || (event.key === "Enter" && autocompleteCommitKey === "enter")
-    ) {
-      event.preventDefault();
-      commitSuggestion(activeState, activeState.results[activeState.index], {
-        suppressPopup: true,
-      });
-    }
+    },
+    getActiveState: () => activeState,
+    hidePopup,
+    isTextEditingShortcut,
+    handleBracketPreviewKeydown,
+    forwardMiddlePan: forwardMiddlePanFromAutocompleteInput,
+    setActive,
+    commitSuggestion,
+    getCommitKey: () => autocompleteCommitKey,
+    setTimer: (callback, delay) => setTimeout(callback, delay),
+    clearTimer: (handle) => clearTimeout(handle),
   });
-
-  input.__easyuseAnimaAutocompleteHooked = true;
-  input.__easyuseAnimaAutocompleteState = state;
-  hookedAutocompleteInputs.add(input);
   syncAutocompleteInputFlag(input, state);
+  return state.dispose;
 }
 
 function hookWidget(node, widget, scope = "compatible") {
@@ -1662,23 +1671,24 @@ function hookFocusedDomInput(input) {
   });
 }
 
-function installExternalInputHook() {
-  window.easyuseAnimaHookAutocompleteInput = (input, options = {}) => {
-    hookInput(input, options);
-  };
-  window.easyuseAnimaAutocompleteEntryTooltip = (entry) => autocompleteEntryTooltip(entry);
-  const pending = window.__easyuseAnimaPendingAutocompleteInputs || [];
-  window.__easyuseAnimaPendingAutocompleteInputs = [];
-  for (const item of pending) {
-    hookInput(item?.input, item?.options || {});
+function handleAutocompleteScroll(event) {
+  if (popup?.contains(event.target)) {
+    return;
   }
-  document.addEventListener("focusin", (event) => {
-    hookFocusedDomInput(event.target);
-  }, true);
-  hookFocusedDomInput(document.activeElement);
+  scheduleActiveRefresh();
+}
+
+function handleAutocompleteWheel(event) {
+  if (popup?.contains(event.target)) {
+    return;
+  }
+  scheduleActiveRefresh();
 }
 
 function hookNode(node, nodeData, attempt = 0) {
+  if (!autocompleteEntryLifecycle?.isActive()) {
+    return;
+  }
   const names = targetWidgets(nodeData);
   if (!names || (!hasExplicitTargets(nodeData) && shouldSkipNode(node, nodeData))) {
     return;
@@ -1695,22 +1705,10 @@ function hookNode(node, nodeData, attempt = 0) {
     }
   }
   if (pendingInput && attempt < 12) {
-    setTimeout(() => hookNode(node, nodeData, attempt + 1), 80);
+    autocompleteEntryLifecycle.schedule(() => hookNode(node, nodeData, attempt + 1), 80);
   }
 }
 
-document.addEventListener("scroll", (event) => {
-  if (popup?.contains(event.target)) {
-    return;
-  }
-  scheduleActiveRefresh();
-}, true);
-document.addEventListener("wheel", (event) => {
-  if (popup?.contains(event.target)) {
-    return;
-  }
-  scheduleActiveRefresh();
-}, true);
 function handleOutsideAutocompletePointer(event) {
   if (!activeState || popup?.contains(event.target)) {
     return;
@@ -1723,11 +1721,7 @@ function handleOutsideAutocompletePointer(event) {
   hidePopup();
 }
 
-document.addEventListener("pointerdown", handleOutsideAutocompletePointer, true);
-document.addEventListener("mousedown", handleOutsideAutocompletePointer, true);
-document.addEventListener("selectionchange", scheduleActiveRefresh);
-window.addEventListener("resize", scheduleActiveRefresh);
-window.addEventListener("easyuse-anima-settings-updated", (event) => {
+function handleAutocompleteSettingsUpdated(event) {
   const detail = event?.detail || {};
   let dataRequestsInvalidated = false;
   if ("autocomplete.mode" in detail) {
@@ -1779,12 +1773,55 @@ window.addEventListener("easyuse-anima-settings-updated", (event) => {
   } else {
     scheduleActiveRefresh();
   }
+}
+
+function disposeAutocompleteEntryInputs() {
+  for (const input of [...hookedAutocompleteInputs]) {
+    disposeAutocompleteInput(input);
+  }
+  hookedAutocompleteInputs.clear();
+}
+
+function disposeAutocompleteEntryUi() {
+  if (activeRefreshFrame != null) {
+    cancelAnimationFrame(activeRefreshFrame);
+    activeRefreshFrame = null;
+  }
+  middlePanForwardCleanup?.();
+  middlePanForwardCleanup = null;
+  hidePopup();
+  popup?.remove?.();
+  popup = null;
+  document.getElementById("easyuse-anima-autocomplete-style")?.remove?.();
+}
+
+autocompleteEntryLifecycle = createAutocompleteEntryLifecycle({
+  hostWindow: window,
+  hostDocument: document,
+  hookInput,
+  hookFocusedInput: hookFocusedDomInput,
+  entryTooltip: autocompleteEntryTooltip,
+  handleScroll: handleAutocompleteScroll,
+  handleWheel: handleAutocompleteWheel,
+  handleOutsidePointer: handleOutsideAutocompletePointer,
+  handleSelectionChange: scheduleActiveRefresh,
+  handleResize: scheduleActiveRefresh,
+  handleSettingsUpdated: handleAutocompleteSettingsUpdated,
+  hookNode: (node, nodeData) => hookNode(node, nodeData),
+  disposeInputs: disposeAutocompleteEntryInputs,
+  disposeUi: disposeAutocompleteEntryUi,
 });
 
 app.registerExtension({
   name: "easyuse-anima.autocomplete",
+  async init() {
+    autocompleteEntryLifecycle.install();
+  },
   async setup() {
-    installExternalInputHook();
+    autocompleteEntryLifecycle.install();
+    if (!autocompleteEntryLifecycle.isActive()) {
+      return;
+    }
     await refreshAutocompleteSettings();
   },
   async beforeRegisterNodeDef(nodeType, nodeData) {
@@ -1792,16 +1829,6 @@ app.registerExtension({
       return;
     }
 
-    const onNodeCreated = nodeType.prototype.onNodeCreated;
-    nodeType.prototype.onNodeCreated = function () {
-      onNodeCreated?.apply(this, arguments);
-      hookNode(this, nodeData);
-    };
-
-    const onConfigure = nodeType.prototype.onConfigure;
-    nodeType.prototype.onConfigure = function () {
-      onConfigure?.apply(this, arguments);
-      hookNode(this, nodeData);
-    };
+    autocompleteEntryLifecycle.installNodeTypeHooks(nodeType, nodeData);
   },
 });

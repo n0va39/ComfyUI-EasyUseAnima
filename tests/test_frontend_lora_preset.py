@@ -21,6 +21,12 @@ LORA_PRESET_CANVAS_WIDGETS = (
 LORA_PRESET_CANVAS_WIDGETS_SMOKE = (
     ROOT / "tests" / "frontend_lora_preset_canvas_widgets_smoke.mjs"
 )
+LORA_PRESET_ENTRY_LIFECYCLE = (
+    ROOT / "web" / "js" / "lora_preset" / "entry_lifecycle.js"
+)
+LORA_PRESET_ENTRY_LIFECYCLE_SMOKE = (
+    ROOT / "tests" / "frontend_lora_preset_entry_lifecycle_smoke.mjs"
+)
 LORA_PRESET_PREVIEW_LIFECYCLE = (
     ROOT / "web" / "js" / "lora_preset" / "preview_lifecycle.js"
 )
@@ -33,6 +39,12 @@ LORA_PRESET_MENU_LIFECYCLE = (
 LORA_PRESET_MENU_LIFECYCLE_SMOKE = (
     ROOT / "tests" / "frontend_lora_preset_menu_lifecycle_smoke.mjs"
 )
+LORA_PRESET_NODE_RUNTIME = (
+    ROOT / "web" / "js" / "lora_preset" / "node_runtime.js"
+)
+LORA_PRESET_NODE_RUNTIME_SMOKE = (
+    ROOT / "tests" / "frontend_lora_preset_node_runtime_smoke.mjs"
+)
 LORA_PRESET_PROFILE_DATA = ROOT / "web" / "js" / "lora_preset" / "profile_data.js"
 LORA_PRESET_PROFILE_DATA_SMOKE = (
     ROOT / "tests" / "frontend_lora_preset_profile_data_smoke.mjs"
@@ -41,11 +53,127 @@ LORA_PRESET_LORA_STATE = ROOT / "web" / "js" / "lora_preset" / "lora_state.js"
 LORA_PRESET_LORA_STATE_SMOKE = (
     ROOT / "tests" / "frontend_lora_preset_lora_state_smoke.mjs"
 )
+LORA_PRESET_PROFILE_MUTATIONS = (
+    ROOT / "web" / "js" / "lora_preset" / "profile_mutations.js"
+)
+LORA_PRESET_SAVE_SYNC = ROOT / "web" / "js" / "lora_preset" / "save_sync.js"
+LORA_PRESET_PROFILE_MUTATIONS_SMOKE = (
+    ROOT / "tests" / "frontend_lora_preset_profile_mutations_smoke.mjs"
+)
 JSCONFIG = ROOT / "jsconfig.json"
 FRONTEND_CHECK_SCRIPT = ROOT / "tools" / "check_frontend.ps1"
 
 
 class LoraPresetFrontendTests(unittest.TestCase):
+    def test_node_runtime_module_boundary(self):
+        module_source = LORA_PRESET_NODE_RUNTIME.read_text(encoding="utf-8")
+        entry_source = LORA_PRESET_ENTRY.read_text(encoding="utf-8")
+        config = json.loads(JSCONFIG.read_text(encoding="utf-8"))
+
+        self.assertEqual(module_source.splitlines()[0], "// @ts-check")
+        self.assertEqual(
+            re.findall(
+                r"^export\s+(?:const|function|class)\s+([A-Za-z0-9_]+)",
+                module_source,
+                re.MULTILINE,
+            ),
+            ["createLoraPresetNodeRuntime"],
+        )
+        self.assertNotRegex(
+            module_source,
+            re.compile(r"^\s*import\b", re.MULTILINE),
+        )
+        self.assertNotRegex(
+            module_source,
+            (
+                r"\b(?:document|window|app|api|LiteGraph|registerExtension|"
+                r"MutationObserver)\b"
+            ),
+        )
+        self.assertIn(
+            'import { createLoraPresetNodeRuntime } from '
+            '"./lora_preset/node_runtime.js";',
+            entry_source,
+        )
+        factory_match = re.search(
+            r"const\s+loraPresetNodeRuntime\s*=\s*"
+            r"createLoraPresetNodeRuntime"
+            r"\(\{(?P<dependencies>.*?)\}\);",
+            entry_source,
+            re.DOTALL,
+        )
+        self.assertIsNotNone(factory_match)
+        dependency_entries = {
+            line.strip().rstrip(",")
+            for line in factory_match.group("dependencies").splitlines()
+            if line.strip()
+        }
+        self.assertEqual(
+            dependency_entries,
+            {
+                "nodeTypeName: NODE_TYPE",
+                "internalWidgetDefaults: INTERNAL_WIDGET_DEFAULTS",
+                "widgetIndex: WIDGET_INDEX",
+                "findWidget",
+                "findInputEl",
+                "widgetValue",
+                "ensureWidgetValue",
+                "resetInternalLoraSelector",
+                "normalizeSerializedWidgets",
+                "profileCount",
+                "selectedProfileIndex",
+                "activeProfileIndex",
+                "wrapProfileIndex",
+                "setProfileIndex",
+                "lorasWidgetValue",
+                "saveProfile",
+                "saveCurrentProfile",
+                "loadProfile",
+                "scrollProfileBarTo",
+                "refreshLoraAvailability",
+                "canvasWidgets: loraCanvasWidgets",
+                "enforceNodeLayout",
+                "requestAnimationFrame: (callback) => window.requestAnimationFrame(callback)",
+            },
+        )
+        for moved_declaration in (
+            "hideInternalWidget",
+            "restoreInternalWidgetsForConfigure",
+            "finalizeInternalWidgets",
+            "ensureLoraStackInput",
+            "wrapWidgetCallback",
+            "applyExecutedProfile",
+            "initializeNode",
+        ):
+            with self.subTest(moved_declaration=moved_declaration):
+                self.assertNotRegex(
+                    entry_source,
+                    rf"\bfunction\s+{re.escape(moved_declaration)}\b",
+                )
+                self.assertRegex(
+                    module_source,
+                    rf"\bfunction\s+{re.escape(moved_declaration)}\b",
+                )
+        self.assertIn("nodeRuntime: loraPresetNodeRuntime,", entry_source)
+        self.assertTrue(LORA_PRESET_NODE_RUNTIME_SMOKE.is_file())
+        self.assertIn("web/js/lora_preset/**/*.js", config["include"])
+
+    def test_node_runtime_module_semantics(self):
+        node_bin = shutil.which("node")
+        if not node_bin:
+            self.skipTest("node executable is not available")
+
+        completed = subprocess.run(
+            [node_bin, str(LORA_PRESET_NODE_RUNTIME_SMOKE)],
+            cwd=ROOT,
+            text=True,
+            capture_output=True,
+            check=False,
+        )
+
+        if completed.returncode != 0:
+            self.fail((completed.stdout + completed.stderr).strip())
+
     def test_api_client_module_boundary(self):
         module_source = LORA_PRESET_API_CLIENT.read_text(encoding="utf-8")
         entry_source = LORA_PRESET_ENTRY.read_text(encoding="utf-8")
@@ -120,17 +248,10 @@ class LoraPresetFrontendTests(unittest.TestCase):
                 self.assertEqual(module_source.count(route), 1)
 
         self.assertEqual(entry_source.count("loraPresetApi.listProfiles()"), 1)
-        self.assertEqual(entry_source.count("loraPresetApi.loadProfile(name)"), 1)
-        self.assertEqual(entry_source.count("loraPresetApi.saveProfile("), 1)
+        self.assertEqual(entry_source.count("loraPresetApi.loadProfile(name)"), 0)
+        self.assertEqual(entry_source.count("loraPresetApi.saveProfile("), 0)
         self.assertEqual(entry_source.count("loraPresetApi.fixProfile("), 2)
         self.assertEqual(entry_source.count("loraPresetApi.listLoras()"), 1)
-        self.assertRegex(
-            entry_source,
-            (
-                r"loraPresetApi\.saveProfile\(\s*"
-                r"trimmedName,\s*selectedProfilePayload\(node\),?\s*\)"
-            ),
-        )
         self.assertIn(
             "loraPresetApi.fixProfile(fullProfilePayload(node))",
             entry_source,
@@ -194,7 +315,7 @@ class LoraPresetFrontendTests(unittest.TestCase):
         )
 
         factory_match = re.search(
-            r"const\s+loraCanvasWidgets\s*=\s*"
+            r"loraCanvasWidgets\s*=\s*"
             r"createLoraPresetCanvasWidgets"
             r"\(\{(?P<dependencies>.*?)\}\);",
             entry_source,
@@ -238,8 +359,8 @@ class LoraPresetFrontendTests(unittest.TestCase):
                 "fixProfileLoras",
                 "switchProfile",
                 "nodePosToClient",
-                "getActiveProfileWheelTarget",
-                "setActiveProfileWheelTarget",
+                "getActiveProfileWheelTarget: () => loraPresetEntryLifecycle?.getActiveProfileWheelTarget() || null",
+                "setActiveProfileWheelTarget: (target) => loraPresetEntryLifecycle?.setActiveProfileWheelTarget(target)",
                 "enforceNodeLayout",
             },
         )
@@ -291,33 +412,20 @@ class LoraPresetFrontendTests(unittest.TestCase):
             module_source.count('this.options = { serialize: false };'),
             4,
         )
-        self.assertIn("let activeProfileWheelTarget = null;", entry_source)
         self.assertIn(
-            'document.addEventListener("wheel", scrollProfileListFromWheel, '
-            '{ capture: true, passive: false });',
+            'import { createLoraPresetEntryLifecycle } from '
+            '"./lora_preset/entry_lifecycle.js";',
             entry_source,
         )
-        self.assertIn("function scrollProfileListFromWheel(event)", entry_source)
-        self.assertIn("loraMenuLifecycle.install()", entry_source)
-        self.assertNotIn("loraMenuLifecycle.install()", module_source)
-        for entry_owned_token in (
-            "function addProfile(",
-            "function deleteProfile(",
-            "function saveCurrentProfile(",
-            "function mutateLoras(",
-            "function installLoraPresetSaveSync(",
-            "function scrollProfileListFromWheel(",
-            "function installProfileWheelListener(",
-            "function initializeNode(",
-            "node.onSerialize = function",
-            "node.onConfigure = function",
-            "app.registerExtension({",
-        ):
-            with self.subTest(entry_owned_token=entry_owned_token):
-                self.assertIn(entry_owned_token, entry_source)
-                self.assertNotIn(entry_owned_token, module_source)
-        self.assertGreater(entry_source.count("loraCanvasWidgets.renderProfileBar("), 0)
-        self.assertGreater(entry_source.count("loraCanvasWidgets.renderLoraWidgets("), 0)
+        self.assertIn(
+            "loraPresetEntryLifecycle = createLoraPresetEntryLifecycle({",
+            entry_source,
+        )
+        self.assertIn("app.registerExtension(loraPresetEntryLifecycle.extension);", entry_source)
+        self.assertNotIn('document.addEventListener("wheel"', entry_source)
+        self.assertNotIn("function scrollProfileListFromWheel(", entry_source)
+        self.assertIn("let loraCanvasWidgets;", entry_source)
+        self.assertIn("getCanvasWidgets: () => loraCanvasWidgets", entry_source)
         self.assertTrue(LORA_PRESET_CANVAS_WIDGETS_SMOKE.is_file())
         self.assertIn("web/js/lora_preset/**/*.js", config["include"])
 
@@ -328,6 +436,50 @@ class LoraPresetFrontendTests(unittest.TestCase):
 
         completed = subprocess.run(
             [node_bin, str(LORA_PRESET_CANVAS_WIDGETS_SMOKE)],
+            cwd=ROOT,
+            text=True,
+            capture_output=True,
+            check=False,
+        )
+
+        if completed.returncode != 0:
+            self.fail((completed.stdout + completed.stderr).strip())
+
+    def test_entry_lifecycle_module_boundary(self):
+        module_source = LORA_PRESET_ENTRY_LIFECYCLE.read_text(encoding="utf-8")
+        entry_source = LORA_PRESET_ENTRY.read_text(encoding="utf-8")
+        frontend_check_source = FRONTEND_CHECK_SCRIPT.read_text(encoding="utf-8")
+
+        self.assertEqual(module_source.splitlines()[0], "// @ts-check")
+        self.assertEqual(
+            re.findall(
+                r"^export\s+(?:const|function|class)\s+([A-Za-z0-9_]+)",
+                module_source,
+                re.MULTILINE,
+            ),
+            ["createLoraPresetEntryLifecycle"],
+        )
+        self.assertNotRegex(module_source, re.compile(r"^\s*import\b", re.MULTILINE))
+        self.assertNotIn("registerExtension(", module_source)
+        self.assertIn('listen(hostDocument, "wheel", scrollProfileListFromWheel, { capture: true, passive: false });', module_source)
+        self.assertIn("target.removeEventListener(type, listener, options);", module_source)
+        self.assertIn("previousOwner.dispose?.();", module_source)
+        self.assertIn("runCleanup(() => menuLifecycle.dispose?.());", module_source)
+        self.assertIn("loraPresetEntryLifecycle = createLoraPresetEntryLifecycle({", entry_source)
+        self.assertIn("app.registerExtension(loraPresetEntryLifecycle.extension);", entry_source)
+        self.assertTrue(LORA_PRESET_ENTRY_LIFECYCLE_SMOKE.is_file())
+        self.assertIn(
+            r'node "tests\frontend_lora_preset_entry_lifecycle_smoke.mjs"',
+            frontend_check_source,
+        )
+
+    def test_entry_lifecycle_module_semantics(self):
+        node_bin = shutil.which("node")
+        if not node_bin:
+            self.skipTest("node executable is not available")
+
+        completed = subprocess.run(
+            [node_bin, str(LORA_PRESET_ENTRY_LIFECYCLE_SMOKE)],
             cwd=ROOT,
             text=True,
             capture_output=True,
@@ -408,7 +560,8 @@ class LoraPresetFrontendTests(unittest.TestCase):
                     rf"\b(?:const|let|var|function|class)\s+{moved_name}\b",
                 )
         self.assertEqual(entry_source.count("loraPreviewLifecycle.showPreview"), 0)
-        self.assertEqual(entry_source.count("loraPreviewLifecycle.hidePreview"), 1)
+        self.assertEqual(entry_source.count("loraPreviewLifecycle.hidePreview"), 0)
+        self.assertIn("previewLifecycle: loraPreviewLifecycle,", entry_source)
         self.assertEqual(canvas_widgets_source.count("previewLifecycle.showPreview"), 2)
         self.assertEqual(canvas_widgets_source.count("previewLifecycle.hidePreview"), 3)
         self.assertEqual(
@@ -527,7 +680,7 @@ class LoraPresetFrontendTests(unittest.TestCase):
             ),
             1,
         )
-        self.assertEqual(entry_source.count("loraMenuLifecycle.install()"), 1)
+        self.assertIn("menuLifecycle: loraMenuLifecycle,", entry_source)
         self.assertNotIn("new MutationObserver", entry_source)
         self.assertNotIn("easyuse-anima-lora-search {", entry_source)
         self.assertIn("new MutationObserver", module_source)
@@ -706,7 +859,20 @@ class LoraPresetFrontendTests(unittest.TestCase):
             for name in import_match.group("names").splitlines()
             if name.strip()
         }
-        self.assertEqual(imported_names, expected_exports)
+        self.assertEqual(
+            imported_names,
+            {
+                "INTERNAL_WIDGET_DEFAULTS",
+                "MAX_PROFILES",
+                "WIDGET_INDEX",
+                "normalizeLoraEntry",
+                "normalizeProfileDataValue",
+                "normalizeSerializedWidgets",
+                "profileKey",
+                "profileSavedName",
+                "wrapProfileIndex",
+            },
+        )
 
         self.assertEqual(module_source.splitlines()[0], "// @ts-check")
         self.assertNotRegex(
@@ -747,6 +913,64 @@ class LoraPresetFrontendTests(unittest.TestCase):
         if completed.returncode != 0:
             self.fail((completed.stdout + completed.stderr).strip())
 
+    def test_profile_mutations_and_save_sync_module_boundary(self):
+        mutations_source = LORA_PRESET_PROFILE_MUTATIONS.read_text(encoding="utf-8")
+        save_sync_source = LORA_PRESET_SAVE_SYNC.read_text(encoding="utf-8")
+        entry_source = LORA_PRESET_ENTRY.read_text(encoding="utf-8")
+        frontend_check_source = FRONTEND_CHECK_SCRIPT.read_text(encoding="utf-8")
+
+        self.assertEqual(mutations_source.splitlines()[0], "import {")
+        self.assertEqual(save_sync_source.splitlines()[0], "/** Installs the graph-save and queue-preparation synchronization hooks. */")
+        self.assertEqual(
+            re.findall(
+                r"^export\s+(?:const|function|class)\s+([A-Za-z0-9_]+)",
+                mutations_source,
+                re.MULTILINE,
+            ),
+            ["createLoraPresetProfileMutations"],
+        )
+        self.assertEqual(
+            re.findall(
+                r"^export\s+(?:const|function|class)\s+([A-Za-z0-9_]+)",
+                save_sync_source,
+                re.MULTILINE,
+            ),
+            ["createLoraPresetSaveSync"],
+        )
+        self.assertIn(
+            'import { createLoraPresetProfileMutations } from '
+            '"./lora_preset/profile_mutations.js";',
+            entry_source,
+        )
+        self.assertIn(
+            'import { createLoraPresetSaveSync } from "./lora_preset/save_sync.js";',
+            entry_source,
+        )
+        self.assertIn("const loraProfileMutations = createLoraPresetProfileMutations({", entry_source)
+        self.assertIn("const loraPresetSaveSync = createLoraPresetSaveSync({", entry_source)
+        self.assertIn("saveSync: loraPresetSaveSync,", entry_source)
+        self.assertTrue(LORA_PRESET_PROFILE_MUTATIONS_SMOKE.is_file())
+        self.assertIn(
+            r'node "tests\frontend_lora_preset_profile_mutations_smoke.mjs"',
+            frontend_check_source,
+        )
+
+    def test_profile_mutations_and_save_sync_module_semantics(self):
+        node_bin = shutil.which("node")
+        if not node_bin:
+            self.skipTest("node executable is not available")
+
+        completed = subprocess.run(
+            [node_bin, str(LORA_PRESET_PROFILE_MUTATIONS_SMOKE)],
+            cwd=ROOT,
+            text=True,
+            capture_output=True,
+            check=False,
+        )
+
+        if completed.returncode != 0:
+            self.fail((completed.stdout + completed.stderr).strip())
+
     def test_lora_row_controls_and_api_wiring_runtime(self):
         node_bin = shutil.which("node")
         if not node_bin:
@@ -765,6 +989,10 @@ class LoraPresetFrontendTests(unittest.TestCase):
             const previewLifecyclePath = process.argv[5];
             const menuLifecyclePath = process.argv[6];
             const canvasWidgetsPath = process.argv[7];
+            const nodeRuntimePath = process.argv[8];
+            const profileMutationsPath = process.argv[9];
+            const saveSyncPath = process.argv[10];
+            const entryLifecyclePath = process.argv[11];
             let profileDataSource = fs.readFileSync(profileDataPath, "utf8");
             profileDataSource = profileDataSource.replace(
               /^export\s+(?=(?:const|function|class)\b)/gm,
@@ -795,9 +1023,30 @@ class LoraPresetFrontendTests(unittest.TestCase):
               /^export\s+(?=(?:const|function|class)\b)/gm,
               "",
             );
+            let nodeRuntimeSource = fs.readFileSync(nodeRuntimePath, "utf8");
+            nodeRuntimeSource = nodeRuntimeSource.replace(
+              /^export\s+(?=(?:const|function|class)\b)/gm,
+              "",
+            );
+            let profileMutationsSource = fs.readFileSync(profileMutationsPath, "utf8");
+            profileMutationsSource = profileMutationsSource.replace(/^import[\s\S]*?;\r?\n/gm, "");
+            profileMutationsSource = profileMutationsSource.replace(
+              /^export\s+(?=(?:const|function|class)\b)/gm,
+              "",
+            );
+            let saveSyncSource = fs.readFileSync(saveSyncPath, "utf8");
+            saveSyncSource = saveSyncSource.replace(
+              /^export\s+(?=(?:const|function|class)\b)/gm,
+              "",
+            );
+            let entryLifecycleSource = fs.readFileSync(entryLifecyclePath, "utf8");
+            entryLifecycleSource = entryLifecycleSource.replace(
+              /^export\s+(?=(?:const|function|class)\b)/gm,
+              "",
+            );
             let source = fs.readFileSync(sourcePath, "utf8");
             source = source.replace(/^import[\s\S]*?;\r?\n/gm, "");
-            source = `${profileDataSource}\n${loraStateSource}\n${apiClientSource}\n${previewLifecycleSource}\n${menuLifecycleSource}\n${canvasWidgetsSource}\n${source}`;
+            source = `${profileDataSource}\n${loraStateSource}\n${apiClientSource}\n${previewLifecycleSource}\n${menuLifecycleSource}\n${canvasWidgetsSource}\n${nodeRuntimeSource}\n${profileMutationsSource}\n${saveSyncSource}\n${entryLifecycleSource}\n${source}`;
             source += "\nglobalThis.__loraPresetTest = { loraCanvasWidgets, LORA_PRESET_SETTINGS, applyLoraPresetSettings, loraPresetApi, loraPreviewLifecycle, loraMenuLifecycle, saveProfileSet };\n";
 
             const mutationObservers = [];
@@ -1129,6 +1378,10 @@ class LoraPresetFrontendTests(unittest.TestCase):
                 str(LORA_PRESET_PREVIEW_LIFECYCLE),
                 str(LORA_PRESET_MENU_LIFECYCLE),
                 str(LORA_PRESET_CANVAS_WIDGETS),
+                str(LORA_PRESET_NODE_RUNTIME),
+                str(LORA_PRESET_PROFILE_MUTATIONS),
+                str(LORA_PRESET_SAVE_SYNC),
+                str(LORA_PRESET_ENTRY_LIFECYCLE),
             ],
             cwd=ROOT,
             text=True,

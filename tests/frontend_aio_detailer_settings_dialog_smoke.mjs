@@ -80,7 +80,12 @@ assert.deepEqual(
   "Detailer settings dialog must expose only its lifecycle factory",
 );
 
-function createFixture({ settings = {}, available = {}, deferLoads = false } = {}) {
+function createFixture({
+  settings = {},
+  available = {},
+  choiceOptions = {},
+  deferLoads = false,
+} = {}) {
   let dependencyCalls = 0;
   let currentDialog = null;
   const trace = [];
@@ -90,6 +95,7 @@ function createFixture({ settings = {}, available = {}, deferLoads = false } = {
   const writes = [];
   const renders = [];
   const stageCalls = [];
+  let catalogLoaded = !deferLoads;
   const document = createFakeDocument();
   const availabilityState = { ...available };
   const defaultSettings = clone(settingsModule.AIO_DEFAULT_GENERATION_SETTINGS);
@@ -146,6 +152,13 @@ function createFixture({ settings = {}, available = {}, deferLoads = false } = {
     return input;
   }
 
+  function textareaInput(value) {
+    dependencyCalls += 1;
+    const textarea = document.createElement("textarea");
+    textarea.value = String(value ?? "");
+    return textarea;
+  }
+
   function numberInput(value, step = "1") {
     dependencyCalls += 1;
     const input = document.createElement("input");
@@ -175,6 +188,27 @@ function createFixture({ settings = {}, available = {}, deferLoads = false } = {
     if (!select.options.some((option) => option.selected)) {
       select.value = String(value ?? "");
     }
+    return select;
+  }
+
+  function reconcileSelectInput(select, options) {
+    dependencyCalls += 1;
+    const current = String(select.value ?? "");
+    const values = [...new Set(options.map((option) => String(option?.value ?? option ?? "")))];
+    if (current && !values.includes(current)) {
+      values.unshift(current);
+    }
+    select.replaceChildren();
+    select.options = [];
+    for (const value of values) {
+      const option = document.createElement("option");
+      option.value = value;
+      option.textContent = value;
+      option.selected = value === current;
+      select.options.push(option);
+      select.append(option);
+    }
+    select.value = current;
     return select;
   }
 
@@ -326,6 +360,18 @@ function createFixture({ settings = {}, available = {}, deferLoads = false } = {
     return [...new Set([...fallback, name === "sampler_name" ? "custom_sampler" : "custom_scheduler"])];
   }
 
+  function nodeInputChoiceOptions(dependencyKey, inputName, current, fallback = []) {
+    dependencyCalls += 1;
+    const key = `${dependencyKey}:${inputName}`;
+    const catalog = catalogLoaded ? (choiceOptions[key] || []) : [];
+    const values = [...new Set((catalog.length ? catalog : fallback).filter(Boolean))];
+    const normalizedCurrent = String(current ?? "");
+    if (normalizedCurrent && !values.includes(normalizedCurrent)) {
+      values.unshift(normalizedCurrent);
+    }
+    return values;
+  }
+
   function writeSettings(targetNode, widget, nextSettings) {
     dependencyCalls += 1;
     const snapshot = clone(nextSettings);
@@ -350,8 +396,10 @@ function createFixture({ settings = {}, available = {}, deferLoads = false } = {
       field,
       checkbox,
       textInput,
+      textareaInput,
       numberInput,
       selectInput,
+      reconcileSelectInput,
     },
     text: {
       staticText,
@@ -377,6 +425,7 @@ function createFixture({ settings = {}, available = {}, deferLoads = false } = {
       findWidget,
       getSettings,
       widgetOptions,
+      nodeInputChoiceOptions,
       writeSettings,
       renderPanel,
     },
@@ -393,6 +442,7 @@ function createFixture({ settings = {}, available = {}, deferLoads = false } = {
         dependencyCalls += 1;
         loadCalls.push(options);
         if (!deferLoads) {
+          catalogLoaded = true;
           return Promise.resolve();
         }
         return new Promise((resolve) => loadResolvers.push(resolve));
@@ -414,6 +464,7 @@ function createFixture({ settings = {}, available = {}, deferLoads = false } = {
     trace,
     dependencyCallCount: () => dependencyCalls,
     resolveLoads() {
+      catalogLoaded = true;
       for (const resolve of loadResolvers.splice(0)) {
         resolve();
       }
@@ -422,13 +473,28 @@ function createFixture({ settings = {}, available = {}, deferLoads = false } = {
 }
 
 {
+  const multilineFaceWildcard = "configured face wildcard\nsecond line";
   const fixture = createFixture({
+    choiceOptions: {
+      "checkpointLoader:ckpt_name": [
+        "configured-sam3.safetensors",
+        "updated-sam3.safetensors",
+      ],
+    },
     settings: {
       detailer: {
         enabled: true,
         order: ["face", "custom_1", "eye"],
         sam3: { checkpoint: "configured-sam3.safetensors" },
-        face: { enabled: true, preserved_face_key: "keep-face" },
+        face: {
+          enabled: true,
+          guide_size_for: true,
+          wildcard: multilineFaceWildcard,
+          inpaint_model: true,
+          tiled_encode: true,
+          tiled_decode: true,
+          preserved_face_key: "keep-face",
+        },
         eye: { enabled: true },
         custom_1: {
           ...clone(settingsModule.AIO_DEFAULT_GENERATION_SETTINGS.detailer.face),
@@ -462,6 +528,12 @@ function createFixture({ settings = {}, available = {}, deferLoads = false } = {
   assert.deepEqual(tabs(cancelDialog).map(tabLabel), ["Face Detailer", "Custom One", "Eye Detailer"]);
   assert.ok(tabByLabel(cancelDialog, "Face Detailer").classList.contains("active"));
   assert.equal(controlIn(activeEditor(cancelDialog), "Block name").value, "Face Detailer");
+  assert.equal(controlIn(activeEditor(cancelDialog), "Guide size basis").value, "bbox");
+  assert.equal(controlIn(activeEditor(cancelDialog), "Wildcard").value, multilineFaceWildcard);
+  assert.equal(controlIn(activeEditor(cancelDialog), "Wildcard").tagName, "TEXTAREA");
+  assert.equal(controlIn(activeEditor(cancelDialog), "Inpaint model").checked, true);
+  assert.equal(controlIn(activeEditor(cancelDialog), "Tiled encode").checked, true);
+  assert.equal(controlIn(activeEditor(cancelDialog), "Tiled decode").checked, true);
 
   tabByLabel(cancelDialog, "Custom One").emit("click");
   const cancelledName = controlIn(activeEditor(cancelDialog), "Block name");
@@ -482,7 +554,7 @@ function createFixture({ settings = {}, available = {}, deferLoads = false } = {
     tabs(cancelDialog).some((tab) => tabLabel(tab) === "Detailer Block 2"),
     false,
   );
-  controlIn(cancelDialog.body, "SAM3 checkpoint").value = "cancelled-change.safetensors";
+  controlIn(cancelDialog.body, "SAM3 checkpoint").value = "updated-sam3.safetensors";
   action(cancelDialog, "button.cancel").emit("click");
   assert.deepEqual(fixture.node.settings, originalSettings, "Cancel must not mutate settings");
   assert.equal(fixture.node.widgets[0].value, originalWidget, "Cancel must not rewrite the hidden widget");
@@ -554,6 +626,11 @@ function createFixture({ settings = {}, available = {}, deferLoads = false } = {
   const portraitFollowMain = controlIn(editor, "Follow main sampler");
   portraitFollowMain.checked = false;
   portraitFollowMain.emit("change");
+  controlIn(editor, "Guide size basis").value = "bbox";
+  controlIn(editor, "Wildcard").value = "__portrait_style__";
+  controlIn(editor, "Inpaint model").checked = true;
+  controlIn(editor, "Tiled encode").checked = true;
+  controlIn(editor, "Tiled decode").checked = true;
   controlIn(dialog.body, "SAM3 checkpoint").value = "updated-sam3.safetensors";
   controlIn(dialog.body, "Enable detailer").checked = true;
 
@@ -563,6 +640,11 @@ function createFixture({ settings = {}, available = {}, deferLoads = false } = {
   assert.deepEqual(dialog.trace.slice(-3), ["write", "render", "remove"]);
   assert.equal(fixture.node.settings.preserved_root_key, "keep-root");
   assert.equal(fixture.node.settings.detailer.face.preserved_face_key, "keep-face");
+  assert.equal(fixture.node.settings.detailer.face.guide_size_for, true);
+  assert.equal(fixture.node.settings.detailer.face.wildcard, multilineFaceWildcard);
+  assert.equal(fixture.node.settings.detailer.face.inpaint_model, true);
+  assert.equal(fixture.node.settings.detailer.face.tiled_encode, true);
+  assert.equal(fixture.node.settings.detailer.face.tiled_decode, true);
   assert.equal(fixture.node.settings.detailer.enabled, true);
   assert.equal(fixture.node.settings.detailer.sam3.context, "load_checkpoint");
   assert.equal(fixture.node.settings.detailer.sam3.checkpoint, "updated-sam3.safetensors");
@@ -575,6 +657,11 @@ function createFixture({ settings = {}, available = {}, deferLoads = false } = {
   assert.equal(fixture.node.settings.detailer.custom_2.cfg, 1);
   assert.equal(fixture.node.settings.detailer.custom_2.denoise, 1);
   assert.equal(fixture.node.settings.detailer.custom_2.inherit_sampler_settings, false);
+  assert.equal(fixture.node.settings.detailer.custom_2.guide_size_for, true);
+  assert.equal(fixture.node.settings.detailer.custom_2.wildcard, "__portrait_style__");
+  assert.equal(fixture.node.settings.detailer.custom_2.inpaint_model, true);
+  assert.equal(fixture.node.settings.detailer.custom_2.tiled_encode, true);
+  assert.equal(fixture.node.settings.detailer.custom_2.tiled_decode, true);
   assert.equal(
     fixture.node.settings.detailer.custom_2.optimization_marker,
     "optimized:Detailer Block 2 Optimization",
@@ -587,11 +674,66 @@ function createFixture({ settings = {}, available = {}, deferLoads = false } = {
 
 {
   const fixture = createFixture({
+    settings: {
+      detailer: {
+        enabled: true,
+        order: ["custom_7", "face", "eye"],
+        face: { enabled: false },
+        eye: { enabled: false },
+        custom_7: {
+          label: "Sparse Custom",
+          enabled: false,
+          guide_size_for: true,
+          wildcard: "__saved_sparse__",
+          inpaint_model: true,
+          tiled_encode: true,
+          tiled_decode: true,
+          preserved_sparse_key: { nested: "keep-custom" },
+        },
+      },
+    },
+  });
+  fixture.openDetailerSettings(fixture.node);
+  await flushPromises();
+  const dialog = fixture.dialogs[0];
+  assert.deepEqual(tabs(dialog).map(tabLabel), ["Sparse Custom", "Face Detailer", "Eye Detailer"]);
+  tabByLabel(dialog, "Sparse Custom").emit("click");
+  const editor = activeEditor(dialog);
+  assert.equal(controlIn(editor, "Enable").checked, false);
+  assert.equal(controlIn(editor, "Guide size basis").value, "bbox");
+  assert.equal(controlIn(editor, "Wildcard").value, "__saved_sparse__");
+  assert.equal(controlIn(editor, "Inpaint model").checked, true);
+  assert.equal(controlIn(editor, "Tiled encode").checked, true);
+  assert.equal(controlIn(editor, "Tiled decode").checked, true);
+
+  action(dialog, "button.apply").emit("click");
+  assert.deepEqual(fixture.node.settings.detailer.order, ["custom_7", "face", "eye"]);
+  assert.equal(fixture.node.settings.detailer.custom_7.enabled, false);
+  assert.equal(fixture.node.settings.detailer.custom_7.guide_size_for, true);
+  assert.equal(fixture.node.settings.detailer.custom_7.wildcard, "__saved_sparse__");
+  assert.equal(fixture.node.settings.detailer.custom_7.inpaint_model, true);
+  assert.equal(fixture.node.settings.detailer.custom_7.tiled_encode, true);
+  assert.equal(fixture.node.settings.detailer.custom_7.tiled_decode, true);
+  assert.deepEqual(
+    fixture.node.settings.detailer.custom_7.preserved_sparse_key,
+    { nested: "keep-custom" },
+    "Untouched custom-target fields outside the known schema must survive Apply",
+  );
+  assert.equal(fixture.node.settings.detailer.face.enabled, false);
+  assert.equal(fixture.node.settings.detailer.eye.enabled, false);
+}
+
+{
+  const fixture = createFixture({
     available: { impactDetailer: true, impactMaskToSegs: true },
+    choiceOptions: {
+      "checkpointLoader:ckpt_name": ["installed-a.safetensors", "installed-b.safetensors"],
+    },
     deferLoads: true,
     settings: {
       detailer: {
         enabled: true,
+        sam3: { checkpoint: "legacy-missing.safetensors" },
         face: { enabled: true },
         eye: { enabled: true },
       },
@@ -601,16 +743,33 @@ function createFixture({ settings = {}, available = {}, deferLoads = false } = {
   fixture.openDetailerSettings(fixture.node);
   const dialog = fixture.dialogs[0];
   const enabled = controlIn(dialog.body, "Enable detailer");
+  const checkpoint = controlIn(dialog.body, "SAM3 checkpoint");
   const warning = find(dialog.body, (element) => element.classList.contains("easyuse-anima-aio-warning"));
   assert.equal(enabled.disabled, false);
   assert.equal(enabled.checked, true);
   assert.equal(warning.hidden, true);
   assert.equal(fixture.loadCalls.length, 1);
+  assert.equal(checkpoint.tagName, "SELECT", "SAM3 checkpoint must use a native catalog select");
+  assert.deepEqual(
+    checkpoint.options.map((option) => option.value),
+    ["legacy-missing.safetensors"],
+    "First-open SAM3 choices must initially preserve the saved fallback",
+  );
 
   fixture.availabilityState.impactDetailer = false;
   fixture.availabilityState.impactMaskToSegs = false;
   fixture.resolveLoads();
   await flushPromises();
+  assert.deepEqual(
+    checkpoint.options.map((option) => option.value),
+    ["legacy-missing.safetensors", "installed-a.safetensors", "installed-b.safetensors"],
+    "CheckpointLoaderSimple object info must hydrate installed SAM3 choices",
+  );
+  assert.equal(
+    checkpoint.value,
+    "legacy-missing.safetensors",
+    "SAM3 hydration must preserve a saved value missing from the current catalog",
+  );
   assert.equal(enabled.disabled, true, "Missing dependencies must lock Detailer after async refresh");
   assert.equal(enabled.checked, false, "Missing dependencies must clear an enabled Detailer toggle");
   assert.equal(warning.hidden, false);
@@ -624,6 +783,31 @@ function createFixture({ settings = {}, available = {}, deferLoads = false } = {
   assert.equal(fixture.node.settings.detailer.enabled, false);
   assert.equal(fixture.node.settings.detailer.face.enabled, false);
   assert.equal(fixture.node.settings.detailer.eye.enabled, false);
+}
+
+{
+  const fixture = createFixture({
+    choiceOptions: {
+      "checkpointLoader:ckpt_name": ["installed-after-close.safetensors"],
+    },
+    deferLoads: true,
+    settings: {
+      detailer: {
+        sam3: { checkpoint: "saved-before-close.safetensors" },
+      },
+    },
+  });
+  fixture.openDetailerSettings(fixture.node);
+  const dialog = fixture.dialogs[0];
+  const checkpoint = controlIn(dialog.body, "SAM3 checkpoint");
+  action(dialog, "button.cancel").emit("click");
+  fixture.resolveLoads();
+  await flushPromises();
+  assert.deepEqual(
+    checkpoint.options.map((option) => option.value),
+    ["saved-before-close.safetensors"],
+    "A late checkpoint catalog callback must not mutate a closed dialog",
+  );
 }
 
 console.log("AiO Detailer settings dialog smoke passed.");

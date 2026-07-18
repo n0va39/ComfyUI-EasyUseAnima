@@ -254,6 +254,8 @@ export function createLoraPresetCanvasWidgets(dependencies) {
       this.scrollThumbArea = null;
       this.scrollDragging = false;
       this.scrollDragDelta = 0;
+      /** @type {null | (() => void)} */
+      this.triggerDraw = null;
     }
 
     computeSize(_width, node) {
@@ -422,6 +424,7 @@ export function createLoraPresetCanvasWidgets(dependencies) {
       if (nextOffset !== this.scrollOffset) {
         this.scrollOffset = nextOffset;
         node.setDirtyCanvas?.(true, true);
+        this.triggerDraw?.();
       }
       return true;
     }
@@ -437,6 +440,7 @@ export function createLoraPresetCanvasWidgets(dependencies) {
       if (nextOffset !== this.scrollOffset) {
         this.scrollOffset = nextOffset;
         node.setDirtyCanvas?.(true, true);
+        this.triggerDraw?.();
       }
       return true;
     }

@@ -9,6 +9,7 @@ const GENERATOR_PANEL_CONTROL_SELECTOR = "input, select, textarea, button";
  * @typedef {object} AioGeneratorPanelControls
  * @property {(value: any, step?: string) => any} numberInput
  * @property {(value: any) => any} checkbox
+ * @property {(value: any) => any} textareaInput
  * @property {(options: any[], value: any) => any} selectInput
  * @property {(label: any, control: any, className?: string, tooltipKey?: string) => any} createNodeField
  */
@@ -127,6 +128,7 @@ export function aioCreateGeneratorPanelRuntime(dependencies) {
   const {
     numberInput,
     checkbox,
+    textareaInput,
     selectInput,
     createNodeField,
   } = controls;
@@ -1008,6 +1010,19 @@ export function aioCreateGeneratorPanelRuntime(dependencies) {
     return select;
   }
 
+  function createDomSettingsTextareaControl(node, value, updater, options = {}) {
+    const textarea = applyGeneratorControlFocusKey(textareaInput(value), options);
+    textarea.addEventListener("input", () => {
+      updateGeneratorSettings(node, (settings) => {
+        updater?.(settings, String(textarea.value || ""));
+      });
+      updateGeneratorDomSummary(node);
+      scheduleGeneratorLayout(node);
+      markNodeDirty(node);
+    });
+    return textarea;
+  }
+
   function createDomSelectControl(node, name, value, fallbackOptions = []) {
     const select = selectInput(widgetOptions(node, name, fallbackOptions), String(value ?? ""));
     select.addEventListener("change", () => {
@@ -1468,6 +1483,36 @@ export function aioCreateGeneratorPanelRuntime(dependencies) {
             makeNote(
               target.inherit_sampler_settings ? "text.inheritsMainSampler" : "text.usesStageSamplerOverride",
               "tip.detailerFollow",
+            ),
+            createNodeField(
+              aioText("field.threshold"),
+              createDomSettingsSliderNumberControl(
+                node,
+                target.threshold,
+                { min: 0, max: 1, step: 0.01, decimals: 2 },
+                (nextSettings, value) => {
+                  nextSettings.detailer ||= {};
+                  nextSettings.detailer[targetName] ||= {};
+                  nextSettings.detailer[targetName].threshold = value;
+                },
+              ),
+              "wide",
+              "tip.detailerThreshold",
+            ),
+            createNodeField(
+              aioText("field.wildcard"),
+              createDomSettingsTextareaControl(
+                node,
+                target.wildcard,
+                (nextSettings, value) => {
+                  nextSettings.detailer ||= {};
+                  nextSettings.detailer[targetName] ||= {};
+                  nextSettings.detailer[targetName].wildcard = value;
+                },
+                { focusKey: `detailer.${targetName}.wildcard` },
+              ),
+              "wide",
+              "tip.detailerWildcard",
             ),
             createNodeField(
               aioText("label.steps"),

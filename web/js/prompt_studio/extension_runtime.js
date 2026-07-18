@@ -96,6 +96,7 @@ import {
   remeasureAdvancedTextareaHeightsForWidth as remeasureAdvancedTextareaHeightsForWidthWithHooks,
 } from "./advanced_fields_ui.js";
 import {
+  disposeAdvancedAutocompleteInputs,
   renderAdvancedEditor as renderAdvancedEditorWithHooks,
   scheduleHookAdvancedNode as scheduleHookAdvancedNodeWithHooks,
 } from "./advanced_node_ui.js";
@@ -507,6 +508,7 @@ function createPromptStudioExtensionRuntime(app, api = null) {
           captureAdvancedConfigure(node, serialized, advancedWidget(node))
         ),
         disconnectAdvancedEditorWidthObserver,
+        disposeAdvancedAutocompleteInputs,
         detachAdvancedQueueSeedNode: advancedQueueSeedRuntime.detachNode,
         hookWildcardSeedWidget,
         hookStudioNode,

@@ -50,6 +50,12 @@ AUTOCOMPLETE_DATA_ADAPTER_JS = (
 AUTOCOMPLETE_INPUT_CONTROLLER_JS = (
     ROOT / "web" / "js" / "autocomplete" / "input_controller.js"
 )
+AUTOCOMPLETE_INPUT_BINDING_JS = (
+    ROOT / "web" / "js" / "autocomplete" / "input_binding.js"
+)
+AUTOCOMPLETE_ENTRY_LIFECYCLE_JS = (
+    ROOT / "web" / "js" / "autocomplete" / "entry_lifecycle.js"
+)
 AUTOCOMPLETE_TEXT_MODEL_JS = (
     ROOT / "web" / "js" / "autocomplete" / "text_model.js"
 )
@@ -211,8 +217,12 @@ class AIOFrontendSourceTests(unittest.TestCase):
         self.assertIn(
             "installWheelForwarder: installGeneratorWheelForwarder,", source
         )
-        self.assertIn("owns the wheel even at either boundary", wheel_source)
-        self.assertIn("Canvas zoom is allowed only when neither intended scrollbar exists", wheel_source)
+        self.assertIn(
+            'const AIO_PREVIEW_SELECTOR = ".easyuse-anima-aio-node-preview";',
+            wheel_source,
+        )
+        self.assertIn("The preview surface always owns wheel input", wheel_source)
+        self.assertIn("unrelated panel space available", wheel_source)
 
     def test_generator_keeps_native_output_preview_suppressed_after_execution(self):
         source = AIO_JS.read_text(encoding="utf-8")
@@ -693,10 +703,23 @@ class AIOFrontendSourceTests(unittest.TestCase):
         self.assertNotIn("max_megapixels: clampGeneratorNumber", body)
         self.assertIn('nodeInputChoiceOptions("upscaleModelLoader", "model_name"', body)
         self.assertIn('nodeInputChoiceOptions("resShiftLoader", "student_name"', body)
+        self.assertIn("reconcileSelectInput(", body)
+        self.assertIn("upscaleModel.value", body)
+        self.assertIn("closed || backdrop.isConnected === false", body)
         self.assertIn("upscaleBackendMissingPacks(backend.value)", body)
         self.assertIn("enabled: enabled.checked && missingPacks.length === 0", body)
         self.assertIn("resshiftSection", body)
         self.assertIn("resshift:", body)
+
+    def test_sam3_checkpoint_uses_checkpoint_loader_catalog_and_late_hydration(self):
+        body = AIO_DETAILER_SETTINGS_DIALOG_JS.read_text(encoding="utf-8")
+
+        self.assertIn('"checkpointLoader"', body)
+        self.assertIn('"ckpt_name"', body)
+        self.assertIn("selectInput(", body)
+        self.assertIn("reconcileSelectInput(", body)
+        self.assertIn("checkpoint.value", body)
+        self.assertIn("closed || backdrop.isConnected === false", body)
 
     def test_postprocess_settings_own_final_fit_controls(self):
         body = AIO_POSTPROCESS_SETTINGS_DIALOG_JS.read_text(encoding="utf-8")
@@ -848,24 +871,23 @@ class AIOFrontendSourceTests(unittest.TestCase):
         controller_source = AUTOCOMPLETE_INPUT_CONTROLLER_JS.read_text(
             encoding="utf-8"
         )
+        binding_source = AUTOCOMPLETE_INPUT_BINDING_JS.read_text(encoding="utf-8")
         hook_start = source.index("function hookInput")
         hook_end = source.index("\nfunction hookWidget", hook_start)
         hook_body = source[hook_start:hook_end]
 
         self.assertIn("document.activeElement !== input", hook_body)
         self.assertIn(
-            'input.addEventListener("compositionstart", '
-            "controller.beginComposition);",
-            hook_body,
+            'listen("compositionstart", controller.beginComposition);',
+            binding_source,
         )
         self.assertIn(
-            'input.addEventListener("compositionupdate", '
-            "controller.scheduleUpdate);",
-            hook_body,
+            'listen("compositionupdate", controller.scheduleUpdate);',
+            binding_source,
         )
         self.assertIn(
-            'input.addEventListener("compositionend", controller.endComposition);',
-            hook_body,
+            'listen("compositionend", controller.endComposition);',
+            binding_source,
         )
         self.assertIn("function beginComposition()", controller_source)
         self.assertIn("function endComposition()", controller_source)
@@ -874,22 +896,22 @@ class AIOFrontendSourceTests(unittest.TestCase):
         self.assertIn(
             "if (!controller.isComposing(event) "
             "&& handleBracketPreviewKeydown(state, event))",
-            hook_body,
+            binding_source,
         )
 
-        autocomplete_done = source.index("  input.__easyuseAnimaAutocompleteHooked = true;")
-        keydown_start = source.rindex('  input.addEventListener("keydown", (event) => {', 0, autocomplete_done)
-        keydown_end = source.index("  });", keydown_start)
-        keydown_body = source[keydown_start:keydown_end]
+        keydown_start = binding_source.index("function handleNavigation")
+        keydown_end = binding_source.index("\n\n  listen(", keydown_start)
+        keydown_body = binding_source[keydown_start:keydown_end]
 
         self.assertIn("controller.isComposing(event)", keydown_body)
         self.assertLess(
             keydown_body.index("controller.isComposing(event)"),
-            keydown_body.index("!activeState"),
+            keydown_body.index("const active = activeForInput();"),
         )
 
     def test_autocomplete_public_flag_tracks_enabled_state(self):
         source = AUTOCOMPLETE_JS.read_text(encoding="utf-8")
+        binding_source = AUTOCOMPLETE_INPUT_BINDING_JS.read_text(encoding="utf-8")
 
         self.assertIn("const hookedAutocompleteInputs = new Set();", source)
         self.assertIn("input.__easyuseAnimaAutocompleteHooked", source)
@@ -912,10 +934,22 @@ class AIOFrontendSourceTests(unittest.TestCase):
         end = source.index("\nfunction hookWidget", start)
         hook_body = source[start:end]
 
-        self.assertIn("if (input.__easyuseAnimaAutocompleteHooked) {", hook_body)
+        self.assertIn(
+            'existing?.owner === autocompleteInputOwner && typeof existing.dispose === "function"',
+            hook_body,
+        )
         self.assertIn("syncAutocompleteInputFlag(input, existing);", hook_body)
-        self.assertIn("hookedAutocompleteInputs.add(input);", hook_body)
+        self.assertIn(
+            "input.__easyuseAnimaAutocompleteDispose = existing.dispose;",
+            hook_body,
+        )
+        self.assertIn("state.binding = createAutocompleteInputBinding({", hook_body)
+        self.assertIn("owner: autocompleteInputOwner,", hook_body)
+        self.assertIn("registry: hookedAutocompleteInputs,", hook_body)
+        self.assertIn("registry.add(input);", binding_source)
         self.assertIn("syncAutocompleteInputFlag(input, state);", hook_body)
+        self.assertIn("return existing.dispose;", hook_body)
+        self.assertIn("return state.dispose;", hook_body)
 
     def test_autocomplete_arrow_navigation_keeps_adjacent_items_visible(self):
         source = AUTOCOMPLETE_JS.read_text(encoding="utf-8")
@@ -1004,15 +1038,28 @@ class AIOFrontendSourceTests(unittest.TestCase):
         self.assertIn("resetActiveAutocompleteMenu(ensurePopup());", update_body)
 
         start = source.index("function handleOutsideAutocompletePointer")
-        end = source.index("\ndocument.addEventListener(\"pointerdown\"", start)
+        end = source.index("\nfunction handleAutocompleteSettingsUpdated", start)
         pointer_body = source[start:end]
 
         self.assertIn("popup?.contains(event.target)", pointer_body)
         self.assertIn("event.target === input", pointer_body)
         self.assertIn("markAutocompleteInputInactive(input);", pointer_body)
         self.assertIn("hidePopup();", pointer_body)
-        self.assertIn('document.addEventListener("pointerdown", handleOutsideAutocompletePointer, true);', source)
-        self.assertIn('document.addEventListener("mousedown", handleOutsideAutocompletePointer, true);', source)
+        self.assertIn(
+            "handleOutsidePointer: handleOutsideAutocompletePointer",
+            source,
+        )
+        lifecycle_source = AUTOCOMPLETE_ENTRY_LIFECYCLE_JS.read_text(
+            encoding="utf-8"
+        )
+        self.assertIn(
+            'listen(hostDocument, "pointerdown", handleOutsidePointer, true);',
+            lifecycle_source,
+        )
+        self.assertIn(
+            'listen(hostDocument, "mousedown", handleOutsidePointer, true);',
+            lifecycle_source,
+        )
 
     def test_autocomplete_wildcards_accept_empty_and_unicode_queries(self):
         source = AUTOCOMPLETE_JS.read_text(encoding="utf-8")
@@ -1063,8 +1110,10 @@ class AIOFrontendSourceTests(unittest.TestCase):
         end = source.index("\nexport function autocompleteQuery", start)
         parse_body = source[start:end]
 
-        self.assertIn('query = query.replace(/^\\[\\[\\s*/g, "");', parse_body)
-        self.assertIn('query = query.replace(/^\\(\\s*/g, "");', parse_body)
+        self.assertIn(
+            "query = query.slice(trimPromptSyntaxPrefix(query, 0, query.length));",
+            parse_body,
+        )
         self.assertIn("query = stripPromptSyntaxClosingParens(query);", parse_body)
         self.assertIn(
             'query = query.replace(/:\\s*[+-]?(?:\\d+(?:\\.\\d*)?|\\.\\d+)\\s*$/, "");',
@@ -1095,8 +1144,13 @@ class AIOFrontendSourceTests(unittest.TestCase):
         end = source.index("\nfunction currentToken", start)
         input_body = source[start:end]
 
-        self.assertIn("widget?.inputEl || widget?.element", input_body)
-        self.assertIn('querySelector?.("textarea, input")', input_body)
+        self.assertIn(
+            "for (const candidate of [widget?.inputEl, widget?.element])",
+            input_body,
+        )
+        self.assertIn("candidate.isConnected !== false", input_body)
+        self.assertIn('candidate?.querySelector?.("textarea, input")', input_body)
+        self.assertIn("nested.isConnected !== false", input_body)
 
     def test_autocomplete_avoids_double_callback_for_nodes_v2_dom_widgets(self):
         source = AUTOCOMPLETE_JS.read_text(encoding="utf-8")
@@ -1113,7 +1167,7 @@ class AIOFrontendSourceTests(unittest.TestCase):
     def test_autocomplete_hooks_focused_nodes_v2_dom_inputs(self):
         source = AUTOCOMPLETE_JS.read_text(encoding="utf-8")
         start = source.index("function hookFocusedDomInput")
-        end = source.index("\nfunction installExternalInputHook", start)
+        end = source.index("\nfunction handleAutocompleteScroll", start)
         focus_body = source[start:end]
 
         self.assertIn("isAutocompleteDomInput(input)", focus_body)
@@ -1122,8 +1176,15 @@ class AIOFrontendSourceTests(unittest.TestCase):
         self.assertIn("const targets = nodeData ? targetWidgets(nodeData) : null;", focus_body)
         self.assertIn("const widget = widgetForDomInput(node, input);", focus_body)
         self.assertIn("hookInput(input", focus_body)
-        self.assertIn('document.addEventListener("focusin"', source)
-        self.assertIn("hookFocusedDomInput(document.activeElement);", source)
+        self.assertIn("hookFocusedInput: hookFocusedDomInput", source)
+        lifecycle_source = AUTOCOMPLETE_ENTRY_LIFECYCLE_JS.read_text(
+            encoding="utf-8"
+        )
+        self.assertIn(
+            'listen(hostDocument, "focusin", focusHook, true);',
+            lifecycle_source,
+        )
+        self.assertIn("hookFocusedInput(hostDocument.activeElement);", lifecycle_source)
         self.assertNotIn("easyuseAnimaDebugAutocomplete", source)
 
     def test_prompt_highlight_wildcards_accept_unicode_keys(self):

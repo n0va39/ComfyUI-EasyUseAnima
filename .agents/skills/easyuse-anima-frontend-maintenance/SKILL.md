@@ -38,8 +38,11 @@ frontend-support files. Do not copy volatile state into this Skill.
 - A lane implements, runs sandbox-safe focused checks, commits, and leaves a
   clean worktree. It does not run the official full suite, browser/server smoke,
   push, PR, merge, shared-runner edits, or user-instance sync.
-- New user-owned Codex tasks use `thinking: max`. Do not claim a speed setting
-  that the task API does not expose.
+- Select each new user-owned Codex task's available model and reasoning level
+  from slice complexity, risk, latency, and review needs. Use balanced settings
+  for bounded audits or mechanical extractions and higher reasoning for
+  intertwined runtime behavior or integration risk; do not default every task
+  to `sol`/`max`. Do not claim a speed setting that the task API does not expose.
 
 ## Advance The Integration Gate
 
@@ -68,6 +71,13 @@ server/launcher, and confirm the port and related processes are gone.
 
 - Keep `main` merge, release, tags, and Registry publishing out of scope unless
   separately approved.
+- When Registry work is approved, write the current version changelog for
+  installing users in plain text. Lead with the user outcome and required
+  action; keep PRs, commits, internal files/modules, tests, scanner findings,
+  and release bookkeeping out of public Registry copy.
+- Copy an artifact hash into public release text only from a freshly computed
+  artifact or the live release asset digest. Never expand a truncated handoff
+  value, and read back the edited release body against the live asset digest.
 - Keep the user ComfyUI instance untouched until all agreed maintenance and bug
   boundaries are integrated.
 - At the final checkpoint, sync the complete compatible node-pack bundle once,
