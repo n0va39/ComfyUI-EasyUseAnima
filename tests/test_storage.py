@@ -146,6 +146,89 @@ class AtomicJsonStoreTests(unittest.TestCase):
         self.assertEqual(store.backup_path.read_bytes(), backup)
         self.assertEqual(self._temp_files(), [])
 
+    def test_delete_removes_primary_and_backup(self):
+        store = self._store()
+        store.write({"value": "old"})
+        store.write({"value": "current"})
+        self.assertTrue(store.path.is_file())
+        self.assertTrue(store.backup_path.is_file())
+
+        store.delete()
+
+        self.assertFalse(store.path.exists())
+        self.assertFalse(store.backup_path.exists())
+
+    def test_backup_unlink_failure_preserves_primary(self):
+        store = self._store()
+        store.write({"value": "old"})
+        store.write({"value": "current"})
+        primary = store.path.read_bytes()
+        backup = store.backup_path.read_bytes()
+        real_unlink = Path.unlink
+
+        def fail_backup_unlink(path, *args, **kwargs):
+            if Path(path) == store.backup_path:
+                raise OSError("backup unlink failed")
+            return real_unlink(path, *args, **kwargs)
+
+        with patch.object(Path, "unlink", autospec=True, side_effect=fail_backup_unlink):
+            with self.assertRaisesRegex(OSError, "backup unlink failed"):
+                store.delete()
+
+        self.assertEqual(store.path.read_bytes(), primary)
+        self.assertEqual(store.backup_path.read_bytes(), backup)
+
+    def test_primary_unlink_failure_is_propagated_after_backup_removal(self):
+        store = self._store()
+        store.write({"value": "old"})
+        store.write({"value": "current"})
+        primary = store.path.read_bytes()
+        real_unlink = Path.unlink
+
+        def fail_primary_unlink(path, *args, **kwargs):
+            if Path(path) == store.path:
+                raise OSError("primary unlink failed")
+            return real_unlink(path, *args, **kwargs)
+
+        with patch.object(Path, "unlink", autospec=True, side_effect=fail_primary_unlink):
+            with self.assertRaisesRegex(OSError, "primary unlink failed"):
+                store.delete()
+
+        self.assertEqual(store.path.read_bytes(), primary)
+        self.assertFalse(store.backup_path.exists())
+
+    def test_backup_directory_fsync_failure_preserves_primary_and_reports_state(self):
+        store = self._store()
+        store.write({"value": "old"})
+        store.write({"value": "current"})
+        primary = store.path.read_bytes()
+
+        with patch.object(
+            storage,
+            "_fsync_directory",
+            side_effect=OSError("directory fsync failed"),
+        ):
+            with self.assertRaisesRegex(OSError, "directory fsync failed"):
+                store.delete()
+
+        self.assertEqual(store.path.read_bytes(), primary)
+        self.assertFalse(store.backup_path.exists())
+
+    def test_primary_directory_fsync_failure_reports_deleted_primary(self):
+        store = self._store()
+        store.write({"value": "current"})
+        self.assertFalse(store.backup_path.exists())
+
+        with patch.object(
+            storage,
+            "_fsync_directory",
+            side_effect=OSError("directory fsync failed"),
+        ):
+            with self.assertRaisesRegex(OSError, "directory fsync failed"):
+                store.delete()
+
+        self.assertFalse(store.path.exists())
+
     def test_invalid_or_missing_primary_reads_valid_backup_without_repair(self):
         store = self._store()
         store.path.write_text("{", encoding="utf-8")

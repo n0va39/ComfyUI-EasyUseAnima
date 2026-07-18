@@ -499,7 +499,10 @@ def _delete_aio_profile(name: str) -> dict:
     if path is None or not path.is_file():
         raise FileNotFoundError("Profile not found")
     deleted_name = path.stem
-    path.unlink()
+    try:
+        AtomicJsonStore(path).delete()
+    except FileNotFoundError as exc:
+        raise FileNotFoundError("Profile not found") from exc
     return {"name": deleted_name}
 
 
@@ -516,12 +519,15 @@ def _rename_aio_profile(old_name: str, new_name: str, *, overwrite: bool = False
         raise FileExistsError("Profile already exists")
 
     target_path = target or _aio_profile_path(safe_new_name)
-    AtomicJsonStore(target_path).replace_from(
+    data = AtomicJsonStore(target_path).replace_from(
         AtomicJsonStore(source),
         overwrite=overwrite,
         backup_target=True,
     )
-    return _load_aio_profile(target_path.stem)
+    return _normalize_aio_profile_payload(
+        target_path.stem,
+        data if isinstance(data, dict) else {},
+    )
 
 
 def _resolve_lora_preview_path(lora_name: str):

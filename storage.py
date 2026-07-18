@@ -254,19 +254,43 @@ class AtomicJsonStore:
             self._write_bytes_unlocked(encoded)
             return value
 
+    def delete(self) -> None:
+        """Delete the primary and backup under the shared primary-path lock.
+
+        The backup is removed and its directory entry is synced before the
+        primary is touched. Therefore a backup deletion failure preserves the
+        primary. Any primary unlink or directory fsync failure is propagated;
+        callers can inspect the files to determine the completed boundary.
+        """
+
+        with self.locked():
+            if not self.path.is_file():
+                raise FileNotFoundError(self.path)
+
+            if self.backup_path is not None:
+                try:
+                    self.backup_path.unlink()
+                except FileNotFoundError:
+                    pass
+                else:
+                    _fsync_directory(self.path.parent)
+
+            self.path.unlink()
+            _fsync_directory(self.path.parent)
+
     def replace_from(
         self,
         source: "AtomicJsonStore",
         *,
         overwrite: bool = True,
         backup_target: bool = True,
-    ) -> None:
-        """Atomically move a valid same-directory primary into this store."""
+    ):
+        """Atomically move a valid same-directory primary and return its JSON."""
 
         if source.path.parent != self.path.parent:
             raise ValueError("Atomic JSON moves require the same directory")
         with _locked_paths(source.path, self.path):
-            source._read_path(source.path)
+            value = source._read_path(source.path)
             self.path.parent.mkdir(parents=True, exist_ok=True)
             if self.path.exists() and not overwrite:
                 raise FileExistsError("Profile already exists")
@@ -274,3 +298,4 @@ class AtomicJsonStore:
                 self._backup_primary_unlocked()
             os.replace(source.path, self.path)
             _fsync_directory(self.path.parent)
+            return value

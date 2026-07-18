@@ -108,6 +108,199 @@ class AIOProfileStorageTests(unittest.TestCase):
                 self.assertEqual(deleted["name"], "Production")
                 self.assertEqual(api._list_aio_profiles(), [])
 
+    def test_delete_removes_profile_primary_and_backup(self):
+        api = load_api_module()
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            with patch.object(api, "AIO_PROFILE_DIR", root):
+                api._save_aio_profile("Delete Me", {"settings": {"value": "old"}})
+                api._save_aio_profile(
+                    "Delete Me",
+                    {"settings": {"value": "current"}},
+                    overwrite=True,
+                )
+                primary = root / "Delete Me.json"
+                backup = root / "Delete Me.json.bak"
+                self.assertTrue(primary.is_file())
+                self.assertTrue(backup.is_file())
+
+                deleted = api._delete_aio_profile("delete me")
+
+                self.assertEqual(deleted["name"], "Delete Me")
+                self.assertFalse(primary.exists())
+                self.assertFalse(backup.exists())
+
+    def test_delete_backup_failure_preserves_profile_primary(self):
+        api = load_api_module()
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            with patch.object(api, "AIO_PROFILE_DIR", root):
+                api._save_aio_profile("Preserved", {"settings": {"value": "old"}})
+                api._save_aio_profile(
+                    "Preserved",
+                    {"settings": {"value": "current"}},
+                    overwrite=True,
+                )
+                primary = (root / "Preserved.json").resolve()
+                backup = (root / "Preserved.json.bak").resolve()
+                real_unlink = Path.unlink
+
+                def fail_backup_unlink(path, *args, **kwargs):
+                    if Path(path) == backup:
+                        raise OSError("backup unlink failed")
+                    return real_unlink(path, *args, **kwargs)
+
+                with patch.object(Path, "unlink", autospec=True, side_effect=fail_backup_unlink):
+                    with self.assertRaisesRegex(OSError, "backup unlink failed"):
+                        api._delete_aio_profile("Preserved")
+
+                self.assertEqual(api._load_aio_profile("Preserved")["settings"]["value"], "current")
+                self.assertTrue(primary.is_file())
+                self.assertTrue(backup.is_file())
+
+    def test_deleted_backup_cannot_recover_after_same_name_recreation(self):
+        api = load_api_module()
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            with patch.object(api, "AIO_PROFILE_DIR", root):
+                api._save_aio_profile("Recreated", {"settings": {"value": "old"}})
+                api._save_aio_profile(
+                    "Recreated",
+                    {"settings": {"value": "current"}},
+                    overwrite=True,
+                )
+                api._delete_aio_profile("Recreated")
+
+                api._save_aio_profile("Recreated", {"settings": {"value": "recreated"}})
+                primary = root / "Recreated.json"
+                backup = root / "Recreated.json.bak"
+                self.assertFalse(backup.exists())
+                primary.write_text("{", encoding="utf-8")
+
+                with self.assertRaisesRegex(ValueError, "Profile data is invalid"):
+                    api._load_aio_profile("Recreated")
+
+    def test_delete_waits_for_in_progress_write_on_same_profile_path(self):
+        api = load_api_module()
+        profile_storage = sys.modules[api.AtomicJsonStore.__module__]
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            profile_path = (root / "Concurrent Delete.json").resolve()
+            publish_ready = threading.Event()
+            release_publish = threading.Event()
+            delete_started = threading.Event()
+            delete_done = threading.Event()
+            errors: list[BaseException] = []
+            deleted: list[dict] = []
+            real_replace = profile_storage.os.replace
+
+            with patch.object(api, "AIO_PROFILE_DIR", root):
+                api._save_aio_profile("Concurrent Delete", {"settings": {"value": "old"}})
+
+                def block_primary_publish(source, target):
+                    if Path(target) == profile_path:
+                        publish_ready.set()
+                        if not release_publish.wait(2):
+                            raise AssertionError("profile publish was not released")
+                    return real_replace(source, target)
+
+                def overwrite_profile():
+                    try:
+                        api._save_aio_profile(
+                            "Concurrent Delete",
+                            {"settings": {"value": "new"}},
+                            overwrite=True,
+                        )
+                    except BaseException as exc:
+                        errors.append(exc)
+
+                def delete_profile():
+                    delete_started.set()
+                    try:
+                        deleted.append(api._delete_aio_profile("Concurrent Delete"))
+                    except BaseException as exc:
+                        errors.append(exc)
+                    finally:
+                        delete_done.set()
+
+                with patch.object(profile_storage.os, "replace", side_effect=block_primary_publish):
+                    writer = threading.Thread(target=overwrite_profile)
+                    deleter = threading.Thread(target=delete_profile)
+                    writer.start()
+                    self.assertTrue(publish_ready.wait(2))
+                    deleter.start()
+                    self.assertTrue(delete_started.wait(2))
+                    self.assertFalse(delete_done.wait(0.05))
+                    release_publish.set()
+                    writer.join(2)
+                    deleter.join(2)
+
+                self.assertFalse(writer.is_alive())
+                self.assertFalse(deleter.is_alive())
+                self.assertEqual(errors, [])
+                self.assertEqual(deleted, [{"name": "Concurrent Delete"}])
+                self.assertFalse(profile_path.exists())
+                self.assertFalse((root / "Concurrent Delete.json.bak").exists())
+
+    def test_delete_waits_for_in_progress_rename_on_target_profile_path(self):
+        api = load_api_module()
+        profile_storage = sys.modules[api.AtomicJsonStore.__module__]
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            source = (root / "Source.json").resolve()
+            target = (root / "Target.json").resolve()
+            move_ready = threading.Event()
+            release_move = threading.Event()
+            delete_started = threading.Event()
+            delete_done = threading.Event()
+            errors: list[BaseException] = []
+            real_replace = profile_storage.os.replace
+
+            with patch.object(api, "AIO_PROFILE_DIR", root):
+                api._save_aio_profile("Source", {"settings": {"value": "source"}})
+                api._save_aio_profile("Target", {"settings": {"value": "target"}})
+
+                def block_profile_move(current, destination):
+                    if Path(current) == source and Path(destination) == target:
+                        move_ready.set()
+                        if not release_move.wait(2):
+                            raise AssertionError("profile move was not released")
+                    return real_replace(current, destination)
+
+                def rename_profile():
+                    try:
+                        api._rename_aio_profile("Source", "Target", overwrite=True)
+                    except BaseException as exc:
+                        errors.append(exc)
+
+                def delete_target():
+                    delete_started.set()
+                    try:
+                        api._delete_aio_profile("Target")
+                    except BaseException as exc:
+                        errors.append(exc)
+                    finally:
+                        delete_done.set()
+
+                with patch.object(profile_storage.os, "replace", side_effect=block_profile_move):
+                    renamer = threading.Thread(target=rename_profile)
+                    deleter = threading.Thread(target=delete_target)
+                    renamer.start()
+                    self.assertTrue(move_ready.wait(2))
+                    deleter.start()
+                    self.assertTrue(delete_started.wait(2))
+                    self.assertFalse(delete_done.wait(0.05))
+                    release_move.set()
+                    renamer.join(2)
+                    deleter.join(2)
+
+                self.assertFalse(renamer.is_alive())
+                self.assertFalse(deleter.is_alive())
+                self.assertEqual(errors, [])
+                self.assertFalse(source.exists())
+                self.assertFalse(target.exists())
+                self.assertFalse((root / "Target.json.bak").exists())
+
     def test_filename_identity_collisions_require_explicit_overwrite(self):
         api = load_api_module()
         collision_cases = (
@@ -412,6 +605,23 @@ class AIOProfileApiRouteTests(unittest.TestCase):
                     response["payload"],
                     {"status": "error", "message": "Profile already exists"},
                 )
+
+    def test_delete_missing_profile_preserves_404_response_contract(self):
+        api, routes = load_api_routes()
+        handler = routes.handlers["/easyuse_anima/aio_profiles/delete"]
+
+        with patch.object(
+            api,
+            "_delete_aio_profile",
+            side_effect=FileNotFoundError("Profile not found"),
+        ):
+            response = asyncio.run(handler(JsonRequest({"name": "Missing"})))
+
+        self.assertEqual(response["status"], 404)
+        self.assertEqual(
+            response["payload"],
+            {"status": "error", "message": "Profile not found"},
+        )
 
 
 class AIOBuiltinProfileTests(unittest.TestCase):
