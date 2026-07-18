@@ -2364,6 +2364,130 @@
       },
       {
         "alias": null,
+        "bound_name": "AutocompleteIndexDiagnostics",
+        "branch_context": [
+          {
+            "branch": "body",
+            "handles_import_failure": true,
+            "has_import_fallback_handler": true,
+            "kind": "try",
+            "line": 17
+          }
+        ],
+        "classification": "internal",
+        "column": 4,
+        "compatibility_pair": {
+          "bound_name": "AutocompleteIndexDiagnostics",
+          "target": "autocomplete_index.py",
+          "try_line": 17
+        },
+        "conditional": true,
+        "imported": ".autocomplete_index:AutocompleteIndexDiagnostics",
+        "kind": "static_from",
+        "line": 18,
+        "name": "AutocompleteIndexDiagnostics",
+        "optional": false,
+        "requested": ".autocomplete_index",
+        "role": "compatibility_primary",
+        "scope": "<module>",
+        "source": "autocomplete_dataset.py",
+        "target": "autocomplete_index.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "AutocompleteIndexSource",
+        "branch_context": [
+          {
+            "branch": "body",
+            "handles_import_failure": true,
+            "has_import_fallback_handler": true,
+            "kind": "try",
+            "line": 17
+          }
+        ],
+        "classification": "internal",
+        "column": 4,
+        "compatibility_pair": {
+          "bound_name": "AutocompleteIndexSource",
+          "target": "autocomplete_index.py",
+          "try_line": 17
+        },
+        "conditional": true,
+        "imported": ".autocomplete_index:AutocompleteIndexSource",
+        "kind": "static_from",
+        "line": 18,
+        "name": "AutocompleteIndexSource",
+        "optional": false,
+        "requested": ".autocomplete_index",
+        "role": "compatibility_primary",
+        "scope": "<module>",
+        "source": "autocomplete_dataset.py",
+        "target": "autocomplete_index.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "AutocompleteIndexUnavailable",
+        "branch_context": [
+          {
+            "branch": "body",
+            "handles_import_failure": true,
+            "has_import_fallback_handler": true,
+            "kind": "try",
+            "line": 17
+          }
+        ],
+        "classification": "internal",
+        "column": 4,
+        "compatibility_pair": {
+          "bound_name": "AutocompleteIndexUnavailable",
+          "target": "autocomplete_index.py",
+          "try_line": 17
+        },
+        "conditional": true,
+        "imported": ".autocomplete_index:AutocompleteIndexUnavailable",
+        "kind": "static_from",
+        "line": 18,
+        "name": "AutocompleteIndexUnavailable",
+        "optional": false,
+        "requested": ".autocomplete_index",
+        "role": "compatibility_primary",
+        "scope": "<module>",
+        "source": "autocomplete_dataset.py",
+        "target": "autocomplete_index.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "search_autocomplete_index",
+        "branch_context": [
+          {
+            "branch": "body",
+            "handles_import_failure": true,
+            "has_import_fallback_handler": true,
+            "kind": "try",
+            "line": 17
+          }
+        ],
+        "classification": "internal",
+        "column": 4,
+        "compatibility_pair": {
+          "bound_name": "search_autocomplete_index",
+          "target": "autocomplete_index.py",
+          "try_line": 17
+        },
+        "conditional": true,
+        "imported": ".autocomplete_index:search_autocomplete_index",
+        "kind": "static_from",
+        "line": 18,
+        "name": "search_autocomplete_index",
+        "optional": false,
+        "requested": ".autocomplete_index",
+        "role": "compatibility_primary",
+        "scope": "<module>",
+        "source": "autocomplete_dataset.py",
+        "target": "autocomplete_index.py"
+      },
+      {
+        "alias": null,
         "bound_name": "PACKAGE_DATA_DIR",
         "branch_context": [
           {
@@ -2384,7 +2508,7 @@
         "conditional": true,
         "imported": ".anima_prompt.knowledge:PACKAGE_DATA_DIR",
         "kind": "static_from",
-        "line": 18,
+        "line": 24,
         "name": "PACKAGE_DATA_DIR",
         "optional": false,
         "requested": ".anima_prompt.knowledge",
@@ -2415,7 +2539,7 @@
         "conditional": true,
         "imported": ".anima_prompt.models:TagSection",
         "kind": "static_from",
-        "line": 19,
+        "line": 25,
         "name": "TagSection",
         "optional": false,
         "requested": ".anima_prompt.models",
@@ -2446,7 +2570,7 @@
         "conditional": true,
         "imported": ".anima_prompt.ordering:builtin_tag_section",
         "kind": "static_from",
-        "line": 20,
+        "line": 26,
         "name": "builtin_tag_section",
         "optional": false,
         "requested": ".anima_prompt.ordering",
@@ -2477,7 +2601,7 @@
         "conditional": true,
         "imported": ".anima_prompt.parser:parse_prompt",
         "kind": "static_from",
-        "line": 21,
+        "line": 27,
         "name": "parse_prompt",
         "optional": false,
         "requested": ".anima_prompt.parser",
@@ -2508,7 +2632,7 @@
         "conditional": true,
         "imported": ".prompt_translation:iter_prompt_translation_markers",
         "kind": "static_from",
-        "line": 22,
+        "line": 28,
         "name": "iter_prompt_translation_markers",
         "optional": false,
         "requested": ".prompt_translation",
@@ -2516,6 +2640,204 @@
         "scope": "<module>",
         "source": "autocomplete_dataset.py",
         "target": "prompt_translation.py"
+      },
+      {
+        "alias": "STORAGE_PACKAGE_DATA_DIR",
+        "bound_name": "STORAGE_PACKAGE_DATA_DIR",
+        "branch_context": [
+          {
+            "branch": "body",
+            "handles_import_failure": true,
+            "has_import_fallback_handler": true,
+            "kind": "try",
+            "line": 17
+          }
+        ],
+        "classification": "internal",
+        "column": 4,
+        "compatibility_pair": {
+          "bound_name": "STORAGE_PACKAGE_DATA_DIR",
+          "target": "storage.py",
+          "try_line": 17
+        },
+        "conditional": true,
+        "imported": ".storage:PACKAGE_DATA_DIR",
+        "kind": "static_from",
+        "line": 29,
+        "name": "PACKAGE_DATA_DIR",
+        "optional": false,
+        "requested": ".storage",
+        "role": "compatibility_primary",
+        "scope": "<module>",
+        "source": "autocomplete_dataset.py",
+        "target": "storage.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "USER_DATA_DIR",
+        "branch_context": [
+          {
+            "branch": "body",
+            "handles_import_failure": true,
+            "has_import_fallback_handler": true,
+            "kind": "try",
+            "line": 17
+          }
+        ],
+        "classification": "internal",
+        "column": 4,
+        "compatibility_pair": {
+          "bound_name": "USER_DATA_DIR",
+          "target": "storage.py",
+          "try_line": 17
+        },
+        "conditional": true,
+        "imported": ".storage:USER_DATA_DIR",
+        "kind": "static_from",
+        "line": 30,
+        "name": "USER_DATA_DIR",
+        "optional": false,
+        "requested": ".storage",
+        "role": "compatibility_primary",
+        "scope": "<module>",
+        "source": "autocomplete_dataset.py",
+        "target": "storage.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "AutocompleteIndexDiagnostics",
+        "branch_context": [
+          {
+            "branch": "except",
+            "catches_import_error": true,
+            "exceptions": [
+              "ImportError"
+            ],
+            "handler_line": 31,
+            "kind": "try",
+            "line": 17
+          }
+        ],
+        "classification": "compatibility_fallback",
+        "column": 4,
+        "compatibility_pair": {
+          "bound_name": "AutocompleteIndexDiagnostics",
+          "target": "autocomplete_index.py",
+          "try_line": 17
+        },
+        "conditional": true,
+        "imported": "autocomplete_index:AutocompleteIndexDiagnostics",
+        "kind": "static_from",
+        "line": 32,
+        "name": "AutocompleteIndexDiagnostics",
+        "optional": false,
+        "requested": "autocomplete_index",
+        "role": "compatibility_fallback",
+        "scope": "<module>",
+        "source": "autocomplete_dataset.py",
+        "target": "autocomplete_index.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "AutocompleteIndexSource",
+        "branch_context": [
+          {
+            "branch": "except",
+            "catches_import_error": true,
+            "exceptions": [
+              "ImportError"
+            ],
+            "handler_line": 31,
+            "kind": "try",
+            "line": 17
+          }
+        ],
+        "classification": "compatibility_fallback",
+        "column": 4,
+        "compatibility_pair": {
+          "bound_name": "AutocompleteIndexSource",
+          "target": "autocomplete_index.py",
+          "try_line": 17
+        },
+        "conditional": true,
+        "imported": "autocomplete_index:AutocompleteIndexSource",
+        "kind": "static_from",
+        "line": 32,
+        "name": "AutocompleteIndexSource",
+        "optional": false,
+        "requested": "autocomplete_index",
+        "role": "compatibility_fallback",
+        "scope": "<module>",
+        "source": "autocomplete_dataset.py",
+        "target": "autocomplete_index.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "AutocompleteIndexUnavailable",
+        "branch_context": [
+          {
+            "branch": "except",
+            "catches_import_error": true,
+            "exceptions": [
+              "ImportError"
+            ],
+            "handler_line": 31,
+            "kind": "try",
+            "line": 17
+          }
+        ],
+        "classification": "compatibility_fallback",
+        "column": 4,
+        "compatibility_pair": {
+          "bound_name": "AutocompleteIndexUnavailable",
+          "target": "autocomplete_index.py",
+          "try_line": 17
+        },
+        "conditional": true,
+        "imported": "autocomplete_index:AutocompleteIndexUnavailable",
+        "kind": "static_from",
+        "line": 32,
+        "name": "AutocompleteIndexUnavailable",
+        "optional": false,
+        "requested": "autocomplete_index",
+        "role": "compatibility_fallback",
+        "scope": "<module>",
+        "source": "autocomplete_dataset.py",
+        "target": "autocomplete_index.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "search_autocomplete_index",
+        "branch_context": [
+          {
+            "branch": "except",
+            "catches_import_error": true,
+            "exceptions": [
+              "ImportError"
+            ],
+            "handler_line": 31,
+            "kind": "try",
+            "line": 17
+          }
+        ],
+        "classification": "compatibility_fallback",
+        "column": 4,
+        "compatibility_pair": {
+          "bound_name": "search_autocomplete_index",
+          "target": "autocomplete_index.py",
+          "try_line": 17
+        },
+        "conditional": true,
+        "imported": "autocomplete_index:search_autocomplete_index",
+        "kind": "static_from",
+        "line": 32,
+        "name": "search_autocomplete_index",
+        "optional": false,
+        "requested": "autocomplete_index",
+        "role": "compatibility_fallback",
+        "scope": "<module>",
+        "source": "autocomplete_dataset.py",
+        "target": "autocomplete_index.py"
       },
       {
         "alias": null,
@@ -2527,7 +2849,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 23,
+            "handler_line": 31,
             "kind": "try",
             "line": 17
           }
@@ -2542,7 +2864,7 @@
         "conditional": true,
         "imported": "anima_prompt.knowledge:PACKAGE_DATA_DIR",
         "kind": "static_from",
-        "line": 24,
+        "line": 38,
         "name": "PACKAGE_DATA_DIR",
         "optional": false,
         "requested": "anima_prompt.knowledge",
@@ -2561,7 +2883,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 23,
+            "handler_line": 31,
             "kind": "try",
             "line": 17
           }
@@ -2576,7 +2898,7 @@
         "conditional": true,
         "imported": "anima_prompt.models:TagSection",
         "kind": "static_from",
-        "line": 25,
+        "line": 39,
         "name": "TagSection",
         "optional": false,
         "requested": "anima_prompt.models",
@@ -2595,7 +2917,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 23,
+            "handler_line": 31,
             "kind": "try",
             "line": 17
           }
@@ -2610,7 +2932,7 @@
         "conditional": true,
         "imported": "anima_prompt.ordering:builtin_tag_section",
         "kind": "static_from",
-        "line": 26,
+        "line": 40,
         "name": "builtin_tag_section",
         "optional": false,
         "requested": "anima_prompt.ordering",
@@ -2629,7 +2951,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 23,
+            "handler_line": 31,
             "kind": "try",
             "line": 17
           }
@@ -2644,7 +2966,7 @@
         "conditional": true,
         "imported": "anima_prompt.parser:parse_prompt",
         "kind": "static_from",
-        "line": 27,
+        "line": 41,
         "name": "parse_prompt",
         "optional": false,
         "requested": "anima_prompt.parser",
@@ -2663,7 +2985,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 23,
+            "handler_line": 31,
             "kind": "try",
             "line": 17
           }
@@ -2678,7 +3000,7 @@
         "conditional": true,
         "imported": "prompt_translation:iter_prompt_translation_markers",
         "kind": "static_from",
-        "line": 28,
+        "line": 42,
         "name": "iter_prompt_translation_markers",
         "optional": false,
         "requested": "prompt_translation",
@@ -2686,6 +3008,244 @@
         "scope": "<module>",
         "source": "autocomplete_dataset.py",
         "target": "prompt_translation.py"
+      },
+      {
+        "alias": "STORAGE_PACKAGE_DATA_DIR",
+        "bound_name": "STORAGE_PACKAGE_DATA_DIR",
+        "branch_context": [
+          {
+            "branch": "except",
+            "catches_import_error": true,
+            "exceptions": [
+              "ImportError"
+            ],
+            "handler_line": 31,
+            "kind": "try",
+            "line": 17
+          }
+        ],
+        "classification": "compatibility_fallback",
+        "column": 4,
+        "compatibility_pair": {
+          "bound_name": "STORAGE_PACKAGE_DATA_DIR",
+          "target": "storage.py",
+          "try_line": 17
+        },
+        "conditional": true,
+        "imported": "storage:PACKAGE_DATA_DIR",
+        "kind": "static_from",
+        "line": 43,
+        "name": "PACKAGE_DATA_DIR",
+        "optional": false,
+        "requested": "storage",
+        "role": "compatibility_fallback",
+        "scope": "<module>",
+        "source": "autocomplete_dataset.py",
+        "target": "storage.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "USER_DATA_DIR",
+        "branch_context": [
+          {
+            "branch": "except",
+            "catches_import_error": true,
+            "exceptions": [
+              "ImportError"
+            ],
+            "handler_line": 31,
+            "kind": "try",
+            "line": 17
+          }
+        ],
+        "classification": "compatibility_fallback",
+        "column": 4,
+        "compatibility_pair": {
+          "bound_name": "USER_DATA_DIR",
+          "target": "storage.py",
+          "try_line": 17
+        },
+        "conditional": true,
+        "imported": "storage:USER_DATA_DIR",
+        "kind": "static_from",
+        "line": 44,
+        "name": "USER_DATA_DIR",
+        "optional": false,
+        "requested": "storage",
+        "role": "compatibility_fallback",
+        "scope": "<module>",
+        "source": "autocomplete_dataset.py",
+        "target": "storage.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "annotations",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "__future__:annotations",
+        "kind": "static_from",
+        "line": 1,
+        "name": "annotations",
+        "optional": false,
+        "requested": "__future__",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "autocomplete_index.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "hashlib",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "hashlib",
+        "kind": "static_import",
+        "line": 3,
+        "name": null,
+        "optional": false,
+        "requested": "hashlib",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "autocomplete_index.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "os",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "os",
+        "kind": "static_import",
+        "line": 4,
+        "name": null,
+        "optional": false,
+        "requested": "os",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "autocomplete_index.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "sqlite3",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "sqlite3",
+        "kind": "static_import",
+        "line": 5,
+        "name": null,
+        "optional": false,
+        "requested": "sqlite3",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "autocomplete_index.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "tempfile",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "tempfile",
+        "kind": "static_import",
+        "line": 6,
+        "name": null,
+        "optional": false,
+        "requested": "tempfile",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "autocomplete_index.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "threading",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "threading",
+        "kind": "static_import",
+        "line": 7,
+        "name": null,
+        "optional": false,
+        "requested": "threading",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "autocomplete_index.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "dataclass",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "dataclasses:dataclass",
+        "kind": "static_from",
+        "line": 8,
+        "name": "dataclass",
+        "optional": false,
+        "requested": "dataclasses",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "autocomplete_index.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "Path",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "pathlib:Path",
+        "kind": "static_from",
+        "line": 9,
+        "name": "Path",
+        "optional": false,
+        "requested": "pathlib",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "autocomplete_index.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "Callable",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "typing:Callable",
+        "kind": "static_from",
+        "line": 10,
+        "name": "Callable",
+        "optional": false,
+        "requested": "typing",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "autocomplete_index.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "Iterable",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "typing:Iterable",
+        "kind": "static_from",
+        "line": 10,
+        "name": "Iterable",
+        "optional": false,
+        "requested": "typing",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "autocomplete_index.py"
       },
       {
         "alias": null,
@@ -7295,7 +7855,15 @@
       },
       {
         "from": "autocomplete_dataset.py",
+        "to": "autocomplete_index.py"
+      },
+      {
+        "from": "autocomplete_dataset.py",
         "to": "prompt_translation.py"
+      },
+      {
+        "from": "autocomplete_dataset.py",
+        "to": "storage.py"
       },
       {
         "from": "nodes.py",
@@ -7420,6 +7988,12 @@
       {
         "cyclic": false,
         "modules": [
+          "autocomplete_index.py"
+        ]
+      },
+      {
+        "cyclic": false,
+        "modules": [
           "nodes.py"
         ]
       },
@@ -7450,7 +8024,7 @@
     ]
   },
   "inventory": {
-    "module_count": 16,
+    "module_count": 17,
     "modules": [
       {
         "is_package": true,
@@ -7574,14 +8148,26 @@
       },
       {
         "is_package": false,
-        "loc": 855,
+        "loc": 979,
         "module": "autocomplete_dataset",
-        "normalized_git_blob_sha1": "a705fa5d5838bd6427aaa65da12fba0ad6eeb3f2",
+        "normalized_git_blob_sha1": "518a25f783a0e95197feba4af7468456d0fcbf1d",
         "path": "autocomplete_dataset.py",
         "top_level": {
           "class_count": 4,
-          "function_count": 43,
-          "global_count": 28
+          "function_count": 48,
+          "global_count": 29
+        }
+      },
+      {
+        "is_package": false,
+        "loc": 580,
+        "module": "autocomplete_index",
+        "normalized_git_blob_sha1": "885fefac3b7ba0b71f5ce22a3aa6ce070ee62c62",
+        "path": "autocomplete_index.py",
+        "top_level": {
+          "class_count": 6,
+          "function_count": 15,
+          "global_count": 4
         }
       },
       {
@@ -7884,7 +8470,99 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 23,
+            "handler_line": 31,
+            "kind": "try",
+            "line": 17
+          }
+        ],
+        "classification": "compatibility_fallback",
+        "conditional": true,
+        "imported": "autocomplete_index:AutocompleteIndexDiagnostics",
+        "kind": "static_from",
+        "line": 32,
+        "optional": false,
+        "role": "compatibility_fallback",
+        "source": "autocomplete_dataset.py",
+        "target": "autocomplete_index.py"
+      },
+      {
+        "branch_context": [
+          {
+            "branch": "except",
+            "catches_import_error": true,
+            "exceptions": [
+              "ImportError"
+            ],
+            "handler_line": 31,
+            "kind": "try",
+            "line": 17
+          }
+        ],
+        "classification": "compatibility_fallback",
+        "conditional": true,
+        "imported": "autocomplete_index:AutocompleteIndexSource",
+        "kind": "static_from",
+        "line": 32,
+        "optional": false,
+        "role": "compatibility_fallback",
+        "source": "autocomplete_dataset.py",
+        "target": "autocomplete_index.py"
+      },
+      {
+        "branch_context": [
+          {
+            "branch": "except",
+            "catches_import_error": true,
+            "exceptions": [
+              "ImportError"
+            ],
+            "handler_line": 31,
+            "kind": "try",
+            "line": 17
+          }
+        ],
+        "classification": "compatibility_fallback",
+        "conditional": true,
+        "imported": "autocomplete_index:AutocompleteIndexUnavailable",
+        "kind": "static_from",
+        "line": 32,
+        "optional": false,
+        "role": "compatibility_fallback",
+        "source": "autocomplete_dataset.py",
+        "target": "autocomplete_index.py"
+      },
+      {
+        "branch_context": [
+          {
+            "branch": "except",
+            "catches_import_error": true,
+            "exceptions": [
+              "ImportError"
+            ],
+            "handler_line": 31,
+            "kind": "try",
+            "line": 17
+          }
+        ],
+        "classification": "compatibility_fallback",
+        "conditional": true,
+        "imported": "autocomplete_index:search_autocomplete_index",
+        "kind": "static_from",
+        "line": 32,
+        "optional": false,
+        "role": "compatibility_fallback",
+        "source": "autocomplete_dataset.py",
+        "target": "autocomplete_index.py"
+      },
+      {
+        "branch_context": [
+          {
+            "branch": "except",
+            "catches_import_error": true,
+            "exceptions": [
+              "ImportError"
+            ],
+            "handler_line": 31,
             "kind": "try",
             "line": 17
           }
@@ -7893,7 +8571,7 @@
         "conditional": true,
         "imported": "anima_prompt.knowledge:PACKAGE_DATA_DIR",
         "kind": "static_from",
-        "line": 24,
+        "line": 38,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "autocomplete_dataset.py",
@@ -7907,7 +8585,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 23,
+            "handler_line": 31,
             "kind": "try",
             "line": 17
           }
@@ -7916,7 +8594,7 @@
         "conditional": true,
         "imported": "anima_prompt.models:TagSection",
         "kind": "static_from",
-        "line": 25,
+        "line": 39,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "autocomplete_dataset.py",
@@ -7930,7 +8608,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 23,
+            "handler_line": 31,
             "kind": "try",
             "line": 17
           }
@@ -7939,7 +8617,7 @@
         "conditional": true,
         "imported": "anima_prompt.ordering:builtin_tag_section",
         "kind": "static_from",
-        "line": 26,
+        "line": 40,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "autocomplete_dataset.py",
@@ -7953,7 +8631,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 23,
+            "handler_line": 31,
             "kind": "try",
             "line": 17
           }
@@ -7962,7 +8640,7 @@
         "conditional": true,
         "imported": "anima_prompt.parser:parse_prompt",
         "kind": "static_from",
-        "line": 27,
+        "line": 41,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "autocomplete_dataset.py",
@@ -7976,7 +8654,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 23,
+            "handler_line": 31,
             "kind": "try",
             "line": 17
           }
@@ -7985,11 +8663,57 @@
         "conditional": true,
         "imported": "prompt_translation:iter_prompt_translation_markers",
         "kind": "static_from",
-        "line": 28,
+        "line": 42,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "autocomplete_dataset.py",
         "target": "prompt_translation.py"
+      },
+      {
+        "branch_context": [
+          {
+            "branch": "except",
+            "catches_import_error": true,
+            "exceptions": [
+              "ImportError"
+            ],
+            "handler_line": 31,
+            "kind": "try",
+            "line": 17
+          }
+        ],
+        "classification": "compatibility_fallback",
+        "conditional": true,
+        "imported": "storage:PACKAGE_DATA_DIR",
+        "kind": "static_from",
+        "line": 43,
+        "optional": false,
+        "role": "compatibility_fallback",
+        "source": "autocomplete_dataset.py",
+        "target": "storage.py"
+      },
+      {
+        "branch_context": [
+          {
+            "branch": "except",
+            "catches_import_error": true,
+            "exceptions": [
+              "ImportError"
+            ],
+            "handler_line": 31,
+            "kind": "try",
+            "line": 17
+          }
+        ],
+        "classification": "compatibility_fallback",
+        "conditional": true,
+        "imported": "storage:USER_DATA_DIR",
+        "kind": "static_from",
+        "line": 44,
+        "optional": false,
+        "role": "compatibility_fallback",
+        "source": "autocomplete_dataset.py",
+        "target": "storage.py"
       },
       {
         "branch_context": [
@@ -9430,6 +10154,116 @@
         "optional": false,
         "role": "ordinary",
         "source": "autocomplete_dataset.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "__future__:annotations",
+        "kind": "static_from",
+        "line": 1,
+        "optional": false,
+        "role": "ordinary",
+        "source": "autocomplete_index.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "hashlib",
+        "kind": "static_import",
+        "line": 3,
+        "optional": false,
+        "role": "ordinary",
+        "source": "autocomplete_index.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "os",
+        "kind": "static_import",
+        "line": 4,
+        "optional": false,
+        "role": "ordinary",
+        "source": "autocomplete_index.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "sqlite3",
+        "kind": "static_import",
+        "line": 5,
+        "optional": false,
+        "role": "ordinary",
+        "source": "autocomplete_index.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "tempfile",
+        "kind": "static_import",
+        "line": 6,
+        "optional": false,
+        "role": "ordinary",
+        "source": "autocomplete_index.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "threading",
+        "kind": "static_import",
+        "line": 7,
+        "optional": false,
+        "role": "ordinary",
+        "source": "autocomplete_index.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "dataclasses:dataclass",
+        "kind": "static_from",
+        "line": 8,
+        "optional": false,
+        "role": "ordinary",
+        "source": "autocomplete_index.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "pathlib:Path",
+        "kind": "static_from",
+        "line": 9,
+        "optional": false,
+        "role": "ordinary",
+        "source": "autocomplete_index.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "typing:Callable",
+        "kind": "static_from",
+        "line": 10,
+        "optional": false,
+        "role": "ordinary",
+        "source": "autocomplete_index.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "typing:Iterable",
+        "kind": "static_from",
+        "line": 10,
+        "optional": false,
+        "role": "ordinary",
+        "source": "autocomplete_index.py"
       },
       {
         "branch_context": [],
@@ -11970,6 +12804,7 @@
       "api.py",
       "api_contract.py",
       "autocomplete_dataset.py",
+      "autocomplete_index.py",
       "nodes.py",
       "prompt_translation.py",
       "settings.py",
@@ -11988,6 +12823,7 @@
       "api.py",
       "api_contract.py",
       "autocomplete_dataset.py",
+      "autocomplete_index.py",
       "nodes.py",
       "prompt_translation.py",
       "settings.py",
@@ -12454,7 +13290,16 @@
         "column": 19,
         "context": "assign:_INLINE_SPACE_RE",
         "kind": "import_time_call",
-        "line": 69,
+        "line": 85,
+        "module": "autocomplete_dataset.py",
+        "scope": "<module>"
+      },
+      {
+        "callee": "_default_autocomplete_index_dir",
+        "column": 26,
+        "context": "assign:_AUTOCOMPLETE_INDEX_DIR",
+        "kind": "import_time_call",
+        "line": 126,
         "module": "autocomplete_dataset.py",
         "scope": "<module>"
       },
@@ -12463,7 +13308,7 @@
         "column": 12,
         "context": "assign:_COUNT_RE",
         "kind": "import_time_call",
-        "line": 98,
+        "line": 127,
         "module": "autocomplete_dataset.py",
         "scope": "<module>"
       },
@@ -12472,7 +13317,7 @@
         "column": 20,
         "context": "assign:_WEIGHT_NUMBER_RE",
         "kind": "import_time_call",
-        "line": 103,
+        "line": 132,
         "module": "autocomplete_dataset.py",
         "scope": "<module>"
       },
@@ -12481,7 +13326,7 @@
         "column": 21,
         "context": "assign:_WEIGHTED_TOKEN_RE",
         "kind": "import_time_call",
-        "line": 104,
+        "line": 133,
         "module": "autocomplete_dataset.py",
         "scope": "<module>"
       },
@@ -12490,7 +13335,7 @@
         "column": 21,
         "context": "assign:_WILDCARD_TOKEN_RE",
         "kind": "import_time_call",
-        "line": 105,
+        "line": 134,
         "module": "autocomplete_dataset.py",
         "scope": "<module>"
       },
@@ -12499,7 +13344,7 @@
         "column": 22,
         "context": "assign:_WILDCARD_SYNTAX_RE",
         "kind": "import_time_call",
-        "line": 106,
+        "line": 135,
         "module": "autocomplete_dataset.py",
         "scope": "<module>"
       },
@@ -12508,7 +13353,7 @@
         "column": 27,
         "context": "assign:_DYNAMIC_PROMPT_TOKEN_RE",
         "kind": "import_time_call",
-        "line": 107,
+        "line": 136,
         "module": "autocomplete_dataset.py",
         "scope": "<module>"
       },
@@ -12517,7 +13362,7 @@
         "column": 28,
         "context": "assign:_DYNAMIC_PROMPT_SYNTAX_RE",
         "kind": "import_time_call",
-        "line": 108,
+        "line": 137,
         "module": "autocomplete_dataset.py",
         "scope": "<module>"
       },
@@ -12526,7 +13371,7 @@
         "column": 25,
         "context": "assign:_DESCRIPTION_PREFIX_RE",
         "kind": "import_time_call",
-        "line": 109,
+        "line": 138,
         "module": "autocomplete_dataset.py",
         "scope": "<module>"
       },
@@ -12535,7 +13380,7 @@
         "column": 14,
         "context": "assign:_COMMENT_RE",
         "kind": "import_time_call",
-        "line": 110,
+        "line": 139,
         "module": "autocomplete_dataset.py",
         "scope": "<module>"
       },
@@ -12544,7 +13389,7 @@
         "column": 1,
         "context": "decorator:AutocompleteEntry",
         "kind": "import_time_call",
-        "line": 112,
+        "line": 141,
         "module": "autocomplete_dataset.py",
         "scope": "<module>"
       },
@@ -12553,7 +13398,7 @@
         "column": 1,
         "context": "decorator:_AutocompleteCacheKey",
         "kind": "import_time_call",
-        "line": 122,
+        "line": 151,
         "module": "autocomplete_dataset.py",
         "scope": "<module>"
       },
@@ -12562,7 +13407,7 @@
         "column": 1,
         "context": "decorator:_AutocompleteSnapshot",
         "kind": "import_time_call",
-        "line": 130,
+        "line": 159,
         "module": "autocomplete_dataset.py",
         "scope": "<module>"
       },
@@ -12571,8 +13416,53 @@
         "column": 14,
         "context": "assign:_CACHE_LOCK",
         "kind": "import_time_call",
-        "line": 141,
+        "line": 170,
         "module": "autocomplete_dataset.py",
+        "scope": "<module>"
+      },
+      {
+        "callee": "dataclass",
+        "column": 1,
+        "context": "decorator:AutocompleteIndexSource",
+        "kind": "import_time_call",
+        "line": 17,
+        "module": "autocomplete_index.py",
+        "scope": "<module>"
+      },
+      {
+        "callee": "dataclass",
+        "column": 1,
+        "context": "decorator:IndexedAutocompleteEntry",
+        "kind": "import_time_call",
+        "line": 28,
+        "module": "autocomplete_index.py",
+        "scope": "<module>"
+      },
+      {
+        "callee": "dataclass",
+        "column": 1,
+        "context": "decorator:AutocompleteIndexDiagnostics",
+        "kind": "import_time_call",
+        "line": 36,
+        "module": "autocomplete_index.py",
+        "scope": "<module>"
+      },
+      {
+        "callee": "dataclass",
+        "column": 1,
+        "context": "decorator:AutocompleteIndexResult",
+        "kind": "import_time_call",
+        "line": 46,
+        "module": "autocomplete_index.py",
+        "scope": "<module>"
+      },
+      {
+        "callee": "threading.Lock",
+        "column": 21,
+        "context": "assign:_INDEX_LOCKS_GUARD",
+        "kind": "import_time_call",
+        "line": 65,
+        "module": "autocomplete_index.py",
         "scope": "<module>"
       },
       {
@@ -12998,39 +13888,45 @@
       },
       {
         "kind": "dict",
-        "line": 39,
+        "line": 55,
         "module": "autocomplete_dataset.py",
         "name": "AUTOCOMPLETE_SOURCES"
       },
       {
         "kind": "dict",
-        "line": 142,
+        "line": 171,
         "module": "autocomplete_dataset.py",
         "name": "_CACHE"
       },
       {
         "kind": "dict",
-        "line": 70,
+        "line": 86,
         "module": "autocomplete_dataset.py",
         "name": "_DANBOORU_CATEGORY_NAMES"
       },
       {
         "kind": "dict",
-        "line": 77,
+        "line": 93,
         "module": "autocomplete_dataset.py",
         "name": "_E621_CATEGORY_NAMES"
       },
       {
         "kind": "dict",
-        "line": 143,
+        "line": 172,
         "module": "autocomplete_dataset.py",
         "name": "_INFLIGHT"
       },
       {
         "kind": "dict",
-        "line": 86,
+        "line": 102,
         "module": "autocomplete_dataset.py",
         "name": "_MERGED_E621_CATEGORY_NAMES"
+      },
+      {
+        "kind": "dict",
+        "line": 64,
+        "module": "autocomplete_index.py",
+        "name": "_INDEX_LOCKS"
       },
       {
         "kind": "dict",
@@ -13292,7 +14188,7 @@
           "mutable_container"
         ],
         "initializer": "Dict",
-        "line": 142,
+        "line": 171,
         "module": "autocomplete_dataset.py",
         "name": "_CACHE"
       },
@@ -13301,7 +14197,7 @@
           "lock"
         ],
         "initializer": "threading.Lock",
-        "line": 141,
+        "line": 170,
         "module": "autocomplete_dataset.py",
         "name": "_CACHE_LOCK"
       },
@@ -13312,9 +14208,28 @@
           "single_flight"
         ],
         "initializer": "Dict",
-        "line": 143,
+        "line": 172,
         "module": "autocomplete_dataset.py",
         "name": "_INFLIGHT"
+      },
+      {
+        "categories": [
+          "lock",
+          "mutable_container"
+        ],
+        "initializer": "Dict",
+        "line": 64,
+        "module": "autocomplete_index.py",
+        "name": "_INDEX_LOCKS"
+      },
+      {
+        "categories": [
+          "lock"
+        ],
+        "initializer": "threading.Lock",
+        "line": 65,
+        "module": "autocomplete_index.py",
+        "name": "_INDEX_LOCKS_GUARD"
       },
       {
         "categories": [
