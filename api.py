@@ -59,6 +59,16 @@ AIO_RESERVED_PROFILE_NAMES = {
     "优化",
     "自定义",
 }
+WINDOWS_RESERVED_FILE_BASENAMES = {
+    "con",
+    "prn",
+    "aux",
+    "nul",
+    *(f"com{index}" for index in range(1, 10)),
+    *(f"lpt{index}" for index in range(1, 10)),
+    *(f"com{index}" for index in ("¹", "²", "³")),
+    *(f"lpt{index}" for index in ("¹", "²", "³")),
+}
 
 
 def _parse_json_boolean(data: dict, key: str, *, default: bool = False) -> bool:
@@ -70,11 +80,25 @@ def _parse_json_boolean(data: dict, key: str, *, default: bool = False) -> bool:
     return value
 
 
-def _sanitize_lora_profile_name(name: str) -> str:
+def _windows_profile_filename_identity(name: str) -> str:
+    return str(name or "").rstrip(" .").casefold()
+
+
+def _sanitize_profile_name(name: str) -> str:
     safe_name = INVALID_PROFILE_NAME_CHARS.sub("_", str(name or "")).strip(" ._")
     if not safe_name:
         raise ValueError("Profile name is required")
-    return safe_name[:80]
+    safe_name = safe_name[:80].rstrip(" .")
+    if not safe_name:
+        raise ValueError("Profile name is required")
+    windows_basename = safe_name.split(".", 1)[0].casefold()
+    if windows_basename in WINDOWS_RESERVED_FILE_BASENAMES:
+        raise ValueError("Profile name is reserved on Windows")
+    return safe_name
+
+
+def _sanitize_lora_profile_name(name: str) -> str:
+    return _sanitize_profile_name(name)
 
 
 def _lora_profile_path(name: str, profile_dir: Path | None = None) -> Path:
@@ -84,6 +108,22 @@ def _lora_profile_path(name: str, profile_dir: Path | None = None) -> Path:
     if os.path.commonpath((str(root), str(path))) != str(root):
         raise ValueError("Invalid profile path")
     return path
+
+
+def _find_lora_profile_path(name: str, profile_dir: Path | None = None) -> Path | None:
+    safe_name = _sanitize_lora_profile_name(name)
+    root = profile_dir or LORA_PROFILE_DIR
+    if not root.is_dir():
+        return None
+    expected = _windows_profile_filename_identity(safe_name)
+    return next(
+        (
+            path
+            for path in sorted(root.glob("*.json"), key=lambda item: (item.name.casefold(), item.name))
+            if _windows_profile_filename_identity(path.stem) == expected
+        ),
+        None,
+    )
 
 
 def _as_lora_profile_count(value) -> int:
@@ -328,19 +368,22 @@ def _fix_lora_profile_payload(data: dict) -> dict:
     return payload
 
 
-def _save_lora_profile(name: str, data: dict) -> dict:
+def _save_lora_profile(name: str, data: dict, *, overwrite: bool = False) -> dict:
     safe_name = _sanitize_lora_profile_name(name)
     payload = _normalize_lora_profile_payload(data)
-    payload["name"] = safe_name
     LORA_PROFILE_DIR.mkdir(parents=True, exist_ok=True)
-    path = _lora_profile_path(safe_name)
+    existing = _find_lora_profile_path(safe_name)
+    if existing is not None and not overwrite:
+        raise FileExistsError("Profile already exists")
+    path = existing or _lora_profile_path(safe_name)
+    payload["name"] = path.stem
     path.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
     return payload
 
 
 def _load_lora_profile(name: str) -> dict:
-    path = _lora_profile_path(name)
-    if not path.is_file():
+    path = _find_lora_profile_path(name)
+    if path is None or not path.is_file():
         raise FileNotFoundError("Profile not found")
     data = json.loads(path.read_text(encoding="utf-8") or "{}")
     if not isinstance(data, dict):
@@ -351,10 +394,7 @@ def _load_lora_profile(name: str) -> dict:
 
 
 def _sanitize_aio_profile_name(name: str) -> str:
-    safe_name = INVALID_PROFILE_NAME_CHARS.sub("_", str(name or "")).strip(" ._")
-    if not safe_name:
-        raise ValueError("Profile name is required")
-    safe_name = safe_name[:80]
+    safe_name = _sanitize_profile_name(name)
     if safe_name.casefold() in {item.casefold() for item in AIO_RESERVED_PROFILE_NAMES}:
         raise ValueError("System profile names are reserved")
     return safe_name
@@ -374,9 +414,13 @@ def _find_aio_profile_path(name: str, profile_dir: Path | None = None) -> Path |
     root = profile_dir or AIO_PROFILE_DIR
     if not root.is_dir():
         return None
-    expected = safe_name.casefold()
+    expected = _windows_profile_filename_identity(safe_name)
     return next(
-        (path for path in root.glob("*.json") if path.stem.casefold() == expected),
+        (
+            path
+            for path in sorted(root.glob("*.json"), key=lambda item: (item.name.casefold(), item.name))
+            if _windows_profile_filename_identity(path.stem) == expected
+        ),
         None,
     )
 
@@ -647,7 +691,14 @@ if web is not None and routes is not None:
     async def save_lora_profile_handler(request):
         data = await request.json()
         try:
-            payload = _save_lora_profile(str(data.get("name") or ""), data)
+            overwrite = _parse_json_boolean(data, "overwrite")
+            payload = _save_lora_profile(
+                str(data.get("name") or ""),
+                data,
+                overwrite=overwrite,
+            )
+        except FileExistsError as exc:
+            return web.json_response({"status": "error", "message": str(exc)}, status=409)
         except ValueError as exc:
             return web.json_response({"status": "error", "message": str(exc)}, status=400)
         return web.json_response({"status": "ok", "profile": payload})

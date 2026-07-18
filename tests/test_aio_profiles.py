@@ -106,19 +106,65 @@ class AIOProfileStorageTests(unittest.TestCase):
                 self.assertEqual(deleted["name"], "Production")
                 self.assertEqual(api._list_aio_profiles(), [])
 
-    def test_conflicts_require_explicit_overwrite(self):
+    def test_filename_identity_collisions_require_explicit_overwrite(self):
+        api = load_api_module()
+        collision_cases = (
+            ("foo?bar", "foo*bar", "foo_bar"),
+            (f"{'t' * 80}a", f"{'t' * 80}b", "t" * 80),
+            ("Portrait", "portrait", "Portrait"),
+            ("Windows Name", "Windows Name. ", "Windows Name"),
+        )
+
+        for original_name, colliding_name, filename in collision_cases:
+            with self.subTest(original_name=original_name, colliding_name=colliding_name):
+                with tempfile.TemporaryDirectory() as tmp:
+                    with patch.object(api, "AIO_PROFILE_DIR", Path(tmp)):
+                        api._save_aio_profile(
+                            original_name,
+                            {"settings": {"sampler": {"steps": 30}}},
+                        )
+                        for overwrite_kwargs in ({}, {"overwrite": False}):
+                            with self.subTest(overwrite_kwargs=overwrite_kwargs):
+                                with self.assertRaisesRegex(FileExistsError, "Profile already exists"):
+                                    api._save_aio_profile(
+                                        colliding_name,
+                                        {"settings": {"sampler": {"steps": 10}}},
+                                        **overwrite_kwargs,
+                                    )
+
+                        preserved = api._load_aio_profile(colliding_name)
+                        self.assertEqual(preserved["settings"]["sampler"]["steps"], 30)
+                        self.assertEqual(preserved["name"], filename)
+
+                        overwritten = api._save_aio_profile(
+                            colliding_name,
+                            {"settings": {"sampler": {"steps": 10}}},
+                            overwrite=True,
+                        )
+                        self.assertEqual(overwritten["name"], filename)
+                        self.assertEqual(overwritten["settings"]["sampler"]["steps"], 10)
+                        self.assertEqual(
+                            api._load_aio_profile(original_name)["settings"]["sampler"]["steps"],
+                            10,
+                        )
+                        self.assertEqual(
+                            [path.name for path in Path(tmp).glob("*.json")],
+                            [f"{filename}.json"],
+                        )
+
+    def test_windows_reserved_profile_names_are_rejected(self):
+        api = load_api_module()
+        for name in ("CON", "con.txt", "LPT9", "COM¹.txt", "aux."):
+            with self.subTest(name=name), self.assertRaisesRegex(ValueError, "reserved on Windows"):
+                api._sanitize_aio_profile_name(name)
+
+    def test_profile_paths_remain_within_the_configured_root(self):
         api = load_api_module()
         with tempfile.TemporaryDirectory() as tmp:
-            with patch.object(api, "AIO_PROFILE_DIR", Path(tmp)):
-                api._save_aio_profile("Keep", {"settings": {"sampler": {"steps": 30}}})
-                with self.assertRaises(FileExistsError):
-                    api._save_aio_profile("keep", {"settings": {"sampler": {"steps": 10}}})
-                overwritten = api._save_aio_profile(
-                    "keep",
-                    {"settings": {"sampler": {"steps": 10}}},
-                    overwrite=True,
-                )
-                self.assertEqual(overwritten["settings"]["sampler"]["steps"], 10)
+            root = Path(tmp).resolve()
+            for name in ("../outside", r"C:\outside", r"\\server\share\outside"):
+                with self.subTest(name=name):
+                    self.assertEqual(api._aio_profile_path(name, root).parent, root)
 
     def test_builtin_names_and_invalid_payloads_are_rejected(self):
         api = load_api_module()
@@ -190,6 +236,25 @@ class AIOProfileApiRouteTests(unittest.TestCase):
                         "overwrite must be a JSON boolean",
                     )
                     operation.assert_not_called()
+
+    def test_profile_conflicts_use_existing_error_json_shape_with_409_status(self):
+        api, routes = load_api_routes()
+
+        for path, base_payload, function_name in self.ENDPOINTS:
+            handler = routes.handlers[path]
+            with self.subTest(path=path):
+                with patch.object(
+                    api,
+                    function_name,
+                    side_effect=FileExistsError("Profile already exists"),
+                ):
+                    response = asyncio.run(handler(JsonRequest(base_payload)))
+
+                self.assertEqual(response["status"], 409)
+                self.assertEqual(
+                    response["payload"],
+                    {"status": "error", "message": "Profile already exists"},
+                )
 
 
 class AIOBuiltinProfileTests(unittest.TestCase):
