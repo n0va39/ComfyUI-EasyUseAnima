@@ -63,6 +63,7 @@ class PythonImportBoundaryTests(unittest.TestCase):
     def test_synthetic_internal_import_of_root_nodes_is_rejected(self):
         sources = (
             "import nodes\n",
+            "import nodes as root_nodes\n",
             "from nodes import NODE_CLASS_MAPPINGS\n",
             "import importlib\nimportlib.import_module('nodes')\n",
         )
@@ -78,6 +79,43 @@ class PythonImportBoundaryTests(unittest.TestCase):
                     {violation["rule"] for violation in violations},
                 )
 
+    def test_literal_dynamic_import_aliases_are_rejected(self):
+        sources = (
+            "import importlib as il\nil.import_module('nodes')\n",
+            "from importlib import import_module as load\nload('nodes')\n",
+        )
+
+        for source in sources:
+            with self.subTest(source=source.strip()):
+                violations = analyzer.find_import_boundary_violations(
+                    source,
+                    module_name="easyuse_anima.prompt.service",
+                )
+                self.assertIn(
+                    "internal-imports-root-nodes",
+                    {violation["rule"] for violation in violations},
+                )
+
+    def test_vertical_service_static_import_alias_is_rejected(self):
+        sources = (
+            "from .. import registration as reg\n",
+            (
+                "import importlib as il\n"
+                "il.import_module('..registration', __package__)\n"
+            ),
+        )
+
+        for source in sources:
+            with self.subTest(source=source.strip()):
+                violations = analyzer.find_import_boundary_violations(
+                    source,
+                    module_name="easyuse_anima.prompt.service",
+                )
+                self.assertIn(
+                    "inner-layer-imports-outer-layer",
+                    {violation["rule"] for violation in violations},
+                )
+
     def test_synthetic_inner_to_outer_back_references_are_rejected(self):
         sources = {
             "easyuse_anima.domain.models": (
@@ -88,6 +126,15 @@ class PythonImportBoundaryTests(unittest.TestCase):
             ),
             "easyuse_anima.service.catalog": (
                 "import easyuse_anima.bootstrap.runtime\n"
+            ),
+            "easyuse_anima.prompt.service": (
+                "from easyuse_anima import registration\n"
+            ),
+            "easyuse_anima.prompt.domain.model": (
+                "from easyuse_anima.api import routes\n"
+            ),
+            "easyuse_anima.regional.services.layout": (
+                "from easyuse_anima import nodes\n"
             ),
         }
 

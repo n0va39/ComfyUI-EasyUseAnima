@@ -146,7 +146,6 @@
       "display_name": "Anima AiO Generator",
       "function": "generate",
       "id": "EasyUseAnimaAIOGenerator",
-      "identity": "nodes.EasyUseAnimaAIOGenerator",
       "input_sections": [
         {
           "entries": [
@@ -220,7 +219,6 @@
       "display_name": "Anima Detailer Align Hook",
       "function": "build",
       "id": "EasyUseAnimaDetailerAlignHook",
-      "identity": "nodes.EasyUseAnimaDetailerAlignHook",
       "input_sections": [
         {
           "entries": [
@@ -265,7 +263,6 @@
       "display_name": "Anima Artist Mix Conditioning",
       "function": "encode",
       "id": "EasyUseAnimaArtistMixConditioning",
-      "identity": "nodes.EasyUseAnimaArtistMixConditioning",
       "input_sections": [
         {
           "entries": [
@@ -412,7 +409,6 @@
       "display_name": "Easy Use Anima Input",
       "function": "build",
       "id": "EasyUseAnimaInput",
-      "identity": "nodes.EasyUseAnimaInput",
       "input_sections": [
         {
           "entries": [
@@ -487,7 +483,6 @@
       "display_name": "Anima Image Scale By Multiple",
       "function": "upscale",
       "id": "EasyUseAnimaImageScaleByMultiple",
-      "identity": "nodes.EasyUseAnimaImageScaleByMultiple",
       "input_sections": [
         {
           "entries": [
@@ -565,7 +560,6 @@
       "display_name": "Anima LoRA Preset",
       "function": "build",
       "id": "EasyUseAnimaLoraPreset",
-      "identity": "nodes.EasyUseAnimaLoraPreset",
       "input_sections": [
         {
           "entries": [
@@ -650,7 +644,6 @@
       "display_name": "Anima NAIA Random Prompt",
       "function": "request",
       "id": "EasyUseAnimaNAIARandomPrompt",
-      "identity": "nodes.EasyUseAnimaNAIARandomPrompt",
       "input_sections": [
         {
           "entries": [
@@ -1074,7 +1067,6 @@
       "display_name": "Anima Prompt Data Conditioning",
       "function": "apply",
       "id": "EasyUseAnimaPromptDataConditioning",
-      "identity": "nodes.EasyUseAnimaPromptDataConditioning",
       "input_sections": [
         {
           "entries": [
@@ -1237,7 +1229,6 @@
       "display_name": "EASYUSE_ANIMA_PROMPT_DATA",
       "function": "unpack",
       "id": "EasyUseAnimaPromptDataUnpack",
-      "identity": "nodes.EasyUseAnimaPromptDataUnpack",
       "input_sections": [
         {
           "entries": [
@@ -1361,7 +1352,6 @@
       "display_name": "Anima Prompt Builder",
       "function": "build",
       "id": "EasyUseAnimaPromptBuilder",
-      "identity": "nodes.EasyUseAnimaPromptBuilder",
       "input_sections": [
         {
           "entries": [
@@ -1443,7 +1433,6 @@
       "display_name": "Anima Prompt Corrector",
       "function": "correct",
       "id": "EasyUseAnimaPromptCorrector",
-      "identity": "nodes.EasyUseAnimaPromptCorrector",
       "input_sections": [
         {
           "entries": [
@@ -1491,7 +1480,6 @@
       "display_name": "Anima Prompt Corrector Simple",
       "function": "correct",
       "id": "EasyUseAnimaPromptCorrectorSimple",
-      "identity": "nodes.EasyUseAnimaPromptCorrectorSimple",
       "input_sections": [
         {
           "entries": [
@@ -1521,7 +1509,6 @@
       "display_name": "Anima Prompt Studio",
       "function": "build",
       "id": "EasyUseAnimaPromptStudio",
-      "identity": "nodes.EasyUseAnimaPromptStudio",
       "input_sections": [
         {
           "entries": [
@@ -1603,7 +1590,6 @@
       "display_name": "Anima Prompt Studio Advanced",
       "function": "build",
       "id": "EasyUseAnimaPromptStudioAdvanced",
-      "identity": "nodes.EasyUseAnimaPromptStudioAdvanced",
       "input_sections": [
         {
           "entries": [
@@ -1777,7 +1763,6 @@
       "display_name": "Anima Prompt Studio Advanced v2",
       "function": "build",
       "id": "EasyUseAnimaPromptStudioAdvancedV2",
-      "identity": "nodes.EasyUseAnimaPromptStudioAdvancedV2",
       "input_sections": [
         {
           "entries": [
@@ -2026,7 +2011,6 @@
       "display_name": "Anima Prompt Studio Regional",
       "function": "build",
       "id": "EasyUseAnimaPromptStudioRegional",
-      "identity": "nodes.EasyUseAnimaPromptStudioRegional",
       "input_sections": [
         {
           "entries": [
@@ -2163,7 +2147,6 @@
       "display_name": "Anima Regional Conditioning",
       "function": "encode",
       "id": "EasyUseAnimaRegionalConditioning",
-      "identity": "nodes.EasyUseAnimaRegionalConditioning",
       "input_sections": [
         {
           "entries": [
@@ -2219,7 +2202,6 @@
       "display_name": "Anima Wildcard",
       "function": "generate",
       "id": "EasyUseAnimaWildcard",
-      "identity": "nodes.EasyUseAnimaWildcard",
       "input_sections": [
         {
           "entries": [

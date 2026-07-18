@@ -19,7 +19,15 @@ REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_SOURCE = REPOSITORY_ROOT / "nodes.py"
 DEFAULT_INTERNAL_PACKAGE = "easyuse_anima"
 DOMAIN_LAYERS = frozenset({"domain", "service", "services"})
-OUTER_LAYERS = frozenset({"adapters", "bootstrap", "registration"})
+OUTER_LAYER_PATHS = frozenset(
+    {
+        "adapters",
+        "api.routes",
+        "bootstrap",
+        "nodes",
+        "registration",
+    }
+)
 DYNAMIC_LOOKUP_CALLEES = frozenset(
     {
         "__import__",
@@ -294,6 +302,48 @@ def _import_targets(
     module_name: str,
     is_package: bool,
 ) -> Iterable[tuple[int, str]]:
+    alias_bindings: dict[str, set[str]] = {}
+
+    def bind(name: str, target: str) -> None:
+        alias_bindings.setdefault(name, set()).add(target)
+
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Import):
+            for alias in node.names:
+                if alias.asname:
+                    bind(alias.asname, alias.name)
+                else:
+                    root_name = alias.name.split(".", 1)[0]
+                    bind(root_name, root_name)
+        elif isinstance(node, ast.ImportFrom):
+            base = _resolve_from_import(node, module_name=module_name, is_package=is_package)
+            for alias in node.names:
+                if alias.name == "*":
+                    continue
+                target = f"{base}.{alias.name}" if base else alias.name
+                bind(alias.asname or alias.name, target)
+
+    def resolve_callees(node: ast.AST) -> set[str]:
+        callee = _call_name(node)
+        resolved = {callee}
+        root_name, separator, suffix = callee.partition(".")
+        for target in alias_bindings.get(root_name, set()):
+            resolved.add(f"{target}.{suffix}" if separator else target)
+        return resolved
+
+    def resolve_dynamic_target(target: str) -> str:
+        if not target.startswith("."):
+            return target
+        level = len(target) - len(target.lstrip("."))
+        package_parts = module_name.split(".") if is_package else module_name.split(".")[:-1]
+        remove_count = max(0, level - 1)
+        if remove_count:
+            package_parts = package_parts[: max(0, len(package_parts) - remove_count)]
+        remainder = target[level:]
+        if remainder:
+            package_parts.extend(remainder.split("."))
+        return ".".join(package_parts)
+
     for node in ast.walk(tree):
         if isinstance(node, ast.Import):
             for alias in node.names:
@@ -305,12 +355,11 @@ def _import_targets(
             for alias in node.names:
                 if alias.name != "*":
                     yield node.lineno, f"{base}.{alias.name}" if base else alias.name
-        elif isinstance(node, ast.Call) and _call_name(node.func) in {
-            "__import__",
-            "importlib.import_module",
-        }:
+        elif isinstance(node, ast.Call):
+            if not resolve_callees(node.func).intersection({"__import__", "importlib.import_module"}):
+                continue
             if node.args and isinstance(node.args[0], ast.Constant) and isinstance(node.args[0].value, str):
-                yield node.lineno, node.args[0].value
+                yield node.lineno, resolve_dynamic_target(node.args[0].value)
 
 
 def find_import_boundary_violations(
@@ -325,16 +374,17 @@ def find_import_boundary_violations(
     tree = ast.parse(source, filename=module_name)
     prefix = f"{package_name}."
     relative_name = module_name[len(prefix) :] if module_name.startswith(prefix) else ""
-    source_layer = relative_name.split(".", 1)[0] if relative_name else ""
+    source_layers = set(relative_name.split(".")) if relative_name else set()
+    is_inner_layer = bool(source_layers & DOMAIN_LAYERS)
     violations: set[tuple[str, int, str]] = set()
 
     for line, target in _import_targets(tree, module_name=module_name, is_package=is_package):
         if target == "nodes" or target.startswith("nodes."):
             violations.add(("internal-imports-root-nodes", line, target))
 
-        if source_layer in DOMAIN_LAYERS:
-            for outer_layer in OUTER_LAYERS:
-                forbidden = f"{package_name}.{outer_layer}"
+        if is_inner_layer:
+            for outer_path in OUTER_LAYER_PATHS:
+                forbidden = f"{package_name}.{outer_path}"
                 if target == forbidden or target.startswith(f"{forbidden}."):
                     violations.add(("inner-layer-imports-outer-layer", line, target))
 

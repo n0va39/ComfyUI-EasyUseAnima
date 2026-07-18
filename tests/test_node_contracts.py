@@ -1,10 +1,12 @@
 from __future__ import annotations
 
 import ast
+import importlib.util
 import json
 import math
 import re
 import sys
+import types
 import unittest
 from contextlib import contextmanager
 from pathlib import Path
@@ -18,8 +20,8 @@ import nodes
 
 
 PACKAGE_INIT = ROOT / "__init__.py"
-PACKAGE_METADATA = ROOT / "pyproject.toml"
 FIXTURE = ROOT / "tests" / "fixtures" / "node_contracts_0_5_2.json"
+FIXTURE_PROVENANCE_VERSION = "0.5.2"
 WORKFLOW_SELECTIONS = (
     (
         ROOT / "docs" / "example_workflows" / "EasyUse_Anima_artist_mix_release_ko.json",
@@ -64,16 +66,6 @@ def _root_mappings() -> tuple[list[tuple[str, str]], dict[str, str]]:
     if not isinstance(display_mappings, dict):
         raise AssertionError("NODE_DISPLAY_NAME_MAPPINGS must remain a dictionary")
     return class_mappings, display_mappings
-
-
-def _package_version() -> str:
-    match = re.search(
-        r'(?m)^version\s*=\s*"([^"]+)"\s*$',
-        PACKAGE_METADATA.read_text(encoding="utf-8"),
-    )
-    if match is None:
-        raise AssertionError("Could not read project.version from pyproject.toml")
-    return match.group(1)
 
 
 def _contains_absolute_path(value: str) -> bool:
@@ -179,6 +171,50 @@ def _deterministic_comfy_inputs():
         yield
 
 
+@contextmanager
+def _loaded_package_entrypoint():
+    package_name = "_easyuse_anima_contract_entrypoint"
+    package_prefix = f"{package_name}."
+    if any(name == package_name or name.startswith(package_prefix) for name in sys.modules):
+        raise AssertionError(f"Synthetic package namespace is already loaded: {package_name}")
+
+    package_spec = importlib.util.spec_from_file_location(
+        package_name,
+        PACKAGE_INIT,
+        submodule_search_locations=[str(ROOT)],
+    )
+    if package_spec is None or package_spec.loader is None:
+        raise AssertionError("Could not create package entrypoint spec")
+    package_module = importlib.util.module_from_spec(package_spec)
+    sys.modules[package_name] = package_module
+
+    api_stub = types.ModuleType(f"{package_name}.api")
+    sys.modules[api_stub.__name__] = api_stub
+    package_module.api = api_stub
+
+    try:
+        nodes_spec = importlib.util.spec_from_file_location(
+            f"{package_name}.nodes",
+            ROOT / "nodes.py",
+        )
+        if nodes_spec is None or nodes_spec.loader is None:
+            raise AssertionError("Could not create canonical package nodes spec")
+        package_nodes = importlib.util.module_from_spec(nodes_spec)
+        sys.modules[nodes_spec.name] = package_nodes
+        nodes_spec.loader.exec_module(package_nodes)
+
+        wildcard_module = sys.modules.get(f"{package_name}.wildcard_engine")
+        if wildcard_module is None:
+            raise AssertionError("Package nodes did not load wildcard_engine")
+        with patch.object(wildcard_module, "ensure_default_wildcard_root", return_value=None):
+            package_spec.loader.exec_module(package_module)
+            yield package_module, package_nodes
+    finally:
+        for name in list(sys.modules):
+            if name == package_name or name.startswith(package_prefix):
+                sys.modules.pop(name, None)
+
+
 def _node_contract(node_id: str, class_name: str, display_name: str) -> dict:
     node_class = getattr(nodes, class_name)
     input_types = node_class.INPUT_TYPES()
@@ -200,7 +236,6 @@ def _node_contract(node_id: str, class_name: str, display_name: str) -> dict:
     return {
         "id": node_id,
         "class_name": class_name,
-        "identity": f"nodes.{node_class.__qualname__}",
         "display_name": display_name,
         "input_sections": sections,
         "return_types": _normalize(getattr(node_class, "RETURN_TYPES")),
@@ -330,7 +365,7 @@ def build_contract_snapshot() -> dict:
     with _deterministic_comfy_inputs():
         snapshot = {
             "schema_version": 1,
-            "package_version": _package_version(),
+            "package_version": FIXTURE_PROVENANCE_VERSION,
             "dynamic_inputs": {
                 "samplers": ["contract_sampler_a", "contract_sampler_b"],
                 "schedulers": ["contract_scheduler_a", "contract_scheduler_b"],
@@ -379,18 +414,27 @@ class PublicNodeContractTests(unittest.TestCase):
 
         self.assertEqual(build_contract_snapshot(), expected)
 
-    def test_mapping_values_resolve_to_the_recorded_runtime_classes(self):
+    def test_package_mappings_use_the_canonical_runtime_class_objects(self):
         class_mappings, display_mappings = _root_mappings()
 
+        with _loaded_package_entrypoint() as (package_entrypoint, package_nodes):
+            runtime_mappings = package_entrypoint.NODE_CLASS_MAPPINGS
+            self.assertEqual(list(runtime_mappings), [node_id for node_id, _ in class_mappings])
+            self.assertEqual(package_entrypoint.NODE_DISPLAY_NAME_MAPPINGS, display_mappings)
+            for node_id, class_name in class_mappings:
+                with self.subTest(node_id=node_id):
+                    mapped_class = runtime_mappings[node_id]
+                    self.assertIs(mapped_class, getattr(package_entrypoint, class_name))
+                    self.assertIs(mapped_class, getattr(package_nodes, class_name))
+
+    def test_fixture_provenance_is_the_explicit_0_5_2_baseline(self):
+        expected = json.loads(FIXTURE.read_text(encoding="utf-8"))
+
+        self.assertEqual(expected["package_version"], FIXTURE_PROVENANCE_VERSION)
         self.assertEqual(
-            [node_id for node_id, _class_name in class_mappings],
-            list(display_mappings),
+            FIXTURE.name,
+            f"node_contracts_{FIXTURE_PROVENANCE_VERSION.replace('.', '_')}.json",
         )
-        for node_id, class_name in class_mappings:
-            with self.subTest(node_id=node_id):
-                node_class = getattr(nodes, class_name)
-                self.assertEqual(node_class.__name__, class_name)
-                self.assertTrue(callable(getattr(node_class, node_class.FUNCTION)))
 
     def test_fixture_contains_no_machine_specific_absolute_paths(self):
         _assert_no_absolute_paths(json.loads(FIXTURE.read_text(encoding="utf-8")))
