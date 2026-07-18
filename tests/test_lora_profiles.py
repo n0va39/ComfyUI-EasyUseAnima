@@ -27,6 +27,46 @@ def load_api_module():
     return module
 
 
+class RouteRegistry:
+    def __init__(self):
+        self.handlers = {}
+
+    def get(self, path):
+        def register(handler):
+            self.handlers[path] = handler
+            return handler
+
+        return register
+
+    def post(self, path):
+        return self.get(path)
+
+
+class JsonRequest:
+    def __init__(self, payload):
+        self.payload = payload
+
+    async def json(self):
+        return self.payload
+
+
+def load_api_routes():
+    routes = RouteRegistry()
+    fake_server = types.ModuleType("server")
+    fake_server.PromptServer = type(
+        "PromptServer",
+        (),
+        {"instance": types.SimpleNamespace(routes=routes)},
+    )
+    fake_aiohttp = types.ModuleType("aiohttp")
+    fake_aiohttp.web = types.SimpleNamespace(
+        json_response=lambda payload, status=200: {"payload": payload, "status": status},
+    )
+    with patch.dict(sys.modules, {"server": fake_server, "aiohttp": fake_aiohttp}):
+        api = load_api_module()
+    return api, routes
+
+
 class LoraProfileStorageTests(unittest.TestCase):
     def test_api_import_tolerates_prompt_server_without_instance(self):
         fake_server = types.ModuleType("server")
@@ -71,10 +111,70 @@ class LoraProfileStorageTests(unittest.TestCase):
                 self.assertEqual(loaded["profile_data"]["2"]["style_prompt"], "@b")
                 self.assertEqual(loaded["profile_data"]["2"]["loras"][0]["name"], "foo.safetensors")
 
+    def test_filename_identity_collisions_require_explicit_overwrite(self):
+        api = load_api_module()
+        collision_cases = (
+            ("foo?bar", "foo*bar", "foo_bar"),
+            (f"{'t' * 80}a", f"{'t' * 80}b", "t" * 80),
+            ("Portrait", "portrait", "Portrait"),
+            ("Windows Name", "Windows Name. ", "Windows Name"),
+        )
+
+        for original_name, colliding_name, filename in collision_cases:
+            with self.subTest(original_name=original_name, colliding_name=colliding_name):
+                with tempfile.TemporaryDirectory() as tmp:
+                    with patch.object(api, "LORA_PROFILE_DIR", Path(tmp)):
+                        api._save_lora_profile(
+                            original_name,
+                            {"profile_data": {"1": {"style_prompt": "first"}}},
+                        )
+                        for overwrite_kwargs in ({}, {"overwrite": False}):
+                            with self.subTest(overwrite_kwargs=overwrite_kwargs):
+                                with self.assertRaisesRegex(FileExistsError, "Profile already exists"):
+                                    api._save_lora_profile(
+                                        colliding_name,
+                                        {"profile_data": {"1": {"style_prompt": "second"}}},
+                                        **overwrite_kwargs,
+                                    )
+
+                        preserved = api._load_lora_profile(colliding_name)
+                        self.assertEqual(preserved["profile_data"]["1"]["style_prompt"], "first")
+                        self.assertEqual(preserved["name"], filename)
+
+                        overwritten = api._save_lora_profile(
+                            colliding_name,
+                            {"profile_data": {"1": {"style_prompt": "second"}}},
+                            overwrite=True,
+                        )
+                        self.assertEqual(overwritten["name"], filename)
+                        self.assertEqual(
+                            api._load_lora_profile(original_name)["profile_data"]["1"]["style_prompt"],
+                            "second",
+                        )
+                        self.assertEqual(
+                            [path.name for path in Path(tmp).glob("*.json")],
+                            [f"{filename}.json"],
+                        )
+
+    def test_windows_reserved_profile_names_are_rejected(self):
+        api = load_api_module()
+        for name in ("CON", "con.txt", "LPT9", "COM¹.txt", "aux."):
+            with self.subTest(name=name), self.assertRaisesRegex(ValueError, "reserved on Windows"):
+                api._sanitize_lora_profile_name(name)
+
+    def test_profile_paths_remain_within_the_configured_root(self):
+        api = load_api_module()
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp).resolve()
+            for name in ("../outside", r"C:\outside", r"\\server\share\outside"):
+                with self.subTest(name=name):
+                    self.assertEqual(api._lora_profile_path(name, root).parent, root)
+
     def test_empty_lora_profile_name_is_rejected(self):
         api = load_api_module()
         with self.assertRaises(ValueError):
             api._sanitize_lora_profile_name(" ")
+
 
     def test_list_loras_refreshes_folder_paths_cache_and_normalizes_names(self):
         api = load_api_module()
@@ -232,6 +332,69 @@ class LoraProfileStorageTests(unittest.TestCase):
         self.assertEqual(fixed["fixed"], [])
         self.assertEqual(fixed["unresolved"], [])
         self.assertEqual(fixed["missing"], 0)
+
+
+class LoraProfileApiRouteTests(unittest.TestCase):
+    PATH = "/easyuse_anima/lora_profiles/save"
+    BASE_PAYLOAD = {"name": "Saved", "profile_data": {}}
+
+    def test_profile_overwrite_accepts_json_booleans_and_defaults_false(self):
+        api, routes = load_api_routes()
+        handler = routes.handlers[self.PATH]
+        overwrite_cases = (
+            ({}, False),
+            ({"overwrite": False}, False),
+            ({"overwrite": True}, True),
+        )
+
+        for overwrite_payload, expected in overwrite_cases:
+            with self.subTest(overwrite=overwrite_payload):
+                with patch.object(
+                    api,
+                    "_save_lora_profile",
+                    return_value={"name": "Saved"},
+                ) as operation:
+                    response = asyncio.run(
+                        handler(JsonRequest({**self.BASE_PAYLOAD, **overwrite_payload}))
+                    )
+
+                self.assertEqual(response["status"], 200)
+                self.assertIs(operation.call_args.kwargs["overwrite"], expected)
+
+    def test_profile_overwrite_rejects_non_boolean_json_values(self):
+        api, routes = load_api_routes()
+        handler = routes.handlers[self.PATH]
+
+        for overwrite in ("false", "true", 0, 1, "", None, [], {}):
+            with self.subTest(overwrite=overwrite):
+                with patch.object(api, "_save_lora_profile") as operation:
+                    response = asyncio.run(
+                        handler(JsonRequest({**self.BASE_PAYLOAD, "overwrite": overwrite}))
+                    )
+
+                self.assertEqual(response["status"], 400)
+                self.assertEqual(
+                    response["payload"],
+                    {"status": "error", "message": "overwrite must be a JSON boolean"},
+                )
+                operation.assert_not_called()
+
+    def test_profile_conflict_uses_existing_error_json_shape_with_409_status(self):
+        api, routes = load_api_routes()
+        handler = routes.handlers[self.PATH]
+
+        with patch.object(
+            api,
+            "_save_lora_profile",
+            side_effect=FileExistsError("Profile already exists"),
+        ):
+            response = asyncio.run(handler(JsonRequest(self.BASE_PAYLOAD)))
+
+        self.assertEqual(response["status"], 409)
+        self.assertEqual(
+            response["payload"],
+            {"status": "error", "message": "Profile already exists"},
+        )
 
 
 class AutocompleteApiRouteTests(unittest.TestCase):

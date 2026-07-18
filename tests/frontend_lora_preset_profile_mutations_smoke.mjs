@@ -87,8 +87,8 @@ const apiMutations = createLoraPresetProfileMutations({
   text: (key) => key,
   formatText: (key) => key,
   apiClient: {
-    async saveProfile(name, payload) {
-      apiCalls.save.push({ name, payload });
+    async saveProfile(name, payload, overwrite) {
+      apiCalls.save.push({ name, payload, overwrite });
       return { profile: { name } };
     },
     async loadProfile(name) {
@@ -111,12 +111,89 @@ const apiMutations = createLoraPresetProfileMutations({
 await apiMutations.saveProfileSet(node);
 assert.equal(apiCalls.save[0].name, "saved profile");
 assert.equal(apiCalls.save[0].payload.profile_count, 1);
+assert.equal(apiCalls.save[0].overwrite, false);
 assert.equal(apiMutations.profileSaveStatus(node, 1).state, "saved");
 await apiMutations.loadProfileSet(node, "loaded profile");
 assert.deepEqual(apiCalls.load, ["loaded profile"]);
 assert.equal(apiMutations.profileCount(node), 3);
 assert.equal(apiMutations.activeProfileIndex(node), 3);
 assert.equal(widgetValue(findWidget(node, "style_prompt")), "loaded second");
+
+function createSaveScenario(responses, confirmResult) {
+  const scenarioNode = createProfileNode();
+  const calls = [];
+  const confirmations = [];
+  const alerts = [];
+  const scenarioMutations = createLoraPresetProfileMutations({
+    findWidget,
+    widgetValue,
+    setWidgetValue,
+    lorasWidgetValue,
+    setLorasWidgetValue,
+    getCanvasWidgets: () => canvasWidgets,
+    text: (key) => key,
+    formatText: (key, values = {}) => `${key}:${values.name ?? values.message ?? ""}`,
+    apiClient: {
+      async saveProfile(name, payload, overwrite) {
+        calls.push({ name, payload, overwrite });
+        const response = responses.shift();
+        if (response instanceof Error) {
+          throw response;
+        }
+        return response;
+      },
+    },
+    host: {
+      prompt: () => " existing profile ",
+      confirm(message) {
+        confirmations.push(message);
+        return confirmResult;
+      },
+      alert(message) {
+        alerts.push(message);
+      },
+    },
+  });
+  return { alerts, calls, confirmations, mutations: scenarioMutations, node: scenarioNode };
+}
+
+{
+  const scenario = createSaveScenario([
+    new Error("Profile already exists"),
+    { profile: { name: "existing profile" } },
+  ], true);
+  await scenario.mutations.saveProfileSet(scenario.node);
+  assert.deepEqual(scenario.calls.map((call) => call.overwrite), [false, true]);
+  assert.strictEqual(scenario.calls[1].payload, scenario.calls[0].payload);
+  assert.deepEqual(scenario.confirmations, ["profile.overwriteConfirm:existing profile"]);
+  assert.deepEqual(scenario.alerts, []);
+  assert.equal(scenario.mutations.profileSaveStatus(scenario.node, 1).state, "saved");
+}
+
+{
+  const scenario = createSaveScenario([new Error("Profile already exists")], false);
+  const beforeData = scenario.mutations.parseProfileData(findWidget(scenario.node, "profile_data"));
+  const beforeStatus = scenario.mutations.profileSaveStatus(scenario.node, 1);
+  const beforeDirty = scenario.node.dirty;
+  await scenario.mutations.saveProfileSet(scenario.node);
+  assert.deepEqual(scenario.calls.map((call) => call.overwrite), [false]);
+  assert.deepEqual(scenario.confirmations, ["profile.overwriteConfirm:existing profile"]);
+  assert.deepEqual(scenario.alerts, []);
+  assert.deepEqual(
+    scenario.mutations.parseProfileData(findWidget(scenario.node, "profile_data")),
+    beforeData,
+  );
+  assert.deepEqual(scenario.mutations.profileSaveStatus(scenario.node, 1), beforeStatus);
+  assert.equal(scenario.node.dirty, beforeDirty);
+}
+
+{
+  const scenario = createSaveScenario([new Error("Profile already exists.")], true);
+  await scenario.mutations.saveProfileSet(scenario.node);
+  assert.deepEqual(scenario.calls.map((call) => call.overwrite), [false]);
+  assert.deepEqual(scenario.confirmations, []);
+  assert.deepEqual(scenario.alerts, ["profile.saveFailed:Profile already exists."]);
+}
 
 const partialNode = createProfileNode();
 while (mutations.profileCount(partialNode) < MAX_PROFILES - 1) {
