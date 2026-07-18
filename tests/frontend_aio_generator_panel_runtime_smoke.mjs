@@ -812,6 +812,34 @@ highresFollowInfo.boundingClientRect = { left: 160, top: 40, width: 22, height: 
 fixture.dispatchWindow("resize");
 assert.equal(highresFollowTooltip.style.left, "160px");
 assert.equal(highresFollowTooltip.style.top, "68px");
+fixture.window.innerHeight = 320;
+highresFollowInfo.boundingClientRect = { left: 160, top: 280, width: 22, height: 22 };
+highresFollowTooltip.boundingClientRect = { left: 0, top: 0, width: 240, height: 80 };
+fixture.dispatchWindow("scroll");
+assert.equal(
+  highresFollowTooltip.style.top,
+  "194px",
+  "a bottom-edge tooltip must flip above its info icon",
+);
+assert.ok(
+  Number.parseInt(highresFollowTooltip.style.top, 10) + 80 <= fixture.window.innerHeight - 8,
+  "a flipped tooltip must retain the viewport bottom margin",
+);
+fixture.window.innerHeight = 100;
+highresFollowInfo.boundingClientRect = { left: 160, top: 90, width: 22, height: 22 };
+highresFollowTooltip.boundingClientRect = { left: 0, top: 0, width: 84, height: 84 };
+fixture.dispatchWindow("resize");
+assert.equal(
+  highresFollowTooltip.style.top,
+  "8px",
+  "a flipped tooltip must clamp to the viewport top margin",
+);
+assert.equal(
+  Number.parseInt(highresFollowTooltip.style.top, 10) + 84,
+  fixture.window.innerHeight - 8,
+  "the clamped tooltip must stay inside the viewport bottom margin when it fits",
+);
+fixture.window.innerHeight = 768;
 highresFollowInfo.emit("pointerleave");
 assert.equal(highresFollowTooltip.hidden, true);
 assert.equal(fixture.windowListenerCount("resize"), 0);

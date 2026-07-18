@@ -1179,13 +1179,23 @@ export function aioCreateGeneratorPanelRuntime(dependencies) {
         const rect = button.getBoundingClientRect?.() || {};
         const tooltipRect = tooltip.getBoundingClientRect?.() || {};
         const viewportWidth = Number(window?.innerWidth) || 0;
+        const viewportHeight = Number(window?.innerHeight) || 0;
         const tooltipWidth = Number(tooltipRect.width) || 280;
+        const tooltipHeight = Number(tooltipRect.height) || 0;
         let left = Number(rect.left) || 0;
         if (viewportWidth > 0) {
           left = Math.min(left, viewportWidth - tooltipWidth - 8);
         }
         tooltip.style.left = `${Math.max(8, Math.round(left))}px`;
-        tooltip.style.top = `${Math.round((Number(rect.top) || 0) + (Number(rect.height) || 0) + 6)}px`;
+        const anchorTop = Number(rect.top) || 0;
+        let top = anchorTop + (Number(rect.height) || 0) + 6;
+        if (viewportHeight > 0 && top + tooltipHeight > viewportHeight - 8) {
+          top = anchorTop - tooltipHeight - 6;
+        }
+        const maxTop = viewportHeight > 0
+          ? Math.floor(viewportHeight - tooltipHeight - 8)
+          : Number.POSITIVE_INFINITY;
+        tooltip.style.top = `${Math.max(8, Math.min(Math.round(top), maxTop))}px`;
       };
       const updatePositionTracking = (enabled) => {
         if (trackingPosition === enabled) {
