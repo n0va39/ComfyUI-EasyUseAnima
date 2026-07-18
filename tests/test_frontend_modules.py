@@ -1581,6 +1581,7 @@ class FrontendModuleStructureTests(unittest.TestCase):
         self.assertNotIn("const GENERATOR_BACKEND_DEPENDENCIES", entry_source)
         self.assertNotIn("function choiceSpecValues", entry_source)
         self.assertNotIn("function optionsWithCurrent", entry_source)
+        self.assertNotRegex(entry_source, r"\boptionsWithCurrent\s*\(")
         self.assertNotIn("function upscaleBackendDependencyKeys", entry_source)
 
         for delegation in (

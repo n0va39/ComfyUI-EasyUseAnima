@@ -2081,11 +2081,11 @@ function sanitizeGeneratorSettingsForOptionalDependencies(settings) {
 }
 
 function samplerNameOptions(current) {
-  return optionsWithCurrent(generatorSamplerOptionState.samplerNames, current);
+  return aioChoiceOptionsWithCurrent(generatorSamplerOptionState.samplerNames, current);
 }
 
 function schedulerNameOptions(current) {
-  return optionsWithCurrent(generatorSamplerOptionState.schedulerNames, current);
+  return aioChoiceOptionsWithCurrent(generatorSamplerOptionState.schedulerNames, current);
 }
 
 function refreshGeneratorPanels() {
@@ -3376,7 +3376,7 @@ function widgetOptions(node, name, fallback = []) {
   const widget = findWidget(node, name);
   const values = widget?.options?.values;
   const options = Array.isArray(values) ? values : fallback;
-  return optionsWithCurrent(options, current);
+  return aioChoiceOptionsWithCurrent(options, current);
 }
 
 function setWidgetValueIfChanged(node, name, value) {
