@@ -83,11 +83,24 @@ assert.deepEqual(calls.at(-1), {
   options: {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ name: "Demo", ...savePayload }),
+    body: JSON.stringify({ name: "Demo", ...savePayload, overwrite: false }),
   },
   argumentCount: 2,
 });
 assert.equal(JSON.stringify(savePayload), savePayloadBefore, "save must not mutate the payload");
+
+responses.push(saveResponse);
+assert.equal(await client.saveProfile("Demo", savePayload, true), saveResponse);
+assert.deepEqual(calls.at(-1), {
+  url: "/easyuse_anima/lora_profiles/save",
+  options: {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ name: "Demo", ...savePayload, overwrite: true }),
+  },
+  argumentCount: 2,
+});
+assert.equal(JSON.stringify(savePayload), savePayloadBefore, "overwrite save must not mutate the payload");
 
 const fixPayload = {
   profile_count: 2,

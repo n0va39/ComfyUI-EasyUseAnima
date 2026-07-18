@@ -12,6 +12,8 @@ import {
   wrapProfileIndex,
 } from "./profile_data.js";
 
+const PROFILE_ALREADY_EXISTS_MESSAGE = "Profile already exists";
+
 /**
  * Owns profile and LoRA-row mutations while leaving canvas rendering and node
  * lifecycle installation with their existing owners.
@@ -291,8 +293,23 @@ export function createLoraPresetProfileMutations({
       host.alert?.(text("profile.nameRequired"));
       return;
     }
+    const payload = selectedProfilePayload(node);
     try {
-      const data = await apiClient.saveProfile(trimmedName, selectedProfilePayload(node));
+      let data;
+      try {
+        data = await apiClient.saveProfile(trimmedName, payload, false);
+      } catch (error) {
+        if (errorMessage(error) !== PROFILE_ALREADY_EXISTS_MESSAGE) {
+          throw error;
+        }
+        const confirmed = host.confirm?.(
+          formatText("profile.overwriteConfirm", { name: trimmedName }),
+        );
+        if (!confirmed) {
+          return;
+        }
+        data = await apiClient.saveProfile(trimmedName, payload, true);
+      }
       markSelectedProfileSaved(node, data?.profile?.name || trimmedName);
       renderProfileBar(node);
       node.setDirtyCanvas?.(true, true);

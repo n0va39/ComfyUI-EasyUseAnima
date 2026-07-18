@@ -36,10 +36,11 @@ export function createLoraPresetApiClient(dependencies) {
     );
   }
 
-  function saveProfile(name, payload) {
+  function saveProfile(name, payload, overwrite = false) {
     return postJson("/easyuse_anima/lora_profiles/save", {
       name,
       ...payload,
+      overwrite,
     });
   }
 

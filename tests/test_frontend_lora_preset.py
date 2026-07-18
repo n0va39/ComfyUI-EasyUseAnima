@@ -949,6 +949,7 @@ class LoraPresetFrontendTests(unittest.TestCase):
         self.assertIn("const loraProfileMutations = createLoraPresetProfileMutations({", entry_source)
         self.assertIn("const loraPresetSaveSync = createLoraPresetSaveSync({", entry_source)
         self.assertIn("saveSync: loraPresetSaveSync,", entry_source)
+        self.assertEqual(entry_source.count('"profile.overwriteConfirm":'), 4)
         self.assertTrue(LORA_PRESET_PROFILE_MUTATIONS_SMOKE.is_file())
         self.assertIn(
             r'node "tests\frontend_lora_preset_profile_mutations_smoke.mjs"',
@@ -1341,8 +1342,8 @@ class LoraPresetFrontendTests(unittest.TestCase):
             (async () => {
               const node = makeNode();
               let saveCall = null;
-              loraPresetApi.saveProfile = async (name, payload) => {
-                saveCall = { name, payload };
+              loraPresetApi.saveProfile = async (name, payload, overwrite) => {
+                saveCall = { name, payload, overwrite };
                 return { profile: { name } };
               };
               context.window.prompt = () => "  Demo  ";
@@ -1351,6 +1352,7 @@ class LoraPresetFrontendTests(unittest.TestCase):
 
               assert.ok(saveCall, "saveProfileSet must call the API client");
               assert.strictEqual(saveCall.name, "Demo");
+              assert.strictEqual(saveCall.overwrite, false);
               const payload = JSON.parse(JSON.stringify(saveCall.payload));
               assert.strictEqual(payload.profile_count, 1);
               assert.strictEqual(payload.profile_index, 1);
