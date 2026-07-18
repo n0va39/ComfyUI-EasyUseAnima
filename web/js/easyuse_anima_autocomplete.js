@@ -1598,7 +1598,13 @@ function hookWidget(node, widget, scope = "compatible") {
 
 function autocompleteGraphNodes() {
   const graph = app?.canvas?.graph || app?.graph || app?.rootGraph;
-  return Array.isArray(graph?.nodes) ? graph.nodes.filter(Boolean) : [];
+  if (Array.isArray(graph?.nodes)) {
+    return graph.nodes.filter(Boolean);
+  }
+  if (Array.isArray(graph?._nodes)) {
+    return graph._nodes.filter(Boolean);
+  }
+  return Object.values(graph?._nodes_by_id || {}).filter(Boolean);
 }
 
 function findGraphNodeById(id) {
@@ -1645,20 +1651,40 @@ function widgetForDomInput(node, input) {
   return null;
 }
 
+function autocompleteDomInputOwner(input) {
+  const ancestryNode = nodeFromDomElement(input);
+  if (ancestryNode) {
+    const widget = widgetForDomInput(ancestryNode, input);
+    if (widget) {
+      return { node: ancestryNode, widget };
+    }
+  }
+  for (const node of autocompleteGraphNodes()) {
+    if (node === ancestryNode) {
+      continue;
+    }
+    const widget = widgetForDomInput(node, input);
+    if (widget) {
+      return { node, widget };
+    }
+  }
+  return ancestryNode ? { node: ancestryNode, widget: null } : null;
+}
+
 function hookFocusedDomInput(input) {
   if (!isAutocompleteDomInput(input) || popup?.contains(input)) {
     return;
   }
-  const node = nodeFromDomElement(input);
-  if (!node) {
+  const owner = autocompleteDomInputOwner(input);
+  if (!owner) {
     return;
   }
+  const { node, widget } = owner;
   const nodeData = node?.constructor?.nodeData || null;
   const targets = nodeData ? targetWidgets(nodeData) : null;
   if (nodeData && (!targets || (!hasExplicitTargets(nodeData) && shouldSkipNode(node, nodeData)))) {
     return;
   }
-  const widget = widgetForDomInput(node, input);
   if (targets && widget?.name && !targets.has(widget.name)) {
     return;
   }
