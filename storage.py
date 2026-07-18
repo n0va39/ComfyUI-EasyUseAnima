@@ -284,16 +284,19 @@ class AtomicJsonStore:
         *,
         overwrite: bool = True,
         backup_target: bool = True,
-    ):
-        """Atomically move a valid same-directory primary and return its JSON."""
+        transform: Callable[[object], _T] | None = None,
+    ) -> object | _T:
+        """Validate/transform under both locks, then atomically move the primary."""
 
         if source.path.parent != self.path.parent:
             raise ValueError("Atomic JSON moves require the same directory")
         with _locked_paths(source.path, self.path):
             value = source._read_path(source.path)
-            self.path.parent.mkdir(parents=True, exist_ok=True)
             if self.path.exists() and not overwrite:
                 raise FileExistsError("Profile already exists")
+            if transform is not None:
+                value = transform(value)
+            self.path.parent.mkdir(parents=True, exist_ok=True)
             if backup_target and self.path.is_file():
                 self._backup_primary_unlocked()
             os.replace(source.path, self.path)

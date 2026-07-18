@@ -519,14 +519,14 @@ def _rename_aio_profile(old_name: str, new_name: str, *, overwrite: bool = False
         raise FileExistsError("Profile already exists")
 
     target_path = target or _aio_profile_path(safe_new_name)
-    data = AtomicJsonStore(target_path).replace_from(
+    return AtomicJsonStore(target_path).replace_from(
         AtomicJsonStore(source),
         overwrite=overwrite,
         backup_target=True,
-    )
-    return _normalize_aio_profile_payload(
-        target_path.stem,
-        data if isinstance(data, dict) else {},
+        transform=lambda data: _normalize_aio_profile_payload(
+            target_path.stem,
+            data if isinstance(data, dict) else {},
+        ),
     )
 
 

@@ -229,6 +229,28 @@ class AtomicJsonStoreTests(unittest.TestCase):
 
         self.assertFalse(store.path.exists())
 
+    def test_replace_transform_failure_preserves_source_target_and_backup(self):
+        source = AtomicJsonStore(self.root / "source.json")
+        target = AtomicJsonStore(self.root / "target.json")
+        source.write({"settings": {"value": "source"}})
+        target.write({"settings": {"value": "old target"}})
+        target.write({"settings": {"value": "current target"}})
+        source_bytes = source.path.read_bytes()
+        target_bytes = target.path.read_bytes()
+        backup_bytes = target.backup_path.read_bytes()
+
+        def reject_source(value):
+            self.assertEqual(value, {"settings": {"value": "source"}})
+            raise ValueError("source schema is invalid")
+
+        with self.assertRaisesRegex(ValueError, "source schema is invalid"):
+            target.replace_from(source, transform=reject_source)
+
+        self.assertEqual(source.path.read_bytes(), source_bytes)
+        self.assertEqual(target.path.read_bytes(), target_bytes)
+        self.assertEqual(target.backup_path.read_bytes(), backup_bytes)
+        self.assertEqual(self._temp_files(), [])
+
     def test_invalid_or_missing_primary_reads_valid_backup_without_repair(self):
         store = self._store()
         store.path.write_text("{", encoding="utf-8")

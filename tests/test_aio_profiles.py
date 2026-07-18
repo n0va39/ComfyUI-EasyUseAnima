@@ -449,6 +449,63 @@ class AIOProfileStorageTests(unittest.TestCase):
                 self.assertEqual(errors, [])
                 self.assertEqual(api._load_aio_profile("Concurrent")["settings"]["value"], "new")
 
+    def test_rename_rejects_invalid_source_schema_before_publish(self):
+        api = load_api_module()
+        invalid_payloads = (
+            ("array", []),
+            ("empty object", {}),
+            ("non-object settings", {"settings": []}),
+        )
+
+        for label, invalid_payload in invalid_payloads:
+            with self.subTest(label=label), tempfile.TemporaryDirectory() as tmp:
+                root = Path(tmp)
+                source = root / "Source.json"
+                target = root / "Target.json"
+                source.write_text(
+                    json.dumps(invalid_payload, ensure_ascii=False),
+                    encoding="utf-8",
+                )
+                source_bytes = source.read_bytes()
+
+                with patch.object(api, "AIO_PROFILE_DIR", root):
+                    with self.assertRaisesRegex(ValueError, "Profile settings must be an object"):
+                        api._rename_aio_profile("Source", "Target")
+
+                self.assertEqual(source.read_bytes(), source_bytes)
+                self.assertFalse(target.exists())
+                self.assertFalse((root / "Target.json.bak").exists())
+
+    def test_rename_invalid_schema_preserves_overwrite_target_and_existing_backup(self):
+        api = load_api_module()
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            with patch.object(api, "AIO_PROFILE_DIR", root):
+                api._save_aio_profile("Target", {"settings": {"value": "old target"}})
+                api._save_aio_profile(
+                    "Target",
+                    {"settings": {"value": "current target"}},
+                    overwrite=True,
+                )
+                source = root / "Source.json"
+                target = root / "Target.json"
+                backup = root / "Target.json.bak"
+                source.write_text('{"settings": []}', encoding="utf-8")
+                source_bytes = source.read_bytes()
+                target_bytes = target.read_bytes()
+                backup_bytes = backup.read_bytes()
+
+                with self.assertRaisesRegex(ValueError, "Profile settings must be an object"):
+                    api._rename_aio_profile("Source", "Target", overwrite=True)
+
+                self.assertEqual(source.read_bytes(), source_bytes)
+                self.assertEqual(target.read_bytes(), target_bytes)
+                self.assertEqual(backup.read_bytes(), backup_bytes)
+                self.assertEqual(
+                    [path for path in root.iterdir() if path.name.endswith(".tmp")],
+                    [],
+                )
+
     def test_rename_overwrite_atomically_moves_source_and_keeps_target_backup(self):
         api = load_api_module()
         with tempfile.TemporaryDirectory() as tmp:
