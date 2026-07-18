@@ -7336,10 +7336,19 @@
     ],
     "module_graph_policy": {
       "duplicate_policy": "collapse by source and target path",
+      "excluded_branch_contexts": [
+        {
+          "branch": "body",
+          "kind": "if",
+          "type_checking": true
+        }
+      ],
       "included_classifications": [
         "compatibility_fallback",
         "internal"
-      ]
+      ],
+      "scc_node_scope": "runtime_import_closure",
+      "type_checking_policy": "exclude edges nested in if TYPE_CHECKING body from runtime graph, SCC, public surface, and Registry runtime taxonomies"
     },
     "sccs": [
       {

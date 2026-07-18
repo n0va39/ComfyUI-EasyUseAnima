@@ -475,6 +475,85 @@ except ImportError:
             ["optional_dependency"],
         )
 
+    def test_type_checking_edges_are_preserved_but_excluded_from_runtime_views(self):
+        sources = {
+            "__init__.py": """\
+from typing import TYPE_CHECKING
+from .runtime import VALUE
+
+if TYPE_CHECKING:
+    from .typing_only import T
+    from .missing_type import M
+""",
+            "runtime.py": "VALUE = 1\n",
+            "typing_only.py": "T = object\n",
+        }
+
+        report = analyzer.analyze_source_set(sources)
+        reversed_report = analyzer.analyze_source_set(
+            dict(reversed(list(sources.items())))
+        )
+        type_edges = {
+            edge["imported"]: edge
+            for edge in import_edges(report)
+            if edge["imported"] in {".typing_only:T", ".missing_type:M"}
+        }
+
+        self.assertEqual(report, reversed_report)
+        self.assertEqual(set(type_edges), {".typing_only:T", ".missing_type:M"})
+        for edge in type_edges.values():
+            self.assertTrue(edge["conditional"])
+            self.assertTrue(edge["optional"])
+            self.assertEqual(
+                edge["branch_context"][-1],
+                {
+                    "kind": "if",
+                    "line": 4,
+                    "branch": "body",
+                    "type_checking": True,
+                },
+            )
+        self.assertEqual(type_edges[".typing_only:T"]["classification"], "internal")
+        self.assertEqual(type_edges[".typing_only:T"]["target"], "typing_only.py")
+        self.assertEqual(
+            type_edges[".missing_type:M"]["classification"],
+            "missing_internal",
+        )
+
+        registry = report["registry"]
+        self.assertEqual(
+            report["imports"]["module_graph"],
+            [{"from": "__init__.py", "to": "runtime.py"}],
+        )
+        self.assertEqual(
+            registry["runtime_import_closure"],
+            ["__init__.py", "runtime.py"],
+        )
+        self.assertEqual(
+            registry["unreachable_shipped_python_modules"],
+            ["typing_only.py"],
+        )
+        self.assertEqual(registry["missing_internal_imports"], [])
+        self.assertFalse(
+            {".typing_only:T", ".missing_type:M"}
+            & {item["imported"] for item in registry["optional_imports"]}
+        )
+        self.assertNotIn(
+            "typing_only.py",
+            {
+                module
+                for component in report["imports"]["sccs"]
+                for module in component["modules"]
+            },
+        )
+        self.assertTrue(
+            {"T", "M"}.isdisjoint(report["public_surface"]["compatibility_names"])
+        )
+        self.assertEqual(
+            report["imports"]["module_graph_policy"]["excluded_branch_contexts"],
+            [{"kind": "if", "branch": "body", "type_checking": True}],
+        )
+
     def test_comfyignore_anchoring_slashes_negation_and_escaped_markers(self):
         sources = {
             "__init__.py": "VALUE = 1\n",
@@ -604,7 +683,14 @@ ignored/
 
         self.assertEqual(analyzer.render_json(report), expected_text)
         self.assertEqual(report["schema_version"], 2)
-        self.assertGreaterEqual(report["inventory"]["module_count"], 10)
+        self.assertEqual(report["inventory"]["module_count"], 16)
+        self.assertEqual(len(report["registry"]["shipped_python_modules"]), 16)
+        self.assertEqual(len(report["registry"]["runtime_import_closure"]), 16)
+        self.assertEqual(report["registry"]["missing_internal_imports"], [])
+        self.assertEqual(
+            report["registry"]["unreachable_shipped_python_modules"],
+            [],
+        )
         self.assertIn("nodes.py", report["registry"]["shipped_python_modules"])
         self.assertIn("api.py", report["registry"]["runtime_import_closure"])
         self.assertIn(
@@ -690,6 +776,7 @@ CACHE = {}
         self.assertIn("compatibility_fallback", rendered)
         self.assertIn("try@", rendered)
         self.assertIn("conflicting branch aliases remain heuristic", rendered)
+        self.assertIn("TYPE_CHECKING", rendered)
 
 
 if __name__ == "__main__":

@@ -1324,6 +1324,17 @@ def _edge_summary(edge: Mapping[str, object]) -> dict[str, object]:
     return summary
 
 
+def _is_runtime_relevant_edge(edge: Mapping[str, object]) -> bool:
+    """Exclude imports guarded by an if TYPE_CHECKING body from runtime views."""
+
+    return not any(
+        context.get("kind") == "if"
+        and context.get("branch") == "body"
+        and bool(context.get("type_checking"))
+        for context in edge["branch_context"]
+    )
+
+
 def _public_surface(
     root_analysis: Mapping[str, object],
     edges: Sequence[Mapping[str, object]],
@@ -1439,10 +1450,11 @@ def analyze_source_set(
             str(item.get("alias")),
         )
     )
+    runtime_edges = [edge for edge in edges if _is_runtime_relevant_edge(edge)]
     graph_edges = sorted(
         {
             (str(edge["source"]), str(edge["target"]))
-            for edge in edges
+            for edge in runtime_edges
             if edge["classification"]
             in {"compatibility_fallback", "internal"}
         }
@@ -1450,7 +1462,12 @@ def analyze_source_set(
     graph_records = [{"from": source, "to": target} for source, target in graph_edges]
     closure = _registry_closure(shipped_paths, graph_records)
     closure_set = set(closure)
-    closure_edges = [edge for edge in edges if edge["source"] in closure_set]
+    closure_edges = [
+        edge for edge in runtime_edges if edge["source"] in closure_set
+    ]
+    closure_graph_records = [
+        edge for edge in graph_records if edge["from"] in closure_set
+    ]
 
     mutable_globals = sorted(
         (item for analysis in analyses.values() for item in analysis["mutable_globals"]),
@@ -1505,8 +1522,20 @@ def analyze_source_set(
                     "internal",
                 ],
                 "duplicate_policy": "collapse by source and target path",
+                "excluded_branch_contexts": [
+                    {
+                        "kind": "if",
+                        "branch": "body",
+                        "type_checking": True,
+                    }
+                ],
+                "type_checking_policy": (
+                    "exclude edges nested in if TYPE_CHECKING body from runtime "
+                    "graph, SCC, public surface, and Registry runtime taxonomies"
+                ),
+                "scc_node_scope": "runtime_import_closure",
             },
-            "sccs": _strongly_connected_components(shipped_paths, graph_records),
+            "sccs": _strongly_connected_components(closure, closure_graph_records),
         },
         "state": {
             "mutable_globals": mutable_globals,
@@ -1515,7 +1544,10 @@ def analyze_source_set(
         "side_effects": {
             "candidates": side_effects,
         },
-        "public_surface": _public_surface(analyses["__init__.py"], edges),
+        "public_surface": _public_surface(
+            analyses["__init__.py"],
+            runtime_edges,
+        ),
         "registry": {
             "package_root": ".",
             "ignore_file": ".comfyignore",
@@ -1615,9 +1647,12 @@ def render_text(report: Mapping[str, object]) -> str:
         lines.append(f"{marker} | {', '.join(component['modules'])}")
 
     alias_policy = report["imports"]["dynamic_alias_policy"]
+    graph_policy = report["imports"]["module_graph_policy"]
     lines.extend(("", "[analysis_policy]"))
     lines.append(f"dynamic_alias_lexical_scopes: {alias_policy['lexical_scopes']}")
     lines.append(f"dynamic_alias_control_flow: {alias_policy['control_flow_merge']}")
+    lines.append(f"runtime_type_checking: {graph_policy['type_checking_policy']}")
+    lines.append(f"runtime_scc_node_scope: {graph_policy['scc_node_scope']}")
 
     lines.extend(("", "[state.mutable_globals]"))
     for item in report["state"]["mutable_globals"]:
