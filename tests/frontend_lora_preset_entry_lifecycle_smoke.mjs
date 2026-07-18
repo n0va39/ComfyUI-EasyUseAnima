@@ -105,22 +105,27 @@ const app = {
 };
 const runtime = createRuntime(hostWindow, hostDocument, app);
 const node = {
+  id: 1,
   comfyClass: "EasyUseAnimaLoraPreset",
   pos: [20, 20],
+  size: [100, 100],
   profileCount: 4,
   dirty: 0,
   setDirtyCanvas() { this.dirty += 1; },
 };
 const bar = {
+  type: "custom",
   listClientArea: [20, 20, 20, 20],
   listArea: [0, 0, 20, 20],
   scrollOffset: 0,
+  computeSize() { return [100, 100]; },
   scrollByWheel(deltaY) {
     this.directWheels = (this.directWheels || 0) + deltaY;
     return true;
   },
 };
 node.__easyuseAnimaProfileBar = bar;
+node.widgets = [bar, { type: "custom" }];
 app.graph._nodes.push(node);
 
 assert.equal(runtime.lifecycle.extension.init(), true);
@@ -163,6 +168,65 @@ assert.equal(bar.scrollOffset, 1, "canvas hit-testing fallback must preserve pro
 assert.equal(node.dirty, 1);
 assert.equal(prevented, 2);
 assert.equal(stopped, 2);
+
+runtime.lifecycle.setActiveProfileWheelTarget(null);
+bar.listArea = [8, 32, 84, 50];
+const node2Element = {
+  dataset: { nodeId: "1" },
+  querySelectorAll(selector) {
+    assert.equal(selector, ".lg-node-widget canvas");
+    return [profileCanvas, addLoraCanvas];
+  },
+};
+const profileCanvas = {
+  tagName: "CANVAS",
+  clientWidth: 100,
+  clientHeight: 100,
+  closest(selector) {
+    if (selector === "canvas") return this;
+    if (selector === ".lg-node[data-node-id]") return node2Element;
+    return null;
+  },
+  getBoundingClientRect() {
+    return { left: 300, top: 400, width: 200, height: 200 };
+  },
+};
+const addLoraCanvas = {
+  ...profileCanvas,
+  closest: profileCanvas.closest,
+};
+hostDocument.emit("wheel", {
+  target: profileCanvas,
+  clientX: 340,
+  clientY: 500,
+  deltaY: 2,
+  preventDefault() { prevented += 1; },
+  stopPropagation() { stopped += 1; },
+});
+assert.equal(bar.directWheels, 5, "Node 2.0 profile canvas must map its local list area");
+assert.equal(prevented, 3);
+assert.equal(stopped, 3);
+
+runtime.lifecycle.setActiveProfileWheelTarget(null);
+hostDocument.emit("wheel", {
+  target: addLoraCanvas,
+  clientX: 340,
+  clientY: 500,
+  deltaY: 2,
+  preventDefault() { prevented += 1; },
+  stopPropagation() { stopped += 1; },
+});
+hostDocument.emit("wheel", {
+  target: profileCanvas,
+  clientX: 340,
+  clientY: 420,
+  deltaY: 2,
+  preventDefault() { prevented += 1; },
+  stopPropagation() { stopped += 1; },
+});
+assert.equal(bar.directWheels, 5, "other Node 2.0 widgets and profile controls must not capture wheel");
+assert.equal(prevented, 3);
+assert.equal(stopped, 3);
 
 hostWindow.emit("easyuse-anima-settings-updated", { detail: { menuMode: "list" } });
 assert.deepEqual(runtime.calls.applySettings, [{ menuMode: "list" }]);
