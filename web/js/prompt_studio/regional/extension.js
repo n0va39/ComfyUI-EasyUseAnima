@@ -19,11 +19,15 @@ import {
 } from "../queue_seed_bridge.js";
 import { disposeExternalAutocompleteInputs } from "../../autocomplete/entry_lifecycle.js";
 import {
+  createHostHookRuntimeLifecycle,
   registerHostHookCallbacks,
 } from "../../lifecycle/host_hook_registry.js";
 
 const REGIONAL_SAVE_SYNC_OWNER = Symbol.for(
   "easyuse-anima.prompt-studio.regional-save-sync",
+);
+const REGIONAL_GLOBAL_HOOK_RUNTIME_OWNER = Symbol.for(
+  "easyuse-anima.prompt-studio.regional-global-hook-runtime-owner",
 );
 
 /**
@@ -179,6 +183,11 @@ function registerRegionalNodeHooks(nodeType, hooks) {
  */
 function createRegionalExtensionRuntime(app, runtime, layout, fieldEditor, hooks) {
   const queueSeedBridge = promptStudioQueueSeedBridge(app);
+  const globalHookLifecycle = createHostHookRuntimeLifecycle(
+    app,
+    REGIONAL_GLOBAL_HOOK_RUNTIME_OWNER,
+  );
+  let saveSyncSerializeHost;
   queueSeedBridge.bindRegionalSeedPublisher((node, seed) => {
     if (!runtime.isRegionalNode(node)) {
       return false;
@@ -255,7 +264,24 @@ function createRegionalExtensionRuntime(app, runtime, layout, fieldEditor, hooks
 
   /** @param {any} [graph] */
   function installSaveSync(graph = null) {
-    installRegionalSaveSync(app, syncAllRegionalNodes, graph);
+    const serializeHost = globalThis.LGraph?.prototype || graph?.constructor?.prototype || null;
+    const replace = saveSyncSerializeHost !== undefined
+      && serializeHost != null
+      && serializeHost !== saveSyncSerializeHost;
+    const installed = globalHookLifecycle.install(
+      "regional-save-sync",
+      () => installRegionalSaveSync(app, syncAllRegionalNodes, graph),
+      { replace },
+    );
+    if (installed) {
+      saveSyncSerializeHost = serializeHost;
+    }
+    return installed;
+  }
+
+  function disposeGlobalHooks() {
+    saveSyncSerializeHost = undefined;
+    return globalHookLifecycle.dispose();
   }
 
   /** @param {any} node */
@@ -325,6 +351,7 @@ function createRegionalExtensionRuntime(app, runtime, layout, fieldEditor, hooks
   }
 
   return {
+    dispose: disposeGlobalHooks,
     async setup() {
       hooks.installRegionalAdapter();
       installSaveSync();

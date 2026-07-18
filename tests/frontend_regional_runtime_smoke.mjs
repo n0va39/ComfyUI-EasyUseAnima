@@ -463,6 +463,71 @@ assert(disposeAdvanced() === true, "Advanced disposer did not release its callba
 assert(Graph.prototype.serialize === originalSerialize, "Last serialize owner did not restore the original");
 assert(app.queuePrompt === originalQueuePrompt, "Last queue owner did not restore the original");
 
+{
+  const lifecycleOrder = [];
+  const regionalNode = { type: "EasyUseAnimaPromptStudioRegional" };
+  const lifecycleApp = {
+    graph: Object.assign(new Graph(), { _nodes: [regionalNode] }),
+    queuePrompt(value) {
+      return value;
+    },
+  };
+  const lifecycleOriginalSerialize = Graph.prototype.serialize;
+  const lifecycleOriginalQueue = lifecycleApp.queuePrompt;
+  const createRuntime = (label) => ({
+    isRegionalNode: (node) => node === regionalNode,
+    syncRegionalValues: () => lifecycleOrder.push(label),
+  });
+  const createExtension = (label) => extension.createRegionalExtensionRuntime(
+    lifecycleApp,
+    createRuntime(label),
+    {},
+    { collectRegionalEditorFields: () => [] },
+    { installRegionalAdapter() {} },
+  );
+
+  const firstExtension = createExtension("first");
+  await firstExtension.setup();
+  const firstSerializeWrapper = Graph.prototype.serialize;
+  const firstQueueWrapper = lifecycleApp.queuePrompt;
+  await firstExtension.setup();
+  assert(Graph.prototype.serialize === firstSerializeWrapper, "Regional setup twice stacked serialize");
+  assert(lifecycleApp.queuePrompt === firstQueueWrapper, "Regional setup twice stacked queuePrompt");
+  lifecycleApp.graph.serialize("first");
+  lifecycleApp.queuePrompt("first");
+  assert(lifecycleOrder.join(",") === "first,first", "Regional setup twice duplicated callbacks");
+
+  lifecycleOrder.length = 0;
+  const secondExtension = createExtension("second");
+  await secondExtension.setup();
+  lifecycleApp.graph.serialize("second");
+  lifecycleApp.queuePrompt("second");
+  assert(
+    lifecycleOrder.join(",") === "second,second",
+    `Regional runtime replacement kept a stale closure: ${lifecycleOrder.join(",")}`,
+  );
+  assert(firstExtension.dispose() === false, "A stale Regional runtime released the new hooks");
+  lifecycleOrder.length = 0;
+  lifecycleApp.queuePrompt("second-still-owned");
+  assert(lifecycleOrder.join(",") === "second", "Stale dispose removed the current Regional callback");
+  assert(secondExtension.dispose() === true, "Current Regional runtime did not release its hooks");
+  assert(Graph.prototype.serialize === lifecycleOriginalSerialize, "Regional dispose kept serialize wrapped");
+  assert(lifecycleApp.queuePrompt === lifecycleOriginalQueue, "Regional dispose kept queuePrompt wrapped");
+
+  lifecycleOrder.length = 0;
+  const thirdExtension = createExtension("third");
+  await thirdExtension.setup();
+  lifecycleApp.graph.serialize("third");
+  lifecycleApp.queuePrompt("third");
+  assert(
+    lifecycleOrder.join(",") === "third,third",
+    "A fresh Regional runtime did not install its new callback closure",
+  );
+  assert(thirdExtension.dispose() === true);
+  assert(Graph.prototype.serialize === lifecycleOriginalSerialize);
+  assert(lifecycleApp.queuePrompt === lifecycleOriginalQueue);
+}
+
 delete globalThis.LGraph;
 let prematureGraphReads = 0;
 const setupApp = {

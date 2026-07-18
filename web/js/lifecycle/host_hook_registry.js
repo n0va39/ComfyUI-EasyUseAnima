@@ -254,26 +254,44 @@ function createWrapper(state) {
  * @param {string} methodName
  * @param {"serialize" | "queue" | "graph-clear"} kind
  */
-function ensureMethodState(target, methodName, kind) {
-  if (!target || typeof target[methodName] !== "function") {
-    return null;
-  }
+function methodRecordFor(target, methodName, kind) {
   const registry = targetRegistry(target);
-  const registered = registry.methods.get(methodName);
-  if (registered?.active) {
-    return registered;
+  let record = registry.methods.get(methodName);
+  if (!record) {
+    record = {
+      registry,
+      target,
+      methodName,
+      kind,
+      segments: new Set(),
+      owners: new Map(),
+      topState: null,
+    };
+    registry.methods.set(methodName, record);
+  }
+  return record;
+}
+
+/** @param {any} record */
+function ensureMethodState(record) {
+  const { target, methodName, kind } = record;
+  const current = target[methodName];
+  if (record.topState?.active && current === record.topState.wrapper) {
+    return record.topState;
   }
 
-  const current = target[methodName];
   const staleState = current?.[HOST_HOOK_WRAPPER];
   if (
     staleState?.version === REGISTRY_VERSION
     && staleState.target === target
     && staleState.methodName === methodName
     && staleState.kind === kind
+    && staleState.callbacks.size === 0
   ) {
     staleState.active = true;
-    registry.methods.set(methodName, staleState);
+    staleState.methodRecord = record;
+    record.segments.add(staleState);
+    record.topState = staleState;
     return staleState;
   }
 
@@ -282,6 +300,7 @@ function ensureMethodState(target, methodName, kind) {
     target,
     methodName,
     kind,
+    methodRecord: record,
     original: current,
     wrapper: null,
     callbacks: new Map(),
@@ -289,7 +308,8 @@ function ensureMethodState(target, methodName, kind) {
   };
   state.wrapper = createWrapper(state);
   target[methodName] = state.wrapper;
-  registry.methods.set(methodName, state);
+  record.segments.add(state);
+  record.topState = state;
   return state;
 }
 
@@ -300,16 +320,47 @@ function releaseMethodState(state) {
   if (state.target[state.methodName] === state.wrapper) {
     state.target[state.methodName] = state.original;
   }
-  const registry = state.target[HOST_HOOK_REGISTRY];
-  if (registry?.methods?.get(state.methodName) === state) {
-    registry.methods.delete(state.methodName);
+  const record = state.methodRecord;
+  record?.segments?.delete(state);
+  if (record?.topState === state) {
+    const currentState = state.target[state.methodName]?.[HOST_HOOK_WRAPPER];
+    record.topState = currentState?.active && record.segments.has(currentState)
+      ? currentState
+      : null;
   }
+  if (record?.segments?.size === 0) {
+    record.registry.methods.delete(state.methodName);
+  }
+  const registry = record?.registry;
   if (
     registry?.methods?.size === 0
     && state.target[HOST_HOOK_REGISTRY] === registry
   ) {
     delete state.target[HOST_HOOK_REGISTRY];
   }
+}
+
+/** @param {any} record @param {any} state @param {any} owner @param {any} entry */
+function createCallbackDisposer(record, state, owner, entry) {
+  let disposed = false;
+  return () => {
+    const current = record.owners.get(owner);
+    if (
+      disposed
+      || current?.state !== state
+      || current?.entry !== entry
+      || state.callbacks.get(owner) !== entry
+    ) {
+      return false;
+    }
+    disposed = true;
+    record.owners.delete(owner);
+    state.callbacks.delete(owner);
+    if (state.callbacks.size === 0) {
+      releaseMethodState(state);
+    }
+    return true;
+  };
 }
 
 /**
@@ -320,24 +371,19 @@ function releaseMethodState(state) {
  * @param {Record<string, any>} callbacks
  */
 function registerMethodCallbacks(target, methodName, kind, owner, callbacks) {
-  const state = ensureMethodState(target, methodName, kind);
-  if (!state || state.callbacks.has(owner)) {
+  if (!target || typeof target[methodName] !== "function") {
     return noOpDispose;
   }
+  const record = methodRecordFor(target, methodName, kind);
+  if (record.owners.has(owner)) {
+    return noOpDispose;
+  }
+
+  const state = ensureMethodState(record);
   const entry = { owner, callbacks };
   state.callbacks.set(owner, entry);
-  let disposed = false;
-  return () => {
-    if (disposed || state.callbacks.get(owner) !== entry) {
-      return false;
-    }
-    disposed = true;
-    state.callbacks.delete(owner);
-    if (state.callbacks.size === 0) {
-      releaseMethodState(state);
-    }
-    return true;
-  };
+  record.owners.set(owner, { state, entry });
+  return createCallbackDisposer(record, state, owner, entry);
 }
 
 /**
@@ -410,4 +456,86 @@ export function registerHostHookCallbacks(options) {
     }
     return changed;
   };
+}
+
+/**
+ * Own a composition root's current global-hook leases on a collision-safe host
+ * Symbol. A newer runtime claims the host by disposing the previous runtime's
+ * hook leases first. Only leases installed through this lifecycle are owned;
+ * listeners, locale watchers, DOM state, and node-local resources remain out
+ * of scope.
+ *
+ * @param {any} host
+ * @param {symbol} owner
+ */
+export function createHostHookRuntimeLifecycle(host, owner) {
+  if (!host || typeof owner !== "symbol") {
+    throw new TypeError("A host object and Symbol runtime owner are required.");
+  }
+  const leases = new Map();
+
+  function isOwner() {
+    return host[owner] === lifecycle;
+  }
+
+  function claim() {
+    if (isOwner()) {
+      return false;
+    }
+    const previous = host[owner];
+    previous?.dispose?.();
+    host[owner] = lifecycle;
+    return true;
+  }
+
+  /**
+   * @param {any} key
+   * @param {() => (() => boolean)} installer
+   * @param {{ replace?: boolean }} [options]
+   */
+  function install(key, installer, options = {}) {
+    claim();
+    const previous = leases.get(key);
+    if (previous && options.replace !== true) {
+      return false;
+    }
+    if (previous) {
+      leases.delete(key);
+      previous();
+    }
+    const dispose = installer();
+    if (typeof dispose !== "function") {
+      throw new TypeError("A host hook installer must return a disposer.");
+    }
+    leases.set(key, dispose);
+    return true;
+  }
+
+  function dispose() {
+    let changed = false;
+    let cleanupError = null;
+    for (const release of [...leases.values()].reverse()) {
+      try {
+        changed = release() || changed;
+      } catch (error) {
+        cleanupError ||= error;
+      }
+    }
+    leases.clear();
+    if (isOwner()) {
+      delete host[owner];
+    }
+    if (cleanupError) {
+      throw cleanupError;
+    }
+    return changed;
+  }
+
+  const lifecycle = {
+    claim,
+    dispose,
+    install,
+    isOwner,
+  };
+  return lifecycle;
 }

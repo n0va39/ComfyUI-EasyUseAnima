@@ -120,6 +120,9 @@ class FrontendModuleStructureTests(unittest.TestCase):
         node_hooks_source = (
             PROMPT_STUDIO_MODULES / "node_hooks.js"
         ).read_text(encoding="utf-8")
+        extension_runtime_source = (
+            PROMPT_STUDIO_MODULES / "extension_runtime.js"
+        ).read_text(encoding="utf-8")
         regional_extension_source = (
             PROMPT_STUDIO_REGIONAL_MODULES / "extension.js"
         ).read_text(encoding="utf-8")
@@ -136,9 +139,31 @@ class FrontendModuleStructureTests(unittest.TestCase):
             frontend_check_source,
         )
         self.assertIn("export function registerHostHookCallbacks", registry_source)
+        self.assertIn("export function createHostHookRuntimeLifecycle", registry_source)
+        self.assertIn("segments: new Set()", registry_source)
+        self.assertIn("current === record.topState.wrapper", registry_source)
+        self.assertIn("target[methodName] = state.wrapper", registry_source)
         for source in (node_hooks_source, queue_seed_source):
             self.assertIn('../lifecycle/host_hook_registry.js"', source)
         self.assertIn('../../lifecycle/host_hook_registry.js"', regional_extension_source)
+        self.assertIn('../lifecycle/host_hook_registry.js"', extension_runtime_source)
+
+        for source, owner, lease in (
+            (
+                extension_runtime_source,
+                "PROMPT_STUDIO_GLOBAL_HOOK_RUNTIME_OWNER",
+                '"advanced-save-sync"',
+            ),
+            (
+                regional_extension_source,
+                "REGIONAL_GLOBAL_HOOK_RUNTIME_OWNER",
+                '"regional-save-sync"',
+            ),
+        ):
+            self.assertIn("createHostHookRuntimeLifecycle(", source)
+            self.assertIn(owner, source)
+            self.assertIn(lease, source)
+            self.assertIn("dispose: disposeGlobalHooks", source)
 
         for source in (node_hooks_source, regional_extension_source, queue_seed_source):
             self.assertIn("registerHostHookCallbacks({", source)

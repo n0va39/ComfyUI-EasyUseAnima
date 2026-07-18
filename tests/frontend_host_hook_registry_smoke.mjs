@@ -16,7 +16,10 @@ const aioQueueRuntime = await import(dataModule(
   "../web/js/aio/generator_queue_runtime.js",
 ));
 
-assert.deepEqual(Object.keys(registry), ["registerHostHookCallbacks"]);
+assert.deepEqual(Object.keys(registry).sort(), [
+  "createHostHookRuntimeLifecycle",
+  "registerHostHookCallbacks",
+]);
 
 {
   const events = [];
@@ -308,6 +311,223 @@ assert.deepEqual(Object.keys(registry), ["registerHostHookCallbacks"]);
   assert.equal(host.queuePrompt(), 2);
   assert.equal(callbackCalls, 1);
   disposeRevived();
+  assert.equal(host.queuePrompt, original);
+}
+
+{
+  const events = [];
+  const host = {
+    serialize(value) {
+      events.push("original");
+      return value;
+    },
+  };
+  const original = host.serialize;
+  const disposeA = registry.registerHostHookCallbacks({
+    owner: Symbol("interleaved-serialize-a"),
+    serializeHost: host,
+    beforeSerialize: () => events.push("a"),
+  });
+  const registryA = host.serialize;
+  host.serialize = function (...args) {
+    events.push("legacy");
+    return registryA.apply(this, args);
+  };
+  const legacy = host.serialize;
+  const disposeB = registry.registerHostHookCallbacks({
+    owner: Symbol("interleaved-serialize-b"),
+    serializeHost: host,
+    beforeSerialize: () => events.push("b"),
+  });
+
+  assert.notEqual(host.serialize, legacy, "a new owner must be reachable above a foreign wrapper");
+  assert.equal(host.serialize("value"), "value");
+  assert.deepEqual(events, ["b", "legacy", "a", "original"]);
+  assert.equal(disposeB(), true);
+  assert.equal(host.serialize, legacy, "the outer segment must restore the foreign wrapper");
+  assert.equal(disposeA(), true);
+  assert.equal(host.serialize, legacy, "an inner disposer must not overwrite a foreign wrapper");
+  events.length = 0;
+  assert.equal(host.serialize("after-dispose"), "after-dispose");
+  assert.deepEqual(events, ["legacy", "original"], "a stale inner wrapper kept its callback");
+  assert.notEqual(host.serialize, original);
+}
+
+{
+  const events = [];
+  const resolved = { prompt_id: "interleaved" };
+  const host = {
+    queuePrompt() {
+      events.push("original");
+      return Promise.resolve(resolved);
+    },
+  };
+  const disposeA = registry.registerHostHookCallbacks({
+    owner: Symbol("interleaved-queue-a"),
+    queueHost: host,
+    beforeQueue: () => { events.push("a:before"); return "a"; },
+    afterQueue: () => events.push("a:after"),
+  });
+  const registryA = host.queuePrompt;
+  host.queuePrompt = async function (...args) {
+    events.push("legacy:before");
+    const result = await registryA.apply(this, args);
+    events.push("legacy:after");
+    return result;
+  };
+  const legacy = host.queuePrompt;
+  const disposeB = registry.registerHostHookCallbacks({
+    owner: Symbol("interleaved-queue-b"),
+    queueHost: host,
+    beforeQueue: () => { events.push("b:before"); return "b"; },
+    afterQueue: () => events.push("b:after"),
+  });
+
+  assert.equal(await host.queuePrompt(), resolved);
+  assert.deepEqual(events, [
+    "b:before",
+    "legacy:before",
+    "a:before",
+    "original",
+    "a:after",
+    "legacy:after",
+    "b:after",
+  ]);
+
+  events.length = 0;
+  assert.equal(disposeA(), true, "an inner segment must be independently disposable");
+  assert.equal(await host.queuePrompt(), resolved);
+  assert.deepEqual(events, [
+    "b:before", "legacy:before", "original", "legacy:after", "b:after",
+  ]);
+  assert.equal(disposeB(), true);
+  assert.equal(host.queuePrompt, legacy);
+}
+
+{
+  const events = [];
+  const graph = {
+    clear() {
+      events.push("original");
+      return "cleared";
+    },
+  };
+  const disposeA = registry.registerHostHookCallbacks({
+    owner: Symbol("interleaved-clear-a"),
+    graphHost: graph,
+    onGraphClear: () => events.push("a"),
+  });
+  const registryA = graph.clear;
+  graph.clear = function (...args) {
+    events.push("legacy:before");
+    const result = registryA.apply(this, args);
+    events.push("legacy:after");
+    return result;
+  };
+  const legacy = graph.clear;
+  const disposeB = registry.registerHostHookCallbacks({
+    owner: Symbol("interleaved-clear-b"),
+    graphHost: graph,
+    onGraphClear: () => events.push("b"),
+  });
+
+  assert.equal(graph.clear(), "cleared");
+  assert.deepEqual(events, ["legacy:before", "original", "a", "legacy:after", "b"]);
+  assert.equal(disposeA(), true);
+  events.length = 0;
+  assert.equal(graph.clear(), "cleared");
+  assert.deepEqual(events, ["legacy:before", "original", "legacy:after", "b"]);
+  assert.equal(disposeB(), true);
+  assert.equal(graph.clear, legacy);
+}
+
+{
+  const events = [];
+  const host = {
+    queuePrompt(value) {
+      events.push("original");
+      return value;
+    },
+  };
+  const disposeA = registry.registerHostHookCallbacks({
+    owner: Symbol("non-delegating-a"),
+    queueHost: host,
+    beforeQueue: () => events.push("a"),
+  });
+  const hiddenRegistryA = host.queuePrompt;
+  host.queuePrompt = function (value) {
+    events.push("foreign");
+    return value;
+  };
+  const foreign = host.queuePrompt;
+  const disposeB = registry.registerHostHookCallbacks({
+    owner: Symbol("non-delegating-b"),
+    queueHost: host,
+    beforeQueue: () => events.push("b"),
+  });
+
+  assert.equal(host.queuePrompt("reachable"), "reachable");
+  assert.deepEqual(events, ["b", "foreign"], "the new owner was hidden below a replacement");
+  assert.equal(disposeB(), true);
+  assert.equal(host.queuePrompt, foreign);
+  assert.equal(disposeA(), true);
+  events.length = 0;
+  assert.equal(hiddenRegistryA("stale"), "stale");
+  assert.deepEqual(events, ["original"], "an inactive hidden segment retained callbacks");
+}
+
+{
+  const events = [];
+  const runtimeOwner = Symbol("runtime-owner");
+  const callbackOwner = Symbol("runtime-callback");
+  const host = {
+    queuePrompt(value) {
+      events.push("original");
+      return value;
+    },
+  };
+  const original = host.queuePrompt;
+  const install = (lifecycle, label, options) => lifecycle.install(
+    "queue",
+    () => registry.registerHostHookCallbacks({
+      owner: callbackOwner,
+      queueHost: host,
+      beforeQueue: () => events.push(label),
+    }),
+    options,
+  );
+
+  const firstRuntime = registry.createHostHookRuntimeLifecycle(host, runtimeOwner);
+  assert.equal(install(firstRuntime, "first"), true);
+  const firstWrapper = host.queuePrompt;
+  assert.equal(install(firstRuntime, "ignored"), false, "setup twice must reuse its lease");
+  assert.equal(host.queuePrompt, firstWrapper);
+  host.queuePrompt("first-call");
+  assert.deepEqual(events, ["first", "original"]);
+
+  events.length = 0;
+  assert.equal(install(firstRuntime, "first-replaced", { replace: true }), true);
+  host.queuePrompt("first-replaced-call");
+  assert.deepEqual(
+    events,
+    ["first-replaced", "original"],
+    "an explicit lease replacement kept the prior callback closure",
+  );
+
+  events.length = 0;
+  const secondRuntime = registry.createHostHookRuntimeLifecycle(host, runtimeOwner);
+  assert.equal(install(secondRuntime, "second"), true);
+  host.queuePrompt("second-call");
+  assert.deepEqual(events, ["second", "original"], "runtime replacement kept the stale closure");
+  assert.equal(firstRuntime.dispose(), false, "a superseded runtime must not release the new lease");
+  assert.equal(secondRuntime.dispose(), true);
+  assert.equal(host.queuePrompt, original);
+
+  events.length = 0;
+  assert.equal(install(secondRuntime, "second-reinstalled"), true);
+  host.queuePrompt("reinstalled-call");
+  assert.deepEqual(events, ["second-reinstalled", "original"]);
+  assert.equal(secondRuntime.dispose(), true);
   assert.equal(host.queuePrompt, original);
 }
 
