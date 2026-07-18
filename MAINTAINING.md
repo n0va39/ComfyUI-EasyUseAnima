@@ -22,6 +22,10 @@ This repository is prepared for future ComfyUI Manager / Comfy Registry registra
 ## Registry Rules
 
 - `pyproject.toml` `[project].name` is the Registry node id. Use the lowercase repository-style name: `comfyui-easyuse-anima`.
+- Write each new Registry changelog for installing users: lead with the outcome
+  and include only user-visible changes and required actions in plain text.
+  Keep PRs, commits, internal file/module work, test bookkeeping, scanner
+  findings, and release mechanics in maintainer notes instead.
 - `[tool.comfy].PublisherId` must match the Comfy Registry publisher id. It is currently set to `n0va39`.
 - Comfy Registry display name for the publisher is `N0VA`; this is informational. The publish identity is the publisher id `n0va39`.
 - Keep `[project.urls].Repository` pointed at the public GitHub repository.
@@ -98,6 +102,8 @@ Use this procedure when publishing a release to Comfy Registry / ComfyUI Manager
   - `[tool.comfy].PublisherId = "n0va39"`
   - `[tool.comfy].DisplayName = "ComfyUI EasyUse Anima"`
 - If a version was already published, never reuse it. Bump to a new version.
+- Confirm the current package version has a `changelog_file`, that the file
+  exists, and that its copy follows the user-facing plain-text rule above.
 - Keep the top summary in `README.md`, `README.en.md`, and `README.ko.md`
   aligned with `[project].description`.
 - Keep the GitHub repository description aligned with `[project].description`
@@ -218,4 +224,8 @@ release-policy change.
 - Download the Registry `node.zip` and compare every packaged file with the
   tagged Git blobs. Also download the GitHub manual-install asset and verify its
   recorded SHA256 and top-level custom-node folder.
+- Copy a public SHA256 only from the freshly built artifact or the live asset
+  digest. Do not expand a shortened value from a handoff, log, or summary; after
+  editing release copy, read it back and compare the complete value with the
+  live asset.
 - Do not rewrite the tag after public release. Use a new patch version for fixes.

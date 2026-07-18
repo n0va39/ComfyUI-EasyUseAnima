@@ -1,0 +1,10 @@
+EasyUse Anima 0.5.2 makes AiO Generator, LoRA Preset, and Autocomplete more reliable across Legacy canvas and Node 2.0.
+
+Changes:
+1. Autocomplete can show up to 100 suggestions, preserves nested parentheses, prompt weights, and artist prefixes when a suggestion is selected, and continues working after workflow reloads or when compatible prompt fields appear later.
+2. AiO Generator keeps concurrent queue seeds distinct, keeps preview and feed wheel input inside those surfaces, exposes the Detailer threshold in the external panel, and keeps resource and Detailer choices valid after live option loading.
+3. LoRA Preset saves and restores profiles consistently, keeps profile controls responsive after reloads, and lets Node 2.0 profile lists scroll without zooming the canvas.
+4. Compatibility fixes were verified with LoRA Manager enabled on ComfyUI 0.27.0.
+
+Action required:
+After updating, restart ComfyUI and hard-refresh the browser.
