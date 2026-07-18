@@ -104,14 +104,27 @@ class RegistryScannerSafetyTests(unittest.TestCase):
             "GOOGLE_TRANSLATION_API_KEY",
             "os.environ",
         )
-        for filename in ("__init__.py", "api.py", "nodes.py", "prompt_translation.py", "settings.py"):
+        for filename in (
+            "__init__.py",
+            "api.py",
+            "api_contract.py",
+            "nodes.py",
+            "prompt_translation.py",
+            "settings.py",
+        ):
             source = (ROOT / filename).read_text(encoding="utf-8")
             for pattern in patterns:
                 with self.subTest(filename=filename, pattern=pattern):
                     self.assertNotIn(pattern, source)
 
     def test_naia_is_only_documented_runtime_post_call(self):
-        runtime_files = ("api.py", "nodes.py", "prompt_translation.py", "settings.py")
+        runtime_files = (
+            "api.py",
+            "api_contract.py",
+            "nodes.py",
+            "prompt_translation.py",
+            "settings.py",
+        )
         matches = []
         for filename in runtime_files:
             source = (ROOT / filename).read_text(encoding="utf-8")
@@ -225,6 +238,22 @@ class RegistryScannerSafetyTests(unittest.TestCase):
             f"autocomplete static import closure is excluded from the Registry package: "
             f"{sorted(closure & ignored)}",
         )
+
+    def test_api_contract_runtime_module_is_in_registry_package_surface(self):
+        runtime_path = "api_contract.py"
+        self.assertTrue((ROOT / runtime_path).is_file())
+        self.assertIn("from .api_contract import (", (ROOT / "api.py").read_text(encoding="utf-8"))
+
+        tracked = _git_paths("ls-files", "--cached")
+        self.assertIn(runtime_path, tracked)
+
+        ignored = _git_paths(
+            "ls-files",
+            "--cached",
+            "--ignored",
+            "--exclude-from=.comfyignore",
+        )
+        self.assertNotIn(runtime_path, ignored)
 
     def test_registry_safety_doc_is_linked_from_development_entry(self):
         entry = (ROOT / "docs" / "development" / "README.md").read_text(encoding="utf-8")

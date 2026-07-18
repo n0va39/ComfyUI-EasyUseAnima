@@ -256,27 +256,47 @@ class PromptTranslationApiTests(unittest.TestCase):
         api, routes, translation = self.load_routes()
         handler = routes.handlers[ROUTE]
         settings = translation.PromptTranslationSettings(provider="google")
-        with (
-            patch.object(api, "resolve_prompt_translation_settings", return_value=settings),
-            patch.object(
-                api,
-                "translate_prompt_markers",
-                side_effect=translation.TranslationProviderUnavailableError(),
+        cases = (
+            (
+                translation.TranslationProviderUnavailableError(),
+                503,
+                "translation_provider_unavailable",
+                "The selected translation provider is unavailable.",
             ),
-        ):
-            response = asyncio.run(handler(JsonRequest({"text": "%{text}"})))
-
-        self.assertEqual(
-            response,
-            {
-                "payload": {
-                    "status": "error",
-                    "code": "translation_provider_unavailable",
-                    "message": "The selected translation provider is unavailable.",
-                },
-                "status": 503,
-            },
+            (
+                translation.TranslationUpstreamError(),
+                502,
+                "translation_upstream_error",
+                "The translation provider request failed.",
+            ),
         )
+        for error, status, code, message in cases:
+            with self.subTest(code=code):
+                with (
+                    patch.object(
+                        api,
+                        "resolve_prompt_translation_settings",
+                        return_value=settings,
+                    ),
+                    patch.object(
+                        api,
+                        "translate_prompt_markers",
+                        side_effect=error,
+                    ),
+                ):
+                    response = asyncio.run(handler(JsonRequest({"text": "%{text}"})))
+
+                self.assertEqual(
+                    response,
+                    {
+                        "payload": {
+                            "status": "error",
+                            "code": code,
+                            "message": message,
+                        },
+                        "status": status,
+                    },
+                )
 
     def test_route_does_not_mask_settings_or_payload_programming_errors_as_upstream(self):
         api, routes, _translation = self.load_routes()
@@ -295,8 +315,9 @@ class PromptTranslationApiTests(unittest.TestCase):
                     with self.assertRaisesRegex(type(error), str(error)):
                         asyncio.run(handler(JsonRequest({"text": "%{text}"})))
 
-        with self.assertRaises(AttributeError):
-            asyncio.run(handler(JsonRequest([])))
+        response = asyncio.run(handler(JsonRequest([])))
+        self.assertEqual(response["status"], 400)
+        self.assertEqual(response["payload"]["code"], "json_object_required")
 
     def test_all_marker_budgets_return_413_before_provider_resolution(self):
         api, routes, translation = self.load_routes()

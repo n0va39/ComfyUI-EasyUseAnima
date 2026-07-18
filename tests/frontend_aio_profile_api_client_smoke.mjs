@@ -7,6 +7,7 @@ function dataModule(relativePath) {
 }
 
 const apiClientModule = await import(dataModule("../web/js/aio/profile_api_client.js"));
+const sharedApiModule = await import(dataModule("../web/js/easyuse_anima_api.js"));
 
 assert.deepEqual(
   Object.keys(apiClientModule),
@@ -50,6 +51,48 @@ assert.deepEqual(Object.keys(client).sort(), [
 ]);
 assert.equal(calls.length, 0, "factory creation must not make a request");
 assert.equal(encodedValues.length, 0, "factory creation must not encode a name");
+
+const errorContracts = [
+  {
+    payload: { status: "error", message: "Legacy conflict" },
+    expected: { message: "Legacy conflict", status: 409, code: undefined, details: undefined },
+  },
+  {
+    payload: {
+      status: "error",
+      code: "profile_exists",
+      message: "Profile already exists",
+      details: { field: "name" },
+    },
+    expected: {
+      message: "Profile already exists",
+      status: 409,
+      code: "profile_exists",
+      details: { field: "name" },
+    },
+  },
+];
+
+for (const { payload, expected } of errorContracts) {
+  await assert.rejects(
+    sharedApiModule.easyuseAnimaFetchJson("/contract", {
+      fetcher: async () => ({
+        ok: false,
+        status: 409,
+        statusText: "Conflict",
+        json: async () => payload,
+      }),
+    }),
+    (error) => {
+      assert.equal(error.message, expected.message);
+      assert.equal(error.status, expected.status);
+      assert.equal(error.code, expected.code);
+      assert.deepEqual(error.details, expected.details);
+      return true;
+    },
+    "shared API transport must accept legacy and coded error payloads",
+  );
+}
 
 const profilesResponse = { profiles: [{ name: "Portrait" }] };
 responses.push(profilesResponse);
