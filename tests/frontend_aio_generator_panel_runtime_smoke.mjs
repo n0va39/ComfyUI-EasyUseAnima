@@ -26,6 +26,10 @@ function findByText(root, textContent) {
   return find(root, (element) => element.textContent === textContent);
 }
 
+function findField(root, label) {
+  return find(root, (element) => element.getAttribute("data-test-label") === label);
+}
+
 const PANEL_EVENT_NAMES = [
   "pointerdown",
   "mousedown",
@@ -962,6 +966,66 @@ assert.ok(
   "settings write must complete before summary/profile refresh",
 );
 assert.notEqual(panel.children[0], main, "rerendering a stage toggle must replace panel children");
+
+while (fixture.animationFrames.length) {
+  fixture.animationFrames.shift()();
+}
+
+const detailerScroll = panel.querySelector(".easyuse-anima-aio-node-settings-scroll");
+const detailerStage = detailerScroll.children[2];
+const faceTitle = findByText(detailerStage, "1. Face Detailer");
+const faceBlock = faceTitle.parentElement.parentElement;
+const faceThreshold = findField(faceBlock, "text:field.threshold");
+const faceThresholdInput = faceThreshold.children[0].children[0];
+assert.equal(faceThresholdInput.value, "0.52");
+assert.equal(faceThresholdInput.min, "0");
+assert.equal(faceThresholdInput.max, "1");
+assert.equal(faceThresholdInput.step, "0.01");
+assert.equal(faceThreshold.getAttribute("data-test-tooltip"), "tip.detailerThreshold");
+
+faceThresholdInput.value = "0.63";
+faceThresholdInput.emit("input");
+assert.equal(node.settings.detailer.face.threshold, 0.63);
+
+const serializedDetailerSettings = JSON.stringify(node.settings);
+node.settings = JSON.parse(serializedDetailerSettings);
+fixture.runtime.renderPanel(node);
+let reloadedDetailerStage = panel.querySelector(
+  ".easyuse-anima-aio-node-settings-scroll",
+).children[2];
+let reloadedFaceTitle = findByText(reloadedDetailerStage, "1. Face Detailer");
+let reloadedFaceBlock = reloadedFaceTitle.parentElement.parentElement;
+assert.equal(
+  findField(reloadedFaceBlock, "text:field.threshold").children[0].children[0].value,
+  "0.63",
+  "serialized Detailer threshold must reload into the external target card",
+);
+
+const reloadedFaceEnabled = findField(reloadedFaceBlock, "text:label.enabled").children[0];
+reloadedFaceEnabled.checked = false;
+reloadedFaceEnabled.emit("change");
+reloadedDetailerStage = panel.querySelector(
+  ".easyuse-anima-aio-node-settings-scroll",
+).children[2];
+reloadedFaceTitle = findByText(reloadedDetailerStage, "1. Face Detailer");
+reloadedFaceBlock = reloadedFaceTitle.parentElement.parentElement;
+assert.equal(node.settings.detailer.face.enabled, false);
+assert.equal(findField(reloadedFaceBlock, "text:field.threshold"), null);
+
+const disabledFaceEnabled = findField(reloadedFaceBlock, "text:label.enabled").children[0];
+disabledFaceEnabled.checked = true;
+disabledFaceEnabled.emit("change");
+reloadedDetailerStage = panel.querySelector(
+  ".easyuse-anima-aio-node-settings-scroll",
+).children[2];
+reloadedFaceTitle = findByText(reloadedDetailerStage, "1. Face Detailer");
+reloadedFaceBlock = reloadedFaceTitle.parentElement.parentElement;
+assert.equal(node.settings.detailer.face.enabled, true);
+assert.equal(
+  findField(reloadedFaceBlock, "text:field.threshold").children[0].children[0].value,
+  "0.63",
+  "re-enabling a Detailer target must preserve its threshold",
+);
 
 while (fixture.animationFrames.length) {
   fixture.animationFrames.shift()();
