@@ -6,6 +6,10 @@
     "path_format": "repository-relative POSIX"
   },
   "imports": {
+    "dynamic_alias_policy": {
+      "control_flow_merge": "if/try branch bindings are visited in deterministic source order; conflicting branch aliases remain heuristic",
+      "lexical_scopes": "module, class, function, and lambda bindings are tracked; class namespaces are skipped for nested function lookup"
+    },
     "edges": [
       {
         "alias": null,

@@ -150,6 +150,82 @@ def lexical_late_shadow():
             [("dynamic_loader", ".plugin", "plugin.py")],
         )
 
+    def test_lambda_arguments_shadow_aliases_but_defaults_use_outer_scope(self):
+        sources = {
+            "__init__.py": """\
+from importlib import import_module as load
+module_value = load(".plugin", __package__)
+posonly = lambda load, /: load("not.posonly")
+regular = lambda load: load("not.regular")
+kwonly = lambda *, load: load("not.kwonly")
+vararg = lambda *load: load("not.vararg")
+kwarg = lambda **load: load("not.kwarg")
+defaulted = lambda value=load(".plugin", __package__): value
+closure = lambda: load(".plugin", __package__)
+""",
+            "plugin.py": "VALUE = 1\n",
+        }
+
+        report = analyzer.analyze_source_set(sources)
+        dynamic_edges = [
+            edge
+            for edge in report["imports"]["edges"]
+            if edge["kind"] == "literal_dynamic"
+        ]
+
+        self.assertEqual(
+            [(edge["scope"], edge["imported"]) for edge in dynamic_edges],
+            [
+                ("<module>", ".plugin"),
+                ("<module>", ".plugin"),
+                ("<lambda>@9", ".plugin"),
+            ],
+        )
+
+    def test_method_lookup_skips_class_alias_scope_but_definitions_use_it(self):
+        sources = {
+            "__init__.py": """\
+from importlib import import_module as load
+
+class UsesModuleAlias:
+    load = custom_loader
+
+    def method(self):
+        return load(".plugin", __package__)
+
+class UsesClassAlias:
+    from importlib import import_module as class_load
+    class_value = class_load(".class_body", __package__)
+
+    def method(
+        self,
+        value: class_load(".annotation", __package__) = class_load(".default", __package__),
+    ):
+        return class_load("not.a.dynamic.import")
+""",
+            "annotation.py": "VALUE = 1\n",
+            "class_body.py": "VALUE = 1\n",
+            "default.py": "VALUE = 1\n",
+            "plugin.py": "VALUE = 1\n",
+        }
+
+        report = analyzer.analyze_source_set(sources)
+        dynamic_edges = [
+            edge
+            for edge in report["imports"]["edges"]
+            if edge["kind"] == "literal_dynamic"
+        ]
+
+        self.assertEqual(
+            {(edge["scope"], edge["imported"]) for edge in dynamic_edges},
+            {
+                ("UsesClassAlias", ".annotation"),
+                ("UsesClassAlias", ".class_body"),
+                ("UsesClassAlias", ".default"),
+                ("UsesModuleAlias.method", ".plugin"),
+            },
+        )
+
     def test_try_branch_context_and_compatibility_fallback_taxonomy(self):
         sources = {
             "__init__.py": """\
@@ -601,6 +677,7 @@ CACHE = {}
         self.assertIn("ordinary", rendered)
         self.assertIn("compatibility_fallback", rendered)
         self.assertIn("try@", rendered)
+        self.assertIn("conflicting branch aliases remain heuristic", rendered)
 
 
 if __name__ == "__main__":

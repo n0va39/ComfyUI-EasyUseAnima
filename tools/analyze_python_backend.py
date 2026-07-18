@@ -350,11 +350,34 @@ def _function_local_names(
     return visitor.names - visitor.global_names - visitor.nonlocal_names
 
 
+def _lambda_local_names(node: ast.Lambda) -> set[str]:
+    visitor = _FunctionLocalBindingVisitor()
+    visitor.visit(node.body)
+    return visitor.names - visitor.global_names - visitor.nonlocal_names
+
+
+def _argument_names(arguments: ast.arguments) -> set[str]:
+    names = {
+        argument.arg
+        for argument in (
+            *arguments.posonlyargs,
+            *arguments.args,
+            *arguments.kwonlyargs,
+        )
+    }
+    if arguments.vararg:
+        names.add(arguments.vararg.arg)
+    if arguments.kwarg:
+        names.add(arguments.kwarg.arg)
+    return names
+
+
 class _ImportCandidateVisitor(ast.NodeVisitor):
     def __init__(self) -> None:
         self.candidates: list[dict[str, object]] = []
         self.scope_parts: list[str] = []
         self.alias_scopes: list[dict[str, set[str] | None]] = [{}]
+        self.alias_scope_kinds = ["module"]
         self.branch_context: list[dict[str, object]] = []
 
     @property
@@ -371,7 +394,15 @@ class _ImportCandidateVisitor(ast.NodeVisitor):
     def _resolve_callee_aliases(self, callee: str) -> set[str]:
         resolved = {callee}
         root, separator, suffix = callee.partition(".")
-        for aliases in reversed(self.alias_scopes):
+        crossed_function_scope = False
+        for aliases, scope_kind in zip(
+            reversed(self.alias_scopes),
+            reversed(self.alias_scope_kinds),
+        ):
+            if scope_kind in {"function", "lambda"}:
+                crossed_function_scope = True
+            elif scope_kind == "class" and crossed_function_scope:
+                continue
             if root not in aliases:
                 continue
             targets = aliases[root]
@@ -429,47 +460,72 @@ class _ImportCandidateVisitor(ast.NodeVisitor):
             }
         )
 
-    def _visit_function_scope(
+    def _visit_function_definition_expressions(
         self,
         node: ast.FunctionDef | ast.AsyncFunctionDef,
     ) -> None:
         for decorator in node.decorator_list:
             self.visit(decorator)
+        arguments = (
+            *node.args.posonlyargs,
+            *node.args.args,
+            *node.args.kwonlyargs,
+        )
+        for argument in arguments:
+            if argument.annotation:
+                self.visit(argument.annotation)
+        if node.args.vararg and node.args.vararg.annotation:
+            self.visit(node.args.vararg.annotation)
+        if node.args.kwarg and node.args.kwarg.annotation:
+            self.visit(node.args.kwarg.annotation)
+        if node.returns:
+            self.visit(node.returns)
         for default in (
             *node.args.defaults,
             *[item for item in node.args.kw_defaults if item],
         ):
             self.visit(default)
-        argument_names = {
-            argument.arg
-            for argument in (
-                *node.args.posonlyargs,
-                *node.args.args,
-                *node.args.kwonlyargs,
-            )
-        }
-        if node.args.vararg:
-            argument_names.add(node.args.vararg.arg)
-        if node.args.kwarg:
-            argument_names.add(node.args.kwarg.arg)
+
+    def _visit_function_body(
+        self,
+        node: ast.FunctionDef | ast.AsyncFunctionDef,
+    ) -> None:
         self.scope_parts.append(node.name)
-        local_names = argument_names | _function_local_names(node)
+        local_names = _argument_names(node.args) | _function_local_names(node)
         self.alias_scopes.append({name: None for name in local_names})
+        self.alias_scope_kinds.append("function")
         for statement in node.body:
             self.visit(statement)
+        self.alias_scope_kinds.pop()
         self.alias_scopes.pop()
         self.scope_parts.pop()
 
     def visit_FunctionDef(self, node: ast.FunctionDef) -> None:
+        self._visit_function_definition_expressions(node)
         self._shadow_names([node.name])
-        self._visit_function_scope(node)
+        self._visit_function_body(node)
 
     def visit_AsyncFunctionDef(self, node: ast.AsyncFunctionDef) -> None:
+        self._visit_function_definition_expressions(node)
         self._shadow_names([node.name])
-        self._visit_function_scope(node)
+        self._visit_function_body(node)
+
+    def visit_Lambda(self, node: ast.Lambda) -> None:
+        for default in (
+            *node.args.defaults,
+            *[item for item in node.args.kw_defaults if item],
+        ):
+            self.visit(default)
+        self.scope_parts.append(f"<lambda>@{node.lineno}")
+        local_names = _argument_names(node.args) | _lambda_local_names(node)
+        self.alias_scopes.append({name: None for name in local_names})
+        self.alias_scope_kinds.append("lambda")
+        self.visit(node.body)
+        self.alias_scope_kinds.pop()
+        self.alias_scopes.pop()
+        self.scope_parts.pop()
 
     def visit_ClassDef(self, node: ast.ClassDef) -> None:
-        self._shadow_names([node.name])
         for decorator in node.decorator_list:
             self.visit(decorator)
         for base in node.bases:
@@ -478,10 +534,13 @@ class _ImportCandidateVisitor(ast.NodeVisitor):
             self.visit(keyword.value)
         self.scope_parts.append(node.name)
         self.alias_scopes.append({})
+        self.alias_scope_kinds.append("class")
         for statement in node.body:
             self.visit(statement)
+        self.alias_scope_kinds.pop()
         self.alias_scopes.pop()
         self.scope_parts.pop()
+        self._shadow_names([node.name])
 
     def visit_Import(self, node: ast.Import) -> None:
         for alias in node.names:
@@ -1430,6 +1489,16 @@ def analyze_source_set(
         "imports": {
             "edges": edges,
             "module_graph": graph_records,
+            "dynamic_alias_policy": {
+                "lexical_scopes": (
+                    "module, class, function, and lambda bindings are tracked; "
+                    "class namespaces are skipped for nested function lookup"
+                ),
+                "control_flow_merge": (
+                    "if/try branch bindings are visited in deterministic source order; "
+                    "conflicting branch aliases remain heuristic"
+                ),
+            },
             "module_graph_policy": {
                 "included_classifications": [
                     "compatibility_fallback",
@@ -1544,6 +1613,11 @@ def render_text(report: Mapping[str, object]) -> str:
     for component in report["imports"]["sccs"]:
         marker = "cycle" if component["cyclic"] else "acyclic"
         lines.append(f"{marker} | {', '.join(component['modules'])}")
+
+    alias_policy = report["imports"]["dynamic_alias_policy"]
+    lines.extend(("", "[analysis_policy]"))
+    lines.append(f"dynamic_alias_lexical_scopes: {alias_policy['lexical_scopes']}")
+    lines.append(f"dynamic_alias_control_flow: {alias_policy['control_flow_merge']}")
 
     lines.extend(("", "[state.mutable_globals]"))
     for item in report["state"]["mutable_globals"]:
