@@ -18,6 +18,9 @@ PACKAGE_MODULES = (
     "easyuse_anima.image.geometry",
     "easyuse_anima.infrastructure",
     "easyuse_anima.infrastructure.comfy",
+    "easyuse_anima.infrastructure.comfy.capabilities",
+    "easyuse_anima.infrastructure.comfy.invocation",
+    "easyuse_anima.infrastructure.comfy.resources",
     "easyuse_anima.nodes",
     "easyuse_anima.prompt",
 )

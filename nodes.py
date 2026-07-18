@@ -31,6 +31,27 @@ try:
         _aligned_size_near_scale as _aligned_size_near_scale,
         _alignment_value as _alignment_value,
     )
+    from .easyuse_anima.infrastructure.comfy.capabilities import (
+        _comfy_max_resolution as _adapter_comfy_max_resolution,
+        _comfy_sampler_names as _comfy_sampler_names,
+        _comfy_scheduler_names as _comfy_scheduler_names,
+        _find_comfy_node_class as _adapter_find_comfy_node_class,
+        _find_loaded_node_class as _adapter_find_loaded_node_class,
+        _require_any_custom_node_class as _adapter_require_any_custom_node_class,
+        _require_custom_node_class as _adapter_require_custom_node_class,
+    )
+    from .easyuse_anima.infrastructure.comfy.invocation import (
+        _call_with_supported_kwargs as _call_with_supported_kwargs,
+        _node_output_tuple as _node_output_tuple,
+    )
+    from .easyuse_anima.infrastructure.comfy.resources import (
+        _comfy_checkpoint_names as _comfy_checkpoint_names,
+        _comfy_clip_loader_types as _adapter_comfy_clip_loader_types,
+        _comfy_diffusion_model_names as _adapter_comfy_diffusion_model_names,
+        _comfy_text_encoder_names as _adapter_comfy_text_encoder_names,
+        _comfy_vae_names as _adapter_comfy_vae_names,
+        _folder_path_names as _folder_path_names,
+    )
     from .anima_prompt import correct_prompt, load_knowledge_base
     from .anima_prompt.parser import parse_prompt
     from .settings import (
@@ -78,6 +99,27 @@ except ImportError:  # allows simple local import tests outside ComfyUI's packag
         _align_up as _align_up,
         _aligned_size_near_scale as _aligned_size_near_scale,
         _alignment_value as _alignment_value,
+    )
+    from easyuse_anima.infrastructure.comfy.capabilities import (
+        _comfy_max_resolution as _adapter_comfy_max_resolution,
+        _comfy_sampler_names as _comfy_sampler_names,
+        _comfy_scheduler_names as _comfy_scheduler_names,
+        _find_comfy_node_class as _adapter_find_comfy_node_class,
+        _find_loaded_node_class as _adapter_find_loaded_node_class,
+        _require_any_custom_node_class as _adapter_require_any_custom_node_class,
+        _require_custom_node_class as _adapter_require_custom_node_class,
+    )
+    from easyuse_anima.infrastructure.comfy.invocation import (
+        _call_with_supported_kwargs as _call_with_supported_kwargs,
+        _node_output_tuple as _node_output_tuple,
+    )
+    from easyuse_anima.infrastructure.comfy.resources import (
+        _comfy_checkpoint_names as _comfy_checkpoint_names,
+        _comfy_clip_loader_types as _adapter_comfy_clip_loader_types,
+        _comfy_diffusion_model_names as _adapter_comfy_diffusion_model_names,
+        _comfy_text_encoder_names as _adapter_comfy_text_encoder_names,
+        _comfy_vae_names as _adapter_comfy_vae_names,
+        _folder_path_names as _folder_path_names,
     )
     from anima_prompt import correct_prompt, load_knowledge_base
     from anima_prompt.parser import parse_prompt
@@ -2012,114 +2054,38 @@ def _aio_generation_settings_json() -> str:
 def _comfy_max_resolution() -> int:
     try:
         import nodes as comfy_nodes  # type: ignore
-
-        return int(getattr(comfy_nodes, "MAX_RESOLUTION", 16384))
     except Exception:
-        return 16384
-
-
-def _comfy_sampler_names() -> list[str]:
-    try:
-        import comfy.samplers  # type: ignore
-
-        return list(comfy.samplers.KSampler.SAMPLERS)
-    except Exception:
-        return [
-            "er_sde",
-            "euler",
-            "euler_ancestral",
-            "heun",
-            "dpm_2",
-            "dpm_2_ancestral",
-            "dpmpp_2m",
-            "dpmpp_sde",
-            "ddim",
-        ]
-
-
-def _comfy_scheduler_names() -> list[str]:
-    try:
-        import comfy.samplers  # type: ignore
-
-        return list(comfy.samplers.KSampler.SCHEDULERS)
-    except Exception:
-        return [
-            "simple",
-            "sgm_uniform",
-            "karras",
-            "exponential",
-            "ddim_uniform",
-            "beta",
-            "normal",
-            "linear_quadratic",
-            "kl_optimal",
-            "AYS SDXL",
-            "AYS SD1",
-            "AYS SVD",
-            "GITS[coeff=1.2]",
-            "LTXV[default]",
-            "OSS FLUX",
-            "OSS Wan",
-            "OSS Chroma",
-        ]
-
-
-def _comfy_checkpoint_names() -> list[str]:
-    try:
-        import folder_paths  # type: ignore
-
-        names = [str(name) for name in folder_paths.get_filename_list("checkpoints")]
-        if names:
-            return names
-    except Exception:
-        pass
-    return ["sam3.1_multiplex_fp16.safetensors"]
-
-
-def _folder_path_names(folder_name: str, fallback: list[str]) -> list[str]:
-    try:
-        import folder_paths  # type: ignore
-
-        names = [str(name) for name in folder_paths.get_filename_list(folder_name)]
-        if names:
-            return names
-    except Exception:
-        pass
-    return list(fallback)
+        comfy_nodes = None
+    return _adapter_comfy_max_resolution(comfy_nodes)
 
 
 def _comfy_diffusion_model_names() -> list[str]:
-    return _folder_path_names("diffusion_models", list(ANIMA_DEFAULT_DIFFUSION_MODEL_CANDIDATES))
+    return _adapter_comfy_diffusion_model_names(
+        ANIMA_DEFAULT_DIFFUSION_MODEL_CANDIDATES,
+        _folder_path_names,
+    )
 
 
 def _comfy_text_encoder_names() -> list[str]:
-    return _folder_path_names("text_encoders", list(ANIMA_DEFAULT_CLIP_CANDIDATES))
+    return _adapter_comfy_text_encoder_names(
+        ANIMA_DEFAULT_CLIP_CANDIDATES,
+        _folder_path_names,
+    )
 
 
 def _comfy_vae_names() -> list[str]:
-    loader_cls = _find_comfy_node_class("VAELoader")
-    if loader_cls is not None:
-        try:
-            required = loader_cls.INPUT_TYPES().get("required", {})
-            names = [str(name) for name in required.get("vae_name", ([],))[0]]
-            if names:
-                return names
-        except Exception:
-            pass
-    return _folder_path_names("vae", list(ANIMA_DEFAULT_VAE_CANDIDATES))
+    return _adapter_comfy_vae_names(
+        ANIMA_DEFAULT_VAE_CANDIDATES,
+        _find_comfy_node_class,
+        _folder_path_names,
+    )
 
 
 def _comfy_clip_loader_types() -> list[str]:
-    loader_cls = _find_comfy_node_class("CLIPLoader")
-    if loader_cls is not None:
-        try:
-            required = loader_cls.INPUT_TYPES().get("required", {})
-            names = [str(name) for name in required.get("type", ([],))[0]]
-            if names:
-                return names
-        except Exception:
-            pass
-    return list(ANIMA_CLIP_TYPES)
+    return _adapter_comfy_clip_loader_types(
+        ANIMA_CLIP_TYPES,
+        _find_comfy_node_class,
+    )
 
 
 def _preferred_name_default(names: list[str], candidates: tuple[str, ...]) -> str:
@@ -2220,44 +2186,26 @@ def _find_impact_detailer_class():
 def _find_comfy_node_class(node_id: str):
     try:
         import nodes as comfy_nodes  # type: ignore
-
-        mappings = getattr(comfy_nodes, "NODE_CLASS_MAPPINGS", {})
-        cls = mappings.get(node_id)
-        if cls is not None:
-            return cls
-        cls = getattr(comfy_nodes, node_id, None)
-        if cls is not None:
-            return cls
     except Exception:
-        pass
-    for module in list(sys.modules.values()):
-        mappings = getattr(module, "NODE_CLASS_MAPPINGS", None)
-        if isinstance(mappings, dict):
-            cls = mappings.get(node_id)
-            if cls is not None:
-                return cls
-    return None
+        comfy_nodes = None
+    return _adapter_find_comfy_node_class(node_id, comfy_nodes)
 
 
 def _require_custom_node_class(node_id: str, node_pack: str, install_hint: str):
-    cls = _find_comfy_node_class(node_id)
-    if cls is not None:
-        return cls
-    raise RuntimeError(
-        f"[EasyUseAnima] Missing required custom node '{node_id}'. "
-        f"Install/enable {node_pack}, then restart ComfyUI. {install_hint}"
+    return _adapter_require_custom_node_class(
+        node_id,
+        node_pack,
+        install_hint,
+        _find_comfy_node_class,
     )
 
 
 def _require_any_custom_node_class(node_ids: tuple[str, ...], node_pack: str, install_hint: str):
-    for node_id in node_ids:
-        cls = _find_comfy_node_class(node_id)
-        if cls is not None:
-            return node_id, cls
-    joined = "', '".join(node_ids)
-    raise RuntimeError(
-        f"[EasyUseAnima] Missing required custom node. Tried '{joined}'. "
-        f"Install/enable {node_pack}, then restart ComfyUI. {install_hint}"
+    return _adapter_require_any_custom_node_class(
+        node_ids,
+        node_pack,
+        install_hint,
+        _find_comfy_node_class,
     )
 
 
@@ -2390,29 +2338,8 @@ def _find_impact_mask_to_segs_class():
     )
 
 
-def _node_output_tuple(result) -> tuple:
-    value = getattr(result, "result", None)
-    if value is not None:
-        return tuple(value)
-    if isinstance(result, dict) and "result" in result:
-        return tuple(result["result"])
-    if isinstance(result, tuple):
-        return result
-    return (result,)
-
-
 def _find_loaded_node_class(node_id: str):
-    cls = _find_comfy_node_class(node_id)
-    if cls is not None:
-        return cls
-
-    for module in list(sys.modules.values()):
-        mappings = getattr(module, "NODE_CLASS_MAPPINGS", None)
-        if isinstance(mappings, dict):
-            cls = mappings.get(node_id)
-            if cls is not None:
-                return cls
-    return None
+    return _adapter_find_loaded_node_class(node_id, _find_comfy_node_class)
 
 
 def _find_spectrum_anima_mod_guidance_class():
@@ -2996,35 +2923,6 @@ def _apply_aio_spectrum_model_patches_for_comfy_sampler(
         patched,
         sampler_settings,
     )
-
-
-def _call_with_supported_kwargs(method, args: tuple[Any, ...], kwargs: dict[str, Any], label: str):
-    try:
-        parameters = inspect.signature(method).parameters
-    except (TypeError, ValueError):
-        return method(*args, **kwargs)
-    accepts_kwargs = any(param.kind == inspect.Parameter.VAR_KEYWORD for param in parameters.values())
-    if accepts_kwargs:
-        return method(*args, **kwargs)
-    supported_kwargs = {key: value for key, value in kwargs.items() if key in parameters}
-    missing_required = []
-    consumed_positionals = len(args)
-    for index, (name, param) in enumerate(parameters.items()):
-        if index < consumed_positionals:
-            continue
-        if name in supported_kwargs:
-            continue
-        if param.default is inspect.Parameter.empty and param.kind in (
-            inspect.Parameter.POSITIONAL_OR_KEYWORD,
-            inspect.Parameter.KEYWORD_ONLY,
-        ):
-            missing_required.append(name)
-    if missing_required:
-        raise RuntimeError(
-            f"[EasyUseAnima] {label} requires unsupported new input(s): "
-            f"{', '.join(missing_required)}. Update ComfyUI-EasyUseAnima or disable that node option."
-        )
-    return method(*args, **supported_kwargs)
 
 
 def _sample_latent_with_spectrum_mod_guidance_advanced(
