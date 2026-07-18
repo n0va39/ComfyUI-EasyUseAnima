@@ -237,6 +237,8 @@ assert.deepEqual(addWidget.computeSize(), [520, 36]);
 {
   const node = makeNode({ profileCount: 8 });
   const widget = new runtime.ProfileBarWidget();
+  let drawRequests = 0;
+  widget.triggerDraw = () => { drawRequests += 1; };
   const ctx = fakeContext();
   widget.draw(ctx, node, 520, 0, 170);
   assert.deepEqual(widget.hitAreas.slice(0, 5).map((area) => area[4]), [
@@ -270,6 +272,7 @@ assert.deepEqual(addWidget.computeSize(), [520, 36]);
 
   assert.equal(widget.mouse({ type: "wheel", deltaY: 1 }, [20, 50], node), true);
   assert.equal(widget.scrollOffset, 1);
+  assert.equal(drawRequests, 1, "Node 2.0 custom-widget canvas must redraw after wheel scrolling");
   assert.equal(widget.mouse({ type: "pointermove" }, [20, 50], node), false);
   assert.equal(activeProfileWheelTarget.node, node);
   assert.equal(activeProfileWheelTarget.widget, widget);
@@ -281,6 +284,7 @@ assert.deepEqual(addWidget.computeSize(), [520, 36]);
   assert.equal(widget.mouse({ type: "pointerdown", button: 0 }, thumbPos, node), true);
   assert.equal(widget.scrollDragging, true);
   assert.equal(widget.mouse({ type: "pointermove" }, [thumbPos[0], widget.scrollTrackArea[1] + widget.scrollTrackArea[3]], node), true);
+  assert.equal(drawRequests, 2, "Node 2.0 custom-widget canvas must redraw after scrollbar dragging");
   assert.equal(widget.mouse({ type: "pointerup" }, thumbPos, node), true);
   assert.equal(widget.scrollDragging, false);
 }

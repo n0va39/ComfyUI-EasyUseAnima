@@ -75,6 +75,65 @@ export function createLoraPresetEntryLifecycle(dependencies) {
     activeProfileWheelTarget = target;
   }
 
+  /**
+   * Node 2.0 renders each custom widget into its own DOM canvas. The profile
+   * bar's draw coordinates are local to that canvas, so the legacy graph-to-
+   * client conversion cannot identify its wheel area after a Vue canvas zoom.
+   *
+   * @param {any} event
+   * @param {any} node
+   * @param {any} bar
+   */
+  function pointInNode2ProfileList(event, node, bar) {
+    if (!Array.isArray(bar?.listArea) || !Array.isArray(node?.widgets)) {
+      return false;
+    }
+    const eventPath = event?.composedPath?.() || [];
+    const targetCanvas = eventPath.find((target) => target?.tagName === "CANVAS")
+      || event?.target?.closest?.("canvas");
+    const nodeElement = targetCanvas?.closest?.(".lg-node[data-node-id]");
+    const nodeId = nodeElement?.dataset?.nodeId
+      ?? nodeElement?.getAttribute?.("data-node-id");
+    if (!targetCanvas || !nodeElement || String(nodeId) !== String(node.id)) {
+      return false;
+    }
+
+    const customWidgets = node.widgets.filter((widget) => widget?.type === "custom");
+    const profileWidgetIndex = customWidgets.indexOf(bar);
+    const widgetCanvases = nodeElement.querySelectorAll?.(".lg-node-widget canvas") || [];
+    const profileCanvas = widgetCanvases[profileWidgetIndex];
+    if (profileWidgetIndex < 0 || profileCanvas !== targetCanvas) {
+      return false;
+    }
+
+    const rect = profileCanvas.getBoundingClientRect?.();
+    const computedSize = bar.computeSize?.(node.size?.[0], node);
+    const logicalWidth = Number(profileCanvas.clientWidth)
+      || Number(node.size?.[0])
+      || Number(computedSize?.[0]);
+    const logicalHeight = Number(profileCanvas.clientHeight)
+      || Number(computedSize?.[1]);
+    if (
+      !rect
+      || !(Number(rect.width) > 0)
+      || !(Number(rect.height) > 0)
+      || !(logicalWidth > 0)
+      || !(logicalHeight > 0)
+    ) {
+      return false;
+    }
+    const localPos = [
+      (Number(event?.clientX || 0) - Number(rect.left || 0)) * logicalWidth / Number(rect.width),
+      (Number(event?.clientY || 0) - Number(rect.top || 0)) * logicalHeight / Number(rect.height),
+    ];
+    return canvasWidgets.pointInArea(localPos, bar.listArea);
+  }
+
+  function pointInProfileList(event, node, bar, clientPos) {
+    return canvasWidgets.pointInArea(clientPos, bar?.listClientArea)
+      || pointInNode2ProfileList(event, node, bar);
+  }
+
   function scrollProfileListFromWheel(event) {
     const clientPos = [Number(event?.clientX || 0), Number(event?.clientY || 0)];
     if (
@@ -83,7 +142,12 @@ export function createLoraPresetEntryLifecycle(dependencies) {
       && (now() - activeProfileWheelTarget.time) < 30000
       && (app.graph?._nodes || []).includes(activeProfileWheelTarget.node)
     ) {
-      if (!canvasWidgets.pointInArea(clientPos, activeProfileWheelTarget.widget.listClientArea)) {
+      if (!pointInProfileList(
+        event,
+        activeProfileWheelTarget.node,
+        activeProfileWheelTarget.widget,
+        clientPos,
+      )) {
         activeProfileWheelTarget = null;
       } else {
         activeProfileWheelTarget.time = now();
@@ -102,7 +166,7 @@ export function createLoraPresetEntryLifecycle(dependencies) {
     const nodesByZ = [...(app.graph?._nodes || [])].reverse();
     for (const node of nodesByZ) {
       const bar = node?.comfyClass === nodeTypeName ? node.__easyuseAnimaProfileBar : null;
-      if (!bar || !canvasWidgets.pointInArea(clientPos, bar.listClientArea)) {
+      if (!bar || !pointInProfileList(event, node, bar, clientPos)) {
         continue;
       }
       const handled = bar.scrollByWheel(event.deltaY, node);
