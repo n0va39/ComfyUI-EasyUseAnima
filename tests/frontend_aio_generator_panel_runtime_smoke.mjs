@@ -195,6 +195,14 @@ function createFixture() {
     return input;
   }
 
+  function textInput(value) {
+    dependencyCalls += 1;
+    const input = document.createElement("input");
+    input.type = "text";
+    input.value = String(value ?? "");
+    return input;
+  }
+
   function selectInput(options, value) {
     dependencyCalls += 1;
     const select = document.createElement("select");
@@ -433,6 +441,7 @@ function createFixture() {
     controls: {
       numberInput,
       checkbox,
+      textInput,
       selectInput,
       createNodeField,
     },
@@ -507,6 +516,7 @@ settings.highres.enabled = true;
 settings.highres.inherit_sampler_settings = false;
 settings.detailer.enabled = true;
 settings.detailer.face.enabled = true;
+settings.detailer.face.preserved_unknown = { nested: "keep-panel" };
 settings.detailer.eye.enabled = true;
 settings.upscale.enabled = true;
 settings.upscale.backend = "usdu";
@@ -977,15 +987,23 @@ const faceTitle = findByText(detailerStage, "1. Face Detailer");
 const faceBlock = faceTitle.parentElement.parentElement;
 const faceThreshold = findField(faceBlock, "text:field.threshold");
 const faceThresholdInput = faceThreshold.children[0].children[0];
+const faceWildcard = findField(faceBlock, "text:field.wildcard");
+const faceWildcardInput = faceWildcard.children[0];
 assert.equal(faceThresholdInput.value, "0.52");
 assert.equal(faceThresholdInput.min, "0");
 assert.equal(faceThresholdInput.max, "1");
 assert.equal(faceThresholdInput.step, "0.01");
 assert.equal(faceThreshold.getAttribute("data-test-tooltip"), "tip.detailerThreshold");
+assert.equal(faceWildcardInput.value, "");
+assert.equal(faceWildcard.getAttribute("data-test-tooltip"), "tip.detailerWildcard");
 
 faceThresholdInput.value = "0.63";
 faceThresholdInput.emit("input");
 assert.equal(node.settings.detailer.face.threshold, 0.63);
+faceWildcardInput.value = "__face_style__";
+faceWildcardInput.emit("input");
+assert.equal(node.settings.detailer.face.wildcard, "__face_style__");
+assert.deepEqual(node.settings.detailer.face.preserved_unknown, { nested: "keep-panel" });
 
 const serializedDetailerSettings = JSON.stringify(node.settings);
 node.settings = JSON.parse(serializedDetailerSettings);
@@ -999,6 +1017,11 @@ assert.equal(
   findField(reloadedFaceBlock, "text:field.threshold").children[0].children[0].value,
   "0.63",
   "serialized Detailer threshold must reload into the external target card",
+);
+assert.equal(
+  findField(reloadedFaceBlock, "text:field.wildcard").children[0].value,
+  "__face_style__",
+  "serialized Detailer wildcard must reload into the external target card",
 );
 
 const reloadedFaceEnabled = findField(reloadedFaceBlock, "text:label.enabled").children[0];
@@ -1025,6 +1048,11 @@ assert.equal(
   findField(reloadedFaceBlock, "text:field.threshold").children[0].children[0].value,
   "0.63",
   "re-enabling a Detailer target must preserve its threshold",
+);
+assert.equal(
+  findField(reloadedFaceBlock, "text:field.wildcard").children[0].value,
+  "__face_style__",
+  "re-enabling a Detailer target must preserve its wildcard",
 );
 
 while (fixture.animationFrames.length) {

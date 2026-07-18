@@ -497,6 +497,7 @@ class FrontendModuleStructureTests(unittest.TestCase):
             "controls": [
                 "numberInput,",
                 "checkbox,",
+                "textInput,",
                 "selectInput,",
                 "createNodeField,",
             ],
@@ -611,6 +612,7 @@ class FrontendModuleStructureTests(unittest.TestCase):
             "createDomSettingsCheckboxControl",
             "createDomSettingsNumberControl",
             "createDomSettingsSelectControl",
+            "createDomSettingsTextControl",
             "createDomSelectControl",
             "updateGeneratorSeed",
             "setGeneratorSeedFromUi",
@@ -673,6 +675,10 @@ class FrontendModuleStructureTests(unittest.TestCase):
         self.assertLess(
             entry_source.index("const generatorPanelRuntime"),
             entry_source.index("function hookInputNode"),
+        )
+        self.assertIn(
+            "nextSettings.detailer[targetName].wildcard = value;",
+            source,
         )
         self.assertTrue(AIO_GENERATOR_PANEL_RUNTIME_SMOKE.is_file())
         self.assertIn(
@@ -1238,6 +1244,7 @@ class FrontendModuleStructureTests(unittest.TestCase):
         composition = entry_source[composition_start:composition_end]
         for expected in (
             "createDialog,",
+            "textareaInput,",
             "defaultGenerationSettings: DEFAULT_GENERATION_SETTINGS,",
             "normalizeDetailerOrder,",
             "stageOptimizationEditor: createStageOptimizationEditor,",
@@ -1261,6 +1268,23 @@ class FrontendModuleStructureTests(unittest.TestCase):
             "createStageOptimizationEditor(`${title} Optimization`, target, defaults)",
             editor_body,
         )
+        for field_contract in (
+            'guide_size_for: guideSizeFor.value === "bbox"',
+            'wildcard: String(wildcard.value || "")',
+            "inpaint_model: inpaintModel.checked",
+            "tiled_encode: tiledEncode.checked",
+            "tiled_decode: tiledDecode.checked",
+        ):
+            with self.subTest(detailer_field_contract=field_contract):
+                self.assertIn(field_contract, editor_body)
+        for destructive_default in (
+            "guide_size_for: false",
+            "inpaint_model: false",
+            "tiled_encode: false",
+            "tiled_decode: false",
+        ):
+            with self.subTest(destructive_default=destructive_default):
+                self.assertNotIn(destructive_default, editor_body)
         self.assertIn("return openDetailerSettings;", source)
         self.assertTrue(AIO_DETAILER_SETTINGS_DIALOG_SMOKE.is_file())
         self.assertIn(
