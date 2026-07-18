@@ -161,6 +161,7 @@ class RegistryScannerSafetyTests(unittest.TestCase):
             "*.bak",
             "config.yaml",
             "*.log",
+            ".agents/",
             ".venv/",
         ):
             with self.subTest(entry=entry):
