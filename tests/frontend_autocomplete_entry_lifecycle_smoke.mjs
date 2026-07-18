@@ -344,4 +344,92 @@ function createRuntime(hostWindow, hostDocument, name) {
   disposeExternalAutocompleteInput(hostWindow, null);
 }
 
+{
+  const hostWindow = new FakeTarget();
+  const frames = new Map();
+  let nextFrame = 1;
+  hostWindow.requestAnimationFrame = (callback) => {
+    const handle = nextFrame++;
+    frames.set(handle, callback);
+    return handle;
+  };
+  hostWindow.cancelAnimationFrame = (handle) => {
+    frames.delete(handle);
+  };
+
+  const hookCounts = new Map();
+  const boundInputs = new Set();
+  hostWindow.easyuseAnimaHookAutocompleteInput = (input) => {
+    for (const existing of [...boundInputs]) {
+      if (existing.isConnected === false) {
+        existing.__easyuseAnimaAutocompleteDispose?.();
+      }
+    }
+    hookCounts.set(input, (hookCounts.get(input) || 0) + 1);
+    boundInputs.add(input);
+    let disposed = false;
+    const dispose = () => {
+      if (!disposed) {
+        disposed = true;
+        boundInputs.delete(input);
+        input.autocompleteDisposed = true;
+      }
+    };
+    input.__easyuseAnimaAutocompleteDispose = dispose;
+    return dispose;
+  };
+
+  const first = new FakeTarget();
+  const second = new FakeTarget();
+  first.isConnected = false;
+  second.isConnected = false;
+  const disposeFirst = registerExternalAutocompleteInput(hostWindow, first, { node: 1 });
+  const disposeSecond = registerExternalAutocompleteInput(hostWindow, second, { node: 1 });
+
+  assert.equal(
+    hookCounts.size,
+    0,
+    "detached sibling textareas must not bind while their editor is still being assembled",
+  );
+  assert.equal(frames.size, 2);
+
+  first.isConnected = true;
+  second.isConnected = true;
+  for (const callback of [...frames.values()]) {
+    callback();
+  }
+  frames.clear();
+  assert.equal(hookCounts.get(first), 1);
+  assert.equal(hookCounts.get(second), 1);
+  assert.equal(boundInputs.size, 2, "mounted sibling textareas must retain both bindings");
+
+  const focusMounted = new FakeTarget();
+  focusMounted.isConnected = false;
+  const disposeFocusMounted = registerExternalAutocompleteInput(
+    hostWindow,
+    focusMounted,
+    { node: 2 },
+  );
+  assert.equal(hookCounts.has(focusMounted), false);
+  focusMounted.isConnected = true;
+  focusMounted.emit("focus");
+  assert.equal(
+    hookCounts.get(focusMounted),
+    1,
+    "focus must recover an external textarea that mounts after the first frame",
+  );
+  for (const callback of [...frames.values()]) {
+    callback();
+  }
+  assert.equal(hookCounts.get(focusMounted), 1, "mount recovery must remain idempotent");
+  assert.equal(boundInputs.size, 3);
+
+  disposeFirst();
+  disposeSecond();
+  disposeFocusMounted();
+  assert.equal(first.autocompleteDisposed, true);
+  assert.equal(second.autocompleteDisposed, true);
+  assert.equal(focusMounted.autocompleteDisposed, true);
+}
+
 console.log("Autocomplete entry lifecycle smoke passed.");
