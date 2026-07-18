@@ -40,24 +40,28 @@ AUTOCOMPLETE_SOURCES = {
     "dbr_danbooru_2025_09_01": {
         "label": "Danbooru 2025-09-01 (recommended)",
         "path": DBR_DANBOORU_AUTOCOMPLETE_CSV,
+        "entry_count": 183174,
         "source": DBR_TAG_ARCHIVE_SOURCE,
         "license": DBR_TAG_ARCHIVE_LICENSE,
     },
     "dbr_e621_2025_09_01": {
         "label": "e621 2025-09-01",
         "path": DBR_E621_AUTOCOMPLETE_CSV,
+        "entry_count": 129525,
         "source": DBR_TAG_ARCHIVE_SOURCE,
         "license": DBR_TAG_ARCHIVE_LICENSE,
     },
     "dbr_danbooru_e621_merged_2025_09_01": {
         "label": "Danbooru + e621 merged 2025-09-01 (merge-risk)",
         "path": DBR_MERGED_AUTOCOMPLETE_CSV,
+        "entry_count": 295050,
         "source": DBR_TAG_ARCHIVE_SOURCE,
         "license": DBR_TAG_ARCHIVE_LICENSE,
     },
     "localsmile_kr_wiki": {
         "label": "Localsmile Danbooru KR wiki tag search (Korean)",
         "path": LOCALSMILE_AUTOCOMPLETE_CSV,
+        "entry_count": 114092,
         "source": "https://github.com/Localsmile/danbooru_KR_wiki_tag_search",
     },
 }
@@ -105,7 +109,7 @@ _DYNAMIC_PROMPT_SYNTAX_RE = re.compile(r"(?<!\\)\{(?:[^{}]|(?<=\\)[{}])*?(?<!\\)
 _DESCRIPTION_PREFIX_RE = re.compile(r"^\[([^\]]+)\]")
 _COMMENT_RE = re.compile(r"^[ \t]*#[^\n]*", re.MULTILINE)
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class AutocompleteEntry:
     tag: str
     tag_key: str
@@ -115,7 +119,7 @@ class AutocompleteEntry:
     search: str
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class _AutocompleteCacheKey:
     resolved_path: str
     mtime_ns: int
@@ -123,7 +127,7 @@ class _AutocompleteCacheKey:
     schema_version: int
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class _AutocompleteSnapshot:
     key: _AutocompleteCacheKey
     entries: tuple[AutocompleteEntry, ...]
@@ -400,14 +404,43 @@ def _entry_map(path: Path = AUTOCOMPLETE_CSV) -> Mapping[str, AutocompleteEntry]
     return _snapshot(path).entry_map
 
 
-def _snapshot_status(snapshot: _AutocompleteSnapshot, path: Path) -> dict:
-    exists = snapshot.key.mtime_ns != _MISSING_FILE_STAT
+def _status_from_key(key: _AutocompleteCacheKey, path: Path, count: int) -> dict:
+    exists = key.mtime_ns != _MISSING_FILE_STAT
     return {
         "path": str(path),
         "exists": exists,
-        "count": len(snapshot.entries),
-        "mtime": snapshot.key.mtime_ns / 1_000_000_000 if exists else 0,
+        "count": count,
+        "mtime": key.mtime_ns / 1_000_000_000 if exists else 0,
     }
+
+
+def _snapshot_status(snapshot: _AutocompleteSnapshot, path: Path) -> dict:
+    return _status_from_key(snapshot.key, path, len(snapshot.entries))
+
+
+def _cached_snapshot_for_key(
+    key: _AutocompleteCacheKey,
+) -> _AutocompleteSnapshot | None:
+    with _CACHE_LOCK:
+        snapshot = _CACHE.get(key.resolved_path)
+        if snapshot is not None and snapshot.key == key:
+            return snapshot
+    return None
+
+
+def _builtin_manifest_entry_count(key: _AutocompleteCacheKey) -> int | None:
+    resolved_path = Path(key.resolved_path)
+    for source in AUTOCOMPLETE_SOURCES.values():
+        if Path(source["path"]).resolve(strict=False) != resolved_path:
+            continue
+        # Built-in paths identify release-owned assets. Do not bind the fast
+        # path to byte size because Git EOL conversion can vary by checkout;
+        # tools/benchmark_autocomplete.py verifies parser counts before release.
+        entry_count = source.get("entry_count")
+        if type(entry_count) is int and entry_count >= 0:
+            return entry_count
+        return None
+    return None
 
 
 def _token_base(token: str) -> str:
@@ -726,6 +759,20 @@ def classify_prompt_text(text: str, limit: int = 240, path: Path = AUTOCOMPLETE_
 
 
 def autocomplete_status(path: Path = AUTOCOMPLETE_CSV) -> dict:
+    key = _cache_key(path)
+    if key.mtime_ns == _MISSING_FILE_STAT:
+        return _status_from_key(key, path, 0)
+
+    cached = _cached_snapshot_for_key(key)
+    if cached is not None:
+        return _snapshot_status(cached, path)
+
+    manifest_count = _builtin_manifest_entry_count(key)
+    if manifest_count is not None:
+        return _status_from_key(key, path, manifest_count)
+
+    # Public helper callers may provide arbitrary paths. Preserve their exact
+    # count semantics when no verified built-in manifest applies.
     return _snapshot_status(_snapshot(path), path)
 
 
