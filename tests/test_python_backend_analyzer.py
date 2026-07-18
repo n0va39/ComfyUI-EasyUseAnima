@@ -607,6 +607,18 @@ ignored/
         self.assertGreaterEqual(report["inventory"]["module_count"], 10)
         self.assertIn("nodes.py", report["registry"]["shipped_python_modules"])
         self.assertIn("api.py", report["registry"]["runtime_import_closure"])
+        self.assertIn(
+            "api_contract.py",
+            report["registry"]["shipped_python_modules"],
+        )
+        self.assertIn(
+            "api_contract.py",
+            report["registry"]["runtime_import_closure"],
+        )
+        self.assertIn(
+            {"from": "api.py", "to": "api_contract.py"},
+            report["imports"]["module_graph"],
+        )
         self.assertNotIn(
             "tests/test_python_backend_analyzer.py",
             report["registry"]["shipped_python_modules"],
