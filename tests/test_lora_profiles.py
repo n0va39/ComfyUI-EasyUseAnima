@@ -418,10 +418,15 @@ class LoraProfileApiRouteTests(unittest.TestCase):
                         handler(JsonRequest({**self.BASE_PAYLOAD, "overwrite": overwrite}))
                     )
 
-                self.assertEqual(response["status"], 400)
+                self.assertEqual(response["status"], 422)
                 self.assertEqual(
                     response["payload"],
-                    {"status": "error", "message": "overwrite must be a JSON boolean"},
+                    {
+                        "status": "error",
+                        "code": "invalid_request",
+                        "message": "overwrite must be a JSON boolean.",
+                        "details": {"field": "overwrite"},
+                    },
                 )
                 operation.assert_not_called()
 
@@ -439,7 +444,11 @@ class LoraProfileApiRouteTests(unittest.TestCase):
         self.assertEqual(response["status"], 409)
         self.assertEqual(
             response["payload"],
-            {"status": "error", "message": "Profile already exists"},
+            {
+                "status": "error",
+                "code": "profile_exists",
+                "message": "Profile already exists",
+            },
         )
 
 

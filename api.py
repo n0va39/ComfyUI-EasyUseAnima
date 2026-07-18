@@ -6,6 +6,7 @@ import json
 import os
 import re
 import threading
+import weakref
 from concurrent.futures import Future, ThreadPoolExecutor
 from pathlib import Path
 
@@ -39,6 +40,15 @@ from .prompt_translation import (
     TranslationCancelledError,
     TranslationTimeoutError,
     translate_prompt_markers,
+)
+from .api_contract import (
+    ApiContractError,
+    error_payload,
+    json_boolean,
+    json_integer,
+    json_object,
+    json_string,
+    parse_json_object,
 )
 try:
     from .storage import AtomicJsonStore, USER_DATA_DIR
@@ -80,6 +90,15 @@ WINDOWS_RESERVED_FILE_BASENAMES = {
     *(f"lpt{index}" for index in ("¹", "²", "³")),
 }
 PROMPT_TRANSLATION_ROUTE_TIMEOUT_SECONDS = 15.0
+FILE_IO_MAX_IN_FLIGHT = 4
+
+
+class InvalidProfileDataError(ValueError):
+    pass
+
+
+_FILE_IO_LIMITERS_LOCK = threading.Lock()
+_FILE_IO_LIMITERS: weakref.WeakKeyDictionary = weakref.WeakKeyDictionary()
 
 
 class _PromptTranslationWorker:
@@ -166,13 +185,58 @@ def _prompt_translation_error_response(exc: PromptTranslationError):
     )
 
 
-def _parse_json_boolean(data: dict, key: str, *, default: bool = False) -> bool:
-    if key not in data:
-        return default
-    value = data[key]
-    if type(value) is not bool:
-        raise ValueError(f"{key} must be a JSON boolean")
-    return value
+def _error_response(
+    status: int,
+    code: str,
+    message: str,
+    *,
+    details: dict | None = None,
+):
+    return web.json_response(
+        error_payload(code, message, details=details),
+        status=status,
+    )
+
+
+def _contract_error_response(exc: ApiContractError):
+    return _error_response(
+        exc.status,
+        exc.code,
+        exc.message,
+        details=exc.details,
+    )
+
+
+def _file_io_limiter() -> asyncio.Semaphore:
+    loop = asyncio.get_running_loop()
+    with _FILE_IO_LIMITERS_LOCK:
+        limiter = _FILE_IO_LIMITERS.get(loop)
+        if limiter is None:
+            limiter = asyncio.Semaphore(FILE_IO_MAX_IN_FLIGHT)
+            _FILE_IO_LIMITERS[loop] = limiter
+        return limiter
+
+
+def _release_file_io_slot(limiter: asyncio.Semaphore, worker: asyncio.Task) -> None:
+    limiter.release()
+    if worker.cancelled():
+        return
+    # Retrieve failures even when the request that submitted the worker was
+    # cancelled. A live caller still receives the same exception from await.
+    worker.exception()
+
+
+async def _run_file_io(function, /, *args, **kwargs):
+    limiter = _file_io_limiter()
+    await limiter.acquire()
+    worker = asyncio.create_task(asyncio.to_thread(function, *args, **kwargs))
+    worker.add_done_callback(
+        lambda completed, owned_limiter=limiter: _release_file_io_slot(
+            owned_limiter,
+            completed,
+        )
+    )
+    return await asyncio.shield(worker)
 
 
 def _windows_profile_filename_identity(name: str) -> str:
@@ -585,7 +649,7 @@ def _load_aio_profile(name: str) -> dict:
     try:
         data = _read_profile_json(path)
     except json.JSONDecodeError as exc:
-        raise ValueError("Profile data is invalid") from exc
+        raise InvalidProfileDataError("Profile data is invalid") from exc
     return _normalize_aio_profile_payload(path.stem, data if isinstance(data, dict) else {})
 
 
@@ -653,6 +717,128 @@ def _resolve_lora_preview_path(lora_name: str):
     return None
 
 
+_SAFE_PROFILE_VALIDATION_MESSAGES = frozenset(
+    {
+        "Profile name is required",
+        "Profile name is reserved on Windows",
+        "Invalid profile path",
+        "System profile names are reserved",
+        "Profile settings must be an object",
+        "Profile settings are too large",
+        f"A maximum of {MAX_AIO_PROFILES} profiles can be saved",
+    }
+)
+
+
+def _profile_error_response(exc: Exception):
+    if isinstance(exc, FileExistsError):
+        return _error_response(409, "profile_exists", "Profile already exists")
+    if isinstance(exc, FileNotFoundError):
+        return _error_response(404, "profile_not_found", "Profile not found")
+    if isinstance(exc, (json.JSONDecodeError, InvalidProfileDataError)):
+        return _error_response(422, "invalid_profile_data", "Profile data is invalid")
+    if isinstance(exc, ValueError):
+        message = str(exc)
+        if message not in _SAFE_PROFILE_VALIDATION_MESSAGES:
+            message = "Request validation failed"
+        return _error_response(422, "invalid_request", message)
+    raise exc
+
+
+def _get_settings_payload_sync() -> dict:
+    return public_settings()
+
+
+def _save_setting_payload_sync(key: str, value) -> dict:
+    save_setting(key, value)
+    return {"status": "ok", **public_settings()}
+
+
+def _get_long_text_settings_payload_sync() -> dict:
+    return {
+        "status": "ok",
+        "values": load_long_text_settings(),
+        "settings": public_settings(),
+    }
+
+
+def _save_long_text_settings_payload_sync(values: dict) -> dict:
+    return {
+        "status": "ok",
+        "values": save_long_text_settings(values),
+        "settings": public_settings(),
+    }
+
+
+def _wildcards_payload_sync() -> dict:
+    settings = public_settings()
+    extra_paths = settings.get("wildcard.extra_paths", "")
+    roots = resolve_wildcard_roots(extra_paths)
+    sources = [
+        {
+            "id": f"wildcard:{index}",
+            "label": f"Wildcard source {index}",
+            "exists": root.is_dir(),
+        }
+        for index, root in enumerate(roots, start=1)
+    ]
+    return {
+        "status": "ok",
+        "items": list_wildcards(roots=roots),
+        # Preserve the legacy list-of-strings type without publishing paths.
+        "roots": [source["id"] for source in sources],
+        "sources": sources,
+    }
+
+
+def _autocomplete_status_payload_sync() -> dict:
+    selected_source = resolve_autocomplete_source()
+    source_key, path = resolve_autocomplete_source_path(selected_source)
+    status = dict(autocomplete_status(path))
+    status.pop("path", None)
+    sources = []
+    source_label = source_key
+    for source in available_autocomplete_sources(source_key):
+        public_source = {
+            key: value
+            for key, value in source.items()
+            if key != "path"
+        }
+        sources.append(public_source)
+        if public_source.get("selected"):
+            source_label = str(public_source.get("label") or source_key)
+    return {
+        **status,
+        "source": source_key,
+        "source_label": source_label,
+        "sources": sources,
+    }
+
+
+def _search_autocomplete_payload_sync(
+    query: str,
+    requested_limit: str | None,
+    category_filter: str | None,
+):
+    default_limit = resolve_autocomplete_limit()
+    try:
+        limit = int(requested_limit) if requested_limit is not None else default_limit
+    except ValueError:
+        limit = default_limit
+    _, path = resolve_autocomplete_source_path(resolve_autocomplete_source())
+    return search_autocomplete(
+        query,
+        limit=limit,
+        path=path,
+        category=category_filter,
+    )
+
+
+def _classify_prompt_payload_sync(text: str, limit: int):
+    _, path = resolve_autocomplete_source_path(resolve_autocomplete_source())
+    return classify_prompt_text(text, limit=limit, path=path)
+
+
 def _get_prompt_routes():
     if server is None:
         return None
@@ -667,77 +853,49 @@ if web is not None and routes is not None:
 
     @routes.get("/easyuse_anima/settings")
     async def get_settings_handler(request):
-        return web.json_response(public_settings())
+        return web.json_response(await _run_file_io(_get_settings_payload_sync))
 
     @routes.post("/easyuse_anima/set_setting")
     async def set_setting_handler(request):
-        data = await request.json()
-        key = data.get("key")
-        if key is None:
-            return web.json_response(
-                {"status": "error", "message": "Setting key not provided"},
-                status=400,
-            )
         try:
-            save_setting(str(key), data.get("value", ""))
-        except KeyError as exc:
-            return web.json_response(
-                {"status": "error", "message": str(exc)},
-                status=400,
+            data = await parse_json_object(request)
+            key = json_string(data, "key", allow_empty=False)
+        except ApiContractError as exc:
+            return _contract_error_response(exc)
+        try:
+            payload = await _run_file_io(
+                _save_setting_payload_sync,
+                key,
+                data.get("value", ""),
             )
-        return web.json_response({"status": "ok", **public_settings()})
+        except KeyError:
+            return _error_response(422, "unknown_setting", "Unknown setting")
+        return web.json_response(payload)
 
     @routes.get("/easyuse_anima/long_text_settings")
     async def get_long_text_settings_handler(request):
         return web.json_response(
-            {
-                "status": "ok",
-                "values": load_long_text_settings(),
-                "settings": public_settings(),
-            }
+            await _run_file_io(_get_long_text_settings_payload_sync)
         )
 
     @routes.get("/easyuse_anima/wildcards")
     async def get_wildcards_handler(request):
-        settings = public_settings()
-        extra_paths = settings.get("wildcard.extra_paths", "")
-        return web.json_response(
-            {
-                "status": "ok",
-                "items": list_wildcards(extra_paths=extra_paths),
-                "roots": [str(path) for path in resolve_wildcard_roots(extra_paths)],
-            }
-        )
+        return web.json_response(await _run_file_io(_wildcards_payload_sync))
 
     @routes.post("/easyuse_anima/long_text_settings/save")
     async def save_long_text_settings_handler(request):
-        data = await request.json()
-        values = data.get("values", data)
-        if not isinstance(values, dict):
-            return web.json_response(
-                {"status": "error", "message": "Long text values must be an object"},
-                status=400,
-            )
-        saved = save_long_text_settings(values)
+        try:
+            data = await parse_json_object(request)
+            values = json_object(data, "values") if "values" in data else data
+        except ApiContractError as exc:
+            return _contract_error_response(exc)
         return web.json_response(
-            {
-                "status": "ok",
-                "values": saved,
-                "settings": public_settings(),
-            }
+            await _run_file_io(_save_long_text_settings_payload_sync, values)
         )
 
     @routes.get("/easyuse_anima/autocomplete_status")
     async def autocomplete_status_handler(request):
-        selected_source = resolve_autocomplete_source()
-        source_key, path = resolve_autocomplete_source_path(selected_source)
-        return web.json_response(
-            {
-                **autocomplete_status(path),
-                "source": source_key,
-                "sources": available_autocomplete_sources(source_key),
-            }
-        )
+        return web.json_response(await _run_file_io(_autocomplete_status_payload_sync))
 
     @routes.get("/easyuse_anima/autocomplete")
     async def autocomplete_handler(request):
@@ -747,44 +905,52 @@ if web is not None and routes is not None:
             "artist": "artist",
             "artist_or_general": "artist,general",
         }.get(category)
-        try:
-            limit = int(request.query.get("limit", resolve_autocomplete_limit()))
-        except ValueError:
-            limit = resolve_autocomplete_limit()
-        _, path = resolve_autocomplete_source_path(resolve_autocomplete_source())
         return web.json_response(
-            search_autocomplete(
+            await _run_file_io(
+                _search_autocomplete_payload_sync,
                 query,
-                limit=limit,
-                path=path,
-                category=category_filter,
+                request.query.get("limit"),
+                category_filter,
             )
         )
 
     @routes.post("/easyuse_anima/classify_prompt")
     async def classify_prompt_handler(request):
-        data = await request.json()
         try:
-            limit = int(data.get("limit", 240))
-        except (TypeError, ValueError):
-            limit = 240
-        _, path = resolve_autocomplete_source_path(resolve_autocomplete_source())
+            data = await parse_json_object(request)
+            text = json_string(data, "text")
+            limit = json_integer(
+                data,
+                "limit",
+                default=240,
+                minimum=1,
+                maximum=500,
+            )
+        except ApiContractError as exc:
+            return _contract_error_response(exc)
         return web.json_response(
-            classify_prompt_text(str(data.get("text") or ""), limit=limit, path=path)
+            await _run_file_io(_classify_prompt_payload_sync, text, limit)
         )
 
     @routes.post("/easyuse_anima/translate_prompt")
     async def translate_prompt_handler(request):
-        data = await request.json()
         try:
-            translated = await _translate_prompt_for_route(str(data.get("text") or ""))
+            data = await parse_json_object(request)
+            text = json_string(data, "text")
+        except ApiContractError as exc:
+            return _contract_error_response(exc)
+        try:
+            translated = await _translate_prompt_for_route(text)
         except PromptTranslationError as exc:
             return _prompt_translation_error_response(exc)
         return web.json_response({"status": "ok", "text": translated})
 
     @routes.get("/easyuse_anima/lora_preview")
     async def lora_preview_handler(request):
-        preview_path = _resolve_lora_preview_path(request.query.get("name", ""))
+        preview_path = await _run_file_io(
+            _resolve_lora_preview_path,
+            request.query.get("name", ""),
+        )
         if not preview_path:
             return web.Response(status=404)
         return web.FileResponse(
@@ -794,99 +960,121 @@ if web is not None and routes is not None:
 
     @routes.get("/easyuse_anima/loras")
     async def loras_handler(request):
-        return web.json_response({"loras": _list_loras()})
+        return web.json_response({"loras": await _run_file_io(_list_loras)})
 
     @routes.get("/easyuse_anima/lora_profiles")
     async def lora_profiles_handler(request):
-        return web.json_response({"profiles": _list_lora_profiles()})
+        return web.json_response({"profiles": await _run_file_io(_list_lora_profiles)})
 
     @routes.post("/easyuse_anima/lora_profiles/save")
     async def save_lora_profile_handler(request):
-        data = await request.json()
         try:
-            overwrite = _parse_json_boolean(data, "overwrite")
-            payload = _save_lora_profile(
-                str(data.get("name") or ""),
+            data = await parse_json_object(request)
+            name = json_string(data, "name", allow_empty=False)
+            overwrite = json_boolean(data, "overwrite")
+            if "profile_data" in data:
+                json_object(data, "profile_data")
+        except ApiContractError as exc:
+            return _contract_error_response(exc)
+        try:
+            payload = await _run_file_io(
+                _save_lora_profile,
+                name,
                 data,
                 overwrite=overwrite,
             )
-        except FileExistsError as exc:
-            return web.json_response({"status": "error", "message": str(exc)}, status=409)
-        except ValueError as exc:
-            return web.json_response({"status": "error", "message": str(exc)}, status=400)
+        except (FileExistsError, ValueError) as exc:
+            return _profile_error_response(exc)
         return web.json_response({"status": "ok", "profile": payload})
 
     @routes.get("/easyuse_anima/lora_profiles/load")
     async def load_lora_profile_handler(request):
         try:
-            payload = _load_lora_profile(request.query.get("name", ""))
-        except ValueError as exc:
-            return web.json_response({"status": "error", "message": str(exc)}, status=400)
-        except FileNotFoundError as exc:
-            return web.json_response({"status": "error", "message": str(exc)}, status=404)
+            payload = await _run_file_io(
+                _load_lora_profile,
+                request.query.get("name", ""),
+            )
+        except (json.JSONDecodeError, FileNotFoundError, ValueError) as exc:
+            return _profile_error_response(exc)
         return web.json_response({"status": "ok", "profile": payload})
 
     @routes.get("/easyuse_anima/aio_profiles")
     async def aio_profiles_handler(request):
-        return web.json_response({"status": "ok", "profiles": _list_aio_profiles()})
+        return web.json_response(
+            {"status": "ok", "profiles": await _run_file_io(_list_aio_profiles)}
+        )
 
     @routes.post("/easyuse_anima/aio_profiles/save")
     async def save_aio_profile_handler(request):
-        data = await request.json()
         try:
-            overwrite = _parse_json_boolean(data, "overwrite")
-            payload = _save_aio_profile(
-                str(data.get("name") or ""),
+            data = await parse_json_object(request)
+            name = json_string(data, "name", allow_empty=False)
+            json_object(data, "settings")
+            overwrite = json_boolean(data, "overwrite")
+        except ApiContractError as exc:
+            return _contract_error_response(exc)
+        try:
+            payload = await _run_file_io(
+                _save_aio_profile,
+                name,
                 data,
                 overwrite=overwrite,
             )
-        except FileExistsError as exc:
-            return web.json_response({"status": "error", "message": str(exc)}, status=409)
-        except ValueError as exc:
-            return web.json_response({"status": "error", "message": str(exc)}, status=400)
+        except (FileExistsError, ValueError) as exc:
+            return _profile_error_response(exc)
         return web.json_response({"status": "ok", "profile": payload})
 
     @routes.get("/easyuse_anima/aio_profiles/load")
     async def load_aio_profile_handler(request):
         try:
-            payload = _load_aio_profile(request.query.get("name", ""))
-        except ValueError as exc:
-            return web.json_response({"status": "error", "message": str(exc)}, status=400)
-        except FileNotFoundError as exc:
-            return web.json_response({"status": "error", "message": str(exc)}, status=404)
+            payload = await _run_file_io(
+                _load_aio_profile,
+                request.query.get("name", ""),
+            )
+        except (FileNotFoundError, ValueError) as exc:
+            return _profile_error_response(exc)
         return web.json_response({"status": "ok", "profile": payload})
 
     @routes.post("/easyuse_anima/aio_profiles/delete")
     async def delete_aio_profile_handler(request):
-        data = await request.json()
         try:
-            payload = _delete_aio_profile(str(data.get("name") or ""))
-        except ValueError as exc:
-            return web.json_response({"status": "error", "message": str(exc)}, status=400)
-        except FileNotFoundError as exc:
-            return web.json_response({"status": "error", "message": str(exc)}, status=404)
+            data = await parse_json_object(request)
+            name = json_string(data, "name", allow_empty=False)
+        except ApiContractError as exc:
+            return _contract_error_response(exc)
+        try:
+            payload = await _run_file_io(_delete_aio_profile, name)
+        except (FileNotFoundError, ValueError) as exc:
+            return _profile_error_response(exc)
         return web.json_response({"status": "ok", "profile": payload})
 
     @routes.post("/easyuse_anima/aio_profiles/rename")
     async def rename_aio_profile_handler(request):
-        data = await request.json()
         try:
-            overwrite = _parse_json_boolean(data, "overwrite")
-            payload = _rename_aio_profile(
-                str(data.get("old_name") or ""),
-                str(data.get("new_name") or ""),
+            data = await parse_json_object(request)
+            old_name = json_string(data, "old_name", allow_empty=False)
+            new_name = json_string(data, "new_name", allow_empty=False)
+            overwrite = json_boolean(data, "overwrite")
+        except ApiContractError as exc:
+            return _contract_error_response(exc)
+        try:
+            payload = await _run_file_io(
+                _rename_aio_profile,
+                old_name,
+                new_name,
                 overwrite=overwrite,
             )
-        except FileExistsError as exc:
-            return web.json_response({"status": "error", "message": str(exc)}, status=409)
-        except ValueError as exc:
-            return web.json_response({"status": "error", "message": str(exc)}, status=400)
-        except FileNotFoundError as exc:
-            return web.json_response({"status": "error", "message": str(exc)}, status=404)
+        except (FileExistsError, FileNotFoundError, ValueError) as exc:
+            return _profile_error_response(exc)
         return web.json_response({"status": "ok", "profile": payload})
 
     @routes.post("/easyuse_anima/lora_profiles/fix")
     async def fix_lora_profile_handler(request):
-        data = await request.json()
-        payload = _fix_lora_profile_payload(data if isinstance(data, dict) else {})
+        try:
+            data = await parse_json_object(request)
+            if "profile_data" in data:
+                json_object(data, "profile_data")
+        except ApiContractError as exc:
+            return _contract_error_response(exc)
+        payload = await _run_file_io(_fix_lora_profile_payload, data)
         return web.json_response({"status": "ok", "profile": payload})
