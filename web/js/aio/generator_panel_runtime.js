@@ -9,6 +9,7 @@ const GENERATOR_PANEL_CONTROL_SELECTOR = "input, select, textarea, button";
  * @typedef {object} AioGeneratorPanelControls
  * @property {(value: any, step?: string) => any} numberInput
  * @property {(value: any) => any} checkbox
+ * @property {(value: any) => any} textInput
  * @property {(options: any[], value: any) => any} selectInput
  * @property {(label: any, control: any, className?: string, tooltipKey?: string) => any} createNodeField
  */
@@ -127,6 +128,7 @@ export function aioCreateGeneratorPanelRuntime(dependencies) {
   const {
     numberInput,
     checkbox,
+    textInput,
     selectInput,
     createNodeField,
   } = controls;
@@ -1008,6 +1010,19 @@ export function aioCreateGeneratorPanelRuntime(dependencies) {
     return select;
   }
 
+  function createDomSettingsTextControl(node, value, updater, options = {}) {
+    const input = applyGeneratorControlFocusKey(textInput(value), options);
+    input.addEventListener("input", () => {
+      updateGeneratorSettings(node, (settings) => {
+        updater?.(settings, String(input.value || ""));
+      });
+      updateGeneratorDomSummary(node);
+      scheduleGeneratorLayout(node);
+      markNodeDirty(node);
+    });
+    return input;
+  }
+
   function createDomSelectControl(node, name, value, fallbackOptions = []) {
     const select = selectInput(widgetOptions(node, name, fallbackOptions), String(value ?? ""));
     select.addEventListener("change", () => {
@@ -1483,6 +1498,21 @@ export function aioCreateGeneratorPanelRuntime(dependencies) {
               ),
               "wide",
               "tip.detailerThreshold",
+            ),
+            createNodeField(
+              aioText("field.wildcard"),
+              createDomSettingsTextControl(
+                node,
+                target.wildcard,
+                (nextSettings, value) => {
+                  nextSettings.detailer ||= {};
+                  nextSettings.detailer[targetName] ||= {};
+                  nextSettings.detailer[targetName].wildcard = value;
+                },
+                { focusKey: `detailer.${targetName}.wildcard` },
+              ),
+              "wide",
+              "tip.detailerWildcard",
             ),
             createNodeField(
               aioText("label.steps"),

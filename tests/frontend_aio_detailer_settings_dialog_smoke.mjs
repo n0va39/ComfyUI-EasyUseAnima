@@ -152,6 +152,13 @@ function createFixture({
     return input;
   }
 
+  function textareaInput(value) {
+    dependencyCalls += 1;
+    const textarea = document.createElement("textarea");
+    textarea.value = String(value ?? "");
+    return textarea;
+  }
+
   function numberInput(value, step = "1") {
     dependencyCalls += 1;
     const input = document.createElement("input");
@@ -389,6 +396,7 @@ function createFixture({
       field,
       checkbox,
       textInput,
+      textareaInput,
       numberInput,
       selectInput,
       reconcileSelectInput,
@@ -477,7 +485,15 @@ function createFixture({
         enabled: true,
         order: ["face", "custom_1", "eye"],
         sam3: { checkpoint: "configured-sam3.safetensors" },
-        face: { enabled: true, preserved_face_key: "keep-face" },
+        face: {
+          enabled: true,
+          guide_size_for: true,
+          wildcard: "configured face wildcard",
+          inpaint_model: true,
+          tiled_encode: true,
+          tiled_decode: true,
+          preserved_face_key: "keep-face",
+        },
         eye: { enabled: true },
         custom_1: {
           ...clone(settingsModule.AIO_DEFAULT_GENERATION_SETTINGS.detailer.face),
@@ -511,6 +527,12 @@ function createFixture({
   assert.deepEqual(tabs(cancelDialog).map(tabLabel), ["Face Detailer", "Custom One", "Eye Detailer"]);
   assert.ok(tabByLabel(cancelDialog, "Face Detailer").classList.contains("active"));
   assert.equal(controlIn(activeEditor(cancelDialog), "Block name").value, "Face Detailer");
+  assert.equal(controlIn(activeEditor(cancelDialog), "Guide size basis").value, "bbox");
+  assert.equal(controlIn(activeEditor(cancelDialog), "Wildcard").value, "configured face wildcard");
+  assert.equal(controlIn(activeEditor(cancelDialog), "Wildcard").tagName, "TEXTAREA");
+  assert.equal(controlIn(activeEditor(cancelDialog), "Inpaint model").checked, true);
+  assert.equal(controlIn(activeEditor(cancelDialog), "Tiled encode").checked, true);
+  assert.equal(controlIn(activeEditor(cancelDialog), "Tiled decode").checked, true);
 
   tabByLabel(cancelDialog, "Custom One").emit("click");
   const cancelledName = controlIn(activeEditor(cancelDialog), "Block name");
@@ -603,6 +625,11 @@ function createFixture({
   const portraitFollowMain = controlIn(editor, "Follow main sampler");
   portraitFollowMain.checked = false;
   portraitFollowMain.emit("change");
+  controlIn(editor, "Guide size basis").value = "bbox";
+  controlIn(editor, "Wildcard").value = "__portrait_style__";
+  controlIn(editor, "Inpaint model").checked = true;
+  controlIn(editor, "Tiled encode").checked = true;
+  controlIn(editor, "Tiled decode").checked = true;
   controlIn(dialog.body, "SAM3 checkpoint").value = "updated-sam3.safetensors";
   controlIn(dialog.body, "Enable detailer").checked = true;
 
@@ -612,6 +639,11 @@ function createFixture({
   assert.deepEqual(dialog.trace.slice(-3), ["write", "render", "remove"]);
   assert.equal(fixture.node.settings.preserved_root_key, "keep-root");
   assert.equal(fixture.node.settings.detailer.face.preserved_face_key, "keep-face");
+  assert.equal(fixture.node.settings.detailer.face.guide_size_for, true);
+  assert.equal(fixture.node.settings.detailer.face.wildcard, "configured face wildcard");
+  assert.equal(fixture.node.settings.detailer.face.inpaint_model, true);
+  assert.equal(fixture.node.settings.detailer.face.tiled_encode, true);
+  assert.equal(fixture.node.settings.detailer.face.tiled_decode, true);
   assert.equal(fixture.node.settings.detailer.enabled, true);
   assert.equal(fixture.node.settings.detailer.sam3.context, "load_checkpoint");
   assert.equal(fixture.node.settings.detailer.sam3.checkpoint, "updated-sam3.safetensors");
@@ -624,6 +656,11 @@ function createFixture({
   assert.equal(fixture.node.settings.detailer.custom_2.cfg, 1);
   assert.equal(fixture.node.settings.detailer.custom_2.denoise, 1);
   assert.equal(fixture.node.settings.detailer.custom_2.inherit_sampler_settings, false);
+  assert.equal(fixture.node.settings.detailer.custom_2.guide_size_for, true);
+  assert.equal(fixture.node.settings.detailer.custom_2.wildcard, "__portrait_style__");
+  assert.equal(fixture.node.settings.detailer.custom_2.inpaint_model, true);
+  assert.equal(fixture.node.settings.detailer.custom_2.tiled_encode, true);
+  assert.equal(fixture.node.settings.detailer.custom_2.tiled_decode, true);
   assert.equal(
     fixture.node.settings.detailer.custom_2.optimization_marker,
     "optimized:Detailer Block 2 Optimization",
@@ -632,6 +669,57 @@ function createFixture({
   assert.ok(fixture.node.settings.detailer.custom_2.dit_corrections);
   assert.deepEqual(JSON.parse(fixture.node.widgets[0].value), fixture.node.settings);
   assert.ok(fixture.stageCalls.some(({ title }) => title === "Detailer Block 2 Optimization"));
+}
+
+{
+  const fixture = createFixture({
+    settings: {
+      detailer: {
+        enabled: true,
+        order: ["custom_7", "face", "eye"],
+        face: { enabled: false },
+        eye: { enabled: false },
+        custom_7: {
+          label: "Sparse Custom",
+          enabled: false,
+          guide_size_for: true,
+          wildcard: "__saved_sparse__",
+          inpaint_model: true,
+          tiled_encode: true,
+          tiled_decode: true,
+          preserved_sparse_key: { nested: "keep-custom" },
+        },
+      },
+    },
+  });
+  fixture.openDetailerSettings(fixture.node);
+  await flushPromises();
+  const dialog = fixture.dialogs[0];
+  assert.deepEqual(tabs(dialog).map(tabLabel), ["Sparse Custom", "Face Detailer", "Eye Detailer"]);
+  tabByLabel(dialog, "Sparse Custom").emit("click");
+  const editor = activeEditor(dialog);
+  assert.equal(controlIn(editor, "Enable").checked, false);
+  assert.equal(controlIn(editor, "Guide size basis").value, "bbox");
+  assert.equal(controlIn(editor, "Wildcard").value, "__saved_sparse__");
+  assert.equal(controlIn(editor, "Inpaint model").checked, true);
+  assert.equal(controlIn(editor, "Tiled encode").checked, true);
+  assert.equal(controlIn(editor, "Tiled decode").checked, true);
+
+  action(dialog, "button.apply").emit("click");
+  assert.deepEqual(fixture.node.settings.detailer.order, ["custom_7", "face", "eye"]);
+  assert.equal(fixture.node.settings.detailer.custom_7.enabled, false);
+  assert.equal(fixture.node.settings.detailer.custom_7.guide_size_for, true);
+  assert.equal(fixture.node.settings.detailer.custom_7.wildcard, "__saved_sparse__");
+  assert.equal(fixture.node.settings.detailer.custom_7.inpaint_model, true);
+  assert.equal(fixture.node.settings.detailer.custom_7.tiled_encode, true);
+  assert.equal(fixture.node.settings.detailer.custom_7.tiled_decode, true);
+  assert.deepEqual(
+    fixture.node.settings.detailer.custom_7.preserved_sparse_key,
+    { nested: "keep-custom" },
+    "Untouched custom-target fields outside the known schema must survive Apply",
+  );
+  assert.equal(fixture.node.settings.detailer.face.enabled, false);
+  assert.equal(fixture.node.settings.detailer.eye.enabled, false);
 }
 
 {

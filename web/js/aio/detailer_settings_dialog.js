@@ -6,6 +6,7 @@
  * @property {(section: any, label: any, control: any, tooltipKey?: string) => any} field
  * @property {(value: any) => any} checkbox
  * @property {(value: any) => any} textInput
+ * @property {(value: any) => any} textareaInput
  * @property {(value: any, step?: string) => any} numberInput
  * @property {(options: any[], value: any) => any} selectInput
  * @property {(select: any, options: any[]) => any} reconcileSelectInput
@@ -85,6 +86,7 @@ export function aioCreateDetailerSettingsDialog(dependencies) {
     field,
     checkbox,
     textInput,
+    textareaInput,
     numberInput,
     selectInput,
     reconcileSelectInput,
@@ -163,6 +165,14 @@ export function aioCreateDetailerSettingsDialog(dependencies) {
     detail.className = "easyuse-anima-aio-subsection";
     detail.append(Object.assign(document.createElement("h4"), { textContent: aioStaticText("Impact Detailer") }));
     const guideSize = field(detail, "Guide size", numberInput(target.guide_size, "8"));
+    const guideSizeFor = field(
+      detail,
+      "Guide size basis",
+      selectInput([
+        { value: "bbox", label: "bbox" },
+        { value: "crop_region", label: "crop_region" },
+      ], target.guide_size_for ? "bbox" : "crop_region"),
+    );
     const maxSize = field(detail, "Max size", numberInput(target.max_size, "8"));
     const steps = field(detail, "Steps", numberInput(target.steps, "1"));
     steps.min = "1";
@@ -182,9 +192,13 @@ export function aioCreateDetailerSettingsDialog(dependencies) {
     const feather = field(detail, "Feather", numberInput(target.feather, "1"));
     const noiseMask = field(detail, "Noise mask", checkbox(target.noise_mask));
     const forceInpaint = field(detail, "Force inpaint", checkbox(target.force_inpaint));
+    const wildcard = field(detail, "Wildcard", textareaInput(target.wildcard));
     const noiseMaskFeather = field(detail, "Mask feather", numberInput(target.noise_mask_feather, "1"));
     const cycle = field(detail, "Cycle", numberInput(target.cycle, "1"));
     const alignment = field(detail, "Alignment", selectInput(["impact", "none", "32", "64"], target.alignment || "32"));
+    const inpaintModel = field(detail, "Inpaint model", checkbox(target.inpaint_model));
+    const tiledEncode = field(detail, "Tiled encode", checkbox(target.tiled_encode));
+    const tiledDecode = field(detail, "Tiled decode", checkbox(target.tiled_decode));
     const optimization = createStageOptimizationEditor(`${title} Optimization`, target, defaults);
     const updateInheritedRows = () => {
       const display = inheritSampler.checked ? "none" : "";
@@ -222,7 +236,7 @@ export function aioCreateDetailerSettingsDialog(dependencies) {
           drop_size: Number(dropSize.value || defaults.drop_size),
           contour_fill: contourFill.checked,
           guide_size: Number(guideSize.value || defaults.guide_size),
-          guide_size_for: false,
+          guide_size_for: guideSizeFor.value === "bbox",
           max_size: Number(maxSize.value || defaults.max_size),
           steps: Math.trunc(clampGeneratorNumber(steps.value, defaults.steps, 1, 75)),
           inherit_sampler_settings: inheritSampler.checked,
@@ -233,13 +247,13 @@ export function aioCreateDetailerSettingsDialog(dependencies) {
           feather: Number(feather.value || defaults.feather),
           noise_mask: noiseMask.checked,
           force_inpaint: forceInpaint.checked,
-          wildcard: target.wildcard || "",
+          wildcard: String(wildcard.value || ""),
           cycle: Number(cycle.value || defaults.cycle),
           alignment: alignment.value || "32",
-          inpaint_model: false,
+          inpaint_model: inpaintModel.checked,
           noise_mask_feather: Number(noiseMaskFeather.value || defaults.noise_mask_feather || 0),
-          tiled_encode: false,
-          tiled_decode: false,
+          tiled_encode: tiledEncode.checked,
+          tiled_decode: tiledDecode.checked,
           ...optimized,
         };
       },
