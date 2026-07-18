@@ -45,6 +45,43 @@ def _leaf_contracts(manifest: dict, contract: dict, path: tuple[str, ...] = ()):
     yield path, contract
 
 
+def _contract_nodes(contract: dict, path: tuple[str, ...] = ()):
+    yield path, contract
+    for group_name in ("fields", "pattern_fields"):
+        children = contract.get(group_name)
+        if isinstance(children, dict):
+            for name, child in children.items():
+                if isinstance(child, dict):
+                    yield from _contract_nodes(child, (*path, group_name, name))
+    for child_name in ("items", "additional_properties"):
+        child = contract.get(child_name)
+        if isinstance(child, dict):
+            yield from _contract_nodes(child, (*path, child_name))
+    for group_name in ("one_of", "any_of"):
+        children = contract.get(group_name)
+        if isinstance(children, list):
+            for index, child in enumerate(children):
+                if isinstance(child, dict):
+                    yield from _contract_nodes(child, (*path, group_name, str(index)))
+
+
+def _all_contract_nodes(manifest: dict):
+    yield from _contract_nodes(manifest["shape"], ("shape",))
+    for name, definition in manifest["definitions"].items():
+        yield from _contract_nodes(definition, ("definitions", name))
+
+
+def _coercion_references(value):
+    if isinstance(value, dict):
+        for name, child in value.items():
+            if name in {"coercion", "item_coercion"} and isinstance(child, str):
+                yield child
+            yield from _coercion_references(child)
+    elif isinstance(value, list):
+        for child in value:
+            yield from _coercion_references(child)
+
+
 def _default_leaves(value, path: tuple[str, ...] = ()):
     if isinstance(value, dict) and value:
         for name, child in value.items():
@@ -83,12 +120,17 @@ def _git(*args: str, binary: bool = False):
 
 
 @contextmanager
-def _deterministic_capabilities():
+def _deterministic_capabilities(
+    *,
+    samplers=("er_sde", "euler"),
+    schedulers=("simple",),
+    impact_schedulers=("sgm_uniform",),
+):
     with patch.multiple(
         nodes,
-        _comfy_sampler_names=lambda: ["er_sde", "euler"],
-        _comfy_scheduler_names=lambda: ["simple"],
-        _impact_scheduler_names=lambda: ["sgm_uniform"],
+        _comfy_sampler_names=lambda: list(samplers),
+        _comfy_scheduler_names=lambda: list(schedulers),
+        _impact_scheduler_names=lambda: list(impact_schedulers),
         _comfy_max_resolution=lambda: 16384,
     ):
         yield
@@ -152,13 +194,6 @@ class AIOGenerationSettingsManifestTests(unittest.TestCase):
                         )
                         self.assertEqual(_get_path(normalized, path), default)
 
-                if "dynamic_enum" in contract:
-                    with self.subTest(path="/" + "/".join(path), rule="dynamic-enum"):
-                        normalized = nodes._normalize_aio_generation_settings(
-                            _payload_with(path, "__invalid_dynamic_choice__")
-                        )
-                        self.assertEqual(_get_path(normalized, path), default)
-
                 if "minimum" in contract:
                     with self.subTest(path="/" + "/".join(path), rule="minimum"):
                         minimum = contract["minimum"]
@@ -191,6 +226,182 @@ class AIOGenerationSettingsManifestTests(unittest.TestCase):
         self.assertEqual(nodes._as_float("12.9", 7.0), 12.9)
         self.assertEqual(nodes._choice(" two ", ("one", "two"), "one"), "two")
         self.assertEqual(nodes._choice("missing", ("one", "two"), "one"), "one")
+        self.assertEqual(coercions["choice"]["invalid"]["static_enum"], "default")
+
+    def test_every_referenced_coercion_has_a_self_contained_definition(self):
+        manifest = _manifest()
+        defined = set(manifest["coercions"])
+        referenced = set(_coercion_references({
+            "shape": manifest["shape"],
+            "definitions": manifest["definitions"],
+            "coercions": manifest["coercions"],
+        }))
+
+        self.assertEqual(referenced - defined, set())
+        self.assertTrue({
+            "constant",
+            "string-or-default",
+            "string",
+            "string-list",
+            "civitai-fetcher-list",
+            "detailer-order",
+            "json-object-or-empty",
+            "surface-specific-seed",
+        }.issubset(referenced))
+
+    def test_container_item_contracts_match_current_backend_normalizers(self):
+        manifest = _manifest()
+        image_saver = manifest["shape"]["fields"]["save"]["fields"]["image_saver"]["fields"]
+
+        for path, contract in _all_contract_nodes(manifest):
+            if contract.get("type") == "array":
+                with self.subTest(path="/".join(path), container="array"):
+                    self.assertIsInstance(contract.get("items"), dict)
+                    item_contract = _resolve_contract(manifest, contract["items"])
+                    self.assertTrue(
+                        any(name in item_contract for name in ("type", "one_of", "any_of")),
+                        f"Missing item type contract at {'/'.join(path)}",
+                    )
+            if contract.get("type") == "object" and contract.get("open_content"):
+                with self.subTest(path="/".join(path), container="open-object"):
+                    self.assertIsInstance(contract.get("additional_properties"), dict)
+                    _resolve_contract(manifest, contract["additional_properties"])
+
+        fetcher_contract = _resolve_contract(manifest, image_saver["civitai_hash_fetchers"]["items"])
+        self.assertEqual(
+            set(fetcher_contract["fields"]),
+            {"enabled", "username", "model_name", "version"},
+        )
+        self.assertEqual(fetcher_contract["unknown_fields"], "discard")
+        self.assertEqual(
+            set(fetcher_contract["required"]),
+            {"enabled", "username", "model_name", "version"},
+        )
+
+        normalized = nodes._normalize_aio_generation_settings({
+            "save": {
+                "image_saver": {
+                    "additional_hash_bundles": '[" alpha, ", null, " beta "]',
+                    "civitai_hash_fetchers": json.dumps([
+                        {
+                            "enabled": "off",
+                            "username": " user ",
+                            "model_name": " model ",
+                            "version": " v1 ",
+                            "future": "discarded",
+                        },
+                        {"enabled": True, "username": " ", "model_name": "", "version": ""},
+                        "not-an-object",
+                    ]),
+                }
+            }
+        })
+        self.assertEqual(
+            normalized["save"]["image_saver"]["additional_hash_bundles"],
+            ["alpha", "beta"],
+        )
+        self.assertEqual(
+            normalized["save"]["image_saver"]["civitai_hash_fetchers"],
+            [{"enabled": False, "username": "user", "model_name": "model", "version": "v1"}],
+        )
+        self.assertEqual(nodes._normalize_aio_hash_bundles(" raw, "), ["raw"])
+        self.assertEqual(nodes._normalize_aio_hash_bundles('"json-string"'), [])
+        self.assertEqual(nodes._normalize_aio_civitai_hash_fetchers("not-json"), [])
+        self.assertEqual(
+            nodes._aio_detailer_target_order({
+                "order": [" custom_2 ", "face", "custom_2", "invalid"],
+                "custom_3": {},
+                "custom_4": "not-an-object",
+            }),
+            ["custom_2", "face", "custom_3", "eye"],
+        )
+
+    def test_refs_and_detailer_pattern_fields_cover_non_default_targets(self):
+        manifest = _manifest()
+        for path, contract in _all_contract_nodes(manifest):
+            if "$ref" in contract:
+                with self.subTest(path="/".join(path), reference=contract["$ref"]):
+                    resolved = _resolve_contract(manifest, contract)
+                    self.assertTrue(any(name in resolved for name in ("type", "one_of", "any_of")))
+
+        detailer_contract = manifest["shape"]["fields"]["detailer"]
+        pattern_fields = detailer_contract["pattern_fields"]
+        self.assertEqual(set(pattern_fields), {"^custom_[0-9]+$"})
+        pattern = next(iter(pattern_fields))
+        self.assertIsNotNone(re.fullmatch(pattern, "custom_7"))
+        self.assertIsNone(re.fullmatch(pattern, "custom_name"))
+        self.assertIs(
+            _resolve_contract(manifest, pattern_fields[pattern]),
+            manifest["definitions"]["detailer_target"],
+        )
+
+        with _deterministic_capabilities():
+            normalized = nodes._normalize_aio_generation_settings({
+                "detailer": {
+                    "order": ["custom_7"],
+                    "custom_7": {
+                        "label": "",
+                        "detect_count": 0,
+                        "threshold": -1,
+                        "sampler_name": "invalid",
+                        "scheduler": "invalid",
+                        "future_target_key": {"kept": True},
+                    },
+                }
+            })
+        target = normalized["detailer"]["custom_7"]
+        self.assertEqual(target["label"], "Detailer Block 7")
+        self.assertEqual(target["detect_count"], 1)
+        self.assertEqual(target["threshold"], 0.0)
+        self.assertEqual(target["sampler_name"], "euler")
+        self.assertEqual(target["scheduler"], "sgm_uniform")
+        self.assertEqual(target["future_target_key"], {"kept": True})
+
+    def test_dynamic_choice_fallback_policy_matches_runtime_capabilities(self):
+        manifest = _manifest()
+        dynamic_contracts = [
+            (path, contract)
+            for path, contract in _leaf_contracts(manifest, manifest["shape"])
+            if "dynamic_enum" in contract
+        ]
+        dynamic_policy = manifest["coercions"]["choice"]["invalid"]["dynamic_enum"]
+        self.assertEqual(dynamic_policy, {
+            "policy": "default-if-present-else-first",
+            "preferred_default_present": "default",
+            "preferred_default_absent": "first-capability",
+            "empty_capabilities": "default",
+        })
+
+        defaults = manifest["default"]
+        with _deterministic_capabilities():
+            for path, contract in dynamic_contracts:
+                with self.subTest(path="/" + "/".join(path), default_present=True):
+                    normalized = nodes._normalize_aio_generation_settings(
+                        _payload_with(path, "__invalid_dynamic_choice__")
+                    )
+                    self.assertEqual(_get_path(normalized, path), _get_path(defaults, path))
+
+        first_by_source = {
+            "comfy.samplers": "cap-sampler-first",
+            "comfy.schedulers": "cap-scheduler-first",
+            "impact.schedulers": "cap-impact-first",
+        }
+        with _deterministic_capabilities(
+            samplers=("cap-sampler-first", "cap-sampler-second"),
+            schedulers=("cap-scheduler-first", "cap-scheduler-second"),
+            impact_schedulers=("cap-impact-first", "cap-impact-second"),
+        ):
+            for path, contract in dynamic_contracts:
+                with self.subTest(path="/" + "/".join(path), default_present=False):
+                    normalized = nodes._normalize_aio_generation_settings(
+                        _payload_with(path, "__invalid_dynamic_choice__")
+                    )
+                    self.assertEqual(
+                        _get_path(normalized, path),
+                        first_by_source[contract["dynamic_enum"]],
+                    )
+
+        self.assertEqual(nodes._choice("missing", (), "preferred"), "preferred")
 
     def test_alias_unknown_field_and_surface_drift_policies_match_current_code(self):
         manifest = _manifest()

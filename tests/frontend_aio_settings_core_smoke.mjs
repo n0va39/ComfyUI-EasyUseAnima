@@ -15,6 +15,25 @@ function assertJsonEqual(actual, expected, message) {
   assert(JSON.stringify(actual) === JSON.stringify(expected), message);
 }
 
+function collectCoercionReferences(value, output = new Set()) {
+  if (Array.isArray(value)) {
+    for (const child of value) {
+      collectCoercionReferences(child, output);
+    }
+    return output;
+  }
+  if (!value || typeof value !== "object") {
+    return output;
+  }
+  for (const [name, child] of Object.entries(value)) {
+    if ((name === "coercion" || name === "item_coercion") && typeof child === "string") {
+      output.add(child);
+    }
+    collectCoercionReferences(child, output);
+  }
+  return output;
+}
+
 const settingsModule = await import(dataModule("../web/js/aio/settings.js"));
 const generationManifest = JSON.parse(readFileSync(
   new URL("../easyuse_anima/aio/schemas/generation_settings.v1.json", import.meta.url),
@@ -73,6 +92,40 @@ assertJsonEqual(
   AIO_DEFAULT_GENERATION_SETTINGS,
   generationManifest.default,
   "AiO manifest defaults must deep-equal the frontend generation defaults",
+);
+const coercionReferences = collectCoercionReferences({
+  shape: generationManifest.shape,
+  definitions: generationManifest.definitions,
+  coercions: generationManifest.coercions,
+});
+const undefinedCoercions = [...coercionReferences]
+  .filter((name) => !Object.prototype.hasOwnProperty.call(generationManifest.coercions, name));
+assertJsonEqual(
+  undefinedCoercions,
+  [],
+  "Every manifest coercion reference must have a self-contained definition",
+);
+const imageSaverContract = generationManifest.shape.fields.save.fields.image_saver.fields;
+assert(
+  imageSaverContract.additional_hash_bundles.items?.type === "string"
+    && imageSaverContract.civitai_hash_fetchers.items?.$ref === "#/definitions/civitai_hash_fetcher"
+    && generationManifest.shape.fields.detailer.fields.order.items?.$ref === "#/definitions/detailer_target_name",
+  "Empty-default arrays must retain explicit item contracts",
+);
+assertJsonEqual(
+  Object.keys(generationManifest.definitions.civitai_hash_fetcher.fields),
+  ["enabled", "username", "model_name", "version"],
+  "The Civitai fetcher item contract must retain its normalized backend fields",
+);
+assertJsonEqual(
+  generationManifest.coercions.choice.invalid.dynamic_enum,
+  {
+    policy: "default-if-present-else-first",
+    preferred_default_present: "default",
+    preferred_default_absent: "first-capability",
+    empty_capabilities: "default",
+  },
+  "Dynamic capability choices must not use the static-enum fallback claim",
 );
 assert(
   AIO_DEFAULT_GENERATION_SETTINGS.sampler.seed === AIO_GENERATOR_SPECIAL_SEED_RANDOM

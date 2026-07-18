@@ -21,7 +21,10 @@ typed model, version migration, normalizer 교체도 이 단계에 포함하지 
 
 manifest의 `default`는 완전한 normalized v1 기본 object다. `shape`는 field type, coercion, static enum 및
 bound를 제공하고 반복되는 Spectrum/DiT correction/Detailer target은 `definitions`와 `$ref`로 표현한다.
-이 구조는 후속 codegen이나 typed model이 소비할 수 있지만, 현재 runtime source of execution은 기존 코드다.
+모든 coercion 참조, array item, open JSON object value, `custom_<n>` pattern field가 manifest 내부 정의로
+해결되므로 후속 consumer가 별도의 암묵 token 표 없이 계약을 해석할 수 있다. 다만 이번 PR은 실제
+generator/codegen/typed model을 추가하거나 특정 generator와의 호환성을 주장하지 않는다. 현재 runtime source of
+execution은 기존 코드다.
 
 ## 정적 field 정책
 
@@ -40,14 +43,28 @@ bound를 제공하고 반복되는 Spectrum/DiT correction/Detailer target은 `d
 각 normalized object는 known field를 채우면서 unknown field를 기본적으로 보존한다. 빈 extension object인
 `sampler.spectrum_extra`와 `sampler.spd_extra`도 v1의 공개 확장 지점으로 유지한다.
 
+빈 default container도 shape가 비어 있다는 뜻이 아니다. `save.image_saver.additional_hash_bundles`는 정규화된
+문자열 item, `civitai_hash_fetchers`는 `enabled`, `username`, `model_name`, `version`을 갖는 item object를 소유한다.
+후자는 non-object row와 identity 문자열 세 개가 모두 빈 row를 버리고 unknown item field를 보존하지 않는다.
+`detailer.order` item은 `face`, `eye`, `custom_<n>`만 허용하며 중복을 제거하고 현재 backend가 `face`, `eye`를
+항상 보장한다. `sampler.spectrum_extra`와 `sampler.spd_extra`의 추가 값은 JSON value contract를 따른다.
+
 ### Coercion
 
 - Backend boolean은 첫 list/tuple 값을 사용하고 `true`, `1`, `yes`, `on`, `enable`, `enabled` 문자열을 true로
   처리한다. 다른 문자열은 false다.
 - Backend integer/number는 각각 Python `int()`/`float()` 변환을 사용하고 실패하면 해당 default를 쓴다.
 - Choice는 첫 list/tuple 값을 trimmed string으로 만든 뒤 exact membership을 확인하고 실패하면 default를 쓴다.
+- 단, runtime capability를 쓰는 dynamic choice는 preferred default가 현재 capability 목록에 있을 때만 default를
+  쓴다. 없으면 첫 capability, capability가 비었으면 preferred default를 쓴다. 이는 static enum의 invalid 정책과
+  다른 `default-if-present-else-first` 정책이다.
+- `string-or-default`, empty-string string, trimmed string, hash bundle string/list, Civitai fetcher list,
+  Detailer order, open JSON object, seed, constant token은 모두 manifest `coercions`에 정의한다. container item의
+  별도 coercion 참조도 같은 registry에서 해결한다.
 - Frontend boolean과 number coercion은 JavaScript 규칙을 사용한다. backend와 동일하다고 가정하지 않으며
   정확한 token/operation은 manifest의 `coercions`에 surface별로 기록한다.
+- Frontend default merge는 일반 field coercion이나 schema constant 강제를 수행하지 않고 incoming value를
+  보존한다. backend normalizer가 schema constant를 canonical 값으로 강제하는 동작과 혼동하지 않는다.
 - Static enum과 bound는 manifest가 소유한다. sampler/scheduler 목록과 Comfy max resolution처럼 실행 환경에
   따라 달라지는 값은 `dynamic_enum`/`maximum_source`로만 참조한다.
 
@@ -60,8 +77,9 @@ bound를 제공하고 반복되는 Spectrum/DiT correction/Detailer target은 `d
 - `impact.schedulers`: Detailer scheduler name
 - `comfy.max_resolution`: USDU tile 및 postprocess size 상한
 
-manifest는 이 값들의 type과 capability source만 지정한다. 현재 목록을 static enum으로 복사하거나 default를
-환경 탐색 결과로 다시 쓰지 않는다.
+manifest는 이 값들의 type, capability source, invalid fallback 구조만 지정한다. 현재 목록을 static enum으로
+복사하거나 default를 환경 탐색 결과로 다시 쓰지 않는다. golden test는 preferred default가 deterministic
+capability에 존재하는 경우와 존재하지 않아 첫 capability로 fallback하는 경우를 분리해 검증한다.
 
 ## Legacy alias와 migration
 
@@ -110,9 +128,10 @@ write-on-read는 금지한다. 후속 version migration은 명시적인 순수 �
 ## Golden gate
 
 `tests/test_aio_schema_contract.py`는 manifest default와 현재 Python default의 deep equality, 전체 default leaf와
-field contract coverage, static enum/min/max/coercion, legacy/unknown 정책, dynamic capability 비소유를 검증한다.
+field contract coverage, coercion 참조 완결성, empty container item 및 pattern/ref coverage, static enum/min/max,
+legacy/unknown 정책, dynamic capability 비소유와 fallback 양쪽 분기를 검증한다.
 `tests/frontend_aio_settings_core_smoke.mjs`는 manifest default와 현재 JavaScript default의 deep equality 및
-frontend coercion/unknown-field 정책을 검증한다.
+frontend coercion/unknown-field 정책과 manifest 내부 coercion/item 정의 완결성을 검증한다.
 
 manifest는 runtime package에 포함되어야 하므로 tracked 상태, `.comfyignore` 비제외, `git archive HEAD` 포함도
 dedicated schema test에서 검증한다. 문서와 테스트는 Registry archive에서 제외되어도 된다.

@@ -37,8 +37,126 @@
     },
     "choice": {
       "operation": "trimmed-string-exact-membership",
-      "invalid": "default",
+      "invalid": {
+        "static_enum": "default",
+        "dynamic_enum": {
+          "policy": "default-if-present-else-first",
+          "preferred_default_present": "default",
+          "preferred_default_absent": "first-capability",
+          "empty_capabilities": "default"
+        }
+      },
       "list_or_tuple": "first-value"
+    },
+    "constant": {
+      "backend": {
+        "operation": "replace-with-contract-const"
+      },
+      "frontend": {
+        "operation": "not-coerced-by-default-merge",
+        "incoming_value": "preserve"
+      }
+    },
+    "string-or-default": {
+      "backend": {
+        "operation": "python-str-of-value-or-field-default",
+        "null_or_falsy": "field-default",
+        "list_or_tuple": "python-str-whole-value"
+      },
+      "frontend": {
+        "operation": "not-normalized-by-default-merge"
+      }
+    },
+    "string": {
+      "backend": {
+        "operation": "python-str-of-value-or-empty",
+        "null_or_falsy": "empty-string",
+        "list_or_tuple": "python-str-whole-value"
+      },
+      "frontend": {
+        "operation": "not-normalized-by-default-merge"
+      }
+    },
+    "trimmed-string": {
+      "backend": {
+        "operation": "python-str-of-value-or-empty-then-strip",
+        "null_or_falsy": "empty-string"
+      },
+      "frontend": {
+        "operation": "not-normalized-by-default-merge"
+      }
+    },
+    "hash-bundle-string": {
+      "backend": {
+        "operation": "python-str-of-value-or-empty-then-strip-character-set",
+        "strip_characters": [" ", ",", "\n", "\r", "\t"],
+        "empty_after_strip": "omit-item"
+      },
+      "frontend": {
+        "operation": "not-normalized-by-default-merge"
+      }
+    },
+    "string-list": {
+      "backend": {
+        "string_input": {
+          "operation": "json-decode",
+          "decode_error": "single-original-string-item"
+        },
+        "non_list": "empty-list",
+        "item_coercion": "hash-bundle-string",
+        "empty_items": "omit"
+      },
+      "frontend": {
+        "operation": "not-normalized-by-default-merge"
+      }
+    },
+    "civitai-fetcher-list": {
+      "backend": {
+        "string_input": {
+          "operation": "json-decode",
+          "decode_error": "empty-list"
+        },
+        "non_list": "empty-list",
+        "non_object_items": "omit",
+        "unknown_item_fields": "discard",
+        "empty_identity_items": "omit"
+      },
+      "frontend": {
+        "operation": "not-normalized-by-default-merge"
+      }
+    },
+    "detailer-order": {
+      "backend": {
+        "input_container": "list-only",
+        "items": "trim-deduplicate-and-keep-valid-target-names",
+        "object_target_fields": "append-valid-dict-valued-target-names",
+        "required_tail": ["face", "eye"]
+      },
+      "frontend": {
+        "operation": "not-normalized-by-default-merge"
+      }
+    },
+    "json-object-or-empty": {
+      "backend": {
+        "object": "json-clone",
+        "non_object": "empty-object"
+      },
+      "frontend": {
+        "operation": "not-normalized-by-default-merge"
+      }
+    },
+    "surface-specific-seed": {
+      "backend": {
+        "operation": "backend_integer-then-clamp",
+        "minimum": -3,
+        "maximum": "18446744073709551615"
+      },
+      "frontend": {
+        "operation": "javascript-number-then-trunc-and-clamp",
+        "invalid": "supplied-fallback",
+        "minimum": -3,
+        "maximum": 1125899906842624
+      }
     }
   },
   "policies": {
@@ -141,6 +259,36 @@
     ]
   },
   "definitions": {
+    "json_value": {
+      "one_of": [
+        {"type": "null"},
+        {"type": "boolean"},
+        {"type": "number"},
+        {"type": "string"},
+        {"type": "array", "items": {"$ref": "#/definitions/json_value"}},
+        {"type": "object", "additional_properties": {"$ref": "#/definitions/json_value"}}
+      ]
+    },
+    "detailer_target_name": {
+      "type": "string",
+      "coercion": "trimmed-string",
+      "any_of": [
+        {"enum": ["face", "eye"]},
+        {"pattern": "^custom_[0-9]+$"}
+      ]
+    },
+    "civitai_hash_fetcher": {
+      "type": "object",
+      "unknown_fields": "discard",
+      "required": ["enabled", "username", "model_name", "version"],
+      "omit_if": "username-model_name-version-all-empty",
+      "fields": {
+        "enabled": {"type": "boolean", "coercion": "backend_boolean", "default": true},
+        "username": {"type": "string", "coercion": "trimmed-string", "default": ""},
+        "model_name": {"type": "string", "coercion": "trimmed-string", "default": ""},
+        "version": {"type": "string", "coercion": "trimmed-string", "default": ""}
+      }
+    },
     "spectrum": {
       "type": "object",
       "unknown_fields": "preserve",
@@ -252,8 +400,8 @@
               "adaptive_smc_alpha": {"type": "number", "coercion": "backend_number", "minimum": 0.0, "maximum": 1.0}
             }
           },
-          "spectrum_extra": {"type": "object", "coercion": "json-object-or-empty", "open_content": true},
-          "spd_extra": {"type": "object", "coercion": "json-object-or-empty", "open_content": true},
+          "spectrum_extra": {"type": "object", "coercion": "json-object-or-empty", "open_content": true, "additional_properties": {"$ref": "#/definitions/json_value"}},
+          "spd_extra": {"type": "object", "coercion": "json-object-or-empty", "open_content": true, "additional_properties": {"$ref": "#/definitions/json_value"}},
           "dit_corrections": {"$ref": "#/definitions/dit_corrections"}
         }
       },
@@ -391,7 +539,7 @@
       }},
       "detailer": {"type": "object", "unknown_fields": "preserve", "pattern_fields": {"^custom_[0-9]+$": {"$ref": "#/definitions/detailer_target"}}, "fields": {
         "enabled": {"type": "boolean", "coercion": "backend_boolean"},
-        "order": {"type": "array", "coercion": "detailer-order", "items": "detailer-target-name"},
+        "order": {"type": "array", "coercion": "detailer-order", "items": {"$ref": "#/definitions/detailer_target_name"}},
         "sam3": {"type": "object", "unknown_fields": "preserve", "fields": {
           "context": {"type": "string", "coercion": "choice", "enum": ["load_checkpoint"]},
           "checkpoint": {"type": "string", "coercion": "string-or-default"}
@@ -416,8 +564,8 @@
           "embed_workflow": {"type": "boolean", "coercion": "backend_boolean"},
           "save_prompt_metadata": {"type": "boolean", "coercion": "backend_boolean"},
           "additional_hashes": {"type": "string", "coercion": "string"},
-          "additional_hash_bundles": {"type": "array", "coercion": "string-list"},
-          "civitai_hash_fetchers": {"type": "array", "coercion": "civitai-fetcher-list"},
+          "additional_hash_bundles": {"type": "array", "coercion": "string-list", "items": {"type": "string", "coercion": "hash-bundle-string"}},
+          "civitai_hash_fetchers": {"type": "array", "coercion": "civitai-fetcher-list", "items": {"$ref": "#/definitions/civitai_hash_fetcher"}},
           "download_civitai_data": {"type": "boolean", "coercion": "backend_boolean"},
           "easy_remix": {"type": "boolean", "coercion": "backend_boolean"},
           "custom": {"type": "string", "coercion": "string"}
