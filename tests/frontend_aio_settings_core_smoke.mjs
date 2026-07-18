@@ -15,7 +15,34 @@ function assertJsonEqual(actual, expected, message) {
   assert(JSON.stringify(actual) === JSON.stringify(expected), message);
 }
 
+function collectCoercionReferences(value, output = new Set()) {
+  if (Array.isArray(value)) {
+    for (const child of value) {
+      collectCoercionReferences(child, output);
+    }
+    return output;
+  }
+  if (!value || typeof value !== "object") {
+    return output;
+  }
+  for (const [name, child] of Object.entries(value)) {
+    if ((name === "coercion" || name === "item_coercion") && typeof child === "string") {
+      output.add(child);
+    }
+    collectCoercionReferences(child, output);
+  }
+  return output;
+}
+
 const settingsModule = await import(dataModule("../web/js/aio/settings.js"));
+const generationManifest = JSON.parse(readFileSync(
+  new URL("../easyuse_anima/aio/schemas/generation_settings.v1.json", import.meta.url),
+  "utf8",
+));
+const aioRuntimeSource = readFileSync(
+  new URL("../web/js/easyuse_anima_aio.js", import.meta.url),
+  "utf8",
+);
 const {
   AIO_DEFAULT_GENERATION_SETTINGS,
   AIO_DEFAULT_INPUT_SETTINGS,
@@ -55,6 +82,61 @@ assert(
     && AIO_DEFAULT_GENERATION_SETTINGS.version === 1
     && AIO_DEFAULT_GENERATION_SETTINGS.mode === "txt2img",
   "AiO generation settings must keep their versioned schema",
+);
+assert(
+  generationManifest.settings.schema === AIO_DEFAULT_GENERATION_SETTINGS.schema
+    && generationManifest.settings.version === AIO_DEFAULT_GENERATION_SETTINGS.version,
+  "AiO manifest identity must match the frontend v1 settings identity",
+);
+assertJsonEqual(
+  AIO_DEFAULT_GENERATION_SETTINGS,
+  generationManifest.default,
+  "AiO manifest defaults must deep-equal the frontend generation defaults",
+);
+const coercionReferences = collectCoercionReferences({
+  shape: generationManifest.shape,
+  definitions: generationManifest.definitions,
+  coercions: generationManifest.coercions,
+});
+const undefinedCoercions = [...coercionReferences]
+  .filter((name) => !Object.prototype.hasOwnProperty.call(generationManifest.coercions, name));
+assertJsonEqual(
+  undefinedCoercions,
+  [],
+  "Every manifest coercion reference must have a self-contained definition",
+);
+const imageSaverContract = generationManifest.shape.fields.save.fields.image_saver.fields;
+assert(
+  imageSaverContract.additional_hash_bundles.items?.type === "string"
+    && imageSaverContract.civitai_hash_fetchers.items?.$ref === "#/definitions/civitai_hash_fetcher"
+    && generationManifest.shape.fields.detailer.fields.order.items?.$ref === "#/definitions/detailer_target_name",
+  "Empty-default arrays must retain explicit item contracts",
+);
+assertJsonEqual(
+  Object.keys(generationManifest.definitions.civitai_hash_fetcher.fields),
+  ["enabled", "username", "model_name", "version"],
+  "The Civitai fetcher item contract must retain its normalized backend fields",
+);
+assertJsonEqual(
+  generationManifest.coercions.choice.invalid.dynamic_enum,
+  {
+    policy: "default-if-present-else-first",
+    preferred_default_present: "default",
+    preferred_default_absent: "first-capability",
+    empty_capabilities: "default",
+  },
+  "Dynamic capability choices must not use the static-enum fallback claim",
+);
+assert(
+  generationManifest.coercions.backend_boolean.list_or_tuple === "first-value"
+    && generationManifest.coercions.backend_boolean.empty_list_or_tuple === "default",
+  "Backend boolean coercion must record first-value and empty-container fallback behavior",
+);
+assert(
+  generationManifest.shape.fields.mod_guidance.fields.profile.coercion === "mod-guidance-profile"
+    && generationManifest.shape.fields.upscale.fields.usdu.fields.prompt_mode.coercion === "string-then-choice"
+    && generationManifest.definitions.detailer_target.fields.alignment.coercion === "string-then-choice",
+  "Field-specific backend choice pipelines must not claim the generic choice coercion",
 );
 assert(
   AIO_DEFAULT_GENERATION_SETTINGS.sampler.seed === AIO_GENERATOR_SPECIAL_SEED_RANDOM
@@ -278,10 +360,20 @@ assert(
   "The legacy enabled flag must keep enabling postprocess during migration",
 );
 
-for (const value of [true, "true", "1", "yes", "on", " TRUE "]) {
+assertJsonEqual(
+  generationManifest.coercions.frontend_boolean.true_strings,
+  ["true", "1", "yes", "on"],
+  "Manifest frontend true-string coercion tokens must remain stable",
+);
+assertJsonEqual(
+  generationManifest.coercions.frontend_boolean.false_strings,
+  ["false", "0", "no", "off"],
+  "Manifest frontend false-string coercion tokens must remain stable",
+);
+for (const value of [true, ...generationManifest.coercions.frontend_boolean.true_strings, " TRUE "]) {
   assert(aioAsBool(value, false) === true, `Boolean value ${String(value)} must normalize true`);
 }
-for (const value of [false, "false", "0", "no", "off", " FALSE "]) {
+for (const value of [false, ...generationManifest.coercions.frontend_boolean.false_strings, " FALSE "]) {
   assert(aioAsBool(value, true) === false, `Boolean value ${String(value)} must normalize false`);
 }
 assert(aioAsBool(null, true) === true, "Null booleans must use their fallback");
@@ -297,6 +389,11 @@ assert(
     && AIO_GENERATOR_SPECIAL_SEED_INCREMENT === -2
     && AIO_GENERATOR_SPECIAL_SEED_DECREMENT === -3,
   "rgthree-compatible special seed values must remain stable",
+);
+assert(
+  generationManifest.shape.fields.sampler.fields.seed.minimum === AIO_GENERATOR_SPECIAL_SEED_DECREMENT
+    && generationManifest.shape.fields.sampler.fields.seed.maximum_by_surface.frontend === AIO_GENERATOR_MAX_SEED,
+  "Manifest frontend seed bounds must match the current settings core",
 );
 assert(
   aioNormalizeSeedControl(" increment ") === "increment"
@@ -396,6 +493,27 @@ assert(
 assert(
   JSON.stringify(compactSource) === compactSourceSnapshot,
   "Compact generation serialization must not mutate the caller's settings object",
+);
+
+const unknownFieldPolicy = generationManifest.policies.unknown_fields;
+assert(
+  unknownFieldPolicy.frontend_default_merge.mode === "preserve-recursively"
+    && unknownFieldPolicy.frontend_visible_merge.removed_paths.includes("/highres/backend")
+    && !unknownFieldPolicy.backend.removed_known_legacy_paths.includes("/highres/backend"),
+  "Manifest must record the current highres.backend surface drift without changing it",
+);
+const visibleMergeSource = aioRuntimeSource.slice(
+  aioRuntimeSource.indexOf("function mergeVisibleGeneratorSettings"),
+  aioRuntimeSource.indexOf("function applyVisibleGeneratorSettings"),
+);
+assert(
+  visibleMergeSource.includes("delete next.highres?.backend;"),
+  "Frontend visible merge must keep removing highres.backend while the manifest records the drift",
+);
+assert(
+  generationManifest.policies.persistence.write_on_read === false
+    && generationManifest.policies.version_migrations.length === 0,
+  "The v1 contract must not introduce write-on-read or a version migration",
 );
 
 console.log("AiO settings core smoke passed.");
