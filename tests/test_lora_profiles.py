@@ -1,5 +1,6 @@
 import asyncio
 import importlib.util
+import json
 import sys
 import tempfile
 import types
@@ -110,6 +111,51 @@ class LoraProfileStorageTests(unittest.TestCase):
                 loaded = api._load_lora_profile("style_preset")
                 self.assertEqual(loaded["profile_data"]["2"]["style_prompt"], "@b")
                 self.assertEqual(loaded["profile_data"]["2"]["loras"][0]["name"], "foo.safetensors")
+
+    def test_invalid_primary_recovers_last_valid_backup(self):
+        api = load_api_module()
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            with patch.object(api, "LORA_PROFILE_DIR", root):
+                api._save_lora_profile(
+                    "Recoverable",
+                    {"profile_data": {"1": {"style_prompt": "first"}}},
+                )
+                api._save_lora_profile(
+                    "Recoverable",
+                    {"profile_data": {"1": {"style_prompt": "second"}}},
+                    overwrite=True,
+                )
+                (root / "Recoverable.json").write_text("{", encoding="utf-8")
+
+                recovered = api._load_lora_profile("Recoverable")
+
+        self.assertEqual(recovered["name"], "Recoverable")
+        self.assertEqual(recovered["profile_data"]["1"]["style_prompt"], "first")
+
+    def test_invalid_primary_and_backup_preserve_json_error_contract(self):
+        api = load_api_module()
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            with patch.object(api, "LORA_PROFILE_DIR", root):
+                (root / "Broken.json").write_text("{", encoding="utf-8")
+                (root / "Broken.json.bak").write_text("[", encoding="utf-8")
+
+                with self.assertRaises(json.JSONDecodeError):
+                    api._load_lora_profile("Broken")
+
+    def test_empty_profile_preserves_legacy_default_payload_contract(self):
+        api = load_api_module()
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            with patch.object(api, "LORA_PROFILE_DIR", root):
+                (root / "Empty.json").write_text("", encoding="utf-8")
+
+                loaded = api._load_lora_profile("Empty")
+
+        self.assertEqual(loaded["name"], "Empty")
+        self.assertEqual(loaded["profile_count"], 1)
+        self.assertEqual(loaded["profile_data"], {})
 
     def test_filename_identity_collisions_require_explicit_overwrite(self):
         api = load_api_module()

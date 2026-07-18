@@ -4,7 +4,7 @@ import json
 from pathlib import Path
 
 try:
-    from .storage import USER_DATA_DIR
+    from .storage import AtomicJsonStore, USER_DATA_DIR
     from .prompt_translation import (
         DEFAULT_PROMPT_TRANSLATION_SOURCE,
         DEFAULT_PROMPT_TRANSLATION_TARGET,
@@ -14,7 +14,7 @@ try:
         normalize_prompt_translation_provider,
     )
 except ImportError:
-    from storage import USER_DATA_DIR
+    from storage import AtomicJsonStore, USER_DATA_DIR
     from prompt_translation import (
         DEFAULT_PROMPT_TRANSLATION_SOURCE,
         DEFAULT_PROMPT_TRANSLATION_TARGET,
@@ -220,10 +220,8 @@ LONG_TEXT_SETTING_ALIASES = {
 
 
 def _read_json_file(path: Path) -> dict:
-    if not path.is_file():
-        return {}
     try:
-        data = json.loads(path.read_text(encoding="utf-8"))
+        data = AtomicJsonStore(path).read(default={})
     except (OSError, json.JSONDecodeError):
         return {}
     return data if isinstance(data, dict) else {}
@@ -248,22 +246,24 @@ def load_long_text_settings() -> dict:
 def save_long_text_settings(values: dict) -> dict:
     if not isinstance(values, dict):
         values = {}
-    settings = load_long_text_settings()
-    settings.update(_normalize_long_text_settings(values))
-    LONG_TEXT_SETTINGS_FILE.parent.mkdir(parents=True, exist_ok=True)
-    LONG_TEXT_SETTINGS_FILE.write_text(
-        json.dumps(
-            {
-                "version": 1,
-                "values": {key: settings.get(key, "") for key in sorted(LONG_TEXT_SETTING_KEYS)},
-            },
-            ensure_ascii=False,
-            indent=2,
-        )
-        + "\n",
-        encoding="utf-8",
+    updates = _normalize_long_text_settings(values)
+    saved: dict = {}
+
+    def merge(current) -> dict:
+        settings = _normalize_long_text_settings(current if isinstance(current, dict) else {})
+        settings.update(updates)
+        saved.update(settings)
+        return {
+            "version": 1,
+            "values": {key: settings.get(key, "") for key in sorted(LONG_TEXT_SETTING_KEYS)},
+        }
+
+    AtomicJsonStore(LONG_TEXT_SETTINGS_FILE).update(
+        merge,
+        default={},
+        trailing_newline=True,
     )
-    return settings
+    return saved
 
 
 def _comfy_settings_candidates() -> list[Path]:
@@ -356,13 +356,11 @@ def get_settings() -> dict:
 def save_setting(key: str, value) -> dict:
     if key not in DEFAULT_SETTINGS:
         raise KeyError(f"Unknown setting: {key}")
-    settings = get_settings()
-    settings[key] = _stringify_setting_value(value)
-    SETTINGS_FILE.parent.mkdir(parents=True, exist_ok=True)
-    SETTINGS_FILE.write_text(
-        json.dumps(settings, ensure_ascii=False, indent=2) + "\n",
-        encoding="utf-8",
-    )
+    store = AtomicJsonStore(SETTINGS_FILE)
+    with store.locked():
+        settings = get_settings()
+        settings[key] = _stringify_setting_value(value)
+        store.write(settings, trailing_newline=True)
     return settings
 
 
