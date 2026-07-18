@@ -1,9 +1,12 @@
 from __future__ import annotations
 
+import atexit
 import asyncio
 import json
 import os
 import re
+import threading
+from concurrent.futures import Future, ThreadPoolExecutor
 from pathlib import Path
 
 try:
@@ -32,9 +35,9 @@ from .autocomplete_dataset import (
 from .wildcard_engine import list_wildcards, resolve_wildcard_roots
 from .prompt_translation import (
     PromptTranslationError,
+    TranslationBusyError,
     TranslationCancelledError,
     TranslationTimeoutError,
-    TranslationUpstreamError,
     translate_prompt_markers,
 )
 try:
@@ -79,23 +82,77 @@ WINDOWS_RESERVED_FILE_BASENAMES = {
 PROMPT_TRANSLATION_ROUTE_TIMEOUT_SECONDS = 15.0
 
 
+class _PromptTranslationWorker:
+    """Own one lazy worker and never queue behind a timed-out sync call."""
+
+    def __init__(self):
+        self._lock = threading.RLock()
+        self._executor: ThreadPoolExecutor | None = None
+        self._in_flight: Future | None = None
+        self._closed = False
+
+    @property
+    def has_in_flight(self) -> bool:
+        with self._lock:
+            return self._in_flight is not None and not self._in_flight.done()
+
+    def submit(self, function, *args) -> Future:
+        with self._lock:
+            if self._closed:
+                raise RuntimeError("Prompt translation worker is shut down.")
+            if self._in_flight is not None and not self._in_flight.done():
+                raise TranslationBusyError()
+            if self._executor is None:
+                self._executor = ThreadPoolExecutor(
+                    max_workers=1,
+                    thread_name_prefix="easyuse-anima-translation",
+                )
+            future = self._executor.submit(function, *args)
+            self._in_flight = future
+        future.add_done_callback(self._release)
+        return future
+
+    def _release(self, future: Future) -> None:
+        with self._lock:
+            if self._in_flight is future:
+                self._in_flight = None
+
+    def shutdown(self) -> None:
+        with self._lock:
+            if self._closed:
+                return
+            self._closed = True
+            executor = self._executor
+            self._executor = None
+        if executor is not None:
+            executor.shutdown(wait=False, cancel_futures=True)
+
+
+_PROMPT_TRANSLATION_WORKER = _PromptTranslationWorker()
+atexit.register(_PROMPT_TRANSLATION_WORKER.shutdown)
+
+
 def _translate_prompt_sync(text: str) -> str:
     return translate_prompt_markers(text, resolve_prompt_translation_settings())
 
 
 async def _translate_prompt_for_route(text: str) -> str:
+    future = _PROMPT_TRANSLATION_WORKER.submit(_translate_prompt_sync, text)
+    wrapped_future = asyncio.wrap_future(future)
     try:
-        return await asyncio.wait_for(
-            asyncio.to_thread(_translate_prompt_sync, text),
+        done, _pending = await asyncio.wait(
+            (wrapped_future,),
             timeout=PROMPT_TRANSLATION_ROUTE_TIMEOUT_SECONDS,
         )
     except asyncio.CancelledError as exc:
-        # asyncio cannot stop a synchronous worker thread. Cancellation stops
-        # waiting immediately and is mapped by this route; the underlying sync
-        # provider call may still finish in the executor.
+        # Waiting stops immediately, while admission remains occupied until the
+        # bounded sync worker really exits.
+        wrapped_future.cancel()
         raise TranslationCancelledError() from exc
-    except asyncio.TimeoutError as exc:
-        raise TranslationTimeoutError() from exc
+    if not done:
+        wrapped_future.cancel()
+        raise TranslationTimeoutError()
+    return wrapped_future.result()
 
 
 def _prompt_translation_error_response(exc: PromptTranslationError):
@@ -723,8 +780,6 @@ if web is not None and routes is not None:
             translated = await _translate_prompt_for_route(str(data.get("text") or ""))
         except PromptTranslationError as exc:
             return _prompt_translation_error_response(exc)
-        except Exception:
-            return _prompt_translation_error_response(TranslationUpstreamError())
         return web.json_response({"status": "ok", "text": translated})
 
     @routes.get("/easyuse_anima/lora_preview")

@@ -69,8 +69,13 @@ def load_api_routes():
 
 
 class PromptTranslationApiTests(unittest.TestCase):
-    def test_route_runs_sync_translation_off_event_loop(self):
+    def load_routes(self):
         api, routes, translation = load_api_routes()
+        self.addCleanup(api._PROMPT_TRANSLATION_WORKER.shutdown)
+        return api, routes, translation
+
+    def test_route_runs_sync_translation_off_event_loop(self):
+        api, routes, translation = self.load_routes()
         handler = routes.handlers[ROUTE]
         worker_started = threading.Event()
 
@@ -102,9 +107,49 @@ class PromptTranslationApiTests(unittest.TestCase):
         self.assertEqual(response, {"payload": {"status": "ok", "text": "translated"}, "status": 200})
         self.assertGreaterEqual(heartbeat, 3)
 
-    def test_route_timeout_has_stable_504_json(self):
-        api, routes, translation = load_api_routes()
+    def test_timeout_keeps_bounded_admission_without_using_shared_executor(self):
+        api, routes, translation = self.load_routes()
         handler = routes.handlers[ROUTE]
+        worker_started = threading.Event()
+        release_worker = threading.Event()
+
+        def blocking_translation(*_args):
+            worker_started.set()
+            release_worker.wait(timeout=1)
+            return "late"
+
+        async def exercise():
+            heartbeat = 0
+            stop_heartbeat = False
+
+            async def beat():
+                nonlocal heartbeat
+                while not stop_heartbeat:
+                    heartbeat += 1
+                    await asyncio.sleep(0.001)
+
+            heartbeat_task = asyncio.create_task(beat())
+            try:
+                first_response = await handler(JsonRequest({"text": "%{first}"}))
+                self.assertTrue(worker_started.is_set())
+                self.assertTrue(api._PROMPT_TRANSLATION_WORKER.has_in_flight)
+                repeated_responses = await asyncio.gather(
+                    *(
+                        handler(JsonRequest({"text": f"%{{later-{index}}}"}))
+                        for index in range(20)
+                    )
+                )
+            finally:
+                release_worker.set()
+                deadline = asyncio.get_running_loop().time() + 1
+                while (
+                    api._PROMPT_TRANSLATION_WORKER.has_in_flight
+                    and asyncio.get_running_loop().time() < deadline
+                ):
+                    await asyncio.sleep(0.001)
+                stop_heartbeat = True
+                await heartbeat_task
+            return first_response, repeated_responses, heartbeat
 
         with (
             patch.object(
@@ -116,10 +161,11 @@ class PromptTranslationApiTests(unittest.TestCase):
             patch.object(
                 api,
                 "translate_prompt_markers",
-                side_effect=lambda *_args: (time.sleep(0.05), "late")[1],
-            ),
+                side_effect=blocking_translation,
+            ) as worker,
+            patch.object(api.asyncio, "to_thread") as shared_executor_submit,
         ):
-            response = asyncio.run(handler(JsonRequest({"text": "%{text}"})))
+            response, repeated_responses, heartbeat = asyncio.run(exercise())
 
         self.assertEqual(
             response,
@@ -132,9 +178,27 @@ class PromptTranslationApiTests(unittest.TestCase):
                 "status": 504,
             },
         )
+        self.assertEqual(worker.call_count, 1)
+        shared_executor_submit.assert_not_called()
+        self.assertGreaterEqual(heartbeat, 3)
+        self.assertFalse(api._PROMPT_TRANSLATION_WORKER.has_in_flight)
+        self.assertEqual(
+            repeated_responses,
+            [
+                {
+                    "payload": {
+                        "status": "error",
+                        "code": "translation_busy",
+                        "message": "A prompt translation request is already in progress.",
+                    },
+                    "status": 503,
+                }
+            ]
+            * 20,
+        )
 
     def test_route_cancellation_stops_waiting_with_stable_499_json(self):
-        api, routes, translation = load_api_routes()
+        api, routes, translation = self.load_routes()
         handler = routes.handlers[ROUTE]
         worker_started = threading.Event()
         release_worker = threading.Event()
@@ -149,9 +213,19 @@ class PromptTranslationApiTests(unittest.TestCase):
             while not worker_started.is_set():
                 await asyncio.sleep(0)
             task.cancel()
-            response = await task
-            release_worker.set()
-            return response
+            try:
+                response = await task
+                self.assertTrue(api._PROMPT_TRANSLATION_WORKER.has_in_flight)
+                busy_response = await handler(JsonRequest({"text": "%{later}"}))
+            finally:
+                release_worker.set()
+                deadline = asyncio.get_running_loop().time() + 1
+                while (
+                    api._PROMPT_TRANSLATION_WORKER.has_in_flight
+                    and asyncio.get_running_loop().time() < deadline
+                ):
+                    await asyncio.sleep(0.001)
+            return response, busy_response
 
         with (
             patch.object(
@@ -161,7 +235,7 @@ class PromptTranslationApiTests(unittest.TestCase):
             ),
             patch.object(api, "translate_prompt_markers", side_effect=blocking_translation),
         ):
-            response = asyncio.run(exercise())
+            response, busy_response = asyncio.run(exercise())
 
         self.assertEqual(
             response,
@@ -174,52 +248,58 @@ class PromptTranslationApiTests(unittest.TestCase):
                 "status": 499,
             },
         )
+        self.assertEqual(busy_response["status"], 503)
+        self.assertEqual(busy_response["payload"]["code"], "translation_busy")
+        self.assertFalse(api._PROMPT_TRANSLATION_WORKER.has_in_flight)
 
-    def test_route_maps_unavailable_and_arbitrary_upstream_failures(self):
-        api, routes, translation = load_api_routes()
+    def test_route_maps_only_prompt_translation_errors(self):
+        api, routes, translation = self.load_routes()
         handler = routes.handlers[ROUTE]
         settings = translation.PromptTranslationSettings(provider="google")
-        cases = (
-            (
-                translation.TranslationProviderUnavailableError(),
-                503,
-                "translation_provider_unavailable",
-                "The selected translation provider is unavailable.",
+        with (
+            patch.object(api, "resolve_prompt_translation_settings", return_value=settings),
+            patch.object(
+                api,
+                "translate_prompt_markers",
+                side_effect=translation.TranslationProviderUnavailableError(),
             ),
-            (
-                ValueError("provider internals must not leak"),
-                502,
-                "translation_upstream_error",
-                "The translation provider request failed.",
-            ),
+        ):
+            response = asyncio.run(handler(JsonRequest({"text": "%{text}"})))
+
+        self.assertEqual(
+            response,
+            {
+                "payload": {
+                    "status": "error",
+                    "code": "translation_provider_unavailable",
+                    "message": "The selected translation provider is unavailable.",
+                },
+                "status": 503,
+            },
         )
 
-        for error, status, code, message in cases:
-            with self.subTest(code=code):
-                with (
-                    patch.object(
-                        api,
-                        "resolve_prompt_translation_settings",
-                        return_value=settings,
-                    ),
-                    patch.object(api, "translate_prompt_markers", side_effect=error),
-                ):
-                    response = asyncio.run(handler(JsonRequest({"text": "%{text}"})))
+    def test_route_does_not_mask_settings_or_payload_programming_errors_as_upstream(self):
+        api, routes, _translation = self.load_routes()
+        handler = routes.handlers[ROUTE]
 
-                self.assertEqual(
-                    response,
-                    {
-                        "payload": {
-                            "status": "error",
-                            "code": code,
-                            "message": message,
-                        },
-                        "status": status,
-                    },
-                )
+        for error in (
+            RuntimeError("settings storage failed"),
+            TimeoutError("settings storage timeout"),
+        ):
+            with self.subTest(error=type(error).__name__):
+                with patch.object(
+                    api,
+                    "resolve_prompt_translation_settings",
+                    side_effect=error,
+                ):
+                    with self.assertRaisesRegex(type(error), str(error)):
+                        asyncio.run(handler(JsonRequest({"text": "%{text}"})))
+
+        with self.assertRaises(AttributeError):
+            asyncio.run(handler(JsonRequest([])))
 
     def test_all_marker_budgets_return_413_before_provider_resolution(self):
-        api, routes, translation = load_api_routes()
+        api, routes, translation = self.load_routes()
         handler = routes.handlers[ROUTE]
         settings = translation.PromptTranslationSettings(provider="google")
         cases = (

@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import builtins
+import sys
+import threading
 import time
 import unittest
 from concurrent.futures import ThreadPoolExecutor
@@ -9,6 +11,7 @@ from unittest.mock import patch
 
 from prompt_translation import (
     PROMPT_TRANSLATION_PROVIDER_GOOGLE,
+    PROMPT_TRANSLATION_PROVIDER_TIMEOUT_SECONDS,
     BoundedTranslationCache,
     GoogleTranslationProvider,
     PromptTranslationService,
@@ -98,6 +101,25 @@ class PromptTranslationServiceTests(unittest.TestCase):
             translate_calls,
             [("하나", "ko", "en"), ("둘", "ko", "ja")],
         )
+
+    def test_google_provider_passes_timeout_to_real_client_constructor(self):
+        received_timeouts = []
+
+        class Translator:
+            def __init__(self, *, timeout):
+                received_timeouts.append(timeout)
+
+            def translate(self, text, *, src, dest):
+                return SimpleNamespace(text=f"{src}:{dest}:{text}")
+
+        fake_googletrans = SimpleNamespace(Translator=Translator)
+        with patch.dict(sys.modules, {"googletrans": fake_googletrans}):
+            provider = GoogleTranslationProvider(timeout_seconds=2.5)
+            result = provider.translate("text", "auto", "en")
+
+        self.assertEqual(result, "auto:en:text")
+        self.assertEqual(received_timeouts, [2.5])
+        self.assertGreater(PROMPT_TRANSLATION_PROVIDER_TIMEOUT_SECONDS, 0)
 
     def test_provider_factory_reuses_one_provider_instance(self):
         provider = GoogleTranslationProvider(translator_factory=lambda: object())
@@ -206,6 +228,30 @@ class PromptTranslationServiceTests(unittest.TestCase):
         self.assertEqual(results, ["shared"] * 16)
         provider.assert_called_once_with("same", "ko", "en")
 
+    def test_different_cache_keys_do_not_share_a_service_wide_cache_lock(self):
+        service = PromptTranslationService(
+            cache=BoundedTranslationCache(max_entries=8, ttl_seconds=60)
+        )
+        both_providers_started = threading.Barrier(2)
+
+        def translate(text, source, target):
+            both_providers_started.wait(timeout=1)
+            return text.upper()
+
+        with patch(
+            "prompt_translation.google_translate_text",
+            side_effect=translate,
+        ):
+            with ThreadPoolExecutor(max_workers=2) as executor:
+                results = list(
+                    executor.map(
+                        lambda text: service.translate_prompt(f"%{{{text}}}", GOOGLE_SETTINGS),
+                        ("first", "second"),
+                    )
+                )
+
+        self.assertEqual(results, ["FIRST", "SECOND"])
+
     def test_all_marker_budgets_fail_before_provider_call(self):
         service = PromptTranslationService(
             max_markers=2,
@@ -236,7 +282,7 @@ class GoogleTranslationProviderErrorTests(unittest.TestCase):
             provider.translate("text", "auto", "en")
         self.assertEqual(raised.exception.code, "translation_provider_unavailable")
 
-    def test_timeout_and_arbitrary_upstream_errors_are_normalized(self):
+    def test_provider_boundary_normalizes_timeout_and_arbitrary_upstream_errors(self):
         class TimeoutTranslator:
             def translate(self, *_args, **_kwargs):
                 raise TimeoutError("slow")

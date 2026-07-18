@@ -4,6 +4,7 @@ import html
 import threading
 import time
 from collections import OrderedDict
+from contextlib import contextmanager
 from dataclasses import dataclass
 from typing import Callable, Protocol
 
@@ -23,6 +24,7 @@ MAX_PROMPT_TRANSLATION_MARKER_CHARACTERS = 1024
 MAX_PROMPT_TRANSLATION_TOTAL_CHARACTERS = 4096
 PROMPT_TRANSLATION_CACHE_MAX_ENTRIES = 256
 PROMPT_TRANSLATION_CACHE_TTL_SECONDS = 300.0
+PROMPT_TRANSLATION_PROVIDER_TIMEOUT_SECONDS = 10.0
 
 
 @dataclass(frozen=True)
@@ -74,6 +76,12 @@ class TranslationCancelledError(PromptTranslationError):
     code = "translation_cancelled"
     status = 499
     default_message = "The translation request was cancelled."
+
+
+class TranslationBusyError(PromptTranslationError):
+    code = "translation_busy"
+    status = 503
+    default_message = "A prompt translation request is already in progress."
 
 
 class TranslationUpstreamError(PromptTranslationError):
@@ -144,8 +152,14 @@ def _looks_like_timeout(exc: Exception) -> bool:
 class GoogleTranslationProvider:
     """Lazy, reusable wrapper around the optional googletrans-py client."""
 
-    def __init__(self, translator_factory: Callable[[], object] | None = None):
+    def __init__(
+        self,
+        translator_factory: Callable[[], object] | None = None,
+        *,
+        timeout_seconds: float = PROMPT_TRANSLATION_PROVIDER_TIMEOUT_SECONDS,
+    ):
         self._translator_factory = translator_factory
+        self._timeout_seconds = max(0.001, float(timeout_seconds))
         self._translator = None
         self._lock = threading.RLock()
 
@@ -156,7 +170,8 @@ class GoogleTranslationProvider:
             from googletrans import Translator  # type: ignore
         except ImportError as exc:
             raise TranslationProviderUnavailableError() from exc
-        return Translator()
+        # googletrans-py forwards this value to its httpx.Client transport.
+        return Translator(timeout=self._timeout_seconds)
 
     def translate(self, text: str, source: str, target: str) -> str:
         value = str(text or "")
@@ -235,6 +250,12 @@ _CACHE_MISS = object()
 TranslationCacheKey = tuple[str, str, str, str]
 
 
+@dataclass
+class _TranslationFlight:
+    lock: threading.Lock
+    users: int = 0
+
+
 class BoundedTranslationCache:
     def __init__(
         self,
@@ -291,7 +312,25 @@ class PromptTranslationService:
         self.max_markers = max(1, int(max_markers))
         self.max_marker_characters = max(1, int(max_marker_characters))
         self.max_total_characters = max(1, int(max_total_characters))
-        self._translation_lock = threading.RLock()
+        self._flights: dict[TranslationCacheKey, _TranslationFlight] = {}
+        self._flights_lock = threading.RLock()
+
+    @contextmanager
+    def _single_flight(self, key: TranslationCacheKey):
+        with self._flights_lock:
+            flight = self._flights.get(key)
+            if flight is None:
+                flight = _TranslationFlight(lock=threading.Lock())
+                self._flights[key] = flight
+            flight.users += 1
+        try:
+            with flight.lock:
+                yield
+        finally:
+            with self._flights_lock:
+                flight.users -= 1
+                if flight.users == 0 and self._flights.get(key) is flight:
+                    self._flights.pop(key, None)
 
     def _validate_markers(self, markers: list[tuple[int, int, str]]) -> None:
         if len(markers) > self.max_markers:
@@ -313,7 +352,10 @@ class PromptTranslationService:
 
     def _translate_cached(self, text: str, settings: PromptTranslationSettings) -> str:
         key = (settings.provider, settings.source, settings.target, text)
-        with self._translation_lock:
+        cached = self.cache.get(key)
+        if cached is not _CACHE_MISS:
+            return str(cached)
+        with self._single_flight(key):
             cached = self.cache.get(key)
             if cached is not _CACHE_MISS:
                 return str(cached)
