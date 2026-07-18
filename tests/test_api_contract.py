@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import gc
 import importlib.util
 import json
 import re
@@ -10,6 +11,7 @@ import threading
 import time
 import types
 import unittest
+import weakref
 from itertools import count
 from pathlib import Path
 from unittest.mock import patch
@@ -236,6 +238,131 @@ class ApiRequestContractTests(unittest.TestCase):
                     self.assertEqual(response["payload"]["code"], "invalid_profile_data")
                     self.assertEqual(response["payload"]["message"], "Profile data is invalid")
 
+    def test_stored_profile_shape_errors_have_stable_422_code(self):
+        api, routes = load_api_routes()
+        cases = (
+            (
+                "/easyuse_anima/lora_profiles/load",
+                "LORA_PROFILE_DIR",
+                "[]",
+            ),
+            (
+                "/easyuse_anima/lora_profiles/load",
+                "LORA_PROFILE_DIR",
+                '{"profile_data": []}',
+            ),
+            (
+                "/easyuse_anima/aio_profiles/load",
+                "AIO_PROFILE_DIR",
+                "null",
+            ),
+            (
+                "/easyuse_anima/aio_profiles/load",
+                "AIO_PROFILE_DIR",
+                '{"settings": []}',
+            ),
+        )
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            for route, directory_name, content in cases:
+                with self.subTest(route=route, content=content):
+                    (root / "Invalid.json").write_text(content, encoding="utf-8")
+                    with patch.object(api, directory_name, root):
+                        response = asyncio.run(
+                            routes.handlers[route](JsonRequest(query={"name": "Invalid"}))
+                        )
+                    self.assertEqual(response["status"], 422)
+                    self.assertEqual(response["payload"]["code"], "invalid_profile_data")
+                    self.assertEqual(
+                        response["payload"]["message"],
+                        "Profile data is invalid",
+                    )
+
+    def test_invalid_utf8_profile_files_have_stable_redacted_422_code(self):
+        api, routes = load_api_routes()
+        cases = (
+            ("/easyuse_anima/lora_profiles/load", "LORA_PROFILE_DIR"),
+            ("/easyuse_anima/aio_profiles/load", "AIO_PROFILE_DIR"),
+        )
+        secret_bytes = b"\xffC:\\Users\\alice\\secret.json API_TOKEN=top-secret"
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            for route, directory_name in cases:
+                with self.subTest(route=route):
+                    (root / "BrokenUtf8.json").write_bytes(secret_bytes)
+                    with patch.object(api, directory_name, root):
+                        response = asyncio.run(
+                            routes.handlers[route](
+                                JsonRequest(query={"name": "BrokenUtf8"})
+                            )
+                        )
+                    self.assertEqual(response["status"], 422)
+                    self.assertEqual(response["payload"]["code"], "invalid_profile_data")
+                    self.assertEqual(
+                        response["payload"]["message"],
+                        "Profile data is invalid",
+                    )
+                    serialized = json.dumps(response["payload"])
+                    for forbidden in (
+                        "alice",
+                        "secret.json",
+                        "API_TOKEN",
+                        "top-secret",
+                        str(root),
+                    ):
+                        self.assertNotIn(forbidden, serialized)
+
+    def test_empty_profile_file_compatibility_boundary_is_preserved(self):
+        api, routes = load_api_routes()
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "Empty.json").write_text("", encoding="utf-8")
+
+            with patch.object(api, "LORA_PROFILE_DIR", root):
+                lora_response = asyncio.run(
+                    routes.handlers["/easyuse_anima/lora_profiles/load"](
+                        JsonRequest(query={"name": "Empty"})
+                    )
+                )
+            self.assertEqual(lora_response["status"], 200)
+            self.assertEqual(lora_response["payload"]["profile"]["profile_data"], {})
+            self.assertEqual(lora_response["payload"]["profile"]["profile_count"], 1)
+
+            with patch.object(api, "AIO_PROFILE_DIR", root):
+                aio_response = asyncio.run(
+                    routes.handlers["/easyuse_anima/aio_profiles/load"](
+                        JsonRequest(query={"name": "Empty"})
+                    )
+                )
+            self.assertEqual(aio_response["status"], 422)
+            self.assertEqual(aio_response["payload"]["code"], "invalid_profile_data")
+
+    def test_legacy_lora_profile_data_json_string_remains_compatible(self):
+        api, routes = load_api_routes()
+        stored = {
+            "profile_data": json.dumps(
+                {"1": {"style_prompt": "legacy", "loras": []}}
+            )
+        }
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "Legacy.json").write_text(
+                json.dumps(stored),
+                encoding="utf-8",
+            )
+            with patch.object(api, "LORA_PROFILE_DIR", root):
+                response = asyncio.run(
+                    routes.handlers["/easyuse_anima/lora_profiles/load"](
+                        JsonRequest(query={"name": "Legacy"})
+                    )
+                )
+
+        self.assertEqual(response["status"], 200)
+        self.assertEqual(
+            response["payload"]["profile"]["profile_data"]["1"]["style_prompt"],
+            "legacy",
+        )
+
     def test_public_validation_error_does_not_echo_path_stack_or_secret(self):
         api, routes = load_api_routes()
         secret = "C:\\Users\\alice\\profile.json API_TOKEN=top-secret"
@@ -297,6 +424,10 @@ class ApiPathRedactionTests(unittest.TestCase):
             self.assertIsNone(re.match(r"^[A-Za-z]:[\\/]", value), value)
             self.assertFalse(value.startswith("/home/"), value)
             self.assertFalse(value.startswith("/Users/"), value)
+        serialized = json.dumps(payload, ensure_ascii=False)
+        self.assertIsNone(re.search(r"[A-Za-z]:[\\/]", serialized), serialized)
+        self.assertNotIn("/home/", serialized)
+        self.assertNotIn("/Users/", serialized)
 
     def test_autocomplete_status_replaces_all_paths_with_public_source_metadata(self):
         api, routes = load_api_routes()
@@ -342,6 +473,81 @@ class ApiPathRedactionTests(unittest.TestCase):
         self.assertTrue(all("path" not in source for source in payload["sources"]))
         self.assert_no_absolute_path(payload)
 
+    def test_autocomplete_search_redacts_nested_status_path_only(self):
+        api, routes = load_api_routes()
+        produced = {
+            "query": "cat",
+            "results": [{"tag": "cat", "score": 7}],
+            "status": {
+                "path": r"C:\Users\alice\secret.csv",
+                "exists": True,
+                "count": 5,
+                "mtime": 1,
+            },
+            "future": {"kept": True},
+        }
+        with (
+            patch.object(api, "resolve_autocomplete_limit", return_value=20),
+            patch.object(api, "resolve_autocomplete_source", return_value="selected"),
+            patch.object(
+                api,
+                "resolve_autocomplete_source_path",
+                return_value=("selected", Path(r"C:\Users\alice\secret.csv")),
+            ),
+            patch.object(api, "search_autocomplete", return_value=produced),
+        ):
+            response = asyncio.run(
+                routes.handlers["/easyuse_anima/autocomplete"](
+                    JsonRequest(query={"q": "cat", "limit": "10"})
+                )
+            )
+
+        payload = response["payload"]
+        self.assertEqual(payload["query"], produced["query"])
+        self.assertEqual(payload["results"], produced["results"])
+        self.assertEqual(payload["future"], produced["future"])
+        self.assertEqual(
+            payload["status"],
+            {"exists": True, "count": 5, "mtime": 1},
+        )
+        self.assert_no_absolute_path(payload)
+
+    def test_classify_prompt_redacts_nested_status_path_only(self):
+        api, routes = load_api_routes()
+        produced = {
+            "tokens": [{"text": "cat", "category": "general"}],
+            "status": {
+                "path": "/home/alice/secret.csv",
+                "exists": True,
+                "count": 9,
+                "mtime": 2,
+            },
+            "future": ["kept"],
+        }
+        with (
+            patch.object(api, "resolve_autocomplete_source", return_value="selected"),
+            patch.object(
+                api,
+                "resolve_autocomplete_source_path",
+                return_value=("selected", Path("/home/alice/secret.csv")),
+            ),
+            patch.object(api, "classify_prompt_text", return_value=produced),
+        ):
+            response = asyncio.run(
+                routes.handlers["/easyuse_anima/classify_prompt"](
+                    JsonRequest({"text": "cat", "limit": 10})
+                )
+            )
+
+        payload = response["payload"]
+        self.assertEqual(payload["tokens"], produced["tokens"])
+        self.assertEqual(payload["future"], produced["future"])
+        self.assertEqual(
+            payload["status"],
+            {"exists": True, "count": 9, "mtime": 2},
+        )
+        self.assert_no_absolute_path(payload)
+
     def test_wildcard_roots_keep_string_list_compatibility_without_paths(self):
         api, routes = load_api_routes()
         secret_roots = [Path(r"C:\Users\alice\wildcards"), Path("/home/alice/wildcards")]
@@ -373,6 +579,32 @@ class ApiPathRedactionTests(unittest.TestCase):
 
 
 class ApiFileIoOffloadTests(unittest.TestCase):
+    def test_closed_loop_limiter_registry_converges_after_gc(self):
+        api, _routes = load_api_routes()
+        loop_refs = []
+
+        async def bind_limiter_to_loop():
+            loop_refs.append(weakref.ref(asyncio.get_running_loop()))
+            limiter = api._file_io_limiter()
+            for _index in range(api.FILE_IO_MAX_IN_FLIGHT):
+                await limiter.acquire()
+            waiter = asyncio.create_task(limiter.acquire())
+            await asyncio.sleep(0)
+            self.assertFalse(waiter.done())
+            limiter.release()
+            await waiter
+            for _index in range(api.FILE_IO_MAX_IN_FLIGHT):
+                limiter.release()
+
+        for _index in range(12):
+            asyncio.run(bind_limiter_to_loop())
+
+        for _index in range(3):
+            gc.collect()
+
+        self.assertTrue(all(loop_ref() is None for loop_ref in loop_refs))
+        self.assertEqual(len(api._FILE_IO_LIMITERS), 0)
+
     def test_slow_scan_save_and_stat_leave_event_loop_heartbeat_running(self):
         api, routes = load_api_routes()
         cases = (

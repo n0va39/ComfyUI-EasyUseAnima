@@ -210,10 +210,15 @@ def _contract_error_response(exc: ApiContractError):
 def _file_io_limiter() -> asyncio.Semaphore:
     loop = asyncio.get_running_loop()
     with _FILE_IO_LIMITERS_LOCK:
-        limiter = _FILE_IO_LIMITERS.get(loop)
+        limiter_ref = _FILE_IO_LIMITERS.get(loop)
+        limiter = limiter_ref() if limiter_ref is not None else None
         if limiter is None:
             limiter = asyncio.Semaphore(FILE_IO_MAX_IN_FLIGHT)
-            _FILE_IO_LIMITERS[loop] = limiter
+            # A contended Semaphore binds itself to the event loop. Store only
+            # a weak value so the registry cannot root a closed loop through
+            # registry -> semaphore -> loop. Active/waiting calls and worker
+            # callbacks keep their limiter alive until the real work finishes.
+            _FILE_IO_LIMITERS[loop] = weakref.ref(limiter)
         return limiter
 
 
@@ -559,7 +564,17 @@ def _load_lora_profile(name: str) -> dict:
         raise FileNotFoundError("Profile not found")
     data = _read_profile_json(path)
     if not isinstance(data, dict):
-        data = {}
+        raise InvalidProfileDataError("Profile data is invalid")
+    profile_data = data.get("profile_data", {})
+    if isinstance(profile_data, str):
+        try:
+            decoded_profile_data = json.loads(profile_data or "{}")
+        except (TypeError, ValueError) as exc:
+            raise InvalidProfileDataError("Profile data is invalid") from exc
+        if not isinstance(decoded_profile_data, dict):
+            raise InvalidProfileDataError("Profile data is invalid")
+    elif not isinstance(profile_data, dict):
+        raise InvalidProfileDataError("Profile data is invalid")
     payload = _normalize_lora_profile_payload(data)
     payload["name"] = path.stem
     return payload
@@ -648,9 +663,14 @@ def _load_aio_profile(name: str) -> dict:
         raise FileNotFoundError("Profile not found")
     try:
         data = _read_profile_json(path)
-    except json.JSONDecodeError as exc:
+    except (json.JSONDecodeError, UnicodeDecodeError) as exc:
         raise InvalidProfileDataError("Profile data is invalid") from exc
-    return _normalize_aio_profile_payload(path.stem, data if isinstance(data, dict) else {})
+    if not isinstance(data, dict):
+        raise InvalidProfileDataError("Profile data is invalid")
+    try:
+        return _normalize_aio_profile_payload(path.stem, data)
+    except ValueError as exc:
+        raise InvalidProfileDataError(str(exc)) from exc
 
 
 def _delete_aio_profile(name: str) -> dict:
@@ -735,7 +755,10 @@ def _profile_error_response(exc: Exception):
         return _error_response(409, "profile_exists", "Profile already exists")
     if isinstance(exc, FileNotFoundError):
         return _error_response(404, "profile_not_found", "Profile not found")
-    if isinstance(exc, (json.JSONDecodeError, InvalidProfileDataError)):
+    if isinstance(
+        exc,
+        (json.JSONDecodeError, UnicodeDecodeError, InvalidProfileDataError),
+    ):
         return _error_response(422, "invalid_profile_data", "Profile data is invalid")
     if isinstance(exc, ValueError):
         message = str(exc)
@@ -794,8 +817,7 @@ def _wildcards_payload_sync() -> dict:
 def _autocomplete_status_payload_sync() -> dict:
     selected_source = resolve_autocomplete_source()
     source_key, path = resolve_autocomplete_source_path(selected_source)
-    status = dict(autocomplete_status(path))
-    status.pop("path", None)
+    status = _public_autocomplete_status(autocomplete_status(path))
     sources = []
     source_label = source_key
     for source in available_autocomplete_sources(source_key):
@@ -815,6 +837,21 @@ def _autocomplete_status_payload_sync() -> dict:
     }
 
 
+def _public_autocomplete_status(status) -> dict:
+    public_status = dict(status) if isinstance(status, dict) else {}
+    public_status.pop("path", None)
+    return public_status
+
+
+def _public_autocomplete_payload(payload) -> dict:
+    public_payload = dict(payload) if isinstance(payload, dict) else {}
+    if "status" in public_payload:
+        public_payload["status"] = _public_autocomplete_status(
+            public_payload["status"]
+        )
+    return public_payload
+
+
 def _search_autocomplete_payload_sync(
     query: str,
     requested_limit: str | None,
@@ -826,17 +863,21 @@ def _search_autocomplete_payload_sync(
     except ValueError:
         limit = default_limit
     _, path = resolve_autocomplete_source_path(resolve_autocomplete_source())
-    return search_autocomplete(
-        query,
-        limit=limit,
-        path=path,
-        category=category_filter,
+    return _public_autocomplete_payload(
+        search_autocomplete(
+            query,
+            limit=limit,
+            path=path,
+            category=category_filter,
+        )
     )
 
 
 def _classify_prompt_payload_sync(text: str, limit: int):
     _, path = resolve_autocomplete_source_path(resolve_autocomplete_source())
-    return classify_prompt_text(text, limit=limit, path=path)
+    return _public_autocomplete_payload(
+        classify_prompt_text(text, limit=limit, path=path)
+    )
 
 
 def _get_prompt_routes():
@@ -994,7 +1035,12 @@ if web is not None and routes is not None:
                 _load_lora_profile,
                 request.query.get("name", ""),
             )
-        except (json.JSONDecodeError, FileNotFoundError, ValueError) as exc:
+        except (
+            json.JSONDecodeError,
+            UnicodeDecodeError,
+            FileNotFoundError,
+            ValueError,
+        ) as exc:
             return _profile_error_response(exc)
         return web.json_response({"status": "ok", "profile": payload})
 
