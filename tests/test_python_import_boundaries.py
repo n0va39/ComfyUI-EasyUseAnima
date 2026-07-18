@@ -45,6 +45,15 @@ class PythonImportBoundaryTests(unittest.TestCase):
             ]
         )
 
+    def test_comfy_infrastructure_does_not_back_reference_feature_schema(self):
+        comfy_root = INTERNAL_PACKAGE / "infrastructure" / "comfy"
+        for path in sorted(comfy_root.glob("*.py")):
+            source = path.read_text(encoding="utf-8")
+            with self.subTest(path=path.name):
+                self.assertNotIn("ANIMA_", source)
+                self.assertNotIn("from nodes", source)
+                self.assertNotIn("import nodes", source)
+
     def test_synthetic_allowed_imports_have_no_violations(self):
         sources = {
             "easyuse_anima.domain.models": "from easyuse_anima.domain import values\n",

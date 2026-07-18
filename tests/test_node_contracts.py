@@ -20,6 +20,9 @@ import nodes
 from easyuse_anima.common import serialization as common_serialization
 from easyuse_anima.common import values as common_values
 from easyuse_anima.image import geometry as image_geometry
+from easyuse_anima.infrastructure.comfy import capabilities as comfy_capabilities
+from easyuse_anima.infrastructure.comfy import invocation as comfy_invocation
+from easyuse_anima.infrastructure.comfy import resources as comfy_resources
 
 
 PACKAGE_INIT = ROOT / "__init__.py"
@@ -503,6 +506,63 @@ class CommonHelperMoveContractTests(unittest.TestCase):
             nodes._aligned_size_near_scale(128, 64, 2.0, 64, 0),
             (256, 128, 2.0),
         )
+
+
+class ComfyAdapterMoveContractTests(unittest.TestCase):
+    DIRECT_HELPER_MODULES = (
+        (
+            comfy_capabilities,
+            ("_comfy_sampler_names", "_comfy_scheduler_names"),
+        ),
+        (
+            comfy_resources,
+            ("_comfy_checkpoint_names", "_folder_path_names"),
+        ),
+        (
+            comfy_invocation,
+            ("_node_output_tuple", "_call_with_supported_kwargs"),
+        ),
+    )
+
+    def test_root_nodes_comfy_aliases_are_canonical_objects(self):
+        for canonical_module, helper_names in self.DIRECT_HELPER_MODULES:
+            for helper_name in helper_names:
+                with self.subTest(module=canonical_module.__name__, helper=helper_name):
+                    self.assertIs(
+                        getattr(nodes, helper_name),
+                        getattr(canonical_module, helper_name),
+                    )
+
+    def test_package_nodes_comfy_aliases_are_canonical_objects(self):
+        with _loaded_package_entrypoint() as (_, package_nodes):
+            package_name = package_nodes.__package__
+            package_helper_modules = (
+                (
+                    sys.modules[
+                        f"{package_name}.easyuse_anima.infrastructure.comfy.capabilities"
+                    ],
+                    self.DIRECT_HELPER_MODULES[0][1],
+                ),
+                (
+                    sys.modules[
+                        f"{package_name}.easyuse_anima.infrastructure.comfy.resources"
+                    ],
+                    self.DIRECT_HELPER_MODULES[1][1],
+                ),
+                (
+                    sys.modules[
+                        f"{package_name}.easyuse_anima.infrastructure.comfy.invocation"
+                    ],
+                    self.DIRECT_HELPER_MODULES[2][1],
+                ),
+            )
+            for canonical_module, helper_names in package_helper_modules:
+                for helper_name in helper_names:
+                    with self.subTest(module=canonical_module.__name__, helper=helper_name):
+                        self.assertIs(
+                            getattr(package_nodes, helper_name),
+                            getattr(canonical_module, helper_name),
+                        )
 
 
 class PublicNodeContractTests(unittest.TestCase):

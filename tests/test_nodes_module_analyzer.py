@@ -70,14 +70,14 @@ def load_dynamic():
         self.assertEqual(analyzer.render_json(first_report), analyzer.render_json(second_report))
         self.assertEqual(analyzer.render_text(first_report), analyzer.render_text(second_report))
 
-    def test_phase_zero_nodes_module_shape_matches_recorded_baseline(self):
+    def test_current_nodes_module_shape_matches_recorded_baseline(self):
         report = analyzer.analyze_path(ROOT / "nodes.py")
 
-        self.assertEqual(report["git_blob_sha1"], "eb284afe415c7e47f848071e68320520fc6322fe")
-        # Issue #184 B-02 intentionally moved 13 domain-independent helpers out of nodes.py.
-        self.assertEqual(report["top_level"]["function_count"], 271)
+        self.assertEqual(report["git_blob_sha1"], "bb85eb2a283bde2b521882c3162828a31a5bde2b")
+        # Issue #184 B-03 moved six helpers as direct aliases and kept thin injection wrappers.
+        self.assertEqual(report["top_level"]["function_count"], 265)
         self.assertEqual(report["top_level"]["class_count"], 25)
-        self.assertGreaterEqual(report["line_count"], 12_000)
+        self.assertEqual(report["line_count"], 12_449)
         class_names = {item["name"] for item in report["top_level"]["classes"]}
         self.assertIn("EasyUseAnimaAIOGenerator", class_names)
         self.assertIn("EasyUseAnimaPromptStudioAdvancedV2", class_names)
