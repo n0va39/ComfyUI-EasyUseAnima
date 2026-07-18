@@ -66,6 +66,7 @@ __pycache__/
 .tmp-tests/
 .tmp_tests/
 .vscode/
+.agents/
 .venv/
 venv/
 env/

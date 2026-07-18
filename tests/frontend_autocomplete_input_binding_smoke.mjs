@@ -609,6 +609,40 @@ function replacementBinding(input, state, owner, registry, controller) {
   const direct = new FakeHtmlInputElement();
   assert.equal(findInputEl({ inputEl: direct }), direct);
 
+  const graphNodesStart = entrySource.indexOf("function autocompleteGraphNodes");
+  const graphNodesEnd = entrySource.indexOf("\nfunction findGraphNodeById", graphNodesStart);
+  assert.ok(graphNodesStart >= 0 && graphNodesEnd > graphNodesStart);
+  const autocompleteGraphNodesFor = (app) => new Function(
+    "app",
+    `"use strict";\n${entrySource.slice(graphNodesStart, graphNodesEnd)}\nreturn autocompleteGraphNodes;`,
+  )(app)();
+  const legacyNode = { id: 1 };
+  const node2Node = { id: 2 };
+  assert.deepEqual(autocompleteGraphNodesFor({ graph: { _nodes: [legacyNode, null] } }), [legacyNode]);
+  assert.deepEqual(autocompleteGraphNodesFor({ graph: { nodes: [node2Node, null] } }), [node2Node]);
+  assert.deepEqual(
+    autocompleteGraphNodesFor({ graph: { _nodes_by_id: { 1: legacyNode, empty: null } } }),
+    [legacyNode],
+  );
+
+  let graphNodes = [];
+  const ownerStart = entrySource.indexOf("function autocompleteDomInputOwner");
+  const ownerEnd = entrySource.indexOf("\nfunction hookFocusedDomInput", ownerStart);
+  assert.ok(ownerStart >= 0 && ownerEnd > ownerStart);
+  const autocompleteDomInputOwner = new Function(
+    "nodeFromDomElement",
+    "autocompleteGraphNodes",
+    "widgetForDomInput",
+    `"use strict";\n${entrySource.slice(ownerStart, ownerEnd)}\nreturn autocompleteDomInputOwner;`,
+  )(
+    () => null,
+    () => graphNodes,
+    (node, input) => (node?.widgets || []).find((widget) => {
+      const widgetInput = findInputEl(widget);
+      return widgetInput === input || widget?.element?.contains?.(input);
+    }) || null,
+  );
+
   const hookStart = entrySource.indexOf("function hookNode");
   const hookEnd = entrySource.indexOf("\nfunction handleOutsideAutocompletePointer", hookStart);
   assert.ok(hookStart >= 0 && hookEnd > hookStart);
@@ -651,23 +685,62 @@ function replacementBinding(input, state, owner, registry, controller) {
   textInput.isConnected = false;
   populatedInput.isConnected = false;
   const node = {
+    constructor: { nodeData: { name: "EasyUseAnimaWildcard" } },
+    __easyuseAnimaArtistOnlyWidgets: new Set(),
     widgets: [
       { name: "text", inputEl: textInput, element: textInput },
       { name: "populated_text", inputEl: populatedInput, element: populatedInput },
     ],
   };
+  graphNodes = [node];
 
   hookNode(node, { name: "EasyUseAnimaWildcard" });
   assert.equal(hooked.length, 0);
-  assert.equal(scheduled.length, 1);
-  assert.equal(scheduled[0].delay, 80);
+  for (let attempt = 0; attempt < 12; attempt += 1) {
+    assert.equal(scheduled.length, 1);
+    const scheduledAttempt = scheduled.shift();
+    assert.equal(scheduledAttempt.delay, 80);
+    scheduledAttempt.callback();
+  }
+  assert.equal(scheduled.length, 0, "the existing bounded retry must be fully exhausted");
+  assert.equal(hooked.length, 0);
 
   textInput.isConnected = true;
-  populatedInput.isConnected = true;
-  scheduled.shift().callback();
+  const lateOwner = autocompleteDomInputOwner(textInput);
+  assert.equal(lateOwner?.node, node);
+  assert.equal(lateOwner?.widget, node.widgets[0]);
 
-  assert.deepEqual(hooked, [textInput, populatedInput]);
-  assert.equal(scheduled.length, 0, "both ready inputs must stop the bounded retry loop");
+  const focusStart = entrySource.indexOf("function hookFocusedDomInput");
+  const focusEnd = entrySource.indexOf("\nfunction handleAutocompleteScroll", focusStart);
+  assert.ok(focusStart >= 0 && focusEnd > focusStart);
+  const focusedHooks = [];
+  const hookFocusedDomInput = new Function(
+    "isAutocompleteDomInput",
+    "popup",
+    "autocompleteDomInputOwner",
+    "targetWidgets",
+    "hasExplicitTargets",
+    "shouldSkipNode",
+    "autocompleteScope",
+    "hookInput",
+    `"use strict";\n${entrySource.slice(focusStart, focusEnd)}\nreturn hookFocusedDomInput;`,
+  )(
+    () => true,
+    null,
+    autocompleteDomInputOwner,
+    targetWidgets,
+    () => true,
+    () => false,
+    () => "compatible",
+    (input, options) => focusedHooks.push({ input, options }),
+  );
+
+  hookFocusedDomInput(textInput);
+  assert.equal(focusedHooks.length, 1);
+  assert.equal(focusedHooks[0].input, textInput);
+  assert.equal(focusedHooks[0].options.node, node);
+  assert.equal(focusedHooks[0].options.widget, node.widgets[0]);
+  assert.equal(focusedHooks[0].options.scope, "easyuse");
 }
 
 console.log("Autocomplete input binding smoke passed.");
