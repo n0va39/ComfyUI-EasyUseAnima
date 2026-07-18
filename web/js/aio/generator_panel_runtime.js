@@ -4,6 +4,28 @@ const GENERATOR_DOM_WIDGET = "easyuse_anima_generator_panel";
 const GENERATOR_NODE_MIN_WIDTH = 560;
 const GENERATOR_NODE_DEFAULT_WIDTH = 620;
 const GENERATOR_PANEL_CONTROL_SELECTOR = "input, select, textarea, button";
+const generatorInfoTooltipOwners = new WeakMap();
+
+function claimGeneratorInfoTooltipOwner(document, owner) {
+  const currentOwner = generatorInfoTooltipOwners.get(document);
+  if (currentOwner === owner) {
+    return;
+  }
+  currentOwner?.close?.();
+  generatorInfoTooltipOwners.set(document, owner);
+  owner.connect?.();
+}
+
+function releaseGeneratorInfoTooltipOwner(document, owner) {
+  if (generatorInfoTooltipOwners.get(document) === owner) {
+    generatorInfoTooltipOwners.delete(document);
+  }
+  owner.disconnect?.();
+}
+
+function closeGeneratorInfoTooltipOwner(document) {
+  generatorInfoTooltipOwners.get(document)?.close?.();
+}
 
 /**
  * @typedef {object} AioGeneratorPanelControls
@@ -1174,6 +1196,7 @@ export function aioCreateGeneratorPanelRuntime(dependencies) {
       let hovered = false;
       let pinned = false;
       let trackingPosition = false;
+      let trackingDocument = false;
 
       const positionTooltip = () => {
         const rect = button.getBoundingClientRect?.() || {};
@@ -1210,11 +1233,64 @@ export function aioCreateGeneratorPanelRuntime(dependencies) {
           window.removeEventListener("scroll", positionTooltip, true);
         }
       };
+      const closeTooltip = () => {
+        if (disposed) {
+          return;
+        }
+        pinned = false;
+        dismissed = true;
+        syncVisibility();
+      };
+      const onDocumentOutside = (event) => {
+        const target = event?.target;
+        if (button.contains?.(target) || tooltip.contains?.(target)) {
+          return;
+        }
+        closeTooltip();
+      };
+      const onDocumentKeyDown = (event) => {
+        if (event?.key !== "Escape") {
+          return;
+        }
+        event.preventDefault?.();
+        closeGeneratorInfoTooltipOwner(document);
+      };
+      const documentListeners = [
+        ["pointerdown", onDocumentOutside],
+        ["click", onDocumentOutside],
+        ["touchstart", onDocumentOutside],
+        ["keydown", onDocumentKeyDown],
+      ];
+      const updateDocumentTracking = (enabled) => {
+        if (trackingDocument === enabled) {
+          return;
+        }
+        trackingDocument = enabled;
+        for (const [eventName, listener] of documentListeners) {
+          if (enabled) {
+            document.addEventListener(eventName, listener, true);
+          } else {
+            document.removeEventListener(eventName, listener, true);
+          }
+        }
+      };
+      const owner = {
+        trigger: button,
+        tooltip,
+        close: closeTooltip,
+        connect: () => updateDocumentTracking(true),
+        disconnect: () => updateDocumentTracking(false),
+      };
       const syncVisibility = () => {
         if (disposed) {
           return;
         }
         const visible = !dismissed && (hovered || focused || pinned);
+        if (visible) {
+          claimGeneratorInfoTooltipOwner(document, owner);
+        } else {
+          releaseGeneratorInfoTooltipOwner(document, owner);
+        }
         tooltip.hidden = !visible;
         button.setAttribute("aria-expanded", visible ? "true" : "false");
         updatePositionTracking(visible);
@@ -1274,9 +1350,7 @@ export function aioCreateGeneratorPanelRuntime(dependencies) {
         } else if (event.key === "Escape") {
           event.preventDefault?.();
           event.stopPropagation?.();
-          pinned = false;
-          dismissed = true;
-          syncVisibility();
+          closeGeneratorInfoTooltipOwner(document);
         }
       };
       const listeners = [
@@ -1296,6 +1370,7 @@ export function aioCreateGeneratorPanelRuntime(dependencies) {
           return;
         }
         disposed = true;
+        releaseGeneratorInfoTooltipOwner(document, owner);
         updatePositionTracking(false);
         for (const [eventName, listener] of listeners) {
           button.removeEventListener(eventName, listener);
