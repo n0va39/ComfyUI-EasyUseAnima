@@ -497,7 +497,7 @@ class FrontendModuleStructureTests(unittest.TestCase):
             "controls": [
                 "numberInput,",
                 "checkbox,",
-                "textInput,",
+                "textareaInput,",
                 "selectInput,",
                 "createNodeField,",
             ],
@@ -612,7 +612,7 @@ class FrontendModuleStructureTests(unittest.TestCase):
             "createDomSettingsCheckboxControl",
             "createDomSettingsNumberControl",
             "createDomSettingsSelectControl",
-            "createDomSettingsTextControl",
+            "createDomSettingsTextareaControl",
             "createDomSelectControl",
             "updateGeneratorSeed",
             "setGeneratorSeedFromUi",
@@ -627,6 +627,7 @@ class FrontendModuleStructureTests(unittest.TestCase):
         for removed_function in (
             "createDomTextControl",
             "createDomCheckboxControl",
+            "createDomSettingsTextControl",
             "createSeedControlSelect",
         ):
             with self.subTest(removed_dead_function=removed_function):
@@ -1524,6 +1525,8 @@ class FrontendModuleStructureTests(unittest.TestCase):
         self.assertEqual(exported_constants, expected_constants)
 
         expected_functions = {
+            "aioChoiceOptionsWithCurrent",
+            "aioChoiceSpecValues",
             "aioNodeInputMap",
             "aioNodeInputSpec",
             "aioNodeInputSupported",
@@ -1557,6 +1560,8 @@ class FrontendModuleStructureTests(unittest.TestCase):
             {
                 "AIO_BACKEND_DEPENDENCIES",
                 "AIO_OPTIONAL_DEPENDENCY_SPECS",
+                "aioChoiceOptionsWithCurrent",
+                "aioChoiceSpecValues",
                 "aioNodeInputMap",
                 "aioNodeInputSpec",
                 "aioNodeInputSupported",
@@ -1574,6 +1579,8 @@ class FrontendModuleStructureTests(unittest.TestCase):
         self.assertNotIn("fetch(", source)
         self.assertNotIn("const GENERATOR_OPTIONAL_DEPENDENCY_SPECS", entry_source)
         self.assertNotIn("const GENERATOR_BACKEND_DEPENDENCIES", entry_source)
+        self.assertNotIn("function choiceSpecValues", entry_source)
+        self.assertNotIn("function optionsWithCurrent", entry_source)
         self.assertNotIn("function upscaleBackendDependencyKeys", entry_source)
 
         for delegation in (

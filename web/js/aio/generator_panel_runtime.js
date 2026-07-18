@@ -9,7 +9,7 @@ const GENERATOR_PANEL_CONTROL_SELECTOR = "input, select, textarea, button";
  * @typedef {object} AioGeneratorPanelControls
  * @property {(value: any, step?: string) => any} numberInput
  * @property {(value: any) => any} checkbox
- * @property {(value: any) => any} textInput
+ * @property {(value: any) => any} textareaInput
  * @property {(options: any[], value: any) => any} selectInput
  * @property {(label: any, control: any, className?: string, tooltipKey?: string) => any} createNodeField
  */
@@ -128,7 +128,7 @@ export function aioCreateGeneratorPanelRuntime(dependencies) {
   const {
     numberInput,
     checkbox,
-    textInput,
+    textareaInput,
     selectInput,
     createNodeField,
   } = controls;
@@ -1010,17 +1010,17 @@ export function aioCreateGeneratorPanelRuntime(dependencies) {
     return select;
   }
 
-  function createDomSettingsTextControl(node, value, updater, options = {}) {
-    const input = applyGeneratorControlFocusKey(textInput(value), options);
-    input.addEventListener("input", () => {
+  function createDomSettingsTextareaControl(node, value, updater, options = {}) {
+    const textarea = applyGeneratorControlFocusKey(textareaInput(value), options);
+    textarea.addEventListener("input", () => {
       updateGeneratorSettings(node, (settings) => {
-        updater?.(settings, String(input.value || ""));
+        updater?.(settings, String(textarea.value || ""));
       });
       updateGeneratorDomSummary(node);
       scheduleGeneratorLayout(node);
       markNodeDirty(node);
     });
-    return input;
+    return textarea;
   }
 
   function createDomSelectControl(node, name, value, fallbackOptions = []) {
@@ -1501,7 +1501,7 @@ export function aioCreateGeneratorPanelRuntime(dependencies) {
             ),
             createNodeField(
               aioText("field.wildcard"),
-              createDomSettingsTextControl(
+              createDomSettingsTextareaControl(
                 node,
                 target.wildcard,
                 (nextSettings, value) => {

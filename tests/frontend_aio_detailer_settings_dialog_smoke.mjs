@@ -473,6 +473,7 @@ function createFixture({
 }
 
 {
+  const multilineFaceWildcard = "configured face wildcard\nsecond line";
   const fixture = createFixture({
     choiceOptions: {
       "checkpointLoader:ckpt_name": [
@@ -488,7 +489,7 @@ function createFixture({
         face: {
           enabled: true,
           guide_size_for: true,
-          wildcard: "configured face wildcard",
+          wildcard: multilineFaceWildcard,
           inpaint_model: true,
           tiled_encode: true,
           tiled_decode: true,
@@ -528,7 +529,7 @@ function createFixture({
   assert.ok(tabByLabel(cancelDialog, "Face Detailer").classList.contains("active"));
   assert.equal(controlIn(activeEditor(cancelDialog), "Block name").value, "Face Detailer");
   assert.equal(controlIn(activeEditor(cancelDialog), "Guide size basis").value, "bbox");
-  assert.equal(controlIn(activeEditor(cancelDialog), "Wildcard").value, "configured face wildcard");
+  assert.equal(controlIn(activeEditor(cancelDialog), "Wildcard").value, multilineFaceWildcard);
   assert.equal(controlIn(activeEditor(cancelDialog), "Wildcard").tagName, "TEXTAREA");
   assert.equal(controlIn(activeEditor(cancelDialog), "Inpaint model").checked, true);
   assert.equal(controlIn(activeEditor(cancelDialog), "Tiled encode").checked, true);
@@ -640,7 +641,7 @@ function createFixture({
   assert.equal(fixture.node.settings.preserved_root_key, "keep-root");
   assert.equal(fixture.node.settings.detailer.face.preserved_face_key, "keep-face");
   assert.equal(fixture.node.settings.detailer.face.guide_size_for, true);
-  assert.equal(fixture.node.settings.detailer.face.wildcard, "configured face wildcard");
+  assert.equal(fixture.node.settings.detailer.face.wildcard, multilineFaceWildcard);
   assert.equal(fixture.node.settings.detailer.face.inpaint_model, true);
   assert.equal(fixture.node.settings.detailer.face.tiled_encode, true);
   assert.equal(fixture.node.settings.detailer.face.tiled_decode, true);

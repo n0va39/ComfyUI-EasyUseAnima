@@ -145,6 +145,48 @@ export function aioNodeInputSpec(state, dependencyKey, inputName) {
   return aioNodeInputMap(state, dependencyKey)?.[inputName] || null;
 }
 
+function aioUniqueChoiceValues(values) {
+  const output = [];
+  for (const value of values || []) {
+    if (!["string", "number", "boolean"].includes(typeof value)) {
+      continue;
+    }
+    const normalized = String(value);
+    if (normalized && !output.includes(normalized)) {
+      output.push(normalized);
+    }
+  }
+  return output;
+}
+
+export function aioChoiceSpecValues(spec) {
+  if (!Array.isArray(spec)) {
+    return [];
+  }
+  if (Array.isArray(spec[0])) {
+    return aioUniqueChoiceValues(spec[0]);
+  }
+  if (spec[0] === "COMBO") {
+    const options = spec[1] && typeof spec[1] === "object"
+      ? spec[1].options
+      : null;
+    return Array.isArray(options) ? aioUniqueChoiceValues(options) : [];
+  }
+  if (spec.every((value) => ["string", "number", "boolean"].includes(typeof value))) {
+    return aioUniqueChoiceValues(spec);
+  }
+  return [];
+}
+
+export function aioChoiceOptionsWithCurrent(options, current) {
+  const merged = aioUniqueChoiceValues(options);
+  const normalized = String(current ?? "");
+  if (normalized && !merged.includes(normalized)) {
+    merged.unshift(normalized);
+  }
+  return merged;
+}
+
 export function aioNodeInputTooltip(state, dependencyKey, inputName) {
   const spec = aioNodeInputSpec(state, dependencyKey, inputName);
   const options = Array.isArray(spec) && spec[1] && typeof spec[1] === "object"
