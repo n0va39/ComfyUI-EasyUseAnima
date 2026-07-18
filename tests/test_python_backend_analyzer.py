@@ -683,13 +683,32 @@ ignored/
 
         self.assertEqual(analyzer.render_json(report), expected_text)
         self.assertEqual(report["schema_version"], 2)
-        self.assertEqual(report["inventory"]["module_count"], 17)
-        self.assertEqual(len(report["registry"]["shipped_python_modules"]), 17)
+        self.assertEqual(report["inventory"]["module_count"], 24)
+        self.assertEqual(len(report["registry"]["shipped_python_modules"]), 24)
         self.assertEqual(len(report["registry"]["runtime_import_closure"]), 17)
         self.assertEqual(report["registry"]["missing_internal_imports"], [])
         self.assertEqual(
             report["registry"]["unreachable_shipped_python_modules"],
-            [],
+            [
+                "easyuse_anima/__init__.py",
+                "easyuse_anima/aio/__init__.py",
+                "easyuse_anima/image/__init__.py",
+                "easyuse_anima/infrastructure/__init__.py",
+                "easyuse_anima/infrastructure/comfy/__init__.py",
+                "easyuse_anima/nodes/__init__.py",
+                "easyuse_anima/prompt/__init__.py",
+            ],
+        )
+        self.assertTrue(
+            {
+                "easyuse_anima/__init__.py",
+                "easyuse_anima/aio/__init__.py",
+                "easyuse_anima/image/__init__.py",
+                "easyuse_anima/infrastructure/__init__.py",
+                "easyuse_anima/infrastructure/comfy/__init__.py",
+                "easyuse_anima/nodes/__init__.py",
+                "easyuse_anima/prompt/__init__.py",
+            }.issubset(report["registry"]["shipped_python_modules"])
         )
         self.assertIn("nodes.py", report["registry"]["shipped_python_modules"])
         self.assertIn("api.py", report["registry"]["runtime_import_closure"])

@@ -15,6 +15,15 @@ EXPECTED_AUTOCOMPLETE_MODULES = {
     "web/js/autocomplete/popup_geometry.js",
     "web/js/autocomplete/text_model.js",
 }
+EXPECTED_PYTHON_PACKAGE_FILES = {
+    "easyuse_anima/__init__.py",
+    "easyuse_anima/aio/__init__.py",
+    "easyuse_anima/image/__init__.py",
+    "easyuse_anima/infrastructure/__init__.py",
+    "easyuse_anima/infrastructure/comfy/__init__.py",
+    "easyuse_anima/nodes/__init__.py",
+    "easyuse_anima/prompt/__init__.py",
+}
 STATIC_IMPORT_FROM_RE = re.compile(
     r"""
     ^[ \t]*(?:import|export)[ \t\r\n]+
@@ -254,6 +263,30 @@ class RegistryScannerSafetyTests(unittest.TestCase):
             "--exclude-from=.comfyignore",
         )
         self.assertNotIn(runtime_path, ignored)
+
+    def test_python_package_skeleton_is_in_registry_package_surface(self):
+        for runtime_path in EXPECTED_PYTHON_PACKAGE_FILES:
+            with self.subTest(runtime_path=runtime_path):
+                self.assertTrue((ROOT / runtime_path).is_file())
+
+        tracked = _git_paths("ls-files", "--cached")
+        self.assertFalse(
+            EXPECTED_PYTHON_PACKAGE_FILES - tracked,
+            "package skeleton is not tracked: "
+            f"{sorted(EXPECTED_PYTHON_PACKAGE_FILES - tracked)}",
+        )
+
+        ignored = _git_paths(
+            "ls-files",
+            "--cached",
+            "--ignored",
+            "--exclude-from=.comfyignore",
+        )
+        self.assertFalse(
+            EXPECTED_PYTHON_PACKAGE_FILES & ignored,
+            "package skeleton is excluded from the Registry package: "
+            f"{sorted(EXPECTED_PYTHON_PACKAGE_FILES & ignored)}",
+        )
 
     def test_registry_safety_doc_is_linked_from_development_entry(self):
         entry = (ROOT / "docs" / "development" / "README.md").read_text(encoding="utf-8")
