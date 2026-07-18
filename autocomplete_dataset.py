@@ -1,12 +1,18 @@
 from __future__ import annotations
 
 import csv
+import heapq
 import itertools
 import re
+import stat
+import threading
 import time
 import unicodedata
+from concurrent.futures import Future
 from dataclasses import dataclass
 from pathlib import Path
+from types import MappingProxyType
+from typing import Mapping
 
 try:
     from .anima_prompt.knowledge import PACKAGE_DATA_DIR
@@ -82,12 +88,9 @@ _MERGED_E621_CATEGORY_NAMES = {
     "14": "meta",
     "15": "general",
 }
-_CACHE = {
-    "path": None,
-    "mtime": None,
-    "entries": None,
-    "entry_map": None,
-}
+_AUTOCOMPLETE_CACHE_SCHEMA_VERSION = 1
+_AUTOCOMPLETE_CACHE_LOAD_ATTEMPTS = 4
+_MISSING_FILE_STAT = -1
 _COUNT_RE = re.compile(
     r"^\d+\s*(girl|girls|boy|boys|person|people|other|others|animal|animals|"
     r"female|females|male|males|child|children)s?$",
@@ -110,6 +113,30 @@ class AutocompleteEntry:
     count: int
     description: str
     search: str
+
+
+@dataclass(frozen=True)
+class _AutocompleteCacheKey:
+    resolved_path: str
+    mtime_ns: int
+    size: int
+    schema_version: int
+
+
+@dataclass(frozen=True)
+class _AutocompleteSnapshot:
+    key: _AutocompleteCacheKey
+    entries: tuple[AutocompleteEntry, ...]
+    entry_map: Mapping[str, AutocompleteEntry]
+
+
+class _AutocompleteSourceChanged(RuntimeError):
+    pass
+
+
+_CACHE_LOCK = threading.Lock()
+_CACHE: dict[str, _AutocompleteSnapshot] = {}
+_INFLIGHT: dict[_AutocompleteCacheKey, Future[_AutocompleteSnapshot]] = {}
 
 
 def resolve_autocomplete_source(source: str | None = None) -> tuple[str, Path]:
@@ -270,28 +297,117 @@ def _load_entries(path: Path = AUTOCOMPLETE_CSV) -> tuple[AutocompleteEntry, ...
     return tuple(entries)
 
 
+def _cache_key_from_resolved_path(path: Path) -> _AutocompleteCacheKey:
+    try:
+        file_stat = path.stat()
+    except (FileNotFoundError, NotADirectoryError):
+        mtime_ns = _MISSING_FILE_STAT
+        size = _MISSING_FILE_STAT
+    else:
+        if stat.S_ISREG(file_stat.st_mode):
+            mtime_ns = file_stat.st_mtime_ns
+            size = file_stat.st_size
+        else:
+            mtime_ns = _MISSING_FILE_STAT
+            size = _MISSING_FILE_STAT
+    return _AutocompleteCacheKey(
+        resolved_path=str(path),
+        mtime_ns=mtime_ns,
+        size=size,
+        schema_version=_AUTOCOMPLETE_CACHE_SCHEMA_VERSION,
+    )
+
+
+def _cache_key(path: Path) -> _AutocompleteCacheKey:
+    return _cache_key_from_resolved_path(Path(path).resolve(strict=False))
+
+
+def _build_snapshot(key: _AutocompleteCacheKey) -> _AutocompleteSnapshot:
+    if key.mtime_ns == _MISSING_FILE_STAT:
+        entries: tuple[AutocompleteEntry, ...] = ()
+    else:
+        entries = _load_entries(Path(key.resolved_path))
+    entry_map = MappingProxyType({entry.tag_key: entry for entry in entries})
+    return _AutocompleteSnapshot(key=key, entries=entries, entry_map=entry_map)
+
+
+def _await_snapshot(future: Future[_AutocompleteSnapshot]) -> _AutocompleteSnapshot:
+    return future.result()
+
+
+def _snapshot_for_key(key: _AutocompleteCacheKey) -> _AutocompleteSnapshot:
+    with _CACHE_LOCK:
+        cached = _CACHE.get(key.resolved_path)
+        if cached is not None and cached.key == key:
+            return cached
+        future = _INFLIGHT.get(key)
+        is_loader = future is None
+        if future is None:
+            future = Future()
+            _INFLIGHT[key] = future
+
+    if not is_loader:
+        return _await_snapshot(future)
+
+    try:
+        try:
+            snapshot = _build_snapshot(key)
+        except Exception as load_error:
+            current_key = _cache_key_from_resolved_path(Path(key.resolved_path))
+            if current_key != key:
+                raise _AutocompleteSourceChanged(key.resolved_path) from load_error
+            raise
+        current_key = _cache_key_from_resolved_path(Path(key.resolved_path))
+        if current_key != key:
+            raise _AutocompleteSourceChanged(key.resolved_path)
+        with _CACHE_LOCK:
+            current_cached = _CACHE.get(key.resolved_path)
+            if current_cached is not cached and (
+                current_cached is None or current_cached.key != key
+            ):
+                raise _AutocompleteSourceChanged(key.resolved_path)
+            _CACHE[key.resolved_path] = snapshot
+            _INFLIGHT.pop(key, None)
+    except BaseException as error:
+        with _CACHE_LOCK:
+            if _INFLIGHT.get(key) is future:
+                _INFLIGHT.pop(key, None)
+        future.set_exception(error)
+        raise
+
+    future.set_result(snapshot)
+    return snapshot
+
+
+def _snapshot(path: Path = AUTOCOMPLETE_CSV) -> _AutocompleteSnapshot:
+    for _attempt in range(_AUTOCOMPLETE_CACHE_LOAD_ATTEMPTS):
+        key = _cache_key(path)
+        try:
+            return _snapshot_for_key(key)
+        except _AutocompleteSourceChanged:
+            continue
+    resolved_path = Path(path).resolve(strict=False)
+    raise RuntimeError(
+        f"Autocomplete dataset changed repeatedly while loading: {resolved_path}"
+    ) from None
+
+
 def _entries(path: Path = AUTOCOMPLETE_CSV) -> tuple[AutocompleteEntry, ...]:
-    mtime = path.stat().st_mtime_ns if path.is_file() else 0
-    if (
-        _CACHE["entries"] is None
-        or _CACHE["path"] != str(path)
-        or _CACHE["mtime"] != mtime
-    ):
-        _CACHE["path"] = str(path)
-        _CACHE["mtime"] = mtime
-        _CACHE["entries"] = _load_entries(path)
-        _CACHE["entry_map"] = None
-    return _CACHE["entries"] or ()
+    return _snapshot(path).entries
 
 
-def _entry_map(path: Path = AUTOCOMPLETE_CSV) -> dict[str, AutocompleteEntry]:
-    _entries(path)
-    if _CACHE["entry_map"] is None:
-        _CACHE["entry_map"] = {
-            _normalize(entry.tag): entry
-            for entry in (_CACHE["entries"] or [])
-        }
-    return _CACHE["entry_map"] or {}
+def _entry_map(path: Path = AUTOCOMPLETE_CSV) -> Mapping[str, AutocompleteEntry]:
+    return _snapshot(path).entry_map
+
+
+def _snapshot_status(snapshot: _AutocompleteSnapshot, path: Path) -> dict:
+    exists = snapshot.key.mtime_ns != _MISSING_FILE_STAT
+    return {
+        "path": str(path),
+        "exists": exists,
+        "count": len(snapshot.entries),
+        "mtime": snapshot.key.mtime_ns / 1_000_000_000 if exists else 0,
+    }
 
 
 def _token_base(token: str) -> str:
@@ -531,7 +647,8 @@ def _token_section(token: str, entry: AutocompleteEntry | None) -> tuple[str, st
 
 
 def classify_prompt_text(text: str, limit: int = 240, path: Path = AUTOCOMPLETE_CSV) -> dict:
-    entries = _entry_map(path)
+    snapshot = _snapshot(path)
+    entries = snapshot.entry_map
     tokens: list[tuple[str, bool, bool, bool]] = []
 
     last_idx = 0
@@ -604,19 +721,48 @@ def classify_prompt_text(text: str, limit: int = 240, path: Path = AUTOCOMPLETE_
 
     return {
         "tokens": classified,
-        "status": autocomplete_status(path),
+        "status": _snapshot_status(snapshot, path),
     }
 
 
 def autocomplete_status(path: Path = AUTOCOMPLETE_CSV) -> dict:
-    exists = path.is_file()
-    entries = _entries(path) if exists else []
-    return {
-        "path": str(path),
-        "exists": exists,
-        "count": len(entries),
-        "mtime": path.stat().st_mtime if exists else 0,
-    }
+    return _snapshot_status(_snapshot(path), path)
+
+
+def _autocomplete_match_score(
+    entry: AutocompleteEntry,
+    normalized_query: str,
+) -> int | None:
+    if entry.tag_key == normalized_query:
+        return 0
+    if entry.tag_key.startswith(normalized_query):
+        return 1
+    if normalized_query in entry.tag_key:
+        return 2
+    if normalized_query in entry.search:
+        return 3
+    return None
+
+
+def _top_autocomplete_matches(
+    entries: tuple[AutocompleteEntry, ...],
+    normalized_query: str,
+    categories: set[str],
+    limit: int,
+) -> list[tuple[int, AutocompleteEntry]]:
+    def matches():
+        for entry in entries:
+            if categories and entry.category not in categories:
+                continue
+            score = _autocomplete_match_score(entry, normalized_query)
+            if score is not None:
+                yield (score, entry)
+
+    return heapq.nsmallest(
+        limit,
+        matches(),
+        key=lambda item: (item[0], -item[1].count, item[1].tag),
+    )
 
 
 def search_autocomplete(
@@ -638,27 +784,13 @@ def search_autocomplete(
             "elapsed_ms": 0,
         }
 
-    results: list[tuple[int, AutocompleteEntry]] = []
-    for entry in _entries(path):
-        if categories and entry.category not in categories:
-            continue
-        tag_key = entry.tag_key
-        if tag_key == normalized_query:
-            score = 0
-        elif tag_key.startswith(normalized_query):
-            score = 1
-        elif normalized_query in tag_key:
-            score = 2
-        elif normalized_query in entry.search:
-            score = 3
-        else:
-            continue
-        results.append((score, entry))
-        if len(results) >= max(effective_limit * 8, effective_limit):
-            break
-
-    results.sort(key=lambda item: (item[0], -item[1].count, item[1].tag))
-    limited = results[:effective_limit]
+    snapshot = _snapshot(path)
+    limited = _top_autocomplete_matches(
+        snapshot.entries,
+        normalized_query,
+        categories,
+        effective_limit,
+    )
     return {
         "query": query,
         "category": category,
@@ -671,6 +803,6 @@ def search_autocomplete(
             }
             for _, entry in limited
         ],
-        "status": autocomplete_status(path),
+        "status": _snapshot_status(snapshot, path),
         "elapsed_ms": round((time.perf_counter() - started) * 1000, 2),
     }

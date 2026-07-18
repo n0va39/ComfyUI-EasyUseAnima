@@ -1,10 +1,13 @@
 from __future__ import annotations
 
+import itertools
 import json
 import os
 import shutil
 import tempfile
+import threading
 import unittest
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from unittest.mock import patch
 
@@ -3079,7 +3082,36 @@ class DetailerHookTests(unittest.TestCase):
 
 
 class AutocompleteDatasetTests(unittest.TestCase):
-    def test_search_autocomplete_normalizes_result_limit_and_bounds_scanning(self):
+    def test_search_autocomplete_ranks_exact_before_prefix_substring_and_description(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "tags.csv"
+            path.write_text(
+                "\n".join(
+                    [
+                        'target prefix popular,0,1000,"[일반] prefix"',
+                        'popular target middle,0,900,"[일반] substring"',
+                        'description only,0,800,"[일반] target description"',
+                        'target,0,1,"[일반] exact"',
+                    ]
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+
+            result = search_autocomplete("target", limit=4, path=path)
+
+        self.assertEqual(
+            [item["tag"] for item in result["results"]],
+            [
+                "target",
+                "target prefix popular",
+                "popular target middle",
+                "description only",
+            ],
+        )
+        self.assertEqual(result["results"][0]["count"], 1)
+
+    def test_search_autocomplete_normalizes_limit_and_matches_exhaustive_reference(self):
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "tags.csv"
             path.write_text(
@@ -3100,26 +3132,74 @@ class AutocompleteDatasetTests(unittest.TestCase):
             self.assertEqual(len(search_autocomplete("limit match", limit=-1, path=path)["results"]), 1)
             self.assertEqual(len(search_autocomplete("limit match", limit=10_000, path=path)["results"]), 100)
 
-        scanned = 0
-
-        def entries():
-            nonlocal scanned
-            for index in range(801):
-                scanned += 1
-                yield autocomplete_dataset.AutocompleteEntry(
-                    tag=f"scan match {index:03d}",
-                    tag_key=f"scan match {index:03d}",
-                    category="general",
-                    count=1000 - index,
-                    description="[일반] 스캔 제한 테스트",
-                    search=f"scan match {index:03d}",
+            path.write_text(
+                "\n".join(
+                    itertools.chain(
+                        ('needle,0,1,"[일반] low count exact"',),
+                        (
+                            f'needle prefix {index:03d},{index % 2},{2000 - index},"[일반] prefix"'
+                            for index in range(130)
+                        ),
+                        (
+                            f'popular needle middle {index:03d},{index % 2},{1800 - index},"[일반] substring"'
+                            for index in range(130)
+                        ),
+                        (
+                            f'description only {index:03d},{index % 2},{1600 - index},"[일반] needle description"'
+                            for index in range(130)
+                        ),
+                    )
                 )
+                + "\n",
+                encoding="utf-8",
+            )
+            next_mtime = path.stat().st_mtime_ns + 1_000_000_000
+            os.utime(path, ns=(next_mtime, next_mtime))
 
-        with patch.object(autocomplete_dataset, "_entries", return_value=entries()):
-            result = search_autocomplete("scan match", limit=10_000, path=Path("missing.csv"))
+            entries = autocomplete_dataset._entries(path)
 
-        self.assertEqual(len(result["results"]), 100)
-        self.assertEqual(scanned, 800)
+            def exhaustive(query, requested_limit, category=""):
+                normalized_query = autocomplete_dataset._normalize(query)
+                categories = {item.strip() for item in category.split(",") if item.strip()}
+                ranked = []
+                for entry in entries:
+                    if categories and entry.category not in categories:
+                        continue
+                    if entry.tag_key == normalized_query:
+                        score = 0
+                    elif entry.tag_key.startswith(normalized_query):
+                        score = 1
+                    elif normalized_query in entry.tag_key:
+                        score = 2
+                    elif normalized_query in entry.search:
+                        score = 3
+                    else:
+                        continue
+                    ranked.append((score, entry))
+                ranked.sort(key=lambda item: (item[0], -item[1].count, item[1].tag))
+                limit = max(1, min(requested_limit, 100))
+                return [
+                    {
+                        "tag": entry.tag,
+                        "category": entry.category,
+                        "count": entry.count,
+                        "description": entry.description,
+                    }
+                    for _, entry in ranked[:limit]
+                ]
+
+            for requested_limit, category in ((1, ""), (7, "artist"), (100, "artist,general")):
+                with self.subTest(requested_limit=requested_limit, category=category):
+                    optimized = search_autocomplete(
+                        "needle",
+                        limit=requested_limit,
+                        path=path,
+                        category=category,
+                    )["results"]
+                    self.assertEqual(
+                        optimized,
+                        exhaustive("needle", requested_limit, category),
+                    )
 
     def test_searches_english_tags_and_korean_descriptions(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -3181,19 +3261,232 @@ class AutocompleteDatasetTests(unittest.TestCase):
 
         self.assertEqual(result["results"][0]["tag"], "asuna (blue archive)")
 
-    def test_autocomplete_cache_reloads_when_csv_mtime_changes(self):
+    def test_autocomplete_cache_key_and_mtime_or_size_invalidation(self):
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "tags.csv"
             path.write_text('alpha tag,0,100,"[일반] 첫 태그"\n', encoding="utf-8")
 
             first = search_autocomplete("alpha", path=path)
-            path.write_text('beta tag,0,100,"[일반] 두 번째 태그"\n', encoding="utf-8")
-            next_mtime = path.stat().st_mtime_ns + 1_000_000_000
-            os.utime(path, ns=(next_mtime, next_mtime))
+            first_stat = path.stat()
+            first_key = autocomplete_dataset._cache_key(path.parent / "." / path.name)
+
+            path.write_text('beta longer tag,0,100,"[일반] 두 번째 태그"\n', encoding="utf-8")
+            os.utime(path, ns=(first_stat.st_atime_ns, first_stat.st_mtime_ns))
             second = search_autocomplete("beta", path=path)
+            second_stat = path.stat()
+            second_key = autocomplete_dataset._cache_key(path)
+
+            path.write_text('zeta longer tag,0,100,"[일반] 세 번째 태그"\n', encoding="utf-8")
+            next_mtime = second_stat.st_mtime_ns + 1_000_000_000
+            os.utime(path, ns=(next_mtime, next_mtime))
+            third = search_autocomplete("zeta", path=path)
+
+            with patch.object(
+                autocomplete_dataset,
+                "_AUTOCOMPLETE_CACHE_SCHEMA_VERSION",
+                first_key.schema_version + 1,
+            ):
+                schema_key = autocomplete_dataset._cache_key(path)
 
         self.assertEqual(first["results"][0]["tag"], "alpha tag")
-        self.assertEqual(second["results"][0]["tag"], "beta tag")
+        self.assertEqual(second["results"][0]["tag"], "beta longer tag")
+        self.assertEqual(third["results"][0]["tag"], "zeta longer tag")
+        self.assertEqual(first_key.resolved_path, str(path.resolve(strict=False)))
+        self.assertEqual(first_key.mtime_ns, second_key.mtime_ns)
+        self.assertNotEqual(first_key.size, second_key.size)
+        self.assertEqual(schema_key.schema_version, first_key.schema_version + 1)
+
+    def test_autocomplete_cache_coalesces_concurrent_same_key_loads(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "tags.csv"
+            path.write_text('shared tag,0,100,"[일반] shared"\n', encoding="utf-8")
+            start = threading.Barrier(3)
+            load_started = threading.Event()
+            waiter_joined = threading.Event()
+            release_load = threading.Event()
+            original_load = autocomplete_dataset._load_entries
+            original_await = autocomplete_dataset._await_snapshot
+
+            def blocking_load(load_path):
+                load_started.set()
+                if not release_load.wait(timeout=5):
+                    raise AssertionError("timed out waiting to release dataset load")
+                return original_load(load_path)
+
+            def observed_await(future):
+                waiter_joined.set()
+                return original_await(future)
+
+            def fetch_entries():
+                start.wait(timeout=5)
+                return autocomplete_dataset._entries(path)
+
+            with (
+                patch.object(
+                    autocomplete_dataset,
+                    "_load_entries",
+                    side_effect=blocking_load,
+                ) as load_entries,
+                patch.object(
+                    autocomplete_dataset,
+                    "_await_snapshot",
+                    side_effect=observed_await,
+                ),
+                ThreadPoolExecutor(max_workers=2) as executor,
+            ):
+                futures = [executor.submit(fetch_entries) for _ in range(2)]
+                start.wait(timeout=5)
+                self.assertTrue(load_started.wait(timeout=5))
+                try:
+                    self.assertTrue(waiter_joined.wait(timeout=5))
+                finally:
+                    release_load.set()
+                loaded = [future.result(timeout=5) for future in futures]
+
+        self.assertEqual(load_entries.call_count, 1)
+        self.assertIs(loaded[0], loaded[1])
+        self.assertEqual(loaded[0][0].tag, "shared tag")
+
+    def test_autocomplete_cache_loads_different_sources_in_parallel_without_pollution(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            first_path = Path(tmp) / "first.csv"
+            second_path = Path(tmp) / "second.csv"
+            first_path.write_text('first tag,0,100,"[일반] first"\n', encoding="utf-8")
+            second_path.write_text('second tag,0,90,"[일반] second"\n', encoding="utf-8")
+            loads_meet = threading.Barrier(2)
+            original_load = autocomplete_dataset._load_entries
+
+            def parallel_load(load_path):
+                loads_meet.wait(timeout=5)
+                return original_load(load_path)
+
+            with (
+                patch.object(
+                    autocomplete_dataset,
+                    "_load_entries",
+                    side_effect=parallel_load,
+                ) as load_entries,
+                ThreadPoolExecutor(max_workers=2) as executor,
+            ):
+                first_future = executor.submit(autocomplete_dataset._snapshot, first_path)
+                second_future = executor.submit(autocomplete_dataset._snapshot, second_path)
+                first_snapshot = first_future.result(timeout=5)
+                second_snapshot = second_future.result(timeout=5)
+
+        self.assertEqual(load_entries.call_count, 2)
+        self.assertEqual([entry.tag for entry in first_snapshot.entries], ["first tag"])
+        self.assertEqual([entry.tag for entry in second_snapshot.entries], ["second tag"])
+        self.assertEqual(set(first_snapshot.entry_map), {"first tag"})
+        self.assertEqual(set(second_snapshot.entry_map), {"second tag"})
+        self.assertIsInstance(first_snapshot.entries, tuple)
+        with self.assertRaises(TypeError):
+            first_snapshot.entry_map["mutated"] = first_snapshot.entries[0]
+
+    def test_autocomplete_cache_retries_replacement_and_treats_deletion_as_missing(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            replacement_path = Path(tmp) / "replacement.csv"
+            replacement_path.write_text('old tag,0,100,"[일반] old"\n', encoding="utf-8")
+            replacement_started = threading.Event()
+            replacement_done = threading.Event()
+            original_load = autocomplete_dataset._load_entries
+            load_count = 0
+            load_count_lock = threading.Lock()
+
+            def replacement_load(load_path):
+                nonlocal load_count
+                with load_count_lock:
+                    load_count += 1
+                    current_load = load_count
+                if current_load == 1:
+                    replacement_started.set()
+                    if not replacement_done.wait(timeout=5):
+                        raise AssertionError("timed out waiting for dataset replacement")
+                return original_load(load_path)
+
+            with (
+                patch.object(
+                    autocomplete_dataset,
+                    "_load_entries",
+                    side_effect=replacement_load,
+                ),
+                ThreadPoolExecutor(max_workers=1) as executor,
+            ):
+                replacement_future = executor.submit(
+                    search_autocomplete,
+                    "new replacement",
+                    20,
+                    replacement_path,
+                )
+                self.assertTrue(replacement_started.wait(timeout=5))
+                replacement_path.write_text(
+                    'new replacement tag,0,80,"[일반] replacement with a different size"\n',
+                    encoding="utf-8",
+                )
+                replacement_done.set()
+                replacement = replacement_future.result(timeout=5)
+
+            deletion_path = Path(tmp) / "deletion.csv"
+            deletion_path.write_text('deleted tag,0,100,"[일반] delete"\n', encoding="utf-8")
+            deletion_started = threading.Event()
+            deletion_done = threading.Event()
+            deletion_load_count = 0
+
+            def deletion_load(load_path):
+                nonlocal deletion_load_count
+                deletion_load_count += 1
+                if deletion_load_count == 1:
+                    deletion_started.set()
+                    if not deletion_done.wait(timeout=5):
+                        raise AssertionError("timed out waiting for dataset deletion")
+                    raise FileNotFoundError(load_path)
+                return original_load(load_path)
+
+            with (
+                patch.object(
+                    autocomplete_dataset,
+                    "_load_entries",
+                    side_effect=deletion_load,
+                ),
+                ThreadPoolExecutor(max_workers=1) as executor,
+            ):
+                deletion_future = executor.submit(
+                    search_autocomplete,
+                    "deleted",
+                    20,
+                    deletion_path,
+                )
+                self.assertTrue(deletion_started.wait(timeout=5))
+                deletion_path.unlink()
+                deletion_done.set()
+                deletion = deletion_future.result(timeout=5)
+
+        self.assertEqual(load_count, 2)
+        self.assertEqual(replacement["results"][0]["tag"], "new replacement tag")
+        self.assertTrue(replacement["status"]["exists"])
+        self.assertEqual(deletion_load_count, 1)
+        self.assertEqual(deletion["results"], [])
+        self.assertFalse(deletion["status"]["exists"])
+        self.assertEqual(deletion["status"]["count"], 0)
+
+    def test_autocomplete_cache_has_a_bounded_repeated_change_error(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "unstable.csv"
+            path.write_text('unstable tag,0,100,"[일반] unstable"\n', encoding="utf-8")
+            with patch.object(
+                autocomplete_dataset,
+                "_snapshot_for_key",
+                side_effect=autocomplete_dataset._AutocompleteSourceChanged(str(path)),
+            ) as snapshot_for_key:
+                with self.assertRaisesRegex(
+                    RuntimeError,
+                    "Autocomplete dataset changed repeatedly while loading",
+                ):
+                    autocomplete_dataset._snapshot(path)
+
+        self.assertEqual(
+            snapshot_for_key.call_count,
+            autocomplete_dataset._AUTOCOMPLETE_CACHE_LOAD_ATTEMPTS,
+        )
 
     def test_can_limit_autocomplete_to_artist_tags(self):
         with tempfile.TemporaryDirectory() as tmp:
