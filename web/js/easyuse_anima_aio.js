@@ -162,6 +162,7 @@ const AIO_TEXT = {
     "label.sampler": "Sampler",
     "label.scheduler": "Scheduler",
     "label.enabled": "Enabled",
+    "label.info": "More information",
     "label.followMainSampler": "Follow main sampler",
     "label.scaleBy": "Scale",
     "label.maxLongEdge": "Max edge",
@@ -409,15 +410,7 @@ const AIO_TEXT = {
     "text.previewDenoise": "Denoising preview",
     "text.previewGenerating": "Generating",
     "text.inputLoaderMode": "Loader mode: split diffusion model + VAE + CLIP",
-    "text.highresDisabled": "Enable Highres to expose resize and second-pass controls.",
     "text.highresSpdManualRequired": "Spectrum SPD / SPEED is not reused by Highres. Highres uses the general KSampler path.",
-    "text.detailerDisabled": "Enable Detailer to configure ordered processing blocks.",
-    "text.upscaleDisabled": "Enable Upscale to run one final USDU or ResShift pass before saving.",
-    "text.postprocessDisabled": "Enable Postprocess to cap the final image size before saving.",
-    "text.usduAutoTile": "Auto tile uses target/min/max tile sizes",
-    "text.usduManualTile": "Manual tile size",
-    "text.inheritsMainSampler": "Reuses main CFG, sampler, and scheduler. Stage Spectrum/DCW stays independent.",
-    "text.usesStageSamplerOverride": "Uses stage CFG, sampler, and scheduler with stage Spectrum/DCW.",
     "text.civitaiHashPreview": "Adds as {model}:AutoV3",
     "tip.fieldGeneric": "{label} setting. This value is saved with the node workflow.",
     "tip.additionalHashes": "Manual Image Saver additional_hashes string. Supports Name:HASH, HASH:Weight, and Name:HASH:Weight.",
@@ -438,13 +431,16 @@ const AIO_TEXT = {
     "tip.sampler": "Main ComfyUI sampler name used by the first pass.",
     "tip.scheduler": "Main ComfyUI scheduler used by the first pass.",
     "tip.highresEnabled": "Run a second pass after upscaling the first-pass image.",
-    "tip.highresFollow": "When enabled, Highres reuses the main CFG, sampler, and scheduler. Highres steps, denoise, Spectrum, and DCW remain stage-specific. SPD/SPEED falls back to general KSampler.",
+    "tip.highresDisabled": "Enable Highres to expose resize and second-pass controls.",
+    "tip.highresFollow": "When enabled, Highres reuses the main CFG, sampler, and scheduler. Highres steps, denoise, Spectrum, and DCW remain stage-specific.",
+    "tip.stageSamplerOverride": "Uses the stage CFG, sampler, scheduler, Spectrum, and DCW settings.",
     "tip.highresBackend": "Highres manual mode uses the general KSampler path to avoid second-pass model-patch conflicts.",
     "tip.highresScale": "Upscale ratio before the Highres second pass.",
     "tip.highresMaxEdge": "Maximum long edge after upscaling. Use 0 to disable this cap.",
     "tip.highresSteps": "Highres second-pass steps. This remains Highres-specific even when the main sampler is reused.",
     "tip.highresDenoise": "Highres second-pass denoise strength.",
     "tip.upscaleEnabled": "Runs one final upscale stage after Detailer and before Save.",
+    "tip.upscaleDisabled": "Enable Upscale to run one final USDU or ResShift pass before saving.",
     "tip.upscaleSettings": "Open final-stage USDU or ResShift upscale options.",
     "tip.upscaleBackend": "Selects the final upscale backend. Only one backend is used for each run.",
     "tip.upscaleScale": "USDU upscale ratio used by Ultimate SD Upscale.",
@@ -455,6 +451,7 @@ const AIO_TEXT = {
     "tip.usduAutoTile": "When enabled, tile width/height are calculated from the expected upscaled size. Target is the preferred tile size, min and max clamp the automatic result, and values align to 64 pixels.",
     "tip.usduSeam": "USDU seam-fix controls.",
     "tip.postprocessEnabled": "Runs after Upscale and before Save. Use it for final size capping only.",
+    "tip.postprocessDisabled": "Enable Postprocess to cap the final image size before saving.",
     "tip.postprocessSettings": "Open final size fit options for the Postprocess stage.",
     "tip.finalFit": "In Postprocess, downscale only when the final image exceeds the selected max long edge or megapixel limit.",
     "tip.resshiftScale": "ResShift super-resolution factor. The loader scale must match the selected student.",
@@ -462,6 +459,7 @@ const AIO_TEXT = {
     "tip.resshiftDtype": "ResShift loader precision.",
     "tip.resshiftTiling": "ResShift tiling controls for large images.",
     "tip.detailerEnabled": "Run SAM3 and Impact Detailer stages after generation.",
+    "tip.detailerDisabled": "Enable Detailer to configure ordered processing blocks.",
     "tip.detailerBlock": "Each block can be enabled, reordered, and tuned independently.",
     "tip.detailerFollow": "When enabled, this detailer block uses the main CFG, sampler, and scheduler. Spectrum/DCW remain block-specific.",
     "tip.detailerSteps": "Impact Detailer sampling steps for this block.",
@@ -497,6 +495,7 @@ const AIO_TEXT = {
     "label.sampler": "샘플러",
     "label.scheduler": "스케줄러",
     "label.enabled": "활성화",
+    "label.info": "추가 정보",
     "label.followMainSampler": "메인 샘플러 따름",
     "label.scaleBy": "확대",
     "label.maxLongEdge": "최대 긴 변",
@@ -744,15 +743,7 @@ const AIO_TEXT = {
     "text.previewDenoise": "노이즈 제거 미리보기",
     "text.previewGenerating": "생성 중",
     "text.inputLoaderMode": "로드 방식: 디퓨전 모델 + VAE + CLIP 분리 로드",
-    "text.highresDisabled": "Highres를 켜면 확대와 2차 샘플링 기본 설정이 표시됩니다.",
     "text.highresSpdManualRequired": "Spectrum SPD / SPEED는 Highres에서 재사용하지 않습니다. Highres는 일반 KSampler 경로를 사용합니다.",
-    "text.detailerDisabled": "디테일러를 켜면 순서 조정 가능한 처리 블럭이 표시됩니다.",
-    "text.upscaleDisabled": "Upscale을 켜면 저장 전에 USDU 또는 ResShift 최종 패스 하나를 실행합니다.",
-    "text.postprocessDisabled": "후보정을 켜면 저장 전 최종 이미지 크기를 제한합니다.",
-    "text.usduAutoTile": "자동 타일 target/min/max 사용",
-    "text.usduManualTile": "수동 타일 크기",
-    "text.inheritsMainSampler": "메인 CFG, 샘플러, 스케줄러를 따릅니다. Spectrum/DCW는 이 stage 설정을 사용합니다.",
-    "text.usesStageSamplerOverride": "이 stage의 CFG, 샘플러, 스케줄러와 Spectrum/DCW를 사용합니다.",
     "text.civitaiHashPreview": "{model}:AutoV3 형식으로 추가됩니다.",
     "tip.fieldGeneric": "{label} 설정입니다. 이 값은 노드 워크플로우에 저장됩니다.",
     "tip.additionalHashes": "Image Saver의 additional_hashes 수동 문자열입니다. Name:HASH, HASH:Weight, Name:HASH:Weight를 지원합니다.",
@@ -773,13 +764,16 @@ const AIO_TEXT = {
     "tip.sampler": "1차 패스에 사용할 ComfyUI 샘플러 이름입니다.",
     "tip.scheduler": "1차 패스에 사용할 ComfyUI 스케줄러입니다.",
     "tip.highresEnabled": "1차 이미지 확대 후 2차 샘플링을 실행합니다.",
-    "tip.highresFollow": "켜져 있으면 Highres가 메인 CFG, 샘플러, 스케줄러를 따릅니다. Highres 스텝, 디노이즈, Spectrum, DCW는 stage별로 적용됩니다. SPD/SPEED는 일반 KSampler로 대체됩니다.",
+    "tip.highresDisabled": "Highres를 켜면 확대와 2차 샘플링 기본 설정이 표시됩니다.",
+    "tip.highresFollow": "켜져 있으면 Highres가 메인 CFG, 샘플러, 스케줄러를 따릅니다. Highres 스텝, 디노이즈, Spectrum, DCW는 stage별로 적용됩니다.",
+    "tip.stageSamplerOverride": "이 stage의 CFG, 샘플러, 스케줄러와 Spectrum/DCW를 사용합니다.",
     "tip.highresBackend": "Highres 수동 모드는 2차 모델패치 충돌을 피하기 위해 일반 KSampler 경로를 사용합니다.",
     "tip.highresScale": "Highres 2차 패스 전에 적용할 확대 배율입니다.",
     "tip.highresMaxEdge": "확대 후 긴 변 제한입니다. 0이면 제한하지 않습니다.",
     "tip.highresSteps": "Highres 2차 패스 스텝입니다. 메인 샘플러를 재사용해도 이 값은 Highres 전용으로 적용됩니다.",
     "tip.highresDenoise": "Highres 2차 패스 디노이즈 강도입니다.",
     "tip.upscaleEnabled": "Detailer 이후 Save 전에 최종 업스케일 단계를 한 번 실행합니다.",
+    "tip.upscaleDisabled": "Upscale을 켜면 저장 전에 USDU 또는 ResShift 최종 패스 하나를 실행합니다.",
     "tip.upscaleSettings": "최종 USDU 또는 ResShift 업스케일 옵션을 엽니다.",
     "tip.upscaleBackend": "최종 업스케일 백엔드입니다. 한 번 실행할 때 하나만 사용합니다.",
     "tip.upscaleScale": "Ultimate SD Upscale에 전달할 USDU 확대 배율입니다.",
@@ -790,6 +784,7 @@ const AIO_TEXT = {
     "tip.usduAutoTile": "활성화하면 최종 업스케일 예상 크기에서 타일 너비/높이를 계산합니다. 목표값은 선호 타일 크기, 최소/최대는 자동 결과의 하한/상한이며 64px 단위로 정렬합니다.",
     "tip.usduSeam": "USDU seam-fix 설정입니다.",
     "tip.postprocessEnabled": "Upscale 이후 Save 전에 실행됩니다. 최종 크기 제한만 담당합니다.",
+    "tip.postprocessDisabled": "후보정을 켜면 저장 전 최종 이미지 크기를 제한합니다.",
     "tip.postprocessSettings": "후보정 단계의 최종 해상도 맞춤 옵션을 엽니다.",
     "tip.finalFit": "후보정 단계에서 최종 이미지가 선택한 최대 긴 변 또는 메가픽셀 수를 넘을 때만 다운스케일합니다.",
     "tip.resshiftScale": "ResShift 초해상도 배율입니다. Loader scale은 선택한 student와 일치해야 합니다.",
@@ -797,6 +792,7 @@ const AIO_TEXT = {
     "tip.resshiftDtype": "ResShift loader precision입니다.",
     "tip.resshiftTiling": "큰 이미지용 ResShift 타일링 설정입니다.",
     "tip.detailerEnabled": "생성 후 SAM3와 Impact Detailer 단계를 실행합니다.",
+    "tip.detailerDisabled": "디테일러를 켜면 순서 조정 가능한 처리 블럭이 표시됩니다.",
     "tip.detailerBlock": "각 블럭은 개별 활성화, 순서 변경, 기본 설정 조정이 가능합니다.",
     "tip.detailerFollow": "켜져 있으면 이 디테일러 블럭이 메인 CFG, 샘플러, 스케줄러를 따릅니다. Spectrum/DCW는 블럭별 설정을 사용합니다.",
     "tip.detailerSteps": "이 블럭의 Impact Detailer 샘플링 스텝입니다.",
@@ -830,6 +826,7 @@ const AIO_TEXT = {
     "label.sampler": "サンプラー",
     "label.scheduler": "スケジューラー",
     "label.enabled": "有効",
+    "label.info": "詳細情報",
     "label.followMainSampler": "メインサンプラーに追従",
     "label.scaleBy": "拡大",
     "label.maxLongEdge": "最大長辺",
@@ -856,12 +853,7 @@ const AIO_TEXT = {
     "text.previewSubtitle": "このノード出力専用のプレビュー領域です。",
     "text.previewDenoise": "デノイズプレビュー",
     "text.previewGenerating": "生成中",
-    "text.highresDisabled": "Highres を有効にすると拡大と二回目サンプリングの基本設定を表示します。",
     "text.highresSpdManualRequired": "Spectrum SPD / SPEED は Highres では再利用しません。Highres は通常 KSampler 経路を使います。",
-    "text.detailerDisabled": "Detailer を有効にすると順序変更できる処理ブロックを表示します。",
-    "text.upscaleDisabled": "Upscale を有効にすると保存前に USDU または ResShift の最終パスを一つ実行します。",
-    "text.inheritsMainSampler": "メイン CFG、サンプラー、スケジューラーに追従します。Spectrum/DCW はこの stage の設定を使います。",
-    "text.usesStageSamplerOverride": "この stage の CFG、サンプラー、スケジューラーと Spectrum/DCW を使います。",
     "text.civitaiHashPreview": "{model}:AutoV3 として追加されます。",
     "tip.fieldGeneric": "{label} の設定です。この値はノードのワークフローに保存されます。",
     "tip.additionalHashes": "Image Saver の additional_hashes 手動文字列です。Name:HASH、HASH:Weight、Name:HASH:Weight を使用できます。",
@@ -882,13 +874,22 @@ const AIO_TEXT = {
     "tip.sampler": "一回目に使う ComfyUI サンプラー名です。",
     "tip.scheduler": "一回目に使う ComfyUI スケジューラーです。",
     "tip.highresEnabled": "一回目画像を拡大して二回目サンプリングを実行します。",
-    "tip.highresFollow": "有効時、Highres はメイン CFG、サンプラー、スケジューラーに追従します。Highres ステップ、デノイズ、Spectrum、DCW は stage 別に適用されます。SPD/SPEED は通常 KSampler に置き換えます。",
+    "tip.highresDisabled": "Highres を有効にすると拡大と二回目サンプリングの基本設定を表示します。",
+    "tip.highresFollow": "有効時、Highres はメイン CFG、サンプラー、スケジューラーに追従します。Highres ステップ、デノイズ、Spectrum、DCW は stage 別に適用されます。",
+    "tip.stageSamplerOverride": "この stage の CFG、サンプラー、スケジューラーと Spectrum/DCW を使います。",
     "tip.highresBackend": "Highres 手動モードは二回目の model patch 衝突を避けるため通常 KSampler 経路を使います。",
     "tip.highresScale": "Highres 二回目パス前の拡大倍率です。",
     "tip.highresMaxEdge": "拡大後の長辺上限です。0 で上限なしです。",
     "tip.highresSteps": "Highres 二回目パスのステップです。メインサンプラーを再利用してもこの値は Highres 専用です。",
     "tip.highresDenoise": "Highres 二回目パスのデノイズ強度です。",
+    "tip.upscaleEnabled": "Detailer の後、保存前に最終 Upscale stage を一回実行します。",
+    "tip.upscaleDisabled": "Upscale を有効にすると保存前に USDU または ResShift の最終パスを一つ実行します。",
+    "tip.usduTile": "USDU の手動 tile、padding、seam 設定です。",
+    "tip.usduAutoTile": "有効にすると最終 Upscale の予想サイズから tile の幅と高さを計算します。目標値は推奨 tile サイズ、最小値と最大値は自動計算結果の下限と上限で、64px 単位に揃えます。",
+    "tip.postprocessEnabled": "Upscale の後、保存前に実行し、最終サイズの制限だけを行います。",
+    "tip.postprocessDisabled": "Postprocess を有効にすると保存前に最終画像サイズを制限します。",
     "tip.detailerEnabled": "生成後に SAM3 と Impact Detailer を実行します。",
+    "tip.detailerDisabled": "Detailer を有効にすると順序変更できる処理ブロックを表示します。",
     "tip.detailerBlock": "各ブロックは個別に有効化、並べ替え、調整できます。",
     "tip.detailerFollow": "有効時、この Detailer ブロックはメイン CFG、サンプラー、スケジューラーに追従します。Spectrum/DCW はブロック別設定を使います。",
     "tip.detailerSteps": "このブロックの Impact Detailer ステップです。",
@@ -917,6 +918,7 @@ const AIO_TEXT = {
     "label.sampler": "采样器",
     "label.scheduler": "调度器",
     "label.enabled": "启用",
+    "label.info": "更多信息",
     "label.followMainSampler": "跟随主采样器",
     "label.scaleBy": "放大",
     "label.maxLongEdge": "最长边",
@@ -943,12 +945,7 @@ const AIO_TEXT = {
     "text.previewSubtitle": "此区域专用于该节点输出预览。",
     "text.previewDenoise": "降噪预览",
     "text.previewGenerating": "生成中",
-    "text.highresDisabled": "启用 Highres 后显示放大和第二次采样基础设置。",
     "text.highresSpdManualRequired": "Spectrum SPD / SPEED 不会被 Highres 复用。Highres 使用普通 KSampler 路径。",
-    "text.detailerDisabled": "启用 Detailer 后显示可排序的处理块。",
-    "text.upscaleDisabled": "启用 Upscale 后在保存前运行一次 USDU 或 ResShift 最终处理。",
-    "text.inheritsMainSampler": "跟随主 CFG、采样器和调度器。Spectrum/DCW 使用此 stage 的设置。",
-    "text.usesStageSamplerOverride": "使用此 stage 的 CFG、采样器、调度器和 Spectrum/DCW。",
     "text.civitaiHashPreview": "将以 {model}:AutoV3 形式追加。",
     "tip.fieldGeneric": "{label} 设置。该值会随节点工作流保存。",
     "tip.additionalHashes": "Image Saver additional_hashes 手动字符串。支持 Name:HASH、HASH:Weight、Name:HASH:Weight。",
@@ -969,13 +966,22 @@ const AIO_TEXT = {
     "tip.sampler": "第一次使用的 ComfyUI 采样器名称。",
     "tip.scheduler": "第一次使用的 ComfyUI 调度器。",
     "tip.highresEnabled": "放大第一次图像后执行第二次采样。",
-    "tip.highresFollow": "启用时，Highres 跟随主 CFG、采样器和调度器。Highres 步数、降噪、Spectrum 和 DCW 按 stage 独立应用。SPD/SPEED 会回退到普通 KSampler。",
+    "tip.highresDisabled": "启用 Highres 后显示放大和第二次采样基础设置。",
+    "tip.highresFollow": "启用时，Highres 跟随主 CFG、采样器和调度器。Highres 步数、降噪、Spectrum 和 DCW 按 stage 独立应用。",
+    "tip.stageSamplerOverride": "使用此 stage 的 CFG、采样器、调度器和 Spectrum/DCW。",
     "tip.highresBackend": "Highres 手动模式使用普通 KSampler 路径，以避免第二次模型补丁冲突。",
     "tip.highresScale": "Highres 第二次采样前的放大倍率。",
     "tip.highresMaxEdge": "放大后的最长边上限。0 表示不限制。",
     "tip.highresSteps": "Highres 第二次采样步数。即使复用主采样器，此值也只用于 Highres。",
     "tip.highresDenoise": "Highres 第二次采样的降噪强度。",
+    "tip.upscaleEnabled": "在 Detailer 后、保存前运行一次最终 Upscale stage。",
+    "tip.upscaleDisabled": "启用 Upscale 后在保存前运行一次 USDU 或 ResShift 最终处理。",
+    "tip.usduTile": "USDU 手动 tile、padding 和 seam 设置。",
+    "tip.usduAutoTile": "启用后根据预计的最终 Upscale 尺寸计算 tile 宽高。目标值是首选 tile 尺寸，最小值和最大值限制自动结果，并对齐到 64px。",
+    "tip.postprocessEnabled": "在 Upscale 后、保存前运行，仅用于限制最终尺寸。",
+    "tip.postprocessDisabled": "启用 Postprocess 后在保存前限制最终图像尺寸。",
     "tip.detailerEnabled": "生成后运行 SAM3 和 Impact Detailer 阶段。",
+    "tip.detailerDisabled": "启用 Detailer 后显示可排序的处理块。",
     "tip.detailerBlock": "每个块都可单独启用、排序和调整。",
     "tip.detailerFollow": "启用时，此 Detailer 块跟随主 CFG、采样器和调度器。Spectrum/DCW 使用块级设置。",
     "tip.detailerSteps": "此块的 Impact Detailer 采样步数。",
@@ -2615,6 +2621,9 @@ function ensureStyle() {
       line-height: 1.1;
     }
     .easyuse-anima-aio-node-stage-title {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
       font-size: 11px;
     }
     .easyuse-anima-aio-node-stage-mini-title {
@@ -2644,6 +2653,11 @@ function ensureStyle() {
       font-size: 10px;
       line-height: 1.35;
     }
+    .easyuse-anima-aio-node-stage-note.warning {
+      color: #f2d5a4;
+      background: rgba(224, 157, 68, 0.1);
+      border-color: rgba(224, 157, 68, 0.32);
+    }
     .easyuse-anima-aio-node-stage-mini {
       grid-column: 1 / -1;
       padding: 7px;
@@ -2660,6 +2674,18 @@ function ensureStyle() {
       width: 22px;
       height: 20px;
       font-size: 10px;
+    }
+    .easyuse-anima-aio-node-info-field {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      min-width: 0;
+    }
+    .easyuse-anima-aio-node-info-field.wide {
+      grid-column: 1 / -1;
+    }
+    .easyuse-anima-aio-node-info-field > .easyuse-anima-aio-node-field {
+      flex: 1 1 auto;
     }
     .easyuse-anima-aio-node-field {
       min-width: 0;
@@ -2817,6 +2843,47 @@ function ensureStyle() {
       width: 28px;
       padding: 0;
       flex: 0 0 auto;
+    }
+    .easyuse-anima-aio-node-info-button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 22px;
+      height: 22px;
+      min-width: 22px;
+      padding: 0;
+      color: #bcd7ca;
+      background: rgba(34, 53, 61, 0.88);
+      border: 1px solid #5f8274;
+      border-radius: 999px;
+      font: 700 10px/1 "Segoe UI", sans-serif;
+      cursor: pointer;
+    }
+    .easyuse-anima-aio-node-info-button:hover,
+    .easyuse-anima-aio-node-info-button[aria-expanded="true"] {
+      color: #f2eee5;
+      background: #315d50;
+      border-color: #82c9ad;
+    }
+    .easyuse-anima-aio-node-info-button:focus-visible {
+      outline: 2px solid #9de0c1;
+      outline-offset: 2px;
+    }
+    .easyuse-anima-aio-node-info-tooltip {
+      position: fixed;
+      z-index: 12000;
+      max-width: min(280px, calc(100vw - 16px));
+      padding: 7px 9px;
+      color: #f2eee5;
+      background: #172129;
+      border: 1px solid #638273;
+      border-radius: 6px;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.42);
+      font: 11px/1.4 "Segoe UI", sans-serif;
+      pointer-events: none;
+    }
+    .easyuse-anima-aio-node-info-tooltip[hidden] {
+      display: none;
     }
     .easyuse-anima-aio-node-icon-button.active {
       border-color: #78c8aa;

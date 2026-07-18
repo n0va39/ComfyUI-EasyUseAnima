@@ -26,6 +26,10 @@ function findByText(root, textContent) {
   return find(root, (element) => element.textContent === textContent);
 }
 
+function findByAttribute(root, name, value) {
+  return find(root, (element) => element.getAttribute(name) === value);
+}
+
 function findField(root, label) {
   return find(root, (element) => element.getAttribute("data-test-label") === label);
 }
@@ -69,6 +73,44 @@ assert.deepEqual(
     new URL("../web/js/easyuse_anima_aio.js", import.meta.url),
     "utf8",
   );
+  assert.match(
+    entrySource,
+    /\.easyuse-anima-aio-node-info-button:focus-visible\s*\{/,
+    "info icons must publish a keyboard-visible focus ring",
+  );
+  assert.match(
+    entrySource,
+    /\.easyuse-anima-aio-node-info-tooltip\s*\{[^}]*pointer-events:\s*none;/s,
+    "tooltip portals must not intercept panel wheel or pointer routing",
+  );
+  for (const removedTextKey of [
+    "text.highresDisabled",
+    "text.detailerDisabled",
+    "text.upscaleDisabled",
+    "text.postprocessDisabled",
+    "text.inheritsMainSampler",
+    "text.usesStageSamplerOverride",
+  ]) {
+    assert.equal(
+      entrySource.includes(`"${removedTextKey}"`),
+      false,
+      removedTextKey + " must not remain duplicated as inline text",
+    );
+  }
+  for (const localizedTipKey of [
+    "label.info",
+    "tip.highresDisabled",
+    "tip.detailerDisabled",
+    "tip.upscaleDisabled",
+    "tip.postprocessDisabled",
+    "tip.stageSamplerOverride",
+  ]) {
+    assert.equal(
+      entrySource.split(`"${localizedTipKey}"`).length - 1,
+      4,
+      localizedTipKey + " must preserve en/ko/ja/zh meaning",
+    );
+  }
   const functionStart = entrySource.indexOf("function commitGeneratorSeedValue");
   const functionEnd = entrySource.indexOf(
     "\nfunction syncGeneratorSerializedWidgets",
@@ -600,9 +642,28 @@ fixture.runtime.ensurePanel(node);
 const firstEnsureTrace = fixture.trace.slice(firstEnsureStart);
 const panel = node.__easyuseAnimaGeneratorPanelEl;
 const firstMain = panel.children[0];
+const firstInfoButtons = panel.querySelectorAll("[data-aio-info-button]");
+const firstInfoTooltips = fixture.document.querySelectorAll("[data-aio-info-tooltip]");
+assert.equal(firstInfoButtons.length, firstInfoTooltips.length);
+assert.equal(firstInfoButtons.length, 8, "each static stage/field hint must own one info icon");
 const secondEnsureStart = fixture.trace.length;
 fixture.runtime.ensurePanel(node);
 const secondEnsureTrace = fixture.trace.slice(secondEnsureStart);
+assert.equal(
+  firstInfoTooltips.every((tooltip) => tooltip.parentElement == null),
+  true,
+  "rerender must remove every tooltip portal owned by the previous render",
+);
+assert.equal(
+  firstInfoButtons.every((button) => button.listenerCount("click") === 0),
+  true,
+  "rerender must dispose old info-button listeners",
+);
+assert.equal(
+  panel.querySelectorAll("[data-aio-info-button]").length,
+  fixture.document.querySelectorAll("[data-aio-info-tooltip]").length,
+  "rerender must not duplicate info buttons or tooltip portals",
+);
 const initialPanelLifecycle = fixture.runtime.activatePanel(node);
 assert.equal(fixture.runtime.activatePanel(node), initialPanelLifecycle);
 const assertEnsureOrder = (runTrace) => {
@@ -714,6 +775,66 @@ assert.deepEqual(
     "text:title.postprocess",
   ],
 );
+const serializedBeforeInfoInteraction = node.widgets_values;
+const settingsBeforeInfoInteraction = clone(node.settings);
+const highresFollowInfo = findByAttribute(
+  panel,
+  "data-aio-focus-key",
+  "highres.follow-main.info",
+);
+assert.ok(highresFollowInfo, "Highres follow-main field must expose an info icon");
+assert.equal(highresFollowInfo.textContent, "i");
+assert.equal(highresFollowInfo.type, "button");
+assert.equal(highresFollowInfo.getAttribute("data-aio-info-key"), "tip.stageSamplerOverride");
+assert.equal(highresFollowInfo.getAttribute("aria-label"), "text:label.info");
+assert.equal(highresFollowInfo.getAttribute("aria-expanded"), "false");
+assert.equal(highresFollowInfo.title, "", "custom info tooltip must not compete with native title UI");
+const highresFollowTooltip = findByAttribute(
+  fixture.document.body,
+  "id",
+  highresFollowInfo.getAttribute("aria-describedby"),
+);
+assert.ok(highresFollowTooltip, "aria-describedby must own a live tooltip portal");
+assert.equal(highresFollowInfo.getAttribute("aria-controls"), highresFollowTooltip.getAttribute("id"));
+assert.equal(highresFollowTooltip.getAttribute("role"), "tooltip");
+assert.equal(highresFollowTooltip.textContent, "text:tip.stageSamplerOverride");
+assert.equal(highresFollowTooltip.hidden, true);
+highresFollowInfo.emit("pointerenter");
+assert.equal(highresFollowTooltip.hidden, false, "mouse/pointer hover must open the tooltip");
+assert.equal(highresFollowInfo.getAttribute("aria-expanded"), "true");
+assert.equal(fixture.windowListenerCount("resize"), 1);
+assert.equal(fixture.windowListenerCount("scroll", true), 1);
+highresFollowInfo.boundingClientRect = { left: 120, top: 80, width: 22, height: 22 };
+fixture.dispatchWindow("scroll");
+assert.equal(highresFollowTooltip.style.left, "120px");
+assert.equal(highresFollowTooltip.style.top, "108px");
+highresFollowInfo.boundingClientRect = { left: 160, top: 40, width: 22, height: 22 };
+fixture.dispatchWindow("resize");
+assert.equal(highresFollowTooltip.style.left, "160px");
+assert.equal(highresFollowTooltip.style.top, "68px");
+highresFollowInfo.emit("pointerleave");
+assert.equal(highresFollowTooltip.hidden, true);
+assert.equal(fixture.windowListenerCount("resize"), 0);
+assert.equal(fixture.windowListenerCount("scroll"), 0);
+highresFollowInfo.emit("focus");
+assert.equal(highresFollowTooltip.hidden, false, "keyboard focus must open the tooltip");
+highresFollowInfo.emit("keydown", { key: "Enter" });
+assert.equal(highresFollowTooltip.hidden, true, "Enter must close a focused open tooltip");
+highresFollowInfo.emit("keydown", { key: "Enter" });
+assert.equal(highresFollowTooltip.hidden, false, "a second Enter must reopen the tooltip");
+highresFollowInfo.emit("keydown", { key: " " });
+assert.equal(highresFollowTooltip.hidden, true, "Space must close the tooltip");
+highresFollowInfo.emit("keydown", { key: " " });
+assert.equal(highresFollowTooltip.hidden, false, "a second Space must reopen the tooltip");
+highresFollowInfo.emit("keydown", { key: "Escape" });
+assert.equal(highresFollowTooltip.hidden, true, "Escape must close the tooltip");
+highresFollowInfo.emit("blur");
+highresFollowInfo.emit("click");
+assert.equal(highresFollowTooltip.hidden, false, "click/touch activation must open the tooltip");
+highresFollowInfo.emit("click");
+assert.equal(highresFollowTooltip.hidden, true, "a second click must close the tooltip");
+assert.deepEqual(node.settings, settingsBeforeInfoInteraction);
+assert.equal(node.widgets_values, serializedBeforeInfoInteraction);
 assert.equal(
   panel.querySelector("[data-aio-preview-box]").className,
   "easyuse-anima-aio-node-preview-box",
@@ -985,6 +1106,22 @@ assert.ok(
   "settings write must complete before summary/profile refresh",
 );
 assert.notEqual(panel.children[0], main, "rerendering a stage toggle must replace panel children");
+const disabledHighresBlock = panel.querySelector(
+  ".easyuse-anima-aio-node-settings-scroll",
+).children[1];
+assert.equal(disabledHighresBlock.children[1].children.length, 0);
+assert.equal(findByText(disabledHighresBlock, "text:tip.highresDisabled"), null);
+assert.equal(
+  findByAttribute(disabledHighresBlock, "data-aio-focus-key", "highres.info")
+    .getAttribute("data-aio-info-key"),
+  "tip.highresDisabled",
+  "disabled Highres guidance must move from body note to the header info icon",
+);
+assert.equal(
+  panel.querySelectorAll("[data-aio-info-button]").length,
+  fixture.document.querySelectorAll("[data-aio-info-tooltip]").length,
+  "stage on/off rerender must keep one owned tooltip per icon",
+);
 
 while (fixture.animationFrames.length) {
   fixture.animationFrames.shift()();
@@ -1177,6 +1314,74 @@ for (const eventName of PANEL_EVENT_NAMES) {
 while (fixture.animationFrames.length) {
   fixture.animationFrames.shift()();
 }
+const tooltipSettingsSnapshot = clone(node.settings);
+const tooltipSerializedSnapshot = node.widgets_values;
+node.settings.highres.enabled = false;
+node.settings.detailer.enabled = false;
+node.settings.upscale.enabled = false;
+node.settings.postprocess.enabled = false;
+fixture.runtime.renderPanel(node);
+const disabledStages = panel.querySelector(
+  ".easyuse-anima-aio-node-settings-scroll",
+).children.slice(1);
+assert.equal(disabledStages.length, 4);
+assert.equal(
+  disabledStages.every((stage) => stage.children[1].children.length === 0),
+  true,
+  "disabled stages must not reserve body rows for static help notes",
+);
+assert.equal(
+  panel.querySelectorAll(".easyuse-anima-aio-node-stage-note").length,
+  0,
+  "static disabled guidance must not remain inline",
+);
+assert.deepEqual(
+  disabledStages.map(
+    (stage) => stage.children[0].children[0].children[0].getAttribute("data-aio-info-key"),
+  ),
+  [
+    "tip.highresDisabled",
+    "tip.detailerDisabled",
+    "tip.upscaleDisabled",
+    "tip.postprocessDisabled",
+  ],
+);
+
+node.settings.highres.enabled = true;
+node.settings.highres.inherit_sampler_settings = true;
+node.settings.sampler.backend = "spectrum_spd_speed";
+fixture.runtime.renderPanel(node);
+const inlineWarnings = panel.querySelectorAll("[data-aio-inline-warning]");
+assert.equal(inlineWarnings.length, 1, "the SPD/SPEED fallback must remain inline");
+assert.equal(inlineWarnings[0].textContent, "text:text.highresSpdManualRequired");
+assert.equal(inlineWarnings[0].classList.contains("warning"), true);
+assert.equal(
+  findByAttribute(panel, "data-aio-focus-key", "highres.follow-main.info")
+    .getAttribute("data-aio-info-key"),
+  "tip.highresFollow",
+);
+
+const profileTooltips = fixture.document.querySelectorAll("[data-aio-info-tooltip]");
+node.profileValue = "user:Tooltip profile";
+fixture.runtime.renderPanel(node);
+assert.equal(
+  profileTooltips.every((tooltip) => tooltip.parentElement == null),
+  true,
+  "profile-driven rerender must clean stale tooltip portals",
+);
+assert.equal(
+  panel.querySelectorAll("[data-aio-info-button]").length,
+  fixture.document.querySelectorAll("[data-aio-info-tooltip]").length,
+  "profile-driven rerender must not duplicate tooltips",
+);
+
+node.settings = tooltipSettingsSnapshot;
+fixture.runtime.renderPanel(node);
+assert.equal(node.widgets_values, tooltipSerializedSnapshot);
+assert.deepEqual(node.settings, tooltipSettingsSnapshot);
+while (fixture.animationFrames.length) {
+  fixture.animationFrames.shift()();
+}
 const summaryTraceStart = fixture.trace.length;
 fixture.runtime.scheduleSummary(node);
 fixture.runtime.scheduleSummary(node);
@@ -1202,6 +1407,10 @@ const pendingFrameIds = fixture.animationFrames
   .map((callback) => callback.__frameId)
   .sort((left, right) => left - right);
 const activeDisposeSlider = findByClass(panel, "easyuse-anima-aio-node-slider-track");
+const activeDisposeInfo = findByAttribute(panel, "data-aio-focus-key", "highres.info");
+activeDisposeInfo.emit("click");
+assert.equal(fixture.windowListenerCount("resize"), 1);
+assert.equal(fixture.windowListenerCount("scroll", true), 1);
 activeDisposeSlider.emit("pointerdown", {
   pointerId: 23,
   clientX: 60,
@@ -1239,6 +1448,8 @@ assert.equal(fixture.windowListenerCount("pointermove"), 0);
 assert.equal(fixture.windowListenerCount("pointerup"), 0);
 assert.equal(fixture.windowListenerCount("pointercancel"), 0);
 assert.equal(fixture.windowListenerCount("blur"), 0);
+assert.equal(fixture.windowListenerCount("resize"), 0);
+assert.equal(fixture.windowListenerCount("scroll"), 0);
 for (const eventName of PANEL_EVENT_NAMES) {
   assert.equal(panel.listenerCount(eventName), 0, eventName + " listener must be disposed");
 }
@@ -1250,6 +1461,11 @@ assert.equal(node.widgets.length, 0);
 assert.equal(panelWidget.onRemoveCalls, 1);
 assert.equal(fixture.domWidgetStore.size, 0);
 assert.equal(fixture.domWidgetStore.has(panelWidget), false);
+assert.equal(
+  fixture.document.querySelectorAll("[data-aio-info-tooltip]").length,
+  0,
+  "dispose must remove every tooltip portal",
+);
 assert.equal(node.widgets_values, serializedWidgetValues);
 assert.equal(node.__easyuseAnimaGeneratorPreviewImages, finalPreviewImages);
 
