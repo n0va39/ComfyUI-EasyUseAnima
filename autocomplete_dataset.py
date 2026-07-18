@@ -15,17 +15,33 @@ from types import MappingProxyType
 from typing import Mapping
 
 try:
+    from .autocomplete_index import (
+        AutocompleteIndexDiagnostics,
+        AutocompleteIndexSource,
+        AutocompleteIndexUnavailable,
+        search_autocomplete_index,
+    )
     from .anima_prompt.knowledge import PACKAGE_DATA_DIR
     from .anima_prompt.models import TagSection
     from .anima_prompt.ordering import builtin_tag_section
     from .anima_prompt.parser import parse_prompt
     from .prompt_translation import iter_prompt_translation_markers
+    from .storage import PACKAGE_DATA_DIR as STORAGE_PACKAGE_DATA_DIR
+    from .storage import USER_DATA_DIR
 except ImportError:
+    from autocomplete_index import (
+        AutocompleteIndexDiagnostics,
+        AutocompleteIndexSource,
+        AutocompleteIndexUnavailable,
+        search_autocomplete_index,
+    )
     from anima_prompt.knowledge import PACKAGE_DATA_DIR
     from anima_prompt.models import TagSection
     from anima_prompt.ordering import builtin_tag_section
     from anima_prompt.parser import parse_prompt
     from prompt_translation import iter_prompt_translation_markers
+    from storage import PACKAGE_DATA_DIR as STORAGE_PACKAGE_DATA_DIR
+    from storage import USER_DATA_DIR
 
 DBR_TAG_ARCHIVE_SOURCE = "https://github.com/DraconicDragon/dbr-e621-lists-archive"
 DBR_TAG_ARCHIVE_LICENSE = "Unlicense"
@@ -95,6 +111,19 @@ _MERGED_E621_CATEGORY_NAMES = {
 _AUTOCOMPLETE_CACHE_SCHEMA_VERSION = 1
 _AUTOCOMPLETE_CACHE_LOAD_ATTEMPTS = 4
 _MISSING_FILE_STAT = -1
+
+
+def _default_autocomplete_index_dir() -> Path | None:
+    user_data_dir = Path(USER_DATA_DIR).resolve(strict=False)
+    package_data_dir = Path(STORAGE_PACKAGE_DATA_DIR).resolve(strict=False)
+    if user_data_dir == package_data_dir:
+        # Standalone imports do not have a ComfyUI-owned writable user-data
+        # boundary. Keep the source/package tree immutable in that case.
+        return None
+    return user_data_dir / "autocomplete_index"
+
+
+_AUTOCOMPLETE_INDEX_DIR = _default_autocomplete_index_dir()
 _COUNT_RE = re.compile(
     r"^\d+\s*(girl|girls|boy|boys|person|people|other|others|animal|animals|"
     r"female|females|male|males|child|children)s?$",
@@ -812,33 +841,104 @@ def _top_autocomplete_matches(
     )
 
 
-def search_autocomplete(
+def _index_source(key: _AutocompleteCacheKey) -> AutocompleteIndexSource:
+    return AutocompleteIndexSource(
+        resolved_path=key.resolved_path,
+        revision=f"{key.schema_version}:{key.mtime_ns}:{key.size}",
+    )
+
+
+def _validate_index_source(key: _AutocompleteCacheKey) -> None:
+    if _cache_key_from_resolved_path(Path(key.resolved_path)) != key:
+        raise _AutocompleteSourceChanged(key.resolved_path)
+
+
+def _fallback_index_diagnostics(
+    key: _AutocompleteCacheKey,
+    snapshot: _AutocompleteSnapshot,
+    reason: str,
+) -> AutocompleteIndexDiagnostics:
+    return AutocompleteIndexDiagnostics(
+        outcome="fallback",
+        reason=reason,
+        backend="python_snapshot",
+        source_revision=_index_source(key).revision,
+        entry_count=len(snapshot.entries),
+        index_path=None,
+    )
+
+
+def _search_autocomplete_with_diagnostics(
     query: str,
     limit: int = 20,
     path: Path = AUTOCOMPLETE_CSV,
     category: str | None = None,
-) -> dict:
+) -> tuple[dict, AutocompleteIndexDiagnostics]:
     started = time.perf_counter()
     effective_limit = max(1, min(limit, 100))
     normalized_query = _normalize(query)
     category = str(category or "").strip()
     categories = {item.strip() for item in category.split(",") if item.strip()}
-    if not normalized_query:
-        return {
-            "query": query,
-            "results": [],
-            "status": autocomplete_status(path),
-            "elapsed_ms": 0,
-        }
 
-    snapshot = _snapshot(path)
-    limited = _top_autocomplete_matches(
-        snapshot.entries,
-        normalized_query,
-        categories,
-        effective_limit,
-    )
-    return {
+    for _attempt in range(_AUTOCOMPLETE_CACHE_LOAD_ATTEMPTS):
+        key = _cache_key(path)
+        if key.mtime_ns == _MISSING_FILE_STAT:
+            snapshot = _snapshot(path)
+            key = snapshot.key
+            if key.mtime_ns != _MISSING_FILE_STAT:
+                continue
+            diagnostics = _fallback_index_diagnostics(key, snapshot, "missing_source")
+            limited: list[tuple[int, AutocompleteEntry]] = []
+            entry_count = 0
+            indexed_entries = None
+            break
+
+        try:
+            indexed = search_autocomplete_index(
+                root=_AUTOCOMPLETE_INDEX_DIR,
+                source=_index_source(key),
+                normalized_query=normalized_query,
+                categories=categories,
+                limit=effective_limit,
+                load_entries=lambda: _load_entries(Path(key.resolved_path)),
+                validate_source=lambda: _validate_index_source(key),
+            )
+        except _AutocompleteSourceChanged:
+            continue
+        except AutocompleteIndexUnavailable as error:
+            snapshot = _snapshot(path)
+            key = snapshot.key
+            diagnostics = _fallback_index_diagnostics(key, snapshot, error.reason)
+            limited = _top_autocomplete_matches(
+                snapshot.entries,
+                normalized_query,
+                categories,
+                effective_limit,
+            )
+            entry_count = len(snapshot.entries)
+            indexed_entries = None
+        else:
+            try:
+                _validate_index_source(key)
+            except _AutocompleteSourceChanged:
+                continue
+            diagnostics = indexed.diagnostics
+            limited = []
+            entry_count = indexed.diagnostics.entry_count
+            indexed_entries = indexed.entries
+        break
+    else:
+        resolved_path = Path(path).resolve(strict=False)
+        raise RuntimeError(
+            f"Autocomplete dataset changed repeatedly while loading: {resolved_path}"
+        ) from None
+
+    if indexed_entries is None:
+        result_entries = [entry for _, entry in limited]
+    else:
+        result_entries = indexed_entries
+
+    payload = {
         "query": query,
         "category": category,
         "results": [
@@ -848,8 +948,32 @@ def search_autocomplete(
                 "count": entry.count,
                 "description": entry.description,
             }
-            for _, entry in limited
+            for entry in result_entries
         ],
-        "status": _snapshot_status(snapshot, path),
+        "status": _status_from_key(key, path, entry_count),
         "elapsed_ms": round((time.perf_counter() - started) * 1000, 2),
     }
+    return payload, diagnostics
+
+
+def search_autocomplete(
+    query: str,
+    limit: int = 20,
+    path: Path = AUTOCOMPLETE_CSV,
+    category: str | None = None,
+) -> dict:
+    normalized_query = _normalize(query)
+    if not normalized_query:
+        return {
+            "query": query,
+            "results": [],
+            "status": autocomplete_status(path),
+            "elapsed_ms": 0,
+        }
+    payload, _diagnostics = _search_autocomplete_with_diagnostics(
+        query,
+        limit=limit,
+        path=path,
+        category=category,
+    )
+    return payload
