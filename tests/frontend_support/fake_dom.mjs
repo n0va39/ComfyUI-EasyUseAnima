@@ -146,6 +146,7 @@ class FakeElement {
     this.title = "";
     this.type = "";
     this.inputMode = "";
+    this._value = "";
     this.value = "";
     this.placeholder = "";
     this.rows = 0;
@@ -162,6 +163,17 @@ class FakeElement {
     this.scrollIntoViewCalls = [];
     this.boundingClientRect = { left: 0, top: 0, width: 100, height: 20 };
     this.pointerCaptures = new Set();
+  }
+
+  get value() {
+    return this._value;
+  }
+
+  set value(value) {
+    const normalized = value ?? "";
+    this._value = this.tagName === "INPUT" && typeof normalized === "string"
+      ? normalized.replace(/[\r\n]/g, "")
+      : normalized;
   }
 
   append(...children) {

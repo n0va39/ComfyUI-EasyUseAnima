@@ -15,6 +15,8 @@ const dependencies = await import(dataModule("../web/js/aio/dependencies.js"));
 const {
   AIO_BACKEND_DEPENDENCIES,
   AIO_OPTIONAL_DEPENDENCY_SPECS,
+  aioChoiceOptionsWithCurrent,
+  aioChoiceSpecValues,
   aioNodeInputMap,
   aioNodeInputSpec,
   aioNodeInputSupported,
@@ -38,6 +40,53 @@ assert(
 assert(
   AIO_OPTIONAL_DEPENDENCY_SPECS.checkpointLoader.nodeId === "CheckpointLoaderSimple",
   "SAM3 choices must use the built-in checkpoint loader object-info catalog",
+);
+
+const directCheckpointChoices = ["anima.safetensors", "portrait.safetensors"];
+assert(
+  JSON.stringify(aioChoiceSpecValues(directCheckpointChoices))
+    === JSON.stringify(directCheckpointChoices),
+  "Direct CheckpointLoaderSimple choice lists must stay intact",
+);
+assert(
+  JSON.stringify(aioChoiceSpecValues([
+    ["er_sde", "euler"],
+    { tooltip: "KSampler choices" },
+  ])) === JSON.stringify(["er_sde", "euler"]),
+  "Nested KSampler choice lists must ignore their metadata wrapper",
+);
+const comboSpec = [
+  "COMBO",
+  {
+    multiselect: false,
+    options: ["2x-AnimeSharpV4_Fast_RCAN_PU.safetensors"],
+  },
+];
+assert(
+  JSON.stringify(aioChoiceSpecValues(comboSpec))
+    === JSON.stringify(["2x-AnimeSharpV4_Fast_RCAN_PU.safetensors"]),
+  "COMBO object-info wrappers must expose only metadata.options",
+);
+assert(
+  JSON.stringify(aioChoiceSpecValues(["COMBO", { multiselect: false }])) === "[]",
+  "COMBO wrappers without options must not leak COMBO or object markers",
+);
+assert(
+  JSON.stringify(aioChoiceOptionsWithCurrent(
+    aioChoiceSpecValues(comboSpec),
+    "saved-model-missing-from-catalog.safetensors",
+  )) === JSON.stringify([
+    "saved-model-missing-from-catalog.safetensors",
+    "2x-AnimeSharpV4_Fast_RCAN_PU.safetensors",
+  ]),
+  "A saved current value missing from the live catalog must be preserved first",
+);
+assert(
+  JSON.stringify(aioChoiceOptionsWithCurrent(
+    aioChoiceSpecValues(comboSpec),
+    "2x-AnimeSharpV4_Fast_RCAN_PU.safetensors",
+  )) === JSON.stringify(["2x-AnimeSharpV4_Fast_RCAN_PU.safetensors"]),
+  "A current value already in the live catalog must not be duplicated",
 );
 
 const queriedSpecs = {

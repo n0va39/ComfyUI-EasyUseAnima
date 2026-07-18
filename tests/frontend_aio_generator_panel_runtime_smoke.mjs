@@ -55,6 +55,16 @@ assert.deepEqual(
 );
 
 {
+  const document = createFakeDocument();
+  const input = document.createElement("input");
+  const textarea = document.createElement("textarea");
+  input.value = "first\nsecond";
+  textarea.value = "first\nsecond";
+  assert.equal(input.value, "firstsecond", "Fake input must model browser newline stripping");
+  assert.equal(textarea.value, "first\nsecond", "Fake textarea must preserve multiline values");
+}
+
+{
   const entrySource = readFileSync(
     new URL("../web/js/easyuse_anima_aio.js", import.meta.url),
     "utf8",
@@ -195,12 +205,11 @@ function createFixture() {
     return input;
   }
 
-  function textInput(value) {
+  function textareaInput(value) {
     dependencyCalls += 1;
-    const input = document.createElement("input");
-    input.type = "text";
-    input.value = String(value ?? "");
-    return input;
+    const textarea = document.createElement("textarea");
+    textarea.value = String(value ?? "");
+    return textarea;
   }
 
   function selectInput(options, value) {
@@ -441,7 +450,7 @@ function createFixture() {
     controls: {
       numberInput,
       checkbox,
-      textInput,
+      textareaInput,
       selectInput,
       createNodeField,
     },
@@ -995,14 +1004,25 @@ assert.equal(faceThresholdInput.max, "1");
 assert.equal(faceThresholdInput.step, "0.01");
 assert.equal(faceThreshold.getAttribute("data-test-tooltip"), "tip.detailerThreshold");
 assert.equal(faceWildcardInput.value, "");
+assert.equal(faceWildcardInput.tagName, "TEXTAREA");
+assert.equal(
+  faceWildcardInput.getAttribute("data-aio-focus-key"),
+  "detailer.face.wildcard",
+  "Detailer wildcard textarea must retain its stable focus key",
+);
 assert.equal(faceWildcard.getAttribute("data-test-tooltip"), "tip.detailerWildcard");
 
 faceThresholdInput.value = "0.63";
 faceThresholdInput.emit("input");
 assert.equal(node.settings.detailer.face.threshold, 0.63);
-faceWildcardInput.value = "__face_style__";
+const multilineFaceWildcard = "codex_live_face\nsecond_line";
+faceWildcardInput.value = multilineFaceWildcard;
 faceWildcardInput.emit("input");
-assert.equal(node.settings.detailer.face.wildcard, "__face_style__");
+assert.equal(
+  node.settings.detailer.face.wildcard,
+  multilineFaceWildcard,
+  "Detailer wildcard input must immediately write the exact multiline value",
+);
 assert.deepEqual(node.settings.detailer.face.preserved_unknown, { nested: "keep-panel" });
 
 const serializedDetailerSettings = JSON.stringify(node.settings);
@@ -1019,8 +1039,13 @@ assert.equal(
   "serialized Detailer threshold must reload into the external target card",
 );
 assert.equal(
+  findField(reloadedFaceBlock, "text:field.wildcard").children[0].tagName,
+  "TEXTAREA",
+  "serialized Detailer wildcard must reload into a textarea",
+);
+assert.equal(
   findField(reloadedFaceBlock, "text:field.wildcard").children[0].value,
-  "__face_style__",
+  multilineFaceWildcard,
   "serialized Detailer wildcard must reload into the external target card",
 );
 
@@ -1051,7 +1076,7 @@ assert.equal(
 );
 assert.equal(
   findField(reloadedFaceBlock, "text:field.wildcard").children[0].value,
-  "__face_style__",
+  multilineFaceWildcard,
   "re-enabling a Detailer target must preserve its wildcard",
 );
 

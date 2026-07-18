@@ -37,6 +37,8 @@ import {
 import {
   AIO_BACKEND_DEPENDENCIES,
   AIO_OPTIONAL_DEPENDENCY_SPECS,
+  aioChoiceOptionsWithCurrent,
+  aioChoiceSpecValues,
   aioNodeInputMap,
   aioNodeInputSpec,
   aioNodeInputSupported,
@@ -1850,42 +1852,12 @@ const generatorOptionalDependencyState = {
   reportedSignature: "",
 };
 
-function uniqueStrings(values) {
-  const output = [];
-  for (const value of values || []) {
-    const normalized = String(value ?? "");
-    if (normalized && !output.includes(normalized)) {
-      output.push(normalized);
-    }
-  }
-  return output;
-}
-
-function choiceSpecValues(spec) {
-  if (!Array.isArray(spec)) {
-    return [];
-  }
-  if (Array.isArray(spec[0])) {
-    return uniqueStrings(spec[0]);
-  }
-  return uniqueStrings(spec);
-}
-
-function optionsWithCurrent(options, current) {
-  const merged = uniqueStrings(options);
-  const normalized = String(current ?? "");
-  if (normalized && !merged.includes(normalized)) {
-    merged.unshift(normalized);
-  }
-  return merged;
-}
-
 async function fetchGeneratorSamplerOptions() {
   const data = await easyuseAnimaFetchComfyJson(api, "/object_info/KSampler");
   const ksamplerInfo = data?.KSampler || data;
   const required = ksamplerInfo?.input?.required || {};
-  const samplerNames = choiceSpecValues(required.sampler_name);
-  const schedulerNames = choiceSpecValues(required.scheduler);
+  const samplerNames = aioChoiceSpecValues(required.sampler_name);
+  const schedulerNames = aioChoiceSpecValues(required.scheduler);
   if (samplerNames.length) {
     generatorSamplerOptionState.samplerNames = samplerNames;
   }
@@ -2036,8 +2008,8 @@ function nodeInputTooltip(dependencyKey, inputName) {
 }
 
 function nodeInputChoiceOptions(dependencyKey, inputName, current, fallback = []) {
-  const values = choiceSpecValues(nodeInputSpec(dependencyKey, inputName));
-  return optionsWithCurrent(values.length ? values : fallback, current);
+  const values = aioChoiceSpecValues(nodeInputSpec(dependencyKey, inputName));
+  return aioChoiceOptionsWithCurrent(values.length ? values : fallback, current);
 }
 
 function nodeInputSupported(dependencyKey, inputName) {
@@ -2721,7 +2693,8 @@ function ensureStyle() {
       min-width: 0;
     }
     .easyuse-anima-aio-node-field input,
-    .easyuse-anima-aio-node-field select {
+    .easyuse-anima-aio-node-field select,
+    .easyuse-anima-aio-node-field textarea {
       width: 100%;
       height: 24px;
       min-width: 0;
@@ -2732,6 +2705,11 @@ function ensureStyle() {
       border-radius: 5px;
       font: 12px "Segoe UI", sans-serif;
       outline: none;
+    }
+    .easyuse-anima-aio-node-field textarea {
+      height: 48px;
+      min-height: 48px;
+      resize: vertical;
     }
     .easyuse-anima-aio-node-mode-badge {
       width: 100%;
@@ -3994,7 +3972,7 @@ const generatorPanelRuntime = aioCreateGeneratorPanelRuntime({
   controls: {
     numberInput,
     checkbox,
-    textInput,
+    textareaInput,
     selectInput,
     createNodeField,
   },
