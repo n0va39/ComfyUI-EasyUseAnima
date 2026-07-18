@@ -657,6 +657,15 @@ def _save_aio_profile(name: str, data: dict, *, overwrite: bool = False) -> dict
     return payload
 
 
+def _normalize_stored_aio_profile_payload(name: str, data) -> dict:
+    if not isinstance(data, dict):
+        raise InvalidProfileDataError("Profile data is invalid")
+    try:
+        return _normalize_aio_profile_payload(name, data)
+    except ValueError as exc:
+        raise InvalidProfileDataError(str(exc)) from exc
+
+
 def _load_aio_profile(name: str) -> dict:
     path = _find_aio_profile_path(name)
     if path is None or not path.is_file():
@@ -665,12 +674,7 @@ def _load_aio_profile(name: str) -> dict:
         data = _read_profile_json(path)
     except (json.JSONDecodeError, UnicodeDecodeError) as exc:
         raise InvalidProfileDataError("Profile data is invalid") from exc
-    if not isinstance(data, dict):
-        raise InvalidProfileDataError("Profile data is invalid")
-    try:
-        return _normalize_aio_profile_payload(path.stem, data)
-    except ValueError as exc:
-        raise InvalidProfileDataError(str(exc)) from exc
+    return _normalize_stored_aio_profile_payload(path.stem, data)
 
 
 def _delete_aio_profile(name: str) -> dict:
@@ -702,9 +706,9 @@ def _rename_aio_profile(old_name: str, new_name: str, *, overwrite: bool = False
         AtomicJsonStore(source),
         overwrite=overwrite,
         backup_target=True,
-        transform=lambda data: _normalize_aio_profile_payload(
+        transform=lambda data: _normalize_stored_aio_profile_payload(
             target_path.stem,
-            data if isinstance(data, dict) else {},
+            data,
         ),
     )
 

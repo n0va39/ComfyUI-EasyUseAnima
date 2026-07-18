@@ -452,12 +452,16 @@ class AIOProfileStorageTests(unittest.TestCase):
     def test_rename_rejects_invalid_source_schema_before_publish(self):
         api = load_api_module()
         invalid_payloads = (
-            ("array", []),
-            ("empty object", {}),
-            ("non-object settings", {"settings": []}),
+            ("array", [], "Profile data is invalid"),
+            ("empty object", {}, "Profile settings must be an object"),
+            (
+                "non-object settings",
+                {"settings": []},
+                "Profile settings must be an object",
+            ),
         )
 
-        for label, invalid_payload in invalid_payloads:
+        for label, invalid_payload, message in invalid_payloads:
             with self.subTest(label=label), tempfile.TemporaryDirectory() as tmp:
                 root = Path(tmp)
                 source = root / "Source.json"
@@ -469,7 +473,7 @@ class AIOProfileStorageTests(unittest.TestCase):
                 source_bytes = source.read_bytes()
 
                 with patch.object(api, "AIO_PROFILE_DIR", root):
-                    with self.assertRaisesRegex(ValueError, "Profile settings must be an object"):
+                    with self.assertRaisesRegex(api.InvalidProfileDataError, message):
                         api._rename_aio_profile("Source", "Target")
 
                 self.assertEqual(source.read_bytes(), source_bytes)

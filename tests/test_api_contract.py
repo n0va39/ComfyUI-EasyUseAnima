@@ -312,6 +312,53 @@ class ApiRequestContractTests(unittest.TestCase):
                     ):
                         self.assertNotIn(forbidden, serialized)
 
+    def test_aio_rename_rejects_stored_corruption_without_moving_source(self):
+        api, routes = load_api_routes()
+        cases = (
+            ("non-object root", b"[]"),
+            ("invalid settings", b'{"settings": []}'),
+            ("invalid JSON", b"{"),
+            (
+                "invalid UTF-8",
+                b"\xffC:\\Users\\alice\\secret.json API_TOKEN=top-secret",
+            ),
+        )
+        handler = routes.handlers["/easyuse_anima/aio_profiles/rename"]
+
+        for label, source_bytes in cases:
+            with self.subTest(label=label), tempfile.TemporaryDirectory() as tmp:
+                root = Path(tmp)
+                source = root / "Source.json"
+                target = root / "Target.json"
+                source.write_bytes(source_bytes)
+
+                with patch.object(api, "AIO_PROFILE_DIR", root):
+                    response = asyncio.run(
+                        handler(
+                            JsonRequest(
+                                {"old_name": "Source", "new_name": "Target"}
+                            )
+                        )
+                    )
+
+                self.assertEqual(response["status"], 422)
+                self.assertEqual(response["payload"]["code"], "invalid_profile_data")
+                self.assertEqual(
+                    response["payload"]["message"],
+                    "Profile data is invalid",
+                )
+                self.assertEqual(source.read_bytes(), source_bytes)
+                self.assertFalse(target.exists())
+                self.assertFalse((root / "Target.json.bak").exists())
+                serialized = json.dumps(response["payload"])
+                for forbidden in (
+                    "alice",
+                    "secret.json",
+                    "API_TOKEN",
+                    "top-secret",
+                ):
+                    self.assertNotIn(forbidden, serialized)
+
     def test_empty_profile_file_compatibility_boundary_is_preserved(self):
         api, routes = load_api_routes()
         with tempfile.TemporaryDirectory() as tmp:
