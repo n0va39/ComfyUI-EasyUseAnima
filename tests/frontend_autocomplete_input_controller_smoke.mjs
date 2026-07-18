@@ -201,6 +201,7 @@ const {
 {
   const scheduler = createScheduler();
   const pending = new Map();
+  const requestSignals = new Map();
   const loaderCalls = new Map();
   const applied = [];
   const errors = [];
@@ -210,8 +211,9 @@ const {
     ...scheduler,
     async onUpdate(context) {
       const key = requestKey;
-      const result = await context.request(key, () => {
+      const result = await context.request(key, (signal) => {
         loaderCalls.set(key, (loaderCalls.get(key) || 0) + 1);
+        requestSignals.set(key, signal);
         const request = deferred();
         pending.set(key, request);
         return request.promise;
@@ -228,6 +230,11 @@ const {
   const sameFirst = controller.updateNow();
   const sameSecond = controller.updateNow();
   assert.equal(loaderCalls.get("same"), 1, "same-signature in-flight requests must be shared");
+  assert.equal(
+    requestSignals.get("same").aborted,
+    false,
+    "the latest same-key waiter must retain the shared request",
+  );
   pending.get("same").resolve("same-result");
   await Promise.all([sameFirst, sameSecond]);
   assert.deepEqual(applied, ["same-result"], "only the latest waiter may publish shared results");
@@ -236,6 +243,12 @@ const {
   const oldUpdate = controller.updateNow();
   requestKey = "new";
   const newUpdate = controller.updateNow();
+  assert.equal(
+    requestSignals.get("old").aborted,
+    true,
+    "a distinct replacement query must abort the obsolete loader signal",
+  );
+  assert.equal(requestSignals.get("new").aborted, false);
   pending.get("new").resolve("new-result");
   await newUpdate;
   pending.get("old").reject(new Error("stale failure"));
@@ -252,6 +265,11 @@ const {
   requestKey = "closed";
   const closedUpdate = controller.updateNow();
   controller.invalidate();
+  assert.equal(
+    requestSignals.get("closed").aborted,
+    true,
+    "invalidate must abort pending loader ownership",
+  );
   pending.get("closed").resolve("closed-result");
   await closedUpdate;
   assert.deepEqual(
@@ -263,9 +281,103 @@ const {
   requestKey = "disposed";
   const disposedUpdate = controller.updateNow();
   controller.dispose();
+  assert.equal(
+    requestSignals.get("disposed").aborted,
+    true,
+    "dispose must abort pending loader ownership",
+  );
   pending.get("disposed").resolve("disposed-result");
   await disposedUpdate;
   assert.deepEqual(applied, ["same-result", "new-result"]);
+}
+
+{
+  const scheduler = createScheduler();
+  const requests = new Map();
+  const abortCalls = new Map();
+  const applied = [];
+  const errors = [];
+  let requestKey = "adapter-old";
+  let shouldRequest = true;
+
+  function cancellableRequest(key) {
+    const request = deferred();
+    const promise = Object.assign(request.promise, {
+      abort() {
+        abortCalls.set(key, (abortCalls.get(key) || 0) + 1);
+        const error = new Error(`${key} aborted`);
+        error.name = "AbortError";
+        request.reject(error);
+      },
+    });
+    requests.set(key, { ...request, promise });
+    return promise;
+  }
+
+  const controller = createAutocompleteInputController({
+    ...scheduler,
+    async onUpdate(context) {
+      if (!shouldRequest) {
+        return;
+      }
+      const key = requestKey;
+      const result = await context.request(key, () => cancellableRequest(key));
+      if (context.isCurrent()) {
+        applied.push(result);
+      }
+    },
+    onError(error) {
+      errors.push(error.message);
+    },
+  });
+
+  const oldUpdate = controller.updateNow();
+  requestKey = "adapter-current";
+  const currentUpdate = controller.updateNow();
+  assert.equal(
+    abortCalls.get("adapter-old"),
+    1,
+    "a replacement key must invoke the adapter consumer's abort hook",
+  );
+  requests.get("adapter-current").resolve("adapter-current-result");
+  await Promise.all([oldUpdate, currentUpdate]);
+  assert.deepEqual(applied, ["adapter-current-result"]);
+  assert.deepEqual(errors, [], "a canceled stale request must not enter popup error handling");
+
+  requestKey = "source-abort";
+  const sourceAbortUpdate = controller.updateNow();
+  const sourceAbortError = new Error("source changed");
+  sourceAbortError.name = "AbortError";
+  requests.get("source-abort").reject(sourceAbortError);
+  await sourceAbortUpdate;
+  assert.deepEqual(
+    errors,
+    [],
+    "a current AbortError must not hide the popup or surface a user error",
+  );
+
+  requestKey = "no-query";
+  const noQueryPending = controller.updateNow();
+  shouldRequest = false;
+  await controller.updateNow();
+  assert.equal(
+    abortCalls.get("no-query"),
+    1,
+    "a current generation that produces no query must cancel obsolete pending work",
+  );
+  await noQueryPending;
+
+  shouldRequest = true;
+  requestKey = "dispose-abort";
+  const disposePending = controller.updateNow();
+  controller.dispose();
+  assert.equal(
+    abortCalls.get("dispose-abort"),
+    1,
+    "dispose must release the adapter consumer and its fetch ownership",
+  );
+  await disposePending;
+  assert.deepEqual(errors, []);
 }
 
 console.log("Autocomplete input controller smoke passed.");

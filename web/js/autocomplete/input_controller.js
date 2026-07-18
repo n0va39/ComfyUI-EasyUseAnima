@@ -3,7 +3,7 @@
 /**
  * @typedef {object} AutocompleteInputUpdateContext
  * @property {() => boolean} isCurrent
- * @property {(key: string, loader: () => Promise<any>) => Promise<any>} request
+ * @property {(key: string, loader: (signal: AbortSignal) => Promise<any>) => Promise<any>} request
  */
 
 /**
@@ -26,6 +26,17 @@
  * @typedef {object} AutocompleteControllerState
  * @property {AutocompleteInputControllerHandle | null | undefined} [controller]
  */
+
+/**
+ * @typedef {object} InFlightRequestOwner
+ * @property {Promise<any>} promise
+ * @property {AbortController} controller
+ * @property {() => void} abortLoaded
+ */
+
+function isAbortError(error) {
+  return !!error && typeof error === "object" && error.name === "AbortError";
+}
 
 /**
  * Invalidate every distinct input controller that can still publish results.
@@ -73,6 +84,7 @@ export function createAutocompleteInputController(dependencies) {
   let pendingTimer = null;
   let pendingFrame = null;
   let compositionEndFramePending = false;
+  /** @type {Map<string, InFlightRequestOwner>} */
   const inFlight = new Map();
 
   function cancelScheduledUpdate() {
@@ -91,6 +103,33 @@ export function createAutocompleteInputController(dependencies) {
     generation += 1;
   }
 
+  /**
+   * Cancel obsolete request owners without disturbing a same-key single flight.
+   * Starting the replacement loader first lets shared adapter loads retain a
+   * current consumer before the stale consumer releases its ownership.
+   *
+   * @param {string | null} keptKey
+   */
+  function cancelInFlightExcept(keptKey) {
+    for (const [key, owner] of inFlight) {
+      if (key === keptKey) {
+        continue;
+      }
+      inFlight.delete(key);
+      owner.controller.abort();
+      owner.abortLoaded();
+    }
+  }
+
+  function cancelInFlightRequests() {
+    cancelInFlightExcept(null);
+  }
+
+  /**
+   * @param {string} key
+   * @param {(signal: AbortSignal) => Promise<any>} loader
+   * @returns {Promise<any>}
+   */
   function request(key, loader) {
     if (disposed) {
       return Promise.resolve(undefined);
@@ -98,17 +137,26 @@ export function createAutocompleteInputController(dependencies) {
     const requestKey = String(key);
     const pending = inFlight.get(requestKey);
     if (pending) {
-      return pending;
+      cancelInFlightExcept(requestKey);
+      return pending.promise;
     }
-    let promise;
+    const controller = new AbortController();
+    /** @type {any} */
+    let loaded;
     try {
-      promise = Promise.resolve(loader());
+      loaded = loader(controller.signal);
     } catch (error) {
-      promise = Promise.reject(error);
+      loaded = Promise.reject(error);
     }
-    inFlight.set(requestKey, promise);
+    const abortLoaded = typeof loaded?.abort === "function"
+      ? () => loaded.abort()
+      : () => {};
+    const promise = Promise.resolve(loaded);
+    const owner = { promise, controller, abortLoaded };
+    inFlight.set(requestKey, owner);
+    cancelInFlightExcept(requestKey);
     const release = () => {
-      if (inFlight.get(requestKey) === promise) {
+      if (inFlight.get(requestKey) === owner) {
         inFlight.delete(requestKey);
       }
     };
@@ -122,15 +170,23 @@ export function createAutocompleteInputController(dependencies) {
     }
     cancelScheduledUpdate();
     const updateGeneration = ++generation;
+    let requestCalled = false;
     const context = {
       isCurrent: () => !disposed && updateGeneration === generation,
-      request,
+      request: (key, loader) => {
+        requestCalled = true;
+        return request(key, loader);
+      },
     };
     try {
       await onUpdate(context);
     } catch (error) {
-      if (context.isCurrent()) {
+      if (context.isCurrent() && !isAbortError(error)) {
         await onError(error, context);
+      }
+    } finally {
+      if (context.isCurrent() && !requestCalled) {
+        cancelInFlightRequests();
       }
     }
   }
@@ -179,6 +235,7 @@ export function createAutocompleteInputController(dependencies) {
     composing = true;
     supersedeCurrentUpdate();
     cancelScheduledUpdate();
+    cancelInFlightRequests();
   }
 
   function endComposition() {
@@ -199,7 +256,7 @@ export function createAutocompleteInputController(dependencies) {
     }
     supersedeCurrentUpdate();
     cancelScheduledUpdate();
-    inFlight.clear();
+    cancelInFlightRequests();
   }
 
   function dispose() {
@@ -210,7 +267,7 @@ export function createAutocompleteInputController(dependencies) {
     generation += 1;
     composing = false;
     cancelScheduledUpdate();
-    inFlight.clear();
+    cancelInFlightRequests();
   }
 
   return {
