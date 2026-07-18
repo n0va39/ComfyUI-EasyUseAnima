@@ -357,7 +357,7 @@ def save_setting(key: str, value) -> dict:
     if key not in DEFAULT_SETTINGS:
         raise KeyError(f"Unknown setting: {key}")
     settings = get_settings()
-    settings[key] = str(value or "")
+    settings[key] = _stringify_setting_value(value)
     SETTINGS_FILE.parent.mkdir(parents=True, exist_ok=True)
     SETTINGS_FILE.write_text(
         json.dumps(settings, ensure_ascii=False, indent=2) + "\n",

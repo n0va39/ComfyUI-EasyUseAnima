@@ -61,6 +61,15 @@ AIO_RESERVED_PROFILE_NAMES = {
 }
 
 
+def _parse_json_boolean(data: dict, key: str, *, default: bool = False) -> bool:
+    if key not in data:
+        return default
+    value = data[key]
+    if type(value) is not bool:
+        raise ValueError(f"{key} must be a JSON boolean")
+    return value
+
+
 def _sanitize_lora_profile_name(name: str) -> str:
     safe_name = INVALID_PROFILE_NAME_CHARS.sub("_", str(name or "")).strip(" ._")
     if not safe_name:
@@ -661,10 +670,11 @@ if web is not None and routes is not None:
     async def save_aio_profile_handler(request):
         data = await request.json()
         try:
+            overwrite = _parse_json_boolean(data, "overwrite")
             payload = _save_aio_profile(
                 str(data.get("name") or ""),
                 data,
-                overwrite=bool(data.get("overwrite", False)),
+                overwrite=overwrite,
             )
         except FileExistsError as exc:
             return web.json_response({"status": "error", "message": str(exc)}, status=409)
@@ -697,10 +707,11 @@ if web is not None and routes is not None:
     async def rename_aio_profile_handler(request):
         data = await request.json()
         try:
+            overwrite = _parse_json_boolean(data, "overwrite")
             payload = _rename_aio_profile(
                 str(data.get("old_name") or ""),
                 str(data.get("new_name") or ""),
-                overwrite=bool(data.get("overwrite", False)),
+                overwrite=overwrite,
             )
         except FileExistsError as exc:
             return web.json_response({"status": "error", "message": str(exc)}, status=409)

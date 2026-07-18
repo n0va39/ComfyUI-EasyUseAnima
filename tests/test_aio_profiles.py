@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import importlib.util
 import shutil
 import subprocess
@@ -30,6 +31,46 @@ def load_api_module():
     sys.modules[spec.name] = module
     spec.loader.exec_module(module)
     return module
+
+
+class RouteRegistry:
+    def __init__(self):
+        self.handlers = {}
+
+    def get(self, path):
+        def register(handler):
+            self.handlers[path] = handler
+            return handler
+
+        return register
+
+    def post(self, path):
+        return self.get(path)
+
+
+class JsonRequest:
+    def __init__(self, payload):
+        self.payload = payload
+
+    async def json(self):
+        return self.payload
+
+
+def load_api_routes():
+    routes = RouteRegistry()
+    fake_server = types.ModuleType("server")
+    fake_server.PromptServer = type(
+        "PromptServer",
+        (),
+        {"instance": types.SimpleNamespace(routes=routes)},
+    )
+    fake_aiohttp = types.ModuleType("aiohttp")
+    fake_aiohttp.web = types.SimpleNamespace(
+        json_response=lambda payload, status=200: {"payload": payload, "status": status},
+    )
+    with patch.dict(sys.modules, {"server": fake_server, "aiohttp": fake_aiohttp}):
+        api = load_api_module()
+    return api, routes
 
 
 class AIOProfileStorageTests(unittest.TestCase):
@@ -94,6 +135,61 @@ class AIOProfileStorageTests(unittest.TestCase):
                 (Path(tmp) / "Broken.json").write_text("{", encoding="utf-8")
                 with self.assertRaisesRegex(ValueError, "Profile data is invalid"):
                     api._load_aio_profile("Broken")
+
+
+class AIOProfileApiRouteTests(unittest.TestCase):
+    ENDPOINTS = (
+        (
+            "/easyuse_anima/aio_profiles/save",
+            {"name": "Saved", "settings": {}},
+            "_save_aio_profile",
+        ),
+        (
+            "/easyuse_anima/aio_profiles/rename",
+            {"old_name": "Old", "new_name": "Renamed"},
+            "_rename_aio_profile",
+        ),
+    )
+
+    def test_profile_overwrite_accepts_json_booleans_and_defaults_false(self):
+        api, routes = load_api_routes()
+        overwrite_cases = (({}, False), ({"overwrite": False}, False), ({"overwrite": True}, True))
+
+        for path, base_payload, function_name in self.ENDPOINTS:
+            handler = routes.handlers[path]
+            for overwrite_payload, expected in overwrite_cases:
+                with self.subTest(path=path, overwrite=overwrite_payload):
+                    with patch.object(
+                        api,
+                        function_name,
+                        return_value={"name": "Saved"},
+                    ) as operation:
+                        response = asyncio.run(
+                            handler(JsonRequest({**base_payload, **overwrite_payload}))
+                        )
+
+                    self.assertEqual(response["status"], 200)
+                    self.assertIs(operation.call_args.kwargs["overwrite"], expected)
+
+    def test_profile_overwrite_rejects_non_boolean_json_scalars_and_containers(self):
+        api, routes = load_api_routes()
+        invalid_values = ("false", "true", 0, 1, "", None, [], {})
+
+        for path, base_payload, function_name in self.ENDPOINTS:
+            handler = routes.handlers[path]
+            for overwrite in invalid_values:
+                with self.subTest(path=path, overwrite=overwrite):
+                    with patch.object(api, function_name) as operation:
+                        response = asyncio.run(
+                            handler(JsonRequest({**base_payload, "overwrite": overwrite}))
+                        )
+
+                    self.assertEqual(response["status"], 400)
+                    self.assertEqual(
+                        response["payload"]["message"],
+                        "overwrite must be a JSON boolean",
+                    )
+                    operation.assert_not_called()
 
 
 class AIOBuiltinProfileTests(unittest.TestCase):

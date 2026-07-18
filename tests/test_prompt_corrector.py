@@ -2681,6 +2681,36 @@ class PromptBuilderTests(unittest.TestCase):
 
 
 class SettingsTests(unittest.TestCase):
+    def test_save_setting_round_trips_false_zero_empty_string_and_null(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            settings_file = Path(tmp) / "settings.json"
+            long_text_settings_file = Path(tmp) / "long_text_settings.json"
+            cases = (
+                ("autocomplete.append_separator", False, "false"),
+                ("autocomplete.limit", 0, "0"),
+                ("prompt_studio.font_family", "", ""),
+                ("prompt_studio.font_family", None, ""),
+            )
+
+            with (
+                patch.object(easyuse_settings, "SETTINGS_FILE", settings_file),
+                patch.object(
+                    easyuse_settings,
+                    "LONG_TEXT_SETTINGS_FILE",
+                    long_text_settings_file,
+                ),
+                patch.object(easyuse_settings, "_load_comfy_settings", return_value={}),
+            ):
+                for key, value, expected in cases:
+                    with self.subTest(key=key, value=value):
+                        saved = easyuse_settings.save_setting(key, value)
+                        persisted = json.loads(settings_file.read_text(encoding="utf-8"))
+                        reloaded = easyuse_settings.get_settings()
+
+                        self.assertEqual(saved[key], expected)
+                        self.assertEqual(persisted[key], expected)
+                        self.assertEqual(reloaded[key], expected)
+
     def test_public_settings_does_not_expose_token_file(self):
         settings = public_settings()
         self.assertEqual(
