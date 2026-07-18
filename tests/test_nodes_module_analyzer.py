@@ -73,8 +73,9 @@ def load_dynamic():
     def test_phase_zero_nodes_module_shape_matches_recorded_baseline(self):
         report = analyzer.analyze_path(ROOT / "nodes.py")
 
-        self.assertEqual(report["git_blob_sha1"], "a09b1d76618ff46955d54d724a7b813e2a209567")
-        self.assertEqual(report["top_level"]["function_count"], 284)
+        self.assertEqual(report["git_blob_sha1"], "eb284afe415c7e47f848071e68320520fc6322fe")
+        # Issue #184 B-02 intentionally moved 13 domain-independent helpers out of nodes.py.
+        self.assertEqual(report["top_level"]["function_count"], 271)
         self.assertEqual(report["top_level"]["class_count"], 25)
         self.assertGreaterEqual(report["line_count"], 12_000)
         class_names = {item["name"] for item in report["top_level"]["classes"]}

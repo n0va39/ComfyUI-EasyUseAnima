@@ -18,7 +18,11 @@ EXPECTED_AUTOCOMPLETE_MODULES = {
 EXPECTED_PYTHON_PACKAGE_FILES = {
     "easyuse_anima/__init__.py",
     "easyuse_anima/aio/__init__.py",
+    "easyuse_anima/common/__init__.py",
+    "easyuse_anima/common/serialization.py",
+    "easyuse_anima/common/values.py",
     "easyuse_anima/image/__init__.py",
+    "easyuse_anima/image/geometry.py",
     "easyuse_anima/infrastructure/__init__.py",
     "easyuse_anima/infrastructure/comfy/__init__.py",
     "easyuse_anima/nodes/__init__.py",

@@ -11,7 +11,11 @@ ROOT = Path(__file__).resolve().parents[1]
 PACKAGE_MODULES = (
     "easyuse_anima",
     "easyuse_anima.aio",
+    "easyuse_anima.common",
+    "easyuse_anima.common.values",
+    "easyuse_anima.common.serialization",
     "easyuse_anima.image",
+    "easyuse_anima.image.geometry",
     "easyuse_anima.infrastructure",
     "easyuse_anima.infrastructure.comfy",
     "easyuse_anima.nodes",

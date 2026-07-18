@@ -17,6 +17,9 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 import nodes
+from easyuse_anima.common import serialization as common_serialization
+from easyuse_anima.common import values as common_values
+from easyuse_anima.image import geometry as image_geometry
 
 
 PACKAGE_INIT = ROOT / "__init__.py"
@@ -406,6 +409,100 @@ def write_fixture() -> None:
         encoding="utf-8",
         newline="\n",
     )
+
+
+class CommonHelperMoveContractTests(unittest.TestCase):
+    HELPER_MODULES = (
+        (
+            common_values,
+            ("_single_value", "_as_bool", "_as_int", "_as_float", "_choice"),
+        ),
+        (
+            common_serialization,
+            ("_stable_change_key", "_json_clone", "_json_object"),
+        ),
+        (
+            image_geometry,
+            (
+                "_alignment_value",
+                "_align_up",
+                "_align_nearest",
+                "_align_down",
+                "_aligned_size_near_scale",
+            ),
+        ),
+    )
+
+    def test_root_nodes_private_aliases_are_canonical_objects(self):
+        for canonical_module, helper_names in self.HELPER_MODULES:
+            for helper_name in helper_names:
+                with self.subTest(module=canonical_module.__name__, helper=helper_name):
+                    self.assertIs(
+                        getattr(nodes, helper_name),
+                        getattr(canonical_module, helper_name),
+                    )
+
+    def test_package_nodes_private_aliases_are_canonical_objects(self):
+        with _loaded_package_entrypoint() as (_, package_nodes):
+            package_name = package_nodes.__package__
+            package_helper_modules = (
+                (
+                    sys.modules[f"{package_name}.easyuse_anima.common.values"],
+                    self.HELPER_MODULES[0][1],
+                ),
+                (
+                    sys.modules[f"{package_name}.easyuse_anima.common.serialization"],
+                    self.HELPER_MODULES[1][1],
+                ),
+                (
+                    sys.modules[f"{package_name}.easyuse_anima.image.geometry"],
+                    self.HELPER_MODULES[2][1],
+                ),
+            )
+            for canonical_module, helper_names in package_helper_modules:
+                for helper_name in helper_names:
+                    with self.subTest(module=canonical_module.__name__, helper=helper_name):
+                        self.assertIs(
+                            getattr(package_nodes, helper_name),
+                            getattr(canonical_module, helper_name),
+                        )
+
+    def test_moved_helper_behavior_matches_existing_contract(self):
+        self.assertEqual(nodes._single_value(["first", "second"]), "first")
+        self.assertIsNone(nodes._single_value(()))
+        self.assertTrue(nodes._as_bool(" enabled "))
+        self.assertFalse(nodes._as_bool("false", True))
+        self.assertEqual(nodes._as_int(["7"], 3), 7)
+        self.assertEqual(nodes._as_int("invalid", 3), 3)
+        self.assertEqual(nodes._as_float(["1.5"], 3.0), 1.5)
+        self.assertEqual(nodes._choice(" beta ", ("alpha", "beta"), "alpha"), "beta")
+        self.assertEqual(nodes._choice("missing", ("alpha", "beta"), "beta"), "beta")
+
+        self.assertEqual(
+            nodes._stable_change_key({"b": 2, "a": "한"}),
+            '{"a":"한","b":2}',
+        )
+        source = {"nested": [{"value": "한"}]}
+        clone = nodes._json_clone(source)
+        self.assertEqual(clone, source)
+        self.assertIsNot(clone, source)
+        self.assertIsNot(clone["nested"], source["nested"])
+        json_object_source = {"value": 1}
+        self.assertEqual(nodes._json_object(json_object_source), json_object_source)
+        self.assertIsNot(nodes._json_object(json_object_source), json_object_source)
+        self.assertEqual(nodes._json_object('{"value": 1}'), {"value": 1})
+        self.assertEqual(nodes._json_object("invalid"), {})
+
+        self.assertEqual(nodes._alignment_value(["64"]), 64)
+        self.assertIsNone(nodes._alignment_value("impact"))
+        self.assertEqual(nodes._align_up(65, 64), 128)
+        self.assertEqual(nodes._align_nearest(95, 64), 64)
+        self.assertEqual(nodes._align_nearest(96, 64), 128)
+        self.assertEqual(nodes._align_down(65, 64), 64)
+        self.assertEqual(
+            nodes._aligned_size_near_scale(128, 64, 2.0, 64, 0),
+            (256, 128, 2.0),
+        )
 
 
 class PublicNodeContractTests(unittest.TestCase):

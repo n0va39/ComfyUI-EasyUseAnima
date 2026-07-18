@@ -12,6 +12,25 @@ from math import ceil, gcd, isfinite, lcm, log, sqrt
 from typing import Any, Optional
 
 try:
+    from .easyuse_anima.common.serialization import (
+        _json_clone as _json_clone,
+        _json_object as _json_object,
+        _stable_change_key as _stable_change_key,
+    )
+    from .easyuse_anima.common.values import (
+        _as_bool as _as_bool,
+        _as_float as _as_float,
+        _as_int as _as_int,
+        _choice as _choice,
+        _single_value as _single_value,
+    )
+    from .easyuse_anima.image.geometry import (
+        _align_down as _align_down,
+        _align_nearest as _align_nearest,
+        _align_up as _align_up,
+        _aligned_size_near_scale as _aligned_size_near_scale,
+        _alignment_value as _alignment_value,
+    )
     from .anima_prompt import correct_prompt, load_knowledge_base
     from .anima_prompt.parser import parse_prompt
     from .settings import (
@@ -41,6 +60,25 @@ try:
         wildcard_sources_signature,
     )
 except ImportError:  # allows simple local import tests outside ComfyUI's package loader
+    from easyuse_anima.common.serialization import (
+        _json_clone as _json_clone,
+        _json_object as _json_object,
+        _stable_change_key as _stable_change_key,
+    )
+    from easyuse_anima.common.values import (
+        _as_bool as _as_bool,
+        _as_float as _as_float,
+        _as_int as _as_int,
+        _choice as _choice,
+        _single_value as _single_value,
+    )
+    from easyuse_anima.image.geometry import (
+        _align_down as _align_down,
+        _align_nearest as _align_nearest,
+        _align_up as _align_up,
+        _aligned_size_near_scale as _aligned_size_near_scale,
+        _alignment_value as _alignment_value,
+    )
     from anima_prompt import correct_prompt, load_knowledge_base
     from anima_prompt.parser import parse_prompt
     from settings import (
@@ -851,33 +889,6 @@ class _FlexibleOptionalInputType(dict):
 _ANY_TYPE = _AnyType("*")
 
 
-def _single_value(value):
-    if isinstance(value, (list, tuple)):
-        if not value:
-            return None
-        return value[0]
-    return value
-
-
-def _as_bool(value, default: bool = False) -> bool:
-    value = _single_value(value)
-    if value is None:
-        return default
-    if isinstance(value, str):
-        return value.strip().lower() in ("true", "1", "yes", "on", "enable", "enabled")
-    return bool(value)
-
-
-def _as_int(value, default: int = 0) -> int:
-    value = _single_value(value)
-    if value is None:
-        return default
-    try:
-        return int(value)
-    except (TypeError, ValueError):
-        return default
-
-
 def _normalize_aio_seed(value, default: int = AIO_SPECIAL_SEED_RANDOM) -> int:
     return max(AIO_SPECIAL_SEED_DECREMENT, min(MAX_SEED, _as_int(value, default)))
 
@@ -891,16 +902,6 @@ def _resolve_aio_runtime_seed(value) -> int:
     if seed in AIO_SPECIAL_SEEDS:
         return _new_aio_random_seed()
     return max(0, min(MAX_SEED, seed))
-
-
-def _as_float(value, default: float = 0.0) -> float:
-    value = _single_value(value)
-    if value is None:
-        return default
-    try:
-        return float(value)
-    except (TypeError, ValueError):
-        return default
 
 
 def _ratio_label(width: int, height: int) -> str:
@@ -1049,27 +1050,6 @@ def _clean_prompt(value: str) -> str:
     return value.strip(" ,\n\t")
 
 
-def _stable_change_key(payload: dict) -> str:
-    return json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
-
-
-def _json_clone(value):
-    return json.loads(json.dumps(value, ensure_ascii=False))
-
-
-def _json_object(value) -> dict[str, Any]:
-    if isinstance(value, dict):
-        return dict(value)
-    if isinstance(value, str):
-        try:
-            parsed = json.loads(value or "{}")
-        except json.JSONDecodeError:
-            parsed = {}
-        if isinstance(parsed, dict):
-            return parsed
-    return {}
-
-
 def _merge_versioned_settings(defaults: dict[str, Any], value) -> dict[str, Any]:
     merged = _json_clone(defaults)
     incoming = _json_object(value)
@@ -1088,16 +1068,6 @@ def _merge_versioned_settings(defaults: dict[str, Any], value) -> dict[str, Any]
 
 def _settings_json(defaults: dict[str, Any]) -> str:
     return json.dumps(defaults, ensure_ascii=False, indent=2)
-
-
-def _choice(value, choices, default: str) -> str:
-    choices = tuple(choices or ())
-    value = str(_single_value(value) or "").strip()
-    if value in choices:
-        return value
-    if default in choices:
-        return default
-    return choices[0] if choices else default
 
 
 def _normalize_aio_input_settings(value) -> dict[str, Any]:
@@ -4483,39 +4453,6 @@ def _call_impact_detailer(detailer, **kwargs):
     return method(**call_kwargs)
 
 
-def _alignment_value(value) -> Optional[int]:
-    text = str(_single_value(value) or "").strip().lower()
-    if text in ("", "impact", "none", "0"):
-        return None
-    try:
-        alignment = int(text)
-    except ValueError:
-        return None
-    return alignment if alignment > 1 else None
-
-
-def _align_up(value: int, alignment: int) -> int:
-    value = int(value)
-    alignment = int(alignment)
-    return max(alignment, ((value + alignment - 1) // alignment) * alignment)
-
-
-def _align_nearest(value: int, alignment: int) -> int:
-    value = max(1, int(value))
-    alignment = max(1, int(alignment))
-    lower = max(alignment, (value // alignment) * alignment)
-    upper = _align_up(value, alignment)
-    if (value - lower) < (upper - value):
-        return lower
-    return upper
-
-
-def _align_down(value: int, alignment: int) -> int:
-    value = max(1, int(value))
-    alignment = max(1, int(alignment))
-    return max(1, (value // alignment) * alignment)
-
-
 def _scale_by_value(value, default: float = 1.0) -> float:
     scale = _as_float(value, default)
     if not isfinite(scale):
@@ -4528,55 +4465,6 @@ def _max_long_edge_value(value) -> int:
     if max_long_edge <= 0:
         return 0
     return max(1, min(16384, max_long_edge))
-
-
-def _aligned_size_near_scale(
-    source_width: int,
-    source_height: int,
-    scale: float,
-    alignment: int,
-    max_long_edge: int,
-) -> Optional[tuple[int, int, float]]:
-    source_long_edge = max(source_width, source_height)
-    target_scale = scale
-    if max_long_edge > 0 and source_long_edge * target_scale > max_long_edge:
-        target_scale = max_long_edge / source_long_edge
-    if target_scale <= 0:
-        return None
-
-    target_width = max(1, round(source_width * target_scale))
-    target_height = max(1, round(source_height * target_scale))
-    width_candidates = {
-        max(alignment, (target_width // alignment) * alignment),
-        _align_up(target_width, alignment),
-    }
-    height_candidates = {
-        max(alignment, (target_height // alignment) * alignment),
-        _align_up(target_height, alignment),
-    }
-
-    candidates: list[tuple[int, int, float]] = []
-    for candidate_width in width_candidates:
-        for candidate_height in height_candidates:
-            if max_long_edge > 0 and max(candidate_width, candidate_height) > max_long_edge:
-                continue
-            if scale > 1.0 and max_long_edge > source_long_edge:
-                if candidate_width <= source_width or candidate_height <= source_height:
-                    continue
-            applied_scale = (candidate_width / source_width + candidate_height / source_height) / 2.0
-            candidates.append((candidate_width, candidate_height, applied_scale))
-    if not candidates:
-        return None
-
-    source_ratio = source_width / source_height
-    return min(
-        candidates,
-        key=lambda item: (
-            abs((item[0] / source_width) - target_scale) + abs((item[1] / source_height) - target_scale),
-            abs((item[0] / item[1]) - source_ratio),
-            -item[0] * item[1],
-        ),
-    )
 
 
 def _image_scale_by_multiple_size(
