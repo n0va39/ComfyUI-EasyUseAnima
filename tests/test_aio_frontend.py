@@ -1166,15 +1166,26 @@ class AIOFrontendSourceTests(unittest.TestCase):
 
     def test_autocomplete_hooks_focused_nodes_v2_dom_inputs(self):
         source = AUTOCOMPLETE_JS.read_text(encoding="utf-8")
+        owner_start = source.index("function autocompleteDomInputOwner")
+        owner_end = source.index("\nfunction hookFocusedDomInput", owner_start)
+        owner_body = source[owner_start:owner_end]
+
+        self.assertIn("const ancestryNode = nodeFromDomElement(input);", owner_body)
+        self.assertIn("for (const node of autocompleteGraphNodes())", owner_body)
+        self.assertIn("const widget = widgetForDomInput(node, input);", owner_body)
+        self.assertIn("return { node, widget };", owner_body)
+        self.assertIn("Array.isArray(graph?._nodes)", source)
+        self.assertIn("Object.values(graph?._nodes_by_id || {})", source)
+
         start = source.index("function hookFocusedDomInput")
         end = source.index("\nfunction handleAutocompleteScroll", start)
         focus_body = source[start:end]
 
         self.assertIn("isAutocompleteDomInput(input)", focus_body)
-        self.assertIn("const node = nodeFromDomElement(input);", focus_body)
-        self.assertIn("if (!node)", focus_body)
+        self.assertIn("const owner = autocompleteDomInputOwner(input);", focus_body)
+        self.assertIn("if (!owner)", focus_body)
+        self.assertIn("const { node, widget } = owner;", focus_body)
         self.assertIn("const targets = nodeData ? targetWidgets(nodeData) : null;", focus_body)
-        self.assertIn("const widget = widgetForDomInput(node, input);", focus_body)
         self.assertIn("hookInput(input", focus_body)
         self.assertIn("hookFocusedInput: hookFocusedDomInput", source)
         lifecycle_source = AUTOCOMPLETE_ENTRY_LIFECYCLE_JS.read_text(
