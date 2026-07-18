@@ -703,10 +703,23 @@ class AIOFrontendSourceTests(unittest.TestCase):
         self.assertNotIn("max_megapixels: clampGeneratorNumber", body)
         self.assertIn('nodeInputChoiceOptions("upscaleModelLoader", "model_name"', body)
         self.assertIn('nodeInputChoiceOptions("resShiftLoader", "student_name"', body)
+        self.assertIn("reconcileSelectInput(", body)
+        self.assertIn("upscaleModel.value", body)
+        self.assertIn("closed || backdrop.isConnected === false", body)
         self.assertIn("upscaleBackendMissingPacks(backend.value)", body)
         self.assertIn("enabled: enabled.checked && missingPacks.length === 0", body)
         self.assertIn("resshiftSection", body)
         self.assertIn("resshift:", body)
+
+    def test_sam3_checkpoint_uses_checkpoint_loader_catalog_and_late_hydration(self):
+        body = AIO_DETAILER_SETTINGS_DIALOG_JS.read_text(encoding="utf-8")
+
+        self.assertIn('"checkpointLoader"', body)
+        self.assertIn('"ckpt_name"', body)
+        self.assertIn("selectInput(", body)
+        self.assertIn("reconcileSelectInput(", body)
+        self.assertIn("checkpoint.value", body)
+        self.assertIn("closed || backdrop.isConnected === false", body)
 
     def test_postprocess_settings_own_final_fit_controls(self):
         body = AIO_POSTPROCESS_SETTINGS_DIALOG_JS.read_text(encoding="utf-8")

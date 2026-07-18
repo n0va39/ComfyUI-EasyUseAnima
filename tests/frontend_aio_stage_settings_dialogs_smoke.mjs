@@ -70,6 +70,7 @@ function createFixture({
   settings = {},
   available = {},
   missingByBackend = {},
+  choiceOptions = {},
   deferLoads = false,
 } = {}) {
   let dependencyCalls = 0;
@@ -80,6 +81,7 @@ function createFixture({
   const loadResolvers = [];
   const optionCalls = [];
   const choiceCalls = [];
+  let catalogLoaded = !deferLoads;
   const writes = [];
   const renders = [];
   const document = createFakeDocument();
@@ -172,6 +174,27 @@ function createFixture({
     return select;
   }
 
+  function reconcileSelectInput(select, options) {
+    dependencyCalls += 1;
+    const current = String(select.value ?? "");
+    const values = [...new Set(options.map((option) => String(option?.value ?? option ?? "")))];
+    if (current && !values.includes(current)) {
+      values.unshift(current);
+    }
+    select.replaceChildren();
+    select.options = [];
+    for (const value of values) {
+      const option = document.createElement("option");
+      option.value = value;
+      option.textContent = value;
+      option.selected = value === current;
+      select.options.push(option);
+      select.append(option);
+    }
+    select.value = current;
+    return select;
+  }
+
   function staticText(value) {
     dependencyCalls += 1;
     return `static:${value}`;
@@ -233,7 +256,14 @@ function createFixture({
   function nodeInputChoiceOptions(dependencyKey, inputName, current, fallback = []) {
     dependencyCalls += 1;
     choiceCalls.push({ dependencyKey, inputName, current, fallback: [...fallback] });
-    return [...new Set([...fallback, current].filter(Boolean))];
+    const key = `${dependencyKey}:${inputName}`;
+    const catalog = catalogLoaded ? (choiceOptions[key] || []) : [];
+    const values = [...new Set((catalog.length ? catalog : fallback).filter(Boolean))];
+    const normalizedCurrent = String(current ?? "");
+    if (normalizedCurrent && !values.includes(normalizedCurrent)) {
+      values.unshift(normalizedCurrent);
+    }
+    return values;
   }
 
   function writeSettings(targetNode, widget, nextSettings) {
@@ -261,6 +291,7 @@ function createFixture({
       numberInput,
       checkbox,
       selectInput,
+      reconcileSelectInput,
     },
     text: {
       staticText,
@@ -301,6 +332,7 @@ function createFixture({
         dependencyCalls += 1;
         loadCalls.push(options);
         if (!deferLoads) {
+          catalogLoaded = true;
           return Promise.resolve();
         }
         return new Promise((resolve) => loadResolvers.push(resolve));
@@ -323,6 +355,7 @@ function createFixture({
     renders,
     trace,
     resolveLoads() {
+      catalogLoaded = true;
       for (const resolve of loadResolvers.splice(0)) {
         resolve();
       }
@@ -463,6 +496,10 @@ function createFixture({
 {
   const fixture = createFixture({
     missingByBackend: { resshift: [] },
+    choiceOptions: {
+      "upscaleModelLoader:model_name": ["installed-a.pth", "installed-b.pth"],
+      "resShiftLoader:student_name": ["student.safetensors", "other-student.safetensors"],
+    },
     deferLoads: true,
     settings: {
       upscale: {
@@ -472,6 +509,7 @@ function createFixture({
         inherit_sampler_settings: false,
         prompt_mode: "ignored-legacy-root",
         usdu: {
+          upscale_model_name: "legacy-missing.pth",
           auto_tile_size: false,
           prompt_mode: "quality_tags_only",
           auto_tile_target: 900,
@@ -497,6 +535,11 @@ function createFixture({
   const resshiftOption = backend.options.find((option) => option.value === "resshift");
   assert.equal(resshiftOption.disabled, false);
   assert.equal(control(dialog, "Enable upscale").checked, true);
+  assert.deepEqual(
+    control(dialog, "Upscale model").options.map((option) => option.value),
+    ["legacy-missing.pth"],
+    "First-open upscale choices must initially preserve the saved fallback",
+  );
   fixture.missingByBackendState.resshift = ["ComfyUI-ResShift"];
   fixture.resolveLoads();
   await flushPromises();
@@ -510,6 +553,16 @@ function createFixture({
   assert.equal(resshiftOption.disabled, true);
   assert.ok(resshiftOption.textContent.includes("ComfyUI-ResShift"));
   assert.equal(control(dialog, "Enable upscale").checked, false, "Missing selected backend must disable upscale");
+  assert.deepEqual(
+    control(dialog, "Upscale model").options.map((option) => option.value),
+    ["legacy-missing.pth", "installed-a.pth", "installed-b.pth"],
+    "Async object-info load must hydrate all installed upscale choices",
+  );
+  assert.equal(
+    control(dialog, "Upscale model").value,
+    "legacy-missing.pth",
+    "Hydration must preserve a saved value that is absent from the current catalog",
+  );
   assert.ok(findAll(dialog.body, (element) => element.classList.contains("easyuse-anima-aio-warning"))
     .some((element) => element.textContent.includes("ComfyUI-ResShift")));
   assert.ok(sectionByHeading(dialog, "USDU Upscale").classList.contains("hidden"));
@@ -570,6 +623,7 @@ function createFixture({
   assert.equal(fixture.node.settings.upscale.usdu.auto_tile_target, 300);
   assert.equal(fixture.node.settings.upscale.usdu.auto_tile_min, 300);
   assert.equal(fixture.node.settings.upscale.usdu.auto_tile_max, 500);
+  assert.equal(fixture.node.settings.upscale.usdu.upscale_model_name, "legacy-missing.pth");
   assert.equal(fixture.node.settings.upscale.resshift.student_name, "student.safetensors");
   assert.equal(fixture.node.settings.upscale.preserved_upscale_key, "keep-upscale");
 
@@ -587,6 +641,31 @@ function createFixture({
   assert.deepEqual(fixture.node.settings, settingsBeforeCancel, "Upscale Cancel must not mutate settings");
   assert.equal(fixture.node.widgets[0].value, widgetBeforeCancel, "Upscale Cancel must not rewrite the hidden widget");
   assert.deepEqual(cancelDialog.trace, ["remove"]);
+}
+
+{
+  const fixture = createFixture({
+    choiceOptions: {
+      "upscaleModelLoader:model_name": ["installed-after-close.pth"],
+    },
+    deferLoads: true,
+    settings: {
+      upscale: {
+        usdu: { upscale_model_name: "saved-before-close.pth" },
+      },
+    },
+  });
+  fixture.runtime.openUpscaleSettings(fixture.node);
+  const dialog = fixture.dialogs[0];
+  const upscaleModel = control(dialog, "Upscale model");
+  action(dialog, "button.cancel").emit("click");
+  fixture.resolveLoads();
+  await flushPromises();
+  assert.deepEqual(
+    upscaleModel.options.map((option) => option.value),
+    ["saved-before-close.pth"],
+    "A late catalog callback must not mutate a closed dialog",
+  );
 }
 
 console.log("AiO stage settings dialogs smoke passed.");

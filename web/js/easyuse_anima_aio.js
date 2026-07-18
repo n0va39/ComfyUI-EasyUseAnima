@@ -6,6 +6,7 @@ import {
   aioCreateCheckboxInput as checkbox,
   aioCreateNumberInput as numberInput,
   aioCreateSelectInput as selectInput,
+  aioReconcileSelectInput as reconcileSelectInput,
   aioCreateTextareaInput as textareaInput,
   aioCreateTextInput as textInput,
   aioNodeInputControlForSpec as nodeInputControlForSpec,
@@ -3708,6 +3709,7 @@ const {
     numberInput,
     checkbox,
     selectInput,
+    reconcileSelectInput,
   },
   text: {
     staticText: aioStaticText,
@@ -3748,6 +3750,7 @@ const openDetailerSettings = aioCreateDetailerSettingsDialog({
     textInput,
     numberInput,
     selectInput,
+    reconcileSelectInput,
   },
   text: {
     staticText: aioStaticText,
@@ -3773,6 +3776,7 @@ const openDetailerSettings = aioCreateDetailerSettingsDialog({
     findWidget,
     getSettings: generatorSettings,
     widgetOptions,
+    nodeInputChoiceOptions,
     writeSettings,
     renderPanel: renderGeneratorPanel,
   },

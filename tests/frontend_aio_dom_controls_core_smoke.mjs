@@ -40,6 +40,10 @@ class FakeElement {
   append(...children) {
     this.children.push(...children);
   }
+
+  replaceChildren(...children) {
+    this.children = [...children];
+  }
 }
 
 const previousDocument = globalThis.document;
@@ -55,6 +59,7 @@ const expectedExports = [
   "aioCreateTextareaInput",
   "aioNodeInputControlForSpec",
   "aioNodeInputDefault",
+  "aioReconcileSelectInput",
   "aioValueFromNodeInputControl",
 ];
 assertJsonEqual(
@@ -78,6 +83,7 @@ try {
     aioCreateTextareaInput,
     aioNodeInputControlForSpec,
     aioNodeInputDefault,
+    aioReconcileSelectInput,
     aioValueFromNodeInputControl,
   } = controlsModule;
 
@@ -158,6 +164,24 @@ try {
   assert(
     stringSelect.children[0].selected === true,
     "A string choice value must select the matching normalized option",
+  );
+
+  const hydratedSelect = aioCreateSelectInput(["catalog-old", "saved-missing"], "catalog-old");
+  hydratedSelect.value = "saved-missing";
+  aioReconcileSelectInput(hydratedSelect, [
+    "catalog-new",
+    { value: "catalog-old", label: "Old catalog entry" },
+    "catalog-new",
+  ]);
+  assertJsonEqual(
+    hydratedSelect.children.map((option) => option.value),
+    ["saved-missing", "catalog-new", "catalog-old"],
+    "Catalog reconciliation must deduplicate choices and retain a missing current value",
+  );
+  assert(
+    hydratedSelect.value === "saved-missing"
+      && hydratedSelect.children[0].selected === true,
+    "Late catalog reconciliation must not overwrite a newer current selection",
   );
 
   assert(
