@@ -475,18 +475,36 @@ assert(app.queuePrompt === originalQueuePrompt, "Last queue owner did not restor
   const lifecycleOriginalSerialize = Graph.prototype.serialize;
   const lifecycleOriginalQueue = lifecycleApp.queuePrompt;
   const createRuntime = (label) => ({
+    ensureRegionalWidgetValues() {},
+    hideRegionalInternalWidgets() {},
     isRegionalNode: (node) => node === regionalNode,
+    removeRegionalInternalInputSockets() {},
+    setRegionalWidgetValue: () => true,
     syncRegionalValues: () => lifecycleOrder.push(label),
   });
   const createExtension = (label) => extension.createRegionalExtensionRuntime(
     lifecycleApp,
     createRuntime(label),
     {},
-    { collectRegionalEditorFields: () => [] },
-    { installRegionalAdapter() {} },
+    {
+      collectRegionalEditorFields: () => [],
+      renderRegionalEditor() {},
+    },
+    {
+      ensureRegionalStyle() {},
+      installRegionalAdapter() {},
+    },
   );
 
   const firstExtension = createExtension("first");
+  function FirstRuntimeRegionalNodeType() {}
+  await firstExtension.beforeRegisterNodeDef(FirstRuntimeRegionalNodeType, {
+    name: "EasyUseAnimaPromptStudioRegional",
+  });
+  const oldWrappedNode = Object.assign(new FirstRuntimeRegionalNodeType(), {
+    graph: lifecycleApp.graph,
+    __easyuseAnimaRegionalEditorEl: {},
+  });
   await firstExtension.setup();
   const firstSerializeWrapper = Graph.prototype.serialize;
   const firstQueueWrapper = lifecycleApp.queuePrompt;
@@ -500,6 +518,9 @@ assert(app.queuePrompt === originalQueuePrompt, "Last queue owner did not restor
   lifecycleOrder.length = 0;
   const secondExtension = createExtension("second");
   await secondExtension.setup();
+  await secondExtension.beforeRegisterNodeDef(FirstRuntimeRegionalNodeType, {
+    name: "EasyUseAnimaPromptStudioRegional",
+  });
   lifecycleApp.graph.serialize("second");
   lifecycleApp.queuePrompt("second");
   assert(
@@ -507,9 +528,14 @@ assert(app.queuePrompt === originalQueuePrompt, "Last queue owner did not restor
     `Regional runtime replacement kept a stale closure: ${lifecycleOrder.join(",")}`,
   );
   assert(firstExtension.dispose() === false, "A stale Regional runtime released the new hooks");
+  oldWrappedNode.onNodeCreated();
+  flushFrames();
   lifecycleOrder.length = 0;
-  lifecycleApp.queuePrompt("second-still-owned");
-  assert(lifecycleOrder.join(",") === "second", "Stale dispose removed the current Regional callback");
+  lifecycleApp.queuePrompt("second-after-old-node-hook");
+  assert(
+    lifecycleOrder.join(",") === "second",
+    "An old Regional node wrapper reclaimed the superseded runtime hook lease",
+  );
   assert(secondExtension.dispose() === true, "Current Regional runtime did not release its hooks");
   assert(Graph.prototype.serialize === lifecycleOriginalSerialize, "Regional dispose kept serialize wrapped");
   assert(lifecycleApp.queuePrompt === lifecycleOriginalQueue, "Regional dispose kept queuePrompt wrapped");

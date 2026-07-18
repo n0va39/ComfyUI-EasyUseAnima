@@ -520,11 +520,27 @@ assert.deepEqual(Object.keys(registry).sort(), [
   host.queuePrompt("second-call");
   assert.deepEqual(events, ["second", "original"], "runtime replacement kept the stale closure");
   assert.equal(firstRuntime.dispose(), false, "a superseded runtime must not release the new lease");
+  assert.equal(
+    install(firstRuntime, "stale-reclaim"),
+    false,
+    "a superseded runtime must not reclaim the owner slot",
+  );
+  events.length = 0;
+  host.queuePrompt("second-after-stale-install");
+  assert.deepEqual(
+    events,
+    ["second", "original"],
+    "a superseded runtime replaced the current callback closure",
+  );
   assert.equal(secondRuntime.dispose(), true);
   assert.equal(host.queuePrompt, original);
 
   events.length = 0;
-  assert.equal(install(secondRuntime, "second-reinstalled"), true);
+  assert.equal(
+    install(secondRuntime, "second-reinstalled"),
+    true,
+    "an ordinary disposed runtime must remain reinstallable when the owner slot is free",
+  );
   host.queuePrompt("reinstalled-call");
   assert.deepEqual(events, ["second-reinstalled", "original"]);
   assert.equal(secondRuntime.dispose(), true);

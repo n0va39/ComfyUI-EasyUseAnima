@@ -6,6 +6,9 @@ const HOST_HOOK_REGISTRY = Symbol.for(
 const HOST_HOOK_WRAPPER = Symbol.for(
   "easyuse-anima.lifecycle.host-hook-wrapper.v1",
 );
+const HOST_HOOK_RUNTIME_RETIRE = Symbol.for(
+  "easyuse-anima.lifecycle.host-hook-runtime-retire.v1",
+);
 const REGISTRY_VERSION = 1;
 
 /** @returns {false} */
@@ -460,10 +463,12 @@ export function registerHostHookCallbacks(options) {
 
 /**
  * Own a composition root's current global-hook leases on a collision-safe host
- * Symbol. A newer runtime claims the host by disposing the previous runtime's
- * hook leases first. Only leases installed through this lifecycle are owned;
- * listeners, locale watchers, DOM state, and node-local resources remain out
- * of scope.
+ * Symbol. A newer runtime claims the host by terminally retiring the previous
+ * runtime and releasing its hook leases first. A lifecycle that ordinary
+ * `dispose()` releases may reinstall while the owner slot remains available;
+ * a superseded lifecycle can never reclaim a newer owner. Only leases installed
+ * through this lifecycle are owned; listeners, locale watchers, DOM state, and
+ * node-local resources remain out of scope.
  *
  * @param {any} host
  * @param {symbol} owner
@@ -473,18 +478,32 @@ export function createHostHookRuntimeLifecycle(host, owner) {
     throw new TypeError("A host object and Symbol runtime owner are required.");
   }
   const leases = new Map();
+  let status = "fresh";
 
   function isOwner() {
     return host[owner] === lifecycle;
   }
 
   function claim() {
+    if (status === "retired") {
+      return false;
+    }
     if (isOwner()) {
       return false;
     }
     const previous = host[owner];
-    previous?.dispose?.();
+    if (status !== "fresh" && previous && previous !== lifecycle) {
+      retire();
+      return false;
+    }
+    const retirePrevious = previous?.[HOST_HOOK_RUNTIME_RETIRE];
+    if (typeof retirePrevious === "function") {
+      retirePrevious.call(previous);
+    } else {
+      previous?.dispose?.();
+    }
     host[owner] = lifecycle;
+    status = "active";
     return true;
   }
 
@@ -494,7 +513,12 @@ export function createHostHookRuntimeLifecycle(host, owner) {
    * @param {{ replace?: boolean }} [options]
    */
   function install(key, installer, options = {}) {
-    claim();
+    if (status === "retired") {
+      return false;
+    }
+    if (!isOwner() && !claim()) {
+      return false;
+    }
     const previous = leases.get(key);
     if (previous && options.replace !== true) {
       return false;
@@ -511,7 +535,7 @@ export function createHostHookRuntimeLifecycle(host, owner) {
     return true;
   }
 
-  function dispose() {
+  function releaseLeases() {
     let changed = false;
     let cleanupError = null;
     for (const release of [...leases.values()].reverse()) {
@@ -531,11 +555,28 @@ export function createHostHookRuntimeLifecycle(host, owner) {
     return changed;
   }
 
+  function dispose() {
+    const changed = releaseLeases();
+    if (status !== "retired") {
+      status = "disposed";
+    }
+    return changed;
+  }
+
+  function retire() {
+    if (status === "retired") {
+      return false;
+    }
+    status = "retired";
+    return releaseLeases();
+  }
+
   const lifecycle = {
     claim,
     dispose,
     install,
     isOwner,
+    [HOST_HOOK_RUNTIME_RETIRE]: retire,
   };
   return lifecycle;
 }
