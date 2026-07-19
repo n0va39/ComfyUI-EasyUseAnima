@@ -80,23 +80,23 @@ Issue #14 범위에서 `dev`에 병합됐다.
 
 ### 정량 스냅샷
 
-`web/js`에는 JavaScript 85개, 총 30,857줄이 있다. `jsconfig.json`의 명시적
-include 패턴은 중복 제거 기준 76개·17,586줄로 전체 라인의 57.0%다. 이 중
-Prompt Studio entry 2개와 `prompt_studio/**/*.js` 52개는 총 54개·13,242줄로
-전체 라인의 42.9%다. import를 따라 추가로 검사되는 dependency는 이 수치에
+`web/js`에는 JavaScript 111개, 총 38,914줄이 있다. `jsconfig.json`의 명시적
+include 패턴은 중복 제거 기준 107개·31,497줄로 전체 라인의 80.9%다. 이 중
+Prompt Studio entry 2개와 `prompt_studio/**/*.js` 55개는 총 57개·14,587줄로
+전체 라인의 37.5%다. import를 따라 추가로 검사되는 dependency는 이 수치에
 포함하지 않았다.
 
 | 파일 | 줄 수 | 전체 비율 | 현재 판단 |
 | --- | ---: | ---: | --- |
-| `easyuse_anima_aio.js` | 7,676 | 24.9% | 가장 큰 후속 hotspot |
-| `easyuse_anima_lora_preset.js` | 2,670 | 8.7% | canvas/UI/state lifecycle이 남음 |
-| `easyuse_anima_autocomplete.js` | 1,739 | 5.6% | popup, input runtime이 남음 |
-| `easyuse_anima_settings.js` | 613 | 2.0% | 등록과 fallback lifecycle 중심 entry |
-| `prompt_studio/regional/editor_adapter.js` | 1,410 | 4.6% | Regional text/style/tooltip/highlight/textarea adapter |
+| `easyuse_anima_aio.js` | 4,278 | 11.0% | 가장 큰 후속 hotspot |
+| `easyuse_anima_lora_preset.js` | 943 | 2.4% | canvas/UI/state lifecycle이 남음 |
+| `easyuse_anima_autocomplete.js` | 1,860 | 4.8% | popup, input runtime이 남음 |
+| `easyuse_anima_settings.js` | 625 | 1.6% | 등록과 fallback lifecycle 중심 entry |
+| `prompt_studio/regional/editor_adapter.js` | 1,406 | 3.6% | Regional text/style/tooltip/highlight/textarea adapter |
 | `easyuse_anima_prompt_studio_common.js` | 5 | 0.0% | 이전 import 경로를 위한 호환 re-export |
 | `easyuse_anima_prompt_studio_regional.js` | 64 | 0.2% | registration과 runtime 조립만 담당 |
 
-앞의 5개 파일이 전체 frontend JS의 약 45.7%를 차지한다. 줄 수 자체를
+앞의 5개 파일이 전체 frontend JS의 약 23.4%를 차지한다. 줄 수 자체를
 목표로 삼지는 않지만, 책임 경계와 검증 비용이 이 파일들에 집중돼 있다는
 신호로 사용한다. Regional entry의 축소는 줄 수보다 소유권 이동의 결과다.
 
@@ -109,6 +109,11 @@ TypeScript 6.0.3으로 `web/js`의 기존 미포함 root entry를 각각 다시 
 아래 debt 중 하나여야 하며, 계약 테스트가 새 미분류 entry, include 후 남은
 debt, root wildcard 추가를 실패시킨다.
 
+Phase 4a에서는 `easyuse_anima_settings.js`의 4개 오류(TS2307 1개,
+TS2339 3개)를 host import 한 줄 suppression과 좁은 window alias로 해소하고
+명시적 include로 승격했다. 현재 root entry 11개 중 7개가 typecheck 대상이고,
+debt는 4개 entry·36개 오류다.
+
 현재 debt ledger:
 
 | TODO 파일 | 총 오류 | TypeScript 오류 코드별 개수 |
@@ -117,7 +122,6 @@ debt, root wildcard 추가를 실패시킨다.
 | `easyuse_anima_autocomplete.js` | 5 | TS2307 1, TS2339 2, TS6133 2 |
 | `easyuse_anima_lora_preset.js` | 10 | TS2304 4, TS2307 2, TS2345 1, TS6133 3 |
 | `easyuse_anima_naia.js` | 5 | TS2307 2, TS2345 2, TS6133 1 |
-| `easyuse_anima_settings.js` | 4 | TS2307 1, TS2339 3 |
 
 코드는 TS1117 duplicate property, TS2304 undeclared host global, TS2307 외부
 Comfy import resolution, TS2339 DOM/window property shape, TS2345 argument/shape
@@ -132,8 +136,7 @@ $files = @(
   "web/js/easyuse_anima_aio.js",
   "web/js/easyuse_anima_autocomplete.js",
   "web/js/easyuse_anima_lora_preset.js",
-  "web/js/easyuse_anima_naia.js",
-  "web/js/easyuse_anima_settings.js"
+  "web/js/easyuse_anima_naia.js"
 )
 foreach ($file in $files) {
   npx --yes --package "typescript@6.0.3" -- tsc `

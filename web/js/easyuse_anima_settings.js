@@ -1,3 +1,6 @@
+// @ts-check
+
+// @ts-expect-error ComfyUI provides this host module at runtime.
 import { app } from "../../../scripts/app.js";
 import { easyuseAnimaFetchJson, easyuseAnimaGetSettings, easyuseAnimaPostJson } from "./easyuse_anima_api.js";
 import {
@@ -15,6 +18,15 @@ import { createLongTextEditorButtonFactory } from "./settings/long_text_editor.j
 import { createResolutionEditors } from "./settings/resolution_editors.js";
 import { createSettingsRuntime } from "./settings/runtime.js";
 import { createWildcardExtraPathsEditorFactory } from "./settings/wildcard_path_editor.js";
+
+/**
+ * @typedef {Window & typeof globalThis & {
+ *   __easyuseAnimaSettings?: Record<string, unknown>
+ * }} EasyUseAnimaSettingsWindow
+ */
+
+/** @type {EasyUseAnimaSettingsWindow} */
+const settingsWindow = window;
 
 
 const TEXT = {
@@ -527,9 +539,9 @@ const {
   saveLongTextSettings,
   loadInitialSettings,
 } = createSettingsRuntime({
-  getSettingsState: () => window.__easyuseAnimaSettings,
+  getSettingsState: () => settingsWindow.__easyuseAnimaSettings,
   setSettingsState: (value) => {
-    window.__easyuseAnimaSettings = value;
+    settingsWindow.__easyuseAnimaSettings = value;
   },
   notifySettingsUpdated: (detail) => {
     window.dispatchEvent(
@@ -607,7 +619,7 @@ app.registerExtension({
   name: "easyuse-anima.settings",
   settings: EASYUSE_ANIMA_SETTINGS,
   async setup() {
-    window.__easyuseAnimaSettings = await loadInitialSettings();
+    settingsWindow.__easyuseAnimaSettings = await loadInitialSettings();
     addSettingsFallback();
   },
 });
