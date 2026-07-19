@@ -4545,6 +4545,38 @@ def _apply_advanced_field_inputs(fields: list[dict], field_inputs: dict) -> list
     return effective
 
 
+def _preserve_expanded_connected_field_texts(
+    saved_fields: list[dict],
+    source_fields: list[dict],
+    expanded_fields: list[dict],
+    field_inputs: dict,
+) -> None:
+    connected_values = _advanced_field_input_values(field_inputs)
+    if not connected_values:
+        return
+
+    source_by_socket = {
+        _advanced_field_socket_name(field): field
+        for field in source_fields
+    }
+    expanded_by_socket = {
+        _advanced_field_socket_name(field): field
+        for field in expanded_fields
+    }
+    for field in saved_fields:
+        socket_name = _advanced_field_socket_name(field)
+        if socket_name not in connected_values:
+            continue
+        source_field = source_by_socket.get(socket_name)
+        expanded_field = expanded_by_socket.get(socket_name)
+        if source_field is None or expanded_field is None:
+            continue
+        source_text = str(source_field.get("text") or "")
+        expanded_text = str(expanded_field.get("text") or "")
+        if expanded_text != source_text:
+            field["text"] = expanded_text
+
+
 def _advanced_enabled_naia_panes(fields: list[dict]) -> set[str]:
     return {
         str(field.get("pane") or "positive")
@@ -6014,7 +6046,6 @@ class EasyUseAnimaPromptStudioAdvanced:
     ):
         fields = _normalize_advanced_fields(advanced_fields)
         saved_fields = _clone_advanced_fields(fields)
-        effective_fields = _apply_advanced_field_inputs(fields, field_inputs)
         effective_field_inputs = _advanced_field_input_values(field_inputs)
         requested_use_naia = _as_bool(use_naia, False)
         enabled_naia_panes = _advanced_enabled_naia_panes(fields)
@@ -6024,6 +6055,11 @@ class EasyUseAnimaPromptStudioAdvanced:
         metadata_updates: dict[str, Any] = {}
         ui_updates: dict[str, Any] = {}
         wildcard_mode_key = normalize_wildcard_mode(wildcard_mode)
+        effective_fields = (
+            _clone_advanced_fields(saved_fields)
+            if wildcard_mode_key == WILDCARD_MODE_REPRODUCE
+            else _apply_advanced_field_inputs(fields, effective_field_inputs)
+        )
         wildcard_seed_value = normalize_seed(wildcard_seed)
         wildcard_effective_seed_control = (
             SEED_CONTROL_INCREMENT
@@ -6085,6 +6121,7 @@ class EasyUseAnimaPromptStudioAdvanced:
             metadata_use_naia = False
 
         ui_fields = _clone_advanced_fields(saved_fields)
+        effective_source_fields = _clone_advanced_fields(effective_fields)
         saved_fields, saved_wildcard = _expand_advanced_wildcard_fields(
             saved_fields,
             wildcard_seed_value,
@@ -6094,6 +6131,12 @@ class EasyUseAnimaPromptStudioAdvanced:
             effective_fields,
             wildcard_seed_value,
             wildcard_mode_key,
+        )
+        _preserve_expanded_connected_field_texts(
+            saved_fields,
+            effective_source_fields,
+            effective_fields,
+            effective_field_inputs,
         )
         effective_fields = _translate_prompt_fields(effective_fields)
         wildcard_changed = bool(saved_wildcard["changed"] or effective_wildcard["changed"])
@@ -6417,12 +6460,16 @@ class EasyUseAnimaPromptStudioAdvancedV2(EasyUseAnimaPromptStudioAdvanced):
             })
         saved_fields = _normalize_advanced_fields(ui_payload.get("advanced_fields", advanced_fields))
         effective_field_inputs = _advanced_field_input_values(ui_payload.get("field_inputs") or field_inputs)
-        effective_fields = _apply_advanced_field_inputs(saved_fields, effective_field_inputs)
-        effective_fields, _wildcard = _expand_advanced_wildcard_fields(
-            effective_fields,
-            normalize_seed(wildcard_seed),
-            normalize_wildcard_mode(wildcard_mode),
-        )
+        wildcard_mode_key = normalize_wildcard_mode(wildcard_mode)
+        if wildcard_mode_key == WILDCARD_MODE_REPRODUCE:
+            effective_fields = _clone_advanced_fields(saved_fields)
+        else:
+            effective_fields = _apply_advanced_field_inputs(saved_fields, effective_field_inputs)
+            effective_fields, _wildcard = _expand_advanced_wildcard_fields(
+                effective_fields,
+                normalize_seed(wildcard_seed),
+                wildcard_mode_key,
+            )
         effective_fields = _translate_prompt_fields(effective_fields)
         prompt_data_parameters = _prompt_data_parameter_snapshot(
             self.INPUT_TYPES().get("required", {}),
@@ -7305,11 +7352,15 @@ class EasyUseAnimaPromptStudioRegional:
         )
         fields = _normalize_regional_fields(regional_fields)
         saved_fields = _clone_regional_fields(fields)
-        effective_fields = _apply_regional_field_inputs(fields, field_inputs)
         effective_field_inputs = _advanced_field_input_values(field_inputs)
         config = _normalize_regional_config(regional_config, width, height)
 
         wildcard_mode_key = normalize_wildcard_mode(wildcard_mode)
+        effective_fields = (
+            _clone_regional_fields(saved_fields)
+            if wildcard_mode_key == WILDCARD_MODE_REPRODUCE
+            else _apply_regional_field_inputs(fields, effective_field_inputs)
+        )
         wildcard_seed_value = normalize_seed(wildcard_seed)
         wildcard_effective_seed_control = (
             SEED_CONTROL_INCREMENT
@@ -7327,6 +7378,7 @@ class EasyUseAnimaPromptStudioRegional:
         ui_updates: dict[str, Any] = {}
         metadata_updates: dict[str, Any] = {}
 
+        effective_source_fields = _clone_regional_fields(effective_fields)
         saved_fields, saved_wildcard = _expand_advanced_wildcard_fields(
             saved_fields,
             wildcard_seed_value,
@@ -7336,6 +7388,12 @@ class EasyUseAnimaPromptStudioRegional:
             effective_fields,
             wildcard_seed_value,
             wildcard_mode_key,
+        )
+        _preserve_expanded_connected_field_texts(
+            saved_fields,
+            effective_source_fields,
+            effective_fields,
+            effective_field_inputs,
         )
         effective_fields = _translate_prompt_fields(effective_fields)
         wildcard_changed = bool(saved_wildcard["changed"] or effective_wildcard["changed"])
