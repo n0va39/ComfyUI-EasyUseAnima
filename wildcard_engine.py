@@ -14,10 +14,9 @@ from pathlib import Path
 from types import MappingProxyType
 from typing import Iterable, Mapping, Sequence
 
-try:
-    import numpy as np
-except Exception:  # pragma: no cover - ComfyUI normally provides numpy.
-    np = None
+# NumPy is mandatory in supported ComfyUI runtimes and defines the seeded
+# wildcard sampling contract. A stdlib fallback would produce different results.
+import numpy as np
 
 try:
     import yaml
@@ -36,19 +35,20 @@ DEFAULT_TEST_WILDCARD_TEXT = "# EasyUse Anima test wildcard\nsimple wildcard\nan
 WILDCARD_MODE_POPULATE = "populate"
 WILDCARD_MODE_FIXED = "fixed"
 WILDCARD_MODE_SEQUENTIAL = "sequential"
+# Legacy workflow value. It is no longer exposed as a mode; standalone
+# wildcard nodes normalize it to Fixed and Prompt Studio normalizes it to
+# Populate.
 WILDCARD_MODE_REPRODUCE = "reproduce"
 WILDCARD_MODES = (
     WILDCARD_MODE_POPULATE,
     WILDCARD_MODE_FIXED,
     WILDCARD_MODE_SEQUENTIAL,
-    WILDCARD_MODE_REPRODUCE,
 )
 WILDCARD_MODE_LABELS = (
-    "일반 채우기",
+    "일반",
     "고정",
-    "순차",
-    "재현",
 )
+PROMPT_STUDIO_WILDCARD_MODE_LABELS = ("일반", "순차")
 WILDCARD_MODE_ALIASES = {
     WILDCARD_MODE_POPULATE: WILDCARD_MODE_POPULATE,
     "normal": WILDCARD_MODE_POPULATE,
@@ -59,8 +59,8 @@ WILDCARD_MODE_ALIASES = {
     "고정": WILDCARD_MODE_FIXED,
     WILDCARD_MODE_SEQUENTIAL: WILDCARD_MODE_SEQUENTIAL,
     "순차": WILDCARD_MODE_SEQUENTIAL,
-    WILDCARD_MODE_REPRODUCE: WILDCARD_MODE_REPRODUCE,
-    "재현": WILDCARD_MODE_REPRODUCE,
+    WILDCARD_MODE_REPRODUCE: WILDCARD_MODE_FIXED,
+    "재현": WILDCARD_MODE_FIXED,
 }
 
 SEED_CONTROL_FIXED = "fixed"
@@ -484,6 +484,15 @@ def normalize_wildcard_mode(mode: str) -> str:
     return WILDCARD_MODE_ALIASES.get(value, WILDCARD_MODE_POPULATE)
 
 
+def normalize_prompt_studio_wildcard_mode(mode: str) -> str:
+    """Normalize Prompt Studio to its two source-expansion modes."""
+    return (
+        WILDCARD_MODE_SEQUENTIAL
+        if normalize_wildcard_mode(mode) == WILDCARD_MODE_SEQUENTIAL
+        else WILDCARD_MODE_POPULATE
+    )
+
+
 def normalize_seed(value) -> int:
     try:
         seed = int(value)
@@ -828,10 +837,11 @@ class _Selector:
     def __init__(self, seed: int, sequential: bool):
         self.seed = normalize_seed(seed)
         self.sequential = sequential
-        if np is not None:
-            self.rng = np.random.default_rng(self.seed)
-        else:
-            self.rng = random.Random(self.seed)
+        self.rng = (
+            None
+            if self.sequential
+            else np.random.Generator(np.random.PCG64(self.seed))
+        )
 
     def count_from_range(self, minimum: int, maximum: int) -> int:
         minimum = max(0, minimum)
@@ -840,9 +850,7 @@ class _Selector:
             return minimum
         if self.sequential:
             return minimum + (self.seed % (maximum - minimum + 1))
-        if np is not None:
-            return int(self.rng.integers(minimum, maximum + 1))
-        return self.rng.randint(minimum, maximum)
+        return int(self.rng.integers(minimum, maximum + 1))
 
     def choose_one(self, options: Sequence[WildcardOption]) -> WildcardOption | None:
         selected = self.choose_many(options, 1)
@@ -874,29 +882,24 @@ class _Selector:
             pool_weights = None
 
         count = min(count, len(pool))
-        if np is not None:
-            probabilities = None
-            if pool_weights is not None:
-                total = sum(pool_weights)
-                probabilities = [weight / total for weight in pool_weights]
-            indices = self.rng.choice(len(pool), size=count, replace=False, p=probabilities)
-            return [pool[int(index)] for index in indices]
-
+        probabilities = None
         if pool_weights is not None:
-            selected = []
-            for _ in range(count):
-                choice = self.rng.choices(pool, weights=pool_weights, k=1)[0]
-                index = pool.index(choice)
-                selected.append(choice)
-                pool.pop(index)
-                pool_weights.pop(index)
-            return selected
-        return self.rng.sample(pool, count)
+            total = sum(pool_weights)
+            probabilities = [weight / total for weight in pool_weights]
+        indices = self.rng.choice(len(pool), size=count, replace=False, p=probabilities)
+        return [pool[int(index)] for index in indices]
 
 
 class _WildcardLibrary:
-    def __init__(self, roots: Iterable[Path]):
-        self.mapping = _wildcard_snapshot(roots).mapping
+    def __init__(
+        self,
+        roots: Iterable[Path] | None = None,
+        *,
+        snapshot: _WildcardSnapshot | None = None,
+    ):
+        if snapshot is None:
+            snapshot = _wildcard_snapshot(roots or ())
+        self.mapping = snapshot.mapping
         self.used: list[str] = []
         self.missing: list[str] = []
 
@@ -1107,6 +1110,149 @@ def _expansion_state_signature(text: str) -> tuple[int, bytes]:
     return len(text), digest.digest()
 
 
+@dataclass
+class _ExpansionLane:
+    source: str
+    current: _ExpansionText
+    state: _ExpansionState
+    library: _WildcardLibrary
+
+
+def expand_wildcard_texts(
+    texts: Sequence[str],
+    seed=0,
+    mode: str = WILDCARD_MODE_POPULATE,
+    extra_paths: str | None = None,
+    roots: Iterable[Path] | None = None,
+    budget: WildcardExpansionBudget | None = None,
+) -> tuple[WildcardExpansionResult, ...]:
+    """Expand ordered texts through one deterministic selector stream.
+
+    Each text keeps its existing recursion and safety budget, while expansion
+    stages run across the texts in order. This matches expanding one Prompt
+    Studio prompt without joining fields through a lossy delimiter.
+    """
+    sources = tuple(str(text or "") for text in texts)
+    if not sources:
+        return ()
+
+    mode = normalize_wildcard_mode(mode)
+    selector = _Selector(
+        normalize_seed(seed),
+        sequential=mode == WILDCARD_MODE_SEQUENTIAL,
+    )
+    resolved_roots = tuple(
+        Path(root)
+        for root in (
+            roots if roots is not None else resolve_wildcard_roots(extra_paths)
+        )
+    )
+    snapshot = _wildcard_snapshot(resolved_roots)
+    expansion_budget = (
+        budget
+        if isinstance(budget, WildcardExpansionBudget)
+        else WildcardExpansionBudget()
+    )
+    lanes: list[_ExpansionLane] = []
+    for source in sources:
+        state = _ExpansionState(expansion_budget)
+        cleaned = COMMENT_RE.sub("", source)
+        if (
+            len(cleaned) > expansion_budget.max_output_chars
+            or _utf8_length(cleaned) > expansion_budget.max_output_chars
+        ):
+            cleaned = _bounded_output_prefix(
+                cleaned,
+                expansion_budget.max_output_chars,
+            )
+            state.stop("max_output_chars")
+        current = _ExpansionText.from_text(cleaned)
+        lanes.append(
+            _ExpansionLane(
+                source=source,
+                current=current,
+                state=state,
+                library=_WildcardLibrary(snapshot=snapshot),
+            )
+        )
+
+    seen_batch_states = {
+        tuple(_expansion_state_signature(lane.current.text) for lane in lanes)
+    }
+    if expansion_budget.max_depth == 0:
+        for lane in lanes:
+            if lane.state.limit_reason is None and has_wildcard_syntax(lane.current.text):
+                lane.state.stop("max_depth")
+    else:
+        for depth in range(expansion_budget.max_depth):
+            active_lanes = [
+                lane for lane in lanes if lane.state.limit_reason is None
+            ]
+            if not active_lanes:
+                break
+            replacements_before_pass = sum(
+                lane.state.replacement_count for lane in lanes
+            )
+            for lane in active_lanes:
+                lane.state.begin_pass(lane.current)
+
+            for replace_stage in (
+                _replace_dynamic,
+                _replace_quantified_wildcards,
+                _replace_file_wildcards,
+            ):
+                for lane in active_lanes:
+                    if lane.state.limit_reason is None:
+                        lane.current = replace_stage(
+                            lane.current,
+                            lane.state,
+                            selector,
+                            lane.library,
+                        )
+
+            replacements_after_pass = sum(
+                lane.state.replacement_count for lane in lanes
+            )
+            if replacements_after_pass == replacements_before_pass:
+                break
+            unresolved_lanes = [
+                lane
+                for lane in lanes
+                if lane.state.limit_reason is None
+                and has_wildcard_syntax(lane.current.text)
+            ]
+            if not unresolved_lanes:
+                break
+            batch_signature = tuple(
+                _expansion_state_signature(lane.current.text)
+                for lane in lanes
+            )
+            if batch_signature in seen_batch_states:
+                for lane in unresolved_lanes:
+                    lane.state.stop("repeated_state")
+                break
+            seen_batch_states.add(batch_signature)
+            if depth + 1 >= expansion_budget.max_depth:
+                for lane in unresolved_lanes:
+                    lane.state.stop("max_depth")
+                break
+
+    return tuple(
+        WildcardExpansionResult(
+            text=lane.current.text,
+            changed=lane.current.text != lane.source,
+            used_keys=tuple(lane.library.used),
+            missing_keys=tuple(lane.library.missing),
+            replacement_count=lane.state.replacement_count,
+            limit_reason=(
+                lane.state.limit_reason
+                or ("cycle" if lane.state.cycle_detected else None)
+            ),
+        )
+        for lane in lanes
+    )
+
+
 
 def expand_wildcards(
     text: str,
@@ -1116,54 +1262,11 @@ def expand_wildcards(
     roots: Iterable[Path] | None = None,
     budget: WildcardExpansionBudget | None = None,
 ) -> WildcardExpansionResult:
-    source = str(text or "")
-    mode = normalize_wildcard_mode(mode)
-    selector = _Selector(normalize_seed(seed), sequential=mode == WILDCARD_MODE_SEQUENTIAL)
-    library = _WildcardLibrary(roots if roots is not None else resolve_wildcard_roots(extra_paths))
-    budget = budget if isinstance(budget, WildcardExpansionBudget) else WildcardExpansionBudget()
-    state = _ExpansionState(budget)
-
-    cleaned = COMMENT_RE.sub("", source)
-    if len(cleaned) > budget.max_output_chars or _utf8_length(cleaned) > budget.max_output_chars:
-        cleaned = _bounded_output_prefix(cleaned, budget.max_output_chars)
-        state.stop("max_output_chars")
-    current = _ExpansionText.from_text(cleaned)
-    # Key stacks stop file recursion before append; stable pass signatures are
-    # a separate fallback for keyless fixed points and oscillating expressions.
-    seen_states = {_expansion_state_signature(current.text)}
-
-    if state.limit_reason is None:
-        for depth in range(budget.max_depth):
-            state.begin_pass(current)
-            replacements_before_pass = state.replacement_count
-            current = _replace_dynamic(current, state, selector, library)
-            if state.limit_reason is None:
-                current = _replace_quantified_wildcards(current, state, selector, library)
-            if state.limit_reason is None:
-                current = _replace_file_wildcards(current, state, selector, library)
-            if state.limit_reason is not None:
-                break
-            if state.replacement_count == replacements_before_pass:
-                break
-            if not has_wildcard_syntax(current.text):
-                break
-            signature = _expansion_state_signature(current.text)
-            if signature in seen_states:
-                state.stop("repeated_state")
-                break
-            seen_states.add(signature)
-            if depth + 1 >= budget.max_depth:
-                state.stop("max_depth")
-                break
-        else:
-            if budget.max_depth == 0 and has_wildcard_syntax(current.text):
-                state.stop("max_depth")
-
-    return WildcardExpansionResult(
-        text=current.text,
-        changed=current.text != source,
-        used_keys=tuple(library.used),
-        missing_keys=tuple(library.missing),
-        replacement_count=state.replacement_count,
-        limit_reason=state.limit_reason or ("cycle" if state.cycle_detected else None),
-    )
+    return expand_wildcard_texts(
+        (text,),
+        seed=seed,
+        mode=mode,
+        extra_paths=extra_paths,
+        roots=roots,
+        budget=budget,
+    )[0]

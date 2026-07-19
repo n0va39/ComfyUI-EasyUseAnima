@@ -57,7 +57,7 @@ function registerPromptStudioNodeHooks(nodeType, nodeData, hooks) {
     if (isAdvanced) {
       hooks.scheduleHookAdvancedNode(this);
     } else if (isWildcard) {
-      hooks.hookWildcardSeedWidget?.(this);
+      hooks.hookWildcardSeedWidget?.(this, { resetSeedControl: false });
     } else {
       hooks.hookStudioNode(this);
     }
@@ -71,7 +71,7 @@ function registerPromptStudioNodeHooks(nodeType, nodeData, hooks) {
       hooks.attachAdvancedQueueSeedNode?.(this);
       hooks.scheduleHookAdvancedNode(this);
     } else if (isWildcard) {
-      hooks.hookWildcardSeedWidget?.(this);
+      hooks.hookWildcardSeedWidget?.(this, { resetSeedControl: true });
       hooks.attachAdvancedQueueSeedNode?.(this);
     } else {
       hooks.hookStudioNode(this);
@@ -173,7 +173,9 @@ function registerPromptStudioNodeHooks(nodeType, nodeData, hooks) {
     if (isAdvanced) {
       hooks.removeAdvancedInternalInputSockets(this);
       hooks.syncAdvancedValues(this, serialized);
-    } else if (!isWildcard) {
+    } else if (isWildcard) {
+      hooks.syncWildcardSerialization?.(this, serialized);
+    } else {
       hooks.syncStudioValues(this, serialized);
     }
     return result;

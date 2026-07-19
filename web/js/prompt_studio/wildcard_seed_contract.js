@@ -2,6 +2,39 @@
 
 const WILDCARD_SEED_MAX = Number.MAX_SAFE_INTEGER;
 const WILDCARD_SEED_MAX_BIGINT = BigInt(WILDCARD_SEED_MAX);
+const WILDCARD_SEED_CONTROL_ALIASES = new Map([
+  ["fixed", "fixed"],
+  ["고정", "fixed"],
+  ["random", "randomize"],
+  ["randomize", "randomize"],
+  ["매번 랜덤", "randomize"],
+  ["increase", "increment"],
+  ["increment", "increment"],
+  ["증가", "increment"],
+]);
+const LEGACY_FIXED_WILDCARD_MODES = new Set([
+  "fixed",
+  "고정",
+  "reproduce",
+  "재현",
+]);
+
+/**
+ * Normalize Prompt Studio's independent next-seed policy. Legacy Fixed and
+ * Reproduce modes keep their historical fixed-seed meaning while loading.
+ *
+ * @param {any} control
+ * @param {any} [mode]
+ */
+function normalizeWildcardSeedControl(control, mode = null) {
+  const normalizedMode = String(mode || "").trim().toLowerCase();
+  if (LEGACY_FIXED_WILDCARD_MODES.has(normalizedMode)) {
+    return "fixed";
+  }
+  return WILDCARD_SEED_CONTROL_ALIASES.get(
+    String(control || "").trim().toLowerCase(),
+  ) || "fixed";
+}
 
 /** @param {any} value */
 function normalizeWildcardSeed(value) {
@@ -89,6 +122,18 @@ function bindWildcardSeedInput(input, getCurrentSeed, publishSeed, afterPublish)
   });
   input.addEventListener("change", syncSeed);
   input.addEventListener("blur", syncSeed);
+  const requestFrame = globalThis.requestAnimationFrame;
+  if (typeof requestFrame === "function") {
+    requestFrame(function syncVisibleSeed() {
+      if (input.isConnected !== true) {
+        return;
+      }
+      if (!dirty && String(input.value ?? "") !== String(getCurrentSeed() ?? "0")) {
+        restoreCurrentSeed();
+      }
+      requestFrame(syncVisibleSeed);
+    });
+  }
   return syncSeed;
 }
 
@@ -124,6 +169,7 @@ export {
   bindWildcardSeedInput,
   nextWildcardSeed,
   normalizeWildcardSeed,
+  normalizeWildcardSeedControl,
   normalizeWildcardSeedInput,
   optionalWildcardSeed,
   randomWildcardSeed,

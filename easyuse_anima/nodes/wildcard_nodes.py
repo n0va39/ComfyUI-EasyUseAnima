@@ -9,18 +9,10 @@ try:
     from ...wildcard_engine import (
         MAX_SEED,
         PUBLIC_MAX_SEED,
-        SEED_CONTROL_FIXED,
-        SEED_CONTROL_INCREMENT,
-        SEED_CONTROL_MODES,
-        SEED_CONTROL_RANDOMIZE,
         WILDCARD_MODE_FIXED,
         WILDCARD_MODE_LABELS,
         WILDCARD_MODE_POPULATE,
-        WILDCARD_MODE_REPRODUCE,
-        WILDCARD_MODE_SEQUENTIAL,
         expand_wildcards,
-        has_wildcard_syntax,
-        next_seed,
         normalize_seed,
         normalize_wildcard_mode,
         wildcard_sources_signature,
@@ -29,18 +21,10 @@ except ImportError:
     from wildcard_engine import (
         MAX_SEED,
         PUBLIC_MAX_SEED,
-        SEED_CONTROL_FIXED,
-        SEED_CONTROL_INCREMENT,
-        SEED_CONTROL_MODES,
-        SEED_CONTROL_RANDOMIZE,
         WILDCARD_MODE_FIXED,
         WILDCARD_MODE_LABELS,
         WILDCARD_MODE_POPULATE,
-        WILDCARD_MODE_REPRODUCE,
-        WILDCARD_MODE_SEQUENTIAL,
         expand_wildcards,
-        has_wildcard_syntax,
-        next_seed,
         normalize_seed,
         normalize_wildcard_mode,
         wildcard_sources_signature,
@@ -51,9 +35,8 @@ WILDCARD_SEED_RANGE_NOTE = (
     f"Browser/public editing and next-seed range: 0..{PUBLIC_MAX_SEED}. The Python "
     "backend continues accepting uint64 values for legacy workflow validation, but "
     "values above the public maximum are best-effort in the browser because JavaScript "
-    "may already have lost integer precision. Fixed does not intentionally advance a "
-    "legacy value; increment, decrement, and randomize return the next seed to the "
-    "public range."
+    "may already have lost integer precision. ComfyUI's native seed control owns any "
+    "post-queue randomize, increment, or decrement behavior."
 )
 
 
@@ -73,19 +56,13 @@ def _unbound_runtime(*_args, **_kwargs):
 
 
 _get_workflow_node = _unbound_runtime
-_consume_reserved_wildcard_next_seed = _unbound_runtime
-
-
-def _bind_wildcard_node_runtime(*, get_workflow_node, consume_reserved_next_seed, expand, has_syntax, next_seed_value, normalize_seed_value, normalize_mode, sources_signature) -> None:
-    global _get_workflow_node, _consume_reserved_wildcard_next_seed
-    global expand_wildcards, has_wildcard_syntax, next_seed
+def _bind_wildcard_node_runtime(*, get_workflow_node, expand, normalize_seed_value, normalize_mode, sources_signature) -> None:
+    global _get_workflow_node
+    global expand_wildcards
     global normalize_seed, normalize_wildcard_mode, wildcard_sources_signature
 
     _get_workflow_node = get_workflow_node
-    _consume_reserved_wildcard_next_seed = consume_reserved_next_seed
     expand_wildcards = expand
-    has_wildcard_syntax = has_syntax
-    next_seed = next_seed_value
     normalize_seed = normalize_seed_value
     normalize_wildcard_mode = normalize_mode
     wildcard_sources_signature = sources_signature
@@ -95,12 +72,12 @@ class EasyUseAnimaWildcard:
     """Expand Impact Pack compatible wildcard and dynamic prompt syntax."""
 
     DESCRIPTION = (
-        "Expands EasyUse Anima wildcard files and dynamic prompt syntax, stores the populated "
-        "result for saved workflows, and supports random, sequential, and reproduced output."
+        "Expands EasyUse Anima wildcard files and dynamic prompt syntax. General fills "
+        "populated_text from text; Fixed runs the populated_text value saved with the workflow."
     )
     OUTPUT_TOOLTIPS = (
         "Expanded prompt text.",
-        "Seed after applying the seed control option.",
+        "Seed used for this expansion.",
     )
 
     @classmethod
@@ -111,7 +88,7 @@ class EasyUseAnimaWildcard:
                     "multiline": True,
                     "default": "",
                     "tooltip": (
-                        "Source prompt expanded by Populate, Fixed, and Sequential modes. Syntax: "
+                        "Source prompt expanded by General mode. Syntax: "
                         "__name__; {a|b|c}; weighted N::item; {n$$...} or "
                         "{min-max$$separator$$...}; N#__name__; and nested combinations. Wildcard "
                         "names ignore case and support * glob collections. Only lines whose first "
@@ -122,40 +99,29 @@ class EasyUseAnimaWildcard:
                     "multiline": True,
                     "default": "",
                     "tooltip": (
-                        "Expanded-result cache. Reproduce outputs this value, falling back to text "
-                        "when it is empty. Populate, Fixed, and Sequential ignore the old cache, "
-                        "expand text, and write the result here in saved workflow metadata."
+                        "Expanded-result cache used like Impact Pack's populated_text. General "
+                        "replaces it from text; Fixed ignores text and processes this value with "
+                        "the same wildcard engine, including file wildcards."
                     ),
                 }),
                 "mode": (WILDCARD_MODE_LABELS, {
                     "default": WILDCARD_MODE_LABELS[0],
                     "tooltip": (
-                        "Populate (일반 채우기): expand text with seed-based weighted random choices. "
-                        "Fixed (고정): EasyUse compatibility mode; it still expands text, while a "
-                        "fixed seed control keeps the same seed. Sequential (순차): choose from each "
-                        "option/range with seed modulo its size and force the next seed to increment. "
-                        "Reproduce (재현): output populated_text unchanged without a new selection; "
-                        "seed_after_generate still controls the returned next seed. "
-                        "Expanded runs are saved as populated_text in Reproduce mode."
+                        "General (일반): expand text with deterministic seed-based choices and cache "
+                        "the result in populated_text. Fixed (고정): ignore text and process "
+                        "populated_text with the same wildcard engine. Saved workflows serialize "
+                        "the populated result in Fixed mode."
                     ),
                 }),
                 "seed": ("INT", {
                     "default": 0,
                     "min": 0,
                     "max": MAX_SEED,
+                    "control_after_generate": True,
                     "tooltip": (
-                        "Seed for weighted random selection. Sequential uses seed modulo each option "
-                        "count (and range width); Reproduce performs no selection. "
+                        "Seed for deterministic weighted random selection. The same text and seed "
+                        "produce the same result. "
                         f"{WILDCARD_SEED_RANGE_NOTE}"
-                    ),
-                }),
-                "seed_after_generate": (SEED_CONTROL_MODES, {
-                    "default": SEED_CONTROL_FIXED,
-                    "tooltip": (
-                        "Seed for the next live run: fixed keeps it, randomize chooses a new public-range "
-                        "value, and increment/decrement move by one with wraparound. Sequential always "
-                        "forces increment. Reproduce makes no selection but still applies this control "
-                        "to the returned/live next seed."
                     ),
                 }),
             },
@@ -178,15 +144,6 @@ class EasyUseAnimaWildcard:
 
     @classmethod
     def IS_CHANGED(cls, **kwargs):
-        mode = normalize_wildcard_mode(kwargs.get("mode", WILDCARD_MODE_LABELS[0]))
-        seed_control = str(kwargs.get("seed_after_generate", SEED_CONTROL_FIXED) or "")
-        text = str(kwargs.get("text", "") or "")
-        if (
-            mode in {WILDCARD_MODE_POPULATE, WILDCARD_MODE_FIXED, WILDCARD_MODE_SEQUENTIAL}
-            and seed_control == SEED_CONTROL_RANDOMIZE
-            and has_wildcard_syntax(text)
-        ):
-            return float("nan")
         return _stable_change_key({
             "mode": "wildcard",
             "wildcard_sources": wildcard_sources_signature(),
@@ -233,6 +190,9 @@ class EasyUseAnimaWildcard:
             while len(widgets_values) <= index:
                 widgets_values.append(None)
             widgets_values[index] = value
+        native_seed_control_index = len(input_names)
+        if len(widgets_values) > native_seed_control_index:
+            widgets_values[native_seed_control_index] = "fixed"
 
     @staticmethod
     def _ui(
@@ -260,7 +220,6 @@ class EasyUseAnimaWildcard:
         populated_text: str,
         mode: str,
         seed: int,
-        seed_after_generate: str,
         workflow_prompt=None,
         extra_pnginfo=None,
         unique_id=None,
@@ -271,54 +230,30 @@ class EasyUseAnimaWildcard:
         used_keys: tuple[str, ...] = ()
         missing_keys: tuple[str, ...] = ()
 
-        if mode_key == WILDCARD_MODE_REPRODUCE:
-            output_text = str(populated_text if populated_text else text or "")
-            status = mode_key
-            metadata_mode = str(mode or WILDCARD_MODE_LABELS[3])
-        else:
-            expansion = expand_wildcards(str(text or ""), seed=seed_value, mode=mode_key)
-            output_text = expansion.text
-            used_keys = expansion.used_keys
-            missing_keys = expansion.missing_keys
-            status = WILDCARD_MODE_SEQUENTIAL if mode_key == WILDCARD_MODE_SEQUENTIAL else mode_key
-            metadata_mode = WILDCARD_MODE_LABELS[3]
-
-        effective_seed_control = (
-            SEED_CONTROL_INCREMENT
-            if mode_key == WILDCARD_MODE_SEQUENTIAL
-            else seed_after_generate
-        )
-        reserved_next_seed = _consume_reserved_wildcard_next_seed(
-            reservation_inputs,
-            workflow_prompt,
-            unique_id,
-            seed_value,
-            mode_key,
-            effective_seed_control,
-        )
-        next_seed_value = (
-            reserved_next_seed
-            if reserved_next_seed is not None
-            else next_seed(seed_value, effective_seed_control)
-        )
+        source_text = populated_text if mode_key == WILDCARD_MODE_FIXED else text
+        expansion = expand_wildcards(str(source_text or ""), seed=seed_value, mode=mode_key)
+        output_text = expansion.text
+        used_keys = expansion.used_keys
+        missing_keys = expansion.missing_keys
+        status = mode_key
         self._update_metadata_cache(
             workflow_prompt,
             extra_pnginfo,
             unique_id,
             output_text,
-            metadata_mode,
+            WILDCARD_MODE_LABELS[1],
             seed_value,
         )
         return {
             "ui": self._ui(
                 output_text,
                 str(mode or WILDCARD_MODE_LABELS[0]),
-                next_seed_value,
+                seed_value,
                 status,
                 used_keys,
                 missing_keys,
             ),
-            "result": (output_text, next_seed_value),
+            "result": (output_text, seed_value),
         }
 
 __all__ = ("EasyUseAnimaWildcard",)

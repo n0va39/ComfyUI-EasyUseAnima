@@ -49,23 +49,19 @@
     "inputs": {
       "text": {
         "name": "文本",
-        "tooltip": "普通填充/固定/顺序模式展开的源文本。支持 __name__、{a|b|c}、N::weight、{n$$...}/{min-max$$separator$$...}、N#__name__ 与嵌套组合。名称不区分大小写并可使用 * glob；只移除首个非空白字符为 # 的行。"
+        "tooltip": "普通模式展开的源文本。支持 __name__、{a|b|c}、N::weight、{n$$...}/{min-max$$separator$$...}、N#__name__ 与嵌套组合。名称不区分大小写并可使用 * glob；只移除首个非空白字符为 # 的行。"
       },
       "populated_text": {
         "name": "已填充文本",
-        "tooltip": "展开结果缓存。复现模式原样输出此值；为空时回退到 text。普通填充/固定/顺序会忽略旧缓存、展开 text，并更新保存工作流元数据中的此值。"
+        "tooltip": "与 Impact Pack populated_text 相同的展开结果缓存。普通会展开 text 并填充此值；固定会忽略 text，并用相同引擎处理此值。文件通配符也会展开。"
       },
       "mode": {
         "name": "模式",
-        "tooltip": "普通填充按种子进行加权随机选择并展开 text。固定也是 EasyUse 兼容模式，仍以相同方式展开 text，只有 seed control 为 fixed 时才保持种子。顺序使用 seed % 选项数/范围宽度，并强制增加下一种子。复现不做新选择并原样使用 populated_text，但返回/实时下一种子仍应用 seed_after_generate。展开运行在保存时记录为 populated_text 和复现模式。"
+        "tooltip": "普通以当前种子确定性展开 text，并将结果填入 populated_text。固定忽略 text，使用相同引擎和当前种子处理 populated_text。已有执行结果的保存工作流会序列化为 populated_text 和固定模式。"
       },
       "seed": {
         "name": "种子",
-        "tooltip": "加权随机选择种子。顺序模式对每组选项数和范围宽度取余；复现模式不进行新选择。"
-      },
-      "seed_after_generate": {
-        "name": "生成后种子控制",
-        "tooltip": "下一次实时运行种子：fixed 保持，randomize 选择新值，increment/decrement 在边界循环并加减 1。顺序强制 increment。复现不做新选择，但返回/实时下一种子仍应用此控制。"
+        "tooltip": "确定性加权随机选择种子。相同源文本和相同种子会产生相同结果。生成后行为使用 ComfyUI 原生种子控制。"
       }
     },
     "outputs": {
@@ -75,7 +71,7 @@
       },
       "1": {
         "name": "种子",
-        "tooltip": "Seed after applying the seed control option."
+        "tooltip": "Seed used for this expansion."
       }
     }
   },
@@ -229,15 +225,15 @@
       },
       "wildcard_mode": {
         "name": "通配符模式",
-        "tooltip": "普通填充和固定按种子进行加权随机选择并展开源字段；顺序使用 seed % 选项数/范围宽度并强制增加种子；复现原样使用已保存的展开字段。展开结果以复现模式写入保存元数据。"
+        "tooltip": "普通以当前种子确定性展开源字段并保持种子。顺序使用相同算法选择，在队列接受后将种子加 1，超过最大值后循环到 0。源字段会原样保存。"
       },
       "wildcard_seed": {
         "name": "通配符种子",
-        "tooltip": "Advanced Prompt Studio 的加权随机选择种子。顺序使用选项数/范围宽度取余；复现不选择。"
+        "tooltip": "Prompt Studio 的确定性选择种子。相同源文本和相同种子会产生相同结果。顺序在接受的运行后将种子加 1。"
       },
       "wildcard_seed_after_generate": {
         "name": "通配符种子生成后控制",
-        "tooltip": "控制下一次运行种子的保持、随机化、增加或减少。顺序强制 increment；复现不推进。"
+        "tooltip": "由模式管理的内部兼容值。普通保存为 fixed，顺序保存为 increment，并且不显示独立 UI。"
       }
     },
     "outputs": {
@@ -329,15 +325,15 @@
       },
       "wildcard_mode": {
         "name": "Wildcard mode",
-        "tooltip": "普通填充/固定按种子进行加权随机选择并展开源字段；顺序使用 seed modulo 选择后增加；复现原样使用已保存的展开字段。"
+        "tooltip": "普通以当前种子确定性展开源字段并保持种子。顺序使用相同算法选择，在接受的运行后将种子加 1 并循环。源字段会原样保存。"
       },
       "wildcard_seed": {
         "name": "Wildcard seed",
-        "tooltip": "加权随机选择种子。顺序使用选项数/范围宽度取余；复现不选择。"
+        "tooltip": "确定性选择种子。相同源文本和相同种子会产生相同结果，顺序在接受的运行后将种子加 1。"
       },
       "wildcard_seed_after_generate": {
         "name": "Wildcard seed after generate",
-        "tooltip": "下一次运行种子控制。顺序强制 increment；复现不推进。"
+        "tooltip": "由模式管理的内部兼容值。普通保存为 fixed，顺序保存为 increment。"
       },
       "artist_mix_mode": {
         "name": "artist_mix_mode",
@@ -677,15 +673,15 @@
       },
       "wildcard_mode": {
         "name": "通配符模式",
-        "tooltip": "普通填充/固定按种子进行加权随机选择并展开源字段；顺序使用 seed modulo 选择后增加；复现原样使用已保存的展开字段。"
+        "tooltip": "普通以当前种子确定性展开源字段并保持种子。顺序使用相同算法选择，在接受的运行后将种子加 1 并循环。源字段会原样保存。"
       },
       "wildcard_seed": {
         "name": "通配符种子",
-        "tooltip": "加权随机选择种子。顺序使用选项数/范围宽度取余；复现不选择。"
+        "tooltip": "确定性选择种子。相同源文本和相同种子会产生相同结果，顺序在接受的运行后将种子加 1。"
       },
       "wildcard_seed_after_generate": {
         "name": "生成后通配符种子控制",
-        "tooltip": "控制下一次运行种子的保持、随机化、增加或减少。顺序强制 increment；复现不推进。"
+        "tooltip": "由模式管理的内部兼容值。普通保存为 fixed，顺序保存为 increment，并且不显示独立 UI。"
       }
     },
     "outputs": {

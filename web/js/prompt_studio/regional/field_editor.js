@@ -26,7 +26,12 @@ import {
 } from "./lifecycle.js";
 import {
   bindWildcardSeedInput,
+  normalizeWildcardSeedControl,
 } from "../wildcard_seed_contract.js";
+import {
+  readPreviousWildcardExecution,
+  wildcardModeWidgetValue,
+} from "../wildcard_seed_history.js";
 import { disposeExternalAutocompleteInputs } from "../../autocomplete/entry_lifecycle.js";
 
 /**
@@ -74,27 +79,33 @@ function moveRegionalFieldInPane(fields, fieldId, direction) {
 function createRegionalFieldEditor(runtime, layout, maskEditor, hooks) {
   /** @param {any} value */
   function normalizeWildcardMode(value) {
-    return PROMPT_STUDIO_WILDCARD_MODES.includes(String(value || ""))
-      ? String(value)
+    return String(value || "").trim() === "순차"
+      || String(value || "").trim().toLowerCase() === "sequential"
+      ? "순차"
       : PROMPT_STUDIO_WILDCARD_DEFAULT_MODE;
   }
 
   /** @param {any} mode */
   function wildcardModeTitle(mode) {
     const modeKey = {
-      "일반 채우기": "populate",
-      "고정": "fixed",
+      "일반": "populate",
       "순차": "sequential",
-      "재현": "reproduce",
     }[normalizeWildcardMode(mode)];
     return hooks.promptStudioText(`advanced.wildcardMode.${modeKey}Title`);
   }
 
-  /** @param {any} value */
-  function normalizeSeedControl(value) {
-    return PROMPT_STUDIO_WILDCARD_SEED_CONTROLS.includes(String(value || ""))
-      ? String(value)
-      : "fixed";
+  /** @param {any} control */
+  function wildcardSeedControlLabel(control) {
+    return hooks.promptStudioText(
+      `advanced.wildcardSeedControl.${normalizeWildcardSeedControl(control)}`,
+    );
+  }
+
+  /** @param {any} control */
+  function wildcardSeedControlTitle(control) {
+    return hooks.promptStudioText(
+      `advanced.wildcardSeedControl.${normalizeWildcardSeedControl(control)}Title`,
+    );
   }
 
   /** @param {string} label @param {string} title @param {(event?: any) => void} onClick */
@@ -115,9 +126,12 @@ function createRegionalFieldEditor(runtime, layout, maskEditor, hooks) {
     row.className = "easyuse-anima-advanced-wildcardbar";
     const modeSelect = document.createElement("select");
     modeSelect.setAttribute("aria-label", hooks.promptStudioText("advanced.wildcard"));
-    const modeValue = normalizeWildcardMode(modeWidget.value);
+    const loadedMode = modeWidget.value;
+    const modeValue = normalizeWildcardMode(loadedMode);
+    if (modeWidget.value !== modeValue) {
+      runtime.setRegionalWidgetValue(node, "wildcard_mode", modeValue);
+    }
     const selectedModeTitle = wildcardModeTitle(modeValue);
-    row.title = `${selectedModeTitle}\n${hooks.promptStudioText("advanced.wildcardTitle")}`;
     modeSelect.title = selectedModeTitle;
     modeSelect.setAttribute("aria-description", selectedModeTitle);
     for (const mode of PROMPT_STUDIO_WILDCARD_MODES) {
@@ -141,48 +155,71 @@ function createRegionalFieldEditor(runtime, layout, maskEditor, hooks) {
       "aria-label",
       hooks.promptStudioText("advanced.wildcardSeedControl"),
     );
-    controlSelect.title = hooks.promptStudioText("advanced.wildcardSeedControlTitle");
-    controlSelect.setAttribute("aria-description", controlSelect.title);
-    const controlValue = modeValue === "순차"
-      ? "increment"
-      : normalizeSeedControl(controlWidget.value);
+    const controlValue = normalizeWildcardSeedControl(controlWidget.value, loadedMode);
+    if (controlWidget.value !== controlValue) {
+      runtime.setRegionalWidgetValue(node, "wildcard_seed_after_generate", controlValue);
+    }
     for (const control of PROMPT_STUDIO_WILDCARD_SEED_CONTROLS) {
       const option = document.createElement("option");
       option.value = control;
-      option.textContent = control;
+      option.textContent = wildcardSeedControlLabel(control);
+      option.title = wildcardSeedControlTitle(control);
       option.selected = control === controlValue;
       controlSelect.append(option);
     }
-    controlSelect.disabled = modeValue === "순차";
+    controlSelect.title = wildcardSeedControlTitle(controlValue);
+    controlSelect.setAttribute("aria-description", controlSelect.title);
+    row.title = `${selectedModeTitle}\n${controlSelect.title}\n${hooks.promptStudioText("advanced.wildcardTitle")}`;
+
+    const previousExecution = readPreviousWildcardExecution(node);
+    const previousButtonTitle = previousExecution
+      ? hooks.promptStudioText("advanced.wildcardPreviousSeedTitle").replace(
+        "{seed}",
+        String(previousExecution.seed),
+      )
+      : hooks.promptStudioText("advanced.wildcardPreviousSeedUnavailableTitle");
+    const previousButton = createButton(
+      hooks.promptStudioText("advanced.wildcardPreviousSeedShort"),
+      previousButtonTitle,
+      () => {
+        if (!previousExecution) {
+          return;
+        }
+        runtime.setRegionalWidgetValue(
+          node,
+          "wildcard_mode",
+          wildcardModeWidgetValue(previousExecution.mode),
+        );
+        runtime.setRegionalWidgetValue(node, "wildcard_seed", previousExecution.seed);
+        runtime.setRegionalWidgetValue(node, "wildcard_seed_after_generate", "fixed");
+        renderRegionalEditor(node);
+      },
+    );
+    previousButton.disabled = !previousExecution;
+    previousButton.setAttribute("aria-label", previousButtonTitle);
 
     const syncMode = () => {
       const nextMode = normalizeWildcardMode(modeSelect.value);
       runtime.setRegionalWidgetValue(node, "wildcard_mode", nextMode);
-      if (nextMode === "순차") {
-        runtime.setRegionalWidgetValue(
-          node,
-          "wildcard_seed_after_generate",
-          "increment",
-        );
-      }
       renderRegionalEditor(node);
     };
     const syncControl = () => {
+      const nextControl = normalizeWildcardSeedControl(controlSelect.value);
       runtime.setRegionalWidgetValue(
         node,
         "wildcard_seed_after_generate",
-        normalizeSeedControl(controlSelect.value),
+        nextControl,
       );
+      renderRegionalEditor(node);
     };
-
     modeSelect.addEventListener("change", syncMode);
+    controlSelect.addEventListener("change", syncControl);
     bindWildcardSeedInput(
       seedInput,
       () => seedWidget.value,
       (seed) => runtime.setRegionalWidgetValue(node, "wildcard_seed", seed),
     );
-    controlSelect.addEventListener("change", syncControl);
-    row.append(modeSelect, seedInput, controlSelect);
+    row.append(modeSelect, seedInput, controlSelect, previousButton);
     return row;
   }
 

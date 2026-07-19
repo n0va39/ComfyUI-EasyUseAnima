@@ -29,7 +29,6 @@ import {
 import {
   isAdvancedNode,
   isExtendNode,
-  isWildcardNode,
   installAdvancedSaveSync,
   registerPromptStudioNodeHooks,
   syncAdvancedNodes,
@@ -119,11 +118,14 @@ import {
 import {
   applyWildcardExecutedInputs as applyWildcardExecutedInputsWithHooks,
   hookWildcardSeedWidget,
-  setRegularWidgetValue,
+  syncWildcardSerialization,
 } from "./wildcard_values.js";
 import {
   randomWildcardSeed,
 } from "./wildcard_seed_contract.js";
+import {
+  writePreviousWildcardExecution,
+} from "./wildcard_seed_history.js";
 import {
   captureAdvancedConfigure,
   pruneDisconnectedAdvancedFieldInputValues,
@@ -146,20 +148,18 @@ const ADVANCED_QUEUE_SEED_CONTRACT = Object.freeze({
   modeInputName: "wildcard_mode",
   seedInputName: "wildcard_seed",
   controlInputName: "wildcard_seed_after_generate",
+  modeWidgetIndex: ADVANCED_WIDGET_INDEX.wildcard_mode,
   seedWidgetIndex: ADVANCED_WIDGET_INDEX.wildcard_seed,
+  controlWidgetIndex: ADVANCED_WIDGET_INDEX.wildcard_seed_after_generate,
   supportsSubgraph: true,
-});
-const WILDCARD_QUEUE_SEED_CONTRACT = Object.freeze({
-  modeInputName: "mode",
-  seedInputName: "seed",
-  controlInputName: "seed_after_generate",
-  seedWidgetIndex: 3,
 });
 const REGIONAL_QUEUE_SEED_CONTRACT = Object.freeze({
   modeInputName: "wildcard_mode",
   seedInputName: "wildcard_seed",
   controlInputName: "wildcard_seed_after_generate",
+  modeWidgetIndex: REGIONAL_WIDGET_INDEX.wildcard_mode,
   seedWidgetIndex: REGIONAL_WIDGET_INDEX.wildcard_seed,
+  controlWidgetIndex: REGIONAL_WIDGET_INDEX.wildcard_seed_after_generate,
   supportsSubgraph: false,
 });
 
@@ -236,17 +236,11 @@ function createPromptStudioExtensionRuntime(app, api = null) {
       if (isRegionalQueueSeedNode(node)) {
         return REGIONAL_QUEUE_SEED_CONTRACT;
       }
-      return isWildcardNode(node) ? WILDCARD_QUEUE_SEED_CONTRACT : null;
+      return null;
     },
     isOutputNode: (node) => node?.constructor?.nodeData?.output_node === true,
     getSeed: (node, contract) => findWidget(node, contract.seedInputName)?.value,
     updateSeed(node, seed, contract) {
-      if (contract === WILDCARD_QUEUE_SEED_CONTRACT) {
-        if (!setRegularWidgetValue(node, "seed", seed, { markNodeDirty })) {
-          throw new Error("Anima Wildcard seed widget is unavailable.");
-        }
-        return;
-      }
       if (contract === REGIONAL_QUEUE_SEED_CONTRACT) {
         if (queueSeedBridge.publishRegionalSeed(node, seed)) {
           return;
@@ -266,6 +260,11 @@ function createPromptStudioExtensionRuntime(app, api = null) {
       }
       widget.value = seed;
       renderAdvancedEditor(node);
+    },
+    updatePreviousExecution(node, execution) {
+      if (writePreviousWildcardExecution(node, execution)) {
+        markNodeDirty(node);
+      }
     },
     clonePrompt: (value) => JSON.parse(JSON.stringify(value)),
     randomSeed() {
@@ -563,6 +562,7 @@ function createPromptStudioExtensionRuntime(app, api = null) {
         scheduleHookAdvancedNode,
         syncAdvancedValues,
         syncStudioValues,
+        syncWildcardSerialization,
         updateAdvancedEditorWidth,
       });
     },

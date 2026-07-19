@@ -1,0 +1,11 @@
+EasyUse Anima 0.5.3 fixes wildcard expansion and saved seed reproducibility, and improves reliability across prompt, profile, and API workflows.
+
+Changes:
+1. Anima Wildcard follows the Impact Pack-compatible wildcard and dynamic-prompt rules, expands file wildcards such as __samples/flower__ instead of returning the wildcard key, and exposes the filled text used for generation.
+2. Wildcard and Prompt Studio selections are deterministic for the same seed. Fixed, randomize, increment, sequential, and previous-seed reuse controls now preserve the intended result.
+3. Loading a saved workflow keeps the saved wildcard seed fixed, so running it again reproduces the same expanded prompt.
+4. Prompt Studio provides normal and sequential wildcard modes with clearer seed-rule help.
+5. Profiles, settings, autocomplete, translation, and API error handling are more reliable while existing node and workflow contracts remain compatible.
+
+Action required:
+After updating, restart ComfyUI and hard-refresh the browser.

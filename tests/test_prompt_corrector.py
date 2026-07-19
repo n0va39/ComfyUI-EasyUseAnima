@@ -1254,9 +1254,9 @@ class PromptBuilderTests(unittest.TestCase):
         reservation_value = json.dumps({
             "version": 1,
             "current_seed": 123,
-            "next_seed": 456,
-            "mode": "populate",
-            "control": "randomize",
+            "next_seed": 124,
+            "mode": "sequential",
+            "control": "increment",
         })
         workflow_prompt = {
             "42": {"inputs": {reservation_key: reservation_value}}
@@ -1278,9 +1278,9 @@ class PromptBuilderTests(unittest.TestCase):
             False,
             False,
             json.dumps(fields),
-            wildcard_mode="일반 채우기",
+            wildcard_mode="순차",
             wildcard_seed=123,
-            wildcard_seed_after_generate="randomize",
+            wildcard_seed_after_generate="increment",
             workflow_prompt=workflow_prompt,
             extra_pnginfo=extra_pnginfo,
             unique_id="42",
@@ -1290,8 +1290,8 @@ class PromptBuilderTests(unittest.TestCase):
         prompt_data = result["result"][0]
         self.assertEqual(prompt_data["parameters"]["wildcard_seed"], 123)
         self.assertEqual(prompt_data["wildcard"]["seed"], 123)
-        self.assertEqual(prompt_data["wildcard"]["next_seed"], 456)
-        self.assertEqual(result["ui"]["prompt_studio_advanced"][0]["wildcard_seed"], 456)
+        self.assertEqual(prompt_data["wildcard"]["next_seed"], 124)
+        self.assertEqual(result["ui"]["prompt_studio_advanced"][0]["wildcard_seed"], 124)
         self.assertNotIn(
             reservation_key,
             extra_pnginfo["workflow"]["nodes"][0].get("properties", {}),

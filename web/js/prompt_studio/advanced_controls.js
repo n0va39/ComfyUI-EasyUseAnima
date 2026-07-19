@@ -40,7 +40,12 @@ import {
 } from "./widgets.js";
 import {
   bindWildcardSeedInput,
+  normalizeWildcardSeedControl,
 } from "./wildcard_seed_contract.js";
+import {
+  readPreviousWildcardExecution,
+  wildcardModeWidgetValue,
+} from "./wildcard_seed_history.js";
 
 function setAdvancedControlValue(node, name, value) {
   const widget = findWidget(node, name);
@@ -87,7 +92,24 @@ function setAdvancedCustomResolution(node, width, height, { normalize = false } 
   }
 }
 
-function openAdvancedSettingsPopup(node, titleKey, subtitleKey, createBody, onClose = null, hooks = {}) {
+/**
+ * @param {any} node
+ * @param {string} titleKey
+ * @param {string} subtitleKey
+ * @param {() => any} createBody
+ * @param {(() => void) | null} [onClose]
+ * @param {any} [hooks]
+ * @param {{headerHelpKey?: string, headerHelpLabelKey?: string}} [options]
+ */
+function openAdvancedSettingsPopup(
+  node,
+  titleKey,
+  subtitleKey,
+  createBody,
+  onClose = null,
+  hooks = {},
+  options = {},
+) {
   ensureAdvancedStyle();
   const backdrop = document.createElement("div");
   backdrop.className = "easyuse-anima-advanced-popup-backdrop";
@@ -100,11 +122,30 @@ function openAdvancedSettingsPopup(node, titleKey, subtitleKey, createBody, onCl
 
   const header = document.createElement("header");
   const titleBox = document.createElement("div");
+  const titleLine = document.createElement("div");
+  titleLine.className = "easyuse-anima-advanced-popup-titleline";
   const heading = document.createElement("h2");
   heading.textContent = psText(titleKey);
+  titleLine.append(heading);
+  const headerHelpText = options.headerHelpKey ? psText(options.headerHelpKey) : "";
+  if (headerHelpText) {
+    const help = document.createElement("button");
+    help.type = "button";
+    help.className = "easyuse-anima-advanced-help easyuse-anima-advanced-popup-title-help";
+    help.textContent = "i";
+    help.title = psText(options.headerHelpLabelKey || options.headerHelpKey);
+    help.setAttribute("aria-label", help.title);
+    help.setAttribute("aria-expanded", "false");
+    help.addEventListener("click", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      openAdvancedHelpPopover(help, headerHelpText);
+    });
+    titleLine.append(help);
+  }
   const desc = document.createElement("p");
   desc.textContent = psText(subtitleKey);
-  titleBox.append(heading, desc);
+  titleBox.append(titleLine, desc);
   const close = document.createElement("button");
   close.type = "button";
   close.className = "easyuse-anima-advanced-popup-close";
@@ -473,19 +514,26 @@ function createAdvancedControlBar(node, hooks = {}) {
 }
 
 function normalizeAdvancedWildcardMode(value) {
-  return ADVANCED_WILDCARD_MODES.includes(String(value || ""))
-    ? String(value)
+  return String(value || "").trim() === "순차"
+    || String(value || "").trim().toLowerCase() === "sequential"
+    ? "순차"
     : ADVANCED_WILDCARD_DEFAULT_MODE;
 }
 
 function advancedWildcardModeTitle(mode) {
   const modeKey = {
-    "일반 채우기": "populate",
-    "고정": "fixed",
+    "일반": "populate",
     "순차": "sequential",
-    "재현": "reproduce",
   }[normalizeAdvancedWildcardMode(mode)];
   return psText(`advanced.wildcardMode.${modeKey}Title`);
+}
+
+function advancedWildcardSeedControlLabel(control) {
+  return psText(`advanced.wildcardSeedControl.${normalizeWildcardSeedControl(control)}`);
+}
+
+function advancedWildcardSeedControlTitle(control) {
+  return psText(`advanced.wildcardSeedControl.${normalizeWildcardSeedControl(control)}Title`);
 }
 
 function applyAdvancedWildcardModeTitle(row, select, mode) {
@@ -499,21 +547,13 @@ function applyAdvancedWildcardModeTitle(row, select, mode) {
   }
 }
 
-function normalizeAdvancedSeedControl(value) {
-  return ADVANCED_WILDCARD_SEED_CONTROLS.includes(String(value || ""))
-    ? String(value)
-    : "fixed";
-}
-
 function advancedWildcardSummary(node) {
   const modeWidget = findWidget(node, "wildcard_mode");
   const seedWidget = findWidget(node, "wildcard_seed");
   const controlWidget = findWidget(node, "wildcard_seed_after_generate");
   const modeValue = normalizeAdvancedWildcardMode(modeWidget?.value);
-  const controlValue = modeValue === "순차"
-    ? "increment"
-    : normalizeAdvancedSeedControl(controlWidget?.value);
-  return `${modeValue} · seed ${Math.max(0, Math.trunc(Number(seedWidget?.value) || 0))} · ${controlValue}`;
+  const controlValue = normalizeWildcardSeedControl(controlWidget?.value, modeWidget?.value);
+  return `${modeValue} · seed ${Math.max(0, Math.trunc(Number(seedWidget?.value) || 0))} · ${advancedWildcardSeedControlLabel(controlValue)}`;
 }
 
 function createAdvancedSummaryButtonRow(className, buttonLabelKey, titleKey, summaryId, summaryText, onClick) {
@@ -551,7 +591,11 @@ function createAdvancedWildcardSettingsBody(node) {
   const modeSelect = document.createElement("select");
   protectAdvancedNativeControl(modeSelect);
   modeSelect.setAttribute("aria-label", psText("advanced.wildcard"));
-  const modeValue = normalizeAdvancedWildcardMode(modeWidget.value);
+  const loadedMode = modeWidget.value;
+  const modeValue = normalizeAdvancedWildcardMode(loadedMode);
+  if (modeWidget.value !== modeValue) {
+    setAdvancedWidgetValue(node, "wildcard_mode", modeValue);
+  }
   for (const mode of ADVANCED_WILDCARD_MODES) {
     const option = document.createElement("option");
     option.value = mode;
@@ -567,55 +611,92 @@ function createAdvancedWildcardSettingsBody(node) {
   seedInput.value = String(seedWidget.value ?? "0");
   seedInput.setAttribute("aria-label", psText("advanced.wildcardSeed"));
   seedInput.title = psText("advanced.wildcardSeedTitle");
+  seedInput.setAttribute("aria-description", seedInput.title);
 
   const controlSelect = document.createElement("select");
   protectAdvancedNativeControl(controlSelect);
   controlSelect.setAttribute("aria-label", psText("advanced.wildcardSeedControl"));
-  controlSelect.title = psText("advanced.wildcardSeedControlTitle");
-  const controlValue = modeValue === "순차"
-    ? "increment"
-    : normalizeAdvancedSeedControl(controlWidget.value);
+  const controlValue = normalizeWildcardSeedControl(controlWidget.value, loadedMode);
+  if (controlWidget.value !== controlValue) {
+    setAdvancedWidgetValue(node, "wildcard_seed_after_generate", controlValue);
+  }
   for (const control of ADVANCED_WILDCARD_SEED_CONTROLS) {
     const option = document.createElement("option");
     option.value = control;
-    option.textContent = control;
+    option.textContent = advancedWildcardSeedControlLabel(control);
+    option.title = advancedWildcardSeedControlTitle(control);
     option.selected = control === controlValue;
     controlSelect.append(option);
   }
-  controlSelect.disabled = modeValue === "순차";
+  controlSelect.title = advancedWildcardSeedControlTitle(controlValue);
+  controlSelect.setAttribute("aria-description", controlSelect.title);
 
-  const modeRow = createAdvancedControlRow("advanced.wildcard", modeSelect, "advanced.wildcardModeTitle");
+  const previousExecution = readPreviousWildcardExecution(node);
+  const previousButton = document.createElement("button");
+  protectAdvancedNativeControl(previousButton);
+  previousButton.type = "button";
+  previousButton.className = "easyuse-anima-advanced-popup-button";
+  previousButton.disabled = !previousExecution;
+  previousButton.textContent = previousExecution
+    ? psText("advanced.wildcardPreviousSeedReuse").replace(
+      "{seed}",
+      String(previousExecution.seed),
+    )
+    : psText("advanced.wildcardPreviousSeedUnavailable");
+  previousButton.title = previousExecution
+    ? psText("advanced.wildcardPreviousSeedTitle").replace(
+      "{seed}",
+      String(previousExecution.seed),
+    )
+    : psText("advanced.wildcardPreviousSeedUnavailableTitle");
+  previousButton.setAttribute("aria-label", previousButton.title);
+
+  const modeRow = createAdvancedControlRow("advanced.wildcard", modeSelect);
   applyAdvancedWildcardModeTitle(modeRow, modeSelect, modeValue);
   const refreshSummary = () => updateAdvancedSummary(node, "wildcard", advancedWildcardSummary(node));
   const syncMode = () => {
     const nextMode = normalizeAdvancedWildcardMode(modeSelect.value);
     setAdvancedWidgetValue(node, "wildcard_mode", nextMode);
-    if (nextMode === "순차") {
-      setAdvancedWidgetValue(node, "wildcard_seed_after_generate", "increment");
-      controlSelect.value = "increment";
-    }
-    controlSelect.disabled = nextMode === "순차";
     applyAdvancedWildcardModeTitle(modeRow, modeSelect, nextMode);
     refreshSummary();
   };
   const syncControl = () => {
-    setAdvancedWidgetValue(node, "wildcard_seed_after_generate", normalizeAdvancedSeedControl(controlSelect.value));
+    const nextControl = normalizeWildcardSeedControl(controlSelect.value);
+    setAdvancedWidgetValue(node, "wildcard_seed_after_generate", nextControl);
+    controlSelect.title = advancedWildcardSeedControlTitle(nextControl);
+    controlSelect.setAttribute("aria-description", controlSelect.title);
     refreshSummary();
   };
-
+  const reusePreviousSeed = () => {
+    if (!previousExecution) {
+      return;
+    }
+    const previousMode = wildcardModeWidgetValue(previousExecution.mode);
+    setAdvancedWidgetValue(node, "wildcard_mode", previousMode);
+    setAdvancedWidgetValue(node, "wildcard_seed", previousExecution.seed);
+    setAdvancedWidgetValue(node, "wildcard_seed_after_generate", "fixed");
+    modeSelect.value = previousMode;
+    seedInput.value = String(previousExecution.seed);
+    controlSelect.value = "fixed";
+    controlSelect.title = advancedWildcardSeedControlTitle("fixed");
+    controlSelect.setAttribute("aria-description", controlSelect.title);
+    applyAdvancedWildcardModeTitle(modeRow, modeSelect, previousMode);
+    refreshSummary();
+  };
   modeSelect.addEventListener("change", syncMode);
+  controlSelect.addEventListener("change", syncControl);
+  previousButton.addEventListener("click", reusePreviousSeed);
   bindWildcardSeedInput(
     seedInput,
     () => seedWidget.value,
     (seed) => setAdvancedWidgetValue(node, "wildcard_seed", seed),
     refreshSummary,
   );
-  controlSelect.addEventListener("change", syncControl);
-
   body.append(
     modeRow,
-    createAdvancedControlRow("advanced.wildcardSeed", seedInput, "advanced.wildcardSeedTitle"),
-    createAdvancedControlRow("advanced.wildcardSeedControl", controlSelect, "advanced.wildcardSeedControlTitle"),
+    createAdvancedControlRow("advanced.wildcardSeed", seedInput),
+    createAdvancedControlRow("advanced.wildcardSeedControl", controlSelect),
+    createAdvancedControlRow("advanced.wildcardPreviousSeed", previousButton),
   );
   return body;
 }
@@ -626,6 +707,15 @@ function createAdvancedWildcardBar(node, hooks = {}) {
   const controlWidget = findWidget(node, "wildcard_seed_after_generate");
   if (!modeWidget || !seedWidget || !controlWidget) {
     return document.createDocumentFragment();
+  }
+  const loadedMode = modeWidget.value;
+  const modeValue = normalizeAdvancedWildcardMode(loadedMode);
+  if (modeWidget.value !== modeValue) {
+    setAdvancedWidgetValue(node, "wildcard_mode", modeValue);
+  }
+  const controlValue = normalizeWildcardSeedControl(controlWidget.value, loadedMode);
+  if (controlWidget.value !== controlValue) {
+    setAdvancedWidgetValue(node, "wildcard_seed_after_generate", controlValue);
   }
   const row = createAdvancedSummaryButtonRow(
     "easyuse-anima-advanced-wildcardbar",
@@ -640,9 +730,13 @@ function createAdvancedWildcardBar(node, hooks = {}) {
       () => createAdvancedWildcardSettingsBody(node),
       null,
       hooks,
+      {
+        headerHelpKey: "advanced.wildcardHelp",
+        headerHelpLabelKey: "advanced.wildcardHelpLabel",
+      },
     ),
   );
-  const title = `${advancedWildcardModeTitle(modeWidget.value)}\n${psText("advanced.wildcardTitle")}`;
+  const title = `${advancedWildcardModeTitle(modeWidget.value)}\n${advancedWildcardSeedControlTitle(controlWidget.value)}\n${psText("advanced.wildcardTitle")}`;
   row.title = title;
   const button = row.querySelector("button");
   if (button) {

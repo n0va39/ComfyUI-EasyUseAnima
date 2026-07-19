@@ -2,28 +2,32 @@
 
 import {
   nextWildcardSeed,
+  normalizeWildcardSeedControl,
   normalizeWildcardSeed as normalizeSeed,
   optionalWildcardSeed as optionalSeed,
 } from "./wildcard_seed_contract.js";
 import {
+  wildcardModeWidgetValue,
+  writePreviousWildcardExecution,
+} from "./wildcard_seed_history.js";
+import {
   registerHostHookCallbacks,
 } from "../lifecycle/host_hook_registry.js";
 
-const ACTIVE_WILDCARD_MODES = new Set(["populate", "fixed", "sequential"]);
+const ACTIVE_WILDCARD_MODES = new Set(["populate", "sequential"]);
 const WILDCARD_MODE_ALIASES = new Map([
   ["populate", "populate"],
   ["normal", "populate"],
   ["fill", "populate"],
   ["일반", "populate"],
   ["일반 채우기", "populate"],
-  ["fixed", "fixed"],
-  ["고정", "fixed"],
+  ["fixed", "populate"],
+  ["고정", "populate"],
   ["sequential", "sequential"],
   ["순차", "sequential"],
-  ["reproduce", "reproduce"],
-  ["재현", "reproduce"],
+  ["reproduce", "populate"],
+  ["재현", "populate"],
 ]);
-const SEED_CONTROLS = new Set(["fixed", "randomize", "increment", "decrement"]);
 const ADVANCED_QUEUE_SEED_OWNER = Symbol.for(
   "easyuse-anima.prompt-studio.advanced-queue-seed",
 );
@@ -51,14 +55,8 @@ function normalizeMode(value) {
   return WILDCARD_MODE_ALIASES.get(String(value || "").trim()) || "populate";
 }
 
-function normalizeControl(value) {
-  const normalized = String(value || "").trim();
-  return SEED_CONTROLS.has(normalized) ? normalized : "fixed";
-}
-
-function nextSeed(seed, mode, control, randomSeed) {
-  const effectiveControl = mode === "sequential" ? "increment" : normalizeControl(control);
-  return nextWildcardSeed(seed, effectiveControl, randomSeed);
+function nextSeed(seed, control, randomSeed) {
+  return nextWildcardSeed(seed, control, randomSeed);
 }
 
 function workflowSubgraphDefinitions(workflow) {
@@ -296,7 +294,9 @@ function reservationWasAccepted(result, reservation, prompt) {
  * @property {string} modeInputName
  * @property {string} seedInputName
  * @property {string} controlInputName
+ * @property {number} modeWidgetIndex
  * @property {number} seedWidgetIndex
+ * @property {number} controlWidgetIndex
  * @property {boolean} [supportsSubgraph]
  */
 
@@ -309,6 +309,7 @@ function reservationWasAccepted(result, reservation, prompt) {
  * @property {(node: any) => boolean} isOutputNode
  * @property {(node: any, contract: WildcardQueueSeedContract) => any} getSeed
  * @property {(node: any, seed: number, contract: WildcardQueueSeedContract) => void} updateSeed
+ * @property {(node: any, execution: {seed: number, mode: string}, contract: WildcardQueueSeedContract) => void} [updatePreviousExecution]
  * @property {(value: any) => any} clonePrompt
  * @property {() => number} randomSeed
  */
@@ -328,6 +329,7 @@ function createAdvancedQueueSeedRuntime(dependencies) {
     isOutputNode,
     getSeed,
     updateSeed,
+    updatePreviousExecution = () => {},
     clonePrompt,
     randomSeed,
   } = dependencies;
@@ -430,11 +432,16 @@ function createAdvancedQueueSeedRuntime(dependencies) {
 
   function flushResolvedReservations(state, node) {
     let committed = false;
+    let previousExecution = null;
     while (state.reservations.length && state.reservations[0].status !== "pending") {
       const reservation = state.reservations.shift();
       if (reservation.status === "accepted") {
         state.committedSeed = reservation.nextSeed;
         state.authoritative = true;
+        previousExecution = {
+          seed: reservation.queuedSeed,
+          mode: reservation.mode,
+        };
         committed = true;
       }
     }
@@ -444,6 +451,12 @@ function createAdvancedQueueSeedRuntime(dependencies) {
       && state.node === node
       && nodeStates.get(state.stateKey) === state
     ) {
+      try {
+        updatePreviousExecution(node, previousExecution, state.contract);
+      } catch {
+        // The accepted next seed remains authoritative even when publishing
+        // optional previous-execution metadata fails.
+      }
       try {
         updateSeed(node, state.committedSeed, state.contract);
         state.publishFailed = false;
@@ -555,6 +568,16 @@ function createAdvancedQueueSeedRuntime(dependencies) {
         if (!executions.length) {
           return [];
         }
+        if (executions.some(({ inputs }) => (
+          Array.isArray(inputs[contract.modeInputName])
+          || Array.isArray(inputs[contract.controlInputName])
+        ))) {
+          const state = nodeStates.get(stateKey);
+          if (state) {
+            retireState(state);
+          }
+          return [];
+        }
         const inputSeeds = executions.map(
           ({ inputs }) => optionalSeed(inputs[contract.seedInputName]),
         );
@@ -607,11 +630,19 @@ function createAdvancedQueueSeedRuntime(dependencies) {
           if (!isRecord(inputs) || !workflow || !Array.isArray(workflow.widgets_values)) {
             return null;
           }
-          const mode = normalizeMode(inputs[contract.modeInputName]);
+          const loadedMode = inputs[contract.modeInputName];
+          const loadedControl = inputs[contract.controlInputName];
+          if (Array.isArray(loadedMode) || Array.isArray(loadedControl)) {
+            // Connected values are resolved by the backend. The frontend must
+            // not replace their link tuples with a guessed scalar policy.
+            return null;
+          }
+          const mode = normalizeMode(loadedMode);
           const inputSeed = optionalSeed(inputs[contract.seedInputName]);
-          const effectiveControl = mode === "sequential"
-            ? "increment"
-            : normalizeControl(inputs[contract.controlInputName]);
+          const effectiveControl = normalizeWildcardSeedControl(
+            loadedControl,
+            loadedMode,
+          );
           return { nodeId, inputs, workflow, mode, inputSeed, effectiveControl };
         });
         if (preparedExecutions.some((value) => value == null)) {
@@ -643,16 +674,23 @@ function createAdvancedQueueSeedRuntime(dependencies) {
         const queuedSeed = reservedCurrentSeed(state);
         const reservedNextSeed = nextSeed(
           queuedSeed,
-          mode,
           effectiveControl,
           randomSeed,
         );
         const workflowValues = [...workflow.widgets_values];
-        while (workflowValues.length <= contract.seedWidgetIndex) {
+        const maxWidgetIndex = Math.max(
+          contract.modeWidgetIndex,
+          contract.seedWidgetIndex,
+          contract.controlWidgetIndex,
+        );
+        while (workflowValues.length <= maxWidgetIndex) {
           workflowValues.push(null);
         }
+        workflowValues[contract.modeWidgetIndex] = wildcardModeWidgetValue(mode);
         workflowValues[contract.seedWidgetIndex] = queuedSeed;
+        workflowValues[contract.controlWidgetIndex] = "fixed";
         workflow.widgets_values = workflowValues;
+        writePreviousWildcardExecution(workflow, { seed: queuedSeed, mode });
         const reservationInput = JSON.stringify({
           version: 1,
           current_seed: queuedSeed,
@@ -663,6 +701,7 @@ function createAdvancedQueueSeedRuntime(dependencies) {
         for (const { inputs } of preparedExecutions) {
           inputs[RESERVED_NEXT_SEED_INPUT] = reservationInput;
           inputs[contract.seedInputName] = queuedSeed;
+          inputs[contract.controlInputName] = effectiveControl;
         }
         const reservation = {
           id: ++reservationId,
@@ -673,6 +712,7 @@ function createAdvancedQueueSeedRuntime(dependencies) {
           targetIds,
           queuedSeed,
           nextSeed: reservedNextSeed,
+          mode,
           status: "pending",
         };
         state.reservations.push(reservation);

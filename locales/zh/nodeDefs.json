@@ -49,23 +49,19 @@
     "inputs": {
       "text": {
         "name": "文本",
-        "tooltip": "一般填充/固定/順序模式展開的來源文字。支援 __name__、{a|b|c}、N::weight、{n$$...}/{min-max$$separator$$...}、N#__name__ 與巢狀組合。名稱不分大小寫並可使用 * glob；只移除第一個非空白字元為 # 的行。"
+        "tooltip": "一般模式展開的來源文字。支援 __name__、{a|b|c}、N::weight、{n$$...}/{min-max$$separator$$...}、N#__name__ 與巢狀組合。名稱不分大小寫並可使用 * glob；只移除第一個非空白字元為 # 的行。"
       },
       "populated_text": {
         "name": "已填充文本",
-        "tooltip": "展開結果快取。復現模式原樣輸出此值；若為空則使用 text。一般填充/固定/順序會忽略舊快取、展開 text，並更新儲存工作流程中繼資料的此值。"
+        "tooltip": "與 Impact Pack populated_text 相同的展開結果快取。一般會展開 text 並填入此值；固定會忽略 text，並以相同引擎處理此值。檔案萬用字元也會展開。"
       },
       "mode": {
         "name": "模式",
-        "tooltip": "一般填充以種子加權隨機展開 text。固定也是 EasyUse 相容模式，仍以相同方式展開 text，僅在 seed control 為 fixed 時保留種子。順序使用 seed % 選項數/範圍寬度並強制增加下一個種子。復現不做新選擇並原樣使用 populated_text，但回傳/即時下一個種子仍套用 seed_after_generate。展開執行在儲存時記錄為 populated_text 與復現模式。"
+        "tooltip": "一般以目前種子決定性展開 text，並將結果填入 populated_text。固定忽略 text，使用相同引擎與目前種子處理 populated_text。已有執行結果的已儲存工作流程會序列化為 populated_text 與固定模式。"
       },
       "seed": {
         "name": "种子",
-        "tooltip": "加權隨機選擇種子。順序模式對每組選項數與範圍寬度取餘數；復現模式不進行新選擇。"
-      },
-      "seed_after_generate": {
-        "name": "生成后种子控制",
-        "tooltip": "下一次即時執行種子：fixed 保持，randomize 選新值，increment/decrement 在邊界循環並加減 1。順序強制 increment。復現不做新選擇，但回傳/即時下一個種子仍套用此控制。"
+        "tooltip": "決定性加權隨機選擇種子。相同來源文字與相同種子會產生相同結果。生成後行為使用 ComfyUI 原生種子控制。"
       }
     },
     "outputs": {
@@ -75,7 +71,7 @@
       },
       "1": {
         "name": "种子",
-        "tooltip": "Seed after applying the seed control option."
+        "tooltip": "Seed used for this expansion."
       }
     }
   },
@@ -229,15 +225,15 @@
       },
       "wildcard_mode": {
         "name": "通配符模式",
-        "tooltip": "一般填充與固定以種子加權隨機展開來源欄位；順序以 seed % 選項數/範圍寬度展開並強制增加種子；復現原樣使用已儲存的展開欄位。展開結果以復現模式寫入儲存中繼資料。"
+        "tooltip": "一般以目前種子決定性展開來源欄位並保留種子。順序使用相同演算法選擇，在佇列接受後將種子加 1，超過最大值後循環至 0。來源欄位會原樣儲存。"
       },
       "wildcard_seed": {
         "name": "通配符种子",
-        "tooltip": "Advanced Prompt Studio 的加權隨機選擇種子。順序使用選項數/範圍寬度餘數；復現不選擇。"
+        "tooltip": "Prompt Studio 的決定性選擇種子。相同來源與相同種子會產生相同結果。順序在接受的執行後將種子加 1。"
       },
       "wildcard_seed_after_generate": {
         "name": "通配符种子生成后控制",
-        "tooltip": "控制下一次執行種子的保持、隨機化、增加或減少。順序強制 increment；復現不推進。"
+        "tooltip": "由模式管理的內部相容值。一般儲存為 fixed，順序儲存為 increment，且不顯示獨立 UI。"
       }
     },
     "outputs": {
@@ -329,15 +325,15 @@
       },
       "wildcard_mode": {
         "name": "Wildcard mode",
-        "tooltip": "一般填充/固定以種子加權隨機展開來源欄位；順序以 seed modulo 選擇後增加；復現原樣使用已儲存的展開欄位。"
+        "tooltip": "一般以目前種子決定性展開來源欄位並保留種子。順序使用相同演算法選擇，在接受的執行後將種子加 1 並循環。來源欄位會原樣儲存。"
       },
       "wildcard_seed": {
         "name": "Wildcard seed",
-        "tooltip": "加權隨機選擇種子。順序使用選項數/範圍寬度餘數；復現不選擇。"
+        "tooltip": "決定性選擇種子。相同來源與相同種子會產生相同結果，順序在接受的執行後將種子加 1。"
       },
       "wildcard_seed_after_generate": {
         "name": "Wildcard seed after generate",
-        "tooltip": "下一次執行種子控制。順序強制 increment；復現不推進。"
+        "tooltip": "由模式管理的內部相容值。一般儲存為 fixed，順序儲存為 increment。"
       },
       "artist_mix_mode": {
         "name": "artist_mix_mode",
@@ -677,15 +673,15 @@
       },
       "wildcard_mode": {
         "name": "萬用字元模式",
-        "tooltip": "一般填充/固定以種子加權隨機展開來源欄位；順序以 seed modulo 選擇後增加；復現原樣使用已儲存的展開欄位。"
+        "tooltip": "一般以目前種子決定性展開來源欄位並保留種子。順序使用相同演算法選擇，在接受的執行後將種子加 1 並循環。來源欄位會原樣儲存。"
       },
       "wildcard_seed": {
         "name": "萬用字元種子",
-        "tooltip": "加權隨機選擇種子。順序使用選項數/範圍寬度餘數；復現不選擇。"
+        "tooltip": "決定性選擇種子。相同來源與相同種子會產生相同結果，順序在接受的執行後將種子加 1。"
       },
       "wildcard_seed_after_generate": {
         "name": "生成後萬用字元種子控制",
-        "tooltip": "控制下一次執行種子的保持、隨機化、增加或減少。順序強制 increment；復現不推進。"
+        "tooltip": "由模式管理的內部相容值。一般儲存為 fixed，順序儲存為 increment，且不顯示獨立 UI。"
       }
     },
     "outputs": {

@@ -260,16 +260,16 @@ class PromptStudioRegionalTests(unittest.TestCase):
         reservation = json.dumps({
             "version": 1,
             "current_seed": 2,
-            "next_seed": 47,
-            "mode": "populate",
-            "control": "randomize",
+            "next_seed": 3,
+            "mode": "sequential",
+            "control": "increment",
         })
         workflow_prompt = {
             "42": {
                 "inputs": {
-                    "wildcard_mode": "일반 채우기",
+                    "wildcard_mode": "순차",
                     "wildcard_seed": 2,
-                    "wildcard_seed_after_generate": "randomize",
+                    "wildcard_seed_after_generate": "increment",
                     reservation_key: reservation,
                 }
             }
@@ -286,9 +286,9 @@ class PromptStudioRegionalTests(unittest.TestCase):
                         "1024 * 1024 (1:1)",
                         1024,
                         1024,
-                        "일반 채우기",
+                        "순차",
                         2,
-                        "randomize",
+                        "increment",
                     ],
                     "properties": {},
                 }]
@@ -299,9 +299,9 @@ class PromptStudioRegionalTests(unittest.TestCase):
             result = EasyUseAnimaPromptStudioRegional().build(
                 "",
                 "",
-                wildcard_mode="일반 채우기",
+                wildcard_mode="순차",
                 wildcard_seed=2,
-                wildcard_seed_after_generate="randomize",
+                wildcard_seed_after_generate="increment",
                 workflow_prompt=workflow_prompt,
                 extra_pnginfo=extra_pnginfo,
                 unique_id="42",
@@ -310,7 +310,7 @@ class PromptStudioRegionalTests(unittest.TestCase):
 
         fallback_next_seed.assert_not_called()
         payload = result["ui"]["prompt_studio_regional"][0]
-        self.assertEqual(payload["wildcard_seed"], 47)
+        self.assertEqual(payload["wildcard_seed"], 3)
         self.assertNotIn(reservation_key, payload["field_inputs"])
         self.assertNotIn(reservation_key, workflow_prompt["42"]["inputs"])
         self.assertEqual(extra_pnginfo["workflow"]["nodes"][0]["widgets_values"][7], 2)

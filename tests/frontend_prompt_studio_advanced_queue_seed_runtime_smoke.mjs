@@ -17,6 +17,11 @@ function clone(value) {
 const seedContractUrl = dataModule(
   "../web/js/prompt_studio/wildcard_seed_contract.js",
 );
+const seedHistorySource = readFileSync(
+  new URL("../web/js/prompt_studio/wildcard_seed_history.js", import.meta.url),
+  "utf8",
+).replace('from "./wildcard_seed_contract.js"', `from "${seedContractUrl}"`);
+const seedHistoryUrl = sourceModule(seedHistorySource);
 const hostHookRegistryUrl = dataModule(
   "../web/js/lifecycle/host_hook_registry.js",
 );
@@ -25,9 +30,11 @@ const queueSource = readFileSync(
   "utf8",
 )
   .replace('from "./wildcard_seed_contract.js"', `from "${seedContractUrl}"`)
+  .replace('from "./wildcard_seed_history.js"', `from "${seedHistoryUrl}"`)
   .replace('from "../lifecycle/host_hook_registry.js"', `from "${hostHookRegistryUrl}"`);
 const queueModule = await import(sourceModule(queueSource));
 const seedContract = await import(seedContractUrl);
+const seedHistory = await import(seedHistoryUrl);
 assert.deepEqual(
   Object.keys(queueModule).sort(),
   [
@@ -43,12 +50,22 @@ assert.deepEqual(
     "bindWildcardSeedInput",
     "nextWildcardSeed",
     "normalizeWildcardSeed",
+    "normalizeWildcardSeedControl",
     "normalizeWildcardSeedInput",
     "optionalWildcardSeed",
     "randomWildcardSeed",
   ],
 );
 assert.equal(seedContract.WILDCARD_SEED_MAX, Number.MAX_SAFE_INTEGER);
+assert.deepEqual(Object.keys(seedHistory).sort(), [
+  "PREVIOUS_WILDCARD_EXECUTION_PROPERTY",
+  "normalizePreviousWildcardExecution",
+  "normalizePreviousWildcardMode",
+  "readPreviousWildcardExecution",
+  "serializePreviousWildcardExecution",
+  "wildcardModeWidgetValue",
+  "writePreviousWildcardExecution",
+]);
 assert.equal(seedContract.optionalWildcardSeed(0), 0);
 assert.equal(
   seedContract.optionalWildcardSeed(Number.MAX_SAFE_INTEGER),
@@ -88,10 +105,116 @@ assert.equal(
   Number.MAX_SAFE_INTEGER,
 );
 
+{
+  const node = { properties: {} };
+  assert.equal(seedHistory.readPreviousWildcardExecution(node), null);
+  assert.deepEqual(
+    seedHistory.writePreviousWildcardExecution(node, { seed: 7, mode: "sequential" }),
+    { version: 1, seed: 7, mode: "sequential" },
+  );
+  const currentValues = Array(22).fill(null);
+  currentValues[10] = "일반";
+  currentValues[11] = 41;
+  currentValues[12] = "randomize";
+  const serialized = { widgets_values: currentValues, properties: {} };
+  assert.equal(seedHistory.serializePreviousWildcardExecution(node, serialized, {
+    modeWidgetIndex: 10,
+    seedWidgetIndex: 11,
+    controlWidgetIndex: 12,
+  }), true);
+  assert.equal(serialized.widgets_values[10], "순차");
+  assert.equal(serialized.widgets_values[11], 7);
+  assert.equal(serialized.widgets_values[12], "fixed");
+  assert.deepEqual(
+    seedHistory.normalizePreviousWildcardExecution(
+      serialized.properties[seedHistory.PREVIOUS_WILDCARD_EXECUTION_PROPERTY],
+    ),
+    { version: 1, seed: 7, mode: "sequential" },
+  );
+}
+assert.equal(seedContract.normalizeWildcardSeedControl("fixed"), "fixed");
+assert.equal(seedContract.normalizeWildcardSeedControl("매번 랜덤"), "randomize");
+assert.equal(seedContract.normalizeWildcardSeedControl("증가"), "increment");
+assert.equal(seedContract.normalizeWildcardSeedControl("decrement"), "fixed");
+assert.equal(
+  seedContract.normalizeWildcardSeedControl("randomize", "재현"),
+  "fixed",
+);
+assert.equal(
+  seedContract.normalizeWildcardSeedControl("fixed", "순차"),
+  "fixed",
+  "Sequential must allow a fixed seed",
+);
+
+function normalizePromptStudioWildcardMode(value) {
+  return ["sequential", "순차"].includes(String(value || "").trim().toLowerCase())
+    ? "순차"
+    : "일반";
+}
+
+for (const surface of ["advanced", "regional"]) {
+  const node = {
+    surface,
+    widgets: {
+      wildcard_mode: "일반",
+      wildcard_seed: 42,
+      wildcard_seed_after_generate: "randomize",
+    },
+  };
+  const selectMode = (target, mode) => {
+    const loadedMode = mode;
+    target.widgets.wildcard_mode = normalizePromptStudioWildcardMode(mode);
+    target.widgets.wildcard_seed_after_generate = seedContract.normalizeWildcardSeedControl(
+      target.widgets.wildcard_seed_after_generate,
+      loadedMode,
+    );
+  };
+
+  selectMode(node, "재현");
+  assert.equal(node.widgets.wildcard_mode, "일반");
+  assert.equal(node.widgets.wildcard_seed_after_generate, "fixed");
+  assert.equal(
+    seedContract.nextWildcardSeed(
+      node.widgets.wildcard_seed,
+      node.widgets.wildcard_seed_after_generate,
+    ),
+    42,
+    `${surface} legacy Reproduce alias changed a fixed seed`,
+  );
+
+  const reopened = clone(node);
+  assert.equal(reopened.widgets.wildcard_mode, "일반");
+  assert.equal(reopened.widgets.wildcard_seed_after_generate, "fixed");
+
+  reopened.widgets.wildcard_seed_after_generate = "decrement";
+  selectMode(reopened, "일반 채우기");
+  assert.equal(reopened.widgets.wildcard_mode, "일반");
+  assert.equal(reopened.widgets.wildcard_seed_after_generate, "fixed");
+  assert.equal(
+    seedContract.normalizeWildcardSeedControl("randomize", "고정"),
+    "fixed",
+  );
+  assert.equal(
+    seedContract.normalizeWildcardSeedControl("fixed", "순차"),
+    "fixed",
+  );
+  for (const legacyMode of ["fixed", "고정", "reproduce", "재현"]) {
+    selectMode(reopened, legacyMode);
+    assert.equal(reopened.widgets.wildcard_mode, "일반");
+    assert.equal(reopened.widgets.wildcard_seed_after_generate, "fixed");
+  }
+
+  reopened.widgets.wildcard_seed_after_generate = "fixed";
+  selectMode(reopened, "순차");
+  assert.equal(reopened.widgets.wildcard_mode, "순차");
+  assert.equal(reopened.widgets.wildcard_seed_after_generate, "fixed");
+}
+
 function seedInputFixture(value) {
   const listeners = new Map();
   return {
     value,
+    isConnected: true,
     min: "",
     max: "",
     step: "",
@@ -104,6 +227,31 @@ function seedInputFixture(value) {
       for (const listener of listeners.get(type) || []) {
         listener({ type, target: this });
       }
+    },
+  };
+}
+
+function animationFrameFixture() {
+  let nextId = 0;
+  const frames = new Map();
+  return {
+    request(callback) {
+      const id = ++nextId;
+      frames.set(id, callback);
+      return id;
+    },
+    cancel(id) {
+      frames.delete(id);
+    },
+    flushOne() {
+      const entry = frames.entries().next().value;
+      assert.ok(entry, "an animation frame must be pending");
+      const [id, callback] = entry;
+      frames.delete(id);
+      callback(0);
+    },
+    pendingCount() {
+      return frames.size;
     },
   };
 }
@@ -155,32 +303,92 @@ for (const surface of ["Advanced", "Regional"]) {
   );
 }
 
+{
+  const frames = animationFrameFixture();
+  const previousRequestAnimationFrame = globalThis.requestAnimationFrame;
+  const previousCancelAnimationFrame = globalThis.cancelAnimationFrame;
+  globalThis.requestAnimationFrame = (callback) => frames.request(callback);
+  globalThis.cancelAnimationFrame = (id) => frames.cancel(id);
+  try {
+    let canonicalSeed = 17;
+    const published = [];
+    const input = seedInputFixture("17");
+    seedContract.bindWildcardSeedInput(
+      input,
+      () => canonicalSeed,
+      (seed) => {
+        canonicalSeed = seed;
+        published.push(seed);
+      },
+    );
+    assert.equal(frames.pendingCount(), 1);
+
+    frames.flushOne();
+    assert.equal(input.value, "17", "an unchanged canonical seed must not invent an advance");
+    assert.deepEqual(published, []);
+    assert.equal(frames.pendingCount(), 1);
+
+    canonicalSeed = 18;
+    frames.flushOne();
+    assert.equal(input.value, "18", "an untouched open input must follow the canonical seed");
+    assert.deepEqual(published, []);
+    assert.equal(frames.pendingCount(), 1);
+
+    input.value = "23";
+    input.dispatch("input");
+    canonicalSeed = 19;
+    frames.flushOne();
+    assert.equal(input.value, "23", "a dirty edit must keep ownership during frame sync");
+    assert.deepEqual(published, []);
+    assert.equal(frames.pendingCount(), 1);
+
+    input.dispatch("change");
+    assert.equal(canonicalSeed, 23);
+    assert.deepEqual(published, [23]);
+    frames.flushOne();
+    assert.equal(input.value, "23");
+    assert.equal(frames.pendingCount(), 1);
+
+    input.isConnected = false;
+    frames.flushOne();
+    assert.equal(frames.pendingCount(), 0, "a detached input must stop frame reservations");
+  } finally {
+    if (previousRequestAnimationFrame === undefined) {
+      delete globalThis.requestAnimationFrame;
+    } else {
+      globalThis.requestAnimationFrame = previousRequestAnimationFrame;
+    }
+    if (previousCancelAnimationFrame === undefined) {
+      delete globalThis.cancelAnimationFrame;
+    } else {
+      globalThis.cancelAnimationFrame = previousCancelAnimationFrame;
+    }
+  }
+}
+
 const ADVANCED = "EasyUseAnimaPromptStudioAdvanced";
 const ADVANCED_V2 = "EasyUseAnimaPromptStudioAdvancedV2";
 const WILDCARD = "EasyUseAnimaWildcard";
 const REGIONAL = "EasyUseAnimaPromptStudioRegional";
 const SEED_INDEX = 11;
-const WILDCARD_SEED_INDEX = 3;
 const REGIONAL_SEED_INDEX = 7;
 const RESERVED_NEXT_SEED_INPUT = "easyuse_anima_reserved_wildcard_next_seed";
 const ADVANCED_QUEUE_SEED_CONTRACT = Object.freeze({
   modeInputName: "wildcard_mode",
   seedInputName: "wildcard_seed",
   controlInputName: "wildcard_seed_after_generate",
+  modeWidgetIndex: 10,
   seedWidgetIndex: SEED_INDEX,
+  controlWidgetIndex: 12,
   supportsSubgraph: true,
-});
-const WILDCARD_QUEUE_SEED_CONTRACT = Object.freeze({
-  modeInputName: "mode",
-  seedInputName: "seed",
-  controlInputName: "seed_after_generate",
-  seedWidgetIndex: WILDCARD_SEED_INDEX,
 });
 const REGIONAL_QUEUE_SEED_CONTRACT = Object.freeze({
   modeInputName: "wildcard_mode",
   seedInputName: "wildcard_seed",
   controlInputName: "wildcard_seed_after_generate",
+  modeWidgetIndex: 6,
   seedWidgetIndex: REGIONAL_SEED_INDEX,
+  controlWidgetIndex: 8,
   supportsSubgraph: false,
 });
 
@@ -219,6 +427,7 @@ assert.deepEqual(Object.keys(wildcardValuesModule).sort(), [
   "applyWildcardExecutedInputs",
   "hookWildcardSeedWidget",
   "setRegularWidgetValue",
+  "syncWildcardSerialization",
 ]);
 
 function deferred() {
@@ -239,10 +448,6 @@ function widgetValues(seed, mode = "순차", control = "increment") {
   return values;
 }
 
-function wildcardWidgetValues(seed, mode = "순차", control = "increment") {
-  return ["__style__", "", mode, seed, control];
-}
-
 function regionalWidgetValues(seed, mode = "순차", control = "increment") {
   return ["[]", "{}", "1024", "1024 * 1024 (1:1)", 1024, 1024, mode, seed, control];
 }
@@ -252,6 +457,7 @@ function advancedNode(id, type = ADVANCED, seed = 7) {
     id,
     type,
     comfyClass: type,
+    properties: {},
     widgets: [
       { name: "wildcard_mode", value: "순차" },
       { name: "wildcard_seed", value: seed },
@@ -268,9 +474,9 @@ function wildcardNode(id, seed = 7) {
     widgets: [
       { name: "text", value: "__style__" },
       { name: "populated_text", value: "" },
-      { name: "mode", value: "순차" },
+      { name: "mode", value: "일반" },
       { name: "seed", value: seed },
-      { name: "seed_after_generate", value: "increment" },
+      { name: "control_after_generate", value: "fixed" },
     ],
   };
 }
@@ -280,6 +486,7 @@ function regionalNode(id, seed = 7) {
     id,
     type: REGIONAL,
     comfyClass: REGIONAL,
+    properties: {},
     widgets: [
       { name: "wildcard_mode", value: "순차" },
       { name: "wildcard_seed", value: seed },
@@ -295,7 +502,7 @@ function queueSeedContract(node) {
   if (node?.type === REGIONAL) {
     return REGIONAL_QUEUE_SEED_CONTRACT;
   }
-  return node?.type === WILDCARD ? WILDCARD_QUEUE_SEED_CONTRACT : null;
+  return null;
 }
 
 function promptFor(nodes, options = {}) {
@@ -307,15 +514,7 @@ function promptFor(nodes, options = {}) {
     const seed = node.widgets.find((widget) => widget.name === contract.seedInputName).value;
     const control = node.widgets.find((widget) => widget.name === contract.controlInputName).value;
     let inputs;
-    if (node.type === WILDCARD) {
-      inputs = {
-          text: "__style__",
-          populated_text: "",
-          mode,
-          seed,
-          seed_after_generate: control,
-        };
-    } else if (node.type === REGIONAL) {
+    if (node.type === REGIONAL) {
       inputs = {
           regional_fields: "[]",
           regional_config: "{}",
@@ -338,11 +537,9 @@ function promptFor(nodes, options = {}) {
     workflowNodes.push({
       id: node.id,
       type: node.type,
-      widgets_values: node.type === WILDCARD
-        ? wildcardWidgetValues(seed, mode, control)
-        : (node.type === REGIONAL
-          ? regionalWidgetValues(seed, mode, control)
-          : widgetValues(seed, mode, control)),
+      widgets_values: node.type === REGIONAL
+        ? regionalWidgetValues(seed, mode, control)
+        : widgetValues(seed, mode, control),
     });
   }
   const consumers = Object.prototype.hasOwnProperty.call(options, "consumers")
@@ -374,6 +571,7 @@ function createFixture(options = {}) {
   }));
   const randomValues = [...(options.randomValues || [41, 42, 43, 44])];
   const commits = [];
+  const previousExecutions = [];
   let randomCalls = 0;
   let cloneCalls = 0;
   let updateFailures = Number(options.updateFailures || 0);
@@ -392,6 +590,10 @@ function createFixture(options = {}) {
       commits.push([node.id, seed]);
       node.widgets.find((widget) => widget.name === contract.seedInputName).value = seed;
     },
+    updatePreviousExecution(node, execution) {
+      previousExecutions.push([node.id, clone(execution)]);
+      seedHistory.writePreviousWildcardExecution(node, execution);
+    },
     clonePrompt(value) {
       cloneCalls += 1;
       if (options.cloneError) {
@@ -408,6 +610,7 @@ function createFixture(options = {}) {
     nodes,
     runtime,
     commits,
+    previousExecutions,
     randomCalls: () => randomCalls,
     cloneCalls: () => cloneCalls,
   };
@@ -418,15 +621,6 @@ function seedPromptInputs(node) {
   const mode = node.widgets.find((widget) => widget.name === contract.modeInputName).value;
   const seed = node.widgets.find((widget) => widget.name === contract.seedInputName).value;
   const control = node.widgets.find((widget) => widget.name === contract.controlInputName).value;
-  if (node.type === WILDCARD) {
-    return {
-        text: "__style__",
-        populated_text: "",
-        mode,
-        seed,
-        seed_after_generate: control,
-      };
-  }
   if (node.type === REGIONAL) {
     return {
         regional_fields: "[]",
@@ -449,19 +643,17 @@ function seedWorkflowNode(node) {
   return {
     id: node.id,
     type: node.type,
-    widgets_values: node.type === WILDCARD
-      ? wildcardWidgetValues(inputs.seed, inputs.mode, inputs.seed_after_generate)
-      : (node.type === REGIONAL
-        ? regionalWidgetValues(
-          inputs.wildcard_seed,
-          inputs.wildcard_mode,
-          inputs.wildcard_seed_after_generate,
-        )
-        : widgetValues(
-          inputs.wildcard_seed,
-          inputs.wildcard_mode,
-          inputs.wildcard_seed_after_generate,
-        )),
+    widgets_values: node.type === REGIONAL
+      ? regionalWidgetValues(
+        inputs.wildcard_seed,
+        inputs.wildcard_mode,
+        inputs.wildcard_seed_after_generate,
+      )
+      : widgetValues(
+        inputs.wildcard_seed,
+        inputs.wildcard_mode,
+        inputs.wildcard_seed_after_generate,
+      ),
   };
 }
 
@@ -492,6 +684,7 @@ function createSubgraphFixture(options = {}) {
 
   const randomValues = [...(options.randomValues || [41, 42, 43, 44])];
   const commits = [];
+  const previousExecutions = [];
   let randomCalls = 0;
   let cloneCalls = 0;
   const graphHolder = {
@@ -511,6 +704,10 @@ function createSubgraphFixture(options = {}) {
       commits.push([definition.id, node.id, seed]);
       node.widgets.find((widget) => widget.name === contract.seedInputName).value = seed;
     },
+    updatePreviousExecution(node, execution) {
+      previousExecutions.push([definition.id, node.id, clone(execution)]);
+      seedHistory.writePreviousWildcardExecution(node, execution);
+    },
     clonePrompt(value) {
       cloneCalls += 1;
       return clone(value);
@@ -522,6 +719,7 @@ function createSubgraphFixture(options = {}) {
   });
   return {
     commits,
+    previousExecutions,
     containers,
     definition,
     nodes,
@@ -600,30 +798,13 @@ function subgraphPromptFor(fixture, options = {}) {
   };
 }
 
-function registerWildcardRuntimeHooks(nodeType, runtime) {
-  return nodeHooksModule.registerPromptStudioNodeHooks(
-    nodeType,
-    { name: WILDCARD },
-    {
-      hookWildcardSeedWidget() {},
-      attachAdvancedQueueSeedNode: (node) => runtime.attachNode(node),
-      detachAdvancedQueueSeedNode: (node) => runtime.detachNode(node),
-      applyWildcardExecutedInputs(node, message) {
-        wildcardValuesModule.applyWildcardExecutedInputs(node, message, runtime);
-      },
-    },
-  );
-}
-
 function queuedSeed(prompt, nodeId) {
   const promptNode = prompt.output[String(nodeId)];
   const contract = queueSeedContract({ type: promptNode.class_type });
   return promptNode.inputs[contract.seedInputName];
 }
 
-function workflowSeed(prompt, nodeId) {
-  const promptNode = prompt.output[String(nodeId)];
-  const contract = queueSeedContract({ type: promptNode.class_type });
+function workflowNode(prompt, nodeId) {
   const nodeIds = String(nodeId).split(":");
   const definitions = new Map(
     (prompt.workflow.definitions?.subgraphs || []).map((definition) => [
@@ -640,7 +821,29 @@ function workflowSeed(prompt, nodeId) {
     }
     nodes = definitions.get(String(workflowNodeValue.type))?.nodes || [];
   }
-  return workflowNodeValue.widgets_values[contract.seedWidgetIndex];
+  return workflowNodeValue;
+}
+
+function workflowSeed(prompt, nodeId) {
+  const promptNode = prompt.output[String(nodeId)];
+  const contract = queueSeedContract({ type: promptNode.class_type });
+  return workflowNode(prompt, nodeId).widgets_values[contract.seedWidgetIndex];
+}
+
+function workflowMode(prompt, nodeId) {
+  const promptNode = prompt.output[String(nodeId)];
+  const contract = queueSeedContract({ type: promptNode.class_type });
+  return workflowNode(prompt, nodeId).widgets_values[contract.modeWidgetIndex];
+}
+
+function workflowControl(prompt, nodeId) {
+  const promptNode = prompt.output[String(nodeId)];
+  const contract = queueSeedContract({ type: promptNode.class_type });
+  return workflowNode(prompt, nodeId).widgets_values[contract.controlWidgetIndex];
+}
+
+function workflowPreviousExecution(prompt, nodeId) {
+  return seedHistory.readPreviousWildcardExecution(workflowNode(prompt, nodeId));
 }
 
 function reservedNextSeed(prompt, nodeId) {
@@ -754,18 +957,25 @@ function reservedSeedState(prompt, nodeId) {
 
 {
   const configureResult = Symbol("wildcard-configure-result");
+  const serializeResult = Symbol("wildcard-serialize-result");
   const originalCallbackResult = Symbol("wildcard-callback-result");
   const originalCallbackCalls = [];
-  const queueLifecycleCalls = [];
   function WildcardNodeType() {}
   WildcardNodeType.prototype.onConfigure = function (serialized) {
-    this.widgets.find((widget) => widget.name === "seed").value = serialized.seed;
+    for (const name of ["mode", "seed", "control_after_generate"]) {
+      this.widgets.find((widget) => widget.name === name).value = serialized[name];
+    }
     return configureResult;
+  };
+  WildcardNodeType.prototype.onSerialize = function () {
+    return serializeResult;
   };
   const hooks = {
     hookWildcardSeedWidget: wildcardValuesModule.hookWildcardSeedWidget,
-    attachAdvancedQueueSeedNode: (node) => queueLifecycleCalls.push(["attach", node]),
-    detachAdvancedQueueSeedNode: (node) => queueLifecycleCalls.push(["detach", node]),
+    attachAdvancedQueueSeedNode: () => false,
+    detachAdvancedQueueSeedNode: () => false,
+    syncWildcardSerialization: wildcardValuesModule.syncWildcardSerialization,
+    applyWildcardExecutedInputs: wildcardValuesModule.applyWildcardExecutedInputs,
   };
   assert.equal(
     nodeHooksModule.registerPromptStudioNodeHooks(
@@ -785,7 +995,7 @@ function reservedSeedState(prompt, nodeId) {
     "Wildcard prototype hook must install only once",
   );
 
-  const widget = {
+  const seedWidget = {
     name: "seed",
     value: 0,
     options: { min: -10, max: 0, step: 0.5 },
@@ -794,59 +1004,78 @@ function reservedSeedState(prompt, nodeId) {
       return originalCallbackResult;
     },
   };
-  const node = Object.assign(new WildcardNodeType(), { widgets: [widget] });
+  const node = Object.assign(new WildcardNodeType(), wildcardNode(15, 0));
+  node.widgets = node.widgets.map((widget) => widget.name === "seed" ? seedWidget : widget);
   node.onNodeCreated();
-  assert.equal(widget.options.min, 0);
-  assert.equal(widget.options.max, Number.MAX_SAFE_INTEGER);
-  assert.equal(widget.options.step, 1);
-  const wrappedCallback = widget.callback;
+  assert.equal(seedWidget.options.min, 0);
+  assert.equal(seedWidget.options.max, Number.MAX_SAFE_INTEGER);
+  assert.equal(seedWidget.options.step, 1);
+  const wrappedCallback = seedWidget.callback;
 
   const unsafeSeed = Number.MAX_SAFE_INTEGER + 1;
-  assert.equal(node.onConfigure({ seed: unsafeSeed }), configureResult);
-  assert.equal(widget.value, unsafeSeed, "configure must preserve a loaded unsafe seed");
-  assert.equal(widget.callback, wrappedCallback, "configure must not stack the callback guard");
+  assert.equal(node.onConfigure({
+    mode: "reproduce",
+    seed: unsafeSeed,
+    control_after_generate: "increment",
+  }), configureResult);
+  assert.equal(seedWidget.value, unsafeSeed, "configure must preserve a loaded unsafe seed");
+  assert.equal(seedWidget.callback, wrappedCallback, "configure must not stack the callback guard");
+  assert.equal(node.widgets.find((widget) => widget.name === "mode").value, "고정");
+  assert.equal(
+    node.widgets.find((widget) => widget.name === "control_after_generate").value,
+    "fixed",
+    "native control_after_generate owns standalone wildcard seed advancement",
+  );
 
   for (const invalid of ["1.5", "1e3", "9007199254740991.1"]) {
-    widget.value = invalid;
-    assert.equal(widget.callback.call(node, invalid), undefined);
-    assert.equal(widget.value, unsafeSeed, "invalid native edit must restore the configured value");
+    seedWidget.value = invalid;
+    assert.equal(seedWidget.callback.call(node, invalid), undefined);
+    assert.equal(seedWidget.value, unsafeSeed, "invalid native edit must restore the configured value");
   }
   assert.deepEqual(originalCallbackCalls, [], "invalid native edits must not call the original callback");
 
-  widget.value = "42";
-  assert.equal(widget.callback.call(node, "42", "tail"), originalCallbackResult);
-  assert.equal(widget.value, 42);
+  seedWidget.value = "42";
+  assert.equal(seedWidget.callback.call(node, "42", "tail"), originalCallbackResult);
+  assert.equal(seedWidget.value, 42);
   assert.deepEqual(originalCallbackCalls, [[node, 42, ["tail"]]]);
 
-  assert.equal(node.onConfigure({ seed: unsafeSeed }), configureResult);
-  assert.equal(widget.callback, wrappedCallback, "reconfigure must keep one callback guard");
-  widget.value = "2e3";
-  widget.callback.call(node, "2e3");
-  assert.equal(widget.value, unsafeSeed);
+  assert.equal(node.onConfigure({
+    mode: "일반",
+    seed: unsafeSeed,
+    control_after_generate: "randomize",
+  }), configureResult);
+  assert.equal(seedWidget.callback, wrappedCallback, "reconfigure must keep one callback guard");
+  seedWidget.value = "2e3";
+  seedWidget.callback.call(node, "2e3");
+  assert.equal(seedWidget.value, unsafeSeed);
   assert.equal(originalCallbackCalls.length, 1);
+
+  node.onExecuted({
+    wildcard: [{ populated_text: "resolved from file", mode: "일반", seed: 999 }],
+  });
+  assert.equal(
+    node.widgets.find((widget) => widget.name === "populated_text").value,
+    "resolved from file",
+  );
+  assert.equal(node.widgets.find((widget) => widget.name === "mode").value, "일반");
+  assert.equal(seedWidget.value, unsafeSeed, "backend UI payload must not replace the native seed");
+
+  const serialized = { widgets_values: node.widgets.map((widget) => widget.value) };
+  assert.equal(node.onSerialize(serialized), serializeResult);
+  assert.equal(serialized.widgets_values[2], "고정");
+  assert.equal(serialized.widgets_values[4], "fixed");
   assert.equal(node.onRemoved(), undefined);
-  assert.deepEqual(queueLifecycleCalls, [
-    ["attach", node],
-    ["attach", node],
-    ["detach", node],
-  ]);
 }
 
 {
-  const node = wildcardNode(15, 30);
-  const seedWidget = node.widgets.find((widget) => widget.name === "seed");
-  wildcardValuesModule.applyWildcardExecutedInputs(
-    node,
-    { wildcard: [{ seed: 8 }] },
-    { shouldApplyExecutedSeed: () => false },
+  const node = wildcardNode(15, 7);
+  const fixture = createFixture({ nodes: [node] });
+  assert.equal(
+    fixture.runtime.attachNode(node),
+    false,
+    "standalone EasyUseAnimaWildcard must remain outside the Prompt Studio queue runtime",
   );
-  assert.equal(seedWidget.value, 30, "stale native onExecuted seed must not replace a reservation");
-  wildcardValuesModule.applyWildcardExecutedInputs(
-    node,
-    { wildcard: [{ seed: 31 }] },
-    { shouldApplyExecutedSeed: () => true },
-  );
-  assert.equal(seedWidget.value, 31, "an allowed native onExecuted seed remains publishable");
+  assert.equal(fixture.runtime.trackedStateCount(), 0);
 }
 
 {
@@ -1056,36 +1285,11 @@ for (const [surface, createNode] of [
     { current: 42, next: 43 },
   ]);
   assert.equal(node.widgets[1].value, 43);
-  assert.equal(fixture.randomCalls(), 3);
-}
-
-{
-  const node = wildcardNode(15, 7);
-  node.widgets.find((widget) => widget.name === "mode").value = "일반 채우기";
-  node.widgets.find((widget) => widget.name === "seed_after_generate").value = "randomize";
-  const fixture = createFixture({ nodes: [node], randomValues: [41, 42, 43] });
-  const queued = [];
-  const wrapped = fixture.runtime.wrapQueuePrompt((_number, prompt) => {
-    queued.push({
-      current: queuedSeed(prompt, 15),
-      workflow: workflowSeed(prompt, 15),
-      next: reservedNextSeed(prompt, 15),
-    });
-    return { prompt_id: `native-wildcard-${queued.length}`, node_errors: {} };
+  assert.deepEqual(seedHistory.readPreviousWildcardExecution(node), {
+    version: 1,
+    seed: 42,
+    mode: "populate",
   });
-  await Promise.all([
-    wrapped(0, promptFor([node])),
-    wrapped(0, promptFor([node])),
-    wrapped(0, promptFor([node])),
-  ]);
-  assert.deepEqual(queued, [
-    { current: 7, workflow: 7, next: 41 },
-    { current: 41, workflow: 41, next: 42 },
-    { current: 42, workflow: 42, next: 43 },
-  ]);
-  assert.equal(node.widgets.find((widget) => widget.name === "seed").value, 43);
-  assert.equal(fixture.runtime.shouldApplyExecutedSeed(node, 41), false);
-  assert.equal(fixture.runtime.shouldApplyExecutedSeed(node, 43), true);
   assert.equal(fixture.randomCalls(), 3);
 }
 
@@ -1104,9 +1308,9 @@ for (const [surface, createNode] of [
     wrapped(0, promptFor([fixed])),
     wrapped(0, promptFor([fixed])),
   ]);
-  assert.deepEqual(queued, [[7, 41], [41, 42], [42, 43]]);
-  assert.equal(fixed.widgets[1].value, 43);
-  assert.equal(fixture.randomCalls(), 3);
+  assert.deepEqual(queued, [[7, 7], [7, 7], [7, 7]]);
+  assert.equal(fixed.widgets[1].value, 7);
+  assert.equal(fixture.randomCalls(), 0);
 }
 
 {
@@ -1117,7 +1321,7 @@ for (const [surface, createNode] of [
   const transaction = fixture.runtime.preparePrompt(promptFor([decrement]));
   assert.ok(transaction);
   assert.equal(queuedSeed(transaction.prompt, 10), 0);
-  assert.equal(reservedNextSeed(transaction.prompt, 10), Number.MAX_SAFE_INTEGER);
+  assert.equal(reservedNextSeed(transaction.prompt, 10), 0);
 }
 
 {
@@ -1127,6 +1331,137 @@ for (const [surface, createNode] of [
   assert.ok(transaction);
   assert.equal(queuedSeed(transaction.prompt, 10), Number.MAX_SAFE_INTEGER);
   assert.equal(reservedNextSeed(transaction.prompt, 10), 0);
+}
+
+{
+  const sequentialFixed = advancedNode(10, ADVANCED, 7);
+  sequentialFixed.widgets[2].value = "fixed";
+  const fixture = createFixture({ nodes: [sequentialFixed] });
+  const transaction = fixture.runtime.preparePrompt(promptFor([sequentialFixed]));
+  assert.ok(transaction);
+  assert.deepEqual(reservedSeedState(transaction.prompt, 10), {
+    version: 1,
+    current_seed: 7,
+    next_seed: 7,
+    mode: "sequential",
+    control: "fixed",
+  });
+}
+
+for (const [surface, makeNode] of [
+  ["advanced", () => advancedNode(10, ADVANCED, 7)],
+  ["regional", () => regionalNode(10, 7)],
+]) {
+  for (const [mode, normalizedMode] of [
+    ["일반", "populate"],
+    ["순차", "sequential"],
+  ]) {
+    for (const [control, expectedNext] of [
+      ["fixed", 7],
+      ["randomize", 41],
+      ["increment", 8],
+    ]) {
+      const node = makeNode();
+      node.widgets[0].value = mode;
+      node.widgets[2].value = control;
+      const fixture = createFixture({ nodes: [node], randomValues: [41] });
+      let reserved = null;
+      let savedPrompt = null;
+      const wrapped = fixture.runtime.wrapQueuePrompt((_number, prompt) => {
+        reserved = reservedSeedState(prompt, 10);
+        savedPrompt = prompt;
+        return { prompt_id: `${surface}-${mode}-${control}`, node_errors: {} };
+      });
+
+      await wrapped(0, promptFor([node]));
+
+      assert.deepEqual(reserved, {
+        version: 1,
+        current_seed: 7,
+        next_seed: expectedNext,
+        mode: normalizedMode,
+        control,
+      });
+      assert.equal(workflowMode(savedPrompt, 10), mode);
+      assert.equal(workflowSeed(savedPrompt, 10), 7);
+      assert.equal(workflowControl(savedPrompt, 10), "fixed");
+      assert.deepEqual(workflowPreviousExecution(savedPrompt, 10), {
+        version: 1,
+        seed: 7,
+        mode: normalizedMode,
+      });
+      assert.equal(
+        node.widgets[1].value,
+        expectedNext,
+        `${surface} ${mode} + ${control} committed the wrong next seed`,
+      );
+      assert.deepEqual(seedHistory.readPreviousWildcardExecution(node), {
+        version: 1,
+        seed: 7,
+        mode: normalizedMode,
+      });
+      assert.equal(fixture.randomCalls(), control === "randomize" ? 1 : 0);
+    }
+  }
+}
+
+{
+  const node = advancedNode(10, ADVANCED, 7);
+  node.widgets[0].value = "순차";
+  node.widgets[2].value = "randomize";
+  const fixture = createFixture({ nodes: [node], randomValues: [41, 42] });
+  let attempts = 0;
+  let retried = null;
+  const wrapped = fixture.runtime.wrapQueuePrompt((_number, prompt) => {
+    attempts += 1;
+    if (attempts === 1) {
+      return Promise.reject(new Error("random queue rejected"));
+    }
+    retried = reservedSeedState(prompt, 10);
+    return { prompt_id: "random-retry", node_errors: {} };
+  });
+
+  await assert.rejects(wrapped(0, promptFor([node])), /random queue rejected/);
+  assert.equal(node.widgets[1].value, 7, "a rejected random seed must not commit");
+  assert.equal(
+    seedHistory.readPreviousWildcardExecution(node),
+    null,
+    "a rejected queue must not publish a previous execution seed",
+  );
+  await wrapped(0, promptFor([node]));
+  assert.deepEqual(retried, {
+    version: 1,
+    current_seed: 7,
+    next_seed: 42,
+    mode: "sequential",
+    control: "randomize",
+  });
+  assert.equal(node.widgets[1].value, 42);
+  assert.deepEqual(seedHistory.readPreviousWildcardExecution(node), {
+    version: 1,
+    seed: 7,
+    mode: "sequential",
+  });
+  assert.equal(fixture.randomCalls(), 2);
+}
+
+for (const linkedInput of ["wildcard_mode", "wildcard_seed_after_generate"]) {
+  const node = advancedNode(10, ADVANCED, 7);
+  const fixture = createFixture({ nodes: [node] });
+  const prompt = promptFor([node]);
+  prompt.output["10"].inputs[linkedInput] = [99, 0];
+  let received = null;
+  const wrapped = fixture.runtime.wrapQueuePrompt((_number, nextPrompt) => {
+    received = nextPrompt;
+    return { prompt_id: `linked-${linkedInput}`, node_errors: {} };
+  });
+
+  await wrapped(0, prompt);
+
+  assert.equal(received, prompt, `${linkedInput} link must remain backend-owned`);
+  assert.deepEqual(prompt.output["10"].inputs[linkedInput], [99, 0]);
+  assert.equal(fixture.cloneCalls(), 0);
+  assert.equal(node.widgets[1].value, 7);
 }
 
 {
@@ -1140,6 +1475,7 @@ for (const [surface, createNode] of [
   const transaction = fixture.runtime.preparePrompt(promptFor([randomize]));
   assert.ok(transaction);
   assert.equal(reservedNextSeed(transaction.prompt, 10), Number.MAX_SAFE_INTEGER);
+  assert.equal(fixture.randomCalls(), 1);
 }
 
 {
@@ -1206,26 +1542,6 @@ for (const [surface, createNode] of [
 }
 
 {
-  const fixed = advancedNode(10, ADVANCED, 7);
-  fixed.widgets[0].value = "고정";
-  fixed.widgets[2].value = "fixed";
-  const fixture = createFixture({ nodes: [fixed] });
-  const queued = [];
-  const wrapped = fixture.runtime.wrapQueuePrompt((_number, prompt) => {
-    queued.push(queuedSeed(prompt, 10));
-    return { prompt_id: `fixed-${queued.length}`, node_errors: {} };
-  });
-  await Promise.all([
-    wrapped(0, promptFor([fixed])),
-    wrapped(0, promptFor([fixed])),
-    wrapped(0, promptFor([fixed])),
-  ]);
-  assert.deepEqual(queued, [7, 7, 7]);
-  assert.equal(fixed.widgets[1].value, 7);
-  assert.equal(fixture.randomCalls(), 0);
-}
-
-{
   const reproduce = advancedNode(10, ADVANCED_V2, 7);
   reproduce.widgets[0].value = "재현";
   reproduce.widgets[2].value = "randomize";
@@ -1237,94 +1553,16 @@ for (const [surface, createNode] of [
     return { prompt_id: "reproduce", node_errors: {} };
   });
   await wrapped(0, prompt);
-  assert.equal(received, prompt, "reproduce mode must pass the original payload through");
+  assert.notEqual(received, prompt, "legacy reproduce must use the managed General contract");
+  assert.deepEqual(reservedSeedState(received, 10), {
+    version: 1,
+    current_seed: 7,
+    next_seed: 7,
+    mode: "populate",
+    control: "fixed",
+  });
   assert.equal(reproduce.widgets[1].value, 7);
   assert.equal(fixture.randomCalls(), 0);
-}
-
-{
-  for (const { control, backendNextSeed } of [
-    { control: "increment", backendNextSeed: 8 },
-    { control: "randomize", backendNextSeed: 41 },
-  ]) {
-    function ConfiguredWildcardNodeType() {}
-    ConfiguredWildcardNodeType.prototype.onConfigure = function (serialized) {
-      for (const name of ["mode", "seed", "seed_after_generate"]) {
-        this.widgets.find((widget) => widget.name === name).value = serialized[name];
-      }
-    };
-    const node = Object.assign(new ConfiguredWildcardNodeType(), wildcardNode(15, 0));
-    const fixture = createFixture({ nodes: [node], randomValues: [99] });
-    assert.equal(registerWildcardRuntimeHooks(ConfiguredWildcardNodeType, fixture.runtime), true);
-
-    node.onConfigure({ mode: "재현", seed: 7, seed_after_generate: control });
-    assert.equal(
-      fixture.runtime.shouldApplyExecutedSeed(node, backendNextSeed),
-      false,
-      "configure must initially guard native Wildcard against an unknown executed seed",
-    );
-    const prompt = promptFor([node]);
-    let received = null;
-    const wrapped = fixture.runtime.wrapQueuePrompt((_number, nextPrompt) => {
-      received = nextPrompt;
-      return { prompt_id: `native-reproduce-${control}`, node_errors: {} };
-    });
-    await wrapped(0, prompt);
-
-    assert.equal(received, prompt, "native reproduce must stay on the backend pass-through path");
-    assert.equal(fixture.runtime.trackedStateCount(), 0);
-    assert.equal(
-      fixture.runtime.shouldApplyExecutedSeed(node, backendNextSeed),
-      true,
-      "an unmanaged reproduce queue must release the configured executed-seed guard",
-    );
-    node.onExecuted({ wildcard: [{ seed: backendNextSeed }] });
-    assert.equal(
-      node.widgets.find((widget) => widget.name === "seed").value,
-      backendNextSeed,
-      `native reproduce ${control} must publish the backend next seed`,
-    );
-    assert.equal(fixture.randomCalls(), 0, "reproduce randomization remains backend-owned");
-  }
-}
-
-{
-  const node = wildcardNode(15, 7);
-  const fixture = createFixture({ nodes: [node] });
-  assert.equal(fixture.runtime.attachNode(node), true);
-  const gate = deferred();
-  const received = [];
-  const wrapped = fixture.runtime.wrapQueuePrompt((_number, prompt) => {
-    received.push(prompt);
-    return received.length === 1
-      ? gate.promise
-      : { prompt_id: "native-reproduce-after-pending", node_errors: {} };
-  });
-  const managedPrompt = promptFor([node]);
-  const pending = wrapped(0, managedPrompt);
-
-  node.widgets.find((widget) => widget.name === "mode").value = "재현";
-  const reproducePrompt = promptFor([node]);
-  await wrapped(0, reproducePrompt);
-  assert.notEqual(received[0], managedPrompt, "the first managed queue must keep its clone");
-  assert.equal(received[1], reproducePrompt, "the reproduce queue must pass through unchanged");
-  assert.equal(
-    fixture.runtime.trackedStateCount(),
-    1,
-    "the retired pending reservation must remain tracked until settlement",
-  );
-  assert.equal(fixture.runtime.shouldApplyExecutedSeed(node, 50), true);
-  wildcardValuesModule.applyWildcardExecutedInputs(
-    node,
-    { wildcard: [{ seed: 50 }] },
-    fixture.runtime,
-  );
-
-  gate.resolve({ prompt_id: "managed-before-reproduce", node_errors: {} });
-  await pending;
-  assert.deepEqual(fixture.commits, [], "retired managed work must lose live publish authority");
-  assert.equal(node.widgets.find((widget) => widget.name === "seed").value, 50);
-  assert.equal(fixture.runtime.trackedStateCount(), 0);
 }
 
 {
@@ -1424,28 +1662,6 @@ for (const [surface, createNode] of [
   assert.equal(nodes[1].widgets[1].value, 30, "disconnected Advanced nodes must not reserve seeds");
   assert.equal(reservedNextSeed(received, 10), 8);
   assert.equal(reservedSeedState(received, 11), undefined);
-}
-
-{
-  const nodes = [wildcardNode(15, 7), wildcardNode(16, 30)];
-  const fixture = createFixture({ nodes });
-  const prompt = promptFor(nodes, { consumers: [{ id: 20, source: 15 }] });
-  let received = null;
-  const wrapped = fixture.runtime.wrapQueuePrompt((_number, nextPrompt) => {
-    received = nextPrompt;
-    return { prompt_id: "connected-native-only", node_errors: {} };
-  });
-  await wrapped(0, prompt);
-  assert.equal(nodes[0].widgets.find((widget) => widget.name === "seed").value, 8);
-  assert.equal(
-    nodes[1].widgets.find((widget) => widget.name === "seed").value,
-    30,
-    "a disconnected native Wildcard must not reserve a seed",
-  );
-  assert.equal(reservedNextSeed(received, 15), 8);
-  assert.equal(reservedSeedState(received, 16), undefined);
-  assert.equal(queuedSeed(received, 16), 30);
-  assert.equal(workflowSeed(received, 16), 30);
 }
 
 {
@@ -1574,7 +1790,7 @@ for (const [surface, createNode] of [
   }
   assert.equal(workflowSeed(received, "50:10"), 7);
   assert.equal(node.widgets[1].value, 41);
-  assert.equal(fixture.randomCalls(), 1, "one shared live definition reserves one next seed");
+  assert.equal(fixture.randomCalls(), 1);
   assert.deepEqual(fixture.commits, [[fixture.definition.id, 10, 41]]);
 }
 
@@ -1670,39 +1886,6 @@ for (const [surface, createNode] of [
   assert.equal(fixture.randomCalls(), 0);
   assert.deepEqual(fixture.commits, []);
   assert.equal(node.widgets[1].value, 7);
-}
-
-{
-  const node = wildcardNode(15, 7);
-  const fixture = createSubgraphFixture({ nodes: [node] });
-  assert.equal(fixture.runtime.attachNode(node), true);
-  assert.equal(fixture.runtime.shouldApplyExecutedSeed(node, 8), false);
-  const prompt = subgraphPromptFor(fixture, {
-    connections: [{ executionId: "50:15", targetId: 20 }],
-  });
-  let received = null;
-  const wrapped = fixture.runtime.wrapQueuePrompt((_number, nextPrompt) => {
-    received = nextPrompt;
-    return { prompt_id: "native-wildcard-subgraph-pass-through", node_errors: {} };
-  });
-  await wrapped(0, prompt);
-
-  assert.equal(received, prompt, "#103 native Wildcard support remains top-level only");
-  assert.equal(reservedSeedState(received, "50:15"), undefined);
-  assert.equal(node.widgets.find((widget) => widget.name === "seed").value, 7);
-  assert.equal(fixture.cloneCalls(), 0);
-  assert.equal(fixture.runtime.trackedStateCount(), 0);
-  assert.equal(
-    fixture.runtime.shouldApplyExecutedSeed(node, 8),
-    true,
-    "native Wildcard colon pass-through must release the configured guard",
-  );
-  wildcardValuesModule.applyWildcardExecutedInputs(
-    node,
-    { wildcard: [{ seed: 8 }] },
-    fixture.runtime,
-  );
-  assert.equal(node.widgets.find((widget) => widget.name === "seed").value, 8);
 }
 
 {
@@ -2054,60 +2237,6 @@ for (const [surface, createNode] of [
   assert.equal(received, prompt);
   assert.equal(fixture.nodes[0].widgets[1].value, 7);
   assert.equal(fixture.cloneCalls(), 1);
-}
-
-{
-  const node = wildcardNode(15, 7);
-  const cloneError = new Error("native clone failed");
-  const fixture = createFixture({ nodes: [node], cloneError });
-  assert.equal(fixture.runtime.attachNode(node), true);
-  assert.equal(fixture.runtime.shouldApplyExecutedSeed(node, 8), false);
-  const prompt = promptFor([node]);
-  let received = null;
-  const wrapped = fixture.runtime.wrapQueuePrompt((_number, nextPrompt) => {
-    received = nextPrompt;
-    return { prompt_id: "native-clone-pass-through", node_errors: {} };
-  });
-  await wrapped(0, prompt);
-
-  assert.equal(received, prompt);
-  assert.equal(fixture.runtime.trackedStateCount(), 0);
-  assert.equal(
-    fixture.runtime.shouldApplyExecutedSeed(node, 8),
-    true,
-    "clone failure must not leave a configured guard on the backend pass-through queue",
-  );
-  wildcardValuesModule.applyWildcardExecutedInputs(
-    node,
-    { wildcard: [{ seed: 8 }] },
-    fixture.runtime,
-  );
-  assert.equal(node.widgets.find((widget) => widget.name === "seed").value, 8);
-}
-
-{
-  const node = wildcardNode(15, 7);
-  const fixture = createFixture({ nodes: [node] });
-  assert.equal(fixture.runtime.attachNode(node), true);
-  const prompt = promptFor([node]);
-  prompt.workflow.nodes = prompt.workflow.nodes.filter(
-    (workflowNodeValue) => String(workflowNodeValue.id) !== String(node.id),
-  );
-  let received = null;
-  const wrapped = fixture.runtime.wrapQueuePrompt((_number, nextPrompt) => {
-    received = nextPrompt;
-    return { prompt_id: "native-workflow-pass-through", node_errors: {} };
-  });
-  await wrapped(0, prompt);
-
-  assert.equal(received, prompt);
-  assert.equal(fixture.cloneCalls(), 1);
-  assert.equal(fixture.runtime.trackedStateCount(), 0);
-  assert.equal(
-    fixture.runtime.shouldApplyExecutedSeed(node, 8),
-    true,
-    "missing workflow seed storage must release the unmanaged queue guard",
-  );
 }
 
 {

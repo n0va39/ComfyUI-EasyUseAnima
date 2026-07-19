@@ -7,6 +7,8 @@ import {
   getAdvancedEditorElement,
 } from "./state.js";
 
+let advancedHelpPopoverId = 0;
+
 function stopAdvancedControlEvent(event) {
   event.stopPropagation();
 }
@@ -28,14 +30,25 @@ function updateAdvancedSummary(node, groupId, text) {
 }
 
 function closeAdvancedHelpPopovers() {
-  document.querySelectorAll(".easyuse-anima-advanced-help-popover").forEach((element) => element.remove());
+  document.querySelectorAll(".easyuse-anima-advanced-help-popover").forEach((element) => {
+    const close = /** @type {any} */ (element).__easyuseAnimaCloseHelpPopover;
+    if (typeof close === "function") {
+      close(false);
+    } else {
+      element.remove();
+    }
+  });
 }
 
 function openAdvancedHelpPopover(button, text) {
   closeAdvancedHelpPopovers();
   const popover = document.createElement("div");
   popover.className = "easyuse-anima-advanced-help-popover";
+  popover.id = `easyuse-anima-advanced-help-${++advancedHelpPopoverId}`;
+  popover.setAttribute("role", "tooltip");
   popover.textContent = text;
+  button.setAttribute("aria-expanded", "true");
+  button.setAttribute("aria-describedby", popover.id);
   document.body.append(popover);
   const rect = button.getBoundingClientRect();
   const margin = 8;
@@ -52,14 +65,35 @@ function openAdvancedHelpPopover(button, text) {
   );
   popover.style.left = `${Math.round(left)}px`;
   popover.style.top = `${Math.round(top)}px`;
-  const close = (event) => {
+  const removePopover = (restoreFocus = false) => {
+    popover.remove();
+    button.setAttribute("aria-expanded", "false");
+    button.removeAttribute("aria-describedby");
+    document.removeEventListener("pointerdown", closeOnPointerDown, true);
+    document.removeEventListener("keydown", closeOnKeyDown, true);
+    if (restoreFocus) {
+      button.focus();
+    }
+  };
+  const closeOnPointerDown = (event) => {
     if (event?.target === button || popover.contains(event?.target)) {
       return;
     }
-    popover.remove();
-    document.removeEventListener("pointerdown", close, true);
+    removePopover(false);
   };
-  setTimeout(() => document.addEventListener("pointerdown", close, true), 0);
+  const closeOnKeyDown = (event) => {
+    if (event?.key === "Escape") {
+      event.preventDefault();
+      removePopover(true);
+    }
+  };
+  /** @type {any} */ (popover).__easyuseAnimaCloseHelpPopover = removePopover;
+  setTimeout(() => {
+    if (popover.isConnected) {
+      document.addEventListener("pointerdown", closeOnPointerDown, true);
+      document.addEventListener("keydown", closeOnKeyDown, true);
+    }
+  }, 0);
 }
 
 export {

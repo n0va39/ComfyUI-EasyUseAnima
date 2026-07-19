@@ -159,6 +159,11 @@ try {
         throw "Frontend Prompt Studio Advanced queue seed runtime smoke failed with exit code $LASTEXITCODE."
     }
 
+    & node "tests\frontend_wildcard_values_smoke.mjs"
+    if ($LASTEXITCODE -ne 0) {
+        throw "Frontend standalone Wildcard populated-text smoke failed with exit code $LASTEXITCODE."
+    }
+
     & node "tests\frontend_lora_preset_api_client_smoke.mjs"
     if ($LASTEXITCODE -ne 0) {
         throw "Frontend LoRA preset API client smoke failed with exit code $LASTEXITCODE."

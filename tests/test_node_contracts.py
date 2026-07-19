@@ -300,9 +300,8 @@ def _representative_is_changed() -> list[dict]:
             {
                 "text": "plain contract prompt",
                 "populated_text": "",
-                "mode": "reproduce",
+                "mode": "고정",
                 "seed": 17,
-                "seed_after_generate": "fixed",
             },
         ),
         (
