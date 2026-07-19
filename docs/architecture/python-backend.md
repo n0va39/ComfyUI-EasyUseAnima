@@ -401,6 +401,12 @@ The Python backend refactor is complete only when all of the following hold.
 
 ## Tracking relationships
 
+The follow-on [`AiO Hook extensibility plan`](aio-hook-extensibility-plan.md)
+preserves this phase ordering. Its contract-only seams may proceed alongside
+the refactor only after their stated prerequisites are met; coupled behavior
+work waits until the relevant backend exits are complete. Completion of that
+plan and its integration gates is the target scope for release 0.6.0.
+
 - [#162](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/162): Autocomplete repository/index
 - [#163](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/163): Profile identity/storage migration
 - [#164](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/164): Translation provider/async boundary
