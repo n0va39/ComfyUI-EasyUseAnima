@@ -53,19 +53,19 @@
       },
       "populated_text": {
         "name": "채워진 텍스트",
-        "tooltip": "확장 결과 캐시입니다. 재현은 이 값을 그대로 출력하고, 비어 있으면 text를 사용합니다. 일반 채우기/고정/순차는 기존 캐시를 무시하고 text를 확장한 뒤 저장 워크플로우 메타데이터의 이 값을 갱신합니다."
+        "tooltip": "확장 결과 캐시입니다. 재현은 Impact Pack처럼 이 값을 와일드카드 엔진으로 처리합니다. 일반 채우기/고정/순차는 기존 캐시를 무시하고 text를 확장한 뒤 저장 워크플로우 메타데이터의 이 값을 갱신합니다."
       },
       "mode": {
         "name": "모드",
-        "tooltip": "일반 채우기는 text를 시드 기반 가중 랜덤으로 확장합니다. 고정도 EasyUse 호환 동작으로 text를 같은 방식으로 확장하며 seed control이 fixed일 때 시드만 유지합니다. 순차는 seed % 항목 수/범위 폭으로 선택하고 다음 시드를 강제로 증가시킵니다. 재현은 새 선택 없이 populated_text를 그대로 사용하지만, 반환/실시간 다음 시드에는 seed_after_generate를 적용합니다. 확장 실행은 저장 시 populated_text와 재현 모드로 기록됩니다."
+        "tooltip": "일반 채우기는 text를 시드 기반 가중 랜덤으로 확장합니다. 고정도 EasyUse 호환 동작으로 text를 같은 방식으로 확장하며 seed control이 fixed일 때 시드만 유지합니다. 순차는 seed % 항목 수/범위 폭으로 선택하고 다음 시드를 강제로 증가시킵니다. 재현은 현재 시드로 populated_text를 처리하며 파일 와일드카드도 확장하고 결과를 다시 캐시합니다. 반환/실시간 다음 시드에는 seed_after_generate를 적용합니다. 확장 실행은 저장 시 populated_text와 재현 모드로 기록됩니다."
       },
       "seed": {
         "name": "시드",
-        "tooltip": "가중 랜덤 선택 시드입니다. 순차는 각 항목 수와 범위 폭으로 나눈 나머지를 사용하고, 재현은 새 선택을 하지 않습니다."
+        "tooltip": "가중 랜덤 선택 시드입니다. 순차는 각 항목 수와 범위 폭으로 나눈 나머지를 사용하고, 재현은 현재 시드를 populated_text 처리에 적용합니다."
       },
       "seed_after_generate": {
         "name": "시드 생성 후 제어",
-        "tooltip": "다음 실시간 실행 시드입니다. fixed는 유지, randomize는 새 값, increment/decrement는 경계에서 순환하며 1씩 바꿉니다. 순차는 increment를 강제합니다. 재현은 새 선택을 하지 않지만 반환/실시간 다음 시드에는 이 제어를 적용합니다."
+        "tooltip": "다음 실시간 실행 시드입니다. fixed는 유지, randomize는 새 값, increment/decrement는 경계에서 순환하며 1씩 바꿉니다. 순차는 increment를 강제합니다. 재현은 현재 시드로 populated_text를 처리하고 반환/실시간 다음 시드에는 이 제어를 적용합니다."
       }
     },
     "outputs": {

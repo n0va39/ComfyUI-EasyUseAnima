@@ -65,6 +65,12 @@ class LocaleTests(unittest.TestCase):
                 self.assertIsNone(HANGUL_RE.search(text))
 
     def test_wildcard_tooltips_cover_syntax_and_mode_lifecycle(self):
+        standalone_reproduce_terms = {
+            "ko": ("와일드카드 엔진", "파일 와일드카드", "그대로 출력"),
+            "ja": ("ワイルドカードエンジン", "ファイルワイルドカード", "そのまま出力"),
+            "zh": ("萬用字元引擎", "檔案萬用字元", "原樣輸出"),
+            "zh-CN": ("通配符引擎", "文件通配符", "原样输出"),
+        }
         for locale_code in LOCALE_CODES:
             data = json.loads(
                 (ROOT / "locales" / locale_code / "nodeDefs.json").read_text(
@@ -89,6 +95,10 @@ class LocaleTests(unittest.TestCase):
                 self.assertGreater(len(inputs["mode"]["tooltip"]), 100)
                 self.assertIn("seed", inputs["mode"]["tooltip"])
                 self.assertIn("populated_text", inputs["mode"]["tooltip"])
+                engine_term, file_term, stale_term = standalone_reproduce_terms[locale_code]
+                self.assertIn(engine_term, inputs["populated_text"]["tooltip"])
+                self.assertIn(file_term, inputs["mode"]["tooltip"])
+                self.assertNotIn(stale_term, inputs["populated_text"]["tooltip"])
                 self.assertNotIn(
                     "Cached expanded prompt used by fixed and reproduce modes.",
                     inputs["populated_text"]["tooltip"],

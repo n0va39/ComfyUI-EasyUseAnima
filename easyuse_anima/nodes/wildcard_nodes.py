@@ -123,9 +123,8 @@ class EasyUseAnimaWildcard:
                     "default": "",
                     "tooltip": (
                         "Expanded-result cache. Reproduce processes this value through the wildcard "
-                        "engine like Impact Pack, falling back to text when it is empty. Populate, "
-                        "Fixed, and Sequential ignore the old cache, expand text, and write the "
-                        "result here in saved workflow metadata."
+                        "engine like Impact Pack. Populate, Fixed, and Sequential ignore the old "
+                        "cache, expand text, and write the result here in saved workflow metadata."
                     ),
                 }),
                 "mode": (WILDCARD_MODE_LABELS, {
@@ -275,7 +274,7 @@ class EasyUseAnimaWildcard:
 
         if mode_key == WILDCARD_MODE_REPRODUCE:
             expansion = expand_wildcards(
-                str(populated_text if populated_text else text or ""),
+                str(populated_text or ""),
                 seed=seed_value,
                 mode=mode_key,
             )

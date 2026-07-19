@@ -886,7 +886,7 @@ class WildcardNodeTests(unittest.TestCase):
         populated_tooltip = inputs["populated_text"][1]["tooltip"]
         self.assertIn("Reproduce processes this value", populated_tooltip)
         self.assertIn("like Impact Pack", populated_tooltip)
-        self.assertIn("falling back to text", populated_tooltip)
+        self.assertNotIn("falling back to text", populated_tooltip)
         self.assertIn("ignore the old cache", populated_tooltip)
 
         mode_tooltip = inputs["mode"][1]["tooltip"]
@@ -1051,6 +1051,27 @@ class WildcardNodeTests(unittest.TestCase):
         expand.assert_called_once_with("expanded style", seed=5, mode="reproduce")
         self.assertEqual(result["result"], ("expanded style", 6))
         self.assertEqual(result["ui"]["wildcard"][0]["status"], "reproduce")
+
+    def test_native_reproduce_keeps_empty_populated_text_empty(self):
+        with patch(
+            "nodes.expand_wildcards",
+            return_value=WildcardExpansionResult(
+                text="",
+                changed=False,
+                used_keys=(),
+                missing_keys=(),
+            ),
+        ) as expand:
+            result = EasyUseAnimaWildcard().generate(
+                "__style__",
+                "",
+                "재현",
+                5,
+                "fixed",
+            )
+
+        expand.assert_called_once_with("", seed=5, mode="reproduce")
+        self.assertEqual(result["result"], ("", 5))
 
     def test_native_reproduce_expands_file_wildcard_from_populated_text(self):
         with tempfile.TemporaryDirectory() as temp:
