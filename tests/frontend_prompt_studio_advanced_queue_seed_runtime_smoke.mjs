@@ -979,6 +979,59 @@ function reservedSeedState(prompt, nodeId) {
   assert.equal(queued.every((entry) => entry.options === options), true);
 }
 
+for (const [surface, createNode] of [
+  ["Advanced", () => advancedNode(10, ADVANCED, 17)],
+  ["Regional", () => regionalNode(30, 17)],
+]) {
+  const node = createNode();
+  const seedWidget = node.widgets.find((widget) => widget.name === "wildcard_seed");
+  const fixture = createFixture({ nodes: [node] });
+  const popupPublishes = [];
+  const popupInput = seedInputFixture("17");
+  seedContract.bindWildcardSeedInput(
+    popupInput,
+    () => seedWidget.value,
+    (seed) => {
+      popupPublishes.push(seed);
+      seedWidget.value = seed;
+    },
+  );
+  popupInput.dispatch("blur");
+  assert.equal(seedWidget.value, 17, `${surface} untouched close must not invent a seed advance`);
+  assert.deepEqual(popupPublishes, [], `${surface} untouched close must not publish`);
+
+  const rejected = fixture.runtime.wrapQueuePrompt(() => ({ node_errors: {} }));
+  await rejected(0, promptFor([node]));
+  popupInput.dispatch("blur");
+  assert.equal(seedWidget.value, 17, `${surface} rejected queue must keep canonical seed`);
+  assert.deepEqual(popupPublishes, [], `${surface} rejected queue must not trigger popup publish`);
+
+  let acceptedCount = 0;
+  const accepted = fixture.runtime.wrapQueuePrompt(() => ({
+    prompt_id: `${surface.toLowerCase()}-popup-open-${++acceptedCount}`,
+    node_errors: {},
+  }));
+  await Promise.all([
+    accepted(0, promptFor([node])),
+    accepted(0, promptFor([node])),
+    accepted(0, promptFor([node])),
+  ]);
+  assert.equal(seedWidget.value, 20, `${surface} three rapid queues must advance canonical seed`);
+  assert.equal(popupInput.value, "17", `${surface} open popup starts with its prior snapshot`);
+
+  popupInput.dispatch("blur");
+  assert.equal(popupInput.value, "20", `${surface} untouched blur must refresh from canonical seed`);
+  assert.equal(seedWidget.value, 20, `${surface} untouched blur must not roll back canonical seed`);
+  assert.deepEqual(popupPublishes, [], `${surface} untouched popup must not publish a stale seed`);
+
+  popupInput.value = "23";
+  popupInput.dispatch("input");
+  popupInput.dispatch("change");
+  popupInput.dispatch("blur");
+  assert.equal(seedWidget.value, 23, `${surface} real popup edit must update canonical seed`);
+  assert.deepEqual(popupPublishes, [23], `${surface} real edit must publish exactly once`);
+}
+
 {
   const node = advancedNode(10, ADVANCED, 7);
   node.widgets[0].value = "일반 채우기";

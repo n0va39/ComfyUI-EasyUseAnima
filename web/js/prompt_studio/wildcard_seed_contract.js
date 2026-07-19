@@ -58,17 +58,35 @@ function bindWildcardSeedInput(input, getCurrentSeed, publishSeed, afterPublish)
   input.min = "0";
   input.max = String(WILDCARD_SEED_MAX);
   input.step = "1";
+  // An untouched open control must yield to queue/executed widget updates,
+  // while any real input event keeps ownership of the user's pending edit.
+  let baselineValue = String(input.value ?? "");
+  let dirty = false;
+  const restoreCurrentSeed = () => {
+    input.value = String(getCurrentSeed() ?? "0");
+    baselineValue = input.value;
+    dirty = false;
+  };
   const syncSeed = () => {
+    if (!dirty && input.value === baselineValue) {
+      restoreCurrentSeed();
+      return false;
+    }
     const seed = normalizeWildcardSeedInput(input.value);
     if (seed == null) {
-      input.value = String(getCurrentSeed() ?? "0");
+      restoreCurrentSeed();
       return false;
     }
     input.value = String(seed);
     publishSeed(seed);
     afterPublish?.(seed);
+    baselineValue = input.value;
+    dirty = false;
     return true;
   };
+  input.addEventListener("input", () => {
+    dirty = true;
+  });
   input.addEventListener("change", syncSeed);
   input.addEventListener("blur", syncSeed);
   return syncSeed;
