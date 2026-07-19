@@ -163,10 +163,10 @@ def json_integer(
     data: Mapping[str, Any],
     field: str,
     *,
-    default: int,
+    default: int | None,
     minimum: int | None = None,
     maximum: int | None = None,
-) -> int:
+) -> int | None:
     if field not in data:
         return default
     value = data[field]
@@ -177,3 +177,23 @@ def json_integer(
     if maximum is not None and value > maximum:
         raise _field_error(field, f"an integer less than or equal to {maximum}")
     return value
+
+
+def json_uuid_string(
+    data: Mapping[str, Any],
+    field: str,
+    *,
+    required: bool = True,
+    default: str | None = None,
+) -> str | None:
+    if field not in data:
+        if required:
+            raise _field_error(field, "a UUID string")
+        return default
+    value = data[field]
+    if not isinstance(value, str):
+        raise _field_error(field, "a UUID string")
+    try:
+        return str(uuid.UUID(value))
+    except (AttributeError, ValueError) as exc:
+        raise _field_error(field, "a UUID string") from exc

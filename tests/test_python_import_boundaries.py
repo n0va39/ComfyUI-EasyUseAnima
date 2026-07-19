@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import ast
 import importlib.util
 import unittest
 from pathlib import Path
@@ -53,6 +54,38 @@ class PythonImportBoundaryTests(unittest.TestCase):
                 self.assertNotIn("ANIMA_", source)
                 self.assertNotIn("from nodes", source)
                 self.assertNotIn("import nodes", source)
+
+    def test_profile_contract_has_no_http_storage_or_outer_layer_imports(self):
+        contract_path = INTERNAL_PACKAGE / "profiles" / "contract.py"
+        source = contract_path.read_text(encoding="utf-8")
+        violations = analyzer.find_import_boundary_violations(
+            source,
+            module_name="easyuse_anima.profiles.contract",
+        )
+        tree = ast.parse(source)
+        imported_roots = set()
+        for node in ast.walk(tree):
+            if isinstance(node, ast.Import):
+                imported_roots.update(
+                    alias.name.split(".", 1)[0]
+                    for alias in node.names
+                )
+            elif isinstance(node, ast.ImportFrom) and node.module:
+                imported_roots.add(node.module.split(".", 1)[0])
+
+        self.assertEqual(violations, [])
+        self.assertTrue(
+            imported_roots.isdisjoint(
+                {
+                    "aiohttp",
+                    "api_contract",
+                    "folder_paths",
+                    "server",
+                    "storage",
+                }
+            )
+        )
+        self.assertNotIn("AtomicJsonStore", source)
 
     def test_synthetic_allowed_imports_have_no_violations(self):
         sources = {

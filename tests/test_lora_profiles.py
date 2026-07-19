@@ -5,6 +5,7 @@ import sys
 import tempfile
 import types
 import unittest
+import uuid
 from pathlib import Path
 from unittest.mock import patch
 
@@ -102,13 +103,20 @@ class LoraProfileStorageTests(unittest.TestCase):
                 self.assertEqual(saved["name"], "style_preset")
                 self.assertEqual(saved["profile_count"], 2)
                 self.assertEqual(saved["profile_index"], 1)
+                self.assertEqual(saved["version"], 2)
+                self.assertEqual(saved["revision"], 1)
+                self.assertEqual(uuid.UUID(saved["profile_id"]).version, 4)
                 self.assertNotIn("name", saved["profile_data"]["1"])
                 self.assertTrue((Path(tmp) / "style_preset.json").is_file())
 
                 profiles = api._list_lora_profiles()
                 self.assertEqual([profile["name"] for profile in profiles], ["style_preset"])
+                self.assertEqual(profiles[0]["profile_id"], saved["profile_id"])
+                self.assertEqual(profiles[0]["revision"], 1)
 
                 loaded = api._load_lora_profile("style_preset")
+                self.assertEqual(loaded["profile_id"], saved["profile_id"])
+                self.assertEqual(loaded["revision"], 1)
                 self.assertEqual(loaded["profile_data"]["2"]["style_prompt"], "@b")
                 self.assertEqual(loaded["profile_data"]["2"]["loras"][0]["name"], "foo.safetensors")
 
@@ -140,6 +148,14 @@ class LoraProfileStorageTests(unittest.TestCase):
             with patch.object(api, "LORA_PROFILE_DIR", root):
                 (root / "Broken.json").write_text("{", encoding="utf-8")
                 (root / "Broken.json.bak").write_text("[", encoding="utf-8")
+                primary_before = (root / "Broken.json").read_bytes()
+                backup_before = (root / "Broken.json.bak").read_bytes()
+
+                listed = api._list_lora_profiles()
+                self.assertEqual(listed[0]["name"], "Broken")
+                self.assertEqual(listed[0]["revision"], 0)
+                self.assertEqual((root / "Broken.json").read_bytes(), primary_before)
+                self.assertEqual((root / "Broken.json.bak").read_bytes(), backup_before)
 
                 with self.assertRaises(json.JSONDecodeError):
                     api._load_lora_profile("Broken")
@@ -156,6 +172,80 @@ class LoraProfileStorageTests(unittest.TestCase):
         self.assertEqual(loaded["name"], "Empty")
         self.assertEqual(loaded["profile_count"], 1)
         self.assertEqual(loaded["profile_data"], {})
+        self.assertEqual(loaded["revision"], 0)
+
+    def test_legacy_list_and_load_are_pure_and_overwrite_promotes_to_v2(self):
+        api = load_api_module()
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            primary = root / "Legacy.json"
+            backup = root / "Legacy.json.bak"
+            primary.write_text(
+                json.dumps(
+                    {
+                        "version": 1,
+                        "profile_count": 1,
+                        "profile_index": 1,
+                        "profile_data": json.dumps(
+                            {"1": {"style_prompt": "legacy", "loras": []}}
+                        ),
+                    },
+                    ensure_ascii=False,
+                ),
+                encoding="utf-8",
+            )
+            backup.write_text('{"sentinel":true}', encoding="utf-8")
+            primary_before = (primary.read_bytes(), primary.stat().st_mtime_ns)
+            backup_before = (backup.read_bytes(), backup.stat().st_mtime_ns)
+
+            with patch.object(api, "LORA_PROFILE_DIR", root):
+                listed = api._list_lora_profiles()[0]
+                loaded = api._load_lora_profile("legacy")
+
+                self.assertEqual(listed["profile_id"], loaded["profile_id"])
+                self.assertEqual(listed["revision"], 0)
+                self.assertEqual(loaded["profile_data"]["1"]["style_prompt"], "legacy")
+                self.assertEqual(
+                    (primary.read_bytes(), primary.stat().st_mtime_ns),
+                    primary_before,
+                )
+                self.assertEqual(
+                    (backup.read_bytes(), backup.stat().st_mtime_ns),
+                    backup_before,
+                )
+
+                promoted = api._save_lora_profile(
+                    "Legacy",
+                    {"profile_data": {"1": {"style_prompt": "updated"}}},
+                    overwrite=True,
+                    profile_id="00000000-0000-4000-8000-000000000000",
+                    revision=999,
+                )
+
+            stored = json.loads(primary.read_text(encoding="utf-8"))
+            self.assertEqual(promoted["profile_id"], listed["profile_id"])
+            self.assertEqual(promoted["revision"], 1)
+            self.assertEqual(stored, promoted)
+
+    def test_v2_overwrite_preserves_id_and_advances_revision_without_strict_token(self):
+        api = load_api_module()
+        with tempfile.TemporaryDirectory() as tmp:
+            with patch.object(api, "LORA_PROFILE_DIR", Path(tmp)):
+                created = api._save_lora_profile(
+                    "Updated",
+                    {"profile_data": {"1": {"style_prompt": "first"}}},
+                )
+                updated = api._save_lora_profile(
+                    "Updated",
+                    {"profile_data": {"1": {"style_prompt": "second"}}},
+                    overwrite=True,
+                    profile_id="00000000-0000-4000-8000-000000000000",
+                    revision=0,
+                )
+
+        self.assertEqual(updated["profile_id"], created["profile_id"])
+        self.assertEqual(updated["revision"], 2)
+        self.assertEqual(updated["profile_data"]["1"]["style_prompt"], "second")
 
     def test_filename_identity_collisions_require_explicit_overwrite(self):
         api = load_api_module()
@@ -429,6 +519,42 @@ class LoraProfileApiRouteTests(unittest.TestCase):
                     },
                 )
                 operation.assert_not_called()
+
+    def test_optional_concurrency_tokens_are_typed_and_forwarded(self):
+        api, routes = load_api_routes()
+        handler = routes.handlers[self.PATH]
+        profile_id = "12345678-1234-4234-9234-1234567890AB"
+
+        with patch.object(
+            api,
+            "_save_lora_profile",
+            return_value={"name": "Saved"},
+        ) as operation:
+            response = asyncio.run(
+                handler(
+                    JsonRequest(
+                        {
+                            **self.BASE_PAYLOAD,
+                            "profile_id": profile_id,
+                            "revision": 8,
+                        }
+                    )
+                )
+            )
+
+        self.assertEqual(response["status"], 200)
+        self.assertEqual(operation.call_args.kwargs["profile_id"], profile_id.lower())
+        self.assertEqual(operation.call_args.kwargs["revision"], 8)
+
+        for field, value in (("profile_id", "bad"), ("revision", False)):
+            with self.subTest(field=field), patch.object(api, "_save_lora_profile") as operation:
+                response = asyncio.run(
+                    handler(JsonRequest({**self.BASE_PAYLOAD, field: value}))
+                )
+
+            self.assertEqual(response["status"], 422)
+            self.assertEqual(response["payload"]["details"], {"field": field})
+            operation.assert_not_called()
 
     def test_profile_conflict_uses_existing_error_json_shape_with_409_status(self):
         api, routes = load_api_routes()

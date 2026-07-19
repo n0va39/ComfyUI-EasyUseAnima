@@ -22,6 +22,8 @@ PACKAGE_MODULES = (
     "easyuse_anima.infrastructure.comfy.invocation",
     "easyuse_anima.infrastructure.comfy.resources",
     "easyuse_anima.nodes",
+    "easyuse_anima.profiles",
+    "easyuse_anima.profiles.contract",
     "easyuse_anima.prompt",
 )
 

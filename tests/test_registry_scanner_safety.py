@@ -32,6 +32,8 @@ EXPECTED_PYTHON_PACKAGE_FILES = {
     "easyuse_anima/infrastructure/comfy/resources.py",
     "easyuse_anima/nodes/__init__.py",
     "easyuse_anima/nodes/image_nodes.py",
+    "easyuse_anima/profiles/__init__.py",
+    "easyuse_anima/profiles/contract.py",
     "easyuse_anima/prompt/__init__.py",
 }
 STATIC_IMPORT_FROM_RE = re.compile(
