@@ -7,6 +7,10 @@ import {
   optionalWildcardSeed as optionalSeed,
 } from "./wildcard_seed_contract.js";
 import {
+  wildcardModeWidgetValue,
+  writePreviousWildcardExecution,
+} from "./wildcard_seed_history.js";
+import {
   registerHostHookCallbacks,
 } from "../lifecycle/host_hook_registry.js";
 
@@ -290,7 +294,9 @@ function reservationWasAccepted(result, reservation, prompt) {
  * @property {string} modeInputName
  * @property {string} seedInputName
  * @property {string} controlInputName
+ * @property {number} modeWidgetIndex
  * @property {number} seedWidgetIndex
+ * @property {number} controlWidgetIndex
  * @property {boolean} [supportsSubgraph]
  */
 
@@ -303,6 +309,7 @@ function reservationWasAccepted(result, reservation, prompt) {
  * @property {(node: any) => boolean} isOutputNode
  * @property {(node: any, contract: WildcardQueueSeedContract) => any} getSeed
  * @property {(node: any, seed: number, contract: WildcardQueueSeedContract) => void} updateSeed
+ * @property {(node: any, execution: {seed: number, mode: string}, contract: WildcardQueueSeedContract) => void} [updatePreviousExecution]
  * @property {(value: any) => any} clonePrompt
  * @property {() => number} randomSeed
  */
@@ -322,6 +329,7 @@ function createAdvancedQueueSeedRuntime(dependencies) {
     isOutputNode,
     getSeed,
     updateSeed,
+    updatePreviousExecution = () => {},
     clonePrompt,
     randomSeed,
   } = dependencies;
@@ -424,11 +432,16 @@ function createAdvancedQueueSeedRuntime(dependencies) {
 
   function flushResolvedReservations(state, node) {
     let committed = false;
+    let previousExecution = null;
     while (state.reservations.length && state.reservations[0].status !== "pending") {
       const reservation = state.reservations.shift();
       if (reservation.status === "accepted") {
         state.committedSeed = reservation.nextSeed;
         state.authoritative = true;
+        previousExecution = {
+          seed: reservation.queuedSeed,
+          mode: reservation.mode,
+        };
         committed = true;
       }
     }
@@ -438,6 +451,12 @@ function createAdvancedQueueSeedRuntime(dependencies) {
       && state.node === node
       && nodeStates.get(state.stateKey) === state
     ) {
+      try {
+        updatePreviousExecution(node, previousExecution, state.contract);
+      } catch {
+        // The accepted next seed remains authoritative even when publishing
+        // optional previous-execution metadata fails.
+      }
       try {
         updateSeed(node, state.committedSeed, state.contract);
         state.publishFailed = false;
@@ -659,11 +678,19 @@ function createAdvancedQueueSeedRuntime(dependencies) {
           randomSeed,
         );
         const workflowValues = [...workflow.widgets_values];
-        while (workflowValues.length <= contract.seedWidgetIndex) {
+        const maxWidgetIndex = Math.max(
+          contract.modeWidgetIndex,
+          contract.seedWidgetIndex,
+          contract.controlWidgetIndex,
+        );
+        while (workflowValues.length <= maxWidgetIndex) {
           workflowValues.push(null);
         }
+        workflowValues[contract.modeWidgetIndex] = wildcardModeWidgetValue(mode);
         workflowValues[contract.seedWidgetIndex] = queuedSeed;
+        workflowValues[contract.controlWidgetIndex] = "fixed";
         workflow.widgets_values = workflowValues;
+        writePreviousWildcardExecution(workflow, { seed: queuedSeed, mode });
         const reservationInput = JSON.stringify({
           version: 1,
           current_seed: queuedSeed,
@@ -685,6 +712,7 @@ function createAdvancedQueueSeedRuntime(dependencies) {
           targetIds,
           queuedSeed,
           nextSeed: reservedNextSeed,
+          mode,
           status: "pending",
         };
         state.reservations.push(reservation);

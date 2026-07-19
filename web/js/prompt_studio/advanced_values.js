@@ -20,6 +20,9 @@ import {
   findWidget,
   firstValue,
 } from "./widgets.js";
+import {
+  serializePreviousWildcardExecution,
+} from "./wildcard_seed_history.js";
 
 function syncAdvancedValues(node, serialized = null, hooks = {}) {
   hooks.repairAdvancedInternalWidgetValues?.(node);
@@ -53,6 +56,11 @@ function syncAdvancedValues(node, serialized = null, hooks = {}) {
       serialized.widgets_values[index] = value;
     }
   }
+  serializePreviousWildcardExecution(node, serialized, {
+    modeWidgetIndex: ADVANCED_WIDGET_INDEX.wildcard_mode,
+    seedWidgetIndex: ADVANCED_WIDGET_INDEX.wildcard_seed,
+    controlWidgetIndex: ADVANCED_WIDGET_INDEX.wildcard_seed_after_generate,
+  });
 }
 
 function applyAdvancedExecutedInputs(node, message, hooks = {}) {

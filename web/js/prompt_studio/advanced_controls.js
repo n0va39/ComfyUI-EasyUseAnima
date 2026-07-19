@@ -42,6 +42,10 @@ import {
   bindWildcardSeedInput,
   normalizeWildcardSeedControl,
 } from "./wildcard_seed_contract.js";
+import {
+  readPreviousWildcardExecution,
+  wildcardModeWidgetValue,
+} from "./wildcard_seed_history.js";
 
 function setAdvancedControlValue(node, name, value) {
   const widget = findWidget(node, name);
@@ -627,6 +631,26 @@ function createAdvancedWildcardSettingsBody(node) {
   controlSelect.title = advancedWildcardSeedControlTitle(controlValue);
   controlSelect.setAttribute("aria-description", controlSelect.title);
 
+  const previousExecution = readPreviousWildcardExecution(node);
+  const previousButton = document.createElement("button");
+  protectAdvancedNativeControl(previousButton);
+  previousButton.type = "button";
+  previousButton.className = "easyuse-anima-advanced-popup-button";
+  previousButton.disabled = !previousExecution;
+  previousButton.textContent = previousExecution
+    ? psText("advanced.wildcardPreviousSeedReuse").replace(
+      "{seed}",
+      String(previousExecution.seed),
+    )
+    : psText("advanced.wildcardPreviousSeedUnavailable");
+  previousButton.title = previousExecution
+    ? psText("advanced.wildcardPreviousSeedTitle").replace(
+      "{seed}",
+      String(previousExecution.seed),
+    )
+    : psText("advanced.wildcardPreviousSeedUnavailableTitle");
+  previousButton.setAttribute("aria-label", previousButton.title);
+
   const modeRow = createAdvancedControlRow("advanced.wildcard", modeSelect);
   applyAdvancedWildcardModeTitle(modeRow, modeSelect, modeValue);
   const refreshSummary = () => updateAdvancedSummary(node, "wildcard", advancedWildcardSummary(node));
@@ -643,8 +667,25 @@ function createAdvancedWildcardSettingsBody(node) {
     controlSelect.setAttribute("aria-description", controlSelect.title);
     refreshSummary();
   };
+  const reusePreviousSeed = () => {
+    if (!previousExecution) {
+      return;
+    }
+    const previousMode = wildcardModeWidgetValue(previousExecution.mode);
+    setAdvancedWidgetValue(node, "wildcard_mode", previousMode);
+    setAdvancedWidgetValue(node, "wildcard_seed", previousExecution.seed);
+    setAdvancedWidgetValue(node, "wildcard_seed_after_generate", "fixed");
+    modeSelect.value = previousMode;
+    seedInput.value = String(previousExecution.seed);
+    controlSelect.value = "fixed";
+    controlSelect.title = advancedWildcardSeedControlTitle("fixed");
+    controlSelect.setAttribute("aria-description", controlSelect.title);
+    applyAdvancedWildcardModeTitle(modeRow, modeSelect, previousMode);
+    refreshSummary();
+  };
   modeSelect.addEventListener("change", syncMode);
   controlSelect.addEventListener("change", syncControl);
+  previousButton.addEventListener("click", reusePreviousSeed);
   bindWildcardSeedInput(
     seedInput,
     () => seedWidget.value,
@@ -655,6 +696,7 @@ function createAdvancedWildcardSettingsBody(node) {
     modeRow,
     createAdvancedControlRow("advanced.wildcardSeed", seedInput),
     createAdvancedControlRow("advanced.wildcardSeedControl", controlSelect),
+    createAdvancedControlRow("advanced.wildcardPreviousSeed", previousButton),
   );
   return body;
 }
