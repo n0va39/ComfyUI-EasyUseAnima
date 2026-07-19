@@ -30,7 +30,17 @@ from easyuse_anima.lora import metadata as lora_metadata
 from easyuse_anima.lora import preset as lora_preset
 from easyuse_anima.naia import client as naia_client
 from easyuse_anima.naia import resolution as naia_resolution
-from easyuse_anima.nodes import image_nodes, lora_nodes, naia_nodes, prompt_nodes, wildcard_nodes
+from easyuse_anima.nodes import (
+    image_nodes,
+    lora_nodes,
+    naia_nodes,
+    prompt_data_nodes,
+    prompt_nodes,
+    wildcard_nodes,
+)
+from easyuse_anima.prompt import artist_mix as prompt_artist_mix
+from easyuse_anima.prompt import conditioning as prompt_conditioning
+from easyuse_anima.prompt import data as prompt_data
 from easyuse_anima.prompt import correction as prompt_correction
 from easyuse_anima.prompt import fields as prompt_fields
 
@@ -1033,6 +1043,133 @@ print(json.dumps({{
         self.assertEqual(
             payload["class_modules"],
             ["easyuse_anima.nodes.prompt_nodes", "easyuse_anima.nodes.prompt_nodes"],
+        )
+        self.assertFalse(payload["root_nodes_loaded"])
+
+
+class PromptDataConditioningMoveContractTests(unittest.TestCase):
+    NODE_CLASSES = (
+        "EasyUseAnimaPromptDataUnpack",
+        "EasyUseAnimaArtistMixConditioning",
+        "EasyUseAnimaPromptDataConditioning",
+    )
+    MOVED_HELPERS = {
+        prompt_data: (
+            "_normalize_prompt_data",
+            "_prompt_data_output",
+            "_prompt_data_parameter_snapshot",
+            "_advanced_outputs_from_prompt_data",
+            "_apply_prompt_data_overrides",
+        ),
+        prompt_artist_mix: (
+            "_parse_artist_mix_items",
+            "_artist_prompt_with_position",
+            "_blend_conditionings",
+            "_encode_artist_delta_rms",
+            "_encode_artist_clustered",
+            "_encode_prompt_data_positive_conditioning",
+        ),
+        prompt_conditioning: (
+            "_find_spectrum_anima_mod_guidance_class",
+            "_resolve_anima_mod_guidance_enabled",
+            "_normalize_anima_mod_guidance_profile",
+            "_apply_spectrum_anima_mod_guidance",
+        ),
+    }
+
+    def test_root_prompt_data_conditioning_objects_are_direct_canonical_aliases(self):
+        for name in self.NODE_CLASSES:
+            with self.subTest(module="prompt_data_nodes", name=name):
+                self.assertIs(getattr(nodes, name), getattr(prompt_data_nodes, name))
+        for module, names in self.MOVED_HELPERS.items():
+            for name in names:
+                with self.subTest(module=module.__name__, name=name):
+                    self.assertIs(getattr(nodes, name), getattr(module, name))
+
+    def test_package_entrypoint_mappings_keep_canonical_class_identity_and_display(self):
+        expected_display = {
+            "EasyUseAnimaPromptDataUnpack": nodes.PROMPT_DATA_TYPE,
+            "EasyUseAnimaArtistMixConditioning": "Anima Artist Mix Conditioning",
+            "EasyUseAnimaPromptDataConditioning": "Anima Prompt Data Conditioning",
+        }
+        with _loaded_package_entrypoint() as (package_entry, package_nodes):
+            package_name = package_nodes.__package__
+            package_adapters = sys.modules[
+                f"{package_name}.easyuse_anima.nodes.prompt_data_nodes"
+            ]
+            for name in self.NODE_CLASSES:
+                with self.subTest(name=name):
+                    canonical_class = getattr(package_adapters, name)
+                    self.assertIs(getattr(package_nodes, name), canonical_class)
+                    self.assertIs(package_entry.NODE_CLASS_MAPPINGS[name], canonical_class)
+                    self.assertEqual(
+                        package_entry.NODE_DISPLAY_NAME_MAPPINGS[name],
+                        expected_display[name],
+                    )
+
+    def test_unpack_contract_is_fixed_without_importing_advanced_from_root(self):
+        self.assertEqual(
+            prompt_data_nodes.EasyUseAnimaPromptDataUnpack.OUTPUT_TOOLTIPS,
+            (
+                "Pass-through prompt data for downstream prompt-data nodes.",
+                *prompt_data.PROMPT_DATA_COMPAT_OUTPUT_TOOLTIPS,
+            ),
+        )
+        self.assertEqual(
+            prompt_data_nodes.EasyUseAnimaPromptDataUnpack.RETURN_TYPES,
+            (nodes.PROMPT_DATA_TYPE, *nodes.EasyUseAnimaPromptStudioAdvanced.RETURN_TYPES),
+        )
+        self.assertEqual(
+            prompt_data_nodes.EasyUseAnimaPromptDataUnpack.RETURN_NAMES,
+            (nodes.PROMPT_DATA_TYPE, *nodes.EasyUseAnimaPromptStudioAdvanced.RETURN_NAMES),
+        )
+
+    def test_root_change_key_monkeypatch_drives_canonical_adapter(self):
+        with patch.object(nodes, "_stable_change_key", side_effect=lambda value: value) as stable:
+            change_key = prompt_data_nodes.EasyUseAnimaPromptDataUnpack.IS_CHANGED(
+                {nodes.PROMPT_DATA_TYPE: True}
+            )
+
+        self.assertEqual(change_key["mode"], "prompt_data_unpack")
+        self.assertEqual(change_key["prompt_data"], {nodes.PROMPT_DATA_TYPE: True})
+        stable.assert_called_once_with(change_key)
+
+    def test_fresh_process_direct_imports_do_not_load_root_nodes(self):
+        script = f"""
+import importlib
+import json
+import sys
+sys.path.insert(0, {str(ROOT)!r})
+sys.dont_write_bytecode = True
+modules = [
+    importlib.import_module("easyuse_anima.prompt.data"),
+    importlib.import_module("easyuse_anima.prompt.artist_mix"),
+    importlib.import_module("easyuse_anima.prompt.conditioning"),
+    importlib.import_module("easyuse_anima.nodes.prompt_data_nodes"),
+]
+print(json.dumps({{
+    "class_modules": [
+        modules[-1].EasyUseAnimaPromptDataUnpack.__module__,
+        modules[-1].EasyUseAnimaArtistMixConditioning.__module__,
+        modules[-1].EasyUseAnimaPromptDataConditioning.__module__,
+    ],
+    "root_nodes_loaded": "nodes" in sys.modules,
+}}))
+"""
+        result = subprocess.run(
+            [sys.executable, "-I", "-B", "-c", script],
+            cwd=ROOT,
+            check=False,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            timeout=10,
+        )
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        payload = json.loads(result.stdout)
+        self.assertEqual(
+            payload["class_modules"],
+            ["easyuse_anima.nodes.prompt_data_nodes"] * 3,
         )
         self.assertFalse(payload["root_nodes_loaded"])
 
