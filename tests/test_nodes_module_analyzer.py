@@ -73,11 +73,11 @@ def load_dynamic():
     def test_current_nodes_module_shape_matches_recorded_baseline(self):
         report = analyzer.analyze_path(ROOT / "nodes.py")
 
-        self.assertEqual(report["git_blob_sha1"], "d968590df0342a380a1103bdf95b0b942fab8fb2")
-        # Issue #184 B-07a moved the Prompt Corrector vertical slice as direct aliases.
-        self.assertEqual(report["top_level"]["function_count"], 216)
-        self.assertEqual(report["top_level"]["class_count"], 17)
-        self.assertEqual(report["line_count"], 10_664)
+        self.assertEqual(report["git_blob_sha1"], "1355064c0bdec0350aab793134f3e4ee00eef42b")
+        # Issue #184 B-07b moved Prompt Builder and classic Prompt Studio as direct aliases.
+        self.assertEqual(report["top_level"]["function_count"], 210)
+        self.assertEqual(report["top_level"]["class_count"], 15)
+        self.assertEqual(report["line_count"], 10_395)
         class_names = {item["name"] for item in report["top_level"]["classes"]}
         self.assertIn("EasyUseAnimaAIOGenerator", class_names)
         self.assertIn("EasyUseAnimaPromptStudioAdvancedV2", class_names)
@@ -88,6 +88,8 @@ def load_dynamic():
         self.assertNotIn("EasyUseAnimaLoraPreset", class_names)
         self.assertNotIn("EasyUseAnimaPromptCorrector", class_names)
         self.assertNotIn("EasyUseAnimaPromptCorrectorSimple", class_names)
+        self.assertNotIn("EasyUseAnimaPromptBuilder", class_names)
+        self.assertNotIn("EasyUseAnimaPromptStudio", class_names)
 
     def test_external_source_label_does_not_expose_parent_directories(self):
         label = analyzer._source_label(Path("Z:/private/user/data/example.py"))

@@ -47,6 +47,7 @@ EXPECTED_PYTHON_PACKAGE_FILES = {
     "easyuse_anima/profiles/mutation.py",
     "easyuse_anima/prompt/__init__.py",
     "easyuse_anima/prompt/correction.py",
+    "easyuse_anima/prompt/fields.py",
 }
 STATIC_IMPORT_FROM_RE = re.compile(
     r"""
@@ -156,6 +157,7 @@ class RegistryScannerSafetyTests(unittest.TestCase):
             "easyuse_anima/nodes/prompt_nodes.py",
             "easyuse_anima/nodes/wildcard_nodes.py",
             "easyuse_anima/prompt/correction.py",
+            "easyuse_anima/prompt/fields.py",
             "nodes.py",
             "prompt_translation.py",
             "settings.py",
