@@ -21,6 +21,7 @@ PACKAGE_MODULES = (
     "easyuse_anima.infrastructure.comfy.capabilities",
     "easyuse_anima.infrastructure.comfy.invocation",
     "easyuse_anima.infrastructure.comfy.resources",
+    "easyuse_anima.lora",
     "easyuse_anima.naia",
     "easyuse_anima.nodes",
     "easyuse_anima.profiles",

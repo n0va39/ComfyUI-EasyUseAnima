@@ -5,6 +5,7 @@ import importlib.util
 import json
 import math
 import re
+import subprocess
 import sys
 import types
 import unittest
@@ -25,9 +26,11 @@ from easyuse_anima.image import scaling as image_scaling
 from easyuse_anima.infrastructure.comfy import capabilities as comfy_capabilities
 from easyuse_anima.infrastructure.comfy import invocation as comfy_invocation
 from easyuse_anima.infrastructure.comfy import resources as comfy_resources
+from easyuse_anima.lora import metadata as lora_metadata
+from easyuse_anima.lora import preset as lora_preset
 from easyuse_anima.naia import client as naia_client
 from easyuse_anima.naia import resolution as naia_resolution
-from easyuse_anima.nodes import image_nodes, naia_nodes, wildcard_nodes
+from easyuse_anima.nodes import image_nodes, lora_nodes, naia_nodes, wildcard_nodes
 
 
 PACKAGE_INIT = ROOT / "__init__.py"
@@ -725,6 +728,109 @@ class WildcardNaiaMoveContractTests(unittest.TestCase):
                 package_nodes.EasyUseAnimaNAIARandomPrompt,
                 package_naia_nodes.EasyUseAnimaNAIARandomPrompt,
             )
+
+
+class LoraPresetMoveContractTests(unittest.TestCase):
+    METADATA_HELPERS = (
+        "_apply_lora_syntax_format",
+        "_fallback_lora_path",
+        "_lora_stack_name",
+        "_dedupe_text_values",
+        "_trigger_words_from_value",
+        "_metadata_json_paths_for_lora",
+        "_load_lora_manager_metadata",
+        "_lora_manager_trigger_words_from_metadata",
+        "_get_lora_manager_trigger_words",
+        "_get_lora_info",
+        "_lora_combo_values",
+        "_lora_model_exists",
+        "_missing_lora_display_name",
+        "_raise_missing_loras",
+    )
+    PRESET_HELPERS = (
+        "_profile_key",
+        "_wrap_profile_index",
+        "_load_profile_data",
+        "_get_loras_list",
+        "_correct_style_prompt",
+        "_format_strength",
+        "_select_profile_values",
+    )
+
+    def test_root_lora_objects_are_direct_canonical_aliases(self):
+        for name in self.METADATA_HELPERS:
+            with self.subTest(module="metadata", name=name):
+                self.assertIs(getattr(nodes, name), getattr(lora_metadata, name))
+        for name in self.PRESET_HELPERS:
+            with self.subTest(module="preset", name=name):
+                self.assertIs(getattr(nodes, name), getattr(lora_preset, name))
+        self.assertIs(nodes.EasyUseAnimaLoraPreset, lora_nodes.EasyUseAnimaLoraPreset)
+
+    def test_package_loaded_root_lora_objects_are_direct_canonical_aliases(self):
+        with _loaded_package_entrypoint() as (_, package_nodes):
+            package_name = package_nodes.__package__
+            package_metadata = sys.modules[f"{package_name}.easyuse_anima.lora.metadata"]
+            package_preset = sys.modules[f"{package_name}.easyuse_anima.lora.preset"]
+            package_lora_nodes = sys.modules[f"{package_name}.easyuse_anima.nodes.lora_nodes"]
+
+            for name in self.METADATA_HELPERS:
+                with self.subTest(module="metadata", name=name):
+                    self.assertIs(getattr(package_nodes, name), getattr(package_metadata, name))
+            for name in self.PRESET_HELPERS:
+                with self.subTest(module="preset", name=name):
+                    self.assertIs(getattr(package_nodes, name), getattr(package_preset, name))
+            self.assertIs(
+                package_nodes.EasyUseAnimaLoraPreset,
+                package_lora_nodes.EasyUseAnimaLoraPreset,
+            )
+
+    def test_root_monkeypatches_drive_the_canonical_lora_node(self):
+        canonical_node = lora_nodes.EasyUseAnimaLoraPreset()
+        with (
+            patch.object(nodes, "_correct_style_prompt", side_effect=lambda value: f"bound:{value}"),
+            patch.object(nodes, "_get_lora_info", return_value=("foo.safetensors", ["@bound"])),
+            patch.object(nodes, "_lora_model_exists", return_value=True),
+        ):
+            result = canonical_node.build(
+                style_prompt="style",
+                profile_index=1,
+                loras='[{"name":"foo.safetensors","strength":1}]',
+                profile_data="{}",
+            )["result"]
+
+        self.assertEqual(result[0], "bound:style")
+        self.assertEqual(result[2], "@bound")
+
+    def test_fresh_process_direct_imports_do_not_load_root_nodes(self):
+        script = f"""
+import importlib
+import json
+import sys
+sys.path.insert(0, {str(ROOT)!r})
+sys.dont_write_bytecode = True
+modules = [
+    importlib.import_module("easyuse_anima.lora.metadata"),
+    importlib.import_module("easyuse_anima.lora.preset"),
+    importlib.import_module("easyuse_anima.nodes.lora_nodes"),
+]
+print(json.dumps({{
+    "class_module": modules[-1].EasyUseAnimaLoraPreset.__module__,
+    "root_nodes_loaded": "nodes" in sys.modules,
+}}))
+"""
+        result = subprocess.run(
+            [sys.executable, "-I", "-B", "-c", script],
+            cwd=ROOT,
+            check=False,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            timeout=10,
+        )
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        payload = json.loads(result.stdout)
+        self.assertEqual(payload["class_module"], "easyuse_anima.nodes.lora_nodes")
+        self.assertFalse(payload["root_nodes_loaded"])
 
 
 class PublicNodeContractTests(unittest.TestCase):

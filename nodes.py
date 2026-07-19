@@ -118,6 +118,37 @@ try:
         WILDCARD_SEED_RANGE_NOTE as WILDCARD_SEED_RANGE_NOTE,
         _bind_wildcard_node_runtime as _bind_wildcard_node_runtime,
     )
+    from .easyuse_anima.lora.metadata import (
+        _apply_lora_syntax_format as _apply_lora_syntax_format,
+        _bind_lora_metadata_runtime as _bind_lora_metadata_runtime,
+        _dedupe_text_values as _dedupe_text_values,
+        _fallback_lora_path as _fallback_lora_path,
+        _get_lora_info as _get_lora_info,
+        _get_lora_manager_trigger_words as _get_lora_manager_trigger_words,
+        _load_lora_manager_metadata as _load_lora_manager_metadata,
+        _lora_combo_values as _lora_combo_values,
+        _lora_manager_trigger_words_from_metadata as _lora_manager_trigger_words_from_metadata,
+        _lora_model_exists as _lora_model_exists,
+        _lora_stack_name as _lora_stack_name,
+        _metadata_json_paths_for_lora as _metadata_json_paths_for_lora,
+        _missing_lora_display_name as _missing_lora_display_name,
+        _raise_missing_loras as _raise_missing_loras,
+        _trigger_words_from_value as _trigger_words_from_value,
+    )
+    from .easyuse_anima.lora.preset import (
+        _bind_lora_preset_runtime as _bind_lora_preset_runtime,
+        _correct_style_prompt as _correct_style_prompt,
+        _format_strength as _format_strength,
+        _get_loras_list as _get_loras_list,
+        _load_profile_data as _load_profile_data,
+        _profile_key as _profile_key,
+        _select_profile_values as _select_profile_values,
+        _wrap_profile_index as _wrap_profile_index,
+    )
+    from .easyuse_anima.nodes.lora_nodes import (
+        EasyUseAnimaLoraPreset as EasyUseAnimaLoraPreset,
+        _bind_lora_node_runtime as _bind_lora_node_runtime,
+    )
     from .anima_prompt import correct_prompt, load_knowledge_base
     from .anima_prompt.parser import parse_prompt
     from .settings import (
@@ -252,6 +283,37 @@ except ImportError:  # allows simple local import tests outside ComfyUI's packag
         EasyUseAnimaWildcard as EasyUseAnimaWildcard,
         WILDCARD_SEED_RANGE_NOTE as WILDCARD_SEED_RANGE_NOTE,
         _bind_wildcard_node_runtime as _bind_wildcard_node_runtime,
+    )
+    from easyuse_anima.lora.metadata import (
+        _apply_lora_syntax_format as _apply_lora_syntax_format,
+        _bind_lora_metadata_runtime as _bind_lora_metadata_runtime,
+        _dedupe_text_values as _dedupe_text_values,
+        _fallback_lora_path as _fallback_lora_path,
+        _get_lora_info as _get_lora_info,
+        _get_lora_manager_trigger_words as _get_lora_manager_trigger_words,
+        _load_lora_manager_metadata as _load_lora_manager_metadata,
+        _lora_combo_values as _lora_combo_values,
+        _lora_manager_trigger_words_from_metadata as _lora_manager_trigger_words_from_metadata,
+        _lora_model_exists as _lora_model_exists,
+        _lora_stack_name as _lora_stack_name,
+        _metadata_json_paths_for_lora as _metadata_json_paths_for_lora,
+        _missing_lora_display_name as _missing_lora_display_name,
+        _raise_missing_loras as _raise_missing_loras,
+        _trigger_words_from_value as _trigger_words_from_value,
+    )
+    from easyuse_anima.lora.preset import (
+        _bind_lora_preset_runtime as _bind_lora_preset_runtime,
+        _correct_style_prompt as _correct_style_prompt,
+        _format_strength as _format_strength,
+        _get_loras_list as _get_loras_list,
+        _load_profile_data as _load_profile_data,
+        _profile_key as _profile_key,
+        _select_profile_values as _select_profile_values,
+        _wrap_profile_index as _wrap_profile_index,
+    )
+    from easyuse_anima.nodes.lora_nodes import (
+        EasyUseAnimaLoraPreset as EasyUseAnimaLoraPreset,
+        _bind_lora_node_runtime as _bind_lora_node_runtime,
     )
     from anima_prompt import correct_prompt, load_knowledge_base
     from anima_prompt.parser import parse_prompt
@@ -7212,296 +7274,20 @@ _bind_naia_node_runtime(
     post_random=lambda *args, **kwargs: _post_random(*args, **kwargs),
     parse_random_response=lambda *args, **kwargs: _parse_random_response(*args, **kwargs),
 )
-
-
-def _profile_key(profile_index: int) -> str:
-    return str(max(1, _as_int(profile_index, 1)))
-
-
-def _wrap_profile_index(profile_index: int, profile_count: int) -> int:
-    count = max(1, min(16, _as_int(profile_count, 1)))
-    index = max(1, _as_int(profile_index, 1))
-    return ((index - 1) % count) + 1
-
-
-def _load_profile_data(profile_data: Any) -> dict[str, dict]:
-    if isinstance(profile_data, dict):
-        raw = profile_data
-    else:
-        try:
-            raw = json.loads(str(profile_data or "{}"))
-        except (TypeError, ValueError):
-            raw = {}
-    if not isinstance(raw, dict):
-        return {}
-    profiles: dict[str, dict] = {}
-    for key, value in raw.items():
-        if isinstance(value, dict):
-            profiles[str(key)] = value
-    return profiles
-
-
-def _get_loras_list(kwargs: dict) -> list[dict]:
-    loras_data = kwargs.get("loras")
-    if isinstance(loras_data, dict) and "__value__" in loras_data:
-        loras_data = loras_data["__value__"]
-    if isinstance(loras_data, str):
-        try:
-            loras_data = json.loads(loras_data or "[]")
-        except (TypeError, ValueError):
-            loras_data = []
-    if not isinstance(loras_data, list):
-        return []
-    return [item for item in loras_data if isinstance(item, dict)]
-
-
-def _apply_lora_syntax_format(name: str) -> str:
-    try:
-        from py.nodes.utils import apply_lora_syntax_format  # type: ignore
-
-        return str(apply_lora_syntax_format(name))
-    except Exception:
-        base_name = str(name).replace("\\", "/").rstrip("/").split("/")[-1]
-        return os.path.splitext(base_name)[0]
-
-
-def _fallback_lora_path(lora_name: str) -> str:
-    try:
-        import folder_paths  # type: ignore
-
-        for candidate in (
-            lora_name,
-            f"{lora_name}.safetensors",
-            f"{lora_name}.pt",
-            f"{lora_name}.ckpt",
-        ):
-            path = folder_paths.get_full_path("loras", candidate)
-            if path:
-                return path
-    except Exception:
-        pass
-    return lora_name
-
-
-def _lora_stack_name(lora_name: str) -> str:
-    value = str(lora_name or "").strip()
-    if not value:
-        return value
-
-    try:
-        import folder_paths  # type: ignore
-
-        absolute_value = os.path.abspath(value)
-        for root in folder_paths.get_folder_paths("loras"):
-            absolute_root = os.path.abspath(root)
-            try:
-                relative = os.path.relpath(absolute_value, absolute_root)
-            except ValueError:
-                continue
-            if relative == "." or relative.startswith(f"..{os.sep}") or relative == "..":
-                continue
-            return relative.replace("/", os.sep)
-    except Exception:
-        pass
-
-    normalized = value.replace("\\", "/")
-    marker = "/models/loras/"
-    marker_index = normalized.casefold().rfind(marker)
-    if marker_index >= 0:
-        normalized = normalized[marker_index + len(marker):]
-    return normalized.replace("/", os.sep)
-
-
-def _dedupe_text_values(values) -> list[str]:
-    seen: set[str] = set()
-    result: list[str] = []
-    for value in values:
-        text = str(value or "").strip()
-        if not text:
-            continue
-        key = text.casefold()
-        if key in seen:
-            continue
-        seen.add(key)
-        result.append(text)
-    return result
-
-
-def _trigger_words_from_value(value) -> list[str]:
-    if isinstance(value, str):
-        return _dedupe_text_values(_prompt_tokens(value))
-    if isinstance(value, dict):
-        for key in ("word", "name", "tag", "text"):
-            if key in value:
-                return _trigger_words_from_value(value.get(key))
-        return []
-    if isinstance(value, (list, tuple, set)):
-        words: list[str] = []
-        for item in value:
-            words.extend(_trigger_words_from_value(item))
-        return _dedupe_text_values(words)
-    return []
-
-
-def _metadata_json_paths_for_lora(lora_path: str) -> list[str]:
-    path = str(lora_path or "").strip()
-    if not path:
-        return []
-    base, _ext = os.path.splitext(path)
-    candidates = [f"{base}.metadata.json", f"{path}.metadata.json"]
-    return _dedupe_text_values(candidates)
-
-
-def _load_lora_manager_metadata(lora_path: str) -> dict:
-    for metadata_path in _metadata_json_paths_for_lora(lora_path):
-        if not os.path.isfile(metadata_path):
-            continue
-        try:
-            with open(metadata_path, "r", encoding="utf-8") as handle:
-                data = json.load(handle)
-        except (OSError, json.JSONDecodeError) as exc:
-            logger.warning("[EasyUse Anima] failed to read LoRA metadata JSON %s: %s", metadata_path, exc)
-            continue
-        if isinstance(data, dict):
-            return data
-    return {}
-
-
-def _lora_manager_trigger_words_from_metadata(metadata: dict) -> list[str]:
-    if not isinstance(metadata, dict):
-        return []
-
-    words: list[str] = []
-    for key in _TRIGGER_WORD_KEYS:
-        words.extend(_trigger_words_from_value(metadata.get(key)))
-
-    civitai = metadata.get("civitai")
-    if isinstance(civitai, dict):
-        for key in _TRIGGER_WORD_KEYS:
-            words.extend(_trigger_words_from_value(civitai.get(key)))
-
-    return _dedupe_text_values(words)
-
-
-def _get_lora_manager_trigger_words(lora_path: str) -> list[str]:
-    return _lora_manager_trigger_words_from_metadata(_load_lora_manager_metadata(lora_path))
-
-
-def _get_lora_info(lora_name: str) -> tuple[str, list[str]]:
-    fallback_path = _fallback_lora_path(lora_name)
-    trigger_words = _get_lora_manager_trigger_words(fallback_path)
-    if trigger_words:
-        return fallback_path, trigger_words
-
-    try:
-        from py.utils.utils import get_lora_info  # type: ignore
-
-        path, trigger_words = get_lora_info(lora_name)
-        if not isinstance(trigger_words, list):
-            trigger_words = []
-        trigger_words = _dedupe_text_values(trigger_words)
-        if trigger_words:
-            return str(path), trigger_words
-        json_trigger_words = _get_lora_manager_trigger_words(str(path))
-        return str(path), json_trigger_words
-    except Exception:
-        return fallback_path, []
-
-
-def _correct_style_prompt(prompt: str) -> str:
-    return _correct_builder_prompt(prompt)
-
-
-
-def _format_strength(value: float) -> str:
-    text = f"{float(value):.6f}".rstrip("0").rstrip(".")
-    return text or "0"
-
-
-def _select_profile_values(
-    profile_index: int,
-    profile_count: int,
-    profile_data: str,
-    style_prompt: str,
-    kwargs: dict,
-) -> tuple[str, list[dict], int]:
-    selected_index = _wrap_profile_index(profile_index, profile_count)
-    profile = _load_profile_data(profile_data).get(_profile_key(selected_index), {})
-    selected_style = str(profile.get("style_prompt", style_prompt or ""))
-    profile_loras = profile.get("loras")
-    if isinstance(profile_loras, list):
-        loras = [item for item in profile_loras if isinstance(item, dict)]
-    else:
-        loras = _get_loras_list(kwargs)
-    return selected_style, loras, selected_index
-
-
-def _lora_combo_values() -> list[str]:
-    try:
-        import folder_paths  # type: ignore
-
-        names = [str(name) for name in folder_paths.get_filename_list("loras")]
-    except Exception:
-        names = []
-    values = ["None"]
-    seen = {"none"}
-    for name in names:
-        text = str(name or "").strip()
-        if not text:
-            continue
-        key = text.casefold()
-        if key in seen:
-            continue
-        seen.add(key)
-        values.append(text)
-    return values
-
-
-def _lora_model_exists(lora_name: str) -> bool | None:
-    name = str(lora_name or "").strip()
-    if not name or name == "None":
-        return True
-
-    try:
-        import folder_paths  # type: ignore
-    except Exception:
-        return None
-
-    candidates = _dedupe_text_values((
-        name,
-        name.replace("\\", "/"),
-        name.replace("/", os.sep),
-    ))
-    for candidate in candidates:
-        if folder_paths.get_full_path("loras", candidate):
-            return True
-    return False
-
-
-def _missing_lora_display_name(input_name: str, stack_name: str) -> str:
-    input_text = str(input_name or "").strip()
-    stack_text = str(stack_name or "").strip()
-    if not input_text or input_text == stack_text:
-        return stack_text
-    normalized_input = input_text.replace("\\", "/").casefold()
-    normalized_stack = stack_text.replace("\\", "/").casefold()
-    if normalized_input == normalized_stack:
-        return stack_text
-    return f"{stack_text} (input: {input_text})"
-
-
-def _raise_missing_loras(profile_index: int, missing_loras: list[str]):
-    if not missing_loras:
-        return
-    lines = "\n".join(f"- {name}" for name in missing_loras)
-    message = (
-        "[EasyUse Anima] LoRA Preset profile "
-        f"{profile_index} contains missing LoRA model(s):\n"
-        f"{lines}\n"
-        "Install the missing file under ComfyUI/models/loras or remove it from the profile."
-    )
-    logger.error(message)
-    raise RuntimeError(message)
+_bind_lora_metadata_runtime(
+    prompt_tokens=lambda *args, **kwargs: _prompt_tokens(*args, **kwargs),
+    resolve_helper=lambda name: globals()[name],
+    resolve_logger=lambda: logger,
+)
+_bind_lora_preset_runtime(
+    correct_builder_prompt=lambda *args, **kwargs: _correct_builder_prompt(*args, **kwargs),
+    resolve_helper=lambda name: globals()[name],
+)
+_bind_lora_node_runtime(
+    resolve_helper=lambda name: globals()[name],
+    flexible_optional_input_type=_FlexibleOptionalInputType,
+    any_type=_ANY_TYPE,
+)
 
 
 class EasyUseAnimaPromptCorrector:
@@ -10490,169 +10276,6 @@ class EasyUseAnimaPromptStudioExtend:
         return {
             "ui": self._ui(values, live_fill_naia, active_slots),
             "result": result,
-        }
-
-
-class EasyUseAnimaLoraPreset:
-    """Multi-profile LoRA stack preset node for ANIMA style prompts."""
-
-    DESCRIPTION = (
-        "Stores multiple ANIMA LoRA preset profiles, builds a LoRA stack, emits trigger words, "
-        "and preserves profile data in workflow metadata."
-    )
-    OUTPUT_TOOLTIPS = (
-        "Corrected style prompt for artist tags, model triggers, or short style directions.",
-        "LoRA stack compatible with LoRA stack loaders.",
-        "Trigger words collected from selected LoRA metadata.",
-        "Text representation of enabled LoRAs and strengths.",
-        "Currently selected profile index after wrapping to the available profile count.",
-    )
-
-    @classmethod
-    def INPUT_TYPES(cls):
-        return {
-            "required": {
-                "style_prompt": ("STRING", {
-                    "multiline": True,
-                    "default": "",
-                    "tooltip": "Style prompt for artist tags, model triggers, or short style directions.",
-                }),
-                "profile_index": ("INT", {
-                    "default": 1,
-                    "min": 1,
-                    "max": 16,
-                    "step": 1,
-                    "tooltip": "Selected LoRA preset profile. Can be connected from another node.",
-                }),
-                "profile_count": ("STRING", {
-                    "default": "4",
-                    "tooltip": "Internal profile count managed by the front-end profile buttons.",
-                }),
-                "lora_name": (_lora_combo_values(), {
-                    "default": "None",
-                    "tooltip": "Internal LoRA selector source. Hidden by the EasyUse Anima front-end.",
-                }),
-                "loras": ("STRING", {
-                    "multiline": True,
-                    "default": "[]",
-                    "tooltip": "Internal serialized LoRA rows for the selected profile.",
-                }),
-                "profile_data": ("STRING", {
-                    "multiline": True,
-                    "default": "{}",
-                    "tooltip": "Internal serialized profile data.",
-                }),
-            },
-            "optional": _FlexibleOptionalInputType(_ANY_TYPE),
-        }
-
-    RETURN_TYPES = ("STRING", "LORA_STACK", "STRING", "STRING", "INT")
-    RETURN_NAMES = ("style_prompt", "LORA_STACK", "trigger_words", "active_loras", "profile_index")
-    FUNCTION = "build"
-    CATEGORY = "EasyUse Anima/LoRA"
-
-    @classmethod
-    def IS_CHANGED(cls, **kwargs):
-        return _stable_change_key({
-            "mode": "lora_preset",
-            **{key: str(value) for key, value in sorted(kwargs.items())},
-        })
-
-    def build(
-        self,
-        style_prompt: str,
-        profile_index: int,
-        profile_count=4,
-        lora_name: str = "None",
-        loras="[]",
-        profile_data: str = "{}",
-        **kwargs,
-    ):
-        kwargs = dict(kwargs)
-        if loras is not None:
-            kwargs["loras"] = loras
-
-        selected_style, selected_loras, selected_index = _select_profile_values(
-            profile_index,
-            profile_count,
-            profile_data,
-            style_prompt,
-            kwargs,
-        )
-        corrected_style = _correct_style_prompt(selected_style)
-
-        stack = []
-        trigger_words: list[str] = []
-        active_loras: list[tuple[str, float, float]] = []
-
-        lora_stack = kwargs.get("lora_stack")
-        if lora_stack:
-            stack.extend(lora_stack)
-            for lora_path, _model_strength, _clip_strength in lora_stack:
-                lora_base = os.path.splitext(os.path.basename(str(lora_path).replace("\\", "/")))[0]
-                _path, existing_trigger_words = _get_lora_info(lora_base)
-                trigger_words.extend(existing_trigger_words)
-
-        seen: set[tuple[str, float, float]] = set()
-        missing_loras: list[str] = []
-        for lora in selected_loras:
-            enabled_value = lora.get("on", lora.get("active", True))
-            if not _as_bool(enabled_value, True):
-                continue
-            raw_name = str(lora.get("name", lora.get("lora", ""))).strip()
-            if not raw_name or raw_name == "None":
-                continue
-            lora_name = raw_name.replace("\\", "/")
-            active_lora_name = _apply_lora_syntax_format(lora_name)
-            try:
-                model_strength = float(lora.get("strength", 1.0))
-            except (TypeError, ValueError):
-                model_strength = 1.0
-            clip_raw = lora.get("strengthTwo", lora.get("clipStrength", model_strength))
-            try:
-                clip_strength = float(clip_raw if clip_raw is not None else model_strength)
-            except (TypeError, ValueError):
-                clip_strength = model_strength
-
-            stack_lora_name = _lora_stack_name(lora_name)
-            dedupe_key = (stack_lora_name, model_strength, clip_strength)
-            if dedupe_key in seen:
-                continue
-            seen.add(dedupe_key)
-
-            if _lora_model_exists(stack_lora_name) is False:
-                missing_loras.append(_missing_lora_display_name(raw_name, stack_lora_name))
-                continue
-
-            _lora_path, lora_trigger_words = _get_lora_info(lora_name)
-            stack.append((stack_lora_name, model_strength, clip_strength))
-            trigger_words.extend(lora_trigger_words)
-            active_loras.append((active_lora_name, model_strength, clip_strength))
-
-        _raise_missing_loras(selected_index, missing_loras)
-
-        active_loras_text_parts = []
-        for name, model_strength, clip_strength in active_loras:
-            model_text = _format_strength(model_strength)
-            clip_text = _format_strength(clip_strength)
-            if abs(model_strength - clip_strength) > 0.001:
-                active_loras_text_parts.append(f"<lora:{name}:{model_text}:{clip_text}>")
-            else:
-                active_loras_text_parts.append(f"<lora:{name}:{model_text}>")
-
-        return {
-            "ui": {
-                "lora_preset_profile": [{
-                    "profile_index": selected_index,
-                }],
-            },
-            "result": (
-                corrected_style,
-                stack,
-                ", ".join(trigger_words) if trigger_words else "",
-                " ".join(active_loras_text_parts),
-                selected_index,
-            ),
         }
 
 
