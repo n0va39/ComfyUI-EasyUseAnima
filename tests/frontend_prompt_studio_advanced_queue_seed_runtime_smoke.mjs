@@ -1006,17 +1006,22 @@ for (const [surface, createNode] of [
   assert.equal(seedWidget.value, 17, `${surface} rejected queue must keep canonical seed`);
   assert.deepEqual(popupPublishes, [], `${surface} rejected queue must not trigger popup publish`);
 
+  let acceptedCount = 0;
   const accepted = fixture.runtime.wrapQueuePrompt(() => ({
-    prompt_id: `${surface.toLowerCase()}-popup-open`,
+    prompt_id: `${surface.toLowerCase()}-popup-open-${++acceptedCount}`,
     node_errors: {},
   }));
-  await accepted(0, promptFor([node]));
-  assert.equal(seedWidget.value, 18, `${surface} accepted queue must advance canonical seed`);
+  await Promise.all([
+    accepted(0, promptFor([node])),
+    accepted(0, promptFor([node])),
+    accepted(0, promptFor([node])),
+  ]);
+  assert.equal(seedWidget.value, 20, `${surface} three rapid queues must advance canonical seed`);
   assert.equal(popupInput.value, "17", `${surface} open popup starts with its prior snapshot`);
 
   popupInput.dispatch("blur");
-  assert.equal(popupInput.value, "18", `${surface} untouched blur must refresh from canonical seed`);
-  assert.equal(seedWidget.value, 18, `${surface} untouched blur must not roll back canonical seed`);
+  assert.equal(popupInput.value, "20", `${surface} untouched blur must refresh from canonical seed`);
+  assert.equal(seedWidget.value, 20, `${surface} untouched blur must not roll back canonical seed`);
   assert.deepEqual(popupPublishes, [], `${surface} untouched popup must not publish a stale seed`);
 
   popupInput.value = "23";
