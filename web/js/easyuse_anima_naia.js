@@ -210,7 +210,7 @@ function hookShowPreviewWidget(node) {
     return;
   }
   const callback = widget.callback;
-  widget.callback = function () {
+  widget.callback = function (_value) {
     const result = callback?.apply(this, arguments);
     updatePreviewVisibility(node);
     return result;

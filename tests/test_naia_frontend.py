@@ -66,14 +66,15 @@ class NaiaFrontendTests(unittest.TestCase):
             with self.subTest(consumer=consumer):
                 self.assertIn(consumer, entry_source)
 
-    def test_show_preview_hook_forwards_original_arguments_without_unused_formal(self):
+    def test_show_preview_hook_preserves_callback_length_and_forwards_arguments(self):
         entry_source = NAIA_ENTRY.read_text(encoding="utf-8")
 
         self.assertIn(
-            "widget.callback = function () {\n"
+            "widget.callback = function (_value) {\n"
             "    const result = callback?.apply(this, arguments);",
             entry_source,
         )
+        self.assertNotIn("widget.callback = function ()", entry_source)
         self.assertNotIn("widget.callback = function (value)", entry_source)
 
 
