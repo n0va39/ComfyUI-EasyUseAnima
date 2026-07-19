@@ -64,6 +64,8 @@ class WildcardEngineTests(unittest.TestCase):
         self.assertEqual(result.used_keys, ("style",))
 
     def test_sequential_mode_uses_seed_modulo_option_count(self):
+        self.assertIsNone(wildcard_engine._Selector(4, sequential=True).rng)
+
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp)
             (root / "color.txt").write_text("red\nblue\ngreen\n", encoding="utf-8")
@@ -277,40 +279,74 @@ class WildcardEngineTests(unittest.TestCase):
         self.assertEqual(growth_limited.limit_reason, "max_growth_per_pass")
         self.assertEqual(growth_limited.replacement_count, 0)
 
-    def test_existing_seeded_expansion_result_is_preserved(self):
-        source = "{2$$red|blue|green}, {soft|hard}"
+    def test_random_mode_uses_numpy_pcg64_golden_outputs(self):
+        selector = wildcard_engine._Selector(7, sequential=False)
+        self.assertIsInstance(selector.rng.bit_generator, wildcard_engine.np.random.PCG64)
 
-        first = expand_wildcards(source, seed=7)
-        second = expand_wildcards(source, seed=7)
+        cases = (
+            ("option_count_one", "{only}", "only"),
+            ("option_count_two", "{red|blue}", "blue"),
+            (
+                "larger_option_count",
+                "{" + "|".join(f"item-{index:02d}" for index in range(16)) + "}",
+                "item-10",
+            ),
+            (
+                "existing_combined_expansion",
+                "{2$$red|blue|green}, {soft|hard}",
+                "blue, green, hard",
+            ),
+        )
 
-        self.assertEqual(first.text, "blue, green, hard")
-        self.assertEqual(first, second)
-        self.assertIsNone(first.limit_reason)
-
-    def test_random_multiselect_excludes_zero_weight_options_in_both_backends(self):
-        numpy_module = wildcard_engine.np
-        self.assertIsNotNone(numpy_module)
-
-        for backend_name, backend in (("numpy", numpy_module), ("python", None)):
-            with self.subTest(backend=backend_name), patch.object(wildcard_engine, "np", backend):
-                result = expand_wildcards("{2$$0::zero|1::positive}", seed=0)
-
-            self.assertEqual(result.text, "positive")
-
-    def test_all_zero_weights_use_the_full_pool_deterministically_in_both_backends(self):
-        numpy_module = wildcard_engine.np
-        self.assertIsNotNone(numpy_module)
-        source = "{5$$0::red|0::blue|0::green}"
-
-        for backend_name, backend in (("numpy", numpy_module), ("python", None)):
-            with self.subTest(backend=backend_name), patch.object(wildcard_engine, "np", backend):
+        for name, source, expected in cases:
+            with self.subTest(name=name):
                 first = expand_wildcards(source, seed=7)
                 second = expand_wildcards(source, seed=7)
 
-            self.assertEqual(first.text, second.text)
-            values = [part.strip() for part in first.text.split(",")]
-            self.assertEqual(len(values), 3)
-            self.assertEqual(set(values), {"red", "blue", "green"})
+                self.assertEqual(first.text, expected)
+                self.assertEqual(first, second)
+                self.assertIsNone(first.limit_reason)
+
+    def test_random_mode_weighted_and_multiselect_golden_outputs(self):
+        cases = (
+            ("weighted", "{1::red|3::blue|6::green}", "green"),
+            (
+                "multiselect_without_replacement",
+                "{3$$red|blue|green|gold|silver}",
+                "gold, silver, red",
+            ),
+            (
+                "all_zero_weights_use_full_pool",
+                "{5$$0::red|0::blue|0::green}",
+                "red, blue, green",
+            ),
+        )
+
+        for name, source, expected in cases:
+            with self.subTest(name=name):
+                self.assertEqual(expand_wildcards(source, seed=7).text, expected)
+
+    def test_random_mode_nested_wildcard_has_golden_output(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            (root / "outer.txt").write_text(
+                "__inner__ red\n__inner__ blue\n",
+                encoding="utf-8",
+            )
+            (root / "inner.txt").write_text(
+                "circle\nsquare\ntriangle\n",
+                encoding="utf-8",
+            )
+
+            result = expand_wildcards("__outer__", seed=7, roots=[root])
+
+        self.assertEqual(result.text, "triangle blue")
+        self.assertEqual(result.replacement_count, 2)
+
+    def test_random_multiselect_excludes_zero_weight_options(self):
+        result = expand_wildcards("{2$$0::zero|1::positive}", seed=0)
+
+        self.assertEqual(result.text, "positive")
 
     def test_sequential_multiselect_keeps_zero_weight_candidates(self):
         result = expand_wildcards(

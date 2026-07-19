@@ -14,10 +14,9 @@ from pathlib import Path
 from types import MappingProxyType
 from typing import Iterable, Mapping, Sequence
 
-try:
-    import numpy as np
-except Exception:  # pragma: no cover - ComfyUI normally provides numpy.
-    np = None
+# NumPy is mandatory in supported ComfyUI runtimes and defines the seeded
+# wildcard sampling contract. A stdlib fallback would produce different results.
+import numpy as np
 
 try:
     import yaml
@@ -828,10 +827,11 @@ class _Selector:
     def __init__(self, seed: int, sequential: bool):
         self.seed = normalize_seed(seed)
         self.sequential = sequential
-        if np is not None:
-            self.rng = np.random.default_rng(self.seed)
-        else:
-            self.rng = random.Random(self.seed)
+        self.rng = (
+            None
+            if self.sequential
+            else np.random.Generator(np.random.PCG64(self.seed))
+        )
 
     def count_from_range(self, minimum: int, maximum: int) -> int:
         minimum = max(0, minimum)
@@ -840,9 +840,7 @@ class _Selector:
             return minimum
         if self.sequential:
             return minimum + (self.seed % (maximum - minimum + 1))
-        if np is not None:
-            return int(self.rng.integers(minimum, maximum + 1))
-        return self.rng.randint(minimum, maximum)
+        return int(self.rng.integers(minimum, maximum + 1))
 
     def choose_one(self, options: Sequence[WildcardOption]) -> WildcardOption | None:
         selected = self.choose_many(options, 1)
@@ -874,24 +872,12 @@ class _Selector:
             pool_weights = None
 
         count = min(count, len(pool))
-        if np is not None:
-            probabilities = None
-            if pool_weights is not None:
-                total = sum(pool_weights)
-                probabilities = [weight / total for weight in pool_weights]
-            indices = self.rng.choice(len(pool), size=count, replace=False, p=probabilities)
-            return [pool[int(index)] for index in indices]
-
+        probabilities = None
         if pool_weights is not None:
-            selected = []
-            for _ in range(count):
-                choice = self.rng.choices(pool, weights=pool_weights, k=1)[0]
-                index = pool.index(choice)
-                selected.append(choice)
-                pool.pop(index)
-                pool_weights.pop(index)
-            return selected
-        return self.rng.sample(pool, count)
+            total = sum(pool_weights)
+            probabilities = [weight / total for weight in pool_weights]
+        indices = self.rng.choice(len(pool), size=count, replace=False, p=probabilities)
+        return [pool[int(index)] for index in indices]
 
 
 class _WildcardLibrary:

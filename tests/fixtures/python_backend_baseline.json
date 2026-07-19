@@ -28833,25 +28833,17 @@
       {
         "alias": "np",
         "bound_name": "np",
-        "branch_context": [
-          {
-            "branch": "body",
-            "handles_import_failure": true,
-            "has_import_fallback_handler": false,
-            "kind": "try",
-            "line": 17
-          }
-        ],
+        "branch_context": [],
         "classification": "external",
-        "column": 4,
-        "conditional": true,
+        "column": 0,
+        "conditional": false,
         "imported": "numpy",
         "kind": "static_import",
-        "line": 18,
+        "line": 19,
         "name": null,
-        "optional": true,
+        "optional": false,
         "requested": "numpy",
-        "role": "optional_dependency",
+        "role": "ordinary",
         "scope": "<module>",
         "source": "wildcard_engine.py"
       },
@@ -28864,7 +28856,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 22
+            "line": 21
           }
         ],
         "classification": "external",
@@ -28872,7 +28864,7 @@
         "conditional": true,
         "imported": "yaml",
         "kind": "static_import",
-        "line": 23,
+        "line": 22,
         "name": null,
         "optional": true,
         "requested": "yaml",
@@ -28889,7 +28881,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": true,
             "kind": "try",
-            "line": 27
+            "line": 26
           }
         ],
         "classification": "internal",
@@ -28897,12 +28889,12 @@
         "compatibility_pair": {
           "bound_name": "USER_DATA_DIR",
           "target": "storage.py",
-          "try_line": 27
+          "try_line": 26
         },
         "conditional": true,
         "imported": ".storage:USER_DATA_DIR",
         "kind": "static_from",
-        "line": 28,
+        "line": 27,
         "name": "USER_DATA_DIR",
         "optional": false,
         "requested": ".storage",
@@ -28921,9 +28913,9 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 29,
+            "handler_line": 28,
             "kind": "try",
-            "line": 27
+            "line": 26
           }
         ],
         "classification": "compatibility_fallback",
@@ -28931,12 +28923,12 @@
         "compatibility_pair": {
           "bound_name": "USER_DATA_DIR",
           "target": "storage.py",
-          "try_line": 27
+          "try_line": 26
         },
         "conditional": true,
         "imported": "storage:USER_DATA_DIR",
         "kind": "static_from",
-        "line": 30,
+        "line": 29,
         "name": "USER_DATA_DIR",
         "optional": false,
         "requested": "storage",
@@ -28954,7 +28946,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 533
+            "line": 532
           }
         ],
         "classification": "external",
@@ -28962,7 +28954,7 @@
         "conditional": true,
         "imported": "folder_paths",
         "kind": "static_import",
-        "line": 534,
+        "line": 533,
         "name": null,
         "optional": true,
         "requested": "folder_paths",
@@ -28977,7 +28969,7 @@
           {
             "branch": "body",
             "kind": "if",
-            "line": 553,
+            "line": 552,
             "type_checking": false
           },
           {
@@ -28985,7 +28977,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": true,
             "kind": "try",
-            "line": 554
+            "line": 553
           }
         ],
         "classification": "internal",
@@ -28993,12 +28985,12 @@
         "compatibility_pair": {
           "bound_name": "get_settings",
           "target": "settings.py",
-          "try_line": 554
+          "try_line": 553
         },
         "conditional": true,
         "imported": ".settings:get_settings",
         "kind": "static_from",
-        "line": 555,
+        "line": 554,
         "name": "get_settings",
         "optional": false,
         "requested": ".settings",
@@ -29014,7 +29006,7 @@
           {
             "branch": "body",
             "kind": "if",
-            "line": 553,
+            "line": 552,
             "type_checking": false
           },
           {
@@ -29023,9 +29015,9 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 556,
+            "handler_line": 555,
             "kind": "try",
-            "line": 554
+            "line": 553
           }
         ],
         "classification": "compatibility_fallback",
@@ -29033,12 +29025,12 @@
         "compatibility_pair": {
           "bound_name": "get_settings",
           "target": "settings.py",
-          "try_line": 554
+          "try_line": 553
         },
         "conditional": true,
         "imported": "settings:get_settings",
         "kind": "static_from",
-        "line": 557,
+        "line": 556,
         "name": "get_settings",
         "optional": false,
         "requested": "settings",
@@ -30426,14 +30418,14 @@
       },
       {
         "is_package": false,
-        "loc": 1169,
+        "loc": 1155,
         "module": "wildcard_engine",
-        "normalized_git_blob_sha1": "a015c07bedfd6e630e1cd90899734b6d85304b57",
+        "normalized_git_blob_sha1": "da6c507859a6a0df78bd1308d413c717f4b6d9a5",
         "path": "wildcard_engine.py",
         "top_level": {
           "class_count": 12,
           "function_count": 39,
-          "global_count": 40
+          "global_count": 39
         }
       }
     ]
@@ -38128,16 +38120,16 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 29,
+            "handler_line": 28,
             "kind": "try",
-            "line": 27
+            "line": 26
           }
         ],
         "classification": "compatibility_fallback",
         "conditional": true,
         "imported": "storage:USER_DATA_DIR",
         "kind": "static_from",
-        "line": 30,
+        "line": 29,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "wildcard_engine.py",
@@ -38148,7 +38140,7 @@
           {
             "branch": "body",
             "kind": "if",
-            "line": 553,
+            "line": 552,
             "type_checking": false
           },
           {
@@ -38157,16 +38149,16 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 556,
+            "handler_line": 555,
             "kind": "try",
-            "line": 554
+            "line": 553
           }
         ],
         "classification": "compatibility_fallback",
         "conditional": true,
         "imported": "settings:get_settings",
         "kind": "static_from",
-        "line": 557,
+        "line": 556,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "wildcard_engine.py",
@@ -41139,22 +41131,14 @@
         "source": "wildcard_engine.py"
       },
       {
-        "branch_context": [
-          {
-            "branch": "body",
-            "handles_import_failure": true,
-            "has_import_fallback_handler": false,
-            "kind": "try",
-            "line": 17
-          }
-        ],
+        "branch_context": [],
         "classification": "external",
-        "conditional": true,
+        "conditional": false,
         "imported": "numpy",
         "kind": "static_import",
-        "line": 18,
-        "optional": true,
-        "role": "optional_dependency",
+        "line": 19,
+        "optional": false,
+        "role": "ordinary",
         "source": "wildcard_engine.py"
       },
       {
@@ -41164,14 +41148,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 22
+            "line": 21
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "yaml",
         "kind": "static_import",
-        "line": 23,
+        "line": 22,
         "optional": true,
         "role": "optional_dependency",
         "source": "wildcard_engine.py"
@@ -41183,14 +41167,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 533
+            "line": 532
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "folder_paths",
         "kind": "static_import",
-        "line": 534,
+        "line": 533,
         "optional": true,
         "role": "optional_dependency",
         "source": "wildcard_engine.py"
@@ -42144,33 +42128,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 17
-          }
-        ],
-        "classification": "external",
-        "conditional": true,
-        "imported": "numpy",
-        "kind": "static_import",
-        "line": 18,
-        "optional": true,
-        "role": "optional_dependency",
-        "source": "wildcard_engine.py"
-      },
-      {
-        "branch_context": [
-          {
-            "branch": "body",
-            "handles_import_failure": true,
-            "has_import_fallback_handler": false,
-            "kind": "try",
-            "line": 22
+            "line": 21
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "yaml",
         "kind": "static_import",
-        "line": 23,
+        "line": 22,
         "optional": true,
         "role": "optional_dependency",
         "source": "wildcard_engine.py"
@@ -42182,14 +42147,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 533
+            "line": 532
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "folder_paths",
         "kind": "static_import",
-        "line": 534,
+        "line": 533,
         "optional": true,
         "role": "optional_dependency",
         "source": "wildcard_engine.py"
@@ -43352,7 +43317,7 @@
         "column": 13,
         "context": "assign:COMMENT_RE",
         "kind": "import_time_call",
-        "line": 93,
+        "line": 92,
         "module": "wildcard_engine.py",
         "scope": "<module>"
       },
@@ -43361,7 +43326,7 @@
         "column": 13,
         "context": "assign:DYNAMIC_RE",
         "kind": "import_time_call",
-        "line": 94,
+        "line": 93,
         "module": "wildcard_engine.py",
         "scope": "<module>"
       },
@@ -43370,7 +43335,7 @@
         "column": 14,
         "context": "assign:WILDCARD_RE",
         "kind": "import_time_call",
-        "line": 95,
+        "line": 94,
         "module": "wildcard_engine.py",
         "scope": "<module>"
       },
@@ -43379,7 +43344,7 @@
         "column": 19,
         "context": "assign:WILDCARD_FULL_RE",
         "kind": "import_time_call",
-        "line": 96,
+        "line": 95,
         "module": "wildcard_engine.py",
         "scope": "<module>"
       },
@@ -43388,7 +43353,7 @@
         "column": 25,
         "context": "assign:WILDCARD_QUANTIFIER_RE",
         "kind": "import_time_call",
-        "line": 97,
+        "line": 96,
         "module": "wildcard_engine.py",
         "scope": "<module>"
       },
@@ -43397,7 +43362,7 @@
         "column": 19,
         "context": "assign:WEIGHT_PREFIX_RE",
         "kind": "import_time_call",
-        "line": 101,
+        "line": 100,
         "module": "wildcard_engine.py",
         "scope": "<module>"
       },
@@ -43406,7 +43371,7 @@
         "column": 16,
         "context": "assign:COUNT_SPEC_RE",
         "kind": "import_time_call",
-        "line": 102,
+        "line": 101,
         "module": "wildcard_engine.py",
         "scope": "<module>"
       },
@@ -43415,7 +43380,7 @@
         "column": 1,
         "context": "decorator:WildcardOption",
         "kind": "import_time_call",
-        "line": 107,
+        "line": 106,
         "module": "wildcard_engine.py",
         "scope": "<module>"
       },
@@ -43424,7 +43389,7 @@
         "column": 1,
         "context": "decorator:_WildcardSourceFile",
         "kind": "import_time_call",
-        "line": 113,
+        "line": 112,
         "module": "wildcard_engine.py",
         "scope": "<module>"
       },
@@ -43433,7 +43398,7 @@
         "column": 1,
         "context": "decorator:_WildcardSourceState",
         "kind": "import_time_call",
-        "line": 127,
+        "line": 126,
         "module": "wildcard_engine.py",
         "scope": "<module>"
       },
@@ -43442,7 +43407,7 @@
         "column": 1,
         "context": "decorator:_WildcardSnapshot",
         "kind": "import_time_call",
-        "line": 142,
+        "line": 141,
         "module": "wildcard_engine.py",
         "scope": "<module>"
       },
@@ -43451,7 +43416,7 @@
         "column": 22,
         "context": "assign:_SNAPSHOT_CONDITION",
         "kind": "import_time_call",
-        "line": 167,
+        "line": 166,
         "module": "wildcard_engine.py",
         "scope": "<module>"
       },
@@ -43460,7 +43425,7 @@
         "column": 57,
         "context": "assign:_SNAPSHOT_CACHE",
         "kind": "import_time_call",
-        "line": 168,
+        "line": 167,
         "module": "wildcard_engine.py",
         "scope": "<module>"
       },
@@ -43469,7 +43434,7 @@
         "column": 33,
         "context": "assign:_SNAPSHOT_BUILDING",
         "kind": "import_time_call",
-        "line": 169,
+        "line": 168,
         "module": "wildcard_engine.py",
         "scope": "<module>"
       },
@@ -43478,7 +43443,7 @@
         "column": 1,
         "context": "decorator:WildcardExpansionBudget",
         "kind": "import_time_call",
-        "line": 190,
+        "line": 189,
         "module": "wildcard_engine.py",
         "scope": "<module>"
       },
@@ -43487,7 +43452,7 @@
         "column": 1,
         "context": "decorator:WildcardExpansionResult",
         "kind": "import_time_call",
-        "line": 235,
+        "line": 234,
         "module": "wildcard_engine.py",
         "scope": "<module>"
       },
@@ -43496,7 +43461,7 @@
         "column": 1,
         "context": "decorator:_ExpansionSegment",
         "kind": "import_time_call",
-        "line": 260,
+        "line": 259,
         "module": "wildcard_engine.py",
         "scope": "<module>"
       },
@@ -43505,7 +43470,7 @@
         "column": 1,
         "context": "decorator:_Replacement",
         "kind": "import_time_call",
-        "line": 333,
+        "line": 332,
         "module": "wildcard_engine.py",
         "scope": "<module>"
       }
@@ -43827,25 +43792,25 @@
       },
       {
         "kind": "set",
-        "line": 91,
+        "line": 90,
         "module": "wildcard_engine.py",
         "name": "WILDCARD_EXTENSIONS"
       },
       {
         "kind": "dict",
-        "line": 52,
+        "line": 51,
         "module": "wildcard_engine.py",
         "name": "WILDCARD_MODE_ALIASES"
       },
       {
         "kind": "set",
-        "line": 169,
+        "line": 168,
         "module": "wildcard_engine.py",
         "name": "_SNAPSHOT_BUILDING"
       },
       {
         "kind": "dict",
-        "line": 168,
+        "line": 167,
         "module": "wildcard_engine.py",
         "name": "_SNAPSHOT_CACHE"
       }
@@ -43982,7 +43947,7 @@
           "single_flight"
         ],
         "initializer": "set",
-        "line": 169,
+        "line": 168,
         "module": "wildcard_engine.py",
         "name": "_SNAPSHOT_BUILDING"
       },
@@ -43992,7 +43957,7 @@
           "mutable_container"
         ],
         "initializer": "OrderedDict",
-        "line": 168,
+        "line": 167,
         "module": "wildcard_engine.py",
         "name": "_SNAPSHOT_CACHE"
       }
