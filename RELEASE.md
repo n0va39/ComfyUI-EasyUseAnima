@@ -1,5 +1,32 @@
 # Release Notes
 
+## 0.5.3
+
+### Fixed
+
+- Anima Wildcard now expands file wildcards such as `__samples/flower__`
+  with the Impact Pack-compatible wildcard rules instead of returning the
+  wildcard key, and exposes the filled text used for generation.
+- Wildcard and Prompt Studio selections now reproduce the same result for the
+  same seed. Fixed, randomize, increment, sequential, and previous-seed reuse
+  controls preserve the intended seed and result.
+- Saved workflows keep their wildcard seed fixed when loaded, so running the
+  workflow again reproduces the saved expanded prompt.
+- The Wildcard Seed dialog now separates concise seed controls from the full
+  rule reference and keeps the help text readable.
+- Profile, settings, autocomplete, translation, and API error paths are more
+  reliable without changing existing node or workflow contracts.
+
+### Compatibility
+
+- Existing workflows, settings, profiles, and public node identifiers remain
+  compatible.
+- Wildcard and seed behavior was checked on both Legacy canvas and Node 2.0.
+
+### Update
+
+- After updating, restart ComfyUI and hard-refresh the browser.
+
 ## 0.5.2
 
 ### Fixed
