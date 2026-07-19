@@ -228,14 +228,11 @@ release-policy change.
 ### 6. After Publishing
 
 - Confirm the Registry page for publisher `n0va39` shows the new version.
-- Confirm install through ComfyUI Manager / Registry.
 - Confirm the already-pushed annotated tag resolves to the released `main`
   commit. Tag creation is a pre-publish gate, not a post-publish repair step.
-- Download the Registry `node.zip` and compare every packaged file with the
-  tagged Git blobs. Also download the GitHub manual-install asset and verify its
-  recorded SHA256 and top-level custom-node folder.
-- Copy a public SHA256 only from the freshly built artifact or the live asset
-  digest. Do not expand a shortened value from a handoff, log, or summary; after
-  editing release copy, read it back and compare the complete value with the
-  live asset.
+- Verify the live Registry API state, changelog, and download URL after publish
+  and metadata sync. Do not redownload or compare the public archive as a
+  routine release step when the pre-publish package evidence is still valid.
+- Download and compare a public archive only when a demonstrated package or
+  Registry discrepancy invalidates that evidence.
 - Do not rewrite the tag after public release. Use a new patch version for fixes.
