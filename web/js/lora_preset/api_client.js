@@ -33,6 +33,14 @@ export function createLoraPresetApiClient(dependencies) {
     return { profile_id: profile.profile_id, revision: profile.revision };
   }
 
+  function profilePayload(payload) {
+    const sanitized = { ...(payload || {}) };
+    for (const field of ["name", "overwrite", "profile_id", "revision"]) {
+      delete sanitized[field];
+    }
+    return sanitized;
+  }
+
   function listProfiles() {
     return fetchJson("/easyuse_anima/lora_profiles");
   }
@@ -46,7 +54,7 @@ export function createLoraPresetApiClient(dependencies) {
   function saveProfile(name, payload, overwrite = false, profile = null) {
     return postJson("/easyuse_anima/lora_profiles/save", {
       name,
-      ...payload,
+      ...profilePayload(payload),
       overwrite,
       ...profileToken(overwrite ? profile : null),
     });

@@ -288,7 +288,7 @@ class FrontendModuleStructureTests(unittest.TestCase):
             re.findall(r"export function ([A-Za-z0-9_]+)\(", source),
             ["aioCreateProfileSettingsRuntime"],
         )
-        self.assertLessEqual(len(source.splitlines()), 430)
+        self.assertLessEqual(len(source.splitlines()), 480)
         self.assertNotRegex(source, re.compile(r"^\s*import\s", re.MULTILINE))
         self.assertNotRegex(source, r"\b(?:window|app|api)\b")
         self.assertNotIn("fetch(", source)

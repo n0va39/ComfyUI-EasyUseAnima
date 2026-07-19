@@ -1,5 +1,7 @@
 // @ts-check
 
+const PROFILE_EXISTS_CODE = "profile_exists";
+
 /**
  * @typedef {object} AioProfileApi
  * @property {() => Promise<any>} listProfiles
@@ -117,6 +119,10 @@ export function aioCreateProfileSettingsRuntime(dependencies) {
     return findUser(state.profiles, name);
   }
 
+  function isProfileExistsError(error) {
+    return error?.code === PROFILE_EXISTS_CODE;
+  }
+
   function rememberProfile(profile, ...replacedNames) {
     const name = String(profile?.name || "").trim();
     if (!name) {
@@ -134,6 +140,13 @@ export function aioCreateProfileSettingsRuntime(dependencies) {
     state.profiles = state.profiles.filter(
       (profile) => String(profile?.name || "").toLowerCase() !== expected,
     );
+  }
+
+  async function loadConflictProfile(name) {
+    const data = await profileApi.loadProfile(name);
+    const profile = data?.profile || null;
+    rememberProfile(profile, name);
+    return profile;
   }
 
   async function loadProfiles({ force = false } = {}) {
@@ -207,7 +220,24 @@ export function aioCreateProfileSettingsRuntime(dependencies) {
       return;
     }
     const settings = getSettings(node);
-    const data = await profileApi.saveProfile(name, overwrite, settings, existing);
+    let data;
+    if (overwrite) {
+      data = await profileApi.saveProfile(name, true, settings, existing);
+    } else {
+      try {
+        data = await profileApi.saveProfile(name, false, settings, null);
+      } catch (error) {
+        if (!isProfileExistsError(error)) {
+          throw error;
+        }
+        const target = await loadConflictProfile(name);
+        const targetName = String(target?.name || name);
+        if (!dialogs.confirm(format("profile.overwriteConfirm", { name: targetName }))) {
+          return;
+        }
+        data = await profileApi.saveProfile(name, true, settings, target);
+      }
+    }
     rememberProfile(data?.profile, name);
     await loadProfiles({ force: true });
     node.__easyuseAnimaGeneratorProfileValue = userValue(data?.profile?.name || name);
@@ -236,13 +266,24 @@ export function aioCreateProfileSettingsRuntime(dependencies) {
       return;
     }
     const current = userProfileByName(oldName);
-    const data = await profileApi.renameProfile(
-      oldName,
-      newName,
-      overwrite,
-      current,
-      overwrite ? existing : null,
-    );
+    let data;
+    if (overwrite) {
+      data = await profileApi.renameProfile(oldName, newName, true, current, existing);
+    } else {
+      try {
+        data = await profileApi.renameProfile(oldName, newName, false, current, null);
+      } catch (error) {
+        if (!isProfileExistsError(error)) {
+          throw error;
+        }
+        const target = await loadConflictProfile(newName);
+        const targetName = String(target?.name || newName);
+        if (!dialogs.confirm(format("profile.overwriteConfirm", { name: targetName }))) {
+          return;
+        }
+        data = await profileApi.renameProfile(oldName, newName, true, current, target);
+      }
+    }
     rememberProfile(data?.profile, oldName, newName);
     await loadProfiles({ force: true });
     if (currentName.toLowerCase() === oldName.toLowerCase()) {
