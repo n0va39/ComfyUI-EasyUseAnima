@@ -40,6 +40,7 @@ import {
 } from "./widgets.js";
 import {
   bindWildcardSeedInput,
+  wildcardSeedControlForMode,
 } from "./wildcard_seed_contract.js";
 
 function setAdvancedControlValue(node, name, value) {
@@ -590,10 +591,14 @@ function createAdvancedWildcardSettingsBody(node) {
   const syncMode = () => {
     const nextMode = normalizeAdvancedWildcardMode(modeSelect.value);
     setAdvancedWidgetValue(node, "wildcard_mode", nextMode);
-    if (nextMode === "순차") {
-      setAdvancedWidgetValue(node, "wildcard_seed_after_generate", "increment");
-      controlSelect.value = "increment";
+    const nextControl = wildcardSeedControlForMode(
+      nextMode,
+      normalizeAdvancedSeedControl(controlWidget.value),
+    );
+    if (nextControl !== controlWidget.value) {
+      setAdvancedWidgetValue(node, "wildcard_seed_after_generate", nextControl);
     }
+    controlSelect.value = nextControl;
     controlSelect.disabled = nextMode === "순차";
     applyAdvancedWildcardModeTitle(modeRow, modeSelect, nextMode);
     refreshSummary();

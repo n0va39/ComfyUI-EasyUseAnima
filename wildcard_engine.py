@@ -881,8 +881,15 @@ class _Selector:
 
 
 class _WildcardLibrary:
-    def __init__(self, roots: Iterable[Path]):
-        self.mapping = _wildcard_snapshot(roots).mapping
+    def __init__(
+        self,
+        roots: Iterable[Path] | None = None,
+        *,
+        snapshot: _WildcardSnapshot | None = None,
+    ):
+        if snapshot is None:
+            snapshot = _wildcard_snapshot(roots or ())
+        self.mapping = snapshot.mapping
         self.used: list[str] = []
         self.missing: list[str] = []
 
@@ -1093,6 +1100,149 @@ def _expansion_state_signature(text: str) -> tuple[int, bytes]:
     return len(text), digest.digest()
 
 
+@dataclass
+class _ExpansionLane:
+    source: str
+    current: _ExpansionText
+    state: _ExpansionState
+    library: _WildcardLibrary
+
+
+def expand_wildcard_texts(
+    texts: Sequence[str],
+    seed=0,
+    mode: str = WILDCARD_MODE_POPULATE,
+    extra_paths: str | None = None,
+    roots: Iterable[Path] | None = None,
+    budget: WildcardExpansionBudget | None = None,
+) -> tuple[WildcardExpansionResult, ...]:
+    """Expand ordered texts through one deterministic selector stream.
+
+    Each text keeps its existing recursion and safety budget, while expansion
+    stages run across the texts in order. This matches expanding one Prompt
+    Studio prompt without joining fields through a lossy delimiter.
+    """
+    sources = tuple(str(text or "") for text in texts)
+    if not sources:
+        return ()
+
+    mode = normalize_wildcard_mode(mode)
+    selector = _Selector(
+        normalize_seed(seed),
+        sequential=mode == WILDCARD_MODE_SEQUENTIAL,
+    )
+    resolved_roots = tuple(
+        Path(root)
+        for root in (
+            roots if roots is not None else resolve_wildcard_roots(extra_paths)
+        )
+    )
+    snapshot = _wildcard_snapshot(resolved_roots)
+    expansion_budget = (
+        budget
+        if isinstance(budget, WildcardExpansionBudget)
+        else WildcardExpansionBudget()
+    )
+    lanes: list[_ExpansionLane] = []
+    for source in sources:
+        state = _ExpansionState(expansion_budget)
+        cleaned = COMMENT_RE.sub("", source)
+        if (
+            len(cleaned) > expansion_budget.max_output_chars
+            or _utf8_length(cleaned) > expansion_budget.max_output_chars
+        ):
+            cleaned = _bounded_output_prefix(
+                cleaned,
+                expansion_budget.max_output_chars,
+            )
+            state.stop("max_output_chars")
+        current = _ExpansionText.from_text(cleaned)
+        lanes.append(
+            _ExpansionLane(
+                source=source,
+                current=current,
+                state=state,
+                library=_WildcardLibrary(snapshot=snapshot),
+            )
+        )
+
+    seen_batch_states = {
+        tuple(_expansion_state_signature(lane.current.text) for lane in lanes)
+    }
+    if expansion_budget.max_depth == 0:
+        for lane in lanes:
+            if lane.state.limit_reason is None and has_wildcard_syntax(lane.current.text):
+                lane.state.stop("max_depth")
+    else:
+        for depth in range(expansion_budget.max_depth):
+            active_lanes = [
+                lane for lane in lanes if lane.state.limit_reason is None
+            ]
+            if not active_lanes:
+                break
+            replacements_before_pass = sum(
+                lane.state.replacement_count for lane in lanes
+            )
+            for lane in active_lanes:
+                lane.state.begin_pass(lane.current)
+
+            for replace_stage in (
+                _replace_dynamic,
+                _replace_quantified_wildcards,
+                _replace_file_wildcards,
+            ):
+                for lane in active_lanes:
+                    if lane.state.limit_reason is None:
+                        lane.current = replace_stage(
+                            lane.current,
+                            lane.state,
+                            selector,
+                            lane.library,
+                        )
+
+            replacements_after_pass = sum(
+                lane.state.replacement_count for lane in lanes
+            )
+            if replacements_after_pass == replacements_before_pass:
+                break
+            unresolved_lanes = [
+                lane
+                for lane in lanes
+                if lane.state.limit_reason is None
+                and has_wildcard_syntax(lane.current.text)
+            ]
+            if not unresolved_lanes:
+                break
+            batch_signature = tuple(
+                _expansion_state_signature(lane.current.text)
+                for lane in lanes
+            )
+            if batch_signature in seen_batch_states:
+                for lane in unresolved_lanes:
+                    lane.state.stop("repeated_state")
+                break
+            seen_batch_states.add(batch_signature)
+            if depth + 1 >= expansion_budget.max_depth:
+                for lane in unresolved_lanes:
+                    lane.state.stop("max_depth")
+                break
+
+    return tuple(
+        WildcardExpansionResult(
+            text=lane.current.text,
+            changed=lane.current.text != lane.source,
+            used_keys=tuple(lane.library.used),
+            missing_keys=tuple(lane.library.missing),
+            replacement_count=lane.state.replacement_count,
+            limit_reason=(
+                lane.state.limit_reason
+                or ("cycle" if lane.state.cycle_detected else None)
+            ),
+        )
+        for lane in lanes
+    )
+
+
 
 def expand_wildcards(
     text: str,
@@ -1102,54 +1252,11 @@ def expand_wildcards(
     roots: Iterable[Path] | None = None,
     budget: WildcardExpansionBudget | None = None,
 ) -> WildcardExpansionResult:
-    source = str(text or "")
-    mode = normalize_wildcard_mode(mode)
-    selector = _Selector(normalize_seed(seed), sequential=mode == WILDCARD_MODE_SEQUENTIAL)
-    library = _WildcardLibrary(roots if roots is not None else resolve_wildcard_roots(extra_paths))
-    budget = budget if isinstance(budget, WildcardExpansionBudget) else WildcardExpansionBudget()
-    state = _ExpansionState(budget)
-
-    cleaned = COMMENT_RE.sub("", source)
-    if len(cleaned) > budget.max_output_chars or _utf8_length(cleaned) > budget.max_output_chars:
-        cleaned = _bounded_output_prefix(cleaned, budget.max_output_chars)
-        state.stop("max_output_chars")
-    current = _ExpansionText.from_text(cleaned)
-    # Key stacks stop file recursion before append; stable pass signatures are
-    # a separate fallback for keyless fixed points and oscillating expressions.
-    seen_states = {_expansion_state_signature(current.text)}
-
-    if state.limit_reason is None:
-        for depth in range(budget.max_depth):
-            state.begin_pass(current)
-            replacements_before_pass = state.replacement_count
-            current = _replace_dynamic(current, state, selector, library)
-            if state.limit_reason is None:
-                current = _replace_quantified_wildcards(current, state, selector, library)
-            if state.limit_reason is None:
-                current = _replace_file_wildcards(current, state, selector, library)
-            if state.limit_reason is not None:
-                break
-            if state.replacement_count == replacements_before_pass:
-                break
-            if not has_wildcard_syntax(current.text):
-                break
-            signature = _expansion_state_signature(current.text)
-            if signature in seen_states:
-                state.stop("repeated_state")
-                break
-            seen_states.add(signature)
-            if depth + 1 >= budget.max_depth:
-                state.stop("max_depth")
-                break
-        else:
-            if budget.max_depth == 0 and has_wildcard_syntax(current.text):
-                state.stop("max_depth")
-
-    return WildcardExpansionResult(
-        text=current.text,
-        changed=current.text != source,
-        used_keys=tuple(library.used),
-        missing_keys=tuple(library.missing),
-        replacement_count=state.replacement_count,
-        limit_reason=state.limit_reason or ("cycle" if state.cycle_detected else None),
-    )
+    return expand_wildcard_texts(
+        (text,),
+        seed=seed,
+        mode=mode,
+        extra_paths=extra_paths,
+        roots=roots,
+        budget=budget,
+    )[0]

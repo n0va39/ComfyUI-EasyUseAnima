@@ -2,6 +2,27 @@
 
 const WILDCARD_SEED_MAX = Number.MAX_SAFE_INTEGER;
 const WILDCARD_SEED_MAX_BIGINT = BigInt(WILDCARD_SEED_MAX);
+const WILDCARD_MODE_CONTROL_OVERRIDES = new Map([
+  ["sequential", "increment"],
+  ["순차", "increment"],
+  ["reproduce", "fixed"],
+  ["재현", "fixed"],
+]);
+
+/**
+ * Return the seed control implied by a mode selection. Populate and Fixed
+ * preserve the user's current control; Sequential and Reproduce apply their
+ * explicit lifecycle defaults at the moment the user selects the mode.
+ *
+ * @param {any} mode
+ * @param {any} currentControl
+ */
+function wildcardSeedControlForMode(mode, currentControl) {
+  return WILDCARD_MODE_CONTROL_OVERRIDES.get(
+    String(mode || "").trim().toLowerCase(),
+  )
+    || String(currentControl || "fixed");
+}
 
 /** @param {any} value */
 function normalizeWildcardSeed(value) {
@@ -127,4 +148,5 @@ export {
   normalizeWildcardSeedInput,
   optionalWildcardSeed,
   randomWildcardSeed,
+  wildcardSeedControlForMode,
 };

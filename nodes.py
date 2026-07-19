@@ -317,6 +317,7 @@ try:
         WILDCARD_MODE_POPULATE,
         WILDCARD_MODE_REPRODUCE,
         WILDCARD_MODE_SEQUENTIAL,
+        expand_wildcard_texts,
         expand_wildcards,
         has_wildcard_syntax,
         next_seed,
@@ -630,6 +631,7 @@ except ImportError:  # allows simple local import tests outside ComfyUI's packag
         WILDCARD_MODE_POPULATE,
         WILDCARD_MODE_REPRODUCE,
         WILDCARD_MODE_SEQUENTIAL,
+        expand_wildcard_texts,
         expand_wildcards,
         has_wildcard_syntax,
         next_seed,
@@ -4573,15 +4575,13 @@ def _preserve_expanded_connected_field_texts(
     }
     for field in saved_fields:
         socket_name = _advanced_field_socket_name(field)
-        if socket_name not in connected_values:
-            continue
         source_field = source_by_socket.get(socket_name)
         expanded_field = expanded_by_socket.get(socket_name)
         if source_field is None or expanded_field is None:
             continue
         source_text = str(source_field.get("text") or "")
         expanded_text = str(expanded_field.get("text") or "")
-        if expanded_text != source_text:
+        if socket_name not in connected_values or expanded_text != source_text:
             field["text"] = expanded_text
 
 
@@ -4757,14 +4757,28 @@ def _expand_advanced_wildcard_fields(
             "missing_keys": (),
         }
 
+    wildcard_fields = []
+    wildcard_texts = []
+    for field in expanded_fields:
+        text = str(field.get("text") or "")
+        if has_wildcard_syntax(text):
+            wildcard_fields.append(field)
+            wildcard_texts.append(text)
+
+    expansions = expand_wildcard_texts(
+        wildcard_texts,
+        seed=seed,
+        mode=mode_key,
+    )
     changed = False
     used_keys: list[str] = []
     missing_keys: list[str] = []
-    for field in expanded_fields:
-        text = str(field.get("text") or "")
-        if not has_wildcard_syntax(text):
-            continue
-        result = expand_wildcards(text, seed=seed, mode=mode_key)
+    for field, text, result in zip(
+        wildcard_fields,
+        wildcard_texts,
+        expansions,
+        strict=True,
+    ):
         if result.text != text:
             field["text"] = result.text
             changed = True
