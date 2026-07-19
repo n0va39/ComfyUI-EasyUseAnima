@@ -46,6 +46,7 @@ assert.deepEqual(
     "normalizeWildcardSeedInput",
     "optionalWildcardSeed",
     "randomWildcardSeed",
+    "wildcardSeedControlForMode",
   ],
 );
 assert.equal(seedContract.WILDCARD_SEED_MAX, Number.MAX_SAFE_INTEGER);
@@ -87,6 +88,51 @@ assert.equal(
   seedContract.randomWildcardSeed(() => 1),
   Number.MAX_SAFE_INTEGER,
 );
+
+for (const surface of ["advanced", "regional"]) {
+  const node = {
+    surface,
+    widgets: {
+      wildcard_mode: "일반 채우기",
+      wildcard_seed: 42,
+      wildcard_seed_after_generate: "randomize",
+    },
+  };
+  const selectMode = (target, mode) => {
+    target.widgets.wildcard_mode = mode;
+    target.widgets.wildcard_seed_after_generate = seedContract.wildcardSeedControlForMode(
+      mode,
+      target.widgets.wildcard_seed_after_generate,
+    );
+  };
+
+  selectMode(node, "재현");
+  assert.equal(node.widgets.wildcard_seed_after_generate, "fixed");
+  assert.equal(
+    seedContract.nextWildcardSeed(
+      node.widgets.wildcard_seed,
+      node.widgets.wildcard_seed_after_generate,
+    ),
+    42,
+    `${surface} Reproduce changed a fixed seed`,
+  );
+
+  const reopened = clone(node);
+  assert.equal(reopened.widgets.wildcard_mode, "재현");
+  assert.equal(reopened.widgets.wildcard_seed_after_generate, "fixed");
+
+  reopened.widgets.wildcard_seed_after_generate = "decrement";
+  selectMode(reopened, "일반 채우기");
+  assert.equal(reopened.widgets.wildcard_seed_after_generate, "decrement");
+  assert.equal(
+    seedContract.wildcardSeedControlForMode("고정", "randomize"),
+    "randomize",
+  );
+  assert.equal(
+    seedContract.wildcardSeedControlForMode("순차", "fixed"),
+    "increment",
+  );
+}
 
 function seedInputFixture(value) {
   const listeners = new Map();

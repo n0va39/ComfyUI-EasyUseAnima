@@ -8,6 +8,7 @@ from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from unittest.mock import patch
 
+import nodes as nodes_module
 from nodes import (
     EasyUseAnimaPromptStudioAdvanced,
     EasyUseAnimaPromptStudioAdvancedV2,
@@ -21,6 +22,7 @@ from wildcard_engine import (
     WildcardExpansionBudget,
     WildcardExpansionResult,
     ensure_default_wildcard_root,
+    expand_wildcard_texts,
     expand_wildcards,
     list_wildcards,
 )
@@ -325,6 +327,63 @@ class WildcardEngineTests(unittest.TestCase):
         for name, source, expected in cases:
             with self.subTest(name=name):
                 self.assertEqual(expand_wildcards(source, seed=7).text, expected)
+
+    def test_ordered_texts_share_one_deterministic_selector_stream(self):
+        first = expand_wildcard_texts(
+            ["{red|blue|green}", "{red|blue|green}"],
+            seed=7,
+        )
+        second = expand_wildcard_texts(
+            ["{red|blue|green}", "{red|blue|green}"],
+            seed=7,
+        )
+
+        self.assertEqual(first, second)
+        self.assertEqual([result.text for result in first], ["blue", "green"])
+        self.assertEqual(
+            expand_wildcard_texts(["{red|blue|green}"], seed=7)[0],
+            expand_wildcards("{red|blue|green}", seed=7),
+        )
+        nested = expand_wildcard_texts(
+            ["{{red|blue}|green}", "{circle|square|triangle}"],
+            seed=7,
+        )
+        self.assertEqual(
+            [result.text for result in nested],
+            ["green", "triangle"],
+        )
+
+    def test_ordered_file_wildcards_share_seed_stream_and_metadata(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            (root / "inner.txt").write_text(
+                "circle\nsquare\ntriangle\n",
+                encoding="utf-8",
+            )
+            (root / "outer.txt").write_text(
+                "__inner__ red\n__inner__ blue\n",
+                encoding="utf-8",
+            )
+
+            first = expand_wildcard_texts(
+                ["__outer__", "__outer__"],
+                seed=7,
+                roots=[root],
+            )
+            second = expand_wildcard_texts(
+                ["__outer__", "__outer__"],
+                seed=7,
+                roots=[root],
+            )
+
+        self.assertEqual(first, second)
+        self.assertEqual(
+            [result.text for result in first],
+            ["triangle blue", "circle blue"],
+        )
+        for result in first:
+            self.assertEqual(result.used_keys, ("outer", "inner"))
+            self.assertEqual(result.replacement_count, 2)
 
     def test_random_mode_nested_wildcard_has_golden_output(self):
         with tempfile.TemporaryDirectory() as temp:
@@ -865,6 +924,87 @@ class WildcardSeedContractTests(unittest.TestCase):
 
 
 class WildcardNodeTests(unittest.TestCase):
+    def test_prompt_studio_fields_share_one_seed_stream(self):
+        fields = [
+            {
+                "id": "positive_first",
+                "pane": "positive",
+                "type": "general",
+                "text": "{red|blue|green}",
+                "enabled": True,
+            },
+            {
+                "id": "positive_second",
+                "pane": "positive",
+                "type": "general",
+                "text": "{red|blue|green}",
+                "enabled": True,
+            },
+        ]
+
+        expanded, metadata = nodes_module._expand_advanced_wildcard_fields(
+            fields,
+            7,
+            "일반 채우기",
+        )
+
+        self.assertEqual(
+            [field["text"] for field in expanded],
+            ["blue", "green"],
+        )
+        self.assertTrue(metadata["changed"])
+
+    def test_connected_field_rng_consumption_is_saved_for_reproduce(self):
+        saved_source = [
+            {
+                "id": "positive_connected",
+                "pane": "positive",
+                "type": "general",
+                "text": "stored fallback",
+                "enabled": True,
+            },
+            {
+                "id": "positive_local",
+                "pane": "positive",
+                "type": "general",
+                "text": "{red|blue|green}",
+                "enabled": True,
+            },
+        ]
+        field_inputs = {
+            "field_positive_connected": "{cat|dog|fox}",
+        }
+        effective_source = nodes_module._apply_advanced_field_inputs(
+            saved_source,
+            field_inputs,
+        )
+        saved_fields, _saved_metadata = nodes_module._expand_advanced_wildcard_fields(
+            saved_source,
+            17,
+            "고정",
+        )
+        effective_fields, _effective_metadata = nodes_module._expand_advanced_wildcard_fields(
+            effective_source,
+            17,
+            "고정",
+        )
+
+        nodes_module._preserve_expanded_connected_field_texts(
+            saved_fields,
+            effective_source,
+            effective_fields,
+            field_inputs,
+        )
+
+        self.assertEqual(
+            [field["text"] for field in effective_fields],
+            ["fox", "red"],
+        )
+        self.assertEqual(
+            [field["text"] for field in saved_fields],
+            ["fox", "red"],
+        )
+
     def test_input_tooltips_cover_syntax_cache_and_actual_mode_lifecycle(self):
         inputs = EasyUseAnimaWildcard.INPUT_TYPES()["required"]
         text_tooltip = inputs["text"][1]["tooltip"]
@@ -1073,16 +1213,26 @@ class WildcardNodeTests(unittest.TestCase):
         expand.assert_called_once_with("", seed=5, mode="reproduce")
         self.assertEqual(result["result"], ("", 5))
 
-    def test_native_reproduce_expands_file_wildcard_from_populated_text(self):
+    def test_native_reproduce_repeats_file_selection_with_the_same_seed(self):
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp)
-            (root / "style.txt").write_text("resolved from file\n", encoding="utf-8")
+            (root / "style.txt").write_text(
+                "first file option\nsecond file option\nthird file option\n",
+                encoding="utf-8",
+            )
 
             def expand_from_test_root(text, *, seed, mode):
                 return expand_wildcards(text, seed=seed, mode=mode, roots=[root])
 
             with patch("nodes.expand_wildcards", side_effect=expand_from_test_root) as expand:
-                result = EasyUseAnimaWildcard().generate(
+                first = EasyUseAnimaWildcard().generate(
+                    "ignored source",
+                    "__style__",
+                    "재현",
+                    5,
+                    "fixed",
+                )
+                second = EasyUseAnimaWildcard().generate(
                     "ignored source",
                     "__style__",
                     "재현",
@@ -1090,9 +1240,13 @@ class WildcardNodeTests(unittest.TestCase):
                     "fixed",
                 )
 
-        expand.assert_called_once_with("__style__", seed=5, mode="reproduce")
-        self.assertEqual(result["result"], ("resolved from file", 5))
-        self.assertEqual(result["ui"]["wildcard"][0]["used_keys"], ["style"])
+        self.assertEqual(expand.call_count, 2)
+        for call in expand.call_args_list:
+            self.assertEqual(call.args, ("__style__",))
+            self.assertEqual(call.kwargs, {"seed": 5, "mode": "reproduce"})
+        self.assertEqual(first["result"], second["result"])
+        self.assertEqual(first["result"][1], 5)
+        self.assertEqual(first["ui"]["wildcard"][0]["used_keys"], ["style"])
 
     def test_prompt_studio_reproduce_keeps_saved_fields_and_does_not_advance_seed(self):
         fields = [{
@@ -1430,13 +1584,13 @@ class WildcardNodeTests(unittest.TestCase):
         }
 
         with patch(
-            "nodes.expand_wildcards",
-            return_value=WildcardExpansionResult(
+            "nodes.expand_wildcard_texts",
+            return_value=(WildcardExpansionResult(
                 text="expanded style",
                 changed=True,
                 used_keys=("style",),
                 missing_keys=(),
-            ),
+            ),),
         ):
             result = EasyUseAnimaPromptStudioAdvanced().build(
                 False,

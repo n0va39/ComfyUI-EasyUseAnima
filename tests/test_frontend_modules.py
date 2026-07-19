@@ -2664,6 +2664,7 @@ class FrontendModuleStructureTests(unittest.TestCase):
         self.assertIn("bindWildcardSeedInput", contract_source)
         self.assertIn("normalizeWildcardSeedInput", contract_source)
         self.assertIn("nextWildcardSeed", contract_source)
+        self.assertIn("wildcardSeedControlForMode", contract_source)
         self.assertIn("./wildcard_seed_contract.js", queue_source)
         self.assertIn("nextWildcardSeed", queue_source)
         self.assertIn("./wildcard_seed_contract.js", extension_source)
@@ -2678,6 +2679,18 @@ class FrontendModuleStructureTests(unittest.TestCase):
             with self.subTest(module="seed-control"):
                 self.assertIn("wildcard_seed_contract.js", source)
                 self.assertIn("bindWildcardSeedInput", source)
+                self.assertGreaterEqual(
+                    source.count("wildcardSeedControlForMode"),
+                    2,
+                )
+        self.assertIn(
+            'setAdvancedWidgetValue(node, "wildcard_seed_after_generate", nextControl);',
+            advanced_source,
+        )
+        self.assertIn(
+            '"wildcard_seed_after_generate",\n          nextControl,',
+            regional_source,
+        )
 
     def test_prompt_studio_wildcard_tooltips_follow_the_selected_mode(self):
         constants_source = (PROMPT_STUDIO_MODULES / "constants.js").read_text(

@@ -26,6 +26,7 @@ import {
 } from "./lifecycle.js";
 import {
   bindWildcardSeedInput,
+  wildcardSeedControlForMode,
 } from "../wildcard_seed_contract.js";
 import { disposeExternalAutocompleteInputs } from "../../autocomplete/entry_lifecycle.js";
 
@@ -158,11 +159,15 @@ function createRegionalFieldEditor(runtime, layout, maskEditor, hooks) {
     const syncMode = () => {
       const nextMode = normalizeWildcardMode(modeSelect.value);
       runtime.setRegionalWidgetValue(node, "wildcard_mode", nextMode);
-      if (nextMode === "순차") {
+      const nextControl = wildcardSeedControlForMode(
+        nextMode,
+        normalizeSeedControl(controlWidget.value),
+      );
+      if (nextControl !== controlWidget.value) {
         runtime.setRegionalWidgetValue(
           node,
           "wildcard_seed_after_generate",
-          "increment",
+          nextControl,
         );
       }
       renderRegionalEditor(node);
