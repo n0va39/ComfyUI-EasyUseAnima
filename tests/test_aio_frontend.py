@@ -630,7 +630,7 @@ class AIOFrontendSourceTests(unittest.TestCase):
         )
         setup_body = extension_source[setup_start:setup_end]
         self.assertIn("installWheelForwarder();", setup_body)
-        self.assertIn("installQueuePromptHook();", setup_body)
+        self.assertIn("installGlobalHooks();", setup_body)
         self.assertIn(
             "installWheelForwarder: installGeneratorWheelForwarder,", source
         )

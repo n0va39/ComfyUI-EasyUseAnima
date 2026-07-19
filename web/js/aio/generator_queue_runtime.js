@@ -1,7 +1,12 @@
 // @ts-check
 
-const QUEUE_HOOK_MARKER = "__easyuseAnimaAioWrapped";
-const QUEUE_HOST_MARKER = "__easyuseAnimaAioQueuePromptInstalled";
+import {
+  registerHostHookCallbacks,
+} from "../lifecycle/host_hook_registry.js";
+
+const AIO_GENERATOR_QUEUE_OWNER = Symbol.for(
+  "easyuse-anima.aio.generator-queue",
+);
 
 /**
  * @typedef {object} AioGeneratorQueueSettingsCore
@@ -449,65 +454,85 @@ export function aioCreateGeneratorQueueRuntime(dependencies) {
     }
   }
 
+  async function beforeQueue(context) {
+    await loadOptionalDependencies({ retryErrors: true });
+    const transaction = preparePrompt(context.args[1], context.args[2], true);
+    if (transaction) {
+      context.args = [...context.args];
+      context.args[1] = transaction.prompt;
+    }
+    return transaction;
+  }
+
+  function afterQueue(context) {
+    const transaction = context.callbackState;
+    if (!transaction) {
+      return;
+    }
+    if (context.ok) {
+      settlePreparedSeeds(transaction, context.result);
+    } else {
+      rejectPreparedSeeds(transaction);
+    }
+  }
+
   /**
-   * Wrap api.queuePrompt without owning the global hook. The original receiver,
-   * argument tail, resolved value, and thrown/rejected error are preserved.
+   * Compatibility adapter for focused consumers that still compose a local
+   * function. Global queue ownership belongs to the host-hook registry below.
    *
    * @param {(...args: any[]) => any} queuePrompt
    */
   function wrapQueuePrompt(queuePrompt) {
-    return async function (...args) {
-      await loadOptionalDependencies({ retryErrors: true });
-      const transaction = preparePrompt(args[1], args[2], true);
-      const queueArgs = transaction ? [...args] : args;
-      if (transaction) {
-        queueArgs[1] = transaction.prompt;
-      }
-      let result;
-      try {
-        result = await queuePrompt.apply(this, queueArgs);
-      } catch (error) {
-        if (transaction) {
-          rejectPreparedSeeds(transaction);
+    return function (...args) {
+      const thisArg = this;
+      const context = {
+        host: null,
+        thisArg,
+        args,
+        originalArgs: args,
+      };
+      return Promise.resolve(beforeQueue(context)).then((transaction) => {
+        let result;
+        try {
+          result = queuePrompt.apply(thisArg, context.args);
+        } catch (error) {
+          afterQueue({ ...context, callbackState: transaction, ok: false, error });
+          throw error;
         }
-        throw error;
-      }
-      if (transaction) {
-        settlePreparedSeeds(transaction, result);
-      }
-      return result;
+        return Promise.resolve(result).then(
+          (value) => {
+            afterQueue({ ...context, callbackState: transaction, ok: true, result: value });
+            return value;
+          },
+          (error) => {
+            afterQueue({ ...context, callbackState: transaction, ok: false, error });
+            throw error;
+          },
+        );
+      });
     };
   }
 
   return {
+    afterQueue,
+    beforeQueue,
     preparePrompt,
     wrapQueuePrompt,
   };
 }
 
 /**
- * Install the AiO queue wrapper once per queue owner. The owner marker remains
- * visible when another extension later wraps queuePrompt, so repeated setup
- * cannot hide and then stack another AiO wrapper.
+ * Register the AiO queue transaction callbacks without directly owning the
+ * global function identity.
  *
  * @param {any} queueHost
- * @param {{wrapQueuePrompt: (queuePrompt: (...args: any[]) => any) => (...args: any[]) => any}} runtime
+ * @param {{beforeQueue: (context: any) => any, afterQueue: (context: any) => any}} runtime
  */
 export function aioInstallGeneratorQueuePromptHook(queueHost, runtime) {
-  if (
-    !queueHost
-    || typeof queueHost.queuePrompt !== "function"
-    || queueHost[QUEUE_HOST_MARKER]
-  ) {
-    return false;
-  }
-  if (queueHost.queuePrompt[QUEUE_HOOK_MARKER]) {
-    queueHost[QUEUE_HOST_MARKER] = true;
-    return false;
-  }
-  const wrappedQueuePrompt = runtime.wrapQueuePrompt(queueHost.queuePrompt);
-  wrappedQueuePrompt[QUEUE_HOOK_MARKER] = true;
-  queueHost.queuePrompt = wrappedQueuePrompt;
-  queueHost[QUEUE_HOST_MARKER] = true;
-  return true;
+  return registerHostHookCallbacks({
+    owner: AIO_GENERATOR_QUEUE_OWNER,
+    queueHost,
+    beforeQueue: runtime.beforeQueue,
+    afterQueue: runtime.afterQueue,
+  });
 }

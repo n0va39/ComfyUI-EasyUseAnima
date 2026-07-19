@@ -17,7 +17,7 @@ const LORA_PRESET_ENTRY_OWNER = Symbol.for(
  *   canvasWidgets: any,
  *   clientPointToCanvas: (event: any) => number[],
  *   profileCount: (node: any) => number,
- *   saveSync: {install: () => void},
+ *   saveSync: {install: () => boolean, dispose: () => boolean},
  *   loadSettings: () => Promise<any>,
  *   refreshNodes: () => void,
  *   watchLocale: (callback: () => void) => (() => void),
@@ -230,7 +230,7 @@ export function createLoraPresetEntryLifecycle(dependencies) {
       if (hostWindow[LORA_PRESET_ENTRY_OWNER] === lifecycle) {
         delete hostWindow[LORA_PRESET_ENTRY_OWNER];
       }
-      return false;
+      return saveSync.dispose();
     }
     installed = false;
     activeProfileWheelTarget = null;
@@ -248,6 +248,7 @@ export function createLoraPresetEntryLifecycle(dependencies) {
     };
     runCleanup(() => disposeLocaleWatch?.());
     disposeLocaleWatch = null;
+    runCleanup(() => saveSync.dispose());
     runCleanup(() => menuLifecycle.dispose?.());
     runCleanup(() => previewLifecycle.hidePreview());
     if (hostWindow[LORA_PRESET_ENTRY_OWNER] === lifecycle) {

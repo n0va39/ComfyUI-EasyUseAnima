@@ -1,8 +1,11 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 
-function dataModule(relativePath) {
-  const source = readFileSync(new URL(relativePath, import.meta.url), "utf8");
+function dataModule(relativePath, replacements = {}) {
+  let source = readFileSync(new URL(relativePath, import.meta.url), "utf8");
+  for (const [from, to] of Object.entries(replacements)) {
+    source = source.replaceAll(from, to);
+  }
   return "data:text/javascript;base64," + Buffer.from(source).toString("base64");
 }
 
@@ -20,7 +23,11 @@ function deferred() {
   return { promise, resolve, reject };
 }
 
-const queueModule = await import(dataModule("../web/js/aio/generator_queue_runtime.js"));
+const registryModuleUrl = dataModule("../web/js/lifecycle/host_hook_registry.js");
+const queueModule = await import(dataModule(
+  "../web/js/aio/generator_queue_runtime.js",
+  { "../lifecycle/host_hook_registry.js": registryModuleUrl },
+));
 assert.deepEqual(
   Object.keys(queueModule),
   ["aioCreateGeneratorQueueRuntime", "aioInstallGeneratorQueuePromptHook"],
@@ -216,6 +223,7 @@ function createFixture(options = {}) {
         if (options.loadError) {
           throw options.loadError;
         }
+        await options.loadOptionalDependencies?.(loadOptions);
       },
     },
     randomSeed() {
@@ -400,6 +408,65 @@ for (const seed of [SPECIAL_RANDOM, SPECIAL_INCREMENT, SPECIAL_DECREMENT]) {
 }
 
 {
+  const dependencyGate = deferred();
+  let originalCalls = 0;
+  const fixture = createFixture({
+    seed: 12,
+    seedControl: "increment",
+    loadOptionalDependencies: () => dependencyGate.promise,
+  });
+  const wrapped = fixture.runtime.wrapQueuePrompt(() => {
+    originalCalls += 1;
+    return { prompt_id: "after-dependencies", node_errors: {} };
+  });
+  const pending = wrapped(0, createPrompt());
+  await Promise.resolve();
+  await Promise.resolve();
+  assert.equal(originalCalls, 0, "the original queue must wait for optional dependency loading");
+  assert.deepEqual(fixture.trace, ["load:true"]);
+  dependencyGate.resolve();
+  assert.equal((await pending).prompt_id, "after-dependencies");
+  assert.equal(originalCalls, 1);
+  assert.deepEqual(fixture.trace, ["load:true", "sanitize", "commit:13:12:false"]);
+}
+
+{
+  const loadError = new Error("dependency load failed");
+  let originalCalls = 0;
+  const fixture = createFixture({ loadError });
+  const wrapped = fixture.runtime.wrapQueuePrompt(() => {
+    originalCalls += 1;
+    return { prompt_id: "unreachable", node_errors: {} };
+  });
+  await assert.rejects(wrapped(0, createPrompt()), (error) => error === loadError);
+  assert.equal(originalCalls, 0);
+  assert.deepEqual(fixture.trace, ["load:true"]);
+}
+
+{
+  const queueError = new Error("original queue threw");
+  const queuedSeeds = [];
+  const fixture = createFixture({ seed: 15, seedControl: "increment" });
+  const failing = fixture.runtime.wrapQueuePrompt((_number, prompt) => {
+    queuedSeeds.push(JSON.parse(
+      prompt.output["42"].inputs.generation_settings,
+    ).sampler.seed);
+    throw queueError;
+  });
+  await assert.rejects(failing(0, createPrompt()), (error) => error === queueError);
+  assert.equal(fixture.node.settings.sampler.seed, 15);
+  assert.equal(fixture.node.lastSeed, undefined);
+  const retry = fixture.runtime.wrapQueuePrompt((_number, prompt) => {
+    queuedSeeds.push(JSON.parse(
+      prompt.output["42"].inputs.generation_settings,
+    ).sampler.seed);
+    return { prompt_id: "retry-after-throw", node_errors: {} };
+  });
+  await retry(0, createPrompt());
+  assert.deepEqual(queuedSeeds, [15, 15], "a synchronous throw must reject its reservation");
+}
+
+{
   const fixture = createFixture({ seed: 7, seedControl: "increment" });
   assert.ok(fixture.runtime.preparePrompt(createPrompt()));
   let queuedSeed = null;
@@ -434,8 +501,7 @@ for (const seed of [SPECIAL_RANDOM, SPECIAL_INCREMENT, SPECIAL_DECREMENT]) {
     wrapped.call(owner, 0, prompt, options, tail),
     wrapped.call(owner, 0, prompt, options, tail),
   ];
-  await Promise.resolve();
-  await Promise.resolve();
+  await new Promise((resolve) => setImmediate(resolve));
 
   assert.equal(calls.length, 3, "direct API submissions must remain concurrent");
   assert.deepEqual(
@@ -513,8 +579,7 @@ for (const seed of [SPECIAL_RANDOM, SPECIAL_INCREMENT, SPECIAL_DECREMENT]) {
     wrapped(0, createPrompt()),
     wrapped(0, createPrompt()),
   ];
-  await Promise.resolve();
-  await Promise.resolve();
+  await new Promise((resolve) => setImmediate(resolve));
 
   gates[1].resolve({ prompt_id: "", node_errors: {} });
   await pending[1];
@@ -529,8 +594,7 @@ for (const seed of [SPECIAL_RANDOM, SPECIAL_INCREMENT, SPECIAL_DECREMENT]) {
   assert.equal(caught, rejection);
 
   const retry = wrapped(0, createPrompt());
-  await Promise.resolve();
-  await Promise.resolve();
+  await new Promise((resolve) => setImmediate(resolve));
   assert.deepEqual(
     queuedSeeds,
     [7, 8, 9, 8],
@@ -547,36 +611,34 @@ for (const seed of [SPECIAL_RANDOM, SPECIAL_INCREMENT, SPECIAL_DECREMENT]) {
 
 {
   const fixture = createFixture({ seed: 10, seedControl: "increment" });
+  const original = function () {
+    this.calls += 1;
+    return { prompt_id: "installed", node_errors: {} };
+  };
   const host = {
     calls: 0,
-    queuePrompt() {
-      this.calls += 1;
-      return { prompt_id: "installed", node_errors: {} };
-    },
+    queuePrompt: original,
   };
-  assert.equal(
-    queueModule.aioInstallGeneratorQueuePromptHook(host, fixture.runtime),
-    true,
-  );
+  const dispose = queueModule.aioInstallGeneratorQueuePromptHook(host, fixture.runtime);
   const installed = host.queuePrompt;
   assert.equal(
-    queueModule.aioInstallGeneratorQueuePromptHook(host, fixture.runtime),
+    queueModule.aioInstallGeneratorQueuePromptHook(host, fixture.runtime)(),
     false,
   );
-  assert.equal(host.queuePrompt, installed, "repeated setup must not stack AiO wrappers");
+  assert.equal(host.queuePrompt, installed, "duplicate registration must not stack AiO callbacks");
 
   host.queuePrompt = async function (...args) {
     return installed.apply(this, args);
   };
   const foreignWrapper = host.queuePrompt;
   assert.equal(
-    queueModule.aioInstallGeneratorQueuePromptHook(host, fixture.runtime),
+    queueModule.aioInstallGeneratorQueuePromptHook(host, fixture.runtime)(),
     false,
   );
   assert.equal(
     host.queuePrompt,
     foreignWrapper,
-    "the queue-owner marker must survive foreign outer wrapper composition",
+    "registry ownership must stay idempotent below a foreign outer wrapper",
   );
   const result = await host.queuePrompt(0, createPrompt(), "tail");
   assert.equal(result.prompt_id, "installed");
@@ -584,6 +646,27 @@ for (const seed of [SPECIAL_RANDOM, SPECIAL_INCREMENT, SPECIAL_DECREMENT]) {
   assert.deepEqual(fixture.trace, ["load:true", "sanitize", "commit:11:10:false"]);
   assert.equal(fixture.node.lastSeed, 10);
   assert.equal(fixture.node.settings.sampler.seed, 11);
+
+  fixture.trace.length = 0;
+  assert.equal(dispose(), true);
+  assert.equal(host.queuePrompt, foreignWrapper, "dispose must preserve a foreign outer wrapper");
+  assert.equal((await host.queuePrompt(0, createPrompt())).prompt_id, "installed");
+  assert.deepEqual(fixture.trace, [], "disposed AiO callbacks must not remain stale");
+
+  host.queuePrompt = installed;
+  const disposeReinstalled = queueModule.aioInstallGeneratorQueuePromptHook(
+    host,
+    fixture.runtime,
+  );
+  assert.equal(host.queuePrompt, installed, "reinstall must reuse the current stale registry wrapper");
+  await host.queuePrompt(0, createPrompt());
+  assert.equal(
+    fixture.trace.filter((item) => item === "load:true").length,
+    1,
+    "reinstall must execute the AiO callback exactly once",
+  );
+  assert.equal(disposeReinstalled(), true);
+  assert.equal(host.queuePrompt, original);
 }
 
 {

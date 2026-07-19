@@ -1,19 +1,28 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 
-function dataModule(relativePath) {
-  const source = readFileSync(new URL(relativePath, import.meta.url), "utf8");
+function dataModule(relativePath, replacements = {}) {
+  let source = readFileSync(new URL(relativePath, import.meta.url), "utf8");
+  for (const [from, to] of Object.entries(replacements)) {
+    source = source.replaceAll(from, to);
+  }
   return `data:text/javascript;base64,${Buffer.from(source).toString("base64")}`;
 }
 
-const registry = await import(dataModule(
+const registryModuleUrl = dataModule(
   "../web/js/lifecycle/host_hook_registry.js",
-));
+);
+const registry = await import(registryModuleUrl);
+const registryImportReplacement = {
+  "../lifecycle/host_hook_registry.js": registryModuleUrl,
+};
 const loraSaveSync = await import(dataModule(
   "../web/js/lora_preset/save_sync.js",
+  registryImportReplacement,
 ));
 const aioQueueRuntime = await import(dataModule(
   "../web/js/aio/generator_queue_runtime.js",
+  registryImportReplacement,
 ));
 
 assert.deepEqual(Object.keys(registry).sort(), [
@@ -274,6 +283,94 @@ assert.deepEqual(Object.keys(registry).sort(), [
   await assert.rejects(host.queuePrompt(), (error) => error === afterError);
   assert.equal(originalCalls, 1, "afterQueue failure must occur after the original resolves");
   disposeAfterFailure();
+}
+
+{
+  const events = [];
+  let releaseDependencies;
+  const dependencies = new Promise((resolve) => { releaseDependencies = resolve; });
+  const host = {
+    queuePrompt(...args) {
+      events.push(["original", this, args]);
+      return "queued";
+    },
+  };
+  const receiver = { async: true };
+  const originalArgs = [0, { prompt: "original" }, { tail: true }];
+  const replacementPrompt = { prompt: "replacement" };
+  const dispose = registry.registerHostHookCallbacks({
+    owner: Symbol("async-before-success"),
+    queueHost: host,
+    async beforeQueue(context) {
+      events.push(["before:start", context.thisArg, context.args]);
+      await dependencies;
+      context.args = [...context.args];
+      context.args[1] = replacementPrompt;
+      events.push(["before:end", context.args]);
+      return "async-state";
+    },
+    afterQueue(context) {
+      events.push(["after", context.ok, context.callbackState, context.result]);
+    },
+  });
+
+  const pending = host.queuePrompt.call(receiver, ...originalArgs);
+  assert.equal(typeof pending.then, "function");
+  assert.deepEqual(events.map(([name]) => name), ["before:start"]);
+  releaseDependencies();
+  assert.equal(await pending, "queued");
+  assert.deepEqual(events.map(([name]) => name), [
+    "before:start", "before:end", "original", "after",
+  ]);
+  assert.equal(events[2][1], receiver);
+  assert.deepEqual(events[2][2], [0, replacementPrompt, originalArgs[2]]);
+  assert.deepEqual(events[3], ["after", true, "async-state", "queued"]);
+  dispose();
+}
+
+{
+  const events = [];
+  const beforeError = new Error("async before failed");
+  let originalCalls = 0;
+  const host = {
+    queuePrompt() {
+      originalCalls += 1;
+      return "unreachable";
+    },
+  };
+  const disposeFailing = registry.registerHostHookCallbacks({
+    owner: Symbol("async-before-failing-inner"),
+    queueHost: host,
+    async beforeQueue() {
+      events.push("failing:before");
+      throw beforeError;
+    },
+    afterQueue() {
+      events.push("failing:after");
+    },
+  });
+  const disposeOuter = registry.registerHostHookCallbacks({
+    owner: Symbol("async-before-outer"),
+    queueHost: host,
+    beforeQueue() {
+      events.push("outer:before");
+      return "outer-state";
+    },
+    afterQueue(context) {
+      events.push(`outer:after:${context.ok}:${context.callbackState}`);
+      assert.equal(context.error, beforeError);
+    },
+  });
+
+  await assert.rejects(host.queuePrompt(), (error) => error === beforeError);
+  assert.equal(originalCalls, 0);
+  assert.deepEqual(events, [
+    "outer:before",
+    "failing:before",
+    "outer:after:false:outer-state",
+  ]);
+  disposeOuter();
+  disposeFailing();
 }
 
 {
@@ -547,7 +644,7 @@ assert.deepEqual(Object.keys(registry).sort(), [
   assert.equal(host.queuePrompt, original);
 }
 
-function exerciseLoraLegacyLoadOrder(registryFirst) {
+async function exerciseAioLoraLoadOrder(aioFirst) {
   const events = [];
   class Graph {
     constructor() {
@@ -566,99 +663,81 @@ function exerciseLoraLegacyLoadOrder(registryFirst) {
       return value;
     },
   };
-  const legacy = loraSaveSync.createLoraPresetSaveSync({
+  const originalSerialize = Graph.prototype.serialize;
+  const originalQueue = app.queuePrompt;
+  const lora = loraSaveSync.createLoraPresetSaveSync({
     app,
     nodeTypeName: "EasyUseAnimaLoraPreset",
-    saveCurrentProfile: () => events.push("legacy"),
+    saveCurrentProfile: () => events.push("lora"),
     getGraphPrototype: () => Graph.prototype,
   });
-  const installRegistry = () => registry.registerHostHookCallbacks({
-    owner: Symbol(`lora-registry-${registryFirst}`),
+  const promptOwner = Symbol(`prompt-${aioFirst}`);
+  const installPromptStudio = () => registry.registerHostHookCallbacks({
+    owner: promptOwner,
     serializeHost: Graph.prototype,
     queueHost: app,
-    beforeSerialize: () => events.push("registry"),
-    beforeQueue: () => events.push("registry"),
+    beforeSerialize: () => events.push("prompt:serialize"),
+    beforeQueue: () => {
+      events.push("prompt:before");
+      return "prompt-state";
+    },
+    afterQueue: (context) => events.push(
+      `prompt:after:${context.ok}:${context.callbackState}`,
+    ),
   });
-
-  let disposeRegistry;
-  let legacySerialize;
-  let legacyQueue;
-  if (registryFirst) {
-    disposeRegistry = installRegistry();
-    legacy.install();
-    legacySerialize = Graph.prototype.serialize;
-    legacyQueue = app.queuePrompt;
-  } else {
-    legacy.install();
-    legacySerialize = Graph.prototype.serialize;
-    legacyQueue = app.queuePrompt;
-    disposeRegistry = installRegistry();
-  }
-  Graph.prototype.serialize.call(app.graph, "serialize");
-  app.queuePrompt.call(app, "queue");
-  const expectedCall = registryFirst
-    ? ["legacy", "registry", "original:serialize", "legacy", "registry", "original:queue"]
-    : ["registry", "legacy", "original:serialize", "registry", "legacy", "original:queue"];
-  assert.deepEqual(events, expectedCall);
-
-  events.length = 0;
-  disposeRegistry();
-  assert.equal(Graph.prototype.serialize, legacySerialize);
-  assert.equal(app.queuePrompt, legacyQueue);
-  Graph.prototype.serialize.call(app.graph, "serialize");
-  app.queuePrompt.call(app, "queue");
-  assert.deepEqual(events, ["legacy", "original:serialize", "legacy", "original:queue"]);
-}
-
-exerciseLoraLegacyLoadOrder(false);
-exerciseLoraLegacyLoadOrder(true);
-
-function exerciseAioLegacyLoadOrder(registryFirst) {
-  const events = [];
-  const host = {
-    queuePrompt(value) {
-      events.push("original");
-      return value;
+  const aioRuntime = {
+    async beforeQueue() {
+      events.push("aio:before");
+      return "aio-state";
+    },
+    afterQueue(context) {
+      events.push(`aio:after:${context.ok}:${context.callbackState}`);
     },
   };
-  const runtime = {
-    wrapQueuePrompt(queuePrompt) {
-      return function (...args) {
-        events.push("legacy");
-        return queuePrompt.apply(this, args);
-      };
-    },
-  };
-  const installRegistry = () => registry.registerHostHookCallbacks({
-    owner: Symbol(`aio-registry-${registryFirst}`),
-    queueHost: host,
-    beforeQueue: () => events.push("registry"),
-  });
-  let disposeRegistry;
-  let legacyWrapper;
-  if (registryFirst) {
-    disposeRegistry = installRegistry();
-    aioQueueRuntime.aioInstallGeneratorQueuePromptHook(host, runtime);
-    legacyWrapper = host.queuePrompt;
+
+  const disposePrompt = installPromptStudio();
+  assert.equal(installPromptStudio()(), false, "Prompt Studio setup twice must be a no-op");
+  let disposeAio;
+  if (aioFirst) {
+    disposeAio = aioQueueRuntime.aioInstallGeneratorQueuePromptHook(app, aioRuntime);
+    assert.equal(lora.install(), true);
   } else {
-    aioQueueRuntime.aioInstallGeneratorQueuePromptHook(host, runtime);
-    legacyWrapper = host.queuePrompt;
-    disposeRegistry = installRegistry();
+    assert.equal(lora.install(), true);
+    disposeAio = aioQueueRuntime.aioInstallGeneratorQueuePromptHook(app, aioRuntime);
   }
-  assert.equal(host.queuePrompt("queued"), "queued");
-  assert.deepEqual(
-    events,
-    registryFirst ? ["legacy", "registry", "original"] : ["registry", "legacy", "original"],
+  assert.equal(lora.install(), false, "LoRA setup twice must reuse its lease");
+  assert.equal(
+    aioQueueRuntime.aioInstallGeneratorQueuePromptHook(app, aioRuntime)(),
+    false,
+    "AiO setup twice must not own the existing callback",
   );
 
+  Graph.prototype.serialize.call(app.graph, "serialize");
+  assert.deepEqual(events, ["lora", "prompt:serialize", "original:serialize"]);
+
   events.length = 0;
-  disposeRegistry();
-  assert.equal(host.queuePrompt, legacyWrapper);
-  assert.equal(host.queuePrompt("queued"), "queued");
-  assert.deepEqual(events, ["legacy", "original"]);
+  assert.equal(await app.queuePrompt.call(app, "queue"), "queue");
+  assert.deepEqual(
+    events,
+    aioFirst
+      ? [
+        "lora", "aio:before", "prompt:before", "original:queue",
+        "prompt:after:true:prompt-state", "aio:after:true:aio-state",
+      ]
+      : [
+        "aio:before", "lora", "prompt:before", "original:queue",
+        "prompt:after:true:prompt-state", "aio:after:true:aio-state",
+      ],
+  );
+
+  disposePrompt();
+  lora.dispose();
+  disposeAio();
+  assert.equal(Graph.prototype.serialize, originalSerialize);
+  assert.equal(app.queuePrompt, originalQueue, "the last owner must restore the original queue");
 }
 
-exerciseAioLegacyLoadOrder(false);
-exerciseAioLegacyLoadOrder(true);
+await exerciseAioLoraLoadOrder(false);
+await exerciseAioLoraLoadOrder(true);
 
 console.log("Host hook registry smoke passed.");

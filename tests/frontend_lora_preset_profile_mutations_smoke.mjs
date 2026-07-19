@@ -532,4 +532,57 @@ const returnedRejection = app.queuePrompt.call(app, "reject");
 assert.strictEqual(returnedRejection, rejectedResult);
 await assert.rejects(returnedRejection, /queue failure/);
 
+const lateSyncCalls = [];
+const lateGraphPrototype = {
+  serialize(value) {
+    return { receiver: this, value };
+  },
+};
+const lateOriginalSerialize = lateGraphPrototype.serialize;
+const lateGraph = {
+  _nodes: [{ comfyClass: "EasyUseAnimaLoraPreset", id: 10 }],
+};
+const lateApp = {
+  graph: lateGraph,
+  queuePrompt(value) {
+    return { receiver: this, value };
+  },
+};
+const lateOriginalQueuePrompt = lateApp.queuePrompt;
+let availableGraphPrototype;
+const lateSaveSync = createLoraPresetSaveSync({
+  app: lateApp,
+  nodeTypeName: "EasyUseAnimaLoraPreset",
+  saveCurrentProfile: (profileNode) => lateSyncCalls.push(profileNode.id),
+  getGraphPrototype: () => availableGraphPrototype,
+});
+assert.equal(lateSaveSync.install(), true);
+assert.strictEqual(
+  lateGraphPrototype.serialize,
+  lateOriginalSerialize,
+  "an unavailable graph prototype must not create a placeholder serialize wrapper",
+);
+assert.equal(lateApp.queuePrompt.call(lateApp, "queue-before-graph").value, "queue-before-graph");
+assert.deepEqual(lateSyncCalls, [10]);
+
+lateSyncCalls.length = 0;
+availableGraphPrototype = lateGraphPrototype;
+assert.equal(
+  lateSaveSync.install(),
+  true,
+  "a later graph prototype must replace the queue-only lease and add serialize synchronization",
+);
+const lateSerialized = lateGraphPrototype.serialize.call(lateGraph, "serialize-after-graph");
+assert.strictEqual(lateSerialized.receiver, lateGraph);
+assert.equal(lateSerialized.value, "serialize-after-graph");
+assert.deepEqual(lateSyncCalls, [10]);
+lateSyncCalls.length = 0;
+assert.equal(lateApp.queuePrompt.call(lateApp, "queue-after-graph").value, "queue-after-graph");
+assert.deepEqual(lateSyncCalls, [10], "lease replacement must not stack queue synchronization");
+
+assert.equal(lateSaveSync.dispose(), true);
+assert.strictEqual(lateGraphPrototype.serialize, lateOriginalSerialize);
+assert.strictEqual(lateApp.queuePrompt, lateOriginalQueuePrompt);
+assert.equal(lateSaveSync.dispose(), false);
+
 console.log("LoRA profile mutation and save-sync smoke passed");
