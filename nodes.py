@@ -30,6 +30,20 @@ try:
         _split_tag_text as _split_tag_text,
         _translate_prompt_text as _translate_prompt_text,
     )
+    from .easyuse_anima.prompt.fields import (
+        DEFAULT_QUALITY_TAGS as DEFAULT_QUALITY_TAGS,
+        DEFAULT_TRAILING_QUALITY_TAGS as DEFAULT_TRAILING_QUALITY_TAGS,
+        _HASH_COMMENT_RE as _HASH_COMMENT_RE,
+        _INLINE_SPACE_RE as _INLINE_SPACE_RE,
+        _WEIGHTED_TOKEN_RE as _WEIGHTED_TOKEN_RE,
+        _bind_prompt_fields_runtime as _bind_prompt_fields_runtime,
+        _correct_builder_prompt as _correct_builder_prompt,
+        _filter_metadata_prompt as _filter_metadata_prompt,
+        _join_prompt_tokens as _join_prompt_tokens,
+        _metadata_filter_key as _metadata_filter_key,
+        _metadata_filter_keys as _metadata_filter_keys,
+        _prompt_tokens as _prompt_tokens,
+    )
     from .easyuse_anima.image.geometry import (
         _align_down as _align_down,
         _align_nearest as _align_nearest,
@@ -75,8 +89,10 @@ try:
         EasyUseAnimaImageScaleByMultiple as EasyUseAnimaImageScaleByMultiple,
     )
     from .easyuse_anima.nodes.prompt_nodes import (
+        EasyUseAnimaPromptBuilder as EasyUseAnimaPromptBuilder,
         EasyUseAnimaPromptCorrector as EasyUseAnimaPromptCorrector,
         EasyUseAnimaPromptCorrectorSimple as EasyUseAnimaPromptCorrectorSimple,
+        EasyUseAnimaPromptStudio as EasyUseAnimaPromptStudio,
         _bind_prompt_node_runtime as _bind_prompt_node_runtime,
     )
     from .easyuse_anima.naia.client import (
@@ -207,6 +223,20 @@ except ImportError:  # allows simple local import tests outside ComfyUI's packag
         _split_tag_text as _split_tag_text,
         _translate_prompt_text as _translate_prompt_text,
     )
+    from easyuse_anima.prompt.fields import (
+        DEFAULT_QUALITY_TAGS as DEFAULT_QUALITY_TAGS,
+        DEFAULT_TRAILING_QUALITY_TAGS as DEFAULT_TRAILING_QUALITY_TAGS,
+        _HASH_COMMENT_RE as _HASH_COMMENT_RE,
+        _INLINE_SPACE_RE as _INLINE_SPACE_RE,
+        _WEIGHTED_TOKEN_RE as _WEIGHTED_TOKEN_RE,
+        _bind_prompt_fields_runtime as _bind_prompt_fields_runtime,
+        _correct_builder_prompt as _correct_builder_prompt,
+        _filter_metadata_prompt as _filter_metadata_prompt,
+        _join_prompt_tokens as _join_prompt_tokens,
+        _metadata_filter_key as _metadata_filter_key,
+        _metadata_filter_keys as _metadata_filter_keys,
+        _prompt_tokens as _prompt_tokens,
+    )
     from easyuse_anima.image.geometry import (
         _align_down as _align_down,
         _align_nearest as _align_nearest,
@@ -252,8 +282,10 @@ except ImportError:  # allows simple local import tests outside ComfyUI's packag
         EasyUseAnimaImageScaleByMultiple as EasyUseAnimaImageScaleByMultiple,
     )
     from easyuse_anima.nodes.prompt_nodes import (
+        EasyUseAnimaPromptBuilder as EasyUseAnimaPromptBuilder,
         EasyUseAnimaPromptCorrector as EasyUseAnimaPromptCorrector,
         EasyUseAnimaPromptCorrectorSimple as EasyUseAnimaPromptCorrectorSimple,
+        EasyUseAnimaPromptStudio as EasyUseAnimaPromptStudio,
         _bind_prompt_node_runtime as _bind_prompt_node_runtime,
     )
     from easyuse_anima.naia.client import (
@@ -368,13 +400,6 @@ except ImportError:  # allows simple local import tests outside ComfyUI's packag
 
 logger = logging.getLogger("ComfyUI-EasyUseAnima")
 
-DEFAULT_QUALITY_TAGS = (
-    "newest, masterpiece, best quality, score_8, score_7:, highres, absurdres, very aesthetic"
-)
-DEFAULT_TRAILING_QUALITY_TAGS = (
-    "location, (A highly aesthetic Pixiv style illustration, clean composition, "
-    "high-quality digital art, detailed background, sharp focus on facial expressions.:0.6)"
-)
 ADVANCED_FIELD_TYPES = {"quality", "artist", "trigger", "general", "naia"}
 ADVANCED_FIELD_PANES = {"positive", "negative"}
 ADVANCED_FIELD_LABELS = {
@@ -1014,9 +1039,6 @@ AIO_RESHIFT_SCALES = ("x2", "x4")
 AIO_RESHIFT_DTYPES = ("bf16", "fp32")
 
 
-_HASH_COMMENT_RE = re.compile(r"^[ \t]*#[^\n]*", re.MULTILINE)
-_INLINE_SPACE_RE = re.compile(r"[ \t]+")
-_WEIGHTED_TOKEN_RE = re.compile(r"^\(([^(),]+):[-+]?\d+(?:\.\d+)?\)$")
 _WEIGHTED_ARTIST_RE = re.compile(
     r"^\(\s*(?P<tag>.*?)\s*:\s*(?P<weight>[+-]?(?:\d+(?:\.\d*)?|\.\d+))\s*\)$"
 )
@@ -4325,27 +4347,6 @@ def _call_impact_detailer(detailer, **kwargs):
     return method(**call_kwargs)
 
 
-def _prompt_tokens(value: str) -> list[str]:
-    if not value:
-        return []
-    cleaned_val = _HASH_COMMENT_RE.sub("", value)
-    normalized = str(cleaned_val).replace("\r\n", "\n").replace("\r", "\n")
-    normalized = normalized.replace("，", ",").replace("\n", ",")
-    tokens: list[str] = []
-    for token in parse_prompt(normalized, profile="prompt").tokens:
-        cleaned = _INLINE_SPACE_RE.sub(" ", str(token).strip(" ,\n\t"))
-        if cleaned:
-            tokens.append(cleaned)
-    return tokens
-
-
-def _join_prompt_tokens(*parts: str) -> str:
-    tokens: list[str] = []
-    for part in parts:
-        tokens.extend(_prompt_tokens(part))
-    return ", ".join(tokens)
-
-
 def _translate_prompt_fields(fields: list[dict]) -> list[dict]:
     translated: list[dict] = []
     for field in fields:
@@ -4355,47 +4356,6 @@ def _translate_prompt_fields(fields: list[dict]) -> list[dict]:
             item["text"] = _translate_prompt_text(text)
         translated.append(item)
     return translated
-
-
-def _correct_builder_prompt(prompt: str, artist_overrides: str = "") -> str:
-    if not prompt:
-        return ""
-    result = correct_prompt(
-        prompt,
-        profile="prompt",
-        knowledge_base=load_knowledge_base(allow_missing=True),
-        validate_artist_tags=False,
-        artist_overrides=_prompt_tokens(artist_overrides),
-    )
-    return result.text
-
-
-def _metadata_filter_key(value: str) -> str:
-    value = _INLINE_SPACE_RE.sub(" ", str(value or "").strip(" ,\n\t"))
-    return value.replace("_", " ").casefold()
-
-
-def _metadata_filter_keys(value: str) -> set[str]:
-    keys = {_metadata_filter_key(value)}
-    weighted = _WEIGHTED_TOKEN_RE.match(str(value or "").strip())
-    if weighted:
-        keys.add(_metadata_filter_key(weighted.group(1)))
-    return {key for key in keys if key}
-
-
-def _filter_metadata_prompt(prompt: str, filter_words: str) -> str:
-    filter_keys: set[str] = set()
-    for word in _prompt_tokens(filter_words):
-        filter_keys.update(_metadata_filter_keys(word))
-    if not prompt or not filter_keys:
-        return prompt
-
-    kept = [
-        token
-        for token in _prompt_tokens(prompt)
-        if _metadata_filter_keys(token).isdisjoint(filter_keys)
-    ]
-    return ", ".join(kept)
 
 
 def _advanced_default_fields() -> list[dict]:
@@ -7255,6 +7215,9 @@ def _consume_reserved_wildcard_next_seed(
     return reservation_next_seed if reservation_next_seed == expected_next_seed else None
 
 
+_bind_prompt_fields_runtime(
+    resolve_helper=lambda name: globals()[name],
+)
 _bind_prompt_correction_runtime(
     resolve_helper=lambda name: globals()[name],
 )
@@ -7291,238 +7254,6 @@ _bind_lora_node_runtime(
     flexible_optional_input_type=_FlexibleOptionalInputType,
     any_type=_ANY_TYPE,
 )
-
-
-class EasyUseAnimaPromptBuilder:
-    """Build cleaned ANIMA prompts for NAIA and Anima Mod Guidance workflows."""
-
-    DESCRIPTION = (
-        "Combines quality, trigger, LoRA trigger, body, and trailing prompt fields into "
-        "ANIMA-friendly prompt outputs, including metadata and Mod Guidance outputs."
-    )
-    OUTPUT_TOOLTIPS = (
-        "Final positive prompt. When Mod Guidance is enabled, leading quality tags are excluded.",
-        "Quality prompt text intended for Anima Mod Guidance.",
-        "Boolean flag passed through for Anima Mod Guidance workflow control.",
-        "Prompt text for metadata, independent from Mod Guidance routing and metadata filters.",
-    )
-
-    @classmethod
-    def INPUT_TYPES(cls):
-        return {
-            "required": {
-                "use_anima_mod_guidance": ("BOOLEAN", {
-                    "default": False,
-                    "tooltip": (
-                        "true: output prompt excludes quality fields and sends them "
-                        "through anima_mod_guidance_quality_tags."
-                    ),
-                }),
-                "pin_trigger_tags_to_front": ("BOOLEAN", {
-                    "default": False,
-                    "tooltip": (
-                        "true: keep trigger/artist and LoRA trigger fields at the very front "
-                        "instead of placing quality tags before them."
-                    ),
-                }),
-                "lora_trigger_tags": ("STRING", {
-                    "multiline": False,
-                    "default": "",
-                    "tooltip": "One-line trigger tags received from a LoRA manager or pasted manually.",
-                }),
-                "quality_tags": ("STRING", {
-                    "multiline": True,
-                    "default": DEFAULT_QUALITY_TAGS,
-                    "tooltip": "Leading quality tags. With AMG enabled, these are excluded from prompt output.",
-                }),
-                "trigger_and_artist_tags": ("STRING", {
-                    "multiline": True,
-                    "default": "",
-                    "tooltip": "Manual model triggers and @artist tags.",
-                }),
-                "prompt": ("STRING", {
-                    "multiline": True,
-                    "default": "",
-                    "tooltip": "Main prompt body. This is the expected place for NAIA output.",
-                }),
-                "trailing_quality_tags": ("STRING", {
-                    "multiline": True,
-                    "default": DEFAULT_TRAILING_QUALITY_TAGS,
-                    "tooltip": "Trailing quality or style tags.",
-                }),
-            }
-        }
-
-    RETURN_TYPES = ("STRING", "STRING", "BOOLEAN", "STRING")
-    RETURN_NAMES = (
-        "prompt",
-        "anima_mod_guidance_quality_tags",
-        "use_anima_mod_guidance",
-        "metadata_prompt",
-    )
-    FUNCTION = "build"
-    CATEGORY = "EasyUse Anima/Prompt"
-
-    @classmethod
-    def IS_CHANGED(cls, **kwargs):
-        return _stable_change_key({
-            "mode": "prompt_builder",
-            "metadata_filter_words": resolve_metadata_filter_words(),
-            "prompt_translation": _prompt_translation_change_key(),
-            **{key: str(value) for key, value in sorted(kwargs.items())},
-        })
-
-    def build(
-        self,
-        use_anima_mod_guidance: bool,
-        pin_trigger_tags_to_front: bool,
-        quality_tags: str,
-        trigger_and_artist_tags: str,
-        lora_trigger_tags: str,
-        prompt: str,
-        trailing_quality_tags: str,
-    ):
-        use_amg = _as_bool(use_anima_mod_guidance, False)
-        pin_triggers = _as_bool(pin_trigger_tags_to_front, False)
-        quality_tags = _translate_prompt_text(quality_tags)
-        trigger_and_artist_tags = _translate_prompt_text(trigger_and_artist_tags)
-        lora_trigger_tags = _translate_prompt_text(lora_trigger_tags)
-        prompt = _translate_prompt_text(prompt)
-        trailing_quality_tags = _translate_prompt_text(trailing_quality_tags)
-
-        trigger_prompt = _join_prompt_tokens(trigger_and_artist_tags, lora_trigger_tags)
-        quality_prompt = _join_prompt_tokens(quality_tags)
-        body_prompt = _join_prompt_tokens(prompt)
-        trailing_prompt = _join_prompt_tokens(trailing_quality_tags)
-
-        if pin_triggers:
-            metadata_body = _correct_builder_prompt(
-                _join_prompt_tokens(quality_tags, body_prompt)
-            )
-            regular_prompt = _join_prompt_tokens(trigger_prompt, metadata_body, trailing_prompt)
-            amg_prompt = _join_prompt_tokens(
-                trigger_prompt,
-                _correct_builder_prompt(body_prompt),
-                trailing_prompt,
-            )
-            metadata_prompt = regular_prompt
-        else:
-            metadata_core = _correct_builder_prompt(
-                _join_prompt_tokens(
-                    quality_tags,
-                    trigger_prompt,
-                    body_prompt,
-                ),
-                artist_overrides=trigger_prompt,
-            )
-            metadata_prompt = _join_prompt_tokens(metadata_core, trailing_prompt)
-            regular_prompt = metadata_prompt
-            amg_core = _correct_builder_prompt(
-                _join_prompt_tokens(trigger_prompt, body_prompt),
-                artist_overrides=trigger_prompt,
-            )
-            amg_prompt = _join_prompt_tokens(amg_core, trailing_prompt)
-
-        metadata_prompt = _filter_metadata_prompt(
-            metadata_prompt,
-            resolve_metadata_filter_words(),
-        )
-        output_prompt = amg_prompt if use_amg else regular_prompt
-
-        return (
-            output_prompt,
-            quality_prompt,
-            use_amg,
-            metadata_prompt,
-        )
-
-
-class EasyUseAnimaPromptStudio(EasyUseAnimaPromptBuilder):
-    """Prompt Builder variant with enhanced front-end editing helpers."""
-
-    DESCRIPTION = (
-        "An enhanced Prompt Builder with front-end editing, autocomplete, and tag highlighting helpers."
-    )
-
-    @classmethod
-    def INPUT_TYPES(cls):
-        return {
-            "required": {
-                "use_anima_mod_guidance": ("BOOLEAN", {
-                    "default": False,
-                    "tooltip": (
-                        "true: output prompt excludes quality fields and sends them "
-                        "through anima_mod_guidance_quality_tags."
-                    ),
-                }),
-                "pin_trigger_tags_to_front": ("BOOLEAN", {
-                    "default": False,
-                    "tooltip": (
-                        "true: keep trigger/artist and LoRA trigger fields at the very front "
-                        "instead of placing quality tags before them."
-                    ),
-                }),
-                "lora_trigger_tags": ("STRING", {
-                    "multiline": False,
-                    "default": "",
-                    "tooltip": "One-line trigger tags received from a LoRA manager or pasted manually.",
-                }),
-                "quality_tags": ("STRING", {
-                    "multiline": True,
-                    "default": DEFAULT_QUALITY_TAGS,
-                    "tooltip": "Leading quality tags. With AMG enabled, these are excluded from prompt output.",
-                }),
-                "trigger_and_artist_tags": ("STRING", {
-                    "multiline": True,
-                    "default": "",
-                    "tooltip": "Manual model triggers and @artist tags.",
-                }),
-                "prompt": ("STRING", {
-                    "multiline": True,
-                    "default": "",
-                    "tooltip": "Main prompt body. This is the expected place for NAIA output.",
-                }),
-                "trailing_quality_tags": ("STRING", {
-                    "multiline": True,
-                    "default": DEFAULT_TRAILING_QUALITY_TAGS,
-                    "tooltip": "Trailing quality or style tags.",
-                }),
-            }
-        }
-
-    CATEGORY = "EasyUse Anima/Prompt"
-
-    def build(
-        self,
-        use_anima_mod_guidance: bool,
-        pin_trigger_tags_to_front: bool,
-        quality_tags: str,
-        trigger_and_artist_tags: str,
-        lora_trigger_tags: str,
-        prompt: str,
-        trailing_quality_tags: str,
-    ):
-        result = super().build(
-            use_anima_mod_guidance,
-            pin_trigger_tags_to_front,
-            quality_tags,
-            trigger_and_artist_tags,
-            lora_trigger_tags,
-            prompt,
-            trailing_quality_tags,
-        )
-        return {
-            "ui": {
-                "prompt_studio_inputs": [{
-                    "lora_trigger_tags": str(lora_trigger_tags or ""),
-                    "quality_tags": str(quality_tags or ""),
-                    "trigger_and_artist_tags": str(trigger_and_artist_tags or ""),
-                    "prompt": str(prompt or ""),
-                    "trailing_quality_tags": str(trailing_quality_tags or ""),
-                }]
-            },
-            "result": result,
-        }
 
 
 class EasyUseAnimaPromptStudioAdvanced:

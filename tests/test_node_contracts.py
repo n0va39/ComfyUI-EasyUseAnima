@@ -32,6 +32,7 @@ from easyuse_anima.naia import client as naia_client
 from easyuse_anima.naia import resolution as naia_resolution
 from easyuse_anima.nodes import image_nodes, lora_nodes, naia_nodes, prompt_nodes, wildcard_nodes
 from easyuse_anima.prompt import correction as prompt_correction
+from easyuse_anima.prompt import fields as prompt_fields
 
 
 PACKAGE_INIT = ROOT / "__init__.py"
@@ -1033,6 +1034,191 @@ print(json.dumps({{
             payload["class_modules"],
             ["easyuse_anima.nodes.prompt_nodes", "easyuse_anima.nodes.prompt_nodes"],
         )
+        self.assertFalse(payload["root_nodes_loaded"])
+
+
+class PromptBuilderStudioMoveContractTests(unittest.TestCase):
+    FIELD_OBJECTS = (
+        "DEFAULT_QUALITY_TAGS",
+        "DEFAULT_TRAILING_QUALITY_TAGS",
+        "_HASH_COMMENT_RE",
+        "_INLINE_SPACE_RE",
+        "_WEIGHTED_TOKEN_RE",
+        "_prompt_tokens",
+        "_join_prompt_tokens",
+        "_correct_builder_prompt",
+        "_metadata_filter_key",
+        "_metadata_filter_keys",
+        "_filter_metadata_prompt",
+    )
+    NODE_CLASSES = (
+        "EasyUseAnimaPromptBuilder",
+        "EasyUseAnimaPromptStudio",
+    )
+
+    def test_root_prompt_builder_studio_objects_are_direct_canonical_aliases(self):
+        for name in self.FIELD_OBJECTS:
+            with self.subTest(module="fields", name=name):
+                self.assertIs(getattr(nodes, name), getattr(prompt_fields, name))
+        for name in self.NODE_CLASSES:
+            with self.subTest(module="prompt_nodes", name=name):
+                self.assertIs(getattr(nodes, name), getattr(prompt_nodes, name))
+
+    def test_package_loaded_root_prompt_builder_studio_objects_are_direct_aliases(self):
+        with _loaded_package_entrypoint() as (_, package_nodes):
+            package_name = package_nodes.__package__
+            package_fields = sys.modules[f"{package_name}.easyuse_anima.prompt.fields"]
+            package_prompt_nodes = sys.modules[
+                f"{package_name}.easyuse_anima.nodes.prompt_nodes"
+            ]
+
+            for name in self.FIELD_OBJECTS:
+                with self.subTest(module="fields", name=name):
+                    self.assertIs(getattr(package_nodes, name), getattr(package_fields, name))
+            for name in self.NODE_CLASSES:
+                with self.subTest(module="prompt_nodes", name=name):
+                    self.assertIs(
+                        getattr(package_nodes, name),
+                        getattr(package_prompt_nodes, name),
+                    )
+
+    def test_classic_studio_directly_inherits_the_canonical_builder(self):
+        self.assertEqual(
+            prompt_nodes.EasyUseAnimaPromptStudio.__bases__,
+            (prompt_nodes.EasyUseAnimaPromptBuilder,),
+        )
+        self.assertTrue(
+            issubclass(
+                nodes.EasyUseAnimaPromptStudio,
+                nodes.EasyUseAnimaPromptBuilder,
+            )
+        )
+
+    def test_root_parser_and_correction_monkeypatches_drive_canonical_fields(self):
+        parsed = types.SimpleNamespace(tokens=("  bound_token  ",))
+        correction_result = types.SimpleNamespace(text="bound correction")
+
+        with patch.object(nodes, "parse_prompt", return_value=parsed) as parser:
+            tokens = prompt_fields._prompt_tokens("source")
+
+        self.assertEqual(tokens, ["bound_token"])
+        parser.assert_called_once_with("source", profile="prompt")
+
+        with (
+            patch.object(nodes, "_prompt_tokens", return_value=["bound_artist"]) as tokens,
+            patch.object(nodes, "load_knowledge_base", return_value="bound kb") as load_kb,
+            patch.object(nodes, "correct_prompt", return_value=correction_result) as correct,
+        ):
+            corrected = prompt_fields._correct_builder_prompt("prompt", "artist")
+
+        self.assertEqual(corrected, "bound correction")
+        tokens.assert_called_once_with("artist")
+        load_kb.assert_called_once_with(allow_missing=True)
+        correct.assert_called_once_with(
+            "prompt",
+            profile="prompt",
+            knowledge_base="bound kb",
+            validate_artist_tags=False,
+            artist_overrides=["bound_artist"],
+        )
+
+    def test_root_monkeypatches_drive_canonical_builder_order_and_change_key(self):
+        with (
+            patch.object(nodes, "_stable_change_key", side_effect=lambda value: value) as stable,
+            patch.object(
+                nodes,
+                "_prompt_translation_change_key",
+                return_value={"bound": "translation"},
+            ) as translation_key,
+            patch.object(
+                nodes,
+                "resolve_metadata_filter_words",
+                return_value="bound filters",
+            ) as resolve_filter,
+        ):
+            change_key = prompt_nodes.EasyUseAnimaPromptBuilder.IS_CHANGED(prompt="source")
+
+        self.assertEqual(change_key["mode"], "prompt_builder")
+        self.assertEqual(change_key["metadata_filter_words"], "bound filters")
+        self.assertEqual(change_key["prompt_translation"], {"bound": "translation"})
+        self.assertEqual(change_key["prompt"], "source")
+        stable.assert_called_once_with(change_key)
+        translation_key.assert_called_once_with()
+        resolve_filter.assert_called_once_with()
+
+        with (
+            patch.object(nodes, "_as_bool", side_effect=(True, False)),
+            patch.object(nodes, "_translate_prompt_text", side_effect=lambda value: f"t:{value}"),
+            patch.object(nodes, "_join_prompt_tokens", side_effect=lambda *parts: "|".join(parts)),
+            patch.object(
+                nodes,
+                "_correct_builder_prompt",
+                side_effect=lambda value, artist_overrides="": f"c:{value}:{artist_overrides}",
+            ),
+            patch.object(
+                nodes,
+                "_filter_metadata_prompt",
+                side_effect=lambda prompt, words: f"f:{prompt}:{words}",
+            ),
+            patch.object(nodes, "resolve_metadata_filter_words", return_value="filters"),
+        ):
+            result = prompt_nodes.EasyUseAnimaPromptBuilder().build(
+                True,
+                False,
+                "quality",
+                "trigger",
+                "lora",
+                "body",
+                "trailing",
+            )
+
+        self.assertEqual(
+            result,
+            (
+                "c:t:trigger|t:lora|t:body:t:trigger|t:lora|t:trailing",
+                "t:quality",
+                True,
+                (
+                    "f:c:t:quality|t:trigger|t:lora|t:body:"
+                    "t:trigger|t:lora|t:trailing:filters"
+                ),
+            ),
+        )
+
+    def test_fresh_process_direct_imports_do_not_load_root_nodes(self):
+        script = f"""
+import importlib
+import json
+import sys
+sys.path.insert(0, {str(ROOT)!r})
+sys.dont_write_bytecode = True
+fields = importlib.import_module("easyuse_anima.prompt.fields")
+prompt_nodes = importlib.import_module("easyuse_anima.nodes.prompt_nodes")
+print(json.dumps({{
+    "class_modules": [
+        prompt_nodes.EasyUseAnimaPromptBuilder.__module__,
+        prompt_nodes.EasyUseAnimaPromptStudio.__module__,
+    ],
+    "helper_module": fields._prompt_tokens.__module__,
+    "root_nodes_loaded": "nodes" in sys.modules,
+}}))
+"""
+        result = subprocess.run(
+            [sys.executable, "-I", "-B", "-c", script],
+            cwd=ROOT,
+            check=False,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            timeout=10,
+        )
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        payload = json.loads(result.stdout)
+        self.assertEqual(
+            payload["class_modules"],
+            ["easyuse_anima.nodes.prompt_nodes", "easyuse_anima.nodes.prompt_nodes"],
+        )
+        self.assertEqual(payload["helper_module"], "easyuse_anima.prompt.fields")
         self.assertFalse(payload["root_nodes_loaded"])
 
 
