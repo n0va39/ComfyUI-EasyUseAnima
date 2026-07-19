@@ -683,15 +683,14 @@ ignored/
 
         self.assertEqual(analyzer.render_json(report), expected_text)
         self.assertEqual(report["schema_version"], 2)
-        self.assertEqual(report["inventory"]["module_count"], 31)
-        self.assertEqual(len(report["registry"]["shipped_python_modules"]), 31)
-        self.assertEqual(len(report["registry"]["runtime_import_closure"]), 28)
+        self.assertEqual(report["inventory"]["module_count"], 34)
+        self.assertEqual(len(report["registry"]["shipped_python_modules"]), 34)
+        self.assertEqual(len(report["registry"]["runtime_import_closure"]), 32)
         self.assertEqual(report["registry"]["missing_internal_imports"], [])
         self.assertEqual(
             report["registry"]["unreachable_shipped_python_modules"],
             [
                 "easyuse_anima/aio/__init__.py",
-                "easyuse_anima/nodes/__init__.py",
                 "easyuse_anima/prompt/__init__.py",
             ],
         )
@@ -703,13 +702,16 @@ ignored/
                 "easyuse_anima/common/serialization.py",
                 "easyuse_anima/common/values.py",
                 "easyuse_anima/image/__init__.py",
+                "easyuse_anima/image/detailer.py",
                 "easyuse_anima/image/geometry.py",
+                "easyuse_anima/image/scaling.py",
                 "easyuse_anima/infrastructure/__init__.py",
                 "easyuse_anima/infrastructure/comfy/__init__.py",
                 "easyuse_anima/infrastructure/comfy/capabilities.py",
                 "easyuse_anima/infrastructure/comfy/invocation.py",
                 "easyuse_anima/infrastructure/comfy/resources.py",
                 "easyuse_anima/nodes/__init__.py",
+                "easyuse_anima/nodes/image_nodes.py",
                 "easyuse_anima/prompt/__init__.py",
             }.issubset(report["registry"]["shipped_python_modules"])
         )
@@ -719,10 +721,13 @@ ignored/
             {
                 "easyuse_anima/common/serialization.py",
                 "easyuse_anima/common/values.py",
+                "easyuse_anima/image/detailer.py",
                 "easyuse_anima/image/geometry.py",
+                "easyuse_anima/image/scaling.py",
                 "easyuse_anima/infrastructure/comfy/capabilities.py",
                 "easyuse_anima/infrastructure/comfy/invocation.py",
                 "easyuse_anima/infrastructure/comfy/resources.py",
+                "easyuse_anima/nodes/image_nodes.py",
             }.issubset(report["registry"]["runtime_import_closure"])
         )
         self.assertIn(

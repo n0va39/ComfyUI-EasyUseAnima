@@ -1,3 +1,9 @@
-"""Node implementation package boundary."""
+"""Canonical ComfyUI node adapters."""
 
-__all__ = ()
+from .image_nodes import EasyUseAnimaDetailerAlignHook, EasyUseAnimaImageScaleByMultiple
+
+
+__all__ = (
+    "EasyUseAnimaDetailerAlignHook",
+    "EasyUseAnimaImageScaleByMultiple",
+)

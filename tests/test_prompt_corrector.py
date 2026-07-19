@@ -3294,6 +3294,97 @@ class DetailerHookTests(unittest.TestCase):
                 hook, = EasyUseAnimaDetailerAlignHook().build(alignment)
                 self.assertEqual(hook.touch_scaled_size(1052, 1232), expected)
 
+    def test_detailer_align_hook_delegates_before_applying_alignment(self):
+        class BaseHook:
+            marker = "wrapped"
+
+            def __init__(self):
+                self.calls = []
+
+            def touch_scaled_size(self, width, height):
+                self.calls.append(("touch_scaled_size", width, height))
+                return width + 1, height + 2
+
+            def post_upscale(self, image, noise_mask):
+                return "post_upscale", image, noise_mask
+
+            def get_skip_sampling(self):
+                return True
+
+            def post_encode(self, latent):
+                return "post_encode", latent
+
+            def get_custom_sampler(self):
+                return "custom_sampler"
+
+            def set_steps(self, steps):
+                return "set_steps", steps
+
+            def cycle_latent(self, latent):
+                return "cycle_latent", latent
+
+            def pre_ksample(self, *args):
+                return "pre_ksample", *args
+
+            def get_custom_noise(self, seed, noise, is_touched):
+                return "custom_noise", seed, noise, is_touched
+
+            def pre_decode(self, latent):
+                return "pre_decode", latent
+
+            def post_decode(self, image):
+                return "post_decode", image
+
+            def post_paste(self, image):
+                return "post_paste", image
+
+        base_hook = BaseHook()
+        hook, = EasyUseAnimaDetailerAlignHook().build("32", base_hook)
+        pre_ksample_args = (
+            "model", 7, 20, 6.5, "sampler", "scheduler",
+            "positive", "negative", "latent", 0.5,
+        )
+
+        self.assertEqual(hook.marker, "wrapped")
+        self.assertEqual(hook.touch_scaled_size(64, 95), (96, 128))
+        self.assertEqual(base_hook.calls, [("touch_scaled_size", 64, 95)])
+        self.assertEqual(hook.post_upscale("image", "mask"), ("post_upscale", "image", "mask"))
+        self.assertTrue(hook.get_skip_sampling())
+        self.assertEqual(hook.post_encode("latent"), ("post_encode", "latent"))
+        self.assertEqual(hook.get_custom_sampler(), "custom_sampler")
+        self.assertEqual(hook.set_steps(20), ("set_steps", 20))
+        self.assertEqual(hook.cycle_latent("latent"), ("cycle_latent", "latent"))
+        self.assertEqual(hook.pre_ksample(*pre_ksample_args), ("pre_ksample", *pre_ksample_args))
+        self.assertEqual(
+            hook.get_custom_noise(7, "noise", True),
+            ("custom_noise", 7, "noise", True),
+        )
+        self.assertEqual(hook.pre_decode("latent"), ("pre_decode", "latent"))
+        self.assertEqual(hook.post_decode("image"), ("post_decode", "image"))
+        self.assertEqual(hook.post_paste("image"), ("post_paste", "image"))
+
+    def test_detailer_align_hook_preserves_no_base_fallbacks(self):
+        hook, = EasyUseAnimaDetailerAlignHook().build("none")
+        pre_ksample_args = (
+            "model", 7, 20, 6.5, "sampler", "scheduler",
+            "positive", "negative", "latent", 0.5,
+        )
+
+        self.assertEqual(hook.touch_scaled_size(65, 95), (65, 95))
+        self.assertEqual(hook.post_upscale("image", "mask"), "image")
+        self.assertFalse(hook.get_skip_sampling())
+        self.assertEqual(hook.post_encode("latent"), "latent")
+        self.assertIsNone(hook.get_custom_sampler())
+        self.assertIsNone(hook.set_steps(20))
+        self.assertEqual(hook.cycle_latent("latent"), "latent")
+        self.assertEqual(hook.pre_ksample(*pre_ksample_args), pre_ksample_args)
+        self.assertEqual(hook.get_custom_noise(7, "noise", True), ("noise", True))
+        self.assertEqual(hook.pre_decode("latent"), "latent")
+        self.assertEqual(hook.post_decode("image"), "image")
+        self.assertEqual(hook.post_paste("image"), "image")
+        with self.assertRaises(AttributeError):
+            _ = hook.missing_attribute
+
 
 class AutocompleteDatasetTests(unittest.TestCase):
     def test_search_autocomplete_ranks_exact_before_prefix_substring_and_description(self):

@@ -42,7 +42,7 @@ not added to a shim merely because tests import them.
 | Surface | Current role | Canonical target | Owner | Introduced / conversion | Known dependents and evidence | Earliest removal |
 | --- | --- | --- | --- | --- | --- | --- |
 | Root `__init__.py` exports | Permanent ComfyUI entrypoint, not a shim | root entrypoint plus `easyuse_anima.registration`/`bootstrap` | #184/#185 | Existing 0.5.2 surface; B-11 rewires internals | ComfyUI loader; node contract fixture | Not removable as a package entrypoint |
-| `nodes.py` mapped public classes | Current implementation; planned node shim | `easyuse_anima.nodes.*_nodes` | #184 B-11, #188 | Existing 0.5.2 surface; convert in B-11 | Root mappings, workflows, tests, possible external Python imports | No scheduled removal; public breaking-change gate after N+1 at earliest |
+| `nodes.py` mapped public classes | Incremental direct compatibility re-exports plus remaining implementations | `easyuse_anima.nodes.*_nodes` | #184 B-04 through B-11, #188 | Existing 0.5.2 surface; B-04 moved image-scale and Detailer-align objects with identity aliases; B-11 completes the shim | Root mappings, workflows, tests, possible external Python imports | No scheduled removal; public breaking-change gate after N+1 at earliest |
 | `api.py` route-registration surface | Current implementation; planned API shim | `easyuse_anima.api.router` and `easyuse_anima.api.routes.*` | #165, #186 D-02-D-07 | Existing 0.5.2 surface; convert during D-02-D-07/D-14 | Root entrypoint side-effect import, frontend endpoints, API tests | Unscheduled; N+1 gate and route parity |
 | `api_contract.py` request/error helpers | Phase C temporary implementation; D-02 move and D-14 shim decision pending | `easyuse_anima.api.requests`, `responses`, and `errors` | #165, #186 D-02/D-14 | Introduced by #165; convert in D-02 and freeze any required root shim in D-14 | `api.py`, API contract tests, Registry package-closure test | Unscheduled; internal consumers canonical and contract/package parity pass |
 | `settings.py` | Current implementation; planned settings shim | `easyuse_anima.settings.*` | #163, #186 D-09 | Existing 0.5.2 surface; convert in D-09/D-14 | `api.py`, `nodes.py`, `wildcard_engine.py`, settings tests | Unscheduled; N+1 gate and settings migration/round-trip |
@@ -95,6 +95,9 @@ EasyUseAnimaWildcard
 - Excluded by default: unmapped/private helpers and historical classes not in
   the 0.5.2 public mapping. A separate consumer audit is required before
   deciding that an unmapped symbol is supported.
+- B-04 compatibility exception: `_image_scale_by_multiple_size` and the moved
+  image/Detailer helpers still used by root internals or focused tests remain
+  explicit direct aliases to their canonical modules; they are not wrappers.
 - Removal gate: 0.5.2 node/workflow fixture, mapping identity, direct import,
   Registry archive closure, consumer evidence, separate breaking-change issue,
   and release note. With no external-consumer evidence, retain these exports.

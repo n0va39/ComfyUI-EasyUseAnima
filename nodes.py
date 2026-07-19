@@ -8,7 +8,7 @@ import os
 import random
 import re
 import sys
-from math import ceil, gcd, isfinite, lcm, log, sqrt
+from math import ceil, gcd, isfinite, log, sqrt
 from typing import Any, Optional
 
 try:
@@ -31,6 +31,17 @@ try:
         _aligned_size_near_scale as _aligned_size_near_scale,
         _alignment_value as _alignment_value,
     )
+    from .easyuse_anima.image.detailer import (
+        _EasyUseAnimaAlignedDetailerHook as _EasyUseAnimaAlignedDetailerHook,
+    )
+    from .easyuse_anima.image.scaling import (
+        IMAGE_SCALE_MULTIPLES as IMAGE_SCALE_MULTIPLES,
+        IMAGE_UPSCALE_METHODS as IMAGE_UPSCALE_METHODS,
+        _image_scale_by_multiple_size as _image_scale_by_multiple_size,
+        _max_long_edge_value as _max_long_edge_value,
+        _normalize_image_scale_options as _normalize_image_scale_options,
+        _scale_by_value as _scale_by_value,
+    )
     from .easyuse_anima.infrastructure.comfy.capabilities import (
         _comfy_max_resolution as _adapter_comfy_max_resolution,
         _comfy_sampler_names as _comfy_sampler_names,
@@ -42,6 +53,7 @@ try:
     )
     from .easyuse_anima.infrastructure.comfy.invocation import (
         _call_with_supported_kwargs as _call_with_supported_kwargs,
+        _common_upscale_image as _common_upscale_image,
         _node_output_tuple as _node_output_tuple,
     )
     from .easyuse_anima.infrastructure.comfy.resources import (
@@ -51,6 +63,10 @@ try:
         _comfy_text_encoder_names as _adapter_comfy_text_encoder_names,
         _comfy_vae_names as _adapter_comfy_vae_names,
         _folder_path_names as _folder_path_names,
+    )
+    from .easyuse_anima.nodes.image_nodes import (
+        EasyUseAnimaDetailerAlignHook as EasyUseAnimaDetailerAlignHook,
+        EasyUseAnimaImageScaleByMultiple as EasyUseAnimaImageScaleByMultiple,
     )
     from .anima_prompt import correct_prompt, load_knowledge_base
     from .anima_prompt.parser import parse_prompt
@@ -100,6 +116,17 @@ except ImportError:  # allows simple local import tests outside ComfyUI's packag
         _aligned_size_near_scale as _aligned_size_near_scale,
         _alignment_value as _alignment_value,
     )
+    from easyuse_anima.image.detailer import (
+        _EasyUseAnimaAlignedDetailerHook as _EasyUseAnimaAlignedDetailerHook,
+    )
+    from easyuse_anima.image.scaling import (
+        IMAGE_SCALE_MULTIPLES as IMAGE_SCALE_MULTIPLES,
+        IMAGE_UPSCALE_METHODS as IMAGE_UPSCALE_METHODS,
+        _image_scale_by_multiple_size as _image_scale_by_multiple_size,
+        _max_long_edge_value as _max_long_edge_value,
+        _normalize_image_scale_options as _normalize_image_scale_options,
+        _scale_by_value as _scale_by_value,
+    )
     from easyuse_anima.infrastructure.comfy.capabilities import (
         _comfy_max_resolution as _adapter_comfy_max_resolution,
         _comfy_sampler_names as _comfy_sampler_names,
@@ -111,6 +138,7 @@ except ImportError:  # allows simple local import tests outside ComfyUI's packag
     )
     from easyuse_anima.infrastructure.comfy.invocation import (
         _call_with_supported_kwargs as _call_with_supported_kwargs,
+        _common_upscale_image as _common_upscale_image,
         _node_output_tuple as _node_output_tuple,
     )
     from easyuse_anima.infrastructure.comfy.resources import (
@@ -120,6 +148,10 @@ except ImportError:  # allows simple local import tests outside ComfyUI's packag
         _comfy_text_encoder_names as _adapter_comfy_text_encoder_names,
         _comfy_vae_names as _adapter_comfy_vae_names,
         _folder_path_names as _folder_path_names,
+    )
+    from easyuse_anima.nodes.image_nodes import (
+        EasyUseAnimaDetailerAlignHook as EasyUseAnimaDetailerAlignHook,
+        EasyUseAnimaImageScaleByMultiple as EasyUseAnimaImageScaleByMultiple,
     )
     from anima_prompt import correct_prompt, load_knowledge_base
     from anima_prompt.parser import parse_prompt
@@ -804,8 +836,6 @@ HTTP_TIMEOUT = NAIA_REQUEST_TIMEOUT + 5.0
 NAI_1MP = 1024 * 1024
 LATENT_ALIGN = 8
 NAIA_MAX_RESOLUTION = 8192
-IMAGE_UPSCALE_METHODS = ["nearest-exact", "bilinear", "area", "bicubic", "lanczos"]
-IMAGE_SCALE_MULTIPLES = ["8", "16", "32", "64"]
 AIO_FINAL_UPSCALE_BACKENDS = ("usdu", "resshift")
 AIO_USDU_MODE_TYPES = ("Linear", "Chess", "None")
 AIO_USDU_SEAM_FIX_MODES = ("None", "Band Pass", "Half Tile", "Half Tile + Intersections")
@@ -4349,242 +4379,6 @@ def _call_impact_detailer(detailer, **kwargs):
     accepts_kwargs = any(param.kind == inspect.Parameter.VAR_KEYWORD for param in parameters.values())
     call_kwargs = kwargs if accepts_kwargs else {key: value for key, value in kwargs.items() if key in parameters}
     return method(**call_kwargs)
-
-
-def _scale_by_value(value, default: float = 1.0) -> float:
-    scale = _as_float(value, default)
-    if not isfinite(scale):
-        scale = default
-    return max(0.01, min(8.0, scale))
-
-
-def _max_long_edge_value(value) -> int:
-    max_long_edge = _as_int(value, 0)
-    if max_long_edge <= 0:
-        return 0
-    return max(1, min(16384, max_long_edge))
-
-
-def _image_scale_by_multiple_size(
-    width: int,
-    height: int,
-    scale_by,
-    multiple,
-    max_long_edge=0,
-) -> tuple[int, int, float]:
-    source_width = max(1, int(width))
-    source_height = max(1, int(height))
-    scale = _scale_by_value(scale_by, 1.0)
-    max_long_edge = _max_long_edge_value(max_long_edge)
-    alignment = _alignment_value(multiple)
-    if alignment is None:
-        applied_scale = scale
-        if max_long_edge > 0:
-            applied_scale = min(applied_scale, max_long_edge / max(source_width, source_height))
-        target_width = max(1, round(source_width * applied_scale))
-        target_height = max(1, round(source_height * applied_scale))
-        if max_long_edge > 0 and max(target_width, target_height) > max_long_edge:
-            applied_scale = max_long_edge / max(target_width, target_height) * applied_scale
-            target_width = max(1, round(source_width * applied_scale))
-            target_height = max(1, round(source_height * applied_scale))
-        return target_width, target_height, applied_scale
-
-    ratio_gcd = gcd(source_width, source_height)
-    base_width = source_width // ratio_gcd
-    base_height = source_height // ratio_gcd
-    base_long_edge = max(base_width, base_height)
-    width_unit = alignment // gcd(base_width, alignment)
-    height_unit = alignment // gcd(base_height, alignment)
-    valid_unit_step = lcm(width_unit, height_unit)
-
-    max_valid_unit = int((ratio_gcd * 8.0) // valid_unit_step)
-    if max_long_edge > 0:
-        max_valid_unit = min(max_valid_unit, max_long_edge // (base_long_edge * valid_unit_step))
-    if max_valid_unit >= 1:
-        desired_unit = (ratio_gcd * scale) / valid_unit_step
-        lower_unit = max(1, min(max_valid_unit, int(desired_unit)))
-        candidates = {lower_unit}
-        if lower_unit < max_valid_unit:
-            candidates.add(lower_unit + 1)
-        if lower_unit > 1:
-            candidates.add(lower_unit - 1)
-
-        valid_unit = min(
-            candidates,
-            key=lambda unit: (
-                abs(((unit * valid_unit_step) / ratio_gcd) - scale),
-                -unit,
-            ),
-        )
-        applied_scale = (valid_unit * valid_unit_step) / ratio_gcd
-        candidate = (
-            base_width * valid_unit * valid_unit_step,
-            base_height * valid_unit * valid_unit_step,
-            applied_scale,
-        )
-        if max_long_edge > 0:
-            aligned_candidate = _aligned_size_near_scale(
-                source_width,
-                source_height,
-                scale,
-                alignment,
-                max_long_edge,
-            )
-            if aligned_candidate is not None:
-                source_long_edge = max(source_width, source_height)
-                target_long_edge = min(source_long_edge * scale, max_long_edge)
-                candidate_long_error = abs(max(candidate[0], candidate[1]) - target_long_edge)
-                aligned_long_error = abs(max(aligned_candidate[0], aligned_candidate[1]) - target_long_edge)
-                candidate_upscales = candidate[0] > source_width and candidate[1] > source_height
-                aligned_upscales = aligned_candidate[0] > source_width and aligned_candidate[1] > source_height
-                if scale > 1.0 and aligned_upscales and not candidate_upscales:
-                    return aligned_candidate
-                if aligned_long_error < candidate_long_error:
-                    return aligned_candidate
-            if max(source_width, source_height) * scale > max_long_edge and aligned_candidate is not None:
-                return aligned_candidate
-        return candidate
-
-    aligned_candidate = _aligned_size_near_scale(
-        source_width,
-        source_height,
-        scale,
-        alignment,
-        max_long_edge,
-    )
-    if aligned_candidate is not None:
-        return aligned_candidate
-
-    target_width = _align_nearest(round(source_width * scale), alignment)
-    target_height = _align_nearest(round(source_height * scale), alignment)
-    applied_scale = (target_width / source_width + target_height / source_height) / 2.0
-    return target_width, target_height, applied_scale
-
-
-def _normalize_image_scale_options(upscale_method, multiple, max_long_edge):
-    method = str(_single_value(upscale_method) or "").strip()
-    size_multiple = str(_single_value(multiple) or "").strip()
-    max_edge = max_long_edge
-
-    # Compatibility for workflows created before max_long_edge existed, or while it was inserted
-    # before upscale_method: widget values can shift into the wrong input names.
-    if size_multiple in IMAGE_UPSCALE_METHODS and str(_single_value(max_long_edge) or "").strip() in IMAGE_SCALE_MULTIPLES:
-        shifted_max_edge = upscale_method
-        method = size_multiple
-        size_multiple = str(_single_value(max_long_edge) or "").strip()
-        max_edge = shifted_max_edge
-    if str(_single_value(max_long_edge) or "").strip() in IMAGE_UPSCALE_METHODS:
-        shifted_method = str(_single_value(max_long_edge) or "").strip()
-        if method in IMAGE_SCALE_MULTIPLES:
-            size_multiple = method
-        method = shifted_method
-        max_edge = 0
-
-    if method not in IMAGE_UPSCALE_METHODS:
-        method = "bicubic"
-    if size_multiple not in IMAGE_SCALE_MULTIPLES:
-        size_multiple = "32"
-    return method, size_multiple, max_edge
-
-
-def _common_upscale_image(samples, width: int, height: int, upscale_method: str):
-    try:
-        import comfy.utils  # type: ignore
-
-        return comfy.utils.common_upscale(samples, width, height, upscale_method, "disabled")
-    except Exception:
-        import torch.nn.functional as F  # type: ignore
-
-        method = "bicubic" if str(upscale_method) == "lanczos" else str(upscale_method)
-        if method in {"bilinear", "bicubic"}:
-            return F.interpolate(samples, size=(height, width), mode=method, align_corners=False)
-        return F.interpolate(samples, size=(height, width), mode=method)
-
-
-class _EasyUseAnimaAlignedDetailerHook:
-    def __init__(self, base_hook, alignment: Optional[int]):
-        self.base_hook = base_hook
-        self.alignment = int(alignment) if alignment is not None else None
-
-    def __getattr__(self, name):
-        if self.base_hook is not None:
-            return getattr(self.base_hook, name)
-        raise AttributeError(name)
-
-    def touch_scaled_size(self, width, height):
-        if self.base_hook is not None and hasattr(self.base_hook, "touch_scaled_size"):
-            width, height = self.base_hook.touch_scaled_size(width, height)
-        if self.alignment is None:
-            return width, height
-        aligned_width = _align_up(width, self.alignment)
-        aligned_height = _align_up(height, self.alignment)
-        if aligned_width != width or aligned_height != height:
-            logger.info(
-                "[EasyUseAnima] Detailer hook aligned crop size %sx%s -> %sx%s (alignment=%s)",
-                width,
-                height,
-                aligned_width,
-                aligned_height,
-                self.alignment,
-            )
-        return aligned_width, aligned_height
-
-    def post_upscale(self, image, noise_mask):
-        if self.base_hook is not None and hasattr(self.base_hook, "post_upscale"):
-            return self.base_hook.post_upscale(image, noise_mask)
-        return image
-
-    def get_skip_sampling(self):
-        if self.base_hook is not None and hasattr(self.base_hook, "get_skip_sampling"):
-            return self.base_hook.get_skip_sampling()
-        return False
-
-    def post_encode(self, latent):
-        if self.base_hook is not None and hasattr(self.base_hook, "post_encode"):
-            return self.base_hook.post_encode(latent)
-        return latent
-
-    def get_custom_sampler(self):
-        if self.base_hook is not None and hasattr(self.base_hook, "get_custom_sampler"):
-            return self.base_hook.get_custom_sampler()
-        return None
-
-    def set_steps(self, steps):
-        if self.base_hook is not None and hasattr(self.base_hook, "set_steps"):
-            return self.base_hook.set_steps(steps)
-        return None
-
-    def cycle_latent(self, latent):
-        if self.base_hook is not None and hasattr(self.base_hook, "cycle_latent"):
-            return self.base_hook.cycle_latent(latent)
-        return latent
-
-    def pre_ksample(self, model, seed, steps, cfg, sampler_name, scheduler, positive, negative, latent, denoise):
-        if self.base_hook is not None and hasattr(self.base_hook, "pre_ksample"):
-            return self.base_hook.pre_ksample(
-                model, seed, steps, cfg, sampler_name, scheduler, positive, negative, latent, denoise
-            )
-        return model, seed, steps, cfg, sampler_name, scheduler, positive, negative, latent, denoise
-
-    def get_custom_noise(self, seed, noise, is_touched):
-        if self.base_hook is not None and hasattr(self.base_hook, "get_custom_noise"):
-            return self.base_hook.get_custom_noise(seed, noise, is_touched)
-        return noise, is_touched
-
-    def pre_decode(self, latent):
-        if self.base_hook is not None and hasattr(self.base_hook, "pre_decode"):
-            return self.base_hook.pre_decode(latent)
-        return latent
-
-    def post_decode(self, image):
-        if self.base_hook is not None and hasattr(self.base_hook, "post_decode"):
-            return self.base_hook.post_decode(image)
-        return image
-
-    def post_paste(self, image):
-        if self.base_hook is not None and hasattr(self.base_hook, "post_paste"):
-            return self.base_hook.post_paste(image)
-        return image
 
 
 def _split_tag_text(value: str) -> list[str]:
@@ -11311,118 +11105,6 @@ class EasyUseAnimaSAM3Context:
     def load(self, ckpt_name):
         model, clip, vae = _load_checkpoint_with_comfy(str(ckpt_name))
         return (_sam3_context(model, clip, vae, str(ckpt_name)), model, clip, vae)
-
-
-class EasyUseAnimaImageScaleByMultiple:
-    """Scale an image by the nearest ratio that produces valid size multiples."""
-
-    DESCRIPTION = (
-        "Scales an IMAGE by the nearest valid ratio that keeps the source aspect ratio and makes "
-        "the output width and height multiples of the selected size. The optional max long edge "
-        "limits the selected valid output size. Use multiple 32 for highres or optimization nodes "
-        "that require 32-multiple sizes."
-    )
-    OUTPUT_TOOLTIPS = (
-        "Scaled image using the nearest valid ratio.",
-        "Final valid image width.",
-        "Final valid image height.",
-        "Actual scale ratio applied to the image.",
-    )
-
-    @classmethod
-    def INPUT_TYPES(cls):
-        return {
-            "required": {
-                "image": ("IMAGE", {
-                    "tooltip": "Input image to upscale.",
-                }),
-                "scale_by": ("FLOAT", {
-                    "default": 1.5,
-                    "min": 0.01,
-                    "max": 8.0,
-                    "step": 0.01,
-                    "tooltip": "Requested image scale ratio. The node uses the nearest valid ratio for the selected multiple.",
-                }),
-                "upscale_method": (IMAGE_UPSCALE_METHODS, {
-                    "default": "bicubic",
-                    "tooltip": "Interpolation method used for resizing.",
-                }),
-                "multiple": (IMAGE_SCALE_MULTIPLES, {
-                    "default": "32",
-                    "tooltip": "Output width and height must be multiples of this value.",
-                }),
-                "max_long_edge": ("INT", {
-                    "default": 0,
-                    "min": 0,
-                    "max": 16384,
-                    "step": 32,
-                    "tooltip": "Maximum output long edge. Set 0 to disable this limit.",
-                }),
-            },
-        }
-
-    RETURN_TYPES = ("IMAGE", "INT", "INT", "FLOAT")
-    RETURN_NAMES = ("image", "width", "height", "applied_scale")
-    FUNCTION = "upscale"
-    CATEGORY = "EasyUse Anima/Image"
-
-    def upscale(self, image, scale_by=1.5, upscale_method="bicubic", multiple="32", max_long_edge=0):
-        upscale_method, multiple, max_long_edge = _normalize_image_scale_options(
-            upscale_method,
-            multiple,
-            max_long_edge,
-        )
-        samples = image.movedim(-1, 1)
-        width, height, applied_scale = _image_scale_by_multiple_size(
-            int(samples.shape[3]),
-            int(samples.shape[2]),
-            scale_by,
-            multiple,
-            max_long_edge,
-        )
-        scaled = _common_upscale_image(samples, width, height, str(upscale_method))
-        return (scaled.movedim(1, -1), width, height, applied_scale)
-
-
-class EasyUseAnimaDetailerAlignHook:
-    """Impact Pack DETAILER_HOOK that aligns detail crop sampling sizes upward."""
-
-    DESCRIPTION = (
-        "Creates an Impact Pack compatible DETAILER_HOOK that aligns the detailer crop sampling "
-        "size upward to a selected multiple. Use alignment 32 for ANIMA/Spectrum workflows that "
-        "require 32-multiple latent-safe crop sizes."
-    )
-    OUTPUT_TOOLTIPS = (
-        "Impact Pack compatible DETAILER_HOOK. Connect it to an Impact DetailerForEach-compatible detailer_hook input.",
-    )
-
-    @classmethod
-    def INPUT_TYPES(cls):
-        return {
-            "required": {
-                "alignment": (["none", "8", "16", "32", "64"], {
-                    "default": "32",
-                    "tooltip": (
-                        "Crop sampling size alignment. 32 is recommended for ANIMA/Spectrum safety; "
-                        "none keeps the original Impact Pack size."
-                    ),
-                }),
-            },
-            "optional": {
-                "detailer_hook": ("DETAILER_HOOK", {
-                    "tooltip": "Optional existing Impact Pack detailer hook. It runs before the alignment adjustment.",
-                }),
-            },
-        }
-
-    RETURN_TYPES = ("DETAILER_HOOK",)
-    RETURN_NAMES = ("detailer_hook",)
-    FUNCTION = "build"
-    CATEGORY = "EasyUse Anima/Detailer"
-
-    def build(self, alignment="32", detailer_hook=None):
-        alignment_int = _alignment_value(alignment)
-        return (_EasyUseAnimaAlignedDetailerHook(detailer_hook, alignment_int),)
 
 
 class _EasyUseAnimaImpactDetailerDelegate:

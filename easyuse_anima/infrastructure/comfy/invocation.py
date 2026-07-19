@@ -46,4 +46,18 @@ def _call_with_supported_kwargs(method, args: tuple[Any, ...], kwargs: dict[str,
     return method(*args, **supported_kwargs)
 
 
+def _common_upscale_image(samples, width: int, height: int, upscale_method: str):
+    try:
+        import comfy.utils  # type: ignore
+
+        return comfy.utils.common_upscale(samples, width, height, upscale_method, "disabled")
+    except Exception:
+        import torch.nn.functional as F  # type: ignore
+
+        method = "bicubic" if str(upscale_method) == "lanczos" else str(upscale_method)
+        if method in {"bilinear", "bicubic"}:
+            return F.interpolate(samples, size=(height, width), mode=method, align_corners=False)
+        return F.interpolate(samples, size=(height, width), mode=method)
+
+
 __all__ = ()
