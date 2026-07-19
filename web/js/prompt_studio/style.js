@@ -247,8 +247,17 @@ function ensureAdvancedStyle() {
       border-bottom: 1px solid rgba(148, 163, 184, 0.2);
     }
     .easyuse-anima-advanced-popup h2 {
-      margin: 0 0 6px;
+      margin: 0;
       font-size: 18px;
+    }
+    .easyuse-anima-advanced-popup-titleline {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin: 0 0 6px;
+    }
+    .easyuse-anima-advanced-popup-title-help {
+      flex: 0 0 auto;
     }
     .easyuse-anima-advanced-popup p {
       margin: 0;
@@ -294,7 +303,9 @@ function ensureAdvancedStyle() {
     .easyuse-anima-advanced-help-popover {
       position: fixed;
       z-index: 100002;
-      max-width: min(320px, calc(100vw - 32px));
+      max-width: min(440px, calc(100vw - 32px));
+      max-height: min(70vh, 560px);
+      overflow-y: auto;
       padding: 9px 10px;
       border: 1px solid rgba(148, 163, 184, 0.38);
       border-radius: 6px;
@@ -302,7 +313,7 @@ function ensureAdvancedStyle() {
       color: rgba(226, 232, 240, 0.94);
       box-shadow: 0 12px 32px rgba(0, 0, 0, 0.42);
       font: 12px/1.45 sans-serif;
-      white-space: normal;
+      white-space: pre-line;
     }
     .easyuse-anima-advanced-popup-note {
       padding: 8px 9px;

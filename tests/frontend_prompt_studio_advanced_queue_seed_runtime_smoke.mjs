@@ -43,10 +43,10 @@ assert.deepEqual(
     "bindWildcardSeedInput",
     "nextWildcardSeed",
     "normalizeWildcardSeed",
+    "normalizeWildcardSeedControl",
     "normalizeWildcardSeedInput",
     "optionalWildcardSeed",
     "randomWildcardSeed",
-    "wildcardSeedControlForMode",
   ],
 );
 assert.equal(seedContract.WILDCARD_SEED_MAX, Number.MAX_SAFE_INTEGER);
@@ -88,6 +88,19 @@ assert.equal(
   seedContract.randomWildcardSeed(() => 1),
   Number.MAX_SAFE_INTEGER,
 );
+assert.equal(seedContract.normalizeWildcardSeedControl("fixed"), "fixed");
+assert.equal(seedContract.normalizeWildcardSeedControl("매번 랜덤"), "randomize");
+assert.equal(seedContract.normalizeWildcardSeedControl("증가"), "increment");
+assert.equal(seedContract.normalizeWildcardSeedControl("decrement"), "fixed");
+assert.equal(
+  seedContract.normalizeWildcardSeedControl("randomize", "재현"),
+  "fixed",
+);
+assert.equal(
+  seedContract.normalizeWildcardSeedControl("fixed", "순차"),
+  "fixed",
+  "Sequential must allow a fixed seed",
+);
 
 function normalizePromptStudioWildcardMode(value) {
   return ["sequential", "순차"].includes(String(value || "").trim().toLowerCase())
@@ -105,9 +118,11 @@ for (const surface of ["advanced", "regional"]) {
     },
   };
   const selectMode = (target, mode) => {
+    const loadedMode = mode;
     target.widgets.wildcard_mode = normalizePromptStudioWildcardMode(mode);
-    target.widgets.wildcard_seed_after_generate = seedContract.wildcardSeedControlForMode(
-      target.widgets.wildcard_mode,
+    target.widgets.wildcard_seed_after_generate = seedContract.normalizeWildcardSeedControl(
+      target.widgets.wildcard_seed_after_generate,
+      loadedMode,
     );
   };
 
@@ -132,18 +147,23 @@ for (const surface of ["advanced", "regional"]) {
   assert.equal(reopened.widgets.wildcard_mode, "일반");
   assert.equal(reopened.widgets.wildcard_seed_after_generate, "fixed");
   assert.equal(
-    seedContract.wildcardSeedControlForMode("고정"),
+    seedContract.normalizeWildcardSeedControl("randomize", "고정"),
     "fixed",
   );
   assert.equal(
-    seedContract.wildcardSeedControlForMode("순차"),
-    "increment",
+    seedContract.normalizeWildcardSeedControl("fixed", "순차"),
+    "fixed",
   );
   for (const legacyMode of ["fixed", "고정", "reproduce", "재현"]) {
     selectMode(reopened, legacyMode);
     assert.equal(reopened.widgets.wildcard_mode, "일반");
     assert.equal(reopened.widgets.wildcard_seed_after_generate, "fixed");
   }
+
+  reopened.widgets.wildcard_seed_after_generate = "fixed";
+  selectMode(reopened, "순차");
+  assert.equal(reopened.widgets.wildcard_mode, "순차");
+  assert.equal(reopened.widgets.wildcard_seed_after_generate, "fixed");
 }
 
 function seedInputFixture(value) {
@@ -1178,12 +1198,12 @@ for (const [surface, createNode] of [
     wrapped(0, promptFor([node])),
   ]);
   assert.deepEqual(queued, [
-    { current: 7, next: 7 },
-    { current: 7, next: 7 },
-    { current: 7, next: 7 },
+    { current: 7, next: 41 },
+    { current: 41, next: 42 },
+    { current: 42, next: 43 },
   ]);
-  assert.equal(node.widgets[1].value, 7);
-  assert.equal(fixture.randomCalls(), 0);
+  assert.equal(node.widgets[1].value, 43);
+  assert.equal(fixture.randomCalls(), 3);
 }
 
 {
@@ -1227,6 +1247,112 @@ for (const [surface, createNode] of [
 }
 
 {
+  const sequentialFixed = advancedNode(10, ADVANCED, 7);
+  sequentialFixed.widgets[2].value = "fixed";
+  const fixture = createFixture({ nodes: [sequentialFixed] });
+  const transaction = fixture.runtime.preparePrompt(promptFor([sequentialFixed]));
+  assert.ok(transaction);
+  assert.deepEqual(reservedSeedState(transaction.prompt, 10), {
+    version: 1,
+    current_seed: 7,
+    next_seed: 7,
+    mode: "sequential",
+    control: "fixed",
+  });
+}
+
+for (const [surface, makeNode] of [
+  ["advanced", () => advancedNode(10, ADVANCED, 7)],
+  ["regional", () => regionalNode(10, 7)],
+]) {
+  for (const [mode, normalizedMode] of [
+    ["일반", "populate"],
+    ["순차", "sequential"],
+  ]) {
+    for (const [control, expectedNext] of [
+      ["fixed", 7],
+      ["randomize", 41],
+      ["increment", 8],
+    ]) {
+      const node = makeNode();
+      node.widgets[0].value = mode;
+      node.widgets[2].value = control;
+      const fixture = createFixture({ nodes: [node], randomValues: [41] });
+      let reserved = null;
+      const wrapped = fixture.runtime.wrapQueuePrompt((_number, prompt) => {
+        reserved = reservedSeedState(prompt, 10);
+        return { prompt_id: `${surface}-${mode}-${control}`, node_errors: {} };
+      });
+
+      await wrapped(0, promptFor([node]));
+
+      assert.deepEqual(reserved, {
+        version: 1,
+        current_seed: 7,
+        next_seed: expectedNext,
+        mode: normalizedMode,
+        control,
+      });
+      assert.equal(
+        node.widgets[1].value,
+        expectedNext,
+        `${surface} ${mode} + ${control} committed the wrong next seed`,
+      );
+      assert.equal(fixture.randomCalls(), control === "randomize" ? 1 : 0);
+    }
+  }
+}
+
+{
+  const node = advancedNode(10, ADVANCED, 7);
+  node.widgets[0].value = "순차";
+  node.widgets[2].value = "randomize";
+  const fixture = createFixture({ nodes: [node], randomValues: [41, 42] });
+  let attempts = 0;
+  let retried = null;
+  const wrapped = fixture.runtime.wrapQueuePrompt((_number, prompt) => {
+    attempts += 1;
+    if (attempts === 1) {
+      return Promise.reject(new Error("random queue rejected"));
+    }
+    retried = reservedSeedState(prompt, 10);
+    return { prompt_id: "random-retry", node_errors: {} };
+  });
+
+  await assert.rejects(wrapped(0, promptFor([node])), /random queue rejected/);
+  assert.equal(node.widgets[1].value, 7, "a rejected random seed must not commit");
+  await wrapped(0, promptFor([node]));
+  assert.deepEqual(retried, {
+    version: 1,
+    current_seed: 7,
+    next_seed: 42,
+    mode: "sequential",
+    control: "randomize",
+  });
+  assert.equal(node.widgets[1].value, 42);
+  assert.equal(fixture.randomCalls(), 2);
+}
+
+for (const linkedInput of ["wildcard_mode", "wildcard_seed_after_generate"]) {
+  const node = advancedNode(10, ADVANCED, 7);
+  const fixture = createFixture({ nodes: [node] });
+  const prompt = promptFor([node]);
+  prompt.output["10"].inputs[linkedInput] = [99, 0];
+  let received = null;
+  const wrapped = fixture.runtime.wrapQueuePrompt((_number, nextPrompt) => {
+    received = nextPrompt;
+    return { prompt_id: `linked-${linkedInput}`, node_errors: {} };
+  });
+
+  await wrapped(0, prompt);
+
+  assert.equal(received, prompt, `${linkedInput} link must remain backend-owned`);
+  assert.deepEqual(prompt.output["10"].inputs[linkedInput], [99, 0]);
+  assert.equal(fixture.cloneCalls(), 0);
+  assert.equal(node.widgets[1].value, 7);
+}
+
+{
   const randomize = advancedNode(10, ADVANCED, 7);
   randomize.widgets[0].value = "일반 채우기";
   randomize.widgets[2].value = "randomize";
@@ -1236,8 +1362,8 @@ for (const [surface, createNode] of [
   });
   const transaction = fixture.runtime.preparePrompt(promptFor([randomize]));
   assert.ok(transaction);
-  assert.equal(reservedNextSeed(transaction.prompt, 10), 7);
-  assert.equal(fixture.randomCalls(), 0);
+  assert.equal(reservedNextSeed(transaction.prompt, 10), Number.MAX_SAFE_INTEGER);
+  assert.equal(fixture.randomCalls(), 1);
 }
 
 {
@@ -1516,12 +1642,12 @@ for (const [surface, createNode] of [
     wrapped(0, subgraphPromptFor(fixture)),
   ]);
   assert.deepEqual(queued, [
-    { current: 7, workflow: 7, next: 7 },
-    { current: 7, workflow: 7, next: 7 },
-    { current: 7, workflow: 7, next: 7 },
+    { current: 7, workflow: 7, next: 41 },
+    { current: 41, workflow: 41, next: 42 },
+    { current: 42, workflow: 42, next: 43 },
   ]);
-  assert.equal(node.widgets[1].value, 7);
-  assert.equal(fixture.randomCalls(), 0);
+  assert.equal(node.widgets[1].value, 43);
+  assert.equal(fixture.randomCalls(), 3);
 }
 
 {
@@ -1548,12 +1674,12 @@ for (const [surface, createNode] of [
 
   for (const executionId of ["50:10", "51:10"]) {
     assert.equal(queuedSeed(received, executionId), 7);
-    assert.equal(reservedNextSeed(received, executionId), 7);
+    assert.equal(reservedNextSeed(received, executionId), 41);
   }
   assert.equal(workflowSeed(received, "50:10"), 7);
-  assert.equal(node.widgets[1].value, 7);
-  assert.equal(fixture.randomCalls(), 0, "General mode must not use random seed advancement");
-  assert.deepEqual(fixture.commits, [[fixture.definition.id, 10, 7]]);
+  assert.equal(node.widgets[1].value, 41);
+  assert.equal(fixture.randomCalls(), 1);
+  assert.deepEqual(fixture.commits, [[fixture.definition.id, 10, 41]]);
 }
 
 {

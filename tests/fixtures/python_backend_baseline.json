@@ -26520,7 +26520,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 2177
+            "line": 2193
           }
         ],
         "classification": "external",
@@ -26528,7 +26528,7 @@
         "conditional": true,
         "imported": "nodes",
         "kind": "static_import",
-        "line": 2178,
+        "line": 2194,
         "name": null,
         "optional": true,
         "requested": "nodes",
@@ -26545,7 +26545,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 2242
+            "line": 2258
           }
         ],
         "classification": "external",
@@ -26553,7 +26553,7 @@
         "conditional": true,
         "imported": "impact.core",
         "kind": "static_import",
-        "line": 2243,
+        "line": 2259,
         "name": null,
         "optional": true,
         "requested": "impact.core",
@@ -26570,7 +26570,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 2248
+            "line": 2264
           }
         ],
         "classification": "external",
@@ -26578,7 +26578,7 @@
         "conditional": true,
         "imported": "modules.impact:core",
         "kind": "static_from",
-        "line": 2249,
+        "line": 2265,
         "name": "core",
         "optional": true,
         "requested": "modules.impact",
@@ -26595,7 +26595,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 2264
+            "line": 2280
           }
         ],
         "classification": "external",
@@ -26603,7 +26603,7 @@
         "conditional": true,
         "imported": "comfy.samplers",
         "kind": "static_import",
-        "line": 2265,
+        "line": 2281,
         "name": null,
         "optional": true,
         "requested": "comfy.samplers",
@@ -26620,7 +26620,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 2273
+            "line": 2289
           }
         ],
         "classification": "external",
@@ -26628,7 +26628,7 @@
         "conditional": true,
         "imported": "nodes",
         "kind": "static_import",
-        "line": 2274,
+        "line": 2290,
         "name": null,
         "optional": true,
         "requested": "nodes",
@@ -26645,7 +26645,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 2289
+            "line": 2305
           }
         ],
         "classification": "external",
@@ -26653,7 +26653,7 @@
         "conditional": true,
         "imported": "impact.impact_pack:DetailerForEach",
         "kind": "static_from",
-        "line": 2290,
+        "line": 2306,
         "name": "DetailerForEach",
         "optional": true,
         "requested": "impact.impact_pack",
@@ -26670,7 +26670,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 2295
+            "line": 2311
           }
         ],
         "classification": "external",
@@ -26678,7 +26678,7 @@
         "conditional": true,
         "imported": "modules.impact.impact_pack:DetailerForEach",
         "kind": "static_from",
-        "line": 2296,
+        "line": 2312,
         "name": "DetailerForEach",
         "optional": true,
         "requested": "modules.impact.impact_pack",
@@ -26695,7 +26695,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 2309
+            "line": 2325
           }
         ],
         "classification": "external",
@@ -26703,7 +26703,7 @@
         "conditional": true,
         "imported": "nodes",
         "kind": "static_import",
-        "line": 2310,
+        "line": 2326,
         "name": null,
         "optional": true,
         "requested": "nodes",
@@ -26720,7 +26720,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 2408
+            "line": 2424
           }
         ],
         "classification": "external",
@@ -26728,7 +26728,7 @@
         "conditional": true,
         "imported": "comfy_extras.nodes_sam3:SAM3_Detect",
         "kind": "static_from",
-        "line": 2409,
+        "line": 2425,
         "name": "SAM3_Detect",
         "optional": true,
         "requested": "comfy_extras.nodes_sam3",
@@ -26745,7 +26745,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 2432
+            "line": 2448
           }
         ],
         "classification": "external",
@@ -26753,7 +26753,7 @@
         "conditional": true,
         "imported": "impact.segs_nodes:MaskToSEGS",
         "kind": "static_from",
-        "line": 2433,
+        "line": 2449,
         "name": "MaskToSEGS",
         "optional": true,
         "requested": "impact.segs_nodes",
@@ -26770,7 +26770,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 2438
+            "line": 2454
           }
         ],
         "classification": "external",
@@ -26778,7 +26778,7 @@
         "conditional": true,
         "imported": "modules.impact.segs_nodes:MaskToSEGS",
         "kind": "static_from",
-        "line": 2439,
+        "line": 2455,
         "name": "MaskToSEGS",
         "optional": true,
         "requested": "modules.impact.segs_nodes",
@@ -26795,7 +26795,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 2444
+            "line": 2460
           }
         ],
         "classification": "external",
@@ -26803,7 +26803,7 @@
         "conditional": true,
         "imported": "impact.impact_pack:MaskToSEGS",
         "kind": "static_from",
-        "line": 2445,
+        "line": 2461,
         "name": "MaskToSEGS",
         "optional": true,
         "requested": "impact.impact_pack",
@@ -26820,7 +26820,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 2450
+            "line": 2466
           }
         ],
         "classification": "external",
@@ -26828,7 +26828,7 @@
         "conditional": true,
         "imported": "modules.impact.impact_pack:MaskToSEGS",
         "kind": "static_from",
-        "line": 2451,
+        "line": 2467,
         "name": "MaskToSEGS",
         "optional": true,
         "requested": "modules.impact.impact_pack",
@@ -26845,7 +26845,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 2788
+            "line": 2804
           }
         ],
         "classification": "external",
@@ -26853,7 +26853,7 @@
         "conditional": true,
         "imported": "folder_paths",
         "kind": "static_import",
-        "line": 2789,
+        "line": 2805,
         "name": null,
         "optional": true,
         "requested": "folder_paths",
@@ -26870,7 +26870,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 2828
+            "line": 2844
           }
         ],
         "classification": "external",
@@ -26878,7 +26878,7 @@
         "conditional": true,
         "imported": "comfy.model_management",
         "kind": "static_import",
-        "line": 2829,
+        "line": 2845,
         "name": null,
         "optional": true,
         "requested": "comfy.model_management",
@@ -26893,7 +26893,7 @@
           {
             "branch": "body",
             "kind": "if",
-            "line": 3261,
+            "line": 3277,
             "type_checking": false
           },
           {
@@ -26901,7 +26901,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 3262
+            "line": 3278
           }
         ],
         "classification": "external",
@@ -26909,7 +26909,7 @@
         "conditional": true,
         "imported": "comfy_extras.nodes_upscale_model:UpscaleModelLoader",
         "kind": "static_from",
-        "line": 3263,
+        "line": 3279,
         "name": "UpscaleModelLoader",
         "optional": true,
         "requested": "comfy_extras.nodes_upscale_model",
@@ -26926,7 +26926,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 4062
+            "line": 4078
           }
         ],
         "classification": "external",
@@ -26934,7 +26934,7 @@
         "conditional": true,
         "imported": "folder_paths",
         "kind": "static_import",
-        "line": 4063,
+        "line": 4079,
         "name": null,
         "optional": true,
         "requested": "folder_paths",
@@ -26951,7 +26951,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 4124
+            "line": 4140
           }
         ],
         "classification": "external",
@@ -26959,7 +26959,7 @@
         "conditional": true,
         "imported": "server:PromptServer",
         "kind": "static_from",
-        "line": 4125,
+        "line": 4141,
         "name": "PromptServer",
         "optional": true,
         "requested": "server",
@@ -26976,7 +26976,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 4151
+            "line": 4167
           }
         ],
         "classification": "external",
@@ -26984,7 +26984,7 @@
         "conditional": true,
         "imported": "folder_paths",
         "kind": "static_import",
-        "line": 4152,
+        "line": 4168,
         "name": null,
         "optional": true,
         "requested": "folder_paths",
@@ -27001,7 +27001,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 4151
+            "line": 4167
           }
         ],
         "classification": "external",
@@ -27009,7 +27009,7 @@
         "conditional": true,
         "imported": "numpy",
         "kind": "static_import",
-        "line": 4153,
+        "line": 4169,
         "name": null,
         "optional": true,
         "requested": "numpy",
@@ -27026,7 +27026,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 4151
+            "line": 4167
           }
         ],
         "classification": "external",
@@ -27034,7 +27034,7 @@
         "conditional": true,
         "imported": "PIL:Image",
         "kind": "static_from",
-        "line": 4154,
+        "line": 4170,
         "name": "Image",
         "optional": true,
         "requested": "PIL",
@@ -27051,7 +27051,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 4345
+            "line": 4361
           }
         ],
         "classification": "external",
@@ -27059,7 +27059,7 @@
         "conditional": true,
         "imported": "torch",
         "kind": "static_import",
-        "line": 4346,
+        "line": 4362,
         "name": null,
         "optional": true,
         "requested": "torch",
@@ -27076,7 +27076,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 5494
+            "line": 5510
           }
         ],
         "classification": "external",
@@ -27084,7 +27084,7 @@
         "conditional": true,
         "imported": "torch",
         "kind": "static_import",
-        "line": 5495,
+        "line": 5511,
         "name": null,
         "optional": true,
         "requested": "torch",
@@ -27101,7 +27101,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 5528
+            "line": 5544
           }
         ],
         "classification": "external",
@@ -27109,7 +27109,7 @@
         "conditional": true,
         "imported": "torch",
         "kind": "static_import",
-        "line": 5529,
+        "line": 5545,
         "name": null,
         "optional": true,
         "requested": "torch",
@@ -29915,14 +29915,14 @@
       },
       {
         "is_package": false,
-        "loc": 8262,
+        "loc": 8283,
         "module": "nodes",
-        "normalized_git_blob_sha1": "d1c55e23b11623896ef38b3cfcadae8c7e78c2f5",
+        "normalized_git_blob_sha1": "949995519a4179e79f8a187ab2073e0c09779c06",
         "path": "nodes.py",
         "top_level": {
           "class_count": 12,
-          "function_count": 149,
-          "global_count": 54
+          "function_count": 150,
+          "global_count": 56
         }
       },
       {
@@ -39573,14 +39573,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 2177
+            "line": 2193
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "nodes",
         "kind": "static_import",
-        "line": 2178,
+        "line": 2194,
         "optional": true,
         "role": "optional_dependency",
         "source": "nodes.py"
@@ -39592,33 +39592,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 2242
+            "line": 2258
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "impact.core",
         "kind": "static_import",
-        "line": 2243,
-        "optional": true,
-        "role": "optional_dependency",
-        "source": "nodes.py"
-      },
-      {
-        "branch_context": [
-          {
-            "branch": "body",
-            "handles_import_failure": true,
-            "has_import_fallback_handler": false,
-            "kind": "try",
-            "line": 2248
-          }
-        ],
-        "classification": "external",
-        "conditional": true,
-        "imported": "modules.impact:core",
-        "kind": "static_from",
-        "line": 2249,
+        "line": 2259,
         "optional": true,
         "role": "optional_dependency",
         "source": "nodes.py"
@@ -39635,8 +39616,8 @@
         ],
         "classification": "external",
         "conditional": true,
-        "imported": "comfy.samplers",
-        "kind": "static_import",
+        "imported": "modules.impact:core",
+        "kind": "static_from",
         "line": 2265,
         "optional": true,
         "role": "optional_dependency",
@@ -39649,14 +39630,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 2273
+            "line": 2280
           }
         ],
         "classification": "external",
         "conditional": true,
-        "imported": "nodes",
+        "imported": "comfy.samplers",
         "kind": "static_import",
-        "line": 2274,
+        "line": 2281,
         "optional": true,
         "role": "optional_dependency",
         "source": "nodes.py"
@@ -39673,8 +39654,8 @@
         ],
         "classification": "external",
         "conditional": true,
-        "imported": "impact.impact_pack:DetailerForEach",
-        "kind": "static_from",
+        "imported": "nodes",
+        "kind": "static_import",
         "line": 2290,
         "optional": true,
         "role": "optional_dependency",
@@ -39687,14 +39668,33 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 2295
+            "line": 2305
+          }
+        ],
+        "classification": "external",
+        "conditional": true,
+        "imported": "impact.impact_pack:DetailerForEach",
+        "kind": "static_from",
+        "line": 2306,
+        "optional": true,
+        "role": "optional_dependency",
+        "source": "nodes.py"
+      },
+      {
+        "branch_context": [
+          {
+            "branch": "body",
+            "handles_import_failure": true,
+            "has_import_fallback_handler": false,
+            "kind": "try",
+            "line": 2311
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "modules.impact.impact_pack:DetailerForEach",
         "kind": "static_from",
-        "line": 2296,
+        "line": 2312,
         "optional": true,
         "role": "optional_dependency",
         "source": "nodes.py"
@@ -39706,14 +39706,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 2309
+            "line": 2325
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "nodes",
         "kind": "static_import",
-        "line": 2310,
+        "line": 2326,
         "optional": true,
         "role": "optional_dependency",
         "source": "nodes.py"
@@ -39725,14 +39725,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 2408
+            "line": 2424
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "comfy_extras.nodes_sam3:SAM3_Detect",
         "kind": "static_from",
-        "line": 2409,
+        "line": 2425,
         "optional": true,
         "role": "optional_dependency",
         "source": "nodes.py"
@@ -39744,14 +39744,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 2432
+            "line": 2448
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "impact.segs_nodes:MaskToSEGS",
         "kind": "static_from",
-        "line": 2433,
+        "line": 2449,
         "optional": true,
         "role": "optional_dependency",
         "source": "nodes.py"
@@ -39763,14 +39763,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 2438
+            "line": 2454
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "modules.impact.segs_nodes:MaskToSEGS",
         "kind": "static_from",
-        "line": 2439,
+        "line": 2455,
         "optional": true,
         "role": "optional_dependency",
         "source": "nodes.py"
@@ -39782,14 +39782,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 2444
+            "line": 2460
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "impact.impact_pack:MaskToSEGS",
         "kind": "static_from",
-        "line": 2445,
+        "line": 2461,
         "optional": true,
         "role": "optional_dependency",
         "source": "nodes.py"
@@ -39801,14 +39801,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 2450
+            "line": 2466
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "modules.impact.impact_pack:MaskToSEGS",
         "kind": "static_from",
-        "line": 2451,
+        "line": 2467,
         "optional": true,
         "role": "optional_dependency",
         "source": "nodes.py"
@@ -39820,14 +39820,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 2788
+            "line": 2804
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "folder_paths",
         "kind": "static_import",
-        "line": 2789,
+        "line": 2805,
         "optional": true,
         "role": "optional_dependency",
         "source": "nodes.py"
@@ -39839,14 +39839,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 2828
+            "line": 2844
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "comfy.model_management",
         "kind": "static_import",
-        "line": 2829,
+        "line": 2845,
         "optional": true,
         "role": "optional_dependency",
         "source": "nodes.py"
@@ -39856,7 +39856,7 @@
           {
             "branch": "body",
             "kind": "if",
-            "line": 3261,
+            "line": 3277,
             "type_checking": false
           },
           {
@@ -39864,14 +39864,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 3262
+            "line": 3278
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "comfy_extras.nodes_upscale_model:UpscaleModelLoader",
         "kind": "static_from",
-        "line": 3263,
+        "line": 3279,
         "optional": true,
         "role": "optional_dependency",
         "source": "nodes.py"
@@ -39883,14 +39883,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 4062
+            "line": 4078
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "folder_paths",
         "kind": "static_import",
-        "line": 4063,
+        "line": 4079,
         "optional": true,
         "role": "optional_dependency",
         "source": "nodes.py"
@@ -39902,14 +39902,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 4124
+            "line": 4140
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "server:PromptServer",
         "kind": "static_from",
-        "line": 4125,
+        "line": 4141,
         "optional": true,
         "role": "optional_dependency",
         "source": "nodes.py"
@@ -39921,14 +39921,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 4151
+            "line": 4167
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "folder_paths",
         "kind": "static_import",
-        "line": 4152,
+        "line": 4168,
         "optional": true,
         "role": "optional_dependency",
         "source": "nodes.py"
@@ -39940,14 +39940,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 4151
+            "line": 4167
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "numpy",
         "kind": "static_import",
-        "line": 4153,
+        "line": 4169,
         "optional": true,
         "role": "optional_dependency",
         "source": "nodes.py"
@@ -39959,14 +39959,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 4151
+            "line": 4167
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "PIL:Image",
         "kind": "static_from",
-        "line": 4154,
+        "line": 4170,
         "optional": true,
         "role": "optional_dependency",
         "source": "nodes.py"
@@ -39978,14 +39978,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 4345
+            "line": 4361
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "torch",
         "kind": "static_import",
-        "line": 4346,
+        "line": 4362,
         "optional": true,
         "role": "optional_dependency",
         "source": "nodes.py"
@@ -39997,14 +39997,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 5494
+            "line": 5510
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "torch",
         "kind": "static_import",
-        "line": 5495,
+        "line": 5511,
         "optional": true,
         "role": "optional_dependency",
         "source": "nodes.py"
@@ -40016,14 +40016,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 5528
+            "line": 5544
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "torch",
         "kind": "static_import",
-        "line": 5529,
+        "line": 5545,
         "optional": true,
         "role": "optional_dependency",
         "source": "nodes.py"
@@ -40993,14 +40993,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 2177
+            "line": 2193
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "nodes",
         "kind": "static_import",
-        "line": 2178,
+        "line": 2194,
         "optional": true,
         "role": "optional_dependency",
         "source": "nodes.py"
@@ -41012,33 +41012,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 2242
+            "line": 2258
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "impact.core",
         "kind": "static_import",
-        "line": 2243,
-        "optional": true,
-        "role": "optional_dependency",
-        "source": "nodes.py"
-      },
-      {
-        "branch_context": [
-          {
-            "branch": "body",
-            "handles_import_failure": true,
-            "has_import_fallback_handler": false,
-            "kind": "try",
-            "line": 2248
-          }
-        ],
-        "classification": "external",
-        "conditional": true,
-        "imported": "modules.impact:core",
-        "kind": "static_from",
-        "line": 2249,
+        "line": 2259,
         "optional": true,
         "role": "optional_dependency",
         "source": "nodes.py"
@@ -41055,8 +41036,8 @@
         ],
         "classification": "external",
         "conditional": true,
-        "imported": "comfy.samplers",
-        "kind": "static_import",
+        "imported": "modules.impact:core",
+        "kind": "static_from",
         "line": 2265,
         "optional": true,
         "role": "optional_dependency",
@@ -41069,14 +41050,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 2273
+            "line": 2280
           }
         ],
         "classification": "external",
         "conditional": true,
-        "imported": "nodes",
+        "imported": "comfy.samplers",
         "kind": "static_import",
-        "line": 2274,
+        "line": 2281,
         "optional": true,
         "role": "optional_dependency",
         "source": "nodes.py"
@@ -41093,8 +41074,8 @@
         ],
         "classification": "external",
         "conditional": true,
-        "imported": "impact.impact_pack:DetailerForEach",
-        "kind": "static_from",
+        "imported": "nodes",
+        "kind": "static_import",
         "line": 2290,
         "optional": true,
         "role": "optional_dependency",
@@ -41107,14 +41088,33 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 2295
+            "line": 2305
+          }
+        ],
+        "classification": "external",
+        "conditional": true,
+        "imported": "impact.impact_pack:DetailerForEach",
+        "kind": "static_from",
+        "line": 2306,
+        "optional": true,
+        "role": "optional_dependency",
+        "source": "nodes.py"
+      },
+      {
+        "branch_context": [
+          {
+            "branch": "body",
+            "handles_import_failure": true,
+            "has_import_fallback_handler": false,
+            "kind": "try",
+            "line": 2311
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "modules.impact.impact_pack:DetailerForEach",
         "kind": "static_from",
-        "line": 2296,
+        "line": 2312,
         "optional": true,
         "role": "optional_dependency",
         "source": "nodes.py"
@@ -41126,14 +41126,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 2309
+            "line": 2325
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "nodes",
         "kind": "static_import",
-        "line": 2310,
+        "line": 2326,
         "optional": true,
         "role": "optional_dependency",
         "source": "nodes.py"
@@ -41145,14 +41145,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 2408
+            "line": 2424
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "comfy_extras.nodes_sam3:SAM3_Detect",
         "kind": "static_from",
-        "line": 2409,
+        "line": 2425,
         "optional": true,
         "role": "optional_dependency",
         "source": "nodes.py"
@@ -41164,14 +41164,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 2432
+            "line": 2448
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "impact.segs_nodes:MaskToSEGS",
         "kind": "static_from",
-        "line": 2433,
+        "line": 2449,
         "optional": true,
         "role": "optional_dependency",
         "source": "nodes.py"
@@ -41183,14 +41183,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 2438
+            "line": 2454
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "modules.impact.segs_nodes:MaskToSEGS",
         "kind": "static_from",
-        "line": 2439,
+        "line": 2455,
         "optional": true,
         "role": "optional_dependency",
         "source": "nodes.py"
@@ -41202,14 +41202,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 2444
+            "line": 2460
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "impact.impact_pack:MaskToSEGS",
         "kind": "static_from",
-        "line": 2445,
+        "line": 2461,
         "optional": true,
         "role": "optional_dependency",
         "source": "nodes.py"
@@ -41221,14 +41221,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 2450
+            "line": 2466
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "modules.impact.impact_pack:MaskToSEGS",
         "kind": "static_from",
-        "line": 2451,
+        "line": 2467,
         "optional": true,
         "role": "optional_dependency",
         "source": "nodes.py"
@@ -41240,14 +41240,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 2788
+            "line": 2804
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "folder_paths",
         "kind": "static_import",
-        "line": 2789,
+        "line": 2805,
         "optional": true,
         "role": "optional_dependency",
         "source": "nodes.py"
@@ -41259,14 +41259,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 2828
+            "line": 2844
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "comfy.model_management",
         "kind": "static_import",
-        "line": 2829,
+        "line": 2845,
         "optional": true,
         "role": "optional_dependency",
         "source": "nodes.py"
@@ -41276,7 +41276,7 @@
           {
             "branch": "body",
             "kind": "if",
-            "line": 3261,
+            "line": 3277,
             "type_checking": false
           },
           {
@@ -41284,14 +41284,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 3262
+            "line": 3278
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "comfy_extras.nodes_upscale_model:UpscaleModelLoader",
         "kind": "static_from",
-        "line": 3263,
+        "line": 3279,
         "optional": true,
         "role": "optional_dependency",
         "source": "nodes.py"
@@ -41303,14 +41303,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 4062
+            "line": 4078
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "folder_paths",
         "kind": "static_import",
-        "line": 4063,
+        "line": 4079,
         "optional": true,
         "role": "optional_dependency",
         "source": "nodes.py"
@@ -41322,14 +41322,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 4124
+            "line": 4140
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "server:PromptServer",
         "kind": "static_from",
-        "line": 4125,
+        "line": 4141,
         "optional": true,
         "role": "optional_dependency",
         "source": "nodes.py"
@@ -41341,14 +41341,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 4151
+            "line": 4167
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "folder_paths",
         "kind": "static_import",
-        "line": 4152,
+        "line": 4168,
         "optional": true,
         "role": "optional_dependency",
         "source": "nodes.py"
@@ -41360,14 +41360,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 4151
+            "line": 4167
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "numpy",
         "kind": "static_import",
-        "line": 4153,
+        "line": 4169,
         "optional": true,
         "role": "optional_dependency",
         "source": "nodes.py"
@@ -41379,14 +41379,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 4151
+            "line": 4167
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "PIL:Image",
         "kind": "static_from",
-        "line": 4154,
+        "line": 4170,
         "optional": true,
         "role": "optional_dependency",
         "source": "nodes.py"
@@ -41398,14 +41398,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 4345
+            "line": 4361
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "torch",
         "kind": "static_import",
-        "line": 4346,
+        "line": 4362,
         "optional": true,
         "role": "optional_dependency",
         "source": "nodes.py"
@@ -41417,14 +41417,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 5494
+            "line": 5510
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "torch",
         "kind": "static_import",
-        "line": 5495,
+        "line": 5511,
         "optional": true,
         "role": "optional_dependency",
         "source": "nodes.py"
@@ -41436,14 +41436,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 5528
+            "line": 5544
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "torch",
         "kind": "static_import",
-        "line": 5529,
+        "line": 5545,
         "optional": true,
         "role": "optional_dependency",
         "source": "nodes.py"
@@ -42485,7 +42485,7 @@
         "column": 28,
         "context": "assign:_ADVANCED_FIELD_SOCKET_RE",
         "kind": "import_time_call",
-        "line": 1178,
+        "line": 1194,
         "module": "nodes.py",
         "scope": "<module>"
       },
@@ -42494,7 +42494,7 @@
         "column": 12,
         "context": "assign:_ANY_TYPE",
         "kind": "import_time_call",
-        "line": 1197,
+        "line": 1213,
         "module": "nodes.py",
         "scope": "<module>"
       },
@@ -42503,7 +42503,7 @@
         "column": 26,
         "context": "assign:_AIO_DETAILER_CUSTOM_RE",
         "kind": "import_time_call",
-        "line": 1377,
+        "line": 1393,
         "module": "nodes.py",
         "scope": "<module>"
       },
@@ -42512,7 +42512,7 @@
         "column": 0,
         "context": "expression",
         "kind": "import_time_call",
-        "line": 5693,
+        "line": 5719,
         "module": "nodes.py",
         "scope": "<module>"
       },
@@ -42521,7 +42521,7 @@
         "column": 0,
         "context": "expression",
         "kind": "import_time_call",
-        "line": 5697,
+        "line": 5723,
         "module": "nodes.py",
         "scope": "<module>"
       },
@@ -42530,7 +42530,7 @@
         "column": 0,
         "context": "expression",
         "kind": "import_time_call",
-        "line": 5700,
+        "line": 5726,
         "module": "nodes.py",
         "scope": "<module>"
       },
@@ -42539,7 +42539,7 @@
         "column": 0,
         "context": "expression",
         "kind": "import_time_call",
-        "line": 5703,
+        "line": 5729,
         "module": "nodes.py",
         "scope": "<module>"
       },
@@ -42548,7 +42548,7 @@
         "column": 0,
         "context": "expression",
         "kind": "import_time_call",
-        "line": 5706,
+        "line": 5732,
         "module": "nodes.py",
         "scope": "<module>"
       },
@@ -42557,7 +42557,7 @@
         "column": 0,
         "context": "expression",
         "kind": "import_time_call",
-        "line": 5709,
+        "line": 5735,
         "module": "nodes.py",
         "scope": "<module>"
       },
@@ -42566,7 +42566,7 @@
         "column": 0,
         "context": "expression",
         "kind": "import_time_call",
-        "line": 5712,
+        "line": 5738,
         "module": "nodes.py",
         "scope": "<module>"
       },
@@ -42575,7 +42575,7 @@
         "column": 0,
         "context": "expression",
         "kind": "import_time_call",
-        "line": 5719,
+        "line": 5745,
         "module": "nodes.py",
         "scope": "<module>"
       },
@@ -42584,7 +42584,7 @@
         "column": 0,
         "context": "expression",
         "kind": "import_time_call",
-        "line": 5725,
+        "line": 5751,
         "module": "nodes.py",
         "scope": "<module>"
       },
@@ -42593,7 +42593,7 @@
         "column": 0,
         "context": "expression",
         "kind": "import_time_call",
-        "line": 5730,
+        "line": 5756,
         "module": "nodes.py",
         "scope": "<module>"
       },
@@ -42602,7 +42602,7 @@
         "column": 0,
         "context": "expression",
         "kind": "import_time_call",
-        "line": 5734,
+        "line": 5760,
         "module": "nodes.py",
         "scope": "<module>"
       },
@@ -43032,55 +43032,67 @@
       },
       {
         "kind": "dict",
-        "line": 727,
+        "line": 743,
         "module": "nodes.py",
         "name": "AIO_GENERATION_DEFAULT_SETTINGS"
       },
       {
         "kind": "dict",
-        "line": 716,
+        "line": 732,
         "module": "nodes.py",
         "name": "AIO_INPUT_DEFAULT_SETTINGS"
       },
       {
         "kind": "dict",
-        "line": 4034,
+        "line": 4050,
         "module": "nodes.py",
         "name": "AIO_PREVIEW_STAGE_LABELS"
       },
       {
         "kind": "set",
-        "line": 711,
+        "line": 727,
         "module": "nodes.py",
         "name": "AIO_SPECIAL_SEEDS"
       },
       {
         "kind": "list",
-        "line": 1148,
+        "line": 1164,
         "module": "nodes.py",
         "name": "EXTEND_PROMPT_SLOT_SPECS"
       },
       {
         "kind": "set",
-        "line": 659,
+        "line": 667,
+        "module": "nodes.py",
+        "name": "PROMPT_STUDIO_LEGACY_FIXED_WILDCARD_MODES"
+      },
+      {
+        "kind": "dict",
+        "line": 657,
+        "module": "nodes.py",
+        "name": "PROMPT_STUDIO_WILDCARD_SEED_CONTROL_ALIASES"
+      },
+      {
+        "kind": "set",
+        "line": 675,
         "module": "nodes.py",
         "name": "REGIONAL_FIELD_TYPES"
       },
       {
         "kind": "set",
-        "line": 1376,
+        "line": 1392,
         "module": "nodes.py",
         "name": "_AIO_DETAILER_RESERVED_KEYS"
       },
       {
         "kind": "dict",
-        "line": 4047,
+        "line": 4063,
         "module": "nodes.py",
         "name": "_AIO_FIRST_PASS_CACHE"
       },
       {
         "kind": "list",
-        "line": 4048,
+        "line": 4064,
         "module": "nodes.py",
         "name": "_AIO_FIRST_PASS_CACHE_ORDER"
       },
@@ -43273,7 +43285,7 @@
           "mutable_container"
         ],
         "initializer": "Dict",
-        "line": 4047,
+        "line": 4063,
         "module": "nodes.py",
         "name": "_AIO_FIRST_PASS_CACHE"
       },
@@ -43283,7 +43295,7 @@
           "mutable_container"
         ],
         "initializer": "List",
-        "line": 4048,
+        "line": 4064,
         "module": "nodes.py",
         "name": "_AIO_FIRST_PASS_CACHE_ORDER"
       },

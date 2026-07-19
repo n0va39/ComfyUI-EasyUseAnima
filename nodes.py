@@ -654,6 +654,22 @@ ADVANCED_FIELD_LABELS = {
 ADVANCED_FIELDS_WORKFLOW_PROPERTY = "easyuse_anima_advanced_fields"
 WILDCARD_RESERVED_NEXT_SEED_INPUT = "easyuse_anima_reserved_wildcard_next_seed"
 WILDCARD_QUEUE_MAX_SAFE_SEED = PUBLIC_MAX_SEED
+PROMPT_STUDIO_WILDCARD_SEED_CONTROL_ALIASES = {
+    "fixed": SEED_CONTROL_FIXED,
+    "고정": SEED_CONTROL_FIXED,
+    "random": SEED_CONTROL_RANDOMIZE,
+    "randomize": SEED_CONTROL_RANDOMIZE,
+    "매번 랜덤": SEED_CONTROL_RANDOMIZE,
+    "increase": SEED_CONTROL_INCREMENT,
+    "increment": SEED_CONTROL_INCREMENT,
+    "증가": SEED_CONTROL_INCREMENT,
+}
+PROMPT_STUDIO_LEGACY_FIXED_WILDCARD_MODES = {
+    WILDCARD_MODE_FIXED,
+    "고정",
+    "reproduce",
+    "재현",
+}
 REGIONAL_FIELDS_WORKFLOW_PROPERTY = "easyuse_anima_regional_fields"
 REGIONAL_CONFIG_WORKFLOW_PROPERTY = "easyuse_anima_regional_config"
 REGIONAL_FIELD_TYPES = {"quality", "artist", "trigger", "general"}
@@ -5609,6 +5625,16 @@ def _get_workflow_node(extra_pnginfo, node_id: str):
     return found
 
 
+def _normalize_prompt_studio_wildcard_seed_control(value, wildcard_mode=None) -> str:
+    loaded_mode = str(wildcard_mode or "").strip().lower()
+    if loaded_mode in PROMPT_STUDIO_LEGACY_FIXED_WILDCARD_MODES:
+        return SEED_CONTROL_FIXED
+    return PROMPT_STUDIO_WILDCARD_SEED_CONTROL_ALIASES.get(
+        str(value or "").strip().lower(),
+        SEED_CONTROL_FIXED,
+    )
+
+
 def _consume_reserved_wildcard_next_seed(
     reservation_inputs,
     workflow_prompt,
@@ -5823,7 +5849,7 @@ class EasyUseAnimaPromptStudioAdvanced:
                 }),
                 "wildcard_mode": (PROMPT_STUDIO_WILDCARD_MODE_LABELS, {
                     "default": PROMPT_STUDIO_WILDCARD_MODE_LABELS[0],
-                    "tooltip": "General deterministically expands source fields; Sequential uses seed % option_count and increments seed after queue.",
+                    "tooltip": "General expands deterministically; Sequential uses seed % option_count. Seed control independently decides the next seed.",
                 }),
                 "wildcard_seed": ("INT", {
                     "default": 0,
@@ -5836,7 +5862,7 @@ class EasyUseAnimaPromptStudioAdvanced:
                 }),
                 "wildcard_seed_after_generate": (SEED_CONTROL_MODES, {
                     "default": SEED_CONTROL_FIXED,
-                    "tooltip": "Seed control after wildcard generation.",
+                    "tooltip": "After an accepted queue: keep the seed fixed, randomize it, or increment it by one.",
                 }),
             },
             "optional": _FlexibleOptionalInputType("STRING"),
@@ -5905,10 +5931,9 @@ class EasyUseAnimaPromptStudioAdvanced:
         effective_fields = _apply_advanced_field_inputs(fields, kwargs)
         wildcard_mode_key = normalize_prompt_studio_wildcard_mode(wildcard_mode)
         wildcard_active = True
-        wildcard_seed_control = (
-            SEED_CONTROL_INCREMENT
-            if wildcard_mode_key == WILDCARD_MODE_SEQUENTIAL
-            else SEED_CONTROL_FIXED
+        wildcard_seed_control = _normalize_prompt_studio_wildcard_seed_control(
+            wildcard_seed_after_generate,
+            wildcard_mode,
         )
         return _stable_change_key({
             "mode": "prompt_studio_advanced",
@@ -6035,10 +6060,9 @@ class EasyUseAnimaPromptStudioAdvanced:
         )
         effective_fields = _apply_advanced_field_inputs(fields, effective_field_inputs)
         wildcard_seed_value = normalize_seed(wildcard_seed)
-        wildcard_effective_seed_control = (
-            SEED_CONTROL_INCREMENT
-            if wildcard_mode_key == WILDCARD_MODE_SEQUENTIAL
-            else SEED_CONTROL_FIXED
+        wildcard_effective_seed_control = _normalize_prompt_studio_wildcard_seed_control(
+            wildcard_seed_after_generate,
+            wildcard_mode,
         )
         reserved_next_wildcard_seed = _consume_reserved_wildcard_next_seed(
             field_inputs,
@@ -6442,10 +6466,9 @@ class EasyUseAnimaPromptStudioAdvancedV2(EasyUseAnimaPromptStudioAdvanced):
                     else PROMPT_STUDIO_WILDCARD_MODE_LABELS[0]
                 ),
                 "wildcard_seed": wildcard_seed,
-                "wildcard_seed_after_generate": (
-                    SEED_CONTROL_INCREMENT
-                    if wildcard_mode_key == WILDCARD_MODE_SEQUENTIAL
-                    else SEED_CONTROL_FIXED
+                "wildcard_seed_after_generate": _normalize_prompt_studio_wildcard_seed_control(
+                    wildcard_seed_after_generate,
+                    wildcard_mode,
                 ),
                 "resolution_bucket": resolution_bucket,
                 "resolution_size": resolution_size,
@@ -7135,7 +7158,7 @@ class EasyUseAnimaPromptStudioRegional:
                 }),
                 "wildcard_mode": (PROMPT_STUDIO_WILDCARD_MODE_LABELS, {
                     "default": PROMPT_STUDIO_WILDCARD_MODE_LABELS[0],
-                    "tooltip": "General deterministically expands source fields; Sequential advances the seed by one after each accepted queue.",
+                    "tooltip": "General expands deterministically; Sequential uses seed % option_count. Seed control independently decides the next seed.",
                 }),
                 "wildcard_seed": ("INT", {
                     "default": 0,
@@ -7148,7 +7171,7 @@ class EasyUseAnimaPromptStudioRegional:
                 }),
                 "wildcard_seed_after_generate": (SEED_CONTROL_MODES, {
                     "default": SEED_CONTROL_FIXED,
-                    "tooltip": "Seed control after wildcard generation.",
+                    "tooltip": "After an accepted queue: keep the seed fixed, randomize it, or increment it by one.",
                 }),
             },
             "optional": _FlexibleOptionalInputType("STRING"),
@@ -7205,10 +7228,9 @@ class EasyUseAnimaPromptStudioRegional:
         config = _normalize_regional_config(regional_config, width, height)
         wildcard_mode_key = normalize_prompt_studio_wildcard_mode(wildcard_mode)
         wildcard_active = True
-        wildcard_seed_control = (
-            SEED_CONTROL_INCREMENT
-            if wildcard_mode_key == WILDCARD_MODE_SEQUENTIAL
-            else SEED_CONTROL_FIXED
+        wildcard_seed_control = _normalize_prompt_studio_wildcard_seed_control(
+            wildcard_seed_after_generate,
+            wildcard_mode,
         )
         return _stable_change_key({
             "mode": "prompt_studio_regional",
@@ -7325,10 +7347,9 @@ class EasyUseAnimaPromptStudioRegional:
         )
         effective_fields = _apply_regional_field_inputs(fields, effective_field_inputs)
         wildcard_seed_value = normalize_seed(wildcard_seed)
-        wildcard_effective_seed_control = (
-            SEED_CONTROL_INCREMENT
-            if wildcard_mode_key == WILDCARD_MODE_SEQUENTIAL
-            else SEED_CONTROL_FIXED
+        wildcard_effective_seed_control = _normalize_prompt_studio_wildcard_seed_control(
+            wildcard_seed_after_generate,
+            wildcard_mode,
         )
         reserved_next_wildcard_seed = _consume_reserved_wildcard_next_seed(
             field_inputs,
