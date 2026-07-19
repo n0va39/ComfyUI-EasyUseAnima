@@ -251,6 +251,66 @@ class AtomicJsonStoreTests(unittest.TestCase):
         self.assertEqual(target.backup_path.read_bytes(), backup_bytes)
         self.assertEqual(self._temp_files(), [])
 
+    def test_replace_transform_persists_returned_value_and_exact_target_backup(self):
+        source = AtomicJsonStore(self.root / "source.json")
+        target = AtomicJsonStore(self.root / "target.json")
+        source_bytes = b'{"settings":{"value":"source"}}\n'
+        target_bytes = b'{ "version": 2, "settings": {"value": "target"} }\n'
+        source.path.write_bytes(source_bytes)
+        target.path.write_bytes(target_bytes)
+
+        transformed = target.replace_from(
+            source,
+            transform=lambda value: {
+                "version": 2,
+                "name": "target",
+                **value,
+            },
+        )
+
+        self.assertEqual(target.read(), transformed)
+        self.assertFalse(source.path.exists())
+        self.assertEqual(target.backup_path.read_bytes(), target_bytes)
+        self.assertEqual(self._temp_files(), [])
+
+    def test_replace_transform_publication_failure_rolls_back_and_cleans_temps(self):
+        source = AtomicJsonStore(self.root / "source.json")
+        target = AtomicJsonStore(self.root / "target.json")
+        source.write({"settings": {"value": "source"}})
+        target.write({"settings": {"value": "old target"}})
+        target.write({"settings": {"value": "current target"}})
+        source_bytes = source.path.read_bytes()
+        target_bytes = target.path.read_bytes()
+        real_replace = storage.os.replace
+        state = {"source_moved": False, "publication_failed": False}
+
+        def fail_transformed_publication(current, destination):
+            current_path = Path(current)
+            destination_path = Path(destination)
+            if current_path == source.path and destination_path == target.path:
+                state["source_moved"] = True
+                return real_replace(current, destination)
+            if (
+                state["source_moved"]
+                and not state["publication_failed"]
+                and destination_path == target.path
+            ):
+                state["publication_failed"] = True
+                raise OSError("transformed publication failed")
+            return real_replace(current, destination)
+
+        with patch.object(storage.os, "replace", side_effect=fail_transformed_publication):
+            with self.assertRaisesRegex(OSError, "transformed publication failed"):
+                target.replace_from(
+                    source,
+                    transform=lambda value: {"version": 2, **value},
+                )
+
+        self.assertEqual(source.path.read_bytes(), source_bytes)
+        self.assertEqual(target.path.read_bytes(), target_bytes)
+        self.assertEqual(target.backup_path.read_bytes(), target_bytes)
+        self.assertEqual(self._temp_files(), [])
+
     def test_invalid_or_missing_primary_reads_valid_backup_without_repair(self):
         store = self._store()
         store.path.write_text("{", encoding="utf-8")

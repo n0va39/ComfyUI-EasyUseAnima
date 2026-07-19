@@ -256,7 +256,165 @@ class AIOProfileStorageTests(unittest.TestCase):
                 self.assertFalse(profile_path.exists())
                 self.assertFalse((root / "Concurrent Delete.json.bak").exists())
 
-    def test_delete_waits_for_in_progress_rename_on_target_profile_path(self):
+    def test_delete_metadata_snapshot_and_delete_share_one_path_lock(self):
+        api = load_api_module()
+        profile_storage = sys.modules[api.AtomicJsonStore.__module__]
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            profile_path = (root / "Snapshot.json").resolve()
+            metadata_ready = threading.Event()
+            release_metadata = threading.Event()
+            overwrite_started = threading.Event()
+            errors: list[BaseException] = []
+            deleted: list[dict] = []
+            overwritten: list[dict] = []
+            real_interpret = api.interpret_profile_document
+
+            with patch.object(api, "AIO_PROFILE_DIR", root):
+                original = api._save_aio_profile(
+                    "Snapshot",
+                    {"settings": {"value": "original"}},
+                )
+
+                def block_after_metadata_read(profile_kind, filename, document):
+                    result = real_interpret(profile_kind, filename, document)
+                    if filename == "Snapshot":
+                        metadata_ready.set()
+                        if not release_metadata.wait(2):
+                            raise AssertionError("delete metadata read was not released")
+                    return result
+
+                def delete_profile():
+                    try:
+                        deleted.append(api._delete_aio_profile("Snapshot"))
+                    except BaseException as exc:
+                        errors.append(exc)
+
+                def overwrite_profile():
+                    overwrite_started.set()
+                    try:
+                        overwritten.append(
+                            api._save_aio_profile(
+                                "Snapshot",
+                                {"settings": {"value": "replacement"}},
+                                overwrite=True,
+                            )
+                        )
+                    except BaseException as exc:
+                        errors.append(exc)
+
+                with patch.object(
+                    api,
+                    "interpret_profile_document",
+                    side_effect=block_after_metadata_read,
+                ):
+                    deleter = threading.Thread(target=delete_profile)
+                    overwriter = threading.Thread(target=overwrite_profile)
+                    deleter.start()
+                    self.assertTrue(metadata_ready.wait(2))
+                    path_lock = profile_storage._path_lock(profile_path)
+                    lock_was_available = path_lock.acquire(blocking=False)
+                    if lock_was_available:
+                        path_lock.release()
+                    overwriter.start()
+                    self.assertTrue(overwrite_started.wait(2))
+                    release_metadata.set()
+                    deleter.join(2)
+                    overwriter.join(2)
+
+                self.assertFalse(deleter.is_alive())
+                self.assertFalse(overwriter.is_alive())
+                self.assertFalse(lock_was_available)
+                self.assertEqual(errors, [])
+                self.assertEqual(deleted[0]["profile_id"], original["profile_id"])
+                self.assertEqual(deleted[0]["revision"], original["revision"])
+                self.assertNotEqual(overwritten[0]["profile_id"], original["profile_id"])
+                self.assertEqual(overwritten[0]["revision"], 1)
+                self.assertEqual(
+                    api._load_aio_profile("Snapshot")["settings"]["value"],
+                    "replacement",
+                )
+
+    def test_same_name_rename_serializes_transform_and_publish_with_overwrite(self):
+        api = load_api_module()
+        profile_storage = sys.modules[api.AtomicJsonStore.__module__]
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            profile_path = (root / "Same.json").resolve()
+            transform_ready = threading.Event()
+            release_transform = threading.Event()
+            overwrite_started = threading.Event()
+            errors: list[BaseException] = []
+            renamed_profiles: list[dict] = []
+            overwritten_profiles: list[dict] = []
+            real_rename_payload = api._rename_aio_profile_payload
+
+            with patch.object(api, "AIO_PROFILE_DIR", root):
+                profile_path.write_text(
+                    json.dumps({"version": 1, "settings": {"value": "legacy"}}),
+                    encoding="utf-8",
+                )
+                legacy_id = api.legacy_profile_id(api.PROFILE_KIND_AIO, "Same")
+
+                def block_after_transform(source_name, target_name, data):
+                    result = real_rename_payload(source_name, target_name, data)
+                    transform_ready.set()
+                    if not release_transform.wait(2):
+                        raise AssertionError("same-name transform was not released")
+                    return result
+
+                def rename_same_name():
+                    try:
+                        renamed_profiles.append(api._rename_aio_profile("Same", "Same"))
+                    except BaseException as exc:
+                        errors.append(exc)
+
+                def overwrite_profile():
+                    overwrite_started.set()
+                    try:
+                        overwritten_profiles.append(
+                            api._save_aio_profile(
+                                "Same",
+                                {"settings": {"value": "replacement"}},
+                                overwrite=True,
+                            )
+                        )
+                    except BaseException as exc:
+                        errors.append(exc)
+
+                with patch.object(
+                    api,
+                    "_rename_aio_profile_payload",
+                    side_effect=block_after_transform,
+                ):
+                    renamer = threading.Thread(target=rename_same_name)
+                    overwriter = threading.Thread(target=overwrite_profile)
+                    renamer.start()
+                    self.assertTrue(transform_ready.wait(2))
+                    path_lock = profile_storage._path_lock(profile_path)
+                    lock_was_available = path_lock.acquire(blocking=False)
+                    if lock_was_available:
+                        path_lock.release()
+                    overwriter.start()
+                    self.assertTrue(overwrite_started.wait(2))
+                    release_transform.set()
+                    renamer.join(2)
+                    overwriter.join(2)
+
+                self.assertFalse(renamer.is_alive())
+                self.assertFalse(overwriter.is_alive())
+                self.assertFalse(lock_was_available)
+                self.assertEqual(errors, [])
+                self.assertEqual(renamed_profiles[0]["profile_id"], legacy_id)
+                self.assertEqual(renamed_profiles[0]["revision"], 0)
+                self.assertEqual(overwritten_profiles[0]["profile_id"], legacy_id)
+                self.assertEqual(overwritten_profiles[0]["revision"], 1)
+                self.assertEqual(
+                    api._load_aio_profile("Same")["settings"]["value"],
+                    "replacement",
+                )
+
+    def test_reader_observes_transformed_rename_before_joint_lock_release(self):
         api = load_api_module()
         profile_storage = sys.modules[api.AtomicJsonStore.__module__]
         with tempfile.TemporaryDirectory() as tmp:
@@ -265,21 +423,147 @@ class AIOProfileStorageTests(unittest.TestCase):
             target = (root / "Target.json").resolve()
             move_ready = threading.Event()
             release_move = threading.Event()
-            delete_started = threading.Event()
-            delete_done = threading.Event()
+            transaction_done = threading.Event()
+            release_api_return = threading.Event()
+            reader_started = threading.Event()
+            reader_done = threading.Event()
             errors: list[BaseException] = []
+            renamed_profiles: list[dict] = []
+            loaded_profiles: list[dict] = []
+            listed_profiles: list[dict] = []
             real_replace = profile_storage.os.replace
+            real_replace_from = api.AtomicJsonStore.replace_from
 
             with patch.object(api, "AIO_PROFILE_DIR", root):
-                api._save_aio_profile("Source", {"settings": {"value": "source"}})
+                source.write_text(
+                    json.dumps({"version": 1, "settings": {"value": "source"}}),
+                    encoding="utf-8",
+                )
+                source_profile_id = api.legacy_profile_id(api.PROFILE_KIND_AIO, "Source")
                 api._save_aio_profile("Target", {"settings": {"value": "target"}})
+                target_bytes = target.read_bytes()
 
-                def block_profile_move(current, destination):
+                def block_after_source_move(current, destination):
+                    result = real_replace(current, destination)
                     if Path(current) == source and Path(destination) == target:
                         move_ready.set()
                         if not release_move.wait(2):
                             raise AssertionError("profile move was not released")
-                    return real_replace(current, destination)
+                    return result
+
+                def pause_after_transaction(store, source_store, *args, **kwargs):
+                    result = real_replace_from(store, source_store, *args, **kwargs)
+                    transaction_done.set()
+                    if not release_api_return.wait(2):
+                        raise AssertionError("rename return was not released")
+                    return result
+
+                def rename_profile():
+                    try:
+                        renamed_profiles.append(
+                            api._rename_aio_profile("Source", "Target", overwrite=True)
+                        )
+                    except BaseException as exc:
+                        errors.append(exc)
+
+                def load_target():
+                    reader_started.set()
+                    try:
+                        loaded_profiles.append(api._load_aio_profile("Target"))
+                        listed_profiles.append(
+                            next(
+                                profile
+                                for profile in api._list_aio_profiles()
+                                if profile["name"] == "Target"
+                            )
+                        )
+                    except BaseException as exc:
+                        errors.append(exc)
+                    finally:
+                        reader_done.set()
+
+                with (
+                    patch.object(
+                        profile_storage.os,
+                        "replace",
+                        side_effect=block_after_source_move,
+                    ),
+                    patch.object(
+                        api.AtomicJsonStore,
+                        "replace_from",
+                        autospec=True,
+                        side_effect=pause_after_transaction,
+                    ),
+                ):
+                    renamer = threading.Thread(target=rename_profile)
+                    reader = threading.Thread(target=load_target)
+                    renamer.start()
+                    self.assertTrue(move_ready.wait(2))
+                    reader.start()
+                    self.assertTrue(reader_started.wait(2))
+                    self.assertFalse(reader_done.wait(0.05))
+                    release_move.set()
+                    self.assertTrue(transaction_done.wait(2))
+                    self.assertTrue(reader_done.wait(2))
+                    release_api_return.set()
+                    renamer.join(2)
+                    reader.join(2)
+
+                self.assertFalse(renamer.is_alive())
+                self.assertFalse(reader.is_alive())
+                self.assertEqual(errors, [])
+                self.assertEqual(loaded_profiles, renamed_profiles)
+                self.assertEqual(loaded_profiles[0]["profile_id"], source_profile_id)
+                self.assertEqual(loaded_profiles[0]["revision"], 0)
+                self.assertEqual(loaded_profiles[0]["name"], "Target")
+                self.assertEqual(listed_profiles[0]["profile_id"], source_profile_id)
+                self.assertEqual(listed_profiles[0]["revision"], 0)
+                self.assertEqual(
+                    json.loads(target.read_text(encoding="utf-8")),
+                    renamed_profiles[0],
+                )
+                self.assertFalse(source.exists())
+                self.assertEqual((root / "Target.json.bak").read_bytes(), target_bytes)
+
+    def test_delete_cannot_enter_rename_transaction_or_be_undone_after_return(self):
+        api = load_api_module()
+        profile_storage = sys.modules[api.AtomicJsonStore.__module__]
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            source = (root / "Source.json").resolve()
+            target = (root / "Target.json").resolve()
+            move_ready = threading.Event()
+            release_move = threading.Event()
+            transaction_done = threading.Event()
+            release_api_return = threading.Event()
+            delete_started = threading.Event()
+            delete_done = threading.Event()
+            errors: list[BaseException] = []
+            deleted: list[dict] = []
+            real_replace = profile_storage.os.replace
+            real_replace_from = api.AtomicJsonStore.replace_from
+
+            with patch.object(api, "AIO_PROFILE_DIR", root):
+                source_profile = api._save_aio_profile(
+                    "Source",
+                    {"settings": {"value": "source"}},
+                )
+                api._save_aio_profile("Target", {"settings": {"value": "target"}})
+
+                def block_after_profile_move(current, destination):
+                    result = real_replace(current, destination)
+                    if Path(current) == source and Path(destination) == target:
+                        move_ready.set()
+                        if not release_move.wait(2):
+                            raise AssertionError("profile move was not released")
+                    return result
+
+                def pause_after_transaction(store, source_store, *args, **kwargs):
+                    result = real_replace_from(store, source_store, *args, **kwargs)
+                    transaction_done.set()
+                    if not release_api_return.wait(2):
+                        raise AssertionError("rename return was not released")
+                    return result
 
                 def rename_profile():
                     try:
@@ -290,13 +574,25 @@ class AIOProfileStorageTests(unittest.TestCase):
                 def delete_target():
                     delete_started.set()
                     try:
-                        api._delete_aio_profile("Target")
+                        deleted.append(api._delete_aio_profile("Target"))
                     except BaseException as exc:
                         errors.append(exc)
                     finally:
                         delete_done.set()
 
-                with patch.object(profile_storage.os, "replace", side_effect=block_profile_move):
+                with (
+                    patch.object(
+                        profile_storage.os,
+                        "replace",
+                        side_effect=block_after_profile_move,
+                    ),
+                    patch.object(
+                        api.AtomicJsonStore,
+                        "replace_from",
+                        autospec=True,
+                        side_effect=pause_after_transaction,
+                    ),
+                ):
                     renamer = threading.Thread(target=rename_profile)
                     deleter = threading.Thread(target=delete_target)
                     renamer.start()
@@ -305,12 +601,17 @@ class AIOProfileStorageTests(unittest.TestCase):
                     self.assertTrue(delete_started.wait(2))
                     self.assertFalse(delete_done.wait(0.05))
                     release_move.set()
+                    self.assertTrue(transaction_done.wait(2))
+                    self.assertTrue(delete_done.wait(2))
+                    release_api_return.set()
                     renamer.join(2)
                     deleter.join(2)
 
                 self.assertFalse(renamer.is_alive())
                 self.assertFalse(deleter.is_alive())
                 self.assertEqual(errors, [])
+                self.assertEqual(deleted[0]["profile_id"], source_profile["profile_id"])
+                self.assertEqual(deleted[0]["revision"], source_profile["revision"])
                 self.assertFalse(source.exists())
                 self.assertFalse(target.exists())
                 self.assertFalse((root / "Target.json.bak").exists())
@@ -397,6 +698,29 @@ class AIOProfileStorageTests(unittest.TestCase):
                 self.assertEqual((broken.read_bytes(), broken.stat().st_mtime_ns), before)
                 with self.assertRaisesRegex(ValueError, "Profile data is invalid"):
                     api._load_aio_profile("Broken")
+
+    def test_incomplete_v2_delete_is_rejected_without_mutating_the_file(self):
+        api = load_api_module()
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            profile = root / "Incomplete.json"
+            profile.write_text(
+                json.dumps(
+                    {
+                        "version": 2,
+                        "name": "Incomplete",
+                        "settings": {"value": "preserved"},
+                    }
+                ),
+                encoding="utf-8",
+            )
+            before = profile.read_bytes()
+
+            with patch.object(api, "AIO_PROFILE_DIR", root):
+                with self.assertRaises(api.InvalidProfileDataError):
+                    api._delete_aio_profile("Incomplete")
+
+            self.assertEqual(profile.read_bytes(), before)
 
     def test_empty_profile_preserves_legacy_payload_validation_contract(self):
         api = load_api_module()

@@ -77,11 +77,10 @@ class ProfileContractTests(unittest.TestCase):
             ],
         )
 
-    def test_v1_and_missing_v2_fields_are_pure_legacy_views(self):
+    def test_v1_and_version_missing_documents_are_pure_legacy_views(self):
         for document in (
             {"version": 1, "settings": {}},
             {"settings": {}},
-            {"version": 2, "name": "Legacy", "settings": {}},
         ):
             with self.subTest(document=document):
                 interpreted = contract.interpret_profile_document(
@@ -153,10 +152,25 @@ class ProfileContractTests(unittest.TestCase):
         self.assertEqual(renamed["profile_id"], current["profile_id"])
         self.assertEqual(renamed["revision"], 4)
 
-    def test_invalid_complete_v2_taxonomy_is_rejected(self):
+    def test_invalid_v2_taxonomy_is_rejected(self):
         invalid_documents = (
             {"version": True, "settings": {}},
             {"version": 2.0, "settings": {}},
+            {
+                "version": 2,
+                "revision": 1,
+                "name": "Invalid",
+            },
+            {
+                "version": 2,
+                "profile_id": "12345678-1234-4234-9234-1234567890ab",
+                "name": "Invalid",
+            },
+            {
+                "version": 2,
+                "profile_id": "12345678-1234-4234-9234-1234567890ab",
+                "revision": 1,
+            },
             {
                 "version": 3,
                 "profile_id": "12345678-1234-4234-9234-1234567890ab",

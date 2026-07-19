@@ -539,7 +539,7 @@ class ApiRequestContractTests(unittest.TestCase):
                         "Profile data is invalid",
                     )
 
-    def test_invalid_profile_version_taxonomy_keeps_422_and_request_id_contract(self):
+    def test_invalid_profile_envelope_taxonomy_keeps_422_and_request_id_contract(self):
         api, routes = load_api_routes()
         request_id = "52345678-1234-4567-89ab-1234567890ab"
         cases = (
@@ -552,6 +552,30 @@ class ApiRequestContractTests(unittest.TestCase):
                 "/easyuse_anima/aio_profiles/load",
                 "AIO_PROFILE_DIR",
                 {"version": 2.0, "settings": {}},
+            ),
+            (
+                "/easyuse_anima/lora_profiles/load",
+                "LORA_PROFILE_DIR",
+                {
+                    "version": 2,
+                    "profile_id": "12345678-1234-4234-9234-1234567890ab",
+                    "profile_data": {},
+                },
+            ),
+            (
+                "/easyuse_anima/aio_profiles/load",
+                "AIO_PROFILE_DIR",
+                {"version": 2, "name": "Incomplete", "settings": {}},
+            ),
+            (
+                "/easyuse_anima/lora_profiles",
+                "LORA_PROFILE_DIR",
+                {"version": 2, "revision": 1, "profile_data": {}},
+            ),
+            (
+                "/easyuse_anima/aio_profiles",
+                "AIO_PROFILE_DIR",
+                {"version": 2, "revision": 1, "settings": {}},
             ),
         )
 
@@ -747,6 +771,30 @@ class ApiRequestContractTests(unittest.TestCase):
             response.headers["X-Request-ID"],
         )
         log_exception.assert_called_once()
+
+    def test_profile_list_does_not_mask_arbitrary_value_error_as_invalid_request(self):
+        api, routes = load_api_routes()
+        cases = (
+            ("/easyuse_anima/lora_profiles", "_list_lora_profiles"),
+            ("/easyuse_anima/aio_profiles", "_list_aio_profiles"),
+        )
+
+        for route, operation_name in cases:
+            with (
+                self.subTest(route=route),
+                patch.object(
+                    api,
+                    operation_name,
+                    side_effect=ValueError("storage programming error"),
+                ),
+                patch.object(api._LOGGER, "exception") as log_exception,
+            ):
+                response = asyncio.run(routes.handlers[route](JsonRequest()))
+
+            self.assertEqual(response["status"], 500)
+            self.assertEqual(response["payload"]["code"], "internal_error")
+            self.assertNotEqual(response["payload"]["code"], "invalid_request")
+            log_exception.assert_called_once()
 
     def test_normal_settings_and_profile_success_payloads_remain_compatible(self):
         api, routes = load_api_routes()

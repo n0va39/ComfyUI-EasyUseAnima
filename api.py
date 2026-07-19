@@ -604,11 +604,12 @@ def _profile_list_item(profile_kind: str, path: Path) -> dict:
         interpreted = interpret_profile_document(profile_kind, path.stem, data)
         profile_id = interpreted["profile_id"]
         revision = interpreted["revision"]
+    except ProfileContractError as exc:
+        raise InvalidProfileDataError(str(exc)) from exc
     except (
         OSError,
         UnicodeError,
         json.JSONDecodeError,
-        ProfileContractError,
     ):
         profile_id = legacy_profile_id(profile_kind, path.stem)
         revision = 0
@@ -839,20 +840,24 @@ def _delete_aio_profile(
     path = _find_aio_profile_path(name)
     if path is None or not path.is_file():
         raise FileNotFoundError("Profile not found")
-    try:
-        data = _read_profile_json(path)
-        if not isinstance(data, dict):
-            raise ProfileContractError("Profile data is invalid")
-        interpreted = interpret_profile_document(PROFILE_KIND_AIO, path.stem, data)
-        deleted_profile_id = interpreted["profile_id"]
-        deleted_revision = interpreted["revision"]
-    except (OSError, UnicodeError, json.JSONDecodeError, ProfileContractError):
-        deleted_profile_id = legacy_profile_id(PROFILE_KIND_AIO, path.stem)
-        deleted_revision = 0
-    try:
-        AtomicJsonStore(path).delete()
-    except FileNotFoundError as exc:
-        raise FileNotFoundError("Profile not found") from exc
+    store = AtomicJsonStore(path)
+    with store.locked():
+        try:
+            data = _read_profile_json(path)
+            if not isinstance(data, dict):
+                raise ProfileContractError("Profile data is invalid")
+            interpreted = interpret_profile_document(PROFILE_KIND_AIO, path.stem, data)
+            deleted_profile_id = interpreted["profile_id"]
+            deleted_revision = interpreted["revision"]
+        except ProfileContractError as exc:
+            raise InvalidProfileDataError(str(exc)) from exc
+        except (OSError, UnicodeError, json.JSONDecodeError):
+            deleted_profile_id = legacy_profile_id(PROFILE_KIND_AIO, path.stem)
+            deleted_revision = 0
+        try:
+            store.delete()
+        except FileNotFoundError as exc:
+            raise FileNotFoundError("Profile not found") from exc
     return {
         "name": path.stem,
         "profile_id": deleted_profile_id,
@@ -877,22 +882,17 @@ def _rename_aio_profile(
         raise FileNotFoundError("Profile not found")
     safe_new_name = _sanitize_aio_profile_name(new_name)
     if source.stem.casefold() == safe_new_name.casefold():
-        data = _read_profile_json(source)
-        normalized = _normalize_stored_aio_profile_payload(source.stem, data)
-        try:
-            renamed = rename_profile_document(
-                PROFILE_KIND_AIO,
+        store = AtomicJsonStore(source, backup=False)
+        with store.locked():
+            data = _read_profile_json(source)
+            renamed = _rename_aio_profile_payload(
                 source.stem,
                 source.stem,
                 data,
-                normalized,
             )
-        except ProfileContractError as exc:
-            raise InvalidProfileDataError(str(exc)) from exc
-        _validate_aio_profile_size(renamed)
-        if data != renamed:
-            AtomicJsonStore(source, backup=False).write(renamed)
-        return renamed
+            if data != renamed:
+                store.write(renamed)
+            return renamed
 
     target = _find_aio_profile_path(safe_new_name)
     if target is not None and not overwrite:
@@ -909,7 +909,6 @@ def _rename_aio_profile(
             data,
         ),
     )
-    AtomicJsonStore(target_path, backup=False).write(renamed)
     return renamed
 
 
@@ -1237,7 +1236,11 @@ if web is not None and routes is not None:
     @routes.get("/easyuse_anima/lora_profiles")
     @_request_correlated
     async def lora_profiles_handler(request):
-        return web.json_response({"profiles": await _run_file_io(_list_lora_profiles)})
+        try:
+            payload = await _run_file_io(_list_lora_profiles)
+        except InvalidProfileDataError as exc:
+            return _profile_error_response(exc)
+        return web.json_response({"profiles": payload})
 
     @routes.post("/easyuse_anima/lora_profiles/save")
     @_request_correlated
@@ -1294,9 +1297,11 @@ if web is not None and routes is not None:
     @routes.get("/easyuse_anima/aio_profiles")
     @_request_correlated
     async def aio_profiles_handler(request):
-        return web.json_response(
-            {"status": "ok", "profiles": await _run_file_io(_list_aio_profiles)}
-        )
+        try:
+            payload = await _run_file_io(_list_aio_profiles)
+        except InvalidProfileDataError as exc:
+            return _profile_error_response(exc)
+        return web.json_response({"status": "ok", "profiles": payload})
 
     @routes.post("/easyuse_anima/aio_profiles/save")
     @_request_correlated

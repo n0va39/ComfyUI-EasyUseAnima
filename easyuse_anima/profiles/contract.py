@@ -46,17 +46,12 @@ def read_profile_metadata(
     version = document.get("version")
     if version is not None and type(version) is not int:
         raise ProfileContractError("Profile version is invalid")
-    has_v2_envelope = all(
-        field in document
-        for field in ("profile_id", "revision", "name")
-    )
-    if version in (None, 1) or (
-        version == PROFILE_ENVELOPE_VERSION
-        and not has_v2_envelope
-    ):
+    if version in (None, 1):
         return legacy_profile_id(profile_kind, filename), 0
     if version != PROFILE_ENVELOPE_VERSION:
         raise ProfileContractError("Profile version is invalid")
+    if not all(field in document for field in ("profile_id", "revision", "name")):
+        raise ProfileContractError("Profile envelope is invalid")
     if not isinstance(document["name"], str) or not document["name"].strip():
         raise ProfileContractError("Profile name is invalid")
 

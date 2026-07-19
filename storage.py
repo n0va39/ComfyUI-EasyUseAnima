@@ -290,7 +290,13 @@ class AtomicJsonStore:
         backup_target: bool = True,
         transform: Callable[[object], _T] | None = None,
     ) -> object | _T:
-        """Validate/transform under both locks, then atomically move the primary."""
+        """Validate and move a primary while holding both path locks.
+
+        A transformed value is encoded before either primary is changed. The
+        source is then moved onto the target and the transformed bytes are
+        published before the joint lock is released. If that second
+        publication fails, both primaries are restored byte-for-byte.
+        """
 
         if source.path.parent != self.path.parent:
             raise ValueError("Atomic JSON moves require the same directory")
@@ -298,11 +304,48 @@ class AtomicJsonStore:
             value = source._read_path(source.path)
             if self.path.exists() and not overwrite:
                 raise FileExistsError("Profile already exists")
-            if transform is not None:
-                value = transform(value)
             self.path.parent.mkdir(parents=True, exist_ok=True)
-            if backup_target and self.path.is_file():
-                self._backup_primary_unlocked()
-            os.replace(source.path, self.path)
-            _fsync_directory(self.path.parent)
-            return value
+
+            if transform is None:
+                if backup_target and self.path.is_file():
+                    self._backup_primary_unlocked()
+                os.replace(source.path, self.path)
+                _fsync_directory(self.path.parent)
+                return value
+
+            value = transform(value)
+            encoded = self._encode(value, indent=2, trailing_newline=False)
+            transformed_temp: Path | None = self._write_temp(self.path, encoded)
+            target_restore_temp: Path | None = None
+            target_was_file = self.path.is_file()
+            try:
+                if target_was_file:
+                    target_restore_temp = self._write_temp(
+                        self.path,
+                        self.path.read_bytes(),
+                    )
+                if backup_target and target_was_file:
+                    self._backup_primary_unlocked()
+
+                os.replace(source.path, self.path)
+                try:
+                    os.replace(transformed_temp, self.path)
+                    transformed_temp = None
+                except BaseException as publication_error:
+                    try:
+                        os.replace(self.path, source.path)
+                        if target_restore_temp is not None:
+                            os.replace(target_restore_temp, self.path)
+                            target_restore_temp = None
+                        _fsync_directory(self.path.parent)
+                    except BaseException as rollback_error:
+                        raise rollback_error from publication_error
+                    raise
+
+                _fsync_directory(self.path.parent)
+                return value
+            finally:
+                if transformed_temp is not None:
+                    _unlink_if_present(transformed_temp)
+                if target_restore_temp is not None:
+                    _unlink_if_present(target_restore_temp)
