@@ -683,9 +683,9 @@ ignored/
 
         self.assertEqual(analyzer.render_json(report), expected_text)
         self.assertEqual(report["schema_version"], 2)
-        self.assertEqual(report["inventory"]["module_count"], 41)
-        self.assertEqual(len(report["registry"]["shipped_python_modules"]), 41)
-        self.assertEqual(len(report["registry"]["runtime_import_closure"]), 39)
+        self.assertEqual(report["inventory"]["module_count"], 42)
+        self.assertEqual(len(report["registry"]["shipped_python_modules"]), 42)
+        self.assertEqual(len(report["registry"]["runtime_import_closure"]), 40)
         self.assertEqual(report["registry"]["missing_internal_imports"], [])
         self.assertEqual(
             report["registry"]["unreachable_shipped_python_modules"],
@@ -719,6 +719,7 @@ ignored/
                 "easyuse_anima/nodes/wildcard_nodes.py",
                 "easyuse_anima/profiles/__init__.py",
                 "easyuse_anima/profiles/contract.py",
+                "easyuse_anima/profiles/mutation.py",
                 "easyuse_anima/prompt/__init__.py",
             }.issubset(report["registry"]["shipped_python_modules"])
         )
@@ -742,6 +743,7 @@ ignored/
                 "easyuse_anima/nodes/wildcard_nodes.py",
                 "easyuse_anima/profiles/__init__.py",
                 "easyuse_anima/profiles/contract.py",
+                "easyuse_anima/profiles/mutation.py",
             }.issubset(report["registry"]["runtime_import_closure"])
         )
         self.assertIn(
@@ -768,6 +770,10 @@ ignored/
             {"from": "api.py", "to": "easyuse_anima/profiles/contract.py"},
             report["imports"]["module_graph"],
         )
+        self.assertIn(
+            {"from": "api.py", "to": "easyuse_anima/profiles/mutation.py"},
+            report["imports"]["module_graph"],
+        )
         self.assertNotIn(
             "tests/test_python_backend_analyzer.py",
             report["registry"]["shipped_python_modules"],
@@ -784,6 +790,7 @@ ignored/
             {
                 ("api.py", "storage.py"),
                 ("api.py", "easyuse_anima/profiles/contract.py"),
+                ("api.py", "easyuse_anima/profiles/mutation.py"),
                 ("nodes.py", "prompt_translation.py"),
                 ("nodes.py", "settings.py"),
                 ("nodes.py", "wildcard_engine.py"),

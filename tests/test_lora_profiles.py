@@ -3,6 +3,7 @@ import importlib.util
 import json
 import sys
 import tempfile
+import threading
 import types
 import unittest
 import uuid
@@ -11,6 +12,13 @@ from unittest.mock import patch
 
 
 ROOT = Path(__file__).resolve().parents[1]
+
+
+def profile_tokens(profile: dict) -> dict:
+    return {
+        "profile_id": profile["profile_id"],
+        "revision": profile["revision"],
+    }
 
 
 def load_api_module():
@@ -125,7 +133,7 @@ class LoraProfileStorageTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             with patch.object(api, "LORA_PROFILE_DIR", root):
-                api._save_lora_profile(
+                first = api._save_lora_profile(
                     "Recoverable",
                     {"profile_data": {"1": {"style_prompt": "first"}}},
                 )
@@ -133,6 +141,7 @@ class LoraProfileStorageTests(unittest.TestCase):
                     "Recoverable",
                     {"profile_data": {"1": {"style_prompt": "second"}}},
                     overwrite=True,
+                    **profile_tokens(first),
                 )
                 (root / "Recoverable.json").write_text("{", encoding="utf-8")
 
@@ -218,8 +227,7 @@ class LoraProfileStorageTests(unittest.TestCase):
                     "Legacy",
                     {"profile_data": {"1": {"style_prompt": "updated"}}},
                     overwrite=True,
-                    profile_id="00000000-0000-4000-8000-000000000000",
-                    revision=999,
+                    **profile_tokens(listed),
                 )
 
             stored = json.loads(primary.read_text(encoding="utf-8"))
@@ -227,7 +235,7 @@ class LoraProfileStorageTests(unittest.TestCase):
             self.assertEqual(promoted["revision"], 1)
             self.assertEqual(stored, promoted)
 
-    def test_v2_overwrite_preserves_id_and_advances_revision_without_strict_token(self):
+    def test_v2_overwrite_preserves_id_and_advances_matching_revision(self):
         api = load_api_module()
         with tempfile.TemporaryDirectory() as tmp:
             with patch.object(api, "LORA_PROFILE_DIR", Path(tmp)):
@@ -239,8 +247,7 @@ class LoraProfileStorageTests(unittest.TestCase):
                     "Updated",
                     {"profile_data": {"1": {"style_prompt": "second"}}},
                     overwrite=True,
-                    profile_id="00000000-0000-4000-8000-000000000000",
-                    revision=0,
+                    **profile_tokens(created),
                 )
 
         self.assertEqual(updated["profile_id"], created["profile_id"])
@@ -260,7 +267,7 @@ class LoraProfileStorageTests(unittest.TestCase):
             with self.subTest(original_name=original_name, colliding_name=colliding_name):
                 with tempfile.TemporaryDirectory() as tmp:
                     with patch.object(api, "LORA_PROFILE_DIR", Path(tmp)):
-                        api._save_lora_profile(
+                        created = api._save_lora_profile(
                             original_name,
                             {"profile_data": {"1": {"style_prompt": "first"}}},
                         )
@@ -281,6 +288,7 @@ class LoraProfileStorageTests(unittest.TestCase):
                             colliding_name,
                             {"profile_data": {"1": {"style_prompt": "second"}}},
                             overwrite=True,
+                            **profile_tokens(created),
                         )
                         self.assertEqual(overwritten["name"], filename)
                         self.assertEqual(
@@ -291,6 +299,119 @@ class LoraProfileStorageTests(unittest.TestCase):
                             [path.name for path in Path(tmp).glob("*.json")],
                             [f"{filename}.json"],
                         )
+
+    def test_overwrite_requires_matching_tokens_and_does_not_recreate_missing_profile(self):
+        api = load_api_module()
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            with patch.object(api, "LORA_PROFILE_DIR", root):
+                created = api._save_lora_profile("Strict", {"profile_data": {}})
+
+                with self.assertRaises(api.ProfileMutationError) as missing_tokens:
+                    api._save_lora_profile(
+                        "Strict",
+                        {"profile_data": {}},
+                        overwrite=True,
+                    )
+                self.assertEqual(
+                    missing_tokens.exception.code,
+                    "profile_precondition_required",
+                )
+
+                (root / "Strict.json").unlink()
+                with self.assertRaises(FileNotFoundError):
+                    api._save_lora_profile(
+                        "Strict",
+                        {"profile_data": {}},
+                        overwrite=True,
+                        **profile_tokens(created),
+                    )
+                self.assertFalse((root / "Strict.json").exists())
+
+    def test_identity_and_revision_mismatch_leave_all_storage_artifacts_unchanged(self):
+        api = load_api_module()
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            with patch.object(api, "LORA_PROFILE_DIR", root):
+                first = api._save_lora_profile("Stable", {"profile_data": {}})
+                current = api._save_lora_profile(
+                    "Stable",
+                    {"profile_data": {"1": {"style_prompt": "current"}}},
+                    overwrite=True,
+                    **profile_tokens(first),
+                )
+                primary = root / "Stable.json"
+                backup = root / "Stable.json.bak"
+
+                for field, value, code in (
+                    ("profile_id", "00000000-0000-4000-8000-000000000000", "profile_identity_mismatch"),
+                    ("revision", current["revision"] - 1, "profile_revision_conflict"),
+                ):
+                    before = {
+                        path.name: (path.read_bytes(), path.stat().st_mtime_ns)
+                        for path in (primary, backup)
+                    }
+                    temps_before = {path.name for path in root.glob("*.tmp")}
+                    tokens = profile_tokens(current)
+                    tokens[field] = value
+
+                    with self.assertRaises(api.ProfileMutationError) as mismatch:
+                        api._save_lora_profile(
+                            "stable. ",
+                            {"profile_data": {"1": {"style_prompt": "rejected"}}},
+                            overwrite=True,
+                            **tokens,
+                        )
+
+                    self.assertEqual(mismatch.exception.code, code)
+                    self.assertEqual(
+                        {
+                            path.name: (path.read_bytes(), path.stat().st_mtime_ns)
+                            for path in (primary, backup)
+                        },
+                        before,
+                    )
+                    self.assertEqual({path.name for path in root.glob("*.tmp")}, temps_before)
+
+    def test_same_revision_concurrent_overwrite_allows_exactly_one_success(self):
+        api = load_api_module()
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            with patch.object(api, "LORA_PROFILE_DIR", root):
+                created = api._save_lora_profile("Concurrent", {"profile_data": {}})
+                barrier = threading.Barrier(3)
+                successes = []
+                failures = []
+
+                def overwrite(value):
+                    barrier.wait()
+                    try:
+                        successes.append(
+                            api._save_lora_profile(
+                                "Concurrent",
+                                {"profile_data": {"1": {"style_prompt": value}}},
+                                overwrite=True,
+                                **profile_tokens(created),
+                            )
+                        )
+                    except BaseException as exc:
+                        failures.append(exc)
+
+                workers = [
+                    threading.Thread(target=overwrite, args=(value,))
+                    for value in ("one", "two")
+                ]
+                for worker in workers:
+                    worker.start()
+                barrier.wait()
+                for worker in workers:
+                    worker.join(2)
+
+                self.assertTrue(all(not worker.is_alive() for worker in workers))
+                self.assertEqual(len(successes), 1)
+                self.assertEqual(successes[0]["revision"], 2)
+                self.assertEqual(len(failures), 1)
+                self.assertEqual(failures[0].code, "profile_revision_conflict")
 
     def test_windows_reserved_profile_names_are_rejected(self):
         api = load_api_module()
@@ -576,6 +697,79 @@ class LoraProfileApiRouteTests(unittest.TestCase):
                 "message": "Profile already exists",
             },
         )
+
+    def test_overwrite_route_exposes_strict_428_409_and_404_taxonomy(self):
+        api, routes = load_api_routes()
+        handler = routes.handlers[self.PATH]
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            with patch.object(api, "LORA_PROFILE_DIR", root):
+                created_response = asyncio.run(handler(JsonRequest(self.BASE_PAYLOAD)))
+                created = created_response["payload"]["profile"]
+
+                missing = asyncio.run(
+                    handler(JsonRequest({**self.BASE_PAYLOAD, "overwrite": True}))
+                )
+                self.assertEqual(missing["status"], 428)
+                self.assertEqual(
+                    missing["payload"]["code"],
+                    "profile_precondition_required",
+                )
+
+                identity = asyncio.run(
+                    handler(
+                        JsonRequest(
+                            {
+                                **self.BASE_PAYLOAD,
+                                "overwrite": True,
+                                "profile_id": "00000000-0000-4000-8000-000000000000",
+                                "revision": created["revision"] - 1,
+                            }
+                        )
+                    )
+                )
+                self.assertEqual(identity["status"], 409)
+                self.assertEqual(
+                    identity["payload"]["code"],
+                    "profile_identity_mismatch",
+                )
+
+                revision = asyncio.run(
+                    handler(
+                        JsonRequest(
+                            {
+                                **self.BASE_PAYLOAD,
+                                "overwrite": True,
+                                "profile_id": created["profile_id"],
+                                "revision": created["revision"] - 1,
+                            }
+                        )
+                    )
+                )
+                self.assertEqual(revision["status"], 409)
+                self.assertEqual(
+                    revision["payload"]["code"],
+                    "profile_revision_conflict",
+                )
+
+                (root / "Saved.json").unlink()
+                missing_profile = asyncio.run(
+                    handler(
+                        JsonRequest(
+                            {
+                                **self.BASE_PAYLOAD,
+                                "overwrite": True,
+                                **profile_tokens(created),
+                            }
+                        )
+                    )
+                )
+                self.assertEqual(missing_profile["status"], 404)
+                self.assertEqual(
+                    missing_profile["payload"]["code"],
+                    "profile_not_found",
+                )
+                self.assertFalse((root / "Saved.json").exists())
 
 
 class AutocompleteApiRouteTests(unittest.TestCase):
