@@ -12548,9 +12548,9 @@
       },
       {
         "is_package": false,
-        "loc": 351,
+        "loc": 412,
         "module": "storage",
-        "normalized_git_blob_sha1": "4193cab56e50634eae7fd9064097a4e6c6def417",
+        "normalized_git_blob_sha1": "4119e4b41259196dd8440cbdd072b0f44f98a463",
         "path": "storage.py",
         "top_level": {
           "class_count": 1,

@@ -232,10 +232,12 @@ class AtomicJsonStoreTests(unittest.TestCase):
     def test_replace_transform_failure_preserves_source_target_and_backup(self):
         source = AtomicJsonStore(self.root / "source.json")
         target = AtomicJsonStore(self.root / "target.json")
+        source.write({"settings": {"value": "old source"}})
         source.write({"settings": {"value": "source"}})
         target.write({"settings": {"value": "old target"}})
         target.write({"settings": {"value": "current target"}})
         source_bytes = source.path.read_bytes()
+        source_backup_bytes = source.backup_path.read_bytes()
         target_bytes = target.path.read_bytes()
         backup_bytes = target.backup_path.read_bytes()
 
@@ -247,6 +249,7 @@ class AtomicJsonStoreTests(unittest.TestCase):
             target.replace_from(source, transform=reject_source)
 
         self.assertEqual(source.path.read_bytes(), source_bytes)
+        self.assertEqual(source.backup_path.read_bytes(), source_backup_bytes)
         self.assertEqual(target.path.read_bytes(), target_bytes)
         self.assertEqual(target.backup_path.read_bytes(), backup_bytes)
         self.assertEqual(self._temp_files(), [])
@@ -254,10 +257,11 @@ class AtomicJsonStoreTests(unittest.TestCase):
     def test_replace_transform_persists_returned_value_and_exact_target_backup(self):
         source = AtomicJsonStore(self.root / "source.json")
         target = AtomicJsonStore(self.root / "target.json")
-        source_bytes = b'{"settings":{"value":"source"}}\n'
-        target_bytes = b'{ "version": 2, "settings": {"value": "target"} }\n'
-        source.path.write_bytes(source_bytes)
-        target.path.write_bytes(target_bytes)
+        source.write({"settings": {"value": "old source"}})
+        source.write({"settings": {"value": "source"}})
+        target.write({"settings": {"value": "old target"}})
+        target.write({"settings": {"value": "target"}})
+        target_bytes = target.path.read_bytes()
 
         transformed = target.replace_from(
             source,
@@ -270,17 +274,55 @@ class AtomicJsonStoreTests(unittest.TestCase):
 
         self.assertEqual(target.read(), transformed)
         self.assertFalse(source.path.exists())
+        self.assertFalse(source.backup_path.exists())
         self.assertEqual(target.backup_path.read_bytes(), target_bytes)
+        self.assertEqual(self._temp_files(), [])
+
+    def test_replace_source_backup_removal_failure_preserves_all_files(self):
+        source = AtomicJsonStore(self.root / "source.json")
+        target = AtomicJsonStore(self.root / "target.json")
+        source.write({"settings": {"value": "old source"}})
+        source.write({"settings": {"value": "source"}})
+        target.write({"settings": {"value": "target"}})
+        source_bytes = source.path.read_bytes()
+        source_backup_bytes = source.backup_path.read_bytes()
+        target_bytes = target.path.read_bytes()
+        real_unlink = Path.unlink
+
+        def fail_source_backup_removal(path, *args, **kwargs):
+            if Path(path) == source.backup_path:
+                raise OSError("source backup removal failed")
+            return real_unlink(path, *args, **kwargs)
+
+        with patch.object(
+            Path,
+            "unlink",
+            autospec=True,
+            side_effect=fail_source_backup_removal,
+        ):
+            with self.assertRaisesRegex(OSError, "source backup removal failed"):
+                target.replace_from(
+                    source,
+                    transform=lambda value: {"version": 2, **value},
+                )
+
+        self.assertEqual(source.path.read_bytes(), source_bytes)
+        self.assertEqual(source.backup_path.read_bytes(), source_backup_bytes)
+        self.assertEqual(target.path.read_bytes(), target_bytes)
+        self.assertFalse(target.backup_path.exists())
         self.assertEqual(self._temp_files(), [])
 
     def test_replace_transform_publication_failure_rolls_back_and_cleans_temps(self):
         source = AtomicJsonStore(self.root / "source.json")
         target = AtomicJsonStore(self.root / "target.json")
+        source.write({"settings": {"value": "old source"}})
         source.write({"settings": {"value": "source"}})
         target.write({"settings": {"value": "old target"}})
         target.write({"settings": {"value": "current target"}})
         source_bytes = source.path.read_bytes()
+        source_backup_bytes = source.backup_path.read_bytes()
         target_bytes = target.path.read_bytes()
+        target_backup_bytes = target.backup_path.read_bytes()
         real_replace = storage.os.replace
         state = {"source_moved": False, "publication_failed": False}
 
@@ -307,8 +349,9 @@ class AtomicJsonStoreTests(unittest.TestCase):
                 )
 
         self.assertEqual(source.path.read_bytes(), source_bytes)
+        self.assertEqual(source.backup_path.read_bytes(), source_backup_bytes)
         self.assertEqual(target.path.read_bytes(), target_bytes)
-        self.assertEqual(target.backup_path.read_bytes(), target_bytes)
+        self.assertEqual(target.backup_path.read_bytes(), target_backup_bytes)
         self.assertEqual(self._temp_files(), [])
 
     def test_invalid_or_missing_primary_reads_valid_backup_without_repair(self):
