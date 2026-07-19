@@ -49,23 +49,23 @@
     "inputs": {
       "text": {
         "name": "テキスト",
-        "tooltip": "Prompt text with wildcard syntax such as __style__ or {2::a|5::b|c}."
+        "tooltip": "通常展開/固定/順次が展開する元テキストです。__name__、{a|b|c}、N::weight、{n$$...}/{min-max$$separator$$...}、N#__name__ とネストに対応します。名前は大文字小文字を区別せず * glob を使用でき、最初の非空白文字が # の行だけをコメントとして削除します。"
       },
       "populated_text": {
         "name": "展開済みテキスト",
-        "tooltip": "Cached expanded prompt used by fixed and reproduce modes."
+        "tooltip": "展開結果のキャッシュです。再現はこの値をそのまま出力し、空なら text を使います。通常展開/固定/順次は古いキャッシュを無視して text を展開し、保存ワークフローメタデータのこの値を更新します。"
       },
       "mode": {
         "name": "モード",
-        "tooltip": "一般塗りつぶしはシードベースのランダム展開です。固定/再現はキャッシュ済みテキストを使い、順次は seed % 項目数のインデックスを使います。"
+        "tooltip": "通常展開は text をシードによる重み付きランダム選択で展開します。固定も EasyUse 互換動作として同様に text を展開し、seed control が fixed の場合だけシードを保持します。順次は seed % 選択肢数/範囲幅で選び、次のシードを必ず増やします。再現は新しい選択なしで populated_text をそのまま使いますが、返却/ライブの次シードには seed_after_generate を適用します。展開実行は保存時に populated_text と再現モードで記録されます。"
       },
       "seed": {
         "name": "シード",
-        "tooltip": "ワイルドカード選択シードです。順次モードでは各ワイルドカードの項目数で割った余りをインデックスとして使います。"
+        "tooltip": "重み付きランダム選択のシードです。順次は各選択肢数と範囲幅の剰余を使い、再現は新しい選択を行いません。"
       },
       "seed_after_generate": {
         "name": "生成後シード制御",
-        "tooltip": "生成後のシード制御です。固定、ランダム化、増加、減少を選べます。"
+        "tooltip": "次のライブ実行シードです。fixed は維持、randomize は新しい値、increment/decrement は境界で循環して 1 ずつ変更します。順次は increment を強制します。再現は新しい選択を行いませんが、返却/ライブの次シードにはこの制御を適用します。"
       }
     },
     "outputs": {
@@ -229,15 +229,15 @@
       },
       "wildcard_mode": {
         "name": "ワイルドカードモード",
-        "tooltip": "ワイルドカードモードです。固定は互換性のための既定値で、順次は seed % 項目数を使い、キュー後にシードを増加させます。"
+        "tooltip": "通常展開と固定は元フィールドをシードによる重み付きランダム選択で展開します。順次は seed % 選択肢数/範囲幅で展開してシードを必ず増やし、再現は保存済み展開フィールドをそのまま使います。展開結果は保存メタデータに再現モードで記録されます。"
       },
       "wildcard_seed": {
         "name": "ワイルドカードシード",
-        "tooltip": "Advanced Prompt Studio フィールドで使うワイルドカードシードです。"
+        "tooltip": "Advanced Prompt Studio の重み付きランダム選択シードです。順次は選択肢数/範囲幅の剰余を使い、再現は選択しません。"
       },
       "wildcard_seed_after_generate": {
         "name": "ワイルドカードシード生成後制御",
-        "tooltip": "ワイルドカード生成後のシード制御です。"
+        "tooltip": "次の実行シードを維持、ランダム化、増加、減少します。順次は increment を強制し、再現は進めません。"
       }
     },
     "outputs": {
@@ -329,15 +329,15 @@
       },
       "wildcard_mode": {
         "name": "Wildcard mode",
-        "tooltip": "Wildcard expansion mode for Advanced Prompt Studio fields."
+        "tooltip": "通常展開/固定は元フィールドをシードによる重み付きランダムで展開し、順次は seed modulo 選択後に増加します。再現は保存済み展開フィールドをそのまま使います。"
       },
       "wildcard_seed": {
         "name": "Wildcard seed",
-        "tooltip": "Seed for wildcard expansion."
+        "tooltip": "重み付きランダム選択のシードです。順次は選択肢数/範囲幅の剰余を使い、再現は選択しません。"
       },
       "wildcard_seed_after_generate": {
         "name": "Wildcard seed after generate",
-        "tooltip": "Seed control after wildcard generation."
+        "tooltip": "次の実行シード制御です。順次は increment を強制し、再現は進めません。"
       },
       "artist_mix_mode": {
         "name": "artist_mix_mode",
@@ -677,15 +677,15 @@
       },
       "wildcard_mode": {
         "name": "ワイルドカードモード",
-        "tooltip": "Wildcard mode for Regional Prompt Studio fields."
+        "tooltip": "通常展開/固定は元フィールドをシードによる重み付きランダムで展開し、順次は seed modulo 選択後に増加します。再現は保存済み展開フィールドをそのまま使います。"
       },
       "wildcard_seed": {
         "name": "ワイルドカードシード",
-        "tooltip": "Wildcard seed used by Regional Prompt Studio fields."
+        "tooltip": "重み付きランダム選択のシードです。順次は選択肢数/範囲幅の剰余を使い、再現は選択しません。"
       },
       "wildcard_seed_after_generate": {
         "name": "生成後のワイルドカードシード制御",
-        "tooltip": "Seed control after wildcard generation."
+        "tooltip": "次の実行シードを維持、ランダム化、増加、減少します。順次は increment を強制し、再現は進めません。"
       }
     },
     "outputs": {

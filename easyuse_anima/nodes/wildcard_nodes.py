@@ -95,8 +95,8 @@ class EasyUseAnimaWildcard:
     """Expand Impact Pack compatible wildcard and dynamic prompt syntax."""
 
     DESCRIPTION = (
-        "Expands EasyUse Anima wildcard files and dynamic prompt syntax with fixed, sequential, "
-        "and reproducible modes."
+        "Expands EasyUse Anima wildcard files and dynamic prompt syntax, stores the populated "
+        "result for saved workflows, and supports random, sequential, and reproduced output."
     )
     OUTPUT_TOOLTIPS = (
         "Expanded prompt text.",
@@ -110,18 +110,33 @@ class EasyUseAnimaWildcard:
                 "text": ("STRING", {
                     "multiline": True,
                     "default": "",
-                    "tooltip": "Prompt text with wildcard syntax such as __style__ or {2::a|5::b|c}.",
+                    "tooltip": (
+                        "Source prompt expanded by Populate, Fixed, and Sequential modes. Syntax: "
+                        "__name__; {a|b|c}; weighted N::item; {n$$...} or "
+                        "{min-max$$separator$$...}; N#__name__; and nested combinations. Wildcard "
+                        "names ignore case and support * glob collections. Only lines whose first "
+                        "non-space character is # are removed as comments."
+                    ),
                 }),
                 "populated_text": ("STRING", {
                     "multiline": True,
                     "default": "",
-                    "tooltip": "Cached expanded prompt used by fixed and reproduce modes.",
+                    "tooltip": (
+                        "Expanded-result cache. Reproduce outputs this value, falling back to text "
+                        "when it is empty. Populate, Fixed, and Sequential ignore the old cache, "
+                        "expand text, and write the result here in saved workflow metadata."
+                    ),
                 }),
                 "mode": (WILDCARD_MODE_LABELS, {
                     "default": WILDCARD_MODE_LABELS[0],
                     "tooltip": (
-                        "일반 채우기: seed-based random fill. 고정/재현: cached text. "
-                        "순차: seed modulo each wildcard option count."
+                        "Populate (일반 채우기): expand text with seed-based weighted random choices. "
+                        "Fixed (고정): EasyUse compatibility mode; it still expands text, while a "
+                        "fixed seed control keeps the same seed. Sequential (순차): choose from each "
+                        "option/range with seed modulo its size and force the next seed to increment. "
+                        "Reproduce (재현): output populated_text unchanged without a new selection; "
+                        "seed_after_generate still controls the returned next seed. "
+                        "Expanded runs are saved as populated_text in Reproduce mode."
                     ),
                 }),
                 "seed": ("INT", {
@@ -129,13 +144,19 @@ class EasyUseAnimaWildcard:
                     "min": 0,
                     "max": MAX_SEED,
                     "tooltip": (
-                        "Wildcard seed. Sequential mode uses seed % option_count for each wildcard. "
+                        "Seed for weighted random selection. Sequential uses seed modulo each option "
+                        "count (and range width); Reproduce performs no selection. "
                         f"{WILDCARD_SEED_RANGE_NOTE}"
                     ),
                 }),
                 "seed_after_generate": (SEED_CONTROL_MODES, {
                     "default": SEED_CONTROL_FIXED,
-                    "tooltip": "Seed control after generation: fixed, randomize, increment, or decrement.",
+                    "tooltip": (
+                        "Seed for the next live run: fixed keeps it, randomize chooses a new public-range "
+                        "value, and increment/decrement move by one with wraparound. Sequential always "
+                        "forces increment. Reproduce makes no selection but still applies this control "
+                        "to the returned/live next seed."
+                    ),
                 }),
             },
             "hidden": {

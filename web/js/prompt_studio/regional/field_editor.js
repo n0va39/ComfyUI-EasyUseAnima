@@ -79,6 +79,17 @@ function createRegionalFieldEditor(runtime, layout, maskEditor, hooks) {
       : PROMPT_STUDIO_WILDCARD_DEFAULT_MODE;
   }
 
+  /** @param {any} mode */
+  function wildcardModeTitle(mode) {
+    const modeKey = {
+      "일반 채우기": "populate",
+      "고정": "fixed",
+      "순차": "sequential",
+      "재현": "reproduce",
+    }[normalizeWildcardMode(mode)];
+    return hooks.promptStudioText(`advanced.wildcardMode.${modeKey}Title`);
+  }
+
   /** @param {any} value */
   function normalizeSeedControl(value) {
     return PROMPT_STUDIO_WILDCARD_SEED_CONTROLS.includes(String(value || ""))
@@ -102,15 +113,18 @@ function createRegionalFieldEditor(runtime, layout, maskEditor, hooks) {
 
     const row = document.createElement("div");
     row.className = "easyuse-anima-advanced-wildcardbar";
-    row.title = hooks.promptStudioText("advanced.wildcardTitle");
-
     const modeSelect = document.createElement("select");
     modeSelect.setAttribute("aria-label", hooks.promptStudioText("advanced.wildcard"));
     const modeValue = normalizeWildcardMode(modeWidget.value);
+    const selectedModeTitle = wildcardModeTitle(modeValue);
+    row.title = `${selectedModeTitle}\n${hooks.promptStudioText("advanced.wildcardTitle")}`;
+    modeSelect.title = selectedModeTitle;
+    modeSelect.setAttribute("aria-description", selectedModeTitle);
     for (const mode of PROMPT_STUDIO_WILDCARD_MODES) {
       const option = document.createElement("option");
       option.value = mode;
       option.textContent = mode;
+      option.title = wildcardModeTitle(mode);
       option.selected = mode === modeValue;
       modeSelect.append(option);
     }
@@ -119,12 +133,16 @@ function createRegionalFieldEditor(runtime, layout, maskEditor, hooks) {
     seedInput.type = "number";
     seedInput.value = String(seedWidget.value ?? "0");
     seedInput.setAttribute("aria-label", hooks.promptStudioText("advanced.wildcardSeed"));
+    seedInput.title = hooks.promptStudioText("advanced.wildcardSeedTitle");
+    seedInput.setAttribute("aria-description", seedInput.title);
 
     const controlSelect = document.createElement("select");
     controlSelect.setAttribute(
       "aria-label",
       hooks.promptStudioText("advanced.wildcardSeedControl"),
     );
+    controlSelect.title = hooks.promptStudioText("advanced.wildcardSeedControlTitle");
+    controlSelect.setAttribute("aria-description", controlSelect.title);
     const controlValue = modeValue === "순차"
       ? "increment"
       : normalizeSeedControl(controlWidget.value);

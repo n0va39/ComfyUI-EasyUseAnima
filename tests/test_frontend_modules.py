@@ -2679,6 +2679,49 @@ class FrontendModuleStructureTests(unittest.TestCase):
                 self.assertIn("wildcard_seed_contract.js", source)
                 self.assertIn("bindWildcardSeedInput", source)
 
+    def test_prompt_studio_wildcard_tooltips_follow_the_selected_mode(self):
+        constants_source = (PROMPT_STUDIO_MODULES / "constants.js").read_text(
+            encoding="utf-8"
+        )
+        advanced_source = (
+            PROMPT_STUDIO_MODULES / "advanced_controls.js"
+        ).read_text(encoding="utf-8")
+        regional_source = (
+            PROMPT_STUDIO_REGIONAL_MODULES / "field_editor.js"
+        ).read_text(encoding="utf-8")
+
+        for mode_key in ("populate", "fixed", "sequential", "reproduce"):
+            with self.subTest(mode=mode_key):
+                locale_key = f'"advanced.wildcardMode.{mode_key}Title"'
+                self.assertEqual(constants_source.count(locale_key), 4)
+
+        for syntax in (
+            "__name__",
+            "{a|b|c}",
+            "N::weight",
+            "{n$$...}",
+            "{min-max$$separator$$...}",
+            "N#__name__",
+        ):
+            with self.subTest(syntax=syntax):
+                self.assertGreaterEqual(constants_source.count(syntax), 4)
+
+        self.assertNotIn(
+            "Wildcard expansion mode used when the node is queued.",
+            constants_source,
+        )
+        self.assertIn("function advancedWildcardModeTitle", advanced_source)
+        self.assertIn("option.title = advancedWildcardModeTitle(mode);", advanced_source)
+        self.assertIn(
+            "applyAdvancedWildcardModeTitle(modeRow, modeSelect, nextMode);",
+            advanced_source,
+        )
+        self.assertIn('select.setAttribute("aria-description", title);', advanced_source)
+        self.assertIn("function wildcardModeTitle", regional_source)
+        self.assertIn("option.title = wildcardModeTitle(mode);", regional_source)
+        self.assertIn('modeSelect.setAttribute("aria-description", selectedModeTitle);', regional_source)
+        self.assertIn("row.title = `${selectedModeTitle}\\n", regional_source)
+
     def test_prompt_studio_phase_2_modules_export_expected_symbols(self):
         advanced_controls_source = (
             PROMPT_STUDIO_MODULES / "advanced_controls.js"

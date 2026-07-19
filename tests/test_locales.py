@@ -64,6 +64,55 @@ class LocaleTests(unittest.TestCase):
                 text = (ROOT / "locales" / locale_code / "nodeDefs.json").read_text(encoding="utf-8")
                 self.assertIsNone(HANGUL_RE.search(text))
 
+    def test_wildcard_tooltips_cover_syntax_and_mode_lifecycle(self):
+        for locale_code in LOCALE_CODES:
+            data = json.loads(
+                (ROOT / "locales" / locale_code / "nodeDefs.json").read_text(
+                    encoding="utf-8"
+                )
+            )
+            with self.subTest(locale=locale_code, node="EasyUseAnimaWildcard"):
+                inputs = data["EasyUseAnimaWildcard"]["inputs"]
+                for syntax in (
+                    "__name__",
+                    "{a|b|c}",
+                    "N::weight",
+                    "{n$$...}",
+                    "{min-max$$separator$$...}",
+                    "N#__name__",
+                    "* glob",
+                    "#",
+                ):
+                    self.assertIn(syntax, inputs["text"]["tooltip"])
+                self.assertGreater(len(inputs["populated_text"]["tooltip"]), 50)
+                self.assertIn("text", inputs["populated_text"]["tooltip"])
+                self.assertGreater(len(inputs["mode"]["tooltip"]), 100)
+                self.assertIn("seed", inputs["mode"]["tooltip"])
+                self.assertIn("populated_text", inputs["mode"]["tooltip"])
+                self.assertNotIn(
+                    "Cached expanded prompt used by fixed and reproduce modes.",
+                    inputs["populated_text"]["tooltip"],
+                )
+
+            for node_id in (
+                "EasyUseAnimaPromptStudioAdvanced",
+                "EasyUseAnimaPromptStudioAdvancedV2",
+                "EasyUseAnimaPromptStudioRegional",
+            ):
+                with self.subTest(locale=locale_code, node=node_id):
+                    inputs = data[node_id]["inputs"]
+                    self.assertGreater(len(inputs["wildcard_mode"]["tooltip"]), 50)
+                    self.assertIn("seed", inputs["wildcard_mode"]["tooltip"])
+                    self.assertGreater(len(inputs["wildcard_seed"]["tooltip"]), 20)
+                    self.assertGreater(
+                        len(inputs["wildcard_seed_after_generate"]["tooltip"]),
+                        25,
+                    )
+                    self.assertIn(
+                        "increment",
+                        inputs["wildcard_seed_after_generate"]["tooltip"],
+                    )
+
     def test_prompt_data_socket_names_are_not_localized(self):
         node_ids = (
             "EasyUseAnimaPromptStudioAdvancedV2",
