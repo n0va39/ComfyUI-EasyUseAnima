@@ -11,6 +11,9 @@ already exists. Start with the current-state section in
 
 - [`python-backend.md`](python-backend.md): living architecture, ownership,
   execution phases, validation gates, and overall Definition of Done.
+- [`aio-hook-extensibility-plan.md`](aio-hook-extensibility-plan.md): follow-on
+  AiO extension contract, stage/cache/lifecycle sequencing, and the 0.6.0
+  release gate after the required backend refactor exits are satisfied.
 - [`adr-001-modular-monolith.md`](adr-001-modular-monolith.md): why the backend
   will converge on a feature-oriented modular monolith under `easyuse_anima`.
 - [`adr-002-compatibility-shims.md`](adr-002-compatibility-shims.md): policy for
