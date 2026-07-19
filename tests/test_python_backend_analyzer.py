@@ -683,9 +683,9 @@ ignored/
 
         self.assertEqual(analyzer.render_json(report), expected_text)
         self.assertEqual(report["schema_version"], 2)
-        self.assertEqual(report["inventory"]["module_count"], 36)
-        self.assertEqual(len(report["registry"]["shipped_python_modules"]), 36)
-        self.assertEqual(len(report["registry"]["runtime_import_closure"]), 34)
+        self.assertEqual(report["inventory"]["module_count"], 41)
+        self.assertEqual(len(report["registry"]["shipped_python_modules"]), 41)
+        self.assertEqual(len(report["registry"]["runtime_import_closure"]), 39)
         self.assertEqual(report["registry"]["missing_internal_imports"], [])
         self.assertEqual(
             report["registry"]["unreachable_shipped_python_modules"],
@@ -710,8 +710,13 @@ ignored/
                 "easyuse_anima/infrastructure/comfy/capabilities.py",
                 "easyuse_anima/infrastructure/comfy/invocation.py",
                 "easyuse_anima/infrastructure/comfy/resources.py",
+                "easyuse_anima/naia/__init__.py",
+                "easyuse_anima/naia/client.py",
+                "easyuse_anima/naia/resolution.py",
                 "easyuse_anima/nodes/__init__.py",
                 "easyuse_anima/nodes/image_nodes.py",
+                "easyuse_anima/nodes/naia_nodes.py",
+                "easyuse_anima/nodes/wildcard_nodes.py",
                 "easyuse_anima/profiles/__init__.py",
                 "easyuse_anima/profiles/contract.py",
                 "easyuse_anima/prompt/__init__.py",
@@ -729,7 +734,12 @@ ignored/
                 "easyuse_anima/infrastructure/comfy/capabilities.py",
                 "easyuse_anima/infrastructure/comfy/invocation.py",
                 "easyuse_anima/infrastructure/comfy/resources.py",
+                "easyuse_anima/naia/__init__.py",
+                "easyuse_anima/naia/client.py",
+                "easyuse_anima/naia/resolution.py",
                 "easyuse_anima/nodes/image_nodes.py",
+                "easyuse_anima/nodes/naia_nodes.py",
+                "easyuse_anima/nodes/wildcard_nodes.py",
                 "easyuse_anima/profiles/__init__.py",
                 "easyuse_anima/profiles/contract.py",
             }.issubset(report["registry"]["runtime_import_closure"])

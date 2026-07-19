@@ -8,7 +8,7 @@ import os
 import random
 import re
 import sys
-from math import ceil, gcd, isfinite, log, sqrt
+from math import ceil, isfinite, sqrt
 from typing import Any, Optional
 
 try:
@@ -67,6 +67,56 @@ try:
     from .easyuse_anima.nodes.image_nodes import (
         EasyUseAnimaDetailerAlignHook as EasyUseAnimaDetailerAlignHook,
         EasyUseAnimaImageScaleByMultiple as EasyUseAnimaImageScaleByMultiple,
+    )
+    from .easyuse_anima.naia.client import (
+        DEFAULT_HOST as DEFAULT_HOST,
+        DEFAULT_PORT as DEFAULT_PORT,
+        HTTP_TIMEOUT as HTTP_TIMEOUT,
+        LATENT_ALIGN as LATENT_ALIGN,
+        NAI_1MP as NAI_1MP,
+        NAIA_LOCAL_HOSTS as NAIA_LOCAL_HOSTS,
+        NAIA_MAX_RESOLUTION as NAIA_MAX_RESOLUTION,
+        NAIA_REQUEST_TIMEOUT as NAIA_REQUEST_TIMEOUT,
+        PP_STATE_CHOICES as PP_STATE_CHOICES,
+        PREPROCESSING_KEYS as PREPROCESSING_KEYS,
+        _build_naia_random_url as _build_naia_random_url,
+        _clean_prompt as _clean_prompt,
+        _fit_to_1mp as _fit_to_1mp,
+        _is_local_naia_host as _is_local_naia_host,
+        _parse_random_response as _parse_random_response,
+        _post_random as _post_random,
+    )
+    from .easyuse_anima.naia.resolution import (
+        ADVANCED_RESOLUTION_BUCKETS as ADVANCED_RESOLUTION_BUCKETS,
+        CUSTOM_ADVANCED_RESOLUTION_BUCKET as CUSTOM_ADVANCED_RESOLUTION_BUCKET,
+        DEFAULT_ADVANCED_RESOLUTION_BUCKET as DEFAULT_ADVANCED_RESOLUTION_BUCKET,
+        DEFAULT_ADVANCED_RESOLUTION_SIZE as DEFAULT_ADVANCED_RESOLUTION_SIZE,
+        NAIA_ADVANCED_RESOLUTION_BUCKET as NAIA_ADVANCED_RESOLUTION_BUCKET,
+        NAIA_RESOLUTION_MODE_BUCKET as NAIA_RESOLUTION_MODE_BUCKET,
+        NAIA_RESOLUTION_MODE_SCALE as NAIA_RESOLUTION_MODE_SCALE,
+        _advanced_resolution_from_selection as _advanced_resolution_from_selection,
+        _fit_naia_resolution_to_bucket as _fit_naia_resolution_to_bucket,
+        _normalize_resolution_bucket as _normalize_resolution_bucket,
+        _ratio_label as _ratio_label,
+        _resolution_label as _resolution_label,
+        _resolve_naia_resolution as _resolve_naia_resolution,
+        _resolve_naia_resolution_bucket as _resolve_naia_resolution_bucket,
+        _resolve_naia_resolution_max_long_edge as _resolve_naia_resolution_max_long_edge,
+        _resolve_naia_resolution_mode as _resolve_naia_resolution_mode,
+        _resolve_naia_resolution_scale as _resolve_naia_resolution_scale,
+        _scale_naia_resolution as _scale_naia_resolution,
+        _snap_resolution_32 as _snap_resolution_32,
+        _snap_scaled_resolution_32 as _snap_scaled_resolution_32,
+        _sorted_resolution_options as _sorted_resolution_options,
+    )
+    from .easyuse_anima.nodes.naia_nodes import (
+        EasyUseAnimaNAIARandomPrompt as EasyUseAnimaNAIARandomPrompt,
+        _bind_naia_node_runtime as _bind_naia_node_runtime,
+    )
+    from .easyuse_anima.nodes.wildcard_nodes import (
+        EasyUseAnimaWildcard as EasyUseAnimaWildcard,
+        WILDCARD_SEED_RANGE_NOTE as WILDCARD_SEED_RANGE_NOTE,
+        _bind_wildcard_node_runtime as _bind_wildcard_node_runtime,
     )
     from .anima_prompt import correct_prompt, load_knowledge_base
     from .anima_prompt.parser import parse_prompt
@@ -153,6 +203,56 @@ except ImportError:  # allows simple local import tests outside ComfyUI's packag
         EasyUseAnimaDetailerAlignHook as EasyUseAnimaDetailerAlignHook,
         EasyUseAnimaImageScaleByMultiple as EasyUseAnimaImageScaleByMultiple,
     )
+    from easyuse_anima.naia.client import (
+        DEFAULT_HOST as DEFAULT_HOST,
+        DEFAULT_PORT as DEFAULT_PORT,
+        HTTP_TIMEOUT as HTTP_TIMEOUT,
+        LATENT_ALIGN as LATENT_ALIGN,
+        NAI_1MP as NAI_1MP,
+        NAIA_LOCAL_HOSTS as NAIA_LOCAL_HOSTS,
+        NAIA_MAX_RESOLUTION as NAIA_MAX_RESOLUTION,
+        NAIA_REQUEST_TIMEOUT as NAIA_REQUEST_TIMEOUT,
+        PP_STATE_CHOICES as PP_STATE_CHOICES,
+        PREPROCESSING_KEYS as PREPROCESSING_KEYS,
+        _build_naia_random_url as _build_naia_random_url,
+        _clean_prompt as _clean_prompt,
+        _fit_to_1mp as _fit_to_1mp,
+        _is_local_naia_host as _is_local_naia_host,
+        _parse_random_response as _parse_random_response,
+        _post_random as _post_random,
+    )
+    from easyuse_anima.naia.resolution import (
+        ADVANCED_RESOLUTION_BUCKETS as ADVANCED_RESOLUTION_BUCKETS,
+        CUSTOM_ADVANCED_RESOLUTION_BUCKET as CUSTOM_ADVANCED_RESOLUTION_BUCKET,
+        DEFAULT_ADVANCED_RESOLUTION_BUCKET as DEFAULT_ADVANCED_RESOLUTION_BUCKET,
+        DEFAULT_ADVANCED_RESOLUTION_SIZE as DEFAULT_ADVANCED_RESOLUTION_SIZE,
+        NAIA_ADVANCED_RESOLUTION_BUCKET as NAIA_ADVANCED_RESOLUTION_BUCKET,
+        NAIA_RESOLUTION_MODE_BUCKET as NAIA_RESOLUTION_MODE_BUCKET,
+        NAIA_RESOLUTION_MODE_SCALE as NAIA_RESOLUTION_MODE_SCALE,
+        _advanced_resolution_from_selection as _advanced_resolution_from_selection,
+        _fit_naia_resolution_to_bucket as _fit_naia_resolution_to_bucket,
+        _normalize_resolution_bucket as _normalize_resolution_bucket,
+        _ratio_label as _ratio_label,
+        _resolution_label as _resolution_label,
+        _resolve_naia_resolution as _resolve_naia_resolution,
+        _resolve_naia_resolution_bucket as _resolve_naia_resolution_bucket,
+        _resolve_naia_resolution_max_long_edge as _resolve_naia_resolution_max_long_edge,
+        _resolve_naia_resolution_mode as _resolve_naia_resolution_mode,
+        _resolve_naia_resolution_scale as _resolve_naia_resolution_scale,
+        _scale_naia_resolution as _scale_naia_resolution,
+        _snap_resolution_32 as _snap_resolution_32,
+        _snap_scaled_resolution_32 as _snap_scaled_resolution_32,
+        _sorted_resolution_options as _sorted_resolution_options,
+    )
+    from easyuse_anima.nodes.naia_nodes import (
+        EasyUseAnimaNAIARandomPrompt as EasyUseAnimaNAIARandomPrompt,
+        _bind_naia_node_runtime as _bind_naia_node_runtime,
+    )
+    from easyuse_anima.nodes.wildcard_nodes import (
+        EasyUseAnimaWildcard as EasyUseAnimaWildcard,
+        WILDCARD_SEED_RANGE_NOTE as WILDCARD_SEED_RANGE_NOTE,
+        _bind_wildcard_node_runtime as _bind_wildcard_node_runtime,
+    )
     from anima_prompt import correct_prompt, load_knowledge_base
     from anima_prompt.parser import parse_prompt
     from settings import (
@@ -184,9 +284,6 @@ except ImportError:  # allows simple local import tests outside ComfyUI's packag
 
 logger = logging.getLogger("ComfyUI-EasyUseAnima")
 
-DEFAULT_HOST = "127.0.0.1"
-DEFAULT_PORT = 7243
-NAIA_LOCAL_HOSTS = {"127.0.0.1", "localhost", "::1"}
 DEFAULT_QUALITY_TAGS = (
     "newest, masterpiece, best quality, score_8, score_7:, highres, absurdres, very aesthetic"
 )
@@ -206,14 +303,6 @@ ADVANCED_FIELD_LABELS = {
 ADVANCED_FIELDS_WORKFLOW_PROPERTY = "easyuse_anima_advanced_fields"
 WILDCARD_RESERVED_NEXT_SEED_INPUT = "easyuse_anima_reserved_wildcard_next_seed"
 WILDCARD_QUEUE_MAX_SAFE_SEED = PUBLIC_MAX_SEED
-WILDCARD_SEED_RANGE_NOTE = (
-    f"Browser/public editing and next-seed range: 0..{PUBLIC_MAX_SEED}. The Python "
-    "backend continues accepting uint64 values for legacy workflow validation, but "
-    "values above the public maximum are best-effort in the browser because JavaScript "
-    "may already have lost integer precision. Fixed does not intentionally advance a "
-    "legacy value; increment, decrement, and randomize return the next seed to the "
-    "public range."
-)
 REGIONAL_FIELDS_WORKFLOW_PROPERTY = "easyuse_anima_regional_fields"
 REGIONAL_CONFIG_WORKFLOW_PROPERTY = "easyuse_anima_regional_config"
 REGIONAL_FIELD_TYPES = {"quality", "artist", "trigger", "general"}
@@ -830,12 +919,6 @@ EXTEND_PROMPT_SLOT_SPECS = [
     ("negative_prompt_3", "negative", "general", "Negative Prompt 3", "", 120),
     ("negative_prompt_4", "negative", "general", "Negative Prompt 4", "", 120),
 ]
-NAIA_REQUEST_TIMEOUT = 30.0
-HTTP_TIMEOUT = NAIA_REQUEST_TIMEOUT + 5.0
-
-NAI_1MP = 1024 * 1024
-LATENT_ALIGN = 8
-NAIA_MAX_RESOLUTION = 8192
 AIO_FINAL_UPSCALE_BACKENDS = ("usdu", "resshift")
 AIO_USDU_MODE_TYPES = ("Linear", "Chess", "None")
 AIO_USDU_SEAM_FIX_MODES = ("None", "Band Pass", "Half Tile", "Half Tile + Intersections")
@@ -845,87 +928,9 @@ AIO_USDU_PROMPT_MODES = (AIO_USDU_PROMPT_FULL, AIO_USDU_PROMPT_NO_GENERAL)
 AIO_FINAL_FIT_MODES = ("max_long_edge", "megapixels")
 AIO_RESHIFT_SCALES = ("x2", "x4")
 AIO_RESHIFT_DTYPES = ("bf16", "fp32")
-ADVANCED_RESOLUTION_BUCKETS = {
-    "512": (
-        (256, 1024), (1024, 256),
-        (288, 896), (896, 288),
-        (384, 672), (672, 384),
-        (512, 512),
-        (448, 576), (576, 448),
-    ),
-    "768": (
-        (384, 1440), (1440, 384),
-        (480, 1152), (1152, 480),
-        (576, 960), (960, 576),
-        (640, 864), (864, 640),
-        (768, 768),
-    ),
-    "896": (
-        (448, 1728), (1728, 448),
-        (480, 1600), (1600, 480),
-        (576, 1344), (1344, 576),
-        (672, 1152), (1152, 672),
-        (800, 960), (960, 800),
-        (896, 896),
-    ),
-    "1024": (
-        (512, 2016), (2016, 512),
-        (576, 1792), (1792, 576),
-        (672, 1536), (1536, 672),
-        (672, 1600), (1600, 672),
-        (768, 1344), (1344, 768),
-        (800, 1344), (1344, 800),
-        (896, 1152), (1152, 896),
-        (960, 1120), (1120, 960),
-        (1024, 1024),
-    ),
-    "1280": (
-        (672, 2400), (2400, 672),
-        (800, 2016), (2016, 800),
-        (1024, 1536), (1536, 1024),
-        (1024, 1600), (1600, 1024),
-        (1120, 1440), (1440, 1120),
-        (1280, 1280),
-    ),
-    "1536": (
-        (1440, 1536), (1536, 1440),
-        (1280, 1728), (1728, 1280),
-        (1152, 1920), (1920, 1152),
-        (1024, 2176), (2176, 1024),
-        (960, 2304), (2304, 960),
-        (864, 2560), (2560, 864),
-        (768, 2880), (2880, 768),
-        (1536, 1536),
-    ),
-}
-CUSTOM_ADVANCED_RESOLUTION_BUCKET = "Custom"
-NAIA_ADVANCED_RESOLUTION_BUCKET = "NAIA"
-DEFAULT_ADVANCED_RESOLUTION_BUCKET = "1024"
-DEFAULT_ADVANCED_RESOLUTION_SIZE = "1024 * 1024 (1:1)"
-NAIA_RESOLUTION_MODE_SCALE = "scale"
-NAIA_RESOLUTION_MODE_BUCKET = "bucket"
 
-PREPROCESSING_KEYS = [
-    "remove_author",
-    "remove_work_title",
-    "remove_character_name",
-    "remove_character_features",
-    "remove_clothes",
-    "remove_color",
-    "remove_location_and_background_color",
-    "remove_expression",
-    "remove_pose_action",
-    "remove_meta_tags",
-    "remove_object_tags",
-    "remove_noise_tags",
-    "e621_auto_boost",
-    "danbooru_auto_weight",
-    "tag_implication_compression",
-]
-PP_STATE_CHOICES = ["skip", "on", "off"]
 
 _HASH_COMMENT_RE = re.compile(r"^[ \t]*#[^\n]*", re.MULTILINE)
-_MULTI_COMMA_RE = re.compile(r"(\s*,){2,}")
 _INLINE_SPACE_RE = re.compile(r"[ \t]+")
 _WEIGHTED_TOKEN_RE = re.compile(r"^\(([^(),]+):[-+]?\d+(?:\.\d+)?\)$")
 _WEIGHTED_ARTIST_RE = re.compile(
@@ -936,7 +941,6 @@ _ARTIST_GROUP_RE = re.compile(
     re.DOTALL,
 )
 _SECTION_SEPARATOR_RE = re.compile(r"^\s*-{6,}\s*$", re.MULTILINE)
-_RESOLUTION_LABEL_RE = re.compile(r"(\d+)\s*(?:\*|x|×)\s*(\d+)")
 _TRIGGER_WORD_KEYS = ("trainedWords", "trained_words", "trigger_words", "activation_text")
 _ADVANCED_FIELD_SOCKET_PREFIX = "field_"
 _ADVANCED_FIELD_SOCKET_RE = re.compile(r"[^A-Za-z0-9_]")
@@ -976,150 +980,6 @@ def _resolve_aio_runtime_seed(value) -> int:
     return max(0, min(MAX_SEED, seed))
 
 
-def _ratio_label(width: int, height: int) -> str:
-    divisor = gcd(max(1, int(width)), max(1, int(height)))
-    return f"{int(width) // divisor}:{int(height) // divisor}"
-
-
-def _resolution_label(width: int, height: int) -> str:
-    return f"{int(width)} * {int(height)} ({_ratio_label(width, height)})"
-
-
-def _sorted_resolution_options(bucket: str) -> list[tuple[int, int]]:
-    values = ADVANCED_RESOLUTION_BUCKETS.get(bucket) or ADVANCED_RESOLUTION_BUCKETS[DEFAULT_ADVANCED_RESOLUTION_BUCKET]
-    return sorted(values, key=lambda item: (item[0] / item[1], item[0], item[1]))
-
-
-def _normalize_resolution_bucket(value) -> str:
-    value = str(_single_value(value) or "").strip()
-    if value in {CUSTOM_ADVANCED_RESOLUTION_BUCKET, NAIA_ADVANCED_RESOLUTION_BUCKET}:
-        return value
-    return value if value in ADVANCED_RESOLUTION_BUCKETS else DEFAULT_ADVANCED_RESOLUTION_BUCKET
-
-
-def _snap_resolution_32(value, default: int = 1024) -> int:
-    raw = _as_int(value, default)
-    if raw <= 0:
-        raw = default
-    return max(32, int(round(raw / 32)) * 32)
-
-
-def _resolve_naia_resolution_scale(naia_settings: dict | None) -> float:
-    value = _as_float((naia_settings or {}).get("resolution_scale", 1.0), 1.0)
-    return max(0.25, min(4.0, value))
-
-
-def _resolve_naia_resolution_max_long_edge(naia_settings: dict | None) -> int:
-    value = _as_int((naia_settings or {}).get("resolution_max_long_edge", 0), 0)
-    if value <= 0:
-        return 0
-    return max(32, min(16384, value))
-
-
-def _resolve_naia_resolution_mode(naia_settings: dict | None) -> str:
-    value = str(
-        _single_value((naia_settings or {}).get("resolution_mode", NAIA_RESOLUTION_MODE_SCALE)) or ""
-    ).strip().lower()
-    if value == "bucket_fit":
-        return NAIA_RESOLUTION_MODE_BUCKET
-    return value if value in {NAIA_RESOLUTION_MODE_SCALE, NAIA_RESOLUTION_MODE_BUCKET} else NAIA_RESOLUTION_MODE_SCALE
-
-
-def _resolve_naia_resolution_bucket(naia_settings: dict | None) -> str:
-    bucket = _normalize_resolution_bucket((naia_settings or {}).get("resolution_bucket", DEFAULT_ADVANCED_RESOLUTION_BUCKET))
-    return bucket if bucket in ADVANCED_RESOLUTION_BUCKETS else DEFAULT_ADVANCED_RESOLUTION_BUCKET
-
-
-def _snap_scaled_resolution_32(value: float, max_value: int = 0, default: int = 1024) -> int:
-    raw = _as_float(value, float(default))
-    if raw <= 0:
-        raw = float(default)
-    snapped = max(32, int(round(raw / 32)) * 32)
-    if max_value > 0 and snapped > max_value:
-        snapped = max(32, int(max_value // 32) * 32)
-    return snapped
-
-
-def _scale_naia_resolution(
-    width: int,
-    height: int,
-    naia_settings: dict | None,
-) -> tuple[int, int]:
-    scale = _resolve_naia_resolution_scale(naia_settings)
-    max_long_edge = _resolve_naia_resolution_max_long_edge(naia_settings)
-    scaled_width = max(1.0, _as_float(width, 1024.0) * scale)
-    scaled_height = max(1.0, _as_float(height, 1024.0) * scale)
-
-    if max_long_edge > 0:
-        long_edge = max(scaled_width, scaled_height)
-        if long_edge > max_long_edge:
-            ratio = max_long_edge / long_edge
-            scaled_width *= ratio
-            scaled_height *= ratio
-
-    return (
-        _snap_scaled_resolution_32(scaled_width, max_long_edge, 1024),
-        _snap_scaled_resolution_32(scaled_height, max_long_edge, 1024),
-    )
-
-
-def _fit_naia_resolution_to_bucket(
-    width: int,
-    height: int,
-    naia_settings: dict | None,
-) -> tuple[int, int]:
-    bucket = _resolve_naia_resolution_bucket(naia_settings)
-    source_width = max(1.0, _as_float(width, 1024.0))
-    source_height = max(1.0, _as_float(height, 1024.0))
-    source_ratio = source_width / source_height
-    options = ADVANCED_RESOLUTION_BUCKETS.get(bucket) or ADVANCED_RESOLUTION_BUCKETS[DEFAULT_ADVANCED_RESOLUTION_BUCKET]
-
-    return min(
-        options,
-        key=lambda item: abs(log((item[0] / item[1]) / source_ratio)),
-    )
-
-
-def _resolve_naia_resolution(
-    width: int,
-    height: int,
-    naia_settings: dict | None,
-) -> tuple[int, int]:
-    if _resolve_naia_resolution_mode(naia_settings) == NAIA_RESOLUTION_MODE_BUCKET:
-        return _fit_naia_resolution_to_bucket(width, height, naia_settings)
-    return _scale_naia_resolution(width, height, naia_settings)
-
-
-def _advanced_resolution_from_selection(
-    bucket,
-    size,
-    custom_width: int | str = 1024,
-    custom_height: int | str = 1024,
-) -> tuple[int, int]:
-    bucket_name = _normalize_resolution_bucket(bucket)
-    if bucket_name in {CUSTOM_ADVANCED_RESOLUTION_BUCKET, NAIA_ADVANCED_RESOLUTION_BUCKET}:
-        return (
-            _snap_resolution_32(custom_width, 1024),
-            _snap_resolution_32(custom_height, 1024),
-        )
-    raw_size = str(_single_value(size) or "").strip()
-    match = _RESOLUTION_LABEL_RE.search(raw_size)
-    if match:
-        width, height = int(match.group(1)), int(match.group(2))
-        if (width, height) in ADVANCED_RESOLUTION_BUCKETS.get(bucket_name, ()):
-            return width, height
-    default_width, default_height = 1024, 1024
-    if (default_width, default_height) in ADVANCED_RESOLUTION_BUCKETS.get(bucket_name, ()):
-        return default_width, default_height
-    return _sorted_resolution_options(bucket_name)[0]
-
-
-def _clean_prompt(value: str) -> str:
-    if not value:
-        return value
-    value = _HASH_COMMENT_RE.sub("", value)
-    value = _MULTI_COMMA_RE.sub(",", value)
-    return value.strip(" ,\n\t")
 
 
 def _merge_versioned_settings(defaults: dict[str, Any], value) -> dict[str, Any]:
@@ -7210,91 +7070,6 @@ def _regional_mask_bounds_area(mask, canvas_width: int | None = None, canvas_hei
     )
 
 
-def _fit_to_1mp(width: int, height: int) -> tuple[int, int]:
-    if width <= 0 or height <= 0:
-        return width, height
-    if width * height <= NAI_1MP:
-        return width, height
-
-    scale = sqrt(NAI_1MP / (width * height))
-    new_w = max(LATENT_ALIGN, round(width * scale / LATENT_ALIGN) * LATENT_ALIGN)
-    new_h = max(LATENT_ALIGN, round(height * scale / LATENT_ALIGN) * LATENT_ALIGN)
-    if new_w * new_h > NAI_1MP:
-        if new_w >= new_h:
-            new_w = (NAI_1MP // new_h // LATENT_ALIGN) * LATENT_ALIGN
-        else:
-            new_h = (NAI_1MP // new_w // LATENT_ALIGN) * LATENT_ALIGN
-    return new_w, new_h
-
-
-def _is_local_naia_host(host: str) -> bool:
-    return str(host or "").strip().strip("[]").lower() in NAIA_LOCAL_HOSTS
-
-
-def _build_naia_random_url(host: str, port: int, allow_remote_api: bool = False) -> str:
-    host_value = str(host or DEFAULT_HOST).strip() or DEFAULT_HOST
-    if any(token in host_value for token in ("://", "/", "\\", "?", "#", "@")) or re.search(r"\s", host_value):
-        raise RuntimeError("[EasyUse Anima] NAIA host must be a hostname or IP address, not a URL.")
-    if not allow_remote_api and not _is_local_naia_host(host_value):
-        raise RuntimeError(
-            "[EasyUse Anima] Remote NAIA API access is disabled. "
-            "Enable 'Allow remote API' in EasyUse Anima NAIA settings to use a non-local host."
-        )
-    url_host = host_value
-    if ":" in host_value and not host_value.startswith("["):
-        url_host = f"[{host_value}]"
-    return f"http://{url_host}:{int(port)}/api/comfyui/random"
-
-
-def _post_random(host: str, port: int, body: dict, allow_remote_api: bool = False) -> dict:
-    try:
-        import requests
-    except ImportError:
-        raise RuntimeError("[EasyUse Anima] requests is not installed. Install requirements.txt.")
-
-    url = _build_naia_random_url(host, port, allow_remote_api=allow_remote_api)
-    try:
-        # Explicit user-configured NAIA API call. Default use is localhost-only;
-        # remote hosts require allow_remote_api=True. The response is parsed as
-        # JSON and is never executed as code.
-        response = requests.post(url, json=body, timeout=HTTP_TIMEOUT)
-    except requests.RequestException as exc:
-        raise RuntimeError(f"[EasyUse Anima] NAIA API request failed: {exc}")
-
-    if not response.ok:
-        raise RuntimeError(
-            f"[EasyUse Anima] NAIA API error HTTP {response.status_code}: {response.text[:300]}"
-        )
-    try:
-        data = response.json()
-    except ValueError:
-        raise RuntimeError(f"[EasyUse Anima] NAIA API returned non-JSON: {response.text[:300]}")
-
-    if not data.get("ok", True):
-        raise RuntimeError(f"[EasyUse Anima] NAIA API returned error: {data}")
-    return data
-
-
-def _parse_random_response(resp: dict) -> tuple[str, str, int, int]:
-    prompt = _clean_prompt(resp.get("prompt", "") or "")
-    negative = _clean_prompt(resp.get("negative_prompt", "") or "")
-    w_raw, h_raw = resp.get("width"), resp.get("height")
-    if w_raw is None or h_raw is None:
-        raise RuntimeError("[EasyUse Anima] NAIA response is missing width/height.")
-    try:
-        raw_width, raw_height = int(w_raw), int(h_raw)
-    except (TypeError, ValueError):
-        raise RuntimeError(f"[EasyUse Anima] Invalid NAIA width/height: {w_raw!r}, {h_raw!r}")
-    if not (
-        1 <= raw_width <= NAIA_MAX_RESOLUTION
-        and 1 <= raw_height <= NAIA_MAX_RESOLUTION
-    ):
-        raise RuntimeError(
-            f"[EasyUse Anima] Invalid NAIA width/height: {w_raw!r}, {h_raw!r}; "
-            f"expected values from 1 to {NAIA_MAX_RESOLUTION}."
-        )
-    width, height = _fit_to_1mp(raw_width, raw_height)
-    return prompt, negative, width, height
 
 
 def _get_workflow_node(extra_pnginfo, node_id: str):
@@ -7419,6 +7194,24 @@ def _consume_reserved_wildcard_next_seed(
     else:
         return None
     return reservation_next_seed if reservation_next_seed == expected_next_seed else None
+
+
+_bind_wildcard_node_runtime(
+    get_workflow_node=lambda *args, **kwargs: _get_workflow_node(*args, **kwargs),
+    consume_reserved_next_seed=lambda *args, **kwargs: _consume_reserved_wildcard_next_seed(*args, **kwargs),
+    expand=lambda *args, **kwargs: expand_wildcards(*args, **kwargs),
+    has_syntax=lambda *args, **kwargs: has_wildcard_syntax(*args, **kwargs),
+    next_seed_value=lambda *args, **kwargs: next_seed(*args, **kwargs),
+    normalize_seed_value=lambda *args, **kwargs: normalize_seed(*args, **kwargs),
+    normalize_mode=lambda *args, **kwargs: normalize_wildcard_mode(*args, **kwargs),
+    sources_signature=lambda *args, **kwargs: wildcard_sources_signature(*args, **kwargs),
+)
+_bind_naia_node_runtime(
+    resolve_settings=lambda: resolve_naia_settings(),
+    get_workflow_node=lambda *args, **kwargs: _get_workflow_node(*args, **kwargs),
+    post_random=lambda *args, **kwargs: _post_random(*args, **kwargs),
+    parse_random_response=lambda *args, **kwargs: _parse_random_response(*args, **kwargs),
+)
 
 
 def _profile_key(profile_index: int) -> str:
@@ -7836,214 +7629,6 @@ class EasyUseAnimaPromptCorrectorSimple:
         return (corrected,)
 
 
-class EasyUseAnimaWildcard:
-    """Expand Impact Pack compatible wildcard and dynamic prompt syntax."""
-
-    DESCRIPTION = (
-        "Expands EasyUse Anima wildcard files and dynamic prompt syntax with fixed, sequential, "
-        "and reproducible modes."
-    )
-    OUTPUT_TOOLTIPS = (
-        "Expanded prompt text.",
-        "Seed after applying the seed control option.",
-    )
-
-    @classmethod
-    def INPUT_TYPES(cls):
-        return {
-            "required": {
-                "text": ("STRING", {
-                    "multiline": True,
-                    "default": "",
-                    "tooltip": "Prompt text with wildcard syntax such as __style__ or {2::a|5::b|c}.",
-                }),
-                "populated_text": ("STRING", {
-                    "multiline": True,
-                    "default": "",
-                    "tooltip": "Cached expanded prompt used by fixed and reproduce modes.",
-                }),
-                "mode": (WILDCARD_MODE_LABELS, {
-                    "default": WILDCARD_MODE_LABELS[0],
-                    "tooltip": (
-                        "일반 채우기: seed-based random fill. 고정/재현: cached text. "
-                        "순차: seed modulo each wildcard option count."
-                    ),
-                }),
-                "seed": ("INT", {
-                    "default": 0,
-                    "min": 0,
-                    "max": MAX_SEED,
-                    "tooltip": (
-                        "Wildcard seed. Sequential mode uses seed % option_count for each wildcard. "
-                        f"{WILDCARD_SEED_RANGE_NOTE}"
-                    ),
-                }),
-                "seed_after_generate": (SEED_CONTROL_MODES, {
-                    "default": SEED_CONTROL_FIXED,
-                    "tooltip": "Seed control after generation: fixed, randomize, increment, or decrement.",
-                }),
-            },
-            "hidden": {
-                "workflow_prompt": "PROMPT",
-                "extra_pnginfo": "EXTRA_PNGINFO",
-                "unique_id": "UNIQUE_ID",
-            },
-            "optional": _FlexibleOptionalInputType("STRING"),
-        }
-
-    RETURN_TYPES = ("STRING", "INT")
-    RETURN_NAMES = ("text", "seed")
-    FUNCTION = "generate"
-    CATEGORY = "EasyUse Anima/Prompt"
-
-    @classmethod
-    def _widget_input_names(cls):
-        return tuple(cls.INPUT_TYPES().get("required", {}).keys())
-
-    @classmethod
-    def IS_CHANGED(cls, **kwargs):
-        mode = normalize_wildcard_mode(kwargs.get("mode", WILDCARD_MODE_LABELS[0]))
-        seed_control = str(kwargs.get("seed_after_generate", SEED_CONTROL_FIXED) or "")
-        text = str(kwargs.get("text", "") or "")
-        if (
-            mode in {WILDCARD_MODE_POPULATE, WILDCARD_MODE_FIXED, WILDCARD_MODE_SEQUENTIAL}
-            and seed_control == SEED_CONTROL_RANDOMIZE
-            and has_wildcard_syntax(text)
-        ):
-            return float("nan")
-        return _stable_change_key({
-            "mode": "wildcard",
-            "wildcard_sources": wildcard_sources_signature(),
-            **{key: str(value) for key, value in sorted(kwargs.items())},
-        })
-
-    @classmethod
-    def _update_metadata_cache(
-        cls,
-        workflow_prompt,
-        extra_pnginfo,
-        unique_id,
-        populated_text: str,
-        mode: str,
-        seed: int,
-    ) -> None:
-        node_id = _single_value(unique_id)
-        if node_id is None:
-            return
-        node_id = str(node_id)
-        updates = {
-            "populated_text": populated_text,
-            "mode": mode,
-            "seed": int(seed),
-        }
-
-        if isinstance(workflow_prompt, dict):
-            prompt_node = workflow_prompt.get(node_id)
-            if isinstance(prompt_node, dict):
-                inputs = prompt_node.setdefault("inputs", {})
-                for name, value in updates.items():
-                    inputs[name] = value
-
-        workflow_node = _get_workflow_node(extra_pnginfo, node_id)
-        if workflow_node is None:
-            return
-
-        input_names = cls._widget_input_names()
-        widgets_values = workflow_node.setdefault("widgets_values", [])
-        for name, value in updates.items():
-            if name not in input_names:
-                continue
-            index = input_names.index(name)
-            while len(widgets_values) <= index:
-                widgets_values.append(None)
-            widgets_values[index] = value
-
-    @staticmethod
-    def _ui(
-        populated_text: str,
-        mode: str,
-        seed: int,
-        status: str,
-        used_keys: tuple[str, ...],
-        missing_keys: tuple[str, ...],
-    ):
-        return {
-            "wildcard": [{
-                "populated_text": populated_text,
-                "mode": mode,
-                "seed": seed,
-                "status": status,
-                "used_keys": list(used_keys),
-                "missing_keys": list(missing_keys),
-            }]
-        }
-
-    def generate(
-        self,
-        text: str,
-        populated_text: str,
-        mode: str,
-        seed: int,
-        seed_after_generate: str,
-        workflow_prompt=None,
-        extra_pnginfo=None,
-        unique_id=None,
-        **reservation_inputs,
-    ):
-        mode_key = normalize_wildcard_mode(mode)
-        seed_value = normalize_seed(seed)
-        used_keys: tuple[str, ...] = ()
-        missing_keys: tuple[str, ...] = ()
-
-        if mode_key == WILDCARD_MODE_REPRODUCE:
-            output_text = str(populated_text if populated_text else text or "")
-            status = mode_key
-            metadata_mode = str(mode or WILDCARD_MODE_LABELS[3])
-        else:
-            expansion = expand_wildcards(str(text or ""), seed=seed_value, mode=mode_key)
-            output_text = expansion.text
-            used_keys = expansion.used_keys
-            missing_keys = expansion.missing_keys
-            status = WILDCARD_MODE_SEQUENTIAL if mode_key == WILDCARD_MODE_SEQUENTIAL else mode_key
-            metadata_mode = WILDCARD_MODE_LABELS[3]
-
-        effective_seed_control = (
-            SEED_CONTROL_INCREMENT
-            if mode_key == WILDCARD_MODE_SEQUENTIAL
-            else seed_after_generate
-        )
-        reserved_next_seed = _consume_reserved_wildcard_next_seed(
-            reservation_inputs,
-            workflow_prompt,
-            unique_id,
-            seed_value,
-            mode_key,
-            effective_seed_control,
-        )
-        next_seed_value = (
-            reserved_next_seed
-            if reserved_next_seed is not None
-            else next_seed(seed_value, effective_seed_control)
-        )
-        self._update_metadata_cache(
-            workflow_prompt,
-            extra_pnginfo,
-            unique_id,
-            output_text,
-            metadata_mode,
-            seed_value,
-        )
-        return {
-            "ui": self._ui(
-                output_text,
-                str(mode or WILDCARD_MODE_LABELS[0]),
-                next_seed_value,
-                status,
-                used_keys,
-                missing_keys,
-            ),
-            "result": (output_text, next_seed_value),
-        }
 
 
 class EasyUseAnimaPromptBuilder:
@@ -11578,554 +11163,3 @@ class EasyUseAnimaSAM3Detailer:
         )[0]
 
         return (detailed_image, segs, mask, image)
-
-
-class EasyUseAnimaNAIARandomPrompt:
-    """NAIA random prompt node with bypass and frozen-output cache."""
-
-    DESCRIPTION = (
-        "Requests a random prompt from NAIA Remote API, supports bypass and frozen output reuse, "
-        "and stores generated values so saved-image workflows can reproduce the same result."
-    )
-    OUTPUT_TOOLTIPS = (
-        "Prompt text from NAIA or the original input when bypassed or not overridden.",
-        "Negative prompt text from NAIA or the original input when bypassed or not overridden.",
-        "Width from NAIA or the original input when bypassed or not overridden.",
-        "Height from NAIA or the original input when bypassed or not overridden.",
-    )
-
-    @classmethod
-    def INPUT_TYPES(cls):
-        required = {
-            "use_naia_bridge": ("BOOLEAN", {
-                "default": True,
-                "tooltip": (
-                    "false: bypass NAIA and return prompt/negative_prompt/width/height as-is. "
-                    "This mode keeps ComfyUI cache stable when inputs are unchanged."
-                ),
-            }),
-            "freeze_naia_output": ("BOOLEAN", {
-                "default": False,
-                "tooltip": (
-                    "true: if cached output is valid, return it without calling NAIA. "
-                    "Saved-image workflows are written with this enabled."
-                ),
-            }),
-            "show_preview": ("BOOLEAN", {
-                "default": True,
-                "tooltip": "Show the large read-only preview widget in the node UI.",
-            }),
-            "cached_prompt": ("STRING", {
-                "multiline": True,
-                "default": "",
-                "tooltip": "Stored prompt used for frozen output and saved-image reproduction.",
-            }),
-            "cached_negative_prompt": ("STRING", {
-                "multiline": True,
-                "default": "",
-                "tooltip": "Stored negative prompt used for frozen output and saved-image reproduction.",
-            }),
-            "cached_width": ("INT", {
-                "default": 0, "min": 0, "max": NAIA_MAX_RESOLUTION, "step": 8,
-                "tooltip": "Stored width used for frozen output and saved-image reproduction.",
-            }),
-            "cached_height": ("INT", {
-                "default": 0, "min": 0, "max": NAIA_MAX_RESOLUTION, "step": 8,
-                "tooltip": "Stored height used for frozen output and saved-image reproduction.",
-            }),
-            "cached_signature": ("STRING", {
-                "multiline": True,
-                "default": "",
-                "tooltip": "Internal signature for validating cached output.",
-            }),
-            "prompt": ("STRING", {
-                "multiline": False,
-                "default": "",
-                "placeholder": "prompt",
-                "tooltip": "Returned as-is when bypassed or when override_prompt is false.",
-            }),
-            "override_prompt": ("BOOLEAN", {
-                "default": True,
-                "tooltip": "true: use NAIA prompt. false: preserve input prompt.",
-            }),
-            "negative_prompt": ("STRING", {
-                "multiline": False,
-                "default": "",
-                "placeholder": "negative_prompt",
-                "tooltip": "Returned as-is when bypassed or when override_negative is false.",
-            }),
-            "override_negative": ("BOOLEAN", {
-                "default": True,
-                "tooltip": "true: use NAIA negative prompt. false: preserve input negative_prompt.",
-            }),
-            "width": ("INT", {
-                "default": 1024, "min": 64, "max": NAIA_MAX_RESOLUTION, "step": 8,
-                "tooltip": "Returned as-is when bypassed or when override_width is false.",
-            }),
-            "override_width": ("BOOLEAN", {
-                "default": True,
-                "tooltip": "true: use NAIA width. false: preserve input width.",
-            }),
-            "height": ("INT", {
-                "default": 1024, "min": 64, "max": NAIA_MAX_RESOLUTION, "step": 8,
-                "tooltip": "Returned as-is when bypassed or when override_height is false.",
-            }),
-            "override_height": ("BOOLEAN", {
-                "default": True,
-                "tooltip": "true: use NAIA height. false: preserve input height.",
-            }),
-            "use_naia_settings": ("BOOLEAN", {
-                "default": True,
-                "tooltip": (
-                    "true: use NAIA desktop Prompt Engineering settings. "
-                    "false: send this node's pre/post/auto_hide and preprocessing options."
-                ),
-            }),
-            "pre_prompt": ("STRING", {
-                "multiline": True,
-                "default": "",
-                "placeholder": "pre_prompt",
-                "tooltip": "Used only when use_naia_settings is false.",
-            }),
-            "post_prompt": ("STRING", {
-                "multiline": True,
-                "default": "",
-                "placeholder": "post_prompt",
-                "tooltip": "Used only when use_naia_settings is false.",
-            }),
-            "auto_hide": ("STRING", {
-                "multiline": True,
-                "default": "",
-                "placeholder": "auto_hide",
-                "tooltip": "Used only when use_naia_settings is false.",
-            }),
-        }
-
-        pp_tooltip = (
-            "Used only when use_naia_settings is false.\n"
-            "skip: do not send this key\n"
-            "on: remove this category\n"
-            "off: explicitly keep this category"
-        )
-        for key in PREPROCESSING_KEYS:
-            required[key] = (PP_STATE_CHOICES, {
-                "default": "skip",
-                "tooltip": pp_tooltip,
-                "advanced": key.startswith("remove_"),
-                "socketless": key.startswith("remove_"),
-            })
-
-        required["host"] = ("STRING", {
-            "default": DEFAULT_HOST,
-            "tooltip": "NAIA Remote API host.",
-        })
-        required["port"] = ("INT", {
-            "default": DEFAULT_PORT, "min": 1, "max": 65535,
-            "tooltip": "NAIA Remote API port.",
-        })
-        return {
-            "required": required,
-            "hidden": {
-                "workflow_prompt": "PROMPT",
-                "extra_pnginfo": "EXTRA_PNGINFO",
-                "unique_id": "UNIQUE_ID",
-            },
-        }
-
-    RETURN_TYPES = ("STRING", "STRING", "INT", "INT")
-    RETURN_NAMES = ("prompt", "negative_prompt", "width", "height")
-    FUNCTION = "request"
-    CATEGORY = "NAIA Bridge/API"
-
-    def __init__(self):
-        self._cache_signature: Optional[str] = None
-        self._cache_value: Optional[tuple[str, str, int, int]] = None
-
-    @classmethod
-    def IS_CHANGED(
-        cls,
-        use_naia_bridge: bool = True,
-        freeze_naia_output: bool = False,
-        show_preview: bool = True,
-        cached_prompt: str = "",
-        cached_negative_prompt: str = "",
-        cached_width: int = 0,
-        cached_height: int = 0,
-        cached_signature: str = "",
-        prompt: str = "",
-        override_prompt: bool = True,
-        negative_prompt: str = "",
-        override_negative: bool = True,
-        width: int = 1024,
-        override_width: bool = True,
-        height: int = 1024,
-        override_height: bool = True,
-        use_naia_settings: bool = True,
-        pre_prompt: str = "",
-        post_prompt: str = "",
-        auto_hide: str = "",
-        host: str = DEFAULT_HOST,
-        port: int = DEFAULT_PORT,
-        **kwargs,
-    ):
-        naia_settings = resolve_naia_settings()
-        use_naia_settings = naia_settings["use_naia_settings"]
-        pre_prompt = naia_settings["pre_prompt"]
-        post_prompt = naia_settings["post_prompt"]
-        auto_hide = naia_settings["auto_hide"]
-        host = naia_settings["host"]
-        port = naia_settings["port"]
-        pp_kwargs = naia_settings["preprocessing"]
-
-        if not _as_bool(use_naia_bridge, True):
-            return _stable_change_key({
-                "mode": "disabled",
-                "prompt": str(prompt),
-                "negative_prompt": str(negative_prompt),
-                "width": _as_int(width, 1024),
-                "height": _as_int(height, 1024),
-            })
-
-        signature = cls._make_signature(
-            prompt,
-            override_prompt,
-            negative_prompt,
-            override_negative,
-            width,
-            override_width,
-            height,
-            override_height,
-            use_naia_settings,
-            pre_prompt,
-            post_prompt,
-            auto_hide,
-            host,
-            port,
-            pp_kwargs,
-        )
-
-        if _as_bool(freeze_naia_output, False):
-            cached = cls._cached_tuple(
-                cached_prompt,
-                cached_negative_prompt,
-                cached_width,
-                cached_height,
-            )
-            if cached is not None and str(cached_signature) == signature:
-                return _stable_change_key({
-                    "mode": "frozen",
-                    "signature": signature,
-                    "prompt": cached[0],
-                    "negative_prompt": cached[1],
-                    "width": cached[2],
-                    "height": cached[3],
-                })
-            return float("nan")
-
-        return float("nan")
-
-    @staticmethod
-    def _cached_tuple(
-        cached_prompt: str,
-        cached_negative_prompt: str,
-        cached_width: int,
-        cached_height: int,
-    ) -> Optional[tuple[str, str, int, int]]:
-        width = _as_int(cached_width, 0)
-        height = _as_int(cached_height, 0)
-        if width <= 0 or height <= 0:
-            return None
-        if not cached_prompt and not cached_negative_prompt:
-            return None
-        return (str(cached_prompt), str(cached_negative_prompt), width, height)
-
-    @classmethod
-    def _widget_input_names(cls) -> list[str]:
-        return list(cls.INPUT_TYPES()["required"].keys())
-
-    @staticmethod
-    def _make_signature(
-        prompt: str,
-        override_prompt: bool,
-        negative_prompt: str,
-        override_negative: bool,
-        width: int,
-        override_width: bool,
-        height: int,
-        override_height: bool,
-        use_naia_settings: bool,
-        pre_prompt: str,
-        post_prompt: str,
-        auto_hide: str,
-        host: str,
-        port: int,
-        pp_kwargs: dict,
-    ) -> str:
-        use_settings = _as_bool(use_naia_settings, True)
-        preprocessing = {}
-        if not use_settings:
-            preprocessing = {
-                key: str(pp_kwargs.get(key, "skip"))
-                for key in PREPROCESSING_KEYS
-            }
-        payload = {
-            "prompt": str(prompt),
-            "override_prompt": _as_bool(override_prompt, True),
-            "negative_prompt": str(negative_prompt),
-            "override_negative": _as_bool(override_negative, True),
-            "width": _as_int(width, 1024),
-            "override_width": _as_bool(override_width, True),
-            "height": _as_int(height, 1024),
-            "override_height": _as_bool(override_height, True),
-            "use_naia_settings": use_settings,
-            "pre_prompt": "" if use_settings else str(pre_prompt),
-            "post_prompt": "" if use_settings else str(post_prompt),
-            "auto_hide": "" if use_settings else str(auto_hide),
-            "preprocessing": preprocessing,
-            "host": str(host),
-            "port": _as_int(port, DEFAULT_PORT),
-        }
-        return json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
-
-    @staticmethod
-    def _make_request_body(
-        use_naia_settings: bool,
-        pre_prompt: str,
-        post_prompt: str,
-        auto_hide: str,
-        pp_kwargs: dict,
-    ) -> dict:
-        body = {
-            "timeout": NAIA_REQUEST_TIMEOUT,
-            "respect_naia_autogen": True,
-            "force_naia_skip_generate": False,
-        }
-        if not use_naia_settings:
-            preprocessing_options = {}
-            for key in PREPROCESSING_KEYS:
-                state = pp_kwargs.get(key, "skip")
-                if state == "on":
-                    preprocessing_options[key] = True
-                elif state == "off":
-                    preprocessing_options[key] = False
-            body["peng_override"] = {
-                "pre_prompt": pre_prompt,
-                "post_prompt": post_prompt,
-                "auto_hide": auto_hide,
-                "preprocessing_options": preprocessing_options,
-            }
-        return body
-
-    @staticmethod
-    def _apply_overrides(
-        naia_value: tuple[str, str, int, int],
-        prompt: str,
-        override_prompt: bool,
-        negative_prompt: str,
-        override_negative: bool,
-        width: int,
-        override_width: bool,
-        height: int,
-        override_height: bool,
-    ) -> tuple[str, str, int, int]:
-        naia_prompt, naia_negative, naia_width, naia_height = naia_value
-        return (
-            naia_prompt if override_prompt else str(prompt),
-            naia_negative if override_negative else str(negative_prompt),
-            naia_width if override_width else _as_int(width, 1024),
-            naia_height if override_height else _as_int(height, 1024),
-        )
-
-    @classmethod
-    def _update_metadata_cache(
-        cls,
-        workflow_prompt,
-        extra_pnginfo,
-        unique_id,
-        output_value: tuple[str, str, int, int],
-        signature: str,
-    ) -> None:
-        node_id = _single_value(unique_id)
-        if node_id is None:
-            return
-        node_id = str(node_id)
-        out_prompt, out_negative, out_width, out_height = output_value
-        updates = {
-            "use_naia_bridge": True,
-            "freeze_naia_output": True,
-            "cached_prompt": out_prompt,
-            "cached_negative_prompt": out_negative,
-            "cached_width": int(out_width),
-            "cached_height": int(out_height),
-            "cached_signature": signature,
-        }
-
-        if isinstance(workflow_prompt, dict):
-            prompt_node = workflow_prompt.get(node_id)
-            if isinstance(prompt_node, dict):
-                inputs = prompt_node.setdefault("inputs", {})
-                for name, value in updates.items():
-                    inputs[name] = value
-
-        workflow_node = _get_workflow_node(extra_pnginfo, node_id)
-        if workflow_node is None:
-            return
-
-        input_names = cls._widget_input_names()
-        widgets_values = workflow_node.setdefault("widgets_values", [])
-        for name, value in updates.items():
-            if name not in input_names:
-                continue
-            index = input_names.index(name)
-            while len(widgets_values) <= index:
-                widgets_values.append(None)
-            widgets_values[index] = value
-
-    @staticmethod
-    def _ui(prompt: str, negative: str, width: int, height: int, status: str, signature: str):
-        return {
-            "prompt": [prompt],
-            "negative_prompt": [negative],
-            "width": [width],
-            "height": [height],
-            "status": [status],
-            "cached_signature": [signature],
-        }
-
-    def request(
-        self,
-        use_naia_bridge: bool,
-        freeze_naia_output: bool,
-        show_preview: bool,
-        cached_prompt: str,
-        cached_negative_prompt: str,
-        cached_width: int,
-        cached_height: int,
-        cached_signature: str,
-        prompt: str,
-        override_prompt: bool,
-        negative_prompt: str,
-        override_negative: bool,
-        width: int,
-        override_width: bool,
-        height: int,
-        override_height: bool,
-        use_naia_settings: bool,
-        pre_prompt: str,
-        post_prompt: str,
-        auto_hide: str,
-        host: str,
-        port: int,
-        workflow_prompt=None,
-        extra_pnginfo=None,
-        unique_id=None,
-        **pp_kwargs,
-    ):
-        naia_settings = resolve_naia_settings()
-        use_naia_settings = naia_settings["use_naia_settings"]
-        pre_prompt = naia_settings["pre_prompt"]
-        post_prompt = naia_settings["post_prompt"]
-        auto_hide = naia_settings["auto_hide"]
-        host = naia_settings["host"]
-        port = naia_settings["port"]
-        pp_kwargs = naia_settings["preprocessing"]
-
-        bridge_enabled = _as_bool(use_naia_bridge, True)
-        freeze_output = _as_bool(freeze_naia_output, False)
-        use_settings = _as_bool(use_naia_settings, True)
-        override_prompt = _as_bool(override_prompt, True)
-        override_negative = _as_bool(override_negative, True)
-        override_width = _as_bool(override_width, True)
-        override_height = _as_bool(override_height, True)
-
-        signature = self._make_signature(
-            prompt,
-            override_prompt,
-            negative_prompt,
-            override_negative,
-            width,
-            override_width,
-            height,
-            override_height,
-            use_settings,
-            pre_prompt,
-            post_prompt,
-            auto_hide,
-            host,
-            port,
-            pp_kwargs,
-        )
-
-        if not bridge_enabled:
-            out_prompt = str(prompt)
-            out_negative = str(negative_prompt)
-            out_width = _as_int(width, 1024)
-            out_height = _as_int(height, 1024)
-            return {
-                "ui": self._ui(out_prompt, out_negative, out_width, out_height, "disabled", signature),
-                "result": (out_prompt, out_negative, out_width, out_height),
-            }
-
-        saved_cache = self._cached_tuple(
-            cached_prompt,
-            cached_negative_prompt,
-            cached_width,
-            cached_height,
-        )
-        if freeze_output and saved_cache is not None and str(cached_signature) == signature:
-            out_prompt, out_negative, out_width, out_height = saved_cache
-            return {
-                "ui": self._ui(out_prompt, out_negative, out_width, out_height, "frozen", signature),
-                "result": (out_prompt, out_negative, out_width, out_height),
-            }
-
-        if self._cache_signature != signature:
-            self._cache_signature = signature
-            self._cache_value = (
-                saved_cache if saved_cache is not None and str(cached_signature) == signature else None
-            )
-
-        if self._cache_value is None or not freeze_output:
-            body = self._make_request_body(use_settings, pre_prompt, post_prompt, auto_hide, pp_kwargs)
-            resp = _post_random(
-                host,
-                port,
-                body,
-                allow_remote_api=bool(naia_settings.get("allow_remote_api", False)),
-            )
-            naia_value = _parse_random_response(resp)
-            self._cache_value = self._apply_overrides(
-                naia_value,
-                prompt,
-                override_prompt,
-                negative_prompt,
-                override_negative,
-                width,
-                override_width,
-                height,
-                override_height,
-            )
-            logger.debug(
-                "request_id=%s prompt_len=%d size=%dx%d use_naia_settings=%s",
-                resp.get("request_id"),
-                len(self._cache_value[0]),
-                self._cache_value[2],
-                self._cache_value[3],
-                use_settings,
-            )
-
-        if self._cache_value is None:
-            raise RuntimeError("[EasyUse Anima] Internal cache creation failed.")
-
-        out_prompt, out_negative, out_width, out_height = self._cache_value
-        self._update_metadata_cache(
-            workflow_prompt,
-            extra_pnginfo,
-            unique_id,
-            (out_prompt, out_negative, out_width, out_height),
-            signature,
-        )
-        return {
-            "ui": self._ui(out_prompt, out_negative, out_width, out_height, "fresh", signature),
-            "result": (out_prompt, out_negative, out_width, out_height),
-        }
