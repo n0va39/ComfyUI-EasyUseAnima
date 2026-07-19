@@ -1143,6 +1143,39 @@ class WildcardNodeTests(unittest.TestCase):
     def test_prompt_studio_advanced_v2_connected_wildcard_round_trip_preserves_expansion(self):
         self._assert_advanced_connected_wildcard_round_trip(EasyUseAnimaPromptStudioAdvancedV2)
 
+    def test_prompt_studio_advanced_reproduce_keeps_plain_connected_input(self):
+        fields_json = json.dumps([{
+            "id": "positive_general",
+            "pane": "positive",
+            "type": "general",
+            "label": "General Tags",
+            "text": "stored fallback",
+            "height": 120,
+            "enabled": True,
+        }])
+
+        for node_class in (
+            EasyUseAnimaPromptStudioAdvanced,
+            EasyUseAnimaPromptStudioAdvancedV2,
+        ):
+            with self.subTest(node_class=node_class.__name__):
+                reproduced = node_class().build(
+                    False,
+                    True,
+                    False,
+                    False,
+                    fields_json,
+                    wildcard_mode="재현",
+                    wildcard_seed=17,
+                    wildcard_seed_after_generate="fixed",
+                    field_positive_general="plain connected",
+                )
+
+                reproduced_output = reproduced["result"][0]
+                if isinstance(reproduced_output, dict):
+                    reproduced_output = reproduced_output["positive_prompt"]
+                self.assertEqual(reproduced_output, "plain connected")
+
     def test_prompt_studio_regional_connected_wildcard_round_trip_preserves_expansion(self):
         source_text = "{cat|dog|fox}"
         fields = [{
@@ -1227,6 +1260,29 @@ class WildcardNodeTests(unittest.TestCase):
 
         expand.assert_not_called()
         self.assertEqual(reproduced["result"][0], "fox")
+
+    def test_prompt_studio_regional_reproduce_keeps_plain_connected_input(self):
+        fields_json = json.dumps([{
+            "id": "positive_general",
+            "pane": "positive",
+            "type": "general",
+            "label": "General Tags",
+            "text": "stored fallback",
+            "height": 120,
+            "enabled": True,
+            "mask_ids": [],
+        }])
+
+        reproduced = EasyUseAnimaPromptStudioRegional().build(
+            fields_json,
+            json.dumps({}),
+            wildcard_mode="재현",
+            wildcard_seed=17,
+            wildcard_seed_after_generate="fixed",
+            field_positive_general="plain connected",
+        )
+
+        self.assertEqual(reproduced["result"][0], "plain connected")
 
     def test_public_settings_include_wildcard_extra_paths(self):
         self.assertIn("wildcard.extra_paths", public_settings())

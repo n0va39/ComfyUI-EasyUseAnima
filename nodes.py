@@ -4545,6 +4545,14 @@ def _apply_advanced_field_inputs(fields: list[dict], field_inputs: dict) -> list
     return effective
 
 
+def _reproduce_connected_field_inputs(field_inputs: dict) -> dict[str, str]:
+    return {
+        name: value
+        for name, value in _advanced_field_input_values(field_inputs).items()
+        if not has_wildcard_syntax(value)
+    }
+
+
 def _preserve_expanded_connected_field_texts(
     saved_fields: list[dict],
     source_fields: list[dict],
@@ -6056,7 +6064,10 @@ class EasyUseAnimaPromptStudioAdvanced:
         ui_updates: dict[str, Any] = {}
         wildcard_mode_key = normalize_wildcard_mode(wildcard_mode)
         effective_fields = (
-            _clone_advanced_fields(saved_fields)
+            _apply_advanced_field_inputs(
+                saved_fields,
+                _reproduce_connected_field_inputs(effective_field_inputs),
+            )
             if wildcard_mode_key == WILDCARD_MODE_REPRODUCE
             else _apply_advanced_field_inputs(fields, effective_field_inputs)
         )
@@ -6462,7 +6473,10 @@ class EasyUseAnimaPromptStudioAdvancedV2(EasyUseAnimaPromptStudioAdvanced):
         effective_field_inputs = _advanced_field_input_values(ui_payload.get("field_inputs") or field_inputs)
         wildcard_mode_key = normalize_wildcard_mode(wildcard_mode)
         if wildcard_mode_key == WILDCARD_MODE_REPRODUCE:
-            effective_fields = _clone_advanced_fields(saved_fields)
+            effective_fields = _apply_advanced_field_inputs(
+                saved_fields,
+                _reproduce_connected_field_inputs(effective_field_inputs),
+            )
         else:
             effective_fields = _apply_advanced_field_inputs(saved_fields, effective_field_inputs)
             effective_fields, _wildcard = _expand_advanced_wildcard_fields(
@@ -7357,7 +7371,10 @@ class EasyUseAnimaPromptStudioRegional:
 
         wildcard_mode_key = normalize_wildcard_mode(wildcard_mode)
         effective_fields = (
-            _clone_regional_fields(saved_fields)
+            _apply_regional_field_inputs(
+                saved_fields,
+                _reproduce_connected_field_inputs(effective_field_inputs),
+            )
             if wildcard_mode_key == WILDCARD_MODE_REPRODUCE
             else _apply_regional_field_inputs(fields, effective_field_inputs)
         )
