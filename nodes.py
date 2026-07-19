@@ -7256,7 +7256,7 @@ def _consume_reserved_wildcard_next_seed(
 
 
 _bind_prompt_correction_runtime(
-    resolve_settings=lambda: resolve_prompt_translation_settings(),
+    resolve_helper=lambda name: globals()[name],
 )
 _bind_prompt_node_runtime(
     resolve_helper=lambda name: globals()[name],

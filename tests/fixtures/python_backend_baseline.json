@@ -20556,9 +20556,9 @@
       },
       {
         "is_package": false,
-        "loc": 44,
+        "loc": 55,
         "module": "easyuse_anima.prompt.correction",
-        "normalized_git_blob_sha1": "c624e7c3d9cc3790715957fcfd4b8a1cd944376f",
+        "normalized_git_blob_sha1": "aefbd67e85ae99ad41992aa2b94ee90493c58d68",
         "path": "easyuse_anima/prompt/correction.py",
         "top_level": {
           "class_count": 0,
@@ -20570,7 +20570,7 @@
         "is_package": false,
         "loc": 10664,
         "module": "nodes",
-        "normalized_git_blob_sha1": "fa3d9999ff4e5192c5da7e5c43e57e5f4aeb924a",
+        "normalized_git_blob_sha1": "d968590df0342a380a1103bdf95b0b942fab8fb2",
         "path": "nodes.py",
         "top_level": {
           "class_count": 17,

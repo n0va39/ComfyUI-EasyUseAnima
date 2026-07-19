@@ -73,7 +73,7 @@ def load_dynamic():
     def test_current_nodes_module_shape_matches_recorded_baseline(self):
         report = analyzer.analyze_path(ROOT / "nodes.py")
 
-        self.assertEqual(report["git_blob_sha1"], "fa3d9999ff4e5192c5da7e5c43e57e5f4aeb924a")
+        self.assertEqual(report["git_blob_sha1"], "d968590df0342a380a1103bdf95b0b942fab8fb2")
         # Issue #184 B-07a moved the Prompt Corrector vertical slice as direct aliases.
         self.assertEqual(report["top_level"]["function_count"], 216)
         self.assertEqual(report["top_level"]["class_count"], 17)

@@ -10,10 +10,21 @@ except ImportError:
     from settings import resolve_prompt_translation_settings
 
 
-def _bind_prompt_correction_runtime(*, resolve_settings) -> None:
+def _bind_prompt_correction_runtime(*, resolve_helper) -> None:
+    global has_prompt_translation_markers, translate_prompt_markers
     global resolve_prompt_translation_settings
 
-    resolve_prompt_translation_settings = resolve_settings
+    def runtime_helper(name):
+        def call(*args, **kwargs):
+            return resolve_helper(name)(*args, **kwargs)
+
+        return call
+
+    has_prompt_translation_markers = runtime_helper("has_prompt_translation_markers")
+    translate_prompt_markers = runtime_helper("translate_prompt_markers")
+    resolve_prompt_translation_settings = runtime_helper(
+        "resolve_prompt_translation_settings"
+    )
 
 
 def _split_tag_text(value: str) -> list[str]:

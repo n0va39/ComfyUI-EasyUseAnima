@@ -927,6 +927,47 @@ class PromptCorrectorMoveContractTests(unittest.TestCase):
             ["changed", "unknown_tags", "duplicate_tags", "warnings", "sections"],
         )
 
+    def test_root_translation_monkeypatches_drive_the_canonical_helper(self):
+        settings = types.SimpleNamespace(provider="off", source="auto", target="en")
+
+        with (
+            patch.object(
+                nodes,
+                "has_prompt_translation_markers",
+                return_value=False,
+            ) as has_markers,
+            patch.object(nodes, "translate_prompt_markers") as translate_markers,
+        ):
+            untranslated = nodes._translate_prompt_text("%{abc}")
+
+        self.assertEqual(untranslated, "%{abc}")
+        has_markers.assert_called_once_with("%{abc}")
+        translate_markers.assert_not_called()
+
+        with (
+            patch.object(
+                nodes,
+                "has_prompt_translation_markers",
+                return_value=True,
+            ) as has_markers,
+            patch.object(
+                nodes,
+                "translate_prompt_markers",
+                return_value="bound",
+            ) as translate_markers,
+            patch.object(
+                nodes,
+                "resolve_prompt_translation_settings",
+                return_value=settings,
+            ) as resolve_settings,
+        ):
+            translated = nodes._translate_prompt_text("%{abc}")
+
+        self.assertEqual(translated, "bound")
+        has_markers.assert_called_once_with("%{abc}")
+        resolve_settings.assert_called_once_with()
+        translate_markers.assert_called_once_with("%{abc}", settings)
+
     def test_translation_stays_outside_the_correction_error_mapping(self):
         with patch.object(nodes, "_translate_prompt_text", side_effect=ValueError("translate")):
             with self.assertRaisesRegex(ValueError, "^translate$"):
