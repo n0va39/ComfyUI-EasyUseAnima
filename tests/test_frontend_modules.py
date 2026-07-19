@@ -115,7 +115,7 @@ STATIC_IMPORT_RE = re.compile(
 
 
 class FrontendModuleStructureTests(unittest.TestCase):
-    def test_host_hook_registry_phase_1_is_owned_and_focused(self):
+    def test_host_hook_registry_phase_2_is_owned_and_focused(self):
         registry_source = HOST_HOOK_REGISTRY_JS.read_text(encoding="utf-8")
         node_hooks_source = (
             PROMPT_STUDIO_MODULES / "node_hooks.js"
@@ -171,14 +171,18 @@ class FrontendModuleStructureTests(unittest.TestCase):
         self.assertNotIn("serialize.__easyuseAnimaRegionalWrapped", regional_extension_source)
         self.assertNotIn("AdvancedQueueSeedInstalled", queue_seed_source)
 
-        self.assertNotIn(
-            "host_hook_registry",
-            AIO_GENERATOR_QUEUE_RUNTIME_JS.read_text(encoding="utf-8"),
-        )
-        self.assertNotIn(
-            "host_hook_registry",
-            (WEB_JS / "lora_preset" / "save_sync.js").read_text(encoding="utf-8"),
-        )
+        aio_queue_source = AIO_GENERATOR_QUEUE_RUNTIME_JS.read_text(encoding="utf-8")
+        aio_extension_source = AIO_EXTENSION_RUNTIME_JS.read_text(encoding="utf-8")
+        lora_save_sync_source = (
+            WEB_JS / "lora_preset" / "save_sync.js"
+        ).read_text(encoding="utf-8")
+        self.assertIn('../lifecycle/host_hook_registry.js"', aio_queue_source)
+        self.assertIn('../lifecycle/host_hook_registry.js"', aio_extension_source)
+        self.assertIn('../lifecycle/host_hook_registry.js"', lora_save_sync_source)
+        self.assertIn("registerHostHookCallbacks({", aio_queue_source)
+        self.assertIn("createHostHookRuntimeLifecycle(", aio_extension_source)
+        self.assertIn("createHostHookRuntimeLifecycle(", lora_save_sync_source)
+        self.assertIn("registerHostHookCallbacks({", lora_save_sync_source)
 
     def test_shared_api_module_exports_runtime_helpers(self):
         source = API_JS.read_text(encoding="utf-8")
@@ -426,7 +430,10 @@ class FrontendModuleStructureTests(unittest.TestCase):
         frontend_check_source = FRONTEND_CHECK_SCRIPT.read_text(encoding="utf-8")
 
         self.assertEqual(source.splitlines()[0], "// @ts-check")
-        self.assertEqual(STATIC_IMPORT_RE.findall(source), [])
+        self.assertEqual(
+            STATIC_IMPORT_RE.findall(source),
+            ["../lifecycle/host_hook_registry.js"],
+        )
         self.assertNotIn("app.registerExtension", source)
         self.assertEqual(
             re.findall(
@@ -768,7 +775,10 @@ class FrontendModuleStructureTests(unittest.TestCase):
                 "aioInstallGeneratorQueuePromptHook",
             ],
         )
-        self.assertNotRegex(source, re.compile(r"^\s*import\s", re.MULTILINE))
+        self.assertEqual(
+            STATIC_IMPORT_RE.findall(source),
+            ["../lifecycle/host_hook_registry.js"],
+        )
         self.assertNotRegex(source, r"\b(?:document|window|app)\b")
         self.assertNotIn("fetch(", source)
         self.assertNotIn("app.registerExtension", source)
@@ -850,12 +860,10 @@ class FrontendModuleStructureTests(unittest.TestCase):
             "return aioInstallGeneratorQueuePromptHook(api, generatorQueueRuntime);",
             install_body,
         )
-        self.assertIn(
-            'const QUEUE_HOST_MARKER = "__easyuseAnimaAioQueuePromptInstalled";',
-            source,
-        )
-        self.assertIn("queueHost[QUEUE_HOST_MARKER]", source)
-        self.assertIn("wrappedQueuePrompt[QUEUE_HOOK_MARKER] = true;", source)
+        self.assertIn("const AIO_GENERATOR_QUEUE_OWNER = Symbol.for(", source)
+        self.assertIn('"easyuse-anima.aio.generator-queue"', source)
+        self.assertIn("return registerHostHookCallbacks({", source)
+        self.assertIn("owner: AIO_GENERATOR_QUEUE_OWNER,", source)
         self.assertIn("updateSeed: updateGeneratorSeed,", panel_source)
         self.assertLess(
             entry_source.index("const generatorPanelRuntime"),
