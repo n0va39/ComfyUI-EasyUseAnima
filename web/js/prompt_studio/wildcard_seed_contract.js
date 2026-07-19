@@ -5,23 +5,18 @@ const WILDCARD_SEED_MAX_BIGINT = BigInt(WILDCARD_SEED_MAX);
 const WILDCARD_MODE_CONTROL_OVERRIDES = new Map([
   ["sequential", "increment"],
   ["순차", "increment"],
-  ["reproduce", "fixed"],
-  ["재현", "fixed"],
 ]);
 
 /**
- * Return the seed control implied by a mode selection. Populate and Fixed
- * preserve the user's current control; Sequential and Reproduce apply their
- * explicit lifecycle defaults at the moment the user selects the mode.
+ * Return the seed control implied by Prompt Studio's two modes.
  *
  * @param {any} mode
- * @param {any} currentControl
  */
-function wildcardSeedControlForMode(mode, currentControl) {
+function wildcardSeedControlForMode(mode) {
   return WILDCARD_MODE_CONTROL_OVERRIDES.get(
     String(mode || "").trim().toLowerCase(),
   )
-    || String(currentControl || "fixed");
+    || "fixed";
 }
 
 /** @param {any} value */
@@ -110,6 +105,18 @@ function bindWildcardSeedInput(input, getCurrentSeed, publishSeed, afterPublish)
   });
   input.addEventListener("change", syncSeed);
   input.addEventListener("blur", syncSeed);
+  const requestFrame = globalThis.requestAnimationFrame;
+  if (typeof requestFrame === "function") {
+    requestFrame(function syncVisibleSeed() {
+      if (input.isConnected !== true) {
+        return;
+      }
+      if (!dirty && String(input.value ?? "") !== String(getCurrentSeed() ?? "0")) {
+        restoreCurrentSeed();
+      }
+      requestFrame(syncVisibleSeed);
+    });
+  }
   return syncSeed;
 }
 

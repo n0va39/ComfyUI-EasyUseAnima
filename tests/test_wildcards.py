@@ -864,14 +864,12 @@ class WildcardSeedContractTests(unittest.TestCase):
                 self.assertIn(str(wildcard_engine.PUBLIC_MAX_SEED), config["tooltip"])
                 self.assertIn("legacy", config["tooltip"].lower())
 
-    def test_all_wildcard_node_surfaces_publish_the_public_decrement_wrap(self):
-        public_max = wildcard_engine.PUBLIC_MAX_SEED
+    def test_prompt_studio_modes_own_seed_progression(self):
         wildcard = EasyUseAnimaWildcard().generate(
             "",
             "",
-            "일반 채우기",
+            "일반",
             0,
-            "decrement",
         )
         advanced = EasyUseAnimaPromptStudioAdvanced().build(
             False,
@@ -879,26 +877,26 @@ class WildcardSeedContractTests(unittest.TestCase):
             False,
             False,
             "[]",
-            wildcard_mode="일반 채우기",
+            wildcard_mode="일반",
             wildcard_seed=0,
             wildcard_seed_after_generate="decrement",
         )
         regional = EasyUseAnimaPromptStudioRegional().build(
             "[]",
             "{}",
-            wildcard_mode="일반 채우기",
+            wildcard_mode="순차",
             wildcard_seed=0,
             wildcard_seed_after_generate="decrement",
         )
 
-        self.assertEqual(wildcard["ui"]["wildcard"][0]["seed"], public_max)
+        self.assertEqual(wildcard["ui"]["wildcard"][0]["seed"], 0)
         self.assertEqual(
             advanced["ui"]["prompt_studio_advanced"][0]["wildcard_seed"],
-            public_max,
+            0,
         )
         self.assertEqual(
             regional["ui"]["prompt_studio_regional"][0]["wildcard_seed"],
-            public_max,
+            1,
         )
 
     def test_legacy_current_seed_is_used_before_next_seed_reenters_public_range(self):
@@ -914,13 +912,12 @@ class WildcardSeedContractTests(unittest.TestCase):
             result = EasyUseAnimaWildcard().generate(
                 "__style__",
                 "",
-                "일반 채우기",
+                "일반",
                 legacy_max,
-                "increment",
             )
 
         self.assertEqual(expand.call_args.kwargs["seed"], legacy_max)
-        self.assertEqual(result["result"], ("expanded style", 0))
+        self.assertEqual(result["result"], ("expanded style", legacy_max))
 
 
 class WildcardNodeTests(unittest.TestCase):
@@ -945,7 +942,7 @@ class WildcardNodeTests(unittest.TestCase):
         expanded, metadata = nodes_module._expand_advanced_wildcard_fields(
             fields,
             7,
-            "일반 채우기",
+            "일반",
         )
 
         self.assertEqual(
@@ -954,7 +951,63 @@ class WildcardNodeTests(unittest.TestCase):
         )
         self.assertTrue(metadata["changed"])
 
-    def test_connected_field_rng_consumption_is_saved_for_reproduce(self):
+    def test_prompt_studio_general_expands_samples_flower_deterministically(self):
+        source_fields = [{
+            "id": "positive_general",
+            "pane": "positive",
+            "type": "general",
+            "text": "__samples/flower__",
+            "enabled": True,
+        }]
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            samples = root / "samples"
+            samples.mkdir()
+            (samples / "flower.txt").write_text(
+                "rose\ntulip\nsunflower\n",
+                encoding="utf-8",
+            )
+
+            def expand_from_test_root(texts, *, seed, mode):
+                return expand_wildcard_texts(texts, seed=seed, mode=mode, roots=[root])
+
+            with patch(
+                "nodes.expand_wildcard_texts",
+                side_effect=expand_from_test_root,
+            ):
+                first, _ = nodes_module._expand_advanced_wildcard_fields(
+                    source_fields,
+                    5,
+                    "일반",
+                )
+                second, _ = nodes_module._expand_advanced_wildcard_fields(
+                    source_fields,
+                    5,
+                    "일반",
+                )
+
+        self.assertEqual(first, second)
+        self.assertIn(first[0]["text"], {"rose", "tulip", "sunflower"})
+        self.assertNotEqual(first[0]["text"], "samples/flower")
+        self.assertEqual(source_fields[0]["text"], "__samples/flower__")
+
+    def test_prompt_studio_sequential_seed_selects_and_wraps_in_order(self):
+        fields = [{
+            "id": "positive_general",
+            "pane": "positive",
+            "type": "general",
+            "text": "{rose|tulip|sunflower}",
+            "enabled": True,
+        }]
+
+        outputs = [
+            nodes_module._expand_advanced_wildcard_fields(fields, seed, "순차")[0][0]["text"]
+            for seed in (0, 1, 2, 3, 1)
+        ]
+
+        self.assertEqual(outputs, ["rose", "tulip", "sunflower", "rose", "tulip"])
+
+    def test_connected_field_uses_shared_rng_without_replacing_saved_sources(self):
         saved_source = [
             {
                 "id": "positive_connected",
@@ -978,22 +1031,10 @@ class WildcardNodeTests(unittest.TestCase):
             saved_source,
             field_inputs,
         )
-        saved_fields, _saved_metadata = nodes_module._expand_advanced_wildcard_fields(
-            saved_source,
-            17,
-            "고정",
-        )
         effective_fields, _effective_metadata = nodes_module._expand_advanced_wildcard_fields(
             effective_source,
             17,
-            "고정",
-        )
-
-        nodes_module._preserve_expanded_connected_field_texts(
-            saved_fields,
-            effective_source,
-            effective_fields,
-            field_inputs,
+            "일반",
         )
 
         self.assertEqual(
@@ -1001,11 +1042,11 @@ class WildcardNodeTests(unittest.TestCase):
             ["fox", "red"],
         )
         self.assertEqual(
-            [field["text"] for field in saved_fields],
-            ["fox", "red"],
+            [field["text"] for field in saved_source],
+            ["stored fallback", "{red|blue|green}"],
         )
 
-    def test_input_tooltips_cover_syntax_cache_and_actual_mode_lifecycle(self):
+    def test_input_tooltips_cover_populated_text_and_deterministic_modes(self):
         inputs = EasyUseAnimaWildcard.INPUT_TYPES()["required"]
         text_tooltip = inputs["text"][1]["tooltip"]
         for syntax in (
@@ -1024,42 +1065,39 @@ class WildcardNodeTests(unittest.TestCase):
                 self.assertIn(syntax, text_tooltip)
 
         populated_tooltip = inputs["populated_text"][1]["tooltip"]
-        self.assertIn("Reproduce processes this value", populated_tooltip)
-        self.assertIn("like Impact Pack", populated_tooltip)
-        self.assertNotIn("falling back to text", populated_tooltip)
-        self.assertIn("ignore the old cache", populated_tooltip)
+        self.assertIn("Impact Pack's populated_text", populated_tooltip)
+        self.assertIn("Fixed ignores text", populated_tooltip)
+        self.assertIn("file wildcards", populated_tooltip)
 
         mode_tooltip = inputs["mode"][1]["tooltip"]
-        self.assertIn("Fixed (고정): EasyUse compatibility mode", mode_tooltip)
-        self.assertIn("it still expands text", mode_tooltip)
-        self.assertIn("Reproduce (재현): process populated_text", mode_tooltip)
-        self.assertIn("including file wildcards", mode_tooltip)
-        self.assertIn("seed_after_generate still controls the returned next seed", mode_tooltip)
+        self.assertIn("General (일반)", mode_tooltip)
+        self.assertIn("Fixed (고정)", mode_tooltip)
+        self.assertIn("Saved workflows serialize", mode_tooltip)
 
         seed_tooltip = inputs["seed"][1]["tooltip"]
-        self.assertIn("range width", seed_tooltip)
-        self.assertIn("Reproduce applies the seed to populated_text", seed_tooltip)
-        control_tooltip = inputs["seed_after_generate"][1]["tooltip"]
-        self.assertIn("Sequential always forces increment", control_tooltip)
-        self.assertIn("applies this control", control_tooltip)
+        self.assertIn("same text and seed", seed_tooltip.lower())
+        self.assertNotIn("seed_after_generate", inputs)
 
-    def test_native_wildcard_consumes_reserved_queue_seed_and_scrubs_token(self):
-        reservation = json.dumps({
-            "version": 1,
-            "current_seed": 2,
-            "next_seed": 47,
-            "mode": "populate",
-            "control": "randomize",
-        })
+    def test_native_wildcard_uses_populated_text_without_duplicate_seed_control(self):
+        self.assertEqual(
+            EasyUseAnimaWildcard.INPUT_TYPES()["required"]["mode"][0],
+            ("일반", "고정"),
+        )
+        self.assertNotIn(
+            "seed_after_generate",
+            EasyUseAnimaWildcard.INPUT_TYPES()["required"],
+        )
+        self.assertIs(
+            EasyUseAnimaWildcard.INPUT_TYPES()["required"]["seed"][1]["control_after_generate"],
+            True,
+        )
         workflow_prompt = {
             "7": {
                 "inputs": {
                     "text": "__style__",
                     "populated_text": "",
-                    "mode": "일반 채우기",
+                    "mode": "일반",
                     "seed": 2,
-                    "seed_after_generate": "randomize",
-                    "easyuse_anima_reserved_wildcard_next_seed": reservation,
                 }
             }
         }
@@ -1067,7 +1105,7 @@ class WildcardNodeTests(unittest.TestCase):
             "workflow": {
                 "nodes": [{
                     "id": 7,
-                    "widgets_values": ["__style__", "", "일반 채우기", 2, "randomize"],
+                    "widgets_values": ["__style__", "", "일반", 2, "randomize"],
                 }]
             }
         }
@@ -1082,39 +1120,31 @@ class WildcardNodeTests(unittest.TestCase):
                     missing_keys=(),
                 ),
             ),
-            patch("nodes.next_seed") as backend_next_seed,
         ):
             result = EasyUseAnimaWildcard().generate(
                 "__style__",
                 "",
-                "일반 채우기",
+                "일반",
                 2,
-                "randomize",
                 workflow_prompt=workflow_prompt,
                 extra_pnginfo=extra_pnginfo,
                 unique_id="7",
-                easyuse_anima_reserved_wildcard_next_seed=reservation,
             )
 
-        backend_next_seed.assert_not_called()
-        self.assertEqual(result["result"], ("expanded style", 47))
-        self.assertEqual(result["ui"]["wildcard"][0]["seed"], 47)
-        self.assertNotIn(
-            "easyuse_anima_reserved_wildcard_next_seed",
-            workflow_prompt["7"]["inputs"],
-        )
+        self.assertEqual(result["result"], ("expanded style", 2))
+        self.assertEqual(result["ui"]["wildcard"][0]["seed"], 2)
         self.assertEqual(workflow_prompt["7"]["inputs"]["seed"], 2)
         self.assertEqual(extra_pnginfo["workflow"]["nodes"][0]["widgets_values"][3], 2)
+        self.assertEqual(extra_pnginfo["workflow"]["nodes"][0]["widgets_values"][4], "fixed")
 
-    def test_node_stores_reproduce_metadata_for_saved_workflow(self):
+    def test_node_stores_fixed_populated_metadata_for_saved_workflow(self):
         workflow_prompt = {
             "7": {
                 "inputs": {
                     "text": "__style__",
                     "populated_text": "",
-                    "mode": "일반 채우기",
+                    "mode": "일반",
                     "seed": 5,
-                    "seed_after_generate": "increment",
                 }
             }
         }
@@ -1123,7 +1153,7 @@ class WildcardNodeTests(unittest.TestCase):
                 "nodes": [
                     {
                         "id": 7,
-                        "widgets_values": ["__style__", "", "일반 채우기", 5, "increment"],
+                        "widgets_values": ["__style__", "", "일반", 5, "increment"],
                     }
                 ]
             }
@@ -1141,36 +1171,35 @@ class WildcardNodeTests(unittest.TestCase):
             result = EasyUseAnimaWildcard().generate(
                 "__style__",
                 "",
-                "일반 채우기",
+                "일반",
                 5,
-                "increment",
                 workflow_prompt=workflow_prompt,
                 extra_pnginfo=extra_pnginfo,
                 unique_id="7",
             )
 
-        self.assertEqual(result["result"], ("expanded style", 6))
+        self.assertEqual(result["result"], ("expanded style", 5))
         self.assertEqual(workflow_prompt["7"]["inputs"]["populated_text"], "expanded style")
-        self.assertEqual(workflow_prompt["7"]["inputs"]["mode"], "재현")
+        self.assertEqual(workflow_prompt["7"]["inputs"]["mode"], "고정")
         self.assertEqual(workflow_prompt["7"]["inputs"]["seed"], 5)
         self.assertEqual(extra_pnginfo["workflow"]["nodes"][0]["widgets_values"][1], "expanded style")
-        self.assertEqual(extra_pnginfo["workflow"]["nodes"][0]["widgets_values"][2], "재현")
+        self.assertEqual(extra_pnginfo["workflow"]["nodes"][0]["widgets_values"][2], "고정")
         self.assertEqual(extra_pnginfo["workflow"]["nodes"][0]["widgets_values"][3], 5)
+        self.assertEqual(extra_pnginfo["workflow"]["nodes"][0]["widgets_values"][4], "fixed")
 
     def test_fixed_mode_expands_inline_multiselect(self):
         result = EasyUseAnimaWildcard().generate(
+            "ignored source",
             "{2$$red|blue|green}",
-            "",
             "고정",
             0,
-            "fixed",
         )
 
         self.assertNotEqual(result["result"][0], "{2$$red|blue|green}")
         self.assertEqual(len([part.strip() for part in result["result"][0].split(",")]), 2)
         self.assertEqual(result["ui"]["wildcard"][0]["status"], "fixed")
 
-    def test_native_reproduce_uses_cache_but_still_applies_seed_control(self):
+    def test_native_fixed_uses_populated_text_and_current_seed(self):
         with patch(
             "nodes.expand_wildcards",
             return_value=WildcardExpansionResult(
@@ -1183,16 +1212,15 @@ class WildcardNodeTests(unittest.TestCase):
             result = EasyUseAnimaWildcard().generate(
                 "__style__",
                 "expanded style",
-                "재현",
+                "고정",
                 5,
-                "increment",
             )
 
-        expand.assert_called_once_with("expanded style", seed=5, mode="reproduce")
-        self.assertEqual(result["result"], ("expanded style", 6))
-        self.assertEqual(result["ui"]["wildcard"][0]["status"], "reproduce")
+        expand.assert_called_once_with("expanded style", seed=5, mode="fixed")
+        self.assertEqual(result["result"], ("expanded style", 5))
+        self.assertEqual(result["ui"]["wildcard"][0]["status"], "fixed")
 
-    def test_native_reproduce_keeps_empty_populated_text_empty(self):
+    def test_native_fixed_keeps_empty_populated_text_empty(self):
         with patch(
             "nodes.expand_wildcards",
             return_value=WildcardExpansionResult(
@@ -1205,19 +1233,20 @@ class WildcardNodeTests(unittest.TestCase):
             result = EasyUseAnimaWildcard().generate(
                 "__style__",
                 "",
-                "재현",
+                "고정",
                 5,
-                "fixed",
             )
 
-        expand.assert_called_once_with("", seed=5, mode="reproduce")
+        expand.assert_called_once_with("", seed=5, mode="fixed")
         self.assertEqual(result["result"], ("", 5))
 
-    def test_native_reproduce_repeats_file_selection_with_the_same_seed(self):
+    def test_native_fixed_expands_samples_flower_and_repeats_same_seed(self):
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp)
-            (root / "style.txt").write_text(
-                "first file option\nsecond file option\nthird file option\n",
+            samples = root / "samples"
+            samples.mkdir()
+            (samples / "flower.txt").write_text(
+                "rose\ntulip\nsunflower\n",
                 encoding="utf-8",
             )
 
@@ -1227,28 +1256,28 @@ class WildcardNodeTests(unittest.TestCase):
             with patch("nodes.expand_wildcards", side_effect=expand_from_test_root) as expand:
                 first = EasyUseAnimaWildcard().generate(
                     "ignored source",
-                    "__style__",
-                    "재현",
+                    "__samples/flower__",
+                    "고정",
                     5,
-                    "fixed",
                 )
                 second = EasyUseAnimaWildcard().generate(
                     "ignored source",
-                    "__style__",
-                    "재현",
+                    "__samples/flower__",
+                    "고정",
                     5,
-                    "fixed",
                 )
 
         self.assertEqual(expand.call_count, 2)
         for call in expand.call_args_list:
-            self.assertEqual(call.args, ("__style__",))
-            self.assertEqual(call.kwargs, {"seed": 5, "mode": "reproduce"})
+            self.assertEqual(call.args, ("__samples/flower__",))
+            self.assertEqual(call.kwargs, {"seed": 5, "mode": "fixed"})
         self.assertEqual(first["result"], second["result"])
+        self.assertIn(first["result"][0], {"rose", "tulip", "sunflower"})
+        self.assertNotEqual(first["result"][0], "samples/flower")
         self.assertEqual(first["result"][1], 5)
-        self.assertEqual(first["ui"]["wildcard"][0]["used_keys"], ["style"])
+        self.assertEqual(first["ui"]["wildcard"][0]["used_keys"], ["samples/flower"])
 
-    def test_prompt_studio_reproduce_keeps_saved_fields_and_does_not_advance_seed(self):
+    def test_prompt_studio_legacy_reproduce_normalizes_to_general_fixed_seed(self):
         fields = [{
             "id": "positive_general",
             "pane": "positive",
@@ -1259,22 +1288,22 @@ class WildcardNodeTests(unittest.TestCase):
             "enabled": True,
         }]
 
-        with patch("nodes.expand_wildcards") as expand:
-            result = EasyUseAnimaPromptStudioAdvanced().build(
-                False,
-                True,
-                False,
-                False,
-                json.dumps(fields),
-                wildcard_mode="재현",
-                wildcard_seed=5,
-                wildcard_seed_after_generate="increment",
-            )
+        result = EasyUseAnimaPromptStudioAdvanced().build(
+            False,
+            True,
+            False,
+            False,
+            json.dumps(fields),
+            wildcard_mode="재현",
+            wildcard_seed=5,
+            wildcard_seed_after_generate="increment",
+        )
 
-        expand.assert_not_called()
         payload = result["ui"]["prompt_studio_advanced"][0]
         self.assertEqual(result["result"][0], "expanded style")
-        self.assertNotIn("wildcard_seed", payload)
+        self.assertEqual(payload["wildcard_mode"], "일반")
+        self.assertEqual(payload["wildcard_seed"], 5)
+        self.assertEqual(payload["wildcard_seed_after_generate"], "fixed")
         self.assertEqual(
             json.loads(payload["advanced_fields"])[0]["text"],
             "expanded style",
@@ -1296,7 +1325,7 @@ class WildcardNodeTests(unittest.TestCase):
             "9": {
                 "inputs": {
                     "advanced_fields": fields_json,
-                    "wildcard_mode": "고정",
+                    "wildcard_mode": "일반",
                     "wildcard_seed": 17,
                     "wildcard_seed_after_generate": "fixed",
                     "field_positive_general": ["8", 0],
@@ -1318,7 +1347,7 @@ class WildcardNodeTests(unittest.TestCase):
                         False,
                         fields_json,
                         False,
-                        "고정",
+                        "일반",
                         17,
                         "fixed",
                     ],
@@ -1332,7 +1361,7 @@ class WildcardNodeTests(unittest.TestCase):
             False,
             False,
             fields_json,
-            wildcard_mode="고정",
+            wildcard_mode="일반",
             wildcard_seed=17,
             wildcard_seed_after_generate="fixed",
             workflow_prompt=workflow_prompt,
@@ -1353,31 +1382,29 @@ class WildcardNodeTests(unittest.TestCase):
 
         self.assertEqual(ui_payload["field_inputs"]["field_positive_general"], source_text)
         self.assertEqual(effective_output, "fox")
-        self.assertEqual(saved_prompt_fields[0]["text"], "fox")
-        self.assertEqual(saved_image_fields[0]["text"], "fox")
-        self.assertEqual(saved_property_fields[0]["text"], "fox")
+        self.assertEqual(saved_prompt_fields[0]["text"], "stored fallback")
+        self.assertEqual(saved_image_fields[0]["text"], "stored fallback")
+        self.assertEqual(saved_property_fields[0]["text"], "stored fallback")
         self.assertEqual(workflow_prompt["9"]["inputs"]["field_positive_general"], ["8", 0])
-        self.assertEqual(workflow_prompt["9"]["inputs"]["wildcard_mode"], "재현")
+        self.assertEqual(workflow_prompt["9"]["inputs"]["wildcard_mode"], "일반")
 
-        with patch("nodes.expand_wildcards") as expand:
-            reproduced = node_class().build(
-                False,
-                True,
-                False,
-                False,
-                json.dumps(saved_prompt_fields),
-                wildcard_mode="재현",
-                wildcard_seed=17,
-                wildcard_seed_after_generate="fixed",
-                field_positive_general=source_text,
-            )
+        repeated = node_class().build(
+            False,
+            True,
+            False,
+            False,
+            json.dumps(saved_prompt_fields),
+            wildcard_mode="일반",
+            wildcard_seed=17,
+            wildcard_seed_after_generate="randomize",
+            field_positive_general=source_text,
+        )
 
-        expand.assert_not_called()
-        reproduced_output = reproduced["result"][0]
-        if isinstance(reproduced_output, dict):
-            self.assertEqual(reproduced_output["fields"][0]["text"], "fox")
-            reproduced_output = reproduced_output["positive_prompt"]
-        self.assertEqual(reproduced_output, "fox")
+        repeated_output = repeated["result"][0]
+        if isinstance(repeated_output, dict):
+            self.assertEqual(repeated_output["fields"][0]["text"], "fox")
+            repeated_output = repeated_output["positive_prompt"]
+        self.assertEqual(repeated_output, "fox")
 
     def test_prompt_studio_advanced_connected_wildcard_round_trip_preserves_expansion(self):
         self._assert_advanced_connected_wildcard_round_trip(EasyUseAnimaPromptStudioAdvanced)
@@ -1385,7 +1412,7 @@ class WildcardNodeTests(unittest.TestCase):
     def test_prompt_studio_advanced_v2_connected_wildcard_round_trip_preserves_expansion(self):
         self._assert_advanced_connected_wildcard_round_trip(EasyUseAnimaPromptStudioAdvancedV2)
 
-    def test_prompt_studio_advanced_reproduce_keeps_plain_connected_input(self):
+    def test_prompt_studio_advanced_legacy_reproduce_alias_keeps_plain_connected_input(self):
         fields_json = json.dumps([{
             "id": "positive_general",
             "pane": "positive",
@@ -1437,7 +1464,7 @@ class WildcardNodeTests(unittest.TestCase):
                 "inputs": {
                     "regional_fields": fields_json,
                     "regional_config": config_json,
-                    "wildcard_mode": "고정",
+                    "wildcard_mode": "일반",
                     "wildcard_seed": 17,
                     "wildcard_seed_after_generate": "fixed",
                     "field_positive_general": ["41", 0],
@@ -1455,7 +1482,7 @@ class WildcardNodeTests(unittest.TestCase):
                         "1024 * 1024 (1:1)",
                         1024,
                         1024,
-                        "고정",
+                        "일반",
                         17,
                         "fixed",
                     ],
@@ -1467,7 +1494,7 @@ class WildcardNodeTests(unittest.TestCase):
         initial = EasyUseAnimaPromptStudioRegional().build(
             fields_json,
             config_json,
-            wildcard_mode="고정",
+            wildcard_mode="일반",
             wildcard_seed=17,
             wildcard_seed_after_generate="fixed",
             workflow_prompt=workflow_prompt,
@@ -1484,26 +1511,24 @@ class WildcardNodeTests(unittest.TestCase):
         )
         self.assertEqual(ui_payload["field_inputs"]["field_positive_general"], source_text)
         self.assertEqual(initial["result"][0], "fox")
-        self.assertEqual(saved_prompt_fields[0]["text"], "fox")
-        self.assertEqual(saved_image_fields[0]["text"], "fox")
-        self.assertEqual(saved_property_fields[0]["text"], "fox")
+        self.assertEqual(saved_prompt_fields[0]["text"], "stored fallback")
+        self.assertEqual(saved_image_fields[0]["text"], "stored fallback")
+        self.assertEqual(saved_property_fields[0]["text"], "stored fallback")
         self.assertEqual(workflow_prompt["42"]["inputs"]["field_positive_general"], ["41", 0])
-        self.assertEqual(workflow_prompt["42"]["inputs"]["wildcard_mode"], "재현")
+        self.assertEqual(workflow_prompt["42"]["inputs"]["wildcard_mode"], "일반")
 
-        with patch("nodes.expand_wildcards") as expand:
-            reproduced = EasyUseAnimaPromptStudioRegional().build(
-                json.dumps(saved_prompt_fields),
-                config_json,
-                wildcard_mode="재현",
-                wildcard_seed=17,
-                wildcard_seed_after_generate="fixed",
-                field_positive_general=source_text,
-            )
+        repeated = EasyUseAnimaPromptStudioRegional().build(
+            json.dumps(saved_prompt_fields),
+            config_json,
+            wildcard_mode="일반",
+            wildcard_seed=17,
+            wildcard_seed_after_generate="randomize",
+            field_positive_general=source_text,
+        )
 
-        expand.assert_not_called()
-        self.assertEqual(reproduced["result"][0], "fox")
+        self.assertEqual(repeated["result"][0], "fox")
 
-    def test_prompt_studio_regional_reproduce_keeps_plain_connected_input(self):
+    def test_prompt_studio_regional_legacy_reproduce_alias_keeps_plain_connected_input(self):
         fields_json = json.dumps([{
             "id": "positive_general",
             "pane": "positive",
@@ -1529,7 +1554,7 @@ class WildcardNodeTests(unittest.TestCase):
     def test_public_settings_include_wildcard_extra_paths(self):
         self.assertIn("wildcard.extra_paths", public_settings())
 
-    def test_prompt_studio_advanced_saves_reproduce_metadata_but_keeps_live_wildcard_text(self):
+    def test_prompt_studio_advanced_preserves_source_fields_and_mode_contract(self):
         fields = [
             {
                 "id": "positive_general",
@@ -1545,15 +1570,15 @@ class WildcardNodeTests(unittest.TestCase):
             "9": {
                 "inputs": {
                     "advanced_fields": json.dumps(fields),
-                    "wildcard_mode": "일반 채우기",
+                    "wildcard_mode": "일반",
                     "wildcard_seed": 2,
                     "wildcard_seed_after_generate": "randomize",
                     "easyuse_anima_reserved_wildcard_next_seed": json.dumps({
                         "version": 1,
                         "current_seed": 2,
-                        "next_seed": 47,
+                        "next_seed": 2,
                         "mode": "populate",
-                        "control": "randomize",
+                        "control": "fixed",
                     }),
                 }
             }
@@ -1574,7 +1599,7 @@ class WildcardNodeTests(unittest.TestCase):
                             False,
                             json.dumps(fields),
                             False,
-                            "일반 채우기",
+                            "일반",
                             2,
                             "randomize",
                         ],
@@ -1598,7 +1623,7 @@ class WildcardNodeTests(unittest.TestCase):
                 False,
                 False,
                 json.dumps(fields),
-                wildcard_mode="일반 채우기",
+                wildcard_mode="일반",
                 wildcard_seed=2,
                 wildcard_seed_after_generate="randomize",
                 workflow_prompt=workflow_prompt,
@@ -1607,9 +1632,9 @@ class WildcardNodeTests(unittest.TestCase):
                 easyuse_anima_reserved_wildcard_next_seed=json.dumps({
                     "version": 1,
                     "current_seed": 2,
-                    "next_seed": 47,
+                    "next_seed": 2,
                     "mode": "populate",
-                    "control": "randomize",
+                    "control": "fixed",
                 }),
             )
 
@@ -1619,18 +1644,19 @@ class WildcardNodeTests(unittest.TestCase):
 
         self.assertEqual(result["result"][0], "expanded style")
         self.assertEqual(payload_fields[0]["text"], "__style__")
-        self.assertEqual(saved_fields[0]["text"], "expanded style")
-        self.assertEqual(saved_image_fields[0]["text"], "expanded style")
-        self.assertEqual(workflow_prompt["9"]["inputs"]["wildcard_mode"], "재현")
+        self.assertEqual(saved_fields[0]["text"], "__style__")
+        self.assertEqual(saved_image_fields[0]["text"], "__style__")
+        self.assertEqual(workflow_prompt["9"]["inputs"]["wildcard_mode"], "일반")
+        self.assertEqual(workflow_prompt["9"]["inputs"]["wildcard_seed_after_generate"], "fixed")
         self.assertEqual(workflow_prompt["9"]["inputs"]["wildcard_seed"], 2)
         self.assertNotIn(
             "easyuse_anima_reserved_wildcard_next_seed",
             workflow_prompt["9"]["inputs"],
         )
         self.assertEqual(extra_pnginfo["workflow"]["nodes"][0]["widgets_values"][11], 2)
-        self.assertEqual(result["ui"]["prompt_studio_advanced"][0]["wildcard_seed"], 47)
+        self.assertEqual(result["ui"]["prompt_studio_advanced"][0]["wildcard_seed"], 2)
 
-    def test_prompt_studio_advanced_fixed_mode_expands_inline_multiselect(self):
+    def test_prompt_studio_legacy_fixed_mode_normalizes_to_general_and_expands(self):
         fields = [
             {
                 "id": "positive_general",
@@ -1657,6 +1683,7 @@ class WildcardNodeTests(unittest.TestCase):
         prompt = result["result"][0]
         self.assertNotEqual(prompt, "{2$$red|blue|green}")
         self.assertEqual(len([part.strip() for part in prompt.split(",")]), 2)
+        self.assertEqual(result["ui"]["prompt_studio_advanced"][0]["wildcard_mode"], "일반")
         self.assertEqual(result["ui"]["prompt_studio_advanced"][0]["wildcard_seed"], 0)
 
 

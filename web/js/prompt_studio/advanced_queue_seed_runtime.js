@@ -9,21 +9,20 @@ import {
   registerHostHookCallbacks,
 } from "../lifecycle/host_hook_registry.js";
 
-const ACTIVE_WILDCARD_MODES = new Set(["populate", "fixed", "sequential"]);
+const ACTIVE_WILDCARD_MODES = new Set(["populate", "sequential"]);
 const WILDCARD_MODE_ALIASES = new Map([
   ["populate", "populate"],
   ["normal", "populate"],
   ["fill", "populate"],
   ["일반", "populate"],
   ["일반 채우기", "populate"],
-  ["fixed", "fixed"],
-  ["고정", "fixed"],
+  ["fixed", "populate"],
+  ["고정", "populate"],
   ["sequential", "sequential"],
   ["순차", "sequential"],
-  ["reproduce", "reproduce"],
-  ["재현", "reproduce"],
+  ["reproduce", "populate"],
+  ["재현", "populate"],
 ]);
-const SEED_CONTROLS = new Set(["fixed", "randomize", "increment", "decrement"]);
 const ADVANCED_QUEUE_SEED_OWNER = Symbol.for(
   "easyuse-anima.prompt-studio.advanced-queue-seed",
 );
@@ -51,13 +50,8 @@ function normalizeMode(value) {
   return WILDCARD_MODE_ALIASES.get(String(value || "").trim()) || "populate";
 }
 
-function normalizeControl(value) {
-  const normalized = String(value || "").trim();
-  return SEED_CONTROLS.has(normalized) ? normalized : "fixed";
-}
-
-function nextSeed(seed, mode, control, randomSeed) {
-  const effectiveControl = mode === "sequential" ? "increment" : normalizeControl(control);
+function nextSeed(seed, mode, randomSeed) {
+  const effectiveControl = mode === "sequential" ? "increment" : "fixed";
   return nextWildcardSeed(seed, effectiveControl, randomSeed);
 }
 
@@ -609,9 +603,7 @@ function createAdvancedQueueSeedRuntime(dependencies) {
           }
           const mode = normalizeMode(inputs[contract.modeInputName]);
           const inputSeed = optionalSeed(inputs[contract.seedInputName]);
-          const effectiveControl = mode === "sequential"
-            ? "increment"
-            : normalizeControl(inputs[contract.controlInputName]);
+          const effectiveControl = mode === "sequential" ? "increment" : "fixed";
           return { nodeId, inputs, workflow, mode, inputSeed, effectiveControl };
         });
         if (preparedExecutions.some((value) => value == null)) {
@@ -644,7 +636,6 @@ function createAdvancedQueueSeedRuntime(dependencies) {
         const reservedNextSeed = nextSeed(
           queuedSeed,
           mode,
-          effectiveControl,
           randomSeed,
         );
         const workflowValues = [...workflow.widgets_values];

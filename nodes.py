@@ -307,21 +307,21 @@ try:
     from .wildcard_engine import (
         MAX_SEED,
         PUBLIC_MAX_SEED,
+        PROMPT_STUDIO_WILDCARD_MODE_LABELS,
         SEED_CONTROL_DECREMENT,
         SEED_CONTROL_FIXED,
         SEED_CONTROL_INCREMENT,
         SEED_CONTROL_MODES,
         SEED_CONTROL_RANDOMIZE,
         WILDCARD_MODE_FIXED,
-        WILDCARD_MODE_LABELS,
         WILDCARD_MODE_POPULATE,
-        WILDCARD_MODE_REPRODUCE,
         WILDCARD_MODE_SEQUENTIAL,
         expand_wildcard_texts,
         expand_wildcards,
         has_wildcard_syntax,
         next_seed,
         normalize_seed,
+        normalize_prompt_studio_wildcard_mode,
         normalize_wildcard_mode,
         wildcard_sources_signature,
     )
@@ -621,21 +621,21 @@ except ImportError:  # allows simple local import tests outside ComfyUI's packag
     from wildcard_engine import (
         MAX_SEED,
         PUBLIC_MAX_SEED,
+        PROMPT_STUDIO_WILDCARD_MODE_LABELS,
         SEED_CONTROL_DECREMENT,
         SEED_CONTROL_FIXED,
         SEED_CONTROL_INCREMENT,
         SEED_CONTROL_MODES,
         SEED_CONTROL_RANDOMIZE,
         WILDCARD_MODE_FIXED,
-        WILDCARD_MODE_LABELS,
         WILDCARD_MODE_POPULATE,
-        WILDCARD_MODE_REPRODUCE,
         WILDCARD_MODE_SEQUENTIAL,
         expand_wildcard_texts,
         expand_wildcards,
         has_wildcard_syntax,
         next_seed,
         normalize_seed,
+        normalize_prompt_studio_wildcard_mode,
         normalize_wildcard_mode,
         wildcard_sources_signature,
     )
@@ -4547,44 +4547,6 @@ def _apply_advanced_field_inputs(fields: list[dict], field_inputs: dict) -> list
     return effective
 
 
-def _reproduce_connected_field_inputs(field_inputs: dict) -> dict[str, str]:
-    return {
-        name: value
-        for name, value in _advanced_field_input_values(field_inputs).items()
-        if not has_wildcard_syntax(value)
-    }
-
-
-def _preserve_expanded_connected_field_texts(
-    saved_fields: list[dict],
-    source_fields: list[dict],
-    expanded_fields: list[dict],
-    field_inputs: dict,
-) -> None:
-    connected_values = _advanced_field_input_values(field_inputs)
-    if not connected_values:
-        return
-
-    source_by_socket = {
-        _advanced_field_socket_name(field): field
-        for field in source_fields
-    }
-    expanded_by_socket = {
-        _advanced_field_socket_name(field): field
-        for field in expanded_fields
-    }
-    for field in saved_fields:
-        socket_name = _advanced_field_socket_name(field)
-        source_field = source_by_socket.get(socket_name)
-        expanded_field = expanded_by_socket.get(socket_name)
-        if source_field is None or expanded_field is None:
-            continue
-        source_text = str(source_field.get("text") or "")
-        expanded_text = str(expanded_field.get("text") or "")
-        if socket_name not in connected_values or expanded_text != source_text:
-            field["text"] = expanded_text
-
-
 def _advanced_enabled_naia_panes(fields: list[dict]) -> set[str]:
     return {
         str(field.get("pane") or "positive")
@@ -4748,14 +4710,8 @@ def _expand_advanced_wildcard_fields(
     seed: int,
     mode: str,
 ) -> tuple[list[dict], dict[str, Any]]:
-    mode_key = normalize_wildcard_mode(mode)
+    mode_key = normalize_prompt_studio_wildcard_mode(mode)
     expanded_fields = _clone_advanced_fields(fields)
-    if mode_key == WILDCARD_MODE_REPRODUCE:
-        return expanded_fields, {
-            "changed": False,
-            "used_keys": (),
-            "missing_keys": (),
-        }
 
     wildcard_fields = []
     wildcard_texts = []
@@ -5085,7 +5041,7 @@ def _build_advanced_prompt_data(
         "saved_fields": _advanced_prompt_data_fields(saved_fields),
         "field_inputs": dict(field_inputs),
         "wildcard": {
-            "mode": str(wildcard_mode or WILDCARD_MODE_LABELS[1]),
+            "mode": str(wildcard_mode or PROMPT_STUDIO_WILDCARD_MODE_LABELS[0]),
             "seed": normalize_seed(wildcard_seed),
             "seed_after_generate": str(wildcard_seed_after_generate or SEED_CONTROL_FIXED),
             "next_seed": wildcard_updates.get("wildcard_seed"),
@@ -5755,10 +5711,7 @@ _bind_prompt_node_runtime(
 )
 _bind_wildcard_node_runtime(
     get_workflow_node=lambda *args, **kwargs: _get_workflow_node(*args, **kwargs),
-    consume_reserved_next_seed=lambda *args, **kwargs: _consume_reserved_wildcard_next_seed(*args, **kwargs),
     expand=lambda *args, **kwargs: expand_wildcards(*args, **kwargs),
-    has_syntax=lambda *args, **kwargs: has_wildcard_syntax(*args, **kwargs),
-    next_seed_value=lambda *args, **kwargs: next_seed(*args, **kwargs),
     normalize_seed_value=lambda *args, **kwargs: normalize_seed(*args, **kwargs),
     normalize_mode=lambda *args, **kwargs: normalize_wildcard_mode(*args, **kwargs),
     sources_signature=lambda *args, **kwargs: wildcard_sources_signature(*args, **kwargs),
@@ -5868,9 +5821,9 @@ class EasyUseAnimaPromptStudioAdvanced:
                         "through the negative Mod Guidance output."
                     ),
                 }),
-                "wildcard_mode": (WILDCARD_MODE_LABELS, {
-                    "default": WILDCARD_MODE_LABELS[1],
-                    "tooltip": "Wildcard mode. 고정 is the compatibility default; 순차 uses seed % option_count and increments seed after queue.",
+                "wildcard_mode": (PROMPT_STUDIO_WILDCARD_MODE_LABELS, {
+                    "default": PROMPT_STUDIO_WILDCARD_MODE_LABELS[0],
+                    "tooltip": "General deterministically expands source fields; Sequential uses seed % option_count and increments seed after queue.",
                 }),
                 "wildcard_seed": ("INT", {
                     "default": 0,
@@ -5938,7 +5891,7 @@ class EasyUseAnimaPromptStudioAdvanced:
         resolution_size: str = DEFAULT_ADVANCED_RESOLUTION_SIZE,
         resolution_custom_width: int = 1024,
         resolution_custom_height: int = 1024,
-        wildcard_mode: str = WILDCARD_MODE_LABELS[1],
+        wildcard_mode: str = PROMPT_STUDIO_WILDCARD_MODE_LABELS[0],
         wildcard_seed: int = 0,
         wildcard_seed_after_generate: str = SEED_CONTROL_FIXED,
         **kwargs,
@@ -5950,15 +5903,13 @@ class EasyUseAnimaPromptStudioAdvanced:
         ):
             return float("nan")
         effective_fields = _apply_advanced_field_inputs(fields, kwargs)
-        wildcard_mode_key = normalize_wildcard_mode(wildcard_mode)
-        wildcard_active = wildcard_mode_key in {WILDCARD_MODE_POPULATE, WILDCARD_MODE_FIXED, WILDCARD_MODE_SEQUENTIAL}
-        wildcard_text = "\n".join(str(field.get("text") or "") for field in effective_fields)
-        if (
-            wildcard_active
-            and str(wildcard_seed_after_generate or "") == SEED_CONTROL_RANDOMIZE
-            and has_wildcard_syntax(wildcard_text)
-        ):
-            return float("nan")
+        wildcard_mode_key = normalize_prompt_studio_wildcard_mode(wildcard_mode)
+        wildcard_active = True
+        wildcard_seed_control = (
+            SEED_CONTROL_INCREMENT
+            if wildcard_mode_key == WILDCARD_MODE_SEQUENTIAL
+            else SEED_CONTROL_FIXED
+        )
         return _stable_change_key({
             "mode": "prompt_studio_advanced",
             "metadata_filter_words": resolve_metadata_filter_words(),
@@ -5966,7 +5917,7 @@ class EasyUseAnimaPromptStudioAdvanced:
             "wildcard_sources": wildcard_sources_signature() if wildcard_active else {},
             "wildcard_mode": wildcard_mode_key,
             "wildcard_seed": normalize_seed(wildcard_seed),
-            "wildcard_seed_after_generate": str(wildcard_seed_after_generate or SEED_CONTROL_FIXED),
+            "wildcard_seed_after_generate": wildcard_seed_control,
             "use_anima_mod_guidance": _as_bool(use_anima_mod_guidance, False),
             "use_negative_anima_mod_guidance": _as_bool(use_negative_anima_mod_guidance, False),
             "resolution": _advanced_resolution_from_selection(
@@ -6054,7 +6005,7 @@ class EasyUseAnimaPromptStudioAdvanced:
         pin_trigger_tags_to_front: bool,
         advanced_fields: str,
         use_negative_anima_mod_guidance: bool = False,
-        wildcard_mode: str = WILDCARD_MODE_LABELS[1],
+        wildcard_mode: str = PROMPT_STUDIO_WILDCARD_MODE_LABELS[0],
         wildcard_seed: int = 0,
         wildcard_seed_after_generate: str = SEED_CONTROL_FIXED,
         resolution_bucket: str = DEFAULT_ADVANCED_RESOLUTION_BUCKET,
@@ -6076,20 +6027,18 @@ class EasyUseAnimaPromptStudioAdvanced:
         metadata_use_naia = live_use_naia
         metadata_updates: dict[str, Any] = {}
         ui_updates: dict[str, Any] = {}
-        wildcard_mode_key = normalize_wildcard_mode(wildcard_mode)
-        effective_fields = (
-            _apply_advanced_field_inputs(
-                saved_fields,
-                _reproduce_connected_field_inputs(effective_field_inputs),
-            )
-            if wildcard_mode_key == WILDCARD_MODE_REPRODUCE
-            else _apply_advanced_field_inputs(fields, effective_field_inputs)
+        wildcard_mode_key = normalize_prompt_studio_wildcard_mode(wildcard_mode)
+        wildcard_mode_label = (
+            PROMPT_STUDIO_WILDCARD_MODE_LABELS[1]
+            if wildcard_mode_key == WILDCARD_MODE_SEQUENTIAL
+            else PROMPT_STUDIO_WILDCARD_MODE_LABELS[0]
         )
+        effective_fields = _apply_advanced_field_inputs(fields, effective_field_inputs)
         wildcard_seed_value = normalize_seed(wildcard_seed)
         wildcard_effective_seed_control = (
             SEED_CONTROL_INCREMENT
             if wildcard_mode_key == WILDCARD_MODE_SEQUENTIAL
-            else str(wildcard_seed_after_generate or SEED_CONTROL_FIXED)
+            else SEED_CONTROL_FIXED
         )
         reserved_next_wildcard_seed = _consume_reserved_wildcard_next_seed(
             field_inputs,
@@ -6146,48 +6095,33 @@ class EasyUseAnimaPromptStudioAdvanced:
             metadata_use_naia = False
 
         ui_fields = _clone_advanced_fields(saved_fields)
-        effective_source_fields = _clone_advanced_fields(effective_fields)
-        saved_fields, saved_wildcard = _expand_advanced_wildcard_fields(
-            saved_fields,
-            wildcard_seed_value,
-            wildcard_mode_key,
-        )
         effective_fields, effective_wildcard = _expand_advanced_wildcard_fields(
             effective_fields,
             wildcard_seed_value,
             wildcard_mode_key,
         )
-        _preserve_expanded_connected_field_texts(
-            saved_fields,
-            effective_source_fields,
-            effective_fields,
-            effective_field_inputs,
-        )
         effective_fields = _translate_prompt_fields(effective_fields)
-        wildcard_changed = bool(saved_wildcard["changed"] or effective_wildcard["changed"])
-        if wildcard_mode_key in {WILDCARD_MODE_POPULATE, WILDCARD_MODE_FIXED, WILDCARD_MODE_SEQUENTIAL}:
-            next_wildcard_seed = (
-                reserved_next_wildcard_seed
-                if reserved_next_wildcard_seed is not None
-                else next_seed(wildcard_seed_value, wildcard_effective_seed_control)
-            )
-            ui_updates.update({
-                "wildcard_mode": str(wildcard_mode or WILDCARD_MODE_LABELS[1]),
-                "wildcard_seed": next_wildcard_seed,
-                "wildcard_seed_after_generate": wildcard_effective_seed_control,
-                "wildcard_used_keys": list(effective_wildcard["used_keys"]),
-                "wildcard_missing_keys": list(effective_wildcard["missing_keys"]),
-            })
-            if wildcard_changed:
-                metadata_updates.update({
-                    "wildcard_mode": WILDCARD_MODE_LABELS[3],
-                    "wildcard_seed": wildcard_seed_value,
-                    "wildcard_seed_after_generate": SEED_CONTROL_FIXED,
-                })
+        next_wildcard_seed = (
+            reserved_next_wildcard_seed
+            if reserved_next_wildcard_seed is not None
+            else next_seed(wildcard_seed_value, wildcard_effective_seed_control)
+        )
+        ui_updates.update({
+            "wildcard_mode": wildcard_mode_label,
+            "wildcard_seed": next_wildcard_seed,
+            "wildcard_seed_after_generate": wildcard_effective_seed_control,
+            "wildcard_used_keys": list(effective_wildcard["used_keys"]),
+            "wildcard_missing_keys": list(effective_wildcard["missing_keys"]),
+        })
+        metadata_updates.update({
+            "wildcard_mode": wildcard_mode_label,
+            "wildcard_seed": wildcard_seed_value,
+            "wildcard_seed_after_generate": wildcard_effective_seed_control,
+        })
 
         fields_json = _advanced_fields_json(saved_fields)
-        ui_fields_json = _advanced_fields_json(ui_fields if wildcard_changed else saved_fields)
-        if live_use_naia or wildcard_changed:
+        ui_fields_json = _advanced_fields_json(ui_fields)
+        if live_use_naia or metadata_updates:
             self._update_metadata_fields(
                 workflow_prompt,
                 extra_pnginfo,
@@ -6299,7 +6233,7 @@ class EasyUseAnimaPromptStudioAdvancedV2(EasyUseAnimaPromptStudioAdvanced):
         resolution_size: str = DEFAULT_ADVANCED_RESOLUTION_SIZE,
         resolution_custom_width: int = 1024,
         resolution_custom_height: int = 1024,
-        wildcard_mode: str = WILDCARD_MODE_LABELS[1],
+        wildcard_mode: str = PROMPT_STUDIO_WILDCARD_MODE_LABELS[0],
         wildcard_seed: int = 0,
         wildcard_seed_after_generate: str = SEED_CONTROL_FIXED,
         artist_mix_mode: str = ARTIST_MIX_MODE_OFF,
@@ -6390,7 +6324,7 @@ class EasyUseAnimaPromptStudioAdvancedV2(EasyUseAnimaPromptStudioAdvanced):
         pin_trigger_tags_to_front: bool,
         advanced_fields: str,
         use_negative_anima_mod_guidance: bool = False,
-        wildcard_mode: str = WILDCARD_MODE_LABELS[1],
+        wildcard_mode: str = PROMPT_STUDIO_WILDCARD_MODE_LABELS[0],
         wildcard_seed: int = 0,
         wildcard_seed_after_generate: str = SEED_CONTROL_FIXED,
         resolution_bucket: str = DEFAULT_ADVANCED_RESOLUTION_BUCKET,
@@ -6485,19 +6419,13 @@ class EasyUseAnimaPromptStudioAdvancedV2(EasyUseAnimaPromptStudioAdvanced):
             })
         saved_fields = _normalize_advanced_fields(ui_payload.get("advanced_fields", advanced_fields))
         effective_field_inputs = _advanced_field_input_values(ui_payload.get("field_inputs") or field_inputs)
-        wildcard_mode_key = normalize_wildcard_mode(wildcard_mode)
-        if wildcard_mode_key == WILDCARD_MODE_REPRODUCE:
-            effective_fields = _apply_advanced_field_inputs(
-                saved_fields,
-                _reproduce_connected_field_inputs(effective_field_inputs),
-            )
-        else:
-            effective_fields = _apply_advanced_field_inputs(saved_fields, effective_field_inputs)
-            effective_fields, _wildcard = _expand_advanced_wildcard_fields(
-                effective_fields,
-                normalize_seed(wildcard_seed),
-                wildcard_mode_key,
-            )
+        wildcard_mode_key = normalize_prompt_studio_wildcard_mode(wildcard_mode)
+        effective_fields = _apply_advanced_field_inputs(saved_fields, effective_field_inputs)
+        effective_fields, _wildcard = _expand_advanced_wildcard_fields(
+            effective_fields,
+            normalize_seed(wildcard_seed),
+            wildcard_mode_key,
+        )
         effective_fields = _translate_prompt_fields(effective_fields)
         prompt_data_parameters = _prompt_data_parameter_snapshot(
             self.INPUT_TYPES().get("required", {}),
@@ -6508,9 +6436,17 @@ class EasyUseAnimaPromptStudioAdvancedV2(EasyUseAnimaPromptStudioAdvanced):
                 "pin_trigger_tags_to_front": pin_trigger_tags_to_front,
                 "advanced_fields": advanced_fields,
                 "use_negative_anima_mod_guidance": use_negative_anima_mod_guidance,
-                "wildcard_mode": wildcard_mode,
+                "wildcard_mode": (
+                    PROMPT_STUDIO_WILDCARD_MODE_LABELS[1]
+                    if wildcard_mode_key == WILDCARD_MODE_SEQUENTIAL
+                    else PROMPT_STUDIO_WILDCARD_MODE_LABELS[0]
+                ),
                 "wildcard_seed": wildcard_seed,
-                "wildcard_seed_after_generate": wildcard_seed_after_generate,
+                "wildcard_seed_after_generate": (
+                    SEED_CONTROL_INCREMENT
+                    if wildcard_mode_key == WILDCARD_MODE_SEQUENTIAL
+                    else SEED_CONTROL_FIXED
+                ),
                 "resolution_bucket": resolution_bucket,
                 "resolution_size": resolution_size,
                 "resolution_custom_width": resolution_custom_width,
@@ -7197,9 +7133,9 @@ class EasyUseAnimaPromptStudioRegional:
                     "step": 32,
                     "tooltip": "Internal custom latent height. Values are snapped to multiples of 32.",
                 }),
-                "wildcard_mode": (WILDCARD_MODE_LABELS, {
-                    "default": WILDCARD_MODE_LABELS[1],
-                    "tooltip": "Wildcard mode for prompt fields.",
+                "wildcard_mode": (PROMPT_STUDIO_WILDCARD_MODE_LABELS, {
+                    "default": PROMPT_STUDIO_WILDCARD_MODE_LABELS[0],
+                    "tooltip": "General deterministically expands source fields; Sequential advances the seed by one after each accepted queue.",
                 }),
                 "wildcard_seed": ("INT", {
                     "default": 0,
@@ -7253,7 +7189,7 @@ class EasyUseAnimaPromptStudioRegional:
         resolution_size: str = DEFAULT_ADVANCED_RESOLUTION_SIZE,
         resolution_custom_width: int = 1024,
         resolution_custom_height: int = 1024,
-        wildcard_mode: str = WILDCARD_MODE_LABELS[1],
+        wildcard_mode: str = PROMPT_STUDIO_WILDCARD_MODE_LABELS[0],
         wildcard_seed: int = 0,
         wildcard_seed_after_generate: str = SEED_CONTROL_FIXED,
         **kwargs,
@@ -7267,15 +7203,13 @@ class EasyUseAnimaPromptStudioRegional:
         fields = _normalize_regional_fields(regional_fields)
         effective_fields = _apply_regional_field_inputs(fields, kwargs)
         config = _normalize_regional_config(regional_config, width, height)
-        wildcard_mode_key = normalize_wildcard_mode(wildcard_mode)
-        wildcard_active = wildcard_mode_key in {WILDCARD_MODE_POPULATE, WILDCARD_MODE_FIXED, WILDCARD_MODE_SEQUENTIAL}
-        wildcard_text = "\n".join(str(field.get("text") or "") for field in effective_fields)
-        if (
-            wildcard_active
-            and str(wildcard_seed_after_generate or "") == SEED_CONTROL_RANDOMIZE
-            and has_wildcard_syntax(wildcard_text)
-        ):
-            return float("nan")
+        wildcard_mode_key = normalize_prompt_studio_wildcard_mode(wildcard_mode)
+        wildcard_active = True
+        wildcard_seed_control = (
+            SEED_CONTROL_INCREMENT
+            if wildcard_mode_key == WILDCARD_MODE_SEQUENTIAL
+            else SEED_CONTROL_FIXED
+        )
         return _stable_change_key({
             "mode": "prompt_studio_regional",
             "metadata_filter_words": resolve_metadata_filter_words(),
@@ -7283,7 +7217,7 @@ class EasyUseAnimaPromptStudioRegional:
             "wildcard_sources": wildcard_sources_signature() if wildcard_active else {},
             "wildcard_mode": wildcard_mode_key,
             "wildcard_seed": normalize_seed(wildcard_seed),
-            "wildcard_seed_after_generate": str(wildcard_seed_after_generate or SEED_CONTROL_FIXED),
+            "wildcard_seed_after_generate": wildcard_seed_control,
             "resolution": (width, height),
             "regional_fields": _regional_fields_json(effective_fields),
             "regional_config": _regional_config_json(config),
@@ -7364,7 +7298,7 @@ class EasyUseAnimaPromptStudioRegional:
         resolution_size: str = DEFAULT_ADVANCED_RESOLUTION_SIZE,
         resolution_custom_width: int = 1024,
         resolution_custom_height: int = 1024,
-        wildcard_mode: str = WILDCARD_MODE_LABELS[1],
+        wildcard_mode: str = PROMPT_STUDIO_WILDCARD_MODE_LABELS[0],
         wildcard_seed: int = 0,
         wildcard_seed_after_generate: str = SEED_CONTROL_FIXED,
         workflow_prompt=None,
@@ -7383,20 +7317,18 @@ class EasyUseAnimaPromptStudioRegional:
         effective_field_inputs = _advanced_field_input_values(field_inputs)
         config = _normalize_regional_config(regional_config, width, height)
 
-        wildcard_mode_key = normalize_wildcard_mode(wildcard_mode)
-        effective_fields = (
-            _apply_regional_field_inputs(
-                saved_fields,
-                _reproduce_connected_field_inputs(effective_field_inputs),
-            )
-            if wildcard_mode_key == WILDCARD_MODE_REPRODUCE
-            else _apply_regional_field_inputs(fields, effective_field_inputs)
+        wildcard_mode_key = normalize_prompt_studio_wildcard_mode(wildcard_mode)
+        wildcard_mode_label = (
+            PROMPT_STUDIO_WILDCARD_MODE_LABELS[1]
+            if wildcard_mode_key == WILDCARD_MODE_SEQUENTIAL
+            else PROMPT_STUDIO_WILDCARD_MODE_LABELS[0]
         )
+        effective_fields = _apply_regional_field_inputs(fields, effective_field_inputs)
         wildcard_seed_value = normalize_seed(wildcard_seed)
         wildcard_effective_seed_control = (
             SEED_CONTROL_INCREMENT
             if wildcard_mode_key == WILDCARD_MODE_SEQUENTIAL
-            else str(wildcard_seed_after_generate or SEED_CONTROL_FIXED)
+            else SEED_CONTROL_FIXED
         )
         reserved_next_wildcard_seed = _consume_reserved_wildcard_next_seed(
             field_inputs,
@@ -7409,44 +7341,29 @@ class EasyUseAnimaPromptStudioRegional:
         ui_updates: dict[str, Any] = {}
         metadata_updates: dict[str, Any] = {}
 
-        effective_source_fields = _clone_regional_fields(effective_fields)
-        saved_fields, saved_wildcard = _expand_advanced_wildcard_fields(
-            saved_fields,
-            wildcard_seed_value,
-            wildcard_mode_key,
-        )
         effective_fields, effective_wildcard = _expand_advanced_wildcard_fields(
             effective_fields,
             wildcard_seed_value,
             wildcard_mode_key,
         )
-        _preserve_expanded_connected_field_texts(
-            saved_fields,
-            effective_source_fields,
-            effective_fields,
-            effective_field_inputs,
-        )
         effective_fields = _translate_prompt_fields(effective_fields)
-        wildcard_changed = bool(saved_wildcard["changed"] or effective_wildcard["changed"])
-        if wildcard_mode_key in {WILDCARD_MODE_POPULATE, WILDCARD_MODE_FIXED, WILDCARD_MODE_SEQUENTIAL}:
-            next_wildcard_seed = (
-                reserved_next_wildcard_seed
-                if reserved_next_wildcard_seed is not None
-                else next_seed(wildcard_seed_value, wildcard_effective_seed_control)
-            )
-            ui_updates.update({
-                "wildcard_mode": str(wildcard_mode or WILDCARD_MODE_LABELS[1]),
-                "wildcard_seed": next_wildcard_seed,
-                "wildcard_seed_after_generate": wildcard_effective_seed_control,
-                "wildcard_used_keys": list(effective_wildcard["used_keys"]),
-                "wildcard_missing_keys": list(effective_wildcard["missing_keys"]),
-            })
-            if wildcard_changed:
-                metadata_updates.update({
-                    "wildcard_mode": WILDCARD_MODE_LABELS[3],
-                    "wildcard_seed": wildcard_seed_value,
-                    "wildcard_seed_after_generate": SEED_CONTROL_FIXED,
-                })
+        next_wildcard_seed = (
+            reserved_next_wildcard_seed
+            if reserved_next_wildcard_seed is not None
+            else next_seed(wildcard_seed_value, wildcard_effective_seed_control)
+        )
+        ui_updates.update({
+            "wildcard_mode": wildcard_mode_label,
+            "wildcard_seed": next_wildcard_seed,
+            "wildcard_seed_after_generate": wildcard_effective_seed_control,
+            "wildcard_used_keys": list(effective_wildcard["used_keys"]),
+            "wildcard_missing_keys": list(effective_wildcard["missing_keys"]),
+        })
+        metadata_updates.update({
+            "wildcard_mode": wildcard_mode_label,
+            "wildcard_seed": wildcard_seed_value,
+            "wildcard_seed_after_generate": wildcard_effective_seed_control,
+        })
 
         fields_json = _regional_fields_json(saved_fields)
         config_json = _regional_config_json(config)
