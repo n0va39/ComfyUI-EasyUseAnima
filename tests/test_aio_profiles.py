@@ -20,6 +20,21 @@ ROOT = Path(__file__).resolve().parents[1]
 PRESETS_JS = ROOT / "web" / "js" / "aio" / "presets.js"
 
 
+def profile_tokens(profile: dict, *, prefix: str = "") -> dict:
+    return {
+        f"{prefix}profile_id": profile["profile_id"],
+        f"{prefix}revision": profile["revision"],
+    }
+
+
+def directory_snapshot(root: Path) -> dict:
+    return {
+        path.name: (path.read_bytes(), path.stat().st_mtime_ns)
+        for path in root.iterdir()
+        if path.is_file()
+    }
+
+
 def load_api_module():
     package_name = "easyuse_anima_aio_profile_test_package"
     package = types.ModuleType(package_name)
@@ -103,7 +118,11 @@ class AIOProfileStorageTests(unittest.TestCase):
                     api._load_aio_profile("my_ profile")["settings"]["future_section"]["kept"]
                 )
 
-                renamed = api._rename_aio_profile("My_ Profile", "Production")
+                renamed = api._rename_aio_profile(
+                    "My_ Profile",
+                    "Production",
+                    **profile_tokens(saved),
+                )
                 self.assertEqual(renamed["name"], "Production")
                 self.assertEqual(renamed["profile_id"], saved["profile_id"])
                 self.assertEqual(renamed["revision"], 1)
@@ -114,7 +133,10 @@ class AIOProfileStorageTests(unittest.TestCase):
                     renamed,
                 )
 
-                deleted = api._delete_aio_profile("production")
+                deleted = api._delete_aio_profile(
+                    "production",
+                    **profile_tokens(renamed),
+                )
                 self.assertEqual(deleted["name"], "Production")
                 self.assertEqual(deleted["profile_id"], saved["profile_id"])
                 self.assertEqual(deleted["revision"], 1)
@@ -125,18 +147,22 @@ class AIOProfileStorageTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             with patch.object(api, "AIO_PROFILE_DIR", root):
-                api._save_aio_profile("Delete Me", {"settings": {"value": "old"}})
-                api._save_aio_profile(
+                first = api._save_aio_profile("Delete Me", {"settings": {"value": "old"}})
+                current = api._save_aio_profile(
                     "Delete Me",
                     {"settings": {"value": "current"}},
                     overwrite=True,
+                    **profile_tokens(first),
                 )
                 primary = root / "Delete Me.json"
                 backup = root / "Delete Me.json.bak"
                 self.assertTrue(primary.is_file())
                 self.assertTrue(backup.is_file())
 
-                deleted = api._delete_aio_profile("delete me")
+                deleted = api._delete_aio_profile(
+                    "delete me",
+                    **profile_tokens(current),
+                )
 
                 self.assertEqual(deleted["name"], "Delete Me")
                 self.assertFalse(primary.exists())
@@ -147,11 +173,12 @@ class AIOProfileStorageTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             with patch.object(api, "AIO_PROFILE_DIR", root):
-                api._save_aio_profile("Preserved", {"settings": {"value": "old"}})
-                api._save_aio_profile(
+                first = api._save_aio_profile("Preserved", {"settings": {"value": "old"}})
+                current = api._save_aio_profile(
                     "Preserved",
                     {"settings": {"value": "current"}},
                     overwrite=True,
+                    **profile_tokens(first),
                 )
                 primary = (root / "Preserved.json").resolve()
                 backup = (root / "Preserved.json.bak").resolve()
@@ -164,7 +191,10 @@ class AIOProfileStorageTests(unittest.TestCase):
 
                 with patch.object(Path, "unlink", autospec=True, side_effect=fail_backup_unlink):
                     with self.assertRaisesRegex(OSError, "backup unlink failed"):
-                        api._delete_aio_profile("Preserved")
+                        api._delete_aio_profile(
+                            "Preserved",
+                            **profile_tokens(current),
+                        )
 
                 self.assertEqual(api._load_aio_profile("Preserved")["settings"]["value"], "current")
                 self.assertTrue(primary.is_file())
@@ -175,13 +205,14 @@ class AIOProfileStorageTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             with patch.object(api, "AIO_PROFILE_DIR", root):
-                api._save_aio_profile("Recreated", {"settings": {"value": "old"}})
-                api._save_aio_profile(
+                first = api._save_aio_profile("Recreated", {"settings": {"value": "old"}})
+                current = api._save_aio_profile(
                     "Recreated",
                     {"settings": {"value": "current"}},
                     overwrite=True,
+                    **profile_tokens(first),
                 )
-                api._delete_aio_profile("Recreated")
+                api._delete_aio_profile("Recreated", **profile_tokens(current))
 
                 api._save_aio_profile("Recreated", {"settings": {"value": "recreated"}})
                 primary = root / "Recreated.json"
@@ -199,13 +230,18 @@ class AIOProfileStorageTests(unittest.TestCase):
             source = root / "Source.json"
             source_backup = root / "Source.json.bak"
             with patch.object(api, "AIO_PROFILE_DIR", root):
-                api._save_aio_profile("Source", {"settings": {"value": "old"}})
+                first = api._save_aio_profile("Source", {"settings": {"value": "old"}})
                 current = api._save_aio_profile(
                     "Source",
                     {"settings": {"value": "current"}},
                     overwrite=True,
+                    **profile_tokens(first),
                 )
-                renamed = api._rename_aio_profile("Source", "Renamed")
+                renamed = api._rename_aio_profile(
+                    "Source",
+                    "Renamed",
+                    **profile_tokens(current),
+                )
 
                 self.assertEqual(renamed["profile_id"], current["profile_id"])
                 self.assertFalse(source_backup.exists())
@@ -220,7 +256,7 @@ class AIOProfileStorageTests(unittest.TestCase):
                     api._load_aio_profile("Source")
                 self.assertNotEqual(recreated["profile_id"], renamed["profile_id"])
 
-    def test_delete_waits_for_in_progress_write_on_same_profile_path(self):
+    def test_overwrite_delete_race_allows_exactly_one_same_revision_success(self):
         api = load_api_module()
         profile_storage = sys.modules[api.AtomicJsonStore.__module__]
         with tempfile.TemporaryDirectory() as tmp:
@@ -235,7 +271,10 @@ class AIOProfileStorageTests(unittest.TestCase):
             real_replace = profile_storage.os.replace
 
             with patch.object(api, "AIO_PROFILE_DIR", root):
-                api._save_aio_profile("Concurrent Delete", {"settings": {"value": "old"}})
+                original = api._save_aio_profile(
+                    "Concurrent Delete",
+                    {"settings": {"value": "old"}},
+                )
 
                 def block_primary_publish(source, target):
                     if Path(target) == profile_path:
@@ -250,6 +289,7 @@ class AIOProfileStorageTests(unittest.TestCase):
                             "Concurrent Delete",
                             {"settings": {"value": "new"}},
                             overwrite=True,
+                            **profile_tokens(original),
                         )
                     except BaseException as exc:
                         errors.append(exc)
@@ -257,7 +297,12 @@ class AIOProfileStorageTests(unittest.TestCase):
                 def delete_profile():
                     delete_started.set()
                     try:
-                        deleted.append(api._delete_aio_profile("Concurrent Delete"))
+                        deleted.append(
+                            api._delete_aio_profile(
+                                "Concurrent Delete",
+                                **profile_tokens(original),
+                            )
+                        )
                     except BaseException as exc:
                         errors.append(exc)
                     finally:
@@ -277,26 +322,26 @@ class AIOProfileStorageTests(unittest.TestCase):
 
                 self.assertFalse(writer.is_alive())
                 self.assertFalse(deleter.is_alive())
-                self.assertEqual(errors, [])
-                self.assertEqual(deleted[0]["name"], "Concurrent Delete")
-                self.assertIn("profile_id", deleted[0])
-                self.assertEqual(deleted[0]["revision"], 2)
-                self.assertFalse(profile_path.exists())
-                self.assertFalse((root / "Concurrent Delete.json.bak").exists())
+                self.assertEqual(len(deleted), 0)
+                self.assertEqual(len(errors), 1)
+                self.assertEqual(errors[0].code, "profile_revision_conflict")
+                current = api._load_aio_profile("Concurrent Delete")
+                self.assertEqual(current["revision"], 2)
+                self.assertEqual(current["settings"]["value"], "new")
+                self.assertTrue(profile_path.exists())
 
-    def test_delete_metadata_snapshot_and_delete_share_one_path_lock(self):
+    def test_delete_metadata_snapshot_and_delete_share_one_directory_lock(self):
         api = load_api_module()
-        profile_storage = sys.modules[api.AtomicJsonStore.__module__]
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
-            profile_path = (root / "Snapshot.json").resolve()
             metadata_ready = threading.Event()
             release_metadata = threading.Event()
             overwrite_started = threading.Event()
+            overwrite_done = threading.Event()
             errors: list[BaseException] = []
             deleted: list[dict] = []
             overwritten: list[dict] = []
-            real_interpret = api.interpret_profile_document
+            real_verify = api.verify_profile_precondition
 
             with patch.object(api, "AIO_PROFILE_DIR", root):
                 original = api._save_aio_profile(
@@ -304,8 +349,8 @@ class AIOProfileStorageTests(unittest.TestCase):
                     {"settings": {"value": "original"}},
                 )
 
-                def block_after_metadata_read(profile_kind, filename, document):
-                    result = real_interpret(profile_kind, filename, document)
+                def block_after_metadata_read(profile_kind, filename, document, **kwargs):
+                    result = real_verify(profile_kind, filename, document, **kwargs)
                     if filename == "Snapshot":
                         metadata_ready.set()
                         if not release_metadata.wait(2):
@@ -314,7 +359,12 @@ class AIOProfileStorageTests(unittest.TestCase):
 
                 def delete_profile():
                     try:
-                        deleted.append(api._delete_aio_profile("Snapshot"))
+                        deleted.append(
+                            api._delete_aio_profile(
+                                "Snapshot",
+                                **profile_tokens(original),
+                            )
+                        )
                     except BaseException as exc:
                         errors.append(exc)
 
@@ -326,42 +376,38 @@ class AIOProfileStorageTests(unittest.TestCase):
                                 "Snapshot",
                                 {"settings": {"value": "replacement"}},
                                 overwrite=True,
+                                **profile_tokens(original),
                             )
                         )
                     except BaseException as exc:
                         errors.append(exc)
+                    finally:
+                        overwrite_done.set()
 
                 with patch.object(
                     api,
-                    "interpret_profile_document",
+                    "verify_profile_precondition",
                     side_effect=block_after_metadata_read,
                 ):
                     deleter = threading.Thread(target=delete_profile)
                     overwriter = threading.Thread(target=overwrite_profile)
                     deleter.start()
                     self.assertTrue(metadata_ready.wait(2))
-                    path_lock = profile_storage._path_lock(profile_path)
-                    lock_was_available = path_lock.acquire(blocking=False)
-                    if lock_was_available:
-                        path_lock.release()
                     overwriter.start()
                     self.assertTrue(overwrite_started.wait(2))
+                    self.assertFalse(overwrite_done.wait(0.05))
                     release_metadata.set()
                     deleter.join(2)
                     overwriter.join(2)
 
                 self.assertFalse(deleter.is_alive())
                 self.assertFalse(overwriter.is_alive())
-                self.assertFalse(lock_was_available)
-                self.assertEqual(errors, [])
+                self.assertEqual(len(errors), 1)
+                self.assertIsInstance(errors[0], FileNotFoundError)
                 self.assertEqual(deleted[0]["profile_id"], original["profile_id"])
                 self.assertEqual(deleted[0]["revision"], original["revision"])
-                self.assertNotEqual(overwritten[0]["profile_id"], original["profile_id"])
-                self.assertEqual(overwritten[0]["revision"], 1)
-                self.assertEqual(
-                    api._load_aio_profile("Snapshot")["settings"]["value"],
-                    "replacement",
-                )
+                self.assertEqual(overwritten, [])
+                self.assertFalse((root / "Snapshot.json").exists())
 
     def test_same_name_rename_serializes_transform_and_publish_with_overwrite(self):
         api = load_api_module()
@@ -393,7 +439,14 @@ class AIOProfileStorageTests(unittest.TestCase):
 
                 def rename_same_name():
                     try:
-                        renamed_profiles.append(api._rename_aio_profile("Same", "Same"))
+                        renamed_profiles.append(
+                            api._rename_aio_profile(
+                                "Same",
+                                "Same",
+                                profile_id=legacy_id,
+                                revision=0,
+                            )
+                        )
                     except BaseException as exc:
                         errors.append(exc)
 
@@ -405,6 +458,8 @@ class AIOProfileStorageTests(unittest.TestCase):
                                 "Same",
                                 {"settings": {"value": "replacement"}},
                                 overwrite=True,
+                                profile_id=legacy_id,
+                                revision=0,
                             )
                         )
                     except BaseException as exc:
@@ -419,10 +474,10 @@ class AIOProfileStorageTests(unittest.TestCase):
                     overwriter = threading.Thread(target=overwrite_profile)
                     renamer.start()
                     self.assertTrue(transform_ready.wait(2))
-                    path_lock = profile_storage._path_lock(profile_path)
-                    lock_was_available = path_lock.acquire(blocking=False)
+                    directory_lock = api.PROFILE_MUTATION_COORDINATOR._lock(root)
+                    lock_was_available = directory_lock.acquire(blocking=False)
                     if lock_was_available:
-                        path_lock.release()
+                        directory_lock.release()
                     overwriter.start()
                     self.assertTrue(overwrite_started.wait(2))
                     release_transform.set()
@@ -468,7 +523,10 @@ class AIOProfileStorageTests(unittest.TestCase):
                     encoding="utf-8",
                 )
                 source_profile_id = api.legacy_profile_id(api.PROFILE_KIND_AIO, "Source")
-                api._save_aio_profile("Target", {"settings": {"value": "target"}})
+                target_profile = api._save_aio_profile(
+                    "Target",
+                    {"settings": {"value": "target"}},
+                )
                 target_bytes = target.read_bytes()
 
                 def block_after_source_move(current, destination):
@@ -489,7 +547,14 @@ class AIOProfileStorageTests(unittest.TestCase):
                 def rename_profile():
                     try:
                         renamed_profiles.append(
-                            api._rename_aio_profile("Source", "Target", overwrite=True)
+                            api._rename_aio_profile(
+                                "Source",
+                                "Target",
+                                overwrite=True,
+                                profile_id=source_profile_id,
+                                revision=0,
+                                **profile_tokens(target_profile, prefix="target_"),
+                            )
                         )
                     except BaseException as exc:
                         errors.append(exc)
@@ -576,7 +641,10 @@ class AIOProfileStorageTests(unittest.TestCase):
                     "Source",
                     {"settings": {"value": "source"}},
                 )
-                api._save_aio_profile("Target", {"settings": {"value": "target"}})
+                target_profile = api._save_aio_profile(
+                    "Target",
+                    {"settings": {"value": "target"}},
+                )
 
                 def block_after_profile_move(current, destination):
                     result = real_replace(current, destination)
@@ -595,14 +663,25 @@ class AIOProfileStorageTests(unittest.TestCase):
 
                 def rename_profile():
                     try:
-                        api._rename_aio_profile("Source", "Target", overwrite=True)
+                        api._rename_aio_profile(
+                            "Source",
+                            "Target",
+                            overwrite=True,
+                            **profile_tokens(source_profile),
+                            **profile_tokens(target_profile, prefix="target_"),
+                        )
                     except BaseException as exc:
                         errors.append(exc)
 
                 def delete_target():
                     delete_started.set()
                     try:
-                        deleted.append(api._delete_aio_profile("Target"))
+                        deleted.append(
+                            api._delete_aio_profile(
+                                "Target",
+                                **profile_tokens(source_profile),
+                            )
+                        )
                     except BaseException as exc:
                         errors.append(exc)
                     finally:
@@ -630,8 +709,9 @@ class AIOProfileStorageTests(unittest.TestCase):
                     self.assertFalse(delete_done.wait(0.05))
                     release_move.set()
                     self.assertTrue(transaction_done.wait(2))
-                    self.assertTrue(delete_done.wait(2))
+                    self.assertFalse(delete_done.wait(0.05))
                     release_api_return.set()
+                    self.assertTrue(delete_done.wait(2))
                     renamer.join(2)
                     deleter.join(2)
 
@@ -657,7 +737,7 @@ class AIOProfileStorageTests(unittest.TestCase):
             with self.subTest(original_name=original_name, colliding_name=colliding_name):
                 with tempfile.TemporaryDirectory() as tmp:
                     with patch.object(api, "AIO_PROFILE_DIR", Path(tmp)):
-                        api._save_aio_profile(
+                        created = api._save_aio_profile(
                             original_name,
                             {"settings": {"sampler": {"steps": 30}}},
                         )
@@ -678,6 +758,7 @@ class AIOProfileStorageTests(unittest.TestCase):
                             colliding_name,
                             {"settings": {"sampler": {"steps": 10}}},
                             overwrite=True,
+                            **profile_tokens(created),
                         )
                         self.assertEqual(overwritten["name"], filename)
                         self.assertEqual(overwritten["settings"]["sampler"]["steps"], 10)
@@ -689,6 +770,206 @@ class AIOProfileStorageTests(unittest.TestCase):
                             [path.name for path in Path(tmp).glob("*.json")],
                             [f"{filename}.json"],
                         )
+
+    def test_save_delete_and_rename_require_strict_source_preconditions(self):
+        api = load_api_module()
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            with patch.object(api, "AIO_PROFILE_DIR", root):
+                created = api._save_aio_profile("Strict", {"settings": {}})
+                operations = (
+                    lambda: api._save_aio_profile(
+                        "Strict",
+                        {"settings": {}},
+                        overwrite=True,
+                    ),
+                    lambda: api._delete_aio_profile("Strict"),
+                    lambda: api._rename_aio_profile("Strict", "Renamed"),
+                )
+
+                for operation in operations:
+                    with self.assertRaises(api.ProfileMutationError) as required:
+                        operation()
+                    self.assertEqual(
+                        required.exception.code,
+                        "profile_precondition_required",
+                    )
+
+                (root / "Strict.json").unlink()
+                with self.assertRaises(FileNotFoundError):
+                    api._save_aio_profile(
+                        "Strict",
+                        {"settings": {}},
+                        overwrite=True,
+                        **profile_tokens(created),
+                    )
+
+    def test_delete_and_rename_mismatches_preserve_bytes_backups_mtime_and_temps(self):
+        api = load_api_module()
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            with patch.object(api, "AIO_PROFILE_DIR", root):
+                source_v1 = api._save_aio_profile(
+                    "Source",
+                    {"settings": {"value": "source-v1"}},
+                )
+                source = api._save_aio_profile(
+                    "Source",
+                    {"settings": {"value": "source-v2"}},
+                    overwrite=True,
+                    **profile_tokens(source_v1),
+                )
+                target_v1 = api._save_aio_profile(
+                    "Target",
+                    {"settings": {"value": "target-v1"}},
+                )
+                target = api._save_aio_profile(
+                    "Target",
+                    {"settings": {"value": "target-v2"}},
+                    overwrite=True,
+                    **profile_tokens(target_v1),
+                )
+                wrong_id = "00000000-0000-4000-8000-000000000000"
+                cases = (
+                    (
+                        "delete identity",
+                        lambda: api._delete_aio_profile(
+                            "Source",
+                            profile_id=wrong_id,
+                            revision=source["revision"] - 1,
+                        ),
+                        "profile_identity_mismatch",
+                    ),
+                    (
+                        "delete revision",
+                        lambda: api._delete_aio_profile(
+                            "Source",
+                            profile_id=source["profile_id"],
+                            revision=source["revision"] - 1,
+                        ),
+                        "profile_revision_conflict",
+                    ),
+                    (
+                        "rename source identity",
+                        lambda: api._rename_aio_profile(
+                            "Source",
+                            "Target",
+                            overwrite=True,
+                            profile_id=wrong_id,
+                            revision=source["revision"] - 1,
+                            **profile_tokens(target, prefix="target_"),
+                        ),
+                        "profile_identity_mismatch",
+                    ),
+                    (
+                        "rename source revision",
+                        lambda: api._rename_aio_profile(
+                            "Source",
+                            "Target",
+                            overwrite=True,
+                            profile_id=source["profile_id"],
+                            revision=source["revision"] - 1,
+                            **profile_tokens(target, prefix="target_"),
+                        ),
+                        "profile_revision_conflict",
+                    ),
+                    (
+                        "rename target identity",
+                        lambda: api._rename_aio_profile(
+                            "Source",
+                            "Target",
+                            overwrite=True,
+                            **profile_tokens(source),
+                            target_profile_id=wrong_id,
+                            target_revision=target["revision"] - 1,
+                        ),
+                        "profile_identity_mismatch",
+                    ),
+                    (
+                        "rename target revision",
+                        lambda: api._rename_aio_profile(
+                            "Source",
+                            "Target",
+                            overwrite=True,
+                            **profile_tokens(source),
+                            target_profile_id=target["profile_id"],
+                            target_revision=target["revision"] - 1,
+                        ),
+                        "profile_revision_conflict",
+                    ),
+                )
+
+                for label, operation, code in cases:
+                    with self.subTest(label=label):
+                        before = directory_snapshot(root)
+                        with self.assertRaises(api.ProfileMutationError) as mismatch:
+                            operation()
+                        self.assertEqual(mismatch.exception.code, code)
+                        self.assertEqual(directory_snapshot(root), before)
+
+    def test_rename_target_rules_preserve_profile_exists_and_detect_disappearance(self):
+        api = load_api_module()
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            with patch.object(api, "AIO_PROFILE_DIR", root):
+                source = api._save_aio_profile("Source", {"settings": {}})
+                target = api._save_aio_profile("Target", {"settings": {}})
+
+                with self.assertRaises(FileExistsError):
+                    api._rename_aio_profile(
+                        "Source",
+                        "Target",
+                        **profile_tokens(source),
+                    )
+
+                with self.assertRaises(api.ProfileMutationError) as required:
+                    api._rename_aio_profile(
+                        "Source",
+                        "Target",
+                        overwrite=True,
+                        **profile_tokens(source),
+                    )
+                self.assertEqual(
+                    required.exception.code,
+                    "profile_precondition_required",
+                )
+
+                (root / "Target.json").unlink()
+                before = directory_snapshot(root)
+                with self.assertRaises(api.ProfileMutationError) as disappeared:
+                    api._rename_aio_profile(
+                        "Source",
+                        "Target",
+                        overwrite=True,
+                        **profile_tokens(source),
+                        **profile_tokens(target, prefix="target_"),
+                    )
+                self.assertEqual(
+                    disappeared.exception.code,
+                    "profile_revision_conflict",
+                )
+                self.assertEqual(disappeared.exception.details, {"profile": "target"})
+                self.assertEqual(directory_snapshot(root), before)
+
+    def test_same_name_v2_rename_verifies_source_without_unnecessary_write(self):
+        api = load_api_module()
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            with patch.object(api, "AIO_PROFILE_DIR", root):
+                source = api._save_aio_profile(
+                    "Same",
+                    {"settings": {"value": "stable"}},
+                )
+                before = directory_snapshot(root)
+
+                renamed = api._rename_aio_profile(
+                    "same. ",
+                    "SAME",
+                    **profile_tokens(source),
+                )
+
+                self.assertEqual(renamed, source)
+                self.assertEqual(directory_snapshot(root), before)
 
     def test_windows_reserved_profile_names_are_rejected(self):
         api = load_api_module()
@@ -746,7 +1027,11 @@ class AIOProfileStorageTests(unittest.TestCase):
 
             with patch.object(api, "AIO_PROFILE_DIR", root):
                 with self.assertRaises(api.InvalidProfileDataError):
-                    api._delete_aio_profile("Incomplete")
+                    api._delete_aio_profile(
+                        "Incomplete",
+                        profile_id="00000000-0000-4000-8000-000000000000",
+                        revision=0,
+                    )
 
             self.assertEqual(profile.read_bytes(), before)
 
@@ -832,15 +1117,14 @@ class AIOProfileStorageTests(unittest.TestCase):
                     "Legacy",
                     {"settings": {"future_section": {"kept": "updated"}}},
                     overwrite=True,
-                    profile_id="00000000-0000-4000-8000-000000000000",
-                    revision=999,
+                    **profile_tokens(listed),
                 )
 
             self.assertEqual(promoted["profile_id"], listed["profile_id"])
             self.assertEqual(promoted["revision"], 1)
             self.assertEqual(json.loads(primary.read_text(encoding="utf-8")), promoted)
 
-    def test_v2_overwrite_preserves_id_and_advances_revision_without_strict_token(self):
+    def test_v2_overwrite_preserves_id_and_advances_matching_revision(self):
         api = load_api_module()
         with tempfile.TemporaryDirectory() as tmp:
             with patch.object(api, "AIO_PROFILE_DIR", Path(tmp)):
@@ -849,8 +1133,7 @@ class AIOProfileStorageTests(unittest.TestCase):
                     "Updated",
                     {"settings": {"value": 2}},
                     overwrite=True,
-                    profile_id="00000000-0000-4000-8000-000000000000",
-                    revision=0,
+                    **profile_tokens(created),
                 )
 
         self.assertEqual(updated["profile_id"], created["profile_id"])
@@ -862,11 +1145,15 @@ class AIOProfileStorageTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             with patch.object(api, "AIO_PROFILE_DIR", root):
-                api._save_aio_profile("Recoverable", {"settings": {"value": "first"}})
+                first = api._save_aio_profile(
+                    "Recoverable",
+                    {"settings": {"value": "first"}},
+                )
                 api._save_aio_profile(
                     "Recoverable",
                     {"settings": {"value": "second"}},
                     overwrite=True,
+                    **profile_tokens(first),
                 )
                 (root / "Recoverable.json").write_text("{", encoding="utf-8")
 
@@ -887,7 +1174,10 @@ class AIOProfileStorageTests(unittest.TestCase):
             real_replace = profile_storage.os.replace
 
             with patch.object(api, "AIO_PROFILE_DIR", root):
-                api._save_aio_profile("Concurrent", {"settings": {"value": "old"}})
+                original = api._save_aio_profile(
+                    "Concurrent",
+                    {"settings": {"value": "old"}},
+                )
 
                 def block_primary_publish(source, target):
                     if Path(target) == profile_path:
@@ -902,6 +1192,7 @@ class AIOProfileStorageTests(unittest.TestCase):
                             "Concurrent",
                             {"settings": {"value": "new", "items": list(range(1000))}},
                             overwrite=True,
+                            **profile_tokens(original),
                         )
                     except BaseException as exc:
                         errors.append(exc)
@@ -944,7 +1235,15 @@ class AIOProfileStorageTests(unittest.TestCase):
 
                 with patch.object(api, "AIO_PROFILE_DIR", root):
                     with self.assertRaisesRegex(api.InvalidProfileDataError, message):
-                        api._rename_aio_profile("Source", "Target")
+                        api._rename_aio_profile(
+                            "Source",
+                            "Target",
+                            profile_id=api.legacy_profile_id(
+                                api.PROFILE_KIND_AIO,
+                                "Source",
+                            ),
+                            revision=0,
+                        )
 
                 self.assertEqual(source.read_bytes(), source_bytes)
                 self.assertFalse(target.exists())
@@ -955,11 +1254,15 @@ class AIOProfileStorageTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             with patch.object(api, "AIO_PROFILE_DIR", root):
-                api._save_aio_profile("Target", {"settings": {"value": "old target"}})
-                api._save_aio_profile(
+                first_target = api._save_aio_profile(
+                    "Target",
+                    {"settings": {"value": "old target"}},
+                )
+                target_profile = api._save_aio_profile(
                     "Target",
                     {"settings": {"value": "current target"}},
                     overwrite=True,
+                    **profile_tokens(first_target),
                 )
                 source = root / "Source.json"
                 target = root / "Target.json"
@@ -970,7 +1273,14 @@ class AIOProfileStorageTests(unittest.TestCase):
                 backup_bytes = backup.read_bytes()
 
                 with self.assertRaisesRegex(ValueError, "Profile settings must be an object"):
-                    api._rename_aio_profile("Source", "Target", overwrite=True)
+                    api._rename_aio_profile(
+                        "Source",
+                        "Target",
+                        overwrite=True,
+                        profile_id=api.legacy_profile_id(api.PROFILE_KIND_AIO, "Source"),
+                        revision=0,
+                        **profile_tokens(target_profile, prefix="target_"),
+                    )
 
                 self.assertEqual(source.read_bytes(), source_bytes)
                 self.assertEqual(target.read_bytes(), target_bytes)
@@ -985,10 +1295,22 @@ class AIOProfileStorageTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             with patch.object(api, "AIO_PROFILE_DIR", root):
-                api._save_aio_profile("Source", {"settings": {"value": "source"}})
-                api._save_aio_profile("Target", {"settings": {"value": "target"}})
+                source_profile = api._save_aio_profile(
+                    "Source",
+                    {"settings": {"value": "source"}},
+                )
+                target_profile = api._save_aio_profile(
+                    "Target",
+                    {"settings": {"value": "target"}},
+                )
 
-                renamed = api._rename_aio_profile("Source", "Target", overwrite=True)
+                renamed = api._rename_aio_profile(
+                    "Source",
+                    "Target",
+                    overwrite=True,
+                    **profile_tokens(source_profile),
+                    **profile_tokens(target_profile, prefix="target_"),
+                )
 
                 backup = json.loads((root / "Target.json.bak").read_text(encoding="utf-8"))
                 self.assertEqual(renamed["name"], "Target")
@@ -1019,8 +1341,8 @@ class AIOProfileStorageTests(unittest.TestCase):
                     "Source",
                     "Target",
                     overwrite=True,
-                    profile_id="00000000-0000-4000-8000-000000000000",
-                    revision=99,
+                    profile_id=source_id,
+                    revision=0,
                     target_profile_id=target["profile_id"],
                     target_revision=target["revision"],
                 )
@@ -1048,13 +1370,20 @@ class AIOProfileStorageTests(unittest.TestCase):
             real_replace = profile_storage.os.replace
 
             with patch.object(api, "AIO_PROFILE_DIR", root):
-                api._save_aio_profile("Source", {"settings": {"value": "old source"}})
-                api._save_aio_profile(
+                first_source = api._save_aio_profile(
+                    "Source",
+                    {"settings": {"value": "old source"}},
+                )
+                source_profile = api._save_aio_profile(
                     "Source",
                     {"settings": {"value": "source"}},
                     overwrite=True,
+                    **profile_tokens(first_source),
                 )
-                api._save_aio_profile("Target", {"settings": {"value": "target"}})
+                target_profile = api._save_aio_profile(
+                    "Target",
+                    {"settings": {"value": "target"}},
+                )
                 source_backup_bytes = (root / "Source.json.bak").read_bytes()
 
                 def fail_move(current, destination):
@@ -1064,7 +1393,13 @@ class AIOProfileStorageTests(unittest.TestCase):
 
                 with patch.object(profile_storage.os, "replace", side_effect=fail_move):
                     with self.assertRaisesRegex(OSError, "rename move failed"):
-                        api._rename_aio_profile("Source", "Target", overwrite=True)
+                        api._rename_aio_profile(
+                            "Source",
+                            "Target",
+                            overwrite=True,
+                            **profile_tokens(source_profile),
+                            **profile_tokens(target_profile, prefix="target_"),
+                        )
 
                 self.assertEqual(api._load_aio_profile("Source")["settings"]["value"], "source")
                 self.assertEqual(api._load_aio_profile("Target")["settings"]["value"], "target")
@@ -1084,8 +1419,14 @@ class AIOProfileStorageTests(unittest.TestCase):
             real_replace = profile_storage.os.replace
 
             with patch.object(api, "AIO_PROFILE_DIR", root):
-                api._save_aio_profile("Source", {"settings": {"value": "source"}})
-                api._save_aio_profile("Target", {"settings": {"value": "target"}})
+                source_profile = api._save_aio_profile(
+                    "Source",
+                    {"settings": {"value": "source"}},
+                )
+                target_profile = api._save_aio_profile(
+                    "Target",
+                    {"settings": {"value": "target"}},
+                )
 
                 def fail_backup(current, destination):
                     if Path(destination) == backup_path:
@@ -1094,7 +1435,13 @@ class AIOProfileStorageTests(unittest.TestCase):
 
                 with patch.object(profile_storage.os, "replace", side_effect=fail_backup):
                     with self.assertRaisesRegex(OSError, "target backup failed"):
-                        api._rename_aio_profile("Source", "Target", overwrite=True)
+                        api._rename_aio_profile(
+                            "Source",
+                            "Target",
+                            overwrite=True,
+                            **profile_tokens(source_profile),
+                            **profile_tokens(target_profile, prefix="target_"),
+                        )
 
                 self.assertEqual(api._load_aio_profile("Source")["settings"]["value"], "source")
                 self.assertEqual(api._load_aio_profile("Target")["settings"]["value"], "target")
@@ -1105,10 +1452,17 @@ class AIOProfileStorageTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             with patch.object(api, "AIO_PROFILE_DIR", root):
-                api._save_aio_profile("Source", {"settings": {"value": "source"}})
+                source_profile = api._save_aio_profile(
+                    "Source",
+                    {"settings": {"value": "source"}},
+                )
 
                 with patch.object(Path, "unlink", side_effect=OSError("unlink failed")):
-                    renamed = api._rename_aio_profile("Source", "Renamed")
+                    renamed = api._rename_aio_profile(
+                        "Source",
+                        "Renamed",
+                        **profile_tokens(source_profile),
+                    )
 
                 self.assertEqual(renamed["name"], "Renamed")
                 self.assertFalse((root / "Source.json").exists())
@@ -1322,6 +1676,130 @@ class AIOProfileApiRouteTests(unittest.TestCase):
                 "message": "Profile not found",
             },
         )
+
+    def test_actual_routes_enforce_source_and_target_cas_taxonomy(self):
+        api, routes = load_api_routes()
+        save_handler = routes.handlers["/easyuse_anima/aio_profiles/save"]
+        delete_handler = routes.handlers["/easyuse_anima/aio_profiles/delete"]
+        rename_handler = routes.handlers["/easyuse_anima/aio_profiles/rename"]
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            with patch.object(api, "AIO_PROFILE_DIR", root):
+                source = asyncio.run(
+                    save_handler(JsonRequest({"name": "Source", "settings": {}}))
+                )["payload"]["profile"]
+                target = asyncio.run(
+                    save_handler(JsonRequest({"name": "Target", "settings": {}}))
+                )["payload"]["profile"]
+
+                for handler, payload in (
+                    (
+                        save_handler,
+                        {"name": "Source", "settings": {}, "overwrite": True},
+                    ),
+                    (delete_handler, {"name": "Source"}),
+                    (
+                        rename_handler,
+                        {"old_name": "Source", "new_name": "Renamed"},
+                    ),
+                ):
+                    with self.subTest(payload=payload):
+                        response = asyncio.run(handler(JsonRequest(payload)))
+                        self.assertEqual(response["status"], 428)
+                        self.assertEqual(
+                            response["payload"]["code"],
+                            "profile_precondition_required",
+                        )
+
+                exists = asyncio.run(
+                    rename_handler(
+                        JsonRequest(
+                            {
+                                "old_name": "Source",
+                                "new_name": "Target",
+                                **profile_tokens(source),
+                            }
+                        )
+                    )
+                )
+                self.assertEqual(exists["status"], 409)
+                self.assertEqual(exists["payload"]["code"], "profile_exists")
+
+                target_required = asyncio.run(
+                    rename_handler(
+                        JsonRequest(
+                            {
+                                "old_name": "Source",
+                                "new_name": "Target",
+                                "overwrite": True,
+                                **profile_tokens(source),
+                            }
+                        )
+                    )
+                )
+                self.assertEqual(target_required["status"], 428)
+                self.assertEqual(
+                    target_required["payload"]["code"],
+                    "profile_precondition_required",
+                )
+                self.assertEqual(
+                    target_required["payload"]["details"]["profile"],
+                    "target",
+                )
+
+                (root / "Target.json").unlink()
+                disappeared = asyncio.run(
+                    rename_handler(
+                        JsonRequest(
+                            {
+                                "old_name": "Source",
+                                "new_name": "Target",
+                                "overwrite": True,
+                                **profile_tokens(source),
+                                **profile_tokens(target, prefix="target_"),
+                            }
+                        )
+                    )
+                )
+                self.assertEqual(disappeared["status"], 409)
+                self.assertEqual(
+                    disappeared["payload"]["code"],
+                    "profile_revision_conflict",
+                )
+
+                identity = asyncio.run(
+                    delete_handler(
+                        JsonRequest(
+                            {
+                                "name": "Source",
+                                "profile_id": "00000000-0000-4000-8000-000000000000",
+                                "revision": source["revision"] - 1,
+                            }
+                        )
+                    )
+                )
+                self.assertEqual(identity["status"], 409)
+                self.assertEqual(
+                    identity["payload"]["code"],
+                    "profile_identity_mismatch",
+                )
+
+                revision = asyncio.run(
+                    delete_handler(
+                        JsonRequest(
+                            {
+                                "name": "Source",
+                                "profile_id": source["profile_id"],
+                                "revision": source["revision"] - 1,
+                            }
+                        )
+                    )
+                )
+                self.assertEqual(revision["status"], 409)
+                self.assertEqual(
+                    revision["payload"]["code"],
+                    "profile_revision_conflict",
+                )
 
 
 class AIOBuiltinProfileTests(unittest.TestCase):

@@ -480,6 +480,43 @@ class ApiRequestContractTests(unittest.TestCase):
                 self.assertNotIn("private", serialized)
                 self.assertNotIn("/home/", serialized)
 
+    def test_profile_cas_errors_keep_request_correlation_and_safe_details(self):
+        api, routes = load_api_routes()
+        cases = (
+            (428, "profile_precondition_required", "Profile precondition is required"),
+            (409, "profile_identity_mismatch", "Profile identity does not match"),
+            (409, "profile_revision_conflict", "Profile revision does not match"),
+        )
+
+        for status, code, message in cases:
+            with self.subTest(code=code), patch.object(
+                api,
+                "_save_aio_profile",
+                side_effect=api.ProfileMutationError(
+                    status=status,
+                    code=code,
+                    message=message,
+                    details={"profile": "source"},
+                ),
+            ):
+                response = asyncio.run(
+                    routes.handlers["/easyuse_anima/aio_profiles/save"](
+                        JsonRequest({"name": "Saved", "settings": {}})
+                    )
+                )
+
+            self.assertEqual(response.status, status)
+            self.assertEqual(response["payload"]["code"], code)
+            self.assertEqual(response["payload"]["details"], {"profile": "source"})
+            self.assertEqual(
+                response["payload"]["request_id"],
+                response.headers["X-Request-ID"],
+            )
+            serialized = json.dumps(response["payload"])
+            self.assertNotIn("C:\\", serialized)
+            self.assertNotIn("/home/", serialized)
+            self.assertNotIn("secret", serialized)
+
     def test_invalid_profile_json_files_have_stable_422_code(self):
         api, routes = load_api_routes()
         cases = (
@@ -660,7 +697,15 @@ class ApiRequestContractTests(unittest.TestCase):
                     response = asyncio.run(
                         handler(
                             JsonRequest(
-                                {"old_name": "Source", "new_name": "Target"}
+                                {
+                                    "old_name": "Source",
+                                    "new_name": "Target",
+                                    "profile_id": api.legacy_profile_id(
+                                        api.PROFILE_KIND_AIO,
+                                        "Source",
+                                    ),
+                                    "revision": 0,
+                                }
                             )
                         )
                     )

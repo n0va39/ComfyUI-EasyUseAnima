@@ -69,6 +69,13 @@ try:
         rename_profile_document,
         update_profile_document,
     )
+    from .easyuse_anima.profiles.mutation import (
+        PROFILE_MUTATION_COORDINATOR,
+        ProfileMutationError,
+        ProfileRevisionConflictError,
+        require_profile_precondition,
+        verify_profile_precondition,
+    )
 except ImportError:
     from easyuse_anima.profiles.contract import (
         PROFILE_KIND_AIO,
@@ -81,6 +88,13 @@ except ImportError:
         normalize_profile_filename_identity,
         rename_profile_document,
         update_profile_document,
+    )
+    from easyuse_anima.profiles.mutation import (
+        PROFILE_MUTATION_COORDINATOR,
+        ProfileMutationError,
+        ProfileRevisionConflictError,
+        require_profile_precondition,
+        verify_profile_precondition,
     )
 try:
     from .storage import AtomicJsonStore, USER_DATA_DIR
@@ -629,16 +643,17 @@ def _save_lora_profile(
     profile_id: str | None = None,
     revision: int | None = None,
 ) -> dict:
-    # Parsed optimistic-concurrency tokens are reserved for Issue #163 Part 3C.
-    _ = profile_id, revision
     safe_name = _sanitize_lora_profile_name(name)
     payload = _normalize_lora_profile_payload(data)
-    LORA_PROFILE_DIR.mkdir(parents=True, exist_ok=True)
     requested_path = _lora_profile_path(safe_name)
-    with AtomicJsonStore(requested_path).locked():
+    if overwrite:
+        require_profile_precondition(profile_id, revision)
+    with PROFILE_MUTATION_COORDINATOR.locked(LORA_PROFILE_DIR):
         existing = _find_lora_profile_path(safe_name)
         if existing is not None and not overwrite:
             raise FileExistsError("Profile already exists")
+        if existing is None and overwrite:
+            raise FileNotFoundError("Profile not found")
         path = existing or requested_path
         try:
             if existing is None:
@@ -651,6 +666,13 @@ def _save_lora_profile(
                 current = _read_profile_json(path)
                 if not isinstance(current, dict):
                     raise ProfileContractError("Profile data is invalid")
+                verify_profile_precondition(
+                    PROFILE_KIND_LORA,
+                    path.stem,
+                    current,
+                    profile_id=profile_id,
+                    revision=revision,
+                )
                 document = update_profile_document(
                     PROFILE_KIND_LORA,
                     path.stem,
@@ -765,15 +787,16 @@ def _save_aio_profile(
     profile_id: str | None = None,
     revision: int | None = None,
 ) -> dict:
-    # Parsed optimistic-concurrency tokens are reserved for Issue #163 Part 3C.
-    _ = profile_id, revision
     payload = _normalize_aio_profile_payload(name, data)
-    AIO_PROFILE_DIR.mkdir(parents=True, exist_ok=True)
     requested_path = _aio_profile_path(payload["name"])
-    with AtomicJsonStore(requested_path).locked():
+    if overwrite:
+        require_profile_precondition(profile_id, revision)
+    with PROFILE_MUTATION_COORDINATOR.locked(AIO_PROFILE_DIR):
         existing = _find_aio_profile_path(payload["name"])
         if existing is not None and not overwrite:
             raise FileExistsError("Profile already exists")
+        if existing is None and overwrite:
+            raise FileNotFoundError("Profile not found")
         if existing is None and len(_list_aio_profiles()) >= MAX_AIO_PROFILES:
             raise ValueError(f"A maximum of {MAX_AIO_PROFILES} profiles can be saved")
         path = existing or requested_path
@@ -788,6 +811,13 @@ def _save_aio_profile(
                 current = _read_profile_json(path)
                 if not isinstance(current, dict):
                     raise ProfileContractError("Profile data is invalid")
+                verify_profile_precondition(
+                    PROFILE_KIND_AIO,
+                    path.stem,
+                    current,
+                    profile_id=profile_id,
+                    revision=revision,
+                )
                 document = update_profile_document(
                     PROFILE_KIND_AIO,
                     path.stem,
@@ -835,25 +865,25 @@ def _delete_aio_profile(
     profile_id: str | None = None,
     revision: int | None = None,
 ) -> dict:
-    # Parsed optimistic-concurrency tokens are reserved for Issue #163 Part 3C.
-    _ = profile_id, revision
-    path = _find_aio_profile_path(name)
-    if path is None or not path.is_file():
-        raise FileNotFoundError("Profile not found")
-    store = AtomicJsonStore(path)
-    with store.locked():
+    require_profile_precondition(profile_id, revision)
+    with PROFILE_MUTATION_COORDINATOR.locked(AIO_PROFILE_DIR):
+        path = _find_aio_profile_path(name)
+        if path is None or not path.is_file():
+            raise FileNotFoundError("Profile not found")
+        store = AtomicJsonStore(path)
         try:
             data = _read_profile_json(path)
             if not isinstance(data, dict):
                 raise ProfileContractError("Profile data is invalid")
-            interpreted = interpret_profile_document(PROFILE_KIND_AIO, path.stem, data)
-            deleted_profile_id = interpreted["profile_id"]
-            deleted_revision = interpreted["revision"]
+            deleted_profile_id, deleted_revision = verify_profile_precondition(
+                PROFILE_KIND_AIO,
+                path.stem,
+                data,
+                profile_id=profile_id,
+                revision=revision,
+            )
         except ProfileContractError as exc:
             raise InvalidProfileDataError(str(exc)) from exc
-        except (OSError, UnicodeError, json.JSONDecodeError):
-            deleted_profile_id = legacy_profile_id(PROFILE_KIND_AIO, path.stem)
-            deleted_revision = 0
         try:
             store.delete()
         except FileNotFoundError as exc:
@@ -875,41 +905,84 @@ def _rename_aio_profile(
     target_profile_id: str | None = None,
     target_revision: int | None = None,
 ) -> dict:
-    # Parsed optimistic-concurrency tokens are reserved for Issue #163 Part 3C.
-    _ = profile_id, revision, target_profile_id, target_revision
-    source = _find_aio_profile_path(old_name)
-    if source is None or not source.is_file():
-        raise FileNotFoundError("Profile not found")
-    safe_new_name = _sanitize_aio_profile_name(new_name)
-    if source.stem.casefold() == safe_new_name.casefold():
-        store = AtomicJsonStore(source, backup=False)
-        with store.locked():
+    require_profile_precondition(profile_id, revision, profile="source")
+    with PROFILE_MUTATION_COORDINATOR.locked(AIO_PROFILE_DIR):
+        source = _find_aio_profile_path(old_name)
+        if source is None or not source.is_file():
+            raise FileNotFoundError("Profile not found")
+        safe_new_name = _sanitize_aio_profile_name(new_name)
+        try:
             data = _read_profile_json(source)
+            if not isinstance(data, dict):
+                raise ProfileContractError("Profile data is invalid")
+            verify_profile_precondition(
+                PROFILE_KIND_AIO,
+                source.stem,
+                data,
+                profile_id=profile_id,
+                revision=revision,
+                profile="source",
+            )
+        except ProfileContractError as exc:
+            raise InvalidProfileDataError(str(exc)) from exc
+
+        if (
+            _windows_profile_filename_identity(source.stem)
+            == _windows_profile_filename_identity(safe_new_name)
+        ):
             renamed = _rename_aio_profile_payload(
                 source.stem,
                 source.stem,
                 data,
             )
             if data != renamed:
-                store.write(renamed)
+                AtomicJsonStore(source, backup=False).write(renamed)
             return renamed
 
-    target = _find_aio_profile_path(safe_new_name)
-    if target is not None and not overwrite:
-        raise FileExistsError("Profile already exists")
+        target = _find_aio_profile_path(safe_new_name)
+        if target is not None and not overwrite:
+            raise FileExistsError("Profile already exists")
+        if target is None and (
+            target_profile_id is not None or target_revision is not None
+        ):
+            raise ProfileRevisionConflictError(profile="target")
+        if target is not None:
+            require_profile_precondition(
+                target_profile_id,
+                target_revision,
+                id_field="target_profile_id",
+                revision_field="target_revision",
+                profile="target",
+            )
+            try:
+                target_data = _read_profile_json(target)
+                if not isinstance(target_data, dict):
+                    raise ProfileContractError("Profile data is invalid")
+                verify_profile_precondition(
+                    PROFILE_KIND_AIO,
+                    target.stem,
+                    target_data,
+                    profile_id=target_profile_id,
+                    revision=target_revision,
+                    id_field="target_profile_id",
+                    revision_field="target_revision",
+                    profile="target",
+                )
+            except ProfileContractError as exc:
+                raise InvalidProfileDataError(str(exc)) from exc
 
-    target_path = target or _aio_profile_path(safe_new_name)
-    renamed = AtomicJsonStore(target_path).replace_from(
-        AtomicJsonStore(source),
-        overwrite=overwrite,
-        backup_target=True,
-        transform=lambda data: _rename_aio_profile_payload(
-            source.stem,
-            target_path.stem,
-            data,
-        ),
-    )
-    return renamed
+        target_path = target or _aio_profile_path(safe_new_name)
+        renamed = AtomicJsonStore(target_path).replace_from(
+            AtomicJsonStore(source),
+            overwrite=overwrite,
+            backup_target=True,
+            transform=lambda current: _rename_aio_profile_payload(
+                source.stem,
+                target_path.stem,
+                current,
+            ),
+        )
+        return renamed
 
 
 def _rename_aio_profile_payload(source_name: str, target_name: str, data) -> dict:
@@ -970,6 +1043,13 @@ _SAFE_PROFILE_VALIDATION_MESSAGES = frozenset(
 
 
 def _profile_error_response(exc: Exception):
+    if isinstance(exc, ProfileMutationError):
+        return _error_response(
+            exc.status,
+            exc.code,
+            exc.message,
+            details=exc.details,
+        )
     if isinstance(exc, FileExistsError):
         return _error_response(409, "profile_exists", "Profile already exists")
     if isinstance(exc, FileNotFoundError):
@@ -1273,7 +1353,7 @@ if web is not None and routes is not None:
                 profile_id=profile_id,
                 revision=revision,
             )
-        except (FileExistsError, ValueError) as exc:
+        except (FileExistsError, FileNotFoundError, ValueError) as exc:
             return _profile_error_response(exc)
         return web.json_response({"status": "ok", "profile": payload})
 
@@ -1333,7 +1413,7 @@ if web is not None and routes is not None:
                 profile_id=profile_id,
                 revision=revision,
             )
-        except (FileExistsError, ValueError) as exc:
+        except (FileExistsError, FileNotFoundError, ValueError) as exc:
             return _profile_error_response(exc)
         return web.json_response({"status": "ok", "profile": payload})
 
