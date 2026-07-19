@@ -162,6 +162,33 @@ assert.deepEqual(calls.at(-1), {
   argumentCount: 2,
 });
 assert.equal(JSON.stringify(settings), settingsBefore, "save must not mutate settings");
+const legacySaveBody = JSON.parse(calls.at(-1).options.body);
+assert.equal(Object.hasOwn(legacySaveBody, "profile_id"), false);
+assert.equal(Object.hasOwn(legacySaveBody, "revision"), false);
+
+const sourceToken = {
+  profile_id: "11111111-1111-4111-8111-111111111111",
+  revision: 7,
+};
+const targetToken = {
+  profile_id: "22222222-2222-4222-8222-222222222222",
+  revision: 4,
+};
+responses.push(saveResponse);
+assert.equal(await client.saveProfile("New Portrait", false, settings, sourceToken), saveResponse);
+const createBody = JSON.parse(calls.at(-1).options.body);
+assert.equal(Object.hasOwn(createBody, "profile_id"), false);
+assert.equal(Object.hasOwn(createBody, "revision"), false);
+
+responses.push(saveResponse);
+assert.equal(await client.saveProfile("Portrait", true, settings, sourceToken), saveResponse);
+assert.deepEqual(JSON.parse(calls.at(-1).options.body), {
+  name: "Portrait",
+  overwrite: true,
+  settings,
+  profile_id: sourceToken.profile_id,
+  revision: sourceToken.revision,
+});
 
 const renameResponse = { profile: { name: "Portrait 2" } };
 responses.push(renameResponse);
@@ -180,6 +207,32 @@ assert.deepEqual(calls.at(-1), {
   argumentCount: 2,
 });
 
+responses.push(renameResponse);
+assert.equal(
+  await client.renameProfile("Portrait", "portrait", false, sourceToken, targetToken),
+  renameResponse,
+);
+const sameProfileRenameBody = JSON.parse(calls.at(-1).options.body);
+assert.equal(sameProfileRenameBody.profile_id, sourceToken.profile_id);
+assert.equal(sameProfileRenameBody.revision, sourceToken.revision);
+assert.equal(Object.hasOwn(sameProfileRenameBody, "target_profile_id"), false);
+assert.equal(Object.hasOwn(sameProfileRenameBody, "target_revision"), false);
+
+responses.push(renameResponse);
+assert.equal(
+  await client.renameProfile("Portrait", "Portrait 2", true, sourceToken, targetToken),
+  renameResponse,
+);
+assert.deepEqual(JSON.parse(calls.at(-1).options.body), {
+  old_name: "Portrait",
+  new_name: "Portrait 2",
+  overwrite: true,
+  profile_id: sourceToken.profile_id,
+  revision: sourceToken.revision,
+  target_profile_id: targetToken.profile_id,
+  target_revision: targetToken.revision,
+});
+
 const deleteResponse = { profile: { name: "Portrait 2" } };
 responses.push(deleteResponse);
 assert.equal(await client.deleteProfile("Portrait 2"), deleteResponse);
@@ -191,6 +244,14 @@ assert.deepEqual(calls.at(-1), {
     body: JSON.stringify({ name: "Portrait 2" }),
   },
   argumentCount: 2,
+});
+
+responses.push(deleteResponse);
+assert.equal(await client.deleteProfile("Portrait 2", sourceToken), deleteResponse);
+assert.deepEqual(JSON.parse(calls.at(-1).options.body), {
+  name: "Portrait 2",
+  profile_id: sourceToken.profile_id,
+  revision: sourceToken.revision,
 });
 
 const requestError = new Error("backend unavailable");

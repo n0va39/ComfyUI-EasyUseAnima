@@ -4,9 +4,9 @@
  * @typedef {object} AioProfileApi
  * @property {() => Promise<any>} listProfiles
  * @property {(name: string) => Promise<any>} loadProfile
- * @property {(name: string, overwrite: boolean, settings: any) => Promise<any>} saveProfile
- * @property {(oldName: string, newName: string, overwrite: boolean) => Promise<any>} renameProfile
- * @property {(name: string) => Promise<any>} deleteProfile
+ * @property {(name: string, overwrite: boolean, settings: any, profile?: any) => Promise<any>} saveProfile
+ * @property {(oldName: string, newName: string, overwrite: boolean, profile?: any, targetProfile?: any) => Promise<any>} renameProfile
+ * @property {(name: string, profile?: any) => Promise<any>} deleteProfile
  */
 
 /**
@@ -117,6 +117,25 @@ export function aioCreateProfileSettingsRuntime(dependencies) {
     return findUser(state.profiles, name);
   }
 
+  function rememberProfile(profile, ...replacedNames) {
+    const name = String(profile?.name || "").trim();
+    if (!name) {
+      return;
+    }
+    const replaced = new Set([...replacedNames, name].map((value) => String(value || "").toLowerCase()));
+    state.profiles = state.profiles.filter(
+      (current) => !replaced.has(String(current?.name || "").toLowerCase()),
+    );
+    state.profiles.push(profile);
+  }
+
+  function forgetProfile(name) {
+    const expected = String(name || "").toLowerCase();
+    state.profiles = state.profiles.filter(
+      (profile) => String(profile?.name || "").toLowerCase() !== expected,
+    );
+  }
+
   async function loadProfiles({ force = false } = {}) {
     if (state.loaded && !force) {
       return state.profiles;
@@ -164,6 +183,7 @@ export function aioCreateProfileSettingsRuntime(dependencies) {
     const name = userName(textValue);
     const data = await profileApi.loadProfile(name);
     const profile = data?.profile || null;
+    rememberProfile(profile ? { ...profile, name } : null, name);
     if (!profile?.settings || typeof profile.settings !== "object") {
       throw new Error("Profile settings are missing");
     }
@@ -187,7 +207,8 @@ export function aioCreateProfileSettingsRuntime(dependencies) {
       return;
     }
     const settings = getSettings(node);
-    const data = await profileApi.saveProfile(name, overwrite, settings);
+    const data = await profileApi.saveProfile(name, overwrite, settings, existing);
+    rememberProfile(data?.profile, name);
     await loadProfiles({ force: true });
     node.__easyuseAnimaGeneratorProfileValue = userValue(data?.profile?.name || name);
     node.__easyuseAnimaGeneratorProfileFingerprint = fingerprint(settings);
@@ -214,7 +235,15 @@ export function aioCreateProfileSettingsRuntime(dependencies) {
     if (overwrite && !dialogs.confirm(format("profile.overwriteConfirm", { name: existing.name }))) {
       return;
     }
-    const data = await profileApi.renameProfile(oldName, newName, overwrite);
+    const current = userProfileByName(oldName);
+    const data = await profileApi.renameProfile(
+      oldName,
+      newName,
+      overwrite,
+      current,
+      overwrite ? existing : null,
+    );
+    rememberProfile(data?.profile, oldName, newName);
     await loadProfiles({ force: true });
     if (currentName.toLowerCase() === oldName.toLowerCase()) {
       node.__easyuseAnimaGeneratorProfileValue = userValue(data?.profile?.name || newName);
@@ -228,7 +257,9 @@ export function aioCreateProfileSettingsRuntime(dependencies) {
       return;
     }
     const currentName = userName(syncValue(node));
-    await profileApi.deleteProfile(name);
+    const current = userProfileByName(name);
+    await profileApi.deleteProfile(name, current);
+    forgetProfile(name);
     await loadProfiles({ force: true });
     if (currentName.toLowerCase() === name.toLowerCase()) {
       node.__easyuseAnimaGeneratorProfileValue = customValue;

@@ -101,6 +101,35 @@ assert.deepEqual(calls.at(-1), {
   argumentCount: 2,
 });
 assert.equal(JSON.stringify(savePayload), savePayloadBefore, "overwrite save must not mutate the payload");
+const legacyOverwriteBody = JSON.parse(calls.at(-1).options.body);
+assert.equal(Object.hasOwn(legacyOverwriteBody, "profile_id"), false);
+assert.equal(Object.hasOwn(legacyOverwriteBody, "revision"), false);
+
+const profileToken = {
+  profile_id: "11111111-1111-4111-8111-111111111111",
+  revision: 0,
+};
+responses.push(saveResponse);
+assert.equal(
+  await client.saveProfile("New Demo", savePayload, false, profileToken),
+  saveResponse,
+);
+const createBody = JSON.parse(calls.at(-1).options.body);
+assert.equal(Object.hasOwn(createBody, "profile_id"), false);
+assert.equal(Object.hasOwn(createBody, "revision"), false);
+
+responses.push(saveResponse);
+assert.equal(
+  await client.saveProfile("Demo", savePayload, true, profileToken),
+  saveResponse,
+);
+assert.deepEqual(JSON.parse(calls.at(-1).options.body), {
+  name: "Demo",
+  ...savePayload,
+  overwrite: true,
+  profile_id: profileToken.profile_id,
+  revision: profileToken.revision,
+});
 
 const fixPayload = {
   profile_count: 2,

@@ -136,14 +136,20 @@ function createFixture() {
     loadProfile(name) {
       return queuedResult("loadProfile", [name]);
     },
-    saveProfile(name, overwrite, settings) {
-      return queuedResult("saveProfile", [name, overwrite, clone(settings)]);
+    saveProfile(name, overwrite, settings, profile) {
+      return queuedResult("saveProfile", [name, overwrite, clone(settings), clone(profile)]);
     },
-    renameProfile(oldName, newName, overwrite) {
-      return queuedResult("renameProfile", [oldName, newName, overwrite]);
+    renameProfile(oldName, newName, overwrite, profile, targetProfile) {
+      return queuedResult("renameProfile", [
+        oldName,
+        newName,
+        overwrite,
+        clone(profile),
+        clone(targetProfile),
+      ]);
     },
-    deleteProfile(name) {
-      return queuedResult("deleteProfile", [name]);
+    deleteProfile(name, profile) {
+      return queuedResult("deleteProfile", [name, clone(profile)]);
     },
   };
 
@@ -585,6 +591,7 @@ assert.deepEqual(fixture.apiCalls.saveProfile.at(-1), [
   "Landscape",
   true,
   { sampler: { steps: 55 }, save_snapshot: true },
+  { name: "Landscape" },
 ]);
 assert.equal(saveNode.__easyuseAnimaGeneratorProfileValue, "user:Landscape");
 assert.match(saveNode.__easyuseAnimaGeneratorProfileFingerprint, /^fingerprint:/);
@@ -651,7 +658,13 @@ assert.ok(
   fixture.trace.indexOf("resolve") < fixture.trace.indexOf("prompt"),
   "rename must sync the current selection before prompting",
 );
-assert.deepEqual(fixture.apiCalls.renameProfile.at(-1), ["Landscape", "Cinematic", false]);
+assert.deepEqual(fixture.apiCalls.renameProfile.at(-1), [
+  "Landscape",
+  "Cinematic",
+  false,
+  { name: "Landscape" },
+  null,
+]);
 assert.equal(saveNode.__easyuseAnimaGeneratorProfileValue, "user:Cinematic");
 assert.equal(fixture.apiCalls.listProfiles.length, listCallsBeforeRename + 1);
 assert.equal(fixture.trace.includes("refresh-panels"), true);
@@ -689,7 +702,7 @@ const dialogsBeforeDelete = fixture.dialogs.length;
 const listCallsBeforeDelete = fixture.apiCalls.listProfiles.length;
 fixture.trace.length = 0;
 await buttons.delete.dispatch("click");
-assert.deepEqual(fixture.apiCalls.deleteProfile.at(-1), ["Cinematic"]);
+assert.deepEqual(fixture.apiCalls.deleteProfile.at(-1), ["Cinematic", { name: "Cinematic" }]);
 assert.equal(saveNode.__easyuseAnimaGeneratorProfileValue, "custom");
 assert.equal(Object.hasOwn(saveNode, "__easyuseAnimaGeneratorProfileFingerprint"), false);
 assert.equal(fixture.apiCalls.listProfiles.length, listCallsBeforeDelete + 1);
@@ -766,6 +779,7 @@ assert.deepEqual(fixture.apiCalls.saveProfile.at(-1), [
   "Refresh Failure",
   false,
   { sampler: { steps: 55 }, save_snapshot: true },
+  null,
 ]);
 assert.equal(fixture.apiCalls.listProfiles.length, listCallsBeforeRefreshError + 1);
 assert.equal(dialog.backdrop.isConnected, true, "refresh failure must retain its dialog");
@@ -777,6 +791,115 @@ fixture.apiQueues.listProfiles.push({ profiles: [{ name: "Recovered After Refres
 assert.deepEqual(await fixture.runtime.loadProfiles({ force: true }), [
   { name: "Recovered After Refresh" },
 ]);
+
+const tokenFixture = createFixture();
+const sourceV1 = {
+  name: "Source",
+  profile_id: "11111111-1111-4111-8111-111111111111",
+  revision: 1,
+};
+const targetV4 = {
+  name: "Target",
+  profile_id: "22222222-2222-4222-8222-222222222222",
+  revision: 4,
+};
+tokenFixture.apiQueues.listProfiles.push({ profiles: [sourceV1, targetV4] });
+await tokenFixture.runtime.loadProfiles();
+const tokenNode = {
+  settings: { sampler: { steps: 61 } },
+  __easyuseAnimaGeneratorProfileValue: "user:Source",
+  __easyuseAnimaGeneratorProfileFingerprint: "source-fingerprint",
+};
+tokenFixture.runtime.open(tokenNode);
+let tokenDialog = tokenFixture.dialogs.at(-1);
+let tokenButtons = dialogButtons(tokenDialog);
+tokenButtons.select.value = "user:Source";
+
+const targetV5 = { ...targetV4, revision: 5 };
+tokenFixture.prompts.push("Target");
+tokenFixture.confirms.push(true);
+tokenFixture.apiQueues.saveProfile.push({ profile: targetV5 });
+tokenFixture.apiQueues.listProfiles.push(new Error("save refresh failed"));
+await tokenButtons.save.dispatch("click");
+assert.deepEqual(tokenFixture.apiCalls.saveProfile.at(-1), [
+  "Target",
+  true,
+  { sampler: { steps: 61 } },
+  targetV4,
+]);
+assert.deepEqual(
+  (await tokenFixture.runtime.loadProfiles()).find((profile) => profile.name === "Target"),
+  targetV5,
+  "save response metadata must survive a failed list refresh",
+);
+
+const targetV6 = { ...targetV4, revision: 6 };
+tokenFixture.prompts.push("Target");
+tokenFixture.confirms.push(true);
+tokenFixture.apiQueues.saveProfile.push({ profile: targetV6 });
+tokenFixture.apiQueues.listProfiles.push(new Error("second save refresh failed"));
+await tokenButtons.save.dispatch("click");
+assert.deepEqual(tokenFixture.apiCalls.saveProfile.at(-1).at(-1), targetV5);
+
+tokenButtons.select.value = "user:Source";
+tokenFixture.prompts.push("Target");
+tokenFixture.confirms.push(true);
+const renamedTarget = { ...sourceV1, name: "Target" };
+tokenFixture.apiQueues.renameProfile.push({ profile: renamedTarget });
+tokenFixture.apiQueues.listProfiles.push(new Error("rename refresh failed"));
+await tokenButtons.rename.dispatch("click");
+assert.deepEqual(tokenFixture.apiCalls.renameProfile.at(-1), [
+  "Source",
+  "Target",
+  true,
+  sourceV1,
+  targetV6,
+]);
+
+tokenButtons.select.value = "user:Target";
+tokenFixture.confirms.push(true);
+tokenFixture.apiQueues.deleteProfile.push({ profile: renamedTarget });
+tokenFixture.apiQueues.listProfiles.push(new Error("delete refresh failed"));
+await tokenButtons.delete.dispatch("click");
+assert.deepEqual(tokenFixture.apiCalls.deleteProfile.at(-1), ["Target", renamedTarget]);
+assert.equal(
+  (await tokenFixture.runtime.loadProfiles()).some((profile) => profile.name === "Target"),
+  false,
+  "delete success must remove cached metadata even when refresh fails",
+);
+
+const caseFixture = createFixture();
+const caseProfile = {
+  name: "Case Name",
+  profile_id: "33333333-3333-4333-8333-333333333333",
+  revision: 2,
+};
+caseFixture.apiQueues.listProfiles.push({ profiles: [caseProfile] });
+await caseFixture.runtime.loadProfiles();
+const caseNode = {
+  settings: { keep: true },
+  __easyuseAnimaGeneratorProfileValue: "user:Case Name",
+  __easyuseAnimaGeneratorProfileFingerprint: "case-fingerprint",
+};
+caseFixture.runtime.open(caseNode);
+const caseButtons = dialogButtons(caseFixture.dialogs.at(-1));
+caseButtons.select.value = "user:Case Name";
+caseFixture.prompts.push("case name");
+caseFixture.apiQueues.renameProfile.push({
+  profile: { ...caseProfile, name: "case name" },
+});
+caseFixture.apiQueues.listProfiles.push({
+  profiles: [{ ...caseProfile, name: "case name" }],
+});
+await caseButtons.rename.dispatch("click");
+assert.deepEqual(caseFixture.apiCalls.renameProfile.at(-1), [
+  "Case Name",
+  "case name",
+  false,
+  caseProfile,
+  null,
+]);
+assert.deepEqual(caseFixture.confirmCalls, [], "case-only rename must not confirm overwrite");
 
 const preserveFixture = createFixture();
 preserveFixture.apiQueues.listProfiles.push({

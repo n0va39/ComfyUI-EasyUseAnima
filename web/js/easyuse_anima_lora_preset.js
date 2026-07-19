@@ -344,6 +344,7 @@ const {
   deleteProfile,
   selectedProfilePayload,
   profileSaveStatus,
+  rememberProfileTokens,
   appendProfilePayload,
   saveProfileSet,
   loadProfileSet,
@@ -534,6 +535,7 @@ async function openProfileLoadMenu(node, event, pos) {
   try {
     const data = await loraPresetApi.listProfiles();
     profiles = Array.isArray(data?.profiles) ? data.profiles : [];
+    rememberProfileTokens(profiles);
   } catch (error) {
     window.alert(lpFormat("profile.listFailed", { message: errorMessage(error) }));
     return;
@@ -552,7 +554,10 @@ async function openProfileLoadMenu(node, event, pos) {
     callback: (value) => {
       const name = String(value?.content ?? value ?? "").trim();
       if (name) {
-        loadProfileSet(node, name);
+        loadProfileSet(
+          node,
+          profiles.find((profile) => String(profile?.name || "") === name) || name,
+        );
       }
     },
   });
