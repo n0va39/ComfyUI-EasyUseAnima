@@ -3376,7 +3376,6 @@ class FrontendModuleStructureTests(unittest.TestCase):
             "web/js/easyuse_anima_aio.js",
             "web/js/easyuse_anima_autocomplete.js",
             "web/js/easyuse_anima_lora_preset.js",
-            "web/js/easyuse_anima_naia.js",
         }
         actual_root_entries = {
             path.relative_to(ROOT).as_posix()

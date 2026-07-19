@@ -20,6 +20,7 @@
     "web/js/settings/**/*.js",
     "web/js/easyuse_anima_api.js",
     "web/js/easyuse_anima_i18n.js",
+    "web/js/easyuse_anima_naia.js",
     "web/js/easyuse_anima_prompt_rules.js",
     "web/js/easyuse_anima_settings.js",
     "web/js/easyuse_anima_prompt_studio_common.js",
