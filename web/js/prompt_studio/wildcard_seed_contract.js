@@ -2,21 +2,38 @@
 
 const WILDCARD_SEED_MAX = Number.MAX_SAFE_INTEGER;
 const WILDCARD_SEED_MAX_BIGINT = BigInt(WILDCARD_SEED_MAX);
-const WILDCARD_MODE_CONTROL_OVERRIDES = new Map([
-  ["sequential", "increment"],
-  ["순차", "increment"],
+const WILDCARD_SEED_CONTROL_ALIASES = new Map([
+  ["fixed", "fixed"],
+  ["고정", "fixed"],
+  ["random", "randomize"],
+  ["randomize", "randomize"],
+  ["매번 랜덤", "randomize"],
+  ["increase", "increment"],
+  ["increment", "increment"],
+  ["증가", "increment"],
+]);
+const LEGACY_FIXED_WILDCARD_MODES = new Set([
+  "fixed",
+  "고정",
+  "reproduce",
+  "재현",
 ]);
 
 /**
- * Return the seed control implied by Prompt Studio's two modes.
+ * Normalize Prompt Studio's independent next-seed policy. Legacy Fixed and
+ * Reproduce modes keep their historical fixed-seed meaning while loading.
  *
- * @param {any} mode
+ * @param {any} control
+ * @param {any} [mode]
  */
-function wildcardSeedControlForMode(mode) {
-  return WILDCARD_MODE_CONTROL_OVERRIDES.get(
-    String(mode || "").trim().toLowerCase(),
-  )
-    || "fixed";
+function normalizeWildcardSeedControl(control, mode = null) {
+  const normalizedMode = String(mode || "").trim().toLowerCase();
+  if (LEGACY_FIXED_WILDCARD_MODES.has(normalizedMode)) {
+    return "fixed";
+  }
+  return WILDCARD_SEED_CONTROL_ALIASES.get(
+    String(control || "").trim().toLowerCase(),
+  ) || "fixed";
 }
 
 /** @param {any} value */
@@ -152,8 +169,8 @@ export {
   bindWildcardSeedInput,
   nextWildcardSeed,
   normalizeWildcardSeed,
+  normalizeWildcardSeedControl,
   normalizeWildcardSeedInput,
   optionalWildcardSeed,
   randomWildcardSeed,
-  wildcardSeedControlForMode,
 };

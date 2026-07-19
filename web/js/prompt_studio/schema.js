@@ -20,6 +20,7 @@ import {
   advancedResolutionLabel,
   resolutionRatioLabel,
 } from "./utils.js";
+import { normalizeWildcardSeedControl } from "./wildcard_seed_contract.js";
 
 function advancedDefaultFields() {
   return JSON.parse(JSON.stringify(ADVANCED_DEFAULT_FIELDS));
@@ -121,7 +122,7 @@ function normalizeAdvancedWidgetQueueValue(name, value) {
     return String(value || fallback || DEFAULT_ADVANCED_RESOLUTION_SIZE);
   }
   if (name === "wildcard_seed_after_generate") {
-    return String(value || fallback || "fixed");
+    return normalizeWildcardSeedControl(value || fallback);
   }
   return value == null || value === "" ? fallback : value;
 }

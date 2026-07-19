@@ -2670,7 +2670,7 @@ class FrontendModuleStructureTests(unittest.TestCase):
         self.assertIn("bindWildcardSeedInput", contract_source)
         self.assertIn("normalizeWildcardSeedInput", contract_source)
         self.assertIn("nextWildcardSeed", contract_source)
-        self.assertIn("wildcardSeedControlForMode", contract_source)
+        self.assertIn("normalizeWildcardSeedControl", contract_source)
         self.assertIn("globalThis.requestAnimationFrame", contract_source)
         self.assertIn("input.isConnected !== true", contract_source)
         self.assertIn("!dirty", contract_source)
@@ -2693,7 +2693,7 @@ class FrontendModuleStructureTests(unittest.TestCase):
                 self.assertIn("wildcard_seed_contract.js", source)
                 self.assertIn("bindWildcardSeedInput", source)
                 self.assertGreaterEqual(
-                    source.count("wildcardSeedControlForMode"),
+                    source.count("normalizeWildcardSeedControl"),
                     2,
                 )
         self.assertIn(
@@ -2705,13 +2705,16 @@ class FrontendModuleStructureTests(unittest.TestCase):
             (PROMPT_STUDIO_REGIONAL_MODULES / "constants.js").read_text(encoding="utf-8"),
         )
         self.assertIn(
-            'setAdvancedWidgetValue(node, "wildcard_seed_after_generate", nextControl);',
-            advanced_source,
+            'const ADVANCED_WILDCARD_SEED_CONTROLS = ["fixed", "randomize", "increment"];',
+            (PROMPT_STUDIO_MODULES / "constants.js").read_text(encoding="utf-8"),
         )
         self.assertIn(
-            '"wildcard_seed_after_generate",\n          nextControl,',
-            regional_source,
+            'export const PROMPT_STUDIO_WILDCARD_SEED_CONTROLS = ["fixed", "randomize", "increment"];',
+            (PROMPT_STUDIO_REGIONAL_MODULES / "constants.js").read_text(encoding="utf-8"),
         )
+        self.assertIn('headerHelpKey: "advanced.wildcardHelp"', advanced_source)
+        self.assertIn("controlSelect.addEventListener(\"change\", syncControl);", advanced_source)
+        self.assertIn("controlSelect.addEventListener(\"change\", syncControl);", regional_source)
 
     def test_prompt_studio_wildcard_tooltips_follow_the_selected_mode(self):
         constants_source = (PROMPT_STUDIO_MODULES / "constants.js").read_text(
@@ -2734,10 +2737,19 @@ class FrontendModuleStructureTests(unittest.TestCase):
                 constants_source,
             )
 
+        self.assertEqual(constants_source.count('"advanced.wildcardHelp"'), 4)
+        self.assertEqual(constants_source.count('"advanced.wildcardHelpLabel"'), 4)
+        for control_key in ("fixed", "randomize", "increment"):
+            with self.subTest(control=control_key):
+                self.assertEqual(
+                    constants_source.count(f'"advanced.wildcardSeedControl.{control_key}"'),
+                    4,
+                )
+
         for syntax in (
             "__name__",
             "{a|b|c}",
-            "N::weight",
+            "N::candidate",
             "{n$$...}",
             "{min-max$$separator$$...}",
             "N#__name__",

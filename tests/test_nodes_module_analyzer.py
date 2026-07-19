@@ -73,11 +73,11 @@ def load_dynamic():
     def test_current_nodes_module_shape_matches_recorded_baseline(self):
         report = analyzer.analyze_path(ROOT / "nodes.py")
 
-        self.assertEqual(report["git_blob_sha1"], "d1c55e23b11623896ef38b3cfcadae8c7e78c2f5")
-        # Prompt Studio now preserves source fields and expands them through one RNG stream.
-        self.assertEqual(report["top_level"]["function_count"], 149)
+        self.assertEqual(report["git_blob_sha1"], "949995519a4179e79f8a187ab2073e0c09779c06")
+        # Prompt Studio preserves source fields and separates wildcard mode from seed control.
+        self.assertEqual(report["top_level"]["function_count"], 150)
         self.assertEqual(report["top_level"]["class_count"], 12)
-        self.assertEqual(report["line_count"], 8_262)
+        self.assertEqual(report["line_count"], 8_283)
         class_names = {item["name"] for item in report["top_level"]["classes"]}
         self.assertIn("EasyUseAnimaAIOGenerator", class_names)
         self.assertIn("EasyUseAnimaPromptStudioAdvancedV2", class_names)

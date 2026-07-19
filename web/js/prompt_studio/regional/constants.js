@@ -29,7 +29,7 @@ export const PROMPT_STUDIO_VARIANT_FIELD_LABELS = {
 };
 
 export const PROMPT_STUDIO_WILDCARD_MODES = ["일반", "순차"];
-export const PROMPT_STUDIO_WILDCARD_SEED_CONTROLS = ["fixed", "randomize", "increment", "decrement"];
+export const PROMPT_STUDIO_WILDCARD_SEED_CONTROLS = ["fixed", "randomize", "increment"];
 export const PROMPT_STUDIO_WILDCARD_DEFAULT_MODE = "일반";
 
 export const PROMPT_STUDIO_RESOLUTION_BUCKETS = {

@@ -7,6 +7,7 @@ import {
   PROMPT_STUDIO_VARIANT_FIELD_TYPES as REGIONAL_FIELD_TYPES,
   PROMPT_STUDIO_WILDCARD_DEFAULT_MODE,
   PROMPT_STUDIO_WILDCARD_MODES,
+  PROMPT_STUDIO_WILDCARD_SEED_CONTROLS,
 } from "./constants.js";
 import {
   normalizeResolutionBucket,
@@ -25,7 +26,7 @@ import {
 } from "./lifecycle.js";
 import {
   bindWildcardSeedInput,
-  wildcardSeedControlForMode,
+  normalizeWildcardSeedControl,
 } from "../wildcard_seed_contract.js";
 import { disposeExternalAutocompleteInputs } from "../../autocomplete/entry_lifecycle.js";
 
@@ -89,6 +90,20 @@ function createRegionalFieldEditor(runtime, layout, maskEditor, hooks) {
     return hooks.promptStudioText(`advanced.wildcardMode.${modeKey}Title`);
   }
 
+  /** @param {any} control */
+  function wildcardSeedControlLabel(control) {
+    return hooks.promptStudioText(
+      `advanced.wildcardSeedControl.${normalizeWildcardSeedControl(control)}`,
+    );
+  }
+
+  /** @param {any} control */
+  function wildcardSeedControlTitle(control) {
+    return hooks.promptStudioText(
+      `advanced.wildcardSeedControl.${normalizeWildcardSeedControl(control)}Title`,
+    );
+  }
+
   /** @param {string} label @param {string} title @param {(event?: any) => void} onClick */
   function createButton(label, title, onClick) {
     return hooks.createPromptStudioActionButton(label, title, onClick);
@@ -107,12 +122,12 @@ function createRegionalFieldEditor(runtime, layout, maskEditor, hooks) {
     row.className = "easyuse-anima-advanced-wildcardbar";
     const modeSelect = document.createElement("select");
     modeSelect.setAttribute("aria-label", hooks.promptStudioText("advanced.wildcard"));
-    const modeValue = normalizeWildcardMode(modeWidget.value);
+    const loadedMode = modeWidget.value;
+    const modeValue = normalizeWildcardMode(loadedMode);
     if (modeWidget.value !== modeValue) {
       runtime.setRegionalWidgetValue(node, "wildcard_mode", modeValue);
     }
     const selectedModeTitle = wildcardModeTitle(modeValue);
-    row.title = `${selectedModeTitle}\n${hooks.promptStudioText("advanced.wildcardTitle")}`;
     modeSelect.title = selectedModeTitle;
     modeSelect.setAttribute("aria-description", selectedModeTitle);
     for (const mode of PROMPT_STUDIO_WILDCARD_MODES) {
@@ -131,31 +146,49 @@ function createRegionalFieldEditor(runtime, layout, maskEditor, hooks) {
     seedInput.title = hooks.promptStudioText("advanced.wildcardSeedTitle");
     seedInput.setAttribute("aria-description", seedInput.title);
 
-    const controlValue = wildcardSeedControlForMode(modeValue);
+    const controlSelect = document.createElement("select");
+    controlSelect.setAttribute(
+      "aria-label",
+      hooks.promptStudioText("advanced.wildcardSeedControl"),
+    );
+    const controlValue = normalizeWildcardSeedControl(controlWidget.value, loadedMode);
     if (controlWidget.value !== controlValue) {
       runtime.setRegionalWidgetValue(node, "wildcard_seed_after_generate", controlValue);
     }
+    for (const control of PROMPT_STUDIO_WILDCARD_SEED_CONTROLS) {
+      const option = document.createElement("option");
+      option.value = control;
+      option.textContent = wildcardSeedControlLabel(control);
+      option.title = wildcardSeedControlTitle(control);
+      option.selected = control === controlValue;
+      controlSelect.append(option);
+    }
+    controlSelect.title = wildcardSeedControlTitle(controlValue);
+    controlSelect.setAttribute("aria-description", controlSelect.title);
+    row.title = `${selectedModeTitle}\n${controlSelect.title}\n${hooks.promptStudioText("advanced.wildcardTitle")}`;
 
     const syncMode = () => {
       const nextMode = normalizeWildcardMode(modeSelect.value);
       runtime.setRegionalWidgetValue(node, "wildcard_mode", nextMode);
-      const nextControl = wildcardSeedControlForMode(nextMode);
-      if (nextControl !== controlWidget.value) {
-        runtime.setRegionalWidgetValue(
-          node,
-          "wildcard_seed_after_generate",
-          nextControl,
-        );
-      }
+      renderRegionalEditor(node);
+    };
+    const syncControl = () => {
+      const nextControl = normalizeWildcardSeedControl(controlSelect.value);
+      runtime.setRegionalWidgetValue(
+        node,
+        "wildcard_seed_after_generate",
+        nextControl,
+      );
       renderRegionalEditor(node);
     };
     modeSelect.addEventListener("change", syncMode);
+    controlSelect.addEventListener("change", syncControl);
     bindWildcardSeedInput(
       seedInput,
       () => seedWidget.value,
       (seed) => runtime.setRegionalWidgetValue(node, "wildcard_seed", seed),
     );
-    row.append(modeSelect, seedInput);
+    row.append(modeSelect, seedInput, controlSelect);
     return row;
   }
 

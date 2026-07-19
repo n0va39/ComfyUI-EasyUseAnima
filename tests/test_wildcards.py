@@ -864,7 +864,7 @@ class WildcardSeedContractTests(unittest.TestCase):
                 self.assertIn(str(wildcard_engine.PUBLIC_MAX_SEED), config["tooltip"])
                 self.assertIn("legacy", config["tooltip"].lower())
 
-    def test_prompt_studio_modes_own_seed_progression(self):
+    def test_prompt_studio_seed_control_is_independent_from_mode(self):
         wildcard = EasyUseAnimaWildcard().generate(
             "",
             "",
@@ -879,25 +879,44 @@ class WildcardSeedContractTests(unittest.TestCase):
             "[]",
             wildcard_mode="일반",
             wildcard_seed=0,
-            wildcard_seed_after_generate="decrement",
+            wildcard_seed_after_generate="increment",
         )
         regional = EasyUseAnimaPromptStudioRegional().build(
             "[]",
             "{}",
             wildcard_mode="순차",
             wildcard_seed=0,
-            wildcard_seed_after_generate="decrement",
+            wildcard_seed_after_generate="fixed",
         )
 
         self.assertEqual(wildcard["ui"]["wildcard"][0]["seed"], 0)
         self.assertEqual(
             advanced["ui"]["prompt_studio_advanced"][0]["wildcard_seed"],
-            0,
+            1,
         )
         self.assertEqual(
             regional["ui"]["prompt_studio_regional"][0]["wildcard_seed"],
-            1,
+            0,
         )
+        self.assertEqual(
+            advanced["ui"]["prompt_studio_advanced"][0]["wildcard_seed_after_generate"],
+            "increment",
+        )
+        self.assertEqual(
+            regional["ui"]["prompt_studio_regional"][0]["wildcard_seed_after_generate"],
+            "fixed",
+        )
+
+    def test_prompt_studio_backend_keeps_legacy_seed_control_compatibility(self):
+        for node_class in (
+            EasyUseAnimaPromptStudioAdvanced,
+            EasyUseAnimaPromptStudioRegional,
+        ):
+            with self.subTest(node=node_class.__name__):
+                self.assertEqual(
+                    node_class.INPUT_TYPES()["required"]["wildcard_seed_after_generate"][0],
+                    wildcard_engine.SEED_CONTROL_MODES,
+                )
 
     def test_legacy_current_seed_is_used_before_next_seed_reenters_public_range(self):
         legacy_max = wildcard_engine.MAX_SEED
@@ -1006,6 +1025,110 @@ class WildcardNodeTests(unittest.TestCase):
         ]
 
         self.assertEqual(outputs, ["rose", "tulip", "sunflower", "rose", "tulip"])
+
+    def test_prompt_studio_sequential_fixed_repeats_the_same_result(self):
+        fields = [{
+            "id": "positive_general",
+            "pane": "positive",
+            "type": "general",
+            "text": "{rose|tulip|sunflower}",
+            "enabled": True,
+        }]
+        fields_json = json.dumps(fields)
+
+        first = EasyUseAnimaPromptStudioAdvanced().build(
+            False,
+            True,
+            False,
+            False,
+            fields_json,
+            wildcard_mode="순차",
+            wildcard_seed=1,
+            wildcard_seed_after_generate="fixed",
+        )
+        second = EasyUseAnimaPromptStudioAdvanced().build(
+            False,
+            True,
+            False,
+            False,
+            fields_json,
+            wildcard_mode="순차",
+            wildcard_seed=1,
+            wildcard_seed_after_generate="fixed",
+        )
+
+        self.assertEqual(first["result"][0], "tulip")
+        self.assertEqual(second["result"][0], "tulip")
+        self.assertEqual(
+            first["ui"]["prompt_studio_advanced"][0]["wildcard_seed"],
+            1,
+        )
+        self.assertEqual(
+            first["ui"]["prompt_studio_advanced"][0]["wildcard_seed_after_generate"],
+            "fixed",
+        )
+
+    def test_prompt_studio_mode_and_seed_control_matrix_preserves_current_seed_metadata(self):
+        with patch("wildcard_engine.random.SystemRandom") as system_random:
+            system_random.return_value.randrange.return_value = 41
+            for mode in ("일반", "순차"):
+                for control, expected_next in (
+                    ("fixed", 7),
+                    ("randomize", 41),
+                    ("increment", 8),
+                ):
+                    with self.subTest(surface="advanced", mode=mode, control=control):
+                        workflow_prompt = {"9": {"inputs": {}}}
+                        extra_pnginfo = {
+                            "workflow": {"nodes": [{"id": 9, "widgets_values": []}]}
+                        }
+                        result = EasyUseAnimaPromptStudioAdvanced().build(
+                            False,
+                            True,
+                            False,
+                            False,
+                            "[]",
+                            wildcard_mode=mode,
+                            wildcard_seed=7,
+                            wildcard_seed_after_generate=control,
+                            workflow_prompt=workflow_prompt,
+                            extra_pnginfo=extra_pnginfo,
+                            unique_id="9",
+                        )
+                        payload = result["ui"]["prompt_studio_advanced"][0]
+                        self.assertEqual(payload["wildcard_seed"], expected_next)
+                        self.assertEqual(payload["wildcard_seed_after_generate"], control)
+                        self.assertEqual(workflow_prompt["9"]["inputs"]["wildcard_seed"], 7)
+                        self.assertEqual(
+                            workflow_prompt["9"]["inputs"]["wildcard_seed_after_generate"],
+                            control,
+                        )
+
+                    with self.subTest(surface="regional", mode=mode, control=control):
+                        workflow_prompt = {"42": {"inputs": {}}}
+                        extra_pnginfo = {
+                            "workflow": {
+                                "nodes": [{"id": 42, "widgets_values": [], "properties": {}}]
+                            }
+                        }
+                        result = EasyUseAnimaPromptStudioRegional().build(
+                            "[]",
+                            "{}",
+                            wildcard_mode=mode,
+                            wildcard_seed=7,
+                            wildcard_seed_after_generate=control,
+                            workflow_prompt=workflow_prompt,
+                            extra_pnginfo=extra_pnginfo,
+                            unique_id="42",
+                        )
+                        payload = result["ui"]["prompt_studio_regional"][0]
+                        self.assertEqual(payload["wildcard_seed"], expected_next)
+                        self.assertEqual(payload["wildcard_seed_after_generate"], control)
+                        self.assertEqual(workflow_prompt["42"]["inputs"]["wildcard_seed"], 7)
+                        self.assertEqual(
+                            workflow_prompt["42"]["inputs"]["wildcard_seed_after_generate"],
+                            control,
+                        )
 
     def test_connected_field_uses_shared_rng_without_replacing_saved_sources(self):
         saved_source = [
@@ -1572,7 +1695,7 @@ class WildcardNodeTests(unittest.TestCase):
                     "advanced_fields": json.dumps(fields),
                     "wildcard_mode": "일반",
                     "wildcard_seed": 2,
-                    "wildcard_seed_after_generate": "randomize",
+                    "wildcard_seed_after_generate": "fixed",
                     "easyuse_anima_reserved_wildcard_next_seed": json.dumps({
                         "version": 1,
                         "current_seed": 2,
@@ -1601,7 +1724,7 @@ class WildcardNodeTests(unittest.TestCase):
                             False,
                             "일반",
                             2,
-                            "randomize",
+                            "fixed",
                         ],
                     }
                 ]
@@ -1625,7 +1748,7 @@ class WildcardNodeTests(unittest.TestCase):
                 json.dumps(fields),
                 wildcard_mode="일반",
                 wildcard_seed=2,
-                wildcard_seed_after_generate="randomize",
+                wildcard_seed_after_generate="fixed",
                 workflow_prompt=workflow_prompt,
                 extra_pnginfo=extra_pnginfo,
                 unique_id="9",
