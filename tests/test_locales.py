@@ -65,11 +65,11 @@ class LocaleTests(unittest.TestCase):
                 self.assertIsNone(HANGUL_RE.search(text))
 
     def test_wildcard_tooltips_cover_syntax_and_mode_lifecycle(self):
-        standalone_reproduce_terms = {
-            "ko": ("와일드카드 엔진", "파일 와일드카드", "그대로 출력"),
-            "ja": ("ワイルドカードエンジン", "ファイルワイルドカード", "そのまま出力"),
-            "zh": ("萬用字元引擎", "檔案萬用字元", "原樣輸出"),
-            "zh-CN": ("通配符引擎", "文件通配符", "原样输出"),
+        wildcard_terms = {
+            "ko": ("Impact Pack", "파일 와일드카드", "일반", "고정", "순차", "재현"),
+            "ja": ("Impact Pack", "ファイルワイルドカード", "通常", "固定", "順次", "再現"),
+            "zh": ("Impact Pack", "檔案萬用字元", "一般", "固定", "順序", "復現"),
+            "zh-CN": ("Impact Pack", "文件通配符", "普通", "固定", "顺序", "复现"),
         }
         for locale_code in LOCALE_CODES:
             data = json.loads(
@@ -93,16 +93,21 @@ class LocaleTests(unittest.TestCase):
                 self.assertGreater(len(inputs["populated_text"]["tooltip"]), 50)
                 self.assertIn("text", inputs["populated_text"]["tooltip"])
                 self.assertGreater(len(inputs["mode"]["tooltip"]), 100)
-                self.assertIn("seed", inputs["mode"]["tooltip"])
                 self.assertIn("populated_text", inputs["mode"]["tooltip"])
-                engine_term, file_term, stale_term = standalone_reproduce_terms[locale_code]
-                self.assertIn(engine_term, inputs["populated_text"]["tooltip"])
-                self.assertIn(file_term, inputs["mode"]["tooltip"])
-                self.assertNotIn(stale_term, inputs["populated_text"]["tooltip"])
-                self.assertNotIn(
-                    "Cached expanded prompt used by fixed and reproduce modes.",
-                    inputs["populated_text"]["tooltip"],
-                )
+                (
+                    impact_term,
+                    file_term,
+                    general_term,
+                    fixed_term,
+                    _sequential_term,
+                    reproduce_term,
+                ) = wildcard_terms[locale_code]
+                self.assertIn(impact_term, inputs["populated_text"]["tooltip"])
+                self.assertIn(file_term, inputs["populated_text"]["tooltip"])
+                self.assertIn(general_term, inputs["mode"]["tooltip"])
+                self.assertIn(fixed_term, inputs["mode"]["tooltip"])
+                self.assertNotIn(reproduce_term, inputs["mode"]["tooltip"])
+                self.assertNotIn("seed_after_generate", inputs)
 
             for node_id in (
                 "EasyUseAnimaPromptStudioAdvanced",
@@ -112,7 +117,14 @@ class LocaleTests(unittest.TestCase):
                 with self.subTest(locale=locale_code, node=node_id):
                     inputs = data[node_id]["inputs"]
                     self.assertGreater(len(inputs["wildcard_mode"]["tooltip"]), 50)
-                    self.assertIn("seed", inputs["wildcard_mode"]["tooltip"])
+                    general_term, sequential_term, reproduce_term = (
+                        wildcard_terms[locale_code][2],
+                        wildcard_terms[locale_code][4],
+                        wildcard_terms[locale_code][5],
+                    )
+                    self.assertIn(general_term, inputs["wildcard_mode"]["tooltip"])
+                    self.assertIn(sequential_term, inputs["wildcard_mode"]["tooltip"])
+                    self.assertNotIn(reproduce_term, inputs["wildcard_mode"]["tooltip"])
                     self.assertGreater(len(inputs["wildcard_seed"]["tooltip"]), 20)
                     self.assertGreater(
                         len(inputs["wildcard_seed_after_generate"]["tooltip"]),

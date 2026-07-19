@@ -38,13 +38,12 @@
     {
       "id": "EasyUseAnimaWildcard",
       "inputs": {
-        "mode": "reproduce",
+        "mode": "고정",
         "populated_text": "",
         "seed": 17,
-        "seed_after_generate": "fixed",
         "text": "plain contract prompt"
       },
-      "result": "{\"mode\":\"reproduce\",\"populated_text\":\"\",\"seed\":\"17\",\"seed_after_generate\":\"fixed\",\"text\":\"plain contract prompt\",\"wildcard_sources\":{\"files\":[]}}"
+      "result": "{\"mode\":\"고정\",\"populated_text\":\"\",\"seed\":\"17\",\"text\":\"plain contract prompt\",\"wildcard_sources\":{\"files\":[]}}"
     },
     {
       "id": "EasyUseAnimaPromptStudioAdvancedV2",
@@ -53,7 +52,7 @@
         "artist_mix_mode": "off",
         "use_naia": false
       },
-      "result": "{\"artist_mix_cluster_count\":4,\"artist_mix_dominant_isolation\":true,\"artist_mix_dominant_threshold\":0.25,\"artist_mix_exact_top_k\":4,\"artist_mix_mode\":\"off\",\"artist_mix_rms_scale_cap\":2.0,\"artist_mix_start_percent\":0.5,\"artist_mix_strength_scale\":1.0,\"artist_mix_style_gain\":1.35,\"base\":\"{\\\"advanced_fields\\\":\\\"[{\\\\\\\"id\\\\\\\":\\\\\\\"positive_quality\\\\\\\",\\\\\\\"pane\\\\\\\":\\\\\\\"positive\\\\\\\",\\\\\\\"type\\\\\\\":\\\\\\\"quality\\\\\\\",\\\\\\\"label\\\\\\\":\\\\\\\"Quality Tags\\\\\\\",\\\\\\\"text\\\\\\\":\\\\\\\"newest, masterpiece, best quality, score_8, score_7:, highres, absurdres, very aesthetic\\\\\\\",\\\\\\\"height\\\\\\\":72,\\\\\\\"enabled\\\\\\\":true,\\\\\\\"pin\\\\\\\":false},{\\\\\\\"id\\\\\\\":\\\\\\\"positive_artist\\\\\\\",\\\\\\\"pane\\\\\\\":\\\\\\\"positive\\\\\\\",\\\\\\\"type\\\\\\\":\\\\\\\"artist\\\\\\\",\\\\\\\"label\\\\\\\":\\\\\\\"Artist Tags\\\\\\\",\\\\\\\"text\\\\\\\":\\\\\\\"\\\\\\\",\\\\\\\"height\\\\\\\":72,\\\\\\\"enabled\\\\\\\":true,\\\\\\\"pin\\\\\\\":false},{\\\\\\\"id\\\\\\\":\\\\\\\"positive_trigger\\\\\\\",\\\\\\\"pane\\\\\\\":\\\\\\\"positive\\\\\\\",\\\\\\\"type\\\\\\\":\\\\\\\"trigger\\\\\\\",\\\\\\\"label\\\\\\\":\\\\\\\"Trigger Words\\\\\\\",\\\\\\\"text\\\\\\\":\\\\\\\"\\\\\\\",\\\\\\\"height\\\\\\\":72,\\\\\\\"enabled\\\\\\\":true,\\\\\\\"pin\\\\\\\":true},{\\\\\\\"id\\\\\\\":\\\\\\\"positive_general\\\\\\\",\\\\\\\"pane\\\\\\\":\\\\\\\"positive\\\\\\\",\\\\\\\"type\\\\\\\":\\\\\\\"general\\\\\\\",\\\\\\\"label\\\\\\\":\\\\\\\"General Tags\\\\\\\",\\\\\\\"text\\\\\\\":\\\\\\\"\\\\\\\",\\\\\\\"height\\\\\\\":150,\\\\\\\"enabled\\\\\\\":true,\\\\\\\"pin\\\\\\\":false},{\\\\\\\"id\\\\\\\":\\\\\\\"positive_trailing\\\\\\\",\\\\\\\"pane\\\\\\\":\\\\\\\"positive\\\\\\\",\\\\\\\"type\\\\\\\":\\\\\\\"general\\\\\\\",\\\\\\\"label\\\\\\\":\\\\\\\"General Tags\\\\\\\",\\\\\\\"text\\\\\\\":\\\\\\\"location, (A highly aesthetic Pixiv style illustration, clean composition, high-quality digital art, detailed background, sharp focus on facial expressions.:0.6)\\\\\\\",\\\\\\\"height\\\\\\\":72,\\\\\\\"enabled\\\\\\\":true,\\\\\\\"pin\\\\\\\":false},{\\\\\\\"id\\\\\\\":\\\\\\\"negative_general\\\\\\\",\\\\\\\"pane\\\\\\\":\\\\\\\"negative\\\\\\\",\\\\\\\"type\\\\\\\":\\\\\\\"general\\\\\\\",\\\\\\\"label\\\\\\\":\\\\\\\"General Tags\\\\\\\",\\\\\\\"text\\\\\\\":\\\\\\\"\\\\\\\",\\\\\\\"height\\\\\\\":120,\\\\\\\"enabled\\\\\\\":true,\\\\\\\"pin\\\\\\\":false}]\\\",\\\"metadata_filter_words\\\":[\\\"contract-filter\\\"],\\\"mode\\\":\\\"prompt_studio_advanced\\\",\\\"pin_trigger_tags_to_front\\\":false,\\\"prompt_translation\\\":{\\\"enabled\\\":false},\\\"resolution\\\":[1024,1024],\\\"use_anima_mod_guidance\\\":false,\\\"use_negative_anima_mod_guidance\\\":false,\\\"wildcard_mode\\\":\\\"fixed\\\",\\\"wildcard_seed\\\":0,\\\"wildcard_seed_after_generate\\\":\\\"fixed\\\",\\\"wildcard_sources\\\":{\\\"files\\\":[]}}\"}"
+      "result": "{\"artist_mix_cluster_count\":4,\"artist_mix_dominant_isolation\":true,\"artist_mix_dominant_threshold\":0.25,\"artist_mix_exact_top_k\":4,\"artist_mix_mode\":\"off\",\"artist_mix_rms_scale_cap\":2.0,\"artist_mix_start_percent\":0.5,\"artist_mix_strength_scale\":1.0,\"artist_mix_style_gain\":1.35,\"base\":\"{\\\"advanced_fields\\\":\\\"[{\\\\\\\"id\\\\\\\":\\\\\\\"positive_quality\\\\\\\",\\\\\\\"pane\\\\\\\":\\\\\\\"positive\\\\\\\",\\\\\\\"type\\\\\\\":\\\\\\\"quality\\\\\\\",\\\\\\\"label\\\\\\\":\\\\\\\"Quality Tags\\\\\\\",\\\\\\\"text\\\\\\\":\\\\\\\"newest, masterpiece, best quality, score_8, score_7:, highres, absurdres, very aesthetic\\\\\\\",\\\\\\\"height\\\\\\\":72,\\\\\\\"enabled\\\\\\\":true,\\\\\\\"pin\\\\\\\":false},{\\\\\\\"id\\\\\\\":\\\\\\\"positive_artist\\\\\\\",\\\\\\\"pane\\\\\\\":\\\\\\\"positive\\\\\\\",\\\\\\\"type\\\\\\\":\\\\\\\"artist\\\\\\\",\\\\\\\"label\\\\\\\":\\\\\\\"Artist Tags\\\\\\\",\\\\\\\"text\\\\\\\":\\\\\\\"\\\\\\\",\\\\\\\"height\\\\\\\":72,\\\\\\\"enabled\\\\\\\":true,\\\\\\\"pin\\\\\\\":false},{\\\\\\\"id\\\\\\\":\\\\\\\"positive_trigger\\\\\\\",\\\\\\\"pane\\\\\\\":\\\\\\\"positive\\\\\\\",\\\\\\\"type\\\\\\\":\\\\\\\"trigger\\\\\\\",\\\\\\\"label\\\\\\\":\\\\\\\"Trigger Words\\\\\\\",\\\\\\\"text\\\\\\\":\\\\\\\"\\\\\\\",\\\\\\\"height\\\\\\\":72,\\\\\\\"enabled\\\\\\\":true,\\\\\\\"pin\\\\\\\":true},{\\\\\\\"id\\\\\\\":\\\\\\\"positive_general\\\\\\\",\\\\\\\"pane\\\\\\\":\\\\\\\"positive\\\\\\\",\\\\\\\"type\\\\\\\":\\\\\\\"general\\\\\\\",\\\\\\\"label\\\\\\\":\\\\\\\"General Tags\\\\\\\",\\\\\\\"text\\\\\\\":\\\\\\\"\\\\\\\",\\\\\\\"height\\\\\\\":150,\\\\\\\"enabled\\\\\\\":true,\\\\\\\"pin\\\\\\\":false},{\\\\\\\"id\\\\\\\":\\\\\\\"positive_trailing\\\\\\\",\\\\\\\"pane\\\\\\\":\\\\\\\"positive\\\\\\\",\\\\\\\"type\\\\\\\":\\\\\\\"general\\\\\\\",\\\\\\\"label\\\\\\\":\\\\\\\"General Tags\\\\\\\",\\\\\\\"text\\\\\\\":\\\\\\\"location, (A highly aesthetic Pixiv style illustration, clean composition, high-quality digital art, detailed background, sharp focus on facial expressions.:0.6)\\\\\\\",\\\\\\\"height\\\\\\\":72,\\\\\\\"enabled\\\\\\\":true,\\\\\\\"pin\\\\\\\":false},{\\\\\\\"id\\\\\\\":\\\\\\\"negative_general\\\\\\\",\\\\\\\"pane\\\\\\\":\\\\\\\"negative\\\\\\\",\\\\\\\"type\\\\\\\":\\\\\\\"general\\\\\\\",\\\\\\\"label\\\\\\\":\\\\\\\"General Tags\\\\\\\",\\\\\\\"text\\\\\\\":\\\\\\\"\\\\\\\",\\\\\\\"height\\\\\\\":120,\\\\\\\"enabled\\\\\\\":true,\\\\\\\"pin\\\\\\\":false}]\\\",\\\"metadata_filter_words\\\":[\\\"contract-filter\\\"],\\\"mode\\\":\\\"prompt_studio_advanced\\\",\\\"pin_trigger_tags_to_front\\\":false,\\\"prompt_translation\\\":{\\\"enabled\\\":false},\\\"resolution\\\":[1024,1024],\\\"use_anima_mod_guidance\\\":false,\\\"use_negative_anima_mod_guidance\\\":false,\\\"wildcard_mode\\\":\\\"populate\\\",\\\"wildcard_seed\\\":0,\\\"wildcard_seed_after_generate\\\":\\\"fixed\\\",\\\"wildcard_sources\\\":{\\\"files\\\":[]}}\"}"
     },
     {
       "id": "EasyUseAnimaInput",
@@ -1672,14 +1671,12 @@
             },
             {
               "config": {
-                "default": "고정"
+                "default": "일반"
               },
               "name": "wildcard_mode",
               "type": [
-                "일반 채우기",
-                "고정",
-                "순차",
-                "재현"
+                "일반",
+                "순차"
               ]
             },
             {
@@ -1845,14 +1842,12 @@
             },
             {
               "config": {
-                "default": "고정"
+                "default": "일반"
               },
               "name": "wildcard_mode",
               "type": [
-                "일반 채우기",
-                "고정",
-                "순차",
-                "재현"
+                "일반",
+                "순차"
               ]
             },
             {
@@ -2066,14 +2061,12 @@
             },
             {
               "config": {
-                "default": "고정"
+                "default": "일반"
               },
               "name": "wildcard_mode",
               "type": [
-                "일반 채우기",
-                "고정",
-                "순차",
-                "재현"
+                "일반",
+                "순차"
               ]
             },
             {
@@ -2223,36 +2216,23 @@
             },
             {
               "config": {
-                "default": "일반 채우기"
+                "default": "일반"
               },
               "name": "mode",
               "type": [
-                "일반 채우기",
-                "고정",
-                "순차",
-                "재현"
+                "일반",
+                "고정"
               ]
             },
             {
               "config": {
+                "control_after_generate": true,
                 "default": 0,
                 "max": 18446744073709551615,
                 "min": 0
               },
               "name": "seed",
               "type": "INT"
-            },
-            {
-              "config": {
-                "default": "fixed"
-              },
-              "name": "seed_after_generate",
-              "type": [
-                "fixed",
-                "randomize",
-                "increment",
-                "decrement"
-              ]
             }
           ],
           "name": "required"

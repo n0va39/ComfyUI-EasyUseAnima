@@ -13,6 +13,7 @@ HOST_HOOK_REGISTRY_SMOKE = ROOT / "tests" / "frontend_host_hook_registry_smoke.m
 PROMPT_STUDIO_ADVANCED_QUEUE_SEED_RUNTIME_SMOKE = (
     ROOT / "tests" / "frontend_prompt_studio_advanced_queue_seed_runtime_smoke.mjs"
 )
+WILDCARD_VALUES_SMOKE = ROOT / "tests" / "frontend_wildcard_values_smoke.mjs"
 WEB_JS = ROOT / "web" / "js"
 HOST_HOOK_REGISTRY_JS = WEB_JS / "lifecycle" / "host_hook_registry.js"
 API_JS = WEB_JS / "easyuse_anima_api.js"
@@ -2342,6 +2343,11 @@ class FrontendModuleStructureTests(unittest.TestCase):
             r'node "tests\frontend_prompt_studio_advanced_queue_seed_runtime_smoke.mjs"',
             FRONTEND_CHECK_SCRIPT.read_text(encoding="utf-8"),
         )
+        self.assertTrue(WILDCARD_VALUES_SMOKE.is_file())
+        self.assertIn(
+            r'node "tests\frontend_wildcard_values_smoke.mjs"',
+            FRONTEND_CHECK_SCRIPT.read_text(encoding="utf-8"),
+        )
         self.assertIn("hooks.shouldApplyExecutedSeed?.", (
             PROMPT_STUDIO_MODULES / "advanced_values.js"
         ).read_text(encoding="utf-8"))
@@ -2665,15 +2671,22 @@ class FrontendModuleStructureTests(unittest.TestCase):
         self.assertIn("normalizeWildcardSeedInput", contract_source)
         self.assertIn("nextWildcardSeed", contract_source)
         self.assertIn("wildcardSeedControlForMode", contract_source)
+        self.assertIn("globalThis.requestAnimationFrame", contract_source)
+        self.assertIn("input.isConnected !== true", contract_source)
+        self.assertIn("!dirty", contract_source)
         self.assertIn("./wildcard_seed_contract.js", queue_source)
         self.assertIn("nextWildcardSeed", queue_source)
         self.assertIn("./wildcard_seed_contract.js", extension_source)
         self.assertIn("return randomWildcardSeed();", extension_source)
         self.assertIn("hookWildcardSeedWidget,", extension_source)
         self.assertIn("hookWildcardSeedWidget", wildcard_values_source)
-        self.assertEqual(
-            node_hooks_source.count("hooks.hookWildcardSeedWidget?.(this);"),
-            2,
+        self.assertIn(
+            "hooks.hookWildcardSeedWidget?.(this, { resetSeedControl: false });",
+            node_hooks_source,
+        )
+        self.assertIn(
+            "hooks.hookWildcardSeedWidget?.(this, { resetSeedControl: true });",
+            node_hooks_source,
         )
         for source in (advanced_source, regional_source):
             with self.subTest(module="seed-control"):
@@ -2683,6 +2696,14 @@ class FrontendModuleStructureTests(unittest.TestCase):
                     source.count("wildcardSeedControlForMode"),
                     2,
                 )
+        self.assertIn(
+            'const ADVANCED_WILDCARD_MODES = ["일반", "순차"];',
+            (PROMPT_STUDIO_MODULES / "constants.js").read_text(encoding="utf-8"),
+        )
+        self.assertIn(
+            'export const PROMPT_STUDIO_WILDCARD_MODES = ["일반", "순차"];',
+            (PROMPT_STUDIO_REGIONAL_MODULES / "constants.js").read_text(encoding="utf-8"),
+        )
         self.assertIn(
             'setAdvancedWidgetValue(node, "wildcard_seed_after_generate", nextControl);',
             advanced_source,
@@ -2703,10 +2724,15 @@ class FrontendModuleStructureTests(unittest.TestCase):
             PROMPT_STUDIO_REGIONAL_MODULES / "field_editor.js"
         ).read_text(encoding="utf-8")
 
-        for mode_key in ("populate", "fixed", "sequential", "reproduce"):
+        for mode_key in ("populate", "sequential"):
             with self.subTest(mode=mode_key):
                 locale_key = f'"advanced.wildcardMode.{mode_key}Title"'
                 self.assertEqual(constants_source.count(locale_key), 4)
+        for removed_mode_key in ("fixed", "reproduce"):
+            self.assertNotIn(
+                f'"advanced.wildcardMode.{removed_mode_key}Title"',
+                constants_source,
+            )
 
         for syntax in (
             "__name__",

@@ -7,7 +7,6 @@ import {
   PROMPT_STUDIO_VARIANT_FIELD_TYPES as REGIONAL_FIELD_TYPES,
   PROMPT_STUDIO_WILDCARD_DEFAULT_MODE,
   PROMPT_STUDIO_WILDCARD_MODES,
-  PROMPT_STUDIO_WILDCARD_SEED_CONTROLS,
 } from "./constants.js";
 import {
   normalizeResolutionBucket,
@@ -75,27 +74,19 @@ function moveRegionalFieldInPane(fields, fieldId, direction) {
 function createRegionalFieldEditor(runtime, layout, maskEditor, hooks) {
   /** @param {any} value */
   function normalizeWildcardMode(value) {
-    return PROMPT_STUDIO_WILDCARD_MODES.includes(String(value || ""))
-      ? String(value)
+    return String(value || "").trim() === "순차"
+      || String(value || "").trim().toLowerCase() === "sequential"
+      ? "순차"
       : PROMPT_STUDIO_WILDCARD_DEFAULT_MODE;
   }
 
   /** @param {any} mode */
   function wildcardModeTitle(mode) {
     const modeKey = {
-      "일반 채우기": "populate",
-      "고정": "fixed",
+      "일반": "populate",
       "순차": "sequential",
-      "재현": "reproduce",
     }[normalizeWildcardMode(mode)];
     return hooks.promptStudioText(`advanced.wildcardMode.${modeKey}Title`);
-  }
-
-  /** @param {any} value */
-  function normalizeSeedControl(value) {
-    return PROMPT_STUDIO_WILDCARD_SEED_CONTROLS.includes(String(value || ""))
-      ? String(value)
-      : "fixed";
   }
 
   /** @param {string} label @param {string} title @param {(event?: any) => void} onClick */
@@ -117,6 +108,9 @@ function createRegionalFieldEditor(runtime, layout, maskEditor, hooks) {
     const modeSelect = document.createElement("select");
     modeSelect.setAttribute("aria-label", hooks.promptStudioText("advanced.wildcard"));
     const modeValue = normalizeWildcardMode(modeWidget.value);
+    if (modeWidget.value !== modeValue) {
+      runtime.setRegionalWidgetValue(node, "wildcard_mode", modeValue);
+    }
     const selectedModeTitle = wildcardModeTitle(modeValue);
     row.title = `${selectedModeTitle}\n${hooks.promptStudioText("advanced.wildcardTitle")}`;
     modeSelect.title = selectedModeTitle;
@@ -137,32 +131,15 @@ function createRegionalFieldEditor(runtime, layout, maskEditor, hooks) {
     seedInput.title = hooks.promptStudioText("advanced.wildcardSeedTitle");
     seedInput.setAttribute("aria-description", seedInput.title);
 
-    const controlSelect = document.createElement("select");
-    controlSelect.setAttribute(
-      "aria-label",
-      hooks.promptStudioText("advanced.wildcardSeedControl"),
-    );
-    controlSelect.title = hooks.promptStudioText("advanced.wildcardSeedControlTitle");
-    controlSelect.setAttribute("aria-description", controlSelect.title);
-    const controlValue = modeValue === "순차"
-      ? "increment"
-      : normalizeSeedControl(controlWidget.value);
-    for (const control of PROMPT_STUDIO_WILDCARD_SEED_CONTROLS) {
-      const option = document.createElement("option");
-      option.value = control;
-      option.textContent = control;
-      option.selected = control === controlValue;
-      controlSelect.append(option);
+    const controlValue = wildcardSeedControlForMode(modeValue);
+    if (controlWidget.value !== controlValue) {
+      runtime.setRegionalWidgetValue(node, "wildcard_seed_after_generate", controlValue);
     }
-    controlSelect.disabled = modeValue === "순차";
 
     const syncMode = () => {
       const nextMode = normalizeWildcardMode(modeSelect.value);
       runtime.setRegionalWidgetValue(node, "wildcard_mode", nextMode);
-      const nextControl = wildcardSeedControlForMode(
-        nextMode,
-        normalizeSeedControl(controlWidget.value),
-      );
+      const nextControl = wildcardSeedControlForMode(nextMode);
       if (nextControl !== controlWidget.value) {
         runtime.setRegionalWidgetValue(
           node,
@@ -172,22 +149,13 @@ function createRegionalFieldEditor(runtime, layout, maskEditor, hooks) {
       }
       renderRegionalEditor(node);
     };
-    const syncControl = () => {
-      runtime.setRegionalWidgetValue(
-        node,
-        "wildcard_seed_after_generate",
-        normalizeSeedControl(controlSelect.value),
-      );
-    };
-
     modeSelect.addEventListener("change", syncMode);
     bindWildcardSeedInput(
       seedInput,
       () => seedWidget.value,
       (seed) => runtime.setRegionalWidgetValue(node, "wildcard_seed", seed),
     );
-    controlSelect.addEventListener("change", syncControl);
-    row.append(modeSelect, seedInput, controlSelect);
+    row.append(modeSelect, seedInput);
     return row;
   }
 
