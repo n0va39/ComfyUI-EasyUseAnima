@@ -40,11 +40,13 @@ EXPECTED_PYTHON_PACKAGE_FILES = {
     "easyuse_anima/nodes/image_nodes.py",
     "easyuse_anima/nodes/lora_nodes.py",
     "easyuse_anima/nodes/naia_nodes.py",
+    "easyuse_anima/nodes/prompt_nodes.py",
     "easyuse_anima/nodes/wildcard_nodes.py",
     "easyuse_anima/profiles/__init__.py",
     "easyuse_anima/profiles/contract.py",
     "easyuse_anima/profiles/mutation.py",
     "easyuse_anima/prompt/__init__.py",
+    "easyuse_anima/prompt/correction.py",
 }
 STATIC_IMPORT_FROM_RE = re.compile(
     r"""
@@ -151,7 +153,9 @@ class RegistryScannerSafetyTests(unittest.TestCase):
             "easyuse_anima/nodes/image_nodes.py",
             "easyuse_anima/nodes/lora_nodes.py",
             "easyuse_anima/nodes/naia_nodes.py",
+            "easyuse_anima/nodes/prompt_nodes.py",
             "easyuse_anima/nodes/wildcard_nodes.py",
+            "easyuse_anima/prompt/correction.py",
             "nodes.py",
             "prompt_translation.py",
             "settings.py",
