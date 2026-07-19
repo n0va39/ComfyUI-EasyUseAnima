@@ -53,9 +53,11 @@ function createRuntime(hostWindow, hostDocument, app) {
     menuInstalled: 0,
     refresh: 0,
     saveSync: 0,
+    saveSyncDisposed: 0,
   };
   let localeCallback = null;
   let now = 100;
+  let saveSyncInstalled = false;
   const lifecycle = createLoraPresetEntryLifecycle({
     app,
     hostDocument,
@@ -67,7 +69,24 @@ function createRuntime(hostWindow, hostDocument, app) {
     },
     clientPointToCanvas: (event) => [event.clientX, event.clientY],
     profileCount: (node) => node.profileCount,
-    saveSync: { install() { calls.saveSync += 1; } },
+    saveSync: {
+      install() {
+        calls.saveSync += 1;
+        if (saveSyncInstalled) {
+          return false;
+        }
+        saveSyncInstalled = true;
+        return true;
+      },
+      dispose() {
+        if (!saveSyncInstalled) {
+          return false;
+        }
+        saveSyncInstalled = false;
+        calls.saveSyncDisposed += 1;
+        return true;
+      },
+    },
     async loadSettings() { calls.loadSettings += 1; },
     refreshNodes() { calls.refresh += 1; },
     watchLocale(callback) {
@@ -241,6 +260,7 @@ assert.equal(replacement.lifecycle.extension.init(), true, "a newer entry owner 
 assert.equal(runtime.lifecycle.isActive(), false);
 assert.equal(runtime.calls.disposedLocale, 1);
 assert.equal(runtime.calls.menuDisposed, 1);
+assert.equal(runtime.calls.saveSyncDisposed, 1);
 assert.equal(hostDocument.listenerCount("wheel"), 1);
 assert.equal(hostDocument.listenerCount("pointerdown"), 1);
 assert.equal(hostWindow.listenerCount("easyuse-anima-settings-updated"), 1);
@@ -252,5 +272,6 @@ assert.equal(hostDocument.listenerCount("pointerdown"), 0);
 assert.equal(hostWindow.listenerCount("easyuse-anima-settings-updated"), 0);
 assert.equal(replacement.calls.disposedLocale, 1, "entry disposal must be idempotent");
 assert.equal(replacement.calls.menuDisposed, 1);
+assert.equal(replacement.calls.saveSyncDisposed, 1);
 
 console.log("LoRA preset entry lifecycle smoke passed.");

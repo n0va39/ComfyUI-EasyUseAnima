@@ -83,11 +83,87 @@ assert.deepEqual(calls.at(-1), {
   options: {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ name: "Demo", ...savePayload }),
+    body: JSON.stringify({ name: "Demo", ...savePayload, overwrite: false }),
   },
   argumentCount: 2,
 });
 assert.equal(JSON.stringify(savePayload), savePayloadBefore, "save must not mutate the payload");
+
+responses.push(saveResponse);
+assert.equal(await client.saveProfile("Demo", savePayload, true), saveResponse);
+assert.deepEqual(calls.at(-1), {
+  url: "/easyuse_anima/lora_profiles/save",
+  options: {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ name: "Demo", ...savePayload, overwrite: true }),
+  },
+  argumentCount: 2,
+});
+assert.equal(JSON.stringify(savePayload), savePayloadBefore, "overwrite save must not mutate the payload");
+const legacyOverwriteBody = JSON.parse(calls.at(-1).options.body);
+assert.equal(Object.hasOwn(legacyOverwriteBody, "profile_id"), false);
+assert.equal(Object.hasOwn(legacyOverwriteBody, "revision"), false);
+
+const profileToken = {
+  profile_id: "11111111-1111-4111-8111-111111111111",
+  revision: 0,
+};
+responses.push(saveResponse);
+assert.equal(
+  await client.saveProfile("New Demo", savePayload, false, profileToken),
+  saveResponse,
+);
+const createBody = JSON.parse(calls.at(-1).options.body);
+assert.equal(Object.hasOwn(createBody, "profile_id"), false);
+assert.equal(Object.hasOwn(createBody, "revision"), false);
+
+const reservedPayload = {
+  ...savePayload,
+  name: "payload name",
+  overwrite: true,
+  profile_id: "payload-profile-id",
+  revision: 99,
+};
+const reservedPayloadBefore = JSON.stringify(reservedPayload);
+responses.push(saveResponse);
+assert.equal(
+  await client.saveProfile("Endpoint Create", reservedPayload, false, profileToken),
+  saveResponse,
+);
+assert.deepEqual(JSON.parse(calls.at(-1).options.body), {
+  ...savePayload,
+  name: "Endpoint Create",
+  overwrite: false,
+});
+assert.equal(JSON.stringify(reservedPayload), reservedPayloadBefore);
+
+responses.push(saveResponse);
+assert.equal(
+  await client.saveProfile("Endpoint Overwrite", reservedPayload, true, profileToken),
+  saveResponse,
+);
+assert.deepEqual(JSON.parse(calls.at(-1).options.body), {
+  ...savePayload,
+  name: "Endpoint Overwrite",
+  overwrite: true,
+  profile_id: profileToken.profile_id,
+  revision: profileToken.revision,
+});
+assert.equal(JSON.stringify(reservedPayload), reservedPayloadBefore);
+
+responses.push(saveResponse);
+assert.equal(
+  await client.saveProfile("Demo", savePayload, true, profileToken),
+  saveResponse,
+);
+assert.deepEqual(JSON.parse(calls.at(-1).options.body), {
+  name: "Demo",
+  ...savePayload,
+  overwrite: true,
+  profile_id: profileToken.profile_id,
+  revision: profileToken.revision,
+});
 
 const fixPayload = {
   profile_count: 2,

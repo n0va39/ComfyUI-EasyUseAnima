@@ -1,12 +1,19 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 
-function dataModule(relativePath) {
-  const source = readFileSync(new URL(relativePath, import.meta.url), "utf8");
+function dataModule(relativePath, replacements = {}) {
+  let source = readFileSync(new URL(relativePath, import.meta.url), "utf8");
+  for (const [from, to] of Object.entries(replacements)) {
+    source = source.replaceAll(from, to);
+  }
   return "data:text/javascript;base64," + Buffer.from(source).toString("base64");
 }
 
-const extensionModule = await import(dataModule("../web/js/aio/extension_runtime.js"));
+const registryModuleUrl = dataModule("../web/js/lifecycle/host_hook_registry.js");
+const extensionModule = await import(dataModule(
+  "../web/js/aio/extension_runtime.js",
+  { "../lifecycle/host_hook_registry.js": registryModuleUrl },
+));
 assert.deepEqual(
   Object.keys(extensionModule),
   ["aioCreateExtensionRuntime", "aioListAttachedGeneratorNodes"],
@@ -22,6 +29,7 @@ function createFixture(options = {}) {
   const eventRegistrations = [];
   let samplerSetupFailures = Number(options.samplerSetupFailures || 0);
   let userSetupFailures = Number(options.userSetupFailures || 0);
+  let queueHookActive = false;
   const callbacks = {
     refreshPanels() {
       trace.push("refreshPanels");
@@ -73,6 +81,15 @@ function createFixture(options = {}) {
       },
       installQueuePromptHook() {
         trace.push("installQueuePromptHook");
+        queueHookActive = true;
+        return () => {
+          if (!queueHookActive) {
+            return false;
+          }
+          queueHookActive = false;
+          trace.push("disposeQueuePromptHook");
+          return true;
+        };
       },
       watchLocale(callback) {
         trace.push("watchLocale");
@@ -432,13 +449,24 @@ function createNodeType(trace, options = {}) {
   const ownerFixture = createFixture();
   await ownerFixture.runtime.setup();
   await Promise.resolve();
+  const ownerTraceBeforeReentry = [...ownerFixture.trace];
   const reentryFixture = createFixture({ api: ownerFixture.api });
   assert.equal(await reentryFixture.runtime.setup(), undefined);
   await Promise.resolve();
   assert.deepEqual(
     reentryFixture.trace,
-    [],
-    "a new runtime sharing the installed API owner must not repeat setup",
+    ["installQueuePromptHook"],
+    "a new runtime sharing the installed API host must claim only the global queue lease",
+  );
+  assert.deepEqual(
+    ownerFixture.trace,
+    [...ownerTraceBeforeReentry, "disposeQueuePromptHook"],
+    "runtime takeover must release the previous global queue lease without repeating setup",
+  );
+  assert.equal(reentryFixture.runtime.dispose(), true);
+  assert.deepEqual(
+    reentryFixture.trace,
+    ["installQueuePromptHook", "disposeQueuePromptHook"],
   );
 }
 
@@ -482,7 +510,6 @@ function createNodeType(trace, options = {}) {
   for (const completedStep of [
     "ensureStyle",
     "installWheelForwarder",
-    "installQueuePromptHook",
     "watchLocale",
   ]) {
     assert.equal(
@@ -491,6 +518,16 @@ function createNodeType(trace, options = {}) {
       `${completedStep} must remain owned by factory A after the later failure`,
     );
   }
+  assert.equal(
+    combinedTrace.filter((item) => item === "installQueuePromptHook").length,
+    2,
+    "the retrying runtime must take over the global queue lease without repeating setup steps",
+  );
+  assert.equal(
+    factoryA.trace.filter((item) => item === "disposeQueuePromptHook").length,
+    1,
+    "global queue takeover must release the failed runtime's lease",
+  );
   assert.equal(
     factoryA.eventRegistrations.length,
     8,
@@ -512,9 +549,11 @@ function createNodeType(trace, options = {}) {
   await Promise.resolve();
   assert.deepEqual(
     factoryC.trace,
-    [],
-    "the successful retry must publish durable setup ownership",
+    ["installQueuePromptHook"],
+    "a later runtime must claim only the durable global queue lease",
   );
+  assert.equal(factoryB.trace.at(-1), "disposeQueuePromptHook");
+  assert.equal(factoryC.runtime.dispose(), true);
 }
 
 {

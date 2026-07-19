@@ -4,6 +4,28 @@ const GENERATOR_DOM_WIDGET = "easyuse_anima_generator_panel";
 const GENERATOR_NODE_MIN_WIDTH = 560;
 const GENERATOR_NODE_DEFAULT_WIDTH = 620;
 const GENERATOR_PANEL_CONTROL_SELECTOR = "input, select, textarea, button";
+const generatorInfoTooltipOwners = new WeakMap();
+
+function claimGeneratorInfoTooltipOwner(document, owner) {
+  const currentOwner = generatorInfoTooltipOwners.get(document);
+  if (currentOwner === owner) {
+    return;
+  }
+  currentOwner?.close?.();
+  generatorInfoTooltipOwners.set(document, owner);
+  owner.connect?.();
+}
+
+function releaseGeneratorInfoTooltipOwner(document, owner) {
+  if (generatorInfoTooltipOwners.get(document) === owner) {
+    generatorInfoTooltipOwners.delete(document);
+  }
+  owner.disconnect?.();
+}
+
+function closeGeneratorInfoTooltipOwner(document) {
+  generatorInfoTooltipOwners.get(document)?.close?.();
+}
 
 /**
  * @typedef {object} AioGeneratorPanelControls
@@ -195,10 +217,12 @@ export function aioCreateGeneratorPanelRuntime(dependencies) {
 
   const generatorPanelLifecycleStates = new WeakMap();
   const disposedGeneratorPanelNodes = new WeakSet();
+  let nextGeneratorInfoTooltipId = 1;
 
   function createGeneratorPanelLifecycleState() {
     return {
       frames: new Map(),
+      infoTooltipCleanups: new Set(),
       sliderDragCleanups: new Set(),
     };
   }
@@ -271,6 +295,25 @@ export function aioCreateGeneratorPanelRuntime(dependencies) {
     }
   }
 
+  function cleanupGeneratorInfoTooltips(state) {
+    let hasError = false;
+    let firstError = null;
+    for (const cleanup of [...(state?.infoTooltipCleanups || [])]) {
+      try {
+        cleanup();
+      } catch (error) {
+        if (!hasError) {
+          hasError = true;
+          firstError = error;
+        }
+      }
+    }
+    state?.infoTooltipCleanups?.clear?.();
+    if (hasError) {
+      throw firstError;
+    }
+  }
+
   function disposeGeneratorPanel(node) {
     if (!node || disposedGeneratorPanelNodes.has(node)) {
       return false;
@@ -294,6 +337,7 @@ export function aioCreateGeneratorPanelRuntime(dependencies) {
         cleanup(() => cancelAnimationFrame(pending.frame));
       }
       state.frames.clear();
+      cleanup(() => cleanupGeneratorInfoTooltips(state));
       cleanup(() => cleanupGeneratorSliderDrags(state));
     }
     generatorPanelLifecycleStates.delete(node);
@@ -1093,6 +1137,7 @@ export function aioCreateGeneratorPanelRuntime(dependencies) {
       return;
     }
     const viewState = captureGeneratorPanelViewState(panel);
+    cleanupGeneratorInfoTooltips(lifecycleState);
     cleanupGeneratorSliderDrags(lifecycleState);
     const settings = generatorSettings(node);
     panel.replaceChildren();
@@ -1115,6 +1160,243 @@ export function aioCreateGeneratorPanelRuntime(dependencies) {
       button.addEventListener("click", callback);
       return button;
     };
+    const makeInfoButton = (textKey, focusKey = "") => {
+      const button = document.createElement("button");
+      button.className = "easyuse-anima-aio-node-info-button";
+      button.type = "button";
+      button.textContent = "i";
+      button.setAttribute("data-aio-info-button", "");
+      button.setAttribute("data-aio-info-key", textKey);
+      if (focusKey) {
+        button.setAttribute("data-aio-focus-key", focusKey);
+      }
+      applyTooltip(button, textKey);
+      const tooltipText = String(button.title || aioText(textKey));
+      button.title = "";
+
+      const tooltip = document.createElement("div");
+      const tooltipId = `easyuse-anima-aio-info-tooltip-${nextGeneratorInfoTooltipId}`;
+      nextGeneratorInfoTooltipId += 1;
+      tooltip.className = "easyuse-anima-aio-node-info-tooltip";
+      tooltip.setAttribute("id", tooltipId);
+      tooltip.setAttribute("role", "tooltip");
+      tooltip.setAttribute("data-aio-info-tooltip", "");
+      tooltip.textContent = tooltipText;
+      tooltip.hidden = true;
+      document.body.append(tooltip);
+
+      button.setAttribute("aria-label", aioText("label.info"));
+      button.setAttribute("aria-controls", tooltipId);
+      button.setAttribute("aria-describedby", tooltipId);
+      button.setAttribute("aria-expanded", "false");
+
+      let disposed = false;
+      let dismissed = false;
+      let focused = false;
+      let hovered = false;
+      let pinned = false;
+      let trackingPosition = false;
+      let trackingDocument = false;
+
+      const positionTooltip = () => {
+        const rect = button.getBoundingClientRect?.() || {};
+        const tooltipRect = tooltip.getBoundingClientRect?.() || {};
+        const viewportWidth = Number(window?.innerWidth) || 0;
+        const viewportHeight = Number(window?.innerHeight) || 0;
+        const tooltipWidth = Number(tooltipRect.width) || 280;
+        const tooltipHeight = Number(tooltipRect.height) || 0;
+        let left = Number(rect.left) || 0;
+        if (viewportWidth > 0) {
+          left = Math.min(left, viewportWidth - tooltipWidth - 8);
+        }
+        tooltip.style.left = `${Math.max(8, Math.round(left))}px`;
+        const anchorTop = Number(rect.top) || 0;
+        let top = anchorTop + (Number(rect.height) || 0) + 6;
+        if (viewportHeight > 0 && top + tooltipHeight > viewportHeight - 8) {
+          top = anchorTop - tooltipHeight - 6;
+        }
+        const maxTop = viewportHeight > 0
+          ? Math.floor(viewportHeight - tooltipHeight - 8)
+          : Number.POSITIVE_INFINITY;
+        tooltip.style.top = `${Math.max(8, Math.min(Math.round(top), maxTop))}px`;
+      };
+      const updatePositionTracking = (enabled) => {
+        if (trackingPosition === enabled) {
+          return;
+        }
+        trackingPosition = enabled;
+        if (enabled) {
+          window.addEventListener("resize", positionTooltip);
+          window.addEventListener("scroll", positionTooltip, true);
+        } else {
+          window.removeEventListener("resize", positionTooltip);
+          window.removeEventListener("scroll", positionTooltip, true);
+        }
+      };
+      const closeTooltip = () => {
+        if (disposed) {
+          return;
+        }
+        pinned = false;
+        dismissed = true;
+        syncVisibility();
+      };
+      const onDocumentOutside = (event) => {
+        const target = event?.target;
+        if (button.contains?.(target) || tooltip.contains?.(target)) {
+          return;
+        }
+        closeTooltip();
+      };
+      const onDocumentKeyDown = (event) => {
+        if (event?.key !== "Escape") {
+          return;
+        }
+        event.preventDefault?.();
+        closeGeneratorInfoTooltipOwner(document);
+      };
+      const documentListeners = [
+        ["pointerdown", onDocumentOutside],
+        ["click", onDocumentOutside],
+        ["touchstart", onDocumentOutside],
+        ["keydown", onDocumentKeyDown],
+      ];
+      const updateDocumentTracking = (enabled) => {
+        if (trackingDocument === enabled) {
+          return;
+        }
+        trackingDocument = enabled;
+        for (const [eventName, listener] of documentListeners) {
+          if (enabled) {
+            document.addEventListener(eventName, listener, true);
+          } else {
+            document.removeEventListener(eventName, listener, true);
+          }
+        }
+      };
+      const owner = {
+        trigger: button,
+        tooltip,
+        close: closeTooltip,
+        connect: () => updateDocumentTracking(true),
+        disconnect: () => updateDocumentTracking(false),
+      };
+      const syncVisibility = () => {
+        if (disposed) {
+          return;
+        }
+        const visible = !dismissed && (hovered || focused || pinned);
+        if (visible) {
+          claimGeneratorInfoTooltipOwner(document, owner);
+        } else {
+          releaseGeneratorInfoTooltipOwner(document, owner);
+        }
+        tooltip.hidden = !visible;
+        button.setAttribute("aria-expanded", visible ? "true" : "false");
+        updatePositionTracking(visible);
+        if (visible) {
+          positionTooltip();
+        }
+      };
+      const onPointerEnter = () => {
+        hovered = true;
+        dismissed = false;
+        syncVisibility();
+      };
+      const onPointerLeave = () => {
+        hovered = false;
+        if (!focused && !pinned) {
+          dismissed = false;
+        }
+        syncVisibility();
+      };
+      const onFocus = () => {
+        focused = true;
+        dismissed = false;
+        syncVisibility();
+      };
+      const onBlur = () => {
+        focused = false;
+        if (!hovered && !pinned) {
+          dismissed = false;
+        }
+        syncVisibility();
+      };
+      const togglePinned = (event) => {
+        event?.preventDefault?.();
+        event?.stopPropagation?.();
+        if (pinned) {
+          pinned = false;
+          dismissed = true;
+        } else {
+          pinned = true;
+          dismissed = false;
+        }
+        syncVisibility();
+      };
+      const onClick = (event) => togglePinned(event);
+      const onKeyDown = (event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault?.();
+          event.stopPropagation?.();
+          if (tooltip.hidden) {
+            pinned = true;
+            dismissed = false;
+          } else {
+            pinned = false;
+            dismissed = true;
+          }
+          syncVisibility();
+        } else if (event.key === "Escape") {
+          event.preventDefault?.();
+          event.stopPropagation?.();
+          closeGeneratorInfoTooltipOwner(document);
+        }
+      };
+      const listeners = [
+        ["pointerenter", onPointerEnter],
+        ["pointerleave", onPointerLeave],
+        ["focus", onFocus],
+        ["blur", onBlur],
+        ["click", onClick],
+        ["keydown", onKeyDown],
+      ];
+      for (const [eventName, listener] of listeners) {
+        button.addEventListener(eventName, listener);
+      }
+
+      const cleanup = () => {
+        if (disposed) {
+          return;
+        }
+        disposed = true;
+        releaseGeneratorInfoTooltipOwner(document, owner);
+        updatePositionTracking(false);
+        for (const [eventName, listener] of listeners) {
+          button.removeEventListener(eventName, listener);
+        }
+        tooltip.remove();
+        lifecycleState.infoTooltipCleanups.delete(cleanup);
+      };
+      lifecycleState.infoTooltipCleanups.add(cleanup);
+      return button;
+    };
+    const makeInfoField = (
+      label,
+      control,
+      className,
+      tooltipKey,
+      infoTextKey,
+      infoFocusKey,
+    ) => {
+      const wrapper = document.createElement("div");
+      wrapper.className = `easyuse-anima-aio-node-info-field ${className || ""}`.trim();
+      wrapper.append(
+        createNodeField(label, control, "", tooltipKey),
+        makeInfoButton(infoTextKey, infoFocusKey),
+      );
+      return wrapper;
+    };
     const makeCardHeader = (title, actions = []) => {
       const header = document.createElement("div");
       header.className = "easyuse-anima-aio-node-card-header";
@@ -1127,13 +1409,23 @@ export function aioCreateGeneratorPanelRuntime(dependencies) {
       header.append(titleEl, actionBox);
       return header;
     };
-    const makeStageHeader = (title, toggle, tooltipKey = "", actions = []) => {
+    const makeStageHeader = (
+      title,
+      toggle,
+      tooltipKey = "",
+      actions = [],
+      infoTextKey = "",
+      infoFocusKey = "",
+    ) => {
       const header = document.createElement("div");
       header.className = "easyuse-anima-aio-node-stage-header";
       const titleEl = document.createElement("div");
       titleEl.className = "easyuse-anima-aio-node-stage-title";
       titleEl.textContent = title;
       applyTooltip(titleEl, tooltipKey);
+      if (infoTextKey) {
+        titleEl.append(makeInfoButton(infoTextKey, infoFocusKey));
+      }
       const toggleLabel = document.createElement("label");
       toggleLabel.className = "easyuse-anima-aio-node-stage-toggle";
       toggleLabel.append(toggle, document.createTextNode(aioText("label.enabled")));
@@ -1150,6 +1442,12 @@ export function aioCreateGeneratorPanelRuntime(dependencies) {
       note.textContent = aioText(textKey);
       applyTooltip(note, tooltipKey);
       return note;
+    };
+    const makeWarning = (textKey, tooltipKey = "") => {
+      const warning = makeNote(textKey, tooltipKey);
+      warning.classList.add("warning");
+      warning.setAttribute("data-aio-inline-warning", "");
+      return warning;
     };
     const moveDetailerTarget = (targetName, delta) => {
       updateGeneratorSettings(node, (nextSettings) => {
@@ -1312,6 +1610,8 @@ export function aioCreateGeneratorPanelRuntime(dependencies) {
       highresEnabled,
       "tip.highresEnabled",
       [makeIconButton("⚙", () => openHighresSettings(node), "tip.highresSettings")],
+      settings.highres.enabled ? "tip.highresEnabled" : "tip.highresDisabled",
+      "highres.info",
     ));
     const highresBody = document.createElement("div");
     highresBody.className = "easyuse-anima-aio-node-stage-body";
@@ -1337,12 +1637,18 @@ export function aioCreateGeneratorPanelRuntime(dependencies) {
           },
         }),
       });
-      const noteKey = mainBackendIsSpd && highresFollowsMain
-        ? "text.highresSpdManualRequired"
-        : (highresFollowsMain ? "text.inheritsMainSampler" : "text.usesStageSamplerOverride");
       highresBody.append(
-        createNodeField(aioText("label.followMainSampler"), followMain, "wide", "tip.highresFollow"),
-        makeNote(noteKey, "tip.highresFollow"),
+        makeInfoField(
+          aioText("label.followMainSampler"),
+          followMain,
+          "wide",
+          "tip.highresFollow",
+          highresFollowsMain ? "tip.highresFollow" : "tip.stageSamplerOverride",
+          "highres.follow-main.info",
+        ),
+        ...(mainBackendIsSpd && highresFollowsMain
+          ? [makeWarning("text.highresSpdManualRequired", "tip.highresFollow")]
+          : []),
         ...(highresFollowsMain ? [] : [
           createNodeField(aioText("label.mode"), stageMode, "wide", "tip.highresBackend"),
         ]),
@@ -1404,8 +1710,6 @@ export function aioCreateGeneratorPanelRuntime(dependencies) {
           "tip.highresMaxEdge",
         ),
       );
-    } else {
-      highresBody.append(makeNote("text.highresDisabled", "tip.highresEnabled"));
     }
     highresBlock.append(highresBody);
 
@@ -1425,6 +1729,8 @@ export function aioCreateGeneratorPanelRuntime(dependencies) {
       detailerEnabled,
       "tip.detailerEnabled",
       [makeIconButton("⚙", () => openDetailerSettings(node), "tip.detailerSettings")],
+      settings.detailer.enabled ? "tip.detailerEnabled" : "tip.detailerDisabled",
+      "detailer.info",
     ));
     const detailerBody = document.createElement("div");
     detailerBody.className = "easyuse-anima-aio-node-stage-body";
@@ -1479,10 +1785,13 @@ export function aioCreateGeneratorPanelRuntime(dependencies) {
             { rerender: true, focusKey: `detailer.${targetName}.inherit-sampler-settings` },
           );
           targetGrid.append(
-            createNodeField(aioText("label.followMainSampler"), followMain, "wide", "tip.detailerFollow"),
-            makeNote(
-              target.inherit_sampler_settings ? "text.inheritsMainSampler" : "text.usesStageSamplerOverride",
+            makeInfoField(
+              aioText("label.followMainSampler"),
+              followMain,
+              "wide",
               "tip.detailerFollow",
+              target.inherit_sampler_settings ? "tip.detailerFollow" : "tip.stageSamplerOverride",
+              `detailer.${targetName}.follow-main.info`,
             ),
             createNodeField(
               aioText("field.threshold"),
@@ -1549,8 +1858,6 @@ export function aioCreateGeneratorPanelRuntime(dependencies) {
         targetBlock.append(targetGrid);
         detailerBody.append(targetBlock);
       }
-    } else {
-      detailerBody.append(makeNote("text.detailerDisabled", "tip.detailerEnabled"));
     }
     detailerBlock.append(detailerBody);
 
@@ -1570,6 +1877,8 @@ export function aioCreateGeneratorPanelRuntime(dependencies) {
       upscaleEnabled,
       "tip.upscaleEnabled",
       [makeIconButton("⚙", () => openUpscaleSettings(node), "tip.upscaleSettings")],
+      settings.upscale.enabled ? "tip.upscaleEnabled" : "tip.upscaleDisabled",
+      "upscale.info",
     ));
     const upscaleBody = document.createElement("div");
     upscaleBody.className = "easyuse-anima-aio-node-stage-body";
@@ -1634,7 +1943,7 @@ export function aioCreateGeneratorPanelRuntime(dependencies) {
             "wide",
             "tip.denoise",
           ),
-          createNodeField(
+          makeInfoField(
             aioText("field.autoTileSize"),
             createDomSettingsCheckboxControl(
               node,
@@ -1648,6 +1957,8 @@ export function aioCreateGeneratorPanelRuntime(dependencies) {
             ),
             "wide",
             "tip.usduAutoTile",
+            usdu.auto_tile_size ? "tip.usduAutoTile" : "tip.usduTile",
+            "upscale.usdu.auto-tile.info",
           ),
         );
         if (usdu.auto_tile_size) {
@@ -1667,17 +1978,9 @@ export function aioCreateGeneratorPanelRuntime(dependencies) {
             ),
           );
         }
-        upscaleBody.append(
-          makeNote(
-            usdu.auto_tile_size ? "text.usduAutoTile" : "text.usduManualTile",
-            usdu.auto_tile_size ? "tip.usduAutoTile" : "tip.usduTile",
-          ),
-        );
       } else {
         upscaleBody.append(makeNote(`ResShift ${settings.upscale.resshift?.scale || "x2"}`, "tip.resshiftScale"));
       }
-    } else {
-      upscaleBody.append(makeNote("text.upscaleDisabled", "tip.upscaleEnabled"));
     }
     upscaleBlock.append(upscaleBody);
 
@@ -1698,6 +2001,8 @@ export function aioCreateGeneratorPanelRuntime(dependencies) {
       postprocessEnabled,
       "tip.postprocessEnabled",
       [makeIconButton("⚙", () => openPostprocessSettings(node), "tip.postprocessSettings")],
+      postprocess.enabled ? "tip.postprocessEnabled" : "tip.postprocessDisabled",
+      "postprocess.info",
     ));
     const postprocessBody = document.createElement("div");
     postprocessBody.className = "easyuse-anima-aio-node-stage-body";
@@ -1707,8 +2012,6 @@ export function aioCreateGeneratorPanelRuntime(dependencies) {
         ? `Fit <= ${fit.max_megapixels || 4}MP`
         : `Fit <= ${fit.max_long_edge || 2048}px`;
       postprocessBody.append(makeNote(fitText, "tip.finalFit"));
-    } else {
-      postprocessBody.append(makeNote("text.postprocessDisabled", "tip.postprocessEnabled"));
     }
     postprocessBlock.append(postprocessBody);
 

@@ -49,23 +49,23 @@
     "inputs": {
       "text": {
         "name": "文本",
-        "tooltip": "Prompt text with wildcard syntax such as __style__ or {2::a|5::b|c}."
+        "tooltip": "普通填充/固定/顺序模式展开的源文本。支持 __name__、{a|b|c}、N::weight、{n$$...}/{min-max$$separator$$...}、N#__name__ 与嵌套组合。名称不区分大小写并可使用 * glob；只移除首个非空白字符为 # 的行。"
       },
       "populated_text": {
         "name": "已填充文本",
-        "tooltip": "Cached expanded prompt used by fixed and reproduce modes."
+        "tooltip": "展开结果缓存。复现模式原样输出此值；为空时回退到 text。普通填充/固定/顺序会忽略旧缓存、展开 text，并更新保存工作流元数据中的此值。"
       },
       "mode": {
         "name": "模式",
-        "tooltip": "普通填充使用基于种子的随机展开。固定/复现使用缓存文本。顺序模式使用 seed % 项目数作为索引。"
+        "tooltip": "普通填充按种子进行加权随机选择并展开 text。固定也是 EasyUse 兼容模式，仍以相同方式展开 text，只有 seed control 为 fixed 时才保持种子。顺序使用 seed % 选项数/范围宽度，并强制增加下一种子。复现不做新选择并原样使用 populated_text，但返回/实时下一种子仍应用 seed_after_generate。展开运行在保存时记录为 populated_text 和复现模式。"
       },
       "seed": {
         "name": "种子",
-        "tooltip": "通配符选择种子。顺序模式会对每个通配符使用 seed % 项目数作为索引。"
+        "tooltip": "加权随机选择种子。顺序模式对每组选项数和范围宽度取余；复现模式不进行新选择。"
       },
       "seed_after_generate": {
         "name": "生成后种子控制",
-        "tooltip": "生成后的种子控制：固定、随机化、递增或递减。"
+        "tooltip": "下一次实时运行种子：fixed 保持，randomize 选择新值，increment/decrement 在边界循环并加减 1。顺序强制 increment。复现不做新选择，但返回/实时下一种子仍应用此控制。"
       }
     },
     "outputs": {
@@ -229,15 +229,15 @@
       },
       "wildcard_mode": {
         "name": "通配符模式",
-        "tooltip": "通配符模式。固定是兼容默认值；顺序模式使用 seed % 项目数，并在队列执行后递增种子。"
+        "tooltip": "普通填充和固定按种子进行加权随机选择并展开源字段；顺序使用 seed % 选项数/范围宽度并强制增加种子；复现原样使用已保存的展开字段。展开结果以复现模式写入保存元数据。"
       },
       "wildcard_seed": {
         "name": "通配符种子",
-        "tooltip": "Advanced Prompt Studio 字段使用的通配符种子。"
+        "tooltip": "Advanced Prompt Studio 的加权随机选择种子。顺序使用选项数/范围宽度取余；复现不选择。"
       },
       "wildcard_seed_after_generate": {
         "name": "通配符种子生成后控制",
-        "tooltip": "通配符生成后的种子控制。"
+        "tooltip": "控制下一次运行种子的保持、随机化、增加或减少。顺序强制 increment；复现不推进。"
       }
     },
     "outputs": {
@@ -329,15 +329,15 @@
       },
       "wildcard_mode": {
         "name": "Wildcard mode",
-        "tooltip": "Wildcard expansion mode for Advanced Prompt Studio fields."
+        "tooltip": "普通填充/固定按种子进行加权随机选择并展开源字段；顺序使用 seed modulo 选择后增加；复现原样使用已保存的展开字段。"
       },
       "wildcard_seed": {
         "name": "Wildcard seed",
-        "tooltip": "Seed for wildcard expansion."
+        "tooltip": "加权随机选择种子。顺序使用选项数/范围宽度取余；复现不选择。"
       },
       "wildcard_seed_after_generate": {
         "name": "Wildcard seed after generate",
-        "tooltip": "Seed control after wildcard generation."
+        "tooltip": "下一次运行种子控制。顺序强制 increment；复现不推进。"
       },
       "artist_mix_mode": {
         "name": "artist_mix_mode",
@@ -677,15 +677,15 @@
       },
       "wildcard_mode": {
         "name": "通配符模式",
-        "tooltip": "Wildcard mode for Regional Prompt Studio fields."
+        "tooltip": "普通填充/固定按种子进行加权随机选择并展开源字段；顺序使用 seed modulo 选择后增加；复现原样使用已保存的展开字段。"
       },
       "wildcard_seed": {
         "name": "通配符种子",
-        "tooltip": "Wildcard seed used by Regional Prompt Studio fields."
+        "tooltip": "加权随机选择种子。顺序使用选项数/范围宽度取余；复现不选择。"
       },
       "wildcard_seed_after_generate": {
         "name": "生成后通配符种子控制",
-        "tooltip": "Seed control after wildcard generation."
+        "tooltip": "控制下一次运行种子的保持、随机化、增加或减少。顺序强制 increment；复现不推进。"
       }
     },
     "outputs": {

@@ -1,10 +1,13 @@
 from __future__ import annotations
 
+import itertools
 import json
 import os
 import shutil
 import tempfile
+import threading
 import unittest
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from unittest.mock import patch
 
@@ -138,6 +141,46 @@ class PromptCorrectorTests(unittest.TestCase):
         )
         self.assertNotIn("GOOGLE_TRANSLATION_API_KEY", source)
         self.assertNotIn("requests.post", source)
+
+    def test_sync_node_output_and_translation_change_key_contracts_are_preserved(self):
+        off_settings = PromptTranslationSettings(
+            provider=PROMPT_TRANSLATION_PROVIDER_OFF,
+            source="auto",
+            target="en",
+        )
+        google_settings = PromptTranslationSettings(
+            provider=PROMPT_TRANSLATION_PROVIDER_GOOGLE,
+            source="ko",
+            target="ja",
+        )
+
+        with patch("nodes.resolve_prompt_translation_settings", return_value=off_settings):
+            result = EasyUseAnimaPromptCorrectorSimple().correct("%{long_hair, 1girl}")
+            off_key = EasyUseAnimaPromptCorrectorSimple.IS_CHANGED(
+                prompt="%{long_hair, 1girl}"
+            )
+            repeated_off_key = EasyUseAnimaPromptCorrectorSimple.IS_CHANGED(
+                prompt="%{long_hair, 1girl}"
+            )
+
+        with patch("nodes.resolve_prompt_translation_settings", return_value=google_settings):
+            google_key = EasyUseAnimaPromptCorrectorSimple.IS_CHANGED(
+                prompt="%{long_hair, 1girl}"
+            )
+
+        self.assertEqual(result, ("1girl, long hair",))
+        self.assertEqual(EasyUseAnimaPromptCorrectorSimple.RETURN_TYPES, ("STRING",))
+        self.assertEqual(EasyUseAnimaPromptCorrectorSimple.RETURN_NAMES, ("prompt",))
+        self.assertEqual(off_key, repeated_off_key)
+        self.assertNotEqual(off_key, google_key)
+        self.assertEqual(
+            json.loads(off_key)["prompt_translation"],
+            {"provider": "off", "source": "auto", "target": "en"},
+        )
+        self.assertEqual(
+            json.loads(google_key)["prompt_translation"],
+            {"provider": "google", "source": "ko", "target": "ja"},
+        )
 
     def test_prompt_correctors_translate_marked_text_before_correction(self):
         with (
@@ -2681,6 +2724,180 @@ class PromptBuilderTests(unittest.TestCase):
 
 
 class SettingsTests(unittest.TestCase):
+    def test_save_setting_round_trips_false_zero_empty_string_and_null(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            settings_file = Path(tmp) / "settings.json"
+            long_text_settings_file = Path(tmp) / "long_text_settings.json"
+            cases = (
+                ("autocomplete.append_separator", False, "false"),
+                ("autocomplete.limit", 0, "0"),
+                ("prompt_studio.font_family", "", ""),
+                ("prompt_studio.font_family", None, ""),
+            )
+
+            with (
+                patch.object(easyuse_settings, "SETTINGS_FILE", settings_file),
+                patch.object(
+                    easyuse_settings,
+                    "LONG_TEXT_SETTINGS_FILE",
+                    long_text_settings_file,
+                ),
+                patch.object(easyuse_settings, "_load_comfy_settings", return_value={}),
+            ):
+                for key, value, expected in cases:
+                    with self.subTest(key=key, value=value):
+                        saved = easyuse_settings.save_setting(key, value)
+                        persisted = json.loads(settings_file.read_text(encoding="utf-8"))
+                        reloaded = easyuse_settings.get_settings()
+
+                        self.assertEqual(saved[key], expected)
+                        self.assertEqual(persisted[key], expected)
+                        self.assertEqual(reloaded[key], expected)
+
+    def test_parallel_save_setting_updates_do_not_lose_different_keys(self):
+        root = Path(__file__).resolve().parents[1] / "__pycache__" / "parallel_settings_test"
+        shutil.rmtree(root, ignore_errors=True)
+        root.mkdir(parents=True, exist_ok=True)
+        settings_file = root / "settings.json"
+        long_text_settings_file = root / "long_text_settings.json"
+        first_read = threading.Event()
+        release_first = threading.Event()
+        second_started = threading.Event()
+        second_done = threading.Event()
+        errors: list[BaseException] = []
+        original_read = easyuse_settings._read_json_file
+
+        def coordinated_read(path: Path) -> dict:
+            data = original_read(path)
+            if Path(path) == settings_file and threading.current_thread().name == "first-setting":
+                first_read.set()
+                if not release_first.wait(2):
+                    raise AssertionError("first settings read was not released")
+            return data
+
+        def save_first():
+            try:
+                easyuse_settings.save_setting("autocomplete.limit", 33)
+            except BaseException as exc:
+                errors.append(exc)
+
+        def save_second():
+            second_started.set()
+            try:
+                easyuse_settings.save_setting("prompt_studio.font_family", "Inter")
+            except BaseException as exc:
+                errors.append(exc)
+            finally:
+                second_done.set()
+
+        try:
+            with (
+                patch.object(easyuse_settings, "SETTINGS_FILE", settings_file),
+                patch.object(easyuse_settings, "LONG_TEXT_SETTINGS_FILE", long_text_settings_file),
+                patch.object(easyuse_settings, "_load_comfy_settings", return_value={}),
+                patch.object(easyuse_settings, "_read_json_file", side_effect=coordinated_read),
+            ):
+                first = threading.Thread(target=save_first, name="first-setting")
+                second = threading.Thread(target=save_second, name="second-setting")
+                first.start()
+                self.assertTrue(first_read.wait(2))
+                second.start()
+                self.assertTrue(second_started.wait(2))
+                self.assertFalse(second_done.wait(0.05))
+                release_first.set()
+                first.join(2)
+                second.join(2)
+
+            self.assertFalse(first.is_alive())
+            self.assertFalse(second.is_alive())
+            self.assertEqual(errors, [])
+            persisted = json.loads(settings_file.read_text(encoding="utf-8"))
+            self.assertEqual(persisted["autocomplete.limit"], "33")
+            self.assertEqual(persisted["prompt_studio.font_family"], "Inter")
+        finally:
+            release_first.set()
+            shutil.rmtree(root, ignore_errors=True)
+
+    def test_parallel_long_text_updates_do_not_lose_different_keys(self):
+        root = Path(__file__).resolve().parents[1] / "__pycache__" / "parallel_long_text_test"
+        shutil.rmtree(root, ignore_errors=True)
+        root.mkdir(parents=True, exist_ok=True)
+        long_text_settings_file = root / "long_text_settings.json"
+        first_read = threading.Event()
+        release_first = threading.Event()
+        second_started = threading.Event()
+        second_done = threading.Event()
+        errors: list[BaseException] = []
+        store_class = easyuse_settings.AtomicJsonStore
+        original_read = store_class._read_unlocked
+
+        def coordinated_read(store, *args, **kwargs):
+            data = original_read(store, *args, **kwargs)
+            if (
+                store.path == long_text_settings_file.resolve()
+                and threading.current_thread().name == "first-long-text"
+            ):
+                first_read.set()
+                if not release_first.wait(2):
+                    raise AssertionError("first long-text read was not released")
+            return data
+
+        def save_first():
+            try:
+                easyuse_settings.save_long_text_settings(
+                    {"prompt.metadata_filter_words": "metadata"}
+                )
+            except BaseException as exc:
+                errors.append(exc)
+
+        def save_second():
+            second_started.set()
+            try:
+                easyuse_settings.save_long_text_settings({"naia.pre_prompt": "prefix"})
+            except BaseException as exc:
+                errors.append(exc)
+            finally:
+                second_done.set()
+
+        try:
+            with (
+                patch.object(
+                    easyuse_settings,
+                    "LONG_TEXT_SETTINGS_FILE",
+                    long_text_settings_file,
+                ),
+                patch.object(
+                    store_class,
+                    "_read_unlocked",
+                    autospec=True,
+                    side_effect=coordinated_read,
+                ),
+            ):
+                first = threading.Thread(target=save_first, name="first-long-text")
+                second = threading.Thread(target=save_second, name="second-long-text")
+                first.start()
+                self.assertTrue(first_read.wait(2))
+                second.start()
+                self.assertTrue(second_started.wait(2))
+                self.assertFalse(second_done.wait(0.05))
+                release_first.set()
+                first.join(2)
+                second.join(2)
+
+            self.assertFalse(first.is_alive())
+            self.assertFalse(second.is_alive())
+            self.assertEqual(errors, [])
+            persisted = json.loads(long_text_settings_file.read_text(encoding="utf-8"))
+            self.assertEqual(persisted["values"]["prompt.metadata_filter_words"], "metadata")
+            self.assertEqual(persisted["values"]["naia.pre_prompt"], "prefix")
+        finally:
+            release_first.set()
+            shutil.rmtree(root, ignore_errors=True)
+
+    def test_save_setting_preserves_unknown_key_rejection_contract(self):
+        with self.assertRaisesRegex(KeyError, "Unknown setting"):
+            easyuse_settings.save_setting("future.unknown", "value")
+
     def test_public_settings_does_not_expose_token_file(self):
         settings = public_settings()
         self.assertEqual(
@@ -3077,9 +3294,129 @@ class DetailerHookTests(unittest.TestCase):
                 hook, = EasyUseAnimaDetailerAlignHook().build(alignment)
                 self.assertEqual(hook.touch_scaled_size(1052, 1232), expected)
 
+    def test_detailer_align_hook_delegates_before_applying_alignment(self):
+        class BaseHook:
+            marker = "wrapped"
+
+            def __init__(self):
+                self.calls = []
+
+            def touch_scaled_size(self, width, height):
+                self.calls.append(("touch_scaled_size", width, height))
+                return width + 1, height + 2
+
+            def post_upscale(self, image, noise_mask):
+                return "post_upscale", image, noise_mask
+
+            def get_skip_sampling(self):
+                return True
+
+            def post_encode(self, latent):
+                return "post_encode", latent
+
+            def get_custom_sampler(self):
+                return "custom_sampler"
+
+            def set_steps(self, steps):
+                return "set_steps", steps
+
+            def cycle_latent(self, latent):
+                return "cycle_latent", latent
+
+            def pre_ksample(self, *args):
+                return "pre_ksample", *args
+
+            def get_custom_noise(self, seed, noise, is_touched):
+                return "custom_noise", seed, noise, is_touched
+
+            def pre_decode(self, latent):
+                return "pre_decode", latent
+
+            def post_decode(self, image):
+                return "post_decode", image
+
+            def post_paste(self, image):
+                return "post_paste", image
+
+        base_hook = BaseHook()
+        hook, = EasyUseAnimaDetailerAlignHook().build("32", base_hook)
+        pre_ksample_args = (
+            "model", 7, 20, 6.5, "sampler", "scheduler",
+            "positive", "negative", "latent", 0.5,
+        )
+
+        self.assertEqual(hook.marker, "wrapped")
+        self.assertEqual(hook.touch_scaled_size(64, 95), (96, 128))
+        self.assertEqual(base_hook.calls, [("touch_scaled_size", 64, 95)])
+        self.assertEqual(hook.post_upscale("image", "mask"), ("post_upscale", "image", "mask"))
+        self.assertTrue(hook.get_skip_sampling())
+        self.assertEqual(hook.post_encode("latent"), ("post_encode", "latent"))
+        self.assertEqual(hook.get_custom_sampler(), "custom_sampler")
+        self.assertEqual(hook.set_steps(20), ("set_steps", 20))
+        self.assertEqual(hook.cycle_latent("latent"), ("cycle_latent", "latent"))
+        self.assertEqual(hook.pre_ksample(*pre_ksample_args), ("pre_ksample", *pre_ksample_args))
+        self.assertEqual(
+            hook.get_custom_noise(7, "noise", True),
+            ("custom_noise", 7, "noise", True),
+        )
+        self.assertEqual(hook.pre_decode("latent"), ("pre_decode", "latent"))
+        self.assertEqual(hook.post_decode("image"), ("post_decode", "image"))
+        self.assertEqual(hook.post_paste("image"), ("post_paste", "image"))
+
+    def test_detailer_align_hook_preserves_no_base_fallbacks(self):
+        hook, = EasyUseAnimaDetailerAlignHook().build("none")
+        pre_ksample_args = (
+            "model", 7, 20, 6.5, "sampler", "scheduler",
+            "positive", "negative", "latent", 0.5,
+        )
+
+        self.assertEqual(hook.touch_scaled_size(65, 95), (65, 95))
+        self.assertEqual(hook.post_upscale("image", "mask"), "image")
+        self.assertFalse(hook.get_skip_sampling())
+        self.assertEqual(hook.post_encode("latent"), "latent")
+        self.assertIsNone(hook.get_custom_sampler())
+        self.assertIsNone(hook.set_steps(20))
+        self.assertEqual(hook.cycle_latent("latent"), "latent")
+        self.assertEqual(hook.pre_ksample(*pre_ksample_args), pre_ksample_args)
+        self.assertEqual(hook.get_custom_noise(7, "noise", True), ("noise", True))
+        self.assertEqual(hook.pre_decode("latent"), "latent")
+        self.assertEqual(hook.post_decode("image"), "image")
+        self.assertEqual(hook.post_paste("image"), "image")
+        with self.assertRaises(AttributeError):
+            _ = hook.missing_attribute
+
 
 class AutocompleteDatasetTests(unittest.TestCase):
-    def test_search_autocomplete_normalizes_result_limit_and_bounds_scanning(self):
+    def test_search_autocomplete_ranks_exact_before_prefix_substring_and_description(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "tags.csv"
+            path.write_text(
+                "\n".join(
+                    [
+                        'target prefix popular,0,1000,"[일반] prefix"',
+                        'popular target middle,0,900,"[일반] substring"',
+                        'description only,0,800,"[일반] target description"',
+                        'target,0,1,"[일반] exact"',
+                    ]
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+
+            result = search_autocomplete("target", limit=4, path=path)
+
+        self.assertEqual(
+            [item["tag"] for item in result["results"]],
+            [
+                "target",
+                "target prefix popular",
+                "popular target middle",
+                "description only",
+            ],
+        )
+        self.assertEqual(result["results"][0]["count"], 1)
+
+    def test_search_autocomplete_normalizes_limit_and_matches_exhaustive_reference(self):
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "tags.csv"
             path.write_text(
@@ -3100,26 +3437,74 @@ class AutocompleteDatasetTests(unittest.TestCase):
             self.assertEqual(len(search_autocomplete("limit match", limit=-1, path=path)["results"]), 1)
             self.assertEqual(len(search_autocomplete("limit match", limit=10_000, path=path)["results"]), 100)
 
-        scanned = 0
-
-        def entries():
-            nonlocal scanned
-            for index in range(801):
-                scanned += 1
-                yield autocomplete_dataset.AutocompleteEntry(
-                    tag=f"scan match {index:03d}",
-                    tag_key=f"scan match {index:03d}",
-                    category="general",
-                    count=1000 - index,
-                    description="[일반] 스캔 제한 테스트",
-                    search=f"scan match {index:03d}",
+            path.write_text(
+                "\n".join(
+                    itertools.chain(
+                        ('needle,0,1,"[일반] low count exact"',),
+                        (
+                            f'needle prefix {index:03d},{index % 2},{2000 - index},"[일반] prefix"'
+                            for index in range(130)
+                        ),
+                        (
+                            f'popular needle middle {index:03d},{index % 2},{1800 - index},"[일반] substring"'
+                            for index in range(130)
+                        ),
+                        (
+                            f'description only {index:03d},{index % 2},{1600 - index},"[일반] needle description"'
+                            for index in range(130)
+                        ),
+                    )
                 )
+                + "\n",
+                encoding="utf-8",
+            )
+            next_mtime = path.stat().st_mtime_ns + 1_000_000_000
+            os.utime(path, ns=(next_mtime, next_mtime))
 
-        with patch.object(autocomplete_dataset, "_entries", return_value=entries()):
-            result = search_autocomplete("scan match", limit=10_000, path=Path("missing.csv"))
+            entries = autocomplete_dataset._entries(path)
 
-        self.assertEqual(len(result["results"]), 100)
-        self.assertEqual(scanned, 800)
+            def exhaustive(query, requested_limit, category=""):
+                normalized_query = autocomplete_dataset._normalize(query)
+                categories = {item.strip() for item in category.split(",") if item.strip()}
+                ranked = []
+                for entry in entries:
+                    if categories and entry.category not in categories:
+                        continue
+                    if entry.tag_key == normalized_query:
+                        score = 0
+                    elif entry.tag_key.startswith(normalized_query):
+                        score = 1
+                    elif normalized_query in entry.tag_key:
+                        score = 2
+                    elif normalized_query in entry.search:
+                        score = 3
+                    else:
+                        continue
+                    ranked.append((score, entry))
+                ranked.sort(key=lambda item: (item[0], -item[1].count, item[1].tag))
+                limit = max(1, min(requested_limit, 100))
+                return [
+                    {
+                        "tag": entry.tag,
+                        "category": entry.category,
+                        "count": entry.count,
+                        "description": entry.description,
+                    }
+                    for _, entry in ranked[:limit]
+                ]
+
+            for requested_limit, category in ((1, ""), (7, "artist"), (100, "artist,general")):
+                with self.subTest(requested_limit=requested_limit, category=category):
+                    optimized = search_autocomplete(
+                        "needle",
+                        limit=requested_limit,
+                        path=path,
+                        category=category,
+                    )["results"]
+                    self.assertEqual(
+                        optimized,
+                        exhaustive("needle", requested_limit, category),
+                    )
 
     def test_searches_english_tags_and_korean_descriptions(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -3169,6 +3554,157 @@ class AutocompleteDatasetTests(unittest.TestCase):
         self.assertEqual(korean["results"][0]["category"], "character")
         self.assertEqual(status["count"], 2)
 
+    def test_autocomplete_status_uses_builtin_manifest_without_loading_dataset(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "built-in.csv"
+            path.write_text(
+                'first tag,0,100,"[일반] first"\nsecond tag,0,90,"[일반] second"\n',
+                encoding="utf-8",
+            )
+            expected_mtime = path.stat().st_mtime_ns / 1_000_000_000
+            sources = {
+                "fixture": {
+                    "label": "Fixture",
+                    "path": path,
+                    "entry_count": 2,
+                }
+            }
+
+            with (
+                patch.object(autocomplete_dataset, "AUTOCOMPLETE_SOURCES", sources),
+                patch.object(
+                    autocomplete_dataset,
+                    "_snapshot",
+                    side_effect=AssertionError("status must not load a snapshot"),
+                ) as snapshot,
+                patch.object(
+                    autocomplete_dataset,
+                    "_load_entries",
+                    side_effect=AssertionError("status must not load entries"),
+                ) as load_entries,
+            ):
+                status = autocomplete_status(path)
+
+        self.assertEqual(set(status), {"path", "exists", "count", "mtime"})
+        self.assertEqual(status["path"], str(path))
+        self.assertTrue(status["exists"])
+        self.assertEqual(status["count"], 2)
+        self.assertEqual(status["mtime"], expected_mtime)
+        snapshot.assert_not_called()
+        load_entries.assert_not_called()
+
+    def test_autocomplete_status_builtin_missing_and_non_file_preserve_policy(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            targets = (root / "missing.csv", root)
+            for target in targets:
+                with self.subTest(target=target):
+                    sources = {
+                        "fixture": {
+                            "label": "Fixture",
+                            "path": target,
+                            "entry_count": 99,
+                        }
+                    }
+                    with (
+                        patch.object(
+                            autocomplete_dataset,
+                            "AUTOCOMPLETE_SOURCES",
+                            sources,
+                        ),
+                        patch.object(
+                            autocomplete_dataset,
+                            "_snapshot",
+                            side_effect=AssertionError("missing status must stay metadata-only"),
+                        ) as snapshot,
+                        patch.object(
+                            autocomplete_dataset,
+                            "_load_entries",
+                            side_effect=AssertionError("missing status must not load entries"),
+                        ) as load_entries,
+                    ):
+                        status = autocomplete_status(target)
+
+                    self.assertEqual(
+                        status,
+                        {
+                            "path": str(target),
+                            "exists": False,
+                            "count": 0,
+                            "mtime": 0,
+                        },
+                    )
+                    snapshot.assert_not_called()
+                    load_entries.assert_not_called()
+
+    def test_autocomplete_status_custom_path_preserves_exact_snapshot_fallback(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "custom.csv"
+            path.write_text('first tag,0,100,"[일반] first"\n', encoding="utf-8")
+            original_load = autocomplete_dataset._load_entries
+
+            with (
+                patch.object(autocomplete_dataset, "AUTOCOMPLETE_SOURCES", {}),
+                patch.object(
+                    autocomplete_dataset,
+                    "_load_entries",
+                    wraps=original_load,
+                ) as load_entries,
+            ):
+                first = autocomplete_status(path)
+                first_stat = path.stat()
+                path.write_text(
+                    'second tag,0,100,"[일반] second"\n'
+                    'third longer tag,0,90,"[일반] third"\n',
+                    encoding="utf-8",
+                )
+                next_mtime = first_stat.st_mtime_ns + 1_000_000_000
+                os.utime(path, ns=(next_mtime, next_mtime))
+                second = autocomplete_status(path)
+
+        self.assertEqual(first["count"], 1)
+        self.assertEqual(second["count"], 2)
+        self.assertEqual(load_entries.call_count, 2)
+
+    def test_search_classify_and_status_report_the_same_snapshot_status(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "built-in.csv"
+            path.write_text(
+                'shared tag,0,100,"[일반] shared"\n'
+                'other tag,0,90,"[일반] other"\n',
+                encoding="utf-8",
+            )
+            sources = {
+                "fixture": {
+                    "label": "Fixture",
+                    "path": path,
+                    "entry_count": 2,
+                }
+            }
+
+            with patch.object(
+                autocomplete_dataset,
+                "AUTOCOMPLETE_SOURCES",
+                sources,
+            ):
+                searched = search_autocomplete("shared", path=path)
+                classified = classify_prompt_text("shared tag", path=path)
+                status = autocomplete_status(path)
+
+        self.assertEqual(searched["status"], classified["status"])
+        self.assertEqual(searched["status"], status)
+        self.assertEqual(status["count"], 2)
+
+    def test_autocomplete_snapshot_records_use_slots(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "slots.csv"
+            path.write_text('slotted tag,0,100,"[일반] slotted"\n', encoding="utf-8")
+            snapshot = autocomplete_dataset._snapshot(path)
+
+        self.assertFalse(hasattr(snapshot, "__dict__"))
+        self.assertFalse(hasattr(snapshot.key, "__dict__"))
+        self.assertFalse(hasattr(snapshot.entries[0], "__dict__"))
+
     def test_searches_escaped_literal_parentheses(self):
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "tags.csv"
@@ -3181,19 +3717,232 @@ class AutocompleteDatasetTests(unittest.TestCase):
 
         self.assertEqual(result["results"][0]["tag"], "asuna (blue archive)")
 
-    def test_autocomplete_cache_reloads_when_csv_mtime_changes(self):
+    def test_autocomplete_cache_key_and_mtime_or_size_invalidation(self):
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "tags.csv"
             path.write_text('alpha tag,0,100,"[일반] 첫 태그"\n', encoding="utf-8")
 
             first = search_autocomplete("alpha", path=path)
-            path.write_text('beta tag,0,100,"[일반] 두 번째 태그"\n', encoding="utf-8")
-            next_mtime = path.stat().st_mtime_ns + 1_000_000_000
-            os.utime(path, ns=(next_mtime, next_mtime))
+            first_stat = path.stat()
+            first_key = autocomplete_dataset._cache_key(path.parent / "." / path.name)
+
+            path.write_text('beta longer tag,0,100,"[일반] 두 번째 태그"\n', encoding="utf-8")
+            os.utime(path, ns=(first_stat.st_atime_ns, first_stat.st_mtime_ns))
             second = search_autocomplete("beta", path=path)
+            second_stat = path.stat()
+            second_key = autocomplete_dataset._cache_key(path)
+
+            path.write_text('zeta longer tag,0,100,"[일반] 세 번째 태그"\n', encoding="utf-8")
+            next_mtime = second_stat.st_mtime_ns + 1_000_000_000
+            os.utime(path, ns=(next_mtime, next_mtime))
+            third = search_autocomplete("zeta", path=path)
+
+            with patch.object(
+                autocomplete_dataset,
+                "_AUTOCOMPLETE_CACHE_SCHEMA_VERSION",
+                first_key.schema_version + 1,
+            ):
+                schema_key = autocomplete_dataset._cache_key(path)
 
         self.assertEqual(first["results"][0]["tag"], "alpha tag")
-        self.assertEqual(second["results"][0]["tag"], "beta tag")
+        self.assertEqual(second["results"][0]["tag"], "beta longer tag")
+        self.assertEqual(third["results"][0]["tag"], "zeta longer tag")
+        self.assertEqual(first_key.resolved_path, str(path.resolve(strict=False)))
+        self.assertEqual(first_key.mtime_ns, second_key.mtime_ns)
+        self.assertNotEqual(first_key.size, second_key.size)
+        self.assertEqual(schema_key.schema_version, first_key.schema_version + 1)
+
+    def test_autocomplete_cache_coalesces_concurrent_same_key_loads(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "tags.csv"
+            path.write_text('shared tag,0,100,"[일반] shared"\n', encoding="utf-8")
+            start = threading.Barrier(3)
+            load_started = threading.Event()
+            waiter_joined = threading.Event()
+            release_load = threading.Event()
+            original_load = autocomplete_dataset._load_entries
+            original_await = autocomplete_dataset._await_snapshot
+
+            def blocking_load(load_path):
+                load_started.set()
+                if not release_load.wait(timeout=5):
+                    raise AssertionError("timed out waiting to release dataset load")
+                return original_load(load_path)
+
+            def observed_await(future):
+                waiter_joined.set()
+                return original_await(future)
+
+            def fetch_entries():
+                start.wait(timeout=5)
+                return autocomplete_dataset._entries(path)
+
+            with (
+                patch.object(
+                    autocomplete_dataset,
+                    "_load_entries",
+                    side_effect=blocking_load,
+                ) as load_entries,
+                patch.object(
+                    autocomplete_dataset,
+                    "_await_snapshot",
+                    side_effect=observed_await,
+                ),
+                ThreadPoolExecutor(max_workers=2) as executor,
+            ):
+                futures = [executor.submit(fetch_entries) for _ in range(2)]
+                start.wait(timeout=5)
+                self.assertTrue(load_started.wait(timeout=5))
+                try:
+                    self.assertTrue(waiter_joined.wait(timeout=5))
+                finally:
+                    release_load.set()
+                loaded = [future.result(timeout=5) for future in futures]
+
+        self.assertEqual(load_entries.call_count, 1)
+        self.assertIs(loaded[0], loaded[1])
+        self.assertEqual(loaded[0][0].tag, "shared tag")
+
+    def test_autocomplete_cache_loads_different_sources_in_parallel_without_pollution(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            first_path = Path(tmp) / "first.csv"
+            second_path = Path(tmp) / "second.csv"
+            first_path.write_text('first tag,0,100,"[일반] first"\n', encoding="utf-8")
+            second_path.write_text('second tag,0,90,"[일반] second"\n', encoding="utf-8")
+            loads_meet = threading.Barrier(2)
+            original_load = autocomplete_dataset._load_entries
+
+            def parallel_load(load_path):
+                loads_meet.wait(timeout=5)
+                return original_load(load_path)
+
+            with (
+                patch.object(
+                    autocomplete_dataset,
+                    "_load_entries",
+                    side_effect=parallel_load,
+                ) as load_entries,
+                ThreadPoolExecutor(max_workers=2) as executor,
+            ):
+                first_future = executor.submit(autocomplete_dataset._snapshot, first_path)
+                second_future = executor.submit(autocomplete_dataset._snapshot, second_path)
+                first_snapshot = first_future.result(timeout=5)
+                second_snapshot = second_future.result(timeout=5)
+
+        self.assertEqual(load_entries.call_count, 2)
+        self.assertEqual([entry.tag for entry in first_snapshot.entries], ["first tag"])
+        self.assertEqual([entry.tag for entry in second_snapshot.entries], ["second tag"])
+        self.assertEqual(set(first_snapshot.entry_map), {"first tag"})
+        self.assertEqual(set(second_snapshot.entry_map), {"second tag"})
+        self.assertIsInstance(first_snapshot.entries, tuple)
+        with self.assertRaises(TypeError):
+            first_snapshot.entry_map["mutated"] = first_snapshot.entries[0]
+
+    def test_autocomplete_cache_retries_replacement_and_treats_deletion_as_missing(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            replacement_path = Path(tmp) / "replacement.csv"
+            replacement_path.write_text('old tag,0,100,"[일반] old"\n', encoding="utf-8")
+            replacement_started = threading.Event()
+            replacement_done = threading.Event()
+            original_load = autocomplete_dataset._load_entries
+            load_count = 0
+            load_count_lock = threading.Lock()
+
+            def replacement_load(load_path):
+                nonlocal load_count
+                with load_count_lock:
+                    load_count += 1
+                    current_load = load_count
+                if current_load == 1:
+                    replacement_started.set()
+                    if not replacement_done.wait(timeout=5):
+                        raise AssertionError("timed out waiting for dataset replacement")
+                return original_load(load_path)
+
+            with (
+                patch.object(
+                    autocomplete_dataset,
+                    "_load_entries",
+                    side_effect=replacement_load,
+                ),
+                ThreadPoolExecutor(max_workers=1) as executor,
+            ):
+                replacement_future = executor.submit(
+                    search_autocomplete,
+                    "new replacement",
+                    20,
+                    replacement_path,
+                )
+                self.assertTrue(replacement_started.wait(timeout=5))
+                replacement_path.write_text(
+                    'new replacement tag,0,80,"[일반] replacement with a different size"\n',
+                    encoding="utf-8",
+                )
+                replacement_done.set()
+                replacement = replacement_future.result(timeout=5)
+
+            deletion_path = Path(tmp) / "deletion.csv"
+            deletion_path.write_text('deleted tag,0,100,"[일반] delete"\n', encoding="utf-8")
+            deletion_started = threading.Event()
+            deletion_done = threading.Event()
+            deletion_load_count = 0
+
+            def deletion_load(load_path):
+                nonlocal deletion_load_count
+                deletion_load_count += 1
+                if deletion_load_count == 1:
+                    deletion_started.set()
+                    if not deletion_done.wait(timeout=5):
+                        raise AssertionError("timed out waiting for dataset deletion")
+                    raise FileNotFoundError(load_path)
+                return original_load(load_path)
+
+            with (
+                patch.object(
+                    autocomplete_dataset,
+                    "_load_entries",
+                    side_effect=deletion_load,
+                ),
+                ThreadPoolExecutor(max_workers=1) as executor,
+            ):
+                deletion_future = executor.submit(
+                    search_autocomplete,
+                    "deleted",
+                    20,
+                    deletion_path,
+                )
+                self.assertTrue(deletion_started.wait(timeout=5))
+                deletion_path.unlink()
+                deletion_done.set()
+                deletion = deletion_future.result(timeout=5)
+
+        self.assertEqual(load_count, 2)
+        self.assertEqual(replacement["results"][0]["tag"], "new replacement tag")
+        self.assertTrue(replacement["status"]["exists"])
+        self.assertEqual(deletion_load_count, 1)
+        self.assertEqual(deletion["results"], [])
+        self.assertFalse(deletion["status"]["exists"])
+        self.assertEqual(deletion["status"]["count"], 0)
+
+    def test_autocomplete_cache_has_a_bounded_repeated_change_error(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "unstable.csv"
+            path.write_text('unstable tag,0,100,"[일반] unstable"\n', encoding="utf-8")
+            with patch.object(
+                autocomplete_dataset,
+                "_snapshot_for_key",
+                side_effect=autocomplete_dataset._AutocompleteSourceChanged(str(path)),
+            ) as snapshot_for_key:
+                with self.assertRaisesRegex(
+                    RuntimeError,
+                    "Autocomplete dataset changed repeatedly while loading",
+                ):
+                    autocomplete_dataset._snapshot(path)
+
+        self.assertEqual(
+            snapshot_for_key.call_count,
+            autocomplete_dataset._AUTOCOMPLETE_CACHE_LOAD_ATTEMPTS,
+        )
 
     def test_can_limit_autocomplete_to_artist_tags(self):
         with tempfile.TemporaryDirectory() as tmp:

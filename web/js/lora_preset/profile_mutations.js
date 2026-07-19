@@ -12,6 +12,8 @@ import {
   wrapProfileIndex,
 } from "./profile_data.js";
 
+const PROFILE_EXISTS_CODE = "profile_exists";
+
 /**
  * Owns profile and LoRA-row mutations while leaving canvas rendering and node
  * lifecycle installation with their existing owners.
@@ -29,6 +31,32 @@ export function createLoraPresetProfileMutations({
   errorMessage = (error) => error?.message || String(error),
   host = globalThis.window,
 }) {
+  const profileTokens = new Map();
+
+  function rememberProfileTokens(profiles) {
+    if (Array.isArray(profiles)) {
+      profileTokens.clear();
+    }
+    for (const profile of Array.isArray(profiles) ? profiles : [profiles]) {
+      const name = String(profile?.name || "").trim().toLowerCase();
+      if (!name) {
+        continue;
+      }
+      if (typeof profile?.profile_id === "string" && profile.profile_id && Number.isInteger(profile?.revision) && profile.revision >= 0) {
+        profileTokens.set(name, {
+          profile_id: profile.profile_id,
+          revision: profile.revision,
+        });
+      } else {
+        profileTokens.delete(name);
+      }
+    }
+  }
+
+  function profileToken(name) {
+    return profileTokens.get(String(name || "").trim().toLowerCase()) || null;
+  }
+
   function renderProfileBar(node) {
     getCanvasWidgets()?.renderProfileBar(node);
   }
@@ -291,8 +319,35 @@ export function createLoraPresetProfileMutations({
       host.alert?.(text("profile.nameRequired"));
       return;
     }
+    const payload = selectedProfilePayload(node);
     try {
-      const data = await apiClient.saveProfile(trimmedName, selectedProfilePayload(node));
+      let data;
+      try {
+        data = await apiClient.saveProfile(trimmedName, payload, false);
+      } catch (error) {
+        if (error?.code !== PROFILE_EXISTS_CODE) {
+          throw error;
+        }
+        const confirmed = host.confirm?.(
+          formatText("profile.overwriteConfirm", { name: trimmedName }),
+        );
+        if (!confirmed) {
+          return;
+        }
+        let overwriteToken = profileToken(trimmedName);
+        if (!overwriteToken) {
+          const current = await apiClient.loadProfile(trimmedName);
+          rememberProfileTokens(current?.profile);
+          overwriteToken = profileToken(current?.profile?.name);
+        }
+        data = await apiClient.saveProfile(
+          trimmedName,
+          payload,
+          true,
+          overwriteToken,
+        );
+      }
+      rememberProfileTokens(data?.profile);
       markSelectedProfileSaved(node, data?.profile?.name || trimmedName);
       renderProfileBar(node);
       node.setDirtyCanvas?.(true, true);
@@ -301,9 +356,12 @@ export function createLoraPresetProfileMutations({
     }
   }
 
-  async function loadProfileSet(node, name) {
+  async function loadProfileSet(node, profileOrName) {
     try {
+      rememberProfileTokens(profileOrName);
+      const name = String(profileOrName?.name || profileOrName || "").trim();
       const data = await apiClient.loadProfile(name);
+      rememberProfileTokens(data?.profile);
       appendProfilePayload(node, data.profile);
     } catch (error) {
       host.alert?.(formatText("profile.loadFailed", { message: errorMessage(error) }));
@@ -390,6 +448,7 @@ export function createLoraPresetProfileMutations({
     deleteProfile,
     selectedProfilePayload,
     profileSaveStatus,
+    rememberProfileTokens,
     appendProfilePayload,
     saveProfileSet,
     loadProfileSet,

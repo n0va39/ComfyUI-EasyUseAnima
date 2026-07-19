@@ -1,8 +1,15 @@
 from __future__ import annotations
 
+import atexit
+import asyncio
 import json
+import logging
 import os
 import re
+import threading
+import weakref
+from concurrent.futures import Future, ThreadPoolExecutor
+from functools import wraps
 from pathlib import Path
 
 try:
@@ -29,11 +36,70 @@ from .autocomplete_dataset import (
     search_autocomplete,
 )
 from .wildcard_engine import list_wildcards, resolve_wildcard_roots
-from .prompt_translation import translate_prompt_markers
+from .prompt_translation import (
+    PromptTranslationError,
+    TranslationBusyError,
+    TranslationCancelledError,
+    TranslationTimeoutError,
+    translate_prompt_markers,
+)
+from .api_contract import (
+    ApiContractError,
+    attach_request_id_header,
+    correlate_response,
+    create_request_id,
+    error_payload,
+    json_boolean,
+    json_integer,
+    json_object,
+    json_string,
+    json_uuid_string,
+    parse_json_object,
+)
 try:
-    from .storage import USER_DATA_DIR
+    from .easyuse_anima.profiles.contract import (
+        PROFILE_KIND_AIO,
+        PROFILE_KIND_LORA,
+        ProfileContractError,
+        build_profile_document,
+        create_profile_document,
+        interpret_profile_document,
+        legacy_profile_id,
+        normalize_profile_filename_identity,
+        rename_profile_document,
+        update_profile_document,
+    )
+    from .easyuse_anima.profiles.mutation import (
+        PROFILE_MUTATION_COORDINATOR,
+        ProfileMutationError,
+        ProfileRevisionConflictError,
+        require_profile_precondition,
+        verify_profile_precondition,
+    )
 except ImportError:
-    from storage import USER_DATA_DIR
+    from easyuse_anima.profiles.contract import (
+        PROFILE_KIND_AIO,
+        PROFILE_KIND_LORA,
+        ProfileContractError,
+        build_profile_document,
+        create_profile_document,
+        interpret_profile_document,
+        legacy_profile_id,
+        normalize_profile_filename_identity,
+        rename_profile_document,
+        update_profile_document,
+    )
+    from easyuse_anima.profiles.mutation import (
+        PROFILE_MUTATION_COORDINATOR,
+        ProfileMutationError,
+        ProfileRevisionConflictError,
+        require_profile_precondition,
+        verify_profile_precondition,
+    )
+try:
+    from .storage import AtomicJsonStore, USER_DATA_DIR
+except ImportError:
+    from storage import AtomicJsonStore, USER_DATA_DIR
 
 
 LORA_PREVIEW_EXTENSIONS = (".webp", ".png", ".jpg", ".jpeg")
@@ -59,13 +125,216 @@ AIO_RESERVED_PROFILE_NAMES = {
     "优化",
     "自定义",
 }
+WINDOWS_RESERVED_FILE_BASENAMES = {
+    "con",
+    "prn",
+    "aux",
+    "nul",
+    *(f"com{index}" for index in range(1, 10)),
+    *(f"lpt{index}" for index in range(1, 10)),
+    *(f"com{index}" for index in ("¹", "²", "³")),
+    *(f"lpt{index}" for index in ("¹", "²", "³")),
+}
+PROMPT_TRANSLATION_ROUTE_TIMEOUT_SECONDS = 15.0
+FILE_IO_MAX_IN_FLIGHT = 4
+_LOGGER = logging.getLogger(__name__)
 
 
-def _sanitize_lora_profile_name(name: str) -> str:
+class InvalidProfileDataError(ValueError):
+    pass
+
+
+_FILE_IO_LIMITERS_LOCK = threading.Lock()
+_FILE_IO_LIMITERS: weakref.WeakKeyDictionary = weakref.WeakKeyDictionary()
+
+
+class _PromptTranslationWorker:
+    """Own one lazy worker and never queue behind a timed-out sync call."""
+
+    def __init__(self):
+        self._lock = threading.RLock()
+        self._executor: ThreadPoolExecutor | None = None
+        self._in_flight: Future | None = None
+        self._closed = False
+
+    @property
+    def has_in_flight(self) -> bool:
+        with self._lock:
+            return self._in_flight is not None and not self._in_flight.done()
+
+    def submit(self, function, *args) -> Future:
+        with self._lock:
+            if self._closed:
+                raise RuntimeError("Prompt translation worker is shut down.")
+            if self._in_flight is not None and not self._in_flight.done():
+                raise TranslationBusyError()
+            if self._executor is None:
+                self._executor = ThreadPoolExecutor(
+                    max_workers=1,
+                    thread_name_prefix="easyuse-anima-translation",
+                )
+            future = self._executor.submit(function, *args)
+            self._in_flight = future
+        future.add_done_callback(self._release)
+        return future
+
+    def _release(self, future: Future) -> None:
+        with self._lock:
+            if self._in_flight is future:
+                self._in_flight = None
+
+    def shutdown(self) -> None:
+        with self._lock:
+            if self._closed:
+                return
+            self._closed = True
+            executor = self._executor
+            self._executor = None
+        if executor is not None:
+            executor.shutdown(wait=False, cancel_futures=True)
+
+
+_PROMPT_TRANSLATION_WORKER = _PromptTranslationWorker()
+atexit.register(_PROMPT_TRANSLATION_WORKER.shutdown)
+
+
+def _translate_prompt_sync(text: str) -> str:
+    return translate_prompt_markers(text, resolve_prompt_translation_settings())
+
+
+async def _translate_prompt_for_route(text: str) -> str:
+    future = _PROMPT_TRANSLATION_WORKER.submit(_translate_prompt_sync, text)
+    wrapped_future = asyncio.wrap_future(future)
+    try:
+        done, _pending = await asyncio.wait(
+            (wrapped_future,),
+            timeout=PROMPT_TRANSLATION_ROUTE_TIMEOUT_SECONDS,
+        )
+    except asyncio.CancelledError as exc:
+        # Waiting stops immediately, while admission remains occupied until the
+        # bounded sync worker really exits.
+        wrapped_future.cancel()
+        raise TranslationCancelledError() from exc
+    if not done:
+        wrapped_future.cancel()
+        raise TranslationTimeoutError()
+    return wrapped_future.result()
+
+
+def _prompt_translation_error_response(exc: PromptTranslationError):
+    return _error_response(
+        exc.status,
+        exc.code,
+        exc.message,
+    )
+
+
+def _error_response(
+    status: int,
+    code: str,
+    message: str,
+    *,
+    details: dict | None = None,
+):
+    return web.json_response(
+        error_payload(code, message, details=details),
+        status=status,
+    )
+
+
+def _contract_error_response(exc: ApiContractError):
+    return _error_response(
+        exc.status,
+        exc.code,
+        exc.message,
+        details=exc.details,
+    )
+
+
+def _request_correlated(handler):
+    @wraps(handler)
+    async def correlated_handler(request):
+        request_id = create_request_id()
+        try:
+            response = await handler(request)
+        except asyncio.CancelledError:
+            raise
+        except Exception as exc:
+            http_exception_type = getattr(web, "HTTPException", ())
+            if isinstance(exc, http_exception_type):
+                attach_request_id_header(exc, request_id)
+                raise
+            _LOGGER.exception(
+                "Unhandled EasyUseAnima API error (request_id=%s)",
+                request_id,
+            )
+            response = _error_response(
+                500,
+                "internal_error",
+                "An unexpected server error occurred.",
+            )
+        return correlate_response(response, request_id)
+
+    correlated_handler._easyuse_anima_request_correlation = True
+    return correlated_handler
+
+
+def _file_io_limiter() -> asyncio.Semaphore:
+    loop = asyncio.get_running_loop()
+    with _FILE_IO_LIMITERS_LOCK:
+        limiter_ref = _FILE_IO_LIMITERS.get(loop)
+        limiter = limiter_ref() if limiter_ref is not None else None
+        if limiter is None:
+            limiter = asyncio.Semaphore(FILE_IO_MAX_IN_FLIGHT)
+            # A contended Semaphore binds itself to the event loop. Store only
+            # a weak value so the registry cannot root a closed loop through
+            # registry -> semaphore -> loop. Active/waiting calls and worker
+            # callbacks keep their limiter alive until the real work finishes.
+            _FILE_IO_LIMITERS[loop] = weakref.ref(limiter)
+        return limiter
+
+
+def _release_file_io_slot(limiter: asyncio.Semaphore, worker: asyncio.Task) -> None:
+    limiter.release()
+    if worker.cancelled():
+        return
+    # Retrieve failures even when the request that submitted the worker was
+    # cancelled. A live caller still receives the same exception from await.
+    worker.exception()
+
+
+async def _run_file_io(function, /, *args, **kwargs):
+    limiter = _file_io_limiter()
+    await limiter.acquire()
+    worker = asyncio.create_task(asyncio.to_thread(function, *args, **kwargs))
+    worker.add_done_callback(
+        lambda completed, owned_limiter=limiter: _release_file_io_slot(
+            owned_limiter,
+            completed,
+        )
+    )
+    return await asyncio.shield(worker)
+
+
+def _windows_profile_filename_identity(name: str) -> str:
+    return normalize_profile_filename_identity(name)
+
+
+def _sanitize_profile_name(name: str) -> str:
     safe_name = INVALID_PROFILE_NAME_CHARS.sub("_", str(name or "")).strip(" ._")
     if not safe_name:
         raise ValueError("Profile name is required")
-    return safe_name[:80]
+    safe_name = safe_name[:80].rstrip(" .")
+    if not safe_name:
+        raise ValueError("Profile name is required")
+    windows_basename = safe_name.split(".", 1)[0].casefold()
+    if windows_basename in WINDOWS_RESERVED_FILE_BASENAMES:
+        raise ValueError("Profile name is reserved on Windows")
+    return safe_name
+
+
+def _sanitize_lora_profile_name(name: str) -> str:
+    return _sanitize_profile_name(name)
 
 
 def _lora_profile_path(name: str, profile_dir: Path | None = None) -> Path:
@@ -75,6 +344,22 @@ def _lora_profile_path(name: str, profile_dir: Path | None = None) -> Path:
     if os.path.commonpath((str(root), str(path))) != str(root):
         raise ValueError("Invalid profile path")
     return path
+
+
+def _find_lora_profile_path(name: str, profile_dir: Path | None = None) -> Path | None:
+    safe_name = _sanitize_lora_profile_name(name)
+    root = profile_dir or LORA_PROFILE_DIR
+    if not root.is_dir():
+        return None
+    expected = _windows_profile_filename_identity(safe_name)
+    return next(
+        (
+            path
+            for path in sorted(root.glob("*.json"), key=lambda item: (item.name.casefold(), item.name))
+            if _windows_profile_filename_identity(path.stem) == expected
+        ),
+        None,
+    )
 
 
 def _as_lora_profile_count(value) -> int:
@@ -134,12 +419,7 @@ def _list_lora_profiles() -> list[dict]:
     for path in sorted(LORA_PROFILE_DIR.glob("*.json"), key=lambda item: item.stem.lower()):
         if path.name == ".gitignore":
             continue
-        profiles.append(
-            {
-                "name": path.stem,
-                "modified": int(path.stat().st_mtime),
-            }
-        )
+        profiles.append(_profile_list_item(PROFILE_KIND_LORA, path))
     return profiles
 
 
@@ -319,33 +599,124 @@ def _fix_lora_profile_payload(data: dict) -> dict:
     return payload
 
 
-def _save_lora_profile(name: str, data: dict) -> dict:
+def _read_profile_json(path: Path):
+    store = AtomicJsonStore(path)
+    with store.locked():
+        try:
+            return store.read()
+        except json.JSONDecodeError:
+            if path.read_text(encoding="utf-8") == "":
+                return {}
+            raise
+
+
+def _profile_list_item(profile_kind: str, path: Path) -> dict:
+    try:
+        data = _read_profile_json(path)
+        if not isinstance(data, dict):
+            raise ProfileContractError("Profile data is invalid")
+        interpreted = interpret_profile_document(profile_kind, path.stem, data)
+        profile_id = interpreted["profile_id"]
+        revision = interpreted["revision"]
+    except ProfileContractError as exc:
+        raise InvalidProfileDataError(str(exc)) from exc
+    except (
+        OSError,
+        UnicodeError,
+        json.JSONDecodeError,
+    ):
+        profile_id = legacy_profile_id(profile_kind, path.stem)
+        revision = 0
+    return {
+        "name": path.stem,
+        "modified": int(path.stat().st_mtime),
+        "profile_id": profile_id,
+        "revision": revision,
+    }
+
+
+def _save_lora_profile(
+    name: str,
+    data: dict,
+    *,
+    overwrite: bool = False,
+    profile_id: str | None = None,
+    revision: int | None = None,
+) -> dict:
     safe_name = _sanitize_lora_profile_name(name)
     payload = _normalize_lora_profile_payload(data)
-    payload["name"] = safe_name
-    LORA_PROFILE_DIR.mkdir(parents=True, exist_ok=True)
-    path = _lora_profile_path(safe_name)
-    path.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
-    return payload
+    requested_path = _lora_profile_path(safe_name)
+    if overwrite:
+        require_profile_precondition(profile_id, revision)
+    with PROFILE_MUTATION_COORDINATOR.locked(LORA_PROFILE_DIR):
+        existing = _find_lora_profile_path(safe_name)
+        if existing is not None and not overwrite:
+            raise FileExistsError("Profile already exists")
+        if existing is None and overwrite:
+            raise FileNotFoundError("Profile not found")
+        path = existing or requested_path
+        try:
+            if existing is None:
+                document = create_profile_document(
+                    PROFILE_KIND_LORA,
+                    path.stem,
+                    payload,
+                )
+            else:
+                current = _read_profile_json(path)
+                if not isinstance(current, dict):
+                    raise ProfileContractError("Profile data is invalid")
+                verify_profile_precondition(
+                    PROFILE_KIND_LORA,
+                    path.stem,
+                    current,
+                    profile_id=profile_id,
+                    revision=revision,
+                )
+                document = update_profile_document(
+                    PROFILE_KIND_LORA,
+                    path.stem,
+                    current,
+                    payload,
+                )
+        except ProfileContractError as exc:
+            raise InvalidProfileDataError(str(exc)) from exc
+        AtomicJsonStore(path).write(document)
+    return document
 
 
 def _load_lora_profile(name: str) -> dict:
-    path = _lora_profile_path(name)
-    if not path.is_file():
+    path = _find_lora_profile_path(name)
+    if path is None or not path.is_file():
         raise FileNotFoundError("Profile not found")
-    data = json.loads(path.read_text(encoding="utf-8") or "{}")
+    data = _read_profile_json(path)
     if not isinstance(data, dict):
-        data = {}
+        raise InvalidProfileDataError("Profile data is invalid")
+    profile_data = data.get("profile_data", {})
+    if isinstance(profile_data, str):
+        try:
+            decoded_profile_data = json.loads(profile_data or "{}")
+        except (TypeError, ValueError) as exc:
+            raise InvalidProfileDataError("Profile data is invalid") from exc
+        if not isinstance(decoded_profile_data, dict):
+            raise InvalidProfileDataError("Profile data is invalid")
+    elif not isinstance(profile_data, dict):
+        raise InvalidProfileDataError("Profile data is invalid")
     payload = _normalize_lora_profile_payload(data)
-    payload["name"] = path.stem
-    return payload
+    try:
+        interpreted = interpret_profile_document(PROFILE_KIND_LORA, path.stem, data)
+        return build_profile_document(
+            name=path.stem,
+            profile_id=interpreted["profile_id"],
+            revision=interpreted["revision"],
+            payload=payload,
+        )
+    except ProfileContractError as exc:
+        raise InvalidProfileDataError(str(exc)) from exc
 
 
 def _sanitize_aio_profile_name(name: str) -> str:
-    safe_name = INVALID_PROFILE_NAME_CHARS.sub("_", str(name or "")).strip(" ._")
-    if not safe_name:
-        raise ValueError("Profile name is required")
-    safe_name = safe_name[:80]
+    safe_name = _sanitize_profile_name(name)
     if safe_name.casefold() in {item.casefold() for item in AIO_RESERVED_PROFILE_NAMES}:
         raise ValueError("System profile names are reserved")
     return safe_name
@@ -365,9 +736,13 @@ def _find_aio_profile_path(name: str, profile_dir: Path | None = None) -> Path |
     root = profile_dir or AIO_PROFILE_DIR
     if not root.is_dir():
         return None
-    expected = safe_name.casefold()
+    expected = _windows_profile_filename_identity(safe_name)
     return next(
-        (path for path in root.glob("*.json") if path.stem.casefold() == expected),
+        (
+            path
+            for path in sorted(root.glob("*.json"), key=lambda item: (item.name.casefold(), item.name))
+            if _windows_profile_filename_identity(path.stem) == expected
+        ),
         None,
     )
 
@@ -393,26 +768,84 @@ def _list_aio_profiles(profile_dir: Path | None = None) -> list[dict]:
     if not root.is_dir():
         return []
     return [
-        {
-            "name": path.stem,
-            "modified": int(path.stat().st_mtime),
-        }
+        _profile_list_item(PROFILE_KIND_AIO, path)
         for path in sorted(root.glob("*.json"), key=lambda item: item.stem.casefold())
     ]
 
 
-def _save_aio_profile(name: str, data: dict, *, overwrite: bool = False) -> dict:
+def _validate_aio_profile_size(document: dict) -> None:
+    encoded = json.dumps(document, ensure_ascii=False, indent=2)
+    if len(encoded.encode("utf-8")) > MAX_AIO_PROFILE_BYTES:
+        raise ValueError("Profile settings are too large")
+
+
+def _save_aio_profile(
+    name: str,
+    data: dict,
+    *,
+    overwrite: bool = False,
+    profile_id: str | None = None,
+    revision: int | None = None,
+) -> dict:
     payload = _normalize_aio_profile_payload(name, data)
-    AIO_PROFILE_DIR.mkdir(parents=True, exist_ok=True)
-    existing = _find_aio_profile_path(payload["name"])
-    if existing is not None and not overwrite:
-        raise FileExistsError("Profile already exists")
-    if existing is None and len(_list_aio_profiles()) >= MAX_AIO_PROFILES:
-        raise ValueError(f"A maximum of {MAX_AIO_PROFILES} profiles can be saved")
-    path = existing or _aio_profile_path(payload["name"])
-    payload["name"] = path.stem
-    path.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
-    return payload
+    requested_path = _aio_profile_path(payload["name"])
+    if overwrite:
+        require_profile_precondition(profile_id, revision)
+    with PROFILE_MUTATION_COORDINATOR.locked(AIO_PROFILE_DIR):
+        existing = _find_aio_profile_path(payload["name"])
+        if existing is not None and not overwrite:
+            raise FileExistsError("Profile already exists")
+        if existing is None and overwrite:
+            raise FileNotFoundError("Profile not found")
+        if existing is None and len(_list_aio_profiles()) >= MAX_AIO_PROFILES:
+            raise ValueError(f"A maximum of {MAX_AIO_PROFILES} profiles can be saved")
+        path = existing or requested_path
+        try:
+            if existing is None:
+                document = create_profile_document(
+                    PROFILE_KIND_AIO,
+                    path.stem,
+                    payload,
+                )
+            else:
+                current = _read_profile_json(path)
+                if not isinstance(current, dict):
+                    raise ProfileContractError("Profile data is invalid")
+                verify_profile_precondition(
+                    PROFILE_KIND_AIO,
+                    path.stem,
+                    current,
+                    profile_id=profile_id,
+                    revision=revision,
+                )
+                document = update_profile_document(
+                    PROFILE_KIND_AIO,
+                    path.stem,
+                    current,
+                    payload,
+                )
+        except ProfileContractError as exc:
+            raise InvalidProfileDataError(str(exc)) from exc
+        _validate_aio_profile_size(document)
+        AtomicJsonStore(path).write(document)
+    return document
+
+
+def _normalize_stored_aio_profile_payload(name: str, data) -> dict:
+    if not isinstance(data, dict):
+        raise InvalidProfileDataError("Profile data is invalid")
+    try:
+        payload = _normalize_aio_profile_payload(name, data)
+        interpreted = interpret_profile_document(PROFILE_KIND_AIO, name, data)
+        document = build_profile_document(
+            name=name,
+            profile_id=interpreted["profile_id"],
+            revision=interpreted["revision"],
+            payload=payload,
+        )
+        return document
+    except (ProfileContractError, ValueError) as exc:
+        raise InvalidProfileDataError(str(exc)) from exc
 
 
 def _load_aio_profile(name: str) -> dict:
@@ -420,40 +853,152 @@ def _load_aio_profile(name: str) -> dict:
     if path is None or not path.is_file():
         raise FileNotFoundError("Profile not found")
     try:
-        data = json.loads(path.read_text(encoding="utf-8") or "{}")
-    except json.JSONDecodeError as exc:
-        raise ValueError("Profile data is invalid") from exc
-    return _normalize_aio_profile_payload(path.stem, data if isinstance(data, dict) else {})
+        data = _read_profile_json(path)
+    except (json.JSONDecodeError, UnicodeDecodeError) as exc:
+        raise InvalidProfileDataError("Profile data is invalid") from exc
+    return _normalize_stored_aio_profile_payload(path.stem, data)
 
 
-def _delete_aio_profile(name: str) -> dict:
-    path = _find_aio_profile_path(name)
-    if path is None or not path.is_file():
-        raise FileNotFoundError("Profile not found")
-    deleted_name = path.stem
-    path.unlink()
-    return {"name": deleted_name}
+def _delete_aio_profile(
+    name: str,
+    *,
+    profile_id: str | None = None,
+    revision: int | None = None,
+) -> dict:
+    require_profile_precondition(profile_id, revision)
+    with PROFILE_MUTATION_COORDINATOR.locked(AIO_PROFILE_DIR):
+        path = _find_aio_profile_path(name)
+        if path is None or not path.is_file():
+            raise FileNotFoundError("Profile not found")
+        store = AtomicJsonStore(path)
+        try:
+            data = _read_profile_json(path)
+            if not isinstance(data, dict):
+                raise ProfileContractError("Profile data is invalid")
+            deleted_profile_id, deleted_revision = verify_profile_precondition(
+                PROFILE_KIND_AIO,
+                path.stem,
+                data,
+                profile_id=profile_id,
+                revision=revision,
+            )
+        except ProfileContractError as exc:
+            raise InvalidProfileDataError(str(exc)) from exc
+        try:
+            store.delete()
+        except FileNotFoundError as exc:
+            raise FileNotFoundError("Profile not found") from exc
+    return {
+        "name": path.stem,
+        "profile_id": deleted_profile_id,
+        "revision": deleted_revision,
+    }
 
 
-def _rename_aio_profile(old_name: str, new_name: str, *, overwrite: bool = False) -> dict:
-    source = _find_aio_profile_path(old_name)
-    if source is None or not source.is_file():
-        raise FileNotFoundError("Profile not found")
-    safe_new_name = _sanitize_aio_profile_name(new_name)
-    if source.stem.casefold() == safe_new_name.casefold():
-        return _load_aio_profile(source.stem)
+def _rename_aio_profile(
+    old_name: str,
+    new_name: str,
+    *,
+    overwrite: bool = False,
+    profile_id: str | None = None,
+    revision: int | None = None,
+    target_profile_id: str | None = None,
+    target_revision: int | None = None,
+) -> dict:
+    require_profile_precondition(profile_id, revision, profile="source")
+    with PROFILE_MUTATION_COORDINATOR.locked(AIO_PROFILE_DIR):
+        source = _find_aio_profile_path(old_name)
+        if source is None or not source.is_file():
+            raise FileNotFoundError("Profile not found")
+        safe_new_name = _sanitize_aio_profile_name(new_name)
+        try:
+            data = _read_profile_json(source)
+            if not isinstance(data, dict):
+                raise ProfileContractError("Profile data is invalid")
+            verify_profile_precondition(
+                PROFILE_KIND_AIO,
+                source.stem,
+                data,
+                profile_id=profile_id,
+                revision=revision,
+                profile="source",
+            )
+        except ProfileContractError as exc:
+            raise InvalidProfileDataError(str(exc)) from exc
 
-    target = _find_aio_profile_path(safe_new_name)
-    if target is not None and not overwrite:
-        raise FileExistsError("Profile already exists")
+        if (
+            _windows_profile_filename_identity(source.stem)
+            == _windows_profile_filename_identity(safe_new_name)
+        ):
+            renamed = _rename_aio_profile_payload(
+                source.stem,
+                source.stem,
+                data,
+            )
+            if data != renamed:
+                AtomicJsonStore(source, backup=False).write(renamed)
+            return renamed
 
-    payload = _load_aio_profile(source.stem)
-    payload["name"] = safe_new_name
-    target_path = target or _aio_profile_path(safe_new_name)
-    target_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
-    source.unlink()
-    payload["name"] = target_path.stem
-    return payload
+        target = _find_aio_profile_path(safe_new_name)
+        if target is not None and not overwrite:
+            raise FileExistsError("Profile already exists")
+        if target is None and (
+            target_profile_id is not None or target_revision is not None
+        ):
+            raise ProfileRevisionConflictError(profile="target")
+        if target is not None:
+            require_profile_precondition(
+                target_profile_id,
+                target_revision,
+                id_field="target_profile_id",
+                revision_field="target_revision",
+                profile="target",
+            )
+            try:
+                target_data = _read_profile_json(target)
+                if not isinstance(target_data, dict):
+                    raise ProfileContractError("Profile data is invalid")
+                verify_profile_precondition(
+                    PROFILE_KIND_AIO,
+                    target.stem,
+                    target_data,
+                    profile_id=target_profile_id,
+                    revision=target_revision,
+                    id_field="target_profile_id",
+                    revision_field="target_revision",
+                    profile="target",
+                )
+            except ProfileContractError as exc:
+                raise InvalidProfileDataError(str(exc)) from exc
+
+        target_path = target or _aio_profile_path(safe_new_name)
+        renamed = AtomicJsonStore(target_path).replace_from(
+            AtomicJsonStore(source),
+            overwrite=overwrite,
+            backup_target=True,
+            transform=lambda current: _rename_aio_profile_payload(
+                source.stem,
+                target_path.stem,
+                current,
+            ),
+        )
+        return renamed
+
+
+def _rename_aio_profile_payload(source_name: str, target_name: str, data) -> dict:
+    normalized = _normalize_stored_aio_profile_payload(source_name, data)
+    try:
+        document = rename_profile_document(
+            PROFILE_KIND_AIO,
+            source_name,
+            target_name,
+            data,
+            normalized,
+        )
+    except ProfileContractError as exc:
+        raise InvalidProfileDataError(str(exc)) from exc
+    _validate_aio_profile_size(document)
+    return document
 
 
 def _resolve_lora_preview_path(lora_name: str):
@@ -484,6 +1029,156 @@ def _resolve_lora_preview_path(lora_name: str):
     return None
 
 
+_SAFE_PROFILE_VALIDATION_MESSAGES = frozenset(
+    {
+        "Profile name is required",
+        "Profile name is reserved on Windows",
+        "Invalid profile path",
+        "System profile names are reserved",
+        "Profile settings must be an object",
+        "Profile settings are too large",
+        f"A maximum of {MAX_AIO_PROFILES} profiles can be saved",
+    }
+)
+
+
+def _profile_error_response(exc: Exception):
+    if isinstance(exc, ProfileMutationError):
+        return _error_response(
+            exc.status,
+            exc.code,
+            exc.message,
+            details=exc.details,
+        )
+    if isinstance(exc, FileExistsError):
+        return _error_response(409, "profile_exists", "Profile already exists")
+    if isinstance(exc, FileNotFoundError):
+        return _error_response(404, "profile_not_found", "Profile not found")
+    if isinstance(
+        exc,
+        (json.JSONDecodeError, UnicodeDecodeError, InvalidProfileDataError),
+    ):
+        return _error_response(422, "invalid_profile_data", "Profile data is invalid")
+    if isinstance(exc, ValueError):
+        message = str(exc)
+        if message not in _SAFE_PROFILE_VALIDATION_MESSAGES:
+            message = "Request validation failed"
+        return _error_response(422, "invalid_request", message)
+    raise exc
+
+
+def _get_settings_payload_sync() -> dict:
+    return public_settings()
+
+
+def _save_setting_payload_sync(key: str, value) -> dict:
+    save_setting(key, value)
+    return {"status": "ok", **public_settings()}
+
+
+def _get_long_text_settings_payload_sync() -> dict:
+    return {
+        "status": "ok",
+        "values": load_long_text_settings(),
+        "settings": public_settings(),
+    }
+
+
+def _save_long_text_settings_payload_sync(values: dict) -> dict:
+    return {
+        "status": "ok",
+        "values": save_long_text_settings(values),
+        "settings": public_settings(),
+    }
+
+
+def _wildcards_payload_sync() -> dict:
+    settings = public_settings()
+    extra_paths = settings.get("wildcard.extra_paths", "")
+    roots = resolve_wildcard_roots(extra_paths)
+    sources = [
+        {
+            "id": f"wildcard:{index}",
+            "label": f"Wildcard source {index}",
+            "exists": root.is_dir(),
+        }
+        for index, root in enumerate(roots, start=1)
+    ]
+    return {
+        "status": "ok",
+        "items": list_wildcards(roots=roots),
+        # Preserve the legacy list-of-strings type without publishing paths.
+        "roots": [source["id"] for source in sources],
+        "sources": sources,
+    }
+
+
+def _autocomplete_status_payload_sync() -> dict:
+    selected_source = resolve_autocomplete_source()
+    source_key, path = resolve_autocomplete_source_path(selected_source)
+    status = _public_autocomplete_status(autocomplete_status(path))
+    sources = []
+    source_label = source_key
+    for source in available_autocomplete_sources(source_key):
+        public_source = {
+            key: value
+            for key, value in source.items()
+            if key != "path"
+        }
+        sources.append(public_source)
+        if public_source.get("selected"):
+            source_label = str(public_source.get("label") or source_key)
+    return {
+        **status,
+        "source": source_key,
+        "source_label": source_label,
+        "sources": sources,
+    }
+
+
+def _public_autocomplete_status(status) -> dict:
+    public_status = dict(status) if isinstance(status, dict) else {}
+    public_status.pop("path", None)
+    return public_status
+
+
+def _public_autocomplete_payload(payload) -> dict:
+    public_payload = dict(payload) if isinstance(payload, dict) else {}
+    if "status" in public_payload:
+        public_payload["status"] = _public_autocomplete_status(
+            public_payload["status"]
+        )
+    return public_payload
+
+
+def _search_autocomplete_payload_sync(
+    query: str,
+    requested_limit: str | None,
+    category_filter: str | None,
+):
+    default_limit = resolve_autocomplete_limit()
+    try:
+        limit = int(requested_limit) if requested_limit is not None else default_limit
+    except ValueError:
+        limit = default_limit
+    _, path = resolve_autocomplete_source_path(resolve_autocomplete_source())
+    return _public_autocomplete_payload(
+        search_autocomplete(
+            query,
+            limit=limit,
+            path=path,
+            category=category_filter,
+        )
+    )
+
+
+def _classify_prompt_payload_sync(text: str, limit: int):
+    _, path = resolve_autocomplete_source_path(resolve_autocomplete_source())
+    return _public_autocomplete_payload(
+        classify_prompt_text(text, limit=limit, path=path)
+    )
+
+
 def _get_prompt_routes():
     if server is None:
         return None
@@ -497,80 +1192,59 @@ routes = _get_prompt_routes()
 if web is not None and routes is not None:
 
     @routes.get("/easyuse_anima/settings")
+    @_request_correlated
     async def get_settings_handler(request):
-        return web.json_response(public_settings())
+        return web.json_response(await _run_file_io(_get_settings_payload_sync))
 
     @routes.post("/easyuse_anima/set_setting")
+    @_request_correlated
     async def set_setting_handler(request):
-        data = await request.json()
-        key = data.get("key")
-        if key is None:
-            return web.json_response(
-                {"status": "error", "message": "Setting key not provided"},
-                status=400,
-            )
         try:
-            save_setting(str(key), data.get("value", ""))
-        except KeyError as exc:
-            return web.json_response(
-                {"status": "error", "message": str(exc)},
-                status=400,
+            data = await parse_json_object(request)
+            key = json_string(data, "key", allow_empty=False)
+        except ApiContractError as exc:
+            return _contract_error_response(exc)
+        try:
+            payload = await _run_file_io(
+                _save_setting_payload_sync,
+                key,
+                data.get("value", ""),
             )
-        return web.json_response({"status": "ok", **public_settings()})
+        except KeyError:
+            return _error_response(422, "unknown_setting", "Unknown setting")
+        return web.json_response(payload)
 
     @routes.get("/easyuse_anima/long_text_settings")
+    @_request_correlated
     async def get_long_text_settings_handler(request):
         return web.json_response(
-            {
-                "status": "ok",
-                "values": load_long_text_settings(),
-                "settings": public_settings(),
-            }
+            await _run_file_io(_get_long_text_settings_payload_sync)
         )
 
     @routes.get("/easyuse_anima/wildcards")
+    @_request_correlated
     async def get_wildcards_handler(request):
-        settings = public_settings()
-        extra_paths = settings.get("wildcard.extra_paths", "")
-        return web.json_response(
-            {
-                "status": "ok",
-                "items": list_wildcards(extra_paths=extra_paths),
-                "roots": [str(path) for path in resolve_wildcard_roots(extra_paths)],
-            }
-        )
+        return web.json_response(await _run_file_io(_wildcards_payload_sync))
 
     @routes.post("/easyuse_anima/long_text_settings/save")
+    @_request_correlated
     async def save_long_text_settings_handler(request):
-        data = await request.json()
-        values = data.get("values", data)
-        if not isinstance(values, dict):
-            return web.json_response(
-                {"status": "error", "message": "Long text values must be an object"},
-                status=400,
-            )
-        saved = save_long_text_settings(values)
+        try:
+            data = await parse_json_object(request)
+            values = json_object(data, "values") if "values" in data else data
+        except ApiContractError as exc:
+            return _contract_error_response(exc)
         return web.json_response(
-            {
-                "status": "ok",
-                "values": saved,
-                "settings": public_settings(),
-            }
+            await _run_file_io(_save_long_text_settings_payload_sync, values)
         )
 
     @routes.get("/easyuse_anima/autocomplete_status")
+    @_request_correlated
     async def autocomplete_status_handler(request):
-        selected_source = resolve_autocomplete_source()
-        source_key, path = resolve_autocomplete_source_path(selected_source)
-        return web.json_response(
-            {
-                **autocomplete_status(path),
-                "source": source_key,
-                "sources": available_autocomplete_sources(source_key),
-            }
-        )
+        return web.json_response(await _run_file_io(_autocomplete_status_payload_sync))
 
     @routes.get("/easyuse_anima/autocomplete")
+    @_request_correlated
     async def autocomplete_handler(request):
         query = request.query.get("q", "")
         category = request.query.get("category", "")
@@ -578,47 +1252,55 @@ if web is not None and routes is not None:
             "artist": "artist",
             "artist_or_general": "artist,general",
         }.get(category)
-        try:
-            limit = int(request.query.get("limit", resolve_autocomplete_limit()))
-        except ValueError:
-            limit = resolve_autocomplete_limit()
-        _, path = resolve_autocomplete_source_path(resolve_autocomplete_source())
         return web.json_response(
-            search_autocomplete(
+            await _run_file_io(
+                _search_autocomplete_payload_sync,
                 query,
-                limit=limit,
-                path=path,
-                category=category_filter,
+                request.query.get("limit"),
+                category_filter,
             )
         )
 
     @routes.post("/easyuse_anima/classify_prompt")
+    @_request_correlated
     async def classify_prompt_handler(request):
-        data = await request.json()
         try:
-            limit = int(data.get("limit", 240))
-        except (TypeError, ValueError):
-            limit = 240
-        _, path = resolve_autocomplete_source_path(resolve_autocomplete_source())
+            data = await parse_json_object(request)
+            text = json_string(data, "text")
+            limit = json_integer(
+                data,
+                "limit",
+                default=240,
+                minimum=1,
+                maximum=500,
+            )
+        except ApiContractError as exc:
+            return _contract_error_response(exc)
         return web.json_response(
-            classify_prompt_text(str(data.get("text") or ""), limit=limit, path=path)
+            await _run_file_io(_classify_prompt_payload_sync, text, limit)
         )
 
     @routes.post("/easyuse_anima/translate_prompt")
+    @_request_correlated
     async def translate_prompt_handler(request):
-        data = await request.json()
         try:
-            translated = translate_prompt_markers(
-                str(data.get("text") or ""),
-                resolve_prompt_translation_settings(),
-            )
-        except RuntimeError as exc:
-            return web.json_response({"status": "error", "message": str(exc)}, status=400)
+            data = await parse_json_object(request)
+            text = json_string(data, "text")
+        except ApiContractError as exc:
+            return _contract_error_response(exc)
+        try:
+            translated = await _translate_prompt_for_route(text)
+        except PromptTranslationError as exc:
+            return _prompt_translation_error_response(exc)
         return web.json_response({"status": "ok", "text": translated})
 
     @routes.get("/easyuse_anima/lora_preview")
+    @_request_correlated
     async def lora_preview_handler(request):
-        preview_path = _resolve_lora_preview_path(request.query.get("name", ""))
+        preview_path = await _run_file_io(
+            _resolve_lora_preview_path,
+            request.query.get("name", ""),
+        )
         if not preview_path:
             return web.Response(status=404)
         return web.FileResponse(
@@ -627,91 +1309,211 @@ if web is not None and routes is not None:
         )
 
     @routes.get("/easyuse_anima/loras")
+    @_request_correlated
     async def loras_handler(request):
-        return web.json_response({"loras": _list_loras()})
+        return web.json_response({"loras": await _run_file_io(_list_loras)})
 
     @routes.get("/easyuse_anima/lora_profiles")
+    @_request_correlated
     async def lora_profiles_handler(request):
-        return web.json_response({"profiles": _list_lora_profiles()})
+        try:
+            payload = await _run_file_io(_list_lora_profiles)
+        except InvalidProfileDataError as exc:
+            return _profile_error_response(exc)
+        return web.json_response({"profiles": payload})
 
     @routes.post("/easyuse_anima/lora_profiles/save")
+    @_request_correlated
     async def save_lora_profile_handler(request):
-        data = await request.json()
         try:
-            payload = _save_lora_profile(str(data.get("name") or ""), data)
-        except ValueError as exc:
-            return web.json_response({"status": "error", "message": str(exc)}, status=400)
+            data = await parse_json_object(request)
+            name = json_string(data, "name", allow_empty=False)
+            overwrite = json_boolean(data, "overwrite")
+            if "profile_data" in data:
+                json_object(data, "profile_data")
+            profile_id = json_uuid_string(
+                data,
+                "profile_id",
+                required=False,
+            )
+            revision = json_integer(
+                data,
+                "revision",
+                default=None,
+                minimum=0,
+            )
+        except ApiContractError as exc:
+            return _contract_error_response(exc)
+        try:
+            payload = await _run_file_io(
+                _save_lora_profile,
+                name,
+                data,
+                overwrite=overwrite,
+                profile_id=profile_id,
+                revision=revision,
+            )
+        except (FileExistsError, FileNotFoundError, ValueError) as exc:
+            return _profile_error_response(exc)
         return web.json_response({"status": "ok", "profile": payload})
 
     @routes.get("/easyuse_anima/lora_profiles/load")
+    @_request_correlated
     async def load_lora_profile_handler(request):
         try:
-            payload = _load_lora_profile(request.query.get("name", ""))
-        except ValueError as exc:
-            return web.json_response({"status": "error", "message": str(exc)}, status=400)
-        except FileNotFoundError as exc:
-            return web.json_response({"status": "error", "message": str(exc)}, status=404)
+            payload = await _run_file_io(
+                _load_lora_profile,
+                request.query.get("name", ""),
+            )
+        except (
+            json.JSONDecodeError,
+            UnicodeDecodeError,
+            FileNotFoundError,
+            ValueError,
+        ) as exc:
+            return _profile_error_response(exc)
         return web.json_response({"status": "ok", "profile": payload})
 
     @routes.get("/easyuse_anima/aio_profiles")
+    @_request_correlated
     async def aio_profiles_handler(request):
-        return web.json_response({"status": "ok", "profiles": _list_aio_profiles()})
+        try:
+            payload = await _run_file_io(_list_aio_profiles)
+        except InvalidProfileDataError as exc:
+            return _profile_error_response(exc)
+        return web.json_response({"status": "ok", "profiles": payload})
 
     @routes.post("/easyuse_anima/aio_profiles/save")
+    @_request_correlated
     async def save_aio_profile_handler(request):
-        data = await request.json()
         try:
-            payload = _save_aio_profile(
-                str(data.get("name") or ""),
+            data = await parse_json_object(request)
+            name = json_string(data, "name", allow_empty=False)
+            json_object(data, "settings")
+            overwrite = json_boolean(data, "overwrite")
+            profile_id = json_uuid_string(
                 data,
-                overwrite=bool(data.get("overwrite", False)),
+                "profile_id",
+                required=False,
             )
-        except FileExistsError as exc:
-            return web.json_response({"status": "error", "message": str(exc)}, status=409)
-        except ValueError as exc:
-            return web.json_response({"status": "error", "message": str(exc)}, status=400)
+            revision = json_integer(
+                data,
+                "revision",
+                default=None,
+                minimum=0,
+            )
+        except ApiContractError as exc:
+            return _contract_error_response(exc)
+        try:
+            payload = await _run_file_io(
+                _save_aio_profile,
+                name,
+                data,
+                overwrite=overwrite,
+                profile_id=profile_id,
+                revision=revision,
+            )
+        except (FileExistsError, FileNotFoundError, ValueError) as exc:
+            return _profile_error_response(exc)
         return web.json_response({"status": "ok", "profile": payload})
 
     @routes.get("/easyuse_anima/aio_profiles/load")
+    @_request_correlated
     async def load_aio_profile_handler(request):
         try:
-            payload = _load_aio_profile(request.query.get("name", ""))
-        except ValueError as exc:
-            return web.json_response({"status": "error", "message": str(exc)}, status=400)
-        except FileNotFoundError as exc:
-            return web.json_response({"status": "error", "message": str(exc)}, status=404)
+            payload = await _run_file_io(
+                _load_aio_profile,
+                request.query.get("name", ""),
+            )
+        except (FileNotFoundError, ValueError) as exc:
+            return _profile_error_response(exc)
         return web.json_response({"status": "ok", "profile": payload})
 
     @routes.post("/easyuse_anima/aio_profiles/delete")
+    @_request_correlated
     async def delete_aio_profile_handler(request):
-        data = await request.json()
         try:
-            payload = _delete_aio_profile(str(data.get("name") or ""))
-        except ValueError as exc:
-            return web.json_response({"status": "error", "message": str(exc)}, status=400)
-        except FileNotFoundError as exc:
-            return web.json_response({"status": "error", "message": str(exc)}, status=404)
+            data = await parse_json_object(request)
+            name = json_string(data, "name", allow_empty=False)
+            profile_id = json_uuid_string(
+                data,
+                "profile_id",
+                required=False,
+            )
+            revision = json_integer(
+                data,
+                "revision",
+                default=None,
+                minimum=0,
+            )
+        except ApiContractError as exc:
+            return _contract_error_response(exc)
+        try:
+            payload = await _run_file_io(
+                _delete_aio_profile,
+                name,
+                profile_id=profile_id,
+                revision=revision,
+            )
+        except (FileNotFoundError, ValueError) as exc:
+            return _profile_error_response(exc)
         return web.json_response({"status": "ok", "profile": payload})
 
     @routes.post("/easyuse_anima/aio_profiles/rename")
+    @_request_correlated
     async def rename_aio_profile_handler(request):
-        data = await request.json()
         try:
-            payload = _rename_aio_profile(
-                str(data.get("old_name") or ""),
-                str(data.get("new_name") or ""),
-                overwrite=bool(data.get("overwrite", False)),
+            data = await parse_json_object(request)
+            old_name = json_string(data, "old_name", allow_empty=False)
+            new_name = json_string(data, "new_name", allow_empty=False)
+            overwrite = json_boolean(data, "overwrite")
+            profile_id = json_uuid_string(
+                data,
+                "profile_id",
+                required=False,
             )
-        except FileExistsError as exc:
-            return web.json_response({"status": "error", "message": str(exc)}, status=409)
-        except ValueError as exc:
-            return web.json_response({"status": "error", "message": str(exc)}, status=400)
-        except FileNotFoundError as exc:
-            return web.json_response({"status": "error", "message": str(exc)}, status=404)
+            revision = json_integer(
+                data,
+                "revision",
+                default=None,
+                minimum=0,
+            )
+            target_profile_id = json_uuid_string(
+                data,
+                "target_profile_id",
+                required=False,
+            )
+            target_revision = json_integer(
+                data,
+                "target_revision",
+                default=None,
+                minimum=0,
+            )
+        except ApiContractError as exc:
+            return _contract_error_response(exc)
+        try:
+            payload = await _run_file_io(
+                _rename_aio_profile,
+                old_name,
+                new_name,
+                overwrite=overwrite,
+                profile_id=profile_id,
+                revision=revision,
+                target_profile_id=target_profile_id,
+                target_revision=target_revision,
+            )
+        except (FileExistsError, FileNotFoundError, ValueError) as exc:
+            return _profile_error_response(exc)
         return web.json_response({"status": "ok", "profile": payload})
 
     @routes.post("/easyuse_anima/lora_profiles/fix")
+    @_request_correlated
     async def fix_lora_profile_handler(request):
-        data = await request.json()
-        payload = _fix_lora_profile_payload(data if isinstance(data, dict) else {})
+        try:
+            data = await parse_json_object(request)
+            if "profile_data" in data:
+                json_object(data, "profile_data")
+        except ApiContractError as exc:
+            return _contract_error_response(exc)
+        payload = await _run_file_io(_fix_lora_profile_payload, data)
         return web.json_response({"status": "ok", "profile": payload})

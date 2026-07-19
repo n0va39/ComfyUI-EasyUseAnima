@@ -49,23 +49,23 @@
     "inputs": {
       "text": {
         "name": "텍스트",
-        "tooltip": "__style__ 또는 {2::a|5::b|c} 같은 와일드카드 문법을 포함한 프롬프트입니다."
+        "tooltip": "일반 채우기/고정/순차가 확장할 원본입니다. __name__, {a|b|c}, N::weight, {n$$...}/{min-max$$separator$$...}, N#__name__과 중첩을 지원합니다. 이름은 대소문자를 구분하지 않고 * glob을 사용할 수 있으며, 줄의 첫 비공백 문자가 #인 주석만 제거됩니다."
       },
       "populated_text": {
         "name": "채워진 텍스트",
-        "tooltip": "고정/재현 모드에서 사용하는 확장 완료 프롬프트 캐시입니다."
+        "tooltip": "확장 결과 캐시입니다. 재현은 이 값을 그대로 출력하고, 비어 있으면 text를 사용합니다. 일반 채우기/고정/순차는 기존 캐시를 무시하고 text를 확장한 뒤 저장 워크플로우 메타데이터의 이 값을 갱신합니다."
       },
       "mode": {
         "name": "모드",
-        "tooltip": "일반 채우기는 시드 기반 랜덤, 고정/재현은 채워진 텍스트, 순차는 seed % 항목 수 인덱스를 사용합니다."
+        "tooltip": "일반 채우기는 text를 시드 기반 가중 랜덤으로 확장합니다. 고정도 EasyUse 호환 동작으로 text를 같은 방식으로 확장하며 seed control이 fixed일 때 시드만 유지합니다. 순차는 seed % 항목 수/범위 폭으로 선택하고 다음 시드를 강제로 증가시킵니다. 재현은 새 선택 없이 populated_text를 그대로 사용하지만, 반환/실시간 다음 시드에는 seed_after_generate를 적용합니다. 확장 실행은 저장 시 populated_text와 재현 모드로 기록됩니다."
       },
       "seed": {
         "name": "시드",
-        "tooltip": "와일드카드 선택 시드입니다. 순차 모드는 각 와일드카드 항목 수로 나눈 나머지를 인덱스로 사용합니다."
+        "tooltip": "가중 랜덤 선택 시드입니다. 순차는 각 항목 수와 범위 폭으로 나눈 나머지를 사용하고, 재현은 새 선택을 하지 않습니다."
       },
       "seed_after_generate": {
         "name": "시드 생성 후 제어",
-        "tooltip": "생성 후 시드를 유지, 랜덤화, 증가, 감소할지 정합니다."
+        "tooltip": "다음 실시간 실행 시드입니다. fixed는 유지, randomize는 새 값, increment/decrement는 경계에서 순환하며 1씩 바꿉니다. 순차는 increment를 강제합니다. 재현은 새 선택을 하지 않지만 반환/실시간 다음 시드에는 이 제어를 적용합니다."
       }
     },
     "outputs": {
@@ -229,15 +229,15 @@
       },
       "wildcard_mode": {
         "name": "와일드카드 모드",
-        "tooltip": "고정은 기존 호환 기본값입니다. 일반 채우기/순차는 필드의 와일드카드 문법을 시드 기반으로 확장합니다."
+        "tooltip": "일반 채우기와 고정은 원본 필드를 시드 기반 가중 랜덤으로 확장하고, 순차는 seed % 항목 수/범위 폭으로 확장한 뒤 시드를 강제로 증가시킵니다. 재현은 저장된 확장 필드를 그대로 사용합니다. 확장 결과는 저장 메타데이터에 재현 모드로 기록됩니다."
       },
       "wildcard_seed": {
         "name": "와일드카드 시드",
-        "tooltip": "Advanced Prompt Studio 필드의 와일드카드 확장에 사용할 시드입니다."
+        "tooltip": "Advanced Prompt Studio의 가중 랜덤 선택 시드입니다. 순차는 항목 수/범위 폭으로 나눈 나머지를 사용하고 재현은 선택하지 않습니다."
       },
       "wildcard_seed_after_generate": {
         "name": "와일드카드 시드 생성 후 제어",
-        "tooltip": "와일드카드 생성 후 시드를 유지, 랜덤화, 증가, 감소할지 정합니다. 순차 모드는 자동으로 increment처럼 동작합니다."
+        "tooltip": "다음 실행 시드를 유지, 랜덤화, 증가, 감소할지 정합니다. 순차는 increment를 강제하고 재현은 시드를 진행하지 않습니다."
       }
     },
     "outputs": {
@@ -329,15 +329,15 @@
       },
       "wildcard_mode": {
         "name": "와일드카드 모드",
-        "tooltip": "Advanced Prompt Studio 필드의 와일드카드 확장 모드입니다."
+        "tooltip": "일반 채우기/고정은 원본 필드를 시드 기반 가중 랜덤으로 확장하고, 순차는 seed modulo 선택 후 증가합니다. 재현은 저장된 확장 필드를 그대로 사용합니다."
       },
       "wildcard_seed": {
         "name": "와일드카드 시드",
-        "tooltip": "Advanced Prompt Studio 필드의 와일드카드 확장에 사용할 시드입니다."
+        "tooltip": "가중 랜덤 선택 시드입니다. 순차는 항목 수/범위 폭으로 나눈 나머지를 사용하고 재현은 선택하지 않습니다."
       },
       "wildcard_seed_after_generate": {
         "name": "와일드카드 시드 생성 후 제어",
-        "tooltip": "와일드카드 생성 후 시드 제어입니다."
+        "tooltip": "다음 실행 시드 제어입니다. 순차는 increment를 강제하고 재현은 시드를 진행하지 않습니다."
       },
       "artist_mix_mode": {
         "name": "artist_mix_mode",
@@ -677,15 +677,15 @@
       },
       "wildcard_mode": {
         "name": "와일드카드 모드",
-        "tooltip": "Regional Prompt Studio 필드의 와일드카드 확장 모드입니다."
+        "tooltip": "일반 채우기/고정은 원본 필드를 시드 기반 가중 랜덤으로 확장하고, 순차는 seed modulo 선택 후 증가합니다. 재현은 저장된 확장 필드를 그대로 사용합니다."
       },
       "wildcard_seed": {
         "name": "와일드카드 시드",
-        "tooltip": "Regional Prompt Studio 필드의 와일드카드 확장에 사용할 시드입니다."
+        "tooltip": "가중 랜덤 선택 시드입니다. 순차는 항목 수/범위 폭으로 나눈 나머지를 사용하고 재현은 선택하지 않습니다."
       },
       "wildcard_seed_after_generate": {
         "name": "와일드카드 시드 생성 후 제어",
-        "tooltip": "와일드카드 생성 후 시드를 유지, 랜덤화, 증가, 감소할지 정합니다."
+        "tooltip": "다음 실행 시드를 유지, 랜덤화, 증가, 감소할지 정합니다. 순차는 increment를 강제하고 재현은 시드를 진행하지 않습니다."
       }
     },
     "outputs": {

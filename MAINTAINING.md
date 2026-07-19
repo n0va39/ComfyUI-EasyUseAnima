@@ -58,6 +58,16 @@ This repository is prepared for future ComfyUI Manager / Comfy Registry registra
 - Do not dereference `server.PromptServer.instance` at module import time without a guard. Some ComfyUI, Manager, or validation import paths can import custom nodes before `PromptServer.instance` exists.
 - If ComfyUI Manager reports a nightly/latest install, confirm the actual installed commit with `git rev-parse HEAD`; Registry versions and Manager nightly installs can point to different refs.
 
+## Architecture Documents
+
+- Start Python backend architecture or migration work from
+  [`docs/architecture/README.md`](docs/architecture/README.md).
+- The architecture documents define a target and phased compatibility contract;
+  check their current-state sections before treating any package, runtime, or
+  shim phase as implemented.
+- Frontend JavaScript, DOM, canvas, and resize maintenance remains under the
+  development documents and is outside the Python backend ADR scope.
+
 ## Security Rules
 
 - Do not use `eval` or `exec`.

@@ -1,7 +1,16 @@
 import unittest
 from unittest.mock import patch
 
-from nodes import EasyUseAnimaNAIARandomPrompt, _build_naia_random_url
+from nodes import (
+    LATENT_ALIGN,
+    NAI_1MP,
+    NAIA_MAX_RESOLUTION,
+    EasyUseAnimaNAIARandomPrompt,
+    _advanced_resolution_from_selection,
+    _build_naia_random_url,
+    _fit_to_1mp,
+    _parse_random_response,
+)
 
 
 def settings(**overrides):
@@ -24,6 +33,79 @@ def settings(**overrides):
 
 
 class NaiaSettingsTests(unittest.TestCase):
+    def test_fit_to_1mp_preserves_normal_shapes(self):
+        self.assertEqual(_fit_to_1mp(4096, 4096), (1024, 1024))
+        self.assertEqual(_fit_to_1mp(832, 1216), (832, 1216))
+        self.assertEqual(_fit_to_1mp(1216, 832), (1216, 832))
+        self.assertEqual(_fit_to_1mp(4096, 2048), (1440, 728))
+        self.assertEqual(_fit_to_1mp(2048, 4096), (728, 1440))
+
+    def test_fit_to_1mp_caps_extreme_aspect_ratios_after_alignment(self):
+        cases = (
+            ((1_000_000, 2), (131_072, LATENT_ALIGN)),
+            ((2, 1_000_000), (LATENT_ALIGN, 131_072)),
+            ((1_000_000_000, 1), (131_072, LATENT_ALIGN)),
+            ((1, 1_000_000_000), (LATENT_ALIGN, 131_072)),
+        )
+
+        for source, expected in cases:
+            with self.subTest(source=source):
+                fitted = _fit_to_1mp(*source)
+                self.assertEqual(fitted, expected)
+                self.assertLessEqual(fitted[0] * fitted[1], NAI_1MP)
+                self.assertEqual(fitted[0] % LATENT_ALIGN, 0)
+                self.assertEqual(fitted[1] % LATENT_ALIGN, 0)
+
+    def test_parse_random_response_rejects_invalid_resolution_bounds(self):
+        cases = (
+            (0, 1024),
+            (-1, 1024),
+            (1024, 0),
+            (1024, -1),
+            (NAIA_MAX_RESOLUTION + 1, 1024),
+            (1024, NAIA_MAX_RESOLUTION + 1),
+            (1_000_000, 2),
+            (1_000_000_000, 1),
+        )
+
+        for width, height in cases:
+            with self.subTest(width=width, height=height):
+                with self.assertRaisesRegex(
+                    RuntimeError,
+                    rf"Invalid NAIA width/height.*1 to {NAIA_MAX_RESOLUTION}",
+                ):
+                    _parse_random_response({"width": width, "height": height})
+
+    def test_parse_random_response_accepts_absolute_resolution_boundary(self):
+        self.assertEqual(
+            _parse_random_response({"width": NAIA_MAX_RESOLUTION, "height": NAIA_MAX_RESOLUTION}),
+            ("", "", 1024, 1024),
+        )
+
+    def test_parse_random_response_preserves_prompt_cleanup_boundaries(self):
+        self.assertEqual(
+            _parse_random_response({
+                "prompt": "\t# hidden comment\nkeep # inline, , subject",
+                "negative_prompt": "bad,  , hands",
+                "width": 1024,
+                "height": 1024,
+            }),
+            ("keep # inline, subject", "bad, hands", 1024, 1024),
+        )
+
+    def test_resolution_labels_accept_star_x_and_multiplication_sign(self):
+        cases = (
+            ("1024 * 1024 (1:1)", (1024, 1024)),
+            ("896 x 1152 (7:9)", (896, 1152)),
+            ("1152 × 896 (9:7)", (1152, 896)),
+        )
+        for label, expected in cases:
+            with self.subTest(label=label):
+                self.assertEqual(
+                    _advanced_resolution_from_selection("1024", label),
+                    expected,
+                )
+
     def test_request_uses_global_naia_settings_instead_of_node_values(self):
         calls = []
 

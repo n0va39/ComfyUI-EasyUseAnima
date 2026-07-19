@@ -8,10 +8,294 @@ import os
 import random
 import re
 import sys
-from math import ceil, gcd, isfinite, lcm, log, sqrt
+from math import ceil, isfinite, sqrt
 from typing import Any, Optional
 
 try:
+    from .easyuse_anima.common.serialization import (
+        _json_clone as _json_clone,
+        _json_object as _json_object,
+        _stable_change_key as _stable_change_key,
+    )
+    from .easyuse_anima.common.values import (
+        _as_bool as _as_bool,
+        _as_float as _as_float,
+        _as_int as _as_int,
+        _choice as _choice,
+        _single_value as _single_value,
+    )
+    from .easyuse_anima.prompt.correction import (
+        _bind_prompt_correction_runtime as _bind_prompt_correction_runtime,
+        _prompt_translation_change_key as _prompt_translation_change_key,
+        _split_tag_text as _split_tag_text,
+        _translate_prompt_text as _translate_prompt_text,
+    )
+    from .easyuse_anima.prompt.fields import (
+        DEFAULT_QUALITY_TAGS as DEFAULT_QUALITY_TAGS,
+        DEFAULT_TRAILING_QUALITY_TAGS as DEFAULT_TRAILING_QUALITY_TAGS,
+        _HASH_COMMENT_RE as _HASH_COMMENT_RE,
+        _INLINE_SPACE_RE as _INLINE_SPACE_RE,
+        _WEIGHTED_TOKEN_RE as _WEIGHTED_TOKEN_RE,
+        _bind_prompt_fields_runtime as _bind_prompt_fields_runtime,
+        _correct_builder_prompt as _correct_builder_prompt,
+        _filter_metadata_prompt as _filter_metadata_prompt,
+        _join_prompt_tokens as _join_prompt_tokens,
+        _metadata_filter_key as _metadata_filter_key,
+        _metadata_filter_keys as _metadata_filter_keys,
+        _prompt_tokens as _prompt_tokens,
+    )
+    from .easyuse_anima.prompt.data import (
+        PROMPT_DATA_COMPAT_OUTPUT_TOOLTIPS as PROMPT_DATA_COMPAT_OUTPUT_TOOLTIPS,
+        PROMPT_DATA_COMPAT_RETURN_NAMES as PROMPT_DATA_COMPAT_RETURN_NAMES,
+        PROMPT_DATA_COMPAT_RETURN_TYPES as PROMPT_DATA_COMPAT_RETURN_TYPES,
+        PROMPT_DATA_SCHEMA as PROMPT_DATA_SCHEMA,
+        PROMPT_DATA_TYPE as PROMPT_DATA_TYPE,
+        PROMPT_DATA_VERSION as PROMPT_DATA_VERSION,
+        _advanced_outputs_from_prompt_data as _advanced_outputs_from_prompt_data,
+        _apply_prompt_data_overrides as _apply_prompt_data_overrides,
+        _copy_prompt_data_for_update as _copy_prompt_data_for_update,
+        _normalize_prompt_data as _normalize_prompt_data,
+        _prompt_data_input_default as _prompt_data_input_default,
+        _prompt_data_json_safe as _prompt_data_json_safe,
+        _prompt_data_nested as _prompt_data_nested,
+        _prompt_data_output as _prompt_data_output,
+        _prompt_data_parameter_snapshot as _prompt_data_parameter_snapshot,
+        _set_prompt_data_output as _set_prompt_data_output,
+    )
+    from .easyuse_anima.prompt.conditioning import (
+        ANIMA_MOD_GUIDANCE_DEFAULT_PROFILE as ANIMA_MOD_GUIDANCE_DEFAULT_PROFILE,
+        ANIMA_MOD_GUIDANCE_MODES as ANIMA_MOD_GUIDANCE_MODES,
+        ANIMA_MOD_GUIDANCE_MODE_DISABLED as ANIMA_MOD_GUIDANCE_MODE_DISABLED,
+        ANIMA_MOD_GUIDANCE_MODE_ENABLED as ANIMA_MOD_GUIDANCE_MODE_ENABLED,
+        ANIMA_MOD_GUIDANCE_MODE_FROM_PROMPT_DATA as ANIMA_MOD_GUIDANCE_MODE_FROM_PROMPT_DATA,
+        ANIMA_MOD_GUIDANCE_PROFILES as ANIMA_MOD_GUIDANCE_PROFILES,
+        ANIMA_MOD_GUIDANCE_PROFILE_OFF as ANIMA_MOD_GUIDANCE_PROFILE_OFF,
+        _SPECTRUM_ANIMA_MOD_GUIDANCE_OLD_SIGNATURE_WARNED as _SPECTRUM_ANIMA_MOD_GUIDANCE_OLD_SIGNATURE_WARNED,
+        _apply_spectrum_anima_mod_guidance as _apply_spectrum_anima_mod_guidance,
+        _bind_conditioning_runtime as _bind_conditioning_runtime,
+        _find_spectrum_anima_mod_guidance_class as _find_spectrum_anima_mod_guidance_class,
+        _normalize_anima_mod_guidance_profile as _normalize_anima_mod_guidance_profile,
+        _resolve_anima_mod_guidance_enabled as _resolve_anima_mod_guidance_enabled,
+        _warn_old_spectrum_anima_mod_guidance_once as _warn_old_spectrum_anima_mod_guidance_once,
+    )
+    from .easyuse_anima.prompt.artist_mix import (
+        ARTIST_MIX_CONTROL_KEY as ARTIST_MIX_CONTROL_KEY,
+        ARTIST_MIX_DEFAULT_CLUSTER_COUNT as ARTIST_MIX_DEFAULT_CLUSTER_COUNT,
+        ARTIST_MIX_DEFAULT_DOMINANT_ISOLATION as ARTIST_MIX_DEFAULT_DOMINANT_ISOLATION,
+        ARTIST_MIX_DEFAULT_DOMINANT_THRESHOLD as ARTIST_MIX_DEFAULT_DOMINANT_THRESHOLD,
+        ARTIST_MIX_DEFAULT_EXACT_TOP_K as ARTIST_MIX_DEFAULT_EXACT_TOP_K,
+        ARTIST_MIX_DEFAULT_RMS_SCALE_CAP as ARTIST_MIX_DEFAULT_RMS_SCALE_CAP,
+        ARTIST_MIX_DEFAULT_START_PERCENT as ARTIST_MIX_DEFAULT_START_PERCENT,
+        ARTIST_MIX_DEFAULT_STRENGTH_SCALE as ARTIST_MIX_DEFAULT_STRENGTH_SCALE,
+        ARTIST_MIX_DEFAULT_STYLE_GAIN as ARTIST_MIX_DEFAULT_STYLE_GAIN,
+        ARTIST_MIX_EXACT_KEY as ARTIST_MIX_EXACT_KEY,
+        ARTIST_MIX_INPUT_MODES as ARTIST_MIX_INPUT_MODES,
+        ARTIST_MIX_MODES as ARTIST_MIX_MODES,
+        ARTIST_MIX_MODE_AVERAGE as ARTIST_MIX_MODE_AVERAGE,
+        ARTIST_MIX_MODE_AVERAGE_LATE_EXACT as ARTIST_MIX_MODE_AVERAGE_LATE_EXACT,
+        ARTIST_MIX_MODE_CLUSTERED as ARTIST_MIX_MODE_CLUSTERED,
+        ARTIST_MIX_MODE_COMPOSITE_EXACT as ARTIST_MIX_MODE_COMPOSITE_EXACT,
+        ARTIST_MIX_MODE_DELTA_RMS as ARTIST_MIX_MODE_DELTA_RMS,
+        ARTIST_MIX_MODE_DESCRIPTIONS as ARTIST_MIX_MODE_DESCRIPTIONS,
+        ARTIST_MIX_MODE_EXACT as ARTIST_MIX_MODE_EXACT,
+        ARTIST_MIX_MODE_FROM_PROMPT_DATA as ARTIST_MIX_MODE_FROM_PROMPT_DATA,
+        ARTIST_MIX_MODE_HYBRID as ARTIST_MIX_MODE_HYBRID,
+        ARTIST_MIX_MODE_LATE_EXACT as ARTIST_MIX_MODE_LATE_EXACT,
+        ARTIST_MIX_MODE_OFF as ARTIST_MIX_MODE_OFF,
+        ARTIST_MIX_MODE_PROMPT as ARTIST_MIX_MODE_PROMPT,
+        ARTIST_MIX_MODE_SCHEDULED_AVERAGE as ARTIST_MIX_MODE_SCHEDULED_AVERAGE,
+        ARTIST_MIX_SCHEDULE_KEY as ARTIST_MIX_SCHEDULE_KEY,
+        ARTIST_MIX_STUDIO_MODES as ARTIST_MIX_STUDIO_MODES,
+        ARTIST_TAG_POSITION_BACK as ARTIST_TAG_POSITION_BACK,
+        ARTIST_TAG_POSITION_CORRECT as ARTIST_TAG_POSITION_CORRECT,
+        ARTIST_TAG_POSITION_FRONT as ARTIST_TAG_POSITION_FRONT,
+        ARTIST_TAG_POSITION_MODES as ARTIST_TAG_POSITION_MODES,
+        _artist_conditioning_feature as _artist_conditioning_feature,
+        _artist_delta_rms_from_encoded as _artist_delta_rms_from_encoded,
+        _artist_group_token as _artist_group_token,
+        _artist_mix_inline_prompt as _artist_mix_inline_prompt,
+        _artist_mix_mode_tooltip as _artist_mix_mode_tooltip,
+        _artist_mix_prompt_tags as _artist_mix_prompt_tags,
+        _artist_prompt_with_position as _artist_prompt_with_position,
+        _artist_tags_from_prompt as _artist_tags_from_prompt,
+        _artist_variant_prompt_from_prompt_data as _artist_variant_prompt_from_prompt_data,
+        _bind_artist_mix_runtime as _bind_artist_mix_runtime,
+        _blend_conditionings as _blend_conditionings,
+        _bounded_artist_mix_float as _bounded_artist_mix_float,
+        _bounded_artist_mix_int as _bounded_artist_mix_int,
+        _coalesce_artist_mix_items as _coalesce_artist_mix_items,
+        _conditionings_with_range as _conditionings_with_range,
+        _conditionings_with_strength as _conditionings_with_strength,
+        _conditionings_with_values as _conditionings_with_values,
+        _copy_conditioning_metadata as _copy_conditioning_metadata,
+        _encode_artist_average as _encode_artist_average,
+        _encode_artist_average_late_exact as _encode_artist_average_late_exact,
+        _encode_artist_clustered as _encode_artist_clustered,
+        _encode_artist_composite_exact as _encode_artist_composite_exact,
+        _encode_artist_delta_rms as _encode_artist_delta_rms,
+        _encode_artist_exact as _encode_artist_exact,
+        _encode_artist_hybrid as _encode_artist_hybrid,
+        _encode_artist_scheduled_average as _encode_artist_scheduled_average,
+        _encode_prompt_data_positive_conditioning as _encode_prompt_data_positive_conditioning,
+        _encoded_artist_conditionings as _encoded_artist_conditionings,
+        _equal_artist_weights as _equal_artist_weights,
+        _fallback_artist_average_or_exact as _fallback_artist_average_or_exact,
+        _greedy_cluster_encoded_artists as _greedy_cluster_encoded_artists,
+        _interpolate_artist_weights as _interpolate_artist_weights,
+        _join_artist_mix_source_prompts as _join_artist_mix_source_prompts,
+        _mark_artist_mix_conditioning as _mark_artist_mix_conditioning,
+        _normalize_artist_mix_mode as _normalize_artist_mix_mode,
+        _normalize_artist_tag_position as _normalize_artist_tag_position,
+        _normalize_weight_values as _normalize_weight_values,
+        _normalized_artist_weights as _normalized_artist_weights,
+        _pad_conditioning_tensor as _pad_conditioning_tensor,
+        _parse_artist_mix_entries as _parse_artist_mix_entries,
+        _parse_artist_mix_group as _parse_artist_mix_group,
+        _parse_artist_mix_items as _parse_artist_mix_items,
+        _prompt_data_artist_base_prompt as _prompt_data_artist_base_prompt,
+        _prompt_data_artist_mix_config as _prompt_data_artist_mix_config,
+        _prompt_data_positive_fields as _prompt_data_positive_fields,
+        _split_artist_mix_blocks as _split_artist_mix_blocks,
+        _split_artist_mix_items as _split_artist_mix_items,
+    )
+    from .easyuse_anima.nodes.prompt_data_nodes import (
+        EasyUseAnimaArtistMixConditioning as EasyUseAnimaArtistMixConditioning,
+        EasyUseAnimaPromptDataConditioning as EasyUseAnimaPromptDataConditioning,
+        EasyUseAnimaPromptDataUnpack as EasyUseAnimaPromptDataUnpack,
+        _bind_prompt_data_node_runtime as _bind_prompt_data_node_runtime,
+    )
+    from .easyuse_anima.image.geometry import (
+        _align_down as _align_down,
+        _align_nearest as _align_nearest,
+        _align_up as _align_up,
+        _aligned_size_near_scale as _aligned_size_near_scale,
+        _alignment_value as _alignment_value,
+    )
+    from .easyuse_anima.image.detailer import (
+        _EasyUseAnimaAlignedDetailerHook as _EasyUseAnimaAlignedDetailerHook,
+    )
+    from .easyuse_anima.image.scaling import (
+        IMAGE_SCALE_MULTIPLES as IMAGE_SCALE_MULTIPLES,
+        IMAGE_UPSCALE_METHODS as IMAGE_UPSCALE_METHODS,
+        _image_scale_by_multiple_size as _image_scale_by_multiple_size,
+        _max_long_edge_value as _max_long_edge_value,
+        _normalize_image_scale_options as _normalize_image_scale_options,
+        _scale_by_value as _scale_by_value,
+    )
+    from .easyuse_anima.infrastructure.comfy.capabilities import (
+        _comfy_max_resolution as _adapter_comfy_max_resolution,
+        _comfy_sampler_names as _comfy_sampler_names,
+        _comfy_scheduler_names as _comfy_scheduler_names,
+        _find_comfy_node_class as _adapter_find_comfy_node_class,
+        _find_loaded_node_class as _adapter_find_loaded_node_class,
+        _require_any_custom_node_class as _adapter_require_any_custom_node_class,
+        _require_custom_node_class as _adapter_require_custom_node_class,
+    )
+    from .easyuse_anima.infrastructure.comfy.invocation import (
+        _call_with_supported_kwargs as _call_with_supported_kwargs,
+        _common_upscale_image as _common_upscale_image,
+        _node_output_tuple as _node_output_tuple,
+    )
+    from .easyuse_anima.infrastructure.comfy.resources import (
+        _comfy_checkpoint_names as _comfy_checkpoint_names,
+        _comfy_clip_loader_types as _adapter_comfy_clip_loader_types,
+        _comfy_diffusion_model_names as _adapter_comfy_diffusion_model_names,
+        _comfy_text_encoder_names as _adapter_comfy_text_encoder_names,
+        _comfy_vae_names as _adapter_comfy_vae_names,
+        _folder_path_names as _folder_path_names,
+    )
+    from .easyuse_anima.nodes.image_nodes import (
+        EasyUseAnimaDetailerAlignHook as EasyUseAnimaDetailerAlignHook,
+        EasyUseAnimaImageScaleByMultiple as EasyUseAnimaImageScaleByMultiple,
+    )
+    from .easyuse_anima.nodes.prompt_nodes import (
+        EasyUseAnimaPromptBuilder as EasyUseAnimaPromptBuilder,
+        EasyUseAnimaPromptCorrector as EasyUseAnimaPromptCorrector,
+        EasyUseAnimaPromptCorrectorSimple as EasyUseAnimaPromptCorrectorSimple,
+        EasyUseAnimaPromptStudio as EasyUseAnimaPromptStudio,
+        _bind_prompt_node_runtime as _bind_prompt_node_runtime,
+    )
+    from .easyuse_anima.naia.client import (
+        DEFAULT_HOST as DEFAULT_HOST,
+        DEFAULT_PORT as DEFAULT_PORT,
+        HTTP_TIMEOUT as HTTP_TIMEOUT,
+        LATENT_ALIGN as LATENT_ALIGN,
+        NAI_1MP as NAI_1MP,
+        NAIA_LOCAL_HOSTS as NAIA_LOCAL_HOSTS,
+        NAIA_MAX_RESOLUTION as NAIA_MAX_RESOLUTION,
+        NAIA_REQUEST_TIMEOUT as NAIA_REQUEST_TIMEOUT,
+        PP_STATE_CHOICES as PP_STATE_CHOICES,
+        PREPROCESSING_KEYS as PREPROCESSING_KEYS,
+        _build_naia_random_url as _build_naia_random_url,
+        _clean_prompt as _clean_prompt,
+        _fit_to_1mp as _fit_to_1mp,
+        _is_local_naia_host as _is_local_naia_host,
+        _parse_random_response as _parse_random_response,
+        _post_random as _post_random,
+    )
+    from .easyuse_anima.naia.resolution import (
+        ADVANCED_RESOLUTION_BUCKETS as ADVANCED_RESOLUTION_BUCKETS,
+        CUSTOM_ADVANCED_RESOLUTION_BUCKET as CUSTOM_ADVANCED_RESOLUTION_BUCKET,
+        DEFAULT_ADVANCED_RESOLUTION_BUCKET as DEFAULT_ADVANCED_RESOLUTION_BUCKET,
+        DEFAULT_ADVANCED_RESOLUTION_SIZE as DEFAULT_ADVANCED_RESOLUTION_SIZE,
+        NAIA_ADVANCED_RESOLUTION_BUCKET as NAIA_ADVANCED_RESOLUTION_BUCKET,
+        NAIA_RESOLUTION_MODE_BUCKET as NAIA_RESOLUTION_MODE_BUCKET,
+        NAIA_RESOLUTION_MODE_SCALE as NAIA_RESOLUTION_MODE_SCALE,
+        _advanced_resolution_from_selection as _advanced_resolution_from_selection,
+        _fit_naia_resolution_to_bucket as _fit_naia_resolution_to_bucket,
+        _normalize_resolution_bucket as _normalize_resolution_bucket,
+        _ratio_label as _ratio_label,
+        _resolution_label as _resolution_label,
+        _resolve_naia_resolution as _resolve_naia_resolution,
+        _resolve_naia_resolution_bucket as _resolve_naia_resolution_bucket,
+        _resolve_naia_resolution_max_long_edge as _resolve_naia_resolution_max_long_edge,
+        _resolve_naia_resolution_mode as _resolve_naia_resolution_mode,
+        _resolve_naia_resolution_scale as _resolve_naia_resolution_scale,
+        _scale_naia_resolution as _scale_naia_resolution,
+        _snap_resolution_32 as _snap_resolution_32,
+        _snap_scaled_resolution_32 as _snap_scaled_resolution_32,
+        _sorted_resolution_options as _sorted_resolution_options,
+    )
+    from .easyuse_anima.nodes.naia_nodes import (
+        EasyUseAnimaNAIARandomPrompt as EasyUseAnimaNAIARandomPrompt,
+        _bind_naia_node_runtime as _bind_naia_node_runtime,
+    )
+    from .easyuse_anima.nodes.wildcard_nodes import (
+        EasyUseAnimaWildcard as EasyUseAnimaWildcard,
+        WILDCARD_SEED_RANGE_NOTE as WILDCARD_SEED_RANGE_NOTE,
+        _bind_wildcard_node_runtime as _bind_wildcard_node_runtime,
+    )
+    from .easyuse_anima.lora.metadata import (
+        _apply_lora_syntax_format as _apply_lora_syntax_format,
+        _bind_lora_metadata_runtime as _bind_lora_metadata_runtime,
+        _dedupe_text_values as _dedupe_text_values,
+        _fallback_lora_path as _fallback_lora_path,
+        _get_lora_info as _get_lora_info,
+        _get_lora_manager_trigger_words as _get_lora_manager_trigger_words,
+        _load_lora_manager_metadata as _load_lora_manager_metadata,
+        _lora_combo_values as _lora_combo_values,
+        _lora_manager_trigger_words_from_metadata as _lora_manager_trigger_words_from_metadata,
+        _lora_model_exists as _lora_model_exists,
+        _lora_stack_name as _lora_stack_name,
+        _metadata_json_paths_for_lora as _metadata_json_paths_for_lora,
+        _missing_lora_display_name as _missing_lora_display_name,
+        _raise_missing_loras as _raise_missing_loras,
+        _trigger_words_from_value as _trigger_words_from_value,
+    )
+    from .easyuse_anima.lora.preset import (
+        _bind_lora_preset_runtime as _bind_lora_preset_runtime,
+        _correct_style_prompt as _correct_style_prompt,
+        _format_strength as _format_strength,
+        _get_loras_list as _get_loras_list,
+        _load_profile_data as _load_profile_data,
+        _profile_key as _profile_key,
+        _select_profile_values as _select_profile_values,
+        _wrap_profile_index as _wrap_profile_index,
+    )
+    from .easyuse_anima.nodes.lora_nodes import (
+        EasyUseAnimaLoraPreset as EasyUseAnimaLoraPreset,
+        _bind_lora_node_runtime as _bind_lora_node_runtime,
+    )
     from .anima_prompt import correct_prompt, load_knowledge_base
     from .anima_prompt.parser import parse_prompt
     from .settings import (
@@ -41,6 +325,290 @@ try:
         wildcard_sources_signature,
     )
 except ImportError:  # allows simple local import tests outside ComfyUI's package loader
+    from easyuse_anima.common.serialization import (
+        _json_clone as _json_clone,
+        _json_object as _json_object,
+        _stable_change_key as _stable_change_key,
+    )
+    from easyuse_anima.common.values import (
+        _as_bool as _as_bool,
+        _as_float as _as_float,
+        _as_int as _as_int,
+        _choice as _choice,
+        _single_value as _single_value,
+    )
+    from easyuse_anima.prompt.correction import (
+        _bind_prompt_correction_runtime as _bind_prompt_correction_runtime,
+        _prompt_translation_change_key as _prompt_translation_change_key,
+        _split_tag_text as _split_tag_text,
+        _translate_prompt_text as _translate_prompt_text,
+    )
+    from easyuse_anima.prompt.fields import (
+        DEFAULT_QUALITY_TAGS as DEFAULT_QUALITY_TAGS,
+        DEFAULT_TRAILING_QUALITY_TAGS as DEFAULT_TRAILING_QUALITY_TAGS,
+        _HASH_COMMENT_RE as _HASH_COMMENT_RE,
+        _INLINE_SPACE_RE as _INLINE_SPACE_RE,
+        _WEIGHTED_TOKEN_RE as _WEIGHTED_TOKEN_RE,
+        _bind_prompt_fields_runtime as _bind_prompt_fields_runtime,
+        _correct_builder_prompt as _correct_builder_prompt,
+        _filter_metadata_prompt as _filter_metadata_prompt,
+        _join_prompt_tokens as _join_prompt_tokens,
+        _metadata_filter_key as _metadata_filter_key,
+        _metadata_filter_keys as _metadata_filter_keys,
+        _prompt_tokens as _prompt_tokens,
+    )
+    from easyuse_anima.prompt.data import (
+        PROMPT_DATA_COMPAT_OUTPUT_TOOLTIPS as PROMPT_DATA_COMPAT_OUTPUT_TOOLTIPS,
+        PROMPT_DATA_COMPAT_RETURN_NAMES as PROMPT_DATA_COMPAT_RETURN_NAMES,
+        PROMPT_DATA_COMPAT_RETURN_TYPES as PROMPT_DATA_COMPAT_RETURN_TYPES,
+        PROMPT_DATA_SCHEMA as PROMPT_DATA_SCHEMA,
+        PROMPT_DATA_TYPE as PROMPT_DATA_TYPE,
+        PROMPT_DATA_VERSION as PROMPT_DATA_VERSION,
+        _advanced_outputs_from_prompt_data as _advanced_outputs_from_prompt_data,
+        _apply_prompt_data_overrides as _apply_prompt_data_overrides,
+        _copy_prompt_data_for_update as _copy_prompt_data_for_update,
+        _normalize_prompt_data as _normalize_prompt_data,
+        _prompt_data_input_default as _prompt_data_input_default,
+        _prompt_data_json_safe as _prompt_data_json_safe,
+        _prompt_data_nested as _prompt_data_nested,
+        _prompt_data_output as _prompt_data_output,
+        _prompt_data_parameter_snapshot as _prompt_data_parameter_snapshot,
+        _set_prompt_data_output as _set_prompt_data_output,
+    )
+    from easyuse_anima.prompt.conditioning import (
+        ANIMA_MOD_GUIDANCE_DEFAULT_PROFILE as ANIMA_MOD_GUIDANCE_DEFAULT_PROFILE,
+        ANIMA_MOD_GUIDANCE_MODES as ANIMA_MOD_GUIDANCE_MODES,
+        ANIMA_MOD_GUIDANCE_MODE_DISABLED as ANIMA_MOD_GUIDANCE_MODE_DISABLED,
+        ANIMA_MOD_GUIDANCE_MODE_ENABLED as ANIMA_MOD_GUIDANCE_MODE_ENABLED,
+        ANIMA_MOD_GUIDANCE_MODE_FROM_PROMPT_DATA as ANIMA_MOD_GUIDANCE_MODE_FROM_PROMPT_DATA,
+        ANIMA_MOD_GUIDANCE_PROFILES as ANIMA_MOD_GUIDANCE_PROFILES,
+        ANIMA_MOD_GUIDANCE_PROFILE_OFF as ANIMA_MOD_GUIDANCE_PROFILE_OFF,
+        _SPECTRUM_ANIMA_MOD_GUIDANCE_OLD_SIGNATURE_WARNED as _SPECTRUM_ANIMA_MOD_GUIDANCE_OLD_SIGNATURE_WARNED,
+        _apply_spectrum_anima_mod_guidance as _apply_spectrum_anima_mod_guidance,
+        _bind_conditioning_runtime as _bind_conditioning_runtime,
+        _find_spectrum_anima_mod_guidance_class as _find_spectrum_anima_mod_guidance_class,
+        _normalize_anima_mod_guidance_profile as _normalize_anima_mod_guidance_profile,
+        _resolve_anima_mod_guidance_enabled as _resolve_anima_mod_guidance_enabled,
+        _warn_old_spectrum_anima_mod_guidance_once as _warn_old_spectrum_anima_mod_guidance_once,
+    )
+    from easyuse_anima.prompt.artist_mix import (
+        ARTIST_MIX_CONTROL_KEY as ARTIST_MIX_CONTROL_KEY,
+        ARTIST_MIX_DEFAULT_CLUSTER_COUNT as ARTIST_MIX_DEFAULT_CLUSTER_COUNT,
+        ARTIST_MIX_DEFAULT_DOMINANT_ISOLATION as ARTIST_MIX_DEFAULT_DOMINANT_ISOLATION,
+        ARTIST_MIX_DEFAULT_DOMINANT_THRESHOLD as ARTIST_MIX_DEFAULT_DOMINANT_THRESHOLD,
+        ARTIST_MIX_DEFAULT_EXACT_TOP_K as ARTIST_MIX_DEFAULT_EXACT_TOP_K,
+        ARTIST_MIX_DEFAULT_RMS_SCALE_CAP as ARTIST_MIX_DEFAULT_RMS_SCALE_CAP,
+        ARTIST_MIX_DEFAULT_START_PERCENT as ARTIST_MIX_DEFAULT_START_PERCENT,
+        ARTIST_MIX_DEFAULT_STRENGTH_SCALE as ARTIST_MIX_DEFAULT_STRENGTH_SCALE,
+        ARTIST_MIX_DEFAULT_STYLE_GAIN as ARTIST_MIX_DEFAULT_STYLE_GAIN,
+        ARTIST_MIX_EXACT_KEY as ARTIST_MIX_EXACT_KEY,
+        ARTIST_MIX_INPUT_MODES as ARTIST_MIX_INPUT_MODES,
+        ARTIST_MIX_MODES as ARTIST_MIX_MODES,
+        ARTIST_MIX_MODE_AVERAGE as ARTIST_MIX_MODE_AVERAGE,
+        ARTIST_MIX_MODE_AVERAGE_LATE_EXACT as ARTIST_MIX_MODE_AVERAGE_LATE_EXACT,
+        ARTIST_MIX_MODE_CLUSTERED as ARTIST_MIX_MODE_CLUSTERED,
+        ARTIST_MIX_MODE_COMPOSITE_EXACT as ARTIST_MIX_MODE_COMPOSITE_EXACT,
+        ARTIST_MIX_MODE_DELTA_RMS as ARTIST_MIX_MODE_DELTA_RMS,
+        ARTIST_MIX_MODE_DESCRIPTIONS as ARTIST_MIX_MODE_DESCRIPTIONS,
+        ARTIST_MIX_MODE_EXACT as ARTIST_MIX_MODE_EXACT,
+        ARTIST_MIX_MODE_FROM_PROMPT_DATA as ARTIST_MIX_MODE_FROM_PROMPT_DATA,
+        ARTIST_MIX_MODE_HYBRID as ARTIST_MIX_MODE_HYBRID,
+        ARTIST_MIX_MODE_LATE_EXACT as ARTIST_MIX_MODE_LATE_EXACT,
+        ARTIST_MIX_MODE_OFF as ARTIST_MIX_MODE_OFF,
+        ARTIST_MIX_MODE_PROMPT as ARTIST_MIX_MODE_PROMPT,
+        ARTIST_MIX_MODE_SCHEDULED_AVERAGE as ARTIST_MIX_MODE_SCHEDULED_AVERAGE,
+        ARTIST_MIX_SCHEDULE_KEY as ARTIST_MIX_SCHEDULE_KEY,
+        ARTIST_MIX_STUDIO_MODES as ARTIST_MIX_STUDIO_MODES,
+        ARTIST_TAG_POSITION_BACK as ARTIST_TAG_POSITION_BACK,
+        ARTIST_TAG_POSITION_CORRECT as ARTIST_TAG_POSITION_CORRECT,
+        ARTIST_TAG_POSITION_FRONT as ARTIST_TAG_POSITION_FRONT,
+        ARTIST_TAG_POSITION_MODES as ARTIST_TAG_POSITION_MODES,
+        _artist_conditioning_feature as _artist_conditioning_feature,
+        _artist_delta_rms_from_encoded as _artist_delta_rms_from_encoded,
+        _artist_group_token as _artist_group_token,
+        _artist_mix_inline_prompt as _artist_mix_inline_prompt,
+        _artist_mix_mode_tooltip as _artist_mix_mode_tooltip,
+        _artist_mix_prompt_tags as _artist_mix_prompt_tags,
+        _artist_prompt_with_position as _artist_prompt_with_position,
+        _artist_tags_from_prompt as _artist_tags_from_prompt,
+        _artist_variant_prompt_from_prompt_data as _artist_variant_prompt_from_prompt_data,
+        _bind_artist_mix_runtime as _bind_artist_mix_runtime,
+        _blend_conditionings as _blend_conditionings,
+        _bounded_artist_mix_float as _bounded_artist_mix_float,
+        _bounded_artist_mix_int as _bounded_artist_mix_int,
+        _coalesce_artist_mix_items as _coalesce_artist_mix_items,
+        _conditionings_with_range as _conditionings_with_range,
+        _conditionings_with_strength as _conditionings_with_strength,
+        _conditionings_with_values as _conditionings_with_values,
+        _copy_conditioning_metadata as _copy_conditioning_metadata,
+        _encode_artist_average as _encode_artist_average,
+        _encode_artist_average_late_exact as _encode_artist_average_late_exact,
+        _encode_artist_clustered as _encode_artist_clustered,
+        _encode_artist_composite_exact as _encode_artist_composite_exact,
+        _encode_artist_delta_rms as _encode_artist_delta_rms,
+        _encode_artist_exact as _encode_artist_exact,
+        _encode_artist_hybrid as _encode_artist_hybrid,
+        _encode_artist_scheduled_average as _encode_artist_scheduled_average,
+        _encode_prompt_data_positive_conditioning as _encode_prompt_data_positive_conditioning,
+        _encoded_artist_conditionings as _encoded_artist_conditionings,
+        _equal_artist_weights as _equal_artist_weights,
+        _fallback_artist_average_or_exact as _fallback_artist_average_or_exact,
+        _greedy_cluster_encoded_artists as _greedy_cluster_encoded_artists,
+        _interpolate_artist_weights as _interpolate_artist_weights,
+        _join_artist_mix_source_prompts as _join_artist_mix_source_prompts,
+        _mark_artist_mix_conditioning as _mark_artist_mix_conditioning,
+        _normalize_artist_mix_mode as _normalize_artist_mix_mode,
+        _normalize_artist_tag_position as _normalize_artist_tag_position,
+        _normalize_weight_values as _normalize_weight_values,
+        _normalized_artist_weights as _normalized_artist_weights,
+        _pad_conditioning_tensor as _pad_conditioning_tensor,
+        _parse_artist_mix_entries as _parse_artist_mix_entries,
+        _parse_artist_mix_group as _parse_artist_mix_group,
+        _parse_artist_mix_items as _parse_artist_mix_items,
+        _prompt_data_artist_base_prompt as _prompt_data_artist_base_prompt,
+        _prompt_data_artist_mix_config as _prompt_data_artist_mix_config,
+        _prompt_data_positive_fields as _prompt_data_positive_fields,
+        _split_artist_mix_blocks as _split_artist_mix_blocks,
+        _split_artist_mix_items as _split_artist_mix_items,
+    )
+    from easyuse_anima.nodes.prompt_data_nodes import (
+        EasyUseAnimaArtistMixConditioning as EasyUseAnimaArtistMixConditioning,
+        EasyUseAnimaPromptDataConditioning as EasyUseAnimaPromptDataConditioning,
+        EasyUseAnimaPromptDataUnpack as EasyUseAnimaPromptDataUnpack,
+        _bind_prompt_data_node_runtime as _bind_prompt_data_node_runtime,
+    )
+    from easyuse_anima.image.geometry import (
+        _align_down as _align_down,
+        _align_nearest as _align_nearest,
+        _align_up as _align_up,
+        _aligned_size_near_scale as _aligned_size_near_scale,
+        _alignment_value as _alignment_value,
+    )
+    from easyuse_anima.image.detailer import (
+        _EasyUseAnimaAlignedDetailerHook as _EasyUseAnimaAlignedDetailerHook,
+    )
+    from easyuse_anima.image.scaling import (
+        IMAGE_SCALE_MULTIPLES as IMAGE_SCALE_MULTIPLES,
+        IMAGE_UPSCALE_METHODS as IMAGE_UPSCALE_METHODS,
+        _image_scale_by_multiple_size as _image_scale_by_multiple_size,
+        _max_long_edge_value as _max_long_edge_value,
+        _normalize_image_scale_options as _normalize_image_scale_options,
+        _scale_by_value as _scale_by_value,
+    )
+    from easyuse_anima.infrastructure.comfy.capabilities import (
+        _comfy_max_resolution as _adapter_comfy_max_resolution,
+        _comfy_sampler_names as _comfy_sampler_names,
+        _comfy_scheduler_names as _comfy_scheduler_names,
+        _find_comfy_node_class as _adapter_find_comfy_node_class,
+        _find_loaded_node_class as _adapter_find_loaded_node_class,
+        _require_any_custom_node_class as _adapter_require_any_custom_node_class,
+        _require_custom_node_class as _adapter_require_custom_node_class,
+    )
+    from easyuse_anima.infrastructure.comfy.invocation import (
+        _call_with_supported_kwargs as _call_with_supported_kwargs,
+        _common_upscale_image as _common_upscale_image,
+        _node_output_tuple as _node_output_tuple,
+    )
+    from easyuse_anima.infrastructure.comfy.resources import (
+        _comfy_checkpoint_names as _comfy_checkpoint_names,
+        _comfy_clip_loader_types as _adapter_comfy_clip_loader_types,
+        _comfy_diffusion_model_names as _adapter_comfy_diffusion_model_names,
+        _comfy_text_encoder_names as _adapter_comfy_text_encoder_names,
+        _comfy_vae_names as _adapter_comfy_vae_names,
+        _folder_path_names as _folder_path_names,
+    )
+    from easyuse_anima.nodes.image_nodes import (
+        EasyUseAnimaDetailerAlignHook as EasyUseAnimaDetailerAlignHook,
+        EasyUseAnimaImageScaleByMultiple as EasyUseAnimaImageScaleByMultiple,
+    )
+    from easyuse_anima.nodes.prompt_nodes import (
+        EasyUseAnimaPromptBuilder as EasyUseAnimaPromptBuilder,
+        EasyUseAnimaPromptCorrector as EasyUseAnimaPromptCorrector,
+        EasyUseAnimaPromptCorrectorSimple as EasyUseAnimaPromptCorrectorSimple,
+        EasyUseAnimaPromptStudio as EasyUseAnimaPromptStudio,
+        _bind_prompt_node_runtime as _bind_prompt_node_runtime,
+    )
+    from easyuse_anima.naia.client import (
+        DEFAULT_HOST as DEFAULT_HOST,
+        DEFAULT_PORT as DEFAULT_PORT,
+        HTTP_TIMEOUT as HTTP_TIMEOUT,
+        LATENT_ALIGN as LATENT_ALIGN,
+        NAI_1MP as NAI_1MP,
+        NAIA_LOCAL_HOSTS as NAIA_LOCAL_HOSTS,
+        NAIA_MAX_RESOLUTION as NAIA_MAX_RESOLUTION,
+        NAIA_REQUEST_TIMEOUT as NAIA_REQUEST_TIMEOUT,
+        PP_STATE_CHOICES as PP_STATE_CHOICES,
+        PREPROCESSING_KEYS as PREPROCESSING_KEYS,
+        _build_naia_random_url as _build_naia_random_url,
+        _clean_prompt as _clean_prompt,
+        _fit_to_1mp as _fit_to_1mp,
+        _is_local_naia_host as _is_local_naia_host,
+        _parse_random_response as _parse_random_response,
+        _post_random as _post_random,
+    )
+    from easyuse_anima.naia.resolution import (
+        ADVANCED_RESOLUTION_BUCKETS as ADVANCED_RESOLUTION_BUCKETS,
+        CUSTOM_ADVANCED_RESOLUTION_BUCKET as CUSTOM_ADVANCED_RESOLUTION_BUCKET,
+        DEFAULT_ADVANCED_RESOLUTION_BUCKET as DEFAULT_ADVANCED_RESOLUTION_BUCKET,
+        DEFAULT_ADVANCED_RESOLUTION_SIZE as DEFAULT_ADVANCED_RESOLUTION_SIZE,
+        NAIA_ADVANCED_RESOLUTION_BUCKET as NAIA_ADVANCED_RESOLUTION_BUCKET,
+        NAIA_RESOLUTION_MODE_BUCKET as NAIA_RESOLUTION_MODE_BUCKET,
+        NAIA_RESOLUTION_MODE_SCALE as NAIA_RESOLUTION_MODE_SCALE,
+        _advanced_resolution_from_selection as _advanced_resolution_from_selection,
+        _fit_naia_resolution_to_bucket as _fit_naia_resolution_to_bucket,
+        _normalize_resolution_bucket as _normalize_resolution_bucket,
+        _ratio_label as _ratio_label,
+        _resolution_label as _resolution_label,
+        _resolve_naia_resolution as _resolve_naia_resolution,
+        _resolve_naia_resolution_bucket as _resolve_naia_resolution_bucket,
+        _resolve_naia_resolution_max_long_edge as _resolve_naia_resolution_max_long_edge,
+        _resolve_naia_resolution_mode as _resolve_naia_resolution_mode,
+        _resolve_naia_resolution_scale as _resolve_naia_resolution_scale,
+        _scale_naia_resolution as _scale_naia_resolution,
+        _snap_resolution_32 as _snap_resolution_32,
+        _snap_scaled_resolution_32 as _snap_scaled_resolution_32,
+        _sorted_resolution_options as _sorted_resolution_options,
+    )
+    from easyuse_anima.nodes.naia_nodes import (
+        EasyUseAnimaNAIARandomPrompt as EasyUseAnimaNAIARandomPrompt,
+        _bind_naia_node_runtime as _bind_naia_node_runtime,
+    )
+    from easyuse_anima.nodes.wildcard_nodes import (
+        EasyUseAnimaWildcard as EasyUseAnimaWildcard,
+        WILDCARD_SEED_RANGE_NOTE as WILDCARD_SEED_RANGE_NOTE,
+        _bind_wildcard_node_runtime as _bind_wildcard_node_runtime,
+    )
+    from easyuse_anima.lora.metadata import (
+        _apply_lora_syntax_format as _apply_lora_syntax_format,
+        _bind_lora_metadata_runtime as _bind_lora_metadata_runtime,
+        _dedupe_text_values as _dedupe_text_values,
+        _fallback_lora_path as _fallback_lora_path,
+        _get_lora_info as _get_lora_info,
+        _get_lora_manager_trigger_words as _get_lora_manager_trigger_words,
+        _load_lora_manager_metadata as _load_lora_manager_metadata,
+        _lora_combo_values as _lora_combo_values,
+        _lora_manager_trigger_words_from_metadata as _lora_manager_trigger_words_from_metadata,
+        _lora_model_exists as _lora_model_exists,
+        _lora_stack_name as _lora_stack_name,
+        _metadata_json_paths_for_lora as _metadata_json_paths_for_lora,
+        _missing_lora_display_name as _missing_lora_display_name,
+        _raise_missing_loras as _raise_missing_loras,
+        _trigger_words_from_value as _trigger_words_from_value,
+    )
+    from easyuse_anima.lora.preset import (
+        _bind_lora_preset_runtime as _bind_lora_preset_runtime,
+        _correct_style_prompt as _correct_style_prompt,
+        _format_strength as _format_strength,
+        _get_loras_list as _get_loras_list,
+        _load_profile_data as _load_profile_data,
+        _profile_key as _profile_key,
+        _select_profile_values as _select_profile_values,
+        _wrap_profile_index as _wrap_profile_index,
+    )
+    from easyuse_anima.nodes.lora_nodes import (
+        EasyUseAnimaLoraPreset as EasyUseAnimaLoraPreset,
+        _bind_lora_node_runtime as _bind_lora_node_runtime,
+    )
     from anima_prompt import correct_prompt, load_knowledge_base
     from anima_prompt.parser import parse_prompt
     from settings import (
@@ -72,16 +640,6 @@ except ImportError:  # allows simple local import tests outside ComfyUI's packag
 
 logger = logging.getLogger("ComfyUI-EasyUseAnima")
 
-DEFAULT_HOST = "127.0.0.1"
-DEFAULT_PORT = 7243
-NAIA_LOCAL_HOSTS = {"127.0.0.1", "localhost", "::1"}
-DEFAULT_QUALITY_TAGS = (
-    "newest, masterpiece, best quality, score_8, score_7:, highres, absurdres, very aesthetic"
-)
-DEFAULT_TRAILING_QUALITY_TAGS = (
-    "location, (A highly aesthetic Pixiv style illustration, clean composition, "
-    "high-quality digital art, detailed background, sharp focus on facial expressions.:0.6)"
-)
 ADVANCED_FIELD_TYPES = {"quality", "artist", "trigger", "general", "naia"}
 ADVANCED_FIELD_PANES = {"positive", "negative"}
 ADVANCED_FIELD_LABELS = {
@@ -94,21 +652,10 @@ ADVANCED_FIELD_LABELS = {
 ADVANCED_FIELDS_WORKFLOW_PROPERTY = "easyuse_anima_advanced_fields"
 WILDCARD_RESERVED_NEXT_SEED_INPUT = "easyuse_anima_reserved_wildcard_next_seed"
 WILDCARD_QUEUE_MAX_SAFE_SEED = PUBLIC_MAX_SEED
-WILDCARD_SEED_RANGE_NOTE = (
-    f"Browser/public editing and next-seed range: 0..{PUBLIC_MAX_SEED}. The Python "
-    "backend continues accepting uint64 values for legacy workflow validation, but "
-    "values above the public maximum are best-effort in the browser because JavaScript "
-    "may already have lost integer precision. Fixed does not intentionally advance a "
-    "legacy value; increment, decrement, and randomize return the next seed to the "
-    "public range."
-)
 REGIONAL_FIELDS_WORKFLOW_PROPERTY = "easyuse_anima_regional_fields"
 REGIONAL_CONFIG_WORKFLOW_PROPERTY = "easyuse_anima_regional_config"
 REGIONAL_FIELD_TYPES = {"quality", "artist", "trigger", "general"}
 REGIONAL_CONFIG_VERSION = 1
-PROMPT_DATA_VERSION = 1
-PROMPT_DATA_TYPE = "EASYUSE_ANIMA_PROMPT_DATA"
-PROMPT_DATA_SCHEMA = "easyuse_anima_prompt_studio_advanced_v2"
 EASY_USE_ANIMA_INPUT_TYPE = "EASY_USE_ANIMA_INPUT"
 EASY_USE_ANIMA_INPUT_SCHEMA = "easy_use_anima_input"
 EASY_USE_ANIMA_INPUT_SETTINGS_VERSION = 1
@@ -156,75 +703,6 @@ ANIMA_UNET_WEIGHT_DTYPES = (
     "fp8_e5m2",
 )
 ANIMA_CLIP_DEVICES = ("default", "cpu")
-ANIMA_MOD_GUIDANCE_MODE_FROM_PROMPT_DATA = "prompt_data"
-ANIMA_MOD_GUIDANCE_MODE_ENABLED = "enabled"
-ANIMA_MOD_GUIDANCE_MODE_DISABLED = "disabled"
-ANIMA_MOD_GUIDANCE_MODES = (
-    ANIMA_MOD_GUIDANCE_MODE_FROM_PROMPT_DATA,
-    ANIMA_MOD_GUIDANCE_MODE_ENABLED,
-    ANIMA_MOD_GUIDANCE_MODE_DISABLED,
-)
-ANIMA_MOD_GUIDANCE_PROFILE_OFF = "off"
-ANIMA_MOD_GUIDANCE_DEFAULT_PROFILE = "step_i8_skip27"
-ANIMA_MOD_GUIDANCE_PROFILES = (
-    ANIMA_MOD_GUIDANCE_PROFILE_OFF,
-    ANIMA_MOD_GUIDANCE_DEFAULT_PROFILE,
-    "step_i14",
-    "uniform_w3",
-)
-ARTIST_MIX_MODE_FROM_PROMPT_DATA = "prompt_data"
-ARTIST_MIX_MODE_OFF = "off"
-ARTIST_MIX_MODE_PROMPT = "prompt"
-ARTIST_MIX_MODE_AVERAGE = "average"
-ARTIST_MIX_MODE_DELTA_RMS = "delta_rms"
-ARTIST_MIX_MODE_HYBRID = "hybrid"
-ARTIST_MIX_MODE_CLUSTERED = "clustered"
-ARTIST_MIX_MODE_EXACT = "exact"
-ARTIST_MIX_MODE_COMPOSITE_EXACT = "composite_exact"
-ARTIST_MIX_MODE_LATE_EXACT = "late_exact"
-ARTIST_MIX_MODE_AVERAGE_LATE_EXACT = "average_late_exact"
-ARTIST_MIX_MODE_SCHEDULED_AVERAGE = "scheduled_average"
-ARTIST_MIX_MODES = (
-    ARTIST_MIX_MODE_PROMPT,
-    ARTIST_MIX_MODE_AVERAGE,
-    ARTIST_MIX_MODE_DELTA_RMS,
-    ARTIST_MIX_MODE_HYBRID,
-    ARTIST_MIX_MODE_CLUSTERED,
-    ARTIST_MIX_MODE_EXACT,
-    ARTIST_MIX_MODE_COMPOSITE_EXACT,
-    ARTIST_MIX_MODE_LATE_EXACT,
-    ARTIST_MIX_MODE_AVERAGE_LATE_EXACT,
-    ARTIST_MIX_MODE_SCHEDULED_AVERAGE,
-)
-ARTIST_MIX_INPUT_MODES = (
-    ARTIST_MIX_MODE_FROM_PROMPT_DATA,
-    ARTIST_MIX_MODE_OFF,
-    *ARTIST_MIX_MODES,
-)
-ARTIST_MIX_STUDIO_MODES = (
-    ARTIST_MIX_MODE_OFF,
-    ARTIST_MIX_MODE_AVERAGE,
-    ARTIST_MIX_MODE_DELTA_RMS,
-    ARTIST_MIX_MODE_HYBRID,
-    ARTIST_MIX_MODE_CLUSTERED,
-    ARTIST_MIX_MODE_EXACT,
-    ARTIST_MIX_MODE_COMPOSITE_EXACT,
-    ARTIST_MIX_MODE_LATE_EXACT,
-    ARTIST_MIX_MODE_AVERAGE_LATE_EXACT,
-    ARTIST_MIX_MODE_SCHEDULED_AVERAGE,
-)
-ARTIST_MIX_DEFAULT_START_PERCENT = 0.5
-ARTIST_MIX_DEFAULT_STRENGTH_SCALE = 1.0
-ARTIST_MIX_DEFAULT_STYLE_GAIN = 1.35
-ARTIST_MIX_DEFAULT_RMS_SCALE_CAP = 2.0
-ARTIST_MIX_DEFAULT_EXACT_TOP_K = 4
-ARTIST_MIX_DEFAULT_CLUSTER_COUNT = 4
-ARTIST_MIX_DEFAULT_DOMINANT_ISOLATION = True
-ARTIST_MIX_DEFAULT_DOMINANT_THRESHOLD = 0.25
-ARTIST_MIX_CONTROL_KEY = "anima_prompt_artist_mix_control"
-ARTIST_MIX_EXACT_KEY = "anima_prompt_artist_mix_exact"
-ARTIST_MIX_SCHEDULE_KEY = "anima_prompt_artist_mix_schedule"
-_SPECTRUM_ANIMA_MOD_GUIDANCE_OLD_SIGNATURE_WARNED: set[str] = set()
 AIO_SPECIAL_SEED_RANDOM = -1
 AIO_SPECIAL_SEED_INCREMENT = -2
 AIO_SPECIAL_SEED_DECREMENT = -3
@@ -662,42 +1140,6 @@ AIO_GENERATION_DEFAULT_SETTINGS = {
         "feed_count": 12,
     },
 }
-ARTIST_TAG_POSITION_CORRECT = "correct"
-ARTIST_TAG_POSITION_FRONT = "front"
-ARTIST_TAG_POSITION_BACK = "back"
-ARTIST_TAG_POSITION_MODES = (
-    ARTIST_TAG_POSITION_CORRECT,
-    ARTIST_TAG_POSITION_FRONT,
-    ARTIST_TAG_POSITION_BACK,
-)
-ARTIST_MIX_MODE_DESCRIPTIONS = {
-    ARTIST_MIX_MODE_OFF: "Cost: 1 positive branch. Keeps artist-field text inline in the positive prompt.",
-    ARTIST_MIX_MODE_PROMPT: "Cost: 1 positive branch. Keeps artist-field text inline in the positive prompt.",
-    ARTIST_MIX_MODE_AVERAGE: "Cost: 1 positive branch. Weighted average of artist conditionings; fastest stable mix.",
-    ARTIST_MIX_MODE_DELTA_RMS: (
-        "Cost: 1 positive branch. Mixes artist deltas from the base prompt and restores RMS style energy; "
-        "usually stronger than average."
-    ),
-    ARTIST_MIX_MODE_HYBRID: (
-        "Cost: top_k + 1 positive branches. Keeps strongest artists as exact branches and compresses the tail "
-        "with delta_rms; recommended balance."
-    ),
-    ARTIST_MIX_MODE_CLUSTERED: (
-        "Cost: about cluster_count plus dominant artists. Groups similar artist deltas and compresses each "
-        "cluster; useful for many artists."
-    ),
-    ARTIST_MIX_MODE_EXACT: "Cost: N positive branches. Most faithful artist-specific model output mix.",
-    ARTIST_MIX_MODE_COMPOSITE_EXACT: (
-        "Cost: N + 1 positive branches. Adds one composite prompt branch plus exact artist branches."
-    ),
-    ARTIST_MIX_MODE_LATE_EXACT: "Cost: base + N late exact branches. Applies exact mixing only after start.",
-    ARTIST_MIX_MODE_AVERAGE_LATE_EXACT: (
-        "Cost: 1 average branch plus N late exact branches. Fast early mix, exact late refinement."
-    ),
-    ARTIST_MIX_MODE_SCHEDULED_AVERAGE: (
-        "Cost: scheduled average branches. Changes artist weights across timestep ranges."
-    ),
-}
 REGIONAL_PROMPT_DATA_TYPE = "EASYUSE_ANIMA_REGIONAL_PROMPT_DATA"
 REGIONAL_PROMPT_DATA_SCHEMA = "easyuse_anima_prompt_studio_regional"
 REGIONAL_PROMPT_BUNDLE_SCHEMA = "easyuse_anima_prompt_studio_regional_bundle"
@@ -718,13 +1160,6 @@ EXTEND_PROMPT_SLOT_SPECS = [
     ("negative_prompt_3", "negative", "general", "Negative Prompt 3", "", 120),
     ("negative_prompt_4", "negative", "general", "Negative Prompt 4", "", 120),
 ]
-NAIA_REQUEST_TIMEOUT = 30.0
-HTTP_TIMEOUT = NAIA_REQUEST_TIMEOUT + 5.0
-
-NAI_1MP = 1024 * 1024
-LATENT_ALIGN = 8
-IMAGE_UPSCALE_METHODS = ["nearest-exact", "bilinear", "area", "bicubic", "lanczos"]
-IMAGE_SCALE_MULTIPLES = ["8", "16", "32", "64"]
 AIO_FINAL_UPSCALE_BACKENDS = ("usdu", "resshift")
 AIO_USDU_MODE_TYPES = ("Linear", "Chess", "None")
 AIO_USDU_SEAM_FIX_MODES = ("None", "Band Pass", "Half Tile", "Half Tile + Intersections")
@@ -734,98 +1169,8 @@ AIO_USDU_PROMPT_MODES = (AIO_USDU_PROMPT_FULL, AIO_USDU_PROMPT_NO_GENERAL)
 AIO_FINAL_FIT_MODES = ("max_long_edge", "megapixels")
 AIO_RESHIFT_SCALES = ("x2", "x4")
 AIO_RESHIFT_DTYPES = ("bf16", "fp32")
-ADVANCED_RESOLUTION_BUCKETS = {
-    "512": (
-        (256, 1024), (1024, 256),
-        (288, 896), (896, 288),
-        (384, 672), (672, 384),
-        (512, 512),
-        (448, 576), (576, 448),
-    ),
-    "768": (
-        (384, 1440), (1440, 384),
-        (480, 1152), (1152, 480),
-        (576, 960), (960, 576),
-        (640, 864), (864, 640),
-        (768, 768),
-    ),
-    "896": (
-        (448, 1728), (1728, 448),
-        (480, 1600), (1600, 480),
-        (576, 1344), (1344, 576),
-        (672, 1152), (1152, 672),
-        (800, 960), (960, 800),
-        (896, 896),
-    ),
-    "1024": (
-        (512, 2016), (2016, 512),
-        (576, 1792), (1792, 576),
-        (672, 1536), (1536, 672),
-        (672, 1600), (1600, 672),
-        (768, 1344), (1344, 768),
-        (800, 1344), (1344, 800),
-        (896, 1152), (1152, 896),
-        (960, 1120), (1120, 960),
-        (1024, 1024),
-    ),
-    "1280": (
-        (672, 2400), (2400, 672),
-        (800, 2016), (2016, 800),
-        (1024, 1536), (1536, 1024),
-        (1024, 1600), (1600, 1024),
-        (1120, 1440), (1440, 1120),
-        (1280, 1280),
-    ),
-    "1536": (
-        (1440, 1536), (1536, 1440),
-        (1280, 1728), (1728, 1280),
-        (1152, 1920), (1920, 1152),
-        (1024, 2176), (2176, 1024),
-        (960, 2304), (2304, 960),
-        (864, 2560), (2560, 864),
-        (768, 2880), (2880, 768),
-        (1536, 1536),
-    ),
-}
-CUSTOM_ADVANCED_RESOLUTION_BUCKET = "Custom"
-NAIA_ADVANCED_RESOLUTION_BUCKET = "NAIA"
-DEFAULT_ADVANCED_RESOLUTION_BUCKET = "1024"
-DEFAULT_ADVANCED_RESOLUTION_SIZE = "1024 * 1024 (1:1)"
-NAIA_RESOLUTION_MODE_SCALE = "scale"
-NAIA_RESOLUTION_MODE_BUCKET = "bucket"
 
-PREPROCESSING_KEYS = [
-    "remove_author",
-    "remove_work_title",
-    "remove_character_name",
-    "remove_character_features",
-    "remove_clothes",
-    "remove_color",
-    "remove_location_and_background_color",
-    "remove_expression",
-    "remove_pose_action",
-    "remove_meta_tags",
-    "remove_object_tags",
-    "remove_noise_tags",
-    "e621_auto_boost",
-    "danbooru_auto_weight",
-    "tag_implication_compression",
-]
-PP_STATE_CHOICES = ["skip", "on", "off"]
 
-_HASH_COMMENT_RE = re.compile(r"^[ \t]*#[^\n]*", re.MULTILINE)
-_MULTI_COMMA_RE = re.compile(r"(\s*,){2,}")
-_INLINE_SPACE_RE = re.compile(r"[ \t]+")
-_WEIGHTED_TOKEN_RE = re.compile(r"^\(([^(),]+):[-+]?\d+(?:\.\d+)?\)$")
-_WEIGHTED_ARTIST_RE = re.compile(
-    r"^\(\s*(?P<tag>.*?)\s*:\s*(?P<weight>[+-]?(?:\d+(?:\.\d*)?|\.\d+))\s*\)$"
-)
-_ARTIST_GROUP_RE = re.compile(
-    r"^\s*\[\[\s*(?P<tag>.*?)(?:\s*:\s*(?P<weight>[+-]?(?:\d+(?:\.\d*)?|\.\d+)))?\s*\]\]\s*$",
-    re.DOTALL,
-)
-_SECTION_SEPARATOR_RE = re.compile(r"^\s*-{6,}\s*$", re.MULTILINE)
-_RESOLUTION_LABEL_RE = re.compile(r"(\d+)\s*(?:\*|x|×)\s*(\d+)")
 _TRIGGER_WORD_KEYS = ("trainedWords", "trained_words", "trigger_words", "activation_text")
 _ADVANCED_FIELD_SOCKET_PREFIX = "field_"
 _ADVANCED_FIELD_SOCKET_RE = re.compile(r"[^A-Za-z0-9_]")
@@ -850,33 +1195,6 @@ class _FlexibleOptionalInputType(dict):
 _ANY_TYPE = _AnyType("*")
 
 
-def _single_value(value):
-    if isinstance(value, (list, tuple)):
-        if not value:
-            return None
-        return value[0]
-    return value
-
-
-def _as_bool(value, default: bool = False) -> bool:
-    value = _single_value(value)
-    if value is None:
-        return default
-    if isinstance(value, str):
-        return value.strip().lower() in ("true", "1", "yes", "on", "enable", "enabled")
-    return bool(value)
-
-
-def _as_int(value, default: int = 0) -> int:
-    value = _single_value(value)
-    if value is None:
-        return default
-    try:
-        return int(value)
-    except (TypeError, ValueError):
-        return default
-
-
 def _normalize_aio_seed(value, default: int = AIO_SPECIAL_SEED_RANDOM) -> int:
     return max(AIO_SPECIAL_SEED_DECREMENT, min(MAX_SEED, _as_int(value, default)))
 
@@ -892,181 +1210,6 @@ def _resolve_aio_runtime_seed(value) -> int:
     return max(0, min(MAX_SEED, seed))
 
 
-def _as_float(value, default: float = 0.0) -> float:
-    value = _single_value(value)
-    if value is None:
-        return default
-    try:
-        return float(value)
-    except (TypeError, ValueError):
-        return default
-
-
-def _ratio_label(width: int, height: int) -> str:
-    divisor = gcd(max(1, int(width)), max(1, int(height)))
-    return f"{int(width) // divisor}:{int(height) // divisor}"
-
-
-def _resolution_label(width: int, height: int) -> str:
-    return f"{int(width)} * {int(height)} ({_ratio_label(width, height)})"
-
-
-def _sorted_resolution_options(bucket: str) -> list[tuple[int, int]]:
-    values = ADVANCED_RESOLUTION_BUCKETS.get(bucket) or ADVANCED_RESOLUTION_BUCKETS[DEFAULT_ADVANCED_RESOLUTION_BUCKET]
-    return sorted(values, key=lambda item: (item[0] / item[1], item[0], item[1]))
-
-
-def _normalize_resolution_bucket(value) -> str:
-    value = str(_single_value(value) or "").strip()
-    if value in {CUSTOM_ADVANCED_RESOLUTION_BUCKET, NAIA_ADVANCED_RESOLUTION_BUCKET}:
-        return value
-    return value if value in ADVANCED_RESOLUTION_BUCKETS else DEFAULT_ADVANCED_RESOLUTION_BUCKET
-
-
-def _snap_resolution_32(value, default: int = 1024) -> int:
-    raw = _as_int(value, default)
-    if raw <= 0:
-        raw = default
-    return max(32, int(round(raw / 32)) * 32)
-
-
-def _resolve_naia_resolution_scale(naia_settings: dict | None) -> float:
-    value = _as_float((naia_settings or {}).get("resolution_scale", 1.0), 1.0)
-    return max(0.25, min(4.0, value))
-
-
-def _resolve_naia_resolution_max_long_edge(naia_settings: dict | None) -> int:
-    value = _as_int((naia_settings or {}).get("resolution_max_long_edge", 0), 0)
-    if value <= 0:
-        return 0
-    return max(32, min(16384, value))
-
-
-def _resolve_naia_resolution_mode(naia_settings: dict | None) -> str:
-    value = str(
-        _single_value((naia_settings or {}).get("resolution_mode", NAIA_RESOLUTION_MODE_SCALE)) or ""
-    ).strip().lower()
-    if value == "bucket_fit":
-        return NAIA_RESOLUTION_MODE_BUCKET
-    return value if value in {NAIA_RESOLUTION_MODE_SCALE, NAIA_RESOLUTION_MODE_BUCKET} else NAIA_RESOLUTION_MODE_SCALE
-
-
-def _resolve_naia_resolution_bucket(naia_settings: dict | None) -> str:
-    bucket = _normalize_resolution_bucket((naia_settings or {}).get("resolution_bucket", DEFAULT_ADVANCED_RESOLUTION_BUCKET))
-    return bucket if bucket in ADVANCED_RESOLUTION_BUCKETS else DEFAULT_ADVANCED_RESOLUTION_BUCKET
-
-
-def _snap_scaled_resolution_32(value: float, max_value: int = 0, default: int = 1024) -> int:
-    raw = _as_float(value, float(default))
-    if raw <= 0:
-        raw = float(default)
-    snapped = max(32, int(round(raw / 32)) * 32)
-    if max_value > 0 and snapped > max_value:
-        snapped = max(32, int(max_value // 32) * 32)
-    return snapped
-
-
-def _scale_naia_resolution(
-    width: int,
-    height: int,
-    naia_settings: dict | None,
-) -> tuple[int, int]:
-    scale = _resolve_naia_resolution_scale(naia_settings)
-    max_long_edge = _resolve_naia_resolution_max_long_edge(naia_settings)
-    scaled_width = max(1.0, _as_float(width, 1024.0) * scale)
-    scaled_height = max(1.0, _as_float(height, 1024.0) * scale)
-
-    if max_long_edge > 0:
-        long_edge = max(scaled_width, scaled_height)
-        if long_edge > max_long_edge:
-            ratio = max_long_edge / long_edge
-            scaled_width *= ratio
-            scaled_height *= ratio
-
-    return (
-        _snap_scaled_resolution_32(scaled_width, max_long_edge, 1024),
-        _snap_scaled_resolution_32(scaled_height, max_long_edge, 1024),
-    )
-
-
-def _fit_naia_resolution_to_bucket(
-    width: int,
-    height: int,
-    naia_settings: dict | None,
-) -> tuple[int, int]:
-    bucket = _resolve_naia_resolution_bucket(naia_settings)
-    source_width = max(1.0, _as_float(width, 1024.0))
-    source_height = max(1.0, _as_float(height, 1024.0))
-    source_ratio = source_width / source_height
-    options = ADVANCED_RESOLUTION_BUCKETS.get(bucket) or ADVANCED_RESOLUTION_BUCKETS[DEFAULT_ADVANCED_RESOLUTION_BUCKET]
-
-    return min(
-        options,
-        key=lambda item: abs(log((item[0] / item[1]) / source_ratio)),
-    )
-
-
-def _resolve_naia_resolution(
-    width: int,
-    height: int,
-    naia_settings: dict | None,
-) -> tuple[int, int]:
-    if _resolve_naia_resolution_mode(naia_settings) == NAIA_RESOLUTION_MODE_BUCKET:
-        return _fit_naia_resolution_to_bucket(width, height, naia_settings)
-    return _scale_naia_resolution(width, height, naia_settings)
-
-
-def _advanced_resolution_from_selection(
-    bucket,
-    size,
-    custom_width: int | str = 1024,
-    custom_height: int | str = 1024,
-) -> tuple[int, int]:
-    bucket_name = _normalize_resolution_bucket(bucket)
-    if bucket_name in {CUSTOM_ADVANCED_RESOLUTION_BUCKET, NAIA_ADVANCED_RESOLUTION_BUCKET}:
-        return (
-            _snap_resolution_32(custom_width, 1024),
-            _snap_resolution_32(custom_height, 1024),
-        )
-    raw_size = str(_single_value(size) or "").strip()
-    match = _RESOLUTION_LABEL_RE.search(raw_size)
-    if match:
-        width, height = int(match.group(1)), int(match.group(2))
-        if (width, height) in ADVANCED_RESOLUTION_BUCKETS.get(bucket_name, ()):
-            return width, height
-    default_width, default_height = 1024, 1024
-    if (default_width, default_height) in ADVANCED_RESOLUTION_BUCKETS.get(bucket_name, ()):
-        return default_width, default_height
-    return _sorted_resolution_options(bucket_name)[0]
-
-
-def _clean_prompt(value: str) -> str:
-    if not value:
-        return value
-    value = _HASH_COMMENT_RE.sub("", value)
-    value = _MULTI_COMMA_RE.sub(",", value)
-    return value.strip(" ,\n\t")
-
-
-def _stable_change_key(payload: dict) -> str:
-    return json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
-
-
-def _json_clone(value):
-    return json.loads(json.dumps(value, ensure_ascii=False))
-
-
-def _json_object(value) -> dict[str, Any]:
-    if isinstance(value, dict):
-        return dict(value)
-    if isinstance(value, str):
-        try:
-            parsed = json.loads(value or "{}")
-        except json.JSONDecodeError:
-            parsed = {}
-        if isinstance(parsed, dict):
-            return parsed
-    return {}
 
 
 def _merge_versioned_settings(defaults: dict[str, Any], value) -> dict[str, Any]:
@@ -1087,16 +1230,6 @@ def _merge_versioned_settings(defaults: dict[str, Any], value) -> dict[str, Any]
 
 def _settings_json(defaults: dict[str, Any]) -> str:
     return json.dumps(defaults, ensure_ascii=False, indent=2)
-
-
-def _choice(value, choices, default: str) -> str:
-    choices = tuple(choices or ())
-    value = str(_single_value(value) or "").strip()
-    if value in choices:
-        return value
-    if default in choices:
-        return default
-    return choices[0] if choices else default
 
 
 def _normalize_aio_input_settings(value) -> dict[str, Any]:
@@ -2041,114 +2174,38 @@ def _aio_generation_settings_json() -> str:
 def _comfy_max_resolution() -> int:
     try:
         import nodes as comfy_nodes  # type: ignore
-
-        return int(getattr(comfy_nodes, "MAX_RESOLUTION", 16384))
     except Exception:
-        return 16384
-
-
-def _comfy_sampler_names() -> list[str]:
-    try:
-        import comfy.samplers  # type: ignore
-
-        return list(comfy.samplers.KSampler.SAMPLERS)
-    except Exception:
-        return [
-            "er_sde",
-            "euler",
-            "euler_ancestral",
-            "heun",
-            "dpm_2",
-            "dpm_2_ancestral",
-            "dpmpp_2m",
-            "dpmpp_sde",
-            "ddim",
-        ]
-
-
-def _comfy_scheduler_names() -> list[str]:
-    try:
-        import comfy.samplers  # type: ignore
-
-        return list(comfy.samplers.KSampler.SCHEDULERS)
-    except Exception:
-        return [
-            "simple",
-            "sgm_uniform",
-            "karras",
-            "exponential",
-            "ddim_uniform",
-            "beta",
-            "normal",
-            "linear_quadratic",
-            "kl_optimal",
-            "AYS SDXL",
-            "AYS SD1",
-            "AYS SVD",
-            "GITS[coeff=1.2]",
-            "LTXV[default]",
-            "OSS FLUX",
-            "OSS Wan",
-            "OSS Chroma",
-        ]
-
-
-def _comfy_checkpoint_names() -> list[str]:
-    try:
-        import folder_paths  # type: ignore
-
-        names = [str(name) for name in folder_paths.get_filename_list("checkpoints")]
-        if names:
-            return names
-    except Exception:
-        pass
-    return ["sam3.1_multiplex_fp16.safetensors"]
-
-
-def _folder_path_names(folder_name: str, fallback: list[str]) -> list[str]:
-    try:
-        import folder_paths  # type: ignore
-
-        names = [str(name) for name in folder_paths.get_filename_list(folder_name)]
-        if names:
-            return names
-    except Exception:
-        pass
-    return list(fallback)
+        comfy_nodes = None
+    return _adapter_comfy_max_resolution(comfy_nodes)
 
 
 def _comfy_diffusion_model_names() -> list[str]:
-    return _folder_path_names("diffusion_models", list(ANIMA_DEFAULT_DIFFUSION_MODEL_CANDIDATES))
+    return _adapter_comfy_diffusion_model_names(
+        ANIMA_DEFAULT_DIFFUSION_MODEL_CANDIDATES,
+        _folder_path_names,
+    )
 
 
 def _comfy_text_encoder_names() -> list[str]:
-    return _folder_path_names("text_encoders", list(ANIMA_DEFAULT_CLIP_CANDIDATES))
+    return _adapter_comfy_text_encoder_names(
+        ANIMA_DEFAULT_CLIP_CANDIDATES,
+        _folder_path_names,
+    )
 
 
 def _comfy_vae_names() -> list[str]:
-    loader_cls = _find_comfy_node_class("VAELoader")
-    if loader_cls is not None:
-        try:
-            required = loader_cls.INPUT_TYPES().get("required", {})
-            names = [str(name) for name in required.get("vae_name", ([],))[0]]
-            if names:
-                return names
-        except Exception:
-            pass
-    return _folder_path_names("vae", list(ANIMA_DEFAULT_VAE_CANDIDATES))
+    return _adapter_comfy_vae_names(
+        ANIMA_DEFAULT_VAE_CANDIDATES,
+        _find_comfy_node_class,
+        _folder_path_names,
+    )
 
 
 def _comfy_clip_loader_types() -> list[str]:
-    loader_cls = _find_comfy_node_class("CLIPLoader")
-    if loader_cls is not None:
-        try:
-            required = loader_cls.INPUT_TYPES().get("required", {})
-            names = [str(name) for name in required.get("type", ([],))[0]]
-            if names:
-                return names
-        except Exception:
-            pass
-    return list(ANIMA_CLIP_TYPES)
+    return _adapter_comfy_clip_loader_types(
+        ANIMA_CLIP_TYPES,
+        _find_comfy_node_class,
+    )
 
 
 def _preferred_name_default(names: list[str], candidates: tuple[str, ...]) -> str:
@@ -2249,44 +2306,26 @@ def _find_impact_detailer_class():
 def _find_comfy_node_class(node_id: str):
     try:
         import nodes as comfy_nodes  # type: ignore
-
-        mappings = getattr(comfy_nodes, "NODE_CLASS_MAPPINGS", {})
-        cls = mappings.get(node_id)
-        if cls is not None:
-            return cls
-        cls = getattr(comfy_nodes, node_id, None)
-        if cls is not None:
-            return cls
     except Exception:
-        pass
-    for module in list(sys.modules.values()):
-        mappings = getattr(module, "NODE_CLASS_MAPPINGS", None)
-        if isinstance(mappings, dict):
-            cls = mappings.get(node_id)
-            if cls is not None:
-                return cls
-    return None
+        comfy_nodes = None
+    return _adapter_find_comfy_node_class(node_id, comfy_nodes)
 
 
 def _require_custom_node_class(node_id: str, node_pack: str, install_hint: str):
-    cls = _find_comfy_node_class(node_id)
-    if cls is not None:
-        return cls
-    raise RuntimeError(
-        f"[EasyUseAnima] Missing required custom node '{node_id}'. "
-        f"Install/enable {node_pack}, then restart ComfyUI. {install_hint}"
+    return _adapter_require_custom_node_class(
+        node_id,
+        node_pack,
+        install_hint,
+        _find_comfy_node_class,
     )
 
 
 def _require_any_custom_node_class(node_ids: tuple[str, ...], node_pack: str, install_hint: str):
-    for node_id in node_ids:
-        cls = _find_comfy_node_class(node_id)
-        if cls is not None:
-            return node_id, cls
-    joined = "', '".join(node_ids)
-    raise RuntimeError(
-        f"[EasyUseAnima] Missing required custom node. Tried '{joined}'. "
-        f"Install/enable {node_pack}, then restart ComfyUI. {install_hint}"
+    return _adapter_require_any_custom_node_class(
+        node_ids,
+        node_pack,
+        install_hint,
+        _find_comfy_node_class,
     )
 
 
@@ -2419,128 +2458,10 @@ def _find_impact_mask_to_segs_class():
     )
 
 
-def _node_output_tuple(result) -> tuple:
-    value = getattr(result, "result", None)
-    if value is not None:
-        return tuple(value)
-    if isinstance(result, dict) and "result" in result:
-        return tuple(result["result"])
-    if isinstance(result, tuple):
-        return result
-    return (result,)
-
-
 def _find_loaded_node_class(node_id: str):
-    cls = _find_comfy_node_class(node_id)
-    if cls is not None:
-        return cls
-
-    for module in list(sys.modules.values()):
-        mappings = getattr(module, "NODE_CLASS_MAPPINGS", None)
-        if isinstance(mappings, dict):
-            cls = mappings.get(node_id)
-            if cls is not None:
-                return cls
-    return None
+    return _adapter_find_loaded_node_class(node_id, _find_comfy_node_class)
 
 
-def _find_spectrum_anima_mod_guidance_class():
-    cls = _find_loaded_node_class("AnimaModGuidance")
-    if cls is not None:
-        return cls
-    raise RuntimeError(
-        "[EasyUseAnima] Anima Prompt Data Conditioning requires "
-        "comfyui-spectrum-ksampler's AnimaModGuidance node. "
-        "Install/enable comfyui-spectrum-ksampler, then restart ComfyUI."
-    )
-
-
-def _resolve_anima_mod_guidance_enabled(prompt_data_enabled: bool, mode: str) -> bool:
-    mode = str(mode or ANIMA_MOD_GUIDANCE_MODE_FROM_PROMPT_DATA)
-    if mode == ANIMA_MOD_GUIDANCE_MODE_ENABLED:
-        return True
-    if mode == ANIMA_MOD_GUIDANCE_MODE_DISABLED:
-        return False
-    return bool(prompt_data_enabled)
-
-
-def _normalize_anima_mod_guidance_profile(profile: str) -> str:
-    profile = str(profile or ANIMA_MOD_GUIDANCE_DEFAULT_PROFILE)
-    if profile not in ANIMA_MOD_GUIDANCE_PROFILES:
-        return ANIMA_MOD_GUIDANCE_DEFAULT_PROFILE
-    return profile
-
-
-def _warn_old_spectrum_anima_mod_guidance_once(patcher_cls) -> None:
-    class_name = getattr(patcher_cls, "__qualname__", getattr(patcher_cls, "__name__", "AnimaModGuidance"))
-    module_name = getattr(patcher_cls, "__module__", "")
-    warning_key = f"{module_name}.{class_name}"
-    if warning_key in _SPECTRUM_ANIMA_MOD_GUIDANCE_OLD_SIGNATURE_WARNED:
-        return
-    _SPECTRUM_ANIMA_MOD_GUIDANCE_OLD_SIGNATURE_WARNED.add(warning_key)
-    logger.warning(
-        "[EasyUseAnima] Installed comfyui-spectrum-ksampler AnimaModGuidance "
-        "uses an old patch() signature without separate negative quality-tag "
-        "support. Generation will continue, but negative Mod Guidance quality "
-        "tags are ignored by the model patch. Update comfyui-spectrum-ksampler "
-        "to enable separate negative quality tags."
-    )
-
-
-def _apply_spectrum_anima_mod_guidance(
-    model,
-    clip,
-    positive,
-    negative,
-    quality_tags: str,
-    quality_neg: str,
-    mod_w_profile: str,
-):
-    patcher_cls = _find_spectrum_anima_mod_guidance_class()
-    patcher = patcher_cls()
-    patch = getattr(patcher, "patch", None)
-    if patch is None:
-        raise RuntimeError(
-            "[EasyUseAnima] comfyui-spectrum-ksampler AnimaModGuidance does not expose patch()."
-        )
-    quality_tags = str(quality_tags or "")
-    quality_neg = str(quality_neg or "")
-    mod_w_profile = str(mod_w_profile or ANIMA_MOD_GUIDANCE_DEFAULT_PROFILE)
-    patch_parameters = inspect.signature(patch).parameters
-    patch_parameter_values = list(patch_parameters.values())
-    patch_positional_count = sum(
-        1 for param in patch_parameter_values
-        if param.kind in (inspect.Parameter.POSITIONAL_ONLY, inspect.Parameter.POSITIONAL_OR_KEYWORD)
-    )
-    patch_accepts_quality_neg = (
-        any(name in patch_parameters for name in ("quality_neg", "quality_negative", "negative_quality_tags"))
-        or any(param.kind == inspect.Parameter.VAR_POSITIONAL for param in patch_parameter_values)
-        or patch_positional_count >= 7
-    )
-    if patch_accepts_quality_neg:
-        result = patch(
-            model,
-            clip,
-            quality_tags,
-            quality_neg,
-            mod_w_profile,
-            positive,
-            negative,
-        )
-    else:
-        _warn_old_spectrum_anima_mod_guidance_once(patcher_cls)
-        result = patch(
-            model,
-            clip,
-            quality_tags,
-            mod_w_profile,
-            positive,
-            negative,
-        )
-    values = _node_output_tuple(result)
-    if not values:
-        raise RuntimeError("[EasyUseAnima] AnimaModGuidance returned no MODEL.")
-    return values[0]
 
 
 def _generate_empty_latent_with_comfy(width: int, height: int):
@@ -3025,35 +2946,6 @@ def _apply_aio_spectrum_model_patches_for_comfy_sampler(
         patched,
         sampler_settings,
     )
-
-
-def _call_with_supported_kwargs(method, args: tuple[Any, ...], kwargs: dict[str, Any], label: str):
-    try:
-        parameters = inspect.signature(method).parameters
-    except (TypeError, ValueError):
-        return method(*args, **kwargs)
-    accepts_kwargs = any(param.kind == inspect.Parameter.VAR_KEYWORD for param in parameters.values())
-    if accepts_kwargs:
-        return method(*args, **kwargs)
-    supported_kwargs = {key: value for key, value in kwargs.items() if key in parameters}
-    missing_required = []
-    consumed_positionals = len(args)
-    for index, (name, param) in enumerate(parameters.items()):
-        if index < consumed_positionals:
-            continue
-        if name in supported_kwargs:
-            continue
-        if param.default is inspect.Parameter.empty and param.kind in (
-            inspect.Parameter.POSITIONAL_OR_KEYWORD,
-            inspect.Parameter.KEYWORD_ONLY,
-        ):
-            missing_required.append(name)
-    if missing_required:
-        raise RuntimeError(
-            f"[EasyUseAnima] {label} requires unsupported new input(s): "
-            f"{', '.join(missing_required)}. Update ComfyUI-EasyUseAnima or disable that node option."
-        )
-    return method(*args, **supported_kwargs)
 
 
 def _sample_latent_with_spectrum_mod_guidance_advanced(
@@ -4482,361 +4374,6 @@ def _call_impact_detailer(detailer, **kwargs):
     return method(**call_kwargs)
 
 
-def _alignment_value(value) -> Optional[int]:
-    text = str(_single_value(value) or "").strip().lower()
-    if text in ("", "impact", "none", "0"):
-        return None
-    try:
-        alignment = int(text)
-    except ValueError:
-        return None
-    return alignment if alignment > 1 else None
-
-
-def _align_up(value: int, alignment: int) -> int:
-    value = int(value)
-    alignment = int(alignment)
-    return max(alignment, ((value + alignment - 1) // alignment) * alignment)
-
-
-def _align_nearest(value: int, alignment: int) -> int:
-    value = max(1, int(value))
-    alignment = max(1, int(alignment))
-    lower = max(alignment, (value // alignment) * alignment)
-    upper = _align_up(value, alignment)
-    if (value - lower) < (upper - value):
-        return lower
-    return upper
-
-
-def _align_down(value: int, alignment: int) -> int:
-    value = max(1, int(value))
-    alignment = max(1, int(alignment))
-    return max(1, (value // alignment) * alignment)
-
-
-def _scale_by_value(value, default: float = 1.0) -> float:
-    scale = _as_float(value, default)
-    if not isfinite(scale):
-        scale = default
-    return max(0.01, min(8.0, scale))
-
-
-def _max_long_edge_value(value) -> int:
-    max_long_edge = _as_int(value, 0)
-    if max_long_edge <= 0:
-        return 0
-    return max(1, min(16384, max_long_edge))
-
-
-def _aligned_size_near_scale(
-    source_width: int,
-    source_height: int,
-    scale: float,
-    alignment: int,
-    max_long_edge: int,
-) -> Optional[tuple[int, int, float]]:
-    source_long_edge = max(source_width, source_height)
-    target_scale = scale
-    if max_long_edge > 0 and source_long_edge * target_scale > max_long_edge:
-        target_scale = max_long_edge / source_long_edge
-    if target_scale <= 0:
-        return None
-
-    target_width = max(1, round(source_width * target_scale))
-    target_height = max(1, round(source_height * target_scale))
-    width_candidates = {
-        max(alignment, (target_width // alignment) * alignment),
-        _align_up(target_width, alignment),
-    }
-    height_candidates = {
-        max(alignment, (target_height // alignment) * alignment),
-        _align_up(target_height, alignment),
-    }
-
-    candidates: list[tuple[int, int, float]] = []
-    for candidate_width in width_candidates:
-        for candidate_height in height_candidates:
-            if max_long_edge > 0 and max(candidate_width, candidate_height) > max_long_edge:
-                continue
-            if scale > 1.0 and max_long_edge > source_long_edge:
-                if candidate_width <= source_width or candidate_height <= source_height:
-                    continue
-            applied_scale = (candidate_width / source_width + candidate_height / source_height) / 2.0
-            candidates.append((candidate_width, candidate_height, applied_scale))
-    if not candidates:
-        return None
-
-    source_ratio = source_width / source_height
-    return min(
-        candidates,
-        key=lambda item: (
-            abs((item[0] / source_width) - target_scale) + abs((item[1] / source_height) - target_scale),
-            abs((item[0] / item[1]) - source_ratio),
-            -item[0] * item[1],
-        ),
-    )
-
-
-def _image_scale_by_multiple_size(
-    width: int,
-    height: int,
-    scale_by,
-    multiple,
-    max_long_edge=0,
-) -> tuple[int, int, float]:
-    source_width = max(1, int(width))
-    source_height = max(1, int(height))
-    scale = _scale_by_value(scale_by, 1.0)
-    max_long_edge = _max_long_edge_value(max_long_edge)
-    alignment = _alignment_value(multiple)
-    if alignment is None:
-        applied_scale = scale
-        if max_long_edge > 0:
-            applied_scale = min(applied_scale, max_long_edge / max(source_width, source_height))
-        target_width = max(1, round(source_width * applied_scale))
-        target_height = max(1, round(source_height * applied_scale))
-        if max_long_edge > 0 and max(target_width, target_height) > max_long_edge:
-            applied_scale = max_long_edge / max(target_width, target_height) * applied_scale
-            target_width = max(1, round(source_width * applied_scale))
-            target_height = max(1, round(source_height * applied_scale))
-        return target_width, target_height, applied_scale
-
-    ratio_gcd = gcd(source_width, source_height)
-    base_width = source_width // ratio_gcd
-    base_height = source_height // ratio_gcd
-    base_long_edge = max(base_width, base_height)
-    width_unit = alignment // gcd(base_width, alignment)
-    height_unit = alignment // gcd(base_height, alignment)
-    valid_unit_step = lcm(width_unit, height_unit)
-
-    max_valid_unit = int((ratio_gcd * 8.0) // valid_unit_step)
-    if max_long_edge > 0:
-        max_valid_unit = min(max_valid_unit, max_long_edge // (base_long_edge * valid_unit_step))
-    if max_valid_unit >= 1:
-        desired_unit = (ratio_gcd * scale) / valid_unit_step
-        lower_unit = max(1, min(max_valid_unit, int(desired_unit)))
-        candidates = {lower_unit}
-        if lower_unit < max_valid_unit:
-            candidates.add(lower_unit + 1)
-        if lower_unit > 1:
-            candidates.add(lower_unit - 1)
-
-        valid_unit = min(
-            candidates,
-            key=lambda unit: (
-                abs(((unit * valid_unit_step) / ratio_gcd) - scale),
-                -unit,
-            ),
-        )
-        applied_scale = (valid_unit * valid_unit_step) / ratio_gcd
-        candidate = (
-            base_width * valid_unit * valid_unit_step,
-            base_height * valid_unit * valid_unit_step,
-            applied_scale,
-        )
-        if max_long_edge > 0:
-            aligned_candidate = _aligned_size_near_scale(
-                source_width,
-                source_height,
-                scale,
-                alignment,
-                max_long_edge,
-            )
-            if aligned_candidate is not None:
-                source_long_edge = max(source_width, source_height)
-                target_long_edge = min(source_long_edge * scale, max_long_edge)
-                candidate_long_error = abs(max(candidate[0], candidate[1]) - target_long_edge)
-                aligned_long_error = abs(max(aligned_candidate[0], aligned_candidate[1]) - target_long_edge)
-                candidate_upscales = candidate[0] > source_width and candidate[1] > source_height
-                aligned_upscales = aligned_candidate[0] > source_width and aligned_candidate[1] > source_height
-                if scale > 1.0 and aligned_upscales and not candidate_upscales:
-                    return aligned_candidate
-                if aligned_long_error < candidate_long_error:
-                    return aligned_candidate
-            if max(source_width, source_height) * scale > max_long_edge and aligned_candidate is not None:
-                return aligned_candidate
-        return candidate
-
-    aligned_candidate = _aligned_size_near_scale(
-        source_width,
-        source_height,
-        scale,
-        alignment,
-        max_long_edge,
-    )
-    if aligned_candidate is not None:
-        return aligned_candidate
-
-    target_width = _align_nearest(round(source_width * scale), alignment)
-    target_height = _align_nearest(round(source_height * scale), alignment)
-    applied_scale = (target_width / source_width + target_height / source_height) / 2.0
-    return target_width, target_height, applied_scale
-
-
-def _normalize_image_scale_options(upscale_method, multiple, max_long_edge):
-    method = str(_single_value(upscale_method) or "").strip()
-    size_multiple = str(_single_value(multiple) or "").strip()
-    max_edge = max_long_edge
-
-    # Compatibility for workflows created before max_long_edge existed, or while it was inserted
-    # before upscale_method: widget values can shift into the wrong input names.
-    if size_multiple in IMAGE_UPSCALE_METHODS and str(_single_value(max_long_edge) or "").strip() in IMAGE_SCALE_MULTIPLES:
-        shifted_max_edge = upscale_method
-        method = size_multiple
-        size_multiple = str(_single_value(max_long_edge) or "").strip()
-        max_edge = shifted_max_edge
-    if str(_single_value(max_long_edge) or "").strip() in IMAGE_UPSCALE_METHODS:
-        shifted_method = str(_single_value(max_long_edge) or "").strip()
-        if method in IMAGE_SCALE_MULTIPLES:
-            size_multiple = method
-        method = shifted_method
-        max_edge = 0
-
-    if method not in IMAGE_UPSCALE_METHODS:
-        method = "bicubic"
-    if size_multiple not in IMAGE_SCALE_MULTIPLES:
-        size_multiple = "32"
-    return method, size_multiple, max_edge
-
-
-def _common_upscale_image(samples, width: int, height: int, upscale_method: str):
-    try:
-        import comfy.utils  # type: ignore
-
-        return comfy.utils.common_upscale(samples, width, height, upscale_method, "disabled")
-    except Exception:
-        import torch.nn.functional as F  # type: ignore
-
-        method = "bicubic" if str(upscale_method) == "lanczos" else str(upscale_method)
-        if method in {"bilinear", "bicubic"}:
-            return F.interpolate(samples, size=(height, width), mode=method, align_corners=False)
-        return F.interpolate(samples, size=(height, width), mode=method)
-
-
-class _EasyUseAnimaAlignedDetailerHook:
-    def __init__(self, base_hook, alignment: Optional[int]):
-        self.base_hook = base_hook
-        self.alignment = int(alignment) if alignment is not None else None
-
-    def __getattr__(self, name):
-        if self.base_hook is not None:
-            return getattr(self.base_hook, name)
-        raise AttributeError(name)
-
-    def touch_scaled_size(self, width, height):
-        if self.base_hook is not None and hasattr(self.base_hook, "touch_scaled_size"):
-            width, height = self.base_hook.touch_scaled_size(width, height)
-        if self.alignment is None:
-            return width, height
-        aligned_width = _align_up(width, self.alignment)
-        aligned_height = _align_up(height, self.alignment)
-        if aligned_width != width or aligned_height != height:
-            logger.info(
-                "[EasyUseAnima] Detailer hook aligned crop size %sx%s -> %sx%s (alignment=%s)",
-                width,
-                height,
-                aligned_width,
-                aligned_height,
-                self.alignment,
-            )
-        return aligned_width, aligned_height
-
-    def post_upscale(self, image, noise_mask):
-        if self.base_hook is not None and hasattr(self.base_hook, "post_upscale"):
-            return self.base_hook.post_upscale(image, noise_mask)
-        return image
-
-    def get_skip_sampling(self):
-        if self.base_hook is not None and hasattr(self.base_hook, "get_skip_sampling"):
-            return self.base_hook.get_skip_sampling()
-        return False
-
-    def post_encode(self, latent):
-        if self.base_hook is not None and hasattr(self.base_hook, "post_encode"):
-            return self.base_hook.post_encode(latent)
-        return latent
-
-    def get_custom_sampler(self):
-        if self.base_hook is not None and hasattr(self.base_hook, "get_custom_sampler"):
-            return self.base_hook.get_custom_sampler()
-        return None
-
-    def set_steps(self, steps):
-        if self.base_hook is not None and hasattr(self.base_hook, "set_steps"):
-            return self.base_hook.set_steps(steps)
-        return None
-
-    def cycle_latent(self, latent):
-        if self.base_hook is not None and hasattr(self.base_hook, "cycle_latent"):
-            return self.base_hook.cycle_latent(latent)
-        return latent
-
-    def pre_ksample(self, model, seed, steps, cfg, sampler_name, scheduler, positive, negative, latent, denoise):
-        if self.base_hook is not None and hasattr(self.base_hook, "pre_ksample"):
-            return self.base_hook.pre_ksample(
-                model, seed, steps, cfg, sampler_name, scheduler, positive, negative, latent, denoise
-            )
-        return model, seed, steps, cfg, sampler_name, scheduler, positive, negative, latent, denoise
-
-    def get_custom_noise(self, seed, noise, is_touched):
-        if self.base_hook is not None and hasattr(self.base_hook, "get_custom_noise"):
-            return self.base_hook.get_custom_noise(seed, noise, is_touched)
-        return noise, is_touched
-
-    def pre_decode(self, latent):
-        if self.base_hook is not None and hasattr(self.base_hook, "pre_decode"):
-            return self.base_hook.pre_decode(latent)
-        return latent
-
-    def post_decode(self, image):
-        if self.base_hook is not None and hasattr(self.base_hook, "post_decode"):
-            return self.base_hook.post_decode(image)
-        return image
-
-    def post_paste(self, image):
-        if self.base_hook is not None and hasattr(self.base_hook, "post_paste"):
-            return self.base_hook.post_paste(image)
-        return image
-
-
-def _split_tag_text(value: str) -> list[str]:
-    if not value:
-        return []
-    parts: list[str] = []
-    for line in str(value).splitlines():
-        parts.extend(part.strip() for part in line.split(","))
-    return [part for part in parts if part]
-
-
-def _prompt_tokens(value: str) -> list[str]:
-    if not value:
-        return []
-    cleaned_val = _HASH_COMMENT_RE.sub("", value)
-    normalized = str(cleaned_val).replace("\r\n", "\n").replace("\r", "\n")
-    normalized = normalized.replace("，", ",").replace("\n", ",")
-    tokens: list[str] = []
-    for token in parse_prompt(normalized, profile="prompt").tokens:
-        cleaned = _INLINE_SPACE_RE.sub(" ", str(token).strip(" ,\n\t"))
-        if cleaned:
-            tokens.append(cleaned)
-    return tokens
-
-
-def _join_prompt_tokens(*parts: str) -> str:
-    tokens: list[str] = []
-    for part in parts:
-        tokens.extend(_prompt_tokens(part))
-    return ", ".join(tokens)
-
-
-def _translate_prompt_text(value: str) -> str:
-    text = str(value or "")
-    if not text or not has_prompt_translation_markers(text):
-        return text
-    return translate_prompt_markers(text, resolve_prompt_translation_settings())
-
-
 def _translate_prompt_fields(fields: list[dict]) -> list[dict]:
     translated: list[dict] = []
     for field in fields:
@@ -4846,56 +4383,6 @@ def _translate_prompt_fields(fields: list[dict]) -> list[dict]:
             item["text"] = _translate_prompt_text(text)
         translated.append(item)
     return translated
-
-
-def _prompt_translation_change_key() -> dict[str, str]:
-    settings = resolve_prompt_translation_settings()
-    return {
-        "provider": settings.provider,
-        "source": settings.source,
-        "target": settings.target,
-    }
-
-
-def _correct_builder_prompt(prompt: str, artist_overrides: str = "") -> str:
-    if not prompt:
-        return ""
-    result = correct_prompt(
-        prompt,
-        profile="prompt",
-        knowledge_base=load_knowledge_base(allow_missing=True),
-        validate_artist_tags=False,
-        artist_overrides=_prompt_tokens(artist_overrides),
-    )
-    return result.text
-
-
-def _metadata_filter_key(value: str) -> str:
-    value = _INLINE_SPACE_RE.sub(" ", str(value or "").strip(" ,\n\t"))
-    return value.replace("_", " ").casefold()
-
-
-def _metadata_filter_keys(value: str) -> set[str]:
-    keys = {_metadata_filter_key(value)}
-    weighted = _WEIGHTED_TOKEN_RE.match(str(value or "").strip())
-    if weighted:
-        keys.add(_metadata_filter_key(weighted.group(1)))
-    return {key for key in keys if key}
-
-
-def _filter_metadata_prompt(prompt: str, filter_words: str) -> str:
-    filter_keys: set[str] = set()
-    for word in _prompt_tokens(filter_words):
-        filter_keys.update(_metadata_filter_keys(word))
-    if not prompt or not filter_keys:
-        return prompt
-
-    kept = [
-        token
-        for token in _prompt_tokens(prompt)
-        if _metadata_filter_keys(token).isdisjoint(filter_keys)
-    ]
-    return ", ".join(kept)
 
 
 def _advanced_default_fields() -> list[dict]:
@@ -5056,6 +4543,46 @@ def _apply_advanced_field_inputs(fields: list[dict], field_inputs: dict) -> list
         if name in values:
             field["text"] = values[name]
     return effective
+
+
+def _reproduce_connected_field_inputs(field_inputs: dict) -> dict[str, str]:
+    return {
+        name: value
+        for name, value in _advanced_field_input_values(field_inputs).items()
+        if not has_wildcard_syntax(value)
+    }
+
+
+def _preserve_expanded_connected_field_texts(
+    saved_fields: list[dict],
+    source_fields: list[dict],
+    expanded_fields: list[dict],
+    field_inputs: dict,
+) -> None:
+    connected_values = _advanced_field_input_values(field_inputs)
+    if not connected_values:
+        return
+
+    source_by_socket = {
+        _advanced_field_socket_name(field): field
+        for field in source_fields
+    }
+    expanded_by_socket = {
+        _advanced_field_socket_name(field): field
+        for field in expanded_fields
+    }
+    for field in saved_fields:
+        socket_name = _advanced_field_socket_name(field)
+        if socket_name not in connected_values:
+            continue
+        source_field = source_by_socket.get(socket_name)
+        expanded_field = expanded_by_socket.get(socket_name)
+        if source_field is None or expanded_field is None:
+            continue
+        source_text = str(source_field.get("text") or "")
+        expanded_text = str(expanded_field.get("text") or "")
+        if expanded_text != source_text:
+            field["text"] = expanded_text
 
 
 def _advanced_enabled_naia_panes(fields: list[dict]) -> set[str]:
@@ -5330,1584 +4857,22 @@ def _advanced_prompt_with_artist_override(
     )
 
 
-def _split_artist_mix_items(text: str) -> list[str]:
-    items: list[str] = []
-    buffer: list[str] = []
-    paren_depth = 0
-    square_depth = 0
-    escaped = False
-    source = str(text or "")
-    index = 0
-    while index < len(source):
-        char = source[index]
-        if escaped:
-            buffer.append(char)
-            escaped = False
-            index += 1
-            continue
-        if char == "\\":
-            buffer.append(char)
-            escaped = True
-            index += 1
-            continue
-        if char == "(":
-            paren_depth += 1
-        elif char == ")" and paren_depth > 0:
-            paren_depth -= 1
-        elif char == "[" and index + 1 < len(source) and source[index + 1] == "[":
-            square_depth += 1
-            buffer.append(char)
-            index += 1
-            char = source[index]
-        elif char == "]" and index + 1 < len(source) and source[index + 1] == "]" and square_depth > 0:
-            square_depth -= 1
-            buffer.append(char)
-            index += 1
-            char = source[index]
-        if (char == "," or char == "\n") and paren_depth == 0 and square_depth == 0:
-            item = "".join(buffer).strip()
-            if item:
-                items.append(item)
-            buffer = []
-            index += 1
-            continue
-        buffer.append(char)
-        index += 1
-    item = "".join(buffer).strip()
-    if item:
-        items.append(item)
-    return items
 
 
-def _split_artist_mix_blocks(text: str) -> list[str]:
-    source = str(text or "").replace("\r\n", "\n").replace("\r", "\n")
-    if not _SECTION_SEPARATOR_RE.search(source):
-        return []
-    blocks: list[str] = []
-    current: list[str] = []
-    for line in source.split("\n"):
-        if _SECTION_SEPARATOR_RE.match(line):
-            block = "\n".join(current).strip(" ,\n")
-            if block:
-                blocks.append(block)
-            current = []
-            continue
-        current.append(line)
-    block = "\n".join(current).strip(" ,\n")
-    if block:
-        blocks.append(block)
-    return blocks
 
 
-def _parse_artist_mix_group(raw_tag: str) -> tuple[str, float] | None:
-    text = str(raw_tag or "").strip()
-    match = _ARTIST_GROUP_RE.match(text)
-    if not match and text.startswith("(") and text.endswith(")"):
-        match = _ARTIST_GROUP_RE.match(text[1:-1].strip())
-    if not match:
-        return None
-    tag = _join_prompt_tokens(match.group("tag") or "")
-    weight = _as_float(match.group("weight"), 1.0) if match.group("weight") is not None else 1.0
-    if not tag or not isfinite(weight) or weight <= 0:
-        return None
-    return tag, weight
 
 
-def _artist_group_token(tag: str, weight: float) -> str:
-    tag_text = _join_prompt_tokens(tag)
-    if not tag_text:
-        return ""
-    if abs(float(weight) - 1.0) >= 0.001:
-        return f"[[{tag_text}:{float(weight):g}]]"
-    return f"[[{tag_text}]]"
 
 
-def _join_artist_mix_source_prompts(*parts: str) -> str:
-    items: list[str] = []
-    for part in parts:
-        for raw_item in _split_artist_mix_items(str(part or "")):
-            group = _parse_artist_mix_group(raw_item)
-            if group is not None:
-                grouped_tag, grouped_weight = group
-                token = _artist_group_token(grouped_tag, grouped_weight)
-            else:
-                token = _join_prompt_tokens(raw_item)
-            if token:
-                items.append(token)
-    return ", ".join(items)
 
 
-def _artist_mix_inline_prompt(text: str) -> str:
-    items: list[str] = []
-    for raw_item in _split_artist_mix_items(str(text or "")):
-        group = _parse_artist_mix_group(raw_item)
-        item = group[0] if group is not None else raw_item
-        token = _join_prompt_tokens(item)
-        if token:
-            items.append(token)
-    return ", ".join(items)
 
 
-def _parse_artist_mix_entries(text: str) -> list[dict[str, Any]]:
-    parsed: list[dict[str, Any]] = []
-    blocks = _split_artist_mix_blocks(text)
-    source_items = blocks or _split_artist_mix_items(text)
-    for item in source_items:
-        raw_tag = item.strip()
-        weight = 1.0
-        grouped = False
-        group = _parse_artist_mix_group(raw_tag)
-        if group is not None:
-            tag, weight = group
-            grouped = True
-            parsed.append({"tag": tag, "weight": weight, "grouped": grouped})
-            continue
-        weight_source = raw_tag
-        if blocks:
-            block_parts = _split_artist_mix_items(raw_tag)
-            if block_parts:
-                weight_source = block_parts[0].strip()
-        match = _WEIGHTED_ARTIST_RE.match(weight_source)
-        if match:
-            tag = raw_tag if blocks else match.group("tag").strip()
-            weight = _as_float(match.group("weight"), 1.0)
-        elif raw_tag.startswith("(") and raw_tag.endswith(")"):
-            tag = raw_tag[1:-1].strip()
-        else:
-            tag = raw_tag
-        tag = _artist_mix_inline_prompt(tag) if _ARTIST_GROUP_RE.search(tag) else _join_prompt_tokens(tag)
-        if tag and isfinite(weight) and weight > 0:
-            parsed.append({"tag": tag, "weight": weight, "grouped": grouped})
-    return parsed
 
 
-def _parse_artist_mix_items(text: str) -> list[tuple[str, float]]:
-    return [
-        (str(entry["tag"]), float(entry["weight"]))
-        for entry in _parse_artist_mix_entries(text)
-    ]
 
 
-def _artist_tags_from_prompt(text: str, source: str = "artist_field") -> list[dict[str, Any]]:
-    return [
-        {
-            "tag": str(entry["tag"]),
-            "weight": float(entry["weight"]),
-            "source": source,
-            "grouped": bool(entry.get("grouped")),
-        }
-        for entry in _parse_artist_mix_entries(text)
-    ]
-
-
-def _bounded_artist_mix_float(value, default: float, minimum: float, maximum: float) -> float:
-    result = _as_float(value, default)
-    if not isfinite(result):
-        result = default
-    return max(minimum, min(maximum, result))
-
-
-def _bounded_artist_mix_int(value, default: int, minimum: int, maximum: int) -> int:
-    return max(minimum, min(maximum, _as_int(value, default)))
-
-
-def _normalize_artist_mix_mode(value, default: str = ARTIST_MIX_MODE_PROMPT) -> str:
-    mode = str(value or default)
-    if mode == ARTIST_MIX_MODE_OFF:
-        return ARTIST_MIX_MODE_OFF
-    return mode if mode in ARTIST_MIX_MODES else default
-
-
-def _normalize_artist_tag_position(value: str) -> str:
-    mode = str(value or ARTIST_TAG_POSITION_CORRECT)
-    return mode if mode in ARTIST_TAG_POSITION_MODES else ARTIST_TAG_POSITION_CORRECT
-
-
-def _artist_mix_mode_tooltip(include_prompt_data: bool = False) -> str:
-    lines = []
-    if include_prompt_data:
-        lines.append("prompt_data follows EASYUSE_ANIMA_PROMPT_DATA, off/prompt keeps artists inline.")
-    lines.append(f"{ARTIST_MIX_MODE_OFF}: {ARTIST_MIX_MODE_DESCRIPTIONS[ARTIST_MIX_MODE_OFF]}")
-    for mode in ARTIST_MIX_MODES:
-        lines.append(f"{mode}: {ARTIST_MIX_MODE_DESCRIPTIONS[mode]}")
-    return "\n".join(lines)
-
-
-def _coalesce_artist_mix_items(artists: list[tuple[str, float]]) -> list[tuple[str, float]]:
-    coalesced: dict[str, float] = {}
-    order: list[str] = []
-    for tag, weight in artists:
-        normalized_tag = str(tag or "").strip()
-        if not normalized_tag:
-            continue
-        value = float(weight)
-        if not isfinite(value) or value <= 0:
-            continue
-        if normalized_tag not in coalesced:
-            order.append(normalized_tag)
-            coalesced[normalized_tag] = 0.0
-        coalesced[normalized_tag] += value
-    return [
-        (tag, weight)
-        for tag in order
-        if (weight := coalesced.get(tag, 0.0)) > 0
-    ]
-
-
-def _artist_mix_prompt_tags(artists: list[tuple[str, float]], include_weights: bool) -> str:
-    tags: list[str] = []
-    for tag, weight in artists:
-        if include_weights and "," not in tag and "\n" not in tag and abs(float(weight) - 1.0) >= 0.001:
-            tags.append(f"({tag}:{float(weight):g})")
-        else:
-            tags.append(tag)
-    return _join_prompt_tokens(*tags)
-
-
-def _artist_prompt_with_position(
-    base_prompt: str,
-    artist_prompt: str,
-    artist_position: str = ARTIST_TAG_POSITION_CORRECT,
-) -> str:
-    artist_text = _join_prompt_tokens(artist_prompt)
-    base_text = _join_prompt_tokens(base_prompt)
-    if not artist_text:
-        return base_text
-    if not base_text:
-        if _normalize_artist_tag_position(artist_position) == ARTIST_TAG_POSITION_CORRECT:
-            return _correct_builder_prompt(artist_text, artist_overrides=artist_text)
-        return artist_text
-
-    position = _normalize_artist_tag_position(artist_position)
-    if position == ARTIST_TAG_POSITION_FRONT:
-        return _join_prompt_tokens(artist_text, base_text)
-    if position == ARTIST_TAG_POSITION_BACK:
-        return _join_prompt_tokens(base_text, artist_text)
-    return _correct_builder_prompt(
-        _join_prompt_tokens(base_text, artist_text),
-        artist_overrides=artist_text,
-    )
-
-
-def _normalized_artist_weights(artists: list[tuple[str, float]]) -> list[float]:
-    total = sum(weight for _tag, weight in artists)
-    if total <= 0:
-        return [1.0 / len(artists) for _tag, _weight in artists] if artists else []
-    return [weight / total for _tag, weight in artists]
-
-
-def _equal_artist_weights(artists: list[tuple[str, float]]) -> list[float]:
-    return [1.0 / len(artists) for _tag, _weight in artists] if artists else []
-
-
-def _normalize_weight_values(values) -> list[float]:
-    kept = [max(0.0, float(value)) for value in values]
-    total = sum(kept)
-    if total <= 0:
-        return [1.0 / len(kept) for _value in kept] if kept else []
-    return [value / total for value in kept]
-
-
-def _interpolate_artist_weights(start_weights: list[float], end_weights: list[float], amount: float) -> list[float]:
-    amount = max(0.0, min(1.0, float(amount)))
-    return _normalize_weight_values(
-        (1.0 - amount) * float(start) + amount * float(end)
-        for start, end in zip(start_weights, end_weights)
-    )
-
-
-def _copy_conditioning_metadata(metadata) -> dict[str, Any]:
-    try:
-        import torch  # type: ignore
-    except Exception:
-        torch = None  # type: ignore
-
-    result = dict(metadata or {})
-    if torch is None:
-        return result
-    for key, value in list(result.items()):
-        if torch.is_tensor(value):
-            result[key] = value.clone()
-    return result
-
-
-def _pad_conditioning_tensor(tensor, target_length: int):
-    if tensor.shape[1] >= target_length:
-        return tensor[:, :target_length]
-    try:
-        import torch  # type: ignore
-    except Exception as exc:
-        raise RuntimeError("[EasyUseAnima] torch is required for artist mix conditioning.") from exc
-    padding = torch.zeros(
-        (tensor.shape[0], target_length - tensor.shape[1], tensor.shape[2]),
-        dtype=tensor.dtype,
-        device=tensor.device,
-    )
-    return torch.cat([tensor, padding], dim=1)
-
-
-def _blend_conditionings(conditionings: list, weights: list[float], composite_conditioning=None) -> list:
-    if not conditionings:
-        return []
-    if len(conditionings) == 1:
-        return list(conditionings[0])
-    expected_len = len(conditionings[0])
-    if any(len(conditioning) != expected_len for conditioning in conditionings):
-        raise RuntimeError("[EasyUseAnima] artist mix average requires CLIP conditionings with the same length.")
-
-    try:
-        import torch  # type: ignore
-    except Exception as exc:
-        raise RuntimeError("[EasyUseAnima] torch is required for artist mix conditioning.") from exc
-
-    blended = []
-    for entry_index in range(expected_len):
-        first_tensor = conditionings[0][entry_index][0]
-        max_length = max(conditioning[entry_index][0].shape[1] for conditioning in conditionings)
-        if any(
-            conditioning[entry_index][0].shape[0] != first_tensor.shape[0]
-            or conditioning[entry_index][0].shape[2] != first_tensor.shape[2]
-            for conditioning in conditionings
-        ):
-            raise RuntimeError("[EasyUseAnima] artist mix average requires matching CLIP embedding sizes.")
-
-        tensor = torch.zeros(
-            (first_tensor.shape[0], max_length, first_tensor.shape[2]),
-            dtype=first_tensor.dtype,
-            device=first_tensor.device,
-        )
-        for conditioning, weight in zip(conditionings, weights):
-            tensor = tensor + _pad_conditioning_tensor(conditioning[entry_index][0], max_length) * float(weight)
-
-        metadata_source = (
-            composite_conditioning[entry_index][1]
-            if composite_conditioning and len(composite_conditioning) > entry_index
-            else conditionings[0][entry_index][1]
-        )
-        metadata = _copy_conditioning_metadata(metadata_source)
-        pooled_candidates = [
-            conditioning[entry_index][1].get("pooled_output")
-            for conditioning in conditionings
-            if isinstance(conditioning[entry_index][1], dict)
-        ]
-        if pooled_candidates and all(torch.is_tensor(value) for value in pooled_candidates):
-            pooled_shape = pooled_candidates[0].shape
-            if all(value.shape == pooled_shape for value in pooled_candidates):
-                pooled_output = torch.zeros_like(pooled_candidates[0])
-                for value, weight in zip(pooled_candidates, weights):
-                    pooled_output = pooled_output + value * float(weight)
-                metadata["pooled_output"] = pooled_output
-        elif torch.is_tensor(metadata.get("pooled_output")):
-            metadata.pop("pooled_output", None)
-        metadata.pop("strength", None)
-        blended.append([tensor, metadata])
-    return blended
-
-
-def _encoded_artist_conditionings(clip, data: dict[str, Any], base_prompt: str, artists: list[tuple[str, float]]) -> list:
-    return [
-        (
-            tag,
-            float(weight),
-            _encode_with_comfy_clip(
-                clip,
-                _artist_variant_prompt_from_prompt_data(data, base_prompt, tag),
-            ),
-        )
-        for tag, weight in artists
-    ]
-
-
-def _artist_delta_rms_from_encoded(
-    base_conditioning,
-    encoded_artists: list,
-    weights: list[float],
-    composite_conditioning=None,
-    style_gain: float = ARTIST_MIX_DEFAULT_STYLE_GAIN,
-    rms_scale_cap: float = ARTIST_MIX_DEFAULT_RMS_SCALE_CAP,
-    branch_strength: float | None = None,
-) -> list | None:
-    if not encoded_artists or len(base_conditioning) != 1:
-        return None
-    if any(len(conditioning) != 1 for _tag, _weight, conditioning in encoded_artists):
-        return None
-
-    try:
-        import torch  # type: ignore
-    except Exception as exc:
-        raise RuntimeError("[EasyUseAnima] torch is required for artist mix delta_rms conditioning.") from exc
-
-    base_tensor, base_meta = base_conditioning[0]
-    if not torch.is_tensor(base_tensor) or base_tensor.ndim != 3:
-        return None
-    artist_tensors = [conditioning[0][0] for _tag, _weight, conditioning in encoded_artists]
-    if any(
-        not torch.is_tensor(tensor)
-        or tensor.ndim != 3
-        or tensor.shape[0] != base_tensor.shape[0]
-        or tensor.shape[2] != base_tensor.shape[2]
-        for tensor in artist_tensors
-    ):
-        return None
-
-    max_length = max([base_tensor.shape[1], *(tensor.shape[1] for tensor in artist_tensors)])
-    base_padded = _pad_conditioning_tensor(base_tensor, max_length)
-    mixed_delta = torch.zeros_like(base_padded)
-    target_rms = None
-    for (_tag, _weight, conditioning), alpha in zip(encoded_artists, weights):
-        cond_padded = _pad_conditioning_tensor(conditioning[0][0], max_length)
-        delta = cond_padded - base_padded
-        mixed_delta = mixed_delta + delta * float(alpha)
-        rms = delta.float().pow(2).mean().sqrt()
-        target_rms = rms * float(alpha) if target_rms is None else target_rms + rms * float(alpha)
-
-    if target_rms is None:
-        return None
-    actual_rms = mixed_delta.float().pow(2).mean().sqrt().clamp_min(1e-6)
-    rms_scale = torch.clamp(
-        target_rms / actual_rms,
-        1.0,
-        max(1.0, float(rms_scale_cap)),
-    )
-    mixed_tensor = base_padded + mixed_delta * float(style_gain) * rms_scale
-
-    metadata_source = (
-        composite_conditioning[0][1]
-        if composite_conditioning and len(composite_conditioning) == 1
-        else base_meta
-    )
-    metadata = _copy_conditioning_metadata(metadata_source)
-    metadata.pop("strength", None)
-    if branch_strength is not None:
-        metadata["strength"] = max(0.0, float(branch_strength))
-
-    base_pool = base_meta.get("pooled_output") if isinstance(base_meta, dict) else None
-    artist_pools = [
-        conditioning[0][1].get("pooled_output")
-        for _tag, _weight, conditioning in encoded_artists
-        if isinstance(conditioning[0][1], dict)
-    ]
-    if torch.is_tensor(base_pool) and len(artist_pools) == len(encoded_artists) and all(
-        torch.is_tensor(pool) and pool.shape == base_pool.shape for pool in artist_pools
-    ):
-        mixed_pool_delta = torch.zeros_like(base_pool)
-        target_pool_rms = None
-        for pool, alpha in zip(artist_pools, weights):
-            delta = pool - base_pool
-            mixed_pool_delta = mixed_pool_delta + delta * float(alpha)
-            rms = delta.float().pow(2).mean().sqrt()
-            target_pool_rms = rms * float(alpha) if target_pool_rms is None else target_pool_rms + rms * float(alpha)
-        if target_pool_rms is not None:
-            actual_pool_rms = mixed_pool_delta.float().pow(2).mean().sqrt().clamp_min(1e-6)
-            pool_scale = torch.clamp(
-                target_pool_rms / actual_pool_rms,
-                1.0,
-                max(1.0, float(rms_scale_cap)),
-            )
-            metadata["pooled_output"] = base_pool + mixed_pool_delta * float(style_gain) * pool_scale
-    elif isinstance(metadata, dict):
-        metadata.pop("pooled_output", None)
-
-    return [[mixed_tensor, metadata]]
-
-
-def _fallback_artist_average_or_exact(
-    clip,
-    data: dict[str, Any],
-    base_prompt: str,
-    artists: list[tuple[str, float]],
-) -> list:
-    try:
-        return _encode_artist_average(clip, data, base_prompt, artists)
-    except Exception:
-        return _encode_artist_exact(clip, data, base_prompt, artists)
-
-
-def _encode_artist_delta_rms(
-    clip,
-    data: dict[str, Any],
-    base_prompt: str,
-    artists: list[tuple[str, float]],
-    weights: list[float] | None = None,
-    style_gain: float = ARTIST_MIX_DEFAULT_STYLE_GAIN,
-    rms_scale_cap: float = ARTIST_MIX_DEFAULT_RMS_SCALE_CAP,
-    branch_strength: float | None = None,
-) -> list:
-    artists = _coalesce_artist_mix_items(artists)
-    if not artists:
-        return _encode_with_comfy_clip(clip, base_prompt)
-    mix_weights = list(weights) if weights is not None else _normalized_artist_weights(artists)
-    try:
-        base_conditioning = _encode_with_comfy_clip(clip, base_prompt)
-        encoded = _encoded_artist_conditionings(clip, data, base_prompt, artists)
-        composite_prompt = _artist_variant_prompt_from_prompt_data(
-            data,
-            base_prompt,
-            _artist_mix_prompt_tags(artists, include_weights=True),
-        )
-        composite = _encode_with_comfy_clip(clip, composite_prompt)
-        result = _artist_delta_rms_from_encoded(
-            base_conditioning,
-            encoded,
-            mix_weights,
-            composite if len(composite) == 1 else None,
-            style_gain=style_gain,
-            rms_scale_cap=rms_scale_cap,
-            branch_strength=branch_strength,
-        )
-        if result is not None:
-            return result
-    except Exception:
-        pass
-    fallback = _fallback_artist_average_or_exact(clip, data, base_prompt, artists)
-    if branch_strength is not None:
-        return _conditionings_with_strength(fallback, branch_strength)
-    return fallback
-
-
-def _conditionings_with_values(conditioning, values: dict[str, Any]) -> list:
-    output = []
-    for tensor, metadata in conditioning or []:
-        item_metadata = _copy_conditioning_metadata(metadata)
-        item_metadata.update(values)
-        output.append([tensor, item_metadata])
-    return output
-
-
-def _conditionings_with_range(conditioning, start_percent: float, end_percent: float = 1.0) -> list:
-    start = max(0.0, min(1.0, float(start_percent)))
-    end = max(start, min(1.0, float(end_percent)))
-    return _conditionings_with_values(conditioning, {"start_percent": start, "end_percent": end})
-
-
-def _conditionings_with_strength(conditioning, strength: float) -> list:
-    return _conditionings_with_values(conditioning, {"strength": max(0.0, float(strength))})
-
-
-def _mark_artist_mix_conditioning(conditioning, key: str) -> list:
-    return _conditionings_with_values(conditioning, {key: True})
-
-
-def _normalize_prompt_data(value: str | dict | None) -> dict[str, Any]:
-    if isinstance(value, dict):
-        return dict(value)
-    if isinstance(value, str):
-        try:
-            parsed = json.loads(value or "{}")
-        except json.JSONDecodeError:
-            parsed = {}
-        if isinstance(parsed, dict):
-            return parsed
-    return {}
-
-
-def _prompt_data_nested(data: dict[str, Any], key: str) -> dict[str, Any]:
-    value = data.get(key)
-    return value if isinstance(value, dict) else {}
-
-
-def _prompt_data_output(data: dict[str, Any], name: str, default=None):
-    outputs = _prompt_data_nested(data, "outputs")
-    if name in outputs:
-        return outputs[name]
-    if name in data:
-        return data[name]
-
-    mod_guidance = _prompt_data_nested(data, "mod_guidance")
-    anima_mod_guidance = _prompt_data_nested(data, "anima_mod_guidance")
-    resolution = _prompt_data_nested(data, "resolution")
-    fallbacks = {
-        "positive_prompt": data.get("prompt", default),
-        "anima_mod_guidance_quality_tags": mod_guidance.get(
-            "quality_tags",
-            anima_mod_guidance.get("quality_tags", default),
-        ),
-        "anima_mod_guidance_negative_prompt": mod_guidance.get(
-            "negative_prompt",
-            anima_mod_guidance.get("negative_prompt", default),
-        ),
-        "use_anima_mod_guidance": mod_guidance.get(
-            "enabled",
-            anima_mod_guidance.get("use_positive", default),
-        ),
-        "use_negative_anima_mod_guidance": mod_guidance.get(
-            "negative_enabled",
-            anima_mod_guidance.get("use_negative", default),
-        ),
-        "width": resolution.get("width", default),
-        "height": resolution.get("height", default),
-    }
-    return fallbacks.get(name, default)
-
-
-def _prompt_data_input_default(input_spec):
-    if not isinstance(input_spec, tuple):
-        return None
-    options = input_spec[1] if len(input_spec) > 1 and isinstance(input_spec[1], dict) else {}
-    if "default" in options:
-        return options["default"]
-    input_type = input_spec[0] if input_spec else None
-    if isinstance(input_type, (list, tuple)) and input_type:
-        return input_type[0]
-    if input_type == "BOOLEAN":
-        return False
-    if input_type == "INT":
-        return 0
-    if input_type == "FLOAT":
-        return 0.0
-    if input_type == "STRING":
-        return ""
-    return None
-
-
-def _prompt_data_json_safe(value):
-    if value is None or isinstance(value, (str, int, float, bool)):
-        return value
-    if isinstance(value, (list, tuple)):
-        return [_prompt_data_json_safe(item) for item in value]
-    if isinstance(value, dict):
-        return {str(key): _prompt_data_json_safe(item) for key, item in value.items()}
-    return str(value)
-
-
-def _prompt_data_parameter_snapshot(
-    input_defs: dict[str, Any],
-    values: dict[str, Any],
-    ui_payload: dict[str, Any] | None = None,
-) -> dict[str, Any]:
-    ui_payload = ui_payload if isinstance(ui_payload, dict) else {}
-    snapshot: dict[str, Any] = {}
-    for name, input_spec in input_defs.items():
-        if name in ui_payload:
-            value = ui_payload[name]
-        elif name in values:
-            value = values[name]
-        else:
-            value = _prompt_data_input_default(input_spec)
-        snapshot[name] = _prompt_data_json_safe(value)
-    return snapshot
-
-
-def _advanced_outputs_from_prompt_data(value: str | dict | None) -> tuple:
-    data = _normalize_prompt_data(value)
-    return (
-        str(_prompt_data_output(data, "positive_prompt", "") or ""),
-        str(_prompt_data_output(data, "negative_prompt", "") or ""),
-        str(_prompt_data_output(data, "anima_mod_guidance_quality_tags", "") or ""),
-        str(_prompt_data_output(data, "anima_mod_guidance_negative_prompt", "") or ""),
-        _as_bool(_prompt_data_output(data, "use_anima_mod_guidance", False), False),
-        _as_bool(_prompt_data_output(data, "use_negative_anima_mod_guidance", False), False),
-        str(_prompt_data_output(data, "metadata_prompt", "") or ""),
-        str(_prompt_data_output(data, "metadata_negative_prompt", "") or ""),
-        _as_int(_prompt_data_output(data, "width", 1024), 1024),
-        _as_int(_prompt_data_output(data, "height", 1024), 1024),
-    )
-
-
-def _copy_prompt_data_for_update(value: str | dict | None) -> dict[str, Any]:
-    data = dict(_normalize_prompt_data(value))
-    for key in ("outputs", "mod_guidance", "anima_mod_guidance", "resolution"):
-        nested = data.get(key)
-        if isinstance(nested, dict):
-            data[key] = dict(nested)
-    return data
-
-
-def _set_prompt_data_output(data: dict[str, Any], name: str, value) -> None:
-    outputs = data.setdefault("outputs", {})
-    if not isinstance(outputs, dict):
-        outputs = {}
-        data["outputs"] = outputs
-    outputs[name] = value
-
-    if name == "positive_prompt":
-        data["positive_prompt"] = str(value or "")
-        data["prompt"] = data["positive_prompt"]
-    elif name == "negative_prompt":
-        data["negative_prompt"] = str(value or "")
-    elif name == "metadata_prompt":
-        data["metadata_prompt"] = str(value or "")
-    elif name == "metadata_negative_prompt":
-        data["metadata_negative_prompt"] = str(value or "")
-    elif name == "width":
-        width = _as_int(value, 1024)
-        data["width"] = width
-        resolution = data.setdefault("resolution", {})
-        if isinstance(resolution, dict):
-            resolution["width"] = width
-    elif name == "height":
-        height = _as_int(value, 1024)
-        data["height"] = height
-        resolution = data.setdefault("resolution", {})
-        if isinstance(resolution, dict):
-            resolution["height"] = height
-    elif name == "anima_mod_guidance_quality_tags":
-        mod_guidance = data.setdefault("mod_guidance", {})
-        anima_mod_guidance = data.setdefault("anima_mod_guidance", {})
-        if isinstance(mod_guidance, dict):
-            mod_guidance["quality_tags"] = str(value or "")
-        if isinstance(anima_mod_guidance, dict):
-            anima_mod_guidance["quality_tags"] = str(value or "")
-    elif name == "anima_mod_guidance_negative_prompt":
-        mod_guidance = data.setdefault("mod_guidance", {})
-        anima_mod_guidance = data.setdefault("anima_mod_guidance", {})
-        if isinstance(mod_guidance, dict):
-            mod_guidance["negative_prompt"] = str(value or "")
-        if isinstance(anima_mod_guidance, dict):
-            anima_mod_guidance["negative_prompt"] = str(value or "")
-    elif name == "use_anima_mod_guidance":
-        enabled = _as_bool(value, False)
-        mod_guidance = data.setdefault("mod_guidance", {})
-        anima_mod_guidance = data.setdefault("anima_mod_guidance", {})
-        if isinstance(mod_guidance, dict):
-            mod_guidance["enabled"] = enabled
-        if isinstance(anima_mod_guidance, dict):
-            anima_mod_guidance["use_positive"] = enabled
-    elif name == "use_negative_anima_mod_guidance":
-        enabled = _as_bool(value, False)
-        mod_guidance = data.setdefault("mod_guidance", {})
-        anima_mod_guidance = data.setdefault("anima_mod_guidance", {})
-        if isinstance(mod_guidance, dict):
-            mod_guidance["negative_enabled"] = enabled
-        if isinstance(anima_mod_guidance, dict):
-            anima_mod_guidance["use_negative"] = enabled
-
-
-def _apply_prompt_data_overrides(
-    value: str | dict | None,
-    overrides: dict[str, Any],
-) -> dict[str, Any]:
-    data = _copy_prompt_data_for_update(value)
-    for name in EasyUseAnimaPromptStudioAdvanced.RETURN_NAMES:
-        if name not in overrides:
-            continue
-        _set_prompt_data_output(data, name, overrides[name])
-    return data
-
-
-def _prompt_data_positive_fields(data: dict[str, Any]) -> list[dict]:
-    fields = data.get("fields")
-    if not isinstance(fields, list) or not fields:
-        return []
-    return _advanced_enabled_pane_fields(_normalize_advanced_fields(fields), "positive")
-
-
-def _prompt_data_artist_base_prompt(data: dict[str, Any], positive_prompt: str) -> str:
-    artist = _prompt_data_nested(data, "artist")
-    artist_mix = _prompt_data_nested(data, "artist_mix")
-    for source in (
-        artist_mix.get("base_prompt"),
-        data.get("positive_without_artist_section") if "positive_without_artist_section" in data else None,
-        data.get("global_prompt") if "global_prompt" in data else None,
-        artist.get("positive_prompt_without_artist") if "positive_prompt_without_artist" in artist else None,
-    ):
-        if source is not None:
-            return str(source or "")
-    return str(positive_prompt or "")
-
-
-def _artist_variant_prompt_from_prompt_data(
-    data: dict[str, Any],
-    base_prompt: str,
-    artist_prompt: str,
-) -> str:
-    artist_text = _join_prompt_tokens(artist_prompt)
-    base_text = _join_prompt_tokens(base_prompt)
-    if not artist_text:
-        return base_text
-    artist_mix = _prompt_data_nested(data, "artist_mix")
-    artist_position = _normalize_artist_tag_position(
-        artist_mix.get("artist_position", data.get("artist_position", ARTIST_TAG_POSITION_CORRECT))
-    )
-    if not base_text:
-        return _artist_prompt_with_position("", artist_text, artist_position)
-
-    fields = _prompt_data_positive_fields(data)
-    if artist_position == ARTIST_TAG_POSITION_CORRECT and fields:
-        prompt = _advanced_prompt_with_artist_override(
-            fields,
-            artist_text,
-            include_quality=not _as_bool(_prompt_data_output(data, "use_anima_mod_guidance", False), False),
-            force_pin_triggers=_as_bool(data.get("pin_trigger_tags_to_front"), False),
-        )
-        if prompt:
-            return prompt
-    return _artist_prompt_with_position(base_text, artist_text, artist_position)
-
-
-def _prompt_data_artist_mix_config(
-    data: dict[str, Any],
-    artist_mix_mode: str,
-    artist_mix_start_percent: float,
-    artist_mix_strength_scale: float,
-    artist_mix_style_gain: float,
-    artist_mix_rms_scale_cap: float,
-    artist_mix_exact_top_k: int,
-    artist_mix_cluster_count: int,
-    artist_mix_dominant_isolation: bool,
-    artist_mix_dominant_threshold: float,
-) -> dict[str, Any]:
-    source = _prompt_data_nested(data, "artist_mix")
-    artist = _prompt_data_nested(data, "artist")
-    mode = _normalize_artist_mix_mode(source.get("mode", ARTIST_MIX_MODE_PROMPT))
-    enabled = _as_bool(source.get("enabled"), False)
-    if mode == ARTIST_MIX_MODE_OFF:
-        mode = ARTIST_MIX_MODE_PROMPT
-        enabled = False
-
-    config = {
-        "enabled": enabled,
-        "mode": mode,
-        "base_source": str(source.get("base_source") or "positive_without_artist_section"),
-        "start_percent": _bounded_artist_mix_float(
-            source.get("start_percent"),
-            ARTIST_MIX_DEFAULT_START_PERCENT,
-            0.0,
-            1.0,
-        ),
-        "strength_scale": _bounded_artist_mix_float(
-            source.get("strength_scale"),
-            ARTIST_MIX_DEFAULT_STRENGTH_SCALE,
-            0.0,
-            5.0,
-        ),
-        "style_gain": _bounded_artist_mix_float(
-            source.get("style_gain"),
-            ARTIST_MIX_DEFAULT_STYLE_GAIN,
-            0.0,
-            3.0,
-        ),
-        "rms_scale_cap": _bounded_artist_mix_float(
-            source.get("rms_scale_cap"),
-            ARTIST_MIX_DEFAULT_RMS_SCALE_CAP,
-            1.0,
-            5.0,
-        ),
-        "exact_top_k": _bounded_artist_mix_int(
-            source.get("exact_top_k"),
-            ARTIST_MIX_DEFAULT_EXACT_TOP_K,
-            0,
-            64,
-        ),
-        "cluster_count": _bounded_artist_mix_int(
-            source.get("cluster_count"),
-            ARTIST_MIX_DEFAULT_CLUSTER_COUNT,
-            1,
-            32,
-        ),
-        "dominant_isolation": _as_bool(
-            source.get("dominant_isolation"),
-            ARTIST_MIX_DEFAULT_DOMINANT_ISOLATION,
-        ),
-        "dominant_threshold": _bounded_artist_mix_float(
-            source.get("dominant_threshold"),
-            ARTIST_MIX_DEFAULT_DOMINANT_THRESHOLD,
-            0.0,
-            1.0,
-        ),
-        "artist_prompt": str(
-            source.get("artist_prompt")
-            or artist.get("weighted_text")
-            or artist.get("text")
-            or artist.get("positive_prompt")
-            or ""
-        ),
-    }
-
-    override_mode = str(artist_mix_mode or ARTIST_MIX_MODE_FROM_PROMPT_DATA)
-    if override_mode != ARTIST_MIX_MODE_FROM_PROMPT_DATA:
-        override_mode = _normalize_artist_mix_mode(override_mode, ARTIST_MIX_MODE_OFF)
-        if override_mode == ARTIST_MIX_MODE_OFF:
-            config["enabled"] = False
-            config["mode"] = ARTIST_MIX_MODE_PROMPT
-        elif override_mode == ARTIST_MIX_MODE_PROMPT:
-            config["enabled"] = False
-            config["mode"] = ARTIST_MIX_MODE_PROMPT
-        else:
-            config["enabled"] = True
-            config["mode"] = override_mode
-        config["start_percent"] = _bounded_artist_mix_float(
-            artist_mix_start_percent,
-            ARTIST_MIX_DEFAULT_START_PERCENT,
-            0.0,
-            1.0,
-        )
-        config["strength_scale"] = _bounded_artist_mix_float(
-            artist_mix_strength_scale,
-            ARTIST_MIX_DEFAULT_STRENGTH_SCALE,
-            0.0,
-            5.0,
-        )
-        config["style_gain"] = _bounded_artist_mix_float(
-            artist_mix_style_gain,
-            ARTIST_MIX_DEFAULT_STYLE_GAIN,
-            0.0,
-            3.0,
-        )
-        config["rms_scale_cap"] = _bounded_artist_mix_float(
-            artist_mix_rms_scale_cap,
-            ARTIST_MIX_DEFAULT_RMS_SCALE_CAP,
-            1.0,
-            5.0,
-        )
-        config["exact_top_k"] = _bounded_artist_mix_int(
-            artist_mix_exact_top_k,
-            ARTIST_MIX_DEFAULT_EXACT_TOP_K,
-            0,
-            64,
-        )
-        config["cluster_count"] = _bounded_artist_mix_int(
-            artist_mix_cluster_count,
-            ARTIST_MIX_DEFAULT_CLUSTER_COUNT,
-            1,
-            32,
-        )
-        config["dominant_isolation"] = _as_bool(
-            artist_mix_dominant_isolation,
-            ARTIST_MIX_DEFAULT_DOMINANT_ISOLATION,
-        )
-        config["dominant_threshold"] = _bounded_artist_mix_float(
-            artist_mix_dominant_threshold,
-            ARTIST_MIX_DEFAULT_DOMINANT_THRESHOLD,
-            0.0,
-            1.0,
-        )
-    return config
-
-
-def _encode_artist_exact(
-    clip,
-    data: dict[str, Any],
-    base_prompt: str,
-    artists: list[tuple[str, float]],
-    start_percent: float | None = None,
-    end_percent: float | None = None,
-    strength_scale: float = 1.0,
-    branch_strengths: list[float] | None = None,
-) -> list:
-    exact = []
-    strengths = (
-        [max(0.0, float(value)) for value in branch_strengths]
-        if branch_strengths is not None
-        else [float(weight) * float(strength_scale) for weight in _normalized_artist_weights(artists)]
-    )
-    for (tag, _weight), strength in zip(artists, strengths):
-        variant_prompt = _artist_variant_prompt_from_prompt_data(data, base_prompt, tag)
-        for tensor, metadata in _encode_with_comfy_clip(clip, variant_prompt):
-            item_metadata = _copy_conditioning_metadata(metadata)
-            item_metadata["strength"] = float(strength)
-            if start_percent is not None:
-                item_metadata["start_percent"] = max(0.0, min(1.0, float(start_percent)))
-            if end_percent is not None:
-                item_metadata["end_percent"] = max(
-                    item_metadata.get("start_percent", 0.0),
-                    min(1.0, float(end_percent)),
-                )
-            item_metadata[ARTIST_MIX_EXACT_KEY] = True
-            exact.append([tensor, item_metadata])
-    return exact or _encode_with_comfy_clip(clip, base_prompt)
-
-
-def _encode_artist_average(
-    clip,
-    data: dict[str, Any],
-    base_prompt: str,
-    artists: list[tuple[str, float]],
-    weights: list[float] | None = None,
-) -> list:
-    mix_weights = list(weights) if weights is not None else _normalized_artist_weights(artists)
-    encoded = [
-        _encode_with_comfy_clip(
-            clip,
-            _artist_variant_prompt_from_prompt_data(data, base_prompt, tag),
-        )
-        for tag, _weight in artists
-    ]
-    if any(len(conditioning) != 1 for conditioning in encoded):
-        return _encode_artist_exact(clip, data, base_prompt, artists)
-
-    composite_prompt = _artist_variant_prompt_from_prompt_data(
-        data,
-        base_prompt,
-        _artist_mix_prompt_tags(artists, include_weights=True),
-    )
-    composite = _encode_with_comfy_clip(clip, composite_prompt)
-    if len(composite) != 1:
-        composite = None
-    return _blend_conditionings(encoded, mix_weights, composite)
-
-
-def _encode_artist_hybrid(
-    clip,
-    data: dict[str, Any],
-    base_prompt: str,
-    artists: list[tuple[str, float]],
-    exact_top_k: int = ARTIST_MIX_DEFAULT_EXACT_TOP_K,
-    style_gain: float = ARTIST_MIX_DEFAULT_STYLE_GAIN,
-    rms_scale_cap: float = ARTIST_MIX_DEFAULT_RMS_SCALE_CAP,
-    strength_scale: float = ARTIST_MIX_DEFAULT_STRENGTH_SCALE,
-) -> list:
-    artists = _coalesce_artist_mix_items(artists)
-    if not artists:
-        return _encode_with_comfy_clip(clip, base_prompt)
-    total_weight = sum(weight for _tag, weight in artists)
-    if total_weight <= 0:
-        return _encode_with_comfy_clip(clip, base_prompt)
-
-    sorted_artists = sorted(artists, key=lambda item: item[1], reverse=True)
-    top_k = _bounded_artist_mix_int(exact_top_k, ARTIST_MIX_DEFAULT_EXACT_TOP_K, 0, 64)
-    if top_k >= len(sorted_artists):
-        return _encode_artist_exact(clip, data, base_prompt, sorted_artists, strength_scale=strength_scale)
-
-    top = sorted_artists[:top_k]
-    tail = sorted_artists[top_k:]
-    output = []
-    if top:
-        output.extend(
-            _encode_artist_exact(
-                clip,
-                data,
-                base_prompt,
-                top,
-                branch_strengths=[
-                    (weight / total_weight) * float(strength_scale)
-                    for _tag, weight in top
-                ],
-            )
-        )
-    if tail:
-        tail_total = sum(weight for _tag, weight in tail)
-        if tail_total <= 0:
-            return _encode_artist_exact(clip, data, base_prompt, sorted_artists, strength_scale=strength_scale)
-        try:
-            output.extend(
-                _encode_artist_delta_rms(
-                    clip,
-                    data,
-                    base_prompt,
-                    tail,
-                    weights=[weight / tail_total for _tag, weight in tail],
-                    style_gain=style_gain,
-                    rms_scale_cap=rms_scale_cap,
-                    branch_strength=(tail_total / total_weight) * float(strength_scale),
-                )
-            )
-        except Exception:
-            return _encode_artist_exact(clip, data, base_prompt, sorted_artists, strength_scale=strength_scale)
-    return output or _encode_artist_exact(clip, data, base_prompt, sorted_artists, strength_scale=strength_scale)
-
-
-def _artist_conditioning_feature(torch, base_conditioning, encoded_artist, use_pooled: bool):
-    if len(base_conditioning) != 1 or len(encoded_artist[2]) != 1:
-        return None
-    base_tensor, base_meta = base_conditioning[0]
-    cond_tensor, metadata = encoded_artist[2][0]
-    if not torch.is_tensor(base_tensor) or not torch.is_tensor(cond_tensor):
-        return None
-    base_pool = base_meta.get("pooled_output") if isinstance(base_meta, dict) else None
-    pool = metadata.get("pooled_output") if isinstance(metadata, dict) else None
-    if use_pooled and torch.is_tensor(base_pool) and torch.is_tensor(pool) and base_pool.shape == pool.shape:
-        feature = (pool - base_pool).float().flatten()
-    elif (
-        base_tensor.ndim == 3
-        and cond_tensor.ndim == 3
-        and base_tensor.shape[0] == cond_tensor.shape[0]
-        and base_tensor.shape[2] == cond_tensor.shape[2]
-    ):
-        max_length = max(base_tensor.shape[1], cond_tensor.shape[1])
-        feature = (
-            _pad_conditioning_tensor(cond_tensor, max_length)
-            - _pad_conditioning_tensor(base_tensor, max_length)
-        ).float().mean(dim=1).flatten()
-    else:
-        return None
-    norm = torch.linalg.vector_norm(feature).clamp_min(1e-6)
-    return feature / norm
-
-
-def _greedy_cluster_encoded_artists(torch, encoded_artists: list, features: list, cluster_count: int) -> list:
-    clusters = [
-        {
-            "items": [encoded],
-            "weight": max(0.0, float(encoded[1])),
-            "feature": feature,
-        }
-        for encoded, feature in zip(encoded_artists, features)
-    ]
-    target_count = max(1, min(int(cluster_count), len(clusters)))
-    while len(clusters) > target_count:
-        best_pair = (0, 1)
-        best_similarity = None
-        for left in range(len(clusters)):
-            for right in range(left + 1, len(clusters)):
-                similarity = torch.dot(clusters[left]["feature"], clusters[right]["feature"]).item()
-                if best_similarity is None or similarity > best_similarity:
-                    best_similarity = similarity
-                    best_pair = (left, right)
-        left, right = best_pair
-        first = clusters[left]
-        second = clusters[right]
-        merged_weight = first["weight"] + second["weight"]
-        merged_feature = first["feature"] * first["weight"] + second["feature"] * second["weight"]
-        merged_norm = torch.linalg.vector_norm(merged_feature).clamp_min(1e-6)
-        clusters[left] = {
-            "items": [*first["items"], *second["items"]],
-            "weight": merged_weight,
-            "feature": merged_feature / merged_norm,
-        }
-        del clusters[right]
-    return clusters
-
-
-def _encode_artist_clustered(
-    clip,
-    data: dict[str, Any],
-    base_prompt: str,
-    artists: list[tuple[str, float]],
-    cluster_count: int = ARTIST_MIX_DEFAULT_CLUSTER_COUNT,
-    style_gain: float = ARTIST_MIX_DEFAULT_STYLE_GAIN,
-    rms_scale_cap: float = ARTIST_MIX_DEFAULT_RMS_SCALE_CAP,
-    dominant_isolation: bool = ARTIST_MIX_DEFAULT_DOMINANT_ISOLATION,
-    dominant_threshold: float = ARTIST_MIX_DEFAULT_DOMINANT_THRESHOLD,
-    strength_scale: float = ARTIST_MIX_DEFAULT_STRENGTH_SCALE,
-) -> list:
-    artists = _coalesce_artist_mix_items(artists)
-    if not artists:
-        return _encode_with_comfy_clip(clip, base_prompt)
-    total_weight = sum(weight for _tag, weight in artists)
-    if total_weight <= 0:
-        return _encode_with_comfy_clip(clip, base_prompt)
-
-    threshold = _bounded_artist_mix_float(
-        dominant_threshold,
-        ARTIST_MIX_DEFAULT_DOMINANT_THRESHOLD,
-        0.0,
-        1.0,
-    )
-    dominant = [
-        (tag, weight)
-        for tag, weight in artists
-        if dominant_isolation and (weight / total_weight) >= threshold
-    ]
-    remaining = [
-        (tag, weight)
-        for tag, weight in artists
-        if not dominant_isolation or (weight / total_weight) < threshold
-    ]
-    target_cluster_count = _bounded_artist_mix_int(
-        cluster_count,
-        ARTIST_MIX_DEFAULT_CLUSTER_COUNT,
-        1,
-        32,
-    )
-    output = []
-    if dominant:
-        output.extend(
-            _encode_artist_exact(
-                clip,
-                data,
-                base_prompt,
-                dominant,
-                branch_strengths=[
-                    (weight / total_weight) * float(strength_scale)
-                    for _tag, weight in dominant
-                ],
-            )
-        )
-    if not remaining:
-        return output or _encode_artist_exact(clip, data, base_prompt, artists, strength_scale=strength_scale)
-    if len(remaining) <= target_cluster_count:
-        output.extend(
-            _encode_artist_exact(
-                clip,
-                data,
-                base_prompt,
-                remaining,
-                branch_strengths=[
-                    (weight / total_weight) * float(strength_scale)
-                    for _tag, weight in remaining
-                ],
-            )
-        )
-        return output
-
-    try:
-        import torch  # type: ignore
-
-        base_conditioning = _encode_with_comfy_clip(clip, base_prompt)
-        encoded = _encoded_artist_conditionings(clip, data, base_prompt, remaining)
-        base_meta = base_conditioning[0][1] if len(base_conditioning) == 1 else {}
-        base_pool = base_meta.get("pooled_output") if isinstance(base_meta, dict) else None
-        use_pooled = torch.is_tensor(base_pool) and all(
-            len(encoded_artist[2]) == 1
-            and isinstance(encoded_artist[2][0][1], dict)
-            and torch.is_tensor(encoded_artist[2][0][1].get("pooled_output"))
-            and encoded_artist[2][0][1].get("pooled_output").shape == base_pool.shape
-            for encoded_artist in encoded
-        )
-        features = [
-            _artist_conditioning_feature(torch, base_conditioning, encoded_artist, use_pooled)
-            for encoded_artist in encoded
-        ]
-        if any(feature is None for feature in features):
-            raise RuntimeError("missing cluster feature")
-        clusters = _greedy_cluster_encoded_artists(torch, encoded, features, target_cluster_count)
-        for cluster in clusters:
-            cluster_weight = max(0.0, float(cluster["weight"]))
-            if cluster_weight <= 0:
-                continue
-            cluster_result = _artist_delta_rms_from_encoded(
-                base_conditioning,
-                cluster["items"],
-                [item[1] / cluster_weight for item in cluster["items"]],
-                None,
-                style_gain=style_gain,
-                rms_scale_cap=rms_scale_cap,
-                branch_strength=(cluster_weight / total_weight) * float(strength_scale),
-            )
-            if cluster_result is None:
-                raise RuntimeError("cluster delta_rms failed")
-            output.extend(cluster_result)
-        return output or _encode_artist_hybrid(
-            clip,
-            data,
-            base_prompt,
-            artists,
-            exact_top_k=ARTIST_MIX_DEFAULT_EXACT_TOP_K,
-            style_gain=style_gain,
-            rms_scale_cap=rms_scale_cap,
-            strength_scale=strength_scale,
-        )
-    except Exception:
-        return _encode_artist_hybrid(
-            clip,
-            data,
-            base_prompt,
-            artists,
-            exact_top_k=ARTIST_MIX_DEFAULT_EXACT_TOP_K,
-            style_gain=style_gain,
-            rms_scale_cap=rms_scale_cap,
-            strength_scale=strength_scale,
-        )
-
-
-def _encode_artist_composite_exact(
-    clip,
-    data: dict[str, Any],
-    base_prompt: str,
-    artists: list[tuple[str, float]],
-    start_percent: float | None = None,
-    strength_scale: float = 1.0,
-) -> list:
-    composite_prompt = _artist_variant_prompt_from_prompt_data(
-        data,
-        base_prompt,
-        _artist_mix_prompt_tags(artists, include_weights=True),
-    )
-    composite = _conditionings_with_strength(_encode_with_comfy_clip(clip, composite_prompt), 1.0)
-    exact = _encode_artist_exact(
-        clip,
-        data,
-        base_prompt,
-        artists,
-        start_percent=start_percent,
-        end_percent=1.0 if start_percent is not None else None,
-        strength_scale=strength_scale,
-    )
-    return composite + exact
-
-
-def _encode_artist_average_late_exact(
-    clip,
-    data: dict[str, Any],
-    base_prompt: str,
-    artists: list[tuple[str, float]],
-    artist_mix: dict[str, Any],
-) -> list:
-    late_start = _bounded_artist_mix_float(
-        artist_mix.get("start_percent"),
-        ARTIST_MIX_DEFAULT_START_PERCENT,
-        0.0,
-        1.0,
-    )
-    strength_scale = _bounded_artist_mix_float(
-        artist_mix.get("strength_scale"),
-        ARTIST_MIX_DEFAULT_STRENGTH_SCALE,
-        0.0,
-        5.0,
-    )
-    return _encode_artist_average(clip, data, base_prompt, artists) + _encode_artist_exact(
-        clip,
-        data,
-        base_prompt,
-        artists,
-        start_percent=late_start,
-        end_percent=1.0,
-        strength_scale=strength_scale,
-    )
-
-
-def _encode_artist_scheduled_average(
-    clip,
-    data: dict[str, Any],
-    base_prompt: str,
-    artists: list[tuple[str, float]],
-    artist_mix: dict[str, Any],
-) -> list:
-    late_start = _bounded_artist_mix_float(
-        artist_mix.get("start_percent"),
-        ARTIST_MIX_DEFAULT_START_PERCENT,
-        0.0,
-        1.0,
-    )
-    strength_scale = _bounded_artist_mix_float(
-        artist_mix.get("strength_scale"),
-        ARTIST_MIX_DEFAULT_STRENGTH_SCALE,
-        0.0,
-        5.0,
-    )
-    equal_weights = _equal_artist_weights(artists)
-    target_weights = _normalized_artist_weights(artists)
-    scheduled = []
-    if late_start > 0.0:
-        scheduled.extend(
-            _mark_artist_mix_conditioning(
-                _conditionings_with_range(
-                    _encode_artist_average(clip, data, base_prompt, artists, weights=equal_weights),
-                    0.0,
-                    late_start,
-                ),
-                ARTIST_MIX_SCHEDULE_KEY,
-            )
-        )
-
-    segments = 4
-    span = max(0.0, 1.0 - late_start)
-    for index in range(segments):
-        segment_start = late_start + span * (index / segments)
-        segment_end = late_start + span * ((index + 1) / segments)
-        amount = (index + 1) / segments
-        weights = _interpolate_artist_weights(equal_weights, target_weights, amount)
-        base = _conditionings_with_range(
-            _conditionings_with_strength(_encode_with_comfy_clip(clip, base_prompt), 1.0),
-            segment_start,
-            segment_end,
-        )
-        artist_only = _conditionings_with_range(
-            _conditionings_with_strength(
-                _encode_artist_average(clip, {}, "", artists, weights=weights),
-                max(0.0, strength_scale) * amount,
-            ),
-            segment_start,
-            segment_end,
-        )
-        scheduled.extend(_mark_artist_mix_conditioning(base + artist_only, ARTIST_MIX_SCHEDULE_KEY))
-    return scheduled
-
-
-def _encode_prompt_data_positive_conditioning(
-    clip,
-    data: dict[str, Any],
-    positive_prompt: str,
-    artist_mix_mode: str = ARTIST_MIX_MODE_FROM_PROMPT_DATA,
-    artist_mix_start_percent: float = ARTIST_MIX_DEFAULT_START_PERCENT,
-    artist_mix_strength_scale: float = ARTIST_MIX_DEFAULT_STRENGTH_SCALE,
-    artist_mix_style_gain: float = ARTIST_MIX_DEFAULT_STYLE_GAIN,
-    artist_mix_rms_scale_cap: float = ARTIST_MIX_DEFAULT_RMS_SCALE_CAP,
-    artist_mix_exact_top_k: int = ARTIST_MIX_DEFAULT_EXACT_TOP_K,
-    artist_mix_cluster_count: int = ARTIST_MIX_DEFAULT_CLUSTER_COUNT,
-    artist_mix_dominant_isolation: bool = ARTIST_MIX_DEFAULT_DOMINANT_ISOLATION,
-    artist_mix_dominant_threshold: float = ARTIST_MIX_DEFAULT_DOMINANT_THRESHOLD,
-) -> list:
-    artist_mix = _prompt_data_artist_mix_config(
-        data,
-        artist_mix_mode,
-        artist_mix_start_percent,
-        artist_mix_strength_scale,
-        artist_mix_style_gain,
-        artist_mix_rms_scale_cap,
-        artist_mix_exact_top_k,
-        artist_mix_cluster_count,
-        artist_mix_dominant_isolation,
-        artist_mix_dominant_threshold,
-    )
-    artists = _coalesce_artist_mix_items(_parse_artist_mix_items(str(artist_mix.get("artist_prompt") or "")))
-    if not artist_mix.get("enabled") or artist_mix.get("mode") == ARTIST_MIX_MODE_PROMPT:
-        return _encode_with_comfy_clip(clip, positive_prompt)
-
-    base_prompt = _prompt_data_artist_base_prompt(data, positive_prompt)
-    if not artists:
-        return _encode_with_comfy_clip(clip, base_prompt)
-
-    mode = _normalize_artist_mix_mode(artist_mix.get("mode"), ARTIST_MIX_MODE_PROMPT)
-    if mode == ARTIST_MIX_MODE_AVERAGE:
-        return _encode_artist_average(clip, data, base_prompt, artists)
-    if mode == ARTIST_MIX_MODE_DELTA_RMS:
-        return _mark_artist_mix_conditioning(
-            _encode_artist_delta_rms(
-                clip,
-                data,
-                base_prompt,
-                artists,
-                style_gain=_bounded_artist_mix_float(
-                    artist_mix.get("style_gain"),
-                    ARTIST_MIX_DEFAULT_STYLE_GAIN,
-                    0.0,
-                    3.0,
-                ),
-                rms_scale_cap=_bounded_artist_mix_float(
-                    artist_mix.get("rms_scale_cap"),
-                    ARTIST_MIX_DEFAULT_RMS_SCALE_CAP,
-                    1.0,
-                    5.0,
-                ),
-            ),
-            ARTIST_MIX_CONTROL_KEY,
-        )
-    if mode == ARTIST_MIX_MODE_HYBRID:
-        return _mark_artist_mix_conditioning(
-            _encode_artist_hybrid(
-                clip,
-                data,
-                base_prompt,
-                artists,
-                exact_top_k=_bounded_artist_mix_int(
-                    artist_mix.get("exact_top_k"),
-                    ARTIST_MIX_DEFAULT_EXACT_TOP_K,
-                    0,
-                    64,
-                ),
-                style_gain=_bounded_artist_mix_float(
-                    artist_mix.get("style_gain"),
-                    ARTIST_MIX_DEFAULT_STYLE_GAIN,
-                    0.0,
-                    3.0,
-                ),
-                rms_scale_cap=_bounded_artist_mix_float(
-                    artist_mix.get("rms_scale_cap"),
-                    ARTIST_MIX_DEFAULT_RMS_SCALE_CAP,
-                    1.0,
-                    5.0,
-                ),
-                strength_scale=_bounded_artist_mix_float(
-                    artist_mix.get("strength_scale"),
-                    ARTIST_MIX_DEFAULT_STRENGTH_SCALE,
-                    0.0,
-                    5.0,
-                ),
-            ),
-            ARTIST_MIX_CONTROL_KEY,
-        )
-    if mode == ARTIST_MIX_MODE_CLUSTERED:
-        return _mark_artist_mix_conditioning(
-            _encode_artist_clustered(
-                clip,
-                data,
-                base_prompt,
-                artists,
-                cluster_count=_bounded_artist_mix_int(
-                    artist_mix.get("cluster_count"),
-                    ARTIST_MIX_DEFAULT_CLUSTER_COUNT,
-                    1,
-                    32,
-                ),
-                style_gain=_bounded_artist_mix_float(
-                    artist_mix.get("style_gain"),
-                    ARTIST_MIX_DEFAULT_STYLE_GAIN,
-                    0.0,
-                    3.0,
-                ),
-                rms_scale_cap=_bounded_artist_mix_float(
-                    artist_mix.get("rms_scale_cap"),
-                    ARTIST_MIX_DEFAULT_RMS_SCALE_CAP,
-                    1.0,
-                    5.0,
-                ),
-                dominant_isolation=_as_bool(
-                    artist_mix.get("dominant_isolation"),
-                    ARTIST_MIX_DEFAULT_DOMINANT_ISOLATION,
-                ),
-                dominant_threshold=_bounded_artist_mix_float(
-                    artist_mix.get("dominant_threshold"),
-                    ARTIST_MIX_DEFAULT_DOMINANT_THRESHOLD,
-                    0.0,
-                    1.0,
-                ),
-                strength_scale=_bounded_artist_mix_float(
-                    artist_mix.get("strength_scale"),
-                    ARTIST_MIX_DEFAULT_STRENGTH_SCALE,
-                    0.0,
-                    5.0,
-                ),
-            ),
-            ARTIST_MIX_CONTROL_KEY,
-        )
-    if mode == ARTIST_MIX_MODE_EXACT:
-        return _mark_artist_mix_conditioning(
-            _encode_artist_exact(
-                clip,
-                data,
-                base_prompt,
-                artists,
-                strength_scale=_bounded_artist_mix_float(
-                    artist_mix.get("strength_scale"),
-                    ARTIST_MIX_DEFAULT_STRENGTH_SCALE,
-                    0.0,
-                    5.0,
-                ),
-            ),
-            ARTIST_MIX_CONTROL_KEY,
-        )
-    if mode == ARTIST_MIX_MODE_COMPOSITE_EXACT:
-        return _mark_artist_mix_conditioning(
-            _encode_artist_composite_exact(
-                clip,
-                data,
-                base_prompt,
-                artists,
-                strength_scale=_bounded_artist_mix_float(
-                    artist_mix.get("strength_scale"),
-                    ARTIST_MIX_DEFAULT_STRENGTH_SCALE,
-                    0.0,
-                    5.0,
-                ),
-            ),
-            ARTIST_MIX_CONTROL_KEY,
-        )
-    if mode == ARTIST_MIX_MODE_LATE_EXACT:
-        return _mark_artist_mix_conditioning(
-            _encode_with_comfy_clip(clip, base_prompt) + _encode_artist_exact(
-                clip,
-                data,
-                base_prompt,
-                artists,
-                start_percent=_bounded_artist_mix_float(
-                    artist_mix.get("start_percent"),
-                    ARTIST_MIX_DEFAULT_START_PERCENT,
-                    0.0,
-                    1.0,
-                ),
-                end_percent=1.0,
-                strength_scale=_bounded_artist_mix_float(
-                    artist_mix.get("strength_scale"),
-                    ARTIST_MIX_DEFAULT_STRENGTH_SCALE,
-                    0.0,
-                    5.0,
-                ),
-            ),
-            ARTIST_MIX_CONTROL_KEY,
-        )
-    if mode == ARTIST_MIX_MODE_AVERAGE_LATE_EXACT:
-        return _mark_artist_mix_conditioning(
-            _encode_artist_average_late_exact(clip, data, base_prompt, artists, artist_mix),
-            ARTIST_MIX_CONTROL_KEY,
-        )
-    if mode == ARTIST_MIX_MODE_SCHEDULED_AVERAGE:
-        return _mark_artist_mix_conditioning(
-            _encode_artist_scheduled_average(clip, data, base_prompt, artists, artist_mix),
-            ARTIST_MIX_CONTROL_KEY,
-        )
-    return _encode_with_comfy_clip(clip, positive_prompt)
 
 
 def _build_advanced_prompt_data(
@@ -7629,85 +5594,6 @@ def _regional_mask_bounds_area(mask, canvas_width: int | None = None, canvas_hei
     )
 
 
-def _fit_to_1mp(width: int, height: int) -> tuple[int, int]:
-    if width <= 0 or height <= 0:
-        return width, height
-    if width * height <= NAI_1MP:
-        return width, height
-
-    ratio = width / height
-    target_w = (NAI_1MP * ratio) ** 0.5
-    target_h = (NAI_1MP / ratio) ** 0.5
-    new_w = max(LATENT_ALIGN, round(target_w / LATENT_ALIGN) * LATENT_ALIGN)
-    new_h = max(LATENT_ALIGN, round(target_h / LATENT_ALIGN) * LATENT_ALIGN)
-    while new_w * new_h > NAI_1MP and new_w > LATENT_ALIGN and new_h > LATENT_ALIGN:
-        if new_w >= new_h:
-            new_w -= LATENT_ALIGN
-        else:
-            new_h -= LATENT_ALIGN
-    return new_w, new_h
-
-
-def _is_local_naia_host(host: str) -> bool:
-    return str(host or "").strip().strip("[]").lower() in NAIA_LOCAL_HOSTS
-
-
-def _build_naia_random_url(host: str, port: int, allow_remote_api: bool = False) -> str:
-    host_value = str(host or DEFAULT_HOST).strip() or DEFAULT_HOST
-    if any(token in host_value for token in ("://", "/", "\\", "?", "#", "@")) or re.search(r"\s", host_value):
-        raise RuntimeError("[EasyUse Anima] NAIA host must be a hostname or IP address, not a URL.")
-    if not allow_remote_api and not _is_local_naia_host(host_value):
-        raise RuntimeError(
-            "[EasyUse Anima] Remote NAIA API access is disabled. "
-            "Enable 'Allow remote API' in EasyUse Anima NAIA settings to use a non-local host."
-        )
-    url_host = host_value
-    if ":" in host_value and not host_value.startswith("["):
-        url_host = f"[{host_value}]"
-    return f"http://{url_host}:{int(port)}/api/comfyui/random"
-
-
-def _post_random(host: str, port: int, body: dict, allow_remote_api: bool = False) -> dict:
-    try:
-        import requests
-    except ImportError:
-        raise RuntimeError("[EasyUse Anima] requests is not installed. Install requirements.txt.")
-
-    url = _build_naia_random_url(host, port, allow_remote_api=allow_remote_api)
-    try:
-        # Explicit user-configured NAIA API call. Default use is localhost-only;
-        # remote hosts require allow_remote_api=True. The response is parsed as
-        # JSON and is never executed as code.
-        response = requests.post(url, json=body, timeout=HTTP_TIMEOUT)
-    except requests.RequestException as exc:
-        raise RuntimeError(f"[EasyUse Anima] NAIA API request failed: {exc}")
-
-    if not response.ok:
-        raise RuntimeError(
-            f"[EasyUse Anima] NAIA API error HTTP {response.status_code}: {response.text[:300]}"
-        )
-    try:
-        data = response.json()
-    except ValueError:
-        raise RuntimeError(f"[EasyUse Anima] NAIA API returned non-JSON: {response.text[:300]}")
-
-    if not data.get("ok", True):
-        raise RuntimeError(f"[EasyUse Anima] NAIA API returned error: {data}")
-    return data
-
-
-def _parse_random_response(resp: dict) -> tuple[str, str, int, int]:
-    prompt = _clean_prompt(resp.get("prompt", "") or "")
-    negative = _clean_prompt(resp.get("negative_prompt", "") or "")
-    w_raw, h_raw = resp.get("width"), resp.get("height")
-    if w_raw is None or h_raw is None:
-        raise RuntimeError("[EasyUse Anima] NAIA response is missing width/height.")
-    try:
-        raw_width, raw_height = int(w_raw), int(h_raw)
-    except (TypeError, ValueError):
-        raise RuntimeError(f"[EasyUse Anima] Invalid NAIA width/height: {w_raw!r}, {h_raw!r}")
-    width, height = _fit_to_1mp(raw_width, raw_height)
-    return prompt, negative, width, height
 
 
 def _get_workflow_node(extra_pnginfo, node_id: str):
@@ -7834,861 +5720,55 @@ def _consume_reserved_wildcard_next_seed(
     return reservation_next_seed if reservation_next_seed == expected_next_seed else None
 
 
-def _profile_key(profile_index: int) -> str:
-    return str(max(1, _as_int(profile_index, 1)))
-
-
-def _wrap_profile_index(profile_index: int, profile_count: int) -> int:
-    count = max(1, min(16, _as_int(profile_count, 1)))
-    index = max(1, _as_int(profile_index, 1))
-    return ((index - 1) % count) + 1
-
-
-def _load_profile_data(profile_data: Any) -> dict[str, dict]:
-    if isinstance(profile_data, dict):
-        raw = profile_data
-    else:
-        try:
-            raw = json.loads(str(profile_data or "{}"))
-        except (TypeError, ValueError):
-            raw = {}
-    if not isinstance(raw, dict):
-        return {}
-    profiles: dict[str, dict] = {}
-    for key, value in raw.items():
-        if isinstance(value, dict):
-            profiles[str(key)] = value
-    return profiles
-
-
-def _get_loras_list(kwargs: dict) -> list[dict]:
-    loras_data = kwargs.get("loras")
-    if isinstance(loras_data, dict) and "__value__" in loras_data:
-        loras_data = loras_data["__value__"]
-    if isinstance(loras_data, str):
-        try:
-            loras_data = json.loads(loras_data or "[]")
-        except (TypeError, ValueError):
-            loras_data = []
-    if not isinstance(loras_data, list):
-        return []
-    return [item for item in loras_data if isinstance(item, dict)]
-
-
-def _apply_lora_syntax_format(name: str) -> str:
-    try:
-        from py.nodes.utils import apply_lora_syntax_format  # type: ignore
-
-        return str(apply_lora_syntax_format(name))
-    except Exception:
-        base_name = str(name).replace("\\", "/").rstrip("/").split("/")[-1]
-        return os.path.splitext(base_name)[0]
-
-
-def _fallback_lora_path(lora_name: str) -> str:
-    try:
-        import folder_paths  # type: ignore
-
-        for candidate in (
-            lora_name,
-            f"{lora_name}.safetensors",
-            f"{lora_name}.pt",
-            f"{lora_name}.ckpt",
-        ):
-            path = folder_paths.get_full_path("loras", candidate)
-            if path:
-                return path
-    except Exception:
-        pass
-    return lora_name
-
-
-def _lora_stack_name(lora_name: str) -> str:
-    value = str(lora_name or "").strip()
-    if not value:
-        return value
-
-    try:
-        import folder_paths  # type: ignore
-
-        absolute_value = os.path.abspath(value)
-        for root in folder_paths.get_folder_paths("loras"):
-            absolute_root = os.path.abspath(root)
-            try:
-                relative = os.path.relpath(absolute_value, absolute_root)
-            except ValueError:
-                continue
-            if relative == "." or relative.startswith(f"..{os.sep}") or relative == "..":
-                continue
-            return relative.replace("/", os.sep)
-    except Exception:
-        pass
-
-    normalized = value.replace("\\", "/")
-    marker = "/models/loras/"
-    marker_index = normalized.casefold().rfind(marker)
-    if marker_index >= 0:
-        normalized = normalized[marker_index + len(marker):]
-    return normalized.replace("/", os.sep)
-
-
-def _dedupe_text_values(values) -> list[str]:
-    seen: set[str] = set()
-    result: list[str] = []
-    for value in values:
-        text = str(value or "").strip()
-        if not text:
-            continue
-        key = text.casefold()
-        if key in seen:
-            continue
-        seen.add(key)
-        result.append(text)
-    return result
-
-
-def _trigger_words_from_value(value) -> list[str]:
-    if isinstance(value, str):
-        return _dedupe_text_values(_prompt_tokens(value))
-    if isinstance(value, dict):
-        for key in ("word", "name", "tag", "text"):
-            if key in value:
-                return _trigger_words_from_value(value.get(key))
-        return []
-    if isinstance(value, (list, tuple, set)):
-        words: list[str] = []
-        for item in value:
-            words.extend(_trigger_words_from_value(item))
-        return _dedupe_text_values(words)
-    return []
-
-
-def _metadata_json_paths_for_lora(lora_path: str) -> list[str]:
-    path = str(lora_path or "").strip()
-    if not path:
-        return []
-    base, _ext = os.path.splitext(path)
-    candidates = [f"{base}.metadata.json", f"{path}.metadata.json"]
-    return _dedupe_text_values(candidates)
-
-
-def _load_lora_manager_metadata(lora_path: str) -> dict:
-    for metadata_path in _metadata_json_paths_for_lora(lora_path):
-        if not os.path.isfile(metadata_path):
-            continue
-        try:
-            with open(metadata_path, "r", encoding="utf-8") as handle:
-                data = json.load(handle)
-        except (OSError, json.JSONDecodeError) as exc:
-            logger.warning("[EasyUse Anima] failed to read LoRA metadata JSON %s: %s", metadata_path, exc)
-            continue
-        if isinstance(data, dict):
-            return data
-    return {}
-
-
-def _lora_manager_trigger_words_from_metadata(metadata: dict) -> list[str]:
-    if not isinstance(metadata, dict):
-        return []
-
-    words: list[str] = []
-    for key in _TRIGGER_WORD_KEYS:
-        words.extend(_trigger_words_from_value(metadata.get(key)))
-
-    civitai = metadata.get("civitai")
-    if isinstance(civitai, dict):
-        for key in _TRIGGER_WORD_KEYS:
-            words.extend(_trigger_words_from_value(civitai.get(key)))
-
-    return _dedupe_text_values(words)
-
-
-def _get_lora_manager_trigger_words(lora_path: str) -> list[str]:
-    return _lora_manager_trigger_words_from_metadata(_load_lora_manager_metadata(lora_path))
-
-
-def _get_lora_info(lora_name: str) -> tuple[str, list[str]]:
-    fallback_path = _fallback_lora_path(lora_name)
-    trigger_words = _get_lora_manager_trigger_words(fallback_path)
-    if trigger_words:
-        return fallback_path, trigger_words
-
-    try:
-        from py.utils.utils import get_lora_info  # type: ignore
-
-        path, trigger_words = get_lora_info(lora_name)
-        if not isinstance(trigger_words, list):
-            trigger_words = []
-        trigger_words = _dedupe_text_values(trigger_words)
-        if trigger_words:
-            return str(path), trigger_words
-        json_trigger_words = _get_lora_manager_trigger_words(str(path))
-        return str(path), json_trigger_words
-    except Exception:
-        return fallback_path, []
-
-
-def _correct_style_prompt(prompt: str) -> str:
-    return _correct_builder_prompt(prompt)
-
-
-
-def _format_strength(value: float) -> str:
-    text = f"{float(value):.6f}".rstrip("0").rstrip(".")
-    return text or "0"
-
-
-def _select_profile_values(
-    profile_index: int,
-    profile_count: int,
-    profile_data: str,
-    style_prompt: str,
-    kwargs: dict,
-) -> tuple[str, list[dict], int]:
-    selected_index = _wrap_profile_index(profile_index, profile_count)
-    profile = _load_profile_data(profile_data).get(_profile_key(selected_index), {})
-    selected_style = str(profile.get("style_prompt", style_prompt or ""))
-    profile_loras = profile.get("loras")
-    if isinstance(profile_loras, list):
-        loras = [item for item in profile_loras if isinstance(item, dict)]
-    else:
-        loras = _get_loras_list(kwargs)
-    return selected_style, loras, selected_index
-
-
-def _lora_combo_values() -> list[str]:
-    try:
-        import folder_paths  # type: ignore
-
-        names = [str(name) for name in folder_paths.get_filename_list("loras")]
-    except Exception:
-        names = []
-    values = ["None"]
-    seen = {"none"}
-    for name in names:
-        text = str(name or "").strip()
-        if not text:
-            continue
-        key = text.casefold()
-        if key in seen:
-            continue
-        seen.add(key)
-        values.append(text)
-    return values
-
-
-def _lora_model_exists(lora_name: str) -> bool | None:
-    name = str(lora_name or "").strip()
-    if not name or name == "None":
-        return True
-
-    try:
-        import folder_paths  # type: ignore
-    except Exception:
-        return None
-
-    candidates = _dedupe_text_values((
-        name,
-        name.replace("\\", "/"),
-        name.replace("/", os.sep),
-    ))
-    for candidate in candidates:
-        if folder_paths.get_full_path("loras", candidate):
-            return True
-    return False
-
-
-def _missing_lora_display_name(input_name: str, stack_name: str) -> str:
-    input_text = str(input_name or "").strip()
-    stack_text = str(stack_name or "").strip()
-    if not input_text or input_text == stack_text:
-        return stack_text
-    normalized_input = input_text.replace("\\", "/").casefold()
-    normalized_stack = stack_text.replace("\\", "/").casefold()
-    if normalized_input == normalized_stack:
-        return stack_text
-    return f"{stack_text} (input: {input_text})"
-
-
-def _raise_missing_loras(profile_index: int, missing_loras: list[str]):
-    if not missing_loras:
-        return
-    lines = "\n".join(f"- {name}" for name in missing_loras)
-    message = (
-        "[EasyUse Anima] LoRA Preset profile "
-        f"{profile_index} contains missing LoRA model(s):\n"
-        f"{lines}\n"
-        "Install the missing file under ComfyUI/models/loras or remove it from the profile."
-    )
-    logger.error(message)
-    raise RuntimeError(message)
-
-
-class EasyUseAnimaPromptCorrector:
-    """ANIMA prompt order correction node."""
-
-    DESCRIPTION = (
-        "Normalizes ANIMA prompt text, keeps natural-language casing, reorders known "
-        "ANIMA sections, and reports unknown or duplicate tags."
-    )
-    OUTPUT_TOOLTIPS = (
-        "Prompt text after ANIMA ordering and syntax cleanup.",
-        "JSON report containing changed state, unknown tags, duplicate tags, warnings, and sections.",
-    )
-
-    @classmethod
-    def INPUT_TYPES(cls):
-        return {
-            "required": {
-                "prompt": ("STRING", {
-                    "multiline": True,
-                    "default": "",
-                    "tooltip": "Comma-separated prompt text to normalize and reorder for ANIMA.",
-                }),
-                "artist_overrides": ("STRING", {
-                    "multiline": True,
-                    "default": "",
-                    "tooltip": "Comma- or newline-separated manual triggers to treat like artist tags.",
-                }),
-                "artist_exclusions": ("STRING", {
-                    "multiline": True,
-                    "default": "",
-                    "tooltip": "Comma- or newline-separated triggers that must not be treated as artists.",
-                }),
-            }
-        }
-
-    RETURN_TYPES = ("STRING", "STRING")
-    RETURN_NAMES = ("corrected_prompt", "report")
-    FUNCTION = "correct"
-    CATEGORY = "EasyUse Anima/Prompt"
-
-    @classmethod
-    def IS_CHANGED(cls, **kwargs):
-        return _stable_change_key({
-            "mode": "prompt_corrector",
-            "prompt_translation": _prompt_translation_change_key(),
-            **{key: str(value) for key, value in sorted(kwargs.items())},
-        })
-
-    def correct(
-        self,
-        prompt: str,
-        artist_overrides: str,
-        artist_exclusions: str,
-    ):
-        prompt = _translate_prompt_text(prompt)
-        try:
-            kb = load_knowledge_base(allow_missing=True)
-            result = correct_prompt(
-                str(prompt or ""),
-                profile="prompt",
-                knowledge_base=kb,
-                validate_artist_tags=False,
-                artist_overrides=_split_tag_text(artist_overrides),
-                artist_exclusions=_split_tag_text(artist_exclusions),
-            )
-        except Exception as exc:
-            raise RuntimeError(f"[EasyUse Anima] prompt correction failed: {exc}") from exc
-
-        report = {
-            "changed": result.changed,
-            "unknown_tags": list(result.unknown_tags),
-            "duplicate_tags": list(result.duplicate_tags),
-            "warnings": list(result.warnings),
-            "sections": result.report.get("sections", []),
-        }
-        return (
-            result.text,
-            json.dumps(report, ensure_ascii=False, indent=2),
-        )
-
-
-class EasyUseAnimaPromptCorrectorSimple:
-    """Single-input ANIMA prompt correction node."""
-
-    DESCRIPTION = (
-        "Simplified ANIMA prompt correction node. It accepts one multiline prompt "
-        "and returns only the corrected prompt string."
-    )
-    OUTPUT_TOOLTIPS = (
-        "Prompt text after ANIMA ordering and syntax cleanup.",
-    )
-
-    @classmethod
-    def INPUT_TYPES(cls):
-        return {
-            "required": {
-                "prompt": ("STRING", {
-                    "multiline": True,
-                    "default": "",
-                    "tooltip": "Comma-separated prompt text to normalize and reorder for ANIMA.",
-                }),
-            }
-        }
-
-    RETURN_TYPES = ("STRING",)
-    RETURN_NAMES = ("prompt",)
-    FUNCTION = "correct"
-    CATEGORY = "EasyUse Anima/Prompt"
-
-    @classmethod
-    def IS_CHANGED(cls, **kwargs):
-        return _stable_change_key({
-            "mode": "prompt_corrector_simple",
-            "prompt_translation": _prompt_translation_change_key(),
-            **{key: str(value) for key, value in sorted(kwargs.items())},
-        })
-
-    def correct(self, prompt: str):
-        corrected, _report = EasyUseAnimaPromptCorrector().correct(
-            prompt,
-            "",
-            "",
-        )
-        return (corrected,)
-
-
-class EasyUseAnimaWildcard:
-    """Expand Impact Pack compatible wildcard and dynamic prompt syntax."""
-
-    DESCRIPTION = (
-        "Expands EasyUse Anima wildcard files and dynamic prompt syntax with fixed, sequential, "
-        "and reproducible modes."
-    )
-    OUTPUT_TOOLTIPS = (
-        "Expanded prompt text.",
-        "Seed after applying the seed control option.",
-    )
-
-    @classmethod
-    def INPUT_TYPES(cls):
-        return {
-            "required": {
-                "text": ("STRING", {
-                    "multiline": True,
-                    "default": "",
-                    "tooltip": "Prompt text with wildcard syntax such as __style__ or {2::a|5::b|c}.",
-                }),
-                "populated_text": ("STRING", {
-                    "multiline": True,
-                    "default": "",
-                    "tooltip": "Cached expanded prompt used by fixed and reproduce modes.",
-                }),
-                "mode": (WILDCARD_MODE_LABELS, {
-                    "default": WILDCARD_MODE_LABELS[0],
-                    "tooltip": (
-                        "일반 채우기: seed-based random fill. 고정/재현: cached text. "
-                        "순차: seed modulo each wildcard option count."
-                    ),
-                }),
-                "seed": ("INT", {
-                    "default": 0,
-                    "min": 0,
-                    "max": MAX_SEED,
-                    "tooltip": (
-                        "Wildcard seed. Sequential mode uses seed % option_count for each wildcard. "
-                        f"{WILDCARD_SEED_RANGE_NOTE}"
-                    ),
-                }),
-                "seed_after_generate": (SEED_CONTROL_MODES, {
-                    "default": SEED_CONTROL_FIXED,
-                    "tooltip": "Seed control after generation: fixed, randomize, increment, or decrement.",
-                }),
-            },
-            "hidden": {
-                "workflow_prompt": "PROMPT",
-                "extra_pnginfo": "EXTRA_PNGINFO",
-                "unique_id": "UNIQUE_ID",
-            },
-            "optional": _FlexibleOptionalInputType("STRING"),
-        }
-
-    RETURN_TYPES = ("STRING", "INT")
-    RETURN_NAMES = ("text", "seed")
-    FUNCTION = "generate"
-    CATEGORY = "EasyUse Anima/Prompt"
-
-    @classmethod
-    def _widget_input_names(cls):
-        return tuple(cls.INPUT_TYPES().get("required", {}).keys())
-
-    @classmethod
-    def IS_CHANGED(cls, **kwargs):
-        mode = normalize_wildcard_mode(kwargs.get("mode", WILDCARD_MODE_LABELS[0]))
-        seed_control = str(kwargs.get("seed_after_generate", SEED_CONTROL_FIXED) or "")
-        text = str(kwargs.get("text", "") or "")
-        if (
-            mode in {WILDCARD_MODE_POPULATE, WILDCARD_MODE_FIXED, WILDCARD_MODE_SEQUENTIAL}
-            and seed_control == SEED_CONTROL_RANDOMIZE
-            and has_wildcard_syntax(text)
-        ):
-            return float("nan")
-        return _stable_change_key({
-            "mode": "wildcard",
-            "wildcard_sources": wildcard_sources_signature(),
-            **{key: str(value) for key, value in sorted(kwargs.items())},
-        })
-
-    @classmethod
-    def _update_metadata_cache(
-        cls,
-        workflow_prompt,
-        extra_pnginfo,
-        unique_id,
-        populated_text: str,
-        mode: str,
-        seed: int,
-    ) -> None:
-        node_id = _single_value(unique_id)
-        if node_id is None:
-            return
-        node_id = str(node_id)
-        updates = {
-            "populated_text": populated_text,
-            "mode": mode,
-            "seed": int(seed),
-        }
-
-        if isinstance(workflow_prompt, dict):
-            prompt_node = workflow_prompt.get(node_id)
-            if isinstance(prompt_node, dict):
-                inputs = prompt_node.setdefault("inputs", {})
-                for name, value in updates.items():
-                    inputs[name] = value
-
-        workflow_node = _get_workflow_node(extra_pnginfo, node_id)
-        if workflow_node is None:
-            return
-
-        input_names = cls._widget_input_names()
-        widgets_values = workflow_node.setdefault("widgets_values", [])
-        for name, value in updates.items():
-            if name not in input_names:
-                continue
-            index = input_names.index(name)
-            while len(widgets_values) <= index:
-                widgets_values.append(None)
-            widgets_values[index] = value
-
-    @staticmethod
-    def _ui(
-        populated_text: str,
-        mode: str,
-        seed: int,
-        status: str,
-        used_keys: tuple[str, ...],
-        missing_keys: tuple[str, ...],
-    ):
-        return {
-            "wildcard": [{
-                "populated_text": populated_text,
-                "mode": mode,
-                "seed": seed,
-                "status": status,
-                "used_keys": list(used_keys),
-                "missing_keys": list(missing_keys),
-            }]
-        }
-
-    def generate(
-        self,
-        text: str,
-        populated_text: str,
-        mode: str,
-        seed: int,
-        seed_after_generate: str,
-        workflow_prompt=None,
-        extra_pnginfo=None,
-        unique_id=None,
-        **reservation_inputs,
-    ):
-        mode_key = normalize_wildcard_mode(mode)
-        seed_value = normalize_seed(seed)
-        used_keys: tuple[str, ...] = ()
-        missing_keys: tuple[str, ...] = ()
-
-        if mode_key == WILDCARD_MODE_REPRODUCE:
-            output_text = str(populated_text if populated_text else text or "")
-            status = mode_key
-            metadata_mode = str(mode or WILDCARD_MODE_LABELS[3])
-        else:
-            expansion = expand_wildcards(str(text or ""), seed=seed_value, mode=mode_key)
-            output_text = expansion.text
-            used_keys = expansion.used_keys
-            missing_keys = expansion.missing_keys
-            status = WILDCARD_MODE_SEQUENTIAL if mode_key == WILDCARD_MODE_SEQUENTIAL else mode_key
-            metadata_mode = WILDCARD_MODE_LABELS[3]
-
-        effective_seed_control = (
-            SEED_CONTROL_INCREMENT
-            if mode_key == WILDCARD_MODE_SEQUENTIAL
-            else seed_after_generate
-        )
-        reserved_next_seed = _consume_reserved_wildcard_next_seed(
-            reservation_inputs,
-            workflow_prompt,
-            unique_id,
-            seed_value,
-            mode_key,
-            effective_seed_control,
-        )
-        next_seed_value = (
-            reserved_next_seed
-            if reserved_next_seed is not None
-            else next_seed(seed_value, effective_seed_control)
-        )
-        self._update_metadata_cache(
-            workflow_prompt,
-            extra_pnginfo,
-            unique_id,
-            output_text,
-            metadata_mode,
-            seed_value,
-        )
-        return {
-            "ui": self._ui(
-                output_text,
-                str(mode or WILDCARD_MODE_LABELS[0]),
-                next_seed_value,
-                status,
-                used_keys,
-                missing_keys,
-            ),
-            "result": (output_text, next_seed_value),
-        }
-
-
-class EasyUseAnimaPromptBuilder:
-    """Build cleaned ANIMA prompts for NAIA and Anima Mod Guidance workflows."""
-
-    DESCRIPTION = (
-        "Combines quality, trigger, LoRA trigger, body, and trailing prompt fields into "
-        "ANIMA-friendly prompt outputs, including metadata and Mod Guidance outputs."
-    )
-    OUTPUT_TOOLTIPS = (
-        "Final positive prompt. When Mod Guidance is enabled, leading quality tags are excluded.",
-        "Quality prompt text intended for Anima Mod Guidance.",
-        "Boolean flag passed through for Anima Mod Guidance workflow control.",
-        "Prompt text for metadata, independent from Mod Guidance routing and metadata filters.",
-    )
-
-    @classmethod
-    def INPUT_TYPES(cls):
-        return {
-            "required": {
-                "use_anima_mod_guidance": ("BOOLEAN", {
-                    "default": False,
-                    "tooltip": (
-                        "true: output prompt excludes quality fields and sends them "
-                        "through anima_mod_guidance_quality_tags."
-                    ),
-                }),
-                "pin_trigger_tags_to_front": ("BOOLEAN", {
-                    "default": False,
-                    "tooltip": (
-                        "true: keep trigger/artist and LoRA trigger fields at the very front "
-                        "instead of placing quality tags before them."
-                    ),
-                }),
-                "lora_trigger_tags": ("STRING", {
-                    "multiline": False,
-                    "default": "",
-                    "tooltip": "One-line trigger tags received from a LoRA manager or pasted manually.",
-                }),
-                "quality_tags": ("STRING", {
-                    "multiline": True,
-                    "default": DEFAULT_QUALITY_TAGS,
-                    "tooltip": "Leading quality tags. With AMG enabled, these are excluded from prompt output.",
-                }),
-                "trigger_and_artist_tags": ("STRING", {
-                    "multiline": True,
-                    "default": "",
-                    "tooltip": "Manual model triggers and @artist tags.",
-                }),
-                "prompt": ("STRING", {
-                    "multiline": True,
-                    "default": "",
-                    "tooltip": "Main prompt body. This is the expected place for NAIA output.",
-                }),
-                "trailing_quality_tags": ("STRING", {
-                    "multiline": True,
-                    "default": DEFAULT_TRAILING_QUALITY_TAGS,
-                    "tooltip": "Trailing quality or style tags.",
-                }),
-            }
-        }
-
-    RETURN_TYPES = ("STRING", "STRING", "BOOLEAN", "STRING")
-    RETURN_NAMES = (
-        "prompt",
-        "anima_mod_guidance_quality_tags",
-        "use_anima_mod_guidance",
-        "metadata_prompt",
-    )
-    FUNCTION = "build"
-    CATEGORY = "EasyUse Anima/Prompt"
-
-    @classmethod
-    def IS_CHANGED(cls, **kwargs):
-        return _stable_change_key({
-            "mode": "prompt_builder",
-            "metadata_filter_words": resolve_metadata_filter_words(),
-            "prompt_translation": _prompt_translation_change_key(),
-            **{key: str(value) for key, value in sorted(kwargs.items())},
-        })
-
-    def build(
-        self,
-        use_anima_mod_guidance: bool,
-        pin_trigger_tags_to_front: bool,
-        quality_tags: str,
-        trigger_and_artist_tags: str,
-        lora_trigger_tags: str,
-        prompt: str,
-        trailing_quality_tags: str,
-    ):
-        use_amg = _as_bool(use_anima_mod_guidance, False)
-        pin_triggers = _as_bool(pin_trigger_tags_to_front, False)
-        quality_tags = _translate_prompt_text(quality_tags)
-        trigger_and_artist_tags = _translate_prompt_text(trigger_and_artist_tags)
-        lora_trigger_tags = _translate_prompt_text(lora_trigger_tags)
-        prompt = _translate_prompt_text(prompt)
-        trailing_quality_tags = _translate_prompt_text(trailing_quality_tags)
-
-        trigger_prompt = _join_prompt_tokens(trigger_and_artist_tags, lora_trigger_tags)
-        quality_prompt = _join_prompt_tokens(quality_tags)
-        body_prompt = _join_prompt_tokens(prompt)
-        trailing_prompt = _join_prompt_tokens(trailing_quality_tags)
-
-        if pin_triggers:
-            metadata_body = _correct_builder_prompt(
-                _join_prompt_tokens(quality_tags, body_prompt)
-            )
-            regular_prompt = _join_prompt_tokens(trigger_prompt, metadata_body, trailing_prompt)
-            amg_prompt = _join_prompt_tokens(
-                trigger_prompt,
-                _correct_builder_prompt(body_prompt),
-                trailing_prompt,
-            )
-            metadata_prompt = regular_prompt
-        else:
-            metadata_core = _correct_builder_prompt(
-                _join_prompt_tokens(
-                    quality_tags,
-                    trigger_prompt,
-                    body_prompt,
-                ),
-                artist_overrides=trigger_prompt,
-            )
-            metadata_prompt = _join_prompt_tokens(metadata_core, trailing_prompt)
-            regular_prompt = metadata_prompt
-            amg_core = _correct_builder_prompt(
-                _join_prompt_tokens(trigger_prompt, body_prompt),
-                artist_overrides=trigger_prompt,
-            )
-            amg_prompt = _join_prompt_tokens(amg_core, trailing_prompt)
-
-        metadata_prompt = _filter_metadata_prompt(
-            metadata_prompt,
-            resolve_metadata_filter_words(),
-        )
-        output_prompt = amg_prompt if use_amg else regular_prompt
-
-        return (
-            output_prompt,
-            quality_prompt,
-            use_amg,
-            metadata_prompt,
-        )
-
-
-class EasyUseAnimaPromptStudio(EasyUseAnimaPromptBuilder):
-    """Prompt Builder variant with enhanced front-end editing helpers."""
-
-    DESCRIPTION = (
-        "An enhanced Prompt Builder with front-end editing, autocomplete, and tag highlighting helpers."
-    )
-
-    @classmethod
-    def INPUT_TYPES(cls):
-        return {
-            "required": {
-                "use_anima_mod_guidance": ("BOOLEAN", {
-                    "default": False,
-                    "tooltip": (
-                        "true: output prompt excludes quality fields and sends them "
-                        "through anima_mod_guidance_quality_tags."
-                    ),
-                }),
-                "pin_trigger_tags_to_front": ("BOOLEAN", {
-                    "default": False,
-                    "tooltip": (
-                        "true: keep trigger/artist and LoRA trigger fields at the very front "
-                        "instead of placing quality tags before them."
-                    ),
-                }),
-                "lora_trigger_tags": ("STRING", {
-                    "multiline": False,
-                    "default": "",
-                    "tooltip": "One-line trigger tags received from a LoRA manager or pasted manually.",
-                }),
-                "quality_tags": ("STRING", {
-                    "multiline": True,
-                    "default": DEFAULT_QUALITY_TAGS,
-                    "tooltip": "Leading quality tags. With AMG enabled, these are excluded from prompt output.",
-                }),
-                "trigger_and_artist_tags": ("STRING", {
-                    "multiline": True,
-                    "default": "",
-                    "tooltip": "Manual model triggers and @artist tags.",
-                }),
-                "prompt": ("STRING", {
-                    "multiline": True,
-                    "default": "",
-                    "tooltip": "Main prompt body. This is the expected place for NAIA output.",
-                }),
-                "trailing_quality_tags": ("STRING", {
-                    "multiline": True,
-                    "default": DEFAULT_TRAILING_QUALITY_TAGS,
-                    "tooltip": "Trailing quality or style tags.",
-                }),
-            }
-        }
-
-    CATEGORY = "EasyUse Anima/Prompt"
-
-    def build(
-        self,
-        use_anima_mod_guidance: bool,
-        pin_trigger_tags_to_front: bool,
-        quality_tags: str,
-        trigger_and_artist_tags: str,
-        lora_trigger_tags: str,
-        prompt: str,
-        trailing_quality_tags: str,
-    ):
-        result = super().build(
-            use_anima_mod_guidance,
-            pin_trigger_tags_to_front,
-            quality_tags,
-            trigger_and_artist_tags,
-            lora_trigger_tags,
-            prompt,
-            trailing_quality_tags,
-        )
-        return {
-            "ui": {
-                "prompt_studio_inputs": [{
-                    "lora_trigger_tags": str(lora_trigger_tags or ""),
-                    "quality_tags": str(quality_tags or ""),
-                    "trigger_and_artist_tags": str(trigger_and_artist_tags or ""),
-                    "prompt": str(prompt or ""),
-                    "trailing_quality_tags": str(trailing_quality_tags or ""),
-                }]
-            },
-            "result": result,
-        }
+_bind_conditioning_runtime(
+    resolve_helper=lambda name: globals()[name],
+    resolve_logger=lambda: logger,
+)
+_bind_artist_mix_runtime(
+    resolve_helper=lambda name: globals()[name],
+)
+_bind_prompt_data_node_runtime(
+    resolve_helper=lambda name: globals()[name],
+)
+_bind_prompt_fields_runtime(
+    resolve_helper=lambda name: globals()[name],
+)
+_bind_prompt_correction_runtime(
+    resolve_helper=lambda name: globals()[name],
+)
+_bind_prompt_node_runtime(
+    resolve_helper=lambda name: globals()[name],
+)
+_bind_wildcard_node_runtime(
+    get_workflow_node=lambda *args, **kwargs: _get_workflow_node(*args, **kwargs),
+    consume_reserved_next_seed=lambda *args, **kwargs: _consume_reserved_wildcard_next_seed(*args, **kwargs),
+    expand=lambda *args, **kwargs: expand_wildcards(*args, **kwargs),
+    has_syntax=lambda *args, **kwargs: has_wildcard_syntax(*args, **kwargs),
+    next_seed_value=lambda *args, **kwargs: next_seed(*args, **kwargs),
+    normalize_seed_value=lambda *args, **kwargs: normalize_seed(*args, **kwargs),
+    normalize_mode=lambda *args, **kwargs: normalize_wildcard_mode(*args, **kwargs),
+    sources_signature=lambda *args, **kwargs: wildcard_sources_signature(*args, **kwargs),
+)
+_bind_naia_node_runtime(
+    resolve_settings=lambda: resolve_naia_settings(),
+    get_workflow_node=lambda *args, **kwargs: _get_workflow_node(*args, **kwargs),
+    post_random=lambda *args, **kwargs: _post_random(*args, **kwargs),
+    parse_random_response=lambda *args, **kwargs: _parse_random_response(*args, **kwargs),
+)
+_bind_lora_metadata_runtime(
+    prompt_tokens=lambda *args, **kwargs: _prompt_tokens(*args, **kwargs),
+    resolve_helper=lambda name: globals()[name],
+    resolve_logger=lambda: logger,
+)
+_bind_lora_preset_runtime(
+    correct_builder_prompt=lambda *args, **kwargs: _correct_builder_prompt(*args, **kwargs),
+    resolve_helper=lambda name: globals()[name],
+)
+_bind_lora_node_runtime(
+    resolve_helper=lambda name: globals()[name],
+    flexible_optional_input_type=_FlexibleOptionalInputType,
+    any_type=_ANY_TYPE,
+)
 
 
 class EasyUseAnimaPromptStudioAdvanced:
@@ -8974,7 +6054,6 @@ class EasyUseAnimaPromptStudioAdvanced:
     ):
         fields = _normalize_advanced_fields(advanced_fields)
         saved_fields = _clone_advanced_fields(fields)
-        effective_fields = _apply_advanced_field_inputs(fields, field_inputs)
         effective_field_inputs = _advanced_field_input_values(field_inputs)
         requested_use_naia = _as_bool(use_naia, False)
         enabled_naia_panes = _advanced_enabled_naia_panes(fields)
@@ -8984,6 +6063,14 @@ class EasyUseAnimaPromptStudioAdvanced:
         metadata_updates: dict[str, Any] = {}
         ui_updates: dict[str, Any] = {}
         wildcard_mode_key = normalize_wildcard_mode(wildcard_mode)
+        effective_fields = (
+            _apply_advanced_field_inputs(
+                saved_fields,
+                _reproduce_connected_field_inputs(effective_field_inputs),
+            )
+            if wildcard_mode_key == WILDCARD_MODE_REPRODUCE
+            else _apply_advanced_field_inputs(fields, effective_field_inputs)
+        )
         wildcard_seed_value = normalize_seed(wildcard_seed)
         wildcard_effective_seed_control = (
             SEED_CONTROL_INCREMENT
@@ -9045,6 +6132,7 @@ class EasyUseAnimaPromptStudioAdvanced:
             metadata_use_naia = False
 
         ui_fields = _clone_advanced_fields(saved_fields)
+        effective_source_fields = _clone_advanced_fields(effective_fields)
         saved_fields, saved_wildcard = _expand_advanced_wildcard_fields(
             saved_fields,
             wildcard_seed_value,
@@ -9054,6 +6142,12 @@ class EasyUseAnimaPromptStudioAdvanced:
             effective_fields,
             wildcard_seed_value,
             wildcard_mode_key,
+        )
+        _preserve_expanded_connected_field_texts(
+            saved_fields,
+            effective_source_fields,
+            effective_fields,
+            effective_field_inputs,
         )
         effective_fields = _translate_prompt_fields(effective_fields)
         wildcard_changed = bool(saved_wildcard["changed"] or effective_wildcard["changed"])
@@ -9377,12 +6471,19 @@ class EasyUseAnimaPromptStudioAdvancedV2(EasyUseAnimaPromptStudioAdvanced):
             })
         saved_fields = _normalize_advanced_fields(ui_payload.get("advanced_fields", advanced_fields))
         effective_field_inputs = _advanced_field_input_values(ui_payload.get("field_inputs") or field_inputs)
-        effective_fields = _apply_advanced_field_inputs(saved_fields, effective_field_inputs)
-        effective_fields, _wildcard = _expand_advanced_wildcard_fields(
-            effective_fields,
-            normalize_seed(wildcard_seed),
-            normalize_wildcard_mode(wildcard_mode),
-        )
+        wildcard_mode_key = normalize_wildcard_mode(wildcard_mode)
+        if wildcard_mode_key == WILDCARD_MODE_REPRODUCE:
+            effective_fields = _apply_advanced_field_inputs(
+                saved_fields,
+                _reproduce_connected_field_inputs(effective_field_inputs),
+            )
+        else:
+            effective_fields = _apply_advanced_field_inputs(saved_fields, effective_field_inputs)
+            effective_fields, _wildcard = _expand_advanced_wildcard_fields(
+                effective_fields,
+                normalize_seed(wildcard_seed),
+                wildcard_mode_key,
+            )
         effective_fields = _translate_prompt_fields(effective_fields)
         prompt_data_parameters = _prompt_data_parameter_snapshot(
             self.INPUT_TYPES().get("required", {}),
@@ -9445,624 +6546,10 @@ class EasyUseAnimaPromptStudioAdvancedV2(EasyUseAnimaPromptStudioAdvanced):
         }
 
 
-class EasyUseAnimaPromptDataUnpack:
-    """Expand EASYUSE_ANIMA_PROMPT_DATA into compatibility outputs."""
-
-    DESCRIPTION = (
-        "Expands an EASYUSE_ANIMA_PROMPT_DATA dict into Prompt Studio compatibility "
-        "outputs, accepts optional override inputs, and passes prompt data through "
-        "for context-style chaining."
-    )
-    OUTPUT_TOOLTIPS = (
-        "Pass-through prompt data for downstream prompt-data nodes.",
-        *EasyUseAnimaPromptStudioAdvanced.OUTPUT_TOOLTIPS,
-    )
-
-    @classmethod
-    def INPUT_TYPES(cls):
-        optional = {
-            "positive_prompt": ("STRING", {
-                "forceInput": True,
-                "tooltip": "Optional override for prompt_data positive_prompt.",
-            }),
-            "negative_prompt": ("STRING", {
-                "forceInput": True,
-                "tooltip": "Optional override for prompt_data negative_prompt.",
-            }),
-            "anima_mod_guidance_quality_tags": ("STRING", {
-                "forceInput": True,
-                "tooltip": "Optional override for prompt_data Mod Guidance quality tags.",
-            }),
-            "anima_mod_guidance_negative_prompt": ("STRING", {
-                "forceInput": True,
-                "tooltip": "Optional override for prompt_data Mod Guidance negative prompt.",
-            }),
-            "use_anima_mod_guidance": ("BOOLEAN", {
-                "forceInput": True,
-                "tooltip": "Optional override for prompt_data Mod Guidance enabled flag.",
-            }),
-            "use_negative_anima_mod_guidance": ("BOOLEAN", {
-                "forceInput": True,
-                "tooltip": "Optional override for prompt_data negative Mod Guidance enabled flag.",
-            }),
-            "metadata_prompt": ("STRING", {
-                "forceInput": True,
-                "tooltip": "Optional override for prompt_data metadata_prompt.",
-            }),
-            "metadata_negative_prompt": ("STRING", {
-                "forceInput": True,
-                "tooltip": "Optional override for prompt_data metadata_negative_prompt.",
-            }),
-            "width": ("INT", {
-                "forceInput": True,
-                "tooltip": "Optional override for prompt_data latent width.",
-            }),
-            "height": ("INT", {
-                "forceInput": True,
-                "tooltip": "Optional override for prompt_data latent height.",
-            }),
-        }
-        return {
-            "required": {
-                PROMPT_DATA_TYPE: (PROMPT_DATA_TYPE, {
-                    "forceInput": True,
-                    "tooltip": "Structured prompt data from Anima Prompt Studio Advanced v2.",
-                }),
-            },
-            "optional": optional,
-        }
-
-    RETURN_TYPES = (PROMPT_DATA_TYPE, *EasyUseAnimaPromptStudioAdvanced.RETURN_TYPES)
-    RETURN_NAMES = (PROMPT_DATA_TYPE, *EasyUseAnimaPromptStudioAdvanced.RETURN_NAMES)
-    FUNCTION = "unpack"
-    CATEGORY = "EasyUse Anima/Prompt"
-
-    @classmethod
-    def IS_CHANGED(
-        cls,
-        EASYUSE_ANIMA_PROMPT_DATA: str | dict | None = None,
-        prompt_data: str | dict | None = None,
-        **kwargs,
-    ):
-        data = EASYUSE_ANIMA_PROMPT_DATA if EASYUSE_ANIMA_PROMPT_DATA is not None else prompt_data
-        return _stable_change_key({
-            "mode": "prompt_data_unpack",
-            "prompt_data": _apply_prompt_data_overrides(data, kwargs),
-        })
-
-    def unpack(
-        self,
-        EASYUSE_ANIMA_PROMPT_DATA: str | dict | None = None,
-        prompt_data: str | dict | None = None,
-        **overrides,
-    ):
-        data = _apply_prompt_data_overrides(
-            EASYUSE_ANIMA_PROMPT_DATA if EASYUSE_ANIMA_PROMPT_DATA is not None else prompt_data,
-            overrides,
-        )
-        return (data, *_advanced_outputs_from_prompt_data(data))
 
 
-class EasyUseAnimaArtistMixConditioning:
-    """Standalone artist-tag positioning and artist mix CONDITIONING node."""
-
-    DESCRIPTION = (
-        "Applies artist tags to a regular prompt, positions them with ANIMA ordering "
-        "or fixed front/back placement, and outputs positive CONDITIONING. Artist mix "
-        "modes can be used without Prompt Studio prompt data."
-    )
-    OUTPUT_TOOLTIPS = (
-        "Positive CONDITIONING encoded from prompt plus artist tags.",
-    )
-
-    @classmethod
-    def INPUT_TYPES(cls):
-        return {
-            "required": {
-                "clip": ("CLIP", {
-                    "tooltip": "CLIP used to encode the prompt and artist tags.",
-                }),
-                "prompt": ("STRING", {
-                    "multiline": True,
-                    "default": "",
-                    "tooltip": "Base positive prompt without the standalone artist tags.",
-                }),
-                "artist_tags": ("STRING", {
-                    "multiline": True,
-                    "default": "",
-                    "tooltip": (
-                        "Comma- or newline-separated artist tags. (artist:1.2) sets a mix weight. "
-                        "[[artist_a, artist_b:0.7]] keeps multiple artists in one mix branch."
-                    ),
-                }),
-                "artist_position": (list(ARTIST_TAG_POSITION_MODES), {
-                    "default": ARTIST_TAG_POSITION_CORRECT,
-                    "tooltip": (
-                        "correct applies ANIMA prompt ordering, front pins artists before "
-                        "the prompt, and back pins artists after the prompt."
-                    ),
-                }),
-                "artist_mix_mode": (list(ARTIST_MIX_MODES), {
-                    "default": ARTIST_MIX_MODE_PROMPT,
-                    "tooltip": _artist_mix_mode_tooltip(),
-                }),
-                "artist_mix_start_percent": ("FLOAT", {
-                    "default": ARTIST_MIX_DEFAULT_START_PERCENT,
-                    "min": 0.0,
-                    "max": 1.0,
-                    "step": 0.01,
-                    "tooltip": "Start percent used by late/scheduled artist mix modes.",
-                }),
-                "artist_mix_strength_scale": ("FLOAT", {
-                    "default": ARTIST_MIX_DEFAULT_STRENGTH_SCALE,
-                    "min": 0.0,
-                    "max": 5.0,
-                    "step": 0.01,
-                    "tooltip": "Strength multiplier used by exact artist mix modes.",
-                }),
-                "artist_mix_style_gain": ("FLOAT", {
-                    "default": ARTIST_MIX_DEFAULT_STYLE_GAIN,
-                    "min": 0.0,
-                    "max": 3.0,
-                    "step": 0.01,
-                    "tooltip": "Style delta gain used by delta_rms, hybrid tail, and clustered compressed branches.",
-                }),
-                "artist_mix_rms_scale_cap": ("FLOAT", {
-                    "default": ARTIST_MIX_DEFAULT_RMS_SCALE_CAP,
-                    "min": 1.0,
-                    "max": 5.0,
-                    "step": 0.01,
-                    "tooltip": "Maximum RMS energy restore scale for delta_rms compressed artist branches.",
-                }),
-                "artist_mix_exact_top_k": ("INT", {
-                    "default": ARTIST_MIX_DEFAULT_EXACT_TOP_K,
-                    "min": 0,
-                    "max": 64,
-                    "tooltip": "Hybrid mode keeps this many strongest artists as exact positive branches.",
-                }),
-                "artist_mix_cluster_count": ("INT", {
-                    "default": ARTIST_MIX_DEFAULT_CLUSTER_COUNT,
-                    "min": 1,
-                    "max": 32,
-                    "tooltip": "Clustered mode compresses non-dominant artists into this many positive branches.",
-                }),
-                "artist_mix_dominant_isolation": ("BOOLEAN", {
-                    "default": ARTIST_MIX_DEFAULT_DOMINANT_ISOLATION,
-                    "tooltip": "Clustered mode keeps artists above the dominant threshold as exact branches.",
-                }),
-                "artist_mix_dominant_threshold": ("FLOAT", {
-                    "default": ARTIST_MIX_DEFAULT_DOMINANT_THRESHOLD,
-                    "min": 0.0,
-                    "max": 1.0,
-                    "step": 0.01,
-                    "tooltip": "Clustered dominant isolation threshold based on normalized artist weight.",
-                }),
-            },
-        }
-
-    RETURN_TYPES = ("CONDITIONING",)
-    RETURN_NAMES = ("positive",)
-    FUNCTION = "encode"
-    CATEGORY = "EasyUse Anima/Prompt"
-
-    @classmethod
-    def IS_CHANGED(
-        cls,
-        prompt: str = "",
-        artist_tags: str = "",
-        artist_position: str = ARTIST_TAG_POSITION_CORRECT,
-        artist_mix_mode: str = ARTIST_MIX_MODE_PROMPT,
-        artist_mix_start_percent: float = ARTIST_MIX_DEFAULT_START_PERCENT,
-        artist_mix_strength_scale: float = ARTIST_MIX_DEFAULT_STRENGTH_SCALE,
-        artist_mix_style_gain: float = ARTIST_MIX_DEFAULT_STYLE_GAIN,
-        artist_mix_rms_scale_cap: float = ARTIST_MIX_DEFAULT_RMS_SCALE_CAP,
-        artist_mix_exact_top_k: int = ARTIST_MIX_DEFAULT_EXACT_TOP_K,
-        artist_mix_cluster_count: int = ARTIST_MIX_DEFAULT_CLUSTER_COUNT,
-        artist_mix_dominant_isolation: bool = ARTIST_MIX_DEFAULT_DOMINANT_ISOLATION,
-        artist_mix_dominant_threshold: float = ARTIST_MIX_DEFAULT_DOMINANT_THRESHOLD,
-        **_kwargs,
-    ):
-        return _stable_change_key({
-            "mode": "artist_mix_conditioning",
-            "prompt": str(prompt or ""),
-            "artist_tags": str(artist_tags or ""),
-            "artist_position": _normalize_artist_tag_position(artist_position),
-            "artist_mix_mode": _normalize_artist_mix_mode(artist_mix_mode, ARTIST_MIX_MODE_PROMPT),
-            "artist_mix_start_percent": _bounded_artist_mix_float(
-                artist_mix_start_percent,
-                ARTIST_MIX_DEFAULT_START_PERCENT,
-                0.0,
-                1.0,
-            ),
-            "artist_mix_strength_scale": _bounded_artist_mix_float(
-                artist_mix_strength_scale,
-                ARTIST_MIX_DEFAULT_STRENGTH_SCALE,
-                0.0,
-                5.0,
-            ),
-            "artist_mix_style_gain": _bounded_artist_mix_float(
-                artist_mix_style_gain,
-                ARTIST_MIX_DEFAULT_STYLE_GAIN,
-                0.0,
-                3.0,
-            ),
-            "artist_mix_rms_scale_cap": _bounded_artist_mix_float(
-                artist_mix_rms_scale_cap,
-                ARTIST_MIX_DEFAULT_RMS_SCALE_CAP,
-                1.0,
-                5.0,
-            ),
-            "artist_mix_exact_top_k": _bounded_artist_mix_int(
-                artist_mix_exact_top_k,
-                ARTIST_MIX_DEFAULT_EXACT_TOP_K,
-                0,
-                64,
-            ),
-            "artist_mix_cluster_count": _bounded_artist_mix_int(
-                artist_mix_cluster_count,
-                ARTIST_MIX_DEFAULT_CLUSTER_COUNT,
-                1,
-                32,
-            ),
-            "artist_mix_dominant_isolation": _as_bool(
-                artist_mix_dominant_isolation,
-                ARTIST_MIX_DEFAULT_DOMINANT_ISOLATION,
-            ),
-            "artist_mix_dominant_threshold": _bounded_artist_mix_float(
-                artist_mix_dominant_threshold,
-                ARTIST_MIX_DEFAULT_DOMINANT_THRESHOLD,
-                0.0,
-                1.0,
-            ),
-        })
-
-    def encode(
-        self,
-        clip,
-        prompt: str = "",
-        artist_tags: str = "",
-        artist_position: str = ARTIST_TAG_POSITION_CORRECT,
-        artist_mix_mode: str = ARTIST_MIX_MODE_PROMPT,
-        artist_mix_start_percent: float = ARTIST_MIX_DEFAULT_START_PERCENT,
-        artist_mix_strength_scale: float = ARTIST_MIX_DEFAULT_STRENGTH_SCALE,
-        artist_mix_style_gain: float = ARTIST_MIX_DEFAULT_STYLE_GAIN,
-        artist_mix_rms_scale_cap: float = ARTIST_MIX_DEFAULT_RMS_SCALE_CAP,
-        artist_mix_exact_top_k: int = ARTIST_MIX_DEFAULT_EXACT_TOP_K,
-        artist_mix_cluster_count: int = ARTIST_MIX_DEFAULT_CLUSTER_COUNT,
-        artist_mix_dominant_isolation: bool = ARTIST_MIX_DEFAULT_DOMINANT_ISOLATION,
-        artist_mix_dominant_threshold: float = ARTIST_MIX_DEFAULT_DOMINANT_THRESHOLD,
-    ):
-        position = _normalize_artist_tag_position(artist_position)
-        mode = _normalize_artist_mix_mode(artist_mix_mode, ARTIST_MIX_MODE_PROMPT)
-        base_prompt = _join_prompt_tokens(prompt)
-        artist_prompt = _join_artist_mix_source_prompts(artist_tags)
-        if mode == ARTIST_MIX_MODE_PROMPT:
-            return (_encode_with_comfy_clip(
-                clip,
-                _artist_prompt_with_position(base_prompt, _artist_mix_inline_prompt(artist_prompt), position),
-            ),)
-
-        prompt_data = {
-            "positive_prompt": base_prompt,
-            "positive_without_artist_section": base_prompt,
-            "artist_position": position,
-            "artist_mix": {
-                "enabled": True,
-                "mode": mode,
-                "artist_position": position,
-                "base_source": "positive_without_artist_section",
-                "base_prompt": base_prompt,
-                "artist_prompt": artist_prompt,
-                "start_percent": _bounded_artist_mix_float(
-                    artist_mix_start_percent,
-                    ARTIST_MIX_DEFAULT_START_PERCENT,
-                    0.0,
-                    1.0,
-                ),
-                "strength_scale": _bounded_artist_mix_float(
-                    artist_mix_strength_scale,
-                    ARTIST_MIX_DEFAULT_STRENGTH_SCALE,
-                    0.0,
-                    5.0,
-                ),
-                "style_gain": _bounded_artist_mix_float(
-                    artist_mix_style_gain,
-                    ARTIST_MIX_DEFAULT_STYLE_GAIN,
-                    0.0,
-                    3.0,
-                ),
-                "rms_scale_cap": _bounded_artist_mix_float(
-                    artist_mix_rms_scale_cap,
-                    ARTIST_MIX_DEFAULT_RMS_SCALE_CAP,
-                    1.0,
-                    5.0,
-                ),
-                "exact_top_k": _bounded_artist_mix_int(
-                    artist_mix_exact_top_k,
-                    ARTIST_MIX_DEFAULT_EXACT_TOP_K,
-                    0,
-                    64,
-                ),
-                "cluster_count": _bounded_artist_mix_int(
-                    artist_mix_cluster_count,
-                    ARTIST_MIX_DEFAULT_CLUSTER_COUNT,
-                    1,
-                    32,
-                ),
-                "dominant_isolation": _as_bool(
-                    artist_mix_dominant_isolation,
-                    ARTIST_MIX_DEFAULT_DOMINANT_ISOLATION,
-                ),
-                "dominant_threshold": _bounded_artist_mix_float(
-                    artist_mix_dominant_threshold,
-                    ARTIST_MIX_DEFAULT_DOMINANT_THRESHOLD,
-                    0.0,
-                    1.0,
-                ),
-            },
-        }
-        return (_encode_prompt_data_positive_conditioning(
-            clip,
-            prompt_data,
-            base_prompt,
-            artist_mix_mode=mode,
-            artist_mix_start_percent=artist_mix_start_percent,
-            artist_mix_strength_scale=artist_mix_strength_scale,
-            artist_mix_style_gain=artist_mix_style_gain,
-            artist_mix_rms_scale_cap=artist_mix_rms_scale_cap,
-            artist_mix_exact_top_k=artist_mix_exact_top_k,
-            artist_mix_cluster_count=artist_mix_cluster_count,
-            artist_mix_dominant_isolation=artist_mix_dominant_isolation,
-            artist_mix_dominant_threshold=artist_mix_dominant_threshold,
-        ),)
 
 
-class EasyUseAnimaPromptDataConditioning:
-    """Encode EASYUSE_ANIMA_PROMPT_DATA and apply prompt-driven model patches."""
-
-    DESCRIPTION = (
-        "Reads EASYUSE_ANIMA_PROMPT_DATA by dict keys, encodes positive and negative "
-        "CONDITIONING with CLIP, and applies comfyui-spectrum-ksampler Anima Mod "
-        "Guidance to the MODEL when enabled. It also creates an empty latent image "
-        "from prompt-data width and height with batch size fixed to 1. Artist mix "
-        "modes use Advanced artist fields as artist data and rebuild artist variants "
-        "through the Anima prompt ordering rules."
-    )
-    OUTPUT_TOOLTIPS = (
-        "MODEL after prompt-data model patches.",
-        "Positive CONDITIONING encoded from prompt data.",
-        "Negative CONDITIONING encoded from prompt data.",
-        "Empty latent image created from prompt-data width and height with batch size 1.",
-    )
-
-    @classmethod
-    def INPUT_TYPES(cls):
-        return {
-            "required": {
-                "model": ("MODEL", {
-                    "tooltip": "MODEL to pass through or patch with Anima Mod Guidance.",
-                }),
-                "clip": ("CLIP", {
-                    "tooltip": "CLIP used to encode prompt data and Mod Guidance quality tags.",
-                }),
-                PROMPT_DATA_TYPE: (PROMPT_DATA_TYPE, {
-                    "forceInput": True,
-                    "tooltip": "Structured prompt data from Anima Prompt Studio Advanced v2.",
-                }),
-                "mod_guidance_mode": (list(ANIMA_MOD_GUIDANCE_MODES), {
-                    "default": ANIMA_MOD_GUIDANCE_MODE_FROM_PROMPT_DATA,
-                    "tooltip": (
-                        "prompt_data uses the prompt-data boolean, enabled forces Anima "
-                        "Mod Guidance on, and disabled bypasses the model patch."
-                    ),
-                }),
-                "mod_w_profile": (list(ANIMA_MOD_GUIDANCE_PROFILES), {
-                    "default": ANIMA_MOD_GUIDANCE_DEFAULT_PROFILE,
-                    "tooltip": (
-                        "Spectrum AnimaModGuidance per-block profile. off bypasses "
-                        "the model patch."
-                    ),
-                }),
-                "artist_mix_mode": (list(ARTIST_MIX_INPUT_MODES), {
-                    "default": ARTIST_MIX_MODE_FROM_PROMPT_DATA,
-                    "tooltip": _artist_mix_mode_tooltip(include_prompt_data=True),
-                }),
-                "artist_mix_start_percent": ("FLOAT", {
-                    "default": ARTIST_MIX_DEFAULT_START_PERCENT,
-                    "min": 0.0,
-                    "max": 1.0,
-                    "step": 0.01,
-                    "tooltip": "Start percent used by late/scheduled artist mix modes.",
-                }),
-                "artist_mix_strength_scale": ("FLOAT", {
-                    "default": ARTIST_MIX_DEFAULT_STRENGTH_SCALE,
-                    "min": 0.0,
-                    "max": 5.0,
-                    "step": 0.01,
-                    "tooltip": "Strength multiplier used by exact artist mix modes.",
-                }),
-                "artist_mix_style_gain": ("FLOAT", {
-                    "default": ARTIST_MIX_DEFAULT_STYLE_GAIN,
-                    "min": 0.0,
-                    "max": 3.0,
-                    "step": 0.01,
-                    "tooltip": "Style delta gain used by delta_rms, hybrid tail, and clustered compressed branches.",
-                }),
-                "artist_mix_rms_scale_cap": ("FLOAT", {
-                    "default": ARTIST_MIX_DEFAULT_RMS_SCALE_CAP,
-                    "min": 1.0,
-                    "max": 5.0,
-                    "step": 0.01,
-                    "tooltip": "Maximum RMS energy restore scale for delta_rms compressed artist branches.",
-                }),
-                "artist_mix_exact_top_k": ("INT", {
-                    "default": ARTIST_MIX_DEFAULT_EXACT_TOP_K,
-                    "min": 0,
-                    "max": 64,
-                    "tooltip": "Hybrid mode keeps this many strongest artists as exact positive branches.",
-                }),
-                "artist_mix_cluster_count": ("INT", {
-                    "default": ARTIST_MIX_DEFAULT_CLUSTER_COUNT,
-                    "min": 1,
-                    "max": 32,
-                    "tooltip": "Clustered mode compresses non-dominant artists into this many positive branches.",
-                }),
-                "artist_mix_dominant_isolation": ("BOOLEAN", {
-                    "default": ARTIST_MIX_DEFAULT_DOMINANT_ISOLATION,
-                    "tooltip": "Clustered mode keeps artists above the dominant threshold as exact branches.",
-                }),
-                "artist_mix_dominant_threshold": ("FLOAT", {
-                    "default": ARTIST_MIX_DEFAULT_DOMINANT_THRESHOLD,
-                    "min": 0.0,
-                    "max": 1.0,
-                    "step": 0.01,
-                    "tooltip": "Clustered dominant isolation threshold based on normalized artist weight.",
-                }),
-            },
-        }
-
-    RETURN_TYPES = ("MODEL", "CONDITIONING", "CONDITIONING", "LATENT")
-    RETURN_NAMES = ("model", "positive", "negative", "latent_image")
-    FUNCTION = "apply"
-    CATEGORY = "EasyUse Anima/Prompt"
-
-    @classmethod
-    def IS_CHANGED(
-        cls,
-        EASYUSE_ANIMA_PROMPT_DATA: str | dict | None = None,
-        mod_guidance_mode: str = ANIMA_MOD_GUIDANCE_MODE_FROM_PROMPT_DATA,
-        mod_w_profile: str = ANIMA_MOD_GUIDANCE_DEFAULT_PROFILE,
-        artist_mix_mode: str = ARTIST_MIX_MODE_FROM_PROMPT_DATA,
-        artist_mix_start_percent: float = ARTIST_MIX_DEFAULT_START_PERCENT,
-        artist_mix_strength_scale: float = ARTIST_MIX_DEFAULT_STRENGTH_SCALE,
-        artist_mix_style_gain: float = ARTIST_MIX_DEFAULT_STYLE_GAIN,
-        artist_mix_rms_scale_cap: float = ARTIST_MIX_DEFAULT_RMS_SCALE_CAP,
-        artist_mix_exact_top_k: int = ARTIST_MIX_DEFAULT_EXACT_TOP_K,
-        artist_mix_cluster_count: int = ARTIST_MIX_DEFAULT_CLUSTER_COUNT,
-        artist_mix_dominant_isolation: bool = ARTIST_MIX_DEFAULT_DOMINANT_ISOLATION,
-        artist_mix_dominant_threshold: float = ARTIST_MIX_DEFAULT_DOMINANT_THRESHOLD,
-        **kwargs,
-    ):
-        return _stable_change_key({
-            "mode": "prompt_data_conditioning",
-            "prompt_data": _normalize_prompt_data(EASYUSE_ANIMA_PROMPT_DATA),
-            "mod_guidance_mode": str(mod_guidance_mode or ANIMA_MOD_GUIDANCE_MODE_FROM_PROMPT_DATA),
-            "mod_w_profile": _normalize_anima_mod_guidance_profile(mod_w_profile),
-            "artist_mix_mode": str(artist_mix_mode or ARTIST_MIX_MODE_FROM_PROMPT_DATA),
-            "artist_mix_start_percent": _bounded_artist_mix_float(
-                artist_mix_start_percent,
-                ARTIST_MIX_DEFAULT_START_PERCENT,
-                0.0,
-                1.0,
-            ),
-            "artist_mix_strength_scale": _bounded_artist_mix_float(
-                artist_mix_strength_scale,
-                ARTIST_MIX_DEFAULT_STRENGTH_SCALE,
-                0.0,
-                5.0,
-            ),
-            "artist_mix_style_gain": _bounded_artist_mix_float(
-                artist_mix_style_gain,
-                ARTIST_MIX_DEFAULT_STYLE_GAIN,
-                0.0,
-                3.0,
-            ),
-            "artist_mix_rms_scale_cap": _bounded_artist_mix_float(
-                artist_mix_rms_scale_cap,
-                ARTIST_MIX_DEFAULT_RMS_SCALE_CAP,
-                1.0,
-                5.0,
-            ),
-            "artist_mix_exact_top_k": _bounded_artist_mix_int(
-                artist_mix_exact_top_k,
-                ARTIST_MIX_DEFAULT_EXACT_TOP_K,
-                0,
-                64,
-            ),
-            "artist_mix_cluster_count": _bounded_artist_mix_int(
-                artist_mix_cluster_count,
-                ARTIST_MIX_DEFAULT_CLUSTER_COUNT,
-                1,
-                32,
-            ),
-            "artist_mix_dominant_isolation": _as_bool(
-                artist_mix_dominant_isolation,
-                ARTIST_MIX_DEFAULT_DOMINANT_ISOLATION,
-            ),
-            "artist_mix_dominant_threshold": _bounded_artist_mix_float(
-                artist_mix_dominant_threshold,
-                ARTIST_MIX_DEFAULT_DOMINANT_THRESHOLD,
-                0.0,
-                1.0,
-            ),
-        })
-
-    def apply(
-        self,
-        model,
-        clip,
-        EASYUSE_ANIMA_PROMPT_DATA: str | dict,
-        mod_guidance_mode: str = ANIMA_MOD_GUIDANCE_MODE_FROM_PROMPT_DATA,
-        mod_w_profile: str = ANIMA_MOD_GUIDANCE_DEFAULT_PROFILE,
-        artist_mix_mode: str = ARTIST_MIX_MODE_FROM_PROMPT_DATA,
-        artist_mix_start_percent: float = ARTIST_MIX_DEFAULT_START_PERCENT,
-        artist_mix_strength_scale: float = ARTIST_MIX_DEFAULT_STRENGTH_SCALE,
-        artist_mix_style_gain: float = ARTIST_MIX_DEFAULT_STYLE_GAIN,
-        artist_mix_rms_scale_cap: float = ARTIST_MIX_DEFAULT_RMS_SCALE_CAP,
-        artist_mix_exact_top_k: int = ARTIST_MIX_DEFAULT_EXACT_TOP_K,
-        artist_mix_cluster_count: int = ARTIST_MIX_DEFAULT_CLUSTER_COUNT,
-        artist_mix_dominant_isolation: bool = ARTIST_MIX_DEFAULT_DOMINANT_ISOLATION,
-        artist_mix_dominant_threshold: float = ARTIST_MIX_DEFAULT_DOMINANT_THRESHOLD,
-    ):
-        prompt_data = _normalize_prompt_data(EASYUSE_ANIMA_PROMPT_DATA)
-        (
-            positive_prompt,
-            negative_prompt,
-            quality_tags,
-            quality_neg,
-            use_anima_mod_guidance,
-            use_negative_anima_mod_guidance,
-            _metadata_prompt,
-            _metadata_negative_prompt,
-            width,
-            height,
-        ) = _advanced_outputs_from_prompt_data(EASYUSE_ANIMA_PROMPT_DATA)
-
-        positive = _encode_prompt_data_positive_conditioning(
-            clip,
-            prompt_data,
-            positive_prompt,
-            artist_mix_mode=artist_mix_mode,
-            artist_mix_start_percent=artist_mix_start_percent,
-            artist_mix_strength_scale=artist_mix_strength_scale,
-            artist_mix_style_gain=artist_mix_style_gain,
-            artist_mix_rms_scale_cap=artist_mix_rms_scale_cap,
-            artist_mix_exact_top_k=artist_mix_exact_top_k,
-            artist_mix_cluster_count=artist_mix_cluster_count,
-            artist_mix_dominant_isolation=artist_mix_dominant_isolation,
-            artist_mix_dominant_threshold=artist_mix_dominant_threshold,
-        )
-        negative = _encode_with_comfy_clip(clip, negative_prompt)
-        latent_image = _generate_empty_latent_with_comfy(width, height)
-        profile = _normalize_anima_mod_guidance_profile(mod_w_profile)
-        use_mod_guidance = _resolve_anima_mod_guidance_enabled(
-            use_anima_mod_guidance,
-            str(mod_guidance_mode or ANIMA_MOD_GUIDANCE_MODE_FROM_PROMPT_DATA),
-        )
-
-        patched_model = model
-        if use_mod_guidance and profile != ANIMA_MOD_GUIDANCE_PROFILE_OFF:
-            patched_model = _apply_spectrum_anima_mod_guidance(
-                model,
-                clip,
-                positive,
-                negative,
-                quality_tags,
-                quality_neg if use_negative_anima_mod_guidance else "",
-                profile,
-            )
-
-        return (patched_model, positive, negative, latent_image)
 
 
 def _easy_use_anima_input_signature(value) -> dict[str, Any]:
@@ -10879,11 +7366,18 @@ class EasyUseAnimaPromptStudioRegional:
         )
         fields = _normalize_regional_fields(regional_fields)
         saved_fields = _clone_regional_fields(fields)
-        effective_fields = _apply_regional_field_inputs(fields, field_inputs)
         effective_field_inputs = _advanced_field_input_values(field_inputs)
         config = _normalize_regional_config(regional_config, width, height)
 
         wildcard_mode_key = normalize_wildcard_mode(wildcard_mode)
+        effective_fields = (
+            _apply_regional_field_inputs(
+                saved_fields,
+                _reproduce_connected_field_inputs(effective_field_inputs),
+            )
+            if wildcard_mode_key == WILDCARD_MODE_REPRODUCE
+            else _apply_regional_field_inputs(fields, effective_field_inputs)
+        )
         wildcard_seed_value = normalize_seed(wildcard_seed)
         wildcard_effective_seed_control = (
             SEED_CONTROL_INCREMENT
@@ -10901,6 +7395,7 @@ class EasyUseAnimaPromptStudioRegional:
         ui_updates: dict[str, Any] = {}
         metadata_updates: dict[str, Any] = {}
 
+        effective_source_fields = _clone_regional_fields(effective_fields)
         saved_fields, saved_wildcard = _expand_advanced_wildcard_fields(
             saved_fields,
             wildcard_seed_value,
@@ -10910,6 +7405,12 @@ class EasyUseAnimaPromptStudioRegional:
             effective_fields,
             wildcard_seed_value,
             wildcard_mode_key,
+        )
+        _preserve_expanded_connected_field_texts(
+            saved_fields,
+            effective_source_fields,
+            effective_fields,
+            effective_field_inputs,
         )
         effective_fields = _translate_prompt_fields(effective_fields)
         wildcard_changed = bool(saved_wildcard["changed"] or effective_wildcard["changed"])
@@ -11321,169 +7822,6 @@ class EasyUseAnimaPromptStudioExtend:
         }
 
 
-class EasyUseAnimaLoraPreset:
-    """Multi-profile LoRA stack preset node for ANIMA style prompts."""
-
-    DESCRIPTION = (
-        "Stores multiple ANIMA LoRA preset profiles, builds a LoRA stack, emits trigger words, "
-        "and preserves profile data in workflow metadata."
-    )
-    OUTPUT_TOOLTIPS = (
-        "Corrected style prompt for artist tags, model triggers, or short style directions.",
-        "LoRA stack compatible with LoRA stack loaders.",
-        "Trigger words collected from selected LoRA metadata.",
-        "Text representation of enabled LoRAs and strengths.",
-        "Currently selected profile index after wrapping to the available profile count.",
-    )
-
-    @classmethod
-    def INPUT_TYPES(cls):
-        return {
-            "required": {
-                "style_prompt": ("STRING", {
-                    "multiline": True,
-                    "default": "",
-                    "tooltip": "Style prompt for artist tags, model triggers, or short style directions.",
-                }),
-                "profile_index": ("INT", {
-                    "default": 1,
-                    "min": 1,
-                    "max": 16,
-                    "step": 1,
-                    "tooltip": "Selected LoRA preset profile. Can be connected from another node.",
-                }),
-                "profile_count": ("STRING", {
-                    "default": "4",
-                    "tooltip": "Internal profile count managed by the front-end profile buttons.",
-                }),
-                "lora_name": (_lora_combo_values(), {
-                    "default": "None",
-                    "tooltip": "Internal LoRA selector source. Hidden by the EasyUse Anima front-end.",
-                }),
-                "loras": ("STRING", {
-                    "multiline": True,
-                    "default": "[]",
-                    "tooltip": "Internal serialized LoRA rows for the selected profile.",
-                }),
-                "profile_data": ("STRING", {
-                    "multiline": True,
-                    "default": "{}",
-                    "tooltip": "Internal serialized profile data.",
-                }),
-            },
-            "optional": _FlexibleOptionalInputType(_ANY_TYPE),
-        }
-
-    RETURN_TYPES = ("STRING", "LORA_STACK", "STRING", "STRING", "INT")
-    RETURN_NAMES = ("style_prompt", "LORA_STACK", "trigger_words", "active_loras", "profile_index")
-    FUNCTION = "build"
-    CATEGORY = "EasyUse Anima/LoRA"
-
-    @classmethod
-    def IS_CHANGED(cls, **kwargs):
-        return _stable_change_key({
-            "mode": "lora_preset",
-            **{key: str(value) for key, value in sorted(kwargs.items())},
-        })
-
-    def build(
-        self,
-        style_prompt: str,
-        profile_index: int,
-        profile_count=4,
-        lora_name: str = "None",
-        loras="[]",
-        profile_data: str = "{}",
-        **kwargs,
-    ):
-        kwargs = dict(kwargs)
-        if loras is not None:
-            kwargs["loras"] = loras
-
-        selected_style, selected_loras, selected_index = _select_profile_values(
-            profile_index,
-            profile_count,
-            profile_data,
-            style_prompt,
-            kwargs,
-        )
-        corrected_style = _correct_style_prompt(selected_style)
-
-        stack = []
-        trigger_words: list[str] = []
-        active_loras: list[tuple[str, float, float]] = []
-
-        lora_stack = kwargs.get("lora_stack")
-        if lora_stack:
-            stack.extend(lora_stack)
-            for lora_path, _model_strength, _clip_strength in lora_stack:
-                lora_base = os.path.splitext(os.path.basename(str(lora_path).replace("\\", "/")))[0]
-                _path, existing_trigger_words = _get_lora_info(lora_base)
-                trigger_words.extend(existing_trigger_words)
-
-        seen: set[tuple[str, float, float]] = set()
-        missing_loras: list[str] = []
-        for lora in selected_loras:
-            enabled_value = lora.get("on", lora.get("active", True))
-            if not _as_bool(enabled_value, True):
-                continue
-            raw_name = str(lora.get("name", lora.get("lora", ""))).strip()
-            if not raw_name or raw_name == "None":
-                continue
-            lora_name = raw_name.replace("\\", "/")
-            active_lora_name = _apply_lora_syntax_format(lora_name)
-            try:
-                model_strength = float(lora.get("strength", 1.0))
-            except (TypeError, ValueError):
-                model_strength = 1.0
-            clip_raw = lora.get("strengthTwo", lora.get("clipStrength", model_strength))
-            try:
-                clip_strength = float(clip_raw if clip_raw is not None else model_strength)
-            except (TypeError, ValueError):
-                clip_strength = model_strength
-
-            stack_lora_name = _lora_stack_name(lora_name)
-            dedupe_key = (stack_lora_name, model_strength, clip_strength)
-            if dedupe_key in seen:
-                continue
-            seen.add(dedupe_key)
-
-            if _lora_model_exists(stack_lora_name) is False:
-                missing_loras.append(_missing_lora_display_name(raw_name, stack_lora_name))
-                continue
-
-            _lora_path, lora_trigger_words = _get_lora_info(lora_name)
-            stack.append((stack_lora_name, model_strength, clip_strength))
-            trigger_words.extend(lora_trigger_words)
-            active_loras.append((active_lora_name, model_strength, clip_strength))
-
-        _raise_missing_loras(selected_index, missing_loras)
-
-        active_loras_text_parts = []
-        for name, model_strength, clip_strength in active_loras:
-            model_text = _format_strength(model_strength)
-            clip_text = _format_strength(clip_strength)
-            if abs(model_strength - clip_strength) > 0.001:
-                active_loras_text_parts.append(f"<lora:{name}:{model_text}:{clip_text}>")
-            else:
-                active_loras_text_parts.append(f"<lora:{name}:{model_text}>")
-
-        return {
-            "ui": {
-                "lora_preset_profile": [{
-                    "profile_index": selected_index,
-                }],
-            },
-            "result": (
-                corrected_style,
-                stack,
-                ", ".join(trigger_words) if trigger_words else "",
-                " ".join(active_loras_text_parts),
-                selected_index,
-            ),
-        }
-
-
 class EasyUseAnimaSAM3Context:
     """Load a native ComfyUI SAM3 checkpoint and expose it as ctx_SAM3."""
 
@@ -11518,118 +7856,6 @@ class EasyUseAnimaSAM3Context:
     def load(self, ckpt_name):
         model, clip, vae = _load_checkpoint_with_comfy(str(ckpt_name))
         return (_sam3_context(model, clip, vae, str(ckpt_name)), model, clip, vae)
-
-
-class EasyUseAnimaImageScaleByMultiple:
-    """Scale an image by the nearest ratio that produces valid size multiples."""
-
-    DESCRIPTION = (
-        "Scales an IMAGE by the nearest valid ratio that keeps the source aspect ratio and makes "
-        "the output width and height multiples of the selected size. The optional max long edge "
-        "limits the selected valid output size. Use multiple 32 for highres or optimization nodes "
-        "that require 32-multiple sizes."
-    )
-    OUTPUT_TOOLTIPS = (
-        "Scaled image using the nearest valid ratio.",
-        "Final valid image width.",
-        "Final valid image height.",
-        "Actual scale ratio applied to the image.",
-    )
-
-    @classmethod
-    def INPUT_TYPES(cls):
-        return {
-            "required": {
-                "image": ("IMAGE", {
-                    "tooltip": "Input image to upscale.",
-                }),
-                "scale_by": ("FLOAT", {
-                    "default": 1.5,
-                    "min": 0.01,
-                    "max": 8.0,
-                    "step": 0.01,
-                    "tooltip": "Requested image scale ratio. The node uses the nearest valid ratio for the selected multiple.",
-                }),
-                "upscale_method": (IMAGE_UPSCALE_METHODS, {
-                    "default": "bicubic",
-                    "tooltip": "Interpolation method used for resizing.",
-                }),
-                "multiple": (IMAGE_SCALE_MULTIPLES, {
-                    "default": "32",
-                    "tooltip": "Output width and height must be multiples of this value.",
-                }),
-                "max_long_edge": ("INT", {
-                    "default": 0,
-                    "min": 0,
-                    "max": 16384,
-                    "step": 32,
-                    "tooltip": "Maximum output long edge. Set 0 to disable this limit.",
-                }),
-            },
-        }
-
-    RETURN_TYPES = ("IMAGE", "INT", "INT", "FLOAT")
-    RETURN_NAMES = ("image", "width", "height", "applied_scale")
-    FUNCTION = "upscale"
-    CATEGORY = "EasyUse Anima/Image"
-
-    def upscale(self, image, scale_by=1.5, upscale_method="bicubic", multiple="32", max_long_edge=0):
-        upscale_method, multiple, max_long_edge = _normalize_image_scale_options(
-            upscale_method,
-            multiple,
-            max_long_edge,
-        )
-        samples = image.movedim(-1, 1)
-        width, height, applied_scale = _image_scale_by_multiple_size(
-            int(samples.shape[3]),
-            int(samples.shape[2]),
-            scale_by,
-            multiple,
-            max_long_edge,
-        )
-        scaled = _common_upscale_image(samples, width, height, str(upscale_method))
-        return (scaled.movedim(1, -1), width, height, applied_scale)
-
-
-class EasyUseAnimaDetailerAlignHook:
-    """Impact Pack DETAILER_HOOK that aligns detail crop sampling sizes upward."""
-
-    DESCRIPTION = (
-        "Creates an Impact Pack compatible DETAILER_HOOK that aligns the detailer crop sampling "
-        "size upward to a selected multiple. Use alignment 32 for ANIMA/Spectrum workflows that "
-        "require 32-multiple latent-safe crop sizes."
-    )
-    OUTPUT_TOOLTIPS = (
-        "Impact Pack compatible DETAILER_HOOK. Connect it to an Impact DetailerForEach-compatible detailer_hook input.",
-    )
-
-    @classmethod
-    def INPUT_TYPES(cls):
-        return {
-            "required": {
-                "alignment": (["none", "8", "16", "32", "64"], {
-                    "default": "32",
-                    "tooltip": (
-                        "Crop sampling size alignment. 32 is recommended for ANIMA/Spectrum safety; "
-                        "none keeps the original Impact Pack size."
-                    ),
-                }),
-            },
-            "optional": {
-                "detailer_hook": ("DETAILER_HOOK", {
-                    "tooltip": "Optional existing Impact Pack detailer hook. It runs before the alignment adjustment.",
-                }),
-            },
-        }
-
-    RETURN_TYPES = ("DETAILER_HOOK",)
-    RETURN_NAMES = ("detailer_hook",)
-    FUNCTION = "build"
-    CATEGORY = "EasyUse Anima/Detailer"
-
-    def build(self, alignment="32", detailer_hook=None):
-        alignment_int = _alignment_value(alignment)
-        return (_EasyUseAnimaAlignedDetailerHook(detailer_hook, alignment_int),)
 
 
 class _EasyUseAnimaImpactDetailerDelegate:
@@ -12103,554 +8329,3 @@ class EasyUseAnimaSAM3Detailer:
         )[0]
 
         return (detailed_image, segs, mask, image)
-
-
-class EasyUseAnimaNAIARandomPrompt:
-    """NAIA random prompt node with bypass and frozen-output cache."""
-
-    DESCRIPTION = (
-        "Requests a random prompt from NAIA Remote API, supports bypass and frozen output reuse, "
-        "and stores generated values so saved-image workflows can reproduce the same result."
-    )
-    OUTPUT_TOOLTIPS = (
-        "Prompt text from NAIA or the original input when bypassed or not overridden.",
-        "Negative prompt text from NAIA or the original input when bypassed or not overridden.",
-        "Width from NAIA or the original input when bypassed or not overridden.",
-        "Height from NAIA or the original input when bypassed or not overridden.",
-    )
-
-    @classmethod
-    def INPUT_TYPES(cls):
-        required = {
-            "use_naia_bridge": ("BOOLEAN", {
-                "default": True,
-                "tooltip": (
-                    "false: bypass NAIA and return prompt/negative_prompt/width/height as-is. "
-                    "This mode keeps ComfyUI cache stable when inputs are unchanged."
-                ),
-            }),
-            "freeze_naia_output": ("BOOLEAN", {
-                "default": False,
-                "tooltip": (
-                    "true: if cached output is valid, return it without calling NAIA. "
-                    "Saved-image workflows are written with this enabled."
-                ),
-            }),
-            "show_preview": ("BOOLEAN", {
-                "default": True,
-                "tooltip": "Show the large read-only preview widget in the node UI.",
-            }),
-            "cached_prompt": ("STRING", {
-                "multiline": True,
-                "default": "",
-                "tooltip": "Stored prompt used for frozen output and saved-image reproduction.",
-            }),
-            "cached_negative_prompt": ("STRING", {
-                "multiline": True,
-                "default": "",
-                "tooltip": "Stored negative prompt used for frozen output and saved-image reproduction.",
-            }),
-            "cached_width": ("INT", {
-                "default": 0, "min": 0, "max": 8192, "step": 8,
-                "tooltip": "Stored width used for frozen output and saved-image reproduction.",
-            }),
-            "cached_height": ("INT", {
-                "default": 0, "min": 0, "max": 8192, "step": 8,
-                "tooltip": "Stored height used for frozen output and saved-image reproduction.",
-            }),
-            "cached_signature": ("STRING", {
-                "multiline": True,
-                "default": "",
-                "tooltip": "Internal signature for validating cached output.",
-            }),
-            "prompt": ("STRING", {
-                "multiline": False,
-                "default": "",
-                "placeholder": "prompt",
-                "tooltip": "Returned as-is when bypassed or when override_prompt is false.",
-            }),
-            "override_prompt": ("BOOLEAN", {
-                "default": True,
-                "tooltip": "true: use NAIA prompt. false: preserve input prompt.",
-            }),
-            "negative_prompt": ("STRING", {
-                "multiline": False,
-                "default": "",
-                "placeholder": "negative_prompt",
-                "tooltip": "Returned as-is when bypassed or when override_negative is false.",
-            }),
-            "override_negative": ("BOOLEAN", {
-                "default": True,
-                "tooltip": "true: use NAIA negative prompt. false: preserve input negative_prompt.",
-            }),
-            "width": ("INT", {
-                "default": 1024, "min": 64, "max": 8192, "step": 8,
-                "tooltip": "Returned as-is when bypassed or when override_width is false.",
-            }),
-            "override_width": ("BOOLEAN", {
-                "default": True,
-                "tooltip": "true: use NAIA width. false: preserve input width.",
-            }),
-            "height": ("INT", {
-                "default": 1024, "min": 64, "max": 8192, "step": 8,
-                "tooltip": "Returned as-is when bypassed or when override_height is false.",
-            }),
-            "override_height": ("BOOLEAN", {
-                "default": True,
-                "tooltip": "true: use NAIA height. false: preserve input height.",
-            }),
-            "use_naia_settings": ("BOOLEAN", {
-                "default": True,
-                "tooltip": (
-                    "true: use NAIA desktop Prompt Engineering settings. "
-                    "false: send this node's pre/post/auto_hide and preprocessing options."
-                ),
-            }),
-            "pre_prompt": ("STRING", {
-                "multiline": True,
-                "default": "",
-                "placeholder": "pre_prompt",
-                "tooltip": "Used only when use_naia_settings is false.",
-            }),
-            "post_prompt": ("STRING", {
-                "multiline": True,
-                "default": "",
-                "placeholder": "post_prompt",
-                "tooltip": "Used only when use_naia_settings is false.",
-            }),
-            "auto_hide": ("STRING", {
-                "multiline": True,
-                "default": "",
-                "placeholder": "auto_hide",
-                "tooltip": "Used only when use_naia_settings is false.",
-            }),
-        }
-
-        pp_tooltip = (
-            "Used only when use_naia_settings is false.\n"
-            "skip: do not send this key\n"
-            "on: remove this category\n"
-            "off: explicitly keep this category"
-        )
-        for key in PREPROCESSING_KEYS:
-            required[key] = (PP_STATE_CHOICES, {
-                "default": "skip",
-                "tooltip": pp_tooltip,
-                "advanced": key.startswith("remove_"),
-                "socketless": key.startswith("remove_"),
-            })
-
-        required["host"] = ("STRING", {
-            "default": DEFAULT_HOST,
-            "tooltip": "NAIA Remote API host.",
-        })
-        required["port"] = ("INT", {
-            "default": DEFAULT_PORT, "min": 1, "max": 65535,
-            "tooltip": "NAIA Remote API port.",
-        })
-        return {
-            "required": required,
-            "hidden": {
-                "workflow_prompt": "PROMPT",
-                "extra_pnginfo": "EXTRA_PNGINFO",
-                "unique_id": "UNIQUE_ID",
-            },
-        }
-
-    RETURN_TYPES = ("STRING", "STRING", "INT", "INT")
-    RETURN_NAMES = ("prompt", "negative_prompt", "width", "height")
-    FUNCTION = "request"
-    CATEGORY = "NAIA Bridge/API"
-
-    def __init__(self):
-        self._cache_signature: Optional[str] = None
-        self._cache_value: Optional[tuple[str, str, int, int]] = None
-
-    @classmethod
-    def IS_CHANGED(
-        cls,
-        use_naia_bridge: bool = True,
-        freeze_naia_output: bool = False,
-        show_preview: bool = True,
-        cached_prompt: str = "",
-        cached_negative_prompt: str = "",
-        cached_width: int = 0,
-        cached_height: int = 0,
-        cached_signature: str = "",
-        prompt: str = "",
-        override_prompt: bool = True,
-        negative_prompt: str = "",
-        override_negative: bool = True,
-        width: int = 1024,
-        override_width: bool = True,
-        height: int = 1024,
-        override_height: bool = True,
-        use_naia_settings: bool = True,
-        pre_prompt: str = "",
-        post_prompt: str = "",
-        auto_hide: str = "",
-        host: str = DEFAULT_HOST,
-        port: int = DEFAULT_PORT,
-        **kwargs,
-    ):
-        naia_settings = resolve_naia_settings()
-        use_naia_settings = naia_settings["use_naia_settings"]
-        pre_prompt = naia_settings["pre_prompt"]
-        post_prompt = naia_settings["post_prompt"]
-        auto_hide = naia_settings["auto_hide"]
-        host = naia_settings["host"]
-        port = naia_settings["port"]
-        pp_kwargs = naia_settings["preprocessing"]
-
-        if not _as_bool(use_naia_bridge, True):
-            return _stable_change_key({
-                "mode": "disabled",
-                "prompt": str(prompt),
-                "negative_prompt": str(negative_prompt),
-                "width": _as_int(width, 1024),
-                "height": _as_int(height, 1024),
-            })
-
-        signature = cls._make_signature(
-            prompt,
-            override_prompt,
-            negative_prompt,
-            override_negative,
-            width,
-            override_width,
-            height,
-            override_height,
-            use_naia_settings,
-            pre_prompt,
-            post_prompt,
-            auto_hide,
-            host,
-            port,
-            pp_kwargs,
-        )
-
-        if _as_bool(freeze_naia_output, False):
-            cached = cls._cached_tuple(
-                cached_prompt,
-                cached_negative_prompt,
-                cached_width,
-                cached_height,
-            )
-            if cached is not None and str(cached_signature) == signature:
-                return _stable_change_key({
-                    "mode": "frozen",
-                    "signature": signature,
-                    "prompt": cached[0],
-                    "negative_prompt": cached[1],
-                    "width": cached[2],
-                    "height": cached[3],
-                })
-            return float("nan")
-
-        return float("nan")
-
-    @staticmethod
-    def _cached_tuple(
-        cached_prompt: str,
-        cached_negative_prompt: str,
-        cached_width: int,
-        cached_height: int,
-    ) -> Optional[tuple[str, str, int, int]]:
-        width = _as_int(cached_width, 0)
-        height = _as_int(cached_height, 0)
-        if width <= 0 or height <= 0:
-            return None
-        if not cached_prompt and not cached_negative_prompt:
-            return None
-        return (str(cached_prompt), str(cached_negative_prompt), width, height)
-
-    @classmethod
-    def _widget_input_names(cls) -> list[str]:
-        return list(cls.INPUT_TYPES()["required"].keys())
-
-    @staticmethod
-    def _make_signature(
-        prompt: str,
-        override_prompt: bool,
-        negative_prompt: str,
-        override_negative: bool,
-        width: int,
-        override_width: bool,
-        height: int,
-        override_height: bool,
-        use_naia_settings: bool,
-        pre_prompt: str,
-        post_prompt: str,
-        auto_hide: str,
-        host: str,
-        port: int,
-        pp_kwargs: dict,
-    ) -> str:
-        use_settings = _as_bool(use_naia_settings, True)
-        preprocessing = {}
-        if not use_settings:
-            preprocessing = {
-                key: str(pp_kwargs.get(key, "skip"))
-                for key in PREPROCESSING_KEYS
-            }
-        payload = {
-            "prompt": str(prompt),
-            "override_prompt": _as_bool(override_prompt, True),
-            "negative_prompt": str(negative_prompt),
-            "override_negative": _as_bool(override_negative, True),
-            "width": _as_int(width, 1024),
-            "override_width": _as_bool(override_width, True),
-            "height": _as_int(height, 1024),
-            "override_height": _as_bool(override_height, True),
-            "use_naia_settings": use_settings,
-            "pre_prompt": "" if use_settings else str(pre_prompt),
-            "post_prompt": "" if use_settings else str(post_prompt),
-            "auto_hide": "" if use_settings else str(auto_hide),
-            "preprocessing": preprocessing,
-            "host": str(host),
-            "port": _as_int(port, DEFAULT_PORT),
-        }
-        return json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
-
-    @staticmethod
-    def _make_request_body(
-        use_naia_settings: bool,
-        pre_prompt: str,
-        post_prompt: str,
-        auto_hide: str,
-        pp_kwargs: dict,
-    ) -> dict:
-        body = {
-            "timeout": NAIA_REQUEST_TIMEOUT,
-            "respect_naia_autogen": True,
-            "force_naia_skip_generate": False,
-        }
-        if not use_naia_settings:
-            preprocessing_options = {}
-            for key in PREPROCESSING_KEYS:
-                state = pp_kwargs.get(key, "skip")
-                if state == "on":
-                    preprocessing_options[key] = True
-                elif state == "off":
-                    preprocessing_options[key] = False
-            body["peng_override"] = {
-                "pre_prompt": pre_prompt,
-                "post_prompt": post_prompt,
-                "auto_hide": auto_hide,
-                "preprocessing_options": preprocessing_options,
-            }
-        return body
-
-    @staticmethod
-    def _apply_overrides(
-        naia_value: tuple[str, str, int, int],
-        prompt: str,
-        override_prompt: bool,
-        negative_prompt: str,
-        override_negative: bool,
-        width: int,
-        override_width: bool,
-        height: int,
-        override_height: bool,
-    ) -> tuple[str, str, int, int]:
-        naia_prompt, naia_negative, naia_width, naia_height = naia_value
-        return (
-            naia_prompt if override_prompt else str(prompt),
-            naia_negative if override_negative else str(negative_prompt),
-            naia_width if override_width else _as_int(width, 1024),
-            naia_height if override_height else _as_int(height, 1024),
-        )
-
-    @classmethod
-    def _update_metadata_cache(
-        cls,
-        workflow_prompt,
-        extra_pnginfo,
-        unique_id,
-        output_value: tuple[str, str, int, int],
-        signature: str,
-    ) -> None:
-        node_id = _single_value(unique_id)
-        if node_id is None:
-            return
-        node_id = str(node_id)
-        out_prompt, out_negative, out_width, out_height = output_value
-        updates = {
-            "use_naia_bridge": True,
-            "freeze_naia_output": True,
-            "cached_prompt": out_prompt,
-            "cached_negative_prompt": out_negative,
-            "cached_width": int(out_width),
-            "cached_height": int(out_height),
-            "cached_signature": signature,
-        }
-
-        if isinstance(workflow_prompt, dict):
-            prompt_node = workflow_prompt.get(node_id)
-            if isinstance(prompt_node, dict):
-                inputs = prompt_node.setdefault("inputs", {})
-                for name, value in updates.items():
-                    inputs[name] = value
-
-        workflow_node = _get_workflow_node(extra_pnginfo, node_id)
-        if workflow_node is None:
-            return
-
-        input_names = cls._widget_input_names()
-        widgets_values = workflow_node.setdefault("widgets_values", [])
-        for name, value in updates.items():
-            if name not in input_names:
-                continue
-            index = input_names.index(name)
-            while len(widgets_values) <= index:
-                widgets_values.append(None)
-            widgets_values[index] = value
-
-    @staticmethod
-    def _ui(prompt: str, negative: str, width: int, height: int, status: str, signature: str):
-        return {
-            "prompt": [prompt],
-            "negative_prompt": [negative],
-            "width": [width],
-            "height": [height],
-            "status": [status],
-            "cached_signature": [signature],
-        }
-
-    def request(
-        self,
-        use_naia_bridge: bool,
-        freeze_naia_output: bool,
-        show_preview: bool,
-        cached_prompt: str,
-        cached_negative_prompt: str,
-        cached_width: int,
-        cached_height: int,
-        cached_signature: str,
-        prompt: str,
-        override_prompt: bool,
-        negative_prompt: str,
-        override_negative: bool,
-        width: int,
-        override_width: bool,
-        height: int,
-        override_height: bool,
-        use_naia_settings: bool,
-        pre_prompt: str,
-        post_prompt: str,
-        auto_hide: str,
-        host: str,
-        port: int,
-        workflow_prompt=None,
-        extra_pnginfo=None,
-        unique_id=None,
-        **pp_kwargs,
-    ):
-        naia_settings = resolve_naia_settings()
-        use_naia_settings = naia_settings["use_naia_settings"]
-        pre_prompt = naia_settings["pre_prompt"]
-        post_prompt = naia_settings["post_prompt"]
-        auto_hide = naia_settings["auto_hide"]
-        host = naia_settings["host"]
-        port = naia_settings["port"]
-        pp_kwargs = naia_settings["preprocessing"]
-
-        bridge_enabled = _as_bool(use_naia_bridge, True)
-        freeze_output = _as_bool(freeze_naia_output, False)
-        use_settings = _as_bool(use_naia_settings, True)
-        override_prompt = _as_bool(override_prompt, True)
-        override_negative = _as_bool(override_negative, True)
-        override_width = _as_bool(override_width, True)
-        override_height = _as_bool(override_height, True)
-
-        signature = self._make_signature(
-            prompt,
-            override_prompt,
-            negative_prompt,
-            override_negative,
-            width,
-            override_width,
-            height,
-            override_height,
-            use_settings,
-            pre_prompt,
-            post_prompt,
-            auto_hide,
-            host,
-            port,
-            pp_kwargs,
-        )
-
-        if not bridge_enabled:
-            out_prompt = str(prompt)
-            out_negative = str(negative_prompt)
-            out_width = _as_int(width, 1024)
-            out_height = _as_int(height, 1024)
-            return {
-                "ui": self._ui(out_prompt, out_negative, out_width, out_height, "disabled", signature),
-                "result": (out_prompt, out_negative, out_width, out_height),
-            }
-
-        saved_cache = self._cached_tuple(
-            cached_prompt,
-            cached_negative_prompt,
-            cached_width,
-            cached_height,
-        )
-        if freeze_output and saved_cache is not None and str(cached_signature) == signature:
-            out_prompt, out_negative, out_width, out_height = saved_cache
-            return {
-                "ui": self._ui(out_prompt, out_negative, out_width, out_height, "frozen", signature),
-                "result": (out_prompt, out_negative, out_width, out_height),
-            }
-
-        if self._cache_signature != signature:
-            self._cache_signature = signature
-            self._cache_value = (
-                saved_cache if saved_cache is not None and str(cached_signature) == signature else None
-            )
-
-        if self._cache_value is None or not freeze_output:
-            body = self._make_request_body(use_settings, pre_prompt, post_prompt, auto_hide, pp_kwargs)
-            resp = _post_random(
-                host,
-                port,
-                body,
-                allow_remote_api=bool(naia_settings.get("allow_remote_api", False)),
-            )
-            naia_value = _parse_random_response(resp)
-            self._cache_value = self._apply_overrides(
-                naia_value,
-                prompt,
-                override_prompt,
-                negative_prompt,
-                override_negative,
-                width,
-                override_width,
-                height,
-                override_height,
-            )
-            logger.debug(
-                "request_id=%s prompt_len=%d size=%dx%d use_naia_settings=%s",
-                resp.get("request_id"),
-                len(self._cache_value[0]),
-                self._cache_value[2],
-                self._cache_value[3],
-                use_settings,
-            )
-
-        if self._cache_value is None:
-            raise RuntimeError("[EasyUse Anima] Internal cache creation failed.")
-
-        out_prompt, out_negative, out_width, out_height = self._cache_value
-        self._update_metadata_cache(
-            workflow_prompt,
-            extra_pnginfo,
-            unique_id,
-            (out_prompt, out_negative, out_width, out_height),
-            signature,
-        )
-        return {
-            "ui": self._ui(out_prompt, out_negative, out_width, out_height, "fresh", signature),
-            "result": (out_prompt, out_negative, out_width, out_height),
-        }

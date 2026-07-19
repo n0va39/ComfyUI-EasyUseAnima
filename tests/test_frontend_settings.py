@@ -52,6 +52,61 @@ FRONTEND_CHECK_SCRIPT = ROOT / "tools" / "check_frontend.ps1"
 
 
 class SettingsFrontendTests(unittest.TestCase):
+    def test_entry_checkjs_host_boundary_and_settings_window_contract(self):
+        entry_source = SETTINGS_ENTRY.read_text(encoding="utf-8")
+        config = json.loads(JSCONFIG.read_text(encoding="utf-8"))
+
+        self.assertEqual(entry_source.splitlines()[0], "// @ts-check")
+        expect_error_targets = re.findall(
+            r"^// @ts-expect-error[^\n]*\n([^\n]+)",
+            entry_source,
+            re.MULTILINE,
+        )
+        self.assertEqual(
+            expect_error_targets,
+            ['import { app } from "../../../scripts/app.js";'],
+        )
+        self.assertIn(
+            "// @ts-expect-error ComfyUI provides this host module at runtime.\n"
+            'import { app } from "../../../scripts/app.js";',
+            entry_source,
+        )
+        self.assertEqual(entry_source.count("// @ts-expect-error"), 1)
+        for broad_suppression in ("@ts-ignore", "@ts-nocheck"):
+            with self.subTest(broad_suppression=broad_suppression):
+                self.assertNotIn(broad_suppression, entry_source)
+
+        self.assertIn("EasyUseAnimaSettingsWindow", entry_source)
+        self.assertIn("Record<string, unknown>", entry_source)
+        self.assertIn("const settingsWindow = window;", entry_source)
+        self.assertEqual(
+            entry_source.count("settingsWindow.__easyuseAnimaSettings"),
+            3,
+        )
+        self.assertNotIn("window.__easyuseAnimaSettings", entry_source)
+        self.assertIn("web/js/easyuse_anima_settings.js", config["include"])
+
+    def test_prompt_translation_setting_discloses_external_marker_text_transfer(self):
+        entry_source = SETTINGS_ENTRY.read_text(encoding="utf-8")
+        definitions_source = SETTINGS_DEFINITIONS.read_text(encoding="utf-8")
+
+        for notice in (
+            "the text inside each %{...} marker is sent to Google's external translation service",
+            "각 %{...} 마커 안의 텍스트가 Google 외부 번역 서비스로 전송됩니다",
+            "各 %{...} マーカー内のテキストが Google の外部翻訳サービスへ送信されます",
+            "每个 %{...} 标记内的文本都会发送到 Google 外部翻译服务",
+        ):
+            with self.subTest(notice=notice):
+                self.assertIn(notice, entry_source)
+
+        provider_start = definitions_source.index(
+            'id: "EasyUseAnima.Prompt.TranslationProvider"'
+        )
+        provider_end = definitions_source.index("}),", provider_start)
+        provider_definition = definitions_source[provider_start:provider_end]
+        self.assertIn('defaultValue: "off"', provider_definition)
+        self.assertIn('options: ["off", "google"]', provider_definition)
+
     def test_editor_smokes_share_fake_dom_harness(self):
         harness_source = SETTINGS_FAKE_DOM_HARNESS.read_text(encoding="utf-8")
 
@@ -128,9 +183,9 @@ class SettingsFrontendTests(unittest.TestCase):
                 if line.strip()
             },
             {
-                "getSettingsState: () => window.__easyuseAnimaSettings",
+                "getSettingsState: () => settingsWindow.__easyuseAnimaSettings",
                 "setSettingsState: (value) => {",
-                "window.__easyuseAnimaSettings = value;",
+                "settingsWindow.__easyuseAnimaSettings = value;",
                 "}",
                 "notifySettingsUpdated: (detail) => {",
                 "window.dispatchEvent(",
@@ -186,7 +241,7 @@ class SettingsFrontendTests(unittest.TestCase):
         )
         self.assertRegex(
             setup_match.group("body"),
-            r"window\.__easyuseAnimaSettings\s*=\s*await\s+loadInitialSettings\(\);"
+            r"settingsWindow\.__easyuseAnimaSettings\s*=\s*await\s+loadInitialSettings\(\);"
             r"\s*addSettingsFallback\(\);",
         )
         self.assertTrue(SETTINGS_RUNTIME_SMOKE.is_file())
@@ -546,7 +601,7 @@ class SettingsFrontendTests(unittest.TestCase):
                     setting_match.group("body"),
                 )
 
-        self.assertIn("window.__easyuseAnimaSettings", entry_source)
+        self.assertIn("settingsWindow.__easyuseAnimaSettings", entry_source)
         self.assertTrue(SETTINGS_RESOLUTION_EDITORS_SMOKE.is_file())
         self.assertIn("web/js/settings/**/*.js", config["include"])
         self.assertIn(
@@ -642,7 +697,7 @@ class SettingsFrontendTests(unittest.TestCase):
         self.assertIn("easyuse-anima-long-text-overlay", module_source)
         self.assertIn("easyuse-anima-long-text-panel", module_source)
 
-        self.assertIn("window.__easyuseAnimaSettings", entry_source)
+        self.assertIn("settingsWindow.__easyuseAnimaSettings", entry_source)
         self.assertIn('new CustomEvent("easyuse-anima-settings-updated"', entry_source)
 
         self.assertTrue(SETTINGS_LONG_TEXT_EDITOR_SMOKE.is_file())

@@ -7,6 +7,13 @@ import {
   NODE_TYPE,
   WILDCARD_NODE_TYPE,
 } from "./constants.js";
+import {
+  registerHostHookCallbacks,
+} from "../lifecycle/host_hook_registry.js";
+
+const ADVANCED_SAVE_SYNC_OWNER = Symbol.for(
+  "easyuse-anima.prompt-studio.advanced-save-sync",
+);
 
 function isAdvancedNodeName(name) {
   return name === ADVANCED_NODE_TYPE || name === ADVANCED_V2_NODE_TYPE;
@@ -198,23 +205,13 @@ function syncAdvancedNodes(app, syncAdvancedValues) {
 
 function installAdvancedSaveSync(app, syncAllAdvancedNodes) {
   const graphProto = globalThis.LGraph?.prototype || app?.graph?.constructor?.prototype;
-  if (graphProto?.serialize && !graphProto.serialize.__easyuseAnimaAdvancedWrapped) {
-    const serialize = graphProto.serialize;
-    graphProto.serialize = function () {
-      syncAllAdvancedNodes();
-      return serialize.apply(this, arguments);
-    };
-    graphProto.serialize.__easyuseAnimaAdvancedWrapped = true;
-  }
-
-  if (app?.queuePrompt && !app.queuePrompt.__easyuseAnimaAdvancedWrapped) {
-    const queuePrompt = app.queuePrompt;
-    app.queuePrompt = function () {
-      syncAllAdvancedNodes();
-      return queuePrompt.apply(this, arguments);
-    };
-    app.queuePrompt.__easyuseAnimaAdvancedWrapped = true;
-  }
+  return registerHostHookCallbacks({
+    owner: ADVANCED_SAVE_SYNC_OWNER,
+    serializeHost: graphProto,
+    queueHost: app,
+    beforeSerialize: syncAllAdvancedNodes,
+    beforeQueue: syncAllAdvancedNodes,
+  });
 }
 
 export {

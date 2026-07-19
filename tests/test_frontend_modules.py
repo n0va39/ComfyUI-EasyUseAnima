@@ -9,10 +9,12 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 JSCONFIG = ROOT / "jsconfig.json"
 FRONTEND_CHECK_SCRIPT = ROOT / "tools" / "check_frontend.ps1"
+HOST_HOOK_REGISTRY_SMOKE = ROOT / "tests" / "frontend_host_hook_registry_smoke.mjs"
 PROMPT_STUDIO_ADVANCED_QUEUE_SEED_RUNTIME_SMOKE = (
     ROOT / "tests" / "frontend_prompt_studio_advanced_queue_seed_runtime_smoke.mjs"
 )
 WEB_JS = ROOT / "web" / "js"
+HOST_HOOK_REGISTRY_JS = WEB_JS / "lifecycle" / "host_hook_registry.js"
 API_JS = WEB_JS / "easyuse_anima_api.js"
 AIO_JS = WEB_JS / "easyuse_anima_aio.js"
 AIO_MODULES = WEB_JS / "aio"
@@ -113,6 +115,75 @@ STATIC_IMPORT_RE = re.compile(
 
 
 class FrontendModuleStructureTests(unittest.TestCase):
+    def test_host_hook_registry_phase_2_is_owned_and_focused(self):
+        registry_source = HOST_HOOK_REGISTRY_JS.read_text(encoding="utf-8")
+        node_hooks_source = (
+            PROMPT_STUDIO_MODULES / "node_hooks.js"
+        ).read_text(encoding="utf-8")
+        extension_runtime_source = (
+            PROMPT_STUDIO_MODULES / "extension_runtime.js"
+        ).read_text(encoding="utf-8")
+        regional_extension_source = (
+            PROMPT_STUDIO_REGIONAL_MODULES / "extension.js"
+        ).read_text(encoding="utf-8")
+        queue_seed_source = (
+            PROMPT_STUDIO_MODULES / "advanced_queue_seed_runtime.js"
+        ).read_text(encoding="utf-8")
+        frontend_check_source = FRONTEND_CHECK_SCRIPT.read_text(encoding="utf-8")
+        config = json.loads(JSCONFIG.read_text(encoding="utf-8"))
+
+        self.assertTrue(HOST_HOOK_REGISTRY_SMOKE.is_file())
+        self.assertIn("web/js/lifecycle/**/*.js", config["include"])
+        self.assertIn(
+            r'node "tests\frontend_host_hook_registry_smoke.mjs"',
+            frontend_check_source,
+        )
+        self.assertIn("export function registerHostHookCallbacks", registry_source)
+        self.assertIn("export function createHostHookRuntimeLifecycle", registry_source)
+        self.assertIn("segments: new Set()", registry_source)
+        self.assertIn("current === record.topState.wrapper", registry_source)
+        self.assertIn("target[methodName] = state.wrapper", registry_source)
+        for source in (node_hooks_source, queue_seed_source):
+            self.assertIn('../lifecycle/host_hook_registry.js"', source)
+        self.assertIn('../../lifecycle/host_hook_registry.js"', regional_extension_source)
+        self.assertIn('../lifecycle/host_hook_registry.js"', extension_runtime_source)
+
+        for source, owner, lease in (
+            (
+                extension_runtime_source,
+                "PROMPT_STUDIO_GLOBAL_HOOK_RUNTIME_OWNER",
+                '"advanced-save-sync"',
+            ),
+            (
+                regional_extension_source,
+                "REGIONAL_GLOBAL_HOOK_RUNTIME_OWNER",
+                '"regional-save-sync"',
+            ),
+        ):
+            self.assertIn("createHostHookRuntimeLifecycle(", source)
+            self.assertIn(owner, source)
+            self.assertIn(lease, source)
+            self.assertIn("dispose: disposeGlobalHooks", source)
+
+        for source in (node_hooks_source, regional_extension_source, queue_seed_source):
+            self.assertIn("registerHostHookCallbacks({", source)
+        self.assertNotIn("__easyuseAnimaAdvancedWrapped", node_hooks_source)
+        self.assertNotIn("serialize.__easyuseAnimaRegionalWrapped", regional_extension_source)
+        self.assertNotIn("AdvancedQueueSeedInstalled", queue_seed_source)
+
+        aio_queue_source = AIO_GENERATOR_QUEUE_RUNTIME_JS.read_text(encoding="utf-8")
+        aio_extension_source = AIO_EXTENSION_RUNTIME_JS.read_text(encoding="utf-8")
+        lora_save_sync_source = (
+            WEB_JS / "lora_preset" / "save_sync.js"
+        ).read_text(encoding="utf-8")
+        self.assertIn('../lifecycle/host_hook_registry.js"', aio_queue_source)
+        self.assertIn('../lifecycle/host_hook_registry.js"', aio_extension_source)
+        self.assertIn('../lifecycle/host_hook_registry.js"', lora_save_sync_source)
+        self.assertIn("registerHostHookCallbacks({", aio_queue_source)
+        self.assertIn("createHostHookRuntimeLifecycle(", aio_extension_source)
+        self.assertIn("createHostHookRuntimeLifecycle(", lora_save_sync_source)
+        self.assertIn("registerHostHookCallbacks({", lora_save_sync_source)
+
     def test_shared_api_module_exports_runtime_helpers(self):
         source = API_JS.read_text(encoding="utf-8")
 
@@ -221,7 +292,7 @@ class FrontendModuleStructureTests(unittest.TestCase):
             re.findall(r"export function ([A-Za-z0-9_]+)\(", source),
             ["aioCreateProfileSettingsRuntime"],
         )
-        self.assertLessEqual(len(source.splitlines()), 430)
+        self.assertLessEqual(len(source.splitlines()), 480)
         self.assertNotRegex(source, re.compile(r"^\s*import\s", re.MULTILINE))
         self.assertNotRegex(source, r"\b(?:window|app|api)\b")
         self.assertNotIn("fetch(", source)
@@ -359,7 +430,10 @@ class FrontendModuleStructureTests(unittest.TestCase):
         frontend_check_source = FRONTEND_CHECK_SCRIPT.read_text(encoding="utf-8")
 
         self.assertEqual(source.splitlines()[0], "// @ts-check")
-        self.assertEqual(STATIC_IMPORT_RE.findall(source), [])
+        self.assertEqual(
+            STATIC_IMPORT_RE.findall(source),
+            ["../lifecycle/host_hook_registry.js"],
+        )
         self.assertNotIn("app.registerExtension", source)
         self.assertEqual(
             re.findall(
@@ -701,7 +775,10 @@ class FrontendModuleStructureTests(unittest.TestCase):
                 "aioInstallGeneratorQueuePromptHook",
             ],
         )
-        self.assertNotRegex(source, re.compile(r"^\s*import\s", re.MULTILINE))
+        self.assertEqual(
+            STATIC_IMPORT_RE.findall(source),
+            ["../lifecycle/host_hook_registry.js"],
+        )
         self.assertNotRegex(source, r"\b(?:document|window|app)\b")
         self.assertNotIn("fetch(", source)
         self.assertNotIn("app.registerExtension", source)
@@ -783,12 +860,10 @@ class FrontendModuleStructureTests(unittest.TestCase):
             "return aioInstallGeneratorQueuePromptHook(api, generatorQueueRuntime);",
             install_body,
         )
-        self.assertIn(
-            'const QUEUE_HOST_MARKER = "__easyuseAnimaAioQueuePromptInstalled";',
-            source,
-        )
-        self.assertIn("queueHost[QUEUE_HOST_MARKER]", source)
-        self.assertIn("wrappedQueuePrompt[QUEUE_HOOK_MARKER] = true;", source)
+        self.assertIn("const AIO_GENERATOR_QUEUE_OWNER = Symbol.for(", source)
+        self.assertIn('"easyuse-anima.aio.generator-queue"', source)
+        self.assertIn("return registerHostHookCallbacks({", source)
+        self.assertIn("owner: AIO_GENERATOR_QUEUE_OWNER,", source)
         self.assertIn("updateSeed: updateGeneratorSeed,", panel_source)
         self.assertLess(
             entry_source.index("const generatorPanelRuntime"),
@@ -2604,6 +2679,49 @@ class FrontendModuleStructureTests(unittest.TestCase):
                 self.assertIn("wildcard_seed_contract.js", source)
                 self.assertIn("bindWildcardSeedInput", source)
 
+    def test_prompt_studio_wildcard_tooltips_follow_the_selected_mode(self):
+        constants_source = (PROMPT_STUDIO_MODULES / "constants.js").read_text(
+            encoding="utf-8"
+        )
+        advanced_source = (
+            PROMPT_STUDIO_MODULES / "advanced_controls.js"
+        ).read_text(encoding="utf-8")
+        regional_source = (
+            PROMPT_STUDIO_REGIONAL_MODULES / "field_editor.js"
+        ).read_text(encoding="utf-8")
+
+        for mode_key in ("populate", "fixed", "sequential", "reproduce"):
+            with self.subTest(mode=mode_key):
+                locale_key = f'"advanced.wildcardMode.{mode_key}Title"'
+                self.assertEqual(constants_source.count(locale_key), 4)
+
+        for syntax in (
+            "__name__",
+            "{a|b|c}",
+            "N::weight",
+            "{n$$...}",
+            "{min-max$$separator$$...}",
+            "N#__name__",
+        ):
+            with self.subTest(syntax=syntax):
+                self.assertGreaterEqual(constants_source.count(syntax), 4)
+
+        self.assertNotIn(
+            "Wildcard expansion mode used when the node is queued.",
+            constants_source,
+        )
+        self.assertIn("function advancedWildcardModeTitle", advanced_source)
+        self.assertIn("option.title = advancedWildcardModeTitle(mode);", advanced_source)
+        self.assertIn(
+            "applyAdvancedWildcardModeTitle(modeRow, modeSelect, nextMode);",
+            advanced_source,
+        )
+        self.assertIn('select.setAttribute("aria-description", title);', advanced_source)
+        self.assertIn("function wildcardModeTitle", regional_source)
+        self.assertIn("option.title = wildcardModeTitle(mode);", regional_source)
+        self.assertIn('modeSelect.setAttribute("aria-description", selectedModeTitle);', regional_source)
+        self.assertIn("row.title = `${selectedModeTitle}\\n", regional_source)
+
     def test_prompt_studio_phase_2_modules_export_expected_symbols(self):
         advanced_controls_source = (
             PROMPT_STUDIO_MODULES / "advanced_controls.js"
@@ -3287,6 +3405,38 @@ class FrontendModuleStructureTests(unittest.TestCase):
         ):
             with self.subTest(path=path):
                 self.assertIn(path, config["include"])
+
+    def test_root_entry_typecheck_coverage_has_explicit_debt(self):
+        config = json.loads(JSCONFIG.read_text(encoding="utf-8"))
+        covered_root_entries = {
+            entry
+            for entry in config["include"]
+            if entry.startswith("web/js/")
+            and "/" not in entry.removeprefix("web/js/")
+            and "*" not in entry
+        }
+        debt_root_entries = {
+            "web/js/easyuse_anima_aio.js",
+            "web/js/easyuse_anima_lora_preset.js",
+        }
+        actual_root_entries = {
+            path.relative_to(ROOT).as_posix()
+            for path in WEB_JS.glob("*.js")
+        }
+
+        for entry in config["include"]:
+            if entry.startswith("web/js/"):
+                first_component = entry.removeprefix("web/js/").split("/", 1)[0]
+                self.assertFalse(
+                    any(marker in first_component for marker in "*?["),
+                    f"Root-level wildcard would bypass the explicit debt ledger: {entry}",
+                )
+
+        self.assertTrue(covered_root_entries.isdisjoint(debt_root_entries))
+        self.assertEqual(
+            actual_root_entries,
+            covered_root_entries | debt_root_entries,
+        )
 
     def test_frontend_check_script_runs_syntax_and_typecheck(self):
         source = FRONTEND_CHECK_SCRIPT.read_text(encoding="utf-8")

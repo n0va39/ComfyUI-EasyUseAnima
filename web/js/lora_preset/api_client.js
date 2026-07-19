@@ -26,6 +26,21 @@ export function createLoraPresetApiClient(dependencies) {
     });
   }
 
+  function profileToken(profile) {
+    if (typeof profile?.profile_id !== "string" || !profile.profile_id || !Number.isInteger(profile?.revision) || profile.revision < 0) {
+      return {};
+    }
+    return { profile_id: profile.profile_id, revision: profile.revision };
+  }
+
+  function profilePayload(payload) {
+    const sanitized = { ...(payload || {}) };
+    for (const field of ["name", "overwrite", "profile_id", "revision"]) {
+      delete sanitized[field];
+    }
+    return sanitized;
+  }
+
   function listProfiles() {
     return fetchJson("/easyuse_anima/lora_profiles");
   }
@@ -36,10 +51,12 @@ export function createLoraPresetApiClient(dependencies) {
     );
   }
 
-  function saveProfile(name, payload) {
+  function saveProfile(name, payload, overwrite = false, profile = null) {
     return postJson("/easyuse_anima/lora_profiles/save", {
       name,
-      ...payload,
+      ...profilePayload(payload),
+      overwrite,
+      ...profileToken(overwrite ? profile : null),
     });
   }
 

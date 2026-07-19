@@ -1,12 +1,18 @@
 from __future__ import annotations
 
+import bisect
+from collections import OrderedDict
 import fnmatch
+import hashlib
+import math
 import os
 import random
 import re
+import threading
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Iterable
+from types import MappingProxyType
+from typing import Iterable, Mapping, Sequence
 
 try:
     import numpy as np
@@ -70,7 +76,18 @@ SEED_CONTROL_MODES = (
 
 MAX_SEED = 0xFFFFFFFFFFFFFFFF
 PUBLIC_MAX_SEED = (1 << 53) - 1
-REPLACE_DEPTH = 100
+# Defaults stop exponential inputs well before they become memory hazards while
+# leaving ample room for ordinary nested wildcard libraries.  The old depth is
+# retained as a hard ceiling for callers that provide a custom budget.
+MAX_EXPANSION_DEPTH = 100
+REPLACE_DEPTH = MAX_EXPANSION_DEPTH
+DEFAULT_MAX_EXPANSION_DEPTH = 32
+DEFAULT_MAX_EXPANSION_REPLACEMENTS = 4096
+DEFAULT_MAX_EXPANSION_OUTPUT_CHARS = 256 * 1024
+DEFAULT_MAX_EXPANSION_GROWTH_PER_PASS = 8.0
+MAX_EXPANSION_REPLACEMENTS = 65536
+MAX_EXPANSION_OUTPUT_CHARS = 1024 * 1024
+MAX_EXPANSION_GROWTH_PER_PASS = 32.0
 WILDCARD_EXTENSIONS = {".txt", ".yaml", ".yml"}
 
 COMMENT_RE = re.compile(r"^\s*#.*(?:\n|$)", re.MULTILINE)
@@ -82,6 +99,9 @@ WILDCARD_QUANTIFIER_RE = re.compile(
     re.IGNORECASE,
 )
 WEIGHT_PREFIX_RE = re.compile(r"^\s*([+-]?(?:\d+(?:\.\d*)?|\.\d+))::(.*)$", re.DOTALL)
+COUNT_SPEC_RE = re.compile(
+    r"(?:(?P<fixed>\d+)|(?P<minimum>\d*)\s*-\s*(?P<maximum>\d*))"
+)
 
 
 @dataclass(frozen=True)
@@ -91,11 +111,358 @@ class WildcardOption:
 
 
 @dataclass(frozen=True)
+class _WildcardSourceFile:
+    root_index: int
+    root: str
+    relative_path: str
+    path: Path
+    mtime_ns: int
+    size: int
+
+    @property
+    def cache_key(self) -> tuple[int, str, int, int]:
+        return (self.root_index, self.relative_path, self.mtime_ns, self.size)
+
+
+@dataclass(frozen=True)
+class _WildcardSourceState:
+    roots: tuple[Path, ...]
+    root_identities: tuple[str, ...]
+    files: tuple[_WildcardSourceFile, ...]
+
+    @property
+    def cache_key(self) -> tuple:
+        roots = tuple(
+            (identity, str(root))
+            for identity, root in zip(self.root_identities, self.roots)
+        )
+        return roots, tuple(source.cache_key for source in self.files)
+
+
+@dataclass(frozen=True)
+class _WildcardSnapshot:
+    cache_key: tuple
+    mapping: Mapping[str, tuple[WildcardOption, ...]]
+    wildcard_names: tuple[str, ...]
+    roots: tuple[str, ...]
+    files: tuple[_WildcardSourceFile, ...]
+    cacheable: bool
+
+    def public_signature(self) -> dict:
+        return {
+            "roots": list(self.roots),
+            "files": [
+                {
+                    "root": source.root,
+                    "path": source.relative_path,
+                    "mtime_ns": source.mtime_ns,
+                    "size": source.size,
+                }
+                for source in self.files
+            ],
+        }
+
+
+_SNAPSHOT_CACHE_LIMIT = 16
+_SNAPSHOT_CONDITION = threading.Condition()
+_SNAPSHOT_CACHE: OrderedDict[tuple, _WildcardSnapshot] = OrderedDict()
+_SNAPSHOT_BUILDING: set[tuple] = set()
+
+
+def _bounded_int(value, default: int, minimum: int, maximum: int) -> int:
+    try:
+        parsed = int(value)
+    except (TypeError, ValueError, OverflowError):
+        parsed = default
+    return max(minimum, min(maximum, parsed))
+
+
+def _bounded_float(value, default: float, minimum: float, maximum: float) -> float:
+    try:
+        parsed = float(value)
+    except (TypeError, ValueError, OverflowError):
+        parsed = default
+    if not math.isfinite(parsed):
+        parsed = default
+    return max(minimum, min(maximum, parsed))
+
+
+@dataclass(frozen=True)
+class WildcardExpansionBudget:
+    max_depth: int = DEFAULT_MAX_EXPANSION_DEPTH
+    max_replacements: int = DEFAULT_MAX_EXPANSION_REPLACEMENTS
+    max_output_chars: int = DEFAULT_MAX_EXPANSION_OUTPUT_CHARS
+    max_growth_per_pass: float = DEFAULT_MAX_EXPANSION_GROWTH_PER_PASS
+
+    def __post_init__(self) -> None:
+        object.__setattr__(
+            self,
+            "max_depth",
+            _bounded_int(self.max_depth, DEFAULT_MAX_EXPANSION_DEPTH, 0, MAX_EXPANSION_DEPTH),
+        )
+        object.__setattr__(
+            self,
+            "max_replacements",
+            _bounded_int(
+                self.max_replacements,
+                DEFAULT_MAX_EXPANSION_REPLACEMENTS,
+                0,
+                MAX_EXPANSION_REPLACEMENTS,
+            ),
+        )
+        object.__setattr__(
+            self,
+            "max_output_chars",
+            _bounded_int(
+                self.max_output_chars,
+                DEFAULT_MAX_EXPANSION_OUTPUT_CHARS,
+                1,
+                MAX_EXPANSION_OUTPUT_CHARS,
+            ),
+        )
+        object.__setattr__(
+            self,
+            "max_growth_per_pass",
+            _bounded_float(
+                self.max_growth_per_pass,
+                DEFAULT_MAX_EXPANSION_GROWTH_PER_PASS,
+                1.0,
+                MAX_EXPANSION_GROWTH_PER_PASS,
+            ),
+        )
+
+
+@dataclass(frozen=True)
 class WildcardExpansionResult:
     text: str
     changed: bool
     used_keys: tuple[str, ...] = ()
     missing_keys: tuple[str, ...] = ()
+    replacement_count: int = 0
+    limit_reason: str | None = None
+
+
+def _utf8_width(char: str) -> int:
+    codepoint = ord(char)
+    if codepoint <= 0x7F:
+        return 1
+    if codepoint <= 0x7FF:
+        return 2
+    if codepoint <= 0xFFFF:
+        return 3
+    return 4
+
+
+def _utf8_length(value: str) -> int:
+    return sum(_utf8_width(char) for char in value)
+
+
+@dataclass(frozen=True)
+class _ExpansionSegment:
+    text: str
+    key_stack: tuple[str, ...] = ()
+
+
+class _ExpansionText:
+    def __init__(self, segments: Iterable[_ExpansionSegment]):
+        merged: list[_ExpansionSegment] = []
+        pending_parts: list[str] = []
+        pending_stack: tuple[str, ...] | None = None
+
+        def flush_pending() -> None:
+            nonlocal pending_parts, pending_stack
+            if pending_parts:
+                merged.append(_ExpansionSegment("".join(pending_parts), pending_stack or ()))
+            pending_parts = []
+            pending_stack = None
+
+        for segment in segments:
+            if not segment.text:
+                continue
+            if pending_parts and pending_stack != segment.key_stack:
+                flush_pending()
+            pending_stack = segment.key_stack
+            pending_parts.append(segment.text)
+        flush_pending()
+        self.segments = tuple(merged)
+        self.text = "".join(segment.text for segment in self.segments)
+        self.char_count = len(self.text)
+        self.byte_count = _utf8_length(self.text)
+        ends = []
+        total = 0
+        for segment in self.segments:
+            total += len(segment.text)
+            ends.append(total)
+        self._ends = tuple(ends)
+
+    @classmethod
+    def from_text(cls, text: str) -> "_ExpansionText":
+        return cls((_ExpansionSegment(text),))
+
+    def slice_segments(self, start: int, end: int) -> list[_ExpansionSegment]:
+        if start >= end or not self.segments:
+            return []
+        index = bisect.bisect_right(self._ends, start)
+        segment_start = 0 if index == 0 else self._ends[index - 1]
+        sliced = []
+        while index < len(self.segments) and segment_start < end:
+            segment = self.segments[index]
+            local_start = max(0, start - segment_start)
+            local_end = min(len(segment.text), end - segment_start)
+            if local_start < local_end:
+                sliced.append(_ExpansionSegment(segment.text[local_start:local_end], segment.key_stack))
+            segment_start = self._ends[index]
+            index += 1
+        return sliced
+
+    def key_stack_for_span(self, start: int, end: int) -> tuple[str, ...]:
+        stacks = [segment.key_stack for segment in self.slice_segments(start, end)]
+        if not stacks:
+            return ()
+        common = list(stacks[0])
+        for stack in stacks[1:]:
+            shared = 0
+            while shared < len(common) and shared < len(stack) and common[shared] == stack[shared]:
+                shared += 1
+            del common[shared:]
+            if not common:
+                break
+        return tuple(common)
+
+
+@dataclass(frozen=True)
+class _Replacement:
+    parts: tuple[str, ...]
+    separator: str
+    key_stack: tuple[str, ...]
+
+    @property
+    def char_count(self) -> int:
+        return sum(len(part) for part in self.parts) + len(self.separator) * max(0, len(self.parts) - 1)
+
+    @property
+    def byte_count(self) -> int:
+        return sum(_utf8_length(part) for part in self.parts) + _utf8_length(self.separator) * max(
+            0,
+            len(self.parts) - 1,
+        )
+
+    def materialize(self) -> str:
+        if len(self.parts) == 1:
+            return self.parts[0]
+        return self.separator.join(self.parts)
+
+
+class _ExpansionState:
+    def __init__(self, budget: WildcardExpansionBudget):
+        self.budget = budget
+        self.replacement_count = 0
+        self.limit_reason: str | None = None
+        self.cycle_detected = False
+        self._pass_base_chars = 0
+        self._pass_base_bytes = 0
+
+    def begin_pass(self, current: _ExpansionText) -> None:
+        self._pass_base_chars = current.char_count
+        self._pass_base_bytes = current.byte_count
+
+    def stop(self, reason: str) -> None:
+        if self.limit_reason is None:
+            self.limit_reason = reason
+
+    def candidate(
+        self,
+        parts: Iterable[str],
+        separator: str,
+        key_stack: tuple[str, ...],
+    ) -> _Replacement | None:
+        candidate = _Replacement(tuple(parts), separator, key_stack)
+        cycle_parts = candidate.parts
+        if len(candidate.parts) > 1 and candidate.separator:
+            cycle_parts = (*candidate.parts, candidate.separator)
+        for part in cycle_parts:
+            for match in WILDCARD_RE.finditer(part):
+                key = _normalize_wildcard_key(match.group("keyword"))
+                if key is not None and key in key_stack:
+                    self.cycle_detected = True
+                    return None
+        return candidate
+
+    def _replacement_limit_reason(
+        self,
+        current: _ExpansionText,
+        stage_delta_chars: int,
+        stage_delta_bytes: int,
+        matched_text: str,
+        replacement: _Replacement,
+    ) -> str | None:
+        if self.replacement_count >= self.budget.max_replacements:
+            return "max_replacements"
+        projected_chars = (
+            current.char_count
+            + stage_delta_chars
+            - len(matched_text)
+            + replacement.char_count
+        )
+        projected_bytes = (
+            current.byte_count
+            + stage_delta_bytes
+            - _utf8_length(matched_text)
+            + replacement.byte_count
+        )
+        # One conservative cap bounds both logical characters and UTF-8 bytes.
+        if projected_chars > self.budget.max_output_chars or projected_bytes > self.budget.max_output_chars:
+            return "max_output_chars"
+        growth = self.budget.max_growth_per_pass
+        if (
+            projected_chars > math.floor(max(1, self._pass_base_chars) * growth)
+            or projected_bytes > math.floor(max(1, self._pass_base_bytes) * growth)
+        ):
+            return "max_growth_per_pass"
+        return None
+
+    def replace_matches(
+        self,
+        current: _ExpansionText,
+        pattern: re.Pattern,
+        resolver,
+    ) -> _ExpansionText:
+        source = current.text
+        output: list[_ExpansionSegment] = []
+        cursor = 0
+        stage_delta_chars = 0
+        stage_delta_bytes = 0
+        for match in pattern.finditer(source):
+            output.extend(current.slice_segments(cursor, match.start()))
+            key_stack = current.key_stack_for_span(match.start(), match.end())
+            replacement = resolver(match, key_stack)
+            if self.limit_reason is not None:
+                output.extend(current.slice_segments(match.start(), len(source)))
+                return _ExpansionText(output)
+            if replacement is None:
+                output.extend(current.slice_segments(match.start(), match.end()))
+                cursor = match.end()
+                continue
+            matched_text = match.group(0)
+            reason = self._replacement_limit_reason(
+                current,
+                stage_delta_chars,
+                stage_delta_bytes,
+                matched_text,
+                replacement,
+            )
+            if reason is not None:
+                self.stop(reason)
+                output.extend(current.slice_segments(match.start(), len(source)))
+                return _ExpansionText(output)
+            replacement_text = replacement.materialize()
+            output.append(_ExpansionSegment(replacement_text, replacement.key_stack))
+            self.replacement_count += 1
+            stage_delta_chars += replacement.char_count - len(matched_text)
+            stage_delta_bytes += replacement.byte_count - _utf8_length(matched_text)
+            cursor = match.end()
+        output.extend(current.slice_segments(cursor, len(source)))
+        return _ExpansionText(output)
 
 
 def default_wildcard_root() -> Path:
@@ -267,47 +634,46 @@ def _stringify_yaml_scalar(value) -> str:
 
 def _yaml_entries(data, prefix: str = "") -> dict[str, list[WildcardOption]]:
     entries: dict[str, list[WildcardOption]] = {}
-    if isinstance(data, dict):
-        aggregate = []
-        for raw_key, value in data.items():
-            child_key = _normalize_wildcard_key(raw_key)
-            if child_key is None:
-                continue
-            path_key = f"{prefix}/{child_key}" if prefix else child_key
-            child_entries = _yaml_entries(value, path_key)
-            for key, options in child_entries.items():
-                entries.setdefault(key, []).extend(options)
-                aggregate.extend(options)
-        if prefix and aggregate:
-            entries.setdefault(prefix, []).extend(aggregate)
-        return entries
-    if isinstance(data, list):
-        options = []
-        for item in data:
-            if isinstance(item, (dict, list)):
-                child_entries = _yaml_entries(item, prefix)
-                for key, child_options in child_entries.items():
-                    entries.setdefault(key, []).extend(child_options)
-                    options.extend(child_options)
-                continue
-            option = _parse_option(_stringify_yaml_scalar(item))
+
+    def collect(value, path_prefix: str, publish_alias: bool = True) -> list[WildcardOption]:
+        aggregate: list[WildcardOption] = []
+        if isinstance(value, dict):
+            for raw_key, child_value in value.items():
+                child_key = _normalize_wildcard_key(raw_key)
+                if child_key is None:
+                    continue
+                path_key = f"{path_prefix}/{child_key}" if path_prefix else child_key
+                aggregate.extend(collect(child_value, path_key))
+        elif isinstance(value, list):
+            for item in value:
+                if isinstance(item, (dict, list)):
+                    # The containing list owns this alias. Nested containers still
+                    # publish their distinct child paths, but not the same prefix
+                    # again through an intermediate recursion frame.
+                    aggregate.extend(collect(item, path_prefix, publish_alias=False))
+                    continue
+                option = _parse_option(_stringify_yaml_scalar(item))
+                if option is not None:
+                    aggregate.append(option)
+        else:
+            option = _parse_option(_stringify_yaml_scalar(value))
             if option is not None:
-                options.append(option)
-        if prefix and options:
-            entries.setdefault(prefix, []).extend(options)
-        return entries
-    if prefix:
-        option = _parse_option(_stringify_yaml_scalar(data))
-        if option is not None:
-            entries[prefix] = [option]
+                aggregate.append(option)
+
+        if publish_alias and path_prefix and aggregate:
+            entries.setdefault(path_prefix, []).extend(aggregate)
+        return aggregate
+
+    collect(data, prefix)
     return entries
 
 
 def _load_yaml_entries(path: Path) -> dict[str, list[WildcardOption]]:
     if yaml is None:
         return {}
+    text = _read_text_file(path)
     try:
-        data = yaml.safe_load(_read_text_file(path))
+        data = yaml.safe_load(text)
     except Exception:
         return {}
     return _yaml_entries(data)
@@ -329,50 +695,133 @@ def _load_wildcard_file(root: Path, path: Path) -> dict[str, list[WildcardOption
     return {key: _options_from_lines(_read_text_file(path))}
 
 
-def _load_wildcard_map(roots: Iterable[Path]) -> dict[str, list[WildcardOption]]:
-    mapping: dict[str, list[WildcardOption]] = {}
-    for root in roots:
+def _wildcard_root_identity(root: Path) -> str:
+    try:
+        return os.path.normcase(os.path.abspath(os.fspath(root)))
+    except (OSError, TypeError, ValueError):
+        return os.path.normcase(str(root))
+
+
+def _scan_wildcard_sources(roots: tuple[Path, ...]) -> _WildcardSourceState:
+    files: list[_WildcardSourceFile] = []
+    for root_index, root in enumerate(roots):
         if not root.is_dir():
             continue
-        for path in sorted(root.rglob("*"), key=lambda item: item.as_posix().lower()):
-            if not path.is_file() or path.suffix.lower() not in WILDCARD_EXTENSIONS:
+        try:
+            candidates = sorted(root.rglob("*"), key=lambda item: item.as_posix().lower())
+        except OSError:
+            continue
+        for path in candidates:
+            if path.suffix.lower() not in WILDCARD_EXTENSIONS:
                 continue
             try:
-                entries = _load_wildcard_file(root, path)
-            except OSError:
+                if not path.is_file():
+                    continue
+                stat = path.stat()
+                relative = path.relative_to(root).as_posix()
+            except (OSError, ValueError):
                 continue
-            for key, options in entries.items():
-                if key not in mapping and options:
-                    mapping[key] = options
-    return mapping
+            files.append(
+                _WildcardSourceFile(
+                    root_index=root_index,
+                    root=str(root),
+                    relative_path=relative,
+                    path=path,
+                    mtime_ns=stat.st_mtime_ns,
+                    size=stat.st_size,
+                )
+            )
+    return _WildcardSourceState(
+        roots=roots,
+        root_identities=tuple(_wildcard_root_identity(root) for root in roots),
+        files=tuple(files),
+    )
+
+
+def _build_wildcard_snapshot(source_state: _WildcardSourceState) -> _WildcardSnapshot:
+    mapping: dict[str, list[WildcardOption]] = {}
+    cacheable = True
+    for source in source_state.files:
+        root = source_state.roots[source.root_index]
+        try:
+            entries = _load_wildcard_file(root, source.path)
+        except OSError:
+            cacheable = False
+            continue
+        for key, options in entries.items():
+            if key not in mapping and options:
+                mapping[key] = options
+
+    frozen_mapping = MappingProxyType(
+        {key: tuple(options) for key, options in mapping.items()}
+    )
+    return _WildcardSnapshot(
+        cache_key=source_state.cache_key,
+        mapping=frozen_mapping,
+        wildcard_names=tuple(sorted(frozen_mapping)),
+        roots=tuple(str(root) for root in source_state.roots),
+        files=source_state.files,
+        cacheable=cacheable,
+    )
+
+
+def _wildcard_snapshot(roots: Iterable[Path]) -> _WildcardSnapshot:
+    resolved_roots = tuple(Path(root) for root in roots)
+    while True:
+        source_state = _scan_wildcard_sources(resolved_roots)
+        cache_key = source_state.cache_key
+        with _SNAPSHOT_CONDITION:
+            cached = _SNAPSHOT_CACHE.get(cache_key)
+            if cached is not None:
+                _SNAPSHOT_CACHE.move_to_end(cache_key)
+                return cached
+            if cache_key in _SNAPSHOT_BUILDING:
+                _SNAPSHOT_CONDITION.wait()
+                continue
+            _SNAPSHOT_BUILDING.add(cache_key)
+
+        snapshot = None
+        failure: BaseException | None = None
+        try:
+            candidate = _build_wildcard_snapshot(source_state)
+            verified_state = _scan_wildcard_sources(resolved_roots)
+            if verified_state.cache_key == cache_key:
+                snapshot = candidate
+        except BaseException as exc:
+            failure = exc
+        finally:
+            with _SNAPSHOT_CONDITION:
+                _SNAPSHOT_BUILDING.discard(cache_key)
+                if snapshot is not None and snapshot.cacheable:
+                    _SNAPSHOT_CACHE[cache_key] = snapshot
+                    _SNAPSHOT_CACHE.move_to_end(cache_key)
+                    while len(_SNAPSHOT_CACHE) > _SNAPSHOT_CACHE_LIMIT:
+                        _SNAPSHOT_CACHE.popitem(last=False)
+                _SNAPSHOT_CONDITION.notify_all()
+
+        if failure is not None:
+            raise failure
+        if snapshot is not None:
+            return snapshot
+
+
+def _load_wildcard_map(roots: Iterable[Path]) -> dict[str, list[WildcardOption]]:
+    snapshot = _wildcard_snapshot(roots)
+    return {key: list(options) for key, options in snapshot.mapping.items()}
 
 
 def list_wildcards(extra_paths: str | None = None, roots: Iterable[Path] | None = None) -> list[str]:
-    mapping = _load_wildcard_map(roots if roots is not None else resolve_wildcard_roots(extra_paths))
-    return sorted(mapping)
+    snapshot = _wildcard_snapshot(
+        roots if roots is not None else resolve_wildcard_roots(extra_paths)
+    )
+    return list(snapshot.wildcard_names)
 
 
 def wildcard_sources_signature(extra_paths: str | None = None, roots: Iterable[Path] | None = None) -> dict:
-    resolved_roots = [Path(root) for root in (roots if roots is not None else resolve_wildcard_roots(extra_paths))]
-    files = []
-    for root in resolved_roots:
-        if not root.is_dir():
-            continue
-        for path in sorted(root.rglob("*"), key=lambda item: item.as_posix().lower()):
-            if not path.is_file() or path.suffix.lower() not in WILDCARD_EXTENSIONS:
-                continue
-            try:
-                stat = path.stat()
-                relative = path.relative_to(root).as_posix()
-            except OSError:
-                continue
-            files.append({
-                "root": str(root),
-                "path": relative,
-                "mtime_ns": stat.st_mtime_ns,
-                "size": stat.st_size,
-            })
-    return {"roots": [str(root) for root in resolved_roots], "files": files}
+    snapshot = _wildcard_snapshot(
+        roots if roots is not None else resolve_wildcard_roots(extra_paths)
+    )
+    return snapshot.public_signature()
 
 
 class _Selector:
@@ -395,29 +844,46 @@ class _Selector:
             return int(self.rng.integers(minimum, maximum + 1))
         return self.rng.randint(minimum, maximum)
 
-    def choose_one(self, options: list[WildcardOption]) -> WildcardOption | None:
+    def choose_one(self, options: Sequence[WildcardOption]) -> WildcardOption | None:
         selected = self.choose_many(options, 1)
         return selected[0] if selected else None
 
-    def choose_many(self, options: list[WildcardOption], count: int) -> list[WildcardOption]:
+    def choose_many(
+        self,
+        options: Sequence[WildcardOption],
+        count: int,
+    ) -> list[WildcardOption]:
         if not options or count <= 0:
             return []
-        count = min(count, len(options))
         if self.sequential:
+            count = min(count, len(options))
             start = self.seed % len(options)
             return [options[(start + offset) % len(options)] for offset in range(count)]
 
         weights = [max(0.0, option.weight) for option in options]
-        total = sum(weights)
-        if np is not None:
-            probabilities = [weight / total for weight in weights] if total > 0 else None
-            indices = self.rng.choice(len(options), size=count, replace=False, p=probabilities)
-            return [options[int(index)] for index in indices]
-
-        if total > 0:
-            selected = []
+        positive = [
+            (option, weight)
+            for option, weight in zip(options, weights)
+            if weight > 0
+        ]
+        if positive:
+            pool = [option for option, _weight in positive]
+            pool_weights = [weight for _option, weight in positive]
+        else:
             pool = list(options)
-            pool_weights = weights[:]
+            pool_weights = None
+
+        count = min(count, len(pool))
+        if np is not None:
+            probabilities = None
+            if pool_weights is not None:
+                total = sum(pool_weights)
+                probabilities = [weight / total for weight in pool_weights]
+            indices = self.rng.choice(len(pool), size=count, replace=False, p=probabilities)
+            return [pool[int(index)] for index in indices]
+
+        if pool_weights is not None:
+            selected = []
             for _ in range(count):
                 choice = self.rng.choices(pool, weights=pool_weights, k=1)[0]
                 index = pool.index(choice)
@@ -425,12 +891,12 @@ class _Selector:
                 pool.pop(index)
                 pool_weights.pop(index)
             return selected
-        return self.rng.sample(options, count)
+        return self.rng.sample(pool, count)
 
 
 class _WildcardLibrary:
     def __init__(self, roots: Iterable[Path]):
-        self.mapping = _load_wildcard_map(roots)
+        self.mapping = _wildcard_snapshot(roots).mapping
         self.used: list[str] = []
         self.missing: list[str] = []
 
@@ -442,7 +908,7 @@ class _WildcardLibrary:
         if key not in self.missing:
             self.missing.append(key)
 
-    def options_for(self, raw_key: str) -> list[WildcardOption]:
+    def options_for(self, raw_key: str) -> Sequence[WildcardOption]:
         key = _normalize_wildcard_key(raw_key)
         if key is None:
             return []
@@ -453,7 +919,7 @@ class _WildcardLibrary:
             self._record_missing(key)
         return options
 
-    def _options_for_normalized_key(self, key: str) -> list[WildcardOption]:
+    def _options_for_normalized_key(self, key: str) -> Sequence[WildcardOption]:
         if key in self.mapping:
             return self.mapping[key]
         if "/" not in key and "*" not in key:
@@ -505,39 +971,54 @@ def _parse_dynamic_options(value: str) -> list[WildcardOption]:
     return options
 
 
-def _parse_count_spec(spec: str, selector: _Selector) -> int:
+def _parse_count_spec(spec: str, selector: _Selector) -> int | None:
     text = str(spec or "").strip()
     if not text:
         return 1
-    if "-" in text:
-        left, _, right = text.partition("-")
-        minimum = int(left) if left.strip() else 0
-        maximum = int(right) if right.strip() else minimum
-        return selector.count_from_range(minimum, maximum)
-    try:
-        return max(0, int(text))
-    except ValueError:
-        return 1
+    match = COUNT_SPEC_RE.fullmatch(text)
+    if match is None:
+        return None
+    fixed = match.group("fixed")
+    if fixed is not None:
+        return int(fixed)
+    left = match.group("minimum")
+    right = match.group("maximum")
+    if not left and not right:
+        return None
+    minimum = int(left) if left else 0
+    maximum = int(right) if right else minimum
+    return selector.count_from_range(minimum, maximum)
 
 
-def _expand_multiselect_options(options: list[WildcardOption], library: _WildcardLibrary) -> list[WildcardOption]:
+def _expand_multiselect_options(
+    options: list[WildcardOption],
+    library: _WildcardLibrary,
+) -> tuple[Sequence[WildcardOption], str | None]:
     if len(options) != 1:
-        return options
+        return options, None
     match = WILDCARD_FULL_RE.match(options[0].text.strip())
     if not match:
-        return options
-    return library.options_for(match.group("keyword"))
+        return options, None
+    raw_key = match.group("keyword")
+    return library.options_for(raw_key), _normalize_wildcard_key(raw_key)
 
 
-def _replace_dynamic(text: str, selector: _Selector, library: _WildcardLibrary) -> str:
-    def replace(match: re.Match) -> str:
+def _replace_dynamic(
+    current: _ExpansionText,
+    state: _ExpansionState,
+    selector: _Selector,
+    library: _WildcardLibrary,
+) -> _ExpansionText:
+    def replace(match: re.Match, key_stack: tuple[str, ...]) -> _Replacement | None:
         body = match.group(1)
         raw_options = _split_unescaped(body, "|")
         if not raw_options:
-            return match.group(0)
+            return None
         first_parts = raw_options[0].split("$$")
         if len(first_parts) > 1:
             count = _parse_count_spec(first_parts[0], selector)
+            if count is None:
+                return None
             separator = ", "
             if len(first_parts) == 2:
                 first_candidate = first_parts[1]
@@ -545,34 +1026,86 @@ def _replace_dynamic(text: str, selector: _Selector, library: _WildcardLibrary) 
                 separator = first_parts[1]
                 first_candidate = "$$".join(first_parts[2:])
             candidate_text = "|".join([first_candidate, *raw_options[1:]])
-            options = _expand_multiselect_options(_parse_dynamic_options(candidate_text), library)
+            options, expanded_key = _expand_multiselect_options(
+                _parse_dynamic_options(candidate_text),
+                library,
+            )
             selected = selector.choose_many(options, count)
-            return separator.join(option.text for option in selected) if selected else match.group(0)
+            if not selected:
+                return None
+            candidate_stack = key_stack + ((expanded_key,) if expanded_key is not None else ())
+            return state.candidate(
+                (option.text for option in selected),
+                separator,
+                candidate_stack,
+            )
 
         options = _parse_dynamic_options(body)
         selected = selector.choose_one(options)
-        return selected.text if selected is not None else match.group(0)
+        if selected is None:
+            return None
+        return state.candidate((selected.text,), "", key_stack)
 
-    return DYNAMIC_RE.sub(replace, text)
+    return state.replace_matches(current, DYNAMIC_RE, replace)
 
 
-def _replace_quantified_wildcards(text: str, selector: _Selector, library: _WildcardLibrary) -> str:
-    def replace(match: re.Match) -> str:
+def _replace_quantified_wildcards(
+    current: _ExpansionText,
+    state: _ExpansionState,
+    selector: _Selector,
+    library: _WildcardLibrary,
+) -> _ExpansionText:
+    def replace(match: re.Match, key_stack: tuple[str, ...]) -> _Replacement | None:
         count = max(0, int(match.group("quantifier")))
-        options = library.options_for(match.group("keyword"))
+        raw_key = match.group("keyword")
+        options = library.options_for(raw_key)
         selected = selector.choose_many(options, count)
-        return ", ".join(option.text for option in selected) if selected else match.group(0)
+        key = _normalize_wildcard_key(raw_key)
+        if not selected or key is None:
+            return None
+        return state.candidate(
+            (option.text for option in selected),
+            ", ",
+            key_stack + (key,),
+        )
 
-    return WILDCARD_QUANTIFIER_RE.sub(replace, text)
+    return state.replace_matches(current, WILDCARD_QUANTIFIER_RE, replace)
 
 
-def _replace_file_wildcards(text: str, selector: _Selector, library: _WildcardLibrary) -> str:
-    def replace(match: re.Match) -> str:
-        options = library.options_for(match.group("keyword"))
+def _replace_file_wildcards(
+    current: _ExpansionText,
+    state: _ExpansionState,
+    selector: _Selector,
+    library: _WildcardLibrary,
+) -> _ExpansionText:
+    def replace(match: re.Match, key_stack: tuple[str, ...]) -> _Replacement | None:
+        raw_key = match.group("keyword")
+        options = library.options_for(raw_key)
         selected = selector.choose_one(options)
-        return selected.text if selected is not None else match.group(0)
+        key = _normalize_wildcard_key(raw_key)
+        if selected is None or key is None:
+            return None
+        return state.candidate((selected.text,), "", key_stack + (key,))
 
-    return WILDCARD_RE.sub(replace, text)
+    return state.replace_matches(current, WILDCARD_RE, replace)
+
+
+def _bounded_output_prefix(text: str, limit: int) -> str:
+    chars = []
+    byte_count = 0
+    for char in text:
+        width = _utf8_width(char)
+        if len(chars) >= limit or byte_count + width > limit:
+            break
+        chars.append(char)
+        byte_count += width
+    return "".join(chars)
+
+
+def _expansion_state_signature(text: str) -> tuple[int, bytes]:
+    digest = hashlib.blake2b(text.encode("utf-8", errors="surrogatepass"), digest_size=16)
+    return len(text), digest.digest()
+
 
 
 def expand_wildcards(
@@ -581,22 +1114,56 @@ def expand_wildcards(
     mode: str = WILDCARD_MODE_POPULATE,
     extra_paths: str | None = None,
     roots: Iterable[Path] | None = None,
+    budget: WildcardExpansionBudget | None = None,
 ) -> WildcardExpansionResult:
+    source = str(text or "")
     mode = normalize_wildcard_mode(mode)
     selector = _Selector(normalize_seed(seed), sequential=mode == WILDCARD_MODE_SEQUENTIAL)
     library = _WildcardLibrary(roots if roots is not None else resolve_wildcard_roots(extra_paths))
+    budget = budget if isinstance(budget, WildcardExpansionBudget) else WildcardExpansionBudget()
+    state = _ExpansionState(budget)
 
-    current = COMMENT_RE.sub("", str(text or ""))
-    for _ in range(REPLACE_DEPTH):
-        previous = current
-        current = _replace_dynamic(current, selector, library)
-        current = _replace_quantified_wildcards(current, selector, library)
-        current = _replace_file_wildcards(current, selector, library)
-        if current == previous:
-            break
+    cleaned = COMMENT_RE.sub("", source)
+    if len(cleaned) > budget.max_output_chars or _utf8_length(cleaned) > budget.max_output_chars:
+        cleaned = _bounded_output_prefix(cleaned, budget.max_output_chars)
+        state.stop("max_output_chars")
+    current = _ExpansionText.from_text(cleaned)
+    # Key stacks stop file recursion before append; stable pass signatures are
+    # a separate fallback for keyless fixed points and oscillating expressions.
+    seen_states = {_expansion_state_signature(current.text)}
+
+    if state.limit_reason is None:
+        for depth in range(budget.max_depth):
+            state.begin_pass(current)
+            replacements_before_pass = state.replacement_count
+            current = _replace_dynamic(current, state, selector, library)
+            if state.limit_reason is None:
+                current = _replace_quantified_wildcards(current, state, selector, library)
+            if state.limit_reason is None:
+                current = _replace_file_wildcards(current, state, selector, library)
+            if state.limit_reason is not None:
+                break
+            if state.replacement_count == replacements_before_pass:
+                break
+            if not has_wildcard_syntax(current.text):
+                break
+            signature = _expansion_state_signature(current.text)
+            if signature in seen_states:
+                state.stop("repeated_state")
+                break
+            seen_states.add(signature)
+            if depth + 1 >= budget.max_depth:
+                state.stop("max_depth")
+                break
+        else:
+            if budget.max_depth == 0 and has_wildcard_syntax(current.text):
+                state.stop("max_depth")
+
     return WildcardExpansionResult(
-        text=current,
-        changed=current != str(text or ""),
+        text=current.text,
+        changed=current.text != source,
         used_keys=tuple(library.used),
         missing_keys=tuple(library.missing),
+        replacement_count=state.replacement_count,
+        limit_reason=state.limit_reason or ("cycle" if state.cycle_detected else None),
     )

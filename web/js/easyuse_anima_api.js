@@ -24,6 +24,30 @@ export async function easyuseAnimaReadTextResponse(response, fallback = "") {
   }
 }
 
+function easyuseAnimaApiError(response, data, errorMessage) {
+  const message = data?.message
+    || response.statusText
+    || (response.status ? `HTTP ${response.status}` : errorMessage)
+    || DEFAULT_REQUEST_FAILED;
+  const error = /** @type {Error & {status: number, code?: string, details?: any, requestId?: string}} */ (
+    new Error(message)
+  );
+  error.status = Number(response?.status) || 0;
+  if (typeof data?.code === "string" && data.code) {
+    error.code = data.code;
+  }
+  if (data?.details !== undefined) {
+    error.details = data.details;
+  }
+  const requestId = (typeof data?.request_id === "string" && data.request_id)
+    || response?.headers?.get?.("X-Request-ID")
+    || "";
+  if (requestId) {
+    error.requestId = requestId;
+  }
+  return error;
+}
+
 export async function easyuseAnimaFetchJson(url, options = {}) {
   const {
     fetcher = fetch,
@@ -34,7 +58,7 @@ export async function easyuseAnimaFetchJson(url, options = {}) {
   const response = await fetcher(url, fetchOptions);
   const data = await easyuseAnimaReadJsonResponse(response, fallbackJson);
   if (!response.ok) {
-    throw new Error(data?.message || response.statusText || (response.status ? `HTTP ${response.status}` : errorMessage) || DEFAULT_REQUEST_FAILED);
+    throw easyuseAnimaApiError(response, data, errorMessage);
   }
   return data;
 }

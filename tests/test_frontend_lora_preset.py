@@ -57,6 +57,7 @@ LORA_PRESET_PROFILE_MUTATIONS = (
     ROOT / "web" / "js" / "lora_preset" / "profile_mutations.js"
 )
 LORA_PRESET_SAVE_SYNC = ROOT / "web" / "js" / "lora_preset" / "save_sync.js"
+HOST_HOOK_REGISTRY = ROOT / "web" / "js" / "lifecycle" / "host_hook_registry.js"
 LORA_PRESET_PROFILE_MUTATIONS_SMOKE = (
     ROOT / "tests" / "frontend_lora_preset_profile_mutations_smoke.mjs"
 )
@@ -920,7 +921,8 @@ class LoraPresetFrontendTests(unittest.TestCase):
         frontend_check_source = FRONTEND_CHECK_SCRIPT.read_text(encoding="utf-8")
 
         self.assertEqual(mutations_source.splitlines()[0], "import {")
-        self.assertEqual(save_sync_source.splitlines()[0], "/** Installs the graph-save and queue-preparation synchronization hooks. */")
+        self.assertEqual(save_sync_source.splitlines()[0], "// @ts-check")
+        self.assertIn('../lifecycle/host_hook_registry.js"', save_sync_source)
         self.assertEqual(
             re.findall(
                 r"^export\s+(?:const|function|class)\s+([A-Za-z0-9_]+)",
@@ -949,6 +951,7 @@ class LoraPresetFrontendTests(unittest.TestCase):
         self.assertIn("const loraProfileMutations = createLoraPresetProfileMutations({", entry_source)
         self.assertIn("const loraPresetSaveSync = createLoraPresetSaveSync({", entry_source)
         self.assertIn("saveSync: loraPresetSaveSync,", entry_source)
+        self.assertEqual(entry_source.count('"profile.overwriteConfirm":'), 4)
         self.assertTrue(LORA_PRESET_PROFILE_MUTATIONS_SMOKE.is_file())
         self.assertIn(
             r'node "tests\frontend_lora_preset_profile_mutations_smoke.mjs"',
@@ -992,7 +995,8 @@ class LoraPresetFrontendTests(unittest.TestCase):
             const nodeRuntimePath = process.argv[8];
             const profileMutationsPath = process.argv[9];
             const saveSyncPath = process.argv[10];
-            const entryLifecyclePath = process.argv[11];
+            const hostHookRegistryPath = process.argv[11];
+            const entryLifecyclePath = process.argv[12];
             let profileDataSource = fs.readFileSync(profileDataPath, "utf8");
             profileDataSource = profileDataSource.replace(
               /^export\s+(?=(?:const|function|class)\b)/gm,
@@ -1035,7 +1039,13 @@ class LoraPresetFrontendTests(unittest.TestCase):
               "",
             );
             let saveSyncSource = fs.readFileSync(saveSyncPath, "utf8");
+            saveSyncSource = saveSyncSource.replace(/^import[\s\S]*?;\r?\n/gm, "");
             saveSyncSource = saveSyncSource.replace(
+              /^export\s+(?=(?:const|function|class)\b)/gm,
+              "",
+            );
+            let hostHookRegistrySource = fs.readFileSync(hostHookRegistryPath, "utf8");
+            hostHookRegistrySource = hostHookRegistrySource.replace(
               /^export\s+(?=(?:const|function|class)\b)/gm,
               "",
             );
@@ -1046,7 +1056,7 @@ class LoraPresetFrontendTests(unittest.TestCase):
             );
             let source = fs.readFileSync(sourcePath, "utf8");
             source = source.replace(/^import[\s\S]*?;\r?\n/gm, "");
-            source = `${profileDataSource}\n${loraStateSource}\n${apiClientSource}\n${previewLifecycleSource}\n${menuLifecycleSource}\n${canvasWidgetsSource}\n${nodeRuntimeSource}\n${profileMutationsSource}\n${saveSyncSource}\n${entryLifecycleSource}\n${source}`;
+            source = `${profileDataSource}\n${loraStateSource}\n${apiClientSource}\n${previewLifecycleSource}\n${menuLifecycleSource}\n${canvasWidgetsSource}\n${nodeRuntimeSource}\n${profileMutationsSource}\n${hostHookRegistrySource}\n${saveSyncSource}\n${entryLifecycleSource}\n${source}`;
             source += "\nglobalThis.__loraPresetTest = { loraCanvasWidgets, LORA_PRESET_SETTINGS, applyLoraPresetSettings, loraPresetApi, loraPreviewLifecycle, loraMenuLifecycle, saveProfileSet };\n";
 
             const mutationObservers = [];
@@ -1341,8 +1351,8 @@ class LoraPresetFrontendTests(unittest.TestCase):
             (async () => {
               const node = makeNode();
               let saveCall = null;
-              loraPresetApi.saveProfile = async (name, payload) => {
-                saveCall = { name, payload };
+              loraPresetApi.saveProfile = async (name, payload, overwrite) => {
+                saveCall = { name, payload, overwrite };
                 return { profile: { name } };
               };
               context.window.prompt = () => "  Demo  ";
@@ -1351,6 +1361,7 @@ class LoraPresetFrontendTests(unittest.TestCase):
 
               assert.ok(saveCall, "saveProfileSet must call the API client");
               assert.strictEqual(saveCall.name, "Demo");
+              assert.strictEqual(saveCall.overwrite, false);
               const payload = JSON.parse(JSON.stringify(saveCall.payload));
               assert.strictEqual(payload.profile_count, 1);
               assert.strictEqual(payload.profile_index, 1);
@@ -1381,6 +1392,7 @@ class LoraPresetFrontendTests(unittest.TestCase):
                 str(LORA_PRESET_NODE_RUNTIME),
                 str(LORA_PRESET_PROFILE_MUTATIONS),
                 str(LORA_PRESET_SAVE_SYNC),
+                str(HOST_HOOK_REGISTRY),
                 str(LORA_PRESET_ENTRY_LIFECYCLE),
             ],
             cwd=ROOT,

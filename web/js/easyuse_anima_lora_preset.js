@@ -56,6 +56,7 @@ const LORA_PRESET_TEXT = {
     "profile.partialLoad": "Only {count} profile(s) were loaded because the maximum is {max}.",
     "profile.savePrompt": "Save LoRA profile set as",
     "profile.nameRequired": "Profile name is required.",
+    "profile.overwriteConfirm": "A profile named \"{name}\" already exists. Overwrite it?",
     "profile.saveFailed": "Failed to save profile: {message}",
     "profile.loadFailed": "Failed to load profile: {message}",
     "profile.listFailed": "Failed to list profiles: {message}",
@@ -95,6 +96,7 @@ const LORA_PRESET_TEXT = {
     "profile.partialLoad": "최대 {max}개 제한 때문에 {count}개 프로필만 불러왔습니다.",
     "profile.savePrompt": "LoRA 프로필 세트 이름",
     "profile.nameRequired": "프로필 이름이 필요합니다.",
+    "profile.overwriteConfirm": "\"{name}\" 이름의 프로필이 이미 있습니다. 덮어쓸까요?",
     "profile.saveFailed": "프로필 저장 실패: {message}",
     "profile.loadFailed": "프로필 불러오기 실패: {message}",
     "profile.listFailed": "프로필 목록 불러오기 실패: {message}",
@@ -134,6 +136,7 @@ const LORA_PRESET_TEXT = {
     "profile.partialLoad": "最大 {max} 件の制限により、{count} 件のプロファイルだけを読み込みました。",
     "profile.savePrompt": "LoRA プロファイルセット名",
     "profile.nameRequired": "プロファイル名が必要です。",
+    "profile.overwriteConfirm": "\"{name}\" という名前のプロファイルは既に存在します。上書きしますか?",
     "profile.saveFailed": "プロファイルの保存に失敗しました: {message}",
     "profile.loadFailed": "プロファイルの読み込みに失敗しました: {message}",
     "profile.listFailed": "プロファイル一覧の取得に失敗しました: {message}",
@@ -173,6 +176,7 @@ const LORA_PRESET_TEXT = {
     "profile.partialLoad": "由于最大限制为 {max}，只加载了 {count} 个配置。",
     "profile.savePrompt": "LoRA 配置集名称",
     "profile.nameRequired": "需要配置名称。",
+    "profile.overwriteConfirm": "名为“{name}”的配置已存在。是否覆盖？",
     "profile.saveFailed": "保存配置失败：{message}",
     "profile.loadFailed": "加载配置失败：{message}",
     "profile.listFailed": "获取配置列表失败：{message}",
@@ -340,6 +344,7 @@ const {
   deleteProfile,
   selectedProfilePayload,
   profileSaveStatus,
+  rememberProfileTokens,
   appendProfilePayload,
   saveProfileSet,
   loadProfileSet,
@@ -530,6 +535,7 @@ async function openProfileLoadMenu(node, event, pos) {
   try {
     const data = await loraPresetApi.listProfiles();
     profiles = Array.isArray(data?.profiles) ? data.profiles : [];
+    rememberProfileTokens(profiles);
   } catch (error) {
     window.alert(lpFormat("profile.listFailed", { message: errorMessage(error) }));
     return;
@@ -548,7 +554,10 @@ async function openProfileLoadMenu(node, event, pos) {
     callback: (value) => {
       const name = String(value?.content ?? value ?? "").trim();
       if (name) {
-        loadProfileSet(node, name);
+        loadProfileSet(
+          node,
+          profiles.find((profile) => String(profile?.name || "") === name) || name,
+        );
       }
     },
   });

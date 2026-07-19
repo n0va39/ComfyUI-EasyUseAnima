@@ -1,3 +1,6 @@
+// @ts-check
+
+// @ts-expect-error ComfyUI provides this host module at runtime.
 import { app } from "../../../scripts/app.js";
 import { easyuseAnimaFetchJson, easyuseAnimaGetSettings, easyuseAnimaPostJson } from "./easyuse_anima_api.js";
 import {
@@ -15,6 +18,15 @@ import { createLongTextEditorButtonFactory } from "./settings/long_text_editor.j
 import { createResolutionEditors } from "./settings/resolution_editors.js";
 import { createSettingsRuntime } from "./settings/runtime.js";
 import { createWildcardExtraPathsEditorFactory } from "./settings/wildcard_path_editor.js";
+
+/**
+ * @typedef {Window & typeof globalThis & {
+ *   __easyuseAnimaSettings?: Record<string, unknown>
+ * }} EasyUseAnimaSettingsWindow
+ */
+
+/** @type {EasyUseAnimaSettingsWindow} */
+const settingsWindow = window;
 
 
 const TEXT = {
@@ -68,7 +80,7 @@ const TEXT = {
     promptTranslation: "Prompt translation",
     promptTranslationProvider: "Translation method",
     promptTranslationProviderTip:
-      "Default is OFF. Select Google Translate only when you explicitly want external translation for text wrapped as %{...}.",
+      "Default is OFF. When Google Translate is selected, the text inside each %{...} marker is sent to Google's external translation service.",
     promptTranslationProviderGoogle: "Google Translate",
     promptTranslationProviderOff: "No translation, unwrap only",
     promptTranslationSource: "Source language",
@@ -190,7 +202,7 @@ const TEXT = {
     promptTranslation: "프롬프트 번역",
     promptTranslationProvider: "번역 방식",
     promptTranslationProviderTip:
-      "기본값은 OFF입니다. %{...}로 감싼 텍스트를 외부 번역으로 보낼 때만 Google 번역을 명시적으로 선택하세요.",
+      "기본값은 OFF입니다. Google 번역을 선택하면 각 %{...} 마커 안의 텍스트가 Google 외부 번역 서비스로 전송됩니다.",
     promptTranslationProviderGoogle: "Google 번역",
     promptTranslationProviderOff: "번역 안 함, 구문만 제거",
     promptTranslationSource: "원본 언어",
@@ -312,7 +324,7 @@ const TEXT = {
     promptTranslation: "プロンプト翻訳",
     promptTranslationProvider: "翻訳方式",
     promptTranslationProviderTip:
-      "既定値は OFF です。%{...} で囲んだテキストを外部翻訳へ送る場合だけ Google 翻訳を明示的に選択してください。",
+      "既定値は OFF です。Google 翻訳を選ぶと、各 %{...} マーカー内のテキストが Google の外部翻訳サービスへ送信されます。",
     promptTranslationProviderGoogle: "Google 翻訳",
     promptTranslationProviderOff: "翻訳しない、構文だけ外す",
     promptTranslationSource: "元言語",
@@ -434,7 +446,7 @@ const TEXT = {
     promptTranslation: "提示词翻译",
     promptTranslationProvider: "翻译方式",
     promptTranslationProviderTip:
-      "默认值为 OFF。只有在明确希望把 %{...} 包裹的文本发送到外部翻译时，才选择 Google 翻译。",
+      "默认值为 OFF。选择 Google 翻译后，每个 %{...} 标记内的文本都会发送到 Google 外部翻译服务。",
     promptTranslationProviderGoogle: "Google 翻译",
     promptTranslationProviderOff: "不翻译，仅去除语法",
     promptTranslationSource: "源语言",
@@ -527,9 +539,9 @@ const {
   saveLongTextSettings,
   loadInitialSettings,
 } = createSettingsRuntime({
-  getSettingsState: () => window.__easyuseAnimaSettings,
+  getSettingsState: () => settingsWindow.__easyuseAnimaSettings,
   setSettingsState: (value) => {
-    window.__easyuseAnimaSettings = value;
+    settingsWindow.__easyuseAnimaSettings = value;
   },
   notifySettingsUpdated: (detail) => {
     window.dispatchEvent(
@@ -607,7 +619,7 @@ app.registerExtension({
   name: "easyuse-anima.settings",
   settings: EASYUSE_ANIMA_SETTINGS,
   async setup() {
-    window.__easyuseAnimaSettings = await loadInitialSettings();
+    settingsWindow.__easyuseAnimaSettings = await loadInitialSettings();
     addSettingsFallback();
   },
 });

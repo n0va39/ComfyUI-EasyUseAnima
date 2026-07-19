@@ -15,6 +15,44 @@ EXPECTED_AUTOCOMPLETE_MODULES = {
     "web/js/autocomplete/popup_geometry.js",
     "web/js/autocomplete/text_model.js",
 }
+EXPECTED_PYTHON_PACKAGE_FILES = {
+    "easyuse_anima/__init__.py",
+    "easyuse_anima/aio/__init__.py",
+    "easyuse_anima/common/__init__.py",
+    "easyuse_anima/common/serialization.py",
+    "easyuse_anima/common/values.py",
+    "easyuse_anima/image/__init__.py",
+    "easyuse_anima/image/detailer.py",
+    "easyuse_anima/image/geometry.py",
+    "easyuse_anima/image/scaling.py",
+    "easyuse_anima/infrastructure/__init__.py",
+    "easyuse_anima/infrastructure/comfy/__init__.py",
+    "easyuse_anima/infrastructure/comfy/capabilities.py",
+    "easyuse_anima/infrastructure/comfy/invocation.py",
+    "easyuse_anima/infrastructure/comfy/resources.py",
+    "easyuse_anima/lora/__init__.py",
+    "easyuse_anima/lora/metadata.py",
+    "easyuse_anima/lora/preset.py",
+    "easyuse_anima/naia/__init__.py",
+    "easyuse_anima/naia/client.py",
+    "easyuse_anima/naia/resolution.py",
+    "easyuse_anima/nodes/__init__.py",
+    "easyuse_anima/nodes/image_nodes.py",
+    "easyuse_anima/nodes/lora_nodes.py",
+    "easyuse_anima/nodes/naia_nodes.py",
+    "easyuse_anima/nodes/prompt_data_nodes.py",
+    "easyuse_anima/nodes/prompt_nodes.py",
+    "easyuse_anima/nodes/wildcard_nodes.py",
+    "easyuse_anima/profiles/__init__.py",
+    "easyuse_anima/profiles/contract.py",
+    "easyuse_anima/profiles/mutation.py",
+    "easyuse_anima/prompt/__init__.py",
+    "easyuse_anima/prompt/correction.py",
+    "easyuse_anima/prompt/artist_mix.py",
+    "easyuse_anima/prompt/conditioning.py",
+    "easyuse_anima/prompt/data.py",
+    "easyuse_anima/prompt/fields.py",
+}
 STATIC_IMPORT_FROM_RE = re.compile(
     r"""
     ^[ \t]*(?:import|export)[ \t\r\n]+
@@ -104,22 +142,57 @@ class RegistryScannerSafetyTests(unittest.TestCase):
             "GOOGLE_TRANSLATION_API_KEY",
             "os.environ",
         )
-        for filename in ("__init__.py", "api.py", "nodes.py", "prompt_translation.py", "settings.py"):
+        for filename in (
+            "__init__.py",
+            "api.py",
+            "api_contract.py",
+            "easyuse_anima/infrastructure/comfy/capabilities.py",
+            "easyuse_anima/infrastructure/comfy/invocation.py",
+            "easyuse_anima/infrastructure/comfy/resources.py",
+            "easyuse_anima/image/detailer.py",
+            "easyuse_anima/image/scaling.py",
+            "easyuse_anima/lora/metadata.py",
+            "easyuse_anima/lora/preset.py",
+            "easyuse_anima/naia/client.py",
+            "easyuse_anima/naia/resolution.py",
+            "easyuse_anima/nodes/image_nodes.py",
+            "easyuse_anima/nodes/lora_nodes.py",
+            "easyuse_anima/nodes/naia_nodes.py",
+            "easyuse_anima/nodes/prompt_data_nodes.py",
+            "easyuse_anima/nodes/prompt_nodes.py",
+            "easyuse_anima/nodes/wildcard_nodes.py",
+            "easyuse_anima/prompt/correction.py",
+            "easyuse_anima/prompt/artist_mix.py",
+            "easyuse_anima/prompt/conditioning.py",
+            "easyuse_anima/prompt/data.py",
+            "easyuse_anima/prompt/fields.py",
+            "nodes.py",
+            "prompt_translation.py",
+            "settings.py",
+        ):
             source = (ROOT / filename).read_text(encoding="utf-8")
             for pattern in patterns:
                 with self.subTest(filename=filename, pattern=pattern):
                     self.assertNotIn(pattern, source)
 
     def test_naia_is_only_documented_runtime_post_call(self):
-        runtime_files = ("api.py", "nodes.py", "prompt_translation.py", "settings.py")
+        runtime_files = (
+            "api.py",
+            "api_contract.py",
+            "easyuse_anima/naia/client.py",
+            "easyuse_anima/nodes/naia_nodes.py",
+            "nodes.py",
+            "prompt_translation.py",
+            "settings.py",
+        )
         matches = []
         for filename in runtime_files:
             source = (ROOT / filename).read_text(encoding="utf-8")
             if "requests.post" in source:
                 matches.append(filename)
 
-        self.assertEqual(matches, ["nodes.py"])
-        source = (ROOT / "nodes.py").read_text(encoding="utf-8")
+        self.assertEqual(matches, ["easyuse_anima/naia/client.py"])
+        source = (ROOT / "easyuse_anima" / "naia" / "client.py").read_text(encoding="utf-8")
         self.assertIn("allow_remote_api=True", source)
         self.assertIn("localhost-only", source)
         self.assertIn("timeout=HTTP_TIMEOUT", source)
@@ -224,6 +297,46 @@ class RegistryScannerSafetyTests(unittest.TestCase):
             closure & ignored,
             f"autocomplete static import closure is excluded from the Registry package: "
             f"{sorted(closure & ignored)}",
+        )
+
+    def test_api_contract_runtime_module_is_in_registry_package_surface(self):
+        runtime_path = "api_contract.py"
+        self.assertTrue((ROOT / runtime_path).is_file())
+        self.assertIn("from .api_contract import (", (ROOT / "api.py").read_text(encoding="utf-8"))
+
+        tracked = _git_paths("ls-files", "--cached")
+        self.assertIn(runtime_path, tracked)
+
+        ignored = _git_paths(
+            "ls-files",
+            "--cached",
+            "--ignored",
+            "--exclude-from=.comfyignore",
+        )
+        self.assertNotIn(runtime_path, ignored)
+
+    def test_python_package_skeleton_is_in_registry_package_surface(self):
+        for runtime_path in EXPECTED_PYTHON_PACKAGE_FILES:
+            with self.subTest(runtime_path=runtime_path):
+                self.assertTrue((ROOT / runtime_path).is_file())
+
+        tracked = _git_paths("ls-files", "--cached")
+        self.assertFalse(
+            EXPECTED_PYTHON_PACKAGE_FILES - tracked,
+            "package skeleton is not tracked: "
+            f"{sorted(EXPECTED_PYTHON_PACKAGE_FILES - tracked)}",
+        )
+
+        ignored = _git_paths(
+            "ls-files",
+            "--cached",
+            "--ignored",
+            "--exclude-from=.comfyignore",
+        )
+        self.assertFalse(
+            EXPECTED_PYTHON_PACKAGE_FILES & ignored,
+            "package skeleton is excluded from the Registry package: "
+            f"{sorted(EXPECTED_PYTHON_PACKAGE_FILES & ignored)}",
         )
 
     def test_registry_safety_doc_is_linked_from_development_entry(self):

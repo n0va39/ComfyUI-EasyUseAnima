@@ -630,7 +630,7 @@ class AIOFrontendSourceTests(unittest.TestCase):
         )
         setup_body = extension_source[setup_start:setup_end]
         self.assertIn("installWheelForwarder();", setup_body)
-        self.assertIn("installQueuePromptHook();", setup_body)
+        self.assertIn("installGlobalHooks();", setup_body)
         self.assertIn(
             "installWheelForwarder: installGeneratorWheelForwarder,", source
         )
@@ -1083,7 +1083,7 @@ class AIOFrontendSourceTests(unittest.TestCase):
         self.assertIn('replaceAll("\\\\", "/")', normalize_body)
         self.assertIn('replace(/[ _]+/g, "-")', normalize_body)
 
-        start = data_adapter_source.index("async function searchWildcards")
+        start = data_adapter_source.index("function searchWildcards")
         end = data_adapter_source.index("\n\n  return {", start)
         search_body = data_adapter_source[start:end]
 

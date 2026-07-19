@@ -1,8 +1,15 @@
 // @ts-check
 
+import {
+  createHostHookRuntimeLifecycle,
+} from "../lifecycle/host_hook_registry.js";
+
 const INPUT_PROTOTYPE_HOOK_MARKER = "__easyuseAnimaAioInputHooksInstalled";
 const GENERATOR_PROTOTYPE_HOOK_MARKER = "__easyuseAnimaAioGeneratorHooksInstalled";
 const EXTENSION_SETUP_HOST_MARKER = "__easyuseAnimaAioExtensionSetupInstalled";
+const AIO_GLOBAL_HOOK_RUNTIME_OWNER = Symbol.for(
+  "easyuse-anima.aio.global-hook-runtime-owner",
+);
 
 function graphNodes(graph) {
   if (Array.isArray(graph?.nodes)) {
@@ -112,6 +119,21 @@ export function aioCreateExtensionRuntime(dependencies) {
       disposeNativePreviewLifecycle,
     },
   } = dependencies;
+  const globalHookLifecycle = createHostHookRuntimeLifecycle(
+    api,
+    AIO_GLOBAL_HOOK_RUNTIME_OWNER,
+  );
+
+  function installGlobalHooks() {
+    return globalHookLifecycle.install(
+      "generator-queue",
+      installQueuePromptHook,
+    );
+  }
+
+  function disposeGlobalHooks() {
+    return globalHookLifecycle.dispose();
+  }
 
   function hookNode(node, nodeData) {
     if (nodeData.name === INPUT_NODE_TYPE) {
@@ -122,9 +144,14 @@ export function aioCreateExtensionRuntime(dependencies) {
   }
 
   return {
+    dispose: disposeGlobalHooks,
     async setup() {
       const setupState = extensionSetupState(api);
-      if (!setupState || setupState.complete || setupState.inProgress) {
+      if (!setupState || setupState.inProgress) {
+        return;
+      }
+      if (setupState.complete) {
+        installGlobalHooks();
         return;
       }
       setupState.inProgress = true;
@@ -133,9 +160,7 @@ export function aioCreateExtensionRuntime(dependencies) {
         runExtensionSetupStep(setupState, "wheel-forwarder", () => {
           installWheelForwarder();
         });
-        runExtensionSetupStep(setupState, "queue-prompt-hook", () => {
-          installQueuePromptHook();
-        });
+        installGlobalHooks();
         runExtensionSetupStep(setupState, "locale-watch", () => {
           watchLocale(refreshPanels);
         });

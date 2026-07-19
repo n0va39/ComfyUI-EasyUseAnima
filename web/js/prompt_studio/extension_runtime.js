@@ -134,6 +134,13 @@ import {
   markNodeDirty as markNodeDirtyWithApp,
   refreshNodeSize as refreshNodeSizeWithApp,
 } from "./runtime_canvas.js";
+import {
+  createHostHookRuntimeLifecycle,
+} from "../lifecycle/host_hook_registry.js";
+
+const PROMPT_STUDIO_GLOBAL_HOOK_RUNTIME_OWNER = Symbol.for(
+  "easyuse-anima.prompt-studio.global-hook-runtime-owner",
+);
 
 const ADVANCED_QUEUE_SEED_CONTRACT = Object.freeze({
   modeInputName: "wildcard_mode",
@@ -162,6 +169,11 @@ function isRegionalQueueSeedNode(node) {
 
 function createPromptStudioExtensionRuntime(app, api = null) {
   const queueSeedBridge = promptStudioQueueSeedBridge(app);
+  const globalHookLifecycle = createHostHookRuntimeLifecycle(
+    app,
+    PROMPT_STUDIO_GLOBAL_HOOK_RUNTIME_OWNER,
+  );
+  let advancedSaveSyncSerializeHost;
 
   function markNodeDirty(node) {
     markNodeDirtyWithApp(app, node);
@@ -427,7 +439,36 @@ function createPromptStudioExtensionRuntime(app, api = null) {
   }
 
   function installAdvancedSaveSyncForApp() {
-    installAdvancedSaveSync(app, syncAllAdvancedNodes);
+    const serializeHost = globalThis.LGraph?.prototype || app?.graph?.constructor?.prototype || null;
+    const replace = advancedSaveSyncSerializeHost !== undefined
+      && serializeHost != null
+      && serializeHost !== advancedSaveSyncSerializeHost;
+    const installed = globalHookLifecycle.install(
+      "advanced-save-sync",
+      () => installAdvancedSaveSync(app, syncAllAdvancedNodes),
+      { replace },
+    );
+    if (installed) {
+      advancedSaveSyncSerializeHost = serializeHost;
+    }
+    return installed;
+  }
+
+  function installGlobalHooks() {
+    installAdvancedSaveSyncForApp();
+    globalHookLifecycle.install(
+      "advanced-queue-seed-graph-clear",
+      () => installAdvancedQueueSeedGraphCleanup(app.graph, advancedQueueSeedRuntime),
+    );
+    globalHookLifecycle.install(
+      "advanced-queue-seed-queue",
+      () => installAdvancedQueueSeedQueueHook(api, advancedQueueSeedRuntime),
+    );
+  }
+
+  function disposeGlobalHooks() {
+    advancedSaveSyncSerializeHost = undefined;
+    return globalHookLifecycle.dispose();
   }
 
   function advancedNodeUiHooks() {
@@ -465,12 +506,11 @@ function createPromptStudioExtensionRuntime(app, api = null) {
   }
 
   return {
+    dispose: disposeGlobalHooks,
     async setup() {
       installAdvancedWheelForwarder();
       installMiddlePanForwarder();
-      installAdvancedSaveSync(app, syncAllAdvancedNodes);
-      installAdvancedQueueSeedGraphCleanup(app.graph, advancedQueueSeedRuntime);
-      installAdvancedQueueSeedQueueHook(api, advancedQueueSeedRuntime);
+      installGlobalHooks();
       installPromptHighlightOverlayRefresh(app, applyPromptStudioTextStyle);
       await loadPromptStudioSettings({
         hideTrainedTagTooltip,

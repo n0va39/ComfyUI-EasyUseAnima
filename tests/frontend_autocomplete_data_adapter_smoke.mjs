@@ -20,11 +20,33 @@ function deferred() {
 }
 
 function controlledFetch(requests) {
-  return (url) => {
-    const request = { url, ...deferred() };
+  return (url, options = {}) => {
+    const request = { url, signal: options.signal || null, ...deferred() };
     requests.push(request);
     return request.promise;
   };
+}
+
+function abortableControlledFetch(requests) {
+  return (url, options = {}) => {
+    const request = { url, signal: options.signal || null, ...deferred() };
+    requests.push(request);
+    const rejectAbort = () => {
+      const error = new Error("request aborted");
+      error.name = "AbortError";
+      request.reject(error);
+    };
+    if (request.signal?.aborted) {
+      rejectAbort();
+    } else {
+      request.signal?.addEventListener("abort", rejectAbort, { once: true });
+    }
+    return request.promise;
+  };
+}
+
+function isAbortError(error) {
+  return error?.name === "AbortError";
 }
 
 async function flushMicrotasks(turns = 4) {
@@ -590,5 +612,143 @@ assert.equal(
 assert.notEqual(wildcardRetryFreshDifferentResults, wildcardRetryFreshResults);
 assert.deepEqual(wildcardRetryFreshResults.map((item) => item.tag), ["folder/retried"]);
 assert.deepEqual(wildcardRetryFreshDifferentResults.map((item) => item.tag), ["other/retried"]);
+
+let cacheNow = 0;
+const boundedCacheFetchCounts = new Map();
+const boundedCacheAdapter = dataAdapterModule.createAutocompleteDataAdapter({
+  fetchJson: async (url) => {
+    const count = (boundedCacheFetchCounts.get(url) || 0) + 1;
+    boundedCacheFetchCounts.set(url, count);
+    return { results: [{ tag: `${url}:${count}` }] };
+  },
+  normalizeWildcardSearchText: textModel.normalizeWildcardSearchText,
+  getLimit: () => 20,
+  now: () => cacheNow,
+});
+const firstLruResult = await boundedCacheAdapter.search("lru-0");
+for (let index = 1; index < 256; index += 1) {
+  await boundedCacheAdapter.search(`lru-${index}`);
+}
+assert.equal(
+  await boundedCacheAdapter.search("lru-0"),
+  firstLruResult,
+  "a cache hit must promote the entry to the most-recently-used slot",
+);
+await boundedCacheAdapter.search("lru-256");
+const evictedLruUrl = "/easyuse_anima/autocomplete?q=lru-1&limit=20";
+await boundedCacheAdapter.search("lru-1");
+assert.equal(
+  boundedCacheFetchCounts.get(evictedLruUrl),
+  2,
+  "the 257th unique result must evict the least-recently-used entry from the 256-entry cache",
+);
+cacheNow = (5 * 60 * 1000) - 1;
+assert.equal(
+  await boundedCacheAdapter.search("lru-0"),
+  firstLruResult,
+  "LRU promotion must not shorten an unexpired five-minute TTL",
+);
+cacheNow += 1;
+const expiredLruResult = await boundedCacheAdapter.search("lru-0");
+assert.notEqual(
+  expiredLruResult,
+  firstLruResult,
+  "a resolved result must expire five minutes after it was cached",
+);
+
+const consumerAbortRequests = [];
+const consumerAbortAdapter = dataAdapterModule.createAutocompleteDataAdapter({
+  fetchJson: abortableControlledFetch(consumerAbortRequests),
+  normalizeWildcardSearchText: textModel.normalizeWildcardSearchText,
+  getLimit: () => 20,
+});
+const sharedAbortFirst = consumerAbortAdapter.search("shared-abort");
+const sharedAbortSecond = consumerAbortAdapter.search("SHARED-ABORT");
+await flushMicrotasks();
+assert.equal(consumerAbortRequests.length, 1);
+const sharedAbortFirstAssertion = assert.rejects(sharedAbortFirst, isAbortError);
+sharedAbortFirst.abort();
+assert.equal(
+  consumerAbortRequests[0].signal.aborted,
+  false,
+  "one stale consumer must not abort a same-query request still owned by the latest consumer",
+);
+consumerAbortRequests[0].resolve({ results: [{ tag: "shared-current" }] });
+await sharedAbortFirstAssertion;
+assert.deepEqual(await sharedAbortSecond, [{ tag: "shared-current" }]);
+
+const soleAbortRequest = consumerAbortAdapter.search("sole-abort");
+await flushMicrotasks();
+const soleAbortOwner = consumerAbortRequests.at(-1);
+const soleAbortAssertion = assert.rejects(soleAbortRequest, isAbortError);
+soleAbortRequest.abort();
+assert.equal(
+  soleAbortOwner.signal.aborted,
+  true,
+  "the final consumer must abort its actual fetch signal",
+);
+await soleAbortAssertion;
+const soleAbortRetry = consumerAbortAdapter.search("sole-abort");
+await flushMicrotasks();
+assert.equal(
+  consumerAbortRequests.length,
+  3,
+  "an aborted final consumer must release pending ownership for an immediate retry",
+);
+consumerAbortRequests[2].resolve({ results: [{ tag: "sole-retry" }] });
+assert.deepEqual(await soleAbortRetry, [{ tag: "sole-retry" }]);
+
+const sourceAbortRequests = [];
+const sourceAbortAdapter = dataAdapterModule.createAutocompleteDataAdapter({
+  fetchJson: abortableControlledFetch(sourceAbortRequests),
+  normalizeWildcardSearchText: textModel.normalizeWildcardSearchText,
+  getLimit: () => 20,
+});
+sourceAbortAdapter.syncSourceSettings(
+  { "autocomplete.source": "source-a" },
+  { initialize: true },
+);
+const obsoleteSourceRequest = sourceAbortAdapter.search("source-change");
+await flushMicrotasks();
+const obsoleteSourceAssertion = assert.rejects(obsoleteSourceRequest, isAbortError);
+assert.equal(
+  sourceAbortAdapter.syncSourceSettings({ "autocomplete.source": "source-b" }),
+  true,
+);
+assert.equal(
+  sourceAbortRequests[0].signal.aborted,
+  true,
+  "autocomplete source changes must abort the pending HTTP request",
+);
+await obsoleteSourceAssertion;
+const currentSourceRequest = sourceAbortAdapter.search("source-change");
+await flushMicrotasks();
+assert.equal(sourceAbortRequests.length, 2);
+sourceAbortRequests[1].resolve({ results: [{ tag: "source-b-result" }] });
+assert.deepEqual(await currentSourceRequest, [{ tag: "source-b-result" }]);
+
+const wildcardSourceAbortRequests = [];
+const wildcardSourceAbortAdapter = dataAdapterModule.createAutocompleteDataAdapter({
+  fetchJson: abortableControlledFetch(wildcardSourceAbortRequests),
+  normalizeWildcardSearchText: textModel.normalizeWildcardSearchText,
+  getLimit: () => 20,
+});
+wildcardSourceAbortAdapter.syncSourceSettings(
+  { "wildcard.extra_paths": "path-a" },
+  { initialize: true },
+);
+const obsoleteWildcardSource = wildcardSourceAbortAdapter.searchWildcards("folder");
+await flushMicrotasks();
+const obsoleteWildcardAssertion = assert.rejects(obsoleteWildcardSource, isAbortError);
+assert.equal(
+  wildcardSourceAbortAdapter.syncSourceSettings({ "wildcard.extra_paths": "path-b" }),
+  true,
+);
+assert.equal(
+  wildcardSourceAbortRequests[0].signal.aborted,
+  true,
+  "wildcard source changes must abort the pending source fetch",
+);
+await obsoleteWildcardAssertion;
 
 console.log("Autocomplete data adapter smoke passed.");

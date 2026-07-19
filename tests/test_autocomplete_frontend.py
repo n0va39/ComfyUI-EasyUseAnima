@@ -51,6 +51,16 @@ FRONTEND_CHECK_SCRIPT = ROOT / "tools" / "check_frontend.ps1"
 
 
 class AutocompleteFrontendBoundaryTests(unittest.TestCase):
+    def test_root_entry_checkjs_cleanup_preserves_runtime_contracts(self):
+        entry_source = AUTOCOMPLETE_ENTRY.read_text(encoding="utf-8")
+
+        self.assertRegex(
+            entry_source,
+            r"function strictAutocompleteResults\(context, token, _state, results\)",
+        )
+        self.assertNotIn("function closingBracketPreview", entry_source)
+        self.assertIn("function handleBracketPreviewKeydown", entry_source)
+
     def test_input_controller_has_exact_lifecycle_boundary(self):
         module_source = AUTOCOMPLETE_INPUT_CONTROLLER.read_text(encoding="utf-8")
         entry_source = AUTOCOMPLETE_ENTRY.read_text(encoding="utf-8")

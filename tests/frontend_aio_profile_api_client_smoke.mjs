@@ -7,6 +7,7 @@ function dataModule(relativePath) {
 }
 
 const apiClientModule = await import(dataModule("../web/js/aio/profile_api_client.js"));
+const sharedApiModule = await import(dataModule("../web/js/easyuse_anima_api.js"));
 
 assert.deepEqual(
   Object.keys(apiClientModule),
@@ -51,6 +52,73 @@ assert.deepEqual(Object.keys(client).sort(), [
 assert.equal(calls.length, 0, "factory creation must not make a request");
 assert.equal(encodedValues.length, 0, "factory creation must not encode a name");
 
+const errorContracts = [
+  {
+    payload: { status: "error", message: "Legacy conflict" },
+    headerRequestId: "",
+    expected: {
+      message: "Legacy conflict",
+      status: 409,
+      code: undefined,
+      details: undefined,
+      requestId: undefined,
+    },
+  },
+  {
+    payload: {
+      status: "error",
+      code: "profile_exists",
+      message: "Profile already exists",
+      details: { field: "name" },
+      request_id: "body-request-id",
+    },
+    headerRequestId: "different-header-id",
+    expected: {
+      message: "Profile already exists",
+      status: 409,
+      code: "profile_exists",
+      details: { field: "name" },
+      requestId: "body-request-id",
+    },
+  },
+  {
+    payload: { status: "error", message: "Raw legacy error" },
+    headerRequestId: "header-request-id",
+    expected: {
+      message: "Raw legacy error",
+      status: 409,
+      code: undefined,
+      details: undefined,
+      requestId: "header-request-id",
+    },
+  },
+];
+
+for (const { payload, headerRequestId, expected } of errorContracts) {
+  await assert.rejects(
+    sharedApiModule.easyuseAnimaFetchJson("/contract", {
+      fetcher: async () => ({
+        ok: false,
+        status: 409,
+        statusText: "Conflict",
+        headers: {
+          get: (name) => name.toLowerCase() === "x-request-id" ? headerRequestId : null,
+        },
+        json: async () => payload,
+      }),
+    }),
+    (error) => {
+      assert.equal(error.message, expected.message);
+      assert.equal(error.status, expected.status);
+      assert.equal(error.code, expected.code);
+      assert.deepEqual(error.details, expected.details);
+      assert.equal(error.requestId, expected.requestId);
+      return true;
+    },
+    "shared API transport must accept legacy and coded error payloads",
+  );
+}
+
 const profilesResponse = { profiles: [{ name: "Portrait" }] };
 responses.push(profilesResponse);
 assert.equal(await client.listProfiles(), profilesResponse);
@@ -94,6 +162,33 @@ assert.deepEqual(calls.at(-1), {
   argumentCount: 2,
 });
 assert.equal(JSON.stringify(settings), settingsBefore, "save must not mutate settings");
+const legacySaveBody = JSON.parse(calls.at(-1).options.body);
+assert.equal(Object.hasOwn(legacySaveBody, "profile_id"), false);
+assert.equal(Object.hasOwn(legacySaveBody, "revision"), false);
+
+const sourceToken = {
+  profile_id: "11111111-1111-4111-8111-111111111111",
+  revision: 7,
+};
+const targetToken = {
+  profile_id: "22222222-2222-4222-8222-222222222222",
+  revision: 4,
+};
+responses.push(saveResponse);
+assert.equal(await client.saveProfile("New Portrait", false, settings, sourceToken), saveResponse);
+const createBody = JSON.parse(calls.at(-1).options.body);
+assert.equal(Object.hasOwn(createBody, "profile_id"), false);
+assert.equal(Object.hasOwn(createBody, "revision"), false);
+
+responses.push(saveResponse);
+assert.equal(await client.saveProfile("Portrait", true, settings, sourceToken), saveResponse);
+assert.deepEqual(JSON.parse(calls.at(-1).options.body), {
+  name: "Portrait",
+  overwrite: true,
+  settings,
+  profile_id: sourceToken.profile_id,
+  revision: sourceToken.revision,
+});
 
 const renameResponse = { profile: { name: "Portrait 2" } };
 responses.push(renameResponse);
@@ -112,6 +207,32 @@ assert.deepEqual(calls.at(-1), {
   argumentCount: 2,
 });
 
+responses.push(renameResponse);
+assert.equal(
+  await client.renameProfile("Portrait", "portrait", false, sourceToken, targetToken),
+  renameResponse,
+);
+const sameProfileRenameBody = JSON.parse(calls.at(-1).options.body);
+assert.equal(sameProfileRenameBody.profile_id, sourceToken.profile_id);
+assert.equal(sameProfileRenameBody.revision, sourceToken.revision);
+assert.equal(Object.hasOwn(sameProfileRenameBody, "target_profile_id"), false);
+assert.equal(Object.hasOwn(sameProfileRenameBody, "target_revision"), false);
+
+responses.push(renameResponse);
+assert.equal(
+  await client.renameProfile("Portrait", "Portrait 2", true, sourceToken, targetToken),
+  renameResponse,
+);
+assert.deepEqual(JSON.parse(calls.at(-1).options.body), {
+  old_name: "Portrait",
+  new_name: "Portrait 2",
+  overwrite: true,
+  profile_id: sourceToken.profile_id,
+  revision: sourceToken.revision,
+  target_profile_id: targetToken.profile_id,
+  target_revision: targetToken.revision,
+});
+
 const deleteResponse = { profile: { name: "Portrait 2" } };
 responses.push(deleteResponse);
 assert.equal(await client.deleteProfile("Portrait 2"), deleteResponse);
@@ -123,6 +244,14 @@ assert.deepEqual(calls.at(-1), {
     body: JSON.stringify({ name: "Portrait 2" }),
   },
   argumentCount: 2,
+});
+
+responses.push(deleteResponse);
+assert.equal(await client.deleteProfile("Portrait 2", sourceToken), deleteResponse);
+assert.deepEqual(JSON.parse(calls.at(-1).options.body), {
+  name: "Portrait 2",
+  profile_id: sourceToken.profile_id,
+  revision: sourceToken.revision,
 });
 
 const requestError = new Error("backend unavailable");
