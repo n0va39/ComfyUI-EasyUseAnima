@@ -4008,42 +4008,6 @@
       },
       {
         "alias": null,
-        "bound_name": "EasyUseAnimaDetailerAlignHook",
-        "branch_context": [],
-        "classification": "internal",
-        "column": 0,
-        "conditional": false,
-        "imported": ".image_nodes:EasyUseAnimaDetailerAlignHook",
-        "kind": "static_from",
-        "line": 3,
-        "name": "EasyUseAnimaDetailerAlignHook",
-        "optional": false,
-        "requested": ".image_nodes",
-        "role": "ordinary",
-        "scope": "<module>",
-        "source": "easyuse_anima/nodes/__init__.py",
-        "target": "easyuse_anima/nodes/image_nodes.py"
-      },
-      {
-        "alias": null,
-        "bound_name": "EasyUseAnimaImageScaleByMultiple",
-        "branch_context": [],
-        "classification": "internal",
-        "column": 0,
-        "conditional": false,
-        "imported": ".image_nodes:EasyUseAnimaImageScaleByMultiple",
-        "kind": "static_from",
-        "line": 3,
-        "name": "EasyUseAnimaImageScaleByMultiple",
-        "optional": false,
-        "requested": ".image_nodes",
-        "role": "ordinary",
-        "scope": "<module>",
-        "source": "easyuse_anima/nodes/__init__.py",
-        "target": "easyuse_anima/nodes/image_nodes.py"
-      },
-      {
-        "alias": null,
         "bound_name": "annotations",
         "branch_context": [],
         "classification": "external",
@@ -11120,10 +11084,6 @@
         "to": "easyuse_anima/image/geometry.py"
       },
       {
-        "from": "easyuse_anima/nodes/__init__.py",
-        "to": "easyuse_anima/nodes/image_nodes.py"
-      },
-      {
         "from": "easyuse_anima/nodes/image_nodes.py",
         "to": "easyuse_anima/image/detailer.py"
       },
@@ -11740,9 +11700,9 @@
       },
       {
         "is_package": true,
-        "loc": 9,
+        "loc": 3,
         "module": "easyuse_anima.nodes",
-        "normalized_git_blob_sha1": "992ebc55d9739eb17044131fbd05a288536b6602",
+        "normalized_git_blob_sha1": "f980638ca8dbf3ba310d407154513156bcbf4502",
         "path": "easyuse_anima/nodes/__init__.py",
         "top_level": {
           "class_count": 0,

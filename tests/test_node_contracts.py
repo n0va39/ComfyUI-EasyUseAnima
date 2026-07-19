@@ -25,7 +25,6 @@ from easyuse_anima.image import scaling as image_scaling
 from easyuse_anima.infrastructure.comfy import capabilities as comfy_capabilities
 from easyuse_anima.infrastructure.comfy import invocation as comfy_invocation
 from easyuse_anima.infrastructure.comfy import resources as comfy_resources
-from easyuse_anima import nodes as canonical_nodes
 from easyuse_anima.nodes import image_nodes
 
 
@@ -596,14 +595,6 @@ class ImageNodeMoveContractTests(unittest.TestCase):
             nodes.EasyUseAnimaDetailerAlignHook,
             image_nodes.EasyUseAnimaDetailerAlignHook,
         )
-        self.assertIs(
-            canonical_nodes.EasyUseAnimaImageScaleByMultiple,
-            image_nodes.EasyUseAnimaImageScaleByMultiple,
-        )
-        self.assertIs(
-            canonical_nodes.EasyUseAnimaDetailerAlignHook,
-            image_nodes.EasyUseAnimaDetailerAlignHook,
-        )
         self.assertIs(image_nodes._common_upscale_image, comfy_invocation._common_upscale_image)
 
     def test_package_loaded_root_nodes_image_objects_are_direct_canonical_aliases(self):
@@ -617,8 +608,6 @@ class ImageNodeMoveContractTests(unittest.TestCase):
             package_node_adapters = sys.modules[
                 f"{package_name}.easyuse_anima.nodes.image_nodes"
             ]
-            package_node_exports = sys.modules[f"{package_name}.easyuse_anima.nodes"]
-
             for name in self.SCALING_ALIASES:
                 with self.subTest(name=name):
                     self.assertIs(
@@ -637,7 +626,6 @@ class ImageNodeMoveContractTests(unittest.TestCase):
                 with self.subTest(name=name):
                     canonical_class = getattr(package_node_adapters, name)
                     self.assertIs(getattr(package_nodes, name), canonical_class)
-                    self.assertIs(getattr(package_node_exports, name), canonical_class)
             self.assertIs(
                 package_node_adapters._common_upscale_image,
                 package_invocation._common_upscale_image,
