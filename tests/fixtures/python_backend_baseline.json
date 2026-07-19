@@ -19429,7 +19429,7 @@
         "is_package": false,
         "loc": 269,
         "module": "easyuse_anima.lora.metadata",
-        "normalized_git_blob_sha1": "26c87a46a75b0aca2adbc40990ca422fd9045c18",
+        "normalized_git_blob_sha1": "d4bbee0807d4fd42fbb12628cb1a24385c6ed480",
         "path": "easyuse_anima/lora/metadata.py",
         "top_level": {
           "class_count": 1,

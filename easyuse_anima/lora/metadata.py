@@ -161,12 +161,12 @@ def _lora_manager_trigger_words_from_metadata(metadata: dict) -> list[str]:
         return []
 
     words: list[str] = []
-    for key in _TRIGGER_WORD_KEYS:
+    for key in _runtime_helper("_TRIGGER_WORD_KEYS"):
         words.extend(_runtime_helper("_trigger_words_from_value")(metadata.get(key)))
 
     civitai = metadata.get("civitai")
     if isinstance(civitai, dict):
-        for key in _TRIGGER_WORD_KEYS:
+        for key in _runtime_helper("_TRIGGER_WORD_KEYS"):
             words.extend(_runtime_helper("_trigger_words_from_value")(civitai.get(key)))
 
     return _runtime_helper("_dedupe_text_values")(words)

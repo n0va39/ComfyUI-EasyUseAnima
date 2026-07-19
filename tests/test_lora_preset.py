@@ -6,7 +6,11 @@ import unittest
 from types import SimpleNamespace
 from unittest.mock import patch
 
-from nodes import EasyUseAnimaLoraPreset, _lora_combo_values
+from nodes import (
+    EasyUseAnimaLoraPreset,
+    _lora_combo_values,
+    _lora_manager_trigger_words_from_metadata,
+)
 
 
 def unwrap_result(response):
@@ -154,11 +158,26 @@ class LoraPresetTests(unittest.TestCase):
             "civitai": {"activation_text": "@third, @Second"},
         }
 
-        from nodes import _lora_manager_trigger_words_from_metadata
-
         self.assertEqual(
             _lora_manager_trigger_words_from_metadata(metadata),
             ["@First", "@second", "@third"],
+        )
+
+    def test_metadata_trigger_word_keys_follow_root_patch_and_restore_defaults(self):
+        metadata = {
+            "custom_words": "@custom",
+            "trainedWords": "@default",
+        }
+
+        with patch("nodes._TRIGGER_WORD_KEYS", ("custom_words",)):
+            self.assertEqual(
+                _lora_manager_trigger_words_from_metadata(metadata),
+                ["@custom"],
+            )
+
+        self.assertEqual(
+            _lora_manager_trigger_words_from_metadata(metadata),
+            ["@default"],
         )
 
     def test_is_changed_is_stable_across_keyword_order(self):
