@@ -1068,7 +1068,7 @@ class WildcardNodeTests(unittest.TestCase):
             "fixed",
         )
 
-    def test_prompt_studio_mode_and_seed_control_matrix_preserves_current_seed_metadata(self):
+    def test_prompt_studio_mode_and_seed_control_matrix_saves_current_seed_as_fixed(self):
         with patch("wildcard_engine.random.SystemRandom") as system_random:
             system_random.return_value.randrange.return_value = 41
             for mode in ("일반", "순차"):
@@ -1101,7 +1101,15 @@ class WildcardNodeTests(unittest.TestCase):
                         self.assertEqual(workflow_prompt["9"]["inputs"]["wildcard_seed"], 7)
                         self.assertEqual(
                             workflow_prompt["9"]["inputs"]["wildcard_seed_after_generate"],
-                            control,
+                            "fixed",
+                        )
+                        advanced_names = EasyUseAnimaPromptStudioAdvanced._widget_input_names()
+                        saved_values = extra_pnginfo["workflow"]["nodes"][0]["widgets_values"]
+                        self.assertEqual(saved_values[advanced_names.index("wildcard_mode")], mode)
+                        self.assertEqual(saved_values[advanced_names.index("wildcard_seed")], 7)
+                        self.assertEqual(
+                            saved_values[advanced_names.index("wildcard_seed_after_generate")],
+                            "fixed",
                         )
 
                     with self.subTest(surface="regional", mode=mode, control=control):
@@ -1127,8 +1135,70 @@ class WildcardNodeTests(unittest.TestCase):
                         self.assertEqual(workflow_prompt["42"]["inputs"]["wildcard_seed"], 7)
                         self.assertEqual(
                             workflow_prompt["42"]["inputs"]["wildcard_seed_after_generate"],
-                            control,
+                            "fixed",
                         )
+                        regional_names = EasyUseAnimaPromptStudioRegional._widget_input_names()
+                        saved_values = extra_pnginfo["workflow"]["nodes"][0]["widgets_values"]
+                        self.assertEqual(saved_values[regional_names.index("wildcard_mode")], mode)
+                        self.assertEqual(saved_values[regional_names.index("wildcard_seed")], 7)
+                        self.assertEqual(
+                            saved_values[regional_names.index("wildcard_seed_after_generate")],
+                            "fixed",
+                        )
+
+    def test_saved_randomize_workflow_reloads_the_executed_seed_as_fixed(self):
+        fields_json = json.dumps([{
+            "id": "positive_general",
+            "pane": "positive",
+            "type": "general",
+            "text": "{rose|tulip|sunflower}",
+            "enabled": True,
+        }])
+        workflow_prompt = {"9": {"inputs": {}}}
+        extra_pnginfo = {
+            "workflow": {"nodes": [{"id": 9, "widgets_values": []}]}
+        }
+
+        with patch("wildcard_engine.random.SystemRandom") as system_random:
+            system_random.return_value.randrange.return_value = 41
+            first = EasyUseAnimaPromptStudioAdvanced().build(
+                False,
+                True,
+                False,
+                False,
+                fields_json,
+                wildcard_mode="순차",
+                wildcard_seed=7,
+                wildcard_seed_after_generate="randomize",
+                workflow_prompt=workflow_prompt,
+                extra_pnginfo=extra_pnginfo,
+                unique_id="9",
+            )
+
+        names = EasyUseAnimaPromptStudioAdvanced._widget_input_names()
+        saved_values = extra_pnginfo["workflow"]["nodes"][0]["widgets_values"]
+        saved_mode = saved_values[names.index("wildcard_mode")]
+        saved_seed = saved_values[names.index("wildcard_seed")]
+        saved_control = saved_values[names.index("wildcard_seed_after_generate")]
+        reloaded = EasyUseAnimaPromptStudioAdvanced().build(
+            False,
+            True,
+            False,
+            False,
+            fields_json,
+            wildcard_mode=saved_mode,
+            wildcard_seed=saved_seed,
+            wildcard_seed_after_generate=saved_control,
+        )
+
+        self.assertEqual(first["result"][0], reloaded["result"][0])
+        self.assertEqual(saved_mode, "순차")
+        self.assertEqual(saved_seed, 7)
+        self.assertEqual(saved_control, "fixed")
+        self.assertEqual(
+            reloaded["ui"]["prompt_studio_advanced"][0]["wildcard_seed"],
+            7,
+        )
 
     def test_connected_field_uses_shared_rng_without_replacing_saved_sources(self):
         saved_source = [

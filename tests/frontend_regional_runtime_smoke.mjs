@@ -39,6 +39,10 @@ const constantsUrl = dataModule("../web/js/prompt_studio/regional/constants.js")
 const wildcardSeedContractUrl = dataModule(
   "../web/js/prompt_studio/wildcard_seed_contract.js",
 );
+const wildcardSeedHistoryUrl = dataModule(
+  "../web/js/prompt_studio/wildcard_seed_history.js",
+  { "./wildcard_seed_contract.js": wildcardSeedContractUrl },
+);
 const maskGeometryUrl = dataModule("../web/js/prompt_studio/regional/mask_geometry.js");
 const resolutionUrl = dataModule("../web/js/prompt_studio/regional/resolution.js", {
   "./constants.js": constantsUrl,
@@ -87,6 +91,7 @@ const regionalRuntimeUrl = dataModule("../web/js/prompt_studio/regional/runtime.
   "./resolution.js": resolutionUrl,
   "./schema.js": schemaUrl,
   "./serialization.js": serializationUrl,
+  "../wildcard_seed_history.js": wildcardSeedHistoryUrl,
 });
 const fieldEditorUrl = dataModule("../web/js/prompt_studio/regional/field_editor.js", {
   "./constants.js": constantsUrl,
@@ -94,6 +99,7 @@ const fieldEditorUrl = dataModule("../web/js/prompt_studio/regional/field_editor
   "./schema.js": schemaUrl,
   "./lifecycle.js": lifecycleUrl,
   "../wildcard_seed_contract.js": wildcardSeedContractUrl,
+  "../wildcard_seed_history.js": wildcardSeedHistoryUrl,
   "../../autocomplete/entry_lifecycle.js": autocompleteEntryLifecycleUrl,
 });
 

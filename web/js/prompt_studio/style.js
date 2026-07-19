@@ -173,6 +173,10 @@ function ensureAdvancedStyle() {
     .easyuse-anima-advanced-controlgroup-header:hover {
       border-color: rgba(96, 165, 250, 0.72);
     }
+    .easyuse-anima-advanced-popup-button:disabled {
+      cursor: not-allowed;
+      opacity: 0.5;
+    }
     .easyuse-anima-advanced-wildcardbar select,
     .easyuse-anima-advanced-wildcardbar input {
       box-sizing: border-box;

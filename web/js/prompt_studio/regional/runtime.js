@@ -27,6 +27,9 @@ import {
   normalizeRegionalFieldsString,
   serializedRegionalValue as readSerializedRegionalValue,
 } from "./serialization.js";
+import {
+  serializePreviousWildcardExecution,
+} from "../wildcard_seed_history.js";
 
 /**
  * Build the DOM-independent state, socket, and serialization runtime for one
@@ -492,6 +495,11 @@ function createRegionalRuntime(app, hooks = {}) {
         serialized.widgets_values[index] = widget.value;
       }
     }
+    serializePreviousWildcardExecution(node, serialized, {
+      modeWidgetIndex: REGIONAL_WIDGET_INDEX.wildcard_mode,
+      seedWidgetIndex: REGIONAL_WIDGET_INDEX.wildcard_seed,
+      controlWidgetIndex: REGIONAL_WIDGET_INDEX.wildcard_seed_after_generate,
+    });
   }
 
   /**

@@ -124,6 +124,9 @@ import {
   randomWildcardSeed,
 } from "./wildcard_seed_contract.js";
 import {
+  writePreviousWildcardExecution,
+} from "./wildcard_seed_history.js";
+import {
   captureAdvancedConfigure,
   pruneDisconnectedAdvancedFieldInputValues,
 } from "./serialization.js";
@@ -145,14 +148,18 @@ const ADVANCED_QUEUE_SEED_CONTRACT = Object.freeze({
   modeInputName: "wildcard_mode",
   seedInputName: "wildcard_seed",
   controlInputName: "wildcard_seed_after_generate",
+  modeWidgetIndex: ADVANCED_WIDGET_INDEX.wildcard_mode,
   seedWidgetIndex: ADVANCED_WIDGET_INDEX.wildcard_seed,
+  controlWidgetIndex: ADVANCED_WIDGET_INDEX.wildcard_seed_after_generate,
   supportsSubgraph: true,
 });
 const REGIONAL_QUEUE_SEED_CONTRACT = Object.freeze({
   modeInputName: "wildcard_mode",
   seedInputName: "wildcard_seed",
   controlInputName: "wildcard_seed_after_generate",
+  modeWidgetIndex: REGIONAL_WIDGET_INDEX.wildcard_mode,
   seedWidgetIndex: REGIONAL_WIDGET_INDEX.wildcard_seed,
+  controlWidgetIndex: REGIONAL_WIDGET_INDEX.wildcard_seed_after_generate,
   supportsSubgraph: false,
 });
 
@@ -253,6 +260,11 @@ function createPromptStudioExtensionRuntime(app, api = null) {
       }
       widget.value = seed;
       renderAdvancedEditor(node);
+    },
+    updatePreviousExecution(node, execution) {
+      if (writePreviousWildcardExecution(node, execution)) {
+        markNodeDirty(node);
+      }
     },
     clonePrompt: (value) => JSON.parse(JSON.stringify(value)),
     randomSeed() {

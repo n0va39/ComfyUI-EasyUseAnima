@@ -6140,7 +6140,7 @@ class EasyUseAnimaPromptStudioAdvanced:
         metadata_updates.update({
             "wildcard_mode": wildcard_mode_label,
             "wildcard_seed": wildcard_seed_value,
-            "wildcard_seed_after_generate": wildcard_effective_seed_control,
+            "wildcard_seed_after_generate": SEED_CONTROL_FIXED,
         })
 
         fields_json = _advanced_fields_json(saved_fields)
@@ -7383,7 +7383,7 @@ class EasyUseAnimaPromptStudioRegional:
         metadata_updates.update({
             "wildcard_mode": wildcard_mode_label,
             "wildcard_seed": wildcard_seed_value,
-            "wildcard_seed_after_generate": wildcard_effective_seed_control,
+            "wildcard_seed_after_generate": SEED_CONTROL_FIXED,
         })
 
         fields_json = _regional_fields_json(saved_fields)

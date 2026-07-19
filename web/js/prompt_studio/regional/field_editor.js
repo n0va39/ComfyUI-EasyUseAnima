@@ -28,6 +28,10 @@ import {
   bindWildcardSeedInput,
   normalizeWildcardSeedControl,
 } from "../wildcard_seed_contract.js";
+import {
+  readPreviousWildcardExecution,
+  wildcardModeWidgetValue,
+} from "../wildcard_seed_history.js";
 import { disposeExternalAutocompleteInputs } from "../../autocomplete/entry_lifecycle.js";
 
 /**
@@ -167,6 +171,33 @@ function createRegionalFieldEditor(runtime, layout, maskEditor, hooks) {
     controlSelect.setAttribute("aria-description", controlSelect.title);
     row.title = `${selectedModeTitle}\n${controlSelect.title}\n${hooks.promptStudioText("advanced.wildcardTitle")}`;
 
+    const previousExecution = readPreviousWildcardExecution(node);
+    const previousButtonTitle = previousExecution
+      ? hooks.promptStudioText("advanced.wildcardPreviousSeedTitle").replace(
+        "{seed}",
+        String(previousExecution.seed),
+      )
+      : hooks.promptStudioText("advanced.wildcardPreviousSeedUnavailableTitle");
+    const previousButton = createButton(
+      hooks.promptStudioText("advanced.wildcardPreviousSeedShort"),
+      previousButtonTitle,
+      () => {
+        if (!previousExecution) {
+          return;
+        }
+        runtime.setRegionalWidgetValue(
+          node,
+          "wildcard_mode",
+          wildcardModeWidgetValue(previousExecution.mode),
+        );
+        runtime.setRegionalWidgetValue(node, "wildcard_seed", previousExecution.seed);
+        runtime.setRegionalWidgetValue(node, "wildcard_seed_after_generate", "fixed");
+        renderRegionalEditor(node);
+      },
+    );
+    previousButton.disabled = !previousExecution;
+    previousButton.setAttribute("aria-label", previousButtonTitle);
+
     const syncMode = () => {
       const nextMode = normalizeWildcardMode(modeSelect.value);
       runtime.setRegionalWidgetValue(node, "wildcard_mode", nextMode);
@@ -188,7 +219,7 @@ function createRegionalFieldEditor(runtime, layout, maskEditor, hooks) {
       () => seedWidget.value,
       (seed) => runtime.setRegionalWidgetValue(node, "wildcard_seed", seed),
     );
-    row.append(modeSelect, seedInput, controlSelect);
+    row.append(modeSelect, seedInput, controlSelect, previousButton);
     return row;
   }
 

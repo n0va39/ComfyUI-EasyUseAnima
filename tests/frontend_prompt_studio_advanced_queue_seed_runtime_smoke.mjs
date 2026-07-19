@@ -17,6 +17,11 @@ function clone(value) {
 const seedContractUrl = dataModule(
   "../web/js/prompt_studio/wildcard_seed_contract.js",
 );
+const seedHistorySource = readFileSync(
+  new URL("../web/js/prompt_studio/wildcard_seed_history.js", import.meta.url),
+  "utf8",
+).replace('from "./wildcard_seed_contract.js"', `from "${seedContractUrl}"`);
+const seedHistoryUrl = sourceModule(seedHistorySource);
 const hostHookRegistryUrl = dataModule(
   "../web/js/lifecycle/host_hook_registry.js",
 );
@@ -25,9 +30,11 @@ const queueSource = readFileSync(
   "utf8",
 )
   .replace('from "./wildcard_seed_contract.js"', `from "${seedContractUrl}"`)
+  .replace('from "./wildcard_seed_history.js"', `from "${seedHistoryUrl}"`)
   .replace('from "../lifecycle/host_hook_registry.js"', `from "${hostHookRegistryUrl}"`);
 const queueModule = await import(sourceModule(queueSource));
 const seedContract = await import(seedContractUrl);
+const seedHistory = await import(seedHistoryUrl);
 assert.deepEqual(
   Object.keys(queueModule).sort(),
   [
@@ -50,6 +57,15 @@ assert.deepEqual(
   ],
 );
 assert.equal(seedContract.WILDCARD_SEED_MAX, Number.MAX_SAFE_INTEGER);
+assert.deepEqual(Object.keys(seedHistory).sort(), [
+  "PREVIOUS_WILDCARD_EXECUTION_PROPERTY",
+  "normalizePreviousWildcardExecution",
+  "normalizePreviousWildcardMode",
+  "readPreviousWildcardExecution",
+  "serializePreviousWildcardExecution",
+  "wildcardModeWidgetValue",
+  "writePreviousWildcardExecution",
+]);
 assert.equal(seedContract.optionalWildcardSeed(0), 0);
 assert.equal(
   seedContract.optionalWildcardSeed(Number.MAX_SAFE_INTEGER),
@@ -88,6 +104,34 @@ assert.equal(
   seedContract.randomWildcardSeed(() => 1),
   Number.MAX_SAFE_INTEGER,
 );
+
+{
+  const node = { properties: {} };
+  assert.equal(seedHistory.readPreviousWildcardExecution(node), null);
+  assert.deepEqual(
+    seedHistory.writePreviousWildcardExecution(node, { seed: 7, mode: "sequential" }),
+    { version: 1, seed: 7, mode: "sequential" },
+  );
+  const currentValues = Array(22).fill(null);
+  currentValues[10] = "일반";
+  currentValues[11] = 41;
+  currentValues[12] = "randomize";
+  const serialized = { widgets_values: currentValues, properties: {} };
+  assert.equal(seedHistory.serializePreviousWildcardExecution(node, serialized, {
+    modeWidgetIndex: 10,
+    seedWidgetIndex: 11,
+    controlWidgetIndex: 12,
+  }), true);
+  assert.equal(serialized.widgets_values[10], "순차");
+  assert.equal(serialized.widgets_values[11], 7);
+  assert.equal(serialized.widgets_values[12], "fixed");
+  assert.deepEqual(
+    seedHistory.normalizePreviousWildcardExecution(
+      serialized.properties[seedHistory.PREVIOUS_WILDCARD_EXECUTION_PROPERTY],
+    ),
+    { version: 1, seed: 7, mode: "sequential" },
+  );
+}
 assert.equal(seedContract.normalizeWildcardSeedControl("fixed"), "fixed");
 assert.equal(seedContract.normalizeWildcardSeedControl("매번 랜덤"), "randomize");
 assert.equal(seedContract.normalizeWildcardSeedControl("증가"), "increment");
@@ -333,14 +377,18 @@ const ADVANCED_QUEUE_SEED_CONTRACT = Object.freeze({
   modeInputName: "wildcard_mode",
   seedInputName: "wildcard_seed",
   controlInputName: "wildcard_seed_after_generate",
+  modeWidgetIndex: 10,
   seedWidgetIndex: SEED_INDEX,
+  controlWidgetIndex: 12,
   supportsSubgraph: true,
 });
 const REGIONAL_QUEUE_SEED_CONTRACT = Object.freeze({
   modeInputName: "wildcard_mode",
   seedInputName: "wildcard_seed",
   controlInputName: "wildcard_seed_after_generate",
+  modeWidgetIndex: 6,
   seedWidgetIndex: REGIONAL_SEED_INDEX,
+  controlWidgetIndex: 8,
   supportsSubgraph: false,
 });
 
@@ -409,6 +457,7 @@ function advancedNode(id, type = ADVANCED, seed = 7) {
     id,
     type,
     comfyClass: type,
+    properties: {},
     widgets: [
       { name: "wildcard_mode", value: "순차" },
       { name: "wildcard_seed", value: seed },
@@ -437,6 +486,7 @@ function regionalNode(id, seed = 7) {
     id,
     type: REGIONAL,
     comfyClass: REGIONAL,
+    properties: {},
     widgets: [
       { name: "wildcard_mode", value: "순차" },
       { name: "wildcard_seed", value: seed },
@@ -521,6 +571,7 @@ function createFixture(options = {}) {
   }));
   const randomValues = [...(options.randomValues || [41, 42, 43, 44])];
   const commits = [];
+  const previousExecutions = [];
   let randomCalls = 0;
   let cloneCalls = 0;
   let updateFailures = Number(options.updateFailures || 0);
@@ -539,6 +590,10 @@ function createFixture(options = {}) {
       commits.push([node.id, seed]);
       node.widgets.find((widget) => widget.name === contract.seedInputName).value = seed;
     },
+    updatePreviousExecution(node, execution) {
+      previousExecutions.push([node.id, clone(execution)]);
+      seedHistory.writePreviousWildcardExecution(node, execution);
+    },
     clonePrompt(value) {
       cloneCalls += 1;
       if (options.cloneError) {
@@ -555,6 +610,7 @@ function createFixture(options = {}) {
     nodes,
     runtime,
     commits,
+    previousExecutions,
     randomCalls: () => randomCalls,
     cloneCalls: () => cloneCalls,
   };
@@ -628,6 +684,7 @@ function createSubgraphFixture(options = {}) {
 
   const randomValues = [...(options.randomValues || [41, 42, 43, 44])];
   const commits = [];
+  const previousExecutions = [];
   let randomCalls = 0;
   let cloneCalls = 0;
   const graphHolder = {
@@ -647,6 +704,10 @@ function createSubgraphFixture(options = {}) {
       commits.push([definition.id, node.id, seed]);
       node.widgets.find((widget) => widget.name === contract.seedInputName).value = seed;
     },
+    updatePreviousExecution(node, execution) {
+      previousExecutions.push([definition.id, node.id, clone(execution)]);
+      seedHistory.writePreviousWildcardExecution(node, execution);
+    },
     clonePrompt(value) {
       cloneCalls += 1;
       return clone(value);
@@ -658,6 +719,7 @@ function createSubgraphFixture(options = {}) {
   });
   return {
     commits,
+    previousExecutions,
     containers,
     definition,
     nodes,
@@ -742,9 +804,7 @@ function queuedSeed(prompt, nodeId) {
   return promptNode.inputs[contract.seedInputName];
 }
 
-function workflowSeed(prompt, nodeId) {
-  const promptNode = prompt.output[String(nodeId)];
-  const contract = queueSeedContract({ type: promptNode.class_type });
+function workflowNode(prompt, nodeId) {
   const nodeIds = String(nodeId).split(":");
   const definitions = new Map(
     (prompt.workflow.definitions?.subgraphs || []).map((definition) => [
@@ -761,7 +821,29 @@ function workflowSeed(prompt, nodeId) {
     }
     nodes = definitions.get(String(workflowNodeValue.type))?.nodes || [];
   }
-  return workflowNodeValue.widgets_values[contract.seedWidgetIndex];
+  return workflowNodeValue;
+}
+
+function workflowSeed(prompt, nodeId) {
+  const promptNode = prompt.output[String(nodeId)];
+  const contract = queueSeedContract({ type: promptNode.class_type });
+  return workflowNode(prompt, nodeId).widgets_values[contract.seedWidgetIndex];
+}
+
+function workflowMode(prompt, nodeId) {
+  const promptNode = prompt.output[String(nodeId)];
+  const contract = queueSeedContract({ type: promptNode.class_type });
+  return workflowNode(prompt, nodeId).widgets_values[contract.modeWidgetIndex];
+}
+
+function workflowControl(prompt, nodeId) {
+  const promptNode = prompt.output[String(nodeId)];
+  const contract = queueSeedContract({ type: promptNode.class_type });
+  return workflowNode(prompt, nodeId).widgets_values[contract.controlWidgetIndex];
+}
+
+function workflowPreviousExecution(prompt, nodeId) {
+  return seedHistory.readPreviousWildcardExecution(workflowNode(prompt, nodeId));
 }
 
 function reservedNextSeed(prompt, nodeId) {
@@ -1203,6 +1285,11 @@ for (const [surface, createNode] of [
     { current: 42, next: 43 },
   ]);
   assert.equal(node.widgets[1].value, 43);
+  assert.deepEqual(seedHistory.readPreviousWildcardExecution(node), {
+    version: 1,
+    seed: 42,
+    mode: "populate",
+  });
   assert.equal(fixture.randomCalls(), 3);
 }
 
@@ -1279,8 +1366,10 @@ for (const [surface, makeNode] of [
       node.widgets[2].value = control;
       const fixture = createFixture({ nodes: [node], randomValues: [41] });
       let reserved = null;
+      let savedPrompt = null;
       const wrapped = fixture.runtime.wrapQueuePrompt((_number, prompt) => {
         reserved = reservedSeedState(prompt, 10);
+        savedPrompt = prompt;
         return { prompt_id: `${surface}-${mode}-${control}`, node_errors: {} };
       });
 
@@ -1293,11 +1382,24 @@ for (const [surface, makeNode] of [
         mode: normalizedMode,
         control,
       });
+      assert.equal(workflowMode(savedPrompt, 10), mode);
+      assert.equal(workflowSeed(savedPrompt, 10), 7);
+      assert.equal(workflowControl(savedPrompt, 10), "fixed");
+      assert.deepEqual(workflowPreviousExecution(savedPrompt, 10), {
+        version: 1,
+        seed: 7,
+        mode: normalizedMode,
+      });
       assert.equal(
         node.widgets[1].value,
         expectedNext,
         `${surface} ${mode} + ${control} committed the wrong next seed`,
       );
+      assert.deepEqual(seedHistory.readPreviousWildcardExecution(node), {
+        version: 1,
+        seed: 7,
+        mode: normalizedMode,
+      });
       assert.equal(fixture.randomCalls(), control === "randomize" ? 1 : 0);
     }
   }
@@ -1321,6 +1423,11 @@ for (const [surface, makeNode] of [
 
   await assert.rejects(wrapped(0, promptFor([node])), /random queue rejected/);
   assert.equal(node.widgets[1].value, 7, "a rejected random seed must not commit");
+  assert.equal(
+    seedHistory.readPreviousWildcardExecution(node),
+    null,
+    "a rejected queue must not publish a previous execution seed",
+  );
   await wrapped(0, promptFor([node]));
   assert.deepEqual(retried, {
     version: 1,
@@ -1330,6 +1437,11 @@ for (const [surface, makeNode] of [
     control: "randomize",
   });
   assert.equal(node.widgets[1].value, 42);
+  assert.deepEqual(seedHistory.readPreviousWildcardExecution(node), {
+    version: 1,
+    seed: 7,
+    mode: "sequential",
+  });
   assert.equal(fixture.randomCalls(), 2);
 }
 

@@ -2777,6 +2777,9 @@ class FrontendModuleStructureTests(unittest.TestCase):
         advanced_controls_source = (
             PROMPT_STUDIO_MODULES / "advanced_controls.js"
         ).read_text(encoding="utf-8")
+        wildcard_seed_history_source = (
+            PROMPT_STUDIO_MODULES / "wildcard_seed_history.js"
+        ).read_text(encoding="utf-8")
         advanced_fields_ui_source = (
             PROMPT_STUDIO_MODULES / "advanced_fields_ui.js"
         ).read_text(encoding="utf-8")
@@ -2898,6 +2901,20 @@ class FrontendModuleStructureTests(unittest.TestCase):
         ):
             with self.subTest(module="advanced_controls", symbol=name):
                 self.assertIn(f"  {name},", advanced_controls_source)
+
+        for name in (
+            "PREVIOUS_WILDCARD_EXECUTION_PROPERTY",
+            "normalizePreviousWildcardExecution",
+            "readPreviousWildcardExecution",
+            "serializePreviousWildcardExecution",
+            "wildcardModeWidgetValue",
+            "writePreviousWildcardExecution",
+        ):
+            with self.subTest(module="wildcard_seed_history", symbol=name):
+                self.assertIn(f"  {name},", wildcard_seed_history_source)
+
+        self.assertIn("advanced.wildcardPreviousSeedReuse", advanced_controls_source)
+        self.assertIn('serialized.widgets_values[index] = value;', wildcard_seed_history_source)
 
         for name in (
             "addAdvancedField",

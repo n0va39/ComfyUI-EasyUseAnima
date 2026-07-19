@@ -73,7 +73,7 @@ def load_dynamic():
     def test_current_nodes_module_shape_matches_recorded_baseline(self):
         report = analyzer.analyze_path(ROOT / "nodes.py")
 
-        self.assertEqual(report["git_blob_sha1"], "949995519a4179e79f8a187ab2073e0c09779c06")
+        self.assertEqual(report["git_blob_sha1"], "9f98bc738d3e88d8c08455f096ec512aff6ea8b0")
         # Prompt Studio preserves source fields and separates wildcard mode from seed control.
         self.assertEqual(report["top_level"]["function_count"], 150)
         self.assertEqual(report["top_level"]["class_count"], 12)
