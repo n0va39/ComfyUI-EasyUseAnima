@@ -27531,7 +27531,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 5484
+            "line": 5524
           }
         ],
         "classification": "external",
@@ -27539,7 +27539,7 @@
         "conditional": true,
         "imported": "torch",
         "kind": "static_import",
-        "line": 5485,
+        "line": 5525,
         "name": null,
         "optional": true,
         "requested": "torch",
@@ -27556,7 +27556,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 5518
+            "line": 5558
           }
         ],
         "classification": "external",
@@ -27564,7 +27564,7 @@
         "conditional": true,
         "imported": "torch",
         "kind": "static_import",
-        "line": 5519,
+        "line": 5559,
         "name": null,
         "optional": true,
         "requested": "torch",
@@ -30378,13 +30378,13 @@
       },
       {
         "is_package": false,
-        "loc": 8256,
+        "loc": 8331,
         "module": "nodes",
-        "normalized_git_blob_sha1": "67e3d13782951ce0541a50f2b05bc353e1ae1611",
+        "normalized_git_blob_sha1": "c0bf17e90bd1399601d461dc50508fffb454406c",
         "path": "nodes.py",
         "top_level": {
           "class_count": 12,
-          "function_count": 149,
+          "function_count": 151,
           "global_count": 54
         }
       },
@@ -40621,14 +40621,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 5484
+            "line": 5524
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "torch",
         "kind": "static_import",
-        "line": 5485,
+        "line": 5525,
         "optional": true,
         "role": "optional_dependency",
         "source": "nodes.py"
@@ -40640,14 +40640,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 5518
+            "line": 5558
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "torch",
         "kind": "static_import",
-        "line": 5519,
+        "line": 5559,
         "optional": true,
         "role": "optional_dependency",
         "source": "nodes.py"
@@ -42049,14 +42049,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 5484
+            "line": 5524
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "torch",
         "kind": "static_import",
-        "line": 5485,
+        "line": 5525,
         "optional": true,
         "role": "optional_dependency",
         "source": "nodes.py"
@@ -42068,14 +42068,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 5518
+            "line": 5558
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "torch",
         "kind": "static_import",
-        "line": 5519,
+        "line": 5559,
         "optional": true,
         "role": "optional_dependency",
         "source": "nodes.py"
@@ -43163,7 +43163,7 @@
         "column": 0,
         "context": "expression",
         "kind": "import_time_call",
-        "line": 5683,
+        "line": 5723,
         "module": "nodes.py",
         "scope": "<module>"
       },
@@ -43172,7 +43172,7 @@
         "column": 0,
         "context": "expression",
         "kind": "import_time_call",
-        "line": 5687,
+        "line": 5727,
         "module": "nodes.py",
         "scope": "<module>"
       },
@@ -43181,7 +43181,7 @@
         "column": 0,
         "context": "expression",
         "kind": "import_time_call",
-        "line": 5690,
+        "line": 5730,
         "module": "nodes.py",
         "scope": "<module>"
       },
@@ -43190,7 +43190,7 @@
         "column": 0,
         "context": "expression",
         "kind": "import_time_call",
-        "line": 5693,
+        "line": 5733,
         "module": "nodes.py",
         "scope": "<module>"
       },
@@ -43199,7 +43199,7 @@
         "column": 0,
         "context": "expression",
         "kind": "import_time_call",
-        "line": 5696,
+        "line": 5736,
         "module": "nodes.py",
         "scope": "<module>"
       },
@@ -43208,7 +43208,7 @@
         "column": 0,
         "context": "expression",
         "kind": "import_time_call",
-        "line": 5699,
+        "line": 5739,
         "module": "nodes.py",
         "scope": "<module>"
       },
@@ -43217,7 +43217,7 @@
         "column": 0,
         "context": "expression",
         "kind": "import_time_call",
-        "line": 5702,
+        "line": 5742,
         "module": "nodes.py",
         "scope": "<module>"
       },
@@ -43226,7 +43226,7 @@
         "column": 0,
         "context": "expression",
         "kind": "import_time_call",
-        "line": 5712,
+        "line": 5752,
         "module": "nodes.py",
         "scope": "<module>"
       },
@@ -43235,7 +43235,7 @@
         "column": 0,
         "context": "expression",
         "kind": "import_time_call",
-        "line": 5718,
+        "line": 5758,
         "module": "nodes.py",
         "scope": "<module>"
       },
@@ -43244,7 +43244,7 @@
         "column": 0,
         "context": "expression",
         "kind": "import_time_call",
-        "line": 5723,
+        "line": 5763,
         "module": "nodes.py",
         "scope": "<module>"
       },
@@ -43253,7 +43253,7 @@
         "column": 0,
         "context": "expression",
         "kind": "import_time_call",
-        "line": 5727,
+        "line": 5767,
         "module": "nodes.py",
         "scope": "<module>"
       },
