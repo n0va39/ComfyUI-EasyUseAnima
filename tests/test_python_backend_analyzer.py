@@ -683,9 +683,9 @@ ignored/
 
         self.assertEqual(analyzer.render_json(report), expected_text)
         self.assertEqual(report["schema_version"], 2)
-        self.assertEqual(report["inventory"]["module_count"], 49)
-        self.assertEqual(len(report["registry"]["shipped_python_modules"]), 49)
-        self.assertEqual(len(report["registry"]["runtime_import_closure"]), 48)
+        self.assertEqual(report["inventory"]["module_count"], 53)
+        self.assertEqual(len(report["registry"]["shipped_python_modules"]), 53)
+        self.assertEqual(len(report["registry"]["runtime_import_closure"]), 52)
         self.assertEqual(report["registry"]["missing_internal_imports"], [])
         self.assertEqual(
             report["registry"]["unreachable_shipped_python_modules"],
@@ -719,6 +719,7 @@ ignored/
                 "easyuse_anima/nodes/image_nodes.py",
                 "easyuse_anima/nodes/lora_nodes.py",
                 "easyuse_anima/nodes/naia_nodes.py",
+                "easyuse_anima/nodes/prompt_data_nodes.py",
                 "easyuse_anima/nodes/prompt_nodes.py",
                 "easyuse_anima/nodes/wildcard_nodes.py",
                 "easyuse_anima/profiles/__init__.py",
@@ -726,6 +727,9 @@ ignored/
                 "easyuse_anima/profiles/mutation.py",
                 "easyuse_anima/prompt/__init__.py",
                 "easyuse_anima/prompt/correction.py",
+                "easyuse_anima/prompt/artist_mix.py",
+                "easyuse_anima/prompt/conditioning.py",
+                "easyuse_anima/prompt/data.py",
                 "easyuse_anima/prompt/fields.py",
             }.issubset(report["registry"]["shipped_python_modules"])
         )
@@ -750,10 +754,14 @@ ignored/
                 "easyuse_anima/nodes/image_nodes.py",
                 "easyuse_anima/nodes/lora_nodes.py",
                 "easyuse_anima/nodes/naia_nodes.py",
+                "easyuse_anima/nodes/prompt_data_nodes.py",
                 "easyuse_anima/nodes/prompt_nodes.py",
                 "easyuse_anima/nodes/wildcard_nodes.py",
                 "easyuse_anima/prompt/__init__.py",
                 "easyuse_anima/prompt/correction.py",
+                "easyuse_anima/prompt/artist_mix.py",
+                "easyuse_anima/prompt/conditioning.py",
+                "easyuse_anima/prompt/data.py",
                 "easyuse_anima/prompt/fields.py",
                 "easyuse_anima/profiles/__init__.py",
                 "easyuse_anima/profiles/contract.py",
