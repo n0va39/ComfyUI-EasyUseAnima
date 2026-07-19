@@ -1,3 +1,4 @@
+// @ts-expect-error ComfyUI provides this host module outside the custom-node typecheck root.
 import { app } from "../../../scripts/app.js";
 import {
   normalizePromptTagText,
@@ -765,7 +766,7 @@ function autocompleteStateSignature(token, context, state) {
   });
 }
 
-function strictAutocompleteResults(context, token, state, results) {
+function strictAutocompleteResults(context, token, _state, results) {
   if (!autocompletePreviewCompletion) {
     return results;
   }
@@ -1067,7 +1068,10 @@ function forwardMiddlePanFromAutocompleteInput(event) {
   if (middlePanForwardCleanup) {
     return middlePanForwardCleanup;
   }
-  document.activeElement?.blur?.();
+  const activeElement = document.activeElement;
+  if (activeElement && "blur" in activeElement && typeof activeElement.blur === "function") {
+    activeElement.blur();
+  }
   dispatchAutocompleteCanvasPointerEvent("pointerdown", event, { button: 1, buttons: 4 });
   dispatchAutocompleteCanvasMouseEvent("mousedown", event, { button: 1, buttons: 4 });
 
@@ -1156,24 +1160,6 @@ function completionText(token, entry, forceArtistOnly = false) {
     return `@${tag}`;
   }
   return tag;
-}
-
-function closingBracketPreview(token) {
-  if (!autocompletePreviewClosingBrackets || !token) {
-    return "";
-  }
-  const before = token.value.slice(token.segmentStart, token.start);
-  const after = token.value.slice(token.end, token.segmentEnd);
-  if (before.includes("[[") && !after.includes("]]")) {
-    return "]]";
-  }
-  if (before.includes("(") && !after.includes(")")) {
-    return ")";
-  }
-  if (before.includes("{") && !after.includes("}")) {
-    return "}";
-  }
-  return "";
 }
 
 function autocompletePreviewStyle(category) {
@@ -1624,8 +1610,9 @@ function nodeFromDomElement(element) {
     return null;
   }
   const root = element.closest?.("[data-node-id], .lg-node");
+  const rootElement = /** @type {HTMLElement | SVGElement | null} */ (root);
   const id = root?.getAttribute?.("data-node-id")
-    || root?.dataset?.nodeId
+    || rootElement?.dataset?.nodeId
     || root?.id?.match?.(/\d+/)?.[0];
   return findGraphNodeById(id);
 }

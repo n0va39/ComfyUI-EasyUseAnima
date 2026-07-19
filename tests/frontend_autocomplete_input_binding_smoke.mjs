@@ -423,6 +423,61 @@ const { createAutocompleteInputBinding } = bindingModule;
   assert.equal(noCanvas.defaultPrevented, false);
 }
 
+{
+  const strictStart = entrySource.indexOf("function strictAutocompleteResults");
+  const strictEnd = entrySource.indexOf("\nfunction copyCaretMirrorStyle", strictStart);
+  assert.ok(strictStart >= 0 && strictEnd > strictStart);
+  const strictAutocompleteResults = new Function(
+    `"use strict";\n${entrySource.slice(strictStart, strictEnd)}\nreturn strictAutocompleteResults;`,
+  )();
+  assert.equal(
+    strictAutocompleteResults.length,
+    4,
+    "the unused state slot must preserve the positional four-argument contract",
+  );
+}
+
+{
+  const bracketStart = entrySource.indexOf("function insertBracketPair");
+  const bracketEnd = entrySource.indexOf("\nfunction widgetValueSetterCallsCallback", bracketStart);
+  assert.ok(bracketStart >= 0 && bracketEnd > bracketStart);
+  const handleBracketPreviewKeydown = new Function(
+    "replaceInputRange",
+    "syncWidgetValue",
+    `"use strict";\nconst autocompletePreviewClosingBrackets = true;\n${entrySource.slice(bracketStart, bracketEnd)}\nreturn handleBracketPreviewKeydown;`,
+  )(
+    (input, start, end, replacement, caretOffset) => {
+      input.value = `${input.value.slice(0, start)}${replacement}${input.value.slice(end)}`;
+      input.setSelectionRange(start + caretOffset, start + caretOffset);
+    },
+    (state) => { state.syncCalls += 1; },
+  );
+
+  const input = {
+    value: "tag",
+    selectionStart: 0,
+    selectionEnd: 3,
+    setSelectionRange(start, end) {
+      this.selectionStart = start;
+      this.selectionEnd = end;
+    },
+  };
+  const state = { input, syncCalls: 0 };
+  const openEvent = createEvent({ key: "(" });
+  assert.equal(handleBracketPreviewKeydown(state, openEvent), true);
+  assert.equal(input.value, "(tag)");
+  assert.equal(input.selectionStart, 4);
+  assert.equal(state.syncCalls, 1);
+
+  input.selectionStart = 4;
+  input.selectionEnd = 4;
+  const closeEvent = createEvent({ key: ")" });
+  assert.equal(handleBracketPreviewKeydown(state, closeEvent), true);
+  assert.equal(input.value, "(tag)", "typing an existing closer must not duplicate it");
+  assert.equal(input.selectionStart, 5);
+  assert.equal(state.syncCalls, 1, "skipping an existing closer must not rewrite widget state");
+}
+
 function noOpController(disposeCall) {
   return {
     beginComposition() {},
@@ -623,6 +678,37 @@ function replacementBinding(input, state, owner, registry, controller) {
   assert.deepEqual(
     autocompleteGraphNodesFor({ graph: { _nodes_by_id: { 1: legacyNode, empty: null } } }),
     [legacyNode],
+  );
+
+  class FakeElement {
+    constructor(root = null) {
+      this.root = root || this;
+      this.dataset = {};
+      this.id = "";
+    }
+
+    closest() {
+      return this.root;
+    }
+
+    getAttribute() {
+      return null;
+    }
+  }
+  const nodeFromDomStart = entrySource.indexOf("function nodeFromDomElement");
+  const nodeFromDomEnd = entrySource.indexOf("\nfunction isAutocompleteDomInput", nodeFromDomStart);
+  assert.ok(nodeFromDomStart >= 0 && nodeFromDomEnd > nodeFromDomStart);
+  const nodeFromDomElement = new Function(
+    "Element",
+    "findGraphNodeById",
+    `"use strict";\n${entrySource.slice(nodeFromDomStart, nodeFromDomEnd)}\nreturn nodeFromDomElement;`,
+  )(FakeElement, (id) => id);
+  const datasetRoot = new FakeElement();
+  datasetRoot.dataset.nodeId = "42";
+  assert.equal(
+    nodeFromDomElement(new FakeElement(datasetRoot)),
+    "42",
+    "DOM ownership lookup must retain the dataset fallback when the attribute path is empty",
   );
 
   let graphNodes = [];

@@ -3374,7 +3374,6 @@ class FrontendModuleStructureTests(unittest.TestCase):
         }
         debt_root_entries = {
             "web/js/easyuse_anima_aio.js",
-            "web/js/easyuse_anima_autocomplete.js",
             "web/js/easyuse_anima_lora_preset.js",
         }
         actual_root_entries = {
