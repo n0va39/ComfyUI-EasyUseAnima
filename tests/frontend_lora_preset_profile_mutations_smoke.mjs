@@ -87,9 +87,9 @@ const apiMutations = createLoraPresetProfileMutations({
   text: (key) => key,
   formatText: (key) => key,
   apiClient: {
-    async saveProfile(name, payload, overwrite) {
-      apiCalls.save.push({ name, payload, overwrite });
-      return { profile: { name } };
+    async saveProfile(name, payload, overwrite, profile) {
+      apiCalls.save.push({ name, payload, overwrite, profile });
+      return { profile: { name, profile_id: "00000000-0000-4000-8000-000000000001", revision: 1 } };
     },
     async loadProfile(name) {
       apiCalls.load.push(name);
@@ -119,9 +119,16 @@ assert.equal(apiMutations.profileCount(node), 3);
 assert.equal(apiMutations.activeProfileIndex(node), 3);
 assert.equal(widgetValue(findWidget(node, "style_prompt")), "loaded second");
 
-function createSaveScenario(responses, confirmResult) {
+function profileExistsError(message = "Profile already exists") {
+  const error = new Error(message);
+  error.code = "profile_exists";
+  return error;
+}
+
+function createSaveScenario(responses, confirmResult, loadResponses = [], promptName = " existing profile ") {
   const scenarioNode = createProfileNode();
   const calls = [];
+  const loads = [];
   const confirmations = [];
   const alerts = [];
   const scenarioMutations = createLoraPresetProfileMutations({
@@ -134,9 +141,17 @@ function createSaveScenario(responses, confirmResult) {
     text: (key) => key,
     formatText: (key, values = {}) => `${key}:${values.name ?? values.message ?? ""}`,
     apiClient: {
-      async saveProfile(name, payload, overwrite) {
-        calls.push({ name, payload, overwrite });
+      async saveProfile(name, payload, overwrite, profile) {
+        calls.push({ name, payload, overwrite, profile });
         const response = responses.shift();
+        if (response instanceof Error) {
+          throw response;
+        }
+        return response;
+      },
+      async loadProfile(name) {
+        loads.push(name);
+        const response = loadResponses.shift();
         if (response instanceof Error) {
           throw response;
         }
@@ -144,7 +159,7 @@ function createSaveScenario(responses, confirmResult) {
       },
     },
     host: {
-      prompt: () => " existing profile ",
+      prompt: () => promptName,
       confirm(message) {
         confirmations.push(message);
         return confirmResult;
@@ -154,29 +169,63 @@ function createSaveScenario(responses, confirmResult) {
       },
     },
   });
-  return { alerts, calls, confirmations, mutations: scenarioMutations, node: scenarioNode };
+  return { alerts, calls, confirmations, loads, mutations: scenarioMutations, node: scenarioNode };
 }
 
 {
   const scenario = createSaveScenario([
-    new Error("Profile already exists"),
-    { profile: { name: "existing profile" } },
-  ], true);
+    profileExistsError(),
+    {
+      profile: {
+        name: "existing profile",
+        profile_id: "11111111-1111-4111-8111-111111111111",
+        revision: 8,
+      },
+    },
+    profileExistsError("localized conflict"),
+    {
+      profile: {
+        name: "existing profile",
+        profile_id: "11111111-1111-4111-8111-111111111111",
+        revision: 9,
+      },
+    },
+  ], true, [{
+    profile: {
+      name: "existing profile",
+      profile_id: "11111111-1111-4111-8111-111111111111",
+      revision: 7,
+    },
+  }]);
   await scenario.mutations.saveProfileSet(scenario.node);
   assert.deepEqual(scenario.calls.map((call) => call.overwrite), [false, true]);
   assert.strictEqual(scenario.calls[1].payload, scenario.calls[0].payload);
+  assert.deepEqual(scenario.calls[1].profile, {
+    profile_id: "11111111-1111-4111-8111-111111111111",
+    revision: 7,
+  });
+  assert.deepEqual(scenario.loads, ["existing profile"]);
   assert.deepEqual(scenario.confirmations, ["profile.overwriteConfirm:existing profile"]);
   assert.deepEqual(scenario.alerts, []);
   assert.equal(scenario.mutations.profileSaveStatus(scenario.node, 1).state, "saved");
+
+  await scenario.mutations.saveProfileSet(scenario.node);
+  assert.deepEqual(scenario.calls.map((call) => call.overwrite), [false, true, false, true]);
+  assert.deepEqual(scenario.calls[3].profile, {
+    profile_id: "11111111-1111-4111-8111-111111111111",
+    revision: 8,
+  });
+  assert.deepEqual(scenario.loads, ["existing profile"], "save response must refresh the token cache");
 }
 
 {
-  const scenario = createSaveScenario([new Error("Profile already exists")], false);
+  const scenario = createSaveScenario([profileExistsError()], false);
   const beforeData = scenario.mutations.parseProfileData(findWidget(scenario.node, "profile_data"));
   const beforeStatus = scenario.mutations.profileSaveStatus(scenario.node, 1);
   const beforeDirty = scenario.node.dirty;
   await scenario.mutations.saveProfileSet(scenario.node);
   assert.deepEqual(scenario.calls.map((call) => call.overwrite), [false]);
+  assert.deepEqual(scenario.loads, [], "declined overwrite must not load target metadata");
   assert.deepEqual(scenario.confirmations, ["profile.overwriteConfirm:existing profile"]);
   assert.deepEqual(scenario.alerts, []);
   assert.deepEqual(
@@ -188,11 +237,52 @@ function createSaveScenario(responses, confirmResult) {
 }
 
 {
-  const scenario = createSaveScenario([new Error("Profile already exists.")], true);
+  const scenario = createSaveScenario([new Error("Profile already exists")], true);
   await scenario.mutations.saveProfileSet(scenario.node);
   assert.deepEqual(scenario.calls.map((call) => call.overwrite), [false]);
   assert.deepEqual(scenario.confirmations, []);
-  assert.deepEqual(scenario.alerts, ["profile.saveFailed:Profile already exists."]);
+  assert.deepEqual(scenario.alerts, ["profile.saveFailed:Profile already exists"]);
+}
+
+{
+  const scenario = createSaveScenario([
+    profileExistsError(),
+    { profile: { name: "foo_bar", profile_id: "44444444-4444-4444-8444-444444444444", revision: 4 } },
+  ], true, [{
+    profile: { name: "foo_bar", profile_id: "44444444-4444-4444-8444-444444444444", revision: 3 },
+  }], " foo?bar ");
+  await scenario.mutations.saveProfileSet(scenario.node);
+  assert.deepEqual(scenario.loads, ["foo?bar"]);
+  assert.deepEqual(scenario.calls[1].profile, {
+    profile_id: "44444444-4444-4444-8444-444444444444",
+    revision: 3,
+  });
+}
+
+{
+  const scenario = createSaveScenario([
+    profileExistsError(),
+    { profile: { name: "existing profile" } },
+  ], true, [{ profile: { name: "existing profile" } }]);
+  await scenario.mutations.saveProfileSet(scenario.node);
+  assert.equal(scenario.calls[1].profile, null);
+  assert.deepEqual(scenario.alerts, []);
+}
+
+{
+  const scenario = createSaveScenario([
+    profileExistsError(),
+    { profile: { name: "existing profile", profile_id: "55555555-5555-4555-8555-555555555555", revision: 6 } },
+  ], true);
+  scenario.mutations.rememberProfileTokens([
+    { name: "existing profile", profile_id: "55555555-5555-4555-8555-555555555555", revision: 5 },
+  ]);
+  await scenario.mutations.saveProfileSet(scenario.node);
+  assert.deepEqual(scenario.loads, []);
+  assert.deepEqual(scenario.calls[1].profile, {
+    profile_id: "55555555-5555-4555-8555-555555555555",
+    revision: 5,
+  });
 }
 
 const partialNode = createProfileNode();

@@ -20,6 +20,12 @@ function deferred() {
   return { promise, resolve, reject };
 }
 
+function profileExistsError(message = "Profile already exists") {
+  const error = new Error(message);
+  error.code = "profile_exists";
+  return error;
+}
+
 class FakeClassList {
   constructor() {
     this.values = new Set();
@@ -136,14 +142,20 @@ function createFixture() {
     loadProfile(name) {
       return queuedResult("loadProfile", [name]);
     },
-    saveProfile(name, overwrite, settings) {
-      return queuedResult("saveProfile", [name, overwrite, clone(settings)]);
+    saveProfile(name, overwrite, settings, profile) {
+      return queuedResult("saveProfile", [name, overwrite, clone(settings), clone(profile)]);
     },
-    renameProfile(oldName, newName, overwrite) {
-      return queuedResult("renameProfile", [oldName, newName, overwrite]);
+    renameProfile(oldName, newName, overwrite, profile, targetProfile) {
+      return queuedResult("renameProfile", [
+        oldName,
+        newName,
+        overwrite,
+        clone(profile),
+        clone(targetProfile),
+      ]);
     },
-    deleteProfile(name) {
-      return queuedResult("deleteProfile", [name]);
+    deleteProfile(name, profile) {
+      return queuedResult("deleteProfile", [name, clone(profile)]);
     },
   };
 
@@ -585,6 +597,7 @@ assert.deepEqual(fixture.apiCalls.saveProfile.at(-1), [
   "Landscape",
   true,
   { sampler: { steps: 55 }, save_snapshot: true },
+  { name: "Landscape" },
 ]);
 assert.equal(saveNode.__easyuseAnimaGeneratorProfileValue, "user:Landscape");
 assert.match(saveNode.__easyuseAnimaGeneratorProfileFingerprint, /^fingerprint:/);
@@ -651,7 +664,13 @@ assert.ok(
   fixture.trace.indexOf("resolve") < fixture.trace.indexOf("prompt"),
   "rename must sync the current selection before prompting",
 );
-assert.deepEqual(fixture.apiCalls.renameProfile.at(-1), ["Landscape", "Cinematic", false]);
+assert.deepEqual(fixture.apiCalls.renameProfile.at(-1), [
+  "Landscape",
+  "Cinematic",
+  false,
+  { name: "Landscape" },
+  null,
+]);
 assert.equal(saveNode.__easyuseAnimaGeneratorProfileValue, "user:Cinematic");
 assert.equal(fixture.apiCalls.listProfiles.length, listCallsBeforeRename + 1);
 assert.equal(fixture.trace.includes("refresh-panels"), true);
@@ -689,7 +708,7 @@ const dialogsBeforeDelete = fixture.dialogs.length;
 const listCallsBeforeDelete = fixture.apiCalls.listProfiles.length;
 fixture.trace.length = 0;
 await buttons.delete.dispatch("click");
-assert.deepEqual(fixture.apiCalls.deleteProfile.at(-1), ["Cinematic"]);
+assert.deepEqual(fixture.apiCalls.deleteProfile.at(-1), ["Cinematic", { name: "Cinematic" }]);
 assert.equal(saveNode.__easyuseAnimaGeneratorProfileValue, "custom");
 assert.equal(Object.hasOwn(saveNode, "__easyuseAnimaGeneratorProfileFingerprint"), false);
 assert.equal(fixture.apiCalls.listProfiles.length, listCallsBeforeDelete + 1);
@@ -766,6 +785,7 @@ assert.deepEqual(fixture.apiCalls.saveProfile.at(-1), [
   "Refresh Failure",
   false,
   { sampler: { steps: 55 }, save_snapshot: true },
+  null,
 ]);
 assert.equal(fixture.apiCalls.listProfiles.length, listCallsBeforeRefreshError + 1);
 assert.equal(dialog.backdrop.isConnected, true, "refresh failure must retain its dialog");
@@ -777,6 +797,262 @@ fixture.apiQueues.listProfiles.push({ profiles: [{ name: "Recovered After Refres
 assert.deepEqual(await fixture.runtime.loadProfiles({ force: true }), [
   { name: "Recovered After Refresh" },
 ]);
+
+const tokenFixture = createFixture();
+const sourceV1 = {
+  name: "Source",
+  profile_id: "11111111-1111-4111-8111-111111111111",
+  revision: 1,
+};
+const targetV4 = {
+  name: "Target",
+  profile_id: "22222222-2222-4222-8222-222222222222",
+  revision: 4,
+};
+tokenFixture.apiQueues.listProfiles.push({ profiles: [sourceV1, targetV4] });
+await tokenFixture.runtime.loadProfiles();
+const tokenNode = {
+  settings: { sampler: { steps: 61 } },
+  __easyuseAnimaGeneratorProfileValue: "user:Source",
+  __easyuseAnimaGeneratorProfileFingerprint: "source-fingerprint",
+};
+tokenFixture.runtime.open(tokenNode);
+let tokenDialog = tokenFixture.dialogs.at(-1);
+let tokenButtons = dialogButtons(tokenDialog);
+tokenButtons.select.value = "user:Source";
+
+const targetV5 = { ...targetV4, revision: 5 };
+tokenFixture.prompts.push("Target");
+tokenFixture.confirms.push(true);
+tokenFixture.apiQueues.saveProfile.push({ profile: targetV5 });
+tokenFixture.apiQueues.listProfiles.push(new Error("save refresh failed"));
+await tokenButtons.save.dispatch("click");
+assert.deepEqual(tokenFixture.apiCalls.saveProfile.at(-1), [
+  "Target",
+  true,
+  { sampler: { steps: 61 } },
+  targetV4,
+]);
+assert.deepEqual(
+  (await tokenFixture.runtime.loadProfiles()).find((profile) => profile.name === "Target"),
+  targetV5,
+  "save response metadata must survive a failed list refresh",
+);
+
+const targetV6 = { ...targetV4, revision: 6 };
+tokenFixture.prompts.push("Target");
+tokenFixture.confirms.push(true);
+tokenFixture.apiQueues.saveProfile.push({ profile: targetV6 });
+tokenFixture.apiQueues.listProfiles.push(new Error("second save refresh failed"));
+await tokenButtons.save.dispatch("click");
+assert.deepEqual(tokenFixture.apiCalls.saveProfile.at(-1).at(-1), targetV5);
+
+tokenButtons.select.value = "user:Source";
+tokenFixture.prompts.push("Target");
+tokenFixture.confirms.push(true);
+const renamedTarget = { ...sourceV1, name: "Target" };
+tokenFixture.apiQueues.renameProfile.push({ profile: renamedTarget });
+tokenFixture.apiQueues.listProfiles.push(new Error("rename refresh failed"));
+await tokenButtons.rename.dispatch("click");
+assert.deepEqual(tokenFixture.apiCalls.renameProfile.at(-1), [
+  "Source",
+  "Target",
+  true,
+  sourceV1,
+  targetV6,
+]);
+
+tokenButtons.select.value = "user:Target";
+tokenFixture.confirms.push(true);
+tokenFixture.apiQueues.deleteProfile.push({ profile: renamedTarget });
+tokenFixture.apiQueues.listProfiles.push(new Error("delete refresh failed"));
+await tokenButtons.delete.dispatch("click");
+assert.deepEqual(tokenFixture.apiCalls.deleteProfile.at(-1), ["Target", renamedTarget]);
+assert.equal(
+  (await tokenFixture.runtime.loadProfiles()).some((profile) => profile.name === "Target"),
+  false,
+  "delete success must remove cached metadata even when refresh fails",
+);
+
+const caseFixture = createFixture();
+const caseProfile = {
+  name: "Case Name",
+  profile_id: "33333333-3333-4333-8333-333333333333",
+  revision: 2,
+};
+caseFixture.apiQueues.listProfiles.push({ profiles: [caseProfile] });
+await caseFixture.runtime.loadProfiles();
+const caseNode = {
+  settings: { keep: true },
+  __easyuseAnimaGeneratorProfileValue: "user:Case Name",
+  __easyuseAnimaGeneratorProfileFingerprint: "case-fingerprint",
+};
+caseFixture.runtime.open(caseNode);
+const caseButtons = dialogButtons(caseFixture.dialogs.at(-1));
+caseButtons.select.value = "user:Case Name";
+caseFixture.prompts.push("case name");
+caseFixture.apiQueues.renameProfile.push({
+  profile: { ...caseProfile, name: "case name" },
+});
+caseFixture.apiQueues.listProfiles.push({
+  profiles: [{ ...caseProfile, name: "case name" }],
+});
+await caseButtons.rename.dispatch("click");
+assert.deepEqual(caseFixture.apiCalls.renameProfile.at(-1), [
+  "Case Name",
+  "case name",
+  false,
+  caseProfile,
+  null,
+]);
+assert.deepEqual(caseFixture.confirmCalls, [], "case-only rename must not confirm overwrite");
+
+const sanitizedSaveFixture = createFixture();
+sanitizedSaveFixture.apiQueues.listProfiles.push({ profiles: [] });
+await sanitizedSaveFixture.runtime.loadProfiles();
+const sanitizedSaveNode = {
+  settings: { sampler: { steps: 71 }, sanitized: true },
+  __easyuseAnimaGeneratorProfileValue: "custom",
+};
+sanitizedSaveFixture.runtime.open(sanitizedSaveNode);
+const sanitizedSaveButtons = dialogButtons(sanitizedSaveFixture.dialogs.at(-1));
+const sanitizedTarget = {
+  name: "foo_bar",
+  profile_id: "44444444-4444-4444-8444-444444444444",
+  revision: 7,
+};
+const sanitizedSaved = { ...sanitizedTarget, revision: 8 };
+sanitizedSaveFixture.prompts.push("foo?bar");
+sanitizedSaveFixture.apiQueues.saveProfile.push(profileExistsError("localized conflict"));
+sanitizedSaveFixture.apiQueues.loadProfile.push({ profile: sanitizedTarget });
+sanitizedSaveFixture.confirms.push(true);
+sanitizedSaveFixture.apiQueues.saveProfile.push({ profile: sanitizedSaved });
+sanitizedSaveFixture.apiQueues.listProfiles.push(new Error("sanitized refresh failed"));
+await sanitizedSaveButtons.save.dispatch("click");
+assert.deepEqual(sanitizedSaveFixture.apiCalls.saveProfile, [
+  ["foo?bar", false, { sampler: { steps: 71 }, sanitized: true }, null],
+  ["foo?bar", true, { sampler: { steps: 71 }, sanitized: true }, sanitizedTarget],
+]);
+assert.deepEqual(sanitizedSaveFixture.apiCalls.loadProfile, [["foo?bar"]]);
+assert.match(sanitizedSaveFixture.confirmCalls.at(-1), /foo_bar/);
+assert.deepEqual(
+  (await sanitizedSaveFixture.runtime.loadProfiles()).find((profile) => profile.name === "foo_bar"),
+  sanitizedSaved,
+  "conflict save response metadata must survive a failed list refresh",
+);
+
+const declineFixture = createFixture();
+declineFixture.apiQueues.listProfiles.push({ profiles: [] });
+await declineFixture.runtime.loadProfiles();
+declineFixture.runtime.open({ settings: { decline: true }, __easyuseAnimaGeneratorProfileValue: "custom" });
+const declineButtons = dialogButtons(declineFixture.dialogs.at(-1));
+const declineTarget = {
+  name: "decline_canonical",
+  profile_id: "55555555-5555-4555-8555-555555555555",
+  revision: 3,
+};
+declineFixture.prompts.push("decline?alias");
+declineFixture.apiQueues.saveProfile.push(profileExistsError());
+declineFixture.apiQueues.loadProfile.push({ profile: declineTarget });
+declineFixture.confirms.push(false);
+await declineButtons.save.dispatch("click");
+assert.equal(declineFixture.apiCalls.saveProfile.length, 1);
+assert.deepEqual(declineFixture.apiCalls.loadProfile, [["decline?alias"]]);
+assert.match(declineFixture.confirmCalls.at(-1), /decline_canonical/);
+assert.deepEqual(await declineFixture.runtime.loadProfiles(), [declineTarget]);
+
+const messageFixture = createFixture();
+messageFixture.apiQueues.listProfiles.push({ profiles: [] });
+await messageFixture.runtime.loadProfiles();
+messageFixture.runtime.open({ settings: { message: true }, __easyuseAnimaGeneratorProfileValue: "custom" });
+const messageButtons = dialogButtons(messageFixture.dialogs.at(-1));
+messageFixture.prompts.push("Message Conflict");
+messageFixture.apiQueues.saveProfile.push(new Error("Profile already exists"));
+await messageButtons.save.dispatch("click");
+assert.equal(messageFixture.apiCalls.saveProfile.length, 1);
+assert.equal(messageFixture.apiCalls.loadProfile.length, 0);
+assert.equal(messageFixture.confirmCalls.length, 0);
+assert.match(messageFixture.alerts.at(-1), /Profile already exists/);
+
+const overwriteErrorFixture = createFixture();
+const overwriteExisting = {
+  name: "Existing",
+  profile_id: "66666666-6666-4666-8666-666666666666",
+  revision: 4,
+};
+overwriteErrorFixture.apiQueues.listProfiles.push({ profiles: [overwriteExisting] });
+await overwriteErrorFixture.runtime.loadProfiles();
+overwriteErrorFixture.runtime.open({ settings: { overwrite: true }, __easyuseAnimaGeneratorProfileValue: "custom" });
+const overwriteErrorButtons = dialogButtons(overwriteErrorFixture.dialogs.at(-1));
+overwriteErrorFixture.prompts.push("Existing");
+overwriteErrorFixture.confirms.push(true);
+overwriteErrorFixture.apiQueues.saveProfile.push(profileExistsError("stale overwrite"));
+await overwriteErrorButtons.save.dispatch("click");
+assert.deepEqual(overwriteErrorFixture.apiCalls.saveProfile, [
+  ["Existing", true, { overwrite: true }, overwriteExisting],
+]);
+assert.equal(overwriteErrorFixture.apiCalls.loadProfile.length, 0);
+assert.equal(overwriteErrorFixture.confirmCalls.length, 1);
+
+const tokenlessFixture = createFixture();
+tokenlessFixture.apiQueues.listProfiles.push({ profiles: [] });
+await tokenlessFixture.runtime.loadProfiles();
+tokenlessFixture.runtime.open({ settings: { legacy: true }, __easyuseAnimaGeneratorProfileValue: "custom" });
+const tokenlessButtons = dialogButtons(tokenlessFixture.dialogs.at(-1));
+const tokenlessTarget = { name: "legacy_name" };
+tokenlessFixture.prompts.push("legacy?name");
+tokenlessFixture.apiQueues.saveProfile.push(
+  profileExistsError(),
+  profileExistsError("retry conflict"),
+);
+tokenlessFixture.apiQueues.loadProfile.push({ profile: tokenlessTarget });
+tokenlessFixture.confirms.push(true);
+await tokenlessButtons.save.dispatch("click");
+assert.deepEqual(tokenlessFixture.apiCalls.saveProfile, [
+  ["legacy?name", false, { legacy: true }, null],
+  ["legacy?name", true, { legacy: true }, tokenlessTarget],
+]);
+assert.equal(Object.hasOwn(tokenlessFixture.apiCalls.saveProfile[1][3], "profile_id"), false);
+assert.equal(Object.hasOwn(tokenlessFixture.apiCalls.saveProfile[1][3], "revision"), false);
+assert.equal(tokenlessFixture.apiCalls.loadProfile.length, 1);
+assert.equal(tokenlessFixture.confirmCalls.length, 1);
+
+const staleRenameFixture = createFixture();
+const renameSource = {
+  name: "Source",
+  profile_id: "77777777-7777-4777-8777-777777777777",
+  revision: 2,
+};
+const renameTarget = {
+  name: "foo_bar",
+  profile_id: "88888888-8888-4888-8888-888888888888",
+  revision: 5,
+};
+staleRenameFixture.apiQueues.listProfiles.push({ profiles: [renameSource] });
+await staleRenameFixture.runtime.loadProfiles();
+const staleRenameNode = {
+  settings: { rename: true },
+  __easyuseAnimaGeneratorProfileValue: "user:Source",
+  __easyuseAnimaGeneratorProfileFingerprint: "source-fingerprint",
+};
+staleRenameFixture.runtime.open(staleRenameNode);
+const staleRenameButtons = dialogButtons(staleRenameFixture.dialogs.at(-1));
+staleRenameButtons.select.value = "user:Source";
+staleRenameFixture.prompts.push("foo?bar");
+staleRenameFixture.apiQueues.renameProfile.push(profileExistsError());
+staleRenameFixture.apiQueues.loadProfile.push({ profile: renameTarget });
+staleRenameFixture.confirms.push(true);
+const renamedSource = { ...renameSource, name: "foo_bar" };
+staleRenameFixture.apiQueues.renameProfile.push({ profile: renamedSource });
+staleRenameFixture.apiQueues.listProfiles.push({ profiles: [renamedSource] });
+await staleRenameButtons.rename.dispatch("click");
+assert.deepEqual(staleRenameFixture.apiCalls.renameProfile, [
+  ["Source", "foo?bar", false, renameSource, null],
+  ["Source", "foo?bar", true, renameSource, renameTarget],
+]);
+assert.deepEqual(staleRenameFixture.apiCalls.loadProfile, [["foo?bar"]]);
+assert.match(staleRenameFixture.confirmCalls.at(-1), /foo_bar/);
+assert.equal(staleRenameNode.__easyuseAnimaGeneratorProfileValue, "user:foo_bar");
 
 const preserveFixture = createFixture();
 preserveFixture.apiQueues.listProfiles.push({

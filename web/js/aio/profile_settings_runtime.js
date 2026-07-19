@@ -1,12 +1,14 @@
 // @ts-check
 
+const PROFILE_EXISTS_CODE = "profile_exists";
+
 /**
  * @typedef {object} AioProfileApi
  * @property {() => Promise<any>} listProfiles
  * @property {(name: string) => Promise<any>} loadProfile
- * @property {(name: string, overwrite: boolean, settings: any) => Promise<any>} saveProfile
- * @property {(oldName: string, newName: string, overwrite: boolean) => Promise<any>} renameProfile
- * @property {(name: string) => Promise<any>} deleteProfile
+ * @property {(name: string, overwrite: boolean, settings: any, profile?: any) => Promise<any>} saveProfile
+ * @property {(oldName: string, newName: string, overwrite: boolean, profile?: any, targetProfile?: any) => Promise<any>} renameProfile
+ * @property {(name: string, profile?: any) => Promise<any>} deleteProfile
  */
 
 /**
@@ -117,6 +119,36 @@ export function aioCreateProfileSettingsRuntime(dependencies) {
     return findUser(state.profiles, name);
   }
 
+  function isProfileExistsError(error) {
+    return error?.code === PROFILE_EXISTS_CODE;
+  }
+
+  function rememberProfile(profile, ...replacedNames) {
+    const name = String(profile?.name || "").trim();
+    if (!name) {
+      return;
+    }
+    const replaced = new Set([...replacedNames, name].map((value) => String(value || "").toLowerCase()));
+    state.profiles = state.profiles.filter(
+      (current) => !replaced.has(String(current?.name || "").toLowerCase()),
+    );
+    state.profiles.push(profile);
+  }
+
+  function forgetProfile(name) {
+    const expected = String(name || "").toLowerCase();
+    state.profiles = state.profiles.filter(
+      (profile) => String(profile?.name || "").toLowerCase() !== expected,
+    );
+  }
+
+  async function loadConflictProfile(name) {
+    const data = await profileApi.loadProfile(name);
+    const profile = data?.profile || null;
+    rememberProfile(profile, name);
+    return profile;
+  }
+
   async function loadProfiles({ force = false } = {}) {
     if (state.loaded && !force) {
       return state.profiles;
@@ -164,6 +196,7 @@ export function aioCreateProfileSettingsRuntime(dependencies) {
     const name = userName(textValue);
     const data = await profileApi.loadProfile(name);
     const profile = data?.profile || null;
+    rememberProfile(profile ? { ...profile, name } : null, name);
     if (!profile?.settings || typeof profile.settings !== "object") {
       throw new Error("Profile settings are missing");
     }
@@ -187,7 +220,25 @@ export function aioCreateProfileSettingsRuntime(dependencies) {
       return;
     }
     const settings = getSettings(node);
-    const data = await profileApi.saveProfile(name, overwrite, settings);
+    let data;
+    if (overwrite) {
+      data = await profileApi.saveProfile(name, true, settings, existing);
+    } else {
+      try {
+        data = await profileApi.saveProfile(name, false, settings, null);
+      } catch (error) {
+        if (!isProfileExistsError(error)) {
+          throw error;
+        }
+        const target = await loadConflictProfile(name);
+        const targetName = String(target?.name || name);
+        if (!dialogs.confirm(format("profile.overwriteConfirm", { name: targetName }))) {
+          return;
+        }
+        data = await profileApi.saveProfile(name, true, settings, target);
+      }
+    }
+    rememberProfile(data?.profile, name);
     await loadProfiles({ force: true });
     node.__easyuseAnimaGeneratorProfileValue = userValue(data?.profile?.name || name);
     node.__easyuseAnimaGeneratorProfileFingerprint = fingerprint(settings);
@@ -214,7 +265,26 @@ export function aioCreateProfileSettingsRuntime(dependencies) {
     if (overwrite && !dialogs.confirm(format("profile.overwriteConfirm", { name: existing.name }))) {
       return;
     }
-    const data = await profileApi.renameProfile(oldName, newName, overwrite);
+    const current = userProfileByName(oldName);
+    let data;
+    if (overwrite) {
+      data = await profileApi.renameProfile(oldName, newName, true, current, existing);
+    } else {
+      try {
+        data = await profileApi.renameProfile(oldName, newName, false, current, null);
+      } catch (error) {
+        if (!isProfileExistsError(error)) {
+          throw error;
+        }
+        const target = await loadConflictProfile(newName);
+        const targetName = String(target?.name || newName);
+        if (!dialogs.confirm(format("profile.overwriteConfirm", { name: targetName }))) {
+          return;
+        }
+        data = await profileApi.renameProfile(oldName, newName, true, current, target);
+      }
+    }
+    rememberProfile(data?.profile, oldName, newName);
     await loadProfiles({ force: true });
     if (currentName.toLowerCase() === oldName.toLowerCase()) {
       node.__easyuseAnimaGeneratorProfileValue = userValue(data?.profile?.name || newName);
@@ -228,7 +298,9 @@ export function aioCreateProfileSettingsRuntime(dependencies) {
       return;
     }
     const currentName = userName(syncValue(node));
-    await profileApi.deleteProfile(name);
+    const current = userProfileByName(name);
+    await profileApi.deleteProfile(name, current);
+    forgetProfile(name);
     await loadProfiles({ force: true });
     if (currentName.toLowerCase() === name.toLowerCase()) {
       node.__easyuseAnimaGeneratorProfileValue = customValue;

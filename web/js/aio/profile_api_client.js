@@ -26,6 +26,13 @@ export function createAioProfileApiClient(dependencies) {
     });
   }
 
+  function profileToken(profile, prefix = "") {
+    if (typeof profile?.profile_id !== "string" || !profile.profile_id || !Number.isInteger(profile?.revision) || profile.revision < 0) {
+      return {};
+    }
+    return { [`${prefix}profile_id`]: profile.profile_id, [`${prefix}revision`]: profile.revision };
+  }
+
   function listProfiles() {
     return fetchJson("/easyuse_anima/aio_profiles");
   }
@@ -36,24 +43,30 @@ export function createAioProfileApiClient(dependencies) {
     );
   }
 
-  function saveProfile(name, overwrite, settings) {
+  function saveProfile(name, overwrite, settings, profile = null) {
     return postJson("/easyuse_anima/aio_profiles/save", {
       name,
       overwrite,
       settings,
+      ...profileToken(overwrite ? profile : null),
     });
   }
 
-  function renameProfile(oldName, newName, overwrite) {
+  function renameProfile(oldName, newName, overwrite, profile = null, targetProfile = null) {
     return postJson("/easyuse_anima/aio_profiles/rename", {
       old_name: oldName,
       new_name: newName,
       overwrite,
+      ...profileToken(profile),
+      ...profileToken(overwrite ? targetProfile : null, "target_"),
     });
   }
 
-  function deleteProfile(name) {
-    return postJson("/easyuse_anima/aio_profiles/delete", { name });
+  function deleteProfile(name, profile = null) {
+    return postJson("/easyuse_anima/aio_profiles/delete", {
+      name,
+      ...profileToken(profile),
+    });
   }
 
   return {
