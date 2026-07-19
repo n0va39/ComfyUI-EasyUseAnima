@@ -10,6 +10,7 @@ from unittest.mock import patch
 
 from nodes import (
     EasyUseAnimaPromptStudioAdvanced,
+    EasyUseAnimaPromptStudioAdvancedV2,
     EasyUseAnimaPromptStudioRegional,
     EasyUseAnimaWildcard,
 )
@@ -1036,6 +1037,252 @@ class WildcardNodeTests(unittest.TestCase):
             json.loads(payload["advanced_fields"])[0]["text"],
             "expanded style",
         )
+
+    def _assert_advanced_connected_wildcard_round_trip(self, node_class):
+        source_text = "{cat|dog|fox}"
+        fields = [{
+            "id": "positive_general",
+            "pane": "positive",
+            "type": "general",
+            "label": "General Tags",
+            "text": "stored fallback",
+            "height": 120,
+            "enabled": True,
+        }]
+        fields_json = json.dumps(fields)
+        workflow_prompt = {
+            "9": {
+                "inputs": {
+                    "advanced_fields": fields_json,
+                    "wildcard_mode": "고정",
+                    "wildcard_seed": 17,
+                    "wildcard_seed_after_generate": "fixed",
+                    "field_positive_general": ["8", 0],
+                }
+            }
+        }
+        extra_pnginfo = {
+            "workflow": {
+                "nodes": [{
+                    "id": 9,
+                    "widgets_values": [
+                        False,
+                        True,
+                        False,
+                        "1024",
+                        "1024 * 1024 (1:1)",
+                        1024,
+                        1024,
+                        False,
+                        fields_json,
+                        False,
+                        "고정",
+                        17,
+                        "fixed",
+                    ],
+                }]
+            }
+        }
+
+        initial = node_class().build(
+            False,
+            True,
+            False,
+            False,
+            fields_json,
+            wildcard_mode="고정",
+            wildcard_seed=17,
+            wildcard_seed_after_generate="fixed",
+            workflow_prompt=workflow_prompt,
+            extra_pnginfo=extra_pnginfo,
+            unique_id="9",
+            field_positive_general=source_text,
+        )
+
+        ui_payload = initial["ui"]["prompt_studio_advanced"][0]
+        effective_output = initial["result"][0]
+        if isinstance(effective_output, dict):
+            effective_output = effective_output["positive_prompt"]
+        saved_prompt_fields = json.loads(workflow_prompt["9"]["inputs"]["advanced_fields"])
+        saved_image_fields = json.loads(extra_pnginfo["workflow"]["nodes"][0]["widgets_values"][8])
+        saved_property_fields = json.loads(
+            extra_pnginfo["workflow"]["nodes"][0]["properties"]["easyuse_anima_advanced_fields"]
+        )
+
+        self.assertEqual(ui_payload["field_inputs"]["field_positive_general"], source_text)
+        self.assertEqual(effective_output, "fox")
+        self.assertEqual(saved_prompt_fields[0]["text"], "fox")
+        self.assertEqual(saved_image_fields[0]["text"], "fox")
+        self.assertEqual(saved_property_fields[0]["text"], "fox")
+        self.assertEqual(workflow_prompt["9"]["inputs"]["field_positive_general"], ["8", 0])
+        self.assertEqual(workflow_prompt["9"]["inputs"]["wildcard_mode"], "재현")
+
+        with patch("nodes.expand_wildcards") as expand:
+            reproduced = node_class().build(
+                False,
+                True,
+                False,
+                False,
+                json.dumps(saved_prompt_fields),
+                wildcard_mode="재현",
+                wildcard_seed=17,
+                wildcard_seed_after_generate="fixed",
+                field_positive_general=source_text,
+            )
+
+        expand.assert_not_called()
+        reproduced_output = reproduced["result"][0]
+        if isinstance(reproduced_output, dict):
+            self.assertEqual(reproduced_output["fields"][0]["text"], "fox")
+            reproduced_output = reproduced_output["positive_prompt"]
+        self.assertEqual(reproduced_output, "fox")
+
+    def test_prompt_studio_advanced_connected_wildcard_round_trip_preserves_expansion(self):
+        self._assert_advanced_connected_wildcard_round_trip(EasyUseAnimaPromptStudioAdvanced)
+
+    def test_prompt_studio_advanced_v2_connected_wildcard_round_trip_preserves_expansion(self):
+        self._assert_advanced_connected_wildcard_round_trip(EasyUseAnimaPromptStudioAdvancedV2)
+
+    def test_prompt_studio_advanced_reproduce_keeps_plain_connected_input(self):
+        fields_json = json.dumps([{
+            "id": "positive_general",
+            "pane": "positive",
+            "type": "general",
+            "label": "General Tags",
+            "text": "stored fallback",
+            "height": 120,
+            "enabled": True,
+        }])
+
+        for node_class in (
+            EasyUseAnimaPromptStudioAdvanced,
+            EasyUseAnimaPromptStudioAdvancedV2,
+        ):
+            with self.subTest(node_class=node_class.__name__):
+                reproduced = node_class().build(
+                    False,
+                    True,
+                    False,
+                    False,
+                    fields_json,
+                    wildcard_mode="재현",
+                    wildcard_seed=17,
+                    wildcard_seed_after_generate="fixed",
+                    field_positive_general="plain connected",
+                )
+
+                reproduced_output = reproduced["result"][0]
+                if isinstance(reproduced_output, dict):
+                    reproduced_output = reproduced_output["positive_prompt"]
+                self.assertEqual(reproduced_output, "plain connected")
+
+    def test_prompt_studio_regional_connected_wildcard_round_trip_preserves_expansion(self):
+        source_text = "{cat|dog|fox}"
+        fields = [{
+            "id": "positive_general",
+            "pane": "positive",
+            "type": "general",
+            "label": "General Tags",
+            "text": "stored fallback",
+            "height": 120,
+            "enabled": True,
+            "mask_ids": [],
+        }]
+        fields_json = json.dumps(fields)
+        config_json = json.dumps({})
+        workflow_prompt = {
+            "42": {
+                "inputs": {
+                    "regional_fields": fields_json,
+                    "regional_config": config_json,
+                    "wildcard_mode": "고정",
+                    "wildcard_seed": 17,
+                    "wildcard_seed_after_generate": "fixed",
+                    "field_positive_general": ["41", 0],
+                }
+            }
+        }
+        extra_pnginfo = {
+            "workflow": {
+                "nodes": [{
+                    "id": 42,
+                    "widgets_values": [
+                        fields_json,
+                        config_json,
+                        "1024",
+                        "1024 * 1024 (1:1)",
+                        1024,
+                        1024,
+                        "고정",
+                        17,
+                        "fixed",
+                    ],
+                    "properties": {},
+                }]
+            }
+        }
+
+        initial = EasyUseAnimaPromptStudioRegional().build(
+            fields_json,
+            config_json,
+            wildcard_mode="고정",
+            wildcard_seed=17,
+            wildcard_seed_after_generate="fixed",
+            workflow_prompt=workflow_prompt,
+            extra_pnginfo=extra_pnginfo,
+            unique_id="42",
+            field_positive_general=source_text,
+        )
+
+        ui_payload = initial["ui"]["prompt_studio_regional"][0]
+        saved_prompt_fields = json.loads(workflow_prompt["42"]["inputs"]["regional_fields"])
+        saved_image_fields = json.loads(extra_pnginfo["workflow"]["nodes"][0]["widgets_values"][0])
+        saved_property_fields = json.loads(
+            extra_pnginfo["workflow"]["nodes"][0]["properties"]["easyuse_anima_regional_fields"]
+        )
+        self.assertEqual(ui_payload["field_inputs"]["field_positive_general"], source_text)
+        self.assertEqual(initial["result"][0], "fox")
+        self.assertEqual(saved_prompt_fields[0]["text"], "fox")
+        self.assertEqual(saved_image_fields[0]["text"], "fox")
+        self.assertEqual(saved_property_fields[0]["text"], "fox")
+        self.assertEqual(workflow_prompt["42"]["inputs"]["field_positive_general"], ["41", 0])
+        self.assertEqual(workflow_prompt["42"]["inputs"]["wildcard_mode"], "재현")
+
+        with patch("nodes.expand_wildcards") as expand:
+            reproduced = EasyUseAnimaPromptStudioRegional().build(
+                json.dumps(saved_prompt_fields),
+                config_json,
+                wildcard_mode="재현",
+                wildcard_seed=17,
+                wildcard_seed_after_generate="fixed",
+                field_positive_general=source_text,
+            )
+
+        expand.assert_not_called()
+        self.assertEqual(reproduced["result"][0], "fox")
+
+    def test_prompt_studio_regional_reproduce_keeps_plain_connected_input(self):
+        fields_json = json.dumps([{
+            "id": "positive_general",
+            "pane": "positive",
+            "type": "general",
+            "label": "General Tags",
+            "text": "stored fallback",
+            "height": 120,
+            "enabled": True,
+            "mask_ids": [],
+        }])
+
+        reproduced = EasyUseAnimaPromptStudioRegional().build(
+            fields_json,
+            json.dumps({}),
+            wildcard_mode="재현",
+            wildcard_seed=17,
+            wildcard_seed_after_generate="fixed",
+            field_positive_general="plain connected",
+        )
+
+        self.assertEqual(reproduced["result"][0], "plain connected")
 
     def test_public_settings_include_wildcard_extra_paths(self):
         self.assertIn("wildcard.extra_paths", public_settings())
