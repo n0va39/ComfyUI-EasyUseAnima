@@ -3363,6 +3363,41 @@ class FrontendModuleStructureTests(unittest.TestCase):
             with self.subTest(path=path):
                 self.assertIn(path, config["include"])
 
+    def test_root_entry_typecheck_coverage_has_explicit_debt(self):
+        config = json.loads(JSCONFIG.read_text(encoding="utf-8"))
+        covered_root_entries = {
+            entry
+            for entry in config["include"]
+            if entry.startswith("web/js/")
+            and "/" not in entry.removeprefix("web/js/")
+            and "*" not in entry
+        }
+        debt_root_entries = {
+            "web/js/easyuse_anima_aio.js",
+            "web/js/easyuse_anima_autocomplete.js",
+            "web/js/easyuse_anima_lora_preset.js",
+            "web/js/easyuse_anima_naia.js",
+            "web/js/easyuse_anima_settings.js",
+        }
+        actual_root_entries = {
+            path.relative_to(ROOT).as_posix()
+            for path in WEB_JS.glob("*.js")
+        }
+
+        for entry in config["include"]:
+            if entry.startswith("web/js/"):
+                first_component = entry.removeprefix("web/js/").split("/", 1)[0]
+                self.assertFalse(
+                    any(marker in first_component for marker in "*?["),
+                    f"Root-level wildcard would bypass the explicit debt ledger: {entry}",
+                )
+
+        self.assertTrue(covered_root_entries.isdisjoint(debt_root_entries))
+        self.assertEqual(
+            actual_root_entries,
+            covered_root_entries | debt_root_entries,
+        )
+
     def test_frontend_check_script_runs_syntax_and_typecheck(self):
         source = FRONTEND_CHECK_SCRIPT.read_text(encoding="utf-8")
 

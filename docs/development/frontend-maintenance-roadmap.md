@@ -100,6 +100,50 @@ Prompt Studio entry 2개와 `prompt_studio/**/*.js` 52개는 총 54개·13,242�
 목표로 삼지는 않지만, 책임 경계와 검증 비용이 이 파일들에 집중돼 있다는
 신호로 사용한다. Regional entry의 축소는 줄 수보다 소유권 이동의 결과다.
 
+### Phase 3 checkJs coverage ratchet (2026-07-19)
+
+TypeScript 6.0.3으로 `web/js`의 기존 미포함 root entry를 각각 다시 측정했다.
+오류가 0개인 `easyuse_anima_api.js`, `easyuse_anima_i18n.js`,
+`easyuse_anima_prompt_rules.js`, `easyuse_anima_prompt_studio_common.js`는
+`jsconfig.json`의 명시적 include로 승격했다. root entry는 typecheck 대상 또는
+아래 debt 중 하나여야 하며, 계약 테스트가 새 미분류 entry, include 후 남은
+debt, root wildcard 추가를 실패시킨다.
+
+현재 debt ledger:
+
+| TODO 파일 | 총 오류 | TypeScript 오류 코드별 개수 |
+| --- | ---: | --- |
+| `easyuse_anima_aio.js` | 16 | TS1117 4, TS2307 4, TS2339 2, TS2345 2, TS6133 4 |
+| `easyuse_anima_autocomplete.js` | 5 | TS2307 1, TS2339 2, TS6133 2 |
+| `easyuse_anima_lora_preset.js` | 10 | TS2304 4, TS2307 2, TS2345 1, TS6133 3 |
+| `easyuse_anima_naia.js` | 5 | TS2307 2, TS2345 2, TS6133 1 |
+| `easyuse_anima_settings.js` | 4 | TS2307 1, TS2339 3 |
+
+코드는 TS1117 duplicate property, TS2304 undeclared host global, TS2307 외부
+Comfy import resolution, TS2339 DOM/window property shape, TS2345 argument/shape
+mismatch, TS6133 unused declaration/parameter를 뜻한다. TODO는 각 파일의 오류를
+동작 변경이나 광범위한 suppression 없이 해소한 뒤, 같은 PR에서 해당 entry를
+`jsconfig.json` include로 옮기고 테스트와 이 ledger의 debt에서 제거하는 것이다.
+
+재현 명령은 `jsconfig.json`과 같은 compiler option을 파일별로 적용한다.
+
+```powershell
+$files = @(
+  "web/js/easyuse_anima_aio.js",
+  "web/js/easyuse_anima_autocomplete.js",
+  "web/js/easyuse_anima_lora_preset.js",
+  "web/js/easyuse_anima_naia.js",
+  "web/js/easyuse_anima_settings.js"
+)
+foreach ($file in $files) {
+  npx --yes --package "typescript@6.0.3" -- tsc `
+    --allowJs --checkJs --noEmit --target ES2022 --module ES2022 `
+    --moduleResolution Bundler --lib "ES2022,DOM,DOM.Iterable" `
+    --skipLibCheck --noUnusedLocals --noUnusedParameters --strict false `
+    --pretty false $file
+}
+```
+
 ### Prompt Studio adapter 경계
 
 - `prompt_studio/regional/editor_adapter.js`와 `prompt_studio/highlight.js`에는
