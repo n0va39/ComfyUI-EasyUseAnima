@@ -73,11 +73,11 @@ def load_dynamic():
     def test_current_nodes_module_shape_matches_recorded_baseline(self):
         report = analyzer.analyze_path(ROOT / "nodes.py")
 
-        self.assertEqual(report["git_blob_sha1"], "3b6b14485ab52a4f0839bf2b5dbece6b4bcf08aa")
-        # Issue #184 B-05 moved the Wildcard/NAIA vertical slice as direct aliases.
-        self.assertEqual(report["top_level"]["function_count"], 240)
-        self.assertEqual(report["top_level"]["class_count"], 20)
-        self.assertEqual(report["line_count"], 11_165)
+        self.assertEqual(report["git_blob_sha1"], "f17e44281d25ef6322aca6a91fd15304769720d5")
+        # Issue #184 B-06 moved the LoRA Preset vertical slice as direct aliases.
+        self.assertEqual(report["top_level"]["function_count"], 219)
+        self.assertEqual(report["top_level"]["class_count"], 19)
+        self.assertEqual(report["line_count"], 10_788)
         class_names = {item["name"] for item in report["top_level"]["classes"]}
         self.assertIn("EasyUseAnimaAIOGenerator", class_names)
         self.assertIn("EasyUseAnimaPromptStudioAdvancedV2", class_names)
@@ -85,6 +85,7 @@ def load_dynamic():
         self.assertNotIn("EasyUseAnimaWildcard", class_names)
         self.assertNotIn("EasyUseAnimaImageScaleByMultiple", class_names)
         self.assertNotIn("EasyUseAnimaDetailerAlignHook", class_names)
+        self.assertNotIn("EasyUseAnimaLoraPreset", class_names)
 
     def test_external_source_label_does_not_expose_parent_directories(self):
         label = analyzer._source_label(Path("Z:/private/user/data/example.py"))

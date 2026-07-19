@@ -683,9 +683,9 @@ ignored/
 
         self.assertEqual(analyzer.render_json(report), expected_text)
         self.assertEqual(report["schema_version"], 2)
-        self.assertEqual(report["inventory"]["module_count"], 42)
-        self.assertEqual(len(report["registry"]["shipped_python_modules"]), 42)
-        self.assertEqual(len(report["registry"]["runtime_import_closure"]), 40)
+        self.assertEqual(report["inventory"]["module_count"], 46)
+        self.assertEqual(len(report["registry"]["shipped_python_modules"]), 46)
+        self.assertEqual(len(report["registry"]["runtime_import_closure"]), 44)
         self.assertEqual(report["registry"]["missing_internal_imports"], [])
         self.assertEqual(
             report["registry"]["unreachable_shipped_python_modules"],
@@ -710,11 +710,15 @@ ignored/
                 "easyuse_anima/infrastructure/comfy/capabilities.py",
                 "easyuse_anima/infrastructure/comfy/invocation.py",
                 "easyuse_anima/infrastructure/comfy/resources.py",
+                "easyuse_anima/lora/__init__.py",
+                "easyuse_anima/lora/metadata.py",
+                "easyuse_anima/lora/preset.py",
                 "easyuse_anima/naia/__init__.py",
                 "easyuse_anima/naia/client.py",
                 "easyuse_anima/naia/resolution.py",
                 "easyuse_anima/nodes/__init__.py",
                 "easyuse_anima/nodes/image_nodes.py",
+                "easyuse_anima/nodes/lora_nodes.py",
                 "easyuse_anima/nodes/naia_nodes.py",
                 "easyuse_anima/nodes/wildcard_nodes.py",
                 "easyuse_anima/profiles/__init__.py",
@@ -735,10 +739,14 @@ ignored/
                 "easyuse_anima/infrastructure/comfy/capabilities.py",
                 "easyuse_anima/infrastructure/comfy/invocation.py",
                 "easyuse_anima/infrastructure/comfy/resources.py",
+                "easyuse_anima/lora/__init__.py",
+                "easyuse_anima/lora/metadata.py",
+                "easyuse_anima/lora/preset.py",
                 "easyuse_anima/naia/__init__.py",
                 "easyuse_anima/naia/client.py",
                 "easyuse_anima/naia/resolution.py",
                 "easyuse_anima/nodes/image_nodes.py",
+                "easyuse_anima/nodes/lora_nodes.py",
                 "easyuse_anima/nodes/naia_nodes.py",
                 "easyuse_anima/nodes/wildcard_nodes.py",
                 "easyuse_anima/profiles/__init__.py",

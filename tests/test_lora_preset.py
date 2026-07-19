@@ -6,7 +6,11 @@ import unittest
 from types import SimpleNamespace
 from unittest.mock import patch
 
-from nodes import EasyUseAnimaLoraPreset, _lora_combo_values
+from nodes import (
+    EasyUseAnimaLoraPreset,
+    _lora_combo_values,
+    _lora_manager_trigger_words_from_metadata,
+)
 
 
 def unwrap_result(response):
@@ -90,6 +94,97 @@ class LoraPresetTests(unittest.TestCase):
         result = unwrap_result(response)
         self.assertEqual(result[1], [("foo.safetensors", 1.0, 0.5)])
         self.assertEqual(result[3], "<lora:foo:1:0.5>")
+
+    def test_build_accepts_dict_profile_and_wrapped_lora_value(self):
+        profile_data = {
+            "1": {"style_prompt": "dict style"},
+        }
+        wrapped_loras = {
+            "__value__": [
+                {"name": "foo.safetensors", "on": True, "strength": 0.25},
+            ],
+        }
+
+        with (
+            patch("nodes._get_lora_info", return_value=("foo.safetensors", [])),
+            patch("nodes._lora_model_exists", return_value=True),
+        ):
+            response = EasyUseAnimaLoraPreset().build(
+                style_prompt="fallback",
+                profile_index=1,
+                profile_count=1,
+                loras=wrapped_loras,
+                profile_data=profile_data,
+            )
+
+        result = unwrap_result(response)
+        self.assertEqual(result[0], "dict style")
+        self.assertEqual(result[1], [("foo.safetensors", 0.25, 0.25)])
+
+    def test_build_merges_existing_stack_and_preserves_trigger_order(self):
+        loras = [
+            {"name": "new.safetensors", "on": True, "strength": 0.5},
+            {"name": "new.safetensors", "on": True, "strength": 0.5},
+        ]
+
+        def lora_info(name):
+            if name == "existing":
+                return name, ["@existing"]
+            return name, ["@new"]
+
+        with (
+            patch("nodes._get_lora_info", side_effect=lora_info),
+            patch("nodes._lora_model_exists", return_value=True),
+        ):
+            response = EasyUseAnimaLoraPreset().build(
+                style_prompt="style",
+                profile_index=1,
+                loras=json.dumps(loras),
+                profile_data="{}",
+                lora_stack=[("folder/existing.safetensors", 0.8, 0.7)],
+            )
+
+        result = unwrap_result(response)
+        self.assertEqual(
+            result[1],
+            [("folder/existing.safetensors", 0.8, 0.7), ("new.safetensors", 0.5, 0.5)],
+        )
+        self.assertEqual(result[2], "@existing, @new")
+        self.assertEqual(result[3], "<lora:new:0.5>")
+
+    def test_metadata_trigger_word_dedupe_is_case_insensitive_and_ordered(self):
+        metadata = {
+            "trainedWords": ["@First", "@second", "@FIRST"],
+            "civitai": {"activation_text": "@third, @Second"},
+        }
+
+        self.assertEqual(
+            _lora_manager_trigger_words_from_metadata(metadata),
+            ["@First", "@second", "@third"],
+        )
+
+    def test_metadata_trigger_word_keys_follow_root_patch_and_restore_defaults(self):
+        metadata = {
+            "custom_words": "@custom",
+            "trainedWords": "@default",
+        }
+
+        with patch("nodes._TRIGGER_WORD_KEYS", ("custom_words",)):
+            self.assertEqual(
+                _lora_manager_trigger_words_from_metadata(metadata),
+                ["@custom"],
+            )
+
+        self.assertEqual(
+            _lora_manager_trigger_words_from_metadata(metadata),
+            ["@default"],
+        )
+
+    def test_is_changed_is_stable_across_keyword_order(self):
+        first = EasyUseAnimaLoraPreset.IS_CHANGED(profile_index=1, style_prompt="style")
+        second = EasyUseAnimaLoraPreset.IS_CHANGED(style_prompt="style", profile_index=1)
+
+        self.assertEqual(first, second)
 
     def test_build_outputs_relative_lora_stack_paths_for_absolute_inputs(self):
         loras_root = os.path.join("D:\\", "ComfyUI", "ComfyUI_main", "models", "loras")
