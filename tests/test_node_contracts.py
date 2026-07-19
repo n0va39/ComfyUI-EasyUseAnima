@@ -11,7 +11,7 @@ import types
 import unittest
 from contextlib import contextmanager
 from pathlib import Path
-from unittest.mock import patch
+from unittest.mock import call, patch
 
 ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
@@ -30,7 +30,8 @@ from easyuse_anima.lora import metadata as lora_metadata
 from easyuse_anima.lora import preset as lora_preset
 from easyuse_anima.naia import client as naia_client
 from easyuse_anima.naia import resolution as naia_resolution
-from easyuse_anima.nodes import image_nodes, lora_nodes, naia_nodes, wildcard_nodes
+from easyuse_anima.nodes import image_nodes, lora_nodes, naia_nodes, prompt_nodes, wildcard_nodes
+from easyuse_anima.prompt import correction as prompt_correction
 
 
 PACKAGE_INIT = ROOT / "__init__.py"
@@ -830,6 +831,208 @@ print(json.dumps({{
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
         payload = json.loads(result.stdout)
         self.assertEqual(payload["class_module"], "easyuse_anima.nodes.lora_nodes")
+        self.assertFalse(payload["root_nodes_loaded"])
+
+
+class PromptCorrectorMoveContractTests(unittest.TestCase):
+    CORRECTION_HELPERS = (
+        "_split_tag_text",
+        "_translate_prompt_text",
+        "_prompt_translation_change_key",
+    )
+    NODE_CLASSES = (
+        "EasyUseAnimaPromptCorrector",
+        "EasyUseAnimaPromptCorrectorSimple",
+    )
+
+    def test_root_prompt_corrector_objects_are_direct_canonical_aliases(self):
+        for name in self.CORRECTION_HELPERS:
+            with self.subTest(name=name):
+                self.assertIs(getattr(nodes, name), getattr(prompt_correction, name))
+        for name in self.NODE_CLASSES:
+            with self.subTest(name=name):
+                self.assertIs(getattr(nodes, name), getattr(prompt_nodes, name))
+
+    def test_package_loaded_root_prompt_corrector_objects_are_direct_canonical_aliases(self):
+        with _loaded_package_entrypoint() as (_, package_nodes):
+            package_name = package_nodes.__package__
+            package_correction = sys.modules[
+                f"{package_name}.easyuse_anima.prompt.correction"
+            ]
+            package_prompt_nodes = sys.modules[
+                f"{package_name}.easyuse_anima.nodes.prompt_nodes"
+            ]
+
+            for name in self.CORRECTION_HELPERS:
+                with self.subTest(name=name):
+                    self.assertIs(getattr(package_nodes, name), getattr(package_correction, name))
+            for name in self.NODE_CLASSES:
+                with self.subTest(name=name):
+                    self.assertIs(getattr(package_nodes, name), getattr(package_prompt_nodes, name))
+
+    def test_root_monkeypatches_drive_the_canonical_prompt_corrector_nodes(self):
+        settings = types.SimpleNamespace(provider="off", source="auto", target="en")
+        correction_result = types.SimpleNamespace(
+            text="canonical result",
+            changed=True,
+            unknown_tags=("unknown",),
+            duplicate_tags=("duplicate",),
+            warnings=("warning",),
+            report={"sections": ["count", "general"]},
+        )
+
+        with (
+            patch.object(
+                nodes,
+                "resolve_prompt_translation_settings",
+                return_value=settings,
+            ) as resolve_settings,
+            patch.object(
+                nodes,
+                "_prompt_translation_change_key",
+                return_value={"bound": "translation"},
+            ) as translation_key,
+            patch.object(nodes, "_stable_change_key", side_effect=lambda payload: payload) as stable_key,
+            patch.object(nodes, "load_knowledge_base", return_value="bound kb") as load_kb,
+            patch.object(nodes, "correct_prompt", return_value=correction_result) as correct,
+        ):
+            change_key = prompt_nodes.EasyUseAnimaPromptCorrector.IS_CHANGED(
+                prompt="%{bound prompt}",
+                artist_overrides="artist_a\nartist_b",
+                artist_exclusions="artist_c",
+            )
+            corrected, report_text = prompt_nodes.EasyUseAnimaPromptCorrector().correct(
+                "%{bound prompt}",
+                "artist_a\nartist_b",
+                "artist_c",
+            )
+
+        self.assertEqual(change_key["prompt_translation"], {"bound": "translation"})
+        translation_key.assert_called_once_with()
+        stable_key.assert_called_once_with(change_key)
+        resolve_settings.assert_called_once_with()
+        load_kb.assert_called_once_with(allow_missing=True)
+        correct.assert_called_once_with(
+            "bound prompt",
+            profile="prompt",
+            knowledge_base="bound kb",
+            validate_artist_tags=False,
+            artist_overrides=["artist_a", "artist_b"],
+            artist_exclusions=["artist_c"],
+        )
+        self.assertEqual(corrected, "canonical result")
+        report = json.loads(report_text, object_pairs_hook=dict)
+        self.assertEqual(
+            list(report),
+            ["changed", "unknown_tags", "duplicate_tags", "warnings", "sections"],
+        )
+
+    def test_root_translation_monkeypatches_drive_the_canonical_helper(self):
+        settings = types.SimpleNamespace(provider="off", source="auto", target="en")
+
+        with (
+            patch.object(
+                nodes,
+                "has_prompt_translation_markers",
+                return_value=False,
+            ) as has_markers,
+            patch.object(nodes, "translate_prompt_markers") as translate_markers,
+        ):
+            untranslated = nodes._translate_prompt_text("%{abc}")
+
+        self.assertEqual(untranslated, "%{abc}")
+        has_markers.assert_called_once_with("%{abc}")
+        translate_markers.assert_not_called()
+
+        with (
+            patch.object(
+                nodes,
+                "has_prompt_translation_markers",
+                return_value=True,
+            ) as has_markers,
+            patch.object(
+                nodes,
+                "translate_prompt_markers",
+                return_value="bound",
+            ) as translate_markers,
+            patch.object(
+                nodes,
+                "resolve_prompt_translation_settings",
+                return_value=settings,
+            ) as resolve_settings,
+        ):
+            translated = nodes._translate_prompt_text("%{abc}")
+
+        self.assertEqual(translated, "bound")
+        has_markers.assert_called_once_with("%{abc}")
+        resolve_settings.assert_called_once_with()
+        translate_markers.assert_called_once_with("%{abc}", settings)
+
+    def test_translation_stays_outside_the_correction_error_mapping(self):
+        with patch.object(nodes, "_translate_prompt_text", side_effect=ValueError("translate")):
+            with self.assertRaisesRegex(ValueError, "^translate$"):
+                prompt_nodes.EasyUseAnimaPromptCorrector().correct("prompt", "", "")
+
+        with patch.object(nodes, "load_knowledge_base", side_effect=ValueError("correct")):
+            with self.assertRaisesRegex(
+                RuntimeError,
+                r"^\[EasyUse Anima\] prompt correction failed: correct$",
+            ):
+                prompt_nodes.EasyUseAnimaPromptCorrector().correct("prompt", "", "")
+
+    def test_public_nodes_share_the_private_correction_adapter(self):
+        with patch.object(
+            prompt_nodes,
+            "_correct_prompt_with_report",
+            return_value=("shared", "{}"),
+        ) as adapter:
+            full = prompt_nodes.EasyUseAnimaPromptCorrector().correct("prompt", "a", "b")
+            simple = prompt_nodes.EasyUseAnimaPromptCorrectorSimple().correct("prompt")
+
+        self.assertEqual(full, ("shared", "{}"))
+        self.assertEqual(simple, ("shared",))
+        self.assertEqual(
+            adapter.call_args_list,
+            [
+                call("prompt", "a", "b"),
+                call("prompt", "", ""),
+            ],
+        )
+
+    def test_fresh_process_direct_imports_do_not_load_root_nodes(self):
+        script = f"""
+import importlib
+import json
+import sys
+sys.path.insert(0, {str(ROOT)!r})
+sys.dont_write_bytecode = True
+modules = [
+    importlib.import_module("easyuse_anima.prompt.correction"),
+    importlib.import_module("easyuse_anima.nodes.prompt_nodes"),
+]
+print(json.dumps({{
+    "class_modules": [
+        modules[-1].EasyUseAnimaPromptCorrector.__module__,
+        modules[-1].EasyUseAnimaPromptCorrectorSimple.__module__,
+    ],
+    "root_nodes_loaded": "nodes" in sys.modules,
+}}))
+"""
+        result = subprocess.run(
+            [sys.executable, "-I", "-B", "-c", script],
+            cwd=ROOT,
+            check=False,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            timeout=10,
+        )
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        payload = json.loads(result.stdout)
+        self.assertEqual(
+            payload["class_modules"],
+            ["easyuse_anima.nodes.prompt_nodes", "easyuse_anima.nodes.prompt_nodes"],
+        )
         self.assertFalse(payload["root_nodes_loaded"])
 
 

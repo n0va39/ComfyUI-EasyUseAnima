@@ -683,15 +683,14 @@ ignored/
 
         self.assertEqual(analyzer.render_json(report), expected_text)
         self.assertEqual(report["schema_version"], 2)
-        self.assertEqual(report["inventory"]["module_count"], 46)
-        self.assertEqual(len(report["registry"]["shipped_python_modules"]), 46)
-        self.assertEqual(len(report["registry"]["runtime_import_closure"]), 44)
+        self.assertEqual(report["inventory"]["module_count"], 48)
+        self.assertEqual(len(report["registry"]["shipped_python_modules"]), 48)
+        self.assertEqual(len(report["registry"]["runtime_import_closure"]), 47)
         self.assertEqual(report["registry"]["missing_internal_imports"], [])
         self.assertEqual(
             report["registry"]["unreachable_shipped_python_modules"],
             [
                 "easyuse_anima/aio/__init__.py",
-                "easyuse_anima/prompt/__init__.py",
             ],
         )
         self.assertTrue(
@@ -720,11 +719,13 @@ ignored/
                 "easyuse_anima/nodes/image_nodes.py",
                 "easyuse_anima/nodes/lora_nodes.py",
                 "easyuse_anima/nodes/naia_nodes.py",
+                "easyuse_anima/nodes/prompt_nodes.py",
                 "easyuse_anima/nodes/wildcard_nodes.py",
                 "easyuse_anima/profiles/__init__.py",
                 "easyuse_anima/profiles/contract.py",
                 "easyuse_anima/profiles/mutation.py",
                 "easyuse_anima/prompt/__init__.py",
+                "easyuse_anima/prompt/correction.py",
             }.issubset(report["registry"]["shipped_python_modules"])
         )
         self.assertIn("nodes.py", report["registry"]["shipped_python_modules"])
@@ -748,7 +749,10 @@ ignored/
                 "easyuse_anima/nodes/image_nodes.py",
                 "easyuse_anima/nodes/lora_nodes.py",
                 "easyuse_anima/nodes/naia_nodes.py",
+                "easyuse_anima/nodes/prompt_nodes.py",
                 "easyuse_anima/nodes/wildcard_nodes.py",
+                "easyuse_anima/prompt/__init__.py",
+                "easyuse_anima/prompt/correction.py",
                 "easyuse_anima/profiles/__init__.py",
                 "easyuse_anima/profiles/contract.py",
                 "easyuse_anima/profiles/mutation.py",

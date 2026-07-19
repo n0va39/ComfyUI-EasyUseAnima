@@ -24,6 +24,12 @@ try:
         _choice as _choice,
         _single_value as _single_value,
     )
+    from .easyuse_anima.prompt.correction import (
+        _bind_prompt_correction_runtime as _bind_prompt_correction_runtime,
+        _prompt_translation_change_key as _prompt_translation_change_key,
+        _split_tag_text as _split_tag_text,
+        _translate_prompt_text as _translate_prompt_text,
+    )
     from .easyuse_anima.image.geometry import (
         _align_down as _align_down,
         _align_nearest as _align_nearest,
@@ -67,6 +73,11 @@ try:
     from .easyuse_anima.nodes.image_nodes import (
         EasyUseAnimaDetailerAlignHook as EasyUseAnimaDetailerAlignHook,
         EasyUseAnimaImageScaleByMultiple as EasyUseAnimaImageScaleByMultiple,
+    )
+    from .easyuse_anima.nodes.prompt_nodes import (
+        EasyUseAnimaPromptCorrector as EasyUseAnimaPromptCorrector,
+        EasyUseAnimaPromptCorrectorSimple as EasyUseAnimaPromptCorrectorSimple,
+        _bind_prompt_node_runtime as _bind_prompt_node_runtime,
     )
     from .easyuse_anima.naia.client import (
         DEFAULT_HOST as DEFAULT_HOST,
@@ -190,6 +201,12 @@ except ImportError:  # allows simple local import tests outside ComfyUI's packag
         _choice as _choice,
         _single_value as _single_value,
     )
+    from easyuse_anima.prompt.correction import (
+        _bind_prompt_correction_runtime as _bind_prompt_correction_runtime,
+        _prompt_translation_change_key as _prompt_translation_change_key,
+        _split_tag_text as _split_tag_text,
+        _translate_prompt_text as _translate_prompt_text,
+    )
     from easyuse_anima.image.geometry import (
         _align_down as _align_down,
         _align_nearest as _align_nearest,
@@ -233,6 +250,11 @@ except ImportError:  # allows simple local import tests outside ComfyUI's packag
     from easyuse_anima.nodes.image_nodes import (
         EasyUseAnimaDetailerAlignHook as EasyUseAnimaDetailerAlignHook,
         EasyUseAnimaImageScaleByMultiple as EasyUseAnimaImageScaleByMultiple,
+    )
+    from easyuse_anima.nodes.prompt_nodes import (
+        EasyUseAnimaPromptCorrector as EasyUseAnimaPromptCorrector,
+        EasyUseAnimaPromptCorrectorSimple as EasyUseAnimaPromptCorrectorSimple,
+        _bind_prompt_node_runtime as _bind_prompt_node_runtime,
     )
     from easyuse_anima.naia.client import (
         DEFAULT_HOST as DEFAULT_HOST,
@@ -4303,15 +4325,6 @@ def _call_impact_detailer(detailer, **kwargs):
     return method(**call_kwargs)
 
 
-def _split_tag_text(value: str) -> list[str]:
-    if not value:
-        return []
-    parts: list[str] = []
-    for line in str(value).splitlines():
-        parts.extend(part.strip() for part in line.split(","))
-    return [part for part in parts if part]
-
-
 def _prompt_tokens(value: str) -> list[str]:
     if not value:
         return []
@@ -4333,13 +4346,6 @@ def _join_prompt_tokens(*parts: str) -> str:
     return ", ".join(tokens)
 
 
-def _translate_prompt_text(value: str) -> str:
-    text = str(value or "")
-    if not text or not has_prompt_translation_markers(text):
-        return text
-    return translate_prompt_markers(text, resolve_prompt_translation_settings())
-
-
 def _translate_prompt_fields(fields: list[dict]) -> list[dict]:
     translated: list[dict] = []
     for field in fields:
@@ -4349,15 +4355,6 @@ def _translate_prompt_fields(fields: list[dict]) -> list[dict]:
             item["text"] = _translate_prompt_text(text)
         translated.append(item)
     return translated
-
-
-def _prompt_translation_change_key() -> dict[str, str]:
-    settings = resolve_prompt_translation_settings()
-    return {
-        "provider": settings.provider,
-        "source": settings.source,
-        "target": settings.target,
-    }
 
 
 def _correct_builder_prompt(prompt: str, artist_overrides: str = "") -> str:
@@ -7258,6 +7255,12 @@ def _consume_reserved_wildcard_next_seed(
     return reservation_next_seed if reservation_next_seed == expected_next_seed else None
 
 
+_bind_prompt_correction_runtime(
+    resolve_helper=lambda name: globals()[name],
+)
+_bind_prompt_node_runtime(
+    resolve_helper=lambda name: globals()[name],
+)
 _bind_wildcard_node_runtime(
     get_workflow_node=lambda *args, **kwargs: _get_workflow_node(*args, **kwargs),
     consume_reserved_next_seed=lambda *args, **kwargs: _consume_reserved_wildcard_next_seed(*args, **kwargs),
@@ -7288,133 +7291,6 @@ _bind_lora_node_runtime(
     flexible_optional_input_type=_FlexibleOptionalInputType,
     any_type=_ANY_TYPE,
 )
-
-
-class EasyUseAnimaPromptCorrector:
-    """ANIMA prompt order correction node."""
-
-    DESCRIPTION = (
-        "Normalizes ANIMA prompt text, keeps natural-language casing, reorders known "
-        "ANIMA sections, and reports unknown or duplicate tags."
-    )
-    OUTPUT_TOOLTIPS = (
-        "Prompt text after ANIMA ordering and syntax cleanup.",
-        "JSON report containing changed state, unknown tags, duplicate tags, warnings, and sections.",
-    )
-
-    @classmethod
-    def INPUT_TYPES(cls):
-        return {
-            "required": {
-                "prompt": ("STRING", {
-                    "multiline": True,
-                    "default": "",
-                    "tooltip": "Comma-separated prompt text to normalize and reorder for ANIMA.",
-                }),
-                "artist_overrides": ("STRING", {
-                    "multiline": True,
-                    "default": "",
-                    "tooltip": "Comma- or newline-separated manual triggers to treat like artist tags.",
-                }),
-                "artist_exclusions": ("STRING", {
-                    "multiline": True,
-                    "default": "",
-                    "tooltip": "Comma- or newline-separated triggers that must not be treated as artists.",
-                }),
-            }
-        }
-
-    RETURN_TYPES = ("STRING", "STRING")
-    RETURN_NAMES = ("corrected_prompt", "report")
-    FUNCTION = "correct"
-    CATEGORY = "EasyUse Anima/Prompt"
-
-    @classmethod
-    def IS_CHANGED(cls, **kwargs):
-        return _stable_change_key({
-            "mode": "prompt_corrector",
-            "prompt_translation": _prompt_translation_change_key(),
-            **{key: str(value) for key, value in sorted(kwargs.items())},
-        })
-
-    def correct(
-        self,
-        prompt: str,
-        artist_overrides: str,
-        artist_exclusions: str,
-    ):
-        prompt = _translate_prompt_text(prompt)
-        try:
-            kb = load_knowledge_base(allow_missing=True)
-            result = correct_prompt(
-                str(prompt or ""),
-                profile="prompt",
-                knowledge_base=kb,
-                validate_artist_tags=False,
-                artist_overrides=_split_tag_text(artist_overrides),
-                artist_exclusions=_split_tag_text(artist_exclusions),
-            )
-        except Exception as exc:
-            raise RuntimeError(f"[EasyUse Anima] prompt correction failed: {exc}") from exc
-
-        report = {
-            "changed": result.changed,
-            "unknown_tags": list(result.unknown_tags),
-            "duplicate_tags": list(result.duplicate_tags),
-            "warnings": list(result.warnings),
-            "sections": result.report.get("sections", []),
-        }
-        return (
-            result.text,
-            json.dumps(report, ensure_ascii=False, indent=2),
-        )
-
-
-class EasyUseAnimaPromptCorrectorSimple:
-    """Single-input ANIMA prompt correction node."""
-
-    DESCRIPTION = (
-        "Simplified ANIMA prompt correction node. It accepts one multiline prompt "
-        "and returns only the corrected prompt string."
-    )
-    OUTPUT_TOOLTIPS = (
-        "Prompt text after ANIMA ordering and syntax cleanup.",
-    )
-
-    @classmethod
-    def INPUT_TYPES(cls):
-        return {
-            "required": {
-                "prompt": ("STRING", {
-                    "multiline": True,
-                    "default": "",
-                    "tooltip": "Comma-separated prompt text to normalize and reorder for ANIMA.",
-                }),
-            }
-        }
-
-    RETURN_TYPES = ("STRING",)
-    RETURN_NAMES = ("prompt",)
-    FUNCTION = "correct"
-    CATEGORY = "EasyUse Anima/Prompt"
-
-    @classmethod
-    def IS_CHANGED(cls, **kwargs):
-        return _stable_change_key({
-            "mode": "prompt_corrector_simple",
-            "prompt_translation": _prompt_translation_change_key(),
-            **{key: str(value) for key, value in sorted(kwargs.items())},
-        })
-
-    def correct(self, prompt: str):
-        corrected, _report = EasyUseAnimaPromptCorrector().correct(
-            prompt,
-            "",
-            "",
-        )
-        return (corrected,)
-
-
 
 
 class EasyUseAnimaPromptBuilder:
