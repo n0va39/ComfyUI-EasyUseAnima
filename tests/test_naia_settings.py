@@ -6,6 +6,7 @@ from nodes import (
     NAI_1MP,
     NAIA_MAX_RESOLUTION,
     EasyUseAnimaNAIARandomPrompt,
+    _advanced_resolution_from_selection,
     _build_naia_random_url,
     _fit_to_1mp,
     _parse_random_response,
@@ -80,6 +81,30 @@ class NaiaSettingsTests(unittest.TestCase):
             _parse_random_response({"width": NAIA_MAX_RESOLUTION, "height": NAIA_MAX_RESOLUTION}),
             ("", "", 1024, 1024),
         )
+
+    def test_parse_random_response_preserves_prompt_cleanup_boundaries(self):
+        self.assertEqual(
+            _parse_random_response({
+                "prompt": "\t# hidden comment\nkeep # inline, , subject",
+                "negative_prompt": "bad,  , hands",
+                "width": 1024,
+                "height": 1024,
+            }),
+            ("keep # inline, subject", "bad, hands", 1024, 1024),
+        )
+
+    def test_resolution_labels_accept_star_x_and_multiplication_sign(self):
+        cases = (
+            ("1024 * 1024 (1:1)", (1024, 1024)),
+            ("896 x 1152 (7:9)", (896, 1152)),
+            ("1152 × 896 (9:7)", (1152, 896)),
+        )
+        for label, expected in cases:
+            with self.subTest(label=label):
+                self.assertEqual(
+                    _advanced_resolution_from_selection("1024", label),
+                    expected,
+                )
 
     def test_request_uses_global_naia_settings_instead_of_node_values(self):
         calls = []

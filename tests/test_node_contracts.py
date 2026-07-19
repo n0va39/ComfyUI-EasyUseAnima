@@ -25,7 +25,9 @@ from easyuse_anima.image import scaling as image_scaling
 from easyuse_anima.infrastructure.comfy import capabilities as comfy_capabilities
 from easyuse_anima.infrastructure.comfy import invocation as comfy_invocation
 from easyuse_anima.infrastructure.comfy import resources as comfy_resources
-from easyuse_anima.nodes import image_nodes
+from easyuse_anima.naia import client as naia_client
+from easyuse_anima.naia import resolution as naia_resolution
+from easyuse_anima.nodes import image_nodes, naia_nodes, wildcard_nodes
 
 
 PACKAGE_INIT = ROOT / "__init__.py"
@@ -629,6 +631,98 @@ class ImageNodeMoveContractTests(unittest.TestCase):
             self.assertIs(
                 package_node_adapters._common_upscale_image,
                 package_invocation._common_upscale_image,
+            )
+
+
+class WildcardNaiaMoveContractTests(unittest.TestCase):
+    CLIENT_ALIASES = (
+        "DEFAULT_HOST",
+        "DEFAULT_PORT",
+        "HTTP_TIMEOUT",
+        "LATENT_ALIGN",
+        "NAI_1MP",
+        "NAIA_LOCAL_HOSTS",
+        "NAIA_MAX_RESOLUTION",
+        "NAIA_REQUEST_TIMEOUT",
+        "PP_STATE_CHOICES",
+        "PREPROCESSING_KEYS",
+        "_build_naia_random_url",
+        "_fit_to_1mp",
+        "_is_local_naia_host",
+        "_parse_random_response",
+        "_post_random",
+    )
+    RESOLUTION_ALIASES = (
+        "ADVANCED_RESOLUTION_BUCKETS",
+        "CUSTOM_ADVANCED_RESOLUTION_BUCKET",
+        "DEFAULT_ADVANCED_RESOLUTION_BUCKET",
+        "DEFAULT_ADVANCED_RESOLUTION_SIZE",
+        "NAIA_ADVANCED_RESOLUTION_BUCKET",
+        "NAIA_RESOLUTION_MODE_BUCKET",
+        "NAIA_RESOLUTION_MODE_SCALE",
+        "_advanced_resolution_from_selection",
+        "_fit_naia_resolution_to_bucket",
+        "_normalize_resolution_bucket",
+        "_ratio_label",
+        "_resolution_label",
+        "_resolve_naia_resolution",
+        "_resolve_naia_resolution_bucket",
+        "_resolve_naia_resolution_max_long_edge",
+        "_resolve_naia_resolution_mode",
+        "_resolve_naia_resolution_scale",
+        "_scale_naia_resolution",
+        "_snap_resolution_32",
+        "_snap_scaled_resolution_32",
+        "_sorted_resolution_options",
+    )
+
+    def test_root_nodes_wildcard_naia_objects_are_direct_canonical_aliases(self):
+        for name in self.CLIENT_ALIASES:
+            with self.subTest(module="client", name=name):
+                self.assertIs(getattr(nodes, name), getattr(naia_client, name))
+        for name in self.RESOLUTION_ALIASES:
+            with self.subTest(module="resolution", name=name):
+                self.assertIs(getattr(nodes, name), getattr(naia_resolution, name))
+
+        self.assertIs(
+            nodes.EasyUseAnimaWildcard,
+            wildcard_nodes.EasyUseAnimaWildcard,
+        )
+        self.assertIs(
+            nodes.EasyUseAnimaNAIARandomPrompt,
+            naia_nodes.EasyUseAnimaNAIARandomPrompt,
+        )
+        self.assertIs(
+            nodes.WILDCARD_SEED_RANGE_NOTE,
+            wildcard_nodes.WILDCARD_SEED_RANGE_NOTE,
+        )
+
+    def test_package_loaded_root_wildcard_naia_objects_are_direct_canonical_aliases(self):
+        with _loaded_package_entrypoint() as (_, package_nodes):
+            package_name = package_nodes.__package__
+            package_client = sys.modules[f"{package_name}.easyuse_anima.naia.client"]
+            package_resolution = sys.modules[f"{package_name}.easyuse_anima.naia.resolution"]
+            package_naia_nodes = sys.modules[f"{package_name}.easyuse_anima.nodes.naia_nodes"]
+            package_wildcard_nodes = sys.modules[
+                f"{package_name}.easyuse_anima.nodes.wildcard_nodes"
+            ]
+
+            for name in self.CLIENT_ALIASES:
+                with self.subTest(module="client", name=name):
+                    self.assertIs(getattr(package_nodes, name), getattr(package_client, name))
+            for name in self.RESOLUTION_ALIASES:
+                with self.subTest(module="resolution", name=name):
+                    self.assertIs(
+                        getattr(package_nodes, name),
+                        getattr(package_resolution, name),
+                    )
+            self.assertIs(
+                package_nodes.EasyUseAnimaWildcard,
+                package_wildcard_nodes.EasyUseAnimaWildcard,
+            )
+            self.assertIs(
+                package_nodes.EasyUseAnimaNAIARandomPrompt,
+                package_naia_nodes.EasyUseAnimaNAIARandomPrompt,
             )
 
 

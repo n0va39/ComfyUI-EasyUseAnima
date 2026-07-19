@@ -30,8 +30,13 @@ EXPECTED_PYTHON_PACKAGE_FILES = {
     "easyuse_anima/infrastructure/comfy/capabilities.py",
     "easyuse_anima/infrastructure/comfy/invocation.py",
     "easyuse_anima/infrastructure/comfy/resources.py",
+    "easyuse_anima/naia/__init__.py",
+    "easyuse_anima/naia/client.py",
+    "easyuse_anima/naia/resolution.py",
     "easyuse_anima/nodes/__init__.py",
     "easyuse_anima/nodes/image_nodes.py",
+    "easyuse_anima/nodes/naia_nodes.py",
+    "easyuse_anima/nodes/wildcard_nodes.py",
     "easyuse_anima/profiles/__init__.py",
     "easyuse_anima/profiles/contract.py",
     "easyuse_anima/prompt/__init__.py",
@@ -134,7 +139,11 @@ class RegistryScannerSafetyTests(unittest.TestCase):
             "easyuse_anima/infrastructure/comfy/resources.py",
             "easyuse_anima/image/detailer.py",
             "easyuse_anima/image/scaling.py",
+            "easyuse_anima/naia/client.py",
+            "easyuse_anima/naia/resolution.py",
             "easyuse_anima/nodes/image_nodes.py",
+            "easyuse_anima/nodes/naia_nodes.py",
+            "easyuse_anima/nodes/wildcard_nodes.py",
             "nodes.py",
             "prompt_translation.py",
             "settings.py",
@@ -148,6 +157,8 @@ class RegistryScannerSafetyTests(unittest.TestCase):
         runtime_files = (
             "api.py",
             "api_contract.py",
+            "easyuse_anima/naia/client.py",
+            "easyuse_anima/nodes/naia_nodes.py",
             "nodes.py",
             "prompt_translation.py",
             "settings.py",
@@ -158,8 +169,8 @@ class RegistryScannerSafetyTests(unittest.TestCase):
             if "requests.post" in source:
                 matches.append(filename)
 
-        self.assertEqual(matches, ["nodes.py"])
-        source = (ROOT / "nodes.py").read_text(encoding="utf-8")
+        self.assertEqual(matches, ["easyuse_anima/naia/client.py"])
+        source = (ROOT / "easyuse_anima" / "naia" / "client.py").read_text(encoding="utf-8")
         self.assertIn("allow_remote_api=True", source)
         self.assertIn("localhost-only", source)
         self.assertIn("timeout=HTTP_TIMEOUT", source)
