@@ -19,10 +19,13 @@ if str(ROOT) not in sys.path:
 import nodes
 from easyuse_anima.common import serialization as common_serialization
 from easyuse_anima.common import values as common_values
+from easyuse_anima.image import detailer as image_detailer
 from easyuse_anima.image import geometry as image_geometry
+from easyuse_anima.image import scaling as image_scaling
 from easyuse_anima.infrastructure.comfy import capabilities as comfy_capabilities
 from easyuse_anima.infrastructure.comfy import invocation as comfy_invocation
 from easyuse_anima.infrastructure.comfy import resources as comfy_resources
+from easyuse_anima.nodes import image_nodes
 
 
 PACKAGE_INIT = ROOT / "__init__.py"
@@ -520,7 +523,7 @@ class ComfyAdapterMoveContractTests(unittest.TestCase):
         ),
         (
             comfy_invocation,
-            ("_node_output_tuple", "_call_with_supported_kwargs"),
+            ("_node_output_tuple", "_call_with_supported_kwargs", "_common_upscale_image"),
         ),
     )
 
@@ -563,6 +566,70 @@ class ComfyAdapterMoveContractTests(unittest.TestCase):
                             getattr(package_nodes, helper_name),
                             getattr(canonical_module, helper_name),
                         )
+
+
+class ImageNodeMoveContractTests(unittest.TestCase):
+    SCALING_ALIASES = (
+        "IMAGE_SCALE_MULTIPLES",
+        "IMAGE_UPSCALE_METHODS",
+        "_image_scale_by_multiple_size",
+        "_max_long_edge_value",
+        "_normalize_image_scale_options",
+        "_scale_by_value",
+    )
+
+    def test_root_nodes_image_objects_are_direct_canonical_aliases(self):
+        for name in self.SCALING_ALIASES:
+            with self.subTest(name=name):
+                self.assertIs(getattr(nodes, name), getattr(image_scaling, name))
+
+        self.assertIs(
+            nodes._EasyUseAnimaAlignedDetailerHook,
+            image_detailer._EasyUseAnimaAlignedDetailerHook,
+        )
+        self.assertIs(
+            nodes.EasyUseAnimaImageScaleByMultiple,
+            image_nodes.EasyUseAnimaImageScaleByMultiple,
+        )
+        self.assertIs(
+            nodes.EasyUseAnimaDetailerAlignHook,
+            image_nodes.EasyUseAnimaDetailerAlignHook,
+        )
+        self.assertIs(image_nodes._common_upscale_image, comfy_invocation._common_upscale_image)
+
+    def test_package_loaded_root_nodes_image_objects_are_direct_canonical_aliases(self):
+        with _loaded_package_entrypoint() as (_, package_nodes):
+            package_name = package_nodes.__package__
+            package_scaling = sys.modules[f"{package_name}.easyuse_anima.image.scaling"]
+            package_detailer = sys.modules[f"{package_name}.easyuse_anima.image.detailer"]
+            package_invocation = sys.modules[
+                f"{package_name}.easyuse_anima.infrastructure.comfy.invocation"
+            ]
+            package_node_adapters = sys.modules[
+                f"{package_name}.easyuse_anima.nodes.image_nodes"
+            ]
+            for name in self.SCALING_ALIASES:
+                with self.subTest(name=name):
+                    self.assertIs(
+                        getattr(package_nodes, name),
+                        getattr(package_scaling, name),
+                    )
+
+            self.assertIs(
+                package_nodes._EasyUseAnimaAlignedDetailerHook,
+                package_detailer._EasyUseAnimaAlignedDetailerHook,
+            )
+            for name in (
+                "EasyUseAnimaDetailerAlignHook",
+                "EasyUseAnimaImageScaleByMultiple",
+            ):
+                with self.subTest(name=name):
+                    canonical_class = getattr(package_node_adapters, name)
+                    self.assertIs(getattr(package_nodes, name), canonical_class)
+            self.assertIs(
+                package_node_adapters._common_upscale_image,
+                package_invocation._common_upscale_image,
+            )
 
 
 class PublicNodeContractTests(unittest.TestCase):

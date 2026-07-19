@@ -73,15 +73,17 @@ def load_dynamic():
     def test_current_nodes_module_shape_matches_recorded_baseline(self):
         report = analyzer.analyze_path(ROOT / "nodes.py")
 
-        self.assertEqual(report["git_blob_sha1"], "bb85eb2a283bde2b521882c3162828a31a5bde2b")
-        # Issue #184 B-03 moved six helpers as direct aliases and kept thin injection wrappers.
-        self.assertEqual(report["top_level"]["function_count"], 265)
-        self.assertEqual(report["top_level"]["class_count"], 25)
-        self.assertEqual(report["line_count"], 12_449)
+        self.assertEqual(report["git_blob_sha1"], "8e19ca24696f778904942382d143415d033a2b82")
+        # Issue #184 B-04 moved the image/Detailer vertical slice as direct aliases.
+        self.assertEqual(report["top_level"]["function_count"], 260)
+        self.assertEqual(report["top_level"]["class_count"], 22)
+        self.assertEqual(report["line_count"], 12_131)
         class_names = {item["name"] for item in report["top_level"]["classes"]}
         self.assertIn("EasyUseAnimaAIOGenerator", class_names)
         self.assertIn("EasyUseAnimaPromptStudioAdvancedV2", class_names)
         self.assertIn("EasyUseAnimaNAIARandomPrompt", class_names)
+        self.assertNotIn("EasyUseAnimaImageScaleByMultiple", class_names)
+        self.assertNotIn("EasyUseAnimaDetailerAlignHook", class_names)
 
     def test_external_source_label_does_not_expose_parent_directories(self):
         label = analyzer._source_label(Path("Z:/private/user/data/example.py"))

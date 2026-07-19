@@ -15,12 +15,16 @@ mark a phase complete merely because its target is documented.
 
 ## Current implementation state
 
-At the baseline above, the migration has not started:
+At the current Phase B state, the migration is in progress:
 
-- There is no tracked `easyuse_anima/` production package yet.
-- `nodes.py` remains the monolith that contains the mapped node classes and
-  substantial Prompt, Regional, Wildcard, NAIA, image, Detailer, LoRA, AiO,
-  cache, save, and metadata implementation.
+- The tracked `easyuse_anima/` production package contains common value and
+  serialization primitives, image geometry/scaling and Detailer hook behavior,
+  domain-neutral Comfy adapters, and the first vertical node adapter module,
+  `easyuse_anima.nodes.image_nodes`.
+- `nodes.py` directly re-exports the B-04 image-scale and Detailer-align objects
+  while it remains the implementation module for the other mapped node classes
+  and substantial Prompt, Regional, Wildcard, NAIA, LoRA, AiO, cache, save, and
+  metadata behavior.
 - Root `__init__.py` imports 18 mapped node classes from `nodes.py`, imports
   `api.py` for route-registration side effects, creates the default wildcard
   directory, and owns the node/display mappings.
@@ -33,10 +37,10 @@ At the baseline above, the migration has not started:
   `easyuse_anima.api.requests`/`responses`/`errors`; D-14 freezes any root shim
   that consumer evidence still requires.
 - PR [#189](https://github.com/n0va39/ComfyUI-EasyUseAnima/pull/189)
-  added the 0.5.2 node/workflow contract fixture and an import-boundary analyzer
-  seed. Those files are useful A-02/A-03 foundations, but they do not complete
-  the A-01 whole-backend inventory, a real package scan, import graph/SCC and
-  global-state baseline, Registry archive closure, or any package migration.
+  introduced the 0.5.2 node/workflow contract and import-boundary seeds;
+  subsequent Phase A/B work added the deterministic whole-backend inventory,
+  package/archive skeleton, common primitives, Comfy adapters, and incremental
+  vertical moves.
 
 The `nodes.py` extraction in
 [Issue #184](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/184)
