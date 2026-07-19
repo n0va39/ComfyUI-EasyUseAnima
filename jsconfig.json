@@ -18,6 +18,10 @@
     "web/js/lora_preset/**/*.js",
     "web/js/lifecycle/**/*.js",
     "web/js/settings/**/*.js",
+    "web/js/easyuse_anima_api.js",
+    "web/js/easyuse_anima_i18n.js",
+    "web/js/easyuse_anima_prompt_rules.js",
+    "web/js/easyuse_anima_prompt_studio_common.js",
     "web/js/easyuse_anima_prompt_studio.js",
     "web/js/easyuse_anima_prompt_studio_regional.js",
     "web/js/prompt_studio/**/*.js"
