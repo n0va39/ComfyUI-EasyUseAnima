@@ -884,22 +884,24 @@ class WildcardNodeTests(unittest.TestCase):
                 self.assertIn(syntax, text_tooltip)
 
         populated_tooltip = inputs["populated_text"][1]["tooltip"]
-        self.assertIn("Reproduce outputs this value", populated_tooltip)
+        self.assertIn("Reproduce processes this value", populated_tooltip)
+        self.assertIn("like Impact Pack", populated_tooltip)
         self.assertIn("falling back to text", populated_tooltip)
         self.assertIn("ignore the old cache", populated_tooltip)
 
         mode_tooltip = inputs["mode"][1]["tooltip"]
         self.assertIn("Fixed (고정): EasyUse compatibility mode", mode_tooltip)
         self.assertIn("it still expands text", mode_tooltip)
-        self.assertIn("Reproduce (재현): output populated_text unchanged", mode_tooltip)
+        self.assertIn("Reproduce (재현): process populated_text", mode_tooltip)
+        self.assertIn("including file wildcards", mode_tooltip)
         self.assertIn("seed_after_generate still controls the returned next seed", mode_tooltip)
 
         seed_tooltip = inputs["seed"][1]["tooltip"]
         self.assertIn("range width", seed_tooltip)
-        self.assertIn("Reproduce performs no selection", seed_tooltip)
+        self.assertIn("Reproduce applies the seed to populated_text", seed_tooltip)
         control_tooltip = inputs["seed_after_generate"][1]["tooltip"]
         self.assertIn("Sequential always forces increment", control_tooltip)
-        self.assertIn("still applies this control", control_tooltip)
+        self.assertIn("applies this control", control_tooltip)
 
     def test_native_wildcard_consumes_reserved_queue_seed_and_scrubs_token(self):
         reservation = json.dumps({
@@ -1029,7 +1031,15 @@ class WildcardNodeTests(unittest.TestCase):
         self.assertEqual(result["ui"]["wildcard"][0]["status"], "fixed")
 
     def test_native_reproduce_uses_cache_but_still_applies_seed_control(self):
-        with patch("nodes.expand_wildcards") as expand:
+        with patch(
+            "nodes.expand_wildcards",
+            return_value=WildcardExpansionResult(
+                text="expanded style",
+                changed=False,
+                used_keys=(),
+                missing_keys=(),
+            ),
+        ) as expand:
             result = EasyUseAnimaWildcard().generate(
                 "__style__",
                 "expanded style",
@@ -1038,9 +1048,30 @@ class WildcardNodeTests(unittest.TestCase):
                 "increment",
             )
 
-        expand.assert_not_called()
+        expand.assert_called_once_with("expanded style", seed=5, mode="reproduce")
         self.assertEqual(result["result"], ("expanded style", 6))
         self.assertEqual(result["ui"]["wildcard"][0]["status"], "reproduce")
+
+    def test_native_reproduce_expands_file_wildcard_from_populated_text(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            (root / "style.txt").write_text("resolved from file\n", encoding="utf-8")
+
+            def expand_from_test_root(text, *, seed, mode):
+                return expand_wildcards(text, seed=seed, mode=mode, roots=[root])
+
+            with patch("nodes.expand_wildcards", side_effect=expand_from_test_root) as expand:
+                result = EasyUseAnimaWildcard().generate(
+                    "ignored source",
+                    "__style__",
+                    "재현",
+                    5,
+                    "fixed",
+                )
+
+        expand.assert_called_once_with("__style__", seed=5, mode="reproduce")
+        self.assertEqual(result["result"], ("resolved from file", 5))
+        self.assertEqual(result["ui"]["wildcard"][0]["used_keys"], ["style"])
 
     def test_prompt_studio_reproduce_keeps_saved_fields_and_does_not_advance_seed(self):
         fields = [{
