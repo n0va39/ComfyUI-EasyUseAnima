@@ -68,29 +68,81 @@ function invokeSerialize(state, thisArg, args) {
   return state.original.apply(thisArg, callArgs);
 }
 
+/** @param {any} value */
+function isThenable(value) {
+  return value != null && typeof value.then === "function";
+}
+
 /**
+ * Complete one queue wrapper after its before callback has settled. A failing
+ * before callback never enters this function, so its own after callback is not
+ * invoked; already-entered outer owners still observe the propagated failure.
+ *
  * @param {any} state
+ * @param {any[]} entries
+ * @param {number} index
  * @param {any} thisArg
  * @param {any[]} args
+ * @param {any[]} originalArgs
+ * @param {any} callbackState
  */
-function invokeQueueSync(state, thisArg, args) {
-  const originalArgs = args;
-  let callArgs = args;
-  for (const entry of callbacksOuterToInner(state)) {
-    const callback = entry.callbacks.beforeQueue;
-    if (typeof callback !== "function") {
-      continue;
-    }
-    const context = {
+function invokeQueueAfterBefore(
+  state,
+  entries,
+  index,
+  thisArg,
+  args,
+  originalArgs,
+  callbackState,
+) {
+  const entry = entries[index];
+  const afterQueue = entry.callbacks.afterQueue;
+
+  function runAfter(ok, value) {
+    const afterResult = afterQueue({
       host: state.target,
       thisArg,
-      args: callArgs,
+      args,
       originalArgs,
+      callbackState,
+      ok,
+      ...(ok ? { result: value } : { error: value }),
+    });
+    const continueResult = () => {
+      if (ok) {
+        return value;
+      }
+      throw value;
     };
-    callback(context);
-    callArgs = Array.isArray(context.args) ? context.args : callArgs;
+    return isThenable(afterResult)
+      ? Promise.resolve(afterResult).then(continueResult)
+      : continueResult();
   }
-  return state.original.apply(thisArg, callArgs);
+
+  let result;
+  try {
+    result = invokeQueueLayer(
+      state,
+      entries,
+      index + 1,
+      thisArg,
+      args,
+      originalArgs,
+    );
+  } catch (error) {
+    if (typeof afterQueue !== "function") {
+      throw error;
+    }
+    return runAfter(false, error);
+  }
+
+  if (typeof afterQueue !== "function") {
+    return result;
+  }
+  return Promise.resolve(result).then(
+    (value) => runAfter(true, value),
+    (error) => runAfter(false, error),
+  );
 }
 
 /**
@@ -112,7 +164,6 @@ function invokeQueueLayer(state, entries, index, thisArg, args, originalArgs) {
 
   const entry = entries[index];
   const beforeQueue = entry.callbacks.beforeQueue;
-  const afterQueue = entry.callbacks.afterQueue;
   const context = {
     host: state.target,
     thisArg,
@@ -122,78 +173,18 @@ function invokeQueueLayer(state, entries, index, thisArg, args, originalArgs) {
   const callbackState = typeof beforeQueue === "function"
     ? beforeQueue(context)
     : undefined;
-  const callArgs = Array.isArray(context.args) ? context.args : args;
-
-  let result;
-  try {
-    result = invokeQueueLayer(
-      state,
-      entries,
-      index + 1,
-      thisArg,
-      callArgs,
-      originalArgs,
-    );
-  } catch (error) {
-    if (typeof afterQueue === "function") {
-      afterQueue({
-        host: state.target,
-        thisArg,
-        args: callArgs,
-        originalArgs,
-        callbackState,
-        ok: false,
-        error,
-      });
-    }
-    throw error;
-  }
-
-  if (typeof afterQueue !== "function") {
-    return result;
-  }
-  return Promise.resolve(result).then(
-    (value) => {
-      afterQueue({
-        host: state.target,
-        thisArg,
-        args: callArgs,
-        originalArgs,
-        callbackState,
-        ok: true,
-        result: value,
-      });
-      return value;
-    },
-    (error) => {
-      afterQueue({
-        host: state.target,
-        thisArg,
-        args: callArgs,
-        originalArgs,
-        callbackState,
-        ok: false,
-        error,
-      });
-      throw error;
-    },
-  );
-}
-
-/**
- * @param {any} state
- * @param {any} thisArg
- * @param {any[]} args
- */
-async function invokeQueueAsync(state, thisArg, args) {
-  return invokeQueueLayer(
+  const continueQueue = (resolvedCallbackState) => invokeQueueAfterBefore(
     state,
-    callbacksOuterToInner(state),
-    0,
+    entries,
+    index,
     thisArg,
-    args,
-    args,
+    Array.isArray(context.args) ? context.args : args,
+    originalArgs,
+    resolvedCallbackState,
   );
+  return isThenable(callbackState)
+    ? Promise.resolve(callbackState).then(continueQueue)
+    : continueQueue(callbackState);
 }
 
 /**
@@ -202,12 +193,19 @@ async function invokeQueueAsync(state, thisArg, args) {
  * @param {any[]} args
  */
 function invokeQueue(state, thisArg, args) {
-  const hasAfterQueue = callbackEntries(state).some(
+  const entries = callbacksOuterToInner(state);
+  const hasAfterQueue = entries.some(
     (entry) => typeof entry.callbacks.afterQueue === "function",
   );
-  return hasAfterQueue
-    ? invokeQueueAsync(state, thisArg, args)
-    : invokeQueueSync(state, thisArg, args);
+  try {
+    const result = invokeQueueLayer(state, entries, 0, thisArg, args, args);
+    return hasAfterQueue ? Promise.resolve(result) : result;
+  } catch (error) {
+    if (hasAfterQueue) {
+      return Promise.reject(error);
+    }
+    throw error;
+  }
 }
 
 /**

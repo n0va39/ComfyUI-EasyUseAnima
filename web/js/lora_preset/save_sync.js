@@ -1,26 +1,31 @@
+// @ts-check
+
+import {
+  createHostHookRuntimeLifecycle,
+  registerHostHookCallbacks,
+} from "../lifecycle/host_hook_registry.js";
+
+const LORA_PRESET_SAVE_SYNC_OWNER = Symbol.for(
+  "easyuse-anima.lora-preset.save-sync",
+);
+const LORA_PRESET_SAVE_SYNC_RUNTIME_OWNER = Symbol.for(
+  "easyuse-anima.lora-preset.save-sync-runtime-owner",
+);
+
 /** Installs the graph-save and queue-preparation synchronization hooks. */
-const installStates = new WeakMap();
-
-function installStateFor(target, methodName) {
-  let states = installStates.get(target);
-  if (!states) {
-    states = new Map();
-    installStates.set(target, states);
-  }
-  let state = states.get(methodName);
-  if (!state) {
-    state = { wrapper: null, syncBeforeCall: null };
-    states.set(methodName, state);
-  }
-  return state;
-}
-
 export function createLoraPresetSaveSync({
   app,
   nodeTypeName,
   saveCurrentProfile,
   getGraphPrototype = () => globalThis.LGraph?.prototype || app.graph?.constructor?.prototype,
 }) {
+  const globalHookLifecycle = createHostHookRuntimeLifecycle(
+    app,
+    LORA_PRESET_SAVE_SYNC_RUNTIME_OWNER,
+  );
+  let leaseInstalled = false;
+  let serializeHost;
+
   function syncNode(node) {
     if (node?.comfyClass === nodeTypeName) {
       saveCurrentProfile(node);
@@ -33,36 +38,34 @@ export function createLoraPresetSaveSync({
     }
   }
 
-  function installWrapper(target, methodName, syncBeforeCall) {
-    const current = target?.[methodName];
-    if (typeof current !== "function") {
-      return;
-    }
-    const state = installStateFor(target, methodName);
-    state.syncBeforeCall = syncBeforeCall;
-    if (current === state.wrapper) {
-      return;
-    }
-    const wrapper = function () {
-      // A host extension can wrap our previous function between installs.  Only
-      // the outermost current wrapper owns synchronization.  The target-level
-      // state also survives a new lifecycle instance after another extension
-      // hides our marker by wrapping the previous function.
-      if (state.wrapper === wrapper) {
-        state.syncBeforeCall(this);
-      }
-      return current.apply(this, arguments);
-    };
-    wrapper.__easyuseAnimaLoraPresetWrapped = true;
-    state.wrapper = wrapper;
-    target[methodName] = wrapper;
-  }
-
   function install() {
     const graphPrototype = getGraphPrototype();
-    installWrapper(graphPrototype, "serialize", (graph) => syncAllNodes(graph));
-    installWrapper(app, "queuePrompt", () => syncAllNodes());
+    const replace = leaseInstalled
+      && graphPrototype != null
+      && graphPrototype !== serializeHost;
+    const installed = globalHookLifecycle.install(
+      "save-sync",
+      () => registerHostHookCallbacks({
+        owner: LORA_PRESET_SAVE_SYNC_OWNER,
+        serializeHost: graphPrototype,
+        queueHost: app,
+        beforeSerialize: ({ thisArg }) => syncAllNodes(thisArg),
+        beforeQueue: () => syncAllNodes(),
+      }),
+      { replace },
+    );
+    if (installed) {
+      leaseInstalled = true;
+      serializeHost = graphPrototype;
+    }
+    return installed;
   }
 
-  return { install, syncNode, syncAllNodes };
+  function dispose() {
+    leaseInstalled = false;
+    serializeHost = undefined;
+    return globalHookLifecycle.dispose();
+  }
+
+  return { dispose, install, syncNode, syncAllNodes };
 }
