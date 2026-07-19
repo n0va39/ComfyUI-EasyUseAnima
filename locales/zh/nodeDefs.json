@@ -53,19 +53,19 @@
       },
       "populated_text": {
         "name": "已填充文本",
-        "tooltip": "展開結果快取。復現模式原樣輸出此值；若為空則使用 text。一般填充/固定/順序會忽略舊快取、展開 text，並更新儲存工作流程中繼資料的此值。"
+        "tooltip": "展開結果快取。復現模式會像 Impact Pack 一樣透過萬用字元引擎處理此值。一般填充/固定/順序會忽略舊快取、展開 text，並更新儲存工作流程中繼資料的此值。"
       },
       "mode": {
         "name": "模式",
-        "tooltip": "一般填充以種子加權隨機展開 text。固定也是 EasyUse 相容模式，仍以相同方式展開 text，僅在 seed control 為 fixed 時保留種子。順序使用 seed % 選項數/範圍寬度並強制增加下一個種子。復現不做新選擇並原樣使用 populated_text，但回傳/即時下一個種子仍套用 seed_after_generate。展開執行在儲存時記錄為 populated_text 與復現模式。"
+        "tooltip": "一般填充以種子加權隨機展開 text。固定也是 EasyUse 相容模式，仍以相同方式展開 text，僅在 seed control 為 fixed 時保留種子。順序使用 seed % 選項數/範圍寬度並強制增加下一個種子。復現會以目前種子處理 populated_text，也會展開檔案萬用字元並重新快取結果；回傳/即時下一個種子仍套用 seed_after_generate。展開執行在儲存時記錄為 populated_text 與復現模式。"
       },
       "seed": {
         "name": "种子",
-        "tooltip": "加權隨機選擇種子。順序模式對每組選項數與範圍寬度取餘數；復現模式不進行新選擇。"
+        "tooltip": "加權隨機選擇種子。順序模式對每組選項數與範圍寬度取餘數；復現模式會將目前種子套用於 populated_text 處理。"
       },
       "seed_after_generate": {
         "name": "生成后种子控制",
-        "tooltip": "下一次即時執行種子：fixed 保持，randomize 選新值，increment/decrement 在邊界循環並加減 1。順序強制 increment。復現不做新選擇，但回傳/即時下一個種子仍套用此控制。"
+        "tooltip": "下一次即時執行種子：fixed 保持，randomize 選新值，increment/decrement 在邊界循環並加減 1。順序強制 increment。復現會以目前種子處理 populated_text，且回傳/即時下一個種子仍套用此控制。"
       }
     },
     "outputs": {

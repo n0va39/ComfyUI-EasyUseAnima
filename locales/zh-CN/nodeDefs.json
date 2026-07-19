@@ -53,19 +53,19 @@
       },
       "populated_text": {
         "name": "已填充文本",
-        "tooltip": "展开结果缓存。复现模式原样输出此值；为空时回退到 text。普通填充/固定/顺序会忽略旧缓存、展开 text，并更新保存工作流元数据中的此值。"
+        "tooltip": "展开结果缓存。复现模式会像 Impact Pack 一样通过通配符引擎处理此值。普通填充/固定/顺序会忽略旧缓存、展开 text，并更新保存工作流元数据中的此值。"
       },
       "mode": {
         "name": "模式",
-        "tooltip": "普通填充按种子进行加权随机选择并展开 text。固定也是 EasyUse 兼容模式，仍以相同方式展开 text，只有 seed control 为 fixed 时才保持种子。顺序使用 seed % 选项数/范围宽度，并强制增加下一种子。复现不做新选择并原样使用 populated_text，但返回/实时下一种子仍应用 seed_after_generate。展开运行在保存时记录为 populated_text 和复现模式。"
+        "tooltip": "普通填充按种子进行加权随机选择并展开 text。固定也是 EasyUse 兼容模式，仍以相同方式展开 text，只有 seed control 为 fixed 时才保持种子。顺序使用 seed % 选项数/范围宽度，并强制增加下一种子。复现会以当前种子处理 populated_text，也会展开文件通配符并重新缓存结果；返回/实时下一种子仍应用 seed_after_generate。展开运行在保存时记录为 populated_text 和复现模式。"
       },
       "seed": {
         "name": "种子",
-        "tooltip": "加权随机选择种子。顺序模式对每组选项数和范围宽度取余；复现模式不进行新选择。"
+        "tooltip": "加权随机选择种子。顺序模式对每组选项数和范围宽度取余；复现模式会将当前种子应用于 populated_text 处理。"
       },
       "seed_after_generate": {
         "name": "生成后种子控制",
-        "tooltip": "下一次实时运行种子：fixed 保持，randomize 选择新值，increment/decrement 在边界循环并加减 1。顺序强制 increment。复现不做新选择，但返回/实时下一种子仍应用此控制。"
+        "tooltip": "下一次实时运行种子：fixed 保持，randomize 选择新值，increment/decrement 在边界循环并加减 1。顺序强制 increment。复现会以当前种子处理 populated_text，并对返回/实时下一种子应用此控制。"
       }
     },
     "outputs": {

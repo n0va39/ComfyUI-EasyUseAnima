@@ -30250,9 +30250,9 @@
       },
       {
         "is_package": false,
-        "loc": 324,
+        "loc": 332,
         "module": "easyuse_anima.nodes.wildcard_nodes",
-        "normalized_git_blob_sha1": "af304eab103c7807f17b34b401990189c312f2d8",
+        "normalized_git_blob_sha1": "4ca875db87df85358a9932a40666bd81b41bd3d1",
         "path": "easyuse_anima/nodes/wildcard_nodes.py",
         "top_level": {
           "class_count": 2,

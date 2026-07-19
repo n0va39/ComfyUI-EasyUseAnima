@@ -122,9 +122,9 @@ class EasyUseAnimaWildcard:
                     "multiline": True,
                     "default": "",
                     "tooltip": (
-                        "Expanded-result cache. Reproduce outputs this value, falling back to text "
-                        "when it is empty. Populate, Fixed, and Sequential ignore the old cache, "
-                        "expand text, and write the result here in saved workflow metadata."
+                        "Expanded-result cache. Reproduce processes this value through the wildcard "
+                        "engine like Impact Pack. Populate, Fixed, and Sequential ignore the old "
+                        "cache, expand text, and write the result here in saved workflow metadata."
                     ),
                 }),
                 "mode": (WILDCARD_MODE_LABELS, {
@@ -134,8 +134,9 @@ class EasyUseAnimaWildcard:
                         "Fixed (고정): EasyUse compatibility mode; it still expands text, while a "
                         "fixed seed control keeps the same seed. Sequential (순차): choose from each "
                         "option/range with seed modulo its size and force the next seed to increment. "
-                        "Reproduce (재현): output populated_text unchanged without a new selection; "
-                        "seed_after_generate still controls the returned next seed. "
+                        "Reproduce (재현): process populated_text with the current seed, including "
+                        "file wildcards, then cache that result; seed_after_generate still controls "
+                        "the returned next seed. "
                         "Expanded runs are saved as populated_text in Reproduce mode."
                     ),
                 }),
@@ -145,7 +146,7 @@ class EasyUseAnimaWildcard:
                     "max": MAX_SEED,
                     "tooltip": (
                         "Seed for weighted random selection. Sequential uses seed modulo each option "
-                        "count (and range width); Reproduce performs no selection. "
+                        "count (and range width); Reproduce applies the seed to populated_text. "
                         f"{WILDCARD_SEED_RANGE_NOTE}"
                     ),
                 }),
@@ -154,8 +155,8 @@ class EasyUseAnimaWildcard:
                     "tooltip": (
                         "Seed for the next live run: fixed keeps it, randomize chooses a new public-range "
                         "value, and increment/decrement move by one with wraparound. Sequential always "
-                        "forces increment. Reproduce makes no selection but still applies this control "
-                        "to the returned/live next seed."
+                        "forces increment. Reproduce processes populated_text with the current seed "
+                        "and applies this control to the returned/live next seed."
                     ),
                 }),
             },
@@ -272,7 +273,14 @@ class EasyUseAnimaWildcard:
         missing_keys: tuple[str, ...] = ()
 
         if mode_key == WILDCARD_MODE_REPRODUCE:
-            output_text = str(populated_text if populated_text else text or "")
+            expansion = expand_wildcards(
+                str(populated_text or ""),
+                seed=seed_value,
+                mode=mode_key,
+            )
+            output_text = expansion.text
+            used_keys = expansion.used_keys
+            missing_keys = expansion.missing_keys
             status = mode_key
             metadata_mode = str(mode or WILDCARD_MODE_LABELS[3])
         else:
