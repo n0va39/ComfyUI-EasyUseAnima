@@ -73,11 +73,11 @@ def load_dynamic():
     def test_current_nodes_module_shape_matches_recorded_baseline(self):
         report = analyzer.analyze_path(ROOT / "nodes.py")
 
-        self.assertEqual(report["git_blob_sha1"], "b71aa17bd93a561b3597a7b9bd11296cb32dfaab")
+        self.assertEqual(report["git_blob_sha1"], "3b6b14485ab52a4f0839bf2b5dbece6b4bcf08aa")
         # Issue #184 B-05 moved the Wildcard/NAIA vertical slice as direct aliases.
-        self.assertEqual(report["top_level"]["function_count"], 241)
+        self.assertEqual(report["top_level"]["function_count"], 240)
         self.assertEqual(report["top_level"]["class_count"], 20)
-        self.assertEqual(report["line_count"], 11_173)
+        self.assertEqual(report["line_count"], 11_165)
         class_names = {item["name"] for item in report["top_level"]["classes"]}
         self.assertIn("EasyUseAnimaAIOGenerator", class_names)
         self.assertIn("EasyUseAnimaPromptStudioAdvancedV2", class_names)

@@ -8266,6 +8266,37 @@
         "target": "easyuse_anima/naia/client.py"
       },
       {
+        "alias": "_clean_prompt",
+        "bound_name": "_clean_prompt",
+        "branch_context": [
+          {
+            "branch": "body",
+            "handles_import_failure": true,
+            "has_import_fallback_handler": true,
+            "kind": "try",
+            "line": 14
+          }
+        ],
+        "classification": "internal",
+        "column": 4,
+        "compatibility_pair": {
+          "bound_name": "_clean_prompt",
+          "target": "easyuse_anima/naia/client.py",
+          "try_line": 14
+        },
+        "conditional": true,
+        "imported": ".easyuse_anima.naia.client:_clean_prompt",
+        "kind": "static_from",
+        "line": 71,
+        "name": "_clean_prompt",
+        "optional": false,
+        "requested": ".easyuse_anima.naia.client",
+        "role": "compatibility_primary",
+        "scope": "<module>",
+        "source": "nodes.py",
+        "target": "easyuse_anima/naia/client.py"
+      },
+      {
         "alias": "_fit_to_1mp",
         "bound_name": "_fit_to_1mp",
         "branch_context": [
@@ -8411,7 +8442,7 @@
         "conditional": true,
         "imported": ".easyuse_anima.naia.resolution:ADVANCED_RESOLUTION_BUCKETS",
         "kind": "static_from",
-        "line": 88,
+        "line": 89,
         "name": "ADVANCED_RESOLUTION_BUCKETS",
         "optional": false,
         "requested": ".easyuse_anima.naia.resolution",
@@ -8442,7 +8473,7 @@
         "conditional": true,
         "imported": ".easyuse_anima.naia.resolution:CUSTOM_ADVANCED_RESOLUTION_BUCKET",
         "kind": "static_from",
-        "line": 88,
+        "line": 89,
         "name": "CUSTOM_ADVANCED_RESOLUTION_BUCKET",
         "optional": false,
         "requested": ".easyuse_anima.naia.resolution",
@@ -8473,7 +8504,7 @@
         "conditional": true,
         "imported": ".easyuse_anima.naia.resolution:DEFAULT_ADVANCED_RESOLUTION_BUCKET",
         "kind": "static_from",
-        "line": 88,
+        "line": 89,
         "name": "DEFAULT_ADVANCED_RESOLUTION_BUCKET",
         "optional": false,
         "requested": ".easyuse_anima.naia.resolution",
@@ -8504,7 +8535,7 @@
         "conditional": true,
         "imported": ".easyuse_anima.naia.resolution:DEFAULT_ADVANCED_RESOLUTION_SIZE",
         "kind": "static_from",
-        "line": 88,
+        "line": 89,
         "name": "DEFAULT_ADVANCED_RESOLUTION_SIZE",
         "optional": false,
         "requested": ".easyuse_anima.naia.resolution",
@@ -8535,7 +8566,7 @@
         "conditional": true,
         "imported": ".easyuse_anima.naia.resolution:NAIA_ADVANCED_RESOLUTION_BUCKET",
         "kind": "static_from",
-        "line": 88,
+        "line": 89,
         "name": "NAIA_ADVANCED_RESOLUTION_BUCKET",
         "optional": false,
         "requested": ".easyuse_anima.naia.resolution",
@@ -8566,7 +8597,7 @@
         "conditional": true,
         "imported": ".easyuse_anima.naia.resolution:NAIA_RESOLUTION_MODE_BUCKET",
         "kind": "static_from",
-        "line": 88,
+        "line": 89,
         "name": "NAIA_RESOLUTION_MODE_BUCKET",
         "optional": false,
         "requested": ".easyuse_anima.naia.resolution",
@@ -8597,7 +8628,7 @@
         "conditional": true,
         "imported": ".easyuse_anima.naia.resolution:NAIA_RESOLUTION_MODE_SCALE",
         "kind": "static_from",
-        "line": 88,
+        "line": 89,
         "name": "NAIA_RESOLUTION_MODE_SCALE",
         "optional": false,
         "requested": ".easyuse_anima.naia.resolution",
@@ -8628,7 +8659,7 @@
         "conditional": true,
         "imported": ".easyuse_anima.naia.resolution:_advanced_resolution_from_selection",
         "kind": "static_from",
-        "line": 88,
+        "line": 89,
         "name": "_advanced_resolution_from_selection",
         "optional": false,
         "requested": ".easyuse_anima.naia.resolution",
@@ -8659,7 +8690,7 @@
         "conditional": true,
         "imported": ".easyuse_anima.naia.resolution:_fit_naia_resolution_to_bucket",
         "kind": "static_from",
-        "line": 88,
+        "line": 89,
         "name": "_fit_naia_resolution_to_bucket",
         "optional": false,
         "requested": ".easyuse_anima.naia.resolution",
@@ -8690,7 +8721,7 @@
         "conditional": true,
         "imported": ".easyuse_anima.naia.resolution:_normalize_resolution_bucket",
         "kind": "static_from",
-        "line": 88,
+        "line": 89,
         "name": "_normalize_resolution_bucket",
         "optional": false,
         "requested": ".easyuse_anima.naia.resolution",
@@ -8721,7 +8752,7 @@
         "conditional": true,
         "imported": ".easyuse_anima.naia.resolution:_ratio_label",
         "kind": "static_from",
-        "line": 88,
+        "line": 89,
         "name": "_ratio_label",
         "optional": false,
         "requested": ".easyuse_anima.naia.resolution",
@@ -8752,7 +8783,7 @@
         "conditional": true,
         "imported": ".easyuse_anima.naia.resolution:_resolution_label",
         "kind": "static_from",
-        "line": 88,
+        "line": 89,
         "name": "_resolution_label",
         "optional": false,
         "requested": ".easyuse_anima.naia.resolution",
@@ -8783,7 +8814,7 @@
         "conditional": true,
         "imported": ".easyuse_anima.naia.resolution:_resolve_naia_resolution",
         "kind": "static_from",
-        "line": 88,
+        "line": 89,
         "name": "_resolve_naia_resolution",
         "optional": false,
         "requested": ".easyuse_anima.naia.resolution",
@@ -8814,7 +8845,7 @@
         "conditional": true,
         "imported": ".easyuse_anima.naia.resolution:_resolve_naia_resolution_bucket",
         "kind": "static_from",
-        "line": 88,
+        "line": 89,
         "name": "_resolve_naia_resolution_bucket",
         "optional": false,
         "requested": ".easyuse_anima.naia.resolution",
@@ -8845,7 +8876,7 @@
         "conditional": true,
         "imported": ".easyuse_anima.naia.resolution:_resolve_naia_resolution_max_long_edge",
         "kind": "static_from",
-        "line": 88,
+        "line": 89,
         "name": "_resolve_naia_resolution_max_long_edge",
         "optional": false,
         "requested": ".easyuse_anima.naia.resolution",
@@ -8876,7 +8907,7 @@
         "conditional": true,
         "imported": ".easyuse_anima.naia.resolution:_resolve_naia_resolution_mode",
         "kind": "static_from",
-        "line": 88,
+        "line": 89,
         "name": "_resolve_naia_resolution_mode",
         "optional": false,
         "requested": ".easyuse_anima.naia.resolution",
@@ -8907,7 +8938,7 @@
         "conditional": true,
         "imported": ".easyuse_anima.naia.resolution:_resolve_naia_resolution_scale",
         "kind": "static_from",
-        "line": 88,
+        "line": 89,
         "name": "_resolve_naia_resolution_scale",
         "optional": false,
         "requested": ".easyuse_anima.naia.resolution",
@@ -8938,7 +8969,7 @@
         "conditional": true,
         "imported": ".easyuse_anima.naia.resolution:_scale_naia_resolution",
         "kind": "static_from",
-        "line": 88,
+        "line": 89,
         "name": "_scale_naia_resolution",
         "optional": false,
         "requested": ".easyuse_anima.naia.resolution",
@@ -8969,7 +9000,7 @@
         "conditional": true,
         "imported": ".easyuse_anima.naia.resolution:_snap_resolution_32",
         "kind": "static_from",
-        "line": 88,
+        "line": 89,
         "name": "_snap_resolution_32",
         "optional": false,
         "requested": ".easyuse_anima.naia.resolution",
@@ -9000,7 +9031,7 @@
         "conditional": true,
         "imported": ".easyuse_anima.naia.resolution:_snap_scaled_resolution_32",
         "kind": "static_from",
-        "line": 88,
+        "line": 89,
         "name": "_snap_scaled_resolution_32",
         "optional": false,
         "requested": ".easyuse_anima.naia.resolution",
@@ -9031,7 +9062,7 @@
         "conditional": true,
         "imported": ".easyuse_anima.naia.resolution:_sorted_resolution_options",
         "kind": "static_from",
-        "line": 88,
+        "line": 89,
         "name": "_sorted_resolution_options",
         "optional": false,
         "requested": ".easyuse_anima.naia.resolution",
@@ -9062,7 +9093,7 @@
         "conditional": true,
         "imported": ".easyuse_anima.nodes.naia_nodes:EasyUseAnimaNAIARandomPrompt",
         "kind": "static_from",
-        "line": 111,
+        "line": 112,
         "name": "EasyUseAnimaNAIARandomPrompt",
         "optional": false,
         "requested": ".easyuse_anima.nodes.naia_nodes",
@@ -9093,7 +9124,7 @@
         "conditional": true,
         "imported": ".easyuse_anima.nodes.naia_nodes:_bind_naia_node_runtime",
         "kind": "static_from",
-        "line": 111,
+        "line": 112,
         "name": "_bind_naia_node_runtime",
         "optional": false,
         "requested": ".easyuse_anima.nodes.naia_nodes",
@@ -9124,7 +9155,7 @@
         "conditional": true,
         "imported": ".easyuse_anima.nodes.wildcard_nodes:EasyUseAnimaWildcard",
         "kind": "static_from",
-        "line": 115,
+        "line": 116,
         "name": "EasyUseAnimaWildcard",
         "optional": false,
         "requested": ".easyuse_anima.nodes.wildcard_nodes",
@@ -9155,7 +9186,7 @@
         "conditional": true,
         "imported": ".easyuse_anima.nodes.wildcard_nodes:WILDCARD_SEED_RANGE_NOTE",
         "kind": "static_from",
-        "line": 115,
+        "line": 116,
         "name": "WILDCARD_SEED_RANGE_NOTE",
         "optional": false,
         "requested": ".easyuse_anima.nodes.wildcard_nodes",
@@ -9186,7 +9217,7 @@
         "conditional": true,
         "imported": ".easyuse_anima.nodes.wildcard_nodes:_bind_wildcard_node_runtime",
         "kind": "static_from",
-        "line": 115,
+        "line": 116,
         "name": "_bind_wildcard_node_runtime",
         "optional": false,
         "requested": ".easyuse_anima.nodes.wildcard_nodes",
@@ -9217,7 +9248,7 @@
         "conditional": true,
         "imported": ".anima_prompt:correct_prompt",
         "kind": "static_from",
-        "line": 120,
+        "line": 121,
         "name": "correct_prompt",
         "optional": false,
         "requested": ".anima_prompt",
@@ -9248,7 +9279,7 @@
         "conditional": true,
         "imported": ".anima_prompt:load_knowledge_base",
         "kind": "static_from",
-        "line": 120,
+        "line": 121,
         "name": "load_knowledge_base",
         "optional": false,
         "requested": ".anima_prompt",
@@ -9279,7 +9310,7 @@
         "conditional": true,
         "imported": ".anima_prompt.parser:parse_prompt",
         "kind": "static_from",
-        "line": 121,
+        "line": 122,
         "name": "parse_prompt",
         "optional": false,
         "requested": ".anima_prompt.parser",
@@ -9310,7 +9341,7 @@
         "conditional": true,
         "imported": ".settings:resolve_metadata_filter_words",
         "kind": "static_from",
-        "line": 122,
+        "line": 123,
         "name": "resolve_metadata_filter_words",
         "optional": false,
         "requested": ".settings",
@@ -9341,7 +9372,7 @@
         "conditional": true,
         "imported": ".settings:resolve_naia_settings",
         "kind": "static_from",
-        "line": 122,
+        "line": 123,
         "name": "resolve_naia_settings",
         "optional": false,
         "requested": ".settings",
@@ -9372,7 +9403,7 @@
         "conditional": true,
         "imported": ".settings:resolve_prompt_translation_settings",
         "kind": "static_from",
-        "line": 122,
+        "line": 123,
         "name": "resolve_prompt_translation_settings",
         "optional": false,
         "requested": ".settings",
@@ -9403,7 +9434,7 @@
         "conditional": true,
         "imported": ".prompt_translation:has_prompt_translation_markers",
         "kind": "static_from",
-        "line": 127,
+        "line": 128,
         "name": "has_prompt_translation_markers",
         "optional": false,
         "requested": ".prompt_translation",
@@ -9434,7 +9465,7 @@
         "conditional": true,
         "imported": ".prompt_translation:translate_prompt_markers",
         "kind": "static_from",
-        "line": 127,
+        "line": 128,
         "name": "translate_prompt_markers",
         "optional": false,
         "requested": ".prompt_translation",
@@ -9465,7 +9496,7 @@
         "conditional": true,
         "imported": ".wildcard_engine:MAX_SEED",
         "kind": "static_from",
-        "line": 128,
+        "line": 129,
         "name": "MAX_SEED",
         "optional": false,
         "requested": ".wildcard_engine",
@@ -9496,7 +9527,7 @@
         "conditional": true,
         "imported": ".wildcard_engine:PUBLIC_MAX_SEED",
         "kind": "static_from",
-        "line": 128,
+        "line": 129,
         "name": "PUBLIC_MAX_SEED",
         "optional": false,
         "requested": ".wildcard_engine",
@@ -9527,7 +9558,7 @@
         "conditional": true,
         "imported": ".wildcard_engine:SEED_CONTROL_DECREMENT",
         "kind": "static_from",
-        "line": 128,
+        "line": 129,
         "name": "SEED_CONTROL_DECREMENT",
         "optional": false,
         "requested": ".wildcard_engine",
@@ -9558,7 +9589,7 @@
         "conditional": true,
         "imported": ".wildcard_engine:SEED_CONTROL_FIXED",
         "kind": "static_from",
-        "line": 128,
+        "line": 129,
         "name": "SEED_CONTROL_FIXED",
         "optional": false,
         "requested": ".wildcard_engine",
@@ -9589,7 +9620,7 @@
         "conditional": true,
         "imported": ".wildcard_engine:SEED_CONTROL_INCREMENT",
         "kind": "static_from",
-        "line": 128,
+        "line": 129,
         "name": "SEED_CONTROL_INCREMENT",
         "optional": false,
         "requested": ".wildcard_engine",
@@ -9620,7 +9651,7 @@
         "conditional": true,
         "imported": ".wildcard_engine:SEED_CONTROL_MODES",
         "kind": "static_from",
-        "line": 128,
+        "line": 129,
         "name": "SEED_CONTROL_MODES",
         "optional": false,
         "requested": ".wildcard_engine",
@@ -9651,7 +9682,7 @@
         "conditional": true,
         "imported": ".wildcard_engine:SEED_CONTROL_RANDOMIZE",
         "kind": "static_from",
-        "line": 128,
+        "line": 129,
         "name": "SEED_CONTROL_RANDOMIZE",
         "optional": false,
         "requested": ".wildcard_engine",
@@ -9682,7 +9713,7 @@
         "conditional": true,
         "imported": ".wildcard_engine:WILDCARD_MODE_FIXED",
         "kind": "static_from",
-        "line": 128,
+        "line": 129,
         "name": "WILDCARD_MODE_FIXED",
         "optional": false,
         "requested": ".wildcard_engine",
@@ -9713,7 +9744,7 @@
         "conditional": true,
         "imported": ".wildcard_engine:WILDCARD_MODE_LABELS",
         "kind": "static_from",
-        "line": 128,
+        "line": 129,
         "name": "WILDCARD_MODE_LABELS",
         "optional": false,
         "requested": ".wildcard_engine",
@@ -9744,7 +9775,7 @@
         "conditional": true,
         "imported": ".wildcard_engine:WILDCARD_MODE_POPULATE",
         "kind": "static_from",
-        "line": 128,
+        "line": 129,
         "name": "WILDCARD_MODE_POPULATE",
         "optional": false,
         "requested": ".wildcard_engine",
@@ -9775,7 +9806,7 @@
         "conditional": true,
         "imported": ".wildcard_engine:WILDCARD_MODE_REPRODUCE",
         "kind": "static_from",
-        "line": 128,
+        "line": 129,
         "name": "WILDCARD_MODE_REPRODUCE",
         "optional": false,
         "requested": ".wildcard_engine",
@@ -9806,7 +9837,7 @@
         "conditional": true,
         "imported": ".wildcard_engine:WILDCARD_MODE_SEQUENTIAL",
         "kind": "static_from",
-        "line": 128,
+        "line": 129,
         "name": "WILDCARD_MODE_SEQUENTIAL",
         "optional": false,
         "requested": ".wildcard_engine",
@@ -9837,7 +9868,7 @@
         "conditional": true,
         "imported": ".wildcard_engine:expand_wildcards",
         "kind": "static_from",
-        "line": 128,
+        "line": 129,
         "name": "expand_wildcards",
         "optional": false,
         "requested": ".wildcard_engine",
@@ -9868,7 +9899,7 @@
         "conditional": true,
         "imported": ".wildcard_engine:has_wildcard_syntax",
         "kind": "static_from",
-        "line": 128,
+        "line": 129,
         "name": "has_wildcard_syntax",
         "optional": false,
         "requested": ".wildcard_engine",
@@ -9899,7 +9930,7 @@
         "conditional": true,
         "imported": ".wildcard_engine:next_seed",
         "kind": "static_from",
-        "line": 128,
+        "line": 129,
         "name": "next_seed",
         "optional": false,
         "requested": ".wildcard_engine",
@@ -9930,7 +9961,7 @@
         "conditional": true,
         "imported": ".wildcard_engine:normalize_seed",
         "kind": "static_from",
-        "line": 128,
+        "line": 129,
         "name": "normalize_seed",
         "optional": false,
         "requested": ".wildcard_engine",
@@ -9961,7 +9992,7 @@
         "conditional": true,
         "imported": ".wildcard_engine:normalize_wildcard_mode",
         "kind": "static_from",
-        "line": 128,
+        "line": 129,
         "name": "normalize_wildcard_mode",
         "optional": false,
         "requested": ".wildcard_engine",
@@ -9992,7 +10023,7 @@
         "conditional": true,
         "imported": ".wildcard_engine:wildcard_sources_signature",
         "kind": "static_from",
-        "line": 128,
+        "line": 129,
         "name": "wildcard_sources_signature",
         "optional": false,
         "requested": ".wildcard_engine",
@@ -10011,7 +10042,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -10026,7 +10057,7 @@
         "conditional": true,
         "imported": "easyuse_anima.common.serialization:_json_clone",
         "kind": "static_from",
-        "line": 149,
+        "line": 150,
         "name": "_json_clone",
         "optional": false,
         "requested": "easyuse_anima.common.serialization",
@@ -10045,7 +10076,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -10060,7 +10091,7 @@
         "conditional": true,
         "imported": "easyuse_anima.common.serialization:_json_object",
         "kind": "static_from",
-        "line": 149,
+        "line": 150,
         "name": "_json_object",
         "optional": false,
         "requested": "easyuse_anima.common.serialization",
@@ -10079,7 +10110,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -10094,7 +10125,7 @@
         "conditional": true,
         "imported": "easyuse_anima.common.serialization:_stable_change_key",
         "kind": "static_from",
-        "line": 149,
+        "line": 150,
         "name": "_stable_change_key",
         "optional": false,
         "requested": "easyuse_anima.common.serialization",
@@ -10113,7 +10144,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -10128,7 +10159,7 @@
         "conditional": true,
         "imported": "easyuse_anima.common.values:_as_bool",
         "kind": "static_from",
-        "line": 154,
+        "line": 155,
         "name": "_as_bool",
         "optional": false,
         "requested": "easyuse_anima.common.values",
@@ -10147,7 +10178,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -10162,7 +10193,7 @@
         "conditional": true,
         "imported": "easyuse_anima.common.values:_as_float",
         "kind": "static_from",
-        "line": 154,
+        "line": 155,
         "name": "_as_float",
         "optional": false,
         "requested": "easyuse_anima.common.values",
@@ -10181,7 +10212,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -10196,7 +10227,7 @@
         "conditional": true,
         "imported": "easyuse_anima.common.values:_as_int",
         "kind": "static_from",
-        "line": 154,
+        "line": 155,
         "name": "_as_int",
         "optional": false,
         "requested": "easyuse_anima.common.values",
@@ -10215,7 +10246,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -10230,7 +10261,7 @@
         "conditional": true,
         "imported": "easyuse_anima.common.values:_choice",
         "kind": "static_from",
-        "line": 154,
+        "line": 155,
         "name": "_choice",
         "optional": false,
         "requested": "easyuse_anima.common.values",
@@ -10249,7 +10280,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -10264,7 +10295,7 @@
         "conditional": true,
         "imported": "easyuse_anima.common.values:_single_value",
         "kind": "static_from",
-        "line": 154,
+        "line": 155,
         "name": "_single_value",
         "optional": false,
         "requested": "easyuse_anima.common.values",
@@ -10283,7 +10314,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -10298,7 +10329,7 @@
         "conditional": true,
         "imported": "easyuse_anima.image.geometry:_align_down",
         "kind": "static_from",
-        "line": 161,
+        "line": 162,
         "name": "_align_down",
         "optional": false,
         "requested": "easyuse_anima.image.geometry",
@@ -10317,7 +10348,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -10332,7 +10363,7 @@
         "conditional": true,
         "imported": "easyuse_anima.image.geometry:_align_nearest",
         "kind": "static_from",
-        "line": 161,
+        "line": 162,
         "name": "_align_nearest",
         "optional": false,
         "requested": "easyuse_anima.image.geometry",
@@ -10351,7 +10382,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -10366,7 +10397,7 @@
         "conditional": true,
         "imported": "easyuse_anima.image.geometry:_align_up",
         "kind": "static_from",
-        "line": 161,
+        "line": 162,
         "name": "_align_up",
         "optional": false,
         "requested": "easyuse_anima.image.geometry",
@@ -10385,7 +10416,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -10400,7 +10431,7 @@
         "conditional": true,
         "imported": "easyuse_anima.image.geometry:_aligned_size_near_scale",
         "kind": "static_from",
-        "line": 161,
+        "line": 162,
         "name": "_aligned_size_near_scale",
         "optional": false,
         "requested": "easyuse_anima.image.geometry",
@@ -10419,7 +10450,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -10434,7 +10465,7 @@
         "conditional": true,
         "imported": "easyuse_anima.image.geometry:_alignment_value",
         "kind": "static_from",
-        "line": 161,
+        "line": 162,
         "name": "_alignment_value",
         "optional": false,
         "requested": "easyuse_anima.image.geometry",
@@ -10453,7 +10484,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -10468,7 +10499,7 @@
         "conditional": true,
         "imported": "easyuse_anima.image.detailer:_EasyUseAnimaAlignedDetailerHook",
         "kind": "static_from",
-        "line": 168,
+        "line": 169,
         "name": "_EasyUseAnimaAlignedDetailerHook",
         "optional": false,
         "requested": "easyuse_anima.image.detailer",
@@ -10487,7 +10518,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -10502,7 +10533,7 @@
         "conditional": true,
         "imported": "easyuse_anima.image.scaling:IMAGE_SCALE_MULTIPLES",
         "kind": "static_from",
-        "line": 171,
+        "line": 172,
         "name": "IMAGE_SCALE_MULTIPLES",
         "optional": false,
         "requested": "easyuse_anima.image.scaling",
@@ -10521,7 +10552,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -10536,7 +10567,7 @@
         "conditional": true,
         "imported": "easyuse_anima.image.scaling:IMAGE_UPSCALE_METHODS",
         "kind": "static_from",
-        "line": 171,
+        "line": 172,
         "name": "IMAGE_UPSCALE_METHODS",
         "optional": false,
         "requested": "easyuse_anima.image.scaling",
@@ -10555,7 +10586,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -10570,7 +10601,7 @@
         "conditional": true,
         "imported": "easyuse_anima.image.scaling:_image_scale_by_multiple_size",
         "kind": "static_from",
-        "line": 171,
+        "line": 172,
         "name": "_image_scale_by_multiple_size",
         "optional": false,
         "requested": "easyuse_anima.image.scaling",
@@ -10589,7 +10620,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -10604,7 +10635,7 @@
         "conditional": true,
         "imported": "easyuse_anima.image.scaling:_max_long_edge_value",
         "kind": "static_from",
-        "line": 171,
+        "line": 172,
         "name": "_max_long_edge_value",
         "optional": false,
         "requested": "easyuse_anima.image.scaling",
@@ -10623,7 +10654,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -10638,7 +10669,7 @@
         "conditional": true,
         "imported": "easyuse_anima.image.scaling:_normalize_image_scale_options",
         "kind": "static_from",
-        "line": 171,
+        "line": 172,
         "name": "_normalize_image_scale_options",
         "optional": false,
         "requested": "easyuse_anima.image.scaling",
@@ -10657,7 +10688,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -10672,7 +10703,7 @@
         "conditional": true,
         "imported": "easyuse_anima.image.scaling:_scale_by_value",
         "kind": "static_from",
-        "line": 171,
+        "line": 172,
         "name": "_scale_by_value",
         "optional": false,
         "requested": "easyuse_anima.image.scaling",
@@ -10691,7 +10722,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -10706,7 +10737,7 @@
         "conditional": true,
         "imported": "easyuse_anima.infrastructure.comfy.capabilities:_comfy_max_resolution",
         "kind": "static_from",
-        "line": 179,
+        "line": 180,
         "name": "_comfy_max_resolution",
         "optional": false,
         "requested": "easyuse_anima.infrastructure.comfy.capabilities",
@@ -10725,7 +10756,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -10740,7 +10771,7 @@
         "conditional": true,
         "imported": "easyuse_anima.infrastructure.comfy.capabilities:_comfy_sampler_names",
         "kind": "static_from",
-        "line": 179,
+        "line": 180,
         "name": "_comfy_sampler_names",
         "optional": false,
         "requested": "easyuse_anima.infrastructure.comfy.capabilities",
@@ -10759,7 +10790,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -10774,7 +10805,7 @@
         "conditional": true,
         "imported": "easyuse_anima.infrastructure.comfy.capabilities:_comfy_scheduler_names",
         "kind": "static_from",
-        "line": 179,
+        "line": 180,
         "name": "_comfy_scheduler_names",
         "optional": false,
         "requested": "easyuse_anima.infrastructure.comfy.capabilities",
@@ -10793,7 +10824,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -10808,7 +10839,7 @@
         "conditional": true,
         "imported": "easyuse_anima.infrastructure.comfy.capabilities:_find_comfy_node_class",
         "kind": "static_from",
-        "line": 179,
+        "line": 180,
         "name": "_find_comfy_node_class",
         "optional": false,
         "requested": "easyuse_anima.infrastructure.comfy.capabilities",
@@ -10827,7 +10858,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -10842,7 +10873,7 @@
         "conditional": true,
         "imported": "easyuse_anima.infrastructure.comfy.capabilities:_find_loaded_node_class",
         "kind": "static_from",
-        "line": 179,
+        "line": 180,
         "name": "_find_loaded_node_class",
         "optional": false,
         "requested": "easyuse_anima.infrastructure.comfy.capabilities",
@@ -10861,7 +10892,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -10876,7 +10907,7 @@
         "conditional": true,
         "imported": "easyuse_anima.infrastructure.comfy.capabilities:_require_any_custom_node_class",
         "kind": "static_from",
-        "line": 179,
+        "line": 180,
         "name": "_require_any_custom_node_class",
         "optional": false,
         "requested": "easyuse_anima.infrastructure.comfy.capabilities",
@@ -10895,7 +10926,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -10910,7 +10941,7 @@
         "conditional": true,
         "imported": "easyuse_anima.infrastructure.comfy.capabilities:_require_custom_node_class",
         "kind": "static_from",
-        "line": 179,
+        "line": 180,
         "name": "_require_custom_node_class",
         "optional": false,
         "requested": "easyuse_anima.infrastructure.comfy.capabilities",
@@ -10929,7 +10960,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -10944,7 +10975,7 @@
         "conditional": true,
         "imported": "easyuse_anima.infrastructure.comfy.invocation:_call_with_supported_kwargs",
         "kind": "static_from",
-        "line": 188,
+        "line": 189,
         "name": "_call_with_supported_kwargs",
         "optional": false,
         "requested": "easyuse_anima.infrastructure.comfy.invocation",
@@ -10963,7 +10994,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -10978,7 +11009,7 @@
         "conditional": true,
         "imported": "easyuse_anima.infrastructure.comfy.invocation:_common_upscale_image",
         "kind": "static_from",
-        "line": 188,
+        "line": 189,
         "name": "_common_upscale_image",
         "optional": false,
         "requested": "easyuse_anima.infrastructure.comfy.invocation",
@@ -10997,7 +11028,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -11012,7 +11043,7 @@
         "conditional": true,
         "imported": "easyuse_anima.infrastructure.comfy.invocation:_node_output_tuple",
         "kind": "static_from",
-        "line": 188,
+        "line": 189,
         "name": "_node_output_tuple",
         "optional": false,
         "requested": "easyuse_anima.infrastructure.comfy.invocation",
@@ -11031,7 +11062,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -11046,7 +11077,7 @@
         "conditional": true,
         "imported": "easyuse_anima.infrastructure.comfy.resources:_comfy_checkpoint_names",
         "kind": "static_from",
-        "line": 193,
+        "line": 194,
         "name": "_comfy_checkpoint_names",
         "optional": false,
         "requested": "easyuse_anima.infrastructure.comfy.resources",
@@ -11065,7 +11096,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -11080,7 +11111,7 @@
         "conditional": true,
         "imported": "easyuse_anima.infrastructure.comfy.resources:_comfy_clip_loader_types",
         "kind": "static_from",
-        "line": 193,
+        "line": 194,
         "name": "_comfy_clip_loader_types",
         "optional": false,
         "requested": "easyuse_anima.infrastructure.comfy.resources",
@@ -11099,7 +11130,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -11114,7 +11145,7 @@
         "conditional": true,
         "imported": "easyuse_anima.infrastructure.comfy.resources:_comfy_diffusion_model_names",
         "kind": "static_from",
-        "line": 193,
+        "line": 194,
         "name": "_comfy_diffusion_model_names",
         "optional": false,
         "requested": "easyuse_anima.infrastructure.comfy.resources",
@@ -11133,7 +11164,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -11148,7 +11179,7 @@
         "conditional": true,
         "imported": "easyuse_anima.infrastructure.comfy.resources:_comfy_text_encoder_names",
         "kind": "static_from",
-        "line": 193,
+        "line": 194,
         "name": "_comfy_text_encoder_names",
         "optional": false,
         "requested": "easyuse_anima.infrastructure.comfy.resources",
@@ -11167,7 +11198,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -11182,7 +11213,7 @@
         "conditional": true,
         "imported": "easyuse_anima.infrastructure.comfy.resources:_comfy_vae_names",
         "kind": "static_from",
-        "line": 193,
+        "line": 194,
         "name": "_comfy_vae_names",
         "optional": false,
         "requested": "easyuse_anima.infrastructure.comfy.resources",
@@ -11201,7 +11232,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -11216,7 +11247,7 @@
         "conditional": true,
         "imported": "easyuse_anima.infrastructure.comfy.resources:_folder_path_names",
         "kind": "static_from",
-        "line": 193,
+        "line": 194,
         "name": "_folder_path_names",
         "optional": false,
         "requested": "easyuse_anima.infrastructure.comfy.resources",
@@ -11235,7 +11266,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -11250,7 +11281,7 @@
         "conditional": true,
         "imported": "easyuse_anima.nodes.image_nodes:EasyUseAnimaDetailerAlignHook",
         "kind": "static_from",
-        "line": 201,
+        "line": 202,
         "name": "EasyUseAnimaDetailerAlignHook",
         "optional": false,
         "requested": "easyuse_anima.nodes.image_nodes",
@@ -11269,7 +11300,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -11284,7 +11315,7 @@
         "conditional": true,
         "imported": "easyuse_anima.nodes.image_nodes:EasyUseAnimaImageScaleByMultiple",
         "kind": "static_from",
-        "line": 201,
+        "line": 202,
         "name": "EasyUseAnimaImageScaleByMultiple",
         "optional": false,
         "requested": "easyuse_anima.nodes.image_nodes",
@@ -11303,7 +11334,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -11318,7 +11349,7 @@
         "conditional": true,
         "imported": "easyuse_anima.naia.client:DEFAULT_HOST",
         "kind": "static_from",
-        "line": 205,
+        "line": 206,
         "name": "DEFAULT_HOST",
         "optional": false,
         "requested": "easyuse_anima.naia.client",
@@ -11337,7 +11368,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -11352,7 +11383,7 @@
         "conditional": true,
         "imported": "easyuse_anima.naia.client:DEFAULT_PORT",
         "kind": "static_from",
-        "line": 205,
+        "line": 206,
         "name": "DEFAULT_PORT",
         "optional": false,
         "requested": "easyuse_anima.naia.client",
@@ -11371,7 +11402,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -11386,7 +11417,7 @@
         "conditional": true,
         "imported": "easyuse_anima.naia.client:HTTP_TIMEOUT",
         "kind": "static_from",
-        "line": 205,
+        "line": 206,
         "name": "HTTP_TIMEOUT",
         "optional": false,
         "requested": "easyuse_anima.naia.client",
@@ -11405,7 +11436,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -11420,7 +11451,7 @@
         "conditional": true,
         "imported": "easyuse_anima.naia.client:LATENT_ALIGN",
         "kind": "static_from",
-        "line": 205,
+        "line": 206,
         "name": "LATENT_ALIGN",
         "optional": false,
         "requested": "easyuse_anima.naia.client",
@@ -11439,7 +11470,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -11454,7 +11485,7 @@
         "conditional": true,
         "imported": "easyuse_anima.naia.client:NAIA_LOCAL_HOSTS",
         "kind": "static_from",
-        "line": 205,
+        "line": 206,
         "name": "NAIA_LOCAL_HOSTS",
         "optional": false,
         "requested": "easyuse_anima.naia.client",
@@ -11473,7 +11504,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -11488,7 +11519,7 @@
         "conditional": true,
         "imported": "easyuse_anima.naia.client:NAIA_MAX_RESOLUTION",
         "kind": "static_from",
-        "line": 205,
+        "line": 206,
         "name": "NAIA_MAX_RESOLUTION",
         "optional": false,
         "requested": "easyuse_anima.naia.client",
@@ -11507,7 +11538,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -11522,7 +11553,7 @@
         "conditional": true,
         "imported": "easyuse_anima.naia.client:NAIA_REQUEST_TIMEOUT",
         "kind": "static_from",
-        "line": 205,
+        "line": 206,
         "name": "NAIA_REQUEST_TIMEOUT",
         "optional": false,
         "requested": "easyuse_anima.naia.client",
@@ -11541,7 +11572,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -11556,7 +11587,7 @@
         "conditional": true,
         "imported": "easyuse_anima.naia.client:NAI_1MP",
         "kind": "static_from",
-        "line": 205,
+        "line": 206,
         "name": "NAI_1MP",
         "optional": false,
         "requested": "easyuse_anima.naia.client",
@@ -11575,7 +11606,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -11590,7 +11621,7 @@
         "conditional": true,
         "imported": "easyuse_anima.naia.client:PP_STATE_CHOICES",
         "kind": "static_from",
-        "line": 205,
+        "line": 206,
         "name": "PP_STATE_CHOICES",
         "optional": false,
         "requested": "easyuse_anima.naia.client",
@@ -11609,7 +11640,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -11624,7 +11655,7 @@
         "conditional": true,
         "imported": "easyuse_anima.naia.client:PREPROCESSING_KEYS",
         "kind": "static_from",
-        "line": 205,
+        "line": 206,
         "name": "PREPROCESSING_KEYS",
         "optional": false,
         "requested": "easyuse_anima.naia.client",
@@ -11643,7 +11674,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -11658,8 +11689,42 @@
         "conditional": true,
         "imported": "easyuse_anima.naia.client:_build_naia_random_url",
         "kind": "static_from",
-        "line": 205,
+        "line": 206,
         "name": "_build_naia_random_url",
+        "optional": false,
+        "requested": "easyuse_anima.naia.client",
+        "role": "compatibility_fallback",
+        "scope": "<module>",
+        "source": "nodes.py",
+        "target": "easyuse_anima/naia/client.py"
+      },
+      {
+        "alias": "_clean_prompt",
+        "bound_name": "_clean_prompt",
+        "branch_context": [
+          {
+            "branch": "except",
+            "catches_import_error": true,
+            "exceptions": [
+              "ImportError"
+            ],
+            "handler_line": 149,
+            "kind": "try",
+            "line": 14
+          }
+        ],
+        "classification": "compatibility_fallback",
+        "column": 4,
+        "compatibility_pair": {
+          "bound_name": "_clean_prompt",
+          "target": "easyuse_anima/naia/client.py",
+          "try_line": 14
+        },
+        "conditional": true,
+        "imported": "easyuse_anima.naia.client:_clean_prompt",
+        "kind": "static_from",
+        "line": 206,
+        "name": "_clean_prompt",
         "optional": false,
         "requested": "easyuse_anima.naia.client",
         "role": "compatibility_fallback",
@@ -11677,7 +11742,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -11692,7 +11757,7 @@
         "conditional": true,
         "imported": "easyuse_anima.naia.client:_fit_to_1mp",
         "kind": "static_from",
-        "line": 205,
+        "line": 206,
         "name": "_fit_to_1mp",
         "optional": false,
         "requested": "easyuse_anima.naia.client",
@@ -11711,7 +11776,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -11726,7 +11791,7 @@
         "conditional": true,
         "imported": "easyuse_anima.naia.client:_is_local_naia_host",
         "kind": "static_from",
-        "line": 205,
+        "line": 206,
         "name": "_is_local_naia_host",
         "optional": false,
         "requested": "easyuse_anima.naia.client",
@@ -11745,7 +11810,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -11760,7 +11825,7 @@
         "conditional": true,
         "imported": "easyuse_anima.naia.client:_parse_random_response",
         "kind": "static_from",
-        "line": 205,
+        "line": 206,
         "name": "_parse_random_response",
         "optional": false,
         "requested": "easyuse_anima.naia.client",
@@ -11779,7 +11844,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -11794,7 +11859,7 @@
         "conditional": true,
         "imported": "easyuse_anima.naia.client:_post_random",
         "kind": "static_from",
-        "line": 205,
+        "line": 206,
         "name": "_post_random",
         "optional": false,
         "requested": "easyuse_anima.naia.client",
@@ -11813,7 +11878,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -11828,7 +11893,7 @@
         "conditional": true,
         "imported": "easyuse_anima.naia.resolution:ADVANCED_RESOLUTION_BUCKETS",
         "kind": "static_from",
-        "line": 222,
+        "line": 224,
         "name": "ADVANCED_RESOLUTION_BUCKETS",
         "optional": false,
         "requested": "easyuse_anima.naia.resolution",
@@ -11847,7 +11912,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -11862,7 +11927,7 @@
         "conditional": true,
         "imported": "easyuse_anima.naia.resolution:CUSTOM_ADVANCED_RESOLUTION_BUCKET",
         "kind": "static_from",
-        "line": 222,
+        "line": 224,
         "name": "CUSTOM_ADVANCED_RESOLUTION_BUCKET",
         "optional": false,
         "requested": "easyuse_anima.naia.resolution",
@@ -11881,7 +11946,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -11896,7 +11961,7 @@
         "conditional": true,
         "imported": "easyuse_anima.naia.resolution:DEFAULT_ADVANCED_RESOLUTION_BUCKET",
         "kind": "static_from",
-        "line": 222,
+        "line": 224,
         "name": "DEFAULT_ADVANCED_RESOLUTION_BUCKET",
         "optional": false,
         "requested": "easyuse_anima.naia.resolution",
@@ -11915,7 +11980,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -11930,7 +11995,7 @@
         "conditional": true,
         "imported": "easyuse_anima.naia.resolution:DEFAULT_ADVANCED_RESOLUTION_SIZE",
         "kind": "static_from",
-        "line": 222,
+        "line": 224,
         "name": "DEFAULT_ADVANCED_RESOLUTION_SIZE",
         "optional": false,
         "requested": "easyuse_anima.naia.resolution",
@@ -11949,7 +12014,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -11964,7 +12029,7 @@
         "conditional": true,
         "imported": "easyuse_anima.naia.resolution:NAIA_ADVANCED_RESOLUTION_BUCKET",
         "kind": "static_from",
-        "line": 222,
+        "line": 224,
         "name": "NAIA_ADVANCED_RESOLUTION_BUCKET",
         "optional": false,
         "requested": "easyuse_anima.naia.resolution",
@@ -11983,7 +12048,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -11998,7 +12063,7 @@
         "conditional": true,
         "imported": "easyuse_anima.naia.resolution:NAIA_RESOLUTION_MODE_BUCKET",
         "kind": "static_from",
-        "line": 222,
+        "line": 224,
         "name": "NAIA_RESOLUTION_MODE_BUCKET",
         "optional": false,
         "requested": "easyuse_anima.naia.resolution",
@@ -12017,7 +12082,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -12032,7 +12097,7 @@
         "conditional": true,
         "imported": "easyuse_anima.naia.resolution:NAIA_RESOLUTION_MODE_SCALE",
         "kind": "static_from",
-        "line": 222,
+        "line": 224,
         "name": "NAIA_RESOLUTION_MODE_SCALE",
         "optional": false,
         "requested": "easyuse_anima.naia.resolution",
@@ -12051,7 +12116,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -12066,7 +12131,7 @@
         "conditional": true,
         "imported": "easyuse_anima.naia.resolution:_advanced_resolution_from_selection",
         "kind": "static_from",
-        "line": 222,
+        "line": 224,
         "name": "_advanced_resolution_from_selection",
         "optional": false,
         "requested": "easyuse_anima.naia.resolution",
@@ -12085,7 +12150,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -12100,7 +12165,7 @@
         "conditional": true,
         "imported": "easyuse_anima.naia.resolution:_fit_naia_resolution_to_bucket",
         "kind": "static_from",
-        "line": 222,
+        "line": 224,
         "name": "_fit_naia_resolution_to_bucket",
         "optional": false,
         "requested": "easyuse_anima.naia.resolution",
@@ -12119,7 +12184,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -12134,7 +12199,7 @@
         "conditional": true,
         "imported": "easyuse_anima.naia.resolution:_normalize_resolution_bucket",
         "kind": "static_from",
-        "line": 222,
+        "line": 224,
         "name": "_normalize_resolution_bucket",
         "optional": false,
         "requested": "easyuse_anima.naia.resolution",
@@ -12153,7 +12218,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -12168,7 +12233,7 @@
         "conditional": true,
         "imported": "easyuse_anima.naia.resolution:_ratio_label",
         "kind": "static_from",
-        "line": 222,
+        "line": 224,
         "name": "_ratio_label",
         "optional": false,
         "requested": "easyuse_anima.naia.resolution",
@@ -12187,7 +12252,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -12202,7 +12267,7 @@
         "conditional": true,
         "imported": "easyuse_anima.naia.resolution:_resolution_label",
         "kind": "static_from",
-        "line": 222,
+        "line": 224,
         "name": "_resolution_label",
         "optional": false,
         "requested": "easyuse_anima.naia.resolution",
@@ -12221,7 +12286,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -12236,7 +12301,7 @@
         "conditional": true,
         "imported": "easyuse_anima.naia.resolution:_resolve_naia_resolution",
         "kind": "static_from",
-        "line": 222,
+        "line": 224,
         "name": "_resolve_naia_resolution",
         "optional": false,
         "requested": "easyuse_anima.naia.resolution",
@@ -12255,7 +12320,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -12270,7 +12335,7 @@
         "conditional": true,
         "imported": "easyuse_anima.naia.resolution:_resolve_naia_resolution_bucket",
         "kind": "static_from",
-        "line": 222,
+        "line": 224,
         "name": "_resolve_naia_resolution_bucket",
         "optional": false,
         "requested": "easyuse_anima.naia.resolution",
@@ -12289,7 +12354,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -12304,7 +12369,7 @@
         "conditional": true,
         "imported": "easyuse_anima.naia.resolution:_resolve_naia_resolution_max_long_edge",
         "kind": "static_from",
-        "line": 222,
+        "line": 224,
         "name": "_resolve_naia_resolution_max_long_edge",
         "optional": false,
         "requested": "easyuse_anima.naia.resolution",
@@ -12323,7 +12388,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -12338,7 +12403,7 @@
         "conditional": true,
         "imported": "easyuse_anima.naia.resolution:_resolve_naia_resolution_mode",
         "kind": "static_from",
-        "line": 222,
+        "line": 224,
         "name": "_resolve_naia_resolution_mode",
         "optional": false,
         "requested": "easyuse_anima.naia.resolution",
@@ -12357,7 +12422,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -12372,7 +12437,7 @@
         "conditional": true,
         "imported": "easyuse_anima.naia.resolution:_resolve_naia_resolution_scale",
         "kind": "static_from",
-        "line": 222,
+        "line": 224,
         "name": "_resolve_naia_resolution_scale",
         "optional": false,
         "requested": "easyuse_anima.naia.resolution",
@@ -12391,7 +12456,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -12406,7 +12471,7 @@
         "conditional": true,
         "imported": "easyuse_anima.naia.resolution:_scale_naia_resolution",
         "kind": "static_from",
-        "line": 222,
+        "line": 224,
         "name": "_scale_naia_resolution",
         "optional": false,
         "requested": "easyuse_anima.naia.resolution",
@@ -12425,7 +12490,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -12440,7 +12505,7 @@
         "conditional": true,
         "imported": "easyuse_anima.naia.resolution:_snap_resolution_32",
         "kind": "static_from",
-        "line": 222,
+        "line": 224,
         "name": "_snap_resolution_32",
         "optional": false,
         "requested": "easyuse_anima.naia.resolution",
@@ -12459,7 +12524,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -12474,7 +12539,7 @@
         "conditional": true,
         "imported": "easyuse_anima.naia.resolution:_snap_scaled_resolution_32",
         "kind": "static_from",
-        "line": 222,
+        "line": 224,
         "name": "_snap_scaled_resolution_32",
         "optional": false,
         "requested": "easyuse_anima.naia.resolution",
@@ -12493,7 +12558,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -12508,7 +12573,7 @@
         "conditional": true,
         "imported": "easyuse_anima.naia.resolution:_sorted_resolution_options",
         "kind": "static_from",
-        "line": 222,
+        "line": 224,
         "name": "_sorted_resolution_options",
         "optional": false,
         "requested": "easyuse_anima.naia.resolution",
@@ -12527,7 +12592,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -12542,7 +12607,7 @@
         "conditional": true,
         "imported": "easyuse_anima.nodes.naia_nodes:EasyUseAnimaNAIARandomPrompt",
         "kind": "static_from",
-        "line": 245,
+        "line": 247,
         "name": "EasyUseAnimaNAIARandomPrompt",
         "optional": false,
         "requested": "easyuse_anima.nodes.naia_nodes",
@@ -12561,7 +12626,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -12576,7 +12641,7 @@
         "conditional": true,
         "imported": "easyuse_anima.nodes.naia_nodes:_bind_naia_node_runtime",
         "kind": "static_from",
-        "line": 245,
+        "line": 247,
         "name": "_bind_naia_node_runtime",
         "optional": false,
         "requested": "easyuse_anima.nodes.naia_nodes",
@@ -12595,7 +12660,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -12610,7 +12675,7 @@
         "conditional": true,
         "imported": "easyuse_anima.nodes.wildcard_nodes:EasyUseAnimaWildcard",
         "kind": "static_from",
-        "line": 249,
+        "line": 251,
         "name": "EasyUseAnimaWildcard",
         "optional": false,
         "requested": "easyuse_anima.nodes.wildcard_nodes",
@@ -12629,7 +12694,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -12644,7 +12709,7 @@
         "conditional": true,
         "imported": "easyuse_anima.nodes.wildcard_nodes:WILDCARD_SEED_RANGE_NOTE",
         "kind": "static_from",
-        "line": 249,
+        "line": 251,
         "name": "WILDCARD_SEED_RANGE_NOTE",
         "optional": false,
         "requested": "easyuse_anima.nodes.wildcard_nodes",
@@ -12663,7 +12728,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -12678,7 +12743,7 @@
         "conditional": true,
         "imported": "easyuse_anima.nodes.wildcard_nodes:_bind_wildcard_node_runtime",
         "kind": "static_from",
-        "line": 249,
+        "line": 251,
         "name": "_bind_wildcard_node_runtime",
         "optional": false,
         "requested": "easyuse_anima.nodes.wildcard_nodes",
@@ -12697,7 +12762,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -12712,7 +12777,7 @@
         "conditional": true,
         "imported": "anima_prompt:correct_prompt",
         "kind": "static_from",
-        "line": 254,
+        "line": 256,
         "name": "correct_prompt",
         "optional": false,
         "requested": "anima_prompt",
@@ -12731,7 +12796,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -12746,7 +12811,7 @@
         "conditional": true,
         "imported": "anima_prompt:load_knowledge_base",
         "kind": "static_from",
-        "line": 254,
+        "line": 256,
         "name": "load_knowledge_base",
         "optional": false,
         "requested": "anima_prompt",
@@ -12765,7 +12830,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -12780,7 +12845,7 @@
         "conditional": true,
         "imported": "anima_prompt.parser:parse_prompt",
         "kind": "static_from",
-        "line": 255,
+        "line": 257,
         "name": "parse_prompt",
         "optional": false,
         "requested": "anima_prompt.parser",
@@ -12799,7 +12864,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -12814,7 +12879,7 @@
         "conditional": true,
         "imported": "settings:resolve_metadata_filter_words",
         "kind": "static_from",
-        "line": 256,
+        "line": 258,
         "name": "resolve_metadata_filter_words",
         "optional": false,
         "requested": "settings",
@@ -12833,7 +12898,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -12848,7 +12913,7 @@
         "conditional": true,
         "imported": "settings:resolve_naia_settings",
         "kind": "static_from",
-        "line": 256,
+        "line": 258,
         "name": "resolve_naia_settings",
         "optional": false,
         "requested": "settings",
@@ -12867,7 +12932,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -12882,7 +12947,7 @@
         "conditional": true,
         "imported": "settings:resolve_prompt_translation_settings",
         "kind": "static_from",
-        "line": 256,
+        "line": 258,
         "name": "resolve_prompt_translation_settings",
         "optional": false,
         "requested": "settings",
@@ -12901,7 +12966,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -12916,7 +12981,7 @@
         "conditional": true,
         "imported": "prompt_translation:has_prompt_translation_markers",
         "kind": "static_from",
-        "line": 261,
+        "line": 263,
         "name": "has_prompt_translation_markers",
         "optional": false,
         "requested": "prompt_translation",
@@ -12935,7 +13000,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -12950,7 +13015,7 @@
         "conditional": true,
         "imported": "prompt_translation:translate_prompt_markers",
         "kind": "static_from",
-        "line": 261,
+        "line": 263,
         "name": "translate_prompt_markers",
         "optional": false,
         "requested": "prompt_translation",
@@ -12969,7 +13034,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -12984,7 +13049,7 @@
         "conditional": true,
         "imported": "wildcard_engine:MAX_SEED",
         "kind": "static_from",
-        "line": 262,
+        "line": 264,
         "name": "MAX_SEED",
         "optional": false,
         "requested": "wildcard_engine",
@@ -13003,7 +13068,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -13018,7 +13083,7 @@
         "conditional": true,
         "imported": "wildcard_engine:PUBLIC_MAX_SEED",
         "kind": "static_from",
-        "line": 262,
+        "line": 264,
         "name": "PUBLIC_MAX_SEED",
         "optional": false,
         "requested": "wildcard_engine",
@@ -13037,7 +13102,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -13052,7 +13117,7 @@
         "conditional": true,
         "imported": "wildcard_engine:SEED_CONTROL_DECREMENT",
         "kind": "static_from",
-        "line": 262,
+        "line": 264,
         "name": "SEED_CONTROL_DECREMENT",
         "optional": false,
         "requested": "wildcard_engine",
@@ -13071,7 +13136,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -13086,7 +13151,7 @@
         "conditional": true,
         "imported": "wildcard_engine:SEED_CONTROL_FIXED",
         "kind": "static_from",
-        "line": 262,
+        "line": 264,
         "name": "SEED_CONTROL_FIXED",
         "optional": false,
         "requested": "wildcard_engine",
@@ -13105,7 +13170,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -13120,7 +13185,7 @@
         "conditional": true,
         "imported": "wildcard_engine:SEED_CONTROL_INCREMENT",
         "kind": "static_from",
-        "line": 262,
+        "line": 264,
         "name": "SEED_CONTROL_INCREMENT",
         "optional": false,
         "requested": "wildcard_engine",
@@ -13139,7 +13204,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -13154,7 +13219,7 @@
         "conditional": true,
         "imported": "wildcard_engine:SEED_CONTROL_MODES",
         "kind": "static_from",
-        "line": 262,
+        "line": 264,
         "name": "SEED_CONTROL_MODES",
         "optional": false,
         "requested": "wildcard_engine",
@@ -13173,7 +13238,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -13188,7 +13253,7 @@
         "conditional": true,
         "imported": "wildcard_engine:SEED_CONTROL_RANDOMIZE",
         "kind": "static_from",
-        "line": 262,
+        "line": 264,
         "name": "SEED_CONTROL_RANDOMIZE",
         "optional": false,
         "requested": "wildcard_engine",
@@ -13207,7 +13272,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -13222,7 +13287,7 @@
         "conditional": true,
         "imported": "wildcard_engine:WILDCARD_MODE_FIXED",
         "kind": "static_from",
-        "line": 262,
+        "line": 264,
         "name": "WILDCARD_MODE_FIXED",
         "optional": false,
         "requested": "wildcard_engine",
@@ -13241,7 +13306,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -13256,7 +13321,7 @@
         "conditional": true,
         "imported": "wildcard_engine:WILDCARD_MODE_LABELS",
         "kind": "static_from",
-        "line": 262,
+        "line": 264,
         "name": "WILDCARD_MODE_LABELS",
         "optional": false,
         "requested": "wildcard_engine",
@@ -13275,7 +13340,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -13290,7 +13355,7 @@
         "conditional": true,
         "imported": "wildcard_engine:WILDCARD_MODE_POPULATE",
         "kind": "static_from",
-        "line": 262,
+        "line": 264,
         "name": "WILDCARD_MODE_POPULATE",
         "optional": false,
         "requested": "wildcard_engine",
@@ -13309,7 +13374,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -13324,7 +13389,7 @@
         "conditional": true,
         "imported": "wildcard_engine:WILDCARD_MODE_REPRODUCE",
         "kind": "static_from",
-        "line": 262,
+        "line": 264,
         "name": "WILDCARD_MODE_REPRODUCE",
         "optional": false,
         "requested": "wildcard_engine",
@@ -13343,7 +13408,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -13358,7 +13423,7 @@
         "conditional": true,
         "imported": "wildcard_engine:WILDCARD_MODE_SEQUENTIAL",
         "kind": "static_from",
-        "line": 262,
+        "line": 264,
         "name": "WILDCARD_MODE_SEQUENTIAL",
         "optional": false,
         "requested": "wildcard_engine",
@@ -13377,7 +13442,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -13392,7 +13457,7 @@
         "conditional": true,
         "imported": "wildcard_engine:expand_wildcards",
         "kind": "static_from",
-        "line": 262,
+        "line": 264,
         "name": "expand_wildcards",
         "optional": false,
         "requested": "wildcard_engine",
@@ -13411,7 +13476,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -13426,7 +13491,7 @@
         "conditional": true,
         "imported": "wildcard_engine:has_wildcard_syntax",
         "kind": "static_from",
-        "line": 262,
+        "line": 264,
         "name": "has_wildcard_syntax",
         "optional": false,
         "requested": "wildcard_engine",
@@ -13445,7 +13510,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -13460,7 +13525,7 @@
         "conditional": true,
         "imported": "wildcard_engine:next_seed",
         "kind": "static_from",
-        "line": 262,
+        "line": 264,
         "name": "next_seed",
         "optional": false,
         "requested": "wildcard_engine",
@@ -13479,7 +13544,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -13494,7 +13559,7 @@
         "conditional": true,
         "imported": "wildcard_engine:normalize_seed",
         "kind": "static_from",
-        "line": 262,
+        "line": 264,
         "name": "normalize_seed",
         "optional": false,
         "requested": "wildcard_engine",
@@ -13513,7 +13578,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -13528,7 +13593,7 @@
         "conditional": true,
         "imported": "wildcard_engine:normalize_wildcard_mode",
         "kind": "static_from",
-        "line": 262,
+        "line": 264,
         "name": "normalize_wildcard_mode",
         "optional": false,
         "requested": "wildcard_engine",
@@ -13547,7 +13612,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -13562,7 +13627,7 @@
         "conditional": true,
         "imported": "wildcard_engine:wildcard_sources_signature",
         "kind": "static_from",
-        "line": 262,
+        "line": 264,
         "name": "wildcard_sources_signature",
         "optional": false,
         "requested": "wildcard_engine",
@@ -13580,7 +13645,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 1953
+            "line": 1945
           }
         ],
         "classification": "external",
@@ -13588,7 +13653,7 @@
         "conditional": true,
         "imported": "nodes",
         "kind": "static_import",
-        "line": 1954,
+        "line": 1946,
         "name": null,
         "optional": true,
         "requested": "nodes",
@@ -13605,7 +13670,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 2018
+            "line": 2010
           }
         ],
         "classification": "external",
@@ -13613,7 +13678,7 @@
         "conditional": true,
         "imported": "impact.core",
         "kind": "static_import",
-        "line": 2019,
+        "line": 2011,
         "name": null,
         "optional": true,
         "requested": "impact.core",
@@ -13630,7 +13695,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 2024
+            "line": 2016
           }
         ],
         "classification": "external",
@@ -13638,7 +13703,7 @@
         "conditional": true,
         "imported": "modules.impact:core",
         "kind": "static_from",
-        "line": 2025,
+        "line": 2017,
         "name": "core",
         "optional": true,
         "requested": "modules.impact",
@@ -13655,7 +13720,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 2040
+            "line": 2032
           }
         ],
         "classification": "external",
@@ -13663,7 +13728,7 @@
         "conditional": true,
         "imported": "comfy.samplers",
         "kind": "static_import",
-        "line": 2041,
+        "line": 2033,
         "name": null,
         "optional": true,
         "requested": "comfy.samplers",
@@ -13680,7 +13745,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 2049
+            "line": 2041
           }
         ],
         "classification": "external",
@@ -13688,7 +13753,7 @@
         "conditional": true,
         "imported": "nodes",
         "kind": "static_import",
-        "line": 2050,
+        "line": 2042,
         "name": null,
         "optional": true,
         "requested": "nodes",
@@ -13705,7 +13770,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 2065
+            "line": 2057
           }
         ],
         "classification": "external",
@@ -13713,7 +13778,7 @@
         "conditional": true,
         "imported": "impact.impact_pack:DetailerForEach",
         "kind": "static_from",
-        "line": 2066,
+        "line": 2058,
         "name": "DetailerForEach",
         "optional": true,
         "requested": "impact.impact_pack",
@@ -13730,7 +13795,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 2071
+            "line": 2063
           }
         ],
         "classification": "external",
@@ -13738,7 +13803,7 @@
         "conditional": true,
         "imported": "modules.impact.impact_pack:DetailerForEach",
         "kind": "static_from",
-        "line": 2072,
+        "line": 2064,
         "name": "DetailerForEach",
         "optional": true,
         "requested": "modules.impact.impact_pack",
@@ -13755,7 +13820,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 2085
+            "line": 2077
           }
         ],
         "classification": "external",
@@ -13763,7 +13828,7 @@
         "conditional": true,
         "imported": "nodes",
         "kind": "static_import",
-        "line": 2086,
+        "line": 2078,
         "name": null,
         "optional": true,
         "requested": "nodes",
@@ -13780,7 +13845,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 2184
+            "line": 2176
           }
         ],
         "classification": "external",
@@ -13788,7 +13853,7 @@
         "conditional": true,
         "imported": "comfy_extras.nodes_sam3:SAM3_Detect",
         "kind": "static_from",
-        "line": 2185,
+        "line": 2177,
         "name": "SAM3_Detect",
         "optional": true,
         "requested": "comfy_extras.nodes_sam3",
@@ -13805,7 +13870,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 2208
+            "line": 2200
           }
         ],
         "classification": "external",
@@ -13813,7 +13878,7 @@
         "conditional": true,
         "imported": "impact.segs_nodes:MaskToSEGS",
         "kind": "static_from",
-        "line": 2209,
+        "line": 2201,
         "name": "MaskToSEGS",
         "optional": true,
         "requested": "impact.segs_nodes",
@@ -13830,7 +13895,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 2214
+            "line": 2206
           }
         ],
         "classification": "external",
@@ -13838,7 +13903,7 @@
         "conditional": true,
         "imported": "modules.impact.segs_nodes:MaskToSEGS",
         "kind": "static_from",
-        "line": 2215,
+        "line": 2207,
         "name": "MaskToSEGS",
         "optional": true,
         "requested": "modules.impact.segs_nodes",
@@ -13855,7 +13920,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 2220
+            "line": 2212
           }
         ],
         "classification": "external",
@@ -13863,7 +13928,7 @@
         "conditional": true,
         "imported": "impact.impact_pack:MaskToSEGS",
         "kind": "static_from",
-        "line": 2221,
+        "line": 2213,
         "name": "MaskToSEGS",
         "optional": true,
         "requested": "impact.impact_pack",
@@ -13880,7 +13945,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 2226
+            "line": 2218
           }
         ],
         "classification": "external",
@@ -13888,7 +13953,7 @@
         "conditional": true,
         "imported": "modules.impact.impact_pack:MaskToSEGS",
         "kind": "static_from",
-        "line": 2227,
+        "line": 2219,
         "name": "MaskToSEGS",
         "optional": true,
         "requested": "modules.impact.impact_pack",
@@ -13905,7 +13970,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 2661
+            "line": 2653
           }
         ],
         "classification": "external",
@@ -13913,7 +13978,7 @@
         "conditional": true,
         "imported": "folder_paths",
         "kind": "static_import",
-        "line": 2662,
+        "line": 2654,
         "name": null,
         "optional": true,
         "requested": "folder_paths",
@@ -13930,7 +13995,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 2701
+            "line": 2693
           }
         ],
         "classification": "external",
@@ -13938,7 +14003,7 @@
         "conditional": true,
         "imported": "comfy.model_management",
         "kind": "static_import",
-        "line": 2702,
+        "line": 2694,
         "name": null,
         "optional": true,
         "requested": "comfy.model_management",
@@ -13953,7 +14018,7 @@
           {
             "branch": "body",
             "kind": "if",
-            "line": 3134,
+            "line": 3126,
             "type_checking": false
           },
           {
@@ -13961,7 +14026,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 3135
+            "line": 3127
           }
         ],
         "classification": "external",
@@ -13969,7 +14034,7 @@
         "conditional": true,
         "imported": "comfy_extras.nodes_upscale_model:UpscaleModelLoader",
         "kind": "static_from",
-        "line": 3136,
+        "line": 3128,
         "name": "UpscaleModelLoader",
         "optional": true,
         "requested": "comfy_extras.nodes_upscale_model",
@@ -13986,7 +14051,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 3935
+            "line": 3927
           }
         ],
         "classification": "external",
@@ -13994,7 +14059,7 @@
         "conditional": true,
         "imported": "folder_paths",
         "kind": "static_import",
-        "line": 3936,
+        "line": 3928,
         "name": null,
         "optional": true,
         "requested": "folder_paths",
@@ -14011,7 +14076,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 3997
+            "line": 3989
           }
         ],
         "classification": "external",
@@ -14019,7 +14084,7 @@
         "conditional": true,
         "imported": "server:PromptServer",
         "kind": "static_from",
-        "line": 3998,
+        "line": 3990,
         "name": "PromptServer",
         "optional": true,
         "requested": "server",
@@ -14036,7 +14101,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 4024
+            "line": 4016
           }
         ],
         "classification": "external",
@@ -14044,7 +14109,7 @@
         "conditional": true,
         "imported": "folder_paths",
         "kind": "static_import",
-        "line": 4025,
+        "line": 4017,
         "name": null,
         "optional": true,
         "requested": "folder_paths",
@@ -14061,7 +14126,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 4024
+            "line": 4016
           }
         ],
         "classification": "external",
@@ -14069,7 +14134,7 @@
         "conditional": true,
         "imported": "numpy",
         "kind": "static_import",
-        "line": 4026,
+        "line": 4018,
         "name": null,
         "optional": true,
         "requested": "numpy",
@@ -14086,7 +14151,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 4024
+            "line": 4016
           }
         ],
         "classification": "external",
@@ -14094,7 +14159,7 @@
         "conditional": true,
         "imported": "PIL:Image",
         "kind": "static_from",
-        "line": 4027,
+        "line": 4019,
         "name": "Image",
         "optional": true,
         "requested": "PIL",
@@ -14111,7 +14176,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 4218
+            "line": 4210
           }
         ],
         "classification": "external",
@@ -14119,7 +14184,7 @@
         "conditional": true,
         "imported": "torch",
         "kind": "static_import",
-        "line": 4219,
+        "line": 4211,
         "name": null,
         "optional": true,
         "requested": "torch",
@@ -14136,7 +14201,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 5069
+            "line": 5061
           }
         ],
         "classification": "external",
@@ -14144,7 +14209,7 @@
         "conditional": true,
         "imported": "torch",
         "kind": "static_import",
-        "line": 5070,
+        "line": 5062,
         "name": null,
         "optional": true,
         "requested": "torch",
@@ -14161,7 +14226,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 5086
+            "line": 5078
           }
         ],
         "classification": "external",
@@ -14169,7 +14234,7 @@
         "conditional": true,
         "imported": "torch",
         "kind": "static_import",
-        "line": 5087,
+        "line": 5079,
         "name": null,
         "optional": true,
         "requested": "torch",
@@ -14186,7 +14251,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 5107
+            "line": 5099
           }
         ],
         "classification": "external",
@@ -14194,7 +14259,7 @@
         "conditional": true,
         "imported": "torch",
         "kind": "static_import",
-        "line": 5108,
+        "line": 5100,
         "name": null,
         "optional": true,
         "requested": "torch",
@@ -14211,7 +14276,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 5184
+            "line": 5176
           }
         ],
         "classification": "external",
@@ -14219,7 +14284,7 @@
         "conditional": true,
         "imported": "torch",
         "kind": "static_import",
-        "line": 5185,
+        "line": 5177,
         "name": null,
         "optional": true,
         "requested": "torch",
@@ -14236,7 +14301,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 5983
+            "line": 5975
           }
         ],
         "classification": "external",
@@ -14244,7 +14309,7 @@
         "conditional": true,
         "imported": "torch",
         "kind": "static_import",
-        "line": 5984,
+        "line": 5976,
         "name": null,
         "optional": true,
         "requested": "torch",
@@ -14261,7 +14326,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 7008
+            "line": 7000
           }
         ],
         "classification": "external",
@@ -14269,7 +14334,7 @@
         "conditional": true,
         "imported": "torch",
         "kind": "static_import",
-        "line": 7009,
+        "line": 7001,
         "name": null,
         "optional": true,
         "requested": "torch",
@@ -14286,7 +14351,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 7042
+            "line": 7034
           }
         ],
         "classification": "external",
@@ -14294,7 +14359,7 @@
         "conditional": true,
         "imported": "torch",
         "kind": "static_import",
-        "line": 7043,
+        "line": 7035,
         "name": null,
         "optional": true,
         "requested": "torch",
@@ -14311,7 +14376,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 7267
+            "line": 7259
           }
         ],
         "classification": "external",
@@ -14319,7 +14384,7 @@
         "conditional": true,
         "imported": "py.nodes.utils:apply_lora_syntax_format",
         "kind": "static_from",
-        "line": 7268,
+        "line": 7260,
         "name": "apply_lora_syntax_format",
         "optional": true,
         "requested": "py.nodes.utils",
@@ -14336,7 +14401,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 7277
+            "line": 7269
           }
         ],
         "classification": "external",
@@ -14344,7 +14409,7 @@
         "conditional": true,
         "imported": "folder_paths",
         "kind": "static_import",
-        "line": 7278,
+        "line": 7270,
         "name": null,
         "optional": true,
         "requested": "folder_paths",
@@ -14361,7 +14426,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 7299
+            "line": 7291
           }
         ],
         "classification": "external",
@@ -14369,7 +14434,7 @@
         "conditional": true,
         "imported": "folder_paths",
         "kind": "static_import",
-        "line": 7300,
+        "line": 7292,
         "name": null,
         "optional": true,
         "requested": "folder_paths",
@@ -14386,7 +14451,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 7404
+            "line": 7396
           }
         ],
         "classification": "external",
@@ -14394,7 +14459,7 @@
         "conditional": true,
         "imported": "py.utils.utils:get_lora_info",
         "kind": "static_from",
-        "line": 7405,
+        "line": 7397,
         "name": "get_lora_info",
         "optional": true,
         "requested": "py.utils.utils",
@@ -14411,7 +14476,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 7448
+            "line": 7440
           }
         ],
         "classification": "external",
@@ -14419,7 +14484,7 @@
         "conditional": true,
         "imported": "folder_paths",
         "kind": "static_import",
-        "line": 7449,
+        "line": 7441,
         "name": null,
         "optional": true,
         "requested": "folder_paths",
@@ -14436,7 +14501,7 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 7473
+            "line": 7465
           }
         ],
         "classification": "external",
@@ -14444,7 +14509,7 @@
         "conditional": true,
         "imported": "folder_paths",
         "kind": "static_import",
-        "line": 7474,
+        "line": 7466,
         "name": null,
         "optional": true,
         "requested": "folder_paths",
@@ -16892,14 +16957,14 @@
       },
       {
         "is_package": false,
-        "loc": 11173,
+        "loc": 11165,
         "module": "nodes",
-        "normalized_git_blob_sha1": "b71aa17bd93a561b3597a7b9bd11296cb32dfaab",
+        "normalized_git_blob_sha1": "3b6b14485ab52a4f0839bf2b5dbece6b4bcf08aa",
         "path": "nodes.py",
         "top_level": {
           "class_count": 20,
-          "function_count": 241,
-          "global_count": 106
+          "function_count": 240,
+          "global_count": 104
         }
       },
       {
@@ -18064,7 +18129,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -18073,7 +18138,7 @@
         "conditional": true,
         "imported": "easyuse_anima.common.serialization:_json_clone",
         "kind": "static_from",
-        "line": 149,
+        "line": 150,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "nodes.py",
@@ -18087,7 +18152,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -18096,7 +18161,7 @@
         "conditional": true,
         "imported": "easyuse_anima.common.serialization:_json_object",
         "kind": "static_from",
-        "line": 149,
+        "line": 150,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "nodes.py",
@@ -18110,7 +18175,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -18119,7 +18184,7 @@
         "conditional": true,
         "imported": "easyuse_anima.common.serialization:_stable_change_key",
         "kind": "static_from",
-        "line": 149,
+        "line": 150,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "nodes.py",
@@ -18133,7 +18198,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -18142,7 +18207,7 @@
         "conditional": true,
         "imported": "easyuse_anima.common.values:_as_bool",
         "kind": "static_from",
-        "line": 154,
+        "line": 155,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "nodes.py",
@@ -18156,7 +18221,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -18165,7 +18230,7 @@
         "conditional": true,
         "imported": "easyuse_anima.common.values:_as_float",
         "kind": "static_from",
-        "line": 154,
+        "line": 155,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "nodes.py",
@@ -18179,7 +18244,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -18188,7 +18253,7 @@
         "conditional": true,
         "imported": "easyuse_anima.common.values:_as_int",
         "kind": "static_from",
-        "line": 154,
+        "line": 155,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "nodes.py",
@@ -18202,7 +18267,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -18211,7 +18276,7 @@
         "conditional": true,
         "imported": "easyuse_anima.common.values:_choice",
         "kind": "static_from",
-        "line": 154,
+        "line": 155,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "nodes.py",
@@ -18225,7 +18290,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -18234,7 +18299,7 @@
         "conditional": true,
         "imported": "easyuse_anima.common.values:_single_value",
         "kind": "static_from",
-        "line": 154,
+        "line": 155,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "nodes.py",
@@ -18248,7 +18313,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -18257,7 +18322,7 @@
         "conditional": true,
         "imported": "easyuse_anima.image.geometry:_align_down",
         "kind": "static_from",
-        "line": 161,
+        "line": 162,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "nodes.py",
@@ -18271,7 +18336,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -18280,7 +18345,7 @@
         "conditional": true,
         "imported": "easyuse_anima.image.geometry:_align_nearest",
         "kind": "static_from",
-        "line": 161,
+        "line": 162,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "nodes.py",
@@ -18294,7 +18359,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -18303,7 +18368,7 @@
         "conditional": true,
         "imported": "easyuse_anima.image.geometry:_align_up",
         "kind": "static_from",
-        "line": 161,
+        "line": 162,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "nodes.py",
@@ -18317,7 +18382,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -18326,7 +18391,7 @@
         "conditional": true,
         "imported": "easyuse_anima.image.geometry:_aligned_size_near_scale",
         "kind": "static_from",
-        "line": 161,
+        "line": 162,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "nodes.py",
@@ -18340,7 +18405,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -18349,7 +18414,7 @@
         "conditional": true,
         "imported": "easyuse_anima.image.geometry:_alignment_value",
         "kind": "static_from",
-        "line": 161,
+        "line": 162,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "nodes.py",
@@ -18363,7 +18428,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -18372,7 +18437,7 @@
         "conditional": true,
         "imported": "easyuse_anima.image.detailer:_EasyUseAnimaAlignedDetailerHook",
         "kind": "static_from",
-        "line": 168,
+        "line": 169,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "nodes.py",
@@ -18386,7 +18451,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -18395,7 +18460,7 @@
         "conditional": true,
         "imported": "easyuse_anima.image.scaling:IMAGE_SCALE_MULTIPLES",
         "kind": "static_from",
-        "line": 171,
+        "line": 172,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "nodes.py",
@@ -18409,7 +18474,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -18418,7 +18483,7 @@
         "conditional": true,
         "imported": "easyuse_anima.image.scaling:IMAGE_UPSCALE_METHODS",
         "kind": "static_from",
-        "line": 171,
+        "line": 172,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "nodes.py",
@@ -18432,7 +18497,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -18441,7 +18506,7 @@
         "conditional": true,
         "imported": "easyuse_anima.image.scaling:_image_scale_by_multiple_size",
         "kind": "static_from",
-        "line": 171,
+        "line": 172,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "nodes.py",
@@ -18455,7 +18520,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -18464,7 +18529,7 @@
         "conditional": true,
         "imported": "easyuse_anima.image.scaling:_max_long_edge_value",
         "kind": "static_from",
-        "line": 171,
+        "line": 172,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "nodes.py",
@@ -18478,7 +18543,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -18487,7 +18552,7 @@
         "conditional": true,
         "imported": "easyuse_anima.image.scaling:_normalize_image_scale_options",
         "kind": "static_from",
-        "line": 171,
+        "line": 172,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "nodes.py",
@@ -18501,7 +18566,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -18510,7 +18575,7 @@
         "conditional": true,
         "imported": "easyuse_anima.image.scaling:_scale_by_value",
         "kind": "static_from",
-        "line": 171,
+        "line": 172,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "nodes.py",
@@ -18524,7 +18589,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -18533,7 +18598,7 @@
         "conditional": true,
         "imported": "easyuse_anima.infrastructure.comfy.capabilities:_comfy_max_resolution",
         "kind": "static_from",
-        "line": 179,
+        "line": 180,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "nodes.py",
@@ -18547,7 +18612,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -18556,7 +18621,7 @@
         "conditional": true,
         "imported": "easyuse_anima.infrastructure.comfy.capabilities:_comfy_sampler_names",
         "kind": "static_from",
-        "line": 179,
+        "line": 180,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "nodes.py",
@@ -18570,7 +18635,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -18579,7 +18644,7 @@
         "conditional": true,
         "imported": "easyuse_anima.infrastructure.comfy.capabilities:_comfy_scheduler_names",
         "kind": "static_from",
-        "line": 179,
+        "line": 180,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "nodes.py",
@@ -18593,7 +18658,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -18602,7 +18667,7 @@
         "conditional": true,
         "imported": "easyuse_anima.infrastructure.comfy.capabilities:_find_comfy_node_class",
         "kind": "static_from",
-        "line": 179,
+        "line": 180,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "nodes.py",
@@ -18616,7 +18681,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -18625,7 +18690,7 @@
         "conditional": true,
         "imported": "easyuse_anima.infrastructure.comfy.capabilities:_find_loaded_node_class",
         "kind": "static_from",
-        "line": 179,
+        "line": 180,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "nodes.py",
@@ -18639,7 +18704,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -18648,7 +18713,7 @@
         "conditional": true,
         "imported": "easyuse_anima.infrastructure.comfy.capabilities:_require_any_custom_node_class",
         "kind": "static_from",
-        "line": 179,
+        "line": 180,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "nodes.py",
@@ -18662,7 +18727,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -18671,7 +18736,7 @@
         "conditional": true,
         "imported": "easyuse_anima.infrastructure.comfy.capabilities:_require_custom_node_class",
         "kind": "static_from",
-        "line": 179,
+        "line": 180,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "nodes.py",
@@ -18685,7 +18750,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -18694,7 +18759,7 @@
         "conditional": true,
         "imported": "easyuse_anima.infrastructure.comfy.invocation:_call_with_supported_kwargs",
         "kind": "static_from",
-        "line": 188,
+        "line": 189,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "nodes.py",
@@ -18708,7 +18773,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -18717,7 +18782,7 @@
         "conditional": true,
         "imported": "easyuse_anima.infrastructure.comfy.invocation:_common_upscale_image",
         "kind": "static_from",
-        "line": 188,
+        "line": 189,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "nodes.py",
@@ -18731,7 +18796,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -18740,7 +18805,7 @@
         "conditional": true,
         "imported": "easyuse_anima.infrastructure.comfy.invocation:_node_output_tuple",
         "kind": "static_from",
-        "line": 188,
+        "line": 189,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "nodes.py",
@@ -18754,7 +18819,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -18763,7 +18828,7 @@
         "conditional": true,
         "imported": "easyuse_anima.infrastructure.comfy.resources:_comfy_checkpoint_names",
         "kind": "static_from",
-        "line": 193,
+        "line": 194,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "nodes.py",
@@ -18777,7 +18842,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -18786,7 +18851,7 @@
         "conditional": true,
         "imported": "easyuse_anima.infrastructure.comfy.resources:_comfy_clip_loader_types",
         "kind": "static_from",
-        "line": 193,
+        "line": 194,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "nodes.py",
@@ -18800,7 +18865,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -18809,7 +18874,7 @@
         "conditional": true,
         "imported": "easyuse_anima.infrastructure.comfy.resources:_comfy_diffusion_model_names",
         "kind": "static_from",
-        "line": 193,
+        "line": 194,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "nodes.py",
@@ -18823,7 +18888,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -18832,7 +18897,7 @@
         "conditional": true,
         "imported": "easyuse_anima.infrastructure.comfy.resources:_comfy_text_encoder_names",
         "kind": "static_from",
-        "line": 193,
+        "line": 194,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "nodes.py",
@@ -18846,7 +18911,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -18855,7 +18920,7 @@
         "conditional": true,
         "imported": "easyuse_anima.infrastructure.comfy.resources:_comfy_vae_names",
         "kind": "static_from",
-        "line": 193,
+        "line": 194,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "nodes.py",
@@ -18869,7 +18934,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -18878,7 +18943,7 @@
         "conditional": true,
         "imported": "easyuse_anima.infrastructure.comfy.resources:_folder_path_names",
         "kind": "static_from",
-        "line": 193,
+        "line": 194,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "nodes.py",
@@ -18892,7 +18957,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -18901,7 +18966,7 @@
         "conditional": true,
         "imported": "easyuse_anima.nodes.image_nodes:EasyUseAnimaDetailerAlignHook",
         "kind": "static_from",
-        "line": 201,
+        "line": 202,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "nodes.py",
@@ -18915,7 +18980,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -18924,7 +18989,7 @@
         "conditional": true,
         "imported": "easyuse_anima.nodes.image_nodes:EasyUseAnimaImageScaleByMultiple",
         "kind": "static_from",
-        "line": 201,
+        "line": 202,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "nodes.py",
@@ -18938,7 +19003,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -18947,7 +19012,7 @@
         "conditional": true,
         "imported": "easyuse_anima.naia.client:DEFAULT_HOST",
         "kind": "static_from",
-        "line": 205,
+        "line": 206,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "nodes.py",
@@ -18961,7 +19026,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -18970,7 +19035,7 @@
         "conditional": true,
         "imported": "easyuse_anima.naia.client:DEFAULT_PORT",
         "kind": "static_from",
-        "line": 205,
+        "line": 206,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "nodes.py",
@@ -18984,7 +19049,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -18993,7 +19058,7 @@
         "conditional": true,
         "imported": "easyuse_anima.naia.client:HTTP_TIMEOUT",
         "kind": "static_from",
-        "line": 205,
+        "line": 206,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "nodes.py",
@@ -19007,7 +19072,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -19016,7 +19081,7 @@
         "conditional": true,
         "imported": "easyuse_anima.naia.client:LATENT_ALIGN",
         "kind": "static_from",
-        "line": 205,
+        "line": 206,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "nodes.py",
@@ -19030,7 +19095,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -19039,7 +19104,7 @@
         "conditional": true,
         "imported": "easyuse_anima.naia.client:NAIA_LOCAL_HOSTS",
         "kind": "static_from",
-        "line": 205,
+        "line": 206,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "nodes.py",
@@ -19053,7 +19118,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -19062,7 +19127,7 @@
         "conditional": true,
         "imported": "easyuse_anima.naia.client:NAIA_MAX_RESOLUTION",
         "kind": "static_from",
-        "line": 205,
+        "line": 206,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "nodes.py",
@@ -19076,7 +19141,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -19085,7 +19150,7 @@
         "conditional": true,
         "imported": "easyuse_anima.naia.client:NAIA_REQUEST_TIMEOUT",
         "kind": "static_from",
-        "line": 205,
+        "line": 206,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "nodes.py",
@@ -19099,7 +19164,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -19108,7 +19173,7 @@
         "conditional": true,
         "imported": "easyuse_anima.naia.client:NAI_1MP",
         "kind": "static_from",
-        "line": 205,
+        "line": 206,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "nodes.py",
@@ -19122,7 +19187,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -19131,7 +19196,7 @@
         "conditional": true,
         "imported": "easyuse_anima.naia.client:PP_STATE_CHOICES",
         "kind": "static_from",
-        "line": 205,
+        "line": 206,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "nodes.py",
@@ -19145,7 +19210,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -19154,7 +19219,7 @@
         "conditional": true,
         "imported": "easyuse_anima.naia.client:PREPROCESSING_KEYS",
         "kind": "static_from",
-        "line": 205,
+        "line": 206,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "nodes.py",
@@ -19168,7 +19233,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -19177,7 +19242,7 @@
         "conditional": true,
         "imported": "easyuse_anima.naia.client:_build_naia_random_url",
         "kind": "static_from",
-        "line": 205,
+        "line": 206,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "nodes.py",
@@ -19191,7 +19256,30 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
+            "kind": "try",
+            "line": 14
+          }
+        ],
+        "classification": "compatibility_fallback",
+        "conditional": true,
+        "imported": "easyuse_anima.naia.client:_clean_prompt",
+        "kind": "static_from",
+        "line": 206,
+        "optional": false,
+        "role": "compatibility_fallback",
+        "source": "nodes.py",
+        "target": "easyuse_anima/naia/client.py"
+      },
+      {
+        "branch_context": [
+          {
+            "branch": "except",
+            "catches_import_error": true,
+            "exceptions": [
+              "ImportError"
+            ],
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -19200,7 +19288,7 @@
         "conditional": true,
         "imported": "easyuse_anima.naia.client:_fit_to_1mp",
         "kind": "static_from",
-        "line": 205,
+        "line": 206,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "nodes.py",
@@ -19214,7 +19302,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -19223,7 +19311,7 @@
         "conditional": true,
         "imported": "easyuse_anima.naia.client:_is_local_naia_host",
         "kind": "static_from",
-        "line": 205,
+        "line": 206,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "nodes.py",
@@ -19237,7 +19325,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -19246,7 +19334,7 @@
         "conditional": true,
         "imported": "easyuse_anima.naia.client:_parse_random_response",
         "kind": "static_from",
-        "line": 205,
+        "line": 206,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "nodes.py",
@@ -19260,7 +19348,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -19269,7 +19357,7 @@
         "conditional": true,
         "imported": "easyuse_anima.naia.client:_post_random",
         "kind": "static_from",
-        "line": 205,
+        "line": 206,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "nodes.py",
@@ -19283,7 +19371,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -19292,7 +19380,7 @@
         "conditional": true,
         "imported": "easyuse_anima.naia.resolution:ADVANCED_RESOLUTION_BUCKETS",
         "kind": "static_from",
-        "line": 222,
+        "line": 224,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "nodes.py",
@@ -19306,7 +19394,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -19315,7 +19403,7 @@
         "conditional": true,
         "imported": "easyuse_anima.naia.resolution:CUSTOM_ADVANCED_RESOLUTION_BUCKET",
         "kind": "static_from",
-        "line": 222,
+        "line": 224,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "nodes.py",
@@ -19329,7 +19417,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -19338,7 +19426,7 @@
         "conditional": true,
         "imported": "easyuse_anima.naia.resolution:DEFAULT_ADVANCED_RESOLUTION_BUCKET",
         "kind": "static_from",
-        "line": 222,
+        "line": 224,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "nodes.py",
@@ -19352,7 +19440,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -19361,7 +19449,7 @@
         "conditional": true,
         "imported": "easyuse_anima.naia.resolution:DEFAULT_ADVANCED_RESOLUTION_SIZE",
         "kind": "static_from",
-        "line": 222,
+        "line": 224,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "nodes.py",
@@ -19375,7 +19463,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -19384,7 +19472,7 @@
         "conditional": true,
         "imported": "easyuse_anima.naia.resolution:NAIA_ADVANCED_RESOLUTION_BUCKET",
         "kind": "static_from",
-        "line": 222,
+        "line": 224,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "nodes.py",
@@ -19398,7 +19486,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -19407,7 +19495,7 @@
         "conditional": true,
         "imported": "easyuse_anima.naia.resolution:NAIA_RESOLUTION_MODE_BUCKET",
         "kind": "static_from",
-        "line": 222,
+        "line": 224,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "nodes.py",
@@ -19421,7 +19509,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -19430,7 +19518,7 @@
         "conditional": true,
         "imported": "easyuse_anima.naia.resolution:NAIA_RESOLUTION_MODE_SCALE",
         "kind": "static_from",
-        "line": 222,
+        "line": 224,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "nodes.py",
@@ -19444,7 +19532,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -19453,7 +19541,7 @@
         "conditional": true,
         "imported": "easyuse_anima.naia.resolution:_advanced_resolution_from_selection",
         "kind": "static_from",
-        "line": 222,
+        "line": 224,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "nodes.py",
@@ -19467,7 +19555,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -19476,7 +19564,7 @@
         "conditional": true,
         "imported": "easyuse_anima.naia.resolution:_fit_naia_resolution_to_bucket",
         "kind": "static_from",
-        "line": 222,
+        "line": 224,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "nodes.py",
@@ -19490,7 +19578,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -19499,7 +19587,7 @@
         "conditional": true,
         "imported": "easyuse_anima.naia.resolution:_normalize_resolution_bucket",
         "kind": "static_from",
-        "line": 222,
+        "line": 224,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "nodes.py",
@@ -19513,7 +19601,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -19522,7 +19610,7 @@
         "conditional": true,
         "imported": "easyuse_anima.naia.resolution:_ratio_label",
         "kind": "static_from",
-        "line": 222,
+        "line": 224,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "nodes.py",
@@ -19536,7 +19624,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -19545,7 +19633,7 @@
         "conditional": true,
         "imported": "easyuse_anima.naia.resolution:_resolution_label",
         "kind": "static_from",
-        "line": 222,
+        "line": 224,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "nodes.py",
@@ -19559,7 +19647,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -19568,7 +19656,7 @@
         "conditional": true,
         "imported": "easyuse_anima.naia.resolution:_resolve_naia_resolution",
         "kind": "static_from",
-        "line": 222,
+        "line": 224,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "nodes.py",
@@ -19582,7 +19670,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -19591,7 +19679,7 @@
         "conditional": true,
         "imported": "easyuse_anima.naia.resolution:_resolve_naia_resolution_bucket",
         "kind": "static_from",
-        "line": 222,
+        "line": 224,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "nodes.py",
@@ -19605,7 +19693,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -19614,7 +19702,7 @@
         "conditional": true,
         "imported": "easyuse_anima.naia.resolution:_resolve_naia_resolution_max_long_edge",
         "kind": "static_from",
-        "line": 222,
+        "line": 224,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "nodes.py",
@@ -19628,7 +19716,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -19637,7 +19725,7 @@
         "conditional": true,
         "imported": "easyuse_anima.naia.resolution:_resolve_naia_resolution_mode",
         "kind": "static_from",
-        "line": 222,
+        "line": 224,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "nodes.py",
@@ -19651,7 +19739,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -19660,7 +19748,7 @@
         "conditional": true,
         "imported": "easyuse_anima.naia.resolution:_resolve_naia_resolution_scale",
         "kind": "static_from",
-        "line": 222,
+        "line": 224,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "nodes.py",
@@ -19674,7 +19762,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -19683,7 +19771,7 @@
         "conditional": true,
         "imported": "easyuse_anima.naia.resolution:_scale_naia_resolution",
         "kind": "static_from",
-        "line": 222,
+        "line": 224,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "nodes.py",
@@ -19697,7 +19785,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -19706,7 +19794,7 @@
         "conditional": true,
         "imported": "easyuse_anima.naia.resolution:_snap_resolution_32",
         "kind": "static_from",
-        "line": 222,
+        "line": 224,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "nodes.py",
@@ -19720,7 +19808,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -19729,7 +19817,7 @@
         "conditional": true,
         "imported": "easyuse_anima.naia.resolution:_snap_scaled_resolution_32",
         "kind": "static_from",
-        "line": 222,
+        "line": 224,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "nodes.py",
@@ -19743,7 +19831,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -19752,7 +19840,7 @@
         "conditional": true,
         "imported": "easyuse_anima.naia.resolution:_sorted_resolution_options",
         "kind": "static_from",
-        "line": 222,
+        "line": 224,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "nodes.py",
@@ -19766,7 +19854,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -19775,7 +19863,7 @@
         "conditional": true,
         "imported": "easyuse_anima.nodes.naia_nodes:EasyUseAnimaNAIARandomPrompt",
         "kind": "static_from",
-        "line": 245,
+        "line": 247,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "nodes.py",
@@ -19789,7 +19877,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -19798,7 +19886,7 @@
         "conditional": true,
         "imported": "easyuse_anima.nodes.naia_nodes:_bind_naia_node_runtime",
         "kind": "static_from",
-        "line": 245,
+        "line": 247,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "nodes.py",
@@ -19812,7 +19900,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -19821,7 +19909,7 @@
         "conditional": true,
         "imported": "easyuse_anima.nodes.wildcard_nodes:EasyUseAnimaWildcard",
         "kind": "static_from",
-        "line": 249,
+        "line": 251,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "nodes.py",
@@ -19835,7 +19923,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -19844,7 +19932,7 @@
         "conditional": true,
         "imported": "easyuse_anima.nodes.wildcard_nodes:WILDCARD_SEED_RANGE_NOTE",
         "kind": "static_from",
-        "line": 249,
+        "line": 251,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "nodes.py",
@@ -19858,7 +19946,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -19867,7 +19955,7 @@
         "conditional": true,
         "imported": "easyuse_anima.nodes.wildcard_nodes:_bind_wildcard_node_runtime",
         "kind": "static_from",
-        "line": 249,
+        "line": 251,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "nodes.py",
@@ -19881,7 +19969,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -19890,7 +19978,7 @@
         "conditional": true,
         "imported": "anima_prompt:correct_prompt",
         "kind": "static_from",
-        "line": 254,
+        "line": 256,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "nodes.py",
@@ -19904,7 +19992,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -19913,7 +20001,7 @@
         "conditional": true,
         "imported": "anima_prompt:load_knowledge_base",
         "kind": "static_from",
-        "line": 254,
+        "line": 256,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "nodes.py",
@@ -19927,7 +20015,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -19936,7 +20024,7 @@
         "conditional": true,
         "imported": "anima_prompt.parser:parse_prompt",
         "kind": "static_from",
-        "line": 255,
+        "line": 257,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "nodes.py",
@@ -19950,7 +20038,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -19959,7 +20047,7 @@
         "conditional": true,
         "imported": "settings:resolve_metadata_filter_words",
         "kind": "static_from",
-        "line": 256,
+        "line": 258,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "nodes.py",
@@ -19973,7 +20061,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -19982,7 +20070,7 @@
         "conditional": true,
         "imported": "settings:resolve_naia_settings",
         "kind": "static_from",
-        "line": 256,
+        "line": 258,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "nodes.py",
@@ -19996,7 +20084,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -20005,7 +20093,7 @@
         "conditional": true,
         "imported": "settings:resolve_prompt_translation_settings",
         "kind": "static_from",
-        "line": 256,
+        "line": 258,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "nodes.py",
@@ -20019,7 +20107,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -20028,7 +20116,7 @@
         "conditional": true,
         "imported": "prompt_translation:has_prompt_translation_markers",
         "kind": "static_from",
-        "line": 261,
+        "line": 263,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "nodes.py",
@@ -20042,7 +20130,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -20051,7 +20139,7 @@
         "conditional": true,
         "imported": "prompt_translation:translate_prompt_markers",
         "kind": "static_from",
-        "line": 261,
+        "line": 263,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "nodes.py",
@@ -20065,7 +20153,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -20074,7 +20162,7 @@
         "conditional": true,
         "imported": "wildcard_engine:MAX_SEED",
         "kind": "static_from",
-        "line": 262,
+        "line": 264,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "nodes.py",
@@ -20088,7 +20176,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -20097,7 +20185,7 @@
         "conditional": true,
         "imported": "wildcard_engine:PUBLIC_MAX_SEED",
         "kind": "static_from",
-        "line": 262,
+        "line": 264,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "nodes.py",
@@ -20111,7 +20199,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -20120,7 +20208,7 @@
         "conditional": true,
         "imported": "wildcard_engine:SEED_CONTROL_DECREMENT",
         "kind": "static_from",
-        "line": 262,
+        "line": 264,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "nodes.py",
@@ -20134,7 +20222,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -20143,7 +20231,7 @@
         "conditional": true,
         "imported": "wildcard_engine:SEED_CONTROL_FIXED",
         "kind": "static_from",
-        "line": 262,
+        "line": 264,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "nodes.py",
@@ -20157,7 +20245,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -20166,7 +20254,7 @@
         "conditional": true,
         "imported": "wildcard_engine:SEED_CONTROL_INCREMENT",
         "kind": "static_from",
-        "line": 262,
+        "line": 264,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "nodes.py",
@@ -20180,7 +20268,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -20189,7 +20277,7 @@
         "conditional": true,
         "imported": "wildcard_engine:SEED_CONTROL_MODES",
         "kind": "static_from",
-        "line": 262,
+        "line": 264,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "nodes.py",
@@ -20203,7 +20291,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -20212,7 +20300,7 @@
         "conditional": true,
         "imported": "wildcard_engine:SEED_CONTROL_RANDOMIZE",
         "kind": "static_from",
-        "line": 262,
+        "line": 264,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "nodes.py",
@@ -20226,7 +20314,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -20235,7 +20323,7 @@
         "conditional": true,
         "imported": "wildcard_engine:WILDCARD_MODE_FIXED",
         "kind": "static_from",
-        "line": 262,
+        "line": 264,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "nodes.py",
@@ -20249,7 +20337,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -20258,7 +20346,7 @@
         "conditional": true,
         "imported": "wildcard_engine:WILDCARD_MODE_LABELS",
         "kind": "static_from",
-        "line": 262,
+        "line": 264,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "nodes.py",
@@ -20272,7 +20360,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -20281,7 +20369,7 @@
         "conditional": true,
         "imported": "wildcard_engine:WILDCARD_MODE_POPULATE",
         "kind": "static_from",
-        "line": 262,
+        "line": 264,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "nodes.py",
@@ -20295,7 +20383,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -20304,7 +20392,7 @@
         "conditional": true,
         "imported": "wildcard_engine:WILDCARD_MODE_REPRODUCE",
         "kind": "static_from",
-        "line": 262,
+        "line": 264,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "nodes.py",
@@ -20318,7 +20406,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -20327,7 +20415,7 @@
         "conditional": true,
         "imported": "wildcard_engine:WILDCARD_MODE_SEQUENTIAL",
         "kind": "static_from",
-        "line": 262,
+        "line": 264,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "nodes.py",
@@ -20341,7 +20429,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -20350,7 +20438,7 @@
         "conditional": true,
         "imported": "wildcard_engine:expand_wildcards",
         "kind": "static_from",
-        "line": 262,
+        "line": 264,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "nodes.py",
@@ -20364,7 +20452,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -20373,7 +20461,7 @@
         "conditional": true,
         "imported": "wildcard_engine:has_wildcard_syntax",
         "kind": "static_from",
-        "line": 262,
+        "line": 264,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "nodes.py",
@@ -20387,7 +20475,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -20396,7 +20484,7 @@
         "conditional": true,
         "imported": "wildcard_engine:next_seed",
         "kind": "static_from",
-        "line": 262,
+        "line": 264,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "nodes.py",
@@ -20410,7 +20498,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -20419,7 +20507,7 @@
         "conditional": true,
         "imported": "wildcard_engine:normalize_seed",
         "kind": "static_from",
-        "line": 262,
+        "line": 264,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "nodes.py",
@@ -20433,7 +20521,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -20442,7 +20530,7 @@
         "conditional": true,
         "imported": "wildcard_engine:normalize_wildcard_mode",
         "kind": "static_from",
-        "line": 262,
+        "line": 264,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "nodes.py",
@@ -20456,7 +20544,7 @@
             "exceptions": [
               "ImportError"
             ],
-            "handler_line": 148,
+            "handler_line": 149,
             "kind": "try",
             "line": 14
           }
@@ -20465,7 +20553,7 @@
         "conditional": true,
         "imported": "wildcard_engine:wildcard_sources_signature",
         "kind": "static_from",
-        "line": 262,
+        "line": 264,
         "optional": false,
         "role": "compatibility_fallback",
         "source": "nodes.py",
@@ -22160,14 +22248,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 1953
+            "line": 1945
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "nodes",
         "kind": "static_import",
-        "line": 1954,
+        "line": 1946,
         "optional": true,
         "role": "optional_dependency",
         "source": "nodes.py"
@@ -22179,14 +22267,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 2018
+            "line": 2010
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "impact.core",
         "kind": "static_import",
-        "line": 2019,
+        "line": 2011,
         "optional": true,
         "role": "optional_dependency",
         "source": "nodes.py"
@@ -22198,14 +22286,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 2024
+            "line": 2016
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "modules.impact:core",
         "kind": "static_from",
-        "line": 2025,
+        "line": 2017,
         "optional": true,
         "role": "optional_dependency",
         "source": "nodes.py"
@@ -22217,14 +22305,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 2040
+            "line": 2032
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "comfy.samplers",
         "kind": "static_import",
-        "line": 2041,
+        "line": 2033,
         "optional": true,
         "role": "optional_dependency",
         "source": "nodes.py"
@@ -22236,14 +22324,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 2049
+            "line": 2041
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "nodes",
         "kind": "static_import",
-        "line": 2050,
+        "line": 2042,
         "optional": true,
         "role": "optional_dependency",
         "source": "nodes.py"
@@ -22255,14 +22343,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 2065
+            "line": 2057
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "impact.impact_pack:DetailerForEach",
         "kind": "static_from",
-        "line": 2066,
+        "line": 2058,
         "optional": true,
         "role": "optional_dependency",
         "source": "nodes.py"
@@ -22274,14 +22362,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 2071
+            "line": 2063
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "modules.impact.impact_pack:DetailerForEach",
         "kind": "static_from",
-        "line": 2072,
+        "line": 2064,
         "optional": true,
         "role": "optional_dependency",
         "source": "nodes.py"
@@ -22293,14 +22381,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 2085
+            "line": 2077
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "nodes",
         "kind": "static_import",
-        "line": 2086,
+        "line": 2078,
         "optional": true,
         "role": "optional_dependency",
         "source": "nodes.py"
@@ -22312,14 +22400,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 2184
+            "line": 2176
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "comfy_extras.nodes_sam3:SAM3_Detect",
         "kind": "static_from",
-        "line": 2185,
+        "line": 2177,
         "optional": true,
         "role": "optional_dependency",
         "source": "nodes.py"
@@ -22331,14 +22419,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 2208
+            "line": 2200
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "impact.segs_nodes:MaskToSEGS",
         "kind": "static_from",
-        "line": 2209,
+        "line": 2201,
         "optional": true,
         "role": "optional_dependency",
         "source": "nodes.py"
@@ -22350,14 +22438,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 2214
+            "line": 2206
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "modules.impact.segs_nodes:MaskToSEGS",
         "kind": "static_from",
-        "line": 2215,
+        "line": 2207,
         "optional": true,
         "role": "optional_dependency",
         "source": "nodes.py"
@@ -22369,14 +22457,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 2220
+            "line": 2212
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "impact.impact_pack:MaskToSEGS",
         "kind": "static_from",
-        "line": 2221,
+        "line": 2213,
         "optional": true,
         "role": "optional_dependency",
         "source": "nodes.py"
@@ -22388,14 +22476,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 2226
+            "line": 2218
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "modules.impact.impact_pack:MaskToSEGS",
         "kind": "static_from",
-        "line": 2227,
+        "line": 2219,
         "optional": true,
         "role": "optional_dependency",
         "source": "nodes.py"
@@ -22407,14 +22495,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 2661
+            "line": 2653
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "folder_paths",
         "kind": "static_import",
-        "line": 2662,
+        "line": 2654,
         "optional": true,
         "role": "optional_dependency",
         "source": "nodes.py"
@@ -22426,14 +22514,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 2701
+            "line": 2693
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "comfy.model_management",
         "kind": "static_import",
-        "line": 2702,
+        "line": 2694,
         "optional": true,
         "role": "optional_dependency",
         "source": "nodes.py"
@@ -22443,7 +22531,7 @@
           {
             "branch": "body",
             "kind": "if",
-            "line": 3134,
+            "line": 3126,
             "type_checking": false
           },
           {
@@ -22451,14 +22539,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 3135
+            "line": 3127
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "comfy_extras.nodes_upscale_model:UpscaleModelLoader",
         "kind": "static_from",
-        "line": 3136,
+        "line": 3128,
         "optional": true,
         "role": "optional_dependency",
         "source": "nodes.py"
@@ -22470,14 +22558,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 3935
+            "line": 3927
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "folder_paths",
         "kind": "static_import",
-        "line": 3936,
+        "line": 3928,
         "optional": true,
         "role": "optional_dependency",
         "source": "nodes.py"
@@ -22489,14 +22577,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 3997
+            "line": 3989
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "server:PromptServer",
         "kind": "static_from",
-        "line": 3998,
+        "line": 3990,
         "optional": true,
         "role": "optional_dependency",
         "source": "nodes.py"
@@ -22508,14 +22596,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 4024
+            "line": 4016
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "folder_paths",
         "kind": "static_import",
-        "line": 4025,
+        "line": 4017,
         "optional": true,
         "role": "optional_dependency",
         "source": "nodes.py"
@@ -22527,14 +22615,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 4024
+            "line": 4016
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "numpy",
         "kind": "static_import",
-        "line": 4026,
+        "line": 4018,
         "optional": true,
         "role": "optional_dependency",
         "source": "nodes.py"
@@ -22546,14 +22634,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 4024
+            "line": 4016
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "PIL:Image",
         "kind": "static_from",
-        "line": 4027,
+        "line": 4019,
         "optional": true,
         "role": "optional_dependency",
         "source": "nodes.py"
@@ -22565,14 +22653,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 4218
+            "line": 4210
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "torch",
         "kind": "static_import",
-        "line": 4219,
+        "line": 4211,
         "optional": true,
         "role": "optional_dependency",
         "source": "nodes.py"
@@ -22584,14 +22672,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 5069
+            "line": 5061
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "torch",
         "kind": "static_import",
-        "line": 5070,
+        "line": 5062,
         "optional": true,
         "role": "optional_dependency",
         "source": "nodes.py"
@@ -22603,14 +22691,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 5086
+            "line": 5078
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "torch",
         "kind": "static_import",
-        "line": 5087,
+        "line": 5079,
         "optional": true,
         "role": "optional_dependency",
         "source": "nodes.py"
@@ -22622,14 +22710,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 5107
+            "line": 5099
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "torch",
         "kind": "static_import",
-        "line": 5108,
+        "line": 5100,
         "optional": true,
         "role": "optional_dependency",
         "source": "nodes.py"
@@ -22641,14 +22729,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 5184
+            "line": 5176
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "torch",
         "kind": "static_import",
-        "line": 5185,
+        "line": 5177,
         "optional": true,
         "role": "optional_dependency",
         "source": "nodes.py"
@@ -22660,14 +22748,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 5983
+            "line": 5975
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "torch",
         "kind": "static_import",
-        "line": 5984,
+        "line": 5976,
         "optional": true,
         "role": "optional_dependency",
         "source": "nodes.py"
@@ -22679,14 +22767,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 7008
+            "line": 7000
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "torch",
         "kind": "static_import",
-        "line": 7009,
+        "line": 7001,
         "optional": true,
         "role": "optional_dependency",
         "source": "nodes.py"
@@ -22698,14 +22786,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 7042
+            "line": 7034
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "torch",
         "kind": "static_import",
-        "line": 7043,
+        "line": 7035,
         "optional": true,
         "role": "optional_dependency",
         "source": "nodes.py"
@@ -22717,14 +22805,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 7267
+            "line": 7259
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "py.nodes.utils:apply_lora_syntax_format",
         "kind": "static_from",
-        "line": 7268,
+        "line": 7260,
         "optional": true,
         "role": "optional_dependency",
         "source": "nodes.py"
@@ -22736,14 +22824,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 7277
+            "line": 7269
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "folder_paths",
         "kind": "static_import",
-        "line": 7278,
+        "line": 7270,
         "optional": true,
         "role": "optional_dependency",
         "source": "nodes.py"
@@ -22755,14 +22843,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 7299
+            "line": 7291
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "folder_paths",
         "kind": "static_import",
-        "line": 7300,
+        "line": 7292,
         "optional": true,
         "role": "optional_dependency",
         "source": "nodes.py"
@@ -22774,14 +22862,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 7404
+            "line": 7396
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "py.utils.utils:get_lora_info",
         "kind": "static_from",
-        "line": 7405,
+        "line": 7397,
         "optional": true,
         "role": "optional_dependency",
         "source": "nodes.py"
@@ -22793,14 +22881,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 7448
+            "line": 7440
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "folder_paths",
         "kind": "static_import",
-        "line": 7449,
+        "line": 7441,
         "optional": true,
         "role": "optional_dependency",
         "source": "nodes.py"
@@ -22812,14 +22900,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 7473
+            "line": 7465
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "folder_paths",
         "kind": "static_import",
-        "line": 7474,
+        "line": 7466,
         "optional": true,
         "role": "optional_dependency",
         "source": "nodes.py"
@@ -23588,14 +23676,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 1953
+            "line": 1945
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "nodes",
         "kind": "static_import",
-        "line": 1954,
+        "line": 1946,
         "optional": true,
         "role": "optional_dependency",
         "source": "nodes.py"
@@ -23607,14 +23695,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 2018
+            "line": 2010
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "impact.core",
         "kind": "static_import",
-        "line": 2019,
+        "line": 2011,
         "optional": true,
         "role": "optional_dependency",
         "source": "nodes.py"
@@ -23626,14 +23714,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 2024
+            "line": 2016
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "modules.impact:core",
         "kind": "static_from",
-        "line": 2025,
+        "line": 2017,
         "optional": true,
         "role": "optional_dependency",
         "source": "nodes.py"
@@ -23645,14 +23733,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 2040
+            "line": 2032
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "comfy.samplers",
         "kind": "static_import",
-        "line": 2041,
+        "line": 2033,
         "optional": true,
         "role": "optional_dependency",
         "source": "nodes.py"
@@ -23664,14 +23752,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 2049
+            "line": 2041
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "nodes",
         "kind": "static_import",
-        "line": 2050,
+        "line": 2042,
         "optional": true,
         "role": "optional_dependency",
         "source": "nodes.py"
@@ -23683,14 +23771,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 2065
+            "line": 2057
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "impact.impact_pack:DetailerForEach",
         "kind": "static_from",
-        "line": 2066,
+        "line": 2058,
         "optional": true,
         "role": "optional_dependency",
         "source": "nodes.py"
@@ -23702,14 +23790,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 2071
+            "line": 2063
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "modules.impact.impact_pack:DetailerForEach",
         "kind": "static_from",
-        "line": 2072,
+        "line": 2064,
         "optional": true,
         "role": "optional_dependency",
         "source": "nodes.py"
@@ -23721,14 +23809,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 2085
+            "line": 2077
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "nodes",
         "kind": "static_import",
-        "line": 2086,
+        "line": 2078,
         "optional": true,
         "role": "optional_dependency",
         "source": "nodes.py"
@@ -23740,14 +23828,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 2184
+            "line": 2176
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "comfy_extras.nodes_sam3:SAM3_Detect",
         "kind": "static_from",
-        "line": 2185,
+        "line": 2177,
         "optional": true,
         "role": "optional_dependency",
         "source": "nodes.py"
@@ -23759,14 +23847,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 2208
+            "line": 2200
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "impact.segs_nodes:MaskToSEGS",
         "kind": "static_from",
-        "line": 2209,
+        "line": 2201,
         "optional": true,
         "role": "optional_dependency",
         "source": "nodes.py"
@@ -23778,14 +23866,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 2214
+            "line": 2206
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "modules.impact.segs_nodes:MaskToSEGS",
         "kind": "static_from",
-        "line": 2215,
+        "line": 2207,
         "optional": true,
         "role": "optional_dependency",
         "source": "nodes.py"
@@ -23797,14 +23885,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 2220
+            "line": 2212
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "impact.impact_pack:MaskToSEGS",
         "kind": "static_from",
-        "line": 2221,
+        "line": 2213,
         "optional": true,
         "role": "optional_dependency",
         "source": "nodes.py"
@@ -23816,14 +23904,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 2226
+            "line": 2218
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "modules.impact.impact_pack:MaskToSEGS",
         "kind": "static_from",
-        "line": 2227,
+        "line": 2219,
         "optional": true,
         "role": "optional_dependency",
         "source": "nodes.py"
@@ -23835,14 +23923,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 2661
+            "line": 2653
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "folder_paths",
         "kind": "static_import",
-        "line": 2662,
+        "line": 2654,
         "optional": true,
         "role": "optional_dependency",
         "source": "nodes.py"
@@ -23854,14 +23942,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 2701
+            "line": 2693
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "comfy.model_management",
         "kind": "static_import",
-        "line": 2702,
+        "line": 2694,
         "optional": true,
         "role": "optional_dependency",
         "source": "nodes.py"
@@ -23871,7 +23959,7 @@
           {
             "branch": "body",
             "kind": "if",
-            "line": 3134,
+            "line": 3126,
             "type_checking": false
           },
           {
@@ -23879,14 +23967,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 3135
+            "line": 3127
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "comfy_extras.nodes_upscale_model:UpscaleModelLoader",
         "kind": "static_from",
-        "line": 3136,
+        "line": 3128,
         "optional": true,
         "role": "optional_dependency",
         "source": "nodes.py"
@@ -23898,14 +23986,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 3935
+            "line": 3927
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "folder_paths",
         "kind": "static_import",
-        "line": 3936,
+        "line": 3928,
         "optional": true,
         "role": "optional_dependency",
         "source": "nodes.py"
@@ -23917,14 +24005,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 3997
+            "line": 3989
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "server:PromptServer",
         "kind": "static_from",
-        "line": 3998,
+        "line": 3990,
         "optional": true,
         "role": "optional_dependency",
         "source": "nodes.py"
@@ -23936,14 +24024,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 4024
+            "line": 4016
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "folder_paths",
         "kind": "static_import",
-        "line": 4025,
+        "line": 4017,
         "optional": true,
         "role": "optional_dependency",
         "source": "nodes.py"
@@ -23955,14 +24043,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 4024
+            "line": 4016
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "numpy",
         "kind": "static_import",
-        "line": 4026,
+        "line": 4018,
         "optional": true,
         "role": "optional_dependency",
         "source": "nodes.py"
@@ -23974,14 +24062,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 4024
+            "line": 4016
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "PIL:Image",
         "kind": "static_from",
-        "line": 4027,
+        "line": 4019,
         "optional": true,
         "role": "optional_dependency",
         "source": "nodes.py"
@@ -23993,14 +24081,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 4218
+            "line": 4210
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "torch",
         "kind": "static_import",
-        "line": 4219,
+        "line": 4211,
         "optional": true,
         "role": "optional_dependency",
         "source": "nodes.py"
@@ -24012,14 +24100,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 5069
+            "line": 5061
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "torch",
         "kind": "static_import",
-        "line": 5070,
+        "line": 5062,
         "optional": true,
         "role": "optional_dependency",
         "source": "nodes.py"
@@ -24031,14 +24119,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 5086
+            "line": 5078
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "torch",
         "kind": "static_import",
-        "line": 5087,
+        "line": 5079,
         "optional": true,
         "role": "optional_dependency",
         "source": "nodes.py"
@@ -24050,14 +24138,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 5107
+            "line": 5099
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "torch",
         "kind": "static_import",
-        "line": 5108,
+        "line": 5100,
         "optional": true,
         "role": "optional_dependency",
         "source": "nodes.py"
@@ -24069,14 +24157,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 5184
+            "line": 5176
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "torch",
         "kind": "static_import",
-        "line": 5185,
+        "line": 5177,
         "optional": true,
         "role": "optional_dependency",
         "source": "nodes.py"
@@ -24088,14 +24176,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 5983
+            "line": 5975
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "torch",
         "kind": "static_import",
-        "line": 5984,
+        "line": 5976,
         "optional": true,
         "role": "optional_dependency",
         "source": "nodes.py"
@@ -24107,14 +24195,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 7008
+            "line": 7000
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "torch",
         "kind": "static_import",
-        "line": 7009,
+        "line": 7001,
         "optional": true,
         "role": "optional_dependency",
         "source": "nodes.py"
@@ -24126,14 +24214,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 7042
+            "line": 7034
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "torch",
         "kind": "static_import",
-        "line": 7043,
+        "line": 7035,
         "optional": true,
         "role": "optional_dependency",
         "source": "nodes.py"
@@ -24145,14 +24233,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 7267
+            "line": 7259
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "py.nodes.utils:apply_lora_syntax_format",
         "kind": "static_from",
-        "line": 7268,
+        "line": 7260,
         "optional": true,
         "role": "optional_dependency",
         "source": "nodes.py"
@@ -24164,14 +24252,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 7277
+            "line": 7269
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "folder_paths",
         "kind": "static_import",
-        "line": 7278,
+        "line": 7270,
         "optional": true,
         "role": "optional_dependency",
         "source": "nodes.py"
@@ -24183,14 +24271,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 7299
+            "line": 7291
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "folder_paths",
         "kind": "static_import",
-        "line": 7300,
+        "line": 7292,
         "optional": true,
         "role": "optional_dependency",
         "source": "nodes.py"
@@ -24202,14 +24290,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 7404
+            "line": 7396
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "py.utils.utils:get_lora_info",
         "kind": "static_from",
-        "line": 7405,
+        "line": 7397,
         "optional": true,
         "role": "optional_dependency",
         "source": "nodes.py"
@@ -24221,14 +24309,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 7448
+            "line": 7440
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "folder_paths",
         "kind": "static_import",
-        "line": 7449,
+        "line": 7441,
         "optional": true,
         "role": "optional_dependency",
         "source": "nodes.py"
@@ -24240,14 +24328,14 @@
             "handles_import_failure": true,
             "has_import_fallback_handler": false,
             "kind": "try",
-            "line": 7473
+            "line": 7465
           }
         ],
         "classification": "external",
         "conditional": true,
         "imported": "folder_paths",
         "kind": "static_import",
-        "line": 7474,
+        "line": 7466,
         "optional": true,
         "role": "optional_dependency",
         "source": "nodes.py"
@@ -25176,7 +25264,7 @@
         "column": 9,
         "context": "assign:logger",
         "kind": "import_time_call",
-        "line": 283,
+        "line": 285,
         "module": "nodes.py",
         "scope": "<module>"
       },
@@ -25185,7 +25273,7 @@
         "column": 62,
         "context": "assign:_SPECTRUM_ANIMA_MOD_GUIDANCE_OLD_SIGNATURE_WARNED",
         "kind": "import_time_call",
-        "line": 426,
+        "line": 428,
         "module": "nodes.py",
         "scope": "<module>"
       },
@@ -25194,16 +25282,7 @@
         "column": 19,
         "context": "assign:_HASH_COMMENT_RE",
         "kind": "import_time_call",
-        "line": 931,
-        "module": "nodes.py",
-        "scope": "<module>"
-      },
-      {
-        "callee": "re.compile",
-        "column": 18,
-        "context": "assign:_MULTI_COMMA_RE",
-        "kind": "import_time_call",
-        "line": 932,
+        "line": 933,
         "module": "nodes.py",
         "scope": "<module>"
       },
@@ -25212,7 +25291,7 @@
         "column": 19,
         "context": "assign:_INLINE_SPACE_RE",
         "kind": "import_time_call",
-        "line": 933,
+        "line": 934,
         "module": "nodes.py",
         "scope": "<module>"
       },
@@ -25221,7 +25300,7 @@
         "column": 21,
         "context": "assign:_WEIGHTED_TOKEN_RE",
         "kind": "import_time_call",
-        "line": 934,
+        "line": 935,
         "module": "nodes.py",
         "scope": "<module>"
       },
@@ -25230,7 +25309,7 @@
         "column": 22,
         "context": "assign:_WEIGHTED_ARTIST_RE",
         "kind": "import_time_call",
-        "line": 935,
+        "line": 936,
         "module": "nodes.py",
         "scope": "<module>"
       },
@@ -25239,7 +25318,7 @@
         "column": 19,
         "context": "assign:_ARTIST_GROUP_RE",
         "kind": "import_time_call",
-        "line": 938,
+        "line": 939,
         "module": "nodes.py",
         "scope": "<module>"
       },
@@ -25247,15 +25326,6 @@
         "callee": "re.compile",
         "column": 24,
         "context": "assign:_SECTION_SEPARATOR_RE",
-        "kind": "import_time_call",
-        "line": 942,
-        "module": "nodes.py",
-        "scope": "<module>"
-      },
-      {
-        "callee": "re.compile",
-        "column": 23,
-        "context": "assign:_RESOLUTION_LABEL_RE",
         "kind": "import_time_call",
         "line": 943,
         "module": "nodes.py",
@@ -25284,7 +25354,7 @@
         "column": 26,
         "context": "assign:_AIO_DETAILER_CUSTOM_RE",
         "kind": "import_time_call",
-        "line": 1153,
+        "line": 1145,
         "module": "nodes.py",
         "scope": "<module>"
       },
@@ -25293,7 +25363,7 @@
         "column": 0,
         "context": "expression",
         "kind": "import_time_call",
-        "line": 7207,
+        "line": 7199,
         "module": "nodes.py",
         "scope": "<module>"
       },
@@ -25302,7 +25372,7 @@
         "column": 0,
         "context": "expression",
         "kind": "import_time_call",
-        "line": 7217,
+        "line": 7209,
         "module": "nodes.py",
         "scope": "<module>"
       },
@@ -25690,85 +25760,85 @@
       },
       {
         "kind": "dict",
-        "line": 294,
+        "line": 296,
         "module": "nodes.py",
         "name": "ADVANCED_FIELD_LABELS"
       },
       {
         "kind": "set",
-        "line": 293,
+        "line": 295,
         "module": "nodes.py",
         "name": "ADVANCED_FIELD_PANES"
       },
       {
         "kind": "set",
-        "line": 292,
+        "line": 294,
         "module": "nodes.py",
         "name": "ADVANCED_FIELD_TYPES"
       },
       {
         "kind": "dict",
-        "line": 446,
+        "line": 448,
         "module": "nodes.py",
         "name": "AIO_GENERATION_DEFAULT_SETTINGS"
       },
       {
         "kind": "dict",
-        "line": 435,
+        "line": 437,
         "module": "nodes.py",
         "name": "AIO_INPUT_DEFAULT_SETTINGS"
       },
       {
         "kind": "dict",
-        "line": 3907,
+        "line": 3899,
         "module": "nodes.py",
         "name": "AIO_PREVIEW_STAGE_LABELS"
       },
       {
         "kind": "set",
-        "line": 430,
+        "line": 432,
         "module": "nodes.py",
         "name": "AIO_SPECIAL_SEEDS"
       },
       {
         "kind": "dict",
-        "line": 872,
+        "line": 874,
         "module": "nodes.py",
         "name": "ARTIST_MIX_MODE_DESCRIPTIONS"
       },
       {
         "kind": "list",
-        "line": 903,
+        "line": 905,
         "module": "nodes.py",
         "name": "EXTEND_PROMPT_SLOT_SPECS"
       },
       {
         "kind": "set",
-        "line": 306,
+        "line": 308,
         "module": "nodes.py",
         "name": "REGIONAL_FIELD_TYPES"
       },
       {
         "kind": "set",
-        "line": 1152,
+        "line": 1144,
         "module": "nodes.py",
         "name": "_AIO_DETAILER_RESERVED_KEYS"
       },
       {
         "kind": "dict",
-        "line": 3920,
+        "line": 3912,
         "module": "nodes.py",
         "name": "_AIO_FIRST_PASS_CACHE"
       },
       {
         "kind": "list",
-        "line": 3921,
+        "line": 3913,
         "module": "nodes.py",
         "name": "_AIO_FIRST_PASS_CACHE_ORDER"
       },
       {
         "kind": "set",
-        "line": 426,
+        "line": 428,
         "module": "nodes.py",
         "name": "_SPECTRUM_ANIMA_MOD_GUIDANCE_OLD_SIGNATURE_WARNED"
       },
@@ -25961,7 +26031,7 @@
           "mutable_container"
         ],
         "initializer": "Dict",
-        "line": 3920,
+        "line": 3912,
         "module": "nodes.py",
         "name": "_AIO_FIRST_PASS_CACHE"
       },
@@ -25971,7 +26041,7 @@
           "mutable_container"
         ],
         "initializer": "List",
-        "line": 3921,
+        "line": 3913,
         "module": "nodes.py",
         "name": "_AIO_FIRST_PASS_CACHE_ORDER"
       },

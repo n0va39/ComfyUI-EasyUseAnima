@@ -647,6 +647,7 @@ class WildcardNaiaMoveContractTests(unittest.TestCase):
         "PP_STATE_CHOICES",
         "PREPROCESSING_KEYS",
         "_build_naia_random_url",
+        "_clean_prompt",
         "_fit_to_1mp",
         "_is_local_naia_host",
         "_parse_random_response",

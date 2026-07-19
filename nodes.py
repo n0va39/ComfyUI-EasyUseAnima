@@ -80,6 +80,7 @@ try:
         PP_STATE_CHOICES as PP_STATE_CHOICES,
         PREPROCESSING_KEYS as PREPROCESSING_KEYS,
         _build_naia_random_url as _build_naia_random_url,
+        _clean_prompt as _clean_prompt,
         _fit_to_1mp as _fit_to_1mp,
         _is_local_naia_host as _is_local_naia_host,
         _parse_random_response as _parse_random_response,
@@ -214,6 +215,7 @@ except ImportError:  # allows simple local import tests outside ComfyUI's packag
         PP_STATE_CHOICES as PP_STATE_CHOICES,
         PREPROCESSING_KEYS as PREPROCESSING_KEYS,
         _build_naia_random_url as _build_naia_random_url,
+        _clean_prompt as _clean_prompt,
         _fit_to_1mp as _fit_to_1mp,
         _is_local_naia_host as _is_local_naia_host,
         _parse_random_response as _parse_random_response,
@@ -929,7 +931,6 @@ AIO_RESHIFT_DTYPES = ("bf16", "fp32")
 
 
 _HASH_COMMENT_RE = re.compile(r"^[ \t]*#[^\n]*", re.MULTILINE)
-_MULTI_COMMA_RE = re.compile(r"(\s*,){2,}")
 _INLINE_SPACE_RE = re.compile(r"[ \t]+")
 _WEIGHTED_TOKEN_RE = re.compile(r"^\(([^(),]+):[-+]?\d+(?:\.\d+)?\)$")
 _WEIGHTED_ARTIST_RE = re.compile(
@@ -940,7 +941,6 @@ _ARTIST_GROUP_RE = re.compile(
     re.DOTALL,
 )
 _SECTION_SEPARATOR_RE = re.compile(r"^\s*-{6,}\s*$", re.MULTILINE)
-_RESOLUTION_LABEL_RE = re.compile(r"(\d+)\s*(?:\*|x|×)\s*(\d+)")
 _TRIGGER_WORD_KEYS = ("trainedWords", "trained_words", "trigger_words", "activation_text")
 _ADVANCED_FIELD_SOCKET_PREFIX = "field_"
 _ADVANCED_FIELD_SOCKET_RE = re.compile(r"[^A-Za-z0-9_]")
@@ -980,14 +980,6 @@ def _resolve_aio_runtime_seed(value) -> int:
     return max(0, min(MAX_SEED, seed))
 
 
-
-
-def _clean_prompt(value: str) -> str:
-    if not value:
-        return value
-    value = _HASH_COMMENT_RE.sub("", value)
-    value = _MULTI_COMMA_RE.sub(",", value)
-    return value.strip(" ,\n\t")
 
 
 def _merge_versioned_settings(defaults: dict[str, Any], value) -> dict[str, Any]:
