@@ -25,6 +25,7 @@ PACKAGE_MODULES = (
     "easyuse_anima.nodes",
     "easyuse_anima.profiles",
     "easyuse_anima.profiles.contract",
+    "easyuse_anima.profiles.mutation",
     "easyuse_anima.prompt",
 )
 
