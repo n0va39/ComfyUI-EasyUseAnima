@@ -828,6 +828,42 @@ class WildcardSeedContractTests(unittest.TestCase):
 
 
 class WildcardNodeTests(unittest.TestCase):
+    def test_input_tooltips_cover_syntax_cache_and_actual_mode_lifecycle(self):
+        inputs = EasyUseAnimaWildcard.INPUT_TYPES()["required"]
+        text_tooltip = inputs["text"][1]["tooltip"]
+        for syntax in (
+            "__name__",
+            "{a|b|c}",
+            "N::item",
+            "{n$$...}",
+            "{min-max$$separator$$...}",
+            "N#__name__",
+            "nested",
+            "ignore case",
+            "* glob",
+            "#",
+        ):
+            with self.subTest(syntax=syntax):
+                self.assertIn(syntax, text_tooltip)
+
+        populated_tooltip = inputs["populated_text"][1]["tooltip"]
+        self.assertIn("Reproduce outputs this value", populated_tooltip)
+        self.assertIn("falling back to text", populated_tooltip)
+        self.assertIn("ignore the old cache", populated_tooltip)
+
+        mode_tooltip = inputs["mode"][1]["tooltip"]
+        self.assertIn("Fixed (고정): EasyUse compatibility mode", mode_tooltip)
+        self.assertIn("it still expands text", mode_tooltip)
+        self.assertIn("Reproduce (재현): output populated_text unchanged", mode_tooltip)
+        self.assertIn("seed_after_generate still controls the returned next seed", mode_tooltip)
+
+        seed_tooltip = inputs["seed"][1]["tooltip"]
+        self.assertIn("range width", seed_tooltip)
+        self.assertIn("Reproduce performs no selection", seed_tooltip)
+        control_tooltip = inputs["seed_after_generate"][1]["tooltip"]
+        self.assertIn("Sequential always forces increment", control_tooltip)
+        self.assertIn("still applies this control", control_tooltip)
+
     def test_native_wildcard_consumes_reserved_queue_seed_and_scrubs_token(self):
         reservation = json.dumps({
             "version": 1,
@@ -954,6 +990,52 @@ class WildcardNodeTests(unittest.TestCase):
         self.assertNotEqual(result["result"][0], "{2$$red|blue|green}")
         self.assertEqual(len([part.strip() for part in result["result"][0].split(",")]), 2)
         self.assertEqual(result["ui"]["wildcard"][0]["status"], "fixed")
+
+    def test_native_reproduce_uses_cache_but_still_applies_seed_control(self):
+        with patch("nodes.expand_wildcards") as expand:
+            result = EasyUseAnimaWildcard().generate(
+                "__style__",
+                "expanded style",
+                "재현",
+                5,
+                "increment",
+            )
+
+        expand.assert_not_called()
+        self.assertEqual(result["result"], ("expanded style", 6))
+        self.assertEqual(result["ui"]["wildcard"][0]["status"], "reproduce")
+
+    def test_prompt_studio_reproduce_keeps_saved_fields_and_does_not_advance_seed(self):
+        fields = [{
+            "id": "positive_general",
+            "pane": "positive",
+            "type": "general",
+            "label": "General Tags",
+            "text": "expanded style",
+            "height": 120,
+            "enabled": True,
+        }]
+
+        with patch("nodes.expand_wildcards") as expand:
+            result = EasyUseAnimaPromptStudioAdvanced().build(
+                False,
+                True,
+                False,
+                False,
+                json.dumps(fields),
+                wildcard_mode="재현",
+                wildcard_seed=5,
+                wildcard_seed_after_generate="increment",
+            )
+
+        expand.assert_not_called()
+        payload = result["ui"]["prompt_studio_advanced"][0]
+        self.assertEqual(result["result"][0], "expanded style")
+        self.assertNotIn("wildcard_seed", payload)
+        self.assertEqual(
+            json.loads(payload["advanced_fields"])[0]["text"],
+            "expanded style",
+        )
 
     def test_public_settings_include_wildcard_extra_paths(self):
         self.assertIn("wildcard.extra_paths", public_settings())
