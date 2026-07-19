@@ -80,8 +80,8 @@ Issue #14 범위에서 `dev`에 병합됐다.
 
 ### 정량 스냅샷
 
-`web/js`에는 JavaScript 111개, 총 38,914줄이 있다. `jsconfig.json`의 명시적
-include 패턴은 중복 제거 기준 107개·31,497줄로 전체 라인의 80.9%다. 이 중
+`web/js`에는 JavaScript 111개, 총 38,923줄이 있다. `jsconfig.json`의 명시적
+include 패턴은 중복 제거 기준 108개·31,842줄로 전체 라인의 81.8%다. 이 중
 Prompt Studio entry 2개와 `prompt_studio/**/*.js` 55개는 총 57개·14,587줄로
 전체 라인의 37.5%다. import를 따라 추가로 검사되는 dependency는 이 수치에
 포함하지 않았다.
@@ -111,8 +111,14 @@ debt, root wildcard 추가를 실패시킨다.
 
 Phase 4a에서는 `easyuse_anima_settings.js`의 4개 오류(TS2307 1개,
 TS2339 3개)를 host import 한 줄 suppression과 좁은 window alias로 해소하고
-명시적 include로 승격했다. 현재 root entry 11개 중 7개가 typecheck 대상이고,
-debt는 4개 entry·36개 오류다.
+명시적 include로 승격했다. 당시 root entry 11개 중 7개가 typecheck 대상이고,
+debt는 4개 entry·36개 오류였다.
+
+Phase 4b에서는 `easyuse_anima_naia.js`의 5개 오류(TS2307 2개, TS2345 2개,
+TS6133 1개)를 ComfyUI host import 두 줄의 line-specific suppression,
+혼합 server payload를 위한 `unknown` 경계, 기존 `arguments` forwarding을 유지한
+unused callback formal 제거로 해소하고 명시적 include로 승격했다. 현재 root
+entry 11개 중 8개가 typecheck 대상이고, debt는 3개 entry·31개 오류다.
 
 현재 debt ledger:
 
@@ -121,7 +127,6 @@ debt는 4개 entry·36개 오류다.
 | `easyuse_anima_aio.js` | 16 | TS1117 4, TS2307 4, TS2339 2, TS2345 2, TS6133 4 |
 | `easyuse_anima_autocomplete.js` | 5 | TS2307 1, TS2339 2, TS6133 2 |
 | `easyuse_anima_lora_preset.js` | 10 | TS2304 4, TS2307 2, TS2345 1, TS6133 3 |
-| `easyuse_anima_naia.js` | 5 | TS2307 2, TS2345 2, TS6133 1 |
 
 코드는 TS1117 duplicate property, TS2304 undeclared host global, TS2307 외부
 Comfy import resolution, TS2339 DOM/window property shape, TS2345 argument/shape
@@ -135,8 +140,7 @@ mismatch, TS6133 unused declaration/parameter를 뜻한다. TODO는 각 파일�
 $files = @(
   "web/js/easyuse_anima_aio.js",
   "web/js/easyuse_anima_autocomplete.js",
-  "web/js/easyuse_anima_lora_preset.js",
-  "web/js/easyuse_anima_naia.js"
+  "web/js/easyuse_anima_lora_preset.js"
 )
 foreach ($file in $files) {
   npx --yes --package "typescript@6.0.3" -- tsc `

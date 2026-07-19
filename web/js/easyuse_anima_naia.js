@@ -1,4 +1,8 @@
+// @ts-check
+
+// @ts-expect-error ComfyUI provides this host module at runtime.
 import { app } from "../../../scripts/app.js";
+// @ts-expect-error ComfyUI provides this host module at runtime.
 import { ComfyWidgets } from "../../../scripts/widgets.js";
 
 const NODE_TYPE = "EasyUseAnimaNAIARandomPrompt";
@@ -35,6 +39,11 @@ const NAIA_SETTING_WIDGETS = [
   "port",
 ];
 
+/**
+ * @param {unknown} value
+ * @param {unknown} fallback
+ * @returns {unknown}
+ */
 function firstValue(value, fallback = "") {
   if (Array.isArray(value)) {
     return value.length > 0 ? value[0] : fallback;
@@ -201,7 +210,7 @@ function hookShowPreviewWidget(node) {
     return;
   }
   const callback = widget.callback;
-  widget.callback = function (value) {
+  widget.callback = function (_value) {
     const result = callback?.apply(this, arguments);
     updatePreviewVisibility(node);
     return result;
