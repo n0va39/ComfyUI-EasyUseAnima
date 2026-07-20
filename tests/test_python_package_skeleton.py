@@ -25,6 +25,7 @@ PACKAGE_MODULES = (
     "easyuse_anima.naia",
     "easyuse_anima.nodes",
     "easyuse_anima.nodes.prompt_data_nodes",
+    "easyuse_anima.nodes.regional_nodes",
     "easyuse_anima.profiles",
     "easyuse_anima.profiles.contract",
     "easyuse_anima.profiles.mutation",
@@ -32,6 +33,7 @@ PACKAGE_MODULES = (
     "easyuse_anima.prompt.artist_mix",
     "easyuse_anima.prompt.conditioning",
     "easyuse_anima.prompt.data",
+    "easyuse_anima.prompt.regional",
 )
 
 

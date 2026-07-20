@@ -62,6 +62,34 @@ try:
         _prompt_data_parameter_snapshot as _prompt_data_parameter_snapshot,
         _set_prompt_data_output as _set_prompt_data_output,
     )
+    from .easyuse_anima.prompt.regional import (
+        REGIONAL_CONFIG_VERSION as REGIONAL_CONFIG_VERSION,
+        REGIONAL_CONFIG_WORKFLOW_PROPERTY as REGIONAL_CONFIG_WORKFLOW_PROPERTY,
+        REGIONAL_FIELDS_WORKFLOW_PROPERTY as REGIONAL_FIELDS_WORKFLOW_PROPERTY,
+        REGIONAL_FIELD_TYPES as REGIONAL_FIELD_TYPES,
+        REGIONAL_PROMPT_BUNDLE_SCHEMA as REGIONAL_PROMPT_BUNDLE_SCHEMA,
+        REGIONAL_PROMPT_DATA_SCHEMA as REGIONAL_PROMPT_DATA_SCHEMA,
+        REGIONAL_PROMPT_DATA_TYPE as REGIONAL_PROMPT_DATA_TYPE,
+        _apply_regional_field_inputs as _apply_regional_field_inputs,
+        _bind_regional_runtime as _bind_regional_runtime,
+        _build_regional_outputs as _build_regional_outputs,
+        _clone_regional_fields as _clone_regional_fields,
+        _conditioning_set_values as _conditioning_set_values,
+        _normalize_mask_geometry as _normalize_mask_geometry,
+        _normalize_mask_ids as _normalize_mask_ids,
+        _normalize_regional_config as _normalize_regional_config,
+        _normalize_regional_fields as _normalize_regional_fields,
+        _normalize_regional_mask as _normalize_regional_mask,
+        _parse_json_object as _parse_json_object,
+        _regional_config_json as _regional_config_json,
+        _regional_default_config as _regional_default_config,
+        _regional_default_fields as _regional_default_fields,
+        _regional_field_prompt as _regional_field_prompt,
+        _regional_fields_json as _regional_fields_json,
+        _regional_mask_bounds_area as _regional_mask_bounds_area,
+        _regional_payload_canvas as _regional_payload_canvas,
+        _regional_union_mask_for_ids as _regional_union_mask_for_ids,
+    )
     from .easyuse_anima.prompt.conditioning import (
         ANIMA_MOD_GUIDANCE_DEFAULT_PROFILE as ANIMA_MOD_GUIDANCE_DEFAULT_PROFILE,
         ANIMA_MOD_GUIDANCE_MODES as ANIMA_MOD_GUIDANCE_MODES,
@@ -214,6 +242,11 @@ try:
         EasyUseAnimaPromptCorrectorSimple as EasyUseAnimaPromptCorrectorSimple,
         EasyUseAnimaPromptStudio as EasyUseAnimaPromptStudio,
         _bind_prompt_node_runtime as _bind_prompt_node_runtime,
+    )
+    from .easyuse_anima.nodes.regional_nodes import (
+        EasyUseAnimaPromptStudioRegional as EasyUseAnimaPromptStudioRegional,
+        EasyUseAnimaRegionalConditioning as EasyUseAnimaRegionalConditioning,
+        _bind_regional_node_runtime as _bind_regional_node_runtime,
     )
     from .easyuse_anima.naia.client import (
         DEFAULT_HOST as DEFAULT_HOST,
@@ -376,6 +409,34 @@ except ImportError:  # allows simple local import tests outside ComfyUI's packag
         _prompt_data_parameter_snapshot as _prompt_data_parameter_snapshot,
         _set_prompt_data_output as _set_prompt_data_output,
     )
+    from easyuse_anima.prompt.regional import (
+        REGIONAL_CONFIG_VERSION as REGIONAL_CONFIG_VERSION,
+        REGIONAL_CONFIG_WORKFLOW_PROPERTY as REGIONAL_CONFIG_WORKFLOW_PROPERTY,
+        REGIONAL_FIELDS_WORKFLOW_PROPERTY as REGIONAL_FIELDS_WORKFLOW_PROPERTY,
+        REGIONAL_FIELD_TYPES as REGIONAL_FIELD_TYPES,
+        REGIONAL_PROMPT_BUNDLE_SCHEMA as REGIONAL_PROMPT_BUNDLE_SCHEMA,
+        REGIONAL_PROMPT_DATA_SCHEMA as REGIONAL_PROMPT_DATA_SCHEMA,
+        REGIONAL_PROMPT_DATA_TYPE as REGIONAL_PROMPT_DATA_TYPE,
+        _apply_regional_field_inputs as _apply_regional_field_inputs,
+        _bind_regional_runtime as _bind_regional_runtime,
+        _build_regional_outputs as _build_regional_outputs,
+        _clone_regional_fields as _clone_regional_fields,
+        _conditioning_set_values as _conditioning_set_values,
+        _normalize_mask_geometry as _normalize_mask_geometry,
+        _normalize_mask_ids as _normalize_mask_ids,
+        _normalize_regional_config as _normalize_regional_config,
+        _normalize_regional_fields as _normalize_regional_fields,
+        _normalize_regional_mask as _normalize_regional_mask,
+        _parse_json_object as _parse_json_object,
+        _regional_config_json as _regional_config_json,
+        _regional_default_config as _regional_default_config,
+        _regional_default_fields as _regional_default_fields,
+        _regional_field_prompt as _regional_field_prompt,
+        _regional_fields_json as _regional_fields_json,
+        _regional_mask_bounds_area as _regional_mask_bounds_area,
+        _regional_payload_canvas as _regional_payload_canvas,
+        _regional_union_mask_for_ids as _regional_union_mask_for_ids,
+    )
     from easyuse_anima.prompt.conditioning import (
         ANIMA_MOD_GUIDANCE_DEFAULT_PROFILE as ANIMA_MOD_GUIDANCE_DEFAULT_PROFILE,
         ANIMA_MOD_GUIDANCE_MODES as ANIMA_MOD_GUIDANCE_MODES,
@@ -529,6 +590,11 @@ except ImportError:  # allows simple local import tests outside ComfyUI's packag
         EasyUseAnimaPromptStudio as EasyUseAnimaPromptStudio,
         _bind_prompt_node_runtime as _bind_prompt_node_runtime,
     )
+    from easyuse_anima.nodes.regional_nodes import (
+        EasyUseAnimaPromptStudioRegional as EasyUseAnimaPromptStudioRegional,
+        EasyUseAnimaRegionalConditioning as EasyUseAnimaRegionalConditioning,
+        _bind_regional_node_runtime as _bind_regional_node_runtime,
+    )
     from easyuse_anima.naia.client import (
         DEFAULT_HOST as DEFAULT_HOST,
         DEFAULT_PORT as DEFAULT_PORT,
@@ -670,10 +736,6 @@ PROMPT_STUDIO_LEGACY_FIXED_WILDCARD_MODES = {
     "reproduce",
     "재현",
 }
-REGIONAL_FIELDS_WORKFLOW_PROPERTY = "easyuse_anima_regional_fields"
-REGIONAL_CONFIG_WORKFLOW_PROPERTY = "easyuse_anima_regional_config"
-REGIONAL_FIELD_TYPES = {"quality", "artist", "trigger", "general"}
-REGIONAL_CONFIG_VERSION = 1
 EASY_USE_ANIMA_INPUT_TYPE = "EASY_USE_ANIMA_INPUT"
 EASY_USE_ANIMA_INPUT_SCHEMA = "easy_use_anima_input"
 EASY_USE_ANIMA_INPUT_SETTINGS_VERSION = 1
@@ -1158,9 +1220,6 @@ AIO_GENERATION_DEFAULT_SETTINGS = {
         "feed_count": 12,
     },
 }
-REGIONAL_PROMPT_DATA_TYPE = "EASYUSE_ANIMA_REGIONAL_PROMPT_DATA"
-REGIONAL_PROMPT_DATA_SCHEMA = "easyuse_anima_prompt_studio_regional"
-REGIONAL_PROMPT_BUNDLE_SCHEMA = "easyuse_anima_prompt_studio_regional_bundle"
 EXTEND_PROMPT_SLOT_SPECS = [
     ("quality_tags_1", "positive", "quality", "Quality Tags 1", DEFAULT_QUALITY_TAGS, 72),
     ("quality_tags_2", "positive", "quality", "Quality Tags 2", "", 72),
@@ -5071,517 +5130,6 @@ def _build_advanced_prompt_data(
     }
 
 
-def _regional_default_fields() -> list[dict]:
-    fields = []
-    for field in _advanced_default_fields():
-        if field.get("type") == "naia":
-            continue
-        item = dict(field)
-        item["mask_ids"] = []
-        fields.append(item)
-    return fields
-
-
-def _regional_fields_json(fields: list[dict] | None = None) -> str:
-    return json.dumps(
-        fields if fields is not None else _regional_default_fields(),
-        ensure_ascii=False,
-        separators=(",", ":"),
-    )
-
-
-def _normalize_mask_ids(value) -> list[int]:
-    value = _single_value(value)
-    if value is None:
-        return []
-    if isinstance(value, str):
-        raw_values = re.split(r"[,;\s]+", value.strip())
-    elif isinstance(value, (list, tuple, set)):
-        raw_values = list(value)
-    else:
-        raw_values = [value]
-
-    mask_ids: list[int] = []
-    for raw in raw_values:
-        mask_id = _as_int(raw, 0)
-        if mask_id > 0 and mask_id not in mask_ids:
-            mask_ids.append(mask_id)
-    return mask_ids
-
-
-def _normalize_regional_fields(value: str | list | None) -> list[dict]:
-    raw = value
-    if isinstance(value, str):
-        try:
-            raw = json.loads(value or "[]")
-        except json.JSONDecodeError:
-            raw = []
-    if not isinstance(raw, list):
-        raw = []
-    if not raw:
-        raw = _regional_default_fields()
-
-    fields: list[dict] = []
-    seen_trigger = False
-    for index, item in enumerate(raw):
-        if not isinstance(item, dict):
-            continue
-        pane = str(item.get("pane") or "positive").strip().lower()
-        if pane not in ADVANCED_FIELD_PANES:
-            pane = "positive"
-        field_type = str(item.get("type") or "general").strip().lower()
-        if field_type not in REGIONAL_FIELD_TYPES:
-            field_type = "general"
-        if pane == "negative" and field_type == "trigger":
-            field_type = "general"
-        if field_type == "trigger":
-            if seen_trigger:
-                continue
-            seen_trigger = True
-            pane = "positive"
-        default_label = ADVANCED_FIELD_LABELS.get(field_type, ADVANCED_FIELD_LABELS["general"])
-        label = str(item.get("label") or default_label).strip() or default_label
-        field_id = str(item.get("id") or f"{pane}_{field_type}_{index + 1}").strip()
-        if not field_id:
-            field_id = f"{pane}_{field_type}_{index + 1}"
-        mask_ids = _normalize_mask_ids(item.get("mask_ids"))
-        if pane != "positive":
-            mask_ids = []
-        fields.append({
-            "id": field_id,
-            "pane": pane,
-            "type": field_type,
-            "label": label,
-            "text": str(item.get("text") or ""),
-            "height": _as_advanced_height(item.get("height"), 72),
-            "enabled": _as_bool(item.get("enabled"), True),
-            "pin": _as_bool(item.get("pin"), field_type == "trigger"),
-            "collapsed": _as_bool(item.get("collapsed"), False),
-            "mask_ids": mask_ids,
-        })
-
-    return fields or _regional_default_fields()
-
-
-def _clone_regional_fields(fields: list[dict]) -> list[dict]:
-    return [
-        {
-            **dict(field),
-            "mask_ids": list(field.get("mask_ids") or []),
-        }
-        for field in fields
-    ]
-
-
-def _apply_regional_field_inputs(fields: list[dict], field_inputs: dict) -> list[dict]:
-    values = _advanced_field_input_values(field_inputs)
-    if not values:
-        return _clone_regional_fields(fields)
-
-    effective = _clone_regional_fields(fields)
-    for field in effective:
-        name = _advanced_field_socket_name(field)
-        if name in values:
-            field["text"] = values[name]
-    return effective
-
-
-def _regional_default_config(width: int = 1024, height: int = 1024) -> dict[str, Any]:
-    return {
-        "version": REGIONAL_CONFIG_VERSION,
-        "canvas": {
-            "width": int(width),
-            "height": int(height),
-            "aspect_ratio": _ratio_label(width, height),
-            "source": "resolution_fields",
-        },
-        "mask_authoring": {
-            "render_space": "image_pixels",
-            "storage_space": "normalized_canvas",
-            "preview_enabled": True,
-        },
-        "global_prompt": "",
-        "negative_prompt": "",
-        "next_mask_id": 1,
-        "masks": [],
-        "regional_enabled": False,
-        "mask_prompts": [],
-        "assignments": [],
-        "artist_mix": {},
-        "conditioning_settings": {},
-        "regional_settings": {},
-    }
-
-
-def _normalize_mask_geometry(value) -> dict[str, float]:
-    if not isinstance(value, dict):
-        value = {}
-    shape = str(value.get("type") or "rect").strip().lower()
-    if shape not in {"rect", "ellipse"}:
-        shape = "rect"
-    x = max(0.0, min(0.99, _as_float(value.get("x"), 0.1)))
-    y = max(0.0, min(0.99, _as_float(value.get("y"), 0.1)))
-    width = max(0.01, min(1.0, _as_float(value.get("width"), 0.35)))
-    height = max(0.01, min(1.0, _as_float(value.get("height"), 0.35)))
-    if x + width > 1.0:
-        width = max(0.01, 1.0 - x)
-    if y + height > 1.0:
-        height = max(0.01, 1.0 - y)
-    return {
-        "type": shape,
-        "x": round(x, 6),
-        "y": round(y, 6),
-        "width": round(width, 6),
-        "height": round(height, 6),
-    }
-
-
-def _normalize_regional_mask(value, fallback_id: int) -> dict[str, Any] | None:
-    if not isinstance(value, dict):
-        return None
-    mask_id = _as_int(value.get("mask_id", value.get("id")), fallback_id)
-    if mask_id <= 0:
-        return None
-    default_label = f"Mask {mask_id}"
-    name = str(value.get("name") or "").strip()
-    label = str(value.get("label") or name or default_label).strip() or default_label
-    color = str(value.get("color") or "#3b82f6").strip() or "#3b82f6"
-    if not re.fullmatch(r"#[0-9A-Fa-f]{6}", color):
-        color = "#3b82f6"
-    mask = {
-        "mask_id": mask_id,
-        "label": label,
-        "name": name,
-        "color": color,
-        "enabled": _as_bool(value.get("enabled"), True),
-        "geometry": _normalize_mask_geometry(value.get("geometry")),
-    }
-    if isinstance(value.get("strokes"), list):
-        mask["strokes"] = value["strokes"]
-    if isinstance(value.get("shapes"), list):
-        mask["shapes"] = value["shapes"]
-    return mask
-
-
-def _normalize_regional_config(
-    value: str | dict | None,
-    width: int = 1024,
-    height: int = 1024,
-) -> dict[str, Any]:
-    raw = value
-    if isinstance(value, str):
-        try:
-            raw = json.loads(value or "{}")
-        except json.JSONDecodeError:
-            raw = {}
-    if not isinstance(raw, dict):
-        raw = {}
-
-    config = _regional_default_config(width, height)
-    for key in ("artist_mix", "conditioning_settings", "regional_settings"):
-        if isinstance(raw.get(key), dict):
-            config[key] = raw[key]
-    authoring = raw.get("mask_authoring")
-    if isinstance(authoring, dict):
-        merged = dict(config["mask_authoring"])
-        merged.update({k: v for k, v in authoring.items() if isinstance(k, str)})
-        config["mask_authoring"] = merged
-
-    masks: list[dict[str, Any]] = []
-    used_ids: set[int] = set()
-    raw_masks = raw.get("masks")
-    if not isinstance(raw_masks, list):
-        raw_masks = raw.get("regions") if isinstance(raw.get("regions"), list) else []
-    for index, item in enumerate(raw_masks):
-        mask = _normalize_regional_mask(item, index + 1)
-        if mask is None or mask["mask_id"] in used_ids:
-            continue
-        used_ids.add(mask["mask_id"])
-        masks.append(mask)
-    next_mask_id = max([_as_int(raw.get("next_mask_id"), 1), 1, *(mask["mask_id"] + 1 for mask in masks)])
-    config["next_mask_id"] = next_mask_id
-    config["masks"] = masks
-    config["canvas"] = {
-        "width": int(width),
-        "height": int(height),
-        "aspect_ratio": _ratio_label(width, height),
-        "source": "resolution_fields",
-    }
-    return config
-
-
-def _regional_config_json(config: dict[str, Any] | None = None) -> str:
-    return json.dumps(
-        config if config is not None else _regional_default_config(),
-        ensure_ascii=False,
-        separators=(",", ":"),
-    )
-
-
-def _regional_field_prompt(field: dict, artist_overrides: str = "") -> str:
-    return _correct_advanced_field_sequence(
-        [field],
-        include_quality=True,
-        artist_overrides=artist_overrides,
-        force_pin_triggers=True,
-    )
-
-
-def _build_regional_outputs(
-    fields: list[dict],
-    config: dict[str, Any],
-    width: int,
-    height: int,
-) -> tuple[str, str, str, str, dict[str, Any]]:
-    positive_fields = [
-        field
-        for field in fields
-        if field.get("pane") == "positive" and _as_bool(field.get("enabled"), True)
-    ]
-    negative_fields = [
-        field
-        for field in fields
-        if field.get("pane") == "negative" and _as_bool(field.get("enabled"), True)
-    ]
-    global_positive_fields = [
-        field for field in positive_fields if not _normalize_mask_ids(field.get("mask_ids"))
-    ]
-    mask_positive_fields = [
-        field for field in positive_fields if _normalize_mask_ids(field.get("mask_ids"))
-    ]
-
-    global_artist_prompt = _join_prompt_tokens(
-        *(str(field.get("text") or "") for field in global_positive_fields if field.get("type") == "artist")
-    )
-    all_artist_prompt = _join_prompt_tokens(
-        *(str(field.get("text") or "") for field in positive_fields if field.get("type") == "artist")
-    )
-    negative_artist_prompt = _join_prompt_tokens(
-        *(str(field.get("text") or "") for field in negative_fields if field.get("type") == "artist")
-    )
-
-    positive_prompt = _correct_advanced_field_sequence(
-        global_positive_fields,
-        include_quality=True,
-        artist_overrides=global_artist_prompt,
-        force_pin_triggers=True,
-    )
-    negative_prompt = _correct_advanced_field_sequence(
-        negative_fields,
-        include_quality=True,
-        artist_overrides=negative_artist_prompt,
-    )
-    metadata_prompt = _correct_advanced_field_sequence(
-        positive_fields,
-        include_quality=True,
-        artist_overrides=all_artist_prompt,
-        force_pin_triggers=True,
-    )
-
-    filter_words = resolve_metadata_filter_words()
-    metadata_prompt = _filter_metadata_prompt(metadata_prompt, filter_words)
-    metadata_negative_prompt = _filter_metadata_prompt(negative_prompt, filter_words)
-
-    masks = config.get("masks") if isinstance(config.get("masks"), list) else []
-    enabled_mask_ids = {
-        _as_int(mask.get("mask_id"), 0)
-        for mask in masks
-        if isinstance(mask, dict) and _as_bool(mask.get("enabled"), True)
-    }
-    assignments: list[dict[str, Any]] = []
-    mask_prompts: list[dict[str, Any]] = []
-    for field in mask_positive_fields:
-        mask_ids = _normalize_mask_ids(field.get("mask_ids"))
-        valid_mask_ids = [mask_id for mask_id in mask_ids if mask_id in enabled_mask_ids]
-        missing_mask_ids = [mask_id for mask_id in mask_ids if mask_id not in enabled_mask_ids]
-        prompt = _regional_field_prompt(field, all_artist_prompt)
-        assignments.append({
-            "field_id": str(field.get("id") or ""),
-            "mask_ids": mask_ids,
-            "valid_mask_ids": valid_mask_ids,
-            "missing_mask_ids": missing_mask_ids,
-        })
-        mask_prompts.append({
-            "field_id": str(field.get("id") or ""),
-            "type": str(field.get("type") or "general"),
-            "label": str(field.get("label") or ""),
-            "text": str(field.get("text") or ""),
-            "prompt": prompt,
-            "mask_ids": mask_ids,
-            "valid_mask_ids": valid_mask_ids,
-            "missing_mask_ids": missing_mask_ids,
-        })
-
-    regional_enabled = any(entry["valid_mask_ids"] for entry in mask_prompts)
-    regional_prompt_data = {
-        **config,
-        "version": REGIONAL_CONFIG_VERSION,
-        "schema": REGIONAL_PROMPT_BUNDLE_SCHEMA,
-        "canvas": {
-            "width": int(width),
-            "height": int(height),
-            "aspect_ratio": _ratio_label(width, height),
-            "source": "resolution_fields",
-        },
-        "global_prompt": positive_prompt,
-        "negative_prompt": negative_prompt,
-        "metadata_prompt": metadata_prompt,
-        "metadata_negative_prompt": metadata_negative_prompt,
-        "masks": masks,
-        "regional_enabled": regional_enabled,
-        "mask_prompts": mask_prompts,
-        "assignments": assignments,
-    }
-    model_patch_data = {
-        "version": REGIONAL_CONFIG_VERSION,
-        "regional_attention": {
-            "enabled": regional_enabled,
-            "assignments": assignments,
-            "masks": [
-                {
-                    "mask_id": mask.get("mask_id"),
-                    "label": mask.get("label"),
-                    "name": mask.get("name"),
-                    "enabled": _as_bool(mask.get("enabled"), True),
-                }
-                for mask in masks
-                if isinstance(mask, dict)
-            ],
-        },
-        "layout_control": {
-            "canvas": regional_prompt_data["canvas"],
-        },
-        "global_mod_guidance": {},
-        "artist_mix": config.get("artist_mix") if isinstance(config.get("artist_mix"), dict) else {},
-        "compatibility": {
-            "schema": REGIONAL_PROMPT_DATA_SCHEMA,
-            "version": REGIONAL_CONFIG_VERSION,
-            "mask_scoped_prompts": True,
-        },
-    }
-    regional_prompt_data["model_patch_data"] = model_patch_data
-    return (
-        positive_prompt,
-        negative_prompt,
-        metadata_prompt,
-        metadata_negative_prompt,
-        regional_prompt_data,
-    )
-
-
-def _parse_json_object(value: str | dict | None) -> dict[str, Any]:
-    if isinstance(value, dict):
-        return value
-    if isinstance(value, str):
-        try:
-            parsed = json.loads(value or "{}")
-        except json.JSONDecodeError as exc:
-            raise ValueError("[EasyUseAnima] regional_prompt_data is not valid JSON.") from exc
-        if isinstance(parsed, dict):
-            return parsed
-    return {}
-
-
-def _regional_payload_canvas(payload: dict[str, Any]) -> tuple[int, int]:
-    canvas = payload.get("canvas") if isinstance(payload.get("canvas"), dict) else {}
-    width = max(8, _as_int(canvas.get("width"), 1024))
-    height = max(8, _as_int(canvas.get("height"), 1024))
-    return width, height
-
-
-def _conditioning_set_values(conditioning, values: dict[str, Any]) -> list:
-    out = []
-    for item in conditioning or []:
-        if isinstance(item, (list, tuple)) and len(item) >= 2 and isinstance(item[1], dict):
-            metadata = dict(item[1])
-            metadata.update(values)
-            out.append([item[0], metadata])
-        else:
-            out.append(item)
-    return out
-
-
-def _regional_union_mask_for_ids(
-    payload: dict[str, Any],
-    mask_ids: list[int],
-    width: int,
-    height: int,
-):
-    try:
-        import torch  # type: ignore
-    except Exception as exc:
-        raise RuntimeError("[EasyUseAnima] torch is required to convert regional masks to conditioning.") from exc
-
-    selected_ids = set(mask_ids)
-    mask_tensor = torch.zeros((height, width), dtype=torch.float32)
-    masks = payload.get("masks") if isinstance(payload.get("masks"), list) else []
-    for mask in masks:
-        if not isinstance(mask, dict) or not _as_bool(mask.get("enabled"), True):
-            continue
-        mask_id = _as_int(mask.get("mask_id"), 0)
-        if mask_id not in selected_ids:
-            continue
-        geometry = _normalize_mask_geometry(mask.get("geometry"))
-        x0 = max(0, min(width - 1, int(round(geometry["x"] * width))))
-        y0 = max(0, min(height - 1, int(round(geometry["y"] * height))))
-        x1 = max(x0 + 1, min(width, int(round((geometry["x"] + geometry["width"]) * width))))
-        y1 = max(y0 + 1, min(height, int(round((geometry["y"] + geometry["height"]) * height))))
-        if geometry["type"] == "ellipse":
-            yy = torch.arange(y0, y1, dtype=torch.float32).unsqueeze(1)
-            xx = torch.arange(x0, x1, dtype=torch.float32).unsqueeze(0)
-            cx = (x0 + x1 - 1) / 2.0
-            cy = (y0 + y1 - 1) / 2.0
-            rx = max(0.5, (x1 - x0) / 2.0)
-            ry = max(0.5, (y1 - y0) / 2.0)
-            ellipse = (((xx - cx) / rx) ** 2 + ((yy - cy) / ry) ** 2) <= 1.0
-            mask_tensor[y0:y1, x0:x1] = torch.maximum(mask_tensor[y0:y1, x0:x1], ellipse.to(torch.float32))
-        else:
-            mask_tensor[y0:y1, x0:x1] = 1.0
-    return mask_tensor.unsqueeze(0)
-
-
-def _regional_mask_bounds_area(mask, canvas_width: int | None = None, canvas_height: int | None = None) -> tuple | None:
-    try:
-        import torch  # type: ignore
-    except Exception:
-        return None
-
-    if not hasattr(mask, "shape"):
-        return None
-    if len(mask.shape) == 3:
-        mask_2d = torch.max(torch.abs(mask), dim=0).values
-    elif len(mask.shape) == 2:
-        mask_2d = mask
-    else:
-        return None
-
-    if mask_2d.numel() == 0 or torch.max(mask_2d != 0) == False:
-        return None
-    y, x = torch.where(mask_2d != 0)
-    height = max(1, int(canvas_height or mask_2d.shape[-2]))
-    width = max(1, int(canvas_width or mask_2d.shape[-1]))
-    y0 = int(torch.min(y).item())
-    y1 = int(torch.max(y).item())
-    x0 = int(torch.min(x).item())
-    x1 = int(torch.max(x).item())
-    latent_height = max(1, height // 8)
-    latent_width = max(1, width // 8)
-    area_y = max(0, min(latent_height - 1, round(y0 / height * latent_height)))
-    area_x = max(0, min(latent_width - 1, round(x0 / width * latent_width)))
-    area_height = max(1, round((y1 - y0 + 1) / height * latent_height))
-    area_width = max(1, round((x1 - x0 + 1) / width * latent_width))
-    area_height = min(area_height, latent_height - area_y)
-    area_width = min(area_width, latent_width - area_x)
-    return (
-        area_height,
-        area_width,
-        area_y,
-        area_x,
-    )
-
-
-
-
 def _get_workflow_node(extra_pnginfo, node_id: str):
     pnginfo = _single_value(extra_pnginfo)
     if not isinstance(pnginfo, dict):
@@ -5716,6 +5264,13 @@ def _consume_reserved_wildcard_next_seed(
     return reservation_next_seed if reservation_next_seed == expected_next_seed else None
 
 
+_bind_regional_runtime(
+    resolve_helper=lambda name: globals()[name],
+)
+_bind_regional_node_runtime(
+    resolve_helper=lambda name: globals()[name],
+    flexible_optional_input_type=_FlexibleOptionalInputType,
+)
 _bind_conditioning_runtime(
     resolve_helper=lambda name: globals()[name],
     resolve_logger=lambda: logger,
@@ -7102,425 +6657,6 @@ class EasyUseAnimaAIOGenerator:
             "ui": ui,
             "result": (image, latent, metadata_json),
         }
-
-
-class EasyUseAnimaPromptStudioRegional:
-    """Mask-scoped Prompt Studio with serialized prompt fields and mask config."""
-
-    DESCRIPTION = (
-        "Regional Prompt Studio that stores numbered user masks and applies selected "
-        "positive prompt fields only inside those masks. Connect regional_prompt_data "
-        "to Anima Regional Conditioning to create KSampler-ready conditionings."
-    )
-    OUTPUT_TOOLTIPS = (
-        "Metadata positive prompt with global and mask-scoped prompt fields included.",
-        "Metadata negative prompt with metadata filters applied.",
-        "Selected latent width used by the mask editor canvas.",
-        "Selected latent height used by the mask editor canvas.",
-        "Bundled regional prompt, mask, and model-patch data for Anima Regional Conditioning.",
-    )
-
-    @classmethod
-    def INPUT_TYPES(cls):
-        return {
-            "required": {
-                "regional_fields": ("STRING", {
-                    "multiline": True,
-                    "default": _regional_fields_json(),
-                    "tooltip": "Internal JSON payload for Regional Prompt Studio fields.",
-                }),
-                "regional_config": ("STRING", {
-                    "multiline": True,
-                    "default": _regional_config_json(),
-                    "tooltip": "Internal JSON payload for numbered masks and mask editor settings.",
-                }),
-                "resolution_bucket": ("STRING", {
-                    "default": DEFAULT_ADVANCED_RESOLUTION_BUCKET,
-                    "tooltip": "Internal selected latent resolution bucket.",
-                }),
-                "resolution_size": ("STRING", {
-                    "default": DEFAULT_ADVANCED_RESOLUTION_SIZE,
-                    "tooltip": "Internal selected latent resolution, formatted as width * height (ratio).",
-                }),
-                "resolution_custom_width": ("INT", {
-                    "default": 1024,
-                    "min": 32,
-                    "max": 8192,
-                    "step": 32,
-                    "tooltip": "Internal custom latent width. Values are snapped to multiples of 32.",
-                }),
-                "resolution_custom_height": ("INT", {
-                    "default": 1024,
-                    "min": 32,
-                    "max": 8192,
-                    "step": 32,
-                    "tooltip": "Internal custom latent height. Values are snapped to multiples of 32.",
-                }),
-                "wildcard_mode": (PROMPT_STUDIO_WILDCARD_MODE_LABELS, {
-                    "default": PROMPT_STUDIO_WILDCARD_MODE_LABELS[0],
-                    "tooltip": "General expands deterministically; Sequential uses seed % option_count. Seed control independently decides the next seed.",
-                }),
-                "wildcard_seed": ("INT", {
-                    "default": 0,
-                    "min": 0,
-                    "max": MAX_SEED,
-                    "tooltip": (
-                        "Wildcard seed used by Regional Prompt Studio fields. "
-                        f"{WILDCARD_SEED_RANGE_NOTE}"
-                    ),
-                }),
-                "wildcard_seed_after_generate": (SEED_CONTROL_MODES, {
-                    "default": SEED_CONTROL_FIXED,
-                    "tooltip": "After an accepted queue: keep the seed fixed, randomize it, or increment it by one.",
-                }),
-            },
-            "optional": _FlexibleOptionalInputType("STRING"),
-            "hidden": {
-                "workflow_prompt": "PROMPT",
-                "extra_pnginfo": "EXTRA_PNGINFO",
-                "unique_id": "UNIQUE_ID",
-            },
-        }
-
-    RETURN_TYPES = (
-        "STRING",
-        "STRING",
-        "INT",
-        "INT",
-        REGIONAL_PROMPT_DATA_TYPE,
-    )
-    RETURN_NAMES = (
-        "metadata_prompt",
-        "metadata_negative_prompt",
-        "width",
-        "height",
-        "regional_prompt_data",
-    )
-    FUNCTION = "build"
-    CATEGORY = "EasyUse Anima/Prompt"
-
-    @classmethod
-    def _widget_input_names(cls) -> list[str]:
-        return list(cls.INPUT_TYPES()["required"].keys())
-
-    @classmethod
-    def IS_CHANGED(
-        cls,
-        regional_fields: str = "",
-        regional_config: str = "",
-        resolution_bucket: str = DEFAULT_ADVANCED_RESOLUTION_BUCKET,
-        resolution_size: str = DEFAULT_ADVANCED_RESOLUTION_SIZE,
-        resolution_custom_width: int = 1024,
-        resolution_custom_height: int = 1024,
-        wildcard_mode: str = PROMPT_STUDIO_WILDCARD_MODE_LABELS[0],
-        wildcard_seed: int = 0,
-        wildcard_seed_after_generate: str = SEED_CONTROL_FIXED,
-        **kwargs,
-    ):
-        width, height = _advanced_resolution_from_selection(
-            resolution_bucket,
-            resolution_size,
-            resolution_custom_width,
-            resolution_custom_height,
-        )
-        fields = _normalize_regional_fields(regional_fields)
-        effective_fields = _apply_regional_field_inputs(fields, kwargs)
-        config = _normalize_regional_config(regional_config, width, height)
-        wildcard_mode_key = normalize_prompt_studio_wildcard_mode(wildcard_mode)
-        wildcard_active = True
-        wildcard_seed_control = _normalize_prompt_studio_wildcard_seed_control(
-            wildcard_seed_after_generate,
-            wildcard_mode,
-        )
-        return _stable_change_key({
-            "mode": "prompt_studio_regional",
-            "metadata_filter_words": resolve_metadata_filter_words(),
-            "prompt_translation": _prompt_translation_change_key(),
-            "wildcard_sources": wildcard_sources_signature() if wildcard_active else {},
-            "wildcard_mode": wildcard_mode_key,
-            "wildcard_seed": normalize_seed(wildcard_seed),
-            "wildcard_seed_after_generate": wildcard_seed_control,
-            "resolution": (width, height),
-            "regional_fields": _regional_fields_json(effective_fields),
-            "regional_config": _regional_config_json(config),
-        })
-
-    @classmethod
-    def _update_metadata_fields(
-        cls,
-        workflow_prompt,
-        extra_pnginfo,
-        unique_id,
-        regional_fields: str,
-        regional_config: str,
-        extra_updates: dict[str, Any] | None = None,
-    ) -> None:
-        node_id = _single_value(unique_id)
-        if node_id is None:
-            return
-        node_id = str(node_id)
-        updates = {
-            "regional_fields": regional_fields,
-            "regional_config": regional_config,
-        }
-        if extra_updates:
-            updates.update(extra_updates)
-
-        if isinstance(workflow_prompt, dict):
-            prompt_node = workflow_prompt.get(node_id)
-            if isinstance(prompt_node, dict):
-                inputs = prompt_node.setdefault("inputs", {})
-                for name, value in updates.items():
-                    inputs[name] = value
-
-        workflow_node = _get_workflow_node(extra_pnginfo, node_id)
-        if workflow_node is None:
-            return
-
-        properties = workflow_node.setdefault("properties", {})
-        if not isinstance(properties, dict):
-            properties = {}
-            workflow_node["properties"] = properties
-        properties[REGIONAL_FIELDS_WORKFLOW_PROPERTY] = regional_fields
-        properties[REGIONAL_CONFIG_WORKFLOW_PROPERTY] = regional_config
-
-        input_names = cls._widget_input_names()
-        widgets_values = workflow_node.setdefault("widgets_values", [])
-        for name, value in updates.items():
-            if name not in input_names:
-                continue
-            index = input_names.index(name)
-            while len(widgets_values) <= index:
-                widgets_values.append(None)
-            widgets_values[index] = value
-
-    @staticmethod
-    def _ui(
-        regional_fields: str,
-        regional_config: str,
-        field_inputs: dict | None = None,
-        extra_payload: dict[str, Any] | None = None,
-    ):
-        payload = {
-            "prompt_studio_regional": [{
-                "regional_fields": regional_fields,
-                "regional_config": regional_config,
-                "field_inputs": field_inputs or {},
-            }]
-        }
-        if extra_payload:
-            payload["prompt_studio_regional"][0].update(extra_payload)
-        return payload
-
-    def build(
-        self,
-        regional_fields: str,
-        regional_config: str,
-        resolution_bucket: str = DEFAULT_ADVANCED_RESOLUTION_BUCKET,
-        resolution_size: str = DEFAULT_ADVANCED_RESOLUTION_SIZE,
-        resolution_custom_width: int = 1024,
-        resolution_custom_height: int = 1024,
-        wildcard_mode: str = PROMPT_STUDIO_WILDCARD_MODE_LABELS[0],
-        wildcard_seed: int = 0,
-        wildcard_seed_after_generate: str = SEED_CONTROL_FIXED,
-        workflow_prompt=None,
-        extra_pnginfo=None,
-        unique_id=None,
-        **field_inputs,
-    ):
-        width, height = _advanced_resolution_from_selection(
-            resolution_bucket,
-            resolution_size,
-            resolution_custom_width,
-            resolution_custom_height,
-        )
-        fields = _normalize_regional_fields(regional_fields)
-        saved_fields = _clone_regional_fields(fields)
-        effective_field_inputs = _advanced_field_input_values(field_inputs)
-        config = _normalize_regional_config(regional_config, width, height)
-
-        wildcard_mode_key = normalize_prompt_studio_wildcard_mode(wildcard_mode)
-        wildcard_mode_label = (
-            PROMPT_STUDIO_WILDCARD_MODE_LABELS[1]
-            if wildcard_mode_key == WILDCARD_MODE_SEQUENTIAL
-            else PROMPT_STUDIO_WILDCARD_MODE_LABELS[0]
-        )
-        effective_fields = _apply_regional_field_inputs(fields, effective_field_inputs)
-        wildcard_seed_value = normalize_seed(wildcard_seed)
-        wildcard_effective_seed_control = _normalize_prompt_studio_wildcard_seed_control(
-            wildcard_seed_after_generate,
-            wildcard_mode,
-        )
-        reserved_next_wildcard_seed = _consume_reserved_wildcard_next_seed(
-            field_inputs,
-            workflow_prompt,
-            unique_id,
-            wildcard_seed_value,
-            wildcard_mode_key,
-            wildcard_effective_seed_control,
-        )
-        ui_updates: dict[str, Any] = {}
-        metadata_updates: dict[str, Any] = {}
-
-        effective_fields, effective_wildcard = _expand_advanced_wildcard_fields(
-            effective_fields,
-            wildcard_seed_value,
-            wildcard_mode_key,
-        )
-        effective_fields = _translate_prompt_fields(effective_fields)
-        next_wildcard_seed = (
-            reserved_next_wildcard_seed
-            if reserved_next_wildcard_seed is not None
-            else next_seed(wildcard_seed_value, wildcard_effective_seed_control)
-        )
-        ui_updates.update({
-            "wildcard_mode": wildcard_mode_label,
-            "wildcard_seed": next_wildcard_seed,
-            "wildcard_seed_after_generate": wildcard_effective_seed_control,
-            "wildcard_used_keys": list(effective_wildcard["used_keys"]),
-            "wildcard_missing_keys": list(effective_wildcard["missing_keys"]),
-        })
-        metadata_updates.update({
-            "wildcard_mode": wildcard_mode_label,
-            "wildcard_seed": wildcard_seed_value,
-            "wildcard_seed_after_generate": SEED_CONTROL_FIXED,
-        })
-
-        fields_json = _regional_fields_json(saved_fields)
-        config_json = _regional_config_json(config)
-        self._update_metadata_fields(
-            workflow_prompt,
-            extra_pnginfo,
-            unique_id,
-            fields_json,
-            config_json,
-            metadata_updates,
-        )
-
-        (
-            positive_prompt,
-            negative_prompt,
-            metadata_prompt,
-            metadata_negative_prompt,
-            regional_prompt_data,
-        ) = _build_regional_outputs(effective_fields, config, width, height)
-
-        return {
-            "ui": self._ui(fields_json, config_json, effective_field_inputs, ui_updates),
-            "result": (
-                metadata_prompt,
-                metadata_negative_prompt,
-                width,
-                height,
-                regional_prompt_data,
-            ),
-        }
-
-
-class EasyUseAnimaRegionalConditioning:
-    """Convert Regional Prompt Studio JSON into KSampler-ready conditionings."""
-
-    DESCRIPTION = (
-        "Encodes Anima Prompt Studio Regional data with CLIP and attaches mask metadata "
-        "to mask-scoped positive conditioning entries."
-    )
-    OUTPUT_TOOLTIPS = (
-        "Positive conditioning containing the global prompt plus mask-scoped regional entries.",
-        "Negative conditioning encoded from the bundled negative prompt.",
-    )
-
-    @classmethod
-    def INPUT_TYPES(cls):
-        return {
-            "required": {
-                "clip": ("CLIP", {
-                    "tooltip": "CLIP model used to encode the bundled global and regional prompts.",
-                }),
-                "regional_prompt_data": (REGIONAL_PROMPT_DATA_TYPE, {
-                    "forceInput": True,
-                    "tooltip": "Bundled structured data from Anima Prompt Studio Regional.",
-                }),
-                "mask_strength": ("FLOAT", {
-                    "default": 1.0,
-                    "min": 0.0,
-                    "max": 10.0,
-                    "step": 0.01,
-                    "tooltip": "Strength applied to mask-scoped conditioning entries.",
-                }),
-                "set_cond_area": (["mask bounds", "default"], {
-                    "default": "mask bounds",
-                    "tooltip": "mask bounds mirrors ComfyUI ConditioningSetMask area behavior.",
-                }),
-            },
-        }
-
-    RETURN_TYPES = ("CONDITIONING", "CONDITIONING")
-    RETURN_NAMES = ("positive", "negative")
-    FUNCTION = "encode"
-    CATEGORY = "EasyUse Anima/Prompt"
-
-    @classmethod
-    def IS_CHANGED(
-        cls,
-        regional_prompt_data: str | dict = "",
-        mask_strength: float = 1.0,
-        set_cond_area: str = "mask bounds",
-        **kwargs,
-    ):
-        return _stable_change_key({
-            "mode": "regional_conditioning",
-            "regional_prompt_data": (
-                regional_prompt_data
-                if isinstance(regional_prompt_data, dict)
-                else str(regional_prompt_data or "")
-            ),
-            "mask_strength": _as_float(mask_strength, 1.0),
-            "set_cond_area": str(set_cond_area or "mask bounds"),
-        })
-
-    def encode(
-        self,
-        regional_prompt_data: str | dict,
-        clip,
-        mask_strength: float = 1.0,
-        set_cond_area: str = "mask bounds",
-    ):
-        payload = _parse_json_object(regional_prompt_data)
-        width, height = _regional_payload_canvas(payload)
-        positive_prompt = str(payload.get("global_prompt") or payload.get("positive_prompt") or "")
-        negative_prompt = str(payload.get("negative_prompt") or "")
-
-        positive = list(_encode_with_comfy_clip(clip, positive_prompt))
-        negative = _encode_with_comfy_clip(clip, negative_prompt)
-
-        if _as_bool(payload.get("regional_enabled"), False):
-            use_mask_bounds = str(set_cond_area or "mask bounds") != "default"
-            mask_prompts = payload.get("mask_prompts") if isinstance(payload.get("mask_prompts"), list) else []
-            for entry in mask_prompts:
-                if not isinstance(entry, dict):
-                    continue
-                valid_mask_ids = _normalize_mask_ids(entry.get("valid_mask_ids") or entry.get("mask_ids"))
-                prompt = str(entry.get("prompt") or entry.get("text") or "").strip()
-                if not valid_mask_ids or not prompt:
-                    continue
-                mask = _regional_union_mask_for_ids(payload, valid_mask_ids, width, height)
-                regional_conditioning = _encode_with_comfy_clip(clip, prompt)
-                conditioning_values = {
-                    "mask": mask,
-                    "set_area_to_bounds": False,
-                    "mask_strength": _as_float(mask_strength, 1.0),
-                    "easyuse_anima_region": {
-                        "field_id": str(entry.get("field_id") or ""),
-                        "mask_ids": valid_mask_ids,
-                    },
-                }
-                if use_mask_bounds:
-                    area = _regional_mask_bounds_area(mask, width, height)
-                    if area is not None:
-                        conditioning_values["area"] = area
-                positive.extend(_conditioning_set_values(regional_conditioning, conditioning_values))
-
-        return (positive, negative)
 
 
 class EasyUseAnimaPromptStudioExtend:
