@@ -5,6 +5,8 @@ import unittest
 from unittest.mock import patch
 
 import nodes as easy_nodes
+from easyuse_anima.nodes import regional_nodes
+from easyuse_anima.prompt import regional as regional_service
 from nodes import (
     EasyUseAnimaRegionalConditioning,
     EasyUseAnimaPromptStudioRegional,
@@ -15,6 +17,24 @@ from nodes import (
 
 
 class PromptStudioRegionalTests(unittest.TestCase):
+    def test_root_exports_are_canonical_regional_identities(self):
+        self.assertIs(
+            EasyUseAnimaPromptStudioRegional,
+            regional_nodes.EasyUseAnimaPromptStudioRegional,
+        )
+        self.assertIs(
+            EasyUseAnimaRegionalConditioning,
+            regional_nodes.EasyUseAnimaRegionalConditioning,
+        )
+        self.assertIs(
+            easy_nodes._normalize_regional_fields,
+            regional_service._normalize_regional_fields,
+        )
+        self.assertIs(
+            easy_nodes._build_regional_outputs,
+            regional_service._build_regional_outputs,
+        )
+
     def test_defaults_return_global_prompts_and_regional_payload(self):
         result = EasyUseAnimaPromptStudioRegional().build(
             "",
