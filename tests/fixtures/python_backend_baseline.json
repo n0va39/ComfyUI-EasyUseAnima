@@ -31946,9 +31946,9 @@
       },
       {
         "is_package": false,
-        "loc": 211,
+        "loc": 216,
         "module": "easyuse_anima.naia.resolution",
-        "normalized_git_blob_sha1": "e975513efcce8ad94c94f5147043eadec68fea5a",
+        "normalized_git_blob_sha1": "7a4e2009c96a64cfbd4cec5488e00dd91e0c118c",
         "path": "easyuse_anima/naia/resolution.py",
         "top_level": {
           "class_count": 0,
@@ -45383,7 +45383,7 @@
         "column": 23,
         "context": "assign:_RESOLUTION_LABEL_RE",
         "kind": "import_time_call",
-        "line": 71,
+        "line": 76,
         "module": "easyuse_anima/naia/resolution.py",
         "scope": "<module>"
       },

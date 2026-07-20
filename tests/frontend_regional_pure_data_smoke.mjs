@@ -40,6 +40,19 @@ assert(constants.PROMPT_STUDIO_VARIANT_FIELD_TYPES.join(",") === "quality,artist
 
 assert(resolution.ratioLabel(1024, 1536) === "2:3", "Resolution ratio label changed");
 assert(resolution.resolutionOptions("1024").includes("896 * 1152 (7:9)"), "1024 resolution options changed");
+const expectedTwoByThree = {
+  512: [448, 672],
+  768: [640, 960],
+  896: [704, 1056],
+  1024: [832, 1248],
+  1280: [1024, 1536],
+  1536: [1280, 1920],
+};
+for (const [bucket, [width, height]] of Object.entries(expectedTwoByThree)) {
+  const options = resolution.resolutionOptions(bucket);
+  assert(options.includes(`${width} * ${height} (2:3)`), `${bucket} bucket lost its 2:3 resolution`);
+  assert(options.includes(`${height} * ${width} (3:2)`), `${bucket} bucket lost its 3:2 resolution`);
+}
 assert(resolution.normalizeResolutionBucket("unknown") === "1024", "Resolution bucket fallback changed");
 assert(resolution.normalizeResolutionSize("1024", "896 * 1152 (7:9)") === "896 * 1152 (7:9)", "Resolution size normalization changed");
 assert(resolution.snapResolution32(1000) === 992, "32-pixel resolution snapping changed");
