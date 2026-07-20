@@ -2504,6 +2504,22 @@ class PromptBuilderTests(unittest.TestCase):
             for width, height in values:
                 self.assertIn((height, width), value_set, (bucket, width, height))
 
+    def test_prompt_studio_advanced_resolution_buckets_cover_two_by_three(self):
+        expected = {
+            "512": (448, 672),
+            "768": (640, 960),
+            "896": (704, 1056),
+            "1024": (832, 1248),
+            "1280": (1024, 1536),
+            "1536": (1280, 1920),
+        }
+        for bucket, portrait in expected.items():
+            with self.subTest(bucket=bucket):
+                values = set(ADVANCED_RESOLUTION_BUCKETS[bucket])
+                self.assertIn(portrait, values)
+                self.assertIn((portrait[1], portrait[0]), values)
+                self.assertEqual(portrait[0] * 3, portrait[1] * 2)
+
     def test_prompt_studio_advanced_resolution_buckets_use_nearest_area_tier(self):
         bucket_edges = sorted(int(bucket) for bucket in ADVANCED_RESOLUTION_BUCKETS)
         for bucket, values in ADVANCED_RESOLUTION_BUCKETS.items():
