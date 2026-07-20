@@ -29,6 +29,42 @@ from wildcard_engine import (
 
 
 class WildcardEngineTests(unittest.TestCase):
+    def test_standalone_modes_remain_distinct_from_prompt_studio_modes(self):
+        self.assertEqual(
+            wildcard_engine.WILDCARD_MODES,
+            ("populate", "fixed", "sequential", "reproduce"),
+        )
+        self.assertEqual(
+            wildcard_engine.WILDCARD_MODE_LABELS,
+            ("일반", "고정", "순차", "재현"),
+        )
+        for value, expected in (
+            ("populate", "populate"),
+            ("일반", "populate"),
+            ("fixed", "fixed"),
+            ("고정", "fixed"),
+            ("sequential", "sequential"),
+            ("순차", "sequential"),
+            ("reproduce", "reproduce"),
+            ("재현", "reproduce"),
+        ):
+            with self.subTest(value=value):
+                self.assertEqual(
+                    wildcard_engine.normalize_wildcard_mode(value),
+                    expected,
+                )
+        for value, expected in (
+            ("일반", "populate"),
+            ("고정", "populate"),
+            ("순차", "sequential"),
+            ("재현", "populate"),
+        ):
+            with self.subTest(surface="prompt-studio", value=value):
+                self.assertEqual(
+                    wildcard_engine.normalize_prompt_studio_wildcard_mode(value),
+                    expected,
+                )
+
     def test_default_root_is_created_with_test_wildcard(self):
         with tempfile.TemporaryDirectory() as temp:
             with patch.object(wildcard_engine, "USER_DATA_DIR", Path(temp)):
@@ -1259,13 +1295,15 @@ class WildcardNodeTests(unittest.TestCase):
 
         populated_tooltip = inputs["populated_text"][1]["tooltip"]
         self.assertIn("Impact Pack's populated_text", populated_tooltip)
-        self.assertIn("Fixed ignores text", populated_tooltip)
+        self.assertIn("Fixed and Reproduce ignore text", populated_tooltip)
         self.assertIn("file wildcards", populated_tooltip)
 
         mode_tooltip = inputs["mode"][1]["tooltip"]
         self.assertIn("General (일반)", mode_tooltip)
         self.assertIn("Fixed (고정)", mode_tooltip)
-        self.assertIn("Saved workflows serialize", mode_tooltip)
+        self.assertIn("Sequential (순차)", mode_tooltip)
+        self.assertIn("Reproduce (재현)", mode_tooltip)
+        self.assertIn("return the live and saved mode to General", mode_tooltip)
 
         seed_tooltip = inputs["seed"][1]["tooltip"]
         self.assertIn("same text and seed", seed_tooltip.lower())
@@ -1274,7 +1312,7 @@ class WildcardNodeTests(unittest.TestCase):
     def test_native_wildcard_uses_populated_text_without_duplicate_seed_control(self):
         self.assertEqual(
             EasyUseAnimaWildcard.INPUT_TYPES()["required"]["mode"][0],
-            ("일반", "고정"),
+            ("일반", "고정", "순차", "재현"),
         )
         self.assertNotIn(
             "seed_after_generate",
@@ -1330,7 +1368,7 @@ class WildcardNodeTests(unittest.TestCase):
         self.assertEqual(extra_pnginfo["workflow"]["nodes"][0]["widgets_values"][3], 2)
         self.assertEqual(extra_pnginfo["workflow"]["nodes"][0]["widgets_values"][4], "fixed")
 
-    def test_node_stores_fixed_populated_metadata_for_saved_workflow(self):
+    def test_node_stores_general_populated_metadata_for_saved_workflow(self):
         workflow_prompt = {
             "7": {
                 "inputs": {
@@ -1373,12 +1411,88 @@ class WildcardNodeTests(unittest.TestCase):
 
         self.assertEqual(result["result"], ("expanded style", 5))
         self.assertEqual(workflow_prompt["7"]["inputs"]["populated_text"], "expanded style")
-        self.assertEqual(workflow_prompt["7"]["inputs"]["mode"], "고정")
+        self.assertEqual(workflow_prompt["7"]["inputs"]["mode"], "일반")
         self.assertEqual(workflow_prompt["7"]["inputs"]["seed"], 5)
         self.assertEqual(extra_pnginfo["workflow"]["nodes"][0]["widgets_values"][1], "expanded style")
-        self.assertEqual(extra_pnginfo["workflow"]["nodes"][0]["widgets_values"][2], "고정")
+        self.assertEqual(extra_pnginfo["workflow"]["nodes"][0]["widgets_values"][2], "일반")
         self.assertEqual(extra_pnginfo["workflow"]["nodes"][0]["widgets_values"][3], 5)
         self.assertEqual(extra_pnginfo["workflow"]["nodes"][0]["widgets_values"][4], "fixed")
+
+    def test_standalone_mode_matrix_uses_the_correct_source_and_lifecycle(self):
+        cases = (
+            ("일반", "source text", "populate", "일반"),
+            ("고정", "cached text", "fixed", "고정"),
+            ("순차", "source text", "sequential", "순차"),
+            ("재현", "cached text", "reproduce", "일반"),
+        )
+        for mode, expected_source, expected_engine_mode, expected_next_mode in cases:
+            with self.subTest(mode=mode):
+                workflow_prompt = {"7": {"inputs": {}}}
+                extra_pnginfo = {
+                    "workflow": {
+                        "nodes": [{
+                            "id": 7,
+                            "widgets_values": [
+                                "source text",
+                                "cached text",
+                                mode,
+                                11,
+                                "increment",
+                            ],
+                        }]
+                    }
+                }
+                expansion = WildcardExpansionResult(
+                    text=f"{expected_engine_mode} result",
+                    changed=True,
+                    used_keys=("style",),
+                    missing_keys=(),
+                )
+                with patch("nodes.expand_wildcards", return_value=expansion) as expand:
+                    result = EasyUseAnimaWildcard().generate(
+                        "source text",
+                        "cached text",
+                        mode,
+                        11,
+                        workflow_prompt=workflow_prompt,
+                        extra_pnginfo=extra_pnginfo,
+                        unique_id="7",
+                    )
+
+                expand.assert_called_once_with(
+                    expected_source,
+                    seed=11,
+                    mode=expected_engine_mode,
+                )
+                payload = result["ui"]["wildcard"][0]
+                self.assertEqual(payload["mode"], expected_next_mode)
+                self.assertEqual(payload["status"], expected_engine_mode)
+                self.assertEqual(payload["populated_text"], expansion.text)
+                self.assertEqual(
+                    workflow_prompt["7"]["inputs"]["mode"],
+                    expected_next_mode,
+                )
+                self.assertEqual(
+                    extra_pnginfo["workflow"]["nodes"][0]["widgets_values"][2],
+                    expected_next_mode,
+                )
+                self.assertEqual(
+                    extra_pnginfo["workflow"]["nodes"][0]["widgets_values"][4],
+                    "fixed",
+                )
+
+    def test_native_sequential_mode_uses_text_and_seed_order(self):
+        outputs = [
+            EasyUseAnimaWildcard().generate(
+                "{rose|tulip|sunflower}",
+                "cached value",
+                "순차",
+                seed,
+            )["result"][0]
+            for seed in (0, 1, 2, 3, 1)
+        ]
+
+        self.assertEqual(outputs, ["rose", "tulip", "sunflower", "rose", "tulip"])
 
     def test_fixed_mode_expands_inline_multiselect(self):
         result = EasyUseAnimaWildcard().generate(

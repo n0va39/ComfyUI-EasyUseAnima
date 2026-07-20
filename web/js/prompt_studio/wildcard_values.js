@@ -16,12 +16,16 @@ const WILDCARD_MODE_WIDGET_STATE = "__easyuseAnimaWildcardModeContract";
 /** @param {any} value */
 function normalizeWildcardNodeMode(value) {
   const normalized = String(value || "").trim().toLowerCase();
-  return normalized === "fixed"
-    || normalized === "고정"
-    || normalized === "reproduce"
-    || normalized === "재현"
-    ? "고정"
-    : "일반";
+  if (normalized === "fixed" || normalized === "고정") {
+    return "고정";
+  }
+  if (normalized === "sequential" || normalized === "순차") {
+    return "순차";
+  }
+  if (normalized === "reproduce" || normalized === "재현") {
+    return "재현";
+  }
+  return "일반";
 }
 
 /** @param {any} node */
@@ -43,7 +47,7 @@ function syncWildcardNodeControls(node, resetSeedControl = false) {
   modeWidget.value = mode;
   const input = findInputEl(populatedWidget);
   if (input) {
-    input.disabled = mode !== "고정";
+    input.disabled = mode === "일반" || mode === "순차";
   }
   const seedControl = nativeSeedControlWidget(node);
   if (resetSeedControl && seedControl) {
@@ -64,7 +68,7 @@ function hookWildcardSeedWidget(node, options = {}) {
   widget.options.step = 1;
 
   const existing = widget[WILDCARD_SEED_WIDGET_STATE];
-  if (existing?.wrapper === widget.callback) {
+  if (existing && existing.wrapper === widget.callback) {
     existing.previousValue = widget.value;
   } else {
     const state = /** @type {any} */ ({
@@ -90,7 +94,7 @@ function hookWildcardSeedWidget(node, options = {}) {
   const modeWidget = findWidget(node, "mode");
   if (modeWidget) {
     const modeState = modeWidget[WILDCARD_MODE_WIDGET_STATE];
-    if (modeState?.wrapper !== modeWidget.callback) {
+    if (!modeState || modeState.wrapper !== modeWidget.callback) {
       const state = /** @type {any} */ ({ originalCallback: modeWidget.callback, wrapper: null });
       state.wrapper = function (value, ...args) {
         modeWidget.value = normalizeWildcardNodeMode(arguments.length ? value : modeWidget.value);
@@ -107,13 +111,13 @@ function hookWildcardSeedWidget(node, options = {}) {
 }
 
 function syncWildcardSerialization(node, serialized) {
-  if (!node?.__easyuseAnimaWildcardHasPopulatedResult || !Array.isArray(serialized?.widgets_values)) {
+  if (!Array.isArray(serialized?.widgets_values)) {
     return false;
   }
   const modeWidget = findWidget(node, "mode");
   const modeIndex = (node.widgets || []).indexOf(modeWidget);
   if (modeIndex >= 0) {
-    serialized.widgets_values[modeIndex] = "고정";
+    serialized.widgets_values[modeIndex] = normalizeWildcardNodeMode(modeWidget?.value);
   }
   const seedControl = nativeSeedControlWidget(node);
   const seedControlIndex = (node.widgets || []).indexOf(seedControl);

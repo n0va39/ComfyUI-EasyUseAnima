@@ -12,6 +12,8 @@ try:
         WILDCARD_MODE_FIXED,
         WILDCARD_MODE_LABELS,
         WILDCARD_MODE_POPULATE,
+        WILDCARD_MODE_REPRODUCE,
+        WILDCARD_MODE_SEQUENTIAL,
         expand_wildcards,
         normalize_seed,
         normalize_wildcard_mode,
@@ -24,6 +26,8 @@ except ImportError:
         WILDCARD_MODE_FIXED,
         WILDCARD_MODE_LABELS,
         WILDCARD_MODE_POPULATE,
+        WILDCARD_MODE_REPRODUCE,
+        WILDCARD_MODE_SEQUENTIAL,
         expand_wildcards,
         normalize_seed,
         normalize_wildcard_mode,
@@ -38,6 +42,12 @@ WILDCARD_SEED_RANGE_NOTE = (
     "may already have lost integer precision. ComfyUI's native seed control owns any "
     "post-queue randomize, increment, or decrement behavior."
 )
+WILDCARD_MODE_DISPLAY_LABELS = {
+    WILDCARD_MODE_POPULATE: WILDCARD_MODE_LABELS[0],
+    WILDCARD_MODE_FIXED: WILDCARD_MODE_LABELS[1],
+    WILDCARD_MODE_SEQUENTIAL: WILDCARD_MODE_LABELS[2],
+    WILDCARD_MODE_REPRODUCE: WILDCARD_MODE_LABELS[3],
+}
 
 
 class _FlexibleOptionalInputType(dict):
@@ -72,8 +82,8 @@ class EasyUseAnimaWildcard:
     """Expand Impact Pack compatible wildcard and dynamic prompt syntax."""
 
     DESCRIPTION = (
-        "Expands EasyUse Anima wildcard files and dynamic prompt syntax. General fills "
-        "populated_text from text; Fixed runs the populated_text value saved with the workflow."
+        "Expands EasyUse Anima wildcard files and dynamic prompt syntax with Impact Pack "
+        "compatible populated_text lifecycle plus deterministic Sequential selection."
     )
     OUTPUT_TOOLTIPS = (
         "Expanded prompt text.",
@@ -88,7 +98,7 @@ class EasyUseAnimaWildcard:
                     "multiline": True,
                     "default": "",
                     "tooltip": (
-                        "Source prompt expanded by General mode. Syntax: "
+                        "Source prompt expanded by General and Sequential modes. Syntax: "
                         "__name__; {a|b|c}; weighted N::item; {n$$...} or "
                         "{min-max$$separator$$...}; N#__name__; and nested combinations. Wildcard "
                         "names ignore case and support * glob collections. Only lines whose first "
@@ -100,8 +110,8 @@ class EasyUseAnimaWildcard:
                     "default": "",
                     "tooltip": (
                         "Expanded-result cache used like Impact Pack's populated_text. General "
-                        "replaces it from text; Fixed ignores text and processes this value with "
-                        "the same wildcard engine, including file wildcards."
+                        "and Sequential replace it from text; Fixed and Reproduce ignore text and "
+                        "process this value with the same wildcard engine, including file wildcards."
                     ),
                 }),
                 "mode": (WILDCARD_MODE_LABELS, {
@@ -109,8 +119,9 @@ class EasyUseAnimaWildcard:
                     "tooltip": (
                         "General (일반): expand text with deterministic seed-based choices and cache "
                         "the result in populated_text. Fixed (고정): ignore text and process "
-                        "populated_text with the same wildcard engine. Saved workflows serialize "
-                        "the populated result in Fixed mode."
+                        "populated_text with the same wildcard engine. Sequential (순차): expand text "
+                        "with seed modulo each option count. Reproduce (재현): process populated_text "
+                        "once, then return the live and saved mode to General like Impact Pack."
                     ),
                 }),
                 "seed": ("INT", {
@@ -230,24 +241,34 @@ class EasyUseAnimaWildcard:
         used_keys: tuple[str, ...] = ()
         missing_keys: tuple[str, ...] = ()
 
-        source_text = populated_text if mode_key == WILDCARD_MODE_FIXED else text
+        source_text = (
+            populated_text
+            if mode_key in {WILDCARD_MODE_FIXED, WILDCARD_MODE_REPRODUCE}
+            else text
+        )
         expansion = expand_wildcards(str(source_text or ""), seed=seed_value, mode=mode_key)
         output_text = expansion.text
         used_keys = expansion.used_keys
         missing_keys = expansion.missing_keys
         status = mode_key
+        next_mode_key = (
+            WILDCARD_MODE_POPULATE
+            if mode_key == WILDCARD_MODE_REPRODUCE
+            else mode_key
+        )
+        next_mode_label = WILDCARD_MODE_DISPLAY_LABELS[next_mode_key]
         self._update_metadata_cache(
             workflow_prompt,
             extra_pnginfo,
             unique_id,
             output_text,
-            WILDCARD_MODE_LABELS[1],
+            next_mode_label,
             seed_value,
         )
         return {
             "ui": self._ui(
                 output_text,
-                str(mode or WILDCARD_MODE_LABELS[0]),
+                next_mode_label,
                 seed_value,
                 status,
                 used_keys,

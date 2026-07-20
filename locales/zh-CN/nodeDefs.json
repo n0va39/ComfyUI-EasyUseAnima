@@ -45,19 +45,19 @@
   },
   "EasyUseAnimaWildcard": {
     "display_name": "Anima 通配符",
-    "description": "基于种子展开 EasyUse Anima 通配符文件和动态提示词语法。",
+    "description": "以 Impact Pack 兼容的 populated_text 生命周期和确定性顺序选择展开 EasyUse Anima 通配符。",
     "inputs": {
       "text": {
         "name": "文本",
-        "tooltip": "普通模式展开的源文本。支持 __name__、{a|b|c}、N::weight、{n$$...}/{min-max$$separator$$...}、N#__name__ 与嵌套组合。名称不区分大小写并可使用 * glob；只移除首个非空白字符为 # 的行。"
+        "tooltip": "普通和顺序模式展开的源文本。支持 __name__、{a|b|c}、N::weight、{n$$...}/{min-max$$separator$$...}、N#__name__ 与嵌套组合。名称不区分大小写并可使用 * glob；只移除首个非空白字符为 # 的行。"
       },
       "populated_text": {
         "name": "已填充文本",
-        "tooltip": "与 Impact Pack populated_text 相同的展开结果缓存。普通会展开 text 并填充此值；固定会忽略 text，并用相同引擎处理此值。文件通配符也会展开。"
+        "tooltip": "与 Impact Pack populated_text 相同的展开结果缓存。普通和顺序会展开 text 并更新此值；固定和复现会忽略 text，并用相同引擎处理此值。文件通配符也会展开。"
       },
       "mode": {
         "name": "模式",
-        "tooltip": "普通以当前种子确定性展开 text，并将结果填入 populated_text。固定忽略 text，使用相同引擎和当前种子处理 populated_text。已有执行结果的保存工作流会序列化为 populated_text 和固定模式。"
+        "tooltip": "普通以当前种子确定性展开 text 并更新 populated_text。固定忽略 text 并处理 populated_text。顺序按种子顺序展开 text 的选项并更新 populated_text。复现会处理 populated_text 一次，然后返回普通模式。"
       },
       "seed": {
         "name": "种子",

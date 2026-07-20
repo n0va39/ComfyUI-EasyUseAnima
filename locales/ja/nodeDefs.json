@@ -45,19 +45,19 @@
   },
   "EasyUseAnimaWildcard": {
     "display_name": "Anima ワイルドカード",
-    "description": "EasyUse Anima のワイルドカードファイルと動的プロンプト構文をシードベースで展開します。",
+    "description": "Impact Pack 互換の populated_text ライフサイクルと決定的な順次選択で EasyUse Anima のワイルドカードを展開します。",
     "inputs": {
       "text": {
         "name": "テキスト",
-        "tooltip": "通常モードが展開する元テキストです。__name__、{a|b|c}、N::weight、{n$$...}/{min-max$$separator$$...}、N#__name__ とネストに対応します。名前は大文字小文字を区別せず * glob を使用でき、最初の非空白文字が # の行だけをコメントとして削除します。"
+        "tooltip": "通常モードと順次モードが展開する元テキストです。__name__、{a|b|c}、N::weight、{n$$...}/{min-max$$separator$$...}、N#__name__ とネストに対応します。名前は大文字小文字を区別せず * glob を使用でき、最初の非空白文字が # の行だけをコメントとして削除します。"
       },
       "populated_text": {
         "name": "展開済みテキスト",
-        "tooltip": "Impact Pack の populated_text と同じ展開結果キャッシュです。通常は text を展開してこの値を埋め、固定は text を無視してこの値を同じエンジンで処理します。ファイルワイルドカードも展開されます。"
+        "tooltip": "Impact Pack の populated_text と同じ展開結果キャッシュです。通常と順次は text を展開してこの値を更新し、固定と再現は text を無視してこの値を同じエンジンで処理します。ファイルワイルドカードも展開されます。"
       },
       "mode": {
         "name": "モード",
-        "tooltip": "通常は text を現在のシードで決定的に展開し、結果を populated_text に入れます。固定は text を無視し、populated_text を同じエンジンと現在のシードで処理します。実行結果がある保存ワークフローは populated_text と固定モードで直列化されます。"
+        "tooltip": "通常は text を現在のシードで決定的に展開して populated_text を更新します。固定は text を無視して populated_text を処理します。順次はシード順に text の選択肢を展開して populated_text を更新します。再現は populated_text を一度処理した後、通常モードへ戻ります。"
       },
       "seed": {
         "name": "シード",
