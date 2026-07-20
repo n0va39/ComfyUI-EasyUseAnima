@@ -45,19 +45,19 @@
   },
   "EasyUseAnimaWildcard": {
     "display_name": "Anima 通配符",
-    "description": "基于种子展开 EasyUse Anima 通配符文件和动态提示词语法。",
+    "description": "以 Impact Pack 相容的 populated_text 生命週期與決定性順序選擇展開 EasyUse Anima 萬用字元。",
     "inputs": {
       "text": {
         "name": "文本",
-        "tooltip": "一般模式展開的來源文字。支援 __name__、{a|b|c}、N::weight、{n$$...}/{min-max$$separator$$...}、N#__name__ 與巢狀組合。名稱不分大小寫並可使用 * glob；只移除第一個非空白字元為 # 的行。"
+        "tooltip": "一般與順序模式展開的來源文字。支援 __name__、{a|b|c}、N::weight、{n$$...}/{min-max$$separator$$...}、N#__name__ 與巢狀組合。名稱不分大小寫並可使用 * glob；只移除第一個非空白字元為 # 的行。"
       },
       "populated_text": {
         "name": "已填充文本",
-        "tooltip": "與 Impact Pack populated_text 相同的展開結果快取。一般會展開 text 並填入此值；固定會忽略 text，並以相同引擎處理此值。檔案萬用字元也會展開。"
+        "tooltip": "與 Impact Pack populated_text 相同的展開結果快取。一般與順序會展開 text 並更新此值；固定與復現會忽略 text，並以相同引擎處理此值。檔案萬用字元也會展開。"
       },
       "mode": {
         "name": "模式",
-        "tooltip": "一般以目前種子決定性展開 text，並將結果填入 populated_text。固定忽略 text，使用相同引擎與目前種子處理 populated_text。已有執行結果的已儲存工作流程會序列化為 populated_text 與固定模式。"
+        "tooltip": "一般以目前種子決定性展開 text 並更新 populated_text。固定忽略 text 並處理 populated_text。順序依種子順序展開 text 的選項並更新 populated_text。復現會處理 populated_text 一次，然後返回一般模式。"
       },
       "seed": {
         "name": "种子",
