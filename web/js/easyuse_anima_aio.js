@@ -18,6 +18,7 @@ import { aioCreateInputSettingsDialog } from "./aio/input_settings_dialog.js";
 import { aioCreatePostprocessSettingsDialog } from "./aio/postprocess_settings_dialog.js";
 import { aioCreatePreviewSettingsDialog } from "./aio/preview_settings_dialog.js";
 import { createAioProfileApiClient } from "./aio/profile_api_client.js";
+import { aioCreateProfileDialogs } from "./aio/profile_dialogs.js";
 import { aioCreateProfileSettingsRuntime } from "./aio/profile_settings_runtime.js";
 import { aioCreateGeneratorPanelRuntime } from "./aio/generator_panel_runtime.js";
 import {
@@ -3623,17 +3624,18 @@ const generatorProfileApi = createAioProfileApiClient({
   encodeURIComponent,
 });
 
+const generatorProfileDialogs = aioCreateProfileDialogs({
+  getExtensionManager: () => app.extensionManager,
+  text: aioText,
+});
+
 const generatorProfileRuntime = aioCreateProfileSettingsRuntime({
   document,
   createDialog,
   field,
   text: aioText,
   format: aioFormat,
-  dialogs: {
-    prompt: (message, defaultValue) => window.prompt(message, defaultValue),
-    alert: (message) => window.alert(message),
-    confirm: (message) => window.confirm(message),
-  },
+  dialogs: generatorProfileDialogs,
   profileApi: generatorProfileApi,
   profileCore: {
     customValue: GENERATOR_PROFILE_CUSTOM_VALUE,

@@ -42,9 +42,9 @@ const PROFILE_EXISTS_CODE = "profile_exists";
 
 /**
  * @typedef {object} AioProfileDialogs
- * @property {(message: string, defaultValue?: string) => string | null} prompt
- * @property {(message: string) => void} alert
- * @property {(message: string) => boolean} confirm
+ * @property {(message: string, defaultValue?: string) => Promise<string | null>} prompt
+ * @property {(message: string, severity?: "info" | "success" | "warn" | "error") => Promise<void>} alert
+ * @property {(message: string, type?: "default" | "overwrite" | "delete" | "info") => Promise<boolean>} confirm
  */
 
 /**
@@ -205,18 +205,21 @@ export function aioCreateProfileSettingsRuntime(dependencies) {
 
   async function saveUserProfile(node, selectedValue = node.__easyuseAnimaGeneratorProfileValue) {
     const selectedName = userName(selectedValue);
-    const requestedName = dialogs.prompt(text("profile.savePrompt"), selectedName || "");
+    const requestedName = await dialogs.prompt(text("profile.savePrompt"), selectedName || "");
     if (requestedName == null) {
       return;
     }
     const name = requestedName.trim();
     if (!name) {
-      dialogs.alert(text("profile.nameRequired"));
+      await dialogs.alert(text("profile.nameRequired"));
       return;
     }
     const existing = userProfileByName(name);
     const overwrite = !!existing;
-    if (overwrite && !dialogs.confirm(format("profile.overwriteConfirm", { name: existing.name }))) {
+    if (overwrite && !(await dialogs.confirm(
+      format("profile.overwriteConfirm", { name: existing.name }),
+      "overwrite",
+    ))) {
       return;
     }
     const settings = getSettings(node);
@@ -232,7 +235,10 @@ export function aioCreateProfileSettingsRuntime(dependencies) {
         }
         const target = await loadConflictProfile(name);
         const targetName = String(target?.name || name);
-        if (!dialogs.confirm(format("profile.overwriteConfirm", { name: targetName }))) {
+        if (!(await dialogs.confirm(
+          format("profile.overwriteConfirm", { name: targetName }),
+          "overwrite",
+        ))) {
           return;
         }
         data = await profileApi.saveProfile(name, true, settings, target);
@@ -251,18 +257,21 @@ export function aioCreateProfileSettingsRuntime(dependencies) {
       return;
     }
     const currentName = userName(syncValue(node));
-    const requestedName = dialogs.prompt(text("profile.renamePrompt"), oldName);
+    const requestedName = await dialogs.prompt(text("profile.renamePrompt"), oldName);
     if (requestedName == null) {
       return;
     }
     const newName = requestedName.trim();
     if (!newName) {
-      dialogs.alert(text("profile.nameRequired"));
+      await dialogs.alert(text("profile.nameRequired"));
       return;
     }
     const existing = userProfileByName(newName);
     const overwrite = !!existing && existing.name.toLowerCase() !== oldName.toLowerCase();
-    if (overwrite && !dialogs.confirm(format("profile.overwriteConfirm", { name: existing.name }))) {
+    if (overwrite && !(await dialogs.confirm(
+      format("profile.overwriteConfirm", { name: existing.name }),
+      "overwrite",
+    ))) {
       return;
     }
     const current = userProfileByName(oldName);
@@ -278,7 +287,10 @@ export function aioCreateProfileSettingsRuntime(dependencies) {
         }
         const target = await loadConflictProfile(newName);
         const targetName = String(target?.name || newName);
-        if (!dialogs.confirm(format("profile.overwriteConfirm", { name: targetName }))) {
+        if (!(await dialogs.confirm(
+          format("profile.overwriteConfirm", { name: targetName }),
+          "overwrite",
+        ))) {
           return;
         }
         data = await profileApi.renameProfile(oldName, newName, true, current, target);
@@ -294,7 +306,7 @@ export function aioCreateProfileSettingsRuntime(dependencies) {
 
   async function deleteUserProfile(node, selectedValue = node.__easyuseAnimaGeneratorProfileValue) {
     const name = userName(selectedValue);
-    if (!name || !dialogs.confirm(format("profile.deleteConfirm", { name }))) {
+    if (!name || !(await dialogs.confirm(format("profile.deleteConfirm", { name }), "delete"))) {
       return;
     }
     const currentName = userName(syncValue(node));
@@ -427,9 +439,9 @@ export function aioCreateProfileSettingsRuntime(dependencies) {
           open(node);
         }
       } catch (error) {
-        dialogs.alert(format("profile.requestFailed", {
+        await dialogs.alert(format("profile.requestFailed", {
           message: errorMessage(error),
-        }));
+        }), "error");
       } finally {
         busy = false;
         if (backdrop.isConnected) {
