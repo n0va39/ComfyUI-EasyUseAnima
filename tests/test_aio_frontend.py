@@ -776,9 +776,11 @@ class AIOFrontendSourceTests(unittest.TestCase):
         self.assertNotIn("toast.add", load_body)
         self.assertNotIn("app.ui.dialog.show", load_body)
         self.assertIn('optionalDependencyStatus(key) === "missing"', notify_body)
-        self.assertIn('severity: "warn"', notify_body)
-        self.assertIn("toast.add", notify_body)
-        self.assertIn("app.ui.dialog.show", notify_body)
+        self.assertIn("void generatorProfileDialogs.alert(", notify_body)
+        self.assertIn('"warn"', notify_body)
+        self.assertIn('aioText("info.optionalDependency.title")', notify_body)
+        self.assertNotIn("toast.add", notify_body)
+        self.assertNotIn("app.ui.dialog.show", notify_body)
         self.assertNotIn("reportGeneratorOptionalDependencyStatus", source)
 
     def test_optional_dependency_query_retries_errors_before_queueing(self):

@@ -1903,17 +1903,11 @@ function notifyGeneratorMissingDependencies(backend, dependencyKeys) {
     backend,
     pack: [...new Set(missingKeys.map((key) => optionalDependencyPack(key)))].join(", "),
   });
-  const toast = app?.extensionManager?.toast;
-  if (typeof toast?.add === "function") {
-    toast.add({
-      severity: "warn",
-      summary: aioText("info.optionalDependency.title"),
-      detail,
-      life: 10000,
-    });
-  } else if (typeof app?.ui?.dialog?.show === "function") {
-    app.ui.dialog.show(`${aioText("info.optionalDependency.title")}\n${detail}`);
-  }
+  void generatorProfileDialogs.alert(
+    detail,
+    "warn",
+    aioText("info.optionalDependency.title"),
+  );
   return true;
 }
 
@@ -2129,6 +2123,29 @@ function ensureStyle() {
       box-shadow: 0 18px 56px rgba(0, 0, 0, 0.45);
       border-radius: 8px;
       font: 13px "Segoe UI", sans-serif;
+    }
+    .easyuse-anima-aio-dialog.easyuse-anima-aio-dialog-compact {
+      width: min(480px, calc(100vw - 48px));
+      height: auto;
+      max-height: min(360px, calc(100vh - 48px));
+    }
+    .easyuse-anima-aio-dialog-compact .easyuse-anima-aio-body {
+      grid-template-columns: minmax(0, 1fr);
+      flex: 0 1 auto;
+    }
+    .easyuse-anima-aio-dialog-text-input {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 9px 10px;
+      color: #f3f0e8;
+      background: #0f1419;
+      border: 1px solid #4b5661;
+      border-radius: 5px;
+      font: inherit;
+    }
+    .easyuse-anima-aio-dialog-text-input:focus {
+      border-color: #7ea0c4;
+      outline: 1px solid #7ea0c4;
     }
     .easyuse-anima-aio-dialog header {
       display: flex;
@@ -3625,7 +3642,8 @@ const generatorProfileApi = createAioProfileApiClient({
 });
 
 const generatorProfileDialogs = aioCreateProfileDialogs({
-  getExtensionManager: () => app.extensionManager,
+  document,
+  createDialog,
   text: aioText,
 });
 
