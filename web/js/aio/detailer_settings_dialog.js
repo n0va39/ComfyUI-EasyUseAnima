@@ -49,6 +49,8 @@
  * @typedef {object} AioDetailerDialogDependencyAdapter
  * @property {(key: string) => boolean} available
  * @property {(key: string) => string} pack
+ * @property {(control: any, missing: boolean, message?: string) => void} markMissingControl
+ * @property {(backend: string, keys: string[]) => boolean} notifyMissing
  * @property {(options?: Record<string, any>) => Promise<any>} load
  */
 
@@ -121,6 +123,8 @@ export function aioCreateDetailerSettingsDialog(dependencies) {
   const {
     available: optionalDependencyAvailable,
     pack: optionalDependencyPack,
+    markMissingControl: aioMarkMissingDependencyControl,
+    notifyMissing: notifyMissingDependency,
     load: loadGeneratorOptionalDependencies,
   } = dependencyAdapter;
 
@@ -436,18 +440,30 @@ export function aioCreateDetailerSettingsDialog(dependencies) {
         missingPacks.push(optionalDependencyPack("impactMaskToSegs"));
       }
       const missing = missingPacks.length > 0;
-      enabled.disabled = missing;
-      if (missing && enabled.checked) {
-        enabled.checked = false;
-      }
-      dependencyWarning.hidden = !missing;
-      dependencyWarning.textContent = missing
+      const message = missing
         ? aioFormat("warning.optionalDependencyMissing", {
             backend: "Detailer",
             pack: [...new Set(missingPacks)].join(", "),
           })
         : "";
+      aioMarkMissingDependencyControl(enabled, missing, message);
+      if (missing && enabled.checked) {
+        enabled.checked = false;
+      }
+      dependencyWarning.hidden = !missing;
+      dependencyWarning.textContent = message;
     };
+    enabled.addEventListener("change", () => {
+      if (enabled.checked) {
+        const missingKeys = ["impactDetailer", "impactMaskToSegs"]
+          .filter((key) => !optionalDependencyAvailable(key));
+        if (missingKeys.length) {
+          notifyMissingDependency("Detailer", missingKeys);
+          enabled.checked = false;
+        }
+      }
+      refreshDetailerDependencyLocks();
+    });
     refreshDetailerDependencyLocks();
     loadGeneratorOptionalDependencies().then(() => {
       if (closed || backdrop.isConnected === false) {
@@ -477,7 +493,9 @@ export function aioCreateDetailerSettingsDialog(dependencies) {
     });
     apply.addEventListener("click", () => {
       const next = mergeDefaults(DEFAULT_GENERATION_SETTINGS, settings);
-      const detailerEnabled = enabled.checked && !enabled.disabled;
+      const detailerEnabled = enabled.checked
+        && optionalDependencyAvailable("impactDetailer")
+        && optionalDependencyAvailable("impactMaskToSegs");
       const nextDetailer = {
         ...next.detailer,
         enabled: detailerEnabled,

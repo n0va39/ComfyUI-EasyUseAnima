@@ -92,6 +92,7 @@ function createFixture({
   const dialogs = [];
   const loadResolvers = [];
   const loadCalls = [];
+  const notifications = [];
   const writes = [];
   const renders = [];
   const stageCalls = [];
@@ -438,6 +439,15 @@ function createFixture({
         dependencyCalls += 1;
         return `pack:${key}`;
       },
+      markMissingControl(control, missing, message = "") {
+        control.disabled = false;
+        control.parentElement?.classList.toggle("easyuse-anima-aio-unsupported", missing);
+        control.title = missing ? message : "";
+      },
+      notifyMissing(backend, keys) {
+        notifications.push({ backend, keys: [...keys] });
+        return true;
+      },
       load(options) {
         dependencyCalls += 1;
         loadCalls.push(options);
@@ -458,6 +468,7 @@ function createFixture({
     dialogs,
     loadCalls,
     availabilityState,
+    notifications,
     writes,
     renders,
     stageCalls,
@@ -770,13 +781,21 @@ function createFixture({
     "legacy-missing.safetensors",
     "SAM3 hydration must preserve a saved value missing from the current catalog",
   );
-  assert.equal(enabled.disabled, true, "Missing dependencies must lock Detailer after async refresh");
+  assert.equal(enabled.disabled, false, "Detailer must remain interactive for an explicit notice");
   assert.equal(enabled.checked, false, "Missing dependencies must clear an enabled Detailer toggle");
   assert.equal(warning.hidden, false);
   assert.equal(
     warning.textContent,
     'format:warning.optionalDependencyMissing:{"backend":"Detailer","pack":"pack:impactDetailer, pack:impactMaskToSegs"}',
   );
+  assert.deepEqual(fixture.notifications, [], "Async dependency refresh must stay silent");
+  enabled.checked = true;
+  enabled.emit("change");
+  assert.deepEqual(fixture.notifications, [{
+    backend: "Detailer",
+    keys: ["impactDetailer", "impactMaskToSegs"],
+  }]);
+  assert.equal(enabled.checked, false);
 
   action(dialog, "button.apply").emit("click");
   assert.deepEqual(dialog.trace.slice(-3), ["write", "render", "remove"]);

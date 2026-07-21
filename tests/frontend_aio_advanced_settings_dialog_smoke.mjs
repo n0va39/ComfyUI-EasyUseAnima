@@ -151,6 +151,7 @@ function createFixture({ settings = {}, available = {}, deferLoads = false } = {
   const dialogs = [];
   const loadCalls = [];
   const loadResolvers = [];
+  const notifications = [];
   const mergeCalls = [];
   const clampCalls = [];
   const writes = [];
@@ -334,6 +335,15 @@ function createFixture({ settings = {}, available = {}, deferLoads = false } = {
         dependencyCalls += 1;
         return `pack:${key}`;
       },
+      markMissingControl(control, missing, message = "") {
+        control.disabled = false;
+        control.parentElement?.classList.toggle("easyuse-anima-aio-unsupported", missing);
+        control.title = missing ? message : "";
+      },
+      notifyMissing(backend, keys) {
+        notifications.push({ backend, keys: [...keys] });
+        return true;
+      },
       load(options) {
         dependencyCalls += 1;
         loadCalls.push(options);
@@ -353,6 +363,7 @@ function createFixture({ settings = {}, available = {}, deferLoads = false } = {
     dialogs,
     loadCalls,
     availabilityState,
+    notifications,
     mergeCalls,
     clampCalls,
     writes,
@@ -705,10 +716,9 @@ for (const dependencyCase of [
   await flushPromises();
 
   for (const [groupKey, controls] of Object.entries(controlGroups)) {
-    assertDisabled(
-      controls,
-      groupKey === dependencyCase.key,
-    );
+    const [primary, ...details] = controls;
+    assertDisabled([primary], false);
+    assertDisabled(details, groupKey === dependencyCase.key);
   }
   assert.equal(warning.hidden, false);
   assert.equal(
@@ -719,6 +729,25 @@ for (const dependencyCase of [
     })}`,
     `Only ${dependencyCase.key} must contribute its warning`,
   );
+  assert.deepEqual(fixture.notifications, [], "Async dependency refresh must stay silent");
+  const primaryControls = {
+    dave: controlIn(dave, "Use DAVE"),
+    safePag: controlIn(safePag, "Use Safe PAG"),
+    kjFp16: controlIn(kj, "KJNodes FP16 accum"),
+    kjSage: controlIn(sage, "Mode"),
+    kjTorchCompile: controlIn(torch, "Use Torch compile"),
+  };
+  const primary = primaryControls[dependencyCase.key];
+  if (dependencyCase.key === "kjSage") {
+    primary.value = "auto";
+  } else {
+    primary.checked = true;
+  }
+  primary.emit("change");
+  assert.deepEqual(fixture.notifications, [{
+    backend: dependencyCase.backend,
+    keys: [dependencyCase.key],
+  }]);
 }
 
 {
@@ -766,10 +795,15 @@ for (const dependencyCase of [
 
   assertDisabled([
     [dave, "Use DAVE"],
+    [safePag, "Use Safe PAG"],
+    [kj, "KJNodes FP16 accum"],
+    [sage, "Mode"],
+    [torch, "Use Torch compile"],
+  ], false);
+  assertDisabled([
     [dave, "Mask"],
     [dave, "DAVE strength"],
     [dave, "DAVE tau"],
-    [safePag, "Use Safe PAG"],
     [safePag, "Safe PAG scale"],
     [safePag, "Safe PAG blocks"],
     [safePag, "PAG perturbation"],
@@ -778,10 +812,7 @@ for (const dependencyCase of [
     [safePag, "PAG end percent"],
     [safePag, "PAG rescale"],
     [safePag, "PAG rescale mode"],
-    [kj, "KJNodes FP16 accum"],
-    [sage, "Mode"],
     [sage, "Allow compile"],
-    [torch, "Use Torch compile"],
     [torchDetails, "Backend"],
     [torchDetails, "Fullgraph"],
     [torchDetails, "Mode"],
@@ -790,7 +821,7 @@ for (const dependencyCase of [
     [torchDetails, "Dynamo cache limit"],
     [torchDetails, "Debug keys"],
     [torchDetails, "Disable dynamic VRAM"],
-  ]);
+  ], true);
   assertChecked([
     [dave, "Use DAVE", false],
     [safePag, "Use Safe PAG", false],

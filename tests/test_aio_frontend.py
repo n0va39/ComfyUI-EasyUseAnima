@@ -748,14 +748,17 @@ class AIOFrontendSourceTests(unittest.TestCase):
         self.assertIn("upscaleBackendMissingPacks(next.upscale.backend).length", body)
         self.assertIn("next.upscale.enabled = false", body)
 
-    def test_optional_dependency_query_adapter_updates_cache_and_reports_results(self):
+    def test_optional_dependency_query_is_silent_until_explicit_missing_selection(self):
         source = AIO_JS.read_text(encoding="utf-8")
         fetch_start = source.index("async function fetchGeneratorOptionalDependencies")
-        fetch_end = source.index("\nfunction optionalDependencyResultLabel", fetch_start)
+        fetch_end = source.index("\nfunction notifyGeneratorMissingDependencies", fetch_start)
         fetch_body = source[fetch_start:fetch_end]
-        report_start = source.index("function reportGeneratorOptionalDependencyStatus")
-        report_end = source.index("\nfunction loadGeneratorOptionalDependencies", report_start)
-        report_body = source[report_start:report_end]
+        notify_start = source.index("function notifyGeneratorMissingDependencies")
+        notify_end = source.index("\nfunction loadGeneratorOptionalDependencies", notify_start)
+        notify_body = source[notify_start:notify_end]
+        load_start = source.index("function loadGeneratorOptionalDependencies")
+        load_end = source.index("\nfunction optionalDependencyStatus", load_start)
+        load_body = source[load_start:load_end]
 
         self.assertIn("aioQueryOptionalDependencies(", fetch_body)
         self.assertIn("AIO_OPTIONAL_DEPENDENCY_SPECS", fetch_body)
@@ -770,9 +773,13 @@ class AIOFrontendSourceTests(unittest.TestCase):
                     f"generatorOptionalDependencyState.{cache_name} = next.{cache_name}",
                     fetch_body,
                 )
-        self.assertIn('console.info("[EasyUseAnima] AiO optional dependency query result", rows)', report_body)
-        self.assertIn('severity: failed.length ? "warn" : "info"', report_body)
-        self.assertIn("app.ui.dialog.show", report_body)
+        self.assertNotIn("toast.add", load_body)
+        self.assertNotIn("app.ui.dialog.show", load_body)
+        self.assertIn('optionalDependencyStatus(key) === "missing"', notify_body)
+        self.assertIn('severity: "warn"', notify_body)
+        self.assertIn("toast.add", notify_body)
+        self.assertIn("app.ui.dialog.show", notify_body)
+        self.assertNotIn("reportGeneratorOptionalDependencyStatus", source)
 
     def test_optional_dependency_query_retries_errors_before_queueing(self):
         source = AIO_JS.read_text(encoding="utf-8")

@@ -1646,6 +1646,7 @@ class FrontendModuleStructureTests(unittest.TestCase):
                 "aioOptionalDependencyPack",
                 "aioOptionalDependencyStatus",
                 "aioQueryOptionalDependencies",
+                "aioUpscaleBackendDependencyKeys",
                 "aioUpscaleBackendMissingPacks",
             },
         )

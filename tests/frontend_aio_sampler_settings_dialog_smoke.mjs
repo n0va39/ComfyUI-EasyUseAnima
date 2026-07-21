@@ -108,6 +108,7 @@ function createFixture({
   const mergeVisibleCalls = [];
   const optionCalls = [];
   const supportedCalls = [];
+  const notifications = [];
   const writes = [];
   const renders = [];
   const applyVisibleCalls = [];
@@ -416,6 +417,15 @@ function createFixture({
         }
         return !Object.hasOwn(availabilityState, key) || !!availabilityState[key];
       },
+      markMissingControl(control, missing, message = "") {
+        control.disabled = false;
+        control.parentElement?.classList.toggle("easyuse-anima-aio-unsupported", missing);
+        control.title = missing ? message : "";
+      },
+      notifyMissing(backend, keys) {
+        notifications.push({ backend, keys: [...keys] });
+        return true;
+      },
       load(options) {
         dependencyCalls += 1;
         loadCalls.push(options);
@@ -438,6 +448,7 @@ function createFixture({
     mergeVisibleCalls,
     optionCalls,
     supportedCalls,
+    notifications,
     writes,
     renders,
     applyVisibleCalls,
@@ -518,7 +529,7 @@ function createFixture({
   assert.equal(dialog.title, "Sampler Details");
   assert.equal(
     dialog.subtitle,
-    "Choose one of three sampler paths. Missing optional node packs are locked before queue execution.",
+    "Choose one of three sampler paths. Selecting an unavailable path shows its required node pack.",
   );
   const base = sectionByHeading(dialog, "Base Parameters");
   const sampler = sectionByHeading(dialog, "Sampler Backend");
@@ -840,12 +851,12 @@ for (const testCase of [
   fixture.resolveLoads();
   await flushPromises();
 
-  assert.equal(advancedOption.disabled, true);
+  assert.equal(advancedOption.disabled, false, "Missing backends must remain selectable for an explicit notice");
   assert.equal(advancedOption.textContent, "spectrum_mod_guidance_advanced (pack:spectrumAdvanced missing)");
   assert.equal(backend.value, "comfy_ksampler", "Missing selected backend must fall back to Comfy KSampler");
-  assert.equal(controlIn(spectrum, "Use Spectrum patch").disabled, true);
+  assert.equal(controlIn(spectrum, "Use Spectrum patch").disabled, false);
   assert.equal(controlIn(spectrum, "Use Spectrum patch").checked, false);
-  assert.equal(controlIn(corrections, "Use corrections").disabled, true);
+  assert.equal(controlIn(corrections, "Use corrections").disabled, false);
   assert.equal(controlIn(corrections, "Use corrections").checked, false);
   assert.equal(
     warningIn(dialog).textContent,
@@ -853,6 +864,22 @@ for (const testCase of [
       + 'format:warning.optionalDependencyMissing:{"backend":"Spectrum Patch","pack":"pack:spectrumPatch"}',
   );
   assertBackendVisibility(dialog, "comfy_ksampler");
+  assert.deepEqual(fixture.notifications, [], "Async dependency refresh must stay silent");
+  setSelectValue(backend, "spectrum_mod_guidance_advanced");
+  backend.emit("change");
+  assert.deepEqual(fixture.notifications, [{
+    backend: "spectrum_mod_guidance_advanced",
+    keys: ["spectrumAdvanced"],
+  }]);
+  assert.equal(backend.value, "comfy_ksampler");
+  const spectrumToggle = controlIn(spectrum, "Use Spectrum patch");
+  spectrumToggle.checked = true;
+  spectrumToggle.emit("change");
+  assert.deepEqual(fixture.notifications.at(-1), {
+    backend: "Spectrum Patch",
+    keys: ["spectrumPatch"],
+  });
+  assert.equal(spectrumToggle.checked, false);
   const latestInputInfo = fixture.supportedCalls.slice(-17);
   assert.deepEqual(
     latestInputInfo.slice(0, 7).map(({ key }) => key),
