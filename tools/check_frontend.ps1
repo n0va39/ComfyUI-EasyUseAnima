@@ -49,6 +49,11 @@ try {
         throw "Frontend AiO profile API client smoke failed with exit code $LASTEXITCODE."
     }
 
+    & node "tests\frontend_aio_profile_dialogs_smoke.mjs"
+    if ($LASTEXITCODE -ne 0) {
+        throw "Frontend AiO nested profile dialogs smoke failed with exit code $LASTEXITCODE."
+    }
+
     & node "tests\frontend_aio_profile_settings_runtime_smoke.mjs"
     if ($LASTEXITCODE -ne 0) {
         throw "Frontend AiO profile settings runtime smoke failed with exit code $LASTEXITCODE."

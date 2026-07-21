@@ -18,6 +18,7 @@ import { aioCreateInputSettingsDialog } from "./aio/input_settings_dialog.js";
 import { aioCreatePostprocessSettingsDialog } from "./aio/postprocess_settings_dialog.js";
 import { aioCreatePreviewSettingsDialog } from "./aio/preview_settings_dialog.js";
 import { createAioProfileApiClient } from "./aio/profile_api_client.js";
+import { aioCreateProfileDialogs } from "./aio/profile_dialogs.js";
 import { aioCreateProfileSettingsRuntime } from "./aio/profile_settings_runtime.js";
 import { aioCreateGeneratorPanelRuntime } from "./aio/generator_panel_runtime.js";
 import {
@@ -29,6 +30,7 @@ import { aioCreateDetailerSettingsDialog } from "./aio/detailer_settings_dialog.
 import { aioCreateSamplerSettingsDialog } from "./aio/sampler_settings_dialog.js";
 import { aioCreateSaveSettingsDialog } from "./aio/save_settings_dialog.js";
 import { aioCreateAdvancedSettingsDialog } from "./aio/advanced_settings_dialog.js";
+import { aioMarkMissingDependencyControl } from "./aio/dependency_controls.js";
 import { aioCreateNativePreviewRuntime } from "./aio/native_preview_runtime.js";
 import {
   aioCreateExtensionRuntime,
@@ -48,6 +50,7 @@ import {
   aioOptionalDependencyStatus,
   aioQueryOptionalDependencies,
   aioUpscaleBackendMissingPacks,
+  aioUpscaleBackendDependencyKeys,
 } from "./aio/dependencies.js";
 import {
   aioAppendPreviewFeed,
@@ -1019,11 +1022,8 @@ const AIO_TOOLTIP_TEXT = {
     "tip.torchCompileDebug": "Enables debug compile keys in KJNodes for troubleshooting compile cache behavior.",
     "tip.torchCompileVram": "Disables ComfyUI dynamic VRAM handling around compiled model execution when enabled.",
     "tip.samplerBackend": "Selects the actual first-pass execution path. Model patches selected in Advanced Options are applied before this backend runs. SPD/SPEED is Euler-only, so its sampler is normalized to euler.",
-    "warning.optionalDependencyMissing": "{backend} is locked because {pack} is not installed.",
-    "info.optionalDependency.title": "EasyUseAnima AiO dependency check",
-    "info.optionalDependency.complete": "Available: {available}/{total}.",
-    "info.optionalDependency.missing": "Missing: {items}. Related features will be disabled or changed before queueing.",
-    "info.optionalDependency.error": "Query failed: {items}. Settings were kept unchanged and will be checked again before queueing.",
+    "warning.optionalDependencyMissing": "{backend} requires {pack}, which is not installed.",
+    "info.optionalDependency.title": "EasyUseAnima AiO dependency required",
     "tip.modMode": "Controls whether Mod Guidance follows prompt_data, is forced on, or is disabled.",
     "tip.modProfile": "Preset layer profile for Anima Mod Guidance. Off disables Mod Guidance even when prompt_data asks for it.",
     "tip.modAdapter": "Adapter name passed to Spectrum Mod Guidance. Auto-download default uses the node pack default adapter.",
@@ -1130,11 +1130,8 @@ const AIO_TOOLTIP_TEXT = {
     "tip.torchCompileDebug": "컴파일 캐시 문제를 추적하기 위한 KJNodes debug compile keys를 켭니다.",
     "tip.torchCompileVram": "켜면 compiled model 실행 중 ComfyUI dynamic VRAM 처리를 끕니다.",
     "tip.samplerBackend": "실제 1차 샘플링 경로를 선택합니다. Advanced Options에서 선택한 모델 패치는 이 백엔드 실행 전에 적용됩니다. SPD/SPEED는 Euler 전용이라 내부 sampler는 euler로 정규화됩니다.",
-    "warning.optionalDependencyMissing": "{pack}이 설치되지 않아 {backend} 옵션을 잠갔습니다.",
-    "info.optionalDependency.title": "EasyUseAnima AiO 의존성 조회",
-    "info.optionalDependency.complete": "사용 가능: {available}/{total}.",
-    "info.optionalDependency.missing": "미설치: {items}. 관련 기능은 큐 실행 전에 비활성화되거나 대체됩니다.",
-    "info.optionalDependency.error": "조회 실패: {items}. 설정을 변경하지 않았으며 다음 큐 실행 전에 다시 조회합니다.",
+    "warning.optionalDependencyMissing": "{backend} 기능을 사용하려면 설치되지 않은 {pack}이 필요합니다.",
+    "info.optionalDependency.title": "EasyUseAnima AiO 의존성 필요",
     "tip.modMode": "Mod Guidance를 prompt_data에 따르게 할지, 강제로 켤지, 끌지 정합니다.",
     "tip.modProfile": "Anima Mod Guidance 레이어 프리셋입니다. off는 prompt_data가 켜져 있어도 Mod Guidance를 비활성화합니다.",
     "tip.modAdapter": "Spectrum Mod Guidance에 전달할 adapter입니다. auto-download default는 노드팩 기본 adapter를 사용합니다.",
@@ -1241,11 +1238,8 @@ const AIO_TOOLTIP_TEXT = {
     "tip.torchCompileDebug": "compile cache の確認用に KJNodes debug compile keys を有効化します。",
     "tip.torchCompileVram": "有効時、compiled model 実行中の ComfyUI dynamic VRAM 処理を無効化します。",
     "tip.samplerBackend": "一回目の実行経路を選択します。Advanced Options で選んだ model patch は、この backend 実行前に適用されます。SPD/SPEED は Euler 専用のため、sampler は内部で euler に正規化されます。",
-    "warning.optionalDependencyMissing": "{pack} が未インストールのため {backend} をロックしました。",
-    "info.optionalDependency.title": "EasyUseAnima AiO 依存関係チェック",
-    "info.optionalDependency.complete": "利用可能: {available}/{total}。",
-    "info.optionalDependency.missing": "未インストール: {items}。関連機能はキュー実行前に無効化または変更されます。",
-    "info.optionalDependency.error": "照会失敗: {items}。設定は変更せず、次回のキュー実行前に再確認します。",
+    "warning.optionalDependencyMissing": "{backend} を使用するには、未インストールの {pack} が必要です。",
+    "info.optionalDependency.title": "EasyUseAnima AiO 依存関係が必要です",
     "tip.modMode": "Mod Guidance を prompt_data に従わせるか、強制有効または無効にするかを選択します。",
     "tip.modProfile": "Anima Mod Guidance の layer profile です。off は prompt_data が有効でも Mod Guidance を無効化します。",
     "tip.modAdapter": "Spectrum Mod Guidance に渡す adapter です。auto-download default は node pack の既定 adapter を使います。",
@@ -1342,11 +1336,8 @@ const AIO_TOOLTIP_TEXT = {
     "tip.torchCompileDebug": "启用 KJNodes debug compile keys，用于排查 compile cache 行为。",
     "tip.torchCompileVram": "启用后，在 compiled model 执行期间关闭 ComfyUI dynamic VRAM 处理。",
     "tip.samplerBackend": "选择第一次采样的实际执行路径。Advanced Options 中选择的 model patch 会在此 backend 执行前应用。SPD/SPEED 仅支持 Euler，因此内部 sampler 会规范化为 euler。",
-    "warning.optionalDependencyMissing": "{pack} 未安装，因此已锁定 {backend} 选项。",
-    "info.optionalDependency.title": "EasyUseAnima AiO 依赖项检查",
-    "info.optionalDependency.complete": "可用: {available}/{total}。",
-    "info.optionalDependency.missing": "未安装: {items}。相关功能将在加入队列前被禁用或替换。",
-    "info.optionalDependency.error": "查询失败: {items}。设置未被修改，并将在下次加入队列前重新检查。",
+    "warning.optionalDependencyMissing": "使用 {backend} 需要尚未安装的 {pack}。",
+    "info.optionalDependency.title": "EasyUseAnima AiO 需要依赖项",
     "tip.modMode": "选择 Mod Guidance 跟随 prompt_data、强制开启或关闭。",
     "tip.modProfile": "Anima Mod Guidance layer profile。off 会禁用 Mod Guidance，即使 prompt_data 要求启用。",
     "tip.modAdapter": "传给 Spectrum Mod Guidance 的 adapter。auto-download default 使用节点包默认 adapter。",
@@ -1855,7 +1846,6 @@ const generatorOptionalDependencyState = {
   status: {},
   nodeInfo: {},
   errors: {},
-  reportedSignature: "",
 };
 
 async function fetchGeneratorSamplerOptions() {
@@ -1903,57 +1893,22 @@ async function fetchGeneratorOptionalDependencies() {
   generatorOptionalDependencyState.errors = next.errors;
 }
 
-function optionalDependencyResultLabel(key) {
-  const spec = AIO_OPTIONAL_DEPENDENCY_SPECS[key];
-  return spec ? `${spec.nodeId} (${spec.pack})` : key;
-}
-
-function reportGeneratorOptionalDependencyStatus() {
-  const rows = Object.entries(AIO_OPTIONAL_DEPENDENCY_SPECS).map(([key, spec]) => ({
-    key,
-    node: spec.nodeId,
-    pack: spec.pack,
-    status: generatorOptionalDependencyState.status[key] || "error",
-    error: generatorOptionalDependencyState.errors[key] || "",
-  }));
-  const available = rows.filter((row) => row.status === "available");
-  const missing = rows.filter((row) => row.status === "missing");
-  const failed = rows.filter((row) => row.status === "error");
-  console.info("[EasyUseAnima] AiO optional dependency query result", rows);
-
-  const details = [aioFormat("info.optionalDependency.complete", {
-    available: available.length,
-    total: rows.length,
-  })];
-  if (missing.length) {
-    details.push(aioFormat("info.optionalDependency.missing", {
-      items: missing.map((row) => optionalDependencyResultLabel(row.key)).join(", "),
-    }));
+function notifyGeneratorMissingDependencies(backend, dependencyKeys) {
+  const missingKeys = [...new Set(Array.isArray(dependencyKeys) ? dependencyKeys : [dependencyKeys])]
+    .filter((key) => optionalDependencyStatus(key) === "missing");
+  if (!missingKeys.length) {
+    return false;
   }
-  if (failed.length) {
-    details.push(aioFormat("info.optionalDependency.error", {
-      items: failed.map((row) => optionalDependencyResultLabel(row.key)).join(", "),
-    }));
-  }
-
-  const signature = rows.map((row) => `${row.key}:${row.status}:${row.error}`).join("|");
-  if (signature === generatorOptionalDependencyState.reportedSignature) {
-    return;
-  }
-  generatorOptionalDependencyState.reportedSignature = signature;
-  const summary = aioText("info.optionalDependency.title");
-  const detail = details.join(" ");
-  const toast = app?.extensionManager?.toast;
-  if (typeof toast?.add === "function") {
-    toast.add({
-      severity: failed.length ? "warn" : "info",
-      summary,
-      detail,
-      life: failed.length || missing.length ? 10000 : 5000,
-    });
-  } else if (typeof app?.ui?.dialog?.show === "function") {
-    app.ui.dialog.show(`${summary}\n${detail}`);
-  }
+  const detail = aioFormat("warning.optionalDependencyMissing", {
+    backend,
+    pack: [...new Set(missingKeys.map((key) => optionalDependencyPack(key)))].join(", "),
+  });
+  void generatorProfileDialogs.alert(
+    detail,
+    "warn",
+    aioText("info.optionalDependency.title"),
+  );
+  return true;
 }
 
 function loadGeneratorOptionalDependencies({ retryErrors = false } = {}) {
@@ -1975,7 +1930,6 @@ function loadGeneratorOptionalDependencies({ retryErrors = false } = {}) {
       })
       .then(() => {
         generatorOptionalDependencyState.loaded = true;
-        reportGeneratorOptionalDependencyStatus();
         return generatorOptionalDependencyState;
       })
       .finally(() => {
@@ -2170,6 +2124,29 @@ function ensureStyle() {
       border-radius: 8px;
       font: 13px "Segoe UI", sans-serif;
     }
+    .easyuse-anima-aio-dialog.easyuse-anima-aio-dialog-compact {
+      width: min(480px, calc(100vw - 48px));
+      height: auto;
+      max-height: min(360px, calc(100vh - 48px));
+    }
+    .easyuse-anima-aio-dialog-compact .easyuse-anima-aio-body {
+      grid-template-columns: minmax(0, 1fr);
+      flex: 0 1 auto;
+    }
+    .easyuse-anima-aio-dialog-text-input {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 9px 10px;
+      color: #f3f0e8;
+      background: #0f1419;
+      border: 1px solid #4b5661;
+      border-radius: 5px;
+      font: inherit;
+    }
+    .easyuse-anima-aio-dialog-text-input:focus {
+      border-color: #7ea0c4;
+      outline: 1px solid #7ea0c4;
+    }
     .easyuse-anima-aio-dialog header {
       display: flex;
       justify-content: space-between;
@@ -2351,6 +2328,9 @@ function ensureStyle() {
     }
     .easyuse-anima-aio-field.easyuse-anima-aio-unsupported {
       opacity: 0.48;
+    }
+    .easyuse-anima-aio-field option.easyuse-anima-aio-missing-option {
+      color: #7f898f;
     }
     .easyuse-anima-aio-field input,
     .easyuse-anima-aio-field select,
@@ -3661,17 +3641,19 @@ const generatorProfileApi = createAioProfileApiClient({
   encodeURIComponent,
 });
 
+const generatorProfileDialogs = aioCreateProfileDialogs({
+  document,
+  createDialog,
+  text: aioText,
+});
+
 const generatorProfileRuntime = aioCreateProfileSettingsRuntime({
   document,
   createDialog,
   field,
   text: aioText,
   format: aioFormat,
-  dialogs: {
-    prompt: (message, defaultValue) => window.prompt(message, defaultValue),
-    alert: (message) => window.alert(message),
-    confirm: (message) => window.confirm(message),
-  },
+  dialogs: generatorProfileDialogs,
   profileApi: generatorProfileApi,
   profileCore: {
     customValue: GENERATOR_PROFILE_CUSTOM_VALUE,
@@ -3799,6 +3781,10 @@ const {
     available: optionalDependencyAvailable,
     pack: optionalDependencyPack,
     upscaleBackendMissingPacks,
+    upscaleBackendMissingKeys: (backend) => aioUpscaleBackendDependencyKeys(backend)
+      .filter((key) => optionalDependencyStatus(key) === "missing"),
+    markMissingControl: aioMarkMissingDependencyControl,
+    notifyMissing: notifyGeneratorMissingDependencies,
     load: loadGeneratorOptionalDependencies,
   },
 });
@@ -3846,6 +3832,8 @@ const openDetailerSettings = aioCreateDetailerSettingsDialog({
   dependencyAdapter: {
     available: optionalDependencyAvailable,
     pack: optionalDependencyPack,
+    markMissingControl: aioMarkMissingDependencyControl,
+    notifyMissing: notifyGeneratorMissingDependencies,
     load: loadGeneratorOptionalDependencies,
   },
 });
@@ -3897,6 +3885,8 @@ const openSamplerSettings = aioCreateSamplerSettingsDialog({
     nodeInputMap,
     nodeInputTooltip,
     nodeInputSupported,
+    markMissingControl: aioMarkMissingDependencyControl,
+    notifyMissing: notifyGeneratorMissingDependencies,
     load: loadGeneratorOptionalDependencies,
   },
 });
@@ -3935,6 +3925,8 @@ const openSaveSettings = aioCreateSaveSettingsDialog({
   dependencyAdapter: {
     available: optionalDependencyAvailable,
     pack: optionalDependencyPack,
+    markMissingControl: aioMarkMissingDependencyControl,
+    notifyMissing: notifyGeneratorMissingDependencies,
     load: loadGeneratorOptionalDependencies,
   },
 });
@@ -3969,6 +3961,8 @@ const openAdvancedSettings = aioCreateAdvancedSettingsDialog({
   dependencyAdapter: {
     available: optionalDependencyAvailable,
     pack: optionalDependencyPack,
+    markMissingControl: aioMarkMissingDependencyControl,
+    notifyMissing: notifyGeneratorMissingDependencies,
     load: loadGeneratorOptionalDependencies,
   },
 });

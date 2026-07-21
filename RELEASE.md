@@ -1,5 +1,31 @@
 # Release Notes
 
+## 0.5.4
+
+### Fixed
+
+- The standalone Anima Wildcard node again provides Normal, Fixed,
+  Sequential, and Reproduce modes. Saved workflows preserve the selected mode
+  and its deterministic seed behavior.
+- Prompt Studio resolution buckets now include exact 2:3 and 3:2 choices for
+  the 512, 768, 896, 1024, and 1536 tiers.
+- AiO optional-dependency notices stay silent during ordinary loading and
+  queueing, and appear only when an unavailable feature is selected.
+- AiO profiles can be saved in ComfyUI Desktop without the
+  `prompt() is not supported` error. Profile and missing-dependency dialogs
+  remain visible above the AiO settings window.
+
+### Compatibility
+
+- Existing workflows, settings, profiles, and public node identifiers remain
+  compatible.
+- The final AiO dialog behavior was checked in the ComfyUI 0.27.0 Node 2.0
+  interface.
+
+### Update
+
+- After updating, restart ComfyUI and hard-refresh the browser.
+
 ## 0.5.3
 
 ### Fixed

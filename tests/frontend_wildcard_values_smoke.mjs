@@ -50,22 +50,22 @@ const node = {
 };
 
 assert.equal(values.hookWildcardSeedWidget(node, { resetSeedControl: false }), true);
-assert.equal(node.widgets[2].value, "고정", "legacy reproduce must load as Fixed");
-assert.equal(node.widgets[1].inputEl.disabled, false, "Fixed must expose populated_text");
+assert.equal(node.widgets[2].value, "재현", "Reproduce must survive workflow load");
+assert.equal(node.widgets[1].inputEl.disabled, false, "Reproduce must expose populated_text");
 assert.equal(node.widgets[4].value, "increment", "creation must preserve native seed control");
 assert.equal(node.widgets[3].options.max, Number.MAX_SAFE_INTEGER);
 
 assert.equal(values.hookWildcardSeedWidget(node, { resetSeedControl: true }), true);
 assert.equal(node.widgets[4].value, "fixed", "workflow configure must reset native seed control");
 
-node.widgets[2].callback("일반");
-assert.equal(node.widgets[2].value, "일반");
-assert.equal(node.widgets[1].inputEl.disabled, true, "General must make populated_text read-only");
+node.widgets[2].callback("sequential");
+assert.equal(node.widgets[2].value, "순차");
+assert.equal(node.widgets[1].inputEl.disabled, true, "Sequential must make populated_text read-only");
 
 values.applyWildcardExecutedInputs(node, {
   wildcard: [{
     populated_text: "rose",
-    mode: "일반",
+    mode: "순차",
     seed: 99,
   }],
 });
@@ -76,17 +76,38 @@ assert.equal(node.__easyuseAnimaWildcardHasPopulatedResult, true);
 
 const serialized = { widgets_values: node.widgets.map((widget) => widget.value) };
 assert.equal(values.syncWildcardSerialization(node, serialized), true);
-assert.equal(serialized.widgets_values[2], "고정");
+assert.equal(serialized.widgets_values[2], "순차");
 assert.equal(serialized.widgets_values[4], "fixed");
-assert.equal(node.widgets[2].value, "일반", "save normalization must not change the live mode");
+assert.equal(node.widgets[2].value, "순차", "save normalization must not change the live mode");
 
-const freshNode = { widgets: node.widgets.map((widget) => ({ ...widget })) };
-const freshSerialized = { widgets_values: freshNode.widgets.map((widget) => widget.value) };
-assert.equal(values.syncWildcardSerialization(freshNode, freshSerialized), false);
-assert.deepEqual(
-  freshSerialized.widgets_values,
-  freshNode.widgets.map((widget) => widget.value),
-);
+const reproduceNode = {
+  widgets: [
+    { name: "text", value: "ignored source" },
+    { name: "populated_text", value: "rose", inputEl: { disabled: true, value: "rose" } },
+    { name: "mode", value: "reproduce" },
+    { name: "seed", value: 7, options: {} },
+    { name: "control_after_generate", value: "randomize" },
+  ],
+};
+assert.equal(values.hookWildcardSeedWidget(reproduceNode, { resetSeedControl: false }), true);
+assert.equal(reproduceNode.widgets[2].value, "재현");
+assert.equal(reproduceNode.widgets[1].inputEl.disabled, false);
+const reproduceSerialized = {
+  widgets_values: reproduceNode.widgets.map((widget) => widget.value),
+};
+assert.equal(values.syncWildcardSerialization(reproduceNode, reproduceSerialized), true);
+assert.equal(reproduceSerialized.widgets_values[2], "재현");
+assert.equal(reproduceSerialized.widgets_values[4], "fixed");
+
+values.applyWildcardExecutedInputs(reproduceNode, {
+  wildcard: [{
+    populated_text: "rose",
+    mode: "일반",
+    seed: 7,
+  }],
+});
+assert.equal(reproduceNode.widgets[2].value, "일반", "Reproduce must return to General after execution");
+assert.equal(reproduceNode.widgets[1].inputEl.disabled, true);
 
 assert(
   callbackValues.some(([name, value]) => name === "control" && value === "fixed"),

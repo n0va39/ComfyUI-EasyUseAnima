@@ -87,8 +87,9 @@ export function aioCreateDialogPrimitives(dependencies) {
   /**
    * @param {any} title
    * @param {any} subtitle
+   * @param {() => void} [onClose]
    */
-  function createDialog(title, subtitle) {
+  function createDialog(title, subtitle, onClose) {
     ensureStyle();
     const backdrop = document.createElement("div");
     backdrop.className = "easyuse-anima-aio-backdrop";
@@ -111,14 +112,23 @@ export function aioCreateDialogPrimitives(dependencies) {
     actions.className = "easyuse-anima-aio-actions";
     dialog.append(header, body, actions);
     backdrop.append(dialog);
-    close.addEventListener("click", () => backdrop.remove());
+    let closed = false;
+    function closeDialog() {
+      if (closed) {
+        return;
+      }
+      closed = true;
+      backdrop.remove();
+      onClose?.();
+    }
+    close.addEventListener("click", closeDialog);
     backdrop.addEventListener("pointerdown", (event) => {
       if (event.target === backdrop) {
-        backdrop.remove();
+        closeDialog();
       }
     });
     document.body.append(backdrop);
-    return { backdrop, body, actions };
+    return { backdrop, dialog, body, actions, close: closeDialog };
   }
 
   return Object.freeze({

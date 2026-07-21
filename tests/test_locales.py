@@ -99,14 +99,15 @@ class LocaleTests(unittest.TestCase):
                     file_term,
                     general_term,
                     fixed_term,
-                    _sequential_term,
+                    sequential_term,
                     reproduce_term,
                 ) = wildcard_terms[locale_code]
                 self.assertIn(impact_term, inputs["populated_text"]["tooltip"])
                 self.assertIn(file_term, inputs["populated_text"]["tooltip"])
                 self.assertIn(general_term, inputs["mode"]["tooltip"])
                 self.assertIn(fixed_term, inputs["mode"]["tooltip"])
-                self.assertNotIn(reproduce_term, inputs["mode"]["tooltip"])
+                self.assertIn(sequential_term, inputs["mode"]["tooltip"])
+                self.assertIn(reproduce_term, inputs["mode"]["tooltip"])
                 self.assertNotIn("seed_after_generate", inputs)
 
             for node_id in (

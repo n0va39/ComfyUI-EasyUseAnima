@@ -41,6 +41,8 @@
  * @typedef {object} AioSaveDialogDependencyAdapter
  * @property {(key: string) => boolean} available
  * @property {(key: string) => string} pack
+ * @property {(control: any, missing: boolean, message?: string) => void} markMissingControl
+ * @property {(backend: string, keys: string[]) => boolean} notifyMissing
  * @property {(options?: Record<string, any>) => Promise<any>} load
  */
 
@@ -103,6 +105,8 @@ export function aioCreateSaveSettingsDialog(dependencies) {
   const {
     available: optionalDependencyAvailable,
     pack: optionalDependencyPack,
+    markMissingControl: aioMarkMissingDependencyControl,
+    notifyMissing: notifyMissingDependency,
     load: loadGeneratorOptionalDependencies,
   } = dependencyAdapter;
 
@@ -303,7 +307,7 @@ export function aioCreateSaveSettingsDialog(dependencies) {
     );
     const { backdrop, body, actions } = createDialog(
       "Save Options",
-      "Image Saver requires ComfyUI-Image-Saver. Missing node packs are reported during queue execution."
+      "Image Saver requires ComfyUI-Image-Saver. Selecting an unavailable backend shows its required node pack."
     );
     body.classList.add("easyuse-anima-aio-save-body");
     const main = document.createElement("section");
@@ -323,10 +327,17 @@ export function aioCreateSaveSettingsDialog(dependencies) {
       const imageSaverMissing = !optionalDependencyAvailable("imageSaver");
       for (const option of Array.from(backend.options)) {
         if (option.value === "image_saver") {
-          option.disabled = imageSaverMissing;
+          option.disabled = false;
           option.textContent = imageSaverMissing
             ? `image_saver (${optionalDependencyPack("imageSaver")} missing)`
             : "image_saver";
+          option.classList?.toggle("easyuse-anima-aio-missing-option", imageSaverMissing);
+          option.title = imageSaverMissing
+            ? aioFormat("warning.optionalDependencyMissing", {
+                backend: "image_saver",
+                pack: optionalDependencyPack("imageSaver"),
+              })
+            : "";
         }
       }
       if (imageSaverMissing && backend.value === "image_saver") {
@@ -340,6 +351,11 @@ export function aioCreateSaveSettingsDialog(dependencies) {
         dependencyWarning.hidden = true;
         dependencyWarning.textContent = "";
       }
+      aioMarkMissingDependencyControl(
+        backend,
+        imageSaverMissing && backend.value === "image_saver",
+        dependencyWarning.textContent,
+      );
     };
 
     const files = document.createElement("section");
@@ -370,6 +386,13 @@ export function aioCreateSaveSettingsDialog(dependencies) {
     const easyRemix = field(metadata, "Easy remix", checkbox(imageSaver.easy_remix));
     const custom = field(metadata, "Custom metadata", textareaInput(imageSaver.custom));
     body.append(main, files, metadata);
+    backend.addEventListener("change", () => {
+      if (backend.value === "image_saver" && !optionalDependencyAvailable("imageSaver")) {
+        notifyMissingDependency("image_saver", ["imageSaver"]);
+        backend.value = "comfy_save_image";
+      }
+      refreshSaveDependencyLocks();
+    });
     refreshSaveDependencyLocks();
     loadGeneratorOptionalDependencies().then(refreshSaveDependencyLocks);
 

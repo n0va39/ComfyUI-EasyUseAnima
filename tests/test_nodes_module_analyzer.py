@@ -73,11 +73,12 @@ def load_dynamic():
     def test_current_nodes_module_shape_matches_recorded_baseline(self):
         report = analyzer.analyze_path(ROOT / "nodes.py")
 
-        self.assertEqual(report["git_blob_sha1"], "9f98bc738d3e88d8c08455f096ec512aff6ea8b0")
-        # Prompt Studio preserves source fields and separates wildcard mode from seed control.
-        self.assertEqual(report["top_level"]["function_count"], 150)
-        self.assertEqual(report["top_level"]["class_count"], 12)
-        self.assertEqual(report["line_count"], 8_283)
+        self.assertEqual(report["git_blob_sha1"], "c6a41def5246e8889bb6846c002c5a1fee755009")
+        # Issue #184 B-07d moved the Regional Prompt Studio vertical slice while
+        # preserving the current Prompt Studio wildcard seed-control contract.
+        self.assertEqual(report["top_level"]["function_count"], 132)
+        self.assertEqual(report["top_level"]["class_count"], 10)
+        self.assertEqual(report["line_count"], 7_419)
         class_names = {item["name"] for item in report["top_level"]["classes"]}
         self.assertIn("EasyUseAnimaAIOGenerator", class_names)
         self.assertIn("EasyUseAnimaPromptStudioAdvancedV2", class_names)
@@ -90,6 +91,8 @@ def load_dynamic():
         self.assertNotIn("EasyUseAnimaPromptCorrectorSimple", class_names)
         self.assertNotIn("EasyUseAnimaPromptBuilder", class_names)
         self.assertNotIn("EasyUseAnimaPromptStudio", class_names)
+        self.assertNotIn("EasyUseAnimaPromptStudioRegional", class_names)
+        self.assertNotIn("EasyUseAnimaRegionalConditioning", class_names)
         self.assertNotIn("EasyUseAnimaPromptDataUnpack", class_names)
         self.assertNotIn("EasyUseAnimaArtistMixConditioning", class_names)
         self.assertNotIn("EasyUseAnimaPromptDataConditioning", class_names)

@@ -54,6 +54,8 @@
  * @property {(key: string) => Record<string, any>} nodeInputMap
  * @property {(key: string, inputName: string) => string} nodeInputTooltip
  * @property {(key: string, inputName: string) => boolean} nodeInputSupported
+ * @property {(control: any, missing: boolean, message?: string) => void} markMissingControl
+ * @property {(backend: string, keys: string[]) => boolean} notifyMissing
  * @property {(options?: Record<string, any>) => Promise<any>} load
  */
 
@@ -187,6 +189,8 @@ export function aioCreateSamplerSettingsDialog(dependencies) {
     nodeInputMap,
     nodeInputTooltip,
     nodeInputSupported,
+    markMissingControl: aioMarkMissingDependencyControl,
+    notifyMissing: notifyMissingDependency,
     load: loadGeneratorOptionalDependencies,
   } = dependencyAdapter;
 
@@ -275,7 +279,7 @@ export function aioCreateSamplerSettingsDialog(dependencies) {
     const settings = mergeVisibleGeneratorSettings(node, parseSettings(widget, DEFAULT_GENERATION_SETTINGS));
     const { backdrop, body, actions } = createDialog(
       "Sampler Details",
-      "Choose one of three sampler paths. Missing optional node packs are locked before queue execution."
+      "Choose one of three sampler paths. Selecting an unavailable path shows its required node pack."
     );
 
     const makeSection = (title, className = "easyuse-anima-aio-section full") => {
@@ -421,8 +425,12 @@ export function aioCreateSamplerSettingsDialog(dependencies) {
         const dependencyKey = AIO_BACKEND_DEPENDENCIES[option.value];
         const pack = optionalDependencyPack(dependencyKey);
         const missing = !!dependencyKey && !optionalDependencyAvailable(dependencyKey);
-        option.disabled = missing;
+        option.disabled = false;
         option.textContent = missing ? `${option.value} (${pack} missing)` : option.value;
+        option.classList?.toggle("easyuse-anima-aio-missing-option", missing);
+        option.title = missing
+          ? aioFormat("warning.optionalDependencyMissing", { backend: option.value, pack })
+          : "";
         if (missing && option.selected) {
           messages.push(aioFormat("warning.optionalDependencyMissing", {
             backend: option.value,
@@ -432,8 +440,12 @@ export function aioCreateSamplerSettingsDialog(dependencies) {
         }
       }
       const spectrumPatchMissing = !optionalDependencyAvailable("spectrumPatch");
-      spectrumPatchEnabled.disabled = spectrumPatchMissing;
-      correctionsEnabled.disabled = spectrumPatchMissing;
+      const spectrumPatchMessage = aioFormat("warning.optionalDependencyMissing", {
+        backend: "Spectrum Patch",
+        pack: optionalDependencyPack("spectrumPatch"),
+      });
+      aioMarkMissingDependencyControl(spectrumPatchEnabled, spectrumPatchMissing, spectrumPatchMessage);
+      aioMarkMissingDependencyControl(correctionsEnabled, spectrumPatchMissing, spectrumPatchMessage);
       const spectrumInputDependency = backend.value === "comfy_ksampler" ? "spectrumPatch" : "spectrumAdvanced";
       const correctionInputDependency = backend.value === "comfy_ksampler" ? "spectrumCorrections" : "spectrumAdvanced";
       const spectrumControls = [
@@ -473,7 +485,23 @@ export function aioCreateSamplerSettingsDialog(dependencies) {
       dependencyWarning.textContent = messages.join(" ");
       refreshBackendDetails();
     };
-    backend.addEventListener("change", refreshDependencyLocks);
+    backend.addEventListener("change", () => {
+      const dependencyKey = AIO_BACKEND_DEPENDENCIES[backend.value];
+      if (dependencyKey && !optionalDependencyAvailable(dependencyKey)) {
+        notifyMissingDependency(backend.value, [dependencyKey]);
+        backend.value = "comfy_ksampler";
+      }
+      refreshDependencyLocks();
+    });
+    const guardSpectrumToggle = (control) => {
+      if (control.checked && !optionalDependencyAvailable("spectrumPatch")) {
+        notifyMissingDependency("Spectrum Patch", ["spectrumPatch"]);
+        control.checked = false;
+      }
+      refreshDependencyLocks();
+    };
+    spectrumPatchEnabled.addEventListener("change", () => guardSpectrumToggle(spectrumPatchEnabled));
+    correctionsEnabled.addEventListener("change", () => guardSpectrumToggle(correctionsEnabled));
     refreshBackendDetails();
     refreshDependencyLocks();
     loadGeneratorOptionalDependencies().then(refreshDependencyLocks);
@@ -488,7 +516,12 @@ export function aioCreateSamplerSettingsDialog(dependencies) {
     apply.addEventListener("click", () => {
       const next = mergeDefaults(DEFAULT_GENERATION_SETTINGS, settings);
       delete next.sampler.dave;
-      next.sampler.backend = backend.value || "comfy_ksampler";
+      const selectedBackend = backend.value || "comfy_ksampler";
+      const selectedBackendDependency = AIO_BACKEND_DEPENDENCIES[selectedBackend];
+      next.sampler.backend = selectedBackendDependency
+        && !optionalDependencyAvailable(selectedBackendDependency)
+        ? "comfy_ksampler"
+        : selectedBackend;
       next.sampler.seed = normalizeSeedValue(seed.value, GENERATOR_SPECIAL_SEED_RANDOM);
       next.sampler.seed_after_generate = normalizeSeedControl(seedControl.value);
       next.sampler.steps = Math.trunc(clampGeneratorNumber(steps.value, DEFAULT_GENERATION_SETTINGS.sampler.steps, 1, 75));
@@ -498,7 +531,9 @@ export function aioCreateSamplerSettingsDialog(dependencies) {
       next.sampler.scheduler = scheduler.value || DEFAULT_GENERATION_SETTINGS.sampler.scheduler;
       next.sampler.spectrum.enabled = (
         next.sampler.backend === "spectrum_mod_guidance_advanced"
-        || (next.sampler.backend === "comfy_ksampler" && spectrumPatchEnabled.checked && !spectrumPatchEnabled.disabled)
+        || (next.sampler.backend === "comfy_ksampler"
+          && spectrumPatchEnabled.checked
+          && optionalDependencyAvailable("spectrumPatch"))
       );
       next.sampler.spectrum.window_size = Number(windowSize.value || 2);
       next.sampler.spectrum.flex_window = Number(flexWindow.value || 0.25);
@@ -513,7 +548,8 @@ export function aioCreateSamplerSettingsDialog(dependencies) {
       next.sampler.spd.adaptive_smc_alpha = Number(spdSmc.value || 0);
       next.sampler.spectrum_extra = spectrumExtra.values();
       next.sampler.spd_extra = spdExtra.values();
-      next.sampler.dit_corrections.enabled = correctionsEnabled.checked && !correctionsEnabled.disabled;
+      next.sampler.dit_corrections.enabled = correctionsEnabled.checked
+        && optionalDependencyAvailable("spectrumPatch");
       next.sampler.dit_corrections.dcw_mode = dcwMode.value || "off";
       next.sampler.dit_corrections.dcw_lambda = Number(dcwLambda.value || 0.01);
       next.sampler.dit_corrections.dcw_band_mask = dcwBand.value || "LL";

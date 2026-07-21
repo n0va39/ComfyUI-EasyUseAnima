@@ -1020,12 +1020,16 @@ function reservedSeedState(prompt, nodeId) {
   }), configureResult);
   assert.equal(seedWidget.value, unsafeSeed, "configure must preserve a loaded unsafe seed");
   assert.equal(seedWidget.callback, wrappedCallback, "configure must not stack the callback guard");
-  assert.equal(node.widgets.find((widget) => widget.name === "mode").value, "고정");
+  assert.equal(node.widgets.find((widget) => widget.name === "mode").value, "재현");
   assert.equal(
     node.widgets.find((widget) => widget.name === "control_after_generate").value,
     "fixed",
     "native control_after_generate owns standalone wildcard seed advancement",
   );
+  const reproduceSerialized = { widgets_values: node.widgets.map((widget) => widget.value) };
+  assert.equal(node.onSerialize(reproduceSerialized), serializeResult);
+  assert.equal(reproduceSerialized.widgets_values[2], "재현");
+  assert.equal(reproduceSerialized.widgets_values[4], "fixed");
 
   for (const invalid of ["1.5", "1e3", "9007199254740991.1"]) {
     seedWidget.value = invalid;
@@ -1060,9 +1064,15 @@ function reservedSeedState(prompt, nodeId) {
   assert.equal(node.widgets.find((widget) => widget.name === "mode").value, "일반");
   assert.equal(seedWidget.value, unsafeSeed, "backend UI payload must not replace the native seed");
 
+  assert.equal(node.onConfigure({
+    mode: "sequential",
+    seed: unsafeSeed,
+    control_after_generate: "increment",
+  }), configureResult);
+  assert.equal(node.widgets.find((widget) => widget.name === "mode").value, "순차");
   const serialized = { widgets_values: node.widgets.map((widget) => widget.value) };
   assert.equal(node.onSerialize(serialized), serializeResult);
-  assert.equal(serialized.widgets_values[2], "고정");
+  assert.equal(serialized.widgets_values[2], "순차");
   assert.equal(serialized.widgets_values[4], "fixed");
   assert.equal(node.onRemoved(), undefined);
 }

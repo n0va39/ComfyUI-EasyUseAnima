@@ -81,6 +81,7 @@ function createFixture({
   const loadResolvers = [];
   const optionCalls = [];
   const choiceCalls = [];
+  const notifications = [];
   let catalogLoaded = !deferLoads;
   const writes = [];
   const renders = [];
@@ -328,6 +329,18 @@ function createFixture({
         dependencyCalls += 1;
         return [...(missingByBackendState[backend] || [])];
       },
+      upscaleBackendMissingKeys(backend) {
+        return (missingByBackendState[backend] || []).length ? [`${backend}Dependency`] : [];
+      },
+      markMissingControl(control, missing, message = "") {
+        control.disabled = false;
+        control.parentElement?.classList.toggle("easyuse-anima-aio-unsupported", missing);
+        control.title = missing ? message : "";
+      },
+      notifyMissing(backend, keys) {
+        notifications.push({ backend, keys: [...keys] });
+        return true;
+      },
       load(options) {
         dependencyCalls += 1;
         loadCalls.push(options);
@@ -351,6 +364,7 @@ function createFixture({
     missingByBackendState,
     optionCalls,
     choiceCalls,
+    notifications,
     writes,
     renders,
     trace,
@@ -443,14 +457,23 @@ function createFixture({
   assert.equal(control(dialog, "CFG").parentElement.style.display, "none");
   assert.equal(control(dialog, "Sampler").parentElement.style.display, "none");
   assert.equal(control(dialog, "Scheduler").parentElement.style.display, "none");
-  assert.equal(control(dialog, "Spectrum patch").disabled, true);
+  assert.equal(control(dialog, "Spectrum patch").disabled, false);
   assert.equal(control(dialog, "Spectrum patch").checked, false);
-  assert.equal(control(dialog, "Use corrections").disabled, true);
+  assert.equal(control(dialog, "Use corrections").disabled, false);
   assert.equal(control(dialog, "Use corrections").checked, false);
   const warnings = findAll(dialog.body, (element) => element.classList.contains("easyuse-anima-aio-warning"));
   const spdWarning = warnings.find((element) => element.textContent === "text:text.highresSpdManualRequired");
   assert.ok(spdWarning);
   assert.ok(warnings.some((element) => element.textContent.includes("pack:spectrumPatch")));
+  assert.deepEqual(fixture.notifications, [], "Dependency refresh must not notify by itself");
+  const spectrumToggle = control(dialog, "Spectrum patch");
+  spectrumToggle.checked = true;
+  spectrumToggle.emit("change");
+  assert.deepEqual(fixture.notifications, [{
+    backend: "Highres Optimization",
+    keys: ["spectrumPatch"],
+  }]);
+  assert.equal(spectrumToggle.checked, false);
 
   const inheritSampler = control(dialog, "Follow main sampler");
   inheritSampler.checked = false;
@@ -550,7 +573,7 @@ function createFixture({
     new Set(fixture.choiceCalls.map(({ dependencyKey, inputName }) => `${dependencyKey}:${inputName}`)),
     new Set(["upscaleModelLoader:model_name", "resShiftLoader:student_name"]),
   );
-  assert.equal(resshiftOption.disabled, true);
+  assert.equal(resshiftOption.disabled, false, "Missing backend remains selectable for an explicit notice");
   assert.ok(resshiftOption.textContent.includes("ComfyUI-ResShift"));
   assert.equal(control(dialog, "Enable upscale").checked, false, "Missing selected backend must disable upscale");
   assert.deepEqual(
@@ -583,6 +606,14 @@ function createFixture({
   assert.equal(control(dialog, "Chop").value, "768");
   assert.equal(control(dialog, "Overlap").value, "96");
   assert.equal(control(dialog, "Tile batch", 1).value, "3");
+
+  assert.deepEqual(fixture.notifications, [], "Async backend refresh must stay silent");
+  backend.emit("change");
+  assert.deepEqual(fixture.notifications, [{
+    backend: "resshift",
+    keys: ["resshiftDependency"],
+  }]);
+  assert.equal(backend.value, "usdu", "Rejected backend selection must restore an available fallback");
 
   setSelectValue(backend, "usdu");
   backend.emit("change");
