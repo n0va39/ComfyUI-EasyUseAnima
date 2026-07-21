@@ -103,6 +103,8 @@ function createFixture() {
   const alerts = [];
   const promptCalls = [];
   const confirmCalls = [];
+  const confirmTypes = [];
+  const alertCalls = [];
   const resolveCalls = [];
   const prompts = [];
   const confirms = [];
@@ -311,21 +313,23 @@ function createFixture() {
   };
 
   const dialogsAdapter = {
-    prompt(message, defaultValue = "") {
+    async prompt(message, defaultValue = "") {
       dependencyCalls += 1;
       trace.push("prompt");
       promptCalls.push({ message, defaultValue });
       return prompts.shift();
     },
-    alert(message) {
+    async alert(message, severity = "warn") {
       dependencyCalls += 1;
       trace.push("alert");
       alerts.push(message);
+      alertCalls.push({ message, severity });
     },
-    confirm(message) {
+    async confirm(message, type = "default") {
       dependencyCalls += 1;
       trace.push("confirm");
       confirmCalls.push(message);
+      confirmTypes.push(type);
       return confirms.shift();
     },
   };
@@ -353,6 +357,8 @@ function createFixture() {
     confirms,
     promptCalls,
     confirmCalls,
+    confirmTypes,
+    alertCalls,
     resolveCalls,
     trace,
     defaultSettings,
@@ -548,12 +554,27 @@ dialog = fixture.dialogs.at(-1);
 buttons = dialogButtons(dialog);
 buttons.select.value = "user:Portrait";
 fixture.apiQueues.loadProfile.push({
-  profile: { name: "Portrait Canonical", settings: { sampler: { steps: 44 }, user: true } },
+  profile: {
+    name: "Portrait Canonical",
+    settings: {
+      sampler: {
+        backend: "spectrum_spd_speed",
+        steps: 44,
+        spd: { scale: 0.7, sigma_max: 1.2 },
+      },
+      user: true,
+    },
+  },
 });
 await buttons.apply.dispatch("click");
 assert.deepEqual(fixture.apiCalls.loadProfile.at(-1), ["Portrait"]);
 assert.equal(node.__easyuseAnimaGeneratorProfileValue, "user:Portrait Canonical");
 assert.equal(node.settings.user, true);
+assert.deepEqual(node.settings.sampler, {
+  backend: "spectrum_spd_speed",
+  steps: 44,
+  spd: { scale: 0.7, sigma_max: 1.2 },
+});
 assert.equal(dialog.backdrop.isConnected, false);
 
 node.__easyuseAnimaGeneratorProfileValue = "user:Portrait";
@@ -568,12 +589,20 @@ assert.equal(dialog.backdrop.isConnected, true, "failed apply must keep the dial
 assert.equal(fixture.dialogs.length, dialogsBeforeLoadError);
 assert.match(fixture.alerts.at(-1), /profile\.requestFailed/);
 assert.match(fixture.alerts.at(-1), /Profile settings are missing/);
+assert.equal(fixture.alertCalls.at(-1).severity, "error");
 assert.equal(buttons.save.disabled, false);
 assert.equal(buttons.cancel.disabled, false);
 assert.equal(buttons.apply.disabled, false);
 
 const saveNode = {
-  settings: { sampler: { steps: 55 }, save_snapshot: true },
+  settings: {
+    sampler: {
+      backend: "spectrum_spd_speed",
+      steps: 55,
+      spd: { scale: 0.8, sigma_max: 1.4 },
+    },
+    save_snapshot: true,
+  },
   __easyuseAnimaGeneratorProfileValue: "user:Portrait",
   __easyuseAnimaGeneratorProfileFingerprint: "old-fingerprint",
 };
@@ -596,13 +625,21 @@ assert.match(fixture.confirmCalls.at(-1), /Landscape/);
 assert.deepEqual(fixture.apiCalls.saveProfile.at(-1), [
   "Landscape",
   true,
-  { sampler: { steps: 55 }, save_snapshot: true },
+  {
+    sampler: {
+      backend: "spectrum_spd_speed",
+      steps: 55,
+      spd: { scale: 0.8, sigma_max: 1.4 },
+    },
+    save_snapshot: true,
+  },
   { name: "Landscape" },
 ]);
 assert.equal(saveNode.__easyuseAnimaGeneratorProfileValue, "user:Landscape");
 assert.match(saveNode.__easyuseAnimaGeneratorProfileFingerprint, /^fingerprint:/);
 assert.equal(fixture.apiCalls.listProfiles.length, listCallsBeforeSave + 1);
 assert.equal(fixture.trace.includes("refresh-panels"), true);
+assert.equal(fixture.confirmTypes.at(-1), "overwrite");
 assert.equal(dialog.backdrop.isConnected, false);
 assert.equal(fixture.dialogs.length, dialogsBeforeSave + 1, "successful save must reopen");
 const reopenedAfterSave = fixture.dialogs.at(-1);
@@ -632,6 +669,7 @@ fixture.prompts.push("   ");
 const dialogsBeforeBlankName = fixture.dialogs.length;
 await buttons.save.dispatch("click");
 assert.equal(fixture.alerts.at(-1), "text:profile.nameRequired");
+assert.equal(fixture.alertCalls.at(-1).severity, "warn");
 assert.equal(dialog.backdrop.isConnected, false);
 assert.equal(fixture.dialogs.length, dialogsBeforeBlankName + 1);
 
@@ -692,6 +730,7 @@ const deleteCallsBeforeDecline = fixture.apiCalls.deleteProfile.length;
 const dialogsBeforeDeleteDecline = fixture.dialogs.length;
 await buttons.delete.dispatch("click");
 assert.equal(fixture.apiCalls.deleteProfile.length, deleteCallsBeforeDecline);
+assert.equal(fixture.confirmTypes.at(-1), "delete");
 assert.equal(dialog.backdrop.isConnected, false);
 assert.equal(fixture.dialogs.length, dialogsBeforeDeleteDecline + 1);
 
@@ -784,7 +823,14 @@ await buttons.save.dispatch("click");
 assert.deepEqual(fixture.apiCalls.saveProfile.at(-1), [
   "Refresh Failure",
   false,
-  { sampler: { steps: 55 }, save_snapshot: true },
+  {
+    sampler: {
+      backend: "spectrum_spd_speed",
+      steps: 55,
+      spd: { scale: 0.8, sigma_max: 1.4 },
+    },
+    save_snapshot: true,
+  },
   null,
 ]);
 assert.equal(fixture.apiCalls.listProfiles.length, listCallsBeforeRefreshError + 1);

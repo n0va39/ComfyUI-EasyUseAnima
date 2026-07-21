@@ -45,6 +45,8 @@ AIO_PROFILE_API_CLIENT_JS = AIO_MODULES / "profile_api_client.js"
 AIO_PROFILE_API_CLIENT_SMOKE = (
     ROOT / "tests" / "frontend_aio_profile_api_client_smoke.mjs"
 )
+AIO_PROFILE_DIALOGS_JS = AIO_MODULES / "profile_dialogs.js"
+AIO_PROFILE_DIALOGS_SMOKE = ROOT / "tests" / "frontend_aio_profile_dialogs_smoke.mjs"
 AIO_PROFILE_SETTINGS_RUNTIME_JS = AIO_MODULES / "profile_settings_runtime.js"
 AIO_PROFILE_SETTINGS_RUNTIME_SMOKE = (
     ROOT / "tests" / "frontend_aio_profile_settings_runtime_smoke.mjs"
@@ -309,6 +311,19 @@ class FrontendModuleStructureTests(unittest.TestCase):
             entry_source,
         )
         self.assertIn(
+            'import { aioCreateProfileDialogs } from "./aio/profile_dialogs.js";',
+            entry_source,
+        )
+        self.assertNotRegex(entry_source, r"window\.(?:prompt|confirm|alert)\(")
+        self.assertIn(
+            "const generatorProfileDialogs = aioCreateProfileDialogs({",
+            entry_source,
+        )
+        self.assertIn(
+            "getExtensionManager: () => app.extensionManager,",
+            entry_source,
+        )
+        self.assertIn(
             "const generatorProfileRuntime = aioCreateProfileSettingsRuntime({",
             entry_source,
         )
@@ -335,11 +350,6 @@ class FrontendModuleStructureTests(unittest.TestCase):
                 )
 
         nested_dependencies = {
-            "dialogs": [
-                "prompt: (message, defaultValue) => window.prompt(message, defaultValue),",
-                "alert: (message) => window.alert(message),",
-                "confirm: (message) => window.confirm(message),",
-            ],
             "profileCore": [
                 "customValue: GENERATOR_PROFILE_CUSTOM_VALUE,",
                 "builtinIds: aioBuiltinProfileIds,",
@@ -375,6 +385,8 @@ class FrontendModuleStructureTests(unittest.TestCase):
                     [line.strip() for line in group_match.group("body").splitlines()],
                     expected_lines,
                 )
+
+        self.assertRegex(runtime_dependencies, r"(?m)^  dialogs: generatorProfileDialogs,$")
 
         self.assertIn(
             "loadProfiles: loadGeneratorUserProfiles,",
@@ -422,6 +434,27 @@ class FrontendModuleStructureTests(unittest.TestCase):
         self.assertTrue(AIO_PROFILE_SETTINGS_RUNTIME_SMOKE.is_file())
         self.assertIn(
             r'node "tests\frontend_aio_profile_settings_runtime_smoke.mjs"',
+            frontend_check_source,
+        )
+
+    def test_aio_profile_dialogs_use_host_services(self):
+        source = AIO_PROFILE_DIALOGS_JS.read_text(encoding="utf-8")
+        frontend_check_source = FRONTEND_CHECK_SCRIPT.read_text(encoding="utf-8")
+
+        self.assertEqual(source.splitlines()[0], "// @ts-check")
+        self.assertEqual(
+            re.findall(r"export function ([A-Za-z0-9_]+)\(", source),
+            ["aioCreateProfileDialogs"],
+        )
+        self.assertNotRegex(source, r"window\.(?:prompt|confirm|alert)\(")
+        self.assertIn("extensionManager?.dialog", source)
+        self.assertIn("extensionManager?.toast", source)
+        self.assertIn("dialog.prompt({", source)
+        self.assertIn("dialog.confirm({", source)
+        self.assertIn("toast.add({", source)
+        self.assertTrue(AIO_PROFILE_DIALOGS_SMOKE.is_file())
+        self.assertIn(
+            r'node "tests\frontend_aio_profile_dialogs_smoke.mjs"',
             frontend_check_source,
         )
 
