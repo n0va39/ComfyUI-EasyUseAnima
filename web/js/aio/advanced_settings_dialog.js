@@ -37,6 +37,8 @@
  * @typedef {object} AioAdvancedDialogDependencyAdapter
  * @property {(key: string) => boolean} available
  * @property {(key: string) => string} pack
+ * @property {(control: any, missing: boolean, message?: string) => void} markMissingControl
+ * @property {(backend: string, keys: string[]) => boolean} notifyMissing
  * @property {(options?: Record<string, any>) => Promise<any>} load
  */
 
@@ -95,6 +97,8 @@ export function aioCreateAdvancedSettingsDialog(dependencies) {
   const {
     available: optionalDependencyAvailable,
     pack: optionalDependencyPack,
+    markMissingControl: aioMarkMissingDependencyControl,
+    notifyMissing: notifyMissingDependency,
     load: loadGeneratorOptionalDependencies,
   } = dependencyAdapter;
 
@@ -301,7 +305,12 @@ export function aioCreateAdvancedSettingsDialog(dependencies) {
       const messages = [];
 
       const daveMissing = !optionalDependencyAvailable("dave");
-      setControlsDisabled([daveEnabled, daveMask, daveStrength, daveTau], daveMissing);
+      setControlsDisabled([daveMask, daveStrength, daveTau], daveMissing);
+      const daveMessage = aioFormat("warning.optionalDependencyMissing", {
+        backend: "Anima DAVE",
+        pack: optionalDependencyPack("dave"),
+      });
+      aioMarkMissingDependencyControl(daveEnabled, daveMissing, daveMessage);
       if (daveMissing && daveEnabled.checked) {
         daveEnabled.checked = false;
       }
@@ -314,7 +323,6 @@ export function aioCreateAdvancedSettingsDialog(dependencies) {
 
       const safePagMissing = !optionalDependencyAvailable("safePag");
       setControlsDisabled([
-        safePagEnabled,
         safePagScale,
         safePagBlocks,
         safePagPerturbation,
@@ -324,6 +332,11 @@ export function aioCreateAdvancedSettingsDialog(dependencies) {
         safePagRescale,
         safePagRescaleMode,
       ], safePagMissing);
+      const safePagMessage = aioFormat("warning.optionalDependencyMissing", {
+        backend: "Anima Safe PAG",
+        pack: optionalDependencyPack("safePag"),
+      });
+      aioMarkMissingDependencyControl(safePagEnabled, safePagMissing, safePagMessage);
       if (safePagMissing && safePagEnabled.checked) {
         safePagEnabled.checked = false;
       }
@@ -335,7 +348,11 @@ export function aioCreateAdvancedSettingsDialog(dependencies) {
       }
 
       const kjFp16Missing = !optionalDependencyAvailable("kjFp16");
-      fp16Accum.disabled = kjFp16Missing;
+      const kjFp16Message = aioFormat("warning.optionalDependencyMissing", {
+        backend: "KJNodes FP16 accum",
+        pack: optionalDependencyPack("kjFp16"),
+      });
+      aioMarkMissingDependencyControl(fp16Accum, kjFp16Missing, kjFp16Message);
       if (kjFp16Missing && fp16Accum.checked) {
         fp16Accum.checked = false;
       }
@@ -347,7 +364,12 @@ export function aioCreateAdvancedSettingsDialog(dependencies) {
       }
 
       const kjSageMissing = !optionalDependencyAvailable("kjSage");
-      setControlsDisabled([sageAttention, sageAllowCompile], kjSageMissing);
+      setControlsDisabled([sageAllowCompile], kjSageMissing);
+      const kjSageMessage = aioFormat("warning.optionalDependencyMissing", {
+        backend: "SageAttention",
+        pack: optionalDependencyPack("kjSage"),
+      });
+      aioMarkMissingDependencyControl(sageAttention, kjSageMissing, kjSageMessage);
       if (kjSageMissing && sageAttention.value !== "disabled") {
         sageAttention.value = "disabled";
         sageAllowCompile.checked = false;
@@ -361,7 +383,6 @@ export function aioCreateAdvancedSettingsDialog(dependencies) {
 
       const kjCompileMissing = !optionalDependencyAvailable("kjTorchCompile");
       setControlsDisabled([
-        torchCompileEnabled,
         torchCompileBackend,
         torchCompileFullgraph,
         torchCompileMode,
@@ -371,6 +392,11 @@ export function aioCreateAdvancedSettingsDialog(dependencies) {
         torchCompileDebug,
         torchCompileDisableVram,
       ], kjCompileMissing);
+      const kjCompileMessage = aioFormat("warning.optionalDependencyMissing", {
+        backend: "Torch Compile",
+        pack: optionalDependencyPack("kjTorchCompile"),
+      });
+      aioMarkMissingDependencyControl(torchCompileEnabled, kjCompileMissing, kjCompileMessage);
       if (kjCompileMissing && torchCompileEnabled.checked) {
         torchCompileEnabled.checked = false;
       }
@@ -386,8 +412,29 @@ export function aioCreateAdvancedSettingsDialog(dependencies) {
       refreshSageDetails();
       refreshTorchDetails();
     };
-    sageAttention.addEventListener("change", refreshSageDetails);
-    torchCompileEnabled.addEventListener("change", refreshTorchDetails);
+    const guardToggle = (control, dependencyKey, backend) => {
+      if (control.checked && !optionalDependencyAvailable(dependencyKey)) {
+        notifyMissingDependency(backend, [dependencyKey]);
+        control.checked = false;
+      }
+      refreshAdvancedDependencyLocks();
+    };
+    daveEnabled.addEventListener("change", () => guardToggle(daveEnabled, "dave", "Anima DAVE"));
+    safePagEnabled.addEventListener("change", () => guardToggle(safePagEnabled, "safePag", "Anima Safe PAG"));
+    fp16Accum.addEventListener("change", () => guardToggle(fp16Accum, "kjFp16", "KJNodes FP16 accum"));
+    sageAttention.addEventListener("change", () => {
+      if (sageAttention.value !== "disabled" && !optionalDependencyAvailable("kjSage")) {
+        notifyMissingDependency("SageAttention", ["kjSage"]);
+        sageAttention.value = "disabled";
+        sageAllowCompile.checked = false;
+      }
+      refreshAdvancedDependencyLocks();
+    });
+    torchCompileEnabled.addEventListener("change", () => guardToggle(
+      torchCompileEnabled,
+      "kjTorchCompile",
+      "Torch Compile",
+    ));
     refreshSageDetails();
     refreshTorchDetails();
     refreshAdvancedDependencyLocks();
@@ -410,12 +457,12 @@ export function aioCreateAdvancedSettingsDialog(dependencies) {
         1,
         10,
       );
-      next.model_patches.dave.enabled = daveEnabled.checked && !daveEnabled.disabled;
+      next.model_patches.dave.enabled = daveEnabled.checked && optionalDependencyAvailable("dave");
       next.model_patches.dave.mask = daveMask.value || "dave_alpha.npz";
       next.model_patches.dave.strength = Number(daveStrength.value || 0.30);
       next.model_patches.dave.tau = Number(daveTau.value || 0.10);
       next.model_patches.safe_pag ||= {};
-      next.model_patches.safe_pag.enabled = safePagEnabled.checked && !safePagEnabled.disabled;
+      next.model_patches.safe_pag.enabled = safePagEnabled.checked && optionalDependencyAvailable("safePag");
       next.model_patches.safe_pag.scale = clampGeneratorNumber(safePagScale.value, 4.0, 0, 100);
       next.model_patches.safe_pag.block_indices = safePagBlocks.value || "18";
       next.model_patches.safe_pag.perturbation_strength = clampGeneratorNumber(
@@ -429,10 +476,14 @@ export function aioCreateAdvancedSettingsDialog(dependencies) {
       next.model_patches.safe_pag.end_percent = clampGeneratorNumber(safePagEnd.value, 0.7, 0, 1);
       next.model_patches.safe_pag.rescale = clampGeneratorNumber(safePagRescale.value, 0.2, 0, 1);
       next.model_patches.safe_pag.rescale_mode = safePagRescaleMode.value || "full";
-      next.model_patches.kj.fp16_accumulation = fp16Accum.checked && !fp16Accum.disabled;
-      next.model_patches.kj.sage_attention = sageAttention.disabled ? "disabled" : (sageAttention.value || "disabled");
-      next.model_patches.kj.sage_allow_compile = sageAllowCompile.checked && !sageAttention.disabled;
-      next.model_patches.kj.torch_compile.enabled = torchCompileEnabled.checked && !torchCompileEnabled.disabled;
+      next.model_patches.kj.fp16_accumulation = fp16Accum.checked && optionalDependencyAvailable("kjFp16");
+      next.model_patches.kj.sage_attention = optionalDependencyAvailable("kjSage")
+        ? (sageAttention.value || "disabled")
+        : "disabled";
+      next.model_patches.kj.sage_allow_compile = sageAllowCompile.checked
+        && optionalDependencyAvailable("kjSage");
+      next.model_patches.kj.torch_compile.enabled = torchCompileEnabled.checked
+        && optionalDependencyAvailable("kjTorchCompile");
       next.model_patches.kj.torch_compile.backend = torchCompileBackend.value || "inductor";
       next.model_patches.kj.torch_compile.fullgraph = torchCompileFullgraph.checked;
       next.model_patches.kj.torch_compile.mode = torchCompileMode.value || "max-autotune-no-cudagraphs";

@@ -43,6 +43,9 @@
  * @property {(key: string) => boolean} available
  * @property {(key: string) => string} pack
  * @property {(backend: string) => string[]} upscaleBackendMissingPacks
+ * @property {(backend: string) => string[]} upscaleBackendMissingKeys
+ * @property {(control: any, missing: boolean, message?: string) => void} markMissingControl
+ * @property {(backend: string, keys: string[]) => boolean} notifyMissing
  * @property {(options?: Record<string, any>) => Promise<any>} load
  */
 
@@ -111,6 +114,9 @@ export function aioCreateStageSettingsDialogs(dependencies) {
     available: optionalDependencyAvailable,
     pack: optionalDependencyPack,
     upscaleBackendMissingPacks,
+    upscaleBackendMissingKeys,
+    markMissingControl: aioMarkMissingDependencyControl,
+    notifyMissing: notifyMissingDependency,
     load: loadGeneratorOptionalDependencies,
   } = dependencyAdapter;
 
@@ -155,21 +161,31 @@ export function aioCreateStageSettingsDialogs(dependencies) {
     section.append(dependencyWarning);
     const refreshDependencyLocks = () => {
       const spectrumPatchMissing = !optionalDependencyAvailable("spectrumPatch");
-      spectrumEnabled.disabled = spectrumPatchMissing;
-      correctionsEnabled.disabled = spectrumPatchMissing;
+      const message = aioFormat("warning.optionalDependencyMissing", {
+        backend: title,
+        pack: optionalDependencyPack("spectrumPatch"),
+      });
+      aioMarkMissingDependencyControl(spectrumEnabled, spectrumPatchMissing, message);
+      aioMarkMissingDependencyControl(correctionsEnabled, spectrumPatchMissing, message);
       if (spectrumPatchMissing) {
         spectrumEnabled.checked = false;
         correctionsEnabled.checked = false;
         dependencyWarning.hidden = false;
-        dependencyWarning.textContent = aioFormat("warning.optionalDependencyMissing", {
-          backend: title,
-          pack: optionalDependencyPack("spectrumPatch"),
-        });
+        dependencyWarning.textContent = message;
       } else {
         dependencyWarning.hidden = true;
         dependencyWarning.textContent = "";
       }
     };
+    const guardSpectrumToggle = (control) => {
+      if (control.checked && !optionalDependencyAvailable("spectrumPatch")) {
+        notifyMissingDependency(title, ["spectrumPatch"]);
+        control.checked = false;
+      }
+      refreshDependencyLocks();
+    };
+    spectrumEnabled.addEventListener("change", () => guardSpectrumToggle(spectrumEnabled));
+    correctionsEnabled.addEventListener("change", () => guardSpectrumToggle(correctionsEnabled));
     refreshDependencyLocks();
     loadGeneratorOptionalDependencies().then(refreshDependencyLocks);
 
@@ -186,7 +202,7 @@ export function aioCreateStageSettingsDialogs(dependencies) {
       values() {
         return {
           spectrum: {
-            enabled: spectrumEnabled.checked && !spectrumEnabled.disabled,
+            enabled: spectrumEnabled.checked && optionalDependencyAvailable("spectrumPatch"),
             window_size: Number(windowSize.value || defaults.spectrum.window_size || 2),
             flex_window: Number(flexWindow.value || defaults.spectrum.flex_window || 0.25),
             warmup_steps: Number(warmupSteps.value || defaults.spectrum.warmup_steps || 6),
@@ -200,7 +216,7 @@ export function aioCreateStageSettingsDialogs(dependencies) {
             compat_policy: compatPolicy.value || "conservative",
           },
           dit_corrections: {
-            enabled: correctionsEnabled.checked && !correctionsEnabled.disabled,
+            enabled: correctionsEnabled.checked && optionalDependencyAvailable("spectrumPatch"),
             dcw_mode: dcwMode.value || "off",
             dcw_lambda: Number(dcwLambda.value || defaults.dit_corrections.dcw_lambda || 0.01),
             dcw_band_mask: dcwBand.value || "LL",
@@ -469,10 +485,17 @@ export function aioCreateStageSettingsDialogs(dependencies) {
       const messages = [];
       for (const option of Array.from(backend.options)) {
         const missingPacks = upscaleBackendMissingPacks(option.value);
-        option.disabled = missingPacks.length > 0;
+        option.disabled = false;
         option.textContent = missingPacks.length
           ? `${option.value} (${missingPacks.join(", ")} missing)`
           : option.value;
+        option.classList?.toggle("easyuse-anima-aio-missing-option", missingPacks.length > 0);
+        option.title = missingPacks.length
+          ? aioFormat("warning.optionalDependencyMissing", {
+              backend: option.value,
+              pack: missingPacks.join(", "),
+            })
+          : "";
         if (option.selected && missingPacks.length) {
           messages.push(aioFormat("warning.optionalDependencyMissing", {
             backend: option.value,
@@ -485,7 +508,20 @@ export function aioCreateStageSettingsDialogs(dependencies) {
       dependencyWarning.textContent = messages.join(" ");
       updateVisibility();
     };
-    backend.addEventListener("change", refreshDependencyLocks);
+    backend.addEventListener("change", () => {
+      const missingKeys = upscaleBackendMissingKeys(backend.value);
+      if (missingKeys.length) {
+        const attemptedBackend = backend.value;
+        notifyMissingDependency(attemptedBackend, missingKeys);
+        const fallback = Array.from(backend.options)
+          .find((option) => upscaleBackendMissingPacks(option.value).length === 0);
+        if (fallback) {
+          backend.value = fallback.value;
+        }
+        enabled.checked = false;
+      }
+      refreshDependencyLocks();
+    });
     autoTile.addEventListener("change", updateVisibility);
     inheritSampler.addEventListener("change", updateVisibility);
     body.append(main, usduSection, usduSampler, optimization.section, resshiftSection);

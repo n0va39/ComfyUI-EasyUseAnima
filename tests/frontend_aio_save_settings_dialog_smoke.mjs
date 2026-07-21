@@ -138,6 +138,7 @@ function createFixture({ settings = {}, available = {}, deferLoads = false } = {
   const dialogs = [];
   const loadCalls = [];
   const loadResolvers = [];
+  const notifications = [];
   const writes = [];
   const renders = [];
   const visibleApplies = [];
@@ -347,6 +348,15 @@ function createFixture({ settings = {}, available = {}, deferLoads = false } = {
         dependencyCalls += 1;
         return `pack:${key}`;
       },
+      markMissingControl(control, missing, message = "") {
+        control.disabled = false;
+        control.parentElement?.classList.toggle("easyuse-anima-aio-unsupported", missing);
+        control.title = missing ? message : "";
+      },
+      notifyMissing(backend, keys) {
+        notifications.push({ backend, keys: [...keys] });
+        return true;
+      },
       load(options) {
         dependencyCalls += 1;
         loadCalls.push(options);
@@ -366,6 +376,7 @@ function createFixture({ settings = {}, available = {}, deferLoads = false } = {
     dialogs,
     loadCalls,
     availabilityState,
+    notifications,
     writes,
     renders,
     visibleApplies,
@@ -395,7 +406,7 @@ function createFixture({ settings = {}, available = {}, deferLoads = false } = {
   assert.equal(dialog.title, "Save Options");
   assert.equal(
     dialog.subtitle,
-    "Image Saver requires ComfyUI-Image-Saver. Missing node packs are reported during queue execution.",
+    "Image Saver requires ComfyUI-Image-Saver. Selecting an unavailable backend shows its required node pack.",
   );
   assert.ok(dialog.body.classList.contains("easyuse-anima-aio-save-body"));
   const main = sectionByHeading(dialog.body, "Save Backend");
@@ -498,7 +509,7 @@ function createFixture({ settings = {}, available = {}, deferLoads = false } = {
   fixture.availabilityState.imageSaver = false;
   fixture.resolveLoads();
   await flushPromises();
-  assert.equal(imageSaverOption.disabled, true, "Deferred dependency refresh must disable Image Saver");
+  assert.equal(imageSaverOption.disabled, false, "Missing backend remains selectable for an explicit notice");
   assert.equal(imageSaverOption.textContent, "image_saver (pack:imageSaver missing)");
   assert.equal(backend.value, "comfy_save_image", "Missing Image Saver must select the built-in fallback");
   assert.equal(warning.hidden, false);
@@ -506,6 +517,14 @@ function createFixture({ settings = {}, available = {}, deferLoads = false } = {
     warning.textContent,
     'format:warning.optionalDependencyMissing:{"backend":"image_saver","pack":"pack:imageSaver"}',
   );
+  assert.deepEqual(fixture.notifications, [], "Async dependency refresh must stay silent");
+  backend.value = "image_saver";
+  backend.emit("change");
+  assert.deepEqual(fixture.notifications, [{
+    backend: "image_saver",
+    keys: ["imageSaver"],
+  }]);
+  assert.equal(backend.value, "comfy_save_image");
 
   controlIn(main, "Save image").checked = false;
   controlIn(files, "Filename").value = "";
