@@ -320,7 +320,7 @@ class FrontendModuleStructureTests(unittest.TestCase):
             entry_source,
         )
         self.assertIn(
-            "getExtensionManager: () => app.extensionManager,",
+            "document,\n  createDialog,\n  text: aioText,",
             entry_source,
         )
         self.assertIn(
@@ -437,7 +437,7 @@ class FrontendModuleStructureTests(unittest.TestCase):
             frontend_check_source,
         )
 
-    def test_aio_profile_dialogs_use_host_services(self):
+    def test_aio_profile_dialogs_use_nested_aio_dialogs(self):
         source = AIO_PROFILE_DIALOGS_JS.read_text(encoding="utf-8")
         frontend_check_source = FRONTEND_CHECK_SCRIPT.read_text(encoding="utf-8")
 
@@ -447,11 +447,13 @@ class FrontendModuleStructureTests(unittest.TestCase):
             ["aioCreateProfileDialogs"],
         )
         self.assertNotRegex(source, r"window\.(?:prompt|confirm|alert)\(")
-        self.assertIn("extensionManager?.dialog", source)
-        self.assertIn("extensionManager?.toast", source)
-        self.assertIn("dialog.prompt({", source)
-        self.assertIn("dialog.confirm({", source)
-        self.assertIn("toast.add({", source)
+        self.assertNotIn("extensionManager", source)
+        self.assertIn("const { document, createDialog, text } = dependencies", source)
+        self.assertIn('input.type = "text"', source)
+        self.assertIn('event.key === "Enter"', source)
+        self.assertIn('event.key === "Escape"', source)
+        self.assertIn("modal.close()", source)
+        self.assertIn("title = text(\"dialog.profile.title\")", source)
         self.assertTrue(AIO_PROFILE_DIALOGS_SMOKE.is_file())
         self.assertIn(
             r'node "tests\frontend_aio_profile_dialogs_smoke.mjs"',

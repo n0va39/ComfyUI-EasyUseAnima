@@ -229,10 +229,23 @@ assert(!firstDialog.backdrop.removed, "Pointerdown inside a dialog must keep the
 firstDialog.backdrop.dispatch("pointerdown");
 assert(firstDialog.backdrop.removed, "Pointerdown on the backdrop must close the dialog");
 
-const secondDialog = primitives.createDialog("Second", "Dialog");
+let secondDialogCloseCount = 0;
+const secondDialog = primitives.createDialog("Second", "Dialog", () => {
+  secondDialogCloseCount += 1;
+});
 assert(ensureStyleCalls === 2, "Every dialog open must ensure the AiO stylesheet");
+assert(
+  secondDialog.dialog === secondDialog.backdrop.children[0]
+    && typeof secondDialog.close === "function",
+  "Dialog creation must expose the dialog element and an imperative close contract",
+);
 const secondClose = secondDialog.backdrop.children[0].children[0].children[1];
 secondClose.dispatch("click");
 assert(secondDialog.backdrop.removed, "The dialog close button must remove its backdrop");
+secondDialog.close();
+assert(
+  secondDialogCloseCount === 1,
+  "Dialog close callbacks and removals must be idempotent",
+);
 
 console.log("AiO dialog primitives smoke passed.");
