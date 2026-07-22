@@ -11,6 +11,7 @@ ROOT = Path(__file__).resolve().parents[1]
 PACKAGE_MODULES = (
     "easyuse_anima",
     "easyuse_anima.aio",
+    "easyuse_anima.aio.generation_normalization",
     "easyuse_anima.aio.generation_values",
     "easyuse_anima.aio.generation_sampling",
     "easyuse_anima.aio.generation_features",
