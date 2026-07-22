@@ -3,13 +3,13 @@
 ## Registry status
 
 - Inventory baseline: `dev` commit
-  `565f9877a3578acdbf56ab45d9c16152d54c58ca`
+  `e309b718530f85317f3e602c29e1f5e8aee7771c`
 - Compatibility provenance: package/workflow version 0.5.2
 - Policy: [ADR-002](adr-002-compatibility-shims.md)
 - Machine-readable audit:
   [`python_compatibility_surface.v1.json`](../../tests/fixtures/python_compatibility_surface.v1.json)
-- Current state: B-10b18 is integrated; B-10b19 in PR #290 removes the audited
-  Artist Mix mode/key/tag-position constant subset
+- Current state: B-10b19 is integrated; B-10b20 in PR #291 removes the audited
+  Artist Mix conditioning/tensor helper subset
 
 This is an actionable registry, not a removal schedule. `N` means the first
 published Registry release containing both a canonical target and its root
@@ -74,8 +74,8 @@ inferring public support from spelling or test imports:
 - `nodes.py` preamble implementation imports: 7 (`json`, `logging`, `random`,
   `re`, `ceil`, `sqrt`, and `Any`), excluded from compatibility classification
   by an exact AST allowlist and drift gate;
-- `nodes.py` bindings with an `easyuse_anima` canonical target: 279 at the
-  B-10b19 PR head, with exact
+- `nodes.py` bindings with an `easyuse_anima` canonical target: 258 at the
+  B-10b20 PR head, with exact
   relative-package/flat-fallback parity;
 - bindings still owned by `anima_prompt`, `settings`, `prompt_translation`, or
   `wildcard_engine`: 27, with the same fallback parity;
@@ -100,7 +100,8 @@ inferring public support from spelling or test imports:
   the 13 B-10b13 NAIA client aliases, the 16 B-10b14 NAIA resolution aliases,
   the five B-10b15 conditioning aliases, the 12 B-10b16 Prompt Advanced aliases,
   the 12 B-10b17 Regional aliases, the 11 B-10b18 Artist Mix parsing/config
-  aliases, and the 21 B-10b19 Artist Mix mode/key/tag-position aliases; their production
+  aliases, the 21 B-10b19 Artist Mix mode/key/tag-position aliases, and the 21
+  B-10b20 Artist Mix conditioning/tensor aliases; their production
   consumers import or call the corresponding canonical owners directly;
 - repository test files with a direct `nodes` import: 21, recorded as migration
   consumers rather than public-support evidence.
@@ -317,6 +318,14 @@ EasyUseAnimaWildcard
   Normal-package and synthetic package tests reject the retired names while
   preserving the remaining 21 conditioning/tensor aliases, all 25 transitional
   seams, exact values/order/descriptions, mappings, and workflow contracts.
+- B-10b20 Artist Mix conditioning/tensor cleanup: the final 21 unsupported
+  Artist Mix helpers are no longer root aliases. Canonical code consumes them
+  lexically, while the 25 documented transitional seams remain direct aliases.
+  Normal-package and synthetic package tests reject the retired names; exact
+  tensor math, dtype/device handling, weight normalization, branch/metadata
+  behavior, fallback control flow, mappings, and workflow contracts remain
+  unchanged. The Artist Mix unsupported group is now removed; the separate
+  legacy Wildcard unsupported alias remains outside this lane.
 - B-08b2 internal AiO model-variant transition: Spectrum correction/forecast
   model patching and ephemeral model cleanup move to
   `easyuse_anima.aio.model_preparation`. Their four root private names remain
