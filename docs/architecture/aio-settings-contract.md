@@ -185,5 +185,19 @@ frontend coercion/unknown-field 정책과 manifest 내부 coercion/item 정의 �
 root/nested unknown field, custom Detailer order/target, Spectrum/SPD extension object, legacy 비복원 및 mutable
 reference 격리를 검증한다.
 
+`tests/fixtures/aio_generation_settings_surface_coverage.v1.json`은 manifest의 canonical field와 `$ref` site를
+기준으로 Python default/typed owner, JavaScript default owner, sanitization owner, UI owner/exposure, 유지 문서 heading을
+명시하는 golden coverage ledger다. entry 전체 또는 surface 하나가 빠지거나 owner module/document heading이
+사라지면 gate는 `/<contract-path>: missing surface <surface>`로 실패한다. Python 쪽은 각 normalized default
+leaf를 하나씩 제거했을 때 typed conversion이 반드시 거부하는지도 검증하므로, unknown extension 보존이 새 known
+field의 typed 누락을 숨길 수 없다. manifest shape와 default의 불일치는 `manifest_default` 또는
+`manifest_shape` surface로 별도 보고한다. empty Civitai fetcher item은 대표 row를 합성해 같은 ownership을
+확인한다.
+
+frontend smoke는 manifest와 JavaScript default의 leaf set을 비교하고, default를 compact serialization한 결과가
+동일한 leaf set을 보존하는지 별도로 확인한다. 따라서 default 추가와 sanitization 경로 추가는 독립된 surface로
+보고된다. coverage ledger는 runtime에서 import하지 않으며 dynamic capability choice, dialog 동작, optional
+dependency policy를 변경하지 않는다.
+
 manifest는 runtime package에 포함되어야 하므로 tracked 상태, `.comfyignore` 비제외, `git archive HEAD` 포함도
 dedicated schema test에서 검증한다. 문서와 테스트는 Registry archive에서 제외되어도 된다.

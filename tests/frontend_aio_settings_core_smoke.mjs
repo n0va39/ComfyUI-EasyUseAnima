@@ -15,6 +15,69 @@ function assertJsonEqual(actual, expected, message) {
   assert(JSON.stringify(actual) === JSON.stringify(expected), message);
 }
 
+function collectLeafPaths(value, path = [], output = []) {
+  if (value && typeof value === "object" && !Array.isArray(value) && Object.keys(value).length > 0) {
+    for (const [name, child] of Object.entries(value)) {
+      collectLeafPaths(child, [...path, name], output);
+    }
+    return output;
+  }
+  output.push(`/${path.join("/")}`);
+  return output;
+}
+
+function collectContractPaths(contract, path, output = []) {
+  if (Object.prototype.hasOwnProperty.call(contract, "$ref")) {
+    output.push(`/${path.join("/")}`);
+    return output;
+  }
+  const fields = contract?.fields;
+  if (fields && typeof fields === "object" && !Array.isArray(fields) && Object.keys(fields).length > 0) {
+    for (const [name, child] of Object.entries(fields)) {
+      collectContractPaths(child, [...path, name], output);
+    }
+    return output;
+  }
+  output.push(`/${path.join("/")}`);
+  return output;
+}
+
+function manifestContractPaths(manifest) {
+  const paths = collectContractPaths(manifest.shape, ["shape"]);
+  for (const [name, definition] of Object.entries(manifest.definitions)) {
+    collectContractPaths(definition, ["definitions", name], paths);
+  }
+  return paths.sort();
+}
+
+function assertSurfacePaths(expectedPaths, actualPaths, surface) {
+  const expected = new Set(expectedPaths);
+  const actual = new Set(actualPaths);
+  const failures = [
+    ...[...expected].filter((path) => !actual.has(path)).sort()
+      .map((path) => `${path}: missing surface ${surface}`),
+    ...[...actual].filter((path) => !expected.has(path)).sort()
+      .map((path) => `${path}: stale surface ${surface}`),
+  ];
+  assert(failures.length === 0, failures.join("\n"));
+}
+
+function coverageEntries(coverage) {
+  const entries = {};
+  assert(Array.isArray(coverage.groups) && coverage.groups.length > 0, "Surface coverage groups are missing");
+  for (const [index, group] of coverage.groups.entries()) {
+    assert(
+      group && typeof group.coverage === "object" && Array.isArray(group.paths) && group.paths.length > 0,
+      `Surface coverage group ${index} is invalid`,
+    );
+    for (const path of group.paths) {
+      assert(!Object.prototype.hasOwnProperty.call(entries, path), `${path}: duplicate surface coverage entry`);
+      entries[path] = group.coverage;
+    }
+  }
+  return entries;
+}
+
 function collectCoercionReferences(value, output = new Set()) {
   if (Array.isArray(value)) {
     for (const child of value) {
@@ -37,6 +100,10 @@ function collectCoercionReferences(value, output = new Set()) {
 const settingsModule = await import(dataModule("../web/js/aio/settings.js"));
 const generationManifest = JSON.parse(readFileSync(
   new URL("../easyuse_anima/aio/schemas/generation_settings.v1.json", import.meta.url),
+  "utf8",
+));
+const generationSurfaceCoverage = JSON.parse(readFileSync(
+  new URL("./fixtures/aio_generation_settings_surface_coverage.v1.json", import.meta.url),
   "utf8",
 ));
 const aioRuntimeSource = readFileSync(
@@ -92,6 +159,50 @@ assertJsonEqual(
   AIO_DEFAULT_GENERATION_SETTINGS,
   generationManifest.default,
   "AiO manifest defaults must deep-equal the frontend generation defaults",
+);
+assertSurfacePaths(
+  collectLeafPaths(generationManifest.default, ["shape"]),
+  collectLeafPaths(AIO_DEFAULT_GENERATION_SETTINGS, ["shape"]),
+  "frontend_default",
+);
+const requiredSettingSurfaces = [
+  "python_default",
+  "python_typed",
+  "frontend_default",
+  "frontend_sanitization",
+  "ui",
+  "documentation",
+];
+assertJsonEqual(
+  generationSurfaceCoverage.required_surfaces,
+  requiredSettingSurfaces,
+  "AiO surface coverage must retain every required maintenance surface",
+);
+const surfaceCoverageEntries = coverageEntries(generationSurfaceCoverage);
+assertSurfacePaths(
+  manifestContractPaths(generationManifest),
+  Object.keys(surfaceCoverageEntries),
+  "ui_metadata",
+);
+for (const [path, record] of Object.entries(surfaceCoverageEntries)) {
+  for (const surface of requiredSettingSurfaces) {
+    assert(
+      typeof record[surface] === "string" && record[surface].length > 0,
+      `${path}: missing surface ${surface}`,
+    );
+    assert(
+      Object.prototype.hasOwnProperty.call(generationSurfaceCoverage.owners[surface], record[surface]),
+      `${path}: unknown owner ${String(record[surface])} for surface ${surface}`,
+    );
+  }
+}
+const sanitizedGenerationDefaults = JSON.parse(
+  aioSettingsToCompactJson(AIO_DEFAULT_GENERATION_SETTINGS),
+);
+assertSurfacePaths(
+  collectLeafPaths(generationManifest.default, ["shape"]),
+  collectLeafPaths(sanitizedGenerationDefaults, ["shape"]),
+  "frontend_sanitization",
 );
 const coercionReferences = collectCoercionReferences({
   shape: generationManifest.shape,

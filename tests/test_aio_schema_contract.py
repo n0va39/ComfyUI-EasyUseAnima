@@ -12,6 +12,9 @@ from pathlib import Path
 from unittest.mock import patch
 
 import nodes
+from easyuse_anima.aio.generation_settings import (
+    _aio_generation_config_from_dict,
+)
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -19,10 +22,25 @@ MANIFEST_PATH = ROOT / "easyuse_anima" / "aio" / "schemas" / "generation_setting
 MANIFEST_REPOSITORY_PATH = MANIFEST_PATH.relative_to(ROOT).as_posix()
 FRONTEND_SETTINGS_PATH = ROOT / "web" / "js" / "aio" / "settings.js"
 AIO_WORKFLOW_0_5_2_FIXTURE_PATH = ROOT / "tests" / "fixtures" / "aio_generation_settings_0_5_2.json"
+SURFACE_COVERAGE_PATH = (
+    ROOT / "tests" / "fixtures" / "aio_generation_settings_surface_coverage.v1.json"
+)
+REQUIRED_SETTING_SURFACES = (
+    "python_default",
+    "python_typed",
+    "frontend_default",
+    "frontend_sanitization",
+    "ui",
+    "documentation",
+)
 
 
 def _manifest() -> dict:
     return json.loads(MANIFEST_PATH.read_text(encoding="utf-8"))
+
+
+def _surface_coverage() -> dict:
+    return json.loads(SURFACE_COVERAGE_PATH.read_text(encoding="utf-8"))
 
 
 def _resolve_contract(manifest: dict, contract: dict) -> dict:
@@ -90,6 +108,212 @@ def _default_leaves(value, path: tuple[str, ...] = ()):
             yield from _default_leaves(child, (*path, name))
         return
     yield path, value
+
+
+def _contract_surface_paths(contract: dict, path: tuple[str, ...]):
+    if "$ref" in contract:
+        yield "/" + "/".join(path)
+        return
+    fields = contract.get("fields")
+    if isinstance(fields, dict) and fields:
+        for name, child in fields.items():
+            yield from _contract_surface_paths(child, (*path, name))
+        return
+    yield "/" + "/".join(path)
+
+
+def _all_contract_surface_paths(manifest: dict) -> tuple[str, ...]:
+    paths = list(_contract_surface_paths(manifest["shape"], ("shape",)))
+    for name, definition in manifest["definitions"].items():
+        paths.extend(
+            _contract_surface_paths(definition, ("definitions", name))
+        )
+    return tuple(sorted(paths))
+
+
+def _manifest_shape_default_failures(manifest: dict) -> list[str]:
+    contract_paths = {
+        "/shape/" + "/".join(path)
+        for path, _contract in _leaf_contracts(manifest, manifest["shape"])
+    }
+    default_paths = {
+        "/shape/" + "/".join(path)
+        for path, _value in _default_leaves(manifest["default"])
+    }
+    return [
+        *(
+            f"{path}: missing surface manifest_default"
+            for path in sorted(contract_paths - default_paths)
+        ),
+        *(
+            f"{path}: missing surface manifest_shape"
+            for path in sorted(default_paths - contract_paths)
+        ),
+    ]
+
+
+def _coverage_entries(coverage: dict) -> tuple[dict[str, dict], list[str]]:
+    groups = coverage.get("groups")
+    if not isinstance(groups, list) or not groups:
+        return {}, ["surface coverage: groups must be a non-empty array"]
+
+    entries: dict[str, dict] = {}
+    failures: list[str] = []
+    for index, group in enumerate(groups):
+        if not isinstance(group, dict) or set(group) != {"coverage", "paths"}:
+            failures.append(
+                f"surface coverage: groups[{index}] must contain coverage and paths"
+            )
+            continue
+        record = group["coverage"]
+        paths = group["paths"]
+        if not isinstance(record, dict):
+            failures.append(f"surface coverage: groups[{index}].coverage must be an object")
+            continue
+        if (
+            not isinstance(paths, list)
+            or not paths
+            or any(not isinstance(path, str) or not path.startswith("/") for path in paths)
+        ):
+            failures.append(
+                f"surface coverage: groups[{index}].paths must be canonical paths"
+            )
+            continue
+        if paths != sorted(paths) or len(paths) != len(set(paths)):
+            failures.append(
+                f"surface coverage: groups[{index}].paths must be sorted and unique"
+            )
+        for path in paths:
+            if path in entries:
+                failures.append(f"{path}: duplicate surface coverage entry")
+            else:
+                entries[path] = record
+    return entries, failures
+
+
+def _surface_coverage_failures(manifest: dict, coverage: dict) -> list[str]:
+    expected_paths = set(_all_contract_surface_paths(manifest))
+    entries, failures = _coverage_entries(coverage)
+    required = tuple(coverage.get("required_surfaces", ()))
+    if required != REQUIRED_SETTING_SURFACES:
+        failures.append(
+            "surface coverage: required_surfaces changed: "
+            f"expected {list(REQUIRED_SETTING_SURFACES)!r}, got {list(required)!r}"
+        )
+
+    entry_paths = set(entries)
+    for path in sorted(expected_paths - entry_paths):
+        for surface in REQUIRED_SETTING_SURFACES:
+            failures.append(f"{path}: missing surface {surface}")
+    for path in sorted(entry_paths - expected_paths):
+        failures.append(f"{path}: stale surface coverage entry")
+
+    owners = coverage.get("owners")
+    if not isinstance(owners, dict):
+        failures.append("surface coverage: owners must be an object")
+        owners = {}
+    owner_registries: dict[str, dict] = {}
+    for surface in REQUIRED_SETTING_SURFACES:
+        surface_owners = owners.get(surface)
+        if not isinstance(surface_owners, dict) or not surface_owners:
+            failures.append(f"surface coverage: missing owner registry {surface}")
+            surface_owners = {}
+        owner_registries[surface] = surface_owners
+
+    for path in sorted(expected_paths & entry_paths):
+        record = entries[path]
+        if not isinstance(record, dict):
+            failures.append(f"{path}: surface record must be an object")
+            continue
+        missing = [name for name in REQUIRED_SETTING_SURFACES if name not in record]
+        extra = sorted(set(record) - set(REQUIRED_SETTING_SURFACES))
+        for name in missing:
+            failures.append(f"{path}: missing surface {name}")
+        for name in extra:
+            failures.append(f"{path}: unsupported surface {name}")
+        for surface in REQUIRED_SETTING_SURFACES:
+            owner = record.get(surface)
+            if not isinstance(owner, str) or not owner:
+                failures.append(f"{path}: invalid owner for surface {surface}")
+            elif owner not in owner_registries[surface]:
+                failures.append(
+                    f"{path}: unknown owner {owner!r} for surface {surface}"
+                )
+
+    return failures
+
+
+def _surface_owner_failures(coverage: dict) -> list[str]:
+    failures: list[str] = []
+    for surface, owners in coverage["owners"].items():
+        for owner, metadata in owners.items():
+            if not isinstance(metadata, dict):
+                failures.append(f"{surface}/{owner}: owner metadata must be an object")
+                continue
+            if isinstance(metadata.get("module"), str):
+                repository_paths = [metadata["module"]]
+            elif (
+                isinstance(metadata.get("modules"), list)
+                and metadata["modules"]
+                and all(isinstance(path, str) and path for path in metadata["modules"])
+            ):
+                repository_paths = metadata["modules"]
+            elif isinstance(metadata.get("path"), str):
+                repository_paths = [metadata["path"]]
+            else:
+                failures.append(f"{surface}/{owner}: owner path is missing")
+                continue
+            if surface == "ui" and metadata.get("exposure") not in {
+                "editable",
+                "hidden",
+                "visible-readonly",
+            }:
+                failures.append(f"{surface}/{owner}: UI exposure must be explicit")
+            if surface == "documentation" and not isinstance(
+                metadata.get("heading"), str
+            ):
+                failures.append(
+                    f"{surface}/{owner}: documentation heading must be explicit"
+                )
+            owner_paths: list[Path] = []
+            for repository_path in repository_paths:
+                owner_path = ROOT / repository_path
+                owner_paths.append(owner_path)
+                if not owner_path.is_file():
+                    failures.append(
+                        f"{surface}/{owner}: owner path does not exist: {repository_path}"
+                    )
+                    continue
+                try:
+                    tracked = _git("ls-files", "--error-unmatch", "--", repository_path)
+                except subprocess.CalledProcessError:
+                    failures.append(
+                        f"{surface}/{owner}: owner path is not tracked: {repository_path}"
+                    )
+                else:
+                    if tracked.stdout.strip() != repository_path:
+                        failures.append(
+                            f"{surface}/{owner}: owner path is not tracked: {repository_path}"
+                        )
+            heading = metadata.get("heading")
+            if heading is not None:
+                text = (
+                    owner_paths[0].read_text(encoding="utf-8")
+                    if owner_paths[0].is_file()
+                    else ""
+                )
+                if not isinstance(heading, str) or heading not in text.splitlines():
+                    failures.append(
+                        f"{surface}/{owner}: documentation heading is missing: {heading!r}"
+                    )
+    return failures
+
+
+def _delete_path(value: dict, path: tuple[str, ...]) -> None:
+    current = value
+    for name in path[:-1]:
+        current = current[name]
+    del current[path[-1]]
 
 
 def _get_path(value: dict, path: tuple[str, ...]):
@@ -223,9 +447,127 @@ class AIOGenerationSettingsManifestTests(unittest.TestCase):
     def test_manifest_default_matches_python_runtime_default(self):
         manifest = _manifest()
 
+        manifest_paths = dict(_default_leaves(manifest["default"]))
+        python_paths = dict(_default_leaves(nodes.AIO_GENERATION_DEFAULT_SETTINGS))
+        failures = [
+            *(
+                f"/shape/{'/'.join(path)}: missing surface python_default"
+                for path in sorted(set(manifest_paths) - set(python_paths))
+            ),
+            *(
+                f"/shape/{'/'.join(path)}: stale surface python_default"
+                for path in sorted(set(python_paths) - set(manifest_paths))
+            ),
+        ]
+        if failures:
+            self.fail("\n".join(failures))
+
         self.assertEqual(manifest["settings"]["schema"], nodes.AIO_GENERATION_SETTINGS_SCHEMA)
         self.assertEqual(manifest["settings"]["version"], nodes.AIO_GENERATION_SETTINGS_VERSION)
         self.assertEqual(manifest["default"], nodes.AIO_GENERATION_DEFAULT_SETTINGS)
+
+    def test_every_manifest_default_leaf_is_owned_by_typed_config(self):
+        manifest = _manifest()
+        missing: list[str] = []
+
+        for path, _value in _default_leaves(manifest["default"]):
+            source = copy.deepcopy(nodes.AIO_GENERATION_DEFAULT_SETTINGS)
+            _delete_path(source, path)
+            try:
+                _aio_generation_config_from_dict(source)
+            except (TypeError, ValueError):
+                continue
+            missing.append(f"/shape/{'/'.join(path)}: missing surface python_typed")
+
+        fetcher_fields = tuple(
+            manifest["definitions"]["civitai_hash_fetcher"]["fields"]
+        )
+        fetcher = {
+            "enabled": True,
+            "username": "owner",
+            "model_name": "model",
+            "version": "v1",
+        }
+        for field in fetcher_fields:
+            source = copy.deepcopy(nodes.AIO_GENERATION_DEFAULT_SETTINGS)
+            source["save"]["image_saver"]["civitai_hash_fetchers"] = [
+                {name: value for name, value in fetcher.items() if name != field}
+            ]
+            try:
+                _aio_generation_config_from_dict(source)
+            except (TypeError, ValueError):
+                continue
+            missing.append(
+                f"/definitions/civitai_hash_fetcher/{field}: "
+                "missing surface python_typed"
+            )
+
+        if missing:
+            self.fail("\n".join(missing))
+
+    def test_surface_coverage_registry_matches_every_manifest_contract_path(self):
+        manifest = _manifest()
+        coverage = _surface_coverage()
+
+        self.assertEqual(
+            coverage["schema"],
+            "easyuse_anima_aio_generation_settings_surface_coverage",
+        )
+        self.assertEqual(coverage["version"], 1)
+        self.assertEqual(coverage["manifest"], MANIFEST_REPOSITORY_PATH)
+        self.assertEqual(
+            [group["paths"][0] for group in coverage["groups"]],
+            sorted(group["paths"][0] for group in coverage["groups"]),
+            "Surface coverage groups must remain deterministically sorted",
+        )
+        failures = _surface_coverage_failures(manifest, coverage)
+        if failures:
+            self.fail("\n".join(failures))
+
+    def test_surface_coverage_reports_exact_missing_path_and_surface(self):
+        manifest = _manifest()
+        coverage = _surface_coverage()
+        path = coverage["groups"][0]["paths"][0]
+        del coverage["groups"][0]["coverage"]["ui"]
+
+        failures = _surface_coverage_failures(manifest, coverage)
+
+        self.assertIn(f"{path}: missing surface ui", failures)
+        self.assertNotIn(f"{path}: missing surface python_typed", failures)
+
+        manifest["shape"]["fields"]["omission_probe"] = {"type": "string"}
+        failures = _surface_coverage_failures(manifest, _surface_coverage())
+        for surface in REQUIRED_SETTING_SURFACES:
+            self.assertIn(
+                f"/shape/omission_probe: missing surface {surface}",
+                failures,
+            )
+        self.assertIn(
+            "/shape/omission_probe: missing surface manifest_default",
+            _manifest_shape_default_failures(manifest),
+        )
+
+        owner_coverage = _surface_coverage()
+        ui_owner = next(iter(owner_coverage["owners"]["ui"]))
+        documentation_owner = next(iter(owner_coverage["owners"]["documentation"]))
+        del owner_coverage["owners"]["ui"][ui_owner]["exposure"]
+        del owner_coverage["owners"]["documentation"][documentation_owner]["heading"]
+        owner_failures = _surface_owner_failures(owner_coverage)
+        self.assertIn(
+            f"ui/{ui_owner}: UI exposure must be explicit",
+            owner_failures,
+        )
+        self.assertIn(
+            f"documentation/{documentation_owner}: documentation heading must be explicit",
+            owner_failures,
+        )
+
+    def test_surface_coverage_owners_are_tracked_and_documented(self):
+        coverage = _surface_coverage()
+        failures = _surface_owner_failures(coverage)
+
+        if failures:
+            self.fail("\n".join(failures))
 
     def test_0_5_2_saved_aio_workflow_normalizes_generation_settings_identically(self):
         fixture = json.loads(AIO_WORKFLOW_0_5_2_FIXTURE_PATH.read_text(encoding="utf-8"))
@@ -260,6 +602,9 @@ class AIOGenerationSettingsManifestTests(unittest.TestCase):
         contracts = dict(_leaf_contracts(manifest, manifest["shape"]))
         defaults = dict(_default_leaves(manifest["default"]))
 
+        failures = _manifest_shape_default_failures(manifest)
+        if failures:
+            self.fail("\n".join(failures))
         self.assertEqual(set(contracts), set(defaults))
         for path, value in defaults.items():
             contract = contracts[path]
