@@ -141,6 +141,13 @@ EasyUseAnimaWildcard
   seams preserve call-time behavior. These are internal transition surfaces
   through the B-10 compatibility audit and are not added to public package
   `__all__`.
+- B-08d1 internal AiO preview transition: preview labels and format/event
+  constants, path/file-size tagging, event delivery, and temporary WebP/PNG
+  fallback saving move to `easyuse_anima.aio.preview`. Their nine root names
+  remain direct identity aliases so generator callers and focused monkeypatch
+  seams preserve call-time behavior. These are internal transition surfaces
+  through the B-10 compatibility audit and are not added to public package
+  `__all__`.
 - Removal gate: 0.5.2 node/workflow fixture, mapping identity, direct import,
   Registry archive closure, consumer evidence, separate breaking-change issue,
   and release note. With no external-consumer evidence, retain these exports.
