@@ -430,27 +430,27 @@ try:
         _post_random as _post_random,
     )
     from .easyuse_anima.naia.resolution import (
-        ADVANCED_RESOLUTION_BUCKETS as ADVANCED_RESOLUTION_BUCKETS,
-        CUSTOM_ADVANCED_RESOLUTION_BUCKET as CUSTOM_ADVANCED_RESOLUTION_BUCKET,
-        DEFAULT_ADVANCED_RESOLUTION_BUCKET as DEFAULT_ADVANCED_RESOLUTION_BUCKET,
-        DEFAULT_ADVANCED_RESOLUTION_SIZE as DEFAULT_ADVANCED_RESOLUTION_SIZE,
-        NAIA_ADVANCED_RESOLUTION_BUCKET as NAIA_ADVANCED_RESOLUTION_BUCKET,
-        NAIA_RESOLUTION_MODE_BUCKET as NAIA_RESOLUTION_MODE_BUCKET,
-        NAIA_RESOLUTION_MODE_SCALE as NAIA_RESOLUTION_MODE_SCALE,
+        # B-10b14 retires 16 unsupported NAIA resolution root aliases.
+        # Canonical resolution and adapter consumers import their owner directly.
+        # Bucket data and insertion order stay canonical.
+        # Custom, NAIA, and default labels stay canonical.
+        # Scale and bucket mode values stay canonical.
+        # Bucket-fit selection stays canonical.
+        # Resolution scale and max-long-edge policy stays canonical.
+        # Resolution-mode normalization stays canonical.
+        # Bucket-name normalization stays canonical.
+        # Scaled-resolution calculation stays canonical.
+        # 32-pixel snapping stays canonical.
+        # Sorted option generation stays canonical.
+        # Repository tests use the canonical owner for retired names.
+        # Retained labels and selection helpers stay root seams.
+        # Runtime-resolved final NAIA resolution stays a root seam.
+        # Mapped node identities and workflows stay unchanged.
         _advanced_resolution_from_selection as _advanced_resolution_from_selection,
-        _fit_naia_resolution_to_bucket as _fit_naia_resolution_to_bucket,
         _normalize_resolution_bucket as _normalize_resolution_bucket,
         _ratio_label as _ratio_label,
         _resolution_label as _resolution_label,
         _resolve_naia_resolution as _resolve_naia_resolution,
-        _resolve_naia_resolution_bucket as _resolve_naia_resolution_bucket,
-        _resolve_naia_resolution_max_long_edge as _resolve_naia_resolution_max_long_edge,
-        _resolve_naia_resolution_mode as _resolve_naia_resolution_mode,
-        _resolve_naia_resolution_scale as _resolve_naia_resolution_scale,
-        _scale_naia_resolution as _scale_naia_resolution,
-        _snap_resolution_32 as _snap_resolution_32,
-        _snap_scaled_resolution_32 as _snap_scaled_resolution_32,
-        _sorted_resolution_options as _sorted_resolution_options,
     )
     from .easyuse_anima.nodes.naia_nodes import (
         EasyUseAnimaNAIARandomPrompt as EasyUseAnimaNAIARandomPrompt,
@@ -943,27 +943,27 @@ except ImportError:  # allows simple local import tests outside ComfyUI's packag
         _post_random as _post_random,
     )
     from easyuse_anima.naia.resolution import (
-        ADVANCED_RESOLUTION_BUCKETS as ADVANCED_RESOLUTION_BUCKETS,
-        CUSTOM_ADVANCED_RESOLUTION_BUCKET as CUSTOM_ADVANCED_RESOLUTION_BUCKET,
-        DEFAULT_ADVANCED_RESOLUTION_BUCKET as DEFAULT_ADVANCED_RESOLUTION_BUCKET,
-        DEFAULT_ADVANCED_RESOLUTION_SIZE as DEFAULT_ADVANCED_RESOLUTION_SIZE,
-        NAIA_ADVANCED_RESOLUTION_BUCKET as NAIA_ADVANCED_RESOLUTION_BUCKET,
-        NAIA_RESOLUTION_MODE_BUCKET as NAIA_RESOLUTION_MODE_BUCKET,
-        NAIA_RESOLUTION_MODE_SCALE as NAIA_RESOLUTION_MODE_SCALE,
+        # B-10b14 retires 16 unsupported NAIA resolution root aliases.
+        # Canonical resolution and adapter consumers import their owner directly.
+        # Bucket data and insertion order stay canonical.
+        # Custom, NAIA, and default labels stay canonical.
+        # Scale and bucket mode values stay canonical.
+        # Bucket-fit selection stays canonical.
+        # Resolution scale and max-long-edge policy stays canonical.
+        # Resolution-mode normalization stays canonical.
+        # Bucket-name normalization stays canonical.
+        # Scaled-resolution calculation stays canonical.
+        # 32-pixel snapping stays canonical.
+        # Sorted option generation stays canonical.
+        # Repository tests use the canonical owner for retired names.
+        # Retained labels and selection helpers stay root seams.
+        # Runtime-resolved final NAIA resolution stays a root seam.
+        # Mapped node identities and workflows stay unchanged.
         _advanced_resolution_from_selection as _advanced_resolution_from_selection,
-        _fit_naia_resolution_to_bucket as _fit_naia_resolution_to_bucket,
         _normalize_resolution_bucket as _normalize_resolution_bucket,
         _ratio_label as _ratio_label,
         _resolution_label as _resolution_label,
         _resolve_naia_resolution as _resolve_naia_resolution,
-        _resolve_naia_resolution_bucket as _resolve_naia_resolution_bucket,
-        _resolve_naia_resolution_max_long_edge as _resolve_naia_resolution_max_long_edge,
-        _resolve_naia_resolution_mode as _resolve_naia_resolution_mode,
-        _resolve_naia_resolution_scale as _resolve_naia_resolution_scale,
-        _scale_naia_resolution as _scale_naia_resolution,
-        _snap_resolution_32 as _snap_resolution_32,
-        _snap_scaled_resolution_32 as _snap_scaled_resolution_32,
-        _sorted_resolution_options as _sorted_resolution_options,
     )
     from easyuse_anima.nodes.naia_nodes import (
         EasyUseAnimaNAIARandomPrompt as EasyUseAnimaNAIARandomPrompt,

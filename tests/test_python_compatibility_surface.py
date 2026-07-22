@@ -15,7 +15,7 @@ NODES_PATH = ROOT / "nodes.py"
 FIXTURE_PATH = ROOT / "tests" / "fixtures" / "python_compatibility_surface.v1.json"
 
 SCHEMA_VERSION = 1
-BASE_COMMIT = "95569b0476b62e91c324681b986c4818ab7d7c7c"
+BASE_COMMIT = "13a9cf4976b9b847dc68ddacca1763d862e647f9"
 CLASSIFICATIONS = (
     "permanent_entrypoint",
     "supported_public_reexport",
@@ -56,6 +56,100 @@ PREAMBLE_IMPLEMENTATION_BINDINGS = {
     "sqrt": "math:sqrt",
 }
 RETIRED_PRIVATE_BINDINGS = {
+    "ADVANCED_RESOLUTION_BUCKETS": {
+        "canonical_target": "easyuse_anima.naia.resolution:ADVANCED_RESOLUTION_BUCKETS",
+        "owner": "#184/#188 B-10b14",
+        "reason": "canonical resolution consumers import the bucket table directly",
+    },
+    "CUSTOM_ADVANCED_RESOLUTION_BUCKET": {
+        "canonical_target": (
+            "easyuse_anima.naia.resolution:CUSTOM_ADVANCED_RESOLUTION_BUCKET"
+        ),
+        "owner": "#184/#188 B-10b14",
+        "reason": "canonical prompt adapters import the custom label directly",
+    },
+    "DEFAULT_ADVANCED_RESOLUTION_BUCKET": {
+        "canonical_target": (
+            "easyuse_anima.naia.resolution:DEFAULT_ADVANCED_RESOLUTION_BUCKET"
+        ),
+        "owner": "#184/#188 B-10b14",
+        "reason": "canonical prompt consumers import the bucket default directly",
+    },
+    "DEFAULT_ADVANCED_RESOLUTION_SIZE": {
+        "canonical_target": (
+            "easyuse_anima.naia.resolution:DEFAULT_ADVANCED_RESOLUTION_SIZE"
+        ),
+        "owner": "#184/#188 B-10b14",
+        "reason": "canonical prompt adapters import the size default directly",
+    },
+    "NAIA_ADVANCED_RESOLUTION_BUCKET": {
+        "canonical_target": (
+            "easyuse_anima.naia.resolution:NAIA_ADVANCED_RESOLUTION_BUCKET"
+        ),
+        "owner": "#184/#188 B-10b14",
+        "reason": "canonical prompt consumers import the NAIA label directly",
+    },
+    "NAIA_RESOLUTION_MODE_BUCKET": {
+        "canonical_target": "easyuse_anima.naia.resolution:NAIA_RESOLUTION_MODE_BUCKET",
+        "owner": "#184/#188 B-10b14",
+        "reason": "canonical resolution owner consumes the bucket mode internally",
+    },
+    "NAIA_RESOLUTION_MODE_SCALE": {
+        "canonical_target": "easyuse_anima.naia.resolution:NAIA_RESOLUTION_MODE_SCALE",
+        "owner": "#184/#188 B-10b14",
+        "reason": "canonical resolution owner consumes the scale mode internally",
+    },
+    "_fit_naia_resolution_to_bucket": {
+        "canonical_target": (
+            "easyuse_anima.naia.resolution:_fit_naia_resolution_to_bucket"
+        ),
+        "owner": "#184/#188 B-10b14",
+        "reason": "canonical resolution owner calls bucket fitting internally",
+    },
+    "_resolve_naia_resolution_bucket": {
+        "canonical_target": (
+            "easyuse_anima.naia.resolution:_resolve_naia_resolution_bucket"
+        ),
+        "owner": "#184/#188 B-10b14",
+        "reason": "canonical resolution owner calls bucket resolution internally",
+    },
+    "_resolve_naia_resolution_max_long_edge": {
+        "canonical_target": (
+            "easyuse_anima.naia.resolution:_resolve_naia_resolution_max_long_edge"
+        ),
+        "owner": "#184/#188 B-10b14",
+        "reason": "canonical resolution owner calls edge-limit resolution internally",
+    },
+    "_resolve_naia_resolution_mode": {
+        "canonical_target": "easyuse_anima.naia.resolution:_resolve_naia_resolution_mode",
+        "owner": "#184/#188 B-10b14",
+        "reason": "canonical resolution owner calls mode resolution internally",
+    },
+    "_resolve_naia_resolution_scale": {
+        "canonical_target": "easyuse_anima.naia.resolution:_resolve_naia_resolution_scale",
+        "owner": "#184/#188 B-10b14",
+        "reason": "canonical resolution owner calls scale resolution internally",
+    },
+    "_scale_naia_resolution": {
+        "canonical_target": "easyuse_anima.naia.resolution:_scale_naia_resolution",
+        "owner": "#184/#188 B-10b14",
+        "reason": "canonical resolution owner calls scaling internally",
+    },
+    "_snap_resolution_32": {
+        "canonical_target": "easyuse_anima.naia.resolution:_snap_resolution_32",
+        "owner": "#184/#188 B-10b14",
+        "reason": "canonical selection helper calls 32-pixel snapping internally",
+    },
+    "_snap_scaled_resolution_32": {
+        "canonical_target": "easyuse_anima.naia.resolution:_snap_scaled_resolution_32",
+        "owner": "#184/#188 B-10b14",
+        "reason": "canonical scaling helper calls bounded snapping internally",
+    },
+    "_sorted_resolution_options": {
+        "canonical_target": "easyuse_anima.naia.resolution:_sorted_resolution_options",
+        "owner": "#184/#188 B-10b14",
+        "reason": "canonical selection helper sorts owner options internally",
+    },
     "DEFAULT_HOST": {
         "canonical_target": "easyuse_anima.naia.client:DEFAULT_HOST",
         "owner": "#184/#188 B-10b13",
@@ -896,6 +990,7 @@ def _build_document() -> dict[str, Any]:
                 "B-10b11",
                 "B-10b12",
                 "B-10b13",
+                "B-10b14",
             ],
         },
         "enums": {
@@ -908,7 +1003,7 @@ def _build_document() -> dict[str, Any]:
         "expected_counts": {
             "root_entrypoints": 3,
             "excluded_preamble_implementation_bindings": 7,
-            "nodes_canonical_bindings": 356,
+            "nodes_canonical_bindings": 340,
             "nodes_legacy_bindings": 27,
             "mapped_public_classes": 18,
             "unmapped_classes": 2,
