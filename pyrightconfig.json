@@ -1,0 +1,9 @@
+{
+  "include": [
+    "easyuse_anima"
+  ],
+  "pythonPlatform": "All",
+  "pythonVersion": "3.10",
+  "reportMissingModuleSource": "none",
+  "typeCheckingMode": "basic"
+}

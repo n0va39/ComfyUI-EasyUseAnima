@@ -43603,7 +43603,7 @@
       }
     ],
     "ignore_file": ".comfyignore",
-    "ignore_file_normalized_git_blob_sha1": "eb21e90ae0cf04f8a0763090ec8ca3301fd8cffa",
+    "ignore_file_normalized_git_blob_sha1": "e447b6d3726fe4e06da1bef09ed7b035dbd14aa8",
     "missing_internal_imports": [],
     "optional_imports": [
       {

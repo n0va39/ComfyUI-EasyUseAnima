@@ -365,6 +365,35 @@ formatting and disables Ruff's repository cache. This report-only step does
 not establish a new-violation ratchet, complete G-02 or later phases, or close
 Issue #188.
 
+### G-02a implementation contract
+
+G-02a pins Pyright `1.1.411` as npm-based maintenance tooling and applies
+`basic` checking to the complete canonical `easyuse_anima` package for Python
+3.10. The reviewed settings live in `pyrightconfig.json`; the baseline checker
+rejects any setting or value change so an ignore path or weaker mode cannot
+silently lower the diagnostic count. `reportMissingModuleSource` is disabled
+because availability of source alongside installed stubs is an environment
+property, while missing imports and all ordinary basic diagnostics remain
+visible.
+
+`tests/fixtures/pyright_baseline.json` records the current diagnostic debt by
+repository-relative path, rule, severity, and count. The official quick/full
+runner permits a diagnostic group to shrink, but fails when an existing group
+grows or a new path/rule/severity group appears. Pyright exit code 1 is accepted
+only as a successfully generated diagnostic report; fatal, configuration, and
+CLI failures remain blocking. Production files, broad ignore paths, and inline
+suppression comments are not changed to establish the baseline.
+
+The project runner uses cache-preferred resolution by default. Passing
+`-OfflineMaintenanceTools` to `tools/check_project.ps1` (or `-Offline` to the
+quality runner) disables network access for both pinned Ruff and Pyright after
+their packages have been cached. This provides the Phase G offline
+reproducibility check without adding either tool as a runtime dependency.
+
+This slice does not introduce strict allowlists. G-02b will add reviewed pure
+model/service paths only after they are independently strict-clean. Import
+direction, public API, size, and test-ownership gates remain G-03 through G-06.
+
 ## Overall Definition of Done
 
 The Python backend refactor is complete only when all of the following hold.

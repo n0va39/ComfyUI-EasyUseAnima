@@ -1,0 +1,84 @@
+{
+  "schema": "easyuse_anima_pyright_diagnostic_baseline",
+  "version": 1,
+  "tool": {
+    "name": "pyright",
+    "version": "1.1.411"
+  },
+  "config": {
+    "include": [
+      "easyuse_anima"
+    ],
+    "python_platform": "All",
+    "python_version": "3.10",
+    "report_missing_module_source": "none",
+    "type_checking_mode": "basic"
+  },
+  "totals": {
+    "error": 60,
+    "information": 0,
+    "warning": 0
+  },
+  "diagnostics": [
+    {
+      "count": 1,
+      "path": "easyuse_anima/nodes/naia_nodes.py",
+      "rule": "reportArgumentType",
+      "severity": "error"
+    },
+    {
+      "count": 4,
+      "path": "easyuse_anima/nodes/prompt_data_nodes.py",
+      "rule": "reportUndefinedVariable",
+      "severity": "error"
+    },
+    {
+      "count": 5,
+      "path": "easyuse_anima/nodes/regional_nodes.py",
+      "rule": "reportGeneralTypeIssues",
+      "severity": "error"
+    },
+    {
+      "count": 4,
+      "path": "easyuse_anima/prompt/artist_mix.py",
+      "rule": "reportOptionalMemberAccess",
+      "severity": "error"
+    },
+    {
+      "count": 1,
+      "path": "easyuse_anima/prompt/artist_mix.py",
+      "rule": "reportOptionalOperand",
+      "severity": "error"
+    },
+    {
+      "count": 37,
+      "path": "easyuse_anima/prompt/artist_mix.py",
+      "rule": "reportUndefinedVariable",
+      "severity": "error"
+    },
+    {
+      "count": 2,
+      "path": "easyuse_anima/prompt/regional.py",
+      "rule": "reportArgumentType",
+      "severity": "error"
+    },
+    {
+      "count": 3,
+      "path": "easyuse_anima/prompt/regional.py",
+      "rule": "reportOptionalIterable",
+      "severity": "error"
+    },
+    {
+      "count": 2,
+      "path": "easyuse_anima/prompt/regional.py",
+      "rule": "reportOptionalMemberAccess",
+      "severity": "error"
+    },
+    {
+      "count": 1,
+      "path": "easyuse_anima/prompt/regional.py",
+      "rule": "reportReturnType",
+      "severity": "error"
+    }
+  ]
+}

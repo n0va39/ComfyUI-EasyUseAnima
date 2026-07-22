@@ -14,6 +14,7 @@ SECURITY.md
 MAINTAINING.md
 RELEASE.md
 jsconfig.json
+pyrightconfig.json
 .gitignore
 .gitattributes
 .gitmodules
