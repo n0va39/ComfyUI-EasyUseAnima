@@ -2,7 +2,7 @@
   "schema_version": 1,
   "snapshot": {
     "base_branch": "dev",
-    "base_commit": "1f18c04f1078b7c547764aa572a6123ba423221d",
+    "base_commit": "09805305b54932a23db697c04132caaedc95c68b",
     "first_release": null,
     "owner_tasks": [
       "#184",
@@ -33,7 +33,8 @@
       "B-11c1",
       "B-11c2",
       "B-11c3",
-      "B-11c4"
+      "B-11c4",
+      "B-11c5"
     ]
   },
   "enums": {
@@ -68,11 +69,11 @@
   "expected_counts": {
     "root_entrypoints": 3,
     "excluded_preamble_implementation_bindings": 7,
-    "nodes_canonical_bindings": 264,
+    "nodes_canonical_bindings": 265,
     "nodes_legacy_bindings": 27,
     "mapped_public_classes": 18,
     "unmapped_classes": 2,
-    "root_residual_functions": 38,
+    "root_residual_functions": 37,
     "root_residual_classes": 0,
     "root_residual_globals": 32,
     "runtime_binders": 28,
@@ -1877,7 +1878,8 @@
       "symbols": {
         "_bind_aio_generation_normalization_runtime": "_bind_aio_generation_normalization_runtime",
         "_merge_versioned_settings": "_merge_versioned_settings",
-        "_normalize_aio_generation_settings": "_normalize_aio_generation_settings"
+        "_normalize_aio_generation_settings": "_normalize_aio_generation_settings",
+        "_normalize_aio_spectrum_settings": "_normalize_aio_spectrum_settings"
       },
       "classification": "transitional_private_seam",
       "current_target": "nodes.py",
@@ -1890,11 +1892,13 @@
       "first_release": null,
       "known_consumers": [
         "nodes.py residual runtime",
+        "canonical runtime resolver: easyuse_anima.aio.generation_normalization",
         "canonical runtime resolver: easyuse_anima.aio.legacy_generation",
         "canonical runtime resolver: easyuse_anima.nodes.aio_nodes"
       ],
       "evidence": [
         "AST:nodes.py direct runtime load",
+        "AST:easyuse_anima.aio.generation_normalization string runtime lookup",
         "AST:easyuse_anima.aio.legacy_generation string runtime lookup",
         "AST:easyuse_anima.nodes.aio_nodes string runtime lookup"
       ],
@@ -3942,7 +3946,6 @@
         "_normalize_aio_dit_corrections_settings": "_normalize_aio_dit_corrections_settings",
         "_normalize_aio_input_settings": "_normalize_aio_input_settings",
         "_normalize_aio_seed": "_normalize_aio_seed",
-        "_normalize_aio_spectrum_settings": "_normalize_aio_spectrum_settings",
         "_require_any_custom_node_class": "_require_any_custom_node_class",
         "_require_custom_node_class": "_require_custom_node_class",
         "_resize_image_to_size_if_needed": "_resize_image_to_size_if_needed",

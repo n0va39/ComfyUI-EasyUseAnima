@@ -45,6 +45,115 @@ def _merge_versioned_settings(defaults: dict[str, Any], value) -> dict[str, Any]
     return merge_dict(merged, incoming)
 
 
+def _normalize_aio_spectrum_settings(
+    value,
+    defaults: dict[str, Any],
+) -> dict[str, Any]:
+    _as_bool = _runtime_helper("_as_bool")
+    _as_float = _runtime_helper("_as_float")
+    _as_int = _runtime_helper("_as_int")
+    _choice = _runtime_helper("_choice")
+    spectrum = value if isinstance(value, dict) else {}
+    spectrum["enabled"] = _as_bool(
+        spectrum.get("enabled"),
+        _as_bool(defaults.get("enabled"), False),
+    )
+    spectrum["window_size"] = max(
+        1.0,
+        min(
+            10.0,
+            _as_float(
+                spectrum.get("window_size"),
+                _as_float(defaults.get("window_size"), 2.0),
+            ),
+        ),
+    )
+    spectrum["flex_window"] = max(
+        0.0,
+        min(
+            2.0,
+            _as_float(
+                spectrum.get("flex_window"),
+                _as_float(defaults.get("flex_window"), 0.25),
+            ),
+        ),
+    )
+    spectrum["warmup_steps"] = max(
+        0,
+        min(
+            10000,
+            _as_int(
+                spectrum.get("warmup_steps"),
+                _as_int(defaults.get("warmup_steps"), 6),
+            ),
+        ),
+    )
+    spectrum["tail_actual_steps"] = max(
+        0,
+        min(
+            10000,
+            _as_int(
+                spectrum.get("tail_actual_steps"),
+                _as_int(defaults.get("tail_actual_steps"), 3),
+            ),
+        ),
+    )
+    spectrum["blend_w"] = max(
+        0.0,
+        min(
+            1.0,
+            _as_float(
+                spectrum.get("blend_w"),
+                _as_float(defaults.get("blend_w"), 0.3),
+            ),
+        ),
+    )
+    spectrum["cheby_degree"] = max(
+        1,
+        min(
+            10,
+            _as_int(
+                spectrum.get("cheby_degree"),
+                _as_int(defaults.get("cheby_degree"), 3),
+            ),
+        ),
+    )
+    spectrum["ridge_lambda"] = max(
+        0.001,
+        min(
+            10.0,
+            _as_float(
+                spectrum.get("ridge_lambda"),
+                _as_float(defaults.get("ridge_lambda"), 0.1),
+            ),
+        ),
+    )
+    spectrum["history_size"] = max(
+        5,
+        min(
+            10000,
+            _as_int(
+                spectrum.get("history_size"),
+                _as_int(defaults.get("history_size"), 100),
+            ),
+        ),
+    )
+    spectrum["one_sampler_only"] = _as_bool(
+        spectrum.get("one_sampler_only"),
+        _as_bool(defaults.get("one_sampler_only"), False),
+    )
+    spectrum["verbose"] = _as_bool(
+        spectrum.get("verbose"),
+        _as_bool(defaults.get("verbose"), False),
+    )
+    spectrum["compat_policy"] = _choice(
+        spectrum.get("compat_policy"),
+        ("legacy", "conservative", "strict"),
+        str(defaults.get("compat_policy") or "conservative"),
+    )
+    return spectrum
+
+
 def _normalize_aio_generation_settings(value) -> dict[str, Any]:
     AIO_FINAL_FIT_MODES = _runtime_helper("AIO_FINAL_FIT_MODES")
     AIO_FINAL_UPSCALE_BACKENDS = _runtime_helper("AIO_FINAL_UPSCALE_BACKENDS")

@@ -19,6 +19,9 @@ if str(ROOT) not in sys.path:
 
 import nodes
 from easyuse_anima import workflow
+from easyuse_anima.aio import (
+    generation_normalization as aio_generation_normalization,
+)
 from easyuse_anima.aio import model_preparation as aio_model_preparation
 from easyuse_anima.common import serialization as common_serialization
 from easyuse_anima.common import values as common_values
@@ -618,6 +621,100 @@ class AioLoraSignatureMoveContractTests(unittest.TestCase):
                     self.EXPECTED_SIGNATURE,
                 )
             normalize.assert_called_once_with("raw")
+
+
+class AioSpectrumNormalizationMoveContractTests(unittest.TestCase):
+    DEFAULTS = {
+        "enabled": False,
+        "window_size": 2.0,
+        "flex_window": 0.25,
+        "warmup_steps": 6,
+        "tail_actual_steps": 3,
+        "blend_w": 0.3,
+        "cheby_degree": 3,
+        "ridge_lambda": 0.1,
+        "history_size": 100,
+        "one_sampler_only": False,
+        "verbose": False,
+        "compat_policy": "legacy",
+    }
+    EXPECTED = {
+        "enabled": True,
+        "window_size": 10.0,
+        "flex_window": 0.0,
+        "warmup_steps": 0,
+        "tail_actual_steps": 10000,
+        "blend_w": 1.0,
+        "cheby_degree": 1,
+        "ridge_lambda": 0.001,
+        "history_size": 5,
+        "one_sampler_only": True,
+        "verbose": False,
+        "compat_policy": "legacy",
+        "future": "kept",
+    }
+
+    def _assert_contract(self, root_module, canonical_module):
+        self.assertIs(
+            root_module._normalize_aio_spectrum_settings,
+            canonical_module._normalize_aio_spectrum_settings,
+        )
+        value = {
+            "enabled": True,
+            "window_size": 99,
+            "flex_window": -1,
+            "warmup_steps": -5,
+            "tail_actual_steps": 20000,
+            "blend_w": 2,
+            "cheby_degree": 0,
+            "ridge_lambda": 0,
+            "history_size": 1,
+            "one_sampler_only": True,
+            "verbose": False,
+            "compat_policy": "unknown",
+            "future": "kept",
+        }
+        with (
+            patch.object(
+                root_module,
+                "_as_bool",
+                wraps=root_module._as_bool,
+            ) as as_bool,
+            patch.object(
+                root_module,
+                "_as_float",
+                wraps=root_module._as_float,
+            ) as as_float,
+            patch.object(
+                root_module,
+                "_as_int",
+                wraps=root_module._as_int,
+            ) as as_int,
+            patch.object(
+                root_module,
+                "_choice",
+                wraps=root_module._choice,
+            ) as choice,
+        ):
+            result = canonical_module._normalize_aio_spectrum_settings(
+                value,
+                self.DEFAULTS,
+            )
+        self.assertIs(result, value)
+        self.assertEqual(result, self.EXPECTED)
+        for helper in (as_bool, as_float, as_int, choice):
+            self.assertGreater(helper.call_count, 0)
+
+    def test_root_alias_and_call_time_helpers(self):
+        self._assert_contract(nodes, aio_generation_normalization)
+
+    def test_package_alias_and_call_time_helpers(self):
+        with _loaded_package_entrypoint() as (_, package_nodes):
+            package_name = package_nodes.__package__
+            package_generation_normalization = sys.modules[
+                f"{package_name}.easyuse_anima.aio.generation_normalization"
+            ]
+            self._assert_contract(package_nodes, package_generation_normalization)
 
 
 class ComfyAdapterMoveContractTests(unittest.TestCase):

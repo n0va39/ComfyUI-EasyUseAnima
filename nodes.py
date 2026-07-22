@@ -28,6 +28,7 @@ try:
         _bind_aio_generation_normalization_runtime as _bind_aio_generation_normalization_runtime,
         _merge_versioned_settings as _merge_versioned_settings,
         _normalize_aio_generation_settings as _normalize_aio_generation_settings,
+        _normalize_aio_spectrum_settings as _normalize_aio_spectrum_settings,
     )
     from .easyuse_anima.aio.generation_settings import (
         round_trip_aio_generation_settings as _round_trip_aio_generation_settings,
@@ -549,6 +550,7 @@ except ImportError:  # allows simple local import tests outside ComfyUI's packag
         _bind_aio_generation_normalization_runtime as _bind_aio_generation_normalization_runtime,
         _merge_versioned_settings as _merge_versioned_settings,
         _normalize_aio_generation_settings as _normalize_aio_generation_settings,
+        _normalize_aio_spectrum_settings as _normalize_aio_spectrum_settings,
     )
     from easyuse_anima.aio.generation_settings import (
         round_trip_aio_generation_settings as _round_trip_aio_generation_settings,
@@ -1600,54 +1602,6 @@ def _normalize_aio_input_settings(value) -> dict[str, Any]:
         "default",
     )
     return settings
-
-
-def _normalize_aio_spectrum_settings(value, defaults: dict[str, Any]) -> dict[str, Any]:
-    spectrum = value if isinstance(value, dict) else {}
-    spectrum["enabled"] = _as_bool(spectrum.get("enabled"), _as_bool(defaults.get("enabled"), False))
-    spectrum["window_size"] = max(
-        1.0,
-        min(10.0, _as_float(spectrum.get("window_size"), _as_float(defaults.get("window_size"), 2.0))),
-    )
-    spectrum["flex_window"] = max(
-        0.0,
-        min(2.0, _as_float(spectrum.get("flex_window"), _as_float(defaults.get("flex_window"), 0.25))),
-    )
-    spectrum["warmup_steps"] = max(
-        0,
-        min(10000, _as_int(spectrum.get("warmup_steps"), _as_int(defaults.get("warmup_steps"), 6))),
-    )
-    spectrum["tail_actual_steps"] = max(
-        0,
-        min(10000, _as_int(spectrum.get("tail_actual_steps"), _as_int(defaults.get("tail_actual_steps"), 3))),
-    )
-    spectrum["blend_w"] = max(
-        0.0,
-        min(1.0, _as_float(spectrum.get("blend_w"), _as_float(defaults.get("blend_w"), 0.3))),
-    )
-    spectrum["cheby_degree"] = max(
-        1,
-        min(10, _as_int(spectrum.get("cheby_degree"), _as_int(defaults.get("cheby_degree"), 3))),
-    )
-    spectrum["ridge_lambda"] = max(
-        0.001,
-        min(10.0, _as_float(spectrum.get("ridge_lambda"), _as_float(defaults.get("ridge_lambda"), 0.1))),
-    )
-    spectrum["history_size"] = max(
-        5,
-        min(10000, _as_int(spectrum.get("history_size"), _as_int(defaults.get("history_size"), 100))),
-    )
-    spectrum["one_sampler_only"] = _as_bool(
-        spectrum.get("one_sampler_only"),
-        _as_bool(defaults.get("one_sampler_only"), False),
-    )
-    spectrum["verbose"] = _as_bool(spectrum.get("verbose"), _as_bool(defaults.get("verbose"), False))
-    spectrum["compat_policy"] = _choice(
-        spectrum.get("compat_policy"),
-        ("legacy", "conservative", "strict"),
-        str(defaults.get("compat_policy") or "conservative"),
-    )
-    return spectrum
 
 
 def _normalize_aio_dit_corrections_settings(value, defaults: dict[str, Any]) -> dict[str, Any]:
