@@ -3,13 +3,13 @@
 ## Registry status
 
 - Inventory baseline: `dev` commit
-  `d36caf8af5b528a9f8ac6a80d5fc93f925784bf3`
+  `e559f017ff112ef701951f5b79ad03e32cccc917`
 - Compatibility provenance: package/workflow version 0.5.2
 - Policy: [ADR-002](adr-002-compatibility-shims.md)
 - Machine-readable audit:
   [`python_compatibility_surface.v1.json`](../../tests/fixtures/python_compatibility_surface.v1.json)
-- Current state: B-10b6 is integrated; B-10b7 in PR #278 removes one audited
-  unsupported/test-only AiO cache-clear root alias
+- Current state: B-10b7 is integrated; B-10b8 in PR #279 removes one audited
+  unsupported/test-only wildcard tooltip-note root alias
 
 This is an actionable registry, not a removal schedule. `N` means the first
 published Registry release containing both a canonical target and its root
@@ -74,8 +74,8 @@ inferring public support from spelling or test imports:
 - `nodes.py` preamble implementation imports: 7 (`json`, `logging`, `random`,
   `re`, `ceil`, `sqrt`, and `Any`), excluded from compatibility classification
   by an exact AST allowlist and drift gate;
-- `nodes.py` bindings with an `easyuse_anima` canonical target: 389 at the
-  B-10b7 PR head, with exact
+- `nodes.py` bindings with an `easyuse_anima` canonical target: 388 at the
+  B-10b8 PR head, with exact
   relative-package/flat-fallback parity;
 - bindings still owned by `anima_prompt`, `settings`, `prompt_translation`, or
   `wildcard_engine`: 27, with the same fallback parity;
@@ -93,7 +93,7 @@ inferring public support from spelling or test imports:
   `_align_up`, `_aligned_size_near_scale`, `_alignment_value`,
   `_image_scale_by_multiple_size`, `_max_long_edge_value`,
   `_normalize_image_scale_options`, `_scale_by_value`, and
-  `_clear_aio_first_pass_cache`; their production
+  `_clear_aio_first_pass_cache`, plus `WILDCARD_SEED_RANGE_NOTE`; their production
   consumers import or call the corresponding canonical owners directly;
 - repository test files with a direct `nodes` import: 21, recorded as migration
   consumers rather than public-support evidence.
@@ -233,6 +233,10 @@ EasyUseAnimaWildcard
   `easyuse_anima.aio.first_pass_cache` owner directly; normal-package and
   synthetic package-entrypoint tests reject the retired root name. Mutable
   cache state and the remaining binder/resolver seams stay unchanged.
+- B-10b8 wildcard-note cleanup: `WILDCARD_SEED_RANGE_NOTE` is no longer a root
+  alias. The canonical Wildcard adapter owns and consumes the immutable tooltip
+  string directly; normal-package and synthetic package-entrypoint tests reject
+  the retired root name while preserving the canonical tooltip and mapped class.
 - B-08b2 internal AiO model-variant transition: Spectrum correction/forecast
   model patching and ephemeral model cleanup move to
   `easyuse_anima.aio.model_preparation`. Their four root private names remain

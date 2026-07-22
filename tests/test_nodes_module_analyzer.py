@@ -73,9 +73,9 @@ def load_dynamic():
     def test_current_nodes_module_shape_matches_recorded_baseline(self):
         report = analyzer.analyze_path(ROOT / "nodes.py")
 
-        self.assertEqual(report["git_blob_sha1"], "50a1ef025ee43f0934324e947fc8a9b6d3125003")
-        # Issue #184 B-10b7 retires the unsupported/test-only cache-clear alias
-        # after repository tests moved to the canonical owner.
+        self.assertEqual(report["git_blob_sha1"], "5dd028142914295ced6ea5d1c6e3e2d4ef73e0bc")
+        # Issue #184 B-10b8 retires the unsupported/test-only wildcard-note
+        # alias after its root-only test assertion moved to the canonical owner.
         self.assertEqual(report["top_level"]["function_count"], 41)
         self.assertEqual(report["top_level"]["class_count"], 2)
         self.assertEqual(report["line_count"], 2_712)

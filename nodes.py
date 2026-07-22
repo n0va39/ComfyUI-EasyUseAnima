@@ -458,7 +458,7 @@ try:
     )
     from .easyuse_anima.nodes.wildcard_nodes import (
         EasyUseAnimaWildcard as EasyUseAnimaWildcard,
-        WILDCARD_SEED_RANGE_NOTE as WILDCARD_SEED_RANGE_NOTE,
+        # B-10b8 retires the test-only root wildcard-note alias.
         _bind_wildcard_node_runtime as _bind_wildcard_node_runtime,
     )
     from .easyuse_anima.lora.metadata import (
@@ -971,7 +971,7 @@ except ImportError:  # allows simple local import tests outside ComfyUI's packag
     )
     from easyuse_anima.nodes.wildcard_nodes import (
         EasyUseAnimaWildcard as EasyUseAnimaWildcard,
-        WILDCARD_SEED_RANGE_NOTE as WILDCARD_SEED_RANGE_NOTE,
+        # B-10b8 retires the test-only root wildcard-note alias.
         _bind_wildcard_node_runtime as _bind_wildcard_node_runtime,
     )
     from easyuse_anima.lora.metadata import (
