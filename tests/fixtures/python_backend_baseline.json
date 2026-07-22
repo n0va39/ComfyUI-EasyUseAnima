@@ -24876,37 +24876,6 @@
         "target": "easyuse_anima/nodes/wildcard_nodes.py"
       },
       {
-        "alias": "WILDCARD_SEED_RANGE_NOTE",
-        "bound_name": "WILDCARD_SEED_RANGE_NOTE",
-        "branch_context": [
-          {
-            "branch": "body",
-            "handles_import_failure": true,
-            "has_import_fallback_handler": true,
-            "kind": "try",
-            "line": 11
-          }
-        ],
-        "classification": "internal",
-        "column": 4,
-        "compatibility_pair": {
-          "bound_name": "WILDCARD_SEED_RANGE_NOTE",
-          "target": "easyuse_anima/nodes/wildcard_nodes.py",
-          "try_line": 11
-        },
-        "conditional": true,
-        "imported": ".easyuse_anima.nodes.wildcard_nodes:WILDCARD_SEED_RANGE_NOTE",
-        "kind": "static_from",
-        "line": 459,
-        "name": "WILDCARD_SEED_RANGE_NOTE",
-        "optional": false,
-        "requested": ".easyuse_anima.nodes.wildcard_nodes",
-        "role": "compatibility_primary",
-        "scope": "<module>",
-        "source": "nodes.py",
-        "target": "easyuse_anima/nodes/wildcard_nodes.py"
-      },
-      {
         "alias": "_bind_wildcard_node_runtime",
         "bound_name": "_bind_wildcard_node_runtime",
         "branch_context": [
@@ -38858,40 +38827,6 @@
         "target": "easyuse_anima/nodes/wildcard_nodes.py"
       },
       {
-        "alias": "WILDCARD_SEED_RANGE_NOTE",
-        "bound_name": "WILDCARD_SEED_RANGE_NOTE",
-        "branch_context": [
-          {
-            "branch": "except",
-            "catches_import_error": true,
-            "exceptions": [
-              "ImportError"
-            ],
-            "handler_line": 524,
-            "kind": "try",
-            "line": 11
-          }
-        ],
-        "classification": "compatibility_fallback",
-        "column": 4,
-        "compatibility_pair": {
-          "bound_name": "WILDCARD_SEED_RANGE_NOTE",
-          "target": "easyuse_anima/nodes/wildcard_nodes.py",
-          "try_line": 11
-        },
-        "conditional": true,
-        "imported": "easyuse_anima.nodes.wildcard_nodes:WILDCARD_SEED_RANGE_NOTE",
-        "kind": "static_from",
-        "line": 972,
-        "name": "WILDCARD_SEED_RANGE_NOTE",
-        "optional": false,
-        "requested": "easyuse_anima.nodes.wildcard_nodes",
-        "role": "compatibility_fallback",
-        "scope": "<module>",
-        "source": "nodes.py",
-        "target": "easyuse_anima/nodes/wildcard_nodes.py"
-      },
-      {
         "alias": "_bind_wildcard_node_runtime",
         "bound_name": "_bind_wildcard_node_runtime",
         "branch_context": [
@@ -44206,7 +44141,7 @@
         "is_package": false,
         "loc": 2712,
         "module": "nodes",
-        "normalized_git_blob_sha1": "50a1ef025ee43f0934324e947fc8a9b6d3125003",
+        "normalized_git_blob_sha1": "5dd028142914295ced6ea5d1c6e3e2d4ef73e0bc",
         "path": "nodes.py",
         "top_level": {
           "class_count": 2,
@@ -53871,29 +53806,6 @@
         "classification": "compatibility_fallback",
         "conditional": true,
         "imported": "easyuse_anima.nodes.wildcard_nodes:EasyUseAnimaWildcard",
-        "kind": "static_from",
-        "line": 972,
-        "optional": false,
-        "role": "compatibility_fallback",
-        "source": "nodes.py",
-        "target": "easyuse_anima/nodes/wildcard_nodes.py"
-      },
-      {
-        "branch_context": [
-          {
-            "branch": "except",
-            "catches_import_error": true,
-            "exceptions": [
-              "ImportError"
-            ],
-            "handler_line": 524,
-            "kind": "try",
-            "line": 11
-          }
-        ],
-        "classification": "compatibility_fallback",
-        "conditional": true,
-        "imported": "easyuse_anima.nodes.wildcard_nodes:WILDCARD_SEED_RANGE_NOTE",
         "kind": "static_from",
         "line": 972,
         "optional": false,

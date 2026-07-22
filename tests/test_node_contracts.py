@@ -873,9 +873,12 @@ class WildcardNaiaMoveContractTests(unittest.TestCase):
             nodes.EasyUseAnimaNAIARandomPrompt,
             naia_nodes.EasyUseAnimaNAIARandomPrompt,
         )
-        self.assertIs(
-            nodes.WILDCARD_SEED_RANGE_NOTE,
+        self.assertFalse(hasattr(nodes, "WILDCARD_SEED_RANGE_NOTE"))
+        self.assertIn(
             wildcard_nodes.WILDCARD_SEED_RANGE_NOTE,
+            wildcard_nodes.EasyUseAnimaWildcard.INPUT_TYPES()["required"]["seed"][1][
+                "tooltip"
+            ],
         )
 
     def test_package_loaded_root_wildcard_naia_objects_are_direct_canonical_aliases(self):
@@ -905,6 +908,7 @@ class WildcardNaiaMoveContractTests(unittest.TestCase):
                 package_nodes.EasyUseAnimaNAIARandomPrompt,
                 package_naia_nodes.EasyUseAnimaNAIARandomPrompt,
             )
+            self.assertFalse(hasattr(package_nodes, "WILDCARD_SEED_RANGE_NOTE"))
 
 
 class LoraPresetMoveContractTests(unittest.TestCase):
