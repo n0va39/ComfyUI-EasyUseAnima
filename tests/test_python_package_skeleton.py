@@ -40,6 +40,7 @@ PACKAGE_MODULES = (
     "easyuse_anima.lora",
     "easyuse_anima.naia",
     "easyuse_anima.nodes",
+    "easyuse_anima.nodes.aio_nodes",
     "easyuse_anima.nodes.impact_detailer_nodes",
     "easyuse_anima.nodes.prompt_advanced_nodes",
     "easyuse_anima.nodes.prompt_data_nodes",
@@ -132,7 +133,11 @@ print(json.dumps({{
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
         payload = json.loads(result.stdout)
         self.assertEqual(payload["modules"], list(PACKAGE_MODULES))
-        self.assertEqual(payload["declared_all"], [[] for _ in PACKAGE_MODULES])
+        expected_all = [[] for _ in PACKAGE_MODULES]
+        expected_all[PACKAGE_MODULES.index("easyuse_anima.nodes.aio_nodes")] = [
+            "EasyUseAnimaInput"
+        ]
+        self.assertEqual(payload["declared_all"], expected_all)
         self.assertEqual(payload["new_forbidden"], [])
 
 
