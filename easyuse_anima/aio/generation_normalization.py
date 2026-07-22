@@ -26,6 +26,23 @@ def _runtime_helper(name: str) -> Any:
     return resolver(name)
 
 
+AIO_SPECIAL_SEED_RANDOM = -1
+AIO_SPECIAL_SEED_INCREMENT = -2
+AIO_SPECIAL_SEED_DECREMENT = -3
+AIO_SPECIAL_SEEDS = {
+    AIO_SPECIAL_SEED_RANDOM,
+    AIO_SPECIAL_SEED_INCREMENT,
+    AIO_SPECIAL_SEED_DECREMENT,
+}
+
+
+def _normalize_aio_seed(value, default: int = AIO_SPECIAL_SEED_RANDOM) -> int:
+    _as_int = _runtime_helper("_as_int")
+    max_seed = _runtime_helper("MAX_SEED")
+    minimum_seed = _runtime_helper("AIO_SPECIAL_SEED_DECREMENT")
+    return max(minimum_seed, min(max_seed, _as_int(value, default)))
+
+
 def _merge_versioned_settings(defaults: dict[str, Any], value) -> dict[str, Any]:
     _json_clone = _runtime_helper("_json_clone")
     _json_object = _runtime_helper("_json_object")

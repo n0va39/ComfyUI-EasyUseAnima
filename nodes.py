@@ -25,10 +25,15 @@ try:
         _run_aio_legacy_generation as _run_aio_legacy_generation,
     )
     from .easyuse_anima.aio.generation_normalization import (
+        AIO_SPECIAL_SEEDS as AIO_SPECIAL_SEEDS,
+        AIO_SPECIAL_SEED_DECREMENT as AIO_SPECIAL_SEED_DECREMENT,
+        AIO_SPECIAL_SEED_INCREMENT as AIO_SPECIAL_SEED_INCREMENT,
+        AIO_SPECIAL_SEED_RANDOM as AIO_SPECIAL_SEED_RANDOM,
         _bind_aio_generation_normalization_runtime as _bind_aio_generation_normalization_runtime,
         _merge_versioned_settings as _merge_versioned_settings,
         _normalize_aio_dit_corrections_settings as _normalize_aio_dit_corrections_settings,
         _normalize_aio_generation_settings as _normalize_aio_generation_settings,
+        _normalize_aio_seed as _normalize_aio_seed,
         _normalize_aio_spectrum_settings as _normalize_aio_spectrum_settings,
     )
     from .easyuse_anima.aio.generation_settings import (
@@ -548,10 +553,15 @@ except ImportError:  # allows simple local import tests outside ComfyUI's packag
         _run_aio_legacy_generation as _run_aio_legacy_generation,
     )
     from easyuse_anima.aio.generation_normalization import (
+        AIO_SPECIAL_SEEDS as AIO_SPECIAL_SEEDS,
+        AIO_SPECIAL_SEED_DECREMENT as AIO_SPECIAL_SEED_DECREMENT,
+        AIO_SPECIAL_SEED_INCREMENT as AIO_SPECIAL_SEED_INCREMENT,
+        AIO_SPECIAL_SEED_RANDOM as AIO_SPECIAL_SEED_RANDOM,
         _bind_aio_generation_normalization_runtime as _bind_aio_generation_normalization_runtime,
         _merge_versioned_settings as _merge_versioned_settings,
         _normalize_aio_dit_corrections_settings as _normalize_aio_dit_corrections_settings,
         _normalize_aio_generation_settings as _normalize_aio_generation_settings,
+        _normalize_aio_seed as _normalize_aio_seed,
         _normalize_aio_spectrum_settings as _normalize_aio_spectrum_settings,
     )
     from easyuse_anima.aio.generation_settings import (
@@ -1106,14 +1116,6 @@ ANIMA_UNET_WEIGHT_DTYPES = (
     "fp8_e5m2",
 )
 ANIMA_CLIP_DEVICES = ("default", "cpu")
-AIO_SPECIAL_SEED_RANDOM = -1
-AIO_SPECIAL_SEED_INCREMENT = -2
-AIO_SPECIAL_SEED_DECREMENT = -3
-AIO_SPECIAL_SEEDS = {
-    AIO_SPECIAL_SEED_RANDOM,
-    AIO_SPECIAL_SEED_INCREMENT,
-    AIO_SPECIAL_SEED_DECREMENT,
-}
 AIO_INPUT_DEFAULT_SETTINGS = {
     "schema": EASY_USE_ANIMA_INPUT_SCHEMA,
     "version": EASY_USE_ANIMA_INPUT_SETTINGS_VERSION,
@@ -1555,10 +1557,6 @@ AIO_RESHIFT_DTYPES = ("bf16", "fp32")
 
 
 _TRIGGER_WORD_KEYS = ("trainedWords", "trained_words", "trigger_words", "activation_text")
-
-
-def _normalize_aio_seed(value, default: int = AIO_SPECIAL_SEED_RANDOM) -> int:
-    return max(AIO_SPECIAL_SEED_DECREMENT, min(MAX_SEED, _as_int(value, default)))
 
 
 def _new_aio_random_seed() -> int:
