@@ -170,6 +170,15 @@ EasyUseAnimaWildcard
   `__all__`; its narrow call-time runtime seam preserves root monkeypatches for
   resource candidates, normalization, stable change keys, schema/version
   values, and prompt-data copying. The adapter does not import `nodes.py`.
+- B-09b1 internal AiO orchestration transition: the current-order
+  `EasyUseAnimaAIOGenerator.generate` body moves to
+  `easyuse_anima.aio.legacy_generation` while the public class and exact method
+  signature remain root-owned for the B-09b2 adapter slice. Root retains direct
+  private identity aliases for the binder and orchestration function; the
+  canonical module imports no root module and resolves every legacy helper,
+  constant, and module at its original call site through one resolver slot.
+  These aliases are transitional internal seams for B-10 and are not public
+  package `__all__` entries.
 - Removal gate: 0.5.2 node/workflow fixture, mapping identity, direct import,
   Registry archive closure, consumer evidence, separate breaking-change issue,
   and release note. With no external-consumer evidence, retain these exports.

@@ -166,6 +166,7 @@ class RegistryScannerSafetyTests(unittest.TestCase):
             "api_contract.py",
             "easyuse_anima/aio/conditioning.py",
             "easyuse_anima/aio/first_pass_cache.py",
+            "easyuse_anima/aio/legacy_generation.py",
             "easyuse_anima/aio/generation_values.py",
             "easyuse_anima/aio/generation_sampling.py",
             "easyuse_anima/aio/generation_features.py",

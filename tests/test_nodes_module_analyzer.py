@@ -73,12 +73,12 @@ def load_dynamic():
     def test_current_nodes_module_shape_matches_recorded_baseline(self):
         report = analyzer.analyze_path(ROOT / "nodes.py")
 
-        self.assertEqual(report["git_blob_sha1"], "08731747c5ced72546f4b3cd60fd7e2a7562a5a7")
-        # Issue #184 B-09a preserves the public AiO input adapter as a direct
-        # root alias while moving its implementation to canonical ownership.
+        self.assertEqual(report["git_blob_sha1"], "688ee31af1383b25856e258d918d3489f5aa4cdc")
+        # Issue #184 B-09b1 preserves the AiO generator adapter in root while
+        # moving its current-order execution body behind a direct private alias.
         self.assertEqual(report["top_level"]["function_count"], 43)
         self.assertEqual(report["top_level"]["class_count"], 3)
-        self.assertEqual(report["line_count"], 3_122)
+        self.assertEqual(report["line_count"], 2_822)
         class_names = {item["name"] for item in report["top_level"]["classes"]}
         self.assertIn("EasyUseAnimaAIOGenerator", class_names)
         self.assertNotIn("EasyUseAnimaInput", class_names)

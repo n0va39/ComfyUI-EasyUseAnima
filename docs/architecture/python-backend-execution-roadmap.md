@@ -5,7 +5,7 @@
 - Status: operational execution runbook
 - Snapshot date: 2026-07-22
 - Snapshot branch: `dev`
-- Snapshot commit: `d2594118607b3d1c2decaa37b96b57c51fe2c1f4`
+- Integrated `dev` snapshot commit: `fb85e9eaedb9dabfbcf77740b27bee98c99e679a`
 - Scope: Python backend only
 - Target architecture: [`python-backend.md`](python-backend.md)
 - Architecture decisions: [ADR-001](adr-001-modular-monolith.md) and
@@ -28,10 +28,10 @@ merged PR, the owning issue's evidence record, and every stated exit gate.
 
 ### Phase summary
 
-| Phase | State at the snapshot | Remaining exit work |
+| Phase | Integrated snapshot / open implementation state | Remaining exit work |
 | --- | --- | --- |
 | A - baseline | Complete; #191 is closed | Keep fixtures and analyzers current during later moves |
-| B - `nodes.py` extraction | In progress through B-09a | Continue B-09b AiO extraction, compatibility audit, registration/bootstrap, final root shim |
+| B - `nodes.py` extraction | Integrated through B-09a; B-09b1 implemented in PR #269 | Integrate B-09b1, then continue B-09b2 AiO adapter extraction, compatibility audit, registration/bootstrap, final root shim |
 | C - feature contracts/behavior | Partially complete | Finish #168; then #167 and #169 in separate Contract/Behavior PRs |
 | D - root consolidation | Not started | Execute #186 feature by feature after the corresponding behavior contracts are stable |
 | E - runtime ownership | Not started | Execute #187 after canonical feature owners exist; E-01 inventory may start earlier |
@@ -42,12 +42,16 @@ merged PR, the owning issue's evidence record, and every stated exit gate.
 ### Measured Phase B progress
 
 - The Phase A baseline recorded root `nodes.py` at 12,663 lines.
-- At the B-09a snapshot, root `nodes.py` is 3,122 lines.
-- The mechanical extraction has therefore removed 9,541 lines, approximately
-  75.3% of the baseline, while preserving the root compatibility surface.
+- Against the integrated `dev` snapshot above, the B-09b1 PR-head
+  implementation measures root `nodes.py` at 2,822 lines. This is a PR-head
+  measurement, not a claim that B-09b1 is already integrated into that commit.
+- At that implementation head the mechanical extraction has removed 9,841
+  lines, approximately 77.7% of the Phase A baseline, while preserving the root
+  compatibility surface.
 - B-01 through B-08e are integrated. The latest completed implementation slice
   is the AiO input-adapter Move in PR #268.
-- Root `nodes.py` still owns substantial AiO implementation.
+- Root `nodes.py` still owns the public AiO generator adapter and remaining
+  support seams, while its current-order `generate` body is canonical.
 - Root `__init__.py` still imports `api.py` for route-registration side effects,
   initializes the wildcard directory during package import, and owns mapping
   composition. B-11 is therefore not complete.
@@ -288,15 +292,16 @@ surfaces. AiO mechanical extraction must not start until #168 exits.
 | 7 | C168-06 normalizer ownership move | COMPLETE on `dev` | Move | #168/#184 | PR #257 / `3ca5500` |
 | 8 | B-08a through B-08e AiO support-helper extraction | COMPLETE on `dev` | Move | #184 | B-08a PR #259; B-08b1 PR #260; B-08b2 PR #261; B-08c PR #262; B-08d1 PR #263; B-08d2 PR #264; B-08e PR #265 |
 | 9 | B-09a AiO input adapter move | COMPLETE in PR #268 | Move | #184 | AiO helpers canonical through B-08e |
-| 10 | B-09b AiO generator and legacy orchestration move | READY | Move | #184 | B-09a implementation complete |
-| 11 | B-10 compatibility/private-alias audit | BLOCKED by B-09b | Contract/cleanup, split PRs | #184/#188 | All node implementations canonical |
-| 12 | B-11 registration/bootstrap/root shim | BLOCKED by B-10 | Move | #184 | Alias surface frozen |
-| 13 | S167 backend seed reservation series | BLOCKED by B exit/interface | Contract then Behavior | #167 | Canonical AiO/node seams |
-| 14 | A169 stage pipeline series | BLOCKED by #168 and B exit | Contract then Behavior | #169 | Typed config and mechanical AiO move |
-| 15 | A169 first-pass cache policy | BLOCKED by stage/cache ownership seam | Behavior | #169 | Mechanical cache move and benchmark harness |
-| 16 | D-series canonical root consolidation | BLOCKED by relevant C contracts | Move | #186 | Phase B exit; per-feature behavior stable |
-| 17 | E-series RuntimeServices/lifecycle | BLOCKED by canonical owners | Move/Contract, split PRs | #187 | Relevant D moves |
-| 18 | G-04 through G-06 and H | INCREMENTAL/LATER | Gate/Contract | #188 | Appropriate package and release evidence |
+| 10 | B-09b1 AiO legacy orchestration body move | IMPLEMENTED in PR #269 | Move | #184 | B-09a implementation complete |
+| 11 | B-09b2 AiO generator adapter move | READY after B-09b1 | Move | #184 | B-09b1 integrated |
+| 12 | B-10 compatibility/private-alias audit | BLOCKED by B-09b | Contract/cleanup, split PRs | #184/#188 | All node implementations canonical |
+| 13 | B-11 registration/bootstrap/root shim | BLOCKED by B-10 | Move | #184 | Alias surface frozen |
+| 14 | S167 backend seed reservation series | BLOCKED by B exit/interface | Contract then Behavior | #167 | Canonical AiO/node seams |
+| 15 | A169 stage pipeline series | BLOCKED by #168 and B exit | Contract then Behavior | #169 | Typed config and mechanical AiO move |
+| 16 | A169 first-pass cache policy | BLOCKED by stage/cache ownership seam | Behavior | #169 | Mechanical cache move and benchmark harness |
+| 17 | D-series canonical root consolidation | BLOCKED by relevant C contracts | Move | #186 | Phase B exit; per-feature behavior stable |
+| 18 | E-series RuntimeServices/lifecycle | BLOCKED by canonical owners | Move/Contract, split PRs | #187 | Relevant D moves |
+| 19 | G-04 through G-06 and H | INCREMENTAL/LATER | Gate/Contract | #188 | Appropriate package and release evidence |
 
 Issue #199, authenticated diagnostics/settings access, is an independent security
 track. It may proceed when its threat model and owner are ready, but it does not
@@ -556,6 +561,21 @@ easyuse_anima/aio/legacy_generation.py  # temporary current-order orchestration 
 it exceeds the G-05 guidance, record #169 as its decomposition owner. Do not
 solve that debt by leaving the full orchestration in the node adapter or by
 inventing an unreviewed framework.
+
+B-09b is split at the existing compatibility boundary:
+
+- B-09b1 moves only the current 329-line `generate` orchestration body to
+  `easyuse_anima.aio.legacy_generation`. The root public class, `INPUT_TYPES`,
+  `IS_CHANGED`, mappings, input validator, and exact `generate` signature stay
+  in `nodes.py`; the method delegates through a direct private alias and a
+  resolver-only call-time seam. The deterministic v1 trace freezes base
+  txt2img and patched upscale-plus-intermediate-preview order, cleanup-before-
+  save, metadata, UI projection, and `id(generator)` cache scope without
+  introducing stage contracts.
+- B-09b2 moves the public `EasyUseAnimaAIOGenerator` adapter to canonical node
+  ownership after B-09b1 is integrated. It owns class/mapping identity and the
+  remaining workflow/browser serialization checkpoint. B-09 is not complete
+  until that adapter slice and the stated integration evidence are complete.
 
 Before merge, capture a deterministic execution trace fixture for the current
 major phases and prove no order/result/cleanup drift. Run at least:
