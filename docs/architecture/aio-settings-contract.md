@@ -5,8 +5,10 @@
 
 기준 manifest는 [#168](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/168)의 C168-01 Contract PR에서
 도입했다. C168-02는 v0.5.2 release workflow에 저장된 AiO generation settings 입력과 normalized
-결과를 현재 runtime에 다시 적용해 deep equality로 고정한다. Python/JavaScript runtime은 여전히 manifest를
-import하지 않으며 generator, codegen, typed model, version migration, normalizer 교체는 이 단계에 포함하지 않는다.
+결과를 현재 runtime에 다시 적용해 deep equality로 고정한다. C168-03은 기존 Python normalizer가 만든 완전한
+v1 object를 checked-in typed config로 변환하고 다시 독립된 가변 dictionary로 복원하는 경계를 추가한다.
+Python/JavaScript runtime은 여전히 manifest를 import하지 않으며 codegen, version migration, normalizer 교체는
+이 단계에 포함하지 않는다.
 
 ## 소유권
 
@@ -16,6 +18,7 @@ import하지 않으며 generator, codegen, typed model, version migration, norma
 | 정적 enum, min/max, coercion 분류 | manifest | 현재 backend normalizer 동작으로 검증 |
 | legacy alias와 unknown-field 정책 | manifest | surface별 현재 차이도 명시 |
 | Python 실행 시 정규화 | 현재 `nodes.py` | 이번 PR에서 이동하거나 변경하지 않음 |
+| normalized Python v1 typed boundary | `easyuse_anima/aio/generation_*.py` DAG | 정규화 이후 순수 양방향 변환, dictionary compatibility facade 유지 |
 | frontend default merge/visible merge | 현재 `web/js/aio/settings.js`, `web/js/easyuse_anima_aio.js` | 이번 PR에서 변경하지 않음 |
 | Comfy/Impact sampler, scheduler, max resolution 목록 | Comfy capability adapter/runtime | manifest가 값 목록을 소유하지 않음 |
 | profile envelope, ID, revision, CAS | [#163](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/163) | nested `settings` payload 내부만 #168 소유 |
@@ -43,6 +46,26 @@ execution은 기존 코드다.
 
 각 normalized object는 known field를 채우면서 unknown field를 기본적으로 보존한다. 빈 extension object인
 `sampler.spectrum_extra`와 `sampler.spd_extra`도 v1의 공개 확장 지점으로 유지한다.
+
+## Python typed config 경계
+
+`generation_values.py`가 frozen JSON primitive와 unknown-field ordering state만 소유하고,
+`generation_sampling.py`가 sampling shape, `generation_features.py`가 stage와 model feature,
+`generation_detailer.py`가 SAM3/Detailer, `generation_output.py`가 save/preview shape를 소유한다.
+`generation_settings.py`는 이 단방향 DAG를 root `AIOGenerationConfig`로 조합하고 dictionary facade만 제공한다.
+
+`AIOGenerationConfig`는 root identity와 section ownership을 명시한다. Spectrum, SPD, DiT correction,
+model patch 하위 설정, Mod Guidance, Artist Mix, highres, upscale/USDU/ResShift, postprocess/fit, SAM3/Detailer target,
+save/Image Saver/Civitai fetcher, preview의 manifest known field는 서로 교환할 수 없는 section-specific frozen
+dataclass가 소유한다. 각 section의 unknown JSON value는 별도 frozen extension state에 보관된다. dictionary에서
+typed config로 변환할 때와 typed config에서 dictionary로 복원할 때 모두 nested object와 array를 새로 구성하므로
+caller input, typed state, 반환 dictionary 사이에 공유되는 mutable reference가 없다. non-object `custom_<n>`처럼
+target shape가 아닌 값도 unknown extension으로 원래 순서와 scalar type을 유지한다.
+
+이 경계는 `_normalize_aio_generation_settings()`의 마지막에만 적용된다. 기존 normalizer가 dynamic Comfy/Impact
+capability를 조회하고 coercion, legacy alias 제거, unknown-field 처리를 끝낸 뒤 typed round-trip을 수행한다.
+호환 facade의 이름과 mutable dictionary 반환 계약은 유지되며 runtime consumer는 typed object를 직접 사용하지 않는다.
+typed layer 자체는 Comfy runtime을 import하거나 default/capability cache와 같은 mutable global state를 소유하지 않는다.
 
 빈 default container도 shape가 비어 있다는 뜻이 아니다. `save.image_saver.additional_hash_bundles`는 정규화된
 문자열 item, `civitai_hash_fetchers`는 `enabled`, `username`, `model_name`, `version`을 갖는 item object를 소유한다.
@@ -133,8 +156,8 @@ write-on-read는 금지한다. 후속 version migration은 명시적인 순수 �
   Comfy adapter 추출을 소유한다. 이 PR은 파일 이동이나 root alias 변경을 하지 않는다.
 - [#169](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/169): `GenerationRequest`/stage pipeline,
   cleanup, byte-budgeted cache 같은 실행 동작을 소유한다. 이 PR은 queue, stage, cache, result를 변경하지 않는다.
-- [#168](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/168)의 후속 단계가 typed config, generator/codegen,
-  pure version migration 및 normalizer facade 축소를 소유한다.
+- [#168](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/168)의 C168-03이 typed config와 dictionary
+  compatibility facade를 소유한다. 후속 단계가 pure version migration과 omission gate를 각각 소유한다.
 
 ## Golden gate
 
@@ -147,6 +170,9 @@ provenance, deterministic capability 목록과 expected normalized settings를 �
 deep equality와 입력 비변경을 함께 검증하므로, 저장된 0.5.2 계약의 변화를 회귀로 포착한다.
 `tests/frontend_aio_settings_core_smoke.mjs`는 manifest default와 현재 JavaScript default의 deep equality 및
 frontend coercion/unknown-field 정책과 manifest 내부 coercion/item 정의 완결성을 검증한다.
+`tests/test_aio_generation_settings.py`는 default와 v0.5.2 expected normalized payload의 typed round-trip,
+root/nested unknown field, custom Detailer order/target, Spectrum/SPD extension object, legacy 비복원 및 mutable
+reference 격리를 검증한다.
 
 manifest는 runtime package에 포함되어야 하므로 tracked 상태, `.comfyignore` 비제외, `git archive HEAD` 포함도
 dedicated schema test에서 검증한다. 문서와 테스트는 Registry archive에서 제외되어도 된다.

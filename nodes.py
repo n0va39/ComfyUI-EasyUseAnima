@@ -12,6 +12,9 @@ from math import ceil, sqrt
 from typing import Any
 
 try:
+    from .easyuse_anima.aio.generation_settings import (
+        round_trip_aio_generation_settings as _round_trip_aio_generation_settings,
+    )
     from .easyuse_anima.common.serialization import (
         _json_clone as _json_clone,
         _json_object as _json_object,
@@ -401,6 +404,9 @@ try:
         wildcard_sources_signature,
     )
 except ImportError:  # allows simple local import tests outside ComfyUI's package loader
+    from easyuse_anima.aio.generation_settings import (
+        round_trip_aio_generation_settings as _round_trip_aio_generation_settings,
+    )
     from easyuse_anima.common.serialization import (
         _json_clone as _json_clone,
         _json_object as _json_object,
@@ -2159,7 +2165,7 @@ def _normalize_aio_generation_settings(value) -> dict[str, Any]:
         1,
         min(100, _as_int(preview.get("feed_count"), default_preview["feed_count"])),
     )
-    return settings
+    return _round_trip_aio_generation_settings(settings)
 
 
 def _normalize_aio_hash_bundles(value) -> list[str]:
