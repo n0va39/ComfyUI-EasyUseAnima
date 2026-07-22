@@ -15,6 +15,7 @@ import nodes
 from easyuse_anima.aio.generation_settings import (
     _aio_generation_config_from_dict,
 )
+from easyuse_anima.prompt.conditioning import ANIMA_MOD_GUIDANCE_PROFILES
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -392,7 +393,7 @@ def _authoritative_static_enum_choices() -> dict[tuple[str, ...], tuple[str, ...
         ),
         ("model_patches", "kj", "torch_compile", "dynamic"): ("auto", "true", "false"),
         ("mod_guidance", "mode"): tuple(nodes.ANIMA_MOD_GUIDANCE_MODES),
-        ("mod_guidance", "profile"): tuple(nodes.ANIMA_MOD_GUIDANCE_PROFILES),
+        ("mod_guidance", "profile"): tuple(ANIMA_MOD_GUIDANCE_PROFILES),
         ("artist_mix", "mode"): tuple(nodes.ARTIST_MIX_INPUT_MODES),
         ("highres", "upscale_method"): tuple(nodes.IMAGE_UPSCALE_METHODS),
         ("highres", "multiple"): tuple(nodes.IMAGE_SCALE_MULTIPLES),
@@ -425,7 +426,7 @@ def _authoritative_static_enum_choices() -> dict[tuple[str, ...], tuple[str, ...
 
 def _runtime_static_enum_choices(path: tuple[str, ...]) -> tuple[str, ...]:
     if path == ("mod_guidance", "profile"):
-        return tuple(nodes.ANIMA_MOD_GUIDANCE_PROFILES)
+        return tuple(ANIMA_MOD_GUIDANCE_PROFILES)
 
     marker = "__capture_runtime_static_enum_choices__"
     observed: list[tuple[str, ...]] = []

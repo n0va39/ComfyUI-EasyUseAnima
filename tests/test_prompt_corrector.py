@@ -21,6 +21,9 @@ from easyuse_anima.prompt.fields import (
     DEFAULT_QUALITY_TAGS,
     DEFAULT_TRAILING_QUALITY_TAGS,
 )
+from easyuse_anima.prompt.conditioning import (
+    _SPECTRUM_ANIMA_MOD_GUIDANCE_OLD_SIGNATURE_WARNED,
+)
 from nodes import (
     ADVANCED_FIELDS_WORKFLOW_PROPERTY,
     ARTIST_MIX_CONTROL_KEY,
@@ -44,7 +47,6 @@ from nodes import (
     EasyUseAnimaPromptStudio,
     EasyUseAnimaPromptStudioAdvanced,
     EasyUseAnimaPromptStudioAdvancedV2,
-    _SPECTRUM_ANIMA_MOD_GUIDANCE_OLD_SIGNATURE_WARNED,
     _generate_empty_latent_with_comfy,
     _prompt_tokens,
 )

@@ -18676,68 +18676,6 @@
         "target": "easyuse_anima/prompt/conditioning.py"
       },
       {
-        "alias": "ANIMA_MOD_GUIDANCE_MODE_DISABLED",
-        "bound_name": "ANIMA_MOD_GUIDANCE_MODE_DISABLED",
-        "branch_context": [
-          {
-            "branch": "body",
-            "handles_import_failure": true,
-            "has_import_fallback_handler": true,
-            "kind": "try",
-            "line": 11
-          }
-        ],
-        "classification": "internal",
-        "column": 4,
-        "compatibility_pair": {
-          "bound_name": "ANIMA_MOD_GUIDANCE_MODE_DISABLED",
-          "target": "easyuse_anima/prompt/conditioning.py",
-          "try_line": 11
-        },
-        "conditional": true,
-        "imported": ".easyuse_anima.prompt.conditioning:ANIMA_MOD_GUIDANCE_MODE_DISABLED",
-        "kind": "static_from",
-        "line": 218,
-        "name": "ANIMA_MOD_GUIDANCE_MODE_DISABLED",
-        "optional": false,
-        "requested": ".easyuse_anima.prompt.conditioning",
-        "role": "compatibility_primary",
-        "scope": "<module>",
-        "source": "nodes.py",
-        "target": "easyuse_anima/prompt/conditioning.py"
-      },
-      {
-        "alias": "ANIMA_MOD_GUIDANCE_MODE_ENABLED",
-        "bound_name": "ANIMA_MOD_GUIDANCE_MODE_ENABLED",
-        "branch_context": [
-          {
-            "branch": "body",
-            "handles_import_failure": true,
-            "has_import_fallback_handler": true,
-            "kind": "try",
-            "line": 11
-          }
-        ],
-        "classification": "internal",
-        "column": 4,
-        "compatibility_pair": {
-          "bound_name": "ANIMA_MOD_GUIDANCE_MODE_ENABLED",
-          "target": "easyuse_anima/prompt/conditioning.py",
-          "try_line": 11
-        },
-        "conditional": true,
-        "imported": ".easyuse_anima.prompt.conditioning:ANIMA_MOD_GUIDANCE_MODE_ENABLED",
-        "kind": "static_from",
-        "line": 218,
-        "name": "ANIMA_MOD_GUIDANCE_MODE_ENABLED",
-        "optional": false,
-        "requested": ".easyuse_anima.prompt.conditioning",
-        "role": "compatibility_primary",
-        "scope": "<module>",
-        "source": "nodes.py",
-        "target": "easyuse_anima/prompt/conditioning.py"
-      },
-      {
         "alias": "ANIMA_MOD_GUIDANCE_MODE_FROM_PROMPT_DATA",
         "bound_name": "ANIMA_MOD_GUIDANCE_MODE_FROM_PROMPT_DATA",
         "branch_context": [
@@ -18769,37 +18707,6 @@
         "target": "easyuse_anima/prompt/conditioning.py"
       },
       {
-        "alias": "ANIMA_MOD_GUIDANCE_PROFILES",
-        "bound_name": "ANIMA_MOD_GUIDANCE_PROFILES",
-        "branch_context": [
-          {
-            "branch": "body",
-            "handles_import_failure": true,
-            "has_import_fallback_handler": true,
-            "kind": "try",
-            "line": 11
-          }
-        ],
-        "classification": "internal",
-        "column": 4,
-        "compatibility_pair": {
-          "bound_name": "ANIMA_MOD_GUIDANCE_PROFILES",
-          "target": "easyuse_anima/prompt/conditioning.py",
-          "try_line": 11
-        },
-        "conditional": true,
-        "imported": ".easyuse_anima.prompt.conditioning:ANIMA_MOD_GUIDANCE_PROFILES",
-        "kind": "static_from",
-        "line": 218,
-        "name": "ANIMA_MOD_GUIDANCE_PROFILES",
-        "optional": false,
-        "requested": ".easyuse_anima.prompt.conditioning",
-        "role": "compatibility_primary",
-        "scope": "<module>",
-        "source": "nodes.py",
-        "target": "easyuse_anima/prompt/conditioning.py"
-      },
-      {
         "alias": "ANIMA_MOD_GUIDANCE_PROFILE_OFF",
         "bound_name": "ANIMA_MOD_GUIDANCE_PROFILE_OFF",
         "branch_context": [
@@ -18823,37 +18730,6 @@
         "kind": "static_from",
         "line": 218,
         "name": "ANIMA_MOD_GUIDANCE_PROFILE_OFF",
-        "optional": false,
-        "requested": ".easyuse_anima.prompt.conditioning",
-        "role": "compatibility_primary",
-        "scope": "<module>",
-        "source": "nodes.py",
-        "target": "easyuse_anima/prompt/conditioning.py"
-      },
-      {
-        "alias": "_SPECTRUM_ANIMA_MOD_GUIDANCE_OLD_SIGNATURE_WARNED",
-        "bound_name": "_SPECTRUM_ANIMA_MOD_GUIDANCE_OLD_SIGNATURE_WARNED",
-        "branch_context": [
-          {
-            "branch": "body",
-            "handles_import_failure": true,
-            "has_import_fallback_handler": true,
-            "kind": "try",
-            "line": 11
-          }
-        ],
-        "classification": "internal",
-        "column": 4,
-        "compatibility_pair": {
-          "bound_name": "_SPECTRUM_ANIMA_MOD_GUIDANCE_OLD_SIGNATURE_WARNED",
-          "target": "easyuse_anima/prompt/conditioning.py",
-          "try_line": 11
-        },
-        "conditional": true,
-        "imported": ".easyuse_anima.prompt.conditioning:_SPECTRUM_ANIMA_MOD_GUIDANCE_OLD_SIGNATURE_WARNED",
-        "kind": "static_from",
-        "line": 218,
-        "name": "_SPECTRUM_ANIMA_MOD_GUIDANCE_OLD_SIGNATURE_WARNED",
         "optional": false,
         "requested": ".easyuse_anima.prompt.conditioning",
         "role": "compatibility_primary",
@@ -19009,37 +18885,6 @@
         "kind": "static_from",
         "line": 218,
         "name": "_resolve_anima_mod_guidance_enabled",
-        "optional": false,
-        "requested": ".easyuse_anima.prompt.conditioning",
-        "role": "compatibility_primary",
-        "scope": "<module>",
-        "source": "nodes.py",
-        "target": "easyuse_anima/prompt/conditioning.py"
-      },
-      {
-        "alias": "_warn_old_spectrum_anima_mod_guidance_once",
-        "bound_name": "_warn_old_spectrum_anima_mod_guidance_once",
-        "branch_context": [
-          {
-            "branch": "body",
-            "handles_import_failure": true,
-            "has_import_fallback_handler": true,
-            "kind": "try",
-            "line": 11
-          }
-        ],
-        "classification": "internal",
-        "column": 4,
-        "compatibility_pair": {
-          "bound_name": "_warn_old_spectrum_anima_mod_guidance_once",
-          "target": "easyuse_anima/prompt/conditioning.py",
-          "try_line": 11
-        },
-        "conditional": true,
-        "imported": ".easyuse_anima.prompt.conditioning:_warn_old_spectrum_anima_mod_guidance_once",
-        "kind": "static_from",
-        "line": 218,
-        "name": "_warn_old_spectrum_anima_mod_guidance_once",
         "optional": false,
         "requested": ".easyuse_anima.prompt.conditioning",
         "role": "compatibility_primary",
@@ -30539,74 +30384,6 @@
         "target": "easyuse_anima/prompt/conditioning.py"
       },
       {
-        "alias": "ANIMA_MOD_GUIDANCE_MODE_DISABLED",
-        "bound_name": "ANIMA_MOD_GUIDANCE_MODE_DISABLED",
-        "branch_context": [
-          {
-            "branch": "except",
-            "catches_import_error": true,
-            "exceptions": [
-              "ImportError"
-            ],
-            "handler_line": 524,
-            "kind": "try",
-            "line": 11
-          }
-        ],
-        "classification": "compatibility_fallback",
-        "column": 4,
-        "compatibility_pair": {
-          "bound_name": "ANIMA_MOD_GUIDANCE_MODE_DISABLED",
-          "target": "easyuse_anima/prompt/conditioning.py",
-          "try_line": 11
-        },
-        "conditional": true,
-        "imported": "easyuse_anima.prompt.conditioning:ANIMA_MOD_GUIDANCE_MODE_DISABLED",
-        "kind": "static_from",
-        "line": 731,
-        "name": "ANIMA_MOD_GUIDANCE_MODE_DISABLED",
-        "optional": false,
-        "requested": "easyuse_anima.prompt.conditioning",
-        "role": "compatibility_fallback",
-        "scope": "<module>",
-        "source": "nodes.py",
-        "target": "easyuse_anima/prompt/conditioning.py"
-      },
-      {
-        "alias": "ANIMA_MOD_GUIDANCE_MODE_ENABLED",
-        "bound_name": "ANIMA_MOD_GUIDANCE_MODE_ENABLED",
-        "branch_context": [
-          {
-            "branch": "except",
-            "catches_import_error": true,
-            "exceptions": [
-              "ImportError"
-            ],
-            "handler_line": 524,
-            "kind": "try",
-            "line": 11
-          }
-        ],
-        "classification": "compatibility_fallback",
-        "column": 4,
-        "compatibility_pair": {
-          "bound_name": "ANIMA_MOD_GUIDANCE_MODE_ENABLED",
-          "target": "easyuse_anima/prompt/conditioning.py",
-          "try_line": 11
-        },
-        "conditional": true,
-        "imported": "easyuse_anima.prompt.conditioning:ANIMA_MOD_GUIDANCE_MODE_ENABLED",
-        "kind": "static_from",
-        "line": 731,
-        "name": "ANIMA_MOD_GUIDANCE_MODE_ENABLED",
-        "optional": false,
-        "requested": "easyuse_anima.prompt.conditioning",
-        "role": "compatibility_fallback",
-        "scope": "<module>",
-        "source": "nodes.py",
-        "target": "easyuse_anima/prompt/conditioning.py"
-      },
-      {
         "alias": "ANIMA_MOD_GUIDANCE_MODE_FROM_PROMPT_DATA",
         "bound_name": "ANIMA_MOD_GUIDANCE_MODE_FROM_PROMPT_DATA",
         "branch_context": [
@@ -30641,40 +30418,6 @@
         "target": "easyuse_anima/prompt/conditioning.py"
       },
       {
-        "alias": "ANIMA_MOD_GUIDANCE_PROFILES",
-        "bound_name": "ANIMA_MOD_GUIDANCE_PROFILES",
-        "branch_context": [
-          {
-            "branch": "except",
-            "catches_import_error": true,
-            "exceptions": [
-              "ImportError"
-            ],
-            "handler_line": 524,
-            "kind": "try",
-            "line": 11
-          }
-        ],
-        "classification": "compatibility_fallback",
-        "column": 4,
-        "compatibility_pair": {
-          "bound_name": "ANIMA_MOD_GUIDANCE_PROFILES",
-          "target": "easyuse_anima/prompt/conditioning.py",
-          "try_line": 11
-        },
-        "conditional": true,
-        "imported": "easyuse_anima.prompt.conditioning:ANIMA_MOD_GUIDANCE_PROFILES",
-        "kind": "static_from",
-        "line": 731,
-        "name": "ANIMA_MOD_GUIDANCE_PROFILES",
-        "optional": false,
-        "requested": "easyuse_anima.prompt.conditioning",
-        "role": "compatibility_fallback",
-        "scope": "<module>",
-        "source": "nodes.py",
-        "target": "easyuse_anima/prompt/conditioning.py"
-      },
-      {
         "alias": "ANIMA_MOD_GUIDANCE_PROFILE_OFF",
         "bound_name": "ANIMA_MOD_GUIDANCE_PROFILE_OFF",
         "branch_context": [
@@ -30701,40 +30444,6 @@
         "kind": "static_from",
         "line": 731,
         "name": "ANIMA_MOD_GUIDANCE_PROFILE_OFF",
-        "optional": false,
-        "requested": "easyuse_anima.prompt.conditioning",
-        "role": "compatibility_fallback",
-        "scope": "<module>",
-        "source": "nodes.py",
-        "target": "easyuse_anima/prompt/conditioning.py"
-      },
-      {
-        "alias": "_SPECTRUM_ANIMA_MOD_GUIDANCE_OLD_SIGNATURE_WARNED",
-        "bound_name": "_SPECTRUM_ANIMA_MOD_GUIDANCE_OLD_SIGNATURE_WARNED",
-        "branch_context": [
-          {
-            "branch": "except",
-            "catches_import_error": true,
-            "exceptions": [
-              "ImportError"
-            ],
-            "handler_line": 524,
-            "kind": "try",
-            "line": 11
-          }
-        ],
-        "classification": "compatibility_fallback",
-        "column": 4,
-        "compatibility_pair": {
-          "bound_name": "_SPECTRUM_ANIMA_MOD_GUIDANCE_OLD_SIGNATURE_WARNED",
-          "target": "easyuse_anima/prompt/conditioning.py",
-          "try_line": 11
-        },
-        "conditional": true,
-        "imported": "easyuse_anima.prompt.conditioning:_SPECTRUM_ANIMA_MOD_GUIDANCE_OLD_SIGNATURE_WARNED",
-        "kind": "static_from",
-        "line": 731,
-        "name": "_SPECTRUM_ANIMA_MOD_GUIDANCE_OLD_SIGNATURE_WARNED",
         "optional": false,
         "requested": "easyuse_anima.prompt.conditioning",
         "role": "compatibility_fallback",
@@ -30905,40 +30614,6 @@
         "kind": "static_from",
         "line": 731,
         "name": "_resolve_anima_mod_guidance_enabled",
-        "optional": false,
-        "requested": "easyuse_anima.prompt.conditioning",
-        "role": "compatibility_fallback",
-        "scope": "<module>",
-        "source": "nodes.py",
-        "target": "easyuse_anima/prompt/conditioning.py"
-      },
-      {
-        "alias": "_warn_old_spectrum_anima_mod_guidance_once",
-        "bound_name": "_warn_old_spectrum_anima_mod_guidance_once",
-        "branch_context": [
-          {
-            "branch": "except",
-            "catches_import_error": true,
-            "exceptions": [
-              "ImportError"
-            ],
-            "handler_line": 524,
-            "kind": "try",
-            "line": 11
-          }
-        ],
-        "classification": "compatibility_fallback",
-        "column": 4,
-        "compatibility_pair": {
-          "bound_name": "_warn_old_spectrum_anima_mod_guidance_once",
-          "target": "easyuse_anima/prompt/conditioning.py",
-          "try_line": 11
-        },
-        "conditional": true,
-        "imported": "easyuse_anima.prompt.conditioning:_warn_old_spectrum_anima_mod_guidance_once",
-        "kind": "static_from",
-        "line": 731,
-        "name": "_warn_old_spectrum_anima_mod_guidance_once",
         "optional": false,
         "requested": "easyuse_anima.prompt.conditioning",
         "role": "compatibility_fallback",
@@ -41021,7 +40696,7 @@
         "is_package": false,
         "loc": 2712,
         "module": "nodes",
-        "normalized_git_blob_sha1": "7cf4adc4a966c03fd3912db31f91b98f3d87d83b",
+        "normalized_git_blob_sha1": "84292b4cce402a0376c690600df7db0129f7ab93",
         "path": "nodes.py",
         "top_level": {
           "class_count": 2,
@@ -46108,52 +45783,6 @@
         ],
         "classification": "compatibility_fallback",
         "conditional": true,
-        "imported": "easyuse_anima.prompt.conditioning:ANIMA_MOD_GUIDANCE_MODE_DISABLED",
-        "kind": "static_from",
-        "line": 731,
-        "optional": false,
-        "role": "compatibility_fallback",
-        "source": "nodes.py",
-        "target": "easyuse_anima/prompt/conditioning.py"
-      },
-      {
-        "branch_context": [
-          {
-            "branch": "except",
-            "catches_import_error": true,
-            "exceptions": [
-              "ImportError"
-            ],
-            "handler_line": 524,
-            "kind": "try",
-            "line": 11
-          }
-        ],
-        "classification": "compatibility_fallback",
-        "conditional": true,
-        "imported": "easyuse_anima.prompt.conditioning:ANIMA_MOD_GUIDANCE_MODE_ENABLED",
-        "kind": "static_from",
-        "line": 731,
-        "optional": false,
-        "role": "compatibility_fallback",
-        "source": "nodes.py",
-        "target": "easyuse_anima/prompt/conditioning.py"
-      },
-      {
-        "branch_context": [
-          {
-            "branch": "except",
-            "catches_import_error": true,
-            "exceptions": [
-              "ImportError"
-            ],
-            "handler_line": 524,
-            "kind": "try",
-            "line": 11
-          }
-        ],
-        "classification": "compatibility_fallback",
-        "conditional": true,
         "imported": "easyuse_anima.prompt.conditioning:ANIMA_MOD_GUIDANCE_MODE_FROM_PROMPT_DATA",
         "kind": "static_from",
         "line": 731,
@@ -46177,53 +45806,7 @@
         ],
         "classification": "compatibility_fallback",
         "conditional": true,
-        "imported": "easyuse_anima.prompt.conditioning:ANIMA_MOD_GUIDANCE_PROFILES",
-        "kind": "static_from",
-        "line": 731,
-        "optional": false,
-        "role": "compatibility_fallback",
-        "source": "nodes.py",
-        "target": "easyuse_anima/prompt/conditioning.py"
-      },
-      {
-        "branch_context": [
-          {
-            "branch": "except",
-            "catches_import_error": true,
-            "exceptions": [
-              "ImportError"
-            ],
-            "handler_line": 524,
-            "kind": "try",
-            "line": 11
-          }
-        ],
-        "classification": "compatibility_fallback",
-        "conditional": true,
         "imported": "easyuse_anima.prompt.conditioning:ANIMA_MOD_GUIDANCE_PROFILE_OFF",
-        "kind": "static_from",
-        "line": 731,
-        "optional": false,
-        "role": "compatibility_fallback",
-        "source": "nodes.py",
-        "target": "easyuse_anima/prompt/conditioning.py"
-      },
-      {
-        "branch_context": [
-          {
-            "branch": "except",
-            "catches_import_error": true,
-            "exceptions": [
-              "ImportError"
-            ],
-            "handler_line": 524,
-            "kind": "try",
-            "line": 11
-          }
-        ],
-        "classification": "compatibility_fallback",
-        "conditional": true,
-        "imported": "easyuse_anima.prompt.conditioning:_SPECTRUM_ANIMA_MOD_GUIDANCE_OLD_SIGNATURE_WARNED",
         "kind": "static_from",
         "line": 731,
         "optional": false,
@@ -46339,29 +45922,6 @@
         "classification": "compatibility_fallback",
         "conditional": true,
         "imported": "easyuse_anima.prompt.conditioning:_resolve_anima_mod_guidance_enabled",
-        "kind": "static_from",
-        "line": 731,
-        "optional": false,
-        "role": "compatibility_fallback",
-        "source": "nodes.py",
-        "target": "easyuse_anima/prompt/conditioning.py"
-      },
-      {
-        "branch_context": [
-          {
-            "branch": "except",
-            "catches_import_error": true,
-            "exceptions": [
-              "ImportError"
-            ],
-            "handler_line": 524,
-            "kind": "try",
-            "line": 11
-          }
-        ],
-        "classification": "compatibility_fallback",
-        "conditional": true,
-        "imported": "easyuse_anima.prompt.conditioning:_warn_old_spectrum_anima_mod_guidance_once",
         "kind": "static_from",
         "line": 731,
         "optional": false,

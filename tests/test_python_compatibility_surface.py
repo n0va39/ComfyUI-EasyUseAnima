@@ -15,7 +15,7 @@ NODES_PATH = ROOT / "nodes.py"
 FIXTURE_PATH = ROOT / "tests" / "fixtures" / "python_compatibility_surface.v1.json"
 
 SCHEMA_VERSION = 1
-BASE_COMMIT = "13a9cf4976b9b847dc68ddacca1763d862e647f9"
+BASE_COMMIT = "a06ed305ae43253ef04d1650fb486784b2aed943"
 CLASSIFICATIONS = (
     "permanent_entrypoint",
     "supported_public_reexport",
@@ -56,6 +56,40 @@ PREAMBLE_IMPLEMENTATION_BINDINGS = {
     "sqrt": "math:sqrt",
 }
 RETIRED_PRIVATE_BINDINGS = {
+    "ANIMA_MOD_GUIDANCE_MODE_DISABLED": {
+        "canonical_target": (
+            "easyuse_anima.prompt.conditioning:ANIMA_MOD_GUIDANCE_MODE_DISABLED"
+        ),
+        "owner": "#184/#188 B-10b15",
+        "reason": "canonical conditioning owner consumes the disabled mode internally",
+    },
+    "ANIMA_MOD_GUIDANCE_MODE_ENABLED": {
+        "canonical_target": (
+            "easyuse_anima.prompt.conditioning:ANIMA_MOD_GUIDANCE_MODE_ENABLED"
+        ),
+        "owner": "#184/#188 B-10b15",
+        "reason": "canonical conditioning owner consumes the enabled mode internally",
+    },
+    "ANIMA_MOD_GUIDANCE_PROFILES": {
+        "canonical_target": "easyuse_anima.prompt.conditioning:ANIMA_MOD_GUIDANCE_PROFILES",
+        "owner": "#184/#188 B-10b15",
+        "reason": "canonical Prompt Data adapter imports the profiles directly",
+    },
+    "_SPECTRUM_ANIMA_MOD_GUIDANCE_OLD_SIGNATURE_WARNED": {
+        "canonical_target": (
+            "easyuse_anima.prompt.conditioning:"
+            "_SPECTRUM_ANIMA_MOD_GUIDANCE_OLD_SIGNATURE_WARNED"
+        ),
+        "owner": "#184/#188 B-10b15",
+        "reason": "canonical conditioning owner retains its warning-once state",
+    },
+    "_warn_old_spectrum_anima_mod_guidance_once": {
+        "canonical_target": (
+            "easyuse_anima.prompt.conditioning:_warn_old_spectrum_anima_mod_guidance_once"
+        ),
+        "owner": "#184/#188 B-10b15",
+        "reason": "canonical modulation helper calls warning dispatch internally",
+    },
     "ADVANCED_RESOLUTION_BUCKETS": {
         "canonical_target": "easyuse_anima.naia.resolution:ADVANCED_RESOLUTION_BUCKETS",
         "owner": "#184/#188 B-10b14",
@@ -991,6 +1025,7 @@ def _build_document() -> dict[str, Any]:
                 "B-10b12",
                 "B-10b13",
                 "B-10b14",
+                "B-10b15",
             ],
         },
         "enums": {
@@ -1003,7 +1038,7 @@ def _build_document() -> dict[str, Any]:
         "expected_counts": {
             "root_entrypoints": 3,
             "excluded_preamble_implementation_bindings": 7,
-            "nodes_canonical_bindings": 340,
+            "nodes_canonical_bindings": 335,
             "nodes_legacy_bindings": 27,
             "mapped_public_classes": 18,
             "unmapped_classes": 2,

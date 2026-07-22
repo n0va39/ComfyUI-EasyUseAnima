@@ -73,9 +73,9 @@ def load_dynamic():
     def test_current_nodes_module_shape_matches_recorded_baseline(self):
         report = analyzer.analyze_path(ROOT / "nodes.py")
 
-        self.assertEqual(report["git_blob_sha1"], "7cf4adc4a966c03fd3912db31f91b98f3d87d83b")
-        # Issue #184 B-10b14 retires 16 unsupported/test-only NAIA resolution
-        # aliases while preserving bucket, scale, fit, and node behavior.
+        self.assertEqual(report["git_blob_sha1"], "84292b4cce402a0376c690600df7db0129f7ab93")
+        # Issue #184 B-10b15 retires five unsupported/test-only conditioning
+        # aliases while preserving mode/profile and Spectrum fallback behavior.
         self.assertEqual(report["top_level"]["function_count"], 41)
         self.assertEqual(report["top_level"]["class_count"], 2)
         self.assertEqual(report["line_count"], 2_712)
