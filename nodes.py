@@ -337,9 +337,9 @@ try:
         _aligned_size_near_scale as _aligned_size_near_scale,
         _alignment_value as _alignment_value,
     )
-    from .easyuse_anima.image.detailer import (
-        _EasyUseAnimaAlignedDetailerHook as _EasyUseAnimaAlignedDetailerHook,
-    )
+    # B-10b2 deliberately omits the retired root Detailer hook alias.
+    # Canonical image and Impact Detailer adapters import the owner directly.
+    # The root module no longer re-exports this unsupported private helper.
     from .easyuse_anima.image.sam3 import (
         _bind_sam3_runtime as _bind_sam3_runtime,
         _call_impact_detailer as _call_impact_detailer,
@@ -850,9 +850,9 @@ except ImportError:  # allows simple local import tests outside ComfyUI's packag
         _aligned_size_near_scale as _aligned_size_near_scale,
         _alignment_value as _alignment_value,
     )
-    from easyuse_anima.image.detailer import (
-        _EasyUseAnimaAlignedDetailerHook as _EasyUseAnimaAlignedDetailerHook,
-    )
+    # B-10b2 deliberately omits the retired root Detailer hook alias.
+    # Canonical image and Impact Detailer adapters import the owner directly.
+    # The root module no longer re-exports this unsupported private helper.
     from easyuse_anima.image.sam3 import (
         _bind_sam3_runtime as _bind_sam3_runtime,
         _call_impact_detailer as _call_impact_detailer,

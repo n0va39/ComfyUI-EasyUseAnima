@@ -15,7 +15,7 @@ NODES_PATH = ROOT / "nodes.py"
 FIXTURE_PATH = ROOT / "tests" / "fixtures" / "python_compatibility_surface.v1.json"
 
 SCHEMA_VERSION = 1
-BASE_COMMIT = "3c7b857ebe249dcdc23292ad440a2cca9434406e"
+BASE_COMMIT = "8db89452428dd3816e215857724c97d0aba99dc3"
 CLASSIFICATIONS = (
     "permanent_entrypoint",
     "supported_public_reexport",
@@ -56,6 +56,13 @@ PREAMBLE_IMPLEMENTATION_BINDINGS = {
     "sqrt": "math:sqrt",
 }
 RETIRED_PRIVATE_BINDINGS = {
+    "_EasyUseAnimaAlignedDetailerHook": {
+        "canonical_target": (
+            "easyuse_anima.image.detailer:_EasyUseAnimaAlignedDetailerHook"
+        ),
+        "owner": "#184/#188 B-10b2",
+        "reason": "image and Impact Detailer adapters import the canonical owner",
+    },
     "_comfy_checkpoint_names": {
         "canonical_target": (
             "easyuse_anima.infrastructure.comfy.resources:_comfy_checkpoint_names"
@@ -628,7 +635,7 @@ def _build_document() -> dict[str, Any]:
             "base_branch": "dev",
             "base_commit": BASE_COMMIT,
             "first_release": None,
-            "owner_tasks": ["#184", "#188", "B-10a", "B-10b1"],
+            "owner_tasks": ["#184", "#188", "B-10a", "B-10b1", "B-10b2"],
         },
         "enums": {
             "classifications": list(CLASSIFICATIONS),
@@ -640,7 +647,7 @@ def _build_document() -> dict[str, Any]:
         "expected_counts": {
             "root_entrypoints": 3,
             "excluded_preamble_implementation_bindings": 7,
-            "nodes_canonical_bindings": 400,
+            "nodes_canonical_bindings": 399,
             "nodes_legacy_bindings": 27,
             "mapped_public_classes": 18,
             "unmapped_classes": 3,

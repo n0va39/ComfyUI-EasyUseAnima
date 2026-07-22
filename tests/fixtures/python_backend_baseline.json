@@ -22396,37 +22396,6 @@
         "target": "easyuse_anima/image/geometry.py"
       },
       {
-        "alias": "_EasyUseAnimaAlignedDetailerHook",
-        "bound_name": "_EasyUseAnimaAlignedDetailerHook",
-        "branch_context": [
-          {
-            "branch": "body",
-            "handles_import_failure": true,
-            "has_import_fallback_handler": true,
-            "kind": "try",
-            "line": 11
-          }
-        ],
-        "classification": "internal",
-        "column": 4,
-        "compatibility_pair": {
-          "bound_name": "_EasyUseAnimaAlignedDetailerHook",
-          "target": "easyuse_anima/image/detailer.py",
-          "try_line": 11
-        },
-        "conditional": true,
-        "imported": ".easyuse_anima.image.detailer:_EasyUseAnimaAlignedDetailerHook",
-        "kind": "static_from",
-        "line": 340,
-        "name": "_EasyUseAnimaAlignedDetailerHook",
-        "optional": false,
-        "requested": ".easyuse_anima.image.detailer",
-        "role": "compatibility_primary",
-        "scope": "<module>",
-        "source": "nodes.py",
-        "target": "easyuse_anima/image/detailer.py"
-      },
-      {
         "alias": "_bind_sam3_runtime",
         "bound_name": "_bind_sam3_runtime",
         "branch_context": [
@@ -36479,40 +36448,6 @@
         "target": "easyuse_anima/image/geometry.py"
       },
       {
-        "alias": "_EasyUseAnimaAlignedDetailerHook",
-        "bound_name": "_EasyUseAnimaAlignedDetailerHook",
-        "branch_context": [
-          {
-            "branch": "except",
-            "catches_import_error": true,
-            "exceptions": [
-              "ImportError"
-            ],
-            "handler_line": 524,
-            "kind": "try",
-            "line": 11
-          }
-        ],
-        "classification": "compatibility_fallback",
-        "column": 4,
-        "compatibility_pair": {
-          "bound_name": "_EasyUseAnimaAlignedDetailerHook",
-          "target": "easyuse_anima/image/detailer.py",
-          "try_line": 11
-        },
-        "conditional": true,
-        "imported": "easyuse_anima.image.detailer:_EasyUseAnimaAlignedDetailerHook",
-        "kind": "static_from",
-        "line": 853,
-        "name": "_EasyUseAnimaAlignedDetailerHook",
-        "optional": false,
-        "requested": "easyuse_anima.image.detailer",
-        "role": "compatibility_fallback",
-        "scope": "<module>",
-        "source": "nodes.py",
-        "target": "easyuse_anima/image/detailer.py"
-      },
-      {
         "alias": "_bind_sam3_runtime",
         "bound_name": "_bind_sam3_runtime",
         "branch_context": [
@@ -43430,10 +43365,6 @@
       },
       {
         "from": "nodes.py",
-        "to": "easyuse_anima/image/detailer.py"
-      },
-      {
-        "from": "nodes.py",
         "to": "easyuse_anima/image/geometry.py"
       },
       {
@@ -44925,7 +44856,7 @@
         "is_package": false,
         "loc": 2712,
         "module": "nodes",
-        "normalized_git_blob_sha1": "53d9aa04736dbb22844813b82c3846f09fdef38b",
+        "normalized_git_blob_sha1": "b1f49d3caf95ebda2dfeec46a9ded84179cef0c5",
         "path": "nodes.py",
         "top_level": {
           "class_count": 2,
@@ -52756,29 +52687,6 @@
         "role": "compatibility_fallback",
         "source": "nodes.py",
         "target": "easyuse_anima/image/geometry.py"
-      },
-      {
-        "branch_context": [
-          {
-            "branch": "except",
-            "catches_import_error": true,
-            "exceptions": [
-              "ImportError"
-            ],
-            "handler_line": 524,
-            "kind": "try",
-            "line": 11
-          }
-        ],
-        "classification": "compatibility_fallback",
-        "conditional": true,
-        "imported": "easyuse_anima.image.detailer:_EasyUseAnimaAlignedDetailerHook",
-        "kind": "static_from",
-        "line": 853,
-        "optional": false,
-        "role": "compatibility_fallback",
-        "source": "nodes.py",
-        "target": "easyuse_anima/image/detailer.py"
       },
       {
         "branch_context": [

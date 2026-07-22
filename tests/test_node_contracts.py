@@ -32,6 +32,7 @@ from easyuse_anima.naia import client as naia_client
 from easyuse_anima.naia import resolution as naia_resolution
 from easyuse_anima.nodes import (
     image_nodes,
+    impact_detailer_nodes,
     lora_nodes,
     naia_nodes,
     prompt_advanced_nodes,
@@ -638,10 +639,25 @@ class ImageNodeMoveContractTests(unittest.TestCase):
             with self.subTest(name=name):
                 self.assertIs(getattr(nodes, name), getattr(image_scaling, name))
 
+        self.assertFalse(hasattr(nodes, "_EasyUseAnimaAlignedDetailerHook"))
         self.assertIs(
-            nodes._EasyUseAnimaAlignedDetailerHook,
+            image_nodes._EasyUseAnimaAlignedDetailerHook,
             image_detailer._EasyUseAnimaAlignedDetailerHook,
         )
+        self.assertIs(
+            impact_detailer_nodes._EasyUseAnimaAlignedDetailerHook,
+            image_detailer._EasyUseAnimaAlignedDetailerHook,
+        )
+        aligned_hook = image_nodes.EasyUseAnimaDetailerAlignHook().build(
+            alignment="32",
+            detailer_hook="existing-hook",
+        )[0]
+        self.assertIsInstance(
+            aligned_hook,
+            image_detailer._EasyUseAnimaAlignedDetailerHook,
+        )
+        self.assertEqual(aligned_hook.base_hook, "existing-hook")
+        self.assertEqual(aligned_hook.alignment, 32)
         self.assertIs(
             nodes.EasyUseAnimaImageScaleByMultiple,
             image_nodes.EasyUseAnimaImageScaleByMultiple,
@@ -654,6 +670,9 @@ class ImageNodeMoveContractTests(unittest.TestCase):
 
     def test_package_loaded_root_nodes_image_objects_are_direct_canonical_aliases(self):
         with _loaded_package_entrypoint() as (_, package_nodes):
+            self.assertFalse(
+                hasattr(package_nodes, "_EasyUseAnimaAlignedDetailerHook")
+            )
             package_name = package_nodes.__package__
             package_scaling = sys.modules[f"{package_name}.easyuse_anima.image.scaling"]
             package_detailer = sys.modules[f"{package_name}.easyuse_anima.image.detailer"]
@@ -663,6 +682,9 @@ class ImageNodeMoveContractTests(unittest.TestCase):
             package_node_adapters = sys.modules[
                 f"{package_name}.easyuse_anima.nodes.image_nodes"
             ]
+            package_impact_adapters = sys.modules[
+                f"{package_name}.easyuse_anima.nodes.impact_detailer_nodes"
+            ]
             for name in self.SCALING_ALIASES:
                 with self.subTest(name=name):
                     self.assertIs(
@@ -671,7 +693,19 @@ class ImageNodeMoveContractTests(unittest.TestCase):
                     )
 
             self.assertIs(
-                package_nodes._EasyUseAnimaAlignedDetailerHook,
+                package_node_adapters._EasyUseAnimaAlignedDetailerHook,
+                package_detailer._EasyUseAnimaAlignedDetailerHook,
+            )
+            self.assertIs(
+                package_impact_adapters._EasyUseAnimaAlignedDetailerHook,
+                package_detailer._EasyUseAnimaAlignedDetailerHook,
+            )
+            aligned_hook = package_node_adapters.EasyUseAnimaDetailerAlignHook().build(
+                alignment="32",
+                detailer_hook=None,
+            )[0]
+            self.assertIs(
+                type(aligned_hook),
                 package_detailer._EasyUseAnimaAlignedDetailerHook,
             )
             for name in (

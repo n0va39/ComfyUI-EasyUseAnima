@@ -73,9 +73,9 @@ def load_dynamic():
     def test_current_nodes_module_shape_matches_recorded_baseline(self):
         report = analyzer.analyze_path(ROOT / "nodes.py")
 
-        self.assertEqual(report["git_blob_sha1"], "53d9aa04736dbb22844813b82c3846f09fdef38b")
-        # Issue #184 B-10b1 retires one unsupported/test-only resource alias
-        # after the SAM3 production consumer moved to the canonical path.
+        self.assertEqual(report["git_blob_sha1"], "b1f49d3caf95ebda2dfeec46a9ded84179cef0c5")
+        # Issue #184 B-10b2 retires one unsupported/test-only Detailer hook
+        # alias after both production adapters moved to the canonical path.
         self.assertEqual(report["top_level"]["function_count"], 41)
         self.assertEqual(report["top_level"]["class_count"], 2)
         self.assertEqual(report["line_count"], 2_712)
