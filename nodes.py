@@ -113,6 +113,7 @@ try:
         _choice as _choice,
         _single_value as _single_value,
     )
+    from .easyuse_anima.workflow import _get_workflow_node as _get_workflow_node
     from .easyuse_anima.prompt.correction import (
         _bind_prompt_correction_runtime as _bind_prompt_correction_runtime,
         _prompt_translation_change_key as _prompt_translation_change_key,
@@ -631,6 +632,7 @@ except ImportError:  # allows simple local import tests outside ComfyUI's packag
         _choice as _choice,
         _single_value as _single_value,
     )
+    from easyuse_anima.workflow import _get_workflow_node as _get_workflow_node
     from easyuse_anima.prompt.correction import (
         _bind_prompt_correction_runtime as _bind_prompt_correction_runtime,
         _prompt_translation_change_key as _prompt_translation_change_key,
@@ -2478,49 +2480,6 @@ def _aio_detailer_has_enabled_targets(detailer_settings: dict[str, Any]) -> bool
         and _as_bool(detailer_settings[name].get("enabled"), False)
         for name in _aio_detailer_target_order(detailer_settings)
     )
-
-
-def _get_workflow_node(extra_pnginfo, node_id: str):
-    pnginfo = _single_value(extra_pnginfo)
-    if not isinstance(pnginfo, dict):
-        return None
-    workflow = pnginfo.get("workflow")
-    if not isinstance(workflow, dict):
-        return None
-
-    node_ids = str(node_id).split(":")
-    nodes_list = workflow.get("nodes", [])
-    definitions = workflow.get("definitions", {})
-    if not isinstance(definitions, dict):
-        definitions = {}
-    subgraphs = definitions.get("subgraphs", [])
-    if not isinstance(subgraphs, list):
-        subgraphs = []
-
-    found = None
-    for individual_node_id in node_ids:
-        if not isinstance(nodes_list, list):
-            return None
-        found = next(
-            (
-                node
-                for node in nodes_list
-                if isinstance(node, dict) and str(node.get("id")) == individual_node_id
-            ),
-            None,
-        )
-        if isinstance(found, dict):
-            subgraph = next(
-                (
-                    graph
-                    for graph in subgraphs
-                    if isinstance(graph, dict) and str(graph.get("id")) == str(found.get("type"))
-                ),
-                None,
-            )
-            if isinstance(subgraph, dict) and isinstance(subgraph.get("nodes"), list):
-                nodes_list = subgraph["nodes"]
-    return found
 
 
 def _consume_reserved_wildcard_next_seed(

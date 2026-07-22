@@ -56,7 +56,8 @@ merged PR, the owning issue's evidence record, and every stated exit gate.
   owner in PR #292. B-11b moved route-table registration and wildcard startup
   to guarded `easyuse_anima.bootstrap` ownership in PR #293 / `f2a2ec0`.
   B-11c is split into residual-owner Moves before the final `nodes.py` shim;
-  B-11c1 starts with shared private input types in PR #294.
+  B-11c1 moved shared private input types in PR #294 / `ebeee89`, and B-11c2
+  moves the read-only workflow lookup owner in PR #295.
 
 ### Current quality baseline
 
@@ -298,7 +299,7 @@ surfaces. AiO mechanical extraction must not start until #168 exits.
 | 11 | B-09b2 AiO generator adapter move | COMPLETE on `dev` | Move | #184 | PR #270 / `57d40b4` |
 | 12 | B-10a machine-readable compatibility audit | COMPLETE on `dev` | Contract/gate | #184/#188 | PR #271 / `3c7b857` |
 | 13 | B-10b private alias reduction | COMPLETE on `dev` through PR #291 / `c6b4680` | Contract/cleanup, split PRs | #184/#188 | Audited alias surface integrated |
-| 14 | B-11 registration/bootstrap/root shim | IN PROGRESS: B-11a PR #292 / `20c8b4d`; B-11b PR #293 / `f2a2ec0`; B-11c1 input types PR #294 | Move, split PRs | #184 | Residual owners and binders migrate in rollback-sized units before final shim |
+| 14 | B-11 registration/bootstrap/root shim | IN PROGRESS: B-11a PR #292 / `20c8b4d`; B-11b PR #293 / `f2a2ec0`; B-11c1 PR #294 / `ebeee89`; B-11c2 workflow lookup PR #295 | Move, split PRs | #184 | Residual owners and binders migrate in rollback-sized units before final shim |
 | 15 | S167 backend seed reservation series | BLOCKED by B exit/interface | Contract then Behavior | #167 | Canonical AiO/node seams |
 | 16 | A169 stage pipeline series | BLOCKED by #168 and B exit | Contract then Behavior | #169 | Typed config and mechanical AiO move |
 | 17 | A169 first-pass cache policy | BLOCKED by stage/cache ownership seam | Behavior | #169 | Mechanical cache move and benchmark harness |
@@ -794,7 +795,11 @@ unchanged. The separate legacy Wildcard unsupported alias remains for D-12.
   - B-11c1 moves `_AnyType`, `_FlexibleOptionalInputType`, and `_ANY_TYPE` to
     side-effect-free `easyuse_anima.nodes.input_types`, while retaining direct
     root aliases and the existing Regional, Prompt Advanced, and LoRA binder
-    calls. PR #294 owns this Move-only unit.
+    calls. PR #294 / `ebeee89` completes this Move-only unit.
+  - B-11c2 moves only `_get_workflow_node` to side-effect-free
+    `easyuse_anima.workflow`. PR #295 retains the root direct alias and the
+    existing Wildcard, NAIA, Prompt Advanced, and Regional binder/resolver
+    calls. Reserved wildcard seed consumption remains separate.
   - The final B-11c cutover removes remaining root execution ownership and
     leaves the explicit supported `nodes.py` compatibility shim.
 - Add `easyuse_anima/registration.py` as pure mapping composition. It performs no

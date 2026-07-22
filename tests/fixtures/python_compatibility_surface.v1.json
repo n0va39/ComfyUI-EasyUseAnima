@@ -2,7 +2,7 @@
   "schema_version": 1,
   "snapshot": {
     "base_branch": "dev",
-    "base_commit": "f2a2ec0198119caa9680ca86a8c5d4d068ab4ba8",
+    "base_commit": "ebeee894e537c0edb4c7ec7aed34cefd212151f4",
     "first_release": null,
     "owner_tasks": [
       "#184",
@@ -30,7 +30,8 @@
       "B-10b20",
       "B-11a",
       "B-11b",
-      "B-11c1"
+      "B-11c1",
+      "B-11c2"
     ]
   },
   "enums": {
@@ -65,11 +66,11 @@
   "expected_counts": {
     "root_entrypoints": 3,
     "excluded_preamble_implementation_bindings": 7,
-    "nodes_canonical_bindings": 261,
+    "nodes_canonical_bindings": 262,
     "nodes_legacy_bindings": 27,
     "mapped_public_classes": 18,
     "unmapped_classes": 2,
-    "root_residual_functions": 41,
+    "root_residual_functions": 40,
     "root_residual_classes": 0,
     "root_residual_globals": 32,
     "runtime_binders": 28,
@@ -3625,6 +3626,38 @@
       "lifecycle_state": "transitional"
     },
     {
+      "id": "nodes_canonical_bindings:easyuse_anima.workflow:transitional_private_seam",
+      "surface": "nodes_canonical_bindings",
+      "symbols": {
+        "_get_workflow_node": "_get_workflow_node"
+      },
+      "classification": "transitional_private_seam",
+      "current_target": "nodes.py",
+      "canonical_target": "easyuse_anima.workflow",
+      "target_state": "canonical",
+      "identity_requirement": "required",
+      "binding_shape": "direct_import",
+      "import_target": "easyuse_anima.workflow",
+      "owner": "#184/#188",
+      "first_release": null,
+      "known_consumers": [
+        "nodes.py residual runtime",
+        "canonical runtime resolver: easyuse_anima.nodes.prompt_advanced_nodes",
+        "canonical runtime resolver: easyuse_anima.nodes.regional_nodes"
+      ],
+      "evidence": [
+        "AST:nodes.py direct runtime load",
+        "AST:easyuse_anima.nodes.prompt_advanced_nodes string runtime lookup",
+        "AST:easyuse_anima.nodes.regional_nodes string runtime lookup"
+      ],
+      "removal_gates": [
+        "canonical production consumer migration",
+        "focused monkeypatch and identity contract review",
+        "separate B-10b or B-11 rollback unit"
+      ],
+      "lifecycle_state": "transitional"
+    },
+    {
       "id": "nodes_legacy_bindings:anima_prompt.parser:transitional_private_seam",
       "surface": "nodes_legacy_bindings",
       "symbols": {
@@ -3893,7 +3926,6 @@
         "_find_comfy_node_class": "_find_comfy_node_class",
         "_find_comfy_node_mapping_class": "_find_comfy_node_mapping_class",
         "_find_loaded_node_class": "_find_loaded_node_class",
-        "_get_workflow_node": "_get_workflow_node",
         "_image_tensor_size": "_image_tensor_size",
         "_is_aio_detailer_target_name": "_is_aio_detailer_target_name",
         "_new_aio_random_seed": "_new_aio_random_seed",

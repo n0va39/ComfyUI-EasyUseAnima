@@ -11,6 +11,7 @@ ROOT = Path(__file__).resolve().parents[1]
 PACKAGE_MODULES = (
     "easyuse_anima",
     "easyuse_anima.bootstrap",
+    "easyuse_anima.workflow",
     "easyuse_anima.aio",
     "easyuse_anima.aio.conditioning",
     "easyuse_anima.aio.first_pass_cache",
