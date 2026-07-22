@@ -696,9 +696,11 @@ class ComfyAdapterMoveContractTests(unittest.TestCase):
 
 
 class ImageNodeMoveContractTests(unittest.TestCase):
-    SCALING_ALIASES = (
+    RETAINED_SCALING_ALIASES = (
         "IMAGE_SCALE_MULTIPLES",
         "IMAGE_UPSCALE_METHODS",
+    )
+    RETIRED_SCALING_HELPERS = (
         "_image_scale_by_multiple_size",
         "_max_long_edge_value",
         "_normalize_image_scale_options",
@@ -706,9 +708,12 @@ class ImageNodeMoveContractTests(unittest.TestCase):
     )
 
     def test_root_nodes_image_objects_are_direct_canonical_aliases(self):
-        for name in self.SCALING_ALIASES:
+        for name in self.RETAINED_SCALING_ALIASES:
             with self.subTest(name=name):
                 self.assertIs(getattr(nodes, name), getattr(image_scaling, name))
+        for name in self.RETIRED_SCALING_HELPERS:
+            with self.subTest(retired=name):
+                self.assertFalse(hasattr(nodes, name))
 
         self.assertFalse(hasattr(nodes, "_EasyUseAnimaAlignedDetailerHook"))
         self.assertIs(
@@ -756,12 +761,29 @@ class ImageNodeMoveContractTests(unittest.TestCase):
             package_impact_adapters = sys.modules[
                 f"{package_name}.easyuse_anima.nodes.impact_detailer_nodes"
             ]
-            for name in self.SCALING_ALIASES:
+            for name in self.RETAINED_SCALING_ALIASES:
                 with self.subTest(name=name):
                     self.assertIs(
                         getattr(package_nodes, name),
                         getattr(package_scaling, name),
                     )
+            for name in self.RETIRED_SCALING_HELPERS:
+                with self.subTest(retired=name):
+                    self.assertFalse(hasattr(package_nodes, name))
+            self.assertEqual(package_scaling._scale_by_value("1.25"), 1.25)
+            self.assertEqual(package_scaling._max_long_edge_value("20000"), 16384)
+            self.assertEqual(
+                package_scaling._normalize_image_scale_options(
+                    "32", "32", "bicubic"
+                ),
+                ("bicubic", "32", 0),
+            )
+            self.assertEqual(
+                package_scaling._image_scale_by_multiple_size(
+                    1024, 1536, 1.25, "32"
+                ),
+                (1280, 1920, 1.25),
+            )
 
             self.assertIs(
                 package_node_adapters._EasyUseAnimaAlignedDetailerHook,
