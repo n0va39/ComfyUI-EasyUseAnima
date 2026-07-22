@@ -351,6 +351,20 @@ G-series minimums are:
 - G-06: align unit, integration, contract, and packaging tests with canonical
   feature ownership while retaining the repository's `unittest` runner.
 
+### G-01 implementation contract
+
+G-01 pins Ruff `0.15.22` as maintenance tooling and runs it through
+`tools/check_python_quality.ps1` from both project-check profiles. The initial
+production report covers `F`, `E4`, `E7`, `E9`, `I`, and safe `UP` rules for
+Python 3.10 while excluding test and maintenance-tool sources.
+
+Lint findings remain visible but non-blocking through Ruff's `--exit-zero`
+mode. A missing `uvx`, an invalid Ruff configuration, or another execution
+failure still fails the project check. The runner never applies `--fix` or
+formatting and disables Ruff's repository cache. This report-only step does
+not establish a new-violation ratchet, complete G-02 or later phases, or close
+Issue #188.
+
 ## Overall Definition of Done
 
 The Python backend refactor is complete only when all of the following hold.
