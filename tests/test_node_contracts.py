@@ -1597,16 +1597,21 @@ class PromptAdvancedMoveContractTests(unittest.TestCase):
     RETIRED_NODE_CLASSES = (
         "EasyUseAnimaPromptStudioExtend",
     )
-    SERVICE_OBJECTS = (
-        "ADVANCED_FIELD_TYPES",
-        "ADVANCED_FIELD_PANES",
-        "ADVANCED_FIELD_LABELS",
+    RETIRED_ADVANCED_ALIASES = (
         "ADVANCED_FIELDS_WORKFLOW_PROPERTY",
+        "ADVANCED_FIELD_LABELS",
+        "ADVANCED_FIELD_PANES",
+        "ADVANCED_FIELD_TYPES",
         "EXTEND_PROMPT_SLOT_SPECS",
-        "PROMPT_STUDIO_WILDCARD_SEED_CONTROL_ALIASES",
-        "PROMPT_STUDIO_LEGACY_FIXED_WILDCARD_MODES",
-        "PROMPT_STUDIO_ADVANCED_RETURN_TYPES",
         "PROMPT_STUDIO_ADVANCED_RETURN_NAMES",
+        "PROMPT_STUDIO_ADVANCED_RETURN_TYPES",
+        "PROMPT_STUDIO_LEGACY_FIXED_WILDCARD_MODES",
+        "PROMPT_STUDIO_WILDCARD_SEED_CONTROL_ALIASES",
+        "_advanced_fields_with_artist_override",
+        "_advanced_pane_parts",
+        "_advanced_prompt_data_fields",
+    )
+    SERVICE_OBJECTS = (
         "_normalize_prompt_studio_wildcard_seed_control",
         "_translate_prompt_fields",
         "_advanced_default_fields",
@@ -1625,7 +1630,7 @@ class PromptAdvancedMoveContractTests(unittest.TestCase):
     )
 
     def test_root_advanced_objects_are_direct_canonical_aliases(self):
-        for name in self.RETIRED_NODE_CLASSES:
+        for name in (*self.RETIRED_NODE_CLASSES, *self.RETIRED_ADVANCED_ALIASES):
             with self.subTest(retired=name):
                 self.assertFalse(hasattr(nodes, name))
         for name in self.SERVICE_OBJECTS:
@@ -1643,7 +1648,7 @@ class PromptAdvancedMoveContractTests(unittest.TestCase):
                 f"{package_name}.easyuse_anima.nodes.prompt_advanced_nodes"
             ]
 
-            for name in self.RETIRED_NODE_CLASSES:
+            for name in (*self.RETIRED_NODE_CLASSES, *self.RETIRED_ADVANCED_ALIASES):
                 with self.subTest(retired=name):
                     self.assertFalse(hasattr(package_nodes, name))
             for name in self.SERVICE_OBJECTS:

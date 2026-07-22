@@ -16,6 +16,7 @@ import settings as easyuse_settings
 from easyuse_anima.naia.client import _clean_prompt
 from easyuse_anima.naia.resolution import ADVANCED_RESOLUTION_BUCKETS
 from easyuse_anima.nodes.prompt_advanced_nodes import EasyUseAnimaPromptStudioExtend
+from easyuse_anima.prompt.advanced import ADVANCED_FIELDS_WORKFLOW_PROPERTY
 from easyuse_anima.prompt.conditioning import (
     _SPECTRUM_ANIMA_MOD_GUIDANCE_OLD_SIGNATURE_WARNED,
 )
@@ -25,7 +26,6 @@ from easyuse_anima.prompt.fields import (
     DEFAULT_TRAILING_QUALITY_TAGS,
 )
 from nodes import (
-    ADVANCED_FIELDS_WORKFLOW_PROPERTY,
     ARTIST_MIX_CONTROL_KEY,
     ARTIST_MIX_EXACT_KEY,
     ARTIST_MIX_MODE_CLUSTERED,

@@ -152,15 +152,15 @@ try:
         _prompt_data_parameter_snapshot as _prompt_data_parameter_snapshot,
     )
     from .easyuse_anima.prompt.advanced import (
-        ADVANCED_FIELDS_WORKFLOW_PROPERTY as ADVANCED_FIELDS_WORKFLOW_PROPERTY,
-        ADVANCED_FIELD_LABELS as ADVANCED_FIELD_LABELS,
-        ADVANCED_FIELD_PANES as ADVANCED_FIELD_PANES,
-        ADVANCED_FIELD_TYPES as ADVANCED_FIELD_TYPES,
-        EXTEND_PROMPT_SLOT_SPECS as EXTEND_PROMPT_SLOT_SPECS,
-        PROMPT_STUDIO_LEGACY_FIXED_WILDCARD_MODES as PROMPT_STUDIO_LEGACY_FIXED_WILDCARD_MODES,
-        PROMPT_STUDIO_ADVANCED_RETURN_NAMES as PROMPT_STUDIO_ADVANCED_RETURN_NAMES,
-        PROMPT_STUDIO_ADVANCED_RETURN_TYPES as PROMPT_STUDIO_ADVANCED_RETURN_TYPES,
-        PROMPT_STUDIO_WILDCARD_SEED_CONTROL_ALIASES as PROMPT_STUDIO_WILDCARD_SEED_CONTROL_ALIASES,
+        # B-10b16: nine unsupported Advanced contract constants are canonical-only.
+        # B-10b16: field workflow-property metadata remains canonical-only.
+        # B-10b16: field labels and panes remain canonical-only.
+        # B-10b16: field types and legacy Extend slot specs remain canonical-only.
+        # B-10b16: Advanced return names/types remain canonical-only.
+        # B-10b16: wildcard seed-control aliases remain canonical-only.
+        # B-10b16: legacy fixed wildcard modes remain canonical-only.
+        # B-10b16: canonical adapters consume these objects directly.
+        # B-10b16: root runtime has no caller for the retired constants.
         _advanced_artist_field_prompt as _advanced_artist_field_prompt,
         _advanced_default_fields as _advanced_default_fields,
         _advanced_enabled_naia_panes as _advanced_enabled_naia_panes,
@@ -168,10 +168,10 @@ try:
         _advanced_field_input_values as _advanced_field_input_values,
         _advanced_field_socket_name as _advanced_field_socket_name,
         _advanced_fields_json as _advanced_fields_json,
-        _advanced_fields_with_artist_override as _advanced_fields_with_artist_override,
+        # B-10b16: artist-field override expansion remains canonical-only.
         _advanced_has_enabled_naia as _advanced_has_enabled_naia,
-        _advanced_pane_parts as _advanced_pane_parts,
-        _advanced_prompt_data_fields as _advanced_prompt_data_fields,
+        # B-10b16: pane-part assembly remains canonical-only.
+        # B-10b16: prompt-data field serialization remains canonical-only.
         _advanced_prompt_with_artist_override as _advanced_prompt_with_artist_override,
         _advanced_uses_naia_resolution as _advanced_uses_naia_resolution,
         _apply_advanced_field_inputs as _apply_advanced_field_inputs,
@@ -665,15 +665,15 @@ except ImportError:  # allows simple local import tests outside ComfyUI's packag
         _prompt_data_parameter_snapshot as _prompt_data_parameter_snapshot,
     )
     from easyuse_anima.prompt.advanced import (
-        ADVANCED_FIELDS_WORKFLOW_PROPERTY as ADVANCED_FIELDS_WORKFLOW_PROPERTY,
-        ADVANCED_FIELD_LABELS as ADVANCED_FIELD_LABELS,
-        ADVANCED_FIELD_PANES as ADVANCED_FIELD_PANES,
-        ADVANCED_FIELD_TYPES as ADVANCED_FIELD_TYPES,
-        EXTEND_PROMPT_SLOT_SPECS as EXTEND_PROMPT_SLOT_SPECS,
-        PROMPT_STUDIO_LEGACY_FIXED_WILDCARD_MODES as PROMPT_STUDIO_LEGACY_FIXED_WILDCARD_MODES,
-        PROMPT_STUDIO_ADVANCED_RETURN_NAMES as PROMPT_STUDIO_ADVANCED_RETURN_NAMES,
-        PROMPT_STUDIO_ADVANCED_RETURN_TYPES as PROMPT_STUDIO_ADVANCED_RETURN_TYPES,
-        PROMPT_STUDIO_WILDCARD_SEED_CONTROL_ALIASES as PROMPT_STUDIO_WILDCARD_SEED_CONTROL_ALIASES,
+        # B-10b16: nine unsupported Advanced contract constants are canonical-only.
+        # B-10b16: field workflow-property metadata remains canonical-only.
+        # B-10b16: field labels and panes remain canonical-only.
+        # B-10b16: field types and legacy Extend slot specs remain canonical-only.
+        # B-10b16: Advanced return names/types remain canonical-only.
+        # B-10b16: wildcard seed-control aliases remain canonical-only.
+        # B-10b16: legacy fixed wildcard modes remain canonical-only.
+        # B-10b16: canonical adapters consume these objects directly.
+        # B-10b16: root runtime has no caller for the retired constants.
         _advanced_artist_field_prompt as _advanced_artist_field_prompt,
         _advanced_default_fields as _advanced_default_fields,
         _advanced_enabled_naia_panes as _advanced_enabled_naia_panes,
@@ -681,10 +681,10 @@ except ImportError:  # allows simple local import tests outside ComfyUI's packag
         _advanced_field_input_values as _advanced_field_input_values,
         _advanced_field_socket_name as _advanced_field_socket_name,
         _advanced_fields_json as _advanced_fields_json,
-        _advanced_fields_with_artist_override as _advanced_fields_with_artist_override,
+        # B-10b16: artist-field override expansion remains canonical-only.
         _advanced_has_enabled_naia as _advanced_has_enabled_naia,
-        _advanced_pane_parts as _advanced_pane_parts,
-        _advanced_prompt_data_fields as _advanced_prompt_data_fields,
+        # B-10b16: pane-part assembly remains canonical-only.
+        # B-10b16: prompt-data field serialization remains canonical-only.
         _advanced_prompt_with_artist_override as _advanced_prompt_with_artist_override,
         _advanced_uses_naia_resolution as _advanced_uses_naia_resolution,
         _apply_advanced_field_inputs as _apply_advanced_field_inputs,
