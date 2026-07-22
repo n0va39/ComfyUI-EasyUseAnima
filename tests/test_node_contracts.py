@@ -826,6 +826,54 @@ class AioDitNormalizationMoveContractTests(unittest.TestCase):
             self._assert_contract(package_nodes, package_generation_normalization)
 
 
+class AioSeedNormalizationMoveContractTests(unittest.TestCase):
+    CONSTANT_NAMES = (
+        "AIO_SPECIAL_SEED_RANDOM",
+        "AIO_SPECIAL_SEED_INCREMENT",
+        "AIO_SPECIAL_SEED_DECREMENT",
+        "AIO_SPECIAL_SEEDS",
+    )
+
+    def _assert_contract(self, root_module, canonical_module):
+        self.assertIs(
+            root_module._normalize_aio_seed,
+            canonical_module._normalize_aio_seed,
+        )
+        for name in self.CONSTANT_NAMES:
+            with self.subTest(name=name):
+                self.assertIs(getattr(root_module, name), getattr(canonical_module, name))
+
+        self.assertEqual(root_module.AIO_SPECIAL_SEED_RANDOM, -1)
+        self.assertEqual(root_module.AIO_SPECIAL_SEED_INCREMENT, -2)
+        self.assertEqual(root_module.AIO_SPECIAL_SEED_DECREMENT, -3)
+        self.assertIsInstance(root_module.AIO_SPECIAL_SEEDS, set)
+        self.assertEqual(root_module.AIO_SPECIAL_SEEDS, {-1, -2, -3})
+
+        with (
+            patch.object(root_module, "_as_int", side_effect=(99, -99)) as as_int,
+            patch.object(root_module, "MAX_SEED", 12),
+            patch.object(root_module, "AIO_SPECIAL_SEED_DECREMENT", -7),
+        ):
+            self.assertEqual(canonical_module._normalize_aio_seed("high"), 12)
+            self.assertEqual(canonical_module._normalize_aio_seed("low"), -7)
+
+        self.assertEqual(
+            as_int.call_args_list,
+            [call("high", -1), call("low", -1)],
+        )
+
+    def test_root_aliases_and_call_time_clamp_helpers(self):
+        self._assert_contract(nodes, aio_generation_normalization)
+
+    def test_package_aliases_and_call_time_clamp_helpers(self):
+        with _loaded_package_entrypoint() as (_, package_nodes):
+            package_name = package_nodes.__package__
+            package_generation_normalization = sys.modules[
+                f"{package_name}.easyuse_anima.aio.generation_normalization"
+            ]
+            self._assert_contract(package_nodes, package_generation_normalization)
+
+
 class ComfyAdapterMoveContractTests(unittest.TestCase):
     RETIRED_SAM3_SERVICE_HELPERS = (
         "_call_impact_detailer",
