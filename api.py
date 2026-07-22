@@ -1189,14 +1189,12 @@ def _get_prompt_routes():
 routes = _get_prompt_routes()
 
 
-if web is not None and routes is not None:
+if web is not None:
 
-    @routes.get("/easyuse_anima/settings")
     @_request_correlated
     async def get_settings_handler(request):
         return web.json_response(await _run_file_io(_get_settings_payload_sync))
 
-    @routes.post("/easyuse_anima/set_setting")
     @_request_correlated
     async def set_setting_handler(request):
         try:
@@ -1214,19 +1212,16 @@ if web is not None and routes is not None:
             return _error_response(422, "unknown_setting", "Unknown setting")
         return web.json_response(payload)
 
-    @routes.get("/easyuse_anima/long_text_settings")
     @_request_correlated
     async def get_long_text_settings_handler(request):
         return web.json_response(
             await _run_file_io(_get_long_text_settings_payload_sync)
         )
 
-    @routes.get("/easyuse_anima/wildcards")
     @_request_correlated
     async def get_wildcards_handler(request):
         return web.json_response(await _run_file_io(_wildcards_payload_sync))
 
-    @routes.post("/easyuse_anima/long_text_settings/save")
     @_request_correlated
     async def save_long_text_settings_handler(request):
         try:
@@ -1238,12 +1233,10 @@ if web is not None and routes is not None:
             await _run_file_io(_save_long_text_settings_payload_sync, values)
         )
 
-    @routes.get("/easyuse_anima/autocomplete_status")
     @_request_correlated
     async def autocomplete_status_handler(request):
         return web.json_response(await _run_file_io(_autocomplete_status_payload_sync))
 
-    @routes.get("/easyuse_anima/autocomplete")
     @_request_correlated
     async def autocomplete_handler(request):
         query = request.query.get("q", "")
@@ -1261,7 +1254,6 @@ if web is not None and routes is not None:
             )
         )
 
-    @routes.post("/easyuse_anima/classify_prompt")
     @_request_correlated
     async def classify_prompt_handler(request):
         try:
@@ -1280,7 +1272,6 @@ if web is not None and routes is not None:
             await _run_file_io(_classify_prompt_payload_sync, text, limit)
         )
 
-    @routes.post("/easyuse_anima/translate_prompt")
     @_request_correlated
     async def translate_prompt_handler(request):
         try:
@@ -1294,7 +1285,6 @@ if web is not None and routes is not None:
             return _prompt_translation_error_response(exc)
         return web.json_response({"status": "ok", "text": translated})
 
-    @routes.get("/easyuse_anima/lora_preview")
     @_request_correlated
     async def lora_preview_handler(request):
         preview_path = await _run_file_io(
@@ -1308,12 +1298,10 @@ if web is not None and routes is not None:
             headers={"Content-Disposition": f'filename="{os.path.basename(preview_path)}"'},
         )
 
-    @routes.get("/easyuse_anima/loras")
     @_request_correlated
     async def loras_handler(request):
         return web.json_response({"loras": await _run_file_io(_list_loras)})
 
-    @routes.get("/easyuse_anima/lora_profiles")
     @_request_correlated
     async def lora_profiles_handler(request):
         try:
@@ -1322,7 +1310,6 @@ if web is not None and routes is not None:
             return _profile_error_response(exc)
         return web.json_response({"profiles": payload})
 
-    @routes.post("/easyuse_anima/lora_profiles/save")
     @_request_correlated
     async def save_lora_profile_handler(request):
         try:
@@ -1357,7 +1344,6 @@ if web is not None and routes is not None:
             return _profile_error_response(exc)
         return web.json_response({"status": "ok", "profile": payload})
 
-    @routes.get("/easyuse_anima/lora_profiles/load")
     @_request_correlated
     async def load_lora_profile_handler(request):
         try:
@@ -1374,7 +1360,6 @@ if web is not None and routes is not None:
             return _profile_error_response(exc)
         return web.json_response({"status": "ok", "profile": payload})
 
-    @routes.get("/easyuse_anima/aio_profiles")
     @_request_correlated
     async def aio_profiles_handler(request):
         try:
@@ -1383,7 +1368,6 @@ if web is not None and routes is not None:
             return _profile_error_response(exc)
         return web.json_response({"status": "ok", "profiles": payload})
 
-    @routes.post("/easyuse_anima/aio_profiles/save")
     @_request_correlated
     async def save_aio_profile_handler(request):
         try:
@@ -1417,7 +1401,6 @@ if web is not None and routes is not None:
             return _profile_error_response(exc)
         return web.json_response({"status": "ok", "profile": payload})
 
-    @routes.get("/easyuse_anima/aio_profiles/load")
     @_request_correlated
     async def load_aio_profile_handler(request):
         try:
@@ -1429,7 +1412,6 @@ if web is not None and routes is not None:
             return _profile_error_response(exc)
         return web.json_response({"status": "ok", "profile": payload})
 
-    @routes.post("/easyuse_anima/aio_profiles/delete")
     @_request_correlated
     async def delete_aio_profile_handler(request):
         try:
@@ -1459,7 +1441,6 @@ if web is not None and routes is not None:
             return _profile_error_response(exc)
         return web.json_response({"status": "ok", "profile": payload})
 
-    @routes.post("/easyuse_anima/aio_profiles/rename")
     @_request_correlated
     async def rename_aio_profile_handler(request):
         try:
@@ -1506,7 +1487,6 @@ if web is not None and routes is not None:
             return _profile_error_response(exc)
         return web.json_response({"status": "ok", "profile": payload})
 
-    @routes.post("/easyuse_anima/lora_profiles/fix")
     @_request_correlated
     async def fix_lora_profile_handler(request):
         try:
@@ -1517,3 +1497,60 @@ if web is not None and routes is not None:
             return _contract_error_response(exc)
         payload = await _run_file_io(_fix_lora_profile_payload, data)
         return web.json_response({"status": "ok", "profile": payload})
+
+    _ROUTE_DEFINITIONS = (
+        ("get", "/easyuse_anima/settings", get_settings_handler),
+        ("post", "/easyuse_anima/set_setting", set_setting_handler),
+        ("get", "/easyuse_anima/long_text_settings", get_long_text_settings_handler),
+        ("get", "/easyuse_anima/wildcards", get_wildcards_handler),
+        (
+            "post",
+            "/easyuse_anima/long_text_settings/save",
+            save_long_text_settings_handler,
+        ),
+        ("get", "/easyuse_anima/autocomplete_status", autocomplete_status_handler),
+        ("get", "/easyuse_anima/autocomplete", autocomplete_handler),
+        ("post", "/easyuse_anima/classify_prompt", classify_prompt_handler),
+        ("post", "/easyuse_anima/translate_prompt", translate_prompt_handler),
+        ("get", "/easyuse_anima/lora_preview", lora_preview_handler),
+        ("get", "/easyuse_anima/loras", loras_handler),
+        ("get", "/easyuse_anima/lora_profiles", lora_profiles_handler),
+        ("post", "/easyuse_anima/lora_profiles/save", save_lora_profile_handler),
+        ("get", "/easyuse_anima/lora_profiles/load", load_lora_profile_handler),
+        ("get", "/easyuse_anima/aio_profiles", aio_profiles_handler),
+        ("post", "/easyuse_anima/aio_profiles/save", save_aio_profile_handler),
+        ("get", "/easyuse_anima/aio_profiles/load", load_aio_profile_handler),
+        ("post", "/easyuse_anima/aio_profiles/delete", delete_aio_profile_handler),
+        ("post", "/easyuse_anima/aio_profiles/rename", rename_aio_profile_handler),
+        ("post", "/easyuse_anima/lora_profiles/fix", fix_lora_profile_handler),
+    )
+else:
+    _ROUTE_DEFINITIONS = ()
+
+
+_ROUTE_REGISTRATION_MARKER = "_easyuse_anima_registered_routes_v1"
+_ROUTE_SIGNATURE = tuple(
+    (method.upper(), path)
+    for method, path, _handler in _ROUTE_DEFINITIONS
+)
+
+
+def register_routes(route_table=None) -> bool:
+    """Register the current route set once for each ComfyUI route table."""
+
+    global routes
+    target = _get_prompt_routes() if route_table is None else route_table
+    routes = target
+    if web is None or target is None:
+        return False
+
+    existing_signature = getattr(target, _ROUTE_REGISTRATION_MARKER, None)
+    if existing_signature == _ROUTE_SIGNATURE:
+        return True
+    if existing_signature is not None:
+        raise RuntimeError("EasyUse Anima route registration signature mismatch")
+
+    for method, path, handler in _ROUTE_DEFINITIONS:
+        getattr(target, method)(path)(handler)
+    setattr(target, _ROUTE_REGISTRATION_MARKER, _ROUTE_SIGNATURE)
+    return True
