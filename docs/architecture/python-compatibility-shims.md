@@ -3,14 +3,14 @@
 ## Registry status
 
 - Inventory baseline: `dev` commit
-  `20c8b4d57243cc4b2c0423f43c9f0a2069707187`
+  `f2a2ec0198119caa9680ca86a8c5d4d068ab4ba8`
 - Compatibility provenance: package/workflow version 0.5.2
 - Policy: [ADR-002](adr-002-compatibility-shims.md)
 - Machine-readable audit:
   [`python_compatibility_surface.v1.json`](../../tests/fixtures/python_compatibility_surface.v1.json)
-- Current state: B-11a is integrated in PR #292. B-11b PR #293 moves route and
-  wildcard startup to guarded `easyuse_anima.bootstrap` ownership; B-11c final
-  root shim remains a separate Move.
+- Current state: B-11a is integrated in PR #292 and B-11b in PR #293. B-11c is
+  split into residual-owner and binder Moves before the final root shim;
+  B-11c1 input-type ownership is tracked by PR #294.
 
 This is an actionable registry, not a removal schedule. `N` means the first
 published Registry release containing both a canonical target and its root
@@ -75,8 +75,8 @@ inferring public support from spelling or test imports:
 - `nodes.py` preamble implementation imports: 7 (`json`, `logging`, `random`,
   `re`, `ceil`, `sqrt`, and `Any`), excluded from compatibility classification
   by an exact AST allowlist and drift gate;
-- `nodes.py` bindings with an `easyuse_anima` canonical target: 258 at the
-  integrated B-10b20 baseline, with exact
+- `nodes.py` bindings with an `easyuse_anima` canonical target: 261 after
+  B-11c1 (258 at the integrated B-10b20 baseline), with exact
   relative-package/flat-fallback parity;
 - bindings still owned by `anima_prompt`, `settings`, `prompt_translation`, or
   `wildcard_engine`: 27, with the same fallback parity;
@@ -84,8 +84,8 @@ inferring public support from spelling or test imports:
 - unmapped root classes: `EasyUseAnimaSAM3Context` and
   `EasyUseAnimaSAM3Detailer`; the canonical legacy Extend class remains in its
   owner module without a root alias or backend mapping;
-- root-owned residual implementation: 41 functions, 2 classes, and 33 assigned
-  globals.
+- root-owned residual implementation: 41 functions, 0 classes, and 32 assigned
+  globals after B-11c1 (41/2/33 at the integrated B-10b20 baseline).
 - import-time runtime binders: 28 exact top-level `_bind_*_runtime` calls;
 - root names reached by those canonical runtime resolvers: 256, including
   literal lookups and binder-owned helper-name/default collections;
@@ -148,6 +148,21 @@ convenience-node compatibility; it remains unmapped and is not public support.
   handlers once per shared ComfyUI route table, and guards successful wildcard
   startup through `easyuse_anima.bootstrap`. Handler bodies, URL/order,
   correlation wrappers, and wildcard implementation remain unchanged.
+
+### B-11c1 private input-type aliases
+
+- Canonical owner: `easyuse_anima.nodes.input_types`.
+- `_FlexibleOptionalInputType` and `_ANY_TYPE` remain transitional direct root
+  aliases because the Regional, Prompt Advanced, and LoRA runtime binders load
+  them during root composition. Their signatures and call timing are unchanged.
+- `_AnyType` has no remaining root production load after `_ANY_TYPE` moves, so
+  the machine-readable audit correctly classifies its retained direct alias as
+  unsupported/test-only rather than public support. It remains in PR #294 only
+  to keep this Move rollback-safe; removal requires a separate compatibility
+  review.
+- LoRA, Prompt Advanced, Regional, and Wildcard adapters import the shared
+  owner instead of retaining duplicate local definitions. Socket values,
+  workflow payloads, and mapped node-class identity do not change.
 
 ### `nodes.py` public node-class surface
 

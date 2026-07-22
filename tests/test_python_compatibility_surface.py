@@ -16,7 +16,7 @@ NODES_PATH = ROOT / "nodes.py"
 FIXTURE_PATH = ROOT / "tests" / "fixtures" / "python_compatibility_surface.v1.json"
 
 SCHEMA_VERSION = 1
-BASE_COMMIT = "20c8b4d57243cc4b2c0423f43c9f0a2069707187"
+BASE_COMMIT = "f2a2ec0198119caa9680ca86a8c5d4d068ab4ba8"
 CLASSIFICATIONS = (
     "permanent_entrypoint",
     "supported_public_reexport",
@@ -1303,6 +1303,7 @@ def _build_document() -> dict[str, Any]:
                 "B-10b20",
                 "B-11a",
                 "B-11b",
+                "B-11c1",
             ],
         },
         "enums": {
@@ -1315,13 +1316,13 @@ def _build_document() -> dict[str, Any]:
         "expected_counts": {
             "root_entrypoints": 3,
             "excluded_preamble_implementation_bindings": 7,
-            "nodes_canonical_bindings": 258,
+            "nodes_canonical_bindings": 261,
             "nodes_legacy_bindings": 27,
             "mapped_public_classes": 18,
             "unmapped_classes": 2,
             "root_residual_functions": 41,
-            "root_residual_classes": 2,
-            "root_residual_globals": 33,
+            "root_residual_classes": 0,
+            "root_residual_globals": 32,
             "runtime_binders": 28,
             "direct_nodes_import_test_files": 21,
         },
@@ -1409,7 +1410,14 @@ class PythonCompatibilitySurfaceTests(unittest.TestCase):
             self.assertTrue(group["known_consumers"])
             self.assertTrue(group["evidence"])
             self.assertTrue(group["removal_gates"])
-            self.assertTrue(group["symbols"])
+            if not group["symbols"]:
+                self.assertEqual(group["surface"], "nodes_root_residuals")
+                self.assertEqual(
+                    self.document["expected_counts"][
+                        f"root_residual_{group['kind']}"
+                    ],
+                    0,
+                )
             if group["binding_shape"] == "direct_import":
                 self.assertTrue(group["import_target"])
             else:

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from ..common.serialization import _stable_change_key
 from ..common.values import _single_value
+from .input_types import _FlexibleOptionalInputType
 
 try:
     from ...wildcard_engine import (
@@ -50,22 +51,13 @@ WILDCARD_MODE_DISPLAY_LABELS = {
 }
 
 
-class _FlexibleOptionalInputType(dict):
-    def __init__(self, input_type):
-        self.input_type = input_type
-
-    def __getitem__(self, key):
-        return (self.input_type,)
-
-    def __contains__(self, key):
-        return True
-
-
 def _unbound_runtime(*_args, **_kwargs):
     raise RuntimeError("Wildcard node runtime dependencies are not bound.")
 
 
 _get_workflow_node = _unbound_runtime
+
+
 def _bind_wildcard_node_runtime(*, get_workflow_node, expand, normalize_seed_value, normalize_mode, sources_signature) -> None:
     global _get_workflow_node
     global expand_wildcards

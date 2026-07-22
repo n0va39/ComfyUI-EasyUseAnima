@@ -16,25 +16,7 @@ from ..lora.metadata import (
     _raise_missing_loras,
 )
 from ..lora.preset import _correct_style_prompt, _format_strength, _select_profile_values
-
-
-class _AnyType(str):
-    def __ne__(self, __value: object) -> bool:
-        return False
-
-
-class _FlexibleOptionalInputType(dict):
-    def __init__(self, input_type):
-        self.input_type = input_type
-
-    def __getitem__(self, key):
-        return (self.input_type,)
-
-    def __contains__(self, key):
-        return True
-
-
-_ANY_TYPE = _AnyType("*")
+from .input_types import _ANY_TYPE, _FlexibleOptionalInputType
 
 
 def _bind_lora_node_runtime(*, resolve_helper, flexible_optional_input_type, any_type) -> None:

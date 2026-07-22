@@ -683,9 +683,9 @@ ignored/
 
         self.assertEqual(analyzer.render_json(report), expected_text)
         self.assertEqual(report["schema_version"], 2)
-        self.assertEqual(report["inventory"]["module_count"], 79)
-        self.assertEqual(len(report["registry"]["shipped_python_modules"]), 79)
-        self.assertEqual(len(report["registry"]["runtime_import_closure"]), 79)
+        self.assertEqual(report["inventory"]["module_count"], 80)
+        self.assertEqual(len(report["registry"]["shipped_python_modules"]), 80)
+        self.assertEqual(len(report["registry"]["runtime_import_closure"]), 80)
         self.assertEqual(report["registry"]["missing_internal_imports"], [])
         self.assertEqual(report["registry"]["unreachable_shipped_python_modules"], [])
         self.assertTrue(

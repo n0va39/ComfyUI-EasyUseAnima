@@ -33,6 +33,7 @@ from easyuse_anima.naia import resolution as naia_resolution
 from easyuse_anima.nodes import (
     image_nodes,
     impact_detailer_nodes,
+    input_types,
     lora_nodes,
     naia_nodes,
     prompt_advanced_nodes,
@@ -944,6 +945,74 @@ class WildcardNaiaMoveContractTests(unittest.TestCase):
                 package_naia_nodes.EasyUseAnimaNAIARandomPrompt,
             )
             self.assertFalse(hasattr(package_nodes, "WILDCARD_SEED_RANGE_NOTE"))
+
+
+class InputTypeMoveContractTests(unittest.TestCase):
+    def test_shared_input_type_behavior_and_flat_root_identity(self):
+        wildcard_type = input_types._AnyType("*")
+        self.assertFalse(wildcard_type != "IMAGE")
+
+        optional_inputs = input_types._FlexibleOptionalInputType(
+            input_types._ANY_TYPE
+        )
+        self.assertIn("arbitrary_name", optional_inputs)
+        self.assertIs(
+            optional_inputs["arbitrary_name"][0],
+            input_types._ANY_TYPE,
+        )
+
+        self.assertIs(nodes._AnyType, input_types._AnyType)
+        self.assertIs(
+            nodes._FlexibleOptionalInputType,
+            input_types._FlexibleOptionalInputType,
+        )
+        self.assertIs(nodes._ANY_TYPE, input_types._ANY_TYPE)
+        self.assertIs(lora_nodes._ANY_TYPE, input_types._ANY_TYPE)
+        for adapter in (
+            lora_nodes,
+            prompt_advanced_nodes,
+            regional_nodes,
+            wildcard_nodes,
+        ):
+            with self.subTest(adapter=adapter.__name__):
+                self.assertIs(
+                    adapter._FlexibleOptionalInputType,
+                    input_types._FlexibleOptionalInputType,
+                )
+
+    def test_package_root_and_adapters_share_the_canonical_input_types(self):
+        with _loaded_package_entrypoint() as (_, package_nodes):
+            package_name = package_nodes.__package__
+            package_input_types = sys.modules[
+                f"{package_name}.easyuse_anima.nodes.input_types"
+            ]
+            package_adapters = (
+                sys.modules[f"{package_name}.easyuse_anima.nodes.lora_nodes"],
+                sys.modules[
+                    f"{package_name}.easyuse_anima.nodes.prompt_advanced_nodes"
+                ],
+                sys.modules[
+                    f"{package_name}.easyuse_anima.nodes.regional_nodes"
+                ],
+                sys.modules[f"{package_name}.easyuse_anima.nodes.wildcard_nodes"],
+            )
+
+            self.assertIs(package_nodes._AnyType, package_input_types._AnyType)
+            self.assertIs(
+                package_nodes._FlexibleOptionalInputType,
+                package_input_types._FlexibleOptionalInputType,
+            )
+            self.assertIs(package_nodes._ANY_TYPE, package_input_types._ANY_TYPE)
+            self.assertIs(
+                package_adapters[0]._ANY_TYPE,
+                package_input_types._ANY_TYPE,
+            )
+            for adapter in package_adapters:
+                with self.subTest(adapter=adapter.__name__):
+                    self.assertIs(
+                        adapter._FlexibleOptionalInputType,
+                        package_input_types._FlexibleOptionalInputType,
+                    )
 
 
 class LoraPresetMoveContractTests(unittest.TestCase):

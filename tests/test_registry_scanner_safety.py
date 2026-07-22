@@ -56,6 +56,7 @@ EXPECTED_PYTHON_PACKAGE_FILES = {
     "easyuse_anima/nodes/aio_nodes.py",
     "easyuse_anima/nodes/image_nodes.py",
     "easyuse_anima/nodes/impact_detailer_nodes.py",
+    "easyuse_anima/nodes/input_types.py",
     "easyuse_anima/nodes/lora_nodes.py",
     "easyuse_anima/nodes/naia_nodes.py",
     "easyuse_anima/nodes/prompt_data_nodes.py",
