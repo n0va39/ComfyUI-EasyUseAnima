@@ -827,11 +827,10 @@ class ImageNodeMoveContractTests(unittest.TestCase):
 
 
 class WildcardNaiaMoveContractTests(unittest.TestCase):
-    CLIENT_ALIASES = (
+    RETIRED_CLIENT_ALIASES = (
         "DEFAULT_HOST",
         "DEFAULT_PORT",
         "HTTP_TIMEOUT",
-        "LATENT_ALIGN",
         "NAI_1MP",
         "NAIA_LOCAL_HOSTS",
         "NAIA_MAX_RESOLUTION",
@@ -842,6 +841,9 @@ class WildcardNaiaMoveContractTests(unittest.TestCase):
         "_clean_prompt",
         "_fit_to_1mp",
         "_is_local_naia_host",
+    )
+    RETAINED_CLIENT_ALIASES = (
+        "LATENT_ALIGN",
         "_parse_random_response",
         "_post_random",
     )
@@ -870,7 +872,10 @@ class WildcardNaiaMoveContractTests(unittest.TestCase):
     )
 
     def test_root_nodes_wildcard_naia_objects_are_direct_canonical_aliases(self):
-        for name in self.CLIENT_ALIASES:
+        for name in self.RETIRED_CLIENT_ALIASES:
+            with self.subTest(retired=name):
+                self.assertFalse(hasattr(nodes, name))
+        for name in self.RETAINED_CLIENT_ALIASES:
             with self.subTest(module="client", name=name):
                 self.assertIs(getattr(nodes, name), getattr(naia_client, name))
         for name in self.RESOLUTION_ALIASES:
@@ -903,7 +908,10 @@ class WildcardNaiaMoveContractTests(unittest.TestCase):
                 f"{package_name}.easyuse_anima.nodes.wildcard_nodes"
             ]
 
-            for name in self.CLIENT_ALIASES:
+            for name in self.RETIRED_CLIENT_ALIASES:
+                with self.subTest(retired=name):
+                    self.assertFalse(hasattr(package_nodes, name))
+            for name in self.RETAINED_CLIENT_ALIASES:
                 with self.subTest(module="client", name=name):
                     self.assertIs(getattr(package_nodes, name), getattr(package_client, name))
             for name in self.RESOLUTION_ALIASES:

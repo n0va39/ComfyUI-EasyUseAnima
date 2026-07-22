@@ -3,13 +3,13 @@
 ## Registry status
 
 - Inventory baseline: `dev` commit
-  `3c49e6c02489fa5d467c1a5028bcb2392c47bc83`
+  `95569b0476b62e91c324681b986c4818ab7d7c7c`
 - Compatibility provenance: package/workflow version 0.5.2
 - Policy: [ADR-002](adr-002-compatibility-shims.md)
 - Machine-readable audit:
   [`python_compatibility_surface.v1.json`](../../tests/fixtures/python_compatibility_surface.v1.json)
-- Current state: B-10b11 is integrated; B-10b12 in PR #283 removes one audited
-  unsupported/test-only prompt-data root-alias group
+- Current state: B-10b12 is integrated; B-10b13 in PR #284 removes one audited
+  unsupported/test-only NAIA client root-alias group
 
 This is an actionable registry, not a removal schedule. `N` means the first
 published Registry release containing both a canonical target and its root
@@ -74,8 +74,8 @@ inferring public support from spelling or test imports:
 - `nodes.py` preamble implementation imports: 7 (`json`, `logging`, `random`,
   `re`, `ceil`, `sqrt`, and `Any`), excluded from compatibility classification
   by an exact AST allowlist and drift gate;
-- `nodes.py` bindings with an `easyuse_anima` canonical target: 369 at the
-  B-10b12 PR head, with exact
+- `nodes.py` bindings with an `easyuse_anima` canonical target: 356 at the
+  B-10b13 PR head, with exact
   relative-package/flat-fallback parity;
 - bindings still owned by `anima_prompt`, `settings`, `prompt_translation`, or
   `wildcard_engine`: 27, with the same fallback parity;
@@ -96,8 +96,8 @@ inferring public support from spelling or test imports:
   `_normalize_image_scale_options`, `_scale_by_value`, and
   `_clear_aio_first_pass_cache`, plus `WILDCARD_SEED_RANGE_NOTE`, the seven
   B-10b9 SAM3 helpers, the two B-10b10 prompt-default constants, and the
-  B-10b11 legacy Extend class root alias, and the nine B-10b12 prompt-data
-  aliases; their production
+  B-10b11 legacy Extend class root alias, the nine B-10b12 prompt-data aliases,
+  and the 13 B-10b13 NAIA client aliases; their production
   consumers import or call the corresponding canonical owners directly;
 - repository test files with a direct `nodes` import: 21, recorded as migration
   consumers rather than public-support evidence.
@@ -265,6 +265,13 @@ EasyUseAnimaWildcard
   call the owner directly; normal-package and synthetic package tests reject
   the retired names while preserving the retained prompt-data type, runtime
   helpers, mapped classes, schema values, socket contract, and fallback behavior.
+- B-10b13 NAIA client cleanup: the 13 audited unsupported aliases for host/port,
+  timeout, resolution bounds, preprocessing metadata, URL/host validation,
+  prompt cleanup, and 1MP fitting are no longer root aliases. Canonical client
+  and node-adapter consumers import or call the owner directly; normal-package
+  and synthetic package tests reject the retired names while preserving
+  `LATENT_ALIGN`, response parsing, HTTP posting, runtime binding, mapped class,
+  settings, and workflow behavior.
 - B-08b2 internal AiO model-variant transition: Spectrum correction/forecast
   model patching and ephemeral model cleanup move to
   `easyuse_anima.aio.model_preparation`. Their four root private names remain

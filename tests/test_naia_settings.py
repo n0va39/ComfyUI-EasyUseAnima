@@ -1,14 +1,16 @@
 import unittest
 from unittest.mock import patch
 
-from nodes import (
-    LATENT_ALIGN,
+from easyuse_anima.naia.client import (
     NAI_1MP,
     NAIA_MAX_RESOLUTION,
-    EasyUseAnimaNAIARandomPrompt,
-    _advanced_resolution_from_selection,
     _build_naia_random_url,
     _fit_to_1mp,
+)
+from nodes import (
+    LATENT_ALIGN,
+    EasyUseAnimaNAIARandomPrompt,
+    _advanced_resolution_from_selection,
     _parse_random_response,
 )
 
