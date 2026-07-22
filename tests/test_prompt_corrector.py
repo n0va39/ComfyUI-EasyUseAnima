@@ -13,6 +13,7 @@ from unittest.mock import patch
 
 import autocomplete_dataset
 import settings as easyuse_settings
+from easyuse_anima.naia.client import _clean_prompt
 from easyuse_anima.nodes.prompt_advanced_nodes import EasyUseAnimaPromptStudioExtend
 from easyuse_anima.prompt.data import PROMPT_DATA_SCHEMA
 from easyuse_anima.prompt.fields import (
@@ -44,7 +45,6 @@ from nodes import (
     EasyUseAnimaPromptStudioAdvanced,
     EasyUseAnimaPromptStudioAdvancedV2,
     _SPECTRUM_ANIMA_MOD_GUIDANCE_OLD_SIGNATURE_WARNED,
-    _clean_prompt,
     _generate_empty_latent_with_comfy,
     _prompt_tokens,
 )

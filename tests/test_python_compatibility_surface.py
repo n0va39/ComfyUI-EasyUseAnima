@@ -15,7 +15,7 @@ NODES_PATH = ROOT / "nodes.py"
 FIXTURE_PATH = ROOT / "tests" / "fixtures" / "python_compatibility_surface.v1.json"
 
 SCHEMA_VERSION = 1
-BASE_COMMIT = "3c49e6c02489fa5d467c1a5028bcb2392c47bc83"
+BASE_COMMIT = "95569b0476b62e91c324681b986c4818ab7d7c7c"
 CLASSIFICATIONS = (
     "permanent_entrypoint",
     "supported_public_reexport",
@@ -56,6 +56,71 @@ PREAMBLE_IMPLEMENTATION_BINDINGS = {
     "sqrt": "math:sqrt",
 }
 RETIRED_PRIVATE_BINDINGS = {
+    "DEFAULT_HOST": {
+        "canonical_target": "easyuse_anima.naia.client:DEFAULT_HOST",
+        "owner": "#184/#188 B-10b13",
+        "reason": "canonical NAIA node adapter imports the host default directly",
+    },
+    "DEFAULT_PORT": {
+        "canonical_target": "easyuse_anima.naia.client:DEFAULT_PORT",
+        "owner": "#184/#188 B-10b13",
+        "reason": "canonical NAIA node adapter imports the port default directly",
+    },
+    "HTTP_TIMEOUT": {
+        "canonical_target": "easyuse_anima.naia.client:HTTP_TIMEOUT",
+        "owner": "#184/#188 B-10b13",
+        "reason": "canonical NAIA client consumes the HTTP timeout internally",
+    },
+    "NAIA_LOCAL_HOSTS": {
+        "canonical_target": "easyuse_anima.naia.client:NAIA_LOCAL_HOSTS",
+        "owner": "#184/#188 B-10b13",
+        "reason": "canonical NAIA client consumes the host allowlist internally",
+    },
+    "NAIA_MAX_RESOLUTION": {
+        "canonical_target": "easyuse_anima.naia.client:NAIA_MAX_RESOLUTION",
+        "owner": "#184/#188 B-10b13",
+        "reason": "canonical NAIA client and node adapter import the limit directly",
+    },
+    "NAIA_REQUEST_TIMEOUT": {
+        "canonical_target": "easyuse_anima.naia.client:NAIA_REQUEST_TIMEOUT",
+        "owner": "#184/#188 B-10b13",
+        "reason": "canonical NAIA node adapter imports the request timeout directly",
+    },
+    "NAI_1MP": {
+        "canonical_target": "easyuse_anima.naia.client:NAI_1MP",
+        "owner": "#184/#188 B-10b13",
+        "reason": "canonical NAIA client consumes the pixel bound internally",
+    },
+    "PP_STATE_CHOICES": {
+        "canonical_target": "easyuse_anima.naia.client:PP_STATE_CHOICES",
+        "owner": "#184/#188 B-10b13",
+        "reason": "canonical NAIA node adapter imports preprocessing choices directly",
+    },
+    "PREPROCESSING_KEYS": {
+        "canonical_target": "easyuse_anima.naia.client:PREPROCESSING_KEYS",
+        "owner": "#184/#188 B-10b13",
+        "reason": "canonical NAIA node adapter imports preprocessing keys directly",
+    },
+    "_build_naia_random_url": {
+        "canonical_target": "easyuse_anima.naia.client:_build_naia_random_url",
+        "owner": "#184/#188 B-10b13",
+        "reason": "canonical NAIA client calls its URL builder internally",
+    },
+    "_clean_prompt": {
+        "canonical_target": "easyuse_anima.naia.client:_clean_prompt",
+        "owner": "#184/#188 B-10b13",
+        "reason": "canonical NAIA client calls its prompt cleanup internally",
+    },
+    "_fit_to_1mp": {
+        "canonical_target": "easyuse_anima.naia.client:_fit_to_1mp",
+        "owner": "#184/#188 B-10b13",
+        "reason": "canonical NAIA client calls its resolution fitting internally",
+    },
+    "_is_local_naia_host": {
+        "canonical_target": "easyuse_anima.naia.client:_is_local_naia_host",
+        "owner": "#184/#188 B-10b13",
+        "reason": "canonical NAIA client calls its host guard internally",
+    },
     "PROMPT_DATA_COMPAT_OUTPUT_TOOLTIPS": {
         "canonical_target": (
             "easyuse_anima.prompt.data:PROMPT_DATA_COMPAT_OUTPUT_TOOLTIPS"
@@ -830,6 +895,7 @@ def _build_document() -> dict[str, Any]:
                 "B-10b10",
                 "B-10b11",
                 "B-10b12",
+                "B-10b13",
             ],
         },
         "enums": {
@@ -842,7 +908,7 @@ def _build_document() -> dict[str, Any]:
         "expected_counts": {
             "root_entrypoints": 3,
             "excluded_preamble_implementation_bindings": 7,
-            "nodes_canonical_bindings": 369,
+            "nodes_canonical_bindings": 356,
             "nodes_legacy_bindings": 27,
             "mapped_public_classes": 18,
             "unmapped_classes": 2,

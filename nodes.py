@@ -412,20 +412,20 @@ try:
         _bind_regional_node_runtime as _bind_regional_node_runtime,
     )
     from .easyuse_anima.naia.client import (
-        DEFAULT_HOST as DEFAULT_HOST,
-        DEFAULT_PORT as DEFAULT_PORT,
-        HTTP_TIMEOUT as HTTP_TIMEOUT,
+        # B-10b13 retires 13 unsupported NAIA client root aliases.
+        # Canonical client and node-adapter consumers import their owner directly.
+        # Host and port defaults stay canonical.
+        # Local-host and remote opt-in policy stays canonical.
+        # Request timeout values stay canonical.
+        # Resolution bounds and 1MP fitting stay canonical.
+        # Preprocessing keys and choices stay canonical.
+        # URL construction and host validation stay canonical.
+        # Prompt cleanup stays canonical.
+        # Repository tests use the canonical owner for retired names.
+        # Retained runtime values stay direct root seams.
+        # Response parsing and HTTP posting remain bound at call time.
+        # Mapped NAIA node identity and workflows stay unchanged.
         LATENT_ALIGN as LATENT_ALIGN,
-        NAI_1MP as NAI_1MP,
-        NAIA_LOCAL_HOSTS as NAIA_LOCAL_HOSTS,
-        NAIA_MAX_RESOLUTION as NAIA_MAX_RESOLUTION,
-        NAIA_REQUEST_TIMEOUT as NAIA_REQUEST_TIMEOUT,
-        PP_STATE_CHOICES as PP_STATE_CHOICES,
-        PREPROCESSING_KEYS as PREPROCESSING_KEYS,
-        _build_naia_random_url as _build_naia_random_url,
-        _clean_prompt as _clean_prompt,
-        _fit_to_1mp as _fit_to_1mp,
-        _is_local_naia_host as _is_local_naia_host,
         _parse_random_response as _parse_random_response,
         _post_random as _post_random,
     )
@@ -925,20 +925,20 @@ except ImportError:  # allows simple local import tests outside ComfyUI's packag
         _bind_regional_node_runtime as _bind_regional_node_runtime,
     )
     from easyuse_anima.naia.client import (
-        DEFAULT_HOST as DEFAULT_HOST,
-        DEFAULT_PORT as DEFAULT_PORT,
-        HTTP_TIMEOUT as HTTP_TIMEOUT,
+        # B-10b13 retires 13 unsupported NAIA client root aliases.
+        # Canonical client and node-adapter consumers import their owner directly.
+        # Host and port defaults stay canonical.
+        # Local-host and remote opt-in policy stays canonical.
+        # Request timeout values stay canonical.
+        # Resolution bounds and 1MP fitting stay canonical.
+        # Preprocessing keys and choices stay canonical.
+        # URL construction and host validation stay canonical.
+        # Prompt cleanup stays canonical.
+        # Repository tests use the canonical owner for retired names.
+        # Retained runtime values stay direct root seams.
+        # Response parsing and HTTP posting remain bound at call time.
+        # Mapped NAIA node identity and workflows stay unchanged.
         LATENT_ALIGN as LATENT_ALIGN,
-        NAI_1MP as NAI_1MP,
-        NAIA_LOCAL_HOSTS as NAIA_LOCAL_HOSTS,
-        NAIA_MAX_RESOLUTION as NAIA_MAX_RESOLUTION,
-        NAIA_REQUEST_TIMEOUT as NAIA_REQUEST_TIMEOUT,
-        PP_STATE_CHOICES as PP_STATE_CHOICES,
-        PREPROCESSING_KEYS as PREPROCESSING_KEYS,
-        _build_naia_random_url as _build_naia_random_url,
-        _clean_prompt as _clean_prompt,
-        _fit_to_1mp as _fit_to_1mp,
-        _is_local_naia_host as _is_local_naia_host,
         _parse_random_response as _parse_random_response,
         _post_random as _post_random,
     )
