@@ -15,7 +15,7 @@ NODES_PATH = ROOT / "nodes.py"
 FIXTURE_PATH = ROOT / "tests" / "fixtures" / "python_compatibility_surface.v1.json"
 
 SCHEMA_VERSION = 1
-BASE_COMMIT = "048c4f6df845206dd2c32090dcaa0440aec9e92e"
+BASE_COMMIT = "565f9877a3578acdbf56ab45d9c16152d54c58ca"
 CLASSIFICATIONS = (
     "permanent_entrypoint",
     "supported_public_reexport",
@@ -55,7 +55,38 @@ PREAMBLE_IMPLEMENTATION_BINDINGS = {
     "re": "re:re",
     "sqrt": "math:sqrt",
 }
+RETIRED_ARTIST_MIX_MODE_BINDINGS = (
+    "ARTIST_MIX_CONTROL_KEY",
+    "ARTIST_MIX_EXACT_KEY",
+    "ARTIST_MIX_MODES",
+    "ARTIST_MIX_MODE_AVERAGE",
+    "ARTIST_MIX_MODE_AVERAGE_LATE_EXACT",
+    "ARTIST_MIX_MODE_CLUSTERED",
+    "ARTIST_MIX_MODE_COMPOSITE_EXACT",
+    "ARTIST_MIX_MODE_DELTA_RMS",
+    "ARTIST_MIX_MODE_DESCRIPTIONS",
+    "ARTIST_MIX_MODE_EXACT",
+    "ARTIST_MIX_MODE_HYBRID",
+    "ARTIST_MIX_MODE_LATE_EXACT",
+    "ARTIST_MIX_MODE_OFF",
+    "ARTIST_MIX_MODE_PROMPT",
+    "ARTIST_MIX_MODE_SCHEDULED_AVERAGE",
+    "ARTIST_MIX_SCHEDULE_KEY",
+    "ARTIST_MIX_STUDIO_MODES",
+    "ARTIST_TAG_POSITION_BACK",
+    "ARTIST_TAG_POSITION_CORRECT",
+    "ARTIST_TAG_POSITION_FRONT",
+    "ARTIST_TAG_POSITION_MODES",
+)
 RETIRED_PRIVATE_BINDINGS = {
+    **{
+        name: {
+            "canonical_target": f"easyuse_anima.prompt.artist_mix:{name}",
+            "owner": "#184/#188 B-10b19",
+            "reason": "canonical Artist Mix owner and adapters consume this constant directly",
+        }
+        for name in RETIRED_ARTIST_MIX_MODE_BINDINGS
+    },
     "_artist_group_token": {
         "canonical_target": "easyuse_anima.prompt.artist_mix:_artist_group_token",
         "owner": "#184/#188 B-10b18",
@@ -1232,6 +1263,7 @@ def _build_document() -> dict[str, Any]:
                 "B-10b16",
                 "B-10b17",
                 "B-10b18",
+                "B-10b19",
             ],
         },
         "enums": {
@@ -1244,7 +1276,7 @@ def _build_document() -> dict[str, Any]:
         "expected_counts": {
             "root_entrypoints": 3,
             "excluded_preamble_implementation_bindings": 7,
-            "nodes_canonical_bindings": 300,
+            "nodes_canonical_bindings": 279,
             "nodes_legacy_bindings": 27,
             "mapped_public_classes": 18,
             "unmapped_classes": 2,

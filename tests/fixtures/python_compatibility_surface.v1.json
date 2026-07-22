@@ -2,7 +2,7 @@
   "schema_version": 1,
   "snapshot": {
     "base_branch": "dev",
-    "base_commit": "048c4f6df845206dd2c32090dcaa0440aec9e92e",
+    "base_commit": "565f9877a3578acdbf56ab45d9c16152d54c58ca",
     "first_release": null,
     "owner_tasks": [
       "#184",
@@ -25,7 +25,8 @@
       "B-10b15",
       "B-10b16",
       "B-10b17",
-      "B-10b18"
+      "B-10b18",
+      "B-10b19"
     ]
   },
   "enums": {
@@ -60,7 +61,7 @@
   "expected_counts": {
     "root_entrypoints": 3,
     "excluded_preamble_implementation_bindings": 7,
-    "nodes_canonical_bindings": 300,
+    "nodes_canonical_bindings": 279,
     "nodes_legacy_bindings": 27,
     "mapped_public_classes": 18,
     "unmapped_classes": 2,
@@ -1051,6 +1052,111 @@
     }
   },
   "retired_private_bindings": {
+    "ARTIST_MIX_CONTROL_KEY": {
+      "canonical_target": "easyuse_anima.prompt.artist_mix:ARTIST_MIX_CONTROL_KEY",
+      "owner": "#184/#188 B-10b19",
+      "reason": "canonical Artist Mix owner and adapters consume this constant directly"
+    },
+    "ARTIST_MIX_EXACT_KEY": {
+      "canonical_target": "easyuse_anima.prompt.artist_mix:ARTIST_MIX_EXACT_KEY",
+      "owner": "#184/#188 B-10b19",
+      "reason": "canonical Artist Mix owner and adapters consume this constant directly"
+    },
+    "ARTIST_MIX_MODES": {
+      "canonical_target": "easyuse_anima.prompt.artist_mix:ARTIST_MIX_MODES",
+      "owner": "#184/#188 B-10b19",
+      "reason": "canonical Artist Mix owner and adapters consume this constant directly"
+    },
+    "ARTIST_MIX_MODE_AVERAGE": {
+      "canonical_target": "easyuse_anima.prompt.artist_mix:ARTIST_MIX_MODE_AVERAGE",
+      "owner": "#184/#188 B-10b19",
+      "reason": "canonical Artist Mix owner and adapters consume this constant directly"
+    },
+    "ARTIST_MIX_MODE_AVERAGE_LATE_EXACT": {
+      "canonical_target": "easyuse_anima.prompt.artist_mix:ARTIST_MIX_MODE_AVERAGE_LATE_EXACT",
+      "owner": "#184/#188 B-10b19",
+      "reason": "canonical Artist Mix owner and adapters consume this constant directly"
+    },
+    "ARTIST_MIX_MODE_CLUSTERED": {
+      "canonical_target": "easyuse_anima.prompt.artist_mix:ARTIST_MIX_MODE_CLUSTERED",
+      "owner": "#184/#188 B-10b19",
+      "reason": "canonical Artist Mix owner and adapters consume this constant directly"
+    },
+    "ARTIST_MIX_MODE_COMPOSITE_EXACT": {
+      "canonical_target": "easyuse_anima.prompt.artist_mix:ARTIST_MIX_MODE_COMPOSITE_EXACT",
+      "owner": "#184/#188 B-10b19",
+      "reason": "canonical Artist Mix owner and adapters consume this constant directly"
+    },
+    "ARTIST_MIX_MODE_DELTA_RMS": {
+      "canonical_target": "easyuse_anima.prompt.artist_mix:ARTIST_MIX_MODE_DELTA_RMS",
+      "owner": "#184/#188 B-10b19",
+      "reason": "canonical Artist Mix owner and adapters consume this constant directly"
+    },
+    "ARTIST_MIX_MODE_DESCRIPTIONS": {
+      "canonical_target": "easyuse_anima.prompt.artist_mix:ARTIST_MIX_MODE_DESCRIPTIONS",
+      "owner": "#184/#188 B-10b19",
+      "reason": "canonical Artist Mix owner and adapters consume this constant directly"
+    },
+    "ARTIST_MIX_MODE_EXACT": {
+      "canonical_target": "easyuse_anima.prompt.artist_mix:ARTIST_MIX_MODE_EXACT",
+      "owner": "#184/#188 B-10b19",
+      "reason": "canonical Artist Mix owner and adapters consume this constant directly"
+    },
+    "ARTIST_MIX_MODE_HYBRID": {
+      "canonical_target": "easyuse_anima.prompt.artist_mix:ARTIST_MIX_MODE_HYBRID",
+      "owner": "#184/#188 B-10b19",
+      "reason": "canonical Artist Mix owner and adapters consume this constant directly"
+    },
+    "ARTIST_MIX_MODE_LATE_EXACT": {
+      "canonical_target": "easyuse_anima.prompt.artist_mix:ARTIST_MIX_MODE_LATE_EXACT",
+      "owner": "#184/#188 B-10b19",
+      "reason": "canonical Artist Mix owner and adapters consume this constant directly"
+    },
+    "ARTIST_MIX_MODE_OFF": {
+      "canonical_target": "easyuse_anima.prompt.artist_mix:ARTIST_MIX_MODE_OFF",
+      "owner": "#184/#188 B-10b19",
+      "reason": "canonical Artist Mix owner and adapters consume this constant directly"
+    },
+    "ARTIST_MIX_MODE_PROMPT": {
+      "canonical_target": "easyuse_anima.prompt.artist_mix:ARTIST_MIX_MODE_PROMPT",
+      "owner": "#184/#188 B-10b19",
+      "reason": "canonical Artist Mix owner and adapters consume this constant directly"
+    },
+    "ARTIST_MIX_MODE_SCHEDULED_AVERAGE": {
+      "canonical_target": "easyuse_anima.prompt.artist_mix:ARTIST_MIX_MODE_SCHEDULED_AVERAGE",
+      "owner": "#184/#188 B-10b19",
+      "reason": "canonical Artist Mix owner and adapters consume this constant directly"
+    },
+    "ARTIST_MIX_SCHEDULE_KEY": {
+      "canonical_target": "easyuse_anima.prompt.artist_mix:ARTIST_MIX_SCHEDULE_KEY",
+      "owner": "#184/#188 B-10b19",
+      "reason": "canonical Artist Mix owner and adapters consume this constant directly"
+    },
+    "ARTIST_MIX_STUDIO_MODES": {
+      "canonical_target": "easyuse_anima.prompt.artist_mix:ARTIST_MIX_STUDIO_MODES",
+      "owner": "#184/#188 B-10b19",
+      "reason": "canonical Artist Mix owner and adapters consume this constant directly"
+    },
+    "ARTIST_TAG_POSITION_BACK": {
+      "canonical_target": "easyuse_anima.prompt.artist_mix:ARTIST_TAG_POSITION_BACK",
+      "owner": "#184/#188 B-10b19",
+      "reason": "canonical Artist Mix owner and adapters consume this constant directly"
+    },
+    "ARTIST_TAG_POSITION_CORRECT": {
+      "canonical_target": "easyuse_anima.prompt.artist_mix:ARTIST_TAG_POSITION_CORRECT",
+      "owner": "#184/#188 B-10b19",
+      "reason": "canonical Artist Mix owner and adapters consume this constant directly"
+    },
+    "ARTIST_TAG_POSITION_FRONT": {
+      "canonical_target": "easyuse_anima.prompt.artist_mix:ARTIST_TAG_POSITION_FRONT",
+      "owner": "#184/#188 B-10b19",
+      "reason": "canonical Artist Mix owner and adapters consume this constant directly"
+    },
+    "ARTIST_TAG_POSITION_MODES": {
+      "canonical_target": "easyuse_anima.prompt.artist_mix:ARTIST_TAG_POSITION_MODES",
+      "owner": "#184/#188 B-10b19",
+      "reason": "canonical Artist Mix owner and adapters consume this constant directly"
+    },
     "_artist_group_token": {
       "canonical_target": "easyuse_anima.prompt.artist_mix:_artist_group_token",
       "owner": "#184/#188 B-10b18",
@@ -3128,27 +3234,6 @@
       "id": "nodes_canonical_bindings:easyuse_anima.prompt.artist_mix:unsupported_test_only",
       "surface": "nodes_canonical_bindings",
       "symbols": {
-        "ARTIST_MIX_CONTROL_KEY": "ARTIST_MIX_CONTROL_KEY",
-        "ARTIST_MIX_EXACT_KEY": "ARTIST_MIX_EXACT_KEY",
-        "ARTIST_MIX_MODES": "ARTIST_MIX_MODES",
-        "ARTIST_MIX_MODE_AVERAGE": "ARTIST_MIX_MODE_AVERAGE",
-        "ARTIST_MIX_MODE_AVERAGE_LATE_EXACT": "ARTIST_MIX_MODE_AVERAGE_LATE_EXACT",
-        "ARTIST_MIX_MODE_CLUSTERED": "ARTIST_MIX_MODE_CLUSTERED",
-        "ARTIST_MIX_MODE_COMPOSITE_EXACT": "ARTIST_MIX_MODE_COMPOSITE_EXACT",
-        "ARTIST_MIX_MODE_DELTA_RMS": "ARTIST_MIX_MODE_DELTA_RMS",
-        "ARTIST_MIX_MODE_DESCRIPTIONS": "ARTIST_MIX_MODE_DESCRIPTIONS",
-        "ARTIST_MIX_MODE_EXACT": "ARTIST_MIX_MODE_EXACT",
-        "ARTIST_MIX_MODE_HYBRID": "ARTIST_MIX_MODE_HYBRID",
-        "ARTIST_MIX_MODE_LATE_EXACT": "ARTIST_MIX_MODE_LATE_EXACT",
-        "ARTIST_MIX_MODE_OFF": "ARTIST_MIX_MODE_OFF",
-        "ARTIST_MIX_MODE_PROMPT": "ARTIST_MIX_MODE_PROMPT",
-        "ARTIST_MIX_MODE_SCHEDULED_AVERAGE": "ARTIST_MIX_MODE_SCHEDULED_AVERAGE",
-        "ARTIST_MIX_SCHEDULE_KEY": "ARTIST_MIX_SCHEDULE_KEY",
-        "ARTIST_MIX_STUDIO_MODES": "ARTIST_MIX_STUDIO_MODES",
-        "ARTIST_TAG_POSITION_BACK": "ARTIST_TAG_POSITION_BACK",
-        "ARTIST_TAG_POSITION_CORRECT": "ARTIST_TAG_POSITION_CORRECT",
-        "ARTIST_TAG_POSITION_FRONT": "ARTIST_TAG_POSITION_FRONT",
-        "ARTIST_TAG_POSITION_MODES": "ARTIST_TAG_POSITION_MODES",
         "_artist_conditioning_feature": "_artist_conditioning_feature",
         "_artist_delta_rms_from_encoded": "_artist_delta_rms_from_encoded",
         "_conditionings_with_range": "_conditionings_with_range",

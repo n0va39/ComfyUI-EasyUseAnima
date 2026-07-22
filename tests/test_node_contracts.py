@@ -1278,6 +1278,29 @@ class PromptDataConditioningMoveContractTests(unittest.TestCase):
         "_split_artist_mix_blocks",
         "_split_artist_mix_items",
     )
+    RETIRED_ARTIST_MIX_MODE_ALIASES = (
+        "ARTIST_MIX_CONTROL_KEY",
+        "ARTIST_MIX_EXACT_KEY",
+        "ARTIST_MIX_MODES",
+        "ARTIST_MIX_MODE_AVERAGE",
+        "ARTIST_MIX_MODE_AVERAGE_LATE_EXACT",
+        "ARTIST_MIX_MODE_CLUSTERED",
+        "ARTIST_MIX_MODE_COMPOSITE_EXACT",
+        "ARTIST_MIX_MODE_DELTA_RMS",
+        "ARTIST_MIX_MODE_DESCRIPTIONS",
+        "ARTIST_MIX_MODE_EXACT",
+        "ARTIST_MIX_MODE_HYBRID",
+        "ARTIST_MIX_MODE_LATE_EXACT",
+        "ARTIST_MIX_MODE_OFF",
+        "ARTIST_MIX_MODE_PROMPT",
+        "ARTIST_MIX_MODE_SCHEDULED_AVERAGE",
+        "ARTIST_MIX_SCHEDULE_KEY",
+        "ARTIST_MIX_STUDIO_MODES",
+        "ARTIST_TAG_POSITION_BACK",
+        "ARTIST_TAG_POSITION_CORRECT",
+        "ARTIST_TAG_POSITION_FRONT",
+        "ARTIST_TAG_POSITION_MODES",
+    )
     NODE_CLASSES = (
         "EasyUseAnimaPromptDataUnpack",
         "EasyUseAnimaArtistMixConditioning",
@@ -1311,6 +1334,7 @@ class PromptDataConditioningMoveContractTests(unittest.TestCase):
             *self.RETIRED_PROMPT_DATA_ALIASES,
             *self.RETIRED_CONDITIONING_ALIASES,
             *self.RETIRED_ARTIST_MIX_PARSING_ALIASES,
+            *self.RETIRED_ARTIST_MIX_MODE_ALIASES,
         ):
             with self.subTest(retired=name):
                 self.assertFalse(hasattr(nodes, name))
@@ -1337,6 +1361,7 @@ class PromptDataConditioningMoveContractTests(unittest.TestCase):
                 *self.RETIRED_PROMPT_DATA_ALIASES,
                 *self.RETIRED_CONDITIONING_ALIASES,
                 *self.RETIRED_ARTIST_MIX_PARSING_ALIASES,
+                *self.RETIRED_ARTIST_MIX_MODE_ALIASES,
             ):
                 with self.subTest(retired=name):
                     self.assertFalse(hasattr(package_nodes, name))

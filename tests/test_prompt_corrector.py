@@ -17,6 +17,17 @@ from easyuse_anima.naia.client import _clean_prompt
 from easyuse_anima.naia.resolution import ADVANCED_RESOLUTION_BUCKETS
 from easyuse_anima.nodes.prompt_advanced_nodes import EasyUseAnimaPromptStudioExtend
 from easyuse_anima.prompt.advanced import ADVANCED_FIELDS_WORKFLOW_PROPERTY
+from easyuse_anima.prompt.artist_mix import (
+    ARTIST_MIX_CONTROL_KEY,
+    ARTIST_MIX_EXACT_KEY,
+    ARTIST_MIX_MODE_CLUSTERED,
+    ARTIST_MIX_MODE_DELTA_RMS,
+    ARTIST_MIX_MODE_HYBRID,
+    ARTIST_MIX_MODE_PROMPT,
+    ARTIST_TAG_POSITION_BACK,
+    ARTIST_TAG_POSITION_CORRECT,
+    ARTIST_TAG_POSITION_FRONT,
+)
 from easyuse_anima.prompt.conditioning import (
     _SPECTRUM_ANIMA_MOD_GUIDANCE_OLD_SIGNATURE_WARNED,
 )
@@ -26,16 +37,7 @@ from easyuse_anima.prompt.fields import (
     DEFAULT_TRAILING_QUALITY_TAGS,
 )
 from nodes import (
-    ARTIST_MIX_CONTROL_KEY,
-    ARTIST_MIX_EXACT_KEY,
-    ARTIST_MIX_MODE_CLUSTERED,
-    ARTIST_MIX_MODE_DELTA_RMS,
     ARTIST_MIX_MODE_FROM_PROMPT_DATA,
-    ARTIST_MIX_MODE_HYBRID,
-    ARTIST_MIX_MODE_PROMPT,
-    ARTIST_TAG_POSITION_BACK,
-    ARTIST_TAG_POSITION_CORRECT,
-    ARTIST_TAG_POSITION_FRONT,
     PROMPT_DATA_TYPE,
     EasyUseAnimaArtistMixConditioning,
     EasyUseAnimaDetailerAlignHook,
