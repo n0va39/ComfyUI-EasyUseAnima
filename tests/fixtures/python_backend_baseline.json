@@ -16537,130 +16537,6 @@
         "target": "easyuse_anima/prompt/fields.py"
       },
       {
-        "alias": "PROMPT_DATA_COMPAT_OUTPUT_TOOLTIPS",
-        "bound_name": "PROMPT_DATA_COMPAT_OUTPUT_TOOLTIPS",
-        "branch_context": [
-          {
-            "branch": "body",
-            "handles_import_failure": true,
-            "has_import_fallback_handler": true,
-            "kind": "try",
-            "line": 11
-          }
-        ],
-        "classification": "internal",
-        "column": 4,
-        "compatibility_pair": {
-          "bound_name": "PROMPT_DATA_COMPAT_OUTPUT_TOOLTIPS",
-          "target": "easyuse_anima/prompt/data.py",
-          "try_line": 11
-        },
-        "conditional": true,
-        "imported": ".easyuse_anima.prompt.data:PROMPT_DATA_COMPAT_OUTPUT_TOOLTIPS",
-        "kind": "static_from",
-        "line": 136,
-        "name": "PROMPT_DATA_COMPAT_OUTPUT_TOOLTIPS",
-        "optional": false,
-        "requested": ".easyuse_anima.prompt.data",
-        "role": "compatibility_primary",
-        "scope": "<module>",
-        "source": "nodes.py",
-        "target": "easyuse_anima/prompt/data.py"
-      },
-      {
-        "alias": "PROMPT_DATA_COMPAT_RETURN_NAMES",
-        "bound_name": "PROMPT_DATA_COMPAT_RETURN_NAMES",
-        "branch_context": [
-          {
-            "branch": "body",
-            "handles_import_failure": true,
-            "has_import_fallback_handler": true,
-            "kind": "try",
-            "line": 11
-          }
-        ],
-        "classification": "internal",
-        "column": 4,
-        "compatibility_pair": {
-          "bound_name": "PROMPT_DATA_COMPAT_RETURN_NAMES",
-          "target": "easyuse_anima/prompt/data.py",
-          "try_line": 11
-        },
-        "conditional": true,
-        "imported": ".easyuse_anima.prompt.data:PROMPT_DATA_COMPAT_RETURN_NAMES",
-        "kind": "static_from",
-        "line": 136,
-        "name": "PROMPT_DATA_COMPAT_RETURN_NAMES",
-        "optional": false,
-        "requested": ".easyuse_anima.prompt.data",
-        "role": "compatibility_primary",
-        "scope": "<module>",
-        "source": "nodes.py",
-        "target": "easyuse_anima/prompt/data.py"
-      },
-      {
-        "alias": "PROMPT_DATA_COMPAT_RETURN_TYPES",
-        "bound_name": "PROMPT_DATA_COMPAT_RETURN_TYPES",
-        "branch_context": [
-          {
-            "branch": "body",
-            "handles_import_failure": true,
-            "has_import_fallback_handler": true,
-            "kind": "try",
-            "line": 11
-          }
-        ],
-        "classification": "internal",
-        "column": 4,
-        "compatibility_pair": {
-          "bound_name": "PROMPT_DATA_COMPAT_RETURN_TYPES",
-          "target": "easyuse_anima/prompt/data.py",
-          "try_line": 11
-        },
-        "conditional": true,
-        "imported": ".easyuse_anima.prompt.data:PROMPT_DATA_COMPAT_RETURN_TYPES",
-        "kind": "static_from",
-        "line": 136,
-        "name": "PROMPT_DATA_COMPAT_RETURN_TYPES",
-        "optional": false,
-        "requested": ".easyuse_anima.prompt.data",
-        "role": "compatibility_primary",
-        "scope": "<module>",
-        "source": "nodes.py",
-        "target": "easyuse_anima/prompt/data.py"
-      },
-      {
-        "alias": "PROMPT_DATA_SCHEMA",
-        "bound_name": "PROMPT_DATA_SCHEMA",
-        "branch_context": [
-          {
-            "branch": "body",
-            "handles_import_failure": true,
-            "has_import_fallback_handler": true,
-            "kind": "try",
-            "line": 11
-          }
-        ],
-        "classification": "internal",
-        "column": 4,
-        "compatibility_pair": {
-          "bound_name": "PROMPT_DATA_SCHEMA",
-          "target": "easyuse_anima/prompt/data.py",
-          "try_line": 11
-        },
-        "conditional": true,
-        "imported": ".easyuse_anima.prompt.data:PROMPT_DATA_SCHEMA",
-        "kind": "static_from",
-        "line": 136,
-        "name": "PROMPT_DATA_SCHEMA",
-        "optional": false,
-        "requested": ".easyuse_anima.prompt.data",
-        "role": "compatibility_primary",
-        "scope": "<module>",
-        "source": "nodes.py",
-        "target": "easyuse_anima/prompt/data.py"
-      },
-      {
         "alias": "PROMPT_DATA_TYPE",
         "bound_name": "PROMPT_DATA_TYPE",
         "branch_context": [
@@ -16684,37 +16560,6 @@
         "kind": "static_from",
         "line": 136,
         "name": "PROMPT_DATA_TYPE",
-        "optional": false,
-        "requested": ".easyuse_anima.prompt.data",
-        "role": "compatibility_primary",
-        "scope": "<module>",
-        "source": "nodes.py",
-        "target": "easyuse_anima/prompt/data.py"
-      },
-      {
-        "alias": "PROMPT_DATA_VERSION",
-        "bound_name": "PROMPT_DATA_VERSION",
-        "branch_context": [
-          {
-            "branch": "body",
-            "handles_import_failure": true,
-            "has_import_fallback_handler": true,
-            "kind": "try",
-            "line": 11
-          }
-        ],
-        "classification": "internal",
-        "column": 4,
-        "compatibility_pair": {
-          "bound_name": "PROMPT_DATA_VERSION",
-          "target": "easyuse_anima/prompt/data.py",
-          "try_line": 11
-        },
-        "conditional": true,
-        "imported": ".easyuse_anima.prompt.data:PROMPT_DATA_VERSION",
-        "kind": "static_from",
-        "line": 136,
-        "name": "PROMPT_DATA_VERSION",
         "optional": false,
         "requested": ".easyuse_anima.prompt.data",
         "role": "compatibility_primary",
@@ -16847,37 +16692,6 @@
         "target": "easyuse_anima/prompt/data.py"
       },
       {
-        "alias": "_prompt_data_input_default",
-        "bound_name": "_prompt_data_input_default",
-        "branch_context": [
-          {
-            "branch": "body",
-            "handles_import_failure": true,
-            "has_import_fallback_handler": true,
-            "kind": "try",
-            "line": 11
-          }
-        ],
-        "classification": "internal",
-        "column": 4,
-        "compatibility_pair": {
-          "bound_name": "_prompt_data_input_default",
-          "target": "easyuse_anima/prompt/data.py",
-          "try_line": 11
-        },
-        "conditional": true,
-        "imported": ".easyuse_anima.prompt.data:_prompt_data_input_default",
-        "kind": "static_from",
-        "line": 136,
-        "name": "_prompt_data_input_default",
-        "optional": false,
-        "requested": ".easyuse_anima.prompt.data",
-        "role": "compatibility_primary",
-        "scope": "<module>",
-        "source": "nodes.py",
-        "target": "easyuse_anima/prompt/data.py"
-      },
-      {
         "alias": "_prompt_data_json_safe",
         "bound_name": "_prompt_data_json_safe",
         "branch_context": [
@@ -16909,68 +16723,6 @@
         "target": "easyuse_anima/prompt/data.py"
       },
       {
-        "alias": "_prompt_data_nested",
-        "bound_name": "_prompt_data_nested",
-        "branch_context": [
-          {
-            "branch": "body",
-            "handles_import_failure": true,
-            "has_import_fallback_handler": true,
-            "kind": "try",
-            "line": 11
-          }
-        ],
-        "classification": "internal",
-        "column": 4,
-        "compatibility_pair": {
-          "bound_name": "_prompt_data_nested",
-          "target": "easyuse_anima/prompt/data.py",
-          "try_line": 11
-        },
-        "conditional": true,
-        "imported": ".easyuse_anima.prompt.data:_prompt_data_nested",
-        "kind": "static_from",
-        "line": 136,
-        "name": "_prompt_data_nested",
-        "optional": false,
-        "requested": ".easyuse_anima.prompt.data",
-        "role": "compatibility_primary",
-        "scope": "<module>",
-        "source": "nodes.py",
-        "target": "easyuse_anima/prompt/data.py"
-      },
-      {
-        "alias": "_prompt_data_output",
-        "bound_name": "_prompt_data_output",
-        "branch_context": [
-          {
-            "branch": "body",
-            "handles_import_failure": true,
-            "has_import_fallback_handler": true,
-            "kind": "try",
-            "line": 11
-          }
-        ],
-        "classification": "internal",
-        "column": 4,
-        "compatibility_pair": {
-          "bound_name": "_prompt_data_output",
-          "target": "easyuse_anima/prompt/data.py",
-          "try_line": 11
-        },
-        "conditional": true,
-        "imported": ".easyuse_anima.prompt.data:_prompt_data_output",
-        "kind": "static_from",
-        "line": 136,
-        "name": "_prompt_data_output",
-        "optional": false,
-        "requested": ".easyuse_anima.prompt.data",
-        "role": "compatibility_primary",
-        "scope": "<module>",
-        "source": "nodes.py",
-        "target": "easyuse_anima/prompt/data.py"
-      },
-      {
         "alias": "_prompt_data_parameter_snapshot",
         "bound_name": "_prompt_data_parameter_snapshot",
         "branch_context": [
@@ -16994,37 +16746,6 @@
         "kind": "static_from",
         "line": 136,
         "name": "_prompt_data_parameter_snapshot",
-        "optional": false,
-        "requested": ".easyuse_anima.prompt.data",
-        "role": "compatibility_primary",
-        "scope": "<module>",
-        "source": "nodes.py",
-        "target": "easyuse_anima/prompt/data.py"
-      },
-      {
-        "alias": "_set_prompt_data_output",
-        "bound_name": "_set_prompt_data_output",
-        "branch_context": [
-          {
-            "branch": "body",
-            "handles_import_failure": true,
-            "has_import_fallback_handler": true,
-            "kind": "try",
-            "line": 11
-          }
-        ],
-        "classification": "internal",
-        "column": 4,
-        "compatibility_pair": {
-          "bound_name": "_set_prompt_data_output",
-          "target": "easyuse_anima/prompt/data.py",
-          "try_line": 11
-        },
-        "conditional": true,
-        "imported": ".easyuse_anima.prompt.data:_set_prompt_data_output",
-        "kind": "static_from",
-        "line": 136,
-        "name": "_set_prompt_data_output",
         "optional": false,
         "requested": ".easyuse_anima.prompt.data",
         "role": "compatibility_primary",
@@ -29371,142 +29092,6 @@
         "target": "easyuse_anima/prompt/fields.py"
       },
       {
-        "alias": "PROMPT_DATA_COMPAT_OUTPUT_TOOLTIPS",
-        "bound_name": "PROMPT_DATA_COMPAT_OUTPUT_TOOLTIPS",
-        "branch_context": [
-          {
-            "branch": "except",
-            "catches_import_error": true,
-            "exceptions": [
-              "ImportError"
-            ],
-            "handler_line": 524,
-            "kind": "try",
-            "line": 11
-          }
-        ],
-        "classification": "compatibility_fallback",
-        "column": 4,
-        "compatibility_pair": {
-          "bound_name": "PROMPT_DATA_COMPAT_OUTPUT_TOOLTIPS",
-          "target": "easyuse_anima/prompt/data.py",
-          "try_line": 11
-        },
-        "conditional": true,
-        "imported": "easyuse_anima.prompt.data:PROMPT_DATA_COMPAT_OUTPUT_TOOLTIPS",
-        "kind": "static_from",
-        "line": 649,
-        "name": "PROMPT_DATA_COMPAT_OUTPUT_TOOLTIPS",
-        "optional": false,
-        "requested": "easyuse_anima.prompt.data",
-        "role": "compatibility_fallback",
-        "scope": "<module>",
-        "source": "nodes.py",
-        "target": "easyuse_anima/prompt/data.py"
-      },
-      {
-        "alias": "PROMPT_DATA_COMPAT_RETURN_NAMES",
-        "bound_name": "PROMPT_DATA_COMPAT_RETURN_NAMES",
-        "branch_context": [
-          {
-            "branch": "except",
-            "catches_import_error": true,
-            "exceptions": [
-              "ImportError"
-            ],
-            "handler_line": 524,
-            "kind": "try",
-            "line": 11
-          }
-        ],
-        "classification": "compatibility_fallback",
-        "column": 4,
-        "compatibility_pair": {
-          "bound_name": "PROMPT_DATA_COMPAT_RETURN_NAMES",
-          "target": "easyuse_anima/prompt/data.py",
-          "try_line": 11
-        },
-        "conditional": true,
-        "imported": "easyuse_anima.prompt.data:PROMPT_DATA_COMPAT_RETURN_NAMES",
-        "kind": "static_from",
-        "line": 649,
-        "name": "PROMPT_DATA_COMPAT_RETURN_NAMES",
-        "optional": false,
-        "requested": "easyuse_anima.prompt.data",
-        "role": "compatibility_fallback",
-        "scope": "<module>",
-        "source": "nodes.py",
-        "target": "easyuse_anima/prompt/data.py"
-      },
-      {
-        "alias": "PROMPT_DATA_COMPAT_RETURN_TYPES",
-        "bound_name": "PROMPT_DATA_COMPAT_RETURN_TYPES",
-        "branch_context": [
-          {
-            "branch": "except",
-            "catches_import_error": true,
-            "exceptions": [
-              "ImportError"
-            ],
-            "handler_line": 524,
-            "kind": "try",
-            "line": 11
-          }
-        ],
-        "classification": "compatibility_fallback",
-        "column": 4,
-        "compatibility_pair": {
-          "bound_name": "PROMPT_DATA_COMPAT_RETURN_TYPES",
-          "target": "easyuse_anima/prompt/data.py",
-          "try_line": 11
-        },
-        "conditional": true,
-        "imported": "easyuse_anima.prompt.data:PROMPT_DATA_COMPAT_RETURN_TYPES",
-        "kind": "static_from",
-        "line": 649,
-        "name": "PROMPT_DATA_COMPAT_RETURN_TYPES",
-        "optional": false,
-        "requested": "easyuse_anima.prompt.data",
-        "role": "compatibility_fallback",
-        "scope": "<module>",
-        "source": "nodes.py",
-        "target": "easyuse_anima/prompt/data.py"
-      },
-      {
-        "alias": "PROMPT_DATA_SCHEMA",
-        "bound_name": "PROMPT_DATA_SCHEMA",
-        "branch_context": [
-          {
-            "branch": "except",
-            "catches_import_error": true,
-            "exceptions": [
-              "ImportError"
-            ],
-            "handler_line": 524,
-            "kind": "try",
-            "line": 11
-          }
-        ],
-        "classification": "compatibility_fallback",
-        "column": 4,
-        "compatibility_pair": {
-          "bound_name": "PROMPT_DATA_SCHEMA",
-          "target": "easyuse_anima/prompt/data.py",
-          "try_line": 11
-        },
-        "conditional": true,
-        "imported": "easyuse_anima.prompt.data:PROMPT_DATA_SCHEMA",
-        "kind": "static_from",
-        "line": 649,
-        "name": "PROMPT_DATA_SCHEMA",
-        "optional": false,
-        "requested": "easyuse_anima.prompt.data",
-        "role": "compatibility_fallback",
-        "scope": "<module>",
-        "source": "nodes.py",
-        "target": "easyuse_anima/prompt/data.py"
-      },
-      {
         "alias": "PROMPT_DATA_TYPE",
         "bound_name": "PROMPT_DATA_TYPE",
         "branch_context": [
@@ -29533,40 +29118,6 @@
         "kind": "static_from",
         "line": 649,
         "name": "PROMPT_DATA_TYPE",
-        "optional": false,
-        "requested": "easyuse_anima.prompt.data",
-        "role": "compatibility_fallback",
-        "scope": "<module>",
-        "source": "nodes.py",
-        "target": "easyuse_anima/prompt/data.py"
-      },
-      {
-        "alias": "PROMPT_DATA_VERSION",
-        "bound_name": "PROMPT_DATA_VERSION",
-        "branch_context": [
-          {
-            "branch": "except",
-            "catches_import_error": true,
-            "exceptions": [
-              "ImportError"
-            ],
-            "handler_line": 524,
-            "kind": "try",
-            "line": 11
-          }
-        ],
-        "classification": "compatibility_fallback",
-        "column": 4,
-        "compatibility_pair": {
-          "bound_name": "PROMPT_DATA_VERSION",
-          "target": "easyuse_anima/prompt/data.py",
-          "try_line": 11
-        },
-        "conditional": true,
-        "imported": "easyuse_anima.prompt.data:PROMPT_DATA_VERSION",
-        "kind": "static_from",
-        "line": 649,
-        "name": "PROMPT_DATA_VERSION",
         "optional": false,
         "requested": "easyuse_anima.prompt.data",
         "role": "compatibility_fallback",
@@ -29711,40 +29262,6 @@
         "target": "easyuse_anima/prompt/data.py"
       },
       {
-        "alias": "_prompt_data_input_default",
-        "bound_name": "_prompt_data_input_default",
-        "branch_context": [
-          {
-            "branch": "except",
-            "catches_import_error": true,
-            "exceptions": [
-              "ImportError"
-            ],
-            "handler_line": 524,
-            "kind": "try",
-            "line": 11
-          }
-        ],
-        "classification": "compatibility_fallback",
-        "column": 4,
-        "compatibility_pair": {
-          "bound_name": "_prompt_data_input_default",
-          "target": "easyuse_anima/prompt/data.py",
-          "try_line": 11
-        },
-        "conditional": true,
-        "imported": "easyuse_anima.prompt.data:_prompt_data_input_default",
-        "kind": "static_from",
-        "line": 649,
-        "name": "_prompt_data_input_default",
-        "optional": false,
-        "requested": "easyuse_anima.prompt.data",
-        "role": "compatibility_fallback",
-        "scope": "<module>",
-        "source": "nodes.py",
-        "target": "easyuse_anima/prompt/data.py"
-      },
-      {
         "alias": "_prompt_data_json_safe",
         "bound_name": "_prompt_data_json_safe",
         "branch_context": [
@@ -29779,74 +29296,6 @@
         "target": "easyuse_anima/prompt/data.py"
       },
       {
-        "alias": "_prompt_data_nested",
-        "bound_name": "_prompt_data_nested",
-        "branch_context": [
-          {
-            "branch": "except",
-            "catches_import_error": true,
-            "exceptions": [
-              "ImportError"
-            ],
-            "handler_line": 524,
-            "kind": "try",
-            "line": 11
-          }
-        ],
-        "classification": "compatibility_fallback",
-        "column": 4,
-        "compatibility_pair": {
-          "bound_name": "_prompt_data_nested",
-          "target": "easyuse_anima/prompt/data.py",
-          "try_line": 11
-        },
-        "conditional": true,
-        "imported": "easyuse_anima.prompt.data:_prompt_data_nested",
-        "kind": "static_from",
-        "line": 649,
-        "name": "_prompt_data_nested",
-        "optional": false,
-        "requested": "easyuse_anima.prompt.data",
-        "role": "compatibility_fallback",
-        "scope": "<module>",
-        "source": "nodes.py",
-        "target": "easyuse_anima/prompt/data.py"
-      },
-      {
-        "alias": "_prompt_data_output",
-        "bound_name": "_prompt_data_output",
-        "branch_context": [
-          {
-            "branch": "except",
-            "catches_import_error": true,
-            "exceptions": [
-              "ImportError"
-            ],
-            "handler_line": 524,
-            "kind": "try",
-            "line": 11
-          }
-        ],
-        "classification": "compatibility_fallback",
-        "column": 4,
-        "compatibility_pair": {
-          "bound_name": "_prompt_data_output",
-          "target": "easyuse_anima/prompt/data.py",
-          "try_line": 11
-        },
-        "conditional": true,
-        "imported": "easyuse_anima.prompt.data:_prompt_data_output",
-        "kind": "static_from",
-        "line": 649,
-        "name": "_prompt_data_output",
-        "optional": false,
-        "requested": "easyuse_anima.prompt.data",
-        "role": "compatibility_fallback",
-        "scope": "<module>",
-        "source": "nodes.py",
-        "target": "easyuse_anima/prompt/data.py"
-      },
-      {
         "alias": "_prompt_data_parameter_snapshot",
         "bound_name": "_prompt_data_parameter_snapshot",
         "branch_context": [
@@ -29873,40 +29322,6 @@
         "kind": "static_from",
         "line": 649,
         "name": "_prompt_data_parameter_snapshot",
-        "optional": false,
-        "requested": "easyuse_anima.prompt.data",
-        "role": "compatibility_fallback",
-        "scope": "<module>",
-        "source": "nodes.py",
-        "target": "easyuse_anima/prompt/data.py"
-      },
-      {
-        "alias": "_set_prompt_data_output",
-        "bound_name": "_set_prompt_data_output",
-        "branch_context": [
-          {
-            "branch": "except",
-            "catches_import_error": true,
-            "exceptions": [
-              "ImportError"
-            ],
-            "handler_line": 524,
-            "kind": "try",
-            "line": 11
-          }
-        ],
-        "classification": "compatibility_fallback",
-        "column": 4,
-        "compatibility_pair": {
-          "bound_name": "_set_prompt_data_output",
-          "target": "easyuse_anima/prompt/data.py",
-          "try_line": 11
-        },
-        "conditional": true,
-        "imported": "easyuse_anima.prompt.data:_set_prompt_data_output",
-        "kind": "static_from",
-        "line": 649,
-        "name": "_set_prompt_data_output",
         "optional": false,
         "requested": "easyuse_anima.prompt.data",
         "role": "compatibility_fallback",
@@ -43491,7 +42906,7 @@
         "is_package": false,
         "loc": 2712,
         "module": "nodes",
-        "normalized_git_blob_sha1": "b6632e400cfd4042e649bbf15316ad4ce899369c",
+        "normalized_git_blob_sha1": "722ffd432213ae3a1a83eb93c4600990a1d9c82a",
         "path": "nodes.py",
         "top_level": {
           "class_count": 2,
@@ -46991,122 +46406,7 @@
         ],
         "classification": "compatibility_fallback",
         "conditional": true,
-        "imported": "easyuse_anima.prompt.data:PROMPT_DATA_COMPAT_OUTPUT_TOOLTIPS",
-        "kind": "static_from",
-        "line": 649,
-        "optional": false,
-        "role": "compatibility_fallback",
-        "source": "nodes.py",
-        "target": "easyuse_anima/prompt/data.py"
-      },
-      {
-        "branch_context": [
-          {
-            "branch": "except",
-            "catches_import_error": true,
-            "exceptions": [
-              "ImportError"
-            ],
-            "handler_line": 524,
-            "kind": "try",
-            "line": 11
-          }
-        ],
-        "classification": "compatibility_fallback",
-        "conditional": true,
-        "imported": "easyuse_anima.prompt.data:PROMPT_DATA_COMPAT_RETURN_NAMES",
-        "kind": "static_from",
-        "line": 649,
-        "optional": false,
-        "role": "compatibility_fallback",
-        "source": "nodes.py",
-        "target": "easyuse_anima/prompt/data.py"
-      },
-      {
-        "branch_context": [
-          {
-            "branch": "except",
-            "catches_import_error": true,
-            "exceptions": [
-              "ImportError"
-            ],
-            "handler_line": 524,
-            "kind": "try",
-            "line": 11
-          }
-        ],
-        "classification": "compatibility_fallback",
-        "conditional": true,
-        "imported": "easyuse_anima.prompt.data:PROMPT_DATA_COMPAT_RETURN_TYPES",
-        "kind": "static_from",
-        "line": 649,
-        "optional": false,
-        "role": "compatibility_fallback",
-        "source": "nodes.py",
-        "target": "easyuse_anima/prompt/data.py"
-      },
-      {
-        "branch_context": [
-          {
-            "branch": "except",
-            "catches_import_error": true,
-            "exceptions": [
-              "ImportError"
-            ],
-            "handler_line": 524,
-            "kind": "try",
-            "line": 11
-          }
-        ],
-        "classification": "compatibility_fallback",
-        "conditional": true,
-        "imported": "easyuse_anima.prompt.data:PROMPT_DATA_SCHEMA",
-        "kind": "static_from",
-        "line": 649,
-        "optional": false,
-        "role": "compatibility_fallback",
-        "source": "nodes.py",
-        "target": "easyuse_anima/prompt/data.py"
-      },
-      {
-        "branch_context": [
-          {
-            "branch": "except",
-            "catches_import_error": true,
-            "exceptions": [
-              "ImportError"
-            ],
-            "handler_line": 524,
-            "kind": "try",
-            "line": 11
-          }
-        ],
-        "classification": "compatibility_fallback",
-        "conditional": true,
         "imported": "easyuse_anima.prompt.data:PROMPT_DATA_TYPE",
-        "kind": "static_from",
-        "line": 649,
-        "optional": false,
-        "role": "compatibility_fallback",
-        "source": "nodes.py",
-        "target": "easyuse_anima/prompt/data.py"
-      },
-      {
-        "branch_context": [
-          {
-            "branch": "except",
-            "catches_import_error": true,
-            "exceptions": [
-              "ImportError"
-            ],
-            "handler_line": 524,
-            "kind": "try",
-            "line": 11
-          }
-        ],
-        "classification": "compatibility_fallback",
-        "conditional": true,
-        "imported": "easyuse_anima.prompt.data:PROMPT_DATA_VERSION",
         "kind": "static_from",
         "line": 649,
         "optional": false,
@@ -47221,29 +46521,6 @@
         ],
         "classification": "compatibility_fallback",
         "conditional": true,
-        "imported": "easyuse_anima.prompt.data:_prompt_data_input_default",
-        "kind": "static_from",
-        "line": 649,
-        "optional": false,
-        "role": "compatibility_fallback",
-        "source": "nodes.py",
-        "target": "easyuse_anima/prompt/data.py"
-      },
-      {
-        "branch_context": [
-          {
-            "branch": "except",
-            "catches_import_error": true,
-            "exceptions": [
-              "ImportError"
-            ],
-            "handler_line": 524,
-            "kind": "try",
-            "line": 11
-          }
-        ],
-        "classification": "compatibility_fallback",
-        "conditional": true,
         "imported": "easyuse_anima.prompt.data:_prompt_data_json_safe",
         "kind": "static_from",
         "line": 649,
@@ -47267,76 +46544,7 @@
         ],
         "classification": "compatibility_fallback",
         "conditional": true,
-        "imported": "easyuse_anima.prompt.data:_prompt_data_nested",
-        "kind": "static_from",
-        "line": 649,
-        "optional": false,
-        "role": "compatibility_fallback",
-        "source": "nodes.py",
-        "target": "easyuse_anima/prompt/data.py"
-      },
-      {
-        "branch_context": [
-          {
-            "branch": "except",
-            "catches_import_error": true,
-            "exceptions": [
-              "ImportError"
-            ],
-            "handler_line": 524,
-            "kind": "try",
-            "line": 11
-          }
-        ],
-        "classification": "compatibility_fallback",
-        "conditional": true,
-        "imported": "easyuse_anima.prompt.data:_prompt_data_output",
-        "kind": "static_from",
-        "line": 649,
-        "optional": false,
-        "role": "compatibility_fallback",
-        "source": "nodes.py",
-        "target": "easyuse_anima/prompt/data.py"
-      },
-      {
-        "branch_context": [
-          {
-            "branch": "except",
-            "catches_import_error": true,
-            "exceptions": [
-              "ImportError"
-            ],
-            "handler_line": 524,
-            "kind": "try",
-            "line": 11
-          }
-        ],
-        "classification": "compatibility_fallback",
-        "conditional": true,
         "imported": "easyuse_anima.prompt.data:_prompt_data_parameter_snapshot",
-        "kind": "static_from",
-        "line": 649,
-        "optional": false,
-        "role": "compatibility_fallback",
-        "source": "nodes.py",
-        "target": "easyuse_anima/prompt/data.py"
-      },
-      {
-        "branch_context": [
-          {
-            "branch": "except",
-            "catches_import_error": true,
-            "exceptions": [
-              "ImportError"
-            ],
-            "handler_line": 524,
-            "kind": "try",
-            "line": 11
-          }
-        ],
-        "classification": "compatibility_fallback",
-        "conditional": true,
-        "imported": "easyuse_anima.prompt.data:_set_prompt_data_output",
         "kind": "static_from",
         "line": 649,
         "optional": false,

@@ -15,7 +15,7 @@ NODES_PATH = ROOT / "nodes.py"
 FIXTURE_PATH = ROOT / "tests" / "fixtures" / "python_compatibility_surface.v1.json"
 
 SCHEMA_VERSION = 1
-BASE_COMMIT = "6a6fe14d26e0d30b59ee18c55fe25591b93b15e4"
+BASE_COMMIT = "3c49e6c02489fa5d467c1a5028bcb2392c47bc83"
 CLASSIFICATIONS = (
     "permanent_entrypoint",
     "supported_public_reexport",
@@ -56,6 +56,57 @@ PREAMBLE_IMPLEMENTATION_BINDINGS = {
     "sqrt": "math:sqrt",
 }
 RETIRED_PRIVATE_BINDINGS = {
+    "PROMPT_DATA_COMPAT_OUTPUT_TOOLTIPS": {
+        "canonical_target": (
+            "easyuse_anima.prompt.data:PROMPT_DATA_COMPAT_OUTPUT_TOOLTIPS"
+        ),
+        "owner": "#184/#188 B-10b12",
+        "reason": "canonical prompt-data adapter imports the tuple directly",
+    },
+    "PROMPT_DATA_COMPAT_RETURN_NAMES": {
+        "canonical_target": (
+            "easyuse_anima.prompt.data:PROMPT_DATA_COMPAT_RETURN_NAMES"
+        ),
+        "owner": "#184/#188 B-10b12",
+        "reason": "canonical prompt-data adapter imports the tuple directly",
+    },
+    "PROMPT_DATA_COMPAT_RETURN_TYPES": {
+        "canonical_target": (
+            "easyuse_anima.prompt.data:PROMPT_DATA_COMPAT_RETURN_TYPES"
+        ),
+        "owner": "#184/#188 B-10b12",
+        "reason": "canonical prompt-data adapter imports the tuple directly",
+    },
+    "PROMPT_DATA_SCHEMA": {
+        "canonical_target": "easyuse_anima.prompt.data:PROMPT_DATA_SCHEMA",
+        "owner": "#184/#188 B-10b12",
+        "reason": "canonical advanced prompt service imports the schema directly",
+    },
+    "PROMPT_DATA_VERSION": {
+        "canonical_target": "easyuse_anima.prompt.data:PROMPT_DATA_VERSION",
+        "owner": "#184/#188 B-10b12",
+        "reason": "canonical advanced prompt service imports the version directly",
+    },
+    "_prompt_data_input_default": {
+        "canonical_target": "easyuse_anima.prompt.data:_prompt_data_input_default",
+        "owner": "#184/#188 B-10b12",
+        "reason": "canonical prompt-data owner consumes the helper internally",
+    },
+    "_prompt_data_nested": {
+        "canonical_target": "easyuse_anima.prompt.data:_prompt_data_nested",
+        "owner": "#184/#188 B-10b12",
+        "reason": "canonical prompt services import or call the owner directly",
+    },
+    "_prompt_data_output": {
+        "canonical_target": "easyuse_anima.prompt.data:_prompt_data_output",
+        "owner": "#184/#188 B-10b12",
+        "reason": "canonical prompt services import or call the owner directly",
+    },
+    "_set_prompt_data_output": {
+        "canonical_target": "easyuse_anima.prompt.data:_set_prompt_data_output",
+        "owner": "#184/#188 B-10b12",
+        "reason": "canonical prompt-data owner consumes the helper internally",
+    },
     "EasyUseAnimaPromptStudioExtend": {
         "canonical_target": (
             "easyuse_anima.nodes.prompt_advanced_nodes:EasyUseAnimaPromptStudioExtend"
@@ -778,6 +829,7 @@ def _build_document() -> dict[str, Any]:
                 "B-10b9",
                 "B-10b10",
                 "B-10b11",
+                "B-10b12",
             ],
         },
         "enums": {
@@ -790,7 +842,7 @@ def _build_document() -> dict[str, Any]:
         "expected_counts": {
             "root_entrypoints": 3,
             "excluded_preamble_implementation_bindings": 7,
-            "nodes_canonical_bindings": 378,
+            "nodes_canonical_bindings": 369,
             "nodes_legacy_bindings": 27,
             "mapped_public_classes": 18,
             "unmapped_classes": 2,

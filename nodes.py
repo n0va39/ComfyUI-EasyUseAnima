@@ -134,22 +134,22 @@ try:
         _prompt_tokens as _prompt_tokens,
     )
     from .easyuse_anima.prompt.data import (
-        PROMPT_DATA_COMPAT_OUTPUT_TOOLTIPS as PROMPT_DATA_COMPAT_OUTPUT_TOOLTIPS,
-        PROMPT_DATA_COMPAT_RETURN_NAMES as PROMPT_DATA_COMPAT_RETURN_NAMES,
-        PROMPT_DATA_COMPAT_RETURN_TYPES as PROMPT_DATA_COMPAT_RETURN_TYPES,
-        PROMPT_DATA_SCHEMA as PROMPT_DATA_SCHEMA,
+        # B-10b12 retires nine unsupported prompt-data root aliases.
+        # Canonical schema, tuple, and helper consumers import their owner directly.
+        # Socket tooltip/name/type tuples stay canonical.
+        # Schema and version values stay canonical.
+        # Input-default resolution stays canonical.
+        # Nested/output fallback stays canonical.
+        # Dict output mutation stays canonical.
+        # Retained type and runtime-resolver helpers stay root seams.
+        # Mapped prompt-data adapters stay unchanged.
         PROMPT_DATA_TYPE as PROMPT_DATA_TYPE,
-        PROMPT_DATA_VERSION as PROMPT_DATA_VERSION,
         _advanced_outputs_from_prompt_data as _advanced_outputs_from_prompt_data,
         _apply_prompt_data_overrides as _apply_prompt_data_overrides,
         _copy_prompt_data_for_update as _copy_prompt_data_for_update,
         _normalize_prompt_data as _normalize_prompt_data,
-        _prompt_data_input_default as _prompt_data_input_default,
         _prompt_data_json_safe as _prompt_data_json_safe,
-        _prompt_data_nested as _prompt_data_nested,
-        _prompt_data_output as _prompt_data_output,
         _prompt_data_parameter_snapshot as _prompt_data_parameter_snapshot,
-        _set_prompt_data_output as _set_prompt_data_output,
     )
     from .easyuse_anima.prompt.advanced import (
         ADVANCED_FIELDS_WORKFLOW_PROPERTY as ADVANCED_FIELDS_WORKFLOW_PROPERTY,
@@ -647,22 +647,22 @@ except ImportError:  # allows simple local import tests outside ComfyUI's packag
         _prompt_tokens as _prompt_tokens,
     )
     from easyuse_anima.prompt.data import (
-        PROMPT_DATA_COMPAT_OUTPUT_TOOLTIPS as PROMPT_DATA_COMPAT_OUTPUT_TOOLTIPS,
-        PROMPT_DATA_COMPAT_RETURN_NAMES as PROMPT_DATA_COMPAT_RETURN_NAMES,
-        PROMPT_DATA_COMPAT_RETURN_TYPES as PROMPT_DATA_COMPAT_RETURN_TYPES,
-        PROMPT_DATA_SCHEMA as PROMPT_DATA_SCHEMA,
+        # B-10b12 retires nine unsupported prompt-data root aliases.
+        # Canonical schema, tuple, and helper consumers import their owner directly.
+        # Socket tooltip/name/type tuples stay canonical.
+        # Schema and version values stay canonical.
+        # Input-default resolution stays canonical.
+        # Nested/output fallback stays canonical.
+        # Dict output mutation stays canonical.
+        # Retained type and runtime-resolver helpers stay root seams.
+        # Mapped prompt-data adapters stay unchanged.
         PROMPT_DATA_TYPE as PROMPT_DATA_TYPE,
-        PROMPT_DATA_VERSION as PROMPT_DATA_VERSION,
         _advanced_outputs_from_prompt_data as _advanced_outputs_from_prompt_data,
         _apply_prompt_data_overrides as _apply_prompt_data_overrides,
         _copy_prompt_data_for_update as _copy_prompt_data_for_update,
         _normalize_prompt_data as _normalize_prompt_data,
-        _prompt_data_input_default as _prompt_data_input_default,
         _prompt_data_json_safe as _prompt_data_json_safe,
-        _prompt_data_nested as _prompt_data_nested,
-        _prompt_data_output as _prompt_data_output,
         _prompt_data_parameter_snapshot as _prompt_data_parameter_snapshot,
-        _set_prompt_data_output as _set_prompt_data_output,
     )
     from easyuse_anima.prompt.advanced import (
         ADVANCED_FIELDS_WORKFLOW_PROPERTY as ADVANCED_FIELDS_WORKFLOW_PROPERTY,

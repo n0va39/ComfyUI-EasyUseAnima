@@ -2,7 +2,7 @@
   "schema_version": 1,
   "snapshot": {
     "base_branch": "dev",
-    "base_commit": "6a6fe14d26e0d30b59ee18c55fe25591b93b15e4",
+    "base_commit": "3c49e6c02489fa5d467c1a5028bcb2392c47bc83",
     "first_release": null,
     "owner_tasks": [
       "#184",
@@ -18,7 +18,8 @@
       "B-10b8",
       "B-10b9",
       "B-10b10",
-      "B-10b11"
+      "B-10b11",
+      "B-10b12"
     ]
   },
   "enums": {
@@ -53,7 +54,7 @@
   "expected_counts": {
     "root_entrypoints": 3,
     "excluded_preamble_implementation_bindings": 7,
-    "nodes_canonical_bindings": 378,
+    "nodes_canonical_bindings": 369,
     "nodes_legacy_bindings": 27,
     "mapped_public_classes": 18,
     "unmapped_classes": 2,
@@ -1044,6 +1045,51 @@
     }
   },
   "retired_private_bindings": {
+    "PROMPT_DATA_COMPAT_OUTPUT_TOOLTIPS": {
+      "canonical_target": "easyuse_anima.prompt.data:PROMPT_DATA_COMPAT_OUTPUT_TOOLTIPS",
+      "owner": "#184/#188 B-10b12",
+      "reason": "canonical prompt-data adapter imports the tuple directly"
+    },
+    "PROMPT_DATA_COMPAT_RETURN_NAMES": {
+      "canonical_target": "easyuse_anima.prompt.data:PROMPT_DATA_COMPAT_RETURN_NAMES",
+      "owner": "#184/#188 B-10b12",
+      "reason": "canonical prompt-data adapter imports the tuple directly"
+    },
+    "PROMPT_DATA_COMPAT_RETURN_TYPES": {
+      "canonical_target": "easyuse_anima.prompt.data:PROMPT_DATA_COMPAT_RETURN_TYPES",
+      "owner": "#184/#188 B-10b12",
+      "reason": "canonical prompt-data adapter imports the tuple directly"
+    },
+    "PROMPT_DATA_SCHEMA": {
+      "canonical_target": "easyuse_anima.prompt.data:PROMPT_DATA_SCHEMA",
+      "owner": "#184/#188 B-10b12",
+      "reason": "canonical advanced prompt service imports the schema directly"
+    },
+    "PROMPT_DATA_VERSION": {
+      "canonical_target": "easyuse_anima.prompt.data:PROMPT_DATA_VERSION",
+      "owner": "#184/#188 B-10b12",
+      "reason": "canonical advanced prompt service imports the version directly"
+    },
+    "_prompt_data_input_default": {
+      "canonical_target": "easyuse_anima.prompt.data:_prompt_data_input_default",
+      "owner": "#184/#188 B-10b12",
+      "reason": "canonical prompt-data owner consumes the helper internally"
+    },
+    "_prompt_data_nested": {
+      "canonical_target": "easyuse_anima.prompt.data:_prompt_data_nested",
+      "owner": "#184/#188 B-10b12",
+      "reason": "canonical prompt services import or call the owner directly"
+    },
+    "_prompt_data_output": {
+      "canonical_target": "easyuse_anima.prompt.data:_prompt_data_output",
+      "owner": "#184/#188 B-10b12",
+      "reason": "canonical prompt services import or call the owner directly"
+    },
+    "_set_prompt_data_output": {
+      "canonical_target": "easyuse_anima.prompt.data:_set_prompt_data_output",
+      "owner": "#184/#188 B-10b12",
+      "reason": "canonical prompt-data owner consumes the helper internally"
+    },
     "EasyUseAnimaPromptStudioExtend": {
       "canonical_target": "easyuse_anima.nodes.prompt_advanced_nodes:EasyUseAnimaPromptStudioExtend",
       "owner": "#184/#188 B-10b11",
@@ -3100,43 +3146,6 @@
         "separate B-10b or B-11 rollback unit"
       ],
       "lifecycle_state": "transitional"
-    },
-    {
-      "id": "nodes_canonical_bindings:easyuse_anima.prompt.data:unsupported_test_only",
-      "surface": "nodes_canonical_bindings",
-      "symbols": {
-        "PROMPT_DATA_COMPAT_OUTPUT_TOOLTIPS": "PROMPT_DATA_COMPAT_OUTPUT_TOOLTIPS",
-        "PROMPT_DATA_COMPAT_RETURN_NAMES": "PROMPT_DATA_COMPAT_RETURN_NAMES",
-        "PROMPT_DATA_COMPAT_RETURN_TYPES": "PROMPT_DATA_COMPAT_RETURN_TYPES",
-        "PROMPT_DATA_SCHEMA": "PROMPT_DATA_SCHEMA",
-        "PROMPT_DATA_VERSION": "PROMPT_DATA_VERSION",
-        "_prompt_data_input_default": "_prompt_data_input_default",
-        "_prompt_data_nested": "_prompt_data_nested",
-        "_prompt_data_output": "_prompt_data_output",
-        "_set_prompt_data_output": "_set_prompt_data_output"
-      },
-      "classification": "unsupported_test_only",
-      "current_target": "nodes.py",
-      "canonical_target": "easyuse_anima.prompt.data",
-      "target_state": "canonical",
-      "identity_requirement": "not_applicable",
-      "binding_shape": "direct_import",
-      "import_target": "easyuse_anima.prompt.data",
-      "owner": "#184/#188",
-      "first_release": null,
-      "known_consumers": [
-        "repository tests may import this root name"
-      ],
-      "evidence": [
-        "AST:no nodes.py runtime load",
-        "test-only consumption is not public support evidence"
-      ],
-      "removal_gates": [
-        "test imports migrate to canonical targets",
-        "no production consumer evidence",
-        "separate B-10b removal review"
-      ],
-      "lifecycle_state": "unsupported"
     },
     {
       "id": "nodes_canonical_bindings:easyuse_anima.prompt.fields:transitional_private_seam",
