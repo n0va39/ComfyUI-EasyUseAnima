@@ -36,7 +36,7 @@ merged PR, the owning issue's evidence record, and every stated exit gate.
 | D - root consolidation | Not started | Execute #186 feature by feature after the corresponding behavior contracts are stable |
 | E - runtime ownership | Not started | Execute #187 after canonical feature owners exist; E-01 inventory may start earlier |
 | F - typed boundaries | Partial patterns exist | Extend typed request/result/config and pure migration patterns feature by feature |
-| G - quality ratchet | G-01 and G-02a complete | G-02b strict allowlist, G-03 imports, G-04 public API, G-05 size, G-06 test ownership |
+| G - quality ratchet | G-01, G-02a/G-02b, and G-03a complete | Extend G-03 enrollment, then continue with G-04 through G-06 |
 | H - shim retirement | Not started | Requires canonical release evidence and ADR-002 gates |
 
 ### Measured Phase B progress
@@ -284,9 +284,9 @@ surfaces. AiO mechanical extraction must not start until #168 exits.
 | 3 | G-02b strict-clean pure/service allowlist | COMPLETE on `dev` | Contract/gate | #188 | PR #254 / `76237a60` |
 | 4 | C168-04 pure version-dispatch/migration registry | COMPLETE on `dev` | Contract | #168 | PR #255 / `29aa200e` |
 | 5 | C168-05 cross-surface setting omission gate | COMPLETE | Contract/gate | #168 | PR #256 merged |
-| 6 | G-03a completed-package import boundary fail gate | READY/PARALLEL | Contract/gate | #188 | G-02b merged |
-| 7 | C168-06 normalizer ownership move | IN REVIEW | Move | #168/#184 | PR #257 / C168 contracts and omission gate complete |
-| 8 | B-08a through B-08e AiO support-helper extraction | BLOCKED by #168 exit | Move | #184 | C168-03 through C168-06 complete |
+| 6 | G-03a completed-package import boundary fail gate | COMPLETE on `dev` | Contract/gate | #188 | PR #258 / six reviewed zero-violation prefixes enrolled |
+| 7 | C168-06 normalizer ownership move | COMPLETE on `dev` | Move | #168/#184 | PR #257 / `3ca5500` |
+| 8 | B-08a through B-08e AiO support-helper extraction | READY/SEQUENTIAL | Move | #184 | #168 closed; C168-03 through C168-06 complete |
 | 9 | B-09a/B-09b AiO node and legacy orchestration move | BLOCKED by B-08 | Move | #184 | AiO helpers canonical |
 | 10 | B-10 compatibility/private-alias audit | BLOCKED by B-09 | Contract/cleanup, split PRs | #184/#188 | All node implementations canonical |
 | 11 | B-11 registration/bootstrap/root shim | BLOCKED by B-10 | Move | #184 | Alias surface frozen |
@@ -432,6 +432,26 @@ relax or block the package-migration rules above.
   effects.
 - Existing root loader compatibility may remain baseline debt until B-11/D-14;
   the gate must not be weakened to accommodate new canonical violations.
+- The first blocking ledger contains exactly six reviewed prefixes:
+  `common`, `image`, `infrastructure/comfy`, `lora`, `naia`, and `profiles`.
+  Group id, owner issue, prefix, role, ordering, uniqueness, and the exact group
+  set are validated so deleting or broadening an entry cannot silently weaken
+  the gate. New Python files beneath an enrolled prefix are covered
+  automatically.
+- The checker consumes `analyze_python_backend.py` output without importing
+  production modules. It rejects enrolled canonical imports of repository-root
+  modules, references to `easyuse_anima/nodes/`,
+  `easyuse_anima/api/routes/`, exact `bootstrap.py` or `registration.py`,
+  runtime cyclic SCC membership, compatibility fallback imports, and narrowly
+  identified import-time registration or mapping-mutation calls.
+- The cycle view covers the analyzer's shipped Python inventory. Exact absolute
+  imports that resolve to an inventoried local module complete the graph before
+  the analyzer's own runtime-edge filter and SCC helper run, so the existing
+  `TYPE_CHECKING` exclusion policy remains authoritative.
+- Genuine external and optional dependencies with no repository-local target
+  remain allowed. Unenrolled legacy package debt stays report-only until its
+  own reviewed completion checkpoint. The official quick/full quality path
+  invokes this checker exactly once per project check.
 
 ## 8. AiO mechanical extraction plan
 

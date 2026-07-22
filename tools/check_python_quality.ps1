@@ -87,6 +87,13 @@ try {
     if ($baselineExitCode -ne 0) {
         throw "Pyright baseline ratchet failed with exit code $baselineExitCode."
     }
+
+    Write-Host "`n== Python import boundary gate (G-03a) =="
+    & $pythonCommand (Join-Path $PSScriptRoot "check_python_import_boundaries.py")
+    $importBoundaryExitCode = $LASTEXITCODE
+    if ($importBoundaryExitCode -ne 0) {
+        throw "Python import boundary gate failed with exit code $importBoundaryExitCode."
+    }
 }
 finally {
     Set-Location -LiteralPath $originalLocation
