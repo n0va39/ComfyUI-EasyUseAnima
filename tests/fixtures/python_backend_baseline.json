@@ -354,6 +354,42 @@
       },
       {
         "alias": null,
+        "bound_name": "NODE_CLASS_MAPPINGS",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".easyuse_anima.registration:NODE_CLASS_MAPPINGS",
+        "kind": "static_from",
+        "line": 24,
+        "name": "NODE_CLASS_MAPPINGS",
+        "optional": false,
+        "requested": ".easyuse_anima.registration",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "__init__.py",
+        "target": "easyuse_anima/registration.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "NODE_DISPLAY_NAME_MAPPINGS",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".easyuse_anima.registration:NODE_DISPLAY_NAME_MAPPINGS",
+        "kind": "static_from",
+        "line": 24,
+        "name": "NODE_DISPLAY_NAME_MAPPINGS",
+        "optional": false,
+        "requested": ".easyuse_anima.registration",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "__init__.py",
+        "target": "easyuse_anima/registration.py"
+      },
+      {
+        "alias": null,
         "bound_name": "api",
         "branch_context": [],
         "classification": "internal",
@@ -361,7 +397,7 @@
         "conditional": false,
         "imported": ".:api",
         "kind": "static_from",
-        "line": 24,
+        "line": 28,
         "name": "api",
         "optional": false,
         "requested": ".",
@@ -379,7 +415,7 @@
         "conditional": false,
         "imported": ".wildcard_engine:ensure_default_wildcard_root",
         "kind": "static_from",
-        "line": 25,
+        "line": 29,
         "name": "ensure_default_wildcard_root",
         "optional": false,
         "requested": ".wildcard_engine",
@@ -13516,6 +13552,330 @@
         "role": "optional_dependency",
         "scope": "_regional_mask_bounds_area",
         "source": "easyuse_anima/prompt/regional.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "EasyUseAnimaAIOGenerator",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".nodes.aio_nodes:EasyUseAnimaAIOGenerator",
+        "kind": "static_from",
+        "line": 3,
+        "name": "EasyUseAnimaAIOGenerator",
+        "optional": false,
+        "requested": ".nodes.aio_nodes",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/registration.py",
+        "target": "easyuse_anima/nodes/aio_nodes.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "EasyUseAnimaInput",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".nodes.aio_nodes:EasyUseAnimaInput",
+        "kind": "static_from",
+        "line": 3,
+        "name": "EasyUseAnimaInput",
+        "optional": false,
+        "requested": ".nodes.aio_nodes",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/registration.py",
+        "target": "easyuse_anima/nodes/aio_nodes.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "EasyUseAnimaDetailerAlignHook",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".nodes.image_nodes:EasyUseAnimaDetailerAlignHook",
+        "kind": "static_from",
+        "line": 4,
+        "name": "EasyUseAnimaDetailerAlignHook",
+        "optional": false,
+        "requested": ".nodes.image_nodes",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/registration.py",
+        "target": "easyuse_anima/nodes/image_nodes.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "EasyUseAnimaImageScaleByMultiple",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".nodes.image_nodes:EasyUseAnimaImageScaleByMultiple",
+        "kind": "static_from",
+        "line": 4,
+        "name": "EasyUseAnimaImageScaleByMultiple",
+        "optional": false,
+        "requested": ".nodes.image_nodes",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/registration.py",
+        "target": "easyuse_anima/nodes/image_nodes.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "EasyUseAnimaLoraPreset",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".nodes.lora_nodes:EasyUseAnimaLoraPreset",
+        "kind": "static_from",
+        "line": 8,
+        "name": "EasyUseAnimaLoraPreset",
+        "optional": false,
+        "requested": ".nodes.lora_nodes",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/registration.py",
+        "target": "easyuse_anima/nodes/lora_nodes.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "EasyUseAnimaNAIARandomPrompt",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".nodes.naia_nodes:EasyUseAnimaNAIARandomPrompt",
+        "kind": "static_from",
+        "line": 9,
+        "name": "EasyUseAnimaNAIARandomPrompt",
+        "optional": false,
+        "requested": ".nodes.naia_nodes",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/registration.py",
+        "target": "easyuse_anima/nodes/naia_nodes.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "EasyUseAnimaPromptStudioAdvanced",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".nodes.prompt_advanced_nodes:EasyUseAnimaPromptStudioAdvanced",
+        "kind": "static_from",
+        "line": 10,
+        "name": "EasyUseAnimaPromptStudioAdvanced",
+        "optional": false,
+        "requested": ".nodes.prompt_advanced_nodes",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/registration.py",
+        "target": "easyuse_anima/nodes/prompt_advanced_nodes.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "EasyUseAnimaPromptStudioAdvancedV2",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".nodes.prompt_advanced_nodes:EasyUseAnimaPromptStudioAdvancedV2",
+        "kind": "static_from",
+        "line": 10,
+        "name": "EasyUseAnimaPromptStudioAdvancedV2",
+        "optional": false,
+        "requested": ".nodes.prompt_advanced_nodes",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/registration.py",
+        "target": "easyuse_anima/nodes/prompt_advanced_nodes.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "EasyUseAnimaArtistMixConditioning",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".nodes.prompt_data_nodes:EasyUseAnimaArtistMixConditioning",
+        "kind": "static_from",
+        "line": 14,
+        "name": "EasyUseAnimaArtistMixConditioning",
+        "optional": false,
+        "requested": ".nodes.prompt_data_nodes",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/registration.py",
+        "target": "easyuse_anima/nodes/prompt_data_nodes.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "EasyUseAnimaPromptDataConditioning",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".nodes.prompt_data_nodes:EasyUseAnimaPromptDataConditioning",
+        "kind": "static_from",
+        "line": 14,
+        "name": "EasyUseAnimaPromptDataConditioning",
+        "optional": false,
+        "requested": ".nodes.prompt_data_nodes",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/registration.py",
+        "target": "easyuse_anima/nodes/prompt_data_nodes.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "EasyUseAnimaPromptDataUnpack",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".nodes.prompt_data_nodes:EasyUseAnimaPromptDataUnpack",
+        "kind": "static_from",
+        "line": 14,
+        "name": "EasyUseAnimaPromptDataUnpack",
+        "optional": false,
+        "requested": ".nodes.prompt_data_nodes",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/registration.py",
+        "target": "easyuse_anima/nodes/prompt_data_nodes.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "EasyUseAnimaPromptBuilder",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".nodes.prompt_nodes:EasyUseAnimaPromptBuilder",
+        "kind": "static_from",
+        "line": 19,
+        "name": "EasyUseAnimaPromptBuilder",
+        "optional": false,
+        "requested": ".nodes.prompt_nodes",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/registration.py",
+        "target": "easyuse_anima/nodes/prompt_nodes.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "EasyUseAnimaPromptCorrector",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".nodes.prompt_nodes:EasyUseAnimaPromptCorrector",
+        "kind": "static_from",
+        "line": 19,
+        "name": "EasyUseAnimaPromptCorrector",
+        "optional": false,
+        "requested": ".nodes.prompt_nodes",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/registration.py",
+        "target": "easyuse_anima/nodes/prompt_nodes.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "EasyUseAnimaPromptCorrectorSimple",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".nodes.prompt_nodes:EasyUseAnimaPromptCorrectorSimple",
+        "kind": "static_from",
+        "line": 19,
+        "name": "EasyUseAnimaPromptCorrectorSimple",
+        "optional": false,
+        "requested": ".nodes.prompt_nodes",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/registration.py",
+        "target": "easyuse_anima/nodes/prompt_nodes.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "EasyUseAnimaPromptStudio",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".nodes.prompt_nodes:EasyUseAnimaPromptStudio",
+        "kind": "static_from",
+        "line": 19,
+        "name": "EasyUseAnimaPromptStudio",
+        "optional": false,
+        "requested": ".nodes.prompt_nodes",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/registration.py",
+        "target": "easyuse_anima/nodes/prompt_nodes.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "EasyUseAnimaPromptStudioRegional",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".nodes.regional_nodes:EasyUseAnimaPromptStudioRegional",
+        "kind": "static_from",
+        "line": 25,
+        "name": "EasyUseAnimaPromptStudioRegional",
+        "optional": false,
+        "requested": ".nodes.regional_nodes",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/registration.py",
+        "target": "easyuse_anima/nodes/regional_nodes.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "EasyUseAnimaRegionalConditioning",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".nodes.regional_nodes:EasyUseAnimaRegionalConditioning",
+        "kind": "static_from",
+        "line": 25,
+        "name": "EasyUseAnimaRegionalConditioning",
+        "optional": false,
+        "requested": ".nodes.regional_nodes",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/registration.py",
+        "target": "easyuse_anima/nodes/regional_nodes.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "EasyUseAnimaWildcard",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".nodes.wildcard_nodes:EasyUseAnimaWildcard",
+        "kind": "static_from",
+        "line": 29,
+        "name": "EasyUseAnimaWildcard",
+        "optional": false,
+        "requested": ".nodes.wildcard_nodes",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/registration.py",
+        "target": "easyuse_anima/nodes/wildcard_nodes.py"
       },
       {
         "alias": null,
@@ -33728,6 +34088,10 @@
       },
       {
         "from": "__init__.py",
+        "to": "easyuse_anima/registration.py"
+      },
+      {
+        "from": "__init__.py",
         "to": "nodes.py"
       },
       {
@@ -34141,6 +34505,42 @@
       {
         "from": "easyuse_anima/prompt/fields.py",
         "to": "anima_prompt/parser.py"
+      },
+      {
+        "from": "easyuse_anima/registration.py",
+        "to": "easyuse_anima/nodes/aio_nodes.py"
+      },
+      {
+        "from": "easyuse_anima/registration.py",
+        "to": "easyuse_anima/nodes/image_nodes.py"
+      },
+      {
+        "from": "easyuse_anima/registration.py",
+        "to": "easyuse_anima/nodes/lora_nodes.py"
+      },
+      {
+        "from": "easyuse_anima/registration.py",
+        "to": "easyuse_anima/nodes/naia_nodes.py"
+      },
+      {
+        "from": "easyuse_anima/registration.py",
+        "to": "easyuse_anima/nodes/prompt_advanced_nodes.py"
+      },
+      {
+        "from": "easyuse_anima/registration.py",
+        "to": "easyuse_anima/nodes/prompt_data_nodes.py"
+      },
+      {
+        "from": "easyuse_anima/registration.py",
+        "to": "easyuse_anima/nodes/prompt_nodes.py"
+      },
+      {
+        "from": "easyuse_anima/registration.py",
+        "to": "easyuse_anima/nodes/regional_nodes.py"
+      },
+      {
+        "from": "easyuse_anima/registration.py",
+        "to": "easyuse_anima/nodes/wildcard_nodes.py"
       },
       {
         "from": "nodes.py",
@@ -34791,6 +35191,12 @@
       {
         "cyclic": false,
         "modules": [
+          "easyuse_anima/registration.py"
+        ]
+      },
+      {
+        "cyclic": false,
+        "modules": [
           "nodes.py"
         ]
       },
@@ -34821,18 +35227,18 @@
     ]
   },
   "inventory": {
-    "module_count": 77,
+    "module_count": 78,
     "modules": [
       {
         "is_package": true,
-        "loc": 82,
+        "loc": 44,
         "module": "__root__",
-        "normalized_git_blob_sha1": "bc6892b27aceb8392dcf53828c80e1a69f640e2f",
+        "normalized_git_blob_sha1": "1ba24faf09b6ec886e7a32fe37ca589ac6fbd06f",
         "path": "__init__.py",
         "top_level": {
           "class_count": 0,
           "function_count": 0,
-          "global_count": 5
+          "global_count": 3
         }
       },
       {
@@ -35689,6 +36095,18 @@
       },
       {
         "is_package": false,
+        "loc": 73,
+        "module": "easyuse_anima.registration",
+        "normalized_git_blob_sha1": "04fc702300d859ec8ec9f71fbff7317859ea045a",
+        "path": "easyuse_anima/registration.py",
+        "top_level": {
+          "class_count": 0,
+          "function_count": 0,
+          "global_count": 3
+        }
+      },
+      {
+        "is_package": false,
         "loc": 2712,
         "module": "nodes",
         "normalized_git_blob_sha1": "bb1344cd0e436e823a428e3f3f41ee77cd71b982",
@@ -35782,8 +36200,6 @@
       "WEB_DIRECTORY"
     ],
     "public_globals": [
-      "NODE_CLASS_MAPPINGS",
-      "NODE_DISPLAY_NAME_MAPPINGS",
       "WEB_DIRECTORY",
       "logger"
     ],
@@ -35915,16 +36331,30 @@
         "source": "nodes.py"
       },
       {
+        "declared_in_all": true,
+        "imported": ".easyuse_anima.registration:NODE_CLASS_MAPPINGS",
+        "line": 24,
+        "name": "NODE_CLASS_MAPPINGS",
+        "source": "easyuse_anima/registration.py"
+      },
+      {
+        "declared_in_all": true,
+        "imported": ".easyuse_anima.registration:NODE_DISPLAY_NAME_MAPPINGS",
+        "line": 24,
+        "name": "NODE_DISPLAY_NAME_MAPPINGS",
+        "source": "easyuse_anima/registration.py"
+      },
+      {
         "declared_in_all": false,
         "imported": ".:api",
-        "line": 24,
+        "line": 28,
         "name": "api",
         "source": "api.py"
       },
       {
         "declared_in_all": false,
         "imported": ".wildcard_engine:ensure_default_wildcard_root",
-        "line": 25,
+        "line": 29,
         "name": "ensure_default_wildcard_root",
         "source": "wildcard_engine.py"
       }
@@ -48910,6 +49340,7 @@
       "easyuse_anima/prompt/data.py",
       "easyuse_anima/prompt/fields.py",
       "easyuse_anima/prompt/regional.py",
+      "easyuse_anima/registration.py",
       "nodes.py",
       "prompt_translation.py",
       "settings.py",
@@ -48989,6 +49420,7 @@
       "easyuse_anima/prompt/data.py",
       "easyuse_anima/prompt/fields.py",
       "easyuse_anima/prompt/regional.py",
+      "easyuse_anima/registration.py",
       "nodes.py",
       "prompt_translation.py",
       "settings.py",
@@ -49005,7 +49437,7 @@
         "column": 9,
         "context": "assign:logger",
         "kind": "import_time_call",
-        "line": 27,
+        "line": 31,
         "module": "__init__.py",
         "scope": "<module>"
       },
@@ -49014,7 +49446,7 @@
         "column": 4,
         "context": "expression",
         "kind": "directory_creation",
-        "line": 30,
+        "line": 34,
         "module": "__init__.py",
         "scope": "<module>"
       },
@@ -49023,7 +49455,7 @@
         "column": 4,
         "context": "expression",
         "kind": "import_time_call",
-        "line": 32,
+        "line": 36,
         "module": "__init__.py",
         "scope": "<module>"
       },
@@ -50868,20 +51300,8 @@
   "state": {
     "mutable_globals": [
       {
-        "kind": "dict",
-        "line": 34,
-        "module": "__init__.py",
-        "name": "NODE_CLASS_MAPPINGS"
-      },
-      {
-        "kind": "dict",
-        "line": 55,
-        "module": "__init__.py",
-        "name": "NODE_DISPLAY_NAME_MAPPINGS"
-      },
-      {
         "kind": "list",
-        "line": 78,
+        "line": 40,
         "module": "__init__.py",
         "name": "__all__"
       },
@@ -51094,6 +51514,24 @@
         "line": 12,
         "module": "easyuse_anima/prompt/regional.py",
         "name": "REGIONAL_FIELD_TYPES"
+      },
+      {
+        "kind": "dict",
+        "line": 31,
+        "module": "easyuse_anima/registration.py",
+        "name": "NODE_CLASS_MAPPINGS"
+      },
+      {
+        "kind": "dict",
+        "line": 52,
+        "module": "easyuse_anima/registration.py",
+        "name": "NODE_DISPLAY_NAME_MAPPINGS"
+      },
+      {
+        "kind": "list",
+        "line": 73,
+        "module": "easyuse_anima/registration.py",
+        "name": "__all__"
       },
       {
         "kind": "dict",

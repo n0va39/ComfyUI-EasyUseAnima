@@ -11,11 +11,12 @@ from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
 ENTRYPOINT_PATH = ROOT / "__init__.py"
+REGISTRATION_PATH = ROOT / "easyuse_anima" / "registration.py"
 NODES_PATH = ROOT / "nodes.py"
 FIXTURE_PATH = ROOT / "tests" / "fixtures" / "python_compatibility_surface.v1.json"
 
 SCHEMA_VERSION = 1
-BASE_COMMIT = "e309b718530f85317f3e602c29e1f5e8aee7771c"
+BASE_COMMIT = "c6b4680c39ba02725b1c0f8b72cda0063d9e1251"
 CLASSIFICATIONS = (
     "permanent_entrypoint",
     "supported_public_reexport",
@@ -1157,6 +1158,7 @@ def _binding_groups(
 
 def _build_document() -> dict[str, Any]:
     entrypoint_tree = _read_tree(ENTRYPOINT_PATH)
+    registration_tree = _read_tree(REGISTRATION_PATH)
     nodes_tree = _read_tree(NODES_PATH)
     import_try = _root_import_try(nodes_tree)
     preamble_bindings = _preamble_implementation_bindings(nodes_tree, import_try)
@@ -1171,8 +1173,11 @@ def _build_document() -> dict[str, Any]:
         raise AssertionError("relative and flat fallback imports must have exact target parity")
 
     entrypoints = _literal_string_list(_named_assignment(entrypoint_tree, "__all__"))
-    node_mappings = _literal_mapping(entrypoint_tree, "NODE_CLASS_MAPPINGS")
-    display_mappings = _literal_mapping(entrypoint_tree, "NODE_DISPLAY_NAME_MAPPINGS")
+    node_mappings = _literal_mapping(registration_tree, "NODE_CLASS_MAPPINGS")
+    display_mappings = _literal_mapping(
+        registration_tree,
+        "NODE_DISPLAY_NAME_MAPPINGS",
+    )
     if set(node_mappings) != set(display_mappings):
         raise AssertionError("node and display mapping IDs differ")
     if set(node_mappings) != set(node_mappings.values()):
@@ -1296,6 +1301,7 @@ def _build_document() -> dict[str, Any]:
                 "B-10b18",
                 "B-10b19",
                 "B-10b20",
+                "B-11a",
             ],
         },
         "enums": {

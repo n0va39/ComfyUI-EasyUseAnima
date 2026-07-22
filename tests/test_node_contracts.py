@@ -52,6 +52,7 @@ from easyuse_anima.prompt import regional as prompt_regional
 
 
 PACKAGE_INIT = ROOT / "__init__.py"
+REGISTRATION_MODULE = ROOT / "easyuse_anima" / "registration.py"
 FIXTURE = ROOT / "tests" / "fixtures" / "node_contracts_0_5_2.json"
 FIXTURE_PROVENANCE_VERSION = "0.5.2"
 WORKFLOW_SELECTIONS = (
@@ -79,12 +80,15 @@ def _assignment_value(tree: ast.Module, name: str) -> ast.AST:
     raise AssertionError(f"Missing top-level assignment: {name}")
 
 
-def _root_mappings() -> tuple[list[tuple[str, str]], dict[str, str]]:
-    tree = ast.parse(PACKAGE_INIT.read_text(encoding="utf-8-sig"), filename=PACKAGE_INIT.name)
+def _registration_mappings() -> tuple[list[tuple[str, str]], dict[str, str]]:
+    tree = ast.parse(
+        REGISTRATION_MODULE.read_text(encoding="utf-8-sig"),
+        filename=REGISTRATION_MODULE.name,
+    )
     class_mapping_node = _assignment_value(tree, "NODE_CLASS_MAPPINGS")
     display_mapping_node = _assignment_value(tree, "NODE_DISPLAY_NAME_MAPPINGS")
     if not isinstance(class_mapping_node, ast.Dict) or not isinstance(display_mapping_node, ast.Dict):
-        raise AssertionError("Node mappings must remain literal dictionaries")
+        raise AssertionError("Registration mappings must remain literal dictionaries")
 
     class_mappings = []
     for key_node, value_node in zip(class_mapping_node.keys, class_mapping_node.values):
@@ -392,7 +396,7 @@ def _workflow_nodes() -> list[dict]:
 
 
 def build_contract_snapshot() -> dict:
-    class_mappings, display_mappings = _root_mappings()
+    class_mappings, display_mappings = _registration_mappings()
     if list(display_mappings) != [node_id for node_id, _class_name in class_mappings]:
         raise AssertionError("Class and display mapping order or keys diverged")
 
@@ -1954,10 +1958,18 @@ class PublicNodeContractTests(unittest.TestCase):
         self.assertEqual(build_contract_snapshot(), expected)
 
     def test_package_mappings_use_the_canonical_runtime_class_objects(self):
-        class_mappings, display_mappings = _root_mappings()
+        class_mappings, display_mappings = _registration_mappings()
 
         with _loaded_package_entrypoint() as (package_entrypoint, package_nodes):
             runtime_mappings = package_entrypoint.NODE_CLASS_MAPPINGS
+            package_registration = sys.modules[
+                f"{package_entrypoint.__package__}.easyuse_anima.registration"
+            ]
+            self.assertIs(runtime_mappings, package_registration.NODE_CLASS_MAPPINGS)
+            self.assertIs(
+                package_entrypoint.NODE_DISPLAY_NAME_MAPPINGS,
+                package_registration.NODE_DISPLAY_NAME_MAPPINGS,
+            )
             self.assertEqual(list(runtime_mappings), [node_id for node_id, _ in class_mappings])
             self.assertEqual(package_entrypoint.NODE_DISPLAY_NAME_MAPPINGS, display_mappings)
             for node_id, class_name in class_mappings:
