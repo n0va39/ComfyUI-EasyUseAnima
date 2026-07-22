@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import sys
+import types
 import unittest
 from unittest.mock import Mock, patch
 
@@ -17,6 +19,10 @@ class AIOModelPreparationMoveTests(unittest.TestCase):
             "_apply_aio_lora_stack",
             "_apply_aio_anima_dave_patch",
             "_apply_aio_safe_pag_patch",
+            "_cleanup_aio_ephemeral_model",
+            "_apply_aio_spectrum_correction_patch_for_comfy_sampler",
+            "_apply_aio_spectrum_forecast_patch_for_comfy_sampler",
+            "_apply_aio_spectrum_model_patches_for_comfy_sampler",
         ):
             with self.subTest(name=name):
                 self.assertIs(getattr(nodes, name), getattr(model_preparation, name))
@@ -178,6 +184,124 @@ class AIOModelPreparationMoveTests(unittest.TestCase):
                 True,
             ),
         )
+
+    def test_ephemeral_cleanup_preserves_identity_detach_and_unload_fallback(self):
+        class DetachableModel:
+            def __init__(self, *, fail: bool = False):
+                self.fail = fail
+                self.calls: list[bool] = []
+
+            def detach(self, *, unpatch_all: bool):
+                self.calls.append(unpatch_all)
+                if self.fail:
+                    raise RuntimeError("detach failed")
+
+        base_model = object()
+        detachable = DetachableModel()
+        failing = DetachableModel(fail=True)
+        unload = Mock()
+        comfy = types.ModuleType("comfy")
+        comfy.__path__ = []
+        model_management = types.ModuleType("comfy.model_management")
+        model_management.unload_model_and_clones = unload
+        comfy.model_management = model_management
+
+        with (
+            patch.dict(
+                sys.modules,
+                {"comfy": comfy, "comfy.model_management": model_management},
+            ),
+            patch.object(nodes.logger, "debug") as debug,
+        ):
+            model_preparation._cleanup_aio_ephemeral_model(None, base_model)
+            model_preparation._cleanup_aio_ephemeral_model(base_model, base_model)
+            model_preparation._cleanup_aio_ephemeral_model(detachable, base_model)
+            model_preparation._cleanup_aio_ephemeral_model(failing, base_model)
+
+        self.assertEqual(detachable.calls, [False])
+        self.assertEqual(failing.calls, [False])
+        unload.assert_called_once_with(failing, unload_additional_models=True)
+        debug.assert_called_once()
+        self.assertIn("failed to detach ephemeral AiO model clone", debug.call_args.args[0])
+
+    def test_ephemeral_cleanup_swallows_unload_failure_after_debug_logging(self):
+        model = object()
+        unload = Mock(side_effect=RuntimeError("unload failed"))
+        comfy = types.ModuleType("comfy")
+        comfy.__path__ = []
+        model_management = types.ModuleType("comfy.model_management")
+        model_management.unload_model_and_clones = unload
+        comfy.model_management = model_management
+        with (
+            patch.dict(
+                sys.modules,
+                {"comfy": comfy, "comfy.model_management": model_management},
+            ),
+            patch.object(nodes.logger, "debug") as debug,
+        ):
+            model_preparation._cleanup_aio_ephemeral_model(model)
+
+        debug.assert_called_once()
+        self.assertIn("failed to unload ephemeral AiO model clone", debug.call_args.args[0])
+
+    def test_spectrum_aggregate_re_resolves_root_subcalls_in_order(self):
+        trace: list[tuple[str, object]] = []
+        replacement_forecast = Mock(
+            side_effect=lambda model, _settings: trace.append(("forecast", model))
+            or "forecast"
+        )
+
+        def apply_correction(model, _clip, _positive, _settings):
+            trace.append(("correction", model))
+            nodes._apply_aio_spectrum_forecast_patch_for_comfy_sampler = (
+                replacement_forecast
+            )
+            return "corrected"
+
+        stale_forecast = Mock(return_value="stale")
+        with (
+            patch.object(
+                nodes,
+                "_apply_aio_spectrum_correction_patch_for_comfy_sampler",
+                side_effect=apply_correction,
+            ),
+            patch.object(
+                nodes,
+                "_apply_aio_spectrum_forecast_patch_for_comfy_sampler",
+                stale_forecast,
+            ),
+        ):
+            result = (
+                model_preparation._apply_aio_spectrum_model_patches_for_comfy_sampler(
+                    "base", "clip", "positive", {}
+                )
+            )
+
+        self.assertEqual(result, "forecast")
+        self.assertEqual(trace, [("correction", "base"), ("forecast", "corrected")])
+        stale_forecast.assert_not_called()
+
+    def test_disabled_spectrum_variants_preserve_model_identity(self):
+        model = object()
+        with (
+            patch.object(nodes, "_require_custom_node_class") as require_correction,
+            patch.object(nodes, "_require_any_custom_node_class") as require_forecast,
+        ):
+            self.assertIs(
+                model_preparation._apply_aio_spectrum_correction_patch_for_comfy_sampler(
+                    model, "clip", "positive", {"dit_corrections": []}
+                ),
+                model,
+            )
+            self.assertIs(
+                model_preparation._apply_aio_spectrum_forecast_patch_for_comfy_sampler(
+                    model, {"spectrum": {"enabled": False}}
+                ),
+                model,
+            )
+
+        require_correction.assert_not_called()
+        require_forecast.assert_not_called()
 
 
 if __name__ == "__main__":
