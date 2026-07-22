@@ -21931,37 +21931,6 @@
         "target": "easyuse_anima/nodes/prompt_advanced_nodes.py"
       },
       {
-        "alias": "EasyUseAnimaPromptStudioExtend",
-        "bound_name": "EasyUseAnimaPromptStudioExtend",
-        "branch_context": [
-          {
-            "branch": "body",
-            "handles_import_failure": true,
-            "has_import_fallback_handler": true,
-            "kind": "try",
-            "line": 11
-          }
-        ],
-        "classification": "internal",
-        "column": 4,
-        "compatibility_pair": {
-          "bound_name": "EasyUseAnimaPromptStudioExtend",
-          "target": "easyuse_anima/nodes/prompt_advanced_nodes.py",
-          "try_line": 11
-        },
-        "conditional": true,
-        "imported": ".easyuse_anima.nodes.prompt_advanced_nodes:EasyUseAnimaPromptStudioExtend",
-        "kind": "static_from",
-        "line": 320,
-        "name": "EasyUseAnimaPromptStudioExtend",
-        "optional": false,
-        "requested": ".easyuse_anima.nodes.prompt_advanced_nodes",
-        "role": "compatibility_primary",
-        "scope": "<module>",
-        "source": "nodes.py",
-        "target": "easyuse_anima/nodes/prompt_advanced_nodes.py"
-      },
-      {
         "alias": "_bind_prompt_advanced_node_runtime",
         "bound_name": "_bind_prompt_advanced_node_runtime",
         "branch_context": [
@@ -35318,40 +35287,6 @@
         "target": "easyuse_anima/nodes/prompt_advanced_nodes.py"
       },
       {
-        "alias": "EasyUseAnimaPromptStudioExtend",
-        "bound_name": "EasyUseAnimaPromptStudioExtend",
-        "branch_context": [
-          {
-            "branch": "except",
-            "catches_import_error": true,
-            "exceptions": [
-              "ImportError"
-            ],
-            "handler_line": 524,
-            "kind": "try",
-            "line": 11
-          }
-        ],
-        "classification": "compatibility_fallback",
-        "column": 4,
-        "compatibility_pair": {
-          "bound_name": "EasyUseAnimaPromptStudioExtend",
-          "target": "easyuse_anima/nodes/prompt_advanced_nodes.py",
-          "try_line": 11
-        },
-        "conditional": true,
-        "imported": "easyuse_anima.nodes.prompt_advanced_nodes:EasyUseAnimaPromptStudioExtend",
-        "kind": "static_from",
-        "line": 833,
-        "name": "EasyUseAnimaPromptStudioExtend",
-        "optional": false,
-        "requested": "easyuse_anima.nodes.prompt_advanced_nodes",
-        "role": "compatibility_fallback",
-        "scope": "<module>",
-        "source": "nodes.py",
-        "target": "easyuse_anima/nodes/prompt_advanced_nodes.py"
-      },
-      {
         "alias": "_bind_prompt_advanced_node_runtime",
         "bound_name": "_bind_prompt_advanced_node_runtime",
         "branch_context": [
@@ -43556,7 +43491,7 @@
         "is_package": false,
         "loc": 2712,
         "module": "nodes",
-        "normalized_git_blob_sha1": "bd8fa79c8c14aa4cc6ee2fcbda7224d42d39f2f2",
+        "normalized_git_blob_sha1": "b6632e400cfd4042e649bbf15316ad4ce899369c",
         "path": "nodes.py",
         "top_level": {
           "class_count": 2,
@@ -51036,29 +50971,6 @@
         "classification": "compatibility_fallback",
         "conditional": true,
         "imported": "easyuse_anima.nodes.prompt_advanced_nodes:EasyUseAnimaPromptStudioAdvancedV2",
-        "kind": "static_from",
-        "line": 833,
-        "optional": false,
-        "role": "compatibility_fallback",
-        "source": "nodes.py",
-        "target": "easyuse_anima/nodes/prompt_advanced_nodes.py"
-      },
-      {
-        "branch_context": [
-          {
-            "branch": "except",
-            "catches_import_error": true,
-            "exceptions": [
-              "ImportError"
-            ],
-            "handler_line": 524,
-            "kind": "try",
-            "line": 11
-          }
-        ],
-        "classification": "compatibility_fallback",
-        "conditional": true,
-        "imported": "easyuse_anima.nodes.prompt_advanced_nodes:EasyUseAnimaPromptStudioExtend",
         "kind": "static_from",
         "line": 833,
         "optional": false,

@@ -13,6 +13,7 @@ from unittest.mock import patch
 
 import autocomplete_dataset
 import settings as easyuse_settings
+from easyuse_anima.nodes.prompt_advanced_nodes import EasyUseAnimaPromptStudioExtend
 from easyuse_anima.prompt.fields import (
     DEFAULT_QUALITY_TAGS,
     DEFAULT_TRAILING_QUALITY_TAGS,
@@ -42,7 +43,6 @@ from nodes import (
     EasyUseAnimaPromptStudio,
     EasyUseAnimaPromptStudioAdvanced,
     EasyUseAnimaPromptStudioAdvancedV2,
-    EasyUseAnimaPromptStudioExtend,
     _SPECTRUM_ANIMA_MOD_GUIDANCE_OLD_SIGNATURE_WARNED,
     _clean_prompt,
     _generate_empty_latent_with_comfy,

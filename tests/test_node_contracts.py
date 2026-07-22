@@ -1549,6 +1549,9 @@ print(json.dumps({{
 
 
 class PromptAdvancedMoveContractTests(unittest.TestCase):
+    RETIRED_NODE_CLASSES = (
+        "EasyUseAnimaPromptStudioExtend",
+    )
     SERVICE_OBJECTS = (
         "ADVANCED_FIELD_TYPES",
         "ADVANCED_FIELD_PANES",
@@ -1574,10 +1577,12 @@ class PromptAdvancedMoveContractTests(unittest.TestCase):
     NODE_CLASSES = (
         "EasyUseAnimaPromptStudioAdvanced",
         "EasyUseAnimaPromptStudioAdvancedV2",
-        "EasyUseAnimaPromptStudioExtend",
     )
 
     def test_root_advanced_objects_are_direct_canonical_aliases(self):
+        for name in self.RETIRED_NODE_CLASSES:
+            with self.subTest(retired=name):
+                self.assertFalse(hasattr(nodes, name))
         for name in self.SERVICE_OBJECTS:
             with self.subTest(module="advanced", name=name):
                 self.assertIs(getattr(nodes, name), getattr(prompt_advanced, name))
@@ -1593,6 +1598,9 @@ class PromptAdvancedMoveContractTests(unittest.TestCase):
                 f"{package_name}.easyuse_anima.nodes.prompt_advanced_nodes"
             ]
 
+            for name in self.RETIRED_NODE_CLASSES:
+                with self.subTest(retired=name):
+                    self.assertFalse(hasattr(package_nodes, name))
             for name in self.SERVICE_OBJECTS:
                 with self.subTest(module="advanced", name=name):
                     self.assertIs(getattr(package_nodes, name), getattr(package_advanced, name))
