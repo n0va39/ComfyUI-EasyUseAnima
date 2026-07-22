@@ -18,6 +18,22 @@ try:
     from .easyuse_anima.aio.generation_settings import (
         round_trip_aio_generation_settings as _round_trip_aio_generation_settings,
     )
+    from .easyuse_anima.aio.conditioning import (
+        _aio_prompt_data_fields_for_usdu as _aio_prompt_data_fields_for_usdu,
+        _aio_usdu_conditioning as _aio_usdu_conditioning,
+        _aio_usdu_prompt_without_general as _aio_usdu_prompt_without_general,
+        _bind_aio_conditioning_runtime as _bind_aio_conditioning_runtime,
+    )
+    from .easyuse_anima.aio.model_preparation import (
+        _apply_aio_anima_dave_patch as _apply_aio_anima_dave_patch,
+        _apply_aio_kj_model_patches as _apply_aio_kj_model_patches,
+        _apply_aio_lora_stack as _apply_aio_lora_stack,
+        _apply_aio_model_patches as _apply_aio_model_patches,
+        _apply_aio_safe_pag_patch as _apply_aio_safe_pag_patch,
+        _bind_aio_model_preparation_runtime as _bind_aio_model_preparation_runtime,
+        _normalize_aio_lora_stack as _normalize_aio_lora_stack,
+        _patch_model_sampling_aura_flow as _patch_model_sampling_aura_flow,
+    )
     from .easyuse_anima.aio.resources import (
         _bind_aio_resource_runtime as _bind_aio_resource_runtime,
         _load_aio_resources_from_input_context as _load_aio_resources_from_input_context,
@@ -298,6 +314,7 @@ try:
     from .easyuse_anima.infrastructure.comfy.invocation import (
         _call_with_supported_kwargs as _call_with_supported_kwargs,
         _common_upscale_image as _common_upscale_image,
+        _encode_with_comfy_clip as _adapter_encode_with_comfy_clip,
         _node_output_tuple as _node_output_tuple,
     )
     from .easyuse_anima.infrastructure.comfy.resources import (
@@ -451,6 +468,22 @@ except ImportError:  # allows simple local import tests outside ComfyUI's packag
     )
     from easyuse_anima.aio.generation_settings import (
         round_trip_aio_generation_settings as _round_trip_aio_generation_settings,
+    )
+    from easyuse_anima.aio.conditioning import (
+        _aio_prompt_data_fields_for_usdu as _aio_prompt_data_fields_for_usdu,
+        _aio_usdu_conditioning as _aio_usdu_conditioning,
+        _aio_usdu_prompt_without_general as _aio_usdu_prompt_without_general,
+        _bind_aio_conditioning_runtime as _bind_aio_conditioning_runtime,
+    )
+    from easyuse_anima.aio.model_preparation import (
+        _apply_aio_anima_dave_patch as _apply_aio_anima_dave_patch,
+        _apply_aio_kj_model_patches as _apply_aio_kj_model_patches,
+        _apply_aio_lora_stack as _apply_aio_lora_stack,
+        _apply_aio_model_patches as _apply_aio_model_patches,
+        _apply_aio_safe_pag_patch as _apply_aio_safe_pag_patch,
+        _bind_aio_model_preparation_runtime as _bind_aio_model_preparation_runtime,
+        _normalize_aio_lora_stack as _normalize_aio_lora_stack,
+        _patch_model_sampling_aura_flow as _patch_model_sampling_aura_flow,
     )
     from easyuse_anima.aio.resources import (
         _bind_aio_resource_runtime as _bind_aio_resource_runtime,
@@ -732,6 +765,7 @@ except ImportError:  # allows simple local import tests outside ComfyUI's packag
     from easyuse_anima.infrastructure.comfy.invocation import (
         _call_with_supported_kwargs as _call_with_supported_kwargs,
         _common_upscale_image as _common_upscale_image,
+        _encode_with_comfy_clip as _adapter_encode_with_comfy_clip,
         _node_output_tuple as _node_output_tuple,
     )
     from easyuse_anima.infrastructure.comfy.resources import (
@@ -1796,17 +1830,7 @@ def _require_any_custom_node_class(node_ids: tuple[str, ...], node_pack: str, in
 
 
 def _encode_with_comfy_clip(clip, text: str):
-    encoder_cls = _find_comfy_node_class("CLIPTextEncode")
-    if encoder_cls is None:
-        raise RuntimeError("[EasyUseAnima] Could not find ComfyUI CLIPTextEncode.")
-    encoder = encoder_cls()
-    method = getattr(encoder, "encode", None)
-    if method is None:
-        raise RuntimeError("[EasyUseAnima] CLIPTextEncode does not expose encode.")
-    result = method(clip, text)
-    if not isinstance(result, tuple) or not result:
-        raise RuntimeError("[EasyUseAnima] CLIPTextEncode returned no conditioning.")
-    return result[0]
+    return _adapter_encode_with_comfy_clip(clip, text, _find_comfy_node_class)
 
 
 def _find_loaded_node_class(node_id: str):
@@ -1865,134 +1889,6 @@ def _sample_latent_with_comfy(
     if not values:
         raise RuntimeError("[EasyUseAnima] KSampler returned no LATENT.")
     return values[0]
-
-
-def _patch_model_sampling_aura_flow(model, aura_settings: dict[str, Any]):
-    aura_cls = _find_comfy_node_class("ModelSamplingAuraFlow")
-    if aura_cls is None:
-        raise RuntimeError(
-            "[EasyUseAnima] Missing required core node 'ModelSamplingAuraFlow'. "
-            "Use a ComfyUI build that includes ModelSamplingAuraFlow, then restart ComfyUI."
-        )
-    patcher = aura_cls()
-    patch = getattr(patcher, "patch_aura", None)
-    if patch is None:
-        raise RuntimeError("[EasyUseAnima] ModelSamplingAuraFlow does not expose patch_aura().")
-    values = _node_output_tuple(patch(model, _as_float(aura_settings.get("shift"), 3.0)))
-    if not values:
-        raise RuntimeError("[EasyUseAnima] ModelSamplingAuraFlow returned no MODEL.")
-    return values[0]
-
-
-def _apply_aio_kj_model_patches(model, kj_settings: dict[str, Any]):
-    patched = model
-    if kj_settings.get("fp16_accumulation"):
-        torch_settings_cls = _require_custom_node_class(
-            "ModelPatchTorchSettings",
-            "ComfyUI-KJNodes",
-            "Repository: https://github.com/kijai/ComfyUI-KJNodes",
-        )
-        values = _node_output_tuple(
-            torch_settings_cls().patch(patched, True)
-        )
-        if not values:
-            raise RuntimeError("[EasyUseAnima] ModelPatchTorchSettings returned no MODEL.")
-        patched = values[0]
-
-    sage_attention = str(kj_settings.get("sage_attention") or "disabled")
-    if sage_attention != "disabled":
-        sage_cls = _require_custom_node_class(
-            "PathchSageAttentionKJ",
-            "ComfyUI-KJNodes",
-            "Repository: https://github.com/kijai/ComfyUI-KJNodes",
-        )
-        values = _node_output_tuple(
-            sage_cls().patch(
-                patched,
-                sage_attention,
-                _as_bool(kj_settings.get("sage_allow_compile"), False),
-            )
-        )
-        if not values:
-            raise RuntimeError("[EasyUseAnima] PathchSageAttentionKJ returned no MODEL.")
-        patched = values[0]
-
-    compile_settings = kj_settings.get("torch_compile", {})
-    if isinstance(compile_settings, dict) and compile_settings.get("enabled"):
-        compile_cls = _require_custom_node_class(
-            "TorchCompileModelAdvanced",
-            "ComfyUI-KJNodes",
-            "Repository: https://github.com/kijai/ComfyUI-KJNodes",
-        )
-        values = _node_output_tuple(
-            compile_cls().patch(
-                patched,
-                str(compile_settings.get("backend") or "inductor"),
-                _as_bool(compile_settings.get("fullgraph"), False),
-                str(compile_settings.get("mode") or "default"),
-                str(compile_settings.get("dynamic") or "auto"),
-                _as_int(compile_settings.get("dynamo_cache_size_limit"), 64),
-                _as_bool(compile_settings.get("compile_transformer_blocks_only"), True),
-                _as_bool(compile_settings.get("debug_compile_keys"), False),
-                _as_bool(compile_settings.get("disable_dynamic_vram"), False),
-            )
-        )
-        if not values:
-            raise RuntimeError("[EasyUseAnima] TorchCompileModelAdvanced returned no MODEL.")
-        patched = values[0]
-    return patched
-
-
-def _apply_aio_model_patches(model, settings: dict[str, Any]):
-    model_patches = settings.get("model_patches", {})
-    if not isinstance(model_patches, dict):
-        return model
-    patched = _patch_model_sampling_aura_flow(
-        model,
-        model_patches.get("aura_flow", {}) if isinstance(model_patches.get("aura_flow"), dict) else {},
-    )
-    dave_settings = model_patches.get("dave", {})
-    if isinstance(dave_settings, dict) and _as_bool(dave_settings.get("enabled"), False):
-        patched = _apply_aio_anima_dave_patch(patched, dave_settings)
-    safe_pag_settings = model_patches.get("safe_pag", {})
-    if isinstance(safe_pag_settings, dict) and _as_bool(safe_pag_settings.get("enabled"), False):
-        patched = _apply_aio_safe_pag_patch(patched, safe_pag_settings)
-    kj_settings = model_patches.get("kj", {})
-    if isinstance(kj_settings, dict):
-        patched = _apply_aio_kj_model_patches(patched, kj_settings)
-    return patched
-
-
-def _normalize_aio_lora_stack(lora_stack) -> list[tuple[str, float, float]]:
-    if isinstance(lora_stack, dict) and "__value__" in lora_stack:
-        lora_stack = lora_stack["__value__"]
-    if isinstance(lora_stack, str):
-        try:
-            lora_stack = json.loads(lora_stack or "[]")
-        except json.JSONDecodeError:
-            lora_stack = []
-    if not isinstance(lora_stack, list):
-        return []
-
-    entries: list[tuple[str, float, float]] = []
-    for item in lora_stack:
-        if isinstance(item, dict):
-            raw_name = item.get("name", item.get("lora", item.get("lora_name", "")))
-            model_strength = item.get("strength_model", item.get("model_strength", item.get("strength", 1.0)))
-            clip_strength = item.get("strength_clip", item.get("clip_strength", item.get("strengthTwo", model_strength)))
-        elif isinstance(item, (list, tuple)) and len(item) >= 3:
-            raw_name, model_strength, clip_strength = item[:3]
-        else:
-            continue
-        name = str(raw_name or "").strip()
-        if not name or name.lower() == "none":
-            continue
-        entries.append((
-            _lora_stack_name(name),
-            _as_float(model_strength, 1.0),
-            _as_float(clip_strength, _as_float(model_strength, 1.0)),
-        ))
-    return entries
 
 
 def _aio_lora_stack_signature(lora_stack) -> list[dict[str, Any]]:
@@ -2096,37 +1992,6 @@ def _put_aio_first_pass_cache(cache_key: str, latent, image) -> None:
     while len(_AIO_FIRST_PASS_CACHE_ORDER) > AIO_FIRST_PASS_CACHE_MAX_ENTRIES:
         old_key = _AIO_FIRST_PASS_CACHE_ORDER.pop(0)
         _AIO_FIRST_PASS_CACHE.pop(old_key, None)
-
-
-def _apply_aio_lora_stack(model, clip, lora_stack):
-    entries = _normalize_aio_lora_stack(lora_stack)
-    if not entries:
-        return model, clip, []
-
-    loader_cls = _find_comfy_node_class("LoraLoader")
-    if loader_cls is None:
-        raise RuntimeError("[EasyUseAnima] Could not find ComfyUI core LoraLoader.")
-    loader = loader_cls()
-    load_lora = getattr(loader, "load_lora", None)
-    if load_lora is None:
-        raise RuntimeError("[EasyUseAnima] LoraLoader does not expose load_lora().")
-
-    patched_model = model
-    patched_clip = clip
-    applied: list[dict[str, Any]] = []
-    for name, model_strength, clip_strength in entries:
-        if model_strength == 0 and clip_strength == 0:
-            continue
-        values = _node_output_tuple(load_lora(patched_model, patched_clip, name, model_strength, clip_strength))
-        if len(values) < 2:
-            raise RuntimeError("[EasyUseAnima] LoraLoader returned no MODEL/CLIP pair.")
-        patched_model, patched_clip = values[0], values[1]
-        applied.append({
-            "name": name,
-            "strength_model": model_strength,
-            "strength_clip": clip_strength,
-        })
-    return patched_model, patched_clip, applied
 
 
 def _aio_lora_metadata_name(name: str) -> str:
@@ -2450,55 +2315,6 @@ def _sample_latent_with_spectrum_spd(
     return values[0]
 
 
-def _apply_aio_anima_dave_patch(model, dave_settings: dict[str, Any]):
-    dave_cls = _require_custom_node_class(
-        "AnimaDAVE",
-        "ComfyUI-Anima-DAVE",
-        "Repository: https://github.com/sorryhyun/ComfyUI-Anima-DAVE",
-    )
-    if not isinstance(dave_settings, dict):
-        dave_settings = {}
-    patcher = dave_cls()
-    patch = getattr(patcher, "patch", None)
-    if patch is None:
-        raise RuntimeError("[EasyUseAnima] AnimaDAVE does not expose patch().")
-    result = patch(
-        model,
-        str(dave_settings.get("mask") or "dave_alpha.npz"),
-        _as_float(dave_settings.get("strength"), 0.30),
-        _as_float(dave_settings.get("tau"), 0.10),
-    )
-    values = _node_output_tuple(result)
-    if not values:
-        raise RuntimeError("[EasyUseAnima] AnimaDAVE returned no MODEL.")
-    return values[0]
-
-
-def _apply_aio_safe_pag_patch(model, safe_pag_settings: dict[str, Any]):
-    safe_pag_cls = _require_custom_node_class(
-        "AnimaSafePAG",
-        "Anima Safe PAG",
-        "Repository: https://github.com/iljung1106/comfyui-anima-safe-pag",
-    )
-    if not isinstance(safe_pag_settings, dict):
-        safe_pag_settings = {}
-    result = safe_pag_cls().patch(
-        model,
-        _as_float(safe_pag_settings.get("scale"), 4.0),
-        str(safe_pag_settings.get("block_indices") or "18"),
-        _as_float(safe_pag_settings.get("perturbation_strength"), 0.75),
-        str(safe_pag_settings.get("head_indices") or ""),
-        _as_float(safe_pag_settings.get("start_percent"), 0.0),
-        _as_float(safe_pag_settings.get("end_percent"), 0.7),
-        _as_float(safe_pag_settings.get("rescale"), 0.2),
-        str(safe_pag_settings.get("rescale_mode") or "full"),
-    )
-    values = _node_output_tuple(result)
-    if not values:
-        raise RuntimeError("[EasyUseAnima] AnimaSafePAG returned no MODEL.")
-    return values[0]
-
-
 def _sample_latent_with_aio_backend(
     model,
     clip,
@@ -2786,78 +2602,6 @@ def _aio_usdu_tile_plan(image, scale_by: float, usdu_settings: dict[str, Any]) -
 def _aio_usdu_tile_size(image, scale_by: float, usdu_settings: dict[str, Any]) -> tuple[int, int]:
     tile_plan = _aio_usdu_tile_plan(image, scale_by, usdu_settings)
     return int(tile_plan["tile_width"]), int(tile_plan["tile_height"])
-
-
-def _aio_prompt_data_fields_for_usdu(prompt_data: str | dict | None) -> list[dict]:
-    data = _normalize_prompt_data(prompt_data)
-    fields = data.get("fields")
-    if not isinstance(fields, list):
-        fields = data.get("saved_fields")
-    return _normalize_advanced_fields(fields)
-
-
-def _aio_usdu_prompt_without_general(
-    prompt_data: str | dict | None,
-    pane: str,
-    include_quality: bool,
-) -> tuple[str, bool]:
-    fields = _aio_prompt_data_fields_for_usdu(prompt_data)
-    if not fields:
-        return "", False
-    allowed_types = {"artist", "trigger"}
-    if include_quality:
-        allowed_types.add("quality")
-    selected = [
-        field
-        for field in _advanced_enabled_pane_fields(fields, pane)
-        if field.get("type") in allowed_types
-    ]
-    if not selected:
-        return "", True
-    artist_prompt = _advanced_artist_field_prompt(selected, pane)
-    force_pin_triggers = _as_bool(_normalize_prompt_data(prompt_data).get("pin_trigger_tags_to_front"), False)
-    return (
-        _correct_advanced_field_sequence(
-            selected,
-            include_quality=include_quality,
-            artist_overrides=artist_prompt,
-            force_pin_triggers=force_pin_triggers,
-        ),
-        True,
-    )
-
-
-def _aio_usdu_conditioning(
-    clip,
-    positive,
-    negative,
-    usdu_settings: dict[str, Any],
-    quality_tags: str,
-    quality_neg: str,
-    prompt_data: str | dict | None = None,
-    exclude_positive_quality: bool = False,
-    exclude_negative_quality: bool = False,
-):
-    prompt_mode = str(usdu_settings.get("prompt_mode") or AIO_USDU_PROMPT_FULL)
-    if prompt_mode == "quality_tags_only":
-        prompt_mode = AIO_USDU_PROMPT_NO_GENERAL
-    if prompt_mode != AIO_USDU_PROMPT_NO_GENERAL:
-        return positive, negative
-    prompt, has_fields = _aio_usdu_prompt_without_general(
-        prompt_data,
-        "positive",
-        include_quality=not _as_bool(exclude_positive_quality, False),
-    )
-    negative_prompt, has_negative_fields = _aio_usdu_prompt_without_general(
-        prompt_data,
-        "negative",
-        include_quality=not _as_bool(exclude_negative_quality, False),
-    )
-    if not has_fields and not prompt:
-        prompt = "" if _as_bool(exclude_positive_quality, False) else str(quality_tags or "highres, best quality")
-    if not has_negative_fields and not negative_prompt:
-        negative_prompt = "" if _as_bool(exclude_negative_quality, False) else str(quality_neg or "")
-    return _encode_with_comfy_clip(clip, prompt), _encode_with_comfy_clip(clip, negative_prompt)
 
 
 def _aio_final_fit_size(width: int, height: int, fit_settings: dict[str, Any]) -> tuple[int, int, float]:
@@ -3751,6 +3495,12 @@ _bind_aio_generation_normalization_runtime(
     resolve_helper=lambda name: globals()[name],
 )
 _bind_aio_resource_runtime(
+    resolve_helper=lambda name: globals()[name],
+)
+_bind_aio_model_preparation_runtime(
+    resolve_helper=lambda name: globals()[name],
+)
+_bind_aio_conditioning_runtime(
     resolve_helper=lambda name: globals()[name],
 )
 _bind_sam3_runtime(

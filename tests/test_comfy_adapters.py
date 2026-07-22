@@ -244,6 +244,27 @@ class ComfyResourceAdapterTests(unittest.TestCase):
 
 
 class ComfyInvocationAdapterTests(unittest.TestCase):
+    def test_clip_encoding_uses_injected_call_time_node_lookup(self):
+        calls = []
+
+        class ClipTextEncode:
+            def encode(self, clip, text):
+                calls.append((clip, text))
+                return ("conditioning", "ignored")
+
+        self.assertEqual(
+            invocation._encode_with_comfy_clip(
+                "clip",
+                "prompt",
+                lambda node_id: ClipTextEncode if node_id == "CLIPTextEncode" else None,
+            ),
+            "conditioning",
+        )
+        self.assertEqual(calls, [("clip", "prompt")])
+
+        with self.assertRaisesRegex(RuntimeError, "Could not find ComfyUI CLIPTextEncode"):
+            invocation._encode_with_comfy_clip("clip", "prompt", lambda _node_id: None)
+
     def test_signature_filtering_var_kwargs_and_missing_required_are_preserved(self):
         calls = []
 
@@ -333,6 +354,14 @@ class ComfyRootCompatibilityTests(unittest.TestCase):
                 ("text_encoders", list(nodes.ANIMA_DEFAULT_CLIP_CANDIDATES)),
             ],
         )
+
+        class ClipTextEncode:
+            def encode(self, clip, text):
+                return (f"{clip}:{text}",)
+
+        with patch.object(nodes, "_find_comfy_node_class", return_value=ClipTextEncode) as finder:
+            self.assertEqual(nodes._encode_with_comfy_clip("clip", "prompt"), "clip:prompt")
+        finder.assert_called_once_with("CLIPTextEncode")
 
     def test_adapter_modules_remain_below_production_module_loc_guidance(self):
         for path in (
