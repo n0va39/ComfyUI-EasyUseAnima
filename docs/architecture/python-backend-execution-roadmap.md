@@ -3,9 +3,9 @@
 ## Document status
 
 - Status: operational execution runbook
-- Snapshot date: 2026-07-22
+- Snapshot date: 2026-07-23
 - Snapshot branch: `dev`
-- Integrated `dev` snapshot commit: `7484dc758fd11de020228129f611f9170634357d`
+- Integrated `dev` snapshot commit: `57d40b435983f08c91469db6947ef1260b293695`
 - Scope: Python backend only
 - Target architecture: [`python-backend.md`](python-backend.md)
 - Architecture decisions: [ADR-001](adr-001-modular-monolith.md) and
@@ -31,7 +31,7 @@ merged PR, the owning issue's evidence record, and every stated exit gate.
 | Phase | Integrated snapshot / open implementation state | Remaining exit work |
 | --- | --- | --- |
 | A - baseline | Complete; #191 is closed | Keep fixtures and analyzers current during later moves |
-| B - `nodes.py` extraction | Integrated through B-09b1; B-09b2 implemented in PR #270 | Integrate B-09b2, then continue compatibility audit, registration/bootstrap, final root shim |
+| B - `nodes.py` extraction | Integrated through B-09b2; B-10a audit in review in PR #271 | Integrate B-10a, then perform scoped B-10b cleanup before registration/bootstrap and the final root shim |
 | C - feature contracts/behavior | Partially complete | Finish #168; then #167 and #169 in separate Contract/Behavior PRs |
 | D - root consolidation | Not started | Execute #186 feature by feature after the corresponding behavior contracts are stable |
 | E - runtime ownership | Not started | Execute #187 after canonical feature owners exist; E-01 inventory may start earlier |
@@ -42,15 +42,14 @@ merged PR, the owning issue's evidence record, and every stated exit gate.
 ### Measured Phase B progress
 
 - The Phase A baseline recorded root `nodes.py` at 12,663 lines.
-- Against the integrated `dev` snapshot above, the B-09b2 PR-head
-  implementation measures root `nodes.py` at 2,712 lines. This is a PR-head
-  measurement, not a claim that B-09b2 is already integrated into that commit.
-- At that implementation head the mechanical extraction has removed 9,951
+- Against the integrated `dev` snapshot above, root `nodes.py` measures 2,712
+  lines after B-09b2.
+- The mechanical extraction has removed 9,951
   lines, approximately 78.6% of the Phase A baseline, while preserving the root
   compatibility surface.
-- B-01 through B-09b1 are integrated. The latest completed implementation slice
-  is the AiO legacy orchestration Move in PR #269.
-- At the B-09b2 implementation head the public AiO generator adapter is
+- B-01 through B-09b2 are integrated. The latest completed implementation slice
+  is the AiO generator adapter Move in PR #270.
+- The public AiO generator adapter is
   canonical under `easyuse_anima.nodes.aio_nodes`; root `nodes.py` retains its
   direct class/helper aliases and remaining support seams.
 - Root `__init__.py` still imports `api.py` for route-registration side effects,
@@ -294,15 +293,16 @@ surfaces. AiO mechanical extraction must not start until #168 exits.
 | 8 | B-08a through B-08e AiO support-helper extraction | COMPLETE on `dev` | Move | #184 | B-08a PR #259; B-08b1 PR #260; B-08b2 PR #261; B-08c PR #262; B-08d1 PR #263; B-08d2 PR #264; B-08e PR #265 |
 | 9 | B-09a AiO input adapter move | COMPLETE in PR #268 | Move | #184 | AiO helpers canonical through B-08e |
 | 10 | B-09b1 AiO legacy orchestration body move | COMPLETE on `dev` | Move | #184 | PR #269 / `7484dc7` |
-| 11 | B-09b2 AiO generator adapter move | IMPLEMENTED in PR #270 | Move | #184 | B-09b1 integrated |
-| 12 | B-10 compatibility/private-alias audit | BLOCKED by B-09b | Contract/cleanup, split PRs | #184/#188 | All node implementations canonical |
-| 13 | B-11 registration/bootstrap/root shim | BLOCKED by B-10 | Move | #184 | Alias surface frozen |
-| 14 | S167 backend seed reservation series | BLOCKED by B exit/interface | Contract then Behavior | #167 | Canonical AiO/node seams |
-| 15 | A169 stage pipeline series | BLOCKED by #168 and B exit | Contract then Behavior | #169 | Typed config and mechanical AiO move |
-| 16 | A169 first-pass cache policy | BLOCKED by stage/cache ownership seam | Behavior | #169 | Mechanical cache move and benchmark harness |
-| 17 | D-series canonical root consolidation | BLOCKED by relevant C contracts | Move | #186 | Phase B exit; per-feature behavior stable |
-| 18 | E-series RuntimeServices/lifecycle | BLOCKED by canonical owners | Move/Contract, split PRs | #187 | Relevant D moves |
-| 19 | G-04 through G-06 and H | INCREMENTAL/LATER | Gate/Contract | #188 | Appropriate package and release evidence |
+| 11 | B-09b2 AiO generator adapter move | COMPLETE on `dev` | Move | #184 | PR #270 / `57d40b4` |
+| 12 | B-10a machine-readable compatibility audit | IN REVIEW in PR #271 | Contract/gate | #184/#188 | B-09b2 integrated |
+| 13 | B-10b private alias reduction | BLOCKED by B-10a | Contract/cleanup, split PRs | #184/#188 | Audited alias surface integrated |
+| 14 | B-11 registration/bootstrap/root shim | BLOCKED by B-10b | Move | #184 | Supported alias surface frozen after scoped cleanup |
+| 15 | S167 backend seed reservation series | BLOCKED by B exit/interface | Contract then Behavior | #167 | Canonical AiO/node seams |
+| 16 | A169 stage pipeline series | BLOCKED by #168 and B exit | Contract then Behavior | #169 | Typed config and mechanical AiO move |
+| 17 | A169 first-pass cache policy | BLOCKED by stage/cache ownership seam | Behavior | #169 | Mechanical cache move and benchmark harness |
+| 18 | D-series canonical root consolidation | BLOCKED by relevant C contracts | Move | #186 | Phase B exit; per-feature behavior stable |
+| 19 | E-series RuntimeServices/lifecycle | BLOCKED by canonical owners | Move/Contract, split PRs | #187 | Relevant D moves |
+| 20 | G-04 through G-06 and H | INCREMENTAL/LATER | Gate/Contract | #188 | Appropriate package and release evidence |
 
 Issue #199, authenticated diagnostics/settings access, is an independent security
 track. It may proceed when its threat model and owner are ready, but it does not
@@ -578,15 +578,15 @@ B-09b is split at the existing compatibility boundary:
   remaining workflow/browser serialization checkpoint. B-09 is not complete
   until that adapter slice and the stated integration evidence are complete.
 
-B-09b1 is complete in PR #269. B-09b2 is implemented in PR #270: the generator,
+B-09b1 is complete in PR #269. B-09b2 is complete on `dev` in PR #270: the generator,
 input signature helper, and input validator now live in
 `easyuse_anima.nodes.aio_nodes`; root imports them as direct identity aliases in
 both import modes. The adapter reuses the existing resolver slot so mutable
 special-seed state, normalization, signature, LoRA, change-key, settings-default,
 and legacy-orchestration dependencies remain call-time root compatibility seams.
-No node contract, mapping ID, method signature, or execution order changes in
-this Move. B-09 remains open until PR #270 is integrated and its full
-workflow/runtime checkpoints are recorded.
+No node contract, mapping ID, method signature, or execution order changed in
+this Move. Its focused, full, workflow serialization, package-import, and
+representative runtime checkpoints are recorded in PR #270; B-09 is complete.
 
 Before merge, capture a deterministic execution trace fixture for the current
 major phases and prove no order/result/cleanup drift. Run at least:
@@ -604,6 +604,7 @@ reported as unexecuted, not passed.
 
 ### B-10a — Machine-readable compatibility surface audit
 
+- **Status:** IN REVIEW in PR #271, based on `dev` `57d40b4`.
 - **Owners:** #184 and #188
 - **Type:** Contract/gate
 - Inventory every root export and alias after B-09.
@@ -614,8 +615,9 @@ reported as unexecuted, not passed.
   and removal gates.
 - Update `python-compatibility-shims.md` from B-04-only detail to the actual
   B-04-through-B-09 state.
-- Test-only imports must migrate to canonical paths; they do not justify a root
-  alias.
+- Record test-only imports as unsupported/test-only; their canonical-path
+  migration and any root-alias removal belong to scoped B-10b PRs. They do not
+  justify public support.
 
 ### B-10b — Private alias reduction
 

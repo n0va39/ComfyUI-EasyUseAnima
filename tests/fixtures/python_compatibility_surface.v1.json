@@ -1,0 +1,3884 @@
+{
+  "schema_version": 1,
+  "snapshot": {
+    "base_branch": "dev",
+    "base_commit": "57d40b435983f08c91469db6947ef1260b293695",
+    "first_release": null,
+    "owner_tasks": [
+      "#184",
+      "#188",
+      "B-10a"
+    ]
+  },
+  "enums": {
+    "classifications": [
+      "permanent_entrypoint",
+      "supported_public_reexport",
+      "transitional_private_seam",
+      "unsupported_test_only"
+    ],
+    "target_states": [
+      "canonical",
+      "legacy_owner",
+      "unassigned"
+    ],
+    "identity_requirements": [
+      "stable_entrypoint",
+      "required",
+      "not_applicable"
+    ],
+    "binding_shapes": [
+      "entrypoint",
+      "direct_import",
+      "root_definition"
+    ],
+    "lifecycle_states": [
+      "permanent",
+      "supported",
+      "transitional",
+      "unsupported"
+    ]
+  },
+  "expected_counts": {
+    "root_entrypoints": 3,
+    "excluded_preamble_implementation_bindings": 7,
+    "nodes_canonical_bindings": 401,
+    "nodes_legacy_bindings": 27,
+    "mapped_public_classes": 18,
+    "unmapped_classes": 3,
+    "root_residual_functions": 41,
+    "root_residual_classes": 2,
+    "root_residual_globals": 33,
+    "runtime_binders": 28,
+    "direct_nodes_import_test_files": 22
+  },
+  "mapped_public_classes": [
+    "EasyUseAnimaAIOGenerator",
+    "EasyUseAnimaArtistMixConditioning",
+    "EasyUseAnimaDetailerAlignHook",
+    "EasyUseAnimaImageScaleByMultiple",
+    "EasyUseAnimaInput",
+    "EasyUseAnimaLoraPreset",
+    "EasyUseAnimaNAIARandomPrompt",
+    "EasyUseAnimaPromptBuilder",
+    "EasyUseAnimaPromptCorrector",
+    "EasyUseAnimaPromptCorrectorSimple",
+    "EasyUseAnimaPromptDataConditioning",
+    "EasyUseAnimaPromptDataUnpack",
+    "EasyUseAnimaPromptStudio",
+    "EasyUseAnimaPromptStudioAdvanced",
+    "EasyUseAnimaPromptStudioAdvancedV2",
+    "EasyUseAnimaPromptStudioRegional",
+    "EasyUseAnimaRegionalConditioning",
+    "EasyUseAnimaWildcard"
+  ],
+  "unmapped_classes": [
+    "EasyUseAnimaPromptStudioExtend",
+    "EasyUseAnimaSAM3Context",
+    "EasyUseAnimaSAM3Detailer"
+  ],
+  "excluded_preamble_implementation_bindings": {
+    "Any": "typing:Any",
+    "ceil": "math:ceil",
+    "json": "json:json",
+    "logging": "logging:logging",
+    "random": "random:random",
+    "re": "re:re",
+    "sqrt": "math:sqrt"
+  },
+  "runtime_binders": [
+    "_bind_aio_first_pass_cache_runtime",
+    "_bind_aio_legacy_generation_runtime",
+    "_bind_aio_generation_normalization_runtime",
+    "_bind_aio_resource_runtime",
+    "_bind_aio_model_preparation_runtime",
+    "_bind_aio_sampling_runtime",
+    "_bind_aio_preview_runtime",
+    "_bind_aio_output_runtime",
+    "_bind_aio_conditioning_runtime",
+    "_bind_sam3_runtime",
+    "_bind_impact_detailer_node_runtime",
+    "_bind_sam3_node_runtime",
+    "_bind_regional_runtime",
+    "_bind_regional_node_runtime",
+    "_bind_advanced_runtime",
+    "_bind_prompt_advanced_node_runtime",
+    "_bind_aio_node_runtime",
+    "_bind_conditioning_runtime",
+    "_bind_artist_mix_runtime",
+    "_bind_prompt_data_node_runtime",
+    "_bind_prompt_fields_runtime",
+    "_bind_prompt_correction_runtime",
+    "_bind_prompt_node_runtime",
+    "_bind_wildcard_node_runtime",
+    "_bind_naia_node_runtime",
+    "_bind_lora_metadata_runtime",
+    "_bind_lora_preset_runtime",
+    "_bind_lora_node_runtime"
+  ],
+  "runtime_resolver_consumers": {
+    "AIO_FINAL_FIT_MODES": [
+      "easyuse_anima.aio.generation_normalization"
+    ],
+    "AIO_FINAL_UPSCALE_BACKENDS": [
+      "easyuse_anima.aio.generation_normalization"
+    ],
+    "AIO_FIRST_PASS_CACHE_MAX_ENTRIES": [
+      "easyuse_anima.aio.first_pass_cache"
+    ],
+    "AIO_GENERATION_DEFAULT_SETTINGS": [
+      "easyuse_anima.aio.generation_normalization",
+      "easyuse_anima.aio.output"
+    ],
+    "AIO_GENERATION_SETTINGS_SCHEMA": [
+      "easyuse_anima.aio.generation_normalization"
+    ],
+    "AIO_GENERATION_SETTINGS_VERSION": [
+      "easyuse_anima.aio.generation_normalization"
+    ],
+    "AIO_PREVIEW_CACHE_FORMAT": [
+      "easyuse_anima.aio.preview"
+    ],
+    "AIO_PREVIEW_CACHE_QUALITY": [
+      "easyuse_anima.aio.preview"
+    ],
+    "AIO_PREVIEW_EVENT": [
+      "easyuse_anima.aio.preview"
+    ],
+    "AIO_PREVIEW_STAGE_LABELS": [
+      "easyuse_anima.aio.preview"
+    ],
+    "AIO_RESHIFT_DTYPES": [
+      "easyuse_anima.aio.generation_normalization"
+    ],
+    "AIO_RESHIFT_SCALES": [
+      "easyuse_anima.aio.generation_normalization"
+    ],
+    "AIO_SPECIAL_SEEDS": [
+      "easyuse_anima.nodes.aio_nodes"
+    ],
+    "AIO_USDU_MODE_TYPES": [
+      "easyuse_anima.aio.generation_normalization"
+    ],
+    "AIO_USDU_PROMPT_FULL": [
+      "easyuse_anima.aio.conditioning"
+    ],
+    "AIO_USDU_PROMPT_MODES": [
+      "easyuse_anima.aio.generation_normalization"
+    ],
+    "AIO_USDU_PROMPT_NO_GENERAL": [
+      "easyuse_anima.aio.conditioning",
+      "easyuse_anima.aio.generation_normalization"
+    ],
+    "AIO_USDU_SEAM_FIX_MODES": [
+      "easyuse_anima.aio.generation_normalization"
+    ],
+    "ANIMA_DEFAULT_CLIP_CANDIDATES": [
+      "easyuse_anima.nodes.aio_nodes"
+    ],
+    "ANIMA_DEFAULT_DIFFUSION_MODEL_CANDIDATES": [
+      "easyuse_anima.nodes.aio_nodes"
+    ],
+    "ANIMA_DEFAULT_VAE_CANDIDATES": [
+      "easyuse_anima.nodes.aio_nodes"
+    ],
+    "ANIMA_MOD_GUIDANCE_DEFAULT_PROFILE": [
+      "easyuse_anima.aio.generation_normalization",
+      "easyuse_anima.aio.sampling"
+    ],
+    "ANIMA_MOD_GUIDANCE_MODES": [
+      "easyuse_anima.aio.generation_normalization"
+    ],
+    "ANIMA_MOD_GUIDANCE_MODE_FROM_PROMPT_DATA": [
+      "easyuse_anima.aio.generation_normalization"
+    ],
+    "ANIMA_MOD_GUIDANCE_PROFILE_OFF": [
+      "easyuse_anima.aio.legacy_generation",
+      "easyuse_anima.aio.sampling"
+    ],
+    "ARTIST_MIX_DEFAULT_CLUSTER_COUNT": [
+      "easyuse_anima.aio.generation_normalization"
+    ],
+    "ARTIST_MIX_DEFAULT_DOMINANT_ISOLATION": [
+      "easyuse_anima.aio.generation_normalization"
+    ],
+    "ARTIST_MIX_DEFAULT_DOMINANT_THRESHOLD": [
+      "easyuse_anima.aio.generation_normalization"
+    ],
+    "ARTIST_MIX_DEFAULT_EXACT_TOP_K": [
+      "easyuse_anima.aio.generation_normalization"
+    ],
+    "ARTIST_MIX_DEFAULT_RMS_SCALE_CAP": [
+      "easyuse_anima.aio.generation_normalization"
+    ],
+    "ARTIST_MIX_DEFAULT_START_PERCENT": [
+      "easyuse_anima.aio.generation_normalization"
+    ],
+    "ARTIST_MIX_DEFAULT_STRENGTH_SCALE": [
+      "easyuse_anima.aio.generation_normalization"
+    ],
+    "ARTIST_MIX_DEFAULT_STYLE_GAIN": [
+      "easyuse_anima.aio.generation_normalization"
+    ],
+    "ARTIST_MIX_INPUT_MODES": [
+      "easyuse_anima.aio.generation_normalization"
+    ],
+    "ARTIST_MIX_MODE_FROM_PROMPT_DATA": [
+      "easyuse_anima.aio.generation_normalization"
+    ],
+    "EASY_USE_ANIMA_INPUT_SCHEMA": [
+      "easyuse_anima.nodes.aio_nodes"
+    ],
+    "EASY_USE_ANIMA_INPUT_SETTINGS_VERSION": [
+      "easyuse_anima.nodes.aio_nodes"
+    ],
+    "EASY_USE_ANIMA_INPUT_TYPE": [
+      "easyuse_anima.nodes.aio_nodes"
+    ],
+    "EasyUseAnimaNAIARandomPrompt": [
+      "easyuse_anima.nodes.prompt_advanced_nodes"
+    ],
+    "IMAGE_SCALE_MULTIPLES": [
+      "easyuse_anima.aio.generation_normalization"
+    ],
+    "IMAGE_UPSCALE_METHODS": [
+      "easyuse_anima.aio.generation_normalization"
+    ],
+    "PROMPT_DATA_TYPE": [
+      "easyuse_anima.nodes.aio_nodes"
+    ],
+    "SEED_CONTROL_FIXED": [
+      "easyuse_anima.aio.generation_normalization",
+      "easyuse_anima.aio.sampling"
+    ],
+    "SEED_CONTROL_MODES": [
+      "easyuse_anima.aio.generation_normalization"
+    ],
+    "_AIO_FIRST_PASS_CACHE": [
+      "easyuse_anima.aio.first_pass_cache"
+    ],
+    "_AIO_FIRST_PASS_CACHE_ORDER": [
+      "easyuse_anima.aio.first_pass_cache"
+    ],
+    "_HASH_COMMENT_RE": [
+      "easyuse_anima.prompt.fields"
+    ],
+    "_INLINE_SPACE_RE": [
+      "easyuse_anima.prompt.fields"
+    ],
+    "_TRIGGER_WORD_KEYS": [
+      "easyuse_anima.lora.metadata"
+    ],
+    "_WEIGHTED_TOKEN_RE": [
+      "easyuse_anima.prompt.fields"
+    ],
+    "_advanced_artist_field_prompt": [
+      "easyuse_anima.aio.conditioning"
+    ],
+    "_advanced_default_fields": [
+      "easyuse_anima.prompt.regional"
+    ],
+    "_advanced_enabled_naia_panes": [
+      "easyuse_anima.nodes.prompt_advanced_nodes"
+    ],
+    "_advanced_enabled_pane_fields": [
+      "easyuse_anima.aio.conditioning",
+      "easyuse_anima.prompt.artist_mix"
+    ],
+    "_advanced_field_input_values": [
+      "easyuse_anima.nodes.prompt_advanced_nodes",
+      "easyuse_anima.nodes.regional_nodes",
+      "easyuse_anima.prompt.regional"
+    ],
+    "_advanced_field_socket_name": [
+      "easyuse_anima.prompt.regional"
+    ],
+    "_advanced_fields_json": [
+      "easyuse_anima.nodes.prompt_advanced_nodes"
+    ],
+    "_advanced_has_enabled_naia": [
+      "easyuse_anima.nodes.prompt_advanced_nodes"
+    ],
+    "_advanced_outputs_from_prompt_data": [
+      "easyuse_anima.aio.legacy_generation",
+      "easyuse_anima.nodes.prompt_data_nodes"
+    ],
+    "_advanced_prompt_with_artist_override": [
+      "easyuse_anima.prompt.artist_mix"
+    ],
+    "_advanced_resolution_from_selection": [
+      "easyuse_anima.nodes.prompt_advanced_nodes",
+      "easyuse_anima.nodes.regional_nodes"
+    ],
+    "_advanced_uses_naia_resolution": [
+      "easyuse_anima.nodes.prompt_advanced_nodes"
+    ],
+    "_aio_detailer_has_enabled_targets": [
+      "easyuse_anima.aio.legacy_generation"
+    ],
+    "_aio_detailer_target_defaults": [
+      "easyuse_anima.aio.generation_normalization"
+    ],
+    "_aio_detailer_target_order": [
+      "easyuse_anima.aio.generation_normalization"
+    ],
+    "_aio_first_pass_cache_key": [
+      "easyuse_anima.aio.legacy_generation"
+    ],
+    "_aio_generation_settings_json": [
+      "easyuse_anima.nodes.aio_nodes"
+    ],
+    "_aio_highres_effective_backend": [
+      "easyuse_anima.aio.legacy_generation"
+    ],
+    "_aio_image_saver_additional_hashes": [
+      "easyuse_anima.aio.output"
+    ],
+    "_aio_image_saver_civitai_hash_fetcher_entries": [
+      "easyuse_anima.aio.output"
+    ],
+    "_aio_input_settings_json": [
+      "easyuse_anima.nodes.aio_nodes"
+    ],
+    "_aio_lora_metadata_name": [
+      "easyuse_anima.aio.output"
+    ],
+    "_aio_lora_stack_signature": [
+      "easyuse_anima.aio.first_pass_cache",
+      "easyuse_anima.nodes.aio_nodes"
+    ],
+    "_aio_preview_base_directory": [
+      "easyuse_anima.aio.preview"
+    ],
+    "_aio_preview_file_size_bytes": [
+      "easyuse_anima.aio.preview"
+    ],
+    "_aio_prompt_data_fields_for_usdu": [
+      "easyuse_anima.aio.conditioning"
+    ],
+    "_aio_prompt_with_lora_metadata": [
+      "easyuse_anima.aio.output"
+    ],
+    "_aio_save_filename_prefix": [
+      "easyuse_anima.aio.legacy_generation"
+    ],
+    "_aio_usdu_prompt_without_general": [
+      "easyuse_anima.aio.conditioning"
+    ],
+    "_apply_advanced_field_inputs": [
+      "easyuse_anima.nodes.prompt_advanced_nodes"
+    ],
+    "_apply_aio_anima_dave_patch": [
+      "easyuse_anima.aio.model_preparation"
+    ],
+    "_apply_aio_kj_model_patches": [
+      "easyuse_anima.aio.model_preparation"
+    ],
+    "_apply_aio_lora_stack": [
+      "easyuse_anima.aio.legacy_generation"
+    ],
+    "_apply_aio_model_patches": [
+      "easyuse_anima.aio.legacy_generation"
+    ],
+    "_apply_aio_safe_pag_patch": [
+      "easyuse_anima.aio.model_preparation"
+    ],
+    "_apply_aio_spectrum_correction_patch_for_comfy_sampler": [
+      "easyuse_anima.aio.model_preparation"
+    ],
+    "_apply_aio_spectrum_forecast_patch_for_comfy_sampler": [
+      "easyuse_anima.aio.model_preparation"
+    ],
+    "_apply_aio_spectrum_model_patches_for_comfy_sampler": [
+      "easyuse_anima.aio.legacy_generation"
+    ],
+    "_apply_lora_syntax_format": [
+      "easyuse_anima.nodes.lora_nodes"
+    ],
+    "_apply_prompt_data_overrides": [
+      "easyuse_anima.nodes.prompt_data_nodes"
+    ],
+    "_apply_regional_field_inputs": [
+      "easyuse_anima.nodes.regional_nodes"
+    ],
+    "_apply_spectrum_anima_mod_guidance": [
+      "easyuse_anima.aio.legacy_generation",
+      "easyuse_anima.nodes.prompt_data_nodes"
+    ],
+    "_artist_mix_inline_prompt": [
+      "easyuse_anima.nodes.prompt_data_nodes",
+      "easyuse_anima.prompt.advanced"
+    ],
+    "_artist_mix_mode_tooltip": [
+      "easyuse_anima.nodes.prompt_advanced_nodes",
+      "easyuse_anima.nodes.prompt_data_nodes"
+    ],
+    "_artist_prompt_with_position": [
+      "easyuse_anima.nodes.prompt_data_nodes"
+    ],
+    "_artist_tags_from_prompt": [
+      "easyuse_anima.prompt.advanced"
+    ],
+    "_as_advanced_height": [
+      "easyuse_anima.prompt.regional"
+    ],
+    "_as_bool": [
+      "easyuse_anima.aio.conditioning",
+      "easyuse_anima.aio.generation_normalization",
+      "easyuse_anima.aio.legacy_generation",
+      "easyuse_anima.aio.model_preparation",
+      "easyuse_anima.aio.output",
+      "easyuse_anima.aio.sampling",
+      "easyuse_anima.nodes.lora_nodes",
+      "easyuse_anima.nodes.prompt_advanced_nodes",
+      "easyuse_anima.nodes.prompt_data_nodes",
+      "easyuse_anima.nodes.prompt_nodes",
+      "easyuse_anima.nodes.regional_nodes",
+      "easyuse_anima.prompt.advanced",
+      "easyuse_anima.prompt.regional"
+    ],
+    "_as_float": [
+      "easyuse_anima.aio.generation_normalization",
+      "easyuse_anima.aio.model_preparation",
+      "easyuse_anima.aio.output",
+      "easyuse_anima.aio.sampling",
+      "easyuse_anima.nodes.regional_nodes",
+      "easyuse_anima.prompt.regional"
+    ],
+    "_as_int": [
+      "easyuse_anima.aio.generation_normalization",
+      "easyuse_anima.aio.model_preparation",
+      "easyuse_anima.aio.output",
+      "easyuse_anima.aio.sampling",
+      "easyuse_anima.lora.preset",
+      "easyuse_anima.nodes.prompt_advanced_nodes",
+      "easyuse_anima.prompt.advanced",
+      "easyuse_anima.prompt.regional"
+    ],
+    "_blend_conditionings": [
+      "easyuse_anima.prompt.artist_mix"
+    ],
+    "_bounded_artist_mix_float": [
+      "easyuse_anima.aio.generation_normalization",
+      "easyuse_anima.nodes.prompt_advanced_nodes",
+      "easyuse_anima.nodes.prompt_data_nodes",
+      "easyuse_anima.prompt.advanced"
+    ],
+    "_bounded_artist_mix_int": [
+      "easyuse_anima.aio.generation_normalization",
+      "easyuse_anima.nodes.prompt_advanced_nodes",
+      "easyuse_anima.nodes.prompt_data_nodes",
+      "easyuse_anima.prompt.advanced"
+    ],
+    "_build_advanced_prompt_data": [
+      "easyuse_anima.nodes.prompt_advanced_nodes"
+    ],
+    "_build_advanced_prompts": [
+      "easyuse_anima.nodes.prompt_advanced_nodes"
+    ],
+    "_build_regional_outputs": [
+      "easyuse_anima.nodes.regional_nodes"
+    ],
+    "_call_with_supported_kwargs": [
+      "easyuse_anima.aio.model_preparation",
+      "easyuse_anima.aio.sampling"
+    ],
+    "_choice": [
+      "easyuse_anima.aio.generation_normalization",
+      "easyuse_anima.aio.resources"
+    ],
+    "_cleanup_aio_ephemeral_model": [
+      "easyuse_anima.aio.legacy_generation"
+    ],
+    "_clone_advanced_fields": [
+      "easyuse_anima.nodes.prompt_advanced_nodes"
+    ],
+    "_clone_aio_cache_value": [
+      "easyuse_anima.aio.first_pass_cache"
+    ],
+    "_clone_regional_fields": [
+      "easyuse_anima.nodes.regional_nodes"
+    ],
+    "_comfy_clip_loader_types": [
+      "easyuse_anima.nodes.aio_nodes"
+    ],
+    "_comfy_diffusion_model_names": [
+      "easyuse_anima.nodes.aio_nodes"
+    ],
+    "_comfy_max_resolution": [
+      "easyuse_anima.aio.generation_normalization",
+      "easyuse_anima.nodes.impact_detailer_nodes",
+      "easyuse_anima.nodes.sam3_nodes"
+    ],
+    "_comfy_sampler_names": [
+      "easyuse_anima.aio.generation_normalization"
+    ],
+    "_comfy_scheduler_names": [
+      "easyuse_anima.aio.generation_normalization"
+    ],
+    "_comfy_text_encoder_names": [
+      "easyuse_anima.nodes.aio_nodes"
+    ],
+    "_comfy_vae_names": [
+      "easyuse_anima.nodes.aio_nodes"
+    ],
+    "_conditioning_set_values": [
+      "easyuse_anima.nodes.regional_nodes"
+    ],
+    "_consume_reserved_wildcard_next_seed": [
+      "easyuse_anima.nodes.prompt_advanced_nodes",
+      "easyuse_anima.nodes.regional_nodes"
+    ],
+    "_copy_prompt_data_for_update": [
+      "easyuse_anima.nodes.aio_nodes"
+    ],
+    "_correct_advanced_field_sequence": [
+      "easyuse_anima.aio.conditioning",
+      "easyuse_anima.prompt.regional"
+    ],
+    "_correct_builder_prompt": [
+      "easyuse_anima.nodes.prompt_nodes",
+      "easyuse_anima.prompt.advanced",
+      "easyuse_anima.prompt.artist_mix"
+    ],
+    "_correct_style_prompt": [
+      "easyuse_anima.nodes.lora_nodes"
+    ],
+    "_decode_latent_with_comfy": [
+      "easyuse_anima.aio.legacy_generation"
+    ],
+    "_dedupe_text_values": [
+      "easyuse_anima.lora.metadata"
+    ],
+    "_easy_use_anima_input_signature": [
+      "easyuse_anima.nodes.aio_nodes"
+    ],
+    "_encode_artist_clustered": [
+      "easyuse_anima.prompt.artist_mix"
+    ],
+    "_encode_artist_delta_rms": [
+      "easyuse_anima.prompt.artist_mix"
+    ],
+    "_encode_image_with_comfy_vae": [
+      "easyuse_anima.aio.legacy_generation"
+    ],
+    "_encode_prompt_data_positive_conditioning": [
+      "easyuse_anima.aio.legacy_generation",
+      "easyuse_anima.nodes.prompt_data_nodes"
+    ],
+    "_encode_with_comfy_clip": [
+      "easyuse_anima.aio.conditioning",
+      "easyuse_anima.aio.legacy_generation",
+      "easyuse_anima.nodes.prompt_data_nodes",
+      "easyuse_anima.nodes.regional_nodes",
+      "easyuse_anima.nodes.sam3_nodes",
+      "easyuse_anima.prompt.artist_mix"
+    ],
+    "_expand_advanced_wildcard_fields": [
+      "easyuse_anima.nodes.prompt_advanced_nodes",
+      "easyuse_anima.nodes.regional_nodes"
+    ],
+    "_fallback_lora_path": [
+      "easyuse_anima.lora.metadata"
+    ],
+    "_filter_metadata_prompt": [
+      "easyuse_anima.nodes.prompt_nodes",
+      "easyuse_anima.prompt.advanced",
+      "easyuse_anima.prompt.regional"
+    ],
+    "_find_comfy_node_class": [
+      "easyuse_anima.aio.model_preparation",
+      "easyuse_anima.aio.output",
+      "easyuse_anima.aio.preview",
+      "easyuse_anima.aio.resources",
+      "easyuse_anima.aio.sampling",
+      "easyuse_anima.image.sam3"
+    ],
+    "_find_comfy_node_mapping_class": [
+      "easyuse_anima.image.sam3"
+    ],
+    "_find_loaded_node_class": [
+      "easyuse_anima.prompt.conditioning"
+    ],
+    "_find_spectrum_anima_mod_guidance_class": [
+      "easyuse_anima.prompt.conditioning"
+    ],
+    "_format_strength": [
+      "easyuse_anima.aio.output",
+      "easyuse_anima.nodes.lora_nodes"
+    ],
+    "_generate_empty_latent_with_comfy": [
+      "easyuse_anima.aio.legacy_generation",
+      "easyuse_anima.nodes.prompt_data_nodes"
+    ],
+    "_get_aio_first_pass_cache": [
+      "easyuse_anima.aio.legacy_generation"
+    ],
+    "_get_lora_info": [
+      "easyuse_anima.nodes.lora_nodes"
+    ],
+    "_get_lora_manager_trigger_words": [
+      "easyuse_anima.lora.metadata"
+    ],
+    "_get_loras_list": [
+      "easyuse_anima.lora.preset"
+    ],
+    "_get_workflow_node": [
+      "easyuse_anima.nodes.prompt_advanced_nodes",
+      "easyuse_anima.nodes.regional_nodes"
+    ],
+    "_image_tensor_size": [
+      "easyuse_anima.aio.legacy_generation",
+      "easyuse_anima.aio.preview"
+    ],
+    "_impact_scheduler_names": [
+      "easyuse_anima.aio.generation_normalization",
+      "easyuse_anima.nodes.impact_detailer_nodes"
+    ],
+    "_join_artist_mix_source_prompts": [
+      "easyuse_anima.nodes.prompt_data_nodes",
+      "easyuse_anima.prompt.advanced"
+    ],
+    "_join_prompt_tokens": [
+      "easyuse_anima.nodes.prompt_data_nodes",
+      "easyuse_anima.nodes.prompt_nodes",
+      "easyuse_anima.prompt.advanced",
+      "easyuse_anima.prompt.artist_mix",
+      "easyuse_anima.prompt.regional"
+    ],
+    "_json_clone": [
+      "easyuse_anima.aio.generation_normalization",
+      "easyuse_anima.aio.sampling",
+      "easyuse_anima.nodes.aio_nodes"
+    ],
+    "_json_object": [
+      "easyuse_anima.aio.generation_normalization"
+    ],
+    "_load_aio_resources_from_input_context": [
+      "easyuse_anima.aio.legacy_generation"
+    ],
+    "_load_checkpoint_with_comfy": [
+      "easyuse_anima.aio.resources",
+      "easyuse_anima.nodes.sam3_nodes"
+    ],
+    "_load_clip_with_comfy": [
+      "easyuse_anima.aio.resources"
+    ],
+    "_load_diffusion_model_with_comfy": [
+      "easyuse_anima.aio.resources"
+    ],
+    "_load_lora_manager_metadata": [
+      "easyuse_anima.lora.metadata"
+    ],
+    "_load_profile_data": [
+      "easyuse_anima.lora.preset"
+    ],
+    "_load_vae_with_comfy": [
+      "easyuse_anima.aio.resources"
+    ],
+    "_lora_combo_values": [
+      "easyuse_anima.nodes.lora_nodes"
+    ],
+    "_lora_manager_trigger_words_from_metadata": [
+      "easyuse_anima.lora.metadata"
+    ],
+    "_lora_model_exists": [
+      "easyuse_anima.nodes.lora_nodes"
+    ],
+    "_lora_stack_name": [
+      "easyuse_anima.aio.model_preparation",
+      "easyuse_anima.nodes.lora_nodes"
+    ],
+    "_metadata_filter_key": [
+      "easyuse_anima.prompt.fields"
+    ],
+    "_metadata_filter_keys": [
+      "easyuse_anima.prompt.fields"
+    ],
+    "_metadata_json_paths_for_lora": [
+      "easyuse_anima.lora.metadata"
+    ],
+    "_missing_lora_display_name": [
+      "easyuse_anima.nodes.lora_nodes"
+    ],
+    "_node_output_tuple": [
+      "easyuse_anima.aio.model_preparation",
+      "easyuse_anima.aio.resources",
+      "easyuse_anima.aio.sampling"
+    ],
+    "_normalize_advanced_fields": [
+      "easyuse_anima.aio.conditioning",
+      "easyuse_anima.nodes.prompt_advanced_nodes",
+      "easyuse_anima.prompt.artist_mix"
+    ],
+    "_normalize_aio_civitai_hash_fetchers": [
+      "easyuse_anima.aio.generation_normalization",
+      "easyuse_anima.aio.output"
+    ],
+    "_normalize_aio_dit_corrections_settings": [
+      "easyuse_anima.aio.generation_normalization"
+    ],
+    "_normalize_aio_generation_settings": [
+      "easyuse_anima.aio.legacy_generation",
+      "easyuse_anima.nodes.aio_nodes"
+    ],
+    "_normalize_aio_hash_bundles": [
+      "easyuse_anima.aio.generation_normalization",
+      "easyuse_anima.aio.output"
+    ],
+    "_normalize_aio_input_settings": [
+      "easyuse_anima.aio.resources",
+      "easyuse_anima.nodes.aio_nodes"
+    ],
+    "_normalize_aio_lora_stack": [
+      "easyuse_anima.aio.model_preparation"
+    ],
+    "_normalize_aio_seed": [
+      "easyuse_anima.aio.generation_normalization"
+    ],
+    "_normalize_aio_spectrum_settings": [
+      "easyuse_anima.aio.generation_normalization"
+    ],
+    "_normalize_anima_mod_guidance_profile": [
+      "easyuse_anima.aio.generation_normalization",
+      "easyuse_anima.aio.legacy_generation",
+      "easyuse_anima.aio.sampling",
+      "easyuse_anima.nodes.prompt_data_nodes"
+    ],
+    "_normalize_artist_mix_mode": [
+      "easyuse_anima.nodes.prompt_advanced_nodes",
+      "easyuse_anima.nodes.prompt_data_nodes",
+      "easyuse_anima.prompt.advanced"
+    ],
+    "_normalize_artist_tag_position": [
+      "easyuse_anima.nodes.prompt_data_nodes"
+    ],
+    "_normalize_mask_ids": [
+      "easyuse_anima.nodes.regional_nodes"
+    ],
+    "_normalize_prompt_data": [
+      "easyuse_anima.aio.conditioning",
+      "easyuse_anima.aio.legacy_generation",
+      "easyuse_anima.nodes.aio_nodes",
+      "easyuse_anima.nodes.prompt_data_nodes"
+    ],
+    "_normalize_prompt_studio_wildcard_seed_control": [
+      "easyuse_anima.nodes.prompt_advanced_nodes",
+      "easyuse_anima.nodes.regional_nodes"
+    ],
+    "_normalize_regional_config": [
+      "easyuse_anima.nodes.regional_nodes"
+    ],
+    "_normalize_regional_fields": [
+      "easyuse_anima.nodes.regional_nodes"
+    ],
+    "_normalize_resolution_bucket": [
+      "easyuse_anima.prompt.advanced"
+    ],
+    "_parse_artist_mix_items": [
+      "easyuse_anima.prompt.advanced"
+    ],
+    "_parse_json_object": [
+      "easyuse_anima.nodes.regional_nodes"
+    ],
+    "_parse_random_response": [
+      "easyuse_anima.nodes.prompt_advanced_nodes"
+    ],
+    "_patch_model_sampling_aura_flow": [
+      "easyuse_anima.aio.model_preparation"
+    ],
+    "_post_random": [
+      "easyuse_anima.nodes.prompt_advanced_nodes"
+    ],
+    "_preferred_checkpoint_default": [
+      "easyuse_anima.nodes.sam3_nodes"
+    ],
+    "_preferred_clip_type_default": [
+      "easyuse_anima.nodes.aio_nodes"
+    ],
+    "_preferred_name_default": [
+      "easyuse_anima.nodes.aio_nodes"
+    ],
+    "_profile_key": [
+      "easyuse_anima.lora.preset"
+    ],
+    "_prompt_data_json_safe": [
+      "easyuse_anima.aio.first_pass_cache",
+      "easyuse_anima.aio.generation_normalization",
+      "easyuse_anima.aio.legacy_generation",
+      "easyuse_anima.aio.preview",
+      "easyuse_anima.nodes.aio_nodes"
+    ],
+    "_prompt_data_parameter_snapshot": [
+      "easyuse_anima.nodes.prompt_advanced_nodes"
+    ],
+    "_prompt_tokens": [
+      "easyuse_anima.prompt.fields"
+    ],
+    "_prompt_translation_change_key": [
+      "easyuse_anima.nodes.prompt_advanced_nodes",
+      "easyuse_anima.nodes.prompt_nodes",
+      "easyuse_anima.nodes.regional_nodes"
+    ],
+    "_put_aio_first_pass_cache": [
+      "easyuse_anima.aio.legacy_generation"
+    ],
+    "_raise_missing_loras": [
+      "easyuse_anima.nodes.lora_nodes"
+    ],
+    "_ratio_label": [
+      "easyuse_anima.prompt.regional"
+    ],
+    "_regional_config_json": [
+      "easyuse_anima.nodes.regional_nodes"
+    ],
+    "_regional_fields_json": [
+      "easyuse_anima.nodes.regional_nodes"
+    ],
+    "_regional_mask_bounds_area": [
+      "easyuse_anima.nodes.regional_nodes"
+    ],
+    "_regional_payload_canvas": [
+      "easyuse_anima.nodes.regional_nodes"
+    ],
+    "_regional_union_mask_for_ids": [
+      "easyuse_anima.nodes.regional_nodes"
+    ],
+    "_require_any_custom_node_class": [
+      "easyuse_anima.aio.model_preparation"
+    ],
+    "_require_custom_node_class": [
+      "easyuse_anima.aio.model_preparation",
+      "easyuse_anima.aio.output",
+      "easyuse_anima.aio.sampling"
+    ],
+    "_require_easy_use_anima_input": [
+      "easyuse_anima.aio.legacy_generation"
+    ],
+    "_resize_image_to_size_if_needed": [
+      "easyuse_anima.aio.legacy_generation"
+    ],
+    "_resolution_label": [
+      "easyuse_anima.nodes.prompt_advanced_nodes"
+    ],
+    "_resolve_aio_runtime_seed": [
+      "easyuse_anima.aio.legacy_generation",
+      "easyuse_anima.aio.output",
+      "easyuse_anima.aio.sampling",
+      "easyuse_anima.nodes.aio_nodes"
+    ],
+    "_resolve_anima_mod_guidance_enabled": [
+      "easyuse_anima.aio.legacy_generation",
+      "easyuse_anima.nodes.prompt_data_nodes"
+    ],
+    "_resolve_naia_resolution": [
+      "easyuse_anima.nodes.prompt_advanced_nodes"
+    ],
+    "_round_trip_aio_generation_settings": [
+      "easyuse_anima.aio.generation_normalization"
+    ],
+    "_run_aio_detailer_stage": [
+      "easyuse_anima.aio.legacy_generation"
+    ],
+    "_run_aio_highres_stage": [
+      "easyuse_anima.aio.legacy_generation"
+    ],
+    "_run_aio_legacy_generation": [
+      "easyuse_anima.nodes.aio_nodes"
+    ],
+    "_run_aio_postprocess_stage": [
+      "easyuse_anima.aio.legacy_generation"
+    ],
+    "_run_aio_upscale_stage": [
+      "easyuse_anima.aio.legacy_generation"
+    ],
+    "_sam3_context": [
+      "easyuse_anima.aio.resources"
+    ],
+    "_sample_latent_with_aio_backend": [
+      "easyuse_anima.aio.legacy_generation"
+    ],
+    "_sample_latent_with_comfy": [
+      "easyuse_anima.aio.sampling"
+    ],
+    "_sample_latent_with_spectrum_mod_guidance_advanced": [
+      "easyuse_anima.aio.sampling"
+    ],
+    "_sample_latent_with_spectrum_spd": [
+      "easyuse_anima.aio.sampling"
+    ],
+    "_save_aio_temp_preview_image": [
+      "easyuse_anima.aio.legacy_generation"
+    ],
+    "_save_image_with_comfy": [
+      "easyuse_anima.aio.legacy_generation"
+    ],
+    "_save_image_with_image_saver": [
+      "easyuse_anima.aio.legacy_generation"
+    ],
+    "_select_profile_values": [
+      "easyuse_anima.nodes.lora_nodes"
+    ],
+    "_send_aio_preview_event": [
+      "easyuse_anima.aio.legacy_generation"
+    ],
+    "_set_naia_field_text": [
+      "easyuse_anima.nodes.prompt_advanced_nodes"
+    ],
+    "_single_value": [
+      "easyuse_anima.aio.legacy_generation",
+      "easyuse_anima.aio.output",
+      "easyuse_anima.aio.preview",
+      "easyuse_anima.nodes.prompt_advanced_nodes",
+      "easyuse_anima.nodes.regional_nodes",
+      "easyuse_anima.prompt.advanced",
+      "easyuse_anima.prompt.regional"
+    ],
+    "_split_tag_text": [
+      "easyuse_anima.nodes.prompt_nodes"
+    ],
+    "_stable_change_key": [
+      "easyuse_anima.aio.first_pass_cache",
+      "easyuse_anima.nodes.aio_nodes",
+      "easyuse_anima.nodes.lora_nodes",
+      "easyuse_anima.nodes.prompt_advanced_nodes",
+      "easyuse_anima.nodes.prompt_data_nodes",
+      "easyuse_anima.nodes.prompt_nodes",
+      "easyuse_anima.nodes.regional_nodes"
+    ],
+    "_tag_aio_preview_images": [
+      "easyuse_anima.aio.legacy_generation",
+      "easyuse_anima.aio.preview"
+    ],
+    "_translate_prompt_fields": [
+      "easyuse_anima.nodes.prompt_advanced_nodes",
+      "easyuse_anima.nodes.regional_nodes"
+    ],
+    "_translate_prompt_text": [
+      "easyuse_anima.nodes.prompt_advanced_nodes",
+      "easyuse_anima.nodes.prompt_nodes",
+      "easyuse_anima.prompt.advanced"
+    ],
+    "_trigger_words_from_value": [
+      "easyuse_anima.lora.metadata"
+    ],
+    "_wrap_profile_index": [
+      "easyuse_anima.lora.preset"
+    ],
+    "correct_prompt": [
+      "easyuse_anima.nodes.prompt_nodes",
+      "easyuse_anima.prompt.fields"
+    ],
+    "expand_wildcard_texts": [
+      "easyuse_anima.prompt.advanced"
+    ],
+    "has_prompt_translation_markers": [
+      "easyuse_anima.prompt.advanced",
+      "easyuse_anima.prompt.correction"
+    ],
+    "has_wildcard_syntax": [
+      "easyuse_anima.prompt.advanced"
+    ],
+    "load_knowledge_base": [
+      "easyuse_anima.nodes.prompt_nodes",
+      "easyuse_anima.prompt.fields"
+    ],
+    "logger": [
+      "easyuse_anima.aio.legacy_generation",
+      "easyuse_anima.aio.model_preparation",
+      "easyuse_anima.aio.output",
+      "easyuse_anima.aio.preview"
+    ],
+    "next_seed": [
+      "easyuse_anima.nodes.prompt_advanced_nodes",
+      "easyuse_anima.nodes.regional_nodes"
+    ],
+    "normalize_prompt_studio_wildcard_mode": [
+      "easyuse_anima.nodes.prompt_advanced_nodes",
+      "easyuse_anima.nodes.regional_nodes",
+      "easyuse_anima.prompt.advanced"
+    ],
+    "normalize_seed": [
+      "easyuse_anima.nodes.prompt_advanced_nodes",
+      "easyuse_anima.nodes.regional_nodes",
+      "easyuse_anima.prompt.advanced"
+    ],
+    "parse_prompt": [
+      "easyuse_anima.prompt.fields"
+    ],
+    "resolve_metadata_filter_words": [
+      "easyuse_anima.nodes.prompt_advanced_nodes",
+      "easyuse_anima.nodes.prompt_nodes",
+      "easyuse_anima.nodes.regional_nodes",
+      "easyuse_anima.prompt.advanced",
+      "easyuse_anima.prompt.regional"
+    ],
+    "resolve_naia_settings": [
+      "easyuse_anima.nodes.prompt_advanced_nodes"
+    ],
+    "resolve_prompt_translation_settings": [
+      "easyuse_anima.prompt.correction"
+    ],
+    "translate_prompt_markers": [
+      "easyuse_anima.prompt.correction"
+    ],
+    "wildcard_sources_signature": [
+      "easyuse_anima.nodes.prompt_advanced_nodes",
+      "easyuse_anima.nodes.regional_nodes"
+    ]
+  },
+  "documented_transitional_aliases": {
+    "EasyUseAnimaSAM3Context": {
+      "consumer": "historical SAM3 convenience-node compatibility",
+      "evidence": "docs/version-plans/0.1.6-Detailer.md"
+    }
+  },
+  "direct_nodes_import_test_files": [
+    "tests/test_aio_conditioning.py",
+    "tests/test_aio_first_pass_cache.py",
+    "tests/test_aio_generation_migrations.py",
+    "tests/test_aio_generation_settings.py",
+    "tests/test_aio_legacy_generation.py",
+    "tests/test_aio_model_preparation.py",
+    "tests/test_aio_nodes.py",
+    "tests/test_aio_output.py",
+    "tests/test_aio_preview.py",
+    "tests/test_aio_resources.py",
+    "tests/test_aio_sampling.py",
+    "tests/test_aio_schema_contract.py",
+    "tests/test_comfy_adapters.py",
+    "tests/test_image_scale.py",
+    "tests/test_locales.py",
+    "tests/test_lora_preset.py",
+    "tests/test_naia_settings.py",
+    "tests/test_node_contracts.py",
+    "tests/test_prompt_corrector.py",
+    "tests/test_prompt_studio_regional.py",
+    "tests/test_sam3_nodes.py",
+    "tests/test_wildcards.py"
+  ],
+  "groups": [
+    {
+      "id": "nodes_canonical_bindings:easyuse_anima.aio.conditioning:transitional_private_seam",
+      "surface": "nodes_canonical_bindings",
+      "symbols": {
+        "_aio_prompt_data_fields_for_usdu": "_aio_prompt_data_fields_for_usdu",
+        "_aio_usdu_conditioning": "_aio_usdu_conditioning",
+        "_aio_usdu_prompt_without_general": "_aio_usdu_prompt_without_general",
+        "_bind_aio_conditioning_runtime": "_bind_aio_conditioning_runtime"
+      },
+      "classification": "transitional_private_seam",
+      "current_target": "nodes.py",
+      "canonical_target": "easyuse_anima.aio.conditioning",
+      "target_state": "canonical",
+      "identity_requirement": "required",
+      "binding_shape": "direct_import",
+      "import_target": "easyuse_anima.aio.conditioning",
+      "owner": "#184/#188",
+      "first_release": null,
+      "known_consumers": [
+        "nodes.py residual runtime",
+        "canonical runtime resolver: easyuse_anima.aio.conditioning"
+      ],
+      "evidence": [
+        "AST:nodes.py direct runtime load",
+        "AST:easyuse_anima.aio.conditioning string runtime lookup"
+      ],
+      "removal_gates": [
+        "canonical production consumer migration",
+        "focused monkeypatch and identity contract review",
+        "separate B-10b or B-11 rollback unit"
+      ],
+      "lifecycle_state": "transitional"
+    },
+    {
+      "id": "nodes_canonical_bindings:easyuse_anima.aio.first_pass_cache:transitional_private_seam",
+      "surface": "nodes_canonical_bindings",
+      "symbols": {
+        "AIO_FIRST_PASS_CACHE_MAX_ENTRIES": "AIO_FIRST_PASS_CACHE_MAX_ENTRIES",
+        "_AIO_FIRST_PASS_CACHE": "_AIO_FIRST_PASS_CACHE",
+        "_AIO_FIRST_PASS_CACHE_ORDER": "_AIO_FIRST_PASS_CACHE_ORDER",
+        "_aio_first_pass_cache_key": "_aio_first_pass_cache_key",
+        "_bind_aio_first_pass_cache_runtime": "_bind_aio_first_pass_cache_runtime",
+        "_clone_aio_cache_value": "_clone_aio_cache_value",
+        "_get_aio_first_pass_cache": "_get_aio_first_pass_cache",
+        "_put_aio_first_pass_cache": "_put_aio_first_pass_cache"
+      },
+      "classification": "transitional_private_seam",
+      "current_target": "nodes.py",
+      "canonical_target": "easyuse_anima.aio.first_pass_cache",
+      "target_state": "canonical",
+      "identity_requirement": "required",
+      "binding_shape": "direct_import",
+      "import_target": "easyuse_anima.aio.first_pass_cache",
+      "owner": "#184/#188",
+      "first_release": null,
+      "known_consumers": [
+        "nodes.py residual runtime",
+        "canonical runtime resolver: easyuse_anima.aio.first_pass_cache",
+        "canonical runtime resolver: easyuse_anima.aio.legacy_generation"
+      ],
+      "evidence": [
+        "AST:nodes.py direct runtime load",
+        "AST:easyuse_anima.aio.first_pass_cache string runtime lookup",
+        "AST:easyuse_anima.aio.legacy_generation string runtime lookup"
+      ],
+      "removal_gates": [
+        "canonical production consumer migration",
+        "focused monkeypatch and identity contract review",
+        "separate B-10b or B-11 rollback unit"
+      ],
+      "lifecycle_state": "transitional"
+    },
+    {
+      "id": "nodes_canonical_bindings:easyuse_anima.aio.first_pass_cache:unsupported_test_only",
+      "surface": "nodes_canonical_bindings",
+      "symbols": {
+        "_clear_aio_first_pass_cache": "_clear_aio_first_pass_cache"
+      },
+      "classification": "unsupported_test_only",
+      "current_target": "nodes.py",
+      "canonical_target": "easyuse_anima.aio.first_pass_cache",
+      "target_state": "canonical",
+      "identity_requirement": "not_applicable",
+      "binding_shape": "direct_import",
+      "import_target": "easyuse_anima.aio.first_pass_cache",
+      "owner": "#184/#188",
+      "first_release": null,
+      "known_consumers": [
+        "repository tests may import this root name"
+      ],
+      "evidence": [
+        "AST:no nodes.py runtime load",
+        "test-only consumption is not public support evidence"
+      ],
+      "removal_gates": [
+        "test imports migrate to canonical targets",
+        "no production consumer evidence",
+        "separate B-10b removal review"
+      ],
+      "lifecycle_state": "unsupported"
+    },
+    {
+      "id": "nodes_canonical_bindings:easyuse_anima.aio.generation_normalization:transitional_private_seam",
+      "surface": "nodes_canonical_bindings",
+      "symbols": {
+        "_bind_aio_generation_normalization_runtime": "_bind_aio_generation_normalization_runtime",
+        "_merge_versioned_settings": "_merge_versioned_settings",
+        "_normalize_aio_generation_settings": "_normalize_aio_generation_settings"
+      },
+      "classification": "transitional_private_seam",
+      "current_target": "nodes.py",
+      "canonical_target": "easyuse_anima.aio.generation_normalization",
+      "target_state": "canonical",
+      "identity_requirement": "required",
+      "binding_shape": "direct_import",
+      "import_target": "easyuse_anima.aio.generation_normalization",
+      "owner": "#184/#188",
+      "first_release": null,
+      "known_consumers": [
+        "nodes.py residual runtime",
+        "canonical runtime resolver: easyuse_anima.aio.legacy_generation",
+        "canonical runtime resolver: easyuse_anima.nodes.aio_nodes"
+      ],
+      "evidence": [
+        "AST:nodes.py direct runtime load",
+        "AST:easyuse_anima.aio.legacy_generation string runtime lookup",
+        "AST:easyuse_anima.nodes.aio_nodes string runtime lookup"
+      ],
+      "removal_gates": [
+        "canonical production consumer migration",
+        "focused monkeypatch and identity contract review",
+        "separate B-10b or B-11 rollback unit"
+      ],
+      "lifecycle_state": "transitional"
+    },
+    {
+      "id": "nodes_canonical_bindings:easyuse_anima.aio.generation_settings:transitional_private_seam",
+      "surface": "nodes_canonical_bindings",
+      "symbols": {
+        "_round_trip_aio_generation_settings": "round_trip_aio_generation_settings"
+      },
+      "classification": "transitional_private_seam",
+      "current_target": "nodes.py",
+      "canonical_target": "easyuse_anima.aio.generation_settings",
+      "target_state": "canonical",
+      "identity_requirement": "required",
+      "binding_shape": "direct_import",
+      "import_target": "easyuse_anima.aio.generation_settings",
+      "owner": "#184/#188",
+      "first_release": null,
+      "known_consumers": [
+        "canonical runtime resolver: easyuse_anima.aio.generation_normalization"
+      ],
+      "evidence": [
+        "AST:easyuse_anima.aio.generation_normalization string runtime lookup"
+      ],
+      "removal_gates": [
+        "canonical production consumer migration",
+        "focused monkeypatch and identity contract review",
+        "separate B-10b or B-11 rollback unit"
+      ],
+      "lifecycle_state": "transitional"
+    },
+    {
+      "id": "nodes_canonical_bindings:easyuse_anima.aio.legacy_generation:transitional_private_seam",
+      "surface": "nodes_canonical_bindings",
+      "symbols": {
+        "_bind_aio_legacy_generation_runtime": "_bind_aio_legacy_generation_runtime",
+        "_run_aio_legacy_generation": "_run_aio_legacy_generation"
+      },
+      "classification": "transitional_private_seam",
+      "current_target": "nodes.py",
+      "canonical_target": "easyuse_anima.aio.legacy_generation",
+      "target_state": "canonical",
+      "identity_requirement": "required",
+      "binding_shape": "direct_import",
+      "import_target": "easyuse_anima.aio.legacy_generation",
+      "owner": "#184/#188",
+      "first_release": null,
+      "known_consumers": [
+        "nodes.py residual runtime",
+        "canonical runtime resolver: easyuse_anima.nodes.aio_nodes"
+      ],
+      "evidence": [
+        "AST:nodes.py direct runtime load",
+        "AST:easyuse_anima.nodes.aio_nodes string runtime lookup"
+      ],
+      "removal_gates": [
+        "canonical production consumer migration",
+        "focused monkeypatch and identity contract review",
+        "separate B-10b or B-11 rollback unit"
+      ],
+      "lifecycle_state": "transitional"
+    },
+    {
+      "id": "nodes_canonical_bindings:easyuse_anima.aio.model_preparation:transitional_private_seam",
+      "surface": "nodes_canonical_bindings",
+      "symbols": {
+        "_apply_aio_anima_dave_patch": "_apply_aio_anima_dave_patch",
+        "_apply_aio_kj_model_patches": "_apply_aio_kj_model_patches",
+        "_apply_aio_lora_stack": "_apply_aio_lora_stack",
+        "_apply_aio_model_patches": "_apply_aio_model_patches",
+        "_apply_aio_safe_pag_patch": "_apply_aio_safe_pag_patch",
+        "_apply_aio_spectrum_correction_patch_for_comfy_sampler": "_apply_aio_spectrum_correction_patch_for_comfy_sampler",
+        "_apply_aio_spectrum_forecast_patch_for_comfy_sampler": "_apply_aio_spectrum_forecast_patch_for_comfy_sampler",
+        "_apply_aio_spectrum_model_patches_for_comfy_sampler": "_apply_aio_spectrum_model_patches_for_comfy_sampler",
+        "_bind_aio_model_preparation_runtime": "_bind_aio_model_preparation_runtime",
+        "_cleanup_aio_ephemeral_model": "_cleanup_aio_ephemeral_model",
+        "_normalize_aio_lora_stack": "_normalize_aio_lora_stack",
+        "_patch_model_sampling_aura_flow": "_patch_model_sampling_aura_flow"
+      },
+      "classification": "transitional_private_seam",
+      "current_target": "nodes.py",
+      "canonical_target": "easyuse_anima.aio.model_preparation",
+      "target_state": "canonical",
+      "identity_requirement": "required",
+      "binding_shape": "direct_import",
+      "import_target": "easyuse_anima.aio.model_preparation",
+      "owner": "#184/#188",
+      "first_release": null,
+      "known_consumers": [
+        "nodes.py residual runtime",
+        "canonical runtime resolver: easyuse_anima.aio.legacy_generation",
+        "canonical runtime resolver: easyuse_anima.aio.model_preparation"
+      ],
+      "evidence": [
+        "AST:nodes.py direct runtime load",
+        "AST:easyuse_anima.aio.legacy_generation string runtime lookup",
+        "AST:easyuse_anima.aio.model_preparation string runtime lookup"
+      ],
+      "removal_gates": [
+        "canonical production consumer migration",
+        "focused monkeypatch and identity contract review",
+        "separate B-10b or B-11 rollback unit"
+      ],
+      "lifecycle_state": "transitional"
+    },
+    {
+      "id": "nodes_canonical_bindings:easyuse_anima.aio.output:transitional_private_seam",
+      "surface": "nodes_canonical_bindings",
+      "symbols": {
+        "_aio_image_saver_additional_hashes": "_aio_image_saver_additional_hashes",
+        "_aio_image_saver_civitai_hash_fetcher_entries": "_aio_image_saver_civitai_hash_fetcher_entries",
+        "_aio_lora_metadata_name": "_aio_lora_metadata_name",
+        "_aio_prompt_with_lora_metadata": "_aio_prompt_with_lora_metadata",
+        "_aio_save_filename_prefix": "_aio_save_filename_prefix",
+        "_bind_aio_output_runtime": "_bind_aio_output_runtime",
+        "_normalize_aio_civitai_hash_fetchers": "_normalize_aio_civitai_hash_fetchers",
+        "_normalize_aio_hash_bundles": "_normalize_aio_hash_bundles",
+        "_save_image_with_comfy": "_save_image_with_comfy",
+        "_save_image_with_image_saver": "_save_image_with_image_saver"
+      },
+      "classification": "transitional_private_seam",
+      "current_target": "nodes.py",
+      "canonical_target": "easyuse_anima.aio.output",
+      "target_state": "canonical",
+      "identity_requirement": "required",
+      "binding_shape": "direct_import",
+      "import_target": "easyuse_anima.aio.output",
+      "owner": "#184/#188",
+      "first_release": null,
+      "known_consumers": [
+        "nodes.py residual runtime",
+        "canonical runtime resolver: easyuse_anima.aio.generation_normalization",
+        "canonical runtime resolver: easyuse_anima.aio.legacy_generation",
+        "canonical runtime resolver: easyuse_anima.aio.output"
+      ],
+      "evidence": [
+        "AST:nodes.py direct runtime load",
+        "AST:easyuse_anima.aio.generation_normalization string runtime lookup",
+        "AST:easyuse_anima.aio.legacy_generation string runtime lookup",
+        "AST:easyuse_anima.aio.output string runtime lookup"
+      ],
+      "removal_gates": [
+        "canonical production consumer migration",
+        "focused monkeypatch and identity contract review",
+        "separate B-10b or B-11 rollback unit"
+      ],
+      "lifecycle_state": "transitional"
+    },
+    {
+      "id": "nodes_canonical_bindings:easyuse_anima.aio.preview:transitional_private_seam",
+      "surface": "nodes_canonical_bindings",
+      "symbols": {
+        "AIO_PREVIEW_CACHE_FORMAT": "AIO_PREVIEW_CACHE_FORMAT",
+        "AIO_PREVIEW_CACHE_QUALITY": "AIO_PREVIEW_CACHE_QUALITY",
+        "AIO_PREVIEW_EVENT": "AIO_PREVIEW_EVENT",
+        "AIO_PREVIEW_STAGE_LABELS": "AIO_PREVIEW_STAGE_LABELS",
+        "_aio_preview_base_directory": "_aio_preview_base_directory",
+        "_aio_preview_file_size_bytes": "_aio_preview_file_size_bytes",
+        "_bind_aio_preview_runtime": "_bind_aio_preview_runtime",
+        "_save_aio_temp_preview_image": "_save_aio_temp_preview_image",
+        "_send_aio_preview_event": "_send_aio_preview_event",
+        "_tag_aio_preview_images": "_tag_aio_preview_images"
+      },
+      "classification": "transitional_private_seam",
+      "current_target": "nodes.py",
+      "canonical_target": "easyuse_anima.aio.preview",
+      "target_state": "canonical",
+      "identity_requirement": "required",
+      "binding_shape": "direct_import",
+      "import_target": "easyuse_anima.aio.preview",
+      "owner": "#184/#188",
+      "first_release": null,
+      "known_consumers": [
+        "nodes.py residual runtime",
+        "canonical runtime resolver: easyuse_anima.aio.legacy_generation",
+        "canonical runtime resolver: easyuse_anima.aio.preview"
+      ],
+      "evidence": [
+        "AST:nodes.py direct runtime load",
+        "AST:easyuse_anima.aio.legacy_generation string runtime lookup",
+        "AST:easyuse_anima.aio.preview string runtime lookup"
+      ],
+      "removal_gates": [
+        "canonical production consumer migration",
+        "focused monkeypatch and identity contract review",
+        "separate B-10b or B-11 rollback unit"
+      ],
+      "lifecycle_state": "transitional"
+    },
+    {
+      "id": "nodes_canonical_bindings:easyuse_anima.aio.resources:transitional_private_seam",
+      "surface": "nodes_canonical_bindings",
+      "symbols": {
+        "_bind_aio_resource_runtime": "_bind_aio_resource_runtime",
+        "_load_aio_resources_from_input_context": "_load_aio_resources_from_input_context",
+        "_load_aio_sam3_context": "_load_aio_sam3_context",
+        "_load_checkpoint_with_comfy": "_load_checkpoint_with_comfy",
+        "_load_clip_with_comfy": "_load_clip_with_comfy",
+        "_load_diffusion_model_with_comfy": "_load_diffusion_model_with_comfy",
+        "_load_upscale_model_with_comfy": "_load_upscale_model_with_comfy",
+        "_load_vae_with_comfy": "_load_vae_with_comfy",
+        "_preferred_checkpoint_default": "_preferred_checkpoint_default",
+        "_preferred_clip_type_default": "_preferred_clip_type_default",
+        "_preferred_name_default": "_preferred_name_default"
+      },
+      "classification": "transitional_private_seam",
+      "current_target": "nodes.py",
+      "canonical_target": "easyuse_anima.aio.resources",
+      "target_state": "canonical",
+      "identity_requirement": "required",
+      "binding_shape": "direct_import",
+      "import_target": "easyuse_anima.aio.resources",
+      "owner": "#184/#188",
+      "first_release": null,
+      "known_consumers": [
+        "nodes.py residual runtime",
+        "canonical runtime resolver: easyuse_anima.aio.legacy_generation",
+        "canonical runtime resolver: easyuse_anima.aio.resources",
+        "canonical runtime resolver: easyuse_anima.nodes.aio_nodes",
+        "canonical runtime resolver: easyuse_anima.nodes.sam3_nodes"
+      ],
+      "evidence": [
+        "AST:nodes.py direct runtime load",
+        "AST:easyuse_anima.aio.legacy_generation string runtime lookup",
+        "AST:easyuse_anima.aio.resources string runtime lookup",
+        "AST:easyuse_anima.nodes.aio_nodes string runtime lookup",
+        "AST:easyuse_anima.nodes.sam3_nodes string runtime lookup"
+      ],
+      "removal_gates": [
+        "canonical production consumer migration",
+        "focused monkeypatch and identity contract review",
+        "separate B-10b or B-11 rollback unit"
+      ],
+      "lifecycle_state": "transitional"
+    },
+    {
+      "id": "nodes_canonical_bindings:easyuse_anima.aio.sampling:transitional_private_seam",
+      "surface": "nodes_canonical_bindings",
+      "symbols": {
+        "_aio_highres_effective_backend": "_aio_highres_effective_backend",
+        "_aio_stage_sampler_settings": "_aio_stage_sampler_settings",
+        "_bind_aio_sampling_runtime": "_bind_aio_sampling_runtime",
+        "_decode_latent_with_comfy": "_decode_latent_with_comfy",
+        "_encode_image_with_comfy_vae": "_encode_image_with_comfy_vae",
+        "_generate_empty_latent_with_comfy": "_generate_empty_latent_with_comfy",
+        "_sample_latent_with_aio_backend": "_sample_latent_with_aio_backend",
+        "_sample_latent_with_comfy": "_sample_latent_with_comfy",
+        "_sample_latent_with_spectrum_mod_guidance_advanced": "_sample_latent_with_spectrum_mod_guidance_advanced",
+        "_sample_latent_with_spectrum_spd": "_sample_latent_with_spectrum_spd"
+      },
+      "classification": "transitional_private_seam",
+      "current_target": "nodes.py",
+      "canonical_target": "easyuse_anima.aio.sampling",
+      "target_state": "canonical",
+      "identity_requirement": "required",
+      "binding_shape": "direct_import",
+      "import_target": "easyuse_anima.aio.sampling",
+      "owner": "#184/#188",
+      "first_release": null,
+      "known_consumers": [
+        "nodes.py residual runtime",
+        "canonical runtime resolver: easyuse_anima.aio.legacy_generation",
+        "canonical runtime resolver: easyuse_anima.aio.sampling",
+        "canonical runtime resolver: easyuse_anima.nodes.prompt_data_nodes"
+      ],
+      "evidence": [
+        "AST:nodes.py direct runtime load",
+        "AST:easyuse_anima.aio.legacy_generation string runtime lookup",
+        "AST:easyuse_anima.aio.sampling string runtime lookup",
+        "AST:easyuse_anima.nodes.prompt_data_nodes string runtime lookup"
+      ],
+      "removal_gates": [
+        "canonical production consumer migration",
+        "focused monkeypatch and identity contract review",
+        "separate B-10b or B-11 rollback unit"
+      ],
+      "lifecycle_state": "transitional"
+    },
+    {
+      "id": "nodes_canonical_bindings:easyuse_anima.common.serialization:transitional_private_seam",
+      "surface": "nodes_canonical_bindings",
+      "symbols": {
+        "_json_clone": "_json_clone",
+        "_json_object": "_json_object",
+        "_stable_change_key": "_stable_change_key"
+      },
+      "classification": "transitional_private_seam",
+      "current_target": "nodes.py",
+      "canonical_target": "easyuse_anima.common.serialization",
+      "target_state": "canonical",
+      "identity_requirement": "required",
+      "binding_shape": "direct_import",
+      "import_target": "easyuse_anima.common.serialization",
+      "owner": "#184/#188",
+      "first_release": null,
+      "known_consumers": [
+        "nodes.py residual runtime",
+        "canonical runtime resolver: easyuse_anima.aio.first_pass_cache",
+        "canonical runtime resolver: easyuse_anima.aio.generation_normalization",
+        "canonical runtime resolver: easyuse_anima.aio.sampling",
+        "canonical runtime resolver: easyuse_anima.nodes.aio_nodes",
+        "canonical runtime resolver: easyuse_anima.nodes.lora_nodes",
+        "canonical runtime resolver: easyuse_anima.nodes.prompt_advanced_nodes",
+        "canonical runtime resolver: easyuse_anima.nodes.prompt_data_nodes",
+        "canonical runtime resolver: easyuse_anima.nodes.prompt_nodes",
+        "canonical runtime resolver: easyuse_anima.nodes.regional_nodes"
+      ],
+      "evidence": [
+        "AST:nodes.py direct runtime load",
+        "AST:easyuse_anima.aio.first_pass_cache string runtime lookup",
+        "AST:easyuse_anima.aio.generation_normalization string runtime lookup",
+        "AST:easyuse_anima.aio.sampling string runtime lookup",
+        "AST:easyuse_anima.nodes.aio_nodes string runtime lookup",
+        "AST:easyuse_anima.nodes.lora_nodes string runtime lookup",
+        "AST:easyuse_anima.nodes.prompt_advanced_nodes string runtime lookup",
+        "AST:easyuse_anima.nodes.prompt_data_nodes string runtime lookup",
+        "AST:easyuse_anima.nodes.prompt_nodes string runtime lookup",
+        "AST:easyuse_anima.nodes.regional_nodes string runtime lookup"
+      ],
+      "removal_gates": [
+        "canonical production consumer migration",
+        "focused monkeypatch and identity contract review",
+        "separate B-10b or B-11 rollback unit"
+      ],
+      "lifecycle_state": "transitional"
+    },
+    {
+      "id": "nodes_canonical_bindings:easyuse_anima.common.values:transitional_private_seam",
+      "surface": "nodes_canonical_bindings",
+      "symbols": {
+        "_as_bool": "_as_bool",
+        "_as_float": "_as_float",
+        "_as_int": "_as_int",
+        "_choice": "_choice",
+        "_single_value": "_single_value"
+      },
+      "classification": "transitional_private_seam",
+      "current_target": "nodes.py",
+      "canonical_target": "easyuse_anima.common.values",
+      "target_state": "canonical",
+      "identity_requirement": "required",
+      "binding_shape": "direct_import",
+      "import_target": "easyuse_anima.common.values",
+      "owner": "#184/#188",
+      "first_release": null,
+      "known_consumers": [
+        "nodes.py residual runtime",
+        "canonical runtime resolver: easyuse_anima.aio.conditioning",
+        "canonical runtime resolver: easyuse_anima.aio.generation_normalization",
+        "canonical runtime resolver: easyuse_anima.aio.legacy_generation",
+        "canonical runtime resolver: easyuse_anima.aio.model_preparation",
+        "canonical runtime resolver: easyuse_anima.aio.output",
+        "canonical runtime resolver: easyuse_anima.aio.preview",
+        "canonical runtime resolver: easyuse_anima.aio.resources",
+        "canonical runtime resolver: easyuse_anima.aio.sampling",
+        "canonical runtime resolver: easyuse_anima.lora.preset",
+        "canonical runtime resolver: easyuse_anima.nodes.lora_nodes",
+        "canonical runtime resolver: easyuse_anima.nodes.prompt_advanced_nodes",
+        "canonical runtime resolver: easyuse_anima.nodes.prompt_data_nodes",
+        "canonical runtime resolver: easyuse_anima.nodes.prompt_nodes",
+        "canonical runtime resolver: easyuse_anima.nodes.regional_nodes",
+        "canonical runtime resolver: easyuse_anima.prompt.advanced",
+        "canonical runtime resolver: easyuse_anima.prompt.regional"
+      ],
+      "evidence": [
+        "AST:nodes.py direct runtime load",
+        "AST:easyuse_anima.aio.conditioning string runtime lookup",
+        "AST:easyuse_anima.aio.generation_normalization string runtime lookup",
+        "AST:easyuse_anima.aio.legacy_generation string runtime lookup",
+        "AST:easyuse_anima.aio.model_preparation string runtime lookup",
+        "AST:easyuse_anima.aio.output string runtime lookup",
+        "AST:easyuse_anima.aio.preview string runtime lookup",
+        "AST:easyuse_anima.aio.resources string runtime lookup",
+        "AST:easyuse_anima.aio.sampling string runtime lookup",
+        "AST:easyuse_anima.lora.preset string runtime lookup",
+        "AST:easyuse_anima.nodes.lora_nodes string runtime lookup",
+        "AST:easyuse_anima.nodes.prompt_advanced_nodes string runtime lookup",
+        "AST:easyuse_anima.nodes.prompt_data_nodes string runtime lookup",
+        "AST:easyuse_anima.nodes.prompt_nodes string runtime lookup",
+        "AST:easyuse_anima.nodes.regional_nodes string runtime lookup",
+        "AST:easyuse_anima.prompt.advanced string runtime lookup",
+        "AST:easyuse_anima.prompt.regional string runtime lookup"
+      ],
+      "removal_gates": [
+        "canonical production consumer migration",
+        "focused monkeypatch and identity contract review",
+        "separate B-10b or B-11 rollback unit"
+      ],
+      "lifecycle_state": "transitional"
+    },
+    {
+      "id": "nodes_canonical_bindings:easyuse_anima.image.detailer:unsupported_test_only",
+      "surface": "nodes_canonical_bindings",
+      "symbols": {
+        "_EasyUseAnimaAlignedDetailerHook": "_EasyUseAnimaAlignedDetailerHook"
+      },
+      "classification": "unsupported_test_only",
+      "current_target": "nodes.py",
+      "canonical_target": "easyuse_anima.image.detailer",
+      "target_state": "canonical",
+      "identity_requirement": "not_applicable",
+      "binding_shape": "direct_import",
+      "import_target": "easyuse_anima.image.detailer",
+      "owner": "#184/#188",
+      "first_release": null,
+      "known_consumers": [
+        "repository tests may import this root name"
+      ],
+      "evidence": [
+        "AST:no nodes.py runtime load",
+        "test-only consumption is not public support evidence"
+      ],
+      "removal_gates": [
+        "test imports migrate to canonical targets",
+        "no production consumer evidence",
+        "separate B-10b removal review"
+      ],
+      "lifecycle_state": "unsupported"
+    },
+    {
+      "id": "nodes_canonical_bindings:easyuse_anima.image.geometry:transitional_private_seam",
+      "surface": "nodes_canonical_bindings",
+      "symbols": {
+        "_align_down": "_align_down",
+        "_align_nearest": "_align_nearest"
+      },
+      "classification": "transitional_private_seam",
+      "current_target": "nodes.py",
+      "canonical_target": "easyuse_anima.image.geometry",
+      "target_state": "canonical",
+      "identity_requirement": "required",
+      "binding_shape": "direct_import",
+      "import_target": "easyuse_anima.image.geometry",
+      "owner": "#184/#188",
+      "first_release": null,
+      "known_consumers": [
+        "nodes.py residual runtime"
+      ],
+      "evidence": [
+        "AST:nodes.py direct runtime load"
+      ],
+      "removal_gates": [
+        "canonical production consumer migration",
+        "focused monkeypatch and identity contract review",
+        "separate B-10b or B-11 rollback unit"
+      ],
+      "lifecycle_state": "transitional"
+    },
+    {
+      "id": "nodes_canonical_bindings:easyuse_anima.image.geometry:unsupported_test_only",
+      "surface": "nodes_canonical_bindings",
+      "symbols": {
+        "_align_up": "_align_up",
+        "_aligned_size_near_scale": "_aligned_size_near_scale",
+        "_alignment_value": "_alignment_value"
+      },
+      "classification": "unsupported_test_only",
+      "current_target": "nodes.py",
+      "canonical_target": "easyuse_anima.image.geometry",
+      "target_state": "canonical",
+      "identity_requirement": "not_applicable",
+      "binding_shape": "direct_import",
+      "import_target": "easyuse_anima.image.geometry",
+      "owner": "#184/#188",
+      "first_release": null,
+      "known_consumers": [
+        "repository tests may import this root name"
+      ],
+      "evidence": [
+        "AST:no nodes.py runtime load",
+        "test-only consumption is not public support evidence"
+      ],
+      "removal_gates": [
+        "test imports migrate to canonical targets",
+        "no production consumer evidence",
+        "separate B-10b removal review"
+      ],
+      "lifecycle_state": "unsupported"
+    },
+    {
+      "id": "nodes_canonical_bindings:easyuse_anima.image.sam3:transitional_private_seam",
+      "surface": "nodes_canonical_bindings",
+      "symbols": {
+        "_bind_sam3_runtime": "_bind_sam3_runtime",
+        "_context_value": "_context_value",
+        "_sam3_context": "_sam3_context",
+        "_segs_has_items": "_segs_has_items"
+      },
+      "classification": "transitional_private_seam",
+      "current_target": "nodes.py",
+      "canonical_target": "easyuse_anima.image.sam3",
+      "target_state": "canonical",
+      "identity_requirement": "required",
+      "binding_shape": "direct_import",
+      "import_target": "easyuse_anima.image.sam3",
+      "owner": "#184/#188",
+      "first_release": null,
+      "known_consumers": [
+        "nodes.py residual runtime",
+        "canonical runtime resolver: easyuse_anima.aio.resources"
+      ],
+      "evidence": [
+        "AST:nodes.py direct runtime load",
+        "AST:easyuse_anima.aio.resources string runtime lookup"
+      ],
+      "removal_gates": [
+        "canonical production consumer migration",
+        "focused monkeypatch and identity contract review",
+        "separate B-10b or B-11 rollback unit"
+      ],
+      "lifecycle_state": "transitional"
+    },
+    {
+      "id": "nodes_canonical_bindings:easyuse_anima.image.sam3:unsupported_test_only",
+      "surface": "nodes_canonical_bindings",
+      "symbols": {
+        "_call_impact_detailer": "_call_impact_detailer",
+        "_empty_mask_for_image": "_empty_mask_for_image",
+        "_empty_segs_for_image": "_empty_segs_for_image",
+        "_find_impact_detailer_class": "_find_impact_detailer_class",
+        "_find_impact_mask_to_segs_class": "_find_impact_mask_to_segs_class",
+        "_find_sam3_detect_class": "_find_sam3_detect_class",
+        "_format_sam3_detection_prompt": "_format_sam3_detection_prompt"
+      },
+      "classification": "unsupported_test_only",
+      "current_target": "nodes.py",
+      "canonical_target": "easyuse_anima.image.sam3",
+      "target_state": "canonical",
+      "identity_requirement": "not_applicable",
+      "binding_shape": "direct_import",
+      "import_target": "easyuse_anima.image.sam3",
+      "owner": "#184/#188",
+      "first_release": null,
+      "known_consumers": [
+        "repository tests may import this root name"
+      ],
+      "evidence": [
+        "AST:no nodes.py runtime load",
+        "test-only consumption is not public support evidence"
+      ],
+      "removal_gates": [
+        "test imports migrate to canonical targets",
+        "no production consumer evidence",
+        "separate B-10b removal review"
+      ],
+      "lifecycle_state": "unsupported"
+    },
+    {
+      "id": "nodes_canonical_bindings:easyuse_anima.image.scaling:transitional_private_seam",
+      "surface": "nodes_canonical_bindings",
+      "symbols": {
+        "IMAGE_SCALE_MULTIPLES": "IMAGE_SCALE_MULTIPLES",
+        "IMAGE_UPSCALE_METHODS": "IMAGE_UPSCALE_METHODS"
+      },
+      "classification": "transitional_private_seam",
+      "current_target": "nodes.py",
+      "canonical_target": "easyuse_anima.image.scaling",
+      "target_state": "canonical",
+      "identity_requirement": "required",
+      "binding_shape": "direct_import",
+      "import_target": "easyuse_anima.image.scaling",
+      "owner": "#184/#188",
+      "first_release": null,
+      "known_consumers": [
+        "canonical runtime resolver: easyuse_anima.aio.generation_normalization"
+      ],
+      "evidence": [
+        "AST:easyuse_anima.aio.generation_normalization string runtime lookup"
+      ],
+      "removal_gates": [
+        "canonical production consumer migration",
+        "focused monkeypatch and identity contract review",
+        "separate B-10b or B-11 rollback unit"
+      ],
+      "lifecycle_state": "transitional"
+    },
+    {
+      "id": "nodes_canonical_bindings:easyuse_anima.image.scaling:unsupported_test_only",
+      "surface": "nodes_canonical_bindings",
+      "symbols": {
+        "_image_scale_by_multiple_size": "_image_scale_by_multiple_size",
+        "_max_long_edge_value": "_max_long_edge_value",
+        "_normalize_image_scale_options": "_normalize_image_scale_options",
+        "_scale_by_value": "_scale_by_value"
+      },
+      "classification": "unsupported_test_only",
+      "current_target": "nodes.py",
+      "canonical_target": "easyuse_anima.image.scaling",
+      "target_state": "canonical",
+      "identity_requirement": "not_applicable",
+      "binding_shape": "direct_import",
+      "import_target": "easyuse_anima.image.scaling",
+      "owner": "#184/#188",
+      "first_release": null,
+      "known_consumers": [
+        "repository tests may import this root name"
+      ],
+      "evidence": [
+        "AST:no nodes.py runtime load",
+        "test-only consumption is not public support evidence"
+      ],
+      "removal_gates": [
+        "test imports migrate to canonical targets",
+        "no production consumer evidence",
+        "separate B-10b removal review"
+      ],
+      "lifecycle_state": "unsupported"
+    },
+    {
+      "id": "nodes_canonical_bindings:easyuse_anima.infrastructure.comfy.capabilities:transitional_private_seam",
+      "surface": "nodes_canonical_bindings",
+      "symbols": {
+        "_adapter_comfy_max_resolution": "_comfy_max_resolution",
+        "_adapter_find_comfy_node_class": "_find_comfy_node_class",
+        "_adapter_find_loaded_node_class": "_find_loaded_node_class",
+        "_adapter_require_any_custom_node_class": "_require_any_custom_node_class",
+        "_adapter_require_custom_node_class": "_require_custom_node_class",
+        "_comfy_sampler_names": "_comfy_sampler_names",
+        "_comfy_scheduler_names": "_comfy_scheduler_names",
+        "_impact_scheduler_names": "_impact_scheduler_names"
+      },
+      "classification": "transitional_private_seam",
+      "current_target": "nodes.py",
+      "canonical_target": "easyuse_anima.infrastructure.comfy.capabilities",
+      "target_state": "canonical",
+      "identity_requirement": "required",
+      "binding_shape": "direct_import",
+      "import_target": "easyuse_anima.infrastructure.comfy.capabilities",
+      "owner": "#184/#188",
+      "first_release": null,
+      "known_consumers": [
+        "nodes.py residual runtime",
+        "canonical runtime resolver: easyuse_anima.aio.generation_normalization",
+        "canonical runtime resolver: easyuse_anima.nodes.impact_detailer_nodes"
+      ],
+      "evidence": [
+        "AST:nodes.py direct runtime load",
+        "AST:easyuse_anima.aio.generation_normalization string runtime lookup",
+        "AST:easyuse_anima.nodes.impact_detailer_nodes string runtime lookup"
+      ],
+      "removal_gates": [
+        "canonical production consumer migration",
+        "focused monkeypatch and identity contract review",
+        "separate B-10b or B-11 rollback unit"
+      ],
+      "lifecycle_state": "transitional"
+    },
+    {
+      "id": "nodes_canonical_bindings:easyuse_anima.infrastructure.comfy.capabilities:unsupported_test_only",
+      "surface": "nodes_canonical_bindings",
+      "symbols": {
+        "_impact_core_module": "_impact_core_module"
+      },
+      "classification": "unsupported_test_only",
+      "current_target": "nodes.py",
+      "canonical_target": "easyuse_anima.infrastructure.comfy.capabilities",
+      "target_state": "canonical",
+      "identity_requirement": "not_applicable",
+      "binding_shape": "direct_import",
+      "import_target": "easyuse_anima.infrastructure.comfy.capabilities",
+      "owner": "#184/#188",
+      "first_release": null,
+      "known_consumers": [
+        "repository tests may import this root name"
+      ],
+      "evidence": [
+        "AST:no nodes.py runtime load",
+        "test-only consumption is not public support evidence"
+      ],
+      "removal_gates": [
+        "test imports migrate to canonical targets",
+        "no production consumer evidence",
+        "separate B-10b removal review"
+      ],
+      "lifecycle_state": "unsupported"
+    },
+    {
+      "id": "nodes_canonical_bindings:easyuse_anima.infrastructure.comfy.invocation:transitional_private_seam",
+      "surface": "nodes_canonical_bindings",
+      "symbols": {
+        "_adapter_encode_with_comfy_clip": "_encode_with_comfy_clip",
+        "_call_with_supported_kwargs": "_call_with_supported_kwargs",
+        "_common_upscale_image": "_common_upscale_image",
+        "_node_output_tuple": "_node_output_tuple"
+      },
+      "classification": "transitional_private_seam",
+      "current_target": "nodes.py",
+      "canonical_target": "easyuse_anima.infrastructure.comfy.invocation",
+      "target_state": "canonical",
+      "identity_requirement": "required",
+      "binding_shape": "direct_import",
+      "import_target": "easyuse_anima.infrastructure.comfy.invocation",
+      "owner": "#184/#188",
+      "first_release": null,
+      "known_consumers": [
+        "nodes.py residual runtime",
+        "canonical runtime resolver: easyuse_anima.aio.model_preparation",
+        "canonical runtime resolver: easyuse_anima.aio.resources",
+        "canonical runtime resolver: easyuse_anima.aio.sampling"
+      ],
+      "evidence": [
+        "AST:nodes.py direct runtime load",
+        "AST:easyuse_anima.aio.model_preparation string runtime lookup",
+        "AST:easyuse_anima.aio.resources string runtime lookup",
+        "AST:easyuse_anima.aio.sampling string runtime lookup"
+      ],
+      "removal_gates": [
+        "canonical production consumer migration",
+        "focused monkeypatch and identity contract review",
+        "separate B-10b or B-11 rollback unit"
+      ],
+      "lifecycle_state": "transitional"
+    },
+    {
+      "id": "nodes_canonical_bindings:easyuse_anima.infrastructure.comfy.resources:transitional_private_seam",
+      "surface": "nodes_canonical_bindings",
+      "symbols": {
+        "_adapter_comfy_clip_loader_types": "_comfy_clip_loader_types",
+        "_adapter_comfy_diffusion_model_names": "_comfy_diffusion_model_names",
+        "_adapter_comfy_text_encoder_names": "_comfy_text_encoder_names",
+        "_adapter_comfy_vae_names": "_comfy_vae_names",
+        "_folder_path_names": "_folder_path_names"
+      },
+      "classification": "transitional_private_seam",
+      "current_target": "nodes.py",
+      "canonical_target": "easyuse_anima.infrastructure.comfy.resources",
+      "target_state": "canonical",
+      "identity_requirement": "required",
+      "binding_shape": "direct_import",
+      "import_target": "easyuse_anima.infrastructure.comfy.resources",
+      "owner": "#184/#188",
+      "first_release": null,
+      "known_consumers": [
+        "nodes.py residual runtime"
+      ],
+      "evidence": [
+        "AST:nodes.py direct runtime load"
+      ],
+      "removal_gates": [
+        "canonical production consumer migration",
+        "focused monkeypatch and identity contract review",
+        "separate B-10b or B-11 rollback unit"
+      ],
+      "lifecycle_state": "transitional"
+    },
+    {
+      "id": "nodes_canonical_bindings:easyuse_anima.infrastructure.comfy.resources:unsupported_test_only",
+      "surface": "nodes_canonical_bindings",
+      "symbols": {
+        "_comfy_checkpoint_names": "_comfy_checkpoint_names"
+      },
+      "classification": "unsupported_test_only",
+      "current_target": "nodes.py",
+      "canonical_target": "easyuse_anima.infrastructure.comfy.resources",
+      "target_state": "canonical",
+      "identity_requirement": "not_applicable",
+      "binding_shape": "direct_import",
+      "import_target": "easyuse_anima.infrastructure.comfy.resources",
+      "owner": "#184/#188",
+      "first_release": null,
+      "known_consumers": [
+        "repository tests may import this root name"
+      ],
+      "evidence": [
+        "AST:no nodes.py runtime load",
+        "test-only consumption is not public support evidence"
+      ],
+      "removal_gates": [
+        "test imports migrate to canonical targets",
+        "no production consumer evidence",
+        "separate B-10b removal review"
+      ],
+      "lifecycle_state": "unsupported"
+    },
+    {
+      "id": "nodes_canonical_bindings:easyuse_anima.lora.metadata:transitional_private_seam",
+      "surface": "nodes_canonical_bindings",
+      "symbols": {
+        "_apply_lora_syntax_format": "_apply_lora_syntax_format",
+        "_bind_lora_metadata_runtime": "_bind_lora_metadata_runtime",
+        "_dedupe_text_values": "_dedupe_text_values",
+        "_fallback_lora_path": "_fallback_lora_path",
+        "_get_lora_info": "_get_lora_info",
+        "_get_lora_manager_trigger_words": "_get_lora_manager_trigger_words",
+        "_load_lora_manager_metadata": "_load_lora_manager_metadata",
+        "_lora_combo_values": "_lora_combo_values",
+        "_lora_manager_trigger_words_from_metadata": "_lora_manager_trigger_words_from_metadata",
+        "_lora_model_exists": "_lora_model_exists",
+        "_lora_stack_name": "_lora_stack_name",
+        "_metadata_json_paths_for_lora": "_metadata_json_paths_for_lora",
+        "_missing_lora_display_name": "_missing_lora_display_name",
+        "_raise_missing_loras": "_raise_missing_loras",
+        "_trigger_words_from_value": "_trigger_words_from_value"
+      },
+      "classification": "transitional_private_seam",
+      "current_target": "nodes.py",
+      "canonical_target": "easyuse_anima.lora.metadata",
+      "target_state": "canonical",
+      "identity_requirement": "required",
+      "binding_shape": "direct_import",
+      "import_target": "easyuse_anima.lora.metadata",
+      "owner": "#184/#188",
+      "first_release": null,
+      "known_consumers": [
+        "nodes.py residual runtime",
+        "canonical runtime resolver: easyuse_anima.aio.model_preparation",
+        "canonical runtime resolver: easyuse_anima.lora.metadata",
+        "canonical runtime resolver: easyuse_anima.nodes.lora_nodes"
+      ],
+      "evidence": [
+        "AST:nodes.py direct runtime load",
+        "AST:easyuse_anima.aio.model_preparation string runtime lookup",
+        "AST:easyuse_anima.lora.metadata string runtime lookup",
+        "AST:easyuse_anima.nodes.lora_nodes string runtime lookup"
+      ],
+      "removal_gates": [
+        "canonical production consumer migration",
+        "focused monkeypatch and identity contract review",
+        "separate B-10b or B-11 rollback unit"
+      ],
+      "lifecycle_state": "transitional"
+    },
+    {
+      "id": "nodes_canonical_bindings:easyuse_anima.lora.preset:transitional_private_seam",
+      "surface": "nodes_canonical_bindings",
+      "symbols": {
+        "_bind_lora_preset_runtime": "_bind_lora_preset_runtime",
+        "_correct_style_prompt": "_correct_style_prompt",
+        "_format_strength": "_format_strength",
+        "_get_loras_list": "_get_loras_list",
+        "_load_profile_data": "_load_profile_data",
+        "_profile_key": "_profile_key",
+        "_select_profile_values": "_select_profile_values",
+        "_wrap_profile_index": "_wrap_profile_index"
+      },
+      "classification": "transitional_private_seam",
+      "current_target": "nodes.py",
+      "canonical_target": "easyuse_anima.lora.preset",
+      "target_state": "canonical",
+      "identity_requirement": "required",
+      "binding_shape": "direct_import",
+      "import_target": "easyuse_anima.lora.preset",
+      "owner": "#184/#188",
+      "first_release": null,
+      "known_consumers": [
+        "nodes.py residual runtime",
+        "canonical runtime resolver: easyuse_anima.aio.output",
+        "canonical runtime resolver: easyuse_anima.lora.preset",
+        "canonical runtime resolver: easyuse_anima.nodes.lora_nodes"
+      ],
+      "evidence": [
+        "AST:nodes.py direct runtime load",
+        "AST:easyuse_anima.aio.output string runtime lookup",
+        "AST:easyuse_anima.lora.preset string runtime lookup",
+        "AST:easyuse_anima.nodes.lora_nodes string runtime lookup"
+      ],
+      "removal_gates": [
+        "canonical production consumer migration",
+        "focused monkeypatch and identity contract review",
+        "separate B-10b or B-11 rollback unit"
+      ],
+      "lifecycle_state": "transitional"
+    },
+    {
+      "id": "nodes_canonical_bindings:easyuse_anima.naia.client:transitional_private_seam",
+      "surface": "nodes_canonical_bindings",
+      "symbols": {
+        "LATENT_ALIGN": "LATENT_ALIGN",
+        "_parse_random_response": "_parse_random_response",
+        "_post_random": "_post_random"
+      },
+      "classification": "transitional_private_seam",
+      "current_target": "nodes.py",
+      "canonical_target": "easyuse_anima.naia.client",
+      "target_state": "canonical",
+      "identity_requirement": "required",
+      "binding_shape": "direct_import",
+      "import_target": "easyuse_anima.naia.client",
+      "owner": "#184/#188",
+      "first_release": null,
+      "known_consumers": [
+        "nodes.py residual runtime",
+        "canonical runtime resolver: easyuse_anima.nodes.prompt_advanced_nodes"
+      ],
+      "evidence": [
+        "AST:nodes.py direct runtime load",
+        "AST:easyuse_anima.nodes.prompt_advanced_nodes string runtime lookup"
+      ],
+      "removal_gates": [
+        "canonical production consumer migration",
+        "focused monkeypatch and identity contract review",
+        "separate B-10b or B-11 rollback unit"
+      ],
+      "lifecycle_state": "transitional"
+    },
+    {
+      "id": "nodes_canonical_bindings:easyuse_anima.naia.client:unsupported_test_only",
+      "surface": "nodes_canonical_bindings",
+      "symbols": {
+        "DEFAULT_HOST": "DEFAULT_HOST",
+        "DEFAULT_PORT": "DEFAULT_PORT",
+        "HTTP_TIMEOUT": "HTTP_TIMEOUT",
+        "NAIA_LOCAL_HOSTS": "NAIA_LOCAL_HOSTS",
+        "NAIA_MAX_RESOLUTION": "NAIA_MAX_RESOLUTION",
+        "NAIA_REQUEST_TIMEOUT": "NAIA_REQUEST_TIMEOUT",
+        "NAI_1MP": "NAI_1MP",
+        "PP_STATE_CHOICES": "PP_STATE_CHOICES",
+        "PREPROCESSING_KEYS": "PREPROCESSING_KEYS",
+        "_build_naia_random_url": "_build_naia_random_url",
+        "_clean_prompt": "_clean_prompt",
+        "_fit_to_1mp": "_fit_to_1mp",
+        "_is_local_naia_host": "_is_local_naia_host"
+      },
+      "classification": "unsupported_test_only",
+      "current_target": "nodes.py",
+      "canonical_target": "easyuse_anima.naia.client",
+      "target_state": "canonical",
+      "identity_requirement": "not_applicable",
+      "binding_shape": "direct_import",
+      "import_target": "easyuse_anima.naia.client",
+      "owner": "#184/#188",
+      "first_release": null,
+      "known_consumers": [
+        "repository tests may import this root name"
+      ],
+      "evidence": [
+        "AST:no nodes.py runtime load",
+        "test-only consumption is not public support evidence"
+      ],
+      "removal_gates": [
+        "test imports migrate to canonical targets",
+        "no production consumer evidence",
+        "separate B-10b removal review"
+      ],
+      "lifecycle_state": "unsupported"
+    },
+    {
+      "id": "nodes_canonical_bindings:easyuse_anima.naia.resolution:transitional_private_seam",
+      "surface": "nodes_canonical_bindings",
+      "symbols": {
+        "_advanced_resolution_from_selection": "_advanced_resolution_from_selection",
+        "_normalize_resolution_bucket": "_normalize_resolution_bucket",
+        "_ratio_label": "_ratio_label",
+        "_resolution_label": "_resolution_label",
+        "_resolve_naia_resolution": "_resolve_naia_resolution"
+      },
+      "classification": "transitional_private_seam",
+      "current_target": "nodes.py",
+      "canonical_target": "easyuse_anima.naia.resolution",
+      "target_state": "canonical",
+      "identity_requirement": "required",
+      "binding_shape": "direct_import",
+      "import_target": "easyuse_anima.naia.resolution",
+      "owner": "#184/#188",
+      "first_release": null,
+      "known_consumers": [
+        "canonical runtime resolver: easyuse_anima.nodes.prompt_advanced_nodes",
+        "canonical runtime resolver: easyuse_anima.nodes.regional_nodes",
+        "canonical runtime resolver: easyuse_anima.prompt.advanced",
+        "canonical runtime resolver: easyuse_anima.prompt.regional"
+      ],
+      "evidence": [
+        "AST:easyuse_anima.nodes.prompt_advanced_nodes string runtime lookup",
+        "AST:easyuse_anima.nodes.regional_nodes string runtime lookup",
+        "AST:easyuse_anima.prompt.advanced string runtime lookup",
+        "AST:easyuse_anima.prompt.regional string runtime lookup"
+      ],
+      "removal_gates": [
+        "canonical production consumer migration",
+        "focused monkeypatch and identity contract review",
+        "separate B-10b or B-11 rollback unit"
+      ],
+      "lifecycle_state": "transitional"
+    },
+    {
+      "id": "nodes_canonical_bindings:easyuse_anima.naia.resolution:unsupported_test_only",
+      "surface": "nodes_canonical_bindings",
+      "symbols": {
+        "ADVANCED_RESOLUTION_BUCKETS": "ADVANCED_RESOLUTION_BUCKETS",
+        "CUSTOM_ADVANCED_RESOLUTION_BUCKET": "CUSTOM_ADVANCED_RESOLUTION_BUCKET",
+        "DEFAULT_ADVANCED_RESOLUTION_BUCKET": "DEFAULT_ADVANCED_RESOLUTION_BUCKET",
+        "DEFAULT_ADVANCED_RESOLUTION_SIZE": "DEFAULT_ADVANCED_RESOLUTION_SIZE",
+        "NAIA_ADVANCED_RESOLUTION_BUCKET": "NAIA_ADVANCED_RESOLUTION_BUCKET",
+        "NAIA_RESOLUTION_MODE_BUCKET": "NAIA_RESOLUTION_MODE_BUCKET",
+        "NAIA_RESOLUTION_MODE_SCALE": "NAIA_RESOLUTION_MODE_SCALE",
+        "_fit_naia_resolution_to_bucket": "_fit_naia_resolution_to_bucket",
+        "_resolve_naia_resolution_bucket": "_resolve_naia_resolution_bucket",
+        "_resolve_naia_resolution_max_long_edge": "_resolve_naia_resolution_max_long_edge",
+        "_resolve_naia_resolution_mode": "_resolve_naia_resolution_mode",
+        "_resolve_naia_resolution_scale": "_resolve_naia_resolution_scale",
+        "_scale_naia_resolution": "_scale_naia_resolution",
+        "_snap_resolution_32": "_snap_resolution_32",
+        "_snap_scaled_resolution_32": "_snap_scaled_resolution_32",
+        "_sorted_resolution_options": "_sorted_resolution_options"
+      },
+      "classification": "unsupported_test_only",
+      "current_target": "nodes.py",
+      "canonical_target": "easyuse_anima.naia.resolution",
+      "target_state": "canonical",
+      "identity_requirement": "not_applicable",
+      "binding_shape": "direct_import",
+      "import_target": "easyuse_anima.naia.resolution",
+      "owner": "#184/#188",
+      "first_release": null,
+      "known_consumers": [
+        "repository tests may import this root name"
+      ],
+      "evidence": [
+        "AST:no nodes.py runtime load",
+        "test-only consumption is not public support evidence"
+      ],
+      "removal_gates": [
+        "test imports migrate to canonical targets",
+        "no production consumer evidence",
+        "separate B-10b removal review"
+      ],
+      "lifecycle_state": "unsupported"
+    },
+    {
+      "id": "nodes_canonical_bindings:easyuse_anima.nodes.aio_nodes:supported_public_reexport",
+      "surface": "nodes_canonical_bindings",
+      "symbols": {
+        "EasyUseAnimaAIOGenerator": "EasyUseAnimaAIOGenerator",
+        "EasyUseAnimaInput": "EasyUseAnimaInput"
+      },
+      "classification": "supported_public_reexport",
+      "current_target": "nodes.py",
+      "canonical_target": "easyuse_anima.nodes.aio_nodes",
+      "target_state": "canonical",
+      "identity_requirement": "required",
+      "binding_shape": "direct_import",
+      "import_target": "easyuse_anima.nodes.aio_nodes",
+      "owner": "#184/#188",
+      "first_release": null,
+      "known_consumers": [
+        "root package node mappings",
+        "saved workflows"
+      ],
+      "evidence": [
+        "__init__.py:NODE_CLASS_MAPPINGS",
+        "0.5.2 node contract fixture"
+      ],
+      "removal_gates": [
+        "separate breaking-change decision",
+        "N+1 release evidence",
+        "mapping, workflow, and direct identity parity"
+      ],
+      "lifecycle_state": "supported"
+    },
+    {
+      "id": "nodes_canonical_bindings:easyuse_anima.nodes.aio_nodes:transitional_private_seam",
+      "surface": "nodes_canonical_bindings",
+      "symbols": {
+        "_bind_aio_node_runtime": "_bind_aio_node_runtime",
+        "_easy_use_anima_input_signature": "_easy_use_anima_input_signature",
+        "_require_easy_use_anima_input": "_require_easy_use_anima_input"
+      },
+      "classification": "transitional_private_seam",
+      "current_target": "nodes.py",
+      "canonical_target": "easyuse_anima.nodes.aio_nodes",
+      "target_state": "canonical",
+      "identity_requirement": "required",
+      "binding_shape": "direct_import",
+      "import_target": "easyuse_anima.nodes.aio_nodes",
+      "owner": "#184/#188",
+      "first_release": null,
+      "known_consumers": [
+        "nodes.py residual runtime",
+        "canonical runtime resolver: easyuse_anima.aio.legacy_generation",
+        "canonical runtime resolver: easyuse_anima.nodes.aio_nodes"
+      ],
+      "evidence": [
+        "AST:nodes.py direct runtime load",
+        "AST:easyuse_anima.aio.legacy_generation string runtime lookup",
+        "AST:easyuse_anima.nodes.aio_nodes string runtime lookup"
+      ],
+      "removal_gates": [
+        "canonical production consumer migration",
+        "focused monkeypatch and identity contract review",
+        "separate B-10b or B-11 rollback unit"
+      ],
+      "lifecycle_state": "transitional"
+    },
+    {
+      "id": "nodes_canonical_bindings:easyuse_anima.nodes.image_nodes:supported_public_reexport",
+      "surface": "nodes_canonical_bindings",
+      "symbols": {
+        "EasyUseAnimaDetailerAlignHook": "EasyUseAnimaDetailerAlignHook",
+        "EasyUseAnimaImageScaleByMultiple": "EasyUseAnimaImageScaleByMultiple"
+      },
+      "classification": "supported_public_reexport",
+      "current_target": "nodes.py",
+      "canonical_target": "easyuse_anima.nodes.image_nodes",
+      "target_state": "canonical",
+      "identity_requirement": "required",
+      "binding_shape": "direct_import",
+      "import_target": "easyuse_anima.nodes.image_nodes",
+      "owner": "#184/#188",
+      "first_release": null,
+      "known_consumers": [
+        "root package node mappings",
+        "saved workflows"
+      ],
+      "evidence": [
+        "__init__.py:NODE_CLASS_MAPPINGS",
+        "0.5.2 node contract fixture"
+      ],
+      "removal_gates": [
+        "separate breaking-change decision",
+        "N+1 release evidence",
+        "mapping, workflow, and direct identity parity"
+      ],
+      "lifecycle_state": "supported"
+    },
+    {
+      "id": "nodes_canonical_bindings:easyuse_anima.nodes.impact_detailer_nodes:transitional_private_seam",
+      "surface": "nodes_canonical_bindings",
+      "symbols": {
+        "_bind_impact_detailer_node_runtime": "_bind_impact_detailer_node_runtime"
+      },
+      "classification": "transitional_private_seam",
+      "current_target": "nodes.py",
+      "canonical_target": "easyuse_anima.nodes.impact_detailer_nodes",
+      "target_state": "canonical",
+      "identity_requirement": "required",
+      "binding_shape": "direct_import",
+      "import_target": "easyuse_anima.nodes.impact_detailer_nodes",
+      "owner": "#184/#188",
+      "first_release": null,
+      "known_consumers": [
+        "nodes.py residual runtime"
+      ],
+      "evidence": [
+        "AST:nodes.py direct runtime load"
+      ],
+      "removal_gates": [
+        "canonical production consumer migration",
+        "focused monkeypatch and identity contract review",
+        "separate B-10b or B-11 rollback unit"
+      ],
+      "lifecycle_state": "transitional"
+    },
+    {
+      "id": "nodes_canonical_bindings:easyuse_anima.nodes.impact_detailer_nodes:unsupported_test_only",
+      "surface": "nodes_canonical_bindings",
+      "symbols": {
+        "_EasyUseAnimaImpactDetailerDelegate": "_EasyUseAnimaImpactDetailerDelegate"
+      },
+      "classification": "unsupported_test_only",
+      "current_target": "nodes.py",
+      "canonical_target": "easyuse_anima.nodes.impact_detailer_nodes",
+      "target_state": "canonical",
+      "identity_requirement": "not_applicable",
+      "binding_shape": "direct_import",
+      "import_target": "easyuse_anima.nodes.impact_detailer_nodes",
+      "owner": "#184/#188",
+      "first_release": null,
+      "known_consumers": [
+        "repository tests may import this root name"
+      ],
+      "evidence": [
+        "AST:no nodes.py runtime load",
+        "test-only consumption is not public support evidence"
+      ],
+      "removal_gates": [
+        "test imports migrate to canonical targets",
+        "no production consumer evidence",
+        "separate B-10b removal review"
+      ],
+      "lifecycle_state": "unsupported"
+    },
+    {
+      "id": "nodes_canonical_bindings:easyuse_anima.nodes.lora_nodes:supported_public_reexport",
+      "surface": "nodes_canonical_bindings",
+      "symbols": {
+        "EasyUseAnimaLoraPreset": "EasyUseAnimaLoraPreset"
+      },
+      "classification": "supported_public_reexport",
+      "current_target": "nodes.py",
+      "canonical_target": "easyuse_anima.nodes.lora_nodes",
+      "target_state": "canonical",
+      "identity_requirement": "required",
+      "binding_shape": "direct_import",
+      "import_target": "easyuse_anima.nodes.lora_nodes",
+      "owner": "#184/#188",
+      "first_release": null,
+      "known_consumers": [
+        "root package node mappings",
+        "saved workflows"
+      ],
+      "evidence": [
+        "__init__.py:NODE_CLASS_MAPPINGS",
+        "0.5.2 node contract fixture"
+      ],
+      "removal_gates": [
+        "separate breaking-change decision",
+        "N+1 release evidence",
+        "mapping, workflow, and direct identity parity"
+      ],
+      "lifecycle_state": "supported"
+    },
+    {
+      "id": "nodes_canonical_bindings:easyuse_anima.nodes.lora_nodes:transitional_private_seam",
+      "surface": "nodes_canonical_bindings",
+      "symbols": {
+        "_bind_lora_node_runtime": "_bind_lora_node_runtime"
+      },
+      "classification": "transitional_private_seam",
+      "current_target": "nodes.py",
+      "canonical_target": "easyuse_anima.nodes.lora_nodes",
+      "target_state": "canonical",
+      "identity_requirement": "required",
+      "binding_shape": "direct_import",
+      "import_target": "easyuse_anima.nodes.lora_nodes",
+      "owner": "#184/#188",
+      "first_release": null,
+      "known_consumers": [
+        "nodes.py residual runtime"
+      ],
+      "evidence": [
+        "AST:nodes.py direct runtime load"
+      ],
+      "removal_gates": [
+        "canonical production consumer migration",
+        "focused monkeypatch and identity contract review",
+        "separate B-10b or B-11 rollback unit"
+      ],
+      "lifecycle_state": "transitional"
+    },
+    {
+      "id": "nodes_canonical_bindings:easyuse_anima.nodes.naia_nodes:supported_public_reexport",
+      "surface": "nodes_canonical_bindings",
+      "symbols": {
+        "EasyUseAnimaNAIARandomPrompt": "EasyUseAnimaNAIARandomPrompt"
+      },
+      "classification": "supported_public_reexport",
+      "current_target": "nodes.py",
+      "canonical_target": "easyuse_anima.nodes.naia_nodes",
+      "target_state": "canonical",
+      "identity_requirement": "required",
+      "binding_shape": "direct_import",
+      "import_target": "easyuse_anima.nodes.naia_nodes",
+      "owner": "#184/#188",
+      "first_release": null,
+      "known_consumers": [
+        "root package node mappings",
+        "saved workflows"
+      ],
+      "evidence": [
+        "__init__.py:NODE_CLASS_MAPPINGS",
+        "0.5.2 node contract fixture"
+      ],
+      "removal_gates": [
+        "separate breaking-change decision",
+        "N+1 release evidence",
+        "mapping, workflow, and direct identity parity"
+      ],
+      "lifecycle_state": "supported"
+    },
+    {
+      "id": "nodes_canonical_bindings:easyuse_anima.nodes.naia_nodes:transitional_private_seam",
+      "surface": "nodes_canonical_bindings",
+      "symbols": {
+        "_bind_naia_node_runtime": "_bind_naia_node_runtime"
+      },
+      "classification": "transitional_private_seam",
+      "current_target": "nodes.py",
+      "canonical_target": "easyuse_anima.nodes.naia_nodes",
+      "target_state": "canonical",
+      "identity_requirement": "required",
+      "binding_shape": "direct_import",
+      "import_target": "easyuse_anima.nodes.naia_nodes",
+      "owner": "#184/#188",
+      "first_release": null,
+      "known_consumers": [
+        "nodes.py residual runtime"
+      ],
+      "evidence": [
+        "AST:nodes.py direct runtime load"
+      ],
+      "removal_gates": [
+        "canonical production consumer migration",
+        "focused monkeypatch and identity contract review",
+        "separate B-10b or B-11 rollback unit"
+      ],
+      "lifecycle_state": "transitional"
+    },
+    {
+      "id": "nodes_canonical_bindings:easyuse_anima.nodes.prompt_advanced_nodes:supported_public_reexport",
+      "surface": "nodes_canonical_bindings",
+      "symbols": {
+        "EasyUseAnimaPromptStudioAdvanced": "EasyUseAnimaPromptStudioAdvanced",
+        "EasyUseAnimaPromptStudioAdvancedV2": "EasyUseAnimaPromptStudioAdvancedV2"
+      },
+      "classification": "supported_public_reexport",
+      "current_target": "nodes.py",
+      "canonical_target": "easyuse_anima.nodes.prompt_advanced_nodes",
+      "target_state": "canonical",
+      "identity_requirement": "required",
+      "binding_shape": "direct_import",
+      "import_target": "easyuse_anima.nodes.prompt_advanced_nodes",
+      "owner": "#184/#188",
+      "first_release": null,
+      "known_consumers": [
+        "root package node mappings",
+        "saved workflows"
+      ],
+      "evidence": [
+        "__init__.py:NODE_CLASS_MAPPINGS",
+        "0.5.2 node contract fixture"
+      ],
+      "removal_gates": [
+        "separate breaking-change decision",
+        "N+1 release evidence",
+        "mapping, workflow, and direct identity parity"
+      ],
+      "lifecycle_state": "supported"
+    },
+    {
+      "id": "nodes_canonical_bindings:easyuse_anima.nodes.prompt_advanced_nodes:transitional_private_seam",
+      "surface": "nodes_canonical_bindings",
+      "symbols": {
+        "_bind_prompt_advanced_node_runtime": "_bind_prompt_advanced_node_runtime"
+      },
+      "classification": "transitional_private_seam",
+      "current_target": "nodes.py",
+      "canonical_target": "easyuse_anima.nodes.prompt_advanced_nodes",
+      "target_state": "canonical",
+      "identity_requirement": "required",
+      "binding_shape": "direct_import",
+      "import_target": "easyuse_anima.nodes.prompt_advanced_nodes",
+      "owner": "#184/#188",
+      "first_release": null,
+      "known_consumers": [
+        "nodes.py residual runtime"
+      ],
+      "evidence": [
+        "AST:nodes.py direct runtime load"
+      ],
+      "removal_gates": [
+        "canonical production consumer migration",
+        "focused monkeypatch and identity contract review",
+        "separate B-10b or B-11 rollback unit"
+      ],
+      "lifecycle_state": "transitional"
+    },
+    {
+      "id": "nodes_canonical_bindings:easyuse_anima.nodes.prompt_advanced_nodes:unsupported_test_only",
+      "surface": "nodes_canonical_bindings",
+      "symbols": {
+        "EasyUseAnimaPromptStudioExtend": "EasyUseAnimaPromptStudioExtend"
+      },
+      "classification": "unsupported_test_only",
+      "current_target": "nodes.py",
+      "canonical_target": "easyuse_anima.nodes.prompt_advanced_nodes",
+      "target_state": "canonical",
+      "identity_requirement": "not_applicable",
+      "binding_shape": "direct_import",
+      "import_target": "easyuse_anima.nodes.prompt_advanced_nodes",
+      "owner": "#184/#188",
+      "first_release": null,
+      "known_consumers": [
+        "repository tests may import this root name"
+      ],
+      "evidence": [
+        "AST:no nodes.py runtime load",
+        "test-only consumption is not public support evidence"
+      ],
+      "removal_gates": [
+        "test imports migrate to canonical targets",
+        "no production consumer evidence",
+        "separate B-10b removal review"
+      ],
+      "lifecycle_state": "unsupported"
+    },
+    {
+      "id": "nodes_canonical_bindings:easyuse_anima.nodes.prompt_data_nodes:supported_public_reexport",
+      "surface": "nodes_canonical_bindings",
+      "symbols": {
+        "EasyUseAnimaArtistMixConditioning": "EasyUseAnimaArtistMixConditioning",
+        "EasyUseAnimaPromptDataConditioning": "EasyUseAnimaPromptDataConditioning",
+        "EasyUseAnimaPromptDataUnpack": "EasyUseAnimaPromptDataUnpack"
+      },
+      "classification": "supported_public_reexport",
+      "current_target": "nodes.py",
+      "canonical_target": "easyuse_anima.nodes.prompt_data_nodes",
+      "target_state": "canonical",
+      "identity_requirement": "required",
+      "binding_shape": "direct_import",
+      "import_target": "easyuse_anima.nodes.prompt_data_nodes",
+      "owner": "#184/#188",
+      "first_release": null,
+      "known_consumers": [
+        "root package node mappings",
+        "saved workflows"
+      ],
+      "evidence": [
+        "__init__.py:NODE_CLASS_MAPPINGS",
+        "0.5.2 node contract fixture"
+      ],
+      "removal_gates": [
+        "separate breaking-change decision",
+        "N+1 release evidence",
+        "mapping, workflow, and direct identity parity"
+      ],
+      "lifecycle_state": "supported"
+    },
+    {
+      "id": "nodes_canonical_bindings:easyuse_anima.nodes.prompt_data_nodes:transitional_private_seam",
+      "surface": "nodes_canonical_bindings",
+      "symbols": {
+        "_bind_prompt_data_node_runtime": "_bind_prompt_data_node_runtime"
+      },
+      "classification": "transitional_private_seam",
+      "current_target": "nodes.py",
+      "canonical_target": "easyuse_anima.nodes.prompt_data_nodes",
+      "target_state": "canonical",
+      "identity_requirement": "required",
+      "binding_shape": "direct_import",
+      "import_target": "easyuse_anima.nodes.prompt_data_nodes",
+      "owner": "#184/#188",
+      "first_release": null,
+      "known_consumers": [
+        "nodes.py residual runtime"
+      ],
+      "evidence": [
+        "AST:nodes.py direct runtime load"
+      ],
+      "removal_gates": [
+        "canonical production consumer migration",
+        "focused monkeypatch and identity contract review",
+        "separate B-10b or B-11 rollback unit"
+      ],
+      "lifecycle_state": "transitional"
+    },
+    {
+      "id": "nodes_canonical_bindings:easyuse_anima.nodes.prompt_nodes:supported_public_reexport",
+      "surface": "nodes_canonical_bindings",
+      "symbols": {
+        "EasyUseAnimaPromptBuilder": "EasyUseAnimaPromptBuilder",
+        "EasyUseAnimaPromptCorrector": "EasyUseAnimaPromptCorrector",
+        "EasyUseAnimaPromptCorrectorSimple": "EasyUseAnimaPromptCorrectorSimple",
+        "EasyUseAnimaPromptStudio": "EasyUseAnimaPromptStudio"
+      },
+      "classification": "supported_public_reexport",
+      "current_target": "nodes.py",
+      "canonical_target": "easyuse_anima.nodes.prompt_nodes",
+      "target_state": "canonical",
+      "identity_requirement": "required",
+      "binding_shape": "direct_import",
+      "import_target": "easyuse_anima.nodes.prompt_nodes",
+      "owner": "#184/#188",
+      "first_release": null,
+      "known_consumers": [
+        "root package node mappings",
+        "saved workflows"
+      ],
+      "evidence": [
+        "__init__.py:NODE_CLASS_MAPPINGS",
+        "0.5.2 node contract fixture"
+      ],
+      "removal_gates": [
+        "separate breaking-change decision",
+        "N+1 release evidence",
+        "mapping, workflow, and direct identity parity"
+      ],
+      "lifecycle_state": "supported"
+    },
+    {
+      "id": "nodes_canonical_bindings:easyuse_anima.nodes.prompt_nodes:transitional_private_seam",
+      "surface": "nodes_canonical_bindings",
+      "symbols": {
+        "_bind_prompt_node_runtime": "_bind_prompt_node_runtime"
+      },
+      "classification": "transitional_private_seam",
+      "current_target": "nodes.py",
+      "canonical_target": "easyuse_anima.nodes.prompt_nodes",
+      "target_state": "canonical",
+      "identity_requirement": "required",
+      "binding_shape": "direct_import",
+      "import_target": "easyuse_anima.nodes.prompt_nodes",
+      "owner": "#184/#188",
+      "first_release": null,
+      "known_consumers": [
+        "nodes.py residual runtime"
+      ],
+      "evidence": [
+        "AST:nodes.py direct runtime load"
+      ],
+      "removal_gates": [
+        "canonical production consumer migration",
+        "focused monkeypatch and identity contract review",
+        "separate B-10b or B-11 rollback unit"
+      ],
+      "lifecycle_state": "transitional"
+    },
+    {
+      "id": "nodes_canonical_bindings:easyuse_anima.nodes.regional_nodes:supported_public_reexport",
+      "surface": "nodes_canonical_bindings",
+      "symbols": {
+        "EasyUseAnimaPromptStudioRegional": "EasyUseAnimaPromptStudioRegional",
+        "EasyUseAnimaRegionalConditioning": "EasyUseAnimaRegionalConditioning"
+      },
+      "classification": "supported_public_reexport",
+      "current_target": "nodes.py",
+      "canonical_target": "easyuse_anima.nodes.regional_nodes",
+      "target_state": "canonical",
+      "identity_requirement": "required",
+      "binding_shape": "direct_import",
+      "import_target": "easyuse_anima.nodes.regional_nodes",
+      "owner": "#184/#188",
+      "first_release": null,
+      "known_consumers": [
+        "root package node mappings",
+        "saved workflows"
+      ],
+      "evidence": [
+        "__init__.py:NODE_CLASS_MAPPINGS",
+        "0.5.2 node contract fixture"
+      ],
+      "removal_gates": [
+        "separate breaking-change decision",
+        "N+1 release evidence",
+        "mapping, workflow, and direct identity parity"
+      ],
+      "lifecycle_state": "supported"
+    },
+    {
+      "id": "nodes_canonical_bindings:easyuse_anima.nodes.regional_nodes:transitional_private_seam",
+      "surface": "nodes_canonical_bindings",
+      "symbols": {
+        "_bind_regional_node_runtime": "_bind_regional_node_runtime"
+      },
+      "classification": "transitional_private_seam",
+      "current_target": "nodes.py",
+      "canonical_target": "easyuse_anima.nodes.regional_nodes",
+      "target_state": "canonical",
+      "identity_requirement": "required",
+      "binding_shape": "direct_import",
+      "import_target": "easyuse_anima.nodes.regional_nodes",
+      "owner": "#184/#188",
+      "first_release": null,
+      "known_consumers": [
+        "nodes.py residual runtime"
+      ],
+      "evidence": [
+        "AST:nodes.py direct runtime load"
+      ],
+      "removal_gates": [
+        "canonical production consumer migration",
+        "focused monkeypatch and identity contract review",
+        "separate B-10b or B-11 rollback unit"
+      ],
+      "lifecycle_state": "transitional"
+    },
+    {
+      "id": "nodes_canonical_bindings:easyuse_anima.nodes.sam3_nodes:transitional_private_seam",
+      "surface": "nodes_canonical_bindings",
+      "symbols": {
+        "EasyUseAnimaSAM3Context": "EasyUseAnimaSAM3Context",
+        "EasyUseAnimaSAM3Detailer": "EasyUseAnimaSAM3Detailer",
+        "_bind_sam3_node_runtime": "_bind_sam3_node_runtime"
+      },
+      "classification": "transitional_private_seam",
+      "current_target": "nodes.py",
+      "canonical_target": "easyuse_anima.nodes.sam3_nodes",
+      "target_state": "canonical",
+      "identity_requirement": "required",
+      "binding_shape": "direct_import",
+      "import_target": "easyuse_anima.nodes.sam3_nodes",
+      "owner": "#184/#188",
+      "first_release": null,
+      "known_consumers": [
+        "nodes.py residual runtime",
+        "historical SAM3 convenience-node compatibility"
+      ],
+      "evidence": [
+        "AST:nodes.py direct runtime load",
+        "docs/version-plans/0.1.6-Detailer.md"
+      ],
+      "removal_gates": [
+        "canonical production consumer migration",
+        "focused monkeypatch and identity contract review",
+        "separate B-10b or B-11 rollback unit"
+      ],
+      "lifecycle_state": "transitional"
+    },
+    {
+      "id": "nodes_canonical_bindings:easyuse_anima.nodes.wildcard_nodes:supported_public_reexport",
+      "surface": "nodes_canonical_bindings",
+      "symbols": {
+        "EasyUseAnimaWildcard": "EasyUseAnimaWildcard"
+      },
+      "classification": "supported_public_reexport",
+      "current_target": "nodes.py",
+      "canonical_target": "easyuse_anima.nodes.wildcard_nodes",
+      "target_state": "canonical",
+      "identity_requirement": "required",
+      "binding_shape": "direct_import",
+      "import_target": "easyuse_anima.nodes.wildcard_nodes",
+      "owner": "#184/#188",
+      "first_release": null,
+      "known_consumers": [
+        "root package node mappings",
+        "saved workflows"
+      ],
+      "evidence": [
+        "__init__.py:NODE_CLASS_MAPPINGS",
+        "0.5.2 node contract fixture"
+      ],
+      "removal_gates": [
+        "separate breaking-change decision",
+        "N+1 release evidence",
+        "mapping, workflow, and direct identity parity"
+      ],
+      "lifecycle_state": "supported"
+    },
+    {
+      "id": "nodes_canonical_bindings:easyuse_anima.nodes.wildcard_nodes:transitional_private_seam",
+      "surface": "nodes_canonical_bindings",
+      "symbols": {
+        "_bind_wildcard_node_runtime": "_bind_wildcard_node_runtime"
+      },
+      "classification": "transitional_private_seam",
+      "current_target": "nodes.py",
+      "canonical_target": "easyuse_anima.nodes.wildcard_nodes",
+      "target_state": "canonical",
+      "identity_requirement": "required",
+      "binding_shape": "direct_import",
+      "import_target": "easyuse_anima.nodes.wildcard_nodes",
+      "owner": "#184/#188",
+      "first_release": null,
+      "known_consumers": [
+        "nodes.py residual runtime"
+      ],
+      "evidence": [
+        "AST:nodes.py direct runtime load"
+      ],
+      "removal_gates": [
+        "canonical production consumer migration",
+        "focused monkeypatch and identity contract review",
+        "separate B-10b or B-11 rollback unit"
+      ],
+      "lifecycle_state": "transitional"
+    },
+    {
+      "id": "nodes_canonical_bindings:easyuse_anima.nodes.wildcard_nodes:unsupported_test_only",
+      "surface": "nodes_canonical_bindings",
+      "symbols": {
+        "WILDCARD_SEED_RANGE_NOTE": "WILDCARD_SEED_RANGE_NOTE"
+      },
+      "classification": "unsupported_test_only",
+      "current_target": "nodes.py",
+      "canonical_target": "easyuse_anima.nodes.wildcard_nodes",
+      "target_state": "canonical",
+      "identity_requirement": "not_applicable",
+      "binding_shape": "direct_import",
+      "import_target": "easyuse_anima.nodes.wildcard_nodes",
+      "owner": "#184/#188",
+      "first_release": null,
+      "known_consumers": [
+        "repository tests may import this root name"
+      ],
+      "evidence": [
+        "AST:no nodes.py runtime load",
+        "test-only consumption is not public support evidence"
+      ],
+      "removal_gates": [
+        "test imports migrate to canonical targets",
+        "no production consumer evidence",
+        "separate B-10b removal review"
+      ],
+      "lifecycle_state": "unsupported"
+    },
+    {
+      "id": "nodes_canonical_bindings:easyuse_anima.prompt.advanced:transitional_private_seam",
+      "surface": "nodes_canonical_bindings",
+      "symbols": {
+        "_advanced_artist_field_prompt": "_advanced_artist_field_prompt",
+        "_advanced_default_fields": "_advanced_default_fields",
+        "_advanced_enabled_naia_panes": "_advanced_enabled_naia_panes",
+        "_advanced_enabled_pane_fields": "_advanced_enabled_pane_fields",
+        "_advanced_field_input_values": "_advanced_field_input_values",
+        "_advanced_field_socket_name": "_advanced_field_socket_name",
+        "_advanced_fields_json": "_advanced_fields_json",
+        "_advanced_has_enabled_naia": "_advanced_has_enabled_naia",
+        "_advanced_prompt_with_artist_override": "_advanced_prompt_with_artist_override",
+        "_advanced_uses_naia_resolution": "_advanced_uses_naia_resolution",
+        "_apply_advanced_field_inputs": "_apply_advanced_field_inputs",
+        "_as_advanced_height": "_as_advanced_height",
+        "_bind_advanced_runtime": "_bind_advanced_runtime",
+        "_build_advanced_prompt_data": "_build_advanced_prompt_data",
+        "_build_advanced_prompts": "_build_advanced_prompts",
+        "_clone_advanced_fields": "_clone_advanced_fields",
+        "_correct_advanced_field_sequence": "_correct_advanced_field_sequence",
+        "_expand_advanced_wildcard_fields": "_expand_advanced_wildcard_fields",
+        "_normalize_advanced_fields": "_normalize_advanced_fields",
+        "_normalize_prompt_studio_wildcard_seed_control": "_normalize_prompt_studio_wildcard_seed_control",
+        "_set_naia_field_text": "_set_naia_field_text",
+        "_translate_prompt_fields": "_translate_prompt_fields"
+      },
+      "classification": "transitional_private_seam",
+      "current_target": "nodes.py",
+      "canonical_target": "easyuse_anima.prompt.advanced",
+      "target_state": "canonical",
+      "identity_requirement": "required",
+      "binding_shape": "direct_import",
+      "import_target": "easyuse_anima.prompt.advanced",
+      "owner": "#184/#188",
+      "first_release": null,
+      "known_consumers": [
+        "nodes.py residual runtime",
+        "canonical runtime resolver: easyuse_anima.aio.conditioning",
+        "canonical runtime resolver: easyuse_anima.nodes.prompt_advanced_nodes",
+        "canonical runtime resolver: easyuse_anima.nodes.regional_nodes",
+        "canonical runtime resolver: easyuse_anima.prompt.artist_mix",
+        "canonical runtime resolver: easyuse_anima.prompt.regional"
+      ],
+      "evidence": [
+        "AST:nodes.py direct runtime load",
+        "AST:easyuse_anima.aio.conditioning string runtime lookup",
+        "AST:easyuse_anima.nodes.prompt_advanced_nodes string runtime lookup",
+        "AST:easyuse_anima.nodes.regional_nodes string runtime lookup",
+        "AST:easyuse_anima.prompt.artist_mix string runtime lookup",
+        "AST:easyuse_anima.prompt.regional string runtime lookup"
+      ],
+      "removal_gates": [
+        "canonical production consumer migration",
+        "focused monkeypatch and identity contract review",
+        "separate B-10b or B-11 rollback unit"
+      ],
+      "lifecycle_state": "transitional"
+    },
+    {
+      "id": "nodes_canonical_bindings:easyuse_anima.prompt.advanced:unsupported_test_only",
+      "surface": "nodes_canonical_bindings",
+      "symbols": {
+        "ADVANCED_FIELDS_WORKFLOW_PROPERTY": "ADVANCED_FIELDS_WORKFLOW_PROPERTY",
+        "ADVANCED_FIELD_LABELS": "ADVANCED_FIELD_LABELS",
+        "ADVANCED_FIELD_PANES": "ADVANCED_FIELD_PANES",
+        "ADVANCED_FIELD_TYPES": "ADVANCED_FIELD_TYPES",
+        "EXTEND_PROMPT_SLOT_SPECS": "EXTEND_PROMPT_SLOT_SPECS",
+        "PROMPT_STUDIO_ADVANCED_RETURN_NAMES": "PROMPT_STUDIO_ADVANCED_RETURN_NAMES",
+        "PROMPT_STUDIO_ADVANCED_RETURN_TYPES": "PROMPT_STUDIO_ADVANCED_RETURN_TYPES",
+        "PROMPT_STUDIO_LEGACY_FIXED_WILDCARD_MODES": "PROMPT_STUDIO_LEGACY_FIXED_WILDCARD_MODES",
+        "PROMPT_STUDIO_WILDCARD_SEED_CONTROL_ALIASES": "PROMPT_STUDIO_WILDCARD_SEED_CONTROL_ALIASES",
+        "_advanced_fields_with_artist_override": "_advanced_fields_with_artist_override",
+        "_advanced_pane_parts": "_advanced_pane_parts",
+        "_advanced_prompt_data_fields": "_advanced_prompt_data_fields"
+      },
+      "classification": "unsupported_test_only",
+      "current_target": "nodes.py",
+      "canonical_target": "easyuse_anima.prompt.advanced",
+      "target_state": "canonical",
+      "identity_requirement": "not_applicable",
+      "binding_shape": "direct_import",
+      "import_target": "easyuse_anima.prompt.advanced",
+      "owner": "#184/#188",
+      "first_release": null,
+      "known_consumers": [
+        "repository tests may import this root name"
+      ],
+      "evidence": [
+        "AST:no nodes.py runtime load",
+        "test-only consumption is not public support evidence"
+      ],
+      "removal_gates": [
+        "test imports migrate to canonical targets",
+        "no production consumer evidence",
+        "separate B-10b removal review"
+      ],
+      "lifecycle_state": "unsupported"
+    },
+    {
+      "id": "nodes_canonical_bindings:easyuse_anima.prompt.artist_mix:transitional_private_seam",
+      "surface": "nodes_canonical_bindings",
+      "symbols": {
+        "ARTIST_MIX_DEFAULT_CLUSTER_COUNT": "ARTIST_MIX_DEFAULT_CLUSTER_COUNT",
+        "ARTIST_MIX_DEFAULT_DOMINANT_ISOLATION": "ARTIST_MIX_DEFAULT_DOMINANT_ISOLATION",
+        "ARTIST_MIX_DEFAULT_DOMINANT_THRESHOLD": "ARTIST_MIX_DEFAULT_DOMINANT_THRESHOLD",
+        "ARTIST_MIX_DEFAULT_EXACT_TOP_K": "ARTIST_MIX_DEFAULT_EXACT_TOP_K",
+        "ARTIST_MIX_DEFAULT_RMS_SCALE_CAP": "ARTIST_MIX_DEFAULT_RMS_SCALE_CAP",
+        "ARTIST_MIX_DEFAULT_START_PERCENT": "ARTIST_MIX_DEFAULT_START_PERCENT",
+        "ARTIST_MIX_DEFAULT_STRENGTH_SCALE": "ARTIST_MIX_DEFAULT_STRENGTH_SCALE",
+        "ARTIST_MIX_DEFAULT_STYLE_GAIN": "ARTIST_MIX_DEFAULT_STYLE_GAIN",
+        "ARTIST_MIX_INPUT_MODES": "ARTIST_MIX_INPUT_MODES",
+        "ARTIST_MIX_MODE_FROM_PROMPT_DATA": "ARTIST_MIX_MODE_FROM_PROMPT_DATA",
+        "_artist_mix_inline_prompt": "_artist_mix_inline_prompt",
+        "_artist_mix_mode_tooltip": "_artist_mix_mode_tooltip",
+        "_artist_prompt_with_position": "_artist_prompt_with_position",
+        "_artist_tags_from_prompt": "_artist_tags_from_prompt",
+        "_bind_artist_mix_runtime": "_bind_artist_mix_runtime",
+        "_blend_conditionings": "_blend_conditionings",
+        "_bounded_artist_mix_float": "_bounded_artist_mix_float",
+        "_bounded_artist_mix_int": "_bounded_artist_mix_int",
+        "_encode_artist_clustered": "_encode_artist_clustered",
+        "_encode_artist_delta_rms": "_encode_artist_delta_rms",
+        "_encode_prompt_data_positive_conditioning": "_encode_prompt_data_positive_conditioning",
+        "_join_artist_mix_source_prompts": "_join_artist_mix_source_prompts",
+        "_normalize_artist_mix_mode": "_normalize_artist_mix_mode",
+        "_normalize_artist_tag_position": "_normalize_artist_tag_position",
+        "_parse_artist_mix_items": "_parse_artist_mix_items"
+      },
+      "classification": "transitional_private_seam",
+      "current_target": "nodes.py",
+      "canonical_target": "easyuse_anima.prompt.artist_mix",
+      "target_state": "canonical",
+      "identity_requirement": "required",
+      "binding_shape": "direct_import",
+      "import_target": "easyuse_anima.prompt.artist_mix",
+      "owner": "#184/#188",
+      "first_release": null,
+      "known_consumers": [
+        "nodes.py residual runtime",
+        "canonical runtime resolver: easyuse_anima.aio.generation_normalization",
+        "canonical runtime resolver: easyuse_anima.aio.legacy_generation",
+        "canonical runtime resolver: easyuse_anima.nodes.prompt_advanced_nodes",
+        "canonical runtime resolver: easyuse_anima.nodes.prompt_data_nodes",
+        "canonical runtime resolver: easyuse_anima.prompt.advanced",
+        "canonical runtime resolver: easyuse_anima.prompt.artist_mix"
+      ],
+      "evidence": [
+        "AST:nodes.py direct runtime load",
+        "AST:easyuse_anima.aio.generation_normalization string runtime lookup",
+        "AST:easyuse_anima.aio.legacy_generation string runtime lookup",
+        "AST:easyuse_anima.nodes.prompt_advanced_nodes string runtime lookup",
+        "AST:easyuse_anima.nodes.prompt_data_nodes string runtime lookup",
+        "AST:easyuse_anima.prompt.advanced string runtime lookup",
+        "AST:easyuse_anima.prompt.artist_mix string runtime lookup"
+      ],
+      "removal_gates": [
+        "canonical production consumer migration",
+        "focused monkeypatch and identity contract review",
+        "separate B-10b or B-11 rollback unit"
+      ],
+      "lifecycle_state": "transitional"
+    },
+    {
+      "id": "nodes_canonical_bindings:easyuse_anima.prompt.artist_mix:unsupported_test_only",
+      "surface": "nodes_canonical_bindings",
+      "symbols": {
+        "ARTIST_MIX_CONTROL_KEY": "ARTIST_MIX_CONTROL_KEY",
+        "ARTIST_MIX_EXACT_KEY": "ARTIST_MIX_EXACT_KEY",
+        "ARTIST_MIX_MODES": "ARTIST_MIX_MODES",
+        "ARTIST_MIX_MODE_AVERAGE": "ARTIST_MIX_MODE_AVERAGE",
+        "ARTIST_MIX_MODE_AVERAGE_LATE_EXACT": "ARTIST_MIX_MODE_AVERAGE_LATE_EXACT",
+        "ARTIST_MIX_MODE_CLUSTERED": "ARTIST_MIX_MODE_CLUSTERED",
+        "ARTIST_MIX_MODE_COMPOSITE_EXACT": "ARTIST_MIX_MODE_COMPOSITE_EXACT",
+        "ARTIST_MIX_MODE_DELTA_RMS": "ARTIST_MIX_MODE_DELTA_RMS",
+        "ARTIST_MIX_MODE_DESCRIPTIONS": "ARTIST_MIX_MODE_DESCRIPTIONS",
+        "ARTIST_MIX_MODE_EXACT": "ARTIST_MIX_MODE_EXACT",
+        "ARTIST_MIX_MODE_HYBRID": "ARTIST_MIX_MODE_HYBRID",
+        "ARTIST_MIX_MODE_LATE_EXACT": "ARTIST_MIX_MODE_LATE_EXACT",
+        "ARTIST_MIX_MODE_OFF": "ARTIST_MIX_MODE_OFF",
+        "ARTIST_MIX_MODE_PROMPT": "ARTIST_MIX_MODE_PROMPT",
+        "ARTIST_MIX_MODE_SCHEDULED_AVERAGE": "ARTIST_MIX_MODE_SCHEDULED_AVERAGE",
+        "ARTIST_MIX_SCHEDULE_KEY": "ARTIST_MIX_SCHEDULE_KEY",
+        "ARTIST_MIX_STUDIO_MODES": "ARTIST_MIX_STUDIO_MODES",
+        "ARTIST_TAG_POSITION_BACK": "ARTIST_TAG_POSITION_BACK",
+        "ARTIST_TAG_POSITION_CORRECT": "ARTIST_TAG_POSITION_CORRECT",
+        "ARTIST_TAG_POSITION_FRONT": "ARTIST_TAG_POSITION_FRONT",
+        "ARTIST_TAG_POSITION_MODES": "ARTIST_TAG_POSITION_MODES",
+        "_artist_conditioning_feature": "_artist_conditioning_feature",
+        "_artist_delta_rms_from_encoded": "_artist_delta_rms_from_encoded",
+        "_artist_group_token": "_artist_group_token",
+        "_artist_mix_prompt_tags": "_artist_mix_prompt_tags",
+        "_artist_variant_prompt_from_prompt_data": "_artist_variant_prompt_from_prompt_data",
+        "_coalesce_artist_mix_items": "_coalesce_artist_mix_items",
+        "_conditionings_with_range": "_conditionings_with_range",
+        "_conditionings_with_strength": "_conditionings_with_strength",
+        "_conditionings_with_values": "_conditionings_with_values",
+        "_copy_conditioning_metadata": "_copy_conditioning_metadata",
+        "_encode_artist_average": "_encode_artist_average",
+        "_encode_artist_average_late_exact": "_encode_artist_average_late_exact",
+        "_encode_artist_composite_exact": "_encode_artist_composite_exact",
+        "_encode_artist_exact": "_encode_artist_exact",
+        "_encode_artist_hybrid": "_encode_artist_hybrid",
+        "_encode_artist_scheduled_average": "_encode_artist_scheduled_average",
+        "_encoded_artist_conditionings": "_encoded_artist_conditionings",
+        "_equal_artist_weights": "_equal_artist_weights",
+        "_fallback_artist_average_or_exact": "_fallback_artist_average_or_exact",
+        "_greedy_cluster_encoded_artists": "_greedy_cluster_encoded_artists",
+        "_interpolate_artist_weights": "_interpolate_artist_weights",
+        "_mark_artist_mix_conditioning": "_mark_artist_mix_conditioning",
+        "_normalize_weight_values": "_normalize_weight_values",
+        "_normalized_artist_weights": "_normalized_artist_weights",
+        "_pad_conditioning_tensor": "_pad_conditioning_tensor",
+        "_parse_artist_mix_entries": "_parse_artist_mix_entries",
+        "_parse_artist_mix_group": "_parse_artist_mix_group",
+        "_prompt_data_artist_base_prompt": "_prompt_data_artist_base_prompt",
+        "_prompt_data_artist_mix_config": "_prompt_data_artist_mix_config",
+        "_prompt_data_positive_fields": "_prompt_data_positive_fields",
+        "_split_artist_mix_blocks": "_split_artist_mix_blocks",
+        "_split_artist_mix_items": "_split_artist_mix_items"
+      },
+      "classification": "unsupported_test_only",
+      "current_target": "nodes.py",
+      "canonical_target": "easyuse_anima.prompt.artist_mix",
+      "target_state": "canonical",
+      "identity_requirement": "not_applicable",
+      "binding_shape": "direct_import",
+      "import_target": "easyuse_anima.prompt.artist_mix",
+      "owner": "#184/#188",
+      "first_release": null,
+      "known_consumers": [
+        "repository tests may import this root name"
+      ],
+      "evidence": [
+        "AST:no nodes.py runtime load",
+        "test-only consumption is not public support evidence"
+      ],
+      "removal_gates": [
+        "test imports migrate to canonical targets",
+        "no production consumer evidence",
+        "separate B-10b removal review"
+      ],
+      "lifecycle_state": "unsupported"
+    },
+    {
+      "id": "nodes_canonical_bindings:easyuse_anima.prompt.conditioning:transitional_private_seam",
+      "surface": "nodes_canonical_bindings",
+      "symbols": {
+        "ANIMA_MOD_GUIDANCE_DEFAULT_PROFILE": "ANIMA_MOD_GUIDANCE_DEFAULT_PROFILE",
+        "ANIMA_MOD_GUIDANCE_MODES": "ANIMA_MOD_GUIDANCE_MODES",
+        "ANIMA_MOD_GUIDANCE_MODE_FROM_PROMPT_DATA": "ANIMA_MOD_GUIDANCE_MODE_FROM_PROMPT_DATA",
+        "ANIMA_MOD_GUIDANCE_PROFILE_OFF": "ANIMA_MOD_GUIDANCE_PROFILE_OFF",
+        "_apply_spectrum_anima_mod_guidance": "_apply_spectrum_anima_mod_guidance",
+        "_bind_conditioning_runtime": "_bind_conditioning_runtime",
+        "_find_spectrum_anima_mod_guidance_class": "_find_spectrum_anima_mod_guidance_class",
+        "_normalize_anima_mod_guidance_profile": "_normalize_anima_mod_guidance_profile",
+        "_resolve_anima_mod_guidance_enabled": "_resolve_anima_mod_guidance_enabled"
+      },
+      "classification": "transitional_private_seam",
+      "current_target": "nodes.py",
+      "canonical_target": "easyuse_anima.prompt.conditioning",
+      "target_state": "canonical",
+      "identity_requirement": "required",
+      "binding_shape": "direct_import",
+      "import_target": "easyuse_anima.prompt.conditioning",
+      "owner": "#184/#188",
+      "first_release": null,
+      "known_consumers": [
+        "nodes.py residual runtime",
+        "canonical runtime resolver: easyuse_anima.aio.generation_normalization",
+        "canonical runtime resolver: easyuse_anima.aio.legacy_generation",
+        "canonical runtime resolver: easyuse_anima.aio.sampling",
+        "canonical runtime resolver: easyuse_anima.nodes.prompt_data_nodes",
+        "canonical runtime resolver: easyuse_anima.prompt.conditioning"
+      ],
+      "evidence": [
+        "AST:nodes.py direct runtime load",
+        "AST:easyuse_anima.aio.generation_normalization string runtime lookup",
+        "AST:easyuse_anima.aio.legacy_generation string runtime lookup",
+        "AST:easyuse_anima.aio.sampling string runtime lookup",
+        "AST:easyuse_anima.nodes.prompt_data_nodes string runtime lookup",
+        "AST:easyuse_anima.prompt.conditioning string runtime lookup"
+      ],
+      "removal_gates": [
+        "canonical production consumer migration",
+        "focused monkeypatch and identity contract review",
+        "separate B-10b or B-11 rollback unit"
+      ],
+      "lifecycle_state": "transitional"
+    },
+    {
+      "id": "nodes_canonical_bindings:easyuse_anima.prompt.conditioning:unsupported_test_only",
+      "surface": "nodes_canonical_bindings",
+      "symbols": {
+        "ANIMA_MOD_GUIDANCE_MODE_DISABLED": "ANIMA_MOD_GUIDANCE_MODE_DISABLED",
+        "ANIMA_MOD_GUIDANCE_MODE_ENABLED": "ANIMA_MOD_GUIDANCE_MODE_ENABLED",
+        "ANIMA_MOD_GUIDANCE_PROFILES": "ANIMA_MOD_GUIDANCE_PROFILES",
+        "_SPECTRUM_ANIMA_MOD_GUIDANCE_OLD_SIGNATURE_WARNED": "_SPECTRUM_ANIMA_MOD_GUIDANCE_OLD_SIGNATURE_WARNED",
+        "_warn_old_spectrum_anima_mod_guidance_once": "_warn_old_spectrum_anima_mod_guidance_once"
+      },
+      "classification": "unsupported_test_only",
+      "current_target": "nodes.py",
+      "canonical_target": "easyuse_anima.prompt.conditioning",
+      "target_state": "canonical",
+      "identity_requirement": "not_applicable",
+      "binding_shape": "direct_import",
+      "import_target": "easyuse_anima.prompt.conditioning",
+      "owner": "#184/#188",
+      "first_release": null,
+      "known_consumers": [
+        "repository tests may import this root name"
+      ],
+      "evidence": [
+        "AST:no nodes.py runtime load",
+        "test-only consumption is not public support evidence"
+      ],
+      "removal_gates": [
+        "test imports migrate to canonical targets",
+        "no production consumer evidence",
+        "separate B-10b removal review"
+      ],
+      "lifecycle_state": "unsupported"
+    },
+    {
+      "id": "nodes_canonical_bindings:easyuse_anima.prompt.correction:transitional_private_seam",
+      "surface": "nodes_canonical_bindings",
+      "symbols": {
+        "_bind_prompt_correction_runtime": "_bind_prompt_correction_runtime",
+        "_prompt_translation_change_key": "_prompt_translation_change_key",
+        "_split_tag_text": "_split_tag_text",
+        "_translate_prompt_text": "_translate_prompt_text"
+      },
+      "classification": "transitional_private_seam",
+      "current_target": "nodes.py",
+      "canonical_target": "easyuse_anima.prompt.correction",
+      "target_state": "canonical",
+      "identity_requirement": "required",
+      "binding_shape": "direct_import",
+      "import_target": "easyuse_anima.prompt.correction",
+      "owner": "#184/#188",
+      "first_release": null,
+      "known_consumers": [
+        "nodes.py residual runtime",
+        "canonical runtime resolver: easyuse_anima.nodes.prompt_advanced_nodes",
+        "canonical runtime resolver: easyuse_anima.nodes.prompt_nodes",
+        "canonical runtime resolver: easyuse_anima.nodes.regional_nodes",
+        "canonical runtime resolver: easyuse_anima.prompt.advanced"
+      ],
+      "evidence": [
+        "AST:nodes.py direct runtime load",
+        "AST:easyuse_anima.nodes.prompt_advanced_nodes string runtime lookup",
+        "AST:easyuse_anima.nodes.prompt_nodes string runtime lookup",
+        "AST:easyuse_anima.nodes.regional_nodes string runtime lookup",
+        "AST:easyuse_anima.prompt.advanced string runtime lookup"
+      ],
+      "removal_gates": [
+        "canonical production consumer migration",
+        "focused monkeypatch and identity contract review",
+        "separate B-10b or B-11 rollback unit"
+      ],
+      "lifecycle_state": "transitional"
+    },
+    {
+      "id": "nodes_canonical_bindings:easyuse_anima.prompt.data:transitional_private_seam",
+      "surface": "nodes_canonical_bindings",
+      "symbols": {
+        "PROMPT_DATA_TYPE": "PROMPT_DATA_TYPE",
+        "_advanced_outputs_from_prompt_data": "_advanced_outputs_from_prompt_data",
+        "_apply_prompt_data_overrides": "_apply_prompt_data_overrides",
+        "_copy_prompt_data_for_update": "_copy_prompt_data_for_update",
+        "_normalize_prompt_data": "_normalize_prompt_data",
+        "_prompt_data_json_safe": "_prompt_data_json_safe",
+        "_prompt_data_parameter_snapshot": "_prompt_data_parameter_snapshot"
+      },
+      "classification": "transitional_private_seam",
+      "current_target": "nodes.py",
+      "canonical_target": "easyuse_anima.prompt.data",
+      "target_state": "canonical",
+      "identity_requirement": "required",
+      "binding_shape": "direct_import",
+      "import_target": "easyuse_anima.prompt.data",
+      "owner": "#184/#188",
+      "first_release": null,
+      "known_consumers": [
+        "nodes.py residual runtime",
+        "canonical runtime resolver: easyuse_anima.aio.conditioning",
+        "canonical runtime resolver: easyuse_anima.aio.first_pass_cache",
+        "canonical runtime resolver: easyuse_anima.aio.generation_normalization",
+        "canonical runtime resolver: easyuse_anima.aio.legacy_generation",
+        "canonical runtime resolver: easyuse_anima.aio.preview",
+        "canonical runtime resolver: easyuse_anima.nodes.aio_nodes",
+        "canonical runtime resolver: easyuse_anima.nodes.prompt_advanced_nodes",
+        "canonical runtime resolver: easyuse_anima.nodes.prompt_data_nodes"
+      ],
+      "evidence": [
+        "AST:nodes.py direct runtime load",
+        "AST:easyuse_anima.aio.conditioning string runtime lookup",
+        "AST:easyuse_anima.aio.first_pass_cache string runtime lookup",
+        "AST:easyuse_anima.aio.generation_normalization string runtime lookup",
+        "AST:easyuse_anima.aio.legacy_generation string runtime lookup",
+        "AST:easyuse_anima.aio.preview string runtime lookup",
+        "AST:easyuse_anima.nodes.aio_nodes string runtime lookup",
+        "AST:easyuse_anima.nodes.prompt_advanced_nodes string runtime lookup",
+        "AST:easyuse_anima.nodes.prompt_data_nodes string runtime lookup"
+      ],
+      "removal_gates": [
+        "canonical production consumer migration",
+        "focused monkeypatch and identity contract review",
+        "separate B-10b or B-11 rollback unit"
+      ],
+      "lifecycle_state": "transitional"
+    },
+    {
+      "id": "nodes_canonical_bindings:easyuse_anima.prompt.data:unsupported_test_only",
+      "surface": "nodes_canonical_bindings",
+      "symbols": {
+        "PROMPT_DATA_COMPAT_OUTPUT_TOOLTIPS": "PROMPT_DATA_COMPAT_OUTPUT_TOOLTIPS",
+        "PROMPT_DATA_COMPAT_RETURN_NAMES": "PROMPT_DATA_COMPAT_RETURN_NAMES",
+        "PROMPT_DATA_COMPAT_RETURN_TYPES": "PROMPT_DATA_COMPAT_RETURN_TYPES",
+        "PROMPT_DATA_SCHEMA": "PROMPT_DATA_SCHEMA",
+        "PROMPT_DATA_VERSION": "PROMPT_DATA_VERSION",
+        "_prompt_data_input_default": "_prompt_data_input_default",
+        "_prompt_data_nested": "_prompt_data_nested",
+        "_prompt_data_output": "_prompt_data_output",
+        "_set_prompt_data_output": "_set_prompt_data_output"
+      },
+      "classification": "unsupported_test_only",
+      "current_target": "nodes.py",
+      "canonical_target": "easyuse_anima.prompt.data",
+      "target_state": "canonical",
+      "identity_requirement": "not_applicable",
+      "binding_shape": "direct_import",
+      "import_target": "easyuse_anima.prompt.data",
+      "owner": "#184/#188",
+      "first_release": null,
+      "known_consumers": [
+        "repository tests may import this root name"
+      ],
+      "evidence": [
+        "AST:no nodes.py runtime load",
+        "test-only consumption is not public support evidence"
+      ],
+      "removal_gates": [
+        "test imports migrate to canonical targets",
+        "no production consumer evidence",
+        "separate B-10b removal review"
+      ],
+      "lifecycle_state": "unsupported"
+    },
+    {
+      "id": "nodes_canonical_bindings:easyuse_anima.prompt.fields:transitional_private_seam",
+      "surface": "nodes_canonical_bindings",
+      "symbols": {
+        "_HASH_COMMENT_RE": "_HASH_COMMENT_RE",
+        "_INLINE_SPACE_RE": "_INLINE_SPACE_RE",
+        "_WEIGHTED_TOKEN_RE": "_WEIGHTED_TOKEN_RE",
+        "_bind_prompt_fields_runtime": "_bind_prompt_fields_runtime",
+        "_correct_builder_prompt": "_correct_builder_prompt",
+        "_filter_metadata_prompt": "_filter_metadata_prompt",
+        "_join_prompt_tokens": "_join_prompt_tokens",
+        "_metadata_filter_key": "_metadata_filter_key",
+        "_metadata_filter_keys": "_metadata_filter_keys",
+        "_prompt_tokens": "_prompt_tokens"
+      },
+      "classification": "transitional_private_seam",
+      "current_target": "nodes.py",
+      "canonical_target": "easyuse_anima.prompt.fields",
+      "target_state": "canonical",
+      "identity_requirement": "required",
+      "binding_shape": "direct_import",
+      "import_target": "easyuse_anima.prompt.fields",
+      "owner": "#184/#188",
+      "first_release": null,
+      "known_consumers": [
+        "nodes.py residual runtime",
+        "canonical runtime resolver: easyuse_anima.nodes.prompt_data_nodes",
+        "canonical runtime resolver: easyuse_anima.nodes.prompt_nodes",
+        "canonical runtime resolver: easyuse_anima.prompt.advanced",
+        "canonical runtime resolver: easyuse_anima.prompt.artist_mix",
+        "canonical runtime resolver: easyuse_anima.prompt.fields",
+        "canonical runtime resolver: easyuse_anima.prompt.regional"
+      ],
+      "evidence": [
+        "AST:nodes.py direct runtime load",
+        "AST:easyuse_anima.nodes.prompt_data_nodes string runtime lookup",
+        "AST:easyuse_anima.nodes.prompt_nodes string runtime lookup",
+        "AST:easyuse_anima.prompt.advanced string runtime lookup",
+        "AST:easyuse_anima.prompt.artist_mix string runtime lookup",
+        "AST:easyuse_anima.prompt.fields string runtime lookup",
+        "AST:easyuse_anima.prompt.regional string runtime lookup"
+      ],
+      "removal_gates": [
+        "canonical production consumer migration",
+        "focused monkeypatch and identity contract review",
+        "separate B-10b or B-11 rollback unit"
+      ],
+      "lifecycle_state": "transitional"
+    },
+    {
+      "id": "nodes_canonical_bindings:easyuse_anima.prompt.fields:unsupported_test_only",
+      "surface": "nodes_canonical_bindings",
+      "symbols": {
+        "DEFAULT_QUALITY_TAGS": "DEFAULT_QUALITY_TAGS",
+        "DEFAULT_TRAILING_QUALITY_TAGS": "DEFAULT_TRAILING_QUALITY_TAGS"
+      },
+      "classification": "unsupported_test_only",
+      "current_target": "nodes.py",
+      "canonical_target": "easyuse_anima.prompt.fields",
+      "target_state": "canonical",
+      "identity_requirement": "not_applicable",
+      "binding_shape": "direct_import",
+      "import_target": "easyuse_anima.prompt.fields",
+      "owner": "#184/#188",
+      "first_release": null,
+      "known_consumers": [
+        "repository tests may import this root name"
+      ],
+      "evidence": [
+        "AST:no nodes.py runtime load",
+        "test-only consumption is not public support evidence"
+      ],
+      "removal_gates": [
+        "test imports migrate to canonical targets",
+        "no production consumer evidence",
+        "separate B-10b removal review"
+      ],
+      "lifecycle_state": "unsupported"
+    },
+    {
+      "id": "nodes_canonical_bindings:easyuse_anima.prompt.regional:transitional_private_seam",
+      "surface": "nodes_canonical_bindings",
+      "symbols": {
+        "_apply_regional_field_inputs": "_apply_regional_field_inputs",
+        "_bind_regional_runtime": "_bind_regional_runtime",
+        "_build_regional_outputs": "_build_regional_outputs",
+        "_clone_regional_fields": "_clone_regional_fields",
+        "_conditioning_set_values": "_conditioning_set_values",
+        "_normalize_mask_ids": "_normalize_mask_ids",
+        "_normalize_regional_config": "_normalize_regional_config",
+        "_normalize_regional_fields": "_normalize_regional_fields",
+        "_parse_json_object": "_parse_json_object",
+        "_regional_config_json": "_regional_config_json",
+        "_regional_fields_json": "_regional_fields_json",
+        "_regional_mask_bounds_area": "_regional_mask_bounds_area",
+        "_regional_payload_canvas": "_regional_payload_canvas",
+        "_regional_union_mask_for_ids": "_regional_union_mask_for_ids"
+      },
+      "classification": "transitional_private_seam",
+      "current_target": "nodes.py",
+      "canonical_target": "easyuse_anima.prompt.regional",
+      "target_state": "canonical",
+      "identity_requirement": "required",
+      "binding_shape": "direct_import",
+      "import_target": "easyuse_anima.prompt.regional",
+      "owner": "#184/#188",
+      "first_release": null,
+      "known_consumers": [
+        "nodes.py residual runtime",
+        "canonical runtime resolver: easyuse_anima.nodes.regional_nodes"
+      ],
+      "evidence": [
+        "AST:nodes.py direct runtime load",
+        "AST:easyuse_anima.nodes.regional_nodes string runtime lookup"
+      ],
+      "removal_gates": [
+        "canonical production consumer migration",
+        "focused monkeypatch and identity contract review",
+        "separate B-10b or B-11 rollback unit"
+      ],
+      "lifecycle_state": "transitional"
+    },
+    {
+      "id": "nodes_canonical_bindings:easyuse_anima.prompt.regional:unsupported_test_only",
+      "surface": "nodes_canonical_bindings",
+      "symbols": {
+        "REGIONAL_CONFIG_VERSION": "REGIONAL_CONFIG_VERSION",
+        "REGIONAL_CONFIG_WORKFLOW_PROPERTY": "REGIONAL_CONFIG_WORKFLOW_PROPERTY",
+        "REGIONAL_FIELDS_WORKFLOW_PROPERTY": "REGIONAL_FIELDS_WORKFLOW_PROPERTY",
+        "REGIONAL_FIELD_TYPES": "REGIONAL_FIELD_TYPES",
+        "REGIONAL_PROMPT_BUNDLE_SCHEMA": "REGIONAL_PROMPT_BUNDLE_SCHEMA",
+        "REGIONAL_PROMPT_DATA_SCHEMA": "REGIONAL_PROMPT_DATA_SCHEMA",
+        "REGIONAL_PROMPT_DATA_TYPE": "REGIONAL_PROMPT_DATA_TYPE",
+        "_normalize_mask_geometry": "_normalize_mask_geometry",
+        "_normalize_regional_mask": "_normalize_regional_mask",
+        "_regional_default_config": "_regional_default_config",
+        "_regional_default_fields": "_regional_default_fields",
+        "_regional_field_prompt": "_regional_field_prompt"
+      },
+      "classification": "unsupported_test_only",
+      "current_target": "nodes.py",
+      "canonical_target": "easyuse_anima.prompt.regional",
+      "target_state": "canonical",
+      "identity_requirement": "not_applicable",
+      "binding_shape": "direct_import",
+      "import_target": "easyuse_anima.prompt.regional",
+      "owner": "#184/#188",
+      "first_release": null,
+      "known_consumers": [
+        "repository tests may import this root name"
+      ],
+      "evidence": [
+        "AST:no nodes.py runtime load",
+        "test-only consumption is not public support evidence"
+      ],
+      "removal_gates": [
+        "test imports migrate to canonical targets",
+        "no production consumer evidence",
+        "separate B-10b removal review"
+      ],
+      "lifecycle_state": "unsupported"
+    },
+    {
+      "id": "nodes_legacy_bindings:anima_prompt.parser:transitional_private_seam",
+      "surface": "nodes_legacy_bindings",
+      "symbols": {
+        "parse_prompt": "parse_prompt"
+      },
+      "classification": "transitional_private_seam",
+      "current_target": "nodes.py",
+      "canonical_target": null,
+      "target_state": "legacy_owner",
+      "identity_requirement": "required",
+      "binding_shape": "direct_import",
+      "import_target": "anima_prompt.parser",
+      "owner": "#184/#186",
+      "first_release": null,
+      "known_consumers": [
+        "canonical runtime resolver: easyuse_anima.prompt.fields"
+      ],
+      "evidence": [
+        "AST:easyuse_anima.prompt.fields string runtime lookup"
+      ],
+      "removal_gates": [
+        "canonical production consumer migration",
+        "focused monkeypatch and identity contract review",
+        "separate B-10b or B-11 rollback unit"
+      ],
+      "lifecycle_state": "transitional"
+    },
+    {
+      "id": "nodes_legacy_bindings:anima_prompt:transitional_private_seam",
+      "surface": "nodes_legacy_bindings",
+      "symbols": {
+        "correct_prompt": "correct_prompt",
+        "load_knowledge_base": "load_knowledge_base"
+      },
+      "classification": "transitional_private_seam",
+      "current_target": "nodes.py",
+      "canonical_target": null,
+      "target_state": "legacy_owner",
+      "identity_requirement": "required",
+      "binding_shape": "direct_import",
+      "import_target": "anima_prompt",
+      "owner": "#184/#186",
+      "first_release": null,
+      "known_consumers": [
+        "canonical runtime resolver: easyuse_anima.nodes.prompt_nodes",
+        "canonical runtime resolver: easyuse_anima.prompt.fields"
+      ],
+      "evidence": [
+        "AST:easyuse_anima.nodes.prompt_nodes string runtime lookup",
+        "AST:easyuse_anima.prompt.fields string runtime lookup"
+      ],
+      "removal_gates": [
+        "canonical production consumer migration",
+        "focused monkeypatch and identity contract review",
+        "separate B-10b or B-11 rollback unit"
+      ],
+      "lifecycle_state": "transitional"
+    },
+    {
+      "id": "nodes_legacy_bindings:prompt_translation:transitional_private_seam",
+      "surface": "nodes_legacy_bindings",
+      "symbols": {
+        "has_prompt_translation_markers": "has_prompt_translation_markers",
+        "translate_prompt_markers": "translate_prompt_markers"
+      },
+      "classification": "transitional_private_seam",
+      "current_target": "nodes.py",
+      "canonical_target": null,
+      "target_state": "legacy_owner",
+      "identity_requirement": "required",
+      "binding_shape": "direct_import",
+      "import_target": "prompt_translation",
+      "owner": "#164/#186",
+      "first_release": null,
+      "known_consumers": [
+        "canonical runtime resolver: easyuse_anima.prompt.advanced",
+        "canonical runtime resolver: easyuse_anima.prompt.correction"
+      ],
+      "evidence": [
+        "AST:easyuse_anima.prompt.advanced string runtime lookup",
+        "AST:easyuse_anima.prompt.correction string runtime lookup"
+      ],
+      "removal_gates": [
+        "canonical production consumer migration",
+        "focused monkeypatch and identity contract review",
+        "separate B-10b or B-11 rollback unit"
+      ],
+      "lifecycle_state": "transitional"
+    },
+    {
+      "id": "nodes_legacy_bindings:settings:transitional_private_seam",
+      "surface": "nodes_legacy_bindings",
+      "symbols": {
+        "resolve_metadata_filter_words": "resolve_metadata_filter_words",
+        "resolve_naia_settings": "resolve_naia_settings",
+        "resolve_prompt_translation_settings": "resolve_prompt_translation_settings"
+      },
+      "classification": "transitional_private_seam",
+      "current_target": "nodes.py",
+      "canonical_target": null,
+      "target_state": "legacy_owner",
+      "identity_requirement": "required",
+      "binding_shape": "direct_import",
+      "import_target": "settings",
+      "owner": "#163/#186",
+      "first_release": null,
+      "known_consumers": [
+        "nodes.py residual runtime",
+        "canonical runtime resolver: easyuse_anima.nodes.prompt_advanced_nodes",
+        "canonical runtime resolver: easyuse_anima.nodes.prompt_nodes",
+        "canonical runtime resolver: easyuse_anima.nodes.regional_nodes",
+        "canonical runtime resolver: easyuse_anima.prompt.advanced",
+        "canonical runtime resolver: easyuse_anima.prompt.correction",
+        "canonical runtime resolver: easyuse_anima.prompt.regional"
+      ],
+      "evidence": [
+        "AST:nodes.py direct runtime load",
+        "AST:easyuse_anima.nodes.prompt_advanced_nodes string runtime lookup",
+        "AST:easyuse_anima.nodes.prompt_nodes string runtime lookup",
+        "AST:easyuse_anima.nodes.regional_nodes string runtime lookup",
+        "AST:easyuse_anima.prompt.advanced string runtime lookup",
+        "AST:easyuse_anima.prompt.correction string runtime lookup",
+        "AST:easyuse_anima.prompt.regional string runtime lookup"
+      ],
+      "removal_gates": [
+        "canonical production consumer migration",
+        "focused monkeypatch and identity contract review",
+        "separate B-10b or B-11 rollback unit"
+      ],
+      "lifecycle_state": "transitional"
+    },
+    {
+      "id": "nodes_legacy_bindings:wildcard_engine:transitional_private_seam",
+      "surface": "nodes_legacy_bindings",
+      "symbols": {
+        "MAX_SEED": "MAX_SEED",
+        "PUBLIC_MAX_SEED": "PUBLIC_MAX_SEED",
+        "SEED_CONTROL_DECREMENT": "SEED_CONTROL_DECREMENT",
+        "SEED_CONTROL_FIXED": "SEED_CONTROL_FIXED",
+        "SEED_CONTROL_INCREMENT": "SEED_CONTROL_INCREMENT",
+        "SEED_CONTROL_MODES": "SEED_CONTROL_MODES",
+        "SEED_CONTROL_RANDOMIZE": "SEED_CONTROL_RANDOMIZE",
+        "WILDCARD_MODE_FIXED": "WILDCARD_MODE_FIXED",
+        "WILDCARD_MODE_POPULATE": "WILDCARD_MODE_POPULATE",
+        "WILDCARD_MODE_SEQUENTIAL": "WILDCARD_MODE_SEQUENTIAL",
+        "expand_wildcard_texts": "expand_wildcard_texts",
+        "expand_wildcards": "expand_wildcards",
+        "has_wildcard_syntax": "has_wildcard_syntax",
+        "next_seed": "next_seed",
+        "normalize_prompt_studio_wildcard_mode": "normalize_prompt_studio_wildcard_mode",
+        "normalize_seed": "normalize_seed",
+        "normalize_wildcard_mode": "normalize_wildcard_mode",
+        "wildcard_sources_signature": "wildcard_sources_signature"
+      },
+      "classification": "transitional_private_seam",
+      "current_target": "nodes.py",
+      "canonical_target": null,
+      "target_state": "legacy_owner",
+      "identity_requirement": "required",
+      "binding_shape": "direct_import",
+      "import_target": "wildcard_engine",
+      "owner": "#184/#186",
+      "first_release": null,
+      "known_consumers": [
+        "nodes.py residual runtime",
+        "canonical runtime resolver: easyuse_anima.aio.generation_normalization",
+        "canonical runtime resolver: easyuse_anima.aio.sampling",
+        "canonical runtime resolver: easyuse_anima.nodes.prompt_advanced_nodes",
+        "canonical runtime resolver: easyuse_anima.nodes.regional_nodes",
+        "canonical runtime resolver: easyuse_anima.prompt.advanced"
+      ],
+      "evidence": [
+        "AST:nodes.py direct runtime load",
+        "AST:easyuse_anima.aio.generation_normalization string runtime lookup",
+        "AST:easyuse_anima.aio.sampling string runtime lookup",
+        "AST:easyuse_anima.nodes.prompt_advanced_nodes string runtime lookup",
+        "AST:easyuse_anima.nodes.regional_nodes string runtime lookup",
+        "AST:easyuse_anima.prompt.advanced string runtime lookup"
+      ],
+      "removal_gates": [
+        "canonical production consumer migration",
+        "focused monkeypatch and identity contract review",
+        "separate B-10b or B-11 rollback unit"
+      ],
+      "lifecycle_state": "transitional"
+    },
+    {
+      "id": "nodes_legacy_bindings:wildcard_engine:unsupported_test_only",
+      "surface": "nodes_legacy_bindings",
+      "symbols": {
+        "PROMPT_STUDIO_WILDCARD_MODE_LABELS": "PROMPT_STUDIO_WILDCARD_MODE_LABELS"
+      },
+      "classification": "unsupported_test_only",
+      "current_target": "nodes.py",
+      "canonical_target": null,
+      "target_state": "legacy_owner",
+      "identity_requirement": "not_applicable",
+      "binding_shape": "direct_import",
+      "import_target": "wildcard_engine",
+      "owner": "#184/#186",
+      "first_release": null,
+      "known_consumers": [
+        "repository tests may import this root name"
+      ],
+      "evidence": [
+        "AST:no nodes.py runtime load",
+        "test-only consumption is not public support evidence"
+      ],
+      "removal_gates": [
+        "test imports migrate to canonical targets",
+        "no production consumer evidence",
+        "separate B-10b removal review"
+      ],
+      "lifecycle_state": "unsupported"
+    },
+    {
+      "id": "nodes_root_residuals:classes",
+      "surface": "nodes_root_residuals",
+      "kind": "classes",
+      "symbols": {
+        "_AnyType": "_AnyType",
+        "_FlexibleOptionalInputType": "_FlexibleOptionalInputType"
+      },
+      "classification": "transitional_private_seam",
+      "current_target": "nodes.py",
+      "canonical_target": null,
+      "target_state": "unassigned",
+      "identity_requirement": "not_applicable",
+      "binding_shape": "root_definition",
+      "import_target": null,
+      "owner": "#184",
+      "first_release": null,
+      "known_consumers": [
+        "nodes.py residual runtime"
+      ],
+      "evidence": [
+        "AST:nodes.py runtime load"
+      ],
+      "removal_gates": [
+        "canonical production consumer migration",
+        "focused monkeypatch and identity contract review",
+        "separate B-10b or B-11 rollback unit"
+      ],
+      "lifecycle_state": "transitional"
+    },
+    {
+      "id": "nodes_root_residuals:functions",
+      "surface": "nodes_root_residuals",
+      "kind": "functions",
+      "symbols": {
+        "_aio_detailer_has_enabled_targets": "_aio_detailer_has_enabled_targets",
+        "_aio_detailer_target_defaults": "_aio_detailer_target_defaults",
+        "_aio_detailer_target_order": "_aio_detailer_target_order",
+        "_aio_final_fit_size": "_aio_final_fit_size",
+        "_aio_generation_settings_json": "_aio_generation_settings_json",
+        "_aio_input_settings_json": "_aio_input_settings_json",
+        "_aio_lora_stack_signature": "_aio_lora_stack_signature",
+        "_aio_usdu_auto_tile_dimension": "_aio_usdu_auto_tile_dimension",
+        "_aio_usdu_tile_plan": "_aio_usdu_tile_plan",
+        "_aio_usdu_tile_size": "_aio_usdu_tile_size",
+        "_apply_aio_final_fit": "_apply_aio_final_fit",
+        "_comfy_clip_loader_types": "_comfy_clip_loader_types",
+        "_comfy_diffusion_model_names": "_comfy_diffusion_model_names",
+        "_comfy_max_resolution": "_comfy_max_resolution",
+        "_comfy_text_encoder_names": "_comfy_text_encoder_names",
+        "_comfy_vae_names": "_comfy_vae_names",
+        "_consume_reserved_wildcard_next_seed": "_consume_reserved_wildcard_next_seed",
+        "_encode_with_comfy_clip": "_encode_with_comfy_clip",
+        "_find_comfy_node_class": "_find_comfy_node_class",
+        "_find_comfy_node_mapping_class": "_find_comfy_node_mapping_class",
+        "_find_loaded_node_class": "_find_loaded_node_class",
+        "_get_workflow_node": "_get_workflow_node",
+        "_image_tensor_size": "_image_tensor_size",
+        "_is_aio_detailer_target_name": "_is_aio_detailer_target_name",
+        "_new_aio_random_seed": "_new_aio_random_seed",
+        "_normalize_aio_dit_corrections_settings": "_normalize_aio_dit_corrections_settings",
+        "_normalize_aio_input_settings": "_normalize_aio_input_settings",
+        "_normalize_aio_seed": "_normalize_aio_seed",
+        "_normalize_aio_spectrum_settings": "_normalize_aio_spectrum_settings",
+        "_require_any_custom_node_class": "_require_any_custom_node_class",
+        "_require_custom_node_class": "_require_custom_node_class",
+        "_resize_image_to_size_if_needed": "_resize_image_to_size_if_needed",
+        "_resolve_aio_runtime_seed": "_resolve_aio_runtime_seed",
+        "_run_aio_detailer_stage": "_run_aio_detailer_stage",
+        "_run_aio_detailer_target": "_run_aio_detailer_target",
+        "_run_aio_highres_stage": "_run_aio_highres_stage",
+        "_run_aio_postprocess_stage": "_run_aio_postprocess_stage",
+        "_run_aio_resshift_upscale_stage": "_run_aio_resshift_upscale_stage",
+        "_run_aio_upscale_stage": "_run_aio_upscale_stage",
+        "_run_aio_usdu_upscale_stage": "_run_aio_usdu_upscale_stage",
+        "_settings_json": "_settings_json"
+      },
+      "classification": "transitional_private_seam",
+      "current_target": "nodes.py",
+      "canonical_target": null,
+      "target_state": "unassigned",
+      "identity_requirement": "not_applicable",
+      "binding_shape": "root_definition",
+      "import_target": null,
+      "owner": "#184",
+      "first_release": null,
+      "known_consumers": [
+        "nodes.py residual runtime"
+      ],
+      "evidence": [
+        "AST:nodes.py runtime load"
+      ],
+      "removal_gates": [
+        "canonical production consumer migration",
+        "focused monkeypatch and identity contract review",
+        "separate B-10b or B-11 rollback unit"
+      ],
+      "lifecycle_state": "transitional"
+    },
+    {
+      "id": "nodes_root_residuals:globals",
+      "surface": "nodes_root_residuals",
+      "kind": "globals",
+      "symbols": {
+        "AIO_FINAL_FIT_MODES": "AIO_FINAL_FIT_MODES",
+        "AIO_FINAL_UPSCALE_BACKENDS": "AIO_FINAL_UPSCALE_BACKENDS",
+        "AIO_GENERATION_DEFAULT_SETTINGS": "AIO_GENERATION_DEFAULT_SETTINGS",
+        "AIO_GENERATION_SETTINGS_SCHEMA": "AIO_GENERATION_SETTINGS_SCHEMA",
+        "AIO_GENERATION_SETTINGS_VERSION": "AIO_GENERATION_SETTINGS_VERSION",
+        "AIO_INPUT_DEFAULT_SETTINGS": "AIO_INPUT_DEFAULT_SETTINGS",
+        "AIO_RESHIFT_DTYPES": "AIO_RESHIFT_DTYPES",
+        "AIO_RESHIFT_SCALES": "AIO_RESHIFT_SCALES",
+        "AIO_SPECIAL_SEEDS": "AIO_SPECIAL_SEEDS",
+        "AIO_SPECIAL_SEED_DECREMENT": "AIO_SPECIAL_SEED_DECREMENT",
+        "AIO_SPECIAL_SEED_INCREMENT": "AIO_SPECIAL_SEED_INCREMENT",
+        "AIO_SPECIAL_SEED_RANDOM": "AIO_SPECIAL_SEED_RANDOM",
+        "AIO_USDU_MODE_TYPES": "AIO_USDU_MODE_TYPES",
+        "AIO_USDU_PROMPT_FULL": "AIO_USDU_PROMPT_FULL",
+        "AIO_USDU_PROMPT_MODES": "AIO_USDU_PROMPT_MODES",
+        "AIO_USDU_PROMPT_NO_GENERAL": "AIO_USDU_PROMPT_NO_GENERAL",
+        "AIO_USDU_SEAM_FIX_MODES": "AIO_USDU_SEAM_FIX_MODES",
+        "ANIMA_CLIP_DEVICES": "ANIMA_CLIP_DEVICES",
+        "ANIMA_CLIP_TYPES": "ANIMA_CLIP_TYPES",
+        "ANIMA_DEFAULT_CLIP_CANDIDATES": "ANIMA_DEFAULT_CLIP_CANDIDATES",
+        "ANIMA_DEFAULT_DIFFUSION_MODEL_CANDIDATES": "ANIMA_DEFAULT_DIFFUSION_MODEL_CANDIDATES",
+        "ANIMA_DEFAULT_VAE_CANDIDATES": "ANIMA_DEFAULT_VAE_CANDIDATES",
+        "ANIMA_UNET_WEIGHT_DTYPES": "ANIMA_UNET_WEIGHT_DTYPES",
+        "EASY_USE_ANIMA_INPUT_SCHEMA": "EASY_USE_ANIMA_INPUT_SCHEMA",
+        "EASY_USE_ANIMA_INPUT_SETTINGS_VERSION": "EASY_USE_ANIMA_INPUT_SETTINGS_VERSION",
+        "EASY_USE_ANIMA_INPUT_TYPE": "EASY_USE_ANIMA_INPUT_TYPE",
+        "WILDCARD_QUEUE_MAX_SAFE_SEED": "WILDCARD_QUEUE_MAX_SAFE_SEED",
+        "WILDCARD_RESERVED_NEXT_SEED_INPUT": "WILDCARD_RESERVED_NEXT_SEED_INPUT",
+        "_AIO_DETAILER_CUSTOM_RE": "_AIO_DETAILER_CUSTOM_RE",
+        "_AIO_DETAILER_RESERVED_KEYS": "_AIO_DETAILER_RESERVED_KEYS",
+        "_ANY_TYPE": "_ANY_TYPE",
+        "_TRIGGER_WORD_KEYS": "_TRIGGER_WORD_KEYS",
+        "logger": "logger"
+      },
+      "classification": "transitional_private_seam",
+      "current_target": "nodes.py",
+      "canonical_target": null,
+      "target_state": "unassigned",
+      "identity_requirement": "not_applicable",
+      "binding_shape": "root_definition",
+      "import_target": null,
+      "owner": "#184",
+      "first_release": null,
+      "known_consumers": [
+        "nodes.py residual runtime"
+      ],
+      "evidence": [
+        "AST:nodes.py runtime load"
+      ],
+      "removal_gates": [
+        "canonical production consumer migration",
+        "focused monkeypatch and identity contract review",
+        "separate B-10b or B-11 rollback unit"
+      ],
+      "lifecycle_state": "transitional"
+    },
+    {
+      "id": "root_entrypoints:permanent",
+      "surface": "root_entrypoints",
+      "symbols": {
+        "NODE_CLASS_MAPPINGS": "NODE_CLASS_MAPPINGS",
+        "NODE_DISPLAY_NAME_MAPPINGS": "NODE_DISPLAY_NAME_MAPPINGS",
+        "WEB_DIRECTORY": "WEB_DIRECTORY"
+      },
+      "classification": "permanent_entrypoint",
+      "current_target": "__init__.py",
+      "canonical_target": "__init__.py",
+      "target_state": "canonical",
+      "identity_requirement": "stable_entrypoint",
+      "binding_shape": "entrypoint",
+      "import_target": null,
+      "owner": "#184/#185",
+      "first_release": null,
+      "known_consumers": [
+        "ComfyUI package loader"
+      ],
+      "evidence": [
+        "__init__.py:__all__",
+        "node contract fixture"
+      ],
+      "removal_gates": [
+        "not removable; B-11 must preserve the entrypoint objects"
+      ],
+      "lifecycle_state": "permanent"
+    }
+  ]
+}
