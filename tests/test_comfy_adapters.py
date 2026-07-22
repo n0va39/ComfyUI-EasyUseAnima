@@ -70,6 +70,32 @@ class ComfyCapabilityAdapterTests(unittest.TestCase):
                 ],
             )
 
+    def test_impact_scheduler_lookup_preserves_loaded_module_and_comfy_fallbacks(self):
+        loaded_core = SimpleNamespace(get_schedulers=lambda: ("impact-a", "impact-b"))
+        with patch.dict(sys.modules, {"impact.core": loaded_core}):
+            self.assertIs(capabilities._impact_core_module(), loaded_core)
+            self.assertEqual(
+                capabilities._impact_scheduler_names(),
+                ["impact-a", "impact-b"],
+            )
+
+        real_import = builtins.__import__
+
+        def import_without_impact_or_comfy(name, globals=None, locals=None, fromlist=(), level=0):
+            if name in {"impact.core", "modules.impact", "comfy.samplers"}:
+                raise ImportError(f"{name} is unavailable")
+            return real_import(name, globals, locals, fromlist, level)
+
+        with (
+            patch.dict(sys.modules, {"impact.core": None}),
+            patch("builtins.__import__", side_effect=import_without_impact_or_comfy),
+        ):
+            self.assertIsNone(capabilities._impact_core_module())
+            self.assertEqual(
+                capabilities._impact_scheduler_names(),
+                ["normal", "karras", "exponential", "sgm_uniform", "simple", "ddim_uniform"],
+            )
+
     def test_node_discovery_checks_injected_and_loaded_module_mappings(self):
         direct_class = type("DirectNode", (), {})
         attribute_class = type("AttributeNode", (), {})
@@ -281,6 +307,8 @@ class ComfyRootCompatibilityTests(unittest.TestCase):
         self.assertIs(nodes._folder_path_names, resources._folder_path_names)
         self.assertIs(nodes._node_output_tuple, invocation._node_output_tuple)
         self.assertIs(nodes._call_with_supported_kwargs, invocation._call_with_supported_kwargs)
+        self.assertIs(nodes._impact_core_module, capabilities._impact_core_module)
+        self.assertIs(nodes._impact_scheduler_names, capabilities._impact_scheduler_names)
 
     def test_feature_specific_root_wrappers_inject_existing_constants_and_aliases(self):
         folder_calls = []

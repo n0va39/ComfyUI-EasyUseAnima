@@ -31,7 +31,7 @@ merged PR, the owning issue's evidence record, and every stated exit gate.
 | Phase | State at the snapshot | Remaining exit work |
 | --- | --- | --- |
 | A - baseline | Complete; #191 is closed | Keep fixtures and analyzers current during later moves |
-| B - `nodes.py` extraction | In progress through B-07e | B-07f SAM3, AiO mechanical extraction, compatibility audit, registration/bootstrap, final root shim |
+| B - `nodes.py` extraction | In progress through B-08a | Continue B-08b through B-09 AiO extraction, compatibility audit, registration/bootstrap, final root shim |
 | C - feature contracts/behavior | Partially complete | Finish #168; then #167 and #169 in separate Contract/Behavior PRs |
 | D - root consolidation | Not started | Execute #186 feature by feature after the corresponding behavior contracts are stable |
 | E - runtime ownership | Not started | Execute #187 after canonical feature owners exist; E-01 inventory may start earlier |
@@ -45,9 +45,9 @@ merged PR, the owning issue's evidence record, and every stated exit gate.
 - At the snapshot commit, root `nodes.py` is 5,762 lines.
 - The mechanical extraction has therefore removed 6,901 lines, approximately
   54.5% of the baseline, while preserving the root compatibility surface.
-- B-01 through B-07e are integrated. The latest completed slice is Advanced
-  Prompt Studio in PR #249.
-- Root `nodes.py` still owns substantial SAM3 and AiO implementation.
+- B-01 through B-08a are integrated. The latest completed slice is the AiO
+  resource helper Move in PR #259.
+- Root `nodes.py` still owns substantial AiO implementation.
 - Root `__init__.py` still imports `api.py` for route-registration side effects,
   initializes the wildcard directory during package import, and owns mapping
   composition. B-11 is therefore not complete.
@@ -286,7 +286,7 @@ surfaces. AiO mechanical extraction must not start until #168 exits.
 | 5 | C168-05 cross-surface setting omission gate | COMPLETE | Contract/gate | #168 | PR #256 merged |
 | 6 | G-03a completed-package import boundary fail gate | COMPLETE on `dev` | Contract/gate | #188 | PR #258 / six reviewed zero-violation prefixes enrolled |
 | 7 | C168-06 normalizer ownership move | COMPLETE on `dev` | Move | #168/#184 | PR #257 / `3ca5500` |
-| 8 | B-08a through B-08e AiO support-helper extraction | READY/SEQUENTIAL | Move | #184 | #168 closed; C168-03 through C168-06 complete |
+| 8 | B-08a through B-08e AiO support-helper extraction | B-08a COMPLETE; B-08b READY/SEQUENTIAL | Move | #184 | B-08a PR #259; later rows remain sequential |
 | 9 | B-09a/B-09b AiO node and legacy orchestration move | BLOCKED by B-08 | Move | #184 | AiO helpers canonical |
 | 10 | B-10 compatibility/private-alias audit | BLOCKED by B-09 | Contract/cleanup, split PRs | #184/#188 | All node implementations canonical |
 | 11 | B-11 registration/bootstrap/root shim | BLOCKED by B-10 | Move | #184 | Alias surface frozen |
@@ -472,6 +472,11 @@ rows merely to reduce PR count.
 | B-08c | sampler backend dispatch and invocation adapters | `easyuse_anima/aio/sampling.py` | backend selection, kwargs filtering, seed values, steps/CFG/scheduler, result shape |
 | B-08d | preview collection/events, save adapters, output metadata | `easyuse_anima/aio/preview.py` and/or `output.py` when responsibilities justify both | preview order, UI payload, filenames, metadata keys, save backend behavior |
 | B-08e | current first-pass cache implementation | `easyuse_anima/aio/first_pass_cache.py` | current entry limit, key, clone/copy behavior, hit/miss semantics, lack of new TTL/byte policy |
+
+B-08a is complete on `dev` in PR #259. Its mechanical boundary moves resource defaults,
+loaders, and AiO resource bundles to `easyuse_anima.aio.resources`, moves Impact
+capability lookup to `easyuse_anima.infrastructure.comfy.capabilities`, and
+keeps the root names as direct identity aliases with a call-time runtime seam.
 
 Rules for every B-08 PR:
 
