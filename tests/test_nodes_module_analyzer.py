@@ -73,12 +73,12 @@ def load_dynamic():
     def test_current_nodes_module_shape_matches_recorded_baseline(self):
         report = analyzer.analyze_path(ROOT / "nodes.py")
 
-        self.assertEqual(report["git_blob_sha1"], "c9c1f1d977db21feb4a1a83eb9fed515b8681987")
-        # Issue #184 B-08a preserves the root AiO facade while moving resource
-        # defaults/loaders behind direct aliases and one runtime binding.
-        self.assertEqual(report["top_level"]["function_count"], 85)
+        self.assertEqual(report["git_blob_sha1"], "a0935a57fc324743d81ab0ecb97907dc25e01b75")
+        # Issue #184 B-08b1 preserves the root AiO facade while moving model and
+        # USDU conditioning helpers behind direct aliases and runtime bindings.
+        self.assertEqual(report["top_level"]["function_count"], 75)
         self.assertEqual(report["top_level"]["class_count"], 4)
-        self.assertEqual(report["line_count"], 4_362)
+        self.assertEqual(report["line_count"], 4_112)
         class_names = {item["name"] for item in report["top_level"]["classes"]}
         self.assertIn("EasyUseAnimaAIOGenerator", class_names)
         self.assertNotIn("EasyUseAnimaPromptStudioAdvanced", class_names)

@@ -117,6 +117,15 @@ EasyUseAnimaWildcard
   monkeypatch seams still consume them. They remain internal transition
   surfaces through the B-10 compatibility audit and are not added to public
   package `__all__`.
+- B-08b1 internal AiO model-preparation transition: LoRA normalization and
+  application, AuraFlow/DAVE/Safe PAG/KJ base-model patching, and USDU
+  conditioning preparation move to `easyuse_anima.aio.model_preparation` and
+  `easyuse_anima.aio.conditioning`. Their ten root private names remain direct
+  identity aliases so the current root generator/stages and focused monkeypatch
+  seams preserve call-time behavior. Shared CLIP encoding moves to
+  `easyuse_anima.infrastructure.comfy.invocation` behind the existing root
+  injection wrapper. These are internal transition surfaces through the B-10
+  compatibility audit and are not added to public package `__all__`.
 - Removal gate: 0.5.2 node/workflow fixture, mapping identity, direct import,
   Registry archive closure, consumer evidence, separate breaking-change issue,
   and release note. With no external-consumer evidence, retain these exports.
