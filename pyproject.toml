@@ -20,3 +20,10 @@ Repository = "https://github.com/n0va39/ComfyUI-EasyUseAnima"
 [tool.comfy]
 PublisherId = "n0va39"
 DisplayName = "ComfyUI EasyUse Anima"
+
+[tool.ruff]
+target-version = "py310"
+extend-exclude = [".github", "tests", "tools"]
+
+[tool.ruff.lint]
+select = ["E4", "E7", "E9", "F", "I", "UP"]
