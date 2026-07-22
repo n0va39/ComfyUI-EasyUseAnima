@@ -19,6 +19,7 @@ if str(ROOT) not in sys.path:
 
 import nodes
 from easyuse_anima import workflow
+from easyuse_anima.aio import model_preparation as aio_model_preparation
 from easyuse_anima.common import serialization as common_serialization
 from easyuse_anima.common import values as common_values
 from easyuse_anima.image import detailer as image_detailer
@@ -568,6 +569,55 @@ class CommonHelperMoveContractTests(unittest.TestCase):
             image_geometry._aligned_size_near_scale(128, 64, 2.0, 64, 0),
             (256, 128, 2.0),
         )
+
+
+class AioLoraSignatureMoveContractTests(unittest.TestCase):
+    EXPECTED_SIGNATURE = [
+        {
+            "name": "styles/test.safetensors",
+            "strength_model": 0.8,
+            "strength_clip": 0.6,
+        }
+    ]
+
+    def test_root_alias_and_call_time_normalizer_rebind(self):
+        self.assertIs(
+            nodes._aio_lora_stack_signature,
+            aio_model_preparation._aio_lora_stack_signature,
+        )
+        normalized = [("styles/test.safetensors", 0.8, 0.6)]
+        with patch.object(
+            nodes,
+            "_normalize_aio_lora_stack",
+            return_value=normalized,
+        ) as normalize:
+            self.assertEqual(
+                aio_model_preparation._aio_lora_stack_signature("raw"),
+                self.EXPECTED_SIGNATURE,
+            )
+        normalize.assert_called_once_with("raw")
+
+    def test_package_alias_and_call_time_normalizer_rebind(self):
+        with _loaded_package_entrypoint() as (_, package_nodes):
+            package_name = package_nodes.__package__
+            package_model_preparation = sys.modules[
+                f"{package_name}.easyuse_anima.aio.model_preparation"
+            ]
+            self.assertIs(
+                package_nodes._aio_lora_stack_signature,
+                package_model_preparation._aio_lora_stack_signature,
+            )
+            normalized = [("styles/test.safetensors", 0.8, 0.6)]
+            with patch.object(
+                package_nodes,
+                "_normalize_aio_lora_stack",
+                return_value=normalized,
+            ) as normalize:
+                self.assertEqual(
+                    package_model_preparation._aio_lora_stack_signature("raw"),
+                    self.EXPECTED_SIGNATURE,
+                )
+            normalize.assert_called_once_with("raw")
 
 
 class ComfyAdapterMoveContractTests(unittest.TestCase):

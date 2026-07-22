@@ -39,6 +39,7 @@ try:
         _bind_aio_conditioning_runtime as _bind_aio_conditioning_runtime,
     )
     from .easyuse_anima.aio.model_preparation import (
+        _aio_lora_stack_signature as _aio_lora_stack_signature,
         _apply_aio_anima_dave_patch as _apply_aio_anima_dave_patch,
         _apply_aio_kj_model_patches as _apply_aio_kj_model_patches,
         _apply_aio_lora_stack as _apply_aio_lora_stack,
@@ -559,6 +560,7 @@ except ImportError:  # allows simple local import tests outside ComfyUI's packag
         _bind_aio_conditioning_runtime as _bind_aio_conditioning_runtime,
     )
     from easyuse_anima.aio.model_preparation import (
+        _aio_lora_stack_signature as _aio_lora_stack_signature,
         _apply_aio_anima_dave_patch as _apply_aio_anima_dave_patch,
         _apply_aio_kj_model_patches as _apply_aio_kj_model_patches,
         _apply_aio_lora_stack as _apply_aio_lora_stack,
@@ -1842,17 +1844,6 @@ def _find_loaded_node_class(node_id: str):
     return _adapter_find_loaded_node_class(node_id, _find_comfy_node_class)
 
 
-
-
-def _aio_lora_stack_signature(lora_stack) -> list[dict[str, Any]]:
-    return [
-        {
-            "name": name,
-            "strength_model": model_strength,
-            "strength_clip": clip_strength,
-        }
-        for name, model_strength, clip_strength in _normalize_aio_lora_stack(lora_stack)
-    ]
 
 
 def _resize_image_to_size_if_needed(

@@ -73,12 +73,12 @@ def load_dynamic():
     def test_current_nodes_module_shape_matches_recorded_baseline(self):
         report = analyzer.analyze_path(ROOT / "nodes.py")
 
-        self.assertEqual(report["git_blob_sha1"], "0680a8e5e7c605c79a50dd2dde5b463c2694defc")
-        # Issue #184 B-11c3 moves the dependency-free image tensor size helper
-        # while preserving the root alias and existing binder/resolver seams.
-        self.assertEqual(report["top_level"]["function_count"], 39)
+        self.assertEqual(report["git_blob_sha1"], "5ce6b92bcd7ba6a4b60d83764b764d80034e1b44")
+        # Issue #184 B-11c4 moves the AiO LoRA stack signature helper while
+        # preserving the root alias and call-time normalizer resolver seam.
+        self.assertEqual(report["top_level"]["function_count"], 38)
         self.assertEqual(report["top_level"]["class_count"], 0)
-        self.assertEqual(report["line_count"], 2_659)
+        self.assertEqual(report["line_count"], 2_650)
         class_names = {item["name"] for item in report["top_level"]["classes"]}
         self.assertNotIn("EasyUseAnimaAIOGenerator", class_names)
         self.assertNotIn("EasyUseAnimaInput", class_names)

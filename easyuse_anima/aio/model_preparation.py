@@ -191,6 +191,19 @@ def _normalize_aio_lora_stack(lora_stack) -> list[tuple[str, float, float]]:
     return entries
 
 
+def _aio_lora_stack_signature(lora_stack) -> list[dict[str, Any]]:
+    return [
+        {
+            "name": name,
+            "strength_model": model_strength,
+            "strength_clip": clip_strength,
+        }
+        for name, model_strength, clip_strength in _runtime_helper(
+            "_normalize_aio_lora_stack"
+        )(lora_stack)
+    ]
+
+
 def _apply_aio_lora_stack(model, clip, lora_stack):
     entries = _runtime_helper("_normalize_aio_lora_stack")(lora_stack)
     if not entries:

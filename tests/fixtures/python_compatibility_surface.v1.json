@@ -2,7 +2,7 @@
   "schema_version": 1,
   "snapshot": {
     "base_branch": "dev",
-    "base_commit": "47fef1deebc32644d19caa22add5fee0aa94edbe",
+    "base_commit": "1f18c04f1078b7c547764aa572a6123ba423221d",
     "first_release": null,
     "owner_tasks": [
       "#184",
@@ -32,7 +32,8 @@
       "B-11b",
       "B-11c1",
       "B-11c2",
-      "B-11c3"
+      "B-11c3",
+      "B-11c4"
     ]
   },
   "enums": {
@@ -67,11 +68,11 @@
   "expected_counts": {
     "root_entrypoints": 3,
     "excluded_preamble_implementation_bindings": 7,
-    "nodes_canonical_bindings": 263,
+    "nodes_canonical_bindings": 264,
     "nodes_legacy_bindings": 27,
     "mapped_public_classes": 18,
     "unmapped_classes": 2,
-    "root_residual_functions": 39,
+    "root_residual_functions": 38,
     "root_residual_classes": 0,
     "root_residual_globals": 32,
     "runtime_binders": 28,
@@ -1967,6 +1968,7 @@
       "id": "nodes_canonical_bindings:easyuse_anima.aio.model_preparation:transitional_private_seam",
       "surface": "nodes_canonical_bindings",
       "symbols": {
+        "_aio_lora_stack_signature": "_aio_lora_stack_signature",
         "_apply_aio_anima_dave_patch": "_apply_aio_anima_dave_patch",
         "_apply_aio_kj_model_patches": "_apply_aio_kj_model_patches",
         "_apply_aio_lora_stack": "_apply_aio_lora_stack",
@@ -1991,13 +1993,17 @@
       "first_release": null,
       "known_consumers": [
         "nodes.py residual runtime",
+        "canonical runtime resolver: easyuse_anima.aio.first_pass_cache",
         "canonical runtime resolver: easyuse_anima.aio.legacy_generation",
-        "canonical runtime resolver: easyuse_anima.aio.model_preparation"
+        "canonical runtime resolver: easyuse_anima.aio.model_preparation",
+        "canonical runtime resolver: easyuse_anima.nodes.aio_nodes"
       ],
       "evidence": [
         "AST:nodes.py direct runtime load",
+        "AST:easyuse_anima.aio.first_pass_cache string runtime lookup",
         "AST:easyuse_anima.aio.legacy_generation string runtime lookup",
-        "AST:easyuse_anima.aio.model_preparation string runtime lookup"
+        "AST:easyuse_anima.aio.model_preparation string runtime lookup",
+        "AST:easyuse_anima.nodes.aio_nodes string runtime lookup"
       ],
       "removal_gates": [
         "canonical production consumer migration",
@@ -3917,7 +3923,6 @@
         "_aio_final_fit_size": "_aio_final_fit_size",
         "_aio_generation_settings_json": "_aio_generation_settings_json",
         "_aio_input_settings_json": "_aio_input_settings_json",
-        "_aio_lora_stack_signature": "_aio_lora_stack_signature",
         "_aio_usdu_auto_tile_dimension": "_aio_usdu_auto_tile_dimension",
         "_aio_usdu_tile_plan": "_aio_usdu_tile_plan",
         "_aio_usdu_tile_size": "_aio_usdu_tile_size",
