@@ -218,18 +218,18 @@ try:
     from .easyuse_anima.prompt.conditioning import (
         ANIMA_MOD_GUIDANCE_DEFAULT_PROFILE as ANIMA_MOD_GUIDANCE_DEFAULT_PROFILE,
         ANIMA_MOD_GUIDANCE_MODES as ANIMA_MOD_GUIDANCE_MODES,
-        ANIMA_MOD_GUIDANCE_MODE_DISABLED as ANIMA_MOD_GUIDANCE_MODE_DISABLED,
-        ANIMA_MOD_GUIDANCE_MODE_ENABLED as ANIMA_MOD_GUIDANCE_MODE_ENABLED,
+        # B-10b15: disabled/enabled mode constants remain canonical-only.
+        # B-10b15: profile choices remain canonical-only.
         ANIMA_MOD_GUIDANCE_MODE_FROM_PROMPT_DATA as ANIMA_MOD_GUIDANCE_MODE_FROM_PROMPT_DATA,
-        ANIMA_MOD_GUIDANCE_PROFILES as ANIMA_MOD_GUIDANCE_PROFILES,
+        # B-10b15: the warning-once state remains canonical-only.
         ANIMA_MOD_GUIDANCE_PROFILE_OFF as ANIMA_MOD_GUIDANCE_PROFILE_OFF,
-        _SPECTRUM_ANIMA_MOD_GUIDANCE_OLD_SIGNATURE_WARNED as _SPECTRUM_ANIMA_MOD_GUIDANCE_OLD_SIGNATURE_WARNED,
+        # B-10b15: warning dispatch remains canonical-only.
         _apply_spectrum_anima_mod_guidance as _apply_spectrum_anima_mod_guidance,
         _bind_conditioning_runtime as _bind_conditioning_runtime,
         _find_spectrum_anima_mod_guidance_class as _find_spectrum_anima_mod_guidance_class,
         _normalize_anima_mod_guidance_profile as _normalize_anima_mod_guidance_profile,
         _resolve_anima_mod_guidance_enabled as _resolve_anima_mod_guidance_enabled,
-        _warn_old_spectrum_anima_mod_guidance_once as _warn_old_spectrum_anima_mod_guidance_once,
+        # B-10b15: five unsupported conditioning aliases were retired.
     )
     from .easyuse_anima.prompt.artist_mix import (
         ARTIST_MIX_CONTROL_KEY as ARTIST_MIX_CONTROL_KEY,
@@ -731,18 +731,18 @@ except ImportError:  # allows simple local import tests outside ComfyUI's packag
     from easyuse_anima.prompt.conditioning import (
         ANIMA_MOD_GUIDANCE_DEFAULT_PROFILE as ANIMA_MOD_GUIDANCE_DEFAULT_PROFILE,
         ANIMA_MOD_GUIDANCE_MODES as ANIMA_MOD_GUIDANCE_MODES,
-        ANIMA_MOD_GUIDANCE_MODE_DISABLED as ANIMA_MOD_GUIDANCE_MODE_DISABLED,
-        ANIMA_MOD_GUIDANCE_MODE_ENABLED as ANIMA_MOD_GUIDANCE_MODE_ENABLED,
+        # B-10b15: disabled/enabled mode constants remain canonical-only.
+        # B-10b15: profile choices remain canonical-only.
         ANIMA_MOD_GUIDANCE_MODE_FROM_PROMPT_DATA as ANIMA_MOD_GUIDANCE_MODE_FROM_PROMPT_DATA,
-        ANIMA_MOD_GUIDANCE_PROFILES as ANIMA_MOD_GUIDANCE_PROFILES,
+        # B-10b15: the warning-once state remains canonical-only.
         ANIMA_MOD_GUIDANCE_PROFILE_OFF as ANIMA_MOD_GUIDANCE_PROFILE_OFF,
-        _SPECTRUM_ANIMA_MOD_GUIDANCE_OLD_SIGNATURE_WARNED as _SPECTRUM_ANIMA_MOD_GUIDANCE_OLD_SIGNATURE_WARNED,
+        # B-10b15: warning dispatch remains canonical-only.
         _apply_spectrum_anima_mod_guidance as _apply_spectrum_anima_mod_guidance,
         _bind_conditioning_runtime as _bind_conditioning_runtime,
         _find_spectrum_anima_mod_guidance_class as _find_spectrum_anima_mod_guidance_class,
         _normalize_anima_mod_guidance_profile as _normalize_anima_mod_guidance_profile,
         _resolve_anima_mod_guidance_enabled as _resolve_anima_mod_guidance_enabled,
-        _warn_old_spectrum_anima_mod_guidance_once as _warn_old_spectrum_anima_mod_guidance_once,
+        # B-10b15: five unsupported conditioning aliases were retired.
     )
     from easyuse_anima.prompt.artist_mix import (
         ARTIST_MIX_CONTROL_KEY as ARTIST_MIX_CONTROL_KEY,

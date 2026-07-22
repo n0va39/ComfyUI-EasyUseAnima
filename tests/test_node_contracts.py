@@ -1256,6 +1256,13 @@ class PromptDataConditioningMoveContractTests(unittest.TestCase):
         "_prompt_data_output",
         "_set_prompt_data_output",
     )
+    RETIRED_CONDITIONING_ALIASES = (
+        "ANIMA_MOD_GUIDANCE_MODE_DISABLED",
+        "ANIMA_MOD_GUIDANCE_MODE_ENABLED",
+        "ANIMA_MOD_GUIDANCE_PROFILES",
+        "_SPECTRUM_ANIMA_MOD_GUIDANCE_OLD_SIGNATURE_WARNED",
+        "_warn_old_spectrum_anima_mod_guidance_once",
+    )
     NODE_CLASSES = (
         "EasyUseAnimaPromptDataUnpack",
         "EasyUseAnimaArtistMixConditioning",
@@ -1285,7 +1292,10 @@ class PromptDataConditioningMoveContractTests(unittest.TestCase):
     }
 
     def test_root_prompt_data_conditioning_objects_are_direct_canonical_aliases(self):
-        for name in self.RETIRED_PROMPT_DATA_ALIASES:
+        for name in (
+            *self.RETIRED_PROMPT_DATA_ALIASES,
+            *self.RETIRED_CONDITIONING_ALIASES,
+        ):
             with self.subTest(retired=name):
                 self.assertFalse(hasattr(nodes, name))
         for name in self.NODE_CLASSES:
@@ -1307,7 +1317,10 @@ class PromptDataConditioningMoveContractTests(unittest.TestCase):
             package_adapters = sys.modules[
                 f"{package_name}.easyuse_anima.nodes.prompt_data_nodes"
             ]
-            for name in self.RETIRED_PROMPT_DATA_ALIASES:
+            for name in (
+                *self.RETIRED_PROMPT_DATA_ALIASES,
+                *self.RETIRED_CONDITIONING_ALIASES,
+            ):
                 with self.subTest(retired=name):
                     self.assertFalse(hasattr(package_nodes, name))
             for name in self.NODE_CLASSES:

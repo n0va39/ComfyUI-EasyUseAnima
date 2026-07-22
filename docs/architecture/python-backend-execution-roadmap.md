@@ -5,7 +5,7 @@
 - Status: operational execution runbook
 - Snapshot date: 2026-07-23
 - Snapshot branch: `dev`
-- Integrated `dev` snapshot commit: `13a9cf4976b9b847dc68ddacca1763d862e647f9`
+- Integrated `dev` snapshot commit: `a06ed305ae43253ef04d1650fb486784b2aed943`
 - Scope: Python backend only
 - Target architecture: [`python-backend.md`](python-backend.md)
 - Architecture decisions: [ADR-001](adr-001-modular-monolith.md) and
@@ -31,7 +31,7 @@ merged PR, the owning issue's evidence record, and every stated exit gate.
 | Phase | Integrated snapshot / open implementation state | Remaining exit work |
 | --- | --- | --- |
 | A - baseline | Complete; #191 is closed | Keep fixtures and analyzers current during later moves |
-| B - `nodes.py` extraction | Integrated through B-10b13; B-10b14 NAIA resolution alias cleanup in review in PR #285 | Integrate scoped B-10b cleanup before registration/bootstrap and the final root shim |
+| B - `nodes.py` extraction | Integrated through B-10b14; B-10b15 conditioning alias cleanup in review in PR #286 | Integrate scoped B-10b cleanup before registration/bootstrap and the final root shim |
 | C - feature contracts/behavior | Partially complete | Finish #168; then #167 and #169 in separate Contract/Behavior PRs |
 | D - root consolidation | Not started | Execute #186 feature by feature after the corresponding behavior contracts are stable |
 | E - runtime ownership | Not started | Execute #187 after canonical feature owners exist; E-01 inventory may start earlier |
@@ -295,7 +295,7 @@ surfaces. AiO mechanical extraction must not start until #168 exits.
 | 10 | B-09b1 AiO legacy orchestration body move | COMPLETE on `dev` | Move | #184 | PR #269 / `7484dc7` |
 | 11 | B-09b2 AiO generator adapter move | COMPLETE on `dev` | Move | #184 | PR #270 / `57d40b4` |
 | 12 | B-10a machine-readable compatibility audit | COMPLETE on `dev` | Contract/gate | #184/#188 | PR #271 / `3c7b857` |
-| 13 | B-10b private alias reduction | IN REVIEW: B-10b14 PR #285 | Contract/cleanup, split PRs | #184/#188 | Audited alias surface integrated |
+| 13 | B-10b private alias reduction | IN REVIEW: B-10b15 PR #286 | Contract/cleanup, split PRs | #184/#188 | Audited alias surface integrated |
 | 14 | B-11 registration/bootstrap/root shim | BLOCKED by B-10b | Move | #184 | Supported alias surface frozen after scoped cleanup |
 | 15 | S167 backend seed reservation series | BLOCKED by B exit/interface | Contract then Behavior | #167 | Canonical AiO/node seams |
 | 16 | A169 stage pipeline series | BLOCKED by #168 and B exit | Contract then Behavior | #169 | Typed config and mechanical AiO move |
@@ -621,8 +621,8 @@ reported as unexecuted, not passed.
 
 ### B-10b — Private alias reduction
 
-- **Status:** B-10b1 through B-10b13 are complete on `dev` through PR #284 /
-  `13a9cf4`; B-10b14 is in review in PR #285 from that integrated base.
+- **Status:** B-10b1 through B-10b14 are complete on `dev` through PR #285 /
+  `a06ed30`; B-10b15 is in review in PR #286 from that integrated base.
 - **Type:** small compatibility cleanup PRs, one owner/surface at a time
 - Remove unsupported/test-only aliases after tests use canonical paths.
 - Retain an actual monkeypatch seam only when the consumer and call-time binding
@@ -723,6 +723,13 @@ Prompt Advanced, and Regional consumers already import or call the owner
 directly. Five runtime-resolved label/selection helpers remain root seams;
 bucket data/order, scale/max-long-edge policy, 32-pixel snapping, nearest-fit,
 input defaults, mapped classes, and workflow behavior stay unchanged.
+
+B-10b15 removes the five unsupported/test-only
+`easyuse_anima.prompt.conditioning` root aliases recorded in the compatibility
+fixture. Canonical conditioning and Prompt Data consumers already import or
+call the owner directly. Nine runtime-resolved conditioning seams remain;
+mode/profile values, mapped classes, Spectrum old-signature fallback,
+warning-once behavior, and saved-workflow contracts stay unchanged.
 
 ### B-11 — Registration, bootstrap, and final `nodes.py` shim
 

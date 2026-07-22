@@ -2,7 +2,7 @@
   "schema_version": 1,
   "snapshot": {
     "base_branch": "dev",
-    "base_commit": "13a9cf4976b9b847dc68ddacca1763d862e647f9",
+    "base_commit": "a06ed305ae43253ef04d1650fb486784b2aed943",
     "first_release": null,
     "owner_tasks": [
       "#184",
@@ -21,7 +21,8 @@
       "B-10b11",
       "B-10b12",
       "B-10b13",
-      "B-10b14"
+      "B-10b14",
+      "B-10b15"
     ]
   },
   "enums": {
@@ -56,7 +57,7 @@
   "expected_counts": {
     "root_entrypoints": 3,
     "excluded_preamble_implementation_bindings": 7,
-    "nodes_canonical_bindings": 340,
+    "nodes_canonical_bindings": 335,
     "nodes_legacy_bindings": 27,
     "mapped_public_classes": 18,
     "unmapped_classes": 2,
@@ -1047,6 +1048,31 @@
     }
   },
   "retired_private_bindings": {
+    "ANIMA_MOD_GUIDANCE_MODE_DISABLED": {
+      "canonical_target": "easyuse_anima.prompt.conditioning:ANIMA_MOD_GUIDANCE_MODE_DISABLED",
+      "owner": "#184/#188 B-10b15",
+      "reason": "canonical conditioning owner consumes the disabled mode internally"
+    },
+    "ANIMA_MOD_GUIDANCE_MODE_ENABLED": {
+      "canonical_target": "easyuse_anima.prompt.conditioning:ANIMA_MOD_GUIDANCE_MODE_ENABLED",
+      "owner": "#184/#188 B-10b15",
+      "reason": "canonical conditioning owner consumes the enabled mode internally"
+    },
+    "ANIMA_MOD_GUIDANCE_PROFILES": {
+      "canonical_target": "easyuse_anima.prompt.conditioning:ANIMA_MOD_GUIDANCE_PROFILES",
+      "owner": "#184/#188 B-10b15",
+      "reason": "canonical Prompt Data adapter imports the profiles directly"
+    },
+    "_SPECTRUM_ANIMA_MOD_GUIDANCE_OLD_SIGNATURE_WARNED": {
+      "canonical_target": "easyuse_anima.prompt.conditioning:_SPECTRUM_ANIMA_MOD_GUIDANCE_OLD_SIGNATURE_WARNED",
+      "owner": "#184/#188 B-10b15",
+      "reason": "canonical conditioning owner retains its warning-once state"
+    },
+    "_warn_old_spectrum_anima_mod_guidance_once": {
+      "canonical_target": "easyuse_anima.prompt.conditioning:_warn_old_spectrum_anima_mod_guidance_once",
+      "owner": "#184/#188 B-10b15",
+      "reason": "canonical modulation helper calls warning dispatch internally"
+    },
     "ADVANCED_RESOLUTION_BUCKETS": {
       "canonical_target": "easyuse_anima.naia.resolution:ADVANCED_RESOLUTION_BUCKETS",
       "owner": "#184/#188 B-10b14",
@@ -3086,39 +3112,6 @@
         "separate B-10b or B-11 rollback unit"
       ],
       "lifecycle_state": "transitional"
-    },
-    {
-      "id": "nodes_canonical_bindings:easyuse_anima.prompt.conditioning:unsupported_test_only",
-      "surface": "nodes_canonical_bindings",
-      "symbols": {
-        "ANIMA_MOD_GUIDANCE_MODE_DISABLED": "ANIMA_MOD_GUIDANCE_MODE_DISABLED",
-        "ANIMA_MOD_GUIDANCE_MODE_ENABLED": "ANIMA_MOD_GUIDANCE_MODE_ENABLED",
-        "ANIMA_MOD_GUIDANCE_PROFILES": "ANIMA_MOD_GUIDANCE_PROFILES",
-        "_SPECTRUM_ANIMA_MOD_GUIDANCE_OLD_SIGNATURE_WARNED": "_SPECTRUM_ANIMA_MOD_GUIDANCE_OLD_SIGNATURE_WARNED",
-        "_warn_old_spectrum_anima_mod_guidance_once": "_warn_old_spectrum_anima_mod_guidance_once"
-      },
-      "classification": "unsupported_test_only",
-      "current_target": "nodes.py",
-      "canonical_target": "easyuse_anima.prompt.conditioning",
-      "target_state": "canonical",
-      "identity_requirement": "not_applicable",
-      "binding_shape": "direct_import",
-      "import_target": "easyuse_anima.prompt.conditioning",
-      "owner": "#184/#188",
-      "first_release": null,
-      "known_consumers": [
-        "repository tests may import this root name"
-      ],
-      "evidence": [
-        "AST:no nodes.py runtime load",
-        "test-only consumption is not public support evidence"
-      ],
-      "removal_gates": [
-        "test imports migrate to canonical targets",
-        "no production consumer evidence",
-        "separate B-10b removal review"
-      ],
-      "lifecycle_state": "unsupported"
     },
     {
       "id": "nodes_canonical_bindings:easyuse_anima.prompt.correction:transitional_private_seam",
