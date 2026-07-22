@@ -3,13 +3,13 @@
 ## Registry status
 
 - Inventory baseline: `dev` commit
-  `8db89452428dd3816e215857724c97d0aba99dc3`
+  `743256a6f32a10f2fc8ad155960520e778d24a56`
 - Compatibility provenance: package/workflow version 0.5.2
 - Policy: [ADR-002](adr-002-compatibility-shims.md)
 - Machine-readable audit:
   [`python_compatibility_surface.v1.json`](../../tests/fixtures/python_compatibility_surface.v1.json)
-- Current state: B-10b1 is integrated; B-10b2 in PR #273 removes one audited
-  unsupported/test-only Detailer hook root alias
+- Current state: B-10b2 is integrated; B-10b3 in PR #274 removes one audited
+  unsupported/test-only Impact delegate root alias
 
 This is an actionable registry, not a removal schedule. `N` means the first
 published Registry release containing both a canonical target and its root
@@ -74,8 +74,8 @@ inferring public support from spelling or test imports:
 - `nodes.py` preamble implementation imports: 7 (`json`, `logging`, `random`,
   `re`, `ceil`, `sqrt`, and `Any`), excluded from compatibility classification
   by an exact AST allowlist and drift gate;
-- `nodes.py` bindings with an `easyuse_anima` canonical target: 399 at the
-  B-10b2 PR head, with exact
+- `nodes.py` bindings with an `easyuse_anima` canonical target: 398 at the
+  B-10b3 PR head, with exact
   relative-package/flat-fallback parity;
 - bindings still owned by `anima_prompt`, `settings`, `prompt_translation`, or
   `wildcard_engine`: 27, with the same fallback parity;
@@ -87,8 +87,9 @@ inferring public support from spelling or test imports:
 - import-time runtime binders: 28 exact top-level `_bind_*_runtime` calls;
 - root names reached by those canonical runtime resolvers: 256, including
   literal lookups and binder-owned helper-name/default collections;
-- retired private bindings: `_comfy_checkpoint_names` and
-  `_EasyUseAnimaAlignedDetailerHook`; their production consumers import the
+- retired private bindings: `_comfy_checkpoint_names`,
+  `_EasyUseAnimaAlignedDetailerHook`, and
+  `_EasyUseAnimaImpactDetailerDelegate`; their production consumers import the
   corresponding canonical owners directly;
 - repository test files with a direct `nodes` import: 22, recorded as migration
   consumers rather than public-support evidence.
@@ -164,9 +165,8 @@ EasyUseAnimaWildcard
   explicit direct aliases to their canonical modules; they are not wrappers.
 - B-07f internal SAM3 transition: `EasyUseAnimaSAM3Context` and
   `EasyUseAnimaSAM3Detailer` remain direct root aliases to
-  `easyuse_anima.nodes.sam3_nodes`; `_EasyUseAnimaImpactDetailerDelegate`
-  remains a direct alias to `easyuse_anima.nodes.impact_detailer_nodes`. SAM3
-  resolver, formatting, context, mask/SEGS, and Impact-call helpers moved to
+  `easyuse_anima.nodes.sam3_nodes`. SAM3 resolver, formatting, context,
+  mask/SEGS, and Impact-call helpers moved to
   `easyuse_anima.image.sam3` and remain direct root aliases through the B-10
   compatibility audit. These names are internal transition surfaces for the
   root AiO caller, historical convenience-node compatibility, and focused
@@ -199,6 +199,11 @@ EasyUseAnimaWildcard
   canonical `easyuse_anima.image.detailer` class directly; normal-package and
   synthetic package-entrypoint tests preserve class identity and hook
   construction without a root-only private import.
+- B-10b3 Impact-delegate cleanup: `_EasyUseAnimaImpactDetailerDelegate` is no
+  longer a root alias. The SAM3 adapter already imports the canonical
+  `easyuse_anima.nodes.impact_detailer_nodes` class directly; normal-package
+  and synthetic package-entrypoint tests preserve class identity,
+  `INPUT_TYPES`, and the existing canonical delegation path.
 - B-08b2 internal AiO model-variant transition: Spectrum correction/forecast
   model patching and ephemeral model cleanup move to
   `easyuse_anima.aio.model_preparation`. Their four root private names remain

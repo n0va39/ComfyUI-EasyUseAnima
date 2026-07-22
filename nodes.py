@@ -391,7 +391,7 @@ try:
         EasyUseAnimaImageScaleByMultiple as EasyUseAnimaImageScaleByMultiple,
     )
     from .easyuse_anima.nodes.impact_detailer_nodes import (
-        _EasyUseAnimaImpactDetailerDelegate as _EasyUseAnimaImpactDetailerDelegate,
+        # B-10b3 deliberately omits the retired root Impact delegate alias.
         _bind_impact_detailer_node_runtime as _bind_impact_detailer_node_runtime,
     )
     from .easyuse_anima.nodes.sam3_nodes import (
@@ -904,7 +904,7 @@ except ImportError:  # allows simple local import tests outside ComfyUI's packag
         EasyUseAnimaImageScaleByMultiple as EasyUseAnimaImageScaleByMultiple,
     )
     from easyuse_anima.nodes.impact_detailer_nodes import (
-        _EasyUseAnimaImpactDetailerDelegate as _EasyUseAnimaImpactDetailerDelegate,
+        # B-10b3 deliberately omits the retired root Impact delegate alias.
         _bind_impact_detailer_node_runtime as _bind_impact_detailer_node_runtime,
     )
     from easyuse_anima.nodes.sam3_nodes import (

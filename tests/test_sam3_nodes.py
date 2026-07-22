@@ -72,10 +72,32 @@ class SAM3MoveTests(unittest.TestCase):
         for name in node_names:
             with self.subTest(name=name):
                 self.assertIs(getattr(nodes, name), getattr(sam3_nodes, name))
+        self.assertFalse(hasattr(nodes, "_EasyUseAnimaImpactDetailerDelegate"))
         self.assertIs(
-            nodes._EasyUseAnimaImpactDetailerDelegate,
+            sam3_nodes._EasyUseAnimaImpactDetailerDelegate,
             impact_detailer_nodes._EasyUseAnimaImpactDetailerDelegate,
         )
+        with (
+            patch.object(
+                impact_detailer_nodes,
+                "_comfy_max_resolution",
+                return_value=4096,
+            ),
+            patch.object(
+                impact_detailer_nodes,
+                "_comfy_sampler_names",
+                return_value=["sampler"],
+            ),
+            patch.object(
+                impact_detailer_nodes,
+                "_impact_scheduler_names",
+                return_value=["scheduler"],
+            ),
+        ):
+            input_types = sam3_nodes._EasyUseAnimaImpactDetailerDelegate.INPUT_TYPES()
+        self.assertEqual(input_types["required"]["guide_size"][1]["max"], 4096)
+        self.assertEqual(input_types["required"]["sampler_name"][0], ["sampler"])
+        self.assertEqual(input_types["required"]["scheduler"][0], ["scheduler"])
 
     def test_detection_prompt_formatting_is_preserved(self):
         self.assertEqual(

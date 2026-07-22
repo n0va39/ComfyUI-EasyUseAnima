@@ -562,9 +562,15 @@ class ComfyAdapterMoveContractTests(unittest.TestCase):
     def test_package_nodes_comfy_aliases_are_canonical_objects(self):
         with _loaded_package_entrypoint() as (_, package_nodes):
             self.assertFalse(hasattr(package_nodes, "_comfy_checkpoint_names"))
+            self.assertFalse(
+                hasattr(package_nodes, "_EasyUseAnimaImpactDetailerDelegate")
+            )
             package_name = package_nodes.__package__
             package_sam3_nodes = sys.modules[
                 f"{package_name}.easyuse_anima.nodes.sam3_nodes"
+            ]
+            package_impact_nodes = sys.modules[
+                f"{package_name}.easyuse_anima.nodes.impact_detailer_nodes"
             ]
             package_resources = sys.modules[
                 f"{package_name}.easyuse_anima.infrastructure.comfy.resources"
@@ -594,6 +600,42 @@ class ComfyAdapterMoveContractTests(unittest.TestCase):
             self.assertEqual(
                 input_types["required"]["ckpt_name"][1]["default"],
                 "package/sam3.safetensors",
+            )
+            self.assertIs(
+                package_sam3_nodes._EasyUseAnimaImpactDetailerDelegate,
+                package_impact_nodes._EasyUseAnimaImpactDetailerDelegate,
+            )
+            with (
+                patch.object(
+                    package_impact_nodes,
+                    "_comfy_max_resolution",
+                    return_value=8192,
+                ),
+                patch.object(
+                    package_impact_nodes,
+                    "_comfy_sampler_names",
+                    return_value=["package-sampler"],
+                ),
+                patch.object(
+                    package_impact_nodes,
+                    "_impact_scheduler_names",
+                    return_value=["package-scheduler"],
+                ),
+            ):
+                detailer_inputs = (
+                    package_sam3_nodes._EasyUseAnimaImpactDetailerDelegate.INPUT_TYPES()
+                )
+            self.assertEqual(
+                detailer_inputs["required"]["guide_size"][1]["max"],
+                8192,
+            )
+            self.assertEqual(
+                detailer_inputs["required"]["sampler_name"][0],
+                ["package-sampler"],
+            )
+            self.assertEqual(
+                detailer_inputs["required"]["scheduler"][0],
+                ["package-scheduler"],
             )
             package_helper_modules = (
                 (
