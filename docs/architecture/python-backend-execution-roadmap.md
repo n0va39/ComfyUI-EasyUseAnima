@@ -279,22 +279,23 @@ surfaces. AiO mechanical extraction must not start until #168 exits.
 
 | Order | Task | State | Type | Owner | Prerequisites |
 | ---: | --- | --- | --- | --- | --- |
-| 1 | B-07f SAM3 mechanical vertical slice | READY | Move | #184 | B-07e merged |
-| 2 | C168-03 typed AiO config boundary | READY/PARALLEL | Contract | #168 | C168-01/C168-02 merged |
-| 3 | G-02b strict-clean pure/service allowlist | READY/PARALLEL | Contract/gate | #188 | G-02a merged |
-| 4 | C168-04 pure version-dispatch/migration registry | BLOCKED by C168-03 | Contract | #168 | Typed config boundary |
-| 5 | C168-05 cross-surface setting omission gate | BLOCKED by C168-03 | Contract/gate | #168 | Typed config and manifest ownership decision |
-| 6 | G-03a completed-package import boundary fail gate | BLOCKED by G-02b | Contract/gate | #188 | Reviewed allowlist and current analyzer baseline |
-| 7 | B-08a through B-08e AiO support-helper extraction | BLOCKED by #168 exit | Move | #184 | C168-03 through C168-05 complete |
-| 8 | B-09a/B-09b AiO node and legacy orchestration move | BLOCKED by B-08 | Move | #184 | AiO helpers canonical |
-| 9 | B-10 compatibility/private-alias audit | BLOCKED by B-09 | Contract/cleanup, split PRs | #184/#188 | All node implementations canonical |
-| 10 | B-11 registration/bootstrap/root shim | BLOCKED by B-10 | Move | #184 | Alias surface frozen |
-| 11 | S167 backend seed reservation series | BLOCKED by B exit/interface | Contract then Behavior | #167 | Canonical AiO/node seams |
-| 12 | A169 stage pipeline series | BLOCKED by #168 and B exit | Contract then Behavior | #169 | Typed config and mechanical AiO move |
-| 13 | A169 first-pass cache policy | BLOCKED by stage/cache ownership seam | Behavior | #169 | Mechanical cache move and benchmark harness |
-| 14 | D-series canonical root consolidation | BLOCKED by relevant C contracts | Move | #186 | Phase B exit; per-feature behavior stable |
-| 15 | E-series RuntimeServices/lifecycle | BLOCKED by canonical owners | Move/Contract, split PRs | #187 | Relevant D moves |
-| 16 | G-04 through G-06 and H | INCREMENTAL/LATER | Gate/Contract | #188 | Appropriate package and release evidence |
+| 1 | B-07f SAM3 mechanical vertical slice | COMPLETE on `dev` | Move | #184 | PR #251 / `015b8197` |
+| 2 | C168-03 typed AiO config boundary | COMPLETE on `dev` | Contract | #168 | PR #252 / `7f686bed` |
+| 3 | G-02b strict-clean pure/service allowlist | COMPLETE on `dev` | Contract/gate | #188 | PR #254 / `76237a60` |
+| 4 | C168-04 pure version-dispatch/migration registry | IN PROGRESS | Contract | #168 | Typed config boundary |
+| 5 | C168-05 cross-surface setting omission gate | READY after C168-04 | Contract/gate | #168 | Typed config and manifest ownership decision |
+| 6 | G-03a completed-package import boundary fail gate | READY/PARALLEL | Contract/gate | #188 | G-02b merged |
+| 7 | C168-06 normalizer ownership move | BLOCKED by C168-05 | Move | #168/#184 | C168 contracts and omission gate complete |
+| 8 | B-08a through B-08e AiO support-helper extraction | BLOCKED by #168 exit | Move | #184 | C168-03 through C168-06 complete |
+| 9 | B-09a/B-09b AiO node and legacy orchestration move | BLOCKED by B-08 | Move | #184 | AiO helpers canonical |
+| 10 | B-10 compatibility/private-alias audit | BLOCKED by B-09 | Contract/cleanup, split PRs | #184/#188 | All node implementations canonical |
+| 11 | B-11 registration/bootstrap/root shim | BLOCKED by B-10 | Move | #184 | Alias surface frozen |
+| 12 | S167 backend seed reservation series | BLOCKED by B exit/interface | Contract then Behavior | #167 | Canonical AiO/node seams |
+| 13 | A169 stage pipeline series | BLOCKED by #168 and B exit | Contract then Behavior | #169 | Typed config and mechanical AiO move |
+| 14 | A169 first-pass cache policy | BLOCKED by stage/cache ownership seam | Behavior | #169 | Mechanical cache move and benchmark harness |
+| 15 | D-series canonical root consolidation | BLOCKED by relevant C contracts | Move | #186 | Phase B exit; per-feature behavior stable |
+| 16 | E-series RuntimeServices/lifecycle | BLOCKED by canonical owners | Move/Contract, split PRs | #187 | Relevant D moves |
+| 17 | G-04 through G-06 and H | INCREMENTAL/LATER | Gate/Contract | #188 | Appropriate package and release evidence |
 
 Issue #199, authenticated diagnostics/settings access, is an independent security
 track. It may proceed when its threat model and owner are ready, but it does not
@@ -386,8 +387,22 @@ relax or block the package-migration rules above.
 - Dynamic capability-derived choices remain outside static schema ownership.
 - The gate must report the exact missing field/surface and run offline in the
   official project check.
-- #168 exits only after C168-03 through C168-05 and the issue's remaining
+- #168 exits only after C168-03 through C168-06 and the issue's remaining
   completion boxes pass.
+
+### C168-06 — Normalizer ownership move
+
+- **Owner:** #168/#184
+- **Type:** Move
+- Move `_merge_versioned_settings()` and `_normalize_aio_generation_settings()`
+  from root `nodes.py` to cohesive canonical AiO ownership after C168-05 fixes
+  every cross-surface omission contract.
+- Preserve all defaults, coercion, legacy aliases, unknown-field ordering,
+  dynamic capability lookup, future/invalid version tolerance, dictionary return
+  identity, and caller mutation behavior. Root keeps only evidence-backed direct
+  aliases/runtime bindings.
+- Do not adopt C168-04 strict dispatch, add a new migration, or mix stage/cache
+  work. Those require separate Contract/Behavior decisions.
 
 ### G-02b — Strict-clean pure/service allowlist
 

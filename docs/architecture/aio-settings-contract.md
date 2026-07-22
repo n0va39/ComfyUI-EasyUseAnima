@@ -129,8 +129,19 @@ capability에 존재하는 경우와 존재하지 않아 첫 capability로 fallb
 
 v1에는 version migration이 없다. 위 처리는 기존 legacy alias 정규화이며 저장 파일을 자동으로 다시 쓰는
 migration이 아니다. Read/list/load는 원본 profile/workflow bytes, mtime, revision을 바꾸지 않아야 한다.
-write-on-read는 금지한다. 후속 version migration은 명시적인 순수 함수로 추가하고, 실제 persist는 사용자가
-요청한 save/update 같은 mutation에서만 수행한다.
+write-on-read는 금지한다. 실제 persist는 사용자가 요청한 save/update 같은 mutation에서만 수행한다.
+
+C168-04는 `easyuse_anima/aio/generation_migrations.py`에 strict schema/version detector와 immutable ordered
+step registry를 추가한다. shipped registry는 실제 v2가 없으므로 비어 있으며 current v1 입력은 독립된 JSON
+object로 deep-copy된다. 각 migration step은 정확히 한 version만 증가시키고 반환 object가 선언한 target
+version과 canonical schema를 유지해야 한다. missing/wrong schema, non-integer version, 등록되지 않은 older
+version, future version은 새 순수 API에서 명시적으로 실패한다. test-only registry가 연속 dispatch와 실패 시
+caller input 비변경을 검증하지만 production v2 계약을 만들지는 않는다.
+
+기존 `_normalize_aio_generation_settings()`는 future/invalid version을 엄격하게 거부하지 않는 호환 facade이므로
+이번 Contract에서는 dispatcher를 runtime caller에 연결하지 않는다. canonical pipeline helper는 normalizer를
+명시적으로 주입받아 migration, 기존 normalization, typed round-trip을 순서대로 조합하지만 현재 production
+caller는 사용하지 않는다. strict dispatcher adoption과 저장 데이터 갱신은 별도 Behavior 결정이 필요하다.
 
 ## Unknown-field 정책과 현재 drift
 

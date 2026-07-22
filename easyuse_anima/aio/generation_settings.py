@@ -1,8 +1,9 @@
 # pyright: strict
 from __future__ import annotations
 
-from collections.abc import Mapping
+from collections.abc import Callable, Mapping
 from dataclasses import dataclass
+from typing import TypeAlias
 
 from .generation_detailer import AIOGenerationDetailerConfig
 from .generation_features import (
@@ -13,9 +14,20 @@ from .generation_features import (
     AIOGenerationPostprocessConfig,
     AIOGenerationUpscaleConfig,
 )
+from .generation_migrations import (
+    AIO_GENERATION_MIGRATION_REGISTRY,
+    AIO_GENERATION_SETTINGS_CURRENT_VERSION,
+    AIOGenerationMigrationRegistry,
+    migrate_aio_generation_settings,
+)
 from .generation_output import AIOGenerationPreviewConfig, AIOGenerationSaveConfig
 from .generation_sampling import AIOGenerationSamplerConfig
 from .generation_values import ObjectState, expect_int, expect_str, required
+
+AIOGenerationSettingsNormalizer: TypeAlias = Callable[
+    [Mapping[str, object]],
+    Mapping[str, object],
+]
 
 
 @dataclass(frozen=True, slots=True)
@@ -91,6 +103,22 @@ def round_trip_aio_generation_settings(
     value: Mapping[str, object],
 ) -> dict[str, object]:
     return _aio_generation_config_to_dict(_aio_generation_config_from_dict(value))
+
+
+def migrate_normalize_and_round_trip_aio_generation_settings(
+    value: Mapping[str, object],
+    *,
+    normalize: AIOGenerationSettingsNormalizer,
+    registry: AIOGenerationMigrationRegistry = AIO_GENERATION_MIGRATION_REGISTRY,
+) -> dict[str, object]:
+    """Compose the strict pure contract without changing existing runtime callers."""
+
+    migrated = migrate_aio_generation_settings(
+        value,
+        target_version=AIO_GENERATION_SETTINGS_CURRENT_VERSION,
+        registry=registry,
+    )
+    return round_trip_aio_generation_settings(normalize(migrated))
 
 
 __all__ = ()
