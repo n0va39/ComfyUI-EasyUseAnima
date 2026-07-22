@@ -120,8 +120,8 @@ try:
         _translate_prompt_text as _translate_prompt_text,
     )
     from .easyuse_anima.prompt.fields import (
-        DEFAULT_QUALITY_TAGS as DEFAULT_QUALITY_TAGS,
-        DEFAULT_TRAILING_QUALITY_TAGS as DEFAULT_TRAILING_QUALITY_TAGS,
+        # B-10b10 retires the two prompt-default root aliases.
+        # Canonical prompt consumers import their immutable defaults directly.
         _HASH_COMMENT_RE as _HASH_COMMENT_RE,
         _INLINE_SPACE_RE as _INLINE_SPACE_RE,
         _WEIGHTED_TOKEN_RE as _WEIGHTED_TOKEN_RE,
@@ -633,8 +633,8 @@ except ImportError:  # allows simple local import tests outside ComfyUI's packag
         _translate_prompt_text as _translate_prompt_text,
     )
     from easyuse_anima.prompt.fields import (
-        DEFAULT_QUALITY_TAGS as DEFAULT_QUALITY_TAGS,
-        DEFAULT_TRAILING_QUALITY_TAGS as DEFAULT_TRAILING_QUALITY_TAGS,
+        # B-10b10 retires the two prompt-default root aliases.
+        # Canonical prompt consumers import their immutable defaults directly.
         _HASH_COMMENT_RE as _HASH_COMMENT_RE,
         _INLINE_SPACE_RE as _INLINE_SPACE_RE,
         _WEIGHTED_TOKEN_RE as _WEIGHTED_TOKEN_RE,
