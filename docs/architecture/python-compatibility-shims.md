@@ -3,13 +3,14 @@
 ## Registry status
 
 - Inventory baseline: `dev` commit
-  `e309b718530f85317f3e602c29e1f5e8aee7771c`
+  `c6b4680c39ba02725b1c0f8b72cda0063d9e1251`
 - Compatibility provenance: package/workflow version 0.5.2
 - Policy: [ADR-002](adr-002-compatibility-shims.md)
 - Machine-readable audit:
   [`python_compatibility_surface.v1.json`](../../tests/fixtures/python_compatibility_surface.v1.json)
-- Current state: B-10b19 is integrated; B-10b20 in PR #291 removes the audited
-  Artist Mix conditioning/tensor helper subset
+- Current state: B-10b20 is integrated. B-11a PR #292 moves pure node/display
+  mapping composition to `easyuse_anima.registration`; B-11b bootstrap and
+  B-11c final root shim remain separate Moves.
 
 This is an actionable registry, not a removal schedule. `N` means the first
 published Registry release containing both a canonical target and its root
@@ -75,7 +76,7 @@ inferring public support from spelling or test imports:
   `re`, `ceil`, `sqrt`, and `Any`), excluded from compatibility classification
   by an exact AST allowlist and drift gate;
 - `nodes.py` bindings with an `easyuse_anima` canonical target: 258 at the
-  B-10b20 PR head, with exact
+  integrated B-10b20 baseline, with exact
   relative-package/flat-fallback parity;
 - bindings still owned by `anima_prompt`, `settings`, `prompt_translation`, or
   `wildcard_engine`: 27, with the same fallback parity;
@@ -140,6 +141,10 @@ convenience-node compatibility; it remains unmapped and is not public support.
 - Removal gate: not applicable. B-11 must move mapping composition to
   `easyuse_anima.registration` and guarded lifecycle work to bootstrap without
   changing the exported objects or introducing duplicate initialization.
+- B-11a PR #292 moves the two literal mapping dictionaries to the pure
+  registration owner and re-exports the same objects from the root entrypoint.
+  The root class imports, runtime binders, API side effect, wildcard directory
+  initialization, and `WEB_DIRECTORY` remain unchanged for B-11b/B-11c.
 
 ### `nodes.py` public node-class surface
 

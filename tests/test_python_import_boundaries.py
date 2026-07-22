@@ -11,6 +11,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 ANALYZER_PATH = ROOT / "tools" / "analyze_nodes_module.py"
 INTERNAL_PACKAGE = ROOT / "easyuse_anima"
+REGISTRATION_PATH = INTERNAL_PACKAGE / "registration.py"
 CHECKER_PATH = ROOT / "tools" / "check_python_import_boundaries.py"
 CONTRACT_PATH = (
     ROOT / "tests" / "fixtures" / "python_import_boundary_contract.v1.json"
@@ -51,6 +52,46 @@ def synthetic_root(*module_imports: str) -> str:
 
 
 class PythonImportBoundarySeedTests(unittest.TestCase):
+    def test_registration_is_pure_literal_mapping_composition(self):
+        source = REGISTRATION_PATH.read_text(encoding="utf-8")
+        tree = ast.parse(source, filename=REGISTRATION_PATH.name)
+
+        self.assertEqual(
+            analyzer.find_import_boundary_violations(
+                source,
+                module_name="easyuse_anima.registration",
+            ),
+            [],
+        )
+        self.assertEqual(
+            [node for node in ast.walk(tree) if isinstance(node, ast.Call)],
+            [],
+        )
+        imports = [node for node in tree.body if isinstance(node, ast.ImportFrom)]
+        self.assertTrue(imports)
+        self.assertTrue(
+            all(
+                node.level == 1
+                and node.module is not None
+                and node.module.startswith("nodes.")
+                for node in imports
+            )
+        )
+        assignments = {
+            target.id: statement.value
+            for statement in tree.body
+            if isinstance(statement, ast.Assign)
+            for target in statement.targets
+            if isinstance(target, ast.Name)
+        }
+        self.assertEqual(
+            set(assignments),
+            {"NODE_CLASS_MAPPINGS", "NODE_DISPLAY_NAME_MAPPINGS", "__all__"},
+        )
+        self.assertIsInstance(assignments["NODE_CLASS_MAPPINGS"], ast.Dict)
+        self.assertIsInstance(assignments["NODE_DISPLAY_NAME_MAPPINGS"], ast.Dict)
+        self.assertIsInstance(assignments["__all__"], ast.List)
+
     def test_future_internal_package_never_imports_root_nodes(self):
         violations = analyzer.scan_internal_package(INTERNAL_PACKAGE)
 
