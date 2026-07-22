@@ -15,6 +15,7 @@ PACKAGE_MODULES = (
     "easyuse_anima.aio.generation_normalization",
     "easyuse_anima.aio.generation_values",
     "easyuse_anima.aio.model_preparation",
+    "easyuse_anima.aio.sampling",
     "easyuse_anima.aio.generation_sampling",
     "easyuse_anima.aio.generation_features",
     "easyuse_anima.aio.generation_detailer",

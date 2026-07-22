@@ -133,6 +133,14 @@ EasyUseAnimaWildcard
   focused monkeypatch seams preserve call-time behavior. These are internal
   transition surfaces through the B-10 compatibility audit and are not added
   to public package `__all__`.
+- B-08c internal AiO sampling transition: latent creation, Comfy and Spectrum
+  sampler invocation, backend dispatch, VAE encode/decode, stage sampler
+  selection, and highres backend selection move to
+  `easyuse_anima.aio.sampling`. Their nine root private names remain direct
+  identity aliases so current generator/stage callers and focused monkeypatch
+  seams preserve call-time behavior. These are internal transition surfaces
+  through the B-10 compatibility audit and are not added to public package
+  `__all__`.
 - Removal gate: 0.5.2 node/workflow fixture, mapping identity, direct import,
   Registry archive closure, consumer evidence, separate breaking-change issue,
   and release note. With no external-consumer evidence, retain these exports.
