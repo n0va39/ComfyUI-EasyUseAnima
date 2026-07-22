@@ -13809,37 +13809,6 @@
         "target": "easyuse_anima/aio/first_pass_cache.py"
       },
       {
-        "alias": "_clear_aio_first_pass_cache",
-        "bound_name": "_clear_aio_first_pass_cache",
-        "branch_context": [
-          {
-            "branch": "body",
-            "handles_import_failure": true,
-            "has_import_fallback_handler": true,
-            "kind": "try",
-            "line": 11
-          }
-        ],
-        "classification": "internal",
-        "column": 4,
-        "compatibility_pair": {
-          "bound_name": "_clear_aio_first_pass_cache",
-          "target": "easyuse_anima/aio/first_pass_cache.py",
-          "try_line": 11
-        },
-        "conditional": true,
-        "imported": ".easyuse_anima.aio.first_pass_cache:_clear_aio_first_pass_cache",
-        "kind": "static_from",
-        "line": 12,
-        "name": "_clear_aio_first_pass_cache",
-        "optional": false,
-        "requested": ".easyuse_anima.aio.first_pass_cache",
-        "role": "compatibility_primary",
-        "scope": "<module>",
-        "source": "nodes.py",
-        "target": "easyuse_anima/aio/first_pass_cache.py"
-      },
-      {
         "alias": "_clone_aio_cache_value",
         "bound_name": "_clone_aio_cache_value",
         "branch_context": [
@@ -26743,40 +26712,6 @@
         "kind": "static_from",
         "line": 525,
         "name": "_bind_aio_first_pass_cache_runtime",
-        "optional": false,
-        "requested": "easyuse_anima.aio.first_pass_cache",
-        "role": "compatibility_fallback",
-        "scope": "<module>",
-        "source": "nodes.py",
-        "target": "easyuse_anima/aio/first_pass_cache.py"
-      },
-      {
-        "alias": "_clear_aio_first_pass_cache",
-        "bound_name": "_clear_aio_first_pass_cache",
-        "branch_context": [
-          {
-            "branch": "except",
-            "catches_import_error": true,
-            "exceptions": [
-              "ImportError"
-            ],
-            "handler_line": 524,
-            "kind": "try",
-            "line": 11
-          }
-        ],
-        "classification": "compatibility_fallback",
-        "column": 4,
-        "compatibility_pair": {
-          "bound_name": "_clear_aio_first_pass_cache",
-          "target": "easyuse_anima/aio/first_pass_cache.py",
-          "try_line": 11
-        },
-        "conditional": true,
-        "imported": "easyuse_anima.aio.first_pass_cache:_clear_aio_first_pass_cache",
-        "kind": "static_from",
-        "line": 525,
-        "name": "_clear_aio_first_pass_cache",
         "optional": false,
         "requested": "easyuse_anima.aio.first_pass_cache",
         "role": "compatibility_fallback",
@@ -44271,7 +44206,7 @@
         "is_package": false,
         "loc": 2712,
         "module": "nodes",
-        "normalized_git_blob_sha1": "6a7f4255583d94c4a7d84f7c81192f4f8f412447",
+        "normalized_git_blob_sha1": "50a1ef025ee43f0934324e947fc8a9b6d3125003",
         "path": "nodes.py",
         "top_level": {
           "class_count": 2,
@@ -45725,29 +45660,6 @@
         "classification": "compatibility_fallback",
         "conditional": true,
         "imported": "easyuse_anima.aio.first_pass_cache:_bind_aio_first_pass_cache_runtime",
-        "kind": "static_from",
-        "line": 525,
-        "optional": false,
-        "role": "compatibility_fallback",
-        "source": "nodes.py",
-        "target": "easyuse_anima/aio/first_pass_cache.py"
-      },
-      {
-        "branch_context": [
-          {
-            "branch": "except",
-            "catches_import_error": true,
-            "exceptions": [
-              "ImportError"
-            ],
-            "handler_line": 524,
-            "kind": "try",
-            "line": 11
-          }
-        ],
-        "classification": "compatibility_fallback",
-        "conditional": true,
-        "imported": "easyuse_anima.aio.first_pass_cache:_clear_aio_first_pass_cache",
         "kind": "static_from",
         "line": 525,
         "optional": false,
