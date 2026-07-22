@@ -282,8 +282,8 @@ surfaces. AiO mechanical extraction must not start until #168 exits.
 | 1 | B-07f SAM3 mechanical vertical slice | COMPLETE on `dev` | Move | #184 | PR #251 / `015b8197` |
 | 2 | C168-03 typed AiO config boundary | COMPLETE on `dev` | Contract | #168 | PR #252 / `7f686bed` |
 | 3 | G-02b strict-clean pure/service allowlist | COMPLETE on `dev` | Contract/gate | #188 | PR #254 / `76237a60` |
-| 4 | C168-04 pure version-dispatch/migration registry | IN PROGRESS | Contract | #168 | Typed config boundary |
-| 5 | C168-05 cross-surface setting omission gate | READY after C168-04 | Contract/gate | #168 | Typed config and manifest ownership decision |
+| 4 | C168-04 pure version-dispatch/migration registry | COMPLETE on `dev` | Contract | #168 | PR #255 / `29aa200e` |
+| 5 | C168-05 cross-surface setting omission gate | IN PROGRESS | Contract/gate | #168 | PR #256 / C168-04 merged |
 | 6 | G-03a completed-package import boundary fail gate | READY/PARALLEL | Contract/gate | #188 | G-02b merged |
 | 7 | C168-06 normalizer ownership move | BLOCKED by C168-05 | Move | #168/#184 | C168 contracts and omission gate complete |
 | 8 | B-08a through B-08e AiO support-helper extraction | BLOCKED by #168 exit | Move | #184 | C168-03 through C168-06 complete |
@@ -387,6 +387,10 @@ relax or block the package-migration rules above.
 - Dynamic capability-derived choices remain outside static schema ownership.
 - The gate must report the exact missing field/surface and run offline in the
   official project check.
+- The golden coverage ledger owns explicit Python typed, JavaScript default and
+  sanitization, UI owner/exposure, and maintained-documentation records for
+  every canonical field and reference site. It is validation-only and is not a
+  runtime manifest/code-generation dependency.
 - #168 exits only after C168-03 through C168-06 and the issue's remaining
   completion boxes pass.
 
