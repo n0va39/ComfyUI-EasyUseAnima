@@ -31,7 +31,7 @@ merged PR, the owning issue's evidence record, and every stated exit gate.
 | Phase | State at the snapshot | Remaining exit work |
 | --- | --- | --- |
 | A - baseline | Complete; #191 is closed | Keep fixtures and analyzers current during later moves |
-| B - `nodes.py` extraction | In progress through B-08d1 | Continue B-08d2 through B-09 AiO extraction, compatibility audit, registration/bootstrap, final root shim |
+| B - `nodes.py` extraction | In progress through B-08d2 | Continue B-08e through B-09 AiO extraction, compatibility audit, registration/bootstrap, final root shim |
 | C - feature contracts/behavior | Partially complete | Finish #168; then #167 and #169 in separate Contract/Behavior PRs |
 | D - root consolidation | Not started | Execute #186 feature by feature after the corresponding behavior contracts are stable |
 | E - runtime ownership | Not started | Execute #187 after canonical feature owners exist; E-01 inventory may start earlier |
@@ -42,11 +42,11 @@ merged PR, the owning issue's evidence record, and every stated exit gate.
 ### Measured Phase B progress
 
 - The Phase A baseline recorded root `nodes.py` at 12,663 lines.
-- At the B-08d1 snapshot, root `nodes.py` is 3,527 lines.
-- The mechanical extraction has therefore removed 9,136 lines, approximately
-  72.2% of the baseline, while preserving the root compatibility surface.
-- B-01 through B-08d1 are integrated. The latest completed slice is the AiO
-  preview runtime Move in PR #263.
+- At the B-08d2 snapshot, root `nodes.py` is 3,294 lines.
+- The mechanical extraction has therefore removed 9,369 lines, approximately
+  74.0% of the baseline, while preserving the root compatibility surface.
+- B-01 through B-08d2 are integrated. The latest completed slice is the AiO
+  save/output helper Move in PR #264.
 - Root `nodes.py` still owns substantial AiO implementation.
 - Root `__init__.py` still imports `api.py` for route-registration side effects,
   initializes the wildcard directory during package import, and owns mapping
@@ -286,7 +286,7 @@ surfaces. AiO mechanical extraction must not start until #168 exits.
 | 5 | C168-05 cross-surface setting omission gate | COMPLETE | Contract/gate | #168 | PR #256 merged |
 | 6 | G-03a completed-package import boundary fail gate | COMPLETE on `dev` | Contract/gate | #188 | PR #258 / six reviewed zero-violation prefixes enrolled |
 | 7 | C168-06 normalizer ownership move | COMPLETE on `dev` | Move | #168/#184 | PR #257 / `3ca5500` |
-| 8 | B-08a through B-08e AiO support-helper extraction | B-08a/B-08b1/B-08b2/B-08c/B-08d1 COMPLETE; B-08d2 READY/SEQUENTIAL | Move | #184 | B-08a PR #259; B-08b1 PR #260; B-08b2 PR #261; B-08c PR #262; B-08d1 PR #263; later slices remain sequential |
+| 8 | B-08a through B-08e AiO support-helper extraction | B-08a/B-08b1/B-08b2/B-08c/B-08d1/B-08d2 COMPLETE; B-08e READY/SEQUENTIAL | Move | #184 | B-08a PR #259; B-08b1 PR #260; B-08b2 PR #261; B-08c PR #262; B-08d1 PR #263; B-08d2 PR #264; later slices remain sequential |
 | 9 | B-09a/B-09b AiO node and legacy orchestration move | BLOCKED by B-08 | Move | #184 | AiO helpers canonical |
 | 10 | B-10 compatibility/private-alias audit | BLOCKED by B-09 | Contract/cleanup, split PRs | #184/#188 | All node implementations canonical |
 | 11 | B-11 registration/bootstrap/root shim | BLOCKED by B-10 | Move | #184 | Alias surface frozen |
@@ -499,6 +499,12 @@ preview stage labels, event/cache-format constants, path and file-size tagging,
 preview events, and temporary WebP/PNG fallback saving to
 `easyuse_anima.aio.preview`, preserving direct root identities, lazy optional
 imports, metadata/event order, filenames, and fallback behavior.
+
+B-08d2 is complete on `dev` in PR #264. This second B-08d mechanical slice moves
+Image Saver hash normalization/fetching, LoRA prompt metadata, ComfyUI and Image
+Saver adapters, and filename-prefix handling to `easyuse_anima.aio.output`,
+preserving direct root identities, call-time helper replacement, lazy optional
+imports, metadata order, filenames, save kwargs, seed timing, and error behavior.
 
 Rules for every B-08 PR:
 
