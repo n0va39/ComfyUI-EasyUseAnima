@@ -14,6 +14,7 @@ from unittest.mock import patch
 import autocomplete_dataset
 import settings as easyuse_settings
 from easyuse_anima.nodes.prompt_advanced_nodes import EasyUseAnimaPromptStudioExtend
+from easyuse_anima.prompt.data import PROMPT_DATA_SCHEMA
 from easyuse_anima.prompt.fields import (
     DEFAULT_QUALITY_TAGS,
     DEFAULT_TRAILING_QUALITY_TAGS,
@@ -31,7 +32,6 @@ from nodes import (
     ARTIST_TAG_POSITION_BACK,
     ARTIST_TAG_POSITION_CORRECT,
     ARTIST_TAG_POSITION_FRONT,
-    PROMPT_DATA_SCHEMA,
     PROMPT_DATA_TYPE,
     EasyUseAnimaArtistMixConditioning,
     EasyUseAnimaDetailerAlignHook,

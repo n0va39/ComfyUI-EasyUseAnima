@@ -1229,6 +1229,17 @@ print(json.dumps({{
 
 
 class PromptDataConditioningMoveContractTests(unittest.TestCase):
+    RETIRED_PROMPT_DATA_ALIASES = (
+        "PROMPT_DATA_COMPAT_OUTPUT_TOOLTIPS",
+        "PROMPT_DATA_COMPAT_RETURN_NAMES",
+        "PROMPT_DATA_COMPAT_RETURN_TYPES",
+        "PROMPT_DATA_SCHEMA",
+        "PROMPT_DATA_VERSION",
+        "_prompt_data_input_default",
+        "_prompt_data_nested",
+        "_prompt_data_output",
+        "_set_prompt_data_output",
+    )
     NODE_CLASSES = (
         "EasyUseAnimaPromptDataUnpack",
         "EasyUseAnimaArtistMixConditioning",
@@ -1237,7 +1248,6 @@ class PromptDataConditioningMoveContractTests(unittest.TestCase):
     MOVED_HELPERS = {
         prompt_data: (
             "_normalize_prompt_data",
-            "_prompt_data_output",
             "_prompt_data_parameter_snapshot",
             "_advanced_outputs_from_prompt_data",
             "_apply_prompt_data_overrides",
@@ -1259,6 +1269,9 @@ class PromptDataConditioningMoveContractTests(unittest.TestCase):
     }
 
     def test_root_prompt_data_conditioning_objects_are_direct_canonical_aliases(self):
+        for name in self.RETIRED_PROMPT_DATA_ALIASES:
+            with self.subTest(retired=name):
+                self.assertFalse(hasattr(nodes, name))
         for name in self.NODE_CLASSES:
             with self.subTest(module="prompt_data_nodes", name=name):
                 self.assertIs(getattr(nodes, name), getattr(prompt_data_nodes, name))
@@ -1278,6 +1291,9 @@ class PromptDataConditioningMoveContractTests(unittest.TestCase):
             package_adapters = sys.modules[
                 f"{package_name}.easyuse_anima.nodes.prompt_data_nodes"
             ]
+            for name in self.RETIRED_PROMPT_DATA_ALIASES:
+                with self.subTest(retired=name):
+                    self.assertFalse(hasattr(package_nodes, name))
             for name in self.NODE_CLASSES:
                 with self.subTest(name=name):
                     canonical_class = getattr(package_adapters, name)
