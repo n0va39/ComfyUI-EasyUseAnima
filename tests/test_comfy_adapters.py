@@ -328,7 +328,7 @@ class ComfyRootCompatibilityTests(unittest.TestCase):
         self.assertIs(nodes._folder_path_names, resources._folder_path_names)
         self.assertIs(nodes._node_output_tuple, invocation._node_output_tuple)
         self.assertIs(nodes._call_with_supported_kwargs, invocation._call_with_supported_kwargs)
-        self.assertIs(nodes._impact_core_module, capabilities._impact_core_module)
+        self.assertFalse(hasattr(nodes, "_impact_core_module"))
         self.assertIs(nodes._impact_scheduler_names, capabilities._impact_scheduler_names)
 
     def test_checkpoint_names_are_owned_by_the_canonical_sam3_consumer(self):

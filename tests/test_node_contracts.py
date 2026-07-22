@@ -562,10 +562,14 @@ class ComfyAdapterMoveContractTests(unittest.TestCase):
     def test_package_nodes_comfy_aliases_are_canonical_objects(self):
         with _loaded_package_entrypoint() as (_, package_nodes):
             self.assertFalse(hasattr(package_nodes, "_comfy_checkpoint_names"))
+            self.assertFalse(hasattr(package_nodes, "_impact_core_module"))
             self.assertFalse(
                 hasattr(package_nodes, "_EasyUseAnimaImpactDetailerDelegate")
             )
             package_name = package_nodes.__package__
+            package_capabilities = sys.modules[
+                f"{package_name}.easyuse_anima.infrastructure.comfy.capabilities"
+            ]
             package_sam3_nodes = sys.modules[
                 f"{package_name}.easyuse_anima.nodes.sam3_nodes"
             ]
@@ -637,11 +641,21 @@ class ComfyAdapterMoveContractTests(unittest.TestCase):
                 detailer_inputs["required"]["scheduler"][0],
                 ["package-scheduler"],
             )
+            with patch.object(
+                package_capabilities,
+                "_impact_core_module",
+                return_value=types.SimpleNamespace(
+                    get_schedulers=lambda: ("package-impact",)
+                ),
+            ) as impact_core:
+                self.assertEqual(
+                    package_capabilities._impact_scheduler_names(),
+                    ["package-impact"],
+                )
+            impact_core.assert_called_once_with()
             package_helper_modules = (
                 (
-                    sys.modules[
-                        f"{package_name}.easyuse_anima.infrastructure.comfy.capabilities"
-                    ],
+                    package_capabilities,
                     self.DIRECT_HELPER_MODULES[0][1],
                 ),
                 (

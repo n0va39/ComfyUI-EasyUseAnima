@@ -367,7 +367,7 @@ try:
         _comfy_scheduler_names as _comfy_scheduler_names,
         _find_comfy_node_class as _adapter_find_comfy_node_class,
         _find_loaded_node_class as _adapter_find_loaded_node_class,
-        _impact_core_module as _impact_core_module,
+        # B-10b4 omits the retired root _impact_core_module alias.
         _impact_scheduler_names as _impact_scheduler_names,
         _require_any_custom_node_class as _adapter_require_any_custom_node_class,
         _require_custom_node_class as _adapter_require_custom_node_class,
@@ -880,7 +880,7 @@ except ImportError:  # allows simple local import tests outside ComfyUI's packag
         _comfy_scheduler_names as _comfy_scheduler_names,
         _find_comfy_node_class as _adapter_find_comfy_node_class,
         _find_loaded_node_class as _adapter_find_loaded_node_class,
-        _impact_core_module as _impact_core_module,
+        # B-10b4 omits the retired root _impact_core_module alias.
         _impact_scheduler_names as _impact_scheduler_names,
         _require_any_custom_node_class as _adapter_require_any_custom_node_class,
         _require_custom_node_class as _adapter_require_custom_node_class,
