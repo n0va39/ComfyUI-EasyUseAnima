@@ -3,7 +3,7 @@
 ## Registry status
 
 - Inventory baseline: `dev` commit
-  `048c4f6df845206dd2c32090dcaa0440aec9e92e`
+  `565f9877a3578acdbf56ab45d9c16152d54c58ca`
 - Compatibility provenance: package/workflow version 0.5.2
 - Policy: [ADR-002](adr-002-compatibility-shims.md)
 - Machine-readable audit:
