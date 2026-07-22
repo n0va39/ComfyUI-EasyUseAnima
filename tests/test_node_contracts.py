@@ -441,6 +441,11 @@ def write_fixture() -> None:
 
 
 class CommonHelperMoveContractTests(unittest.TestCase):
+    RETIRED_IMAGE_GEOMETRY_HELPERS = (
+        "_align_up",
+        "_aligned_size_near_scale",
+        "_alignment_value",
+    )
     HELPER_MODULES = (
         (
             common_values,
@@ -452,13 +457,7 @@ class CommonHelperMoveContractTests(unittest.TestCase):
         ),
         (
             image_geometry,
-            (
-                "_alignment_value",
-                "_align_up",
-                "_align_nearest",
-                "_align_down",
-                "_aligned_size_near_scale",
-            ),
+            ("_align_nearest", "_align_down"),
         ),
     )
 
@@ -470,10 +469,16 @@ class CommonHelperMoveContractTests(unittest.TestCase):
                         getattr(nodes, helper_name),
                         getattr(canonical_module, helper_name),
                     )
+        for helper_name in self.RETIRED_IMAGE_GEOMETRY_HELPERS:
+            with self.subTest(retired=helper_name):
+                self.assertFalse(hasattr(nodes, helper_name))
 
     def test_package_nodes_private_aliases_are_canonical_objects(self):
         with _loaded_package_entrypoint() as (_, package_nodes):
             package_name = package_nodes.__package__
+            package_geometry = sys.modules[
+                f"{package_name}.easyuse_anima.image.geometry"
+            ]
             package_helper_modules = (
                 (
                     sys.modules[f"{package_name}.easyuse_anima.common.values"],
@@ -484,7 +489,7 @@ class CommonHelperMoveContractTests(unittest.TestCase):
                     self.HELPER_MODULES[1][1],
                 ),
                 (
-                    sys.modules[f"{package_name}.easyuse_anima.image.geometry"],
+                    package_geometry,
                     self.HELPER_MODULES[2][1],
                 ),
             )
@@ -495,6 +500,16 @@ class CommonHelperMoveContractTests(unittest.TestCase):
                             getattr(package_nodes, helper_name),
                             getattr(canonical_module, helper_name),
                         )
+            for helper_name in self.RETIRED_IMAGE_GEOMETRY_HELPERS:
+                with self.subTest(retired=helper_name):
+                    self.assertFalse(hasattr(package_nodes, helper_name))
+            self.assertEqual(package_geometry._alignment_value(["64"]), 64)
+            self.assertIsNone(package_geometry._alignment_value("impact"))
+            self.assertEqual(package_geometry._align_up(65, 64), 128)
+            self.assertEqual(
+                package_geometry._aligned_size_near_scale(128, 64, 2.0, 64, 0),
+                (256, 128, 2.0),
+            )
 
     def test_moved_helper_behavior_matches_existing_contract(self):
         self.assertEqual(nodes._single_value(["first", "second"]), "first")
@@ -522,14 +537,14 @@ class CommonHelperMoveContractTests(unittest.TestCase):
         self.assertEqual(nodes._json_object('{"value": 1}'), {"value": 1})
         self.assertEqual(nodes._json_object("invalid"), {})
 
-        self.assertEqual(nodes._alignment_value(["64"]), 64)
-        self.assertIsNone(nodes._alignment_value("impact"))
-        self.assertEqual(nodes._align_up(65, 64), 128)
+        self.assertEqual(image_geometry._alignment_value(["64"]), 64)
+        self.assertIsNone(image_geometry._alignment_value("impact"))
+        self.assertEqual(image_geometry._align_up(65, 64), 128)
         self.assertEqual(nodes._align_nearest(95, 64), 64)
         self.assertEqual(nodes._align_nearest(96, 64), 128)
         self.assertEqual(nodes._align_down(65, 64), 64)
         self.assertEqual(
-            nodes._aligned_size_near_scale(128, 64, 2.0, 64, 0),
+            image_geometry._aligned_size_near_scale(128, 64, 2.0, 64, 0),
             (256, 128, 2.0),
         )
 

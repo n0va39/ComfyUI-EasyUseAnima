@@ -15,7 +15,7 @@ NODES_PATH = ROOT / "nodes.py"
 FIXTURE_PATH = ROOT / "tests" / "fixtures" / "python_compatibility_surface.v1.json"
 
 SCHEMA_VERSION = 1
-BASE_COMMIT = "5080210f1d156ade7b6b12cf989b3f958df150cb"
+BASE_COMMIT = "a87c2383b5be7362ba450489d401394234c83c52"
 CLASSIFICATIONS = (
     "permanent_entrypoint",
     "supported_public_reexport",
@@ -56,6 +56,23 @@ PREAMBLE_IMPLEMENTATION_BINDINGS = {
     "sqrt": "math:sqrt",
 }
 RETIRED_PRIVATE_BINDINGS = {
+    "_align_up": {
+        "canonical_target": "easyuse_anima.image.geometry:_align_up",
+        "owner": "#184/#188 B-10b5",
+        "reason": "canonical geometry and Detailer consumers import the owner directly",
+    },
+    "_aligned_size_near_scale": {
+        "canonical_target": (
+            "easyuse_anima.image.geometry:_aligned_size_near_scale"
+        ),
+        "owner": "#184/#188 B-10b5",
+        "reason": "canonical image scaling imports the owner directly",
+    },
+    "_alignment_value": {
+        "canonical_target": "easyuse_anima.image.geometry:_alignment_value",
+        "owner": "#184/#188 B-10b5",
+        "reason": "canonical image and Impact adapters import the owner directly",
+    },
     "_impact_core_module": {
         "canonical_target": (
             "easyuse_anima.infrastructure.comfy.capabilities:_impact_core_module"
@@ -658,6 +675,7 @@ def _build_document() -> dict[str, Any]:
                 "B-10b2",
                 "B-10b3",
                 "B-10b4",
+                "B-10b5",
             ],
         },
         "enums": {
@@ -670,7 +688,7 @@ def _build_document() -> dict[str, Any]:
         "expected_counts": {
             "root_entrypoints": 3,
             "excluded_preamble_implementation_bindings": 7,
-            "nodes_canonical_bindings": 397,
+            "nodes_canonical_bindings": 394,
             "nodes_legacy_bindings": 27,
             "mapped_public_classes": 18,
             "unmapped_classes": 3,

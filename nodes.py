@@ -333,9 +333,9 @@ try:
     from .easyuse_anima.image.geometry import (
         _align_down as _align_down,
         _align_nearest as _align_nearest,
-        _align_up as _align_up,
-        _aligned_size_near_scale as _aligned_size_near_scale,
-        _alignment_value as _alignment_value,
+        # B-10b5 retires three root image-geometry aliases.
+        # Canonical image/scaling/detailer consumers import geometry directly.
+        # _align_nearest/_align_down stay for root residual runtime.
     )
     # B-10b2 deliberately omits the retired root Detailer hook alias.
     # Canonical image and Impact Detailer adapters import the owner directly.
@@ -846,9 +846,9 @@ except ImportError:  # allows simple local import tests outside ComfyUI's packag
     from easyuse_anima.image.geometry import (
         _align_down as _align_down,
         _align_nearest as _align_nearest,
-        _align_up as _align_up,
-        _aligned_size_near_scale as _aligned_size_near_scale,
-        _alignment_value as _alignment_value,
+        # B-10b5 retires three root image-geometry aliases.
+        # Canonical image/scaling/detailer consumers import geometry directly.
+        # _align_nearest/_align_down stay for root residual runtime.
     )
     # B-10b2 deliberately omits the retired root Detailer hook alias.
     # Canonical image and Impact Detailer adapters import the owner directly.

@@ -2,7 +2,7 @@
   "schema_version": 1,
   "snapshot": {
     "base_branch": "dev",
-    "base_commit": "5080210f1d156ade7b6b12cf989b3f958df150cb",
+    "base_commit": "a87c2383b5be7362ba450489d401394234c83c52",
     "first_release": null,
     "owner_tasks": [
       "#184",
@@ -11,7 +11,8 @@
       "B-10b1",
       "B-10b2",
       "B-10b3",
-      "B-10b4"
+      "B-10b4",
+      "B-10b5"
     ]
   },
   "enums": {
@@ -46,7 +47,7 @@
   "expected_counts": {
     "root_entrypoints": 3,
     "excluded_preamble_implementation_bindings": 7,
-    "nodes_canonical_bindings": 397,
+    "nodes_canonical_bindings": 394,
     "nodes_legacy_bindings": 27,
     "mapped_public_classes": 18,
     "unmapped_classes": 3,
@@ -1038,6 +1039,21 @@
     }
   },
   "retired_private_bindings": {
+    "_align_up": {
+      "canonical_target": "easyuse_anima.image.geometry:_align_up",
+      "owner": "#184/#188 B-10b5",
+      "reason": "canonical geometry and Detailer consumers import the owner directly"
+    },
+    "_aligned_size_near_scale": {
+      "canonical_target": "easyuse_anima.image.geometry:_aligned_size_near_scale",
+      "owner": "#184/#188 B-10b5",
+      "reason": "canonical image scaling imports the owner directly"
+    },
+    "_alignment_value": {
+      "canonical_target": "easyuse_anima.image.geometry:_alignment_value",
+      "owner": "#184/#188 B-10b5",
+      "reason": "canonical image and Impact adapters import the owner directly"
+    },
     "_impact_core_module": {
       "canonical_target": "easyuse_anima.infrastructure.comfy.capabilities:_impact_core_module",
       "owner": "#184/#188 B-10b4",
@@ -1634,37 +1650,6 @@
         "separate B-10b or B-11 rollback unit"
       ],
       "lifecycle_state": "transitional"
-    },
-    {
-      "id": "nodes_canonical_bindings:easyuse_anima.image.geometry:unsupported_test_only",
-      "surface": "nodes_canonical_bindings",
-      "symbols": {
-        "_align_up": "_align_up",
-        "_aligned_size_near_scale": "_aligned_size_near_scale",
-        "_alignment_value": "_alignment_value"
-      },
-      "classification": "unsupported_test_only",
-      "current_target": "nodes.py",
-      "canonical_target": "easyuse_anima.image.geometry",
-      "target_state": "canonical",
-      "identity_requirement": "not_applicable",
-      "binding_shape": "direct_import",
-      "import_target": "easyuse_anima.image.geometry",
-      "owner": "#184/#188",
-      "first_release": null,
-      "known_consumers": [
-        "repository tests may import this root name"
-      ],
-      "evidence": [
-        "AST:no nodes.py runtime load",
-        "test-only consumption is not public support evidence"
-      ],
-      "removal_gates": [
-        "test imports migrate to canonical targets",
-        "no production consumer evidence",
-        "separate B-10b removal review"
-      ],
-      "lifecycle_state": "unsupported"
     },
     {
       "id": "nodes_canonical_bindings:easyuse_anima.image.sam3:transitional_private_seam",

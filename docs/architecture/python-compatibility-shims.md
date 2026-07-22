@@ -3,13 +3,13 @@
 ## Registry status
 
 - Inventory baseline: `dev` commit
-  `5080210f1d156ade7b6b12cf989b3f958df150cb`
+  `a87c2383b5be7362ba450489d401394234c83c52`
 - Compatibility provenance: package/workflow version 0.5.2
 - Policy: [ADR-002](adr-002-compatibility-shims.md)
 - Machine-readable audit:
   [`python_compatibility_surface.v1.json`](../../tests/fixtures/python_compatibility_surface.v1.json)
-- Current state: B-10b3 is integrated; B-10b4 in PR #275 removes one audited
-  unsupported/test-only Impact core root alias
+- Current state: B-10b4 is integrated; B-10b5 in PR #276 removes one audited
+  unsupported/test-only image geometry root-alias group
 
 This is an actionable registry, not a removal schedule. `N` means the first
 published Registry release containing both a canonical target and its root
@@ -74,8 +74,8 @@ inferring public support from spelling or test imports:
 - `nodes.py` preamble implementation imports: 7 (`json`, `logging`, `random`,
   `re`, `ceil`, `sqrt`, and `Any`), excluded from compatibility classification
   by an exact AST allowlist and drift gate;
-- `nodes.py` bindings with an `easyuse_anima` canonical target: 397 at the
-  B-10b4 PR head, with exact
+- `nodes.py` bindings with an `easyuse_anima` canonical target: 394 at the
+  B-10b5 PR head, with exact
   relative-package/flat-fallback parity;
 - bindings still owned by `anima_prompt`, `settings`, `prompt_translation`, or
   `wildcard_engine`: 27, with the same fallback parity;
@@ -89,7 +89,8 @@ inferring public support from spelling or test imports:
   literal lookups and binder-owned helper-name/default collections;
 - retired private bindings: `_comfy_checkpoint_names`,
   `_EasyUseAnimaAlignedDetailerHook`, and
-  `_EasyUseAnimaImpactDetailerDelegate`, plus `_impact_core_module`; their
+  `_EasyUseAnimaImpactDetailerDelegate`, plus `_impact_core_module`,
+  `_align_up`, `_aligned_size_near_scale`, and `_alignment_value`; their
   production consumers import or call the corresponding canonical owners
   directly;
 - repository test files with a direct `nodes` import: 22, recorded as migration
@@ -161,9 +162,10 @@ EasyUseAnimaWildcard
 - Excluded by default: unmapped/private helpers and historical classes not in
   the 0.5.2 public mapping. A separate consumer audit is required before
   deciding that an unmapped symbol is supported.
-- B-04 compatibility exception: `_image_scale_by_multiple_size` and the moved
-  image/scaling helpers still used by root internals or focused tests remain
-  explicit direct aliases to their canonical modules; they are not wrappers.
+- B-04 compatibility exception: `_align_nearest`, `_align_down`, the two image
+  scaling constants, and the four scaling private helpers remain explicit
+  direct aliases to their canonical modules. The first four are runtime seams;
+  the scaling helpers remain an audited B-10b6 test-only cleanup group.
 - B-07f internal SAM3 transition: `EasyUseAnimaSAM3Context` and
   `EasyUseAnimaSAM3Detailer` remain direct root aliases to
   `easyuse_anima.nodes.sam3_nodes`. SAM3 resolver, formatting, context,
@@ -211,6 +213,12 @@ EasyUseAnimaWildcard
   `easyuse_anima.infrastructure.comfy.capabilities` directly; normal-package
   and synthetic package-entrypoint tests preserve Impact discovery, scheduler
   lookup, and optional-dependency fallback behavior.
+- B-10b5 image-geometry cleanup: `_align_up`, `_aligned_size_near_scale`, and
+  `_alignment_value` are no longer root aliases. Geometry, scaling, image-node,
+  and Detailer production consumers already import
+  `easyuse_anima.image.geometry` directly; normal-package and synthetic
+  package-entrypoint tests preserve canonical geometry behavior. Root
+  `_align_nearest` and `_align_down` remain for residual runtime callers.
 - B-08b2 internal AiO model-variant transition: Spectrum correction/forecast
   model patching and ephemeral model cleanup move to
   `easyuse_anima.aio.model_preparation`. Their four root private names remain
