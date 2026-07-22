@@ -466,7 +466,7 @@ class CommonHelperMoveContractTests(unittest.TestCase):
         ),
         (
             image_geometry,
-            ("_align_nearest", "_align_down"),
+            ("_align_nearest", "_align_down", "_image_tensor_size"),
         ),
     )
 
@@ -552,6 +552,18 @@ class CommonHelperMoveContractTests(unittest.TestCase):
         self.assertEqual(nodes._align_nearest(95, 64), 64)
         self.assertEqual(nodes._align_nearest(96, 64), 128)
         self.assertEqual(nodes._align_down(65, 64), 64)
+        self.assertEqual(
+            image_geometry._image_tensor_size(
+                types.SimpleNamespace(shape=(1, 5, 7, 4)),
+                32,
+                48,
+            ),
+            (7, 5),
+        )
+        self.assertEqual(
+            image_geometry._image_tensor_size(object(), "32", "48"),
+            (32, 48),
+        )
         self.assertEqual(
             image_geometry._aligned_size_near_scale(128, 64, 2.0, 64, 0),
             (256, 128, 2.0),

@@ -38,6 +38,13 @@ def _align_down(value: int, alignment: int) -> int:
     return max(1, (value // alignment) * alignment)
 
 
+def _image_tensor_size(image, fallback_width: int, fallback_height: int) -> tuple[int, int]:
+    try:
+        return int(image.shape[2]), int(image.shape[1])
+    except Exception:
+        return int(fallback_width), int(fallback_height)
+
+
 def _aligned_size_near_scale(
     source_width: int,
     source_height: int,
