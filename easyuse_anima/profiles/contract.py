@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import uuid
 from collections.abc import Mapping
-from typing import Any
+from typing import Any, cast
 
 
 PROFILE_ENVELOPE_VERSION = 2
@@ -40,7 +40,7 @@ def read_profile_metadata(
     """Interpret v2 metadata or derive the pure legacy migration identity."""
 
     _validate_profile_kind(profile_kind)
-    if not isinstance(document, Mapping):
+    if not isinstance(cast(object, document), Mapping):
         raise ProfileContractError("Profile data is invalid")
 
     version = document.get("version")
@@ -50,12 +50,16 @@ def read_profile_metadata(
         return legacy_profile_id(profile_kind, filename), 0
     if version != PROFILE_ENVELOPE_VERSION:
         raise ProfileContractError("Profile version is invalid")
-    if not all(field in document for field in ("profile_id", "revision", "name")):
+    if not all(
+        field in document for field in ("profile_id", "revision", "name")
+    ):
         raise ProfileContractError("Profile envelope is invalid")
     if not isinstance(document["name"], str) or not document["name"].strip():
         raise ProfileContractError("Profile name is invalid")
 
-    return _parse_profile_id(document["profile_id"]), _parse_revision(document["revision"])
+    return _parse_profile_id(document["profile_id"]), _parse_revision(
+        document["revision"]
+    )
 
 
 def build_profile_document(
@@ -67,7 +71,7 @@ def build_profile_document(
 ) -> dict[str, Any]:
     """Compose a v2 envelope while preventing payload metadata overrides."""
 
-    if not isinstance(payload, Mapping):
+    if not isinstance(cast(object, payload), Mapping):
         raise ProfileContractError("Profile payload is invalid")
     document = {
         key: value
