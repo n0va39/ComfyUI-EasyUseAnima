@@ -154,6 +154,143 @@ def _normalize_aio_spectrum_settings(
     return spectrum
 
 
+def _normalize_aio_dit_corrections_settings(
+    value,
+    defaults: dict[str, Any],
+) -> dict[str, Any]:
+    _as_bool = _runtime_helper("_as_bool")
+    _as_float = _runtime_helper("_as_float")
+    _as_int = _runtime_helper("_as_int")
+    _choice = _runtime_helper("_choice")
+    corrections = value if isinstance(value, dict) else {}
+    corrections["enabled"] = _as_bool(
+        corrections.get("enabled"),
+        _as_bool(defaults.get("enabled"), False),
+    )
+    corrections["dcw_mode"] = _choice(
+        corrections.get("dcw_mode"),
+        ("off", "manual", "auto"),
+        str(defaults.get("dcw_mode") or "off"),
+    )
+    corrections["dcw_lambda"] = max(
+        -1.0,
+        min(
+            1.0,
+            _as_float(
+                corrections.get("dcw_lambda"),
+                _as_float(defaults.get("dcw_lambda"), 0.01),
+            ),
+        ),
+    )
+    corrections["dcw_band_mask"] = _choice(
+        corrections.get("dcw_band_mask"),
+        ("LL", "all", "HH", "LH+HL+HH"),
+        str(defaults.get("dcw_band_mask") or "LL"),
+    )
+    corrections["dcw_calibrator"] = str(
+        corrections.get("dcw_calibrator")
+        or defaults.get("dcw_calibrator")
+        or "(auto-download default)"
+    )
+    corrections["smc_cfg"] = _as_bool(
+        corrections.get("smc_cfg"),
+        _as_bool(defaults.get("smc_cfg"), False),
+    )
+    corrections["adaptive_smc_alpha"] = max(
+        0.0,
+        min(
+            1.0,
+            _as_float(
+                corrections.get("adaptive_smc_alpha"),
+                _as_float(defaults.get("adaptive_smc_alpha"), 0.0),
+            ),
+        ),
+    )
+    corrections["smc_cfg_lambda"] = max(
+        0.0,
+        min(
+            20.0,
+            _as_float(
+                corrections.get("smc_cfg_lambda"),
+                _as_float(defaults.get("smc_cfg_lambda"), 6.0),
+            ),
+        ),
+    )
+    corrections["cfgpp"] = _as_bool(
+        corrections.get("cfgpp"),
+        _as_bool(defaults.get("cfgpp"), False),
+    )
+    corrections["cfgpp_lambda"] = max(
+        0.0,
+        min(
+            8.0,
+            _as_float(
+                corrections.get("cfgpp_lambda"),
+                _as_float(defaults.get("cfgpp_lambda"), 0.0),
+            ),
+        ),
+    )
+    corrections["fsg"] = _as_bool(
+        corrections.get("fsg"),
+        _as_bool(defaults.get("fsg"), False),
+    )
+    corrections["fsg_band_lo"] = max(
+        0.0,
+        min(
+            1.0,
+            _as_float(
+                corrections.get("fsg_band_lo"),
+                _as_float(defaults.get("fsg_band_lo"), 0.59),
+            ),
+        ),
+    )
+    corrections["fsg_band_hi"] = max(
+        0.0,
+        min(
+            1.0,
+            _as_float(
+                corrections.get("fsg_band_hi"),
+                _as_float(defaults.get("fsg_band_hi"), 0.75),
+            ),
+        ),
+    )
+    corrections["fsg_k"] = max(
+        0,
+        min(
+            32,
+            _as_int(
+                corrections.get("fsg_k"),
+                _as_int(defaults.get("fsg_k"), 3),
+            ),
+        ),
+    )
+    corrections["fsg_d_sigma"] = max(
+        0.0,
+        min(
+            1.0,
+            _as_float(
+                corrections.get("fsg_d_sigma"),
+                _as_float(defaults.get("fsg_d_sigma"), 0.1),
+            ),
+        ),
+    )
+    corrections["fsg_gamma"] = max(
+        0.0,
+        min(
+            10.0,
+            _as_float(
+                corrections.get("fsg_gamma"),
+                _as_float(defaults.get("fsg_gamma"), 0.0),
+            ),
+        ),
+    )
+    corrections["replace_existing_cfg"] = _as_bool(
+        corrections.get("replace_existing_cfg"),
+        _as_bool(defaults.get("replace_existing_cfg"), False),
+    )
+    return corrections
+
+
 def _normalize_aio_generation_settings(value) -> dict[str, Any]:
     AIO_FINAL_FIT_MODES = _runtime_helper("AIO_FINAL_FIT_MODES")
     AIO_FINAL_UPSCALE_BACKENDS = _runtime_helper("AIO_FINAL_UPSCALE_BACKENDS")
