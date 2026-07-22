@@ -126,6 +126,13 @@ EasyUseAnimaWildcard
   `easyuse_anima.infrastructure.comfy.invocation` behind the existing root
   injection wrapper. These are internal transition surfaces through the B-10
   compatibility audit and are not added to public package `__all__`.
+- B-08b2 internal AiO model-variant transition: Spectrum correction/forecast
+  model patching and ephemeral model cleanup move to
+  `easyuse_anima.aio.model_preparation`. Their four root private names remain
+  direct identity aliases so the current sampler/stage/generator callers and
+  focused monkeypatch seams preserve call-time behavior. These are internal
+  transition surfaces through the B-10 compatibility audit and are not added
+  to public package `__all__`.
 - Removal gate: 0.5.2 node/workflow fixture, mapping identity, direct import,
   Registry archive closure, consumer evidence, separate breaking-change issue,
   and release note. With no external-consumer evidence, retain these exports.
