@@ -73,12 +73,12 @@ def load_dynamic():
     def test_current_nodes_module_shape_matches_recorded_baseline(self):
         report = analyzer.analyze_path(ROOT / "nodes.py")
 
-        self.assertEqual(report["git_blob_sha1"], "50ee288154fdaf73816e2884d7fe1d41e4fc20dc")
-        # Issue #184 B-11c2 moves the read-only workflow lookup while
-        # preserving the root alias and existing binder/resolver seams.
-        self.assertEqual(report["top_level"]["function_count"], 40)
+        self.assertEqual(report["git_blob_sha1"], "0680a8e5e7c605c79a50dd2dde5b463c2694defc")
+        # Issue #184 B-11c3 moves the dependency-free image tensor size helper
+        # while preserving the root alias and existing binder/resolver seams.
+        self.assertEqual(report["top_level"]["function_count"], 39)
         self.assertEqual(report["top_level"]["class_count"], 0)
-        self.assertEqual(report["line_count"], 2_664)
+        self.assertEqual(report["line_count"], 2_659)
         class_names = {item["name"] for item in report["top_level"]["classes"]}
         self.assertNotIn("EasyUseAnimaAIOGenerator", class_names)
         self.assertNotIn("EasyUseAnimaInput", class_names)

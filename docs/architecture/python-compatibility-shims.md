@@ -3,14 +3,14 @@
 ## Registry status
 
 - Inventory baseline: `dev` commit
-  `ebeee894e537c0edb4c7ec7aed34cefd212151f4`
+  `47fef1deebc32644d19caa22add5fee0aa94edbe`
 - Compatibility provenance: package/workflow version 0.5.2
 - Policy: [ADR-002](adr-002-compatibility-shims.md)
 - Machine-readable audit:
   [`python_compatibility_surface.v1.json`](../../tests/fixtures/python_compatibility_surface.v1.json)
-- Current state: B-11a through B-11c1 are integrated through PR #294. B-11c is
+- Current state: B-11a through B-11c2 are integrated through PR #295. B-11c is
   split into residual-owner and binder Moves before the final root shim;
-  B-11c2 workflow lookup ownership is tracked by PR #295.
+  B-11c3 image tensor size ownership is tracked by PR #296.
 
 This is an actionable registry, not a removal schedule. `N` means the first
 published Registry release containing both a canonical target and its root
@@ -75,8 +75,8 @@ inferring public support from spelling or test imports:
 - `nodes.py` preamble implementation imports: 7 (`json`, `logging`, `random`,
   `re`, `ceil`, `sqrt`, and `Any`), excluded from compatibility classification
   by an exact AST allowlist and drift gate;
-- `nodes.py` bindings with an `easyuse_anima` canonical target: 262 after
-  B-11c2 (258 at the integrated B-10b20 baseline), with exact
+- `nodes.py` bindings with an `easyuse_anima` canonical target: 263 after
+  B-11c3 (258 at the integrated B-10b20 baseline), with exact
   relative-package/flat-fallback parity;
 - bindings still owned by `anima_prompt`, `settings`, `prompt_translation`, or
   `wildcard_engine`: 27, with the same fallback parity;
@@ -84,8 +84,8 @@ inferring public support from spelling or test imports:
 - unmapped root classes: `EasyUseAnimaSAM3Context` and
   `EasyUseAnimaSAM3Detailer`; the canonical legacy Extend class remains in its
   owner module without a root alias or backend mapping;
-- root-owned residual implementation: 40 functions, 0 classes, and 32 assigned
-  globals after B-11c2 (41/2/33 at the integrated B-10b20 baseline).
+- root-owned residual implementation: 39 functions, 0 classes, and 32 assigned
+  globals after B-11c3 (41/2/33 at the integrated B-10b20 baseline).
 - import-time runtime binders: 28 exact top-level `_bind_*_runtime` calls;
 - root names reached by those canonical runtime resolvers: 256, including
   literal lookups and binder-owned helper-name/default collections;
@@ -176,6 +176,19 @@ convenience-node compatibility; it remains unmapped and is not public support.
 - Reserved wildcard next-seed consumption remains root-owned because moving it
   before D-12 would require a new dependency contract, canonical-to-legacy
   import, or duplicated seed behavior.
+
+### B-11c3 image tensor size alias
+
+- Canonical owner: `easyuse_anima.image.geometry._image_tensor_size`.
+- The private root name remains a transitional direct alias. Root AiO resize,
+  tile, fit, postprocess, and upscale callers continue to resolve the same root
+  binding, while the existing legacy-generation and preview resolvers preserve
+  call-time monkeypatch behavior.
+- The owner reads BHWC shape width/height and falls back to the supplied integer
+  dimensions on the same broad exception boundary. It has no module state,
+  mutation, Comfy provider, cache, or I/O dependency.
+- `_resize_image_to_size_if_needed` and all stage/postprocess execution remain
+  root-owned so this PR does not alter their internal patch seams or behavior.
 
 ### `nodes.py` public node-class surface
 

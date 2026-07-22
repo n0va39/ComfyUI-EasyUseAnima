@@ -339,6 +339,7 @@ try:
     from .easyuse_anima.image.geometry import (
         _align_down as _align_down,
         _align_nearest as _align_nearest,
+        _image_tensor_size as _image_tensor_size,
         # B-10b5 retires three root image-geometry aliases.
         # Canonical image/scaling/detailer consumers import geometry directly.
         # _align_nearest/_align_down stay for root residual runtime.
@@ -858,6 +859,7 @@ except ImportError:  # allows simple local import tests outside ComfyUI's packag
     from easyuse_anima.image.geometry import (
         _align_down as _align_down,
         _align_nearest as _align_nearest,
+        _image_tensor_size as _image_tensor_size,
         # B-10b5 retires three root image-geometry aliases.
         # Canonical image/scaling/detailer consumers import geometry directly.
         # _align_nearest/_align_down stay for root residual runtime.
@@ -1851,13 +1853,6 @@ def _aio_lora_stack_signature(lora_stack) -> list[dict[str, Any]]:
         }
         for name, model_strength, clip_strength in _normalize_aio_lora_stack(lora_stack)
     ]
-
-
-def _image_tensor_size(image, fallback_width: int, fallback_height: int) -> tuple[int, int]:
-    try:
-        return int(image.shape[2]), int(image.shape[1])
-    except Exception:
-        return int(fallback_width), int(fallback_height)
 
 
 def _resize_image_to_size_if_needed(
