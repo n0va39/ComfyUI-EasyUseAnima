@@ -283,9 +283,9 @@ surfaces. AiO mechanical extraction must not start until #168 exits.
 | 2 | C168-03 typed AiO config boundary | COMPLETE on `dev` | Contract | #168 | PR #252 / `7f686bed` |
 | 3 | G-02b strict-clean pure/service allowlist | COMPLETE on `dev` | Contract/gate | #188 | PR #254 / `76237a60` |
 | 4 | C168-04 pure version-dispatch/migration registry | COMPLETE on `dev` | Contract | #168 | PR #255 / `29aa200e` |
-| 5 | C168-05 cross-surface setting omission gate | IN PROGRESS | Contract/gate | #168 | PR #256 / C168-04 merged |
+| 5 | C168-05 cross-surface setting omission gate | COMPLETE | Contract/gate | #168 | PR #256 merged |
 | 6 | G-03a completed-package import boundary fail gate | READY/PARALLEL | Contract/gate | #188 | G-02b merged |
-| 7 | C168-06 normalizer ownership move | BLOCKED by C168-05 | Move | #168/#184 | C168 contracts and omission gate complete |
+| 7 | C168-06 normalizer ownership move | IN REVIEW | Move | #168/#184 | PR #257 / C168 contracts and omission gate complete |
 | 8 | B-08a through B-08e AiO support-helper extraction | BLOCKED by #168 exit | Move | #184 | C168-03 through C168-06 complete |
 | 9 | B-09a/B-09b AiO node and legacy orchestration move | BLOCKED by B-08 | Move | #184 | AiO helpers canonical |
 | 10 | B-10 compatibility/private-alias audit | BLOCKED by B-09 | Contract/cleanup, split PRs | #184/#188 | All node implementations canonical |

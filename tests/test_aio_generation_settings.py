@@ -8,6 +8,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 import nodes
+from easyuse_anima.aio import generation_normalization
 from easyuse_anima.aio.generation_detailer import AIOGenerationDetailerTargetConfig
 from easyuse_anima.aio.generation_features import (
     AIOGenerationHighresConfig,
@@ -46,6 +47,38 @@ def _deterministic_capabilities(
 
 
 class AIOGenerationConfigTests(unittest.TestCase):
+    def test_root_facade_reexports_canonical_normalizers_by_identity(self):
+        self.assertIs(
+            nodes._merge_versioned_settings,
+            generation_normalization._merge_versioned_settings,
+        )
+        self.assertIs(
+            nodes._normalize_aio_generation_settings,
+            generation_normalization._normalize_aio_generation_settings,
+        )
+
+    def test_canonical_normalizer_resolves_root_helpers_at_call_time(self):
+        original_choice = nodes._choice
+        calls: list[tuple[object, tuple[object, ...], object]] = []
+
+        def tracking_choice(value, options, default):
+            calls.append((value, tuple(options), default))
+            return original_choice(value, options, default)
+
+        with (
+            patch.object(nodes, "_choice", tracking_choice),
+            _deterministic_capabilities(),
+        ):
+            normalized = generation_normalization._normalize_aio_generation_settings(
+                {"mode": "img2img"}
+            )
+
+        self.assertEqual(normalized["mode"], "img2img")
+        self.assertIn(
+            ("img2img", ("txt2img", "img2img", "inpaint"), "txt2img"),
+            calls,
+        )
+
     def test_default_payload_round_trips_with_exact_shape_and_order(self):
         source = copy.deepcopy(nodes.AIO_GENERATION_DEFAULT_SETTINGS)
 
