@@ -5,7 +5,7 @@
 - Status: operational execution runbook
 - Snapshot date: 2026-07-23
 - Snapshot branch: `dev`
-- Integrated `dev` snapshot commit: `13a9cf4976b9b847dc68ddacca1763d862e647f9`
+- Integrated `dev` snapshot commit: `a06ed305ae43253ef04d1650fb486784b2aed943`
 - Scope: Python backend only
 - Target architecture: [`python-backend.md`](python-backend.md)
 - Architecture decisions: [ADR-001](adr-001-modular-monolith.md) and
