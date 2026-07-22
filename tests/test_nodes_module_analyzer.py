@@ -73,12 +73,12 @@ def load_dynamic():
     def test_current_nodes_module_shape_matches_recorded_baseline(self):
         report = analyzer.analyze_path(ROOT / "nodes.py")
 
-        self.assertEqual(report["git_blob_sha1"], "8909de5a52277a30b018bd19ffb8eed05cb3c298")
-        # Issue #184 B-07e moved the Advanced Prompt Studio vertical slice while
-        # preserving root compatibility aliases and wildcard seed-control behavior.
-        self.assertEqual(report["top_level"]["function_count"], 108)
-        self.assertEqual(report["top_level"]["class_count"], 7)
-        self.assertEqual(report["line_count"], 5_762)
+        self.assertEqual(report["git_blob_sha1"], "1219059977ef9363ba90e395590879c520a79edf")
+        # Issue #184 B-07f moved the internal SAM3/Impact vertical slice while
+        # preserving root direct aliases and AiO orchestration behavior.
+        self.assertEqual(report["top_level"]["function_count"], 99)
+        self.assertEqual(report["top_level"]["class_count"], 4)
+        self.assertEqual(report["line_count"], 5_150)
         class_names = {item["name"] for item in report["top_level"]["classes"]}
         self.assertIn("EasyUseAnimaAIOGenerator", class_names)
         self.assertNotIn("EasyUseAnimaPromptStudioAdvanced", class_names)
@@ -98,6 +98,9 @@ def load_dynamic():
         self.assertNotIn("EasyUseAnimaPromptDataUnpack", class_names)
         self.assertNotIn("EasyUseAnimaArtistMixConditioning", class_names)
         self.assertNotIn("EasyUseAnimaPromptDataConditioning", class_names)
+        self.assertNotIn("EasyUseAnimaSAM3Context", class_names)
+        self.assertNotIn("_EasyUseAnimaImpactDetailerDelegate", class_names)
+        self.assertNotIn("EasyUseAnimaSAM3Detailer", class_names)
 
     def test_external_source_label_does_not_expose_parent_directories(self):
         label = analyzer._source_label(Path("Z:/private/user/data/example.py"))
