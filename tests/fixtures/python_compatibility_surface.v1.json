@@ -2,7 +2,7 @@
   "schema_version": 1,
   "snapshot": {
     "base_branch": "dev",
-    "base_commit": "565f9877a3578acdbf56ab45d9c16152d54c58ca",
+    "base_commit": "e309b718530f85317f3e602c29e1f5e8aee7771c",
     "first_release": null,
     "owner_tasks": [
       "#184",
@@ -26,7 +26,8 @@
       "B-10b16",
       "B-10b17",
       "B-10b18",
-      "B-10b19"
+      "B-10b19",
+      "B-10b20"
     ]
   },
   "enums": {
@@ -61,7 +62,7 @@
   "expected_counts": {
     "root_entrypoints": 3,
     "excluded_preamble_implementation_bindings": 7,
-    "nodes_canonical_bindings": 279,
+    "nodes_canonical_bindings": 258,
     "nodes_legacy_bindings": 27,
     "mapped_public_classes": 18,
     "unmapped_classes": 2,
@@ -1052,6 +1053,111 @@
     }
   },
   "retired_private_bindings": {
+    "_artist_conditioning_feature": {
+      "canonical_target": "easyuse_anima.prompt.artist_mix:_artist_conditioning_feature",
+      "owner": "#184/#188 B-10b20",
+      "reason": "canonical Artist Mix owner consumes this conditioning helper lexically"
+    },
+    "_artist_delta_rms_from_encoded": {
+      "canonical_target": "easyuse_anima.prompt.artist_mix:_artist_delta_rms_from_encoded",
+      "owner": "#184/#188 B-10b20",
+      "reason": "canonical Artist Mix owner consumes this conditioning helper lexically"
+    },
+    "_conditionings_with_range": {
+      "canonical_target": "easyuse_anima.prompt.artist_mix:_conditionings_with_range",
+      "owner": "#184/#188 B-10b20",
+      "reason": "canonical Artist Mix owner consumes this conditioning helper lexically"
+    },
+    "_conditionings_with_strength": {
+      "canonical_target": "easyuse_anima.prompt.artist_mix:_conditionings_with_strength",
+      "owner": "#184/#188 B-10b20",
+      "reason": "canonical Artist Mix owner consumes this conditioning helper lexically"
+    },
+    "_conditionings_with_values": {
+      "canonical_target": "easyuse_anima.prompt.artist_mix:_conditionings_with_values",
+      "owner": "#184/#188 B-10b20",
+      "reason": "canonical Artist Mix owner consumes this conditioning helper lexically"
+    },
+    "_copy_conditioning_metadata": {
+      "canonical_target": "easyuse_anima.prompt.artist_mix:_copy_conditioning_metadata",
+      "owner": "#184/#188 B-10b20",
+      "reason": "canonical Artist Mix owner consumes this conditioning helper lexically"
+    },
+    "_encode_artist_average": {
+      "canonical_target": "easyuse_anima.prompt.artist_mix:_encode_artist_average",
+      "owner": "#184/#188 B-10b20",
+      "reason": "canonical Artist Mix owner consumes this conditioning helper lexically"
+    },
+    "_encode_artist_average_late_exact": {
+      "canonical_target": "easyuse_anima.prompt.artist_mix:_encode_artist_average_late_exact",
+      "owner": "#184/#188 B-10b20",
+      "reason": "canonical Artist Mix owner consumes this conditioning helper lexically"
+    },
+    "_encode_artist_composite_exact": {
+      "canonical_target": "easyuse_anima.prompt.artist_mix:_encode_artist_composite_exact",
+      "owner": "#184/#188 B-10b20",
+      "reason": "canonical Artist Mix owner consumes this conditioning helper lexically"
+    },
+    "_encode_artist_exact": {
+      "canonical_target": "easyuse_anima.prompt.artist_mix:_encode_artist_exact",
+      "owner": "#184/#188 B-10b20",
+      "reason": "canonical Artist Mix owner consumes this conditioning helper lexically"
+    },
+    "_encode_artist_hybrid": {
+      "canonical_target": "easyuse_anima.prompt.artist_mix:_encode_artist_hybrid",
+      "owner": "#184/#188 B-10b20",
+      "reason": "canonical Artist Mix owner consumes this conditioning helper lexically"
+    },
+    "_encode_artist_scheduled_average": {
+      "canonical_target": "easyuse_anima.prompt.artist_mix:_encode_artist_scheduled_average",
+      "owner": "#184/#188 B-10b20",
+      "reason": "canonical Artist Mix owner consumes this conditioning helper lexically"
+    },
+    "_encoded_artist_conditionings": {
+      "canonical_target": "easyuse_anima.prompt.artist_mix:_encoded_artist_conditionings",
+      "owner": "#184/#188 B-10b20",
+      "reason": "canonical Artist Mix owner consumes this conditioning helper lexically"
+    },
+    "_equal_artist_weights": {
+      "canonical_target": "easyuse_anima.prompt.artist_mix:_equal_artist_weights",
+      "owner": "#184/#188 B-10b20",
+      "reason": "canonical Artist Mix owner consumes this conditioning helper lexically"
+    },
+    "_fallback_artist_average_or_exact": {
+      "canonical_target": "easyuse_anima.prompt.artist_mix:_fallback_artist_average_or_exact",
+      "owner": "#184/#188 B-10b20",
+      "reason": "canonical Artist Mix owner consumes this conditioning helper lexically"
+    },
+    "_greedy_cluster_encoded_artists": {
+      "canonical_target": "easyuse_anima.prompt.artist_mix:_greedy_cluster_encoded_artists",
+      "owner": "#184/#188 B-10b20",
+      "reason": "canonical Artist Mix owner consumes this conditioning helper lexically"
+    },
+    "_interpolate_artist_weights": {
+      "canonical_target": "easyuse_anima.prompt.artist_mix:_interpolate_artist_weights",
+      "owner": "#184/#188 B-10b20",
+      "reason": "canonical Artist Mix owner consumes this conditioning helper lexically"
+    },
+    "_mark_artist_mix_conditioning": {
+      "canonical_target": "easyuse_anima.prompt.artist_mix:_mark_artist_mix_conditioning",
+      "owner": "#184/#188 B-10b20",
+      "reason": "canonical Artist Mix owner consumes this conditioning helper lexically"
+    },
+    "_normalize_weight_values": {
+      "canonical_target": "easyuse_anima.prompt.artist_mix:_normalize_weight_values",
+      "owner": "#184/#188 B-10b20",
+      "reason": "canonical Artist Mix owner consumes this conditioning helper lexically"
+    },
+    "_normalized_artist_weights": {
+      "canonical_target": "easyuse_anima.prompt.artist_mix:_normalized_artist_weights",
+      "owner": "#184/#188 B-10b20",
+      "reason": "canonical Artist Mix owner consumes this conditioning helper lexically"
+    },
+    "_pad_conditioning_tensor": {
+      "canonical_target": "easyuse_anima.prompt.artist_mix:_pad_conditioning_tensor",
+      "owner": "#184/#188 B-10b20",
+      "reason": "canonical Artist Mix owner consumes this conditioning helper lexically"
+    },
     "ARTIST_MIX_CONTROL_KEY": {
       "canonical_target": "easyuse_anima.prompt.artist_mix:ARTIST_MIX_CONTROL_KEY",
       "owner": "#184/#188 B-10b19",
@@ -3229,55 +3335,6 @@
         "separate B-10b or B-11 rollback unit"
       ],
       "lifecycle_state": "transitional"
-    },
-    {
-      "id": "nodes_canonical_bindings:easyuse_anima.prompt.artist_mix:unsupported_test_only",
-      "surface": "nodes_canonical_bindings",
-      "symbols": {
-        "_artist_conditioning_feature": "_artist_conditioning_feature",
-        "_artist_delta_rms_from_encoded": "_artist_delta_rms_from_encoded",
-        "_conditionings_with_range": "_conditionings_with_range",
-        "_conditionings_with_strength": "_conditionings_with_strength",
-        "_conditionings_with_values": "_conditionings_with_values",
-        "_copy_conditioning_metadata": "_copy_conditioning_metadata",
-        "_encode_artist_average": "_encode_artist_average",
-        "_encode_artist_average_late_exact": "_encode_artist_average_late_exact",
-        "_encode_artist_composite_exact": "_encode_artist_composite_exact",
-        "_encode_artist_exact": "_encode_artist_exact",
-        "_encode_artist_hybrid": "_encode_artist_hybrid",
-        "_encode_artist_scheduled_average": "_encode_artist_scheduled_average",
-        "_encoded_artist_conditionings": "_encoded_artist_conditionings",
-        "_equal_artist_weights": "_equal_artist_weights",
-        "_fallback_artist_average_or_exact": "_fallback_artist_average_or_exact",
-        "_greedy_cluster_encoded_artists": "_greedy_cluster_encoded_artists",
-        "_interpolate_artist_weights": "_interpolate_artist_weights",
-        "_mark_artist_mix_conditioning": "_mark_artist_mix_conditioning",
-        "_normalize_weight_values": "_normalize_weight_values",
-        "_normalized_artist_weights": "_normalized_artist_weights",
-        "_pad_conditioning_tensor": "_pad_conditioning_tensor"
-      },
-      "classification": "unsupported_test_only",
-      "current_target": "nodes.py",
-      "canonical_target": "easyuse_anima.prompt.artist_mix",
-      "target_state": "canonical",
-      "identity_requirement": "not_applicable",
-      "binding_shape": "direct_import",
-      "import_target": "easyuse_anima.prompt.artist_mix",
-      "owner": "#184/#188",
-      "first_release": null,
-      "known_consumers": [
-        "repository tests may import this root name"
-      ],
-      "evidence": [
-        "AST:no nodes.py runtime load",
-        "test-only consumption is not public support evidence"
-      ],
-      "removal_gates": [
-        "test imports migrate to canonical targets",
-        "no production consumer evidence",
-        "separate B-10b removal review"
-      ],
-      "lifecycle_state": "unsupported"
     },
     {
       "id": "nodes_canonical_bindings:easyuse_anima.prompt.conditioning:transitional_private_seam",

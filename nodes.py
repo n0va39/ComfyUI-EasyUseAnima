@@ -263,8 +263,8 @@ try:
         # B-10b19 retired root alias: ARTIST_TAG_POSITION_CORRECT.
         # B-10b19 retired root alias: ARTIST_TAG_POSITION_FRONT.
         # B-10b19 retired root alias: ARTIST_TAG_POSITION_MODES.
-        _artist_conditioning_feature as _artist_conditioning_feature,
-        _artist_delta_rms_from_encoded as _artist_delta_rms_from_encoded,
+        # B-10b20 retired root alias: _artist_conditioning_feature.
+        # B-10b20 retired root alias: _artist_delta_rms_from_encoded.
         # B-10b18: artist group-token parsing remains canonical-only.
         _artist_mix_inline_prompt as _artist_mix_inline_prompt,
         _artist_mix_mode_tooltip as _artist_mix_mode_tooltip,
@@ -277,31 +277,31 @@ try:
         _bounded_artist_mix_float as _bounded_artist_mix_float,
         _bounded_artist_mix_int as _bounded_artist_mix_int,
         # B-10b18: parsed item coalescing remains canonical-only.
-        _conditionings_with_range as _conditionings_with_range,
-        _conditionings_with_strength as _conditionings_with_strength,
-        _conditionings_with_values as _conditionings_with_values,
-        _copy_conditioning_metadata as _copy_conditioning_metadata,
-        _encode_artist_average as _encode_artist_average,
-        _encode_artist_average_late_exact as _encode_artist_average_late_exact,
+        # B-10b20 retired root alias: _conditionings_with_range.
+        # B-10b20 retired root alias: _conditionings_with_strength.
+        # B-10b20 retired root alias: _conditionings_with_values.
+        # B-10b20 retired root alias: _copy_conditioning_metadata.
+        # B-10b20 retired root alias: _encode_artist_average.
+        # B-10b20 retired root alias: _encode_artist_average_late_exact.
         _encode_artist_clustered as _encode_artist_clustered,
-        _encode_artist_composite_exact as _encode_artist_composite_exact,
+        # B-10b20 retired root alias: _encode_artist_composite_exact.
         _encode_artist_delta_rms as _encode_artist_delta_rms,
-        _encode_artist_exact as _encode_artist_exact,
-        _encode_artist_hybrid as _encode_artist_hybrid,
-        _encode_artist_scheduled_average as _encode_artist_scheduled_average,
+        # B-10b20 retired root alias: _encode_artist_exact.
+        # B-10b20 retired root alias: _encode_artist_hybrid.
+        # B-10b20 retired root alias: _encode_artist_scheduled_average.
         _encode_prompt_data_positive_conditioning as _encode_prompt_data_positive_conditioning,
-        _encoded_artist_conditionings as _encoded_artist_conditionings,
-        _equal_artist_weights as _equal_artist_weights,
-        _fallback_artist_average_or_exact as _fallback_artist_average_or_exact,
-        _greedy_cluster_encoded_artists as _greedy_cluster_encoded_artists,
-        _interpolate_artist_weights as _interpolate_artist_weights,
+        # B-10b20 retired root alias: _encoded_artist_conditionings.
+        # B-10b20 retired root alias: _equal_artist_weights.
+        # B-10b20 retired root alias: _fallback_artist_average_or_exact.
+        # B-10b20 retired root alias: _greedy_cluster_encoded_artists.
+        # B-10b20 retired root alias: _interpolate_artist_weights.
         _join_artist_mix_source_prompts as _join_artist_mix_source_prompts,
-        _mark_artist_mix_conditioning as _mark_artist_mix_conditioning,
+        # B-10b20 retired root alias: _mark_artist_mix_conditioning.
         _normalize_artist_mix_mode as _normalize_artist_mix_mode,
         _normalize_artist_tag_position as _normalize_artist_tag_position,
-        _normalize_weight_values as _normalize_weight_values,
-        _normalized_artist_weights as _normalized_artist_weights,
-        _pad_conditioning_tensor as _pad_conditioning_tensor,
+        # B-10b20 retired root alias: _normalize_weight_values.
+        # B-10b20 retired root alias: _normalized_artist_weights.
+        # B-10b20 retired root alias: _pad_conditioning_tensor.
         # B-10b18: Artist Mix entry parsing remains canonical-only.
         # B-10b18: Artist Mix group parsing remains canonical-only.
         _parse_artist_mix_items as _parse_artist_mix_items,
@@ -776,8 +776,8 @@ except ImportError:  # allows simple local import tests outside ComfyUI's packag
         # B-10b19 retired root alias: ARTIST_TAG_POSITION_CORRECT.
         # B-10b19 retired root alias: ARTIST_TAG_POSITION_FRONT.
         # B-10b19 retired root alias: ARTIST_TAG_POSITION_MODES.
-        _artist_conditioning_feature as _artist_conditioning_feature,
-        _artist_delta_rms_from_encoded as _artist_delta_rms_from_encoded,
+        # B-10b20 retired root alias: _artist_conditioning_feature.
+        # B-10b20 retired root alias: _artist_delta_rms_from_encoded.
         # B-10b18: artist group-token parsing remains canonical-only.
         _artist_mix_inline_prompt as _artist_mix_inline_prompt,
         _artist_mix_mode_tooltip as _artist_mix_mode_tooltip,
@@ -790,31 +790,31 @@ except ImportError:  # allows simple local import tests outside ComfyUI's packag
         _bounded_artist_mix_float as _bounded_artist_mix_float,
         _bounded_artist_mix_int as _bounded_artist_mix_int,
         # B-10b18: parsed item coalescing remains canonical-only.
-        _conditionings_with_range as _conditionings_with_range,
-        _conditionings_with_strength as _conditionings_with_strength,
-        _conditionings_with_values as _conditionings_with_values,
-        _copy_conditioning_metadata as _copy_conditioning_metadata,
-        _encode_artist_average as _encode_artist_average,
-        _encode_artist_average_late_exact as _encode_artist_average_late_exact,
+        # B-10b20 retired root alias: _conditionings_with_range.
+        # B-10b20 retired root alias: _conditionings_with_strength.
+        # B-10b20 retired root alias: _conditionings_with_values.
+        # B-10b20 retired root alias: _copy_conditioning_metadata.
+        # B-10b20 retired root alias: _encode_artist_average.
+        # B-10b20 retired root alias: _encode_artist_average_late_exact.
         _encode_artist_clustered as _encode_artist_clustered,
-        _encode_artist_composite_exact as _encode_artist_composite_exact,
+        # B-10b20 retired root alias: _encode_artist_composite_exact.
         _encode_artist_delta_rms as _encode_artist_delta_rms,
-        _encode_artist_exact as _encode_artist_exact,
-        _encode_artist_hybrid as _encode_artist_hybrid,
-        _encode_artist_scheduled_average as _encode_artist_scheduled_average,
+        # B-10b20 retired root alias: _encode_artist_exact.
+        # B-10b20 retired root alias: _encode_artist_hybrid.
+        # B-10b20 retired root alias: _encode_artist_scheduled_average.
         _encode_prompt_data_positive_conditioning as _encode_prompt_data_positive_conditioning,
-        _encoded_artist_conditionings as _encoded_artist_conditionings,
-        _equal_artist_weights as _equal_artist_weights,
-        _fallback_artist_average_or_exact as _fallback_artist_average_or_exact,
-        _greedy_cluster_encoded_artists as _greedy_cluster_encoded_artists,
-        _interpolate_artist_weights as _interpolate_artist_weights,
+        # B-10b20 retired root alias: _encoded_artist_conditionings.
+        # B-10b20 retired root alias: _equal_artist_weights.
+        # B-10b20 retired root alias: _fallback_artist_average_or_exact.
+        # B-10b20 retired root alias: _greedy_cluster_encoded_artists.
+        # B-10b20 retired root alias: _interpolate_artist_weights.
         _join_artist_mix_source_prompts as _join_artist_mix_source_prompts,
-        _mark_artist_mix_conditioning as _mark_artist_mix_conditioning,
+        # B-10b20 retired root alias: _mark_artist_mix_conditioning.
         _normalize_artist_mix_mode as _normalize_artist_mix_mode,
         _normalize_artist_tag_position as _normalize_artist_tag_position,
-        _normalize_weight_values as _normalize_weight_values,
-        _normalized_artist_weights as _normalized_artist_weights,
-        _pad_conditioning_tensor as _pad_conditioning_tensor,
+        # B-10b20 retired root alias: _normalize_weight_values.
+        # B-10b20 retired root alias: _normalized_artist_weights.
+        # B-10b20 retired root alias: _pad_conditioning_tensor.
         # B-10b18: Artist Mix entry parsing remains canonical-only.
         # B-10b18: Artist Mix group parsing remains canonical-only.
         _parse_artist_mix_items as _parse_artist_mix_items,

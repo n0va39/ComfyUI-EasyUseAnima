@@ -1301,6 +1301,29 @@ class PromptDataConditioningMoveContractTests(unittest.TestCase):
         "ARTIST_TAG_POSITION_FRONT",
         "ARTIST_TAG_POSITION_MODES",
     )
+    RETIRED_ARTIST_MIX_CONDITIONING_ALIASES = (
+        "_artist_conditioning_feature",
+        "_artist_delta_rms_from_encoded",
+        "_conditionings_with_range",
+        "_conditionings_with_strength",
+        "_conditionings_with_values",
+        "_copy_conditioning_metadata",
+        "_encode_artist_average",
+        "_encode_artist_average_late_exact",
+        "_encode_artist_composite_exact",
+        "_encode_artist_exact",
+        "_encode_artist_hybrid",
+        "_encode_artist_scheduled_average",
+        "_encoded_artist_conditionings",
+        "_equal_artist_weights",
+        "_fallback_artist_average_or_exact",
+        "_greedy_cluster_encoded_artists",
+        "_interpolate_artist_weights",
+        "_mark_artist_mix_conditioning",
+        "_normalize_weight_values",
+        "_normalized_artist_weights",
+        "_pad_conditioning_tensor",
+    )
     NODE_CLASSES = (
         "EasyUseAnimaPromptDataUnpack",
         "EasyUseAnimaArtistMixConditioning",
@@ -1335,6 +1358,7 @@ class PromptDataConditioningMoveContractTests(unittest.TestCase):
             *self.RETIRED_CONDITIONING_ALIASES,
             *self.RETIRED_ARTIST_MIX_PARSING_ALIASES,
             *self.RETIRED_ARTIST_MIX_MODE_ALIASES,
+            *self.RETIRED_ARTIST_MIX_CONDITIONING_ALIASES,
         ):
             with self.subTest(retired=name):
                 self.assertFalse(hasattr(nodes, name))
@@ -1362,6 +1386,7 @@ class PromptDataConditioningMoveContractTests(unittest.TestCase):
                 *self.RETIRED_CONDITIONING_ALIASES,
                 *self.RETIRED_ARTIST_MIX_PARSING_ALIASES,
                 *self.RETIRED_ARTIST_MIX_MODE_ALIASES,
+                *self.RETIRED_ARTIST_MIX_CONDITIONING_ALIASES,
             ):
                 with self.subTest(retired=name):
                     self.assertFalse(hasattr(package_nodes, name))

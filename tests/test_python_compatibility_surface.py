@@ -15,7 +15,7 @@ NODES_PATH = ROOT / "nodes.py"
 FIXTURE_PATH = ROOT / "tests" / "fixtures" / "python_compatibility_surface.v1.json"
 
 SCHEMA_VERSION = 1
-BASE_COMMIT = "565f9877a3578acdbf56ab45d9c16152d54c58ca"
+BASE_COMMIT = "e309b718530f85317f3e602c29e1f5e8aee7771c"
 CLASSIFICATIONS = (
     "permanent_entrypoint",
     "supported_public_reexport",
@@ -78,7 +78,38 @@ RETIRED_ARTIST_MIX_MODE_BINDINGS = (
     "ARTIST_TAG_POSITION_FRONT",
     "ARTIST_TAG_POSITION_MODES",
 )
+RETIRED_ARTIST_MIX_CONDITIONING_BINDINGS = (
+    "_artist_conditioning_feature",
+    "_artist_delta_rms_from_encoded",
+    "_conditionings_with_range",
+    "_conditionings_with_strength",
+    "_conditionings_with_values",
+    "_copy_conditioning_metadata",
+    "_encode_artist_average",
+    "_encode_artist_average_late_exact",
+    "_encode_artist_composite_exact",
+    "_encode_artist_exact",
+    "_encode_artist_hybrid",
+    "_encode_artist_scheduled_average",
+    "_encoded_artist_conditionings",
+    "_equal_artist_weights",
+    "_fallback_artist_average_or_exact",
+    "_greedy_cluster_encoded_artists",
+    "_interpolate_artist_weights",
+    "_mark_artist_mix_conditioning",
+    "_normalize_weight_values",
+    "_normalized_artist_weights",
+    "_pad_conditioning_tensor",
+)
 RETIRED_PRIVATE_BINDINGS = {
+    **{
+        name: {
+            "canonical_target": f"easyuse_anima.prompt.artist_mix:{name}",
+            "owner": "#184/#188 B-10b20",
+            "reason": "canonical Artist Mix owner consumes this conditioning helper lexically",
+        }
+        for name in RETIRED_ARTIST_MIX_CONDITIONING_BINDINGS
+    },
     **{
         name: {
             "canonical_target": f"easyuse_anima.prompt.artist_mix:{name}",
@@ -1264,6 +1295,7 @@ def _build_document() -> dict[str, Any]:
                 "B-10b17",
                 "B-10b18",
                 "B-10b19",
+                "B-10b20",
             ],
         },
         "enums": {
@@ -1276,7 +1308,7 @@ def _build_document() -> dict[str, Any]:
         "expected_counts": {
             "root_entrypoints": 3,
             "excluded_preamble_implementation_bindings": 7,
-            "nodes_canonical_bindings": 279,
+            "nodes_canonical_bindings": 258,
             "nodes_legacy_bindings": 27,
             "mapped_public_classes": 18,
             "unmapped_classes": 2,
