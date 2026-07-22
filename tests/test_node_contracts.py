@@ -38,6 +38,7 @@ from easyuse_anima.nodes import (
     prompt_advanced_nodes,
     prompt_data_nodes,
     prompt_nodes,
+    regional_nodes,
     sam3_nodes,
     wildcard_nodes,
 )
@@ -47,6 +48,7 @@ from easyuse_anima.prompt import conditioning as prompt_conditioning
 from easyuse_anima.prompt import data as prompt_data
 from easyuse_anima.prompt import correction as prompt_correction
 from easyuse_anima.prompt import fields as prompt_fields
+from easyuse_anima.prompt import regional as prompt_regional
 
 
 PACKAGE_INIT = ROOT / "__init__.py"
@@ -1802,6 +1804,82 @@ print(json.dumps({{
             ["easyuse_anima.nodes.prompt_advanced_nodes"] * 3,
         )
         self.assertFalse(payload["root_nodes_loaded"])
+
+
+class RegionalMoveContractTests(unittest.TestCase):
+    RETIRED_REGIONAL_ALIASES = (
+        "REGIONAL_CONFIG_VERSION",
+        "REGIONAL_CONFIG_WORKFLOW_PROPERTY",
+        "REGIONAL_FIELDS_WORKFLOW_PROPERTY",
+        "REGIONAL_FIELD_TYPES",
+        "REGIONAL_PROMPT_BUNDLE_SCHEMA",
+        "REGIONAL_PROMPT_DATA_SCHEMA",
+        "REGIONAL_PROMPT_DATA_TYPE",
+        "_normalize_mask_geometry",
+        "_normalize_regional_mask",
+        "_regional_default_config",
+        "_regional_default_fields",
+        "_regional_field_prompt",
+    )
+    SERVICE_OBJECTS = (
+        "_apply_regional_field_inputs",
+        "_bind_regional_runtime",
+        "_build_regional_outputs",
+        "_clone_regional_fields",
+        "_conditioning_set_values",
+        "_normalize_mask_ids",
+        "_normalize_regional_config",
+        "_normalize_regional_fields",
+        "_parse_json_object",
+        "_regional_config_json",
+        "_regional_fields_json",
+        "_regional_mask_bounds_area",
+        "_regional_payload_canvas",
+        "_regional_union_mask_for_ids",
+    )
+    NODE_CLASSES = (
+        "EasyUseAnimaPromptStudioRegional",
+        "EasyUseAnimaRegionalConditioning",
+    )
+
+    def test_root_regional_objects_are_direct_canonical_aliases(self):
+        for name in self.RETIRED_REGIONAL_ALIASES:
+            with self.subTest(retired=name):
+                self.assertFalse(hasattr(nodes, name))
+        for name in self.SERVICE_OBJECTS:
+            with self.subTest(module="regional", name=name):
+                self.assertIs(getattr(nodes, name), getattr(prompt_regional, name))
+        for name in self.NODE_CLASSES:
+            with self.subTest(module="regional_nodes", name=name):
+                self.assertIs(getattr(nodes, name), getattr(regional_nodes, name))
+
+    def test_package_loaded_root_regional_objects_are_direct_aliases(self):
+        expected_display = {
+            "EasyUseAnimaPromptStudioRegional": "Anima Prompt Studio Regional",
+            "EasyUseAnimaRegionalConditioning": "Anima Regional Conditioning",
+        }
+        with _loaded_package_entrypoint() as (package_entrypoint, package_nodes):
+            package_name = package_nodes.__package__
+            package_regional = sys.modules[f"{package_name}.easyuse_anima.prompt.regional"]
+            package_regional_nodes = sys.modules[
+                f"{package_name}.easyuse_anima.nodes.regional_nodes"
+            ]
+
+            for name in self.RETIRED_REGIONAL_ALIASES:
+                with self.subTest(retired=name):
+                    self.assertFalse(hasattr(package_nodes, name))
+            for name in self.SERVICE_OBJECTS:
+                with self.subTest(module="regional", name=name):
+                    self.assertIs(getattr(package_nodes, name), getattr(package_regional, name))
+            for name in self.NODE_CLASSES:
+                with self.subTest(module="regional_nodes", name=name):
+                    canonical_class = getattr(package_regional_nodes, name)
+                    self.assertIs(getattr(package_nodes, name), canonical_class)
+                    self.assertIs(package_entrypoint.NODE_CLASS_MAPPINGS[name], canonical_class)
+                    self.assertEqual(
+                        package_entrypoint.NODE_DISPLAY_NAME_MAPPINGS[name],
+                        expected_display[name],
+                    )
 
 
 class PublicNodeContractTests(unittest.TestCase):
