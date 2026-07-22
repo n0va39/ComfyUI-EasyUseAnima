@@ -43,6 +43,7 @@ PACKAGE_MODULES = (
     "easyuse_anima.naia",
     "easyuse_anima.nodes",
     "easyuse_anima.nodes.aio_nodes",
+    "easyuse_anima.nodes.input_types",
     "easyuse_anima.nodes.impact_detailer_nodes",
     "easyuse_anima.nodes.prompt_advanced_nodes",
     "easyuse_anima.nodes.prompt_data_nodes",

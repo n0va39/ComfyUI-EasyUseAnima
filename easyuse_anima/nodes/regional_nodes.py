@@ -13,6 +13,7 @@ from ..prompt.regional import (
     REGIONAL_FIELDS_WORKFLOW_PROPERTY,
     REGIONAL_PROMPT_DATA_TYPE,
 )
+from .input_types import _FlexibleOptionalInputType
 
 
 WILDCARD_MODE_SEQUENTIAL = "sequential"
@@ -37,17 +38,6 @@ WILDCARD_SEED_RANGE_NOTE = (
     "legacy value; increment, decrement, and randomize return the next seed to the "
     "public range."
 )
-
-
-class _FlexibleOptionalInputType(dict):
-    def __init__(self, input_type):
-        self.input_type = input_type
-
-    def __getitem__(self, key):
-        return (self.input_type,)
-
-    def __contains__(self, key):
-        return True
 
 
 def _unbound_runtime(*_args, **_kwargs):

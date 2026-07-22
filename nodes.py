@@ -317,6 +317,11 @@ try:
         EasyUseAnimaPromptDataUnpack as EasyUseAnimaPromptDataUnpack,
         _bind_prompt_data_node_runtime as _bind_prompt_data_node_runtime,
     )
+    from .easyuse_anima.nodes.input_types import (
+        _ANY_TYPE as _ANY_TYPE,
+        _AnyType as _AnyType,
+        _FlexibleOptionalInputType as _FlexibleOptionalInputType,
+    )
     from .easyuse_anima.nodes.prompt_advanced_nodes import (
         EasyUseAnimaPromptStudioAdvanced as EasyUseAnimaPromptStudioAdvanced,
         EasyUseAnimaPromptStudioAdvancedV2 as EasyUseAnimaPromptStudioAdvancedV2,
@@ -829,6 +834,11 @@ except ImportError:  # allows simple local import tests outside ComfyUI's packag
         EasyUseAnimaPromptDataConditioning as EasyUseAnimaPromptDataConditioning,
         EasyUseAnimaPromptDataUnpack as EasyUseAnimaPromptDataUnpack,
         _bind_prompt_data_node_runtime as _bind_prompt_data_node_runtime,
+    )
+    from easyuse_anima.nodes.input_types import (
+        _ANY_TYPE as _ANY_TYPE,
+        _AnyType as _AnyType,
+        _FlexibleOptionalInputType as _FlexibleOptionalInputType,
     )
     from easyuse_anima.nodes.prompt_advanced_nodes import (
         EasyUseAnimaPromptStudioAdvanced as EasyUseAnimaPromptStudioAdvanced,
@@ -1535,23 +1545,6 @@ AIO_RESHIFT_DTYPES = ("bf16", "fp32")
 
 
 _TRIGGER_WORD_KEYS = ("trainedWords", "trained_words", "trigger_words", "activation_text")
-class _AnyType(str):
-    def __ne__(self, __value: object) -> bool:
-        return False
-
-
-class _FlexibleOptionalInputType(dict):
-    def __init__(self, input_type):
-        self.input_type = input_type
-
-    def __getitem__(self, key):
-        return (self.input_type,)
-
-    def __contains__(self, key):
-        return True
-
-
-_ANY_TYPE = _AnyType("*")
 
 
 def _normalize_aio_seed(value, default: int = AIO_SPECIAL_SEED_RANDOM) -> int:
