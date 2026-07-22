@@ -1356,9 +1356,11 @@ print(json.dumps({{
 
 
 class PromptBuilderStudioMoveContractTests(unittest.TestCase):
-    FIELD_OBJECTS = (
+    RETIRED_FIELD_DEFAULTS = (
         "DEFAULT_QUALITY_TAGS",
         "DEFAULT_TRAILING_QUALITY_TAGS",
+    )
+    FIELD_OBJECTS = (
         "_HASH_COMMENT_RE",
         "_INLINE_SPACE_RE",
         "_WEIGHTED_TOKEN_RE",
@@ -1375,6 +1377,9 @@ class PromptBuilderStudioMoveContractTests(unittest.TestCase):
     )
 
     def test_root_prompt_builder_studio_objects_are_direct_canonical_aliases(self):
+        for name in self.RETIRED_FIELD_DEFAULTS:
+            with self.subTest(retired=name):
+                self.assertFalse(hasattr(nodes, name))
         for name in self.FIELD_OBJECTS:
             with self.subTest(module="fields", name=name):
                 self.assertIs(getattr(nodes, name), getattr(prompt_fields, name))
@@ -1390,6 +1395,9 @@ class PromptBuilderStudioMoveContractTests(unittest.TestCase):
                 f"{package_name}.easyuse_anima.nodes.prompt_nodes"
             ]
 
+            for name in self.RETIRED_FIELD_DEFAULTS:
+                with self.subTest(retired=name):
+                    self.assertFalse(hasattr(package_nodes, name))
             for name in self.FIELD_OBJECTS:
                 with self.subTest(module="fields", name=name):
                     self.assertIs(getattr(package_nodes, name), getattr(package_fields, name))

@@ -15,7 +15,7 @@ NODES_PATH = ROOT / "nodes.py"
 FIXTURE_PATH = ROOT / "tests" / "fixtures" / "python_compatibility_surface.v1.json"
 
 SCHEMA_VERSION = 1
-BASE_COMMIT = "8deec4132c42e5851d586ded8cd4cd87a1137eb3"
+BASE_COMMIT = "8b99c03dac1a89317ea5f2738cf6b894fd751022"
 CLASSIFICATIONS = (
     "permanent_entrypoint",
     "supported_public_reexport",
@@ -56,6 +56,18 @@ PREAMBLE_IMPLEMENTATION_BINDINGS = {
     "sqrt": "math:sqrt",
 }
 RETIRED_PRIVATE_BINDINGS = {
+    "DEFAULT_QUALITY_TAGS": {
+        "canonical_target": "easyuse_anima.prompt.fields:DEFAULT_QUALITY_TAGS",
+        "owner": "#184/#188 B-10b10",
+        "reason": "canonical prompt consumers import the immutable default directly",
+    },
+    "DEFAULT_TRAILING_QUALITY_TAGS": {
+        "canonical_target": (
+            "easyuse_anima.prompt.fields:DEFAULT_TRAILING_QUALITY_TAGS"
+        ),
+        "owner": "#184/#188 B-10b10",
+        "reason": "canonical prompt consumers import the immutable default directly",
+    },
     "_call_impact_detailer": {
         "canonical_target": "easyuse_anima.image.sam3:_call_impact_detailer",
         "owner": "#184/#188 B-10b9",
@@ -757,6 +769,7 @@ def _build_document() -> dict[str, Any]:
                 "B-10b7",
                 "B-10b8",
                 "B-10b9",
+                "B-10b10",
             ],
         },
         "enums": {
@@ -769,7 +782,7 @@ def _build_document() -> dict[str, Any]:
         "expected_counts": {
             "root_entrypoints": 3,
             "excluded_preamble_implementation_bindings": 7,
-            "nodes_canonical_bindings": 381,
+            "nodes_canonical_bindings": 379,
             "nodes_legacy_bindings": 27,
             "mapped_public_classes": 18,
             "unmapped_classes": 3,

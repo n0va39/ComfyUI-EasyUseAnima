@@ -73,8 +73,8 @@ def load_dynamic():
     def test_current_nodes_module_shape_matches_recorded_baseline(self):
         report = analyzer.analyze_path(ROOT / "nodes.py")
 
-        self.assertEqual(report["git_blob_sha1"], "04e04a6baf22caf9cbaa6fb27c40f63262d8968b")
-        # Issue #184 B-10b9 retires seven unsupported/test-only SAM3 helpers
+        self.assertEqual(report["git_blob_sha1"], "bd8fa79c8c14aa4cc6ee2fcbda7224d42d39f2f2")
+        # Issue #184 B-10b10 retires two unsupported/test-only prompt defaults
         # after production and tests use the canonical owner directly.
         self.assertEqual(report["top_level"]["function_count"], 41)
         self.assertEqual(report["top_level"]["class_count"], 2)

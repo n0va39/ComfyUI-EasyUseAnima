@@ -16227,68 +16227,6 @@
         "target": "easyuse_anima/prompt/correction.py"
       },
       {
-        "alias": "DEFAULT_QUALITY_TAGS",
-        "bound_name": "DEFAULT_QUALITY_TAGS",
-        "branch_context": [
-          {
-            "branch": "body",
-            "handles_import_failure": true,
-            "has_import_fallback_handler": true,
-            "kind": "try",
-            "line": 11
-          }
-        ],
-        "classification": "internal",
-        "column": 4,
-        "compatibility_pair": {
-          "bound_name": "DEFAULT_QUALITY_TAGS",
-          "target": "easyuse_anima/prompt/fields.py",
-          "try_line": 11
-        },
-        "conditional": true,
-        "imported": ".easyuse_anima.prompt.fields:DEFAULT_QUALITY_TAGS",
-        "kind": "static_from",
-        "line": 122,
-        "name": "DEFAULT_QUALITY_TAGS",
-        "optional": false,
-        "requested": ".easyuse_anima.prompt.fields",
-        "role": "compatibility_primary",
-        "scope": "<module>",
-        "source": "nodes.py",
-        "target": "easyuse_anima/prompt/fields.py"
-      },
-      {
-        "alias": "DEFAULT_TRAILING_QUALITY_TAGS",
-        "bound_name": "DEFAULT_TRAILING_QUALITY_TAGS",
-        "branch_context": [
-          {
-            "branch": "body",
-            "handles_import_failure": true,
-            "has_import_fallback_handler": true,
-            "kind": "try",
-            "line": 11
-          }
-        ],
-        "classification": "internal",
-        "column": 4,
-        "compatibility_pair": {
-          "bound_name": "DEFAULT_TRAILING_QUALITY_TAGS",
-          "target": "easyuse_anima/prompt/fields.py",
-          "try_line": 11
-        },
-        "conditional": true,
-        "imported": ".easyuse_anima.prompt.fields:DEFAULT_TRAILING_QUALITY_TAGS",
-        "kind": "static_from",
-        "line": 122,
-        "name": "DEFAULT_TRAILING_QUALITY_TAGS",
-        "optional": false,
-        "requested": ".easyuse_anima.prompt.fields",
-        "role": "compatibility_primary",
-        "scope": "<module>",
-        "source": "nodes.py",
-        "target": "easyuse_anima/prompt/fields.py"
-      },
-      {
         "alias": "_HASH_COMMENT_RE",
         "bound_name": "_HASH_COMMENT_RE",
         "branch_context": [
@@ -29122,74 +29060,6 @@
         "scope": "<module>",
         "source": "nodes.py",
         "target": "easyuse_anima/prompt/correction.py"
-      },
-      {
-        "alias": "DEFAULT_QUALITY_TAGS",
-        "bound_name": "DEFAULT_QUALITY_TAGS",
-        "branch_context": [
-          {
-            "branch": "except",
-            "catches_import_error": true,
-            "exceptions": [
-              "ImportError"
-            ],
-            "handler_line": 524,
-            "kind": "try",
-            "line": 11
-          }
-        ],
-        "classification": "compatibility_fallback",
-        "column": 4,
-        "compatibility_pair": {
-          "bound_name": "DEFAULT_QUALITY_TAGS",
-          "target": "easyuse_anima/prompt/fields.py",
-          "try_line": 11
-        },
-        "conditional": true,
-        "imported": "easyuse_anima.prompt.fields:DEFAULT_QUALITY_TAGS",
-        "kind": "static_from",
-        "line": 635,
-        "name": "DEFAULT_QUALITY_TAGS",
-        "optional": false,
-        "requested": "easyuse_anima.prompt.fields",
-        "role": "compatibility_fallback",
-        "scope": "<module>",
-        "source": "nodes.py",
-        "target": "easyuse_anima/prompt/fields.py"
-      },
-      {
-        "alias": "DEFAULT_TRAILING_QUALITY_TAGS",
-        "bound_name": "DEFAULT_TRAILING_QUALITY_TAGS",
-        "branch_context": [
-          {
-            "branch": "except",
-            "catches_import_error": true,
-            "exceptions": [
-              "ImportError"
-            ],
-            "handler_line": 524,
-            "kind": "try",
-            "line": 11
-          }
-        ],
-        "classification": "compatibility_fallback",
-        "column": 4,
-        "compatibility_pair": {
-          "bound_name": "DEFAULT_TRAILING_QUALITY_TAGS",
-          "target": "easyuse_anima/prompt/fields.py",
-          "try_line": 11
-        },
-        "conditional": true,
-        "imported": "easyuse_anima.prompt.fields:DEFAULT_TRAILING_QUALITY_TAGS",
-        "kind": "static_from",
-        "line": 635,
-        "name": "DEFAULT_TRAILING_QUALITY_TAGS",
-        "optional": false,
-        "requested": "easyuse_anima.prompt.fields",
-        "role": "compatibility_fallback",
-        "scope": "<module>",
-        "source": "nodes.py",
-        "target": "easyuse_anima/prompt/fields.py"
       },
       {
         "alias": "_HASH_COMMENT_RE",
@@ -43686,7 +43556,7 @@
         "is_package": false,
         "loc": 2712,
         "module": "nodes",
-        "normalized_git_blob_sha1": "04e04a6baf22caf9cbaa6fb27c40f63262d8968b",
+        "normalized_git_blob_sha1": "bd8fa79c8c14aa4cc6ee2fcbda7224d42d39f2f2",
         "path": "nodes.py",
         "top_level": {
           "class_count": 2,
@@ -46940,52 +46810,6 @@
         "role": "compatibility_fallback",
         "source": "nodes.py",
         "target": "easyuse_anima/prompt/correction.py"
-      },
-      {
-        "branch_context": [
-          {
-            "branch": "except",
-            "catches_import_error": true,
-            "exceptions": [
-              "ImportError"
-            ],
-            "handler_line": 524,
-            "kind": "try",
-            "line": 11
-          }
-        ],
-        "classification": "compatibility_fallback",
-        "conditional": true,
-        "imported": "easyuse_anima.prompt.fields:DEFAULT_QUALITY_TAGS",
-        "kind": "static_from",
-        "line": 635,
-        "optional": false,
-        "role": "compatibility_fallback",
-        "source": "nodes.py",
-        "target": "easyuse_anima/prompt/fields.py"
-      },
-      {
-        "branch_context": [
-          {
-            "branch": "except",
-            "catches_import_error": true,
-            "exceptions": [
-              "ImportError"
-            ],
-            "handler_line": 524,
-            "kind": "try",
-            "line": 11
-          }
-        ],
-        "classification": "compatibility_fallback",
-        "conditional": true,
-        "imported": "easyuse_anima.prompt.fields:DEFAULT_TRAILING_QUALITY_TAGS",
-        "kind": "static_from",
-        "line": 635,
-        "optional": false,
-        "role": "compatibility_fallback",
-        "source": "nodes.py",
-        "target": "easyuse_anima/prompt/fields.py"
       },
       {
         "branch_context": [
