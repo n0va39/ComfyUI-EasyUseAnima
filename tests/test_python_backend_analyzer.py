@@ -683,9 +683,9 @@ ignored/
 
         self.assertEqual(analyzer.render_json(report), expected_text)
         self.assertEqual(report["schema_version"], 2)
-        self.assertEqual(report["inventory"]["module_count"], 63)
-        self.assertEqual(len(report["registry"]["shipped_python_modules"]), 63)
-        self.assertEqual(len(report["registry"]["runtime_import_closure"]), 63)
+        self.assertEqual(report["inventory"]["module_count"], 66)
+        self.assertEqual(len(report["registry"]["shipped_python_modules"]), 66)
+        self.assertEqual(len(report["registry"]["runtime_import_closure"]), 66)
         self.assertEqual(report["registry"]["missing_internal_imports"], [])
         self.assertEqual(report["registry"]["unreachable_shipped_python_modules"], [])
         self.assertTrue(
@@ -704,6 +704,7 @@ ignored/
                 "easyuse_anima/image/__init__.py",
                 "easyuse_anima/image/detailer.py",
                 "easyuse_anima/image/geometry.py",
+                "easyuse_anima/image/sam3.py",
                 "easyuse_anima/image/scaling.py",
                 "easyuse_anima/infrastructure/__init__.py",
                 "easyuse_anima/infrastructure/comfy/__init__.py",
@@ -718,12 +719,14 @@ ignored/
                 "easyuse_anima/naia/resolution.py",
                 "easyuse_anima/nodes/__init__.py",
                 "easyuse_anima/nodes/image_nodes.py",
+                "easyuse_anima/nodes/impact_detailer_nodes.py",
                 "easyuse_anima/nodes/lora_nodes.py",
                 "easyuse_anima/nodes/naia_nodes.py",
                 "easyuse_anima/nodes/prompt_advanced_nodes.py",
                 "easyuse_anima/nodes/prompt_data_nodes.py",
                 "easyuse_anima/nodes/prompt_nodes.py",
                 "easyuse_anima/nodes/regional_nodes.py",
+                "easyuse_anima/nodes/sam3_nodes.py",
                 "easyuse_anima/nodes/wildcard_nodes.py",
                 "easyuse_anima/profiles/__init__.py",
                 "easyuse_anima/profiles/contract.py",
@@ -746,6 +749,7 @@ ignored/
                 "easyuse_anima/common/values.py",
                 "easyuse_anima/image/detailer.py",
                 "easyuse_anima/image/geometry.py",
+                "easyuse_anima/image/sam3.py",
                 "easyuse_anima/image/scaling.py",
                 "easyuse_anima/infrastructure/comfy/capabilities.py",
                 "easyuse_anima/infrastructure/comfy/invocation.py",
@@ -757,12 +761,14 @@ ignored/
                 "easyuse_anima/naia/client.py",
                 "easyuse_anima/naia/resolution.py",
                 "easyuse_anima/nodes/image_nodes.py",
+                "easyuse_anima/nodes/impact_detailer_nodes.py",
                 "easyuse_anima/nodes/lora_nodes.py",
                 "easyuse_anima/nodes/naia_nodes.py",
                 "easyuse_anima/nodes/prompt_advanced_nodes.py",
                 "easyuse_anima/nodes/prompt_data_nodes.py",
                 "easyuse_anima/nodes/prompt_nodes.py",
                 "easyuse_anima/nodes/regional_nodes.py",
+                "easyuse_anima/nodes/sam3_nodes.py",
                 "easyuse_anima/nodes/wildcard_nodes.py",
                 "easyuse_anima/prompt/__init__.py",
                 "easyuse_anima/prompt/advanced.py",

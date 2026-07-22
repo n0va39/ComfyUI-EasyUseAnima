@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import annotations
 
-import inspect
 import json
 import logging
 import os
@@ -247,6 +246,19 @@ try:
     from .easyuse_anima.image.detailer import (
         _EasyUseAnimaAlignedDetailerHook as _EasyUseAnimaAlignedDetailerHook,
     )
+    from .easyuse_anima.image.sam3 import (
+        _bind_sam3_runtime as _bind_sam3_runtime,
+        _call_impact_detailer as _call_impact_detailer,
+        _context_value as _context_value,
+        _empty_mask_for_image as _empty_mask_for_image,
+        _empty_segs_for_image as _empty_segs_for_image,
+        _find_impact_detailer_class as _find_impact_detailer_class,
+        _find_impact_mask_to_segs_class as _find_impact_mask_to_segs_class,
+        _find_sam3_detect_class as _find_sam3_detect_class,
+        _format_sam3_detection_prompt as _format_sam3_detection_prompt,
+        _sam3_context as _sam3_context,
+        _segs_has_items as _segs_has_items,
+    )
     from .easyuse_anima.image.scaling import (
         IMAGE_SCALE_MULTIPLES as IMAGE_SCALE_MULTIPLES,
         IMAGE_UPSCALE_METHODS as IMAGE_UPSCALE_METHODS,
@@ -280,6 +292,15 @@ try:
     from .easyuse_anima.nodes.image_nodes import (
         EasyUseAnimaDetailerAlignHook as EasyUseAnimaDetailerAlignHook,
         EasyUseAnimaImageScaleByMultiple as EasyUseAnimaImageScaleByMultiple,
+    )
+    from .easyuse_anima.nodes.impact_detailer_nodes import (
+        _EasyUseAnimaImpactDetailerDelegate as _EasyUseAnimaImpactDetailerDelegate,
+        _bind_impact_detailer_node_runtime as _bind_impact_detailer_node_runtime,
+    )
+    from .easyuse_anima.nodes.sam3_nodes import (
+        EasyUseAnimaSAM3Context as EasyUseAnimaSAM3Context,
+        EasyUseAnimaSAM3Detailer as EasyUseAnimaSAM3Detailer,
+        _bind_sam3_node_runtime as _bind_sam3_node_runtime,
     )
     from .easyuse_anima.nodes.prompt_nodes import (
         EasyUseAnimaPromptBuilder as EasyUseAnimaPromptBuilder,
@@ -639,6 +660,19 @@ except ImportError:  # allows simple local import tests outside ComfyUI's packag
     from easyuse_anima.image.detailer import (
         _EasyUseAnimaAlignedDetailerHook as _EasyUseAnimaAlignedDetailerHook,
     )
+    from easyuse_anima.image.sam3 import (
+        _bind_sam3_runtime as _bind_sam3_runtime,
+        _call_impact_detailer as _call_impact_detailer,
+        _context_value as _context_value,
+        _empty_mask_for_image as _empty_mask_for_image,
+        _empty_segs_for_image as _empty_segs_for_image,
+        _find_impact_detailer_class as _find_impact_detailer_class,
+        _find_impact_mask_to_segs_class as _find_impact_mask_to_segs_class,
+        _find_sam3_detect_class as _find_sam3_detect_class,
+        _format_sam3_detection_prompt as _format_sam3_detection_prompt,
+        _sam3_context as _sam3_context,
+        _segs_has_items as _segs_has_items,
+    )
     from easyuse_anima.image.scaling import (
         IMAGE_SCALE_MULTIPLES as IMAGE_SCALE_MULTIPLES,
         IMAGE_UPSCALE_METHODS as IMAGE_UPSCALE_METHODS,
@@ -672,6 +706,15 @@ except ImportError:  # allows simple local import tests outside ComfyUI's packag
     from easyuse_anima.nodes.image_nodes import (
         EasyUseAnimaDetailerAlignHook as EasyUseAnimaDetailerAlignHook,
         EasyUseAnimaImageScaleByMultiple as EasyUseAnimaImageScaleByMultiple,
+    )
+    from easyuse_anima.nodes.impact_detailer_nodes import (
+        _EasyUseAnimaImpactDetailerDelegate as _EasyUseAnimaImpactDetailerDelegate,
+        _bind_impact_detailer_node_runtime as _bind_impact_detailer_node_runtime,
+    )
+    from easyuse_anima.nodes.sam3_nodes import (
+        EasyUseAnimaSAM3Context as EasyUseAnimaSAM3Context,
+        EasyUseAnimaSAM3Detailer as EasyUseAnimaSAM3Detailer,
+        _bind_sam3_node_runtime as _bind_sam3_node_runtime,
     )
     from easyuse_anima.nodes.prompt_nodes import (
         EasyUseAnimaPromptBuilder as EasyUseAnimaPromptBuilder,
@@ -2387,48 +2430,21 @@ def _impact_scheduler_names() -> list[str]:
         return ["normal", "karras", "exponential", "sgm_uniform", "simple", "ddim_uniform"]
 
 
-def _find_impact_detailer_class():
-    try:
-        import nodes as comfy_nodes  # type: ignore
-
-        cls = getattr(comfy_nodes, "NODE_CLASS_MAPPINGS", {}).get("DetailerForEach")
-        if cls is not None:
-            return cls
-    except Exception:
-        pass
-
-    for module in list(sys.modules.values()):
-        mappings = getattr(module, "NODE_CLASS_MAPPINGS", None)
-        if isinstance(mappings, dict):
-            cls = mappings.get("DetailerForEach")
-            if cls is not None:
-                return cls
-
-    try:
-        from impact.impact_pack import DetailerForEach  # type: ignore
-
-        return DetailerForEach
-    except Exception:
-        pass
-    try:
-        from modules.impact.impact_pack import DetailerForEach  # type: ignore
-
-        return DetailerForEach
-    except Exception:
-        pass
-
-    raise RuntimeError(
-        "[EasyUseAnima] SAM3 Detailer requires ComfyUI Impact Pack's DetailerForEach. "
-        "Install/enable ComfyUI-Impact-Pack, then restart ComfyUI."
-    )
-
-
 def _find_comfy_node_class(node_id: str):
     try:
         import nodes as comfy_nodes  # type: ignore
     except Exception:
         comfy_nodes = None
     return _adapter_find_comfy_node_class(node_id, comfy_nodes)
+
+
+def _find_comfy_node_mapping_class(node_id: str):
+    try:
+        import nodes as comfy_nodes  # type: ignore
+
+        return getattr(comfy_nodes, "NODE_CLASS_MAPPINGS", {}).get(node_id)
+    except Exception:
+        return None
 
 
 def _require_custom_node_class(node_id: str, node_pack: str, install_hint: str):
@@ -2514,68 +2530,6 @@ def _encode_with_comfy_clip(clip, text: str):
     if not isinstance(result, tuple) or not result:
         raise RuntimeError("[EasyUseAnima] CLIPTextEncode returned no conditioning.")
     return result[0]
-
-
-def _find_sam3_detect_class():
-    cls = _find_comfy_node_class("SAM3_Detect")
-    if cls is not None:
-        return cls
-    # Optional ComfyUI native node integration.
-    # This imports only the built-in comfy_extras.nodes_sam3.SAM3_Detect class.
-    # It does not load user-provided modules or execute dynamic code.
-    try:
-        from comfy_extras.nodes_sam3 import SAM3_Detect  # type: ignore
-
-        return SAM3_Detect
-    except Exception:
-        pass
-    raise RuntimeError(
-        "[EasyUseAnima] SAM3_Detect was not found. "
-        "Use a ComfyUI build with native SAM3 support, then restart ComfyUI."
-    )
-
-
-def _find_impact_mask_to_segs_class():
-    cls = _find_comfy_node_class("MaskToSEGS")
-    if cls is not None:
-        return cls
-
-    for module in list(sys.modules.values()):
-        mappings = getattr(module, "NODE_CLASS_MAPPINGS", None)
-        if isinstance(mappings, dict):
-            cls = mappings.get("MaskToSEGS")
-            if cls is not None:
-                return cls
-
-    try:
-        from impact.segs_nodes import MaskToSEGS  # type: ignore
-
-        return MaskToSEGS
-    except Exception:
-        pass
-    try:
-        from modules.impact.segs_nodes import MaskToSEGS  # type: ignore
-
-        return MaskToSEGS
-    except Exception:
-        pass
-    try:
-        from impact.impact_pack import MaskToSEGS  # type: ignore
-
-        return MaskToSEGS
-    except Exception:
-        pass
-    try:
-        from modules.impact.impact_pack import MaskToSEGS  # type: ignore
-
-        return MaskToSEGS
-    except Exception:
-        pass
-
-    raise RuntimeError(
-        "[EasyUseAnima] Anima SAM3 Detailer requires ComfyUI Impact Pack's MaskToSEGS. "
-        "Install/enable ComfyUI-Impact-Pack, then restart ComfyUI."
-    )
 
 
 def _find_loaded_node_class(node_id: str):
@@ -4428,72 +4382,6 @@ def _save_image_with_image_saver(
     )
 
 
-def _format_sam3_detection_prompt(detect_prompt: str, detect_count: int) -> str:
-    prompt = str(detect_prompt or "").strip()
-    if not prompt:
-        raise ValueError("[EasyUseAnima] SAM3 detect prompt is empty.")
-
-    max_det = max(1, int(detect_count))
-    parts = [part.strip() for part in re.split(r"[,\n]+", prompt) if part.strip()]
-    formatted = []
-    for part in parts:
-        if re.search(r":\s*[\d.]+\s*$", part):
-            formatted.append(part)
-        else:
-            formatted.append(f"{part}:{max_det}")
-    return ", ".join(formatted)
-
-
-def _sam3_context(model, clip, vae, ckpt_name: str = "") -> dict[str, Any]:
-    return {
-        "model": model,
-        "clip": clip,
-        "vae": vae,
-        "ckpt_name": ckpt_name,
-    }
-
-
-def _context_value(ctx, key: str):
-    if isinstance(ctx, dict):
-        return ctx.get(key)
-    return None
-
-
-def _empty_mask_for_image(image):
-    try:
-        import torch  # type: ignore
-    except Exception as exc:
-        raise RuntimeError("[EasyUseAnima] torch is required to create an empty mask.") from exc
-
-    batch = int(image.shape[0])
-    height = int(image.shape[1])
-    width = int(image.shape[2])
-    device = getattr(image, "device", None)
-    return torch.zeros((batch, height, width), dtype=torch.float32, device=device)
-
-
-def _empty_segs_for_image(image):
-    return ((int(image.shape[1]), int(image.shape[2])), [])
-
-
-def _segs_has_items(segs) -> bool:
-    try:
-        return len(segs[1]) > 0
-    except Exception:
-        return False
-
-
-def _call_impact_detailer(detailer, **kwargs):
-    method = getattr(detailer, "doit", None)
-    if method is None:
-        raise RuntimeError("[EasyUseAnima] Impact DetailerForEach does not expose a doit method.")
-    signature = inspect.signature(method)
-    parameters = signature.parameters
-    accepts_kwargs = any(param.kind == inspect.Parameter.VAR_KEYWORD for param in parameters.values())
-    call_kwargs = kwargs if accepts_kwargs else {key: value for key, value in kwargs.items() if key in parameters}
-    return method(**call_kwargs)
-
-
 def _get_workflow_node(extra_pnginfo, node_id: str):
     pnginfo = _single_value(extra_pnginfo)
     if not isinstance(pnginfo, dict):
@@ -4618,6 +4506,15 @@ def _consume_reserved_wildcard_next_seed(
     return reservation_next_seed if reservation_next_seed == expected_next_seed else None
 
 
+_bind_sam3_runtime(
+    resolve_helper=lambda name: globals()[name],
+)
+_bind_impact_detailer_node_runtime(
+    resolve_helper=lambda name: globals()[name],
+)
+_bind_sam3_node_runtime(
+    resolve_helper=lambda name: globals()[name],
+)
 _bind_regional_runtime(
     resolve_helper=lambda name: globals()[name],
 )
@@ -5257,512 +5154,3 @@ class EasyUseAnimaAIOGenerator:
             "ui": ui,
             "result": (image, latent, metadata_json),
         }
-
-
-class EasyUseAnimaSAM3Context:
-    """Load a native ComfyUI SAM3 checkpoint and expose it as ctx_SAM3."""
-
-    DESCRIPTION = (
-        "Loads a SAM3 checkpoint with ComfyUI's native checkpoint loader and returns "
-        "an rgthree-compatible context containing the SAM3 model, CLIP, and VAE."
-    )
-    OUTPUT_TOOLTIPS = (
-        "Context dict containing SAM3 model, CLIP, VAE, and checkpoint name.",
-        "SAM3 model loaded from the selected checkpoint.",
-        "SAM3 CLIP loaded from the selected checkpoint.",
-        "VAE loaded from the selected checkpoint.",
-    )
-
-    @classmethod
-    def INPUT_TYPES(cls):
-        checkpoint_names = _comfy_checkpoint_names()
-        return {
-            "required": {
-                "ckpt_name": (checkpoint_names, {
-                    "default": _preferred_checkpoint_default(checkpoint_names, "sam3.1_multiplex_fp16.safetensors"),
-                    "tooltip": "SAM3 checkpoint to load, for example sam3.1_multiplex_fp16.safetensors.",
-                }),
-            },
-        }
-
-    RETURN_TYPES = ("RGTHREE_CONTEXT", "MODEL", "CLIP", "VAE")
-    RETURN_NAMES = ("ctx_SAM3", "sam3_model", "sam3_clip", "sam3_vae")
-    FUNCTION = "load"
-    CATEGORY = "EasyUse Anima/Detailer"
-
-    def load(self, ckpt_name):
-        model, clip, vae = _load_checkpoint_with_comfy(str(ckpt_name))
-        return (_sam3_context(model, clip, vae, str(ckpt_name)), model, clip, vae)
-
-
-class _EasyUseAnimaImpactDetailerDelegate:
-    """Internal Impact Pack DetailerForEach delegate used by SAM3 nodes."""
-
-    DESCRIPTION = (
-        "Internal Impact Pack DetailerForEach delegate used by EasyUse Anima SAM3 nodes."
-    )
-    OUTPUT_TOOLTIPS = (
-        "Enhanced image returned by Impact Pack DetailerForEach.",
-    )
-
-    @classmethod
-    def INPUT_TYPES(cls):
-        max_resolution = _comfy_max_resolution()
-        return {
-            "required": {
-                "image": ("IMAGE",),
-                "segs": ("SEGS",),
-                "model": ("MODEL", {
-                    "tooltip": "Model passed through to Impact Pack DetailerForEach.",
-                }),
-                "clip": ("CLIP",),
-                "vae": ("VAE",),
-                "guide_size": ("FLOAT", {
-                    "default": 512,
-                    "min": 64,
-                    "max": max_resolution,
-                    "step": 8,
-                    "tooltip": "Target guide size for the detailed crop.",
-                }),
-                "guide_size_for": ("BOOLEAN", {
-                    "default": True,
-                    "label_on": "bbox",
-                    "label_off": "crop_region",
-                    "tooltip": "Use the bbox or crop region as the guide-size basis.",
-                }),
-                "max_size": ("FLOAT", {
-                    "default": 1024,
-                    "min": 64,
-                    "max": max_resolution,
-                    "step": 8,
-                    "tooltip": "Maximum crop size before sampling.",
-                }),
-                "seed": ("INT", {
-                    "default": 0,
-                    "min": 0,
-                    "max": 0xffffffffffffffff,
-                }),
-                "steps": ("INT", {
-                    "default": 20,
-                    "min": 1,
-                    "max": 10000,
-                }),
-                "cfg": ("FLOAT", {
-                    "default": 8.0,
-                    "min": 0.0,
-                    "max": 100.0,
-                }),
-                "sampler_name": (_comfy_sampler_names(),),
-                "scheduler": (_impact_scheduler_names(),),
-                "positive": ("CONDITIONING",),
-                "negative": ("CONDITIONING",),
-                "denoise": ("FLOAT", {
-                    "default": 0.5,
-                    "min": 0.0001,
-                    "max": 1.0,
-                    "step": 0.01,
-                }),
-                "feather": ("INT", {
-                    "default": 5,
-                    "min": 0,
-                    "max": 100,
-                    "step": 1,
-                }),
-                "noise_mask": ("BOOLEAN", {
-                    "default": True,
-                    "label_on": "enabled",
-                    "label_off": "disabled",
-                }),
-                "force_inpaint": ("BOOLEAN", {
-                    "default": True,
-                    "label_on": "enabled",
-                    "label_off": "disabled",
-                }),
-                "wildcard": ("STRING", {
-                    "multiline": True,
-                    "default": "",
-                    "dynamicPrompts": False,
-                }),
-                "cycle": ("INT", {
-                    "default": 1,
-                    "min": 1,
-                    "max": 10,
-                    "step": 1,
-                }),
-                "alignment": (["impact", "none", "8", "16", "32", "64"], {
-                    "default": "impact",
-                    "tooltip": (
-                        "Align the Impact detail crop sampling size upward. "
-                        "Use 32 for ANIMA/Spectrum safety, or impact/none for pass-through."
-                    ),
-                }),
-                "preserve_conditioning_metadata": ("BOOLEAN", {
-                    "default": True,
-                    "tooltip": (
-                        "Reserved safety flag for the native ANIMA backend. "
-                        "The current Impact backend passes conditioning through to Impact Pack."
-                    ),
-                }),
-                "fail_on_unsupported_opt": ("BOOLEAN", {
-                    "default": False,
-                    "tooltip": "Raise an error instead of warning when a native-backend-only option is requested.",
-                }),
-            },
-            "optional": {
-                "detailer_hook": ("DETAILER_HOOK",),
-                "inpaint_model": ("BOOLEAN", {
-                    "default": False,
-                    "label_on": "enabled",
-                    "label_off": "disabled",
-                }),
-                "noise_mask_feather": ("INT", {
-                    "default": 20,
-                    "min": 0,
-                    "max": 100,
-                    "step": 1,
-                }),
-                "scheduler_func_opt": ("SCHEDULER_FUNC",),
-                "tiled_encode": ("BOOLEAN", {
-                    "default": False,
-                    "label_on": "enabled",
-                    "label_off": "disabled",
-                }),
-                "tiled_decode": ("BOOLEAN", {
-                    "default": False,
-                    "label_on": "enabled",
-                    "label_off": "disabled",
-                }),
-            },
-        }
-
-    RETURN_TYPES = ("IMAGE",)
-    RETURN_NAMES = ("image",)
-    FUNCTION = "doit"
-    CATEGORY = "EasyUse Anima/Detailer"
-
-    def doit(
-        self,
-        image,
-        segs,
-        model,
-        clip,
-        vae,
-        guide_size,
-        guide_size_for,
-        max_size,
-        seed,
-        steps,
-        cfg,
-        sampler_name,
-        scheduler,
-        positive,
-        negative,
-        denoise,
-        feather,
-        noise_mask,
-        force_inpaint,
-        wildcard,
-        cycle=1,
-        alignment="impact",
-        preserve_conditioning_metadata=True,
-        fail_on_unsupported_opt=False,
-        detailer_hook=None,
-        inpaint_model=False,
-        noise_mask_feather=0,
-        scheduler_func_opt=None,
-        tiled_encode=False,
-        tiled_decode=False,
-    ):
-        alignment_text = str(alignment or "impact")
-        alignment_int = _alignment_value(alignment_text)
-
-        if not _as_bool(preserve_conditioning_metadata, True):
-            logger.warning(
-                "[EasyUseAnima] preserve_conditioning_metadata=false is reserved for a native backend; "
-                "the Impact backend leaves conditioning handling to Impact Pack."
-            )
-
-        effective_detailer_hook = detailer_hook
-        if alignment_int is not None:
-            effective_detailer_hook = _EasyUseAnimaAlignedDetailerHook(detailer_hook, alignment_int)
-
-        detailer_cls = _find_impact_detailer_class()
-        detailer = detailer_cls()
-        result = _call_impact_detailer(
-            detailer,
-            image=image,
-            segs=segs,
-            model=model,
-            clip=clip,
-            vae=vae,
-            guide_size=guide_size,
-            guide_size_for=guide_size_for,
-            max_size=max_size,
-            seed=seed,
-            steps=steps,
-            cfg=cfg,
-            sampler_name=sampler_name,
-            scheduler=scheduler,
-            positive=positive,
-            negative=negative,
-            denoise=denoise,
-            feather=feather,
-            noise_mask=noise_mask,
-            force_inpaint=force_inpaint,
-            wildcard=wildcard,
-            cycle=cycle,
-            detailer_hook=effective_detailer_hook,
-            inpaint_model=inpaint_model,
-            noise_mask_feather=noise_mask_feather,
-            scheduler_func_opt=scheduler_func_opt,
-            tiled_encode=tiled_encode,
-            tiled_decode=tiled_decode,
-        )
-        if isinstance(result, dict):
-            value = result.get("result")
-            if isinstance(value, tuple) and value:
-                return (value[0],)
-        if isinstance(result, tuple):
-            if not result:
-                raise RuntimeError("[EasyUseAnima] Impact DetailerForEach returned an empty tuple.")
-            return (result[0],)
-        return (result,)
-
-
-class EasyUseAnimaSAM3Detailer:
-    """Native SAM3 detection + Impact MaskToSEGS + ANIMA detailer."""
-
-    DESCRIPTION = (
-        "Runs native ComfyUI SAM3 text detection, converts the resulting mask to Impact Pack SEGS, "
-        "then delegates detailing to Impact Pack DetailerForEach."
-    )
-    OUTPUT_TOOLTIPS = (
-        "Detailed image. If disabled or no SEGS are detected, this is the original image.",
-        "Impact-compatible SEGS generated from the SAM3 mask.",
-        "SAM3 mask used to build SEGS.",
-        "Original input image before detailing.",
-    )
-
-    @classmethod
-    def INPUT_TYPES(cls):
-        max_resolution = _comfy_max_resolution()
-        detailer_inputs = _EasyUseAnimaImpactDetailerDelegate.INPUT_TYPES()
-        required = {
-            "enabled": ("BOOLEAN", {
-                "default": True,
-                "label_on": "enabled",
-                "label_off": "bypass",
-                "tooltip": "Disable to return the original image and an empty SEGS output.",
-            }),
-            "image": ("IMAGE",),
-            "ctx_SAM3": ("RGTHREE_CONTEXT", {
-                "tooltip": "ctx_SAM3 from the AiO SAM3 detailer path or a compatible rgthree context containing model and clip.",
-            }),
-            "detect_prompt": ("STRING", {
-                "default": "face",
-                "multiline": False,
-                "dynamicPrompts": False,
-                "tooltip": "SAM3 text target. Use comma-separated targets or target:count for per-target detection count.",
-            }),
-            "detect_count": ("INT", {
-                "default": 1,
-                "min": 1,
-                "max": 64,
-                "step": 1,
-                "tooltip": "Maximum detections per target when detect_prompt does not already include :count.",
-            }),
-            "threshold": ("FLOAT", {
-                "default": 0.5,
-                "min": 0.0,
-                "max": 1.0,
-                "step": 0.01,
-                "tooltip": "SAM3 detection threshold.",
-            }),
-            "refine_iterations": ("INT", {
-                "default": 2,
-                "min": 0,
-                "max": 5,
-                "step": 1,
-                "tooltip": "SAM decoder refinement passes. 0 uses raw detector masks.",
-            }),
-            "individual_masks": ("BOOLEAN", {
-                "default": False,
-                "label_on": "enabled",
-                "label_off": "combined",
-                "tooltip": "Ask SAM3 for per-object masks. MaskToSEGS can still split a combined mask by contours.",
-            }),
-            "combined": ("BOOLEAN", {
-                "default": False,
-                "label_on": "combined",
-                "label_off": "separate",
-                "tooltip": "Impact MaskToSEGS combined option.",
-            }),
-            "crop_factor": ("FLOAT", {
-                "default": 3.0,
-                "min": 1.0,
-                "max": 100.0,
-                "step": 0.1,
-                "tooltip": "Impact MaskToSEGS crop factor.",
-            }),
-            "bbox_fill": ("BOOLEAN", {
-                "default": False,
-                "label_on": "enabled",
-                "label_off": "disabled",
-                "tooltip": "Impact MaskToSEGS bbox_fill option.",
-            }),
-            "drop_size": ("INT", {
-                "default": 10,
-                "min": 1,
-                "max": max_resolution,
-                "step": 1,
-                "tooltip": "Drop detected regions smaller than this size.",
-            }),
-            "contour_fill": ("BOOLEAN", {
-                "default": False,
-                "label_on": "enabled",
-                "label_off": "disabled",
-                "tooltip": "Impact MaskToSEGS contour_fill option.",
-            }),
-        }
-
-        for key, value in detailer_inputs["required"].items():
-            if key in ("image", "segs"):
-                continue
-            required[key] = value
-
-        return {
-            "required": required,
-            "optional": detailer_inputs.get("optional", {}),
-        }
-
-    RETURN_TYPES = ("IMAGE", "SEGS", "MASK", "IMAGE")
-    RETURN_NAMES = ("image", "segs", "mask", "raw_image")
-    FUNCTION = "doit"
-    CATEGORY = "EasyUse Anima/Detailer"
-
-    def doit(
-        self,
-        enabled,
-        image,
-        ctx_SAM3,
-        detect_prompt,
-        detect_count,
-        threshold,
-        refine_iterations,
-        individual_masks,
-        combined,
-        crop_factor,
-        bbox_fill,
-        drop_size,
-        contour_fill,
-        model,
-        clip,
-        vae,
-        guide_size,
-        guide_size_for,
-        max_size,
-        seed,
-        steps,
-        cfg,
-        sampler_name,
-        scheduler,
-        positive,
-        negative,
-        denoise,
-        feather,
-        noise_mask,
-        force_inpaint,
-        wildcard,
-        cycle=1,
-        alignment="impact",
-        preserve_conditioning_metadata=True,
-        fail_on_unsupported_opt=False,
-        detailer_hook=None,
-        inpaint_model=False,
-        noise_mask_feather=0,
-        scheduler_func_opt=None,
-        tiled_encode=False,
-        tiled_decode=False,
-    ):
-        empty_mask = _empty_mask_for_image(image)
-        empty_segs = _empty_segs_for_image(image)
-        if not _as_bool(enabled, True):
-            return (image, empty_segs, empty_mask, image)
-
-        sam3_model = _context_value(ctx_SAM3, "model")
-        sam3_clip = _context_value(ctx_SAM3, "clip")
-        if sam3_model is None or sam3_clip is None:
-            raise RuntimeError(
-                "[EasyUseAnima] ctx_SAM3 must contain SAM3 model and CLIP. "
-                "Use the AiO SAM3 detailer path or a compatible rgthree context."
-            )
-
-        sam3_text = _format_sam3_detection_prompt(detect_prompt, detect_count)
-        conditioning = _encode_with_comfy_clip(sam3_clip, sam3_text)
-
-        sam3_cls = _find_sam3_detect_class()
-        sam3_result = sam3_cls.execute(
-            model=sam3_model,
-            image=image,
-            conditioning=conditioning,
-            threshold=float(threshold),
-            refine_iterations=int(refine_iterations),
-            individual_masks=_as_bool(individual_masks, False),
-        )
-        sam3_values = _node_output_tuple(sam3_result)
-        if len(sam3_values) < 1:
-            raise RuntimeError("[EasyUseAnima] SAM3_Detect returned no mask.")
-        mask = sam3_values[0]
-
-        mask_to_segs_cls = _find_impact_mask_to_segs_class()
-        mask_to_segs_result = mask_to_segs_cls.doit(
-            mask,
-            _as_bool(combined, False),
-            float(crop_factor),
-            _as_bool(bbox_fill, False),
-            int(drop_size),
-            _as_bool(contour_fill, False),
-        )
-        segs_values = _node_output_tuple(mask_to_segs_result)
-        if len(segs_values) < 1:
-            raise RuntimeError("[EasyUseAnima] MaskToSEGS returned no SEGS.")
-        segs = segs_values[0]
-
-        if not _segs_has_items(segs):
-            logger.info("[EasyUseAnima] SAM3 Detailer detected no SEGS for prompt %r.", sam3_text)
-            return (image, segs, mask, image)
-
-        detailed_image = _EasyUseAnimaImpactDetailerDelegate().doit(
-            image=image,
-            segs=segs,
-            model=model,
-            clip=clip,
-            vae=vae,
-            guide_size=guide_size,
-            guide_size_for=guide_size_for,
-            max_size=max_size,
-            seed=seed,
-            steps=steps,
-            cfg=cfg,
-            sampler_name=sampler_name,
-            scheduler=scheduler,
-            positive=positive,
-            negative=negative,
-            denoise=denoise,
-            feather=feather,
-            noise_mask=noise_mask,
-            force_inpaint=force_inpaint,
-            wildcard=wildcard,
-            cycle=cycle,
-            alignment=alignment,
-            preserve_conditioning_metadata=preserve_conditioning_metadata,
-            fail_on_unsupported_opt=fail_on_unsupported_opt,
-            detailer_hook=detailer_hook,
-            inpaint_model=inpaint_model,
-            noise_mask_feather=noise_mask_feather,
-            scheduler_func_opt=scheduler_func_opt,
-            tiled_encode=tiled_encode,
-            tiled_decode=tiled_decode,
-        )[0]
-
-        return (detailed_image, segs, mask, image)

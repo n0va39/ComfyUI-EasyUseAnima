@@ -73,12 +73,12 @@ def load_dynamic():
     def test_current_nodes_module_shape_matches_recorded_baseline(self):
         report = analyzer.analyze_path(ROOT / "nodes.py")
 
-        self.assertEqual(report["git_blob_sha1"], "d50f1bed2fb669691341f1e3bdb46f93da2cf9a5")
-        # Issue #168 C168-03 added the typed AiO config compatibility-facade wiring
-        # without moving the existing normalizer or changing the root symbol shape.
-        self.assertEqual(report["top_level"]["function_count"], 108)
-        self.assertEqual(report["top_level"]["class_count"], 7)
-        self.assertEqual(report["line_count"], 5_768)
+        self.assertEqual(report["git_blob_sha1"], "d488dc764611b36742d9acd448da3cc8e8cb844f")
+        # Issues #168 C168-03 and #184 B-07f preserve the typed AiO facade while
+        # moving the internal SAM3/Impact vertical slice behind direct aliases.
+        self.assertEqual(report["top_level"]["function_count"], 99)
+        self.assertEqual(report["top_level"]["class_count"], 4)
+        self.assertEqual(report["line_count"], 5_156)
         class_names = {item["name"] for item in report["top_level"]["classes"]}
         self.assertIn("EasyUseAnimaAIOGenerator", class_names)
         self.assertNotIn("EasyUseAnimaPromptStudioAdvanced", class_names)
@@ -98,6 +98,9 @@ def load_dynamic():
         self.assertNotIn("EasyUseAnimaPromptDataUnpack", class_names)
         self.assertNotIn("EasyUseAnimaArtistMixConditioning", class_names)
         self.assertNotIn("EasyUseAnimaPromptDataConditioning", class_names)
+        self.assertNotIn("EasyUseAnimaSAM3Context", class_names)
+        self.assertNotIn("_EasyUseAnimaImpactDetailerDelegate", class_names)
+        self.assertNotIn("EasyUseAnimaSAM3Detailer", class_names)
 
     def test_external_source_label_does_not_expose_parent_directories(self):
         label = analyzer._source_label(Path("Z:/private/user/data/example.py"))

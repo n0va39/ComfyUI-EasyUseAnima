@@ -98,6 +98,16 @@ EasyUseAnimaWildcard
 - B-04 compatibility exception: `_image_scale_by_multiple_size` and the moved
   image/Detailer helpers still used by root internals or focused tests remain
   explicit direct aliases to their canonical modules; they are not wrappers.
+- B-07f internal SAM3 transition: `EasyUseAnimaSAM3Context` and
+  `EasyUseAnimaSAM3Detailer` remain direct root aliases to
+  `easyuse_anima.nodes.sam3_nodes`; `_EasyUseAnimaImpactDetailerDelegate`
+  remains a direct alias to `easyuse_anima.nodes.impact_detailer_nodes`. SAM3
+  resolver, formatting, context, mask/SEGS, and Impact-call helpers moved to
+  `easyuse_anima.image.sam3` and remain direct root aliases through the B-10
+  compatibility audit. These names are internal transition surfaces for the
+  root AiO caller, historical convenience-node compatibility, and focused
+  monkeypatch tests; they are not mapped public nodes and are not added to
+  locales or a canonical public `__all__`.
 - Removal gate: 0.5.2 node/workflow fixture, mapping identity, direct import,
   Registry archive closure, consumer evidence, separate breaking-change issue,
   and release note. With no external-consumer evidence, retain these exports.
