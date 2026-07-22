@@ -550,6 +550,15 @@ class CommonHelperMoveContractTests(unittest.TestCase):
 
 
 class ComfyAdapterMoveContractTests(unittest.TestCase):
+    RETIRED_SAM3_SERVICE_HELPERS = (
+        "_call_impact_detailer",
+        "_empty_mask_for_image",
+        "_empty_segs_for_image",
+        "_find_impact_detailer_class",
+        "_find_impact_mask_to_segs_class",
+        "_find_sam3_detect_class",
+        "_format_sam3_detection_prompt",
+    )
     DIRECT_HELPER_MODULES = (
         (
             comfy_capabilities,
@@ -581,6 +590,9 @@ class ComfyAdapterMoveContractTests(unittest.TestCase):
             self.assertFalse(
                 hasattr(package_nodes, "_EasyUseAnimaImpactDetailerDelegate")
             )
+            for helper_name in self.RETIRED_SAM3_SERVICE_HELPERS:
+                with self.subTest(retired=helper_name):
+                    self.assertFalse(hasattr(package_nodes, helper_name))
             package_name = package_nodes.__package__
             package_capabilities = sys.modules[
                 f"{package_name}.easyuse_anima.infrastructure.comfy.capabilities"

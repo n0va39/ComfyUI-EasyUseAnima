@@ -15,7 +15,7 @@ NODES_PATH = ROOT / "nodes.py"
 FIXTURE_PATH = ROOT / "tests" / "fixtures" / "python_compatibility_surface.v1.json"
 
 SCHEMA_VERSION = 1
-BASE_COMMIT = "e559f017ff112ef701951f5b79ad03e32cccc917"
+BASE_COMMIT = "8deec4132c42e5851d586ded8cd4cd87a1137eb3"
 CLASSIFICATIONS = (
     "permanent_entrypoint",
     "supported_public_reexport",
@@ -56,6 +56,45 @@ PREAMBLE_IMPLEMENTATION_BINDINGS = {
     "sqrt": "math:sqrt",
 }
 RETIRED_PRIVATE_BINDINGS = {
+    "_call_impact_detailer": {
+        "canonical_target": "easyuse_anima.image.sam3:_call_impact_detailer",
+        "owner": "#184/#188 B-10b9",
+        "reason": "canonical Impact adapter imports the owner directly",
+    },
+    "_empty_mask_for_image": {
+        "canonical_target": "easyuse_anima.image.sam3:_empty_mask_for_image",
+        "owner": "#184/#188 B-10b9",
+        "reason": "canonical SAM3 adapter imports the owner directly",
+    },
+    "_empty_segs_for_image": {
+        "canonical_target": "easyuse_anima.image.sam3:_empty_segs_for_image",
+        "owner": "#184/#188 B-10b9",
+        "reason": "canonical SAM3 adapter imports the owner directly",
+    },
+    "_find_impact_detailer_class": {
+        "canonical_target": "easyuse_anima.image.sam3:_find_impact_detailer_class",
+        "owner": "#184/#188 B-10b9",
+        "reason": "canonical Impact adapter imports the owner directly",
+    },
+    "_find_impact_mask_to_segs_class": {
+        "canonical_target": (
+            "easyuse_anima.image.sam3:_find_impact_mask_to_segs_class"
+        ),
+        "owner": "#184/#188 B-10b9",
+        "reason": "canonical SAM3 adapter imports the owner directly",
+    },
+    "_find_sam3_detect_class": {
+        "canonical_target": "easyuse_anima.image.sam3:_find_sam3_detect_class",
+        "owner": "#184/#188 B-10b9",
+        "reason": "canonical SAM3 adapter imports the owner directly",
+    },
+    "_format_sam3_detection_prompt": {
+        "canonical_target": (
+            "easyuse_anima.image.sam3:_format_sam3_detection_prompt"
+        ),
+        "owner": "#184/#188 B-10b9",
+        "reason": "canonical SAM3 adapter imports the owner directly",
+    },
     "WILDCARD_SEED_RANGE_NOTE": {
         "canonical_target": (
             "easyuse_anima.nodes.wildcard_nodes:WILDCARD_SEED_RANGE_NOTE"
@@ -717,6 +756,7 @@ def _build_document() -> dict[str, Any]:
                 "B-10b6",
                 "B-10b7",
                 "B-10b8",
+                "B-10b9",
             ],
         },
         "enums": {
@@ -729,7 +769,7 @@ def _build_document() -> dict[str, Any]:
         "expected_counts": {
             "root_entrypoints": 3,
             "excluded_preamble_implementation_bindings": 7,
-            "nodes_canonical_bindings": 388,
+            "nodes_canonical_bindings": 381,
             "nodes_legacy_bindings": 27,
             "mapped_public_classes": 18,
             "unmapped_classes": 3,

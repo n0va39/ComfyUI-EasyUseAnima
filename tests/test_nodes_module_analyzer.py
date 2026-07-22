@@ -73,9 +73,9 @@ def load_dynamic():
     def test_current_nodes_module_shape_matches_recorded_baseline(self):
         report = analyzer.analyze_path(ROOT / "nodes.py")
 
-        self.assertEqual(report["git_blob_sha1"], "5dd028142914295ced6ea5d1c6e3e2d4ef73e0bc")
-        # Issue #184 B-10b8 retires the unsupported/test-only wildcard-note
-        # alias after its root-only test assertion moved to the canonical owner.
+        self.assertEqual(report["git_blob_sha1"], "04e04a6baf22caf9cbaa6fb27c40f63262d8968b")
+        # Issue #184 B-10b9 retires seven unsupported/test-only SAM3 helpers
+        # after production and tests use the canonical owner directly.
         self.assertEqual(report["top_level"]["function_count"], 41)
         self.assertEqual(report["top_level"]["class_count"], 2)
         self.assertEqual(report["line_count"], 2_712)

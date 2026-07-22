@@ -2,7 +2,7 @@
   "schema_version": 1,
   "snapshot": {
     "base_branch": "dev",
-    "base_commit": "e559f017ff112ef701951f5b79ad03e32cccc917",
+    "base_commit": "8deec4132c42e5851d586ded8cd4cd87a1137eb3",
     "first_release": null,
     "owner_tasks": [
       "#184",
@@ -15,7 +15,8 @@
       "B-10b5",
       "B-10b6",
       "B-10b7",
-      "B-10b8"
+      "B-10b8",
+      "B-10b9"
     ]
   },
   "enums": {
@@ -50,7 +51,7 @@
   "expected_counts": {
     "root_entrypoints": 3,
     "excluded_preamble_implementation_bindings": 7,
-    "nodes_canonical_bindings": 388,
+    "nodes_canonical_bindings": 381,
     "nodes_legacy_bindings": 27,
     "mapped_public_classes": 18,
     "unmapped_classes": 3,
@@ -1042,6 +1043,41 @@
     }
   },
   "retired_private_bindings": {
+    "_call_impact_detailer": {
+      "canonical_target": "easyuse_anima.image.sam3:_call_impact_detailer",
+      "owner": "#184/#188 B-10b9",
+      "reason": "canonical Impact adapter imports the owner directly"
+    },
+    "_empty_mask_for_image": {
+      "canonical_target": "easyuse_anima.image.sam3:_empty_mask_for_image",
+      "owner": "#184/#188 B-10b9",
+      "reason": "canonical SAM3 adapter imports the owner directly"
+    },
+    "_empty_segs_for_image": {
+      "canonical_target": "easyuse_anima.image.sam3:_empty_segs_for_image",
+      "owner": "#184/#188 B-10b9",
+      "reason": "canonical SAM3 adapter imports the owner directly"
+    },
+    "_find_impact_detailer_class": {
+      "canonical_target": "easyuse_anima.image.sam3:_find_impact_detailer_class",
+      "owner": "#184/#188 B-10b9",
+      "reason": "canonical Impact adapter imports the owner directly"
+    },
+    "_find_impact_mask_to_segs_class": {
+      "canonical_target": "easyuse_anima.image.sam3:_find_impact_mask_to_segs_class",
+      "owner": "#184/#188 B-10b9",
+      "reason": "canonical SAM3 adapter imports the owner directly"
+    },
+    "_find_sam3_detect_class": {
+      "canonical_target": "easyuse_anima.image.sam3:_find_sam3_detect_class",
+      "owner": "#184/#188 B-10b9",
+      "reason": "canonical SAM3 adapter imports the owner directly"
+    },
+    "_format_sam3_detection_prompt": {
+      "canonical_target": "easyuse_anima.image.sam3:_format_sam3_detection_prompt",
+      "owner": "#184/#188 B-10b9",
+      "reason": "canonical SAM3 adapter imports the owner directly"
+    },
     "WILDCARD_SEED_RANGE_NOTE": {
       "canonical_target": "easyuse_anima.nodes.wildcard_nodes:WILDCARD_SEED_RANGE_NOTE",
       "owner": "#184/#188 B-10b8",
@@ -1686,41 +1722,6 @@
         "separate B-10b or B-11 rollback unit"
       ],
       "lifecycle_state": "transitional"
-    },
-    {
-      "id": "nodes_canonical_bindings:easyuse_anima.image.sam3:unsupported_test_only",
-      "surface": "nodes_canonical_bindings",
-      "symbols": {
-        "_call_impact_detailer": "_call_impact_detailer",
-        "_empty_mask_for_image": "_empty_mask_for_image",
-        "_empty_segs_for_image": "_empty_segs_for_image",
-        "_find_impact_detailer_class": "_find_impact_detailer_class",
-        "_find_impact_mask_to_segs_class": "_find_impact_mask_to_segs_class",
-        "_find_sam3_detect_class": "_find_sam3_detect_class",
-        "_format_sam3_detection_prompt": "_format_sam3_detection_prompt"
-      },
-      "classification": "unsupported_test_only",
-      "current_target": "nodes.py",
-      "canonical_target": "easyuse_anima.image.sam3",
-      "target_state": "canonical",
-      "identity_requirement": "not_applicable",
-      "binding_shape": "direct_import",
-      "import_target": "easyuse_anima.image.sam3",
-      "owner": "#184/#188",
-      "first_release": null,
-      "known_consumers": [
-        "repository tests may import this root name"
-      ],
-      "evidence": [
-        "AST:no nodes.py runtime load",
-        "test-only consumption is not public support evidence"
-      ],
-      "removal_gates": [
-        "test imports migrate to canonical targets",
-        "no production consumer evidence",
-        "separate B-10b removal review"
-      ],
-      "lifecycle_state": "unsupported"
     },
     {
       "id": "nodes_canonical_bindings:easyuse_anima.image.scaling:transitional_private_seam",
