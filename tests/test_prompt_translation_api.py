@@ -64,6 +64,7 @@ def load_api_routes():
     sys.modules[spec.name] = module
     with patch.dict(sys.modules, {"server": fake_server, "aiohttp": fake_aiohttp}):
         spec.loader.exec_module(module)
+        module.register_routes()
         translation = sys.modules[module.translate_prompt_markers.__module__]
     return module, routes, translation
 

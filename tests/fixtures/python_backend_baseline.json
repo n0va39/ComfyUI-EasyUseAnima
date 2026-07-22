@@ -13,23 +13,6 @@
     "edges": [
       {
         "alias": null,
-        "bound_name": "logging",
-        "branch_context": [],
-        "classification": "external",
-        "column": 0,
-        "conditional": false,
-        "imported": "logging",
-        "kind": "static_import",
-        "line": 2,
-        "name": null,
-        "optional": false,
-        "requested": "logging",
-        "role": "ordinary",
-        "scope": "<module>",
-        "source": "__init__.py"
-      },
-      {
-        "alias": null,
         "bound_name": "EasyUseAnimaAIOGenerator",
         "branch_context": [],
         "classification": "internal",
@@ -37,7 +20,7 @@
         "conditional": false,
         "imported": ".nodes:EasyUseAnimaAIOGenerator",
         "kind": "static_from",
-        "line": 4,
+        "line": 3,
         "name": "EasyUseAnimaAIOGenerator",
         "optional": false,
         "requested": ".nodes",
@@ -55,7 +38,7 @@
         "conditional": false,
         "imported": ".nodes:EasyUseAnimaArtistMixConditioning",
         "kind": "static_from",
-        "line": 4,
+        "line": 3,
         "name": "EasyUseAnimaArtistMixConditioning",
         "optional": false,
         "requested": ".nodes",
@@ -73,7 +56,7 @@
         "conditional": false,
         "imported": ".nodes:EasyUseAnimaDetailerAlignHook",
         "kind": "static_from",
-        "line": 4,
+        "line": 3,
         "name": "EasyUseAnimaDetailerAlignHook",
         "optional": false,
         "requested": ".nodes",
@@ -91,7 +74,7 @@
         "conditional": false,
         "imported": ".nodes:EasyUseAnimaImageScaleByMultiple",
         "kind": "static_from",
-        "line": 4,
+        "line": 3,
         "name": "EasyUseAnimaImageScaleByMultiple",
         "optional": false,
         "requested": ".nodes",
@@ -109,7 +92,7 @@
         "conditional": false,
         "imported": ".nodes:EasyUseAnimaInput",
         "kind": "static_from",
-        "line": 4,
+        "line": 3,
         "name": "EasyUseAnimaInput",
         "optional": false,
         "requested": ".nodes",
@@ -127,7 +110,7 @@
         "conditional": false,
         "imported": ".nodes:EasyUseAnimaLoraPreset",
         "kind": "static_from",
-        "line": 4,
+        "line": 3,
         "name": "EasyUseAnimaLoraPreset",
         "optional": false,
         "requested": ".nodes",
@@ -145,7 +128,7 @@
         "conditional": false,
         "imported": ".nodes:EasyUseAnimaNAIARandomPrompt",
         "kind": "static_from",
-        "line": 4,
+        "line": 3,
         "name": "EasyUseAnimaNAIARandomPrompt",
         "optional": false,
         "requested": ".nodes",
@@ -163,7 +146,7 @@
         "conditional": false,
         "imported": ".nodes:EasyUseAnimaPromptBuilder",
         "kind": "static_from",
-        "line": 4,
+        "line": 3,
         "name": "EasyUseAnimaPromptBuilder",
         "optional": false,
         "requested": ".nodes",
@@ -181,7 +164,7 @@
         "conditional": false,
         "imported": ".nodes:EasyUseAnimaPromptCorrector",
         "kind": "static_from",
-        "line": 4,
+        "line": 3,
         "name": "EasyUseAnimaPromptCorrector",
         "optional": false,
         "requested": ".nodes",
@@ -199,7 +182,7 @@
         "conditional": false,
         "imported": ".nodes:EasyUseAnimaPromptCorrectorSimple",
         "kind": "static_from",
-        "line": 4,
+        "line": 3,
         "name": "EasyUseAnimaPromptCorrectorSimple",
         "optional": false,
         "requested": ".nodes",
@@ -217,7 +200,7 @@
         "conditional": false,
         "imported": ".nodes:EasyUseAnimaPromptDataConditioning",
         "kind": "static_from",
-        "line": 4,
+        "line": 3,
         "name": "EasyUseAnimaPromptDataConditioning",
         "optional": false,
         "requested": ".nodes",
@@ -235,7 +218,7 @@
         "conditional": false,
         "imported": ".nodes:EasyUseAnimaPromptDataUnpack",
         "kind": "static_from",
-        "line": 4,
+        "line": 3,
         "name": "EasyUseAnimaPromptDataUnpack",
         "optional": false,
         "requested": ".nodes",
@@ -253,7 +236,7 @@
         "conditional": false,
         "imported": ".nodes:EasyUseAnimaPromptStudio",
         "kind": "static_from",
-        "line": 4,
+        "line": 3,
         "name": "EasyUseAnimaPromptStudio",
         "optional": false,
         "requested": ".nodes",
@@ -271,7 +254,7 @@
         "conditional": false,
         "imported": ".nodes:EasyUseAnimaPromptStudioAdvanced",
         "kind": "static_from",
-        "line": 4,
+        "line": 3,
         "name": "EasyUseAnimaPromptStudioAdvanced",
         "optional": false,
         "requested": ".nodes",
@@ -289,7 +272,7 @@
         "conditional": false,
         "imported": ".nodes:EasyUseAnimaPromptStudioAdvancedV2",
         "kind": "static_from",
-        "line": 4,
+        "line": 3,
         "name": "EasyUseAnimaPromptStudioAdvancedV2",
         "optional": false,
         "requested": ".nodes",
@@ -307,7 +290,7 @@
         "conditional": false,
         "imported": ".nodes:EasyUseAnimaPromptStudioRegional",
         "kind": "static_from",
-        "line": 4,
+        "line": 3,
         "name": "EasyUseAnimaPromptStudioRegional",
         "optional": false,
         "requested": ".nodes",
@@ -325,7 +308,7 @@
         "conditional": false,
         "imported": ".nodes:EasyUseAnimaRegionalConditioning",
         "kind": "static_from",
-        "line": 4,
+        "line": 3,
         "name": "EasyUseAnimaRegionalConditioning",
         "optional": false,
         "requested": ".nodes",
@@ -343,7 +326,7 @@
         "conditional": false,
         "imported": ".nodes:EasyUseAnimaWildcard",
         "kind": "static_from",
-        "line": 4,
+        "line": 3,
         "name": "EasyUseAnimaWildcard",
         "optional": false,
         "requested": ".nodes",
@@ -354,6 +337,42 @@
       },
       {
         "alias": null,
+        "bound_name": "api",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".:api",
+        "kind": "static_from",
+        "line": 23,
+        "name": "api",
+        "optional": false,
+        "requested": ".",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "__init__.py",
+        "target": "api.py"
+      },
+      {
+        "alias": "_initialize",
+        "bound_name": "_initialize",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".easyuse_anima.bootstrap:initialize",
+        "kind": "static_from",
+        "line": 24,
+        "name": "initialize",
+        "optional": false,
+        "requested": ".easyuse_anima.bootstrap",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "__init__.py",
+        "target": "easyuse_anima/bootstrap.py"
+      },
+      {
+        "alias": null,
         "bound_name": "NODE_CLASS_MAPPINGS",
         "branch_context": [],
         "classification": "internal",
@@ -361,7 +380,7 @@
         "conditional": false,
         "imported": ".easyuse_anima.registration:NODE_CLASS_MAPPINGS",
         "kind": "static_from",
-        "line": 24,
+        "line": 25,
         "name": "NODE_CLASS_MAPPINGS",
         "optional": false,
         "requested": ".easyuse_anima.registration",
@@ -379,7 +398,7 @@
         "conditional": false,
         "imported": ".easyuse_anima.registration:NODE_DISPLAY_NAME_MAPPINGS",
         "kind": "static_from",
-        "line": 24,
+        "line": 25,
         "name": "NODE_DISPLAY_NAME_MAPPINGS",
         "optional": false,
         "requested": ".easyuse_anima.registration",
@@ -387,24 +406,6 @@
         "scope": "<module>",
         "source": "__init__.py",
         "target": "easyuse_anima/registration.py"
-      },
-      {
-        "alias": null,
-        "bound_name": "api",
-        "branch_context": [],
-        "classification": "internal",
-        "column": 0,
-        "conditional": false,
-        "imported": ".:api",
-        "kind": "static_from",
-        "line": 28,
-        "name": "api",
-        "optional": false,
-        "requested": ".",
-        "role": "ordinary",
-        "scope": "<module>",
-        "source": "__init__.py",
-        "target": "api.py"
       },
       {
         "alias": null,
@@ -6788,6 +6789,74 @@
         "role": "ordinary",
         "scope": "<module>",
         "source": "easyuse_anima/aio/sampling.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "annotations",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "__future__:annotations",
+        "kind": "static_from",
+        "line": 3,
+        "name": "annotations",
+        "optional": false,
+        "requested": "__future__",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/bootstrap.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "logging",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "logging",
+        "kind": "static_import",
+        "line": 5,
+        "name": null,
+        "optional": false,
+        "requested": "logging",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/bootstrap.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "threading",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "threading",
+        "kind": "static_import",
+        "line": 6,
+        "name": null,
+        "optional": false,
+        "requested": "threading",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/bootstrap.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "Callable",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "collections.abc:Callable",
+        "kind": "static_from",
+        "line": 7,
+        "name": "Callable",
+        "optional": false,
+        "requested": "collections.abc",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/bootstrap.py"
       },
       {
         "alias": null,
@@ -34088,6 +34157,10 @@
       },
       {
         "from": "__init__.py",
+        "to": "easyuse_anima/bootstrap.py"
+      },
+      {
+        "from": "__init__.py",
         "to": "easyuse_anima/registration.py"
       },
       {
@@ -34939,6 +35012,12 @@
       {
         "cyclic": false,
         "modules": [
+          "easyuse_anima/bootstrap.py"
+        ]
+      },
+      {
+        "cyclic": false,
+        "modules": [
           "easyuse_anima/common/__init__.py"
         ]
       },
@@ -35227,18 +35306,18 @@
     ]
   },
   "inventory": {
-    "module_count": 78,
+    "module_count": 79,
     "modules": [
       {
         "is_package": true,
-        "loc": 44,
+        "loc": 42,
         "module": "__root__",
-        "normalized_git_blob_sha1": "1ba24faf09b6ec886e7a32fe37ca589ac6fbd06f",
+        "normalized_git_blob_sha1": "29a0befc1c5aa8c8aa3db3f755ca5816f3f700f4",
         "path": "__init__.py",
         "top_level": {
           "class_count": 0,
           "function_count": 0,
-          "global_count": 3
+          "global_count": 2
         }
       },
       {
@@ -35327,14 +35406,14 @@
       },
       {
         "is_package": false,
-        "loc": 1519,
+        "loc": 1556,
         "module": "api",
-        "normalized_git_blob_sha1": "ef44140e33e14c1de62afe5422c8fb0968c84033",
+        "normalized_git_blob_sha1": "019e5c9ed53f2647ecefd412d1d208a145da31c5",
         "path": "api.py",
         "top_level": {
           "class_count": 2,
-          "function_count": 59,
-          "global_count": 19
+          "function_count": 60,
+          "global_count": 22
         }
       },
       {
@@ -35587,6 +35666,18 @@
           "class_count": 0,
           "function_count": 11,
           "global_count": 3
+        }
+      },
+      {
+        "is_package": false,
+        "loc": 37,
+        "module": "easyuse_anima.bootstrap",
+        "normalized_git_blob_sha1": "a114f2473296dbb4cb5f27429f115354448ca698",
+        "path": "easyuse_anima/bootstrap.py",
+        "top_level": {
+          "class_count": 0,
+          "function_count": 1,
+          "global_count": 4
         }
       },
       {
@@ -36191,8 +36282,7 @@
       "NODE_DISPLAY_NAME_MAPPINGS",
       "WEB_DIRECTORY",
       "api",
-      "ensure_default_wildcard_root",
-      "logger"
+      "ensure_default_wildcard_root"
     ],
     "declared_all": [
       "NODE_CLASS_MAPPINGS",
@@ -36200,154 +36290,153 @@
       "WEB_DIRECTORY"
     ],
     "public_globals": [
-      "WEB_DIRECTORY",
-      "logger"
+      "WEB_DIRECTORY"
     ],
     "reexports": [
       {
         "declared_in_all": false,
         "imported": ".nodes:EasyUseAnimaAIOGenerator",
-        "line": 4,
+        "line": 3,
         "name": "EasyUseAnimaAIOGenerator",
         "source": "nodes.py"
       },
       {
         "declared_in_all": false,
         "imported": ".nodes:EasyUseAnimaArtistMixConditioning",
-        "line": 4,
+        "line": 3,
         "name": "EasyUseAnimaArtistMixConditioning",
         "source": "nodes.py"
       },
       {
         "declared_in_all": false,
         "imported": ".nodes:EasyUseAnimaDetailerAlignHook",
-        "line": 4,
+        "line": 3,
         "name": "EasyUseAnimaDetailerAlignHook",
         "source": "nodes.py"
       },
       {
         "declared_in_all": false,
         "imported": ".nodes:EasyUseAnimaImageScaleByMultiple",
-        "line": 4,
+        "line": 3,
         "name": "EasyUseAnimaImageScaleByMultiple",
         "source": "nodes.py"
       },
       {
         "declared_in_all": false,
         "imported": ".nodes:EasyUseAnimaInput",
-        "line": 4,
+        "line": 3,
         "name": "EasyUseAnimaInput",
         "source": "nodes.py"
       },
       {
         "declared_in_all": false,
         "imported": ".nodes:EasyUseAnimaLoraPreset",
-        "line": 4,
+        "line": 3,
         "name": "EasyUseAnimaLoraPreset",
         "source": "nodes.py"
       },
       {
         "declared_in_all": false,
         "imported": ".nodes:EasyUseAnimaNAIARandomPrompt",
-        "line": 4,
+        "line": 3,
         "name": "EasyUseAnimaNAIARandomPrompt",
         "source": "nodes.py"
       },
       {
         "declared_in_all": false,
         "imported": ".nodes:EasyUseAnimaPromptBuilder",
-        "line": 4,
+        "line": 3,
         "name": "EasyUseAnimaPromptBuilder",
         "source": "nodes.py"
       },
       {
         "declared_in_all": false,
         "imported": ".nodes:EasyUseAnimaPromptCorrector",
-        "line": 4,
+        "line": 3,
         "name": "EasyUseAnimaPromptCorrector",
         "source": "nodes.py"
       },
       {
         "declared_in_all": false,
         "imported": ".nodes:EasyUseAnimaPromptCorrectorSimple",
-        "line": 4,
+        "line": 3,
         "name": "EasyUseAnimaPromptCorrectorSimple",
         "source": "nodes.py"
       },
       {
         "declared_in_all": false,
         "imported": ".nodes:EasyUseAnimaPromptDataConditioning",
-        "line": 4,
+        "line": 3,
         "name": "EasyUseAnimaPromptDataConditioning",
         "source": "nodes.py"
       },
       {
         "declared_in_all": false,
         "imported": ".nodes:EasyUseAnimaPromptDataUnpack",
-        "line": 4,
+        "line": 3,
         "name": "EasyUseAnimaPromptDataUnpack",
         "source": "nodes.py"
       },
       {
         "declared_in_all": false,
         "imported": ".nodes:EasyUseAnimaPromptStudio",
-        "line": 4,
+        "line": 3,
         "name": "EasyUseAnimaPromptStudio",
         "source": "nodes.py"
       },
       {
         "declared_in_all": false,
         "imported": ".nodes:EasyUseAnimaPromptStudioAdvanced",
-        "line": 4,
+        "line": 3,
         "name": "EasyUseAnimaPromptStudioAdvanced",
         "source": "nodes.py"
       },
       {
         "declared_in_all": false,
         "imported": ".nodes:EasyUseAnimaPromptStudioAdvancedV2",
-        "line": 4,
+        "line": 3,
         "name": "EasyUseAnimaPromptStudioAdvancedV2",
         "source": "nodes.py"
       },
       {
         "declared_in_all": false,
         "imported": ".nodes:EasyUseAnimaPromptStudioRegional",
-        "line": 4,
+        "line": 3,
         "name": "EasyUseAnimaPromptStudioRegional",
         "source": "nodes.py"
       },
       {
         "declared_in_all": false,
         "imported": ".nodes:EasyUseAnimaRegionalConditioning",
-        "line": 4,
+        "line": 3,
         "name": "EasyUseAnimaRegionalConditioning",
         "source": "nodes.py"
       },
       {
         "declared_in_all": false,
         "imported": ".nodes:EasyUseAnimaWildcard",
-        "line": 4,
+        "line": 3,
         "name": "EasyUseAnimaWildcard",
         "source": "nodes.py"
       },
       {
         "declared_in_all": true,
         "imported": ".easyuse_anima.registration:NODE_CLASS_MAPPINGS",
-        "line": 24,
+        "line": 25,
         "name": "NODE_CLASS_MAPPINGS",
         "source": "easyuse_anima/registration.py"
       },
       {
         "declared_in_all": true,
         "imported": ".easyuse_anima.registration:NODE_DISPLAY_NAME_MAPPINGS",
-        "line": 24,
+        "line": 25,
         "name": "NODE_DISPLAY_NAME_MAPPINGS",
         "source": "easyuse_anima/registration.py"
       },
       {
         "declared_in_all": false,
         "imported": ".:api",
-        "line": 28,
+        "line": 23,
         "name": "api",
         "source": "api.py"
       },
@@ -44267,17 +44356,6 @@
         "branch_context": [],
         "classification": "external",
         "conditional": false,
-        "imported": "logging",
-        "kind": "static_import",
-        "line": 2,
-        "optional": false,
-        "role": "ordinary",
-        "source": "__init__.py"
-      },
-      {
-        "branch_context": [],
-        "classification": "external",
-        "conditional": false,
         "imported": "__future__:annotations",
         "kind": "static_from",
         "line": 3,
@@ -45890,6 +45968,50 @@
         "optional": false,
         "role": "ordinary",
         "source": "easyuse_anima/aio/sampling.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "__future__:annotations",
+        "kind": "static_from",
+        "line": 3,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/bootstrap.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "logging",
+        "kind": "static_import",
+        "line": 5,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/bootstrap.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "threading",
+        "kind": "static_import",
+        "line": 6,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/bootstrap.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "collections.abc:Callable",
+        "kind": "static_from",
+        "line": 7,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/bootstrap.py"
       },
       {
         "branch_context": [],
@@ -49298,6 +49420,7 @@
       "easyuse_anima/aio/preview.py",
       "easyuse_anima/aio/resources.py",
       "easyuse_anima/aio/sampling.py",
+      "easyuse_anima/bootstrap.py",
       "easyuse_anima/common/__init__.py",
       "easyuse_anima/common/serialization.py",
       "easyuse_anima/common/values.py",
@@ -49378,6 +49501,7 @@
       "easyuse_anima/aio/preview.py",
       "easyuse_anima/aio/resources.py",
       "easyuse_anima/aio/sampling.py",
+      "easyuse_anima/bootstrap.py",
       "easyuse_anima/common/__init__.py",
       "easyuse_anima/common/serialization.py",
       "easyuse_anima/common/values.py",
@@ -49433,29 +49557,11 @@
   "side_effects": {
     "candidates": [
       {
-        "callee": "logging.getLogger",
-        "column": 9,
-        "context": "assign:logger",
+        "callee": "_initialize",
+        "column": 0,
+        "context": "expression",
         "kind": "import_time_call",
         "line": 31,
-        "module": "__init__.py",
-        "scope": "<module>"
-      },
-      {
-        "callee": "ensure_default_wildcard_root",
-        "column": 4,
-        "context": "expression",
-        "kind": "directory_creation",
-        "line": 34,
-        "module": "__init__.py",
-        "scope": "<module>"
-      },
-      {
-        "callee": "logger.warning",
-        "column": 4,
-        "context": "expression",
-        "kind": "import_time_call",
-        "line": 36,
         "module": "__init__.py",
         "scope": "<module>"
       },
@@ -49712,182 +49818,20 @@
         "scope": "<module>"
       },
       {
-        "callee": "routes.get",
-        "column": 5,
-        "context": "decorator:get_settings_handler",
-        "kind": "route_registration",
-        "line": 1194,
+        "callee": "tuple",
+        "column": 19,
+        "context": "assign:_ROUTE_SIGNATURE",
+        "kind": "route_registry_creation",
+        "line": 1532,
         "module": "api.py",
         "scope": "<module>"
       },
       {
-        "callee": "routes.post",
+        "callee": "method.upper",
         "column": 5,
-        "context": "decorator:set_setting_handler",
-        "kind": "route_registration",
-        "line": 1199,
-        "module": "api.py",
-        "scope": "<module>"
-      },
-      {
-        "callee": "routes.get",
-        "column": 5,
-        "context": "decorator:get_long_text_settings_handler",
-        "kind": "route_registration",
-        "line": 1217,
-        "module": "api.py",
-        "scope": "<module>"
-      },
-      {
-        "callee": "routes.get",
-        "column": 5,
-        "context": "decorator:get_wildcards_handler",
-        "kind": "route_registration",
-        "line": 1224,
-        "module": "api.py",
-        "scope": "<module>"
-      },
-      {
-        "callee": "routes.post",
-        "column": 5,
-        "context": "decorator:save_long_text_settings_handler",
-        "kind": "route_registration",
-        "line": 1229,
-        "module": "api.py",
-        "scope": "<module>"
-      },
-      {
-        "callee": "routes.get",
-        "column": 5,
-        "context": "decorator:autocomplete_status_handler",
-        "kind": "route_registration",
-        "line": 1241,
-        "module": "api.py",
-        "scope": "<module>"
-      },
-      {
-        "callee": "routes.get",
-        "column": 5,
-        "context": "decorator:autocomplete_handler",
-        "kind": "route_registration",
-        "line": 1246,
-        "module": "api.py",
-        "scope": "<module>"
-      },
-      {
-        "callee": "routes.post",
-        "column": 5,
-        "context": "decorator:classify_prompt_handler",
-        "kind": "route_registration",
-        "line": 1264,
-        "module": "api.py",
-        "scope": "<module>"
-      },
-      {
-        "callee": "routes.post",
-        "column": 5,
-        "context": "decorator:translate_prompt_handler",
-        "kind": "route_registration",
-        "line": 1283,
-        "module": "api.py",
-        "scope": "<module>"
-      },
-      {
-        "callee": "routes.get",
-        "column": 5,
-        "context": "decorator:lora_preview_handler",
-        "kind": "route_registration",
-        "line": 1297,
-        "module": "api.py",
-        "scope": "<module>"
-      },
-      {
-        "callee": "routes.get",
-        "column": 5,
-        "context": "decorator:loras_handler",
-        "kind": "route_registration",
-        "line": 1311,
-        "module": "api.py",
-        "scope": "<module>"
-      },
-      {
-        "callee": "routes.get",
-        "column": 5,
-        "context": "decorator:lora_profiles_handler",
-        "kind": "route_registration",
-        "line": 1316,
-        "module": "api.py",
-        "scope": "<module>"
-      },
-      {
-        "callee": "routes.post",
-        "column": 5,
-        "context": "decorator:save_lora_profile_handler",
-        "kind": "route_registration",
-        "line": 1325,
-        "module": "api.py",
-        "scope": "<module>"
-      },
-      {
-        "callee": "routes.get",
-        "column": 5,
-        "context": "decorator:load_lora_profile_handler",
-        "kind": "route_registration",
-        "line": 1360,
-        "module": "api.py",
-        "scope": "<module>"
-      },
-      {
-        "callee": "routes.get",
-        "column": 5,
-        "context": "decorator:aio_profiles_handler",
-        "kind": "route_registration",
-        "line": 1377,
-        "module": "api.py",
-        "scope": "<module>"
-      },
-      {
-        "callee": "routes.post",
-        "column": 5,
-        "context": "decorator:save_aio_profile_handler",
-        "kind": "route_registration",
-        "line": 1386,
-        "module": "api.py",
-        "scope": "<module>"
-      },
-      {
-        "callee": "routes.get",
-        "column": 5,
-        "context": "decorator:load_aio_profile_handler",
-        "kind": "route_registration",
-        "line": 1420,
-        "module": "api.py",
-        "scope": "<module>"
-      },
-      {
-        "callee": "routes.post",
-        "column": 5,
-        "context": "decorator:delete_aio_profile_handler",
-        "kind": "route_registration",
-        "line": 1432,
-        "module": "api.py",
-        "scope": "<module>"
-      },
-      {
-        "callee": "routes.post",
-        "column": 5,
-        "context": "decorator:rename_aio_profile_handler",
-        "kind": "route_registration",
-        "line": 1462,
-        "module": "api.py",
-        "scope": "<module>"
-      },
-      {
-        "callee": "routes.post",
-        "column": 5,
-        "context": "decorator:fix_lora_profile_handler",
-        "kind": "route_registration",
-        "line": 1509,
+        "context": "assign:_ROUTE_SIGNATURE",
+        "kind": "route_registry_creation",
+        "line": 1533,
         "module": "api.py",
         "scope": "<module>"
       },
@@ -50375,6 +50319,24 @@
         "kind": "import_time_call",
         "line": 117,
         "module": "easyuse_anima/aio/generation_values.py",
+        "scope": "<module>"
+      },
+      {
+        "callee": "logging.getLogger",
+        "column": 10,
+        "context": "assign:_LOGGER",
+        "kind": "import_time_call",
+        "line": 9,
+        "module": "easyuse_anima/bootstrap.py",
+        "scope": "<module>"
+      },
+      {
+        "callee": "threading.Lock",
+        "column": 19,
+        "context": "assign:_INITIALIZE_LOCK",
+        "kind": "import_time_call",
+        "line": 10,
+        "module": "easyuse_anima/bootstrap.py",
         "scope": "<module>"
       },
       {
@@ -51301,7 +51263,7 @@
     "mutable_globals": [
       {
         "kind": "list",
-        "line": 40,
+        "line": 38,
         "module": "__init__.py",
         "name": "__all__"
       },
@@ -51394,6 +51356,12 @@
         "line": 10,
         "module": "easyuse_anima/aio/preview.py",
         "name": "AIO_PREVIEW_STAGE_LABELS"
+      },
+      {
+        "kind": "list",
+        "line": 37,
+        "module": "easyuse_anima/bootstrap.py",
+        "name": "__all__"
       },
       {
         "kind": "list",
@@ -51759,6 +51727,15 @@
         "line": 10,
         "module": "easyuse_anima/aio/first_pass_cache.py",
         "name": "_AIO_FIRST_PASS_CACHE_ORDER"
+      },
+      {
+        "categories": [
+          "lock"
+        ],
+        "initializer": "threading.Lock",
+        "line": 10,
+        "module": "easyuse_anima/bootstrap.py",
+        "name": "_INITIALIZE_LOCK"
       },
       {
         "categories": [

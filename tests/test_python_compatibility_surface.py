@@ -16,7 +16,7 @@ NODES_PATH = ROOT / "nodes.py"
 FIXTURE_PATH = ROOT / "tests" / "fixtures" / "python_compatibility_surface.v1.json"
 
 SCHEMA_VERSION = 1
-BASE_COMMIT = "c6b4680c39ba02725b1c0f8b72cda0063d9e1251"
+BASE_COMMIT = "20c8b4d57243cc4b2c0423f43c9f0a2069707187"
 CLASSIFICATIONS = (
     "permanent_entrypoint",
     "supported_public_reexport",
@@ -1302,6 +1302,7 @@ def _build_document() -> dict[str, Any]:
                 "B-10b19",
                 "B-10b20",
                 "B-11a",
+                "B-11b",
             ],
         },
         "enums": {

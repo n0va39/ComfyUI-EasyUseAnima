@@ -10,6 +10,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 PACKAGE_MODULES = (
     "easyuse_anima",
+    "easyuse_anima.bootstrap",
     "easyuse_anima.aio",
     "easyuse_anima.aio.conditioning",
     "easyuse_anima.aio.first_pass_cache",
@@ -135,6 +136,7 @@ print(json.dumps({{
         payload = json.loads(result.stdout)
         self.assertEqual(payload["modules"], list(PACKAGE_MODULES))
         expected_all = [[] for _ in PACKAGE_MODULES]
+        expected_all[PACKAGE_MODULES.index("easyuse_anima.bootstrap")] = ["initialize"]
         expected_all[PACKAGE_MODULES.index("easyuse_anima.nodes.aio_nodes")] = [
             "EasyUseAnimaInput",
             "EasyUseAnimaAIOGenerator",

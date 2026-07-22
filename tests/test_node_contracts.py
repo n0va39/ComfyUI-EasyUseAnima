@@ -228,6 +228,7 @@ def _loaded_package_entrypoint():
     sys.modules[package_name] = package_module
 
     api_stub = types.ModuleType(f"{package_name}.api")
+    api_stub.register_routes = lambda: True
     sys.modules[api_stub.__name__] = api_stub
     package_module.api = api_stub
 

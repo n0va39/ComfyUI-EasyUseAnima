@@ -74,6 +74,7 @@ def load_api_routes():
     )
     with patch.dict(sys.modules, {"server": fake_server, "aiohttp": fake_aiohttp}):
         api = load_api_module()
+        api.register_routes()
     return api, routes
 
 
@@ -86,6 +87,7 @@ class LoraProfileStorageTests(unittest.TestCase):
 
         with patch.dict(sys.modules, {"server": fake_server, "aiohttp": fake_aiohttp}):
             api = load_api_module()
+            api.register_routes()
 
         self.assertIsNone(api.routes)
 
@@ -802,6 +804,7 @@ class AutocompleteApiRouteTests(unittest.TestCase):
 
         with patch.dict(sys.modules, {"server": fake_server, "aiohttp": fake_aiohttp}):
             api = load_api_module()
+            api.register_routes()
 
         calls = []
 

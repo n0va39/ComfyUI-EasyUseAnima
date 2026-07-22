@@ -88,6 +88,7 @@ def load_api_routes():
     )
     with patch.dict(sys.modules, {"server": fake_server, "aiohttp": fake_aiohttp}):
         api = load_api_module()
+        api.register_routes()
     return api, routes
 
 

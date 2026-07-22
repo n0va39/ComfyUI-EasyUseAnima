@@ -3,14 +3,14 @@
 ## Registry status
 
 - Inventory baseline: `dev` commit
-  `c6b4680c39ba02725b1c0f8b72cda0063d9e1251`
+  `20c8b4d57243cc4b2c0423f43c9f0a2069707187`
 - Compatibility provenance: package/workflow version 0.5.2
 - Policy: [ADR-002](adr-002-compatibility-shims.md)
 - Machine-readable audit:
   [`python_compatibility_surface.v1.json`](../../tests/fixtures/python_compatibility_surface.v1.json)
-- Current state: B-10b20 is integrated. B-11a PR #292 moves pure node/display
-  mapping composition to `easyuse_anima.registration`; B-11b bootstrap and
-  B-11c final root shim remain separate Moves.
+- Current state: B-11a is integrated in PR #292. B-11b PR #293 moves route and
+  wildcard startup to guarded `easyuse_anima.bootstrap` ownership; B-11c final
+  root shim remains a separate Move.
 
 This is an actionable registry, not a removal schedule. `N` means the first
 published Registry release containing both a canonical target and its root
@@ -143,8 +143,11 @@ convenience-node compatibility; it remains unmapped and is not public support.
   changing the exported objects or introducing duplicate initialization.
 - B-11a PR #292 moves the two literal mapping dictionaries to the pure
   registration owner and re-exports the same objects from the root entrypoint.
-  The root class imports, runtime binders, API side effect, wildcard directory
-  initialization, and `WEB_DIRECTORY` remain unchanged for B-11b/B-11c.
+  The root class imports, runtime binders, and `WEB_DIRECTORY` remain unchanged.
+- B-11b PR #293 makes `api.py` import registration-free, registers the same 20
+  handlers once per shared ComfyUI route table, and guards successful wildcard
+  startup through `easyuse_anima.bootstrap`. Handler bodies, URL/order,
+  correlation wrappers, and wildcard implementation remain unchanged.
 
 ### `nodes.py` public node-class surface
 
