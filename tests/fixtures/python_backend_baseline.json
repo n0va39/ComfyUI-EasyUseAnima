@@ -19172,37 +19172,6 @@
         "target": "easyuse_anima/prompt/artist_mix.py"
       },
       {
-        "alias": "_artist_group_token",
-        "bound_name": "_artist_group_token",
-        "branch_context": [
-          {
-            "branch": "body",
-            "handles_import_failure": true,
-            "has_import_fallback_handler": true,
-            "kind": "try",
-            "line": 11
-          }
-        ],
-        "classification": "internal",
-        "column": 4,
-        "compatibility_pair": {
-          "bound_name": "_artist_group_token",
-          "target": "easyuse_anima/prompt/artist_mix.py",
-          "try_line": 11
-        },
-        "conditional": true,
-        "imported": ".easyuse_anima.prompt.artist_mix:_artist_group_token",
-        "kind": "static_from",
-        "line": 234,
-        "name": "_artist_group_token",
-        "optional": false,
-        "requested": ".easyuse_anima.prompt.artist_mix",
-        "role": "compatibility_primary",
-        "scope": "<module>",
-        "source": "nodes.py",
-        "target": "easyuse_anima/prompt/artist_mix.py"
-      },
-      {
         "alias": "_artist_mix_inline_prompt",
         "bound_name": "_artist_mix_inline_prompt",
         "branch_context": [
@@ -19265,37 +19234,6 @@
         "target": "easyuse_anima/prompt/artist_mix.py"
       },
       {
-        "alias": "_artist_mix_prompt_tags",
-        "bound_name": "_artist_mix_prompt_tags",
-        "branch_context": [
-          {
-            "branch": "body",
-            "handles_import_failure": true,
-            "has_import_fallback_handler": true,
-            "kind": "try",
-            "line": 11
-          }
-        ],
-        "classification": "internal",
-        "column": 4,
-        "compatibility_pair": {
-          "bound_name": "_artist_mix_prompt_tags",
-          "target": "easyuse_anima/prompt/artist_mix.py",
-          "try_line": 11
-        },
-        "conditional": true,
-        "imported": ".easyuse_anima.prompt.artist_mix:_artist_mix_prompt_tags",
-        "kind": "static_from",
-        "line": 234,
-        "name": "_artist_mix_prompt_tags",
-        "optional": false,
-        "requested": ".easyuse_anima.prompt.artist_mix",
-        "role": "compatibility_primary",
-        "scope": "<module>",
-        "source": "nodes.py",
-        "target": "easyuse_anima/prompt/artist_mix.py"
-      },
-      {
         "alias": "_artist_prompt_with_position",
         "bound_name": "_artist_prompt_with_position",
         "branch_context": [
@@ -19350,37 +19288,6 @@
         "kind": "static_from",
         "line": 234,
         "name": "_artist_tags_from_prompt",
-        "optional": false,
-        "requested": ".easyuse_anima.prompt.artist_mix",
-        "role": "compatibility_primary",
-        "scope": "<module>",
-        "source": "nodes.py",
-        "target": "easyuse_anima/prompt/artist_mix.py"
-      },
-      {
-        "alias": "_artist_variant_prompt_from_prompt_data",
-        "bound_name": "_artist_variant_prompt_from_prompt_data",
-        "branch_context": [
-          {
-            "branch": "body",
-            "handles_import_failure": true,
-            "has_import_fallback_handler": true,
-            "kind": "try",
-            "line": 11
-          }
-        ],
-        "classification": "internal",
-        "column": 4,
-        "compatibility_pair": {
-          "bound_name": "_artist_variant_prompt_from_prompt_data",
-          "target": "easyuse_anima/prompt/artist_mix.py",
-          "try_line": 11
-        },
-        "conditional": true,
-        "imported": ".easyuse_anima.prompt.artist_mix:_artist_variant_prompt_from_prompt_data",
-        "kind": "static_from",
-        "line": 234,
-        "name": "_artist_variant_prompt_from_prompt_data",
         "optional": false,
         "requested": ".easyuse_anima.prompt.artist_mix",
         "role": "compatibility_primary",
@@ -19505,37 +19412,6 @@
         "kind": "static_from",
         "line": 234,
         "name": "_bounded_artist_mix_int",
-        "optional": false,
-        "requested": ".easyuse_anima.prompt.artist_mix",
-        "role": "compatibility_primary",
-        "scope": "<module>",
-        "source": "nodes.py",
-        "target": "easyuse_anima/prompt/artist_mix.py"
-      },
-      {
-        "alias": "_coalesce_artist_mix_items",
-        "bound_name": "_coalesce_artist_mix_items",
-        "branch_context": [
-          {
-            "branch": "body",
-            "handles_import_failure": true,
-            "has_import_fallback_handler": true,
-            "kind": "try",
-            "line": 11
-          }
-        ],
-        "classification": "internal",
-        "column": 4,
-        "compatibility_pair": {
-          "bound_name": "_coalesce_artist_mix_items",
-          "target": "easyuse_anima/prompt/artist_mix.py",
-          "try_line": 11
-        },
-        "conditional": true,
-        "imported": ".easyuse_anima.prompt.artist_mix:_coalesce_artist_mix_items",
-        "kind": "static_from",
-        "line": 234,
-        "name": "_coalesce_artist_mix_items",
         "optional": false,
         "requested": ".easyuse_anima.prompt.artist_mix",
         "role": "compatibility_primary",
@@ -20319,68 +20195,6 @@
         "target": "easyuse_anima/prompt/artist_mix.py"
       },
       {
-        "alias": "_parse_artist_mix_entries",
-        "bound_name": "_parse_artist_mix_entries",
-        "branch_context": [
-          {
-            "branch": "body",
-            "handles_import_failure": true,
-            "has_import_fallback_handler": true,
-            "kind": "try",
-            "line": 11
-          }
-        ],
-        "classification": "internal",
-        "column": 4,
-        "compatibility_pair": {
-          "bound_name": "_parse_artist_mix_entries",
-          "target": "easyuse_anima/prompt/artist_mix.py",
-          "try_line": 11
-        },
-        "conditional": true,
-        "imported": ".easyuse_anima.prompt.artist_mix:_parse_artist_mix_entries",
-        "kind": "static_from",
-        "line": 234,
-        "name": "_parse_artist_mix_entries",
-        "optional": false,
-        "requested": ".easyuse_anima.prompt.artist_mix",
-        "role": "compatibility_primary",
-        "scope": "<module>",
-        "source": "nodes.py",
-        "target": "easyuse_anima/prompt/artist_mix.py"
-      },
-      {
-        "alias": "_parse_artist_mix_group",
-        "bound_name": "_parse_artist_mix_group",
-        "branch_context": [
-          {
-            "branch": "body",
-            "handles_import_failure": true,
-            "has_import_fallback_handler": true,
-            "kind": "try",
-            "line": 11
-          }
-        ],
-        "classification": "internal",
-        "column": 4,
-        "compatibility_pair": {
-          "bound_name": "_parse_artist_mix_group",
-          "target": "easyuse_anima/prompt/artist_mix.py",
-          "try_line": 11
-        },
-        "conditional": true,
-        "imported": ".easyuse_anima.prompt.artist_mix:_parse_artist_mix_group",
-        "kind": "static_from",
-        "line": 234,
-        "name": "_parse_artist_mix_group",
-        "optional": false,
-        "requested": ".easyuse_anima.prompt.artist_mix",
-        "role": "compatibility_primary",
-        "scope": "<module>",
-        "source": "nodes.py",
-        "target": "easyuse_anima/prompt/artist_mix.py"
-      },
-      {
         "alias": "_parse_artist_mix_items",
         "bound_name": "_parse_artist_mix_items",
         "branch_context": [
@@ -20404,161 +20218,6 @@
         "kind": "static_from",
         "line": 234,
         "name": "_parse_artist_mix_items",
-        "optional": false,
-        "requested": ".easyuse_anima.prompt.artist_mix",
-        "role": "compatibility_primary",
-        "scope": "<module>",
-        "source": "nodes.py",
-        "target": "easyuse_anima/prompt/artist_mix.py"
-      },
-      {
-        "alias": "_prompt_data_artist_base_prompt",
-        "bound_name": "_prompt_data_artist_base_prompt",
-        "branch_context": [
-          {
-            "branch": "body",
-            "handles_import_failure": true,
-            "has_import_fallback_handler": true,
-            "kind": "try",
-            "line": 11
-          }
-        ],
-        "classification": "internal",
-        "column": 4,
-        "compatibility_pair": {
-          "bound_name": "_prompt_data_artist_base_prompt",
-          "target": "easyuse_anima/prompt/artist_mix.py",
-          "try_line": 11
-        },
-        "conditional": true,
-        "imported": ".easyuse_anima.prompt.artist_mix:_prompt_data_artist_base_prompt",
-        "kind": "static_from",
-        "line": 234,
-        "name": "_prompt_data_artist_base_prompt",
-        "optional": false,
-        "requested": ".easyuse_anima.prompt.artist_mix",
-        "role": "compatibility_primary",
-        "scope": "<module>",
-        "source": "nodes.py",
-        "target": "easyuse_anima/prompt/artist_mix.py"
-      },
-      {
-        "alias": "_prompt_data_artist_mix_config",
-        "bound_name": "_prompt_data_artist_mix_config",
-        "branch_context": [
-          {
-            "branch": "body",
-            "handles_import_failure": true,
-            "has_import_fallback_handler": true,
-            "kind": "try",
-            "line": 11
-          }
-        ],
-        "classification": "internal",
-        "column": 4,
-        "compatibility_pair": {
-          "bound_name": "_prompt_data_artist_mix_config",
-          "target": "easyuse_anima/prompt/artist_mix.py",
-          "try_line": 11
-        },
-        "conditional": true,
-        "imported": ".easyuse_anima.prompt.artist_mix:_prompt_data_artist_mix_config",
-        "kind": "static_from",
-        "line": 234,
-        "name": "_prompt_data_artist_mix_config",
-        "optional": false,
-        "requested": ".easyuse_anima.prompt.artist_mix",
-        "role": "compatibility_primary",
-        "scope": "<module>",
-        "source": "nodes.py",
-        "target": "easyuse_anima/prompt/artist_mix.py"
-      },
-      {
-        "alias": "_prompt_data_positive_fields",
-        "bound_name": "_prompt_data_positive_fields",
-        "branch_context": [
-          {
-            "branch": "body",
-            "handles_import_failure": true,
-            "has_import_fallback_handler": true,
-            "kind": "try",
-            "line": 11
-          }
-        ],
-        "classification": "internal",
-        "column": 4,
-        "compatibility_pair": {
-          "bound_name": "_prompt_data_positive_fields",
-          "target": "easyuse_anima/prompt/artist_mix.py",
-          "try_line": 11
-        },
-        "conditional": true,
-        "imported": ".easyuse_anima.prompt.artist_mix:_prompt_data_positive_fields",
-        "kind": "static_from",
-        "line": 234,
-        "name": "_prompt_data_positive_fields",
-        "optional": false,
-        "requested": ".easyuse_anima.prompt.artist_mix",
-        "role": "compatibility_primary",
-        "scope": "<module>",
-        "source": "nodes.py",
-        "target": "easyuse_anima/prompt/artist_mix.py"
-      },
-      {
-        "alias": "_split_artist_mix_blocks",
-        "bound_name": "_split_artist_mix_blocks",
-        "branch_context": [
-          {
-            "branch": "body",
-            "handles_import_failure": true,
-            "has_import_fallback_handler": true,
-            "kind": "try",
-            "line": 11
-          }
-        ],
-        "classification": "internal",
-        "column": 4,
-        "compatibility_pair": {
-          "bound_name": "_split_artist_mix_blocks",
-          "target": "easyuse_anima/prompt/artist_mix.py",
-          "try_line": 11
-        },
-        "conditional": true,
-        "imported": ".easyuse_anima.prompt.artist_mix:_split_artist_mix_blocks",
-        "kind": "static_from",
-        "line": 234,
-        "name": "_split_artist_mix_blocks",
-        "optional": false,
-        "requested": ".easyuse_anima.prompt.artist_mix",
-        "role": "compatibility_primary",
-        "scope": "<module>",
-        "source": "nodes.py",
-        "target": "easyuse_anima/prompt/artist_mix.py"
-      },
-      {
-        "alias": "_split_artist_mix_items",
-        "bound_name": "_split_artist_mix_items",
-        "branch_context": [
-          {
-            "branch": "body",
-            "handles_import_failure": true,
-            "has_import_fallback_handler": true,
-            "kind": "try",
-            "line": 11
-          }
-        ],
-        "classification": "internal",
-        "column": 4,
-        "compatibility_pair": {
-          "bound_name": "_split_artist_mix_items",
-          "target": "easyuse_anima/prompt/artist_mix.py",
-          "try_line": 11
-        },
-        "conditional": true,
-        "imported": ".easyuse_anima.prompt.artist_mix:_split_artist_mix_items",
-        "kind": "static_from",
-        "line": 234,
-        "name": "_split_artist_mix_items",
         "optional": false,
         "requested": ".easyuse_anima.prompt.artist_mix",
         "role": "compatibility_primary",
@@ -30184,40 +29843,6 @@
         "target": "easyuse_anima/prompt/artist_mix.py"
       },
       {
-        "alias": "_artist_group_token",
-        "bound_name": "_artist_group_token",
-        "branch_context": [
-          {
-            "branch": "except",
-            "catches_import_error": true,
-            "exceptions": [
-              "ImportError"
-            ],
-            "handler_line": 524,
-            "kind": "try",
-            "line": 11
-          }
-        ],
-        "classification": "compatibility_fallback",
-        "column": 4,
-        "compatibility_pair": {
-          "bound_name": "_artist_group_token",
-          "target": "easyuse_anima/prompt/artist_mix.py",
-          "try_line": 11
-        },
-        "conditional": true,
-        "imported": "easyuse_anima.prompt.artist_mix:_artist_group_token",
-        "kind": "static_from",
-        "line": 747,
-        "name": "_artist_group_token",
-        "optional": false,
-        "requested": "easyuse_anima.prompt.artist_mix",
-        "role": "compatibility_fallback",
-        "scope": "<module>",
-        "source": "nodes.py",
-        "target": "easyuse_anima/prompt/artist_mix.py"
-      },
-      {
         "alias": "_artist_mix_inline_prompt",
         "bound_name": "_artist_mix_inline_prompt",
         "branch_context": [
@@ -30286,40 +29911,6 @@
         "target": "easyuse_anima/prompt/artist_mix.py"
       },
       {
-        "alias": "_artist_mix_prompt_tags",
-        "bound_name": "_artist_mix_prompt_tags",
-        "branch_context": [
-          {
-            "branch": "except",
-            "catches_import_error": true,
-            "exceptions": [
-              "ImportError"
-            ],
-            "handler_line": 524,
-            "kind": "try",
-            "line": 11
-          }
-        ],
-        "classification": "compatibility_fallback",
-        "column": 4,
-        "compatibility_pair": {
-          "bound_name": "_artist_mix_prompt_tags",
-          "target": "easyuse_anima/prompt/artist_mix.py",
-          "try_line": 11
-        },
-        "conditional": true,
-        "imported": "easyuse_anima.prompt.artist_mix:_artist_mix_prompt_tags",
-        "kind": "static_from",
-        "line": 747,
-        "name": "_artist_mix_prompt_tags",
-        "optional": false,
-        "requested": "easyuse_anima.prompt.artist_mix",
-        "role": "compatibility_fallback",
-        "scope": "<module>",
-        "source": "nodes.py",
-        "target": "easyuse_anima/prompt/artist_mix.py"
-      },
-      {
         "alias": "_artist_prompt_with_position",
         "bound_name": "_artist_prompt_with_position",
         "branch_context": [
@@ -30380,40 +29971,6 @@
         "kind": "static_from",
         "line": 747,
         "name": "_artist_tags_from_prompt",
-        "optional": false,
-        "requested": "easyuse_anima.prompt.artist_mix",
-        "role": "compatibility_fallback",
-        "scope": "<module>",
-        "source": "nodes.py",
-        "target": "easyuse_anima/prompt/artist_mix.py"
-      },
-      {
-        "alias": "_artist_variant_prompt_from_prompt_data",
-        "bound_name": "_artist_variant_prompt_from_prompt_data",
-        "branch_context": [
-          {
-            "branch": "except",
-            "catches_import_error": true,
-            "exceptions": [
-              "ImportError"
-            ],
-            "handler_line": 524,
-            "kind": "try",
-            "line": 11
-          }
-        ],
-        "classification": "compatibility_fallback",
-        "column": 4,
-        "compatibility_pair": {
-          "bound_name": "_artist_variant_prompt_from_prompt_data",
-          "target": "easyuse_anima/prompt/artist_mix.py",
-          "try_line": 11
-        },
-        "conditional": true,
-        "imported": "easyuse_anima.prompt.artist_mix:_artist_variant_prompt_from_prompt_data",
-        "kind": "static_from",
-        "line": 747,
-        "name": "_artist_variant_prompt_from_prompt_data",
         "optional": false,
         "requested": "easyuse_anima.prompt.artist_mix",
         "role": "compatibility_fallback",
@@ -30550,40 +30107,6 @@
         "kind": "static_from",
         "line": 747,
         "name": "_bounded_artist_mix_int",
-        "optional": false,
-        "requested": "easyuse_anima.prompt.artist_mix",
-        "role": "compatibility_fallback",
-        "scope": "<module>",
-        "source": "nodes.py",
-        "target": "easyuse_anima/prompt/artist_mix.py"
-      },
-      {
-        "alias": "_coalesce_artist_mix_items",
-        "bound_name": "_coalesce_artist_mix_items",
-        "branch_context": [
-          {
-            "branch": "except",
-            "catches_import_error": true,
-            "exceptions": [
-              "ImportError"
-            ],
-            "handler_line": 524,
-            "kind": "try",
-            "line": 11
-          }
-        ],
-        "classification": "compatibility_fallback",
-        "column": 4,
-        "compatibility_pair": {
-          "bound_name": "_coalesce_artist_mix_items",
-          "target": "easyuse_anima/prompt/artist_mix.py",
-          "try_line": 11
-        },
-        "conditional": true,
-        "imported": "easyuse_anima.prompt.artist_mix:_coalesce_artist_mix_items",
-        "kind": "static_from",
-        "line": 747,
-        "name": "_coalesce_artist_mix_items",
         "optional": false,
         "requested": "easyuse_anima.prompt.artist_mix",
         "role": "compatibility_fallback",
@@ -31442,74 +30965,6 @@
         "target": "easyuse_anima/prompt/artist_mix.py"
       },
       {
-        "alias": "_parse_artist_mix_entries",
-        "bound_name": "_parse_artist_mix_entries",
-        "branch_context": [
-          {
-            "branch": "except",
-            "catches_import_error": true,
-            "exceptions": [
-              "ImportError"
-            ],
-            "handler_line": 524,
-            "kind": "try",
-            "line": 11
-          }
-        ],
-        "classification": "compatibility_fallback",
-        "column": 4,
-        "compatibility_pair": {
-          "bound_name": "_parse_artist_mix_entries",
-          "target": "easyuse_anima/prompt/artist_mix.py",
-          "try_line": 11
-        },
-        "conditional": true,
-        "imported": "easyuse_anima.prompt.artist_mix:_parse_artist_mix_entries",
-        "kind": "static_from",
-        "line": 747,
-        "name": "_parse_artist_mix_entries",
-        "optional": false,
-        "requested": "easyuse_anima.prompt.artist_mix",
-        "role": "compatibility_fallback",
-        "scope": "<module>",
-        "source": "nodes.py",
-        "target": "easyuse_anima/prompt/artist_mix.py"
-      },
-      {
-        "alias": "_parse_artist_mix_group",
-        "bound_name": "_parse_artist_mix_group",
-        "branch_context": [
-          {
-            "branch": "except",
-            "catches_import_error": true,
-            "exceptions": [
-              "ImportError"
-            ],
-            "handler_line": 524,
-            "kind": "try",
-            "line": 11
-          }
-        ],
-        "classification": "compatibility_fallback",
-        "column": 4,
-        "compatibility_pair": {
-          "bound_name": "_parse_artist_mix_group",
-          "target": "easyuse_anima/prompt/artist_mix.py",
-          "try_line": 11
-        },
-        "conditional": true,
-        "imported": "easyuse_anima.prompt.artist_mix:_parse_artist_mix_group",
-        "kind": "static_from",
-        "line": 747,
-        "name": "_parse_artist_mix_group",
-        "optional": false,
-        "requested": "easyuse_anima.prompt.artist_mix",
-        "role": "compatibility_fallback",
-        "scope": "<module>",
-        "source": "nodes.py",
-        "target": "easyuse_anima/prompt/artist_mix.py"
-      },
-      {
         "alias": "_parse_artist_mix_items",
         "bound_name": "_parse_artist_mix_items",
         "branch_context": [
@@ -31536,176 +30991,6 @@
         "kind": "static_from",
         "line": 747,
         "name": "_parse_artist_mix_items",
-        "optional": false,
-        "requested": "easyuse_anima.prompt.artist_mix",
-        "role": "compatibility_fallback",
-        "scope": "<module>",
-        "source": "nodes.py",
-        "target": "easyuse_anima/prompt/artist_mix.py"
-      },
-      {
-        "alias": "_prompt_data_artist_base_prompt",
-        "bound_name": "_prompt_data_artist_base_prompt",
-        "branch_context": [
-          {
-            "branch": "except",
-            "catches_import_error": true,
-            "exceptions": [
-              "ImportError"
-            ],
-            "handler_line": 524,
-            "kind": "try",
-            "line": 11
-          }
-        ],
-        "classification": "compatibility_fallback",
-        "column": 4,
-        "compatibility_pair": {
-          "bound_name": "_prompt_data_artist_base_prompt",
-          "target": "easyuse_anima/prompt/artist_mix.py",
-          "try_line": 11
-        },
-        "conditional": true,
-        "imported": "easyuse_anima.prompt.artist_mix:_prompt_data_artist_base_prompt",
-        "kind": "static_from",
-        "line": 747,
-        "name": "_prompt_data_artist_base_prompt",
-        "optional": false,
-        "requested": "easyuse_anima.prompt.artist_mix",
-        "role": "compatibility_fallback",
-        "scope": "<module>",
-        "source": "nodes.py",
-        "target": "easyuse_anima/prompt/artist_mix.py"
-      },
-      {
-        "alias": "_prompt_data_artist_mix_config",
-        "bound_name": "_prompt_data_artist_mix_config",
-        "branch_context": [
-          {
-            "branch": "except",
-            "catches_import_error": true,
-            "exceptions": [
-              "ImportError"
-            ],
-            "handler_line": 524,
-            "kind": "try",
-            "line": 11
-          }
-        ],
-        "classification": "compatibility_fallback",
-        "column": 4,
-        "compatibility_pair": {
-          "bound_name": "_prompt_data_artist_mix_config",
-          "target": "easyuse_anima/prompt/artist_mix.py",
-          "try_line": 11
-        },
-        "conditional": true,
-        "imported": "easyuse_anima.prompt.artist_mix:_prompt_data_artist_mix_config",
-        "kind": "static_from",
-        "line": 747,
-        "name": "_prompt_data_artist_mix_config",
-        "optional": false,
-        "requested": "easyuse_anima.prompt.artist_mix",
-        "role": "compatibility_fallback",
-        "scope": "<module>",
-        "source": "nodes.py",
-        "target": "easyuse_anima/prompt/artist_mix.py"
-      },
-      {
-        "alias": "_prompt_data_positive_fields",
-        "bound_name": "_prompt_data_positive_fields",
-        "branch_context": [
-          {
-            "branch": "except",
-            "catches_import_error": true,
-            "exceptions": [
-              "ImportError"
-            ],
-            "handler_line": 524,
-            "kind": "try",
-            "line": 11
-          }
-        ],
-        "classification": "compatibility_fallback",
-        "column": 4,
-        "compatibility_pair": {
-          "bound_name": "_prompt_data_positive_fields",
-          "target": "easyuse_anima/prompt/artist_mix.py",
-          "try_line": 11
-        },
-        "conditional": true,
-        "imported": "easyuse_anima.prompt.artist_mix:_prompt_data_positive_fields",
-        "kind": "static_from",
-        "line": 747,
-        "name": "_prompt_data_positive_fields",
-        "optional": false,
-        "requested": "easyuse_anima.prompt.artist_mix",
-        "role": "compatibility_fallback",
-        "scope": "<module>",
-        "source": "nodes.py",
-        "target": "easyuse_anima/prompt/artist_mix.py"
-      },
-      {
-        "alias": "_split_artist_mix_blocks",
-        "bound_name": "_split_artist_mix_blocks",
-        "branch_context": [
-          {
-            "branch": "except",
-            "catches_import_error": true,
-            "exceptions": [
-              "ImportError"
-            ],
-            "handler_line": 524,
-            "kind": "try",
-            "line": 11
-          }
-        ],
-        "classification": "compatibility_fallback",
-        "column": 4,
-        "compatibility_pair": {
-          "bound_name": "_split_artist_mix_blocks",
-          "target": "easyuse_anima/prompt/artist_mix.py",
-          "try_line": 11
-        },
-        "conditional": true,
-        "imported": "easyuse_anima.prompt.artist_mix:_split_artist_mix_blocks",
-        "kind": "static_from",
-        "line": 747,
-        "name": "_split_artist_mix_blocks",
-        "optional": false,
-        "requested": "easyuse_anima.prompt.artist_mix",
-        "role": "compatibility_fallback",
-        "scope": "<module>",
-        "source": "nodes.py",
-        "target": "easyuse_anima/prompt/artist_mix.py"
-      },
-      {
-        "alias": "_split_artist_mix_items",
-        "bound_name": "_split_artist_mix_items",
-        "branch_context": [
-          {
-            "branch": "except",
-            "catches_import_error": true,
-            "exceptions": [
-              "ImportError"
-            ],
-            "handler_line": 524,
-            "kind": "try",
-            "line": 11
-          }
-        ],
-        "classification": "compatibility_fallback",
-        "column": 4,
-        "compatibility_pair": {
-          "bound_name": "_split_artist_mix_items",
-          "target": "easyuse_anima/prompt/artist_mix.py",
-          "try_line": 11
-        },
-        "conditional": true,
-        "imported": "easyuse_anima.prompt.artist_mix:_split_artist_mix_items",
-        "kind": "static_from",
-        "line": 747,
-        "name": "_split_artist_mix_items",
         "optional": false,
         "requested": "easyuse_anima.prompt.artist_mix",
         "role": "compatibility_fallback",
@@ -39136,7 +38421,7 @@
         "is_package": false,
         "loc": 2712,
         "module": "nodes",
-        "normalized_git_blob_sha1": "c05df92f2abb2aac76c9ff9fd3757d02750f1893",
+        "normalized_git_blob_sha1": "e4cb8e09d2d1e0eed72bf385f9a5c5ad8ff21721",
         "path": "nodes.py",
         "top_level": {
           "class_count": 2,
@@ -44591,29 +43876,6 @@
         ],
         "classification": "compatibility_fallback",
         "conditional": true,
-        "imported": "easyuse_anima.prompt.artist_mix:_artist_group_token",
-        "kind": "static_from",
-        "line": 747,
-        "optional": false,
-        "role": "compatibility_fallback",
-        "source": "nodes.py",
-        "target": "easyuse_anima/prompt/artist_mix.py"
-      },
-      {
-        "branch_context": [
-          {
-            "branch": "except",
-            "catches_import_error": true,
-            "exceptions": [
-              "ImportError"
-            ],
-            "handler_line": 524,
-            "kind": "try",
-            "line": 11
-          }
-        ],
-        "classification": "compatibility_fallback",
-        "conditional": true,
         "imported": "easyuse_anima.prompt.artist_mix:_artist_mix_inline_prompt",
         "kind": "static_from",
         "line": 747,
@@ -44660,29 +43922,6 @@
         ],
         "classification": "compatibility_fallback",
         "conditional": true,
-        "imported": "easyuse_anima.prompt.artist_mix:_artist_mix_prompt_tags",
-        "kind": "static_from",
-        "line": 747,
-        "optional": false,
-        "role": "compatibility_fallback",
-        "source": "nodes.py",
-        "target": "easyuse_anima/prompt/artist_mix.py"
-      },
-      {
-        "branch_context": [
-          {
-            "branch": "except",
-            "catches_import_error": true,
-            "exceptions": [
-              "ImportError"
-            ],
-            "handler_line": 524,
-            "kind": "try",
-            "line": 11
-          }
-        ],
-        "classification": "compatibility_fallback",
-        "conditional": true,
         "imported": "easyuse_anima.prompt.artist_mix:_artist_prompt_with_position",
         "kind": "static_from",
         "line": 747,
@@ -44707,29 +43946,6 @@
         "classification": "compatibility_fallback",
         "conditional": true,
         "imported": "easyuse_anima.prompt.artist_mix:_artist_tags_from_prompt",
-        "kind": "static_from",
-        "line": 747,
-        "optional": false,
-        "role": "compatibility_fallback",
-        "source": "nodes.py",
-        "target": "easyuse_anima/prompt/artist_mix.py"
-      },
-      {
-        "branch_context": [
-          {
-            "branch": "except",
-            "catches_import_error": true,
-            "exceptions": [
-              "ImportError"
-            ],
-            "handler_line": 524,
-            "kind": "try",
-            "line": 11
-          }
-        ],
-        "classification": "compatibility_fallback",
-        "conditional": true,
-        "imported": "easyuse_anima.prompt.artist_mix:_artist_variant_prompt_from_prompt_data",
         "kind": "static_from",
         "line": 747,
         "optional": false,
@@ -44822,29 +44038,6 @@
         "classification": "compatibility_fallback",
         "conditional": true,
         "imported": "easyuse_anima.prompt.artist_mix:_bounded_artist_mix_int",
-        "kind": "static_from",
-        "line": 747,
-        "optional": false,
-        "role": "compatibility_fallback",
-        "source": "nodes.py",
-        "target": "easyuse_anima/prompt/artist_mix.py"
-      },
-      {
-        "branch_context": [
-          {
-            "branch": "except",
-            "catches_import_error": true,
-            "exceptions": [
-              "ImportError"
-            ],
-            "handler_line": 524,
-            "kind": "try",
-            "line": 11
-          }
-        ],
-        "classification": "compatibility_fallback",
-        "conditional": true,
-        "imported": "easyuse_anima.prompt.artist_mix:_coalesce_artist_mix_items",
         "kind": "static_from",
         "line": 747,
         "optional": false,
@@ -45442,168 +44635,7 @@
         ],
         "classification": "compatibility_fallback",
         "conditional": true,
-        "imported": "easyuse_anima.prompt.artist_mix:_parse_artist_mix_entries",
-        "kind": "static_from",
-        "line": 747,
-        "optional": false,
-        "role": "compatibility_fallback",
-        "source": "nodes.py",
-        "target": "easyuse_anima/prompt/artist_mix.py"
-      },
-      {
-        "branch_context": [
-          {
-            "branch": "except",
-            "catches_import_error": true,
-            "exceptions": [
-              "ImportError"
-            ],
-            "handler_line": 524,
-            "kind": "try",
-            "line": 11
-          }
-        ],
-        "classification": "compatibility_fallback",
-        "conditional": true,
-        "imported": "easyuse_anima.prompt.artist_mix:_parse_artist_mix_group",
-        "kind": "static_from",
-        "line": 747,
-        "optional": false,
-        "role": "compatibility_fallback",
-        "source": "nodes.py",
-        "target": "easyuse_anima/prompt/artist_mix.py"
-      },
-      {
-        "branch_context": [
-          {
-            "branch": "except",
-            "catches_import_error": true,
-            "exceptions": [
-              "ImportError"
-            ],
-            "handler_line": 524,
-            "kind": "try",
-            "line": 11
-          }
-        ],
-        "classification": "compatibility_fallback",
-        "conditional": true,
         "imported": "easyuse_anima.prompt.artist_mix:_parse_artist_mix_items",
-        "kind": "static_from",
-        "line": 747,
-        "optional": false,
-        "role": "compatibility_fallback",
-        "source": "nodes.py",
-        "target": "easyuse_anima/prompt/artist_mix.py"
-      },
-      {
-        "branch_context": [
-          {
-            "branch": "except",
-            "catches_import_error": true,
-            "exceptions": [
-              "ImportError"
-            ],
-            "handler_line": 524,
-            "kind": "try",
-            "line": 11
-          }
-        ],
-        "classification": "compatibility_fallback",
-        "conditional": true,
-        "imported": "easyuse_anima.prompt.artist_mix:_prompt_data_artist_base_prompt",
-        "kind": "static_from",
-        "line": 747,
-        "optional": false,
-        "role": "compatibility_fallback",
-        "source": "nodes.py",
-        "target": "easyuse_anima/prompt/artist_mix.py"
-      },
-      {
-        "branch_context": [
-          {
-            "branch": "except",
-            "catches_import_error": true,
-            "exceptions": [
-              "ImportError"
-            ],
-            "handler_line": 524,
-            "kind": "try",
-            "line": 11
-          }
-        ],
-        "classification": "compatibility_fallback",
-        "conditional": true,
-        "imported": "easyuse_anima.prompt.artist_mix:_prompt_data_artist_mix_config",
-        "kind": "static_from",
-        "line": 747,
-        "optional": false,
-        "role": "compatibility_fallback",
-        "source": "nodes.py",
-        "target": "easyuse_anima/prompt/artist_mix.py"
-      },
-      {
-        "branch_context": [
-          {
-            "branch": "except",
-            "catches_import_error": true,
-            "exceptions": [
-              "ImportError"
-            ],
-            "handler_line": 524,
-            "kind": "try",
-            "line": 11
-          }
-        ],
-        "classification": "compatibility_fallback",
-        "conditional": true,
-        "imported": "easyuse_anima.prompt.artist_mix:_prompt_data_positive_fields",
-        "kind": "static_from",
-        "line": 747,
-        "optional": false,
-        "role": "compatibility_fallback",
-        "source": "nodes.py",
-        "target": "easyuse_anima/prompt/artist_mix.py"
-      },
-      {
-        "branch_context": [
-          {
-            "branch": "except",
-            "catches_import_error": true,
-            "exceptions": [
-              "ImportError"
-            ],
-            "handler_line": 524,
-            "kind": "try",
-            "line": 11
-          }
-        ],
-        "classification": "compatibility_fallback",
-        "conditional": true,
-        "imported": "easyuse_anima.prompt.artist_mix:_split_artist_mix_blocks",
-        "kind": "static_from",
-        "line": 747,
-        "optional": false,
-        "role": "compatibility_fallback",
-        "source": "nodes.py",
-        "target": "easyuse_anima/prompt/artist_mix.py"
-      },
-      {
-        "branch_context": [
-          {
-            "branch": "except",
-            "catches_import_error": true,
-            "exceptions": [
-              "ImportError"
-            ],
-            "handler_line": 524,
-            "kind": "try",
-            "line": 11
-          }
-        ],
-        "classification": "compatibility_fallback",
-        "conditional": true,
-        "imported": "easyuse_anima.prompt.artist_mix:_split_artist_mix_items",
         "kind": "static_from",
         "line": 747,
         "optional": false,

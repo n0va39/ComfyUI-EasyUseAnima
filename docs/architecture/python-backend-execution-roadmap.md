@@ -5,7 +5,7 @@
 - Status: operational execution runbook
 - Snapshot date: 2026-07-23
 - Snapshot branch: `dev`
-- Integrated `dev` snapshot commit: `251bf0c5a38637cf3c1fd41d262f532399bd83aa`
+- Integrated `dev` snapshot commit: `048c4f6df845206dd2c32090dcaa0440aec9e92e`
 - Scope: Python backend only
 - Target architecture: [`python-backend.md`](python-backend.md)
 - Architecture decisions: [ADR-001](adr-001-modular-monolith.md) and
@@ -31,7 +31,7 @@ merged PR, the owning issue's evidence record, and every stated exit gate.
 | Phase | Integrated snapshot / open implementation state | Remaining exit work |
 | --- | --- | --- |
 | A - baseline | Complete; #191 is closed | Keep fixtures and analyzers current during later moves |
-| B - `nodes.py` extraction | Integrated through B-10b16; B-10b17 Regional alias cleanup in review in PR #288 | Integrate scoped B-10b cleanup before registration/bootstrap and the final root shim |
+| B - `nodes.py` extraction | Integrated through B-10b17; B-10b18 Artist Mix parsing alias cleanup in review in PR #289 | Integrate scoped B-10b cleanup before registration/bootstrap and the final root shim |
 | C - feature contracts/behavior | Partially complete | Finish #168; then #167 and #169 in separate Contract/Behavior PRs |
 | D - root consolidation | Not started | Execute #186 feature by feature after the corresponding behavior contracts are stable |
 | E - runtime ownership | Not started | Execute #187 after canonical feature owners exist; E-01 inventory may start earlier |
@@ -295,7 +295,7 @@ surfaces. AiO mechanical extraction must not start until #168 exits.
 | 10 | B-09b1 AiO legacy orchestration body move | COMPLETE on `dev` | Move | #184 | PR #269 / `7484dc7` |
 | 11 | B-09b2 AiO generator adapter move | COMPLETE on `dev` | Move | #184 | PR #270 / `57d40b4` |
 | 12 | B-10a machine-readable compatibility audit | COMPLETE on `dev` | Contract/gate | #184/#188 | PR #271 / `3c7b857` |
-| 13 | B-10b private alias reduction | IN REVIEW: B-10b17 PR #288 | Contract/cleanup, split PRs | #184/#188 | Audited alias surface integrated |
+| 13 | B-10b private alias reduction | IN REVIEW: B-10b18 PR #289 | Contract/cleanup, split PRs | #184/#188 | Audited alias surface integrated |
 | 14 | B-11 registration/bootstrap/root shim | BLOCKED by B-10b | Move | #184 | Supported alias surface frozen after scoped cleanup |
 | 15 | S167 backend seed reservation series | BLOCKED by B exit/interface | Contract then Behavior | #167 | Canonical AiO/node seams |
 | 16 | A169 stage pipeline series | BLOCKED by #168 and B exit | Contract then Behavior | #169 | Typed config and mechanical AiO move |
@@ -621,8 +621,8 @@ reported as unexecuted, not passed.
 
 ### B-10b — Private alias reduction
 
-- **Status:** B-10b1 through B-10b16 are complete on `dev` through PR #287 /
-  `251bf0c`; B-10b17 is in review in PR #288 from that integrated base.
+- **Status:** B-10b1 through B-10b17 are complete on `dev` through PR #288 /
+  `048c4f6`; B-10b18 is in review in PR #289 from that integrated base.
 - **Type:** small compatibility cleanup PRs, one owner/surface at a time
 - Remove unsupported/test-only aliases after tests use canonical paths.
 - Retain an actual monkeypatch seam only when the consumer and call-time binding
@@ -746,6 +746,14 @@ owner directly. Fourteen runtime-resolved Regional seams remain; schema/type
 and workflow-property strings, mask geometry, prompt/conditioning assembly,
 mapped classes, frontend properties, and saved-workflow contracts stay
 unchanged.
+
+B-10b18 removes 11 private parsing/config helpers from the 53-symbol
+`easyuse_anima.prompt.artist_mix` unsupported root-alias group. Canonical
+Artist Mix code already calls these helpers lexically; no root runtime caller,
+resolver, binder, or patch seam consumes them. The remaining 42 Artist Mix
+aliases are deliberately split into a constants/mode unit and a conditioning/
+tensor unit. Parser/config behavior, 25 runtime-resolved seams, mapped classes,
+metadata, sockets, and saved-workflow contracts stay unchanged.
 
 ### B-11 — Registration, bootstrap, and final `nodes.py` shim
 

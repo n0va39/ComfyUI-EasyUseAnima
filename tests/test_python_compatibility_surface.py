@@ -15,7 +15,7 @@ NODES_PATH = ROOT / "nodes.py"
 FIXTURE_PATH = ROOT / "tests" / "fixtures" / "python_compatibility_surface.v1.json"
 
 SCHEMA_VERSION = 1
-BASE_COMMIT = "251bf0c5a38637cf3c1fd41d262f532399bd83aa"
+BASE_COMMIT = "048c4f6df845206dd2c32090dcaa0440aec9e92e"
 CLASSIFICATIONS = (
     "permanent_entrypoint",
     "supported_public_reexport",
@@ -56,6 +56,67 @@ PREAMBLE_IMPLEMENTATION_BINDINGS = {
     "sqrt": "math:sqrt",
 }
 RETIRED_PRIVATE_BINDINGS = {
+    "_artist_group_token": {
+        "canonical_target": "easyuse_anima.prompt.artist_mix:_artist_group_token",
+        "owner": "#184/#188 B-10b18",
+        "reason": "canonical Artist Mix parser calls group-token handling internally",
+    },
+    "_artist_mix_prompt_tags": {
+        "canonical_target": "easyuse_anima.prompt.artist_mix:_artist_mix_prompt_tags",
+        "owner": "#184/#188 B-10b18",
+        "reason": "canonical Artist Mix owner extracts parsed prompt tags internally",
+    },
+    "_artist_variant_prompt_from_prompt_data": {
+        "canonical_target": (
+            "easyuse_anima.prompt.artist_mix:_artist_variant_prompt_from_prompt_data"
+        ),
+        "owner": "#184/#188 B-10b18",
+        "reason": "canonical Artist Mix owner builds prompt-data variants internally",
+    },
+    "_coalesce_artist_mix_items": {
+        "canonical_target": "easyuse_anima.prompt.artist_mix:_coalesce_artist_mix_items",
+        "owner": "#184/#188 B-10b18",
+        "reason": "canonical Artist Mix parser coalesces items internally",
+    },
+    "_parse_artist_mix_entries": {
+        "canonical_target": "easyuse_anima.prompt.artist_mix:_parse_artist_mix_entries",
+        "owner": "#184/#188 B-10b18",
+        "reason": "canonical Artist Mix owner parses entries internally",
+    },
+    "_parse_artist_mix_group": {
+        "canonical_target": "easyuse_anima.prompt.artist_mix:_parse_artist_mix_group",
+        "owner": "#184/#188 B-10b18",
+        "reason": "canonical Artist Mix owner parses groups internally",
+    },
+    "_prompt_data_artist_base_prompt": {
+        "canonical_target": (
+            "easyuse_anima.prompt.artist_mix:_prompt_data_artist_base_prompt"
+        ),
+        "owner": "#184/#188 B-10b18",
+        "reason": "canonical Artist Mix owner resolves the base prompt internally",
+    },
+    "_prompt_data_artist_mix_config": {
+        "canonical_target": (
+            "easyuse_anima.prompt.artist_mix:_prompt_data_artist_mix_config"
+        ),
+        "owner": "#184/#188 B-10b18",
+        "reason": "canonical Artist Mix owner resolves prompt-data config internally",
+    },
+    "_prompt_data_positive_fields": {
+        "canonical_target": "easyuse_anima.prompt.artist_mix:_prompt_data_positive_fields",
+        "owner": "#184/#188 B-10b18",
+        "reason": "canonical Artist Mix owner reads positive fields internally",
+    },
+    "_split_artist_mix_blocks": {
+        "canonical_target": "easyuse_anima.prompt.artist_mix:_split_artist_mix_blocks",
+        "owner": "#184/#188 B-10b18",
+        "reason": "canonical Artist Mix parser splits blocks internally",
+    },
+    "_split_artist_mix_items": {
+        "canonical_target": "easyuse_anima.prompt.artist_mix:_split_artist_mix_items",
+        "owner": "#184/#188 B-10b18",
+        "reason": "canonical Artist Mix parser splits items internally",
+    },
     "REGIONAL_CONFIG_VERSION": {
         "canonical_target": "easyuse_anima.prompt.regional:REGIONAL_CONFIG_VERSION",
         "owner": "#184/#188 B-10b17",
@@ -1170,6 +1231,7 @@ def _build_document() -> dict[str, Any]:
                 "B-10b15",
                 "B-10b16",
                 "B-10b17",
+                "B-10b18",
             ],
         },
         "enums": {
@@ -1182,7 +1244,7 @@ def _build_document() -> dict[str, Any]:
         "expected_counts": {
             "root_entrypoints": 3,
             "excluded_preamble_implementation_bindings": 7,
-            "nodes_canonical_bindings": 311,
+            "nodes_canonical_bindings": 300,
             "nodes_legacy_bindings": 27,
             "mapped_public_classes": 18,
             "unmapped_classes": 2,
