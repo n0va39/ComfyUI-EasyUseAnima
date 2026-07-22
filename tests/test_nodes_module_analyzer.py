@@ -73,12 +73,12 @@ def load_dynamic():
     def test_current_nodes_module_shape_matches_recorded_baseline(self):
         report = analyzer.analyze_path(ROOT / "nodes.py")
 
-        self.assertEqual(report["git_blob_sha1"], "8909de5a52277a30b018bd19ffb8eed05cb3c298")
-        # Issue #184 B-07e moved the Advanced Prompt Studio vertical slice while
-        # preserving root compatibility aliases and wildcard seed-control behavior.
+        self.assertEqual(report["git_blob_sha1"], "d50f1bed2fb669691341f1e3bdb46f93da2cf9a5")
+        # Issue #168 C168-03 added the typed AiO config compatibility-facade wiring
+        # without moving the existing normalizer or changing the root symbol shape.
         self.assertEqual(report["top_level"]["function_count"], 108)
         self.assertEqual(report["top_level"]["class_count"], 7)
-        self.assertEqual(report["line_count"], 5_762)
+        self.assertEqual(report["line_count"], 5_768)
         class_names = {item["name"] for item in report["top_level"]["classes"]}
         self.assertIn("EasyUseAnimaAIOGenerator", class_names)
         self.assertNotIn("EasyUseAnimaPromptStudioAdvanced", class_names)
