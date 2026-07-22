@@ -6,7 +6,6 @@ import logging
 import threading
 from collections.abc import Callable
 
-
 _LOGGER = logging.getLogger("ComfyUI-EasyUseAnima")
 _INITIALIZE_LOCK = threading.Lock()
 _WILDCARDS_INITIALIZED = False
