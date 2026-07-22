@@ -265,18 +265,18 @@ try:
         ARTIST_TAG_POSITION_MODES as ARTIST_TAG_POSITION_MODES,
         _artist_conditioning_feature as _artist_conditioning_feature,
         _artist_delta_rms_from_encoded as _artist_delta_rms_from_encoded,
-        _artist_group_token as _artist_group_token,
+        # B-10b18: artist group-token parsing remains canonical-only.
         _artist_mix_inline_prompt as _artist_mix_inline_prompt,
         _artist_mix_mode_tooltip as _artist_mix_mode_tooltip,
-        _artist_mix_prompt_tags as _artist_mix_prompt_tags,
+        # B-10b18: parsed prompt tags remain canonical-only.
         _artist_prompt_with_position as _artist_prompt_with_position,
         _artist_tags_from_prompt as _artist_tags_from_prompt,
-        _artist_variant_prompt_from_prompt_data as _artist_variant_prompt_from_prompt_data,
+        # B-10b18: prompt-data artist variants remain canonical-only.
         _bind_artist_mix_runtime as _bind_artist_mix_runtime,
         _blend_conditionings as _blend_conditionings,
         _bounded_artist_mix_float as _bounded_artist_mix_float,
         _bounded_artist_mix_int as _bounded_artist_mix_int,
-        _coalesce_artist_mix_items as _coalesce_artist_mix_items,
+        # B-10b18: parsed item coalescing remains canonical-only.
         _conditionings_with_range as _conditionings_with_range,
         _conditionings_with_strength as _conditionings_with_strength,
         _conditionings_with_values as _conditionings_with_values,
@@ -302,14 +302,14 @@ try:
         _normalize_weight_values as _normalize_weight_values,
         _normalized_artist_weights as _normalized_artist_weights,
         _pad_conditioning_tensor as _pad_conditioning_tensor,
-        _parse_artist_mix_entries as _parse_artist_mix_entries,
-        _parse_artist_mix_group as _parse_artist_mix_group,
+        # B-10b18: Artist Mix entry parsing remains canonical-only.
+        # B-10b18: Artist Mix group parsing remains canonical-only.
         _parse_artist_mix_items as _parse_artist_mix_items,
-        _prompt_data_artist_base_prompt as _prompt_data_artist_base_prompt,
-        _prompt_data_artist_mix_config as _prompt_data_artist_mix_config,
-        _prompt_data_positive_fields as _prompt_data_positive_fields,
-        _split_artist_mix_blocks as _split_artist_mix_blocks,
-        _split_artist_mix_items as _split_artist_mix_items,
+        # B-10b18: prompt-data artist base prompt remains canonical-only.
+        # B-10b18: prompt-data Artist Mix config remains canonical-only.
+        # B-10b18: prompt-data positive fields remain canonical-only.
+        # B-10b18: Artist Mix block splitting remains canonical-only.
+        # B-10b18: Artist Mix item splitting remains canonical-only.
     )
     from .easyuse_anima.nodes.prompt_data_nodes import (
         EasyUseAnimaArtistMixConditioning as EasyUseAnimaArtistMixConditioning,
@@ -778,18 +778,18 @@ except ImportError:  # allows simple local import tests outside ComfyUI's packag
         ARTIST_TAG_POSITION_MODES as ARTIST_TAG_POSITION_MODES,
         _artist_conditioning_feature as _artist_conditioning_feature,
         _artist_delta_rms_from_encoded as _artist_delta_rms_from_encoded,
-        _artist_group_token as _artist_group_token,
+        # B-10b18: artist group-token parsing remains canonical-only.
         _artist_mix_inline_prompt as _artist_mix_inline_prompt,
         _artist_mix_mode_tooltip as _artist_mix_mode_tooltip,
-        _artist_mix_prompt_tags as _artist_mix_prompt_tags,
+        # B-10b18: parsed prompt tags remain canonical-only.
         _artist_prompt_with_position as _artist_prompt_with_position,
         _artist_tags_from_prompt as _artist_tags_from_prompt,
-        _artist_variant_prompt_from_prompt_data as _artist_variant_prompt_from_prompt_data,
+        # B-10b18: prompt-data artist variants remain canonical-only.
         _bind_artist_mix_runtime as _bind_artist_mix_runtime,
         _blend_conditionings as _blend_conditionings,
         _bounded_artist_mix_float as _bounded_artist_mix_float,
         _bounded_artist_mix_int as _bounded_artist_mix_int,
-        _coalesce_artist_mix_items as _coalesce_artist_mix_items,
+        # B-10b18: parsed item coalescing remains canonical-only.
         _conditionings_with_range as _conditionings_with_range,
         _conditionings_with_strength as _conditionings_with_strength,
         _conditionings_with_values as _conditionings_with_values,
@@ -815,14 +815,14 @@ except ImportError:  # allows simple local import tests outside ComfyUI's packag
         _normalize_weight_values as _normalize_weight_values,
         _normalized_artist_weights as _normalized_artist_weights,
         _pad_conditioning_tensor as _pad_conditioning_tensor,
-        _parse_artist_mix_entries as _parse_artist_mix_entries,
-        _parse_artist_mix_group as _parse_artist_mix_group,
+        # B-10b18: Artist Mix entry parsing remains canonical-only.
+        # B-10b18: Artist Mix group parsing remains canonical-only.
         _parse_artist_mix_items as _parse_artist_mix_items,
-        _prompt_data_artist_base_prompt as _prompt_data_artist_base_prompt,
-        _prompt_data_artist_mix_config as _prompt_data_artist_mix_config,
-        _prompt_data_positive_fields as _prompt_data_positive_fields,
-        _split_artist_mix_blocks as _split_artist_mix_blocks,
-        _split_artist_mix_items as _split_artist_mix_items,
+        # B-10b18: prompt-data artist base prompt remains canonical-only.
+        # B-10b18: prompt-data Artist Mix config remains canonical-only.
+        # B-10b18: prompt-data positive fields remain canonical-only.
+        # B-10b18: Artist Mix block splitting remains canonical-only.
+        # B-10b18: Artist Mix item splitting remains canonical-only.
     )
     from easyuse_anima.nodes.prompt_data_nodes import (
         EasyUseAnimaArtistMixConditioning as EasyUseAnimaArtistMixConditioning,

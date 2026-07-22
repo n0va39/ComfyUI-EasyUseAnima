@@ -1265,6 +1265,19 @@ class PromptDataConditioningMoveContractTests(unittest.TestCase):
         "_SPECTRUM_ANIMA_MOD_GUIDANCE_OLD_SIGNATURE_WARNED",
         "_warn_old_spectrum_anima_mod_guidance_once",
     )
+    RETIRED_ARTIST_MIX_PARSING_ALIASES = (
+        "_artist_group_token",
+        "_artist_mix_prompt_tags",
+        "_artist_variant_prompt_from_prompt_data",
+        "_coalesce_artist_mix_items",
+        "_parse_artist_mix_entries",
+        "_parse_artist_mix_group",
+        "_prompt_data_artist_base_prompt",
+        "_prompt_data_artist_mix_config",
+        "_prompt_data_positive_fields",
+        "_split_artist_mix_blocks",
+        "_split_artist_mix_items",
+    )
     NODE_CLASSES = (
         "EasyUseAnimaPromptDataUnpack",
         "EasyUseAnimaArtistMixConditioning",
@@ -1297,6 +1310,7 @@ class PromptDataConditioningMoveContractTests(unittest.TestCase):
         for name in (
             *self.RETIRED_PROMPT_DATA_ALIASES,
             *self.RETIRED_CONDITIONING_ALIASES,
+            *self.RETIRED_ARTIST_MIX_PARSING_ALIASES,
         ):
             with self.subTest(retired=name):
                 self.assertFalse(hasattr(nodes, name))
@@ -1322,6 +1336,7 @@ class PromptDataConditioningMoveContractTests(unittest.TestCase):
             for name in (
                 *self.RETIRED_PROMPT_DATA_ALIASES,
                 *self.RETIRED_CONDITIONING_ALIASES,
+                *self.RETIRED_ARTIST_MIX_PARSING_ALIASES,
             ):
                 with self.subTest(retired=name):
                     self.assertFalse(hasattr(package_nodes, name))

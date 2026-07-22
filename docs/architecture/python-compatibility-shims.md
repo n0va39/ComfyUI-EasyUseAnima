@@ -3,13 +3,13 @@
 ## Registry status
 
 - Inventory baseline: `dev` commit
-  `251bf0c5a38637cf3c1fd41d262f532399bd83aa`
+  `048c4f6df845206dd2c32090dcaa0440aec9e92e`
 - Compatibility provenance: package/workflow version 0.5.2
 - Policy: [ADR-002](adr-002-compatibility-shims.md)
 - Machine-readable audit:
   [`python_compatibility_surface.v1.json`](../../tests/fixtures/python_compatibility_surface.v1.json)
-- Current state: B-10b16 is integrated; B-10b17 in PR #288 removes one audited
-  unsupported/test-only Regional root-alias group
+- Current state: B-10b17 is integrated; B-10b18 in PR #289 removes the first
+  audited Artist Mix parsing/config subset
 
 This is an actionable registry, not a removal schedule. `N` means the first
 published Registry release containing both a canonical target and its root
@@ -74,8 +74,8 @@ inferring public support from spelling or test imports:
 - `nodes.py` preamble implementation imports: 7 (`json`, `logging`, `random`,
   `re`, `ceil`, `sqrt`, and `Any`), excluded from compatibility classification
   by an exact AST allowlist and drift gate;
-- `nodes.py` bindings with an `easyuse_anima` canonical target: 311 at the
-  B-10b17 PR head, with exact
+- `nodes.py` bindings with an `easyuse_anima` canonical target: 300 at the
+  B-10b18 PR head, with exact
   relative-package/flat-fallback parity;
 - bindings still owned by `anima_prompt`, `settings`, `prompt_translation`, or
   `wildcard_engine`: 27, with the same fallback parity;
@@ -99,7 +99,8 @@ inferring public support from spelling or test imports:
   B-10b11 legacy Extend class root alias, the nine B-10b12 prompt-data aliases,
   the 13 B-10b13 NAIA client aliases, the 16 B-10b14 NAIA resolution aliases,
   the five B-10b15 conditioning aliases, the 12 B-10b16 Prompt Advanced aliases,
-  and the 12 B-10b17 Regional aliases; their production
+  the 12 B-10b17 Regional aliases, and the 11 B-10b18 Artist Mix parsing/config
+  aliases; their production
   consumers import or call the corresponding canonical owners directly;
 - repository test files with a direct `nodes` import: 21, recorded as migration
   consumers rather than public-support evidence.
@@ -303,6 +304,12 @@ EasyUseAnimaWildcard
   tests reject the retired names while preserving 14 runtime-resolved Regional
   seams, exact serialized strings/payloads, mask/prompt behavior, mapped
   classes, frontend properties, and saved-workflow contracts.
+- B-10b18 Artist Mix parsing/config cleanup: 11 audited private helpers for
+  token/block/item/group parsing and prompt-data artist config are no longer
+  root aliases. Canonical Artist Mix code calls the owner helpers lexically;
+  normal-package and synthetic package tests reject the retired names while
+  preserving the remaining 42 audited aliases, 25 runtime-resolved seams,
+  exact parser/config/tensor/mode behavior, mappings, and workflow contracts.
 - B-08b2 internal AiO model-variant transition: Spectrum correction/forecast
   model patching and ephemeral model cleanup move to
   `easyuse_anima.aio.model_preparation`. Their four root private names remain
