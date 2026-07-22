@@ -15,7 +15,7 @@ NODES_PATH = ROOT / "nodes.py"
 FIXTURE_PATH = ROOT / "tests" / "fixtures" / "python_compatibility_surface.v1.json"
 
 SCHEMA_VERSION = 1
-BASE_COMMIT = "a06ed305ae43253ef04d1650fb486784b2aed943"
+BASE_COMMIT = "de4d801892e2d3c4cc33db2f92a54cfda0f2643c"
 CLASSIFICATIONS = (
     "permanent_entrypoint",
     "supported_public_reexport",
@@ -56,6 +56,82 @@ PREAMBLE_IMPLEMENTATION_BINDINGS = {
     "sqrt": "math:sqrt",
 }
 RETIRED_PRIVATE_BINDINGS = {
+    "ADVANCED_FIELDS_WORKFLOW_PROPERTY": {
+        "canonical_target": (
+            "easyuse_anima.prompt.advanced:ADVANCED_FIELDS_WORKFLOW_PROPERTY"
+        ),
+        "owner": "#184/#188 B-10b16",
+        "reason": "canonical Advanced adapter imports the workflow property directly",
+    },
+    "ADVANCED_FIELD_LABELS": {
+        "canonical_target": "easyuse_anima.prompt.advanced:ADVANCED_FIELD_LABELS",
+        "owner": "#184/#188 B-10b16",
+        "reason": "canonical Advanced owner consumes field labels internally",
+    },
+    "ADVANCED_FIELD_PANES": {
+        "canonical_target": "easyuse_anima.prompt.advanced:ADVANCED_FIELD_PANES",
+        "owner": "#184/#188 B-10b16",
+        "reason": "canonical Advanced owner consumes field panes internally",
+    },
+    "ADVANCED_FIELD_TYPES": {
+        "canonical_target": "easyuse_anima.prompt.advanced:ADVANCED_FIELD_TYPES",
+        "owner": "#184/#188 B-10b16",
+        "reason": "canonical Advanced owner consumes field types internally",
+    },
+    "EXTEND_PROMPT_SLOT_SPECS": {
+        "canonical_target": "easyuse_anima.prompt.advanced:EXTEND_PROMPT_SLOT_SPECS",
+        "owner": "#184/#188 B-10b16",
+        "reason": "canonical legacy Extend adapter imports slot specs directly",
+    },
+    "PROMPT_STUDIO_ADVANCED_RETURN_NAMES": {
+        "canonical_target": (
+            "easyuse_anima.prompt.advanced:PROMPT_STUDIO_ADVANCED_RETURN_NAMES"
+        ),
+        "owner": "#184/#188 B-10b16",
+        "reason": "canonical Advanced adapter imports return names directly",
+    },
+    "PROMPT_STUDIO_ADVANCED_RETURN_TYPES": {
+        "canonical_target": (
+            "easyuse_anima.prompt.advanced:PROMPT_STUDIO_ADVANCED_RETURN_TYPES"
+        ),
+        "owner": "#184/#188 B-10b16",
+        "reason": "canonical Advanced adapter imports return types directly",
+    },
+    "PROMPT_STUDIO_LEGACY_FIXED_WILDCARD_MODES": {
+        "canonical_target": (
+            "easyuse_anima.prompt.advanced:"
+            "PROMPT_STUDIO_LEGACY_FIXED_WILDCARD_MODES"
+        ),
+        "owner": "#184/#188 B-10b16",
+        "reason": "canonical seed-control normalizer consumes legacy modes internally",
+    },
+    "PROMPT_STUDIO_WILDCARD_SEED_CONTROL_ALIASES": {
+        "canonical_target": (
+            "easyuse_anima.prompt.advanced:"
+            "PROMPT_STUDIO_WILDCARD_SEED_CONTROL_ALIASES"
+        ),
+        "owner": "#184/#188 B-10b16",
+        "reason": "canonical seed-control normalizer consumes aliases internally",
+    },
+    "_advanced_fields_with_artist_override": {
+        "canonical_target": (
+            "easyuse_anima.prompt.advanced:_advanced_fields_with_artist_override"
+        ),
+        "owner": "#184/#188 B-10b16",
+        "reason": "canonical Advanced owner calls artist override expansion internally",
+    },
+    "_advanced_pane_parts": {
+        "canonical_target": "easyuse_anima.prompt.advanced:_advanced_pane_parts",
+        "owner": "#184/#188 B-10b16",
+        "reason": "canonical Advanced owner calls pane assembly internally",
+    },
+    "_advanced_prompt_data_fields": {
+        "canonical_target": (
+            "easyuse_anima.prompt.advanced:_advanced_prompt_data_fields"
+        ),
+        "owner": "#184/#188 B-10b16",
+        "reason": "canonical Advanced owner calls prompt-data serialization internally",
+    },
     "ANIMA_MOD_GUIDANCE_MODE_DISABLED": {
         "canonical_target": (
             "easyuse_anima.prompt.conditioning:ANIMA_MOD_GUIDANCE_MODE_DISABLED"
@@ -1026,6 +1102,7 @@ def _build_document() -> dict[str, Any]:
                 "B-10b13",
                 "B-10b14",
                 "B-10b15",
+                "B-10b16",
             ],
         },
         "enums": {
@@ -1038,7 +1115,7 @@ def _build_document() -> dict[str, Any]:
         "expected_counts": {
             "root_entrypoints": 3,
             "excluded_preamble_implementation_bindings": 7,
-            "nodes_canonical_bindings": 335,
+            "nodes_canonical_bindings": 323,
             "nodes_legacy_bindings": 27,
             "mapped_public_classes": 18,
             "unmapped_classes": 2,
