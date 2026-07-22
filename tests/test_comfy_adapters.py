@@ -15,6 +15,7 @@ if str(ROOT) not in sys.path:
 
 import nodes
 from easyuse_anima.infrastructure.comfy import capabilities, invocation, resources
+from easyuse_anima.nodes import sam3_nodes
 
 
 class ComfyCapabilityAdapterTests(unittest.TestCase):
@@ -324,12 +325,43 @@ class ComfyRootCompatibilityTests(unittest.TestCase):
     def test_domain_neutral_root_names_are_direct_aliases(self):
         self.assertIs(nodes._comfy_sampler_names, capabilities._comfy_sampler_names)
         self.assertIs(nodes._comfy_scheduler_names, capabilities._comfy_scheduler_names)
-        self.assertIs(nodes._comfy_checkpoint_names, resources._comfy_checkpoint_names)
         self.assertIs(nodes._folder_path_names, resources._folder_path_names)
         self.assertIs(nodes._node_output_tuple, invocation._node_output_tuple)
         self.assertIs(nodes._call_with_supported_kwargs, invocation._call_with_supported_kwargs)
         self.assertIs(nodes._impact_core_module, capabilities._impact_core_module)
         self.assertIs(nodes._impact_scheduler_names, capabilities._impact_scheduler_names)
+
+    def test_checkpoint_names_are_owned_by_the_canonical_sam3_consumer(self):
+        self.assertFalse(hasattr(nodes, "_comfy_checkpoint_names"))
+        self.assertIs(
+            sam3_nodes._comfy_checkpoint_names,
+            resources._comfy_checkpoint_names,
+        )
+        checkpoint_names = ["sam3-b.safetensors", "sam3-a.safetensors"]
+        with (
+            patch.object(
+                sam3_nodes,
+                "_comfy_checkpoint_names",
+                return_value=checkpoint_names,
+            ) as names,
+            patch.object(
+                sam3_nodes,
+                "_preferred_checkpoint_default",
+                return_value="sam3-a.safetensors",
+            ) as preferred,
+        ):
+            input_types = sam3_nodes.EasyUseAnimaSAM3Context.INPUT_TYPES()
+
+        self.assertIs(input_types["required"]["ckpt_name"][0], checkpoint_names)
+        self.assertEqual(
+            input_types["required"]["ckpt_name"][1]["default"],
+            "sam3-a.safetensors",
+        )
+        names.assert_called_once_with()
+        preferred.assert_called_once_with(
+            checkpoint_names,
+            "sam3.1_multiplex_fp16.safetensors",
+        )
 
     def test_feature_specific_root_wrappers_inject_existing_constants_and_aliases(self):
         folder_calls = []

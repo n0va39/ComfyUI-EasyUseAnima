@@ -73,9 +73,9 @@ def load_dynamic():
     def test_current_nodes_module_shape_matches_recorded_baseline(self):
         report = analyzer.analyze_path(ROOT / "nodes.py")
 
-        self.assertEqual(report["git_blob_sha1"], "09f0659ec2f1057b07c4324391aa60d9f2ca62e0")
-        # Issue #184 B-09b2 makes the AiO generator adapter canonical while
-        # preserving the class and its two private compatibility aliases at root.
+        self.assertEqual(report["git_blob_sha1"], "53d9aa04736dbb22844813b82c3846f09fdef38b")
+        # Issue #184 B-10b1 retires one unsupported/test-only resource alias
+        # after the SAM3 production consumer moved to the canonical path.
         self.assertEqual(report["top_level"]["function_count"], 41)
         self.assertEqual(report["top_level"]["class_count"], 2)
         self.assertEqual(report["line_count"], 2_712)
