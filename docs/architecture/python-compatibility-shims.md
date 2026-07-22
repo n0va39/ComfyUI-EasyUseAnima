@@ -3,14 +3,14 @@
 ## Registry status
 
 - Inventory baseline: `dev` commit
-  `f2a2ec0198119caa9680ca86a8c5d4d068ab4ba8`
+  `ebeee894e537c0edb4c7ec7aed34cefd212151f4`
 - Compatibility provenance: package/workflow version 0.5.2
 - Policy: [ADR-002](adr-002-compatibility-shims.md)
 - Machine-readable audit:
   [`python_compatibility_surface.v1.json`](../../tests/fixtures/python_compatibility_surface.v1.json)
-- Current state: B-11a is integrated in PR #292 and B-11b in PR #293. B-11c is
+- Current state: B-11a through B-11c1 are integrated through PR #294. B-11c is
   split into residual-owner and binder Moves before the final root shim;
-  B-11c1 input-type ownership is tracked by PR #294.
+  B-11c2 workflow lookup ownership is tracked by PR #295.
 
 This is an actionable registry, not a removal schedule. `N` means the first
 published Registry release containing both a canonical target and its root
@@ -75,8 +75,8 @@ inferring public support from spelling or test imports:
 - `nodes.py` preamble implementation imports: 7 (`json`, `logging`, `random`,
   `re`, `ceil`, `sqrt`, and `Any`), excluded from compatibility classification
   by an exact AST allowlist and drift gate;
-- `nodes.py` bindings with an `easyuse_anima` canonical target: 261 after
-  B-11c1 (258 at the integrated B-10b20 baseline), with exact
+- `nodes.py` bindings with an `easyuse_anima` canonical target: 262 after
+  B-11c2 (258 at the integrated B-10b20 baseline), with exact
   relative-package/flat-fallback parity;
 - bindings still owned by `anima_prompt`, `settings`, `prompt_translation`, or
   `wildcard_engine`: 27, with the same fallback parity;
@@ -84,8 +84,8 @@ inferring public support from spelling or test imports:
 - unmapped root classes: `EasyUseAnimaSAM3Context` and
   `EasyUseAnimaSAM3Detailer`; the canonical legacy Extend class remains in its
   owner module without a root alias or backend mapping;
-- root-owned residual implementation: 41 functions, 0 classes, and 32 assigned
-  globals after B-11c1 (41/2/33 at the integrated B-10b20 baseline).
+- root-owned residual implementation: 40 functions, 0 classes, and 32 assigned
+  globals after B-11c2 (41/2/33 at the integrated B-10b20 baseline).
 - import-time runtime binders: 28 exact top-level `_bind_*_runtime` calls;
 - root names reached by those canonical runtime resolvers: 256, including
   literal lookups and binder-owned helper-name/default collections;
@@ -163,6 +163,19 @@ convenience-node compatibility; it remains unmapped and is not public support.
 - LoRA, Prompt Advanced, Regional, and Wildcard adapters import the shared
   owner instead of retaining duplicate local definitions. Socket values,
   workflow payloads, and mapped node-class identity do not change.
+
+### B-11c2 workflow lookup alias
+
+- Canonical owner: `easyuse_anima.workflow._get_workflow_node`.
+- The private root name remains a transitional direct alias. Existing Wildcard
+  and NAIA callback binders plus Prompt Advanced and Regional string resolvers
+  still resolve through the root at call time, preserving monkeypatch seams.
+- The owner reads top-level and nested subgraph workflow metadata without
+  mutation or global state. Traversal order, return values, and adapter binder
+  signatures do not change in PR #295.
+- Reserved wildcard next-seed consumption remains root-owned because moving it
+  before D-12 would require a new dependency contract, canonical-to-legacy
+  import, or duplicated seed behavior.
 
 ### `nodes.py` public node-class surface
 

@@ -18,6 +18,7 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 import nodes
+from easyuse_anima import workflow
 from easyuse_anima.common import serialization as common_serialization
 from easyuse_anima.common import values as common_values
 from easyuse_anima.image import detailer as image_detailer
@@ -945,6 +946,64 @@ class WildcardNaiaMoveContractTests(unittest.TestCase):
                 package_naia_nodes.EasyUseAnimaNAIARandomPrompt,
             )
             self.assertFalse(hasattr(package_nodes, "WILDCARD_SEED_RANGE_NOTE"))
+
+
+class WorkflowLookupMoveContractTests(unittest.TestCase):
+    def test_canonical_workflow_lookup_preserves_top_level_and_subgraph_behavior(self):
+        inner_node = {"id": 7, "title": "inner"}
+        extra_pnginfo = {
+            "workflow": {
+                "nodes": [{"id": 3, "type": "nested-graph", "title": "outer"}],
+                "definitions": {
+                    "subgraphs": [
+                        {"id": "nested-graph", "nodes": [inner_node]},
+                    ],
+                },
+            },
+        }
+        original = json.loads(json.dumps(extra_pnginfo))
+
+        self.assertEqual(
+            workflow._get_workflow_node(extra_pnginfo, "3")["title"],
+            "outer",
+        )
+        self.assertIs(
+            workflow._get_workflow_node([extra_pnginfo], "3:7"),
+            inner_node,
+        )
+        self.assertIsNone(workflow._get_workflow_node(extra_pnginfo, "missing"))
+        self.assertIsNone(workflow._get_workflow_node(None, "3"))
+        self.assertEqual(extra_pnginfo, original)
+
+    def test_flat_and_package_roots_reexport_the_canonical_workflow_lookup(self):
+        self.assertIs(nodes._get_workflow_node, workflow._get_workflow_node)
+
+        with _loaded_package_entrypoint() as (_, package_nodes):
+            package_name = package_nodes.__package__
+            package_workflow = sys.modules[f"{package_name}.easyuse_anima.workflow"]
+            self.assertIs(
+                package_nodes._get_workflow_node,
+                package_workflow._get_workflow_node,
+            )
+
+    def test_existing_binders_keep_the_call_time_root_patch_seam(self):
+        patched_result = object()
+        with patch.object(
+            nodes,
+            "_get_workflow_node",
+            return_value=patched_result,
+        ):
+            for adapter in (
+                wildcard_nodes,
+                naia_nodes,
+                prompt_advanced_nodes,
+                regional_nodes,
+            ):
+                with self.subTest(adapter=adapter.__name__):
+                    self.assertIs(
+                        adapter._get_workflow_node(None, "3"),
+                        patched_result,
+                    )
 
 
 class InputTypeMoveContractTests(unittest.TestCase):

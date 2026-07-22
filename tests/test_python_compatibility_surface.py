@@ -16,7 +16,7 @@ NODES_PATH = ROOT / "nodes.py"
 FIXTURE_PATH = ROOT / "tests" / "fixtures" / "python_compatibility_surface.v1.json"
 
 SCHEMA_VERSION = 1
-BASE_COMMIT = "f2a2ec0198119caa9680ca86a8c5d4d068ab4ba8"
+BASE_COMMIT = "ebeee894e537c0edb4c7ec7aed34cefd212151f4"
 CLASSIFICATIONS = (
     "permanent_entrypoint",
     "supported_public_reexport",
@@ -1304,6 +1304,7 @@ def _build_document() -> dict[str, Any]:
                 "B-11a",
                 "B-11b",
                 "B-11c1",
+                "B-11c2",
             ],
         },
         "enums": {
@@ -1316,11 +1317,11 @@ def _build_document() -> dict[str, Any]:
         "expected_counts": {
             "root_entrypoints": 3,
             "excluded_preamble_implementation_bindings": 7,
-            "nodes_canonical_bindings": 261,
+            "nodes_canonical_bindings": 262,
             "nodes_legacy_bindings": 27,
             "mapped_public_classes": 18,
             "unmapped_classes": 2,
-            "root_residual_functions": 41,
+            "root_residual_functions": 40,
             "root_residual_classes": 0,
             "root_residual_globals": 32,
             "runtime_binders": 28,
