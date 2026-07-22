@@ -411,6 +411,42 @@ boundary, or public compatibility surface. New strict groups require their own
 reviewed owner and focused evidence. Import direction, public API, size, and
 test-ownership gates remain G-03 through G-06.
 
+### G-03a implementation contract
+
+G-03a adds a blocking import-boundary checker for six completed canonical
+prefixes: `common`, `image`, `infrastructure/comfy`, `lora`, `naia`, and
+`profiles`. Its checked-in ledger records exact group ids, owner issues,
+prefixes, and roles. The checker also owns the reviewed exact group set, so a
+missing, duplicated, reordered, empty, renamed, or reassigned ledger entry
+fails rather than reducing coverage. Every new Python file below an enrolled
+prefix is included automatically.
+
+The checker consumes the deterministic AST report from
+`tools/analyze_python_backend.py`; it does not import production modules. For
+enrolled sources it rejects repository-local targets outside
+`easyuse_anima`, references to `easyuse_anima/nodes/`,
+`easyuse_anima/api/routes/`, exact canonical `bootstrap.py` or
+`registration.py`, runtime cyclic SCC membership, compatibility fallback
+imports, and narrowly classified import-time route/registration or explicit
+mapping-mutation calls. External and optional dependencies without a local
+target remain valid. Infrastructure use by feature packages is not newly
+restricted in this slice because that direction does not yet have a separate
+reviewed contract.
+
+Cycle enforcement uses the analyzer's shipped Python inventory as its node
+scope. The checker completes that graph only when an absolute import exactly
+matches an inventoried local module, then delegates runtime-edge filtering and
+SCC calculation to the analyzer's existing helpers. This keeps
+`TYPE_CHECKING` exclusion identical to the report policy while preventing an
+absolute canonical edge from bypassing the cycle gate.
+
+`tools/check_python_quality.ps1` runs the checker once in the shared quality
+path used by both quick and full project profiles. Existing unenrolled debt in
+root loaders, Prompt, and node adapters remains visible in the analyzer report
+but does not block this first package gate. Enrolling another prefix requires a
+separate reviewed zero-violation checkpoint and an intentional update to both
+the ledger and checker-owned expected set.
+
 ## Overall Definition of Done
 
 The Python backend refactor is complete only when all of the following hold.
