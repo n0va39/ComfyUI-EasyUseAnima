@@ -9,6 +9,17 @@ from math import ceil, sqrt
 from typing import Any
 
 try:
+    from .easyuse_anima.aio.first_pass_cache import (
+        AIO_FIRST_PASS_CACHE_MAX_ENTRIES as AIO_FIRST_PASS_CACHE_MAX_ENTRIES,
+        _AIO_FIRST_PASS_CACHE as _AIO_FIRST_PASS_CACHE,
+        _AIO_FIRST_PASS_CACHE_ORDER as _AIO_FIRST_PASS_CACHE_ORDER,
+        _aio_first_pass_cache_key as _aio_first_pass_cache_key,
+        _bind_aio_first_pass_cache_runtime as _bind_aio_first_pass_cache_runtime,
+        _clear_aio_first_pass_cache as _clear_aio_first_pass_cache,
+        _clone_aio_cache_value as _clone_aio_cache_value,
+        _get_aio_first_pass_cache as _get_aio_first_pass_cache,
+        _put_aio_first_pass_cache as _put_aio_first_pass_cache,
+    )
     from .easyuse_anima.aio.generation_normalization import (
         _bind_aio_generation_normalization_runtime as _bind_aio_generation_normalization_runtime,
         _merge_versioned_settings as _merge_versioned_settings,
@@ -500,6 +511,17 @@ try:
         wildcard_sources_signature,
     )
 except ImportError:  # allows simple local import tests outside ComfyUI's package loader
+    from easyuse_anima.aio.first_pass_cache import (
+        AIO_FIRST_PASS_CACHE_MAX_ENTRIES as AIO_FIRST_PASS_CACHE_MAX_ENTRIES,
+        _AIO_FIRST_PASS_CACHE as _AIO_FIRST_PASS_CACHE,
+        _AIO_FIRST_PASS_CACHE_ORDER as _AIO_FIRST_PASS_CACHE_ORDER,
+        _aio_first_pass_cache_key as _aio_first_pass_cache_key,
+        _bind_aio_first_pass_cache_runtime as _bind_aio_first_pass_cache_runtime,
+        _clear_aio_first_pass_cache as _clear_aio_first_pass_cache,
+        _clone_aio_cache_value as _clone_aio_cache_value,
+        _get_aio_first_pass_cache as _get_aio_first_pass_cache,
+        _put_aio_first_pass_cache as _put_aio_first_pass_cache,
+    )
     from easyuse_anima.aio.generation_normalization import (
         _bind_aio_generation_normalization_runtime as _bind_aio_generation_normalization_runtime,
         _merge_versioned_settings as _merge_versioned_settings,
@@ -1814,98 +1836,6 @@ def _aio_lora_stack_signature(lora_stack) -> list[dict[str, Any]]:
     ]
 
 
-def _clone_aio_cache_value(value):
-    if isinstance(value, dict):
-        return {key: _clone_aio_cache_value(item) for key, item in value.items()}
-    if isinstance(value, list):
-        return [_clone_aio_cache_value(item) for item in value]
-    if isinstance(value, tuple):
-        return tuple(_clone_aio_cache_value(item) for item in value)
-    detach = getattr(value, "detach", None)
-    clone = getattr(value, "clone", None)
-    if callable(detach) and callable(clone):
-        tensor = detach().clone()
-        cpu = getattr(tensor, "cpu", None)
-        if callable(cpu):
-            try:
-                tensor = cpu()
-            except Exception:
-                pass
-        return tensor
-    return value
-
-
-def _clear_aio_first_pass_cache() -> None:
-    _AIO_FIRST_PASS_CACHE.clear()
-    _AIO_FIRST_PASS_CACHE_ORDER.clear()
-
-
-def _aio_first_pass_cache_key(
-    *,
-    cache_scope: str,
-    context: dict[str, Any],
-    prompt_data: dict[str, Any],
-    lora_stack,
-    settings: dict[str, Any],
-    positive_prompt: str,
-    negative_prompt: str,
-    quality_tags: str,
-    quality_neg: str,
-    use_anima_mod_guidance: bool,
-    use_negative_anima_mod_guidance: bool,
-    width: int,
-    height: int,
-) -> str:
-    return _stable_change_key({
-        "schema": "easyuse_anima_aio_first_pass_cache",
-        "version": 1,
-        "scope": str(cache_scope or ""),
-        "mode": settings.get("mode"),
-        "resource_info": _prompt_data_json_safe(context.get("resource_info", {})),
-        "input_settings": _prompt_data_json_safe(context.get("input_settings", {})),
-        "prompt_data": _prompt_data_json_safe(prompt_data),
-        "lora_stack": _aio_lora_stack_signature(lora_stack),
-        "sampler": _prompt_data_json_safe(settings.get("sampler", {})),
-        "model_patches": _prompt_data_json_safe(settings.get("model_patches", {})),
-        "mod_guidance": _prompt_data_json_safe(settings.get("mod_guidance", {})),
-        "artist_mix": _prompt_data_json_safe(settings.get("artist_mix", {})),
-        "positive_prompt": str(positive_prompt or ""),
-        "negative_prompt": str(negative_prompt or ""),
-        "quality_tags": str(quality_tags or ""),
-        "quality_neg": str(quality_neg or ""),
-        "use_anima_mod_guidance": bool(use_anima_mod_guidance),
-        "use_negative_anima_mod_guidance": bool(use_negative_anima_mod_guidance),
-        "width": int(width),
-        "height": int(height),
-    })
-
-
-def _get_aio_first_pass_cache(cache_key: str):
-    entry = _AIO_FIRST_PASS_CACHE.get(cache_key)
-    if not entry:
-        return None
-    if cache_key in _AIO_FIRST_PASS_CACHE_ORDER:
-        _AIO_FIRST_PASS_CACHE_ORDER.remove(cache_key)
-    _AIO_FIRST_PASS_CACHE_ORDER.append(cache_key)
-    return (
-        _clone_aio_cache_value(entry["latent"]),
-        _clone_aio_cache_value(entry["image"]),
-    )
-
-
-def _put_aio_first_pass_cache(cache_key: str, latent, image) -> None:
-    _AIO_FIRST_PASS_CACHE[cache_key] = {
-        "latent": _clone_aio_cache_value(latent),
-        "image": _clone_aio_cache_value(image),
-    }
-    if cache_key in _AIO_FIRST_PASS_CACHE_ORDER:
-        _AIO_FIRST_PASS_CACHE_ORDER.remove(cache_key)
-    _AIO_FIRST_PASS_CACHE_ORDER.append(cache_key)
-    while len(_AIO_FIRST_PASS_CACHE_ORDER) > AIO_FIRST_PASS_CACHE_MAX_ENTRIES:
-        old_key = _AIO_FIRST_PASS_CACHE_ORDER.pop(0)
-        _AIO_FIRST_PASS_CACHE.pop(old_key, None)
-
-
 def _image_tensor_size(image, fallback_width: int, fallback_height: int) -> tuple[int, int]:
     try:
         return int(image.shape[2]), int(image.shape[1])
@@ -2525,11 +2455,6 @@ def _run_aio_detailer_stage(
     }
 
 
-AIO_FIRST_PASS_CACHE_MAX_ENTRIES = 2
-_AIO_FIRST_PASS_CACHE: dict[str, dict[str, Any]] = {}
-_AIO_FIRST_PASS_CACHE_ORDER: list[str] = []
-
-
 def _aio_detailer_has_enabled_targets(detailer_settings: dict[str, Any]) -> bool:
     if not _as_bool(detailer_settings.get("enabled"), False):
         return False
@@ -2664,6 +2589,9 @@ def _consume_reserved_wildcard_next_seed(
     return reservation_next_seed if reservation_next_seed == expected_next_seed else None
 
 
+_bind_aio_first_pass_cache_runtime(
+    resolve_helper=lambda name: globals()[name],
+)
 _bind_aio_generation_normalization_runtime(
     resolve_helper=lambda name: globals()[name],
 )

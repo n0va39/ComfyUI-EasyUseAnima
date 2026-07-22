@@ -12,6 +12,7 @@ PACKAGE_MODULES = (
     "easyuse_anima",
     "easyuse_anima.aio",
     "easyuse_anima.aio.conditioning",
+    "easyuse_anima.aio.first_pass_cache",
     "easyuse_anima.aio.generation_normalization",
     "easyuse_anima.aio.generation_values",
     "easyuse_anima.aio.model_preparation",
