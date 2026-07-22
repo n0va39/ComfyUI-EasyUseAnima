@@ -15,7 +15,7 @@ NODES_PATH = ROOT / "nodes.py"
 FIXTURE_PATH = ROOT / "tests" / "fixtures" / "python_compatibility_surface.v1.json"
 
 SCHEMA_VERSION = 1
-BASE_COMMIT = "a87c2383b5be7362ba450489d401394234c83c52"
+BASE_COMMIT = "44d338bbc4ea6322edc83ab03928e8d14b5d8775"
 CLASSIFICATIONS = (
     "permanent_entrypoint",
     "supported_public_reexport",
@@ -56,6 +56,30 @@ PREAMBLE_IMPLEMENTATION_BINDINGS = {
     "sqrt": "math:sqrt",
 }
 RETIRED_PRIVATE_BINDINGS = {
+    "_image_scale_by_multiple_size": {
+        "canonical_target": (
+            "easyuse_anima.image.scaling:_image_scale_by_multiple_size"
+        ),
+        "owner": "#184/#188 B-10b6",
+        "reason": "canonical image adapter imports the owner directly",
+    },
+    "_max_long_edge_value": {
+        "canonical_target": "easyuse_anima.image.scaling:_max_long_edge_value",
+        "owner": "#184/#188 B-10b6",
+        "reason": "canonical scaling policy calls the owner directly",
+    },
+    "_normalize_image_scale_options": {
+        "canonical_target": (
+            "easyuse_anima.image.scaling:_normalize_image_scale_options"
+        ),
+        "owner": "#184/#188 B-10b6",
+        "reason": "canonical image adapter imports the owner directly",
+    },
+    "_scale_by_value": {
+        "canonical_target": "easyuse_anima.image.scaling:_scale_by_value",
+        "owner": "#184/#188 B-10b6",
+        "reason": "canonical scaling policy calls the owner directly",
+    },
     "_align_up": {
         "canonical_target": "easyuse_anima.image.geometry:_align_up",
         "owner": "#184/#188 B-10b5",
@@ -676,6 +700,7 @@ def _build_document() -> dict[str, Any]:
                 "B-10b3",
                 "B-10b4",
                 "B-10b5",
+                "B-10b6",
             ],
         },
         "enums": {
@@ -688,7 +713,7 @@ def _build_document() -> dict[str, Any]:
         "expected_counts": {
             "root_entrypoints": 3,
             "excluded_preamble_implementation_bindings": 7,
-            "nodes_canonical_bindings": 394,
+            "nodes_canonical_bindings": 390,
             "nodes_legacy_bindings": 27,
             "mapped_public_classes": 18,
             "unmapped_classes": 3,
@@ -696,7 +721,7 @@ def _build_document() -> dict[str, Any]:
             "root_residual_classes": 2,
             "root_residual_globals": 33,
             "runtime_binders": 28,
-            "direct_nodes_import_test_files": 22,
+            "direct_nodes_import_test_files": 21,
         },
         "mapped_public_classes": sorted(mapped_classes),
         "unmapped_classes": unmapped_classes,
@@ -921,7 +946,7 @@ class PythonCompatibilitySurfaceTests(unittest.TestCase):
             counts["direct_nodes_import_test_files"],
         )
         self.assertEqual(len(set(self.document["runtime_binders"])), 28)
-        self.assertEqual(len(set(self.document["direct_nodes_import_test_files"])), 22)
+        self.assertEqual(len(set(self.document["direct_nodes_import_test_files"])), 21)
 
     def test_string_runtime_resolvers_keep_production_seams_transitional(self):
         representative = {

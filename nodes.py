@@ -356,10 +356,10 @@ try:
     from .easyuse_anima.image.scaling import (
         IMAGE_SCALE_MULTIPLES as IMAGE_SCALE_MULTIPLES,
         IMAGE_UPSCALE_METHODS as IMAGE_UPSCALE_METHODS,
-        _image_scale_by_multiple_size as _image_scale_by_multiple_size,
-        _max_long_edge_value as _max_long_edge_value,
-        _normalize_image_scale_options as _normalize_image_scale_options,
-        _scale_by_value as _scale_by_value,
+        # B-10b6 retires four root image-scaling helper aliases.
+        # The canonical image adapter imports scaling helpers directly.
+        # Constants stay for the AiO generation-normalization resolver.
+        # The public mapped node class remains a root re-export.
     )
     from .easyuse_anima.infrastructure.comfy.capabilities import (
         _comfy_max_resolution as _adapter_comfy_max_resolution,
@@ -869,10 +869,10 @@ except ImportError:  # allows simple local import tests outside ComfyUI's packag
     from easyuse_anima.image.scaling import (
         IMAGE_SCALE_MULTIPLES as IMAGE_SCALE_MULTIPLES,
         IMAGE_UPSCALE_METHODS as IMAGE_UPSCALE_METHODS,
-        _image_scale_by_multiple_size as _image_scale_by_multiple_size,
-        _max_long_edge_value as _max_long_edge_value,
-        _normalize_image_scale_options as _normalize_image_scale_options,
-        _scale_by_value as _scale_by_value,
+        # B-10b6 retires four root image-scaling helper aliases.
+        # The canonical image adapter imports scaling helpers directly.
+        # Constants stay for the AiO generation-normalization resolver.
+        # The public mapped node class remains a root re-export.
     )
     from easyuse_anima.infrastructure.comfy.capabilities import (
         _comfy_max_resolution as _adapter_comfy_max_resolution,

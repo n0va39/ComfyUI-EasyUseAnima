@@ -1,10 +1,10 @@
 import unittest
 
-from nodes import (
-    EasyUseAnimaImageScaleByMultiple,
+from easyuse_anima.image.scaling import (
     _image_scale_by_multiple_size,
     _normalize_image_scale_options,
 )
+from easyuse_anima.nodes.image_nodes import EasyUseAnimaImageScaleByMultiple
 
 
 class ImageScaleByMultipleTests(unittest.TestCase):

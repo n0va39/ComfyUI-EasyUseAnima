@@ -5,7 +5,7 @@
 - Status: operational execution runbook
 - Snapshot date: 2026-07-23
 - Snapshot branch: `dev`
-- Integrated `dev` snapshot commit: `a87c2383b5be7362ba450489d401394234c83c52`
+- Integrated `dev` snapshot commit: `44d338bbc4ea6322edc83ab03928e8d14b5d8775`
 - Scope: Python backend only
 - Target architecture: [`python-backend.md`](python-backend.md)
 - Architecture decisions: [ADR-001](adr-001-modular-monolith.md) and
@@ -31,7 +31,7 @@ merged PR, the owning issue's evidence record, and every stated exit gate.
 | Phase | Integrated snapshot / open implementation state | Remaining exit work |
 | --- | --- | --- |
 | A - baseline | Complete; #191 is closed | Keep fixtures and analyzers current during later moves |
-| B - `nodes.py` extraction | Integrated through B-10b4; B-10b5 image-geometry cleanup in review in PR #276 | Integrate scoped B-10b cleanup before registration/bootstrap and the final root shim |
+| B - `nodes.py` extraction | Integrated through B-10b5; B-10b6 image-scaling cleanup in review in PR #277 | Integrate scoped B-10b cleanup before registration/bootstrap and the final root shim |
 | C - feature contracts/behavior | Partially complete | Finish #168; then #167 and #169 in separate Contract/Behavior PRs |
 | D - root consolidation | Not started | Execute #186 feature by feature after the corresponding behavior contracts are stable |
 | E - runtime ownership | Not started | Execute #187 after canonical feature owners exist; E-01 inventory may start earlier |
@@ -295,7 +295,7 @@ surfaces. AiO mechanical extraction must not start until #168 exits.
 | 10 | B-09b1 AiO legacy orchestration body move | COMPLETE on `dev` | Move | #184 | PR #269 / `7484dc7` |
 | 11 | B-09b2 AiO generator adapter move | COMPLETE on `dev` | Move | #184 | PR #270 / `57d40b4` |
 | 12 | B-10a machine-readable compatibility audit | COMPLETE on `dev` | Contract/gate | #184/#188 | PR #271 / `3c7b857` |
-| 13 | B-10b private alias reduction | IN REVIEW: B-10b5 PR #276 | Contract/cleanup, split PRs | #184/#188 | Audited alias surface integrated |
+| 13 | B-10b private alias reduction | IN REVIEW: B-10b6 PR #277 | Contract/cleanup, split PRs | #184/#188 | Audited alias surface integrated |
 | 14 | B-11 registration/bootstrap/root shim | BLOCKED by B-10b | Move | #184 | Supported alias surface frozen after scoped cleanup |
 | 15 | S167 backend seed reservation series | BLOCKED by B exit/interface | Contract then Behavior | #167 | Canonical AiO/node seams |
 | 16 | A169 stage pipeline series | BLOCKED by #168 and B exit | Contract then Behavior | #169 | Typed config and mechanical AiO move |
@@ -621,8 +621,8 @@ reported as unexecuted, not passed.
 
 ### B-10b — Private alias reduction
 
-- **Status:** B-10b1 through B-10b4 are complete on `dev` through PR #275 /
-  `a87c238`; B-10b5 is in review in PR #276 from that integrated base.
+- **Status:** B-10b1 through B-10b5 are complete on `dev` through PR #276 /
+  `44d338b`; B-10b6 is in review in PR #277 from that integrated base.
 - **Type:** small compatibility cleanup PRs, one owner/surface at a time
 - Remove unsupported/test-only aliases after tests use canonical paths.
 - Retain an actual monkeypatch seam only when the consumer and call-time binding
@@ -662,6 +662,13 @@ geometry, scaling, image-node, and Detailer consumers already import the
 `easyuse_anima.image.geometry` owner directly. `_align_nearest` and
 `_align_down` remain because root residual runtime still calls them; scaling
 helper aliases remain a separate B-10b6 rollback unit.
+
+B-10b6 removes only `_image_scale_by_multiple_size`, `_max_long_edge_value`,
+`_normalize_image_scale_options`, and `_scale_by_value` from the relative and
+flat root import surfaces. The canonical image adapter and scaling policy
+already call `easyuse_anima.image.scaling` directly. The two scaling constants
+remain root runtime-resolver seams, and the mapped image-scale node class stays
+a supported root re-export.
 
 ### B-11 — Registration, bootstrap, and final `nodes.py` shim
 
