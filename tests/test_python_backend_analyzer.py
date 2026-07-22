@@ -683,9 +683,9 @@ ignored/
 
         self.assertEqual(analyzer.render_json(report), expected_text)
         self.assertEqual(report["schema_version"], 2)
-        self.assertEqual(report["inventory"]["module_count"], 74)
-        self.assertEqual(len(report["registry"]["shipped_python_modules"]), 74)
-        self.assertEqual(len(report["registry"]["runtime_import_closure"]), 74)
+        self.assertEqual(report["inventory"]["module_count"], 75)
+        self.assertEqual(len(report["registry"]["shipped_python_modules"]), 75)
+        self.assertEqual(len(report["registry"]["runtime_import_closure"]), 75)
         self.assertEqual(report["registry"]["missing_internal_imports"], [])
         self.assertEqual(report["registry"]["unreachable_shipped_python_modules"], [])
         self.assertTrue(
@@ -693,6 +693,7 @@ ignored/
                 "easyuse_anima/__init__.py",
                 "easyuse_anima/aio/__init__.py",
                 "easyuse_anima/aio/conditioning.py",
+                "easyuse_anima/aio/first_pass_cache.py",
                 "easyuse_anima/aio/generation_values.py",
                 "easyuse_anima/aio/generation_sampling.py",
                 "easyuse_anima/aio/generation_features.py",
@@ -754,6 +755,7 @@ ignored/
         self.assertTrue(
             {
                 "easyuse_anima/aio/conditioning.py",
+                "easyuse_anima/aio/first_pass_cache.py",
                 "easyuse_anima/aio/model_preparation.py",
                 "easyuse_anima/aio/output.py",
                 "easyuse_anima/aio/preview.py",

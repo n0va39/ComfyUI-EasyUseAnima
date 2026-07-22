@@ -155,6 +155,14 @@ EasyUseAnimaWildcard
   focused monkeypatch seams preserve call-time behavior. These are internal
   transition surfaces through the B-10 compatibility audit and are not added
   to public package `__all__`.
+- B-08e internal AiO first-pass cache transition: current cache state,
+  cache-key generation, clone/reset, and LRU helpers move to
+  `easyuse_anima.aio.first_pass_cache`. Their eight root names remain direct
+  identity aliases so generator callers, mutable-state rebinding, and focused
+  monkeypatch seams preserve call-time behavior. These are internal transition
+  surfaces through the B-10 compatibility audit and are not added to public
+  package `__all__`. The shared root `_aio_lora_stack_signature` is not part of
+  this move; the canonical cache key resolves it at call time.
 - Removal gate: 0.5.2 node/workflow fixture, mapping identity, direct import,
   Registry archive closure, consumer evidence, separate breaking-change issue,
   and release note. With no external-consumer evidence, retain these exports.
