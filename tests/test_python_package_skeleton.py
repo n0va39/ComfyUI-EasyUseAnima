@@ -136,7 +136,8 @@ print(json.dumps({{
         self.assertEqual(payload["modules"], list(PACKAGE_MODULES))
         expected_all = [[] for _ in PACKAGE_MODULES]
         expected_all[PACKAGE_MODULES.index("easyuse_anima.nodes.aio_nodes")] = [
-            "EasyUseAnimaInput"
+            "EasyUseAnimaInput",
+            "EasyUseAnimaAIOGenerator",
         ]
         self.assertEqual(payload["declared_all"], expected_all)
         self.assertEqual(payload["new_forbidden"], [])

@@ -73,14 +73,14 @@ def load_dynamic():
     def test_current_nodes_module_shape_matches_recorded_baseline(self):
         report = analyzer.analyze_path(ROOT / "nodes.py")
 
-        self.assertEqual(report["git_blob_sha1"], "688ee31af1383b25856e258d918d3489f5aa4cdc")
-        # Issue #184 B-09b1 preserves the AiO generator adapter in root while
-        # moving its current-order execution body behind a direct private alias.
-        self.assertEqual(report["top_level"]["function_count"], 43)
-        self.assertEqual(report["top_level"]["class_count"], 3)
-        self.assertEqual(report["line_count"], 2_822)
+        self.assertEqual(report["git_blob_sha1"], "09f0659ec2f1057b07c4324391aa60d9f2ca62e0")
+        # Issue #184 B-09b2 makes the AiO generator adapter canonical while
+        # preserving the class and its two private compatibility aliases at root.
+        self.assertEqual(report["top_level"]["function_count"], 41)
+        self.assertEqual(report["top_level"]["class_count"], 2)
+        self.assertEqual(report["line_count"], 2_712)
         class_names = {item["name"] for item in report["top_level"]["classes"]}
-        self.assertIn("EasyUseAnimaAIOGenerator", class_names)
+        self.assertNotIn("EasyUseAnimaAIOGenerator", class_names)
         self.assertNotIn("EasyUseAnimaInput", class_names)
         self.assertNotIn("EasyUseAnimaPromptStudioAdvanced", class_names)
         self.assertNotIn("EasyUseAnimaPromptStudioAdvancedV2", class_names)

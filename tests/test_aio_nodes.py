@@ -11,18 +11,54 @@ from tests.test_node_contracts import _loaded_package_entrypoint
 
 
 class AIONodeContractTests(unittest.TestCase):
-    def test_input_node_is_the_canonical_public_adapter_in_both_import_modes(self):
-        self.assertEqual(aio_nodes.__all__, ("EasyUseAnimaInput",))
+    def test_aio_nodes_are_the_canonical_public_adapters_in_both_import_modes(self):
+        self.assertEqual(
+            aio_nodes.__all__,
+            ("EasyUseAnimaInput", "EasyUseAnimaAIOGenerator"),
+        )
         self.assertIs(nodes.EasyUseAnimaInput, aio_nodes.EasyUseAnimaInput)
+        self.assertIs(
+            nodes.EasyUseAnimaAIOGenerator,
+            aio_nodes.EasyUseAnimaAIOGenerator,
+        )
+        self.assertIs(
+            nodes._easy_use_anima_input_signature,
+            aio_nodes._easy_use_anima_input_signature,
+        )
+        self.assertIs(
+            nodes._require_easy_use_anima_input,
+            aio_nodes._require_easy_use_anima_input,
+        )
 
         with _loaded_package_entrypoint() as (package_entrypoint, package_nodes):
             canonical_module = sys.modules[
                 f"{package_entrypoint.__name__}.easyuse_anima.nodes.aio_nodes"
             ]
-            mapped_class = package_entrypoint.NODE_CLASS_MAPPINGS["EasyUseAnimaInput"]
-
-            self.assertIs(mapped_class, canonical_module.EasyUseAnimaInput)
+            self.assertEqual(
+                canonical_module.__all__,
+                ("EasyUseAnimaInput", "EasyUseAnimaAIOGenerator"),
+            )
+            self.assertIs(
+                package_entrypoint.NODE_CLASS_MAPPINGS["EasyUseAnimaInput"],
+                canonical_module.EasyUseAnimaInput,
+            )
+            self.assertIs(
+                package_entrypoint.NODE_CLASS_MAPPINGS["EasyUseAnimaAIOGenerator"],
+                canonical_module.EasyUseAnimaAIOGenerator,
+            )
             self.assertIs(package_nodes.EasyUseAnimaInput, canonical_module.EasyUseAnimaInput)
+            self.assertIs(
+                package_nodes.EasyUseAnimaAIOGenerator,
+                canonical_module.EasyUseAnimaAIOGenerator,
+            )
+            self.assertIs(
+                package_nodes._easy_use_anima_input_signature,
+                canonical_module._easy_use_anima_input_signature,
+            )
+            self.assertIs(
+                package_nodes._require_easy_use_anima_input,
+                canonical_module._require_easy_use_anima_input,
+            )
 
     def test_input_types_resolve_root_runtime_values_at_call_time(self):
         calls = []
@@ -281,6 +317,185 @@ class AIONodeContractTests(unittest.TestCase):
             nodes.EasyUseAnimaAIOGenerator.RETURN_NAMES,
             ("image", "latent", "metadata_json"),
         )
+
+    def test_generator_input_types_resolve_root_runtime_values_at_call_time(self):
+        calls = []
+
+        def generation_settings_json():
+            calls.append("generation_settings_json")
+            return '{"schema":"generation-test"}'
+
+        with patch.multiple(
+            nodes,
+            EASY_USE_ANIMA_INPUT_TYPE="EASY_USE_ANIMA_INPUT_TEST",
+            _aio_generation_settings_json=generation_settings_json,
+        ):
+            input_types = nodes.EasyUseAnimaAIOGenerator.INPUT_TYPES()
+
+        self.assertEqual(calls, ["generation_settings_json"])
+        self.assertEqual(
+            input_types["required"]["easy_use_anima_input"][0],
+            "EASY_USE_ANIMA_INPUT_TEST",
+        )
+        self.assertEqual(
+            input_types["required"]["generation_settings"][1]["default"],
+            '{"schema":"generation-test"}',
+        )
+        self.assertEqual(
+            list(input_types),
+            ["required", "hidden", "optional"],
+        )
+        self.assertEqual(
+            list(input_types["required"]),
+            ["easy_use_anima_input", "generation_settings"],
+        )
+        self.assertEqual(
+            list(input_types["hidden"]),
+            ["workflow_prompt", "extra_pnginfo", "unique_id"],
+        )
+        self.assertEqual(list(input_types["optional"]), ["lora_stack"])
+
+    def test_generator_change_key_preserves_special_seed_order_and_mutable_set(self):
+        calls = []
+        special_seeds = set()
+        normalized = {"sampler": {"seed": "runtime"}, "future": {"kept": True}}
+
+        def normalize(value):
+            calls.append(("normalize", value))
+            return normalized
+
+        def clone(value):
+            calls.append(("clone", value))
+            return json.loads(json.dumps(value))
+
+        def resolve_seed(value):
+            calls.append(("resolve_seed", value))
+            return 77
+
+        def input_signature(value):
+            calls.append(("input_signature", value))
+            return {"input": value}
+
+        def lora_signature(value):
+            calls.append(("lora_signature", value))
+            return [{"lora": value}]
+
+        def stable_key(value):
+            calls.append(("stable_key", value))
+            return "change-key"
+
+        with patch.multiple(
+            nodes,
+            AIO_SPECIAL_SEEDS=special_seeds,
+            _normalize_aio_generation_settings=normalize,
+            _json_clone=clone,
+            _resolve_aio_runtime_seed=resolve_seed,
+            _easy_use_anima_input_signature=input_signature,
+            _aio_lora_stack_signature=lora_signature,
+            _stable_change_key=stable_key,
+        ):
+            fixed_result = nodes.EasyUseAnimaAIOGenerator.IS_CHANGED(
+                "context",
+                "lora",
+                "settings",
+                ignored="compatibility",
+            )
+            fixed_calls = list(calls)
+            calls.clear()
+            special_seeds.add("runtime")
+            special_result = nodes.EasyUseAnimaAIOGenerator.IS_CHANGED(
+                "context",
+                "lora",
+                "settings",
+            )
+
+        fixed_payload = {
+            "mode": "easy_use_anima_generator",
+            "input": {"input": "context"},
+            "lora_stack": [{"lora": "lora"}],
+            "generation_settings": normalized,
+        }
+        self.assertEqual(fixed_result, "change-key")
+        self.assertEqual(
+            fixed_calls,
+            [
+                ("normalize", "settings"),
+                ("input_signature", "context"),
+                ("lora_signature", "lora"),
+                ("stable_key", fixed_payload),
+            ],
+        )
+        self.assertEqual(special_result, "change-key")
+        self.assertEqual(
+            calls,
+            [
+                ("normalize", "settings"),
+                ("clone", normalized),
+                ("resolve_seed", "runtime"),
+                ("input_signature", "context"),
+                ("lora_signature", "lora"),
+                (
+                    "stable_key",
+                    {
+                        **fixed_payload,
+                        "generation_settings": {
+                            "sampler": {"seed": 77},
+                            "future": {"kept": True},
+                        },
+                    },
+                ),
+            ],
+        )
+        self.assertEqual(normalized["sampler"]["seed"], "runtime")
+
+    def test_input_signature_and_validator_preserve_exact_contract(self):
+        calls = []
+
+        def json_safe(value):
+            calls.append(value)
+            return {"safe": value}
+
+        value = {
+            "schema": "schema",
+            "version": 2,
+            "resource_info": {"resource": 1},
+            "input_settings": {"setting": 2},
+            "prompt_data": {"prompt": 3},
+        }
+        with patch.object(nodes, "_prompt_data_json_safe", side_effect=json_safe):
+            signature = nodes._easy_use_anima_input_signature(value)
+            non_mapping = nodes._easy_use_anima_input_signature("context")
+
+        self.assertEqual(
+            calls,
+            [
+                {"resource": 1},
+                {"setting": 2},
+                {"prompt": 3},
+            ],
+        )
+        self.assertEqual(
+            signature,
+            {
+                "schema": "schema",
+                "version": 2,
+                "resource_info": {"safe": {"resource": 1}},
+                "input_settings": {"safe": {"setting": 2}},
+                "prompt_data": {"safe": {"prompt": 3}},
+            },
+        )
+        self.assertEqual(non_mapping, {"type": "str"})
+        self.assertIs(nodes._require_easy_use_anima_input(value), value)
+        with self.assertRaisesRegex(
+            RuntimeError,
+            r"^\[EasyUseAnima\] easy use anima input is missing or invalid\.$",
+        ):
+            nodes._require_easy_use_anima_input(None)
+        with self.assertRaisesRegex(
+            RuntimeError,
+            r"^\[EasyUseAnima\] easy use anima input is missing required value\(s\): resource_info, input_settings$",
+        ):
+            nodes._require_easy_use_anima_input({"prompt_data": {}})
 
     def test_input_context_is_serializable_and_does_not_embed_model_objects(self):
         context = nodes.EasyUseAnimaInput().build(

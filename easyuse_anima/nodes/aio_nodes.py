@@ -153,4 +153,145 @@ class EasyUseAnimaInput:
         },)
 
 
-__all__ = ("EasyUseAnimaInput",)
+def _easy_use_anima_input_signature(value) -> dict[str, Any]:
+    if not isinstance(value, dict):
+        return {"type": str(type(value).__name__)}
+    return {
+        "schema": value.get("schema"),
+        "version": value.get("version"),
+        "resource_info": _runtime_helper("_prompt_data_json_safe")(
+            value.get("resource_info", {})
+        ),
+        "input_settings": _runtime_helper("_prompt_data_json_safe")(
+            value.get("input_settings", {})
+        ),
+        "prompt_data": _runtime_helper("_prompt_data_json_safe")(
+            value.get("prompt_data", {})
+        ),
+    }
+
+
+def _require_easy_use_anima_input(value) -> dict[str, Any]:
+    if not isinstance(value, dict):
+        raise RuntimeError("[EasyUseAnima] easy use anima input is missing or invalid.")
+    missing = [
+        key
+        for key in ("prompt_data", "resource_info", "input_settings")
+        if key not in value
+    ]
+    if missing:
+        raise RuntimeError(
+            "[EasyUseAnima] easy use anima input is missing required value(s): "
+            + ", ".join(missing)
+        )
+    return value
+
+
+class EasyUseAnimaAIOGenerator:
+    """Draft all-in-one generator that consumes one easy use anima input context."""
+
+    DESCRIPTION = (
+        "Consumes the dedicated easy use anima input context and runs the base txt2img "
+        "generation path: prompt-data conditioning, optional Mod Guidance model patch, "
+        "KSampler, VAE decode, and optional image saving. Generation options are stored in "
+        "one versioned JSON field for future-compatible popup settings."
+    )
+    OUTPUT_TOOLTIPS = (
+        "Decoded generated image.",
+        "Sampled latent image.",
+        "JSON metadata summary for debugging or downstream integration.",
+    )
+
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {
+            "required": {
+                "easy_use_anima_input": (
+                    _runtime_helper("EASY_USE_ANIMA_INPUT_TYPE"),
+                    {
+                        "forceInput": True,
+                        "tooltip": "Context from Easy Use Anima Input.",
+                    },
+                ),
+                "generation_settings": (
+                    "STRING",
+                    {
+                        "multiline": True,
+                        "default": _runtime_helper("_aio_generation_settings_json")(),
+                        "hidden": True,
+                        "tooltip": "Hidden versioned JSON storage for popup generation settings. Keep this field serialized.",
+                    },
+                ),
+            },
+            "hidden": {
+                "workflow_prompt": "PROMPT",
+                "extra_pnginfo": "EXTRA_PNGINFO",
+                "unique_id": "UNIQUE_ID",
+            },
+            "optional": {
+                "lora_stack": (
+                    "LORA_STACK",
+                    {
+                        "forceInput": True,
+                        "tooltip": "Optional LoRA stack applied to MODEL and CLIP before conditioning and sampling.",
+                    },
+                ),
+            },
+        }
+
+    RETURN_TYPES = ("IMAGE", "LATENT", "STRING")
+    RETURN_NAMES = ("image", "latent", "metadata_json")
+    FUNCTION = "generate"
+    OUTPUT_NODE = True
+    CATEGORY = "EasyUse Anima/AiO"
+
+    @classmethod
+    def IS_CHANGED(
+        cls,
+        easy_use_anima_input=None,
+        lora_stack=None,
+        generation_settings: str | dict | None = None,
+        **kwargs,
+    ):
+        settings = _runtime_helper("_normalize_aio_generation_settings")(
+            generation_settings
+        )
+        if settings.get("sampler", {}).get("seed") in _runtime_helper(
+            "AIO_SPECIAL_SEEDS"
+        ):
+            change_settings = _runtime_helper("_json_clone")(settings)
+            change_settings["sampler"]["seed"] = _runtime_helper(
+                "_resolve_aio_runtime_seed"
+            )(change_settings["sampler"].get("seed"))
+        else:
+            change_settings = settings
+        return _runtime_helper("_stable_change_key")({
+            "mode": "easy_use_anima_generator",
+            "input": _runtime_helper("_easy_use_anima_input_signature")(
+                easy_use_anima_input
+            ),
+            "lora_stack": _runtime_helper("_aio_lora_stack_signature")(lora_stack),
+            "generation_settings": change_settings,
+        })
+
+    def generate(
+        self,
+        easy_use_anima_input,
+        generation_settings: str | dict | None = None,
+        lora_stack=None,
+        workflow_prompt=None,
+        extra_pnginfo=None,
+        unique_id=None,
+    ):
+        return _runtime_helper("_run_aio_legacy_generation")(
+            self,
+            easy_use_anima_input,
+            generation_settings,
+            lora_stack,
+            workflow_prompt,
+            extra_pnginfo,
+            unique_id,
+        )
+
+
+__all__ = ("EasyUseAnimaInput", "EasyUseAnimaAIOGenerator")

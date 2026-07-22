@@ -166,10 +166,9 @@ EasyUseAnimaWildcard
 - B-09a public AiO input-adapter transition: `EasyUseAnimaInput` moves to
   `easyuse_anima.nodes.aio_nodes` and remains a direct root alias, so direct
   imports and the package `NODE_CLASS_MAPPINGS` entry retain class identity.
-  The canonical module publicly exports only `EasyUseAnimaInput` through
-  `__all__`; its narrow call-time runtime seam preserves root monkeypatches for
-  resource candidates, normalization, stable change keys, schema/version
-  values, and prompt-data copying. The adapter does not import `nodes.py`.
+  Its narrow call-time runtime seam preserves root monkeypatches for resource
+  candidates, normalization, stable change keys, schema/version values, and
+  prompt-data copying. The adapter does not import `nodes.py`.
 - B-09b1 internal AiO orchestration transition: the current-order
   `EasyUseAnimaAIOGenerator.generate` body moves to
   `easyuse_anima.aio.legacy_generation` while the public class and exact method
@@ -179,6 +178,15 @@ EasyUseAnimaWildcard
   constant, and module at its original call site through one resolver slot.
   These aliases are transitional internal seams for B-10 and are not public
   package `__all__` entries.
+- B-09b2 public AiO generator-adapter transition: `EasyUseAnimaAIOGenerator`,
+  `_easy_use_anima_input_signature`, and `_require_easy_use_anima_input` move to
+  `easyuse_anima.nodes.aio_nodes` and remain direct root identity aliases in both
+  import modes. `EasyUseAnimaInput` and `EasyUseAnimaAIOGenerator` are the only
+  public names in the canonical module `__all__`; the two private aliases remain
+  transitional B-10 seams. The existing resolver slot preserves call-time root
+  lookup for the settings default, mutable special-seed set, normalization,
+  clone/runtime-seed/signature/LoRA/change-key helpers, prompt-data JSON safety,
+  and legacy orchestration. The canonical module does not import `nodes.py`.
 - Removal gate: 0.5.2 node/workflow fixture, mapping identity, direct import,
   Registry archive closure, consumer evidence, separate breaking-change issue,
   and release note. With no external-consumer evidence, retain these exports.
