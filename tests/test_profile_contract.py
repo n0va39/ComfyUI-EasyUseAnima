@@ -207,6 +207,28 @@ class ProfileContractTests(unittest.TestCase):
                     document,
                 )
 
+    def test_non_mapping_inputs_keep_runtime_validation_errors(self):
+        with self.assertRaisesRegex(
+            contract.ProfileContractError,
+            "Profile data is invalid",
+        ):
+            contract.read_profile_metadata(
+                contract.PROFILE_KIND_AIO,
+                "Invalid",
+                [],
+            )
+
+        with self.assertRaisesRegex(
+            contract.ProfileContractError,
+            "Profile payload is invalid",
+        ):
+            contract.build_profile_document(
+                name="Invalid",
+                profile_id="12345678-1234-4234-9234-1234567890ab",
+                revision=1,
+                payload=[],
+            )
+
 
 if __name__ == "__main__":
     unittest.main()

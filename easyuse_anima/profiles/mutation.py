@@ -3,7 +3,7 @@ from __future__ import annotations
 import os
 import threading
 import weakref
-from collections.abc import Iterator, Mapping
+from collections.abc import Generator, Mapping
 from contextlib import contextmanager
 from pathlib import Path
 from typing import Any
@@ -86,7 +86,7 @@ class DirectoryMutationCoordinator:
             return lock
 
     @contextmanager
-    def locked(self, directory: str | os.PathLike[str]) -> Iterator[None]:
+    def locked(self, directory: str | os.PathLike[str]) -> Generator[None, None, None]:
         lock = self._lock(directory)
         with lock:
             yield
