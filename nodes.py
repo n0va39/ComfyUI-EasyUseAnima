@@ -6,7 +6,6 @@ import logging
 import os
 import random
 import re
-import sys
 from math import ceil, sqrt
 from typing import Any
 
@@ -18,6 +17,19 @@ try:
     )
     from .easyuse_anima.aio.generation_settings import (
         round_trip_aio_generation_settings as _round_trip_aio_generation_settings,
+    )
+    from .easyuse_anima.aio.resources import (
+        _bind_aio_resource_runtime as _bind_aio_resource_runtime,
+        _load_aio_resources_from_input_context as _load_aio_resources_from_input_context,
+        _load_aio_sam3_context as _load_aio_sam3_context,
+        _load_checkpoint_with_comfy as _load_checkpoint_with_comfy,
+        _load_clip_with_comfy as _load_clip_with_comfy,
+        _load_diffusion_model_with_comfy as _load_diffusion_model_with_comfy,
+        _load_upscale_model_with_comfy as _load_upscale_model_with_comfy,
+        _load_vae_with_comfy as _load_vae_with_comfy,
+        _preferred_checkpoint_default as _preferred_checkpoint_default,
+        _preferred_clip_type_default as _preferred_clip_type_default,
+        _preferred_name_default as _preferred_name_default,
     )
     from .easyuse_anima.common.serialization import (
         _json_clone as _json_clone,
@@ -278,6 +290,8 @@ try:
         _comfy_scheduler_names as _comfy_scheduler_names,
         _find_comfy_node_class as _adapter_find_comfy_node_class,
         _find_loaded_node_class as _adapter_find_loaded_node_class,
+        _impact_core_module as _impact_core_module,
+        _impact_scheduler_names as _impact_scheduler_names,
         _require_any_custom_node_class as _adapter_require_any_custom_node_class,
         _require_custom_node_class as _adapter_require_custom_node_class,
     )
@@ -437,6 +451,19 @@ except ImportError:  # allows simple local import tests outside ComfyUI's packag
     )
     from easyuse_anima.aio.generation_settings import (
         round_trip_aio_generation_settings as _round_trip_aio_generation_settings,
+    )
+    from easyuse_anima.aio.resources import (
+        _bind_aio_resource_runtime as _bind_aio_resource_runtime,
+        _load_aio_resources_from_input_context as _load_aio_resources_from_input_context,
+        _load_aio_sam3_context as _load_aio_sam3_context,
+        _load_checkpoint_with_comfy as _load_checkpoint_with_comfy,
+        _load_clip_with_comfy as _load_clip_with_comfy,
+        _load_diffusion_model_with_comfy as _load_diffusion_model_with_comfy,
+        _load_upscale_model_with_comfy as _load_upscale_model_with_comfy,
+        _load_vae_with_comfy as _load_vae_with_comfy,
+        _preferred_checkpoint_default as _preferred_checkpoint_default,
+        _preferred_clip_type_default as _preferred_clip_type_default,
+        _preferred_name_default as _preferred_name_default,
     )
     from easyuse_anima.common.serialization import (
         _json_clone as _json_clone,
@@ -697,6 +724,8 @@ except ImportError:  # allows simple local import tests outside ComfyUI's packag
         _comfy_scheduler_names as _comfy_scheduler_names,
         _find_comfy_node_class as _adapter_find_comfy_node_class,
         _find_loaded_node_class as _adapter_find_loaded_node_class,
+        _impact_core_module as _impact_core_module,
+        _impact_scheduler_names as _impact_scheduler_names,
         _require_any_custom_node_class as _adapter_require_any_custom_node_class,
         _require_custom_node_class as _adapter_require_custom_node_class,
     )
@@ -1731,65 +1760,6 @@ def _comfy_clip_loader_types() -> list[str]:
     )
 
 
-def _preferred_name_default(names: list[str], candidates: tuple[str, ...]) -> str:
-    if not names:
-        return candidates[0] if candidates else ""
-    for candidate in candidates:
-        if candidate in names:
-            return candidate
-    normalized = {
-        str(name).replace("/", "\\").rsplit("\\", 1)[-1].lower(): str(name)
-        for name in names
-    }
-    for candidate in candidates:
-        basename = candidate.replace("/", "\\").rsplit("\\", 1)[-1].lower()
-        if basename in normalized:
-            return normalized[basename]
-    return names[0]
-
-
-def _preferred_checkpoint_default(names: list[str], preferred: str) -> str:
-    return preferred if preferred in names else names[0]
-
-
-def _preferred_clip_type_default(names: list[str]) -> str:
-    return "qwen_image" if "qwen_image" in names else _choice("", names, "stable_diffusion")
-
-
-def _impact_core_module():
-    module = sys.modules.get("impact.core")
-    if module is not None:
-        return module
-    try:
-        import impact.core as core  # type: ignore
-
-        return core
-    except Exception:
-        pass
-    try:
-        from modules.impact import core  # type: ignore
-
-        return core
-    except Exception:
-        pass
-    return None
-
-
-def _impact_scheduler_names() -> list[str]:
-    core = _impact_core_module()
-    if core is not None:
-        try:
-            return list(core.get_schedulers())
-        except Exception:
-            pass
-    try:
-        import comfy.samplers  # type: ignore
-
-        return list(comfy.samplers.KSampler.SCHEDULERS)
-    except Exception:
-        return ["normal", "karras", "exponential", "sgm_uniform", "simple", "ddim_uniform"]
-
-
 def _find_comfy_node_class(node_id: str):
     try:
         import nodes as comfy_nodes  # type: ignore
@@ -1823,59 +1793,6 @@ def _require_any_custom_node_class(node_ids: tuple[str, ...], node_pack: str, in
         install_hint,
         _find_comfy_node_class,
     )
-
-
-def _load_checkpoint_with_comfy(ckpt_name: str):
-    loader_cls = _find_comfy_node_class("CheckpointLoaderSimple")
-    if loader_cls is None:
-        raise RuntimeError("[EasyUseAnima] Could not find ComfyUI CheckpointLoaderSimple.")
-    loader = loader_cls()
-    method = getattr(loader, "load_checkpoint", None)
-    if method is None:
-        raise RuntimeError("[EasyUseAnima] CheckpointLoaderSimple does not expose load_checkpoint.")
-    return method(ckpt_name)
-
-
-def _load_diffusion_model_with_comfy(unet_name: str, weight_dtype: str = "default"):
-    loader_cls = _find_comfy_node_class("UNETLoader")
-    if loader_cls is None:
-        raise RuntimeError("[EasyUseAnima] Could not find ComfyUI UNETLoader.")
-    loader = loader_cls()
-    method = getattr(loader, "load_unet", None)
-    if method is None:
-        raise RuntimeError("[EasyUseAnima] UNETLoader does not expose load_unet.")
-    values = _node_output_tuple(method(str(unet_name), str(weight_dtype or "default")))
-    if not values:
-        raise RuntimeError("[EasyUseAnima] UNETLoader returned no MODEL.")
-    return values[0]
-
-
-def _load_vae_with_comfy(vae_name: str):
-    loader_cls = _find_comfy_node_class("VAELoader")
-    if loader_cls is None:
-        raise RuntimeError("[EasyUseAnima] Could not find ComfyUI VAELoader.")
-    loader = loader_cls()
-    method = getattr(loader, "load_vae", None)
-    if method is None:
-        raise RuntimeError("[EasyUseAnima] VAELoader does not expose load_vae.")
-    values = _node_output_tuple(method(str(vae_name)))
-    if not values:
-        raise RuntimeError("[EasyUseAnima] VAELoader returned no VAE.")
-    return values[0]
-
-
-def _load_clip_with_comfy(clip_name: str, clip_type: str = "qwen_image", device: str = "default"):
-    loader_cls = _find_comfy_node_class("CLIPLoader")
-    if loader_cls is None:
-        raise RuntimeError("[EasyUseAnima] Could not find ComfyUI CLIPLoader.")
-    loader = loader_cls()
-    method = getattr(loader, "load_clip", None)
-    if method is None:
-        raise RuntimeError("[EasyUseAnima] CLIPLoader does not expose load_clip.")
-    values = _node_output_tuple(method(str(clip_name), str(clip_type or "qwen_image"), str(device or "default")))
-    if not values:
-        raise RuntimeError("[EasyUseAnima] CLIPLoader returned no CLIP.")
-    return values[0]
 
 
 def _encode_with_comfy_clip(clip, text: str):
@@ -2682,33 +2599,6 @@ def _resize_image_to_size_if_needed(
     return resized.movedim(1, -1), True
 
 
-def _load_upscale_model_with_comfy(model_name: str):
-    model_name = str(model_name or "").strip()
-    if not model_name:
-        raise RuntimeError(
-            "[EasyUseAnima] USDU final upscale requires an upscale_model_name. "
-            "Choose a model from ComfyUI models/upscale_models."
-        )
-    loader_cls = _find_comfy_node_class("UpscaleModelLoader")
-    if loader_cls is None:
-        try:
-            from comfy_extras.nodes_upscale_model import UpscaleModelLoader  # type: ignore
-
-            loader_cls = UpscaleModelLoader
-        except Exception:
-            loader_cls = None
-    if loader_cls is None:
-        raise RuntimeError("[EasyUseAnima] Could not find ComfyUI UpscaleModelLoader.")
-    loader = loader_cls()
-    method = getattr(loader, "load_model", None) or getattr(loader, "execute", None)
-    if method is None:
-        raise RuntimeError("[EasyUseAnima] UpscaleModelLoader does not expose load_model().")
-    values = _node_output_tuple(method(model_name))
-    if not values:
-        raise RuntimeError("[EasyUseAnima] UpscaleModelLoader returned no UPSCALE_MODEL.")
-    return values[0]
-
-
 def _aio_stage_sampler_settings(
     base_sampler: dict[str, Any],
     stage_settings: dict[str, Any],
@@ -3305,15 +3195,6 @@ def _run_aio_upscale_stage(
     return output, metadata
 
 
-def _load_aio_sam3_context(detailer_settings: dict[str, Any]) -> dict[str, Any]:
-    sam3 = detailer_settings.get("sam3", {})
-    if not isinstance(sam3, dict):
-        sam3 = {}
-    checkpoint = str(sam3.get("checkpoint") or "sam3.1_multiplex_fp16.safetensors")
-    model, clip, vae = _load_checkpoint_with_comfy(checkpoint)
-    return _sam3_context(model, clip, vae, checkpoint)
-
-
 def _run_aio_detailer_target(
     target_name: str,
     target_settings: dict[str, Any],
@@ -3869,6 +3750,9 @@ def _consume_reserved_wildcard_next_seed(
 _bind_aio_generation_normalization_runtime(
     resolve_helper=lambda name: globals()[name],
 )
+_bind_aio_resource_runtime(
+    resolve_helper=lambda name: globals()[name],
+)
 _bind_sam3_runtime(
     resolve_helper=lambda name: globals()[name],
 )
@@ -3962,47 +3846,6 @@ def _require_easy_use_anima_input(value) -> dict[str, Any]:
             + ", ".join(missing)
         )
     return value
-
-
-def _load_aio_resources_from_input_context(context: dict[str, Any]):
-    resource_info = context.get("resource_info", {})
-    if not isinstance(resource_info, dict):
-        resource_info = {}
-    settings = _normalize_aio_input_settings(context.get("input_settings", {}))
-    resources = settings.get("resources", {})
-    if not isinstance(resources, dict):
-        resources = {}
-
-    unet_name = str(resource_info.get("unet_name") or "").strip()
-    vae_name = str(resource_info.get("vae_name") or "").strip()
-    clip_name = str(resource_info.get("clip_name") or "").strip()
-    clip_type = str(resource_info.get("clip_type") or "qwen_image")
-    missing = [
-        label
-        for label, value in (
-            ("unet_name", unet_name),
-            ("vae_name", vae_name),
-            ("clip_name", clip_name),
-        )
-        if not value
-    ]
-    if missing:
-        raise RuntimeError(
-            "[EasyUseAnima] easy use anima input resource_info is missing required value(s): "
-            + ", ".join(missing)
-        )
-
-    model = _load_diffusion_model_with_comfy(
-        unet_name,
-        str(resources.get("unet_weight_dtype") or resource_info.get("unet_weight_dtype") or "default"),
-    )
-    vae = _load_vae_with_comfy(vae_name)
-    clip = _load_clip_with_comfy(
-        clip_name,
-        clip_type,
-        str(resources.get("clip_device") or resource_info.get("clip_device") or "default"),
-    )
-    return model, clip, vae
 
 
 class EasyUseAnimaInput:

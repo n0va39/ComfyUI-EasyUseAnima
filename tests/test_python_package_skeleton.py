@@ -19,6 +19,7 @@ PACKAGE_MODULES = (
     "easyuse_anima.aio.generation_output",
     "easyuse_anima.aio.generation_migrations",
     "easyuse_anima.aio.generation_settings",
+    "easyuse_anima.aio.resources",
     "easyuse_anima.common",
     "easyuse_anima.common.values",
     "easyuse_anima.common.serialization",

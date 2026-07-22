@@ -108,6 +108,15 @@ EasyUseAnimaWildcard
   root AiO caller, historical convenience-node compatibility, and focused
   monkeypatch tests; they are not mapped public nodes and are not added to
   locales or a canonical public `__all__`.
+- B-08a internal AiO resource transition: resource default selection, ComfyUI
+  model/CLIP/VAE/upscale loading, SAM3 context loading, and AiO resource bundle
+  helpers move to `easyuse_anima.aio.resources`; Impact core/scheduler lookup
+  moves to `easyuse_anima.infrastructure.comfy.capabilities`. The twelve root
+  private names remain direct identity aliases because the current root AiO,
+  SAM3, Impact detailer, and normalization callers and their focused
+  monkeypatch seams still consume them. They remain internal transition
+  surfaces through the B-10 compatibility audit and are not added to public
+  package `__all__`.
 - Removal gate: 0.5.2 node/workflow fixture, mapping identity, direct import,
   Registry archive closure, consumer evidence, separate breaking-change issue,
   and release note. With no external-consumer evidence, retain these exports.
