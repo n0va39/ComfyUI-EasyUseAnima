@@ -3,13 +3,13 @@
 ## Registry status
 
 - Inventory baseline: `dev` commit
-  `57d40b435983f08c91469db6947ef1260b293695`
+  `3c7b857ebe249dcdc23292ad440a2cca9434406e`
 - Compatibility provenance: package/workflow version 0.5.2
 - Policy: [ADR-002](adr-002-compatibility-shims.md)
 - Machine-readable audit:
   [`python_compatibility_surface.v1.json`](../../tests/fixtures/python_compatibility_surface.v1.json)
-- Current state: B-04 through B-09b2 canonical moves are integrated; B-10a is
-  in review in PR #271 and freezes the actual root surface before B-10b cleanup
+- Current state: B-10a is integrated; B-10b1 in PR #272 removes one audited
+  unsupported/test-only root alias before the remaining scoped cleanup
 
 This is an actionable registry, not a removal schedule. `N` means the first
 published Registry release containing both a canonical target and its root
@@ -74,7 +74,8 @@ inferring public support from spelling or test imports:
 - `nodes.py` preamble implementation imports: 7 (`json`, `logging`, `random`,
   `re`, `ceil`, `sqrt`, and `Any`), excluded from compatibility classification
   by an exact AST allowlist and drift gate;
-- `nodes.py` bindings with an `easyuse_anima` canonical target: 401, with exact
+- `nodes.py` bindings with an `easyuse_anima` canonical target: 400 at the
+  B-10b1 PR head, with exact
   relative-package/flat-fallback parity;
 - bindings still owned by `anima_prompt`, `settings`, `prompt_translation`, or
   `wildcard_engine`: 27, with the same fallback parity;
@@ -86,6 +87,8 @@ inferring public support from spelling or test imports:
 - import-time runtime binders: 28 exact top-level `_bind_*_runtime` calls;
 - root names reached by those canonical runtime resolvers: 256, including
   literal lookups and binder-owned helper-name/default collections;
+- retired private bindings: `_comfy_checkpoint_names`, whose production SAM3
+  consumer already imports the canonical resource owner directly;
 - repository test files with a direct `nodes` import: 22, recorded as migration
   consumers rather than public-support evidence.
 
@@ -101,6 +104,10 @@ The seven preamble imports are implementation dependencies of the remaining
 root body, not compatibility aliases or supported exports. Any addition,
 removal, or retargeting fails the fixture build until it is deliberately
 classified; B-10b must not treat these imports as private-alias cleanup.
+
+The fixture retains retired private-binding metadata separately from the live
+root surface. A retired name cannot silently return to either compatibility
+import branch without failing the audit gate.
 
 The audit follows every import-time `_bind_*_runtime` target and records literal
 root-name lookups made through its runtime resolver. This keeps production seams
@@ -182,6 +189,10 @@ EasyUseAnimaWildcard
   `easyuse_anima.infrastructure.comfy.invocation` behind the existing root
   injection wrapper. These are internal transition surfaces through the B-10
   compatibility audit and are not added to public package `__all__`.
+- B-10b1 checkpoint-name cleanup: `_comfy_checkpoint_names` is no longer a root
+  alias. `easyuse_anima.nodes.sam3_nodes` already imports the canonical
+  `easyuse_anima.infrastructure.comfy.resources` function directly, and tests
+  patch that real consumer rather than retaining a root-only monkeypatch seam.
 - B-08b2 internal AiO model-variant transition: Spectrum correction/forecast
   model patching and ephemeral model cleanup move to
   `easyuse_anima.aio.model_preparation`. Their four root private names remain

@@ -23357,37 +23357,6 @@
         "target": "easyuse_anima/infrastructure/comfy/invocation.py"
       },
       {
-        "alias": "_comfy_checkpoint_names",
-        "bound_name": "_comfy_checkpoint_names",
-        "branch_context": [
-          {
-            "branch": "body",
-            "handles_import_failure": true,
-            "has_import_fallback_handler": true,
-            "kind": "try",
-            "line": 11
-          }
-        ],
-        "classification": "internal",
-        "column": 4,
-        "compatibility_pair": {
-          "bound_name": "_comfy_checkpoint_names",
-          "target": "easyuse_anima/infrastructure/comfy/resources.py",
-          "try_line": 11
-        },
-        "conditional": true,
-        "imported": ".easyuse_anima.infrastructure.comfy.resources:_comfy_checkpoint_names",
-        "kind": "static_from",
-        "line": 381,
-        "name": "_comfy_checkpoint_names",
-        "optional": false,
-        "requested": ".easyuse_anima.infrastructure.comfy.resources",
-        "role": "compatibility_primary",
-        "scope": "<module>",
-        "source": "nodes.py",
-        "target": "easyuse_anima/infrastructure/comfy/resources.py"
-      },
-      {
         "alias": "_adapter_comfy_clip_loader_types",
         "bound_name": "_adapter_comfy_clip_loader_types",
         "branch_context": [
@@ -37564,40 +37533,6 @@
         "target": "easyuse_anima/infrastructure/comfy/invocation.py"
       },
       {
-        "alias": "_comfy_checkpoint_names",
-        "bound_name": "_comfy_checkpoint_names",
-        "branch_context": [
-          {
-            "branch": "except",
-            "catches_import_error": true,
-            "exceptions": [
-              "ImportError"
-            ],
-            "handler_line": 524,
-            "kind": "try",
-            "line": 11
-          }
-        ],
-        "classification": "compatibility_fallback",
-        "column": 4,
-        "compatibility_pair": {
-          "bound_name": "_comfy_checkpoint_names",
-          "target": "easyuse_anima/infrastructure/comfy/resources.py",
-          "try_line": 11
-        },
-        "conditional": true,
-        "imported": "easyuse_anima.infrastructure.comfy.resources:_comfy_checkpoint_names",
-        "kind": "static_from",
-        "line": 894,
-        "name": "_comfy_checkpoint_names",
-        "optional": false,
-        "requested": "easyuse_anima.infrastructure.comfy.resources",
-        "role": "compatibility_fallback",
-        "scope": "<module>",
-        "source": "nodes.py",
-        "target": "easyuse_anima/infrastructure/comfy/resources.py"
-      },
-      {
         "alias": "_adapter_comfy_clip_loader_types",
         "bound_name": "_adapter_comfy_clip_loader_types",
         "branch_context": [
@@ -44990,7 +44925,7 @@
         "is_package": false,
         "loc": 2712,
         "module": "nodes",
-        "normalized_git_blob_sha1": "09f0659ec2f1057b07c4324391aa60d9f2ca62e0",
+        "normalized_git_blob_sha1": "53d9aa04736dbb22844813b82c3846f09fdef38b",
         "path": "nodes.py",
         "top_level": {
           "class_count": 2,
@@ -53534,29 +53469,6 @@
         "role": "compatibility_fallback",
         "source": "nodes.py",
         "target": "easyuse_anima/infrastructure/comfy/invocation.py"
-      },
-      {
-        "branch_context": [
-          {
-            "branch": "except",
-            "catches_import_error": true,
-            "exceptions": [
-              "ImportError"
-            ],
-            "handler_line": 524,
-            "kind": "try",
-            "line": 11
-          }
-        ],
-        "classification": "compatibility_fallback",
-        "conditional": true,
-        "imported": "easyuse_anima.infrastructure.comfy.resources:_comfy_checkpoint_names",
-        "kind": "static_from",
-        "line": 894,
-        "optional": false,
-        "role": "compatibility_fallback",
-        "source": "nodes.py",
-        "target": "easyuse_anima/infrastructure/comfy/resources.py"
       },
       {
         "branch_context": [

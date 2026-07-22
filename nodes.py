@@ -379,7 +379,7 @@ try:
         _node_output_tuple as _node_output_tuple,
     )
     from .easyuse_anima.infrastructure.comfy.resources import (
-        _comfy_checkpoint_names as _comfy_checkpoint_names,
+        # B-10b1 deliberately omits the retired root _comfy_checkpoint_names alias.
         _comfy_clip_loader_types as _adapter_comfy_clip_loader_types,
         _comfy_diffusion_model_names as _adapter_comfy_diffusion_model_names,
         _comfy_text_encoder_names as _adapter_comfy_text_encoder_names,
@@ -892,7 +892,7 @@ except ImportError:  # allows simple local import tests outside ComfyUI's packag
         _node_output_tuple as _node_output_tuple,
     )
     from easyuse_anima.infrastructure.comfy.resources import (
-        _comfy_checkpoint_names as _comfy_checkpoint_names,
+        # B-10b1 deliberately omits the retired root _comfy_checkpoint_names alias.
         _comfy_clip_loader_types as _adapter_comfy_clip_loader_types,
         _comfy_diffusion_model_names as _adapter_comfy_diffusion_model_names,
         _comfy_text_encoder_names as _adapter_comfy_text_encoder_names,

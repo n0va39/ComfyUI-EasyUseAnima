@@ -37,6 +37,7 @@ from easyuse_anima.nodes import (
     prompt_advanced_nodes,
     prompt_data_nodes,
     prompt_nodes,
+    sam3_nodes,
     wildcard_nodes,
 )
 from easyuse_anima.prompt import artist_mix as prompt_artist_mix
@@ -174,7 +175,6 @@ def _deterministic_comfy_inputs():
         "_comfy_max_resolution": lambda: 16384,
         "_comfy_sampler_names": lambda: ["contract_sampler_a", "contract_sampler_b"],
         "_comfy_scheduler_names": lambda: ["contract_scheduler_a", "contract_scheduler_b"],
-        "_comfy_checkpoint_names": lambda: ["contract/checkpoint.safetensors"],
         "_comfy_diffusion_model_names": lambda: ["contract/diffusion_model.safetensors"],
         "_comfy_text_encoder_names": lambda: ["contract/text_encoder.safetensors"],
         "_comfy_vae_names": lambda: ["contract/vae.safetensors"],
@@ -195,7 +195,11 @@ def _deterministic_comfy_inputs():
             "allow_remote_api": False,
         },
     }
-    with patch.multiple(nodes, **replacements):
+    with patch.multiple(nodes, **replacements), patch.object(
+        sam3_nodes,
+        "_comfy_checkpoint_names",
+        return_value=["contract/checkpoint.safetensors"],
+    ):
         yield
 
 
@@ -537,7 +541,7 @@ class ComfyAdapterMoveContractTests(unittest.TestCase):
         ),
         (
             comfy_resources,
-            ("_comfy_checkpoint_names", "_folder_path_names"),
+            ("_folder_path_names",),
         ),
         (
             comfy_invocation,
@@ -556,7 +560,40 @@ class ComfyAdapterMoveContractTests(unittest.TestCase):
 
     def test_package_nodes_comfy_aliases_are_canonical_objects(self):
         with _loaded_package_entrypoint() as (_, package_nodes):
+            self.assertFalse(hasattr(package_nodes, "_comfy_checkpoint_names"))
             package_name = package_nodes.__package__
+            package_sam3_nodes = sys.modules[
+                f"{package_name}.easyuse_anima.nodes.sam3_nodes"
+            ]
+            package_resources = sys.modules[
+                f"{package_name}.easyuse_anima.infrastructure.comfy.resources"
+            ]
+            self.assertIs(
+                package_sam3_nodes._comfy_checkpoint_names,
+                package_resources._comfy_checkpoint_names,
+            )
+            checkpoint_names = ["package/sam3.safetensors"]
+            with (
+                patch.object(
+                    package_sam3_nodes,
+                    "_comfy_checkpoint_names",
+                    return_value=checkpoint_names,
+                ),
+                patch.object(
+                    package_sam3_nodes,
+                    "_preferred_checkpoint_default",
+                    return_value="package/sam3.safetensors",
+                ),
+            ):
+                input_types = package_sam3_nodes.EasyUseAnimaSAM3Context.INPUT_TYPES()
+            self.assertIs(
+                input_types["required"]["ckpt_name"][0],
+                checkpoint_names,
+            )
+            self.assertEqual(
+                input_types["required"]["ckpt_name"][1]["default"],
+                "package/sam3.safetensors",
+            )
             package_helper_modules = (
                 (
                     sys.modules[

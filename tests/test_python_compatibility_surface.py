@@ -15,7 +15,7 @@ NODES_PATH = ROOT / "nodes.py"
 FIXTURE_PATH = ROOT / "tests" / "fixtures" / "python_compatibility_surface.v1.json"
 
 SCHEMA_VERSION = 1
-BASE_COMMIT = "57d40b435983f08c91469db6947ef1260b293695"
+BASE_COMMIT = "3c7b857ebe249dcdc23292ad440a2cca9434406e"
 CLASSIFICATIONS = (
     "permanent_entrypoint",
     "supported_public_reexport",
@@ -54,6 +54,15 @@ PREAMBLE_IMPLEMENTATION_BINDINGS = {
     "random": "random:random",
     "re": "re:re",
     "sqrt": "math:sqrt",
+}
+RETIRED_PRIVATE_BINDINGS = {
+    "_comfy_checkpoint_names": {
+        "canonical_target": (
+            "easyuse_anima.infrastructure.comfy.resources:_comfy_checkpoint_names"
+        ),
+        "owner": "#184/#188 B-10b1",
+        "reason": "production SAM3 consumer already imports the canonical owner",
+    },
 }
 
 
@@ -543,6 +552,13 @@ def _build_document() -> dict[str, Any]:
             + ", ".join(sorted(missing_documented_aliases))
         )
 
+    retired_overlap = set(RETIRED_PRIVATE_BINDINGS).intersection(available)
+    if retired_overlap:
+        raise AssertionError(
+            "retired private bindings returned to the root surface: "
+            + ", ".join(sorted(retired_overlap))
+        )
+
     class_like_bindings = {
         name
         for name, target in relative.items()
@@ -612,7 +628,7 @@ def _build_document() -> dict[str, Any]:
             "base_branch": "dev",
             "base_commit": BASE_COMMIT,
             "first_release": None,
-            "owner_tasks": ["#184", "#188", "B-10a"],
+            "owner_tasks": ["#184", "#188", "B-10a", "B-10b1"],
         },
         "enums": {
             "classifications": list(CLASSIFICATIONS),
@@ -624,7 +640,7 @@ def _build_document() -> dict[str, Any]:
         "expected_counts": {
             "root_entrypoints": 3,
             "excluded_preamble_implementation_bindings": 7,
-            "nodes_canonical_bindings": 401,
+            "nodes_canonical_bindings": 400,
             "nodes_legacy_bindings": 27,
             "mapped_public_classes": 18,
             "unmapped_classes": 3,
@@ -640,6 +656,7 @@ def _build_document() -> dict[str, Any]:
         "runtime_binders": _runtime_binders(nodes_tree),
         "runtime_resolver_consumers": runtime_resolver_consumers,
         "documented_transitional_aliases": DOCUMENTED_TRANSITIONAL_ALIASES,
+        "retired_private_bindings": RETIRED_PRIVATE_BINDINGS,
         "direct_nodes_import_test_files": _direct_nodes_import_test_files(),
         "groups": sorted(groups, key=lambda group: group["id"]),
     }
@@ -781,6 +798,20 @@ class PythonCompatibilitySurfaceTests(unittest.TestCase):
             for symbol in group["symbols"]
         }
         self.assertTrue(set(excluded).isdisjoint(compatibility_symbols))
+
+    def test_retired_private_bindings_cannot_return_to_the_root_surface(self):
+        retired = self.document["retired_private_bindings"]
+        self.assertEqual(retired, RETIRED_PRIVATE_BINDINGS)
+        compatibility_symbols = {
+            symbol
+            for group in self.document["groups"]
+            for symbol in group["symbols"]
+        }
+        self.assertTrue(set(retired).isdisjoint(compatibility_symbols))
+        for metadata in retired.values():
+            self.assertTrue(metadata["canonical_target"])
+            self.assertTrue(metadata["owner"])
+            self.assertTrue(metadata["reason"])
 
     def test_relative_and_flat_binding_targets_match_the_machine_readable_fixture(self):
         tree = _read_tree(NODES_PATH)
