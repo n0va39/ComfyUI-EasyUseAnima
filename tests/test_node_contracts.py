@@ -34,11 +34,13 @@ from easyuse_anima.nodes import (
     image_nodes,
     lora_nodes,
     naia_nodes,
+    prompt_advanced_nodes,
     prompt_data_nodes,
     prompt_nodes,
     wildcard_nodes,
 )
 from easyuse_anima.prompt import artist_mix as prompt_artist_mix
+from easyuse_anima.prompt import advanced as prompt_advanced
 from easyuse_anima.prompt import conditioning as prompt_conditioning
 from easyuse_anima.prompt import data as prompt_data
 from easyuse_anima.prompt import correction as prompt_correction
@@ -1355,6 +1357,204 @@ print(json.dumps({{
             ["easyuse_anima.nodes.prompt_nodes", "easyuse_anima.nodes.prompt_nodes"],
         )
         self.assertEqual(payload["helper_module"], "easyuse_anima.prompt.fields")
+        self.assertFalse(payload["root_nodes_loaded"])
+
+
+class PromptAdvancedMoveContractTests(unittest.TestCase):
+    SERVICE_OBJECTS = (
+        "ADVANCED_FIELD_TYPES",
+        "ADVANCED_FIELD_PANES",
+        "ADVANCED_FIELD_LABELS",
+        "ADVANCED_FIELDS_WORKFLOW_PROPERTY",
+        "EXTEND_PROMPT_SLOT_SPECS",
+        "PROMPT_STUDIO_WILDCARD_SEED_CONTROL_ALIASES",
+        "PROMPT_STUDIO_LEGACY_FIXED_WILDCARD_MODES",
+        "PROMPT_STUDIO_ADVANCED_RETURN_TYPES",
+        "PROMPT_STUDIO_ADVANCED_RETURN_NAMES",
+        "_normalize_prompt_studio_wildcard_seed_control",
+        "_translate_prompt_fields",
+        "_advanced_default_fields",
+        "_advanced_fields_json",
+        "_normalize_advanced_fields",
+        "_clone_advanced_fields",
+        "_advanced_field_input_values",
+        "_apply_advanced_field_inputs",
+        "_build_advanced_prompts",
+        "_expand_advanced_wildcard_fields",
+        "_build_advanced_prompt_data",
+    )
+    NODE_CLASSES = (
+        "EasyUseAnimaPromptStudioAdvanced",
+        "EasyUseAnimaPromptStudioAdvancedV2",
+        "EasyUseAnimaPromptStudioExtend",
+    )
+
+    def test_root_advanced_objects_are_direct_canonical_aliases(self):
+        for name in self.SERVICE_OBJECTS:
+            with self.subTest(module="advanced", name=name):
+                self.assertIs(getattr(nodes, name), getattr(prompt_advanced, name))
+        for name in self.NODE_CLASSES:
+            with self.subTest(module="prompt_advanced_nodes", name=name):
+                self.assertIs(getattr(nodes, name), getattr(prompt_advanced_nodes, name))
+
+    def test_package_loaded_root_advanced_objects_are_direct_aliases(self):
+        with _loaded_package_entrypoint() as (package_entrypoint, package_nodes):
+            package_name = package_nodes.__package__
+            package_advanced = sys.modules[f"{package_name}.easyuse_anima.prompt.advanced"]
+            package_advanced_nodes = sys.modules[
+                f"{package_name}.easyuse_anima.nodes.prompt_advanced_nodes"
+            ]
+
+            for name in self.SERVICE_OBJECTS:
+                with self.subTest(module="advanced", name=name):
+                    self.assertIs(getattr(package_nodes, name), getattr(package_advanced, name))
+            for name in self.NODE_CLASSES:
+                with self.subTest(module="prompt_advanced_nodes", name=name):
+                    self.assertIs(
+                        getattr(package_nodes, name),
+                        getattr(package_advanced_nodes, name),
+                    )
+
+            self.assertIs(
+                package_entrypoint.NODE_CLASS_MAPPINGS["EasyUseAnimaPromptStudioAdvanced"],
+                package_advanced_nodes.EasyUseAnimaPromptStudioAdvanced,
+            )
+            self.assertIs(
+                package_entrypoint.NODE_CLASS_MAPPINGS["EasyUseAnimaPromptStudioAdvancedV2"],
+                package_advanced_nodes.EasyUseAnimaPromptStudioAdvancedV2,
+            )
+            self.assertNotIn(
+                "EasyUseAnimaPromptStudioExtend",
+                package_entrypoint.NODE_CLASS_MAPPINGS,
+            )
+
+    def test_advanced_v2_directly_inherits_the_canonical_advanced_node(self):
+        self.assertEqual(
+            prompt_advanced_nodes.EasyUseAnimaPromptStudioAdvancedV2.__bases__,
+            (prompt_advanced_nodes.EasyUseAnimaPromptStudioAdvanced,),
+        )
+
+    def test_root_monkeypatches_drive_the_canonical_advanced_change_key(self):
+        with (
+            patch.object(nodes, "_stable_change_key", side_effect=lambda value: value) as stable,
+            patch.object(
+                nodes,
+                "_prompt_translation_change_key",
+                return_value={"bound": "translation"},
+            ) as translation_key,
+            patch.object(
+                nodes,
+                "resolve_metadata_filter_words",
+                return_value="bound filters",
+            ) as resolve_filters,
+        ):
+            change_key = prompt_advanced_nodes.EasyUseAnimaPromptStudioAdvanced.IS_CHANGED()
+
+        self.assertEqual(change_key["mode"], "prompt_studio_advanced")
+        self.assertEqual(change_key["metadata_filter_words"], "bound filters")
+        self.assertEqual(change_key["prompt_translation"], {"bound": "translation"})
+        stable.assert_called_once_with(change_key)
+        translation_key.assert_called_once_with()
+        resolve_filters.assert_called_once_with()
+
+    def test_root_naia_class_monkeypatch_drives_advanced_and_extend(self):
+        request_bodies = []
+
+        class BoundNAIARandomPrompt:
+            @staticmethod
+            def _make_request_body(*_args):
+                return {"bound": True}
+
+        def post_random(_host, _port, body, **_kwargs):
+            request_bodies.append(body)
+            return {
+                "ok": True,
+                "prompt": f"bound prompt {len(request_bodies)}",
+                "negative_prompt": "",
+                "width": 1024,
+                "height": 1024,
+            }
+
+        settings = {
+            "host": "127.0.0.1",
+            "port": 8188,
+            "use_naia_settings": True,
+            "pre_prompt": "",
+            "post_prompt": "",
+            "auto_hide": "",
+            "preprocessing": {},
+        }
+        fields = json.dumps([
+            {
+                "id": "positive_naia",
+                "pane": "positive",
+                "type": "naia",
+                "label": "NAIA Prompt",
+                "text": "old prompt",
+                "height": 120,
+                "enabled": True,
+            }
+        ])
+
+        with (
+            patch.object(nodes, "EasyUseAnimaNAIARandomPrompt", BoundNAIARandomPrompt),
+            patch.object(nodes, "resolve_naia_settings", return_value=settings),
+            patch.object(nodes, "_post_random", side_effect=post_random),
+        ):
+            advanced = prompt_advanced_nodes.EasyUseAnimaPromptStudioAdvanced().build(
+                True,
+                True,
+                False,
+                False,
+                fields,
+            )
+            extended = prompt_advanced_nodes.EasyUseAnimaPromptStudioExtend().build(
+                True,
+                False,
+                False,
+            )
+
+        self.assertEqual(request_bodies, [{"bound": True}, {"bound": True}])
+        self.assertEqual(advanced["result"][0], "bound prompt 1")
+        self.assertIn("bound prompt 2", extended["result"][0])
+
+    def test_fresh_process_direct_imports_do_not_load_root_nodes(self):
+        script = f"""
+import importlib
+import json
+import sys
+sys.path.insert(0, {str(ROOT)!r})
+sys.dont_write_bytecode = True
+advanced = importlib.import_module("easyuse_anima.prompt.advanced")
+advanced_nodes = importlib.import_module("easyuse_anima.nodes.prompt_advanced_nodes")
+print(json.dumps({{
+    "advanced_all": list(advanced.__all__),
+    "nodes_all": list(advanced_nodes.__all__),
+    "class_modules": [
+        advanced_nodes.EasyUseAnimaPromptStudioAdvanced.__module__,
+        advanced_nodes.EasyUseAnimaPromptStudioAdvancedV2.__module__,
+        advanced_nodes.EasyUseAnimaPromptStudioExtend.__module__,
+    ],
+    "root_nodes_loaded": "nodes" in sys.modules,
+}}))
+"""
+        result = subprocess.run(
+            [sys.executable, "-I", "-B", "-c", script],
+            cwd=ROOT,
+            check=False,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            timeout=10,
+        )
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        payload = json.loads(result.stdout)
+        self.assertEqual(payload["advanced_all"], [])
+        self.assertEqual(payload["nodes_all"], [])
+        self.assertEqual(
+            payload["class_modules"],
+            ["easyuse_anima.nodes.prompt_advanced_nodes"] * 3,
+        )
         self.assertFalse(payload["root_nodes_loaded"])
 
 
