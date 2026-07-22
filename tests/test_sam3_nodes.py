@@ -49,19 +49,25 @@ class SAM3MoveTests(unittest.TestCase):
         return values
 
     def test_root_symbols_are_direct_canonical_aliases(self):
-        service_names = (
+        retired_service_names = (
             "_call_impact_detailer",
-            "_context_value",
             "_empty_mask_for_image",
             "_empty_segs_for_image",
             "_find_impact_detailer_class",
             "_find_impact_mask_to_segs_class",
             "_find_sam3_detect_class",
             "_format_sam3_detection_prompt",
+        )
+        for name in retired_service_names:
+            with self.subTest(retired=name):
+                self.assertFalse(hasattr(nodes, name))
+
+        retained_service_names = (
+            "_context_value",
             "_sam3_context",
             "_segs_has_items",
         )
-        for name in service_names:
+        for name in retained_service_names:
             with self.subTest(name=name):
                 self.assertIs(getattr(nodes, name), getattr(sam3_service, name))
 

@@ -342,14 +342,14 @@ try:
     # The root module no longer re-exports this unsupported private helper.
     from .easyuse_anima.image.sam3 import (
         _bind_sam3_runtime as _bind_sam3_runtime,
-        _call_impact_detailer as _call_impact_detailer,
+        # B-10b9 retires seven root SAM3 helper aliases.
         _context_value as _context_value,
-        _empty_mask_for_image as _empty_mask_for_image,
-        _empty_segs_for_image as _empty_segs_for_image,
-        _find_impact_detailer_class as _find_impact_detailer_class,
-        _find_impact_mask_to_segs_class as _find_impact_mask_to_segs_class,
-        _find_sam3_detect_class as _find_sam3_detect_class,
-        _format_sam3_detection_prompt as _format_sam3_detection_prompt,
+        # Canonical SAM3 and Impact adapters import the owner directly.
+        # Prompt formatting and detection behavior stay canonical.
+        # Mask and empty-SEGS helpers stay canonical.
+        # Optional-node resolver behavior stays canonical.
+        # Context/state helpers remain root runtime seams.
+        # SAM3 class aliases stay unchanged.
         _sam3_context as _sam3_context,
         _segs_has_items as _segs_has_items,
     )
@@ -855,14 +855,14 @@ except ImportError:  # allows simple local import tests outside ComfyUI's packag
     # The root module no longer re-exports this unsupported private helper.
     from easyuse_anima.image.sam3 import (
         _bind_sam3_runtime as _bind_sam3_runtime,
-        _call_impact_detailer as _call_impact_detailer,
+        # B-10b9 retires seven root SAM3 helper aliases.
         _context_value as _context_value,
-        _empty_mask_for_image as _empty_mask_for_image,
-        _empty_segs_for_image as _empty_segs_for_image,
-        _find_impact_detailer_class as _find_impact_detailer_class,
-        _find_impact_mask_to_segs_class as _find_impact_mask_to_segs_class,
-        _find_sam3_detect_class as _find_sam3_detect_class,
-        _format_sam3_detection_prompt as _format_sam3_detection_prompt,
+        # Canonical SAM3 and Impact adapters import the owner directly.
+        # Prompt formatting and detection behavior stay canonical.
+        # Mask and empty-SEGS helpers stay canonical.
+        # Optional-node resolver behavior stays canonical.
+        # Context/state helpers remain root runtime seams.
+        # SAM3 class aliases stay unchanged.
         _sam3_context as _sam3_context,
         _segs_has_items as _segs_has_items,
     )
