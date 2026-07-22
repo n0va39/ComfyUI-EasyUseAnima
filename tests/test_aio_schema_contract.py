@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import copy
 import io
 import json
 import re
@@ -17,6 +18,7 @@ ROOT = Path(__file__).resolve().parents[1]
 MANIFEST_PATH = ROOT / "easyuse_anima" / "aio" / "schemas" / "generation_settings.v1.json"
 MANIFEST_REPOSITORY_PATH = MANIFEST_PATH.relative_to(ROOT).as_posix()
 FRONTEND_SETTINGS_PATH = ROOT / "web" / "js" / "aio" / "settings.js"
+AIO_WORKFLOW_0_5_2_FIXTURE_PATH = ROOT / "tests" / "fixtures" / "aio_generation_settings_0_5_2.json"
 
 
 def _manifest() -> dict:
@@ -224,6 +226,34 @@ class AIOGenerationSettingsManifestTests(unittest.TestCase):
         self.assertEqual(manifest["settings"]["schema"], nodes.AIO_GENERATION_SETTINGS_SCHEMA)
         self.assertEqual(manifest["settings"]["version"], nodes.AIO_GENERATION_SETTINGS_VERSION)
         self.assertEqual(manifest["default"], nodes.AIO_GENERATION_DEFAULT_SETTINGS)
+
+    def test_0_5_2_saved_aio_workflow_normalizes_generation_settings_identically(self):
+        fixture = json.loads(AIO_WORKFLOW_0_5_2_FIXTURE_PATH.read_text(encoding="utf-8"))
+        source = fixture["source"]
+        serialized = fixture["serialized_generation_settings"]
+        serialized_before = copy.deepcopy(serialized)
+        capabilities = source["capabilities"]
+
+        self.assertEqual(source["git_tag"], "v0.5.2")
+        self.assertEqual(source["package_version"], "0.5.2")
+        self.assertEqual(source["node_id"], 86)
+        self.assertEqual(source["node_type"], "EasyUseAnimaAIOGenerator")
+        self.assertEqual(source["widget_index"], 0)
+
+        with _deterministic_capabilities(
+            samplers=tuple(capabilities["samplers"]),
+            schedulers=tuple(capabilities["schedulers"]),
+            impact_schedulers=tuple(capabilities["impact_schedulers"]),
+        ):
+            with patch.object(
+                nodes,
+                "_comfy_max_resolution",
+                return_value=capabilities["max_resolution"],
+            ):
+                normalized = nodes._normalize_aio_generation_settings(serialized)
+
+        self.assertEqual(serialized, serialized_before)
+        self.assertEqual(normalized, fixture["expected_normalized_generation_settings"])
 
     def test_manifest_shape_covers_every_default_leaf_with_matching_types(self):
         manifest = _manifest()

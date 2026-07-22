@@ -3,9 +3,10 @@
 이 문서는 `easyuse_anima_aio_generation_settings` v1의 정적 계약과 소유 경계를 설명한다. 기준 manifest는
 `easyuse_anima/aio/schemas/generation_settings.v1.json`이다.
 
-이번 단계는 [#168](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/168)의 C168-01 Contract PR이다.
-manifest와 golden test만 추가하며 Python/JavaScript runtime은 manifest를 import하지 않는다. generator, codegen,
-typed model, version migration, normalizer 교체도 이 단계에 포함하지 않는다.
+기준 manifest는 [#168](https://github.com/n0va39/ComfyUI-EasyUseAnima/issues/168)의 C168-01 Contract PR에서
+도입했다. C168-02는 v0.5.2 release workflow에 저장된 AiO generation settings 입력과 normalized
+결과를 현재 runtime에 다시 적용해 deep equality로 고정한다. Python/JavaScript runtime은 여전히 manifest를
+import하지 않으며 generator, codegen, typed model, version migration, normalizer 교체는 이 단계에 포함하지 않는다.
 
 ## 소유권
 
@@ -141,6 +142,9 @@ write-on-read는 금지한다. 후속 version migration은 명시적인 순수 �
 field contract coverage, coercion 참조 완결성, empty container item 및 pattern/ref coverage, static enum 양방향
 accepted-set/member round-trip과 min/max,
 legacy/unknown 정책, dynamic capability 비소유와 fallback 양쪽 분기를 검증한다.
+또한 `tests/fixtures/aio_generation_settings_0_5_2.json`에 v0.5.2 release workflow의 node 86 payload,
+provenance, deterministic capability 목록과 expected normalized settings를 고정한다. 현재 normalizer를 재실행해
+deep equality와 입력 비변경을 함께 검증하므로, 저장된 0.5.2 계약의 변화를 회귀로 포착한다.
 `tests/frontend_aio_settings_core_smoke.mjs`는 manifest default와 현재 JavaScript default의 deep equality 및
 frontend coercion/unknown-field 정책과 manifest 내부 coercion/item 정의 완결성을 검증한다.
 
