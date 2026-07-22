@@ -10,9 +10,6 @@ from easyuse_anima.prompt import regional as regional_service
 from nodes import (
     EasyUseAnimaRegionalConditioning,
     EasyUseAnimaPromptStudioRegional,
-    REGIONAL_CONFIG_WORKFLOW_PROPERTY,
-    REGIONAL_FIELDS_WORKFLOW_PROPERTY,
-    REGIONAL_PROMPT_DATA_TYPE,
 )
 
 
@@ -175,8 +172,14 @@ class PromptStudioRegionalTests(unittest.TestCase):
         self.assertEqual(workflow_prompt["42"]["inputs"]["regional_config"], payload["regional_config"])
         self.assertEqual(workflow_node["widgets_values"][0], payload["regional_fields"])
         self.assertEqual(workflow_node["widgets_values"][1], payload["regional_config"])
-        self.assertEqual(workflow_node["properties"][REGIONAL_FIELDS_WORKFLOW_PROPERTY], payload["regional_fields"])
-        self.assertEqual(workflow_node["properties"][REGIONAL_CONFIG_WORKFLOW_PROPERTY], payload["regional_config"])
+        self.assertEqual(
+            workflow_node["properties"][regional_service.REGIONAL_FIELDS_WORKFLOW_PROPERTY],
+            payload["regional_fields"],
+        )
+        self.assertEqual(
+            workflow_node["properties"][regional_service.REGIONAL_CONFIG_WORKFLOW_PROPERTY],
+            payload["regional_config"],
+        )
 
     def test_regional_conditioning_encodes_global_negative_and_masked_positive(self):
         try:
@@ -229,8 +232,11 @@ class PromptStudioRegionalTests(unittest.TestCase):
     def test_regional_prompt_data_uses_dedicated_socket_type(self):
         regional_input = EasyUseAnimaRegionalConditioning.INPUT_TYPES()["required"]["regional_prompt_data"]
 
-        self.assertEqual(EasyUseAnimaPromptStudioRegional.RETURN_TYPES[4], REGIONAL_PROMPT_DATA_TYPE)
-        self.assertEqual(regional_input[0], REGIONAL_PROMPT_DATA_TYPE)
+        self.assertEqual(
+            EasyUseAnimaPromptStudioRegional.RETURN_TYPES[4],
+            regional_service.REGIONAL_PROMPT_DATA_TYPE,
+        )
+        self.assertEqual(regional_input[0], regional_service.REGIONAL_PROMPT_DATA_TYPE)
         self.assertTrue(regional_input[1]["forceInput"])
 
     def test_field_socket_overrides_masked_prompt_without_saving(self):

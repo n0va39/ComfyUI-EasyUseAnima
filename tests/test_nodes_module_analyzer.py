@@ -73,9 +73,9 @@ def load_dynamic():
     def test_current_nodes_module_shape_matches_recorded_baseline(self):
         report = analyzer.analyze_path(ROOT / "nodes.py")
 
-        self.assertEqual(report["git_blob_sha1"], "affba6823b4991f8f39de0cb55c92a9df6f0c55a")
-        # Issue #184 B-10b16 retires 12 unsupported/test-only Prompt Advanced
-        # aliases while preserving schema, prompt, wildcard, and node behavior.
+        self.assertEqual(report["git_blob_sha1"], "c05df92f2abb2aac76c9ff9fd3757d02750f1893")
+        # Issue #184 B-10b17 retires 12 unsupported/test-only Regional aliases
+        # while preserving schema, mask, prompt, workflow, and node behavior.
         self.assertEqual(report["top_level"]["function_count"], 41)
         self.assertEqual(report["top_level"]["class_count"], 2)
         self.assertEqual(report["line_count"], 2_712)

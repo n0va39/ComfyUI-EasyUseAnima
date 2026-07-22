@@ -15,7 +15,7 @@ NODES_PATH = ROOT / "nodes.py"
 FIXTURE_PATH = ROOT / "tests" / "fixtures" / "python_compatibility_surface.v1.json"
 
 SCHEMA_VERSION = 1
-BASE_COMMIT = "de4d801892e2d3c4cc33db2f92a54cfda0f2643c"
+BASE_COMMIT = "251bf0c5a38637cf3c1fd41d262f532399bd83aa"
 CLASSIFICATIONS = (
     "permanent_entrypoint",
     "supported_public_reexport",
@@ -56,6 +56,72 @@ PREAMBLE_IMPLEMENTATION_BINDINGS = {
     "sqrt": "math:sqrt",
 }
 RETIRED_PRIVATE_BINDINGS = {
+    "REGIONAL_CONFIG_VERSION": {
+        "canonical_target": "easyuse_anima.prompt.regional:REGIONAL_CONFIG_VERSION",
+        "owner": "#184/#188 B-10b17",
+        "reason": "canonical Regional owner consumes the config version internally",
+    },
+    "REGIONAL_CONFIG_WORKFLOW_PROPERTY": {
+        "canonical_target": (
+            "easyuse_anima.prompt.regional:REGIONAL_CONFIG_WORKFLOW_PROPERTY"
+        ),
+        "owner": "#184/#188 B-10b17",
+        "reason": "canonical Regional adapter imports the config property directly",
+    },
+    "REGIONAL_FIELDS_WORKFLOW_PROPERTY": {
+        "canonical_target": (
+            "easyuse_anima.prompt.regional:REGIONAL_FIELDS_WORKFLOW_PROPERTY"
+        ),
+        "owner": "#184/#188 B-10b17",
+        "reason": "canonical Regional adapter imports the fields property directly",
+    },
+    "REGIONAL_FIELD_TYPES": {
+        "canonical_target": "easyuse_anima.prompt.regional:REGIONAL_FIELD_TYPES",
+        "owner": "#184/#188 B-10b17",
+        "reason": "canonical Regional owner consumes field types internally",
+    },
+    "REGIONAL_PROMPT_BUNDLE_SCHEMA": {
+        "canonical_target": (
+            "easyuse_anima.prompt.regional:REGIONAL_PROMPT_BUNDLE_SCHEMA"
+        ),
+        "owner": "#184/#188 B-10b17",
+        "reason": "canonical Regional owner consumes the bundle schema internally",
+    },
+    "REGIONAL_PROMPT_DATA_SCHEMA": {
+        "canonical_target": "easyuse_anima.prompt.regional:REGIONAL_PROMPT_DATA_SCHEMA",
+        "owner": "#184/#188 B-10b17",
+        "reason": "canonical Regional owner consumes the prompt-data schema internally",
+    },
+    "REGIONAL_PROMPT_DATA_TYPE": {
+        "canonical_target": "easyuse_anima.prompt.regional:REGIONAL_PROMPT_DATA_TYPE",
+        "owner": "#184/#188 B-10b17",
+        "reason": "canonical Regional adapter imports the socket type directly",
+    },
+    "_normalize_mask_geometry": {
+        "canonical_target": "easyuse_anima.prompt.regional:_normalize_mask_geometry",
+        "owner": "#184/#188 B-10b17",
+        "reason": "canonical Regional owner calls mask geometry normalization internally",
+    },
+    "_normalize_regional_mask": {
+        "canonical_target": "easyuse_anima.prompt.regional:_normalize_regional_mask",
+        "owner": "#184/#188 B-10b17",
+        "reason": "canonical Regional owner calls mask normalization internally",
+    },
+    "_regional_default_config": {
+        "canonical_target": "easyuse_anima.prompt.regional:_regional_default_config",
+        "owner": "#184/#188 B-10b17",
+        "reason": "canonical Regional owner calls the config default internally",
+    },
+    "_regional_default_fields": {
+        "canonical_target": "easyuse_anima.prompt.regional:_regional_default_fields",
+        "owner": "#184/#188 B-10b17",
+        "reason": "canonical Regional owner calls the field defaults internally",
+    },
+    "_regional_field_prompt": {
+        "canonical_target": "easyuse_anima.prompt.regional:_regional_field_prompt",
+        "owner": "#184/#188 B-10b17",
+        "reason": "canonical Regional owner calls field prompt assembly internally",
+    },
     "ADVANCED_FIELDS_WORKFLOW_PROPERTY": {
         "canonical_target": (
             "easyuse_anima.prompt.advanced:ADVANCED_FIELDS_WORKFLOW_PROPERTY"
@@ -1103,6 +1169,7 @@ def _build_document() -> dict[str, Any]:
                 "B-10b14",
                 "B-10b15",
                 "B-10b16",
+                "B-10b17",
             ],
         },
         "enums": {
@@ -1115,7 +1182,7 @@ def _build_document() -> dict[str, Any]:
         "expected_counts": {
             "root_entrypoints": 3,
             "excluded_preamble_implementation_bindings": 7,
-            "nodes_canonical_bindings": 323,
+            "nodes_canonical_bindings": 311,
             "nodes_legacy_bindings": 27,
             "mapped_public_classes": 18,
             "unmapped_classes": 2,

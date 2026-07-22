@@ -188,28 +188,28 @@ try:
         _translate_prompt_fields as _translate_prompt_fields,
     )
     from .easyuse_anima.prompt.regional import (
-        REGIONAL_CONFIG_VERSION as REGIONAL_CONFIG_VERSION,
-        REGIONAL_CONFIG_WORKFLOW_PROPERTY as REGIONAL_CONFIG_WORKFLOW_PROPERTY,
-        REGIONAL_FIELDS_WORKFLOW_PROPERTY as REGIONAL_FIELDS_WORKFLOW_PROPERTY,
-        REGIONAL_FIELD_TYPES as REGIONAL_FIELD_TYPES,
-        REGIONAL_PROMPT_BUNDLE_SCHEMA as REGIONAL_PROMPT_BUNDLE_SCHEMA,
-        REGIONAL_PROMPT_DATA_SCHEMA as REGIONAL_PROMPT_DATA_SCHEMA,
-        REGIONAL_PROMPT_DATA_TYPE as REGIONAL_PROMPT_DATA_TYPE,
+        # B-10b17: seven unsupported Regional contract constants are canonical-only.
+        # B-10b17: config version and workflow properties remain canonical-only.
+        # B-10b17: field types remain canonical-only.
+        # B-10b17: bundle/data schemas remain canonical-only.
+        # B-10b17: the Regional prompt-data socket type remains canonical-only.
+        # B-10b17: canonical adapters consume these objects directly.
+        # B-10b17: root runtime has no caller for the retired constants.
         _apply_regional_field_inputs as _apply_regional_field_inputs,
         _bind_regional_runtime as _bind_regional_runtime,
         _build_regional_outputs as _build_regional_outputs,
         _clone_regional_fields as _clone_regional_fields,
         _conditioning_set_values as _conditioning_set_values,
-        _normalize_mask_geometry as _normalize_mask_geometry,
+        # B-10b17: mask geometry normalization remains canonical-only.
         _normalize_mask_ids as _normalize_mask_ids,
         _normalize_regional_config as _normalize_regional_config,
         _normalize_regional_fields as _normalize_regional_fields,
-        _normalize_regional_mask as _normalize_regional_mask,
+        # B-10b17: Regional mask normalization remains canonical-only.
         _parse_json_object as _parse_json_object,
         _regional_config_json as _regional_config_json,
-        _regional_default_config as _regional_default_config,
-        _regional_default_fields as _regional_default_fields,
-        _regional_field_prompt as _regional_field_prompt,
+        # B-10b17: default config and fields remain canonical-only.
+        # B-10b17: field prompt assembly remains canonical-only.
+        # B-10b17: twelve unsupported Regional aliases were retired.
         _regional_fields_json as _regional_fields_json,
         _regional_mask_bounds_area as _regional_mask_bounds_area,
         _regional_payload_canvas as _regional_payload_canvas,
@@ -701,28 +701,28 @@ except ImportError:  # allows simple local import tests outside ComfyUI's packag
         _translate_prompt_fields as _translate_prompt_fields,
     )
     from easyuse_anima.prompt.regional import (
-        REGIONAL_CONFIG_VERSION as REGIONAL_CONFIG_VERSION,
-        REGIONAL_CONFIG_WORKFLOW_PROPERTY as REGIONAL_CONFIG_WORKFLOW_PROPERTY,
-        REGIONAL_FIELDS_WORKFLOW_PROPERTY as REGIONAL_FIELDS_WORKFLOW_PROPERTY,
-        REGIONAL_FIELD_TYPES as REGIONAL_FIELD_TYPES,
-        REGIONAL_PROMPT_BUNDLE_SCHEMA as REGIONAL_PROMPT_BUNDLE_SCHEMA,
-        REGIONAL_PROMPT_DATA_SCHEMA as REGIONAL_PROMPT_DATA_SCHEMA,
-        REGIONAL_PROMPT_DATA_TYPE as REGIONAL_PROMPT_DATA_TYPE,
+        # B-10b17: seven unsupported Regional contract constants are canonical-only.
+        # B-10b17: config version and workflow properties remain canonical-only.
+        # B-10b17: field types remain canonical-only.
+        # B-10b17: bundle/data schemas remain canonical-only.
+        # B-10b17: the Regional prompt-data socket type remains canonical-only.
+        # B-10b17: canonical adapters consume these objects directly.
+        # B-10b17: root runtime has no caller for the retired constants.
         _apply_regional_field_inputs as _apply_regional_field_inputs,
         _bind_regional_runtime as _bind_regional_runtime,
         _build_regional_outputs as _build_regional_outputs,
         _clone_regional_fields as _clone_regional_fields,
         _conditioning_set_values as _conditioning_set_values,
-        _normalize_mask_geometry as _normalize_mask_geometry,
+        # B-10b17: mask geometry normalization remains canonical-only.
         _normalize_mask_ids as _normalize_mask_ids,
         _normalize_regional_config as _normalize_regional_config,
         _normalize_regional_fields as _normalize_regional_fields,
-        _normalize_regional_mask as _normalize_regional_mask,
+        # B-10b17: Regional mask normalization remains canonical-only.
         _parse_json_object as _parse_json_object,
         _regional_config_json as _regional_config_json,
-        _regional_default_config as _regional_default_config,
-        _regional_default_fields as _regional_default_fields,
-        _regional_field_prompt as _regional_field_prompt,
+        # B-10b17: default config and fields remain canonical-only.
+        # B-10b17: field prompt assembly remains canonical-only.
+        # B-10b17: twelve unsupported Regional aliases were retired.
         _regional_fields_json as _regional_fields_json,
         _regional_mask_bounds_area as _regional_mask_bounds_area,
         _regional_payload_canvas as _regional_payload_canvas,
