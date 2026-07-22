@@ -284,7 +284,7 @@ surfaces. AiO mechanical extraction must not start until #168 exits.
 | 3 | G-02b strict-clean pure/service allowlist | READY/PARALLEL | Contract/gate | #188 | G-02a merged |
 | 4 | C168-04 pure version-dispatch/migration registry | BLOCKED by C168-03 | Contract | #168 | Typed config boundary |
 | 5 | C168-05 cross-surface setting omission gate | BLOCKED by C168-03 | Contract/gate | #168 | Typed config and manifest ownership decision |
-| 6 | G-03a completed-package import boundary fail gate | BLOCKED by G-02b | Gate | #188 | Reviewed allowlist and current analyzer baseline |
+| 6 | G-03a completed-package import boundary fail gate | BLOCKED by G-02b | Contract/gate | #188 | Reviewed allowlist and current analyzer baseline |
 | 7 | B-08a through B-08e AiO support-helper extraction | BLOCKED by #168 exit | Move | #184 | C168-03 through C168-05 complete |
 | 8 | B-09a/B-09b AiO node and legacy orchestration move | BLOCKED by B-08 | Move | #184 | AiO helpers canonical |
 | 9 | B-10 compatibility/private-alias audit | BLOCKED by B-09 | Contract/cleanup, split PRs | #184/#188 | All node implementations canonical |
@@ -405,7 +405,7 @@ relax or block the package-migration rules above.
 ### G-03a — Completed-package import boundary fail gate
 
 - **Owner:** #188
-- **Type:** gate
+- **Type:** Contract/gate
 - Promote existing report-only checks to blocking for completed canonical
   packages, not for all legacy root debt at once.
 - Reject new canonical-to-root imports, feature-to-adapter back references,
