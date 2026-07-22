@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import logging
 
-from .nodes import (
+from .nodes import (  # noqa: F401 - root class attributes stay public until B-11c
     EasyUseAnimaAIOGenerator,
     EasyUseAnimaDetailerAlignHook,
     EasyUseAnimaArtistMixConditioning,

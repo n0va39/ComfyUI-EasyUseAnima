@@ -35233,7 +35233,7 @@
         "is_package": true,
         "loc": 44,
         "module": "__root__",
-        "normalized_git_blob_sha1": "056fe79a6ee5fdada8e3e7c78be308ba4df9bd52",
+        "normalized_git_blob_sha1": "1ba24faf09b6ec886e7a32fe37ca589ac6fbd06f",
         "path": "__init__.py",
         "top_level": {
           "class_count": 0,
@@ -36095,9 +36095,9 @@
       },
       {
         "is_package": false,
-        "loc": 74,
+        "loc": 73,
         "module": "easyuse_anima.registration",
-        "normalized_git_blob_sha1": "26feec2d91f8b79bc686d28a7a9f75fd015e0e41",
+        "normalized_git_blob_sha1": "04fc702300d859ec8ec9f71fbff7317859ea045a",
         "path": "easyuse_anima/registration.py",
         "top_level": {
           "class_count": 0,
@@ -51517,19 +51517,19 @@
       },
       {
         "kind": "dict",
-        "line": 32,
+        "line": 31,
         "module": "easyuse_anima/registration.py",
         "name": "NODE_CLASS_MAPPINGS"
       },
       {
         "kind": "dict",
-        "line": 53,
+        "line": 52,
         "module": "easyuse_anima/registration.py",
         "name": "NODE_DISPLAY_NAME_MAPPINGS"
       },
       {
         "kind": "list",
-        "line": 74,
+        "line": 73,
         "module": "easyuse_anima/registration.py",
         "name": "__all__"
       },

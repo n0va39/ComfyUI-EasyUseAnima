@@ -11,10 +11,11 @@ import nodes
 ROOT = Path(__file__).resolve().parents[1]
 LOCALE_CODES = ("ko", "ja", "zh", "zh-CN")
 HANGUL_RE = re.compile(r"[가-힣]")
+REGISTRATION_MODULE = ROOT / "easyuse_anima" / "registration.py"
 
 
 def exposed_node_ids() -> set[str]:
-    text = (ROOT / "__init__.py").read_text(encoding="utf-8")
+    text = REGISTRATION_MODULE.read_text(encoding="utf-8")
     return set(re.findall(r'"(EasyUseAnima[^"]+)":', text))
 
 

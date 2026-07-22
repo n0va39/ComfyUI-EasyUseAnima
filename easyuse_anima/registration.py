@@ -28,7 +28,6 @@ from .nodes.regional_nodes import (
 )
 from .nodes.wildcard_nodes import EasyUseAnimaWildcard
 
-
 NODE_CLASS_MAPPINGS = {
     "EasyUseAnimaAIOGenerator": EasyUseAnimaAIOGenerator,
     "EasyUseAnimaDetailerAlignHook": EasyUseAnimaDetailerAlignHook,
