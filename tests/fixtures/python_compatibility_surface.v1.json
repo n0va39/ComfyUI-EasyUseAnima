@@ -2,7 +2,7 @@
   "schema_version": 1,
   "snapshot": {
     "base_branch": "dev",
-    "base_commit": "bbca312b684f009aafbd1ed813a8f136e5520b3d",
+    "base_commit": "17343eb4fed55d05c349b145119539501f92ad47",
     "first_release": null,
     "owner_tasks": [
       "#184",
@@ -36,7 +36,8 @@
       "B-11c4",
       "B-11c5",
       "B-11c6",
-      "B-11c7a"
+      "B-11c7a",
+      "B-11c7b"
     ]
   },
   "enums": {
@@ -71,11 +72,11 @@
   "expected_counts": {
     "root_entrypoints": 3,
     "excluded_preamble_implementation_bindings": 7,
-    "nodes_canonical_bindings": 271,
+    "nodes_canonical_bindings": 273,
     "nodes_legacy_bindings": 27,
     "mapped_public_classes": 18,
     "unmapped_classes": 2,
-    "root_residual_functions": 35,
+    "root_residual_functions": 33,
     "root_residual_classes": 0,
     "root_residual_globals": 28,
     "runtime_binders": 28,
@@ -183,6 +184,7 @@
       "easyuse_anima.aio.generation_normalization"
     ],
     "AIO_SPECIAL_SEEDS": [
+      "easyuse_anima.aio.sampling",
       "easyuse_anima.nodes.aio_nodes"
     ],
     "AIO_SPECIAL_SEED_DECREMENT": [
@@ -276,7 +278,8 @@
       "easyuse_anima.aio.generation_normalization"
     ],
     "MAX_SEED": [
-      "easyuse_anima.aio.generation_normalization"
+      "easyuse_anima.aio.generation_normalization",
+      "easyuse_anima.aio.sampling"
     ],
     "PROMPT_DATA_TYPE": [
       "easyuse_anima.nodes.aio_nodes"
@@ -735,6 +738,9 @@
     "_missing_lora_display_name": [
       "easyuse_anima.nodes.lora_nodes"
     ],
+    "_new_aio_random_seed": [
+      "easyuse_anima.aio.sampling"
+    ],
     "_node_output_tuple": [
       "easyuse_anima.aio.model_preparation",
       "easyuse_anima.aio.resources",
@@ -768,7 +774,8 @@
       "easyuse_anima.aio.model_preparation"
     ],
     "_normalize_aio_seed": [
-      "easyuse_anima.aio.generation_normalization"
+      "easyuse_anima.aio.generation_normalization",
+      "easyuse_anima.aio.sampling"
     ],
     "_normalize_aio_spectrum_settings": [
       "easyuse_anima.aio.generation_normalization"
@@ -1907,12 +1914,14 @@
         "nodes.py residual runtime",
         "canonical runtime resolver: easyuse_anima.aio.generation_normalization",
         "canonical runtime resolver: easyuse_anima.aio.legacy_generation",
+        "canonical runtime resolver: easyuse_anima.aio.sampling",
         "canonical runtime resolver: easyuse_anima.nodes.aio_nodes"
       ],
       "evidence": [
         "AST:nodes.py direct runtime load",
         "AST:easyuse_anima.aio.generation_normalization string runtime lookup",
         "AST:easyuse_anima.aio.legacy_generation string runtime lookup",
+        "AST:easyuse_anima.aio.sampling string runtime lookup",
         "AST:easyuse_anima.nodes.aio_nodes string runtime lookup"
       ],
       "removal_gates": [
@@ -2198,6 +2207,8 @@
         "_decode_latent_with_comfy": "_decode_latent_with_comfy",
         "_encode_image_with_comfy_vae": "_encode_image_with_comfy_vae",
         "_generate_empty_latent_with_comfy": "_generate_empty_latent_with_comfy",
+        "_new_aio_random_seed": "_new_aio_random_seed",
+        "_resolve_aio_runtime_seed": "_resolve_aio_runtime_seed",
         "_sample_latent_with_aio_backend": "_sample_latent_with_aio_backend",
         "_sample_latent_with_comfy": "_sample_latent_with_comfy",
         "_sample_latent_with_spectrum_mod_guidance_advanced": "_sample_latent_with_spectrum_mod_guidance_advanced",
@@ -2215,13 +2226,17 @@
       "known_consumers": [
         "nodes.py residual runtime",
         "canonical runtime resolver: easyuse_anima.aio.legacy_generation",
+        "canonical runtime resolver: easyuse_anima.aio.output",
         "canonical runtime resolver: easyuse_anima.aio.sampling",
+        "canonical runtime resolver: easyuse_anima.nodes.aio_nodes",
         "canonical runtime resolver: easyuse_anima.nodes.prompt_data_nodes"
       ],
       "evidence": [
         "AST:nodes.py direct runtime load",
         "AST:easyuse_anima.aio.legacy_generation string runtime lookup",
+        "AST:easyuse_anima.aio.output string runtime lookup",
         "AST:easyuse_anima.aio.sampling string runtime lookup",
+        "AST:easyuse_anima.nodes.aio_nodes string runtime lookup",
         "AST:easyuse_anima.nodes.prompt_data_nodes string runtime lookup"
       ],
       "removal_gates": [
@@ -3984,12 +3999,10 @@
         "_find_comfy_node_mapping_class": "_find_comfy_node_mapping_class",
         "_find_loaded_node_class": "_find_loaded_node_class",
         "_is_aio_detailer_target_name": "_is_aio_detailer_target_name",
-        "_new_aio_random_seed": "_new_aio_random_seed",
         "_normalize_aio_input_settings": "_normalize_aio_input_settings",
         "_require_any_custom_node_class": "_require_any_custom_node_class",
         "_require_custom_node_class": "_require_custom_node_class",
         "_resize_image_to_size_if_needed": "_resize_image_to_size_if_needed",
-        "_resolve_aio_runtime_seed": "_resolve_aio_runtime_seed",
         "_run_aio_detailer_stage": "_run_aio_detailer_stage",
         "_run_aio_detailer_target": "_run_aio_detailer_target",
         "_run_aio_highres_stage": "_run_aio_highres_stage",

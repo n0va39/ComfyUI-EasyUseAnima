@@ -67,6 +67,8 @@ try:
         _decode_latent_with_comfy as _decode_latent_with_comfy,
         _encode_image_with_comfy_vae as _encode_image_with_comfy_vae,
         _generate_empty_latent_with_comfy as _generate_empty_latent_with_comfy,
+        _new_aio_random_seed as _new_aio_random_seed,
+        _resolve_aio_runtime_seed as _resolve_aio_runtime_seed,
         _sample_latent_with_aio_backend as _sample_latent_with_aio_backend,
         _sample_latent_with_comfy as _sample_latent_with_comfy,
         _sample_latent_with_spectrum_mod_guidance_advanced as _sample_latent_with_spectrum_mod_guidance_advanced,
@@ -595,6 +597,8 @@ except ImportError:  # allows simple local import tests outside ComfyUI's packag
         _decode_latent_with_comfy as _decode_latent_with_comfy,
         _encode_image_with_comfy_vae as _encode_image_with_comfy_vae,
         _generate_empty_latent_with_comfy as _generate_empty_latent_with_comfy,
+        _new_aio_random_seed as _new_aio_random_seed,
+        _resolve_aio_runtime_seed as _resolve_aio_runtime_seed,
         _sample_latent_with_aio_backend as _sample_latent_with_aio_backend,
         _sample_latent_with_comfy as _sample_latent_with_comfy,
         _sample_latent_with_spectrum_mod_guidance_advanced as _sample_latent_with_spectrum_mod_guidance_advanced,
@@ -1557,21 +1561,6 @@ AIO_RESHIFT_DTYPES = ("bf16", "fp32")
 
 
 _TRIGGER_WORD_KEYS = ("trainedWords", "trained_words", "trigger_words", "activation_text")
-
-
-def _new_aio_random_seed() -> int:
-    return random.randint(0, MAX_SEED)
-
-
-def _resolve_aio_runtime_seed(value) -> int:
-    seed = _normalize_aio_seed(value)
-    if seed in AIO_SPECIAL_SEEDS:
-        return _new_aio_random_seed()
-    return max(0, min(MAX_SEED, seed))
-
-
-
-
 
 
 def _settings_json(defaults: dict[str, Any]) -> str:

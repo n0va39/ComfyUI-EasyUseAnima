@@ -3,14 +3,14 @@
 ## Registry status
 
 - Inventory baseline: `dev` commit
-  `bbca312b684f009aafbd1ed813a8f136e5520b3d`
+  `17343eb4fed55d05c349b145119539501f92ad47`
 - Compatibility provenance: package/workflow version 0.5.2
 - Policy: [ADR-002](adr-002-compatibility-shims.md)
 - Machine-readable audit:
   [`python_compatibility_surface.v1.json`](../../tests/fixtures/python_compatibility_surface.v1.json)
-- Current state: B-11a through B-11c6 are integrated through PR #299. B-11c is
+- Current state: B-11a through B-11c7a are integrated through PR #300. B-11c is
   split into residual-owner and binder Moves before the final root shim;
-  B-11c7a AiO seed-normalizer ownership is tracked by PR #300.
+  B-11c7b AiO runtime-seed ownership is tracked by PR #301.
 
 This is an actionable registry, not a removal schedule. `N` means the first
 published Registry release containing both a canonical target and its root
@@ -75,8 +75,8 @@ inferring public support from spelling or test imports:
 - `nodes.py` preamble implementation imports: 7 (`json`, `logging`, `random`,
   `re`, `ceil`, `sqrt`, and `Any`), excluded from compatibility classification
   by an exact AST allowlist and drift gate;
-- `nodes.py` bindings with an `easyuse_anima` canonical target: 271 after
-  B-11c7a (258 at the integrated B-10b20 baseline), with exact
+- `nodes.py` bindings with an `easyuse_anima` canonical target: 273 after
+  B-11c7b (258 at the integrated B-10b20 baseline), with exact
   relative-package/flat-fallback parity;
 - bindings still owned by `anima_prompt`, `settings`, `prompt_translation`, or
   `wildcard_engine`: 27, with the same fallback parity;
@@ -84,8 +84,8 @@ inferring public support from spelling or test imports:
 - unmapped root classes: `EasyUseAnimaSAM3Context` and
   `EasyUseAnimaSAM3Detailer`; the canonical legacy Extend class remains in its
   owner module without a root alias or backend mapping;
-- root-owned residual implementation: 35 functions, 0 classes, and 28 assigned
-  globals after B-11c7a (41/2/33 at the integrated B-10b20 baseline).
+- root-owned residual implementation: 33 functions, 0 classes, and 28 assigned
+  globals after B-11c7b (41/2/33 at the integrated B-10b20 baseline).
 - import-time runtime binders: 28 exact top-level `_bind_*_runtime` calls;
 - root names reached by those canonical runtime resolvers: 256, including
   literal lookups and binder-owned helper-name/default collections;
@@ -250,6 +250,23 @@ convenience-node compatibility; it remains unmapped and is not public support.
 - PR #300 does not move or alter `_new_aio_random_seed`,
   `_resolve_aio_runtime_seed`, Python RNG consumption, `seed_after_generate`,
   increment/decrement behavior, cache keys, or backend seed reservation.
+
+### B-11c7b AiO runtime-seed aliases
+
+- Canonical owner: `easyuse_anima.aio.sampling` for
+  `_new_aio_random_seed` and `_resolve_aio_runtime_seed`.
+- The private root names remain transitional direct aliases in both relative
+  package and flat import modes. Existing root stages and the legacy-generation,
+  output, sampling, and AiO-node runtime resolvers keep calling those root
+  names.
+- The moved functions resolve root `random`, `MAX_SEED`, `_normalize_aio_seed`,
+  mutable `AIO_SPECIAL_SEEDS`, and `_new_aio_random_seed` at call time through
+  the existing sampling runtime seam. Root binding replacement and in-place set
+  mutation therefore remain visible.
+- PR #301 preserves one inclusive `random.randint(0, MAX_SEED)` call for every
+  special seed and the existing non-special `[0, MAX_SEED]` clamp. It does not
+  add increment/decrement, previous-seed, queue reservation, cache, or browser
+  behavior.
 
 ### `nodes.py` public node-class surface
 
