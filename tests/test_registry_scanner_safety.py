@@ -210,6 +210,7 @@ class RegistryScannerSafetyTests(unittest.TestCase):
             "MAINTAINING.md",
             "RELEASE.md",
             "jsconfig.json",
+            "pyrightconfig.json",
             ".gitignore",
             ".gitattributes",
             ".gitmodules",
