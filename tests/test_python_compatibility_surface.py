@@ -15,7 +15,7 @@ NODES_PATH = ROOT / "nodes.py"
 FIXTURE_PATH = ROOT / "tests" / "fixtures" / "python_compatibility_surface.v1.json"
 
 SCHEMA_VERSION = 1
-BASE_COMMIT = "8db89452428dd3816e215857724c97d0aba99dc3"
+BASE_COMMIT = "743256a6f32a10f2fc8ad155960520e778d24a56"
 CLASSIFICATIONS = (
     "permanent_entrypoint",
     "supported_public_reexport",
@@ -56,6 +56,14 @@ PREAMBLE_IMPLEMENTATION_BINDINGS = {
     "sqrt": "math:sqrt",
 }
 RETIRED_PRIVATE_BINDINGS = {
+    "_EasyUseAnimaImpactDetailerDelegate": {
+        "canonical_target": (
+            "easyuse_anima.nodes.impact_detailer_nodes:"
+            "_EasyUseAnimaImpactDetailerDelegate"
+        ),
+        "owner": "#184/#188 B-10b3",
+        "reason": "SAM3 production adapter imports the canonical owner directly",
+    },
     "_EasyUseAnimaAlignedDetailerHook": {
         "canonical_target": (
             "easyuse_anima.image.detailer:_EasyUseAnimaAlignedDetailerHook"
@@ -635,7 +643,14 @@ def _build_document() -> dict[str, Any]:
             "base_branch": "dev",
             "base_commit": BASE_COMMIT,
             "first_release": None,
-            "owner_tasks": ["#184", "#188", "B-10a", "B-10b1", "B-10b2"],
+            "owner_tasks": [
+                "#184",
+                "#188",
+                "B-10a",
+                "B-10b1",
+                "B-10b2",
+                "B-10b3",
+            ],
         },
         "enums": {
             "classifications": list(CLASSIFICATIONS),
@@ -647,7 +662,7 @@ def _build_document() -> dict[str, Any]:
         "expected_counts": {
             "root_entrypoints": 3,
             "excluded_preamble_implementation_bindings": 7,
-            "nodes_canonical_bindings": 399,
+            "nodes_canonical_bindings": 398,
             "nodes_legacy_bindings": 27,
             "mapped_public_classes": 18,
             "unmapped_classes": 3,

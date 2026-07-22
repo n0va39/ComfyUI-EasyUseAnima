@@ -23543,37 +23543,6 @@
         "target": "easyuse_anima/nodes/image_nodes.py"
       },
       {
-        "alias": "_EasyUseAnimaImpactDetailerDelegate",
-        "bound_name": "_EasyUseAnimaImpactDetailerDelegate",
-        "branch_context": [
-          {
-            "branch": "body",
-            "handles_import_failure": true,
-            "has_import_fallback_handler": true,
-            "kind": "try",
-            "line": 11
-          }
-        ],
-        "classification": "internal",
-        "column": 4,
-        "compatibility_pair": {
-          "bound_name": "_EasyUseAnimaImpactDetailerDelegate",
-          "target": "easyuse_anima/nodes/impact_detailer_nodes.py",
-          "try_line": 11
-        },
-        "conditional": true,
-        "imported": ".easyuse_anima.nodes.impact_detailer_nodes:_EasyUseAnimaImpactDetailerDelegate",
-        "kind": "static_from",
-        "line": 393,
-        "name": "_EasyUseAnimaImpactDetailerDelegate",
-        "optional": false,
-        "requested": ".easyuse_anima.nodes.impact_detailer_nodes",
-        "role": "compatibility_primary",
-        "scope": "<module>",
-        "source": "nodes.py",
-        "target": "easyuse_anima/nodes/impact_detailer_nodes.py"
-      },
-      {
         "alias": "_bind_impact_detailer_node_runtime",
         "bound_name": "_bind_impact_detailer_node_runtime",
         "branch_context": [
@@ -37706,40 +37675,6 @@
         "target": "easyuse_anima/nodes/image_nodes.py"
       },
       {
-        "alias": "_EasyUseAnimaImpactDetailerDelegate",
-        "bound_name": "_EasyUseAnimaImpactDetailerDelegate",
-        "branch_context": [
-          {
-            "branch": "except",
-            "catches_import_error": true,
-            "exceptions": [
-              "ImportError"
-            ],
-            "handler_line": 524,
-            "kind": "try",
-            "line": 11
-          }
-        ],
-        "classification": "compatibility_fallback",
-        "column": 4,
-        "compatibility_pair": {
-          "bound_name": "_EasyUseAnimaImpactDetailerDelegate",
-          "target": "easyuse_anima/nodes/impact_detailer_nodes.py",
-          "try_line": 11
-        },
-        "conditional": true,
-        "imported": "easyuse_anima.nodes.impact_detailer_nodes:_EasyUseAnimaImpactDetailerDelegate",
-        "kind": "static_from",
-        "line": 906,
-        "name": "_EasyUseAnimaImpactDetailerDelegate",
-        "optional": false,
-        "requested": "easyuse_anima.nodes.impact_detailer_nodes",
-        "role": "compatibility_fallback",
-        "scope": "<module>",
-        "source": "nodes.py",
-        "target": "easyuse_anima/nodes/impact_detailer_nodes.py"
-      },
-      {
         "alias": "_bind_impact_detailer_node_runtime",
         "bound_name": "_bind_impact_detailer_node_runtime",
         "branch_context": [
@@ -44856,7 +44791,7 @@
         "is_package": false,
         "loc": 2712,
         "module": "nodes",
-        "normalized_git_blob_sha1": "b1f49d3caf95ebda2dfeec46a9ded84179cef0c5",
+        "normalized_git_blob_sha1": "33164f1faec2e4c7c40b7970cca51a6aea17581a",
         "path": "nodes.py",
         "top_level": {
           "class_count": 2,
@@ -53538,29 +53473,6 @@
         "role": "compatibility_fallback",
         "source": "nodes.py",
         "target": "easyuse_anima/nodes/image_nodes.py"
-      },
-      {
-        "branch_context": [
-          {
-            "branch": "except",
-            "catches_import_error": true,
-            "exceptions": [
-              "ImportError"
-            ],
-            "handler_line": 524,
-            "kind": "try",
-            "line": 11
-          }
-        ],
-        "classification": "compatibility_fallback",
-        "conditional": true,
-        "imported": "easyuse_anima.nodes.impact_detailer_nodes:_EasyUseAnimaImpactDetailerDelegate",
-        "kind": "static_from",
-        "line": 906,
-        "optional": false,
-        "role": "compatibility_fallback",
-        "source": "nodes.py",
-        "target": "easyuse_anima/nodes/impact_detailer_nodes.py"
       },
       {
         "branch_context": [
