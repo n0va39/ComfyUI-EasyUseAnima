@@ -717,6 +717,115 @@ class AioSpectrumNormalizationMoveContractTests(unittest.TestCase):
             self._assert_contract(package_nodes, package_generation_normalization)
 
 
+class AioDitNormalizationMoveContractTests(unittest.TestCase):
+    DEFAULTS = {
+        "enabled": False,
+        "dcw_mode": "off",
+        "dcw_lambda": 0.01,
+        "dcw_band_mask": "LL",
+        "dcw_calibrator": "(auto-download default)",
+        "smc_cfg": False,
+        "adaptive_smc_alpha": 0.0,
+        "smc_cfg_lambda": 6.0,
+        "cfgpp": False,
+        "cfgpp_lambda": 0.0,
+        "fsg": False,
+        "fsg_band_lo": 0.59,
+        "fsg_band_hi": 0.75,
+        "fsg_k": 3,
+        "fsg_d_sigma": 0.1,
+        "fsg_gamma": 0.0,
+        "replace_existing_cfg": False,
+    }
+    EXPECTED = {
+        "enabled": True,
+        "dcw_mode": "off",
+        "dcw_lambda": 1.0,
+        "dcw_band_mask": "LL",
+        "dcw_calibrator": "(auto-download default)",
+        "smc_cfg": True,
+        "adaptive_smc_alpha": 1.0,
+        "smc_cfg_lambda": 20.0,
+        "cfgpp": True,
+        "cfgpp_lambda": 8.0,
+        "fsg": True,
+        "fsg_band_lo": 0.0,
+        "fsg_band_hi": 1.0,
+        "fsg_k": 32,
+        "fsg_d_sigma": 1.0,
+        "fsg_gamma": 10.0,
+        "replace_existing_cfg": True,
+        "future": "kept",
+    }
+
+    def _assert_contract(self, root_module, canonical_module):
+        self.assertIs(
+            root_module._normalize_aio_dit_corrections_settings,
+            canonical_module._normalize_aio_dit_corrections_settings,
+        )
+        value = {
+            "enabled": True,
+            "dcw_mode": "unknown",
+            "dcw_lambda": 5,
+            "dcw_band_mask": "unknown",
+            "dcw_calibrator": "",
+            "smc_cfg": True,
+            "adaptive_smc_alpha": 2,
+            "smc_cfg_lambda": 99,
+            "cfgpp": True,
+            "cfgpp_lambda": 99,
+            "fsg": True,
+            "fsg_band_lo": -1,
+            "fsg_band_hi": 2,
+            "fsg_k": 99,
+            "fsg_d_sigma": 2,
+            "fsg_gamma": 99,
+            "replace_existing_cfg": True,
+            "future": "kept",
+        }
+        with (
+            patch.object(
+                root_module,
+                "_as_bool",
+                wraps=root_module._as_bool,
+            ) as as_bool,
+            patch.object(
+                root_module,
+                "_as_float",
+                wraps=root_module._as_float,
+            ) as as_float,
+            patch.object(
+                root_module,
+                "_as_int",
+                wraps=root_module._as_int,
+            ) as as_int,
+            patch.object(
+                root_module,
+                "_choice",
+                wraps=root_module._choice,
+            ) as choice,
+        ):
+            result = canonical_module._normalize_aio_dit_corrections_settings(
+                value,
+                self.DEFAULTS,
+            )
+        self.assertIs(result, value)
+        self.assertEqual(result, self.EXPECTED)
+        for helper in (as_bool, as_float, as_int, choice):
+            self.assertGreater(helper.call_count, 0)
+
+    def test_root_alias_and_call_time_helpers(self):
+        self._assert_contract(nodes, aio_generation_normalization)
+
+    def test_package_alias_and_call_time_helpers(self):
+        with _loaded_package_entrypoint() as (_, package_nodes):
+            package_name = package_nodes.__package__
+            package_generation_normalization = sys.modules[
+                f"{package_name}.easyuse_anima.aio.generation_normalization"
+            ]
+            self._assert_contract(package_nodes, package_generation_normalization)
+
+
 class ComfyAdapterMoveContractTests(unittest.TestCase):
     RETIRED_SAM3_SERVICE_HELPERS = (
         "_call_impact_detailer",

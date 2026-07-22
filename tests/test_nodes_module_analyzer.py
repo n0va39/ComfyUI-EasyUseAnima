@@ -73,12 +73,12 @@ def load_dynamic():
     def test_current_nodes_module_shape_matches_recorded_baseline(self):
         report = analyzer.analyze_path(ROOT / "nodes.py")
 
-        self.assertEqual(report["git_blob_sha1"], "0fd503050bfa9b8881df791bf4c13b5f278133bd")
-        # Issue #184 B-11c5 moves the AiO Spectrum settings normalizer while
+        self.assertEqual(report["git_blob_sha1"], "2ee992eddb12f7e90269ce89cff2c4c8c372d7d0")
+        # Issue #184 B-11c6 moves the AiO DiT correction normalizer while
         # preserving the root alias and call-time coercion helper seams.
-        self.assertEqual(report["top_level"]["function_count"], 37)
+        self.assertEqual(report["top_level"]["function_count"], 36)
         self.assertEqual(report["top_level"]["class_count"], 0)
-        self.assertEqual(report["line_count"], 2_604)
+        self.assertEqual(report["line_count"], 2_541)
         class_names = {item["name"] for item in report["top_level"]["classes"]}
         self.assertNotIn("EasyUseAnimaAIOGenerator", class_names)
         self.assertNotIn("EasyUseAnimaInput", class_names)
