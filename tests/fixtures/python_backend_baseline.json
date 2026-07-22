@@ -23078,37 +23078,6 @@
         "target": "easyuse_anima/infrastructure/comfy/capabilities.py"
       },
       {
-        "alias": "_impact_core_module",
-        "bound_name": "_impact_core_module",
-        "branch_context": [
-          {
-            "branch": "body",
-            "handles_import_failure": true,
-            "has_import_fallback_handler": true,
-            "kind": "try",
-            "line": 11
-          }
-        ],
-        "classification": "internal",
-        "column": 4,
-        "compatibility_pair": {
-          "bound_name": "_impact_core_module",
-          "target": "easyuse_anima/infrastructure/comfy/capabilities.py",
-          "try_line": 11
-        },
-        "conditional": true,
-        "imported": ".easyuse_anima.infrastructure.comfy.capabilities:_impact_core_module",
-        "kind": "static_from",
-        "line": 364,
-        "name": "_impact_core_module",
-        "optional": false,
-        "requested": ".easyuse_anima.infrastructure.comfy.capabilities",
-        "role": "compatibility_primary",
-        "scope": "<module>",
-        "source": "nodes.py",
-        "target": "easyuse_anima/infrastructure/comfy/capabilities.py"
-      },
-      {
         "alias": "_impact_scheduler_names",
         "bound_name": "_impact_scheduler_names",
         "branch_context": [
@@ -37165,40 +37134,6 @@
         "target": "easyuse_anima/infrastructure/comfy/capabilities.py"
       },
       {
-        "alias": "_impact_core_module",
-        "bound_name": "_impact_core_module",
-        "branch_context": [
-          {
-            "branch": "except",
-            "catches_import_error": true,
-            "exceptions": [
-              "ImportError"
-            ],
-            "handler_line": 524,
-            "kind": "try",
-            "line": 11
-          }
-        ],
-        "classification": "compatibility_fallback",
-        "column": 4,
-        "compatibility_pair": {
-          "bound_name": "_impact_core_module",
-          "target": "easyuse_anima/infrastructure/comfy/capabilities.py",
-          "try_line": 11
-        },
-        "conditional": true,
-        "imported": "easyuse_anima.infrastructure.comfy.capabilities:_impact_core_module",
-        "kind": "static_from",
-        "line": 877,
-        "name": "_impact_core_module",
-        "optional": false,
-        "requested": "easyuse_anima.infrastructure.comfy.capabilities",
-        "role": "compatibility_fallback",
-        "scope": "<module>",
-        "source": "nodes.py",
-        "target": "easyuse_anima/infrastructure/comfy/capabilities.py"
-      },
-      {
         "alias": "_impact_scheduler_names",
         "bound_name": "_impact_scheduler_names",
         "branch_context": [
@@ -44791,7 +44726,7 @@
         "is_package": false,
         "loc": 2712,
         "module": "nodes",
-        "normalized_git_blob_sha1": "33164f1faec2e4c7c40b7970cca51a6aea17581a",
+        "normalized_git_blob_sha1": "b959d011728431cf26338f9a88e867ea39de18fb",
         "path": "nodes.py",
         "top_level": {
           "class_count": 2,
@@ -53122,29 +53057,6 @@
         "classification": "compatibility_fallback",
         "conditional": true,
         "imported": "easyuse_anima.infrastructure.comfy.capabilities:_find_loaded_node_class",
-        "kind": "static_from",
-        "line": 877,
-        "optional": false,
-        "role": "compatibility_fallback",
-        "source": "nodes.py",
-        "target": "easyuse_anima/infrastructure/comfy/capabilities.py"
-      },
-      {
-        "branch_context": [
-          {
-            "branch": "except",
-            "catches_import_error": true,
-            "exceptions": [
-              "ImportError"
-            ],
-            "handler_line": 524,
-            "kind": "try",
-            "line": 11
-          }
-        ],
-        "classification": "compatibility_fallback",
-        "conditional": true,
-        "imported": "easyuse_anima.infrastructure.comfy.capabilities:_impact_core_module",
         "kind": "static_from",
         "line": 877,
         "optional": false,

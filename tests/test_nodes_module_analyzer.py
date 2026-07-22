@@ -73,9 +73,9 @@ def load_dynamic():
     def test_current_nodes_module_shape_matches_recorded_baseline(self):
         report = analyzer.analyze_path(ROOT / "nodes.py")
 
-        self.assertEqual(report["git_blob_sha1"], "33164f1faec2e4c7c40b7970cca51a6aea17581a")
-        # Issue #184 B-10b3 retires one unsupported/test-only Impact delegate
-        # alias after the SAM3 adapter moved to the canonical class path.
+        self.assertEqual(report["git_blob_sha1"], "b959d011728431cf26338f9a88e867ea39de18fb")
+        # Issue #184 B-10b4 retires one unsupported/test-only Impact core alias
+        # after scheduler lookup was confirmed to call its canonical owner.
         self.assertEqual(report["top_level"]["function_count"], 41)
         self.assertEqual(report["top_level"]["class_count"], 2)
         self.assertEqual(report["line_count"], 2_712)

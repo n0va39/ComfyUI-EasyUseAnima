@@ -15,7 +15,7 @@ NODES_PATH = ROOT / "nodes.py"
 FIXTURE_PATH = ROOT / "tests" / "fixtures" / "python_compatibility_surface.v1.json"
 
 SCHEMA_VERSION = 1
-BASE_COMMIT = "743256a6f32a10f2fc8ad155960520e778d24a56"
+BASE_COMMIT = "5080210f1d156ade7b6b12cf989b3f958df150cb"
 CLASSIFICATIONS = (
     "permanent_entrypoint",
     "supported_public_reexport",
@@ -56,6 +56,13 @@ PREAMBLE_IMPLEMENTATION_BINDINGS = {
     "sqrt": "math:sqrt",
 }
 RETIRED_PRIVATE_BINDINGS = {
+    "_impact_core_module": {
+        "canonical_target": (
+            "easyuse_anima.infrastructure.comfy.capabilities:_impact_core_module"
+        ),
+        "owner": "#184/#188 B-10b4",
+        "reason": "scheduler lookup calls the canonical owner directly",
+    },
     "_EasyUseAnimaImpactDetailerDelegate": {
         "canonical_target": (
             "easyuse_anima.nodes.impact_detailer_nodes:"
@@ -650,6 +657,7 @@ def _build_document() -> dict[str, Any]:
                 "B-10b1",
                 "B-10b2",
                 "B-10b3",
+                "B-10b4",
             ],
         },
         "enums": {
@@ -662,7 +670,7 @@ def _build_document() -> dict[str, Any]:
         "expected_counts": {
             "root_entrypoints": 3,
             "excluded_preamble_implementation_bindings": 7,
-            "nodes_canonical_bindings": 398,
+            "nodes_canonical_bindings": 397,
             "nodes_legacy_bindings": 27,
             "mapped_public_classes": 18,
             "unmapped_classes": 3,

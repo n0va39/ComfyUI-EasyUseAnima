@@ -3,13 +3,13 @@
 ## Registry status
 
 - Inventory baseline: `dev` commit
-  `743256a6f32a10f2fc8ad155960520e778d24a56`
+  `5080210f1d156ade7b6b12cf989b3f958df150cb`
 - Compatibility provenance: package/workflow version 0.5.2
 - Policy: [ADR-002](adr-002-compatibility-shims.md)
 - Machine-readable audit:
   [`python_compatibility_surface.v1.json`](../../tests/fixtures/python_compatibility_surface.v1.json)
-- Current state: B-10b2 is integrated; B-10b3 in PR #274 removes one audited
-  unsupported/test-only Impact delegate root alias
+- Current state: B-10b3 is integrated; B-10b4 in PR #275 removes one audited
+  unsupported/test-only Impact core root alias
 
 This is an actionable registry, not a removal schedule. `N` means the first
 published Registry release containing both a canonical target and its root
@@ -74,8 +74,8 @@ inferring public support from spelling or test imports:
 - `nodes.py` preamble implementation imports: 7 (`json`, `logging`, `random`,
   `re`, `ceil`, `sqrt`, and `Any`), excluded from compatibility classification
   by an exact AST allowlist and drift gate;
-- `nodes.py` bindings with an `easyuse_anima` canonical target: 398 at the
-  B-10b3 PR head, with exact
+- `nodes.py` bindings with an `easyuse_anima` canonical target: 397 at the
+  B-10b4 PR head, with exact
   relative-package/flat-fallback parity;
 - bindings still owned by `anima_prompt`, `settings`, `prompt_translation`, or
   `wildcard_engine`: 27, with the same fallback parity;
@@ -89,8 +89,9 @@ inferring public support from spelling or test imports:
   literal lookups and binder-owned helper-name/default collections;
 - retired private bindings: `_comfy_checkpoint_names`,
   `_EasyUseAnimaAlignedDetailerHook`, and
-  `_EasyUseAnimaImpactDetailerDelegate`; their production consumers import the
-  corresponding canonical owners directly;
+  `_EasyUseAnimaImpactDetailerDelegate`, plus `_impact_core_module`; their
+  production consumers import or call the corresponding canonical owners
+  directly;
 - repository test files with a direct `nodes` import: 22, recorded as migration
   consumers rather than public-support evidence.
 
@@ -175,12 +176,13 @@ EasyUseAnimaWildcard
 - B-08a internal AiO resource transition: resource default selection, ComfyUI
   model/CLIP/VAE/upscale loading, SAM3 context loading, and AiO resource bundle
   helpers move to `easyuse_anima.aio.resources`; Impact core/scheduler lookup
-  moves to `easyuse_anima.infrastructure.comfy.capabilities`. The twelve root
+  moves to `easyuse_anima.infrastructure.comfy.capabilities`. Eleven root
   private names remain direct identity aliases because the current root AiO,
   SAM3, Impact detailer, and normalization callers and their focused
-  monkeypatch seams still consume them. They remain internal transition
-  surfaces through the B-10 compatibility audit and are not added to public
-  package `__all__`.
+  monkeypatch seams still consume them. `_impact_core_module` is excluded after
+  B-10b4 because the canonical scheduler helper calls it within the same module
+  and the root alias was only a test identity seam. The remaining names stay
+  internal transition surfaces and are not added to public package `__all__`.
 - B-08b1 internal AiO model-preparation transition: LoRA normalization and
   application, AuraFlow/DAVE/Safe PAG/KJ base-model patching, and USDU
   conditioning preparation move to `easyuse_anima.aio.model_preparation` and
@@ -204,6 +206,11 @@ EasyUseAnimaWildcard
   `easyuse_anima.nodes.impact_detailer_nodes` class directly; normal-package
   and synthetic package-entrypoint tests preserve class identity,
   `INPUT_TYPES`, and the existing canonical delegation path.
+- B-10b4 Impact-core cleanup: `_impact_core_module` is no longer a root alias.
+  The canonical `_impact_scheduler_names` implementation calls the helper in
+  `easyuse_anima.infrastructure.comfy.capabilities` directly; normal-package
+  and synthetic package-entrypoint tests preserve Impact discovery, scheduler
+  lookup, and optional-dependency fallback behavior.
 - B-08b2 internal AiO model-variant transition: Spectrum correction/forecast
   model patching and ephemeral model cleanup move to
   `easyuse_anima.aio.model_preparation`. Their four root private names remain

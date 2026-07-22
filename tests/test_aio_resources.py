@@ -26,9 +26,8 @@ class AIOResourceMoveTests(unittest.TestCase):
             with self.subTest(name=name):
                 self.assertIs(getattr(nodes, name), getattr(aio_resources, name))
 
-        for name in ("_impact_core_module", "_impact_scheduler_names"):
-            with self.subTest(name=name):
-                self.assertIs(getattr(nodes, name), getattr(capabilities, name))
+        self.assertFalse(hasattr(nodes, "_impact_core_module"))
+        self.assertIs(nodes._impact_scheduler_names, capabilities._impact_scheduler_names)
 
     def test_preferred_resource_defaults_preserve_exact_and_basename_order(self):
         names = ["models\\anima.safetensors", "fallback.safetensors"]
