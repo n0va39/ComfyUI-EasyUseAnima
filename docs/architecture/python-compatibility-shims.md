@@ -3,11 +3,13 @@
 ## Registry status
 
 - Inventory baseline: `dev` commit
-  `247252a97aba3d0fea3da23e5310dd1eecb8163b`
+  `57d40b435983f08c91469db6947ef1260b293695`
 - Compatibility provenance: package/workflow version 0.5.2
 - Policy: [ADR-002](adr-002-compatibility-shims.md)
-- Current state: initial inventory; the root implementation modules below have
-  not yet been converted to shims
+- Machine-readable audit:
+  [`python_compatibility_surface.v1.json`](../../tests/fixtures/python_compatibility_surface.v1.json)
+- Current state: B-04 through B-09b2 canonical moves are integrated; B-10a is
+  in review in PR #271 and freezes the actual root surface before B-10b cleanup
 
 This is an actionable registry, not a removal schedule. `N` means the first
 published Registry release containing both a canonical target and its root
@@ -19,6 +21,15 @@ removal gate passes; it does not promise removal in that release.
 Every shim entry records:
 
 - **Surface/symbols:** the supported root import path and exact public scope.
+- **Classification:** permanent entrypoint, supported public re-export,
+  transitional private seam, or unsupported/test-only.
+- **Current/canonical target:** the current binding owner, canonical owner when
+  assigned, and whether that target is canonical, legacy-owned, or unassigned.
+- **Identity requirement:** stable entrypoint object, direct alias identity, or
+  not applicable for root-owned residual implementation and
+  unsupported/test-only bindings that carry no compatibility guarantee.
+- **Binding shape/import target:** entrypoint, direct import, or root definition,
+  plus the exact imported module for every direct binding in both import modes.
 - **Owner:** the issue responsible for the canonical move and future decisions.
 - **Canonical target:** the only implementation path after conversion.
 - **Introduced/conversion:** when the current surface existed and the PR phase
@@ -33,16 +44,16 @@ Every shim entry records:
 - **State:** implementation, planned shim, supported shim, deprecated, retained,
   or removal-approved.
 
-If a symbol list is not frozen yet, the move owner must inventory actual
-consumers and add explicit `__all__` before conversion. New private helpers are
-not added to a shim merely because tests import them.
+The B-10a fixture freezes symbol scope until B-11 can add the final explicit
+root `__all__`. New private helpers are not added to a shim merely because tests
+import them.
 
-## Initial inventory summary
+## Current inventory summary
 
 | Surface | Current role | Canonical target | Owner | Introduced / conversion | Known dependents and evidence | Earliest removal |
 | --- | --- | --- | --- | --- | --- | --- |
 | Root `__init__.py` exports | Permanent ComfyUI entrypoint, not a shim | root entrypoint plus `easyuse_anima.registration`/`bootstrap` | #184/#185 | Existing 0.5.2 surface; B-11 rewires internals | ComfyUI loader; node contract fixture | Not removable as a package entrypoint |
-| `nodes.py` mapped public classes | Incremental direct compatibility re-exports plus remaining implementations | `easyuse_anima.nodes.*_nodes` | #184 B-04 through B-11, #188 | Existing 0.5.2 surface; B-04 moved image-scale and Detailer-align objects with identity aliases; B-11 completes the shim | Root mappings, workflows, tests, possible external Python imports | No scheduled removal; public breaking-change gate after N+1 at earliest |
+| `nodes.py` mapped public classes | 18 direct compatibility re-exports plus audited private/residual debt | `easyuse_anima.nodes.*_nodes` | #184 B-04 through B-11, #188 | Existing 0.5.2 surface; B-04 through B-09b2 canonicalized all mapped adapters; B-11 completes the shim | Root mappings and workflows; repository tests are not public-support evidence; no confirmed external direct importer | No scheduled removal; public breaking-change gate after N+1 at earliest |
 | `api.py` route-registration surface | Current implementation; planned API shim | `easyuse_anima.api.router` and `easyuse_anima.api.routes.*` | #165, #186 D-02-D-07 | Existing 0.5.2 surface; convert during D-02-D-07/D-14 | Root entrypoint side-effect import, frontend endpoints, API tests | Unscheduled; N+1 gate and route parity |
 | `api_contract.py` request/error helpers | Phase C temporary implementation; D-02 move and D-14 shim decision pending | `easyuse_anima.api.requests`, `responses`, and `errors` | #165, #186 D-02/D-14 | Introduced by #165; convert in D-02 and freeze any required root shim in D-14 | `api.py`, API contract tests, Registry package-closure test | Unscheduled; internal consumers canonical and contract/package parity pass |
 | `settings.py` | Current implementation; planned settings shim | `easyuse_anima.settings.*` | #163, #186 D-09 | Existing 0.5.2 surface; convert in D-09/D-14 | `api.py`, `nodes.py`, `wildcard_engine.py`, settings tests | Unscheduled; N+1 gate and settings migration/round-trip |
@@ -53,6 +64,51 @@ not added to a shim merely because tests import them.
 | `anima_prompt/` package | Current implementation; planned package shim | `easyuse_anima.prompt.anima.*` | #184, #186 D-13 | Existing 0.5.2 surface; convert in D-13/D-14 | `nodes.py`, `autocomplete_dataset.py`, prompt tests | Unscheduled; N+1 gate and prompt correction/parser parity |
 
 ## Entry details
+
+### B-10a machine-readable root audit
+
+The versioned fixture records the exact post-B-09b2 surface rather than
+inferring public support from spelling or test imports:
+
+- root `__init__.py` permanent entrypoints: 3;
+- `nodes.py` preamble implementation imports: 7 (`json`, `logging`, `random`,
+  `re`, `ceil`, `sqrt`, and `Any`), excluded from compatibility classification
+  by an exact AST allowlist and drift gate;
+- `nodes.py` bindings with an `easyuse_anima` canonical target: 401, with exact
+  relative-package/flat-fallback parity;
+- bindings still owned by `anima_prompt`, `settings`, `prompt_translation`, or
+  `wildcard_engine`: 27, with the same fallback parity;
+- mapped supported public class re-exports: 18;
+- unmapped classes: `EasyUseAnimaPromptStudioExtend`,
+  `EasyUseAnimaSAM3Context`, and `EasyUseAnimaSAM3Detailer`;
+- root-owned residual implementation: 41 functions, 2 classes, and 33 assigned
+  globals.
+- import-time runtime binders: 28 exact top-level `_bind_*_runtime` calls;
+- root names reached by those canonical runtime resolvers: 256, including
+  literal lookups and binder-owned helper-name/default collections;
+- repository test files with a direct `nodes` import: 22, recorded as migration
+  consumers rather than public-support evidence.
+
+Each target-module/classification group records its current and canonical
+target, identity requirement, owner, unpublished `first_release: null`, known
+consumers, evidence, removal gates, and lifecycle state. An AST gate rejects
+symbol drift, duplicate coverage, fallback mismatches, unknown metadata enums,
+mapped-public classification drift, and silent promotion of residual root
+implementation. A repository test import can justify migration work, but never
+supported-public classification by itself.
+
+The seven preamble imports are implementation dependencies of the remaining
+root body, not compatibility aliases or supported exports. Any addition,
+removal, or retargeting fails the fixture build until it is deliberately
+classified; B-10b must not treat these imports as private-alias cleanup.
+
+The audit follows every import-time `_bind_*_runtime` target and records literal
+root-name lookups made through its runtime resolver. This keeps production seams
+such as legacy AiO generation, first-pass cache state, resource loading, and
+sampling out of the unsupported/test-only bucket even when `nodes.py` does not
+load their names directly. `EasyUseAnimaSAM3Context` is also retained as a
+transitional alias because the 0.1.6 Detailer plan documents its historical
+convenience-node compatibility; it remains unmapped and is not public support.
 
 ### Root `__init__.py` entrypoint
 
