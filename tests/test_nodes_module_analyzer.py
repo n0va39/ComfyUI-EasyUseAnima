@@ -73,12 +73,12 @@ def load_dynamic():
     def test_current_nodes_module_shape_matches_recorded_baseline(self):
         report = analyzer.analyze_path(ROOT / "nodes.py")
 
-        self.assertEqual(report["git_blob_sha1"], "bb1344cd0e436e823a428e3f3f41ee77cd71b982")
-        # Issue #184 B-10b20 retires the final 21 unsupported Artist Mix
-        # conditioning aliases while preserving tensor and metadata behavior.
+        self.assertEqual(report["git_blob_sha1"], "c4bda09b51453509e63f8ffe9676c88c3ae05184")
+        # Issue #184 B-11c1 moves the final root-owned input type classes while
+        # preserving direct aliases and binder identity.
         self.assertEqual(report["top_level"]["function_count"], 41)
-        self.assertEqual(report["top_level"]["class_count"], 2)
-        self.assertEqual(report["line_count"], 2_712)
+        self.assertEqual(report["top_level"]["class_count"], 0)
+        self.assertEqual(report["line_count"], 2_705)
         class_names = {item["name"] for item in report["top_level"]["classes"]}
         self.assertNotIn("EasyUseAnimaAIOGenerator", class_names)
         self.assertNotIn("EasyUseAnimaInput", class_names)
