@@ -25,6 +25,18 @@ def _runtime_helper(name: str) -> Any:
     return resolver(name)
 
 
+def _new_aio_random_seed() -> int:
+    random_module = _runtime_helper("random")
+    return random_module.randint(0, _runtime_helper("MAX_SEED"))
+
+
+def _resolve_aio_runtime_seed(value) -> int:
+    seed = _runtime_helper("_normalize_aio_seed")(value)
+    if seed in _runtime_helper("AIO_SPECIAL_SEEDS"):
+        return _runtime_helper("_new_aio_random_seed")()
+    return max(0, min(_runtime_helper("MAX_SEED"), seed))
+
+
 def _generate_empty_latent_with_comfy(width: int, height: int):
     latent_cls = _runtime_helper("_find_comfy_node_class")("EmptyLatentImage")
     if latent_cls is None:

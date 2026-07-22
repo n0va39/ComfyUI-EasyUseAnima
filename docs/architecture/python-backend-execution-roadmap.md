@@ -5,7 +5,7 @@
 - Status: operational execution runbook
 - Snapshot date: 2026-07-23
 - Snapshot branch: `dev`
-- Integrated `dev` snapshot commit: `bbca312b684f009aafbd1ed813a8f136e5520b3d`
+- Integrated `dev` snapshot commit: `17343eb4fed55d05c349b145119539501f92ad47`
 - Scope: Python backend only
 - Target architecture: [`python-backend.md`](python-backend.md)
 - Architecture decisions: [ADR-001](adr-001-modular-monolith.md) and
@@ -31,7 +31,7 @@ merged PR, the owning issue's evidence record, and every stated exit gate.
 | Phase | Integrated snapshot / open implementation state | Remaining exit work |
 | --- | --- | --- |
 | A - baseline | Complete; #191 is closed | Keep fixtures and analyzers current during later moves |
-| B - `nodes.py` extraction | Integrated through B-11c6; B-11c7a seed-normalizer Move in PR #300 | Complete residual owners and binders, then the final root shim as a separate Move |
+| B - `nodes.py` extraction | Integrated through B-11c7a; B-11c7b runtime-seed Move in PR #301 | Complete residual owners and binders, then the final root shim as a separate Move |
 | C - feature contracts/behavior | Partially complete | Finish #168; then #167 and #169 in separate Contract/Behavior PRs |
 | D - root consolidation | Not started | Execute #186 feature by feature after the corresponding behavior contracts are stable |
 | E - runtime ownership | Not started | Execute #187 after canonical feature owners exist; E-01 inventory may start earlier |
@@ -42,9 +42,9 @@ merged PR, the owning issue's evidence record, and every stated exit gate.
 ### Measured Phase B progress
 
 - The Phase A baseline recorded root `nodes.py` at 12,663 lines.
-- Against the integrated `dev` snapshot above, root `nodes.py` measures 2,541
-  lines after B-11c6.
-- The mechanical extraction has removed 10,122
+- Against the integrated `dev` snapshot above, root `nodes.py` measures 2,539
+  lines after B-11c7a.
+- The mechanical extraction has removed 10,124
   lines, approximately 79.9% of the Phase A baseline, while preserving the root
   compatibility surface.
 - B-01 through B-09b2 are integrated. The latest completed implementation slice
@@ -62,8 +62,10 @@ merged PR, the owning issue's evidence record, and every stated exit gate.
   B-11c4 moved the AiO LoRA stack signature helper in PR #297 / `0980530`.
   B-11c5 moved the AiO Spectrum settings normalizer in PR #298 / `617ea14`.
   B-11c6 moved the AiO DiT correction normalizer in PR #299 / `bbca312`.
-  B-11c7a moves only the AiO special-seed constants and settings normalizer in
-  PR #300; runtime RNG generation and seed interpretation remain separate.
+  B-11c7a moved the AiO special-seed constants and settings normalizer in PR
+  #300 / `17343eb`. B-11c7b moves only runtime RNG generation and special-seed
+  interpretation in PR #301; reservation and increment/decrement behavior
+  remain separate.
 
 ### Current quality baseline
 
@@ -305,7 +307,7 @@ surfaces. AiO mechanical extraction must not start until #168 exits.
 | 11 | B-09b2 AiO generator adapter move | COMPLETE on `dev` | Move | #184 | PR #270 / `57d40b4` |
 | 12 | B-10a machine-readable compatibility audit | COMPLETE on `dev` | Contract/gate | #184/#188 | PR #271 / `3c7b857` |
 | 13 | B-10b private alias reduction | COMPLETE on `dev` through PR #291 / `c6b4680` | Contract/cleanup, split PRs | #184/#188 | Audited alias surface integrated |
-| 14 | B-11 registration/bootstrap/root shim | IN PROGRESS: B-11a PR #292 / `20c8b4d`; B-11b PR #293 / `f2a2ec0`; B-11c1 PR #294 / `ebeee89`; B-11c2 PR #295 / `47fef1d`; B-11c3 PR #296 / `1f18c04`; B-11c4 PR #297 / `0980530`; B-11c5 PR #298 / `617ea14`; B-11c6 PR #299 / `bbca312`; B-11c7a seed-normalizer PR #300 | Move, split PRs | #184 | Residual owners and binders migrate in rollback-sized units before final shim |
+| 14 | B-11 registration/bootstrap/root shim | IN PROGRESS: B-11a PR #292 / `20c8b4d`; B-11b PR #293 / `f2a2ec0`; B-11c1 PR #294 / `ebeee89`; B-11c2 PR #295 / `47fef1d`; B-11c3 PR #296 / `1f18c04`; B-11c4 PR #297 / `0980530`; B-11c5 PR #298 / `617ea14`; B-11c6 PR #299 / `bbca312`; B-11c7a PR #300 / `17343eb`; B-11c7b runtime-seed PR #301 | Move, split PRs | #184 | Residual owners and binders migrate in rollback-sized units before final shim |
 | 15 | S167 backend seed reservation series | BLOCKED by B exit/interface | Contract then Behavior | #167 | Canonical AiO/node seams |
 | 16 | A169 stage pipeline series | BLOCKED by #168 and B exit | Contract then Behavior | #169 | Typed config and mechanical AiO move |
 | 17 | A169 first-pass cache policy | BLOCKED by stage/cache ownership seam | Behavior | #169 | Mechanical cache move and benchmark harness |
@@ -834,6 +836,12 @@ unchanged. The separate legacy Wildcard unsupported alias remains for D-12.
     lower-bound replacement. Runtime random seed generation, special-seed
     interpretation, increment/decrement behavior, and seed reservation remain
     separate.
+  - B-11c7b moves only `_new_aio_random_seed` and
+    `_resolve_aio_runtime_seed` to `easyuse_anima.aio.sampling`. PR #301 retains
+    direct root alias identity and call-time root `random`, `MAX_SEED`,
+    `_normalize_aio_seed`, mutable `AIO_SPECIAL_SEEDS`, and nested random-helper
+    replacement. RNG range/state/call order and backend seed reservation remain
+    unchanged.
   - The final B-11c cutover removes remaining root execution ownership and
     leaves the explicit supported `nodes.py` compatibility shim.
 - Add `easyuse_anima/registration.py` as pure mapping composition. It performs no

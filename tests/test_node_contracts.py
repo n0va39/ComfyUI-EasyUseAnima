@@ -21,6 +21,7 @@ import nodes
 from easyuse_anima import workflow
 from easyuse_anima.aio import (
     generation_normalization as aio_generation_normalization,
+    sampling as aio_sampling,
 )
 from easyuse_anima.aio import model_preparation as aio_model_preparation
 from easyuse_anima.common import serialization as common_serialization
@@ -872,6 +873,58 @@ class AioSeedNormalizationMoveContractTests(unittest.TestCase):
                 f"{package_name}.easyuse_anima.aio.generation_normalization"
             ]
             self._assert_contract(package_nodes, package_generation_normalization)
+
+
+class AioRuntimeSeedMoveContractTests(unittest.TestCase):
+    def _assert_contract(self, root_module, canonical_module):
+        self.assertIs(
+            root_module._new_aio_random_seed,
+            canonical_module._new_aio_random_seed,
+        )
+        self.assertIs(
+            root_module._resolve_aio_runtime_seed,
+            canonical_module._resolve_aio_runtime_seed,
+        )
+
+        randint_calls = []
+        random_module = types.SimpleNamespace(
+            randint=lambda lower, upper: randint_calls.append((lower, upper)) or 7
+        )
+        with (
+            patch.object(root_module, "random", random_module),
+            patch.object(root_module, "MAX_SEED", 12),
+        ):
+            self.assertEqual(canonical_module._new_aio_random_seed(), 7)
+        self.assertEqual(randint_calls, [(0, 12)])
+
+        with (
+            patch.object(
+                root_module,
+                "_normalize_aio_seed",
+                side_effect=(-1, 99, -99),
+            ) as normalize_seed,
+            patch.object(root_module, "AIO_SPECIAL_SEEDS", {-1}),
+            patch.object(root_module, "_new_aio_random_seed", return_value=777) as new_seed,
+            patch.object(root_module, "MAX_SEED", 12),
+        ):
+            self.assertEqual(canonical_module._resolve_aio_runtime_seed("special"), 777)
+            self.assertEqual(canonical_module._resolve_aio_runtime_seed("high"), 12)
+            self.assertEqual(canonical_module._resolve_aio_runtime_seed("low"), 0)
+
+        self.assertEqual(
+            normalize_seed.call_args_list,
+            [call("special"), call("high"), call("low")],
+        )
+        new_seed.assert_called_once_with()
+
+    def test_root_aliases_and_runtime_helper_replacements(self):
+        self._assert_contract(nodes, aio_sampling)
+
+    def test_package_aliases_and_runtime_helper_replacements(self):
+        with _loaded_package_entrypoint() as (_, package_nodes):
+            package_name = package_nodes.__package__
+            package_sampling = sys.modules[f"{package_name}.easyuse_anima.aio.sampling"]
+            self._assert_contract(package_nodes, package_sampling)
 
 
 class ComfyAdapterMoveContractTests(unittest.TestCase):
