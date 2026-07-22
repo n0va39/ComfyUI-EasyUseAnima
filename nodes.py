@@ -320,7 +320,7 @@ try:
     from .easyuse_anima.nodes.prompt_advanced_nodes import (
         EasyUseAnimaPromptStudioAdvanced as EasyUseAnimaPromptStudioAdvanced,
         EasyUseAnimaPromptStudioAdvancedV2 as EasyUseAnimaPromptStudioAdvancedV2,
-        EasyUseAnimaPromptStudioExtend as EasyUseAnimaPromptStudioExtend,
+        # B-10b11 retires the unmapped legacy Extend root alias.
         _bind_prompt_advanced_node_runtime as _bind_prompt_advanced_node_runtime,
     )
     from .easyuse_anima.nodes.aio_nodes import (
@@ -833,7 +833,7 @@ except ImportError:  # allows simple local import tests outside ComfyUI's packag
     from easyuse_anima.nodes.prompt_advanced_nodes import (
         EasyUseAnimaPromptStudioAdvanced as EasyUseAnimaPromptStudioAdvanced,
         EasyUseAnimaPromptStudioAdvancedV2 as EasyUseAnimaPromptStudioAdvancedV2,
-        EasyUseAnimaPromptStudioExtend as EasyUseAnimaPromptStudioExtend,
+        # B-10b11 retires the unmapped legacy Extend root alias.
         _bind_prompt_advanced_node_runtime as _bind_prompt_advanced_node_runtime,
     )
     from easyuse_anima.nodes.aio_nodes import (

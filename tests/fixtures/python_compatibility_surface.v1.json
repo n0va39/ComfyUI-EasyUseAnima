@@ -2,7 +2,7 @@
   "schema_version": 1,
   "snapshot": {
     "base_branch": "dev",
-    "base_commit": "8b99c03dac1a89317ea5f2738cf6b894fd751022",
+    "base_commit": "6a6fe14d26e0d30b59ee18c55fe25591b93b15e4",
     "first_release": null,
     "owner_tasks": [
       "#184",
@@ -17,7 +17,8 @@
       "B-10b7",
       "B-10b8",
       "B-10b9",
-      "B-10b10"
+      "B-10b10",
+      "B-10b11"
     ]
   },
   "enums": {
@@ -52,10 +53,10 @@
   "expected_counts": {
     "root_entrypoints": 3,
     "excluded_preamble_implementation_bindings": 7,
-    "nodes_canonical_bindings": 379,
+    "nodes_canonical_bindings": 378,
     "nodes_legacy_bindings": 27,
     "mapped_public_classes": 18,
-    "unmapped_classes": 3,
+    "unmapped_classes": 2,
     "root_residual_functions": 41,
     "root_residual_classes": 2,
     "root_residual_globals": 33,
@@ -83,7 +84,6 @@
     "EasyUseAnimaWildcard"
   ],
   "unmapped_classes": [
-    "EasyUseAnimaPromptStudioExtend",
     "EasyUseAnimaSAM3Context",
     "EasyUseAnimaSAM3Detailer"
   ],
@@ -1044,6 +1044,11 @@
     }
   },
   "retired_private_bindings": {
+    "EasyUseAnimaPromptStudioExtend": {
+      "canonical_target": "easyuse_anima.nodes.prompt_advanced_nodes:EasyUseAnimaPromptStudioExtend",
+      "owner": "#184/#188 B-10b11",
+      "reason": "legacy class is canonical but absent from backend node mappings"
+    },
     "DEFAULT_QUALITY_TAGS": {
       "canonical_target": "easyuse_anima.prompt.fields:DEFAULT_QUALITY_TAGS",
       "owner": "#184/#188 B-10b10",
@@ -2413,35 +2418,6 @@
         "separate B-10b or B-11 rollback unit"
       ],
       "lifecycle_state": "transitional"
-    },
-    {
-      "id": "nodes_canonical_bindings:easyuse_anima.nodes.prompt_advanced_nodes:unsupported_test_only",
-      "surface": "nodes_canonical_bindings",
-      "symbols": {
-        "EasyUseAnimaPromptStudioExtend": "EasyUseAnimaPromptStudioExtend"
-      },
-      "classification": "unsupported_test_only",
-      "current_target": "nodes.py",
-      "canonical_target": "easyuse_anima.nodes.prompt_advanced_nodes",
-      "target_state": "canonical",
-      "identity_requirement": "not_applicable",
-      "binding_shape": "direct_import",
-      "import_target": "easyuse_anima.nodes.prompt_advanced_nodes",
-      "owner": "#184/#188",
-      "first_release": null,
-      "known_consumers": [
-        "repository tests may import this root name"
-      ],
-      "evidence": [
-        "AST:no nodes.py runtime load",
-        "test-only consumption is not public support evidence"
-      ],
-      "removal_gates": [
-        "test imports migrate to canonical targets",
-        "no production consumer evidence",
-        "separate B-10b removal review"
-      ],
-      "lifecycle_state": "unsupported"
     },
     {
       "id": "nodes_canonical_bindings:easyuse_anima.nodes.prompt_data_nodes:supported_public_reexport",

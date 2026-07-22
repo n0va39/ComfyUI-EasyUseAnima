@@ -73,9 +73,9 @@ def load_dynamic():
     def test_current_nodes_module_shape_matches_recorded_baseline(self):
         report = analyzer.analyze_path(ROOT / "nodes.py")
 
-        self.assertEqual(report["git_blob_sha1"], "bd8fa79c8c14aa4cc6ee2fcbda7224d42d39f2f2")
-        # Issue #184 B-10b10 retires two unsupported/test-only prompt defaults
-        # after production and tests use the canonical owner directly.
+        self.assertEqual(report["git_blob_sha1"], "b6632e400cfd4042e649bbf15316ad4ce899369c")
+        # Issue #184 B-10b11 retires the unsupported/test-only Extend root alias
+        # while preserving its unmapped canonical legacy class.
         self.assertEqual(report["top_level"]["function_count"], 41)
         self.assertEqual(report["top_level"]["class_count"], 2)
         self.assertEqual(report["line_count"], 2_712)

@@ -15,7 +15,7 @@ NODES_PATH = ROOT / "nodes.py"
 FIXTURE_PATH = ROOT / "tests" / "fixtures" / "python_compatibility_surface.v1.json"
 
 SCHEMA_VERSION = 1
-BASE_COMMIT = "8b99c03dac1a89317ea5f2738cf6b894fd751022"
+BASE_COMMIT = "6a6fe14d26e0d30b59ee18c55fe25591b93b15e4"
 CLASSIFICATIONS = (
     "permanent_entrypoint",
     "supported_public_reexport",
@@ -56,6 +56,13 @@ PREAMBLE_IMPLEMENTATION_BINDINGS = {
     "sqrt": "math:sqrt",
 }
 RETIRED_PRIVATE_BINDINGS = {
+    "EasyUseAnimaPromptStudioExtend": {
+        "canonical_target": (
+            "easyuse_anima.nodes.prompt_advanced_nodes:EasyUseAnimaPromptStudioExtend"
+        ),
+        "owner": "#184/#188 B-10b11",
+        "reason": "legacy class is canonical but absent from backend node mappings",
+    },
     "DEFAULT_QUALITY_TAGS": {
         "canonical_target": "easyuse_anima.prompt.fields:DEFAULT_QUALITY_TAGS",
         "owner": "#184/#188 B-10b10",
@@ -770,6 +777,7 @@ def _build_document() -> dict[str, Any]:
                 "B-10b8",
                 "B-10b9",
                 "B-10b10",
+                "B-10b11",
             ],
         },
         "enums": {
@@ -782,10 +790,10 @@ def _build_document() -> dict[str, Any]:
         "expected_counts": {
             "root_entrypoints": 3,
             "excluded_preamble_implementation_bindings": 7,
-            "nodes_canonical_bindings": 379,
+            "nodes_canonical_bindings": 378,
             "nodes_legacy_bindings": 27,
             "mapped_public_classes": 18,
-            "unmapped_classes": 3,
+            "unmapped_classes": 2,
             "root_residual_functions": 41,
             "root_residual_classes": 2,
             "root_residual_globals": 33,
@@ -920,7 +928,6 @@ class PythonCompatibilitySurfaceTests(unittest.TestCase):
         self.assertEqual(
             self.document["unmapped_classes"],
             [
-                "EasyUseAnimaPromptStudioExtend",
                 "EasyUseAnimaSAM3Context",
                 "EasyUseAnimaSAM3Detailer",
             ],
