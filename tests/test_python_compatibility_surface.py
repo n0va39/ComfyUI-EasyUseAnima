@@ -15,7 +15,7 @@ NODES_PATH = ROOT / "nodes.py"
 FIXTURE_PATH = ROOT / "tests" / "fixtures" / "python_compatibility_surface.v1.json"
 
 SCHEMA_VERSION = 1
-BASE_COMMIT = "44d338bbc4ea6322edc83ab03928e8d14b5d8775"
+BASE_COMMIT = "d36caf8af5b528a9f8ac6a80d5fc93f925784bf3"
 CLASSIFICATIONS = (
     "permanent_entrypoint",
     "supported_public_reexport",
@@ -56,6 +56,13 @@ PREAMBLE_IMPLEMENTATION_BINDINGS = {
     "sqrt": "math:sqrt",
 }
 RETIRED_PRIVATE_BINDINGS = {
+    "_clear_aio_first_pass_cache": {
+        "canonical_target": (
+            "easyuse_anima.aio.first_pass_cache:_clear_aio_first_pass_cache"
+        ),
+        "owner": "#184/#188 B-10b7",
+        "reason": "tests call the canonical cache owner directly",
+    },
     "_image_scale_by_multiple_size": {
         "canonical_target": (
             "easyuse_anima.image.scaling:_image_scale_by_multiple_size"
@@ -701,6 +708,7 @@ def _build_document() -> dict[str, Any]:
                 "B-10b4",
                 "B-10b5",
                 "B-10b6",
+                "B-10b7",
             ],
         },
         "enums": {
@@ -713,7 +721,7 @@ def _build_document() -> dict[str, Any]:
         "expected_counts": {
             "root_entrypoints": 3,
             "excluded_preamble_implementation_bindings": 7,
-            "nodes_canonical_bindings": 390,
+            "nodes_canonical_bindings": 389,
             "nodes_legacy_bindings": 27,
             "mapped_public_classes": 18,
             "unmapped_classes": 3,

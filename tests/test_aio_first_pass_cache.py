@@ -20,7 +20,6 @@ class AIOFirstPassCacheMoveTests(unittest.TestCase):
             "_AIO_FIRST_PASS_CACHE",
             "_AIO_FIRST_PASS_CACHE_ORDER",
             "_clone_aio_cache_value",
-            "_clear_aio_first_pass_cache",
             "_aio_first_pass_cache_key",
             "_get_aio_first_pass_cache",
             "_put_aio_first_pass_cache",

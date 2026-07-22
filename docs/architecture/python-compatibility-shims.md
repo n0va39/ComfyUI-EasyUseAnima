@@ -3,13 +3,13 @@
 ## Registry status
 
 - Inventory baseline: `dev` commit
-  `44d338bbc4ea6322edc83ab03928e8d14b5d8775`
+  `d36caf8af5b528a9f8ac6a80d5fc93f925784bf3`
 - Compatibility provenance: package/workflow version 0.5.2
 - Policy: [ADR-002](adr-002-compatibility-shims.md)
 - Machine-readable audit:
   [`python_compatibility_surface.v1.json`](../../tests/fixtures/python_compatibility_surface.v1.json)
-- Current state: B-10b5 is integrated; B-10b6 in PR #277 removes one audited
-  unsupported/test-only image scaling root-alias group
+- Current state: B-10b6 is integrated; B-10b7 in PR #278 removes one audited
+  unsupported/test-only AiO cache-clear root alias
 
 This is an actionable registry, not a removal schedule. `N` means the first
 published Registry release containing both a canonical target and its root
@@ -74,8 +74,8 @@ inferring public support from spelling or test imports:
 - `nodes.py` preamble implementation imports: 7 (`json`, `logging`, `random`,
   `re`, `ceil`, `sqrt`, and `Any`), excluded from compatibility classification
   by an exact AST allowlist and drift gate;
-- `nodes.py` bindings with an `easyuse_anima` canonical target: 390 at the
-  B-10b6 PR head, with exact
+- `nodes.py` bindings with an `easyuse_anima` canonical target: 389 at the
+  B-10b7 PR head, with exact
   relative-package/flat-fallback parity;
 - bindings still owned by `anima_prompt`, `settings`, `prompt_translation`, or
   `wildcard_engine`: 27, with the same fallback parity;
@@ -92,7 +92,8 @@ inferring public support from spelling or test imports:
   `_EasyUseAnimaImpactDetailerDelegate`, plus `_impact_core_module`,
   `_align_up`, `_aligned_size_near_scale`, `_alignment_value`,
   `_image_scale_by_multiple_size`, `_max_long_edge_value`,
-  `_normalize_image_scale_options`, and `_scale_by_value`; their production
+  `_normalize_image_scale_options`, `_scale_by_value`, and
+  `_clear_aio_first_pass_cache`; their production
   consumers import or call the corresponding canonical owners directly;
 - repository test files with a direct `nodes` import: 21, recorded as migration
   consumers rather than public-support evidence.
@@ -227,6 +228,11 @@ EasyUseAnimaWildcard
   normal-package and synthetic package-entrypoint tests preserve size,
   max-edge, and legacy shifted-widget normalization behavior. The two scaling
   constants and mapped image-scale node class remain root compatibility seams.
+- B-10b7 AiO cache-clear cleanup: `_clear_aio_first_pass_cache` is no longer a
+  root alias. Repository tests call the canonical
+  `easyuse_anima.aio.first_pass_cache` owner directly; normal-package and
+  synthetic package-entrypoint tests reject the retired root name. Mutable
+  cache state and the remaining binder/resolver seams stay unchanged.
 - B-08b2 internal AiO model-variant transition: Spectrum correction/forecast
   model patching and ephemeral model cleanup move to
   `easyuse_anima.aio.model_preparation`. Their four root private names remain

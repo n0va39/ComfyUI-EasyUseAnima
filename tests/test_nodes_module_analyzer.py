@@ -73,9 +73,9 @@ def load_dynamic():
     def test_current_nodes_module_shape_matches_recorded_baseline(self):
         report = analyzer.analyze_path(ROOT / "nodes.py")
 
-        self.assertEqual(report["git_blob_sha1"], "6a7f4255583d94c4a7d84f7c81192f4f8f412447")
-        # Issue #184 B-10b6 retires four unsupported/test-only image scaling
-        # aliases after production consumers moved to the canonical owner.
+        self.assertEqual(report["git_blob_sha1"], "50a1ef025ee43f0934324e947fc8a9b6d3125003")
+        # Issue #184 B-10b7 retires the unsupported/test-only cache-clear alias
+        # after repository tests moved to the canonical owner.
         self.assertEqual(report["top_level"]["function_count"], 41)
         self.assertEqual(report["top_level"]["class_count"], 2)
         self.assertEqual(report["line_count"], 2_712)

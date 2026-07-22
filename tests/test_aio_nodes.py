@@ -6,6 +6,7 @@ import unittest
 from unittest.mock import patch
 
 import nodes
+from easyuse_anima.aio import first_pass_cache
 from easyuse_anima.nodes import aio_nodes
 from tests.test_node_contracts import _loaded_package_entrypoint
 
@@ -29,6 +30,7 @@ class AIONodeContractTests(unittest.TestCase):
             nodes._require_easy_use_anima_input,
             aio_nodes._require_easy_use_anima_input,
         )
+        self.assertFalse(hasattr(nodes, "_clear_aio_first_pass_cache"))
 
         with _loaded_package_entrypoint() as (package_entrypoint, package_nodes):
             canonical_module = sys.modules[
@@ -59,6 +61,7 @@ class AIONodeContractTests(unittest.TestCase):
                 package_nodes._require_easy_use_anima_input,
                 canonical_module._require_easy_use_anima_input,
             )
+            self.assertFalse(hasattr(package_nodes, "_clear_aio_first_pass_cache"))
 
     def test_input_types_resolve_root_runtime_values_at_call_time(self):
         calls = []
@@ -2291,7 +2294,7 @@ class AIOFinalUpscaleStageTests(unittest.TestCase):
 
 class AIOGeneratorRuntimeTests(unittest.TestCase):
     def setUp(self):
-        nodes._clear_aio_first_pass_cache()
+        first_pass_cache._clear_aio_first_pass_cache()
 
     def _context(self):
         return {
@@ -2375,7 +2378,7 @@ class AIOGeneratorRuntimeTests(unittest.TestCase):
 
         for index, (backend, expected_model, expect_standalone_mod, expect_comfy_patch, expect_internal_mod) in enumerate(cases):
             with self.subTest(backend=backend):
-                nodes._clear_aio_first_pass_cache()
+                first_pass_cache._clear_aio_first_pass_cache()
                 context = self._context()
 
                 with (
