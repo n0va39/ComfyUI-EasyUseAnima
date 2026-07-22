@@ -3,14 +3,14 @@
 ## Registry status
 
 - Inventory baseline: `dev` commit
-  `47fef1deebc32644d19caa22add5fee0aa94edbe`
+  `1f18c04f1078b7c547764aa572a6123ba423221d`
 - Compatibility provenance: package/workflow version 0.5.2
 - Policy: [ADR-002](adr-002-compatibility-shims.md)
 - Machine-readable audit:
   [`python_compatibility_surface.v1.json`](../../tests/fixtures/python_compatibility_surface.v1.json)
-- Current state: B-11a through B-11c2 are integrated through PR #295. B-11c is
+- Current state: B-11a through B-11c3 are integrated through PR #296. B-11c is
   split into residual-owner and binder Moves before the final root shim;
-  B-11c3 image tensor size ownership is tracked by PR #296.
+  B-11c4 AiO LoRA signature ownership is tracked by PR #297.
 
 This is an actionable registry, not a removal schedule. `N` means the first
 published Registry release containing both a canonical target and its root
@@ -75,8 +75,8 @@ inferring public support from spelling or test imports:
 - `nodes.py` preamble implementation imports: 7 (`json`, `logging`, `random`,
   `re`, `ceil`, `sqrt`, and `Any`), excluded from compatibility classification
   by an exact AST allowlist and drift gate;
-- `nodes.py` bindings with an `easyuse_anima` canonical target: 263 after
-  B-11c3 (258 at the integrated B-10b20 baseline), with exact
+- `nodes.py` bindings with an `easyuse_anima` canonical target: 264 after
+  B-11c4 (258 at the integrated B-10b20 baseline), with exact
   relative-package/flat-fallback parity;
 - bindings still owned by `anima_prompt`, `settings`, `prompt_translation`, or
   `wildcard_engine`: 27, with the same fallback parity;
@@ -84,8 +84,8 @@ inferring public support from spelling or test imports:
 - unmapped root classes: `EasyUseAnimaSAM3Context` and
   `EasyUseAnimaSAM3Detailer`; the canonical legacy Extend class remains in its
   owner module without a root alias or backend mapping;
-- root-owned residual implementation: 39 functions, 0 classes, and 32 assigned
-  globals after B-11c3 (41/2/33 at the integrated B-10b20 baseline).
+- root-owned residual implementation: 38 functions, 0 classes, and 32 assigned
+  globals after B-11c4 (41/2/33 at the integrated B-10b20 baseline).
 - import-time runtime binders: 28 exact top-level `_bind_*_runtime` calls;
 - root names reached by those canonical runtime resolvers: 256, including
   literal lookups and binder-owned helper-name/default collections;
@@ -189,6 +189,20 @@ convenience-node compatibility; it remains unmapped and is not public support.
   mutation, Comfy provider, cache, or I/O dependency.
 - `_resize_image_to_size_if_needed` and all stage/postprocess execution remain
   root-owned so this PR does not alter their internal patch seams or behavior.
+
+### B-11c4 AiO LoRA stack signature alias
+
+- Canonical owner:
+  `easyuse_anima.aio.model_preparation._aio_lora_stack_signature`.
+- The private root name remains a transitional direct alias. AiO `IS_CHANGED`
+  and first-pass cache-key generation continue resolving it through their
+  existing root runtime resolvers, preserving call-time replacement.
+- The canonical owner resolves `_normalize_aio_lora_stack` through the existing
+  model-preparation runtime seam, so root monkeypatches and normalized tuple
+  ordering remain unchanged in PR #297.
+- The helper only projects normalized entries into the existing ordered
+  `name`/`strength_model`/`strength_clip` dictionaries. Cache state, eviction,
+  node change-key behavior, random state, and I/O remain unchanged.
 
 ### `nodes.py` public node-class surface
 
@@ -410,8 +424,9 @@ EasyUseAnimaWildcard
   identity aliases so generator callers, mutable-state rebinding, and focused
   monkeypatch seams preserve call-time behavior. These are internal transition
   surfaces through the B-10 compatibility audit and are not added to public
-  package `__all__`. The shared root `_aio_lora_stack_signature` is not part of
-  this move; the canonical cache key resolves it at call time.
+  package `__all__`. The shared root `_aio_lora_stack_signature` was not part
+  of B-08e; B-11c4 now gives it a canonical model-preparation owner while the
+  cache key continues resolving the retained root alias at call time.
 - B-09a public AiO input-adapter transition: `EasyUseAnimaInput` moves to
   `easyuse_anima.nodes.aio_nodes` and remains a direct root alias, so direct
   imports and the package `NODE_CLASS_MAPPINGS` entry retain class identity.
