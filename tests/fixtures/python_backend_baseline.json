@@ -35670,9 +35670,9 @@
       },
       {
         "is_package": false,
-        "loc": 38,
+        "loc": 37,
         "module": "easyuse_anima.bootstrap",
-        "normalized_git_blob_sha1": "b1ea1773621662f0eb04aec70d1c09091e6e52e6",
+        "normalized_git_blob_sha1": "a114f2473296dbb4cb5f27429f115354448ca698",
         "path": "easyuse_anima/bootstrap.py",
         "top_level": {
           "class_count": 0,
@@ -50326,7 +50326,7 @@
         "column": 10,
         "context": "assign:_LOGGER",
         "kind": "import_time_call",
-        "line": 10,
+        "line": 9,
         "module": "easyuse_anima/bootstrap.py",
         "scope": "<module>"
       },
@@ -50335,7 +50335,7 @@
         "column": 19,
         "context": "assign:_INITIALIZE_LOCK",
         "kind": "import_time_call",
-        "line": 11,
+        "line": 10,
         "module": "easyuse_anima/bootstrap.py",
         "scope": "<module>"
       },
@@ -51359,7 +51359,7 @@
       },
       {
         "kind": "list",
-        "line": 38,
+        "line": 37,
         "module": "easyuse_anima/bootstrap.py",
         "name": "__all__"
       },
@@ -51733,7 +51733,7 @@
           "lock"
         ],
         "initializer": "threading.Lock",
-        "line": 11,
+        "line": 10,
         "module": "easyuse_anima/bootstrap.py",
         "name": "_INITIALIZE_LOCK"
       },
