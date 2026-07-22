@@ -14,6 +14,7 @@ from unittest.mock import patch
 import autocomplete_dataset
 import settings as easyuse_settings
 from easyuse_anima.naia.client import _clean_prompt
+from easyuse_anima.naia.resolution import ADVANCED_RESOLUTION_BUCKETS
 from easyuse_anima.nodes.prompt_advanced_nodes import EasyUseAnimaPromptStudioExtend
 from easyuse_anima.prompt.data import PROMPT_DATA_SCHEMA
 from easyuse_anima.prompt.fields import (
@@ -22,7 +23,6 @@ from easyuse_anima.prompt.fields import (
 )
 from nodes import (
     ADVANCED_FIELDS_WORKFLOW_PROPERTY,
-    ADVANCED_RESOLUTION_BUCKETS,
     ARTIST_MIX_CONTROL_KEY,
     ARTIST_MIX_EXACT_KEY,
     ARTIST_MIX_MODE_CLUSTERED,

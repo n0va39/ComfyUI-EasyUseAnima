@@ -847,7 +847,7 @@ class WildcardNaiaMoveContractTests(unittest.TestCase):
         "_parse_random_response",
         "_post_random",
     )
-    RESOLUTION_ALIASES = (
+    RETIRED_RESOLUTION_ALIASES = (
         "ADVANCED_RESOLUTION_BUCKETS",
         "CUSTOM_ADVANCED_RESOLUTION_BUCKET",
         "DEFAULT_ADVANCED_RESOLUTION_BUCKET",
@@ -855,12 +855,7 @@ class WildcardNaiaMoveContractTests(unittest.TestCase):
         "NAIA_ADVANCED_RESOLUTION_BUCKET",
         "NAIA_RESOLUTION_MODE_BUCKET",
         "NAIA_RESOLUTION_MODE_SCALE",
-        "_advanced_resolution_from_selection",
         "_fit_naia_resolution_to_bucket",
-        "_normalize_resolution_bucket",
-        "_ratio_label",
-        "_resolution_label",
-        "_resolve_naia_resolution",
         "_resolve_naia_resolution_bucket",
         "_resolve_naia_resolution_max_long_edge",
         "_resolve_naia_resolution_mode",
@@ -870,6 +865,13 @@ class WildcardNaiaMoveContractTests(unittest.TestCase):
         "_snap_scaled_resolution_32",
         "_sorted_resolution_options",
     )
+    RETAINED_RESOLUTION_ALIASES = (
+        "_advanced_resolution_from_selection",
+        "_normalize_resolution_bucket",
+        "_ratio_label",
+        "_resolution_label",
+        "_resolve_naia_resolution",
+    )
 
     def test_root_nodes_wildcard_naia_objects_are_direct_canonical_aliases(self):
         for name in self.RETIRED_CLIENT_ALIASES:
@@ -878,7 +880,10 @@ class WildcardNaiaMoveContractTests(unittest.TestCase):
         for name in self.RETAINED_CLIENT_ALIASES:
             with self.subTest(module="client", name=name):
                 self.assertIs(getattr(nodes, name), getattr(naia_client, name))
-        for name in self.RESOLUTION_ALIASES:
+        for name in self.RETIRED_RESOLUTION_ALIASES:
+            with self.subTest(retired=name):
+                self.assertFalse(hasattr(nodes, name))
+        for name in self.RETAINED_RESOLUTION_ALIASES:
             with self.subTest(module="resolution", name=name):
                 self.assertIs(getattr(nodes, name), getattr(naia_resolution, name))
 
@@ -914,7 +919,10 @@ class WildcardNaiaMoveContractTests(unittest.TestCase):
             for name in self.RETAINED_CLIENT_ALIASES:
                 with self.subTest(module="client", name=name):
                     self.assertIs(getattr(package_nodes, name), getattr(package_client, name))
-            for name in self.RESOLUTION_ALIASES:
+            for name in self.RETIRED_RESOLUTION_ALIASES:
+                with self.subTest(retired=name):
+                    self.assertFalse(hasattr(package_nodes, name))
+            for name in self.RETAINED_RESOLUTION_ALIASES:
                 with self.subTest(module="resolution", name=name):
                     self.assertIs(
                         getattr(package_nodes, name),
