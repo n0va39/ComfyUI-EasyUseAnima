@@ -10,15 +10,17 @@ ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_BASELINE = ROOT / "tests" / "fixtures" / "pyright_baseline.json"
 DEFAULT_CONFIG = ROOT / "pyrightconfig.json"
 BASELINE_SCHEMA = "easyuse_anima_pyright_diagnostic_baseline"
-BASELINE_VERSION = 1
+BASELINE_VERSION = 2
 SEVERITIES = ("error", "warning", "information")
 CONFIG_FIELDS = {
     "include": "include",
     "python_platform": "pythonPlatform",
     "python_version": "pythonVersion",
     "report_missing_module_source": "reportMissingModuleSource",
+    "strict": "strict",
     "type_checking_mode": "typeCheckingMode",
 }
+STRICT_GROUP_FIELDS = frozenset({"group", "owner_issue", "paths"})
 
 
 def _require_mapping(value, label: str) -> dict:
@@ -39,6 +41,101 @@ def _require_non_empty_string(value, label: str) -> str:
     return value
 
 
+def _require_positive_int(value, label: str) -> int:
+    result = _require_non_negative_int(value, label)
+    if result == 0:
+        raise ValueError(f"{label} must be a positive integer.")
+    return result
+
+
+def _require_non_empty_string_array(value, label: str) -> list[str]:
+    if (
+        not isinstance(value, list)
+        or not value
+        or any(not isinstance(item, str) or not item for item in value)
+    ):
+        raise ValueError(f"{label} must be a non-empty string array.")
+    return value
+
+
+def _require_strict_path(value, label: str) -> str:
+    path = Path(_require_non_empty_string(value, label))
+    if (
+        path.is_absolute()
+        or ".." in path.parts
+        or path.as_posix() != value
+        or len(path.parts) < 2
+        or path.parts[0] != "easyuse_anima"
+        or path.suffix != ".py"
+    ):
+        raise ValueError(
+            f"{label} must be a canonical Python path under easyuse_anima."
+        )
+    return value
+
+
+def _normalize_strict_groups(
+    value,
+    repo_root: Path,
+) -> list[dict[str, object]]:
+    if not isinstance(value, list) or not value:
+        raise ValueError("Pyright baseline strict_groups must be a non-empty array.")
+
+    normalized: list[dict[str, object]] = []
+    group_ids: set[str] = set()
+    owned_paths: set[str] = set()
+    for index, group_value in enumerate(value):
+        group = _require_mapping(group_value, f"strict_groups[{index}]")
+        if set(group) != STRICT_GROUP_FIELDS:
+            raise ValueError(
+                f"strict_groups[{index}] fields changed: "
+                f"expected {sorted(STRICT_GROUP_FIELDS)}, got {sorted(group)}"
+            )
+        group_id = _require_non_empty_string(
+            group["group"],
+            f"strict_groups[{index}].group",
+        )
+        owner_issue = _require_positive_int(
+            group["owner_issue"],
+            f"strict_groups[{index}].owner_issue",
+        )
+        if group_id in group_ids:
+            raise ValueError(f"Duplicate Pyright strict group id: {group_id}")
+        group_ids.add(group_id)
+
+        raw_paths = _require_non_empty_string_array(
+            group["paths"],
+            f"strict_groups[{index}].paths",
+        )
+        paths = [
+            _require_strict_path(path, f"strict_groups[{index}].paths[{path!r}]")
+            for path in raw_paths
+        ]
+        if len(paths) != len(set(paths)):
+            raise ValueError(
+                f"strict_groups[{index}].paths must not contain duplicates."
+            )
+        if paths != sorted(paths):
+            raise ValueError(f"strict_groups[{index}].paths must be sorted.")
+        missing_paths = [path for path in paths if not (repo_root / path).is_file()]
+        if missing_paths:
+            raise ValueError(
+                "Pyright strict paths must exist in the repository: "
+                f"{missing_paths}"
+            )
+        duplicate_paths = owned_paths.intersection(paths)
+        if duplicate_paths:
+            raise ValueError(
+                "Pyright strict paths must have exactly one owner: "
+                f"{sorted(duplicate_paths)}"
+            )
+        owned_paths.update(paths)
+        normalized.append(
+            {"group": group_id, "owner_issue": owner_issue, "paths": paths}
+        )
+    return normalized
+
+
 def _normalize_baseline_config(value) -> dict:
     config = _require_mapping(value, "Pyright baseline config")
     expected_fields = set(CONFIG_FIELDS)
@@ -48,16 +145,17 @@ def _normalize_baseline_config(value) -> dict:
             f"expected {sorted(expected_fields)}, got {sorted(config)}"
         )
 
-    include = config["include"]
-    if (
-        not isinstance(include, list)
-        or not include
-        or any(not isinstance(item, str) or not item for item in include)
-    ):
-        raise ValueError("Pyright baseline config.include must be a non-empty string array.")
-
-    normalized = {"include": include}
-    for field in expected_fields - {"include"}:
+    normalized = {
+        "include": _require_non_empty_string_array(
+            config["include"],
+            "Pyright baseline config.include",
+        ),
+        "strict": _require_non_empty_string_array(
+            config["strict"],
+            "Pyright baseline config.strict",
+        ),
+    }
+    for field in expected_fields - {"include", "strict"}:
         normalized[field] = _require_non_empty_string(
             config[field],
             f"Pyright baseline config.{field}",
@@ -161,8 +259,25 @@ def summarize_report(report: dict, repo_root: Path = ROOT) -> dict:
     }
 
 
-def _baseline_counts(baseline: dict) -> tuple[dict, Counter[tuple[str, str, str]]]:
+def _baseline_counts(
+    baseline: dict,
+    repo_root: Path = ROOT,
+) -> tuple[dict, Counter[tuple[str, str, str]]]:
     baseline = _require_mapping(baseline, "Pyright baseline")
+    expected_fields = {
+        "schema",
+        "version",
+        "tool",
+        "config",
+        "strict_groups",
+        "totals",
+        "diagnostics",
+    }
+    if set(baseline) != expected_fields:
+        raise ValueError(
+            "Pyright baseline fields changed: "
+            f"expected {sorted(expected_fields)}, got {sorted(baseline)}"
+        )
     if baseline.get("schema") != BASELINE_SCHEMA:
         raise ValueError(f"Unsupported Pyright baseline schema: {baseline.get('schema')!r}")
     if baseline.get("version") != BASELINE_VERSION:
@@ -173,6 +288,23 @@ def _baseline_counts(baseline: dict) -> tuple[dict, Counter[tuple[str, str, str]
         raise ValueError(f"Unsupported baseline tool: {tool.get('name')!r}")
     if not isinstance(tool.get("version"), str) or not tool["version"]:
         raise ValueError("Pyright baseline tool.version must be a non-empty string.")
+
+    normalized_config = _normalize_baseline_config(baseline.get("config"))
+    strict_groups = _normalize_strict_groups(
+        baseline.get("strict_groups"),
+        repo_root,
+    )
+    strict_paths = [
+        path
+        for group in strict_groups
+        for path in group["paths"]
+    ]
+    if normalized_config["strict"] != strict_paths:
+        raise ValueError(
+            "Pyright baseline config.strict paths do not match owned strict_groups: "
+            f"config={normalized_config['strict']}, groups={strict_paths}"
+        )
+    strict_path_set = set(strict_paths)
 
     totals = _require_mapping(baseline.get("totals"), "Pyright baseline totals")
     normalized_totals = {
@@ -215,6 +347,10 @@ def _baseline_counts(baseline: dict) -> tuple[dict, Counter[tuple[str, str, str]
         )
         if count == 0:
             raise ValueError(f"baseline diagnostics[{index}].count must be positive.")
+        if path in strict_path_set:
+            raise ValueError(
+                f"Strict allowlist path cannot have baseline diagnostics: {path}"
+            )
         key = (path, rule, severity)
         if key in counts:
             raise ValueError(f"Duplicate Pyright baseline diagnostic group: {key}")
@@ -234,7 +370,8 @@ def _baseline_counts(baseline: dict) -> tuple[dict, Counter[tuple[str, str, str]
         )
     return {
         "tool": tool,
-        "config": _normalize_baseline_config(baseline.get("config")),
+        "config": normalized_config,
+        "strict_groups": strict_groups,
         "totals": normalized_totals,
     }, counts
 
@@ -246,7 +383,7 @@ def compare_report(
     repo_root: Path = ROOT,
 ) -> tuple[dict, list[str]]:
     summary = summarize_report(report, repo_root)
-    metadata, expected_counts = _baseline_counts(baseline)
+    metadata, expected_counts = _baseline_counts(baseline, repo_root)
     failures = _compare_config(pyright_config, metadata["config"])
 
     if summary["version"] != metadata["tool"]["version"]:
@@ -259,10 +396,21 @@ def compare_report(
         (entry["path"], entry["rule"], entry["severity"]): entry["count"]
         for entry in summary["diagnostics"]
     }
+    strict_paths = {
+        path
+        for group in metadata["strict_groups"]
+        for path in group["paths"]
+    }
     for key, current_count in sorted(current_counts.items()):
+        path, rule, severity = key
+        if path in strict_paths:
+            failures.append(
+                f"{path} is strict-owned but reported {current_count} "
+                f"{severity} diagnostics for {rule}"
+            )
+            continue
         allowed_count = expected_counts.get(key, 0)
         if current_count > allowed_count:
-            path, rule, severity = key
             failures.append(
                 f"{path} {rule} {severity}: allowed {allowed_count}, got {current_count}"
             )

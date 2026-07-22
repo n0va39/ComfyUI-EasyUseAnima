@@ -25,7 +25,7 @@ class PythonQualityContractTests(unittest.TestCase):
             ["E4", "E7", "E9", "F", "I", "UP"],
         )
 
-    def test_pyright_basic_canonical_package_contract_is_pinned(self):
+    def test_pyright_basic_with_strict_allowlist_contract_is_pinned(self):
         pyright = json.loads(
             (ROOT / "pyrightconfig.json").read_text(encoding="utf-8")
         )
@@ -35,6 +35,13 @@ class PythonQualityContractTests(unittest.TestCase):
         self.assertEqual(pyright["pythonPlatform"], "All")
         self.assertEqual(pyright["typeCheckingMode"], "basic")
         self.assertEqual(pyright["reportMissingModuleSource"], "none")
+        self.assertEqual(
+            pyright["strict"],
+            [
+                "easyuse_anima/profiles/contract.py",
+                "easyuse_anima/profiles/mutation.py",
+            ],
+        )
         self.assertNotIn("exclude", pyright)
         self.assertNotIn("ignore", pyright)
         self.assertNotIn("reportMissingImports", pyright)
@@ -48,8 +55,19 @@ class PythonQualityContractTests(unittest.TestCase):
                 "python_platform": pyright["pythonPlatform"],
                 "python_version": pyright["pythonVersion"],
                 "report_missing_module_source": pyright["reportMissingModuleSource"],
+                "strict": pyright["strict"],
                 "type_checking_mode": pyright["typeCheckingMode"],
             },
+        )
+        self.assertEqual(
+            baseline["strict_groups"],
+            [
+                {
+                    "group": "profiles-contract",
+                    "owner_issue": 188,
+                    "paths": pyright["strict"],
+                }
+            ],
         )
 
     def test_dedicated_runner_reports_findings_without_enabling_fixes(self):

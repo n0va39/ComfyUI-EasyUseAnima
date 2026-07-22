@@ -79,6 +79,19 @@ class PyrightBaselineTests(unittest.TestCase):
         self.assertEqual(failures, [])
         self.assertEqual(summary["totals"], baseline["totals"])
         self.assertEqual(sum(baseline["totals"].values()), 60)
+        self.assertEqual(
+            baseline["strict_groups"],
+            [
+                {
+                    "group": "profiles-contract",
+                    "owner_issue": 188,
+                    "paths": [
+                        "easyuse_anima/profiles/contract.py",
+                        "easyuse_anima/profiles/mutation.py",
+                    ],
+                }
+            ],
+        )
 
     def test_decreased_diagnostic_group_passes_without_rewriting_baseline(self):
         baseline = _baseline()
@@ -157,6 +170,93 @@ class PyrightBaselineTests(unittest.TestCase):
 
         self.assertTrue(any("config fields changed" in failure for failure in failures))
         self.assertTrue(any("typeCheckingMode changed" in failure for failure in failures))
+
+    def test_removed_strict_path_or_unowned_group_fails(self):
+        baseline = _baseline()
+        report = _report_from_baseline(baseline)
+        config = _config()
+        config["strict"].pop()
+
+        _summary, failures = checker.compare_report(report, baseline, config, ROOT)
+
+        self.assertTrue(any("Pyright config strict changed" in failure for failure in failures))
+
+        baseline = _baseline()
+        baseline["strict_groups"][0]["owner_issue"] = 0
+        with self.assertRaisesRegex(ValueError, "owner_issue must be a positive integer"):
+            checker.compare_report(report, baseline, _config(), ROOT)
+
+        baseline = _baseline()
+        baseline["strict_groups"][0]["paths"].pop()
+        with self.assertRaisesRegex(ValueError, "do not match owned strict_groups"):
+            checker.compare_report(report, baseline, _config(), ROOT)
+
+    def test_strict_path_cannot_acquire_baseline_debt(self):
+        baseline = _baseline()
+        baseline["diagnostics"].append(
+            {
+                "count": 1,
+                "path": "easyuse_anima/profiles/contract.py",
+                "rule": "reportUnknownVariableType",
+                "severity": "error",
+            }
+        )
+        baseline["totals"]["error"] += 1
+        report = _report_from_baseline(baseline)
+
+        with self.assertRaisesRegex(
+            ValueError,
+            "Strict allowlist path cannot have baseline diagnostics",
+        ):
+            checker.compare_report(report, baseline, _config(), ROOT)
+
+    def test_strict_group_rejects_duplicate_or_missing_paths(self):
+        baseline = _baseline()
+        report = _report_from_baseline(baseline)
+        baseline["strict_groups"].append(
+            {
+                "group": "duplicate-owner",
+                "owner_issue": 188,
+                "paths": ["easyuse_anima/profiles/contract.py"],
+            }
+        )
+        with self.assertRaisesRegex(ValueError, "exactly one owner"):
+            checker.compare_report(report, baseline, _config(), ROOT)
+
+        baseline = _baseline()
+        baseline["strict_groups"][0]["paths"].append(
+            "easyuse_anima/profiles/mutation.py"
+        )
+        with self.assertRaisesRegex(ValueError, "must not contain duplicates"):
+            checker.compare_report(report, baseline, _config(), ROOT)
+
+        baseline = _baseline()
+        baseline["strict_groups"][0]["paths"] = [
+            "easyuse_anima/profiles/does_not_exist.py"
+        ]
+        with self.assertRaisesRegex(ValueError, "must exist in the repository"):
+            checker.compare_report(report, baseline, _config(), ROOT)
+
+    def test_current_strict_path_diagnostic_has_explicit_failure(self):
+        baseline = _baseline()
+        report = _report_from_baseline(baseline)
+        report["generalDiagnostics"].append(
+            {
+                "file": str(ROOT / "easyuse_anima" / "profiles" / "contract.py"),
+                "severity": "error",
+                "rule": "reportUnknownVariableType",
+                "message": "strict regression",
+                "range": {
+                    "start": {"line": 0, "character": 0},
+                    "end": {"line": 0, "character": 1},
+                },
+            }
+        )
+        report["summary"]["errorCount"] += 1
+
+        _summary, failures = checker.compare_report(report, baseline, _config(), ROOT)
+
+        self.assertTrue(any("strict-owned" in failure for failure in failures))
 
 
 if __name__ == "__main__":

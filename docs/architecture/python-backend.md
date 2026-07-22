@@ -390,9 +390,26 @@ quality runner) disables network access for both pinned Ruff and Pyright after
 their packages have been cached. This provides the Phase G offline
 reproducibility check without adding either tool as a runtime dependency.
 
-This slice does not introduce strict allowlists. G-02b will add reviewed pure
-model/service paths only after they are independently strict-clean. Import
-direction, public API, size, and test-ownership gates remain G-03 through G-06.
+### G-02b implementation contract
+
+G-02b keeps the complete canonical package in `basic` mode and promotes only
+reviewed pure/service paths through Pyright's `strict` allowlist. The first
+owned group is `profiles-contract` under Issue #188 and contains
+`easyuse_anima/profiles/contract.py` and
+`easyuse_anima/profiles/mutation.py`. Both paths were made independently
+strict-clean before the gate was enabled.
+
+The baseline fixture records each strict group ID, owner, and sorted canonical
+paths. The checker requires the flattened owned paths to exactly match
+`pyrightconfig.json`, rejects duplicate ownership, and forbids baseline
+diagnostic debt for a strict path. Removing a reviewed path, adding an unowned
+path, weakening the global mode, or introducing a strict-path diagnostic fails
+the official quick/full runner.
+
+This slice changes no production module, runtime dependency, adapter `Any`
+boundary, or public compatibility surface. New strict groups require their own
+reviewed owner and focused evidence. Import direction, public API, size, and
+test-ownership gates remain G-03 through G-06.
 
 ## Overall Definition of Done
 
