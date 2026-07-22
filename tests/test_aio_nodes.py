@@ -1,13 +1,242 @@
 from __future__ import annotations
 
 import json
+import sys
 import unittest
 from unittest.mock import patch
 
 import nodes
+from easyuse_anima.nodes import aio_nodes
+from tests.test_node_contracts import _loaded_package_entrypoint
 
 
 class AIONodeContractTests(unittest.TestCase):
+    def test_input_node_is_the_canonical_public_adapter_in_both_import_modes(self):
+        self.assertEqual(aio_nodes.__all__, ("EasyUseAnimaInput",))
+        self.assertIs(nodes.EasyUseAnimaInput, aio_nodes.EasyUseAnimaInput)
+
+        with _loaded_package_entrypoint() as (package_entrypoint, package_nodes):
+            canonical_module = sys.modules[
+                f"{package_entrypoint.__name__}.easyuse_anima.nodes.aio_nodes"
+            ]
+            mapped_class = package_entrypoint.NODE_CLASS_MAPPINGS["EasyUseAnimaInput"]
+
+            self.assertIs(mapped_class, canonical_module.EasyUseAnimaInput)
+            self.assertIs(package_nodes.EasyUseAnimaInput, canonical_module.EasyUseAnimaInput)
+
+    def test_input_types_resolve_root_runtime_values_at_call_time(self):
+        calls = []
+        unet_names = ["unet-b", "unet-a"]
+        vae_names = ["vae-b", "vae-a"]
+        clip_names = ["clip-b", "clip-a"]
+        clip_types = ["stable_cascade", "qwen_image"]
+
+        def names(label, values):
+            def resolve():
+                calls.append(label)
+                return values
+
+            return resolve
+
+        def preferred_name(values, candidates):
+            calls.append(("preferred_name", values, candidates))
+            return candidates[0]
+
+        def preferred_clip_type(values):
+            calls.append(("preferred_clip_type", values))
+            return "qwen_image"
+
+        def input_settings_json():
+            calls.append("input_settings_json")
+            return '{"schema":"input-test"}'
+
+        with patch.multiple(
+            nodes,
+            PROMPT_DATA_TYPE="PROMPT_DATA_TEST",
+            ANIMA_DEFAULT_DIFFUSION_MODEL_CANDIDATES=("unet-a",),
+            ANIMA_DEFAULT_VAE_CANDIDATES=("vae-a",),
+            ANIMA_DEFAULT_CLIP_CANDIDATES=("clip-a",),
+            _comfy_diffusion_model_names=names("unet_names", unet_names),
+            _comfy_vae_names=names("vae_names", vae_names),
+            _comfy_text_encoder_names=names("clip_names", clip_names),
+            _comfy_clip_loader_types=names("clip_types", clip_types),
+            _preferred_name_default=preferred_name,
+            _preferred_clip_type_default=preferred_clip_type,
+            _aio_input_settings_json=input_settings_json,
+        ):
+            input_types = nodes.EasyUseAnimaInput.INPUT_TYPES()
+
+        self.assertEqual(
+            calls,
+            [
+                "unet_names",
+                "vae_names",
+                "clip_names",
+                "clip_types",
+                ("preferred_name", unet_names, ("unet-a",)),
+                ("preferred_name", vae_names, ("vae-a",)),
+                ("preferred_name", clip_names, ("clip-a",)),
+                ("preferred_clip_type", clip_types),
+                "input_settings_json",
+            ],
+        )
+        self.assertEqual(
+            input_types,
+            {
+                "required": {
+                    "PROMPT_DATA_TEST": ("PROMPT_DATA_TEST", {
+                        "forceInput": True,
+                        "tooltip": "Structured prompt data from Anima Prompt Studio Advanced v2.",
+                    }),
+                    "unet_name": (unet_names, {
+                        "default": "unet-a",
+                        "tooltip": "ANIMA diffusion model loaded with ComfyUI UNETLoader.",
+                    }),
+                    "vae_name": (vae_names, {
+                        "default": "vae-a",
+                        "tooltip": "VAE loaded with ComfyUI VAELoader.",
+                    }),
+                    "clip_name": (clip_names, {
+                        "default": "clip-a",
+                        "tooltip": "Text encoder loaded with ComfyUI CLIPLoader.",
+                    }),
+                    "clip_type": (clip_types, {
+                        "default": "qwen_image",
+                        "tooltip": "ComfyUI CLIPLoader type. Core ANIMA uses qwen_image.",
+                    }),
+                    "input_settings": ("STRING", {
+                        "multiline": True,
+                        "default": '{"schema":"input-test"}',
+                        "hidden": True,
+                        "tooltip": "Hidden versioned JSON storage for future resource settings. Kept serialized for workflow compatibility.",
+                    }),
+                },
+            },
+        )
+
+    def test_input_change_key_preserves_payload_and_runtime_call_order(self):
+        calls = []
+
+        def normalize_prompt(value):
+            calls.append(("normalize_prompt", value))
+            return {"normalized": value}
+
+        def json_safe(value):
+            calls.append(("json_safe", value))
+            return {"safe": value}
+
+        def normalize_settings(value):
+            calls.append(("normalize_settings", value))
+            return {"settings": value}
+
+        def stable_key(value):
+            calls.append(("stable_key", value))
+            return "change-key"
+
+        with patch.multiple(
+            nodes,
+            _normalize_prompt_data=normalize_prompt,
+            _prompt_data_json_safe=json_safe,
+            _normalize_aio_input_settings=normalize_settings,
+            _stable_change_key=stable_key,
+        ):
+            result = nodes.EasyUseAnimaInput.IS_CHANGED(
+                {"prompt": "raw"},
+                unet_name=None,
+                vae_name=3,
+                clip_name="clip",
+                clip_type=False,
+                input_settings="settings-json",
+                ignored="compatibility",
+            )
+
+        expected_payload = {
+            "mode": "easy_use_anima_input",
+            "prompt_data": {"safe": {"normalized": {"prompt": "raw"}}},
+            "unet_name": "",
+            "vae_name": "3",
+            "clip_name": "clip",
+            "clip_type": "",
+            "input_settings": {"settings": "settings-json"},
+        }
+        self.assertEqual(result, "change-key")
+        self.assertEqual(
+            calls,
+            [
+                ("normalize_prompt", {"prompt": "raw"}),
+                ("json_safe", {"normalized": {"prompt": "raw"}}),
+                ("normalize_settings", "settings-json"),
+                ("stable_key", expected_payload),
+            ],
+        )
+
+    def test_input_build_preserves_exact_context_and_copy_boundaries(self):
+        source_prompt = {"positive_prompt": "p", "nested": {"value": 1}}
+        settings = {
+            "schema": "settings-schema",
+            "resources": {
+                "unet_weight_dtype": "fp8_e4m3fn",
+                "clip_device": "cpu",
+            },
+        }
+
+        with (
+            patch.object(
+                nodes,
+                "_normalize_aio_input_settings",
+                return_value=settings,
+            ) as normalize_settings,
+            patch.object(
+                nodes,
+                "_copy_prompt_data_for_update",
+                wraps=nodes._copy_prompt_data_for_update,
+            ) as copy_prompt,
+        ):
+            context = nodes.EasyUseAnimaInput().build(
+                source_prompt,
+                7,
+                "vae.safetensors",
+                "clip.safetensors",
+                "",
+                "settings-json",
+            )[0]
+
+        resource_info = {
+            "loader_mode": "split",
+            "unet_name": "7",
+            "vae_name": "vae.safetensors",
+            "clip_name": "clip.safetensors",
+            "clip_type": "qwen_image",
+            "unet_weight_dtype": "fp8_e4m3fn",
+            "clip_device": "cpu",
+        }
+        self.assertEqual(
+            context,
+            {
+                "schema": nodes.EASY_USE_ANIMA_INPUT_SCHEMA,
+                "version": nodes.EASY_USE_ANIMA_INPUT_SETTINGS_VERSION,
+                "prompt_data": {
+                    "positive_prompt": "p",
+                    "nested": {"value": 1},
+                    "easy_use_anima_input": {
+                        "schema": nodes.EASY_USE_ANIMA_INPUT_SCHEMA,
+                        "version": nodes.EASY_USE_ANIMA_INPUT_SETTINGS_VERSION,
+                        "resource_info": resource_info,
+                    },
+                },
+                "resource_info": resource_info,
+                "input_settings": settings,
+            },
+        )
+        normalize_settings.assert_called_once_with("settings-json")
+        copy_prompt.assert_called_once_with(source_prompt)
+        self.assertNotIn("easy_use_anima_input", source_prompt)
+        self.assertIsNot(context["prompt_data"], source_prompt)
+        self.assertIsNot(
+            context["prompt_data"]["easy_use_anima_input"]["resource_info"],
+            context["resource_info"],
+        )
+
     def test_input_node_contract_uses_dedicated_context_socket(self):
         required = nodes.EasyUseAnimaInput.INPUT_TYPES()["required"]
 

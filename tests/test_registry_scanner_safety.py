@@ -52,6 +52,7 @@ EXPECTED_PYTHON_PACKAGE_FILES = {
     "easyuse_anima/naia/client.py",
     "easyuse_anima/naia/resolution.py",
     "easyuse_anima/nodes/__init__.py",
+    "easyuse_anima/nodes/aio_nodes.py",
     "easyuse_anima/nodes/image_nodes.py",
     "easyuse_anima/nodes/impact_detailer_nodes.py",
     "easyuse_anima/nodes/lora_nodes.py",

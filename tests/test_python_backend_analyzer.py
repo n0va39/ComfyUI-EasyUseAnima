@@ -683,9 +683,9 @@ ignored/
 
         self.assertEqual(analyzer.render_json(report), expected_text)
         self.assertEqual(report["schema_version"], 2)
-        self.assertEqual(report["inventory"]["module_count"], 75)
-        self.assertEqual(len(report["registry"]["shipped_python_modules"]), 75)
-        self.assertEqual(len(report["registry"]["runtime_import_closure"]), 75)
+        self.assertEqual(report["inventory"]["module_count"], 76)
+        self.assertEqual(len(report["registry"]["shipped_python_modules"]), 76)
+        self.assertEqual(len(report["registry"]["runtime_import_closure"]), 76)
         self.assertEqual(report["registry"]["missing_internal_imports"], [])
         self.assertEqual(report["registry"]["unreachable_shipped_python_modules"], [])
         self.assertTrue(
@@ -727,6 +727,7 @@ ignored/
                 "easyuse_anima/naia/client.py",
                 "easyuse_anima/naia/resolution.py",
                 "easyuse_anima/nodes/__init__.py",
+                "easyuse_anima/nodes/aio_nodes.py",
                 "easyuse_anima/nodes/image_nodes.py",
                 "easyuse_anima/nodes/impact_detailer_nodes.py",
                 "easyuse_anima/nodes/lora_nodes.py",
@@ -776,6 +777,7 @@ ignored/
                 "easyuse_anima/naia/__init__.py",
                 "easyuse_anima/naia/client.py",
                 "easyuse_anima/naia/resolution.py",
+                "easyuse_anima/nodes/aio_nodes.py",
                 "easyuse_anima/nodes/image_nodes.py",
                 "easyuse_anima/nodes/impact_detailer_nodes.py",
                 "easyuse_anima/nodes/lora_nodes.py",

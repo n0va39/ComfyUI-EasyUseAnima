@@ -163,6 +163,13 @@ EasyUseAnimaWildcard
   surfaces through the B-10 compatibility audit and are not added to public
   package `__all__`. The shared root `_aio_lora_stack_signature` is not part of
   this move; the canonical cache key resolves it at call time.
+- B-09a public AiO input-adapter transition: `EasyUseAnimaInput` moves to
+  `easyuse_anima.nodes.aio_nodes` and remains a direct root alias, so direct
+  imports and the package `NODE_CLASS_MAPPINGS` entry retain class identity.
+  The canonical module publicly exports only `EasyUseAnimaInput` through
+  `__all__`; its narrow call-time runtime seam preserves root monkeypatches for
+  resource candidates, normalization, stable change keys, schema/version
+  values, and prompt-data copying. The adapter does not import `nodes.py`.
 - Removal gate: 0.5.2 node/workflow fixture, mapping identity, direct import,
   Registry archive closure, consumer evidence, separate breaking-change issue,
   and release note. With no external-consumer evidence, retain these exports.
