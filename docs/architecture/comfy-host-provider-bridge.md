@@ -2568,7 +2568,7 @@ Forbidden:
 
 ### B-11d — Final root shim
 
-- **State:** IN PROGRESS after B-11c30e / PR #355
+- **State:** IMPLEMENTED IN PR #356; final gates pending
 - **Owner:** #184
 - **Type:** Move
 
@@ -2626,6 +2626,26 @@ Implementation plan:
 - preserve every existing direct alias binding, object identity, package/flat
   fallback, mapping/display order, schema, workflow, error, and optional-import
   behavior.
+
+Implementation result:
+
+- root `logging`, `logger`, and `_TRIGGER_WORD_KEYS` are absent. The
+  compatibility audit records zero preamble implementation imports and zero
+  residual functions, classes, globals, binders, or resolvers;
+- `nodes.py.__all__` contains exactly the 18 mapped classes in registration
+  order. All 289 canonical and 27 legacy direct compatibility bindings remain
+  unchanged outside that explicit supported surface;
+- root `__init__.py` preserves all 18 class attributes through pure
+  `easyuse_anima.registration` and no longer imports compatibility `nodes.py`;
+- the backend analyzer treats the two shipped root entry modules,
+  `__init__.py` and `nodes.py`, independently. All 93 shipped Python modules
+  remain in the Registry runtime/archive closure with zero missing or
+  unreachable modules;
+- root `nodes.py` is a 1,138-line explicit compatibility shim. The added public
+  export list accounts for the line increase from the pre-edit 1,123-line
+  import-only surface; and
+- focused compatibility, analyzer, node-contract, package-skeleton, and runtime
+  tests pass without changing node behavior.
 
 Exit:
 
@@ -2688,7 +2708,7 @@ COMPLETE: B-11c30d0b input-context owner Move / PR #352
 COMPLETE: B-11c30d5 legacy-orchestration Move / PR #353
 COMPLETE: B-11c30d6 node-adapter Move / PR #354
 COMPLETE: B-11c30e Wildcard/NAIA callback binder Move / PR #355
-IN PROGRESS: B-11d final root shim
+IN PROGRESS: B-11d final root shim / PR #356
 
 LATER:    #167 seed reservation
 LATER:    #169 stage/cache Behavior

@@ -3773,6 +3773,10 @@ class PublicNodeContractTests(unittest.TestCase):
             )
             self.assertEqual(list(runtime_mappings), [node_id for node_id, _ in class_mappings])
             self.assertEqual(package_entrypoint.NODE_DISPLAY_NAME_MAPPINGS, display_mappings)
+            self.assertEqual(
+                package_nodes.__all__,
+                [class_name for _, class_name in class_mappings],
+            )
             for node_id, class_name in class_mappings:
                 with self.subTest(node_id=node_id):
                     mapped_class = runtime_mappings[node_id]

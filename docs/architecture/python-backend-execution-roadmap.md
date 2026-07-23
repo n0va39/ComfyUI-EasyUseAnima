@@ -31,7 +31,7 @@ merged PR, the owning issue's evidence record, and every stated exit gate.
 | Phase | Integrated snapshot / open implementation state | Remaining exit work |
 | --- | --- | --- |
 | A - baseline | Complete; #191 is closed | Keep fixtures and analyzers current during later moves |
-| B - `nodes.py` extraction | Integrated through B-11c30d6 / PR #354; B-11c30e completes in PR #355 | Execute the final root shim as a separate rollback unit |
+| B - `nodes.py` extraction | Integrated through B-11c30e / PR #355; B-11d final shim completes in PR #356 | Finish package/pack/live gates, then close Phase B |
 | C - feature contracts/behavior | Partially complete through S167-01a / PR #344 | Continue #167 and #169 in separate Contract/Move/Behavior PRs |
 | D - root consolidation | Not started | Execute #186 feature by feature after the corresponding behavior contracts are stable |
 | E - runtime ownership | Partial: E-02a and E-07a/E-07b integrated | Continue #187 only where canonical feature owners and explicit contracts exist |
@@ -42,9 +42,10 @@ merged PR, the owning issue's evidence record, and every stated exit gate.
 ### Measured Phase B progress
 
 - The Phase A baseline recorded root `nodes.py` at 12,663 lines.
-- In B-11c30e / PR #355, the analyzer measures root `nodes.py` at 1,123 lines.
-- The mechanical extraction has removed 11,540
-  lines, approximately 91.1% of the Phase A baseline, while preserving the root
+- In B-11d / PR #356, the analyzer measures the explicit root `nodes.py` shim
+  at 1,138 lines.
+- The mechanical extraction has removed 11,525
+  lines, approximately 91.0% of the Phase A baseline, while preserving the root
   compatibility surface.
 - B-01 through B-09b2 are integrated. The latest completed implementation slice
   is the AiO generator adapter Move in PR #270.
@@ -403,7 +404,7 @@ mechanical retirement series.
 | 11 | B-09b2 AiO generator adapter move | COMPLETE on `dev` | Move | #184 | PR #270 / `57d40b4` |
 | 12 | B-10a machine-readable compatibility audit | COMPLETE on `dev` | Contract/gate | #184/#188 | PR #271 / `3c7b857` |
 | 13 | B-10b private alias reduction | COMPLETE on `dev` through PR #291 / `c6b4680` | Contract/cleanup, split PRs | #184/#188 | Audited alias surface integrated |
-| 14 | B-11 registration/bootstrap/root shim | B-11c30e PR #355 integrated; B-11d final root shim IN PROGRESS | Move/Contract, split PRs | #184 | Zero runtime binders; explicit root `__all__`; frozen compatibility audit |
+| 14 | B-11 registration/bootstrap/root shim | B-11c30e PR #355 integrated; B-11d final root shim implemented in PR #356 with final gates pending | Move/Contract, split PRs | #184 | Zero runtime binders/residual implementation; explicit root `__all__`; frozen compatibility audit |
 | 15 | S167 backend seed reservation series | S167-01 Contract COMPLETE in PR #343 and S167-01a consumer Move COMPLETE in PR #344; Behavior and Adapter remain | Contract then Move then Behavior | #167 | Canonical AiO/node seams |
 | 16 | A169 stage pipeline series | BLOCKED by #168 and B exit | Contract then Behavior | #169 | Typed config and mechanical AiO move |
 | 17 | A169 first-pass cache policy | BLOCKED by stage/cache ownership seam | Behavior | #169 | Mechanical cache move and benchmark harness |
@@ -1152,7 +1153,9 @@ unchanged. The separate legacy Wildcard unsupported alias remains for D-12.
     `_TRIGGER_WORD_KEYS` implementation residue, adds an explicit supported
     class `__all__`, and stops the package entrypoint from consuming the root
     compatibility shim. Audited private/test-only aliases remain outside
-    `__all__` under ADR-002 and are not mass-retired in this Move.
+    `__all__` under ADR-002 and are not mass-retired in this Move. The backend
+    analyzer recognizes both shipped root entry modules independently, keeping
+    all 93 Python modules in the package closure.
   - The final B-11c cutover removes remaining root execution ownership and
     leaves the explicit supported `nodes.py` compatibility shim.
 - Add `easyuse_anima/registration.py` as pure mapping composition. It performs no
