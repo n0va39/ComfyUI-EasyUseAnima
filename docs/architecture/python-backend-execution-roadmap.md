@@ -405,7 +405,7 @@ mechanical retirement series.
 | 12 | B-10a machine-readable compatibility audit | COMPLETE on `dev` | Contract/gate | #184/#188 | PR #271 / `3c7b857` |
 | 13 | B-10b private alias reduction | COMPLETE on `dev` through PR #291 / `c6b4680` | Contract/cleanup, split PRs | #184/#188 | Audited alias surface integrated |
 | 14 | B-11 registration/bootstrap/root shim | COMPLETE in PR #356 | Move/Contract, split PRs | #184 | Zero runtime binders/residual implementation; explicit root `__all__`; frozen compatibility audit |
-| 15 | S167 backend seed reservation series | S167-01 through S167-03a COMPLETE on `dev`; S167-03b execution identity Contract VALIDATED | Contract then Move then Behavior | #167 | Canonical AiO/node seams |
+| 15 | S167 backend seed reservation series | S167-01 through S167-03b COMPLETE on `dev`; S167-03c execution session Behavior VALIDATED | Contract then Move then Behavior | #167 | Canonical AiO/node seams |
 | 16 | A169 stage pipeline series | READY after #168 and Phase B completion; begin with A169-01 Contract | Contract then Behavior | #169 | Typed config and mechanical AiO move |
 | 17 | A169 first-pass cache policy | BLOCKED by stage/cache ownership seam | Behavior | #169 | Mechanical cache move and benchmark harness |
 | 18 | D-series canonical root consolidation | BLOCKED by relevant C contracts | Move | #186 | Phase B exit; per-feature behavior stable |
@@ -1237,6 +1237,12 @@ reservation caller. It validates Comfy's call-time `prompt_id`, effective
 and stream identities, and uses a fresh request identity with a stable hidden
 `UNIQUE_ID` stream only when execution context is unavailable. The existing
 four-method `ComfyHostProvider` and all feature nodes remain unchanged.
+
+S167-03c wraps one reservation in a shared exception-safe execution session.
+Normal return settles accepted, Comfy's already-loaded
+`InterruptProcessingException` settles cancelled, and every other
+`BaseException` settles rejected before re-raise. The classifier never imports
+the heavy Comfy/Torch host on demand, and no feature caller is added.
 
 Do not mix this sequence into B-09 or #169 stages.
 

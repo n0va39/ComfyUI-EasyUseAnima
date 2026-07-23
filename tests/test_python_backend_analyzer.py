@@ -691,9 +691,9 @@ ignored/
 
         self.assertEqual(analyzer.render_json(report), expected_text)
         self.assertEqual(report["schema_version"], 2)
-        self.assertEqual(report["inventory"]["module_count"], 95)
-        self.assertEqual(len(report["registry"]["shipped_python_modules"]), 95)
-        self.assertEqual(len(report["registry"]["runtime_import_closure"]), 95)
+        self.assertEqual(report["inventory"]["module_count"], 96)
+        self.assertEqual(len(report["registry"]["shipped_python_modules"]), 96)
+        self.assertEqual(len(report["registry"]["runtime_import_closure"]), 96)
         self.assertEqual(
             report["registry"]["entry_modules"],
             ["__init__.py", "nodes.py"],
@@ -766,6 +766,7 @@ ignored/
                 "easyuse_anima/seed/__init__.py",
                 "easyuse_anima/seed/compatibility.py",
                 "easyuse_anima/seed/execution_identity.py",
+                "easyuse_anima/seed/execution_session.py",
                 "easyuse_anima/seed/reservation.py",
                 "easyuse_anima/seed/service.py",
                 "easyuse_anima/prompt/__init__.py",
@@ -830,6 +831,7 @@ ignored/
                 "easyuse_anima/profiles/mutation.py",
                 "easyuse_anima/runtime.py",
                 "easyuse_anima/seed/execution_identity.py",
+                "easyuse_anima/seed/execution_session.py",
             }.issubset(report["registry"]["runtime_import_closure"])
         )
         self.assertIn(

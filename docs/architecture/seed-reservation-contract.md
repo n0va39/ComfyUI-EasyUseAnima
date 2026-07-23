@@ -739,3 +739,88 @@ Exit:
   behavior is explicit and focused-tested; and
 - S167-03c can own reserve/settle exception behavior without inferring host
   identity rules.
+
+## S167-03c execution session Behavior record
+
+- State: VALIDATED; `dev` merge pending
+- PR type: Behavior
+- Baseline: `dev` commit
+  `dc4b81f3252111bc202bbad730e72aaab32fc56e`
+- Feature reservation callers: zero
+
+### Implemented boundary
+
+`easyuse_anima.seed.execution_session.seed_execution_session()` now owns the
+complete lifetime of one already-normalized reservation request:
+
+- `reserve` occurs before the wrapped body starts;
+- normal body return settles `accepted`;
+- Comfy's `InterruptProcessingException` settles `cancelled`;
+- every other `BaseException` settles `rejected`;
+- the original body exception is re-raised after settlement;
+- a reserve failure never attempts settlement; and
+- interruption-classifier failure cannot mask the body exception and falls
+  back to `rejected`.
+
+The interruption classifier consults only an already-loaded
+`comfy.model_management` module through `sys.modules`. It never imports Comfy,
+Torch, or another host dependency. This is sufficient during a real Comfy
+execution because the raised exception's defining module is already loaded.
+
+### Procedure correction from observed validation
+
+An isolated Comfy v0.27.0 interpreter probe imported
+`comfy.model_management`, printed a successful `True` match, but exceeded the
+10-second watchdog while the heavy Torch host finished initialization. That
+probe is not counted as a passing smoke and was not repeated. The production
+classifier was changed to loaded-module lookup, and final live classification
+ownership remains with S167-03d/03e where Comfy is already running.
+
+### Caller, alias, and state delta
+
+- Production `reserve` and `settle` feature caller counts remain zero.
+- The seed package privately imports the session module only to keep the
+  shipped runtime closure complete.
+- No mutable global, pending session registry, reservation duplicate, or
+  background lifecycle was added.
+- `RuntimeServices`, `ComfyHostProvider`, root aliases, feature nodes, browser
+  hooks, workflow schemas, and cache behavior remain unchanged.
+
+### Validation
+
+- focused session, reservation-service, package-skeleton, analyzer-fixture,
+  and import-boundary checks: 46 tests passed;
+- strict Pyright on the new production module: 0 errors and 0 warnings;
+- Python compile: passed; and
+- official full: intentionally not run because this unit has zero feature
+  callers and S167-03a assigns full ownership to S167-03d/03e.
+
+### Allowed-file boundary
+
+S167-03c may change only:
+
+- `easyuse_anima/seed/__init__.py`;
+- `easyuse_anima/seed/execution_session.py`;
+- `tests/test_seed_execution_session.py`;
+- `tests/test_python_package_skeleton.py`;
+- `tests/test_python_backend_analyzer.py`;
+- `tests/fixtures/python_backend_baseline.json`;
+- `docs/architecture/seed-reservation-contract.md`; and
+- `docs/architecture/python-backend-execution-roadmap.md`.
+
+Forbidden:
+
+- a feature-node or browser reservation caller;
+- workflow, metadata, route, socket, widget, or hidden-input changes;
+- changes to identity, reservation arithmetic, capacity, or cache policy;
+- adding a second state owner or importing Comfy/Torch during package import;
+  and
+- S167-03d/03e cutover, #169, D-12, release, or Registry work.
+
+Exit:
+
+- one shared session owns reserve/settle success, failure, and interruption
+  timing;
+- service retry and duplicate-idempotency behavior remains focused-tested;
+- no heavy host import is needed to classify an active Comfy interruption; and
+- S167-03d can connect Prompt Studio without duplicating lifetime logic.
