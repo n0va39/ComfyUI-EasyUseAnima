@@ -7,26 +7,27 @@ import re
 import sys
 from typing import Any
 
-
-def _unbound_runtime(*_args, **_kwargs) -> Any:
-    raise RuntimeError("SAM3 runtime dependencies are not bound.")
+from ..infrastructure.comfy.wiring import resolve_comfy_host_helper
 
 
-_find_comfy_node_class = _unbound_runtime
-_find_comfy_node_mapping_class = _unbound_runtime
+def _missing_host_helper(name: str):
+    raise RuntimeError(f"SAM3 Comfy host helper is unavailable: {name}")
 
 
-def _bind_sam3_runtime(*, resolve_helper) -> None:
-    global _find_comfy_node_class, _find_comfy_node_mapping_class
+def _find_comfy_node_class(node_id: str):
+    helper = resolve_comfy_host_helper(
+        "_find_comfy_node_class",
+        _missing_host_helper,
+    )
+    return helper(node_id)
 
-    def runtime_helper(name):
-        def call(*args, **kwargs):
-            return resolve_helper(name)(*args, **kwargs)
 
-        return call
-
-    _find_comfy_node_class = runtime_helper("_find_comfy_node_class")
-    _find_comfy_node_mapping_class = runtime_helper("_find_comfy_node_mapping_class")
+def _find_comfy_node_mapping_class(node_id: str):
+    helper = resolve_comfy_host_helper(
+        "_find_comfy_node_mapping_class",
+        _missing_host_helper,
+    )
+    return helper(node_id)
 
 
 def _find_impact_detailer_class():

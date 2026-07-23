@@ -70,6 +70,7 @@ DOCUMENTED_TRANSITIONAL_ALIASES = {
 RUNTIME_LOOKUP_CALLS = {
     "_runtime_helper",
     "_runtime_object",
+    "resolve_comfy_host_helper",
     "runtime_helper",
     "runtime_object",
     "_runtime_proxy",
@@ -96,11 +97,6 @@ RUNTIME_BINDER_FAMILIES = {
         "_bind_aio_output_runtime",
         "_bind_aio_conditioning_runtime",
         "_bind_aio_node_runtime",
-    ),
-    "image_sam3_impact": (
-        "_bind_sam3_runtime",
-        "_bind_impact_detailer_node_runtime",
-        "_bind_sam3_node_runtime",
     ),
     "prompt_regional": (
         "_bind_regional_runtime",
@@ -1013,13 +1009,37 @@ def _runtime_resolver_consumers(
     available: set[str],
 ) -> dict[str, list[str]]:
     consumers: dict[str, set[str]] = defaultdict(set)
-    for module in sorted(set(_runtime_binder_targets(tree, canonical_bindings).values())):
+    modules = set(_runtime_binder_targets(tree, canonical_bindings).values())
+    modules.update(_direct_runtime_resolver_modules())
+    for module in sorted(modules):
         for name in _resolver_names_from_module(module, available):
             consumers[name].add(module)
     return {
         name: sorted(modules)
         for name, modules in sorted(consumers.items())
     }
+
+
+def _direct_runtime_resolver_modules() -> set[str]:
+    modules = set()
+    for path in sorted((ROOT / "easyuse_anima").rglob("*.py")):
+        tree = _read_tree(path)
+        imports_resolver = any(
+            isinstance(node, ast.ImportFrom)
+            and node.module is not None
+            and node.module.endswith("infrastructure.comfy.wiring")
+            and any(
+                alias.name == "resolve_comfy_host_helper"
+                for alias in node.names
+            )
+            for node in tree.body
+        )
+        if not imports_resolver:
+            continue
+        modules.add(
+            ".".join(path.relative_to(ROOT).with_suffix("").parts)
+        )
+    return modules
 
 
 def _direct_runtime_lookup_names(module: str) -> set[str]:
@@ -1240,17 +1260,22 @@ def _comfy_host_runtime_consumers(
         set(COMFY_HOST_WRAPPERS),
     )
     result = {}
+    direct_modules = _direct_runtime_resolver_modules()
     for symbol in COMFY_HOST_WRAPPERS:
         consumers = []
         for module in resolver_consumers.get(symbol, []):
             binder = target_binders.get(module)
-            if binder is None:
+            if binder is None and module not in direct_modules:
                 raise AssertionError(f"{symbol} consumer has no root binder: {module}")
             consumers.append(
                 {
                     "module": module,
                     "binder": binder,
-                    "root_observation": _binder_observation_mode(module, binder),
+                    "root_observation": (
+                        "call_time"
+                        if binder is None
+                        else _binder_observation_mode(module, binder)
+                    ),
                 }
             )
         result[symbol] = consumers
@@ -2104,6 +2129,7 @@ def _build_document() -> dict[str, Any]:
                 "B-11c29d",
                 "B-11c29b3",
                 "B-11c30",
+                "B-11c30a",
             ],
         },
         "enums": {
@@ -2116,14 +2142,14 @@ def _build_document() -> dict[str, Any]:
         "expected_counts": {
             "root_entrypoints": 3,
             "excluded_preamble_implementation_bindings": 5,
-            "nodes_canonical_bindings": 295,
+            "nodes_canonical_bindings": 292,
             "nodes_legacy_bindings": 27,
             "mapped_public_classes": 18,
             "unmapped_classes": 2,
             "root_residual_functions": 1,
             "root_residual_classes": 0,
             "root_residual_globals": 26,
-            "runtime_binders": 30,
+            "runtime_binders": 27,
             "direct_nodes_import_test_files": 21,
         },
         "mapped_public_classes": sorted(mapped_classes),
@@ -2355,7 +2381,7 @@ class PythonCompatibilitySurfaceTests(unittest.TestCase):
             len(self.document["direct_nodes_import_test_files"]),
             counts["direct_nodes_import_test_files"],
         )
-        self.assertEqual(len(set(self.document["runtime_binders"])), 30)
+        self.assertEqual(len(set(self.document["runtime_binders"])), 27)
         self.assertEqual(len(set(self.document["direct_nodes_import_test_files"])), 21)
 
     def test_runtime_binder_audit_covers_provider_and_root_names(self):
@@ -2363,27 +2389,30 @@ class PythonCompatibilitySurfaceTests(unittest.TestCase):
         self.assertEqual(
             audit["summary"],
             {
-                "binder_count": 30,
-                "family_count": 5,
+                "binder_count": 27,
+                "family_count": 4,
                 "mode_counts": {
-                    "comfy_provider_then_root": 15,
+                    "comfy_provider_then_root": 12,
                     "root_globals": 13,
                     "explicit_callbacks": 2,
                 },
-                "unique_resolver_names": 295,
-                "unique_root_resolver_names": 288,
-                "unique_provider_resolver_names": 7,
+                "unique_resolver_names": 293,
+                "unique_root_resolver_names": 287,
+                "unique_provider_resolver_names": 6,
                 "unique_direct_root_dependencies": 14,
-                "direct_root_dependency_slots": 32,
-                "provider_consumer_slots": 22,
-                "provider_consumer_modules": 15,
+                "direct_root_dependency_slots": 29,
+                "provider_consumer_slots": 17,
+                "provider_consumer_modules": 12,
                 "repository_replacement_names": 165,
-                "repository_replacement_files": 20,
+                "repository_replacement_files": 19,
             },
         )
         self.assertEqual(
             audit["provider_resolver_names"],
-            sorted(COMFY_HOST_WRAPPERS),
+            sorted(
+                set(COMFY_HOST_WRAPPERS)
+                - {"_find_comfy_node_mapping_class"}
+            ),
         )
         self.assertEqual(
             set(audit["root_resolver_names"])

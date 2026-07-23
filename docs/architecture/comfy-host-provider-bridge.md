@@ -1009,7 +1009,7 @@ Forbidden:
 
 ### B-11c30 — Runtime binder/resolver migration audit
 
-- **State:** IN PROGRESS in PR #336
+- **State:** COMPLETE on `dev` in PR #336 / `02b8c4a`
 - **Owner:** #184/#188
 - **Type:** Contract/gate
 - **Production changes:** none
@@ -1091,10 +1091,91 @@ Planned cleanup sequence:
 5. **B-11c30e Wildcard/NAIA:** two explicit-callback binders; keep separate from
    D-12 seed/Wildcard behavior and legacy engine consolidation.
 
+### B-11c30a — Image/SAM3/Impact binder retirement
+
+- **State:** IMPLEMENTED in PR #337
+- **Owner:** #184
+- **Type:** Move
+- **Base:** `dev@02b8c4a17b11011f1381c27cef6bd869b50f81bb`
+
+Pre-edit inventory:
+
+- root `nodes.py` imports three private binders in both package and flat-import
+  paths, then calls each binder once during module initialization:
+  `_bind_sam3_runtime`, `_bind_impact_detailer_node_runtime`, and
+  `_bind_sam3_node_runtime`;
+- those binders install eight canonical module globals: two SAM3 discovery
+  helpers, two Impact node input helpers, and four SAM3 node input/execution
+  helpers;
+- five slots are E-07 provider decisions:
+  `_find_comfy_node_class`, `_find_comfy_node_mapping_class`,
+  `_comfy_max_resolution` in two modules, and `_encode_with_comfy_clip`;
+- three slots are existing canonical root-name helpers:
+  `_impact_scheduler_names`, `_load_checkpoint_with_comfy`, and
+  `_preferred_checkpoint_default`;
+- all three root calls depend directly on `_resolve_comfy_host_helper`;
+- the consumers are SAM3 optional-node discovery, Impact Detailer input
+  construction, SAM3 context input/loading, and SAM3 prompt encoding;
+- repository tests replace two names that occur in this family,
+  `_impact_scheduler_names` and `_load_checkpoint_with_comfy`. This is test
+  migration evidence, not public root compatibility;
+- the binders mutate canonical module globals once at root import, while each
+  installed closure resolves its actual target at call time; and
+- the root aliases for the three non-provider helpers remain required by other
+  owner families and are not retirement targets in this lane.
+
+Allowed production files:
+
+```text
+nodes.py
+easyuse_anima/image/sam3.py
+easyuse_anima/nodes/impact_detailer_nodes.py
+easyuse_anima/nodes/sam3_nodes.py
+```
+
+Allowed supporting files are the focused SAM3/node-contract tests, the Python
+compatibility gate and fixture, and these architecture documents.
+
+Exit:
+
+- root no longer imports or calls the three family binders;
+- the canonical modules own their provider and direct-helper wiring without
+  importing root `nodes.py`;
+- E-07 provider decisions remain call-time and flat pre-bootstrap imports keep
+  the default-provider fallback;
+- the three non-provider targets keep their current canonical implementation,
+  return identity, exceptions, and call timing;
+- no bind-time mutable runtime installation remains in these three modules; and
+- node schema, workflow, SAM3/Impact behavior, optional dependency timing, and
+  public mappings remain unchanged.
+
+Forbidden:
+
+- changing provider protocol or lifecycle, detection/detailing behavior,
+  checkpoint semantics, input defaults, schemas, workflows, seed/stage/cache,
+  dependency discovery, or error text;
+- removing root aliases still consumed by AiO or another binder family; and
+- including LoRA, Prompt/Regional, AiO, or Wildcard/NAIA binder cleanup.
+
+Implementation result:
+
+- root imports/calls and the three canonical binder definitions are removed;
+- provider-backed helpers now resolve directly in their canonical modules at
+  call time, while the scheduler/checkpoint/default helpers are direct
+  canonical imports;
+- the Comfy host ledger still records 22 provider slots across 15 modules and
+  marks the five moved slots as direct call-time consumers instead of root
+  binder consumers;
+- the remaining root audit is 27 binders in four families: 12
+  provider-then-root, 13 root-only, and two explicit callbacks;
+- `nodes.py` is 1,820 lines, down 30 lines from the B-11c30 base; and
+- focused SAM3, Comfy adapter, compatibility, and backend analyzer validation
+  passes 61 tests.
+
 ### B-11d — Final root shim
 
-- **State:** BLOCKED by B-11c30 and the separate seed/Wildcard decision for the
-  final non-provider function
+- **State:** BLOCKED by the remaining B-11c30 family Moves and the separate
+  seed/Wildcard decision for the final non-provider function
 - **Owner:** #184
 - **Type:** Move
 
@@ -1129,7 +1210,8 @@ COMPLETE: B-11c29b2 loaded lookup retirement / PR #331
 COMPLETE: B-11c29c requirement helper retirement / PR #332
 COMPLETE: B-11c29d CLIP wrapper retirement / PR #333
 COMPLETE: B-11c29b3 general node lookup retirement / PR #334
-IN PROGRESS: B-11c30 binder/resolver migration audit / PR #336
+COMPLETE: B-11c30 binder/resolver migration audit / PR #336
+IN PROGRESS: B-11c30a Image/SAM3/Impact binder Move / PR #337
 BLOCKED:  B-11d final root shim
 
 LATER:    #167 seed reservation

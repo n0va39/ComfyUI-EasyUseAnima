@@ -3,34 +3,30 @@
 from __future__ import annotations
 
 import logging
-from typing import Any
 
 from ..common.values import _as_bool
 from ..image.detailer import _EasyUseAnimaAlignedDetailerHook
 from ..image.geometry import _alignment_value
 from ..image.sam3 import _call_impact_detailer, _find_impact_detailer_class
-from ..infrastructure.comfy.capabilities import _comfy_sampler_names
+from ..infrastructure.comfy.capabilities import (
+    _comfy_sampler_names,
+    _impact_scheduler_names,
+)
+from ..infrastructure.comfy.wiring import resolve_comfy_host_helper
 
 logger = logging.getLogger("ComfyUI-EasyUseAnima")
 
 
-def _unbound_runtime(*_args, **_kwargs) -> Any:
-    raise RuntimeError("Impact Detailer node runtime dependencies are not bound.")
+def _missing_host_helper(name: str):
+    raise RuntimeError(f"Impact Detailer Comfy host helper is unavailable: {name}")
 
 
-_comfy_max_resolution = _unbound_runtime
-_impact_scheduler_names = _unbound_runtime
-
-
-def _bind_impact_detailer_node_runtime(*, resolve_helper) -> None:
-    def runtime_helper(name):
-        def call(*args, **kwargs):
-            return resolve_helper(name)(*args, **kwargs)
-
-        return call
-
-    for name in ("_comfy_max_resolution", "_impact_scheduler_names"):
-        globals()[name] = runtime_helper(name)
+def _comfy_max_resolution() -> int:
+    helper = resolve_comfy_host_helper(
+        "_comfy_max_resolution",
+        _missing_host_helper,
+    )
+    return helper()
 
 
 class _EasyUseAnimaImpactDetailerDelegate:

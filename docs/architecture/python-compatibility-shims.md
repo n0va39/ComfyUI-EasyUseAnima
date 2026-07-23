@@ -8,9 +8,9 @@
 - Policy: [ADR-002](adr-002-compatibility-shims.md)
 - Machine-readable audit:
   [`python_compatibility_surface.v1.json`](../../tests/fixtures/python_compatibility_surface.v1.json)
-- Current state: B-11a through B-11c29b3 are integrated. B-11c is split into
+- Current state: B-11a through B-11c30 are integrated. B-11c is split into
   residual-owner Moves and explicit private-contract cleanup before the final
-  root shim; B-11c30 binder/resolver Contract audit is in PR #336.
+  root shim; B-11c30a retires only the Image/SAM3/Impact binder family.
 
 This is an actionable registry, not a removal schedule. `N` means the first
 published Registry release containing both a canonical target and its root
@@ -705,6 +705,21 @@ convenience-node compatibility; it remains unmapped and is not public support.
 - Cleanup proceeds by owner family. Image/SAM3/Impact is the first candidate;
   Prompt/Regional and AiO require further sub-splitting, while Wildcard/NAIA
   remains separate from D-12 behavior.
+
+### B-11c30a Image/SAM3/Impact binder retirement
+
+- The three root binder imports/calls and the three canonical binder
+  definitions are removed.
+- Five E-07 provider slots remain call-time direct consumers in their canonical
+  modules. The Comfy host ledger keeps the same 22 slots and 15 modules.
+- `_impact_scheduler_names`, `_load_checkpoint_with_comfy`, and
+  `_preferred_checkpoint_default` use their existing canonical owners; their
+  other root consumers and aliases are unchanged.
+- The remaining binder audit contains 27 binders in four owner families. It no
+  longer treats the retired family or its bind-time module globals as active
+  compatibility state.
+- No node schema, workflow, optional-dependency timing, or SAM3/Impact behavior
+  changes in this Move.
 
 ### `nodes.py` public node-class surface
 
