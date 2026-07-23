@@ -140,7 +140,10 @@ merged PR, the owning issue's evidence record, and every stated exit gate.
   remain across AiO and Wildcard/NAIA. B-11c30d3 / PR #350 retires only the
   resource, preview, and output binders. Input defaults now have one pure data
   owner, while optional I/O imports and E-07 host lookup remain call-time.
-  Seven binders remain: five AiO and two Wildcard/NAIA.
+  Seven binders remain: five AiO and two Wildcard/NAIA. B-11c30d4 / PR #351
+  retires only model preparation, sampling, and conditioning. Four binders
+  remain: the d5 orchestrator, d6 node adapter, and two Wildcard/NAIA callback
+  binders.
 
 ### Current quality baseline
 
@@ -1097,6 +1100,12 @@ unchanged. The separate legacy Wildcard unsupported alias remains for D-12.
     provider. The root shim falls to 1,182 lines and the audited package grows
     to 92 shipped and reachable modules. d0b and d4 through d6 remain
     separate; B-11c30d4 is the next READY Move.
+  - B-11c30d4 retires only the model-preparation, sampling, and conditioning
+    binder subgroup in PR #351. The Move consumes existing common, Prompt,
+    LoRA, seed, invocation, and E-07 owners and creates no new contract. Patch
+    order, seed/sampler behavior, provider observation, errors/logs,
+    workflows, cache, and stage order remain frozen. The root shim falls to
+    1,158 lines. B-11c30d0b is the next READY Move before d5-d6.
   - The final B-11c cutover removes remaining root execution ownership and
     leaves the explicit supported `nodes.py` compatibility shim.
 - Add `easyuse_anima/registration.py` as pure mapping composition. It performs no

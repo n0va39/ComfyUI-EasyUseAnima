@@ -11,6 +11,8 @@ from tests.comfy_host_fakes import patch_comfy_helper
 class AIOSamplingMoveTests(unittest.TestCase):
     def test_root_symbols_are_direct_canonical_aliases(self):
         for name in (
+            "_new_aio_random_seed",
+            "_resolve_aio_runtime_seed",
             "_generate_empty_latent_with_comfy",
             "_sample_latent_with_comfy",
             "_sample_latent_with_spectrum_mod_guidance_advanced",
@@ -24,7 +26,7 @@ class AIOSamplingMoveTests(unittest.TestCase):
             with self.subTest(name=name):
                 self.assertIs(getattr(nodes, name), getattr(sampling, name))
 
-    def test_backend_dispatch_re_resolves_selected_root_helper_at_call_time(self):
+    def test_backend_dispatch_uses_selected_canonical_helper_at_call_time(self):
         settings = {
             "seed": 1,
             "steps": 2,
@@ -44,7 +46,7 @@ class AIOSamplingMoveTests(unittest.TestCase):
         for backend, helper_name in cases:
             with self.subTest(backend=backend):
                 replacement = Mock(return_value=f"{backend}-latent")
-                with patch.object(nodes, helper_name, replacement):
+                with patch.object(sampling, helper_name, replacement):
                     result = sampling._sample_latent_with_aio_backend(
                         "model",
                         "clip",
@@ -95,7 +97,7 @@ class AIOSamplingMoveTests(unittest.TestCase):
                 "_find_comfy_node_class",
                 side_effect=classes.get,
             ),
-            patch.object(nodes, "_resolve_aio_runtime_seed", return_value=987),
+            patch.object(sampling, "_resolve_aio_runtime_seed", return_value=987),
         ):
             empty = sampling._generate_empty_latent_with_comfy(8, 20)
             sampled = sampling._sample_latent_with_comfy(
@@ -198,7 +200,7 @@ class AIOSamplingMoveTests(unittest.TestCase):
                 "_require_custom_node_class",
                 return_value=SpectrumKSamplerAdvanced,
             ),
-            patch.object(nodes, "_resolve_aio_runtime_seed", return_value=4242),
+            patch.object(sampling, "_resolve_aio_runtime_seed", return_value=4242),
         ):
             result = sampling._sample_latent_with_spectrum_mod_guidance_advanced(
                 "model",
@@ -238,7 +240,7 @@ class AIOSamplingMoveTests(unittest.TestCase):
                 "_require_custom_node_class",
                 return_value=SpectrumSPDKSampler,
             ),
-            patch.object(nodes, "_resolve_aio_runtime_seed", return_value=55),
+            patch.object(sampling, "_resolve_aio_runtime_seed", return_value=55),
         ):
             result = sampling._sample_latent_with_spectrum_spd(
                 "model",
@@ -274,7 +276,7 @@ class AIOSamplingMoveTests(unittest.TestCase):
         spectrum = {"enabled": True}
         corrections = {"enabled": True}
         spd = {"scale": 0.5}
-        with patch.object(nodes, "_resolve_aio_runtime_seed", return_value=77):
+        with patch.object(sampling, "_resolve_aio_runtime_seed", return_value=77):
             result = sampling._aio_stage_sampler_settings(
                 base,
                 {
@@ -290,7 +292,7 @@ class AIOSamplingMoveTests(unittest.TestCase):
 
         self.assertEqual(result["backend"], "comfy_ksampler")
         self.assertEqual(result["seed"], 77)
-        self.assertEqual(result["seed_after_generate"], nodes.SEED_CONTROL_FIXED)
+        self.assertEqual(result["seed_after_generate"], sampling.SEED_CONTROL_FIXED)
         self.assertEqual(result["sampler_name"], "euler")
         self.assertEqual(result["scheduler"], "beta")
         self.assertEqual(result["steps"], 30)

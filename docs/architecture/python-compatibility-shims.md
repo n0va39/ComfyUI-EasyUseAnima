@@ -948,6 +948,33 @@ convenience-node compatibility; it remains unmapped and is not public support.
   residual root globals, 92 shipped and reachable Python modules, and a
   1,182-line root shim.
 
+### B-11c30d4 AiO execution-service binder retirement
+
+- PR #351 retires exactly `_bind_aio_model_preparation_runtime`,
+  `_bind_aio_sampling_runtime`, and `_bind_aio_conditioning_runtime`.
+- The current surface is 43 root-resolver slots over 37 names, six E-07
+  provider slots over four names, three direct root-helper dependencies, and
+  23 repository replacement slots over 21 names in six files.
+- The three binders own only three `_RUNTIME_RESOLVER` globals. Root imports
+  all 26 canonical execution functions as exact package/flat aliases and calls
+  each binder once.
+- Model preparation consumes existing common-value, Comfy invocation, LoRA,
+  and E-07 owners. Sampling consumes common serialization/value, generation
+  default/normalization, Prompt conditioning, seed, invocation, and E-07
+  owners. Conditioning consumes common value, Prompt Data/Advanced,
+  generation-default, and E-07 owners.
+- Same-module calls become direct and only d4 owner tests move patch ownership
+  to the canonical modules. Root replacements that drive d5/d6 remain.
+- Model patches/cleanup, LoRA, random/effective seeds, Comfy/Spectrum sampling,
+  VAE encode/decode, stage settings, Prompt Data selection, CLIP conditioning,
+  provider timing, errors/logs, schemas/workflows, cache, and stage behavior
+  are frozen.
+- The d4 binder definitions, resolver globals/helpers, and root imports/calls
+  are absent. Four binders remain: d5, d6, and the two Wildcard/NAIA callbacks.
+- The compatibility inventory contains 293 canonical root bindings, three
+  residual root globals, 92 shipped and reachable Python modules, and a
+  1,158-line root shim.
+
 ### `nodes.py` public node-class surface
 
 The confirmed 0.5.2 mapped classes are:

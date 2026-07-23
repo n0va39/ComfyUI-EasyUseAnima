@@ -76,7 +76,7 @@ class AIOModelPreparationMoveTests(unittest.TestCase):
         self.assertIs(result_clip, original_clip)
         self.assertEqual(applied, [])
 
-    def test_model_patch_aggregate_re_resolves_each_root_subcall_in_order(self):
+    def test_model_patch_aggregate_uses_canonical_subcalls_in_order(self):
         trace: list[tuple[str, object]] = []
         replacement_dave = Mock(
             side_effect=lambda model, _settings: trace.append(("dave", model)) or "dave"
@@ -84,7 +84,7 @@ class AIOModelPreparationMoveTests(unittest.TestCase):
 
         def apply_aura(model, _settings):
             trace.append(("aura", model))
-            nodes._apply_aio_anima_dave_patch = replacement_dave
+            model_preparation._apply_aio_anima_dave_patch = replacement_dave
             return "aura"
 
         stale_dave = Mock(return_value="stale")
@@ -98,10 +98,26 @@ class AIOModelPreparationMoveTests(unittest.TestCase):
             return "kj"
 
         with (
-            patch.object(nodes, "_patch_model_sampling_aura_flow", side_effect=apply_aura),
-            patch.object(nodes, "_apply_aio_anima_dave_patch", stale_dave),
-            patch.object(nodes, "_apply_aio_safe_pag_patch", side_effect=apply_safe_pag),
-            patch.object(nodes, "_apply_aio_kj_model_patches", side_effect=apply_kj),
+            patch.object(
+                model_preparation,
+                "_patch_model_sampling_aura_flow",
+                side_effect=apply_aura,
+            ),
+            patch.object(
+                model_preparation,
+                "_apply_aio_anima_dave_patch",
+                stale_dave,
+            ),
+            patch.object(
+                model_preparation,
+                "_apply_aio_safe_pag_patch",
+                side_effect=apply_safe_pag,
+            ),
+            patch.object(
+                model_preparation,
+                "_apply_aio_kj_model_patches",
+                side_effect=apply_kj,
+            ),
         ):
             result = model_preparation._apply_aio_model_patches(
                 "base",
@@ -220,7 +236,7 @@ class AIOModelPreparationMoveTests(unittest.TestCase):
                 sys.modules,
                 {"comfy": comfy, "comfy.model_management": model_management},
             ),
-            patch.object(nodes.logger, "debug") as debug,
+            patch.object(model_preparation.logger, "debug") as debug,
         ):
             model_preparation._cleanup_aio_ephemeral_model(None, base_model)
             model_preparation._cleanup_aio_ephemeral_model(base_model, base_model)
@@ -246,14 +262,14 @@ class AIOModelPreparationMoveTests(unittest.TestCase):
                 sys.modules,
                 {"comfy": comfy, "comfy.model_management": model_management},
             ),
-            patch.object(nodes.logger, "debug") as debug,
+            patch.object(model_preparation.logger, "debug") as debug,
         ):
             model_preparation._cleanup_aio_ephemeral_model(model)
 
         debug.assert_called_once()
         self.assertIn("failed to unload ephemeral AiO model clone", debug.call_args.args[0])
 
-    def test_spectrum_aggregate_re_resolves_root_subcalls_in_order(self):
+    def test_spectrum_aggregate_uses_canonical_subcalls_in_order(self):
         trace: list[tuple[str, object]] = []
         replacement_forecast = Mock(
             side_effect=lambda model, _settings: trace.append(("forecast", model))
@@ -262,7 +278,7 @@ class AIOModelPreparationMoveTests(unittest.TestCase):
 
         def apply_correction(model, _clip, _positive, _settings):
             trace.append(("correction", model))
-            nodes._apply_aio_spectrum_forecast_patch_for_comfy_sampler = (
+            model_preparation._apply_aio_spectrum_forecast_patch_for_comfy_sampler = (
                 replacement_forecast
             )
             return "corrected"
@@ -270,12 +286,12 @@ class AIOModelPreparationMoveTests(unittest.TestCase):
         stale_forecast = Mock(return_value="stale")
         with (
             patch.object(
-                nodes,
+                model_preparation,
                 "_apply_aio_spectrum_correction_patch_for_comfy_sampler",
                 side_effect=apply_correction,
             ),
             patch.object(
-                nodes,
+                model_preparation,
                 "_apply_aio_spectrum_forecast_patch_for_comfy_sampler",
                 stale_forecast,
             ),

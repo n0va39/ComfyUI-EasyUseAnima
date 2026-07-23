@@ -6,7 +6,13 @@ import unittest
 from unittest.mock import patch
 
 import nodes
-from easyuse_anima.aio import first_pass_cache, generation_normalization, postprocess
+from easyuse_anima.aio import (
+    first_pass_cache,
+    generation_normalization,
+    model_preparation,
+    postprocess,
+    sampling,
+)
 from easyuse_anima.nodes import aio_nodes
 from tests.comfy_host_fakes import (
     FakeComfyHostProvider,
@@ -1416,9 +1422,9 @@ class AIOSamplerDependencyTests(unittest.TestCase):
                 calls = []
 
                 with (
-                    patch.object(nodes, "_sample_latent_with_comfy", side_effect=lambda *args: calls.append("comfy") or f"{backend}_latent"),
-                    patch.object(nodes, "_sample_latent_with_spectrum_spd", side_effect=lambda *args: calls.append("spd") or f"{backend}_latent"),
-                    patch.object(nodes, "_sample_latent_with_spectrum_mod_guidance_advanced", side_effect=lambda *args: calls.append("advanced") or f"{backend}_latent"),
+                    patch.object(sampling, "_sample_latent_with_comfy", side_effect=lambda *args: calls.append("comfy") or f"{backend}_latent"),
+                    patch.object(sampling, "_sample_latent_with_spectrum_spd", side_effect=lambda *args: calls.append("spd") or f"{backend}_latent"),
+                    patch.object(sampling, "_sample_latent_with_spectrum_mod_guidance_advanced", side_effect=lambda *args: calls.append("advanced") or f"{backend}_latent"),
                 ):
                     result = nodes._sample_latent_with_aio_backend(
                         model="model",
@@ -1630,10 +1636,10 @@ class AIOSamplerDependencyTests(unittest.TestCase):
         }))
 
         with (
-            patch.object(nodes, "_patch_model_sampling_aura_flow", return_value="aura_model") as aura,
-            patch.object(nodes, "_apply_aio_anima_dave_patch", return_value="dave_model") as dave,
-            patch.object(nodes, "_apply_aio_safe_pag_patch", return_value="safe_pag_model") as safe_pag,
-            patch.object(nodes, "_apply_aio_kj_model_patches", return_value="kj_model") as kj,
+            patch.object(model_preparation, "_patch_model_sampling_aura_flow", return_value="aura_model") as aura,
+            patch.object(model_preparation, "_apply_aio_anima_dave_patch", return_value="dave_model") as dave,
+            patch.object(model_preparation, "_apply_aio_safe_pag_patch", return_value="safe_pag_model") as safe_pag,
+            patch.object(model_preparation, "_apply_aio_kj_model_patches", return_value="kj_model") as kj,
         ):
             result = nodes._apply_aio_model_patches("base_model", settings)
 
@@ -1655,10 +1661,10 @@ class AIOSamplerDependencyTests(unittest.TestCase):
         }))
 
         with (
-            patch.object(nodes, "_patch_model_sampling_aura_flow", return_value="aura_model") as aura,
-            patch.object(nodes, "_apply_aio_anima_dave_patch", return_value="dave_model") as dave,
-            patch.object(nodes, "_apply_aio_safe_pag_patch", return_value="safe_pag_model") as safe_pag,
-            patch.object(nodes, "_apply_aio_kj_model_patches", return_value="kj_model") as kj,
+            patch.object(model_preparation, "_patch_model_sampling_aura_flow", return_value="aura_model") as aura,
+            patch.object(model_preparation, "_apply_aio_anima_dave_patch", return_value="dave_model") as dave,
+            patch.object(model_preparation, "_apply_aio_safe_pag_patch", return_value="safe_pag_model") as safe_pag,
+            patch.object(model_preparation, "_apply_aio_kj_model_patches", return_value="kj_model") as kj,
         ):
             result = nodes._apply_aio_model_patches("base_model", settings)
 
