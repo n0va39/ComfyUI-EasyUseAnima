@@ -73,12 +73,12 @@ def load_dynamic():
     def test_current_nodes_module_shape_matches_recorded_baseline(self):
         report = analyzer.analyze_path(ROOT / "nodes.py")
 
-        self.assertEqual(report["git_blob_sha1"], "d91507b0c3836e0964979ddaa735f277d0a5934d")
-        # B-11c30e removes the Wildcard/NAIA callback binder imports and
-        # initialization without changing the public class surface.
+        self.assertEqual(report["git_blob_sha1"], "d57d76310253976c1f725974802aba61f456c225")
+        # B-11d removes the final residual implementation globals and records
+        # the supported mapped class surface in an explicit __all__.
         self.assertEqual(report["top_level"]["function_count"], 0)
         self.assertEqual(report["top_level"]["class_count"], 0)
-        self.assertEqual(report["line_count"], 1_123)
+        self.assertEqual(report["line_count"], 1_138)
         class_names = {item["name"] for item in report["top_level"]["classes"]}
         self.assertNotIn("EasyUseAnimaAIOGenerator", class_names)
         self.assertNotIn("EasyUseAnimaInput", class_names)

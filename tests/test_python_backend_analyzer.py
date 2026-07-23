@@ -292,6 +292,14 @@ def comfy_runtime():
             [{"from": "__init__.py", "to": "runtime.py"}],
         )
         self.assertEqual(
+            report["registry"]["entry_modules"],
+            ["__init__.py", "nodes.py"],
+        )
+        self.assertIn(
+            "nodes.py",
+            report["registry"]["runtime_import_closure"],
+        )
+        self.assertEqual(
             report["imports"]["module_graph_policy"]["duplicate_policy"],
             "collapse by source and target path",
         )
@@ -686,6 +694,10 @@ ignored/
         self.assertEqual(report["inventory"]["module_count"], 93)
         self.assertEqual(len(report["registry"]["shipped_python_modules"]), 93)
         self.assertEqual(len(report["registry"]["runtime_import_closure"]), 93)
+        self.assertEqual(
+            report["registry"]["entry_modules"],
+            ["__init__.py", "nodes.py"],
+        )
         self.assertEqual(report["registry"]["missing_internal_imports"], [])
         self.assertEqual(report["registry"]["unreachable_shipped_python_modules"], [])
         self.assertTrue(

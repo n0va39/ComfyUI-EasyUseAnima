@@ -8,11 +8,12 @@
 - Policy: [ADR-002](adr-002-compatibility-shims.md)
 - Machine-readable audit:
   [`python_compatibility_surface.v1.json`](../../tests/fixtures/python_compatibility_surface.v1.json)
-- Current state: B-11a through B-11c30d6 / PR #354 are integrated in the
-  reviewed sequence, and B-11c30e / PR #355 retires the final two
-  Wildcard/NAIA callbacks. S167-01a / PR #344 supplies the canonical
-  reserved-seed compatibility consumer while retaining its root aliases. No
-  runtime binder or resolver remains before the final root shim.
+- Current state: B-11a through B-11c30e / PR #355 are integrated in the
+  reviewed sequence, and B-11d / PR #356 implements the final explicit root
+  shim with package/pack/live gates pending. S167-01a / PR #344 supplies the
+  canonical reserved-seed compatibility consumer while retaining its root
+  aliases. No runtime binder, resolver, or residual root implementation
+  remains.
 
 This is an actionable registry, not a removal schedule. `N` means the first
 published Registry release containing both a canonical target and its root
@@ -1068,6 +1069,35 @@ convenience-node compatibility; it remains unmapped and is not public support.
   reachable Python modules, and a 1,123-line root shim.
 - B-11d final root shim is the next separate Move; #167/#236 Behavior and
   D-09/D-12 consolidation remain outside PR #355.
+
+### B-11d final root-shim cutover inventory
+
+- Pre-edit `nodes.py` contains 289 canonical and 27 legacy direct bindings,
+  18 mapped supported classes, two unmapped class aliases, no
+  functions/classes/binders/resolvers, and two residual globals.
+- The supported `nodes.py.__all__` is exactly the 18 mapped classes in
+  registration order. Existing audited private/test-only aliases remain
+  explicit direct bindings outside `__all__`; B-11d does not promote or remove
+  them.
+- Root `__init__.py` preserves its mapped class attributes and permanent
+  mapping/display/`WEB_DIRECTORY` entrypoints through
+  `easyuse_anima.registration`, without consuming the compatibility
+  `nodes.py`.
+- `logger`, `_TRIGGER_WORD_KEYS`, and their `logging` import are unused root
+  implementation residue and are the only production symbols retired here.
+- Any private alias retirement still follows ADR-002 as a separate reviewed
+  unit after maintained-consumer, published-release, and packed-archive gates.
+- The implemented B-11d surface has zero preamble implementation imports and
+  zero residual functions/classes/globals. `nodes.py.__all__` is exactly the
+  18 mapped classes, while all 316 audited direct alias bindings remain
+  unchanged outside that supported list.
+- Root `__init__.py` obtains the same class objects from
+  `easyuse_anima.registration` rather than consuming the compatibility shim.
+  The backend analyzer treats both root modules as Registry entry modules and
+  records all 93 shipped Python modules as reachable.
+- The B-11d exit evidence passes in PR #356: one official full run, Registry
+  validate/pack with exact Python archive closure, all 18 live mapped node
+  registrations, and representative same-seed Wildcard queue execution.
 
 ### `nodes.py` public node-class surface
 

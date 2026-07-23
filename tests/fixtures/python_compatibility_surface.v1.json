@@ -82,7 +82,8 @@
       "B-11c30d0b",
       "B-11c30d5",
       "B-11c30d6",
-      "B-11c30e"
+      "B-11c30e",
+      "B-11d"
     ]
   },
   "enums": {
@@ -116,17 +117,38 @@
   },
   "expected_counts": {
     "root_entrypoints": 3,
-    "excluded_preamble_implementation_bindings": 1,
+    "excluded_preamble_implementation_bindings": 0,
     "nodes_canonical_bindings": 289,
     "nodes_legacy_bindings": 27,
+    "nodes_public_exports": 18,
     "mapped_public_classes": 18,
     "unmapped_classes": 2,
     "root_residual_functions": 0,
     "root_residual_classes": 0,
-    "root_residual_globals": 2,
+    "root_residual_globals": 0,
     "runtime_binders": 0,
     "direct_nodes_import_test_files": 21
   },
+  "nodes_public_exports": [
+    "EasyUseAnimaAIOGenerator",
+    "EasyUseAnimaDetailerAlignHook",
+    "EasyUseAnimaArtistMixConditioning",
+    "EasyUseAnimaInput",
+    "EasyUseAnimaImageScaleByMultiple",
+    "EasyUseAnimaLoraPreset",
+    "EasyUseAnimaNAIARandomPrompt",
+    "EasyUseAnimaPromptDataConditioning",
+    "EasyUseAnimaPromptDataUnpack",
+    "EasyUseAnimaPromptBuilder",
+    "EasyUseAnimaPromptCorrector",
+    "EasyUseAnimaPromptCorrectorSimple",
+    "EasyUseAnimaPromptStudio",
+    "EasyUseAnimaPromptStudioAdvanced",
+    "EasyUseAnimaPromptStudioAdvancedV2",
+    "EasyUseAnimaPromptStudioRegional",
+    "EasyUseAnimaRegionalConditioning",
+    "EasyUseAnimaWildcard"
+  ],
   "mapped_public_classes": [
     "EasyUseAnimaAIOGenerator",
     "EasyUseAnimaArtistMixConditioning",
@@ -151,9 +173,7 @@
     "EasyUseAnimaSAM3Context",
     "EasyUseAnimaSAM3Detailer"
   ],
-  "excluded_preamble_implementation_bindings": {
-    "logging": "logging:logging"
-  },
+  "excluded_preamble_implementation_bindings": {},
   "runtime_binders": [],
   "runtime_resolver_consumers": {},
   "runtime_binder_audit": {
@@ -2918,10 +2938,7 @@
       "id": "nodes_root_residuals:globals",
       "surface": "nodes_root_residuals",
       "kind": "globals",
-      "symbols": {
-        "_TRIGGER_WORD_KEYS": "_TRIGGER_WORD_KEYS",
-        "logger": "logger"
-      },
+      "symbols": {},
       "classification": "transitional_private_seam",
       "current_target": "nodes.py",
       "canonical_target": null,

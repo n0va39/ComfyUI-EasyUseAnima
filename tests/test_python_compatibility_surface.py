@@ -76,9 +76,7 @@ RUNTIME_LOOKUP_CALLS = {
     "_runtime_proxy",
     "runtime_proxy",
 }
-PREAMBLE_IMPLEMENTATION_BINDINGS = {
-    "logging": "logging:logging",
-}
+PREAMBLE_IMPLEMENTATION_BINDINGS: dict[str, str] = {}
 PROMPT_SERVICE_RUNTIME_BINDERS = (
     "_bind_regional_runtime",
     "_bind_advanced_runtime",
@@ -1471,9 +1469,13 @@ def _root_residuals(tree: ast.Module) -> dict[str, list[str]]:
     for node in tree.body:
         if isinstance(node, ast.Assign):
             for target in node.targets:
-                if isinstance(target, ast.Name):
+                if isinstance(target, ast.Name) and target.id != "__all__":
                     globals_.add(target.id)
-        elif isinstance(node, ast.AnnAssign) and isinstance(node.target, ast.Name):
+        elif (
+            isinstance(node, ast.AnnAssign)
+            and isinstance(node.target, ast.Name)
+            and node.target.id != "__all__"
+        ):
             globals_.add(node.target.id)
     return {
         "functions": functions,
@@ -2128,7 +2130,46 @@ def _build_document() -> dict[str, Any]:
         raise AssertionError("node and display mapping IDs differ")
     if set(node_mappings) != set(node_mappings.values()):
         raise AssertionError("mapped node IDs must retain same-named class bindings")
+    nodes_public_exports = _literal_string_list(
+        _named_assignment(nodes_tree, "__all__")
+    )
+    if nodes_public_exports != list(node_mappings.values()):
+        raise AssertionError(
+            "nodes.py __all__ must exactly match registration class order"
+        )
     mapped_classes = set(node_mappings.values())
+    entrypoint_root_node_imports = [
+        node
+        for node in entrypoint_tree.body
+        if isinstance(node, ast.ImportFrom)
+        and node.level == 1
+        and (
+            node.module == "nodes"
+            or (
+                node.module is None
+                and any(alias.name == "nodes" for alias in node.names)
+            )
+        )
+    ]
+    if entrypoint_root_node_imports:
+        raise AssertionError(
+            "root package entrypoint cannot consume compatibility nodes.py"
+        )
+    entrypoint_registration_names = {
+        alias.asname or alias.name
+        for node in entrypoint_tree.body
+        if isinstance(node, ast.ImportFrom)
+        and node.level == 1
+        and node.module == "easyuse_anima.registration"
+        for alias in node.names
+    }
+    missing_entrypoint_classes = mapped_classes - entrypoint_registration_names
+    if missing_entrypoint_classes:
+        raise AssertionError(
+            "root package entrypoint must source mapped class attributes from "
+            "easyuse_anima.registration: "
+            + ", ".join(sorted(missing_entrypoint_classes))
+        )
     loads = _runtime_loads(nodes_tree, import_try)
     residuals = _root_residuals(nodes_tree)
     available = set(relative) | set(relative_legacy)
@@ -2308,6 +2349,7 @@ def _build_document() -> dict[str, Any]:
                 "B-11c30d5",
                 "B-11c30d6",
                 "B-11c30e",
+                "B-11d",
             ],
         },
         "enums": {
@@ -2319,17 +2361,19 @@ def _build_document() -> dict[str, Any]:
         },
         "expected_counts": {
             "root_entrypoints": 3,
-            "excluded_preamble_implementation_bindings": 1,
+            "excluded_preamble_implementation_bindings": 0,
             "nodes_canonical_bindings": 289,
             "nodes_legacy_bindings": 27,
+            "nodes_public_exports": 18,
             "mapped_public_classes": 18,
             "unmapped_classes": 2,
             "root_residual_functions": 0,
             "root_residual_classes": 0,
-            "root_residual_globals": 2,
+            "root_residual_globals": 0,
             "runtime_binders": 0,
             "direct_nodes_import_test_files": 21,
         },
+        "nodes_public_exports": nodes_public_exports,
         "mapped_public_classes": sorted(mapped_classes),
         "unmapped_classes": unmapped_classes,
         "excluded_preamble_implementation_bindings": preamble_bindings,
@@ -2442,6 +2486,10 @@ class PythonCompatibilitySurfaceTests(unittest.TestCase):
         self.assertEqual(len(canonical), counts["nodes_canonical_bindings"])
         self.assertEqual(len(legacy), counts["nodes_legacy_bindings"])
         self.assertEqual(
+            len(self.document["nodes_public_exports"]),
+            counts["nodes_public_exports"],
+        )
+        self.assertEqual(
             len(self.document["mapped_public_classes"]),
             counts["mapped_public_classes"],
         )
@@ -2457,6 +2505,20 @@ class PythonCompatibilitySurfaceTests(unittest.TestCase):
             for symbol in group["symbols"]
         }
         self.assertEqual(supported, set(self.document["mapped_public_classes"]))
+        registration_order = list(
+            _literal_mapping(
+                _read_tree(REGISTRATION_PATH),
+                "NODE_CLASS_MAPPINGS",
+            ).values()
+        )
+        self.assertEqual(
+            self.document["nodes_public_exports"],
+            registration_order,
+        )
+        self.assertEqual(
+            set(self.document["nodes_public_exports"]),
+            supported,
+        )
         self.assertTrue(
             all(canonical[name].startswith("easyuse_anima.nodes.") for name in supported)
         )
@@ -2469,6 +2531,37 @@ class PythonCompatibilitySurfaceTests(unittest.TestCase):
                 "EasyUseAnimaSAM3Context",
                 "EasyUseAnimaSAM3Detailer",
             ],
+        )
+
+    def test_root_entrypoint_sources_class_attributes_without_the_nodes_shim(self):
+        tree = _read_tree(ENTRYPOINT_PATH)
+        self.assertFalse(
+            [
+                node
+                for node in tree.body
+                if isinstance(node, ast.ImportFrom)
+                and node.level == 1
+                and (
+                    node.module == "nodes"
+                    or (
+                        node.module is None
+                        and any(alias.name == "nodes" for alias in node.names)
+                    )
+                )
+            ]
+        )
+        registration_names = {
+            alias.asname or alias.name
+            for node in tree.body
+            if isinstance(node, ast.ImportFrom)
+            and node.level == 1
+            and node.module == "easyuse_anima.registration"
+            for alias in node.names
+        }
+        self.assertTrue(
+            set(self.document["mapped_public_classes"]).issubset(
+                registration_names
+            )
         )
 
     def test_preamble_implementation_import_exclusion_is_exact(self):

@@ -30,6 +30,7 @@ from typing import Iterable, Mapping, Sequence
 REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
 ROOT_MODULE = "__root__"
 SCHEMA_VERSION = 2
+REGISTRY_ENTRY_MODULE_CANDIDATES = ("__init__.py", "nodes.py")
 DYNAMIC_IMPORT_CALLEES = frozenset({"__import__", "importlib.import_module"})
 MUTABLE_CONSTRUCTORS = {
     "ChainMap": "dict",
@@ -1286,14 +1287,16 @@ def _package_ancestors(path: str, available_paths: set[str]) -> list[str]:
 def _registry_closure(
     nodes: Sequence[str],
     graph_edges: Sequence[Mapping[str, str]],
+    *,
+    entry_modules: Sequence[str],
 ) -> list[str]:
-    if "__init__.py" not in nodes:
+    if not entry_modules:
         return []
     available = set(nodes)
     adjacency = {node: set() for node in nodes}
     for edge in graph_edges:
         adjacency[edge["from"]].add(edge["to"])
-    pending = deque(["__init__.py"])
+    pending = deque(entry_modules)
     visited = set()
     while pending:
         node = pending.popleft()
@@ -1460,7 +1463,16 @@ def analyze_source_set(
         }
     )
     graph_records = [{"from": source, "to": target} for source, target in graph_edges]
-    closure = _registry_closure(shipped_paths, graph_records)
+    entry_modules = [
+        candidate
+        for candidate in REGISTRY_ENTRY_MODULE_CANDIDATES
+        if candidate in shipped_paths
+    ]
+    closure = _registry_closure(
+        shipped_paths,
+        graph_records,
+        entry_modules=entry_modules,
+    )
     closure_set = set(closure)
     closure_edges = [
         edge for edge in runtime_edges if edge["source"] in closure_set
@@ -1552,7 +1564,7 @@ def analyze_source_set(
             "package_root": ".",
             "ignore_file": ".comfyignore",
             "ignore_file_normalized_git_blob_sha1": _normalized_git_blob_sha1(ignore_bytes),
-            "entry_modules": ["__init__.py"],
+            "entry_modules": entry_modules,
             "shipped_python_modules": shipped_paths,
             "runtime_import_closure": closure,
             "unreachable_shipped_python_modules": sorted(set(shipped_paths) - closure_set),

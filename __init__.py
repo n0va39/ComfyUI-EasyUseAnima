@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from .nodes import (  # noqa: F401 - root class attributes stay public until B-11c
+from .easyuse_anima.registration import (  # noqa: F401 - mapped class attributes stay public
     EasyUseAnimaAIOGenerator,
     EasyUseAnimaDetailerAlignHook,
     EasyUseAnimaArtistMixConditioning,
@@ -19,13 +19,11 @@ from .nodes import (  # noqa: F401 - root class attributes stay public until B-1
     EasyUseAnimaPromptStudioRegional,
     EasyUseAnimaRegionalConditioning,
     EasyUseAnimaWildcard,
-)
-from . import api
-from .easyuse_anima.bootstrap import initialize as _initialize
-from .easyuse_anima.registration import (
     NODE_CLASS_MAPPINGS,
     NODE_DISPLAY_NAME_MAPPINGS,
 )
+from . import api
+from .easyuse_anima.bootstrap import initialize as _initialize
 from .wildcard_engine import ensure_default_wildcard_root
 
 
