@@ -95,6 +95,8 @@ class ComfyHostWiringTests(unittest.TestCase):
             self.assertIs(helper("MappingOnly"), mapping_class)
             comfy_nodes.NODE_CLASS_MAPPINGS = {}
             self.assertIsNone(helper("MappingOnly"))
+            comfy_nodes.NODE_CLASS_MAPPINGS = object()
+            self.assertIsNone(helper("MappingOnly"))
 
     def test_provider_owned_helpers_delegate_to_narrow_methods(self):
         direct = object()
