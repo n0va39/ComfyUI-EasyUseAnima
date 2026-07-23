@@ -107,6 +107,7 @@ try:
         _load_diffusion_model_with_comfy as _load_diffusion_model_with_comfy,
         _load_upscale_model_with_comfy as _load_upscale_model_with_comfy,
         _load_vae_with_comfy as _load_vae_with_comfy,
+        _normalize_aio_input_settings as _normalize_aio_input_settings,
         _preferred_checkpoint_default as _preferred_checkpoint_default,
         _preferred_clip_type_default as _preferred_clip_type_default,
         _preferred_name_default as _preferred_name_default,
@@ -639,6 +640,7 @@ except ImportError:  # allows simple local import tests outside ComfyUI's packag
         _load_diffusion_model_with_comfy as _load_diffusion_model_with_comfy,
         _load_upscale_model_with_comfy as _load_upscale_model_with_comfy,
         _load_vae_with_comfy as _load_vae_with_comfy,
+        _normalize_aio_input_settings as _normalize_aio_input_settings,
         _preferred_checkpoint_default as _preferred_checkpoint_default,
         _preferred_clip_type_default as _preferred_clip_type_default,
         _preferred_name_default as _preferred_name_default,
@@ -1569,32 +1571,6 @@ _TRIGGER_WORD_KEYS = ("trainedWords", "trained_words", "trigger_words", "activat
 
 def _settings_json(defaults: dict[str, Any]) -> str:
     return json.dumps(defaults, ensure_ascii=False, indent=2)
-
-
-def _normalize_aio_input_settings(value) -> dict[str, Any]:
-    settings = _merge_versioned_settings(AIO_INPUT_DEFAULT_SETTINGS, value)
-    settings["schema"] = EASY_USE_ANIMA_INPUT_SCHEMA
-    settings["version"] = _as_int(
-        settings.get("version"),
-        EASY_USE_ANIMA_INPUT_SETTINGS_VERSION,
-    )
-    resources = settings.setdefault("resources", {})
-    if not isinstance(resources, dict):
-        resources = {}
-        settings["resources"] = resources
-    resources["loader_mode"] = "split"
-    resources["clip_loader"] = _choice(resources.get("clip_loader"), ("single",), "single")
-    resources["unet_weight_dtype"] = _choice(
-        resources.get("unet_weight_dtype"),
-        ANIMA_UNET_WEIGHT_DTYPES,
-        "default",
-    )
-    resources["clip_device"] = _choice(
-        resources.get("clip_device"),
-        ANIMA_CLIP_DEVICES,
-        "default",
-    )
-    return settings
 
 
 _AIO_DETAILER_RESERVED_KEYS = {"enabled", "order", "sam3"}
