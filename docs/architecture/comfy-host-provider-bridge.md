@@ -1568,6 +1568,74 @@ Move before d2; d0b remains a separate Move before d5. The two prerequisite
 Moves preserve existing root aliases and do not change normalization, input,
 stage, seed, cache, provider, error, or workflow behavior.
 
+### B-11c30d1 — AiO cache-state binder Move
+
+- **State:** IN PROGRESS
+- **Owner:** #184
+- **Behavior boundary:** #169
+- **Type:** Move
+- **Base:** `dev@7b25483c23fc3f430bf108fcb3ef23b6a64cd7e3`
+
+Pre-edit inventory:
+
+- root `nodes.py` imports `_bind_aio_first_pass_cache_runtime` in both package
+  and flat-import paths and invokes it once with a root-global resolver;
+- the binder installs one `_RUNTIME_RESOLVER` global. The canonical module
+  resolves seven root names at call time:
+  `AIO_FIRST_PASS_CACHE_MAX_ENTRIES`, `_AIO_FIRST_PASS_CACHE`,
+  `_AIO_FIRST_PASS_CACHE_ORDER`, `_clone_aio_cache_value`,
+  `_stable_change_key`, `_prompt_data_json_safe`, and
+  `_aio_lora_stack_signature`;
+- the entry limit, cache dictionary, order list, and recursive clone function
+  are already owned by `easyuse_anima.aio.first_pass_cache`;
+- the other three dependencies have canonical owners in
+  `easyuse_anima.common.serialization`, `easyuse_anima.prompt.data`, and
+  `easyuse_anima.aio.model_preparation`;
+- the seven names are replaced across four repository test files, but only
+  `tests/test_aio_first_pass_cache.py` uses root replacement to drive the cache
+  owner. Replacements in legacy-generation, node-adapter, and preview tests
+  belong to their still-active binder families and remain unchanged;
+- root retains direct identity aliases for the limit, mutable state, clone,
+  key, get, and put symbols. The previously retired private cache-clear alias
+  remains absent; and
+- mutable object identity, limit 2, key field order and values, recursive clone
+  and CPU-failure handling, falsey miss, LRU refresh, overwrite, and
+  oldest-first eviction are #169 Behavior and are frozen in this Move.
+
+Allowed production files:
+
+```text
+nodes.py
+easyuse_anima/aio/first_pass_cache.py
+```
+
+Allowed supporting files are `tests/test_aio_first_pass_cache.py`, the Python
+compatibility gate and fixture, the nodes/backend analyzer gate and fixture,
+and the three architecture documents.
+
+Exit:
+
+- root no longer imports or invokes the cache binder, and the canonical binder
+  definition plus `_RUNTIME_RESOLVER` state are absent;
+- the cache module uses its own state and recursive helper directly and imports
+  the three canonical cross-module dependencies without importing root
+  `nodes.py`;
+- root cache aliases retain exact canonical object identity;
+- tests that used root replacement to drive the cache owner replace the
+  canonical owner instead;
+- the frozen AiO split gate marks only d1 retired and keeps d2 through d6
+  active; and
+- cache behavior and the #169 boundary remain unchanged.
+
+Forbidden:
+
+- changing cache key schema/version/order, copy/clone policy, hit/miss
+  semantics, eviction order/limit, cache scope, stage metadata, or performance
+  policy;
+- retiring root cache aliases or changing callers in the legacy-generation
+  binder; and
+- combining d0a, d2 through d6, Wildcard/NAIA, Contract, or Behavior work.
+
 ### B-11d — Final root shim
 
 - **State:** BLOCKED by the remaining AiO and Wildcard/NAIA binder families
