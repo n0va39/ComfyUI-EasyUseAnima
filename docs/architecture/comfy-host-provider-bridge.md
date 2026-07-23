@@ -271,11 +271,39 @@ must explain how canonical code sees it without importing root `nodes.py`.
 Passing an explicit callable from the composition boundary is acceptable;
 canonical-to-root import is not.
 
+### 4.3 E-01a locked result
+
+The versioned decision ledger is
+`tests/fixtures/comfy_host_compatibility.v1.json`. The compatibility-surface
+test derives the current root signatures, adapter aliases, production
+resolver/binder consumers, root-observation timing, and repository monkeypatch
+consumers from the AST and rejects drift from the ledger.
+
+The reviewed decisions are:
+
+| Symbols | Durable classification | Root replacement decision |
+| --- | --- | --- |
+| `_comfy_max_resolution`, `_find_comfy_node_class`, `_find_comfy_node_mapping_class`, `_find_loaded_node_class` | `provider_owned` | private repository-test seam; migrate to fake provider/injection in E-07b |
+| `_require_custom_node_class`, `_require_any_custom_node_class`, `_encode_with_comfy_clip` | `pure_helper_with_provider_input` | private repository-test seam; migrate to fake provider/injection in E-07b |
+
+The GitHub public code-index search recorded in the ledger found no confirmed
+consumer outside this repository. That search is explicitly non-exhaustive;
+it does not convert absence of public hits into proof about private or
+unindexed source. Repository tests alone do not promote the seven underscore
+names to supported public API.
+
+All 22 production consumer slots currently observe `nodes.py` globals at call
+time. Some call the stored resolver directly and others bind a closure, but the
+closure still executes `resolve_helper(name)` for every invocation. This is
+inventory evidence, not a decision to preserve private root monkeypatching as
+public compatibility. E-07b must migrate the listed repository tests before
+#184 retires the corresponding root implementation.
+
 ## 5. Executable work units
 
 ### E-01a — Scoped host-wrapper inventory
 
-- **State:** READY
+- **State:** IN REVIEW in PR #325
 - **Owner:** #323 / parent #187
 - **Type:** Contract/docs/gate
 - **Base:** current `dev`
@@ -320,34 +348,29 @@ Exit:
 - **Owner:** #323 / parent #187
 - **Type:** Contract
 
-Candidate production files:
+Allowed production files:
 
 ```text
+easyuse_anima/infrastructure/comfy/provider.py
 easyuse_anima/runtime.py
-easyuse_anima/bootstrap.py
 ```
 
 Required contract:
 
+- declare only the four-method `ComfyHostProvider` Protocol needed to type the
+  runtime shell;
 - create a `RuntimeServices` value with only the ready `comfy` dependency;
 - define production install/access semantics;
 - reject or explicitly handle conflicting installation;
 - support isolated construction in tests;
 - keep `get_runtime()` out of feature/domain/service modules;
-- avoid changing route/Wildcard bootstrap behavior; and
+- do not wire bootstrap or implement host lookup; and
 - avoid adding shutdown responsibilities for resources that do not yet exist.
 
-Recommended tests:
+Allowed test file:
 
 ```text
-uninstalled access
-single install and identity
-same-runtime repeated install
-conflicting install
-adapter-boundary access
-isolated explicit runtime construction
-bootstrap repeat behavior
-package import without ComfyUI
+tests/test_runtime_services.py
 ```
 
 Stop if a viable implementation requires a full service graph, broad global
@@ -359,28 +382,22 @@ mutation, or feature code importing runtime.
 - **Owner:** #323 / parent #187
 - **Type:** Contract
 
-Candidate production files:
+Allowed production files:
 
 ```text
+easyuse_anima/bootstrap.py
 easyuse_anima/infrastructure/comfy/provider.py
-easyuse_anima/infrastructure/comfy/capabilities.py
-easyuse_anima/infrastructure/comfy/invocation.py
 ```
 
-Required tests:
+Allowed test files:
 
 ```text
-provider module import with host absent
-delayed host availability
-direct NODE_CLASS_MAPPINGS hit
-host attribute fallback
-loaded-module mapping fallback
-missing node
-valid, invalid, and missing MAX_RESOLUTION
-single/any required-node error text parity
-CLIPTextEncode success, missing class, missing encode, empty result
-no cache or import-time side effect
+tests/test_comfy_host_provider.py
+tests/test_runtime_services.py
 ```
+
+E-07a implements the default lazy provider and composes it at bootstrap.
+Requirement-helper and CLIP-invocation wiring remain E-07b work.
 
 Stop if the provider starts owning feature schemas, node instances, stage
 policy, or cache behavior.

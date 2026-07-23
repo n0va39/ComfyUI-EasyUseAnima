@@ -1,0 +1,617 @@
+{
+  "schema_version": 1,
+  "owner": "#323",
+  "parent": "#187",
+  "blocked_move_owner": "#184",
+  "snapshot_base": "4f80cc06cd3bb58f5273bff87d1d9c5978a017fa",
+  "enums": {
+    "compatibility_classifications": [
+      "provider_owned",
+      "pure_helper_with_provider_input",
+      "transitional_root_override",
+      "unsupported_test_only",
+      "supported_public"
+    ]
+  },
+  "expected_counts": {
+    "production_consumer_slots": 22,
+    "unique_production_modules": 15,
+    "root_monkeypatch_test_files": 13,
+    "canonical_monkeypatch_test_files": 2
+  },
+  "external_evidence": {
+    "github_public_code_search_2026_07_23": {
+      "query_symbols": [
+        "_comfy_max_resolution",
+        "_encode_with_comfy_clip",
+        "_find_comfy_node_class",
+        "_find_comfy_node_mapping_class",
+        "_find_loaded_node_class",
+        "_require_any_custom_node_class",
+        "_require_custom_node_class"
+      ],
+      "max_results_per_symbol": 100,
+      "confirmed_external_repositories": [],
+      "exhaustive": false,
+      "limitations": "GitHub public code search does not cover private or unindexed source; repository-only hits are not external support evidence."
+    }
+  },
+  "symbols": [
+    {
+      "symbol": "_comfy_max_resolution",
+      "root_signature": {
+        "parameters": [],
+        "return": "int"
+      },
+      "adapter_binding": {
+        "alias": "_adapter_comfy_max_resolution",
+        "target": "easyuse_anima.infrastructure.comfy.capabilities:_comfy_max_resolution"
+      },
+      "root_dependencies": [
+        "_adapter_comfy_max_resolution"
+      ],
+      "canonical_target": "ComfyHostProvider.max_resolution",
+      "production_consumers": [
+        {
+          "module": "easyuse_anima.aio.generation_normalization",
+          "binder": "_bind_aio_generation_normalization_runtime",
+          "root_observation": "call_time"
+        },
+        {
+          "module": "easyuse_anima.nodes.impact_detailer_nodes",
+          "binder": "_bind_impact_detailer_node_runtime",
+          "root_observation": "call_time"
+        },
+        {
+          "module": "easyuse_anima.nodes.sam3_nodes",
+          "binder": "_bind_sam3_node_runtime",
+          "root_observation": "call_time"
+        }
+      ],
+      "repository_monkeypatch_consumers": {
+        "root": [
+          "tests/test_aio_schema_contract.py"
+        ],
+        "canonical": [
+          "tests/test_node_contracts.py",
+          "tests/test_sam3_nodes.py"
+        ]
+      },
+      "confirmed_external_consumers": [],
+      "external_evidence_ref": "github_public_code_search_2026_07_23",
+      "host_lookup_order": [
+        "import host nodes at call time",
+        "read MAX_RESOLUTION or use 16384",
+        "convert to int",
+        "return 16384 after any import, attribute, or conversion failure"
+      ],
+      "error_result_contract": [
+        "returns an int",
+        "missing or invalid host value returns 16384",
+        "host discovery failures do not escape"
+      ],
+      "optional_dependency_behavior": [
+        "ComfyUI nodes is optional until invocation",
+        "module import does not require a host module"
+      ],
+      "compatibility_classification": "provider_owned",
+      "root_seam_classification": "unsupported_test_only",
+      "call_time_replacement_required": false,
+      "replacement_mechanism": "migrate_repository_tests_to_fake_provider_or_explicit_lookup_in_E-07b",
+      "root_removal_gate": "E-07b provider parity and repository root-patch migration, then #184 B-11c29a",
+      "owner_issue": "#323",
+      "move_owner": "#184 B-11c29a"
+    },
+    {
+      "symbol": "_encode_with_comfy_clip",
+      "root_signature": {
+        "parameters": [
+          {
+            "name": "clip",
+            "kind": "positional_or_keyword",
+            "annotation": null,
+            "default": null
+          },
+          {
+            "name": "text",
+            "kind": "positional_or_keyword",
+            "annotation": "str",
+            "default": null
+          }
+        ],
+        "return": null
+      },
+      "adapter_binding": {
+        "alias": "_adapter_encode_with_comfy_clip",
+        "target": "easyuse_anima.infrastructure.comfy.invocation:_encode_with_comfy_clip"
+      },
+      "root_dependencies": [
+        "_adapter_encode_with_comfy_clip",
+        "_find_comfy_node_class"
+      ],
+      "canonical_target": "easyuse_anima.infrastructure.comfy.invocation:_encode_with_comfy_clip",
+      "production_consumers": [
+        {
+          "module": "easyuse_anima.aio.conditioning",
+          "binder": "_bind_aio_conditioning_runtime",
+          "root_observation": "call_time"
+        },
+        {
+          "module": "easyuse_anima.aio.legacy_generation",
+          "binder": "_bind_aio_legacy_generation_runtime",
+          "root_observation": "call_time"
+        },
+        {
+          "module": "easyuse_anima.nodes.prompt_data_nodes",
+          "binder": "_bind_prompt_data_node_runtime",
+          "root_observation": "call_time"
+        },
+        {
+          "module": "easyuse_anima.nodes.regional_nodes",
+          "binder": "_bind_regional_node_runtime",
+          "root_observation": "call_time"
+        },
+        {
+          "module": "easyuse_anima.nodes.sam3_nodes",
+          "binder": "_bind_sam3_node_runtime",
+          "root_observation": "call_time"
+        },
+        {
+          "module": "easyuse_anima.prompt.artist_mix",
+          "binder": "_bind_artist_mix_runtime",
+          "root_observation": "call_time"
+        }
+      ],
+      "repository_monkeypatch_consumers": {
+        "root": [
+          "tests/test_aio_conditioning.py",
+          "tests/test_aio_nodes.py",
+          "tests/test_prompt_corrector.py",
+          "tests/test_prompt_studio_regional.py",
+          "tests/test_sam3_nodes.py"
+        ],
+        "canonical": []
+      },
+      "confirmed_external_consumers": [],
+      "external_evidence_ref": "github_public_code_search_2026_07_23",
+      "host_lookup_order": [
+        "resolve CLIPTextEncode with the injected node lookup",
+        "construct the node class",
+        "read encode",
+        "call encode(clip, text)",
+        "return the first item from a non-empty tuple"
+      ],
+      "error_result_contract": [
+        "missing CLIPTextEncode raises the existing RuntimeError",
+        "missing encode raises the existing RuntimeError",
+        "non-tuple or empty result raises the existing RuntimeError",
+        "successful invocation returns result[0]"
+      ],
+      "optional_dependency_behavior": [
+        "CLIPTextEncode is required only when encoding is selected",
+        "the invocation adapter imports no optional node pack"
+      ],
+      "compatibility_classification": "pure_helper_with_provider_input",
+      "root_seam_classification": "unsupported_test_only",
+      "call_time_replacement_required": false,
+      "replacement_mechanism": "migrate_repository_tests_to_fake_provider_or_explicit_lookup_in_E-07b",
+      "root_removal_gate": "E-07b injected provider lookup parity and repository root-patch migration, then #184 B-11c29d",
+      "owner_issue": "#323",
+      "move_owner": "#184 B-11c29d"
+    },
+    {
+      "symbol": "_find_comfy_node_class",
+      "root_signature": {
+        "parameters": [
+          {
+            "name": "node_id",
+            "kind": "positional_or_keyword",
+            "annotation": "str",
+            "default": null
+          }
+        ],
+        "return": null
+      },
+      "adapter_binding": {
+        "alias": "_adapter_find_comfy_node_class",
+        "target": "easyuse_anima.infrastructure.comfy.capabilities:_find_comfy_node_class"
+      },
+      "root_dependencies": [
+        "_adapter_find_comfy_node_class"
+      ],
+      "canonical_target": "ComfyHostProvider.find_node_class",
+      "production_consumers": [
+        {
+          "module": "easyuse_anima.aio.model_preparation",
+          "binder": "_bind_aio_model_preparation_runtime",
+          "root_observation": "call_time"
+        },
+        {
+          "module": "easyuse_anima.aio.output",
+          "binder": "_bind_aio_output_runtime",
+          "root_observation": "call_time"
+        },
+        {
+          "module": "easyuse_anima.aio.preview",
+          "binder": "_bind_aio_preview_runtime",
+          "root_observation": "call_time"
+        },
+        {
+          "module": "easyuse_anima.aio.resources",
+          "binder": "_bind_aio_resource_runtime",
+          "root_observation": "call_time"
+        },
+        {
+          "module": "easyuse_anima.aio.sampling",
+          "binder": "_bind_aio_sampling_runtime",
+          "root_observation": "call_time"
+        },
+        {
+          "module": "easyuse_anima.image.sam3",
+          "binder": "_bind_sam3_runtime",
+          "root_observation": "call_time"
+        }
+      ],
+      "repository_monkeypatch_consumers": {
+        "root": [
+          "tests/test_aio_model_preparation.py",
+          "tests/test_aio_nodes.py",
+          "tests/test_aio_output.py",
+          "tests/test_aio_preview.py",
+          "tests/test_aio_resources.py",
+          "tests/test_aio_sampling.py",
+          "tests/test_comfy_adapters.py",
+          "tests/test_node_contracts.py",
+          "tests/test_prompt_corrector.py",
+          "tests/test_sam3_nodes.py"
+        ],
+        "canonical": []
+      },
+      "confirmed_external_consumers": [],
+      "external_evidence_ref": "github_public_code_search_2026_07_23",
+      "host_lookup_order": [
+        "import host nodes at call time",
+        "check NODE_CLASS_MAPPINGS[node_id]",
+        "check host nodes attribute named node_id",
+        "scan loaded modules in current sys.modules order for NODE_CLASS_MAPPINGS[node_id]",
+        "return None"
+      ],
+      "error_result_contract": [
+        "host mapping and attribute exceptions fall through to loaded-module scan",
+        "returns the first non-None class",
+        "missing class returns None"
+      ],
+      "optional_dependency_behavior": [
+        "ComfyUI nodes is optional until lookup",
+        "loaded optional custom-node modules are discovered without importing them"
+      ],
+      "compatibility_classification": "provider_owned",
+      "root_seam_classification": "unsupported_test_only",
+      "call_time_replacement_required": false,
+      "replacement_mechanism": "migrate_repository_tests_to_fake_provider_or_explicit_lookup_in_E-07b",
+      "root_removal_gate": "E-07b fake-provider migration and lookup-order parity, then #184 B-11c29b",
+      "owner_issue": "#323",
+      "move_owner": "#184 B-11c29b"
+    },
+    {
+      "symbol": "_find_comfy_node_mapping_class",
+      "root_signature": {
+        "parameters": [
+          {
+            "name": "node_id",
+            "kind": "positional_or_keyword",
+            "annotation": "str",
+            "default": null
+          }
+        ],
+        "return": null
+      },
+      "adapter_binding": null,
+      "root_dependencies": [],
+      "canonical_target": "ComfyHostProvider.find_node_mapping_class",
+      "production_consumers": [
+        {
+          "module": "easyuse_anima.image.sam3",
+          "binder": "_bind_sam3_runtime",
+          "root_observation": "call_time"
+        }
+      ],
+      "repository_monkeypatch_consumers": {
+        "root": [
+          "tests/test_sam3_nodes.py"
+        ],
+        "canonical": []
+      },
+      "confirmed_external_consumers": [],
+      "external_evidence_ref": "github_public_code_search_2026_07_23",
+      "host_lookup_order": [
+        "import host nodes at call time",
+        "read NODE_CLASS_MAPPINGS or an empty mapping",
+        "return mapping.get(node_id)"
+      ],
+      "error_result_contract": [
+        "any import, attribute, or mapping failure returns None",
+        "host attributes and loaded modules are not scanned by this direct-mapping helper"
+      ],
+      "optional_dependency_behavior": [
+        "ComfyUI nodes is optional until lookup",
+        "no optional custom-node module is imported"
+      ],
+      "compatibility_classification": "provider_owned",
+      "root_seam_classification": "unsupported_test_only",
+      "call_time_replacement_required": false,
+      "replacement_mechanism": "migrate_repository_tests_to_fake_provider_or_explicit_lookup_in_E-07b",
+      "root_removal_gate": "E-07b direct-mapping parity and SAM3 test injection, then #184 B-11c29b",
+      "owner_issue": "#323",
+      "move_owner": "#184 B-11c29b"
+    },
+    {
+      "symbol": "_find_loaded_node_class",
+      "root_signature": {
+        "parameters": [
+          {
+            "name": "node_id",
+            "kind": "positional_or_keyword",
+            "annotation": "str",
+            "default": null
+          }
+        ],
+        "return": null
+      },
+      "adapter_binding": {
+        "alias": "_adapter_find_loaded_node_class",
+        "target": "easyuse_anima.infrastructure.comfy.capabilities:_find_loaded_node_class"
+      },
+      "root_dependencies": [
+        "_adapter_find_loaded_node_class",
+        "_find_comfy_node_class"
+      ],
+      "canonical_target": "ComfyHostProvider.find_loaded_node_class",
+      "production_consumers": [
+        {
+          "module": "easyuse_anima.prompt.conditioning",
+          "binder": "_bind_conditioning_runtime",
+          "root_observation": "call_time"
+        }
+      ],
+      "repository_monkeypatch_consumers": {
+        "root": [],
+        "canonical": []
+      },
+      "confirmed_external_consumers": [],
+      "external_evidence_ref": "github_public_code_search_2026_07_23",
+      "host_lookup_order": [
+        "call the injected general node lookup",
+        "return its non-None result",
+        "scan loaded modules in current sys.modules order for NODE_CLASS_MAPPINGS[node_id]",
+        "return None"
+      ],
+      "error_result_contract": [
+        "returns the first non-None class",
+        "missing class returns None"
+      ],
+      "optional_dependency_behavior": [
+        "already loaded optional custom-node modules are observed",
+        "no optional custom-node module is imported"
+      ],
+      "compatibility_classification": "provider_owned",
+      "root_seam_classification": "unsupported_test_only",
+      "call_time_replacement_required": false,
+      "replacement_mechanism": "migrate_repository_tests_to_fake_provider_or_explicit_lookup_in_E-07b",
+      "root_removal_gate": "E-07b provider parity with no new root-patch dependency, then #184 B-11c29b",
+      "owner_issue": "#323",
+      "move_owner": "#184 B-11c29b"
+    },
+    {
+      "symbol": "_require_any_custom_node_class",
+      "root_signature": {
+        "parameters": [
+          {
+            "name": "node_ids",
+            "kind": "positional_or_keyword",
+            "annotation": "tuple[str, ...]",
+            "default": null
+          },
+          {
+            "name": "node_pack",
+            "kind": "positional_or_keyword",
+            "annotation": "str",
+            "default": null
+          },
+          {
+            "name": "install_hint",
+            "kind": "positional_or_keyword",
+            "annotation": "str",
+            "default": null
+          }
+        ],
+        "return": null
+      },
+      "adapter_binding": {
+        "alias": "_adapter_require_any_custom_node_class",
+        "target": "easyuse_anima.infrastructure.comfy.capabilities:_require_any_custom_node_class"
+      },
+      "root_dependencies": [
+        "_adapter_require_any_custom_node_class",
+        "_find_comfy_node_class"
+      ],
+      "canonical_target": "easyuse_anima.infrastructure.comfy.capabilities:_require_any_custom_node_class",
+      "production_consumers": [
+        {
+          "module": "easyuse_anima.aio.model_preparation",
+          "binder": "_bind_aio_model_preparation_runtime",
+          "root_observation": "call_time"
+        }
+      ],
+      "repository_monkeypatch_consumers": {
+        "root": [
+          "tests/test_aio_model_preparation.py"
+        ],
+        "canonical": []
+      },
+      "confirmed_external_consumers": [],
+      "external_evidence_ref": "github_public_code_search_2026_07_23",
+      "host_lookup_order": [
+        "iterate node_ids in caller order",
+        "call the injected node lookup for each candidate",
+        "return the first (node_id, class) pair",
+        "raise after all candidates are missing"
+      ],
+      "error_result_contract": [
+        "candidate order is stable",
+        "missing candidates use the existing joined RuntimeError text",
+        "successful lookup returns the matching node id and class"
+      ],
+      "optional_dependency_behavior": [
+        "candidate custom-node packs remain optional until the feature is selected",
+        "missing selected capability raises only at use time"
+      ],
+      "compatibility_classification": "pure_helper_with_provider_input",
+      "root_seam_classification": "unsupported_test_only",
+      "call_time_replacement_required": false,
+      "replacement_mechanism": "migrate_repository_tests_to_fake_provider_or_explicit_lookup_in_E-07b",
+      "root_removal_gate": "E-07b injected lookup and exact error parity, then #184 B-11c29c",
+      "owner_issue": "#323",
+      "move_owner": "#184 B-11c29c"
+    },
+    {
+      "symbol": "_require_custom_node_class",
+      "root_signature": {
+        "parameters": [
+          {
+            "name": "node_id",
+            "kind": "positional_or_keyword",
+            "annotation": "str",
+            "default": null
+          },
+          {
+            "name": "node_pack",
+            "kind": "positional_or_keyword",
+            "annotation": "str",
+            "default": null
+          },
+          {
+            "name": "install_hint",
+            "kind": "positional_or_keyword",
+            "annotation": "str",
+            "default": null
+          }
+        ],
+        "return": null
+      },
+      "adapter_binding": {
+        "alias": "_adapter_require_custom_node_class",
+        "target": "easyuse_anima.infrastructure.comfy.capabilities:_require_custom_node_class"
+      },
+      "root_dependencies": [
+        "_adapter_require_custom_node_class",
+        "_find_comfy_node_class"
+      ],
+      "canonical_target": "easyuse_anima.infrastructure.comfy.capabilities:_require_custom_node_class",
+      "production_consumers": [
+        {
+          "module": "easyuse_anima.aio.legacy_generation",
+          "binder": "_bind_aio_legacy_generation_runtime",
+          "root_observation": "call_time"
+        },
+        {
+          "module": "easyuse_anima.aio.model_preparation",
+          "binder": "_bind_aio_model_preparation_runtime",
+          "root_observation": "call_time"
+        },
+        {
+          "module": "easyuse_anima.aio.output",
+          "binder": "_bind_aio_output_runtime",
+          "root_observation": "call_time"
+        },
+        {
+          "module": "easyuse_anima.aio.sampling",
+          "binder": "_bind_aio_sampling_runtime",
+          "root_observation": "call_time"
+        }
+      ],
+      "repository_monkeypatch_consumers": {
+        "root": [
+          "tests/test_aio_model_preparation.py",
+          "tests/test_aio_nodes.py",
+          "tests/test_aio_output.py",
+          "tests/test_aio_sampling.py"
+        ],
+        "canonical": []
+      },
+      "confirmed_external_consumers": [],
+      "external_evidence_ref": "github_public_code_search_2026_07_23",
+      "host_lookup_order": [
+        "call the injected node lookup once",
+        "return the non-None class",
+        "raise with node id, node pack, and install hint"
+      ],
+      "error_result_contract": [
+        "successful lookup returns the class object unchanged",
+        "missing class uses the existing exact RuntimeError text"
+      ],
+      "optional_dependency_behavior": [
+        "the custom-node pack remains optional until the feature is selected",
+        "missing selected capability raises only at use time"
+      ],
+      "compatibility_classification": "pure_helper_with_provider_input",
+      "root_seam_classification": "unsupported_test_only",
+      "call_time_replacement_required": false,
+      "replacement_mechanism": "migrate_repository_tests_to_fake_provider_or_explicit_lookup_in_E-07b",
+      "root_removal_gate": "E-07b injected lookup and exact error parity, then #184 B-11c29c",
+      "owner_issue": "#323",
+      "move_owner": "#184 B-11c29c"
+    }
+  ],
+  "next_contracts": {
+    "E-02a": {
+      "type": "Contract",
+      "production_files": [
+        "easyuse_anima/infrastructure/comfy/provider.py",
+        "easyuse_anima/runtime.py"
+      ],
+      "production_symbols": [
+        "ComfyHostProvider.max_resolution(self) -> int",
+        "ComfyHostProvider.find_node_class(self, node_id: str)",
+        "ComfyHostProvider.find_node_mapping_class(self, node_id: str)",
+        "ComfyHostProvider.find_loaded_node_class(self, node_id: str)",
+        "RuntimeServices(comfy: ComfyHostProvider)",
+        "install_runtime(runtime: RuntimeServices) -> RuntimeServices",
+        "get_runtime() -> RuntimeServices"
+      ],
+      "test_files": [
+        "tests/test_runtime_services.py"
+      ],
+      "forbidden": [
+        "default provider implementation",
+        "host lookup",
+        "bootstrap wiring",
+        "root or canonical caller changes",
+        "feature service placeholders"
+      ]
+    },
+    "E-07a": {
+      "type": "Contract",
+      "production_files": [
+        "easyuse_anima/bootstrap.py",
+        "easyuse_anima/infrastructure/comfy/provider.py"
+      ],
+      "production_symbols": [
+        "DefaultComfyHostProvider.max_resolution(self) -> int",
+        "DefaultComfyHostProvider.find_node_class(self, node_id: str)",
+        "DefaultComfyHostProvider.find_node_mapping_class(self, node_id: str)",
+        "DefaultComfyHostProvider.find_loaded_node_class(self, node_id: str)"
+      ],
+      "test_files": [
+        "tests/test_comfy_host_provider.py",
+        "tests/test_runtime_services.py"
+      ],
+      "forbidden": [
+        "capability or invocation helper wiring",
+        "root wrapper move or removal",
+        "lookup cache or snapshot",
+        "feature migration"
+      ]
+    }
+  }
+}
