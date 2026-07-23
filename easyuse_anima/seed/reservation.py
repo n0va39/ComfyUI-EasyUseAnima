@@ -7,7 +7,6 @@ from collections.abc import Mapping
 from dataclasses import dataclass
 from typing import Literal, Protocol, TypeAlias, cast
 
-
 SEED_RESERVATION_REQUEST_SCHEMA = "easyuse_anima_seed_reservation_request"
 SEED_RESERVATION_CONTRACT_VERSION = 1
 
@@ -248,20 +247,21 @@ def parse_legacy_seed_reservation_request(
 ) -> SeedReservationRequest:
     """Translate an already-normalized legacy AiO seed without choosing a seed."""
 
-    if isinstance(normalized_seed, bool) or not isinstance(normalized_seed, int):
+    raw_seed = cast(object, normalized_seed)
+    if isinstance(raw_seed, bool) or not isinstance(raw_seed, int):
         raise SeedReservationContractError(
             "Legacy normalized seed must be an integer"
         )
-    if normalized_seed < -3:
+    if raw_seed < -3:
         raise SeedReservationContractError(
             "Legacy normalized seed is outside the supported range"
         )
     selection = _LEGACY_SELECTION_BY_SEED.get(
-        normalized_seed,
+        raw_seed,
         SEED_SELECTION_CONCRETE,
     )
     concrete_seed = (
-        normalized_seed if selection == SEED_SELECTION_CONCRETE else None
+        raw_seed if selection == SEED_SELECTION_CONCRETE else None
     )
     return SeedReservationRequest(
         schema=SEED_RESERVATION_REQUEST_SCHEMA,
