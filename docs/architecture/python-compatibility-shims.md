@@ -8,10 +8,10 @@
 - Policy: [ADR-002](adr-002-compatibility-shims.md)
 - Machine-readable audit:
   [`python_compatibility_surface.v1.json`](../../tests/fixtures/python_compatibility_surface.v1.json)
-- Current state: B-11a through B-11c29a are integrated. B-11c is split into
+- Current state: B-11a through B-11c29b1 are integrated. B-11c is split into
   residual-owner Moves and explicit private-contract cleanup before the final
-  root shim; B-11c29b1 retires the unsupported direct mapping node lookup in
-  PR #330.
+  root shim; B-11c29b2 retires the unsupported loaded-node root lookup in PR
+  #331.
 
 This is an actionable registry, not a removal schedule. `N` means the first
 published Registry release containing both a canonical target and its root
@@ -76,7 +76,7 @@ inferring public support from spelling or test imports:
 - `nodes.py` preamble implementation imports: 5 (`json`, `logging`, `random`,
   `ceil`, and `sqrt`), excluded from compatibility classification
   by an exact AST allowlist and drift gate;
-- `nodes.py` bindings with an `easyuse_anima` canonical target: 300 in B-11c29a
+- `nodes.py` bindings with an `easyuse_anima` canonical target: 299 in B-11c29b2
   (258 at the integrated B-10b20 baseline), with exact
   relative-package/flat-fallback parity;
 - bindings still owned by `anima_prompt`, `settings`, `prompt_translation`, or
@@ -85,10 +85,10 @@ inferring public support from spelling or test imports:
 - unmapped root classes: `EasyUseAnimaSAM3Context` and
   `EasyUseAnimaSAM3Detailer`; the canonical legacy Extend class remains in its
   owner module without a root alias or backend mapping;
-- root-owned residual implementation: 6 functions, 0 classes, and 26 assigned
-  globals in B-11c29b1 (41/2/33 at the integrated B-10b20 baseline).
+- root-owned residual implementation: 5 functions, 0 classes, and 26 assigned
+  globals in B-11c29b2 (41/2/33 at the integrated B-10b20 baseline).
 - import-time runtime binders: 30 exact top-level `_bind_*_runtime` calls;
-- root names reached by those canonical runtime resolvers: 289, including
+- root names reached by those canonical runtime resolvers: 288, including
   literal lookups and binder-owned helper-name/default collections;
 - retired private bindings: `_comfy_checkpoint_names`,
   `_EasyUseAnimaAlignedDetailerHook`, and
@@ -618,6 +618,21 @@ convenience-node compatibility; it remains unmapped and is not public support.
   `None`, and no cache or mutable override is added.
 - Loaded lookup, requirement helpers, CLIP invocation, and the general node
   lookup remain separate retirement units.
+
+### B-11c29b2 loaded node-lookup retirement
+
+- `_find_loaded_node_class` is an unsupported/test-only private root seam with
+  one provider-wired conditioning consumer and no repository replacement or
+  confirmed external consumer.
+- PR #331 removes the root definition and relative/flat
+  `_adapter_find_loaded_node_class` imports.
+- Installed runtime uses `ComfyHostProvider.find_loaded_node_class`; flat
+  pre-bootstrap imports resolve a fresh default provider at call time.
+- General node lookup remains first, followed by current `sys.modules` order
+  for `NODE_CLASS_MAPPINGS[node_id]`. Missing classes return `None`; optional
+  packs are not imported and no cache or mutable override is added.
+- Requirement helpers and CLIP invocation must retire before the general root
+  lookup.
 
 ### `nodes.py` public node-class surface
 

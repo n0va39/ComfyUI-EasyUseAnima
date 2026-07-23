@@ -625,7 +625,7 @@ the rollback and compatibility boundary without need.
 
 #### B-11c29b1 — Direct mapping-only lookup
 
-- **State:** IN PROGRESS in PR #330
+- **State:** COMPLETE in PR #330 / `7eafe06`
 - **Owner:** #184
 - **Type:** Retirement
 
@@ -686,6 +686,73 @@ Forbidden:
 - adding cache, snapshot, mutable override state, or canonical root import; and
 - changing requirement, CLIP, seed, stage, route, persistence, or postprocess
   behavior.
+
+#### B-11c29b2 — Loaded node lookup
+
+- **State:** IN PROGRESS
+- **Owner:** #184
+- **Type:** Retirement
+
+Pre-edit inventory at `dev@7eafe063d4b0e7b90028bbb3cdf0597543802641`:
+
+- root `nodes.py` owns one `_find_loaded_node_class(node_id: str)` definition
+  and imports `_adapter_find_loaded_node_class` in relative and flat modes;
+- the wrapper has no mutable state or import-time call. At call time it invokes
+  the general root lookup, returns a non-`None` result, otherwise scans current
+  `sys.modules` order for `NODE_CLASS_MAPPINGS[node_id]`, then returns `None`;
+- the one production consumer is `easyuse_anima.prompt.conditioning`, which
+  resolves the name at call time through the E-07b provider wiring;
+- repository root replacements, canonical replacements, and confirmed external
+  consumers are all zero;
+- the ledger classifies the seam as `provider_owned`,
+  `unsupported_test_only`, with no call-time root replacement requirement; and
+- therefore this unit retires the root definition and both adapter imports.
+  Installed runtime uses the provider method; runtime-missing flat imports use
+  a fresh default provider without removing the still-required general root
+  lookup.
+
+Allowed production files:
+
+```text
+nodes.py
+easyuse_anima/infrastructure/comfy/wiring.py
+```
+
+Allowed test, fixture, and documentation files:
+
+```text
+tests/test_comfy_host_wiring.py
+tests/test_comfy_host_provider.py
+tests/test_node_contracts.py
+tests/test_python_compatibility_surface.py
+tests/test_nodes_module_analyzer.py
+tests/fixtures/comfy_host_compatibility.v1.json
+tests/fixtures/python_compatibility_surface.v1.json
+tests/fixtures/python_backend_baseline.json
+docs/architecture/*
+```
+
+Exit:
+
+- root `_find_loaded_node_class` and both adapter imports are absent;
+- installed-runtime conditioning lookup continues to use
+  `ComfyHostProvider.find_loaded_node_class`;
+- flat pre-bootstrap lookup remains delayed, observes current host and loaded
+  modules without importing optional packs, and returns `None` when missing;
+- root general lookup remains available to requirement and CLIP wrappers;
+- retirement gates reject restored root or adapter bindings; and
+- root residual/analyzer/package closure gates pass.
+
+Forbidden:
+
+- moving the general node lookup, requirement helpers, or CLIP invocation;
+- changing mapping, attribute, loaded-module order, or exception/result
+  behavior;
+- changing `ComfyHostProvider`, provider implementation, conditioning feature
+  behavior, schemas, or workflows;
+- adding cache, snapshot, mutable override state, optional imports, or
+  canonical root import; and
+- changing seed, stage, route, persistence, or postprocess behavior.
 
 ### B-11c29c — Required-node helpers
 
@@ -762,8 +829,8 @@ COMPLETE: E-07a default host provider / PR #327
 COMPLETE: E-07b wiring and compatibility gate / PR #328
 
 COMPLETE: B-11c29a max-resolution wrapper retirement / PR #329
-IN PROGRESS: B-11c29b1 direct mapping lookup retirement / PR #330
-BLOCKED:  B-11c29b2 loaded lookup retirement pending B-11c29b1 merge
+COMPLETE: B-11c29b1 direct mapping lookup retirement / PR #330
+IN PROGRESS: B-11c29b2 loaded lookup retirement
 BLOCKED:  B-11c29c-d requirement and CLIP wrapper retirements
 BLOCKED:  B-11c29b3 general node lookup retirement
 BLOCKED:  B-11c30 binder/resolver migration audit

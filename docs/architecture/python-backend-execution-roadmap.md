@@ -31,7 +31,7 @@ merged PR, the owning issue's evidence record, and every stated exit gate.
 | Phase | Integrated snapshot / open implementation state | Remaining exit work |
 | --- | --- | --- |
 | A - baseline | Complete; #191 is closed | Keep fixtures and analyzers current during later moves |
-| B - `nodes.py` extraction | Integrated through B-11c29a / PR #329; B-11c29b1 direct mapping lookup retirement in PR #330 | Complete residual owners and binders, then the final root shim as a separate Move |
+| B - `nodes.py` extraction | Integrated through B-11c29b1 / PR #330; B-11c29b2 loaded lookup retirement in PR #331 | Complete residual owners and binders, then the final root shim as a separate Move |
 | C - feature contracts/behavior | Partially complete | Finish #168; then #167 and #169 in separate Contract/Behavior PRs |
 | D - root consolidation | Not started | Execute #186 feature by feature after the corresponding behavior contracts are stable |
 | E - runtime ownership | Partial: E-02a and E-07a/E-07b integrated | Continue #187 only where canonical feature owners and explicit contracts exist |
@@ -93,6 +93,8 @@ merged PR, the owning issue's evidence record, and every stated exit gate.
   in PR #329 while preserving the flat pre-bootstrap fallback.
   B-11c29b1 retires only the unsupported direct mapping node lookup in PR #330;
   loaded, requirement, CLIP, and general lookup retirements remain separate.
+  B-11c29b2 retires only the unsupported loaded-node root lookup in PR #331;
+  the general root lookup remains for requirement and CLIP wrappers.
 
 ### Current quality baseline
 
@@ -334,7 +336,7 @@ surfaces. AiO mechanical extraction must not start until #168 exits.
 | 11 | B-09b2 AiO generator adapter move | COMPLETE on `dev` | Move | #184 | PR #270 / `57d40b4` |
 | 12 | B-10a machine-readable compatibility audit | COMPLETE on `dev` | Contract/gate | #184/#188 | PR #271 / `3c7b857` |
 | 13 | B-10b private alias reduction | COMPLETE on `dev` through PR #291 / `c6b4680` | Contract/cleanup, split PRs | #184/#188 | Audited alias surface integrated |
-| 14 | B-11 registration/bootstrap/root shim | IN PROGRESS through B-11c29b1 direct mapping lookup retirement PR #330; next B-11c29b2 loaded lookup | Move/Contract, split PRs | #184 | Residual owners and binders migrate in rollback-sized units before final shim |
+| 14 | B-11 registration/bootstrap/root shim | IN PROGRESS through B-11c29b2 loaded lookup retirement PR #331; next B-11c29c requirement helpers | Move/Contract, split PRs | #184 | Residual owners and binders migrate in rollback-sized units before final shim |
 | 15 | S167 backend seed reservation series | BLOCKED by B exit/interface | Contract then Behavior | #167 | Canonical AiO/node seams |
 | 16 | A169 stage pipeline series | BLOCKED by #168 and B exit | Contract then Behavior | #169 | Typed config and mechanical AiO move |
 | 17 | A169 first-pass cache policy | BLOCKED by stage/cache ownership seam | Behavior | #169 | Mechanical cache move and benchmark harness |
@@ -983,6 +985,10 @@ unchanged. The separate legacy Wildcard unsupported alias remains for D-12.
     Installed-runtime SAM3 consumers use the provider mapping method and flat
     pre-bootstrap consumers use a fresh default provider. Attribute and
     loaded-module scanning remain excluded from this lookup.
+  - B-11c29b2 retires only `_find_loaded_node_class` in PR #331. Installed
+    runtime and flat pre-bootstrap consumers resolve the provider method without
+    caching or importing optional packs. General lookup and current loaded-module
+    order remain unchanged.
   - The final B-11c cutover removes remaining root execution ownership and
     leaves the explicit supported `nodes.py` compatibility shim.
 - Add `easyuse_anima/registration.py` as pure mapping composition. It performs no

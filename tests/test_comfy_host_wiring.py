@@ -98,6 +98,35 @@ class ComfyHostWiringTests(unittest.TestCase):
             comfy_nodes.NODE_CLASS_MAPPINGS = object()
             self.assertIsNone(helper("MappingOnly"))
 
+    def test_retired_loaded_lookup_uses_default_provider_before_runtime_install(self):
+        direct_class = object()
+        loaded_class = object()
+        comfy_nodes = types.ModuleType("nodes")
+        comfy_nodes.NODE_CLASS_MAPPINGS = {"Direct": direct_class}
+        loaded_nodes = types.ModuleType("easyuse_anima_test_loaded_nodes")
+        loaded_nodes.NODE_CLASS_MAPPINGS = {"Loaded": loaded_class}
+
+        def unexpected_fallback(name: str):
+            self.fail(f"retired helper reached root fallback: {name}")
+
+        with patch.dict(
+            sys.modules,
+            {
+                "nodes": comfy_nodes,
+                loaded_nodes.__name__: loaded_nodes,
+            },
+        ):
+            helper = resolve_comfy_host_helper(
+                "_find_loaded_node_class",
+                unexpected_fallback,
+            )
+
+            self.assertIs(helper("Direct"), direct_class)
+            comfy_nodes.NODE_CLASS_MAPPINGS = {}
+            self.assertIs(helper("Loaded"), loaded_class)
+            loaded_nodes.NODE_CLASS_MAPPINGS = {}
+            self.assertIsNone(helper("Missing"))
+
     def test_provider_owned_helpers_delegate_to_narrow_methods(self):
         direct = object()
         mapping = object()
