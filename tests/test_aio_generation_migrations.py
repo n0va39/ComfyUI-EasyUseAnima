@@ -6,6 +6,7 @@ from dataclasses import FrozenInstanceError
 from unittest.mock import patch
 
 import nodes
+from easyuse_anima.aio import generation_normalization
 from easyuse_anima.aio.generation_migrations import (
     AIO_GENERATION_MIGRATION_REGISTRY,
     AIO_GENERATION_SETTINGS_CURRENT_VERSION,
@@ -164,7 +165,7 @@ class AIOGenerationMigrationTests(unittest.TestCase):
             "_impact_scheduler_names": lambda: ["sgm_uniform"],
         }
         with (
-            patch.multiple(nodes, **capabilities),
+            patch.multiple(generation_normalization, **capabilities),
             patch_comfy_helper(
                 nodes,
                 "_comfy_max_resolution",
@@ -181,7 +182,7 @@ class AIOGenerationMigrationTests(unittest.TestCase):
         self.assertEqual(legacy, legacy_before)
 
         with (
-            patch.multiple(nodes, **capabilities),
+            patch.multiple(generation_normalization, **capabilities),
             patch_comfy_helper(
                 nodes,
                 "_comfy_max_resolution",

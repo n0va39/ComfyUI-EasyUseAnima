@@ -1739,6 +1739,118 @@ Implementation result:
 - one timeboxed focused process passes 82 output, generation, compatibility,
   nodes-analyzer, and backend-analyzer tests in 10.495 seconds.
 
+### B-11c30d2 — AiO normalization/planning binder Move
+
+- **State:** COMPLETE in PR #349
+- **Owner:** #184
+- **Behavior boundary:** #169
+- **Type:** Move
+- **Base:** `dev@7c5cd5c41a9a2b777c4acb9c5307b5ad1920692b`
+
+Pre-edit inventory:
+
+- the frozen d2 subgroup contains exactly
+  `_bind_aio_generation_normalization_runtime`,
+  `_bind_aio_usdu_planning_runtime`, and
+  `_bind_aio_postprocess_runtime`;
+- the three binders own only three `_RUNTIME_RESOLVER` slots. They account for
+  70 root-resolver slots over 64 unique names, one
+  `_comfy_max_resolution` provider slot, one direct
+  `_resolve_comfy_host_helper` dependency, and 36 repository replacement slots
+  over 30 names in nine test files;
+- generation normalization owns its regex/set, seed/detailer/settings
+  normalizers, and consumes the existing output-settings owner. Its remaining
+  dependencies already have canonical owners in common values/serialization,
+  Prompt Data/conditioning/artist mix, image scaling, Comfy capabilities,
+  generation settings, and the E-07 host provider;
+- root still owns `AIO_GENERATION_DEFAULT_SETTINGS` plus its generation schema,
+  final-fit/upscale, USDU, and ResShift choice constants. The default payload is
+  mutable compatibility state and must move with exact object identity. A new
+  pure `easyuse_anima.aio.generation_defaults` data owner keeps this large
+  declarative payload out of the normalization implementation;
+- the default owner reads the existing seed-control/max values without changing
+  Wildcard or seed behavior. No Wildcard function, reservation policy, or
+  provider operation moves in d2;
+- USDU planning resolves only `math.ceil`, geometry/value helpers, and its own
+  tile-dimension function. Postprocess planning resolves only `math.sqrt`,
+  logging, geometry/value/upscale helpers, and its own resize/final-fit
+  functions;
+- root imports all three binders in package and flat modes and invokes them
+  consecutively during module initialization. Root aliases for every moved
+  function and generation default/choice value remain compatibility surface;
+  and
+- focused call-time replacement assertions are concentrated in
+  `tests/test_aio_generation_settings.py` and the generation/USDU/postprocess
+  sections of `tests/test_node_contracts.py`. Replacements in output,
+  legacy-generation, node-adapter, preview, and resource tests remain owned by
+  their still-active binder families.
+
+Allowed production files:
+
+```text
+nodes.py
+easyuse_anima/aio/generation_defaults.py
+easyuse_anima/aio/generation_normalization.py
+easyuse_anima/aio/usdu.py
+easyuse_anima/aio/postprocess.py
+```
+
+Allowed supporting files are the focused generation/USDU/postprocess tests,
+the Python compatibility gate and fixture, the nodes/backend analyzer gate and
+fixture, and the three architecture documents.
+
+Exit:
+
+- all three d2 binder definitions, root imports/calls, `_RUNTIME_RESOLVER`
+  slots, and `_runtime_helper` functions are absent;
+- generation defaults and choice constants have one pure data owner and root
+  retains exact aliases to the same objects/values;
+- generation normalization uses canonical feature/service dependencies and the
+  E-07 provider directly, without importing root `nodes.py`;
+- USDU and postprocess use canonical math/value/geometry/invocation owners and
+  direct same-module calls;
+- tests that patched root only to drive a d2 owner patch that canonical owner;
+- d2 alone is marked retired while d3 through d6 remain the exact active AiO
+  groups; and
+- normalized payload order/values, input mutation/isolation, seed bounds,
+  capability fallback, tile planning, resize/final-fit metadata, logging,
+  schemas, workflows, stage order, and errors are unchanged.
+
+Forbidden:
+
+- changing generation defaults, validation/clamping choices, public schema,
+  Wildcard/seed policy, cache, sampling, model preparation, conditioning,
+  preview, save, stage order, provider interface, optional dependency timing,
+  or error text;
+- retiring any d3 through d6 or Wildcard/NAIA binder; and
+- combining d0b, Contract, Behavior, performance, or formatting cleanup.
+
+Implementation result:
+
+- root and all three canonical modules no longer define, import, invoke, or
+  retain the d2 binders, `_RUNTIME_RESOLVER`, or `_runtime_helper`;
+- `easyuse_anima.aio.generation_defaults` is the sole owner of the mutable
+  generation default payload, special-seed set, schema/version aliases, and
+  final-fit/upscale/USDU/ResShift choices. Root and generation normalization
+  import the exact same objects and values;
+- generation normalization imports its stateless feature dependencies
+  directly and keeps only `_comfy_max_resolution` behind the existing E-07
+  call-time provider;
+- USDU planning imports `ceil`, common values, and geometry directly.
+  Postprocess planning imports `sqrt`, logging, common values, geometry,
+  upscale invocation, and `LATENT_ALIGN` directly. Same-module planning calls
+  no longer round-trip through root;
+- d2-specific tests patch the canonical owner. Root replacements that drive
+  d3 through d6 remain on those still-active families;
+- the split gate marks d1 and d2 retired and leaves d3 through d6 as the exact
+  active AiO set. The repository now contains ten binders total: eight AiO and
+  two Wildcard/NAIA;
+- backend inventory grows from 90 to 91 shipped and reachable Python modules,
+  with no missing internal imports; and
+- normalized defaults, key order, clamping, seed interpretation, provider
+  observation time, USDU planning, postprocess resize/metadata/logging, schema,
+  workflow, and stage behavior remain unchanged.
+
 ### B-11d — Final root shim
 
 - **State:** BLOCKED by the remaining AiO and Wildcard/NAIA binder families
@@ -1787,7 +1899,8 @@ COMPLETE: B-11c30c2b Advanced / Regional adapter Move / PR #345
 COMPLETE: B-11c30d AiO binder split gate / PR #346
 COMPLETE: B-11c30d1 AiO cache-state binder Move / PR #347
 COMPLETE: B-11c30d0a output-settings owner Move / PR #348
-PLANNED:  B-11c30d2-d4 normalization, I/O, and execution-service Moves
+COMPLETE: B-11c30d2 normalization/planning binder Move / PR #349
+PLANNED:  B-11c30d3-d4 I/O and execution-service Moves
 PLANNED:  B-11c30d0b input-context owner Move before d5-d6
 PLANNED:  B-11c30d5-d6 orchestration and node-adapter Moves
 BLOCKED:  B-11d final root shim

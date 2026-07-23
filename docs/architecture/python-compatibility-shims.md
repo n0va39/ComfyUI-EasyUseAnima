@@ -8,12 +8,11 @@
 - Policy: [ADR-002](adr-002-compatibility-shims.md)
 - Machine-readable audit:
   [`python_compatibility_surface.v1.json`](../../tests/fixtures/python_compatibility_surface.v1.json)
-- Current state: B-11a through B-11c30d1 / PR #347 are integrated in the
-  reviewed sequence, and B-11c30d0a / PR #348 moves only the two AiO
-  output-settings normalizers to their pure owner. S167-01a / PR #344 supplies
-  the canonical reserved-seed compatibility consumer while retaining its root
-  aliases. Thirteen AiO and Wildcard/NAIA binders remain before the final root
-  shim.
+- Current state: B-11a through B-11c30d0a / PR #348 are integrated in the
+  reviewed sequence, and B-11c30d2 / PR #349 retires only the three AiO
+  normalization/planning binders. S167-01a / PR #344 supplies the canonical
+  reserved-seed compatibility consumer while retaining its root aliases. Ten
+  AiO and Wildcard/NAIA binders remain before the final root shim.
 
 This is an actionable registry, not a removal schedule. `N` means the first
 published Registry release containing both a canonical target and its root
@@ -75,11 +74,11 @@ The versioned fixture records the exact post-B-09b2 surface rather than
 inferring public support from spelling or test imports:
 
 - root `__init__.py` permanent entrypoints: 3;
-- `nodes.py` preamble implementation imports: 5 (`json`, `logging`, `random`,
-  `ceil`, and `sqrt`), excluded from compatibility classification
+- `nodes.py` preamble implementation imports: 3 (`json`, `logging`, and
+  `random`), excluded from compatibility classification
   by an exact AST allowlist and drift gate;
-- `nodes.py` bindings with an `easyuse_anima` canonical target: 281 in
-  B-11c30d1 (258 at the integrated B-10b20 baseline), with exact
+- `nodes.py` bindings with an `easyuse_anima` canonical target: 290 in
+  B-11c30d2 (258 at the integrated B-10b20 baseline), with exact
   relative-package/flat-fallback parity;
 - bindings still owned by `anima_prompt`, `settings`, `prompt_translation`, or
   `wildcard_engine`: 27, with the same fallback parity;
@@ -87,10 +86,10 @@ inferring public support from spelling or test imports:
 - unmapped root classes: `EasyUseAnimaSAM3Context` and
   `EasyUseAnimaSAM3Detailer`; the canonical legacy Extend class remains in its
   owner module without a root alias or backend mapping;
-- root-owned residual implementation: 0 functions, 0 classes, and 24 assigned
-  globals in B-11c30c2b (41/2/33 at the integrated B-10b20 baseline).
-- import-time runtime binders: 13 exact top-level `_bind_*_runtime` calls;
-- root names reached by those canonical runtime resolvers: 183, including
+- root-owned residual implementation: 0 functions, 0 classes, and 12 assigned
+  globals in B-11c30d2 (41/2/33 at the integrated B-10b20 baseline).
+- import-time runtime binders: 10 exact top-level `_bind_*_runtime` calls;
+- root names reached by those canonical runtime resolvers: 136, including
   literal lookups and binder-owned helper-name/default collections;
 - retired private bindings: `_comfy_checkpoint_names`,
   `_EasyUseAnimaAlignedDetailerHook`, and
@@ -901,6 +900,27 @@ convenience-node compatibility; it remains unmapped and is not public support.
 - Accepted settings, JSON fallback, row filtering and trimming, default boolean
   conversion, schema/workflow, save metadata, provider/error behavior, seed,
   cache, and stage order remain unchanged.
+
+### B-11c30d2 AiO normalization/planning binder retirement
+
+- Root and the three canonical modules no longer carry
+  `_bind_aio_generation_normalization_runtime`,
+  `_bind_aio_usdu_planning_runtime`, or
+  `_bind_aio_postprocess_runtime`; their resolver globals/helpers are absent.
+- `easyuse_anima.aio.generation_defaults` is the single owner of the mutable
+  generation default payload and its schema, special-seed, final-fit/upscale,
+  USDU, and ResShift values. Root and generation normalization retain exact
+  identity aliases to those owner objects.
+- Generation normalization imports common, Prompt, image, capability,
+  migration/settings, and output-settings owners directly. Only
+  `_comfy_max_resolution` remains a call-time E-07 provider lookup.
+- USDU and postprocess planning use direct math, value, geometry, invocation,
+  logging, and same-module calls. The now-unused root `ceil`/`sqrt` preamble
+  imports are removed with their binders.
+- The split gate marks d1 and d2 retired while d3 through d6 remain active.
+  Ten binders remain in two families: eight AiO and two Wildcard/NAIA.
+- Settings shape/order, normalization, seed semantics, tile/final-fit behavior,
+  provider observation, schema/workflow, and stage order remain unchanged.
 
 ### `nodes.py` public node-class surface
 

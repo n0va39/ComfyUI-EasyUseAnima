@@ -215,6 +215,12 @@ def _deterministic_comfy_inputs():
     with (
         patch.multiple(nodes, **replacements),
         patch.multiple(
+            aio_generation_normalization,
+            _comfy_sampler_names=replacements["_comfy_sampler_names"],
+            _comfy_scheduler_names=replacements["_comfy_scheduler_names"],
+            _impact_scheduler_names=replacements["_impact_scheduler_names"],
+        ),
+        patch.multiple(
             prompt_nodes,
             resolve_metadata_filter_words=replacements[
                 "resolve_metadata_filter_words"
@@ -727,24 +733,24 @@ class AioSpectrumNormalizationMoveContractTests(unittest.TestCase):
         }
         with (
             patch.object(
-                root_module,
+                canonical_module,
                 "_as_bool",
-                wraps=root_module._as_bool,
+                wraps=canonical_module._as_bool,
             ) as as_bool,
             patch.object(
-                root_module,
+                canonical_module,
                 "_as_float",
-                wraps=root_module._as_float,
+                wraps=canonical_module._as_float,
             ) as as_float,
             patch.object(
-                root_module,
+                canonical_module,
                 "_as_int",
-                wraps=root_module._as_int,
+                wraps=canonical_module._as_int,
             ) as as_int,
             patch.object(
-                root_module,
+                canonical_module,
                 "_choice",
-                wraps=root_module._choice,
+                wraps=canonical_module._choice,
             ) as choice,
         ):
             result = canonical_module._normalize_aio_spectrum_settings(
@@ -756,10 +762,10 @@ class AioSpectrumNormalizationMoveContractTests(unittest.TestCase):
         for helper in (as_bool, as_float, as_int, choice):
             self.assertGreater(helper.call_count, 0)
 
-    def test_root_alias_and_call_time_helpers(self):
+    def test_root_alias_and_canonical_helpers(self):
         self._assert_contract(nodes, aio_generation_normalization)
 
-    def test_package_alias_and_call_time_helpers(self):
+    def test_package_alias_and_canonical_helpers(self):
         with _loaded_package_entrypoint() as (_, package_nodes):
             package_name = package_nodes.__package__
             package_generation_normalization = sys.modules[
@@ -836,24 +842,24 @@ class AioDitNormalizationMoveContractTests(unittest.TestCase):
         }
         with (
             patch.object(
-                root_module,
+                canonical_module,
                 "_as_bool",
-                wraps=root_module._as_bool,
+                wraps=canonical_module._as_bool,
             ) as as_bool,
             patch.object(
-                root_module,
+                canonical_module,
                 "_as_float",
-                wraps=root_module._as_float,
+                wraps=canonical_module._as_float,
             ) as as_float,
             patch.object(
-                root_module,
+                canonical_module,
                 "_as_int",
-                wraps=root_module._as_int,
+                wraps=canonical_module._as_int,
             ) as as_int,
             patch.object(
-                root_module,
+                canonical_module,
                 "_choice",
-                wraps=root_module._choice,
+                wraps=canonical_module._choice,
             ) as choice,
         ):
             result = canonical_module._normalize_aio_dit_corrections_settings(
@@ -865,10 +871,10 @@ class AioDitNormalizationMoveContractTests(unittest.TestCase):
         for helper in (as_bool, as_float, as_int, choice):
             self.assertGreater(helper.call_count, 0)
 
-    def test_root_alias_and_call_time_helpers(self):
+    def test_root_alias_and_canonical_helpers(self):
         self._assert_contract(nodes, aio_generation_normalization)
 
-    def test_package_alias_and_call_time_helpers(self):
+    def test_package_alias_and_canonical_helpers(self):
         with _loaded_package_entrypoint() as (_, package_nodes):
             package_name = package_nodes.__package__
             package_generation_normalization = sys.modules[
@@ -894,8 +900,12 @@ class AioDetailerNormalizationMoveContractTests(unittest.TestCase):
 
         self.assertEqual(root_module._AIO_DETAILER_RESERVED_KEYS, {"enabled", "order", "sam3"})
         self.assertEqual(root_module._AIO_DETAILER_CUSTOM_RE.pattern, r"^custom_\d+$")
+        self.assertIs(
+            root_module.AIO_GENERATION_DEFAULT_SETTINGS,
+            canonical_module.AIO_GENERATION_DEFAULT_SETTINGS,
+        )
 
-        with patch.object(root_module, "_AIO_DETAILER_CUSTOM_RE") as custom_re:
+        with patch.object(canonical_module, "_AIO_DETAILER_CUSTOM_RE") as custom_re:
             custom_re.fullmatch.side_effect = lambda name: name == "replacement"
             self.assertTrue(canonical_module._is_aio_detailer_target_name("replacement"))
             self.assertFalse(canonical_module._is_aio_detailer_target_name("custom_7"))
@@ -911,9 +921,9 @@ class AioDetailerNormalizationMoveContractTests(unittest.TestCase):
             }
         }
         with (
-            patch.object(root_module, "AIO_GENERATION_DEFAULT_SETTINGS", defaults),
+            patch.object(canonical_module, "AIO_GENERATION_DEFAULT_SETTINGS", defaults),
             patch.object(
-                root_module,
+                canonical_module,
                 "_json_clone",
                 side_effect=lambda value: json.loads(json.dumps(value)),
             ) as json_clone,
@@ -939,11 +949,11 @@ class AioDetailerNormalizationMoveContractTests(unittest.TestCase):
 
         with (
             patch.object(
-                root_module,
+                canonical_module,
                 "_is_aio_detailer_target_name",
                 side_effect=lambda name: name in {"special", "face", "eye"},
             ) as is_target,
-            patch.object(root_module, "_AIO_DETAILER_RESERVED_KEYS", {"reserved"}),
+            patch.object(canonical_module, "_AIO_DETAILER_RESERVED_KEYS", {"reserved"}),
         ):
             order = canonical_module._aio_detailer_target_order(
                 {
@@ -958,8 +968,8 @@ class AioDetailerNormalizationMoveContractTests(unittest.TestCase):
 
         disabled = {"enabled": False, "face": {"enabled": True}}
         with (
-            patch.object(root_module, "_as_bool", return_value=False) as as_bool,
-            patch.object(root_module, "_aio_detailer_target_order") as target_order,
+            patch.object(canonical_module, "_as_bool", return_value=False) as as_bool,
+            patch.object(canonical_module, "_aio_detailer_target_order") as target_order,
         ):
             self.assertFalse(
                 canonical_module._aio_detailer_has_enabled_targets(disabled)
@@ -975,12 +985,12 @@ class AioDetailerNormalizationMoveContractTests(unittest.TestCase):
         }
         with (
             patch.object(
-                root_module,
+                canonical_module,
                 "_as_bool",
                 side_effect=lambda value, default: value in {"overall", "first"},
             ) as as_bool,
             patch.object(
-                root_module,
+                canonical_module,
                 "_aio_detailer_target_order",
                 return_value=["scalar", "first", "second"],
             ) as target_order,
@@ -992,10 +1002,10 @@ class AioDetailerNormalizationMoveContractTests(unittest.TestCase):
             [call("overall", False), call("first", False)],
         )
 
-    def test_root_aliases_and_call_time_state(self):
+    def test_root_aliases_and_canonical_state(self):
         self._assert_contract(nodes, aio_generation_normalization)
 
-    def test_package_aliases_and_call_time_state(self):
+    def test_package_aliases_and_canonical_state(self):
         with _loaded_package_entrypoint() as (_, package_nodes):
             package_name = package_nodes.__package__
             package_generation_normalization = sys.modules[
@@ -1008,21 +1018,22 @@ class AioUsduTilePlanningMoveContractTests(unittest.TestCase):
     MOVED_NAMES = (
         "_aio_usdu_auto_tile_dimension",
         "_aio_usdu_tile_plan",
-        "_bind_aio_usdu_planning_runtime",
     )
 
     def _assert_contract(self, root_module, canonical_module):
         for name in self.MOVED_NAMES:
             with self.subTest(name=name):
                 self.assertIs(getattr(root_module, name), getattr(canonical_module, name))
+        self.assertFalse(hasattr(root_module, "_bind_aio_usdu_planning_runtime"))
+        self.assertFalse(hasattr(canonical_module, "_bind_aio_usdu_planning_runtime"))
         self.assertFalse(hasattr(root_module, "_aio_usdu_tile_size"))
 
         with (
-            patch.object(root_module, "ceil", wraps=math.ceil) as ceil,
+            patch.object(canonical_module, "ceil", wraps=math.ceil) as ceil,
             patch.object(
-                root_module,
+                canonical_module,
                 "_align_nearest",
-                wraps=root_module._align_nearest,
+                wraps=canonical_module._align_nearest,
             ) as align_nearest,
         ):
             self.assertEqual(
@@ -1033,9 +1044,9 @@ class AioUsduTilePlanningMoveContractTests(unittest.TestCase):
         align_nearest.assert_called_once_with(750, 64)
 
         with (
-            patch.object(root_module, "_image_tensor_size", return_value=(320, 240)) as image_size,
-            patch.object(root_module, "_as_bool", return_value=False) as as_bool,
-            patch.object(root_module, "_as_int", side_effect=(321, 241)) as as_int,
+            patch.object(canonical_module, "_image_tensor_size", return_value=(320, 240)) as image_size,
+            patch.object(canonical_module, "_as_bool", return_value=False) as as_bool,
+            patch.object(canonical_module, "_as_int", side_effect=(321, 241)) as as_int,
         ):
             manual = canonical_module._aio_usdu_tile_plan(
                 "image",
@@ -1063,11 +1074,11 @@ class AioUsduTilePlanningMoveContractTests(unittest.TestCase):
         self.assertEqual(as_int.call_args_list, [call("321", 512), call("241", 512)])
 
         with (
-            patch.object(root_module, "_image_tensor_size", return_value=(512, 768)),
-            patch.object(root_module, "_as_bool", return_value=True),
-            patch.object(root_module, "_as_int", side_effect=(900, 500, 2000)),
+            patch.object(canonical_module, "_image_tensor_size", return_value=(512, 768)),
+            patch.object(canonical_module, "_as_bool", return_value=True),
+            patch.object(canonical_module, "_as_int", side_effect=(900, 500, 2000)),
             patch.object(
-                root_module,
+                canonical_module,
                 "_aio_usdu_auto_tile_dimension",
                 side_effect=(1024, 1536),
             ) as auto_dimension,
@@ -1102,10 +1113,10 @@ class AioUsduTilePlanningMoveContractTests(unittest.TestCase):
             [call(1024, 900, 500, 2000), call(1536, 900, 500, 2000)],
         )
 
-    def test_root_aliases_and_call_time_helpers(self):
+    def test_root_aliases_and_canonical_helpers(self):
         self._assert_contract(nodes, aio_usdu)
 
-    def test_package_aliases_and_call_time_helpers(self):
+    def test_package_aliases_and_canonical_helpers(self):
         with _loaded_package_entrypoint() as (_, package_nodes):
             package_name = package_nodes.__package__
             package_usdu = sys.modules[f"{package_name}.easyuse_anima.aio.usdu"]
@@ -1116,7 +1127,6 @@ class AioFinalFitPlanningMoveContractTests(unittest.TestCase):
     MOVED_NAMES = (
         "_apply_aio_final_fit",
         "_aio_final_fit_size",
-        "_bind_aio_postprocess_runtime",
         "_resize_image_to_size_if_needed",
         "_run_aio_postprocess_stage",
     )
@@ -1146,10 +1156,6 @@ class AioFinalFitPlanningMoveContractTests(unittest.TestCase):
         resized = Tensor("resized")
         output = object()
 
-        def resolver(name):
-            events.append(("resolve", name))
-            return getattr(root_module, name)
-
         def image_size(value, width, height):
             events.append(("image_tensor_size", (value, width, height)))
             return 320, 240
@@ -1159,21 +1165,15 @@ class AioFinalFitPlanningMoveContractTests(unittest.TestCase):
             return resized
 
         with (
-            patch.object(root_module, "_image_tensor_size", image_size),
-            patch.object(root_module, "_common_upscale_image", upscale),
+            patch.object(canonical_module, "_image_tensor_size", image_size),
+            patch.object(canonical_module, "_common_upscale_image", upscale),
         ):
-            canonical_module._bind_aio_postprocess_runtime(resolve_helper=resolver)
-            try:
-                result = canonical_module._resize_image_to_size_if_needed(
-                    image,
-                    Dimension("width", 640),
-                    Dimension("height", 480),
-                    "",
-                )
-            finally:
-                canonical_module._bind_aio_postprocess_runtime(
-                    resolve_helper=lambda name: getattr(root_module, name)
-                )
+            result = canonical_module._resize_image_to_size_if_needed(
+                image,
+                Dimension("width", 640),
+                Dimension("height", 480),
+                "",
+            )
 
         self.assertEqual(result, (output, True))
         self.assertEqual(
@@ -1181,18 +1181,16 @@ class AioFinalFitPlanningMoveContractTests(unittest.TestCase):
             [
                 ("int", "width"),
                 ("int", "height"),
-                ("resolve", "_image_tensor_size"),
                 ("image_tensor_size", (image, 640, 480)),
                 ("image.movedim", (-1, 1)),
-                ("resolve", "_common_upscale_image"),
                 ("common_upscale_image", (samples, 640, 480, "bicubic")),
                 ("resized.movedim", (1, -1)),
             ],
         )
 
         with (
-            patch.object(root_module, "_image_tensor_size", return_value=(1, 1)),
-            patch.object(root_module, "_common_upscale_image") as common_upscale,
+            patch.object(canonical_module, "_image_tensor_size", return_value=(1, 1)),
+            patch.object(canonical_module, "_common_upscale_image") as common_upscale,
         ):
             result = canonical_module._resize_image_to_size_if_needed(image, 0, -5)
         self.assertIs(result[0], image)
@@ -1201,8 +1199,8 @@ class AioFinalFitPlanningMoveContractTests(unittest.TestCase):
 
         failure = RuntimeError("resize failed")
         with (
-            patch.object(root_module, "_image_tensor_size", return_value=(320, 240)),
-            patch.object(root_module, "_common_upscale_image", side_effect=failure),
+            patch.object(canonical_module, "_image_tensor_size", return_value=(320, 240)),
+            patch.object(canonical_module, "_common_upscale_image", side_effect=failure),
             self.assertRaises(RuntimeError) as raised,
         ):
             canonical_module._resize_image_to_size_if_needed(image, 640, 480)
@@ -1218,10 +1216,6 @@ class AioFinalFitPlanningMoveContractTests(unittest.TestCase):
 
         stage_logger = StageLogger()
 
-        def resolver(name):
-            events.append(("resolve", name))
-            return getattr(root_module, name)
-
         def disabled_as_bool(value, default):
             events.append(("as_bool", (value, default)))
             return False
@@ -1234,29 +1228,21 @@ class AioFinalFitPlanningMoveContractTests(unittest.TestCase):
             raise AssertionError(f"disabled postprocess applied final fit: {args!r}")
 
         with (
-            patch.object(root_module, "_as_bool", disabled_as_bool),
-            patch.object(root_module, "_image_tensor_size", disabled_size),
-            patch.object(root_module, "_apply_aio_final_fit", unexpected_apply),
-            patch.object(root_module, "logger", stage_logger),
+            patch.object(canonical_module, "_as_bool", disabled_as_bool),
+            patch.object(canonical_module, "_image_tensor_size", disabled_size),
+            patch.object(canonical_module, "_apply_aio_final_fit", unexpected_apply),
+            patch.object(canonical_module, "logger", stage_logger),
         ):
-            canonical_module._bind_aio_postprocess_runtime(resolve_helper=resolver)
-            try:
-                output, metadata = canonical_module._run_aio_postprocess_stage(
-                    image,
-                    {"enabled": "off"},
-                )
-            finally:
-                canonical_module._bind_aio_postprocess_runtime(
-                    resolve_helper=lambda name: getattr(root_module, name)
-                )
+            output, metadata = canonical_module._run_aio_postprocess_stage(
+                image,
+                {"enabled": "off"},
+            )
 
         self.assertIs(output, image)
         self.assertEqual(
             events,
             [
-                ("resolve", "_as_bool"),
                 ("as_bool", ("off", False)),
-                ("resolve", "_image_tensor_size"),
                 ("image_tensor_size", (image, 0, 0)),
             ],
         )
@@ -1299,39 +1285,27 @@ class AioFinalFitPlanningMoveContractTests(unittest.TestCase):
                     return 800, 600
 
                 with (
-                    patch.object(root_module, "_as_bool", enabled_as_bool),
+                    patch.object(canonical_module, "_as_bool", enabled_as_bool),
                     patch.object(
-                        root_module,
+                        canonical_module,
                         "_apply_aio_final_fit",
                         apply_final_fit,
                     ),
-                    patch.object(root_module, "_image_tensor_size", enabled_size),
-                    patch.object(root_module, "logger", stage_logger),
+                    patch.object(canonical_module, "_image_tensor_size", enabled_size),
+                    patch.object(canonical_module, "logger", stage_logger),
                 ):
-                    canonical_module._bind_aio_postprocess_runtime(
-                        resolve_helper=resolver
+                    output, metadata = canonical_module._run_aio_postprocess_stage(
+                        image,
+                        settings,
                     )
-                    try:
-                        output, metadata = canonical_module._run_aio_postprocess_stage(
-                            image,
-                            settings,
-                        )
-                    finally:
-                        canonical_module._bind_aio_postprocess_runtime(
-                            resolve_helper=lambda name: getattr(root_module, name)
-                        )
 
                 self.assertIs(output, output_image)
                 self.assertEqual(
                     events,
                     [
-                        ("resolve", "_as_bool"),
                         ("as_bool", ("on", False)),
-                        ("resolve", "_apply_aio_final_fit"),
                         ("apply_final_fit", (image, settings)),
-                        ("resolve", "_image_tensor_size"),
                         ("image_tensor_size", (output_image, 800, 600)),
-                        ("resolve", "logger"),
                         (
                             "logger.info",
                             (
@@ -1361,16 +1335,18 @@ class AioFinalFitPlanningMoveContractTests(unittest.TestCase):
         for name in self.MOVED_NAMES:
             with self.subTest(name=name):
                 self.assertIs(getattr(root_module, name), getattr(canonical_module, name))
+        self.assertFalse(hasattr(root_module, "_bind_aio_postprocess_runtime"))
+        self.assertFalse(hasattr(canonical_module, "_bind_aio_postprocess_runtime"))
 
         self._assert_resize_contract(root_module, canonical_module)
 
         disabled = {"enabled": False, "mode": "megapixels"}
         with (
-            patch.object(root_module, "_as_bool", return_value=False) as as_bool,
-            patch.object(root_module, "_as_float") as as_float,
-            patch.object(root_module, "_as_int") as as_int,
-            patch.object(root_module, "sqrt") as sqrt,
-            patch.object(root_module, "_align_down") as align_down,
+            patch.object(canonical_module, "_as_bool", return_value=False) as as_bool,
+            patch.object(canonical_module, "_as_float") as as_float,
+            patch.object(canonical_module, "_as_int") as as_int,
+            patch.object(canonical_module, "sqrt") as sqrt,
+            patch.object(canonical_module, "_align_down") as align_down,
         ):
             self.assertEqual(
                 canonical_module._aio_final_fit_size(0, -3, disabled),
@@ -1384,11 +1360,11 @@ class AioFinalFitPlanningMoveContractTests(unittest.TestCase):
 
         no_downscale = {"enabled": True, "mode": "unknown", "max_long_edge": 2048}
         with (
-            patch.object(root_module, "_as_bool", return_value=True),
-            patch.object(root_module, "_as_int", return_value=2048) as as_int,
-            patch.object(root_module, "_as_float") as as_float,
-            patch.object(root_module, "sqrt") as sqrt,
-            patch.object(root_module, "_align_down") as align_down,
+            patch.object(canonical_module, "_as_bool", return_value=True),
+            patch.object(canonical_module, "_as_int", return_value=2048) as as_int,
+            patch.object(canonical_module, "_as_float") as as_float,
+            patch.object(canonical_module, "sqrt") as sqrt,
+            patch.object(canonical_module, "_align_down") as align_down,
         ):
             self.assertEqual(
                 canonical_module._aio_final_fit_size(1024, 512, no_downscale),
@@ -1403,12 +1379,12 @@ class AioFinalFitPlanningMoveContractTests(unittest.TestCase):
         original = dict(megapixels)
         expected_scale = math.sqrt(4_000_000.0 / 12_000_000.0)
         with (
-            patch.object(root_module, "_as_bool", return_value=True),
-            patch.object(root_module, "_as_float", return_value=4.0) as as_float,
-            patch.object(root_module, "_as_int") as as_int,
-            patch.object(root_module, "sqrt", wraps=math.sqrt) as sqrt,
-            patch.object(root_module, "LATENT_ALIGN", 32),
-            patch.object(root_module, "_align_down", side_effect=(2304, 1728)) as align_down,
+            patch.object(canonical_module, "_as_bool", return_value=True),
+            patch.object(canonical_module, "_as_float", return_value=4.0) as as_float,
+            patch.object(canonical_module, "_as_int") as as_int,
+            patch.object(canonical_module, "sqrt", wraps=math.sqrt) as sqrt,
+            patch.object(canonical_module, "LATENT_ALIGN", 32),
+            patch.object(canonical_module, "_align_down", side_effect=(2304, 1728)) as align_down,
         ):
             result = canonical_module._aio_final_fit_size(4000, 3000, megapixels)
         self.assertEqual(result, (2304, 1728, expected_scale))
@@ -1449,31 +1425,31 @@ class AioFinalFitPlanningMoveContractTests(unittest.TestCase):
 
         with (
             patch.object(
-                root_module,
+                canonical_module,
                 "_as_bool",
                 side_effect=record("as_bool", True),
             ),
             patch.object(
-                root_module,
+                canonical_module,
                 "_image_tensor_size",
                 side_effect=record("image_tensor_size", (640, 480)),
             ) as image_tensor_size,
             patch.object(
-                root_module,
+                canonical_module,
                 "_aio_final_fit_size",
                 side_effect=final_fit_size,
             ),
             patch.object(
-                root_module,
+                canonical_module,
                 "_as_int",
                 side_effect=record("as_int", 1920),
             ),
             patch.object(
-                root_module,
+                canonical_module,
                 "_as_float",
                 side_effect=record("as_float", 4.25),
             ),
-            patch.object(root_module, "_resize_image_to_size_if_needed") as resize,
+            patch.object(canonical_module, "_resize_image_to_size_if_needed") as resize,
         ):
             output, metadata = canonical_module._apply_aio_final_fit(
                 image,
@@ -1553,21 +1529,21 @@ class AioFinalFitPlanningMoveContractTests(unittest.TestCase):
         invalid_fit = ["not", "a", "mapping"]
         invalid_settings = {"enabled": 1, "fit": invalid_fit}
         with (
-            patch.object(root_module, "_as_bool", return_value=True) as as_bool,
+            patch.object(canonical_module, "_as_bool", return_value=True) as as_bool,
             patch.object(
-                root_module,
+                canonical_module,
                 "_image_tensor_size",
                 return_value=(640, 480),
             ),
             patch.object(
-                root_module,
+                canonical_module,
                 "_aio_final_fit_size",
                 return_value=(320, 240, 0.5),
             ) as final_fit,
-            patch.object(root_module, "_as_int", return_value=2048),
-            patch.object(root_module, "_as_float", return_value=4.0),
+            patch.object(canonical_module, "_as_int", return_value=2048),
+            patch.object(canonical_module, "_as_float", return_value=4.0),
             patch.object(
-                root_module,
+                canonical_module,
                 "_resize_image_to_size_if_needed",
                 return_value=("resized", False),
             ) as resize,
@@ -1589,10 +1565,10 @@ class AioFinalFitPlanningMoveContractTests(unittest.TestCase):
 
         self._assert_stage_contract(root_module, canonical_module)
 
-    def test_root_aliases_and_call_time_helpers(self):
+    def test_root_aliases_and_canonical_helpers(self):
         self._assert_contract(nodes, aio_postprocess)
 
-    def test_package_aliases_and_call_time_helpers(self):
+    def test_package_aliases_and_canonical_helpers(self):
         with _loaded_package_entrypoint() as (_, package_nodes):
             package_name = package_nodes.__package__
             package_postprocess = sys.modules[
@@ -1916,11 +1892,16 @@ class AioSeedNormalizationMoveContractTests(unittest.TestCase):
         self.assertEqual(root_module.AIO_SPECIAL_SEED_DECREMENT, -3)
         self.assertIsInstance(root_module.AIO_SPECIAL_SEEDS, set)
         self.assertEqual(root_module.AIO_SPECIAL_SEEDS, {-1, -2, -3})
+        self.assertEqual(canonical_module.MAX_SEED, root_module.MAX_SEED)
+        self.assertEqual(
+            canonical_module.SEED_CONTROL_MODES,
+            root_module.SEED_CONTROL_MODES,
+        )
 
         with (
-            patch.object(root_module, "_as_int", side_effect=(99, -99)) as as_int,
-            patch.object(root_module, "MAX_SEED", 12),
-            patch.object(root_module, "AIO_SPECIAL_SEED_DECREMENT", -7),
+            patch.object(canonical_module, "_as_int", side_effect=(99, -99)) as as_int,
+            patch.object(canonical_module, "MAX_SEED", 12),
+            patch.object(canonical_module, "AIO_SPECIAL_SEED_DECREMENT", -7),
         ):
             self.assertEqual(canonical_module._normalize_aio_seed("high"), 12)
             self.assertEqual(canonical_module._normalize_aio_seed("low"), -7)
@@ -1930,10 +1911,10 @@ class AioSeedNormalizationMoveContractTests(unittest.TestCase):
             [call("high", -1), call("low", -1)],
         )
 
-    def test_root_aliases_and_call_time_clamp_helpers(self):
+    def test_root_aliases_and_canonical_clamp_helpers(self):
         self._assert_contract(nodes, aio_generation_normalization)
 
-    def test_package_aliases_and_call_time_clamp_helpers(self):
+    def test_package_aliases_and_canonical_clamp_helpers(self):
         with _loaded_package_entrypoint() as (_, package_nodes):
             package_name = package_nodes.__package__
             package_generation_normalization = sys.modules[
