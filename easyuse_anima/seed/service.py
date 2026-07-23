@@ -335,6 +335,8 @@ class InMemorySeedReservationService:
             raise SeedReservationContractError("Seed selection is invalid")
 
         concrete_seed = request.seed
+        if request.after_generate == SEED_CONTROL_FIXED:
+            return concrete_seed, concrete_seed
         if state is None:
             return concrete_seed, concrete_seed
         if state.reservations:

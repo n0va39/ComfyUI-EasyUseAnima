@@ -159,9 +159,9 @@ try {
         throw "Frontend host hook registry smoke failed with exit code $LASTEXITCODE."
     }
 
-    & node "tests\frontend_prompt_studio_advanced_queue_seed_runtime_smoke.mjs"
+    & node "tests\frontend_prompt_studio_advanced_values_smoke.mjs"
     if ($LASTEXITCODE -ne 0) {
-        throw "Frontend Prompt Studio Advanced queue seed runtime smoke failed with exit code $LASTEXITCODE."
+        throw "Frontend Prompt Studio Advanced executed values smoke failed with exit code $LASTEXITCODE."
     }
 
     & node "tests\frontend_wildcard_values_smoke.mjs"
