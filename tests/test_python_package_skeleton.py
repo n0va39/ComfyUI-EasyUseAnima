@@ -58,6 +58,7 @@ PACKAGE_MODULES = (
     "easyuse_anima.profiles",
     "easyuse_anima.profiles.contract",
     "easyuse_anima.profiles.mutation",
+    "easyuse_anima.seed.execution_identity",
     "easyuse_anima.seed.service",
     "easyuse_anima.prompt",
     "easyuse_anima.prompt.advanced",
@@ -154,6 +155,16 @@ print(json.dumps({{
             "SeedReservationCapacityError",
             "SeedReservationConflictError",
             "SeedReservationServiceError",
+        ]
+        expected_all[
+            PACKAGE_MODULES.index("easyuse_anima.seed.execution_identity")
+        ] = [
+            "SEED_EXECUTION_IDENTITY_VERSION",
+            "SeedExecutionContext",
+            "SeedExecutionIdentity",
+            "SeedExecutionIdentityError",
+            "read_comfy_execution_context",
+            "resolve_seed_execution_identity",
         ]
         self.assertEqual(payload["declared_all"], expected_all)
         self.assertEqual(payload["new_forbidden"], [])

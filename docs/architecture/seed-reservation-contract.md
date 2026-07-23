@@ -657,3 +657,85 @@ Exit:
   display ownership, rollback units, and validation ownership are explicit;
 - the diff contains only the two allowed Markdown files; and
 - S167-03b can begin without feature-specific inference.
+
+## S167-03b execution identity Contract record
+
+- State: VALIDATED; `dev` merge pending
+- PR type: Contract
+- Baseline: `dev` commit
+  `eedaea110612c4cb0523e5b45fa470e1b786f7b0`
+- Feature reservation callers: zero
+
+### Implemented boundary
+
+`easyuse_anima.seed.execution_identity` now owns:
+
+- immutable validated `SeedExecutionContext` and `SeedExecutionIdentity`
+  values;
+- call-time-only discovery of
+  `comfy_execution.utils.get_executing_context()` with no host import or cache
+  at package import time;
+- context-authoritative request identity from feature, `prompt_id`, effective
+  `node_id`, and optional `list_index`;
+- stream identity from feature and stable effective node ID;
+- stable hidden `UNIQUE_ID` fallback streams with a fresh opaque request ID;
+  and
+- collision-safe, versioned JSON component encoding instead of delimiter
+  concatenation.
+
+Malformed or unavailable host context returns `None` from the host adapter.
+When neither that context nor a usable hidden node ID exists, identity
+resolution also returns `None`; no reservation service can be mutated by this
+Contract alone.
+
+### Caller, alias, and state delta
+
+- `reserve` and `settle` production caller counts remain zero.
+- The seed package privately imports the new module so the shipped runtime
+  closure remains complete; no public package re-export was added.
+- `ComfyHostProvider` remains the frozen four-method E-02a capability port.
+- Root `nodes.py`, feature nodes, browser hooks, workflow schemas, and
+  compatibility aliases are unchanged.
+- The module owns no mutable global, context cache, reservation, or background
+  lifecycle.
+
+### Validation
+
+- focused identity, package-skeleton, analyzer-fixture, and import-boundary
+  checks: 22 tests passed;
+- strict Pyright on the new production module: 0 errors and 0 warnings;
+- Python compile: passed;
+- Comfy v0.27.0 call-time host import smoke outside active execution: safely
+  returned `None`; and
+- official full: intentionally not run because this unit has zero feature
+  callers and S167-03a assigns full ownership to the cutover Behavior units.
+
+### Allowed-file boundary
+
+S167-03b may change only:
+
+- `easyuse_anima/seed/__init__.py`;
+- `easyuse_anima/seed/execution_identity.py`;
+- `tests/test_seed_execution_identity.py`;
+- `tests/test_python_package_skeleton.py`;
+- `tests/test_python_backend_analyzer.py`;
+- `tests/fixtures/python_backend_baseline.json`;
+- `docs/architecture/seed-reservation-contract.md`; and
+- `docs/architecture/python-backend-execution-roadmap.md`.
+
+Forbidden:
+
+- a production `reserve` or `settle` caller;
+- feature-node, browser, workflow, metadata, route, or hidden-input changes;
+- changes to reservation arithmetic, settlement, capacity, or cache policy;
+- expanding `ComfyHostProvider`; and
+- S167-03c session behavior, S167-03d/03e cutover, #169, D-12, release, or
+  Registry work.
+
+Exit:
+
+- one canonical context/identity adapter exists with no mutable state;
+- headless, mapped-call, older-host, malformed-host, and missing-identity
+  behavior is explicit and focused-tested; and
+- S167-03c can own reserve/settle exception behavior without inferring host
+  identity rules.

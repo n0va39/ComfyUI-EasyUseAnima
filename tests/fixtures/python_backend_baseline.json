@@ -21052,6 +21052,24 @@
         "target": "easyuse_anima/seed/reservation.py"
       },
       {
+        "alias": "_execution_identity",
+        "bound_name": "_execution_identity",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".:execution_identity",
+        "kind": "static_from",
+        "line": 3,
+        "name": "execution_identity",
+        "optional": false,
+        "requested": ".",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/seed/__init__.py",
+        "target": "easyuse_anima/seed/execution_identity.py"
+      },
+      {
         "alias": "_reservation",
         "bound_name": "_reservation",
         "branch_context": [],
@@ -21060,7 +21078,7 @@
         "conditional": false,
         "imported": ".:reservation",
         "kind": "static_from",
-        "line": 3,
+        "line": 4,
         "name": "reservation",
         "optional": false,
         "requested": ".",
@@ -21185,6 +21203,142 @@
         "scope": "_wildcard_engine_module",
         "source": "easyuse_anima/seed/compatibility.py",
         "target": "wildcard_engine.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "annotations",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "__future__:annotations",
+        "kind": "static_from",
+        "line": 4,
+        "name": "annotations",
+        "optional": false,
+        "requested": "__future__",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/seed/execution_identity.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "importlib",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "importlib",
+        "kind": "static_import",
+        "line": 6,
+        "name": null,
+        "optional": false,
+        "requested": "importlib",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/seed/execution_identity.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "json",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "json",
+        "kind": "static_import",
+        "line": 7,
+        "name": null,
+        "optional": false,
+        "requested": "json",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/seed/execution_identity.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "uuid",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "uuid",
+        "kind": "static_import",
+        "line": 8,
+        "name": null,
+        "optional": false,
+        "requested": "uuid",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/seed/execution_identity.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "Callable",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "collections.abc:Callable",
+        "kind": "static_from",
+        "line": 9,
+        "name": "Callable",
+        "optional": false,
+        "requested": "collections.abc",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/seed/execution_identity.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "dataclass",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "dataclasses:dataclass",
+        "kind": "static_from",
+        "line": 10,
+        "name": "dataclass",
+        "optional": false,
+        "requested": "dataclasses",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/seed/execution_identity.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "TypeAlias",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "typing:TypeAlias",
+        "kind": "static_from",
+        "line": 11,
+        "name": "TypeAlias",
+        "optional": false,
+        "requested": "typing",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/seed/execution_identity.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "cast",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "typing:cast",
+        "kind": "static_from",
+        "line": 11,
+        "name": "cast",
+        "optional": false,
+        "requested": "typing",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/seed/execution_identity.py"
       },
       {
         "alias": null,
@@ -44868,6 +45022,10 @@
       },
       {
         "from": "easyuse_anima/seed/__init__.py",
+        "to": "easyuse_anima/seed/execution_identity.py"
+      },
+      {
+        "from": "easyuse_anima/seed/__init__.py",
         "to": "easyuse_anima/seed/reservation.py"
       },
       {
@@ -45646,6 +45804,12 @@
       {
         "cyclic": false,
         "modules": [
+          "easyuse_anima/seed/execution_identity.py"
+        ]
+      },
+      {
+        "cyclic": false,
+        "modules": [
           "easyuse_anima/seed/reservation.py"
         ]
       },
@@ -45694,7 +45858,7 @@
     ]
   },
   "inventory": {
-    "module_count": 94,
+    "module_count": 95,
     "modules": [
       {
         "is_package": true,
@@ -46706,9 +46870,9 @@
       },
       {
         "is_package": true,
-        "loc": 5,
+        "loc": 6,
         "module": "easyuse_anima.seed",
-        "normalized_git_blob_sha1": "653d1c05aec0ab255562bf631fc9707071b5cc4e",
+        "normalized_git_blob_sha1": "bcbf1d5f2b745218e803706fb31a23ff944ff13a",
         "path": "easyuse_anima/seed/__init__.py",
         "top_level": {
           "class_count": 0,
@@ -46726,6 +46890,18 @@
           "class_count": 0,
           "function_count": 2,
           "global_count": 3
+        }
+      },
+      {
+        "is_package": false,
+        "loc": 212,
+        "module": "easyuse_anima.seed.execution_identity",
+        "normalized_git_blob_sha1": "4f09455dd43382096ea3e87946f793c16bdba870",
+        "path": "easyuse_anima/seed/execution_identity.py",
+        "top_level": {
+          "class_count": 3,
+          "function_count": 8,
+          "global_count": 8
         }
       },
       {
@@ -59376,6 +59552,94 @@
         "line": 4,
         "optional": false,
         "role": "ordinary",
+        "source": "easyuse_anima/seed/execution_identity.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "importlib",
+        "kind": "static_import",
+        "line": 6,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/seed/execution_identity.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "json",
+        "kind": "static_import",
+        "line": 7,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/seed/execution_identity.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "uuid",
+        "kind": "static_import",
+        "line": 8,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/seed/execution_identity.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "collections.abc:Callable",
+        "kind": "static_from",
+        "line": 9,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/seed/execution_identity.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "dataclasses:dataclass",
+        "kind": "static_from",
+        "line": 10,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/seed/execution_identity.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "typing:TypeAlias",
+        "kind": "static_from",
+        "line": 11,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/seed/execution_identity.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "typing:cast",
+        "kind": "static_from",
+        "line": 11,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/seed/execution_identity.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "__future__:annotations",
+        "kind": "static_from",
+        "line": 4,
+        "optional": false,
+        "role": "ordinary",
         "source": "easyuse_anima/seed/reservation.py"
       },
       {
@@ -61142,6 +61406,7 @@
       "easyuse_anima/runtime.py",
       "easyuse_anima/seed/__init__.py",
       "easyuse_anima/seed/compatibility.py",
+      "easyuse_anima/seed/execution_identity.py",
       "easyuse_anima/seed/reservation.py",
       "easyuse_anima/seed/service.py",
       "easyuse_anima/workflow.py",
@@ -61238,6 +61503,7 @@
       "easyuse_anima/runtime.py",
       "easyuse_anima/seed/__init__.py",
       "easyuse_anima/seed/compatibility.py",
+      "easyuse_anima/seed/execution_identity.py",
       "easyuse_anima/seed/reservation.py",
       "easyuse_anima/seed/service.py",
       "easyuse_anima/workflow.py",
@@ -62294,6 +62560,24 @@
         "kind": "import_time_call",
         "line": 11,
         "module": "easyuse_anima/runtime.py",
+        "scope": "<module>"
+      },
+      {
+        "callee": "dataclass",
+        "column": 1,
+        "context": "decorator:SeedExecutionContext",
+        "kind": "import_time_call",
+        "line": 73,
+        "module": "easyuse_anima/seed/execution_identity.py",
+        "scope": "<module>"
+      },
+      {
+        "callee": "dataclass",
+        "column": 1,
+        "context": "decorator:SeedExecutionIdentity",
+        "kind": "import_time_call",
+        "line": 100,
+        "module": "easyuse_anima/seed/execution_identity.py",
         "scope": "<module>"
       },
       {
