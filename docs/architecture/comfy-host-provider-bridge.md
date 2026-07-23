@@ -1948,6 +1948,138 @@ Result:
 - `nodes.py` is 1,182 lines, 11,481 fewer than the 12,663-line Phase A
   baseline (90.7% removed).
 
+### B-11c30d4 — AiO execution-service binder Move
+
+- **State:** READY; Draft PR pending
+- **Owner:** #184
+- **Behavior boundary:** #168 and #169
+- **Type:** Move
+- **Base:** `dev@62e92e16b38b2b9cf521df474eaae7ccc1bf1ec8`
+
+Pre-edit inventory:
+
+- the frozen d4 subgroup contains exactly
+  `_bind_aio_model_preparation_runtime`, `_bind_aio_sampling_runtime`, and
+  `_bind_aio_conditioning_runtime`;
+- the three binders own only three `_RUNTIME_RESOLVER` globals. They account
+  for 43 root-resolver slots over 37 unique names, six provider slots over
+  `_find_comfy_node_class`, `_require_custom_node_class`,
+  `_require_any_custom_node_class`, and `_encode_with_comfy_clip`, three direct
+  `_resolve_comfy_host_helper` dependencies, and 23 repository replacement
+  slots over 21 names in six test files;
+- model preparation has fourteen root-resolver names, three provider names,
+  and one direct E-07 bridge. It owns twelve root identity aliases covering
+  AuraFlow, KJ, DAVE, Safe PAG, Spectrum model patches, LoRA normalization and
+  application, signature construction, and ephemeral-model cleanup;
+- sampling has nineteen root-resolver names, two provider names, and one direct
+  E-07 bridge. It owns eleven root identity aliases covering random/effective
+  seeds, latent creation, Comfy/Spectrum sampling, VAE encode/decode, stage
+  sampler settings, and highres backend selection;
+- conditioning has ten root-resolver names, one provider name, and one direct
+  E-07 bridge. It owns three root identity aliases covering Prompt Data field
+  selection, the no-general prompt, and USDU conditioning;
+- root imports all 26 canonical functions as exact package/flat aliases and
+  imports/calls each binder once during module initialization;
+- `easyuse_anima.aio.legacy_generation` is the production caller of the d4
+  execution functions through its still-active d5 resolver. Direct d4 owner
+  tests currently patch root to affect same-module calls, while d5/d6 tests
+  also patch root aliases for their still-active binders; and
+- model-management, Comfy node, Spectrum, KJ, DAVE, Safe PAG, seed, LoRA,
+  Prompt Data, and CLIP behavior already have canonical stateless/provider
+  owners. No new data, service, or callback contract is required.
+
+Exact root-resolver names:
+
+```text
+model_preparation:
+  _apply_aio_anima_dave_patch
+  _apply_aio_kj_model_patches
+  _apply_aio_safe_pag_patch
+  _apply_aio_spectrum_correction_patch_for_comfy_sampler
+  _apply_aio_spectrum_forecast_patch_for_comfy_sampler
+  _as_bool
+  _as_float
+  _as_int
+  _call_with_supported_kwargs
+  _lora_stack_name
+  _node_output_tuple
+  _normalize_aio_lora_stack
+  _patch_model_sampling_aura_flow
+  logger
+
+sampling:
+  AIO_SPECIAL_SEEDS
+  ANIMA_MOD_GUIDANCE_DEFAULT_PROFILE
+  ANIMA_MOD_GUIDANCE_PROFILE_OFF
+  MAX_SEED
+  SEED_CONTROL_FIXED
+  _as_bool
+  _as_float
+  _as_int
+  _call_with_supported_kwargs
+  _json_clone
+  _new_aio_random_seed
+  _node_output_tuple
+  _normalize_aio_seed
+  _normalize_anima_mod_guidance_profile
+  _resolve_aio_runtime_seed
+  _sample_latent_with_comfy
+  _sample_latent_with_spectrum_mod_guidance_advanced
+  _sample_latent_with_spectrum_spd
+  random
+
+conditioning:
+  AIO_USDU_PROMPT_FULL
+  AIO_USDU_PROMPT_NO_GENERAL
+  _advanced_artist_field_prompt
+  _advanced_enabled_pane_fields
+  _aio_prompt_data_fields_for_usdu
+  _aio_usdu_prompt_without_general
+  _as_bool
+  _correct_advanced_field_sequence
+  _normalize_advanced_fields
+  _normalize_prompt_data
+```
+
+Allowed production files:
+
+```text
+nodes.py
+easyuse_anima/aio/model_preparation.py
+easyuse_anima/aio/sampling.py
+easyuse_anima/aio/conditioning.py
+```
+
+Allowed supporting files are the focused d4 owner/caller tests, Comfy-host and
+Python compatibility gates/fixtures, nodes/backend analyzer gates/fixtures,
+and the three architecture documents.
+
+Exit:
+
+- all three d4 binder definitions, root imports/calls, `_RUNTIME_RESOLVER`
+  globals, and `_runtime_helper` functions are absent;
+- the three canonical modules import existing stateless owners directly, use
+  direct same-module calls, and resolve only their existing E-07 host seams at
+  call time;
+- root keeps exact aliases for all 26 canonical execution functions;
+- only d4 owner tests move their patch ownership to canonical modules. Root
+  replacements that drive the still-active d5/d6 binders remain;
+- d4 alone is retired while d5 and d6 remain the exact active AiO groups; and
+- all model patch/cleanup, LoRA, seed, sampler/Spectrum, VAE, stage-setting,
+  Prompt Data, conditioning, provider, error, log, schema, workflow, cache,
+  and stage behavior remains unchanged.
+
+Forbidden:
+
+- changing patch order/kwargs, LoRA normalization/application, cleanup timing,
+  seed/random semantics, backend selection, sampler/Spectrum/VAE invocation,
+  SPD Euler normalization, stage sampler settings, prompt field selection,
+  quality fallback, CLIP text, provider lookup, errors/logs, schemas,
+  workflows, cache, or stage order;
+- retiring d5, d6, or Wildcard/NAIA binders, or beginning d0b; and
+- combining Contract, Behavior, performance, dependency, or broad formatting
+  cleanup.
+
 ### B-11d — Final root shim
 
 - **State:** BLOCKED by the remaining AiO and Wildcard/NAIA binder families

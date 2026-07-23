@@ -1097,6 +1097,11 @@ unchanged. The separate legacy Wildcard unsupported alias remains for D-12.
     provider. The root shim falls to 1,182 lines and the audited package grows
     to 92 shipped and reachable modules. d0b and d4 through d6 remain
     separate; B-11c30d4 is the next READY Move.
+  - B-11c30d4 is limited to the model-preparation, sampling, and conditioning
+    binder subgroup. The Move consumes existing common, Prompt, LoRA, seed,
+    invocation, and E-07 owners; it creates no new contract. Patch order,
+    seed/sampler behavior, provider observation, errors/logs, workflows,
+    cache, and stage order remain frozen. d0b and d5-d6 stay separate.
   - The final B-11c cutover removes remaining root execution ownership and
     leaves the explicit supported `nodes.py` compatibility shim.
 - Add `easyuse_anima/registration.py` as pure mapping composition. It performs no
