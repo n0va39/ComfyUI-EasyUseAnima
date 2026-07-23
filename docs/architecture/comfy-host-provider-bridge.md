@@ -525,7 +525,7 @@ Forbidden:
 
 ### B-11c29a — Max-resolution wrapper
 
-- **State:** IN PROGRESS after E-07b PR #328
+- **State:** COMPLETE in PR #329
 - **Owner:** #184
 - **Type:** Move or retirement according to the ledger
 
@@ -590,7 +590,7 @@ Forbidden:
 
 ### B-11c29b — Node discovery family
 
-- **State:** BLOCKED by B-11c29a
+- **State:** READY after B-11c29a
 - **Owner:** #184
 - **Type:** Move/retirement, split further when the ledger requires
 
@@ -679,8 +679,9 @@ COMPLETE: E-02a minimal runtime shell / PR #327
 COMPLETE: E-07a default host provider / PR #327
 COMPLETE: E-07b wiring and compatibility gate / PR #328
 
-IN PROGRESS: B-11c29a max-resolution wrapper retirement
-BLOCKED:  B-11c29b-d wrapper Moves/retirements
+COMPLETE: B-11c29a max-resolution wrapper retirement / PR #329
+READY:    B-11c29b node-discovery wrapper Move/retirement
+BLOCKED:  B-11c29c-d wrapper Moves/retirements
 BLOCKED:  B-11c30 binder/resolver migration audit
 BLOCKED:  B-11d final root shim
 
