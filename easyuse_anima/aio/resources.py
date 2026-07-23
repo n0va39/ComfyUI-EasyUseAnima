@@ -72,6 +72,14 @@ def _comfy_text_encoder_names() -> list[str]:
     )
 
 
+def _comfy_vae_names() -> list[str]:
+    return _runtime_helper("_adapter_comfy_vae_names")(
+        _runtime_helper("ANIMA_DEFAULT_VAE_CANDIDATES"),
+        _runtime_helper("_find_comfy_node_class"),
+        _runtime_helper("_folder_path_names"),
+    )
+
+
 def _preferred_name_default(names: list[str], candidates: tuple[str, ...]) -> str:
     if not names:
         return candidates[0] if candidates else ""

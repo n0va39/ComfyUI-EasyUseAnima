@@ -73,12 +73,12 @@ def load_dynamic():
     def test_current_nodes_module_shape_matches_recorded_baseline(self):
         report = analyzer.analyze_path(ROOT / "nodes.py")
 
-        self.assertEqual(report["git_blob_sha1"], "7154f6a98467511193e1dafaf6832882be3c23ce")
-        # Issue #184 B-11c18 moves only the text-encoder name wrapper to
+        self.assertEqual(report["git_blob_sha1"], "ff00e2019657d732f8eab20990604bb96ffa833d")
+        # Issue #184 B-11c19 moves only the VAE name wrapper to
         # the canonical AiO resource owner.
-        self.assertEqual(report["top_level"]["function_count"], 18)
+        self.assertEqual(report["top_level"]["function_count"], 17)
         self.assertEqual(report["top_level"]["class_count"], 0)
-        self.assertEqual(report["line_count"], 2_362)
+        self.assertEqual(report["line_count"], 2_356)
         class_names = {item["name"] for item in report["top_level"]["classes"]}
         self.assertNotIn("EasyUseAnimaAIOGenerator", class_names)
         self.assertNotIn("EasyUseAnimaInput", class_names)
