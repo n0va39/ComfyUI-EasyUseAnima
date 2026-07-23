@@ -303,7 +303,7 @@ public compatibility. E-07b must migrate the listed repository tests before
 
 ### E-01a — Scoped host-wrapper inventory
 
-- **State:** IN REVIEW in PR #325
+- **State:** COMPLETE in PR #325
 - **Owner:** #323 / parent #187
 - **Type:** Contract/docs/gate
 - **Base:** current `dev`
@@ -522,9 +522,9 @@ and D-12 unless a separate behavior-preserving owner is proven.
 
 ```text
 COMPLETE: B-11c28 / PR #322
+COMPLETE: E-01a scoped inventory / PR #325
 
-READY:    E-01a scoped inventory
-BLOCKED:  E-02a minimal runtime shell
+READY:    E-02a minimal runtime shell
 BLOCKED:  E-07a default host provider
 BLOCKED:  E-07b wiring and compatibility gate
 BLOCKED:  B-11c29a-d wrapper Moves/retirements
@@ -582,18 +582,19 @@ Stop and document a blocker rather than expanding the PR when:
 ```text
 Read docs/architecture/comfy-host-provider-bridge.md, Issue #323, Issue #184's
 latest blocker/completion evidence, Issue #187, python-backend.md, ADR-002, and
-the compatibility fixture before editing.
+the E-01a compatibility ledger before editing.
 
-Start with E-01a only. Inventory the seven named wrappers, all production
-callers, binders/resolvers, repository monkeypatches, optional dependencies,
-lookup/error order, and external evidence. Add a deterministic decision ledger
-and tests. Do not add runtime/provider production code and do not move a
-wrapper in E-01a.
+E-01a is complete in PR #325. Start with E-02a only and follow the exact
+production symbols, allowed files, tests, and forbidden work in
+tests/fixtures/comfy_host_compatibility.v1.json. Declare the narrow
+ComfyHostProvider Protocol needed to type the frozen RuntimeServices shell,
+then implement only install/access semantics. Do not implement the default
+provider, host lookup, bootstrap wiring, feature placeholders, or root/canonical
+caller changes in E-02a.
 
-After E-01a merges, execute one Contract unit at a time: E-02a, E-07a, then
-E-07b. Only after their exit gates pass may #184 resume B-11c29 wrapper Moves.
+After E-02a merges, execute one Contract unit at a time: E-07a, then E-07b.
+Only after their exit gates pass may #184 resume B-11c29 wrapper Moves.
 Target dev, use one task ID per branch, run focused tests and the official full
 runner, and record exact base/head SHA, compatibility decisions, package/live
-status, rollback boundary, and next task. Do not merge or release as part of a
-Codex implementation task.
+status, rollback boundary, and next task. Do not release from this sequence.
 ```
