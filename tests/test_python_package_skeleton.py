@@ -58,6 +58,7 @@ PACKAGE_MODULES = (
     "easyuse_anima.profiles",
     "easyuse_anima.profiles.contract",
     "easyuse_anima.profiles.mutation",
+    "easyuse_anima.seed.service",
     "easyuse_anima.prompt",
     "easyuse_anima.prompt.advanced",
     "easyuse_anima.prompt.artist_mix",
@@ -147,6 +148,12 @@ print(json.dumps({{
         expected_all[PACKAGE_MODULES.index("easyuse_anima.nodes.aio_nodes")] = [
             "EasyUseAnimaInput",
             "EasyUseAnimaAIOGenerator",
+        ]
+        expected_all[PACKAGE_MODULES.index("easyuse_anima.seed.service")] = [
+            "InMemorySeedReservationService",
+            "SeedReservationCapacityError",
+            "SeedReservationConflictError",
+            "SeedReservationServiceError",
         ]
         self.assertEqual(payload["declared_all"], expected_all)
         self.assertEqual(payload["new_forbidden"], [])

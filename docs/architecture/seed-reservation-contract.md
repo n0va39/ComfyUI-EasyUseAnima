@@ -339,7 +339,7 @@ Exit:
 
 ## S167-02 authoritative service Behavior gate
 
-- State: READY
+- State: IMPLEMENTED in PR #358; final full gate pending
 - PR type: Behavior
 - Baseline: `dev` commit
   `e187f4949651e88057403517e3305cc4150e44d9`
@@ -449,3 +449,19 @@ Exit:
 - the official full runner passes once; and
 - S167-03 receives one composed backend owner without frontend or node behavior
   changing in this PR.
+
+### Implementation checkpoint
+
+PR #358 adds `InMemorySeedReservationService` as the sole process-local owner
+and injects one instance through bootstrap into `RuntimeServices`.
+
+- The service uses one re-entrant lock and keeps no module-level mutable state.
+- Default bounds are 1,024 retained streams, 4,096 queued reservation records,
+  4,096 accepted idempotency records, and 4,096 retired reservation IDs.
+- Stream arithmetic domains are immutable while retained; a different
+  `next_seed_max` or overflow policy is an explicit conflict rather than an
+  inferred migration.
+- Focused service, concurrency, runtime-composition, package-import, and
+  analyzer gates pass. The production files also pass strict Pyright.
+- Production `reserve` and `settle` callers remain zero. S167-03 still owns all
+  adapters and behavior cutover.
