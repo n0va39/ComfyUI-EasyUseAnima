@@ -36,6 +36,10 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
             nodes._run_aio_highres_stage,
             legacy_generation._run_aio_highres_stage,
         )
+        self.assertIs(
+            nodes._run_aio_upscale_stage,
+            legacy_generation._run_aio_upscale_stage,
+        )
 
         with _loaded_package_entrypoint() as (package_entrypoint, package_nodes):
             canonical_module = sys.modules[
@@ -52,6 +56,10 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
             self.assertIs(
                 package_nodes._run_aio_highres_stage,
                 canonical_module._run_aio_highres_stage,
+            )
+            self.assertIs(
+                package_nodes._run_aio_upscale_stage,
+                canonical_module._run_aio_upscale_stage,
             )
 
     def test_highres_stage_disabled_short_circuits_after_as_bool(self):
@@ -343,6 +351,193 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
                 "sample",
                 "resolve:_cleanup_aio_ephemeral_model",
                 "cleanup",
+            ],
+        )
+
+    def test_upscale_dispatcher_preserves_lazy_branch_and_exception_contract(self):
+        model = _Token("model")
+        clip = _Token("clip")
+        vae = _Token("vae")
+        positive = _Token("positive")
+        negative = _Token("negative")
+        image = _Token("image")
+        sampler_settings = {"seed": 17}
+        prompt_data = {"fields": []}
+        quality_tags = "quality"
+        quality_neg = "quality-neg"
+
+        def execute(upscale_settings, leaf_helpers, trace):
+            def as_bool(value, default):
+                trace.append(("call", "_as_bool", value, default))
+                return bool(value)
+
+            helpers = {"_as_bool": as_bool, **leaf_helpers}
+
+            def resolve(name):
+                trace.append(("resolve", name))
+                return helpers[name]
+
+            legacy_generation._bind_aio_legacy_generation_runtime(
+                resolve_helper=resolve
+            )
+            try:
+                return nodes._run_aio_upscale_stage(
+                    model,
+                    clip,
+                    vae,
+                    positive,
+                    negative,
+                    image,
+                    sampler_settings,
+                    upscale_settings,
+                    quality_tags,
+                    quality_neg,
+                    prompt_data,
+                    True,
+                    False,
+                )
+            finally:
+                legacy_generation._bind_aio_legacy_generation_runtime(
+                    resolve_helper=lambda name: getattr(nodes, name)
+                )
+
+        disabled_trace = []
+        disabled_result = execute({"enabled": False}, {}, disabled_trace)
+        self.assertIs(disabled_result[0], image)
+        self.assertEqual(disabled_result[1], {"enabled": False})
+        self.assertEqual(
+            disabled_trace,
+            [
+                ("resolve", "_as_bool"),
+                ("call", "_as_bool", False, False),
+            ],
+        )
+
+        usdu_settings = {"enabled": True, "backend": ""}
+        usdu_output = _Token("usdu_output")
+        usdu_metadata = {"backend": "usdu"}
+        usdu_trace = []
+
+        def run_usdu(*args):
+            usdu_trace.append(("call", "usdu"))
+            self.assertEqual(
+                args,
+                (
+                    model,
+                    clip,
+                    vae,
+                    positive,
+                    negative,
+                    image,
+                    sampler_settings,
+                    usdu_settings,
+                    quality_tags,
+                    quality_neg,
+                    prompt_data,
+                    True,
+                    False,
+                ),
+            )
+            return usdu_output, usdu_metadata
+
+        usdu_result = execute(
+            usdu_settings,
+            {"_run_aio_usdu_upscale_stage": run_usdu},
+            usdu_trace,
+        )
+        self.assertEqual(usdu_result, (usdu_output, usdu_metadata))
+        self.assertIs(usdu_result[0], usdu_output)
+        self.assertIs(usdu_result[1], usdu_metadata)
+        self.assertEqual(
+            usdu_trace,
+            [
+                ("resolve", "_as_bool"),
+                ("call", "_as_bool", True, False),
+                ("resolve", "_run_aio_usdu_upscale_stage"),
+                ("call", "usdu"),
+            ],
+        )
+
+        resshift_settings = {"enabled": True, "backend": "resshift"}
+        resshift_output = _Token("resshift_output")
+        resshift_metadata = {"backend": "resshift"}
+        resshift_trace = []
+
+        def run_resshift(*args):
+            resshift_trace.append(("call", "resshift"))
+            self.assertEqual(
+                args,
+                (
+                    image,
+                    sampler_settings,
+                    resshift_settings,
+                    quality_tags,
+                    quality_neg,
+                    prompt_data,
+                    True,
+                    False,
+                ),
+            )
+            return resshift_output, resshift_metadata
+
+        resshift_result = execute(
+            resshift_settings,
+            {"_run_aio_resshift_upscale_stage": run_resshift},
+            resshift_trace,
+        )
+        self.assertEqual(
+            resshift_result,
+            (resshift_output, resshift_metadata),
+        )
+        self.assertIs(resshift_result[0], resshift_output)
+        self.assertIs(resshift_result[1], resshift_metadata)
+        self.assertEqual(
+            resshift_trace,
+            [
+                ("resolve", "_as_bool"),
+                ("call", "_as_bool", True, False),
+                ("resolve", "_run_aio_resshift_upscale_stage"),
+                ("call", "resshift"),
+            ],
+        )
+
+        unsupported_trace = []
+        with self.assertRaisesRegex(
+            RuntimeError,
+            r"^\[EasyUseAnima\] Unsupported final upscale backend: unknown$",
+        ):
+            execute(
+                {"enabled": True, "backend": "unknown"},
+                {},
+                unsupported_trace,
+            )
+        self.assertEqual(
+            unsupported_trace,
+            [
+                ("resolve", "_as_bool"),
+                ("call", "_as_bool", True, False),
+            ],
+        )
+
+        failure_trace = []
+
+        def fail_usdu(*args):
+            failure_trace.append(("call", "usdu"))
+            raise ValueError("leaf failed")
+
+        with self.assertRaisesRegex(ValueError, "leaf failed"):
+            execute(
+                {"enabled": True, "backend": "usdu"},
+                {"_run_aio_usdu_upscale_stage": fail_usdu},
+                failure_trace,
+            )
+        self.assertEqual(
+            failure_trace,
+            [
+                ("resolve", "_as_bool"),
+                ("call", "_as_bool", True, False),
+                ("resolve", "_run_aio_usdu_upscale_stage"),
+                ("call", "usdu"),
             ],
         )
 

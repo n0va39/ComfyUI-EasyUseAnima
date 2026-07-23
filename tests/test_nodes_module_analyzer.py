@@ -73,12 +73,12 @@ def load_dynamic():
     def test_current_nodes_module_shape_matches_recorded_baseline(self):
         report = analyzer.analyze_path(ROOT / "nodes.py")
 
-        self.assertEqual(report["git_blob_sha1"], "f15e16b263a29953f593b289bf793871fb2c0c08")
-        # Issue #184 B-11c22 moves only the AiO highres stage to its canonical
-        # legacy-generation owner.
-        self.assertEqual(report["top_level"]["function_count"], 14)
+        self.assertEqual(report["git_blob_sha1"], "bb8d65eedc9c124c5fd3e2ea967386bbf1b1ce8b")
+        # Issue #184 B-11c23 moves only the AiO upscale dispatcher to its
+        # canonical legacy-generation owner.
+        self.assertEqual(report["top_level"]["function_count"], 13)
         self.assertEqual(report["top_level"]["class_count"], 0)
-        self.assertEqual(report["line_count"], 2_246)
+        self.assertEqual(report["line_count"], 2_198)
         class_names = {item["name"] for item in report["top_level"]["classes"]}
         self.assertNotIn("EasyUseAnimaAIOGenerator", class_names)
         self.assertNotIn("EasyUseAnimaInput", class_names)
