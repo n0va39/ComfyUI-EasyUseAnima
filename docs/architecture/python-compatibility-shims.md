@@ -924,7 +924,7 @@ convenience-node compatibility; it remains unmapped and is not public support.
 
 ### B-11c30d3 AiO I/O-boundary binder retirement
 
-- The planned Move contains exactly `_bind_aio_resource_runtime`,
+- PR #350 retires exactly `_bind_aio_resource_runtime`,
   `_bind_aio_preview_runtime`, and `_bind_aio_output_runtime`.
 - The pre-edit surface is 49 root-resolver slots over 46 names, four E-07
   provider slots, three direct root-helper dependencies, and 45 repository
@@ -941,6 +941,12 @@ convenience-node compatibility; it remains unmapped and is not public support.
   Root patches that drive d4 through d6 remain until those retirement units.
 - Resource discovery/loading, preview and save I/O, metadata/event payloads,
   filenames, errors, logs, schemas/workflows, and stage behavior are frozen.
+- The d3 binder definitions, resolver globals/helpers, and root imports/calls
+  are absent. Seven binders remain in two families: five AiO and two
+  Wildcard/NAIA. The active AiO split now contains only d4 through d6.
+- The compatibility inventory contains 296 canonical root bindings, three
+  residual root globals, 92 shipped and reachable Python modules, and a
+  1,182-line root shim.
 
 ### `nodes.py` public node-class surface
 

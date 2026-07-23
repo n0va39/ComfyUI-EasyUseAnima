@@ -14,6 +14,7 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 import nodes
+from easyuse_anima.aio import resources as aio_resources
 from easyuse_anima.infrastructure.comfy import capabilities, invocation, resources
 from easyuse_anima.nodes import sam3_nodes
 
@@ -415,20 +416,24 @@ class ComfyRootCompatibilityTests(unittest.TestCase):
             "sam3.1_multiplex_fp16.safetensors",
         )
 
-    def test_feature_specific_root_wrappers_inject_existing_constants_and_aliases(self):
+    def test_aio_resource_wrappers_inject_canonical_constants_and_aliases(self):
         folder_calls = []
 
         def folder_names(folder_name, fallback):
             folder_calls.append((folder_name, fallback))
             return fallback
 
-        with patch.object(nodes, "_folder_path_names", side_effect=folder_names):
+        with patch.object(
+            aio_resources,
+            "_folder_path_names",
+            side_effect=folder_names,
+        ):
             self.assertEqual(
-                nodes._comfy_diffusion_model_names(),
+                aio_resources._comfy_diffusion_model_names(),
                 list(nodes.ANIMA_DEFAULT_DIFFUSION_MODEL_CANDIDATES),
             )
             self.assertEqual(
-                nodes._comfy_text_encoder_names(),
+                aio_resources._comfy_text_encoder_names(),
                 list(nodes.ANIMA_DEFAULT_CLIP_CANDIDATES),
             )
         self.assertEqual(

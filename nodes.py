@@ -60,6 +60,17 @@ try:
     from .easyuse_anima.aio.generation_settings import (
         round_trip_aio_generation_settings as _round_trip_aio_generation_settings,
     )
+    from .easyuse_anima.aio.input_defaults import (
+        AIO_INPUT_DEFAULT_SETTINGS as AIO_INPUT_DEFAULT_SETTINGS,
+        ANIMA_CLIP_DEVICES as ANIMA_CLIP_DEVICES,
+        ANIMA_CLIP_TYPES as ANIMA_CLIP_TYPES,
+        ANIMA_DEFAULT_CLIP_CANDIDATES as ANIMA_DEFAULT_CLIP_CANDIDATES,
+        ANIMA_DEFAULT_DIFFUSION_MODEL_CANDIDATES as ANIMA_DEFAULT_DIFFUSION_MODEL_CANDIDATES,
+        ANIMA_DEFAULT_VAE_CANDIDATES as ANIMA_DEFAULT_VAE_CANDIDATES,
+        ANIMA_UNET_WEIGHT_DTYPES as ANIMA_UNET_WEIGHT_DTYPES,
+        EASY_USE_ANIMA_INPUT_SCHEMA as EASY_USE_ANIMA_INPUT_SCHEMA,
+        EASY_USE_ANIMA_INPUT_SETTINGS_VERSION as EASY_USE_ANIMA_INPUT_SETTINGS_VERSION,
+    )
     from .easyuse_anima.aio.usdu import (
         _aio_usdu_auto_tile_dimension as _aio_usdu_auto_tile_dimension,
         _aio_usdu_tile_plan as _aio_usdu_tile_plan,
@@ -112,7 +123,6 @@ try:
         AIO_PREVIEW_STAGE_LABELS as AIO_PREVIEW_STAGE_LABELS,
         _aio_preview_base_directory as _aio_preview_base_directory,
         _aio_preview_file_size_bytes as _aio_preview_file_size_bytes,
-        _bind_aio_preview_runtime as _bind_aio_preview_runtime,
         _save_aio_temp_preview_image as _save_aio_temp_preview_image,
         _send_aio_preview_event as _send_aio_preview_event,
         _tag_aio_preview_images as _tag_aio_preview_images,
@@ -123,7 +133,6 @@ try:
         _aio_lora_metadata_name as _aio_lora_metadata_name,
         _aio_prompt_with_lora_metadata as _aio_prompt_with_lora_metadata,
         _aio_save_filename_prefix as _aio_save_filename_prefix,
-        _bind_aio_output_runtime as _bind_aio_output_runtime,
         _save_image_with_comfy as _save_image_with_comfy,
         _save_image_with_image_saver as _save_image_with_image_saver,
     )
@@ -132,7 +141,6 @@ try:
         _normalize_aio_hash_bundles as _normalize_aio_hash_bundles,
     )
     from .easyuse_anima.aio.resources import (
-        _bind_aio_resource_runtime as _bind_aio_resource_runtime,
         _comfy_clip_loader_types as _comfy_clip_loader_types,
         _comfy_diffusion_model_names as _comfy_diffusion_model_names,
         _comfy_text_encoder_names as _comfy_text_encoder_names,
@@ -616,6 +624,17 @@ except ImportError:  # allows simple local import tests outside ComfyUI's packag
     from easyuse_anima.aio.generation_settings import (
         round_trip_aio_generation_settings as _round_trip_aio_generation_settings,
     )
+    from easyuse_anima.aio.input_defaults import (
+        AIO_INPUT_DEFAULT_SETTINGS as AIO_INPUT_DEFAULT_SETTINGS,
+        ANIMA_CLIP_DEVICES as ANIMA_CLIP_DEVICES,
+        ANIMA_CLIP_TYPES as ANIMA_CLIP_TYPES,
+        ANIMA_DEFAULT_CLIP_CANDIDATES as ANIMA_DEFAULT_CLIP_CANDIDATES,
+        ANIMA_DEFAULT_DIFFUSION_MODEL_CANDIDATES as ANIMA_DEFAULT_DIFFUSION_MODEL_CANDIDATES,
+        ANIMA_DEFAULT_VAE_CANDIDATES as ANIMA_DEFAULT_VAE_CANDIDATES,
+        ANIMA_UNET_WEIGHT_DTYPES as ANIMA_UNET_WEIGHT_DTYPES,
+        EASY_USE_ANIMA_INPUT_SCHEMA as EASY_USE_ANIMA_INPUT_SCHEMA,
+        EASY_USE_ANIMA_INPUT_SETTINGS_VERSION as EASY_USE_ANIMA_INPUT_SETTINGS_VERSION,
+    )
     from easyuse_anima.aio.usdu import (
         _aio_usdu_auto_tile_dimension as _aio_usdu_auto_tile_dimension,
         _aio_usdu_tile_plan as _aio_usdu_tile_plan,
@@ -668,7 +687,6 @@ except ImportError:  # allows simple local import tests outside ComfyUI's packag
         AIO_PREVIEW_STAGE_LABELS as AIO_PREVIEW_STAGE_LABELS,
         _aio_preview_base_directory as _aio_preview_base_directory,
         _aio_preview_file_size_bytes as _aio_preview_file_size_bytes,
-        _bind_aio_preview_runtime as _bind_aio_preview_runtime,
         _save_aio_temp_preview_image as _save_aio_temp_preview_image,
         _send_aio_preview_event as _send_aio_preview_event,
         _tag_aio_preview_images as _tag_aio_preview_images,
@@ -679,7 +697,6 @@ except ImportError:  # allows simple local import tests outside ComfyUI's packag
         _aio_lora_metadata_name as _aio_lora_metadata_name,
         _aio_prompt_with_lora_metadata as _aio_prompt_with_lora_metadata,
         _aio_save_filename_prefix as _aio_save_filename_prefix,
-        _bind_aio_output_runtime as _bind_aio_output_runtime,
         _save_image_with_comfy as _save_image_with_comfy,
         _save_image_with_image_saver as _save_image_with_image_saver,
     )
@@ -688,7 +705,6 @@ except ImportError:  # allows simple local import tests outside ComfyUI's packag
         _normalize_aio_hash_bundles as _normalize_aio_hash_bundles,
     )
     from easyuse_anima.aio.resources import (
-        _bind_aio_resource_runtime as _bind_aio_resource_runtime,
         _comfy_clip_loader_types as _comfy_clip_loader_types,
         _comfy_diffusion_model_names as _comfy_diffusion_model_names,
         _comfy_text_encoder_names as _comfy_text_encoder_names,
@@ -1121,71 +1137,10 @@ except ImportError:  # allows simple local import tests outside ComfyUI's packag
 logger = logging.getLogger("ComfyUI-EasyUseAnima")
 
 EASY_USE_ANIMA_INPUT_TYPE = "EASY_USE_ANIMA_INPUT"
-EASY_USE_ANIMA_INPUT_SCHEMA = "easy_use_anima_input"
-EASY_USE_ANIMA_INPUT_SETTINGS_VERSION = 1
-ANIMA_DEFAULT_DIFFUSION_MODEL_CANDIDATES = (
-    "anima-base-v1.0.safetensors",
-    "ANIMA\\anima_baseV10.safetensors",
-)
-ANIMA_DEFAULT_VAE_CANDIDATES = (
-    "qwen_image_vae.safetensors",
-)
-ANIMA_DEFAULT_CLIP_CANDIDATES = (
-    "qwen_3_06b_base.safetensors",
-)
-ANIMA_CLIP_TYPES = (
-    "stable_diffusion",
-    "stable_cascade",
-    "sd3",
-    "stable_audio",
-    "mochi",
-    "ltxv",
-    "pixart",
-    "cosmos",
-    "lumina2",
-    "wan",
-    "hidream",
-    "chroma",
-    "ace",
-    "omnigen2",
-    "qwen_image",
-    "hunyuan_image",
-    "flux2",
-    "ovis",
-    "longcat_image",
-    "cogvideox",
-    "lens",
-    "pixeldit",
-    "ideogram4",
-)
-ANIMA_UNET_WEIGHT_DTYPES = (
-    "default",
-    "fp8_e4m3fn",
-    "fp8_e4m3fn_fast",
-    "fp8_e5m2",
-)
-ANIMA_CLIP_DEVICES = ("default", "cpu")
-AIO_INPUT_DEFAULT_SETTINGS = {
-    "schema": EASY_USE_ANIMA_INPUT_SCHEMA,
-    "version": EASY_USE_ANIMA_INPUT_SETTINGS_VERSION,
-    "resources": {
-        "loader_mode": "split",
-        "clip_loader": "single",
-        "unet_weight_dtype": "default",
-        "clip_device": "default",
-    },
-    "metadata": {},
-}
 _TRIGGER_WORD_KEYS = ("trainedWords", "trained_words", "trigger_words", "activation_text")
 
 
 _bind_aio_legacy_generation_runtime(
-    resolve_helper=lambda name: _resolve_comfy_host_helper(
-        name,
-        lambda fallback_name: globals()[fallback_name],
-    ),
-)
-_bind_aio_resource_runtime(
     resolve_helper=lambda name: _resolve_comfy_host_helper(
         name,
         lambda fallback_name: globals()[fallback_name],
@@ -1198,18 +1153,6 @@ _bind_aio_model_preparation_runtime(
     ),
 )
 _bind_aio_sampling_runtime(
-    resolve_helper=lambda name: _resolve_comfy_host_helper(
-        name,
-        lambda fallback_name: globals()[fallback_name],
-    ),
-)
-_bind_aio_preview_runtime(
-    resolve_helper=lambda name: _resolve_comfy_host_helper(
-        name,
-        lambda fallback_name: globals()[fallback_name],
-    ),
-)
-_bind_aio_output_runtime(
     resolve_helper=lambda name: _resolve_comfy_host_helper(
         name,
         lambda fallback_name: globals()[fallback_name],

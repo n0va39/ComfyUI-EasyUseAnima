@@ -1853,7 +1853,7 @@ Implementation result:
 
 ### B-11c30d3 — AiO I/O-boundary binder Move
 
-- **State:** READY; Draft PR pending
+- **State:** COMPLETE in PR #350
 - **Owner:** #184
 - **Behavior boundary:** #169
 - **Type:** Move
@@ -1931,6 +1931,23 @@ Forbidden:
   Wildcard/NAIA binder; and
 - combining Contract, Behavior, performance, or broad formatting cleanup.
 
+Result:
+
+- all three d3 binder definitions, resolver globals/helpers, and root
+  imports/calls are absent;
+- `easyuse_anima.aio.input_defaults` is the single pure owner of the mutable
+  input-default payload and its declarative choices; root aliases preserve
+  exact identity;
+- resource, preview, and output owners use direct canonical dependencies,
+  while optional I/O imports and E-07 Comfy host lookup retain call-time
+  observation;
+- d3 alone is retired. Seven binders remain: five AiO binders in d4 through d6
+  and two Wildcard/NAIA binders;
+- the compatibility surface contains 296 canonical root bindings, three
+  residual root globals, and 92 shipped and reachable Python modules; and
+- `nodes.py` is 1,182 lines, 11,481 fewer than the 12,663-line Phase A
+  baseline (90.7% removed).
+
 ### B-11d — Final root shim
 
 - **State:** BLOCKED by the remaining AiO and Wildcard/NAIA binder families
@@ -1980,8 +1997,8 @@ COMPLETE: B-11c30d AiO binder split gate / PR #346
 COMPLETE: B-11c30d1 AiO cache-state binder Move / PR #347
 COMPLETE: B-11c30d0a output-settings owner Move / PR #348
 COMPLETE: B-11c30d2 normalization/planning binder Move / PR #349
-READY:    B-11c30d3 I/O-boundary binder Move
-PLANNED:  B-11c30d4 execution-service Move
+COMPLETE: B-11c30d3 I/O-boundary binder Move / PR #350
+READY:    B-11c30d4 execution-service Move
 PLANNED:  B-11c30d0b input-context owner Move before d5-d6
 PLANNED:  B-11c30d5-d6 orchestration and node-adapter Moves
 BLOCKED:  B-11d final root shim

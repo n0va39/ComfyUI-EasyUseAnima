@@ -4,7 +4,7 @@ import unittest
 from unittest.mock import Mock, patch
 
 import nodes
-from easyuse_anima.aio import resources as aio_resources
+from easyuse_anima.aio import input_defaults, resources as aio_resources
 from easyuse_anima.infrastructure.comfy import capabilities
 from tests.comfy_host_fakes import patch_comfy_helper
 
@@ -27,6 +27,20 @@ class AIOResourceMoveTests(unittest.TestCase):
             with self.subTest(name=name):
                 self.assertIs(getattr(nodes, name), getattr(aio_resources, name))
 
+        for name in (
+            "AIO_INPUT_DEFAULT_SETTINGS",
+            "ANIMA_CLIP_DEVICES",
+            "ANIMA_CLIP_TYPES",
+            "ANIMA_DEFAULT_CLIP_CANDIDATES",
+            "ANIMA_DEFAULT_DIFFUSION_MODEL_CANDIDATES",
+            "ANIMA_DEFAULT_VAE_CANDIDATES",
+            "ANIMA_UNET_WEIGHT_DTYPES",
+            "EASY_USE_ANIMA_INPUT_SCHEMA",
+            "EASY_USE_ANIMA_INPUT_SETTINGS_VERSION",
+        ):
+            with self.subTest(name=name):
+                self.assertIs(getattr(nodes, name), getattr(input_defaults, name))
+
         self.assertFalse(hasattr(nodes, "_impact_core_module"))
         self.assertIs(nodes._impact_scheduler_names, capabilities._impact_scheduler_names)
 
@@ -48,7 +62,11 @@ class AIOResourceMoveTests(unittest.TestCase):
             "preferred",
         )
 
-        with patch.object(nodes, "_choice", return_value="stable_diffusion") as choice:
+        with patch.object(
+            aio_resources,
+            "_choice",
+            return_value="stable_diffusion",
+        ) as choice:
             self.assertEqual(
                 aio_resources._preferred_clip_type_default(["flux", "stable_diffusion"]),
                 "stable_diffusion",
@@ -90,7 +108,11 @@ class AIOResourceMoveTests(unittest.TestCase):
                 "_find_comfy_node_class",
                 side_effect=classes.get,
             ),
-            patch.object(nodes, "_node_output_tuple", side_effect=lambda value: tuple(value)) as output_tuple,
+            patch.object(
+                aio_resources,
+                "_node_output_tuple",
+                side_effect=lambda value: tuple(value),
+            ) as output_tuple,
         ):
             self.assertEqual(
                 aio_resources._load_checkpoint_with_comfy("checkpoint.safetensors"),
@@ -144,7 +166,11 @@ class AIOResourceMoveTests(unittest.TestCase):
                 "_find_comfy_node_class",
                 return_value=loader_cls,
             ),
-            patch.object(nodes, "_node_output_tuple", side_effect=lambda value: tuple(value)),
+            patch.object(
+                aio_resources,
+                "_node_output_tuple",
+                side_effect=lambda value: tuple(value),
+            ),
         ):
             self.assertEqual(
                 aio_resources._load_upscale_model_with_comfy("4x-model.pth"),
@@ -155,11 +181,15 @@ class AIOResourceMoveTests(unittest.TestCase):
     def test_sam3_bundle_uses_call_time_root_helpers(self):
         with (
             patch.object(
-                nodes,
+                aio_resources,
                 "_load_checkpoint_with_comfy",
                 return_value=("model", "clip", "vae"),
             ) as load_checkpoint,
-            patch.object(nodes, "_sam3_context", return_value={"context": True}) as sam3_context,
+            patch.object(
+                aio_resources,
+                "_sam3_context",
+                return_value={"context": True},
+            ) as sam3_context,
         ):
             result = aio_resources._load_aio_sam3_context(
                 {"sam3": {"checkpoint": "custom-sam3.safetensors"}}
@@ -197,7 +227,7 @@ class AIOResourceMoveTests(unittest.TestCase):
 
         with (
             patch.object(
-                nodes,
+                aio_resources,
                 "_normalize_aio_input_settings",
                 return_value={
                     "resources": {
@@ -207,12 +237,20 @@ class AIOResourceMoveTests(unittest.TestCase):
                 },
             ) as normalize,
             patch.object(
-                nodes,
+                aio_resources,
                 "_load_diffusion_model_with_comfy",
                 side_effect=record("model", "model"),
             ),
-            patch.object(nodes, "_load_vae_with_comfy", side_effect=record("vae", "vae")),
-            patch.object(nodes, "_load_clip_with_comfy", side_effect=record("clip", "clip")),
+            patch.object(
+                aio_resources,
+                "_load_vae_with_comfy",
+                side_effect=record("vae", "vae"),
+            ),
+            patch.object(
+                aio_resources,
+                "_load_clip_with_comfy",
+                side_effect=record("clip", "clip"),
+            ),
         ):
             result = aio_resources._load_aio_resources_from_input_context(context)
 
@@ -237,22 +275,26 @@ class AIOResourceMoveTests(unittest.TestCase):
         replacement_vae = Mock(return_value="replacement-vae")
 
         def load_model(*_args):
-            nodes._load_vae_with_comfy = replacement_vae
+            aio_resources._load_vae_with_comfy = replacement_vae
             return "model"
 
         with (
             patch.object(
-                nodes,
+                aio_resources,
                 "_normalize_aio_input_settings",
                 return_value={"resources": {}},
             ),
             patch.object(
-                nodes,
+                aio_resources,
                 "_load_diffusion_model_with_comfy",
                 side_effect=load_model,
             ),
-            patch.object(nodes, "_load_vae_with_comfy", return_value="stale-vae") as stale_vae,
-            patch.object(nodes, "_load_clip_with_comfy", return_value="clip"),
+            patch.object(
+                aio_resources,
+                "_load_vae_with_comfy",
+                return_value="stale-vae",
+            ) as stale_vae,
+            patch.object(aio_resources, "_load_clip_with_comfy", return_value="clip"),
         ):
             result = aio_resources._load_aio_resources_from_input_context(
                 {

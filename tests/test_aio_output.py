@@ -89,7 +89,7 @@ class AIOOutputMoveTests(unittest.TestCase):
                 "_require_custom_node_class",
                 return_value=Fetcher,
             ) as require,
-            patch.object(nodes.logger, "warning") as warning,
+            patch.object(output.logger, "warning") as warning,
         ):
             result = output._aio_image_saver_civitai_hash_fetcher_entries(settings)
 
@@ -126,10 +126,18 @@ class AIOOutputMoveTests(unittest.TestCase):
                     {"civitai_hash_fetchers": [{"enabled": True, "username": "u", "version": "v"}]}
                 )
 
-    def test_additional_hash_and_lora_metadata_re_resolve_root_helpers(self):
+    def test_additional_hash_and_lora_metadata_use_canonical_helpers(self):
         with (
-            patch.object(nodes, "_normalize_aio_hash_bundles", return_value=["Bundle:B"]),
-            patch.object(nodes, "_aio_image_saver_civitai_hash_fetcher_entries", return_value=["Model:C"]),
+            patch.object(
+                output,
+                "_normalize_aio_hash_bundles",
+                return_value=["Bundle:B"],
+            ),
+            patch.object(
+                output,
+                "_aio_image_saver_civitai_hash_fetcher_entries",
+                return_value=["Model:C"],
+            ),
         ):
             hashes = output._aio_image_saver_additional_hashes({
                 "additional_hashes": " Base:A, ",
@@ -146,9 +154,13 @@ class AIOOutputMoveTests(unittest.TestCase):
             self.assertEqual(output._aio_lora_metadata_name("styles/foo.safetensors"), "styles/foo")
 
         with (
-            patch.object(nodes, "_aio_lora_metadata_name", side_effect=lambda value: value.replace(".safetensors", "")),
-            patch.object(nodes, "_as_float", return_value=0.75),
-            patch.object(nodes, "_format_strength", return_value="0.75"),
+            patch.object(
+                output,
+                "_aio_lora_metadata_name",
+                side_effect=lambda value: value.replace(".safetensors", ""),
+            ),
+            patch.object(output, "_as_float", return_value=0.75),
+            patch.object(output, "_format_strength", return_value="0.75"),
         ):
             prompt = output._aio_prompt_with_lora_metadata(
                 "base", [{"name": "foo.safetensors", "strength_model": "0.75"}]
@@ -181,7 +193,7 @@ class AIOOutputMoveTests(unittest.TestCase):
 
     def test_filename_prefix_uses_call_time_defaults_without_path_drift(self):
         defaults = {"save": {"image_saver": {"path": "Default/Path", "filename": "default_name"}}}
-        with patch.object(nodes, "AIO_GENERATION_DEFAULT_SETTINGS", defaults):
+        with patch.object(output, "AIO_GENERATION_DEFAULT_SETTINGS", defaults):
             self.assertEqual(
                 output._aio_save_filename_prefix({"image_saver": {"path": " /Custom/ ", "filename": " frame "}}),
                 "Custom/frame",
@@ -215,9 +227,17 @@ class AIOOutputMoveTests(unittest.TestCase):
                 "_require_custom_node_class",
                 return_value=ImageSaver,
             ),
-            patch.object(nodes, "_resolve_aio_runtime_seed", seed),
-            patch.object(nodes, "_aio_prompt_with_lora_metadata", return_value="positive <lora:x:1>"),
-            patch.object(nodes, "_aio_image_saver_additional_hashes", return_value="Base:A,Model:B"),
+            patch.object(output, "_resolve_aio_runtime_seed", seed),
+            patch.object(
+                output,
+                "_aio_prompt_with_lora_metadata",
+                return_value="positive <lora:x:1>",
+            ),
+            patch.object(
+                output,
+                "_aio_image_saver_additional_hashes",
+                return_value="Base:A,Model:B",
+            ),
         ):
             result = output._save_image_with_image_saver(
                 images="images",

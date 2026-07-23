@@ -1595,40 +1595,25 @@ class AioResourceNameMoveContractTests(unittest.TestCase):
             events.append(("adapter_call", candidate_values, folder_lookup))
             return returned
 
-        def resolver(name):
-            events.append(name)
-            return getattr(root_module, name)
-
         with (
             patch.object(
-                root_module,
+                canonical_module,
                 "ANIMA_DEFAULT_DIFFUSION_MODEL_CANDIDATES",
                 candidates,
             ),
             patch.object(
-                root_module,
+                canonical_module,
                 "_adapter_comfy_diffusion_model_names",
                 adapter,
             ),
-            patch.object(root_module, "_folder_path_names", folder_names),
+            patch.object(canonical_module, "_folder_path_names", folder_names),
         ):
-            canonical_module._bind_aio_resource_runtime(resolve_helper=resolver)
-            try:
-                result = canonical_module._comfy_diffusion_model_names()
-            finally:
-                canonical_module._bind_aio_resource_runtime(
-                    resolve_helper=lambda name: getattr(root_module, name)
-                )
+            result = canonical_module._comfy_diffusion_model_names()
 
         self.assertIs(result, returned)
         self.assertEqual(
             events,
-            [
-                "_adapter_comfy_diffusion_model_names",
-                "ANIMA_DEFAULT_DIFFUSION_MODEL_CANDIDATES",
-                "_folder_path_names",
-                ("adapter_call", candidates, folder_names),
-            ],
+            [("adapter_call", candidates, folder_names)],
         )
 
     def test_root_alias_and_call_time_dependencies(self):
@@ -1659,36 +1644,25 @@ class AioResourceNameMoveContractTests(unittest.TestCase):
             events.append(("adapter_call", candidate_values, folder_lookup))
             return returned
 
-        def resolver(name):
-            events.append(name)
-            return getattr(root_module, name)
-
         with (
-            patch.object(root_module, "ANIMA_DEFAULT_CLIP_CANDIDATES", candidates),
             patch.object(
-                root_module,
+                canonical_module,
+                "ANIMA_DEFAULT_CLIP_CANDIDATES",
+                candidates,
+            ),
+            patch.object(
+                canonical_module,
                 "_adapter_comfy_text_encoder_names",
                 adapter,
             ),
-            patch.object(root_module, "_folder_path_names", folder_names),
+            patch.object(canonical_module, "_folder_path_names", folder_names),
         ):
-            canonical_module._bind_aio_resource_runtime(resolve_helper=resolver)
-            try:
-                result = canonical_module._comfy_text_encoder_names()
-            finally:
-                canonical_module._bind_aio_resource_runtime(
-                    resolve_helper=lambda name: getattr(root_module, name)
-                )
+            result = canonical_module._comfy_text_encoder_names()
 
         self.assertIs(result, returned)
         self.assertEqual(
             events,
-            [
-                "_adapter_comfy_text_encoder_names",
-                "ANIMA_DEFAULT_CLIP_CANDIDATES",
-                "_folder_path_names",
-                ("adapter_call", candidates, folder_names),
-            ],
+            [("adapter_call", candidates, folder_names)],
         )
 
     def test_text_encoder_root_alias_and_call_time_dependencies(self):
@@ -1731,52 +1705,26 @@ class AioResourceNameMoveContractTests(unittest.TestCase):
             )
             return returned
 
-        def resolver(name):
-            events.append(name)
-            return root_module._resolve_comfy_host_helper(
-                name,
-                lambda fallback_name: getattr(root_module, fallback_name),
-            )
-
-        def production_resolver(name):
-            return root_module._resolve_comfy_host_helper(
-                name,
-                lambda fallback_name: getattr(root_module, fallback_name),
-            )
-
         with (
-            patch.object(root_module, "ANIMA_DEFAULT_VAE_CANDIDATES", candidates),
-            patch.object(root_module, "_adapter_comfy_vae_names", adapter),
+            patch.object(
+                canonical_module,
+                "ANIMA_DEFAULT_VAE_CANDIDATES",
+                candidates,
+            ),
+            patch.object(canonical_module, "_adapter_comfy_vae_names", adapter),
             patch_comfy_helper(
                 root_module,
                 "_find_comfy_node_class",
                 find_node_class,
             ),
-            patch.object(root_module, "_folder_path_names", folder_names),
+            patch.object(canonical_module, "_folder_path_names", folder_names),
         ):
-            canonical_module._bind_aio_resource_runtime(resolve_helper=resolver)
-            try:
-                result = canonical_module._comfy_vae_names()
-            finally:
-                canonical_module._bind_aio_resource_runtime(
-                    resolve_helper=production_resolver
-                )
+            result = canonical_module._comfy_vae_names()
 
         self.assertIs(result, returned)
         self.assertEqual(
             events,
-            [
-                "_adapter_comfy_vae_names",
-                "ANIMA_DEFAULT_VAE_CANDIDATES",
-                "_find_comfy_node_class",
-                "_folder_path_names",
-                (
-                    "adapter_call",
-                    candidates,
-                    None,
-                    folder_names,
-                ),
-            ],
+            [("adapter_call", candidates, None, folder_names)],
         )
         self.assertEqual(find_calls, ["ContractProbe"])
 
@@ -1812,23 +1760,10 @@ class AioResourceNameMoveContractTests(unittest.TestCase):
             )
             return returned
 
-        def resolver(name):
-            events.append(name)
-            return root_module._resolve_comfy_host_helper(
-                name,
-                lambda fallback_name: getattr(root_module, fallback_name),
-            )
-
-        def production_resolver(name):
-            return root_module._resolve_comfy_host_helper(
-                name,
-                lambda fallback_name: getattr(root_module, fallback_name),
-            )
-
         with (
-            patch.object(root_module, "ANIMA_CLIP_TYPES", candidates),
+            patch.object(canonical_module, "ANIMA_CLIP_TYPES", candidates),
             patch.object(
-                root_module,
+                canonical_module,
                 "_adapter_comfy_clip_loader_types",
                 adapter,
             ),
@@ -1838,23 +1773,12 @@ class AioResourceNameMoveContractTests(unittest.TestCase):
                 find_node_class,
             ),
         ):
-            canonical_module._bind_aio_resource_runtime(resolve_helper=resolver)
-            try:
-                result = canonical_module._comfy_clip_loader_types()
-            finally:
-                canonical_module._bind_aio_resource_runtime(
-                    resolve_helper=production_resolver
-                )
+            result = canonical_module._comfy_clip_loader_types()
 
         self.assertIs(result, returned)
         self.assertEqual(
             events,
-            [
-                "_adapter_comfy_clip_loader_types",
-                "ANIMA_CLIP_TYPES",
-                "_find_comfy_node_class",
-                ("adapter_call", candidates, None),
-            ],
+            [("adapter_call", candidates, None)],
         )
         self.assertEqual(find_calls, ["ContractProbe"])
 
@@ -2092,17 +2016,29 @@ class AioInputSettingsNormalizerMoveContractTests(unittest.TestCase):
 
         with (
             patch.object(
-                root_module,
+                canonical_module,
                 "_merge_versioned_settings",
                 merge_versioned_settings,
             ),
-            patch.object(root_module, "AIO_INPUT_DEFAULT_SETTINGS", defaults),
-            patch.object(root_module, "EASY_USE_ANIMA_INPUT_SCHEMA", "input-schema"),
-            patch.object(root_module, "EASY_USE_ANIMA_INPUT_SETTINGS_VERSION", 7),
-            patch.object(root_module, "_as_int", as_int),
-            patch.object(root_module, "_choice", choice),
-            patch.object(root_module, "ANIMA_UNET_WEIGHT_DTYPES", ("dtype-a",)),
-            patch.object(root_module, "ANIMA_CLIP_DEVICES", ("device-a",)),
+            patch.object(canonical_module, "AIO_INPUT_DEFAULT_SETTINGS", defaults),
+            patch.object(
+                canonical_module,
+                "EASY_USE_ANIMA_INPUT_SCHEMA",
+                "input-schema",
+            ),
+            patch.object(
+                canonical_module,
+                "EASY_USE_ANIMA_INPUT_SETTINGS_VERSION",
+                7,
+            ),
+            patch.object(canonical_module, "_as_int", as_int),
+            patch.object(canonical_module, "_choice", choice),
+            patch.object(
+                canonical_module,
+                "ANIMA_UNET_WEIGHT_DTYPES",
+                ("dtype-a",),
+            ),
+            patch.object(canonical_module, "ANIMA_CLIP_DEVICES", ("device-a",)),
         ):
             result = canonical_module._normalize_aio_input_settings("payload")
 

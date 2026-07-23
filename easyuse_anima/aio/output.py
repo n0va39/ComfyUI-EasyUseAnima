@@ -2,35 +2,49 @@
 
 from __future__ import annotations
 
+import logging
 import os
-from collections.abc import Callable
-from typing import Any, TypeAlias
+from typing import Any
 
+from ..common.values import _as_bool, _as_float, _as_int, _single_value
+from ..infrastructure.comfy.wiring import resolve_comfy_host_helper
+from ..lora.preset import _format_strength
+from .generation_defaults import AIO_GENERATION_DEFAULT_SETTINGS
 from .output_settings import (
     _normalize_aio_civitai_hash_fetchers as _normalize_aio_civitai_hash_fetchers,
 )
 from .output_settings import (
     _normalize_aio_hash_bundles as _normalize_aio_hash_bundles,
 )
+from .sampling import _resolve_aio_runtime_seed
 
-_RuntimeResolver: TypeAlias = Callable[[str], Any]
-_RUNTIME_RESOLVER: _RuntimeResolver | None = None
-
-
-def _bind_aio_output_runtime(*, resolve_helper: _RuntimeResolver) -> None:
-    """Bind root compatibility helpers without importing the root module."""
-
-    global _RUNTIME_RESOLVER
-    _RUNTIME_RESOLVER = resolve_helper
+logger = logging.getLogger("ComfyUI-EasyUseAnima")
 
 
-def _runtime_helper(name: str) -> Any:
-    resolver = _RUNTIME_RESOLVER
-    if resolver is None:
-        raise RuntimeError(
-            f"[EasyUseAnima] AiO output runtime helper is not bound: {name}"
-        )
-    return resolver(name)
+def _missing_host_helper(name: str):
+    raise RuntimeError(
+        f"[EasyUseAnima] AiO output Comfy host helper is unavailable: {name}"
+    )
+
+
+def _find_comfy_node_class(node_id: str):
+    helper = resolve_comfy_host_helper(
+        "_find_comfy_node_class",
+        _missing_host_helper,
+    )
+    return helper(node_id)
+
+
+def _require_custom_node_class(
+    node_id: str,
+    node_pack: str,
+    install_hint: str,
+):
+    helper = resolve_comfy_host_helper(
+        "_require_custom_node_class",
+        _missing_host_helper,
+    )
+    return helper(node_id, node_pack, install_hint)
 
 
 def _aio_image_saver_civitai_hash_fetcher_entries(
@@ -38,15 +52,15 @@ def _aio_image_saver_civitai_hash_fetcher_entries(
 ) -> list[str]:
     fetcher_settings = [
         item
-        for item in _runtime_helper("_normalize_aio_civitai_hash_fetchers")(
+        for item in _normalize_aio_civitai_hash_fetchers(
             image_saver.get("civitai_hash_fetchers")
         )
-        if _runtime_helper("_as_bool")(item.get("enabled"), True)
+        if _as_bool(item.get("enabled"), True)
     ]
     if not fetcher_settings:
         return []
 
-    fetcher_cls = _runtime_helper("_require_custom_node_class")(
+    fetcher_cls = _require_custom_node_class(
         "Civitai Hash Fetcher (Image Saver)",
         "ComfyUI-Image-Saver",
         "Required for AiO Save Options > Civitai Hash Fetcher rows.",
@@ -72,7 +86,7 @@ def _aio_image_saver_civitai_hash_fetcher_entries(
         try:
             result = get_hash(username, model_name, version)
         except Exception as exc:
-            _runtime_helper("logger").warning(
+            logger.warning(
                 "[EasyUseAnima] Civitai Hash Fetcher failed for '%s/%s'%s; skipping metadata hash: %s",
                 username,
                 model_name,
@@ -80,14 +94,14 @@ def _aio_image_saver_civitai_hash_fetcher_entries(
                 exc,
             )
             continue
-        hash_value = _runtime_helper("_single_value")(result)
+        hash_value = _single_value(result)
         hash_text = str(hash_value or "").strip()
         if (
             not hash_text
             or hash_text.lower().startswith("error:")
             or hash_text.lower().startswith("no ")
         ):
-            _runtime_helper("logger").warning(
+            logger.warning(
                 "[EasyUseAnima] Civitai Hash Fetcher returned no usable hash for '%s/%s'%s; "
                 "skipping metadata hash: %s",
                 username,
@@ -106,12 +120,10 @@ def _aio_image_saver_additional_hashes(image_saver: dict[str, Any]) -> str:
     if base:
         parts.append(base)
     parts.extend(
-        _runtime_helper("_normalize_aio_hash_bundles")(
-            image_saver.get("additional_hash_bundles")
-        )
+        _normalize_aio_hash_bundles(image_saver.get("additional_hash_bundles"))
     )
     parts.extend(
-        _runtime_helper("_aio_image_saver_civitai_hash_fetcher_entries")(image_saver)
+        _aio_image_saver_civitai_hash_fetcher_entries(image_saver)
     )
     return ",".join(part for part in parts if part)
 
@@ -139,14 +151,10 @@ def _aio_prompt_with_lora_metadata(prompt: str, applied_loras) -> str:
     for item in applied_loras:
         if not isinstance(item, dict):
             continue
-        name = _runtime_helper("_aio_lora_metadata_name")(
-            str(item.get("name") or "")
-        )
+        name = _aio_lora_metadata_name(str(item.get("name") or ""))
         if not name:
             continue
-        strength = _runtime_helper("_format_strength")(
-            _runtime_helper("_as_float")(item.get("strength_model"), 1.0)
-        )
+        strength = _format_strength(_as_float(item.get("strength_model"), 1.0))
         tags.append(f"<lora:{name}:{strength}>")
     if not tags:
         return str(prompt or "")
@@ -161,7 +169,7 @@ def _save_image_with_comfy(
     workflow_prompt=None,
     extra_pnginfo=None,
 ):
-    save_cls = _runtime_helper("_find_comfy_node_class")("SaveImage")
+    save_cls = _find_comfy_node_class("SaveImage")
     if save_cls is None:
         raise RuntimeError("[EasyUseAnima] Could not find ComfyUI SaveImage.")
     saver = save_cls()
@@ -180,7 +188,7 @@ def _aio_save_filename_prefix(save_settings: dict[str, Any]) -> str:
     image_saver = save_settings.get("image_saver", {})
     if not isinstance(image_saver, dict):
         image_saver = {}
-    defaults = _runtime_helper("AIO_GENERATION_DEFAULT_SETTINGS")["save"]["image_saver"]
+    defaults = AIO_GENERATION_DEFAULT_SETTINGS["save"]["image_saver"]
     path = str(image_saver.get("path") or defaults["path"]).strip().strip("/\\")
     filename = str(image_saver.get("filename") or defaults["filename"]).strip().strip("/\\")
     if path and filename:
@@ -201,7 +209,7 @@ def _save_image_with_image_saver(
     workflow_prompt=None,
     extra_pnginfo=None,
 ):
-    image_saver_cls = _runtime_helper("_require_custom_node_class")(
+    image_saver_cls = _require_custom_node_class(
         "Image Saver",
         "ComfyUI-Image-Saver",
         "Repository: https://github.com/alexopus/ComfyUI-Image-Saver",
@@ -214,14 +222,14 @@ def _save_image_with_image_saver(
     image_saver = save_settings.get("image_saver", {})
     if not isinstance(image_saver, dict):
         image_saver = {}
-    defaults = _runtime_helper("AIO_GENERATION_DEFAULT_SETTINGS")["save"]["image_saver"]
+    defaults = AIO_GENERATION_DEFAULT_SETTINGS["save"]["image_saver"]
     modelname = str((resource_info or {}).get("unet_name") or "")
-    save_prompt_metadata = _runtime_helper("_as_bool")(
+    save_prompt_metadata = _as_bool(
         image_saver.get("save_prompt_metadata"),
         defaults["save_prompt_metadata"],
     )
     metadata_positive = (
-        _runtime_helper("_aio_prompt_with_lora_metadata")(
+        _aio_prompt_with_lora_metadata(
             str(positive_prompt or "unknown"), applied_loras
         )
         if save_prompt_metadata
@@ -233,60 +241,56 @@ def _save_image_with_image_saver(
         filename=str(image_saver.get("filename") or defaults["filename"]),
         path=str(image_saver.get("path") or defaults["path"]),
         extension=str(image_saver.get("extension") or defaults["extension"]),
-        steps=_runtime_helper("_as_int")(sampler_settings.get("steps"), 28),
-        cfg=_runtime_helper("_as_float")(sampler_settings.get("cfg"), 5.0),
+        steps=_as_int(sampler_settings.get("steps"), 28),
+        cfg=_as_float(sampler_settings.get("cfg"), 5.0),
         modelname=modelname,
         sampler_name=str(sampler_settings.get("sampler_name") or ""),
         scheduler_name=str(sampler_settings.get("scheduler") or "normal"),
         positive=metadata_positive,
         negative=metadata_negative,
-        seed_value=_runtime_helper("_resolve_aio_runtime_seed")(
-            sampler_settings.get("seed")
-        ),
-        width=_runtime_helper("_as_int")(width, 512),
-        height=_runtime_helper("_as_int")(height, 512),
-        lossless_webp=_runtime_helper("_as_bool")(
+        seed_value=_resolve_aio_runtime_seed(sampler_settings.get("seed")),
+        width=_as_int(width, 512),
+        height=_as_int(height, 512),
+        lossless_webp=_as_bool(
             image_saver.get("lossless_webp"), defaults["lossless_webp"]
         ),
         quality_jpeg_or_webp=max(
             1,
             min(
                 100,
-                _runtime_helper("_as_int")(
+                _as_int(
                     image_saver.get("quality_jpeg_or_webp"),
                     defaults["quality_jpeg_or_webp"],
                 ),
             ),
         ),
-        optimize_png=_runtime_helper("_as_bool")(
+        optimize_png=_as_bool(
             image_saver.get("optimize_png"), defaults["optimize_png"]
         ),
         counter=max(
             0,
-            _runtime_helper("_as_int")(
+            _as_int(
                 image_saver.get("counter"), defaults["counter"]
             ),
         ),
-        denoise=_runtime_helper("_as_float")(sampler_settings.get("denoise"), 1.0),
-        clip_skip=_runtime_helper("_as_int")(
+        denoise=_as_float(sampler_settings.get("denoise"), 1.0),
+        clip_skip=_as_int(
             image_saver.get("clip_skip"), defaults["clip_skip"]
         ),
         time_format=str(image_saver.get("time_format") or defaults["time_format"]),
-        save_workflow_as_json=_runtime_helper("_as_bool")(
+        save_workflow_as_json=_as_bool(
             image_saver.get("save_workflow_as_json"),
             defaults["save_workflow_as_json"],
         ),
-        embed_workflow=_runtime_helper("_as_bool")(
+        embed_workflow=_as_bool(
             image_saver.get("embed_workflow"), defaults["embed_workflow"]
         ),
-        additional_hashes=_runtime_helper("_aio_image_saver_additional_hashes")(
-            image_saver
-        ),
-        download_civitai_data=_runtime_helper("_as_bool")(
+        additional_hashes=_aio_image_saver_additional_hashes(image_saver),
+        download_civitai_data=_as_bool(
             image_saver.get("download_civitai_data"),
             defaults["download_civitai_data"],
         ),
-        easy_remix=_runtime_helper("_as_bool")(
+        easy_remix=_as_bool(
             image_saver.get("easy_remix"), defaults["easy_remix"]
         ),
         show_preview=False,

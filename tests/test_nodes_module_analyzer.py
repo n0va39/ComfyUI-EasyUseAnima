@@ -73,12 +73,12 @@ def load_dynamic():
     def test_current_nodes_module_shape_matches_recorded_baseline(self):
         report = analyzer.analyze_path(ROOT / "nodes.py")
 
-        self.assertEqual(report["git_blob_sha1"], "2c734092ef9aeae0e8226d89ab684313f9987a0f")
-        # B-11c30d2 moves declarative generation defaults and retires three
-        # planning binders without changing the public class surface.
+        self.assertEqual(report["git_blob_sha1"], "40f7789cb9de0f3149fa2498ddd127d47067c405")
+        # B-11c30d3 moves declarative input defaults and retires three
+        # I/O-boundary binders without changing the public class surface.
         self.assertEqual(report["top_level"]["function_count"], 0)
         self.assertEqual(report["top_level"]["class_count"], 0)
-        self.assertEqual(report["line_count"], 1_239)
+        self.assertEqual(report["line_count"], 1_182)
         class_names = {item["name"] for item in report["top_level"]["classes"]}
         self.assertNotIn("EasyUseAnimaAIOGenerator", class_names)
         self.assertNotIn("EasyUseAnimaInput", class_names)

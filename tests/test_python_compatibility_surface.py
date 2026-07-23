@@ -98,11 +98,8 @@ PROMPT_NODE_ADAPTER_RETIRED_RUNTIME_BINDERS = (
 RUNTIME_BINDER_FAMILIES = {
     "aio": (
         "_bind_aio_legacy_generation_runtime",
-        "_bind_aio_resource_runtime",
         "_bind_aio_model_preparation_runtime",
         "_bind_aio_sampling_runtime",
-        "_bind_aio_preview_runtime",
-        "_bind_aio_output_runtime",
         "_bind_aio_conditioning_runtime",
         "_bind_aio_node_runtime",
     ),
@@ -140,6 +137,7 @@ AIO_RUNTIME_BINDER_SUBGROUPS = {
 AIO_RUNTIME_RETIRED_SUBGROUPS = (
     "B-11c30d1_cache_state",
     "B-11c30d2_normalization_planning",
+    "B-11c30d3_io_boundary",
 )
 AIO_RUNTIME_PREREQUISITE_MOVES = (
     {
@@ -2327,14 +2325,14 @@ def _build_document() -> dict[str, Any]:
         "expected_counts": {
             "root_entrypoints": 3,
             "excluded_preamble_implementation_bindings": 3,
-            "nodes_canonical_bindings": 290,
+            "nodes_canonical_bindings": 296,
             "nodes_legacy_bindings": 27,
             "mapped_public_classes": 18,
             "unmapped_classes": 2,
             "root_residual_functions": 0,
             "root_residual_classes": 0,
-            "root_residual_globals": 12,
-            "runtime_binders": 10,
+            "root_residual_globals": 3,
+            "runtime_binders": 7,
             "direct_nodes_import_test_files": 21,
         },
         "mapped_public_classes": sorted(mapped_classes),
@@ -2566,7 +2564,7 @@ class PythonCompatibilitySurfaceTests(unittest.TestCase):
             len(self.document["direct_nodes_import_test_files"]),
             counts["direct_nodes_import_test_files"],
         )
-        self.assertEqual(len(set(self.document["runtime_binders"])), 10)
+        self.assertEqual(len(set(self.document["runtime_binders"])), 7)
         self.assertEqual(len(set(self.document["direct_nodes_import_test_files"])), 21)
 
     def test_runtime_binder_audit_covers_provider_and_root_names(self):
@@ -2574,22 +2572,22 @@ class PythonCompatibilitySurfaceTests(unittest.TestCase):
         self.assertEqual(
             audit["summary"],
             {
-                "binder_count": 10,
+                "binder_count": 7,
                 "family_count": 2,
                 "mode_counts": {
-                    "comfy_provider_then_root": 7,
+                    "comfy_provider_then_root": 4,
                     "root_globals": 1,
                     "explicit_callbacks": 2,
                 },
-                "unique_resolver_names": 140,
-                "unique_root_resolver_names": 136,
+                "unique_resolver_names": 112,
+                "unique_root_resolver_names": 108,
                 "unique_provider_resolver_names": 4,
                 "unique_direct_root_dependencies": 9,
-                "direct_root_dependency_slots": 16,
-                "provider_consumer_slots": 12,
-                "provider_consumer_modules": 7,
-                "repository_replacement_names": 116,
-                "repository_replacement_files": 12,
+                "direct_root_dependency_slots": 13,
+                "provider_consumer_slots": 8,
+                "provider_consumer_modules": 4,
+                "repository_replacement_names": 85,
+                "repository_replacement_files": 8,
             },
         )
         self.assertEqual(
@@ -2694,37 +2692,29 @@ class PythonCompatibilitySurfaceTests(unittest.TestCase):
         self.assertEqual(
             summaries,
             {
-                "B-11c30d3_io_boundary": {
-                    "root_resolver_slots": 49,
-                    "unique_root_resolver_names": 46,
-                    "provider_resolver_slots": 4,
-                    "direct_root_dependency_slots": 3,
-                    "repository_replacement_slots": 45,
-                    "unique_repository_replacement_names": 43,
-                },
                 "B-11c30d4_execution_services": {
                     "root_resolver_slots": 43,
                     "unique_root_resolver_names": 37,
                     "provider_resolver_slots": 6,
                     "direct_root_dependency_slots": 3,
-                    "repository_replacement_slots": 29,
-                    "unique_repository_replacement_names": 24,
+                    "repository_replacement_slots": 23,
+                    "unique_repository_replacement_names": 21,
                 },
                 "B-11c30d5_legacy_orchestration": {
                     "root_resolver_slots": 59,
                     "unique_root_resolver_names": 59,
                     "provider_resolver_slots": 2,
                     "direct_root_dependency_slots": 1,
-                    "repository_replacement_slots": 46,
-                    "unique_repository_replacement_names": 46,
+                    "repository_replacement_slots": 43,
+                    "unique_repository_replacement_names": 43,
                 },
                 "B-11c30d6_node_adapter": {
                     "root_resolver_slots": 30,
                     "unique_root_resolver_names": 30,
                     "provider_resolver_slots": 0,
                     "direct_root_dependency_slots": 0,
-                    "repository_replacement_slots": 30,
-                    "unique_repository_replacement_names": 30,
+                    "repository_replacement_slots": 28,
+                    "unique_repository_replacement_names": 28,
                 },
             },
         )

@@ -2,10 +2,15 @@
 
 from __future__ import annotations
 
+import logging
 import os
 import random
-from collections.abc import Callable
-from typing import Any, TypeAlias
+from typing import Any
+
+from ..common.values import _single_value
+from ..image.geometry import _image_tensor_size
+from ..infrastructure.comfy.wiring import resolve_comfy_host_helper
+from ..prompt.data import _prompt_data_json_safe
 
 AIO_PREVIEW_STAGE_LABELS = {
     "first_pass": "First pass",
@@ -20,24 +25,21 @@ AIO_PREVIEW_EVENT = "easyuse-anima-aio-preview"
 AIO_PREVIEW_CACHE_FORMAT = "webp"
 AIO_PREVIEW_CACHE_QUALITY = 90
 
-_RuntimeResolver: TypeAlias = Callable[[str], Any]
-_RUNTIME_RESOLVER: _RuntimeResolver | None = None
+logger = logging.getLogger("ComfyUI-EasyUseAnima")
 
 
-def _bind_aio_preview_runtime(*, resolve_helper: _RuntimeResolver) -> None:
-    """Bind root compatibility helpers without importing the root module."""
+def _missing_host_helper(name: str):
+    raise RuntimeError(
+        f"[EasyUseAnima] AiO preview Comfy host helper is unavailable: {name}"
+    )
 
-    global _RUNTIME_RESOLVER
-    _RUNTIME_RESOLVER = resolve_helper
 
-
-def _runtime_helper(name: str) -> Any:
-    resolver = _RUNTIME_RESOLVER
-    if resolver is None:
-        raise RuntimeError(
-            f"[EasyUseAnima] AiO preview runtime helper is not bound: {name}"
-        )
-    return resolver(name)
+def _find_comfy_node_class(node_id: str):
+    helper = resolve_comfy_host_helper(
+        "_find_comfy_node_class",
+        _missing_host_helper,
+    )
+    return helper(node_id)
 
 
 def _aio_preview_base_directory(image_type: str) -> str:
@@ -57,9 +59,7 @@ def _aio_preview_file_size_bytes(image_info: dict[str, Any]) -> int:
     filename = str(image_info.get("filename") or "")
     if not filename:
         return 0
-    base_dir = _runtime_helper("_aio_preview_base_directory")(
-        str(image_info.get("type") or "output")
-    )
+    base_dir = _aio_preview_base_directory(str(image_info.get("type") or "output"))
     if not base_dir:
         return 0
     subfolder = str(image_info.get("subfolder") or "")
@@ -77,7 +77,7 @@ def _tag_aio_preview_images(
     width: int = 0,
     height: int = 0,
 ) -> list[dict[str, Any]]:
-    label = _runtime_helper("AIO_PREVIEW_STAGE_LABELS").get(stage, stage)
+    label = AIO_PREVIEW_STAGE_LABELS.get(stage, stage)
     tagged: list[dict[str, Any]] = []
     for image in images or ():
         if not isinstance(image, dict):
@@ -89,7 +89,7 @@ def _tag_aio_preview_images(
             item["width"] = int(width)
         if height > 0:
             item["height"] = int(height)
-        file_size = _runtime_helper("_aio_preview_file_size_bytes")(item)
+        file_size = _aio_preview_file_size_bytes(item)
         if file_size > 0:
             item["bytes"] = int(file_size)
         tagged.append(item)
@@ -102,7 +102,7 @@ def _send_aio_preview_event(
     stage: str,
     images: list[dict[str, Any]],
 ) -> None:
-    node_id = _runtime_helper("_single_value")(node_id)
+    node_id = _single_value(node_id)
     if node_id is None or not images:
         return
     try:
@@ -116,12 +116,12 @@ def _send_aio_preview_event(
             "node": str(node_id),
             "run_id": str(run_id),
             "stage": str(stage),
-            "images": _runtime_helper("_prompt_data_json_safe")(images),
+            "images": _prompt_data_json_safe(images),
         }
         client_id = getattr(prompt_server, "client_id", None)
-        send_sync(_runtime_helper("AIO_PREVIEW_EVENT"), payload, client_id)
+        send_sync(AIO_PREVIEW_EVENT, payload, client_id)
     except Exception as exc:
-        _runtime_helper("logger").debug(
+        logger.debug(
             "[EasyUseAnima] failed to send AiO preview event: %s", exc
         )
 
@@ -133,7 +133,7 @@ def _save_aio_temp_preview_image(
     workflow_prompt=None,
     extra_pnginfo=None,
 ) -> list[dict[str, Any]]:
-    width, height = _runtime_helper("_image_tensor_size")(image, 0, 0)
+    width, height = _image_tensor_size(image, 0, 0)
     try:
         import folder_paths  # type: ignore
         import numpy as np  # type: ignore
@@ -156,12 +156,15 @@ def _save_aio_temp_preview_image(
             filename_with_batch_num = filename.replace(
                 "%batch_num%", str(batch_number)
             )
-            file = f"{filename_with_batch_num}_{counter:05}_.{_runtime_helper('AIO_PREVIEW_CACHE_FORMAT')}"
+            file = (
+                f"{filename_with_batch_num}_{counter:05}_."
+                f"{AIO_PREVIEW_CACHE_FORMAT}"
+            )
             path = os.path.join(full_output_folder, file)
             img.save(
                 path,
                 format="WEBP",
-                quality=_runtime_helper("AIO_PREVIEW_CACHE_QUALITY"),
+                quality=AIO_PREVIEW_CACHE_QUALITY,
                 method=4,
             )
             results.append(
@@ -173,19 +176,19 @@ def _save_aio_temp_preview_image(
             )
             counter += 1
         if results:
-            return _runtime_helper("_tag_aio_preview_images")(
+            return _tag_aio_preview_images(
                 results, stage, width=width, height=height
             )
     except Exception as exc:
-        _runtime_helper("logger").warning(
+        logger.warning(
             "[EasyUseAnima] Failed to save AiO WebP preview stage %s; falling back to ComfyUI PreviewImage PNG: %s",
             stage,
             exc,
         )
 
-    preview_cls = _runtime_helper("_find_comfy_node_class")("PreviewImage")
+    preview_cls = _find_comfy_node_class("PreviewImage")
     if preview_cls is None:
-        _runtime_helper("logger").warning(
+        logger.warning(
             "[EasyUseAnima] Could not find ComfyUI PreviewImage for AiO preview stage %s.",
             stage,
         )
@@ -193,7 +196,7 @@ def _save_aio_temp_preview_image(
     saver = preview_cls()
     save_images = getattr(saver, "save_images", None)
     if save_images is None:
-        _runtime_helper("logger").warning(
+        logger.warning(
             "[EasyUseAnima] PreviewImage does not expose save_images() for AiO preview stage %s.",
             stage,
         )
@@ -209,14 +212,14 @@ def _save_aio_temp_preview_image(
         try:
             result = save_images(image)
         except Exception as exc:
-            _runtime_helper("logger").warning(
+            logger.warning(
                 "[EasyUseAnima] Failed to save AiO preview stage %s: %s",
                 stage,
                 exc,
             )
             return []
     except Exception as exc:
-        _runtime_helper("logger").warning(
+        logger.warning(
             "[EasyUseAnima] Failed to save AiO preview stage %s: %s", stage, exc
         )
         return []
@@ -225,7 +228,7 @@ def _save_aio_temp_preview_image(
     ui = result.get("ui", {})
     if not isinstance(ui, dict):
         return []
-    return _runtime_helper("_tag_aio_preview_images")(
+    return _tag_aio_preview_images(
         ui.get("images", []), stage, width=width, height=height
     )
 
