@@ -8,11 +8,12 @@
 - Policy: [ADR-002](adr-002-compatibility-shims.md)
 - Machine-readable audit:
   [`python_compatibility_surface.v1.json`](../../tests/fixtures/python_compatibility_surface.v1.json)
-- Current state: B-11a through B-11c30d0a / PR #348 are integrated in the
-  reviewed sequence, and B-11c30d2 / PR #349 retires only the three AiO
-  normalization/planning binders. S167-01a / PR #344 supplies the canonical
-  reserved-seed compatibility consumer while retaining its root aliases. Ten
-  AiO and Wildcard/NAIA binders remain before the final root shim.
+- Current state: B-11a through B-11c30d4 / PR #351 are integrated in the
+  reviewed sequence, and B-11c30d0b / PR #352 moves only the two AiO
+  input-context helpers to a pure owner. S167-01a / PR #344 supplies the
+  canonical reserved-seed compatibility consumer while retaining its root
+  aliases. Four AiO and Wildcard/NAIA binders remain before the final root
+  shim.
 
 This is an actionable registry, not a removal schedule. `N` means the first
 published Registry release containing both a canonical target and its root
@@ -974,6 +975,31 @@ convenience-node compatibility; it remains unmapped and is not public support.
 - The compatibility inventory contains 293 canonical root bindings, three
   residual root globals, 92 shipped and reachable Python modules, and a
   1,158-line root shim.
+
+### B-11c30d0b AiO input-context owner Move
+
+- PR #352 moves exactly `_easy_use_anima_input_signature` and
+  `_require_easy_use_anima_input` from
+  `easyuse_anima.nodes.aio_nodes` to
+  `easyuse_anima.aio.input_context`.
+- The new owner imports only
+  `easyuse_anima.prompt.data._prompt_data_json_safe` and owns no mutable state.
+  Signature shape, JSON-safe conversion, required-key order, and exact errors
+  are unchanged.
+- Legacy generation and the node adapter import the owner directly. The node
+  adapter re-exports the same function objects, and root imports the owner in
+  both package and flat modes, preserving exact alias identity.
+- The d5 legacy-orchestration resolver falls from 59 to 58 root slots, and the
+  d6 node-adapter resolver falls from 30 to 29. Neither binder, resolver
+  global, nor any other resolver edge is retired in this Move.
+- All four remaining binders stay active. The audit contains 84 unique
+  resolver names, 82 root names, two provider names, and 69 repository
+  replacement names across five files.
+- The compatibility inventory still contains 293 canonical root bindings and
+  three residual root globals. The package contains 93 shipped and reachable
+  Python modules, and the root shim is 1,162 lines.
+- B-11c30d5 legacy orchestration is the next separate Move; d6, Wildcard/NAIA,
+  #168/#169 Behavior, and final root-shim work remain outside PR #352.
 
 ### `nodes.py` public node-class surface
 

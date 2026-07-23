@@ -71,6 +71,10 @@ try:
         EASY_USE_ANIMA_INPUT_SCHEMA as EASY_USE_ANIMA_INPUT_SCHEMA,
         EASY_USE_ANIMA_INPUT_SETTINGS_VERSION as EASY_USE_ANIMA_INPUT_SETTINGS_VERSION,
     )
+    from .easyuse_anima.aio.input_context import (
+        _easy_use_anima_input_signature as _easy_use_anima_input_signature,
+        _require_easy_use_anima_input as _require_easy_use_anima_input,
+    )
     from .easyuse_anima.aio.usdu import (
         _aio_usdu_auto_tile_dimension as _aio_usdu_auto_tile_dimension,
         _aio_usdu_tile_plan as _aio_usdu_tile_plan,
@@ -385,8 +389,6 @@ try:
         _aio_generation_settings_json as _aio_generation_settings_json,
         _aio_input_settings_json as _aio_input_settings_json,
         _bind_aio_node_runtime as _bind_aio_node_runtime,
-        _easy_use_anima_input_signature as _easy_use_anima_input_signature,
-        _require_easy_use_anima_input as _require_easy_use_anima_input,
     )
     from .easyuse_anima.image.geometry import (
         _align_down as _align_down,
@@ -631,6 +633,10 @@ except ImportError:  # allows simple local import tests outside ComfyUI's packag
         ANIMA_UNET_WEIGHT_DTYPES as ANIMA_UNET_WEIGHT_DTYPES,
         EASY_USE_ANIMA_INPUT_SCHEMA as EASY_USE_ANIMA_INPUT_SCHEMA,
         EASY_USE_ANIMA_INPUT_SETTINGS_VERSION as EASY_USE_ANIMA_INPUT_SETTINGS_VERSION,
+    )
+    from easyuse_anima.aio.input_context import (
+        _easy_use_anima_input_signature as _easy_use_anima_input_signature,
+        _require_easy_use_anima_input as _require_easy_use_anima_input,
     )
     from easyuse_anima.aio.usdu import (
         _aio_usdu_auto_tile_dimension as _aio_usdu_auto_tile_dimension,
@@ -946,8 +952,6 @@ except ImportError:  # allows simple local import tests outside ComfyUI's packag
         _aio_generation_settings_json as _aio_generation_settings_json,
         _aio_input_settings_json as _aio_input_settings_json,
         _bind_aio_node_runtime as _bind_aio_node_runtime,
-        _easy_use_anima_input_signature as _easy_use_anima_input_signature,
-        _require_easy_use_anima_input as _require_easy_use_anima_input,
     )
     from easyuse_anima.image.geometry import (
         _align_down as _align_down,

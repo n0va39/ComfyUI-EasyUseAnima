@@ -31,7 +31,7 @@ merged PR, the owning issue's evidence record, and every stated exit gate.
 | Phase | Integrated snapshot / open implementation state | Remaining exit work |
 | --- | --- | --- |
 | A - baseline | Complete; #191 is closed | Keep fixtures and analyzers current during later moves |
-| B - `nodes.py` extraction | Integrated through B-11c30d0a / PR #348; B-11c30d2 completes in PR #349 | Execute d3-d4, then d0b and d5-d6, followed by Wildcard/NAIA and the final root shim as separate rollback units |
+| B - `nodes.py` extraction | Integrated through B-11c30d4 / PR #351; B-11c30d0b completes in PR #352 | Execute d5, d6, Wildcard/NAIA, and the final root shim as separate rollback units |
 | C - feature contracts/behavior | Partially complete through S167-01a / PR #344 | Continue #167 and #169 in separate Contract/Move/Behavior PRs |
 | D - root consolidation | Not started | Execute #186 feature by feature after the corresponding behavior contracts are stable |
 | E - runtime ownership | Partial: E-02a and E-07a/E-07b integrated | Continue #187 only where canonical feature owners and explicit contracts exist |
@@ -42,9 +42,9 @@ merged PR, the owning issue's evidence record, and every stated exit gate.
 ### Measured Phase B progress
 
 - The Phase A baseline recorded root `nodes.py` at 12,663 lines.
-- In B-11c30d2 / PR #349, the analyzer measures root `nodes.py` at 1,239 lines.
-- The mechanical extraction has removed 11,424
-  lines, approximately 90.2% of the Phase A baseline, while preserving the root
+- In B-11c30d0b / PR #352, the analyzer measures root `nodes.py` at 1,162 lines.
+- The mechanical extraction has removed 11,501
+  lines, approximately 90.8% of the Phase A baseline, while preserving the root
   compatibility surface.
 - B-01 through B-09b2 are integrated. The latest completed implementation slice
   is the AiO generator adapter Move in PR #270.
@@ -143,7 +143,10 @@ merged PR, the owning issue's evidence record, and every stated exit gate.
   Seven binders remain: five AiO and two Wildcard/NAIA. B-11c30d4 / PR #351
   retires only model preparation, sampling, and conditioning. Four binders
   remain: the d5 orchestrator, d6 node adapter, and two Wildcard/NAIA callback
-  binders.
+  binders. B-11c30d0b / PR #352 then moves the two input-context helpers to
+  the pure `easyuse_anima.aio.input_context` owner. The d5 and d6 root-resolver
+  sets each lose one cycle-forming name without retiring either binder or
+  changing input validation or signature behavior.
 
 ### Current quality baseline
 
@@ -387,7 +390,7 @@ mechanical retirement series.
 | 11 | B-09b2 AiO generator adapter move | COMPLETE on `dev` | Move | #184 | PR #270 / `57d40b4` |
 | 12 | B-10a machine-readable compatibility audit | COMPLETE on `dev` | Contract/gate | #184/#188 | PR #271 / `3c7b857` |
 | 13 | B-10b private alias reduction | COMPLETE on `dev` through PR #291 / `c6b4680` | Contract/cleanup, split PRs | #184/#188 | Audited alias surface integrated |
-| 14 | B-11 registration/bootstrap/root shim | IN PROGRESS through B-11c30d0a PR #348; d2-d4 are next, and d0b precedes d5-d6 | Move/Contract, split PRs | #184 | Frozen AiO split gate; S167-01 contract |
+| 14 | B-11 registration/bootstrap/root shim | IN PROGRESS through B-11c30d0b PR #352; d5 and d6 are next as separate Moves | Move/Contract, split PRs | #184 | Frozen AiO split gate; S167-01 contract |
 | 15 | S167 backend seed reservation series | S167-01 Contract COMPLETE in PR #343 and S167-01a consumer Move COMPLETE in PR #344; Behavior and Adapter remain | Contract then Move then Behavior | #167 | Canonical AiO/node seams |
 | 16 | A169 stage pipeline series | BLOCKED by #168 and B exit | Contract then Behavior | #169 | Typed config and mechanical AiO move |
 | 17 | A169 first-pass cache policy | BLOCKED by stage/cache ownership seam | Behavior | #169 | Mechanical cache move and benchmark harness |
@@ -1105,7 +1108,13 @@ unchanged. The separate legacy Wildcard unsupported alias remains for D-12.
     LoRA, seed, invocation, and E-07 owners and creates no new contract. Patch
     order, seed/sampler behavior, provider observation, errors/logs,
     workflows, cache, and stage order remain frozen. The root shim falls to
-    1,158 lines. B-11c30d0b is the next READY Move before d5-d6.
+    1,158 lines.
+  - B-11c30d0b moves only `_easy_use_anima_input_signature` and
+    `_require_easy_use_anima_input` to the pure
+    `easyuse_anima.aio.input_context` owner in PR #352. Legacy generation and
+    the node adapter consume the owner directly, root aliases retain identity,
+    and d5/d6 remain separate active binders. The audited package grows to 93
+    shipped and reachable modules; B-11c30d5 is the next READY Move.
   - The final B-11c cutover removes remaining root execution ownership and
     leaves the explicit supported `nodes.py` compatibility shim.
 - Add `easyuse_anima/registration.py` as pure mapping composition. It performs no

@@ -2096,6 +2096,100 @@ Result:
 - `nodes.py` is 1,158 lines, 11,505 fewer than the 12,663-line Phase A
   baseline (90.9% removed).
 
+### B-11c30d0b — AiO input-context owner Move
+
+- **State:** COMPLETE in PR #352
+- **Owner:** #184
+- **Behavior boundary:** #168 and #169
+- **Type:** Move
+- **Base:** `dev@431fe632d1017db320a99ba3cdadb732973874cd`
+
+Pre-edit inventory:
+
+- `_easy_use_anima_input_signature` and
+  `_require_easy_use_anima_input` are defined in
+  `easyuse_anima.nodes.aio_nodes`. Neither function owns mutable module or
+  process state;
+- `_easy_use_anima_input_signature` reads no root data directly, but resolves
+  `_prompt_data_json_safe` three times through the d6 node-adapter
+  `_RUNTIME_RESOLVER`. `_require_easy_use_anima_input` has no dependency and
+  preserves the exact validation order and error text;
+- `EasyUseAnimaAIOGenerator.IS_CHANGED` is the signature caller through the
+  still-active d6 resolver. `_run_aio_legacy_generation` is the required-input
+  caller through the still-active d5 resolver;
+- root `nodes.py` imports both functions from the node adapter in package and
+  flat modes. Root and `easyuse_anima.nodes.aio_nodes` currently expose the
+  same function objects, although neither private name is in the adapter's
+  `__all__`;
+- `easyuse_anima.prompt.data._prompt_data_json_safe` is the existing pure
+  canonical dependency. A new `easyuse_anima.aio.input_context` owner can
+  consume it directly without introducing a service, callback, provider, or
+  new global;
+- direct behavior and alias coverage is in `tests/test_aio_nodes.py`.
+  `tests/test_aio_legacy_generation.py` replaces the root required-input alias
+  to drive the still-active d5 binder; that single replacement must move to
+  the direct consumer module when the production caller becomes direct; and
+- the d5 legacy-generation and d6 node-adapter binders, their two
+  `_RUNTIME_RESOLVER` globals, all other resolver slots, and the two
+  Wildcard/NAIA callback binders remain outside this Move.
+
+Allowed production files:
+
+```text
+nodes.py
+easyuse_anima/aio/input_context.py
+easyuse_anima/aio/legacy_generation.py
+easyuse_anima/nodes/aio_nodes.py
+```
+
+Allowed supporting files are the focused AiO owner/caller tests, Python
+compatibility and backend analyzer gates/fixtures, package-closure gate, and
+the three architecture documents.
+
+Exit:
+
+- the two functions have one definition owner in
+  `easyuse_anima.aio.input_context`;
+- legacy generation and the node adapter consume that owner directly;
+- the node adapter re-exports both functions and root imports the new owner in
+  both import modes, preserving exact object identity;
+- the legacy-generation ↔ node-adapter cycle edge is absent while d5 and d6
+  remain active and otherwise unchanged; and
+- input signature shape, JSON-safe conversion, validation order, error text,
+  schemas, workflows, seeds, cache, stages, provider timing, and generation
+  behavior remain unchanged.
+
+Forbidden:
+
+- retiring or otherwise changing the d5 or d6 binders;
+- changing input schema, serialization, validation, errors, workflows, seed,
+  cache, stage, provider, or generation behavior;
+- beginning d5/d6 implementation, Wildcard/NAIA retirement, or #168/#169
+  Behavior; and
+- combining Contract, performance, dependency, or broad formatting cleanup.
+
+Result:
+
+- both helpers have one pure definition owner in
+  `easyuse_anima.aio.input_context`, which imports only the existing canonical
+  JSON-safe helper and owns no mutable state;
+- legacy generation and the node adapter import the owner directly. The node
+  adapter re-exports the same function objects, and root imports the owner in
+  both package and flat modes;
+- the d5 resolver drops `_require_easy_use_anima_input` and falls from 59 to
+  58 root slots. The d6 resolver drops `_easy_use_anima_input_signature` and
+  falls from 30 to 29 root slots;
+- all four remaining binders stay active. Their combined audit contains 84
+  unique resolver names, 82 root names, two provider names, and 69 repository
+  replacement names across five files;
+- root still contains 293 canonical bindings and three residual globals. The
+  package grows to 93 shipped and reachable Python modules, while `nodes.py`
+  is 1,162 lines because its two compatibility aliases now import their
+  canonical owner directly; and
+- focused input-context, node-adapter, legacy-generation, compatibility,
+  package-closure, and analyzer gates preserve signature shape, JSON-safe
+  conversion, validation/error behavior, object identity, and import closure.
+
 ### B-11d — Final root shim
 
 - **State:** BLOCKED by the remaining AiO and Wildcard/NAIA binder families
@@ -2147,8 +2241,9 @@ COMPLETE: B-11c30d0a output-settings owner Move / PR #348
 COMPLETE: B-11c30d2 normalization/planning binder Move / PR #349
 COMPLETE: B-11c30d3 I/O-boundary binder Move / PR #350
 COMPLETE: B-11c30d4 execution-service Move / PR #351
-READY:    B-11c30d0b input-context owner Move before d5-d6
-PLANNED:  B-11c30d5-d6 orchestration and node-adapter Moves
+COMPLETE: B-11c30d0b input-context owner Move / PR #352
+READY:    B-11c30d5 legacy-orchestration Move
+PLANNED:  B-11c30d6 node-adapter Move
 BLOCKED:  B-11d final root shim
 
 LATER:    #167 seed reservation

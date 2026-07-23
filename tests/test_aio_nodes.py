@@ -9,6 +9,7 @@ import nodes
 from easyuse_anima.aio import (
     first_pass_cache,
     generation_normalization,
+    input_context,
     model_preparation,
     postprocess,
     sampling,
@@ -45,17 +46,28 @@ class AIONodeContractTests(unittest.TestCase):
         )
         self.assertIs(
             nodes._easy_use_anima_input_signature,
+            input_context._easy_use_anima_input_signature,
+        )
+        self.assertIs(
             aio_nodes._easy_use_anima_input_signature,
+            input_context._easy_use_anima_input_signature,
         )
         self.assertIs(
             nodes._require_easy_use_anima_input,
+            input_context._require_easy_use_anima_input,
+        )
+        self.assertIs(
             aio_nodes._require_easy_use_anima_input,
+            input_context._require_easy_use_anima_input,
         )
         self.assertFalse(hasattr(nodes, "_clear_aio_first_pass_cache"))
 
         with _loaded_package_entrypoint() as (package_entrypoint, package_nodes):
             canonical_module = sys.modules[
                 f"{package_entrypoint.__name__}.easyuse_anima.nodes.aio_nodes"
+            ]
+            canonical_input_context = sys.modules[
+                f"{package_entrypoint.__name__}.easyuse_anima.aio.input_context"
             ]
             self.assertEqual(
                 canonical_module.__all__,
@@ -76,11 +88,19 @@ class AIONodeContractTests(unittest.TestCase):
             )
             self.assertIs(
                 package_nodes._easy_use_anima_input_signature,
+                canonical_input_context._easy_use_anima_input_signature,
+            )
+            self.assertIs(
                 canonical_module._easy_use_anima_input_signature,
+                canonical_input_context._easy_use_anima_input_signature,
             )
             self.assertIs(
                 package_nodes._require_easy_use_anima_input,
+                canonical_input_context._require_easy_use_anima_input,
+            )
+            self.assertIs(
                 canonical_module._require_easy_use_anima_input,
+                canonical_input_context._require_easy_use_anima_input,
             )
             self.assertFalse(hasattr(package_nodes, "_clear_aio_first_pass_cache"))
 
@@ -408,15 +428,21 @@ class AIONodeContractTests(unittest.TestCase):
             calls.append(("stable_key", value))
             return "change-key"
 
-        with patch.multiple(
-            nodes,
-            AIO_SPECIAL_SEEDS=special_seeds,
-            _normalize_aio_generation_settings=normalize,
-            _json_clone=clone,
-            _resolve_aio_runtime_seed=resolve_seed,
-            _easy_use_anima_input_signature=input_signature,
-            _aio_lora_stack_signature=lora_signature,
-            _stable_change_key=stable_key,
+        with (
+            patch.multiple(
+                nodes,
+                AIO_SPECIAL_SEEDS=special_seeds,
+                _normalize_aio_generation_settings=normalize,
+                _json_clone=clone,
+                _resolve_aio_runtime_seed=resolve_seed,
+                _aio_lora_stack_signature=lora_signature,
+                _stable_change_key=stable_key,
+            ),
+            patch.object(
+                aio_nodes,
+                "_easy_use_anima_input_signature",
+                input_signature,
+            ),
         ):
             fixed_result = nodes.EasyUseAnimaAIOGenerator.IS_CHANGED(
                 "context",
@@ -486,9 +512,13 @@ class AIONodeContractTests(unittest.TestCase):
             "input_settings": {"setting": 2},
             "prompt_data": {"prompt": 3},
         }
-        with patch.object(nodes, "_prompt_data_json_safe", side_effect=json_safe):
-            signature = nodes._easy_use_anima_input_signature(value)
-            non_mapping = nodes._easy_use_anima_input_signature("context")
+        with patch.object(
+            input_context,
+            "_prompt_data_json_safe",
+            side_effect=json_safe,
+        ):
+            signature = input_context._easy_use_anima_input_signature(value)
+            non_mapping = input_context._easy_use_anima_input_signature("context")
 
         self.assertEqual(
             calls,
@@ -509,17 +539,17 @@ class AIONodeContractTests(unittest.TestCase):
             },
         )
         self.assertEqual(non_mapping, {"type": "str"})
-        self.assertIs(nodes._require_easy_use_anima_input(value), value)
+        self.assertIs(input_context._require_easy_use_anima_input(value), value)
         with self.assertRaisesRegex(
             RuntimeError,
             r"^\[EasyUseAnima\] easy use anima input is missing or invalid\.$",
         ):
-            nodes._require_easy_use_anima_input(None)
+            input_context._require_easy_use_anima_input(None)
         with self.assertRaisesRegex(
             RuntimeError,
             r"^\[EasyUseAnima\] easy use anima input is missing required value\(s\): resource_info, input_settings$",
         ):
-            nodes._require_easy_use_anima_input({"prompt_data": {}})
+            input_context._require_easy_use_anima_input({"prompt_data": {}})
 
     def test_input_context_is_serializable_and_does_not_embed_model_objects(self):
         context = nodes.EasyUseAnimaInput().build(
