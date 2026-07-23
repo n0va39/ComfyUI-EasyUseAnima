@@ -931,6 +931,7 @@ class AioUsduTilePlanningMoveContractTests(unittest.TestCase):
         for name in self.MOVED_NAMES:
             with self.subTest(name=name):
                 self.assertIs(getattr(root_module, name), getattr(canonical_module, name))
+        self.assertFalse(hasattr(root_module, "_aio_usdu_tile_size"))
 
         with (
             patch.object(root_module, "ceil", wraps=math.ceil) as ceil,
@@ -1016,17 +1017,6 @@ class AioUsduTilePlanningMoveContractTests(unittest.TestCase):
             auto_dimension.call_args_list,
             [call(1024, 900, 500, 2000), call(1536, 900, 500, 2000)],
         )
-
-        with patch.object(
-            root_module,
-            "_aio_usdu_tile_plan",
-            return_value={"tile_width": 111, "tile_height": 222},
-        ) as tile_plan:
-            self.assertEqual(
-                root_module._aio_usdu_tile_size("image", 2.0, {"manual": True}),
-                (111, 222),
-            )
-        tile_plan.assert_called_once_with("image", 2.0, {"manual": True})
 
     def test_root_aliases_and_call_time_helpers(self):
         self._assert_contract(nodes, aio_usdu)

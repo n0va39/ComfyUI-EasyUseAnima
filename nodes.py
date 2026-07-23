@@ -1761,11 +1761,6 @@ def _run_aio_highres_stage(
     }
 
 
-def _aio_usdu_tile_size(image, scale_by: float, usdu_settings: dict[str, Any]) -> tuple[int, int]:
-    tile_plan = _aio_usdu_tile_plan(image, scale_by, usdu_settings)
-    return int(tile_plan["tile_width"]), int(tile_plan["tile_height"])
-
-
 def _aio_final_fit_size(width: int, height: int, fit_settings: dict[str, Any]) -> tuple[int, int, float]:
     width = max(1, int(width))
     height = max(1, int(height))
