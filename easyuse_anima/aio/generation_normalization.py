@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 from collections.abc import Callable
 from typing import Any, TypeAlias
 
@@ -34,6 +35,54 @@ AIO_SPECIAL_SEEDS = {
     AIO_SPECIAL_SEED_INCREMENT,
     AIO_SPECIAL_SEED_DECREMENT,
 }
+
+_AIO_DETAILER_RESERVED_KEYS = {"enabled", "order", "sam3"}
+_AIO_DETAILER_CUSTOM_RE = re.compile(r"^custom_\d+$")
+
+
+def _is_aio_detailer_target_name(name: str) -> bool:
+    return name in ("face", "eye") or bool(
+        _runtime_helper("_AIO_DETAILER_CUSTOM_RE").fullmatch(name)
+    )
+
+
+def _aio_detailer_target_defaults(target_name: str) -> dict[str, Any]:
+    if target_name == "eye":
+        return _runtime_helper("_json_clone")(
+            _runtime_helper("AIO_GENERATION_DEFAULT_SETTINGS")["detailer"]["eye"]
+        )
+    defaults = _runtime_helper("_json_clone")(
+        _runtime_helper("AIO_GENERATION_DEFAULT_SETTINGS")["detailer"]["face"]
+    )
+    if target_name not in ("face", "eye"):
+        suffix = target_name.rsplit("_", 1)[-1]
+        defaults["label"] = (
+            f"Detailer Block {suffix}" if suffix.isdigit() else "Detailer Block"
+        )
+    return defaults
+
+
+def _aio_detailer_target_order(detailer_settings: dict[str, Any]) -> list[str]:
+    output: list[str] = []
+
+    def append_target(name) -> None:
+        text = str(name or "").strip()
+        if _runtime_helper("_is_aio_detailer_target_name")(text) and text not in output:
+            output.append(text)
+
+    order = detailer_settings.get("order")
+    if isinstance(order, list):
+        for name in order:
+            append_target(name)
+    for name, value in detailer_settings.items():
+        if name in _runtime_helper("_AIO_DETAILER_RESERVED_KEYS") or not isinstance(
+            value, dict
+        ):
+            continue
+        append_target(name)
+    for name in ("face", "eye"):
+        append_target(name)
+    return output
 
 
 def _normalize_aio_seed(value, default: int = AIO_SPECIAL_SEED_RANDOM) -> int:

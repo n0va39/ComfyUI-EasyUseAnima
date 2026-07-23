@@ -3,15 +3,15 @@
 ## Registry status
 
 - Inventory baseline: `dev` commit
-  `7222f7dda96be87749f008571d7d1d7237eb9ee9`
+  `236a7f529f786c19a8bd0bcd34fd02d38b9d8af6`
 - Compatibility provenance: package/workflow version 0.5.2
 - Policy: [ADR-002](adr-002-compatibility-shims.md)
 - Machine-readable audit:
   [`python_compatibility_surface.v1.json`](../../tests/fixtures/python_compatibility_surface.v1.json)
-- Current state: B-11a through B-11c9 are integrated through PR #303. B-11c is
+- Current state: B-11a through B-11c10 are integrated through PR #304. B-11c is
   split into residual-owner Moves and explicit private-contract cleanup before
-  the final root shim; B-11c10 dead `_settings_json` retirement is tracked by
-  PR #304.
+  the final root shim; B-11c11 Detailer target normalization is tracked by PR
+  #305.
 
 This is an actionable registry, not a removal schedule. `N` means the first
 published Registry release containing both a canonical target and its root
@@ -73,11 +73,11 @@ The versioned fixture records the exact post-B-09b2 surface rather than
 inferring public support from spelling or test imports:
 
 - root `__init__.py` permanent entrypoints: 3;
-- `nodes.py` preamble implementation imports: 7 (`json`, `logging`, `random`,
-  `re`, `ceil`, `sqrt`, and `Any`), excluded from compatibility classification
+- `nodes.py` preamble implementation imports: 6 (`json`, `logging`, `random`,
+  `ceil`, `sqrt`, and `Any`), excluded from compatibility classification
   by an exact AST allowlist and drift gate;
-- `nodes.py` bindings with an `easyuse_anima` canonical target: 276 after
-  B-11c9 (258 at the integrated B-10b20 baseline), with exact
+- `nodes.py` bindings with an `easyuse_anima` canonical target: 281 in B-11c11
+  (258 at the integrated B-10b20 baseline), with exact
   relative-package/flat-fallback parity;
 - bindings still owned by `anima_prompt`, `settings`, `prompt_translation`, or
   `wildcard_engine`: 27, with the same fallback parity;
@@ -85,10 +85,10 @@ inferring public support from spelling or test imports:
 - unmapped root classes: `EasyUseAnimaSAM3Context` and
   `EasyUseAnimaSAM3Detailer`; the canonical legacy Extend class remains in its
   owner module without a root alias or backend mapping;
-- root-owned residual implementation: 29 functions, 0 classes, and 28 assigned
-  globals after B-11c10 (41/2/33 at the integrated B-10b20 baseline).
+- root-owned residual implementation: 26 functions, 0 classes, and 26 assigned
+  globals in B-11c11 (41/2/33 at the integrated B-10b20 baseline).
 - import-time runtime binders: 28 exact top-level `_bind_*_runtime` calls;
-- root names reached by those canonical runtime resolvers: 263, including
+- root names reached by those canonical runtime resolvers: 266, including
   literal lookups and binder-owned helper-name/default collections;
 - retired private bindings: `_comfy_checkpoint_names`,
   `_EasyUseAnimaAlignedDetailerHook`, and
@@ -116,7 +116,7 @@ mapped-public classification drift, and silent promotion of residual root
 implementation. A repository test import can justify migration work, but never
 supported-public classification by itself.
 
-The seven preamble imports are implementation dependencies of the remaining
+The six preamble imports are implementation dependencies of the remaining
 root body, not compatibility aliases or supported exports. Any addition,
 removal, or retargeting fails the fixture build until it is deliberately
 classified; B-10b must not treat these imports as private-alias cleanup.
@@ -310,6 +310,25 @@ convenience-node compatibility; it remains unmapped and is not public support.
   remain present and unchanged.
 - PR #304 changes no JSON shape, default, schema, widget/workflow serialization,
   registration/bootstrap, stage, cache, seed, or resource behavior.
+
+### B-11c11 AiO Detailer target normalization aliases
+
+- Canonical owner: `easyuse_anima.aio.generation_normalization` for
+  `_AIO_DETAILER_RESERVED_KEYS`, `_AIO_DETAILER_CUSTOM_RE`,
+  `_is_aio_detailer_target_name`, `_aio_detailer_target_defaults`, and
+  `_aio_detailer_target_order`.
+- The five private root names remain transitional direct aliases in both
+  relative package and flat import modes. Existing generation normalization,
+  Detailer stage/enabled consumers, and schema-contract coverage retain the
+  root names.
+- The moved functions resolve the mutable reserved-key set and generation
+  defaults plus the regex, target-name helper, and JSON clone helper from root
+  at call time. Binding replacement and in-place mutation remain visible
+  without a new binder.
+- PR #305 preserves `custom_\d+` matching, trim/deduplication and explicit/dict/
+  face/eye order, reserved/non-dict exclusion, deep cloning, and custom numeric
+  label suffixes. It does not move or change Detailer execution/enabled gates,
+  schema/default ownership, SAM3, Impact, USDU, or final-fit behavior.
 
 ### `nodes.py` public node-class surface
 

@@ -2,7 +2,7 @@
   "schema_version": 1,
   "snapshot": {
     "base_branch": "dev",
-    "base_commit": "7222f7dda96be87749f008571d7d1d7237eb9ee9",
+    "base_commit": "236a7f529f786c19a8bd0bcd34fd02d38b9d8af6",
     "first_release": null,
     "owner_tasks": [
       "#184",
@@ -40,7 +40,8 @@
       "B-11c7b",
       "B-11c8",
       "B-11c9",
-      "B-11c10"
+      "B-11c10",
+      "B-11c11"
     ]
   },
   "enums": {
@@ -74,14 +75,14 @@
   },
   "expected_counts": {
     "root_entrypoints": 3,
-    "excluded_preamble_implementation_bindings": 7,
-    "nodes_canonical_bindings": 276,
+    "excluded_preamble_implementation_bindings": 6,
+    "nodes_canonical_bindings": 281,
     "nodes_legacy_bindings": 27,
     "mapped_public_classes": 18,
     "unmapped_classes": 2,
-    "root_residual_functions": 29,
+    "root_residual_functions": 26,
     "root_residual_classes": 0,
-    "root_residual_globals": 28,
+    "root_residual_globals": 26,
     "runtime_binders": 28,
     "direct_nodes_import_test_files": 21
   },
@@ -115,7 +116,6 @@
     "json": "json:json",
     "logging": "logging:logging",
     "random": "random:random",
-    "re": "re:re",
     "sqrt": "math:sqrt"
   },
   "runtime_binders": [
@@ -305,6 +305,12 @@
       "easyuse_anima.aio.sampling"
     ],
     "SEED_CONTROL_MODES": [
+      "easyuse_anima.aio.generation_normalization"
+    ],
+    "_AIO_DETAILER_CUSTOM_RE": [
+      "easyuse_anima.aio.generation_normalization"
+    ],
+    "_AIO_DETAILER_RESERVED_KEYS": [
       "easyuse_anima.aio.generation_normalization"
     ],
     "_AIO_FIRST_PASS_CACHE": [
@@ -688,6 +694,9 @@
     "_impact_scheduler_names": [
       "easyuse_anima.aio.generation_normalization",
       "easyuse_anima.nodes.impact_detailer_nodes"
+    ],
+    "_is_aio_detailer_target_name": [
+      "easyuse_anima.aio.generation_normalization"
     ],
     "_join_artist_mix_source_prompts": [
       "easyuse_anima.nodes.prompt_data_nodes",
@@ -1914,7 +1923,12 @@
         "AIO_SPECIAL_SEEDS": "AIO_SPECIAL_SEEDS",
         "AIO_SPECIAL_SEED_DECREMENT": "AIO_SPECIAL_SEED_DECREMENT",
         "AIO_SPECIAL_SEED_RANDOM": "AIO_SPECIAL_SEED_RANDOM",
+        "_AIO_DETAILER_CUSTOM_RE": "_AIO_DETAILER_CUSTOM_RE",
+        "_AIO_DETAILER_RESERVED_KEYS": "_AIO_DETAILER_RESERVED_KEYS",
+        "_aio_detailer_target_defaults": "_aio_detailer_target_defaults",
+        "_aio_detailer_target_order": "_aio_detailer_target_order",
         "_bind_aio_generation_normalization_runtime": "_bind_aio_generation_normalization_runtime",
+        "_is_aio_detailer_target_name": "_is_aio_detailer_target_name",
         "_merge_versioned_settings": "_merge_versioned_settings",
         "_normalize_aio_dit_corrections_settings": "_normalize_aio_dit_corrections_settings",
         "_normalize_aio_generation_settings": "_normalize_aio_generation_settings",
@@ -2287,7 +2301,6 @@
       "owner": "#184/#188",
       "first_release": null,
       "known_consumers": [
-        "nodes.py residual runtime",
         "canonical runtime resolver: easyuse_anima.aio.first_pass_cache",
         "canonical runtime resolver: easyuse_anima.aio.generation_normalization",
         "canonical runtime resolver: easyuse_anima.aio.sampling",
@@ -2299,7 +2312,6 @@
         "canonical runtime resolver: easyuse_anima.nodes.regional_nodes"
       ],
       "evidence": [
-        "AST:nodes.py direct runtime load",
         "AST:easyuse_anima.aio.first_pass_cache string runtime lookup",
         "AST:easyuse_anima.aio.generation_normalization string runtime lookup",
         "AST:easyuse_anima.aio.sampling string runtime lookup",
@@ -4004,8 +4016,6 @@
       "kind": "functions",
       "symbols": {
         "_aio_detailer_has_enabled_targets": "_aio_detailer_has_enabled_targets",
-        "_aio_detailer_target_defaults": "_aio_detailer_target_defaults",
-        "_aio_detailer_target_order": "_aio_detailer_target_order",
         "_aio_final_fit_size": "_aio_final_fit_size",
         "_aio_usdu_auto_tile_dimension": "_aio_usdu_auto_tile_dimension",
         "_aio_usdu_tile_plan": "_aio_usdu_tile_plan",
@@ -4021,7 +4031,6 @@
         "_find_comfy_node_class": "_find_comfy_node_class",
         "_find_comfy_node_mapping_class": "_find_comfy_node_mapping_class",
         "_find_loaded_node_class": "_find_loaded_node_class",
-        "_is_aio_detailer_target_name": "_is_aio_detailer_target_name",
         "_require_any_custom_node_class": "_require_any_custom_node_class",
         "_require_custom_node_class": "_require_custom_node_class",
         "_resize_image_to_size_if_needed": "_resize_image_to_size_if_needed",
@@ -4084,8 +4093,6 @@
         "EASY_USE_ANIMA_INPUT_TYPE": "EASY_USE_ANIMA_INPUT_TYPE",
         "WILDCARD_QUEUE_MAX_SAFE_SEED": "WILDCARD_QUEUE_MAX_SAFE_SEED",
         "WILDCARD_RESERVED_NEXT_SEED_INPUT": "WILDCARD_RESERVED_NEXT_SEED_INPUT",
-        "_AIO_DETAILER_CUSTOM_RE": "_AIO_DETAILER_CUSTOM_RE",
-        "_AIO_DETAILER_RESERVED_KEYS": "_AIO_DETAILER_RESERVED_KEYS",
         "_TRIGGER_WORD_KEYS": "_TRIGGER_WORD_KEYS",
         "logger": "logger"
       },

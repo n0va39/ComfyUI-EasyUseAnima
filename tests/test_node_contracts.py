@@ -829,6 +829,96 @@ class AioDitNormalizationMoveContractTests(unittest.TestCase):
             self._assert_contract(package_nodes, package_generation_normalization)
 
 
+class AioDetailerNormalizationMoveContractTests(unittest.TestCase):
+    SYMBOL_NAMES = (
+        "_AIO_DETAILER_CUSTOM_RE",
+        "_AIO_DETAILER_RESERVED_KEYS",
+        "_is_aio_detailer_target_name",
+        "_aio_detailer_target_defaults",
+        "_aio_detailer_target_order",
+    )
+
+    def _assert_contract(self, root_module, canonical_module):
+        for name in self.SYMBOL_NAMES:
+            with self.subTest(name=name):
+                self.assertIs(getattr(root_module, name), getattr(canonical_module, name))
+
+        self.assertEqual(root_module._AIO_DETAILER_RESERVED_KEYS, {"enabled", "order", "sam3"})
+        self.assertEqual(root_module._AIO_DETAILER_CUSTOM_RE.pattern, r"^custom_\d+$")
+
+        with patch.object(root_module, "_AIO_DETAILER_CUSTOM_RE") as custom_re:
+            custom_re.fullmatch.side_effect = lambda name: name == "replacement"
+            self.assertTrue(canonical_module._is_aio_detailer_target_name("replacement"))
+            self.assertFalse(canonical_module._is_aio_detailer_target_name("custom_7"))
+        self.assertEqual(
+            custom_re.fullmatch.call_args_list,
+            [call("replacement"), call("custom_7")],
+        )
+
+        defaults = {
+            "detailer": {
+                "face": {"label": "Face", "nested": ["face"]},
+                "eye": {"label": "Eye", "nested": ["eye"]},
+            }
+        }
+        with (
+            patch.object(root_module, "AIO_GENERATION_DEFAULT_SETTINGS", defaults),
+            patch.object(
+                root_module,
+                "_json_clone",
+                side_effect=lambda value: json.loads(json.dumps(value)),
+            ) as json_clone,
+        ):
+            eye = canonical_module._aio_detailer_target_defaults("eye")
+            custom = canonical_module._aio_detailer_target_defaults("custom_12")
+        self.assertEqual(eye, defaults["detailer"]["eye"])
+        self.assertIsNot(eye["nested"], defaults["detailer"]["eye"]["nested"])
+        self.assertEqual(custom["label"], "Detailer Block 12")
+        self.assertEqual(
+            json_clone.call_args_list,
+            [call(defaults["detailer"]["eye"]), call(defaults["detailer"]["face"])],
+        )
+
+        root_module._AIO_DETAILER_RESERVED_KEYS.add("custom_9")
+        try:
+            self.assertEqual(
+                canonical_module._aio_detailer_target_order({"custom_9": {}}),
+                ["face", "eye"],
+            )
+        finally:
+            root_module._AIO_DETAILER_RESERVED_KEYS.discard("custom_9")
+
+        with (
+            patch.object(
+                root_module,
+                "_is_aio_detailer_target_name",
+                side_effect=lambda name: name in {"special", "face", "eye"},
+            ) as is_target,
+            patch.object(root_module, "_AIO_DETAILER_RESERVED_KEYS", {"reserved"}),
+        ):
+            order = canonical_module._aio_detailer_target_order(
+                {
+                    "order": [" special ", "special", "invalid"],
+                    "reserved": {},
+                    "late": {},
+                    "scalar": "ignored",
+                }
+            )
+        self.assertEqual(order, ["special", "face", "eye"])
+        self.assertNotIn(call("reserved"), is_target.call_args_list)
+
+    def test_root_aliases_and_call_time_state(self):
+        self._assert_contract(nodes, aio_generation_normalization)
+
+    def test_package_aliases_and_call_time_state(self):
+        with _loaded_package_entrypoint() as (_, package_nodes):
+            package_name = package_nodes.__package__
+            package_generation_normalization = sys.modules[
+                f"{package_name}.easyuse_anima.aio.generation_normalization"
+            ]
+            self._assert_contract(package_nodes, package_generation_normalization)
+
+
 class AioSeedNormalizationMoveContractTests(unittest.TestCase):
     CONSTANT_NAMES = (
         "AIO_SPECIAL_SEED_RANDOM",
