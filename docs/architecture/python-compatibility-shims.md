@@ -1069,6 +1069,24 @@ convenience-node compatibility; it remains unmapped and is not public support.
 - B-11d final root shim is the next separate Move; #167/#236 Behavior and
   D-09/D-12 consolidation remain outside PR #355.
 
+### B-11d final root-shim cutover inventory
+
+- Pre-edit `nodes.py` contains 289 canonical and 27 legacy direct bindings,
+  18 mapped supported classes, two unmapped class aliases, no
+  functions/classes/binders/resolvers, and two residual globals.
+- The supported `nodes.py.__all__` is exactly the 18 mapped classes in
+  registration order. Existing audited private/test-only aliases remain
+  explicit direct bindings outside `__all__`; B-11d does not promote or remove
+  them.
+- Root `__init__.py` preserves its mapped class attributes and permanent
+  mapping/display/`WEB_DIRECTORY` entrypoints through
+  `easyuse_anima.registration`, without consuming the compatibility
+  `nodes.py`.
+- `logger`, `_TRIGGER_WORD_KEYS`, and their `logging` import are unused root
+  implementation residue and are the only production symbols retired here.
+- Any private alias retirement still follows ADR-002 as a separate reviewed
+  unit after maintained-consumer, published-release, and packed-archive gates.
+
 ### `nodes.py` public node-class surface
 
 The confirmed 0.5.2 mapped classes are:

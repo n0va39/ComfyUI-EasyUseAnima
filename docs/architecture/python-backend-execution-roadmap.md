@@ -403,7 +403,7 @@ mechanical retirement series.
 | 11 | B-09b2 AiO generator adapter move | COMPLETE on `dev` | Move | #184 | PR #270 / `57d40b4` |
 | 12 | B-10a machine-readable compatibility audit | COMPLETE on `dev` | Contract/gate | #184/#188 | PR #271 / `3c7b857` |
 | 13 | B-10b private alias reduction | COMPLETE on `dev` through PR #291 / `c6b4680` | Contract/cleanup, split PRs | #184/#188 | Audited alias surface integrated |
-| 14 | B-11 registration/bootstrap/root shim | IN PROGRESS through B-11c30e PR #355; final root shim is the next separate Move | Move/Contract, split PRs | #184 | Zero runtime binders; frozen compatibility audit |
+| 14 | B-11 registration/bootstrap/root shim | B-11c30e PR #355 integrated; B-11d final root shim IN PROGRESS | Move/Contract, split PRs | #184 | Zero runtime binders; explicit root `__all__`; frozen compatibility audit |
 | 15 | S167 backend seed reservation series | S167-01 Contract COMPLETE in PR #343 and S167-01a consumer Move COMPLETE in PR #344; Behavior and Adapter remain | Contract then Move then Behavior | #167 | Canonical AiO/node seams |
 | 16 | A169 stage pipeline series | BLOCKED by #168 and B exit | Contract then Behavior | #169 | Typed config and mechanical AiO move |
 | 17 | A169 first-pass cache policy | BLOCKED by stage/cache ownership seam | Behavior | #169 | Mechanical cache move and benchmark harness |
@@ -1148,6 +1148,11 @@ unchanged. The separate legacy Wildcard unsupported alias remains for D-12.
     package/flat imports, mappings, workflows, and exact errors remain frozen.
     Runtime binder/resolver counts reach zero and the root shim falls to 1,123
     lines. B-11d is the next READY Move.
+  - B-11d removes only the final unused root `logging`/`logger` and
+    `_TRIGGER_WORD_KEYS` implementation residue, adds an explicit supported
+    class `__all__`, and stops the package entrypoint from consuming the root
+    compatibility shim. Audited private/test-only aliases remain outside
+    `__all__` under ADR-002 and are not mass-retired in this Move.
   - The final B-11c cutover removes remaining root execution ownership and
     leaves the explicit supported `nodes.py` compatibility shim.
 - Add `easyuse_anima/registration.py` as pure mapping composition. It performs no

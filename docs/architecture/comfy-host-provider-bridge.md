@@ -2568,11 +2568,66 @@ Forbidden:
 
 ### B-11d — Final root shim
 
-- **State:** READY after B-11c30e / PR #355
+- **State:** IN PROGRESS after B-11c30e / PR #355
 - **Owner:** #184
 - **Type:** Move
 
-Final conditions remain:
+Pre-edit inventory:
+
+- root `nodes.py` is 1,123 lines with two exact relative-package/flat-fallback
+  import branches. It contains 289 canonical and 27 legacy direct bindings,
+  including the 18 mapped supported class re-exports;
+- the two unmapped class aliases are `EasyUseAnimaSAM3Context`, with documented
+  historical convenience-node evidence, and unsupported/test-only
+  `EasyUseAnimaSAM3Detailer`. ADR-002 keeps both outside the supported
+  `__all__`; any future removal remains a separate per-alias review;
+- all 297 unsupported/test-only symbols remain audited compatibility debt.
+  B-11d does not mass-retire them because ADR-002 requires maintained-consumer
+  migration, a published support window, archive evidence, and a separate
+  reviewed removal unit;
+- root owns zero functions, zero classes, zero binders/resolvers, and two
+  residual assigned globals: `logger` and `_TRIGGER_WORD_KEYS`. The preamble
+  `logging` import exists only for that unused root logger;
+- root `__init__.py` exposes 18 mapped class attributes by importing the
+  compatibility `nodes.py`, then imports mapping objects from pure
+  `easyuse_anima.registration`, and performs one guarded bootstrap call;
+- internal `easyuse_anima` package imports of root `nodes.py` are zero. The
+  root package entrypoint is the only production path still consuming the shim;
+- 21 repository test files import root `nodes.py`. Their explicit mapped-class
+  and compatibility assertions remain allowed; test-only imports do not
+  promote private aliases to supported API; and
+- package mappings, display order, workflow fixtures, bootstrap idempotence,
+  Registry scanner safety, package closure, and the root/canonical identity
+  surface are already covered by checked-in gates.
+
+Allowed production files:
+
+```text
+nodes.py
+__init__.py
+```
+
+Allowed supporting files are the Python compatibility and nodes/backend
+analyzer gates/fixtures, the public node contract coverage, and the three
+architecture documents. Registry metadata, node behavior, canonical feature
+modules, frontend files, and release versioning are outside this Move.
+
+Implementation plan:
+
+- remove only the unused root `logging`, `logger`, and `_TRIGGER_WORD_KEYS`
+  implementation residue;
+- add an explicit root `nodes.py.__all__` containing exactly the 18 mapped
+  supported class names in registration order;
+- make root `__init__.py` obtain its preserved class attributes from pure
+  `easyuse_anima.registration`, not the compatibility shim;
+- teach the compatibility gate to classify root `__all__` as shim metadata,
+  require exact equality with the mapped classes, and require zero residual
+  root implementation; and
+- preserve every existing direct alias binding, object identity, package/flat
+  fallback, mapping/display order, schema, workflow, error, and optional-import
+  behavior.
+
+Exit:
 
 - root `nodes.py` contains explicit supported direct re-exports and `__all__`;
 - no node execution, host discovery, prompt processing, sampling, cache,
@@ -2583,6 +2638,18 @@ Final conditions remain:
 - package-to-root production imports are zero;
 - actual package/Registry archive closure passes; and
 - representative live ComfyUI execution is recorded.
+
+Forbidden:
+
+- removing or promoting any of the audited private/test-only aliases;
+- changing `NODE_CLASS_MAPPINGS`, display names/order, node schemas, workflows,
+  class identity, package/flat import targets, or optional dependency timing;
+- moving or consolidating `wildcard_engine.py`, `settings.py`,
+  `prompt_translation.py`, or `anima_prompt`;
+- changing bootstrap, route, wildcard initialization, runtime provider, seed,
+  Wildcard, NAIA, Prompt, AiO, cache, or persistence behavior; and
+- beginning #167/#169 Behavior, Phase D consolidation, release, dependency,
+  performance, or broad quality cleanup.
 
 S167-01a / PR #344 supplies the behavior-preserving reserved-seed owner, and
 B-11c30c2b / PR #345 consumes it directly from both canonical adapters. The
@@ -2621,7 +2688,7 @@ COMPLETE: B-11c30d0b input-context owner Move / PR #352
 COMPLETE: B-11c30d5 legacy-orchestration Move / PR #353
 COMPLETE: B-11c30d6 node-adapter Move / PR #354
 COMPLETE: B-11c30e Wildcard/NAIA callback binder Move / PR #355
-READY:    B-11d final root shim
+IN PROGRESS: B-11d final root shim
 
 LATER:    #167 seed reservation
 LATER:    #169 stage/cache Behavior
