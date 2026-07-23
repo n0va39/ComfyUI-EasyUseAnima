@@ -3,14 +3,15 @@
 ## Registry status
 
 - Inventory baseline: `dev` commit
-  `40e8d940483e265d5a46b2bce1bd8fea83672550`
+  `7222f7dda96be87749f008571d7d1d7237eb9ee9`
 - Compatibility provenance: package/workflow version 0.5.2
 - Policy: [ADR-002](adr-002-compatibility-shims.md)
 - Machine-readable audit:
   [`python_compatibility_surface.v1.json`](../../tests/fixtures/python_compatibility_surface.v1.json)
-- Current state: B-11a through B-11c8 are integrated through PR #302. B-11c is
-  split into residual-owner and binder Moves before the final root shim;
-  B-11c9 AiO input-settings normalizer ownership is tracked by PR #303.
+- Current state: B-11a through B-11c9 are integrated through PR #303. B-11c is
+  split into residual-owner Moves and explicit private-contract cleanup before
+  the final root shim; B-11c10 dead `_settings_json` retirement is tracked by
+  PR #304.
 
 This is an actionable registry, not a removal schedule. `N` means the first
 published Registry release containing both a canonical target and its root
@@ -84,8 +85,8 @@ inferring public support from spelling or test imports:
 - unmapped root classes: `EasyUseAnimaSAM3Context` and
   `EasyUseAnimaSAM3Detailer`; the canonical legacy Extend class remains in its
   owner module without a root alias or backend mapping;
-- root-owned residual implementation: 30 functions, 0 classes, and 28 assigned
-  globals after B-11c9 (41/2/33 at the integrated B-10b20 baseline).
+- root-owned residual implementation: 29 functions, 0 classes, and 28 assigned
+  globals after B-11c10 (41/2/33 at the integrated B-10b20 baseline).
 - import-time runtime binders: 28 exact top-level `_bind_*_runtime` calls;
 - root names reached by those canonical runtime resolvers: 263, including
   literal lookups and binder-owned helper-name/default collections;
@@ -297,6 +298,18 @@ convenience-node compatibility; it remains unmapped and is not public support.
   the single clip-loader choice, and dtype/device fallback order. It does not
   move defaults or schemas, add typed settings, or change widget, workflow,
   resource-loading, cache, seed, or stage behavior.
+
+### B-11c10 dead root JSON helper retirement
+
+- `_settings_json` was a root-only private definition with no production caller,
+  runtime resolver, binder, test import, documented compatibility consumer, or
+  canonical target. It is therefore removed rather than promoted into the
+  canonical package.
+- The compatibility fixture and flat/package contract record its absence.
+  Root `json`, `_aio_input_settings_json`, and `_aio_generation_settings_json`
+  remain present and unchanged.
+- PR #304 changes no JSON shape, default, schema, widget/workflow serialization,
+  registration/bootstrap, stage, cache, seed, or resource behavior.
 
 ### `nodes.py` public node-class surface
 

@@ -2,7 +2,7 @@
   "schema_version": 1,
   "snapshot": {
     "base_branch": "dev",
-    "base_commit": "40e8d940483e265d5a46b2bce1bd8fea83672550",
+    "base_commit": "7222f7dda96be87749f008571d7d1d7237eb9ee9",
     "first_release": null,
     "owner_tasks": [
       "#184",
@@ -39,7 +39,8 @@
       "B-11c7a",
       "B-11c7b",
       "B-11c8",
-      "B-11c9"
+      "B-11c9",
+      "B-11c10"
     ]
   },
   "enums": {
@@ -78,7 +79,7 @@
     "nodes_legacy_bindings": 27,
     "mapped_public_classes": 18,
     "unmapped_classes": 2,
-    "root_residual_functions": 30,
+    "root_residual_functions": 29,
     "root_residual_classes": 0,
     "root_residual_globals": 28,
     "runtime_binders": 28,
@@ -4030,8 +4031,7 @@
         "_run_aio_postprocess_stage": "_run_aio_postprocess_stage",
         "_run_aio_resshift_upscale_stage": "_run_aio_resshift_upscale_stage",
         "_run_aio_upscale_stage": "_run_aio_upscale_stage",
-        "_run_aio_usdu_upscale_stage": "_run_aio_usdu_upscale_stage",
-        "_settings_json": "_settings_json"
+        "_run_aio_usdu_upscale_stage": "_run_aio_usdu_upscale_stage"
       },
       "classification": "transitional_private_seam",
       "current_target": "nodes.py",

@@ -997,6 +997,20 @@ class AioWidgetDefaultSerializerMoveContractTests(unittest.TestCase):
             self._assert_contract(package_nodes, package_aio_nodes)
 
 
+class AioSettingsJsonRetirementContractTests(unittest.TestCase):
+    def _assert_contract(self, root_module):
+        self.assertFalse(hasattr(root_module, "_settings_json"))
+        self.assertTrue(callable(root_module._aio_input_settings_json))
+        self.assertTrue(callable(root_module._aio_generation_settings_json))
+
+    def test_flat_root_has_no_dead_settings_json_helper(self):
+        self._assert_contract(nodes)
+
+    def test_package_root_has_no_dead_settings_json_helper(self):
+        with _loaded_package_entrypoint() as (_, package_nodes):
+            self._assert_contract(package_nodes)
+
+
 class AioInputSettingsNormalizerMoveContractTests(unittest.TestCase):
     def _assert_contract(self, root_module, canonical_module):
         self.assertIs(
