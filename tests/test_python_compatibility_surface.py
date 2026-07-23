@@ -16,7 +16,7 @@ NODES_PATH = ROOT / "nodes.py"
 FIXTURE_PATH = ROOT / "tests" / "fixtures" / "python_compatibility_surface.v1.json"
 
 SCHEMA_VERSION = 1
-BASE_COMMIT = "7222f7dda96be87749f008571d7d1d7237eb9ee9"
+BASE_COMMIT = "236a7f529f786c19a8bd0bcd34fd02d38b9d8af6"
 CLASSIFICATIONS = (
     "permanent_entrypoint",
     "supported_public_reexport",
@@ -53,7 +53,6 @@ PREAMBLE_IMPLEMENTATION_BINDINGS = {
     "json": "json:json",
     "logging": "logging:logging",
     "random": "random:random",
-    "re": "re:re",
     "sqrt": "math:sqrt",
 }
 RETIRED_ARTIST_MIX_MODE_BINDINGS = (
@@ -1314,6 +1313,7 @@ def _build_document() -> dict[str, Any]:
                 "B-11c8",
                 "B-11c9",
                 "B-11c10",
+                "B-11c11",
             ],
         },
         "enums": {
@@ -1325,14 +1325,14 @@ def _build_document() -> dict[str, Any]:
         },
         "expected_counts": {
             "root_entrypoints": 3,
-            "excluded_preamble_implementation_bindings": 7,
-            "nodes_canonical_bindings": 276,
+            "excluded_preamble_implementation_bindings": 6,
+            "nodes_canonical_bindings": 281,
             "nodes_legacy_bindings": 27,
             "mapped_public_classes": 18,
             "unmapped_classes": 2,
-            "root_residual_functions": 29,
+            "root_residual_functions": 26,
             "root_residual_classes": 0,
-            "root_residual_globals": 28,
+            "root_residual_globals": 26,
             "runtime_binders": 28,
             "direct_nodes_import_test_files": 21,
         },

@@ -4,7 +4,6 @@ from __future__ import annotations
 import json
 import logging
 import random
-import re
 from math import ceil, sqrt
 from typing import Any
 
@@ -29,7 +28,12 @@ try:
         AIO_SPECIAL_SEED_DECREMENT as AIO_SPECIAL_SEED_DECREMENT,
         AIO_SPECIAL_SEED_INCREMENT as AIO_SPECIAL_SEED_INCREMENT,
         AIO_SPECIAL_SEED_RANDOM as AIO_SPECIAL_SEED_RANDOM,
+        _AIO_DETAILER_CUSTOM_RE as _AIO_DETAILER_CUSTOM_RE,
+        _AIO_DETAILER_RESERVED_KEYS as _AIO_DETAILER_RESERVED_KEYS,
+        _aio_detailer_target_defaults as _aio_detailer_target_defaults,
+        _aio_detailer_target_order as _aio_detailer_target_order,
         _bind_aio_generation_normalization_runtime as _bind_aio_generation_normalization_runtime,
+        _is_aio_detailer_target_name as _is_aio_detailer_target_name,
         _merge_versioned_settings as _merge_versioned_settings,
         _normalize_aio_dit_corrections_settings as _normalize_aio_dit_corrections_settings,
         _normalize_aio_generation_settings as _normalize_aio_generation_settings,
@@ -562,7 +566,12 @@ except ImportError:  # allows simple local import tests outside ComfyUI's packag
         AIO_SPECIAL_SEED_DECREMENT as AIO_SPECIAL_SEED_DECREMENT,
         AIO_SPECIAL_SEED_INCREMENT as AIO_SPECIAL_SEED_INCREMENT,
         AIO_SPECIAL_SEED_RANDOM as AIO_SPECIAL_SEED_RANDOM,
+        _AIO_DETAILER_CUSTOM_RE as _AIO_DETAILER_CUSTOM_RE,
+        _AIO_DETAILER_RESERVED_KEYS as _AIO_DETAILER_RESERVED_KEYS,
+        _aio_detailer_target_defaults as _aio_detailer_target_defaults,
+        _aio_detailer_target_order as _aio_detailer_target_order,
         _bind_aio_generation_normalization_runtime as _bind_aio_generation_normalization_runtime,
+        _is_aio_detailer_target_name as _is_aio_detailer_target_name,
         _merge_versioned_settings as _merge_versioned_settings,
         _normalize_aio_dit_corrections_settings as _normalize_aio_dit_corrections_settings,
         _normalize_aio_generation_settings as _normalize_aio_generation_settings,
@@ -1567,47 +1576,6 @@ AIO_RESHIFT_DTYPES = ("bf16", "fp32")
 
 
 _TRIGGER_WORD_KEYS = ("trainedWords", "trained_words", "trigger_words", "activation_text")
-
-
-_AIO_DETAILER_RESERVED_KEYS = {"enabled", "order", "sam3"}
-_AIO_DETAILER_CUSTOM_RE = re.compile(r"^custom_\d+$")
-
-
-def _is_aio_detailer_target_name(name: str) -> bool:
-    return name in ("face", "eye") or bool(_AIO_DETAILER_CUSTOM_RE.fullmatch(name))
-
-
-def _aio_detailer_target_defaults(target_name: str) -> dict[str, Any]:
-    if target_name == "eye":
-        return _json_clone(AIO_GENERATION_DEFAULT_SETTINGS["detailer"]["eye"])
-    defaults = _json_clone(AIO_GENERATION_DEFAULT_SETTINGS["detailer"]["face"])
-    if target_name not in ("face", "eye"):
-        suffix = target_name.rsplit("_", 1)[-1]
-        defaults["label"] = f"Detailer Block {suffix}" if suffix.isdigit() else "Detailer Block"
-    return defaults
-
-
-def _aio_detailer_target_order(detailer_settings: dict[str, Any]) -> list[str]:
-    output: list[str] = []
-
-    def append_target(name) -> None:
-        text = str(name or "").strip()
-        if _is_aio_detailer_target_name(text) and text not in output:
-            output.append(text)
-
-    order = detailer_settings.get("order")
-    if isinstance(order, list):
-        for name in order:
-            append_target(name)
-    for name, value in detailer_settings.items():
-        if name in _AIO_DETAILER_RESERVED_KEYS or not isinstance(value, dict):
-            continue
-        append_target(name)
-    for name in ("face", "eye"):
-        append_target(name)
-    return output
-
-
 
 
 def _comfy_max_resolution() -> int:
