@@ -289,6 +289,174 @@ def _run_aio_detailer_target(
     }
 
 
+def _run_aio_usdu_upscale_stage(
+    model,
+    clip,
+    vae,
+    positive,
+    negative,
+    image,
+    sampler_settings: dict[str, Any],
+    upscale_settings: dict[str, Any],
+    quality_tags: str = "",
+    quality_neg: str = "",
+    prompt_data: str | dict | None = None,
+    exclude_positive_quality: bool = False,
+    exclude_negative_quality: bool = False,
+) -> tuple[Any, dict[str, Any]]:
+    usdu_settings = upscale_settings.get("usdu", {})
+    if not isinstance(usdu_settings, dict):
+        usdu_settings = {}
+    usdu_cls = _runtime_helper("_require_custom_node_class")(
+        "UltimateSDUpscale",
+        "ComfyUI_UltimateSDUpscale",
+        "Required for AiO Generator final Upscale > USDU.",
+    )
+    upscale_model = _runtime_helper("_load_upscale_model_with_comfy")(
+        str(usdu_settings.get("upscale_model_name") or "")
+    )
+    stage_sampler = _runtime_helper("_aio_stage_sampler_settings")(
+        sampler_settings,
+        upscale_settings,
+        scheduler_default="simple",
+    )
+    scale_by = _runtime_helper("_as_float")(
+        upscale_settings.get("scale_by"), 2.0
+    )
+    tile_plan = _runtime_helper("_aio_usdu_tile_plan")(
+        image, scale_by, usdu_settings
+    )
+    tile_width = int(tile_plan["tile_width"])
+    tile_height = int(tile_plan["tile_height"])
+    if tile_plan.get("auto"):
+        _runtime_helper("logger").info(
+            "[EasyUseAnima][AiO] USDU auto tile: input=%sx%s scale_by=%.3g expected=%sx%s target/min/max=%s/%s/%s resolved_tile=%sx%s",
+            tile_plan.get("input_width"),
+            tile_plan.get("input_height"),
+            scale_by,
+            tile_plan.get("target_width"),
+            tile_plan.get("target_height"),
+            tile_plan.get("preferred"),
+            tile_plan.get("min"),
+            tile_plan.get("max"),
+            tile_width,
+            tile_height,
+        )
+    else:
+        _runtime_helper("logger").info(
+            "[EasyUseAnima][AiO] USDU manual tile: input=%sx%s scale_by=%.3g expected=%sx%s tile=%sx%s",
+            tile_plan.get("input_width"),
+            tile_plan.get("input_height"),
+            scale_by,
+            tile_plan.get("target_width"),
+            tile_plan.get("target_height"),
+            tile_width,
+            tile_height,
+        )
+    _runtime_helper("logger").info(
+        "[EasyUseAnima][AiO] USDU sampler: steps=%s denoise=%.3f cfg=%.3g sampler=%s scheduler=%s",
+        _runtime_helper("_as_int")(stage_sampler.get("steps"), 20),
+        _runtime_helper("_as_float")(stage_sampler.get("denoise"), 0.2),
+        _runtime_helper("_as_float")(stage_sampler.get("cfg"), 8.0),
+        str(stage_sampler.get("sampler_name") or "euler"),
+        str(stage_sampler.get("scheduler") or "simple"),
+    )
+    usdu_positive, usdu_negative = _runtime_helper("_aio_usdu_conditioning")(
+        clip,
+        positive,
+        negative,
+        usdu_settings,
+        quality_tags,
+        quality_neg,
+        prompt_data,
+        exclude_positive_quality,
+        exclude_negative_quality,
+    )
+    stage_model = _runtime_helper(
+        "_apply_aio_spectrum_model_patches_for_comfy_sampler"
+    )(
+        model,
+        clip,
+        usdu_positive,
+        stage_sampler,
+    )
+    try:
+        result = usdu_cls().upscale(
+            image=image,
+            model=stage_model,
+            positive=usdu_positive,
+            negative=usdu_negative,
+            vae=vae,
+            upscale_by=scale_by,
+            seed=_runtime_helper("_resolve_aio_runtime_seed")(
+                stage_sampler.get("seed")
+            ),
+            steps=_runtime_helper("_as_int")(stage_sampler.get("steps"), 20),
+            cfg=_runtime_helper("_as_float")(stage_sampler.get("cfg"), 8.0),
+            sampler_name=str(stage_sampler.get("sampler_name") or "euler"),
+            scheduler=str(stage_sampler.get("scheduler") or "simple"),
+            denoise=_runtime_helper("_as_float")(
+                stage_sampler.get("denoise"), 0.2
+            ),
+            upscale_model=upscale_model,
+            mode_type=str(usdu_settings.get("mode_type") or "Linear"),
+            tile_width=tile_width,
+            tile_height=tile_height,
+            mask_blur=_runtime_helper("_as_int")(
+                usdu_settings.get("mask_blur"), 8
+            ),
+            tile_padding=_runtime_helper("_as_int")(
+                usdu_settings.get("tile_padding"), 32
+            ),
+            seam_fix_mode=str(usdu_settings.get("seam_fix_mode") or "None"),
+            seam_fix_denoise=_runtime_helper("_as_float")(
+                usdu_settings.get("seam_fix_denoise"), 1.0
+            ),
+            seam_fix_mask_blur=_runtime_helper("_as_int")(
+                usdu_settings.get("seam_fix_mask_blur"), 8
+            ),
+            seam_fix_width=_runtime_helper("_as_int")(
+                usdu_settings.get("seam_fix_width"), 64
+            ),
+            seam_fix_padding=_runtime_helper("_as_int")(
+                usdu_settings.get("seam_fix_padding"), 16
+            ),
+            force_uniform_tiles=_runtime_helper("_as_bool")(
+                usdu_settings.get("force_uniform_tiles"), True
+            ),
+            tiled_decode=_runtime_helper("_as_bool")(
+                usdu_settings.get("tiled_decode"), False
+            ),
+            batch_size=_runtime_helper("_as_int")(
+                usdu_settings.get("batch_size"), 1
+            ),
+        )
+    finally:
+        _runtime_helper("_cleanup_aio_ephemeral_model")(stage_model, model)
+    values = _runtime_helper("_node_output_tuple")(result)
+    if not values:
+        raise RuntimeError("[EasyUseAnima] UltimateSDUpscale returned no IMAGE.")
+    output = values[0]
+    width, height = _runtime_helper("_image_tensor_size")(output, 0, 0)
+    return output, {
+        "enabled": True,
+        "backend": "usdu",
+        "width": int(width),
+        "height": int(height),
+        "scale_by": scale_by,
+        "tile_width": int(tile_width),
+        "tile_height": int(tile_height),
+        "tile_auto": bool(tile_plan.get("auto")),
+        "tile_target_width": int(tile_plan.get("target_width") or 0),
+        "tile_target_height": int(tile_plan.get("target_height") or 0),
+        "prompt_mode": str(
+            usdu_settings.get("prompt_mode")
+            or _runtime_helper("AIO_USDU_PROMPT_FULL")
+        ),
+        "sampler": _runtime_helper("_prompt_data_json_safe")(stage_sampler),
+    }
+
+
 def _run_aio_resshift_upscale_stage(
     image,
     sampler_settings: dict[str, Any],

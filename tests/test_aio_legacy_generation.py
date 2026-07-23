@@ -52,6 +52,10 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
             nodes._run_aio_upscale_stage,
             legacy_generation._run_aio_upscale_stage,
         )
+        self.assertIs(
+            nodes._run_aio_usdu_upscale_stage,
+            legacy_generation._run_aio_usdu_upscale_stage,
+        )
 
         with _loaded_package_entrypoint() as (package_entrypoint, package_nodes):
             canonical_module = sys.modules[
@@ -84,6 +88,10 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
             self.assertIs(
                 package_nodes._run_aio_upscale_stage,
                 canonical_module._run_aio_upscale_stage,
+            )
+            self.assertIs(
+                package_nodes._run_aio_usdu_upscale_stage,
+                canonical_module._run_aio_usdu_upscale_stage,
             )
 
     def test_highres_stage_disabled_short_circuits_after_as_bool(self):
@@ -1089,6 +1097,457 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
         self.assertEqual(metadata_trace[-2:], ["resolve:_segs_has_items", "segs"])
         self.assertFalse(
             any(item == "resolve:_prompt_data_json_safe" for item in metadata_trace)
+        )
+
+    def test_usdu_stage_preserves_dependencies_kwargs_cleanup_and_metadata_order(self):
+        trace = []
+        captured_kwargs = {}
+        model = _Token("model")
+        stage_model = _Token("stage_model")
+        clip = _Token("clip")
+        vae = _Token("vae")
+        positive = _Token("positive")
+        negative = _Token("negative")
+        usdu_positive = _Token("usdu_positive")
+        usdu_negative = _Token("usdu_negative")
+        image = _Token("image")
+        output = _Token("output")
+        upscale_model = _Token("upscale_model")
+        sampler_settings = {"seed": "base-seed"}
+        stage_sampler = {
+            "seed": "stage-seed",
+            "steps": "30",
+            "cfg": "5.5",
+            "sampler_name": "dpmpp_2m",
+            "scheduler": "simple",
+            "denoise": "0.25",
+        }
+        usdu_settings = {
+            "upscale_model_name": "upscale.safetensors",
+            "mode_type": "Chess",
+            "mask_blur": "9",
+            "tile_padding": "48",
+            "seam_fix_mode": "Band Pass",
+            "seam_fix_denoise": "0.8",
+            "seam_fix_mask_blur": "7",
+            "seam_fix_width": "80",
+            "seam_fix_padding": "20",
+            "force_uniform_tiles": True,
+            "tiled_decode": False,
+            "batch_size": "3",
+            "prompt_mode": "no_general",
+        }
+        upscale_settings = {"scale_by": "2.5", "usdu": usdu_settings}
+        tile_plan = {
+            "auto": True,
+            "input_width": 512,
+            "input_height": 768,
+            "target_width": 1280,
+            "target_height": 1920,
+            "preferred": 768,
+            "min": 512,
+            "max": 1536,
+            "tile_width": 640,
+            "tile_height": 960,
+        }
+        safe_sampler = {"safe": True}
+
+        class Logger:
+            def info(self, *args):
+                trace.append(("call", "logger.info", args))
+
+        class USDU:
+            def __init__(self):
+                trace.append("construct:usdu")
+
+            def upscale(self, **kwargs):
+                trace.append("call:upscale")
+                captured_kwargs.update(kwargs)
+                return "raw-usdu-result"
+
+        def require(node_id, node_pack, install_hint):
+            trace.append("call:_require_custom_node_class")
+            self.assertEqual(
+                (node_id, node_pack, install_hint),
+                (
+                    "UltimateSDUpscale",
+                    "ComfyUI_UltimateSDUpscale",
+                    "Required for AiO Generator final Upscale > USDU.",
+                ),
+            )
+            return USDU
+
+        def load_upscale(name):
+            trace.append("call:_load_upscale_model_with_comfy")
+            self.assertEqual(name, "upscale.safetensors")
+            return upscale_model
+
+        def stage_sampler_settings(base, stage, **kwargs):
+            trace.append("call:_aio_stage_sampler_settings")
+            self.assertIs(base, sampler_settings)
+            self.assertIs(stage, upscale_settings)
+            self.assertEqual(kwargs, {"scheduler_default": "simple"})
+            return stage_sampler
+
+        def as_int(value, default):
+            trace.append(("call", "_as_int", value, default))
+            return int(value)
+
+        def as_float(value, default):
+            trace.append(("call", "_as_float", value, default))
+            return float(value)
+
+        def as_bool(value, default):
+            trace.append(("call", "_as_bool", value, default))
+            return bool(value)
+
+        def plan_tiles(source_image, scale, settings):
+            trace.append("call:_aio_usdu_tile_plan")
+            self.assertEqual((source_image, scale, settings), (image, 2.5, usdu_settings))
+            return tile_plan
+
+        def conditioning(*args):
+            trace.append("call:_aio_usdu_conditioning")
+            self.assertEqual(
+                args,
+                (
+                    clip,
+                    positive,
+                    negative,
+                    usdu_settings,
+                    "quality",
+                    "quality-neg",
+                    {"fields": []},
+                    True,
+                    False,
+                ),
+            )
+            return usdu_positive, usdu_negative
+
+        def apply_patch(source_model, source_clip, conditioning_value, sampler):
+            trace.append("call:_apply_patch")
+            self.assertEqual(
+                (source_model, source_clip, conditioning_value, sampler),
+                (model, clip, usdu_positive, stage_sampler),
+            )
+            return stage_model
+
+        def resolve_seed(value):
+            trace.append("call:_resolve_aio_runtime_seed")
+            self.assertEqual(value, "stage-seed")
+            return 123
+
+        def cleanup(current_model, original_model):
+            trace.append("call:cleanup")
+            self.assertEqual((current_model, original_model), (stage_model, model))
+
+        def output_tuple(value):
+            trace.append("call:_node_output_tuple")
+            self.assertEqual(value, "raw-usdu-result")
+            return (output,)
+
+        def image_size(value, fallback_width, fallback_height):
+            trace.append("call:_image_tensor_size")
+            self.assertEqual((value, fallback_width, fallback_height), (output, 0, 0))
+            return 1280, 1920
+
+        def json_safe(value):
+            trace.append("call:_prompt_data_json_safe")
+            self.assertIs(value, stage_sampler)
+            return safe_sampler
+
+        helpers = {
+            "_require_custom_node_class": require,
+            "_load_upscale_model_with_comfy": load_upscale,
+            "_aio_stage_sampler_settings": stage_sampler_settings,
+            "_as_int": as_int,
+            "_as_float": as_float,
+            "_as_bool": as_bool,
+            "_aio_usdu_tile_plan": plan_tiles,
+            "logger": Logger(),
+            "_aio_usdu_conditioning": conditioning,
+            "_apply_aio_spectrum_model_patches_for_comfy_sampler": apply_patch,
+            "_resolve_aio_runtime_seed": resolve_seed,
+            "_cleanup_aio_ephemeral_model": cleanup,
+            "_node_output_tuple": output_tuple,
+            "_image_tensor_size": image_size,
+            "_prompt_data_json_safe": json_safe,
+        }
+
+        def resolve(name):
+            trace.append(f"resolve:{name}")
+            if name == "AIO_USDU_PROMPT_FULL":
+                self.fail("explicit prompt mode must not resolve the default constant")
+            return helpers[name]
+
+        legacy_generation._bind_aio_legacy_generation_runtime(resolve_helper=resolve)
+        try:
+            result = nodes._run_aio_usdu_upscale_stage(
+                model,
+                clip,
+                vae,
+                positive,
+                negative,
+                image,
+                sampler_settings,
+                upscale_settings,
+                "quality",
+                "quality-neg",
+                {"fields": []},
+                True,
+                False,
+            )
+        finally:
+            legacy_generation._bind_aio_legacy_generation_runtime(
+                resolve_helper=lambda name: getattr(nodes, name)
+            )
+
+        self.assertIs(result[0], output)
+        self.assertEqual(
+            result[1],
+            {
+                "enabled": True,
+                "backend": "usdu",
+                "width": 1280,
+                "height": 1920,
+                "scale_by": 2.5,
+                "tile_width": 640,
+                "tile_height": 960,
+                "tile_auto": True,
+                "tile_target_width": 1280,
+                "tile_target_height": 1920,
+                "prompt_mode": "no_general",
+                "sampler": safe_sampler,
+            },
+        )
+        self.assertEqual(
+            list(result[1]),
+            [
+                "enabled", "backend", "width", "height", "scale_by",
+                "tile_width", "tile_height", "tile_auto", "tile_target_width",
+                "tile_target_height", "prompt_mode", "sampler",
+            ],
+        )
+        self.assertEqual(
+            list(captured_kwargs),
+            [
+                "image", "model", "positive", "negative", "vae", "upscale_by",
+                "seed", "steps", "cfg", "sampler_name", "scheduler", "denoise",
+                "upscale_model", "mode_type", "tile_width", "tile_height",
+                "mask_blur", "tile_padding", "seam_fix_mode", "seam_fix_denoise",
+                "seam_fix_mask_blur", "seam_fix_width", "seam_fix_padding",
+                "force_uniform_tiles", "tiled_decode", "batch_size",
+            ],
+        )
+        self.assertEqual(
+            captured_kwargs,
+            {
+                "image": image,
+                "model": stage_model,
+                "positive": usdu_positive,
+                "negative": usdu_negative,
+                "vae": vae,
+                "upscale_by": 2.5,
+                "seed": 123,
+                "steps": 30,
+                "cfg": 5.5,
+                "sampler_name": "dpmpp_2m",
+                "scheduler": "simple",
+                "denoise": 0.25,
+                "upscale_model": upscale_model,
+                "mode_type": "Chess",
+                "tile_width": 640,
+                "tile_height": 960,
+                "mask_blur": 9,
+                "tile_padding": 48,
+                "seam_fix_mode": "Band Pass",
+                "seam_fix_denoise": 0.8,
+                "seam_fix_mask_blur": 7,
+                "seam_fix_width": 80,
+                "seam_fix_padding": 20,
+                "force_uniform_tiles": True,
+                "tiled_decode": False,
+                "batch_size": 3,
+            },
+        )
+        log_calls = [item for item in trace if isinstance(item, tuple) and item[:2] == ("call", "logger.info")]
+        self.assertEqual(len(log_calls), 2)
+        self.assertIn("USDU auto tile", log_calls[0][2][0])
+        self.assertIn("USDU sampler", log_calls[1][2][0])
+        resolved_helpers = [
+            item.removeprefix("resolve:")
+            for item in trace
+            if isinstance(item, str) and item.startswith("resolve:")
+        ]
+        self.assertEqual(
+            resolved_helpers,
+            [
+                "_require_custom_node_class",
+                "_load_upscale_model_with_comfy",
+                "_aio_stage_sampler_settings",
+                "_as_float",
+                "_aio_usdu_tile_plan",
+                "logger",
+                "logger",
+                "_as_int", "_as_float", "_as_float",
+                "_aio_usdu_conditioning",
+                "_apply_aio_spectrum_model_patches_for_comfy_sampler",
+                "_resolve_aio_runtime_seed", "_as_int", "_as_float", "_as_float",
+                "_as_int", "_as_int", "_as_float", "_as_int", "_as_int",
+                "_as_int", "_as_bool", "_as_bool", "_as_int",
+                "_cleanup_aio_ephemeral_model",
+                "_node_output_tuple",
+                "_image_tensor_size",
+                "_prompt_data_json_safe",
+            ],
+        )
+        self.assertLess(trace.index("call:cleanup"), trace.index("call:_node_output_tuple"))
+
+    def test_usdu_stage_preserves_cleanup_output_and_lazy_default_boundaries(self):
+        model = _Token("model")
+        stage_model = _Token("stage_model")
+        output = _Token("output")
+        stage_sampler = {
+            "seed": 1,
+            "steps": 2,
+            "cfg": 3.0,
+            "sampler_name": "euler",
+            "scheduler": "simple",
+            "denoise": 0.4,
+        }
+
+        class Logger:
+            def info(self, *args):
+                return None
+
+        class USDU:
+            def upscale(self, **kwargs):
+                return "raw-result"
+
+        def execute(overrides, trace):
+            helpers = {
+                "_require_custom_node_class": lambda *args: USDU,
+                "_load_upscale_model_with_comfy": lambda name: object(),
+                "_aio_stage_sampler_settings": lambda *args, **kwargs: stage_sampler,
+                "_as_float": lambda value, default: default,
+                "_as_int": lambda value, default: default,
+                "_as_bool": lambda value, default: default,
+                "_aio_usdu_tile_plan": lambda *args: {
+                    "auto": False,
+                    "tile_width": 512,
+                    "tile_height": 512,
+                },
+                "logger": Logger(),
+                "_aio_usdu_conditioning": lambda *args: (object(), object()),
+                "_apply_aio_spectrum_model_patches_for_comfy_sampler": (
+                    lambda *args: stage_model
+                ),
+                "_resolve_aio_runtime_seed": lambda value: 1,
+                "_cleanup_aio_ephemeral_model": (
+                    lambda current, original: trace.append("cleanup")
+                ),
+                "_node_output_tuple": lambda value: (output,),
+                "_image_tensor_size": lambda *args: (1024, 1024),
+                "AIO_USDU_PROMPT_FULL": "full",
+                "_prompt_data_json_safe": lambda value: {"safe": True},
+                **overrides,
+            }
+
+            def resolve(name):
+                trace.append(f"resolve:{name}")
+                return helpers[name]
+
+            legacy_generation._bind_aio_legacy_generation_runtime(
+                resolve_helper=resolve
+            )
+            try:
+                return nodes._run_aio_usdu_upscale_stage(
+                    model,
+                    object(),
+                    object(),
+                    object(),
+                    object(),
+                    object(),
+                    {},
+                    {"usdu": {}},
+                )
+            finally:
+                legacy_generation._bind_aio_legacy_generation_runtime(
+                    resolve_helper=lambda name: getattr(nodes, name)
+                )
+
+        patch_trace = []
+
+        def fail_patch(*args):
+            raise ValueError("patch failed")
+
+        with self.assertRaisesRegex(ValueError, "patch failed"):
+            execute(
+                {"_apply_aio_spectrum_model_patches_for_comfy_sampler": fail_patch},
+                patch_trace,
+            )
+        self.assertNotIn("cleanup", patch_trace)
+        self.assertNotIn("resolve:_cleanup_aio_ephemeral_model", patch_trace)
+
+        construct_trace = []
+
+        class FailingConstructor:
+            def __init__(self):
+                construct_trace.append("construct")
+                raise LookupError("constructor failed")
+
+        with self.assertRaisesRegex(LookupError, "constructor failed"):
+            execute(
+                {"_require_custom_node_class": lambda *args: FailingConstructor},
+                construct_trace,
+            )
+        self.assertEqual(
+            construct_trace[-2:],
+            ["resolve:_cleanup_aio_ephemeral_model", "cleanup"],
+        )
+
+        cleanup_trace = []
+
+        class FailingUSDU:
+            def upscale(self, **kwargs):
+                cleanup_trace.append("upscale")
+                raise ValueError("upscale failed")
+
+        def fail_cleanup(current, original):
+            cleanup_trace.append("cleanup")
+            raise RuntimeError("cleanup failed")
+
+        with self.assertRaisesRegex(RuntimeError, "cleanup failed"):
+            execute(
+                {
+                    "_require_custom_node_class": lambda *args: FailingUSDU,
+                    "_cleanup_aio_ephemeral_model": fail_cleanup,
+                },
+                cleanup_trace,
+            )
+        self.assertEqual(
+            cleanup_trace[-3:],
+            ["upscale", "resolve:_cleanup_aio_ephemeral_model", "cleanup"],
+        )
+
+        empty_trace = []
+        with self.assertRaisesRegex(
+            RuntimeError,
+            r"^\[EasyUseAnima\] UltimateSDUpscale returned no IMAGE\.$",
+        ):
+            execute({"_node_output_tuple": lambda value: ()}, empty_trace)
+        self.assertIn("cleanup", empty_trace)
+        self.assertIn("resolve:_node_output_tuple", empty_trace)
+        self.assertNotIn("resolve:_image_tensor_size", empty_trace)
+        self.assertNotIn("resolve:AIO_USDU_PROMPT_FULL", empty_trace)
+
+        default_trace = []
+        result = execute({}, default_trace)
+        self.assertIs(result[0], output)
+        self.assertEqual(result[1]["prompt_mode"], "full")
+        self.assertLess(
+            default_trace.index("resolve:AIO_USDU_PROMPT_FULL"),
+            default_trace.index("resolve:_prompt_data_json_safe"),
         )
 
     def test_resshift_stage_preserves_provider_argument_and_metadata_order(self):
