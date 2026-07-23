@@ -417,7 +417,6 @@ try:
     from .easyuse_anima.infrastructure.comfy.invocation import (
         _call_with_supported_kwargs as _call_with_supported_kwargs,
         _common_upscale_image as _common_upscale_image,
-        _encode_with_comfy_clip as _adapter_encode_with_comfy_clip,
         _node_output_tuple as _node_output_tuple,
     )
     from .easyuse_anima.infrastructure.comfy.wiring import (
@@ -977,7 +976,6 @@ except ImportError:  # allows simple local import tests outside ComfyUI's packag
     from easyuse_anima.infrastructure.comfy.invocation import (
         _call_with_supported_kwargs as _call_with_supported_kwargs,
         _common_upscale_image as _common_upscale_image,
-        _encode_with_comfy_clip as _adapter_encode_with_comfy_clip,
         _node_output_tuple as _node_output_tuple,
     )
     from easyuse_anima.infrastructure.comfy.wiring import (
@@ -1627,10 +1625,6 @@ def _find_comfy_node_class(node_id: str):
     except Exception:
         comfy_nodes = None
     return _adapter_find_comfy_node_class(node_id, comfy_nodes)
-
-
-def _encode_with_comfy_clip(clip, text: str):
-    return _adapter_encode_with_comfy_clip(clip, text, _find_comfy_node_class)
 
 
 def _consume_reserved_wildcard_next_seed(

@@ -62,7 +62,8 @@
       "B-11c29a",
       "B-11c29b1",
       "B-11c29b2",
-      "B-11c29c"
+      "B-11c29c",
+      "B-11c29d"
     ]
   },
   "enums": {
@@ -97,11 +98,11 @@
   "expected_counts": {
     "root_entrypoints": 3,
     "excluded_preamble_implementation_bindings": 5,
-    "nodes_canonical_bindings": 297,
+    "nodes_canonical_bindings": 296,
     "nodes_legacy_bindings": 27,
     "mapped_public_classes": 18,
     "unmapped_classes": 2,
-    "root_residual_functions": 3,
+    "root_residual_functions": 2,
     "root_residual_classes": 0,
     "root_residual_globals": 26,
     "runtime_binders": 30,
@@ -708,14 +709,6 @@
     "_encode_prompt_data_positive_conditioning": [
       "easyuse_anima.aio.legacy_generation",
       "easyuse_anima.nodes.prompt_data_nodes"
-    ],
-    "_encode_with_comfy_clip": [
-      "easyuse_anima.aio.conditioning",
-      "easyuse_anima.aio.legacy_generation",
-      "easyuse_anima.nodes.prompt_data_nodes",
-      "easyuse_anima.nodes.regional_nodes",
-      "easyuse_anima.nodes.sam3_nodes",
-      "easyuse_anima.prompt.artist_mix"
     ],
     "_expand_advanced_wildcard_fields": [
       "easyuse_anima.nodes.prompt_advanced_nodes",
@@ -2716,7 +2709,6 @@
       "id": "nodes_canonical_bindings:easyuse_anima.infrastructure.comfy.invocation:transitional_private_seam",
       "surface": "nodes_canonical_bindings",
       "symbols": {
-        "_adapter_encode_with_comfy_clip": "_encode_with_comfy_clip",
         "_call_with_supported_kwargs": "_call_with_supported_kwargs",
         "_common_upscale_image": "_common_upscale_image",
         "_node_output_tuple": "_node_output_tuple"
@@ -2731,7 +2723,6 @@
       "owner": "#184/#188",
       "first_release": null,
       "known_consumers": [
-        "nodes.py residual runtime",
         "canonical runtime resolver: easyuse_anima.aio.legacy_generation",
         "canonical runtime resolver: easyuse_anima.aio.model_preparation",
         "canonical runtime resolver: easyuse_anima.aio.postprocess",
@@ -2739,7 +2730,6 @@
         "canonical runtime resolver: easyuse_anima.aio.sampling"
       ],
       "evidence": [
-        "AST:nodes.py direct runtime load",
         "AST:easyuse_anima.aio.legacy_generation string runtime lookup",
         "AST:easyuse_anima.aio.model_preparation string runtime lookup",
         "AST:easyuse_anima.aio.postprocess string runtime lookup",
@@ -4234,7 +4224,6 @@
       "kind": "functions",
       "symbols": {
         "_consume_reserved_wildcard_next_seed": "_consume_reserved_wildcard_next_seed",
-        "_encode_with_comfy_clip": "_encode_with_comfy_clip",
         "_find_comfy_node_class": "_find_comfy_node_class"
       },
       "classification": "transitional_private_seam",

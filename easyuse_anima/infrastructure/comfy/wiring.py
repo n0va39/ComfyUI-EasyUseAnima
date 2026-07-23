@@ -53,6 +53,14 @@ def _default_require_any_custom_node_class(
     )
 
 
+def _default_encode_with_comfy_clip(clip, text: str):
+    return _encode_with_comfy_clip(
+        clip,
+        text,
+        find_node_class=DefaultComfyHostProvider().find_node_class,
+    )
+
+
 def resolve_comfy_host_helper(
     name: str,
     fallback: Callable[[str], Any],
@@ -86,6 +94,8 @@ def resolve_comfy_host_helper(
             return _default_require_custom_node_class
         if name == "_require_any_custom_node_class":
             return _default_require_any_custom_node_class
+        if name == "_encode_with_comfy_clip":
+            return _default_encode_with_comfy_clip
         return fallback(name)
 
     if name == "_comfy_max_resolution":
