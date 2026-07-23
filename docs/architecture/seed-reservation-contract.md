@@ -153,9 +153,9 @@ S167-01 must not change:
 
 1. **S167-01 Contract:** add the pure request/result/service types and legacy
    parser described here.
-2. **Seed consumer Move:** move the existing root hidden-payload consumer to a
-   canonical owner without changing bytes, mutations, validation, or return
-   values.
+2. **S167-01a Seed consumer Move:** move the existing root hidden-payload
+   consumer to a canonical owner without changing bytes, mutations, validation,
+   or return values.
 3. **B-11c30c2b Move:** retire the Advanced and Regional node-adapter binders
    against that canonical owner.
 4. **S167-02 Behavior:** implement the authoritative atomic backend service and
@@ -165,3 +165,57 @@ S167-01 must not change:
 
 No step may copy the current root consumer, import root `nodes.py` from the
 canonical package, or mix reservation behavior into a Move.
+
+## S167-01a seed consumer Move gate
+
+- PR type: Move
+- Inventory baseline: `dev` commit
+  `55376cb121fc05817c42d459983ab3c988fd13fb`
+- Canonical target:
+  `easyuse_anima.seed.compatibility._consume_reserved_wildcard_next_seed`
+
+### Symbol, caller, alias, and state inventory
+
+- Root `nodes.py` owns the consumer plus
+  `WILDCARD_RESERVED_NEXT_SEED_INPUT` and
+  `WILDCARD_QUEUE_MAX_SAFE_SEED`.
+- The consumer uses `_single_value`, JSON parsing, and call-time Wildcard mode,
+  control, normalization, and public-safe seed values. It owns no mutable global
+  state.
+- The only production callers remain the Advanced and Regional build paths.
+  Both observe the root name through their existing runtime binders.
+- Tests exercise valid reservation acceptance, invalid-reservation scrubbing,
+  fallback seed generation, workflow-prompt mutation, and root patch seams.
+- `wildcard_engine.py` remains the pre-D-12 owner of Wildcard mode and seed
+  normalization. The canonical compatibility consumer may resolve that module
+  at call time, matching the existing no-eager-NumPy wrapper pattern; it may not
+  import root `nodes.py`, copy Wildcard behavior, or add a callback contract.
+
+### Allowed-file boundary
+
+S167-01a may change only:
+
+- `nodes.py`;
+- `easyuse_anima/seed/__init__.py`;
+- `easyuse_anima/seed/compatibility.py`;
+- `tests/test_seed_compatibility.py`;
+- `tests/test_python_backend_analyzer.py`;
+- `tests/fixtures/python_backend_baseline.json`;
+- `tests/fixtures/python_compatibility_surface.v1.json`;
+- `docs/architecture/seed-reservation-contract.md`;
+- `docs/architecture/python-backend-execution-roadmap.md`;
+- `docs/architecture/python-compatibility-shims.md`;
+- `docs/architecture/comfy-host-provider-bridge.md`.
+
+S167-01a must preserve:
+
+- the exact hidden input name and version-1 JSON payload;
+- input and workflow-prompt pop order;
+- accepted modes, controls, seed bounds, and normalization;
+- every `None`/seed return value;
+- Advanced/Regional binder definitions and import-time calls;
+- browser, AiO, reservation-service, RNG, arithmetic, queue, retry,
+  cancellation, and settlement behavior.
+
+The root function and constants remain direct compatibility aliases during this
+Move. B-11c30c2b owns their node-adapter binder retirement separately.

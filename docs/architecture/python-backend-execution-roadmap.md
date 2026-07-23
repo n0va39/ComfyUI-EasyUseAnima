@@ -31,7 +31,7 @@ merged PR, the owning issue's evidence record, and every stated exit gate.
 | Phase | Integrated snapshot / open implementation state | Remaining exit work |
 | --- | --- | --- |
 | A - baseline | Complete; #191 is closed | Keep fixtures and analyzers current during later moves |
-| B - `nodes.py` extraction | Integrated through B-11c30c / PR #339 / `d0188b5` | Retire the Prompt/Regional service and node-adapter binder lanes separately, complete the remaining binder families, then perform the final root shim as a separate Move |
+| B - `nodes.py` extraction | Integrated through B-11c30c2a / PR #342 / `ddcc251` | Complete S167-01a, retire the Advanced/Regional adapter binders separately, complete the remaining binder families, then perform the final root shim as a separate Move |
 | C - feature contracts/behavior | Partially complete through S167-01 / PR #343 | Continue #167 and #169 in separate Contract/Move/Behavior PRs |
 | D - root consolidation | Not started | Execute #186 feature by feature after the corresponding behavior contracts are stable |
 | E - runtime ownership | Partial: E-02a and E-07a/E-07b integrated | Continue #187 only where canonical feature owners and explicit contracts exist |
@@ -355,8 +355,8 @@ surfaces. AiO mechanical extraction must not start until #168 exits.
 | 11 | B-09b2 AiO generator adapter move | COMPLETE on `dev` | Move | #184 | PR #270 / `57d40b4` |
 | 12 | B-10a machine-readable compatibility audit | COMPLETE on `dev` | Contract/gate | #184/#188 | PR #271 / `3c7b857` |
 | 13 | B-10b private alias reduction | COMPLETE on `dev` through PR #291 / `c6b4680` | Contract/cleanup, split PRs | #184/#188 | Audited alias surface integrated |
-| 14 | B-11 registration/bootstrap/root shim | IN PROGRESS through B-11c30c2a PR #342; the remaining c2b adapters wait on the S167-01 canonical consumer Move | Move/Contract, split PRs | #184 | S167-01 contract |
-| 15 | S167 backend seed reservation series | S167-01 Contract COMPLETE in PR #343; consumer Move, Behavior, and Adapter remain | Contract then Move then Behavior | #167 | Canonical AiO/node seams |
+| 14 | B-11 registration/bootstrap/root shim | IN PROGRESS through B-11c30c2a PR #342; the remaining c2b adapters wait on S167-01a | Move/Contract, split PRs | #184 | S167-01 contract |
+| 15 | S167 backend seed reservation series | S167-01 Contract COMPLETE in PR #343; S167-01a consumer Move is next, then Behavior and Adapter | Contract then Move then Behavior | #167 | Canonical AiO/node seams |
 | 16 | A169 stage pipeline series | BLOCKED by #168 and B exit | Contract then Behavior | #169 | Typed config and mechanical AiO move |
 | 17 | A169 first-pass cache policy | BLOCKED by stage/cache ownership seam | Behavior | #169 | Mechanical cache move and benchmark harness |
 | 18 | D-series canonical root consolidation | BLOCKED by relevant C contracts | Move | #186 | Phase B exit; per-feature behavior stable |
@@ -1083,9 +1083,10 @@ S167-01 uses
 [`seed-reservation-contract.md`](seed-reservation-contract.md) as its exact
 symbol/caller/alias/global-state inventory and allowed-file gate. The contract
 does not itself move the root Prompt Studio compatibility consumer. That
-behavior-preserving owner Move and B-11c30c2b remain separate rollback units
-before S167-02. PR #343 completes this contract without changing any existing
-runtime, payload bytes, or reservation behavior.
+behavior-preserving owner Move is S167-01a. It and B-11c30c2b remain separate
+rollback units before S167-02. PR #343 completes the contract without changing
+any existing runtime, payload bytes, or reservation behavior. S167-01a uses the
+same document for its exact Move inventory and allowed-file gate.
 
 Do not mix this sequence into B-09 or #169 stages.
 
