@@ -408,7 +408,6 @@ try:
         # The public mapped node class remains a root re-export.
     )
     from .easyuse_anima.infrastructure.comfy.capabilities import (
-        _comfy_max_resolution as _adapter_comfy_max_resolution,
         _comfy_sampler_names as _comfy_sampler_names,
         _comfy_scheduler_names as _comfy_scheduler_names,
         _find_comfy_node_class as _adapter_find_comfy_node_class,
@@ -972,7 +971,6 @@ except ImportError:  # allows simple local import tests outside ComfyUI's packag
         # The public mapped node class remains a root re-export.
     )
     from easyuse_anima.infrastructure.comfy.capabilities import (
-        _comfy_max_resolution as _adapter_comfy_max_resolution,
         _comfy_sampler_names as _comfy_sampler_names,
         _comfy_scheduler_names as _comfy_scheduler_names,
         _find_comfy_node_class as _adapter_find_comfy_node_class,
@@ -1627,14 +1625,6 @@ AIO_RESHIFT_DTYPES = ("bf16", "fp32")
 
 
 _TRIGGER_WORD_KEYS = ("trainedWords", "trained_words", "trigger_words", "activation_text")
-
-
-def _comfy_max_resolution() -> int:
-    try:
-        import nodes as comfy_nodes  # type: ignore
-    except Exception:
-        comfy_nodes = None
-    return _adapter_comfy_max_resolution(comfy_nodes)
 
 
 def _find_comfy_node_class(node_id: str):

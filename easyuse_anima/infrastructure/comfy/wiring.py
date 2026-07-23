@@ -12,6 +12,11 @@ from .capabilities import (
     _require_custom_node_class,
 )
 from .invocation import _encode_with_comfy_clip
+from .provider import DefaultComfyHostProvider
+
+
+def _default_max_resolution() -> int:
+    return DefaultComfyHostProvider().max_resolution()
 
 
 def resolve_comfy_host_helper(
@@ -35,7 +40,10 @@ def resolve_comfy_host_helper(
         provider = get_runtime().comfy
     except RuntimeError:
         # Flat ``nodes`` imports used by local tooling do not execute package
-        # bootstrap. Preserve their existing root resolver until B-11 moves it.
+        # bootstrap. Retired host seams use their canonical default provider;
+        # the remaining B-11 seams keep their existing root resolver.
+        if name == "_comfy_max_resolution":
+            return _default_max_resolution
         return fallback(name)
 
     if name == "_comfy_max_resolution":

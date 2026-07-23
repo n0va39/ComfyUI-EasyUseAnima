@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import re
+import sys
+import types
 import unittest
 from pathlib import Path
 from unittest.mock import patch
@@ -59,6 +61,21 @@ class ComfyHostWiringTests(unittest.TestCase):
             helper("Example"),
             ("_find_comfy_node_class", ("Example",)),
         )
+
+    def test_retired_max_resolution_uses_default_provider_before_runtime_install(self):
+        comfy_nodes = types.ModuleType("nodes")
+        comfy_nodes.MAX_RESOLUTION = "8192"
+
+        def unexpected_fallback(name: str):
+            self.fail(f"retired helper reached root fallback: {name}")
+
+        with patch.dict(sys.modules, {"nodes": comfy_nodes}):
+            helper = resolve_comfy_host_helper(
+                "_comfy_max_resolution",
+                unexpected_fallback,
+            )
+
+            self.assertEqual(helper(), 8192)
 
     def test_provider_owned_helpers_delegate_to_narrow_methods(self):
         direct = object()
