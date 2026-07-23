@@ -339,7 +339,7 @@ Exit:
 
 ## S167-02 authoritative service Behavior gate
 
-- State: IMPLEMENTED in PR #358; final full gate pending
+- State: VALIDATED in PR #358; `dev` merge pending
 - PR type: Behavior
 - Baseline: `dev` commit
   `e187f4949651e88057403517e3305cc4150e44d9`
@@ -463,5 +463,7 @@ and injects one instance through bootstrap into `RuntimeServices`.
   inferred migration.
 - Focused service, concurrency, runtime-composition, package-import, and
   analyzer gates pass. The production files also pass strict Pyright.
+- The official full gate passed once: 1,012 Python tests, 114 frontend files,
+  the 77-file Pyright baseline ratchet, and all six import-boundary groups.
 - Production `reserve` and `settle` callers remain zero. S167-03 still owns all
   adapters and behavior cutover.
