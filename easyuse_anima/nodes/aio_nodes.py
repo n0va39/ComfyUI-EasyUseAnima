@@ -25,6 +25,24 @@ def _runtime_helper(name: str) -> Any:
     return resolver(name)
 
 
+def _aio_input_settings_json() -> str:
+    json_module = _runtime_helper("json")
+    return json_module.dumps(
+        _runtime_helper("AIO_INPUT_DEFAULT_SETTINGS"),
+        ensure_ascii=False,
+        separators=(",", ":"),
+    )
+
+
+def _aio_generation_settings_json() -> str:
+    json_module = _runtime_helper("json")
+    return json_module.dumps(
+        _runtime_helper("AIO_GENERATION_DEFAULT_SETTINGS"),
+        ensure_ascii=False,
+        separators=(",", ":"),
+    )
+
+
 class EasyUseAnimaInput:
     """Bundle prompt data and resource loader settings for the AiO generator."""
 
