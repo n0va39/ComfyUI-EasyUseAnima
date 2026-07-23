@@ -2192,7 +2192,7 @@ Result:
 
 ### B-11c30d5 — AiO legacy-orchestration binder Move
 
-- **State:** IN PROGRESS
+- **State:** COMPLETE IN PR #353
 - **Owner:** #184
 - **Behavior boundary:** #168 and #169
 - **Type:** Move
@@ -2318,6 +2318,25 @@ Exit:
 - d6 and Wildcard/NAIA remain active while stage/cache/seed/provider/error/
   schema/workflow behavior and the execution trace remain unchanged.
 
+Implementation result:
+
+- the binder, resolver global/helper, root imports, and root initialization call
+  are absent; all seven root execution aliases retain exact identity;
+- the canonical orchestrator imports its existing stateless owners directly,
+  uses direct same-module stage calls, and keeps both E-07 host seams
+  call-time provider-resolved;
+- d5 test replacements now target the canonical consumer, so tests no longer
+  install or restore process-global resolver state;
+- the active audit contains only d6 plus the Wildcard/NAIA callbacks: three
+  binders, 29 unique resolver/root names, no provider-resolver slot, and 32
+  replacement names across five files;
+- the compatibility surface contains 291 canonical root bindings, three
+  residual globals, 93 shipped/reachable Python modules, and a 1,147-line
+  `nodes.py`; and
+- the consolidated focused checkpoint ran 239 tests in 13.401 seconds. Its 237
+  behavior/contract passes were retained; the two deterministic fixture/SHA
+  gate drifts were updated and their exact closure tests pass.
+
 Forbidden:
 
 - retiring or otherwise changing the d6 or Wildcard/NAIA binders;
@@ -2380,7 +2399,7 @@ COMPLETE: B-11c30d2 normalization/planning binder Move / PR #349
 COMPLETE: B-11c30d3 I/O-boundary binder Move / PR #350
 COMPLETE: B-11c30d4 execution-service Move / PR #351
 COMPLETE: B-11c30d0b input-context owner Move / PR #352
-IN PROGRESS: B-11c30d5 legacy-orchestration Move
+COMPLETE: B-11c30d5 legacy-orchestration Move / PR #353
 PLANNED:  B-11c30d6 node-adapter Move
 BLOCKED:  B-11d final root shim
 

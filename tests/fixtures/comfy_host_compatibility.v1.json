@@ -17,7 +17,7 @@
     "production_consumer_slots": 22,
     "unique_production_modules": 15,
     "root_monkeypatch_test_files": 0,
-    "canonical_monkeypatch_test_files": 2
+    "canonical_monkeypatch_test_files": 3
   },
   "external_evidence": {
     "github_public_code_search_2026_07_23": {
@@ -108,7 +108,7 @@
         },
         {
           "module": "easyuse_anima.aio.legacy_generation",
-          "binder": "_bind_aio_legacy_generation_runtime",
+          "binder": null,
           "root_observation": "call_time"
         },
         {
@@ -368,7 +368,7 @@
       "production_consumers": [
         {
           "module": "easyuse_anima.aio.legacy_generation",
-          "binder": "_bind_aio_legacy_generation_runtime",
+          "binder": null,
           "root_observation": "call_time"
         },
         {
@@ -389,7 +389,9 @@
       ],
       "repository_monkeypatch_consumers": {
         "root": [],
-        "canonical": []
+        "canonical": [
+          "tests/test_aio_legacy_generation.py"
+        ]
       },
       "confirmed_external_consumers": [],
       "external_evidence_ref": "github_public_code_search_2026_07_23",

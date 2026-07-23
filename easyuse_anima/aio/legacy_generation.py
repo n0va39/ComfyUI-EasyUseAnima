@@ -1,26 +1,105 @@
 from __future__ import annotations
 
-from collections.abc import Callable
+import json
+import logging
+import random
 from typing import Any
 
+from ..common.values import _as_bool, _as_float, _as_int, _single_value
+from ..image.geometry import _image_tensor_size
+from ..image.sam3 import _context_value, _segs_has_items
+from ..infrastructure.comfy.invocation import _node_output_tuple
+from ..infrastructure.comfy.wiring import resolve_comfy_host_helper
+from ..nodes.image_nodes import EasyUseAnimaImageScaleByMultiple
+from ..nodes.sam3_nodes import EasyUseAnimaSAM3Detailer
+from ..prompt.artist_mix import _encode_prompt_data_positive_conditioning
+from ..prompt.conditioning import (
+    ANIMA_MOD_GUIDANCE_PROFILE_OFF,
+    _apply_spectrum_anima_mod_guidance,
+    _normalize_anima_mod_guidance_profile,
+    _resolve_anima_mod_guidance_enabled,
+)
+from ..prompt.data import (
+    _advanced_outputs_from_prompt_data,
+    _normalize_prompt_data,
+    _prompt_data_json_safe,
+)
+from .conditioning import _aio_usdu_conditioning
+from .first_pass_cache import (
+    _aio_first_pass_cache_key,
+    _get_aio_first_pass_cache,
+    _put_aio_first_pass_cache,
+)
+from .generation_defaults import AIO_USDU_PROMPT_FULL
+from .generation_normalization import (
+    _aio_detailer_has_enabled_targets,
+    _aio_detailer_target_order,
+    _normalize_aio_generation_settings,
+)
 from .input_context import _require_easy_use_anima_input
+from .model_preparation import (
+    _apply_aio_lora_stack,
+    _apply_aio_model_patches,
+    _apply_aio_spectrum_model_patches_for_comfy_sampler,
+    _cleanup_aio_ephemeral_model,
+)
+from .output import (
+    _aio_save_filename_prefix,
+    _save_image_with_comfy,
+    _save_image_with_image_saver,
+)
+from .postprocess import (
+    _resize_image_to_size_if_needed,
+    _run_aio_postprocess_stage,
+)
+from .preview import (
+    _save_aio_temp_preview_image,
+    _send_aio_preview_event,
+    _tag_aio_preview_images,
+)
+from .resources import (
+    _load_aio_resources_from_input_context,
+    _load_aio_sam3_context,
+    _load_upscale_model_with_comfy,
+)
+from .sampling import (
+    _aio_highres_effective_backend,
+    _aio_stage_sampler_settings,
+    _decode_latent_with_comfy,
+    _encode_image_with_comfy_vae,
+    _generate_empty_latent_with_comfy,
+    _resolve_aio_runtime_seed,
+    _sample_latent_with_aio_backend,
+)
+from .usdu import _aio_usdu_tile_plan
 
-_RuntimeResolver = Callable[[str], Any]
-
-_RUNTIME_RESOLVER: _RuntimeResolver | None = None
+logger = logging.getLogger("ComfyUI-EasyUseAnima")
 
 
-def _bind_aio_legacy_generation_runtime(*, resolve_helper: _RuntimeResolver) -> None:
-    global _RUNTIME_RESOLVER
+def _missing_host_helper(name: str):
+    raise RuntimeError(
+        f"[EasyUseAnima] AiO legacy generation Comfy host helper is unavailable: {name}"
+    )
 
-    _RUNTIME_RESOLVER = resolve_helper
+
+def _encode_with_comfy_clip(clip, text: str):
+    helper = resolve_comfy_host_helper(
+        "_encode_with_comfy_clip",
+        _missing_host_helper,
+    )
+    return helper(clip, text)
 
 
-def _runtime_helper(name: str) -> Any:
-    resolver = _RUNTIME_RESOLVER
-    if resolver is None:
-        raise RuntimeError("AiO legacy generation runtime is not bound.")
-    return resolver(name)
+def _require_custom_node_class(
+    node_id: str,
+    node_pack: str,
+    install_hint: str,
+):
+    helper = resolve_comfy_host_helper(
+        "_require_custom_node_class",
+        _missing_host_helper,
+    )
+    return helper(node_id, node_pack, install_hint)
 
 
 def _run_aio_highres_stage(
@@ -40,41 +119,33 @@ def _run_aio_highres_stage(
     quality_tags: str = "",
     quality_neg: str = "",
 ) -> tuple[Any, Any, int, int, dict[str, Any]]:
-    if not _runtime_helper("_as_bool")(
-        highres_settings.get("enabled"), False
-    ):
+    if not _as_bool(highres_settings.get("enabled"), False):
         return base_latent, image, int(base_width), int(base_height), {"enabled": False}
 
-    stage_sampler = _runtime_helper("_aio_stage_sampler_settings")(
+    stage_sampler = _aio_stage_sampler_settings(
         sampler_settings,
         highres_settings,
         scheduler_default="simple",
         inherit_backend=True,
     )
-    scaled_image, width, height, applied_scale = _runtime_helper(
-        "EasyUseAnimaImageScaleByMultiple"
-    )().upscale(
+    scaled_image, width, height, applied_scale = EasyUseAnimaImageScaleByMultiple().upscale(
         image,
         highres_settings.get("scale_by", 1.25),
         highres_settings.get("upscale_method", "bicubic"),
         highres_settings.get("multiple", "32"),
         highres_settings.get("max_long_edge", 2560),
     )
-    latent_image = _runtime_helper("_encode_image_with_comfy_vae")(
-        vae, scaled_image
-    )
+    latent_image = _encode_image_with_comfy_vae(vae, scaled_image)
     stage_model = model
     if stage_sampler.get("backend") == "comfy_ksampler":
-        stage_model = _runtime_helper(
-            "_apply_aio_spectrum_model_patches_for_comfy_sampler"
-        )(
+        stage_model = _apply_aio_spectrum_model_patches_for_comfy_sampler(
             model,
             clip,
             positive,
             stage_sampler,
         )
     try:
-        latent = _runtime_helper("_sample_latent_with_aio_backend")(
+        latent = _sample_latent_with_aio_backend(
             stage_model,
             clip,
             positive,
@@ -87,22 +158,22 @@ def _run_aio_highres_stage(
             quality_neg,
         )
     finally:
-        _runtime_helper("_cleanup_aio_ephemeral_model")(stage_model, model)
-    decoded = _runtime_helper("_decode_latent_with_comfy")(vae, latent)
-    decoded, resized = _runtime_helper("_resize_image_to_size_if_needed")(
+        _cleanup_aio_ephemeral_model(stage_model, model)
+    decoded = _decode_latent_with_comfy(vae, latent)
+    decoded, resized = _resize_image_to_size_if_needed(
         decoded,
         width,
         height,
         highres_settings.get("upscale_method", "bicubic"),
     )
     if resized:
-        latent = _runtime_helper("_encode_image_with_comfy_vae")(vae, decoded)
+        latent = _encode_image_with_comfy_vae(vae, decoded)
     return latent, decoded, int(width), int(height), {
         "enabled": True,
         "width": int(width),
         "height": int(height),
         "applied_scale": float(applied_scale),
-        "sampler": _runtime_helper("_prompt_data_json_safe")(stage_sampler),
+        "sampler": _prompt_data_json_safe(stage_sampler),
     }
 
 
@@ -117,31 +188,25 @@ def _run_aio_detailer_stage(
     detailer_settings: dict[str, Any],
     preview_callback=None,
 ) -> tuple[Any, dict[str, Any]]:
-    if not _runtime_helper("_as_bool")(
-        detailer_settings.get("enabled"), False
-    ):
+    if not _as_bool(detailer_settings.get("enabled"), False):
         return image, {"enabled": False}
-    target_order = _runtime_helper("_aio_detailer_target_order")(detailer_settings)
+    target_order = _aio_detailer_target_order(detailer_settings)
     enabled_targets = [
         name
         for name in target_order
         if isinstance(detailer_settings.get(name), dict)
-        and _runtime_helper("_as_bool")(
-            detailer_settings[name].get("enabled"), False
-        )
+        and _as_bool(detailer_settings[name].get("enabled"), False)
     ]
     if not enabled_targets:
         return image, {"enabled": False, "reason": "no target enabled"}
 
-    sam3_context = _runtime_helper("_load_aio_sam3_context")(detailer_settings)
+    sam3_context = _load_aio_sam3_context(detailer_settings)
     output = image
     target_results: dict[str, Any] = {}
     for target_name in target_order:
         if target_name not in enabled_targets:
             continue
-        output, target_results[target_name] = _runtime_helper(
-            "_run_aio_detailer_target"
-        )(
+        output, target_results[target_name] = _run_aio_detailer_target(
             target_name,
             detailer_settings[target_name],
             output,
@@ -157,9 +222,7 @@ def _run_aio_detailer_stage(
             preview_callback(f"detailer_{target_name}", output)
     return output, {
         "enabled": True,
-        "sam3_checkpoint": _runtime_helper("_context_value")(
-            sam3_context, "ckpt_name"
-        ),
+        "sam3_checkpoint": _context_value(sam3_context, "ckpt_name"),
         "order": target_order,
         "targets": target_results,
     }
@@ -177,67 +240,63 @@ def _run_aio_detailer_target(
     sampler_settings: dict[str, Any],
     sam3_context: dict[str, Any],
 ) -> tuple[Any, dict[str, Any]]:
-    if not _runtime_helper("_as_bool")(
-        target_settings.get("enabled"), False
-    ):
+    if not _as_bool(target_settings.get("enabled"), False):
         return image, {"enabled": False}
 
-    stage_sampler = _runtime_helper("_aio_stage_sampler_settings")(
+    stage_sampler = _aio_stage_sampler_settings(
         sampler_settings,
         target_settings,
         scheduler_default="sgm_uniform",
     )
-    stage_model = _runtime_helper(
-        "_apply_aio_spectrum_model_patches_for_comfy_sampler"
-    )(
+    stage_model = _apply_aio_spectrum_model_patches_for_comfy_sampler(
         model,
         clip,
         positive,
         stage_sampler,
     )
     try:
-        result = _runtime_helper("EasyUseAnimaSAM3Detailer")().doit(
+        result = EasyUseAnimaSAM3Detailer().doit(
             enabled=True,
             image=image,
             ctx_SAM3=sam3_context,
             detect_prompt=target_settings.get("detect_prompt", target_name),
-            detect_count=_runtime_helper("_as_int")(
+            detect_count=_as_int(
                 target_settings.get("detect_count"), 1
             ),
-            threshold=_runtime_helper("_as_float")(
+            threshold=_as_float(
                 target_settings.get("threshold"), 0.5
             ),
-            refine_iterations=_runtime_helper("_as_int")(
+            refine_iterations=_as_int(
                 target_settings.get("refine_iterations"), 2
             ),
-            individual_masks=_runtime_helper("_as_bool")(
+            individual_masks=_as_bool(
                 target_settings.get("individual_masks"), True
             ),
-            combined=_runtime_helper("_as_bool")(
+            combined=_as_bool(
                 target_settings.get("combined"), False
             ),
-            crop_factor=_runtime_helper("_as_float")(
+            crop_factor=_as_float(
                 target_settings.get("crop_factor"), 4.0
             ),
-            bbox_fill=_runtime_helper("_as_bool")(
+            bbox_fill=_as_bool(
                 target_settings.get("bbox_fill"), False
             ),
-            drop_size=_runtime_helper("_as_int")(
+            drop_size=_as_int(
                 target_settings.get("drop_size"), 100
             ),
-            contour_fill=_runtime_helper("_as_bool")(
+            contour_fill=_as_bool(
                 target_settings.get("contour_fill"), True
             ),
             model=stage_model,
             clip=clip,
             vae=vae,
-            guide_size=_runtime_helper("_as_int")(
+            guide_size=_as_int(
                 target_settings.get("guide_size"), 1024
             ),
-            guide_size_for=_runtime_helper("_as_bool")(
+            guide_size_for=_as_bool(
                 target_settings.get("guide_size_for"), False
             ),
-            max_size=_runtime_helper("_as_int")(
+            max_size=_as_int(
                 target_settings.get("max_size"), 2048
             ),
             seed=stage_sampler["seed"],
@@ -248,46 +307,46 @@ def _run_aio_detailer_target(
             positive=positive,
             negative=negative,
             denoise=stage_sampler["denoise"],
-            feather=_runtime_helper("_as_int")(
+            feather=_as_int(
                 target_settings.get("feather"), 5
             ),
-            noise_mask=_runtime_helper("_as_bool")(
+            noise_mask=_as_bool(
                 target_settings.get("noise_mask"), True
             ),
-            force_inpaint=_runtime_helper("_as_bool")(
+            force_inpaint=_as_bool(
                 target_settings.get("force_inpaint"), True
             ),
             wildcard=str(target_settings.get("wildcard") or ""),
-            cycle=_runtime_helper("_as_int")(
+            cycle=_as_int(
                 target_settings.get("cycle"), 1
             ),
             alignment=str(target_settings.get("alignment") or "32"),
             preserve_conditioning_metadata=True,
             fail_on_unsupported_opt=False,
             detailer_hook=None,
-            inpaint_model=_runtime_helper("_as_bool")(
+            inpaint_model=_as_bool(
                 target_settings.get("inpaint_model"), False
             ),
-            noise_mask_feather=_runtime_helper("_as_int")(
+            noise_mask_feather=_as_int(
                 target_settings.get("noise_mask_feather"), 0
             ),
             scheduler_func_opt=None,
-            tiled_encode=_runtime_helper("_as_bool")(
+            tiled_encode=_as_bool(
                 target_settings.get("tiled_encode"), False
             ),
-            tiled_decode=_runtime_helper("_as_bool")(
+            tiled_decode=_as_bool(
                 target_settings.get("tiled_decode"), False
             ),
         )
     finally:
-        _runtime_helper("_cleanup_aio_ephemeral_model")(stage_model, model)
+        _cleanup_aio_ephemeral_model(stage_model, model)
 
     detailed_image = result[0]
     segs = result[1] if len(result) > 1 else None
     return detailed_image, {
         "enabled": True,
-        "detected": _runtime_helper("_segs_has_items")(segs),
-        "sampler": _runtime_helper("_prompt_data_json_safe")(stage_sampler),
+        "detected": _segs_has_items(segs),
+        "sampler": _prompt_data_json_safe(stage_sampler),
     }
 
 
@@ -309,29 +368,25 @@ def _run_aio_usdu_upscale_stage(
     usdu_settings = upscale_settings.get("usdu", {})
     if not isinstance(usdu_settings, dict):
         usdu_settings = {}
-    usdu_cls = _runtime_helper("_require_custom_node_class")(
+    usdu_cls = _require_custom_node_class(
         "UltimateSDUpscale",
         "ComfyUI_UltimateSDUpscale",
         "Required for AiO Generator final Upscale > USDU.",
     )
-    upscale_model = _runtime_helper("_load_upscale_model_with_comfy")(
+    upscale_model = _load_upscale_model_with_comfy(
         str(usdu_settings.get("upscale_model_name") or "")
     )
-    stage_sampler = _runtime_helper("_aio_stage_sampler_settings")(
+    stage_sampler = _aio_stage_sampler_settings(
         sampler_settings,
         upscale_settings,
         scheduler_default="simple",
     )
-    scale_by = _runtime_helper("_as_float")(
-        upscale_settings.get("scale_by"), 2.0
-    )
-    tile_plan = _runtime_helper("_aio_usdu_tile_plan")(
-        image, scale_by, usdu_settings
-    )
+    scale_by = _as_float(upscale_settings.get("scale_by"), 2.0)
+    tile_plan = _aio_usdu_tile_plan(image, scale_by, usdu_settings)
     tile_width = int(tile_plan["tile_width"])
     tile_height = int(tile_plan["tile_height"])
     if tile_plan.get("auto"):
-        _runtime_helper("logger").info(
+        logger.info(
             "[EasyUseAnima][AiO] USDU auto tile: input=%sx%s scale_by=%.3g expected=%sx%s target/min/max=%s/%s/%s resolved_tile=%sx%s",
             tile_plan.get("input_width"),
             tile_plan.get("input_height"),
@@ -345,7 +400,7 @@ def _run_aio_usdu_upscale_stage(
             tile_height,
         )
     else:
-        _runtime_helper("logger").info(
+        logger.info(
             "[EasyUseAnima][AiO] USDU manual tile: input=%sx%s scale_by=%.3g expected=%sx%s tile=%sx%s",
             tile_plan.get("input_width"),
             tile_plan.get("input_height"),
@@ -355,15 +410,15 @@ def _run_aio_usdu_upscale_stage(
             tile_width,
             tile_height,
         )
-    _runtime_helper("logger").info(
+    logger.info(
         "[EasyUseAnima][AiO] USDU sampler: steps=%s denoise=%.3f cfg=%.3g sampler=%s scheduler=%s",
-        _runtime_helper("_as_int")(stage_sampler.get("steps"), 20),
-        _runtime_helper("_as_float")(stage_sampler.get("denoise"), 0.2),
-        _runtime_helper("_as_float")(stage_sampler.get("cfg"), 8.0),
+        _as_int(stage_sampler.get("steps"), 20),
+        _as_float(stage_sampler.get("denoise"), 0.2),
+        _as_float(stage_sampler.get("cfg"), 8.0),
         str(stage_sampler.get("sampler_name") or "euler"),
         str(stage_sampler.get("scheduler") or "simple"),
     )
-    usdu_positive, usdu_negative = _runtime_helper("_aio_usdu_conditioning")(
+    usdu_positive, usdu_negative = _aio_usdu_conditioning(
         clip,
         positive,
         negative,
@@ -374,9 +429,7 @@ def _run_aio_usdu_upscale_stage(
         exclude_positive_quality,
         exclude_negative_quality,
     )
-    stage_model = _runtime_helper(
-        "_apply_aio_spectrum_model_patches_for_comfy_sampler"
-    )(
+    stage_model = _apply_aio_spectrum_model_patches_for_comfy_sampler(
         model,
         clip,
         usdu_positive,
@@ -390,56 +443,48 @@ def _run_aio_usdu_upscale_stage(
             negative=usdu_negative,
             vae=vae,
             upscale_by=scale_by,
-            seed=_runtime_helper("_resolve_aio_runtime_seed")(
-                stage_sampler.get("seed")
-            ),
-            steps=_runtime_helper("_as_int")(stage_sampler.get("steps"), 20),
-            cfg=_runtime_helper("_as_float")(stage_sampler.get("cfg"), 8.0),
+            seed=_resolve_aio_runtime_seed(stage_sampler.get("seed")),
+            steps=_as_int(stage_sampler.get("steps"), 20),
+            cfg=_as_float(stage_sampler.get("cfg"), 8.0),
             sampler_name=str(stage_sampler.get("sampler_name") or "euler"),
             scheduler=str(stage_sampler.get("scheduler") or "simple"),
-            denoise=_runtime_helper("_as_float")(
-                stage_sampler.get("denoise"), 0.2
-            ),
+            denoise=_as_float(stage_sampler.get("denoise"), 0.2),
             upscale_model=upscale_model,
             mode_type=str(usdu_settings.get("mode_type") or "Linear"),
             tile_width=tile_width,
             tile_height=tile_height,
-            mask_blur=_runtime_helper("_as_int")(
-                usdu_settings.get("mask_blur"), 8
-            ),
-            tile_padding=_runtime_helper("_as_int")(
-                usdu_settings.get("tile_padding"), 32
-            ),
+            mask_blur=_as_int(usdu_settings.get("mask_blur"), 8),
+            tile_padding=_as_int(usdu_settings.get("tile_padding"), 32),
             seam_fix_mode=str(usdu_settings.get("seam_fix_mode") or "None"),
-            seam_fix_denoise=_runtime_helper("_as_float")(
+            seam_fix_denoise=_as_float(
                 usdu_settings.get("seam_fix_denoise"), 1.0
             ),
-            seam_fix_mask_blur=_runtime_helper("_as_int")(
+            seam_fix_mask_blur=_as_int(
                 usdu_settings.get("seam_fix_mask_blur"), 8
             ),
-            seam_fix_width=_runtime_helper("_as_int")(
+            seam_fix_width=_as_int(
                 usdu_settings.get("seam_fix_width"), 64
             ),
-            seam_fix_padding=_runtime_helper("_as_int")(
+            seam_fix_padding=_as_int(
                 usdu_settings.get("seam_fix_padding"), 16
             ),
-            force_uniform_tiles=_runtime_helper("_as_bool")(
+            force_uniform_tiles=_as_bool(
                 usdu_settings.get("force_uniform_tiles"), True
             ),
-            tiled_decode=_runtime_helper("_as_bool")(
+            tiled_decode=_as_bool(
                 usdu_settings.get("tiled_decode"), False
             ),
-            batch_size=_runtime_helper("_as_int")(
+            batch_size=_as_int(
                 usdu_settings.get("batch_size"), 1
             ),
         )
     finally:
-        _runtime_helper("_cleanup_aio_ephemeral_model")(stage_model, model)
-    values = _runtime_helper("_node_output_tuple")(result)
+        _cleanup_aio_ephemeral_model(stage_model, model)
+    values = _node_output_tuple(result)
     if not values:
         raise RuntimeError("[EasyUseAnima] UltimateSDUpscale returned no IMAGE.")
     output = values[0]
-    width, height = _runtime_helper("_image_tensor_size")(output, 0, 0)
+    width, height = _image_tensor_size(output, 0, 0)
     return output, {
         "enabled": True,
         "backend": "usdu",
@@ -453,9 +498,9 @@ def _run_aio_usdu_upscale_stage(
         "tile_target_height": int(tile_plan.get("target_height") or 0),
         "prompt_mode": str(
             usdu_settings.get("prompt_mode")
-            or _runtime_helper("AIO_USDU_PROMPT_FULL")
+            or AIO_USDU_PROMPT_FULL
         ),
-        "sampler": _runtime_helper("_prompt_data_json_safe")(stage_sampler),
+        "sampler": _prompt_data_json_safe(stage_sampler),
     }
 
 
@@ -472,12 +517,12 @@ def _run_aio_resshift_upscale_stage(
     resshift_settings = upscale_settings.get("resshift", {})
     if not isinstance(resshift_settings, dict):
         resshift_settings = {}
-    loader_cls = _runtime_helper("_require_custom_node_class")(
+    loader_cls = _require_custom_node_class(
         "ResShiftLoader",
         "ComfyUI-Distilled-ResShift",
         "Required for AiO Generator final Upscale > ResShift.",
     )
-    upscale_cls = _runtime_helper("_require_custom_node_class")(
+    upscale_cls = _require_custom_node_class(
         "ResShiftUpscale",
         "ComfyUI-Distilled-ResShift",
         "Required for AiO Generator final Upscale > ResShift.",
@@ -486,7 +531,7 @@ def _run_aio_resshift_upscale_stage(
     load = getattr(loader, "load", None)
     if load is None:
         raise RuntimeError("[EasyUseAnima] ResShiftLoader does not expose load().")
-    model_values = _runtime_helper("_node_output_tuple")(
+    model_values = _node_output_tuple(
         load(
             str(resshift_settings.get("scale") or "x2"),
             str(resshift_settings.get("student_name") or "(auto-download)"),
@@ -499,20 +544,20 @@ def _run_aio_resshift_upscale_stage(
     upscale = getattr(upscaler, "upscale", None)
     if upscale is None:
         raise RuntimeError("[EasyUseAnima] ResShiftUpscale does not expose upscale().")
-    values = _runtime_helper("_node_output_tuple")(
+    values = _node_output_tuple(
         upscale(
             model_values[0],
             image,
-            _runtime_helper("_resolve_aio_runtime_seed")(sampler_settings.get("seed")),
-            _runtime_helper("_as_int")(resshift_settings.get("chop"), 512),
-            _runtime_helper("_as_int")(resshift_settings.get("overlap"), 64),
-            _runtime_helper("_as_int")(resshift_settings.get("tile_batch"), 4),
+            _resolve_aio_runtime_seed(sampler_settings.get("seed")),
+            _as_int(resshift_settings.get("chop"), 512),
+            _as_int(resshift_settings.get("overlap"), 64),
+            _as_int(resshift_settings.get("tile_batch"), 4),
         )
     )
     if not values:
         raise RuntimeError("[EasyUseAnima] ResShiftUpscale returned no IMAGE.")
     output = values[0]
-    width, height = _runtime_helper("_image_tensor_size")(output, 0, 0)
+    width, height = _image_tensor_size(output, 0, 0)
     return output, {
         "enabled": True,
         "backend": "resshift",
@@ -537,13 +582,11 @@ def _run_aio_upscale_stage(
     exclude_positive_quality: bool = False,
     exclude_negative_quality: bool = False,
 ) -> tuple[Any, dict[str, Any]]:
-    if not _runtime_helper("_as_bool")(
-        upscale_settings.get("enabled"), False
-    ):
+    if not _as_bool(upscale_settings.get("enabled"), False):
         return image, {"enabled": False}
     backend = str(upscale_settings.get("backend") or "usdu")
     if backend == "usdu":
-        output, metadata = _runtime_helper("_run_aio_usdu_upscale_stage")(
+        output, metadata = _run_aio_usdu_upscale_stage(
             model,
             clip,
             vae,
@@ -559,7 +602,7 @@ def _run_aio_upscale_stage(
             exclude_negative_quality,
         )
     elif backend == "resshift":
-        output, metadata = _runtime_helper("_run_aio_resshift_upscale_stage")(
+        output, metadata = _run_aio_resshift_upscale_stage(
             image,
             sampler_settings,
             upscale_settings,
@@ -586,23 +629,21 @@ def _run_aio_legacy_generation(
     unique_id=None,
 ):
     context = _require_easy_use_anima_input(easy_use_anima_input)
-    settings = _runtime_helper("_normalize_aio_generation_settings")(generation_settings)
-    settings["sampler"]["seed"] = _runtime_helper("_resolve_aio_runtime_seed")(
+    settings = _normalize_aio_generation_settings(generation_settings)
+    settings["sampler"]["seed"] = _resolve_aio_runtime_seed(
         settings["sampler"].get("seed")
     )
     if settings["mode"] != "txt2img":
         raise RuntimeError("[EasyUseAnima] AiO Generator draft currently supports txt2img only.")
 
-    base_model, base_clip, vae = _runtime_helper(
-        "_load_aio_resources_from_input_context"
-    )(context)
-    model_with_lora, clip, applied_loras = _runtime_helper("_apply_aio_lora_stack")(
+    base_model, base_clip, vae = _load_aio_resources_from_input_context(context)
+    model_with_lora, clip, applied_loras = _apply_aio_lora_stack(
         base_model,
         base_clip,
         lora_stack,
     )
-    model = _runtime_helper("_apply_aio_model_patches")(model_with_lora, settings)
-    prompt_data = _runtime_helper("_normalize_prompt_data")(context["prompt_data"])
+    model = _apply_aio_model_patches(model_with_lora, settings)
+    prompt_data = _normalize_prompt_data(context["prompt_data"])
     (
         positive_prompt,
         negative_prompt,
@@ -614,12 +655,12 @@ def _run_aio_legacy_generation(
         metadata_negative_prompt,
         width,
         height,
-    ) = _runtime_helper("_advanced_outputs_from_prompt_data")(prompt_data)
+    ) = _advanced_outputs_from_prompt_data(prompt_data)
     image_saver_positive_prompt = metadata_prompt or positive_prompt
     image_saver_negative_prompt = metadata_negative_prompt or negative_prompt
 
     artist_mix = settings["artist_mix"]
-    positive = _runtime_helper("_encode_prompt_data_positive_conditioning")(
+    positive = _encode_prompt_data_positive_conditioning(
         clip,
         prompt_data,
         positive_prompt,
@@ -633,44 +674,36 @@ def _run_aio_legacy_generation(
         artist_mix_dominant_isolation=artist_mix["dominant_isolation"],
         artist_mix_dominant_threshold=artist_mix["dominant_threshold"],
     )
-    negative = _runtime_helper("_encode_with_comfy_clip")(clip, negative_prompt)
+    negative = _encode_with_comfy_clip(clip, negative_prompt)
 
     sampler = settings["sampler"]
     mod_guidance = settings["mod_guidance"]
-    will_run_highres = _runtime_helper("_as_bool")(
-        settings["highres"].get("enabled"), False
-    )
-    will_run_detailer = _runtime_helper("_aio_detailer_has_enabled_targets")(
-        settings["detailer"]
-    )
-    will_run_upscale = _runtime_helper("_as_bool")(
-        settings["upscale"].get("enabled"), False
-    )
-    will_run_postprocess = _runtime_helper("_as_bool")(
-        settings["postprocess"].get("enabled"), False
-    )
-    profile = _runtime_helper("_normalize_anima_mod_guidance_profile")(
+    will_run_highres = _as_bool(settings["highres"].get("enabled"), False)
+    will_run_detailer = _aio_detailer_has_enabled_targets(settings["detailer"])
+    will_run_upscale = _as_bool(settings["upscale"].get("enabled"), False)
+    will_run_postprocess = _as_bool(settings["postprocess"].get("enabled"), False)
+    profile = _normalize_anima_mod_guidance_profile(
         mod_guidance["profile"]
     )
-    use_mod_guidance = _runtime_helper("_resolve_anima_mod_guidance_enabled")(
+    use_mod_guidance = _resolve_anima_mod_guidance_enabled(
         use_anima_mod_guidance,
         mod_guidance["mode"],
     )
     sampler_backend = str(sampler.get("backend") or "comfy_ksampler")
-    highres_backend = _runtime_helper("_aio_highres_effective_backend")(
+    highres_backend = _aio_highres_effective_backend(
         sampler, settings["highres"]
     )
     mod_guidance_model = model
     can_apply_standalone_mod_guidance = (
         use_mod_guidance
-        and profile != _runtime_helper("ANIMA_MOD_GUIDANCE_PROFILE_OFF")
+        and profile != ANIMA_MOD_GUIDANCE_PROFILE_OFF
     )
 
     def ensure_standalone_mod_guidance_model():
         nonlocal mod_guidance_model
         if not can_apply_standalone_mod_guidance or mod_guidance_model is not model:
             return mod_guidance_model
-        mod_guidance_model = _runtime_helper("_apply_spectrum_anima_mod_guidance")(
+        mod_guidance_model = _apply_spectrum_anima_mod_guidance(
             model,
             clip,
             positive,
@@ -692,9 +725,7 @@ def _run_aio_legacy_generation(
         sampler_backend
     )
     if sampler_backend == "comfy_ksampler":
-        base_sample_model = _runtime_helper(
-            "_apply_aio_spectrum_model_patches_for_comfy_sampler"
-        )(
+        base_sample_model = _apply_aio_spectrum_model_patches_for_comfy_sampler(
             base_sample_model,
             clip,
             positive,
@@ -704,12 +735,12 @@ def _run_aio_legacy_generation(
     stage_metadata: dict[str, Any] = {}
     preview_settings = settings["preview"]
     preview_images: list[dict[str, Any]] = []
-    preview_node_id = _runtime_helper("_single_value")(unique_id)
+    preview_node_id = _single_value(unique_id)
     preview_run_id = (
         f"{preview_node_id or 'aio'}:"
-        f"{_runtime_helper('random').getrandbits(64):016x}"
+        f"{random.getrandbits(64):016x}"
     )
-    first_pass_cache_key = _runtime_helper("_aio_first_pass_cache_key")(
+    first_pass_cache_key = _aio_first_pass_cache_key(
         cache_scope=str(unique_id or id(generator)),
         context=context,
         prompt_data=prompt_data,
@@ -727,7 +758,7 @@ def _run_aio_legacy_generation(
     first_pass_cache_hit = False
 
     def add_preview(stage: str, stage_image):
-        images = _runtime_helper("_save_aio_temp_preview_image")(
+        images = _save_aio_temp_preview_image(
             stage_image,
             stage,
             workflow_prompt=workflow_prompt,
@@ -735,22 +766,22 @@ def _run_aio_legacy_generation(
         )
         if images:
             preview_images.extend(images)
-            _runtime_helper("_send_aio_preview_event")(
+            _send_aio_preview_event(
                 preview_node_id, preview_run_id, stage, images
             )
 
     try:
-        cached_first_pass = _runtime_helper("_get_aio_first_pass_cache")(
+        cached_first_pass = _get_aio_first_pass_cache(
             first_pass_cache_key
         )
         if cached_first_pass is not None:
             latent, image = cached_first_pass
             first_pass_cache_hit = True
         else:
-            latent_image = _runtime_helper("_generate_empty_latent_with_comfy")(
+            latent_image = _generate_empty_latent_with_comfy(
                 width, height
             )
-            latent = _runtime_helper("_sample_latent_with_aio_backend")(
+            latent = _sample_latent_with_aio_backend(
                 base_sample_model,
                 clip,
                 positive,
@@ -762,24 +793,20 @@ def _run_aio_legacy_generation(
                 quality_tags,
                 quality_neg if use_negative_anima_mod_guidance else "",
             )
-            image = _runtime_helper("_decode_latent_with_comfy")(vae, latent)
-        image, first_pass_resized = _runtime_helper(
-            "_resize_image_to_size_if_needed"
-        )(
+            image = _decode_latent_with_comfy(vae, latent)
+        image, first_pass_resized = _resize_image_to_size_if_needed(
             image,
             width,
             height,
             "bicubic",
         )
         if first_pass_resized:
-            latent = _runtime_helper("_encode_image_with_comfy_vae")(vae, image)
+            latent = _encode_image_with_comfy_vae(vae, image)
         if not first_pass_cache_hit or first_pass_resized:
             try:
-                _runtime_helper("_put_aio_first_pass_cache")(
-                    first_pass_cache_key, latent, image
-                )
+                _put_aio_first_pass_cache(first_pass_cache_key, latent, image)
             except Exception as exc:
-                _runtime_helper("logger").debug(
+                logger.debug(
                     "[EasyUseAnima] failed to store AiO first-pass cache: %s", exc
                 )
         stage_metadata["first_pass"] = {"cache_hit": first_pass_cache_hit}
@@ -790,9 +817,7 @@ def _run_aio_legacy_generation(
             if will_run_highres
             else (model, False)
         )
-        latent, image, width, height, highres_metadata = _runtime_helper(
-            "_run_aio_highres_stage"
-        )(
+        latent, image, width, height, highres_metadata = _run_aio_highres_stage(
             highres_model,
             clip,
             vae,
@@ -815,7 +840,7 @@ def _run_aio_legacy_generation(
         ):
             if preview_settings["intermediate_images"] and will_run_detailer:
                 add_preview("highres", image)
-        image, detailer_metadata = _runtime_helper("_run_aio_detailer_stage")(
+        image, detailer_metadata = _run_aio_detailer_stage(
             ensure_standalone_mod_guidance_model()
             if will_run_detailer
             else mod_guidance_model,
@@ -830,8 +855,8 @@ def _run_aio_legacy_generation(
         )
         stage_metadata["detailer"] = detailer_metadata
         if detailer_metadata.get("enabled"):
-            width, height = _runtime_helper("_image_tensor_size")(image, width, height)
-        image, upscale_metadata = _runtime_helper("_run_aio_upscale_stage")(
+            width, height = _image_tensor_size(image, width, height)
+        image, upscale_metadata = _run_aio_upscale_stage(
             ensure_standalone_mod_guidance_model()
             if will_run_upscale
             else mod_guidance_model,
@@ -852,23 +877,23 @@ def _run_aio_legacy_generation(
         )
         stage_metadata["upscale"] = upscale_metadata
         if upscale_metadata.get("enabled"):
-            width, height = _runtime_helper("_image_tensor_size")(image, width, height)
-            latent = _runtime_helper("_encode_image_with_comfy_vae")(vae, image)
+            width, height = _image_tensor_size(image, width, height)
+            latent = _encode_image_with_comfy_vae(vae, image)
             if preview_settings["intermediate_images"]:
                 add_preview("upscale", image)
-        image, postprocess_metadata = _runtime_helper("_run_aio_postprocess_stage")(
+        image, postprocess_metadata = _run_aio_postprocess_stage(
             image,
             settings["postprocess"],
         )
         stage_metadata["postprocess"] = postprocess_metadata
         if postprocess_metadata.get("enabled"):
-            width, height = _runtime_helper("_image_tensor_size")(image, width, height)
-            postprocess_changed = _runtime_helper("_as_bool")(
+            width, height = _image_tensor_size(image, width, height)
+            postprocess_changed = _as_bool(
                 (postprocess_metadata.get("fit") or {}).get("applied"),
                 False,
             )
             if postprocess_changed:
-                latent = _runtime_helper("_encode_image_with_comfy_vae")(vae, image)
+                latent = _encode_image_with_comfy_vae(vae, image)
             if (
                 preview_settings["intermediate_images"]
                 and postprocess_changed
@@ -889,15 +914,13 @@ def _run_aio_legacy_generation(
             if key in seen_model_ids:
                 continue
             seen_model_ids.add(key)
-            _runtime_helper("_cleanup_aio_ephemeral_model")(
-                ephemeral_model, base_model
-            )
+            _cleanup_aio_ephemeral_model(ephemeral_model, base_model)
 
     save_settings = settings["save"]
     save_ui = {}
     if save_settings.get("enabled"):
         if save_settings.get("backend") == "image_saver":
-            save_result = _runtime_helper("_save_image_with_image_saver")(
+            save_result = _save_image_with_image_saver(
                 image,
                 save_settings,
                 positive_prompt=image_saver_positive_prompt,
@@ -911,19 +934,19 @@ def _run_aio_legacy_generation(
                 extra_pnginfo=extra_pnginfo,
             )
         else:
-            save_result = _runtime_helper("_save_image_with_comfy")(
+            save_result = _save_image_with_comfy(
                 image,
-                _runtime_helper("_aio_save_filename_prefix")(save_settings),
+                _aio_save_filename_prefix(save_settings),
                 workflow_prompt=workflow_prompt,
                 extra_pnginfo=extra_pnginfo,
             )
         if isinstance(save_result, dict) and isinstance(save_result.get("ui"), dict):
             save_ui = save_result["ui"]
-    final_preview = _runtime_helper("_tag_aio_preview_images")(
+    final_preview = _tag_aio_preview_images(
         save_ui.get("images", []), "final", width=width, height=height
     )
     if not final_preview:
-        final_preview = _runtime_helper("_save_aio_temp_preview_image")(
+        final_preview = _save_aio_temp_preview_image(
             image,
             "final",
             workflow_prompt=workflow_prompt,
@@ -942,20 +965,14 @@ def _run_aio_legacy_generation(
         "version": 1,
         "width": int(width),
         "height": int(height),
-        "resource_info": _runtime_helper("_prompt_data_json_safe")(
-            context.get("resource_info", {})
-        ),
-        "input_settings": _runtime_helper("_prompt_data_json_safe")(
-            context.get("input_settings", {})
-        ),
-        "lora_stack": _runtime_helper("_prompt_data_json_safe")(applied_loras),
-        "generation_settings": _runtime_helper("_prompt_data_json_safe")(settings),
-        "stages": _runtime_helper("_prompt_data_json_safe")(stage_metadata),
-        "prompt_data": _runtime_helper("_prompt_data_json_safe")(prompt_data),
+        "resource_info": _prompt_data_json_safe(context.get("resource_info", {})),
+        "input_settings": _prompt_data_json_safe(context.get("input_settings", {})),
+        "lora_stack": _prompt_data_json_safe(applied_loras),
+        "generation_settings": _prompt_data_json_safe(settings),
+        "stages": _prompt_data_json_safe(stage_metadata),
+        "prompt_data": _prompt_data_json_safe(prompt_data),
     }
-    metadata_json = _runtime_helper("json").dumps(
-        metadata, ensure_ascii=False, sort_keys=True
-    )
+    metadata_json = json.dumps(metadata, ensure_ascii=False, sort_keys=True)
     ui = {
         "status": ["generated"],
         "width": [int(width)],

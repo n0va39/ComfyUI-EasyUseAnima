@@ -17,13 +17,6 @@ ROOT = Path(__file__).resolve().parents[1]
 TRACE_FIXTURE_PATH = ROOT / "tests" / "fixtures" / "aio_legacy_execution_trace.v1.json"
 
 
-def _production_resolver(name):
-    return nodes._resolve_comfy_host_helper(
-        name,
-        lambda fallback_name: getattr(nodes, fallback_name),
-    )
-
-
 class _Token:
     def __init__(self, name: str):
         self.name = name
@@ -32,10 +25,6 @@ class _Token:
 class AIOGeneratorLegacyMoveTests(unittest.TestCase):
     def test_private_implementation_aliases_are_canonical_in_both_import_modes(self):
         self.assertEqual(legacy_generation.__all__, ())
-        self.assertIs(
-            nodes._bind_aio_legacy_generation_runtime,
-            legacy_generation._bind_aio_legacy_generation_runtime,
-        )
         self.assertIs(
             nodes._run_aio_legacy_generation,
             legacy_generation._run_aio_legacy_generation,
@@ -70,10 +59,6 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
                 f"{package_entrypoint.__name__}.easyuse_anima.aio.legacy_generation"
             ]
             self.assertIs(
-                package_nodes._bind_aio_legacy_generation_runtime,
-                canonical_module._bind_aio_legacy_generation_runtime,
-            )
-            self.assertIs(
                 package_nodes._run_aio_legacy_generation,
                 canonical_module._run_aio_legacy_generation,
             )
@@ -107,14 +92,11 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
         image = object()
         base_latent = object()
 
-        def resolve(name):
-            trace.append(f"resolve:{name}")
-            if name == "_as_bool":
-                return lambda value, default: trace.append("as_bool") or False
-            self.fail(f"disabled highres stage resolved unexpected helper: {name}")
-
-        legacy_generation._bind_aio_legacy_generation_runtime(resolve_helper=resolve)
-        try:
+        with patch.object(
+            legacy_generation,
+            "_as_bool",
+            side_effect=lambda value, default: trace.append("as_bool") or False,
+        ):
             result = nodes._run_aio_highres_stage(
                 object(),
                 object(),
@@ -128,15 +110,11 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
                 {},
                 {"enabled": False},
             )
-        finally:
-            legacy_generation._bind_aio_legacy_generation_runtime(
-                resolve_helper=_production_resolver
-            )
 
         self.assertIs(result[0], base_latent)
         self.assertIs(result[1], image)
         self.assertEqual(result[2:], (64, 96, {"enabled": False}))
-        self.assertEqual(trace, ["resolve:_as_bool", "as_bool"])
+        self.assertEqual(trace, ["as_bool"])
 
     def test_highres_stage_preserves_dependency_and_metadata_order(self):
         trace: list[str] = []
@@ -250,12 +228,7 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
             "_prompt_data_json_safe": json_safe,
         }
 
-        def resolve(name):
-            trace.append(f"resolve:{name}")
-            return helpers[name]
-
-        legacy_generation._bind_aio_legacy_generation_runtime(resolve_helper=resolve)
-        try:
+        with patch.multiple(legacy_generation, **helpers):
             result = nodes._run_aio_highres_stage(
                 model,
                 clip,
@@ -279,10 +252,6 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
                 "quality",
                 "quality-neg",
             )
-        finally:
-            legacy_generation._bind_aio_legacy_generation_runtime(
-                resolve_helper=_production_resolver
-            )
 
         self.assertEqual(
             result,
@@ -303,28 +272,17 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
         self.assertEqual(
             trace,
             [
-                "resolve:_as_bool",
                 "call:_as_bool",
-                "resolve:_aio_stage_sampler_settings",
                 "call:_aio_stage_sampler_settings",
-                "resolve:EasyUseAnimaImageScaleByMultiple",
                 "construct:scaler",
                 "call:upscale",
-                "resolve:_encode_image_with_comfy_vae",
                 "call:encode:scaled_image",
-                "resolve:_apply_aio_spectrum_model_patches_for_comfy_sampler",
                 "call:patch",
-                "resolve:_sample_latent_with_aio_backend",
                 "call:sample",
-                "resolve:_cleanup_aio_ephemeral_model",
                 "call:cleanup",
-                "resolve:_decode_latent_with_comfy",
                 "call:decode",
-                "resolve:_resize_image_to_size_if_needed",
                 "call:resize",
-                "resolve:_encode_image_with_comfy_vae",
                 "call:encode:resized_image",
-                "resolve:_prompt_data_json_safe",
                 "call:json_safe",
             ],
         )
@@ -357,14 +315,7 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
             "_cleanup_aio_ephemeral_model": cleanup,
         }
 
-        def resolve(name):
-            trace.append(f"resolve:{name}")
-            if name not in helpers:
-                self.fail(f"sampling failure resolved unexpected helper: {name}")
-            return helpers[name]
-
-        legacy_generation._bind_aio_legacy_generation_runtime(resolve_helper=resolve)
-        try:
+        with patch.multiple(legacy_generation, **helpers):
             with self.assertRaisesRegex(RuntimeError, "sample failed"):
                 nodes._run_aio_highres_stage(
                     model,
@@ -379,17 +330,11 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
                     {},
                     {"enabled": True},
                 )
-        finally:
-            legacy_generation._bind_aio_legacy_generation_runtime(
-                resolve_helper=_production_resolver
-            )
 
         self.assertEqual(
-            trace[-4:],
+            trace[-2:],
             [
-                "resolve:_sample_latent_with_aio_backend",
                 "sample",
-                "resolve:_cleanup_aio_ephemeral_model",
                 "cleanup",
             ],
         )
@@ -412,16 +357,7 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
                 ),
             }
 
-            def resolve(name):
-                trace.append(("resolve", name))
-                if name not in helpers:
-                    self.fail(f"short-circuit resolved unexpected helper: {name}")
-                return helpers[name]
-
-            legacy_generation._bind_aio_legacy_generation_runtime(
-                resolve_helper=resolve
-            )
-            try:
+            with patch.multiple(legacy_generation, **helpers):
                 result = nodes._run_aio_detailer_stage(
                     object(),
                     object(),
@@ -432,10 +368,6 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
                     {},
                     detailer_settings,
                 )
-            finally:
-                legacy_generation._bind_aio_legacy_generation_runtime(
-                    resolve_helper=_production_resolver
-                )
             return result, trace
 
         disabled_result, disabled_trace = execute({"enabled": False}, [])
@@ -444,7 +376,6 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
         self.assertEqual(
             disabled_trace,
             [
-                ("resolve", "_as_bool"),
                 ("call", "_as_bool", False, False),
             ],
         )
@@ -465,11 +396,8 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
         self.assertEqual(
             no_target_trace,
             [
-                ("resolve", "_as_bool"),
                 ("call", "_as_bool", True, False),
-                ("resolve", "_aio_detailer_target_order"),
                 ("call", "_aio_detailer_target_order"),
-                ("resolve", "_as_bool"),
                 ("call", "_as_bool", False, False),
             ],
         )
@@ -547,15 +475,10 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
             "_context_value": context_value,
         }
 
-        def resolve(name):
-            trace.append(("resolve", name))
-            return helpers[name]
-
         def preview(stage, output):
             trace.append(("callback", stage, output.name))
 
-        legacy_generation._bind_aio_legacy_generation_runtime(resolve_helper=resolve)
-        try:
+        with patch.multiple(legacy_generation, **helpers):
             result = nodes._run_aio_detailer_stage(
                 model,
                 clip,
@@ -566,10 +489,6 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
                 sampler_settings,
                 detailer_settings,
                 preview,
-            )
-        finally:
-            legacy_generation._bind_aio_legacy_generation_runtime(
-                resolve_helper=_production_resolver
             )
 
         self.assertIs(result[0], face_image)
@@ -588,25 +507,16 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
         self.assertEqual(
             trace,
             [
-                ("resolve", "_as_bool"),
                 ("call", "_as_bool", True, False),
-                ("resolve", "_aio_detailer_target_order"),
                 ("call", "_aio_detailer_target_order"),
-                ("resolve", "_as_bool"),
                 ("call", "_as_bool", True, False),
-                ("resolve", "_as_bool"),
                 ("call", "_as_bool", False, False),
-                ("resolve", "_as_bool"),
                 ("call", "_as_bool", True, False),
-                ("resolve", "_load_aio_sam3_context"),
                 ("call", "_load_aio_sam3_context"),
-                ("resolve", "_run_aio_detailer_target"),
                 ("call", "_run_aio_detailer_target", "eye"),
                 ("callback", "detailer_eye", "eye_image"),
-                ("resolve", "_run_aio_detailer_target"),
                 ("call", "_run_aio_detailer_target", "face"),
                 ("callback", "detailer_face", "face_image"),
-                ("resolve", "_context_value"),
                 ("call", "_context_value", "ckpt_name"),
             ],
         )
@@ -627,14 +537,7 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
                 "_context_value": lambda context, key: trace.append("context_value"),
             }
 
-            def resolve(name):
-                trace.append(f"resolve:{name}")
-                return helpers[name]
-
-            legacy_generation._bind_aio_legacy_generation_runtime(
-                resolve_helper=resolve
-            )
-            try:
+            with patch.multiple(legacy_generation, **helpers):
                 nodes._run_aio_detailer_stage(
                     object(),
                     object(),
@@ -645,10 +548,6 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
                     {},
                     detailer_settings,
                     preview_callback(trace),
-                )
-            finally:
-                legacy_generation._bind_aio_legacy_generation_runtime(
-                    resolve_helper=_production_resolver
                 )
             return trace
 
@@ -667,8 +566,8 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
                 target_trace,
             )
         self.assertEqual(
-            target_trace[-2:],
-            ["resolve:_run_aio_detailer_target", "target:eye"],
+            target_trace[-1:],
+            ["target:eye"],
         )
         self.assertNotIn("preview", target_trace)
         self.assertNotIn("target:face", target_trace)
@@ -689,8 +588,8 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
                 unpack_trace,
             )
         self.assertEqual(
-            unpack_trace[-2:],
-            ["resolve:_run_aio_detailer_target", "target:eye"],
+            unpack_trace[-1:],
+            ["target:eye"],
         )
         self.assertNotIn("preview", unpack_trace)
         self.assertNotIn("target:face", unpack_trace)
@@ -716,7 +615,6 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
         self.assertEqual(
             callback_trace[-3:],
             [
-                "resolve:_run_aio_detailer_target",
                 "target:eye",
                 "preview:eye",
             ],
@@ -728,14 +626,11 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
         trace: list[str] = []
         image = object()
 
-        def resolve(name):
-            trace.append(f"resolve:{name}")
-            if name == "_as_bool":
-                return lambda value, default: trace.append("call:_as_bool") or False
-            self.fail(f"disabled Detailer target resolved unexpected helper: {name}")
-
-        legacy_generation._bind_aio_legacy_generation_runtime(resolve_helper=resolve)
-        try:
+        with patch.object(
+            legacy_generation,
+            "_as_bool",
+            side_effect=lambda value, default: trace.append("call:_as_bool") or False,
+        ):
             result = nodes._run_aio_detailer_target(
                 "face",
                 {"enabled": False},
@@ -748,14 +643,10 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
                 {},
                 {},
             )
-        finally:
-            legacy_generation._bind_aio_legacy_generation_runtime(
-                resolve_helper=_production_resolver
-            )
 
         self.assertIs(result[0], image)
         self.assertEqual(result[1], {"enabled": False})
-        self.assertEqual(trace, ["resolve:_as_bool", "call:_as_bool"])
+        self.assertEqual(trace, ["call:_as_bool"])
 
     def test_detailer_target_preserves_kwargs_cleanup_and_metadata_order(self):
         trace: list[str] = []
@@ -870,12 +761,7 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
             "_prompt_data_json_safe": json_safe,
         }
 
-        def resolve(name):
-            trace.append(f"resolve:{name}")
-            return helpers[name]
-
-        legacy_generation._bind_aio_legacy_generation_runtime(resolve_helper=resolve)
-        try:
+        with patch.multiple(legacy_generation, **helpers):
             result = nodes._run_aio_detailer_target(
                 "face",
                 target_settings,
@@ -887,10 +773,6 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
                 negative,
                 sampler_settings,
                 sam3_context,
-            )
-        finally:
-            legacy_generation._bind_aio_legacy_generation_runtime(
-                resolve_helper=_production_resolver
             )
 
         self.assertIs(result[0], detailed_image)
@@ -961,27 +843,6 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
                 "tiled_decode": False,
             },
         )
-        resolved_helpers = [
-            item.removeprefix("resolve:")
-            for item in trace
-            if isinstance(item, str) and item.startswith("resolve:")
-        ]
-        self.assertEqual(
-            resolved_helpers,
-            [
-                "_as_bool",
-                "_aio_stage_sampler_settings",
-                "_apply_aio_spectrum_model_patches_for_comfy_sampler",
-                "EasyUseAnimaSAM3Detailer",
-                "_as_int", "_as_float", "_as_int", "_as_bool", "_as_bool",
-                "_as_float", "_as_bool", "_as_int", "_as_bool", "_as_int",
-                "_as_bool", "_as_int", "_as_int", "_as_bool", "_as_bool",
-                "_as_int", "_as_bool", "_as_int", "_as_bool", "_as_bool",
-                "_cleanup_aio_ephemeral_model",
-                "_segs_has_items",
-                "_prompt_data_json_safe",
-            ],
-        )
         self.assertLess(trace.index("call:cleanup"), trace.index("call:_segs_has_items"))
         self.assertLess(
             trace.index("call:_segs_has_items"),
@@ -1024,14 +885,7 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
                 **overrides,
             }
 
-            def resolve(name):
-                trace.append(f"resolve:{name}")
-                return helpers[name]
-
-            legacy_generation._bind_aio_legacy_generation_runtime(
-                resolve_helper=resolve
-            )
-            try:
+            with patch.multiple(legacy_generation, **helpers):
                 return nodes._run_aio_detailer_target(
                     "face",
                     {"enabled": True},
@@ -1044,10 +898,6 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
                     {},
                     {},
                 )
-            finally:
-                legacy_generation._bind_aio_legacy_generation_runtime(
-                    resolve_helper=_production_resolver
-                )
 
         planner_trace = []
 
@@ -1058,9 +908,6 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "planner failed"):
             execute({"_aio_stage_sampler_settings": fail_planner}, planner_trace)
         self.assertNotIn("cleanup", planner_trace)
-        self.assertFalse(
-            any(item == "resolve:_cleanup_aio_ephemeral_model" for item in planner_trace)
-        )
 
         class_trace = []
 
@@ -1070,7 +917,7 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
 
         with self.assertRaisesRegex(LookupError, "class failed"):
             execute({"EasyUseAnimaSAM3Detailer": fail_class}, class_trace)
-        self.assertEqual(class_trace[-2:], ["resolve:_cleanup_aio_ephemeral_model", "cleanup"])
+        self.assertEqual(class_trace[-1:], ["cleanup"])
 
         cleanup_trace = []
 
@@ -1091,7 +938,7 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
                 },
                 cleanup_trace,
             )
-        self.assertEqual(cleanup_trace[-3:], ["doit", "resolve:_cleanup_aio_ephemeral_model", "cleanup"])
+        self.assertEqual(cleanup_trace[-2:], ["doit", "cleanup"])
 
         metadata_trace = []
 
@@ -1102,10 +949,7 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
         with self.assertRaisesRegex(ArithmeticError, "segs failed"):
             execute({"_segs_has_items": fail_segs}, metadata_trace)
         self.assertIn("cleanup", metadata_trace)
-        self.assertEqual(metadata_trace[-2:], ["resolve:_segs_has_items", "segs"])
-        self.assertFalse(
-            any(item == "resolve:_prompt_data_json_safe" for item in metadata_trace)
-        )
+        self.assertEqual(metadata_trace[-1:], ["segs"])
 
     def test_usdu_stage_preserves_dependencies_kwargs_cleanup_and_metadata_order(self):
         trace = []
@@ -1282,14 +1126,7 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
             "_prompt_data_json_safe": json_safe,
         }
 
-        def resolve(name):
-            trace.append(f"resolve:{name}")
-            if name == "AIO_USDU_PROMPT_FULL":
-                self.fail("explicit prompt mode must not resolve the default constant")
-            return helpers[name]
-
-        legacy_generation._bind_aio_legacy_generation_runtime(resolve_helper=resolve)
-        try:
+        with patch.multiple(legacy_generation, **helpers):
             result = nodes._run_aio_usdu_upscale_stage(
                 model,
                 clip,
@@ -1304,10 +1141,6 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
                 {"fields": []},
                 True,
                 False,
-            )
-        finally:
-            legacy_generation._bind_aio_legacy_generation_runtime(
-                resolve_helper=_production_resolver
             )
 
         self.assertIs(result[0], output)
@@ -1382,33 +1215,6 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
         self.assertEqual(len(log_calls), 2)
         self.assertIn("USDU auto tile", log_calls[0][2][0])
         self.assertIn("USDU sampler", log_calls[1][2][0])
-        resolved_helpers = [
-            item.removeprefix("resolve:")
-            for item in trace
-            if isinstance(item, str) and item.startswith("resolve:")
-        ]
-        self.assertEqual(
-            resolved_helpers,
-            [
-                "_require_custom_node_class",
-                "_load_upscale_model_with_comfy",
-                "_aio_stage_sampler_settings",
-                "_as_float",
-                "_aio_usdu_tile_plan",
-                "logger",
-                "logger",
-                "_as_int", "_as_float", "_as_float",
-                "_aio_usdu_conditioning",
-                "_apply_aio_spectrum_model_patches_for_comfy_sampler",
-                "_resolve_aio_runtime_seed", "_as_int", "_as_float", "_as_float",
-                "_as_int", "_as_int", "_as_float", "_as_int", "_as_int",
-                "_as_int", "_as_bool", "_as_bool", "_as_int",
-                "_cleanup_aio_ephemeral_model",
-                "_node_output_tuple",
-                "_image_tensor_size",
-                "_prompt_data_json_safe",
-            ],
-        )
         self.assertLess(trace.index("call:cleanup"), trace.index("call:_node_output_tuple"))
 
     def test_usdu_stage_preserves_cleanup_output_and_lazy_default_boundaries(self):
@@ -1461,14 +1267,7 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
                 **overrides,
             }
 
-            def resolve(name):
-                trace.append(f"resolve:{name}")
-                return helpers[name]
-
-            legacy_generation._bind_aio_legacy_generation_runtime(
-                resolve_helper=resolve
-            )
-            try:
+            with patch.multiple(legacy_generation, **helpers):
                 return nodes._run_aio_usdu_upscale_stage(
                     model,
                     object(),
@@ -1478,10 +1277,6 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
                     object(),
                     {},
                     {"usdu": {}},
-                )
-            finally:
-                legacy_generation._bind_aio_legacy_generation_runtime(
-                    resolve_helper=_production_resolver
                 )
 
         patch_trace = []
@@ -1495,7 +1290,6 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
                 patch_trace,
             )
         self.assertNotIn("cleanup", patch_trace)
-        self.assertNotIn("resolve:_cleanup_aio_ephemeral_model", patch_trace)
 
         construct_trace = []
 
@@ -1509,10 +1303,7 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
                 {"_require_custom_node_class": lambda *args: FailingConstructor},
                 construct_trace,
             )
-        self.assertEqual(
-            construct_trace[-2:],
-            ["resolve:_cleanup_aio_ephemeral_model", "cleanup"],
-        )
+        self.assertEqual(construct_trace[-1:], ["cleanup"])
 
         cleanup_trace = []
 
@@ -1533,10 +1324,7 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
                 },
                 cleanup_trace,
             )
-        self.assertEqual(
-            cleanup_trace[-3:],
-            ["upscale", "resolve:_cleanup_aio_ephemeral_model", "cleanup"],
-        )
+        self.assertEqual(cleanup_trace[-2:], ["upscale", "cleanup"])
 
         empty_trace = []
         with self.assertRaisesRegex(
@@ -1545,18 +1333,11 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
         ):
             execute({"_node_output_tuple": lambda value: ()}, empty_trace)
         self.assertIn("cleanup", empty_trace)
-        self.assertIn("resolve:_node_output_tuple", empty_trace)
-        self.assertNotIn("resolve:_image_tensor_size", empty_trace)
-        self.assertNotIn("resolve:AIO_USDU_PROMPT_FULL", empty_trace)
 
         default_trace = []
         result = execute({}, default_trace)
         self.assertIs(result[0], output)
         self.assertEqual(result[1]["prompt_mode"], "full")
-        self.assertLess(
-            default_trace.index("resolve:AIO_USDU_PROMPT_FULL"),
-            default_trace.index("resolve:_prompt_data_json_safe"),
-        )
 
     def test_resshift_stage_preserves_provider_argument_and_metadata_order(self):
         trace = []
@@ -1628,12 +1409,7 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
             "_image_tensor_size": image_size,
         }
 
-        def resolve(name):
-            trace.append(("resolve", name))
-            return helpers[name]
-
-        legacy_generation._bind_aio_legacy_generation_runtime(resolve_helper=resolve)
-        try:
+        with patch.multiple(legacy_generation, **helpers):
             result = nodes._run_aio_resshift_upscale_stage(
                 image,
                 sampler_settings,
@@ -1643,10 +1419,6 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
                 {"unused": True},
                 True,
                 True,
-            )
-        finally:
-            legacy_generation._bind_aio_legacy_generation_runtime(
-                resolve_helper=_production_resolver
             )
 
         self.assertIs(result[0], output)
@@ -1667,12 +1439,9 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
         self.assertEqual(
             trace,
             [
-                ("resolve", "_require_custom_node_class"),
                 ("call", "_require_custom_node_class", "ResShiftLoader"),
-                ("resolve", "_require_custom_node_class"),
                 ("call", "_require_custom_node_class", "ResShiftUpscale"),
                 "construct:loader",
-                ("resolve", "_node_output_tuple"),
                 (
                     "call",
                     "load",
@@ -1680,14 +1449,9 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
                 ),
                 ("call", "_node_output_tuple", "loader-result"),
                 "construct:upscaler",
-                ("resolve", "_node_output_tuple"),
-                ("resolve", "_resolve_aio_runtime_seed"),
                 ("call", "_resolve_aio_runtime_seed", "seed-input"),
-                ("resolve", "_as_int"),
                 ("call", "_as_int", "1024", 512),
-                ("resolve", "_as_int"),
                 ("call", "_as_int", "96", 64),
-                ("resolve", "_as_int"),
                 ("call", "_as_int", "2", 4),
                 (
                     "call",
@@ -1695,7 +1459,6 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
                     (model, image, 321, 1024, 96, 2),
                 ),
                 ("call", "_node_output_tuple", "upscale-result"),
-                ("resolve", "_image_tensor_size"),
                 ("call", "_image_tensor_size"),
             ],
         )
@@ -1704,24 +1467,11 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
         image = _Token("image")
 
         def execute(helpers, trace):
-            def resolve(name):
-                trace.append(f"resolve:{name}")
-                if name not in helpers:
-                    self.fail(f"failure case resolved unexpected helper: {name}")
-                return helpers[name]
-
-            legacy_generation._bind_aio_legacy_generation_runtime(
-                resolve_helper=resolve
-            )
-            try:
+            with patch.multiple(legacy_generation, **helpers):
                 return nodes._run_aio_resshift_upscale_stage(
                     image,
                     {"seed": 7},
                     {"resshift": {}},
-                )
-            finally:
-                legacy_generation._bind_aio_legacy_generation_runtime(
-                    resolve_helper=_production_resolver
                 )
 
         first_provider_trace = []
@@ -1737,7 +1487,7 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
             )
         self.assertEqual(
             first_provider_trace,
-            ["resolve:_require_custom_node_class", "require:loader"],
+            ["require:loader"],
         )
 
         missing_load_trace = []
@@ -1765,9 +1515,7 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
         self.assertEqual(
             missing_load_trace,
             [
-                "resolve:_require_custom_node_class",
                 "require:ResShiftLoader",
-                "resolve:_require_custom_node_class",
                 "require:ResShiftUpscale",
                 "construct:loader",
             ],
@@ -1843,11 +1591,10 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
             )
         self.assertIn("construct:upscaler", seed_failure_trace)
         self.assertEqual(
-            seed_failure_trace[-2:],
-            ["resolve:_resolve_aio_runtime_seed", "seed"],
+            seed_failure_trace[-1:],
+            ["seed"],
         )
         self.assertNotIn("upscale", seed_failure_trace)
-        self.assertFalse(any(item == "resolve:_as_int" for item in seed_failure_trace))
 
     def test_upscale_dispatcher_preserves_lazy_branch_and_exception_contract(self):
         model = _Token("model")
@@ -1868,14 +1615,7 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
 
             helpers = {"_as_bool": as_bool, **leaf_helpers}
 
-            def resolve(name):
-                trace.append(("resolve", name))
-                return helpers[name]
-
-            legacy_generation._bind_aio_legacy_generation_runtime(
-                resolve_helper=resolve
-            )
-            try:
+            with patch.multiple(legacy_generation, **helpers):
                 return nodes._run_aio_upscale_stage(
                     model,
                     clip,
@@ -1891,10 +1631,6 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
                     True,
                     False,
                 )
-            finally:
-                legacy_generation._bind_aio_legacy_generation_runtime(
-                    resolve_helper=_production_resolver
-                )
 
         disabled_trace = []
         disabled_result = execute({"enabled": False}, {}, disabled_trace)
@@ -1903,7 +1639,6 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
         self.assertEqual(
             disabled_trace,
             [
-                ("resolve", "_as_bool"),
                 ("call", "_as_bool", False, False),
             ],
         )
@@ -1946,9 +1681,7 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
         self.assertEqual(
             usdu_trace,
             [
-                ("resolve", "_as_bool"),
                 ("call", "_as_bool", True, False),
-                ("resolve", "_run_aio_usdu_upscale_stage"),
                 ("call", "usdu"),
             ],
         )
@@ -1989,9 +1722,7 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
         self.assertEqual(
             resshift_trace,
             [
-                ("resolve", "_as_bool"),
                 ("call", "_as_bool", True, False),
-                ("resolve", "_run_aio_resshift_upscale_stage"),
                 ("call", "resshift"),
             ],
         )
@@ -2009,7 +1740,6 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
         self.assertEqual(
             unsupported_trace,
             [
-                ("resolve", "_as_bool"),
                 ("call", "_as_bool", True, False),
             ],
         )
@@ -2029,9 +1759,7 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
         self.assertEqual(
             failure_trace,
             [
-                ("resolve", "_as_bool"),
                 ("call", "_as_bool", True, False),
-                ("resolve", "_run_aio_usdu_upscale_stage"),
                 ("call", "usdu"),
             ],
         )
@@ -2317,7 +2045,7 @@ class AIOGeneratorLegacyMoveTests(unittest.TestCase):
 
         with (
             patch.multiple(
-                nodes,
+                legacy_generation,
                 _normalize_aio_generation_settings=normalize_settings,
                 _resolve_aio_runtime_seed=resolve_seed,
                 _load_aio_resources_from_input_context=load_resources,
