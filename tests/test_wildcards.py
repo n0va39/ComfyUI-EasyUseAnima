@@ -9,6 +9,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 import nodes as nodes_module
+from easyuse_anima.prompt import advanced as prompt_advanced
 from nodes import (
     EasyUseAnimaPromptStudioAdvanced,
     EasyUseAnimaPromptStudioAdvancedV2,
@@ -1026,8 +1027,9 @@ class WildcardNodeTests(unittest.TestCase):
             def expand_from_test_root(texts, *, seed, mode):
                 return expand_wildcard_texts(texts, seed=seed, mode=mode, roots=[root])
 
-            with patch(
-                "nodes.expand_wildcard_texts",
+            with patch.object(
+                prompt_advanced,
+                "expand_wildcard_texts",
                 side_effect=expand_from_test_root,
             ):
                 first, _ = nodes_module._expand_advanced_wildcard_fields(
@@ -1915,8 +1917,9 @@ class WildcardNodeTests(unittest.TestCase):
             }
         }
 
-        with patch(
-            "nodes.expand_wildcard_texts",
+        with patch.object(
+            prompt_advanced,
+            "expand_wildcard_texts",
             return_value=(WildcardExpansionResult(
                 text="expanded style",
                 changed=True,

@@ -4,12 +4,13 @@ from __future__ import annotations
 
 import json
 import re
-from collections.abc import Callable
 from typing import Any
 
+from ..common.values import _as_bool, _as_int, _single_value
 from ..naia.resolution import (
     DEFAULT_ADVANCED_RESOLUTION_BUCKET,
     NAIA_ADVANCED_RESOLUTION_BUCKET,
+    _normalize_resolution_bucket,
 )
 from .artist_mix import (
     ARTIST_MIX_DEFAULT_CLUSTER_COUNT,
@@ -22,9 +23,30 @@ from .artist_mix import (
     ARTIST_MIX_DEFAULT_STYLE_GAIN,
     ARTIST_MIX_MODE_OFF,
     ARTIST_MIX_MODE_PROMPT,
+    _artist_mix_inline_prompt,
+    _artist_tags_from_prompt,
+    _bounded_artist_mix_float,
+    _bounded_artist_mix_int,
+    _join_artist_mix_source_prompts,
+    _normalize_artist_mix_mode,
+    _parse_artist_mix_items,
 )
+from .correction import _translate_prompt_text
 from .data import PROMPT_DATA_SCHEMA, PROMPT_DATA_TYPE, PROMPT_DATA_VERSION
-from .fields import DEFAULT_QUALITY_TAGS, DEFAULT_TRAILING_QUALITY_TAGS
+from .fields import (
+    DEFAULT_QUALITY_TAGS,
+    DEFAULT_TRAILING_QUALITY_TAGS,
+    _correct_builder_prompt,
+    _filter_metadata_prompt,
+    _join_prompt_tokens,
+)
+
+try:
+    from ...prompt_translation import has_prompt_translation_markers
+    from ...settings import resolve_metadata_filter_words
+except ImportError:
+    from prompt_translation import has_prompt_translation_markers
+    from settings import resolve_metadata_filter_words
 
 ADVANCED_FIELD_TYPES = {"quality", "artist", "trigger", "general", "naia"}
 ADVANCED_FIELD_PANES = {"positive", "negative"}
@@ -109,49 +131,33 @@ PROMPT_STUDIO_ADVANCED_RETURN_NAMES = (
 _ADVANCED_FIELD_SOCKET_PREFIX = "field_"
 _ADVANCED_FIELD_SOCKET_RE = re.compile(r"[^A-Za-z0-9_]")
 
-_RuntimeResolver = Callable[[str], Callable[..., Any]]
-_RUNTIME_RESOLVER: _RuntimeResolver | None = None
-_RUNTIME_HELPER_NAMES = (
-    "_as_bool",
-    "_as_int",
-    "_single_value",
-    "_normalize_resolution_bucket",
-    "_artist_mix_inline_prompt",
-    "_correct_builder_prompt",
-    "_join_prompt_tokens",
-    "resolve_metadata_filter_words",
-    "_filter_metadata_prompt",
-    "normalize_prompt_studio_wildcard_mode",
-    "has_wildcard_syntax",
-    "expand_wildcard_texts",
-    "has_prompt_translation_markers",
-    "_translate_prompt_text",
-    "_join_artist_mix_source_prompts",
-    "_normalize_artist_mix_mode",
-    "_artist_tags_from_prompt",
-    "_parse_artist_mix_items",
-    "_bounded_artist_mix_float",
-    "_bounded_artist_mix_int",
-    "normalize_seed",
-)
+
+def _wildcard_engine_module():
+    try:
+        from ... import wildcard_engine as module
+    except ImportError:
+        import wildcard_engine as module
+
+    return module
 
 
-def _runtime_proxy(name: str):
-    def invoke(*args, **kwargs):
-        if _RUNTIME_RESOLVER is None:
-            raise RuntimeError(
-                f"[EasyUseAnima] Advanced Prompt Studio runtime helper is not bound: {name}"
-            )
-        return _RUNTIME_RESOLVER(name)(*args, **kwargs)
-
-    return invoke
+def normalize_prompt_studio_wildcard_mode(*args, **kwargs):
+    return _wildcard_engine_module().normalize_prompt_studio_wildcard_mode(
+        *args,
+        **kwargs,
+    )
 
 
-def _bind_advanced_runtime(*, resolve_helper: _RuntimeResolver) -> None:
-    """Bind late runtime helpers without importing the root compatibility module."""
+def normalize_seed(*args, **kwargs):
+    return _wildcard_engine_module().normalize_seed(*args, **kwargs)
 
-    global _RUNTIME_RESOLVER
-    _RUNTIME_RESOLVER = resolve_helper
+
+def has_wildcard_syntax(*args, **kwargs):
+    return _wildcard_engine_module().has_wildcard_syntax(*args, **kwargs)
+
+
+def expand_wildcard_texts(*args, **kwargs):
+    return _wildcard_engine_module().expand_wildcard_texts(*args, **kwargs)
 
 
 def _normalize_prompt_studio_wildcard_seed_control(
@@ -165,31 +171,6 @@ def _normalize_prompt_studio_wildcard_seed_control(
         str(value or "").strip().lower(),
         SEED_CONTROL_FIXED,
     )
-
-
-_as_bool = _runtime_proxy("_as_bool")
-_as_int = _runtime_proxy("_as_int")
-_single_value = _runtime_proxy("_single_value")
-_normalize_resolution_bucket = _runtime_proxy("_normalize_resolution_bucket")
-_artist_mix_inline_prompt = _runtime_proxy("_artist_mix_inline_prompt")
-_correct_builder_prompt = _runtime_proxy("_correct_builder_prompt")
-_join_prompt_tokens = _runtime_proxy("_join_prompt_tokens")
-resolve_metadata_filter_words = _runtime_proxy("resolve_metadata_filter_words")
-_filter_metadata_prompt = _runtime_proxy("_filter_metadata_prompt")
-normalize_prompt_studio_wildcard_mode = _runtime_proxy(
-    "normalize_prompt_studio_wildcard_mode"
-)
-has_wildcard_syntax = _runtime_proxy("has_wildcard_syntax")
-expand_wildcard_texts = _runtime_proxy("expand_wildcard_texts")
-has_prompt_translation_markers = _runtime_proxy("has_prompt_translation_markers")
-_translate_prompt_text = _runtime_proxy("_translate_prompt_text")
-_join_artist_mix_source_prompts = _runtime_proxy("_join_artist_mix_source_prompts")
-_normalize_artist_mix_mode = _runtime_proxy("_normalize_artist_mix_mode")
-_artist_tags_from_prompt = _runtime_proxy("_artist_tags_from_prompt")
-_parse_artist_mix_items = _runtime_proxy("_parse_artist_mix_items")
-_bounded_artist_mix_float = _runtime_proxy("_bounded_artist_mix_float")
-_bounded_artist_mix_int = _runtime_proxy("_bounded_artist_mix_int")
-normalize_seed = _runtime_proxy("normalize_seed")
 
 
 def _translate_prompt_fields(fields: list[dict]) -> list[dict]:

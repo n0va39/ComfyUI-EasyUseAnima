@@ -8,9 +8,9 @@
 - Policy: [ADR-002](adr-002-compatibility-shims.md)
 - Machine-readable audit:
   [`python_compatibility_surface.v1.json`](../../tests/fixtures/python_compatibility_surface.v1.json)
-- Current state: B-11a through B-11c30a are integrated. B-11c is split into
+- Current state: B-11a through B-11c30c are integrated. B-11c is split into
   residual-owner Moves and explicit private-contract cleanup before the final
-  root shim; B-11c30b retires only the LoRA binder family.
+  root shim; B-11c30c1 retires only the six Prompt/Regional service binders.
 
 This is an actionable registry, not a removal schedule. `N` means the first
 published Registry release containing both a canonical target and its root
@@ -75,7 +75,7 @@ inferring public support from spelling or test imports:
 - `nodes.py` preamble implementation imports: 5 (`json`, `logging`, `random`,
   `ceil`, and `sqrt`), excluded from compatibility classification
   by an exact AST allowlist and drift gate;
-- `nodes.py` bindings with an `easyuse_anima` canonical target: 295 in B-11c29b3
+- `nodes.py` bindings with an `easyuse_anima` canonical target: 283 in B-11c30c1
   (258 at the integrated B-10b20 baseline), with exact
   relative-package/flat-fallback parity;
 - bindings still owned by `anima_prompt`, `settings`, `prompt_translation`, or
@@ -86,8 +86,8 @@ inferring public support from spelling or test imports:
   owner module without a root alias or backend mapping;
 - root-owned residual implementation: 1 function, 0 classes, and 26 assigned
   globals in B-11c29b3 (41/2/33 at the integrated B-10b20 baseline).
-- import-time runtime binders: 30 exact top-level `_bind_*_runtime` calls;
-- root names reached by those canonical runtime resolvers: 284, including
+- import-time runtime binders: 18 exact top-level `_bind_*_runtime` calls;
+- root names reached by those canonical runtime resolvers: 243, including
   literal lookups and binder-owned helper-name/default collections;
 - retired private bindings: `_comfy_checkpoint_names`,
   `_EasyUseAnimaAlignedDetailerHook`, and
@@ -736,6 +736,34 @@ convenience-node compatibility; it remains unmapped and is not public support.
 - The remaining binder audit contains 24 binders in three owner families. No
   LoRA schema, workflow, stack/trigger order, missing-model policy, or optional
   dependency behavior changes in this Move.
+
+### B-11c30c Prompt/Regional split gate
+
+- PR #339 / `d0188b5` changes no production code. It decomposes the ten
+  Prompt/Regional binders into six feature-service owners and four node-adapter
+  owners without changing their symbols, callers, resolver names, bound
+  globals, provider slots, or replacement evidence.
+- The service and adapter subgroups are separate rollback units. A Move may not
+  retire both subgroups together.
+
+### B-11c30c1 Prompt/Regional service binder retirement
+
+- The six root binder imports/calls and canonical service binder definitions
+  for Regional, Advanced, Conditioning, Artist Mix, Prompt Fields, and Prompt
+  Correction are removed.
+- Canonical service calls now resolve canonical module globals directly.
+  Advanced keeps the still-legacy `wildcard_engine` behind call-time wrappers,
+  preserving the package skeleton's no-eager-NumPy import boundary before D-12.
+  Artist Mix CLIP encoding and Conditioning loaded-node lookup remain direct
+  call-time E-07 provider consumers; the Comfy host ledger remains 22 slots
+  across 15 modules.
+- Root helper aliases remain direct canonical aliases. Tests that replaced root
+  only to drive a canonical service now replace that service owner, while all
+  four node-adapter binders retain their existing root seams for B-11c30c2.
+- The remaining audit is 18 binders in three families: ten
+  provider-then-root, six root-only, and two explicit callbacks. No schema,
+  workflow, prompt/conditioning behavior, provider lookup order, warning-once
+  state, or optional-dependency timing changes in this Move.
 
 ### `nodes.py` public node-class surface
 

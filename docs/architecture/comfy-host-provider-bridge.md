@@ -1174,7 +1174,7 @@ Implementation result:
 
 ### B-11c30b — LoRA binder retirement
 
-- **State:** IMPLEMENTED in PR #338
+- **State:** COMPLETE on `dev` in PR #338 / `cdd115d`
 - **Owner:** #184
 - **Type:** Move
 - **Base:** `dev@3647d3ad35dffb77b35ca423e1b89c6a4d7c3116`
@@ -1260,6 +1260,75 @@ Implementation result:
 - focused LoRA, contract, compatibility, and analyzer validation passes 61
   tests.
 
+### B-11c30c — Prompt/Regional binder split gate
+
+- **State:** COMPLETE on `dev` in PR #339 / `d0188b5`
+- **Owner:** #184
+- **Type:** Contract/gate
+
+The production-free gate splits the ten Prompt/Regional binders into six
+feature-service binders and four node-adapter binders. Symbols, callers,
+resolver modes, bound globals, provider/root resolver names, direct
+dependencies, and repository replacement evidence remain unchanged. The two
+subgroups are separate Move and rollback units.
+
+### B-11c30c1 — Prompt/Regional service binder retirement
+
+- **State:** IMPLEMENTED in PR #340
+- **Owner:** #184
+- **Type:** Move
+- **Base:** `dev@d0188b5e687164bdba817c9705c64e23c1262733`
+
+Pre-edit inventory:
+
+- six binders: Regional, Advanced, Conditioning, Artist Mix, Prompt Fields,
+  and Prompt Correction;
+- four root-only and two provider-then-root binders install 21 service globals;
+- 55 root resolver slots cover 46 unique root names, while two provider slots
+  retain `_encode_with_comfy_clip` and `_find_loaded_node_class`;
+- three direct dependency slots cover `_resolve_comfy_host_helper` and
+  `logger`; and
+- repository tests replace 22 unique family names in six files. This is test
+  migration evidence, not public root compatibility.
+
+Allowed production files:
+
+```text
+nodes.py
+easyuse_anima/prompt/regional.py
+easyuse_anima/prompt/advanced.py
+easyuse_anima/prompt/conditioning.py
+easyuse_anima/prompt/artist_mix.py
+easyuse_anima/prompt/fields.py
+easyuse_anima/prompt/correction.py
+```
+
+Implementation result:
+
+- root no longer imports or invokes the six binders, and their canonical
+  definitions and bind-time placeholder state are absent;
+- service-internal calls use canonical module globals and explicit canonical
+  imports without importing root `nodes.py`; the still-legacy
+  `wildcard_engine` owner remains a call-time import so direct package imports
+  do not eagerly load NumPy before D-12;
+- Artist Mix CLIP encoding and Conditioning loaded-node discovery resolve the
+  existing E-07 provider directly at call time. The Comfy host ledger remains
+  22 slots across 15 modules;
+- root helper aliases retain direct canonical identity, while service-specific
+  tests replace the owning canonical module;
+- all four Prompt/Regional node-adapter binders remain unchanged for
+  B-11c30c2;
+- the remaining audit is 18 binders in three families: ten
+  provider-then-root, six root-only, and two explicit callbacks; and
+- `nodes.py` is 1,763 lines, down 37 lines from the B-11c30b base.
+
+Forbidden:
+
+- changing Prompt/Regional schema, workflow serialization, mapped-class
+  identity, prompt/conditioning output, seed behavior, provider lookup order,
+  warning-once state, or optional dependency timing; and
+- retiring any of the four node-adapter binders or combining B-11c30c2.
+
 ### B-11d — Final root shim
 
 - **State:** BLOCKED by the remaining B-11c30 family Moves and the separate
@@ -1300,7 +1369,9 @@ COMPLETE: B-11c29d CLIP wrapper retirement / PR #333
 COMPLETE: B-11c29b3 general node lookup retirement / PR #334
 COMPLETE: B-11c30 binder/resolver migration audit / PR #336
 COMPLETE: B-11c30a Image/SAM3/Impact binder Move / PR #337
-IN PROGRESS: B-11c30b LoRA binder Move / PR #338
+COMPLETE: B-11c30b LoRA binder Move / PR #338
+COMPLETE: B-11c30c Prompt/Regional split gate / PR #339
+IN PROGRESS: B-11c30c1 Prompt/Regional service binder Move / PR #340
 BLOCKED:  B-11d final root shim
 
 LATER:    #167 seed reservation

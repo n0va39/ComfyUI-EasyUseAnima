@@ -17,6 +17,9 @@ import settings as easyuse_settings
 from easyuse_anima.naia.client import _clean_prompt
 from easyuse_anima.naia.resolution import ADVANCED_RESOLUTION_BUCKETS
 from easyuse_anima.nodes.prompt_advanced_nodes import EasyUseAnimaPromptStudioExtend
+from easyuse_anima.prompt import artist_mix as prompt_artist_mix
+from easyuse_anima.prompt import conditioning as prompt_conditioning
+from easyuse_anima.prompt import correction as prompt_correction
 from easyuse_anima.prompt.advanced import ADVANCED_FIELDS_WORKFLOW_PROPERTY
 from easyuse_anima.prompt.artist_mix import (
     ARTIST_MIX_CONTROL_KEY,
@@ -162,7 +165,11 @@ class PromptCorrectorTests(unittest.TestCase):
             target="ja",
         )
 
-        with patch("nodes.resolve_prompt_translation_settings", return_value=off_settings):
+        with patch.object(
+            prompt_correction,
+            "resolve_prompt_translation_settings",
+            return_value=off_settings,
+        ):
             result = EasyUseAnimaPromptCorrectorSimple().correct("%{long_hair, 1girl}")
             off_key = EasyUseAnimaPromptCorrectorSimple.IS_CHANGED(
                 prompt="%{long_hair, 1girl}"
@@ -171,7 +178,11 @@ class PromptCorrectorTests(unittest.TestCase):
                 prompt="%{long_hair, 1girl}"
             )
 
-        with patch("nodes.resolve_prompt_translation_settings", return_value=google_settings):
+        with patch.object(
+            prompt_correction,
+            "resolve_prompt_translation_settings",
+            return_value=google_settings,
+        ):
             google_key = EasyUseAnimaPromptCorrectorSimple.IS_CHANGED(
                 prompt="%{long_hair, 1girl}"
             )
@@ -193,7 +204,7 @@ class PromptCorrectorTests(unittest.TestCase):
     def test_prompt_correctors_translate_marked_text_before_correction(self):
         with (
             patch(
-                "nodes.resolve_prompt_translation_settings",
+                "easyuse_anima.prompt.correction.resolve_prompt_translation_settings",
                 return_value=PromptTranslationSettings(
                     provider=PROMPT_TRANSLATION_PROVIDER_GOOGLE,
                     source="ko",
@@ -212,7 +223,7 @@ class PromptCorrectorTests(unittest.TestCase):
     def test_prompt_builder_translates_marked_text_before_correction(self):
         with (
             patch(
-                "nodes.resolve_prompt_translation_settings",
+                "easyuse_anima.prompt.correction.resolve_prompt_translation_settings",
                 return_value=PromptTranslationSettings(
                     provider=PROMPT_TRANSLATION_PROVIDER_GOOGLE,
                     source="ko",
@@ -595,7 +606,11 @@ class PromptBuilderTests(unittest.TestCase):
             return [[f"cond:{text}", {"encoded_text": text}]]
 
         with patch_comfy_helper(nodes, "_encode_with_comfy_clip", fake_encode):
-            with patch("nodes._correct_builder_prompt", return_value="corrected prompt") as correct_mock:
+            with patch.object(
+                prompt_artist_mix,
+                "_correct_builder_prompt",
+                return_value="corrected prompt",
+            ) as correct_mock:
                 positive = EasyUseAnimaArtistMixConditioning().encode(
                     object(),
                     prompt="1girl",
@@ -609,7 +624,7 @@ class PromptBuilderTests(unittest.TestCase):
 
         encoded_texts.clear()
         with patch_comfy_helper(nodes, "_encode_with_comfy_clip", fake_encode):
-            with patch("nodes._correct_builder_prompt") as correct_mock:
+            with patch.object(prompt_artist_mix, "_correct_builder_prompt") as correct_mock:
                 front_positive = EasyUseAnimaArtistMixConditioning().encode(
                     object(),
                     prompt="1girl",
@@ -784,8 +799,12 @@ class PromptBuilderTests(unittest.TestCase):
             lambda clip, text: [[f"cond:{text}", {"encoded_text": text}]],
         ):
             with patch("nodes._generate_empty_latent_with_comfy", lambda width, height: {"samples": (width, height, 1)}):
-                with patch("nodes._find_spectrum_anima_mod_guidance_class", lambda: FakeAnimaModGuidance):
-                    with patch("nodes.logger.warning") as warning_mock:
+                with patch.object(
+                    prompt_conditioning,
+                    "_find_spectrum_anima_mod_guidance_class",
+                    lambda: FakeAnimaModGuidance,
+                ):
+                    with patch.object(prompt_conditioning, "_runtime_logger") as runtime_logger:
                         patched_model, positive, negative, latent_image = EasyUseAnimaPromptDataConditioning().apply(
                             model,
                             clip=clip,
@@ -802,6 +821,7 @@ class PromptBuilderTests(unittest.TestCase):
         self.assertEqual(calls[0]["mod_w_profile"], "step_i14")
         self.assertEqual(calls[0]["positive"], positive)
         self.assertEqual(calls[0]["negative"], negative)
+        warning_mock = runtime_logger.return_value.warning
         warning_mock.assert_called_once()
         self.assertIn("old patch() signature", warning_mock.call_args.args[0])
 
@@ -844,8 +864,12 @@ class PromptBuilderTests(unittest.TestCase):
             lambda clip, text: [[f"cond:{text}", {"encoded_text": text}]],
         ):
             with patch("nodes._generate_empty_latent_with_comfy", lambda width, height: {"samples": (width, height, 1)}):
-                with patch("nodes._find_spectrum_anima_mod_guidance_class", lambda: FakeAnimaModGuidance):
-                    with patch("nodes.logger.warning") as warning_mock:
+                with patch.object(
+                    prompt_conditioning,
+                    "_find_spectrum_anima_mod_guidance_class",
+                    lambda: FakeAnimaModGuidance,
+                ):
+                    with patch.object(prompt_conditioning, "_runtime_logger") as runtime_logger:
                         patched_model, _positive, _negative, _latent_image = EasyUseAnimaPromptDataConditioning().apply(
                             object(),
                             clip=object(),
@@ -859,7 +883,7 @@ class PromptBuilderTests(unittest.TestCase):
             "quality_neg": "worst quality",
             "mod_w_profile": "step_i14",
         }])
-        warning_mock.assert_not_called()
+        runtime_logger.return_value.warning.assert_not_called()
 
     def test_prompt_data_conditioning_average_artist_mix_rebuilds_artist_position(self):
         fields = [
@@ -920,7 +944,7 @@ class PromptBuilderTests(unittest.TestCase):
             ]]
 
         with patch_comfy_helper(nodes, "_encode_with_comfy_clip", fake_encode):
-            with patch("nodes._blend_conditionings", fake_blend):
+            with patch.object(prompt_artist_mix, "_blend_conditionings", fake_blend):
                 with patch("nodes._generate_empty_latent_with_comfy", lambda width, height: {"samples": (width, height, 1)}):
                     _model, positive, _negative, _latent = EasyUseAnimaPromptDataConditioning().apply(
                         object(),
@@ -1028,7 +1052,7 @@ class PromptBuilderTests(unittest.TestCase):
             return [["tail", {"strength": kwargs.get("branch_strength")}]]
 
         with patch_comfy_helper(nodes, "_encode_with_comfy_clip", fake_encode):
-            with patch("nodes._encode_artist_delta_rms", fake_delta):
+            with patch.object(prompt_artist_mix, "_encode_artist_delta_rms", fake_delta):
                 with patch("nodes._generate_empty_latent_with_comfy", lambda width, height: {"samples": (width, height, 1)}):
                     _model, positive, _negative, _latent = EasyUseAnimaPromptDataConditioning().apply(
                         object(),
@@ -1074,8 +1098,8 @@ class PromptBuilderTests(unittest.TestCase):
             return [["clustered", {}]]
 
         with patch_comfy_helper(nodes, "_encode_with_comfy_clip", fake_encode):
-            with patch("nodes._encode_artist_delta_rms", fake_delta):
-                with patch("nodes._encode_artist_clustered", fake_clustered):
+            with patch.object(prompt_artist_mix, "_encode_artist_delta_rms", fake_delta):
+                with patch.object(prompt_artist_mix, "_encode_artist_clustered", fake_clustered):
                     with patch("nodes._generate_empty_latent_with_comfy", lambda width, height: {"samples": (width, height, 1)}):
                         _model, delta_positive, _negative, _latent = EasyUseAnimaPromptDataConditioning().apply(
                             object(),
@@ -1189,7 +1213,7 @@ class PromptBuilderTests(unittest.TestCase):
         ]
         with (
             patch(
-                "nodes.resolve_prompt_translation_settings",
+                "easyuse_anima.prompt.correction.resolve_prompt_translation_settings",
                 return_value=PromptTranslationSettings(
                     provider=PROMPT_TRANSLATION_PROVIDER_GOOGLE,
                     source="ko",
