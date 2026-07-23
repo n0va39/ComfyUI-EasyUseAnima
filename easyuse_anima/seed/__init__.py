@@ -1,5 +1,5 @@
 """Side-effect-free backend seed reservation contracts."""
 
-from . import reservation as reservation
+from . import reservation as _reservation
 
-__all__ = ("reservation",)
+__all__ = ()

@@ -4408,8 +4408,8 @@
         "source": "autocomplete_index.py"
       },
       {
-        "alias": "seed",
-        "bound_name": "seed",
+        "alias": "_seed",
+        "bound_name": "_seed",
         "branch_context": [],
         "classification": "internal",
         "column": 0,
@@ -15672,8 +15672,8 @@
         "target": "easyuse_anima/infrastructure/comfy/provider.py"
       },
       {
-        "alias": "reservation",
-        "bound_name": "reservation",
+        "alias": "_reservation",
+        "bound_name": "_reservation",
         "branch_context": [],
         "classification": "internal",
         "column": 0,
@@ -38956,7 +38956,7 @@
         "is_package": true,
         "loc": 5,
         "module": "easyuse_anima",
-        "normalized_git_blob_sha1": "83f88fc53534e344f4e575ae287a022046046e6e",
+        "normalized_git_blob_sha1": "1a48bda62d3d234f97860f719e1af46410cd5371",
         "path": "easyuse_anima/__init__.py",
         "top_level": {
           "class_count": 0,
@@ -39772,7 +39772,7 @@
         "is_package": true,
         "loc": 5,
         "module": "easyuse_anima.seed",
-        "normalized_git_blob_sha1": "857dfcdf6896a2bc880c2f723e07518181c39e5c",
+        "normalized_git_blob_sha1": "653d1c05aec0ab255562bf631fc9707071b5cc4e",
         "path": "easyuse_anima/seed/__init__.py",
         "top_level": {
           "class_count": 0,

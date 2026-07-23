@@ -1,5 +1,5 @@
 """Internal package boundary for EasyUse Anima backend modules."""
 
-from . import seed as seed
+from . import seed as _seed
 
-__all__ = ("seed",)
+__all__ = ()
