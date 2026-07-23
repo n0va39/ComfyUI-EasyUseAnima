@@ -1635,15 +1635,6 @@ def _find_comfy_node_class(node_id: str):
     return _adapter_find_comfy_node_class(node_id, comfy_nodes)
 
 
-def _find_comfy_node_mapping_class(node_id: str):
-    try:
-        import nodes as comfy_nodes  # type: ignore
-
-        return getattr(comfy_nodes, "NODE_CLASS_MAPPINGS", {}).get(node_id)
-    except Exception:
-        return None
-
-
 def _require_custom_node_class(node_id: str, node_pack: str, install_hint: str):
     return _adapter_require_custom_node_class(
         node_id,

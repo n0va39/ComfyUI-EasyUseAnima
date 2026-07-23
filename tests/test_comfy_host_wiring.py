@@ -77,6 +77,27 @@ class ComfyHostWiringTests(unittest.TestCase):
 
             self.assertEqual(helper(), 8192)
 
+    def test_retired_mapping_lookup_uses_default_provider_before_runtime_install(self):
+        mapping_class = object()
+        comfy_nodes = types.ModuleType("nodes")
+        comfy_nodes.NODE_CLASS_MAPPINGS = {"MappingOnly": mapping_class}
+        comfy_nodes.MappingOnly = object()
+
+        def unexpected_fallback(name: str):
+            self.fail(f"retired helper reached root fallback: {name}")
+
+        with patch.dict(sys.modules, {"nodes": comfy_nodes}):
+            helper = resolve_comfy_host_helper(
+                "_find_comfy_node_mapping_class",
+                unexpected_fallback,
+            )
+
+            self.assertIs(helper("MappingOnly"), mapping_class)
+            comfy_nodes.NODE_CLASS_MAPPINGS = {}
+            self.assertIsNone(helper("MappingOnly"))
+            comfy_nodes.NODE_CLASS_MAPPINGS = object()
+            self.assertIsNone(helper("MappingOnly"))
+
     def test_provider_owned_helpers_delegate_to_narrow_methods(self):
         direct = object()
         mapping = object()

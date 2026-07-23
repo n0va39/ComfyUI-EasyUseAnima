@@ -132,14 +132,6 @@ class SAM3MoveTests(unittest.TestCase):
             self.assertIs(sam3_service._find_impact_detailer_class(), sentinel)
         find.assert_called_once_with("DetailerForEach")
 
-    def test_impact_primary_lookup_uses_mapping_only(self):
-        direct_attribute = object()
-        with (
-            patch.object(nodes, "NODE_CLASS_MAPPINGS", {}, create=True),
-            patch.object(nodes, "DetailerForEach", direct_attribute, create=True),
-        ):
-            self.assertIsNone(nodes._find_comfy_node_mapping_class("DetailerForEach"))
-
     def test_context_node_keeps_call_time_checkpoint_loader(self):
         with patch.object(
             nodes,

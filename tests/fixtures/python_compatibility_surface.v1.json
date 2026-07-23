@@ -59,7 +59,8 @@
       "B-11c26",
       "B-11c27",
       "B-11c28",
-      "B-11c29a"
+      "B-11c29a",
+      "B-11c29b1"
     ]
   },
   "enums": {
@@ -98,7 +99,7 @@
     "nodes_legacy_bindings": 27,
     "mapped_public_classes": 18,
     "unmapped_classes": 2,
-    "root_residual_functions": 7,
+    "root_residual_functions": 6,
     "root_residual_classes": 0,
     "root_residual_globals": 26,
     "runtime_binders": 30,
@@ -732,9 +733,6 @@
       "easyuse_anima.aio.preview",
       "easyuse_anima.aio.resources",
       "easyuse_anima.aio.sampling",
-      "easyuse_anima.image.sam3"
-    ],
-    "_find_comfy_node_mapping_class": [
       "easyuse_anima.image.sam3"
     ],
     "_find_loaded_node_class": [
@@ -4251,7 +4249,6 @@
         "_consume_reserved_wildcard_next_seed": "_consume_reserved_wildcard_next_seed",
         "_encode_with_comfy_clip": "_encode_with_comfy_clip",
         "_find_comfy_node_class": "_find_comfy_node_class",
-        "_find_comfy_node_mapping_class": "_find_comfy_node_mapping_class",
         "_find_loaded_node_class": "_find_loaded_node_class",
         "_require_any_custom_node_class": "_require_any_custom_node_class",
         "_require_custom_node_class": "_require_custom_node_class"
