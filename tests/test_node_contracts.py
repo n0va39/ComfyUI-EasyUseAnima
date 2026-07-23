@@ -2150,6 +2150,7 @@ class ComfyAdapterMoveContractTests(unittest.TestCase):
 
     def test_root_nodes_comfy_aliases_are_canonical_objects(self):
         self.assertFalse(hasattr(nodes, "_comfy_max_resolution"))
+        self.assertFalse(hasattr(nodes, "_find_comfy_node_class"))
         self.assertFalse(hasattr(nodes, "_find_comfy_node_mapping_class"))
         self.assertFalse(hasattr(nodes, "_find_loaded_node_class"))
         self.assertFalse(hasattr(nodes, "_require_custom_node_class"))
@@ -2166,6 +2167,7 @@ class ComfyAdapterMoveContractTests(unittest.TestCase):
     def test_package_nodes_comfy_aliases_are_canonical_objects(self):
         with _loaded_package_entrypoint() as (_, package_nodes):
             self.assertFalse(hasattr(package_nodes, "_comfy_max_resolution"))
+            self.assertFalse(hasattr(package_nodes, "_find_comfy_node_class"))
             self.assertFalse(
                 hasattr(package_nodes, "_find_comfy_node_mapping_class")
             )

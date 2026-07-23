@@ -65,6 +65,27 @@ class DefaultComfyHostProviderTests(unittest.TestCase):
             self.assertIs(self.provider.find_node_class(attribute_id), attribute_class)
             self.assertIs(self.provider.find_node_class(loaded_id), loaded_class)
 
+    def test_node_lookup_falls_through_host_errors_to_loaded_modules(self):
+        node_id = "EasyUseAnimaProviderHostErrorNode"
+        loaded_class = type("LoadedAfterHostError", (), {})
+
+        class FailingMapping:
+            def get(self, _node_id):
+                raise LookupError("mapping failed")
+
+        host = self.host_module(NODE_CLASS_MAPPINGS=FailingMapping())
+        loaded_module = types.ModuleType("easyuse_anima_provider_host_error")
+        loaded_module.NODE_CLASS_MAPPINGS = {node_id: loaded_class}
+
+        with patch.dict(
+            sys.modules,
+            {
+                "nodes": host,
+                loaded_module.__name__: loaded_module,
+            },
+        ):
+            self.assertIs(self.provider.find_node_class(node_id), loaded_class)
+
     def test_mapping_lookup_uses_only_the_host_mapping(self):
         node_id = "EasyUseAnimaProviderMappingOnlyNode"
         mapping_class = type("MappingOnlyNode", (), {})
