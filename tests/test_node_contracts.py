@@ -198,7 +198,6 @@ def _deterministic_comfy_inputs():
         "_comfy_vae_names": lambda: ["contract/vae.safetensors"],
         "_comfy_clip_loader_types": lambda: ["qwen_image", "stable_diffusion"],
         "_impact_scheduler_names": lambda: ["contract_impact_scheduler"],
-        "_lora_combo_values": lambda: ["None", "contract/style.safetensors"],
         "resolve_metadata_filter_words": lambda: ["contract-filter"],
         "_prompt_translation_change_key": lambda: {"enabled": False},
         "wildcard_sources_signature": lambda: {"files": []},
@@ -224,6 +223,11 @@ def _deterministic_comfy_inputs():
             sam3_nodes,
             "_comfy_checkpoint_names",
             return_value=["contract/checkpoint.safetensors"],
+        ),
+        patch.object(
+            lora_nodes,
+            "_lora_combo_values",
+            return_value=["None", "contract/style.safetensors"],
         ),
     ):
         yield
