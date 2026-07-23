@@ -613,6 +613,28 @@
         "lookup cache or snapshot",
         "feature migration"
       ]
+    },
+    "E-07b": {
+      "type": "Contract/gate",
+      "production_files": [
+        "nodes.py",
+        "easyuse_anima/infrastructure/comfy/wiring.py"
+      ],
+      "production_symbols": [
+        "resolve_comfy_host_helper(name: str, fallback: Callable[[str], Any]) -> Callable[..., Any]"
+      ],
+      "test_files": [
+        "tests/comfy_host_fakes.py",
+        "tests/test_comfy_host_wiring.py",
+        "tests/test_python_compatibility_surface.py"
+      ],
+      "forbidden": [
+        "root wrapper move, removal, or behavior change",
+        "host lookup cache or snapshot",
+        "canonical import of root nodes.py",
+        "feature or domain RuntimeServices access",
+        "seed, stage, cache, node schema, workflow, or route behavior change"
+      ]
     }
   }
 }

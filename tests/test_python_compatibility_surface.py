@@ -2100,7 +2100,7 @@ class ComfyHostCompatibilityLedgerTests(unittest.TestCase):
 
     def test_next_contracts_have_exact_signatures_and_allowed_boundaries(self):
         contracts = self.ledger["next_contracts"]
-        self.assertEqual(set(contracts), {"E-02a", "E-07a"})
+        self.assertEqual(set(contracts), {"E-02a", "E-07a", "E-07b"})
         self.assertEqual(
             contracts["E-02a"]["production_files"],
             [
@@ -2135,6 +2135,23 @@ class ComfyHostCompatibilityLedgerTests(unittest.TestCase):
                 "DefaultComfyHostProvider.find_node_class(self, node_id: str)",
                 "DefaultComfyHostProvider.find_node_mapping_class(self, node_id: str)",
                 "DefaultComfyHostProvider.find_loaded_node_class(self, node_id: str)",
+            ],
+        )
+        self.assertEqual(
+            contracts["E-07b"]["production_files"],
+            [
+                "nodes.py",
+                "easyuse_anima/infrastructure/comfy/wiring.py",
+            ],
+        )
+        self.assertEqual(
+            contracts["E-07b"]["production_symbols"],
+            [
+                (
+                    "resolve_comfy_host_helper("
+                    "name: str, fallback: Callable[[str], Any]"
+                    ") -> Callable[..., Any]"
+                ),
             ],
         )
         for contract in contracts.values():

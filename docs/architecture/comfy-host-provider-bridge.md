@@ -423,9 +423,50 @@ policy, or cache behavior.
 
 ### E-07b — Wiring and compatibility gate
 
-- **State:** BLOCKED by E-07a
+- **State:** READY after E-02a/E-07a PR #327 (`dev@c1fc221`)
 - **Owner:** #323 / parent #187 and #188 for gates
 - **Type:** Contract/gate
+
+Pre-edit inventory at the E-07b base:
+
+- the seven root implementations remain in `nodes.py`;
+- 22 production consumer slots in 15 canonical modules resolve those names at
+  call time through their existing binder/resolver contracts;
+- all seven root replacement seams are `unsupported_test_only`;
+- 13 repository test files still patch one or more root seams;
+- two repository test files patch canonical consumers directly; and
+- the installed runtime exposes exactly one narrow `ComfyHostProvider`.
+
+Allowed production files:
+
+```text
+nodes.py
+easyuse_anima/infrastructure/comfy/wiring.py
+```
+
+Allowed test and gate files:
+
+```text
+tests/comfy_host_fakes.py
+tests/test_comfy_host_wiring.py
+tests/test_aio_conditioning.py
+tests/test_aio_model_preparation.py
+tests/test_aio_nodes.py
+tests/test_aio_output.py
+tests/test_aio_preview.py
+tests/test_aio_resources.py
+tests/test_aio_sampling.py
+tests/test_aio_schema_contract.py
+tests/test_comfy_adapters.py
+tests/test_node_contracts.py
+tests/test_prompt_corrector.py
+tests/test_prompt_studio_regional.py
+tests/test_sam3_nodes.py
+tests/test_python_compatibility_surface.py
+tests/fixtures/comfy_host_compatibility.v1.json
+tests/fixtures/python_backend_baseline.json
+docs/architecture/*
+```
 
 Required work:
 
@@ -444,6 +485,17 @@ Exit:
 - canonical modules do not import root;
 - no new Pyright or import-boundary group appears; and
 - #184 can resume wrapper Moves without redesign.
+
+Forbidden:
+
+- moving, deleting, or changing the seven root implementations;
+- changing lookup order, fallback values, error text, node/workflow schemas, or
+  feature behavior;
+- importing root `nodes.py` from the canonical package;
+- adding a provider cache, snapshot, retry policy, or mutable override
+  registry; and
+- expanding `RuntimeServices` or calling `get_runtime()` from feature, domain,
+  or service modules.
 
 ### B-11c29a — Max-resolution wrapper
 
