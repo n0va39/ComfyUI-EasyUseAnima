@@ -14,9 +14,30 @@ ENTRYPOINT_PATH = ROOT / "__init__.py"
 REGISTRATION_PATH = ROOT / "easyuse_anima" / "registration.py"
 NODES_PATH = ROOT / "nodes.py"
 FIXTURE_PATH = ROOT / "tests" / "fixtures" / "python_compatibility_surface.v1.json"
+COMFY_HOST_LEDGER_PATH = (
+    ROOT / "tests" / "fixtures" / "comfy_host_compatibility.v1.json"
+)
 
 SCHEMA_VERSION = 1
 BASE_COMMIT = "eb0843d3e8c26c326e34e5c77dd1eb302b4a9933"
+COMFY_HOST_LEDGER_SCHEMA_VERSION = 1
+COMFY_HOST_WRAPPERS = (
+    "_comfy_max_resolution",
+    "_encode_with_comfy_clip",
+    "_find_comfy_node_class",
+    "_find_comfy_node_mapping_class",
+    "_find_loaded_node_class",
+    "_require_any_custom_node_class",
+    "_require_custom_node_class",
+)
+COMFY_HOST_CLASSIFICATIONS = (
+    "provider_owned",
+    "pure_helper_with_provider_input",
+    "transitional_root_override",
+    "unsupported_test_only",
+    "supported_public",
+)
+COMFY_HOST_ROOT_TEST_ALIASES = {"easy_nodes", "nodes", "root_module"}
 CLASSIFICATIONS = (
     "permanent_entrypoint",
     "supported_public_reexport",
@@ -949,6 +970,264 @@ def _runtime_resolver_consumers(
     }
 
 
+def _function_signature(node: ast.FunctionDef) -> dict[str, Any]:
+    positional = [*node.args.posonlyargs, *node.args.args]
+    positional_defaults = [None] * (
+        len(positional) - len(node.args.defaults)
+    ) + list(node.args.defaults)
+    parameters = []
+    for argument, default in zip(positional, positional_defaults):
+        parameters.append(
+            {
+                "name": argument.arg,
+                "kind": (
+                    "positional_only"
+                    if argument in node.args.posonlyargs
+                    else "positional_or_keyword"
+                ),
+                "annotation": (
+                    ast.unparse(argument.annotation)
+                    if argument.annotation is not None
+                    else None
+                ),
+                "default": ast.unparse(default) if default is not None else None,
+            }
+        )
+    if node.args.vararg is not None:
+        parameters.append(
+            {
+                "name": node.args.vararg.arg,
+                "kind": "var_positional",
+                "annotation": (
+                    ast.unparse(node.args.vararg.annotation)
+                    if node.args.vararg.annotation is not None
+                    else None
+                ),
+                "default": None,
+            }
+        )
+    for argument, default in zip(node.args.kwonlyargs, node.args.kw_defaults):
+        parameters.append(
+            {
+                "name": argument.arg,
+                "kind": "keyword_only",
+                "annotation": (
+                    ast.unparse(argument.annotation)
+                    if argument.annotation is not None
+                    else None
+                ),
+                "default": ast.unparse(default) if default is not None else None,
+            }
+        )
+    if node.args.kwarg is not None:
+        parameters.append(
+            {
+                "name": node.args.kwarg.arg,
+                "kind": "var_keyword",
+                "annotation": (
+                    ast.unparse(node.args.kwarg.annotation)
+                    if node.args.kwarg.annotation is not None
+                    else None
+                ),
+                "default": None,
+            }
+        )
+    return {
+        "parameters": parameters,
+        "return": ast.unparse(node.returns) if node.returns is not None else None,
+    }
+
+
+def _comfy_host_root_inventory(
+    tree: ast.Module,
+    canonical_bindings: dict[str, str],
+    ledger: dict[str, Any],
+) -> dict[str, dict[str, Any]]:
+    adapter_aliases = {
+        entry["symbol"]: entry["adapter_binding"]["alias"]
+        for entry in ledger["symbols"]
+        if entry["adapter_binding"] is not None
+    }
+    dependency_names = set(COMFY_HOST_WRAPPERS) | set(adapter_aliases.values())
+    inventory = {}
+    for symbol in COMFY_HOST_WRAPPERS:
+        definitions = [
+            node
+            for node in tree.body
+            if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))
+            and node.name == symbol
+        ]
+        if len(definitions) != 1 or not isinstance(definitions[0], ast.FunctionDef):
+            raise AssertionError(
+                f"{symbol} must have exactly one synchronous root definition"
+            )
+        definition = definitions[0]
+        alias = adapter_aliases.get(symbol)
+        inventory[symbol] = {
+            "root_signature": _function_signature(definition),
+            "adapter_binding": (
+                {
+                    "alias": alias,
+                    "target": canonical_bindings.get(alias),
+                }
+                if alias is not None
+                else None
+            ),
+            "root_dependencies": sorted(
+                {
+                    node.id
+                    for node in ast.walk(definition)
+                    if isinstance(node, ast.Name)
+                    and isinstance(node.ctx, ast.Load)
+                    and node.id in dependency_names
+                }
+            ),
+        }
+    return inventory
+
+
+def _binder_observation_mode(module: str, binder_name: str) -> str:
+    tree = _read_tree(_module_path(module))
+    binders = [
+        node
+        for node in tree.body
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))
+        and node.name == binder_name
+    ]
+    if len(binders) != 1:
+        raise AssertionError(f"{module}:{binder_name} must have exactly one binder")
+    binder = binders[0]
+    for node in ast.walk(binder):
+        if not isinstance(node, (ast.Assign, ast.AnnAssign)):
+            continue
+        targets = node.targets if isinstance(node, ast.Assign) else [node.target]
+        if not any(
+            isinstance(target, ast.Name) and target.id == "_RUNTIME_RESOLVER"
+            for target in targets
+        ):
+            continue
+        if isinstance(node.value, ast.Name) and node.value.id == "resolve_helper":
+            return "call_time"
+
+    nested_functions = {
+        node.name: node
+        for node in ast.walk(binder)
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))
+        and node is not binder
+    }
+    returned_names = {
+        node.value.id
+        for node in ast.walk(binder)
+        if isinstance(node, ast.Return) and isinstance(node.value, ast.Name)
+    }
+    for name in returned_names:
+        nested = nested_functions.get(name)
+        if nested is None:
+            continue
+        if any(
+            isinstance(node, ast.Call)
+            and isinstance(node.func, ast.Name)
+            and node.func.id == "resolve_helper"
+            for node in ast.walk(nested)
+        ):
+            return "call_time"
+    return "bind_time"
+
+
+def _comfy_host_runtime_consumers(
+    tree: ast.Module,
+    canonical_bindings: dict[str, str],
+) -> dict[str, list[dict[str, str]]]:
+    binder_targets = _runtime_binder_targets(tree, canonical_bindings)
+    target_binders = {module: binder for binder, module in binder_targets.items()}
+    resolver_consumers = _runtime_resolver_consumers(
+        tree,
+        canonical_bindings,
+        set(COMFY_HOST_WRAPPERS),
+    )
+    result = {}
+    for symbol in COMFY_HOST_WRAPPERS:
+        consumers = []
+        for module in resolver_consumers.get(symbol, []):
+            binder = target_binders.get(module)
+            if binder is None:
+                raise AssertionError(f"{symbol} consumer has no root binder: {module}")
+            consumers.append(
+                {
+                    "module": module,
+                    "binder": binder,
+                    "root_observation": _binder_observation_mode(module, binder),
+                }
+            )
+        result[symbol] = consumers
+    return result
+
+
+def _patch_call_target(node: ast.Call) -> tuple[str, str] | None:
+    if (
+        isinstance(node.func, ast.Name)
+        and node.func.id == "patch"
+        and node.args
+        and isinstance(node.args[0], ast.Constant)
+        and isinstance(node.args[0].value, str)
+    ):
+        target = node.args[0].value
+        symbol = target.rsplit(".", 1)[-1]
+        if target.startswith("nodes.") and symbol in COMFY_HOST_WRAPPERS:
+            return "root", symbol
+    if (
+        isinstance(node.func, ast.Attribute)
+        and node.func.attr == "object"
+        and isinstance(node.func.value, ast.Name)
+        and node.func.value.id == "patch"
+        and len(node.args) >= 2
+        and isinstance(node.args[1], ast.Constant)
+        and node.args[1].value in COMFY_HOST_WRAPPERS
+    ):
+        owner = ast.unparse(node.args[0])
+        scope = "root" if owner in COMFY_HOST_ROOT_TEST_ALIASES else "canonical"
+        return scope, node.args[1].value
+    return None
+
+
+def _comfy_host_monkeypatch_consumers() -> dict[str, dict[str, list[str]]]:
+    consumers = {
+        symbol: {"root": set(), "canonical": set()}
+        for symbol in COMFY_HOST_WRAPPERS
+    }
+    for path in sorted((ROOT / "tests").glob("test_*.py")):
+        tree = _read_tree(path)
+        relative = path.relative_to(ROOT).as_posix()
+        for node in ast.walk(tree):
+            if isinstance(node, ast.Call):
+                target = _patch_call_target(node)
+                if target is not None:
+                    scope, symbol = target
+                    consumers[symbol][scope].add(relative)
+            if not isinstance(node, (ast.Assign, ast.AnnAssign)):
+                continue
+            targets = node.targets if isinstance(node, ast.Assign) else [node.target]
+            for target in targets:
+                if (
+                    isinstance(target, ast.Attribute)
+                    and target.attr in COMFY_HOST_WRAPPERS
+                ):
+                    owner = ast.unparse(target.value)
+                    scope = (
+                        "root"
+                        if owner in COMFY_HOST_ROOT_TEST_ALIASES
+                        else "canonical"
+                    )
+                    consumers[target.attr][scope].add(relative)
+    return {
+        symbol: {
+            scope: sorted(paths)
+            for scope, paths in classified.items()
+        }
+        for symbol, classified in consumers.items()
+    }
+
+
 def _root_residuals(tree: ast.Module) -> dict[str, list[str]]:
     functions = sorted(
         node.name
@@ -1635,6 +1914,231 @@ class PythonCompatibilitySurfaceTests(unittest.TestCase):
                     "test-only consumption is not public support evidence",
                     group["evidence"],
                 )
+
+
+class ComfyHostCompatibilityLedgerTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.ledger = json.loads(
+            COMFY_HOST_LEDGER_PATH.read_text(encoding="utf-8")
+        )
+        cls.entries = {
+            entry["symbol"]: entry for entry in cls.ledger["symbols"]
+        }
+
+    def test_ledger_schema_covers_each_host_wrapper_once(self):
+        self.assertEqual(
+            self.ledger["schema_version"],
+            COMFY_HOST_LEDGER_SCHEMA_VERSION,
+        )
+        self.assertEqual(
+            self.ledger["enums"]["compatibility_classifications"],
+            list(COMFY_HOST_CLASSIFICATIONS),
+        )
+        symbols = [entry["symbol"] for entry in self.ledger["symbols"]]
+        self.assertEqual(symbols, list(COMFY_HOST_WRAPPERS))
+        self.assertEqual(len(symbols), len(set(symbols)))
+
+        required = {
+            "symbol",
+            "root_signature",
+            "adapter_binding",
+            "root_dependencies",
+            "canonical_target",
+            "production_consumers",
+            "repository_monkeypatch_consumers",
+            "confirmed_external_consumers",
+            "external_evidence_ref",
+            "host_lookup_order",
+            "error_result_contract",
+            "optional_dependency_behavior",
+            "compatibility_classification",
+            "root_seam_classification",
+            "call_time_replacement_required",
+            "replacement_mechanism",
+            "root_removal_gate",
+            "owner_issue",
+            "move_owner",
+        }
+        for entry in self.ledger["symbols"]:
+            self.assertTrue(required.issubset(entry), entry["symbol"])
+
+    def test_root_signatures_aliases_and_dependencies_are_exact(self):
+        tree = _read_tree(NODES_PATH)
+        import_try = _root_import_try(tree)
+        canonical, _legacy = _branch_bindings(
+            import_try.body,
+            expected_level=1,
+        )
+        actual = _comfy_host_root_inventory(tree, canonical, self.ledger)
+        expected = {
+            symbol: {
+                "root_signature": entry["root_signature"],
+                "adapter_binding": entry["adapter_binding"],
+                "root_dependencies": entry["root_dependencies"],
+            }
+            for symbol, entry in self.entries.items()
+        }
+        self.assertEqual(actual, expected)
+
+    def test_production_consumers_binders_and_observation_time_are_exact(self):
+        tree = _read_tree(NODES_PATH)
+        import_try = _root_import_try(tree)
+        canonical, _legacy = _branch_bindings(
+            import_try.body,
+            expected_level=1,
+        )
+        actual = _comfy_host_runtime_consumers(tree, canonical)
+        expected = {
+            symbol: entry["production_consumers"]
+            for symbol, entry in self.entries.items()
+        }
+        self.assertEqual(actual, expected)
+        self.assertEqual(
+            sum(len(consumers) for consumers in actual.values()),
+            self.ledger["expected_counts"]["production_consumer_slots"],
+        )
+        self.assertEqual(
+            len(
+                {
+                    consumer["module"]
+                    for consumers in actual.values()
+                    for consumer in consumers
+                }
+            ),
+            self.ledger["expected_counts"]["unique_production_modules"],
+        )
+
+    def test_repository_monkeypatch_consumers_are_exact_and_classified(self):
+        actual = _comfy_host_monkeypatch_consumers()
+        expected = {
+            symbol: entry["repository_monkeypatch_consumers"]
+            for symbol, entry in self.entries.items()
+        }
+        self.assertEqual(actual, expected)
+        root_files = {
+            path
+            for classified in actual.values()
+            for path in classified["root"]
+        }
+        canonical_files = {
+            path
+            for classified in actual.values()
+            for path in classified["canonical"]
+        }
+        self.assertEqual(
+            len(root_files),
+            self.ledger["expected_counts"]["root_monkeypatch_test_files"],
+        )
+        self.assertEqual(
+            len(canonical_files),
+            self.ledger["expected_counts"][
+                "canonical_monkeypatch_test_files"
+            ],
+        )
+
+    def test_support_and_removal_decisions_cannot_drift_silently(self):
+        provider_owned = {
+            "_comfy_max_resolution",
+            "_find_comfy_node_class",
+            "_find_comfy_node_mapping_class",
+            "_find_loaded_node_class",
+        }
+        pure_helpers = set(COMFY_HOST_WRAPPERS) - provider_owned
+        for symbol, entry in self.entries.items():
+            expected_classification = (
+                "provider_owned"
+                if symbol in provider_owned
+                else "pure_helper_with_provider_input"
+            )
+            self.assertEqual(
+                entry["compatibility_classification"],
+                expected_classification,
+            )
+            self.assertIn(
+                entry["compatibility_classification"],
+                COMFY_HOST_CLASSIFICATIONS,
+            )
+            self.assertEqual(
+                entry["root_seam_classification"],
+                "unsupported_test_only",
+            )
+            self.assertFalse(entry["call_time_replacement_required"])
+            self.assertEqual(entry["confirmed_external_consumers"], [])
+            self.assertEqual(
+                entry["external_evidence_ref"],
+                "github_public_code_search_2026_07_23",
+            )
+            self.assertEqual(
+                entry["replacement_mechanism"],
+                "migrate_repository_tests_to_fake_provider_or_explicit_lookup_in_E-07b",
+            )
+            self.assertTrue(entry["root_removal_gate"])
+            self.assertTrue(entry["host_lookup_order"])
+            self.assertTrue(entry["error_result_contract"])
+            self.assertTrue(entry["optional_dependency_behavior"])
+            self.assertEqual(entry["owner_issue"], "#323")
+            self.assertTrue(entry["move_owner"].startswith("#184 B-11c29"))
+        self.assertEqual(
+            pure_helpers,
+            {
+                "_encode_with_comfy_clip",
+                "_require_any_custom_node_class",
+                "_require_custom_node_class",
+            },
+        )
+
+    def test_external_search_evidence_is_scoped_and_non_exhaustive(self):
+        evidence = self.ledger["external_evidence"][
+            "github_public_code_search_2026_07_23"
+        ]
+        self.assertEqual(evidence["query_symbols"], list(COMFY_HOST_WRAPPERS))
+        self.assertEqual(evidence["max_results_per_symbol"], 100)
+        self.assertEqual(evidence["confirmed_external_repositories"], [])
+        self.assertFalse(evidence["exhaustive"])
+        self.assertTrue(evidence["limitations"])
+
+    def test_next_contracts_have_exact_signatures_and_allowed_boundaries(self):
+        contracts = self.ledger["next_contracts"]
+        self.assertEqual(set(contracts), {"E-02a", "E-07a"})
+        self.assertEqual(
+            contracts["E-02a"]["production_files"],
+            [
+                "easyuse_anima/infrastructure/comfy/provider.py",
+                "easyuse_anima/runtime.py",
+            ],
+        )
+        self.assertEqual(
+            contracts["E-02a"]["production_symbols"],
+            [
+                "ComfyHostProvider.max_resolution(self) -> int",
+                "ComfyHostProvider.find_node_class(self, node_id: str)",
+                "ComfyHostProvider.find_node_mapping_class(self, node_id: str)",
+                "ComfyHostProvider.find_loaded_node_class(self, node_id: str)",
+                "RuntimeServices(comfy: ComfyHostProvider)",
+                "install_runtime(runtime: RuntimeServices) -> RuntimeServices",
+                "get_runtime() -> RuntimeServices",
+            ],
+        )
+        self.assertEqual(
+            contracts["E-07a"]["production_files"],
+            [
+                "easyuse_anima/bootstrap.py",
+                "easyuse_anima/infrastructure/comfy/provider.py",
+            ],
+        )
+        self.assertEqual(
+            contracts["E-07a"]["production_symbols"],
+            [
+                "DefaultComfyHostProvider.max_resolution(self) -> int",
+                "DefaultComfyHostProvider.find_node_class(self, node_id: str)",
+                "DefaultComfyHostProvider.find_node_mapping_class(self, node_id: str)",
+                "DefaultComfyHostProvider.find_loaded_node_class(self, node_id: str)",
+            ],
+        )
+        for contract in contracts.values():
+            self.assertTrue(contract["test_files"])
+            self.assertTrue(contract["forbidden"])
 
 
 def write_fixture() -> None:
