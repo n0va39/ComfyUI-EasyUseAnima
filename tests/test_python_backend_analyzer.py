@@ -699,6 +699,7 @@ ignored/
                 "easyuse_anima/aio/generation_sampling.py",
                 "easyuse_anima/aio/generation_features.py",
                 "easyuse_anima/aio/generation_detailer.py",
+                "easyuse_anima/aio/generation_defaults.py",
                 "easyuse_anima/aio/generation_output.py",
                 "easyuse_anima/aio/generation_normalization.py",
                 "easyuse_anima/aio/generation_migrations.py",

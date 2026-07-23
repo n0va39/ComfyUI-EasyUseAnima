@@ -17,18 +17,13 @@ from ..prompt.conditioning import (
     ANIMA_MOD_GUIDANCE_DEFAULT_PROFILE,
     ANIMA_MOD_GUIDANCE_MODE_FROM_PROMPT_DATA,
 )
+from ..seed.reservation import SEED_CONTROL_FIXED
 from .generation_migrations import (
     AIO_GENERATION_SETTINGS_CURRENT_VERSION as AIO_GENERATION_SETTINGS_VERSION,
 )
 from .generation_migrations import (
     AIO_GENERATION_SETTINGS_SCHEMA,
 )
-
-try:
-    from ...wildcard_engine import SEED_CONTROL_FIXED
-except ImportError:  # allows simple local import tests outside ComfyUI's package loader
-    from wildcard_engine import SEED_CONTROL_FIXED
-
 
 AIO_SPECIAL_SEED_RANDOM = -1
 AIO_SPECIAL_SEED_INCREMENT = -2

@@ -33,6 +33,12 @@ from ..prompt.conditioning import (
     _normalize_anima_mod_guidance_profile,
 )
 from ..prompt.data import _prompt_data_json_safe
+from ..seed.reservation import (
+    SEED_CONTROL_FIXED,
+    SEED_SELECTION_DECREMENT,
+    SEED_SELECTION_INCREMENT,
+    SEED_SELECTION_RANDOMIZE,
+)
 from .generation_defaults import (
     AIO_FINAL_FIT_MODES,
     AIO_FINAL_UPSCALE_BACKENDS,
@@ -62,10 +68,16 @@ from .output_settings import (
     _normalize_aio_hash_bundles,
 )
 
-try:
-    from ...wildcard_engine import MAX_SEED, SEED_CONTROL_FIXED, SEED_CONTROL_MODES
-except ImportError:  # allows simple local import tests outside ComfyUI's package loader
-    from wildcard_engine import MAX_SEED, SEED_CONTROL_FIXED, SEED_CONTROL_MODES
+# Exact legacy backend clamp retained locally until the shared seed constants
+# receive their own Contract lane. Importing wildcard_engine here would also
+# import NumPy during side-effect-free package discovery.
+MAX_SEED = 0xFFFFFFFFFFFFFFFF
+SEED_CONTROL_MODES = (
+    SEED_CONTROL_FIXED,
+    SEED_SELECTION_RANDOMIZE,
+    SEED_SELECTION_INCREMENT,
+    SEED_SELECTION_DECREMENT,
+)
 
 
 def _missing_host_helper(name: str):

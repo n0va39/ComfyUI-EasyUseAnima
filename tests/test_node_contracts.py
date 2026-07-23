@@ -1892,6 +1892,11 @@ class AioSeedNormalizationMoveContractTests(unittest.TestCase):
         self.assertEqual(root_module.AIO_SPECIAL_SEED_DECREMENT, -3)
         self.assertIsInstance(root_module.AIO_SPECIAL_SEEDS, set)
         self.assertEqual(root_module.AIO_SPECIAL_SEEDS, {-1, -2, -3})
+        self.assertEqual(canonical_module.MAX_SEED, root_module.MAX_SEED)
+        self.assertEqual(
+            canonical_module.SEED_CONTROL_MODES,
+            root_module.SEED_CONTROL_MODES,
+        )
 
         with (
             patch.object(canonical_module, "_as_int", side_effect=(99, -99)) as as_int,

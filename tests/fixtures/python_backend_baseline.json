@@ -4797,6 +4797,24 @@
         "target": "easyuse_anima/prompt/conditioning.py"
       },
       {
+        "alias": null,
+        "bound_name": "SEED_CONTROL_FIXED",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": "..seed.reservation:SEED_CONTROL_FIXED",
+        "kind": "static_from",
+        "line": 20,
+        "name": "SEED_CONTROL_FIXED",
+        "optional": false,
+        "requested": "..seed.reservation",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/generation_defaults.py",
+        "target": "easyuse_anima/seed/reservation.py"
+      },
+      {
         "alias": "AIO_GENERATION_SETTINGS_VERSION",
         "bound_name": "AIO_GENERATION_SETTINGS_VERSION",
         "branch_context": [],
@@ -4805,7 +4823,7 @@
         "conditional": false,
         "imported": ".generation_migrations:AIO_GENERATION_SETTINGS_CURRENT_VERSION",
         "kind": "static_from",
-        "line": 20,
+        "line": 21,
         "name": "AIO_GENERATION_SETTINGS_CURRENT_VERSION",
         "optional": false,
         "requested": ".generation_migrations",
@@ -4823,7 +4841,7 @@
         "conditional": false,
         "imported": ".generation_migrations:AIO_GENERATION_SETTINGS_SCHEMA",
         "kind": "static_from",
-        "line": 23,
+        "line": 24,
         "name": "AIO_GENERATION_SETTINGS_SCHEMA",
         "optional": false,
         "requested": ".generation_migrations",
@@ -4831,71 +4849,6 @@
         "scope": "<module>",
         "source": "easyuse_anima/aio/generation_defaults.py",
         "target": "easyuse_anima/aio/generation_migrations.py"
-      },
-      {
-        "alias": null,
-        "bound_name": "SEED_CONTROL_FIXED",
-        "branch_context": [
-          {
-            "branch": "body",
-            "handles_import_failure": true,
-            "has_import_fallback_handler": true,
-            "kind": "try",
-            "line": 27
-          }
-        ],
-        "classification": "internal",
-        "column": 4,
-        "compatibility_pair": {
-          "bound_name": "SEED_CONTROL_FIXED",
-          "target": "wildcard_engine.py",
-          "try_line": 27
-        },
-        "conditional": true,
-        "imported": "...wildcard_engine:SEED_CONTROL_FIXED",
-        "kind": "static_from",
-        "line": 28,
-        "name": "SEED_CONTROL_FIXED",
-        "optional": false,
-        "requested": "...wildcard_engine",
-        "role": "compatibility_primary",
-        "scope": "<module>",
-        "source": "easyuse_anima/aio/generation_defaults.py",
-        "target": "wildcard_engine.py"
-      },
-      {
-        "alias": null,
-        "bound_name": "SEED_CONTROL_FIXED",
-        "branch_context": [
-          {
-            "branch": "except",
-            "catches_import_error": true,
-            "exceptions": [
-              "ImportError"
-            ],
-            "handler_line": 29,
-            "kind": "try",
-            "line": 27
-          }
-        ],
-        "classification": "compatibility_fallback",
-        "column": 4,
-        "compatibility_pair": {
-          "bound_name": "SEED_CONTROL_FIXED",
-          "target": "wildcard_engine.py",
-          "try_line": 27
-        },
-        "conditional": true,
-        "imported": "wildcard_engine:SEED_CONTROL_FIXED",
-        "kind": "static_from",
-        "line": 30,
-        "name": "SEED_CONTROL_FIXED",
-        "optional": false,
-        "requested": "wildcard_engine",
-        "role": "compatibility_fallback",
-        "scope": "<module>",
-        "source": "easyuse_anima/aio/generation_defaults.py",
-        "target": "wildcard_engine.py"
       },
       {
         "alias": null,
@@ -6090,6 +6043,78 @@
       },
       {
         "alias": null,
+        "bound_name": "SEED_CONTROL_FIXED",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": "..seed.reservation:SEED_CONTROL_FIXED",
+        "kind": "static_from",
+        "line": 36,
+        "name": "SEED_CONTROL_FIXED",
+        "optional": false,
+        "requested": "..seed.reservation",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/generation_normalization.py",
+        "target": "easyuse_anima/seed/reservation.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "SEED_SELECTION_DECREMENT",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": "..seed.reservation:SEED_SELECTION_DECREMENT",
+        "kind": "static_from",
+        "line": 36,
+        "name": "SEED_SELECTION_DECREMENT",
+        "optional": false,
+        "requested": "..seed.reservation",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/generation_normalization.py",
+        "target": "easyuse_anima/seed/reservation.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "SEED_SELECTION_INCREMENT",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": "..seed.reservation:SEED_SELECTION_INCREMENT",
+        "kind": "static_from",
+        "line": 36,
+        "name": "SEED_SELECTION_INCREMENT",
+        "optional": false,
+        "requested": "..seed.reservation",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/generation_normalization.py",
+        "target": "easyuse_anima/seed/reservation.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "SEED_SELECTION_RANDOMIZE",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": "..seed.reservation:SEED_SELECTION_RANDOMIZE",
+        "kind": "static_from",
+        "line": 36,
+        "name": "SEED_SELECTION_RANDOMIZE",
+        "optional": false,
+        "requested": "..seed.reservation",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/aio/generation_normalization.py",
+        "target": "easyuse_anima/seed/reservation.py"
+      },
+      {
+        "alias": null,
         "bound_name": "AIO_FINAL_FIT_MODES",
         "branch_context": [],
         "classification": "internal",
@@ -6097,7 +6122,7 @@
         "conditional": false,
         "imported": ".generation_defaults:AIO_FINAL_FIT_MODES",
         "kind": "static_from",
-        "line": 36,
+        "line": 42,
         "name": "AIO_FINAL_FIT_MODES",
         "optional": false,
         "requested": ".generation_defaults",
@@ -6115,7 +6140,7 @@
         "conditional": false,
         "imported": ".generation_defaults:AIO_FINAL_UPSCALE_BACKENDS",
         "kind": "static_from",
-        "line": 36,
+        "line": 42,
         "name": "AIO_FINAL_UPSCALE_BACKENDS",
         "optional": false,
         "requested": ".generation_defaults",
@@ -6133,7 +6158,7 @@
         "conditional": false,
         "imported": ".generation_defaults:AIO_GENERATION_DEFAULT_SETTINGS",
         "kind": "static_from",
-        "line": 36,
+        "line": 42,
         "name": "AIO_GENERATION_DEFAULT_SETTINGS",
         "optional": false,
         "requested": ".generation_defaults",
@@ -6151,7 +6176,7 @@
         "conditional": false,
         "imported": ".generation_defaults:AIO_GENERATION_SETTINGS_SCHEMA",
         "kind": "static_from",
-        "line": 36,
+        "line": 42,
         "name": "AIO_GENERATION_SETTINGS_SCHEMA",
         "optional": false,
         "requested": ".generation_defaults",
@@ -6169,7 +6194,7 @@
         "conditional": false,
         "imported": ".generation_defaults:AIO_GENERATION_SETTINGS_VERSION",
         "kind": "static_from",
-        "line": 36,
+        "line": 42,
         "name": "AIO_GENERATION_SETTINGS_VERSION",
         "optional": false,
         "requested": ".generation_defaults",
@@ -6187,7 +6212,7 @@
         "conditional": false,
         "imported": ".generation_defaults:AIO_RESHIFT_DTYPES",
         "kind": "static_from",
-        "line": 36,
+        "line": 42,
         "name": "AIO_RESHIFT_DTYPES",
         "optional": false,
         "requested": ".generation_defaults",
@@ -6205,7 +6230,7 @@
         "conditional": false,
         "imported": ".generation_defaults:AIO_RESHIFT_SCALES",
         "kind": "static_from",
-        "line": 36,
+        "line": 42,
         "name": "AIO_RESHIFT_SCALES",
         "optional": false,
         "requested": ".generation_defaults",
@@ -6223,7 +6248,7 @@
         "conditional": false,
         "imported": ".generation_defaults:AIO_SPECIAL_SEED_DECREMENT",
         "kind": "static_from",
-        "line": 36,
+        "line": 42,
         "name": "AIO_SPECIAL_SEED_DECREMENT",
         "optional": false,
         "requested": ".generation_defaults",
@@ -6241,7 +6266,7 @@
         "conditional": false,
         "imported": ".generation_defaults:AIO_SPECIAL_SEED_RANDOM",
         "kind": "static_from",
-        "line": 36,
+        "line": 42,
         "name": "AIO_SPECIAL_SEED_RANDOM",
         "optional": false,
         "requested": ".generation_defaults",
@@ -6259,7 +6284,7 @@
         "conditional": false,
         "imported": ".generation_defaults:AIO_USDU_MODE_TYPES",
         "kind": "static_from",
-        "line": 36,
+        "line": 42,
         "name": "AIO_USDU_MODE_TYPES",
         "optional": false,
         "requested": ".generation_defaults",
@@ -6277,7 +6302,7 @@
         "conditional": false,
         "imported": ".generation_defaults:AIO_USDU_PROMPT_MODES",
         "kind": "static_from",
-        "line": 36,
+        "line": 42,
         "name": "AIO_USDU_PROMPT_MODES",
         "optional": false,
         "requested": ".generation_defaults",
@@ -6295,7 +6320,7 @@
         "conditional": false,
         "imported": ".generation_defaults:AIO_USDU_PROMPT_NO_GENERAL",
         "kind": "static_from",
-        "line": 36,
+        "line": 42,
         "name": "AIO_USDU_PROMPT_NO_GENERAL",
         "optional": false,
         "requested": ".generation_defaults",
@@ -6313,7 +6338,7 @@
         "conditional": false,
         "imported": ".generation_defaults:AIO_USDU_SEAM_FIX_MODES",
         "kind": "static_from",
-        "line": 36,
+        "line": 42,
         "name": "AIO_USDU_SEAM_FIX_MODES",
         "optional": false,
         "requested": ".generation_defaults",
@@ -6331,7 +6356,7 @@
         "conditional": false,
         "imported": ".generation_defaults:AIO_SPECIAL_SEED_INCREMENT",
         "kind": "static_from",
-        "line": 51,
+        "line": 57,
         "name": "AIO_SPECIAL_SEED_INCREMENT",
         "optional": false,
         "requested": ".generation_defaults",
@@ -6349,7 +6374,7 @@
         "conditional": false,
         "imported": ".generation_defaults:AIO_SPECIAL_SEEDS",
         "kind": "static_from",
-        "line": 54,
+        "line": 60,
         "name": "AIO_SPECIAL_SEEDS",
         "optional": false,
         "requested": ".generation_defaults",
@@ -6367,7 +6392,7 @@
         "conditional": false,
         "imported": ".generation_settings:round_trip_aio_generation_settings",
         "kind": "static_from",
-        "line": 57,
+        "line": 63,
         "name": "round_trip_aio_generation_settings",
         "optional": false,
         "requested": ".generation_settings",
@@ -6385,7 +6410,7 @@
         "conditional": false,
         "imported": ".output_settings:_normalize_aio_civitai_hash_fetchers",
         "kind": "static_from",
-        "line": 60,
+        "line": 66,
         "name": "_normalize_aio_civitai_hash_fetchers",
         "optional": false,
         "requested": ".output_settings",
@@ -6403,7 +6428,7 @@
         "conditional": false,
         "imported": ".output_settings:_normalize_aio_hash_bundles",
         "kind": "static_from",
-        "line": 60,
+        "line": 66,
         "name": "_normalize_aio_hash_bundles",
         "optional": false,
         "requested": ".output_settings",
@@ -6411,201 +6436,6 @@
         "scope": "<module>",
         "source": "easyuse_anima/aio/generation_normalization.py",
         "target": "easyuse_anima/aio/output_settings.py"
-      },
-      {
-        "alias": null,
-        "bound_name": "MAX_SEED",
-        "branch_context": [
-          {
-            "branch": "body",
-            "handles_import_failure": true,
-            "has_import_fallback_handler": true,
-            "kind": "try",
-            "line": 65
-          }
-        ],
-        "classification": "internal",
-        "column": 4,
-        "compatibility_pair": {
-          "bound_name": "MAX_SEED",
-          "target": "wildcard_engine.py",
-          "try_line": 65
-        },
-        "conditional": true,
-        "imported": "...wildcard_engine:MAX_SEED",
-        "kind": "static_from",
-        "line": 66,
-        "name": "MAX_SEED",
-        "optional": false,
-        "requested": "...wildcard_engine",
-        "role": "compatibility_primary",
-        "scope": "<module>",
-        "source": "easyuse_anima/aio/generation_normalization.py",
-        "target": "wildcard_engine.py"
-      },
-      {
-        "alias": null,
-        "bound_name": "SEED_CONTROL_FIXED",
-        "branch_context": [
-          {
-            "branch": "body",
-            "handles_import_failure": true,
-            "has_import_fallback_handler": true,
-            "kind": "try",
-            "line": 65
-          }
-        ],
-        "classification": "internal",
-        "column": 4,
-        "compatibility_pair": {
-          "bound_name": "SEED_CONTROL_FIXED",
-          "target": "wildcard_engine.py",
-          "try_line": 65
-        },
-        "conditional": true,
-        "imported": "...wildcard_engine:SEED_CONTROL_FIXED",
-        "kind": "static_from",
-        "line": 66,
-        "name": "SEED_CONTROL_FIXED",
-        "optional": false,
-        "requested": "...wildcard_engine",
-        "role": "compatibility_primary",
-        "scope": "<module>",
-        "source": "easyuse_anima/aio/generation_normalization.py",
-        "target": "wildcard_engine.py"
-      },
-      {
-        "alias": null,
-        "bound_name": "SEED_CONTROL_MODES",
-        "branch_context": [
-          {
-            "branch": "body",
-            "handles_import_failure": true,
-            "has_import_fallback_handler": true,
-            "kind": "try",
-            "line": 65
-          }
-        ],
-        "classification": "internal",
-        "column": 4,
-        "compatibility_pair": {
-          "bound_name": "SEED_CONTROL_MODES",
-          "target": "wildcard_engine.py",
-          "try_line": 65
-        },
-        "conditional": true,
-        "imported": "...wildcard_engine:SEED_CONTROL_MODES",
-        "kind": "static_from",
-        "line": 66,
-        "name": "SEED_CONTROL_MODES",
-        "optional": false,
-        "requested": "...wildcard_engine",
-        "role": "compatibility_primary",
-        "scope": "<module>",
-        "source": "easyuse_anima/aio/generation_normalization.py",
-        "target": "wildcard_engine.py"
-      },
-      {
-        "alias": null,
-        "bound_name": "MAX_SEED",
-        "branch_context": [
-          {
-            "branch": "except",
-            "catches_import_error": true,
-            "exceptions": [
-              "ImportError"
-            ],
-            "handler_line": 67,
-            "kind": "try",
-            "line": 65
-          }
-        ],
-        "classification": "compatibility_fallback",
-        "column": 4,
-        "compatibility_pair": {
-          "bound_name": "MAX_SEED",
-          "target": "wildcard_engine.py",
-          "try_line": 65
-        },
-        "conditional": true,
-        "imported": "wildcard_engine:MAX_SEED",
-        "kind": "static_from",
-        "line": 68,
-        "name": "MAX_SEED",
-        "optional": false,
-        "requested": "wildcard_engine",
-        "role": "compatibility_fallback",
-        "scope": "<module>",
-        "source": "easyuse_anima/aio/generation_normalization.py",
-        "target": "wildcard_engine.py"
-      },
-      {
-        "alias": null,
-        "bound_name": "SEED_CONTROL_FIXED",
-        "branch_context": [
-          {
-            "branch": "except",
-            "catches_import_error": true,
-            "exceptions": [
-              "ImportError"
-            ],
-            "handler_line": 67,
-            "kind": "try",
-            "line": 65
-          }
-        ],
-        "classification": "compatibility_fallback",
-        "column": 4,
-        "compatibility_pair": {
-          "bound_name": "SEED_CONTROL_FIXED",
-          "target": "wildcard_engine.py",
-          "try_line": 65
-        },
-        "conditional": true,
-        "imported": "wildcard_engine:SEED_CONTROL_FIXED",
-        "kind": "static_from",
-        "line": 68,
-        "name": "SEED_CONTROL_FIXED",
-        "optional": false,
-        "requested": "wildcard_engine",
-        "role": "compatibility_fallback",
-        "scope": "<module>",
-        "source": "easyuse_anima/aio/generation_normalization.py",
-        "target": "wildcard_engine.py"
-      },
-      {
-        "alias": null,
-        "bound_name": "SEED_CONTROL_MODES",
-        "branch_context": [
-          {
-            "branch": "except",
-            "catches_import_error": true,
-            "exceptions": [
-              "ImportError"
-            ],
-            "handler_line": 67,
-            "kind": "try",
-            "line": 65
-          }
-        ],
-        "classification": "compatibility_fallback",
-        "column": 4,
-        "compatibility_pair": {
-          "bound_name": "SEED_CONTROL_MODES",
-          "target": "wildcard_engine.py",
-          "try_line": 65
-        },
-        "conditional": true,
-        "imported": "wildcard_engine:SEED_CONTROL_MODES",
-        "kind": "static_from",
-        "line": 68,
-        "name": "SEED_CONTROL_MODES",
-        "optional": false,
-        "requested": "wildcard_engine",
-        "role": "compatibility_fallback",
-        "scope": "<module>",
-        "source": "easyuse_anima/aio/generation_normalization.py",
-        "target": "wildcard_engine.py"
       },
       {
         "alias": null,
@@ -41245,7 +41075,7 @@
       },
       {
         "from": "easyuse_anima/aio/generation_defaults.py",
-        "to": "wildcard_engine.py"
+        "to": "easyuse_anima/seed/reservation.py"
       },
       {
         "from": "easyuse_anima/aio/generation_detailer.py",
@@ -41313,7 +41143,7 @@
       },
       {
         "from": "easyuse_anima/aio/generation_normalization.py",
-        "to": "wildcard_engine.py"
+        "to": "easyuse_anima/seed/reservation.py"
       },
       {
         "from": "easyuse_anima/aio/generation_output.py",
@@ -42857,9 +42687,9 @@
       },
       {
         "is_package": false,
-        "loc": 477,
+        "loc": 472,
         "module": "easyuse_anima.aio.generation_defaults",
-        "normalized_git_blob_sha1": "5c5314adebd7d4a84871f60302fad1a7936225f4",
+        "normalized_git_blob_sha1": "7547642865fb98e4a460f5cf9252b6a4530570aa",
         "path": "easyuse_anima/aio/generation_defaults.py",
         "top_level": {
           "class_count": 0,
@@ -42905,14 +42735,14 @@
       },
       {
         "is_package": false,
-        "loc": 1039,
+        "loc": 1051,
         "module": "easyuse_anima.aio.generation_normalization",
-        "normalized_git_blob_sha1": "621f7b3de3c6acb0b4ef30ff70720549e0412a4f",
+        "normalized_git_blob_sha1": "3d7cf4638b6ccccc8f00fb3c6bf9b7bc0fa41a0f",
         "path": "easyuse_anima/aio/generation_normalization.py",
         "top_level": {
           "class_count": 0,
           "function_count": 11,
-          "global_count": 3
+          "global_count": 5
         }
       },
       {
@@ -44594,98 +44424,6 @@
         "role": "compatibility_fallback",
         "source": "autocomplete_dataset.py",
         "target": "storage.py"
-      },
-      {
-        "branch_context": [
-          {
-            "branch": "except",
-            "catches_import_error": true,
-            "exceptions": [
-              "ImportError"
-            ],
-            "handler_line": 29,
-            "kind": "try",
-            "line": 27
-          }
-        ],
-        "classification": "compatibility_fallback",
-        "conditional": true,
-        "imported": "wildcard_engine:SEED_CONTROL_FIXED",
-        "kind": "static_from",
-        "line": 30,
-        "optional": false,
-        "role": "compatibility_fallback",
-        "source": "easyuse_anima/aio/generation_defaults.py",
-        "target": "wildcard_engine.py"
-      },
-      {
-        "branch_context": [
-          {
-            "branch": "except",
-            "catches_import_error": true,
-            "exceptions": [
-              "ImportError"
-            ],
-            "handler_line": 67,
-            "kind": "try",
-            "line": 65
-          }
-        ],
-        "classification": "compatibility_fallback",
-        "conditional": true,
-        "imported": "wildcard_engine:MAX_SEED",
-        "kind": "static_from",
-        "line": 68,
-        "optional": false,
-        "role": "compatibility_fallback",
-        "source": "easyuse_anima/aio/generation_normalization.py",
-        "target": "wildcard_engine.py"
-      },
-      {
-        "branch_context": [
-          {
-            "branch": "except",
-            "catches_import_error": true,
-            "exceptions": [
-              "ImportError"
-            ],
-            "handler_line": 67,
-            "kind": "try",
-            "line": 65
-          }
-        ],
-        "classification": "compatibility_fallback",
-        "conditional": true,
-        "imported": "wildcard_engine:SEED_CONTROL_FIXED",
-        "kind": "static_from",
-        "line": 68,
-        "optional": false,
-        "role": "compatibility_fallback",
-        "source": "easyuse_anima/aio/generation_normalization.py",
-        "target": "wildcard_engine.py"
-      },
-      {
-        "branch_context": [
-          {
-            "branch": "except",
-            "catches_import_error": true,
-            "exceptions": [
-              "ImportError"
-            ],
-            "handler_line": 67,
-            "kind": "try",
-            "line": 65
-          }
-        ],
-        "classification": "compatibility_fallback",
-        "conditional": true,
-        "imported": "wildcard_engine:SEED_CONTROL_MODES",
-        "kind": "static_from",
-        "line": 68,
-        "optional": false,
-        "role": "compatibility_fallback",
-        "source": "easyuse_anima/aio/generation_normalization.py",
-        "target": "wildcard_engine.py"
       },
       {
         "branch_context": [
@@ -58919,7 +58657,7 @@
         "column": 26,
         "context": "assign:_AIO_DETAILER_CUSTOM_RE",
         "kind": "import_time_call",
-        "line": 85,
+        "line": 97,
         "module": "easyuse_anima/aio/generation_normalization.py",
         "scope": "<module>"
       },
@@ -59757,19 +59495,19 @@
       },
       {
         "kind": "dict",
-        "line": 42,
+        "line": 37,
         "module": "easyuse_anima/aio/generation_defaults.py",
         "name": "AIO_GENERATION_DEFAULT_SETTINGS"
       },
       {
         "kind": "set",
-        "line": 36,
+        "line": 31,
         "module": "easyuse_anima/aio/generation_defaults.py",
         "name": "AIO_SPECIAL_SEEDS"
       },
       {
         "kind": "set",
-        "line": 84,
+        "line": 96,
         "module": "easyuse_anima/aio/generation_normalization.py",
         "name": "_AIO_DETAILER_RESERVED_KEYS"
       },

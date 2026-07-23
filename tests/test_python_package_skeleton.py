@@ -27,6 +27,7 @@ PACKAGE_MODULES = (
     "easyuse_anima.aio.generation_features",
     "easyuse_anima.aio.generation_detailer",
     "easyuse_anima.aio.generation_output",
+    "easyuse_anima.aio.generation_defaults",
     "easyuse_anima.aio.generation_migrations",
     "easyuse_anima.aio.generation_settings",
     "easyuse_anima.aio.resources",
