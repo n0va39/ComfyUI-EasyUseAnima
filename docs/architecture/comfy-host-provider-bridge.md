@@ -1851,6 +1851,103 @@ Implementation result:
   observation time, USDU planning, postprocess resize/metadata/logging, schema,
   workflow, and stage behavior remain unchanged.
 
+### B-11c30d3 — AiO I/O-boundary binder Move
+
+- **State:** COMPLETE in PR #350
+- **Owner:** #184
+- **Behavior boundary:** #169
+- **Type:** Move
+- **Base:** `dev@fab74ef45837f0b8d05fe4f6b723b557b41f9f53`
+
+Pre-edit inventory:
+
+- the frozen d3 subgroup contains exactly `_bind_aio_resource_runtime`,
+  `_bind_aio_preview_runtime`, and `_bind_aio_output_runtime`;
+- the three binders own only three `_RUNTIME_RESOLVER` slots. They account for
+  49 root-resolver slots over 46 unique names, four provider slots over
+  `_find_comfy_node_class` and `_require_custom_node_class`, three direct
+  `_resolve_comfy_host_helper` dependencies, and 45 repository replacement
+  slots over 43 names in eight test files;
+- resources owns input-settings normalization, Comfy resource lists/loaders,
+  SAM3 context loading, and input-context resource loading. Its stateless
+  dependencies already have canonical owners in common values, generation
+  normalization, Comfy resource/invocation adapters, SAM3, and the E-07 host
+  provider;
+- root still owns `AIO_INPUT_DEFAULT_SETTINGS` plus its input schema/version,
+  default resource candidates, CLIP types/devices, and UNet dtypes. The mutable
+  default payload and related declarative values move with exact identity to a
+  pure `easyuse_anima.aio.input_defaults` owner. The later d0b input-context
+  Move remains separate;
+- preview owns its stage/event/cache constants, filesystem/path inspection,
+  event dispatch, temporary WebP save, and PreviewImage fallback. Optional
+  `folder_paths`, NumPy, PIL, and PromptServer imports remain call-time, while
+  node lookup stays behind the E-07 provider;
+- output owns Image Saver/Civitai metadata adaptation and Comfy SaveImage
+  invocation. It consumes the existing generation-defaults, output-settings,
+  common values, LoRA formatting, seed-resolution, and E-07 provider owners
+  directly; and
+- d3-owner tests patch the canonical resource, preview, or output module.
+  Replacements used to drive d4 through d6 remain on their still-active binder
+  families.
+
+Allowed production files:
+
+```text
+nodes.py
+easyuse_anima/aio/input_defaults.py
+easyuse_anima/aio/resources.py
+easyuse_anima/aio/preview.py
+easyuse_anima/aio/output.py
+```
+
+Allowed supporting files are the focused resource/preview/output and direct
+adapter tests, the Python package/compatibility gate and fixture, the
+nodes/backend analyzer gate and fixture, and the three architecture documents.
+
+Exit:
+
+- all three d3 binder definitions, root imports/calls, `_RUNTIME_RESOLVER`
+  slots, and `_runtime_helper` functions are absent;
+- input defaults and resource-choice constants have one pure data owner and
+  root retains exact aliases to the same objects/values;
+- resources imports canonical stateless dependencies directly and resolves
+  only Comfy node lookup through the existing E-07 call-time provider;
+- preview and output use canonical helpers and direct same-module calls while
+  preserving optional dependency observation time and provider lookup;
+- tests that patched root only to drive a d3 owner patch the canonical owner;
+- d3 alone is marked retired while d4 through d6 remain the exact active AiO
+  groups; and
+- resource selection/loading, input payload order/values, preview paths/files,
+  event payloads, WebP/PNG fallback, output metadata, save arguments, schemas,
+  workflows, stage order, errors, and logs are unchanged.
+
+Forbidden:
+
+- changing input defaults, validation choices, loader selection, provider
+  interface or lookup order, optional dependency timing, preview/save formats,
+  metadata, filenames, event payloads, errors, schemas, workflows, seeds,
+  cache, model preparation, sampling, conditioning, or stage order;
+- moving the d0b input-context functions or retiring any d4 through d6 or
+  Wildcard/NAIA binder; and
+- combining Contract, Behavior, performance, or broad formatting cleanup.
+
+Result:
+
+- all three d3 binder definitions, resolver globals/helpers, and root
+  imports/calls are absent;
+- `easyuse_anima.aio.input_defaults` is the single pure owner of the mutable
+  input-default payload and its declarative choices; root aliases preserve
+  exact identity;
+- resource, preview, and output owners use direct canonical dependencies,
+  while optional I/O imports and E-07 Comfy host lookup retain call-time
+  observation;
+- d3 alone is retired. Seven binders remain: five AiO binders in d4 through d6
+  and two Wildcard/NAIA binders;
+- the compatibility surface contains 296 canonical root bindings, three
+  residual root globals, and 92 shipped and reachable Python modules; and
+- `nodes.py` is 1,182 lines, 11,481 fewer than the 12,663-line Phase A
+  baseline (90.7% removed).
+
 ### B-11d — Final root shim
 
 - **State:** BLOCKED by the remaining AiO and Wildcard/NAIA binder families
@@ -1900,7 +1997,8 @@ COMPLETE: B-11c30d AiO binder split gate / PR #346
 COMPLETE: B-11c30d1 AiO cache-state binder Move / PR #347
 COMPLETE: B-11c30d0a output-settings owner Move / PR #348
 COMPLETE: B-11c30d2 normalization/planning binder Move / PR #349
-PLANNED:  B-11c30d3-d4 I/O and execution-service Moves
+COMPLETE: B-11c30d3 I/O-boundary binder Move / PR #350
+READY:    B-11c30d4 execution-service Move
 PLANNED:  B-11c30d0b input-context owner Move before d5-d6
 PLANNED:  B-11c30d5-d6 orchestration and node-adapter Moves
 BLOCKED:  B-11d final root shim

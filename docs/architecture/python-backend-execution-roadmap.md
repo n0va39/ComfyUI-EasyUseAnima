@@ -137,7 +137,10 @@ merged PR, the owning issue's evidence record, and every stated exit gate.
   the mutable settings payload and choices out of root, generation
   normalization uses canonical helpers plus the E-07 max-resolution provider,
   and USDU/postprocess planning use direct canonical dependencies. Ten binders
-  remain across AiO and Wildcard/NAIA.
+  remain across AiO and Wildcard/NAIA. B-11c30d3 / PR #350 retires only the
+  resource, preview, and output binders. Input defaults now have one pure data
+  owner, while optional I/O imports and E-07 host lookup remain call-time.
+  Seven binders remain: five AiO and two Wildcard/NAIA.
 
 ### Current quality baseline
 
@@ -1088,6 +1091,12 @@ unchanged. The separate legacy Wildcard unsupported alias remains for D-12.
     `_bind_aio_postprocess_runtime` in PR #349. Generation defaults have one
     pure owner, the E-07 max-resolution seam remains call-time provider-owned,
     and d3 through d6 plus Wildcard/NAIA remain separate rollback units.
+  - B-11c30d3 retires only the resource, preview, and output binders in PR
+    #350. Input defaults move to a pure data owner, optional I/O dependencies
+    stay call-time, and Comfy node lookup remains behind the existing E-07
+    provider. The root shim falls to 1,182 lines and the audited package grows
+    to 92 shipped and reachable modules. d0b and d4 through d6 remain
+    separate; B-11c30d4 is the next READY Move.
   - The final B-11c cutover removes remaining root execution ownership and
     leaves the explicit supported `nodes.py` compatibility shim.
 - Add `easyuse_anima/registration.py` as pure mapping composition. It performs no

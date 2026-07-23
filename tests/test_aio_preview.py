@@ -43,7 +43,7 @@ class AIOPreviewMoveTests(unittest.TestCase):
     def test_file_size_re_resolves_root_base_directory_and_preserves_path_rules(self):
         replacement = Mock(return_value="preview-root")
         with (
-            patch.object(nodes, "_aio_preview_base_directory", replacement),
+            patch.object(preview, "_aio_preview_base_directory", replacement),
             patch.object(preview.os.path, "isfile", return_value=True) as isfile,
             patch.object(preview.os.path, "getsize", return_value=321) as getsize,
         ):
@@ -61,7 +61,7 @@ class AIOPreviewMoveTests(unittest.TestCase):
     def test_tagging_re_resolves_file_size_and_preserves_metadata_order(self):
         source = {"filename": "image.webp", "type": "temp"}
         file_size = Mock(return_value=1234)
-        with patch.object(nodes, "_aio_preview_file_size_bytes", file_size):
+        with patch.object(preview, "_aio_preview_file_size_bytes", file_size):
             tagged = preview._tag_aio_preview_images(
                 [source, "skip"], "highres", width=768, height=1024
             )
@@ -93,9 +93,9 @@ class AIOPreviewMoveTests(unittest.TestCase):
 
         with (
             patch.dict(sys.modules, {"server": server}),
-            patch.object(nodes, "_single_value", return_value=86),
-            patch.object(nodes, "_prompt_data_json_safe", json_safe),
-            patch.object(nodes, "AIO_PREVIEW_EVENT", "replacement-event"),
+            patch.object(preview, "_single_value", return_value=86),
+            patch.object(preview, "_prompt_data_json_safe", json_safe),
+            patch.object(preview, "AIO_PREVIEW_EVENT", "replacement-event"),
         ):
             preview._send_aio_preview_event(
                 [86], "run-1", "first_pass", [{"filename": "preview.webp"}]
@@ -113,7 +113,7 @@ class AIOPreviewMoveTests(unittest.TestCase):
         )
 
     def test_event_failure_is_debug_only_and_empty_inputs_do_not_import_server(self):
-        with patch.object(nodes, "_single_value", return_value=None):
+        with patch.object(preview, "_single_value", return_value=None):
             preview._send_aio_preview_event(None, "run", "final", [{"x": 1}])
 
         send_sync = Mock(side_effect=RuntimeError("send failed"))
@@ -123,8 +123,8 @@ class AIOPreviewMoveTests(unittest.TestCase):
         )
         with (
             patch.dict(sys.modules, {"server": server}),
-            patch.object(nodes, "_single_value", return_value=1),
-            patch.object(nodes.logger, "debug") as debug,
+            patch.object(preview, "_single_value", return_value=1),
+            patch.object(preview.logger, "debug") as debug,
         ):
             preview._send_aio_preview_event(1, "run", "final", [{"x": 1}])
 
@@ -169,10 +169,10 @@ class AIOPreviewMoveTests(unittest.TestCase):
 
         with (
             patch.dict(sys.modules, {"folder_paths": folder_paths, "numpy": numpy, "PIL": pil}),
-            patch.object(nodes, "_image_tensor_size", return_value=(640, 960)),
-            patch.object(nodes, "_tag_aio_preview_images", tag),
-            patch.object(nodes, "AIO_PREVIEW_CACHE_FORMAT", "webp"),
-            patch.object(nodes, "AIO_PREVIEW_CACHE_QUALITY", 90),
+            patch.object(preview, "_image_tensor_size", return_value=(640, 960)),
+            patch.object(preview, "_tag_aio_preview_images", tag),
+            patch.object(preview, "AIO_PREVIEW_CACHE_FORMAT", "webp"),
+            patch.object(preview, "AIO_PREVIEW_CACHE_QUALITY", 90),
             patch.object(preview.random, "choice", return_value="a"),
         ):
             result = preview._save_aio_temp_preview_image(
@@ -215,14 +215,14 @@ class AIOPreviewMoveTests(unittest.TestCase):
         tag = Mock(return_value=[{"fallback": True}])
         with (
             patch.dict(sys.modules, {"folder_paths": None}),
-            patch.object(nodes, "_image_tensor_size", return_value=(512, 768)),
+            patch.object(preview, "_image_tensor_size", return_value=(512, 768)),
             patch_comfy_helper(
                 nodes,
                 "_find_comfy_node_class",
                 return_value=PreviewImage,
             ),
-            patch.object(nodes, "_tag_aio_preview_images", tag),
-            patch.object(nodes.logger, "warning") as warning,
+            patch.object(preview, "_tag_aio_preview_images", tag),
+            patch.object(preview.logger, "warning") as warning,
         ):
             result = preview._save_aio_temp_preview_image(
                 "image",

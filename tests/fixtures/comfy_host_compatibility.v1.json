@@ -178,17 +178,17 @@
         },
         {
           "module": "easyuse_anima.aio.output",
-          "binder": "_bind_aio_output_runtime",
+          "binder": null,
           "root_observation": "call_time"
         },
         {
           "module": "easyuse_anima.aio.preview",
-          "binder": "_bind_aio_preview_runtime",
+          "binder": null,
           "root_observation": "call_time"
         },
         {
           "module": "easyuse_anima.aio.resources",
-          "binder": "_bind_aio_resource_runtime",
+          "binder": null,
           "root_observation": "call_time"
         },
         {
@@ -378,7 +378,7 @@
         },
         {
           "module": "easyuse_anima.aio.output",
-          "binder": "_bind_aio_output_runtime",
+          "binder": null,
           "root_observation": "call_time"
         },
         {
