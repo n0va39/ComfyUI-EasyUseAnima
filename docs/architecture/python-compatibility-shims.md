@@ -3,14 +3,14 @@
 ## Registry status
 
 - Inventory baseline: `dev` commit
-  `98812ef070096e7416bba08750a7c089f8564d29`
+  `7c2fdd50b644fe48e98220ad72f7e5c78a0b070e`
 - Compatibility provenance: package/workflow version 0.5.2
 - Policy: [ADR-002](adr-002-compatibility-shims.md)
 - Machine-readable audit:
   [`python_compatibility_surface.v1.json`](../../tests/fixtures/python_compatibility_surface.v1.json)
-- Current state: B-11a through B-11c11 are integrated through PR #305. B-11c is
+- Current state: B-11a through B-11c12 are integrated through PR #306. B-11c is
   split into residual-owner Moves and explicit private-contract cleanup before
-  the final root shim; B-11c12 USDU tile planning is tracked by PR #306.
+  the final root shim; B-11c13 dead USDU wrapper cleanup is tracked by PR #307.
 
 This is an actionable registry, not a removal schedule. `N` means the first
 published Registry release containing both a canonical target and its root
@@ -84,8 +84,8 @@ inferring public support from spelling or test imports:
 - unmapped root classes: `EasyUseAnimaSAM3Context` and
   `EasyUseAnimaSAM3Detailer`; the canonical legacy Extend class remains in its
   owner module without a root alias or backend mapping;
-- root-owned residual implementation: 24 functions, 0 classes, and 26 assigned
-  globals in B-11c12 (41/2/33 at the integrated B-10b20 baseline).
+- root-owned residual implementation: 23 functions, 0 classes, and 26 assigned
+  globals in B-11c13 (41/2/33 at the integrated B-10b20 baseline).
 - import-time runtime binders: 29 exact top-level `_bind_*_runtime` calls;
 - root names reached by those canonical runtime resolvers: 268, including
   literal lookups and binder-owned helper-name/default collections;
@@ -344,7 +344,19 @@ convenience-node compatibility; it remains unmapped and is not public support.
   fallback, scale floor and rounding, manual/auto return fields and insertion
   order, and input non-mutation. It does not move USDU model loading,
   conditioning, sampling, logging, metadata, or stage execution. The unused
-  `_aio_usdu_tile_size` stays root-owned pending separate cleanup.
+  `_aio_usdu_tile_size` stayed root-owned pending separate cleanup.
+
+### B-11c13 dead USDU tile-size wrapper retirement
+
+- `_aio_usdu_tile_size` was a root-only private definition with no production
+  caller, runtime resolver, public mapping/export, documented user consumer, or
+  canonical target. It is removed rather than promoted into the canonical
+  package.
+- The compatibility fixture and flat/package contract record its absence.
+  `_aio_usdu_auto_tile_dimension`, `_aio_usdu_tile_plan`, their binder, and the
+  live USDU stage remain present and unchanged.
+- PR #307 changes no tile calculation, clamp, rounding, alignment, stage,
+  model, conditioning, sampling, logging, metadata, or workflow behavior.
 
 ### `nodes.py` public node-class surface
 

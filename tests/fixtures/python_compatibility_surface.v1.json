@@ -2,7 +2,7 @@
   "schema_version": 1,
   "snapshot": {
     "base_branch": "dev",
-    "base_commit": "98812ef070096e7416bba08750a7c089f8564d29",
+    "base_commit": "7c2fdd50b644fe48e98220ad72f7e5c78a0b070e",
     "first_release": null,
     "owner_tasks": [
       "#184",
@@ -42,7 +42,8 @@
       "B-11c9",
       "B-11c10",
       "B-11c11",
-      "B-11c12"
+      "B-11c12",
+      "B-11c13"
     ]
   },
   "enums": {
@@ -81,7 +82,7 @@
     "nodes_legacy_bindings": 27,
     "mapped_public_classes": 18,
     "unmapped_classes": 2,
-    "root_residual_functions": 24,
+    "root_residual_functions": 23,
     "root_residual_classes": 0,
     "root_residual_globals": 26,
     "runtime_binders": 29,
@@ -4064,7 +4065,6 @@
       "symbols": {
         "_aio_detailer_has_enabled_targets": "_aio_detailer_has_enabled_targets",
         "_aio_final_fit_size": "_aio_final_fit_size",
-        "_aio_usdu_tile_size": "_aio_usdu_tile_size",
         "_apply_aio_final_fit": "_apply_aio_final_fit",
         "_comfy_clip_loader_types": "_comfy_clip_loader_types",
         "_comfy_diffusion_model_names": "_comfy_diffusion_model_names",

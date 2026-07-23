@@ -73,12 +73,12 @@ def load_dynamic():
     def test_current_nodes_module_shape_matches_recorded_baseline(self):
         report = analyzer.analyze_path(ROOT / "nodes.py")
 
-        self.assertEqual(report["git_blob_sha1"], "59f8b61ab03fe443fe98068cdc59114dc6672c34")
-        # Issue #184 B-11c12 moves the two live USDU tile-planning helpers
-        # while the dead tile-size wrapper remains root-owned for cleanup.
-        self.assertEqual(report["top_level"]["function_count"], 24)
+        self.assertEqual(report["git_blob_sha1"], "c0657af63f4a523fffe47dcc090ac2fc2ab38650")
+        # Issue #184 B-11c13 retires only the dead private USDU tile-size
+        # wrapper while the live canonical tile planners remain unchanged.
+        self.assertEqual(report["top_level"]["function_count"], 23)
         self.assertEqual(report["top_level"]["class_count"], 0)
-        self.assertEqual(report["line_count"], 2_429)
+        self.assertEqual(report["line_count"], 2_424)
         class_names = {item["name"] for item in report["top_level"]["classes"]}
         self.assertNotIn("EasyUseAnimaAIOGenerator", class_names)
         self.assertNotIn("EasyUseAnimaInput", class_names)
