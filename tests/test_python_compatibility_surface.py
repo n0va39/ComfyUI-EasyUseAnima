@@ -48,7 +48,6 @@ RUNTIME_LOOKUP_CALLS = {
     "runtime_proxy",
 }
 PREAMBLE_IMPLEMENTATION_BINDINGS = {
-    "Any": "typing:Any",
     "ceil": "math:ceil",
     "json": "json:json",
     "logging": "logging:logging",
@@ -1342,7 +1341,7 @@ def _build_document() -> dict[str, Any]:
         },
         "expected_counts": {
             "root_entrypoints": 3,
-            "excluded_preamble_implementation_bindings": 6,
+            "excluded_preamble_implementation_bindings": 5,
             "nodes_canonical_bindings": 300,
             "nodes_legacy_bindings": 27,
             "mapped_public_classes": 18,

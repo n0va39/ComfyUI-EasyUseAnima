@@ -5,8 +5,6 @@ import json
 import logging
 import random
 from math import ceil, sqrt
-from typing import Any
-
 try:
     from .easyuse_anima.aio.first_pass_cache import (
         AIO_FIRST_PASS_CACHE_MAX_ENTRIES as AIO_FIRST_PASS_CACHE_MAX_ENTRIES,

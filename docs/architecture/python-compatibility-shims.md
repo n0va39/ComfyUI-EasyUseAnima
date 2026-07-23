@@ -73,8 +73,8 @@ The versioned fixture records the exact post-B-09b2 surface rather than
 inferring public support from spelling or test imports:
 
 - root `__init__.py` permanent entrypoints: 3;
-- `nodes.py` preamble implementation imports: 6 (`json`, `logging`, `random`,
-  `ceil`, `sqrt`, and `Any`), excluded from compatibility classification
+- `nodes.py` preamble implementation imports: 5 (`json`, `logging`, `random`,
+  `ceil`, and `sqrt`), excluded from compatibility classification
   by an exact AST allowlist and drift gate;
 - `nodes.py` bindings with an `easyuse_anima` canonical target: 300 in B-11c28
   (258 at the integrated B-10b20 baseline), with exact
