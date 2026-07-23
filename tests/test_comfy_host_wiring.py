@@ -49,15 +49,16 @@ class ComfyHostWiringTests(unittest.TestCase):
             },
         )
 
-    def test_known_helper_is_lazy_until_call_time_resolution(self):
-        with self.assertRaisesRegex(
-            RuntimeError,
-            r"^\[EasyUseAnima\] RuntimeServices has not been installed\.$",
-        ):
-            resolve_comfy_host_helper(
-                "_find_comfy_node_class",
-                self._fallback,
-            )
+    def test_known_helper_uses_flat_import_fallback_before_runtime_install(self):
+        helper = resolve_comfy_host_helper(
+            "_find_comfy_node_class",
+            self._fallback,
+        )
+
+        self.assertEqual(
+            helper("Example"),
+            ("_find_comfy_node_class", ("Example",)),
+        )
 
     def test_provider_owned_helpers_delegate_to_narrow_methods(self):
         direct = object()

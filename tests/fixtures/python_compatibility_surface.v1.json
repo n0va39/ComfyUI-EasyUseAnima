@@ -2806,6 +2806,34 @@
       "lifecycle_state": "transitional"
     },
     {
+      "id": "nodes_canonical_bindings:easyuse_anima.infrastructure.comfy.wiring:transitional_private_seam",
+      "surface": "nodes_canonical_bindings",
+      "symbols": {
+        "_resolve_comfy_host_helper": "resolve_comfy_host_helper"
+      },
+      "classification": "transitional_private_seam",
+      "current_target": "nodes.py",
+      "canonical_target": "easyuse_anima.infrastructure.comfy.wiring",
+      "target_state": "canonical",
+      "identity_requirement": "required",
+      "binding_shape": "direct_import",
+      "import_target": "easyuse_anima.infrastructure.comfy.wiring",
+      "owner": "#184/#188",
+      "first_release": null,
+      "known_consumers": [
+        "nodes.py residual runtime"
+      ],
+      "evidence": [
+        "AST:nodes.py direct runtime load"
+      ],
+      "removal_gates": [
+        "canonical production consumer migration",
+        "focused monkeypatch and identity contract review",
+        "separate B-10b or B-11 rollback unit"
+      ],
+      "lifecycle_state": "transitional"
+    },
+    {
       "id": "nodes_canonical_bindings:easyuse_anima.lora.metadata:transitional_private_seam",
       "surface": "nodes_canonical_bindings",
       "symbols": {

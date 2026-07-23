@@ -20,30 +20,46 @@ def resolve_comfy_host_helper(
 ) -> Any:
     """Resolve the seven E-07 host seams without importing the root shim."""
 
+    if name not in (
+        "_comfy_max_resolution",
+        "_find_comfy_node_class",
+        "_find_comfy_node_mapping_class",
+        "_find_loaded_node_class",
+        "_require_custom_node_class",
+        "_require_any_custom_node_class",
+        "_encode_with_comfy_clip",
+    ):
+        return fallback(name)
+
+    try:
+        provider = get_runtime().comfy
+    except RuntimeError:
+        # Flat ``nodes`` imports used by local tooling do not execute package
+        # bootstrap. Preserve their existing root resolver until B-11 moves it.
+        return fallback(name)
+
     if name == "_comfy_max_resolution":
-        return get_runtime().comfy.max_resolution
+        return provider.max_resolution
     if name == "_find_comfy_node_class":
-        return get_runtime().comfy.find_node_class
+        return provider.find_node_class
     if name == "_find_comfy_node_mapping_class":
-        return get_runtime().comfy.find_node_mapping_class
+        return provider.find_node_mapping_class
     if name == "_find_loaded_node_class":
-        return get_runtime().comfy.find_loaded_node_class
+        return provider.find_loaded_node_class
     if name == "_require_custom_node_class":
         return partial(
             _require_custom_node_class,
-            find_node_class=get_runtime().comfy.find_node_class,
+            find_node_class=provider.find_node_class,
         )
     if name == "_require_any_custom_node_class":
         return partial(
             _require_any_custom_node_class,
-            find_node_class=get_runtime().comfy.find_node_class,
+            find_node_class=provider.find_node_class,
         )
-    if name == "_encode_with_comfy_clip":
-        return partial(
-            _encode_with_comfy_clip,
-            find_node_class=get_runtime().comfy.find_node_class,
-        )
-    return fallback(name)
+    return partial(
+        _encode_with_comfy_clip,
+        find_node_class=provider.find_node_class,
+    )
 
 
 __all__ = ()

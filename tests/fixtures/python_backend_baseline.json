@@ -39433,9 +39433,9 @@
       },
       {
         "is_package": false,
-        "loc": 49,
+        "loc": 65,
         "module": "easyuse_anima.infrastructure.comfy.wiring",
-        "normalized_git_blob_sha1": "65aa1bf32681dd112005b034f308973e024ea912",
+        "normalized_git_blob_sha1": "e967ae92154c7a44c35a9a1b64c1dfdca056779e",
         "path": "easyuse_anima/infrastructure/comfy/wiring.py",
         "top_level": {
           "class_count": 0,

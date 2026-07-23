@@ -441,8 +441,9 @@ Pre-edit inventory at the E-07b base:
 Completion evidence:
 
 - all 22 host-helper consumer slots in 15 canonical modules resolve the seven
-  owned seams through the installed provider while unrelated names retain the
-  existing root fallback;
+  owned seams through the installed provider while unrelated names and the
+  pre-bootstrap flat-import compatibility path retain the existing root
+  fallback;
 - all 16 repository root-replacement test files use the fake provider or an
   explicit canonical lookup, leaving zero repository root replacements;
 - the two intentional canonical `_comfy_max_resolution` replacement files
@@ -486,8 +487,10 @@ tests/test_prompt_studio_regional.py
 tests/test_sam3_nodes.py
 tests/test_python_compatibility_surface.py
 tests/test_python_backend_analyzer.py
+tests/test_nodes_module_analyzer.py
 tests/fixtures/comfy_host_compatibility.v1.json
 tests/fixtures/python_backend_baseline.json
+tests/fixtures/python_compatibility_surface.v1.json
 docs/architecture/*
 ```
 
