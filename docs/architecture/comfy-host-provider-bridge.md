@@ -2190,6 +2190,163 @@ Result:
   package-closure, and analyzer gates preserve signature shape, JSON-safe
   conversion, validation/error behavior, object identity, and import closure.
 
+### B-11c30d5 — AiO legacy-orchestration binder Move
+
+- **State:** COMPLETE IN PR #353
+- **Owner:** #184
+- **Behavior boundary:** #168 and #169
+- **Type:** Move
+- **Base:** `dev@4409c17e87a8d7a06157c85ce38b72b8e3de5c39`
+
+Pre-edit inventory:
+
+- the frozen d5 subgroup contains exactly
+  `_bind_aio_legacy_generation_runtime`;
+- the binder owns one `_RUNTIME_RESOLVER` global and one `_runtime_helper`
+  dispatcher. After d0b it accounts for 58 root-resolver slots over 58 unique
+  names, two provider slots (`_encode_with_comfy_clip` and
+  `_require_custom_node_class`), one direct `_resolve_comfy_host_helper`
+  dependency, and 42 repository replacement slots over 42 names in
+  `tests/test_aio_legacy_generation.py`, `tests/test_aio_nodes.py`, and
+  `tests/test_node_contracts.py`;
+- root imports the binder plus seven execution functions as exact package/flat
+  aliases, then invokes the binder once during module initialization;
+- `easyuse_anima.nodes.aio_nodes` is the sole production consumer of
+  `_run_aio_legacy_generation` through the still-active d6 resolver. The other
+  six stage functions are same-module orchestration calls and root
+  compatibility aliases;
+- direct canonical owners already exist for all 55 non-provider dependencies.
+  They span common values and invocation, Prompt Data/conditioning/Artist Mix,
+  AiO settings/cache/resources/model/sampling/conditioning/planning/preview/
+  output/postprocess, image geometry/SAM3, and the two existing node adapters;
+- `json`, `logger`, and `random` are currently root-resolved even though the
+  canonical module can own the same standard-library/module-local objects;
+  no process-global state or new service contract is required; and
+- the legacy execution trace fixture freezes base generation and optional
+  stage order, cache/cleanup timing, preview/save behavior, and returned
+  metadata. Existing tests also freeze short circuits, exact errors,
+  call-time provider observation, and package/flat root alias identity.
+
+Exact root-resolver ownership:
+
+```text
+stdlib/module-local:
+  json, logger, random
+common/invocation:
+  _as_bool, _as_float, _as_int, _single_value, _node_output_tuple
+prompt:
+  ANIMA_MOD_GUIDANCE_PROFILE_OFF
+  _advanced_outputs_from_prompt_data
+  _apply_spectrum_anima_mod_guidance
+  _encode_prompt_data_positive_conditioning
+  _normalize_anima_mod_guidance_profile
+  _normalize_prompt_data
+  _prompt_data_json_safe
+  _resolve_anima_mod_guidance_enabled
+aio generation/cache:
+  AIO_USDU_PROMPT_FULL
+  _aio_detailer_has_enabled_targets
+  _aio_detailer_target_order
+  _aio_first_pass_cache_key
+  _get_aio_first_pass_cache
+  _normalize_aio_generation_settings
+  _put_aio_first_pass_cache
+aio model/sampling/conditioning/planning:
+  _aio_highres_effective_backend
+  _aio_stage_sampler_settings
+  _aio_usdu_conditioning
+  _aio_usdu_tile_plan
+  _apply_aio_lora_stack
+  _apply_aio_model_patches
+  _apply_aio_spectrum_model_patches_for_comfy_sampler
+  _cleanup_aio_ephemeral_model
+  _decode_latent_with_comfy
+  _encode_image_with_comfy_vae
+  _generate_empty_latent_with_comfy
+  _resolve_aio_runtime_seed
+  _sample_latent_with_aio_backend
+aio resources/output/preview/postprocess:
+  _aio_save_filename_prefix
+  _load_aio_resources_from_input_context
+  _load_aio_sam3_context
+  _load_upscale_model_with_comfy
+  _resize_image_to_size_if_needed
+  _run_aio_postprocess_stage
+  _save_aio_temp_preview_image
+  _save_image_with_comfy
+  _save_image_with_image_saver
+  _send_aio_preview_event
+  _tag_aio_preview_images
+image/node adapters:
+  EasyUseAnimaImageScaleByMultiple
+  EasyUseAnimaSAM3Detailer
+  _context_value
+  _image_tensor_size
+  _segs_has_items
+same-module:
+  _run_aio_detailer_stage
+  _run_aio_detailer_target
+  _run_aio_highres_stage
+  _run_aio_resshift_upscale_stage
+  _run_aio_upscale_stage
+  _run_aio_usdu_upscale_stage
+```
+
+Allowed production files:
+
+```text
+nodes.py
+easyuse_anima/aio/legacy_generation.py
+```
+
+Allowed supporting files are the three d5 replacement-owner tests, Comfy-host
+and Python compatibility gates/fixtures, nodes/backend analyzer gates/fixture,
+the frozen legacy execution trace assertion, and the three architecture
+documents.
+
+Exit:
+
+- the d5 binder definition, root imports/call, `_RUNTIME_RESOLVER`, and
+  `_runtime_helper` are absent;
+- legacy orchestration imports existing canonical stateless owners directly,
+  uses direct same-module calls, and owns standard-library logger/random/JSON
+  access;
+- the two E-07 host seams remain call-time provider-resolved;
+- all seven root execution aliases retain exact identity;
+- only d5 replacement ownership moves from root/binder injection to the
+  canonical consumer module; and
+- d6 and Wildcard/NAIA remain active while stage/cache/seed/provider/error/
+  schema/workflow behavior and the execution trace remain unchanged.
+
+Implementation result:
+
+- the binder, resolver global/helper, root imports, and root initialization call
+  are absent; all seven root execution aliases retain exact identity;
+- the canonical orchestrator imports its existing stateless owners directly,
+  uses direct same-module stage calls, and keeps both E-07 host seams
+  call-time provider-resolved;
+- d5 test replacements now target the canonical consumer, so tests no longer
+  install or restore process-global resolver state;
+- the active audit contains only d6 plus the Wildcard/NAIA callbacks: three
+  binders, 29 unique resolver/root names, no provider-resolver slot, and 32
+  replacement names across five files;
+- the compatibility surface contains 291 canonical root bindings, three
+  residual globals, 93 shipped/reachable Python modules, and a 1,147-line
+  `nodes.py`; and
+- the consolidated focused checkpoint ran 239 tests in 13.401 seconds. Its 237
+  behavior/contract passes were retained; the two deterministic fixture/SHA
+  gate drifts were updated and their exact closure tests pass.
+
+Forbidden:
+
+- retiring or otherwise changing the d6 or Wildcard/NAIA binders;
+- changing stage order, cache keys/state/eviction, cleanup timing, preview/save
+  order, seed/random semantics, sampler/model/conditioning behavior, provider
+  lookup, optional dependency timing, errors/logs, metadata, schemas, or
+  workflows;
+- beginning #168/#169 Behavior, d6, or final root-shim work; and
+- combining Contract, performance, dependency, or broad formatting cleanup.
+
 ### B-11d — Final root shim
 
 - **State:** BLOCKED by the remaining AiO and Wildcard/NAIA binder families
@@ -2242,7 +2399,7 @@ COMPLETE: B-11c30d2 normalization/planning binder Move / PR #349
 COMPLETE: B-11c30d3 I/O-boundary binder Move / PR #350
 COMPLETE: B-11c30d4 execution-service Move / PR #351
 COMPLETE: B-11c30d0b input-context owner Move / PR #352
-READY:    B-11c30d5 legacy-orchestration Move
+COMPLETE: B-11c30d5 legacy-orchestration Move / PR #353
 PLANNED:  B-11c30d6 node-adapter Move
 BLOCKED:  B-11d final root shim
 

@@ -3,7 +3,6 @@ from __future__ import annotations
 
 import json
 import logging
-import random
 
 try:
     from .easyuse_anima.aio.first_pass_cache import (
@@ -17,7 +16,6 @@ try:
         _put_aio_first_pass_cache as _put_aio_first_pass_cache,
     )
     from .easyuse_anima.aio.legacy_generation import (
-        _bind_aio_legacy_generation_runtime as _bind_aio_legacy_generation_runtime,
         _run_aio_detailer_stage as _run_aio_detailer_stage,
         _run_aio_detailer_target as _run_aio_detailer_target,
         _run_aio_highres_stage as _run_aio_highres_stage,
@@ -432,9 +430,6 @@ try:
         _common_upscale_image as _common_upscale_image,
         _node_output_tuple as _node_output_tuple,
     )
-    from .easyuse_anima.infrastructure.comfy.wiring import (
-        resolve_comfy_host_helper as _resolve_comfy_host_helper,
-    )
     from .easyuse_anima.infrastructure.comfy.resources import (
         # B-10b1 deliberately omits the retired root _comfy_checkpoint_names alias.
         _comfy_clip_loader_types as _adapter_comfy_clip_loader_types,
@@ -580,7 +575,6 @@ except ImportError:  # allows simple local import tests outside ComfyUI's packag
         _put_aio_first_pass_cache as _put_aio_first_pass_cache,
     )
     from easyuse_anima.aio.legacy_generation import (
-        _bind_aio_legacy_generation_runtime as _bind_aio_legacy_generation_runtime,
         _run_aio_detailer_stage as _run_aio_detailer_stage,
         _run_aio_detailer_target as _run_aio_detailer_target,
         _run_aio_highres_stage as _run_aio_highres_stage,
@@ -995,9 +989,6 @@ except ImportError:  # allows simple local import tests outside ComfyUI's packag
         _common_upscale_image as _common_upscale_image,
         _node_output_tuple as _node_output_tuple,
     )
-    from easyuse_anima.infrastructure.comfy.wiring import (
-        resolve_comfy_host_helper as _resolve_comfy_host_helper,
-    )
     from easyuse_anima.infrastructure.comfy.resources import (
         # B-10b1 deliberately omits the retired root _comfy_checkpoint_names alias.
         _comfy_clip_loader_types as _adapter_comfy_clip_loader_types,
@@ -1138,12 +1129,6 @@ EASY_USE_ANIMA_INPUT_TYPE = "EASY_USE_ANIMA_INPUT"
 _TRIGGER_WORD_KEYS = ("trainedWords", "trained_words", "trigger_words", "activation_text")
 
 
-_bind_aio_legacy_generation_runtime(
-    resolve_helper=lambda name: _resolve_comfy_host_helper(
-        name,
-        lambda fallback_name: globals()[fallback_name],
-    ),
-)
 _bind_aio_node_runtime(
     resolve_helper=lambda name: globals()[name],
 )

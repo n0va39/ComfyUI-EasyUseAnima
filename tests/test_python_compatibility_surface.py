@@ -79,7 +79,6 @@ RUNTIME_LOOKUP_CALLS = {
 PREAMBLE_IMPLEMENTATION_BINDINGS = {
     "json": "json:json",
     "logging": "logging:logging",
-    "random": "random:random",
 }
 PROMPT_SERVICE_RUNTIME_BINDERS = (
     "_bind_regional_runtime",
@@ -97,7 +96,6 @@ PROMPT_NODE_ADAPTER_RETIRED_RUNTIME_BINDERS = (
 )
 RUNTIME_BINDER_FAMILIES = {
     "aio": (
-        "_bind_aio_legacy_generation_runtime",
         "_bind_aio_node_runtime",
     ),
     "wildcard_naia": (
@@ -136,6 +134,7 @@ AIO_RUNTIME_RETIRED_SUBGROUPS = (
     "B-11c30d2_normalization_planning",
     "B-11c30d3_io_boundary",
     "B-11c30d4_execution_services",
+    "B-11c30d5_legacy_orchestration",
 )
 AIO_RUNTIME_PREREQUISITE_MOVES = (
     {
@@ -2314,6 +2313,7 @@ def _build_document() -> dict[str, Any]:
                 "B-11c30d3",
                 "B-11c30d4",
                 "B-11c30d0b",
+                "B-11c30d5",
             ],
         },
         "enums": {
@@ -2325,15 +2325,15 @@ def _build_document() -> dict[str, Any]:
         },
         "expected_counts": {
             "root_entrypoints": 3,
-            "excluded_preamble_implementation_bindings": 3,
-            "nodes_canonical_bindings": 293,
+            "excluded_preamble_implementation_bindings": 2,
+            "nodes_canonical_bindings": 291,
             "nodes_legacy_bindings": 27,
             "mapped_public_classes": 18,
             "unmapped_classes": 2,
             "root_residual_functions": 0,
             "root_residual_classes": 0,
             "root_residual_globals": 3,
-            "runtime_binders": 4,
+            "runtime_binders": 3,
             "direct_nodes_import_test_files": 21,
         },
         "mapped_public_classes": sorted(mapped_classes),
@@ -2565,7 +2565,7 @@ class PythonCompatibilitySurfaceTests(unittest.TestCase):
             len(self.document["direct_nodes_import_test_files"]),
             counts["direct_nodes_import_test_files"],
         )
-        self.assertEqual(len(set(self.document["runtime_binders"])), 4)
+        self.assertEqual(len(set(self.document["runtime_binders"])), 3)
         self.assertEqual(len(set(self.document["direct_nodes_import_test_files"])), 21)
 
     def test_runtime_binder_audit_covers_provider_and_root_names(self):
@@ -2573,35 +2573,29 @@ class PythonCompatibilitySurfaceTests(unittest.TestCase):
         self.assertEqual(
             audit["summary"],
             {
-                "binder_count": 4,
+                "binder_count": 3,
                 "family_count": 2,
                 "mode_counts": {
-                    "comfy_provider_then_root": 1,
+                    "comfy_provider_then_root": 0,
                     "root_globals": 1,
                     "explicit_callbacks": 2,
                 },
-                "unique_resolver_names": 84,
-                "unique_root_resolver_names": 82,
-                "unique_provider_resolver_names": 2,
-                "unique_direct_root_dependencies": 9,
-                "direct_root_dependency_slots": 10,
-                "provider_consumer_slots": 2,
-                "provider_consumer_modules": 1,
-                "repository_replacement_names": 69,
+                "unique_resolver_names": 29,
+                "unique_root_resolver_names": 29,
+                "unique_provider_resolver_names": 0,
+                "unique_direct_root_dependencies": 8,
+                "direct_root_dependency_slots": 9,
+                "provider_consumer_slots": 0,
+                "provider_consumer_modules": 0,
+                "repository_replacement_names": 32,
                 "repository_replacement_files": 5,
             },
         )
-        self.assertEqual(
-            audit["provider_resolver_names"],
-            [
-                "_encode_with_comfy_clip",
-                "_require_custom_node_class",
-            ],
-        )
+        self.assertEqual(audit["provider_resolver_names"], [])
         self.assertEqual(
             set(audit["root_resolver_names"])
             - set(self.document["runtime_resolver_consumers"]),
-            {"json", "random"},
+            {"json"},
         )
         self.assertTrue(
             set(self.document["runtime_resolver_consumers"]).issubset(
@@ -2689,14 +2683,6 @@ class PythonCompatibilitySurfaceTests(unittest.TestCase):
         self.assertEqual(
             summaries,
             {
-                "B-11c30d5_legacy_orchestration": {
-                    "root_resolver_slots": 58,
-                    "unique_root_resolver_names": 58,
-                    "provider_resolver_slots": 2,
-                    "direct_root_dependency_slots": 1,
-                    "repository_replacement_slots": 42,
-                    "unique_repository_replacement_names": 42,
-                },
                 "B-11c30d6_node_adapter": {
                     "root_resolver_slots": 29,
                     "unique_root_resolver_names": 29,
@@ -2784,6 +2770,9 @@ class PythonCompatibilitySurfaceTests(unittest.TestCase):
             "_bind_aio_first_pass_cache_runtime": (
                 "easyuse_anima.aio.first_pass_cache"
             ),
+            "_bind_aio_legacy_generation_runtime": (
+                "easyuse_anima.aio.legacy_generation"
+            ),
         }
         for binder, module in retired_modules.items():
             functions = {
@@ -2824,14 +2813,33 @@ class PythonCompatibilitySurfaceTests(unittest.TestCase):
             }.isdisjoint(self.document["runtime_resolver_consumers"])
         )
 
+    def test_aio_legacy_generation_runtime_resolver_is_retired(self):
+        tree = _read_tree(_module_path("easyuse_anima.aio.legacy_generation"))
+        top_level_names = {
+            target.id
+            for node in tree.body
+            if isinstance(node, (ast.Assign, ast.AnnAssign))
+            for target in (
+                node.targets
+                if isinstance(node, ast.Assign)
+                else [node.target]
+            )
+            if isinstance(target, ast.Name)
+        }
+        functions = {
+            node.name
+            for node in tree.body
+            if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))
+        }
+        self.assertNotIn("_RUNTIME_RESOLVER", top_level_names)
+        self.assertNotIn("_runtime_helper", functions)
+        self.assertNotIn("_bind_aio_legacy_generation_runtime", functions)
+
     def test_string_runtime_resolvers_keep_production_seams_transitional(self):
         representative = {
             "_run_aio_legacy_generation",
-            "_aio_first_pass_cache_key",
-            "_get_aio_first_pass_cache",
-            "_load_aio_resources_from_input_context",
-            "_sample_latent_with_aio_backend",
             "_aio_generation_settings_json",
+            "_resolve_aio_runtime_seed",
         }
         consumers = self.document["runtime_resolver_consumers"]
         classifications = {

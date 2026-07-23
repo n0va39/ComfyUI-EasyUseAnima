@@ -1001,6 +1001,32 @@ convenience-node compatibility; it remains unmapped and is not public support.
 - B-11c30d5 legacy orchestration is the next separate Move; d6, Wildcard/NAIA,
   #168/#169 Behavior, and final root-shim work remain outside PR #352.
 
+### B-11c30d5 AiO legacy-orchestration binder retirement
+
+- PR #353 retires exactly `_bind_aio_legacy_generation_runtime`, its single
+  `_RUNTIME_RESOLVER`, and `_runtime_helper`.
+- `easyuse_anima.aio.legacy_generation` imports the existing common, Prompt,
+  AiO, image, invocation, and node-adapter owners directly. Same-module stage
+  calls are direct, and JSON, logging, and random access are module-owned.
+- CLIP encoding and optional custom-node requirements still resolve through
+  the existing E-07 provider at call time. Their lookup order, lazy failure,
+  and exact feature errors are unchanged.
+- All seven legacy execution functions remain exact package/flat root aliases.
+  The d6 adapter remains the sole production consumer of
+  `_run_aio_legacy_generation` through its separate active resolver.
+- Tests patch the canonical consumer rather than installing and restoring a
+  process-global resolver. This removes cross-test resolver state while
+  preserving short circuits, cleanup order, metadata order, provider timing,
+  and the frozen legacy execution trace.
+- Three binders remain: d6 and the two Wildcard/NAIA callbacks. The audit now
+  contains 29 unique resolver/root names, no provider-resolver slot, and 32
+  repository replacement names across five files.
+- The compatibility inventory contains 291 canonical root bindings and three
+  residual root globals. The package remains at 93 shipped and reachable
+  Python modules, and the root shim is 1,147 lines.
+- B-11c30d6 is the next separate Move; Wildcard/NAIA, #168/#169 Behavior, and
+  final root-shim work remain outside PR #353.
+
 ### `nodes.py` public node-class surface
 
 The confirmed 0.5.2 mapped classes are:
