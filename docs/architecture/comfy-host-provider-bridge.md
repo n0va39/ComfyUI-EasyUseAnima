@@ -1009,7 +1009,7 @@ Forbidden:
 
 ### B-11c30 — Runtime binder/resolver migration audit
 
-- **State:** IN PROGRESS in PR #336
+- **State:** COMPLETE on `dev` in PR #336 / `02b8c4a`
 - **Owner:** #184/#188
 - **Type:** Contract/gate
 - **Production changes:** none
@@ -1090,6 +1090,72 @@ Planned cleanup sequence:
    slots in one PR.
 5. **B-11c30e Wildcard/NAIA:** two explicit-callback binders; keep separate from
    D-12 seed/Wildcard behavior and legacy engine consolidation.
+
+### B-11c30a — Image/SAM3/Impact binder retirement
+
+- **State:** IN PROGRESS
+- **Owner:** #184
+- **Type:** Move
+- **Base:** `dev@02b8c4a17b11011f1381c27cef6bd869b50f81bb`
+
+Pre-edit inventory:
+
+- root `nodes.py` imports three private binders in both package and flat-import
+  paths, then calls each binder once during module initialization:
+  `_bind_sam3_runtime`, `_bind_impact_detailer_node_runtime`, and
+  `_bind_sam3_node_runtime`;
+- those binders install eight canonical module globals: two SAM3 discovery
+  helpers, two Impact node input helpers, and four SAM3 node input/execution
+  helpers;
+- five slots are E-07 provider decisions:
+  `_find_comfy_node_class`, `_find_comfy_node_mapping_class`,
+  `_comfy_max_resolution` in two modules, and `_encode_with_comfy_clip`;
+- three slots are existing canonical root-name helpers:
+  `_impact_scheduler_names`, `_load_checkpoint_with_comfy`, and
+  `_preferred_checkpoint_default`;
+- all three root calls depend directly on `_resolve_comfy_host_helper`;
+- the consumers are SAM3 optional-node discovery, Impact Detailer input
+  construction, SAM3 context input/loading, and SAM3 prompt encoding;
+- repository tests replace two names that occur in this family,
+  `_impact_scheduler_names` and `_load_checkpoint_with_comfy`. This is test
+  migration evidence, not public root compatibility;
+- the binders mutate canonical module globals once at root import, while each
+  installed closure resolves its actual target at call time; and
+- the root aliases for the three non-provider helpers remain required by other
+  owner families and are not retirement targets in this lane.
+
+Allowed production files:
+
+```text
+nodes.py
+easyuse_anima/image/sam3.py
+easyuse_anima/nodes/impact_detailer_nodes.py
+easyuse_anima/nodes/sam3_nodes.py
+```
+
+Allowed supporting files are the focused SAM3/node-contract tests, the Python
+compatibility gate and fixture, and these architecture documents.
+
+Exit:
+
+- root no longer imports or calls the three family binders;
+- the canonical modules own their provider and direct-helper wiring without
+  importing root `nodes.py`;
+- E-07 provider decisions remain call-time and flat pre-bootstrap imports keep
+  the default-provider fallback;
+- the three non-provider targets keep their current canonical implementation,
+  return identity, exceptions, and call timing;
+- no bind-time mutable runtime installation remains in these three modules; and
+- node schema, workflow, SAM3/Impact behavior, optional dependency timing, and
+  public mappings remain unchanged.
+
+Forbidden:
+
+- changing provider protocol or lifecycle, detection/detailing behavior,
+  checkpoint semantics, input defaults, schemas, workflows, seed/stage/cache,
+  dependency discovery, or error text;
+- removing root aliases still consumed by AiO or another binder family; and
+- including LoRA, Prompt/Regional, AiO, or Wildcard/NAIA binder cleanup.
 
 ### B-11d — Final root shim
 
