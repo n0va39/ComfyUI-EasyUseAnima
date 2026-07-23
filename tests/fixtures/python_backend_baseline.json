@@ -4408,6 +4408,24 @@
         "source": "autocomplete_index.py"
       },
       {
+        "alias": "_seed",
+        "bound_name": "_seed",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".:seed",
+        "kind": "static_from",
+        "line": 3,
+        "name": "seed",
+        "optional": false,
+        "requested": ".",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/__init__.py",
+        "target": "easyuse_anima/seed/__init__.py"
+      },
+      {
         "alias": null,
         "bound_name": "annotations",
         "branch_context": [],
@@ -15652,6 +15670,143 @@
         "scope": "<module>",
         "source": "easyuse_anima/runtime.py",
         "target": "easyuse_anima/infrastructure/comfy/provider.py"
+      },
+      {
+        "alias": "_reservation",
+        "bound_name": "_reservation",
+        "branch_context": [],
+        "classification": "internal",
+        "column": 0,
+        "conditional": false,
+        "imported": ".:reservation",
+        "kind": "static_from",
+        "line": 3,
+        "name": "reservation",
+        "optional": false,
+        "requested": ".",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/seed/__init__.py",
+        "target": "easyuse_anima/seed/reservation.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "annotations",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "__future__:annotations",
+        "kind": "static_from",
+        "line": 4,
+        "name": "annotations",
+        "optional": false,
+        "requested": "__future__",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/seed/reservation.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "Mapping",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "collections.abc:Mapping",
+        "kind": "static_from",
+        "line": 6,
+        "name": "Mapping",
+        "optional": false,
+        "requested": "collections.abc",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/seed/reservation.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "dataclass",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "dataclasses:dataclass",
+        "kind": "static_from",
+        "line": 7,
+        "name": "dataclass",
+        "optional": false,
+        "requested": "dataclasses",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/seed/reservation.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "Literal",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "typing:Literal",
+        "kind": "static_from",
+        "line": 8,
+        "name": "Literal",
+        "optional": false,
+        "requested": "typing",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/seed/reservation.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "Protocol",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "typing:Protocol",
+        "kind": "static_from",
+        "line": 8,
+        "name": "Protocol",
+        "optional": false,
+        "requested": "typing",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/seed/reservation.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "TypeAlias",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "typing:TypeAlias",
+        "kind": "static_from",
+        "line": 8,
+        "name": "TypeAlias",
+        "optional": false,
+        "requested": "typing",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/seed/reservation.py"
+      },
+      {
+        "alias": null,
+        "bound_name": "cast",
+        "branch_context": [],
+        "classification": "external",
+        "column": 0,
+        "conditional": false,
+        "imported": "typing:cast",
+        "kind": "static_from",
+        "line": 8,
+        "name": "cast",
+        "optional": false,
+        "requested": "typing",
+        "role": "ordinary",
+        "scope": "<module>",
+        "source": "easyuse_anima/seed/reservation.py"
       },
       {
         "alias": null,
@@ -37416,6 +37571,10 @@
         "to": "storage.py"
       },
       {
+        "from": "easyuse_anima/__init__.py",
+        "to": "easyuse_anima/seed/__init__.py"
+      },
+      {
         "from": "easyuse_anima/aio/generation_detailer.py",
         "to": "easyuse_anima/aio/generation_sampling.py"
       },
@@ -37882,6 +38041,10 @@
       {
         "from": "easyuse_anima/runtime.py",
         "to": "easyuse_anima/infrastructure/comfy/provider.py"
+      },
+      {
+        "from": "easyuse_anima/seed/__init__.py",
+        "to": "easyuse_anima/seed/reservation.py"
       },
       {
         "from": "easyuse_anima/workflow.py",
@@ -38595,6 +38758,18 @@
       {
         "cyclic": false,
         "modules": [
+          "easyuse_anima/seed/__init__.py"
+        ]
+      },
+      {
+        "cyclic": false,
+        "modules": [
+          "easyuse_anima/seed/reservation.py"
+        ]
+      },
+      {
+        "cyclic": false,
+        "modules": [
           "easyuse_anima/workflow.py"
         ]
       },
@@ -38631,7 +38806,7 @@
     ]
   },
   "inventory": {
-    "module_count": 86,
+    "module_count": 88,
     "modules": [
       {
         "is_package": true,
@@ -38779,9 +38954,9 @@
       },
       {
         "is_package": true,
-        "loc": 3,
+        "loc": 5,
         "module": "easyuse_anima",
-        "normalized_git_blob_sha1": "9929d9f7b1b98cbd8ae63bae889e60307115c260",
+        "normalized_git_blob_sha1": "1a48bda62d3d234f97860f719e1af46410cd5371",
         "path": "easyuse_anima/__init__.py",
         "top_level": {
           "class_count": 0,
@@ -39591,6 +39766,30 @@
           "class_count": 1,
           "function_count": 2,
           "global_count": 2
+        }
+      },
+      {
+        "is_package": true,
+        "loc": 5,
+        "module": "easyuse_anima.seed",
+        "normalized_git_blob_sha1": "653d1c05aec0ab255562bf631fc9707071b5cc4e",
+        "path": "easyuse_anima/seed/__init__.py",
+        "top_level": {
+          "class_count": 0,
+          "function_count": 0,
+          "global_count": 1
+        }
+      },
+      {
+        "is_package": false,
+        "loc": 300,
+        "module": "easyuse_anima.seed.reservation",
+        "normalized_git_blob_sha1": "cba158be576da33aec0029813dedf9b06db53660",
+        "path": "easyuse_anima/seed/reservation.py",
+        "top_level": {
+          "class_count": 4,
+          "function_count": 6,
+          "global_count": 18
         }
       },
       {
@@ -51980,6 +52179,83 @@
         "conditional": false,
         "imported": "__future__:annotations",
         "kind": "static_from",
+        "line": 4,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/seed/reservation.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "collections.abc:Mapping",
+        "kind": "static_from",
+        "line": 6,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/seed/reservation.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "dataclasses:dataclass",
+        "kind": "static_from",
+        "line": 7,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/seed/reservation.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "typing:Literal",
+        "kind": "static_from",
+        "line": 8,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/seed/reservation.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "typing:Protocol",
+        "kind": "static_from",
+        "line": 8,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/seed/reservation.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "typing:TypeAlias",
+        "kind": "static_from",
+        "line": 8,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/seed/reservation.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "typing:cast",
+        "kind": "static_from",
+        "line": 8,
+        "optional": false,
+        "role": "ordinary",
+        "source": "easyuse_anima/seed/reservation.py"
+      },
+      {
+        "branch_context": [],
+        "classification": "external",
+        "conditional": false,
+        "imported": "__future__:annotations",
+        "kind": "static_from",
         "line": 3,
         "optional": false,
         "role": "ordinary",
@@ -53611,6 +53887,8 @@
       "easyuse_anima/prompt/regional.py",
       "easyuse_anima/registration.py",
       "easyuse_anima/runtime.py",
+      "easyuse_anima/seed/__init__.py",
+      "easyuse_anima/seed/reservation.py",
       "easyuse_anima/workflow.py",
       "nodes.py",
       "prompt_translation.py",
@@ -53699,6 +53977,8 @@
       "easyuse_anima/prompt/regional.py",
       "easyuse_anima/registration.py",
       "easyuse_anima/runtime.py",
+      "easyuse_anima/seed/__init__.py",
+      "easyuse_anima/seed/reservation.py",
       "easyuse_anima/workflow.py",
       "nodes.py",
       "prompt_translation.py",
@@ -54711,6 +54991,51 @@
         "scope": "<module>"
       },
       {
+        "callee": "frozenset",
+        "column": 18,
+        "context": "assign:SEED_SELECTIONS",
+        "kind": "import_time_call",
+        "line": 17,
+        "module": "easyuse_anima/seed/reservation.py",
+        "scope": "<module>"
+      },
+      {
+        "callee": "frozenset",
+        "column": 16,
+        "context": "assign:SEED_CONTROLS",
+        "kind": "import_time_call",
+        "line": 27,
+        "module": "easyuse_anima/seed/reservation.py",
+        "scope": "<module>"
+      },
+      {
+        "callee": "frozenset",
+        "column": 19,
+        "context": "assign:SEED_SETTLEMENTS",
+        "kind": "import_time_call",
+        "line": 39,
+        "module": "easyuse_anima/seed/reservation.py",
+        "scope": "<module>"
+      },
+      {
+        "callee": "dataclass",
+        "column": 1,
+        "context": "decorator:SeedReservationRequest",
+        "kind": "import_time_call",
+        "line": 112,
+        "module": "easyuse_anima/seed/reservation.py",
+        "scope": "<module>"
+      },
+      {
+        "callee": "dataclass",
+        "column": 1,
+        "context": "decorator:SeedReservation",
+        "kind": "import_time_call",
+        "line": 169,
+        "module": "easyuse_anima/seed/reservation.py",
+        "scope": "<module>"
+      },
+      {
         "callee": "logging.getLogger",
         "column": 9,
         "context": "assign:logger",
@@ -55364,6 +55689,12 @@
         "line": 73,
         "module": "easyuse_anima/registration.py",
         "name": "__all__"
+      },
+      {
+        "kind": "dict",
+        "line": 65,
+        "module": "easyuse_anima/seed/reservation.py",
+        "name": "_LEGACY_SELECTION_BY_SEED"
       },
       {
         "kind": "dict",
