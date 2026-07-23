@@ -8,10 +8,10 @@
 - Policy: [ADR-002](adr-002-compatibility-shims.md)
 - Machine-readable audit:
   [`python_compatibility_surface.v1.json`](../../tests/fixtures/python_compatibility_surface.v1.json)
-- Current state: B-11a through B-11c30c1 are integrated. B-11c is split into
+- Current state: B-11a through B-11c30c2 are integrated. B-11c is split into
   residual-owner Moves and explicit private-contract cleanup before the final
-  root shim; B-11c30c2 separates unblocked adapters from the #167/D-12 seed
-  reservation boundary.
+  root shim; B-11c30c2a retires the unblocked adapters while the #167/D-12 seed
+  reservation boundary remains blocked.
 
 This is an actionable registry, not a removal schedule. `N` means the first
 published Registry release containing both a canonical target and its root
@@ -76,8 +76,8 @@ inferring public support from spelling or test imports:
 - `nodes.py` preamble implementation imports: 5 (`json`, `logging`, `random`,
   `ceil`, and `sqrt`), excluded from compatibility classification
   by an exact AST allowlist and drift gate;
-- `nodes.py` bindings with an `easyuse_anima` canonical target: 283 in B-11c30c1
-  (258 at the integrated B-10b20 baseline), with exact
+- `nodes.py` bindings with an `easyuse_anima` canonical target: 281 in
+  B-11c30c2a (258 at the integrated B-10b20 baseline), with exact
   relative-package/flat-fallback parity;
 - bindings still owned by `anima_prompt`, `settings`, `prompt_translation`, or
   `wildcard_engine`: 27, with the same fallback parity;
@@ -87,8 +87,8 @@ inferring public support from spelling or test imports:
   owner module without a root alias or backend mapping;
 - root-owned residual implementation: 1 function, 0 classes, and 26 assigned
   globals in B-11c29b3 (41/2/33 at the integrated B-10b20 baseline).
-- import-time runtime binders: 18 exact top-level `_bind_*_runtime` calls;
-- root names reached by those canonical runtime resolvers: 243, including
+- import-time runtime binders: 16 exact top-level `_bind_*_runtime` calls;
+- root names reached by those canonical runtime resolvers: 232, including
   literal lookups and binder-owned helper-name/default collections;
 - retired private bindings: `_comfy_checkpoint_names`,
   `_EasyUseAnimaAlignedDetailerHook`, and
@@ -784,6 +784,24 @@ convenience-node compatibility; it remains unmapped and is not public support.
 - Test replacement evidence remains migration cost, not supported-public
   compatibility. Schema, workflow, mapped-class/input-type identity, provider
   timing, and wildcard seed payloads remain unchanged.
+
+### B-11c30c2a Prompt Data / Classic Prompt adapter binder retirement
+
+- Root no longer imports or invokes `_bind_prompt_data_node_runtime` or
+  `_bind_prompt_node_runtime`; their canonical definitions and bind-time
+  mutation state are absent.
+- Prompt Data imports its canonical prompt/AiO helpers directly and keeps CLIP
+  encoding behind the existing call-time E-07 provider. The Comfy host ledger
+  remains 22 slots across 15 modules.
+- Classic Prompt uses canonical common/prompt helpers and the existing
+  `anima_prompt`/`settings` fallback imports directly. Tests that previously
+  patched root only to drive either adapter now patch the adapter owner.
+- The remaining audit is 16 binders in three families: nine
+  provider-then-root, five root-only, and two explicit callbacks.
+- The two Advanced/Regional binders and
+  `_consume_reserved_wildcard_next_seed` stay unchanged under
+  B-11c30c2b/#167/D-12. No schema, saved-workflow, output, provider order,
+  optional-dependency timing, or wildcard seed behavior changes in this Move.
 
 ### `nodes.py` public node-class surface
 

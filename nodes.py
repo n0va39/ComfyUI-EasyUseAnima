@@ -347,7 +347,6 @@ try:
         EasyUseAnimaArtistMixConditioning as EasyUseAnimaArtistMixConditioning,
         EasyUseAnimaPromptDataConditioning as EasyUseAnimaPromptDataConditioning,
         EasyUseAnimaPromptDataUnpack as EasyUseAnimaPromptDataUnpack,
-        _bind_prompt_data_node_runtime as _bind_prompt_data_node_runtime,
     )
     from .easyuse_anima.nodes.input_types import (
         _ANY_TYPE as _ANY_TYPE,
@@ -435,7 +434,6 @@ try:
         EasyUseAnimaPromptCorrector as EasyUseAnimaPromptCorrector,
         EasyUseAnimaPromptCorrectorSimple as EasyUseAnimaPromptCorrectorSimple,
         EasyUseAnimaPromptStudio as EasyUseAnimaPromptStudio,
-        _bind_prompt_node_runtime as _bind_prompt_node_runtime,
     )
     from .easyuse_anima.nodes.regional_nodes import (
         EasyUseAnimaPromptStudioRegional as EasyUseAnimaPromptStudioRegional,
@@ -890,7 +888,6 @@ except ImportError:  # allows simple local import tests outside ComfyUI's packag
         EasyUseAnimaArtistMixConditioning as EasyUseAnimaArtistMixConditioning,
         EasyUseAnimaPromptDataConditioning as EasyUseAnimaPromptDataConditioning,
         EasyUseAnimaPromptDataUnpack as EasyUseAnimaPromptDataUnpack,
-        _bind_prompt_data_node_runtime as _bind_prompt_data_node_runtime,
     )
     from easyuse_anima.nodes.input_types import (
         _ANY_TYPE as _ANY_TYPE,
@@ -978,7 +975,6 @@ except ImportError:  # allows simple local import tests outside ComfyUI's packag
         EasyUseAnimaPromptCorrector as EasyUseAnimaPromptCorrector,
         EasyUseAnimaPromptCorrectorSimple as EasyUseAnimaPromptCorrectorSimple,
         EasyUseAnimaPromptStudio as EasyUseAnimaPromptStudio,
-        _bind_prompt_node_runtime as _bind_prompt_node_runtime,
     )
     from easyuse_anima.nodes.regional_nodes import (
         EasyUseAnimaPromptStudioRegional as EasyUseAnimaPromptStudioRegional,
@@ -1737,15 +1733,6 @@ _bind_prompt_advanced_node_runtime(
     flexible_optional_input_type=_FlexibleOptionalInputType,
 )
 _bind_aio_node_runtime(
-    resolve_helper=lambda name: globals()[name],
-)
-_bind_prompt_data_node_runtime(
-    resolve_helper=lambda name: _resolve_comfy_host_helper(
-        name,
-        lambda fallback_name: globals()[fallback_name],
-    ),
-)
-_bind_prompt_node_runtime(
     resolve_helper=lambda name: globals()[name],
 )
 _bind_wildcard_node_runtime(

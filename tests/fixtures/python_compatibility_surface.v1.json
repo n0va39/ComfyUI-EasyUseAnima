@@ -70,7 +70,8 @@
       "B-11c30b",
       "B-11c30c",
       "B-11c30c1",
-      "B-11c30c2"
+      "B-11c30c2",
+      "B-11c30c2a"
     ]
   },
   "enums": {
@@ -105,14 +106,14 @@
   "expected_counts": {
     "root_entrypoints": 3,
     "excluded_preamble_implementation_bindings": 5,
-    "nodes_canonical_bindings": 283,
+    "nodes_canonical_bindings": 281,
     "nodes_legacy_bindings": 27,
     "mapped_public_classes": 18,
     "unmapped_classes": 2,
     "root_residual_functions": 1,
     "root_residual_classes": 0,
     "root_residual_globals": 26,
-    "runtime_binders": 18,
+    "runtime_binders": 16,
     "direct_nodes_import_test_files": 21
   },
   "mapped_public_classes": [
@@ -161,8 +162,6 @@
     "_bind_regional_node_runtime",
     "_bind_prompt_advanced_node_runtime",
     "_bind_aio_node_runtime",
-    "_bind_prompt_data_node_runtime",
-    "_bind_prompt_node_runtime",
     "_bind_wildcard_node_runtime",
     "_bind_naia_node_runtime"
   ],
@@ -385,8 +384,7 @@
       "easyuse_anima.nodes.prompt_advanced_nodes"
     ],
     "_advanced_outputs_from_prompt_data": [
-      "easyuse_anima.aio.legacy_generation",
-      "easyuse_anima.nodes.prompt_data_nodes"
+      "easyuse_anima.aio.legacy_generation"
     ],
     "_advanced_resolution_from_selection": [
       "easyuse_anima.nodes.prompt_advanced_nodes",
@@ -499,25 +497,14 @@
     "_apply_aio_spectrum_model_patches_for_comfy_sampler": [
       "easyuse_anima.aio.legacy_generation"
     ],
-    "_apply_prompt_data_overrides": [
-      "easyuse_anima.nodes.prompt_data_nodes"
-    ],
     "_apply_regional_field_inputs": [
       "easyuse_anima.nodes.regional_nodes"
     ],
     "_apply_spectrum_anima_mod_guidance": [
-      "easyuse_anima.aio.legacy_generation",
-      "easyuse_anima.nodes.prompt_data_nodes"
-    ],
-    "_artist_mix_inline_prompt": [
-      "easyuse_anima.nodes.prompt_data_nodes"
+      "easyuse_anima.aio.legacy_generation"
     ],
     "_artist_mix_mode_tooltip": [
-      "easyuse_anima.nodes.prompt_advanced_nodes",
-      "easyuse_anima.nodes.prompt_data_nodes"
-    ],
-    "_artist_prompt_with_position": [
-      "easyuse_anima.nodes.prompt_data_nodes"
+      "easyuse_anima.nodes.prompt_advanced_nodes"
     ],
     "_as_bool": [
       "easyuse_anima.aio.conditioning",
@@ -529,8 +516,6 @@
       "easyuse_anima.aio.sampling",
       "easyuse_anima.aio.usdu",
       "easyuse_anima.nodes.prompt_advanced_nodes",
-      "easyuse_anima.nodes.prompt_data_nodes",
-      "easyuse_anima.nodes.prompt_nodes",
       "easyuse_anima.nodes.regional_nodes"
     ],
     "_as_float": [
@@ -555,13 +540,11 @@
     ],
     "_bounded_artist_mix_float": [
       "easyuse_anima.aio.generation_normalization",
-      "easyuse_anima.nodes.prompt_advanced_nodes",
-      "easyuse_anima.nodes.prompt_data_nodes"
+      "easyuse_anima.nodes.prompt_advanced_nodes"
     ],
     "_bounded_artist_mix_int": [
       "easyuse_anima.aio.generation_normalization",
-      "easyuse_anima.nodes.prompt_advanced_nodes",
-      "easyuse_anima.nodes.prompt_data_nodes"
+      "easyuse_anima.nodes.prompt_advanced_nodes"
     ],
     "_build_advanced_prompt_data": [
       "easyuse_anima.nodes.prompt_advanced_nodes"
@@ -629,9 +612,6 @@
     "_correct_advanced_field_sequence": [
       "easyuse_anima.aio.conditioning"
     ],
-    "_correct_builder_prompt": [
-      "easyuse_anima.nodes.prompt_nodes"
-    ],
     "_decode_latent_with_comfy": [
       "easyuse_anima.aio.legacy_generation"
     ],
@@ -642,15 +622,11 @@
       "easyuse_anima.aio.legacy_generation"
     ],
     "_encode_prompt_data_positive_conditioning": [
-      "easyuse_anima.aio.legacy_generation",
-      "easyuse_anima.nodes.prompt_data_nodes"
+      "easyuse_anima.aio.legacy_generation"
     ],
     "_expand_advanced_wildcard_fields": [
       "easyuse_anima.nodes.prompt_advanced_nodes",
       "easyuse_anima.nodes.regional_nodes"
-    ],
-    "_filter_metadata_prompt": [
-      "easyuse_anima.nodes.prompt_nodes"
     ],
     "_folder_path_names": [
       "easyuse_anima.aio.resources"
@@ -659,8 +635,7 @@
       "easyuse_anima.aio.output"
     ],
     "_generate_empty_latent_with_comfy": [
-      "easyuse_anima.aio.legacy_generation",
-      "easyuse_anima.nodes.prompt_data_nodes"
+      "easyuse_anima.aio.legacy_generation"
     ],
     "_get_aio_first_pass_cache": [
       "easyuse_anima.aio.legacy_generation"
@@ -680,13 +655,6 @@
     ],
     "_is_aio_detailer_target_name": [
       "easyuse_anima.aio.generation_normalization"
-    ],
-    "_join_artist_mix_source_prompts": [
-      "easyuse_anima.nodes.prompt_data_nodes"
-    ],
-    "_join_prompt_tokens": [
-      "easyuse_anima.nodes.prompt_data_nodes",
-      "easyuse_anima.nodes.prompt_nodes"
     ],
     "_json_clone": [
       "easyuse_anima.aio.generation_normalization",
@@ -768,15 +736,10 @@
     "_normalize_anima_mod_guidance_profile": [
       "easyuse_anima.aio.generation_normalization",
       "easyuse_anima.aio.legacy_generation",
-      "easyuse_anima.aio.sampling",
-      "easyuse_anima.nodes.prompt_data_nodes"
+      "easyuse_anima.aio.sampling"
     ],
     "_normalize_artist_mix_mode": [
-      "easyuse_anima.nodes.prompt_advanced_nodes",
-      "easyuse_anima.nodes.prompt_data_nodes"
-    ],
-    "_normalize_artist_tag_position": [
-      "easyuse_anima.nodes.prompt_data_nodes"
+      "easyuse_anima.nodes.prompt_advanced_nodes"
     ],
     "_normalize_mask_ids": [
       "easyuse_anima.nodes.regional_nodes"
@@ -784,8 +747,7 @@
     "_normalize_prompt_data": [
       "easyuse_anima.aio.conditioning",
       "easyuse_anima.aio.legacy_generation",
-      "easyuse_anima.nodes.aio_nodes",
-      "easyuse_anima.nodes.prompt_data_nodes"
+      "easyuse_anima.nodes.aio_nodes"
     ],
     "_normalize_prompt_studio_wildcard_seed_control": [
       "easyuse_anima.nodes.prompt_advanced_nodes",
@@ -827,7 +789,6 @@
     ],
     "_prompt_translation_change_key": [
       "easyuse_anima.nodes.prompt_advanced_nodes",
-      "easyuse_anima.nodes.prompt_nodes",
       "easyuse_anima.nodes.regional_nodes"
     ],
     "_put_aio_first_pass_cache": [
@@ -865,8 +826,7 @@
       "easyuse_anima.nodes.aio_nodes"
     ],
     "_resolve_anima_mod_guidance_enabled": [
-      "easyuse_anima.aio.legacy_generation",
-      "easyuse_anima.nodes.prompt_data_nodes"
+      "easyuse_anima.aio.legacy_generation"
     ],
     "_resolve_naia_resolution": [
       "easyuse_anima.nodes.prompt_advanced_nodes"
@@ -938,15 +898,10 @@
       "easyuse_anima.nodes.prompt_advanced_nodes",
       "easyuse_anima.nodes.regional_nodes"
     ],
-    "_split_tag_text": [
-      "easyuse_anima.nodes.prompt_nodes"
-    ],
     "_stable_change_key": [
       "easyuse_anima.aio.first_pass_cache",
       "easyuse_anima.nodes.aio_nodes",
       "easyuse_anima.nodes.prompt_advanced_nodes",
-      "easyuse_anima.nodes.prompt_data_nodes",
-      "easyuse_anima.nodes.prompt_nodes",
       "easyuse_anima.nodes.regional_nodes"
     ],
     "_tag_aio_preview_images": [
@@ -958,14 +913,7 @@
       "easyuse_anima.nodes.regional_nodes"
     ],
     "_translate_prompt_text": [
-      "easyuse_anima.nodes.prompt_advanced_nodes",
-      "easyuse_anima.nodes.prompt_nodes"
-    ],
-    "correct_prompt": [
-      "easyuse_anima.nodes.prompt_nodes"
-    ],
-    "load_knowledge_base": [
-      "easyuse_anima.nodes.prompt_nodes"
+      "easyuse_anima.nodes.prompt_advanced_nodes"
     ],
     "logger": [
       "easyuse_anima.aio.legacy_generation",
@@ -988,7 +936,6 @@
     ],
     "resolve_metadata_filter_words": [
       "easyuse_anima.nodes.prompt_advanced_nodes",
-      "easyuse_anima.nodes.prompt_nodes",
       "easyuse_anima.nodes.regional_nodes"
     ],
     "resolve_naia_settings": [
@@ -1001,21 +948,21 @@
   },
   "runtime_binder_audit": {
     "summary": {
-      "binder_count": 18,
+      "binder_count": 16,
       "family_count": 3,
       "mode_counts": {
-        "comfy_provider_then_root": 10,
-        "root_globals": 6,
+        "comfy_provider_then_root": 9,
+        "root_globals": 5,
         "explicit_callbacks": 2
       },
-      "unique_resolver_names": 248,
-      "unique_root_resolver_names": 243,
+      "unique_resolver_names": 237,
+      "unique_root_resolver_names": 232,
       "unique_provider_resolver_names": 5,
       "unique_direct_root_dependencies": 10,
-      "direct_root_dependency_slots": 21,
-      "provider_consumer_slots": 15,
-      "provider_consumer_modules": 10,
-      "repository_replacement_names": 148,
+      "direct_root_dependency_slots": 20,
+      "provider_consumer_slots": 14,
+      "provider_consumer_modules": 9,
+      "repository_replacement_names": 142,
       "repository_replacement_files": 18
     },
     "families": {
@@ -1035,9 +982,7 @@
       ],
       "prompt_node_adapters": [
         "_bind_regional_node_runtime",
-        "_bind_prompt_advanced_node_runtime",
-        "_bind_prompt_data_node_runtime",
-        "_bind_prompt_node_runtime"
+        "_bind_prompt_advanced_node_runtime"
       ],
       "wildcard_naia": [
         "_bind_wildcard_node_runtime",
@@ -1149,12 +1094,9 @@
       "_apply_aio_spectrum_correction_patch_for_comfy_sampler",
       "_apply_aio_spectrum_forecast_patch_for_comfy_sampler",
       "_apply_aio_spectrum_model_patches_for_comfy_sampler",
-      "_apply_prompt_data_overrides",
       "_apply_regional_field_inputs",
       "_apply_spectrum_anima_mod_guidance",
-      "_artist_mix_inline_prompt",
       "_artist_mix_mode_tooltip",
-      "_artist_prompt_with_position",
       "_as_bool",
       "_as_float",
       "_as_int",
@@ -1181,13 +1123,11 @@
       "_context_value",
       "_copy_prompt_data_for_update",
       "_correct_advanced_field_sequence",
-      "_correct_builder_prompt",
       "_decode_latent_with_comfy",
       "_easy_use_anima_input_signature",
       "_encode_image_with_comfy_vae",
       "_encode_prompt_data_positive_conditioning",
       "_expand_advanced_wildcard_fields",
-      "_filter_metadata_prompt",
       "_folder_path_names",
       "_format_strength",
       "_generate_empty_latent_with_comfy",
@@ -1196,8 +1136,6 @@
       "_image_tensor_size",
       "_impact_scheduler_names",
       "_is_aio_detailer_target_name",
-      "_join_artist_mix_source_prompts",
-      "_join_prompt_tokens",
       "_json_clone",
       "_json_object",
       "_load_aio_resources_from_input_context",
@@ -1222,7 +1160,6 @@
       "_normalize_aio_spectrum_settings",
       "_normalize_anima_mod_guidance_profile",
       "_normalize_artist_mix_mode",
-      "_normalize_artist_tag_position",
       "_normalize_mask_ids",
       "_normalize_prompt_data",
       "_normalize_prompt_studio_wildcard_seed_control",
@@ -1270,15 +1207,12 @@
       "_send_aio_preview_event",
       "_set_naia_field_text",
       "_single_value",
-      "_split_tag_text",
       "_stable_change_key",
       "_tag_aio_preview_images",
       "_translate_prompt_fields",
       "_translate_prompt_text",
       "ceil",
-      "correct_prompt",
       "json",
-      "load_knowledge_base",
       "logger",
       "next_seed",
       "normalize_prompt_studio_wildcard_mode",
@@ -1549,9 +1483,6 @@
       "_copy_prompt_data_for_update": [
         "tests/test_aio_nodes.py"
       ],
-      "_correct_builder_prompt": [
-        "tests/test_node_contracts.py"
-      ],
       "_decode_latent_with_comfy": [
         "tests/test_aio_legacy_generation.py",
         "tests/test_aio_nodes.py"
@@ -1567,9 +1498,6 @@
         "tests/test_aio_legacy_generation.py",
         "tests/test_aio_nodes.py"
       ],
-      "_filter_metadata_prompt": [
-        "tests/test_node_contracts.py"
-      ],
       "_folder_path_names": [
         "tests/test_comfy_adapters.py",
         "tests/test_node_contracts.py"
@@ -1579,8 +1507,7 @@
       ],
       "_generate_empty_latent_with_comfy": [
         "tests/test_aio_legacy_generation.py",
-        "tests/test_aio_nodes.py",
-        "tests/test_prompt_corrector.py"
+        "tests/test_aio_nodes.py"
       ],
       "_get_aio_first_pass_cache": [
         "tests/test_aio_legacy_generation.py"
@@ -1600,9 +1527,6 @@
         "tests/test_node_contracts.py"
       ],
       "_is_aio_detailer_target_name": [
-        "tests/test_node_contracts.py"
-      ],
-      "_join_prompt_tokens": [
         "tests/test_node_contracts.py"
       ],
       "_json_clone": [
@@ -1773,22 +1697,13 @@
         "tests/test_aio_legacy_generation.py",
         "tests/test_aio_preview.py"
       ],
-      "_translate_prompt_text": [
-        "tests/test_node_contracts.py"
-      ],
       "ceil": [
-        "tests/test_node_contracts.py"
-      ],
-      "correct_prompt": [
         "tests/test_node_contracts.py"
       ],
       "expand_wildcards": [
         "tests/test_wildcards.py"
       ],
       "json": [
-        "tests/test_node_contracts.py"
-      ],
-      "load_knowledge_base": [
         "tests/test_node_contracts.py"
       ],
       "logger": [
@@ -1802,8 +1717,7 @@
         "tests/test_node_contracts.py"
       ],
       "resolve_metadata_filter_words": [
-        "tests/test_node_contracts.py",
-        "tests/test_prompt_corrector.py"
+        "tests/test_node_contracts.py"
       ],
       "resolve_naia_settings": [
         "tests/test_naia_settings.py",
@@ -3003,7 +2917,6 @@
           "_prompt_translation_change_key",
           "_single_value",
           "_stable_change_key",
-          "_translate_prompt_text",
           "next_seed",
           "resolve_metadata_filter_words",
           "resolve_naia_settings",
@@ -3119,143 +3032,6 @@
           "_run_aio_legacy_generation",
           "_stable_change_key",
           "json"
-        ]
-      },
-      {
-        "binder": "_bind_prompt_data_node_runtime",
-        "module": "easyuse_anima.nodes.prompt_data_nodes",
-        "family": "prompt_node_adapters",
-        "mode": "comfy_provider_then_root",
-        "root_observation": "call_time_resolver",
-        "root_keywords": [
-          "resolve_helper"
-        ],
-        "bound_globals": [
-          "_RUNTIME_RESOLVER"
-        ],
-        "direct_root_dependencies": [
-          "_resolve_comfy_host_helper"
-        ],
-        "resolver_names": [
-          "_advanced_outputs_from_prompt_data",
-          "_apply_prompt_data_overrides",
-          "_apply_spectrum_anima_mod_guidance",
-          "_artist_mix_inline_prompt",
-          "_artist_mix_mode_tooltip",
-          "_artist_prompt_with_position",
-          "_as_bool",
-          "_bounded_artist_mix_float",
-          "_bounded_artist_mix_int",
-          "_encode_prompt_data_positive_conditioning",
-          "_encode_with_comfy_clip",
-          "_generate_empty_latent_with_comfy",
-          "_join_artist_mix_source_prompts",
-          "_join_prompt_tokens",
-          "_normalize_anima_mod_guidance_profile",
-          "_normalize_artist_mix_mode",
-          "_normalize_artist_tag_position",
-          "_normalize_prompt_data",
-          "_resolve_anima_mod_guidance_enabled",
-          "_stable_change_key"
-        ],
-        "root_resolver_names": [
-          "_advanced_outputs_from_prompt_data",
-          "_apply_prompt_data_overrides",
-          "_apply_spectrum_anima_mod_guidance",
-          "_artist_mix_inline_prompt",
-          "_artist_mix_mode_tooltip",
-          "_artist_prompt_with_position",
-          "_as_bool",
-          "_bounded_artist_mix_float",
-          "_bounded_artist_mix_int",
-          "_encode_prompt_data_positive_conditioning",
-          "_generate_empty_latent_with_comfy",
-          "_join_artist_mix_source_prompts",
-          "_join_prompt_tokens",
-          "_normalize_anima_mod_guidance_profile",
-          "_normalize_artist_mix_mode",
-          "_normalize_artist_tag_position",
-          "_normalize_prompt_data",
-          "_resolve_anima_mod_guidance_enabled",
-          "_stable_change_key"
-        ],
-        "provider_resolver_names": [
-          "_encode_with_comfy_clip"
-        ],
-        "repository_replacement_names": [
-          "_advanced_outputs_from_prompt_data",
-          "_apply_spectrum_anima_mod_guidance",
-          "_as_bool",
-          "_encode_prompt_data_positive_conditioning",
-          "_generate_empty_latent_with_comfy",
-          "_join_prompt_tokens",
-          "_normalize_anima_mod_guidance_profile",
-          "_normalize_prompt_data",
-          "_resolve_anima_mod_guidance_enabled",
-          "_stable_change_key"
-        ]
-      },
-      {
-        "binder": "_bind_prompt_node_runtime",
-        "module": "easyuse_anima.nodes.prompt_nodes",
-        "family": "prompt_node_adapters",
-        "mode": "root_globals",
-        "root_observation": "call_time_resolver",
-        "root_keywords": [
-          "resolve_helper"
-        ],
-        "bound_globals": [
-          "_as_bool",
-          "_correct_builder_prompt",
-          "_filter_metadata_prompt",
-          "_join_prompt_tokens",
-          "_prompt_translation_change_key",
-          "_split_tag_text",
-          "_stable_change_key",
-          "_translate_prompt_text",
-          "correct_prompt",
-          "load_knowledge_base",
-          "resolve_metadata_filter_words"
-        ],
-        "direct_root_dependencies": [],
-        "resolver_names": [
-          "_as_bool",
-          "_correct_builder_prompt",
-          "_filter_metadata_prompt",
-          "_join_prompt_tokens",
-          "_prompt_translation_change_key",
-          "_split_tag_text",
-          "_stable_change_key",
-          "_translate_prompt_text",
-          "correct_prompt",
-          "load_knowledge_base",
-          "resolve_metadata_filter_words"
-        ],
-        "root_resolver_names": [
-          "_as_bool",
-          "_correct_builder_prompt",
-          "_filter_metadata_prompt",
-          "_join_prompt_tokens",
-          "_prompt_translation_change_key",
-          "_split_tag_text",
-          "_stable_change_key",
-          "_translate_prompt_text",
-          "correct_prompt",
-          "load_knowledge_base",
-          "resolve_metadata_filter_words"
-        ],
-        "provider_resolver_names": [],
-        "repository_replacement_names": [
-          "_as_bool",
-          "_correct_builder_prompt",
-          "_filter_metadata_prompt",
-          "_join_prompt_tokens",
-          "_prompt_translation_change_key",
-          "_stable_change_key",
-          "_translate_prompt_text",
-          "correct_prompt",
-          "load_knowledge_base",
-          "resolve_metadata_filter_words"
         ]
       },
       {
@@ -4574,16 +4350,14 @@
         "canonical runtime resolver: easyuse_anima.aio.legacy_generation",
         "canonical runtime resolver: easyuse_anima.aio.output",
         "canonical runtime resolver: easyuse_anima.aio.sampling",
-        "canonical runtime resolver: easyuse_anima.nodes.aio_nodes",
-        "canonical runtime resolver: easyuse_anima.nodes.prompt_data_nodes"
+        "canonical runtime resolver: easyuse_anima.nodes.aio_nodes"
       ],
       "evidence": [
         "AST:nodes.py direct runtime load",
         "AST:easyuse_anima.aio.legacy_generation string runtime lookup",
         "AST:easyuse_anima.aio.output string runtime lookup",
         "AST:easyuse_anima.aio.sampling string runtime lookup",
-        "AST:easyuse_anima.nodes.aio_nodes string runtime lookup",
-        "AST:easyuse_anima.nodes.prompt_data_nodes string runtime lookup"
+        "AST:easyuse_anima.nodes.aio_nodes string runtime lookup"
       ],
       "removal_gates": [
         "canonical production consumer migration",
@@ -4649,8 +4423,6 @@
         "canonical runtime resolver: easyuse_anima.aio.sampling",
         "canonical runtime resolver: easyuse_anima.nodes.aio_nodes",
         "canonical runtime resolver: easyuse_anima.nodes.prompt_advanced_nodes",
-        "canonical runtime resolver: easyuse_anima.nodes.prompt_data_nodes",
-        "canonical runtime resolver: easyuse_anima.nodes.prompt_nodes",
         "canonical runtime resolver: easyuse_anima.nodes.regional_nodes"
       ],
       "evidence": [
@@ -4659,8 +4431,6 @@
         "AST:easyuse_anima.aio.sampling string runtime lookup",
         "AST:easyuse_anima.nodes.aio_nodes string runtime lookup",
         "AST:easyuse_anima.nodes.prompt_advanced_nodes string runtime lookup",
-        "AST:easyuse_anima.nodes.prompt_data_nodes string runtime lookup",
-        "AST:easyuse_anima.nodes.prompt_nodes string runtime lookup",
         "AST:easyuse_anima.nodes.regional_nodes string runtime lookup"
       ],
       "removal_gates": [
@@ -4702,8 +4472,6 @@
         "canonical runtime resolver: easyuse_anima.aio.sampling",
         "canonical runtime resolver: easyuse_anima.aio.usdu",
         "canonical runtime resolver: easyuse_anima.nodes.prompt_advanced_nodes",
-        "canonical runtime resolver: easyuse_anima.nodes.prompt_data_nodes",
-        "canonical runtime resolver: easyuse_anima.nodes.prompt_nodes",
         "canonical runtime resolver: easyuse_anima.nodes.regional_nodes"
       ],
       "evidence": [
@@ -4719,8 +4487,6 @@
         "AST:easyuse_anima.aio.sampling string runtime lookup",
         "AST:easyuse_anima.aio.usdu string runtime lookup",
         "AST:easyuse_anima.nodes.prompt_advanced_nodes string runtime lookup",
-        "AST:easyuse_anima.nodes.prompt_data_nodes string runtime lookup",
-        "AST:easyuse_anima.nodes.prompt_nodes string runtime lookup",
         "AST:easyuse_anima.nodes.regional_nodes string runtime lookup"
       ],
       "removal_gates": [
@@ -5518,34 +5284,6 @@
       "lifecycle_state": "supported"
     },
     {
-      "id": "nodes_canonical_bindings:easyuse_anima.nodes.prompt_data_nodes:transitional_private_seam",
-      "surface": "nodes_canonical_bindings",
-      "symbols": {
-        "_bind_prompt_data_node_runtime": "_bind_prompt_data_node_runtime"
-      },
-      "classification": "transitional_private_seam",
-      "current_target": "nodes.py",
-      "canonical_target": "easyuse_anima.nodes.prompt_data_nodes",
-      "target_state": "canonical",
-      "identity_requirement": "required",
-      "binding_shape": "direct_import",
-      "import_target": "easyuse_anima.nodes.prompt_data_nodes",
-      "owner": "#184/#188",
-      "first_release": null,
-      "known_consumers": [
-        "nodes.py residual runtime"
-      ],
-      "evidence": [
-        "AST:nodes.py direct runtime load"
-      ],
-      "removal_gates": [
-        "canonical production consumer migration",
-        "focused monkeypatch and identity contract review",
-        "separate B-10b or B-11 rollback unit"
-      ],
-      "lifecycle_state": "transitional"
-    },
-    {
       "id": "nodes_canonical_bindings:easyuse_anima.nodes.prompt_nodes:supported_public_reexport",
       "surface": "nodes_canonical_bindings",
       "symbols": {
@@ -5577,34 +5315,6 @@
         "mapping, workflow, and direct identity parity"
       ],
       "lifecycle_state": "supported"
-    },
-    {
-      "id": "nodes_canonical_bindings:easyuse_anima.nodes.prompt_nodes:transitional_private_seam",
-      "surface": "nodes_canonical_bindings",
-      "symbols": {
-        "_bind_prompt_node_runtime": "_bind_prompt_node_runtime"
-      },
-      "classification": "transitional_private_seam",
-      "current_target": "nodes.py",
-      "canonical_target": "easyuse_anima.nodes.prompt_nodes",
-      "target_state": "canonical",
-      "identity_requirement": "required",
-      "binding_shape": "direct_import",
-      "import_target": "easyuse_anima.nodes.prompt_nodes",
-      "owner": "#184/#188",
-      "first_release": null,
-      "known_consumers": [
-        "nodes.py residual runtime"
-      ],
-      "evidence": [
-        "AST:nodes.py direct runtime load"
-      ],
-      "removal_gates": [
-        "canonical production consumer migration",
-        "focused monkeypatch and identity contract review",
-        "separate B-10b or B-11 rollback unit"
-      ],
-      "lifecycle_state": "transitional"
     },
     {
       "id": "nodes_canonical_bindings:easyuse_anima.nodes.regional_nodes:supported_public_reexport",
@@ -5848,15 +5558,11 @@
         "ARTIST_MIX_DEFAULT_STYLE_GAIN": "ARTIST_MIX_DEFAULT_STYLE_GAIN",
         "ARTIST_MIX_INPUT_MODES": "ARTIST_MIX_INPUT_MODES",
         "ARTIST_MIX_MODE_FROM_PROMPT_DATA": "ARTIST_MIX_MODE_FROM_PROMPT_DATA",
-        "_artist_mix_inline_prompt": "_artist_mix_inline_prompt",
         "_artist_mix_mode_tooltip": "_artist_mix_mode_tooltip",
-        "_artist_prompt_with_position": "_artist_prompt_with_position",
         "_bounded_artist_mix_float": "_bounded_artist_mix_float",
         "_bounded_artist_mix_int": "_bounded_artist_mix_int",
         "_encode_prompt_data_positive_conditioning": "_encode_prompt_data_positive_conditioning",
-        "_join_artist_mix_source_prompts": "_join_artist_mix_source_prompts",
-        "_normalize_artist_mix_mode": "_normalize_artist_mix_mode",
-        "_normalize_artist_tag_position": "_normalize_artist_tag_position"
+        "_normalize_artist_mix_mode": "_normalize_artist_mix_mode"
       },
       "classification": "transitional_private_seam",
       "current_target": "nodes.py",
@@ -5871,15 +5577,13 @@
         "nodes.py residual runtime",
         "canonical runtime resolver: easyuse_anima.aio.generation_normalization",
         "canonical runtime resolver: easyuse_anima.aio.legacy_generation",
-        "canonical runtime resolver: easyuse_anima.nodes.prompt_advanced_nodes",
-        "canonical runtime resolver: easyuse_anima.nodes.prompt_data_nodes"
+        "canonical runtime resolver: easyuse_anima.nodes.prompt_advanced_nodes"
       ],
       "evidence": [
         "AST:nodes.py direct runtime load",
         "AST:easyuse_anima.aio.generation_normalization string runtime lookup",
         "AST:easyuse_anima.aio.legacy_generation string runtime lookup",
-        "AST:easyuse_anima.nodes.prompt_advanced_nodes string runtime lookup",
-        "AST:easyuse_anima.nodes.prompt_data_nodes string runtime lookup"
+        "AST:easyuse_anima.nodes.prompt_advanced_nodes string runtime lookup"
       ],
       "removal_gates": [
         "canonical production consumer migration",
@@ -5892,10 +5596,14 @@
       "id": "nodes_canonical_bindings:easyuse_anima.prompt.artist_mix:unsupported_test_only",
       "surface": "nodes_canonical_bindings",
       "symbols": {
+        "_artist_mix_inline_prompt": "_artist_mix_inline_prompt",
+        "_artist_prompt_with_position": "_artist_prompt_with_position",
         "_artist_tags_from_prompt": "_artist_tags_from_prompt",
         "_blend_conditionings": "_blend_conditionings",
         "_encode_artist_clustered": "_encode_artist_clustered",
         "_encode_artist_delta_rms": "_encode_artist_delta_rms",
+        "_join_artist_mix_source_prompts": "_join_artist_mix_source_prompts",
+        "_normalize_artist_tag_position": "_normalize_artist_tag_position",
         "_parse_artist_mix_items": "_parse_artist_mix_items"
       },
       "classification": "unsupported_test_only",
@@ -5946,15 +5654,13 @@
         "nodes.py residual runtime",
         "canonical runtime resolver: easyuse_anima.aio.generation_normalization",
         "canonical runtime resolver: easyuse_anima.aio.legacy_generation",
-        "canonical runtime resolver: easyuse_anima.aio.sampling",
-        "canonical runtime resolver: easyuse_anima.nodes.prompt_data_nodes"
+        "canonical runtime resolver: easyuse_anima.aio.sampling"
       ],
       "evidence": [
         "AST:nodes.py direct runtime load",
         "AST:easyuse_anima.aio.generation_normalization string runtime lookup",
         "AST:easyuse_anima.aio.legacy_generation string runtime lookup",
-        "AST:easyuse_anima.aio.sampling string runtime lookup",
-        "AST:easyuse_anima.nodes.prompt_data_nodes string runtime lookup"
+        "AST:easyuse_anima.aio.sampling string runtime lookup"
       ],
       "removal_gates": [
         "canonical production consumer migration",
@@ -5997,7 +5703,6 @@
       "surface": "nodes_canonical_bindings",
       "symbols": {
         "_prompt_translation_change_key": "_prompt_translation_change_key",
-        "_split_tag_text": "_split_tag_text",
         "_translate_prompt_text": "_translate_prompt_text"
       },
       "classification": "transitional_private_seam",
@@ -6011,12 +5716,10 @@
       "first_release": null,
       "known_consumers": [
         "canonical runtime resolver: easyuse_anima.nodes.prompt_advanced_nodes",
-        "canonical runtime resolver: easyuse_anima.nodes.prompt_nodes",
         "canonical runtime resolver: easyuse_anima.nodes.regional_nodes"
       ],
       "evidence": [
         "AST:easyuse_anima.nodes.prompt_advanced_nodes string runtime lookup",
-        "AST:easyuse_anima.nodes.prompt_nodes string runtime lookup",
         "AST:easyuse_anima.nodes.regional_nodes string runtime lookup"
       ],
       "removal_gates": [
@@ -6027,12 +5730,40 @@
       "lifecycle_state": "transitional"
     },
     {
+      "id": "nodes_canonical_bindings:easyuse_anima.prompt.correction:unsupported_test_only",
+      "surface": "nodes_canonical_bindings",
+      "symbols": {
+        "_split_tag_text": "_split_tag_text"
+      },
+      "classification": "unsupported_test_only",
+      "current_target": "nodes.py",
+      "canonical_target": "easyuse_anima.prompt.correction",
+      "target_state": "canonical",
+      "identity_requirement": "not_applicable",
+      "binding_shape": "direct_import",
+      "import_target": "easyuse_anima.prompt.correction",
+      "owner": "#184/#188",
+      "first_release": null,
+      "known_consumers": [
+        "repository tests may import this root name"
+      ],
+      "evidence": [
+        "AST:no nodes.py runtime load",
+        "test-only consumption is not public support evidence"
+      ],
+      "removal_gates": [
+        "test imports migrate to canonical targets",
+        "no production consumer evidence",
+        "separate B-10b removal review"
+      ],
+      "lifecycle_state": "unsupported"
+    },
+    {
       "id": "nodes_canonical_bindings:easyuse_anima.prompt.data:transitional_private_seam",
       "surface": "nodes_canonical_bindings",
       "symbols": {
         "PROMPT_DATA_TYPE": "PROMPT_DATA_TYPE",
         "_advanced_outputs_from_prompt_data": "_advanced_outputs_from_prompt_data",
-        "_apply_prompt_data_overrides": "_apply_prompt_data_overrides",
         "_copy_prompt_data_for_update": "_copy_prompt_data_for_update",
         "_normalize_prompt_data": "_normalize_prompt_data",
         "_prompt_data_json_safe": "_prompt_data_json_safe",
@@ -6054,8 +5785,7 @@
         "canonical runtime resolver: easyuse_anima.aio.legacy_generation",
         "canonical runtime resolver: easyuse_anima.aio.preview",
         "canonical runtime resolver: easyuse_anima.nodes.aio_nodes",
-        "canonical runtime resolver: easyuse_anima.nodes.prompt_advanced_nodes",
-        "canonical runtime resolver: easyuse_anima.nodes.prompt_data_nodes"
+        "canonical runtime resolver: easyuse_anima.nodes.prompt_advanced_nodes"
       ],
       "evidence": [
         "AST:easyuse_anima.aio.conditioning string runtime lookup",
@@ -6064,8 +5794,7 @@
         "AST:easyuse_anima.aio.legacy_generation string runtime lookup",
         "AST:easyuse_anima.aio.preview string runtime lookup",
         "AST:easyuse_anima.nodes.aio_nodes string runtime lookup",
-        "AST:easyuse_anima.nodes.prompt_advanced_nodes string runtime lookup",
-        "AST:easyuse_anima.nodes.prompt_data_nodes string runtime lookup"
+        "AST:easyuse_anima.nodes.prompt_advanced_nodes string runtime lookup"
       ],
       "removal_gates": [
         "canonical production consumer migration",
@@ -6075,36 +5804,33 @@
       "lifecycle_state": "transitional"
     },
     {
-      "id": "nodes_canonical_bindings:easyuse_anima.prompt.fields:transitional_private_seam",
+      "id": "nodes_canonical_bindings:easyuse_anima.prompt.data:unsupported_test_only",
       "surface": "nodes_canonical_bindings",
       "symbols": {
-        "_correct_builder_prompt": "_correct_builder_prompt",
-        "_filter_metadata_prompt": "_filter_metadata_prompt",
-        "_join_prompt_tokens": "_join_prompt_tokens"
+        "_apply_prompt_data_overrides": "_apply_prompt_data_overrides"
       },
-      "classification": "transitional_private_seam",
+      "classification": "unsupported_test_only",
       "current_target": "nodes.py",
-      "canonical_target": "easyuse_anima.prompt.fields",
+      "canonical_target": "easyuse_anima.prompt.data",
       "target_state": "canonical",
-      "identity_requirement": "required",
+      "identity_requirement": "not_applicable",
       "binding_shape": "direct_import",
-      "import_target": "easyuse_anima.prompt.fields",
+      "import_target": "easyuse_anima.prompt.data",
       "owner": "#184/#188",
       "first_release": null,
       "known_consumers": [
-        "canonical runtime resolver: easyuse_anima.nodes.prompt_data_nodes",
-        "canonical runtime resolver: easyuse_anima.nodes.prompt_nodes"
+        "repository tests may import this root name"
       ],
       "evidence": [
-        "AST:easyuse_anima.nodes.prompt_data_nodes string runtime lookup",
-        "AST:easyuse_anima.nodes.prompt_nodes string runtime lookup"
+        "AST:no nodes.py runtime load",
+        "test-only consumption is not public support evidence"
       ],
       "removal_gates": [
-        "canonical production consumer migration",
-        "focused monkeypatch and identity contract review",
-        "separate B-10b or B-11 rollback unit"
+        "test imports migrate to canonical targets",
+        "no production consumer evidence",
+        "separate B-10b removal review"
       ],
-      "lifecycle_state": "transitional"
+      "lifecycle_state": "unsupported"
     },
     {
       "id": "nodes_canonical_bindings:easyuse_anima.prompt.fields:unsupported_test_only",
@@ -6113,6 +5839,9 @@
         "_HASH_COMMENT_RE": "_HASH_COMMENT_RE",
         "_INLINE_SPACE_RE": "_INLINE_SPACE_RE",
         "_WEIGHTED_TOKEN_RE": "_WEIGHTED_TOKEN_RE",
+        "_correct_builder_prompt": "_correct_builder_prompt",
+        "_filter_metadata_prompt": "_filter_metadata_prompt",
+        "_join_prompt_tokens": "_join_prompt_tokens",
         "_metadata_filter_key": "_metadata_filter_key",
         "_metadata_filter_keys": "_metadata_filter_keys",
         "_prompt_tokens": "_prompt_tokens"
@@ -6242,33 +5971,34 @@
       "lifecycle_state": "unsupported"
     },
     {
-      "id": "nodes_legacy_bindings:anima_prompt:transitional_private_seam",
+      "id": "nodes_legacy_bindings:anima_prompt:unsupported_test_only",
       "surface": "nodes_legacy_bindings",
       "symbols": {
         "correct_prompt": "correct_prompt",
         "load_knowledge_base": "load_knowledge_base"
       },
-      "classification": "transitional_private_seam",
+      "classification": "unsupported_test_only",
       "current_target": "nodes.py",
       "canonical_target": null,
       "target_state": "legacy_owner",
-      "identity_requirement": "required",
+      "identity_requirement": "not_applicable",
       "binding_shape": "direct_import",
       "import_target": "anima_prompt",
       "owner": "#184/#186",
       "first_release": null,
       "known_consumers": [
-        "canonical runtime resolver: easyuse_anima.nodes.prompt_nodes"
+        "repository tests may import this root name"
       ],
       "evidence": [
-        "AST:easyuse_anima.nodes.prompt_nodes string runtime lookup"
+        "AST:no nodes.py runtime load",
+        "test-only consumption is not public support evidence"
       ],
       "removal_gates": [
-        "canonical production consumer migration",
-        "focused monkeypatch and identity contract review",
-        "separate B-10b or B-11 rollback unit"
+        "test imports migrate to canonical targets",
+        "no production consumer evidence",
+        "separate B-10b removal review"
       ],
-      "lifecycle_state": "transitional"
+      "lifecycle_state": "unsupported"
     },
     {
       "id": "nodes_legacy_bindings:prompt_translation:unsupported_test_only",
@@ -6319,13 +6049,11 @@
       "known_consumers": [
         "nodes.py residual runtime",
         "canonical runtime resolver: easyuse_anima.nodes.prompt_advanced_nodes",
-        "canonical runtime resolver: easyuse_anima.nodes.prompt_nodes",
         "canonical runtime resolver: easyuse_anima.nodes.regional_nodes"
       ],
       "evidence": [
         "AST:nodes.py direct runtime load",
         "AST:easyuse_anima.nodes.prompt_advanced_nodes string runtime lookup",
-        "AST:easyuse_anima.nodes.prompt_nodes string runtime lookup",
         "AST:easyuse_anima.nodes.regional_nodes string runtime lookup"
       ],
       "removal_gates": [

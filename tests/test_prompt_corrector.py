@@ -16,6 +16,7 @@ import nodes
 import settings as easyuse_settings
 from easyuse_anima.naia.client import _clean_prompt
 from easyuse_anima.naia.resolution import ADVANCED_RESOLUTION_BUCKETS
+from easyuse_anima.nodes import prompt_data_nodes, prompt_nodes
 from easyuse_anima.nodes.prompt_advanced_nodes import EasyUseAnimaPromptStudioExtend
 from easyuse_anima.prompt import artist_mix as prompt_artist_mix
 from easyuse_anima.prompt import conditioning as prompt_conditioning
@@ -453,7 +454,11 @@ class PromptBuilderTests(unittest.TestCase):
         self.assertEqual(metadata, prompt)
 
     def test_metadata_filter_only_changes_metadata_prompt(self):
-        with patch("nodes.resolve_metadata_filter_words", return_value="best quality\nhigh detail"):
+        with patch.object(
+            prompt_nodes,
+            "resolve_metadata_filter_words",
+            return_value="best quality\nhigh detail",
+        ):
             prompt, quality, use_amg, metadata = EasyUseAnimaPromptBuilder().build(
                 False,
                 False,
@@ -744,7 +749,11 @@ class PromptBuilderTests(unittest.TestCase):
             "_encode_with_comfy_clip",
             lambda clip, text: [[f"cond:{text}", {"encoded_text": text}]],
         ):
-            with patch("nodes._generate_empty_latent_with_comfy", lambda width, height: {"samples": (width, height, 1)}):
+            with patch.object(
+                prompt_data_nodes,
+                "_generate_empty_latent_with_comfy",
+                lambda width, height: {"samples": (width, height, 1)},
+            ):
                 patched_model, positive, negative, latent_image = EasyUseAnimaPromptDataConditioning().apply(
                     model,
                     clip=object(),
@@ -798,7 +807,11 @@ class PromptBuilderTests(unittest.TestCase):
             "_encode_with_comfy_clip",
             lambda clip, text: [[f"cond:{text}", {"encoded_text": text}]],
         ):
-            with patch("nodes._generate_empty_latent_with_comfy", lambda width, height: {"samples": (width, height, 1)}):
+            with patch.object(
+                prompt_data_nodes,
+                "_generate_empty_latent_with_comfy",
+                lambda width, height: {"samples": (width, height, 1)},
+            ):
                 with patch.object(
                     prompt_conditioning,
                     "_find_spectrum_anima_mod_guidance_class",
@@ -863,7 +876,11 @@ class PromptBuilderTests(unittest.TestCase):
             "_encode_with_comfy_clip",
             lambda clip, text: [[f"cond:{text}", {"encoded_text": text}]],
         ):
-            with patch("nodes._generate_empty_latent_with_comfy", lambda width, height: {"samples": (width, height, 1)}):
+            with patch.object(
+                prompt_data_nodes,
+                "_generate_empty_latent_with_comfy",
+                lambda width, height: {"samples": (width, height, 1)},
+            ):
                 with patch.object(
                     prompt_conditioning,
                     "_find_spectrum_anima_mod_guidance_class",
@@ -945,7 +962,11 @@ class PromptBuilderTests(unittest.TestCase):
 
         with patch_comfy_helper(nodes, "_encode_with_comfy_clip", fake_encode):
             with patch.object(prompt_artist_mix, "_blend_conditionings", fake_blend):
-                with patch("nodes._generate_empty_latent_with_comfy", lambda width, height: {"samples": (width, height, 1)}):
+                with patch.object(
+                    prompt_data_nodes,
+                    "_generate_empty_latent_with_comfy",
+                    lambda width, height: {"samples": (width, height, 1)},
+                ):
                     _model, positive, _negative, _latent = EasyUseAnimaPromptDataConditioning().apply(
                         object(),
                         clip=object(),
@@ -982,7 +1003,11 @@ class PromptBuilderTests(unittest.TestCase):
             return [[f"cond:{text}", {"encoded_text": text}]]
 
         with patch_comfy_helper(nodes, "_encode_with_comfy_clip", fake_encode):
-            with patch("nodes._generate_empty_latent_with_comfy", lambda width, height: {"samples": (width, height, 1)}):
+            with patch.object(
+                prompt_data_nodes,
+                "_generate_empty_latent_with_comfy",
+                lambda width, height: {"samples": (width, height, 1)},
+            ):
                 _model, positive, _negative, _latent = EasyUseAnimaPromptDataConditioning().apply(
                     object(),
                     clip=object(),
@@ -1018,7 +1043,11 @@ class PromptBuilderTests(unittest.TestCase):
             return [[f"cond:{text}", {"encoded_text": text}]]
 
         with patch_comfy_helper(nodes, "_encode_with_comfy_clip", fake_encode):
-            with patch("nodes._generate_empty_latent_with_comfy", lambda width, height: {"samples": (width, height, 1)}):
+            with patch.object(
+                prompt_data_nodes,
+                "_generate_empty_latent_with_comfy",
+                lambda width, height: {"samples": (width, height, 1)},
+            ):
                 _model, positive, _negative, _latent = EasyUseAnimaPromptDataConditioning().apply(
                     object(),
                     clip=object(),
@@ -1053,7 +1082,11 @@ class PromptBuilderTests(unittest.TestCase):
 
         with patch_comfy_helper(nodes, "_encode_with_comfy_clip", fake_encode):
             with patch.object(prompt_artist_mix, "_encode_artist_delta_rms", fake_delta):
-                with patch("nodes._generate_empty_latent_with_comfy", lambda width, height: {"samples": (width, height, 1)}):
+                with patch.object(
+                    prompt_data_nodes,
+                    "_generate_empty_latent_with_comfy",
+                    lambda width, height: {"samples": (width, height, 1)},
+                ):
                     _model, positive, _negative, _latent = EasyUseAnimaPromptDataConditioning().apply(
                         object(),
                         clip=object(),
@@ -1100,7 +1133,11 @@ class PromptBuilderTests(unittest.TestCase):
         with patch_comfy_helper(nodes, "_encode_with_comfy_clip", fake_encode):
             with patch.object(prompt_artist_mix, "_encode_artist_delta_rms", fake_delta):
                 with patch.object(prompt_artist_mix, "_encode_artist_clustered", fake_clustered):
-                    with patch("nodes._generate_empty_latent_with_comfy", lambda width, height: {"samples": (width, height, 1)}):
+                    with patch.object(
+                        prompt_data_nodes,
+                        "_generate_empty_latent_with_comfy",
+                        lambda width, height: {"samples": (width, height, 1)},
+                    ):
                         _model, delta_positive, _negative, _latent = EasyUseAnimaPromptDataConditioning().apply(
                             object(),
                             clip=object(),

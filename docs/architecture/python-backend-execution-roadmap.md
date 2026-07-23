@@ -108,9 +108,11 @@ merged PR, the owning issue's evidence record, and every stated exit gate.
   that split, producing four audited families without changing the 24-binder
   total. B-11c30c1 retires only the six feature-service binders in PR #340 /
   `4cc5cab`, leaving 18 binders across AiO, Prompt node adapters, and
-  Wildcard/NAIA. B-11c30c2 is a production-free split gate: c2a owns the
-  Prompt Data and Classic Prompt adapters, while c2b owns Advanced and Regional
-  only after #167/D-12 resolves their root seed-reservation dependency.
+  Wildcard/NAIA. B-11c30c2 completes the production-free split gate in PR
+  #341 / `6a21e26`: c2a owns the Prompt Data and Classic Prompt adapters, while
+  c2b owns Advanced and Regional only after #167/D-12 resolves their root
+  seed-reservation dependency. B-11c30c2a completes the unblocked adapter Move
+  in PR #342; c2b remains blocked.
 
 ### Current quality baseline
 
@@ -352,7 +354,7 @@ surfaces. AiO mechanical extraction must not start until #168 exits.
 | 11 | B-09b2 AiO generator adapter move | COMPLETE on `dev` | Move | #184 | PR #270 / `57d40b4` |
 | 12 | B-10a machine-readable compatibility audit | COMPLETE on `dev` | Contract/gate | #184/#188 | PR #271 / `3c7b857` |
 | 13 | B-10b private alias reduction | COMPLETE on `dev` through PR #291 / `c6b4680` | Contract/cleanup, split PRs | #184/#188 | Audited alias surface integrated |
-| 14 | B-11 registration/bootstrap/root shim | IN PROGRESS through B-11c30c1 PR #340 / `4cc5cab`; B-11c30c2 node-adapter split gate is next | Move/Contract, split PRs | #184 | c2a is unblocked; c2b waits for #167/D-12 seed reservation ownership |
+| 14 | B-11 registration/bootstrap/root shim | IN PROGRESS through B-11c30c2a PR #342; the remaining c2b adapters wait on #167/D-12 | Move/Contract, split PRs | #184 | c2b waits for #167/D-12 seed reservation ownership |
 | 15 | S167 backend seed reservation series | BLOCKED by B exit/interface | Contract then Behavior | #167 | Canonical AiO/node seams |
 | 16 | A169 stage pipeline series | BLOCKED by #168 and B exit | Contract then Behavior | #169 | Typed config and mechanical AiO move |
 | 17 | A169 first-pass cache policy | BLOCKED by stage/cache ownership seam | Behavior | #169 | Mechanical cache move and benchmark harness |
@@ -1026,6 +1028,12 @@ unchanged. The separate legacy Wildcard unsupported alias remains for D-12.
     form B-11c30c2b and remain blocked until #167 S167-01 or D-12 supplies the
     behavior-preserving owner. Do not add a callback binder, import root
     `nodes.py`, or duplicate seed reservation merely to retire these binders.
+  - B-11c30c2a retires only `_bind_prompt_data_node_runtime` and
+    `_bind_prompt_node_runtime` in PR #342. Prompt Data uses canonical
+    prompt/AiO owners plus the existing E-07 CLIP provider at call time;
+    Classic Prompt uses its canonical prompt, settings, and legacy
+    knowledge-base owners directly. Advanced/Regional binders and
+    seed-reservation behavior remain outside this Move.
   - The final B-11c cutover removes remaining root execution ownership and
     leaves the explicit supported `nodes.py` compatibility shim.
 - Add `easyuse_anima/registration.py` as pure mapping composition. It performs no

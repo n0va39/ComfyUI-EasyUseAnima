@@ -1,8 +1,10 @@
 """Public adapters for prompt data and artist-mix conditioning."""
 from __future__ import annotations
 
+from ..aio.sampling import _generate_empty_latent_with_comfy
 from ..common.serialization import _stable_change_key
 from ..common.values import _as_bool
+from ..infrastructure.comfy.wiring import resolve_comfy_host_helper
 from ..prompt.artist_mix import (
     ARTIST_MIX_DEFAULT_CLUSTER_COUNT,
     ARTIST_MIX_DEFAULT_DOMINANT_ISOLATION,
@@ -47,48 +49,20 @@ from ..prompt.data import (
     _apply_prompt_data_overrides,
     _normalize_prompt_data,
 )
+from ..prompt.fields import _join_prompt_tokens
 
-_RUNTIME_RESOLVER = None
-_RUNTIME_HELPER_DEFAULTS = {
-    "_as_bool": _as_bool,
-    "_advanced_outputs_from_prompt_data": _advanced_outputs_from_prompt_data,
-    "_apply_prompt_data_overrides": _apply_prompt_data_overrides,
-    "_apply_spectrum_anima_mod_guidance": _apply_spectrum_anima_mod_guidance,
-    "_artist_mix_inline_prompt": _artist_mix_inline_prompt,
-    "_artist_mix_mode_tooltip": _artist_mix_mode_tooltip,
-    "_artist_prompt_with_position": _artist_prompt_with_position,
-    "_bounded_artist_mix_float": _bounded_artist_mix_float,
-    "_bounded_artist_mix_int": _bounded_artist_mix_int,
-    "_encode_prompt_data_positive_conditioning": _encode_prompt_data_positive_conditioning,
-    "_join_artist_mix_source_prompts": _join_artist_mix_source_prompts,
-    "_normalize_anima_mod_guidance_profile": _normalize_anima_mod_guidance_profile,
-    "_normalize_artist_mix_mode": _normalize_artist_mix_mode,
-    "_normalize_artist_tag_position": _normalize_artist_tag_position,
-    "_normalize_prompt_data": _normalize_prompt_data,
-    "_resolve_anima_mod_guidance_enabled": _resolve_anima_mod_guidance_enabled,
-    "_stable_change_key": _stable_change_key,
-}
-_RUNTIME_ONLY_HELPERS = (
-    "_encode_with_comfy_clip",
-    "_generate_empty_latent_with_comfy",
-    "_join_prompt_tokens",
-)
 
-def _runtime_proxy(name: str):
-    def invoke(*args, **kwargs):
-        if _RUNTIME_RESOLVER is not None:
-            return _RUNTIME_RESOLVER(name)(*args, **kwargs)
-        helper = _RUNTIME_HELPER_DEFAULTS.get(name)
-        if helper is None:
-            raise RuntimeError(f"[EasyUseAnima] Prompt data node runtime helper is not bound: {name}")
-        return helper(*args, **kwargs)
-    return invoke
+def _missing_host_helper(name: str):
+    raise RuntimeError(f"Prompt Data Comfy host helper is unavailable: {name}")
 
-def _bind_prompt_data_node_runtime(*, resolve_helper) -> None:
-    global _RUNTIME_RESOLVER
-    _RUNTIME_RESOLVER = resolve_helper
-    for name in (*_RUNTIME_HELPER_DEFAULTS, *_RUNTIME_ONLY_HELPERS):
-        globals()[name] = _runtime_proxy(name)
+
+def _encode_with_comfy_clip(*args, **kwargs):
+    helper = resolve_comfy_host_helper(
+        "_encode_with_comfy_clip",
+        _missing_host_helper,
+    )
+    return helper(*args, **kwargs)
+
 
 class EasyUseAnimaPromptDataUnpack:
     """Expand EASYUSE_ANIMA_PROMPT_DATA into compatibility outputs."""
