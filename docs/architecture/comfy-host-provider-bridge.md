@@ -1274,7 +1274,7 @@ subgroups are separate Move and rollback units.
 
 ### B-11c30c1 — Prompt/Regional service binder retirement
 
-- **State:** IMPLEMENTED in PR #340
+- **State:** COMPLETE on `dev` in PR #340 / `4cc5cab`
 - **Owner:** #184
 - **Type:** Move
 - **Base:** `dev@d0188b5e687164bdba817c9705c64e23c1262733`
@@ -1329,6 +1329,39 @@ Forbidden:
   warning-once state, or optional dependency timing; and
 - retiring any of the four node-adapter binders or combining B-11c30c2.
 
+### B-11c30c2 — Prompt/Regional node-adapter split gate
+
+- **State:** IN PROGRESS
+- **Owner:** #184
+- **Blocker owner:** #167 / D-12
+- **Type:** Contract/gate
+- **Production changes:** none
+- **Base:** `dev@4cc5cabe83d2ba87c700607edf72b4166b4da1ff`
+
+Pre-edit inventory:
+
+- four binders remain: two provider-then-root and two root-only;
+- 84 bind-time global slots cover 61 unique names;
+- 99 root resolver slots cover 71 unique names;
+- two provider slots retain `_encode_with_comfy_clip`;
+- four direct dependency slots cover `_FlexibleOptionalInputType` and
+  `_resolve_comfy_host_helper`; and
+- repository tests replace 26 unique family names. This remains migration-cost
+  evidence, not public compatibility.
+
+Split decision:
+
+1. **B-11c30c2a Prompt Data / Classic Prompt:** two binders, 30 root resolver
+   slots over 27 unique names, one provider slot, and no
+   `_consume_reserved_wildcard_next_seed` dependency. This Move is READY.
+2. **B-11c30c2b Advanced / Regional:** two binders, 69 root resolver slots over
+   53 unique names, and one provider slot. Both build paths call the root-only
+   `_consume_reserved_wildcard_next_seed`; this Move is BLOCKED by #167/D-12.
+
+The c2b blocker may not be bypassed with a new callback setter/binder,
+canonical-to-root import, copied reservation logic, or changed seed payload.
+All four binders and production callers remain unchanged in this gate.
+
 ### B-11d — Final root shim
 
 - **State:** BLOCKED by the remaining B-11c30 family Moves and the separate
@@ -1371,7 +1404,10 @@ COMPLETE: B-11c30 binder/resolver migration audit / PR #336
 COMPLETE: B-11c30a Image/SAM3/Impact binder Move / PR #337
 COMPLETE: B-11c30b LoRA binder Move / PR #338
 COMPLETE: B-11c30c Prompt/Regional split gate / PR #339
-IN PROGRESS: B-11c30c1 Prompt/Regional service binder Move / PR #340
+COMPLETE: B-11c30c1 Prompt/Regional service binder Move / PR #340
+IN PROGRESS: B-11c30c2 Prompt/Regional node-adapter split gate
+READY:    B-11c30c2a Prompt Data / Classic Prompt adapter Move
+BLOCKED:  B-11c30c2b Advanced / Regional adapter Move (#167/D-12)
 BLOCKED:  B-11d final root shim
 
 LATER:    #167 seed reservation

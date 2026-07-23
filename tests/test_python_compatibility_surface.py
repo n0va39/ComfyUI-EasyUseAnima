@@ -91,11 +91,17 @@ PROMPT_SERVICE_RUNTIME_BINDERS = (
     "_bind_prompt_fields_runtime",
     "_bind_prompt_correction_runtime",
 )
-PROMPT_NODE_ADAPTER_RUNTIME_BINDERS = (
-    "_bind_regional_node_runtime",
-    "_bind_prompt_advanced_node_runtime",
+PROMPT_NODE_ADAPTER_UNBLOCKED_RUNTIME_BINDERS = (
     "_bind_prompt_data_node_runtime",
     "_bind_prompt_node_runtime",
+)
+PROMPT_NODE_ADAPTER_SEED_BLOCKED_RUNTIME_BINDERS = (
+    "_bind_regional_node_runtime",
+    "_bind_prompt_advanced_node_runtime",
+)
+PROMPT_NODE_ADAPTER_RUNTIME_BINDERS = (
+    *PROMPT_NODE_ADAPTER_SEED_BLOCKED_RUNTIME_BINDERS,
+    *PROMPT_NODE_ADAPTER_UNBLOCKED_RUNTIME_BINDERS,
 )
 RUNTIME_BINDER_FAMILIES = {
     "aio": (
@@ -2131,6 +2137,7 @@ def _build_document() -> dict[str, Any]:
                 "B-11c30b",
                 "B-11c30c",
                 "B-11c30c1",
+                "B-11c30c2",
             ],
         },
         "enums": {
@@ -2480,6 +2487,20 @@ class PythonCompatibilitySurfaceTests(unittest.TestCase):
             audit["families"]["prompt_node_adapters"],
             list(PROMPT_NODE_ADAPTER_RUNTIME_BINDERS),
         )
+        self.assertEqual(
+            list(PROMPT_NODE_ADAPTER_UNBLOCKED_RUNTIME_BINDERS),
+            [
+                "_bind_prompt_data_node_runtime",
+                "_bind_prompt_node_runtime",
+            ],
+        )
+        self.assertEqual(
+            list(PROMPT_NODE_ADAPTER_SEED_BLOCKED_RUNTIME_BINDERS),
+            [
+                "_bind_regional_node_runtime",
+                "_bind_prompt_advanced_node_runtime",
+            ],
+        )
         self.assertTrue(
             set(PROMPT_SERVICE_RUNTIME_BINDERS).isdisjoint(
                 self.document["runtime_binders"]
@@ -2527,6 +2548,23 @@ class PythonCompatibilitySurfaceTests(unittest.TestCase):
                 ),
             },
         )
+        entry_by_binder = {
+            entry["binder"]: entry
+            for entry in audit["entries"]
+            if entry["binder"] in PROMPT_NODE_ADAPTER_RUNTIME_BINDERS
+        }
+        for binder in PROMPT_NODE_ADAPTER_UNBLOCKED_RUNTIME_BINDERS:
+            with self.subTest(unblocked=binder):
+                self.assertNotIn(
+                    "_consume_reserved_wildcard_next_seed",
+                    entry_by_binder[binder]["root_resolver_names"],
+                )
+        for binder in PROMPT_NODE_ADAPTER_SEED_BLOCKED_RUNTIME_BINDERS:
+            with self.subTest(seed_blocked=binder):
+                self.assertIn(
+                    "_consume_reserved_wildcard_next_seed",
+                    entry_by_binder[binder]["root_resolver_names"],
+                )
 
     def test_string_runtime_resolvers_keep_production_seams_transitional(self):
         representative = {

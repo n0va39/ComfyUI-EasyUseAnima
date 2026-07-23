@@ -8,9 +8,10 @@
 - Policy: [ADR-002](adr-002-compatibility-shims.md)
 - Machine-readable audit:
   [`python_compatibility_surface.v1.json`](../../tests/fixtures/python_compatibility_surface.v1.json)
-- Current state: B-11a through B-11c30c are integrated. B-11c is split into
+- Current state: B-11a through B-11c30c1 are integrated. B-11c is split into
   residual-owner Moves and explicit private-contract cleanup before the final
-  root shim; B-11c30c1 retires only the six Prompt/Regional service binders.
+  root shim; B-11c30c2 separates unblocked adapters from the #167/D-12 seed
+  reservation boundary.
 
 This is an actionable registry, not a removal schedule. `N` means the first
 published Registry release containing both a canonical target and its root
@@ -764,6 +765,25 @@ convenience-node compatibility; it remains unmapped and is not public support.
   provider-then-root, six root-only, and two explicit callbacks. No schema,
   workflow, prompt/conditioning behavior, provider lookup order, warning-once
   state, or optional-dependency timing changes in this Move.
+
+### B-11c30c2 Prompt/Regional node-adapter split gate
+
+- This production-free gate retains all four node-adapter binders and their
+  current resolver/global state.
+- B-11c30c2a owns `_bind_prompt_data_node_runtime` and
+  `_bind_prompt_node_runtime`: 30 root resolver slots over 27 unique names and
+  one provider slot. Their canonical/common/provider owners already exist.
+- B-11c30c2b owns `_bind_prompt_advanced_node_runtime` and
+  `_bind_regional_node_runtime`: 69 root resolver slots over 53 unique names and
+  one provider slot. Both observe `_consume_reserved_wildcard_next_seed` at
+  call time from their real build path.
+- The residual seed function remains root-owned under #167/D-12. Removing the
+  c2b binders before that owner exists would require a new callback contract,
+  canonical-to-root import, or duplicated seed behavior, all of which are
+  forbidden in this Move series.
+- Test replacement evidence remains migration cost, not supported-public
+  compatibility. Schema, workflow, mapped-class/input-type identity, provider
+  timing, and wildcard seed payloads remain unchanged.
 
 ### `nodes.py` public node-class surface
 
