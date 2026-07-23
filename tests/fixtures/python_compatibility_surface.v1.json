@@ -2,7 +2,7 @@
   "schema_version": 1,
   "snapshot": {
     "base_branch": "dev",
-    "base_commit": "92506109117e42ea10e4664667481f27ad08623a",
+    "base_commit": "6a5fd7bd2c369921e5ecb18791df187d578d6637",
     "first_release": null,
     "owner_tasks": [
       "#184",
@@ -53,7 +53,8 @@
       "B-11c20",
       "B-11c21",
       "B-11c22",
-      "B-11c23"
+      "B-11c23",
+      "B-11c24"
     ]
   },
   "enums": {
@@ -88,11 +89,11 @@
   "expected_counts": {
     "root_entrypoints": 3,
     "excluded_preamble_implementation_bindings": 6,
-    "nodes_canonical_bindings": 295,
+    "nodes_canonical_bindings": 296,
     "nodes_legacy_bindings": 27,
     "mapped_public_classes": 18,
     "unmapped_classes": 2,
-    "root_residual_functions": 13,
+    "root_residual_functions": 12,
     "root_residual_classes": 0,
     "root_residual_globals": 26,
     "runtime_binders": 30,
@@ -417,7 +418,8 @@
       "easyuse_anima.aio.generation_normalization"
     ],
     "_aio_detailer_target_order": [
-      "easyuse_anima.aio.generation_normalization"
+      "easyuse_anima.aio.generation_normalization",
+      "easyuse_anima.aio.legacy_generation"
     ],
     "_aio_final_fit_size": [
       "easyuse_anima.aio.postprocess"
@@ -650,6 +652,9 @@
       "easyuse_anima.nodes.prompt_advanced_nodes",
       "easyuse_anima.nodes.regional_nodes"
     ],
+    "_context_value": [
+      "easyuse_anima.aio.legacy_generation"
+    ],
     "_copy_prompt_data_for_update": [
       "easyuse_anima.nodes.aio_nodes"
     ],
@@ -784,6 +789,9 @@
       "easyuse_anima.aio.generation_normalization"
     ],
     "_load_aio_resources_from_input_context": [
+      "easyuse_anima.aio.legacy_generation"
+    ],
+    "_load_aio_sam3_context": [
       "easyuse_anima.aio.legacy_generation"
     ],
     "_load_checkpoint_with_comfy": [
@@ -1015,6 +1023,9 @@
       "easyuse_anima.aio.generation_normalization"
     ],
     "_run_aio_detailer_stage": [
+      "easyuse_anima.aio.legacy_generation"
+    ],
+    "_run_aio_detailer_target": [
       "easyuse_anima.aio.legacy_generation"
     ],
     "_run_aio_highres_stage": [
@@ -2104,6 +2115,7 @@
       "surface": "nodes_canonical_bindings",
       "symbols": {
         "_bind_aio_legacy_generation_runtime": "_bind_aio_legacy_generation_runtime",
+        "_run_aio_detailer_stage": "_run_aio_detailer_stage",
         "_run_aio_highres_stage": "_run_aio_highres_stage",
         "_run_aio_legacy_generation": "_run_aio_legacy_generation",
         "_run_aio_upscale_stage": "_run_aio_upscale_stage"
@@ -2605,10 +2617,12 @@
       "first_release": null,
       "known_consumers": [
         "nodes.py residual runtime",
+        "canonical runtime resolver: easyuse_anima.aio.legacy_generation",
         "canonical runtime resolver: easyuse_anima.aio.resources"
       ],
       "evidence": [
         "AST:nodes.py direct runtime load",
+        "AST:easyuse_anima.aio.legacy_generation string runtime lookup",
         "AST:easyuse_anima.aio.resources string runtime lookup"
       ],
       "removal_gates": [
@@ -4184,7 +4198,6 @@
         "_require_any_custom_node_class": "_require_any_custom_node_class",
         "_require_custom_node_class": "_require_custom_node_class",
         "_resize_image_to_size_if_needed": "_resize_image_to_size_if_needed",
-        "_run_aio_detailer_stage": "_run_aio_detailer_stage",
         "_run_aio_detailer_target": "_run_aio_detailer_target",
         "_run_aio_resshift_upscale_stage": "_run_aio_resshift_upscale_stage",
         "_run_aio_usdu_upscale_stage": "_run_aio_usdu_upscale_stage"

@@ -21,6 +21,7 @@ try:
     )
     from .easyuse_anima.aio.legacy_generation import (
         _bind_aio_legacy_generation_runtime as _bind_aio_legacy_generation_runtime,
+        _run_aio_detailer_stage as _run_aio_detailer_stage,
         _run_aio_highres_stage as _run_aio_highres_stage,
         _run_aio_legacy_generation as _run_aio_legacy_generation,
         _run_aio_upscale_stage as _run_aio_upscale_stage,
@@ -577,6 +578,7 @@ except ImportError:  # allows simple local import tests outside ComfyUI's packag
     )
     from easyuse_anima.aio.legacy_generation import (
         _bind_aio_legacy_generation_runtime as _bind_aio_legacy_generation_runtime,
+        _run_aio_detailer_stage as _run_aio_detailer_stage,
         _run_aio_highres_stage as _run_aio_highres_stage,
         _run_aio_legacy_generation as _run_aio_legacy_generation,
         _run_aio_upscale_stage as _run_aio_upscale_stage,
@@ -1956,57 +1958,6 @@ def _run_aio_detailer_target(
         "enabled": True,
         "detected": _segs_has_items(segs),
         "sampler": _prompt_data_json_safe(stage_sampler),
-    }
-
-
-def _run_aio_detailer_stage(
-    model,
-    clip,
-    vae,
-    positive,
-    negative,
-    image,
-    sampler_settings: dict[str, Any],
-    detailer_settings: dict[str, Any],
-    preview_callback=None,
-) -> tuple[Any, dict[str, Any]]:
-    if not _as_bool(detailer_settings.get("enabled"), False):
-        return image, {"enabled": False}
-    target_order = _aio_detailer_target_order(detailer_settings)
-    enabled_targets = [
-        name
-        for name in target_order
-        if isinstance(detailer_settings.get(name), dict)
-        and _as_bool(detailer_settings[name].get("enabled"), False)
-    ]
-    if not enabled_targets:
-        return image, {"enabled": False, "reason": "no target enabled"}
-
-    sam3_context = _load_aio_sam3_context(detailer_settings)
-    output = image
-    target_results: dict[str, Any] = {}
-    for target_name in target_order:
-        if target_name not in enabled_targets:
-            continue
-        output, target_results[target_name] = _run_aio_detailer_target(
-            target_name,
-            detailer_settings[target_name],
-            output,
-            model,
-            clip,
-            vae,
-            positive,
-            negative,
-            sampler_settings,
-            sam3_context,
-        )
-        if preview_callback is not None:
-            preview_callback(f"detailer_{target_name}", output)
-    return output, {
-        "enabled": True,
-        "sam3_checkpoint": _context_value(sam3_context, "ckpt_name"),
-        "order": target_order,
-        "targets": target_results,
     }
 
 
