@@ -8,6 +8,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 from easyuse_anima import runtime as runtime_module
+from easyuse_anima.infrastructure.comfy.provider import DefaultComfyHostProvider
 from easyuse_anima.infrastructure.comfy.wiring import resolve_comfy_host_helper
 from easyuse_anima.runtime import RuntimeServices
 from tests.comfy_host_fakes import FakeComfyHostProvider
@@ -126,6 +127,62 @@ class ComfyHostWiringTests(unittest.TestCase):
             self.assertIs(helper("Loaded"), loaded_class)
             loaded_nodes.NODE_CLASS_MAPPINGS = {}
             self.assertIsNone(helper("Missing"))
+
+    def test_retired_required_helpers_use_default_provider_before_runtime_install(self):
+        custom_class = object()
+        other_class = object()
+        comfy_nodes = types.ModuleType("nodes")
+        comfy_nodes.NODE_CLASS_MAPPINGS = {
+            "Custom": custom_class,
+            "Other": other_class,
+        }
+
+        def unexpected_fallback(name: str):
+            self.fail(f"retired helper reached root fallback: {name}")
+
+        with patch.dict(sys.modules, {"nodes": comfy_nodes}):
+            require = resolve_comfy_host_helper(
+                "_require_custom_node_class",
+                unexpected_fallback,
+            )
+            require_any = resolve_comfy_host_helper(
+                "_require_any_custom_node_class",
+                unexpected_fallback,
+            )
+
+            self.assertIs(require("Custom", "Pack", "Hint"), custom_class)
+            self.assertEqual(
+                require_any(("Missing", "Other"), "Pack", "Hint"),
+                ("Other", other_class),
+            )
+            comfy_nodes.NODE_CLASS_MAPPINGS = {}
+            with self.assertRaises(RuntimeError) as missing_one:
+                require("Custom", "Pack", "Hint")
+            self.assertEqual(
+                str(missing_one.exception),
+                "[EasyUseAnima] Missing required custom node 'Custom'. "
+                "Install/enable Pack, then restart ComfyUI. Hint",
+            )
+            with self.assertRaises(RuntimeError) as missing_any:
+                require_any(("First", "Second"), "Pack", "Hint")
+            self.assertEqual(
+                str(missing_any.exception),
+                "[EasyUseAnima] Missing required custom node. "
+                "Tried 'First', 'Second'. "
+                "Install/enable Pack, then restart ComfyUI. Hint",
+            )
+
+        with patch.object(
+            DefaultComfyHostProvider,
+            "find_node_class",
+            side_effect=LookupError("lookup failed"),
+        ):
+            require = resolve_comfy_host_helper(
+                "_require_custom_node_class",
+                unexpected_fallback,
+            )
+            with self.assertRaisesRegex(LookupError, "lookup failed"):
+                require("Custom", "Pack", "Hint")
 
     def test_provider_owned_helpers_delegate_to_narrow_methods(self):
         direct = object()

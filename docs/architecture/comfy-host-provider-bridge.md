@@ -756,7 +756,7 @@ Forbidden:
 
 ### B-11c29c — Required-node helpers
 
-- **State:** IN PROGRESS; precedes B-11c29d and B-11c29b3
+- **State:** IN PROGRESS in PR #332; precedes B-11c29d and B-11c29b3
 - **Owner:** #184
 - **Type:** Retirement
 
@@ -900,7 +900,7 @@ COMPLETE: E-07b wiring and compatibility gate / PR #328
 COMPLETE: B-11c29a max-resolution wrapper retirement / PR #329
 COMPLETE: B-11c29b1 direct mapping lookup retirement / PR #330
 COMPLETE: B-11c29b2 loaded lookup retirement / PR #331
-IN PROGRESS: B-11c29c requirement helper retirement
+IN PROGRESS: B-11c29c requirement helper retirement / PR #332
 BLOCKED:  B-11c29d CLIP wrapper retirement
 BLOCKED:  B-11c29b3 general node lookup retirement
 BLOCKED:  B-11c30 binder/resolver migration audit

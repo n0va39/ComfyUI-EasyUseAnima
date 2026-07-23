@@ -352,37 +352,10 @@
     },
     {
       "symbol": "_require_any_custom_node_class",
-      "root_signature": {
-        "parameters": [
-          {
-            "name": "node_ids",
-            "kind": "positional_or_keyword",
-            "annotation": "tuple[str, ...]",
-            "default": null
-          },
-          {
-            "name": "node_pack",
-            "kind": "positional_or_keyword",
-            "annotation": "str",
-            "default": null
-          },
-          {
-            "name": "install_hint",
-            "kind": "positional_or_keyword",
-            "annotation": "str",
-            "default": null
-          }
-        ],
-        "return": null
-      },
-      "adapter_binding": {
-        "alias": "_adapter_require_any_custom_node_class",
-        "target": "easyuse_anima.infrastructure.comfy.capabilities:_require_any_custom_node_class"
-      },
-      "root_dependencies": [
-        "_adapter_require_any_custom_node_class",
-        "_find_comfy_node_class"
-      ],
+      "root_signature": null,
+      "adapter_binding": null,
+      "retired_adapter_alias": "_adapter_require_any_custom_node_class",
+      "root_dependencies": [],
       "canonical_target": "easyuse_anima.infrastructure.comfy.capabilities:_require_any_custom_node_class",
       "production_consumers": [
         {
@@ -416,43 +389,16 @@
       "root_seam_classification": "unsupported_test_only",
       "call_time_replacement_required": false,
       "replacement_mechanism": "repository_tests_use_fake_provider_or_explicit_canonical_lookup",
-      "root_removal_gate": "E-07b injected lookup and exact error parity, then #184 B-11c29c",
+      "root_removal_gate": "completed in #184 B-11c29c / PR #332",
       "owner_issue": "#323",
       "move_owner": "#184 B-11c29c"
     },
     {
       "symbol": "_require_custom_node_class",
-      "root_signature": {
-        "parameters": [
-          {
-            "name": "node_id",
-            "kind": "positional_or_keyword",
-            "annotation": "str",
-            "default": null
-          },
-          {
-            "name": "node_pack",
-            "kind": "positional_or_keyword",
-            "annotation": "str",
-            "default": null
-          },
-          {
-            "name": "install_hint",
-            "kind": "positional_or_keyword",
-            "annotation": "str",
-            "default": null
-          }
-        ],
-        "return": null
-      },
-      "adapter_binding": {
-        "alias": "_adapter_require_custom_node_class",
-        "target": "easyuse_anima.infrastructure.comfy.capabilities:_require_custom_node_class"
-      },
-      "root_dependencies": [
-        "_adapter_require_custom_node_class",
-        "_find_comfy_node_class"
-      ],
+      "root_signature": null,
+      "adapter_binding": null,
+      "retired_adapter_alias": "_adapter_require_custom_node_class",
+      "root_dependencies": [],
       "canonical_target": "easyuse_anima.infrastructure.comfy.capabilities:_require_custom_node_class",
       "production_consumers": [
         {
@@ -499,7 +445,7 @@
       "root_seam_classification": "unsupported_test_only",
       "call_time_replacement_required": false,
       "replacement_mechanism": "repository_tests_use_fake_provider_or_explicit_canonical_lookup",
-      "root_removal_gate": "E-07b injected lookup and exact error parity, then #184 B-11c29c",
+      "root_removal_gate": "completed in #184 B-11c29c / PR #332",
       "owner_issue": "#323",
       "move_owner": "#184 B-11c29c"
     }

@@ -2152,6 +2152,8 @@ class ComfyAdapterMoveContractTests(unittest.TestCase):
         self.assertFalse(hasattr(nodes, "_comfy_max_resolution"))
         self.assertFalse(hasattr(nodes, "_find_comfy_node_mapping_class"))
         self.assertFalse(hasattr(nodes, "_find_loaded_node_class"))
+        self.assertFalse(hasattr(nodes, "_require_custom_node_class"))
+        self.assertFalse(hasattr(nodes, "_require_any_custom_node_class"))
         for canonical_module, helper_names in self.DIRECT_HELPER_MODULES:
             for helper_name in helper_names:
                 with self.subTest(module=canonical_module.__name__, helper=helper_name):
@@ -2167,6 +2169,12 @@ class ComfyAdapterMoveContractTests(unittest.TestCase):
                 hasattr(package_nodes, "_find_comfy_node_mapping_class")
             )
             self.assertFalse(hasattr(package_nodes, "_find_loaded_node_class"))
+            self.assertFalse(
+                hasattr(package_nodes, "_require_custom_node_class")
+            )
+            self.assertFalse(
+                hasattr(package_nodes, "_require_any_custom_node_class")
+            )
             self.assertFalse(hasattr(package_nodes, "_comfy_checkpoint_names"))
             self.assertFalse(hasattr(package_nodes, "_impact_core_module"))
             self.assertFalse(
