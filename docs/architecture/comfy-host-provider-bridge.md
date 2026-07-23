@@ -1407,6 +1407,54 @@ Implementation result:
   provider-then-root, five root-only, and two explicit callbacks; and
 - `nodes.py` is 1,750 lines, down 13 lines from the B-11c30c2 base.
 
+### B-11c30c2b — Advanced / Regional adapter Move
+
+- **State:** IN PROGRESS
+- **Owner:** #184, prerequisite #167 S167-01a
+- **Type:** Move
+- **Base:** `dev@b69d33857ef85fb81388f02e9ff1cff195a092d1`
+
+Pre-edit inventory:
+
+- `_bind_prompt_advanced_node_runtime` and `_bind_regional_node_runtime` are the
+  only owned binders;
+- 72 bind-time global slots cover 55 unique names;
+- 69 root resolver slots cover 53 unique names;
+- Regional owns the only provider slot, `_encode_with_comfy_clip`;
+- three direct root dependency slots cover `_FlexibleOptionalInputType` and
+  `_resolve_comfy_host_helper`;
+- repository tests replace 21 family slots over 13 unique names; this remains
+  migration-cost evidence, not public compatibility; and
+- both real build paths call
+  `easyuse_anima.seed.compatibility._consume_reserved_wildcard_next_seed`,
+  whose behavior-preserving canonical owner was completed by S167-01a / PR
+  #344.
+
+Allowed production files are `nodes.py`,
+`easyuse_anima/nodes/prompt_advanced_nodes.py`, and
+`easyuse_anima/nodes/regional_nodes.py`. Gate, focused-test, and deterministic
+fixture updates may touch only:
+
+- `tests/test_node_contracts.py`;
+- `tests/test_prompt_corrector.py`;
+- `tests/test_prompt_studio_regional.py`;
+- `tests/test_naia_settings.py`;
+- `tests/test_nodes_module_analyzer.py`;
+- `tests/test_python_compatibility_surface.py`;
+- `tests/fixtures/comfy_host_compatibility.v1.json`;
+- `tests/fixtures/python_backend_baseline.json`;
+- `tests/fixtures/python_compatibility_surface.v1.json`;
+- `docs/architecture/comfy-host-provider-bridge.md`;
+- `docs/architecture/python-backend-execution-roadmap.md`; and
+- `docs/architecture/python-compatibility-shims.md`.
+
+This Move must preserve schemas, mapped-class and input-type identity, prompt
+and Regional conditioning outputs, call-time Comfy provider lookup order,
+NAIA and optional-dependency timing, seed reservation payloads and pop order,
+wildcard seed arithmetic, warnings/errors, and saved workflows. It must not
+add a callback/binder, import root `nodes.py` from the canonical package, copy
+seed or Wildcard behavior, or begin S167-02 reservation behavior.
+
 ### B-11d — Final root shim
 
 - **State:** BLOCKED by the remaining B-11c30 family Moves and the separate
