@@ -22,6 +22,8 @@ def _request_payload(**updates: object) -> dict[str, object]:
         "selection": reservation.SEED_SELECTION_CONCRETE,
         "seed": 123,
         "after_generate": reservation.SEED_CONTROL_FIXED,
+        "next_seed_max": (1 << 50),
+        "overflow": reservation.SEED_OVERFLOW_CLAMP,
     }
     payload.update(updates)
     return payload
@@ -37,12 +39,14 @@ class SeedReservationContractTests(unittest.TestCase):
             parsed,
             reservation.SeedReservationRequest(
                 schema=reservation.SEED_RESERVATION_REQUEST_SCHEMA,
-                version=1,
+                version=2,
                 stream_id="node:42",
                 request_id="queue:abc",
                 selection="concrete",
                 seed=123,
                 after_generate="fixed",
+                next_seed_max=(1 << 50),
+                overflow="clamp",
             ),
         )
         with self.assertRaises(FrozenInstanceError):
@@ -56,6 +60,38 @@ class SeedReservationContractTests(unittest.TestCase):
                 )
                 self.assertEqual(parsed.selection, selection)
                 self.assertIsNone(parsed.seed)
+
+    def test_request_carries_each_reviewed_arithmetic_domain_explicitly(self):
+        cases = (
+            ((1 << 50), "clamp"),
+            (((1 << 53) - 1), "wrap"),
+        )
+
+        for next_seed_max, overflow in cases:
+            with self.subTest(
+                next_seed_max=next_seed_max,
+                overflow=overflow,
+            ):
+                parsed = reservation.parse_seed_reservation_request(
+                    _request_payload(
+                        next_seed_max=next_seed_max,
+                        overflow=overflow,
+                    )
+                )
+                self.assertEqual(parsed.next_seed_max, next_seed_max)
+                self.assertEqual(parsed.overflow, overflow)
+
+    def test_uint64_concrete_seed_is_independent_from_the_arithmetic_domain(self):
+        parsed = reservation.parse_seed_reservation_request(
+            _request_payload(
+                seed=reservation.SEED_MAX_UINT64,
+                next_seed_max=(1 << 50),
+                overflow="clamp",
+            )
+        )
+
+        self.assertEqual(parsed.seed, reservation.SEED_MAX_UINT64)
+        self.assertEqual(parsed.next_seed_max, (1 << 50))
 
     def test_legacy_sentinels_map_to_distinct_selection_intents(self):
         expected = {
@@ -72,6 +108,8 @@ class SeedReservationContractTests(unittest.TestCase):
                     request_id=f"queue:{legacy_seed}",
                     normalized_seed=legacy_seed,
                     after_generate="fixed",
+                    next_seed_max=(1 << 50),
+                    overflow="clamp",
                 )
                 self.assertEqual(parsed.selection, selection)
                 self.assertIsNone(parsed.seed)
@@ -84,6 +122,8 @@ class SeedReservationContractTests(unittest.TestCase):
             request_id="queue:concrete",
             normalized_seed=legacy_uint64_max,
             after_generate="increment",
+            next_seed_max=(1 << 50),
+            overflow="clamp",
         )
 
         self.assertEqual(parsed.selection, "concrete")
@@ -95,7 +135,8 @@ class SeedReservationContractTests(unittest.TestCase):
             [],
             _request_payload(schema="other"),
             _request_payload(version=True),
-            _request_payload(version=2),
+            _request_payload(version=1),
+            _request_payload(version=3),
             _request_payload(stream_id=" "),
             _request_payload(request_id=None),
             _request_payload(selection="random"),
@@ -103,7 +144,15 @@ class SeedReservationContractTests(unittest.TestCase):
             _request_payload(seed=None),
             _request_payload(seed=True),
             _request_payload(seed=-1),
+            _request_payload(seed=reservation.SEED_MAX_UINT64 + 1),
             _request_payload(after_generate="accept"),
+            _request_payload(next_seed_max=None),
+            _request_payload(next_seed_max=True),
+            _request_payload(next_seed_max=-1),
+            _request_payload(
+                next_seed_max=reservation.SEED_MAX_UINT64 + 1,
+            ),
+            _request_payload(overflow="cycle"),
         )
 
         for payload in invalid_payloads:
@@ -122,6 +171,8 @@ class SeedReservationContractTests(unittest.TestCase):
                     request_id="queue:invalid",
                     normalized_seed=seed,
                     after_generate="fixed",
+                    next_seed_max=(1 << 50),
+                    overflow="clamp",
                 )
 
         with self.assertRaises(reservation.SeedReservationContractError):
@@ -130,11 +181,23 @@ class SeedReservationContractTests(unittest.TestCase):
                 request_id="queue:invalid-control",
                 normalized_seed=1,
                 after_generate="unknown",
+                next_seed_max=(1 << 50),
+                overflow="clamp",
+            )
+
+        with self.assertRaises(reservation.SeedReservationContractError):
+            reservation.parse_legacy_seed_reservation_request(
+                stream_id="aio:7",
+                request_id="queue:invalid-domain",
+                normalized_seed=1,
+                after_generate="fixed",
+                next_seed_max=(1 << 50),
+                overflow="unknown",
             )
 
     def test_reservation_result_is_concrete_immutable_and_versioned(self):
         result = reservation.SeedReservation(
-            version=1,
+            version=2,
             reservation_id=" reservation:1 ",
             stream_id=" node:42 ",
             request_id=" queue:abc ",
@@ -149,14 +212,16 @@ class SeedReservationContractTests(unittest.TestCase):
             result.next_seed = 125
 
         for updates in (
-            {"version": 2},
+            {"version": 1},
             {"reservation_id": ""},
             {"execution_seed": -1},
             {"execution_seed": True},
+            {"execution_seed": reservation.SEED_MAX_UINT64 + 1},
             {"next_seed": -1},
+            {"next_seed": reservation.SEED_MAX_UINT64 + 1},
         ):
             values = {
-                "version": 1,
+                "version": 2,
                 "reservation_id": "reservation:1",
                 "stream_id": "node:42",
                 "request_id": "queue:abc",
@@ -180,7 +245,7 @@ class SeedReservationContractTests(unittest.TestCase):
             ) -> reservation.SeedReservation:
                 self.calls.append(("reserve", request))
                 return reservation.SeedReservation(
-                    version=1,
+                    version=2,
                     reservation_id="reservation:1",
                     stream_id=request.stream_id,
                     request_id=request.request_id,

@@ -46236,14 +46236,14 @@
       },
       {
         "is_package": false,
-        "loc": 300,
+        "loc": 349,
         "module": "easyuse_anima.seed.reservation",
-        "normalized_git_blob_sha1": "cba158be576da33aec0029813dedf9b06db53660",
+        "normalized_git_blob_sha1": "6b3d2d9a96a3969b26088471c9f0ba1fba45806b",
         "path": "easyuse_anima/seed/reservation.py",
         "top_level": {
           "class_count": 4,
           "function_count": 6,
-          "global_count": 18
+          "global_count": 23
         }
       },
       {
@@ -61683,7 +61683,7 @@
         "column": 18,
         "context": "assign:SEED_SELECTIONS",
         "kind": "import_time_call",
-        "line": 17,
+        "line": 18,
         "module": "easyuse_anima/seed/reservation.py",
         "scope": "<module>"
       },
@@ -61692,7 +61692,16 @@
         "column": 16,
         "context": "assign:SEED_CONTROLS",
         "kind": "import_time_call",
-        "line": 27,
+        "line": 28,
+        "module": "easyuse_anima/seed/reservation.py",
+        "scope": "<module>"
+      },
+      {
+        "callee": "frozenset",
+        "column": 25,
+        "context": "assign:SEED_OVERFLOW_POLICIES",
+        "kind": "import_time_call",
+        "line": 39,
         "module": "easyuse_anima/seed/reservation.py",
         "scope": "<module>"
       },
@@ -61701,7 +61710,7 @@
         "column": 19,
         "context": "assign:SEED_SETTLEMENTS",
         "kind": "import_time_call",
-        "line": 39,
+        "line": 49,
         "module": "easyuse_anima/seed/reservation.py",
         "scope": "<module>"
       },
@@ -61710,7 +61719,7 @@
         "column": 1,
         "context": "decorator:SeedReservationRequest",
         "kind": "import_time_call",
-        "line": 112,
+        "line": 131,
         "module": "easyuse_anima/seed/reservation.py",
         "scope": "<module>"
       },
@@ -61719,7 +61728,7 @@
         "column": 1,
         "context": "decorator:SeedReservation",
         "kind": "import_time_call",
-        "line": 169,
+        "line": 207,
         "module": "easyuse_anima/seed/reservation.py",
         "scope": "<module>"
       },
@@ -62239,7 +62248,7 @@
       },
       {
         "kind": "dict",
-        "line": 65,
+        "line": 79,
         "module": "easyuse_anima/seed/reservation.py",
         "name": "_LEGACY_SELECTION_BY_SEED"
       },

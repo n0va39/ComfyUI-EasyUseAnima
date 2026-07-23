@@ -8,7 +8,8 @@ from dataclasses import dataclass
 from typing import Literal, Protocol, TypeAlias, cast
 
 SEED_RESERVATION_REQUEST_SCHEMA = "easyuse_anima_seed_reservation_request"
-SEED_RESERVATION_CONTRACT_VERSION = 1
+SEED_RESERVATION_CONTRACT_VERSION = 2
+SEED_MAX_UINT64 = 0xFFFFFFFFFFFFFFFF
 
 SEED_SELECTION_CONCRETE = "concrete"
 SEED_SELECTION_RANDOMIZE = "randomize"
@@ -30,6 +31,15 @@ SEED_CONTROLS = frozenset(
         SEED_SELECTION_RANDOMIZE,
         SEED_SELECTION_INCREMENT,
         SEED_SELECTION_DECREMENT,
+    }
+)
+
+SEED_OVERFLOW_CLAMP = "clamp"
+SEED_OVERFLOW_WRAP = "wrap"
+SEED_OVERFLOW_POLICIES = frozenset(
+    {
+        SEED_OVERFLOW_CLAMP,
+        SEED_OVERFLOW_WRAP,
     }
 )
 
@@ -55,6 +65,10 @@ SeedControl: TypeAlias = Literal[
     "randomize",
     "increment",
     "decrement",
+]
+SeedOverflowPolicy: TypeAlias = Literal[
+    "clamp",
+    "wrap",
 ]
 SeedReservationSettlement: TypeAlias = Literal[
     "accepted",
@@ -102,9 +116,14 @@ def _require_choice(
 
 
 def _require_concrete_seed(value: object, label: str) -> int:
-    if isinstance(value, bool) or not isinstance(value, int) or value < 0:
+    if (
+        isinstance(value, bool)
+        or not isinstance(value, int)
+        or value < 0
+        or value > SEED_MAX_UINT64
+    ):
         raise SeedReservationContractError(
-            f"{label} must be a non-negative integer"
+            f"{label} must be an unsigned 64-bit integer"
         )
     return value
 
@@ -120,6 +139,8 @@ class SeedReservationRequest:
     selection: SeedSelection
     seed: int | None
     after_generate: SeedControl
+    next_seed_max: int
+    overflow: SeedOverflowPolicy
 
     def __post_init__(self) -> None:
         if self.schema != SEED_RESERVATION_REQUEST_SCHEMA:
@@ -151,6 +172,23 @@ class SeedReservationRequest:
                     self.after_generate,
                     SEED_CONTROLS,
                     "Seed after_generate",
+                ),
+            ),
+        )
+        object.__setattr__(
+            self,
+            "next_seed_max",
+            _require_concrete_seed(self.next_seed_max, "Seed next_seed_max"),
+        )
+        object.__setattr__(
+            self,
+            "overflow",
+            cast(
+                SeedOverflowPolicy,
+                _require_choice(
+                    self.overflow,
+                    SEED_OVERFLOW_POLICIES,
+                    "Seed overflow",
                 ),
             ),
         )
@@ -235,6 +273,8 @@ def parse_seed_reservation_request(
         selection=cast(SeedSelection, payload.get("selection")),
         seed=cast(int | None, payload.get("seed")),
         after_generate=cast(SeedControl, payload.get("after_generate")),
+        next_seed_max=cast(int, payload.get("next_seed_max")),
+        overflow=cast(SeedOverflowPolicy, payload.get("overflow")),
     )
 
 
@@ -244,6 +284,8 @@ def parse_legacy_seed_reservation_request(
     request_id: str,
     normalized_seed: int,
     after_generate: SeedControl,
+    next_seed_max: int,
+    overflow: SeedOverflowPolicy,
 ) -> SeedReservationRequest:
     """Translate an already-normalized legacy AiO seed without choosing a seed."""
 
@@ -271,12 +313,18 @@ def parse_legacy_seed_reservation_request(
         selection=selection,
         seed=concrete_seed,
         after_generate=after_generate,
+        next_seed_max=next_seed_max,
+        overflow=overflow,
     )
 
 
 __all__ = (
     "SEED_CONTROL_FIXED",
     "SEED_CONTROLS",
+    "SEED_MAX_UINT64",
+    "SEED_OVERFLOW_CLAMP",
+    "SEED_OVERFLOW_POLICIES",
+    "SEED_OVERFLOW_WRAP",
     "SEED_RESERVATION_CONTRACT_VERSION",
     "SEED_RESERVATION_REQUEST_SCHEMA",
     "SEED_SELECTION_CONCRETE",
@@ -289,6 +337,7 @@ __all__ = (
     "SEED_SETTLEMENT_REJECTED",
     "SEED_SETTLEMENTS",
     "SeedControl",
+    "SeedOverflowPolicy",
     "SeedReservation",
     "SeedReservationContractError",
     "SeedReservationRequest",
